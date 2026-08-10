@@ -1,0 +1,185 @@
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+html,
+body {
+  margin: 0;
+  height: 100%;
+}
+body {
+  background: radial-gradient(circle at 50% 20%, #2b1a3d, #120a1c 70%);
+  color: #fff;
+  font-family: system-ui, "Segoe UI", Arial, sans-serif;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  overflow: hidden;
+}
+.wrap {
+  text-align: center;
+  max-width: 480px;
+  width: 100%;
+  padding: 10px;
+}
+h1 {
+  margin: 6px 0;
+  font-size: 26px;
+  letter-spacing: 1px;
+}
+.hud {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+.stats span {
+  background: rgba(255, 255, 255, 0.08);
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 13px;
+}
+.stats b {
+  color: #c77dff;
+}
+.board {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  max-width: 420px;
+  margin: 0 auto;
+  padding: 8px;
+  background: rgba(255, 255, 255, 0.07);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  touch-action: manipulation;
+}
+.card {
+  aspect-ratio: 1;
+  perspective: 600px;
+  cursor: pointer;
+  user-select: none;
+}
+.card-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transition: transform 0.4s ease;
+  transform-style: preserve-3d;
+}
+.card.flipped .card-inner,
+.card.matched .card-inner {
+  transform: rotateY(180deg);
+}
+.card-face {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 36px;
+}
+.card-front {
+  background: linear-gradient(135deg, #6b3f7d, #3a2144);
+  transform: rotateY(180deg);
+}
+.card-back {
+  background: linear-gradient(135deg, #3a2144, #241031);
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 28px;
+  border: 1px solid #6b3f7d;
+}
+.card.cursor .card-back {
+  outline: 2px solid #c77dff;
+  outline-offset: -2px;
+}
+.card.matched .card-front {
+  background: linear-gradient(135deg, #2f6b47, #14321f);
+}
+.hint {
+  color: #7f8db3;
+  font-size: 12px;
+  margin: 10px 0 0;
+}
+.reset {
+  margin-top: 12px;
+  padding: 10px 22px;
+  font-size: 15px;
+  background: #6b3f7d;
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+}
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+}
+.overlay.hidden {
+  display: none;
+}
+.panel {
+  background: #1e1230;
+  border: 1px solid #6b3f7d;
+  border-radius: 16px;
+  padding: 24px 34px;
+  text-align: center;
+  max-width: 300px;
+}
+.panel h2 {
+  margin: 0 0 10px;
+  font-size: 26px;
+  color: #c77dff;
+}
+.panel p {
+  color: #e3d4f5;
+  margin: 0 0 16px;
+  font-size: 15px;
+}
+.panel button {
+  padding: 10px 26px;
+  font-size: 16px;
+  background: #c77dff;
+  color: #120a1c;
+  border: none;
+  border-radius: 10px;
+  font-weight: bold;
+  cursor: pointer;
+}
+/* Short landscape screens: keep the board within viewport height so it is
+   never clipped. */
+@media (max-height: 560px) and (orientation: landscape) {
+  .wrap {
+    padding: 4px;
+  }
+  h1 {
+    font-size: 18px;
+    margin: 2px 0;
+  }
+  .hud {
+    margin-bottom: 4px;
+  }
+  .stats span {
+    padding: 2px 8px;
+    font-size: 12px;
+  }
+  .board {
+    max-width: 34vh;
+  }
+  .card-face {
+    font-size: 28px;
+  }
+  .hint {
+    margin: 6px 0 0;
+    font-size: 11px;
+  }
+}

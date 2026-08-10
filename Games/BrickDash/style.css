@@ -1,0 +1,125 @@
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+html,
+body {
+  margin: 0;
+  height: 100%;
+}
+body {
+  background: radial-gradient(circle at 50% 20%, #3a1d33, #160b1f 70%);
+  color: #fff;
+  font-family: system-ui, "Segoe UI", Arial, sans-serif;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  overflow: hidden;
+}
+.wrap {
+  text-align: center;
+  max-width: 520px;
+  width: 100%;
+  padding: 10px;
+}
+h1 {
+  margin: 6px 0;
+  font-size: 26px;
+  letter-spacing: 1px;
+}
+.hud {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+.stats span {
+  background: rgba(255, 255, 255, 0.08);
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 13px;
+}
+.stats b {
+  color: #ff9d4a;
+}
+canvas {
+  display: block;
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto;
+  background: #160b1f;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  touch-action: none;
+}
+.controls {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 12px;
+}
+.tbtn {
+  flex: 1;
+  max-width: 150px;
+  padding: 16px 0;
+  font-size: 20px;
+  background: #3a2144;
+  color: #fff;
+  border: 1px solid #6b3f7d;
+  border-radius: 14px;
+  cursor: pointer;
+  user-select: none;
+  touch-action: none;
+}
+.tbtn:active {
+  background: #55306a;
+  transform: scale(0.95);
+}
+#dashBtn {
+  background: #7a3a2a;
+  border-color: #b35f42;
+  font-weight: bold;
+}
+#dashBtn:active {
+  background: #a04f37;
+}
+.hint {
+  color: #7f8db3;
+  font-size: 12px;
+  margin: 10px 0 0;
+}
+/* Short landscape screens: scale the (portrait) canvas down and tighten
+   spacing so the play area is never clipped. */
+@media (max-height: 560px) and (orientation: landscape) {
+  .wrap {
+    padding: 4px;
+  }
+  h1 {
+    font-size: 18px;
+    margin: 2px 0;
+  }
+  .hud {
+    margin-bottom: 4px;
+  }
+  .stats span {
+    padding: 2px 8px;
+    font-size: 12px;
+  }
+  canvas {
+    width: auto;
+    max-height: 42vh;
+  }
+  .controls {
+    margin-top: 6px;
+    gap: 8px;
+  }
+  .tbtn {
+    padding: 10px 0;
+    font-size: 16px;
+  }
+  .hint {
+    margin: 6px 0 0;
+    font-size: 11px;
+  }
+}

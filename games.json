@@ -133,5 +133,50 @@
     "desc": "Infamously difficult ragdoll running. Control thighs and calves with QWOP keys!",
     "url": "Games/QwopRemake/index.html",
     "featured": false
+  },
+  {
+    "id": 16,
+    "title": "Star Catcher",
+    "cat": "action",
+    "icon": "⭐",
+    "desc": "Catch falling stars, dodge bombs, and rack up combos as the sky speeds up.",
+    "url": "Games/StarCatcher/index.html",
+    "featured": false
+  },
+  {
+    "id": 17,
+    "title": "Paddle Duel",
+    "cat": "sports",
+    "icon": "🏓",
+    "desc": "Head-to-head Pong battle on one screen. First to five points wins!",
+    "url": "Games/PaddleDuel/index.html",
+    "featured": false
+  },
+  {
+    "id": 18,
+    "title": "Brick Dash",
+    "cat": "classic",
+    "icon": "🧱",
+    "desc": "Smash bricks at breakneck speed. Chain quick breaks to build huge combos!",
+    "url": "Games/BrickDash/index.html",
+    "featured": false
+  },
+  {
+    "id": 19,
+    "title": "Tile Merge",
+    "cat": "classic",
+    "icon": "🔢",
+    "desc": "Slide and merge matching tiles to build bigger and bigger numbers.",
+    "url": "Games/TileMerge/index.html",
+    "featured": false
+  },
+  {
+    "id": 20,
+    "title": "Match Flip",
+    "cat": "classic",
+    "icon": "🃏",
+    "desc": "Flip cards and find all the matching pairs as fast as you can.",
+    "url": "Games/MatchFlip/index.html",
+    "featured": false
   }
 ]

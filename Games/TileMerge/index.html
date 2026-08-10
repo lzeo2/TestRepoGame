@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tile Merge</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="wrap">
+  <div class="hud">
+    <h1>Tile Merge</h1>
+    <div class="stats">
+      <span>Score <b id="score">0</b></span>
+      <span>Best <b id="best">0</b></span>
+    </div>
+  </div>
+  <div id="board" class="board"></div>
+  <div class="controls">
+    <button class="tbtn" id="upBtn" type="button">&#9650;</button>
+    <button class="tbtn" id="leftBtn" type="button">&#9664;</button>
+    <button class="tbtn" id="downBtn" type="button">&#9660;</button>
+    <button class="tbtn" id="rightBtn" type="button">&#9654;</button>
+  </div>
+  <p class="hint">Arrows / WASD to move &middot; SPACE to select &middot; Touch: tap tiles + buttons</p>
+  <button id="resetBtn" class="reset" type="button">New Game</button>
+</div>
+<div id="overlay" class="overlay hidden">
+  <div class="panel" id="panel"></div>
+</div>
+<script src="script.js"></script>
+</body>
+</html>

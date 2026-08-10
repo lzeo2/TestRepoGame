@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Brick Dash</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="wrap">
+  <div class="hud">
+    <h1>Brick Dash</h1>
+    <div class="stats">
+      <span>Score <b id="score">0</b></span>
+      <span>Combo <b id="combo">x1</b></span>
+      <span>Lives <b id="lives">3</b></span>
+    </div>
+  </div>
+  <canvas id="game" width="480" height="560"></canvas>
+  <div class="controls">
+    <button class="tbtn" id="leftBtn" type="button">&#9664;</button>
+    <button class="tbtn" id="dashBtn" type="button">DASH</button>
+    <button class="tbtn" id="rightBtn" type="button">&#9654;</button>
+  </div>
+  <p class="hint">Keyboard: &#9664; &#9654; to move &middot; SPACE to launch / dash &middot; Touch: buttons below</p>
+</div>
+<script src="script.js"></script>
+</body>
+</html>

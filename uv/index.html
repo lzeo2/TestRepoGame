@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Proxy // UNBLOCKMATH ARCADE</title>
+    <link rel="icon" type="image/svg+xml" href="../favicon.svg" />
+    <!-- Shared look: same tokens as the arcade app (see ./assets/*.css in
+         the root build output); kept self-contained so this page does not
+         depend on hashed build assets. -->
+    <style>
+      :root {
+        --bg: #16171d;
+        --panel: #1f2028;
+        --border: #2e303a;
+        --text: #9ca3af;
+        --text-h: #f3f4f6;
+        --accent: #c084fc;
+        --accent-ink: #08060d;
+        --sans: system-ui, "Segoe UI", Roboto, sans-serif;
+        color-scheme: dark;
+      }
+      @media (prefers-color-scheme: light) {
+        :root {
+          --bg: #fff;
+          --panel: #fff;
+          --border: #e5e4e7;
+          --text: #6b6375;
+          --text-h: #08060d;
+          --accent: #aa3bff;
+        }
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background: var(--bg);
+        color: var(--text);
+        font: 16px/1.5 var(--sans);
+        -webkit-font-smoothing: antialiased;
+      }
+      main {
+        max-width: 560px;
+        margin: 0 auto;
+        padding: 64px 20px 48px;
+        text-align: center;
+      }
+      .back {
+        display: inline-block;
+        margin-bottom: 24px;
+        color: var(--text);
+        text-decoration: none;
+        font-size: 14px;
+      }
+      .back:hover {
+        color: var(--text-h);
+      }
+      h1 {
+        color: var(--text-h);
+        font-weight: 600;
+        letter-spacing: -0.5px;
+        font-size: 40px;
+        margin: 0 0 8px;
+      }
+      .muted {
+        margin: 0 0 32px;
+      }
+      form {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 16px;
+      }
+      label {
+        display: block;
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--text-h);
+        text-align: left;
+      }
+      input {
+        width: 100%;
+        padding: 10px 12px;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        background: var(--bg);
+        color: var(--text-h);
+        font: inherit;
+      }
+      input:focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 2px;
+      }
+      button {
+        padding: 10px 14px;
+        border: 1px solid var(--accent);
+        border-radius: 999px;
+        background: var(--accent);
+        color: var(--accent-ink);
+        font: inherit;
+        font-weight: 600;
+        cursor: pointer;
+      }
+      button:hover,
+      button:focus-visible {
+        filter: brightness(1.06);
+      }
+      button:focus-visible {
+        outline: 2px solid var(--text-h);
+        outline-offset: 2px;
+      }
+      button:disabled {
+        opacity: 0.55;
+        cursor: not-allowed;
+      }
+      button:disabled:hover,
+      button:disabled:focus-visible {
+        filter: none;
+      }
+      #uv-status {
+        margin: 16px 0 0;
+        padding: 12px 14px;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        background: var(--panel);
+        font-size: 14px;
+        text-align: left;
+        color: var(--text-h);
+        word-break: break-word;
+      }
+      #uv-status.is-error {
+        border-color: #f87171;
+        color: #fca5a5;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <a class="back" href="../" aria-label="Back to the arcade">&larr; Back to arcade</a>
+      <h1>Proxy</h1>
+      <p class="muted">
+        <strong>The proxy is not available on this deployment.</strong>
+        <br />
+        The Ultraviolet distribution files are not included here and the
+        proxy backend is disabled by default — no Bare server is configured
+        until an operator enables a controlled endpoint. See
+        <a href="../docs/proxy.md">docs/proxy.md</a>.
+      </p>
+
+      <form id="proxy-form" autocomplete="off">
+        <label for="proxy-url">Website URL</label>
+        <input
+          id="proxy-url"
+          type="text"
+          inputmode="url"
+          placeholder="https://example.com"
+          autocomplete="url"
+          required
+        />
+        <button type="submit" id="launch-btn" disabled>Launch</button>
+      </form>
+
+      <p id="uv-status" role="status" hidden></p>
+    </main>
+
+    <!-- Order matters: bundle defines UltravioletCodec, then config, then
+         the client, then this page's own entry point. These UV files are not
+         vendored in this repo; index.js reports the missing dependency and
+         never registers an inert worker. The proxy backend is disabled by
+         default — see docs/proxy.md. -->
+    <script src="./uv.bundle.js"></script>
+    <script src="./uv.config.js"></script>
+    <script src="./uv.client.js"></script>
+    <script src="./index.js"></script>
+  </body>
+</html>

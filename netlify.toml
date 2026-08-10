@@ -1,0 +1,65 @@
+# Netlify configuration for the UNBLOCKMATH ARCADE static site + UV launcher.
+#
+# HONESTY NOTE: this site does NOT run a local Bare server, and the proxy
+# backend is DISABLED by default. `bare-server-node` is not vendored in this
+# repo (and cannot be installed here), and Netlify Functions are stateless, so
+# they cannot hold a long-lived Bare server that handles WebSocket upgrades.
+# A previous revision proxied `/bare/*` to an external, community-hosted
+# public Bare server; that unauthenticated open relay was REMOVED for security
+# (see docs/proxy.md). No `/bare/*` traffic is forwarded anywhere until an
+# operator explicitly enables a controlled Bare endpoint below.
+
+[build]
+  # The repo root IS the built static site (the compiled React app lives in
+  # ./assets/ and ./index.html). No build command is needed.
+  publish = "."
+
+[functions]
+  directory = "netlify/functions"
+
+# Sensible security headers for the whole site.
+#
+# The Content-Security-Policy header sets ONLY `frame-ancestors`
+# (clickjacking protection). It deliberately does NOT set default-src or
+# style-src, so the documented inline <style> blocks in index.html and
+# uv/index.html keep working.
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Content-Security-Policy = "frame-ancestors 'self'"
+
+# Allow the Ultraviolet service worker in /uv/sw.js to control the whole
+# site. Without `Service-Worker-Allowed: /` the browser restricts the worker
+# to /uv/ and the proxy prefix (/service/...) cannot be intercepted.
+[[headers]]
+  for = "/uv/sw.js"
+  [headers.values]
+    Service-Worker-Allowed = "/"
+    Cache-Control = "public, max-age=0, must-revalidate"
+
+# Directory index for the launcher page.
+[[redirects]]
+  from = "/uv"
+  to = "/uv/"
+  status = 200
+
+# PROXY BACKEND — DISABLED BY DEFAULT.
+#
+# The old unauthenticated `/bare/*` -> https://tomp.app/bare/:splat redirect
+# (status 200 + force) was an open relay: anyone who knew the path could
+# route arbitrary traffic through a third-party server this site does not
+# control. It has been removed; requests to `/bare/*` now 404.
+#
+# An operator may enable the proxy ONLY by uncommenting the template below
+# and pointing `to` at a Bare server they operate (e.g. bare-server-node on
+# a persistent host — see docs/proxy.md §6.1). Do NOT point it at a public
+# third-party relay: public Bare servers are untrusted, can log/modify
+# traffic, and this site would become an open proxy for them.
+#
+# [[redirects]]
+#   from = "/bare/*"
+#   to = "https://<operator-controlled-host>/bare/:splat"
+#   status = 200
+#   force = true

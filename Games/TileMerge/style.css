@@ -1,0 +1,229 @@
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+html,
+body {
+  margin: 0;
+  height: 100%;
+}
+body {
+  background: radial-gradient(circle at 50% 20%, #14333a, #081419 70%);
+  color: #fff;
+  font-family: system-ui, "Segoe UI", Arial, sans-serif;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  overflow: hidden;
+}
+.wrap {
+  text-align: center;
+  max-width: 480px;
+  width: 100%;
+  padding: 10px;
+}
+h1 {
+  margin: 6px 0;
+  font-size: 26px;
+  letter-spacing: 1px;
+}
+.hud {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+.stats span {
+  background: rgba(255, 255, 255, 0.08);
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 13px;
+}
+.stats b {
+  color: #4dd2ff;
+}
+.board {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.07);
+  padding: 8px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  margin: 0 auto;
+  max-width: 420px;
+  touch-action: manipulation;
+}
+.cell {
+  aspect-ratio: 1;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 30px;
+  font-weight: bold;
+  position: relative;
+  cursor: pointer;
+  user-select: none;
+  transition: transform 0.12s ease;
+}
+.cell.empty {
+  color: transparent;
+}
+.cell.v2 { background: #eee4da; color: #776e65; }
+.cell.v4 { background: #ede0c8; color: #776e65; }
+/* Dark ink on the lighter tiles — white text fails contrast on these
+   oranges/golds (v8 and up), and the big tile's gold gradient. */
+.cell.v8 { background: #f2b179; color: #2e2419; }
+.cell.v16 { background: #f59563; color: #2e2419; }
+.cell.v32 { background: #f67c5f; color: #2e2419; }
+.cell.v64 { background: #f65e3b; color: #2e2419; }
+.cell.v128 { background: #edcf72; color: #2e2419; font-size: 24px; }
+.cell.v256 { background: #edcc61; color: #2e2419; font-size: 24px; }
+.cell.v512 { background: #edc850; color: #2e2419; font-size: 24px; }
+.cell.v1024 { background: #edc53f; color: #2e2419; font-size: 20px; }
+.cell.v2048 { background: #edc22e; color: #2e2419; font-size: 20px; }
+.cell.big {
+  background: linear-gradient(135deg, #ffd94a, #ff9d4a);
+  color: #2e2419;
+  font-size: 18px;
+}
+.cell.cursor {
+  outline: 2px solid #4dd2ff;
+  outline-offset: -2px;
+}
+.cell.sel {
+  transform: scale(1.12);
+  z-index: 2;
+  box-shadow: 0 0 18px rgba(77, 210, 255, 0.7);
+}
+.cell.mergepop {
+  animation: pop 0.22s ease;
+}
+@keyframes pop {
+  0% { transform: scale(1.2); }
+  100% { transform: scale(1); }
+}
+.cell.shake {
+  animation: shake 0.2s ease;
+}
+@keyframes shake {
+  25% { transform: translateX(-4px); }
+  75% { transform: translateX(4px); }
+}
+.controls {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  margin-top: 12px;
+  max-width: 420px;
+  margin-left: auto;
+  margin-right: auto;
+}
+.tbtn {
+  padding: 14px 0;
+  font-size: 22px;
+  background: #1d3a44;
+  color: #fff;
+  border: 1px solid #2f6575;
+  border-radius: 12px;
+  cursor: pointer;
+  user-select: none;
+  touch-action: none;
+}
+.tbtn:active {
+  background: #2d5568;
+  transform: scale(0.95);
+}
+.reset {
+  margin-top: 12px;
+  padding: 10px 22px;
+  font-size: 15px;
+  background: #2f6575;
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+}
+.hint {
+  color: #7f8db3;
+  font-size: 12px;
+  margin: 10px 0 0;
+}
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+}
+.overlay.hidden {
+  display: none;
+}
+.panel {
+  background: #12262e;
+  border: 1px solid #2f6575;
+  border-radius: 16px;
+  padding: 24px 34px;
+  text-align: center;
+  max-width: 300px;
+}
+.panel h2 {
+  margin: 0 0 10px;
+  font-size: 26px;
+}
+.panel p {
+  color: #cfe0ff;
+  margin: 0 0 16px;
+  font-size: 15px;
+}
+.panel button {
+  padding: 10px 26px;
+  font-size: 16px;
+  background: #4dd2ff;
+  color: #081419;
+  border: none;
+  border-radius: 10px;
+  font-weight: bold;
+  cursor: pointer;
+}
+/* Short landscape screens: keep the board within viewport height so it is
+   never clipped. */
+@media (max-height: 560px) and (orientation: landscape) {
+  .wrap {
+    padding: 4px;
+  }
+  h1 {
+    font-size: 18px;
+    margin: 2px 0;
+  }
+  .hud {
+    margin-bottom: 4px;
+  }
+  .stats span {
+    padding: 2px 8px;
+    font-size: 12px;
+  }
+  .board {
+    max-width: 34vh;
+  }
+  .cell {
+    font-size: 24px;
+  }
+  .controls {
+    margin-top: 6px;
+    gap: 6px;
+  }
+  .tbtn {
+    padding: 10px 0;
+    font-size: 18px;
+  }
+  .hint {
+    margin: 6px 0 0;
+    font-size: 11px;
+  }
+}
