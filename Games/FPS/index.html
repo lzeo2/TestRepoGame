@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<!--
+  FPS — original raycast first-person shooter
+  ----------------------------------------------------------------------------
+  CONTROLS
+    Mouse ........... look (click canvas to capture pointer)
+    WASD / Arrows ... move
+    Left click ...... fire
+    Right click ..... alternate fire (weapon dependent)
+    1 / 2 / 3 ....... switch weapon
+    R ............... reload
+    Shift ........... walk slowly
+    Space ........... strafe jump-ish hop (small)
+    Esc ............. release mouse / pause
+    Enter ........... respawn after death
+  ----------------------------------------------------------------------------
+  IMPLEMENTATION
+    Software raycast renderer (no WebGL). Wall, floor and ceiling textures are
+    generated procedurally at startup. Enemies are billboard sprites with a
+    simple state machine (patrol / chase / attack) and line-of-sight checks.
+    3 weapons: pistol, shotgun, auto rifle — each with its own spread, rate,
+    damage, ammo and reload behaviour. Sound is synthesized with WebAudio.
+  ----------------------------------------------------------------------------
+-->
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FPS — Raycast Shooter</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="wrap">
+  <div id="hud">
+    <div id="hudTop">
+      <span class="chip">HP <b id="hp">100</b></span>
+      <span class="chip">Score <b id="score">0</b></span>
+      <span class="chip">Kills <b id="kills">0</b></span>
+      <span class="chip">Ammo <b id="ammo">12/∞</b></span>
+      <span class="chip" id="weaponName">Pistol</span>
+    </div>
+    <div id="hudBot">
+      <span id="minimapLabel">MAP</span>
+      <canvas id="minimap" width="152" height="152"></canvas>
+    </div>
+  </div>
+
+  <canvas id="screen"></canvas>
+  <div id="crosshair">+</div>
+
+  <div id="overlay">
+    <div id="overlayCard">
+      <h1>RAYCAST <span>FPS</span></h1>
+      <p class="sub">Original software-rendered first-person shooter</p>
+      <div class="keys">
+        <div><b>W A S D</b> move &nbsp; <b>Mouse</b> look</div>
+        <div><b>LMB</b> fire &nbsp; <b>1/2/3</b> weapons &nbsp; <b>R</b> reload</div>
+        <div><b>Shift</b> walk slow &nbsp; <b>Esc</b> pause</div>
+      </div>
+      <p class="sub" id="bestLine">Best: <b id="bestScore">0</b></p>
+      <button id="btnStart" type="button">CLICK TO START</button>
+      <p class="hint">You need a mouse. Click the canvas to capture the pointer.</p>
+    </div>
+  </div>
+</div>
+<script src="game.js"></script>
+</body>
+</html>

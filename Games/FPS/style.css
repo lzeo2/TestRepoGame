@@ -1,0 +1,173 @@
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+html,
+body {
+  margin: 0;
+  height: 100%;
+  overflow: hidden;
+}
+body {
+  background: #05080c;
+  color: #dbe7f5;
+  font-family: system-ui, "Segoe UI", Arial, sans-serif;
+}
+.wrap {
+  position: fixed;
+  inset: 0;
+}
+#screen {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  background: #0a0f16;
+  cursor: crosshair;
+  touch-action: none;
+}
+#crosshair {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 22px;
+  color: rgba(255, 255, 255, 0.75);
+  text-shadow: 0 0 4px rgba(0, 0, 0, 0.9);
+  pointer-events: none;
+  z-index: 5;
+  line-height: 1;
+}
+#hud {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 4;
+}
+#hudTop {
+  position: absolute;
+  top: 10px;
+  left: 12px;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.chip {
+  background: rgba(5, 10, 18, 0.72);
+  border: 1px solid rgba(70, 100, 150, 0.4);
+  padding: 6px 13px;
+  border-radius: 99px;
+  font-size: 13px;
+  letter-spacing: 0.4px;
+  backdrop-filter: blur(2px);
+}
+.chip b {
+  color: #ffd94a;
+}
+#weaponName {
+  color: #9fc4ff;
+  border-color: rgba(120, 160, 220, 0.5);
+}
+#hudBot {
+  position: absolute;
+  bottom: 12px;
+  left: 12px;
+}
+#minimapLabel {
+  display: block;
+  font-size: 10px;
+  letter-spacing: 2px;
+  color: #5a7394;
+  margin-bottom: 3px;
+}
+#minimap {
+  display: block;
+  width: 152px;
+  height: 152px;
+  border: 1px solid rgba(70, 100, 150, 0.5);
+  border-radius: 10px;
+  background: rgba(5, 10, 18, 0.72);
+  backdrop-filter: blur(2px);
+}
+#overlay {
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(circle at 50% 30%, rgba(20, 34, 56, 0.92), rgba(4, 7, 12, 0.96) 75%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 20;
+}
+#overlayCard {
+  text-align: center;
+  max-width: 460px;
+  width: 90%;
+  padding: 30px 28px;
+  border: 1px solid rgba(90, 130, 190, 0.35);
+  border-radius: 18px;
+  background: rgba(8, 14, 24, 0.85);
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6);
+}
+#overlayCard h1 {
+  margin: 0 0 4px;
+  font-size: clamp(30px, 6vw, 44px);
+  letter-spacing: 2px;
+}
+#overlayCard h1 span {
+  color: #ff5c5c;
+}
+.sub {
+  color: #7d93af;
+  font-size: 13px;
+  margin: 6px 0 14px;
+}
+.keys {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(90, 130, 190, 0.25);
+  border-radius: 12px;
+  padding: 12px 16px;
+  font-size: 13px;
+  line-height: 1.9;
+  color: #aebfd8;
+  margin-bottom: 14px;
+}
+.keys b {
+  color: #ffd94a;
+}
+#bestLine {
+  margin-bottom: 10px;
+}
+#bestLine b {
+  color: #ffd94a;
+}
+#btnStart {
+  background: linear-gradient(180deg, #e25555, #a83232);
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  padding: 15px 44px;
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  cursor: pointer;
+  box-shadow: 0 8px 26px rgba(226, 85, 85, 0.4);
+  transition: transform 0.08s ease;
+}
+#btnStart:active {
+  transform: scale(0.97);
+}
+.hint {
+  color: #5a7394;
+  font-size: 11px;
+  margin-top: 14px;
+}
+@media (max-width: 620px) {
+  .chip {
+    font-size: 11px;
+    padding: 4px 9px;
+  }
+  #minimap {
+    width: 110px;
+    height: 110px;
+  }
+}

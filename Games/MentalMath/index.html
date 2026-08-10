@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mental Math</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="wrap">
+
+  <!-- ================= MENU / START ================= -->
+  <section id="screen-menu">
+    <h1>Mental Math</h1>
+    <p class="tag">Beat the clock! Solve as many arithmetic drills as you can before time runs out. Faster answers build a streak bonus.</p>
+
+    <div class="stat-line">
+      <span>Best <b id="menuBest">0</b></span>
+      <span>Games <b id="menuGames">0</b></span>
+    </div>
+
+    <h2 class="sub">Difficulty</h2>
+    <div class="seg-row" id="diffRow" role="group" aria-label="Difficulty">
+      <button class="seg" data-diff="easy" type="button">Easy</button>
+      <button class="seg" data-diff="medium" type="button">Medium</button>
+      <button class="seg" data-diff="hard" type="button">Hard</button>
+    </div>
+
+    <h2 class="sub">Round length</h2>
+    <div class="seg-row" id="timeRow" role="group" aria-label="Round length">
+      <button class="seg" data-time="30" type="button">30s</button>
+      <button class="seg" data-time="60" type="button">60s</button>
+      <button class="seg" data-time="120" type="button">120s</button>
+    </div>
+
+    <div class="btn-row">
+      <button id="startBtn" class="btn big" type="button">Start Drill</button>
+    </div>
+    <p class="hint">Keys: 1/2/3 = difficulty &middot; 4/5/6 = length &middot; ENTER = start</p>
+  </section>
+
+  <!-- ================= COUNTDOWN ================= -->
+  <section id="screen-countdown" class="hidden">
+    <div class="cd-card">
+      <p id="cdLabel" class="cd-label">Get ready</p>
+      <div id="cdNum" class="cd-num">3</div>
+    </div>
+  </section>
+
+  <!-- ================= GAME ================= -->
+  <section id="screen-game" class="hidden">
+    <div class="hud">
+      <span>Score <b id="score">0</b></span>
+      <span>Streak <b id="streak">0</b></span>
+      <span id="timerChip" class="timer-chip">Time <b id="timeLeft">60</b></span>
+      <span>Solved <b id="solved">0</b></span>
+    </div>
+    <div id="question" class="question">1 + 2 = ?</div>
+    <div id="answerBox" class="answer-box">&nbsp;</div>
+    <div id="feedback" class="feedback"></div>
+    <div id="keypad" class="keypad"></div>
+    <p class="hint">Keyboard: digits &middot; BACKSPACE &middot; ENTER &middot; ESC quits &middot; Touch: keypad below</p>
+  </section>
+
+  <!-- ================= RESULT ================= -->
+  <section id="screen-result" class="hidden">
+    <div class="result-card">
+      <h2 id="resultTitle">Time&rsquo;s Up!</h2>
+      <div id="resScore" class="res-score">0</div>
+      <p id="resDetail"></p>
+      <p id="resBest"></p>
+      <div class="btn-row">
+        <button id="againBtn" class="btn big" type="button">Play Again</button>
+        <button id="menuBtn" class="btn" type="button">Menu</button>
+      </div>
+      <p class="hint">Keys: ENTER / R = play again &middot; ESC = menu</p>
+    </div>
+  </section>
+
+</div>
+<script src="script.js"></script>
+</body>
+</html>

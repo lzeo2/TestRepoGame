@@ -1,0 +1,257 @@
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+html,
+body {
+  margin: 0;
+  height: 100%;
+}
+body {
+  background: radial-gradient(circle at 50% 20%, #3a2a1d, #1c130c 70%);
+  color: #fff;
+  font-family: system-ui, "Segoe UI", Arial, sans-serif;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+.wrap {
+  text-align: center;
+  max-width: 620px;
+  width: 100%;
+  padding: 12px;
+}
+h1 {
+  margin: 6px 0;
+  font-size: 26px;
+  letter-spacing: 1px;
+  background: linear-gradient(90deg, #ffd94a, #ff9d4a);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+.hud {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+.stats span {
+  background: rgba(255, 255, 255, 0.08);
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 13px;
+}
+.stats b {
+  color: #ffd94a;
+}
+.tag {
+  color: #b3a088;
+  font-size: 14px;
+  line-height: 1.5;
+  margin: 6px 0 12px;
+}
+.hidden {
+  display: none !important;
+}
+.btn-row {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 4px;
+}
+.btn {
+  background: #33251a;
+  color: #ffe9cf;
+  border: 1px solid #5a402b;
+  border-radius: 12px;
+  padding: 12px 18px;
+  font-size: 15px;
+  font-family: inherit;
+  cursor: pointer;
+  user-select: none;
+}
+.btn.big {
+  background: #ff9d4a;
+  color: #241405;
+  border-color: #ffbe7a;
+  font-weight: bold;
+  font-size: 16px;
+}
+.btn:active {
+  transform: scale(0.96);
+}
+.hint {
+  color: #a08a6d;
+  font-size: 12px;
+  margin: 8px 0 0;
+  line-height: 1.5;
+}
+
+/* ---- menu ---- */
+.menu-card {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 16px;
+  padding: 20px 16px;
+}
+.menu-stats p {
+  color: #d8c6ab;
+  font-size: 14px;
+  margin: 6px 0;
+}
+.menu-stats b {
+  color: #ffd94a;
+}
+
+/* ---- game ---- */
+.game-hud {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+.game-hud span {
+  background: rgba(255, 255, 255, 0.08);
+  padding: 4px 12px;
+  border-radius: 10px;
+  font-size: 13px;
+}
+.game-hud b {
+  color: #ffd94a;
+}
+.slots {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  margin: 8px 0 18px;
+  min-height: 64px;
+  flex-wrap: wrap;
+}
+.slot {
+  width: 46px;
+  height: 58px;
+  background: #241a10;
+  border: 2px solid #5a402b;
+  border-radius: 10px;
+  font-size: 30px;
+  font-weight: 700;
+  line-height: 54px;
+  color: #ffd94a;
+  text-transform: uppercase;
+}
+.slot.revealed {
+  border-color: #7dd3ff;
+  color: #7dd3ff;
+  background: #142436;
+}
+.slot.shown {
+  border-color: #ff6b6b;
+  color: #ff9d9d;
+}
+.slots.celebrate .slot {
+  border-color: #7dff8a;
+  color: #7dff8a;
+  animation: pop 0.3s ease;
+}
+@keyframes pop {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.15); }
+  100% { transform: scale(1); }
+}
+.tiles {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  margin-bottom: 18px;
+  min-height: 52px;
+  flex-wrap: wrap;
+}
+.tile {
+  width: 42px;
+  height: 50px;
+  background: #3d2d1f;
+  border: 1px solid #6b4d2f;
+  border-radius: 10px;
+  font-size: 24px;
+  font-weight: 700;
+  color: #ffe9cf;
+  text-transform: uppercase;
+  font-family: inherit;
+  cursor: pointer;
+  user-select: none;
+  touch-action: manipulation;
+  transition: transform 0.08s ease;
+}
+.tile:hover {
+  background: #4d3a28;
+}
+.tile:active {
+  transform: scale(0.92);
+}
+.tiles-empty {
+  color: #a08a6d;
+  font-size: 13px;
+  line-height: 50px;
+}
+.game-feedback {
+  min-height: 24px;
+  font-size: 15px;
+  font-weight: 600;
+  margin-top: 10px;
+}
+.game-feedback.good {
+  color: #7dff8a;
+}
+.game-feedback.bad {
+  color: #ff6b6b;
+}
+
+/* ---- result ---- */
+.result-card {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 16px;
+  padding: 24px 16px;
+  margin-top: 10px;
+}
+.result-card h2 {
+  margin: 0 0 8px;
+  font-size: 26px;
+  color: #ffd94a;
+}
+.score-line b {
+  font-size: 46px;
+  color: #ffd94a;
+}
+.score-line span {
+  font-size: 16px;
+  color: #d8c6ab;
+  margin-left: 6px;
+}
+.result-card p {
+  color: #d8c6ab;
+  margin: 6px 0;
+  font-size: 15px;
+}
+#resBest {
+  color: #ffd94a;
+  font-weight: 600;
+}
+
+@media (max-width: 420px) {
+  .slot {
+    width: 38px;
+    height: 50px;
+    font-size: 24px;
+    line-height: 46px;
+  }
+  .tile {
+    width: 36px;
+    height: 44px;
+    font-size: 20px;
+  }
+}

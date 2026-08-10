@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<!--
+  Eaglercraft (EaglercraftX 1.8.8) - offline wrapper
+  ----------------------------------------------------------------------------
+  WHAT THIS IS
+  An offline, self-contained shell around the official eaglerforge
+  EaglercraftX 1.8.8 client bundle (https://github.com/eaglerforge).
+  All client code (classes.js, ModAPI.js, ModLoader.js, ModGUI.js),
+  assets (assets.epk) and languages (lang/) are served locally from this
+  folder - nothing is fetched from an external CDN or tracking service.
+
+  SOURCE & LICENSING
+  - Maintained client source: github.com/eaglerforge/EaglerForge-old
+    (EaglercraftX 1.8.8, GPL-3.0 components + MC 1.8 assets that require
+    the player to own a copy of Minecraft Java Edition).
+  - Compiled bundle: github.com/eaglerforge/EaglerForge-builds (web/v1.3.2)
+  - This wrapper page is original code written for this repo.
+
+  CONTROLS (Minecraft 1.8 defaults)
+    WASD ......... move
+    Mouse ........ look around
+    Left click ... mine / attack
+    Right click .. place block / use item
+    Space ........ jump
+    Double-space . fly (creative)
+    Shift ........ sneak / descend while flying
+    E ............ inventory
+    Q ............ drop item
+    F ............ pick block (swap to held block)
+    F5 ........... toggle camera perspective
+    F3 ........... debug overlay
+    Esc .......... pause / menu
+    Click "Singleplayer" to create & play a local offline world.
+  ----------------------------------------------------------------------------
+-->
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="EaglercraftX 1.8.8 - Minecraft 1.8 running fully in your browser, offline singleplayer.">
+<title>Eaglercraft - Minecraft 1.8.8 (Offline)</title>
+<link rel="icon" href="favicon.png" type="image/png">
+<style>
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; height: 100%; }
+  body {
+    background: radial-gradient(circle at 50% 25%, #2a3a2a 0%, #101512 60%, #070a08 100%);
+    color: #e8f0e8;
+    font-family: system-ui, "Segoe UI", Arial, sans-serif;
+    overflow: hidden;
+  }
+  #game_frame {
+    position: fixed;
+    inset: 0;
+    background: #0b0f0c;
+  }
+  /* Loading overlay - removed by the client on startup */
+  #boot {
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    background: radial-gradient(circle at 50% 30%, #1c2a1c, #0a0f0a 75%);
+    transition: opacity 0.6s ease;
+  }
+  #boot.hide { opacity: 0; pointer-events: none; }
+  #boot .logo {
+    font-size: clamp(26px, 6vw, 46px);
+    font-weight: 800;
+    letter-spacing: 2px;
+    color: #fff;
+    text-shadow: 0 2px 12px rgba(84, 214, 124, 0.45);
+  }
+  #boot .logo span { color: #54d67c; }
+  #boot .sub { color: #9fb4a3; font-size: 14px; }
+  #boot .bar {
+    width: min(360px, 70vw);
+    height: 8px;
+    border-radius: 99px;
+    background: rgba(255,255,255,0.1);
+    overflow: hidden;
+  }
+  #boot .bar i {
+    display: block;
+    width: 0%;
+    height: 100%;
+    border-radius: 99px;
+    background: linear-gradient(90deg, #3aa05e, #54d67c);
+    animation: load 2.2s ease-in-out infinite;
+  }
+  @keyframes load {
+    0%   { width: 4%; }
+    55%  { width: 70%; }
+    100% { width: 96%; }
+  }
+  #boot .tip { color: #6d826f; font-size: 12px; max-width: 420px; text-align: center; line-height: 1.5; }
+  /* Footer bar */
+  #foot {
+    position: fixed;
+    left: 0; right: 0; bottom: 0;
+    z-index: 40;
+    padding: 5px 12px;
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    font-size: 11px;
+    color: #7c8f7e;
+    background: linear-gradient(transparent, rgba(0,0,0,0.65));
+    pointer-events: none;
+  }
+  #foot b { color: #a8c9ab; }
+  #foot span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+</style>
+</head>
+<body id="game_frame">
+  <div id="boot">
+    <div class="logo">Eaglercraft<span>X</span></div>
+    <div class="sub">Minecraft 1.8.8 &middot; offline edition</div>
+    <div class="bar"><i></i></div>
+    <div class="tip">Loading the full client from local files (~48 MB).<br>
+      Click <b>Singleplayer</b> on the main menu to create and play an offline world.</div>
+  </div>
+  <div id="foot">
+    <span><b>EaglercraftX 1.8.8</b> &middot; official eaglerforge client</span>
+    <span>WASD move &middot; mouse look &middot; click mine &middot; right-click place &middot; E inventory</span>
+  </div>
+
+  <!-- Official eaglerforge client files, all served locally -->
+  <script type="text/javascript" src="ModAPI.js"></script>
+  <script type="text/javascript" src="ModLoader.js"></script>
+  <script type="text/javascript" src="ModGUI.js"></script>
+  <script type="text/javascript" src="classes.js"></script>
+  <script type="text/javascript">
+    "use strict";
+    window.addEventListener("load", function () {
+      if (document.location.href.startsWith("file:")) {
+        var el = document.getElementById("boot");
+        el.querySelector(".tip").innerHTML =
+          "This game must be served over HTTP. Run a local static server " +
+          "(e.g. <b>python3 -m http.server</b>) in the repo root and open " +
+          "<b>Games/Eaglercraft/index.html</b>.";
+        return;
+      }
+      // Offline-first config: no external relays are contacted unless the
+      // player explicitly adds some. Singleplayer is fully self-contained.
+      window.eaglercraftXOpts = {
+        demoMode: false,
+        container: "game_frame",
+        assetsURI: "assets.epk",
+        localesURI: "lang/",
+        worldsDB: "worlds",
+        resourcePacksDB: "resourcePacks",
+        allowVoiceClient: true,
+        allowFNAWSkins: true,
+        enableDownloadOfflineButton: false,
+        checkRelaysForUpdates: false,
+        // Optional relays - empty by default (offline). To enable online
+        // multiplayer, list WebSocket relay addrs here, e.g.:
+        // relays: [ { addr: "wss://relay.example.com/", primary: true } ]
+        relays: null,
+        // Optional pre-filled server list shown on the multiplayer screen:
+        servers: null
+      };
+      var q = window.location.search;
+      if (typeof q === "string" && q.startsWith("?")) {
+        q = new URLSearchParams(q);
+        var s = q.get("server");
+        if (s) window.eaglercraftXOpts.joinServer = s;
+      }
+      main();
+    });
+  </script>
+</body>
+</html>

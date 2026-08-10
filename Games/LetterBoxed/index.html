@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Letter Boxed</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='2' y='2' width='28' height='28' rx='6' fill='%232c3550'/%3E%3Ctext x='16' y='22' font-size='16' font-family='sans-serif' font-weight='bold' text-anchor='middle' fill='%23ffd166'%3ELB%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="wrap">
+  <div class="hud">
+    <h1>Letter Boxed</h1>
+    <div class="stats">
+      <span>Words <b id="wCount">0</b></span>
+      <span>Letters <b id="lCount">0/12</b></span>
+    </div>
+  </div>
+  <p class="tagline">Use every letter &middot; Fewest words wins!</p>
+  <div id="box" class="box"></div>
+  <div id="current" class="current">&nbsp;</div>
+  <p id="msg" class="msg">&nbsp;</p>
+  <div id="words" class="words"></div>
+  <div class="controls">
+    <button id="delBtn" class="cbtn" type="button">&#9003; Delete</button>
+    <button id="submitBtn" class="cbtn primary" type="button">Submit</button>
+    <button id="hintBtn" class="cbtn" type="button">Hint</button>
+    <button id="newBtn" class="cbtn" type="button">New Game</button>
+  </div>
+  <p class="hint">Tap letters &middot; Consecutive letters must be on different sides &middot; Each word starts with the last letter of the previous word</p>
+</div>
+<div id="overlay" class="overlay hidden">
+  <div class="panel" id="panel"></div>
+</div>
+<script src="script.js"></script>
+</body>
+</html>

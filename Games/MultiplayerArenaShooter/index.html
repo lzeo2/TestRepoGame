@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<!--
+  Multiplayer Arena Shooter
+  ----------------------------------------------------------------------------
+  CONTROLS
+  Desktop:
+    WASD / Arrows ... move
+    Mouse ........... aim
+    Left click ...... shoot
+    Space ........... dash
+    R ............... respawn / ready
+    Enter ........... start match (host)
+  Touch:
+    Left stick ...... move
+    Right stick ..... aim
+    Right stick tap . shoot (fire while held)
+    DASH button ..... dash
+    READY button .... respawn / ready
+  ----------------------------------------------------------------------------
+  NETWORK
+  Peer-to-peer WebRTC via the locally vendored official PeerJS distribution
+  (peerjs.min.js from peers/peerjs, v1.5.5). No server-side game logic: the
+  HOST runs an authoritative simulation and relays state to up to 3 clients
+  over PeerJS data channels, so 2-4 players total can play.
+  ----------------------------------------------------------------------------
+-->
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Multiplayer Arena Shooter</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="app">
+  <!-- ===================== LOBBY ===================== -->
+  <section id="lobby" class="panel">
+    <h1 class="title">Arena <span>Shooter</span></h1>
+    <p class="subtitle">2-4 player WebRTC battle arena &middot; peer-to-peer, no server</p>
+
+    <div class="field">
+      <label for="nick">Nickname</label>
+      <input id="nick" maxlength="12" placeholder="Soldier" autocomplete="off">
+    </div>
+
+    <div class="lobby-tabs">
+      <button id="tabHost" class="tab active" type="button">Host Game</button>
+      <button id="tabJoin" class="tab" type="button">Join Game</button>
+    </div>
+
+    <div id="hostPane" class="pane">
+      <p class="pane-hint">Create a private room. Share the room code with up to 3 friends.</p>
+      <button id="btnHost" class="primary wide" type="button">Create Room</button>
+    </div>
+
+    <div id="joinPane" class="pane hidden">
+      <div class="field">
+        <label for="roomCode">Room code</label>
+        <input id="roomCode" maxlength="12" placeholder="ABC123" autocomplete="off">
+      </div>
+      <button id="btnJoin" class="primary wide" type="button">Join Room</button>
+    </div>
+
+    <div id="lobbyError" class="error hidden"></div>
+
+    <p class="footnote">PeerJS cloud signalling only relays connection metadata &mdash; movement and
+      bullets flow directly between browsers over WebRTC data channels.</p>
+  </section>
+
+  <!-- ===================== WAITING / ROOM ===================== -->
+  <section id="room" class="panel hidden">
+    <h2>Room <span id="roomCodeLabel"></span></h2>
+    <p class="pane-hint">Host: waiting for players&hellip; share this code.</p>
+    <ul id="playerList" class="player-list"></ul>
+    <button id="btnStart" class="primary wide" type="button">Start Match</button>
+    <button id="btnLeaveRoom" class="ghost wide" type="button">Leave Room</button>
+  </section>
+
+  <!-- ===================== GAME ===================== -->
+  <section id="game" class="hidden">
+    <canvas id="arena" width="960" height="640"></canvas>
+    <div id="hud">
+      <div id="hudLeft">
+        <span class="hud-chip">HP <b id="hpVal">100</b></span>
+        <span class="hud-chip">Kills <b id="killVal">0</b></span>
+        <span class="hud-chip">Rounds <b id="roundVal">1</b></span>
+      </div>
+      <div id="hudRight">
+        <span id="pingVal" class="hud-chip">Ping --</span>
+        <span id="roleTag" class="hud-chip">HOST</span>
+      </div>
+    </div>
+    <div id="touchControls">
+      <div id="stickLeft" class="stick"><div class="stick-knob"></div></div>
+      <div id="stickRight" class="stick"><div class="stick-knob"></div></div>
+      <button id="dashBtn" class="touch-btn" type="button">DASH</button>
+      <button id="readyBtn" class="touch-btn" type="button">READY</button>
+    </div>
+    <div id="minimap"><canvas id="mm" width="120" height="80"></canvas></div>
+  </section>
+
+  <!-- ===================== OVERLAY ===================== -->
+  <div id="overlay" class="hidden">
+    <div id="overlayCard">
+      <h2 id="ovTitle">Ready</h2>
+      <p id="ovText"></p>
+      <div id="scoreBoard" class="hidden"></div>
+      <button id="btnNext" class="primary hidden" type="button">Next Round</button>
+      <button id="btnRematch" class="primary hidden" type="button">Rematch</button>
+      <button id="btnQuit" class="ghost hidden" type="button">Back to Lobby</button>
+    </div>
+  </div>
+</div>
+
+<!-- Official PeerJS distribution, vendored locally (peers/peerjs v1.5.5) -->
+<script src="peerjs.min.js"></script>
+<script src="game.js"></script>
+</body>
+</html>

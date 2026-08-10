@@ -1,0 +1,234 @@
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+html,
+body {
+  margin: 0;
+  height: 100%;
+}
+body {
+  background: radial-gradient(circle at 50% 20%, #1e2434, #0b0e16 70%);
+  color: #fff;
+  font-family: system-ui, "Segoe UI", Arial, sans-serif;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+}
+.wrap {
+  text-align: center;
+  max-width: 460px;
+  width: 100%;
+  padding: 10px;
+}
+h1 {
+  margin: 6px 0;
+  font-size: 26px;
+  letter-spacing: 1px;
+}
+.hud {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+.stats span {
+  background: rgba(255, 255, 255, 0.08);
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 13px;
+}
+.stats b {
+  color: #ffd166;
+}
+.tagline {
+  color: #8a94b0;
+  font-size: 13px;
+  margin: 4px 0 10px;
+}
+.board {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  margin: 0 auto;
+  touch-action: manipulation;
+}
+.word {
+  background: #2c3550;
+  border: 1px solid #3d4a70;
+  border-radius: 10px;
+  padding: 14px 4px;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  color: #fff;
+  cursor: pointer;
+  user-select: none;
+  transition: transform 0.1s ease, background 0.1s ease, box-shadow 0.1s ease;
+  touch-action: manipulation;
+}
+.word:active {
+  transform: scale(0.96);
+}
+.word.selected {
+  background: #ffd166;
+  border-color: #ffd166;
+  color: #1a1a1a;
+  box-shadow: 0 0 14px rgba(255, 209, 102, 0.4);
+}
+.word.cursor {
+  outline: 2px solid #6c8cff;
+  outline-offset: -2px;
+}
+.word.selected.cursor {
+  outline-color: #1a1a1a;
+}
+.solved {
+  display: grid;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+.group {
+  border-radius: 10px;
+  padding: 8px 12px;
+  font-size: 14px;
+  line-height: 1.45;
+  animation: slideIn 0.35s ease;
+}
+.group .cat {
+  display: block;
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  margin-bottom: 2px;
+}
+.group.yellow {
+  background: #f7df6d;
+  color: #14160b;
+}
+.group.green {
+  background: #a0c35a;
+  color: #10150a;
+}
+.group.blue {
+  background: #b0c4ef;
+  color: #0d1220;
+}
+.group.purple {
+  background: #ba81c5;
+  color: #160c1a;
+}
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.msg {
+  min-height: 18px;
+  font-size: 13px;
+  color: #8a94b0;
+  margin: 10px 0 4px;
+}
+.msg.error {
+  color: #ff6b6b;
+  animation: flash 0.5s ease;
+}
+.msg.ok {
+  color: #7be495;
+}
+@keyframes flash {
+  0% {
+    opacity: 0.3;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+.controls {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  margin-top: 4px;
+}
+.cbtn {
+  flex: 1;
+  max-width: 130px;
+  padding: 11px 0;
+  font-size: 15px;
+  font-weight: 600;
+  background: #2c3550;
+  color: #fff;
+  border: 1px solid #3d4a70;
+  border-radius: 10px;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.cbtn:active {
+  transform: scale(0.96);
+}
+.cbtn.primary {
+  background: #ffd166;
+  border-color: #ffd166;
+  color: #1a1a1a;
+}
+.hint {
+  color: #5f6b8c;
+  font-size: 11px;
+  margin: 12px 0 0;
+}
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+}
+.overlay.hidden {
+  display: none;
+}
+.panel {
+  background: #141a2a;
+  border: 1px solid #3d4a70;
+  border-radius: 16px;
+  padding: 24px 30px;
+  text-align: center;
+  max-width: 320px;
+  width: calc(100% - 40px);
+}
+.panel h2 {
+  margin: 0 0 10px;
+  font-size: 26px;
+}
+.panel p {
+  color: #c6cee4;
+  margin: 0 0 16px;
+  font-size: 15px;
+}
+.panel button {
+  padding: 10px 26px;
+  font-size: 16px;
+  background: #ffd166;
+  color: #1a1a1a;
+  border: none;
+  border-radius: 10px;
+  font-weight: bold;
+  cursor: pointer;
+}
+.board.solvedAll .word {
+  display: none;
+}
+@media (max-width: 380px) {
+  .word {
+    padding: 12px 2px;
+    font-size: 13px;
+  }
+}

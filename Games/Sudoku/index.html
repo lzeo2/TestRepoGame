@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sudoku</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="wrap">
+  <div class="hud">
+    <h1>Sudoku</h1>
+    <div class="stats">
+      <span>Time <b id="time">0:00</b></span>
+      <span>Errors <b id="errors">0/3</b></span>
+    </div>
+  </div>
+  <div class="diff">
+    <button class="dbtn active" id="diffEasy" type="button">Easy</button>
+    <button class="dbtn" id="diffMedium" type="button">Medium</button>
+    <button class="dbtn" id="diffHard" type="button">Hard</button>
+  </div>
+  <div id="board" class="board"></div>
+  <div class="pad">
+    <button class="pbtn" data-n="1" type="button">1</button>
+    <button class="pbtn" data-n="2" type="button">2</button>
+    <button class="pbtn" data-n="3" type="button">3</button>
+    <button class="pbtn" data-n="4" type="button">4</button>
+    <button class="pbtn" data-n="5" type="button">5</button>
+    <button class="pbtn" data-n="6" type="button">6</button>
+    <button class="pbtn" data-n="7" type="button">7</button>
+    <button class="pbtn" data-n="8" type="button">8</button>
+    <button class="pbtn" data-n="9" type="button">9</button>
+  </div>
+  <div class="tools">
+    <button id="notesBtn" class="tbtn" type="button">Notes</button>
+    <button id="eraseBtn" class="tbtn" type="button">Erase</button>
+    <button id="newBtn" class="tbtn primary" type="button">New Game</button>
+  </div>
+  <p class="hint">Tap a cell, then a number &middot; Keyboard: arrows move, 1&ndash;9 enter, 0/Backspace erase, N notes</p>
+</div>
+<div id="overlay" class="overlay hidden">
+  <div class="panel" id="panel"></div>
+</div>
+<script src="script.js"></script>
+</body>
+</html>

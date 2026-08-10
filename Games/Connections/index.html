@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Connections</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="wrap">
+  <div class="hud">
+    <h1>Connections</h1>
+    <div class="stats">
+      <span>Board <b id="boardNum">1/5</b></span>
+      <span>Mistakes <b id="mistakes">0/4</b></span>
+    </div>
+  </div>
+  <p class="tagline">Find four words that share something in common.</p>
+  <div id="solved" class="solved"></div>
+  <div id="board" class="board"></div>
+  <p id="msg" class="msg">&nbsp;</p>
+  <div class="controls">
+    <button id="shuffleBtn" class="cbtn" type="button">Shuffle</button>
+    <button id="submitBtn" class="cbtn primary" type="button">Submit</button>
+    <button id="newBtn" class="cbtn" type="button">New Game</button>
+  </div>
+  <p class="hint">Tap words to select 4 &middot; Keyboard: Arrows/WASD move &middot; Space select &middot; Enter submit &middot; S shuffle</p>
+</div>
+<div id="overlay" class="overlay hidden">
+  <div class="panel" id="panel"></div>
+</div>
+<script src="script.js"></script>
+</body>
+</html>

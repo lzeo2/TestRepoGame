@@ -178,5 +178,122 @@
     "desc": "Flip cards and find all the matching pairs as fast as you can.",
     "url": "Games/MatchFlip/index.html",
     "featured": false
+  },
+  {
+    "id": 21,
+    "title": "A-GEO Quiz",
+    "cat": "classic",
+    "icon": "🌏",
+    "desc": "Test your knowledge of Australia: capital cities, states & territories, and famous landmarks.",
+    "url": "Games/AGeography/index.html",
+    "featured": false
+  },
+  {
+    "id": 22,
+    "title": "Connections",
+    "cat": "puzzle",
+    "icon": "🔗",
+    "desc": "Find four words that share something in common.",
+    "url": "Games/Connections/index.html",
+    "featured": false
+  },
+  {
+    "id": 23,
+    "title": "Eaglercraft",
+    "cat": "action",
+    "icon": "⛏️",
+    "desc": "Minecraft 1.8.8 playable in your browser. Offline sandbox, mine and build to your heart's content.",
+    "url": "Games/Eaglercraft/index.html",
+    "featured": false
+  },
+  {
+    "id": 24,
+    "title": "FPS",
+    "cat": "action",
+    "icon": "🎯",
+    "desc": "Original software-rendered first-person shooter. Grab the pointer and take aim.",
+    "url": "Games/FPS/index.html",
+    "featured": false
+  },
+  {
+    "id": 25,
+    "title": "Memory Match",
+    "cat": "classic",
+    "icon": "🧠",
+    "desc": "Flip cards two at a time and match every pair. Fewer moves and less time make a better score.",
+    "url": "Games/MemoryMatch/index.html",
+    "featured": false
+  },
+  {
+    "id": 26,
+    "title": "Multiplayer Arena Shooter",
+    "cat": "action",
+    "icon": "💥",
+    "desc": "2-4 player WebRTC battle arena. Peer-to-peer, no server required. Share a room code and battle!",
+    "url": "Games/MultiplayerArenaShooter/index.html",
+    "featured": false
+  },
+  {
+    "id": 27,
+    "title": "Sudoku",
+    "cat": "puzzle",
+    "icon": "🔢",
+    "desc": "Fill the grid so every row, column and 3x3 box contains 1-9 exactly once.",
+    "url": "Games/Sudoku/index.html",
+    "featured": false
+  },
+  {
+    "id": 28,
+    "title": "Times Tables",
+    "cat": "classic",
+    "icon": "✖️",
+    "desc": "Fast-paced multiplication drill. Answer quick and master your times tables.",
+    "url": "Games/TimesTables/index.html",
+    "featured": false
+  },
+  {
+    "id": 29,
+    "title": "Typing Test",
+    "cat": "classic",
+    "icon": "⌨️",
+    "desc": "Measure your typing speed and accuracy. Pick a difficulty, then type the passage shown.",
+    "url": "Games/TypingTest/index.html",
+    "featured": false
+  },
+  {
+    "id": 30,
+    "title": "Word Scramble",
+    "cat": "puzzle",
+    "icon": "🔤",
+    "desc": "Unscramble the letters to form the word. Earn points for fast, correct answers.",
+    "url": "Games/WordScramble/index.html",
+    "featured": false
+  },
+  {
+    "id": 31,
+    "title": "Letter Boxed",
+    "cat": "puzzle",
+    "icon": "🔠",
+    "desc": "Use every letter with the fewest words. Each word must start with the last letter of the previous.",
+    "url": "Games/LetterBoxed/index.html",
+    "featured": false
+  },
+  {
+    "id": 32,
+    "title": "Mental Math",
+    "cat": "classic",
+    "icon": "🧮",
+    "desc": "Beat the clock! Solve as many arithmetic drills as you can before time runs out. Faster answers build a streak bonus.",
+    "url": "Games/MentalMath/index.html",
+    "featured": false
+  },
+  {
+    "id": 33,
+    "title": "Spelling Bee",
+    "cat": "puzzle",
+    "icon": "🐝",
+    "desc": "Make words of four or more letters from the honeycomb. Every word must use the center letter.",
+    "url": "Games/SpellingBee/index.html",
+    "featured": false
   }
 ]

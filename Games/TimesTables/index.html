@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Times Tables</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="wrap">
+  <div class="hud">
+    <h1>Times Tables</h1>
+    <div class="stats">
+      <span>Total Stars <b id="starTotal">0</b></span>
+    </div>
+  </div>
+
+  <section id="screen-menu">
+    <p class="tag">Pick a table (1&ndash;12) for a 10-question speed drill &mdash; answer fast for up to 3 stars. Or try <b>Mixed Mode</b>.</p>
+    <div id="tableGrid" class="table-grid"></div>
+    <div class="btn-row">
+      <button id="mixedBtn" class="btn big" type="button">Mixed Mode</button>
+      <button id="progressBtn" class="btn" type="button">View Progress</button>
+    </div>
+  </section>
+
+  <section id="screen-drill" class="hidden">
+    <div class="drill-hud">
+      <span>Table <b id="drillTable">6</b></span>
+      <span>Q <b id="drillQ">1/10</b></span>
+      <span>Time <b id="drillTime">0:00</b></span>
+      <span>Streak <b id="drillStreak">0</b></span>
+    </div>
+    <div id="question" class="question">6 &times; 7 = ?</div>
+    <div id="answerBox" class="answer-box">0</div>
+    <div id="feedback" class="feedback"></div>
+    <div id="keypad" class="keypad"></div>
+    <p class="hint">Keyboard: digits &middot; BACKSPACE &middot; ENTER &middot; ESC quits &middot; Touch: keypad below</p>
+  </section>
+
+  <section id="screen-result" class="hidden">
+    <div class="result-card">
+      <h2 id="resultTitle">Drill Complete!</h2>
+      <div id="starsRow" class="stars-row"></div>
+      <p id="resultLine1"></p>
+      <p id="resultLine2"></p>
+      <div class="btn-row">
+        <button id="againBtn" class="btn big" type="button">Play Again</button>
+        <button id="menuBtn" class="btn" type="button">Menu</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="screen-progress" class="hidden">
+    <h2 class="sub">Progress</h2>
+    <div id="progressGrid" class="table-grid"></div>
+    <p class="tag">3 stars = 10 correct in &le;18s &middot; 2 stars = 10 correct in &le;35s &middot; 1 star = 8+ correct</p>
+    <div class="btn-row">
+      <button id="backBtn" class="btn" type="button">Back</button>
+      <button id="resetProgressBtn" class="btn danger" type="button">Reset Progress</button>
+    </div>
+  </section>
+</div>
+<script src="script.js"></script>
+</body>
+</html>

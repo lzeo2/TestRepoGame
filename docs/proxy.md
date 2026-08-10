@@ -19,8 +19,6 @@ is forwarded anywhere.
 | `uv/index.js` | Launcher entry point: validates input (http/https only, no control characters), registers the service worker at root scope **only when** the UV distribution is present, checks the (absent) UV dependency, navigates to `<prefix><encoded-url>`. |
 | `uv/uv.config.js` | UV configuration: `bare: '/bare/'`, `prefix: '/service/'`, paths for handler/client/bundle/sw. Guarded against a missing `UltravioletCodec` global. |
 | `uv/sw.js` | Service-worker launcher. Uses a **relative** import of `./uv.sw.js`; if the UV distribution is absent the import throws, the worker logs an error and **unregisters itself** so no inert root-scope worker lingers. |
-| `react-app/public/uv/` | Identical mirror of the launcher inside the React app's `public/` folder, so a future `npm run build` ships the same `/uv/` files. |
-| `react-app/index.html` | Same launcher button + style as the root `index.html`, so the source of truth stays in sync with the deployed build. |
 | `netlify.toml` | Publish dir `.`; security headers (`X-Content-Type-Options: nosniff`, `Referrer-Policy`, `Content-Security-Policy: frame-ancestors 'self'`); `Service-Worker-Allowed: /` header for `/uv/sw.js`. The `/bare/*` public relay redirect was **removed** — the proxy backend is disabled by default, with a commented-out template an operator can enable. |
 | `netlify/functions/bare.js` | Status endpoint (`/.netlify/functions/bare`) that honestly reports **proxyEnabled: false**, **localBare: false**, and treats `PUBLIC_BARE_URL` as **informational only**. |
 | `docs/proxy.md` | This file. |
@@ -33,8 +31,8 @@ Notes on scope:
 - There is **no `manifest.json`** anywhere in the repo (PWA manifest was never
   added), so there is nothing to share/sync; the React source and the deployed
   root already share the same look because the root **is** the built React app.
-- Existing unrelated working-tree changes (e.g. the games under
-  `react-app/public/Games/`, `Games/`) were left untouched.
+- Existing unrelated working-tree changes (e.g. the games under `Games/`)
+  were left untouched.
 
 ---
 
@@ -155,7 +153,6 @@ reports the missing dependency / disabled backend.
    ```
    npm i @titaniumnetwork-dev/ultraviolet
    cp node_modules/@titaniumnetwork-dev/ultraviolet/dist/uv.{bundle,client,handler,sw}.js uv/
-   cp node_modules/@titaniumnetwork-dev/ultraviolet/dist/uv.{bundle,client,handler,sw}.js react-app/public/uv/
    ```
    Then redeploy (the copies live in the publish directory). Even after this,
    the **backend stays disabled** until a controlled Bare endpoint is enabled
