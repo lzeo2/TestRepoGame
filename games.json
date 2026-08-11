@@ -358,5 +358,23 @@
     "desc": "Fan-hosted port of the Henry Stickmin adventure Infiltrating the Airship — sneak aboard the Toppat airship and pick your path through branching chaos. Original Flash game running under the bundled local Ruffle emulator.",
     "url": "Games/InfiltratingTheAirship/index.html",
     "featured": false
+  },
+  {
+    "id": 59,
+    "title": "Baldi's Basics",
+    "cat": "action",
+    "icon": "🏫",
+    "desc": "Fan-hosted Unity WebGL port of Mystman12's Baldi's Basics in Education and Learning — explore the school, solve notebook math problems, and outrun Baldi as he gets faster with every wrong answer. Local build; fully playable offline.",
+    "url": "Games/BaldisBasics/index.html",
+    "featured": false
+  },
+  {
+    "id": 60,
+    "title": "Temple Run 2",
+    "cat": "action",
+    "icon": "🏛️",
+    "desc": "Fan-hosted HTML5 port (Babylon.js) of the Temple Run 2 endless-runner concept — sprint through the lost temple ruins, turn, jump and slide to survive. Local assets; fully playable offline.",
+    "url": "Games/TempleRun2/index.html",
+    "featured": false
   }
 ]

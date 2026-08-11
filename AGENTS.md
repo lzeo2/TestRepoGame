@@ -28,6 +28,7 @@ Operating rules for any agent (opencode, Claude Code, Codex, Hermes) working in 
 - Commit at milestones with clear prefixes: `feat:`, `fix:`, `chore:`, `docs:`.
 - Small bounded commits; never mix unrelated changes in one commit.
 - Verify with real commands and quote output (see docs/CODE_QUALITY.md §7): games.json parse + url check, external-fetch grep, `node --check`, `du` audit, `git status`.
+- **MANDATORY pre-push QA gate**: run `xvfb-run python3 scripts/smoke_test_games.py` — it loads EVERY registered game in a real browser, captures console errors + failed/4xx requests, and exits non-zero on any failure. Static checks are NOT sufficient: runtime bugs (missing files, undefined globals, broken fetches) only surface when the game actually loads. Any game that fails the gate must be fixed or explicitly reported before push.
 - Swarms (opencode multi-agent): orchestrator plans + delegates, workers implement, reviewer/mimo verifies, security-audit + ui-audit cover their domains. Anti-hang rules: small bounded subagent tasks, abandon after 2 failures, progress line per delegation, no dev servers, commit at milestones, no silent delegation > ~20 min.
 - Disk guard: check `df -h / | tail -1` before big operations; if free < 2 GB, stop, commit, report.
 - Report with evidence — never fabricate success.

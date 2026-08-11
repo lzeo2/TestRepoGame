@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <!--
+      Attribution / provenance:
+      Fan-hosted Unity WebGL port (companyName "Mystman12", v1.4.3) of
+      Mystman12's Baldi's Basics in Education and Learning, vendored from
+      github.com/deploythings123123123/seraph (branch main, commit ae2fcc6,
+      path games/baldisbasics). Google Analytics (gtag), the absolute /js/main.js
+      reference, the site's tab-cloak script, the remote ico.ico favicon (now
+      the local splash.png), and the unused Firebase SDK (firebase-app.js — the
+      compiled build never touches window.firebase) are removed. The compiled
+      wasm/data blobs contain only inert strings (font licenses, .NET schema
+      URIs); there are no runtime fetches. The game is the property of
+      Mystman12 and is included for fan/archival play.
+    -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <title>Baldi's Basics</title>
+    <link rel="icon" href="splash.png" />
+    <link rel="stylesheet" href="TemplateData/style.css" />
+    <style>
+      html, body {
+        height: 100%;
+        margin: 0;
+        background: #2C3547;
+        overflow: hidden;
+      }
+      #shell {
+        position: relative;
+        height: 100%;
+      }
+      /* TemplateData/style.css forces .webgl-content to 100% absolute; keep it
+         inside the shell and preserve the 8:5 build aspect ratio. */
+      .webgl-content {
+        position: relative !important;
+        left: auto !important;
+        top: auto !important;
+        margin: 0 auto;
+        width: min(100vw, calc(100vh * 1.6)) !important;
+        height: auto !important;
+        aspect-ratio: 8 / 5;
+        top: 50%;
+        transform: translateY(-50%);
+      }
+      #loader {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        background: #231F20;
+        color: #fff;
+        font-family: system-ui, "Segoe UI", Roboto, sans-serif;
+        z-index: 10;
+        text-align: center;
+        padding: 16px;
+        box-sizing: border-box;
+      }
+      #loader h1 {
+        font-size: 1.5em;
+        letter-spacing: 0.04em;
+        margin: 0 0 0.6em;
+      }
+      #loader p.controls {
+        font-size: 0.8em;
+        color: #bbb;
+        margin: 0;
+        max-width: 80vw;
+      }
+      .spinner,
+      .spinner:after {
+        border-radius: 50%;
+        width: 4em;
+        height: 4em;
+      }
+      .spinner {
+        margin: 0 0 1.2em;
+        font-size: 10px;
+        position: relative;
+        text-indent: -9999em;
+        border-top: 0.9em solid rgba(255, 255, 255, 0.2);
+        border-right: 0.9em solid rgba(255, 255, 255, 0.2);
+        border-bottom: 0.9em solid rgba(255, 255, 255, 0.2);
+        border-left: 0.9em solid #ffffff;
+        transform: translateZ(0);
+        animation: spinner-spin 1.1s infinite linear;
+      }
+      @keyframes spinner-spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="shell">
+      <div class="webgl-content">
+        <div id="unityContainer" style="width: 960px; height: 600px; padding: 0px; margin: 0px; border: 0px; position: relative; background: rgb(35, 31, 32);">
+          <div id="gameContainer" style="width: 800px; height: 560px; margin: auto;"></div>
+        </div>
+      </div>
+      <div id="loader">
+        <div class="spinner"></div>
+        <h1>Baldi's Basics</h1>
+        <p class="controls">WASD / arrow keys move · mouse to look · Shift run · click or E interact · Esc pause</p>
+      </div>
+    </div>
+
+    <script src="TemplateData/UnityProgress.js"></script>
+    <script src="baldi.js"></script>
+    <script>
+      function hideLoader() {
+        var loader = document.querySelector("#loader");
+        if (loader) loader.style.display = "none";
+      }
+      var gameInstance = UnityLoader.instantiate("gameContainer", "baldi.json", {
+        onProgress: UnityProgress,
+        Module: {
+          onRuntimeInitialized: function () {
+            UnityProgress(gameInstance, "complete");
+            hideLoader();
+          },
+        },
+      });
+    </script>
+  </body>
+</html>

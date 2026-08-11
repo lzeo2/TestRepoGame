@@ -28389,7 +28389,7 @@ cr.plugins_.TR_AdBlockDetector = function (runtime)
             if (this.readyState === 4 && this.status === 0)
                 self.adblock = true
         }
-        xhttp.open ("GET", "https://api.adinplay.com/libs/aiptag/assets/adsbygoogle.js", true);
+        xhttp.open ("GET", "data:,", true);
         xhttp.send ();
     };
     function Cnds()
