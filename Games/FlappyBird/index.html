@@ -18,13 +18,12 @@
         .wrap {
             min-height: 100%;
             display: flex;
-            align-items: center;
-            justify-content: center;
             padding: 24px;
         }
         .card {
             max-width: 480px;
             width: 100%;
+            margin: auto;
             background: #15151b;
             border: 1px solid #2a2a35;
             border-radius: 20px;
@@ -35,7 +34,7 @@
         h1 { font-size: 22px; margin: 0 0 12px; color: #fff; }
         p { font-size: 15px; line-height: 1.55; margin: 0 0 24px; color: #b9b9c7; }
         .actions { display: flex; flex-direction: column; gap: 10px; }
-        button, a.btn {
+        a.btn {
             display: inline-flex;
             align-items: center;
             justify-content: center;
@@ -51,12 +50,12 @@
             cursor: pointer;
             touch-action: manipulation;
         }
-        button.try {
+        a.btn.primary {
             background: #aa3bff;
             border-color: #aa3bff;
             color: #08060d;
         }
-        button:hover, button:focus-visible, a.btn:hover, a.btn:focus-visible {
+        a.btn:hover, a.btn:focus-visible {
             outline: 2px solid #00ff88;
             outline-offset: 3px;
         }
@@ -71,13 +70,13 @@
             <div class="icon" aria-hidden="true">🐦</div>
             <h1>Flappy Bird is unavailable offline</h1>
             <p>
-                The original Flappy Bird build is hosted online and cannot be
-                loaded without a network connection. This arcade is offline-first,
-                so the game can't run here while you're offline.
+                The original Flappy Bird build is hosted online and needs a
+                network connection to load. This arcade is offline-first, so
+                Flappy Bird is permanently unavailable here — retrying can't
+                restore it offline.
             </p>
             <div class="actions">
-                <button class="try" type="button" onclick="location.reload()">Try Again</button>
-                <button type="button" onclick="history.back()">← Back to Arcade</button>
+                <a class="btn primary" href="../../index.html">← Back to Arcade</a>
             </div>
         </div>
     </div>

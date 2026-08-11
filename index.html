@@ -119,6 +119,30 @@
         text-align: left;
       }
 
+      /* Skip-to-content link: parked off-screen until keyboard focus. */
+      .skip-link {
+        position: fixed;
+        top: max(12px, env(safe-area-inset-top));
+        left: 50%;
+        transform: translate(-50%, -240px);
+        z-index: 1001;
+        padding: 10px 18px;
+        border-radius: 999px;
+        background: var(--focus-ring, #00ff88);
+        color: #08060d;
+        font-family: var(--sans, system-ui, "Segoe UI", Roboto, sans-serif);
+        font-size: 14px;
+        font-weight: 600;
+        letter-spacing: 0.2px;
+        line-height: 1.2;
+        text-decoration: none;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.25);
+        transition: transform 0.15s ease;
+      }
+      .skip-link:focus {
+        transform: translate(-50%, 0);
+      }
+
       ::selection {
         background: var(--focus-ring);
         color: #08060d;
@@ -146,6 +170,7 @@
     </style>
   </head>
   <body>
+    <a class="skip-link" href="#main-content">Skip to content</a>
     <div id="root"></div>
 
     <nav class="proxy-launcher" aria-label="Proxy tools">

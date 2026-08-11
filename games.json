@@ -13,18 +13,18 @@
     "title": "Age of War",
     "cat": "strategy",
     "icon": "⚔️",
-    "desc": "Evolve through ages and battle your way to victory.",
+    "desc": "Unavailable offline — the original Flash build needs a network connection to run.",
     "url": "Games/AgeOfWar/index.html",
-    "featured": true
+    "featured": false
   },
   {
     "id": 3,
     "title": "Slope",
     "cat": "action",
     "icon": "🎿",
-    "desc": "Steep downhill racing with impossible speeds.",
+    "desc": "Unavailable offline — the original build needs a network connection to load.",
     "url": "Games/Slope/index.html",
-    "featured": true
+    "featured": false
   },
   {
     "id": 4,
@@ -103,7 +103,7 @@
     "title": "Hextris",
     "cat": "classic",
     "icon": "🔷",
-    "desc": "Fast-paced hexagonal Tetris. Clear lines to score!",
+    "desc": "Unavailable offline — the original build can't load without a network connection.",
     "url": "Games/Hextris/index.html",
     "featured": false
   },
@@ -112,7 +112,7 @@
     "title": "Flappy Bird",
     "cat": "classic",
     "icon": "🐦",
-    "desc": "Tap to flap. Avoid pipes and travel as far as you can!",
+    "desc": "Unavailable offline — the original build needs a network connection to load.",
     "url": "Games/FlappyBird/index.html",
     "featured": false
   },
