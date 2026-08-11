@@ -277,5 +277,14 @@
     "desc": "Text-based life simulation — born into a family, then steer a whole lifetime one year at a time: school, careers, relationships, crime, and whatever else aging throws at you.",
     "url": "Games/BitLife/index.html",
     "featured": false
+  },
+  {
+    "id": 50,
+    "title": "Subway Surfers",
+    "cat": "action",
+    "icon": "🏃",
+    "desc": "Endless runner — dodge trains, jump and roll, and switch lanes to keep the run going through San Francisco. Fan-hosted Unity WebGL port; online leaderboards and services are inert offline.",
+    "url": "Games/SubwaySurfers/index.html",
+    "featured": false
   }
 ]
