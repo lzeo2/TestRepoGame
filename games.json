@@ -286,5 +286,14 @@
     "desc": "Endless runner — dodge trains, jump and roll, and switch lanes to keep the run going through San Francisco. Fan-hosted Unity WebGL port; online leaderboards and services are inert offline.",
     "url": "Games/SubwaySurfers/index.html",
     "featured": false
+  },
+  {
+    "id": 51,
+    "title": "A Dark Room",
+    "cat": "story",
+    "icon": "🔥",
+    "desc": "Tend a fire, build a shelter, gather resources, and explore — a branching narrative progression that begins in one dark room and spirals far beyond it.",
+    "url": "Games/ADarkRoom/index.html",
+    "featured": false
   }
 ]
