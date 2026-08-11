@@ -10,6 +10,94 @@
 	  and sounds, no network calls).
 	-->
 	<title>Stranded In Isekai</title>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+	<style>
+		html, body {
+			margin: 0;
+			padding: 0;
+			background: #222;
+		}
+		#game-wrap {
+			position: relative;
+			max-width: 960px;
+			margin: 0 auto;
+			overflow: hidden;
+		}
+		#scene {
+			display: block;
+			width: 100%;
+			height: auto;
+		}
+
+		/* On-screen touch controls (mobile). Hidden by default; shown on
+		   coarse-pointer / touch-capable devices via CSS media query + a
+		   .touch class set by the script below. */
+		#touch-controls {
+			display: none;
+			position: fixed;
+			left: 0;
+			right: 0;
+			bottom: 0;
+			z-index: 10;
+			padding: 12px 16px;
+			pointer-events: none;
+			user-select: none;
+			-webkit-user-select: none;
+			-webkit-touch-callout: none;
+			touch-action: none;
+		}
+		html.touch #touch-controls {
+			display: block;
+		}
+		@media (pointer: coarse) {
+			#touch-controls {
+				display: block;
+			}
+		}
+		#touch-controls .btn {
+			pointer-events: auto;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			width: 56px;
+			height: 56px;
+			border-radius: 12px;
+			background: rgba(0, 0, 0, 0.45);
+			border: 2px solid rgba(255, 255, 255, 0.55);
+			color: #fff;
+			font: bold 22px/1 sans-serif;
+			text-align: center;
+			touch-action: none;
+			-webkit-tap-highlight-color: transparent;
+		}
+		#touch-controls .btn.pressed {
+			background: rgba(255, 255, 255, 0.45);
+			color: #111;
+		}
+		#touch-controls .dpad {
+			position: absolute;
+			left: 16px;
+			bottom: 16px;
+			display: grid;
+			grid-template-columns: repeat(3, 56px);
+			grid-template-rows: repeat(3, 56px);
+			gap: 4px;
+		}
+		#touch-controls .dpad .btn-up    { grid-area: 1 / 2; }
+		#touch-controls .dpad .btn-left  { grid-area: 2 / 1; }
+		#touch-controls .dpad .btn-right { grid-area: 2 / 3; }
+		#touch-controls .dpad .btn-down  { grid-area: 3 / 2; }
+		#touch-controls .action {
+			position: absolute;
+			right: 16px;
+			bottom: 24px;
+			width: 72px;
+			height: 72px;
+			border-radius: 50%;
+			font-size: 26px;
+		}
+	</style>
 	<script src='map-min.js'></script>
 	<script src='dialog.js'></script>
 	<script src='soal_db-min.js'></script>
@@ -18,8 +106,17 @@
 	
 </head>
 <body>
-	<div align="center" style="overflow:hidden;">
+	<div id="game-wrap">
 		<canvas id="scene" width="960" height="640"></canvas>
+	</div>
+	<div id="touch-controls" aria-hidden="true">
+		<div class="dpad">
+			<button type="button" class="btn btn-up" data-key="up" aria-label="Up">▲</button>
+			<button type="button" class="btn btn-left" data-key="left" aria-label="Left">◀</button>
+			<button type="button" class="btn btn-right" data-key="right" aria-label="Right">▶</button>
+			<button type="button" class="btn btn-down" data-key="down" aria-label="Down">▼</button>
+		</div>
+		<button type="button" class="btn action" data-key="action" aria-label="Interact (Space)">A</button>
 	</div>
 </body>
 <script>
@@ -75,5 +172,73 @@
 	setNPC(7);
 	jalankanGame();
 	}
+
+	/* ---- On-screen touch controls ----
+	   The engine is keyboard-driven (arrows + Space; no mouse handling) and
+	   listens for keydown/keyup on window. These buttons dispatch synthetic
+	   KeyboardEvents with the same keyCodes, so they drive the engine exactly
+	   like a real keyboard without touching the engine source. */
+	(function () {
+		var KEYS = {
+			up: 38,
+			down: 40,
+			left: 37,
+			right: 39,
+			action: 32
+		};
+		function fire(code, type) {
+			var ev;
+			try {
+				ev = new KeyboardEvent(type, {
+					keyCode: code,
+					which: code,
+					bubbles: true,
+					cancelable: true
+				});
+			} catch (e) {
+				ev = document.createEvent("KeyboardEvent");
+				ev.initKeyboardEvent(type, true, true, window, "", 0, "", false, "");
+				Object.defineProperty(ev, "keyCode", { get: function () { return code; } });
+				Object.defineProperty(ev, "which", { get: function () { return code; } });
+			}
+			window.dispatchEvent(ev);
+		}
+		function bind(btn, code) {
+			var pressed = false;
+			function down(ev) {
+				if (ev && ev.preventDefault) { ev.preventDefault(); }
+				pressed = true;
+				btn.classList.add("pressed");
+				fire(code, "keydown");
+			}
+			function up(ev) {
+				if (!pressed) { return; }
+				pressed = false;
+				btn.classList.remove("pressed");
+				fire(code, "keyup");
+			}
+			if (window.PointerEvent) {
+				btn.addEventListener("pointerdown", down);
+				btn.addEventListener("pointerup", up);
+				btn.addEventListener("pointercancel", up);
+				btn.addEventListener("pointerleave", up);
+			} else {
+				btn.addEventListener("touchstart", down, { passive: false });
+				btn.addEventListener("touchend", up);
+				btn.addEventListener("touchcancel", up);
+			}
+			btn.addEventListener("contextmenu", function (ev) { ev.preventDefault(); });
+		}
+		var controls = document.getElementById("touch-controls");
+		var buttons = controls ? controls.querySelectorAll(".btn") : [];
+		for (var i = 0; i < buttons.length; i++) {
+			var key = buttons[i].getAttribute("data-key");
+			if (KEYS[key]) { bind(buttons[i], KEYS[key]); }
+		}
+		var isTouch = ("ontouchstart" in window) || (navigator.maxTouchPoints && navigator.maxTouchPoints > 0);
+		if (isTouch) {
+			document.documentElement.classList.add("touch");
+		}
+	})();
 </script>
 </html>

@@ -4,7 +4,6 @@ import flash.system.Capabilities;
 /*
 RPG-Game versi 1.0
 Nama : Daffa Ahmad Ibrahin
-Email : vladimirdimitryivan@gmail.com
 
 silahkan digunakan dengan mencantumkan credit
 

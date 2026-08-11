@@ -12,8 +12,9 @@
       Flash plugin. Google Analytics (gtag) and the site's tab-cloak /
       navigation scripts were removed; Ruffle now loads from the local copy
       only. Ad-SDK hosts embedded in the SWF (MochiAds / FliplineAds / Chinese
-      portal SDKs) are answered locally by an XHR/fetch guard, so nothing
-      leaves this origin. Store/site promo buttons in the game (iTunes,
+      portal SDKs, including freezingpointe.com and 2144.cn) are answered
+      locally by an XHR/fetch guard, so nothing leaves this origin. Store/site
+      promo buttons in the game (iTunes,
       Google Play, Amazon, flipline.com, papalouie.com) are user-initiated
       browser links only. The SWF is the property of Flipline Studios and is
       included for fan/archival play.
@@ -39,7 +40,7 @@
       // request to a local empty response so nothing leaves this origin.
       // Store/site promo buttons remain user-initiated browser links.
       (function () {
-        var external = /mochiads\.com|fliplineads\.com|3366\.com|3366img\.com|4399\.com|7k7k\.com/;
+        var external = /mochiads\.com|fliplineads\.com|3366\.com|3366img\.com|4399\.com|7k7k\.com|freezingpointe\.com|2144\.cn/;
 
         var originalOpen = XMLHttpRequest.prototype.open;
         XMLHttpRequest.prototype.open = function (method, url) {
