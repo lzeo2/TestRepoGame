@@ -295,5 +295,14 @@
     "desc": "Tend a fire, build a shelter, gather resources, and explore — a branching narrative progression that begins in one dark room and spirals far beyond it.",
     "url": "Games/ADarkRoom/index.html",
     "featured": false
+  },
+  {
+    "id": 52,
+    "title": "Stranded In Isekai",
+    "cat": "story",
+    "icon": "🗡️",
+    "desc": "Fantasy RPG — stranded in another world, explore villages and forests, talk to NPCs, win quiz battles, and level up through the story.",
+    "url": "Games/StrandedInIsekai/index.html",
+    "featured": false
   }
 ]
