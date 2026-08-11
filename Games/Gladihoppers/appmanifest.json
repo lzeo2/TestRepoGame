@@ -1,0 +1,16 @@
+{
+  "name": "Gladihoppers",
+  "short_name": "Gladihoppers",
+  "description": "2D physics gladiator brawler — career mode, gear upgrades, 2-player local fights",
+  "start_url": "index.html",
+  "display": "fullscreen",
+  "orientation": "landscape",
+  "icons": [
+    {
+      "src": "patch/images/null.png",
+      "sizes": "512x512",
+      "purpose": "maskable",
+      "type": "image/png"
+    }
+  ]
+}

@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+	<meta name="apple-mobile-web-app-capable" content="yes">
+	<title>Gladihoppers</title>
+	<link rel="manifest" href="appmanifest.json">
+	<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>%E2%9A%94%EF%B8%8F</text></svg>">
+	<style>
+		* { margin: 0; padding: 0; box-sizing: border-box; }
+		html, body { height: 100%; }
+		body {
+			background: #0b0a12;
+			color: #eee;
+			font-family: system-ui, "Segoe UI", Roboto, sans-serif;
+			overflow: hidden;
+			touch-action: none;
+		}
+		#shell {
+			height: 100%;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			padding: 12px;
+		}
+		#frame {
+			position: relative;
+			width: min(100%, 1280px);
+			aspect-ratio: 16 / 9;
+			background: #000;
+			border: 1px solid #2a2a3a;
+			border-radius: 8px;
+			overflow: hidden;
+		}
+		#gameContainer, #gameContainer canvas {
+			width: 100%;
+			height: 100%;
+			display: block;
+		}
+		#overlay {
+			position: absolute;
+			inset: 0;
+			z-index: 10;
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			justify-content: center;
+			gap: 18px;
+			padding: 20px;
+			text-align: center;
+			background: radial-gradient(ellipse at center, rgba(40, 20, 60, 0.92), rgba(8, 6, 14, 0.97));
+		}
+		#overlay.hidden { display: none; }
+		#overlay h1 {
+			font-size: clamp(28px, 6vw, 56px);
+			letter-spacing: 1px;
+			color: #ffd166;
+			text-shadow: 0 0 18px rgba(255, 209, 102, 0.45);
+		}
+		#overlay .tagline {
+			max-width: 60ch;
+			font-size: clamp(13px, 2.2vw, 17px);
+			color: #cfc9e2;
+		}
+		#overlay .controls {
+			list-style: none;
+			font-size: clamp(12px, 2vw, 15px);
+			color: #a9a3bd;
+			line-height: 1.7;
+		}
+		#overlay .controls kbd {
+			background: #26203a;
+			border: 1px solid #3b3354;
+			border-bottom-width: 2px;
+			border-radius: 5px;
+			padding: 1px 7px;
+			font-size: 0.92em;
+			color: #ffd166;
+		}
+		#playBtn {
+			font: 700 clamp(16px, 3vw, 22px) inherit;
+			min-height: 52px;
+			padding: 12px 44px;
+			border: none;
+			border-radius: 10px;
+			background: #e63946;
+			color: #fff;
+			cursor: pointer;
+			box-shadow: 0 4px 0 #8d1f29;
+			transition: transform 0.08s ease, box-shadow 0.08s ease;
+		}
+		#playBtn:hover { background: #f04956; }
+		#playBtn:active { transform: translateY(2px); box-shadow: 0 2px 0 #8d1f29; }
+		#playBtn:focus-visible, #fullscreenBtn:focus-visible, #restartBtn:focus-visible {
+			outline: 3px solid #00ff88;
+			outline-offset: 3px;
+		}
+		#hud {
+			position: absolute;
+			top: 8px;
+			right: 8px;
+			z-index: 20;
+			display: none;
+			gap: 8px;
+		}
+		#hud.visible { display: flex; }
+		#hud button {
+			font: 600 13px inherit;
+			min-height: 44px;
+			padding: 8px 14px;
+			border: 1px solid #3b3354;
+			border-radius: 8px;
+			background: rgba(20, 16, 32, 0.85);
+			color: #ddd;
+			cursor: pointer;
+		}
+		#hud button:hover { background: rgba(40, 32, 60, 0.9); }
+		#error {
+			display: none;
+			color: #ff8fa3;
+			font-size: 14px;
+			max-width: 50ch;
+		}
+	</style>
+</head>
+<body>
+	<main id="shell">
+		<div id="frame">
+			<div id="gameContainer"></div>
+			<div id="overlay" role="dialog" aria-label="Gladihoppers start screen">
+				<h1>Gladihoppers</h1>
+				<p class="tagline">2D physics gladiator brawler &mdash; career mode, gear upgrades, 2-player local fights.</p>
+				<ul class="controls">
+					<li><kbd>W</kbd> <kbd>A</kbd> <kbd>S</kbd> <kbd>D</kbd> / <kbd>&uarr;</kbd> <kbd>&darr;</kbd> <kbd>&larr;</kbd> <kbd>&rarr;</kbd> &mdash; move your gladiator</li>
+					<li>Pick each fighter&rsquo;s bindings (WASD, Arrows, or gamepad) in the in-game pre-fight menu</li>
+					<li>Mouse / touch &mdash; menus and targeting; in-game tutorial covers stances &amp; attacks</li>
+					<li>2-player local: both fighters share one keyboard (or a gamepad for one side)</li>
+				</ul>
+				<button id="playBtn" type="button">PLAY</button>
+				<p id="error"></p>
+			</div>
+			<div id="hud">
+				<button id="fullscreenBtn" type="button">Fullscreen</button>
+				<button id="restartBtn" type="button">Restart</button>
+			</div>
+		</div>
+	</main>
+	<script src="patch/js/UnityLoader.2019.2.js"></script>
+	<script src="js/gladihoppers.js"></script>
+</body>
+</html>

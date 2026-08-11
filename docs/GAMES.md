@@ -1,6 +1,6 @@
 # Game Catalog — UNBLOCKMATH // ARCADE
 
-All **46 registered games** from `games.json` (ids 1–46). Category comes from the catalog `cat` field; controls and status are based on the actual files in `Games/`.
+All **47 registered games** from `games.json` (ids 1–47). Category comes from the catalog `cat` field; controls and status are based on the actual files in `Games/`.
 
 **Status key**
 
@@ -60,6 +60,7 @@ All **46 registered games** from `games.json` (ids 1–46). Category comes from 
 | 44 | Story Adventure | puzzle | Tap a choice or press its number key · R restart · M menu (text adventure, 5 endings) | ✅ Offline |
 | 45 | Word Relay Riot | puzzle | Type word · Enter submit · Esc menu · R restart | ✅ Offline |
 | 46 | Wordle | puzzle | Type or tap letters · Enter submit · Backspace delete · 6 guesses | ✅ Offline |
+| 47 | Gladihoppers | action | P1/P2 pick WASD, Arrows, or gamepad in the pre-fight menu · mouse/touch for menus | ✅ Offline |
 
 ---
 
@@ -70,6 +71,7 @@ All **46 registered games** from `games.json` (ids 1–46). Category comes from 
 - **Run 3 (8):** gameplay is fully local; the bundle carries external link hooks (an ad-click URL and store/credits links) that open in new tabs — they are not game-state fetches.
 - **Age of War (2):** the game is a Flash `.swf` played through Ruffle, which is loaded from `https://unpkg.com/@ruffle-rs/ruffle`. Without network, Ruffle never loads and the game cannot start.
 - **Multiplayer Arena Shooter (26):** gameplay data flows peer-to-peer over WebRTC, but room creation/joining goes through the **public PeerJS cloud** by default. It can point at a self-hosted PeerServer via query params (`?host=...&port=...`), but out of the box it needs network.
+- **Gladihoppers (47):** vendored Unity WebGL build (v3.0.1, Dreamon Studios) from `github.com/1000unblockedgames/Gladihoppers` (commit `a14cd76`); ad/analytics scripts removed and a local no-op Poki SDK stub keeps it fully offline — the online-PvP and IAP buttons are inert without network.
 - **Random sports games (4, 5, 6):** Construct 3 exports with local assets (`box2d.wasm.js`, `scripts/offlineclient.js`, `scripts/main.js`). Leftover `ubg235`/analytics files exist in the folders but are **not loaded** by `index.html`, so they don't affect offline play.
 - **Eaglercraft (23):** relays and server list are empty by default (`relays: null`, `servers: null` in `index.html`). Clicking **Singleplayer** creates a local offline world. Licensing: GPL-3.0 components + MC 1.8 assets require owning Minecraft Java Edition.
 
@@ -80,5 +82,5 @@ All **46 registered games** from `games.json` (ids 1–46). Category comes from 
 ## Provenance quick view
 
 - **Original code (written for this repo):** FPS, Star Catcher, Paddle Duel, Brick Dash, Tile Merge, Match Flip, Memory Match, Mental Math, Times Tables, Typing Test, Word Scramble, Letter Boxed, Spelling Bee, Sudoku, Connections, A-GEO Quiz, Balance Beam Bash, Grid Heist, Last Lantern, Orbit Relay, Parcel Panic, Pattern Panic, Pocket Bumper, Queue Escape, Signal Sprint, Story Adventure, Word Relay Riot, Wordle, Boss Rush, Multiplayer Arena Shooter (wrapper/game code; PeerJS vendored).
-- **Third-party bundles (attribution/licensing kept):** Ovo, Run 3, Snake, Chrome Dino, Breakout, QWOP remake, Soccer/Basket/Volley Random (Construct 3 exports), Eaglercraft (GPL-3.0 + MC assets).
+- **Third-party bundles (attribution/licensing kept):** Ovo, Run 3, Snake, Chrome Dino, Breakout, QWOP remake, Soccer/Basket/Volley Random (Construct 3 exports), Eaglercraft (GPL-3.0 + MC assets), Gladihoppers (Unity WebGL, Dreamon Studios).
 - **Read-only:** `Games/Character AI/`.

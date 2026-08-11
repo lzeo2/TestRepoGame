@@ -412,5 +412,14 @@
     "desc": "Guess the hidden five-letter word in six tries. Every guess turns the letters green, yellow or gray.",
     "url": "Games/Wordle/index.html",
     "featured": false
+  },
+  {
+    "id": 47,
+    "title": "Gladihoppers",
+    "cat": "action",
+    "icon": "🗡️",
+    "desc": "2D physics gladiator brawler — career mode, gear upgrades, 2-player local fights",
+    "url": "Games/Gladihoppers/index.html",
+    "featured": false
   }
 ]
