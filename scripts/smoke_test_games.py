@@ -32,7 +32,7 @@ KNOWN_BENIGN = {
     "Retro Bowl": ["savedata.ini", "optiondata.dat"],  # first-run save check 404s, expected
     "Stranded In Isekai": ["-snd.mp3"],            # audio preload aborts on scene swap; files exist
     "Character Alsen": ["svg%3e"],                 # data-URI favicon hack 404s; protected game, original 404
-    "Cut the Rope": ["intro_1024.webm", "menu_music.mp3"],  # headless lacks h264 (real browsers use mp4); menu music absent from seraph build
+    "Cut the Rope": ["intro_1024.webm", "music.mp3"],  # headless lacks h264 (real browsers use mp4); seraph build ships no music files
 }
 BENIGN_REQS = ("unity3d.com", "svg%3e", "hwstats.cgi", "savedata.ini", "optiondata.dat",
                "snd.mp3", "http 501")
