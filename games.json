@@ -3,7 +3,7 @@
     "id": 1,
     "title": "2048",
     "cat": "classic",
-    "icon": "🧊",
+    "icon": "\ud83e\uddca",
     "desc": "Classic number puzzle. Combine tiles to reach 2048!",
     "url": "Games/2048/index.html",
     "featured": false
@@ -12,8 +12,8 @@
     "id": 2,
     "title": "Age of War",
     "cat": "strategy",
-    "icon": "⚔️",
-    "desc": "Unavailable offline — the original Flash build needs a network connection to run.",
+    "icon": "\u2694\ufe0f",
+    "desc": "Unavailable offline \u2014 the original Flash build needs a network connection to run.",
     "url": "Games/AgeOfWar/index.html",
     "featured": false
   },
@@ -21,8 +21,8 @@
     "id": 3,
     "title": "Slope",
     "cat": "action",
-    "icon": "🎿",
-    "desc": "Unavailable offline — the original build needs a network connection to load.",
+    "icon": "\ud83c\udfbf",
+    "desc": "Unavailable offline \u2014 the original build needs a network connection to load.",
     "url": "Games/Slope/index.html",
     "featured": false
   },
@@ -30,7 +30,7 @@
     "id": 4,
     "title": "Soccer Random",
     "cat": "sports",
-    "icon": "⚽",
+    "icon": "\u26bd",
     "desc": "Chaotic physics-based soccer with random elements.",
     "url": "Games/SoccerRandom/index.html",
     "featured": false
@@ -39,7 +39,7 @@
     "id": 5,
     "title": "Basket Random",
     "cat": "sports",
-    "icon": "🏀",
+    "icon": "\ud83c\udfc0",
     "desc": "Wacky basketball with unpredictable physics.",
     "url": "Games/BasketRandom/index.html",
     "featured": false
@@ -48,7 +48,7 @@
     "id": 6,
     "title": "Volley Random",
     "cat": "sports",
-    "icon": "🏐",
+    "icon": "\ud83c\udfd0",
     "desc": "Bizarre volleyball with silly physics mechanics.",
     "url": "Games/VolleyRandom/index.html",
     "featured": false
@@ -57,7 +57,7 @@
     "id": 7,
     "title": "Ovo",
     "cat": "action",
-    "icon": "🧑",
+    "icon": "\ud83e\uddd1",
     "desc": "Fast-paced parkour platformer with slick movements.",
     "url": "Games/Ovo/1.4.5/index.html",
     "featured": true
@@ -66,7 +66,7 @@
     "id": 8,
     "title": "Run 3",
     "cat": "action",
-    "icon": "🚀",
+    "icon": "\ud83d\ude80",
     "desc": "Endless space runner through 3D tunnels.",
     "url": "Games/Run3/tn6pS9dCf37xAhkJv/index.html",
     "featured": true
@@ -75,7 +75,7 @@
     "id": 9,
     "title": "Snake",
     "cat": "classic",
-    "icon": "🐍",
+    "icon": "\ud83d\udc0d",
     "desc": "Classic snake game. Eat food, grow, don't hit the wall!",
     "url": "Games/Snake/index.html",
     "featured": false
@@ -84,7 +84,7 @@
     "id": 10,
     "title": "Chrome Dino",
     "cat": "classic",
-    "icon": "🦖",
+    "icon": "\ud83e\udd96",
     "desc": "The famous offline Chrome dinosaur game.",
     "url": "Games/ChromeDino/dino.html",
     "featured": false
@@ -93,7 +93,7 @@
     "id": 11,
     "title": "Breakout",
     "cat": "classic",
-    "icon": "🧱",
+    "icon": "\ud83e\uddf1",
     "desc": "Classic arcade breakout. Break all the bricks!",
     "url": "Games/BreakoutClassic/index.html",
     "featured": false
@@ -102,8 +102,8 @@
     "id": 12,
     "title": "Hextris",
     "cat": "classic",
-    "icon": "🔷",
-    "desc": "Unavailable offline — the original build can't load without a network connection.",
+    "icon": "\ud83d\udd37",
+    "desc": "Unavailable offline \u2014 the original build can't load without a network connection.",
     "url": "Games/Hextris/index.html",
     "featured": false
   },
@@ -111,8 +111,8 @@
     "id": 13,
     "title": "Flappy Bird",
     "cat": "classic",
-    "icon": "🐦",
-    "desc": "Unavailable offline — the original build needs a network connection to load.",
+    "icon": "\ud83d\udc26",
+    "desc": "Unavailable offline \u2014 the original build needs a network connection to load.",
     "url": "Games/FlappyBird/index.html",
     "featured": false
   },
@@ -120,7 +120,7 @@
     "id": 14,
     "title": "Character Alsen",
     "cat": "riddle",
-    "icon": "🤖",
+    "icon": "\ud83e\udd16",
     "desc": "Chat with an AI character.",
     "url": "Games/Character AI/Alsen.html",
     "featured": false
@@ -129,7 +129,7 @@
     "id": 15,
     "title": "QWOP",
     "cat": "sports",
-    "icon": "🏃",
+    "icon": "\ud83c\udfc3",
     "desc": "Infamously difficult ragdoll running. Control thighs and calves with QWOP keys!",
     "url": "Games/QwopRemake/index.html",
     "featured": false
@@ -138,7 +138,7 @@
     "id": 16,
     "title": "Star Catcher",
     "cat": "action",
-    "icon": "⭐",
+    "icon": "\u2b50",
     "desc": "Catch falling stars, dodge bombs, and rack up combos as the sky speeds up.",
     "url": "Games/StarCatcher/index.html",
     "featured": false
@@ -147,7 +147,7 @@
     "id": 17,
     "title": "Paddle Duel",
     "cat": "sports",
-    "icon": "🏓",
+    "icon": "\ud83c\udfd3",
     "desc": "Head-to-head Pong battle on one screen. First to five points wins!",
     "url": "Games/PaddleDuel/index.html",
     "featured": false
@@ -156,7 +156,7 @@
     "id": 18,
     "title": "Brick Dash",
     "cat": "classic",
-    "icon": "🧱",
+    "icon": "\ud83e\uddf1",
     "desc": "Smash bricks at breakneck speed. Chain quick breaks to build huge combos!",
     "url": "Games/BrickDash/index.html",
     "featured": false
@@ -165,7 +165,7 @@
     "id": 19,
     "title": "Tile Merge",
     "cat": "classic",
-    "icon": "🔢",
+    "icon": "\ud83d\udd22",
     "desc": "Slide and merge matching tiles to build bigger and bigger numbers.",
     "url": "Games/TileMerge/index.html",
     "featured": false
@@ -174,7 +174,7 @@
     "id": 20,
     "title": "Match Flip",
     "cat": "classic",
-    "icon": "🃏",
+    "icon": "\ud83c\udccf",
     "desc": "Flip cards and find all the matching pairs as fast as you can.",
     "url": "Games/MatchFlip/index.html",
     "featured": false
@@ -183,7 +183,7 @@
     "id": 23,
     "title": "Eaglercraft",
     "cat": "action",
-    "icon": "⛏️",
+    "icon": "\u26cf\ufe0f",
     "desc": "Minecraft 1.8.8 playable in your browser. Offline sandbox, mine and build to your heart's content.",
     "url": "Games/Eaglercraft/index.html",
     "featured": false
@@ -192,7 +192,7 @@
     "id": 24,
     "title": "FPS",
     "cat": "action",
-    "icon": "🎯",
+    "icon": "\ud83c\udfaf",
     "desc": "Original software-rendered first-person shooter. Grab the pointer and take aim.",
     "url": "Games/FPS/index.html",
     "featured": false
@@ -201,7 +201,7 @@
     "id": 31,
     "title": "Letter Boxed",
     "cat": "puzzle",
-    "icon": "🔠",
+    "icon": "\ud83d\udd20",
     "desc": "Use every letter with the fewest words. Each word must start with the last letter of the previous.",
     "url": "Games/LetterBoxed/index.html",
     "featured": false
@@ -210,7 +210,7 @@
     "id": 35,
     "title": "Boss Rush",
     "cat": "action",
-    "icon": "👹",
+    "icon": "\ud83d\udc79",
     "desc": "Wave-based arena shooter. Dodge bullets and take down wave after wave of bosses!",
     "url": "Games/BossRush/index.html",
     "featured": false
@@ -219,7 +219,7 @@
     "id": 36,
     "title": "Grid Heist",
     "cat": "strategy",
-    "icon": "💎",
+    "icon": "\ud83d\udc8e",
     "desc": "Hotseat 2-4 player territory race. Claim cells and build a route to the vault before your rivals box you out.",
     "url": "Games/GridHeist/index.html",
     "featured": false
@@ -228,7 +228,7 @@
     "id": 37,
     "title": "Last Lantern",
     "cat": "action",
-    "icon": "🏮",
+    "icon": "\ud83c\udfee",
     "desc": "Arena survival for 2-4 players. Grab sparks, shine brightest, and stay inside the shrinking safe zone.",
     "url": "Games/LastLantern/index.html",
     "featured": false
@@ -237,7 +237,7 @@
     "id": 42,
     "title": "Queue Escape",
     "cat": "strategy",
-    "icon": "🧑‍🍳",
+    "icon": "\ud83e\uddd1\u200d\ud83c\udf73",
     "desc": "Cooperative food-court rush for 1-4 players. Route customers to the right station before their patience runs out.",
     "url": "Games/QueueEscape/index.html",
     "featured": false
@@ -246,7 +246,7 @@
     "id": 44,
     "title": "Story Adventure",
     "cat": "puzzle",
-    "icon": "📖",
+    "icon": "\ud83d\udcd6",
     "desc": "The Last Lighthouse: an offline text-choice adventure on a storm-threatened island with five endings to find.",
     "url": "Games/StoryAdventure/index.html",
     "featured": false
@@ -255,8 +255,8 @@
     "id": 47,
     "title": "Gladihoppers",
     "cat": "action",
-    "icon": "🗡️",
-    "desc": "2D physics gladiator brawler — career mode, gear upgrades, 2-player local fights",
+    "icon": "\ud83d\udde1\ufe0f",
+    "desc": "2D physics gladiator brawler \u2014 career mode, gear upgrades, 2-player local fights",
     "url": "Games/Gladihoppers/index.html",
     "featured": false
   },
@@ -264,8 +264,8 @@
     "id": 48,
     "title": "Burrito Bison",
     "cat": "action",
-    "icon": "🥊",
-    "desc": "Physics launch game — fling the burrito, smash gummy bears, grab cash, and buy upgrades to travel further each run.",
+    "icon": "\ud83e\udd4a",
+    "desc": "Physics launch game \u2014 fling the burrito, smash gummy bears, grab cash, and buy upgrades to travel further each run.",
     "url": "Games/BurritoBison/index.html",
     "featured": false
   },
@@ -273,8 +273,8 @@
     "id": 49,
     "title": "BitLife",
     "cat": "simulation",
-    "icon": "🧬",
-    "desc": "Text-based life simulation — born into a family, then steer a whole lifetime one year at a time: school, careers, relationships, crime, and whatever else aging throws at you.",
+    "icon": "\ud83e\uddec",
+    "desc": "Text-based life simulation \u2014 born into a family, then steer a whole lifetime one year at a time: school, careers, relationships, crime, and whatever else aging throws at you.",
     "url": "Games/BitLife/index.html",
     "featured": false
   },
@@ -282,8 +282,8 @@
     "id": 50,
     "title": "Subway Surfers",
     "cat": "action",
-    "icon": "🏃",
-    "desc": "Endless runner — dodge trains, jump and roll, and switch lanes to keep the run going through San Francisco. Fan-hosted Unity WebGL port; online leaderboards and services are inert offline.",
+    "icon": "\ud83c\udfc3",
+    "desc": "Endless runner \u2014 dodge trains, jump and roll, and switch lanes to keep the run going through San Francisco. Fan-hosted Unity WebGL port; online leaderboards and services are inert offline.",
     "url": "Games/SubwaySurfers/index.html",
     "featured": false
   },
@@ -291,8 +291,8 @@
     "id": 51,
     "title": "A Dark Room",
     "cat": "story",
-    "icon": "🔥",
-    "desc": "Tend a fire, build a shelter, gather resources, and explore — a branching narrative progression that begins in one dark room and spirals far beyond it.",
+    "icon": "\ud83d\udd25",
+    "desc": "Tend a fire, build a shelter, gather resources, and explore \u2014 a branching narrative progression that begins in one dark room and spirals far beyond it.",
     "url": "Games/ADarkRoom/index.html",
     "featured": false
   },
@@ -300,8 +300,8 @@
     "id": 52,
     "title": "Stranded In Isekai",
     "cat": "story",
-    "icon": "🗡️",
-    "desc": "Fantasy RPG — stranded in another world, explore villages and forests, talk to NPCs, win quiz battles, and level up through the story.",
+    "icon": "\ud83d\udde1\ufe0f",
+    "desc": "Fantasy RPG \u2014 stranded in another world, explore villages and forests, talk to NPCs, win quiz battles, and level up through the story.",
     "url": "Games/StrandedInIsekai/index.html",
     "featured": false
   },
@@ -309,8 +309,8 @@
     "id": 53,
     "title": "Papa's Pizzeria",
     "cat": "strategy",
-    "icon": "🍕",
-    "desc": "Flipline Studios' classic time-management game — take orders, build pizzas, bake them, and serve happy customers through a full workday shift. Original 2007 Flash build running locally under the bundled Ruffle emulator; MochiAds/FliplineAds ad calls are answered locally, so it's fully playable offline.",
+    "icon": "\ud83c\udf55",
+    "desc": "Flipline Studios' classic time-management game \u2014 take orders, build pizzas, bake them, and serve happy customers through a full workday shift. Original 2007 Flash build running locally under the bundled Ruffle emulator; MochiAds/FliplineAds ad calls are answered locally, so it's fully playable offline.",
     "url": "Games/PapasPizzeria/index.html",
     "featured": false
   },
@@ -318,8 +318,8 @@
     "id": 54,
     "title": "Retro Bowl",
     "cat": "sports",
-    "icon": "🏈",
-    "desc": "Fan-hosted HTML5 port of New Star Games' Retro Bowl — build a franchise, draft, and play arcade football with simple tap/swipe controls. Local GameMaker:HTML5 build; Poki SDK replaced by a local stub, so it's fully playable offline.",
+    "icon": "\ud83c\udfc8",
+    "desc": "Fan-hosted HTML5 port of New Star Games' Retro Bowl \u2014 build a franchise, draft, and play arcade football with simple tap/swipe controls. Local GameMaker:HTML5 build; Poki SDK replaced by a local stub, so it's fully playable offline.",
     "url": "Games/RetroBowl/index.html",
     "featured": false
   },
@@ -327,8 +327,8 @@
     "id": 55,
     "title": "Super Hot",
     "cat": "action",
-    "icon": "🕶️",
-    "desc": "Fan-hosted Unity WebGL port of SUPERHOT — time moves only when you move. Dismantle a slow-motion world with thrown weapons and well-timed shots. Local build; fully playable offline.",
+    "icon": "\ud83d\udd76\ufe0f",
+    "desc": "Fan-hosted Unity WebGL port of SUPERHOT \u2014 time moves only when you move. Dismantle a slow-motion world with thrown weapons and well-timed shots. Local build; fully playable offline.",
     "url": "Games/Superhot/index.html",
     "featured": false
   },
@@ -336,8 +336,8 @@
     "id": 56,
     "title": "10 Minutes Till Dawn",
     "cat": "action",
-    "icon": "🔦",
-    "desc": "Fan-hosted Unity WebGL port of Flanne's 10 Minutes Till Dawn — survive the horde for ten minutes, level up on the fly, and stack upgrades as the night gets darker. Local build; fully playable offline.",
+    "icon": "\ud83d\udd26",
+    "desc": "Fan-hosted Unity WebGL port of Flanne's 10 Minutes Till Dawn \u2014 survive the horde for ten minutes, level up on the fly, and stack upgrades as the night gets darker. Local build; fully playable offline.",
     "url": "Games/TenMinutesTillDawn/index.html",
     "featured": false
   },
@@ -345,8 +345,8 @@
     "id": 57,
     "title": "Fleeing the Complex",
     "cat": "story",
-    "icon": "✈️",
-    "desc": "Fan-hosted port of the Henry Stickmin adventure Fleeing the Complex — escape the prison through zany, choice-driven outcomes. Original Flash game running under the bundled local Ruffle emulator.",
+    "icon": "\u2708\ufe0f",
+    "desc": "Fan-hosted port of the Henry Stickmin adventure Fleeing the Complex \u2014 escape the prison through zany, choice-driven outcomes. Original Flash game running under the bundled local Ruffle emulator.",
     "url": "Games/FleeingTheComplex/index.html",
     "featured": false
   },
@@ -354,8 +354,8 @@
     "id": 58,
     "title": "Infiltrating the Airship",
     "cat": "story",
-    "icon": "🎈",
-    "desc": "Fan-hosted port of the Henry Stickmin adventure Infiltrating the Airship — sneak aboard the Toppat airship and pick your path through branching chaos. Original Flash game running under the bundled local Ruffle emulator.",
+    "icon": "\ud83c\udf88",
+    "desc": "Fan-hosted port of the Henry Stickmin adventure Infiltrating the Airship \u2014 sneak aboard the Toppat airship and pick your path through branching chaos. Original Flash game running under the bundled local Ruffle emulator.",
     "url": "Games/InfiltratingTheAirship/index.html",
     "featured": false
   },
@@ -363,8 +363,8 @@
     "id": 59,
     "title": "Baldi's Basics",
     "cat": "action",
-    "icon": "🏫",
-    "desc": "Fan-hosted Unity WebGL port of Mystman12's Baldi's Basics in Education and Learning — explore the school, solve notebook math problems, and outrun Baldi as he gets faster with every wrong answer. Local build; fully playable offline.",
+    "icon": "\ud83c\udfeb",
+    "desc": "Fan-hosted Unity WebGL port of Mystman12's Baldi's Basics in Education and Learning \u2014 explore the school, solve notebook math problems, and outrun Baldi as he gets faster with every wrong answer. Local build; fully playable offline.",
     "url": "Games/BaldisBasics/index.html",
     "featured": false
   },
@@ -372,9 +372,63 @@
     "id": 60,
     "title": "Temple Run 2",
     "cat": "action",
-    "icon": "🏛️",
-    "desc": "Fan-hosted HTML5 port (Babylon.js) of the Temple Run 2 endless-runner concept — sprint through the lost temple ruins, turn, jump and slide to survive. Local assets; fully playable offline.",
+    "icon": "\ud83c\udfdb\ufe0f",
+    "desc": "Fan-hosted HTML5 port (Babylon.js) of the Temple Run 2 endless-runner concept \u2014 sprint through the lost temple ruins, turn, jump and slide to survive. Local assets; fully playable offline.",
     "url": "Games/TempleRun2/index.html",
+    "featured": false
+  },
+  {
+    "id": 61,
+    "title": "Fruit Ninja",
+    "cat": "classic",
+    "icon": "\ud83c\udf49",
+    "desc": "Slash fruit, dodge bombs \u2014 timing combo arcade",
+    "url": "Games/FruitNinja/index.html",
+    "featured": false
+  },
+  {
+    "id": 62,
+    "title": "Cut the Rope",
+    "cat": "puzzle",
+    "icon": "\ud83c\udf6c",
+    "desc": "Physics puzzle levels \u2014 feed Om Nom the candy",
+    "url": "Games/CutTheRope/index.html",
+    "featured": false
+  },
+  {
+    "id": 63,
+    "title": "Fancy Pants Adventure 3",
+    "cat": "action",
+    "icon": "\ud83d\udd8a\ufe0f",
+    "desc": "Fluid hand-drawn platformer with levels to run",
+    "url": "Games/FancyPantsAdventure3/index.html",
+    "featured": false
+  },
+  {
+    "id": 64,
+    "title": "Vex 7",
+    "cat": "action",
+    "icon": "\ud83e\udde9",
+    "desc": "Trap-filled platforming gauntlet, 10 levels",
+    "url": "Games/Vex7/index.html",
+    "featured": false
+  },
+  {
+    "id": 65,
+    "title": "House of Hazards",
+    "cat": "multiplayer",
+    "icon": "\ud83c\udfe0",
+    "desc": "2-4 player party chaos \u2014 dodge the house's traps",
+    "url": "Games/HouseOfHazards/index.html",
+    "featured": false
+  },
+  {
+    "id": 66,
+    "title": "Geometry Dash Lite",
+    "cat": "action",
+    "icon": "\ud83d\udd0a",
+    "desc": "Rhythm platformer \u2014 jump to the beat, level after level",
+    "url": "Games/GeometryDashLite/index.html",
     "featured": false
   }
 ]

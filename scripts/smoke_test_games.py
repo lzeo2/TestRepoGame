@@ -19,11 +19,11 @@ BENIGN = ("favicon", "react devtools", "autofill", "source map", "devtools",
           "loading fsb failed",       # Unity/FMOD audio banks missing in builds; game runs silent
           "501 (unsupported method",  # local http.server rejects POSTs; harmless analytics stubs
           "pre-main prep time",       # Unity boot-timing info logged as console.error
+          "js/null.js",               # ad-slot path resolves to null (seraph builds); ads already neutered
           )
 # Per-game engine/plugin debug spam that is non-fatal (documented, reviewable).
 KNOWN_BENIGN = {
     "Ovo": ["proui: tag", "aekiro gameobject", "proui-gridview"],
-    "Basket Random": ["js/null.js"],               # ad-slot path resolves to null; ads already neutered
     "Papa's Pizzeria": ["focusmanager"],           # Ruffle compat note, movie still plays
     "BitLife": ["writestringtomemory"],            # emscripten deprecation warning
     "10 Minutes Till Dawn": ["loading fsb failed"],  # audio banks missing in build; game silent but runs
@@ -32,6 +32,7 @@ KNOWN_BENIGN = {
     "Retro Bowl": ["savedata.ini", "optiondata.dat"],  # first-run save check 404s, expected
     "Stranded In Isekai": ["-snd.mp3"],            # audio preload aborts on scene swap; files exist
     "Character Alsen": ["svg%3e"],                 # data-URI favicon hack 404s; protected game, original 404
+    "Cut the Rope": ["intro_1024.webm", "menu_music.mp3"],  # headless lacks h264 (real browsers use mp4); menu music absent from seraph build
 }
 BENIGN_REQS = ("unity3d.com", "svg%3e", "hwstats.cgi", "savedata.ini", "optiondata.dat",
                "snd.mp3", "http 501")
