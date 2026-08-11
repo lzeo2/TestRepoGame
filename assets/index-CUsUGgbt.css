@@ -327,3 +327,241 @@
 .app__footer span:nth-child(even) {
   color: var(--neon-green);
 }
+
+/* ==========================================================================
+   PORTAL UX PASS — accessibility, flat styling, contrast & motion polish
+   (authored, appended after the Phase 4 overrides; the minified bundle
+   CSS above is never edited)
+   ========================================================================== */
+
+/* ---- Contrast: lift muted text on the dark theme ------------------------ */
+.game-card__desc,
+.app__empty-hint,
+.game-modal__hint,
+.search-bar__input::placeholder,
+.app__footer {
+  color: #b3b3bf;
+}
+
+/* Category chip: keep readable against dark card surfaces. */
+.game-card__category {
+  color: color-mix(in srgb, var(--accent) 78%, #fff);
+  border-color: color-mix(in srgb, var(--accent) 55%, transparent);
+}
+
+/* Riddle cards set --accent to the category purple #a855f7 via a bundle
+   inline style on .game-card, so the play control renders #a855f7 on the
+   #1b1b23 card surface = 4.32:1 — below the 4.5:1 AA floor for normal
+   text. Lift text + border to #c690f9 = 7.13:1 on the card surface
+   (measured), keeping the purple identity. data-cat is authored by
+   portal-ux.js from the rendered .game-card__category text ("riddle"). */
+.game-card[data-cat="riddle"] .game-card__play {
+  color: #c690f9;
+  border-color: #c690f9;
+}
+
+/* ---- Typography hierarchy ---------------------------------------------- */
+[role="heading"][aria-level="1"] {
+  letter-spacing: -0.03em;
+  line-height: 1.15;
+}
+.app__logo-text {
+  font-size: 1.4rem;
+}
+h3.game-card__title,
+.game-modal__title {
+  color: var(--text-h, #f3f4f6);
+}
+.game-card__title {
+  line-height: 1.35;
+}
+.game-modal__title {
+  letter-spacing: -0.01em;
+}
+
+/* ---- Flat cards: no glows / blur / gradient-heavy effects --------------- */
+.game-card__glow {
+  display: none;
+}
+.game-card:hover,
+.game-card:focus-within {
+  box-shadow: none; /* flat hover: border highlight only */
+}
+.game-card__thumb,
+.game-card--featured .game-card__thumb {
+  background: var(--bg-card); /* flat thumb, no radial/linear gradients */
+}
+.game-card__icon,
+.game-card--featured .game-card__icon,
+.app__logo-icon {
+  filter: none;
+  text-shadow: none;
+}
+.category-filter__btn.active {
+  box-shadow: none;
+}
+.game-modal__content {
+  box-shadow: 0 12px 40px rgb(0 0 0 / 55%);
+}
+.app__footer {
+  background: var(--bg-card);
+}
+
+/* Whole card is a click target (delegated in portal-ux.js). */
+.game-card {
+  cursor: pointer;
+}
+
+/* ---- Focus rings: one consistent style ---------------------------------- */
+.game-card:focus-visible,
+.category-filter__btn:focus-visible,
+.game-card__play:focus-visible,
+.game-card__fav:focus-visible,
+.search-bar__clear:focus-visible,
+.search-bar__input:focus-visible,
+.game-modal__close:focus-visible,
+.game-modal__open:focus-visible,
+.skip-link:focus-visible,
+.proxy-launcher__btn:focus-visible {
+  outline: 2px solid var(--focus-ring, #00ff88);
+  outline-offset: 2px;
+}
+.search-bar__input:focus-visible {
+  outline-offset: 0; /* the ring lives on the bar wrapper */
+}
+.search-bar__input:focus:not(:focus-visible) {
+  outline: none; /* suppress the bundle ring while typing with mouse */
+}
+
+/* ---- Reduced motion ------------------------------------------------------ */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  .skeleton:before {
+    animation: none;
+    display: none;
+  }
+  .game-card,
+  .game-card__play,
+  .game-card__fav,
+  .game-modal__content,
+  .game-modal__backdrop,
+  .category-filter__btn,
+  .search-bar,
+  .search-bar__clear,
+  .game-modal__close,
+  .skip-link {
+    transition: none !important;
+  }
+}
+
+/* ---- Loading / error / empty states -------------------------------------- */
+.skeleton {
+  background: var(--bg-card-hover);
+}
+.skeleton:before {
+  background: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in srgb, var(--border) 60%, transparent),
+    transparent
+  );
+  animation: ux-pulse 1.4s ease-in-out infinite;
+}
+@keyframes ux-pulse {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 0.95;
+  }
+}
+.app__error {
+  color: color-mix(in srgb, var(--neon-red) 85%, #fff);
+  border-color: color-mix(in srgb, var(--neon-red) 60%, transparent);
+}
+.app__empty {
+  border: 1px dashed var(--border);
+  background: var(--bg-card);
+}
+.app__empty-text {
+  color: var(--text-h, #f3f4f6);
+}
+
+/* ---- Mobile safe areas ---------------------------------------------------- */
+@media (max-width: 768px) {
+  .app {
+    padding-bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
+  }
+  .game-modal__footer {
+    padding-bottom: calc(0.7rem + env(safe-area-inset-bottom, 0px));
+  }
+  .app__footer {
+    padding-bottom: calc(1.2rem + env(safe-area-inset-bottom, 0px));
+  }
+}
+
+/* ---- 44px+ touch targets --------------------------------------------------- */
+.skip-link {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+}
+.game-modal__footer {
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+.game-modal__open {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.55rem 1rem;
+  border: 1px solid var(--accent-border, var(--border));
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  color: var(--accent);
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-decoration: none;
+}
+.game-modal__open:hover {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #08060d;
+}
+
+/* ---- Framer-motion inline overrides for reduced motion ------------------- */
+/* Framer-motion writes inline transform/opacity/transition (card entrance
+   y/opacity, modal root fade, modal content scale/opacity, hover/tap scale
+   on .game-card__play / .game-card__fav / .category-filter__btn /
+   .search-bar__clear / .game-modal__close, backdrop fade, and the search
+   bar's width morph) that a plain stylesheet rule cannot beat. Force all
+   off when the user prefers reduced motion so no scale/translate/fade
+   animation is applied. */
+@media (prefers-reduced-motion: reduce) {
+  .game-card,
+  .game-card__play,
+  .game-card__fav,
+  .game-modal,
+  .game-modal__content,
+  .game-modal__backdrop,
+  .game-modal__close,
+  .category-filter__btn,
+  .search-bar,
+  .search-bar__clear {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+  /* The search bar morphs width (auto <-> 100%) via framer-motion inline
+     width + transition; freeze it at the compact auto width (the header
+     row is logo + bar, flex 0 1 auto) so the layout never jumps. */
+  .search-bar {
+    width: auto !important;
+  }
+}
