@@ -180,24 +180,6 @@
     "featured": false
   },
   {
-    "id": 21,
-    "title": "A-GEO Quiz",
-    "cat": "classic",
-    "icon": "🌏",
-    "desc": "Test your knowledge of Australia: capital cities, states & territories, and famous landmarks.",
-    "url": "Games/AGeography/index.html",
-    "featured": false
-  },
-  {
-    "id": 22,
-    "title": "Connections",
-    "cat": "puzzle",
-    "icon": "🔗",
-    "desc": "Find four words that share something in common.",
-    "url": "Games/Connections/index.html",
-    "featured": false
-  },
-  {
     "id": 23,
     "title": "Eaglercraft",
     "cat": "action",
@@ -216,93 +198,12 @@
     "featured": false
   },
   {
-    "id": 25,
-    "title": "Memory Match",
-    "cat": "classic",
-    "icon": "🧠",
-    "desc": "Flip cards two at a time and match every pair. Fewer moves and less time make a better score.",
-    "url": "Games/MemoryMatch/index.html",
-    "featured": false
-  },
-  {
-    "id": 26,
-    "title": "Multiplayer Arena Shooter",
-    "cat": "action",
-    "icon": "💥",
-    "desc": "2-4 player WebRTC battle arena. Peer-to-peer, no server required. Share a room code and battle!",
-    "url": "Games/MultiplayerArenaShooter/index.html",
-    "featured": false
-  },
-  {
-    "id": 27,
-    "title": "Sudoku",
-    "cat": "puzzle",
-    "icon": "🔢",
-    "desc": "Fill the grid so every row, column and 3x3 box contains 1-9 exactly once.",
-    "url": "Games/Sudoku/index.html",
-    "featured": false
-  },
-  {
-    "id": 28,
-    "title": "Times Tables",
-    "cat": "classic",
-    "icon": "✖️",
-    "desc": "Fast-paced multiplication drill. Answer quick and master your times tables.",
-    "url": "Games/TimesTables/index.html",
-    "featured": false
-  },
-  {
-    "id": 29,
-    "title": "Typing Test",
-    "cat": "classic",
-    "icon": "⌨️",
-    "desc": "Measure your typing speed and accuracy. Pick a difficulty, then type the passage shown.",
-    "url": "Games/TypingTest/index.html",
-    "featured": false
-  },
-  {
-    "id": 30,
-    "title": "Word Scramble",
-    "cat": "puzzle",
-    "icon": "🔤",
-    "desc": "Unscramble the letters to form the word. Earn points for fast, correct answers.",
-    "url": "Games/WordScramble/index.html",
-    "featured": false
-  },
-  {
     "id": 31,
     "title": "Letter Boxed",
     "cat": "puzzle",
     "icon": "🔠",
     "desc": "Use every letter with the fewest words. Each word must start with the last letter of the previous.",
     "url": "Games/LetterBoxed/index.html",
-    "featured": false
-  },
-  {
-    "id": 32,
-    "title": "Mental Math",
-    "cat": "classic",
-    "icon": "🧮",
-    "desc": "Beat the clock! Solve as many arithmetic drills as you can before time runs out. Faster answers build a streak bonus.",
-    "url": "Games/MentalMath/index.html",
-    "featured": false
-  },
-  {
-    "id": 33,
-    "title": "Spelling Bee",
-    "cat": "puzzle",
-    "icon": "🐝",
-    "desc": "Make words of four or more letters from the honeycomb. Every word must use the center letter.",
-    "url": "Games/SpellingBee/index.html",
-    "featured": false
-  },
-  {
-    "id": 34,
-    "title": "Balance Beam Bash",
-    "cat": "sports",
-    "icon": "⚖️",
-    "desc": "Two-player physics duel on a tipping beam. Charge, launch and knock your rival's tokens into the pocket!",
-    "url": "Games/BalanceBeamBash/index.html",
     "featured": false
   },
   {
@@ -333,42 +234,6 @@
     "featured": false
   },
   {
-    "id": 38,
-    "title": "Orbit Relay",
-    "cat": "action",
-    "icon": "🛰️",
-    "desc": "Local timing game for 2-4 players. Fire your token and thread it through your moving gate to chain streaks.",
-    "url": "Games/OrbitRelay/index.html",
-    "featured": false
-  },
-  {
-    "id": 39,
-    "title": "Parcel Panic",
-    "cat": "action",
-    "icon": "📦",
-    "desc": "Top-down parcel race for 2-4 players. Grab parcels and deliver them to the matching drop zone before it moves.",
-    "url": "Games/ParcelPanic/index.html",
-    "featured": false
-  },
-  {
-    "id": 40,
-    "title": "Pattern Panic",
-    "cat": "classic",
-    "icon": "🌀",
-    "desc": "Simon-style memory showdown for 2-6 players. Watch the pattern, then repeat it in your lane without a wrong step.",
-    "url": "Games/PatternPanic/index.html",
-    "featured": false
-  },
-  {
-    "id": 41,
-    "title": "Pocket Bumper",
-    "cat": "action",
-    "icon": "🚗",
-    "desc": "Two-player bumper battle. Grab orbs, boost, and shove your rival into the shrinking walls.",
-    "url": "Games/PocketBumper/index.html",
-    "featured": false
-  },
-  {
     "id": 42,
     "title": "Queue Escape",
     "cat": "strategy",
@@ -378,39 +243,12 @@
     "featured": false
   },
   {
-    "id": 43,
-    "title": "Signal Sprint",
-    "cat": "action",
-    "icon": "🚦",
-    "desc": "Reaction sprint for 2-6 players. Hit your color, dodge STOP, and stay sharp as rounds speed up.",
-    "url": "Games/SignalSprint/index.html",
-    "featured": false
-  },
-  {
     "id": 44,
     "title": "Story Adventure",
     "cat": "puzzle",
     "icon": "📖",
     "desc": "The Last Lighthouse: an offline text-choice adventure on a storm-threatened island with five endings to find.",
     "url": "Games/StoryAdventure/index.html",
-    "featured": false
-  },
-  {
-    "id": 45,
-    "title": "Word Relay Riot",
-    "cat": "puzzle",
-    "icon": "🔤",
-    "desc": "Pass-and-play word chain for 2-6 players. Every word must start with the last letter of the previous one.",
-    "url": "Games/WordRelayRiot/index.html",
-    "featured": false
-  },
-  {
-    "id": 46,
-    "title": "Wordle",
-    "cat": "puzzle",
-    "icon": "🟩",
-    "desc": "Guess the hidden five-letter word in six tries. Every guess turns the letters green, yellow or gray.",
-    "url": "Games/Wordle/index.html",
     "featured": false
   },
   {

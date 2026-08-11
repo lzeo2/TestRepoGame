@@ -1,6 +1,6 @@
 # Game List
 
-All 46 games registered in `games.json`. Status is based on the actual files — games that need the network are **not** labeled offline.
+All 29 games registered in `games.json` (ids 1–47 with gaps — the ids of removed games are not reused). Status is based on the actual files — games that need the network are **not** labeled offline.
 
 **Status key:** ✅ Offline (self-contained) · ⚠️ Offline-capable (cosmetic external refs) · ❌ Remote-dependent (needs network to play)
 
@@ -26,38 +26,20 @@ All 46 games registered in `games.json`. Status is based on the actual files —
 | 18 | Brick Dash | classic | Arrows move, Space dash | ✅ |
 | 19 | Tile Merge | classic | Arrows/WASD, Space, tap | ✅ |
 | 20 | Match Flip | classic | Arrows/WASD, Space, tap | ✅ |
-| 21 | A-GEO Quiz | classic | 1–4 / A–D, Enter, R | ✅ |
-| 22 | Connections | puzzle | Tap / Arrows, Space, Enter, S | ✅ |
 | 23 | Eaglercraft | action | Minecraft 1.8 controls | ✅ (offline SP; GPL-3.0, own MC Java) |
 | 24 | FPS | action | Mouse look, WASD, LMB, 1/2/3, R, Shift, Space | ✅ |
-| 25 | Memory Match | classic | Tap / Arrows + Space/Enter | ✅ |
-| 26 | Multiplayer Arena Shooter | action | WASD, mouse, LMB, Space, R | ❌ (PeerJS cloud signaling) |
-| 27 | Sudoku | puzzle | Tap, Arrows, 1–9, N | ✅ |
-| 28 | Times Tables | classic | Digits, Backspace, Enter | ✅ |
-| 29 | Typing Test | classic | Type, Space, Backspace | ✅ |
-| 30 | Word Scramble | puzzle | Letters, Backspace, Enter, H/S | ✅ |
 | 31 | Letter Boxed | puzzle | Tap / A–Z, Backspace, Enter | ✅ |
-| 32 | Mental Math | classic | Digits, Backspace, Enter | ✅ |
-| 33 | Spelling Bee | puzzle | Tap / A–Z, Enter, Space, N | ✅ |
-| 34 | Balance Beam Bash | sports | P1 A/S, P2 L/K, Space, R, M | ✅ |
 | 35 | Boss Rush | action | WASD, click/Space shoot, R | ✅ |
 | 36 | Grid Heist | strategy | Arrows/WASD, Space claim, Enter | ✅ |
 | 37 | Last Lantern | action | P1–P4 key sets, R, Esc | ✅ |
-| 38 | Orbit Relay | action | Hold Left/Right, Enter, P, Esc | ✅ |
-| 39 | Parcel Panic | action | P1–P4 key sets, R, Esc | ✅ |
-| 40 | Pattern Panic | classic | 1–6 symbols, R, Esc | ✅ |
-| 41 | Pocket Bumper | action | P1 WASD, P2 Arrows, drag | ✅ |
 | 42 | Queue Escape | strategy | Co-op P1–P4 key sets, R, Esc | ✅ |
-| 43 | Signal Sprint | action | P1=A … P6=K, touch lanes | ✅ |
 | 44 | Story Adventure | puzzle | Tap choice / number keys, R, M | ✅ |
-| 45 | Word Relay Riot | puzzle | Type, Enter, Esc, R | ✅ |
-| 46 | Wordle | puzzle | Type/tap, Enter, Backspace | ✅ |
+| 47 | Gladihoppers | action | P1/P2 pick WASD, Arrows, or gamepad in the pre-fight menu | ✅ |
 
 ## Remote-dependent games (not offline)
 
 - **Slope, Hextris, Flappy Bird** — the entry `index.html` is a full-page `<iframe>` to an external site. No network, no game.
 - **Age of War** — Flash `.swf` played through Ruffle, which is fetched from `unpkg.com` at runtime.
-- **Multiplayer Arena Shooter** — P2P WebRTC gameplay, but room setup uses the public PeerJS cloud by default.
 
 ## Notes
 
@@ -65,5 +47,6 @@ All 46 games registered in `games.json`. Status is based on the actual files —
 - **Character Alsen** is a scripted, offline keyword-matching chatbot — not a hosted LLM. The folder is read-only.
 - **Eaglercraft** is an offline sandbox (relays empty); it bundles GPL-3.0 components and MC 1.8 assets that require owning Minecraft Java Edition.
 - `Games/QWOP/` is an unregistered folder; the registered "QWOP" entry points to `Games/QwopRemake/`.
+- **Catalog pruning (2026-08):** 18 self-built games (A-GEO Quiz, Connections, Memory Match, Multiplayer Arena Shooter, Sudoku, Times Tables, Typing Test, Word Scramble, Mental Math, Spelling Bee, Balance Beam Bash, Orbit Relay, Parcel Panic, Pattern Panic, Pocket Bumper, Signal Sprint, Word Relay Riot, Wordle) were removed from `Games/` and the catalog; their ids are not reused.
 
 Full details, controls, and per-game notes: see [`docs/GAMES.md`](../GAMES.md).

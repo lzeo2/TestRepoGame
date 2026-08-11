@@ -11,7 +11,7 @@ A static browser-games portal. **The repo root is the deployed site.** Netlify p
 │   ├── index-CRWHmtoy.js   Minified portal bundle (no source — polish via CSS + index.html only)
 │   └── index-CUsUGgbt.css  Minified portal styles
 ├── games.json              Catalog — single source of truth for the game grid
-├── Games/                  Self-contained game folders, one per game (47 folders, 46 registered)
+├── Games/                  Self-contained game folders, one per game (30 folders, 29 registered)
 ├── netlify.toml            Netlify config: publish ".", security headers, /uv redirects, disabled /bare template
 ├── netlify/functions/
 │   └── bare.js             Status endpoint: honestly reports proxyEnabled: false

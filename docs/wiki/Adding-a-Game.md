@@ -18,11 +18,11 @@ Do **not** touch `Games/Character AI/` (read-only).
 
 ## Step 2 — Register in `games.json`
 
-Append an entry with the **next unique integer id** (current max is 46):
+Append an entry with the **next unique integer id** (current max is 47):
 
 ```json
 {
-  "id": 47,
+  "id": 48,
   "title": "Example Game",
   "cat": "classic",
   "icon": "🎮",

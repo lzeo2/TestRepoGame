@@ -64,7 +64,7 @@ Example:
 - `Games/Character AI/` is **read-only** — never edit or restructure it.
 - The `/bare/*` proxy stays **disabled** (see `docs/proxy.md`).
 
-The portal itself loads one external font (Google Fonts `Inter`, referenced in `index.html`); it falls back to system fonts when offline. Games are audited for external references; see `docs/GAMES.md` — status is labeled honestly per game, and **remote-dependent games are not claimed to be offline** (notably Slope, Flappy Bird, Hextris, Age of War, and Multiplayer Arena Shooter, which are embedded/remote or need signaling).
+The portal itself loads one external font (Google Fonts `Inter`, referenced in `index.html`); it falls back to system fonts when offline. Games are audited for external references; see `docs/GAMES.md` — status is labeled honestly per game, and **remote-dependent games are not claimed to be offline** (notably Slope, Flappy Bird, Hextris, and Age of War, which are embedded/remote or need a CDN).
 
 ## Eaglercraft — honesty note
 
@@ -74,7 +74,7 @@ Licensing honesty: the bundle contains **GPL-3.0 components** and **Minecraft 1.
 
 ## Original code note
 
-Most arcade games under `Games/` (FPS, Boss Rush, Star Catcher, Paddle Duel, Brick Dash, Tile Merge, Match Flip, Memory Match, Mental Math, Times Tables, Typing Test, Word Scramble, Letter Boxed, Spelling Bee, Sudoku, Connections, A-GEO Quiz, Balance Beam Bash, Grid Heist, Last Lantern, Orbit Relay, Parcel Panic, Pattern Panic, Pocket Bumper, Queue Escape, Signal Sprint, Story Adventure, Word Relay Riot, Wordle, and others) are **original code written for this repo**. A handful of folders bundle third-party games (Ovo, Run 3, Snake, Chrome Dino, Breakout, QWOP remake, the "Random" sports games, Eaglercraft) with their original licensing/attribution kept intact. The game catalog (`docs/GAMES.md`) flags provenance per game.
+Most arcade games under `Games/` (FPS, Boss Rush, Star Catcher, Paddle Duel, Brick Dash, Tile Merge, Match Flip, Letter Boxed, Grid Heist, Last Lantern, Queue Escape, Story Adventure, and others) are **original code written for this repo**. A handful of folders bundle third-party games (Ovo, Run 3, Snake, Chrome Dino, Breakout, QWOP remake, the "Random" sports games, Eaglercraft) with their original licensing/attribution kept intact. The game catalog (`docs/GAMES.md`) flags provenance per game.
 
 ## Character AI — honesty note
 
@@ -83,7 +83,7 @@ Most arcade games under `Games/` (FPS, Boss Rush, Star Catcher, Paddle Duel, Bri
 ## Useful links
 
 - `docs/ARCHITECTURE.md` — how the repo fits together
-- `docs/GAMES.md` — catalog of all 46 registered games (category, controls, status)
+- `docs/GAMES.md` — catalog of all 29 registered games (category, controls, status)
 - `docs/DEPLOYMENT.md` — Netlify deployment and the disabled `/bare` / UV posture
 - `docs/proxy.md` — full design and caveats of the Ultraviolet launcher
 - `docs/CODE_QUALITY.md` — code-quality contract and verification commands

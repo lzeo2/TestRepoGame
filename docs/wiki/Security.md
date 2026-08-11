@@ -24,7 +24,7 @@
 ## Offline-first as a security property
 
 - No CDN scripts, no external fonts, no runtime third-party `fetch()`/`WebSocket` in games — every game is self-contained. This is both a reliability guarantee and a supply-chain control: nothing is loaded from third-party origins at runtime.
-- Games that are exceptions (remote iframes like Slope/Hextris/Flappy Bird, the Ruffle-CDN Age of War, PeerJS-cloud Multiplayer Arena Shooter) are **audited and labeled honestly** in `docs/GAMES.md` — they are not claimed to be offline.
+- Games that are exceptions (remote iframes like Slope/Hextris/Flappy Bird, the Ruffle-CDN Age of War) are **audited and labeled honestly** in `docs/GAMES.md` — they are not claimed to be offline.
 - The Eaglercraft wrapper fetches nothing external; relays and servers are empty by default.
 
 ## Verification commands (run these, quote the output)
