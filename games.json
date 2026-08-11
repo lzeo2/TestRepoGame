@@ -313,5 +313,50 @@
     "desc": "Flipline Studios' classic time-management game — take orders, build pizzas, bake them, and serve happy customers through a full workday shift. Original 2007 Flash build running locally under the bundled Ruffle emulator; MochiAds/FliplineAds ad calls are answered locally, so it's fully playable offline.",
     "url": "Games/PapasPizzeria/index.html",
     "featured": false
+  },
+  {
+    "id": 54,
+    "title": "Retro Bowl",
+    "cat": "sports",
+    "icon": "🏈",
+    "desc": "Fan-hosted HTML5 port of New Star Games' Retro Bowl — build a franchise, draft, and play arcade football with simple tap/swipe controls. Local GameMaker:HTML5 build; Poki SDK replaced by a local stub, so it's fully playable offline.",
+    "url": "Games/RetroBowl/index.html",
+    "featured": false
+  },
+  {
+    "id": 55,
+    "title": "Super Hot",
+    "cat": "action",
+    "icon": "🕶️",
+    "desc": "Fan-hosted Unity WebGL port of SUPERHOT — time moves only when you move. Dismantle a slow-motion world with thrown weapons and well-timed shots. Local build; fully playable offline.",
+    "url": "Games/Superhot/index.html",
+    "featured": false
+  },
+  {
+    "id": 56,
+    "title": "10 Minutes Till Dawn",
+    "cat": "action",
+    "icon": "🔦",
+    "desc": "Fan-hosted Unity WebGL port of Flanne's 10 Minutes Till Dawn — survive the horde for ten minutes, level up on the fly, and stack upgrades as the night gets darker. Local build; fully playable offline.",
+    "url": "Games/TenMinutesTillDawn/index.html",
+    "featured": false
+  },
+  {
+    "id": 57,
+    "title": "Fleeing the Complex",
+    "cat": "story",
+    "icon": "✈️",
+    "desc": "Fan-hosted port of the Henry Stickmin adventure Fleeing the Complex — escape the prison through zany, choice-driven outcomes. Original Flash game running under the bundled local Ruffle emulator.",
+    "url": "Games/FleeingTheComplex/index.html",
+    "featured": false
+  },
+  {
+    "id": 58,
+    "title": "Infiltrating the Airship",
+    "cat": "story",
+    "icon": "🎈",
+    "desc": "Fan-hosted port of the Henry Stickmin adventure Infiltrating the Airship — sneak aboard the Toppat airship and pick your path through branching chaos. Original Flash game running under the bundled local Ruffle emulator.",
+    "url": "Games/InfiltratingTheAirship/index.html",
+    "featured": false
   }
 ]
