@@ -259,5 +259,14 @@
     "desc": "2D physics gladiator brawler — career mode, gear upgrades, 2-player local fights",
     "url": "Games/Gladihoppers/index.html",
     "featured": false
+  },
+  {
+    "id": 48,
+    "title": "Burrito Bison",
+    "cat": "action",
+    "icon": "🥊",
+    "desc": "Physics launch game — fling the burrito, smash gummy bears, grab cash, and buy upgrades to travel further each run.",
+    "url": "Games/BurritoBison/index.html",
+    "featured": false
   }
 ]
