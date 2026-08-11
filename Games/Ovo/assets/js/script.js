@@ -73,10 +73,16 @@ document.querySelectorAll('.github').forEach(element => {
 document.querySelectorAll('.discord').forEach(element => {
    element.onclick = function() { 
        navigator.clipboard.writeText(".awesomeguy.");
-       swal({
-           title: "Successfully Copied to Clipboard!",
-           text: ".awesomeguy.",
-       });
+       // Offline-first: SweetAlert is no longer loaded from unpkg, so fall
+       // back to the native browser alert if swal() is unavailable.
+       if (typeof swal === "function") {
+           swal({
+               title: "Successfully Copied to Clipboard!",
+               text: ".awesomeguy.",
+           });
+       } else {
+           alert("Copied to clipboard: .awesomeguy.");
+       }
    }
 });
 

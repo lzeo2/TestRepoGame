@@ -169,6 +169,10 @@ button:active {
   transform: translateX(-50%);
   width: 90%;
 }
+.footnote.offline-note {
+  bottom: 66px;
+  color: #d9b26a;
+}
 
 /* ---- Room ---- */
 #roomCodeLabel {

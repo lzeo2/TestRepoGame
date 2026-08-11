@@ -1,14 +1,85 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>Flappy Bird</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flappy Bird — Offline Unavailable</title>
     <style>
-        html, body { margin: 0; padding: 0; height: 100%; overflow: hidden; background: #0d1f14; }
-        iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; }
+        :root { color-scheme: dark; }
+        * { box-sizing: border-box; }
+        html, body {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            background: #0b0b10;
+            color: #e8e8f0;
+            font-family: system-ui, "Segoe UI", Roboto, sans-serif;
+        }
+        .wrap {
+            min-height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+        }
+        .card {
+            max-width: 480px;
+            width: 100%;
+            background: #15151b;
+            border: 1px solid #2a2a35;
+            border-radius: 20px;
+            padding: 32px 28px;
+            text-align: center;
+        }
+        .icon { font-size: 56px; line-height: 1; margin-bottom: 16px; }
+        h1 { font-size: 22px; margin: 0 0 12px; color: #fff; }
+        p { font-size: 15px; line-height: 1.55; margin: 0 0 24px; color: #b9b9c7; }
+        .actions { display: flex; flex-direction: column; gap: 10px; }
+        button, a.btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 46px;
+            padding: 12px 18px;
+            border-radius: 999px;
+            border: 1px solid #3a3a48;
+            background: #1d1d26;
+            color: #fff;
+            font-size: 15px;
+            font-weight: 600;
+            text-decoration: none;
+            cursor: pointer;
+            touch-action: manipulation;
+        }
+        button.try {
+            background: #aa3bff;
+            border-color: #aa3bff;
+            color: #08060d;
+        }
+        button:hover, button:focus-visible, a.btn:hover, a.btn:focus-visible {
+            outline: 2px solid #00ff88;
+            outline-offset: 3px;
+        }
+        @media (prefers-reduced-motion: reduce) {
+            * { transition: none !important; animation: none !important; }
+        }
     </style>
 </head>
 <body>
-    <iframe src="https://flappybird.io" title="Flappy Bird"></iframe>
+    <div class="wrap">
+        <div class="card" role="alert">
+            <div class="icon" aria-hidden="true">🐦</div>
+            <h1>Flappy Bird is unavailable offline</h1>
+            <p>
+                The original Flappy Bird build is hosted online and cannot be
+                loaded without a network connection. This arcade is offline-first,
+                so the game can't run here while you're offline.
+            </p>
+            <div class="actions">
+                <button class="try" type="button" onclick="location.reload()">Try Again</button>
+                <button type="button" onclick="history.back()">← Back to Arcade</button>
+            </div>
+        </div>
+    </div>
 </body>
 </html>
