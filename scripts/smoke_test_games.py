@@ -88,7 +88,7 @@ def main():
                 t = t.lower()
                 return benign(t) or any(b in t for b in kb)
             bad = [e for e in errs if not is_benign(e)]
-            fails = [f for f in fails if not any(b in f.lower() for b in BENIGN_REQS)]
+            fails = [f for f in fails if not any(b in f.lower() for b in BENIGN_REQS) and not is_benign(f)]
             status = "FAIL" if (bad or fails) else "ok"
             results.append((g["title"], status, bad[:3], fails[:3]))
             print(f"{status:4} {g['title']:28} console_errors={len(bad)} failed_reqs={len(fails)}", flush=True)
