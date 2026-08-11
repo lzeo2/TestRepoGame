@@ -1,0 +1,15 @@
+# Dependencies
+node_modules/
+
+# Temporary / scratch
+.tmp/
+*.log
+
+# macOS
+.DS_Store
+
+# Root screenshot / download junk
+download (*).png
+Screenshot *.png
+Screenshot *.jpg
+Screenshot_*.jpg
