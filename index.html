@@ -4,6 +4,8 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#0b0b10" />
+    <meta name="color-scheme" content="dark" />
     <title>UNBLOCKMATH // ARCADE</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -79,6 +81,70 @@
         .proxy-launcher__btn:hover,
         .proxy-launcher__btn:focus-visible {
           transform: none;
+        }
+      }
+
+      /* -------------------------------------------------------------
+         Authored theme & layout overrides (Phase 4 portal UI/UX).
+         Loaded after the bundled stylesheet, so these rules win at
+         equal specificity. The minified bundles in ./assets are never
+         touched, and the shared proxy launcher above is unchanged.
+      -------------------------------------------------------------- */
+
+      /* Extend the bundled (dark-only) design tokens. */
+      :root {
+        color-scheme: dark;
+        --bg-card-hover: #1b1b23;
+        --surface-2: #15151b;
+        --overlay: #000000e6;
+        --focus-ring: #00ff88;
+        --focus-ring-soft: color-mix(in srgb, #00ff88 35%, transparent);
+        --radius: 20px;
+        --radius-lg: 28px;
+      }
+
+      /* Never scroll sideways; keep scrollbar space stable. */
+      html {
+        scroll-behavior: smooth;
+        scrollbar-gutter: stable;
+        overflow-x: hidden;
+      }
+      body {
+        overflow-x: hidden;
+        text-rendering: optimizeLegibility;
+      }
+
+      /* Drop the bundled 1126px column frame; let .app own the page width. */
+      #root {
+        width: auto;
+        max-width: none;
+        margin: 0;
+        border-inline: none;
+        text-align: left;
+      }
+
+      ::selection {
+        background: var(--focus-ring);
+        color: #08060d;
+      }
+
+      /* Touch ergonomics applied at the theme level. */
+      button {
+        touch-action: manipulation;
+        -webkit-tap-highlight-color: transparent;
+      }
+
+      /* Reduced motion: kill CSS-driven motion wherever the bundle allows. */
+      @media (prefers-reduced-motion: reduce) {
+        html {
+          scroll-behavior: auto;
+        }
+        *,
+        *::before,
+        *::after {
+          transition-duration: 0.01ms !important;
+          animation-duration: 0.01ms !important;
+          animation-iteration-count: 1 !important;
         }
       }
     </style>
