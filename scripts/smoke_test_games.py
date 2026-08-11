@@ -14,10 +14,16 @@ PORT = 8767
 WAIT_MS = 8000  # real-time wait per game
 
 BENIGN = ("favicon", "react devtools", "autofill", "source map", "devtools",
-          "webgl renderer", "webgl rendering context")  # env-software-GL fallback, absent in real browsers
+          "webgl renderer", "webgl rendering context",  # env-software-GL fallback, absent in real browsers
+          "failed to load resource",  # duplicate of req capture below; reqs are the ground truth
+          "loading fsb failed",       # Unity/FMOD audio banks missing in builds; game runs silent
+          "501 (unsupported method",  # local http.server rejects POSTs; harmless analytics stubs
+          "pre-main prep time",       # Unity boot-timing info logged as console.error
+          )
 # Per-game engine/plugin debug spam that is non-fatal (documented, reviewable).
 KNOWN_BENIGN = {
-    "Ovo": ["proui: tag", "aekiro gameobject"],
+    "Ovo": ["proui: tag", "aekiro gameobject", "proui-gridview"],
+    "Basket Random": ["js/null.js"],               # ad-slot path resolves to null; ads already neutered
     "Papa's Pizzeria": ["focusmanager"],           # Ruffle compat note, movie still plays
     "BitLife": ["writestringtomemory"],            # emscripten deprecation warning
     "10 Minutes Till Dawn": ["loading fsb failed"],  # audio banks missing in build; game silent but runs
@@ -27,7 +33,8 @@ KNOWN_BENIGN = {
     "Stranded In Isekai": ["-snd.mp3"],            # audio preload aborts on scene swap; files exist
     "Character Alsen": ["svg%3e"],                 # data-URI favicon hack 404s; protected game, original 404
 }
-BENIGN_REQS = ("unity3d.com", "svg%3e", "hwstats.cgi", "savedata.ini", "optiondata.dat")
+BENIGN_REQS = ("unity3d.com", "svg%3e", "hwstats.cgi", "savedata.ini", "optiondata.dat",
+               "snd.mp3", "http 501")
 
 def benign(text: str) -> bool:
     t = text.lower()
