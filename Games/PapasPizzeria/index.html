@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en-us">
+
+  <head>
+    <!--
+      Attribution / provenance:
+      Papa's Pizzeria, the original 2007 Flash time-management game by
+      Flipline Studios. Vendored from the fan-hosted archive
+      github.com/a456pur/seraph (branch main, path games/papaspizzaria) as a
+      self-contained folder: the game SWF plus the bundled Ruffle emulator
+      (ruffle.js + c5c02c4e65c1c4423a97.wasm), which runs the SWF without the
+      Flash plugin. Google Analytics (gtag) and the site's tab-cloak /
+      navigation scripts were removed; Ruffle now loads from the local copy
+      only. Ad-SDK hosts embedded in the SWF (MochiAds / FliplineAds / Chinese
+      portal SDKs) are answered locally by an XHR/fetch guard, so nothing
+      leaves this origin. Store/site promo buttons in the game (iTunes,
+      Google Play, Amazon, flipline.com, papalouie.com) are user-initiated
+      browser links only. The SWF is the property of Flipline Studios and is
+      included for fan/archival play.
+    -->
+    <title>Papa's Pizzeria</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>%F0%9F%8D%95</text></svg>">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+        background-color: black;
+      }
+      #ruffle {
+        width: 100vw;
+        height: 100vh;
+      }
+    </style>
+    <script>
+      // Offline-first guard: the SWF's embedded ad SDKs (MochiAds, FliplineAds,
+      // Chinese portal SDKs) try to reach third-party hosts. Route any such
+      // request to a local empty response so nothing leaves this origin.
+      // Store/site promo buttons remain user-initiated browser links.
+      (function () {
+        var external = /mochiads\.com|fliplineads\.com|3366\.com|3366img\.com|4399\.com|7k7k\.com/;
+
+        var originalOpen = XMLHttpRequest.prototype.open;
+        XMLHttpRequest.prototype.open = function (method, url) {
+          if (typeof url === "string" && /^https?:\/\//i.test(url) && external.test(url)) {
+            console.log("--fx--PapasPizzeria offline route--", url);
+            url = "json/null.json?" + url;
+          }
+          return originalOpen.call(this, method, url);
+        };
+
+        if (window.fetch) {
+          var originalFetch = window.fetch;
+          window.fetch = function (input, init) {
+            var url = typeof input === "string" ? input : (input && input.url) || "";
+            if (/^https?:\/\//i.test(url) && external.test(url)) {
+              console.log("--fx--PapasPizzeria offline fetch route--", url);
+              return Promise.resolve(new Response("{}", { status: 200 }));
+            }
+            return originalFetch.call(this, input, init);
+          };
+        }
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="ruffle" width="100%" height="100%"></div>
+    <script src="ruffle.js"></script>
+    <script>
+      window.RufflePlayer = window.RufflePlayer || {};
+      window.addEventListener("load", (event) => {
+        const ruffle = window.RufflePlayer.newest();
+        const player = ruffle.createPlayer();
+        const container = document.getElementById("ruffle");
+        player.id = "player";
+        player.style.width = "100%";
+        player.style.height = "100%";
+        container.appendChild(player);
+        player.load("papaspizzeria.swf");
+      });
+    </script>
+  </body>
+</html>

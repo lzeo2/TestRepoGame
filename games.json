@@ -304,5 +304,14 @@
     "desc": "Fantasy RPG — stranded in another world, explore villages and forests, talk to NPCs, win quiz battles, and level up through the story.",
     "url": "Games/StrandedInIsekai/index.html",
     "featured": false
+  },
+  {
+    "id": 53,
+    "title": "Papa's Pizzeria",
+    "cat": "strategy",
+    "icon": "🍕",
+    "desc": "Flipline Studios' classic time-management game — take orders, build pizzas, bake them, and serve happy customers through a full workday shift. Original 2007 Flash build running locally under the bundled Ruffle emulator; MochiAds/FliplineAds ad calls are answered locally, so it's fully playable offline.",
+    "url": "Games/PapasPizzeria/index.html",
+    "featured": false
   }
 ]
