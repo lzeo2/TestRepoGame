@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Orbit Relay</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="wrap">
+
+  <!-- ================= MENU / START ================= -->
+  <section id="screen-menu">
+    <h1>Orbit Relay</h1>
+    <p class="tag">Every cursor orbits the shared center. Fire your token and time the handoff: it must slip through your moving gate. Chain passes to build a streak &mdash; one miss and the streak is gone.</p>
+
+    <div class="stat-line">
+      <span>Best <b id="menuBest">0</b></span>
+      <span>Games <b id="menuGames">0</b></span>
+    </div>
+
+    <h2 class="sub">Players</h2>
+    <div class="seg-row" id="playerRow" role="group" aria-label="Players">
+      <button class="seg" data-players="2" type="button">2</button>
+      <button class="seg" data-players="3" type="button">3</button>
+      <button class="seg" data-players="4" type="button">4</button>
+    </div>
+
+    <h2 class="sub">Round length</h2>
+    <div class="seg-row" id="timeRow" role="group" aria-label="Round length">
+      <button class="seg" data-time="60" type="button">60s</button>
+      <button class="seg" data-time="90" type="button">90s</button>
+      <button class="seg" data-time="120" type="button">120s</button>
+    </div>
+
+    <div class="btn-row">
+      <button id="startBtn" class="btn big" type="button">Start Relay</button>
+      <button id="muteBtnMenu" class="btn" type="button" aria-pressed="false">Sound: On</button>
+    </div>
+    <p class="hint">Keys: 2/3/4 = players &middot; 6/7/8 = round &middot; ENTER = start &middot; M = mute</p>
+  </section>
+
+  <!-- ================= COUNTDOWN ================= -->
+  <section id="screen-countdown" class="hidden">
+    <div class="cd-card">
+      <p id="cdLabel" class="cd-label">Get ready</p>
+      <div id="cdNum" class="cd-num">3</div>
+    </div>
+  </section>
+
+  <!-- ================= GAME ================= -->
+  <section id="screen-game" class="hidden">
+    <div class="hud">
+      <div class="timer-chip" id="timerChip">Time <b id="timer">90</b></div>
+      <div id="hudChips" class="chips"></div>
+      <button id="pauseBtn" class="tiny-btn" type="button" title="Pause (P)">&#10074;&#10074;</button>
+    </div>
+    <div class="stage">
+      <canvas id="game" width="600" height="600"></canvas>
+    </div>
+    <div id="pads" class="pads"></div>
+    <p class="hint">Hold LEFT / RIGHT to orbit your cursor &middot; drop your gate on the token&rsquo;s path before it hits the ring &middot; P = pause &middot; ESC = menu</p>
+  </section>
+
+  <!-- ================= RESULT ================= -->
+  <section id="screen-result" class="hidden">
+    <div class="result-card">
+      <h2 id="resultTitle">Time&rsquo;s Up!</h2>
+      <div id="resultList"></div>
+      <p id="resBest" class="res-best"></p>
+      <div class="btn-row">
+        <button id="againBtn" class="btn big" type="button">Play Again</button>
+        <button id="menuBtn" class="btn" type="button">Menu</button>
+      </div>
+      <p class="hint">Keys: ENTER / R = play again &middot; ESC = menu</p>
+    </div>
+  </section>
+
+</div>
+<script src="script.js"></script>
+</body>
+</html>

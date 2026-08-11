@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Grid Heist</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M16 3 29 16 16 29 3 16Z' fill='%23ffd166'/%3E%3Ctext x='16' y='22' font-size='15' text-anchor='middle' fill='%231a1a2e' font-family='Arial'%3E%24%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="wrap">
+  <div class="hud">
+    <h1>Grid Heist</h1>
+    <div class="stats" id="stats"></div>
+  </div>
+  <div class="roundline">
+    <span id="roundLabel" class="round">Round 1 / 12</span>
+    <div class="timerwrap" aria-hidden="true"><div id="timerBar" class="timerbar"></div></div>
+  </div>
+  <canvas id="game" width="550" height="550"></canvas>
+  <p id="status" class="status" role="status" aria-live="polite">&nbsp;</p>
+  <div class="controls">
+    <button class="tbtn" id="restartBtn" type="button">&#8635; Menu</button>
+  </div>
+  <p class="hint">Hotseat 2-4 players &middot; claim a glowing cell next to your territory &middot; build a route to the <span class="v">$</span> vault &middot; block your rivals &middot; 4s per turn</p>
+</div>
+
+<div id="menu" class="overlay">
+  <div class="panel">
+    <h2>Grid Heist</h2>
+    <p class="sub">Race for the vault at the centre of the grid. On your turn you claim one cell next to your territory. First to reach the vault captures it &mdash; and every cell of yours that stays connected to it scores double. Block your rivals&#39; routes!</p>
+    <div class="countrow">
+      <button class="cbtn sel" id="p2btn" type="button">2 Players</button>
+      <button class="cbtn" id="p3btn" type="button">3 Players</button>
+      <button class="cbtn" id="p4btn" type="button">4 Players</button>
+    </div>
+    <button class="cbtn primary" id="startBtn" type="button">Start heist</button>
+    <p class="small">Keyboard: 2 / 3 / 4 to pick players &middot; Enter to start &middot; arrows / WASD to move &middot; Space to claim</p>
+  </div>
+</div>
+
+<div id="end" class="overlay hidden">
+  <div class="panel">
+    <h2 id="endTitle">Vault cracked!</h2>
+    <p id="endSub" class="sub"></p>
+    <table id="resultTable" class="resulttable" aria-label="Final scores"></table>
+    <div class="panelbtns">
+      <button class="cbtn primary" id="againBtn" type="button">Play again</button>
+      <button class="cbtn" id="menuBtn" type="button">Menu</button>
+    </div>
+  </div>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>

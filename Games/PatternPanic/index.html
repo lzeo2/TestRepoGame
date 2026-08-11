@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Pattern Panic</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='2' y='2' width='28' height='28' rx='8' fill='%23110c20'/%3E%3Cpolygon points='16,4 18.9,11.6 27,12.4 21,17.8 22.9,25.7 16,21.4 9.1,25.7 11,17.8 5,12.4 13.1,11.6' fill='%23ffd94a'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="wrap">
+
+  <!-- ================= MENU / START ================= -->
+  <section id="screen-menu">
+    <h1>Pattern Panic</h1>
+    <p class="tag">A shared memory sequence for 2&ndash;6 players. Watch the pattern on the big board, then repeat it in your lane when it&rsquo;s your turn. Every wrong step costs a life &mdash; last player standing wins!</p>
+
+    <h2 class="sub">Players</h2>
+    <div class="seg-row" id="playersRow" role="group" aria-label="Number of players"></div>
+
+    <div id="nameList" class="name-list"></div>
+
+    <div class="btn-row">
+      <button id="startBtn" class="btn big" type="button">Start Game</button>
+    </div>
+    <p class="hint">Keys: 2&ndash;6 = players &middot; ENTER = start &middot; ESC = menu</p>
+  </section>
+
+  <!-- ================= GAME ================= -->
+  <section id="screen-game" class="hidden">
+    <div class="hud">
+      <span>Round <b id="roundEl">1</b></span>
+      <span>Length <b id="lenEl">1</b></span>
+      <span>Step <b id="stepEl">-</b></span>
+      <span id="turnChip" class="chip">Watch!</span>
+      <button id="muteBtn" class="mute" type="button" title="Mute / unmute (M)" aria-label="Mute / unmute (M)">&#128266;</button>
+    </div>
+
+    <p id="msg" class="msg" role="status" aria-live="polite">&nbsp;</p>
+
+    <div id="board" class="board"></div>
+
+    <div id="lanes" class="lanes"></div>
+    <p class="hint">Keys: 1&ndash;6 press the symbols &middot; R restart &middot; ESC menu &middot; Tap buttons on touch screens</p>
+  </section>
+
+  <!-- ================= WIN ================= -->
+  <section id="screen-win" class="hidden">
+    <div class="result-card">
+      <h2 id="winTitle">Player wins!</h2>
+      <div id="winScores" class="win-scores"></div>
+      <div class="btn-row">
+        <button id="againBtn" class="btn big" type="button">Play Again</button>
+        <button id="menuBtn" class="btn" type="button">Menu</button>
+      </div>
+      <p class="hint">Keys: ENTER / R = play again &middot; ESC = menu</p>
+    </div>
+  </section>
+
+</div>
+<script src="script.js"></script>
+</body>
+</html>

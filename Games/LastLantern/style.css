@@ -1,0 +1,248 @@
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+html,
+body {
+  margin: 0;
+  height: 100%;
+}
+body {
+  background: radial-gradient(circle at 50% 18%, #141b33, #05070f 75%);
+  color: #fff;
+  font-family: system-ui, "Segoe UI", Arial, sans-serif;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  overflow: hidden;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.wrap {
+  text-align: center;
+  max-width: 920px;
+  width: 100%;
+  padding: 10px;
+}
+h1 {
+  margin: 4px 0;
+  font-size: 26px;
+  letter-spacing: 2px;
+  color: #ffd94a;
+  text-shadow: 0 0 14px rgba(255, 217, 74, 0.45);
+}
+.hud {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+.stats {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+.stats .p {
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 3px 9px;
+  border-radius: 12px;
+  font-size: 12.5px;
+  line-height: 1.5;
+  white-space: nowrap;
+}
+.stats .p .dot {
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  margin-right: 5px;
+  vertical-align: -1px;
+  box-shadow: 0 0 8px currentColor;
+}
+.stats .p b {
+  font-size: 14px;
+  margin-left: 2px;
+}
+.stats .p .hp {
+  letter-spacing: 2px;
+  font-size: 11px;
+}
+.stats .p .hp .dead {
+  opacity: 0.25;
+}
+.stats .timer {
+  background: rgba(255, 217, 74, 0.12);
+  border: 1px solid rgba(255, 217, 74, 0.35);
+  color: #ffd94a;
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 700;
+}
+.stats .timer.low {
+  color: #ff6b6b;
+  border-color: rgba(255, 107, 107, 0.5);
+  background: rgba(255, 107, 107, 0.12);
+}
+.stage {
+  position: relative;
+  margin: 0 auto;
+}
+canvas {
+  display: block;
+  width: 100%;
+  max-width: 900px;
+  margin: 0 auto;
+  background: #05070f;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  touch-action: none;
+}
+/* Touch pads overlay the play area (only shown when a touch input exists). */
+.touch {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  display: none;
+}
+body.touch-mode .touch {
+  display: block;
+}
+.jpad {
+  position: absolute;
+  width: 92px;
+  height: 92px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.28);
+  background: rgba(255, 255, 255, 0.06);
+  pointer-events: auto;
+  touch-action: none;
+}
+.jpad .knob {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 38px;
+  height: 38px;
+  margin: -19px 0 0 -19px;
+  border-radius: 50%;
+  background: currentColor;
+  box-shadow: 0 0 12px currentColor;
+  pointer-events: none;
+}
+.dbtn {
+  position: absolute;
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: auto;
+  touch-action: none;
+}
+.dbtn:active,
+.dbtn.held {
+  background: rgba(255, 255, 255, 0.28);
+  transform: scale(0.92);
+}
+.jpad.p0, .dbtn.p0 { color: #ffb347; }
+.jpad.p1, .dbtn.p1 { color: #4dd2ff; }
+.jpad.p2, .dbtn.p2 { color: #9dff5e; }
+.jpad.p3, .dbtn.p3 { color: #c58cff; }
+.controls {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 12px;
+  flex-wrap: wrap;
+}
+.tbtn {
+  padding: 11px 16px;
+  font-size: 14px;
+  background: #1c2747;
+  color: #fff;
+  border: 1px solid #33406e;
+  border-radius: 12px;
+  cursor: pointer;
+  user-select: none;
+  touch-action: manipulation;
+}
+.tbtn:hover {
+  background: #26335c;
+}
+.tbtn:active {
+  background: #33407a;
+  transform: scale(0.96);
+}
+.tbtn.sel {
+  background: #3a2c14;
+  border-color: #ffd94a;
+  color: #ffd94a;
+  font-weight: 700;
+}
+.tbtn.sel:hover {
+  background: #4a3a1c;
+}
+.hint {
+  color: #7f8db3;
+  font-size: 12px;
+  margin: 10px 0 0;
+}
+/* Short landscape screens: scale the canvas down so nothing clips. */
+@media (max-height: 620px) and (orientation: landscape) {
+  .wrap {
+    padding: 4px;
+  }
+  h1 {
+    font-size: 18px;
+    margin: 2px 0;
+  }
+  .hud {
+    margin-bottom: 4px;
+  }
+  .stats .p {
+    padding: 2px 7px;
+    font-size: 11px;
+  }
+  canvas {
+    width: auto;
+    max-height: 60vh;
+  }
+  .controls {
+    margin-top: 6px;
+    gap: 8px;
+  }
+  .tbtn {
+    padding: 8px 12px;
+    font-size: 13px;
+  }
+  .hint {
+    margin: 6px 0 0;
+    font-size: 11px;
+  }
+  .jpad {
+    width: 74px;
+    height: 74px;
+  }
+  .jpad .knob {
+    width: 30px;
+    height: 30px;
+    margin: -15px 0 0 -15px;
+  }
+  .dbtn {
+    width: 44px;
+    height: 44px;
+    font-size: 13px;
+  }
+}

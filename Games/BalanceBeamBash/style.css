@@ -1,0 +1,242 @@
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+html,
+body {
+  margin: 0;
+  height: 100%;
+}
+body {
+  background: radial-gradient(circle at 50% 18%, #24304f, #0c1120 72%);
+  color: #fff;
+  font-family: system-ui, "Segoe UI", Arial, sans-serif;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  overflow: hidden;
+}
+.wrap {
+  text-align: center;
+  max-width: 740px;
+  width: 100%;
+  padding: 10px;
+}
+h1 {
+  margin: 6px 0;
+  font-size: 26px;
+  letter-spacing: 1px;
+}
+.hud {
+  display: flex;
+  justify-content: space-between;
+  align-items: stretch;
+  margin-bottom: 8px;
+  gap: 8px;
+}
+.player {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.07);
+  border-radius: 12px;
+  padding: 4px 12px;
+  font-size: 13px;
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+.player.left {
+  justify-content: flex-start;
+}
+.player.right {
+  justify-content: flex-end;
+}
+.player .who {
+  font-size: 11px;
+  color: #8fa3c8;
+  letter-spacing: 1px;
+}
+.player b {
+  font-size: 22px;
+}
+.player.left b {
+  color: #4dd2ff;
+}
+.player.right b {
+  color: #ffd94a;
+}
+.player small {
+  color: #7f8db3;
+  font-size: 11px;
+}
+.player small b {
+  font-size: 12px;
+  color: #7f8db3;
+}
+.clock {
+  background: rgba(255, 255, 255, 0.07);
+  border-radius: 12px;
+  padding: 2px 18px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-width: 92px;
+}
+.clock b {
+  font-size: 26px;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+.clock.low b {
+  color: #ff6a6a;
+  animation: blink 0.6s steps(2, start) infinite;
+}
+.clock small {
+  color: #7f8db3;
+  font-size: 10px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+@keyframes blink {
+  50% {
+    opacity: 0.4;
+  }
+}
+canvas {
+  display: block;
+  width: 100%;
+  max-width: 720px;
+  margin: 0 auto;
+  background: #0c1120;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  touch-action: none;
+}
+.controls {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 14px;
+  margin-top: 12px;
+  flex-wrap: wrap;
+}
+.pad {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.pad em {
+  font-style: normal;
+  font-size: 12px;
+  color: #7f8db3;
+  writing-mode: vertical-rl;
+}
+.mid {
+  display: flex;
+  gap: 8px;
+  flex-direction: column;
+}
+.tbtn {
+  min-width: 84px;
+  padding: 14px 10px;
+  font-size: 15px;
+  font-weight: 600;
+  background: #1d2a47;
+  color: #fff;
+  border: 1px solid #33456e;
+  border-radius: 14px;
+  cursor: pointer;
+  user-select: none;
+  touch-action: none;
+}
+.tbtn.p1 {
+  background: #123047;
+  border-color: #1e587c;
+}
+.tbtn.p1:active {
+  background: #1a4563;
+}
+.tbtn.p2 {
+  background: #3d3310;
+  border-color: #7a651e;
+}
+.tbtn.p2:active {
+  background: #5c4c18;
+}
+.tbtn.small {
+  min-width: 0;
+  width: 52px;
+  padding: 10px 0;
+  font-size: 17px;
+  background: #2a2338;
+  border-color: #453a5e;
+}
+.tbtn:active {
+  transform: scale(0.94);
+}
+.hint {
+  color: #7f8db3;
+  font-size: 12px;
+  margin: 10px 0 0;
+}
+@media (max-width: 520px) {
+  .controls {
+    gap: 8px;
+  }
+  .pad {
+    gap: 6px;
+  }
+  .tbtn {
+    min-width: 68px;
+    padding: 12px 6px;
+    font-size: 13px;
+  }
+  .tbtn.small {
+    width: 44px;
+    padding: 8px 0;
+    font-size: 15px;
+  }
+}
+@media (max-height: 640px) and (orientation: landscape) {
+  .wrap {
+    padding: 4px;
+  }
+  .hud {
+    margin-bottom: 4px;
+  }
+  .player {
+    padding: 2px 8px;
+  }
+  .clock {
+    padding: 0 12px;
+    min-width: 70px;
+  }
+  .clock b {
+    font-size: 20px;
+  }
+  canvas {
+    width: auto;
+    max-height: 52vh;
+  }
+  .controls {
+    margin-top: 6px;
+    gap: 8px;
+  }
+  .tbtn {
+    min-width: 66px;
+    padding: 8px 6px;
+    font-size: 12px;
+  }
+  .tbtn.small {
+    width: 44px;
+    padding: 6px 0;
+    font-size: 14px;
+  }
+  .pad em {
+    font-size: 11px;
+  }
+  .hint {
+    margin: 6px 0 0;
+    font-size: 11px;
+  }
+}

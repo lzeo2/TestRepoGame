@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="The Last Lighthouse - an offline text-choice adventure. Grey Helm Island, 1897. Five endings. No internet required.">
+<title>The Last Lighthouse</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="wrap">
+  <header class="hud">
+    <h1>The Last Lighthouse</h1>
+    <div class="stats">
+      <span>Endings <b id="hudEndings">0/5</b></span>
+      <span>Plays <b id="hudPlays">0</b></span>
+    </div>
+  </header>
+
+  <!-- START PAGE -->
+  <section id="screen-menu" class="screen" aria-labelledby="menuTitle">
+    <p class="tagline">Grey Helm Island, 1897. A storm is coming, the old keeper lies sick, and the merchant ship <em>Dawnswift</em> is drifting toward the Siren Rocks. What do you do?</p>
+    <div class="card">
+      <h2 id="menuTitle">The Last Lighthouse</h2>
+      <p class="sub">You are the assistant keeper of the Grey Helm light, and tonight the light is yours alone.</p>
+      <div id="menuStats" class="menu-stats" aria-live="polite"></div>
+      <button id="startBtn" class="btn big" type="button">Begin the Night</button>
+    </div>
+    <p class="hint">Tap a choice, or press its number key &middot; R restarts &middot; M returns to menu</p>
+  </section>
+
+  <!-- STORY -->
+  <section id="screen-story" class="screen hidden" aria-labelledby="locChip">
+    <div id="locChip" class="loc-chip"></div>
+    <div class="node-card">
+      <p id="nodeText" class="node-text" aria-live="polite"></p>
+      <div id="choices" class="choices" role="group" aria-label="Your choices"></div>
+    </div>
+  </section>
+
+  <!-- ENDING -->
+  <section id="screen-ending" class="screen hidden" aria-labelledby="endTitle">
+    <div id="endCard" class="card end-card">
+      <div id="endBadge" class="end-badge hidden">New ending discovered!</div>
+      <p id="endRank" class="end-rank"></p>
+      <h2 id="endTitle" class="end-title"></h2>
+      <p id="endText" class="end-text"></p>
+      <div class="btn-row">
+        <button id="againBtn" class="btn big" type="button">Play Again</button>
+        <button id="menuBtn" class="btn" type="button">Menu</button>
+      </div>
+    </div>
+  </section>
+</div>
+<script src="script.js"></script>
+</body>
+</html>

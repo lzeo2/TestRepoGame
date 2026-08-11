@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Boss Rush</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="wrap">
+  <div class="hud">
+    <h1>Boss Rush</h1>
+    <div class="stats">
+      <span>Score <b id="score">0</b></span>
+      <span>Best <b id="best">0</b></span>
+      <span>Wave <b id="wave">1</b></span>
+      <span>HP <b id="hp">100</b></span>
+    </div>
+  </div>
+  <canvas id="game" width="720" height="520"></canvas>
+  <div class="controls">
+    <button class="tbtn" id="fireBtn" type="button">FIRE</button>
+    <button class="tbtn" id="pauseBtn" type="button">&#10074;&#10074;</button>
+  </div>
+  <p class="hint">Move: WASD / &#9664; &#9654; &#9650; &#9660; &middot; Shoot: mouse click (hold) or SPACE &middot; Restart: R</p>
+</div>
+<script src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Parcel Panic</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="wrap">
+
+  <!-- ================= MENU / START ================= -->
+  <section id="screen-menu">
+    <h1>Parcel Panic</h1>
+    <p class="tag">Top-down parcel rush! Grab a parcel and deliver it to its matching drop zone. Zones move and recolor mid-match &mdash; deliver to the wrong zone and you pay.</p>
+
+    <div class="stat-line">
+      <span>Best <b id="menuBest">0</b></span>
+      <span>Games <b id="menuGames">0</b></span>
+    </div>
+
+    <h2 class="sub">Players</h2>
+    <div class="seg-row" id="playersRow" role="group" aria-label="Players">
+      <button class="seg" data-players="2" type="button">2</button>
+      <button class="seg" data-players="3" type="button">3</button>
+      <button class="seg active" data-players="4" type="button">4</button>
+    </div>
+
+    <h2 class="sub">Bots fill spare seats</h2>
+    <div class="seg-row" id="botsRow" role="group" aria-label="Bots">
+      <button class="seg" data-bots="0" type="button">Off</button>
+      <button class="seg active" data-bots="1" type="button">On</button>
+    </div>
+
+    <h2 class="sub">Match time</h2>
+    <div class="seg-row" id="timeRow" role="group" aria-label="Match time">
+      <button class="seg" data-time="60" type="button">60s</button>
+      <button class="seg active" data-time="90" type="button">90s</button>
+      <button class="seg" data-time="120" type="button">120s</button>
+    </div>
+
+    <div class="btn-row">
+      <button id="startBtn" class="btn big" type="button">Start Match</button>
+    </div>
+    <p class="hint">P1: WASD + SPACE &middot; P2: Arrows + ENTER &middot; P3: IJKL + O &middot; P4: TFGH + Y &middot; R restarts &middot; ESC = menu</p>
+  </section>
+
+  <!-- ================= GAME ================= -->
+  <section id="screen-game" class="hidden">
+    <div class="hud" id="hud"></div>
+    <canvas id="game" width="900" height="620"></canvas>
+    <div id="controls" class="controls"></div>
+    <p class="hint" id="gameHint"></p>
+  </section>
+
+  <!-- ================= RESULT ================= -->
+  <section id="screen-result" class="hidden">
+    <div class="result-card">
+      <h2 id="resultTitle">Time&rsquo;s Up!</h2>
+      <div id="resultList" class="result-list"></div>
+      <div class="btn-row">
+        <button id="againBtn" class="btn big" type="button">Play Again</button>
+        <button id="menuBtn" class="btn" type="button">Menu</button>
+      </div>
+      <p class="hint">Keys: R = play again &middot; ESC = menu</p>
+    </div>
+  </section>
+
+</div>
+<script src="script.js"></script>
+</body>
+</html>

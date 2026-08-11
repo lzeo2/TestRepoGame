@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Last Lantern</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="wrap">
+  <div class="hud">
+    <h1>Last Lantern</h1>
+    <div class="stats" id="stats"></div>
+  </div>
+  <div class="stage">
+    <canvas id="game" width="900" height="600"></canvas>
+    <div class="touch" id="touch" aria-hidden="true"></div>
+  </div>
+  <div class="controls">
+    <button class="tbtn sel" id="btn2" type="button">2 Players</button>
+    <button class="tbtn sel" id="btn3" type="button">3 Players</button>
+    <button class="tbtn sel" id="btn4" type="button">4 Players</button>
+    <button class="tbtn" id="restartBtn" type="button">&#8635; Restart</button>
+    <button class="tbtn" id="menuBtn" type="button">&#8962; Menu</button>
+  </div>
+  <p class="hint" id="hint">P1 W/A/S/D + Q dash &middot; P2 Arrows + / &middot; P3 I/J/K/L + U &middot; P4 Numpad 8/4/5/6 + 0 &middot; R restart &middot; Esc menu &middot; Grab sparks to glow bright, shrink the safe zone, out-light rivals</p>
+</div>
+<script src="script.js"></script>
+</body>
+</html>
