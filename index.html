@@ -90,6 +90,10 @@
       /* Extend the bundled (dark-only) design tokens. */
       :root {
         color-scheme: dark;
+        /* Headings stay light in every OS scheme: the portal chrome is
+           always dark, so the bundle's light-mode --text-h (#08060d)
+           would leave titles unreadable on dark surfaces. */
+        --text-h: #f3f4f6;
         --bg-card-hover: #1b1b23;
         --surface-2: #15151b;
         --overlay: #000000e6;
@@ -198,5 +202,10 @@
         Proxy
       </a>
     </nav>
+
+    <!-- Portal UX enhancement layer (authored, unminified): keyboard card
+         navigation, skip link, modal controls, metadata, flat-styling hooks.
+         Deferred so it runs after the bundle; never touches the bundle. -->
+    <script defer src="./assets/portal-ux.js"></script>
   </body>
 </html>
