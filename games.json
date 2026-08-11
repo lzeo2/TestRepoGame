@@ -268,5 +268,14 @@
     "desc": "Physics launch game — fling the burrito, smash gummy bears, grab cash, and buy upgrades to travel further each run.",
     "url": "Games/BurritoBison/index.html",
     "featured": false
+  },
+  {
+    "id": 49,
+    "title": "BitLife",
+    "cat": "simulation",
+    "icon": "🧬",
+    "desc": "Text-based life simulation — born into a family, then steer a whole lifetime one year at a time: school, careers, relationships, crime, and whatever else aging throws at you.",
+    "url": "Games/BitLife/index.html",
+    "featured": false
   }
 ]

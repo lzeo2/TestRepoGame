@@ -1,6 +1,6 @@
 # Game Catalog — UNBLOCKMATH // ARCADE
 
-All **30 registered games** from `games.json` (ids 1–48 with gaps — the ids of removed games are not reused). Category comes from the catalog `cat` field; controls and status are based on the actual files in `Games/`.
+All **31 registered games** from `games.json` (ids 1–49 with gaps — the ids of removed games are not reused). Category comes from the catalog `cat` field; controls and status are based on the actual files in `Games/`.
 
 **Status key**
 
@@ -44,6 +44,7 @@ All **30 registered games** from `games.json` (ids 1–48 with gaps — the ids 
 | 44 | Story Adventure | puzzle | Tap a choice or press its number key · R restart · M menu (text adventure, 5 endings) | ✅ Offline |
 | 47 | Gladihoppers | action | P1/P2 pick WASD, Arrows, or gamepad in the pre-fight menu · mouse/touch for menus | ✅ Offline |
 | 48 | Burrito Bison | action | In-game tutorial; mouse/touch to launch and steer the burrito | ✅ Offline |
+| 49 | BitLife | simulation | Mouse/touch — pick life choices from menus as your character ages one year per turn | ✅ Offline — compiled IAP/ad/cloud-transfer URLs answered by a local `json/null.json` |
 
 ---
 
@@ -55,6 +56,7 @@ All **30 registered games** from `games.json` (ids 1–48 with gaps — the ids 
 - **Age of War (2):** the game is a Flash `.swf` played through Ruffle, which is loaded from `https://unpkg.com/@ruffle-rs/ruffle`. Without network, Ruffle never loads and the game cannot start.
 - **Gladihoppers (47):** vendored Unity WebGL build (v3.0.1, Dreamon Studios) from `github.com/1000unblockedgames/Gladihoppers` (commit `a14cd76`); ad/analytics scripts removed and a local no-op Poki SDK stub keeps it fully offline — the online-PvP and IAP buttons are inert without network.
 - **Burrito Bison (48):** fan-hosted HTML5 port (Unity WebGL) of Juicy Beast Studio's *Burrito Bison*, vendored from `github.com/a456pur/seraph` (branch `main`, path `games/burritobison`); Google Analytics removed, and the port's `UnityUrlFix` hook routes any unity3d.com/appspot.com requests (Unity IAP/analytics SDK calls) to a local `json/null.json` — those in-game store/analytics features are inert offline.
+- **BitLife (49):** fan-hosted HTML5 port (Unity WebGL, `companyName` "3kh0.github.io") of Candywriter, LLC's *BitLife* life simulator, vendored from `github.com/a456pur/seraph` (branch `main`, path `games/bitlife`); Google Analytics and the site's tab-cloak script removed. The compiled port embeds Unity IAP (`*.iap.unity3d.com`), Candywriter ad-config (`cywr*.appspot.com`), and cloud-transfer (`unitygame.herokuapp.com/bitlife/transfer_config.txt`) URLs — an XHR hook routes any request to those hosts (plus `amongus-online.net`) to a local `json/null.json`, so the in-game store, ads, and cloud-transfer features are inert offline. Social/website/store links remain user-initiated browser links only.
 - **Random sports games (4, 5, 6):** Construct 3 exports with local assets (`box2d.wasm.js`, `scripts/offlineclient.js`, `scripts/main.js`). Leftover `ubg235`/analytics files exist in the folders but are **not loaded** by `index.html`, so they don't affect offline play.
 - **Eaglercraft (23):** relays and server list are empty by default (`relays: null`, `servers: null` in `index.html`). Clicking **Singleplayer** creates a local offline world. Licensing: GPL-3.0 components + MC 1.8 assets require owning Minecraft Java Edition.
 - **Catalog pruning (2026-08):** 18 self-built games were removed from `Games/` and the catalog: A-GEO Quiz (21), Connections (22), Memory Match (25), Multiplayer Arena Shooter (26), Sudoku (27), Times Tables (28), Typing Test (29), Word Scramble (30), Mental Math (32), Spelling Bee (33), Balance Beam Bash (34), Orbit Relay (38), Parcel Panic (39), Pattern Panic (40), Pocket Bumper (41), Signal Sprint (43), Word Relay Riot (45), Wordle (46). Their `games.json` ids were removed and are **not reused**; retained entries keep their original ids.
@@ -66,5 +68,5 @@ All **30 registered games** from `games.json` (ids 1–48 with gaps — the ids 
 ## Provenance quick view
 
 - **Original code (written for this repo):** FPS, Star Catcher, Paddle Duel, Brick Dash, Tile Merge, Match Flip, Letter Boxed, Boss Rush, Grid Heist, Last Lantern, Queue Escape, Story Adventure. (The 18 self-built games removed in the 2026-08 pruning were also original code; see the pruning note above.)
-- **Third-party bundles (attribution/licensing kept):** Ovo, Run 3, Snake, Chrome Dino, Breakout, QWOP remake, Soccer/Basket/Volley Random (Construct 3 exports), Eaglercraft (GPL-3.0 + MC assets), Gladihoppers (Unity WebGL, Dreamon Studios), Burrito Bison (fan-hosted Unity WebGL port of Juicy Beast Studio's game, via `github.com/a456pur/seraph`).
+- **Third-party bundles (attribution/licensing kept):** Ovo, Run 3, Snake, Chrome Dino, Breakout, QWOP remake, Soccer/Basket/Volley Random (Construct 3 exports), Eaglercraft (GPL-3.0 + MC assets), Gladihoppers (Unity WebGL, Dreamon Studios), Burrito Bison (fan-hosted Unity WebGL port of Juicy Beast Studio's game, via `github.com/a456pur/seraph`), BitLife (fan-hosted Unity WebGL port of Candywriter, LLC's game, via `github.com/a456pur/seraph`).
 - **Read-only:** `Games/Character AI/`.

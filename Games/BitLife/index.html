@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <title>BitLife</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>%F0%9F%A7%AC</text></svg>">
+    <link rel="stylesheet" href="style.css" />
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+        background-color: black;
+      }
+    </style>
+    <script>
+      // Offline-first guard: the port's compiled SDKs (Unity IAP, Candywriter ad
+      // config, cloud-transfer) embed absolute URLs to third-party hosts. Route
+      // any such request to a local empty JSON so nothing leaves this origin.
+      // Social/website/store links remain user-initiated browser links.
+      (function () {
+        var originalOpen = XMLHttpRequest.prototype.open;
+        XMLHttpRequest.prototype.open = function (method, url) {
+          if (typeof url === "string" && /unity3d\.com|appspot\.com|herokuapp\.com|amongus-online\.net/.test(url)) {
+            console.log("--fx--BitLife offline route--", url);
+            url = "json/null.json?" + url;
+          }
+          return originalOpen.call(this, method, url);
+        };
+      })();
+    </script>
+    <script src="TemplateData/UnityProgress.js"></script>
+    <script src="Build/UnityLoader.js"></script>
+    <script>
+      var unityInstance = UnityLoader.instantiate("gameContainer", "Build/BitLife.json", {onProgress: UnityProgress});
+    </script>
+  </head>
+
+  <body>
+    <div class="webgl-content">
+      <div id="gameContainer" style="width: 100%; height: 100%;"></div>
+    </div>
+  </body>
+
+</html>
