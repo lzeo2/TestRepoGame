@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Tetris</title>
+<script src="../../assets/game-save.js"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{background:#111;color:#eee;font-family:system-ui,sans-serif;display:flex;justify-content:center;align-items:center;min-height:100vh;overflow:hidden}
@@ -30,6 +31,7 @@ canvas{border:2px solid #333;display:block}
 <h1>TETRIS</h1>
 <p class="info">Classic falling block puzzle</p>
 <button onclick="startGame()">Start Game</button>
+<button id="continue-btn" onclick="continueGame()" style="display:none;background:#38a169">Continue</button>
 <div class="controls-info">Arrow keys or WASD to move/rotate. Down to soft drop, Space for hard drop. Swipe on mobile.</div>
 </div>
 <div id="game-screen">
@@ -53,8 +55,8 @@ canvas{border:2px solid #333;display:block}
 <div id="over-screen">
 <h2>Game Over</h2>
 <p class="info">Score: <span id="final-score">0</span></p>
-<button onclick="startGame()">Play Again</button>
-<button onclick="goHome()" style="background:#555">Main Menu</button>
+<button onclick="startGame()" style="background:#555">Main Menu</button>
+<button onclick="clearSave()" style="background:#333;font-size:.85em;padding:8px 16px;margin-top:8px">Clear Save</button>
 </div>
 <script>
 const COLS=10,ROWS=20,BS=24;
@@ -166,6 +168,7 @@ function updateInfo(){
   document.getElementById('score').textContent=score;
   document.getElementById('level').textContent=level;
   document.getElementById('lines').textContent=totalLines;
+  saveState();
 }
 
 function tick(){
@@ -187,6 +190,27 @@ function goHome(){
   document.getElementById('over-screen').style.display='none';
   document.getElementById('game-screen').style.display='none';
   document.getElementById('start-screen').style.display='flex';
+}
+
+function clearSave(){GameSave.clear('tetris');document.getElementById('continue-btn').style.display='none'}
+
+function saveState(){GameSave.save('tetris',{score:score,level:level,lines:totalLines})}
+
+function checkSaved(){
+  var s=GameSave.load('tetris');
+  if(s&&s._ts){document.getElementById('continue-btn').style.display='inline-block'}
+}
+
+function continueGame(){
+  var s=GameSave.load('tetris');
+  if(!s){startGame();return}
+  initBoard();score=s.score||0;level=s.level||1;totalLines=s.lines||0;
+  cur=newPiece();next=newPiece();running=true;
+  updateInfo();
+  document.getElementById('start-screen').style.display='none';
+  document.getElementById('over-screen').style.display='none';
+  document.getElementById('game-screen').style.display='block';
+  draw();clearInterval(timer);timer=setInterval(tick,Math.max(50,500-level*40));
 }
 
 function startGame(){
@@ -222,6 +246,7 @@ document.addEventListener('touchend',e=>{
   if(Math.abs(dx)>Math.abs(dy)){move(dx>0?1:-1,0)}
   else if(dy>0){move(0,1)}else{rotate()}
 },{passive:true});
+checkSaved();
 </script>
 </body>
 </html>

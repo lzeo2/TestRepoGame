@@ -3,6 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script src="../../assets/game-save.js">
+function clearSave(){GameSave.clear('whackamole');document.getElementById('continue-btn').style.display='none'}
+function saveState(){GameSave.save('whackamole',{bestScore:typeof bestScore!=='undefined'?bestScore:0})}
+function checkSaved(){var s=GameSave.load('whackamole');if(s&&s._ts&&s.bestScore){bestScore=s.bestScore;document.getElementById('continue-btn').style.display='inline-block'}}
+function continueGame(){startGame()}
+var bestScore=0;
+checkSaved();
+</script>
 <title>Whack-a-Mole</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
@@ -31,6 +39,7 @@ button:hover{filter:brightness(1.15)}
 <h1>WHACK-A-MOLE</h1>
 <p class="info">30 seconds to whack as many moles as you can!</p>
 <button onclick="startGame()">Start Game</button>
+<button id="continue-btn" onclick="continueGame()" style="display:none;background:#38a169">Continue</button>
 <div class="controls-info">Click or tap the moles. Watch out for bombs! Bombs cost you points.</div>
 </div>
 <div id="game-screen" style="padding:20px">
@@ -46,6 +55,8 @@ button:hover{filter:brightness(1.15)}
 <h2>Time's Up!</h2>
 <p class="info">Final Score: <span id="final-score">0</span></p>
 <button onclick="startGame()">Play Again</button>
+<button onclick="goHome()" style="background:#555">Main Menu</button>
+<button onclick="clearSave()" style="background:#333;font-size:.85em;padding:8px 16px;margin-top:8px">Clear Save</button>
 <button onclick="goHome()" style="background:#555">Main Menu</button>
 </div>
 <script>
@@ -93,6 +104,7 @@ function showMole(){
 
 function endGame(){
   running=false;clearInterval(moleTimer);clearInterval(gameTimer);
+  if(score>bestScore)bestScore=score;saveState();
   document.getElementById('final-score').textContent=score;
   document.getElementById('game-screen').style.display='none';
   document.getElementById('over-screen').style.display='flex';

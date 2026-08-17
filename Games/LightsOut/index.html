@@ -3,6 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script src="../../assets/game-save.js">
+function clearSave(){GameSave.clear('lightsout');document.getElementById('continue-btn').style.display='none'}
+function saveState(){GameSave.save('lightsout',{bestLevel:typeof bestLevel!=='undefined'?bestLevel:1})}
+function checkSaved(){var s=GameSave.load('lightsout');if(s&&s._ts&&s.bestLevel){bestLevel=s.bestLevel;document.getElementById('continue-btn').style.display='inline-block'}}
+function continueGame(){startGame()}
+var bestLevel=1;
+checkSaved();
+</script>
 <title>Lights Out</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
@@ -30,6 +38,7 @@ button:hover{filter:brightness(1.15)}
 <h1>LIGHTS OUT</h1>
 <p class="info">Turn off all the lights!</p>
 <button onclick="startGame()">Start Game</button>
+<button id="continue-btn" onclick="continueGame()" style="display:none;background:#38a169">Continue</button>
 <div class="controls-info">Click a light to toggle it and its neighbors. Turn off all lights to win!</div>
 </div>
 <div id="game-screen" style="padding:20px">
@@ -91,6 +100,7 @@ function clickCell(r,c){
     setTimeout(()=>{
       document.getElementById('final-level').textContent=level;
       document.getElementById('final-moves').textContent=moves;
+      if(level>=bestLevel)bestLevel=level+1;saveState();
       document.getElementById('over-screen').style.display='flex';
     },300);
   }

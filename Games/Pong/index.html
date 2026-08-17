@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Pong</title>
+<script src="../../assets/game-save.js"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{background:#111;color:#eee;font-family:system-ui,sans-serif;display:flex;justify-content:center;align-items:center;min-height:100vh;overflow:hidden}
@@ -28,6 +29,7 @@ canvas{display:block;border:2px solid #333}
 <h1>PONG</h1>
 <p class="info">Classic arcade paddle game</p>
 <button onclick="startGame()">Start Game</button>
+<button id="continue-btn" onclick="continueGame()" style="display:none;background:#38a169">Continue</button>
 <div class="controls-info">W/S or Arrow Up/Down to move paddle. First to 7 wins!</div>
 </div>
 <div id="game-screen">
@@ -42,6 +44,7 @@ canvas{display:block;border:2px solid #333}
 <h2 id="winner-text">Player 1 Wins!</h2>
 <button onclick="startGame()">Play Again</button>
 <button onclick="goHome()" style="background:#555">Main Menu</button>
+<button onclick="clearSave()" style="background:#333;font-size:.85em;padding:8px 16px;margin-top:8px">Clear Save</button>
 </div>
 <script>
 const W=600,H=400,PW=12,PH=80,BS=8,BR=6,WIN=7;
@@ -128,6 +131,7 @@ function draw(){
 function updateScores(){
   document.getElementById('p1-score').textContent=p1Score;
   document.getElementById('p2-score').textContent=p2Score;
+  if(running)saveState();
 }
 
 function endGame(msg){
@@ -143,6 +147,19 @@ function goHome(){
   document.getElementById('game-screen').style.display='none';
   document.getElementById('start-screen').style.display='flex';
 }
+function clearSave(){GameSave.clear('pong');document.getElementById('continue-btn').style.display='none'}
+function saveState(){GameSave.save('pong',{p1Score:p1Score,p2Score:p2Score})}
+function checkSaved(){var s=GameSave.load('pong');if(s&&s._ts)document.getElementById('continue-btn').style.display='inline-block'}
+function continueGame(){
+  var s=GameSave.load('pong');if(!s){startGame();return}
+  canvas=document.getElementById('pong');canvas.width=W;canvas.height=H;ctx=canvas.getContext('2d');
+  p1Y=H/2-PH/2;p2Y=H/2-PH/2;p1Score=s.p1Score||0;p2Score=s.p2Score||0;
+  p1Dir=0;p2Dir=0;aiSpeed=3;resetBall();
+  document.getElementById('start-screen').style.display='none';
+  document.getElementById('over-screen').style.display='none';
+  document.getElementById('game-screen').style.display='block';
+  running=true;updateScores();loop();
+}
 
 document.addEventListener('keydown',e=>{
   if(e.key==='w'||e.key==='ArrowUp')p1Dir=-1;
@@ -152,6 +169,7 @@ document.addEventListener('keyup',e=>{
   if((e.key==='w'||e.key==='ArrowUp')&&p1Dir===-1)p1Dir=0;
   if((e.key==='s'||e.key==='ArrowDown')&&p1Dir===1)p1Dir=0;
 });
+checkSaved();
 </script>
 </body>
 </html>

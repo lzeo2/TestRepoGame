@@ -3,6 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script src="../../assets/game-save.js">
+function clearSave(){GameSave.clear('tictactoe');document.getElementById('continue-btn').style.display='none'}
+function saveState(){GameSave.save('tictactoe',{xScore:xScore,oScore:oScore})}
+function checkSaved(){var s=GameSave.load('tictactoe');if(s&&s._ts){xScore=s.xScore||0;oScore=s.oScore||0;document.getElementById('continue-btn').style.display='inline-block'}}
+function continueGame(){startGame()}
+checkSaved();
+</script>
 <title>Tic Tac Toe</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
@@ -30,6 +37,7 @@ select{padding:8px;font-size:1em;border-radius:8px;background:#222;color:#eee;bo
 <div id="start-screen">
 <h1>TIC TAC TOE</h1>
 <button onclick="startGame()">Start Game</button>
+<button id="continue-btn" onclick="continueGame()" style="display:none;background:#38a169">Continue</button>
 <div class="controls-info">Tap a cell to place your mark. X goes first. Win by getting 3 in a row!</div>
 </div>
 <div id="game-screen" style="padding:20px">
@@ -48,6 +56,8 @@ select{padding:8px;font-size:1em;border-radius:8px;background:#222;color:#eee;bo
 <div id="over-screen">
 <h2 id="result">X Wins!</h2>
 <button onclick="startGame()">Play Again</button>
+<button onclick="goHome()" style="background:#555">Main Menu</button>
+<button onclick="clearSave()" style="background:#333;font-size:.85em;padding:8px 16px;margin-top:8px">Clear Save</button>
 <button onclick="goHome()" style="background:#555">Main Menu</button>
 </div>
 <script>
@@ -100,7 +110,7 @@ function cellClick(i){
 function endTurn(){
   if(checkWin(turn)){
     gameOverFlag=true;
-    if(turn==='X')xScore++;else oScore++;
+    if(turn==='X')xScore++;else oScore++;saveState();
     document.getElementById('x-score').textContent=xScore;
     document.getElementById('o-score').textContent=oScore;
     render();

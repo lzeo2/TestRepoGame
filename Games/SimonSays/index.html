@@ -3,6 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script src="../../assets/game-save.js">
+function clearSave(){GameSave.clear('simonsays');document.getElementById('continue-btn').style.display='none'}
+function saveState(){GameSave.save('simonsays',{bestLevel:typeof bestLevel!=='undefined'?bestLevel:0,bestScore:typeof bestScore!=='undefined'?bestScore:0})}
+function checkSaved(){var s=GameSave.load('simonsays');if(s&&s._ts){bestLevel=s.bestLevel||0;bestScore=s.bestScore||0;document.getElementById('continue-btn').style.display='inline-block'}}
+function continueGame(){startGame()}
+var bestLevel=0,bestScore=0;
+checkSaved();
+</script>
 <title>Simon Says</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
@@ -30,6 +38,7 @@ button:hover{filter:brightness(1.15)}
 <h1>SIMON SAYS</h1>
 <p class="info">Watch the pattern, then repeat it!</p>
 <button onclick="startGame()">Start Game</button>
+<button id="continue-btn" onclick="continueGame()" style="display:none;background:#38a169">Continue</button>
 <div class="controls-info">Click the colored pads in the same order as the sequence. Keys 1-4 or J/K/L/; also work.</div>
 </div>
 <div id="game-screen" style="padding:20px">
@@ -42,6 +51,8 @@ button:hover{filter:brightness(1.15)}
 <h2>Game Over</h2>
 <p class="info">You reached level <span id="final-level">1</span></p>
 <button onclick="startGame()">Play Again</button>
+<button onclick="goHome()" style="background:#555">Main Menu</button>
+<button onclick="clearSave()" style="background:#333;font-size:.85em;padding:8px 16px;margin-top:8px">Clear Save</button>
 <button onclick="goHome()" style="background:#555">Main Menu</button>
 </div>
 <script>
@@ -99,6 +110,7 @@ function playerClick(idx){
 
 function gameOver(){
   playing=false;
+  if(level>bestLevel){bestLevel=level;bestScore=score}saveState();
   document.getElementById('final-level').textContent=level;
   document.getElementById('game-screen').style.display='none';
   document.getElementById('over-screen').style.display='flex';

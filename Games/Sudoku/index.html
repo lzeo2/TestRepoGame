@@ -3,6 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script src="../../assets/game-save.js">
+function clearSave(){GameSave.clear('sudoku');document.getElementById('continue-btn').style.display='none'}
+function saveState(){GameSave.save('sudoku',{puzzle:puzzle,solution:solution,given:given,diff:document.getElementById('diff').value})}
+function checkSaved(){var s=GameSave.load('sudoku');if(s&&s._ts&&s.puzzle){document.getElementById('continue-btn').style.display='inline-block'}}
+function continueGame(){var s=GameSave.load('sudoku');if(!s||!s.puzzle){startGame();return}puzzle=s.puzzle;solution=s.solution;given=s.given;errorCount=0;selectedCell=null;document.getElementById('diff').value=s.diff||'medium';document.getElementById('errors').textContent='0';document.getElementById('start-screen').style.display='none';document.getElementById('over-screen').style.display='none';document.getElementById('game-screen').style.display='block';render();buildNumpad()}
+checkSaved();
+</script>
 <title>Sudoku</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
@@ -42,6 +49,9 @@ select{padding:8px;font-size:1em;border-radius:8px;background:#222;color:#eee;bo
 <option value="hard">Hard</option>
 </select>
 <button onclick="startGame()">New Puzzle</button>
+<button onclick="goHome()" style="background:#555">Main Menu</button>
+<button onclick="clearSave()" style="background:#333;font-size:.85em;padding:8px 16px;margin-top:8px">Clear Save</button>
+<button id="continue-btn" onclick="continueGame()" style="display:none;background:#38a169">Continue</button>
 <div class="controls-info">Click a cell, then use the number pad or keyboard 1-9 to fill it. Backspace to erase.</div>
 </div>
 <div id="game-screen" style="padding:20px">
@@ -115,6 +125,7 @@ function placeNum(n){
   if(!selectedCell||given[selectedCell.r][selectedCell.c])return;
   let{r,c}=selectedCell;
   puzzle[r][c]=n;
+  saveState();
   if(n!==0&&n!==solution[r][c]){errorCount++;document.getElementById('errors').textContent=errorCount}
   render();
   // check win

@@ -3,6 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script src="../../assets/game-save.js">
+function clearSave(){GameSave.clear('mathquiz');document.getElementById('continue-btn').style.display='none'}
+function saveState(){GameSave.save('mathquiz',{bestScore:typeof bestScore!=='undefined'?bestScore:0})}
+function checkSaved(){var s=GameSave.load('mathquiz');if(s&&s._ts&&s.bestScore){bestScore=s.bestScore;document.getElementById('continue-btn').style.display='inline-block'}}
+function continueGame(){startGame()}
+var bestScore=0;
+checkSaved();
+</script>
 <title>Math Quiz</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
@@ -38,6 +46,7 @@ select{padding:8px;font-size:1em;border-radius:8px;background:#222;color:#eee;bo
 <option value="hard">Hard (+ - x /)</option>
 </select>
 <button onclick="startGame()">Start Quiz</button>
+<button id="continue-btn" onclick="continueGame()" style="display:none;background:#38a169">Continue</button>
 <div class="controls-info">Click the correct answer as fast as you can. 10 questions per round!</div>
 </div>
 <div id="game-screen" style="padding:20px">
@@ -58,6 +67,8 @@ select{padding:8px;font-size:1em;border-radius:8px;background:#222;color:#eee;bo
 <p>Time: <span id="res-time" style="font-weight:700">0</span>s</p>
 </div>
 <button onclick="startGame()">Play Again</button>
+<button onclick="goHome()" style="background:#555">Main Menu</button>
+<button onclick="clearSave()" style="background:#333;font-size:.85em;padding:8px 16px;margin-top:8px">Clear Save</button>
 <button onclick="goHome()" style="background:#555">Main Menu</button>
 </div>
 <script>
@@ -151,6 +162,7 @@ function endGame(){
   document.getElementById('res-correct').textContent=correct;
   document.getElementById('res-score').textContent=score;
   document.getElementById('res-time').textContent=el;
+  if(score>bestScore)bestScore=score;saveState();
   document.getElementById('game-screen').style.display='none';
   document.getElementById('over-screen').style.display='flex';
 }

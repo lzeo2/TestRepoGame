@@ -3,6 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script src="../../assets/game-save.js">
+function clearSave(){GameSave.clear('memory');document.getElementById('continue-btn').style.display='none'}
+function saveState(){GameSave.save('memory',{bestMoves:typeof bestMoves!=='undefined'?bestMoves:999})}
+function checkSaved(){var s=GameSave.load('memory');if(s&&s._ts&&s.bestMoves){bestMoves=s.bestMoves;document.getElementById('continue-btn').style.display='inline-block'}}
+function continueGame(){startGame()}
+var bestMoves=999;
+checkSaved();
+</script>
 <title>Memory</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
@@ -30,6 +38,7 @@ select{padding:8px;font-size:1em;border-radius:8px;background:#222;color:#eee;bo
 <div id="start-screen">
 <h1>MEMORY</h1>
 <button onclick="startGame()">Start Game</button>
+<button id="continue-btn" onclick="continueGame()" style="display:none;background:#38a169">Continue</button>
 <div class="controls-info">Flip cards to find matching pairs. Match all pairs to win!</div>
 </div>
 <div id="game-screen" style="padding:20px">
@@ -50,6 +59,8 @@ select{padding:8px;font-size:1em;border-radius:8px;background:#222;color:#eee;bo
 <h2>You Win!</h2>
 <p class="info">Completed in <span id="final-moves">0</span> moves</p>
 <button onclick="startGame()">Play Again</button>
+<button onclick="goHome()" style="background:#555">Main Menu</button>
+<button onclick="clearSave()" style="background:#333;font-size:.85em;padding:8px 16px;margin-top:8px">Clear Save</button>
 <button onclick="goHome()" style="background:#555">Main Menu</button>
 </div>
 <script>
@@ -86,7 +97,7 @@ function flipCard(i){
       matched.add(flipped[0]);matched.add(flipped[1]);
       pairCount++;document.getElementById('pairs').textContent=pairCount;
       flipped=[];
-      if(pairCount===totalPairs){
+      if(pairCount===totalPairs){if(moves<bestMoves)bestMoves=moves;saveState();
         setTimeout(()=>{document.getElementById('final-moves').textContent=moves;document.getElementById('over-screen').style.display='flex'},500);
       }
       render();

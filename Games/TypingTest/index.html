@@ -3,6 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script src="../../assets/game-save.js">
+function clearSave(){GameSave.clear('typingtest');document.getElementById('continue-btn').style.display='none'}
+function saveState(){GameSave.save('typingtest',{bestWPM:typeof bestWPM!=='undefined'?bestWPM:0})}
+function checkSaved(){var s=GameSave.load('typingtest');if(s&&s._ts&&s.bestWPM){bestWPM=s.bestWPM;document.getElementById('continue-btn').style.display='inline-block'}}
+function continueGame(){startGame()}
+var bestWPM=0;
+checkSaved();
+</script>
 <title>Typing Speed Test</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
@@ -36,6 +44,7 @@ input#typing:focus{border-color:#319795}
 <h1>TYPING SPEED</h1>
 <p class="info">Test your typing speed!</p>
 <button onclick="startGame()">Start Test</button>
+<button id="continue-btn" onclick="continueGame()" style="display:none;background:#38a169">Continue</button>
 <div class="controls-info">Type the displayed text as fast as you can. You have 30 seconds.</div>
 </div>
 <div id="game-screen" style="padding:20px;max-width:640px;width:100%">
@@ -57,6 +66,8 @@ input#typing:focus{border-color:#319795}
 <div class="result-item"><div class="val" id="res-errors">0</div><div class="label">Errors</div></div>
 </div>
 <button onclick="startGame()">Try Again</button>
+<button onclick="goHome()" style="background:#555">Main Menu</button>
+<button onclick="clearSave()" style="background:#333;font-size:.85em;padding:8px 16px;margin-top:8px">Clear Save</button>
 <button onclick="goHome()" style="background:#555">Main Menu</button>
 </div>
 <script>
@@ -137,6 +148,7 @@ function endGame(){
   document.getElementById('res-acc').textContent=acc+'%';
   document.getElementById('res-chars').textContent=correctChars;
   document.getElementById('res-errors').textContent=errors;
+  if(wpm>bestWPM)bestWPM=wpm;saveState();
   document.getElementById('game-screen').style.display='none';
   document.getElementById('over-screen').style.display='flex';
 }

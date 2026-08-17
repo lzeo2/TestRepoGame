@@ -3,6 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script src="../../assets/game-save.js">
+function clearSave(){GameSave.clear('minesweeper');document.getElementById('continue-btn').style.display='none'}
+function saveState(){GameSave.save('minesweeper',{best:typeof bestTimes!=='undefined'?bestTimes:{}})}
+function checkSaved(){var s=GameSave.load('minesweeper');if(s&&s._ts&&s.best){bestTimes=s.best;document.getElementById('continue-btn').style.display='inline-block'}}
+function continueGame(){var s=GameSave.load('minesweeper');if(s&&s.best)bestTimes=s.best;startGame()}
+var bestTimes={easy:999,medium:999,hard:999};
+checkSaved();
+</script>
 <title>Minesweeper</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
@@ -33,6 +41,7 @@ select{padding:8px;font-size:1em;border-radius:8px;background:#222;color:#eee;bo
 <h1>MINESWEEPER</h1>
 <p class="info">Find all the mines</p>
 <button onclick="startGame()">Start Game</button>
+<button id="continue-btn" onclick="continueGame()" style="display:none;background:#38a169">Continue</button>
 <div class="controls-info">Left click to reveal. Right click or long press to flag. Mobile: tap to reveal, hold to flag.</div>
 </div>
 <div id="game-screen" style="padding:20px">
@@ -52,6 +61,8 @@ select{padding:8px;font-size:1em;border-radius:8px;background:#222;color:#eee;bo
 <h2 id="over-title">Game Over</h2>
 <p class="info" id="over-msg"></p>
 <button onclick="startGame()">Play Again</button>
+<button onclick="goHome()" style="background:#555">Main Menu</button>
+<button onclick="clearSave()" style="background:#333;font-size:.85em;padding:8px 16px;margin-top:8px">Clear Save</button>
 <button onclick="goHome()" style="background:#555">Main Menu</button>
 </div>
 <script>
@@ -101,7 +112,7 @@ function reveal(r,c){
 function handleClick(r,c){
   if(gameOver||flagged[r][c])return;
   if(firstClick){placeMines(r,c);firstClick=false;timerInt=setInterval(()=>{timerVal++;document.getElementById('timer').textContent=timerVal},1000)}
-  clickCount++;document.getElementById('clicks').textContent=clickCount;
+  clickCount++;document.getElementById('clicks').textContent=clickCount;saveState();
   if(grid[r][c]===-1){
     gameOver=true;clearInterval(timerInt);
     for(let r2=0;r2<rows;r2++)for(let c2=0;c2<cols;c2++)if(grid[r2][c2]===-1)revealed[r2][c2]=true;
