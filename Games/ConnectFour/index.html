@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Connect Four</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#111;color:#eee;font-family:system-ui,sans-serif;display:flex;justify-content:center;align-items:center;min-height:100vh}
+#start-screen,#over-screen{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#111;z-index:10}
+#game-screen{display:none}
+#over-screen{display:none;background:rgba(0,0,0,.85)}
+h1{font-size:2.5em;margin-bottom:.3em;color:#e53e3e}
+h2{font-size:1.8em;margin-bottom:.3em}
+.info{font-size:1.1em;margin:.2em 0;color:#ccc}
+button{padding:12px 28px;font-size:1.1em;border:none;border-radius:12px;background:#e53e3e;color:#fff;cursor:pointer;margin-top:16px;font-weight:600}
+button:hover{filter:brightness(1.15)}
+.header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;width:360px}
+.header span{font-size:1.1em;font-weight:600}
+select{padding:8px;font-size:1em;border-radius:8px;background:#222;color:#eee;border:1px solid #444}
+.status{text-align:center;font-size:1.3em;margin-bottom:12px}
+.board{display:grid;grid-template-columns:repeat(7,48px);grid-template-rows:repeat(6,48px);gap:4px;background:#1a3a7a;padding:12px;border-radius:12px}
+.cell{background:#111;border-radius:50%;cursor:pointer;transition:background .15s;width:48px;height:48px}
+.cell.r{background:#e53e3e}.cell.y{background:#eab308}
+.preview{width:48px;height:48px;border-radius:50%;margin-bottom:4px}
+.controls-info{font-size:.85em;color:#888;margin-top:12px;text-align:center;max-width:300px;line-height:1.5}
+</style>
+</head>
+<body>
+<div id="start-screen">
+<h1>CONNECT FOUR</h1>
+<button onclick="startGame()">Start Game</button>
+<div class="controls-info">Click a column to drop your piece. Connect 4 in a row to win!</div>
+</div>
+<div id="game-screen" style="padding:20px">
+<div class="header">
+<span style="color:#e53e3e">P1: <span id="p1-score">0</span></span>
+<select id="mode" onchange="startGame()">
+<option value="pvp">2 Player</option>
+<option value="ai">vs Computer</option>
+</select>
+<span style="color:#eab308">P2: <span id="p2-score">0</span></span>
+</div>
+<p class="status" id="status" style="color:#e53e3e">Red's turn</p>
+<div style="display:flex;flex-direction:column;align-items:center">
+<div style="display:grid;grid-template-columns:repeat(7,48px);gap:4px;margin-bottom:4px" id="previews"></div>
+<div class="board" id="board"></div>
+</div>
+<button onclick="startGame()" style="margin-top:16px">New Game</button>
+</div>
+<div id="over-screen">
+<h2 id="result">Red Wins!</h2>
+<button onclick="startGame()">Play Again</button>
+<button onclick="goHome()" style="background:#555">Main Menu</button>
+</div>
+<script>
+const ROWS=6,COLS=7;
+let grid,turn,p1Score=0,p2Score=0,gameOverFlag;
+
+function startGame(){
+  grid=[];for(let r=0;r<ROWS;r++)grid[r]=Array(COLS).fill(0);
+  turn=1;gameOverFlag=false;
+  document.getElementById('start-screen').style.display='none';
+  document.getElementById('over-screen').style.display='none';
+  document.getElementById('game-screen').style.display='block';
+  updateStatus();render();
+}
+
+function drop(col){
+  if(gameOverFlag)return;
+  for(let r=ROWS-1;r>=0;r--){
+    if(!grid[r][col]){grid[r][col]=turn;endTurn();return}
+  }
+}
+
+function endTurn(){
+  if(checkWin(turn)){
+    gameOverFlag=true;
+    if(turn===1)p1Score++;else p2Score++;
+    document.getElementById('p1-score').textContent=p1Score;
+    document.getElementById('p2-score').textContent=p2Score;
+    render();
+    setTimeout(()=>{document.getElementById('result').textContent=(turn===1?'Red':'Yellow')+' Wins!';document.getElementById('over-screen').style.display='flex'},500);
+    return;
+  }
+  if(grid[0].every(c=>c!==0)){
+    render();
+    setTimeout(()=>{document.getElementById('result').textContent="Draw!";document.getElementById('over-screen').style.display='flex'},500);
+    return;
+  }
+  turn=turn===1?2:1;updateStatus();render();
+}
+
+function checkWin(p){
+  for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++){
+    if(grid[r][c]!==p)continue;
+    // right
+    if(c+3<COLS&&grid[r][c+1]===p&&grid[r][c+2]===p&&grid[r][c+3]===p)return true;
+    // down
+    if(r+3<ROWS&&grid[r+1][c]===p&&grid[r+2][c]===p&&grid[r+3][c]===p)return true;
+    // diag down-right
+    if(r+3<ROWS&&c+3<COLS&&grid[r+1][c+1]===p&&grid[r+2][c+2]===p&&grid[r+3][c+3]===p)return true;
+    // diag down-left
+    if(r+3<ROWS&&c-3>=0&&grid[r+1][c-1]===p&&grid[r+2][c-2]===p&&grid[r+3][c-3]===p)return true;
+  }
+  return false;
+}
+
+function aiMove(){
+  // simple AI: block wins, then random
+  for(let c=0;c<COLS;c++){if(canDrop(c)){grid[findRow(c)][c]=2;if(checkWin(2)){grid[findRow(c)+1>ROWS-1?ROWS-1:findRow(c)][c]=0;return c}grid[findRow(c)][c]=0}}
+  // try to win
+  for(let c=0;c<COLS;c++){if(canDrop(c)){let r=findRow(c);grid[r][c]=2;if(checkWin(2))return c;grid[r][c]=0}}
+  // random
+  let cols=[];for(let c=0;c<COLS;c++)if(canDrop(c))cols.push(c);
+  return cols[Math.floor(Math.random()*cols.length)];
+}
+
+function canDrop(c){return grid[0][c]===0}
+function findRow(c){for(let r=ROWS-1;r>=0;r--)if(!grid[r][c])return r;return-1}
+
+function columnClick(col){
+  if(gameOverFlag||turn!==1)return;
+  if(document.getElementById('mode').value==='ai'&&turn!==1)return;
+  drop(col);
+  if(!gameOverFlag&&document.getElementById('mode').value==='ai'){
+    setTimeout(()=>{let c=aiMove();if(c!==undefined)drop(c)},300);
+  }
+}
+
+function updateStatus(){
+  let s=document.getElementById('status');
+  s.textContent=turn===1?"Red's turn":"Yellow's turn";
+  s.style.color=turn===1?'#e53e3e':'#eab308';
+}
+
+function render(){
+  // previews
+  let pv=document.getElementById('previews');pv.innerHTML='';
+  for(let c=0;c<COLS;c++){
+    let d=document.createElement('div');d.className='preview';
+    d.style.background=turn===1?'#e53e3e':'#eab308';d.style.opacity=canDrop(c)?'0.3':'0';
+    d.style.cursor=canDrop(c)?'pointer':'default';
+    d.onclick=()=>columnClick(c);
+    pv.appendChild(d);
+  }
+  // board
+  let b=document.getElementById('board');b.innerHTML='';
+  for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++){
+    let d=document.createElement('div');d.className='cell';
+    if(grid[r][c]===1)d.classList.add('r');
+    else if(grid[r][c]===2)d.classList.add('y');
+    d.onclick=()=>columnClick(c);
+    b.appendChild(d);
+  }
+}
+
+function goHome(){
+  document.getElementById('over-screen').style.display='none';
+  document.getElementById('game-screen').style.display='none';
+  document.getElementById('start-screen').style.display='flex';
+}
+</script>
+</body>
+</html>

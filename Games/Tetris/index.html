@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tetris</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#111;color:#eee;font-family:system-ui,sans-serif;display:flex;justify-content:center;align-items:center;min-height:100vh;overflow:hidden}
+#start-screen,#game-screen,#over-screen{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#111;z-index:10}
+#game-screen{display:none;z-index:1}
+#over-screen{display:none;background:rgba(0,0,0,.85)}
+h1{font-size:2.5em;margin-bottom:.3em;color:#aa3bff}
+h2{font-size:1.8em;margin-bottom:.3em;color:#f55}
+.info{font-size:1.1em;margin:.2em 0;color:#ccc}
+button{padding:12px 28px;font-size:1.1em;border:none;border-radius:12px;background:#aa3bff;color:#fff;cursor:pointer;margin-top:16px;font-weight:600}
+button:hover{filter:brightness(1.15)}
+canvas{border:2px solid #333;display:block}
+.controls-info{font-size:.85em;color:#888;margin-top:12px;text-align:center;max-width:320px;line-height:1.5}
+.side{display:flex;gap:16px;align-items:flex-start}
+.next-box{background:#222;border:2px solid #333;border-radius:8px;padding:8px;text-align:center}
+.next-box canvas{border:none}
+.mobile-btns{display:none;position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:20}
+.mobile-btns button{width:56px;height:56px;font-size:1.4em;margin:4px;border-radius:50%;background:#333;color:#eee}
+@media(max-width:600px){.mobile-btns{display:flex;flex-wrap:wrap;justify-content:center}}
+</style>
+</head>
+<body>
+<div id="start-screen">
+<h1>TETRIS</h1>
+<p class="info">Classic falling block puzzle</p>
+<button onclick="startGame()">Start Game</button>
+<div class="controls-info">Arrow keys or WASD to move/rotate. Down to soft drop, Space for hard drop. Swipe on mobile.</div>
+</div>
+<div id="game-screen">
+<div class="side">
+<div><canvas id="board" width="240" height="480"></canvas></div>
+<div>
+<div class="next-box"><p style="margin-bottom:4px">Next</p><canvas id="next" width="100" height="100"></canvas></div>
+<p class="info" style="margin-top:8px">Score: <span id="score">0</span></p>
+<p class="info">Level: <span id="level">1</span></p>
+<p class="info">Lines: <span id="lines">0</span></p>
+</div>
+</div>
+<div class="mobile-btns">
+<button onclick="move(-1,0)">&#9664;</button>
+<button onclick="rotate()">&#8635;</button>
+<button onclick="move(1,0)">&#9654;</button>
+<button onclick="move(0,1)">&#9660;</button>
+<button onclick="hardDrop()">&#11015;</button>
+</div>
+</div>
+<div id="over-screen">
+<h2>Game Over</h2>
+<p class="info">Score: <span id="final-score">0</span></p>
+<button onclick="startGame()">Play Again</button>
+<button onclick="goHome()" style="background:#555">Main Menu</button>
+</div>
+<script>
+const COLS=10,ROWS=20,BS=24;
+const SHAPES=[[[1,1,1,1]],[[1,1],[1,1]],[[0,1,0],[1,1,1]],[[1,0,0],[1,1,1]],[[0,0,1],[1,1,1]],[[0,1,1],[1,1,0]],[[1,1,0],[0,1,1]]];
+const COLORS=['#00f0f0','#f0f000','#a000f0','#f00000','#0000f0','#00f000','#f0a000'];
+let board,cur,next,score,level,totalLines,running,timer,swipeStart;
+
+function initBoard(){board=[];for(let r=0;r<ROWS;r++){board[r]=[];for(let c=0;c<COLS;c++)board[r][c]=0}}
+
+function newPiece(){
+  let idx=Math.floor(Math.random()*7);
+  let shape=SHAPES[idx].map(r=>[...r]);
+  return{shape,color:COLORS[idx],x:Math.floor((COLS-shape[0].length)/2),y:0};
+}
+
+function valid(shape,ox,oy){
+  for(let r=0;r<shape.length;r++)for(let c=0;c<shape[r].length;c++){
+    if(!shape[r][c])continue;
+    let nx=ox+c,ny=oy+r;
+    if(nx<0||nx>=COLS||ny>=ROWS)return false;
+    if(ny>=0&&board[ny][nx])return false;
+  }
+  return true;
+}
+
+function lock(){
+  for(let r=0;r<cur.shape.length;r++)for(let c=0;c<cur.shape[r].length;c++){
+    if(!cur.shape[r][c])continue;
+    let ny=cur.y+r;
+    if(ny>=0)board[ny][cur.x+c]=cur.color;
+  }
+  clearLines();
+  cur=next;next=newPiece();
+  if(!valid(cur.shape,cur.x,cur.y))gameOver();
+}
+
+function clearLines(){
+  let cleared=0;
+  for(let r=ROWS-1;r>=0;r--){
+    if(board[r].every(c=>c)){board.splice(r,1);board.unshift(Array(COLS).fill(0));cleared++;r++;}
+  }
+  if(cleared){
+    let pts=[0,100,300,500,800];
+    score+=pts[cleared]*level;
+    totalLines+=cleared;
+    level=Math.floor(totalLines/10)+1;
+    updateInfo();
+  }
+}
+
+function move(dx,dy){
+  if(!running)return;
+  if(valid(cur.shape,cur.x+dx,cur.y+dy)){cur.x+=dx;cur.y+=dy;draw();return true}
+  return false;
+}
+
+function rotate(){
+  if(!running)return;
+  let s=cur.shape.map((r,ri)=>r.map((_,ci)=>cur.shape[cur.shape.length-1-ci][ri]));
+  // wall kick
+  for(let dx of[0,-1,1,-2,2]){
+    if(valid(s,cur.x+dx,cur.y)){cur.shape=s;cur.x+=dx;draw();return}
+  }
+}
+
+function hardDrop(){
+  if(!running)return;
+  while(valid(cur.shape,cur.x,cur.y+1))cur.y++;
+  lock();draw();
+}
+
+function draw(){
+  let ctx=document.getElementById('board').getContext('2d');
+  ctx.fillStyle='#111';ctx.fillRect(0,0,COLS*BS,ROWS*BS);
+  // grid
+  ctx.strokeStyle='#222';ctx.lineWidth=.5;
+  for(let r=0;r<=ROWS;r++){ctx.beginPath();ctx.moveTo(0,r*BS);ctx.lineTo(COLS*BS,r*BS);ctx.stroke()}
+  for(let c=0;c<=COLS;c++){ctx.beginPath();ctx.moveTo(c*BS,0);ctx.lineTo(c*BS,ROWS*BS);ctx.stroke()}
+  // locked
+  for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++){
+    if(board[r][c]){ctx.fillStyle=board[r][c];ctx.fillRect(c*BS+1,r*BS+1,BS-2,BS-2)}
+  }
+  // ghost
+  if(cur){
+    let gy=cur.y;
+    while(valid(cur.shape,cur.x,gy+1))gy++;
+    ctx.globalAlpha=.2;
+    for(let r=0;r<cur.shape.length;r++)for(let c=0;c<cur.shape[r].length;c++){
+      if(cur.shape[r][c]){ctx.fillStyle=cur.color;ctx.fillRect((cur.x+c)*BS+1,(gy+r)*BS+1,BS-2,BS-2)}
+    }
+    ctx.globalAlpha=1;
+    // current
+    for(let r=0;r<cur.shape.length;r++)for(let c=0;c<cur.shape[r].length;c++){
+      if(cur.shape[r][c]){ctx.fillStyle=cur.color;ctx.fillRect((cur.x+c)*BS+1,(cur.y+r)*BS+1,BS-2,BS-2)}
+    }
+  }
+  // next
+  let nc=document.getElementById('next').getContext('2d');
+  nc.fillStyle='#222';nc.fillRect(0,0,100,100);
+  if(next){
+    let ox=(100-next.shape[0].length*20)/2,oy=(100-next.shape.length*20)/2;
+    for(let r=0;r<next.shape.length;r++)for(let c=0;c<next.shape[r].length;c++){
+      if(next.shape[r][c]){nc.fillStyle=next.color;nc.fillRect(ox+c*20+1,oy+r*20+1,18,18)}
+    }
+  }
+}
+
+function updateInfo(){
+  document.getElementById('score').textContent=score;
+  document.getElementById('level').textContent=level;
+  document.getElementById('lines').textContent=totalLines;
+}
+
+function tick(){
+  if(!running)return;
+  if(!move(0,1))lock();
+  draw();
+  clearInterval(timer);
+  timer=setInterval(tick,Math.max(50,500-level*40));
+}
+
+function gameOver(){
+  running=false;clearInterval(timer);
+  document.getElementById('final-score').textContent=score;
+  document.getElementById('game-screen').style.display='none';
+  document.getElementById('over-screen').style.display='flex';
+}
+
+function goHome(){
+  document.getElementById('over-screen').style.display='none';
+  document.getElementById('game-screen').style.display='none';
+  document.getElementById('start-screen').style.display='flex';
+}
+
+function startGame(){
+  initBoard();score=0;level=1;totalLines=0;
+  cur=newPiece();next=newPiece();running=true;
+  updateInfo();
+  document.getElementById('start-screen').style.display='none';
+  document.getElementById('over-screen').style.display='none';
+  document.getElementById('game-screen').style.display='block';
+  draw();
+  clearInterval(timer);
+  timer=setInterval(tick,500);
+}
+
+document.addEventListener('keydown',e=>{
+  if(!running)return;
+  switch(e.key){
+    case'ArrowLeft':case'a':move(-1,0);e.preventDefault();break;
+    case'ArrowRight':case'd':move(1,0);e.preventDefault();break;
+    case'ArrowDown':case's':move(0,1);e.preventDefault();break;
+    case'ArrowUp':case'w':rotate();e.preventDefault();break;
+    case' ':hardDrop();e.preventDefault();break;
+  }
+});
+
+// touch swipe
+let touchX,touchY;
+document.addEventListener('touchstart',e=>{touchX=e.touches[0].clientX;touchY=e.touches[0].clientY},{passive:true});
+document.addEventListener('touchend',e=>{
+  if(!running)return;
+  let dx=e.changedTouches[0].clientX-touchX,dy=e.changedTouches[0].clientY-touchY;
+  if(Math.abs(dx)<20&&Math.abs(dy)<20)return;
+  if(Math.abs(dx)>Math.abs(dy)){move(dx>0?1:-1,0)}
+  else if(dy>0){move(0,1)}else{rotate()}
+},{passive:true});
+</script>
+</body>
+</html>

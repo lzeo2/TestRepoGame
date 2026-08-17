@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pong</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#111;color:#eee;font-family:system-ui,sans-serif;display:flex;justify-content:center;align-items:center;min-height:100vh;overflow:hidden}
+#start-screen,#over-screen{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#111;z-index:10}
+#game-screen{display:none}
+#over-screen{display:none;background:rgba(0,0,0,.85)}
+h1{font-size:2.5em;margin-bottom:.3em;color:#00ff88}
+h2{font-size:1.8em;margin-bottom:.3em;color:#f55}
+.info{font-size:1.1em;margin:.2em 0;color:#ccc}
+button{padding:12px 28px;font-size:1.1em;border:none;border-radius:12px;background:#00ff88;color:#111;cursor:pointer;margin-top:16px;font-weight:600}
+button:hover{filter:brightness(1.15)}
+canvas{display:block;border:2px solid #333}
+.score-display{display:flex;gap:60px;font-size:2em;margin-bottom:16px;color:#fff}
+.controls-info{font-size:.85em;color:#888;margin-top:12px;text-align:center;max-width:300px;line-height:1.5}
+.mobile-btns{display:none;position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:20}
+.mobile-btns button{width:56px;height:56px;font-size:1.4em;margin:4px;border-radius:50%;background:#333;color:#eee}
+@media(max-width:600px){.mobile-btns{display:flex;flex-wrap:wrap;justify-content:center}}
+</style>
+</head>
+<body>
+<div id="start-screen">
+<h1>PONG</h1>
+<p class="info">Classic arcade paddle game</p>
+<button onclick="startGame()">Start Game</button>
+<div class="controls-info">W/S or Arrow Up/Down to move paddle. First to 7 wins!</div>
+</div>
+<div id="game-screen">
+<div class="score-display"><span id="p1-score">0</span><span>-</span><span id="p2-score">0</span></div>
+<canvas id="pong"></canvas>
+<div class="mobile-btns">
+<button ontouchstart="p1Dir=-1" ontouchend="p1Dir=0">&#9650;</button>
+<button ontouchstart="p1Dir=1" ontouchend="p1Dir=0">&#9660;</button>
+</div>
+</div>
+<div id="over-screen">
+<h2 id="winner-text">Player 1 Wins!</h2>
+<button onclick="startGame()">Play Again</button>
+<button onclick="goHome()" style="background:#555">Main Menu</button>
+</div>
+<script>
+const W=600,H=400,PW=12,PH=80,BS=8,BR=6,WIN=7;
+let canvas,ctx,p1Y,p2Y,ballX,ballY,ballVX,ballVY,p1Score,p2Score,p1Dir,p2Dir,running,aiSpeed;
+
+function startGame(){
+  canvas=document.getElementById('pong');
+  canvas.width=W;canvas.height=H;
+  ctx=canvas.getContext('2d');
+  p1Y=H/2-PH/2;p2Y=H/2-PH/2;
+  p1Score=0;p2Score=0;
+  p1Dir=0;p2Dir=0;aiSpeed=3;
+  resetBall();
+  document.getElementById('start-screen').style.display='none';
+  document.getElementById('over-screen').style.display='none';
+  document.getElementById('game-screen').style.display='block';
+  running=true;
+  updateScores();
+  loop();
+}
+
+function resetBall(){
+  ballX=W/2;ballY=H/2;
+  let angle=(Math.random()-.5)*Math.PI/3;
+  let dir=Math.random()>.5?1:-1;
+  ballVX=dir*4*Math.cos(angle);ballVY=4*Math.sin(angle);
+}
+
+function loop(){
+  if(!running)return;
+  update();draw();
+  requestAnimationFrame(loop);
+}
+
+function update(){
+  // AI
+  let target=ballY-PH/2;
+  if(p2Y<target-10)p2Y+=aiSpeed;
+  else if(p2Y>target+10)p2Y-=aiSpeed;
+  p2Y=Math.max(0,Math.min(H-PH,p2Y));
+
+  // player
+  p1Y+=p1Dir*5;
+  p1Y=Math.max(0,Math.min(H-PH,p1Y));
+
+  // ball
+  ballX+=ballVX;ballY+=ballVY;
+
+  // top/bottom bounce
+  if(ballY<=BR){ballY=BR;ballVY*=-1}
+  if(ballY>=H-BR){ballY=H-BR;ballVY*=-1}
+
+  // paddle collision
+  if(ballX-PW<=20+PW&&ballX>=20&&ballY>=p1Y&&ballY<=p1Y+PH&&ballVX<0){
+    ballVX*=-1.05;
+    let off=(ballY-(p1Y+PH/2))/(PH/2);
+    ballVY=off*5;
+  }
+  if(ballX+PW>=W-20-PW&&ballX<=W-20&&ballY>=p2Y&&ballY<=p2Y+PH&&ballVX>0){
+    ballVX*=-1.05;
+    let off=(ballY-(p2Y+PH/2))/(PH/2);
+    ballVY=off*5;
+  }
+
+  // scoring
+  if(ballX<0){p2Score++;updateScores();if(p2Score>=WIN){endGame('Player 2 Wins!');return}resetBall()}
+  if(ballX>W){p1Score++;updateScores();if(p1Score>=WIN){endGame('Player 1 Wins!');return}resetBall()}
+}
+
+function draw(){
+  ctx.fillStyle='#111';ctx.fillRect(0,0,W,H);
+  // center line
+  ctx.setLineDash([8,8]);ctx.strokeStyle='#333';ctx.beginPath();
+  ctx.moveTo(W/2,0);ctx.lineTo(W/2,H);ctx.stroke();ctx.setLineDash([]);
+  // paddles
+  ctx.fillStyle='#00ff88';
+  ctx.fillRect(20,p1Y,PW,PH);
+  ctx.fillRect(W-20-PW,p2Y,PW,PH);
+  // ball
+  ctx.fillStyle='#fff';
+  ctx.beginPath();ctx.arc(ballX,ballY,BR,0,Math.PI*2);ctx.fill();
+}
+
+function updateScores(){
+  document.getElementById('p1-score').textContent=p1Score;
+  document.getElementById('p2-score').textContent=p2Score;
+}
+
+function endGame(msg){
+  running=false;
+  document.getElementById('winner-text').textContent=msg;
+  document.getElementById('game-screen').style.display='none';
+  document.getElementById('over-screen').style.display='flex';
+}
+
+function goHome(){
+  running=false;
+  document.getElementById('over-screen').style.display='none';
+  document.getElementById('game-screen').style.display='none';
+  document.getElementById('start-screen').style.display='flex';
+}
+
+document.addEventListener('keydown',e=>{
+  if(e.key==='w'||e.key==='ArrowUp')p1Dir=-1;
+  if(e.key==='s'||e.key==='ArrowDown')p1Dir=1;
+});
+document.addEventListener('keyup',e=>{
+  if((e.key==='w'||e.key==='ArrowUp')&&p1Dir===-1)p1Dir=0;
+  if((e.key==='s'||e.key==='ArrowDown')&&p1Dir===1)p1Dir=0;
+});
+</script>
+</body>
+</html>

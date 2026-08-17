@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tic Tac Toe</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#111;color:#eee;font-family:system-ui,sans-serif;display:flex;justify-content:center;align-items:center;min-height:100vh}
+#start-screen,#over-screen{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#111;z-index:10}
+#game-screen{display:none}
+#over-screen{display:none;background:rgba(0,0,0,.85)}
+h1{font-size:2.5em;margin-bottom:.3em;color:#805ad5}
+h2{font-size:1.8em;margin-bottom:.3em}
+.info{font-size:1.1em;margin:.2em 0;color:#ccc}
+button{padding:12px 28px;font-size:1.1em;border:none;border-radius:12px;background:#805ad5;color:#fff;cursor:pointer;margin-top:16px;font-weight:600}
+button:hover{filter:brightness(1.15)}
+.header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;width:320px}
+.header span{font-size:1.1em;font-weight:600}
+select{padding:8px;font-size:1em;border-radius:8px;background:#222;color:#eee;border:1px solid #444}
+.board{display:grid;grid-template-columns:repeat(3,100px);grid-template-rows:repeat(3,100px);gap:4px}
+.cell{background:#222;border:2px solid #444;display:flex;align-items:center;justify-content:center;font-size:2.5em;font-weight:700;cursor:pointer;border-radius:8px;transition:background .15s}
+.cell:hover{background:#333}
+.cell.x{color:#e53e3e}.cell.o{color:#38a169}
+.controls-info{font-size:.85em;color:#888;margin-top:12px;text-align:center;max-width:300px;line-height:1.5}
+.status{text-align:center;font-size:1.3em;margin-bottom:12px;min-height:1.5em}
+</style>
+</head>
+<body>
+<div id="start-screen">
+<h1>TIC TAC TOE</h1>
+<button onclick="startGame()">Start Game</button>
+<div class="controls-info">Tap a cell to place your mark. X goes first. Win by getting 3 in a row!</div>
+</div>
+<div id="game-screen" style="padding:20px">
+<div class="header">
+<span>X: <span id="x-score">0</span></span>
+<select id="mode" onchange="startGame()">
+<option value="pvp">2 Player</option>
+<option value="ai">vs Computer</option>
+</select>
+<span>O: <span id="o-score">0</span></span>
+</div>
+<p class="status" id="status">X's turn</p>
+<div class="board" id="board"></div>
+<button onclick="startGame()" style="margin-top:20px">New Game</button>
+</div>
+<div id="over-screen">
+<h2 id="result">X Wins!</h2>
+<button onclick="startGame()">Play Again</button>
+<button onclick="goHome()" style="background:#555">Main Menu</button>
+</div>
+<script>
+let board,turn,xScore=0,oScore=0,gameOverFlag;
+
+function startGame(){
+  board=Array(9).fill('');turn='X';gameOverFlag=false;
+  document.getElementById('start-screen').style.display='none';
+  document.getElementById('over-screen').style.display='none';
+  document.getElementById('game-screen').style.display='block';
+  document.getElementById('x-score').textContent=xScore;
+  document.getElementById('o-score').textContent=oScore;
+  updateStatus();render();
+}
+
+function updateStatus(){
+  document.getElementById('status').textContent=gameOverFlag?'':turn+"'s turn";
+}
+
+const WINS=[[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+
+function checkWin(p){return WINS.some(w=>w.every(i=>board[i]===p))}
+
+function minimax(b,isMax){
+  if(checkWin('O'))return 10;if(checkWin('X'))return -10;
+  if(b.every(c=>c!==''))return 0;
+  if(isMax){let best=-Infinity;for(let i=0;i<9;i++){if(!b[i]){b[i]='O';best=Math.max(best,minimax(b,false));b[i]=''}}
+  return best}else{let best=Infinity;for(let i=0;i<9;i++){if(!b[i]){b[i]='X';best=Math.min(best,minimax(b,true));b[i]=''}}
+  return best}
+}
+
+function aiMove(){
+  let bestScore=-Infinity,bestMove=-1;
+  for(let i=0;i<9;i++){
+    if(!board[i]){board[i]='O';let s=minimax(board,false);board[i]='';
+    if(s>bestScore){bestScore=s;bestMove=i}}
+  }
+  if(bestMove>=0){board[bestMove]='O';endTurn()}
+}
+
+function cellClick(i){
+  if(board[i]||gameOverFlag)return;
+  if(document.getElementById('mode').value==='ai'&&turn==='O')return;
+  board[i]=turn;endTurn();
+  if(!gameOverFlag&&document.getElementById('mode').value==='ai'&&turn==='O'){
+    setTimeout(aiMove,200);
+  }
+}
+
+function endTurn(){
+  if(checkWin(turn)){
+    gameOverFlag=true;
+    if(turn==='X')xScore++;else oScore++;
+    document.getElementById('x-score').textContent=xScore;
+    document.getElementById('o-score').textContent=oScore;
+    render();
+    setTimeout(()=>{document.getElementById('result').textContent=turn+' Wins!';document.getElementById('over-screen').style.display='flex'},500);
+    return;
+  }
+  if(board.every(c=>c!=='')){
+    gameOverFlag=true;
+    render();
+    setTimeout(()=>{document.getElementById('result').textContent="It's a Draw!";document.getElementById('over-screen').style.display='flex'},500);
+    return;
+  }
+  turn=turn==='X'?'O':'X';updateStatus();render();
+}
+
+function render(){
+  let b=document.getElementById('board');b.innerHTML='';
+  for(let i=0;i<9;i++){
+    let div=document.createElement('div');div.className='cell';
+    if(board[i]){div.textContent=board[i];div.classList.add(board[i].toLowerCase())}
+    div.addEventListener('click',()=>cellClick(i));
+    b.appendChild(div);
+  }
+}
+
+function goHome(){
+  document.getElementById('over-screen').style.display='none';
+  document.getElementById('game-screen').style.display='none';
+  document.getElementById('start-screen').style.display='flex';
+}
+</script>
+</body>
+</html>

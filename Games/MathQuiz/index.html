@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Math Quiz</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#111;color:#eee;font-family:system-ui,sans-serif;display:flex;justify-content:center;align-items:center;min-height:100vh}
+#start-screen,#over-screen{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#111;z-index:10}
+#game-screen{display:none}
+#over-screen{display:none;background:rgba(0,0,0,.85)}
+h1{font-size:2.5em;margin-bottom:.3em;color:#d53f8c}
+h2{font-size:1.8em;margin-bottom:.3em}
+.info{font-size:1.1em;margin:.2em 0;color:#ccc}
+button{padding:12px 28px;font-size:1.1em;border:none;border-radius:12px;background:#d53f8c;color:#fff;cursor:pointer;margin-top:16px;font-weight:600}
+button:hover{filter:brightness(1.15)}
+.hud{display:flex;gap:24px;font-size:1.2em;margin-bottom:20px}
+.hud span{color:#d53f8c;font-weight:700}
+.question{font-size:2.5em;font-weight:700;margin-bottom:20px;text-align:center;min-height:1.2em}
+.answers{display:grid;grid-template-columns:1fr 1fr;gap:12px;max-width:360px;width:100%}
+.ans-btn{padding:16px;font-size:1.3em;border:2px solid #444;border-radius:12px;background:#222;color:#eee;cursor:pointer;font-weight:600;transition:all .15s}
+.ans-btn:hover{border-color:#d53f8c;background:#333}
+.ans-btn.correct{background:#38a169;border-color:#38a169;color:#fff}
+.ans-btn.wrong{background:#e53e3e;border-color:#e53f8c;color:#fff}
+.combo{font-size:1.1em;color:#d69e2e;margin-top:12px;min-height:1.5em}
+.controls-info{font-size:.85em;color:#888;margin-top:12px;text-align:center;max-width:300px;line-height:1.5}
+select{padding:8px;font-size:1em;border-radius:8px;background:#222;color:#eee;border:1px solid #444}
+</style>
+</head>
+<body>
+<div id="start-screen">
+<h1>MATH QUIZ</h1>
+<p class="info">How fast can you solve math problems?</p>
+<select id="diff">
+<option value="easy">Easy (+ -)</option>
+<option value="medium" selected>Medium (+ - x)</option>
+<option value="hard">Hard (+ - x /)</option>
+</select>
+<button onclick="startGame()">Start Quiz</button>
+<div class="controls-info">Click the correct answer as fast as you can. 10 questions per round!</div>
+</div>
+<div id="game-screen" style="padding:20px">
+<div class="hud">
+<span>Score: <span id="score">0</span></span>
+<span>Q: <span id="qnum">1</span>/10</span>
+<span>Time: <span id="timer">0.0</span>s</span>
+</div>
+<div class="question" id="question">1 + 2 =</div>
+<div class="answers" id="answers"></div>
+<p class="combo" id="combo"></p>
+</div>
+<div id="over-screen">
+<h2>Quiz Complete!</h2>
+<div style="font-size:1.3em;margin:16px 0;text-align:center">
+<p>Correct: <span id="res-correct" style="color:#38a169;font-weight:700">0</span>/10</p>
+<p>Score: <span id="res-score" style="color:#d53f8c;font-weight:700">0</span></p>
+<p>Time: <span id="res-time" style="font-weight:700">0</span>s</p>
+</div>
+<button onclick="startGame()">Play Again</button>
+<button onclick="goHome()" style="background:#555">Main Menu</button>
+</div>
+<script>
+let score,questionNum,correct,answer,timeStart,combo,maxCombo;
+
+function genQuestion(){
+  let diff=document.getElementById('diff').value;
+  let a,b,op,ans;
+  if(diff==='easy'){
+    op=Math.random()<.5?'+':'-';
+    a=Math.floor(Math.random()*20)+1;
+    b=Math.floor(Math.random()*20)+1;
+    if(op==='-')while(b>=a)b=Math.floor(Math.random()*a)+1;
+    ans=op==='+'?a+b:a-b;
+  }else if(diff==='medium'){
+    let ops=['+','-','*'];
+    op=ops[Math.floor(Math.random()*3)];
+    a=Math.floor(Math.random()*20)+1;
+    b=Math.floor(Math.random()*12)+1;
+    if(op==='-')while(b>=a)b=Math.floor(Math.random()*a)+1;
+    ans=op==='+'?a+b:op==='-'?a-b:a*b;
+  }else{
+    let ops=['+','-','*','/'];
+    op=ops[Math.floor(Math.random()*4)];
+    a=Math.floor(Math.random()*20)+1;
+    b=Math.floor(Math.random()*10)+1;
+    if(op==='-')while(b>=a)b=Math.floor(Math.random()*a)+1;
+    if(op==='/'){a=b*Math.floor(Math.random()*10)+b;ans=a/b}
+    else{if(op==='*')ans=a*b;else if(op==='+')ans=a+b;else ans=a-b}
+  }
+  return{question:a+' '+op+' '+b+' =',answer:ans};
+}
+
+function startGame(){
+  score=0;questionNum=0;correct=0;timeStart=Date.now();combo=0;maxCombo=0;
+  document.getElementById('start-screen').style.display='none';
+  document.getElementById('over-screen').style.display='none';
+  document.getElementById('game-screen').style.display='block';
+  nextQuestion();
+}
+
+function nextQuestion(){
+  if(questionNum>=10){endGame();return}
+  questionNum++;
+  let q=genQuestion();answer=q.answer;
+  document.getElementById('question').textContent=q.question;
+  document.getElementById('qnum').textContent=questionNum;
+  document.getElementById('score').textContent=score;
+  document.getElementById('combo').textContent=combo>1?'Combo x'+combo+'!':'';
+  // generate 4 options
+  let opts=new Set([answer]);
+  while(opts.size<4){
+    let off=Math.floor(Math.random()*10)-5;
+    if(off!==0)opts.add(answer+off);
+  }
+  let optArr=Array.from(opts).sort(()=>Math.random()-.5);
+  let container=document.getElementById('answers');container.innerHTML='';
+  optArr.forEach(v=>{
+    let btn=document.createElement('button');btn.className='ans-btn';btn.textContent=v;
+    btn.onclick=()=>checkAnswer(v,btn);
+    container.appendChild(btn);
+  });
+  // timer
+  let ti=setInterval(()=>{
+    let el=((Date.now()-timeStart)/1000).toFixed(1);
+    document.getElementById('timer').textContent=el;
+    if(questionNum>=10)clearInterval(ti);
+  },100);
+}
+
+function checkAnswer(val,btn){
+  if(btn.classList.contains('correct')||btn.classList.contains('wrong'))return;
+  // disable all
+  document.querySelectorAll('.ans-btn').forEach(b=>b.style.pointerEvents='none');
+  if(val===answer){
+    combo++;if(combo>maxCombo)maxCombo=combo;
+    score+=10+combo*2;
+    btn.classList.add('correct');
+  }else{
+    combo=0;
+    btn.classList.add('wrong');
+    // highlight correct
+    document.querySelectorAll('.ans-btn').forEach(b=>{if(parseInt(b.textContent)===answer)b.classList.add('correct')});
+  }
+  correct+=val===answer?1:0;
+  setTimeout(nextQuestion,800);
+}
+
+function endGame(){
+  let el=((Date.now()-timeStart)/1000).toFixed(1);
+  document.getElementById('res-correct').textContent=correct;
+  document.getElementById('res-score').textContent=score;
+  document.getElementById('res-time').textContent=el;
+  document.getElementById('game-screen').style.display='none';
+  document.getElementById('over-screen').style.display='flex';
+}
+
+function goHome(){
+  document.getElementById('over-screen').style.display='none';
+  document.getElementById('game-screen').style.display='none';
+  document.getElementById('start-screen').style.display='flex';
+}
+</script>
+</body>
+</html>

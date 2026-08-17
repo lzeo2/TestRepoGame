@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Typing Speed Test</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#111;color:#eee;font-family:system-ui,sans-serif;display:flex;justify-content:center;align-items:center;min-height:100vh}
+#start-screen,#over-screen{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#111;z-index:10}
+#game-screen{display:none}
+#over-screen{display:none;background:rgba(0,0,0,.85)}
+h1{font-size:2.5em;margin-bottom:.3em;color:#319795}
+h2{font-size:1.8em;margin-bottom:.3em}
+.info{font-size:1.1em;margin:.2em 0;color:#ccc}
+button{padding:12px 28px;font-size:1.1em;border:none;border-radius:12px;background:#319795;color:#fff;cursor:pointer;margin-top:16px;font-weight:600}
+button:hover{filter:brightness(1.15)}
+.text-display{font-size:1.3em;line-height:1.8;padding:20px;background:#1a1a1a;border-radius:12px;max-width:600px;width:100%;margin-bottom:16px}
+.text-display .correct{color:#38a169}
+.text-display .wrong{color:#e53e3e;text-decoration:underline}
+.text-display .current{border-bottom:2px solid #319795}
+.text-display .pending{color:#666}
+input#typing{width:100%;max-width:600px;padding:12px 16px;font-size:1.1em;border:2px solid #444;border-radius:8px;background:#222;color:#eee;outline:none}
+input#typing:focus{border-color:#319795}
+.hud{display:flex;gap:24px;font-size:1.2em;margin-bottom:16px}
+.hud span{color:#319795;font-weight:700}
+.controls-info{font-size:.85em;color:#888;margin-top:12px;text-align:center;max-width:300px;line-height:1.5}
+.result-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;max-width:300px;margin:16px 0}
+.result-item{text-align:center;padding:12px;background:#1a1a1a;border-radius:8px}
+.result-item .val{font-size:1.8em;font-weight:700;color:#319795}
+.result-item .label{font-size:.85em;color:#888}
+</style>
+</head>
+<body>
+<div id="start-screen">
+<h1>TYPING SPEED</h1>
+<p class="info">Test your typing speed!</p>
+<button onclick="startGame()">Start Test</button>
+<div class="controls-info">Type the displayed text as fast as you can. You have 30 seconds.</div>
+</div>
+<div id="game-screen" style="padding:20px;max-width:640px;width:100%">
+<div class="hud">
+<span>Time: <span id="timer">30</span>s</span>
+<span>WPM: <span id="wpm">0</span></span>
+<span>Accuracy: <span id="accuracy">100</span>%</span>
+</div>
+<div class="text-display" id="display"></div>
+<input type="text" id="typing" placeholder="Start typing here..." autocomplete="off" autocapitalize="off" spellcheck="false">
+<button onclick="startGame()" style="margin-top:12px">Restart</button>
+</div>
+<div id="over-screen">
+<h2>Results</h2>
+<div class="result-grid">
+<div class="result-item"><div class="val" id="res-wpm">0</div><div class="label">Words Per Minute</div></div>
+<div class="result-item"><div class="val" id="res-acc">0%</div><div class="label">Accuracy</div></div>
+<div class="result-item"><div class="val" id="res-chars">0</div><div class="label">Characters</div></div>
+<div class="result-item"><div class="val" id="res-errors">0</div><div class="label">Errors</div></div>
+</div>
+<button onclick="startGame()">Try Again</button>
+<button onclick="goHome()" style="background:#555">Main Menu</button>
+</div>
+<script>
+const TEXTS=[
+"The quick brown fox jumps over the lazy dog near the river bank",
+"Pack my box with five dozen liquor jugs how quickly can you type",
+"Amazingly few discotheques provide jukeboxes for the party",
+"The five boxing wizards jump quickly at the old abandoned temple",
+"A mad boxer shot a quick gloved jab to the jaw of his dizzy opponent",
+"She sells seashells by the seashore on a bright and sunny morning",
+"Peter Piper picked a peck of pickled peppers from the garden wall",
+"Jackdaws love my big sphinx of quartz near the ancient castle",
+"];
+let text,timerVal,timerInt,startTime,errors,correctChars,totalTyped,running;
+
+function startGame(){
+  text=TEXTS[Math.floor(Math.random()*TEXTS.length)];
+  timerVal=30;errors=0;correctChars=0;totalTyped=0;running=true;
+  document.getElementById('timer').textContent='30';
+  document.getElementById('wpm').textContent='0';
+  document.getElementById('accuracy').textContent='100';
+  document.getElementById('typing').value='';
+  document.getElementById('start-screen').style.display='none';
+  document.getElementById('over-screen').style.display='none';
+  document.getElementById('game-screen').style.display='block';
+  renderDisplay(-1);
+  document.getElementById('typing').focus();
+  startTime=Date.now();
+  clearInterval(timerInt);
+  timerInt=setInterval(()=>{
+    timerVal--;
+    document.getElementById('timer').textContent=timerVal;
+    if(timerVal<=0)endGame();
+  },1000);
+}
+
+function renderDisplay(cursorPos){
+  let html='';
+  let typed=document.getElementById('typing').value;
+  for(let i=0;i<text.length;i++){
+    let cls='pending';
+    if(i<typed.length){
+      cls=typed[i]===text[i]?'correct':'wrong';
+    }else if(i===typed.length){
+      cls='current';
+    }
+    html+='<span class="'+cls+'">'+text[i]+'</span>';
+  }
+  document.getElementById('display').innerHTML=html;
+}
+
+document.addEventListener('input',e=>{
+  if(!running||e.target.id!=='typing')return;
+  let typed=e.target.value;
+  // count errors
+  errors=0;correctChars=0;
+  for(let i=0;i<typed.length&&i<text.length;i++){
+    if(typed[i]===text[i])correctChars++;else errors++;
+  }
+  totalTyped=typed.length;
+  let elapsed=(Date.now()-startTime)/1000/60;
+  let wpm=elapsed>0?Math.round((correctChars/5)/elapsed):0;
+  let acc=totalTyped>0?Math.round(correctChars/totalTyped*100):100;
+  document.getElementById('wpm').textContent=wpm;
+  document.getElementById('accuracy').textContent=acc;
+  renderDisplay(typed.length);
+  // if typed enough, end early
+  if(typed.length>=text.length)endGame();
+});
+
+function endGame(){
+  running=false;clearInterval(timerInt);
+  let typed=document.getElementById('typing').value;
+  let elapsed=(Date.now()-startTime)/1000/60;
+  let wpm=elapsed>0?Math.round((correctChars/5)/elapsed):0;
+  let acc=typed.length>0?Math.round(correctChars/typed.length*100):0;
+  document.getElementById('res-wpm').textContent=wpm;
+  document.getElementById('res-acc').textContent=acc+'%';
+  document.getElementById('res-chars').textContent=correctChars;
+  document.getElementById('res-errors').textContent=errors;
+  document.getElementById('game-screen').style.display='none';
+  document.getElementById('over-screen').style.display='flex';
+}
+
+function goHome(){
+  running=false;clearInterval(timerInt);
+  document.getElementById('over-screen').style.display='none';
+  document.getElementById('game-screen').style.display='none';
+  document.getElementById('start-screen').style.display='flex';
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Whack-a-Mole</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#111;color:#eee;font-family:system-ui,sans-serif;display:flex;justify-content:center;align-items:center;min-height:100vh}
+#start-screen,#over-screen{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#111;z-index:10}
+#game-screen{display:none}
+#over-screen{display:none;background:rgba(0,0,0,.85)}
+h1{font-size:2.5em;margin-bottom:.3em;color:#38a169}
+h2{font-size:1.8em;margin-bottom:.3em}
+.info{font-size:1.1em;margin:.2em 0;color:#ccc}
+button{padding:12px 28px;font-size:1.1em;border:none;border-radius:12px;background:#38a169;color:#fff;cursor:pointer;margin-top:16px;font-weight:600}
+button:hover{filter:brightness(1.15)}
+.hud{display:flex;justify-content:space-between;width:330px;margin-bottom:12px;font-size:1.1em}
+.grid{display:grid;grid-template-columns:repeat(3,100px);gap:12px}
+.hole{width:100px;height:100px;background:#2a1a0a;border-radius:50%;border:3px solid #4a3020;display:flex;align-items:center;justify-content:center;cursor:pointer;position:relative;overflow:hidden}
+.hole::after{content:'';position:absolute;bottom:0;left:-5%;width:110%;height:30%;background:#3a2510;border-radius:50%}
+.mole{font-size:2.8em;position:relative;z-index:1;transition:transform .1s;user-select:none}
+.hole:active .mole{transform:scale(0.8)}
+.timer-bar{width:330px;height:8px;background:#333;border-radius:4px;margin-bottom:12px;overflow:hidden}
+.timer-fill{height:100%;background:#38a169;transition:width .1s linear}
+.controls-info{font-size:.85em;color:#888;margin-top:12px;text-align:center;max-width:300px;line-height:1.5}
+</style>
+</head>
+<body>
+<div id="start-screen">
+<h1>WHACK-A-MOLE</h1>
+<p class="info">30 seconds to whack as many moles as you can!</p>
+<button onclick="startGame()">Start Game</button>
+<div class="controls-info">Click or tap the moles. Watch out for bombs! Bombs cost you points.</div>
+</div>
+<div id="game-screen" style="padding:20px">
+<div class="hud">
+<span>Score: <span id="score">0</span></span>
+<span>Time: <span id="time">30</span>s</span>
+</div>
+<div class="timer-bar"><div class="timer-fill" id="timer-fill" style="width:100%"></div></div>
+<div class="grid" id="grid"></div>
+<button onclick="startGame()" style="margin-top:20px">New Game</button>
+</div>
+<div id="over-screen">
+<h2>Time's Up!</h2>
+<p class="info">Final Score: <span id="final-score">0</span></p>
+<button onclick="startGame()">Play Again</button>
+<button onclick="goHome()" style="background:#555">Main Menu</button>
+</div>
+<script>
+const HOLES=9,DURATION=30;
+let score,activeHole,moleTimer,gameTimer,timeLeft,running;
+
+function startGame(){
+  score=0;timeLeft=DURATION;running=true;
+  document.getElementById('score').textContent='0';
+  document.getElementById('time').textContent=DURATION;
+  document.getElementById('timer-fill').style.width='100%';
+  document.getElementById('start-screen').style.display='none';
+  document.getElementById('over-screen').style.display='none';
+  document.getElementById('game-screen').style.display='block';
+  render();
+  clearInterval(moleTimer);clearInterval(gameTimer);
+  moleTimer=setInterval(showMole,800);
+  gameTimer=setInterval(()=>{
+    timeLeft--;
+    document.getElementById('time').textContent=timeLeft;
+    document.getElementById('timer-fill').style.width=(timeLeft/DURATION*100)+'%';
+    if(timeLeft<=0)endGame();
+  },1000);
+  showMole();
+}
+
+function showMole(){
+  if(!running)return;
+  let grid=document.getElementById('grid');
+  let holes=grid.children;
+  // clear all
+  for(let h of holes){h.innerHTML='';h.onclick=null}
+  let idx=Math.floor(Math.random()*HOLES);
+  let isBomb=Math.random()<0.2;
+  let mole=document.createElement('span');mole.className='mole';
+  mole.textContent=isBomb?'💣':'🐹';
+  holes[idx].appendChild(mole);
+  holes[idx].onclick=()=>{
+    if(isBomb){score=Math.max(0,score-5);holes[idx].style.background='#600'}
+    else{score++;holes[idx].style.background='#1a4a1a'}
+    document.getElementById('score').textContent=score;
+    setTimeout(()=>{holes[idx].style.background=''},150);
+  };
+}
+
+function endGame(){
+  running=false;clearInterval(moleTimer);clearInterval(gameTimer);
+  document.getElementById('final-score').textContent=score;
+  document.getElementById('game-screen').style.display='none';
+  document.getElementById('over-screen').style.display='flex';
+}
+
+function goHome(){
+  running=false;clearInterval(moleTimer);clearInterval(gameTimer);
+  document.getElementById('over-screen').style.display='none';
+  document.getElementById('game-screen').style.display='none';
+  document.getElementById('start-screen').style.display='flex';
+}
+
+function render(){
+  let g=document.getElementById('grid');g.innerHTML='';
+  for(let i=0;i<HOLES;i++){
+    let d=document.createElement('div');d.className='hole';g.appendChild(d);
+  }
+}
+</script>
+</body>
+</html>

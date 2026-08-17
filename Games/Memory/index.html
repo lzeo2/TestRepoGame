@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Memory</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#111;color:#eee;font-family:system-ui,sans-serif;display:flex;justify-content:center;align-items:center;min-height:100vh}
+#start-screen,#over-screen{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#111;z-index:10}
+#game-screen{display:none}
+#over-screen{display:none;background:rgba(0,0,0,.85)}
+h1{font-size:2.5em;margin-bottom:.3em;color:#0bc5ea}
+h2{font-size:1.8em;margin-bottom:.3em}
+.info{font-size:1.1em;margin:.2em 0;color:#ccc}
+button{padding:12px 28px;font-size:1.1em;border:none;border-radius:12px;background:#0bc5ea;color:#fff;cursor:pointer;margin-top:16px;font-weight:600}
+button:hover{filter:brightness(1.15)}
+.header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;width:360px}
+select{padding:8px;font-size:1em;border-radius:8px;background:#222;color:#eee;border:1px solid #444}
+.status{text-align:center;font-size:1.1em;margin-bottom:12px;color:#ccc}
+.grid{display:grid;gap:8px;margin:0 auto}
+.card{width:64px;height:64px;background:#222;border:2px solid #444;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.8em;cursor:pointer;transition:transform .2s,background .2s;user-select:none}
+.card.flipped,.card.matched{background:#333;border-color:#0bc5ea}
+.card.matched{border-color:#38a169;opacity:.7}
+.card:hover{transform:scale(1.05)}
+.controls-info{font-size:.85em;color:#888;margin-top:12px;text-align:center;max-width:300px;line-height:1.5}
+</style>
+</head>
+<body>
+<div id="start-screen">
+<h1>MEMORY</h1>
+<button onclick="startGame()">Start Game</button>
+<div class="controls-info">Flip cards to find matching pairs. Match all pairs to win!</div>
+</div>
+<div id="game-screen" style="padding:20px">
+<div class="header">
+<span>Moves: <span id="moves">0</span></span>
+<select id="diff" onchange="startGame()">
+<option value="4">4x3 (Easy)</option>
+<option value="6" selected>6x4 (Medium)</option>
+<option value="8">8x5 (Hard)</option>
+</select>
+<span>Pairs: <span id="pairs">0</span>/<span id="total-pairs">0</span></span>
+</div>
+<p class="status" id="status">Find all matching pairs!</p>
+<div class="grid" id="grid"></div>
+<button onclick="startGame()" style="margin-top:16px">New Game</button>
+</div>
+<div id="over-screen">
+<h2>You Win!</h2>
+<p class="info">Completed in <span id="final-moves">0</span> moves</p>
+<button onclick="startGame()">Play Again</button>
+<button onclick="goHome()" style="background:#555">Main Menu</button>
+</div>
+<script>
+const SYMBOLS=['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T'];
+let cards,flipped,matched,moves,pairCount,totalPairs,cols,rows,lockBoard;
+
+function startGame(){
+  let v=parseInt(document.getElementById('diff').value);
+  cols=v;rows=v===4?3:v===6?4:5;
+  totalPairs=(cols*rows)/2;pairCount=0;moves=0;flipped=[];matched=new Set();lockBoard=false;
+  // create pairs
+  let deck=[];
+  for(let i=0;i<totalPairs;i++){deck.push(i);deck.push(i)}
+  // shuffle
+  for(let i=deck.length-1;i>0;i--){let j=Math.floor(Math.random()*(i+1));[deck[i],deck[j]]=[deck[j],deck[i]]}
+  cards=deck;
+  document.getElementById('moves').textContent='0';
+  document.getElementById('pairs').textContent='0';
+  document.getElementById('total-pairs').textContent=totalPairs;
+  document.getElementById('start-screen').style.display='none';
+  document.getElementById('over-screen').style.display='none';
+  document.getElementById('game-screen').style.display='block';
+  document.getElementById('status').textContent='Find all matching pairs!';
+  render();
+}
+
+function flipCard(i){
+  if(lockBoard||matched.has(i)||flipped.length>=2||flipped.includes(i))return;
+  flipped.push(i);
+  render();
+  if(flipped.length===2){
+    moves++;document.getElementById('moves').textContent=moves;
+    if(cards[flipped[0]]===cards[flipped[1]]){
+      matched.add(flipped[0]);matched.add(flipped[1]);
+      pairCount++;document.getElementById('pairs').textContent=pairCount;
+      flipped=[];
+      if(pairCount===totalPairs){
+        setTimeout(()=>{document.getElementById('final-moves').textContent=moves;document.getElementById('over-screen').style.display='flex'},500);
+      }
+      render();
+    }else{
+      lockBoard=true;
+      setTimeout(()=>{flipped=[];lockBoard=false;render()},800);
+    }
+  }
+}
+
+function render(){
+  let g=document.getElementById('grid');
+  g.style.gridTemplateColumns='repeat('+cols+',64px)';
+  g.innerHTML='';
+  for(let i=0;i<cards.length;i++){
+    let d=document.createElement('div');d.className='card';
+    let isFlipped=flipped.includes(i)||matched.has(i);
+    if(isFlipped){d.textContent=SYMBOLS[cards[i]];d.classList.add(flipped.includes(i)?'flipped':'matched')}
+    d.addEventListener('click',()=>flipCard(i));
+    g.appendChild(d);
+  }
+}
+
+function goHome(){
+  document.getElementById('over-screen').style.display='none';
+  document.getElementById('game-screen').style.display='none';
+  document.getElementById('start-screen').style.display='flex';
+}
+</script>
+</body>
+</html>

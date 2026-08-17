@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lights Out</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#111;color:#eee;font-family:system-ui,sans-serif;display:flex;justify-content:center;align-items:center;min-height:100vh}
+#start-screen,#over-screen{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#111;z-index:10}
+#game-screen{display:none}
+#over-screen{display:none;background:rgba(0,0,0,.85)}
+h1{font-size:2.5em;margin-bottom:.3em;color:#d69e2e}
+h2{font-size:1.8em;margin-bottom:.3em}
+.info{font-size:1.1em;margin:.2em 0;color:#ccc}
+button{padding:12px 28px;font-size:1.1em;border:none;border-radius:12px;background:#d69e2e;color:#111;cursor:pointer;margin-top:16px;font-weight:600}
+button:hover{filter:brightness(1.15)}
+.hud{display:flex;gap:24px;font-size:1.2em;margin-bottom:16px}
+.hud span{color:#d69e2e;font-weight:700}
+.grid{display:grid;gap:4px}
+.cell{width:56px;height:56px;border-radius:8px;cursor:pointer;transition:all .15s;display:flex;align-items:center;justify-content:center;font-size:1.4em}
+.cell.on{background:#eab308;box-shadow:0 0 15px rgba(234,179,8,.5)}
+.cell.off{background:#333}
+.cell:active{transform:scale(.9)}
+.controls-info{font-size:.85em;color:#888;margin-top:12px;text-align:center;max-width:300px;line-height:1.5}
+</style>
+</head>
+<body>
+<div id="start-screen">
+<h1>LIGHTS OUT</h1>
+<p class="info">Turn off all the lights!</p>
+<button onclick="startGame()">Start Game</button>
+<div class="controls-info">Click a light to toggle it and its neighbors. Turn off all lights to win!</div>
+</div>
+<div id="game-screen" style="padding:20px">
+<div class="hud">
+<span>Moves: <span id="moves">0</span></span>
+<span>Level: <span id="level">1</span></span>
+</div>
+<div class="grid" id="grid"></div>
+<button onclick="startGame()" style="margin-top:16px">New Game</button>
+</div>
+<div id="over-screen">
+<h2>You Win!</h2>
+<p class="info">Solved level <span id="final-level">1</span> in <span id="final-moves">0</span> moves</p>
+<button onclick="nextLevel()">Next Level</button>
+<button onclick="goHome()" style="background:#555">Main Menu</button>
+</div>
+<script>
+const SIZE=5;
+let grid,moves,level;
+
+function startGame(){level=1;initLevel()}
+function nextLevel(){level++;initLevel()}
+
+function initLevel(){
+  moves=0;
+  document.getElementById('moves').textContent='0';
+  document.getElementById('level').textContent=level;
+  // create solvable puzzle
+  grid=Array.from({length:SIZE},()=>Array(SIZE).fill(false));
+  // apply random presses to generate puzzle
+  let presses=level+Math.floor(Math.random()*3);
+  for(let i=0;i<presses;i++){
+    let r=Math.floor(Math.random()*SIZE),c=Math.floor(Math.random()*SIZE);
+    toggle(grid,r,c);
+  }
+  // make sure it's not already solved
+  if(grid.every(row=>row.every(c=>!c))){
+    toggle(grid,Math.floor(SIZE/2),Math.floor(SIZE/2));
+  }
+  document.getElementById('start-screen').style.display='none';
+  document.getElementById('over-screen').style.display='none';
+  document.getElementById('game-screen').style.display='block';
+  render();
+}
+
+function toggle(g,r,c){
+  g[r][c]=!g[r][c];
+  if(r>0)g[r-1][c]=!g[r-1][c];
+  if(r<SIZE-1)g[r+1][c]=!g[r+1][c];
+  if(c>0)g[r][c-1]=!g[r][c-1];
+  if(c<SIZE-1)g[r][c+1]=!g[r][c+1];
+}
+
+function clickCell(r,c){
+  toggle(grid,r,c);moves++;
+  document.getElementById('moves').textContent=moves;
+  render();
+  if(grid.every(row=>row.every(c=>!c))){
+    setTimeout(()=>{
+      document.getElementById('final-level').textContent=level;
+      document.getElementById('final-moves').textContent=moves;
+      document.getElementById('over-screen').style.display='flex';
+    },300);
+  }
+}
+
+function render(){
+  let g=document.getElementById('grid');
+  g.style.gridTemplateColumns='repeat('+SIZE+',56px)';
+  g.innerHTML='';
+  for(let r=0;r<SIZE;r++)for(let c=0;c<SIZE;c++){
+    let d=document.createElement('div');
+    d.className='cell '+(grid[r][c]?'on':'off');
+    d.textContent=grid[r][c]?'\u2600':'';
+    d.onclick=()=>clickCell(r,c);
+    g.appendChild(d);
+  }
+}
+
+function goHome(){
+  document.getElementById('over-screen').style.display='none';
+  document.getElementById('game-screen').style.display='none';
+  document.getElementById('start-screen').style.display='flex';
+}
+</script>
+</body>
+</html>
