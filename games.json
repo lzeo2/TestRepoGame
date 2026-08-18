@@ -583,5 +583,14 @@
     "desc": "Classic vertical platformer — jump as high as you can, dodge monsters, collect power-ups!",
     "url": "Games/DoodleJump/index.html",
     "featured": false
+  },
+  {
+    "id": 84,
+    "title": "Chess",
+    "cat": "strategy",
+    "icon": "",
+    "desc": "Play against a built-in AI opponent. Drag pieces to move, select search depth for AI difficulty!",
+    "url": "Games/Chess/index.html",
+    "featured": false
   }
 ]
