@@ -610,5 +610,14 @@
     "desc": "Endless side-scrolling runner — strap on a jetpack, dodge lasers and missiles, and grab coins!",
     "url": "Games/JetpackJoyride/index.html",
     "featured": false
+  },
+  {
+    "id": 87,
+    "title": "Doge Miner",
+    "cat": "idle",
+    "icon": "",
+    "desc": "The Dogecoin Mining Simulator — click to mine, hire helpers, buy upgrades, and reach the moon!",
+    "url": "Games/DogeMiner/index.html",
+    "featured": false
   }
 ]
