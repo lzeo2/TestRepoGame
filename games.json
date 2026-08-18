@@ -592,5 +592,14 @@
     "desc": "Play against a built-in AI opponent. Drag pieces to move, select search depth for AI difficulty!",
     "url": "Games/Chess/index.html",
     "featured": false
+  },
+  {
+    "id": 85,
+    "title": "Thumb Fighter",
+    "cat": "sports",
+    "icon": "",
+    "desc": "Two-player thumb wrestling game — battle a friend on one keyboard or fight the computer!",
+    "url": "Games/ThumbFighter/index.html",
+    "featured": false
   }
 ]
