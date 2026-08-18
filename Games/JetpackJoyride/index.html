@@ -15,11 +15,21 @@
 		<script type="text/javascript" src="game3.js"></script>
 		<script src="../../storage/js/cloak.js"></script>
 	</head>
+<style>
+  #controls-hint{position:fixed;bottom:12px;left:50%;transform:translateX(-50%);z-index:9999;background:rgba(0,0,0,0.72);color:#fff;font-family:Arial,sans-serif;font-size:14px;line-height:1.5;text-align:center;padding:10px 20px;border-radius:8px;pointer-events:none;transition:opacity 0.5s}
+  #controls-hint.hidden{opacity:0}
+</style>
 	<body>
 		<div class="fontLoader" style="font-family: jetpackia">-</div>
 		<img id="rotate_image" src="img/HB_ic_rotateScreen.png" alt="rotate_screen" class="center" />
 		<div id="content">
 			<div id="phaser-canvas"></div>
 		</div>
+		<div id="controls-hint">
+		  <strong>Controls:</strong> Hold tap/click to fly up — release to fall down.
+		</div>
+		<script>
+		(function(){var el=document.getElementById('controls-hint');setTimeout(function(){el.classList.add('hidden');setTimeout(function(){el.style.display='none';},600);},10000);})();
+		</script>
 	</body>
 </html>

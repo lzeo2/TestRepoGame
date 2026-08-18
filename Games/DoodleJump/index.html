@@ -21,6 +21,24 @@
 			width: 5px;
 			display: 'none';
 		}
+		#controls-hint {
+			position: fixed;
+			bottom: 12px;
+			left: 50%;
+			transform: translateX(-50%);
+			z-index: 9999;
+			background: rgba(0,0,0,0.72);
+			color: #fff;
+			font-family: Arial, sans-serif;
+			font-size: 14px;
+			line-height: 1.5;
+			text-align: center;
+			padding: 10px 20px;
+			border-radius: 8px;
+			pointer-events: none;
+			transition: opacity 0.5s;
+		}
+		#controls-hint.hidden { opacity: 0; }
 	</style>
 	<script type="text/javascript" src="./api.js"></script>
 </head>
@@ -51,16 +69,21 @@
 
         return false;
     };
-</script>
+	</script>
 		<input id="highscore" type="text" />
 		<script type="text/javascript" src="js/phaser.min.js"></script>
 		<script type="text/javascript" src="js/fulltilt.min.js"></script>
 		<script type="text/javascript" src="js/build/production.min.js"></script> 
 		<script type="text/javascript" src="js/NoSleep.min.js"></script>
 		<script src="js/main.js"></script>  
-	
+
+		<div id="controls-hint">
+		  <strong>Controls:</strong> Tilt device to move, or use <strong>&larr; &rarr;</strong> arrow keys.
+		</div>
+
 		<script> 
 		var noSleep = new NoSleep();
+		(function(){var el=document.getElementById('controls-hint');setTimeout(function(){el.classList.add('hidden');setTimeout(function(){el.style.display='none';},600);},10000);})();
 
 function enableNoSleep() {
   noSleep.enable();

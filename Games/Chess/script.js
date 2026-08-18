@@ -179,6 +179,29 @@ var getPieceValue = function (piece, x, y) {
 
 /* board visualization and games state handling */
 
+var showGameStatus = function () {
+    var el = document.getElementById('game-status');
+    if (!el) return;
+    var result = '';
+    if (game.in_checkmate()) {
+        var loser = game.turn() === 'w' ? 'White' : 'Black';
+        result = 'Checkmate — ' + loser + ' loses!';
+    } else if (game.in_draw()) {
+        result = 'Draw — the game is a stalemate.';
+    } else if (game.in_stalemate()) {
+        result = 'Stalemate — no legal moves.';
+    } else {
+        result = 'Game over!';
+    }
+    el.textContent = result;
+    el.classList.add('visible');
+};
+
+var clearGameStatus = function () {
+    var el = document.getElementById('game-status');
+    if (el) { el.textContent = ''; el.classList.remove('visible'); }
+};
+
 var onDragStart = function (source, piece, position, orientation) {
     if (game.in_checkmate() === true || game.in_draw() === true ||
         piece.search(/^b/) !== -1) {
@@ -192,7 +215,7 @@ var makeBestMove = function () {
     board.position(game.fen());
     renderMoveHistory(game.history());
     if (game.game_over()) {
-        alert('Game over');
+        showGameStatus();
     }
 };
 
@@ -200,7 +223,7 @@ var makeBestMove = function () {
 var positionCount;
 var getBestMove = function (game) {
     if (game.game_over()) {
-        alert('Game over');
+        showGameStatus();
     }
 
     positionCount = 0;
@@ -241,6 +264,7 @@ var onDrop = function (source, target) {
         return 'snapback';
     }
 
+    clearGameStatus();
     renderMoveHistory(game.history());
     window.setTimeout(makeBestMove, 250);
 };
@@ -308,4 +332,5 @@ $('#new-game-btn').on('click', function () {
     $('#time').text('');
     $('#positions-per-s').text('');
     $('#move-history').empty();
+    clearGameStatus();
 });

@@ -11,6 +11,10 @@
 	<script type="text/javascript" src="game.js"></script>
 </head>
 
+<style>
+  #controls-hint{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);z-index:10001;background:rgba(0,0,0,0.72);color:#fff;font-family:Arial,sans-serif;font-size:15px;line-height:1.5;text-align:center;padding:12px 24px;border-radius:10px;pointer-events:none;transition:opacity 0.5s}
+  #controls-hint.hidden{opacity:0}
+</style>
 <body onload="setTimeout(function(){window.scrollTo(0,1)},1);">
 
 	<div id="ajaxbar">
@@ -19,6 +23,22 @@
 		<div id="orientate"><img src="media/graphics/orientate/landscape.jpg"></div>
 		<div id="play" class="play" onclick=""><img src="media/graphics/splash/mobile/cover-start.jpg"></div>
 	</div>
+
+	<div id="controls-hint">
+	  <strong>Controls:</strong> Tap / Click / Space to drift — release to drive straight.
+	  <span id="controls-hint-dismiss" style="cursor:pointer;margin-left:12px;opacity:0.6;font-size:13px;">[dismiss]</span>
+	</div>
+	<script>
+	(function(){
+	  var el=document.getElementById('controls-hint');
+	  var btn=document.getElementById('controls-hint-dismiss');
+	  function dismiss(){el.classList.add('hidden');setTimeout(function(){el.style.display='none';},600);}
+	  if(btn) btn.addEventListener('click',dismiss);
+	  setTimeout(dismiss,12000);
+	  document.addEventListener('keydown',function handler(){setTimeout(dismiss,400);document.removeEventListener('keydown',handler);});
+	  document.addEventListener('touchstart',function handler(){setTimeout(dismiss,400);document.removeEventListener('touchstart',handler);});
+	})();
+	</script>
 
 </body>
 

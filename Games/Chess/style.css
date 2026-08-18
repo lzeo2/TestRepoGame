@@ -8,7 +8,8 @@ body{
     margin:0;
 }
 #header img{
-    height: 0vh;
+    height: auto;
+    max-height: 5vh;
     margin-top: 0;
     padding-top: 0;
     margin-left: 5vw;
@@ -23,6 +24,19 @@ body{
     gap: 12px;
     padding: 8px 65px 8px 16px;
     clear: both;
+}
+.game-status {
+    flex: 0 0 auto;
+    padding: 10px 18px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #fff;
+    background-color: #d9534f;
+    border-radius: 8px;
+    display: none;
+}
+.game-status.visible {
+    display: inline-block;
 }
 .controls-doc {
     flex: 1 1 300px;
@@ -104,6 +118,7 @@ button:focus-visible {
 @media screen and (max-width: 720px) {
     .controls-row {
         padding: 8px 16px;
+        justify-content: center;
     }
     .board {
         float: none;

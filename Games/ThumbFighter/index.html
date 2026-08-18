@@ -22,6 +22,8 @@
   -ms-user-select: none;
   user-select: none;
   }
+  #controls-hint{position:fixed;bottom:12px;left:50%;transform:translateX(-50%);z-index:9999;background:rgba(0,0,0,0.72);color:#fff;font-family:Arial,sans-serif;font-size:13px;line-height:1.5;text-align:center;padding:10px 18px;border-radius:8px;pointer-events:none;transition:opacity 0.5s}
+  #controls-hint.hidden{opacity:0}
 </style>
 </head>
 <body>
@@ -33,9 +35,15 @@
 			<p class="notSupportedMessage">JavaScript appears to be disabled. Please enable it to view this content.</p>
 		</div>
 	</noscript>
+	<div id="controls-hint">
+	  <strong>P1:</strong> A / W / S / D &nbsp;|&nbsp; <strong>P2:</strong> Arrow keys &nbsp;|&nbsp; <strong>Mobile:</strong> Tap left / right side
+	</div>
 	<script src="scripts/supportcheck.js"></script>
 	<script src="scripts/offlineclient.js" type="module"></script>
 	<script src="scripts/main.js" type="module"></script>
 	<script src="scripts/register-sw.js" type="module"></script>
+	<script>
+	(function(){var el=document.getElementById('controls-hint');setTimeout(function(){el.classList.add('hidden');setTimeout(function(){el.style.display='none';},600);},10000);})();
+	</script>
 </body>
 </html>
