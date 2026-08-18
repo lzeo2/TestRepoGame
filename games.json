@@ -565,5 +565,14 @@
     "desc": "Endless drifting game — steer your car through obstacles, chain combos, and drift as far as you can!",
     "url": "Games/DriftBoss/index.html",
     "featured": false
+  },
+  {
+    "id": 82,
+    "title": "Wordle",
+    "cat": "riddle",
+    "icon": "",
+    "desc": "Guess the five-letter word in six tries. Type a word, press Enter, and use the color clues!",
+    "url": "Games/Wordle/index.html",
+    "featured": false
   }
 ]
