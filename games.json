@@ -547,5 +547,14 @@
     "desc": "The iconic idle/clicker game. Click the cookie, buy buildings, and watch the numbers grow!",
     "url": "Games/CookieClicker/index.html",
     "featured": false
+  },
+  {
+    "id": 80,
+    "title": "Bloons TD",
+    "cat": "strategy",
+    "icon": "",
+    "desc": "Classic tower defense — pop bloons with monkeys! Four versions included: BTD 1–4, playable via bundled Ruffle emulator.",
+    "url": "Games/BloonsTD/index.html",
+    "featured": false
   }
 ]
