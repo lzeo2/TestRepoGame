@@ -538,5 +538,14 @@
     "desc": "Classic number puzzle. Fill the grid with digits 1-9.",
     "url": "Games/Sudoku/index.html",
     "featured": false
+  },
+  {
+    "id": 79,
+    "title": "Cookie Clicker",
+    "cat": "idle",
+    "icon": "",
+    "desc": "The iconic idle/clicker game. Click the cookie, buy buildings, and watch the numbers grow!",
+    "url": "Games/CookieClicker/index.html",
+    "featured": false
   }
 ]
