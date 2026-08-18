@@ -6,6 +6,28 @@ Operating rules for any agent (opencode, Claude Code, Codex, Hermes) working in 
 
 "UNBLOCKMATH // ARCADE" — a browser games site. The repo ROOT is the deployed static site (Netlify, `netlify.toml` publish = "."). Games live in `Games/<Name>/` as self-contained static HTML/CSS/JS folders. `games.json` at root is the catalog; the portal JS fetches it at runtime, so appending an entry makes a game appear without rebuilding.
 
+## CRITICAL: Games are NOT checked out locally
+
+**Games/ is in the git repo (pushed to GitHub, deployed by Netlify) but NOT checked out locally on the Pi.** This saves 1.4GB of disk space. The Pi only has portal code locally (~200MB).
+
+**When you need to work on games:**
+1. Check out only the specific game: `git sparse-checkout add Games/<Name>`
+2. Or download from GitHub: `git show HEAD:Games/<Name>/index.html > /tmp/game.html`
+3. Work on it, test it, then: `git add Games/<Name> && git commit`
+4. Push to GitHub: `git push` (Netlify auto-deploys)
+
+**When adding a new game:**
+1. Create `Games/<Name>/` locally (it will be new, not in git yet)
+2. Add entry to `games.json`
+3. `git add Games/<Name>/ games.json && git commit`
+4. `git push`
+
+**When editing portal code (CSS, index.html, portal-ux.js):**
+- Work directly — no game checkout needed
+- These files are always checked out locally
+
+**Games live on GitHub** (full repo) + **Google Drive** (backup at `TestRepoGame-Games/` folder).
+
 ## Golden rules (never violate)
 
 1. **`Games/Character AI/` is READ-ONLY** — the Alsen chat game. Never move, edit, or restructure it.
@@ -14,6 +36,7 @@ Operating rules for any agent (opencode, Claude Code, Codex, Hermes) working in 
 4. **Evidence before deletion** — never delete a file/dir without grepping the repo to prove it is unreferenced.
 5. **`/bare/*` proxy stays DISABLED** — do not re-enable, repoint, or weaken netlify.toml security settings without security sign-off.
 6. **Eaglercraft stays fully offline** — its wrapper must fetch nothing external; it carries a licensing note (GPL-3.0 components, requires owning Minecraft Java) — keep it.
+7. **Disk guard** — always check `df -h / | tail -1` before operations. Games are NOT local — do not assume `Games/` exists on disk.
 
 ## Architecture quick facts
 
