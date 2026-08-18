@@ -601,5 +601,14 @@
     "desc": "Two-player thumb wrestling game — battle a friend on one keyboard or fight the computer!",
     "url": "Games/ThumbFighter/index.html",
     "featured": false
+  },
+  {
+    "id": 86,
+    "title": "Jetpack Joyride",
+    "cat": "action",
+    "icon": "",
+    "desc": "Endless side-scrolling runner — strap on a jetpack, dodge lasers and missiles, and grab coins!",
+    "url": "Games/JetpackJoyride/index.html",
+    "featured": false
   }
 ]
