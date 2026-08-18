@@ -2421,7 +2421,7 @@
         });
         var n = function() {
             function e() {}
-            return e.ALPHA_DISABLE = 0, e.ALPHA_ADD = 1, e.ALPHA_COMBINE = 2, e.ALPHA_SUBTRACT = 3, e.ALPHA_MULTIPLY = 4, e.ALPHA_MAXIMIZED = 5, e.ALPHA_ONEONE = 6, e.ALPHA_PREMULTIPLIED = 7, e.ALPHA_PREMULTIPLIED_PORTERDUFF = 8, e.ALPHA_INTERPOLATE = 9, e.ALPHA_SCREENMODE = 10, e.DELAYLOADSTATE_NONE = 0, e.DELAYLOADSTATE_LOADED = 1, e.DELAYLOADSTATE_LOADING = 2, e.DELAYLOADSTATE_NOTLOADED = 4, e.NEVER = 512, e.ALWAYS = 519, e.LESS = 513, e.EQUAL = 514, e.LEQUAL = 515, e.GREATER = 516, e.GEQUAL = 518, e.NOTEQUAL = 517, e.KEEP = 7680, e.REPLACE = 7681, e.INCR = 7682, e.DECR = 7683, e.INVERT = 5386, e.INCR_WRAP = 34055, e.DECR_WRAP = 34056, e.TEXTURE_CLAMP_ADDRESSMODE = 0, e.TEXTURE_WRAP_ADDRESSMODE = 1, e.TEXTURE_MIRROR_ADDRESSMODE = 2, e.TEXTUREFORMAT_ALPHA = 0, e.TEXTUREFORMAT_LUMINANCE = 1, e.TEXTUREFORMAT_LUMINANCE_ALPHA = 2, e.TEXTUREFORMAT_RGB = 4, e.TEXTUREFORMAT_RGBA = 5, e.TEXTUREFORMAT_RED = 6, e.TEXTUREFORMAT_R = 6, e.TEXTUREFORMAT_RG = 7, e.TEXTUREFORMAT_RED_INTEGER = 8, e.TEXTUREFORMAT_R_INTEGER = 8, e.TEXTUREFORMAT_RG_INTEGER = 9, e.TEXTUREFORMAT_RGB_INTEGER = 10, e.TEXTUREFORMAT_RGBA_INTEGER = 11, e.TEXTURETYPE_UNSIGNED_BYTE = 0, e.TEXTURETYPE_UNSIGNED_INT = 0, e.TEXTURETYPE_FLOAT = 1, e.TEXTURETYPE_HALF_FLOAT = 2, e.TEXTURETYPE_BYTE = 3, e.TEXTURETYPE_SHORT = 4, e.TEXTURETYPE_UNSIGNED_SHORT = 5, e.TEXTURETYPE_INT = 6, e.TEXTURETYPE_UNSIGNED_INTEGER = 7, e.TEXTURETYPE_UNSIGNED_SHORT_4_4_4_4 = 8, e.TEXTURETYPE_UNSIGNED_SHORT_5_5_5_1 = 9, e.TEXTURETYPE_UNSIGNED_SHORT_5_6_5 = 10, e.TEXTURETYPE_UNSIGNED_INT_2_10_10_10_REV = 11, e.TEXTURETYPE_UNSIGNED_INT_24_8 = 12, e.TEXTURETYPE_UNSIGNED_INT_10F_11F_11F_REV = 13, e.TEXTURETYPE_UNSIGNED_INT_5_9_9_9_REV = 14, e.TEXTURETYPE_FLOAT_32_UNSIGNED_INT_24_8_REV = 15, e.TEXTURE_NEAREST_SAMPLINGMODE = 1, e.TEXTURE_BILINEAR_SAMPLINGMODE = 2, e.TEXTURE_TRILINEAR_SAMPLINGMODE = 3, e.TEXTURE_NEAREST_NEAREST_MIPLINEAR = 1, e.TEXTURE_LINEAR_LINEAR_MIPNEAREST = 2, e.TEXTURE_LINEAR_LINEAR_MIPLINEAR = 3, e.TEXTURE_NEAREST_NEAREST_MIPNEAREST = 4, e.TEXTURE_NEAREST_LINEAR_MIPNEAREST = 5, e.TEXTURE_NEAREST_LINEAR_MIPLINEAR = 6, e.TEXTURE_NEAREST_LINEAR = 7, e.TEXTURE_NEAREST_NEAREST = 8, e.TEXTURE_LINEAR_NEAREST_MIPNEAREST = 9, e.TEXTURE_LINEAR_NEAREST_MIPLINEAR = 10, e.TEXTURE_LINEAR_LINEAR = 11, e.TEXTURE_LINEAR_NEAREST = 12, e.TEXTURE_EXPLICIT_MODE = 0, e.TEXTURE_SPHERICAL_MODE = 1, e.TEXTURE_PLANAR_MODE = 2, e.TEXTURE_CUBIC_MODE = 3, e.TEXTURE_PROJECTION_MODE = 4, e.TEXTURE_SKYBOX_MODE = 5, e.TEXTURE_INVCUBIC_MODE = 6, e.TEXTURE_EQUIRECTANGULAR_MODE = 7, e.TEXTURE_FIXED_EQUIRECTANGULAR_MODE = 8, e.TEXTURE_FIXED_EQUIRECTANGULAR_MIRRORED_MODE = 9, e.SCALEMODE_FLOOR = 1, e.SCALEMODE_NEAREST = 2, e.SCALEMODE_CEILING = 3, e.MATERIAL_TextureDirtyFlag = 1, e.MATERIAL_LightDirtyFlag = 2, e.MATERIAL_FresnelDirtyFlag = 4, e.MATERIAL_AttributesDirtyFlag = 8, e.MATERIAL_MiscDirtyFlag = 16, e.MATERIAL_AllDirtyFlag = 31, e.MATERIAL_TriangleFillMode = 0, e.MATERIAL_WireFrameFillMode = 1, e.MATERIAL_PointFillMode = 2, e.MATERIAL_PointListDrawMode = 3, e.MATERIAL_LineListDrawMode = 4, e.MATERIAL_LineLoopDrawMode = 5, e.MATERIAL_LineStripDrawMode = 6, e.MATERIAL_TriangleStripDrawMode = 7, e.MATERIAL_TriangleFanDrawMode = 8, e.MATERIAL_ClockWiseSideOrientation = 0, e.MATERIAL_CounterClockWiseSideOrientation = 1, e.ACTION_NothingTrigger = 0, e.ACTION_OnPickTrigger = 1, e.ACTION_OnLeftPickTrigger = 2, e.ACTION_OnRightPickTrigger = 3, e.ACTION_OnCenterPickTrigger = 4, e.ACTION_OnPickDownTrigger = 5, e.ACTION_OnDoublePickTrigger = 6, e.ACTION_OnPickUpTrigger = 7, e.ACTION_OnPickOutTrigger = 16, e.ACTION_OnLongPressTrigger = 8, e.ACTION_OnPointerOverTrigger = 9, e.ACTION_OnPointerOutTrigger = 10, e.ACTION_OnEveryFrameTrigger = 11, e.ACTION_OnIntersectionEnterTrigger = 12, e.ACTION_OnIntersectionExitTrigger = 13, e.ACTION_OnKeyDownTrigger = 14, e.ACTION_OnKeyUpTrigger = 15, e.PARTICLES_BILLBOARDMODE_Y = 2, e.PARTICLES_BILLBOARDMODE_ALL = 7, e.PARTICLES_BILLBOARDMODE_STRETCHED = 8, e.PARTICLES_BaseAssetsUrl = "https://assets.babylonjs.com/particles", e.MESHES_CULLINGSTRATEGY_STANDARD = 0, e.MESHES_CULLINGSTRATEGY_BOUNDINGSPHERE_ONLY = 1, e.MESHES_CULLINGSTRATEGY_OPTIMISTIC_INCLUSION = 2, e.MESHES_CULLINGSTRATEGY_OPTIMISTIC_INCLUSION_THEN_BSPHERE_ONLY = 3, e.SCENELOADER_NO_LOGGING = 0, e.SCENELOADER_MINIMAL_LOGGING = 1, e.SCENELOADER_SUMMARY_LOGGING = 2, e.SCENELOADER_DETAILED_LOGGING = 3, e
+            return e.ALPHA_DISABLE = 0, e.ALPHA_ADD = 1, e.ALPHA_COMBINE = 2, e.ALPHA_SUBTRACT = 3, e.ALPHA_MULTIPLY = 4, e.ALPHA_MAXIMIZED = 5, e.ALPHA_ONEONE = 6, e.ALPHA_PREMULTIPLIED = 7, e.ALPHA_PREMULTIPLIED_PORTERDUFF = 8, e.ALPHA_INTERPOLATE = 9, e.ALPHA_SCREENMODE = 10, e.DELAYLOADSTATE_NONE = 0, e.DELAYLOADSTATE_LOADED = 1, e.DELAYLOADSTATE_LOADING = 2, e.DELAYLOADSTATE_NOTLOADED = 4, e.NEVER = 512, e.ALWAYS = 519, e.LESS = 513, e.EQUAL = 514, e.LEQUAL = 515, e.GREATER = 516, e.GEQUAL = 518, e.NOTEQUAL = 517, e.KEEP = 7680, e.REPLACE = 7681, e.INCR = 7682, e.DECR = 7683, e.INVERT = 5386, e.INCR_WRAP = 34055, e.DECR_WRAP = 34056, e.TEXTURE_CLAMP_ADDRESSMODE = 0, e.TEXTURE_WRAP_ADDRESSMODE = 1, e.TEXTURE_MIRROR_ADDRESSMODE = 2, e.TEXTUREFORMAT_ALPHA = 0, e.TEXTUREFORMAT_LUMINANCE = 1, e.TEXTUREFORMAT_LUMINANCE_ALPHA = 2, e.TEXTUREFORMAT_RGB = 4, e.TEXTUREFORMAT_RGBA = 5, e.TEXTUREFORMAT_RED = 6, e.TEXTUREFORMAT_R = 6, e.TEXTUREFORMAT_RG = 7, e.TEXTUREFORMAT_RED_INTEGER = 8, e.TEXTUREFORMAT_R_INTEGER = 8, e.TEXTUREFORMAT_RG_INTEGER = 9, e.TEXTUREFORMAT_RGB_INTEGER = 10, e.TEXTUREFORMAT_RGBA_INTEGER = 11, e.TEXTURETYPE_UNSIGNED_BYTE = 0, e.TEXTURETYPE_UNSIGNED_INT = 0, e.TEXTURETYPE_FLOAT = 1, e.TEXTURETYPE_HALF_FLOAT = 2, e.TEXTURETYPE_BYTE = 3, e.TEXTURETYPE_SHORT = 4, e.TEXTURETYPE_UNSIGNED_SHORT = 5, e.TEXTURETYPE_INT = 6, e.TEXTURETYPE_UNSIGNED_INTEGER = 7, e.TEXTURETYPE_UNSIGNED_SHORT_4_4_4_4 = 8, e.TEXTURETYPE_UNSIGNED_SHORT_5_5_5_1 = 9, e.TEXTURETYPE_UNSIGNED_SHORT_5_6_5 = 10, e.TEXTURETYPE_UNSIGNED_INT_2_10_10_10_REV = 11, e.TEXTURETYPE_UNSIGNED_INT_24_8 = 12, e.TEXTURETYPE_UNSIGNED_INT_10F_11F_11F_REV = 13, e.TEXTURETYPE_UNSIGNED_INT_5_9_9_9_REV = 14, e.TEXTURETYPE_FLOAT_32_UNSIGNED_INT_24_8_REV = 15, e.TEXTURE_NEAREST_SAMPLINGMODE = 1, e.TEXTURE_BILINEAR_SAMPLINGMODE = 2, e.TEXTURE_TRILINEAR_SAMPLINGMODE = 3, e.TEXTURE_NEAREST_NEAREST_MIPLINEAR = 1, e.TEXTURE_LINEAR_LINEAR_MIPNEAREST = 2, e.TEXTURE_LINEAR_LINEAR_MIPLINEAR = 3, e.TEXTURE_NEAREST_NEAREST_MIPNEAREST = 4, e.TEXTURE_NEAREST_LINEAR_MIPNEAREST = 5, e.TEXTURE_NEAREST_LINEAR_MIPLINEAR = 6, e.TEXTURE_NEAREST_LINEAR = 7, e.TEXTURE_NEAREST_NEAREST = 8, e.TEXTURE_LINEAR_NEAREST_MIPNEAREST = 9, e.TEXTURE_LINEAR_NEAREST_MIPLINEAR = 10, e.TEXTURE_LINEAR_LINEAR = 11, e.TEXTURE_LINEAR_NEAREST = 12, e.TEXTURE_EXPLICIT_MODE = 0, e.TEXTURE_SPHERICAL_MODE = 1, e.TEXTURE_PLANAR_MODE = 2, e.TEXTURE_CUBIC_MODE = 3, e.TEXTURE_PROJECTION_MODE = 4, e.TEXTURE_SKYBOX_MODE = 5, e.TEXTURE_INVCUBIC_MODE = 6, e.TEXTURE_EQUIRECTANGULAR_MODE = 7, e.TEXTURE_FIXED_EQUIRECTANGULAR_MODE = 8, e.TEXTURE_FIXED_EQUIRECTANGULAR_MIRRORED_MODE = 9, e.SCALEMODE_FLOOR = 1, e.SCALEMODE_NEAREST = 2, e.SCALEMODE_CEILING = 3, e.MATERIAL_TextureDirtyFlag = 1, e.MATERIAL_LightDirtyFlag = 2, e.MATERIAL_FresnelDirtyFlag = 4, e.MATERIAL_AttributesDirtyFlag = 8, e.MATERIAL_MiscDirtyFlag = 16, e.MATERIAL_AllDirtyFlag = 31, e.MATERIAL_TriangleFillMode = 0, e.MATERIAL_WireFrameFillMode = 1, e.MATERIAL_PointFillMode = 2, e.MATERIAL_PointListDrawMode = 3, e.MATERIAL_LineListDrawMode = 4, e.MATERIAL_LineLoopDrawMode = 5, e.MATERIAL_LineStripDrawMode = 6, e.MATERIAL_TriangleStripDrawMode = 7, e.MATERIAL_TriangleFanDrawMode = 8, e.MATERIAL_ClockWiseSideOrientation = 0, e.MATERIAL_CounterClockWiseSideOrientation = 1, e.ACTION_NothingTrigger = 0, e.ACTION_OnPickTrigger = 1, e.ACTION_OnLeftPickTrigger = 2, e.ACTION_OnRightPickTrigger = 3, e.ACTION_OnCenterPickTrigger = 4, e.ACTION_OnPickDownTrigger = 5, e.ACTION_OnDoublePickTrigger = 6, e.ACTION_OnPickUpTrigger = 7, e.ACTION_OnPickOutTrigger = 16, e.ACTION_OnLongPressTrigger = 8, e.ACTION_OnPointerOverTrigger = 9, e.ACTION_OnPointerOutTrigger = 10, e.ACTION_OnEveryFrameTrigger = 11, e.ACTION_OnIntersectionEnterTrigger = 12, e.ACTION_OnIntersectionExitTrigger = 13, e.ACTION_OnKeyDownTrigger = 14, e.ACTION_OnKeyUpTrigger = 15, e.PARTICLES_BILLBOARDMODE_Y = 2, e.PARTICLES_BILLBOARDMODE_ALL = 7, e.PARTICLES_BILLBOARDMODE_STRETCHED = 8, e.PARTICLES_BaseAssetsUrl = "", e.MESHES_CULLINGSTRATEGY_STANDARD = 0, e.MESHES_CULLINGSTRATEGY_BOUNDINGSPHERE_ONLY = 1, e.MESHES_CULLINGSTRATEGY_OPTIMISTIC_INCLUSION = 2, e.MESHES_CULLINGSTRATEGY_OPTIMISTIC_INCLUSION_THEN_BSPHERE_ONLY = 3, e.SCENELOADER_NO_LOGGING = 0, e.SCENELOADER_MINIMAL_LOGGING = 1, e.SCENELOADER_SUMMARY_LOGGING = 2, e.SCENELOADER_DETAILED_LOGGING = 3, e
         }()
     }, function(e, t, i) {
         "use strict";
@@ -14990,7 +14990,7 @@
                             })
                         } else i._createInspector(t), n(i)
                     })
-                }, e.InspectorURL = "https://unpkg.com/babylonjs-inspector@" + d.b.Version + "/babylon.inspector.bundle.js", e
+                }, e.InspectorURL = "about:blank", e
             }(),
             p = i(11),
             _ = i(52),
@@ -25464,7 +25464,7 @@
                     return e._registeredPlugins[".babylon"]
                 }, e._getPluginForExtension = function(t) {
                     var i = e._registeredPlugins[t];
-                    return i || (p.a.Warn("Unable to find a plugin to load " + t + " files. Trying to use .babylon default plugin. To load from a specific filetype (eg. gltf) see: http://doc.babylonjs.com/how_to/load_from_any_file_type"), e._getDefaultPlugin())
+                    return i || (p.a.Warn("Unable to find a plugin to load " + t + " files."), e._getDefaultPlugin())
                 }, e._getPluginForDirectLoad = function(t) {
                     for (var i in e._registeredPlugins) {
                         var n = e._registeredPlugins[i].plugin;
@@ -25743,7 +25743,7 @@
                         var n = this.onTriggerStateChangedObservable;
                         n && n.notifyObservers(t)
                     } else p.a.Warn("Unrecognized Daydream button index: " + e)
-                }, t.MODEL_BASE_URL = "https://controllers.babylonjs.com/generic/", t.MODEL_FILENAME = "generic.babylon", t.GAMEPAD_ID_PREFIX = "Daydream", t
+                }, t.MODEL_BASE_URL = "", t.MODEL_FILENAME = "generic.babylon", t.GAMEPAD_ID_PREFIX = "Daydream", t
             }(Ai);
         wt._ControllerFactories.push({
             canCreate: function(e) {
@@ -25769,7 +25769,7 @@
                     var n = this[this._buttonIndexToObservableNameMap[e]];
                     n && n.notifyObservers(t)
                 }
-            }, t.MODEL_BASE_URL = "https://controllers.babylonjs.com/generic/", t.MODEL_FILENAME = "generic.babylon", t.GAMEPAD_ID_PREFIX = "Gear VR", t
+            }, t.MODEL_BASE_URL = "", t.MODEL_FILENAME = "generic.babylon", t.GAMEPAD_ID_PREFIX = "Gear VR", t
         }(Ai);
         wt._ControllerFactories.push({
             canCreate: function(e) {
@@ -25790,7 +25790,7 @@
                 })
             }, t.prototype._handleButtonChange = function(e, t, i) {
                 console.log("Button id: " + e + "state: "), console.dir(t)
-            }, t.MODEL_BASE_URL = "https://controllers.babylonjs.com/generic/", t.MODEL_FILENAME = "generic.babylon", t
+            }, t.MODEL_BASE_URL = "", t.MODEL_FILENAME = "generic.babylon", t
         }(Ai);
         wt._DefaultControllerFactory = function(e) {
             return new An(e)
@@ -25850,7 +25850,7 @@
                     case 5:
                         return void this.onThumbRestChangedObservable.notifyObservers(n)
                 }
-            }, t.MODEL_BASE_URL = "https://controllers.babylonjs.com/oculus/", t.MODEL_LEFT_FILENAME = "left.babylon", t.MODEL_RIGHT_FILENAME = "right.babylon", t
+            }, t.MODEL_BASE_URL = "", t.MODEL_LEFT_FILENAME = "left.babylon", t.MODEL_RIGHT_FILENAME = "right.babylon", t
         }(Ai);
         wt._ControllerFactories.push({
             canCreate: function(e) {
@@ -25900,7 +25900,7 @@
                     case 3:
                         return this._defaultModel && (n.pressed ? this._defaultModel.getChildren()[2].position.y = -.001 : this._defaultModel.getChildren()[2].position.y = 0), void this.onSecondaryButtonStateChangedObservable.notifyObservers(n)
                 }
-            }, t.MODEL_BASE_URL = "https://controllers.babylonjs.com/vive/", t.MODEL_FILENAME = "wand.babylon", t
+            }, t.MODEL_BASE_URL = "", t.MODEL_FILENAME = "wand.babylon", t
         }(Ai);
         wt._ControllerFactories.push({
             canCreate: function(e) {
@@ -26081,7 +26081,7 @@
                     return new It.a(n, a, t)
                 }, t.prototype.dispose = function() {
                     e.prototype.dispose.call(this), this.onTrackpadChangedObservable.clear()
-                }, t.MODEL_BASE_URL = "https://controllers.babylonjs.com/microsoft/", t.MODEL_LEFT_FILENAME = "left.glb", t.MODEL_RIGHT_FILENAME = "right.glb", t.GAMEPAD_ID_PREFIX = "Spatial Controller (Spatial Interaction Source) ", t.GAMEPAD_ID_PATTERN = /([0-9a-zA-Z]+-[0-9a-zA-Z]+)$/, t
+                }, t.MODEL_BASE_URL = "", t.MODEL_LEFT_FILENAME = "left.glb", t.MODEL_RIGHT_FILENAME = "right.glb", t.GAMEPAD_ID_PREFIX = "Spatial Controller (Spatial Interaction Source) ", t.GAMEPAD_ID_PATTERN = /([0-9a-zA-Z]+-[0-9a-zA-Z]+)$/, t
             }(Ai);
         wt._ControllerFactories.push({
             canCreate: function(e) {
@@ -28318,7 +28318,7 @@
                     this._skyboxMaterial && (this._skyboxTexture || (this._options.skyboxTexture instanceof Kn.a ? this._skyboxMaterial.reflectionTexture = this._options.skyboxTexture : (this._skyboxTexture = new tr(this._options.skyboxTexture, this._scene, void 0, void 0, void 0, void 0, this._errorHandler), this._skyboxTexture.coordinatesMode = ke.a.SKYBOX_MODE, this._skyboxTexture.gammaSpace = !1, this._skyboxMaterial.reflectionTexture = this._skyboxTexture)))
                 }, e.prototype.dispose = function() {
                     this._groundMaterial && this._groundMaterial.dispose(!0, !0), this._skyboxMaterial && this._skyboxMaterial.dispose(!0, !0), this._rootMesh.dispose(!1)
-                }, e._groundTextureCDNUrl = "https://assets.babylonjs.com/environments/backgroundGround.png", e._skyboxTextureCDNUrl = "https://assets.babylonjs.com/environments/backgroundSkybox.dds", e._environmentTextureCDNUrl = "https://assets.babylonjs.com/environments/environmentSpecular.env", e
+                }, e._groundTextureCDNUrl = "", e._skyboxTextureCDNUrl = "", e._environmentTextureCDNUrl = "", e
             }(),
             _r = i(42),
             gr = function(e) {
@@ -34760,9 +34760,9 @@
                     throw new Error("Draco decoder module is not available")
                 }, e.Configuration = {
                     decoder: {
-                        wasmUrl: "https://preview.babylonjs.com/draco_wasm_wrapper_gltf.js",
-                        wasmBinaryUrl: "https://preview.babylonjs.com/draco_decoder_gltf.wasm",
-                        fallbackUrl: "https://preview.babylonjs.com/draco_decoder_gltf.js"
+                        wasmUrl: "",
+                        wasmBinaryUrl: "",
+                        fallbackUrl: ""
                     }
                 }, e.DefaultNumWorkers = e.GetDefaultNumWorkers(), e._Default = null, e
             }(),
@@ -37895,7 +37895,7 @@
                     var r;
                     return void 0 === t && (t = 500), void 0 === n && (n = !1), (r = n ? new Ia("default system", {
                         capacity: t
-                    }, i) : new Ra("default system", t, i)).emitter = e, r.particleTexture = new ke.a("https://www.babylonjs.com/assets/Flare.png", r.getScene()), r.createConeEmitter(.1, Math.PI / 4), r.color1 = new o.f(1, 1, 1, 1), r.color2 = new o.f(1, 1, 1, 1), r.colorDead = new o.f(1, 1, 1, 0), r.minSize = .1, r.maxSize = .1, r.minEmitPower = 2, r.maxEmitPower = 2, r.updateSpeed = 1 / 60, r.emitRate = 30, r
+                    }, i) : new Ra("default system", t, i)).emitter = e, r.particleTexture = null, r.createConeEmitter(.1, Math.PI / 4), r.color1 = new o.f(1, 1, 1, 1), r.color2 = new o.f(1, 1, 1, 1), r.colorDead = new o.f(1, 1, 1, 0), r.minSize = .1, r.maxSize = .1, r.minEmitPower = 2, r.maxEmitPower = 2, r.updateSpeed = 1 / 60, r.emitRate = 30, r
                 }, e.CreateAsync = function(t, i, n) {
                     void 0 === n && (n = !1), i || (i = P.a.LastCreatedScene);
                     var r = {};
@@ -45109,7 +45109,7 @@ var _SETTINGS = {
         },
         Logo: {
             Enabled: !1,
-            Link: "http://google.com",
+            Link: "",
             LinkEnabled: !1,
             NewWindow: !0,
             Width: 166,
@@ -45122,7 +45122,7 @@ var _SETTINGS = {
         },
         Logo: {
             Enabled: !0,
-            Link: "http://google.com",
+            Link: "",
             LinkEnabled: !1,
             NewWindow: !0,
             Width: 166,
@@ -45131,7 +45131,7 @@ var _SETTINGS = {
     },
     MoreGames: {
         Enabled: !1,
-        Link: "http://www.marketjs.com/game/links/mobile",
+        Link: "",
         NewWindow: !0
     }
 };
@@ -60831,7 +60831,7 @@ ig.module("plugins.yandex").requires("impact.input", "impact.game", "plugins.aud
         version: "2.1.8",
         verbose: !0,
         API_ID: "YandexAPI",
-        sdkUrl: "https://yandex.ru/games/sdk/v2",
+        sdkUrl: "",
         ysdk: null,
         hasInitApp: !1,
         hasResumedWebAudioContext: !1,
@@ -60855,11 +60855,11 @@ ig.module("plugins.yandex").requires("impact.input", "impact.game", "plugins.aud
             text: ""
         },
         googleAnalytics: {
-            enabled: !0,
+            enabled: !1,
             hasInit: !1,
             gtag: {
-                id: "UA-119602304-2",
-                url: "https://www.googletagmanager.com/gtag/js"
+                id: "",
+                url: ""
             }
         },
         init: function() {
@@ -60871,37 +60871,12 @@ ig.module("plugins.yandex").requires("impact.input", "impact.game", "plugins.aud
             this.autoResumeAudioContext();
             return this
         },
-        initGA: function() {
-            if (this.googleAnalytics &&
-                this.googleAnalytics.enabled) {
-                if (this.googleAnalytics.hasInit) return !1;
-                var b = this.googleAnalytics.gtag.url + "?id=" + this.googleAnalytics.gtag.id,
-                    c, e = document.getElementsByTagName("script")[0];
-                document.getElementById("gtag") || (c = document.createElement("script"), c.id = "gtag", c.src = b, c.async = !0, c.onload = function() {
-                    function b() {
-                        dataLayer.push(arguments)
-                    }
-                    c.onload = null;
-                    window.dataLayer = window.dataLayer || [];
-                    b("js", new Date);
-                    b("config", this.googleAnalytics.gtag.id)
-                }.bind(this), e.parentNode.insertBefore(c, e))
-            }
-        },
+        initGA: function() {},
         loadSdk: function() {
-            var b, c = document.getElementsByTagName("script")[0];
-            document.getElementById("id-jssdk") || (b = document.createElement("script"), b.id = "id-jssdk", b.src = this.sdkUrl, c.parentNode.insertBefore(b, c), b.onload = this.onSdkReady.bind(this))
+            this.onSdkReady();
         },
         ysdkPlayerInfo_init: function(b) {
-            ysdk.getPlayer().then(function(c) {
-                this.ysdkPlayer = c;
-                this.ysdkHasPlayer = !0;
-                console.log("Yandex Player Save API: Yandex player is set.");
-                "function" === typeof b && (console.log("Yandex Player Save API: Calling player is set callback function..."),
-                    b())
-            }.bind(this)).catch(function(b) {
-                console.log("Yandex Player Save API: Did not get yandex player. Error: " + b)
-            })
+            "function" === typeof b && b()
         },
         ysdkPlayerInfo_save: function() {
             if (this.ysdkHasPlayer) {
@@ -60955,27 +60930,7 @@ ig.module("plugins.yandex").requires("impact.input", "impact.game", "plugins.aud
                 }.bind(this))))
         },
         initApp: function() {
-            if (!this.isSdkReady) return this.verbose && console.log("Yandex SDK is not ready"), !1;
-            if (this.hasInitApp) return this.verbose && console.log("Yandex SDK has already initialised id"),
-                !1;
-            this.verbose && console.log("Yandex SDK is initialising App");
-            this.ysdk = YaGames.init({
-                yandexApp: {
-                    enabled: !0
-                },
-                adv: {
-                    onAdvClose: this.hideAd.bind(this)
-                },
-                screen: {
-                    fullscreen: !0,
-                    orientation: this.getOrientation(),
-                    lock: !0
-                }
-            }).then(function(b) {
-                this.ysdk = b;
-                ig.ysdk = window.ysdk = this.ysdk
-            });
-            this.hasInitApp = !0
+            return !1
         },
         getOrientation: function() {
             ig.ua.mobile ? "undefined" !== typeof ig.sizeHandler ? this.orientation = ig.sizeHandler.portraitMode ? "portrait" : "landscape" : "undefined" !== typeof portraitMode && (this.orientation = portraitMode ?
@@ -61028,26 +60983,7 @@ ig.module("plugins.yandex").requires("impact.input", "impact.game", "plugins.aud
             this.isAdCoolingDown && (this.isAdCoolingDown = !1, window.clearTimeout(this.adCooldownTimeoutId), this.verbose && console.log("Yandex API has ended cooling down."))
         },
         showAd: function(b) {
-            this.isSdkReady ? this.isAdShown ? (this.verbose && console.log("Yandex API is already showing an ad"), "function" === typeof b && b()) : this.isAdCoolingDown ? this.verbose && console.log("Yandex API is cooling down.") : (this.cacheVolume(),
-                ysdk.adv.showFullscreenAdv({
-                    callbacks: {
-                        onClose: function() {
-                            this.verbose && console.log("Yandex Ad is closed");
-                            "function" === typeof b && (window.focus(), b())
-                        }.bind(this),
-                        onOpen: function() {
-                            this.onAdShow();
-                            this.verbose && console.log("Yandex Ad is opened")
-                        }.bind(this),
-                        onError: function(b) {
-                            this.verbose && console.log("Yandex Ad has error", b)
-                        }.bind(this),
-                        onOffline: function() {
-                            this.verbose && console.log("Yandex Ad is offline")
-                        }.bind(this)
-                    }
-                })) : (this.verbose && console.log("Yandex SDK is not ready"), "function" === typeof b &&
-                b())
+            "function" === typeof b && b()
         },
         hideAd: function() {
             this.onAdHide();
@@ -61064,29 +61000,7 @@ ig.module("plugins.yandex").requires("impact.input", "impact.game", "plugins.aud
                 ig.soundHandler && this.unmuteAudio()), window.focus()) : this.verbose && console.log("Yandex API has already hide the ad")
         },
         showRVAd: function(b) {
-            this.isSdkReady ? this.isAdShown_RV ? this.verbose && console.log("Yandex RV Ads is already showing") : (this.cacheVolume(), ysdk.adv.showRewardedVideo({
-                callbacks: {
-                    onOpen: function() {
-                        this.isRVRewarded = !1;
-                        this.onRVAdShow();
-                        this.verbose && console.log("Yandex RV Ad is opened")
-                    }.bind(this),
-                    onRewarded: function() {
-                        console.log("Yandex RV is rewarded");
-                        this.isRVRewarded = !0
-                    }.bind(this),
-                    onClose: function() {
-                        this.onRVAdHide();
-                        this.verbose && console.log("Yandex RV Ad is closed");
-                        window.focus();
-                        "function" === typeof b && this.isRVRewarded && b()
-                    }.bind(this),
-                    onError: function(b) {
-                        this.onRVAdHide();
-                        this.verbose && console.log("Yandex Ad has error", b)
-                    }.bind(this)
-                }
-            })) : this.verbose && console.log("Yandex SDK is not ready")
+            "function" === typeof b && b()
         },
         onRVAdShow: function() {
             this.isSdkReady ? this.isAdShown_RV ? this.verbose && console.log("Yandex RV Ad already showing") : (this.verbose && console.log("Yandex RV Ad is showing"), document.getElementById("game"),
@@ -61424,7 +61338,7 @@ ig.module("plugins.clickable-div-layer").defines(function() {
             this.pos = new BABYLON.Vector2(b.pos.x, b.pos.y);
             this.size = new BABYLON.Vector2(b.size.x, b.size.y);
             var c = "more-games",
-                e = "www.google.com",
+                e = "",
                 d = !1;
             b.div_layer_name && (c = b.div_layer_name);
             b.link && (e = b.link);

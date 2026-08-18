@@ -612,16 +612,16 @@ Game.Launch=function()
 	'<div class="section">Info</div>'+
 	'<div class="subsection">'+
 	'<div class="title">About</div>'+
-	'<div class="listing">Cookie Clicker is a javascript game by <a href="//orteil.dashnet.org" target="_blank">Orteil</a> and <a href="//dashnet.org" target="_blank">Opti</a>.</div>'+
+	'<div class="listing">Cookie Clicker is a javascript game by <a href="javascript:void(0)">Orteil</a> and <a href="javascript:void(0)">Opti</a>.</div>'+
 	//'<div class="listing">We have an <a href="https://discordapp.com/invite/cookie" target="_blank">official Discord</a>, as well as a <a href="http://forum.dashnet.org" target="_blank">forum</a>; '+
-	'<div class="listing">We have an <a href="https://discordapp.com/invite/cookie" target="_blank">official Discord</a>; '+
-		'if you\'re looking for help, you may also want to visit the <a href="http://www.reddit.com/r/CookieClicker" target="_blank">subreddit</a> '+
-		'or the <a href="http://cookieclicker.wikia.com/wiki/Cookie_Clicker_Wiki" target="_blank">wiki</a>.</div>'+
-	'<div class="listing">News and teasers are usually posted on my <a href="https://orteil42.tumblr.com/" target="_blank">tumblr</a> and <a href="https://twitter.com/orteil42" target="_blank">twitter</a>.</div>'+
+	'<div class="listing">We have an <a href="javascript:void(0)">official Discord</a>; '+
+		'if you\'re looking for help, you may also want to visit the <a href="javascript:void(0)">subreddit</a> '+
+		'or the <a href="javascript:void(0)">wiki</a>.</div>'+
+	'<div class="listing">News and teasers are usually posted on my <a href="javascript:void(0)">tumblr</a> and <a href="javascript:void(0)">twitter</a>.</div>'+
 	'<div class="listing" id="supportSection"><b style="color:#fff;opacity:1;">Cookie Clicker is 100% free, forever.</b> Want to support us so we can keep developing games? Here\'s some ways you can help :<div style="margin:4px 12px;line-height:150%;">'+
-	'<br>&bull; support us on <a href="https://www.patreon.com/dashnet" target="_blank" class="highlightHover" style="background:#f86754;box-shadow:0px 0px 0px 1px #c52921 inset,0px 2px 0px #ff966d inset;text-shadow:0px -1px 0px #ff966d,0px 1px 0px #c52921;text-decoration:none;color:#fff;font-weight:bold;padding:1px 4px;">Patreon</a> <span style="opacity:0.5;">(there\'s perks!)</span>'+
-	'<br>&bull; <form target="_blank" action="https://www.paypal.com/cgi-bin/webscr" method="post" id="donate"><input type="hidden" name="cmd" value="_s-xclick"><input type="hidden" name="hosted_button_id" value="BBN2WL3TC6QH4"><input type="submit" id="donateButton" value="donate" name="submit" alt="PayPal — The safer, easier way to pay online."><img alt="" border="0" src="https://www.paypalobjects.com/nl_NL/i/scr/pixel.gif" width="1" height="1"></form> to our PayPal <span style="opacity:0.5;">(note: PayPal takes at least $0.32 in fees so only amounts above that reach us!)</span>'+
-	'<br>&bull; disable your adblocker<br>&bull; check out our <a href="http://www.redbubble.com/people/dashnet" target="_blank">rad cookie shirts, hoodies and stickers</a>!<br>&bull; (if you want!)</div></div>'+
+	'<br>&bull; support us on <a href="javascript:void(0)" class="highlightHover" style="background:#f86754;box-shadow:0px 0px 0px 1px #c52921 inset,0px 2px 0px #ff966d inset;text-shadow:0px -1px 0px #ff966d,0px 1px 0px #c52921;text-decoration:none;color:#fff;font-weight:bold;padding:1px 4px;">Patreon</a> <span style="opacity:0.5;">(there\'s perks!)</span>'+
+	'<br>&bull; support us via PayPal <span style="opacity:0.5;">(note: PayPal takes at least $0.32 in fees so only amounts above that reach us!)</span>'+
+	'<br>&bull; disable your adblocker<br>&bull; check out our <a href="javascript:void(0)">rad cookie shirts, hoodies and stickers</a>!<br>&bull; (if you want!)</div></div>'+
 	'<div class="listing warning">Note : if you find a new bug after an update and you\'re using a 3rd-party add-on, make sure it\'s not just your add-on causing it!</div>'+
 	'<div class="listing warning">Warning : clearing your browser cache or cookies <small>(what else?)</small> will result in your save being wiped. Export your save and back it up first!</div>'+
 	
@@ -674,7 +674,7 @@ Game.Launch=function()
 	'<div class="listing">&bull; more upgrades, achievements etc</div>'+
 	'<div class="listing">&bull; updated the Russian bread cookies icon to better reflect their cyrillic origins</div>'+
 	'<div class="listing">&bull; <i style="font-style:italic;">stealth update :</i> the sugar lump refill timeout (not sugar lump growth) now no longer ticks down while the game is closed (this fixes an exploit)</div>'+
-	'<div class="listing">&bull; also released the official Android version of Cookie Clicker, playable <a href="https://play.google.com/store/apps/details?id=org.dashnet.cookieclicker" target="_blank">here</a> (iOS version will come later)</div>'+
+	'<div class="listing">&bull; also released the official Android version of Cookie Clicker, playable <a href="javascript:void(0)">here</a> (iOS version will come later)</div>'+
 	
 	'</div><div class="subsection update small">'+
 	'<div class="title">01/04/2019 - 2.019 (the "this year" update)</div>'+
@@ -691,7 +691,7 @@ Game.Launch=function()
 	
 	'</div><div class="subsection update small">'+
 	'<div class="title">05/03/2019 - cookies for days</div>'+
-	'<div class="listing">&bull; added over 20 new cookies, all previously suggested by our supporters on <a href="https://www.patreon.com/dashnet" target="_blank">Patreon</a></div>'+
+	'<div class="listing">&bull; added over 20 new cookies, all previously suggested by our supporters on <a href="javascript:void(0)">Patreon</a></div>'+
 	'<div class="listing">&bull; added 2 heavenly upgrades</div>'+
 	'<div class="listing">&bull; the Golden goose egg now counts as a golden cookie upgrade for Residual luck purposes</div>'+
 	'<div class="listing">&bull; golden sugar lumps now either double your cookies, or give you 24 hours of your CpS, whichever is lowest (previously was doubling cookies with no cap)</div>'+
@@ -711,7 +711,7 @@ Game.Launch=function()
 	'</div><div class="subsection update">'+
 	'<div class="title">25/10/2018 - feedback loop</div>'+
 	'<div class="listing">&bull; added a new building</div>'+
-	'<div class="listing">&bull; launched our <a href="https://www.patreon.com/dashnet" class="orangeLink" target="_blank">Patreon</a> <span style="font-size:80%;">(the link is orange so you\'ll notice it!)</span></div>'+
+	'<div class="listing">&bull; launched our <a href="javascript:void(0)" class="orangeLink">Patreon</a> <span style="font-size:80%;">(the link is orange so you\'ll notice it!)</span></div>'+
 	'<div class="listing">&bull; added a bunch of new heavenly upgrades, one of which ties into our Patreon but benefits everyone (this is still experimental!)</div>'+
 	'<div class="listing">&bull; when hovering over grandmas, you can now see their names and ages</div>'+
 	'<div class="listing">&bull; "make X cookies just from Y" requirements are now higher</div>'+
@@ -784,7 +784,7 @@ Game.Launch=function()
 	
 	'</div><div class="subsection update small">'+
 	'<div class="title">24/02/2018 - sugar coating</div>'+
-	'<div class="listing">&bull; added link to <a href="https://discordapp.com/invite/cookie" target="_blank">official Discord server</a></div>'+
+	'<div class="listing">&bull; added link to <a href="javascript:void(0)">official Discord server</a></div>'+
 	'<div class="listing">&bull; felt weird about pushing an update without content so :</div>'+
 	'<div class="listing">&bull; added a handful of new cookies</div>'+
 	'<div class="listing">&bull; added 3 new heavenly upgrades</div>'+
@@ -838,7 +838,7 @@ Game.Launch=function()
 	'<div class="listing">&bull; a couple more upgrades and achievements, probably</div>'+
 	'<div class="listing">&bull; fresh new options to further customize your cookie-clicking experience</div>'+
 	'<div class="listing">&bull; quality-of-life improvements : better bulk-buy, better switches etc</div>'+
-	'<div class="listing">&bull; added some <a href="http://en.wikipedia.org/wiki/'+choose(['Krzysztof_Arciszewski','Eustachy_Sanguszko','Maurycy_Hauke','Karol_Turno','Tadeusz_Kutrzeba','Kazimierz_Fabrycy','Florian_Siwicki'])+'" target="_blank">general polish</a></div>'+/* i liked this dumb pun too much to let it go unnoticed */
+	'<div class="listing">&bull; added some <a href="javascript:void(0)">general polish</a></div>'+/* i liked this dumb pun too much to let it go unnoticed */
 	'<div class="listing">&bull; tons of other little things we can\'t even remember right now</div>'+
 	'<div class="listing">Miss the old version? Your old save was automatically exported <a href="//orteil.dashnet.org/cookieclicker/v10466/" target="_blank">here</a>!</div>'+
 	
@@ -910,7 +910,7 @@ Game.Launch=function()
 	'<div class="listing">&bull; price and CpS curves revamped</div>'+
 	'<div class="listing">&bull; CpS calculations revamped; cookie upgrades now stack multiplicatively</div>'+
 	'<div class="listing">&bull; prestige system redone from scratch, with a whole new upgrade tree</div>'+
-	'<div class="listing">&bull; added some <a href="http://en.wikipedia.org/wiki/'+choose(['Krzysztof_Arciszewski','Eustachy_Sanguszko','Maurycy_Hauke','Karol_Turno','Tadeusz_Kutrzeba','Kazimierz_Fabrycy','Florian_Siwicki'])+'" target="_blank">general polish</a></div>'+
+	'<div class="listing">&bull; added some <a href="javascript:void(0)">general polish</a></div>'+
 	'<div class="listing">&bull; tons of other miscellaneous fixes and additions</div>'+
 	'<div class="listing">&bull; Cookie Clicker is now 1 year old! (Thank you guys for all the support!)</div>'+
 	'<div class="listing warning">&bull; Note : this is a beta; you are likely to encounter bugs and oversights. Feel free to send me feedback if you find something fishy!</div>'+
@@ -934,7 +934,7 @@ Game.Launch=function()
 	'<div class="listing">&bull; new upgrade and achievement tier</div>'+
 	'<div class="listing">&bull; popups and prompts are much nicer</div>'+
 	'<div class="listing">&bull; tooltips on buildings are more informative</div>'+
-	'<div class="listing">&bull; implemented a simplified version of the <a href="https://github.com/Icehawk78/FrozenCookies" target="_blank">Frozen Cookies</a> add-on\'s short number formatting</div>'+
+	'<div class="listing">&bull; implemented a simplified version of the <a href="javascript:void(0)">Frozen Cookies</a> add-on\'s short number formatting</div>'+
 	'<div class="listing">&bull; you can now buy 10 and sell all of a building at a time</div>'+
 	'<div class="listing">&bull; tons of optimizations and subtler changes</div>'+
 	'<div class="listing">&bull; you can now <a href="//orteil.dashnet.org/cookies2cash/" target="_blank">convert your cookies to cash</a>!</div>'+
@@ -976,14 +976,14 @@ Game.Launch=function()
 	'<div class="listing">&bull; added a new option to warn you when you close the window, so you don\'t lose your un-popped wrinklers</div>'+
 	'<div class="listing">&bull; also added a separate option for displaying cursors</div>'+
 	'<div class="listing">&bull; all the Halloween features are still there (and having the Spooky cookies achievements makes the Halloween cookies drop much more often)</div>'+
-	'<div class="listing">&bull; oh yeah, we now have <a href="http://www.redbubble.com/people/dashnet" target="_blank">Cookie Clicker shirts, stickers and hoodies</a>! (they\'re really rad)</div>'+
+	'<div class="listing">&bull; oh yeah, we now have <a href="javascript:void(0)">Cookie Clicker shirts, stickers and hoodies</a>! (they\'re really rad)</div>'+
 	
 	'</div><div class="subsection update small">'+
 	'<div class="title">29/10/2013 - spooky update</div>'+
 	'<div class="listing">&bull; the Grandmapocalypse now spawns wrinklers, hideous elderly creatures that damage your CpS when they reach your big cookie. Thankfully, you can click on them to make them explode (you\'ll even gain back the cookies they\'ve swallowed - with interest!).</div>'+
 	'<div class="listing">&bull; wrath cookie now 27% spookier</div>'+
 	'<div class="listing">&bull; some other stuff</div>'+
-	'<div class="listing">&bull; you should totally go check out <a href="http://candybox2.net/" target="_blank">Candy Box 2</a>, the sequel to the game that inspired Cookie Clicker</div>'+
+	'<div class="listing">&bull; you should totally go check out <a href="javascript:void(0)">Candy Box 2</a>, the sequel to the game that inspired Cookie Clicker</div>'+
 	
 	'</div><div class="subsection update small">'+
 	'<div class="title">15/10/2013 - it\'s a secret</div>'+
