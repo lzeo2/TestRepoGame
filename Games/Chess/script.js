@@ -293,3 +293,19 @@ var cfg = {
     onSnapEnd: onSnapEnd
 };
 board = ChessBoard('board', cfg);
+
+/* ── Responsive resize ── */
+$(window).on('resize', function () {
+    board.resize();
+});
+
+/* ── New Game ── */
+$('#new-game-btn').on('click', function () {
+    game = new Chess();
+    board.position('start', false);
+    positionCount = 0;
+    $('#position-count').text('');
+    $('#time').text('');
+    $('#positions-per-s').text('');
+    $('#move-history').empty();
+});
