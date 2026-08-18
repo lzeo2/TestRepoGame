@@ -574,5 +574,14 @@
     "desc": "Guess the five-letter word in six tries. Type a word, press Enter, and use the color clues!",
     "url": "Games/Wordle/index.html",
     "featured": false
+  },
+  {
+    "id": 83,
+    "title": "Doodle Jump",
+    "cat": "action",
+    "icon": "",
+    "desc": "Classic vertical platformer — jump as high as you can, dodge monsters, collect power-ups!",
+    "url": "Games/DoodleJump/index.html",
+    "featured": false
   }
 ]
