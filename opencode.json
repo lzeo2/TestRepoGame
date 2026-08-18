@@ -1,8 +1,8 @@
 {
   "$schema": "https://opencode.ai/config.json",
 
-  "model": "opencode/deepseek-v4-flash-free",
-  "small_model": "opencode/deepseek-v4-flash-free",
+  "model": "opencode-go/mimo-v2.5",
+  "small_model": "opencode-go/mimo-v2.5",
 
   "mcp": {
     "context7": {
@@ -29,7 +29,7 @@
 
     "worker": {
       "description": "Implements isolated coding tasks.",
-      "model": "opencode-go/deepseek-v4-flash",
+      "model": "opencode-go/mimo-v2.5",
       "mode": "subagent",
       "prompt": "You are an implementation engineer. Complete ONLY the assigned task. Follow existing conventions. Run real commands, verify real output, report exactly what changed and what commands returned. Never invent results.",
       "tools": {
@@ -49,7 +49,7 @@
 
     "security-audit": {
       "description": "Audits external requests, proxy code, and unsafe patterns.",
-      "model": "opencode-go/deepseek-v4-flash",
+      "model": "opencode-go/mimo-v2.5",
       "mode": "subagent",
       "prompt": "You are a security auditor. Check for: secrets or tokens in code, unsafe external requests, proxy misconfigurations (the Ultraviolet proxy work), XSS risk in game loading, and data-handling concerns. Report specific findings with file references. Do not edit files.",
       "tools": {
@@ -59,7 +59,7 @@
 
     "ui-audit": {
       "description": "Audits UI/UX quality.",
-      "model": "opencode-go/deepseek-v4-flash",
+      "model": "opencode-go/mimo-v2.5",
       "mode": "subagent",
       "prompt": "You are a UI/UX reviewer for a games website. Audit layout, contrast, touch targets, game-list usability, and consistency between index.html and the react-app. Report only specific problems with locations. Do not edit files.",
       "tools": {

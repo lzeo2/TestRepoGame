@@ -12,13 +12,14 @@
     <script type="module" crossorigin src="./assets/index-CRWHmtoy.js"></script>
     <link rel="stylesheet" crossorigin href="./assets/index-CUsUGgbt.css">
     <style>
-      /* Shared proxy launcher — themed with the app's own design tokens.
-         Deliberately small and self-contained so the minified build output
-         in ./assets/ never has to be touched. */
+      /* ================================================================
+         UNBLOCKMATH // ARCADE — Flat Premium Redesign
+         Solid colors, SVG gameplay icons, no gradients anywhere.
+         ================================================================ */
+
+      /* --- Proxy launcher (UV proxy button, bottom-right) --- */
       .proxy-launcher {
         position: fixed;
-        /* 44px+ touch target, clear of home-indicator/safe-area insets on
-           mobile, and stays put while the page scrolls. */
         right: max(18px, env(safe-area-inset-right));
         bottom: max(18px, env(safe-area-inset-bottom));
         z-index: 999;
@@ -30,36 +31,25 @@
         gap: 8px;
         min-height: 44px;
         padding: 10px 16px;
-        border: 1px solid var(--accent-border, rgba(170, 59, 255, 0.5));
+        border: 1px solid rgba(144, 134, 196, 0.3);
         border-radius: 999px;
-        background: var(--accent, #aa3bff);
-        color: #08060d; /* near-black text passes contrast on both light (#aa3bff) and dark (#c084fc) accents */
+        background: rgba(144, 134, 196, 0.12);
+        color: #e2e0e7;
         font-family: var(--sans, system-ui, "Segoe UI", Roboto, sans-serif);
-        font-size: 14px;
+        font-size: 13px;
         font-weight: 600;
-        letter-spacing: 0.2px;
+        letter-spacing: 0.02em;
         line-height: 1.2;
         text-decoration: none;
-        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.15),
-          0 4px 6px -2px rgba(0, 0, 0, 0.08);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
         cursor: pointer;
-        transition: filter 0.15s ease, transform 0.15s ease,
-          box-shadow 0.15s ease;
-      }
-      @media (max-width: 480px) {
-        /* On small phones keep the launcher off the very edges so it cannot
-           be covered by browser chrome or the OS gesture bar. */
-        .proxy-launcher {
-          right: max(12px, env(safe-area-inset-right));
-          bottom: max(12px, env(safe-area-inset-bottom));
-        }
+        transition: filter 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
       }
       .proxy-launcher__btn:hover,
       .proxy-launcher__btn:focus-visible {
-        filter: brightness(1.06);
+        filter: brightness(1.1);
         transform: translateY(-1px);
-        box-shadow: 0 14px 20px -4px rgba(0, 0, 0, 0.2),
-          0 6px 8px -4px rgba(0, 0, 0, 0.1);
+        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.2);
       }
       .proxy-launcher__btn:focus-visible {
         outline: 2px solid currentColor;
@@ -70,40 +60,8 @@
         height: 16px;
         flex: none;
       }
-      @media (prefers-reduced-motion: reduce) {
-        .proxy-launcher__btn {
-          transition: none;
-        }
-        .proxy-launcher__btn:hover,
-        .proxy-launcher__btn:focus-visible {
-          transform: none;
-        }
-      }
 
-      /* -------------------------------------------------------------
-         Authored theme & layout overrides (Phase 4 portal UI/UX).
-         Loaded after the bundled stylesheet, so these rules win at
-         equal specificity. The minified bundles in ./assets are never
-         touched, and the shared proxy launcher above is unchanged.
-      -------------------------------------------------------------- */
-
-      /* Extend the bundled (dark-only) design tokens. */
-      :root {
-        color-scheme: dark;
-        /* Headings stay light in every OS scheme: the portal chrome is
-           always dark, so the bundle's light-mode --text-h (#08060d)
-           would leave titles unreadable on dark surfaces. */
-        --text-h: #f3f4f6;
-        --bg-card-hover: #1b1b23;
-        --surface-2: #15151b;
-        --overlay: #000000e6;
-        --focus-ring: #00ff88;
-        --focus-ring-soft: color-mix(in srgb, #00ff88 35%, transparent);
-        --radius: 20px;
-        --radius-lg: 28px;
-      }
-
-      /* Never scroll sideways; keep scrollbar space stable. */
+      /* --- Reset scroll / layout defaults --- */
       html {
         scroll-behavior: smooth;
         scrollbar-gutter: stable;
@@ -113,8 +71,6 @@
         overflow-x: hidden;
         text-rendering: optimizeLegibility;
       }
-
-      /* Drop the bundled 1126px column frame; let .app own the page width. */
       #root {
         width: auto;
         max-width: none;
@@ -122,54 +78,597 @@
         border-inline: none;
         text-align: left;
       }
-
-      /* Skip-to-content link: parked off-screen until keyboard focus. */
-      .skip-link {
-        position: fixed;
-        top: max(12px, env(safe-area-inset-top));
-        left: 50%;
-        transform: translate(-50%, -240px);
-        z-index: 1001;
-        padding: 10px 18px;
-        border-radius: 999px;
-        background: var(--focus-ring, #00ff88);
-        color: #08060d;
-        font-family: var(--sans, system-ui, "Segoe UI", Roboto, sans-serif);
-        font-size: 14px;
-        font-weight: 600;
-        letter-spacing: 0.2px;
-        line-height: 1.2;
-        text-decoration: none;
-        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.25);
-        transition: transform 0.15s ease;
-      }
-      .skip-link:focus {
-        transform: translate(-50%, 0);
-      }
-
-      ::selection {
-        background: var(--focus-ring);
-        color: #08060d;
-      }
-
-      /* Touch ergonomics applied at the theme level. */
       button {
         touch-action: manipulation;
         -webkit-tap-highlight-color: transparent;
       }
+      ::selection {
+        background: var(--focus-ring, #7c6aef);
+        color: #fff;
+      }
 
-      /* Reduced motion: kill CSS-driven motion wherever the bundle allows. */
-      @media (prefers-reduced-motion: reduce) {
-        html {
-          scroll-behavior: auto;
+      /* --- Focus-visible ring --- */
+      .game-card:focus-visible,
+      .game-card__play:focus-visible,
+      .category-filter__btn:focus-visible {
+        outline: 2px solid var(--focus-ring, #7c6aef);
+        outline-offset: 2px;
+      }
+
+      /* ================================================================
+         1. SOLID CATEGORY THUMBNAIL BACKGROUNDS (no gradients)
+         ================================================================ */
+
+      .game-card__thumb {
+        aspect-ratio: 16 / 9 !important;
+        background: #1a1a2e !important;
+        position: relative;
+        overflow: hidden;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+      }
+
+      /* Featured card thumb uses same solid colors but wider aspect */
+      .game-card--featured .game-card__thumb {
+        aspect-ratio: 16 / 10 !important;
+      }
+
+      /* ================================================================
+         2. THUMBNAIL ICON — centered SVG gameplay icon
+         ================================================================ */
+
+      .game-card__icon {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        width: 100% !important;
+        height: 100% !important;
+        border-radius: 0 !important;
+        background: transparent !important;
+        padding: 0 !important;
+        z-index: 2;
+        position: relative;
+      }
+
+      /* SVG icon inside the thumbnail */
+      .game-card__icon svg {
+        width: 48% !important;
+        height: 48% !important;
+        flex-shrink: 0 !important;
+        filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.25));
+      }
+
+      /* Featured cards get a slightly larger icon */
+      .game-card--featured .game-card__icon svg {
+        width: 52% !important;
+        height: 52% !important;
+      }
+
+      /* Kill the old icon-float animation */
+      .game-card:hover .game-card__icon {
+        animation: none !important;
+      }
+
+      /* ================================================================
+         3. CATEGORY BADGES — filled, small, subtle
+         ================================================================ */
+
+      .game-card__category {
+        text-transform: uppercase !important;
+        letter-spacing: 0.06em !important;
+        font-size: 0.6rem !important;
+        font-weight: 600 !important;
+        padding: 2px 7px !important;
+        border-radius: 4px !important;
+        border: none !important;
+        color: #fff !important;
+        line-height: 1.4;
+        flex-shrink: 0;
+      }
+
+      /* Fill badges with category-matching solid colors */
+      .game-card[data-cat="action"] .game-card__category       { background: #e63946; }
+      .game-card[data-cat="classic"] .game-card__category      { background: #6d28d9; }
+      .game-card[data-cat="sports"] .game-card__category       { background: #059669; }
+      .game-card[data-cat="strategy"] .game-card__category     { background: #7c3aed; }
+      .game-card[data-cat="puzzle"] .game-card__category       { background: #ea580c; }
+      .game-card[data-cat="riddle"] .game-card__category       { background: #0891b2; }
+      .game-card[data-cat="story"] .game-card__category        { background: #db2777; }
+      .game-card[data-cat="simulation"] .game-card__category   { background: #0891b2; }
+      .game-card[data-cat="multiplayer"] .game-card__category  { background: #b45309; }
+
+      /* ================================================================
+         4. PLAY BUTTONS — solid category color, refined
+         ================================================================ */
+
+      .game-card__play {
+        border: none !important;
+        border-radius: 8px !important;
+        padding: 7px 16px !important;
+        font-size: 0.8rem !important;
+        font-weight: 600 !important;
+        min-height: 36px !important;
+        color: #fff !important;
+        background: #000 !important;
+        transition: transform 0.15s ease, box-shadow 0.2s ease, filter 0.15s ease;
+      }
+      .game-card__play:hover {
+        transform: scale(1.04) !important;
+        filter: brightness(1.1);
+      }
+
+      /* Play button — single accent color */
+
+      /* ================================================================
+         5. FEATURED CARDS — clean gold accent, no gradients
+         ================================================================ */
+
+      .game-card--featured {
+        position: relative;
+        overflow: hidden;
+      }
+
+      /* Replace neon "Featured" badge with solid gold label */
+      .game-card--featured::after {
+        content: '★ Featured' !important;
+        position: absolute !important;
+        top: 12px !important;
+        left: 12px !important;
+        z-index: 3 !important;
+        padding: 4px 12px !important;
+        border-radius: 999px !important;
+        background: #d4a017 !important;
+        color: #1a1a2e !important;
+        font-size: 0.55rem !important;
+        font-weight: 700 !important;
+        letter-spacing: 0.1em !important;
+        text-transform: uppercase !important;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important;
+      }
+
+      /* Solid gold border on featured cards (no gradient mask) */
+      .game-card--featured::before {
+        content: '' !important;
+        position: absolute !important;
+        inset: 0 !important;
+        border-radius: inherit !important;
+        border: 1.5px solid #d4a017 !important;
+        pointer-events: none !important;
+        z-index: 2 !important;
+      }
+
+      /* ================================================================
+         6. GAME CARD HOVER & GLOW
+         ================================================================ */
+
+      .game-card {
+        transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1),
+                    box-shadow 0.2s ease,
+                    border-color 0.2s ease;
+        will-change: transform;
+      }
+      .game-card:hover {
+        transform: translateY(-5px) scale(1.015);
+        box-shadow: 0 18px 36px -10px rgba(0, 0, 0, 0.45),
+                    0 0 0 1px rgba(255, 255, 255, 0.06);
+        border-color: rgba(255, 255, 255, 0.1);
+      }
+      .game-card:active {
+        transform: translateY(-2px) scale(1.005);
+        transition-duration: 0.08s;
+      }
+
+      /* Kill the glow overlay — cleaner without it */
+      .game-card__glow {
+        display: none !important;
+      }
+
+      /* ================================================================
+         7. HEADER — cleaner logo + refined search bar
+         ================================================================ */
+
+      .app__header {
+        border-bottom: 1px solid rgba(255, 255, 255, 0.06) !important;
+        padding-bottom: 1.25rem !important;
+        margin-bottom: 1.5rem !important;
+      }
+
+      /* Logo: solid color, no gradient shimmer */
+      .app__logo-text {
+        background: none !important;
+        -webkit-background-clip: unset !important;
+        -webkit-text-fill-color: #b8b0cc !important;
+        background-clip: unset !important;
+        animation: none !important;
+        font-weight: 800 !important;
+        letter-spacing: -0.03em !important;
+      }
+
+      /* Logo icon: no neon glow */
+      .app__logo-icon {
+        filter: none !important;
+        text-shadow: none !important;
+        color: #9086c4 !important;
+      }
+
+      /* Search bar: refined, pill-shaped */
+      .search-bar {
+        border-radius: 999px !important;
+        background: rgba(255, 255, 255, 0.04) !important;
+        border: 1px solid rgba(255, 255, 255, 0.08) !important;
+        padding: 0.4rem 0.4rem 0.4rem 1rem !important;
+        min-height: 44px !important;
+        transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease !important;
+      }
+      .search-bar:focus-within,
+      .search-bar.focused {
+        border-color: rgba(144, 134, 196, 0.5) !important;
+        background: rgba(255, 255, 255, 0.06) !important;
+        box-shadow: 0 0 0 3px rgba(144, 134, 196, 0.12) !important;
+      }
+      .search-bar__input {
+        font-size: 0.9rem !important;
+      }
+      .search-bar__clear {
+        width: 40px !important;
+        height: 40px !important;
+        border-radius: 999px !important;
+      }
+
+      /* ================================================================
+         8. CATEGORY FILTER PILLS — refined
+         ================================================================ */
+
+      .category-filter__btn {
+        border-radius: 999px !important;
+        padding: 6px 14px !important;
+        font-size: 0.72rem !important;
+        font-weight: 500 !important;
+        letter-spacing: 0.04em !important;
+        background: rgba(255, 255, 255, 0.04) !important;
+        border: 1px solid rgba(255, 255, 255, 0.08) !important;
+        color: var(--text-muted, #888) !important;
+        transition: all 0.2s ease !important;
+      }
+      .category-filter__btn:hover {
+        background: rgba(255, 255, 255, 0.08) !important;
+        border-color: var(--cat-color, rgba(255, 255, 255, 0.15)) !important;
+        color: var(--text, #ccc) !important;
+        transform: translateY(-1px);
+      }
+      .category-filter__btn.active {
+        background: var(--cat-color, #7c6aef) !important;
+        color: #fff !important;
+        border-color: var(--cat-color, #7c6aef) !important;
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.25) !important;
+        font-weight: 600 !important;
+      }
+
+      /* ================================================================
+         9. THEME TOGGLE — refined
+         ================================================================ */
+
+      .theme-toggle {
+        position: fixed !important;
+        top: max(12px, env(safe-area-inset-top)) !important;
+        right: max(12px, env(safe-area-inset-right)) !important;
+        z-index: 1000 !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        width: 42px !important;
+        height: 42px !important;
+        padding: 0 !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        border-radius: 50% !important;
+        background: rgba(255, 255, 255, 0.06) !important;
+        color: #e2e0e7 !important;
+        font-size: 18px !important;
+        line-height: 1 !important;
+        cursor: pointer !important;
+        backdrop-filter: blur(12px) !important;
+        -webkit-backdrop-filter: blur(12px) !important;
+        transition: background 0.2s ease, transform 0.15s ease !important;
+      }
+      .theme-toggle:hover {
+        background: rgba(255, 255, 255, 0.12) !important;
+        transform: scale(1.06);
+      }
+      .theme-toggle:active {
+        transform: scale(0.95);
+      }
+      .theme-toggle__icon {
+        width: 20px !important;
+        height: 20px !important;
+      }
+
+      /* ================================================================
+         10. RANDOM GAME BUTTON — solid color, no gradient
+         ================================================================ */
+
+      .random-game-btn {
+        position: fixed !important;
+        left: max(18px, env(safe-area-inset-left)) !important;
+        bottom: max(18px, env(safe-area-inset-bottom)) !important;
+        z-index: 999 !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        gap: 8px !important;
+        min-height: 44px !important;
+        padding: 10px 18px !important;
+        border: none !important;
+        border-radius: 999px !important;
+        background: #d97706 !important;
+        color: #1a1a2e !important;
+        font-family: var(--sans, system-ui, "Segoe UI", Roboto, sans-serif) !important;
+        font-size: 13px !important;
+        font-weight: 700 !important;
+        letter-spacing: 0.02em !important;
+        line-height: 1.2 !important;
+        text-decoration: none !important;
+        cursor: pointer !important;
+        box-shadow: 0 4px 14px rgba(217, 119, 6, 0.3) !important;
+        transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease !important;
+      }
+      .random-game-btn:hover,
+      .random-game-btn:focus-visible {
+        transform: translateY(-2px) !important;
+        box-shadow: 0 6px 20px rgba(217, 119, 6, 0.4) !important;
+        filter: brightness(1.08);
+      }
+      .random-game-btn__icon {
+        width: 16px !important;
+        height: 16px !important;
+        flex: none !important;
+      }
+
+      /* ================================================================
+         11. GAME MODAL — refined
+         ================================================================ */
+
+      .game-modal__backdrop {
+        backdrop-filter: blur(12px) !important;
+        -webkit-backdrop-filter: blur(12px) !important;
+      }
+      .game-modal__content {
+        animation: modal-in 0.2s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+        border-radius: 16px !important;
+        overflow: hidden !important;
+      }
+      @keyframes modal-in {
+        from { opacity: 0; transform: translateY(16px) scale(0.97); }
+        to { opacity: 1; transform: translateY(0) scale(1); }
+      }
+
+      /* ================================================================
+         12. SKIP LINK
+         ================================================================ */
+
+      .skip-link {
+        position: fixed !important;
+        top: max(12px, env(safe-area-inset-top)) !important;
+        left: 50% !important;
+        transform: translate(-50%, -240px) !important;
+        z-index: 1001 !important;
+        padding: 10px 18px !important;
+        border-radius: 999px !important;
+        background: #7c6aef !important;
+        color: #fff !important;
+        font-size: 14px !important;
+        font-weight: 600 !important;
+        text-decoration: none !important;
+        box-shadow: 0 4px 14px rgba(124, 106, 239, 0.35) !important;
+        transition: transform 0.15s ease !important;
+      }
+      .skip-link:focus {
+        transform: translate(-50%, 0) !important;
+      }
+
+      /* ================================================================
+         13. BENTO GRID — mobile adjustments
+         ================================================================ */
+
+      @media (max-width: 640px) {
+        .bento-grid {
+          gap: 12px !important;
         }
-        *,
-        *::before,
-        *::after {
+        .game-card__title {
+          font-size: 0.92em !important;
+        }
+        .game-card__desc {
+          font-size: 0.8em !important;
+          line-height: 1.4 !important;
+        }
+        .game-card__icon svg {
+          width: 42% !important;
+          height: 42% !important;
+        }
+        .game-card--featured .game-card__icon svg {
+          width: 46% !important;
+          height: 46% !important;
+        }
+      }
+      @media (max-width: 480px) {
+        .theme-toggle {
+          top: max(8px, env(safe-area-inset-top)) !important;
+          right: max(8px, env(safe-area-inset-right)) !important;
+          width: 38px !important;
+          height: 38px !important;
+        }
+        .random-game-btn {
+          left: max(12px, env(safe-area-inset-left)) !important;
+          bottom: max(12px, env(safe-area-inset-bottom)) !important;
+          padding: 8px 14px !important;
+          font-size: 12px !important;
+        }
+      }
+
+      /* ================================================================
+         14. REDUCED MOTION
+         ================================================================ */
+
+      @media (prefers-reduced-motion: reduce) {
+        html { scroll-behavior: auto; }
+        *, *::before, *::after {
           transition-duration: 0.01ms !important;
           animation-duration: 0.01ms !important;
           animation-iteration-count: 1 !important;
         }
+      }
+
+      /* ================================================================
+         15. LIGHT MODE — Apple-like clean design, no gradients
+         ================================================================ */
+
+      html[data-theme="light"] {
+        color-scheme: light !important;
+      }
+      html[data-theme="light"] body,
+      html[data-theme="light"] #root {
+        background: #f5f5f7 !important;
+        color: #1d1d1f !important;
+      }
+
+      /* Header */
+      html[data-theme="light"] .app__header {
+        background: rgba(255, 255, 255, 0.85) !important;
+        backdrop-filter: blur(20px) !important;
+        -webkit-backdrop-filter: blur(20px) !important;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.06) !important;
+      }
+      html[data-theme="light"] .app__logo-text {
+        background: none !important;
+        -webkit-background-clip: unset !important;
+        -webkit-text-fill-color: #1d1d1f !important;
+        background-clip: unset !important;
+        animation: none !important;
+      }
+      html[data-theme="light"] .app__logo-icon {
+        color: #6d28d9 !important;
+      }
+
+      /* Search bar */
+      html[data-theme="light"] .search-bar {
+        background: #fff !important;
+        border: 1px solid rgba(0, 0, 0, 0.08) !important;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04) !important;
+      }
+      html[data-theme="light"] .search-bar:focus-within,
+      html[data-theme="light"] .search-bar.focused {
+        border-color: rgba(109, 40, 217, 0.3) !important;
+        box-shadow: 0 0 0 3px rgba(109, 40, 217, 0.08), 0 1px 3px rgba(0, 0, 0, 0.04) !important;
+      }
+      html[data-theme="light"] .search-bar__input {
+        color: #1d1d1f !important;
+      }
+      html[data-theme="light"] .search-bar__input::placeholder {
+        color: #86868b !important;
+      }
+      html[data-theme="light"] .search-bar__icon {
+        color: #86868b !important;
+      }
+      html[data-theme="light"] .search-bar__clear {
+        color: #86868b !important;
+      }
+      html[data-theme="light"] .search-bar__clear:hover {
+        background: rgba(0, 0, 0, 0.05) !important;
+        color: #1d1d1f !important;
+      }
+
+      /* Category filter pills */
+      html[data-theme="light"] .category-filter__btn {
+        background: #fff !important;
+        border: 1px solid rgba(0, 0, 0, 0.08) !important;
+        color: #6e6e73 !important;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04) !important;
+      }
+      html[data-theme="light"] .category-filter__btn:hover {
+        background: #f0f0f2 !important;
+        border-color: rgba(0, 0, 0, 0.12) !important;
+        color: #1d1d1f !important;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06) !important;
+      }
+      html[data-theme="light"] .category-filter__btn.active {
+        color: #fff !important;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12) !important;
+      }
+
+      /* Cards */
+      html[data-theme="light"] .game-card {
+        background: #fff !important;
+        border-color: rgba(0, 0, 0, 0.06) !important;
+        color: #1d1d1f !important;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04) !important;
+      }
+      html[data-theme="light"] .game-card:hover {
+        box-shadow: 0 12px 28px -8px rgba(0, 0, 0, 0.12), 0 4px 12px rgba(0, 0, 0, 0.06) !important;
+        border-color: rgba(0, 0, 0, 0.1) !important;
+      }
+      html[data-theme="light"] .game-card__title {
+        color: #1d1d1f !important;
+      }
+      html[data-theme="light"] .game-card__desc {
+        color: #6e6e73 !important;
+      }
+
+      /* Category badges in light mode */
+      html[data-theme="light"] .game-card__category {
+        color: #fff !important;
+      }
+
+      /* Featured card in light mode */
+      html[data-theme="light"] .game-card--featured {
+        background: #fff !important;
+      }
+      html[data-theme="light"] .game-card--featured::after {
+        background: #b8860b !important;
+        color: #fff !important;
+        box-shadow: 0 2px 8px rgba(184, 134, 11, 0.25) !important;
+      }
+
+      /* Theme toggle */
+      html[data-theme="light"] .theme-toggle {
+        background: rgba(0, 0, 0, 0.04) !important;
+        border-color: rgba(0, 0, 0, 0.08) !important;
+        color: #1d1d1f !important;
+      }
+      html[data-theme="light"] .theme-toggle:hover {
+        background: rgba(0, 0, 0, 0.08) !important;
+      }
+
+      /* Game modal */
+      html[data-theme="light"] .game-modal__content {
+        background: #fff !important;
+        color: #1d1d1f !important;
+        box-shadow: 0 24px 48px -12px rgba(0, 0, 0, 0.18) !important;
+      }
+      html[data-theme="light"] .game-modal__title {
+        color: #1d1d1f !important;
+      }
+
+      /* Selection */
+      html[data-theme="light"] ::selection {
+        background: rgba(109, 40, 217, 0.2) !important;
+        color: #1d1d1f !important;
+      }
+
+      /* Random Game button */
+      html[data-theme="light"] .random-game-btn {
+        box-shadow: 0 4px 14px rgba(217, 119, 6, 0.25) !important;
+      }
+
+      /* Skip link */
+      html[data-theme="light"] .skip-link {
+        background: #6d28d9 !important;
+        color: #fff !important;
+      }
+
+      /* Footer */
+      html[data-theme="light"] .app__footer {
+        color: #86868b !important;
+        border-top-color: rgba(0, 0, 0, 0.06) !important;
       }
     </style>
   </head>
@@ -203,8 +702,20 @@
       </a>
     </nav>
 
+    <button class="random-game-btn" id="random-game-btn" aria-label="Play a random game">
+      <svg class="random-game-btn__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <rect x="2" y="2" width="20" height="20" rx="3"></rect>
+        <circle cx="8" cy="8" r="1.5" fill="currentColor"></circle>
+        <circle cx="16" cy="8" r="1.5" fill="currentColor"></circle>
+        <circle cx="8" cy="16" r="1.5" fill="currentColor"></circle>
+        <circle cx="16" cy="16" r="1.5" fill="currentColor"></circle>
+        <circle cx="12" cy="12" r="1.5" fill="currentColor"></circle>
+      </svg>
+      Random Game
+    </button>
+
     <!-- Portal UX enhancement layer (authored, unminified): keyboard card
-         navigation, skip link, modal controls, metadata, flat-styling hooks.
+         navigation, skip link, modal controls, metadata, SVG game icons.
          Deferred so it runs after the bundle; never touches the bundle. -->
     <script defer src="./assets/portal-ux.js"></script>
   </body>
