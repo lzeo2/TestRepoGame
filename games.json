@@ -556,5 +556,14 @@
     "desc": "Classic tower defense — pop bloons with monkeys! Four versions included: BTD 1–4, playable via bundled Ruffle emulator.",
     "url": "Games/BloonsTD/index.html",
     "featured": false
+  },
+  {
+    "id": 81,
+    "title": "Drift Boss",
+    "cat": "action",
+    "icon": "",
+    "desc": "Endless drifting game — steer your car through obstacles, chain combos, and drift as far as you can!",
+    "url": "Games/DriftBoss/index.html",
+    "featured": false
   }
 ]
