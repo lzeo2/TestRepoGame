@@ -103,7 +103,7 @@
     "title": "Hextris",
     "cat": "classic",
     "icon": "",
-    "desc": "Unavailable offline \u2014 the original build can't load without a network connection.",
+    "desc": "Hexagonal block-stacking arcade puzzle \u2014 rotate the board, match colors, and clear the core.",
     "url": "Games/Hextris/index.html",
     "featured": false
   },

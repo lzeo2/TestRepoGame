@@ -1,83 +1,41 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hextris — Offline Unavailable</title>
-    <style>
-        :root { color-scheme: dark; }
-        * { box-sizing: border-box; }
-        html, body {
-            margin: 0;
-            padding: 0;
-            height: 100%;
-            background: #0b0b10;
-            color: #e8e8f0;
-            font-family: system-ui, "Segoe UI", Roboto, sans-serif;
-        }
-        .wrap {
-            min-height: 100%;
-            display: flex;
-            padding: 24px;
-        }
-        .card {
-            max-width: 480px;
-            width: 100%;
-            margin: auto;
-            background: #15151b;
-            border: 1px solid #2a2a35;
-            border-radius: 20px;
-            padding: 32px 28px;
-            text-align: center;
-        }
-        .icon { font-size: 56px; line-height: 1; margin-bottom: 16px; }
-        h1 { font-size: 22px; margin: 0 0 12px; color: #fff; }
-        p { font-size: 15px; line-height: 1.55; margin: 0 0 24px; color: #b9b9c7; }
-        .actions { display: flex; flex-direction: column; gap: 10px; }
-        a.btn {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            min-height: 46px;
-            padding: 12px 18px;
-            border-radius: 999px;
-            border: 1px solid #3a3a48;
-            background: #1d1d26;
-            color: #fff;
-            font-size: 15px;
-            font-weight: 600;
-            text-decoration: none;
-            cursor: pointer;
-            touch-action: manipulation;
-        }
-        a.btn.primary {
-            background: #aa3bff;
-            border-color: #aa3bff;
-            color: #08060d;
-        }
-        a.btn:hover, a.btn:focus-visible {
-            outline: 2px solid #00ff88;
-            outline-offset: 3px;
-        }
-        @media (prefers-reduced-motion: reduce) {
-            * { transition: none !important; animation: none !important; }
-        }
-    </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Hextris // Offline</title>
+<style>
+:root{--bg:#090b18;--panel:#15182b;--line:#3a4169;--text:#eef1ff;--muted:#98a0c5;--accent:#ffcf5a}*{box-sizing:border-box}body{margin:0;min-height:100vh;background:radial-gradient(circle at 50% 20%,#202b55 0,#090b18 58%);color:var(--text);font-family:system-ui,Segoe UI,sans-serif;display:flex;justify-content:center;padding:12px}.wrap{width:min(100%,720px)}header{display:flex;justify-content:space-between;align-items:end;margin-bottom:10px}h1{font-size:clamp(23px,5vw,36px);letter-spacing:.15em;margin:0;color:#ffcf5a}header p{margin:2px 0 0;color:var(--muted);font-size:12px}.offline{font-size:11px;color:#68e6bd;border:1px solid #286a5b;border-radius:99px;padding:5px 9px;white-space:nowrap}.board{position:relative;background:#0c1020;border:1px solid var(--line);border-radius:18px;overflow:hidden;box-shadow:0 18px 60px #0009}.board canvas{display:block;width:100%;height:auto;aspect-ratio:1}.hud{display:flex;gap:8px;flex-wrap:wrap;background:#111528;padding:10px;border-top:1px solid #2b3152}.stat{background:#1b2038;border-radius:9px;padding:7px 12px;flex:1;min-width:100px;color:var(--muted);font-size:12px}.stat b{display:block;color:#fff;font-size:18px;line-height:1.15}.controls{display:flex;gap:9px;padding:10px;background:#0e1220}.control{flex:1;border:1px solid #53608e;background:#222944;color:#fff;border-radius:10px;min-height:45px;font-size:14px;font-weight:700;cursor:pointer;touch-action:manipulation}.control:hover,.control:focus-visible{background:#313b64;border-color:var(--accent);outline:none}.control span{color:var(--accent);font-size:19px}.help{font-size:12px;color:var(--muted);padding:9px 12px}.overlay{position:absolute;inset:0;display:grid;place-items:center;background:#070917c7;padding:20px}.card{max-width:440px;text-align:center;border:1px solid #6472a2;background:#171c33ed;border-radius:16px;padding:26px 22px;box-shadow:0 12px 40px #000b}.card h2{color:#ffcf5a;margin:0 0 8px;font-size:clamp(25px,6vw,40px)}.card p{line-height:1.5;color:#d1d7f1;margin:7px 0 18px}.primary{border:0;border-radius:9px;background:linear-gradient(135deg,#ffcf5a,#ff8e5c);padding:11px 25px;font-weight:800;color:#151321;cursor:pointer;font-size:15px}.primary:focus-visible{outline:3px solid #fff;outline-offset:3px}@media(max-width:500px){body{padding:6px}.hud,.controls{padding:7px}.stat{padding:6px 9px}.help{font-size:11px}}
+</style>
 </head>
 <body>
-    <div class="wrap">
-        <div class="card" role="alert">
-            <div class="icon" aria-hidden="true">🔷</div>
-            <h1>Hextris is unavailable offline</h1>
-            <p>
-                The original Hextris build is hosted online and needs a network
-                connection to load. This arcade is offline-first, so Hextris is
-                permanently unavailable here — retrying can't restore it offline.
-            </p>
-            <div class="actions">
-                <a class="btn primary" href="../../index.html">← Back to Arcade</a>
-            </div>
-        </div>
-    </div>
+<main class="wrap"><header><div><h1>HEXTRIS</h1><p>Stack the six sides. Clear matching colors.</p></div><span class="offline">100% OFFLINE</span></header><section class="board"><canvas id="game" width="640" height="640" aria-label="Hextris board"></canvas><div class="overlay" id="overlay"><div class="card"><h2 id="message">HEXTRIS</h2><p id="copy">Rotate the hexagon to guide falling blocks. Three matching blocks at a side's center clear for bonus points. Don't let any side reach the rim.</p><button class="primary" id="start">START STACKING</button></div></div></section><section class="hud"><div class="stat">SCORE<b id="score">0</b></div><div class="stat">BEST<b id="best">0</b></div><div class="stat">NEXT COLOR<b id="next">●</b></div></section><section class="controls"><button class="control" id="left"><span>↶</span> ROTATE LEFT</button><button class="control" id="right">ROTATE RIGHT <span>↷</span></button></section><div class="help">Keyboard: <b>← / A</b> rotate left · <b>→ / D</b> rotate right. On a phone, use the buttons. Reach 250 points to win.</div></main>
+<script>
+(() => {
+'use strict';
+const canvas=document.getElementById('game'),ctx=canvas.getContext('2d'),overlay=document.getElementById('overlay'),message=document.getElementById('message'),copy=document.getElementById('copy'),start=document.getElementById('start'),scoreEl=document.getElementById('score'),bestEl=document.getElementById('best'),nextEl=document.getElementById('next');
+const colors=[{name:'coral',fill:'#ff657a',glow:'#ffb0a8'},{name:'aqua',fill:'#51e1d2',glow:'#b0fff0'},{name:'violet',fill:'#a987ff',glow:'#d4c5ff'},{name:'gold',fill:'#ffd15c',glow:'#fff0a1'},{name:'lime',fill:'#9be564',glow:'#deffad'}];
+const center=320,PI=Math.PI;let stacks,fall,rotation,score,best=Number(localStorage.getItem('hextris-best')||0),state='start',last=0;
+bestEl.textContent=best;
+function reset(){stacks=Array.from({length:6},()=>[]);rotation=0;score=0;fall=null;state='playing';overlay.style.display='none';spawn();last=performance.now();requestAnimationFrame(loop)}
+function spawn(){const color=Math.floor(Math.random()*colors.length);fall={lane:Math.floor(Math.random()*6),color,r:276,speed:76+Math.min(80,score*.11)};nextEl.style.color=colors[color].fill;nextEl.textContent='● '+colors[color].name.toUpperCase()}
+function rotate(amount){if(state!=='playing')return;rotation=(rotation+amount+6)%6;burst(center,center,amount<0?'#73e8ff':'#ffcf5a',5)}
+function land(){const stack=stacks[fall.lane];stack.push(fall.color);let cleared=0;while(stack.length>=3&&stack[stack.length-1]===stack[stack.length-2]&&stack[stack.length-2]===stack[stack.length-3]){stack.splice(stack.length-3,3);cleared+=3}if(cleared){score+=cleared*10+(cleared===6?30:0);burst(center+Math.cos(angle(fall.lane))*100,center+Math.sin(angle(fall.lane))*100,colors[fall.color].glow,15);if(score>=250){scoreEl.textContent=score;return end(true)}}if(stack.length>=8)return end(false);spawn();updateHud()}
+function angle(lane){return -PI/2+lane*PI/3+rotation*PI/3}
+function end(won){state=won?'won':'lost';if(score>best){best=score;localStorage.setItem('hextris-best',best)}bestEl.textContent=best;message.textContent=won?'HEX MASTER!':'THE RIM IS FULL';copy.textContent=won?'You cleared the core and scored '+score+' points. The stack bends to your will.':'A side reached eight blocks. Rotate earlier and build clearable groups.';start.textContent='PLAY AGAIN';overlay.style.display='grid';updateHud()}
+function update(dt){if(!fall)return;fall.r-=fall.speed*dt;const destination=78+stacks[fall.lane].length*32;if(fall.r<=destination){fall.r=destination;land()}for(const p of sparks){p.x+=p.vx*dt;p.y+=p.vy*dt;p.life-=dt}while(sparks.length&&sparks[0].life<=0)sparks.shift();updateHud()}
+function updateHud(){scoreEl.textContent=score;bestEl.textContent=best}
+const sparks=[];function burst(x,y,color,n){for(let i=0;i<n;i++)sparks.push({x,y,vx:(Math.random()-.5)*160,vy:(Math.random()-.5)*160,life:.55,color})}
+function poly(points,fill,stroke){ctx.beginPath();points.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1]));ctx.closePath();ctx.fillStyle=fill;ctx.fill();if(stroke){ctx.strokeStyle=stroke;ctx.lineWidth=2;ctx.stroke()}}
+function ringBlock(a,inner,outer,color,alpha=1){const spread=.235,points=[];for(const r of [inner,outer]){points.push([center+Math.cos(a-spread)*r,center+Math.sin(a-spread)*r]);points.push([center+Math.cos(a+spread)*r,center+Math.sin(a+spread)*r])}ctx.globalAlpha=alpha;poly([points[0],points[2],points[3],points[1]],colors[color].fill,'#ffffff35');ctx.globalAlpha=1}
+function draw(){ctx.clearRect(0,0,640,640);const bg=ctx.createRadialGradient(center,center,45,center,center,350);bg.addColorStop(0,'#2b3155');bg.addColorStop(.35,'#151b36');bg.addColorStop(1,'#080b18');ctx.fillStyle=bg;ctx.fillRect(0,0,640,640);
+ for(let r=105;r<310;r+=32){ctx.strokeStyle=r===105?'#66709d':'#2e375e';ctx.lineWidth=1;ctx.beginPath();for(let i=0;i<6;i++){const a=-PI/2+i*PI/3;const x=center+Math.cos(a)*r,y=center+Math.sin(a)*r;i?ctx.lineTo(x,y):ctx.moveTo(x,y)}ctx.closePath();ctx.stroke()}
+ for(let l=0;l<6;l++){const a=angle(l);stacks[l].forEach((c,i)=>ringBlock(a,78+i*32,107+i*32,c));}
+ if(fall)ringBlock(angle(fall.lane),fall.r-14,fall.r+14,fall.color,.95);
+ ctx.save();ctx.shadowBlur=24;ctx.shadowColor='#080a18';ctx.fillStyle='#101425';ctx.beginPath();for(let i=0;i<6;i++){const a=-PI/2+i*PI/3;const x=center+Math.cos(a)*76,y=center+Math.sin(a)*76;i?ctx.lineTo(x,y):ctx.moveTo(x,y)}ctx.closePath();ctx.fill();ctx.restore();ctx.fillStyle='#7884b4';ctx.font='800 17px system-ui';ctx.textAlign='center';ctx.fillText(state==='playing'?'ROTATE':'HEXTRIS',center,center+6);ctx.textAlign='left';for(const p of sparks){ctx.globalAlpha=Math.max(0,p.life/.55);ctx.fillStyle=p.color;ctx.fillRect(p.x-2,p.y-2,4,4)}ctx.globalAlpha=1}
+function loop(now){if(state!=='playing'){draw();return}const dt=Math.min(.04,(now-last)/1000);last=now;update(dt);draw();if(state==='playing')requestAnimationFrame(loop)}
+start.addEventListener('click',reset);document.getElementById('left').addEventListener('click',()=>rotate(-1));document.getElementById('right').addEventListener('click',()=>rotate(1));window.addEventListener('keydown',e=>{if(e.code==='Space'&&state!=='playing'){e.preventDefault();reset();return}if(e.key==='ArrowLeft'||e.key.toLowerCase()==='a'){e.preventDefault();rotate(-1)}if(e.key==='ArrowRight'||e.key.toLowerCase()==='d'){e.preventDefault();rotate(1)}});draw();
+})();
+</script>
 </body>
 </html>
