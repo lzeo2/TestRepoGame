@@ -8,6 +8,18 @@
   function $$(sel, ctx) { return Array.prototype.slice.call((ctx || document).querySelectorAll(sel)); }
   function textOf(el) { return el ? (el.textContent || '').trim() : ''; }
 
+  function isVisible(el) {
+    if (!el || !el.isConnected) return false;
+    var style = window.getComputedStyle(el);
+    var rect = el.getBoundingClientRect();
+    return style.display !== 'none' && style.visibility !== 'hidden' &&
+      rect.width > 0 && rect.height > 0;
+  }
+
+  function visibleCards() {
+    return $$('.bento-grid .game-card').filter(isVisible);
+  }
+
   function ready(fn) {
     if (document.readyState === 'loading') {
       document.addEventListener('DOMContentLoaded', fn);
@@ -164,6 +176,10 @@
         );
       }
       if (card.getAttribute('tabindex') === null) card.setAttribute('tabindex', '0');
+      if (!card.getAttribute('role')) card.setAttribute('role', 'button');
+      if (!card.getAttribute('aria-keyshortcuts')) {
+        card.setAttribute('aria-keyshortcuts', 'ArrowUp ArrowDown ArrowLeft ArrowRight Enter');
+      }
       if (!card.getAttribute('aria-label')) {
         card.setAttribute(
           'aria-label',
@@ -186,23 +202,45 @@
     });
   }
 
-  /* --- Game URL cache: title -> url, built from games.json on first use --- */
+  /* --- Local catalog cache: one request shared by search-adjacent UX --- */
   var _gameUrlCache = null;
+  var _gameCachePromise = null;
+  var _gamesList = [];
+  var _gamesPromise = null;
+
+  function fetchGames() {
+    if (_gamesPromise) return _gamesPromise;
+    _gamesPromise = fetch('./games.json')
+      .then(function (r) {
+        if (!r.ok) throw new Error('Catalog request failed');
+        return r.json();
+      })
+      .then(function (games) {
+        _gamesList = Array.isArray(games) ? games : [];
+        return _gamesList;
+      })
+      .catch(function () {
+        _gamesList = [];
+        return _gamesList;
+      });
+    return _gamesPromise;
+  }
 
   function fetchGameUrlCache() {
-    if (_gameUrlCache) return _gameUrlCache;
+    if (_gameCachePromise) return _gameCachePromise;
     _gameUrlCache = new Map();
-    fetch('./games.json')
-      .then(function (r) { return r.json(); })
-      .then(function (games) {
-        if (Array.isArray(games)) {
-          games.forEach(function (g) {
-            if (g.title && g.url) _gameUrlCache.set(g.title, g.url);
-          });
-        }
-      })
-      .catch(function () {});
-    return _gameUrlCache;
+    _gameCachePromise = fetchGames().then(function (games) {
+      games.forEach(function (g) {
+        if (g && g.title && g.url) _gameUrlCache.set(g.title, g.url);
+      });
+      return _gameUrlCache;
+    });
+    return _gameCachePromise;
+  }
+
+  function openGameUrl(url) {
+    var safe = safeGamePath(url);
+    if (safe !== './') window.open(safe, '_blank');
   }
 
   function openCard(card) {
@@ -210,12 +248,59 @@
     var title = textOf($('.game-card__title', card));
     var url = _gameUrlCache && _gameUrlCache.get(title);
     if (url) {
-      window.open(safeGamePath(url), '_blank');
+      openGameUrl(url);
+      return;
     }
+    /* Enter can arrive before the local catalog request finishes. Retry once
+       the cache is ready instead of making keyboard users press Enter again. */
+    fetchGameUrlCache().then(function (cache) {
+      var resolved = cache.get(title);
+      if (resolved) openGameUrl(resolved);
+    });
   }
 
   function focusCard(card) {
     if (card && card.focus) card.focus();
+  }
+
+  function moveCard(current, direction) {
+    var cards = visibleCards();
+    var index = cards.indexOf(current);
+    if (index === -1 || cards.length < 2) return;
+
+    var origin = current.getBoundingClientRect();
+    var originX = origin.left + origin.width / 2;
+    var originY = origin.top + origin.height / 2;
+    var candidates = cards.filter(function (card) {
+      if (card === current) return false;
+      var rect = card.getBoundingClientRect();
+      var x = rect.left + rect.width / 2;
+      var y = rect.top + rect.height / 2;
+      if (direction === 'left') return x < originX - 1;
+      if (direction === 'right') return x > originX + 1;
+      if (direction === 'up') return y < originY - 1;
+      return y > originY + 1;
+    });
+
+    if (!candidates.length) return;
+    candidates.sort(function (a, b) {
+      var ar = a.getBoundingClientRect();
+      var br = b.getBoundingClientRect();
+      var ax = ar.left + ar.width / 2;
+      var ay = ar.top + ar.height / 2;
+      var bx = br.left + br.width / 2;
+      var by = br.top + br.height / 2;
+      var aPrimary = direction === 'left' || direction === 'right'
+        ? Math.abs(ax - originX) : Math.abs(ay - originY);
+      var bPrimary = direction === 'left' || direction === 'right'
+        ? Math.abs(bx - originX) : Math.abs(by - originY);
+      var aCross = direction === 'left' || direction === 'right'
+        ? Math.abs(ay - originY) : Math.abs(ax - originX);
+      var bCross = direction === 'left' || direction === 'right'
+        ? Math.abs(by - originY) : Math.abs(bx - originX);
+      return (aCross - bCross) || (aPrimary - bPrimary);
+    });
+    focusCard(candidates[0]);
   }
 
   document.addEventListener('click', function (e) {
@@ -230,19 +315,24 @@
     if (e.defaultPrevented) return;
     var ae = document.activeElement;
     if (!ae || !ae.classList || !ae.classList.contains('game-card')) return;
-    var cards = $$('.bento-grid .game-card');
-    var idx = cards.indexOf(ae);
-    if (idx === -1) return;
+    var cards = visibleCards();
+    if (cards.indexOf(ae) === -1) return;
     switch (e.key) {
       case 'ArrowRight':
+        e.preventDefault();
+        moveCard(ae, 'right');
+        break;
       case 'ArrowDown':
         e.preventDefault();
-        focusCard(cards[(idx + 1) % cards.length]);
+        moveCard(ae, 'down');
         break;
       case 'ArrowLeft':
+        e.preventDefault();
+        moveCard(ae, 'left');
+        break;
       case 'ArrowUp':
         e.preventDefault();
-        focusCard(cards[(idx - 1 + cards.length) % cards.length]);
+        moveCard(ae, 'up');
         break;
       case 'Home':
         e.preventDefault();
@@ -275,6 +365,32 @@
   }
 
   var modalOpener = null;
+
+  function addModalLoadingState(modal) {
+    var wrap = $('.game-modal__frame-wrap', modal);
+    var frame = $('.game-modal__frame', modal);
+    if (!wrap || !frame || wrap.getAttribute('data-ux-loading-bound')) return;
+    wrap.setAttribute('data-ux-loading-bound', '1');
+    wrap.setAttribute('aria-busy', 'true');
+    var status = document.createElement('div');
+    status.className = 'game-modal__loading';
+    status.setAttribute('role', 'status');
+    status.setAttribute('aria-live', 'polite');
+    status.innerHTML = '<span class="game-modal__spinner" aria-hidden="true"></span>' +
+      '<span>Loading game&hellip;</span>';
+    wrap.appendChild(status);
+
+    function finishLoading(message, failed) {
+      wrap.setAttribute('aria-busy', 'false');
+      wrap.classList.add(failed ? 'is-load-error' : 'is-loaded');
+      status.textContent = message || 'Game ready';
+      if (!failed) status.setAttribute('aria-hidden', 'true');
+    }
+    frame.addEventListener('load', function () { finishLoading('Game ready', false); });
+    frame.addEventListener('error', function () {
+      finishLoading('Unable to load this game. Try opening it in a new tab.', true);
+    });
+  }
 
   function addModalControls(modal) {
     var footer = $('.game-modal__footer', modal);
@@ -352,6 +468,7 @@
     var modal = $('.game-modal');
     if (modal) {
       addModalDialogSemantics(modal);
+      addModalLoadingState(modal);
       if (!modal.getAttribute('data-ux-tracked')) {
         modal.setAttribute('data-ux-tracked', '1');
         var ae = document.activeElement;
@@ -382,6 +499,69 @@
         var id = textOf(b).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'all';
         b.setAttribute('data-cat-id', id);
       }
+    });
+  }
+
+  var categoryTransitionTimer = null;
+  function animateCategoryChange() {
+    var grid = $('.bento-grid');
+    if (!grid) return;
+    grid.classList.remove('is-filtering');
+    /* Restart the short, content-led transition without forcing a scroll. */
+    void grid.offsetWidth;
+    grid.classList.add('is-filtering');
+    if (categoryTransitionTimer) clearTimeout(categoryTransitionTimer);
+    categoryTransitionTimer = setTimeout(function () {
+      grid.classList.remove('is-filtering');
+      categoryTransitionTimer = null;
+    }, 260);
+  }
+
+  function initCategoryTransitions() {
+    document.addEventListener('click', function (e) {
+      var button = e.target && e.target.closest ?
+        e.target.closest('.category-filter__btn') : null;
+      if (button) animateCategoryChange();
+    }, true);
+  }
+
+  var searchDebounceTimer = null;
+  var SEARCH_DEBOUNCE_MS = 180;
+  function replaySearchValue(input, value) {
+    var setter = Object.getOwnPropertyDescriptor(
+      window.HTMLInputElement.prototype, 'value'
+    ).set;
+    setter.call(input, value);
+    input.setAttribute('data-ux-search-replay', '1');
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+  }
+
+  function initDebouncedSearch() {
+    document.addEventListener('input', function (e) {
+      var input = e.target;
+      if (!input || !input.matches || !input.matches('.search-bar__input')) return;
+      if (input.getAttribute('data-ux-search-replay') === '1') {
+        input.removeAttribute('data-ux-search-replay');
+        return;
+      }
+      if (e.isComposing) return;
+      e.stopImmediatePropagation();
+      if (searchDebounceTimer) clearTimeout(searchDebounceTimer);
+      var value = input.value;
+      searchDebounceTimer = setTimeout(function () {
+        searchDebounceTimer = null;
+        replaySearchValue(input, value);
+      }, SEARCH_DEBOUNCE_MS);
+    }, true);
+
+    document.addEventListener('keydown', function (e) {
+      var input = e.target;
+      if (e.key !== 'Escape' || !input || !input.matches ||
+          !input.matches('.search-bar__input') || !input.value) return;
+      e.preventDefault();
+      if (searchDebounceTimer) clearTimeout(searchDebounceTimer);
+      searchDebounceTimer = null;
+      replaySearchValue(input, '');
     });
   }
 
@@ -528,15 +708,27 @@
     var btn = document.getElementById('random-game-btn');
     if (!btn || btn.getAttribute('data-ux-bound')) return;
     btn.setAttribute('data-ux-bound', '1');
+    fetchGames().then(function (games) {
+      if (games.length) btn.classList.add('is-ready');
+    });
     btn.addEventListener('click', function () {
-      fetch('./games.json')
-        .then(function (r) { return r.json(); })
-        .then(function (games) {
-          if (!games || !games.length) return;
-          var g = games[Math.floor(Math.random() * games.length)];
-          if (g && g.url) window.open(safeGamePath(g.url), '_blank');
-        })
-        .catch(function () {});
+      btn.classList.add('is-launching');
+      btn.setAttribute('aria-busy', 'true');
+      var chooseAndOpen = function (games) {
+        if (!games || !games.length) return;
+        var g = games[Math.floor(Math.random() * games.length)];
+        if (g && g.url) openGameUrl(g.url);
+      };
+      if (_gamesList.length) {
+        chooseAndOpen(_gamesList);
+        btn.removeAttribute('aria-busy');
+        setTimeout(function () { btn.classList.remove('is-launching'); }, 550);
+      } else {
+        fetchGames().then(chooseAndOpen).then(function () {
+          btn.removeAttribute('aria-busy');
+          setTimeout(function () { btn.classList.remove('is-launching'); }, 550);
+        });
+      }
     });
   }
 
@@ -560,7 +752,12 @@
       var title = textOf($('.game-card__title', card));
       var url = _gameUrlCache && _gameUrlCache.get(title);
       if (url) {
-        window.open(safeGamePath(url), '_blank');
+        openGameUrl(url);
+      } else {
+        fetchGameUrlCache().then(function (cache) {
+          var resolved = cache.get(title);
+          if (resolved) openGameUrl(resolved);
+        });
       }
     }, true); /* capture phase */
 
@@ -576,6 +773,8 @@
     ensureSkipLink();
     initThemeToggle();
     initRandomGameBtn();
+    initCategoryTransitions();
+    initDebouncedSearch();
     initCardNewTab();
     var mo = new MutationObserver(onMutations);
     mo.observe(document.body, {
