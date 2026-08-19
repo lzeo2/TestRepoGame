@@ -112,7 +112,7 @@
     "title": "Flappy Bird",
     "cat": "classic",
     "icon": "",
-    "desc": "Unavailable offline \u2014 the original build needs a network connection to load.",
+    "desc": "Tap-to-fly arcade challenge \u2014 guide the bird through pipes, chase a high score, and keep the run alive.",
     "url": "Games/FlappyBird/index.html",
     "featured": false
   },
