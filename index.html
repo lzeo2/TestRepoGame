@@ -670,6 +670,209 @@
         color: #86868b !important;
         border-top-color: rgba(0, 0, 0, 0.06) !important;
       }
+      /* ================================================================
+         UX IMPROVEMENTS — interaction polish without visual noise
+         ================================================================ */
+
+      /* Cards: one purposeful hover cue (lift), never a glow. */
+      .game-card {
+        transform: none !important;
+        transition: transform 180ms ease, border-color 180ms ease !important;
+        will-change: transform;
+      }
+      .game-card:hover,
+      .game-card:focus-within {
+        transform: translateY(-2px) !important;
+        border-color: color-mix(in srgb, var(--accent) 58%, var(--border)) !important;
+        box-shadow: none !important;
+      }
+      .game-card:active {
+        transform: translateY(0) !important;
+      }
+      .game-card__glow {
+        display: none !important;
+      }
+      .game-card__play:hover,
+      .game-card__fav:hover {
+        transform: none !important;
+        filter: none !important;
+      }
+      .game-card--featured::after {
+        box-shadow: none !important;
+      }
+
+      /* Category changes get a short, local transition; the page never jumps. */
+      .bento-grid.is-filtering .game-card {
+        animation: ux-category-enter 220ms ease both;
+      }
+      @keyframes ux-category-enter {
+        from { opacity: 0.45; transform: translateY(5px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+
+      /* Search keeps the clear control discoverable and keyboard friendly. */
+      .search-bar {
+        min-width: 0 !important;
+        transition: border-color 180ms ease, background-color 180ms ease,
+          box-shadow 180ms ease !important;
+      }
+      .search-bar__input {
+        min-width: 0;
+      }
+      .search-bar__clear {
+        min-width: 44px !important;
+        min-height: 44px !important;
+      }
+
+      /* Modal loading state: communicate iframe work without a fake page loader. */
+      .game-modal__backdrop {
+        backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important;
+      }
+      .game-modal__frame-wrap {
+        position: relative;
+      }
+      .game-modal__loading {
+        position: absolute;
+        inset: 0;
+        z-index: 2;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.65rem;
+        padding: 1rem;
+        background: var(--bg-card, #121212);
+        color: var(--text-muted, #aaa);
+        font-size: 0.85rem;
+        pointer-events: none;
+        transition: opacity 180ms ease, visibility 180ms ease;
+      }
+      .game-modal__frame-wrap.is-loaded .game-modal__loading {
+        opacity: 0;
+        visibility: hidden;
+      }
+      .game-modal__frame-wrap.is-load-error .game-modal__loading {
+        color: var(--neon-red, #ff3c6e);
+      }
+      .game-modal__spinner {
+        width: 1rem;
+        height: 1rem;
+        border: 2px solid var(--border, #2a2a2a);
+        border-top-color: var(--accent, #c084fc);
+        border-radius: 50%;
+        animation: ux-spin 700ms linear infinite;
+      }
+      @keyframes ux-spin {
+        to { transform: rotate(360deg); }
+      }
+
+      /* Random action stays in the low-attention corner, clear of proxy tools. */
+      .random-game-btn {
+        left: max(16px, env(safe-area-inset-left)) !important;
+        bottom: max(16px, env(safe-area-inset-bottom)) !important;
+        min-height: 48px !important;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.22) !important;
+      }
+      .random-game-btn.is-ready {
+        animation: ux-random-ready 360ms ease-out 1;
+      }
+      .random-game-btn__icon {
+        transition: transform 180ms ease;
+      }
+      .random-game-btn:hover .random-game-btn__icon,
+      .random-game-btn:focus-visible .random-game-btn__icon {
+        transform: rotate(12deg);
+      }
+      .random-game-btn.is-launching .random-game-btn__icon {
+        animation: ux-spin 550ms linear 1;
+      }
+      @keyframes ux-random-ready {
+        from { opacity: 0.7; transform: translateY(4px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+
+      /* Responsive layout checkpoints: 1024 / 768 / 375px. */
+      @media (max-width: 1024px) {
+        .app {
+          max-width: 100%;
+          padding: 1.25rem;
+        }
+        .app__header {
+          gap: 1.25rem;
+        }
+        .bento-grid__standard {
+          grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+        }
+      }
+      @media (max-width: 768px) {
+        .app {
+          padding: 1rem;
+        }
+        .app__header {
+          gap: 0.75rem;
+        }
+        .app__logo {
+          min-width: 0;
+        }
+        .app__logo-text {
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+        .search-bar {
+          flex: 1 1 100% !important;
+          width: 100% !important;
+          max-width: none !important;
+        }
+        .category-filter {
+          flex-wrap: nowrap !important;
+          overflow-x: auto;
+          scrollbar-width: none;
+          padding-inline: 0.1rem;
+          margin-inline: -0.1rem;
+        }
+        .category-filter::-webkit-scrollbar {
+          display: none;
+        }
+        .category-filter__btn {
+          flex: 0 0 auto;
+        }
+        .bento-grid__standard {
+          grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        }
+        .random-game-btn {
+          left: max(12px, env(safe-area-inset-left)) !important;
+          bottom: max(12px, env(safe-area-inset-bottom)) !important;
+        }
+      }
+      @media (max-width: 400px) {
+        .app {
+          padding: 0.75rem;
+        }
+        .bento-grid__standard {
+          grid-template-columns: 1fr !important;
+        }
+        .game-card__body {
+          padding: 0.85rem;
+        }
+        .random-game-btn {
+          max-width: calc(50vw - 1rem);
+          padding-inline: 0.8rem !important;
+          font-size: 0.72rem !important;
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .game-card,
+        .bento-grid.is-filtering .game-card,
+        .game-modal__loading,
+        .random-game-btn,
+        .random-game-btn__icon,
+        .game-modal__spinner {
+          animation: none !important;
+          transition: none !important;
+        }
+      }
     </style>
   </head>
   <body>
