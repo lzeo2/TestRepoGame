@@ -619,5 +619,14 @@
     "desc": "The Dogecoin Mining Simulator — click to mine, hire helpers, buy upgrades, and reach the moon!",
     "url": "Games/DogeMiner/index.html",
     "featured": false
+  },
+  {
+    "id": 88,
+    "title": "Hangman",
+    "cat": "word",
+    "icon": "",
+    "desc": "Guess the hidden words one letter at a time before the hangman is complete.",
+    "url": "Games/Hangman/index.html",
+    "featured": false
   }
 ]
