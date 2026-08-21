@@ -35,7 +35,10 @@ KNOWN_BENIGN = {
     "Cut the Rope": ["intro_1024.webm", "music"],  # headless lacks h264 (real browsers use mp4); seraph build ships no music files
 }
 BENIGN_REQS = ("unity3d.com", "svg%3e", "hwstats.cgi", "savedata.ini", "optiondata.dat",
-               "snd.mp3", "http 501")
+               "snd.mp3", "http 501",
+               "cloak.js",        # shared ad-cloak loader (../../storage/js/cloak.js) 404s in offline builds; benign, non-gameplay
+               "storage/js/",     # ad/analytics storage paths referenced by commercial embeds
+               "ico.ico", "favicon")  # browser auto-requests /favicon.ico; absent in local builds, harmless
 
 def benign(text: str) -> bool:
     t = text.lower()
