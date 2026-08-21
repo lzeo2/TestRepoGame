@@ -18,15 +18,6 @@
     "featured": false
   },
   {
-    "id": 3,
-    "title": "Slope",
-    "cat": "action",
-    "icon": "",
-    "desc": "Unavailable offline \u2014 the original build needs a network connection to load.",
-    "url": "Games/Slope/index.html",
-    "featured": false
-  },
-  {
     "id": 4,
     "title": "Soccer Random",
     "cat": "sports",
@@ -553,7 +544,7 @@
     "title": "Bloons TD",
     "cat": "strategy",
     "icon": "",
-    "desc": "Classic tower defense — pop bloons with monkeys! Four versions included: BTD 1–4, playable via bundled Ruffle emulator.",
+    "desc": "Classic tower defense \u2014 pop bloons with monkeys! Four versions included: BTD 1\u20134, playable via bundled Ruffle emulator.",
     "url": "Games/BloonsTD/index.html",
     "featured": false
   },
@@ -562,7 +553,7 @@
     "title": "Drift Boss",
     "cat": "action",
     "icon": "",
-    "desc": "Endless drifting game — steer your car through obstacles, chain combos, and drift as far as you can!",
+    "desc": "Endless drifting game \u2014 steer your car through obstacles, chain combos, and drift as far as you can!",
     "url": "Games/DriftBoss/index.html",
     "featured": false
   },
@@ -580,7 +571,7 @@
     "title": "Doodle Jump",
     "cat": "action",
     "icon": "",
-    "desc": "Classic vertical platformer — jump as high as you can, dodge monsters, collect power-ups!",
+    "desc": "Classic vertical platformer \u2014 jump as high as you can, dodge monsters, collect power-ups!",
     "url": "Games/DoodleJump/index.html",
     "featured": false
   },
@@ -598,7 +589,7 @@
     "title": "Thumb Fighter",
     "cat": "sports",
     "icon": "",
-    "desc": "Two-player thumb wrestling game — battle a friend on one keyboard or fight the computer!",
+    "desc": "Two-player thumb wrestling game \u2014 battle a friend on one keyboard or fight the computer!",
     "url": "Games/ThumbFighter/index.html",
     "featured": false
   },
@@ -607,7 +598,7 @@
     "title": "Jetpack Joyride",
     "cat": "action",
     "icon": "",
-    "desc": "Endless side-scrolling runner — strap on a jetpack, dodge lasers and missiles, and grab coins!",
+    "desc": "Endless side-scrolling runner \u2014 strap on a jetpack, dodge lasers and missiles, and grab coins!",
     "url": "Games/JetpackJoyride/index.html",
     "featured": false
   },
@@ -616,7 +607,7 @@
     "title": "Doge Miner",
     "cat": "idle",
     "icon": "",
-    "desc": "The Dogecoin Mining Simulator — click to mine, hire helpers, buy upgrades, and reach the moon!",
+    "desc": "The Dogecoin Mining Simulator \u2014 click to mine, hire helpers, buy upgrades, and reach the moon!",
     "url": "Games/DogeMiner/index.html",
     "featured": false
   },
