@@ -33,12 +33,15 @@ KNOWN_BENIGN = {
     "Stranded In Isekai": ["-snd.mp3"],            # audio preload aborts on scene swap; files exist
     "Character Alsen": ["svg%3e"],                 # data-URI favicon hack 404s; protected game, original 404
     "Cut the Rope": ["intro_1024.webm", "music"],  # headless lacks h264 (real browsers use mp4); seraph build ships no music files
+    "Thumb Fighter": ["add-stylesheet", "safari_fix"],  # C3 headless quirk: runtime injects Safari-only stylesheet; handler rejects on 404, game still runs
 }
 BENIGN_REQS = ("unity3d.com", "svg%3e", "hwstats.cgi", "savedata.ini", "optiondata.dat",
                "snd.mp3", "http 501",
                "cloak.js",        # shared ad-cloak loader (../../storage/js/cloak.js) 404s in offline builds; benign, non-gameplay
                "storage/js/",     # ad/analytics storage paths referenced by commercial embeds
-               "ico.ico", "favicon")  # browser auto-requests /favicon.ico; absent in local builds, harmless
+               "ico.ico", "favicon",  # browser auto-requests /favicon.ico; absent in local builds, harmless
+               "about:blank",    # Playwright/Chromium blank-doc scheme error; benign, not a game asset
+               "safari_fix.css")  # C3 Safari-only stylesheet; 404s offline, injected at runtime, non-fatal
 
 def benign(text: str) -> bool:
     t = text.lower()
