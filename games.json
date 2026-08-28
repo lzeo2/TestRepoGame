@@ -637,5 +637,14 @@
     "desc": "Cookie Clicker with unlimited cookies, all upgrades, and all buildings unlocked!",
     "url": "Games/CookieClickerHacked/index.html",
     "featured": false
+  },
+  {
+    "id": 91,
+    "title": "Flappy Bird Hacked",
+    "cat": "classic",
+    "icon": "",
+    "desc": "Flappy Bird with god mode - no collision, infinite best score!",
+    "url": "Games/FlappyBirdHacked/index.html",
+    "featured": false
   }
 ]

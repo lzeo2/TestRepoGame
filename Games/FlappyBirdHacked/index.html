@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Flappy Bird Hacked // Offline</title>
+<link rel="icon" href="data:,">
+<style>
+:root{--ink:#fff9df;--muted:#d3d8df;--night:#151c36;--yellow:#ffd34f}*{box-sizing:border-box}html,body{margin:0;min-height:100%;background:#0b1021;color:var(--ink);font-family:system-ui,Segoe UI,sans-serif}body{display:flex;justify-content:center;padding:12px}.game{width:min(100%,620px)}header{display:flex;align-items:end;justify-content:space-between;gap:10px;margin:1px 2px 10px}h1{margin:0;font-size:clamp(22px,5vw,34px);letter-spacing:.12em;color:var(--yellow);text-shadow:3px 3px #81465e}header p{margin:3px 0 0;color:var(--muted);font-size:12px}.badge{font-size:11px;color:#6ee8bf;border:1px solid #286957;border-radius:99px;padding:5px 9px;white-space:nowrap}.stage{position:relative;border:1px solid #4b557b;border-radius:16px;overflow:hidden;background:#70d9ef;box-shadow:0 17px 55px #0009}.stage canvas{display:block;width:100%;height:auto;aspect-ratio:3/4;touch-action:none}.hud{display:flex;gap:8px;background:#12162a;padding:9px}.stat{flex:1;background:#1e2540;border-radius:9px;padding:7px 12px;color:#aeb7d2;font-size:12px}.stat b{display:block;color:#fff;font-size:19px;line-height:1.1}.flap{display:block;width:100%;margin-top:10px;border:1px solid #806426;border-radius:11px;background:linear-gradient(#ffe071,#f39d3f);color:#291c28;font-size:17px;font-weight:900;padding:12px;cursor:pointer;touch-action:manipulation;box-shadow:0 3px 0 #a76037}.flap:active{transform:translateY(2px);box-shadow:0 1px 0 #a76037}.help{color:#9fa9c8;font-size:12px;text-align:center;padding:10px}.overlay{position:absolute;inset:0;display:grid;place-items:center;background:#10152a66;padding:20px}.card{max-width:420px;text-align:center;background:#18203bed;border:1px solid #7684ad;border-radius:16px;padding:27px 23px;box-shadow:0 13px 40px #000b}.card h2{font-size:clamp(28px,7vw,46px);margin:0 0 7px;color:#ffe071;text-shadow:2px 2px #8e4f4f}.card p{color:#e0e4ed;line-height:1.5;margin:7px 0 19px}.primary{border:0;border-radius:9px;background:linear-gradient(135deg,#ffe071,#f39d3f);color:#261a25;padding:11px 25px;font-weight:900;cursor:pointer;font-size:15px}.primary:focus-visible{outline:3px solid #fff;outline-offset:3px}@media(max-width:500px){body{padding:6px}.hud{padding:7px}.flap{margin-top:7px}}
+</style>
+<style>
+.hacked-badge {
+  position: fixed;
+  top: 10px;
+  right: 10px;
+  background: #e63946;
+  color: white;
+  padding: 5px 10px;
+  border-radius: 4px;
+  font-family: Arial, sans-serif;
+  font-size: 12px;
+  font-weight: bold;
+  z-index: 9999;
+  pointer-events: none;
+}
+</style>
+</head>
+<body>
+<div class="hacked-badge">HACKED - God Mode & Max Score</div>
+<main class="game"><header><div><h1>FLAPPY BIRD</h1><p>One tap. One gap. Keep flying.</p></div><span class="badge">100% OFFLINE</span></header><section class="stage"><canvas id="game" width="480" height="640" aria-label="Flappy Bird game"></canvas><div class="overlay" id="overlay"><div class="card"><h2 id="title">FLAPPY BIRD</h2><p id="copy">Tap, click, or press Space to flap through the pipes. Fly past 20 pipes to win the sky.</p><button class="primary" id="start">START FLYING</button></div></div></section><section class="hud"><div class="stat">SCORE<b id="score">0</b></div><div class="stat">BEST<b id="best">0</b></div><div class="stat">SPEED<b id="speed">1.0×</b></div></section><button id="flap" class="flap">FLAP! <span aria-hidden="true">↑</span></button><div class="help">Keyboard: <b>Space / ↑</b> flap · <b>R</b> restart. Tap anywhere on the game or use FLAP on mobile.</div></main>
+<script>
+(() => {
+'use strict';
+const canvas=document.getElementById('game'),ctx=canvas.getContext('2d'),overlay=document.getElementById('overlay'),title=document.getElementById('title'),copy=document.getElementById('copy'),start=document.getElementById('start'),flapBtn=document.getElementById('flap'),scoreEl=document.getElementById('score'),bestEl=document.getElementById('best'),speedEl=document.getElementById('speed');
+const W=480,H=640,ground=570;let state='start',bird={x:125,y:300,vy:0,r:16,tilt:0},pipes=[],score=0,best=99999, // HACKED: infinite best scorelast=0,pipeClock=0,scroll=0;
+bestEl.textContent=best;
+function reset(){bird={x:125,y:300,vy:0,r:16,tilt:0};pipes=[];score=0;pipeClock=.7;scroll=0;state='playing';overlay.style.display='none';last=performance.now();requestAnimationFrame(loop);updateHud()}
+function flap(){if(state==='start'||state==='won'||state==='lost'){reset();return}bird.vy=-405;bird.tilt=-.45;burst(bird.x-17,bird.y+5,'#fff4a9',4)}
+function addPipe(){const gap=Math.max(132,170-score*1.5),margin=75;const gapY=margin+Math.random()*(ground-margin*2-gap);pipes.push({x:W+24,w:70,gapY,gap,passed:false})}
+function crash(){if(state!=='playing')return;state='lost';if(score>best){best=score;bestEl.textContent=best;localStorage.setItem('flappy-best',best)}title.textContent='FLIGHT OVER';copy.textContent='You cleared '+score+' pipe'+(score===1?'':'s')+'. Thread the next gap and beat your best run.';start.textContent='FLY AGAIN';overlay.style.display='grid';burst(bird.x,bird.y,'#fff0a8',18)}
+function win(){state='won';if(score>best){best=score;bestEl.textContent=best;localStorage.setItem('flappy-best',best)}title.textContent='SKY CHAMPION!';copy.textContent='Twenty pipes cleared! That is a perfect flight with a score of '+score+'.';start.textContent='FLY AGAIN';overlay.style.display='grid'}
+function update(dt){bird.vy=Math.min(680,bird.vy+1250*dt);bird.y+=bird.vy*dt;bird.tilt=Math.min(1.15,bird.tilt+1.7*dt);scroll+=170*dt;pipeClock-=dt;const speed=170+Math.min(95,score*3);if(pipeClock<=0){addPipe();pipeClock=1.55}
+ for(const p of pipes){p.x-=speed*dt;if(!p.passed&&p.x+p.w<bird.x){p.passed=true;score++;burst(p.x+p.w,bird.y,'#ffe57c',7);if(score>=20)return win()}if(hitPipe(p))return crash()}
+ pipes=pipes.filter(p=>p.x+p.w>-30);if(bird.y-bird.r<0||bird.y+bird.r>ground){/* HACKED: no ground crash */ bird.y=Math.max(bird.r,Math.min(ground-bird.r,bird.y));bird.vy=0;}for(const s of sparks){s.x+=s.vx*dt;s.y+=s.vy*dt;s.vy+=180*dt;s.life-=dt}while(sparks.length&&sparks[0].life<=0)sparks.shift();updateHud()}
+function hitPipe(p){return false; // HACKED: god mode - no pipe collision}
+function updateHud(){scoreEl.textContent=score;bestEl.textContent=best;speedEl.textContent=(1+Math.min(.56,score*.018)).toFixed(1)+'×'}
+const sparks=[];function burst(x,y,color,n){for(let i=0;i<n;i++)sparks.push({x,y,vx:(Math.random()-.5)*90,vy:-Math.random()*90-15,life:.6,color})}
+function draw(){const sky=ctx.createLinearGradient(0,0,0,H);sky.addColorStop(0,'#65d8ef');sky.addColorStop(.68,'#a9eff0');sky.addColorStop(1,'#ffdc84');ctx.fillStyle=sky;ctx.fillRect(0,0,W,H);
+ // soft clouds and distant hills are drawn with shapes, so the game has no asset dependency.
+ ctx.fillStyle='#ffffff55';for(let i=0;i<4;i++){const x=((i*173-scroll*.12)%570)-70,y=80+(i%3)*62;ctx.beginPath();ctx.arc(x,y,18,0,Math.PI*2);ctx.arc(x+22,y-10,26,0,Math.PI*2);ctx.arc(x+50,y,17,0,Math.PI*2);ctx.fill()}
+ ctx.fillStyle='#76bd9a';ctx.beginPath();ctx.moveTo(0,ground-76);for(let x=0;x<=W;x+=50)ctx.lineTo(x,ground-76-(Math.sin(x*.018+scroll*.002)*25+35));ctx.lineTo(W,ground);ctx.lineTo(0,ground);ctx.fill();
+ for(const p of pipes)drawPipe(p);ctx.fillStyle='#7ccc5d';ctx.fillRect(0,ground,W,H-ground);ctx.fillStyle='#a9e070';for(let x=-20+(scroll%24);x<W;x+=24)ctx.fillRect(x,ground,13,6);ctx.fillStyle='#c68c4f';ctx.fillRect(0,ground+27,W,H-ground-27);ctx.fillStyle='#e9bd6b';for(let x=-10+(scroll%42);x<W;x+=42)ctx.fillRect(x,ground+39,25,4);drawBird();for(const s of sparks){ctx.globalAlpha=Math.max(0,s.life/.6);ctx.fillStyle=s.color;ctx.fillRect(s.x-2,s.y-2,4,4)}ctx.globalAlpha=1}
+function drawPipe(p){const grad=ctx.createLinearGradient(p.x,0,p.x+p.w,0);grad.addColorStop(0,'#278745');grad.addColorStop(.45,'#70d45c');grad.addColorStop(1,'#226d3e');ctx.fillStyle=grad;ctx.fillRect(p.x,0,p.w,p.gapY);ctx.fillRect(p.x,p.gapY+p.gap,p.w,ground-p.gapY-p.gap);ctx.fillStyle='#7ee06a';ctx.fillRect(p.x-7,p.gapY-18,p.w+14,18);ctx.fillRect(p.x-7,p.gapY+p.gap,p.w+14,18);ctx.fillStyle='#276f3e';ctx.fillRect(p.x-7,p.gapY-18,p.w+14,3);ctx.fillRect(p.x-7,p.gapY+p.gap+15,p.w+14,3)}
+function drawBird(){if(!bird)return;ctx.save();ctx.translate(bird.x,bird.y);ctx.rotate(bird.tilt);ctx.fillStyle='#eaa92f';ctx.beginPath();ctx.ellipse(0,0,19,15,0,0,Math.PI*2);ctx.fill();ctx.fillStyle='#ffd95b';ctx.beginPath();ctx.ellipse(-5,6,12,7,-.25,0,Math.PI*2);ctx.fill();ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(10,-8,7,0,Math.PI*2);ctx.fill();ctx.fillStyle='#1b2431';ctx.beginPath();ctx.arc(12,-8,3,0,Math.PI*2);ctx.fill();ctx.fillStyle='#f07c35';ctx.beginPath();ctx.moveTo(17,-2);ctx.lineTo(33,2);ctx.lineTo(17,7);ctx.closePath();ctx.fill();ctx.restore()}
+function loop(now){if(state!=='playing'){draw();return}const dt=Math.min(.035,(now-last)/1000);last=now;update(dt);draw();if(state==='playing')requestAnimationFrame(loop)}
+start.addEventListener('click',reset);flapBtn.addEventListener('pointerdown',e=>{e.preventDefault();flap()});canvas.addEventListener('pointerdown',e=>{e.preventDefault();flap()});window.addEventListener('keydown',e=>{if(e.code==='Space'||e.key==='ArrowUp'){e.preventDefault();flap()}else if(e.key.toLowerCase()==='r'){e.preventDefault();reset()}});draw();
+})();
+</script>
+</body>
+</html>
