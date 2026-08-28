@@ -655,5 +655,14 @@
     "desc": "Tetris with god mode - board clears on every piece, infinite score!",
     "url": "Games/TetrisHacked/index.html",
     "featured": false
+  },
+  {
+    "id": 93,
+    "title": "Age of War Hacked",
+    "cat": "strategy",
+    "icon": "",
+    "desc": "Age of War with infinite gold, 10x damage, and 10x HP units!",
+    "url": "Games/AgeOfWarHacked/index.html",
+    "featured": false
   }
 ]

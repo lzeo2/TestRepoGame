@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Age of War Hacked // Offline</title>
+<link rel="icon" href="data:,">
+<style>
+:root{--ink:#f6e9c9;--muted:#b7a47a;--gold:#ffc857;--red:#ff6675;--blue:#61d9ff;--panel:#161525}*{box-sizing:border-box}html,body{margin:0;min-height:100%;background:#090a14;color:var(--ink);font-family:system-ui,Segoe UI,sans-serif}body{display:flex;justify-content:center;padding:12px}.game{width:min(100%,1000px)}header{display:flex;align-items:end;justify-content:space-between;margin:2px 2px 10px;gap:12px}h1{font-size:clamp(20px,4vw,32px);letter-spacing:.08em;margin:0;color:#ffd166}header p{margin:3px 0 0;color:var(--muted);font-size:12px}.badge{font-size:11px;color:#71f0c1;border:1px solid #275b53;border-radius:999px;padding:5px 9px;white-space:nowrap}.stage{position:relative;border:1px solid #3e3a55;border-radius:14px;overflow:hidden;background:#101222;box-shadow:0 12px 50px #0008}.stage canvas{display:block;width:100%;height:auto;aspect-ratio:16/9}.hud{display:flex;flex-wrap:wrap;gap:8px;padding:9px;background:#11101d;border-top:1px solid #312d48}.stat{flex:1 1 100px;min-width:90px;background:#1b192b;border-radius:8px;padding:6px 9px;font-size:12px;color:var(--muted)}.stat b{display:block;font-size:16px;color:var(--ink);line-height:1.1}.bars{flex:2 1 240px;display:grid;gap:4px;align-content:center}.bar{height:9px;border-radius:9px;background:#302d43;overflow:hidden}.bar i{display:block;height:100%;width:100%;transition:width .15s}.pbar i{background:linear-gradient(90deg,#55e0a0,#2db8e8)}.ebar i{background:linear-gradient(90deg,#ffbd58,#ec5268)}.controls{display:flex;gap:8px;padding:10px;background:#0d0c17;flex-wrap:wrap}.unit{flex:1 1 145px;border:1px solid #4a4565;border-radius:10px;background:#211e34;color:var(--ink);padding:9px 10px;text-align:left;cursor:pointer;touch-action:manipulation}.unit:hover,.unit:focus-visible{border-color:var(--gold);background:#2b2742;outline:none}.unit:disabled{opacity:.42;cursor:not-allowed}.unit strong{display:block;font-size:13px}.unit small{color:var(--muted)}.unit em{float:right;color:var(--gold);font-style:normal}.help{padding:8px 12px;color:var(--muted);font-size:12px;background:#12101e}.overlay{position:absolute;inset:0;display:grid;place-items:center;background:#080914b8;padding:20px}.card{max-width:480px;text-align:center;background:#17152aeb;border:1px solid #595171;border-radius:15px;padding:26px 22px;box-shadow:0 10px 35px #000a}.card h2{margin:0 0 8px;color:#ffd166;font-size:clamp(22px,5vw,36px)}.card p{margin:8px 0 18px;color:#d0c5aa;line-height:1.5}.primary{border:0;border-radius:9px;background:linear-gradient(135deg,#ffc857,#e98b3b);color:#17111a;padding:11px 24px;font-weight:800;cursor:pointer;font-size:15px}.primary:focus-visible{outline:3px solid #fff;outline-offset:2px}@media(max-width:560px){body{padding:6px}.controls{padding:7px}.unit{min-width:calc(50% - 8px);padding:8px}.unit small{font-size:10px}.hud{gap:5px;padding:6px}}
+</style>
+<style>
+.hacked-badge {
+  position: fixed;
+  top: 10px;
+  right: 10px;
+  background: #e63946;
+  color: white;
+  padding: 5px 10px;
+  border-radius: 4px;
+  font-family: Arial, sans-serif;
+  font-size: 12px;
+  font-weight: bold;
+  z-index: 9999;
+  pointer-events: none;
+}
+</style>
+</head>
+<body>
+<div class="hacked-badge">HACKED - Infinite Gold & One-Hit Kills</div>
+<main class="game">
+<header><div><h1>AGE OF WAR</h1><p>Build a squad. Break the enemy gate.</p></div><span class="badge">100% OFFLINE</span></header>
+<section class="stage"><canvas id="battle" width="960" height="540" aria-label="Age of War battlefield"></canvas><div id="overlay" class="overlay"><div class="card"><h2 id="overlayTitle">AGE OF WAR</h2><p id="overlayText">Spend gold to train warriors, hold the line, and destroy the red fortress. Your base generates a little gold over time.</p><button id="start" class="primary">START BATTLE</button></div></div></section>
+<section class="hud"><div class="stat">GOLD<b id="gold">120</b></div><div class="stat">SCORE<b id="score">0</b></div><div class="stat">WAVE<b id="wave">1</b></div><div class="bars"><div class="bar pbar"><i id="playerBar"></i></div><div class="bar ebar"><i id="enemyBar"></i></div></div></section>
+<section class="controls" aria-label="Train units"><button class="unit" data-kind="scout"><strong>1 · Scout <em>35g</em></strong><small>Fast runner · light damage</small></button><button class="unit" data-kind="guard"><strong>2 · Guard <em>60g</em></strong><small>Armored frontline fighter</small></button><button class="unit" data-kind="archer"><strong>3 · Archer <em>85g</em></strong><small>Long range · steady shots</small></button></section>
+<div class="help">Keyboard: <b>1</b> Scout · <b>2</b> Guard · <b>3</b> Archer · <b>Space</b> starts or restarts. Tap a unit card on mobile.</div>
+</main>
+<script>
+(() => {
+'use strict';
+const canvas=document.getElementById('battle'),ctx=canvas.getContext('2d'), overlay=document.getElementById('overlay'), title=document.getElementById('overlayTitle'), text=document.getElementById('overlayText'), start=document.getElementById('start');
+const goldEl=document.getElementById('gold'),scoreEl=document.getElementById('score'),waveEl=document.getElementById('wave'),pBar=document.getElementById('playerBar'),eBar=document.getElementById('enemyBar'),buttons=[...document.querySelectorAll('.unit')];
+const W=960,H=540, ground=405, costs={scout:35,guard:60,archer:85};
+const specs={scout:{name:'Scout',hp:52,damage:9,range:30,speed:46,rate:.72,color:'#5ed9b2'},guard:{name:'Guard',hp:125,damage:16,range:31,speed:25,rate:1.05,color:'#5eb7e8'},archer:{name:'Archer',hp:68,damage:22,range:145,speed:20,rate:1.3,color:'#d7a5ff'}};
+let state='start',units=[],particles=[],gold=120,score=0,wave=1,playerHp=1000,enemyHp=1000,last=0,enemyTimer=1.2,goldTimer=0,spawnTimer=0;
+function reset(){state='playing';units=[];particles=[];gold=120;score=0;wave=1;playerHp=1000;enemyHp=1000;enemyTimer=1.2;goldTimer=0;spawnTimer=0;overlay.style.display='none';last=performance.now();requestAnimationFrame(loop)}
+function end(won){state=won?'won':'lost';overlay.style.display='grid';title.textContent=won?'VICTORY!':'BASE OVERRUN';text.textContent=won?'The red fortress has fallen. Your army wins the age with '+score+' battle points.':'Your gate was breached. Train a stronger army and try a different opening.';start.textContent='PLAY AGAIN'}
+function buy(kind){if(state!=='playing'||gold<costs[kind])return;gold-=costs[kind];const s=specs[kind];units.push({team:'p',kind,x:115,hp:s.hp*10,max:s.hp*10,damage:s.damage*5,range:s.range*2,speed:s.speed*1.5,rate:s.rate*0.5,wait:.2,color:s.color});burst(115,ground-25,s.color,5);}
+function enemy(){const kinds=['scout','guard','archer'];let k=kinds[Math.min(kinds.length-1,Math.floor((wave-1)/2))];if(Math.random()<.24)k='scout';const s=specs[k];units.push({team:'e',kind:k,x:845,hp:s.hp*(1+wave*.1),max:s.hp*(1+wave*.1),damage:s.damage*(1+wave*.06),range:s.range,speed:s.speed,rate:s.rate,wait:.2,color:'#f06472'});}
+function burst(x,y,color,n){for(let i=0;i<n;i++)particles.push({x,y,vx:(Math.random()-.5)*60,vy:-Math.random()*55-15,life:.45,color});}
+function nearest(u,enemyTeam){let best=null,dist=Infinity;for(const v of units){if(v.team!==enemyTeam)continue;const d=Math.abs(v.x-u.x);if(d<dist){best=v;dist=d}}return best}
+function update(dt){
+ goldTimer+=dt;if(goldTimer>1){goldTimer=0;gold+=9999; // HACKED: infinite gold income}
+ enemyTimer-=dt;if(enemyTimer<=0){enemy();enemyTimer=Math.max(1.35,3.7-wave*.18);if(units.filter(u=>u.team==='e').length<3+Math.floor(wave/2))enemyTimer*=.55;}
+ spawnTimer+=dt;if(spawnTimer>18){spawnTimer=0;wave++;}
+ for(const u of units){const foe=nearest(u,u.team==='p'?'e':'p');const targetX=u.team==='p'?868:92;u.wait-=dt;if(foe&&Math.abs(foe.x-u.x)<=u.range+14){if(u.wait<=0){foe.hp-=u.damage*10;u.wait=u.rate;burst(foe.x,ground-35,'#ffe08a',2);score+=u.team==='p'?2:0}}else if(!foe||Math.abs(foe.x-u.x)>u.range+14){u.x+=(u.team==='p'?1:-1)*u.speed*dt;}
+  if((u.team==='p'&&u.x>850)||(u.team==='e'&&u.x<110)){if(u.wait<=0){if(u.team==='p')enemyHp-=u.damage*1.4;else playerHp-=u.damage*1.3;u.wait=u.rate;burst(u.team==='p'?880:80,ground-60,u.color,3);}}
+ }
+ const dead=units.filter(u=>u.hp<=0);for(const u of dead)burst(u.x,ground-28,u.color,7);units=units.filter(u=>u.hp>0&&u.x>-20&&u.x<980);
+ if(enemyHp<=0)return end(true);if(playerHp<=0)return end(false);
+ for(const p of particles){p.x+=p.vx*dt;p.y+=p.vy*dt;p.vy+=110*dt;p.life-=dt}particles=particles.filter(p=>p.life>0);
+ updateHud();
+}
+function updateHud(){goldEl.textContent=Math.floor(gold);scoreEl.textContent=score;waveEl.textContent=wave;pBar.style.width=Math.max(0,playerHp/10)+'%';eBar.style.width=Math.max(0,enemyHp/10)+'%';buttons.forEach(b=>b.disabled=state!=='playing'||gold<costs[b.dataset.kind]);}
+function draw(){
+ ctx.clearRect(0,0,W,H);const sky=ctx.createLinearGradient(0,0,0,H);sky.addColorStop(0,'#141b39');sky.addColorStop(1,'#472c3e');ctx.fillStyle=sky;ctx.fillRect(0,0,W,H);
+ for(let i=0;i<18;i++){ctx.fillStyle=i%2?'#f8d78a':'#b9e8e7';ctx.globalAlpha=.25;ctx.fillRect((i*83+30)%W,45+(i*37)%190,2,2)}ctx.globalAlpha=1;
+ ctx.fillStyle='#26324a';ctx.beginPath();ctx.moveTo(0,ground-72);for(let x=0;x<=W;x+=80)ctx.lineTo(x,ground-72-(x%160?22:0));ctx.lineTo(W,ground);ctx.lineTo(0,ground);ctx.fill();ctx.fillStyle='#594235';ctx.fillRect(0,ground,W,H-ground);ctx.fillStyle='#72533b';for(let x=0;x<W;x+=38)ctx.fillRect(x,ground+15+(x%3)*9,20,3);
+ drawBase(35,'#39bde0','YOUR GATE');drawBase(858,'#e05265','ENEMY GATE');
+ ctx.strokeStyle='#9d855c';ctx.setLineDash([8,12]);ctx.beginPath();ctx.moveTo(100,ground-3);ctx.lineTo(860,ground-3);ctx.stroke();ctx.setLineDash([]);
+ for(const u of units)drawUnit(u);for(const p of particles){ctx.globalAlpha=Math.max(0,p.life/.45);ctx.fillStyle=p.color;ctx.fillRect(p.x,p.y,4,4)}ctx.globalAlpha=1;
+}
+function drawBase(x,color,label){ctx.fillStyle='#171827';ctx.fillRect(x,ground-155,67,155);ctx.fillStyle=color;ctx.fillRect(x-6,ground-172,79,20);ctx.fillStyle='#0c101d';ctx.fillRect(x+10,ground-125,17,28);ctx.fillRect(x+40,ground-125,17,28);ctx.fillStyle=color;ctx.fillRect(x+26,ground-85,16,85);ctx.font='bold 11px system-ui';ctx.fillStyle='#fff';ctx.textAlign='center';ctx.fillText(label,x+34,ground-184);ctx.textAlign='left'}
+function drawUnit(u){const y=ground-30;ctx.save();ctx.translate(u.x,y);if(u.team==='e')ctx.scale(-1,1);ctx.fillStyle='#11131e88';ctx.beginPath();ctx.ellipse(0,17,22,5,0,0,Math.PI*2);ctx.fill();ctx.fillStyle=u.color;ctx.beginPath();ctx.arc(0,-22,10,0,Math.PI*2);ctx.fill();ctx.fillStyle='#f6dfbb';ctx.beginPath();ctx.arc(0,-25,6,0,Math.PI*2);ctx.fill();ctx.fillStyle=u.team==='p'?'#2c87bb':'#a9344d';ctx.fillRect(-11,-13,22,25);ctx.fillStyle='#251c31';ctx.fillRect(-8,10,5,10);ctx.fillRect(3,10,5,10);ctx.fillStyle='#dce8ee';ctx.fillRect(8,-10,18,3);if(u.kind==='archer'){ctx.strokeStyle='#f1c36d';ctx.lineWidth=2;ctx.beginPath();ctx.arc(13,-6,9,-1.2,1.2);ctx.stroke()}ctx.restore();ctx.fillStyle='#321927';ctx.fillRect(u.x-17,y-47,34,4);ctx.fillStyle=u.team==='p'?'#5ae3a6':'#ff6675';ctx.fillRect(u.x-17,y-47,34*Math.max(0,u.hp/u.max),4)}
+function loop(now){if(state!=='playing'){draw();return}const dt=Math.min(.035,(now-last)/1000);last=now;update(dt);draw();if(state==='playing')requestAnimationFrame(loop)}
+start.addEventListener('click',reset);buttons.forEach(b=>b.addEventListener('click',()=>buy(b.dataset.kind)));window.addEventListener('keydown',e=>{if(e.code==='Space'){e.preventDefault();if(state!=='playing')reset();return}if(e.key==='1')buy('scout');if(e.key==='2')buy('guard');if(e.key==='3')buy('archer')});updateHud();draw();
+})();
+</script>
+</body>
+</html>
