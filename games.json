@@ -6,7 +6,8 @@
     "icon": "",
     "desc": "Classic number puzzle. Combine tiles to reach 2048!",
     "url": "Games/2048/index.html",
-    "featured": false
+    "featured": false,
+    "tags": []
   },
   {
     "id": 2,
@@ -15,7 +16,8 @@
     "icon": "",
     "desc": "Side-scrolling tower defense \u2014 train scouts, guards, and archers to destroy the enemy gate.",
     "url": "Games/AgeOfWar/index.html",
-    "featured": false
+    "featured": false,
+    "tags": []
   },
   {
     "id": 4,
@@ -24,7 +26,8 @@
     "icon": "",
     "desc": "Chaotic physics-based soccer with random elements.",
     "url": "Games/SoccerRandom/index.html",
-    "featured": false
+    "featured": false,
+    "tags": []
   },
   {
     "id": 5,
@@ -33,7 +36,8 @@
     "icon": "",
     "desc": "Wacky basketball with unpredictable physics.",
     "url": "Games/BasketRandom/index.html",
-    "featured": false
+    "featured": false,
+    "tags": []
   },
   {
     "id": 6,
@@ -42,7 +46,8 @@
     "icon": "",
     "desc": "Bizarre volleyball with silly physics mechanics.",
     "url": "Games/VolleyRandom/index.html",
-    "featured": false
+    "featured": false,
+    "tags": []
   },
   {
     "id": 7,
@@ -51,7 +56,8 @@
     "icon": "",
     "desc": "Fast-paced parkour platformer with slick movements.",
     "url": "Games/Ovo/1.4.5/index.html",
-    "featured": true
+    "featured": true,
+    "tags": []
   },
   {
     "id": 8,
@@ -60,7 +66,8 @@
     "icon": "",
     "desc": "Endless space runner through 3D tunnels.",
     "url": "Games/Run3/tn6pS9dCf37xAhkJv/index.html",
-    "featured": true
+    "featured": true,
+    "tags": []
   },
   {
     "id": 9,
@@ -69,7 +76,8 @@
     "icon": "",
     "desc": "Classic snake game. Eat food, grow, don't hit the wall!",
     "url": "Games/Snake/index.html",
-    "featured": false
+    "featured": false,
+    "tags": []
   },
   {
     "id": 10,
@@ -78,7 +86,8 @@
     "icon": "",
     "desc": "The famous offline Chrome dinosaur game.",
     "url": "Games/ChromeDino/dino.html",
-    "featured": false
+    "featured": false,
+    "tags": []
   },
   {
     "id": 11,
@@ -87,7 +96,8 @@
     "icon": "",
     "desc": "Classic arcade breakout. Break all the bricks!",
     "url": "Games/BreakoutClassic/index.html",
-    "featured": false
+    "featured": false,
+    "tags": []
   },
   {
     "id": 12,
@@ -96,7 +106,8 @@
     "icon": "",
     "desc": "Hexagonal block-stacking arcade puzzle \u2014 rotate the board, match colors, and clear the core.",
     "url": "Games/Hextris/index.html",
-    "featured": false
+    "featured": false,
+    "tags": []
   },
   {
     "id": 13,
@@ -105,7 +116,8 @@
     "icon": "",
     "desc": "Tap-to-fly arcade challenge \u2014 guide the bird through pipes, chase a high score, and keep the run alive.",
     "url": "Games/FlappyBird/index.html",
-    "featured": false
+    "featured": false,
+    "tags": []
   },
   {
     "id": 14,
@@ -114,7 +126,8 @@
     "icon": "",
     "desc": "Chat with an AI character.",
     "url": "Games/Character AI/Alsen.html",
-    "featured": false
+    "featured": false,
+    "tags": []
   },
   {
     "id": 15,
@@ -123,7 +136,8 @@
     "icon": "",
     "desc": "Infamously difficult ragdoll running. Control thighs and calves with QWOP keys!",
     "url": "Games/QwopRemake/index.html",
-    "featured": false
+    "featured": false,
+    "tags": []
   },
   {
     "id": 16,
@@ -132,7 +146,8 @@
     "icon": "",
     "desc": "Catch falling stars, dodge bombs, and rack up combos as the sky speeds up.",
     "url": "Games/StarCatcher/index.html",
-    "featured": false
+    "featured": false,
+    "tags": []
   },
   {
     "id": 17,
@@ -141,7 +156,8 @@
     "icon": "",
     "desc": "Head-to-head Pong battle on one screen. First to five points wins!",
     "url": "Games/PaddleDuel/index.html",
-    "featured": false
+    "featured": false,
+    "tags": []
   },
   {
     "id": 18,
@@ -150,7 +166,8 @@
     "icon": "",
     "desc": "Smash bricks at breakneck speed. Chain quick breaks to build huge combos!",
     "url": "Games/BrickDash/index.html",
-    "featured": false
+    "featured": false,
+    "tags": []
   },
   {
     "id": 19,
@@ -159,7 +176,8 @@
     "icon": "",
     "desc": "Slide and merge matching tiles to build bigger and bigger numbers.",
     "url": "Games/TileMerge/index.html",
-    "featured": false
+    "featured": false,
+    "tags": []
   },
   {
     "id": 20,
@@ -168,7 +186,8 @@
     "icon": "",
     "desc": "Flip cards and find all the matching pairs as fast as you can.",
     "url": "Games/MatchFlip/index.html",
-    "featured": false
+    "featured": false,
+    "tags": []
   },
   {
     "id": 23,
@@ -177,7 +196,8 @@
     "icon": "",
     "desc": "Minecraft 1.8.8 playable in your browser. Offline sandbox, mine and build to your heart's content.",
     "url": "Games/Eaglercraft/index.html",
-    "featured": false
+    "featured": false,
+    "tags": []
   },
   {
     "id": 24,
@@ -186,7 +206,8 @@
     "icon": "",
     "desc": "Original software-rendered first-person shooter. Grab the pointer and take aim.",
     "url": "Games/FPS/index.html",
-    "featured": false
+    "featured": false,
+    "tags": []
   },
   {
     "id": 31,
@@ -195,7 +216,8 @@
     "icon": "",
     "desc": "Use every letter with the fewest words. Each word must start with the last letter of the previous.",
     "url": "Games/LetterBoxed/index.html",
-    "featured": false
+    "featured": false,
+    "tags": []
   },
   {
     "id": 35,
@@ -204,7 +226,8 @@
     "icon": "",
     "desc": "Wave-based arena shooter. Dodge bullets and take down wave after wave of bosses!",
     "url": "Games/BossRush/index.html",
-    "featured": false
+    "featured": false,
+    "tags": []
   },
   {
     "id": 36,
@@ -213,7 +236,8 @@
     "icon": "",
     "desc": "Hotseat 2-4 player territory race. Claim cells and build a route to the vault before your rivals box you out.",
     "url": "Games/GridHeist/index.html",
-    "featured": false
+    "featured": false,
+    "tags": []
   },
   {
     "id": 37,
@@ -222,7 +246,8 @@
     "icon": "",
     "desc": "Arena survival for 2-4 players. Grab sparks, shine brightest, and stay inside the shrinking safe zone.",
     "url": "Games/LastLantern/index.html",
-    "featured": false
+    "featured": false,
+    "tags": []
   },
   {
     "id": 42,
@@ -231,7 +256,8 @@
     "icon": "",
     "desc": "Cooperative food-court rush for 1-4 players. Route customers to the right station before their patience runs out.",
     "url": "Games/QueueEscape/index.html",
-    "featured": false
+    "featured": false,
+    "tags": []
   },
   {
     "id": 44,
@@ -240,7 +266,8 @@
     "icon": "",
     "desc": "The Last Lighthouse: an offline text-choice adventure on a storm-threatened island with five endings to find.",
     "url": "Games/StoryAdventure/index.html",
-    "featured": false
+    "featured": false,
+    "tags": []
   },
   {
     "id": 47,
@@ -249,7 +276,8 @@
     "icon": "",
     "desc": "2D physics gladiator brawler \u2014 career mode, gear upgrades, 2-player local fights",
     "url": "Games/Gladihoppers/index.html",
-    "featured": false
+    "featured": false,
+    "tags": []
   },
   {
     "id": 48,
@@ -258,7 +286,8 @@
     "icon": "",
     "desc": "Physics launch game \u2014 fling the burrito, smash gummy bears, grab cash, and buy upgrades to travel further each run.",
     "url": "Games/BurritoBison/index.html",
-    "featured": false
+    "featured": false,
+    "tags": []
   },
   {
     "id": 49,
@@ -267,7 +296,8 @@
     "icon": "",
     "desc": "Text-based life simulation \u2014 born into a family, then steer a whole lifetime one year at a time: school, careers, relationships, crime, and whatever else aging throws at you.",
     "url": "Games/BitLife/index.html",
-    "featured": false
+    "featured": false,
+    "tags": []
   },
   {
     "id": 50,
@@ -276,7 +306,8 @@
     "icon": "",
     "desc": "Endless runner \u2014 dodge trains, jump and roll, and switch lanes to keep the run going through San Francisco. Fan-hosted Unity WebGL port; online leaderboards and services are inert offline.",
     "url": "Games/SubwaySurfers/index.html",
-    "featured": false
+    "featured": false,
+    "tags": []
   },
   {
     "id": 51,
@@ -285,7 +316,8 @@
     "icon": "",
     "desc": "Tend a fire, build a shelter, gather resources, and explore \u2014 a branching narrative progression that begins in one dark room and spirals far beyond it.",
     "url": "Games/ADarkRoom/index.html",
-    "featured": false
+    "featured": false,
+    "tags": []
   },
   {
     "id": 52,
@@ -294,7 +326,8 @@
     "icon": "",
     "desc": "Fantasy RPG \u2014 stranded in another world, explore villages and forests, talk to NPCs, win quiz battles, and level up through the story.",
     "url": "Games/StrandedInIsekai/index.html",
-    "featured": false
+    "featured": false,
+    "tags": []
   },
   {
     "id": 53,
@@ -303,7 +336,8 @@
     "icon": "",
     "desc": "Flipline Studios' classic time-management game \u2014 take orders, build pizzas, bake them, and serve happy customers through a full workday shift. Original 2007 Flash build running locally under the bundled Ruffle emulator; MochiAds/FliplineAds ad calls are answered locally, so it's fully playable offline.",
     "url": "Games/PapasPizzeria/index.html",
-    "featured": false
+    "featured": false,
+    "tags": []
   },
   {
     "id": 54,
@@ -312,7 +346,8 @@
     "icon": "",
     "desc": "Fan-hosted HTML5 port of New Star Games' Retro Bowl \u2014 build a franchise, draft, and play arcade football with simple tap/swipe controls. Local GameMaker:HTML5 build; Poki SDK replaced by a local stub, so it's fully playable offline.",
     "url": "Games/RetroBowl/index.html",
-    "featured": false
+    "featured": false,
+    "tags": []
   },
   {
     "id": 55,
@@ -321,7 +356,8 @@
     "icon": "",
     "desc": "Fan-hosted Unity WebGL port of SUPERHOT \u2014 time moves only when you move. Dismantle a slow-motion world with thrown weapons and well-timed shots. Local build; fully playable offline.",
     "url": "Games/Superhot/index.html",
-    "featured": false
+    "featured": false,
+    "tags": []
   },
   {
     "id": 56,
@@ -330,7 +366,8 @@
     "icon": "",
     "desc": "Fan-hosted Unity WebGL port of Flanne's 10 Minutes Till Dawn \u2014 survive the horde for ten minutes, level up on the fly, and stack upgrades as the night gets darker. Local build; fully playable offline.",
     "url": "Games/TenMinutesTillDawn/index.html",
-    "featured": false
+    "featured": false,
+    "tags": []
   },
   {
     "id": 57,
@@ -339,7 +376,8 @@
     "icon": "",
     "desc": "Fan-hosted port of the Henry Stickmin adventure Fleeing the Complex \u2014 escape the prison through zany, choice-driven outcomes. Original Flash game running under the bundled local Ruffle emulator.",
     "url": "Games/FleeingTheComplex/index.html",
-    "featured": false
+    "featured": false,
+    "tags": []
   },
   {
     "id": 58,
@@ -348,7 +386,8 @@
     "icon": "",
     "desc": "Fan-hosted port of the Henry Stickmin adventure Infiltrating the Airship \u2014 sneak aboard the Toppat airship and pick your path through branching chaos. Original Flash game running under the bundled local Ruffle emulator.",
     "url": "Games/InfiltratingTheAirship/index.html",
-    "featured": false
+    "featured": false,
+    "tags": []
   },
   {
     "id": 59,
@@ -357,7 +396,8 @@
     "icon": "",
     "desc": "Fan-hosted Unity WebGL port of Mystman12's Baldi's Basics in Education and Learning \u2014 explore the school, solve notebook math problems, and outrun Baldi as he gets faster with every wrong answer. Local build; fully playable offline.",
     "url": "Games/BaldisBasics/index.html",
-    "featured": false
+    "featured": false,
+    "tags": []
   },
   {
     "id": 60,
@@ -366,7 +406,8 @@
     "icon": "",
     "desc": "Fan-hosted HTML5 port (Babylon.js) of the Temple Run 2 endless-runner concept \u2014 sprint through the lost temple ruins, turn, jump and slide to survive. Local assets; fully playable offline.",
     "url": "Games/TempleRun2/index.html",
-    "featured": false
+    "featured": false,
+    "tags": []
   },
   {
     "id": 61,
@@ -375,7 +416,8 @@
     "icon": "",
     "desc": "Slash fruit, dodge bombs \u2014 timing combo arcade",
     "url": "Games/FruitNinja/index.html",
-    "featured": false
+    "featured": false,
+    "tags": []
   },
   {
     "id": 62,
@@ -384,7 +426,8 @@
     "icon": "",
     "desc": "Physics puzzle levels \u2014 feed Om Nom the candy",
     "url": "Games/CutTheRope/index.html",
-    "featured": false
+    "featured": false,
+    "tags": []
   },
   {
     "id": 63,
@@ -393,7 +436,8 @@
     "icon": "",
     "desc": "Fluid hand-drawn platformer with levels to run",
     "url": "Games/FancyPantsAdventure3/index.html",
-    "featured": false
+    "featured": false,
+    "tags": []
   },
   {
     "id": 64,
@@ -402,7 +446,8 @@
     "icon": "",
     "desc": "Trap-filled platforming gauntlet, 10 levels",
     "url": "Games/Vex7/index.html",
-    "featured": false
+    "featured": false,
+    "tags": []
   },
   {
     "id": 65,
@@ -411,7 +456,8 @@
     "icon": "",
     "desc": "2-4 player party chaos \u2014 dodge the house's traps",
     "url": "Games/HouseOfHazards/index.html",
-    "featured": false
+    "featured": false,
+    "tags": []
   },
   {
     "id": 66,
@@ -420,7 +466,8 @@
     "icon": "",
     "desc": "Rhythm platformer \u2014 jump to the beat, level after level",
     "url": "Games/GeometryDashLite/index.html",
-    "featured": false
+    "featured": false,
+    "tags": []
   },
   {
     "id": 67,
@@ -429,7 +476,8 @@
     "icon": "",
     "desc": "Classic falling block puzzle. Stack and clear lines!",
     "url": "Games/Tetris/index.html",
-    "featured": true
+    "featured": true,
+    "tags": []
   },
   {
     "id": 68,
@@ -438,7 +486,8 @@
     "icon": "",
     "desc": "Classic arcade paddle game. First to 7 wins!",
     "url": "Games/Pong/index.html",
-    "featured": false
+    "featured": false,
+    "tags": []
   },
   {
     "id": 69,
@@ -447,7 +496,8 @@
     "icon": "",
     "desc": "Reveal all safe tiles without hitting a mine.",
     "url": "Games/Minesweeper/index.html",
-    "featured": true
+    "featured": true,
+    "tags": []
   },
   {
     "id": 70,
@@ -456,7 +506,8 @@
     "icon": "",
     "desc": "Classic X and O game. Play vs friend or computer.",
     "url": "Games/TicTacToe/index.html",
-    "featured": false
+    "featured": false,
+    "tags": []
   },
   {
     "id": 71,
@@ -465,7 +516,8 @@
     "icon": "",
     "desc": "Drop discs and connect four in a row!",
     "url": "Games/ConnectFour/index.html",
-    "featured": false
+    "featured": false,
+    "tags": []
   },
   {
     "id": 72,
@@ -474,7 +526,8 @@
     "icon": "",
     "desc": "Flip cards and find all matching pairs.",
     "url": "Games/Memory/index.html",
-    "featured": false
+    "featured": false,
+    "tags": []
   },
   {
     "id": 73,
@@ -483,7 +536,8 @@
     "icon": "",
     "desc": "30 seconds to whack as many moles as you can!",
     "url": "Games/WhackAMole/index.html",
-    "featured": false
+    "featured": false,
+    "tags": []
   },
   {
     "id": 74,
@@ -492,7 +546,8 @@
     "icon": "",
     "desc": "Watch the pattern, then repeat it. How far can you go?",
     "url": "Games/SimonSays/index.html",
-    "featured": false
+    "featured": false,
+    "tags": []
   },
   {
     "id": 75,
@@ -501,7 +556,8 @@
     "icon": "",
     "desc": "Test your typing speed! 30 seconds to type as fast as you can.",
     "url": "Games/TypingTest/index.html",
-    "featured": false
+    "featured": false,
+    "tags": []
   },
   {
     "id": 76,
@@ -510,7 +566,8 @@
     "icon": "",
     "desc": "Solve math problems as fast as you can. Build combos!",
     "url": "Games/MathQuiz/index.html",
-    "featured": false
+    "featured": false,
+    "tags": []
   },
   {
     "id": 77,
@@ -519,7 +576,8 @@
     "icon": "",
     "desc": "Toggle lights to turn them all off. Increasing levels!",
     "url": "Games/LightsOut/index.html",
-    "featured": false
+    "featured": false,
+    "tags": []
   },
   {
     "id": 78,
@@ -528,7 +586,8 @@
     "icon": "",
     "desc": "Classic number puzzle. Fill the grid with digits 1-9.",
     "url": "Games/Sudoku/index.html",
-    "featured": false
+    "featured": false,
+    "tags": []
   },
   {
     "id": 79,
@@ -537,7 +596,8 @@
     "icon": "",
     "desc": "The iconic idle/clicker game. Click the cookie, buy buildings, and watch the numbers grow!",
     "url": "Games/CookieClicker/index.html",
-    "featured": false
+    "featured": false,
+    "tags": []
   },
   {
     "id": 80,
@@ -546,7 +606,8 @@
     "icon": "",
     "desc": "Classic tower defense \u2014 pop bloons with monkeys! Four versions included: BTD 1\u20134, playable via bundled Ruffle emulator.",
     "url": "Games/BloonsTD/index.html",
-    "featured": false
+    "featured": false,
+    "tags": []
   },
   {
     "id": 81,
@@ -555,7 +616,8 @@
     "icon": "",
     "desc": "Endless drifting game \u2014 steer your car through obstacles, chain combos, and drift as far as you can!",
     "url": "Games/DriftBoss/index.html",
-    "featured": false
+    "featured": false,
+    "tags": []
   },
   {
     "id": 82,
@@ -564,7 +626,8 @@
     "icon": "",
     "desc": "Guess the five-letter word in six tries. Type a word, press Enter, and use the color clues!",
     "url": "Games/Wordle/index.html",
-    "featured": false
+    "featured": false,
+    "tags": []
   },
   {
     "id": 83,
@@ -573,7 +636,8 @@
     "icon": "",
     "desc": "Classic vertical platformer \u2014 jump as high as you can, dodge monsters, collect power-ups!",
     "url": "Games/DoodleJump/index.html",
-    "featured": false
+    "featured": false,
+    "tags": []
   },
   {
     "id": 84,
@@ -582,7 +646,8 @@
     "icon": "",
     "desc": "Play against a built-in AI opponent. Drag pieces to move, select search depth for AI difficulty!",
     "url": "Games/Chess/index.html",
-    "featured": false
+    "featured": false,
+    "tags": []
   },
   {
     "id": 85,
@@ -591,7 +656,8 @@
     "icon": "",
     "desc": "Two-player thumb wrestling game \u2014 battle a friend on one keyboard or fight the computer!",
     "url": "Games/ThumbFighter/index.html",
-    "featured": false
+    "featured": false,
+    "tags": []
   },
   {
     "id": 86,
@@ -600,7 +666,8 @@
     "icon": "",
     "desc": "Endless side-scrolling runner \u2014 strap on a jetpack, dodge lasers and missiles, and grab coins!",
     "url": "Games/JetpackJoyride/index.html",
-    "featured": false
+    "featured": false,
+    "tags": []
   },
   {
     "id": 87,
@@ -609,7 +676,8 @@
     "icon": "",
     "desc": "The Dogecoin Mining Simulator \u2014 click to mine, hire helpers, buy upgrades, and reach the moon!",
     "url": "Games/DogeMiner/index.html",
-    "featured": false
+    "featured": false,
+    "tags": []
   },
   {
     "id": 88,
@@ -618,7 +686,8 @@
     "icon": "",
     "desc": "Guess the hidden words one letter at a time before the hangman is complete.",
     "url": "Games/Hangman/index.html",
-    "featured": false
+    "featured": false,
+    "tags": []
   },
   {
     "id": 89,
@@ -627,7 +696,10 @@
     "icon": "",
     "desc": "Retro Bowl with unlimited coaching credits and salary cap. Build your dream team without limits!",
     "url": "Games/RetroBowlHacked/index.html",
-    "featured": false
+    "featured": false,
+    "tags": [
+      "hacked"
+    ]
   },
   {
     "id": 90,
@@ -636,7 +708,10 @@
     "icon": "",
     "desc": "Cookie Clicker with unlimited cookies, all upgrades, and all buildings unlocked!",
     "url": "Games/CookieClickerHacked/index.html",
-    "featured": false
+    "featured": false,
+    "tags": [
+      "hacked"
+    ]
   },
   {
     "id": 91,
@@ -645,7 +720,10 @@
     "icon": "",
     "desc": "Flappy Bird with god mode - no collision, infinite best score!",
     "url": "Games/FlappyBirdHacked/index.html",
-    "featured": false
+    "featured": false,
+    "tags": [
+      "hacked"
+    ]
   },
   {
     "id": 92,
@@ -654,7 +732,10 @@
     "icon": "",
     "desc": "Tetris with god mode - board clears on every piece, infinite score!",
     "url": "Games/TetrisHacked/index.html",
-    "featured": false
+    "featured": false,
+    "tags": [
+      "hacked"
+    ]
   },
   {
     "id": 93,
@@ -663,7 +744,10 @@
     "icon": "",
     "desc": "Age of War with infinite gold, 10x damage, and 10x HP units!",
     "url": "Games/AgeOfWarHacked/index.html",
-    "featured": false
+    "featured": false,
+    "tags": [
+      "hacked"
+    ]
   },
   {
     "id": 94,
@@ -672,7 +756,10 @@
     "icon": "",
     "desc": "Breakout with infinite score - 1000 points per brick!",
     "url": "Games/BreakoutHacked/index.html",
-    "featured": false
+    "featured": false,
+    "tags": [
+      "hacked"
+    ]
   },
   {
     "id": 95,
@@ -681,6 +768,9 @@
     "icon": "",
     "desc": "Snake with god mode - no collision, infinite score!",
     "url": "Games/SnakeHacked/index.html",
-    "featured": false
+    "featured": false,
+    "tags": [
+      "hacked"
+    ]
   }
 ]

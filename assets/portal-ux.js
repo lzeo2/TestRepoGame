@@ -786,3 +786,76 @@
     onMutations();
   });
 })();
+
+/* ================================================================
+   TAG BADGES — inject tag badges into game cards
+   ================================================================ */
+function injectTagBadges() {
+  // Fetch games.json to get tag data
+  fetch('./games.json')
+    .then(function(response) { return response.json(); })
+    .then(function(games) {
+      // Create a map of game title to tags
+      var tagMap = {};
+      games.forEach(function(game) {
+        if (game.tags && game.tags.length > 0) {
+          tagMap[game.title] = game.tags;
+        }
+      });
+
+      // Find all game cards and inject tags
+      $$('.game-card').forEach(function(card) {
+        var titleEl = card.querySelector('.game-card__title');
+        if (!titleEl) return;
+        
+        var title = textOf(titleEl);
+        var tags = tagMap[title];
+        
+        if (tags && tags.length > 0) {
+          // Check if tags container already exists
+          if (card.querySelector('.game-card__tags')) return;
+          
+          // Create tags container
+          var tagsContainer = document.createElement('div');
+          tagsContainer.className = 'game-card__tags';
+          
+          tags.forEach(function(tag) {
+            var tagEl = document.createElement('span');
+            tagEl.className = 'game-card__tag game-card__tag--' + tag;
+            tagEl.textContent = tag;
+            tagsContainer.appendChild(tagEl);
+          });
+          
+          // Insert after category badge or at end of card
+          var categoryEl = card.querySelector('.game-card__category');
+          if (categoryEl && categoryEl.parentNode) {
+            categoryEl.parentNode.insertBefore(tagsContainer, categoryEl.nextSibling);
+          } else {
+            card.appendChild(tagsContainer);
+          }
+        }
+      });
+    })
+    .catch(function(err) {
+      console.warn('[portal-ux] Failed to inject tags:', err);
+    });
+}
+
+// Run on load and on DOM mutations
+ready(function() {
+  injectTagBadges();
+  
+  // Also run when new cards are added (e.g., filtering, search)
+  var observer = new MutationObserver(function(mutations) {
+    mutations.forEach(function(mutation) {
+      if (mutation.addedNodes.length > 0) {
+        setTimeout(injectTagBadges, 100);
+      }
+    });
+  });
+  
+  var grid = $('.bento-grid');
+  if (grid) {
+    observer.observe(grid, { childList: true, subtree: true });
+  }
+});

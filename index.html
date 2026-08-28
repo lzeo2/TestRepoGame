@@ -178,6 +178,28 @@
       .game-card[data-cat="simulation"] .game-card__category   { background: #0891b2; }
       .game-card[data-cat="multiplayer"] .game-card__category  { background: #b45309; }
 
+      /* Tag badges */
+      .game-card__tags {
+        display: flex;
+        gap: 4px;
+        flex-wrap: wrap;
+        margin-top: 4px;
+      }
+      .game-card__tag {
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        font-size: 0.55rem;
+        font-weight: 600;
+        padding: 1px 5px;
+        border-radius: 3px;
+        border: none;
+        color: #fff;
+        line-height: 1.3;
+      }
+      .game-card__tag--hacked {
+        background: #e63946;
+      }
+
       /* ================================================================
          4. PLAY BUTTONS — solid category color, refined
          ================================================================ */
