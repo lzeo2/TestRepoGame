@@ -1,0 +1,219 @@
+
+<html lang="en">
+	<head>
+		<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+		<meta http-equiv="pragma" content="no-cache" />
+		<meta name="apple-mobile-web-app-capable" content="yes" />
+		<meta
+			name="viewport"
+			content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0"
+		/>
+		<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+		<meta charset="utf-8" />
+
+		<title>Retro Bowl Hacked | Fan-hosted port</title>
+
+		<style>
+			body {
+				background: #316afc;
+				color: #cccccc;
+				margin: 0px;
+				padding: 0px;
+				border: 0px;
+			}
+			canvas {
+				image-rendering: optimizeSpeed;
+				-webkit-interpolation-mode: nearest-neighbor;
+				-ms-touch-action: none;
+				margin: 0px;
+				padding: 0px;
+				border: 0px;
+			}
+			:-webkit-full-screen #canvas {
+				width: 100%;
+				height: 100%;
+			}
+			div.gm4html5_div_class {
+				margin: 0px;
+				padding: 0px;
+				border: 0px;
+			}
+			/* START - Login Dialog Box */
+			div.gm4html5_login {
+				padding: 20px;
+				position: absolute;
+				border: solid 2px #000000;
+				background-color: #316afc;
+				color: #00ff00;
+				border-radius: 15px;
+				box-shadow: #101010 20px 20px 40px;
+			}
+			div.gm4html5_cancel_button {
+				float: right;
+			}
+			div.gm4html5_login_button {
+				float: left;
+			}
+			div.gm4html5_login_header {
+				text-align: center;
+			}
+			/* END - Login Dialog Box */
+			:-webkit-full-screen {
+				width: 100%;
+				height: 100%;
+			}
+			/* Hacked badge */
+			#hacked-badge {
+				position: fixed;
+				top: 10px;
+				right: 10px;
+				background: #e63946;
+				color: white;
+				padding: 5px 10px;
+				border-radius: 4px;
+				font-family: Arial, sans-serif;
+				font-size: 12px;
+				font-weight: bold;
+				z-index: 9999;
+				pointer-events: none;
+			}
+		</style>
+	</head>
+
+	<body>
+		<div id="hacked-badge">HACKED - Unlimited Credits & Salary Cap</div>
+		<div class="gm4html5_div_class" id="gm4html5_div_id">
+			<img
+				src="html5game/splash.png"
+				id="GM4HTML5_loadingscreen"
+				alt="GameMaker:HTML5 loading screen"
+				style="display: none"
+			/>
+			<canvas id="canvas" width="853" height="480">
+				<p>Your browser doesn't support HTML5 canvas.</p>
+			</canvas>
+		</div>
+
+		<script type="text/javascript" src="html5game/RetroBowl.js"></script>
+
+		<script>
+			// Local no-op Poki stub
+			window.PokiSDK_OK = true;
+			window.PokiSDK = {
+				init: function () {
+					return Promise.resolve();
+				},
+				gameLoadingStart: function () {},
+				gameLoadingProgress: function () {},
+				gameLoadingFinished: function () {},
+				gameplayStart: function () {},
+				gameplayStop: function () {},
+				happyTime: function () {},
+				commercialBreak: function () {
+					return Promise.resolve(true);
+				},
+				rewardedBreak: function () {
+					return Promise.resolve(false);
+				}
+			};
+
+			// Hacked features injection
+			window.addEventListener('load', function () {
+				window.PokiSDK_loadState = 0;
+				GameMaker_Init();
+
+				// Wait for game to fully initialize, then inject hacks
+				setTimeout(function() {
+					injectHacks();
+				}, 3000);
+			});
+
+			function injectHacks() {
+				// Try to access GameMaker global variables
+				// GameMaker HTML5 stores globals in the runtime
+				
+				// Method 1: Override localStorage save data with maxed values
+				try {
+					// Find the savegame key
+					var saveKeys = [];
+					for (var i = 0; i < localStorage.length; i++) {
+						var key = localStorage.key(i);
+						if (key && key.indexOf('save') !== -1) {
+							saveKeys.push(key);
+						}
+					}
+					
+					// If save data exists, modify it
+					saveKeys.forEach(function(key) {
+						try {
+							var data = JSON.parse(localStorage.getItem(key));
+							if (data) {
+								// Max out salary cap
+								if (data.salary_cap !== undefined) {
+									data.salary_cap = 999;
+								}
+								if (data.boost_salary_cap !== undefined) {
+									data.boost_salary_cap = 999;
+								}
+								// Max out credits
+								if (data.coach_credit !== undefined) {
+									data.coach_credit = 99999;
+								}
+								if (data.op_credits_purchased !== undefined) {
+									data.op_credits_purchased = 99999;
+								}
+								localStorage.setItem(key, JSON.stringify(data));
+							}
+						} catch(e) {}
+					});
+				} catch(e) {}
+
+				// Method 2: Hook into GameMaker runtime if available
+				if (typeof gml_Script_s_get_credit === 'function') {
+					var origGetCredit = gml_Script_s_get_credit;
+					gml_Script_s_get_credit = function() {
+						return 99999;
+					};
+				}
+
+				if (typeof gml_Script_s_get_salary_cap_space === 'function') {
+					var origGetCapSpace = gml_Script_s_get_salary_cap_space;
+					gml_Script_s_get_salary_cap_space = function() {
+						return 99999;
+					};
+				}
+
+				if (typeof gml_Script_s_get_salary_total === 'function') {
+					var origGetSalaryTotal = gml_Script_s_get_salary_total;
+					gml_Script_s_get_salary_total = function() {
+						return 0;
+					};
+				}
+
+				// Method 3: Periodically force values via GameMaker variable system
+				setInterval(function() {
+					try {
+						// Access GameMaker's global variable system
+						if (typeof yyInst !== 'undefined' && yyInst.GMInstances) {
+							// Try to find and modify game objects
+							var instances = yyInst.GMInstances;
+							for (var key in instances) {
+								if (instances[key] && instances[key]._vars) {
+									var vars = instances[key]._vars;
+									if (vars.salary_cap !== undefined) {
+										vars.salary_cap = 999;
+									}
+									if (vars.coach_credit !== undefined) {
+										vars.coach_credit = 99999;
+									}
+								}
+							}
+						}
+					} catch(e) {}
+				}, 1000);
+
+				console.log('[HACKED] Retro Bowl hacks injected - Unlimited credits and salary cap');
+			}
+		</script>
+	</body>
+</html>

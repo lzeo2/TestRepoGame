@@ -619,5 +619,14 @@
     "desc": "Guess the hidden words one letter at a time before the hangman is complete.",
     "url": "Games/Hangman/index.html",
     "featured": false
+  },
+  {
+    "id": 89,
+    "title": "Retro Bowl Hacked",
+    "cat": "sports",
+    "icon": "",
+    "desc": "Retro Bowl with unlimited coaching credits and salary cap. Build your dream team without limits!",
+    "url": "Games/RetroBowlHacked/index.html",
+    "featured": false
   }
 ]
