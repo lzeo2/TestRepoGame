@@ -94,6 +94,48 @@
 			</canvas>
 		</div>
 
+		<script>
+			// HOOK 1: Intercept localStorage reads for savegame data
+			// The game reads coach_credit and salary_cap from localStorage
+			// We override getItem to return hacked values for these keys
+			
+			(function() {
+				var originalGetItem = localStorage.getItem.bind(localStorage);
+				
+				localStorage.getItem = function(key) {
+					var value = originalGetItem(key);
+					
+					// If this is a savegame key, modify the values
+					if (key && key.indexOf('savegame') !== -1 && value) {
+						try {
+							var data = JSON.parse(value);
+							if (data && typeof data === 'object') {
+								// Hack coach_credit
+								if (data.coach_credit !== undefined) {
+									data.coach_credit = 99999;
+								}
+								// Hack salary_cap
+								if (data.salary_cap !== undefined) {
+									data.salary_cap = 999;
+								}
+								// Hack boost_salary_cap
+								if (data.boost_salary_cap !== undefined) {
+									data.boost_salary_cap = 999;
+								}
+								return JSON.stringify(data);
+							}
+						} catch(e) {
+							// Not JSON, return as-is
+						}
+					}
+					
+					return value;
+				};
+				
+				console.log('[HACKED] localStorage hook installed');
+			})();
+		</script>
+
 		<script type="text/javascript" src="html5game/RetroBowl.js"></script>
 
 		<script>
@@ -117,103 +159,40 @@
 				}
 			};
 
-			// Hacked features injection
 			window.addEventListener('load', function () {
 				window.PokiSDK_loadState = 0;
 				GameMaker_Init();
-
-				// Wait for game to fully initialize, then inject hacks
-				setTimeout(function() {
-					injectHacks();
-				}, 3000);
-			});
-
-			function injectHacks() {
-				// Try to access GameMaker global variables
-				// GameMaker HTML5 stores globals in the runtime
 				
-				// Method 1: Override localStorage save data with maxed values
-				try {
-					// Find the savegame key
-					var saveKeys = [];
-					for (var i = 0; i < localStorage.length; i++) {
-						var key = localStorage.key(i);
-						if (key && key.indexOf('save') !== -1) {
-							saveKeys.push(key);
-						}
-					}
-					
-					// If save data exists, modify it
-					saveKeys.forEach(function(key) {
-						try {
-							var data = JSON.parse(localStorage.getItem(key));
-							if (data) {
-								// Max out salary cap
-								if (data.salary_cap !== undefined) {
-									data.salary_cap = 999;
-								}
-								if (data.boost_salary_cap !== undefined) {
-									data.boost_salary_cap = 999;
-								}
-								// Max out credits
-								if (data.coach_credit !== undefined) {
-									data.coach_credit = 99999;
-								}
-								if (data.op_credits_purchased !== undefined) {
-									data.op_credits_purchased = 99999;
-								}
-								localStorage.setItem(key, JSON.stringify(data));
-							}
-						} catch(e) {}
-					});
-				} catch(e) {}
-
-				// Method 2: Hook into GameMaker runtime if available
-				if (typeof gml_Script_s_get_credit === 'function') {
-					var origGetCredit = gml_Script_s_get_credit;
-					gml_Script_s_get_credit = function() {
-						return 99999;
-					};
-				}
-
-				if (typeof gml_Script_s_get_salary_cap_space === 'function') {
-					var origGetCapSpace = gml_Script_s_get_salary_cap_space;
-					gml_Script_s_get_salary_cap_space = function() {
-						return 99999;
-					};
-				}
-
-				if (typeof gml_Script_s_get_salary_total === 'function') {
-					var origGetSalaryTotal = gml_Script_s_get_salary_total;
-					gml_Script_s_get_salary_total = function() {
-						return 0;
-					};
-				}
-
-				// Method 3: Periodically force values via GameMaker variable system
+				// HOOK 2: Periodically force values via GameMaker runtime
+				// This catches cases where the game reads values after initialization
 				setInterval(function() {
 					try {
-						// Access GameMaker's global variable system
-						if (typeof yyInst !== 'undefined' && yyInst.GMInstances) {
-							// Try to find and modify game objects
-							var instances = yyInst.GMInstances;
-							for (var key in instances) {
-								if (instances[key] && instances[key]._vars) {
-									var vars = instances[key]._vars;
-									if (vars.salary_cap !== undefined) {
-										vars.salary_cap = 999;
-									}
-									if (vars.coach_credit !== undefined) {
-										vars.coach_credit = 99999;
-									}
-								}
-							}
+						// Try to access GameMaker's global variable system
+						if (typeof gml_Script_s_get_credit === 'function') {
+							// Override the credit getter
+							window.gml_Script_s_get_credit = function() {
+								return 99999;
+							};
+						}
+						
+						if (typeof gml_Script_s_get_salary_cap_space === 'function') {
+							// Override the salary cap space getter
+							window.gml_Script_s_get_salary_cap_space = function() {
+								return 99999;
+							};
+						}
+						
+						if (typeof gml_Script_s_get_salary_total === 'function') {
+							// Override the salary total getter to return 0
+							window.gml_Script_s_get_salary_total = function() {
+								return 0;
+							};
 						}
 					} catch(e) {}
 				}, 1000);
-
-				console.log('[HACKED] Retro Bowl hacks injected - Unlimited credits and salary cap');
-			}
+				
+				console.log('[HACKED] Retro Bowl hacks loaded');
+			});
 		</script>
 	</body>
 </html>
