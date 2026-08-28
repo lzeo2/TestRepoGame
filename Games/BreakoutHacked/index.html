@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Breakout Hacked</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+<style>
+.hacked-badge {
+  position: fixed;
+  top: 10px;
+  right: 10px;
+  background: #e63946;
+  color: white;
+  padding: 5px 10px;
+  border-radius: 4px;
+  font-family: Arial, sans-serif;
+  font-size: 12px;
+  font-weight: bold;
+  z-index: 9999;
+  pointer-events: none;
+}
+</style>
+</head>
+
+<body>
+<div class="hacked-badge">HACKED - Infinite Score</div>
+    <pwr id="powerupText"></pwr>
+
+    <div id="top-container">
+        <div id="score">Score: 0</div>
+        <div id="level">LEVEL 1</div>
+    </div>
+    
+
+    <div id="game-container">
+        <canvas id="game"></canvas>
+        <div id="game-over">
+            <p>GAME OVER</p>
+        </div>
+        <div id="winner">
+            <p>YOU WIN</p>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+
+</html>

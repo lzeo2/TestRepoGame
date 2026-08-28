@@ -664,5 +664,14 @@
     "desc": "Age of War with infinite gold, 10x damage, and 10x HP units!",
     "url": "Games/AgeOfWarHacked/index.html",
     "featured": false
+  },
+  {
+    "id": 94,
+    "title": "Breakout Hacked",
+    "cat": "classic",
+    "icon": "",
+    "desc": "Breakout with infinite score - 1000 points per brick!",
+    "url": "Games/BreakoutHacked/index.html",
+    "featured": false
   }
 ]
