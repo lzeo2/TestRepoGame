@@ -673,5 +673,14 @@
     "desc": "Breakout with infinite score - 1000 points per brick!",
     "url": "Games/BreakoutHacked/index.html",
     "featured": false
+  },
+  {
+    "id": 95,
+    "title": "Snake Hacked",
+    "cat": "classic",
+    "icon": "",
+    "desc": "Snake with god mode - no collision, infinite score!",
+    "url": "Games/SnakeHacked/index.html",
+    "featured": false
   }
 ]
