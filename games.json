@@ -646,5 +646,14 @@
     "desc": "Flappy Bird with god mode - no collision, infinite best score!",
     "url": "Games/FlappyBirdHacked/index.html",
     "featured": false
+  },
+  {
+    "id": 92,
+    "title": "Tetris Hacked",
+    "cat": "classic",
+    "icon": "",
+    "desc": "Tetris with god mode - board clears on every piece, infinite score!",
+    "url": "Games/TetrisHacked/index.html",
+    "featured": false
   }
 ]
