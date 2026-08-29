@@ -95,44 +95,81 @@
 		</div>
 
 		<script>
-			// HOOK 1: Intercept localStorage reads for savegame data
-			// The game reads coach_credit and salary_cap from localStorage
-			// We override getItem to return hacked values for these keys
+			// HOOK 1: Intercept localStorage access via Proxy
+			// The game uses window.localStorage[key] (bracket notation), not getItem()
+			// We replace window.localStorage with a Proxy to intercept all access
 			
 			(function() {
-				var originalGetItem = localStorage.getItem.bind(localStorage);
+				var realStorage = window.localStorage;
+				var _Gw4 = '';
+				try {
+					// Try to determine the save key prefix from the game
+					// The game uses: _NE2(key) = prefix + key
+					// Prefix format: {gameName}.{version}.
+					// We'll match any key that ends with known variable names
+				} catch(e) {}
 				
-				localStorage.getItem = function(key) {
-					var value = originalGetItem(key);
-					
-					// If this is a savegame key, modify the values
-					if (key && key.indexOf('savegame') !== -1 && value) {
-						try {
-							var data = JSON.parse(value);
-							if (data && typeof data === 'object') {
-								// Hack coach_credit
-								if (data.coach_credit !== undefined) {
-									data.coach_credit = 99999;
-								}
-								// Hack salary_cap
-								if (data.salary_cap !== undefined) {
-									data.salary_cap = 999;
-								}
-								// Hack boost_salary_cap
-								if (data.boost_salary_cap !== undefined) {
-									data.boost_salary_cap = 999;
-								}
-								return JSON.stringify(data);
-							}
-						} catch(e) {
-							// Not JSON, return as-is
+				// Known variable names from the game source
+				var HACK_KEYS = ['_9n', '_7t', '_Vu']; // coach_credit, salary_cap, boost_salary_cap
+				var HACK_VALUES = { '_9n': '99999', '_7t': '999', '_Vu': '999' };
+				
+				function modifyValue(key, value) {
+					if (typeof value !== 'string') return value;
+					// Check if this key ends with a hackable variable name
+					for (var i = 0; i < HACK_KEYS.length; i++) {
+						if (key.length > 3 && key.substring(key.length - 3) === HACK_KEYS[i]) {
+							return HACK_VALUES[HACK_KEYS[i]];
 						}
 					}
-					
 					return value;
+				}
+				
+				var proxyHandler = {
+					get: function(target, prop) {
+						if (prop === 'getItem') {
+							return function(key) {
+								var val = realStorage.getItem(key);
+								return modifyValue(key, val);
+							};
+						}
+						if (prop === 'setItem') {
+							return function(key, val) {
+								realStorage.setItem(key, val);
+							};
+						}
+						if (prop === 'removeItem') {
+							return function(key) { realStorage.removeItem(key); };
+						}
+						if (prop === 'clear') {
+							return function() { realStorage.clear(); };
+						}
+						if (typeof prop === 'string' && prop !== 'length' && !prop.match(/^\d+$/)) {
+							// Direct property access: window.localStorage[key]
+							var val = realStorage[prop];
+							return modifyValue(prop, val);
+						}
+						return target[prop];
+					},
+					set: function(target, prop, value) {
+						realStorage[prop] = value;
+						return true;
+					}
 				};
 				
-				console.log('[HACKED] localStorage hook installed');
+				var proxy = new Proxy(realStorage, proxyHandler);
+				
+				try {
+					Object.defineProperty(window, 'localStorage', {
+						get: function() { return proxy; },
+						set: function(v) { realStorage = v; },
+						configurable: true
+					});
+				} catch(e) {
+					// Fallback: try to override directly
+					window.localStorage = proxy;
+				}
+				
+				console.log('[HACKED] localStorage Proxy hook installed');
 			})();
 		</script>
 
@@ -162,35 +199,6 @@
 			window.addEventListener('load', function () {
 				window.PokiSDK_loadState = 0;
 				GameMaker_Init();
-				
-				// HOOK 2: Periodically force values via GameMaker runtime
-				// This catches cases where the game reads values after initialization
-				setInterval(function() {
-					try {
-						// Try to access GameMaker's global variable system
-						if (typeof gml_Script_s_get_credit === 'function') {
-							// Override the credit getter
-							window.gml_Script_s_get_credit = function() {
-								return 99999;
-							};
-						}
-						
-						if (typeof gml_Script_s_get_salary_cap_space === 'function') {
-							// Override the salary cap space getter
-							window.gml_Script_s_get_salary_cap_space = function() {
-								return 99999;
-							};
-						}
-						
-						if (typeof gml_Script_s_get_salary_total === 'function') {
-							// Override the salary total getter to return 0
-							window.gml_Script_s_get_salary_total = function() {
-								return 0;
-							};
-						}
-					} catch(e) {}
-				}, 1000);
-				
 				console.log('[HACKED] Retro Bowl hacks loaded');
 			});
 		</script>
