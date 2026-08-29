@@ -169,10 +169,17 @@ class SnakeGame {
         if (this.dx === 0 && this.dy === 0) return;
 
         // Move snake head
-        const head = {x: this.snake[0].x + this.dx, y: this.snake[0].y + this.dy};
+        let hx = this.snake[0].x + this.dx;
+        let hy = this.snake[0].y + this.dy;
+        // HACKED: wrap around screen
+        if (hx < 0) hx = this.tileCount - 1;
+        if (hx >= this.tileCount) hx = 0;
+        if (hy < 0) hy = this.tileCount - 1;
+        if (hy >= this.tileCount) hy = 0;
+        const head = {x: hx, y: hy};
 
-        // Check collision
-        if (this.false // HACKED: god mode - no collision) {
+        // Check collision - HACKED: god mode, never die
+        if (false) {
             this.gameOver();
             return;
         }
@@ -189,19 +196,8 @@ class SnakeGame {
         }
     }
 
-    false // HACKED: god mode - no collision {
-        // Check wall collision
-        if (head.x < 0 || head.x >= this.tileCount || head.y < 0 || head.y >= this.tileCount) {
-            return true;
-        }
-
-        // Check self collision
-        for (let segment of this.snake) {
-            if (head.x === segment.x && head.y === segment.y) {
-                return true;
-            }
-        }
-
+    checkCollision(head) {
+        // HACKED: god mode - never collide
         return false;
     }
 
