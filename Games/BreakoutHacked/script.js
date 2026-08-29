@@ -214,6 +214,8 @@ function updateScore() {
 function updateBallSpeed() {
     const speedIncreaseFactor = 1.3;
     ball.speed *= speedIncreaseFactor;
+    // HACKED: cap speed so game stays playable
+    if (ball.speed > 8) ball.speed = 8;
 
     // Update the ball's velocity components based on the new speed
     // Preserve the direction of the ball while updating speed
@@ -318,9 +320,16 @@ function loop() {
         // Draw Paddle
         drawPaddle();
 
-        // Check Remaining Bricks
+        // HACKED: update score display every frame
+        updateScore();
+
+        // HACKED: respawn bricks when cleared, keep playing forever
         if (bricks.length == 0) {
-            isGameOver = true;
+            score += 50000;
+            updateScore();
+            bricks.length = 0;
+            createGameGrid(LVL1);
+            resetBall();
         }
     }
     else if (isPaused) {
