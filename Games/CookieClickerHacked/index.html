@@ -15,13 +15,10 @@ Feel free to alter this code to your liking, but please do not re-host it, do no
 // Cookie Clicker Hack - Unlimited cookies and max stats
 (function() {
     var hackInterval = setInterval(function() {
-        if (typeof Game !== 'undefined' && Game.cookies !== undefined) {
+        if (typeof Game !== 'undefined' && Game.cookies !== undefined && Game.Objects) {
             // Give unlimited cookies
             Game.cookies = 999999999999999;
             Game.cookiesEarned = 999999999999999;
-            
-            // Set high cookies per second
-            Game.cookiesPs = 9999999;
             
             // Unlock all upgrades
             if (Game.UpgradesById) {
@@ -38,14 +35,25 @@ Feel free to alter this code to your liking, but please do not re-host it, do no
                 }
             }
             
-            // Give 100 of each building
-            if (Game.Objects) {
-                for (var i in Game.Objects) {
+            // Give 100 of each building and trigger recalculation
+            var needsRecalc = false;
+            for (var i in Game.Objects) {
+                if (Game.Objects[i].amount < 100) {
                     Game.Objects[i].amount = 100;
+                    Game.Objects[i].bought = 100;
+                    Game.Objects[i].highest = 100;
+                    needsRecalc = true;
                 }
             }
+            if (needsRecalc && typeof Game.CalculateGains === 'function') {
+                Game.CalculateGains();
+            }
+            // Ensure cookiesPs is massive after recalc
+            if (Game.cookiesPs < 1000000) {
+                Game.cookiesPs = 9999999;
+            }
         }
-    }, 100);
+    }, 200);
 })();
 </script>
 <link href="style.css" rel="stylesheet" type="text/css">
