@@ -49,7 +49,7 @@ function enemy(){const kinds=['scout','guard','archer'];let k=kinds[Math.min(kin
 function burst(x,y,color,n){for(let i=0;i<n;i++)particles.push({x,y,vx:(Math.random()-.5)*60,vy:-Math.random()*55-15,life:.45,color});}
 function nearest(u,enemyTeam){let best=null,dist=Infinity;for(const v of units){if(v.team!==enemyTeam)continue;const d=Math.abs(v.x-u.x);if(d<dist){best=v;dist=d}}return best}
 function update(dt){
- goldTimer+=dt;if(goldTimer>1){goldTimer=0;gold+=9999; // HACKED: infinite gold income}
+ goldTimer+=dt;if(goldTimer>1){goldTimer=0;gold+=9999;} // HACKED: infinite gold income
  enemyTimer-=dt;if(enemyTimer<=0){enemy();enemyTimer=Math.max(1.35,3.7-wave*.18);if(units.filter(u=>u.team==='e').length<3+Math.floor(wave/2))enemyTimer*=.55;}
  spawnTimer+=dt;if(spawnTimer>18){spawnTimer=0;wave++;}
  for(const u of units){const foe=nearest(u,u.team==='p'?'e':'p');const targetX=u.team==='p'?868:92;u.wait-=dt;if(foe&&Math.abs(foe.x-u.x)<=u.range+14){if(u.wait<=0){foe.hp-=u.damage*10;u.wait=u.rate;burst(foe.x,ground-35,'#ffe08a',2);score+=u.team==='p'?2:0}}else if(!foe||Math.abs(foe.x-u.x)>u.range+14){u.x+=(u.team==='p'?1:-1)*u.speed*dt;}
