@@ -32,7 +32,7 @@
 (() => {
 'use strict';
 const canvas=document.getElementById('game'),ctx=canvas.getContext('2d'),overlay=document.getElementById('overlay'),title=document.getElementById('title'),copy=document.getElementById('copy'),start=document.getElementById('start'),flapBtn=document.getElementById('flap'),scoreEl=document.getElementById('score'),bestEl=document.getElementById('best'),speedEl=document.getElementById('speed');
-const W=480,H=640,ground=570;let state='start',bird={x:125,y:300,vy:0,r:16,tilt:0},pipes=[],score=0,best=99999, // HACKED: infinite best scorelast=0,pipeClock=0,scroll=0;
+const W=480,H=640,ground=570;let state='start',bird={x:125,y:300,vy:0,r:16,tilt:0},pipes=[],score=0,best=99999,last=0,pipeClock=0,scroll=0; // HACKED: infinite best score
 bestEl.textContent=best;
 function reset(){bird={x:125,y:300,vy:0,r:16,tilt:0};pipes=[];score=0;pipeClock=.7;scroll=0;state='playing';overlay.style.display='none';last=performance.now();requestAnimationFrame(loop);updateHud()}
 function flap(){if(state==='start'||state==='won'||state==='lost'){reset();return}bird.vy=-405;bird.tilt=-.45;burst(bird.x-17,bird.y+5,'#fff4a9',4)}
@@ -42,7 +42,7 @@ function win(){state='won';if(score>best){best=score;bestEl.textContent=best;loc
 function update(dt){bird.vy=Math.min(680,bird.vy+1250*dt);bird.y+=bird.vy*dt;bird.tilt=Math.min(1.15,bird.tilt+1.7*dt);scroll+=170*dt;pipeClock-=dt;const speed=170+Math.min(95,score*3);if(pipeClock<=0){addPipe();pipeClock=1.55}
  for(const p of pipes){p.x-=speed*dt;if(!p.passed&&p.x+p.w<bird.x){p.passed=true;score++;burst(p.x+p.w,bird.y,'#ffe57c',7);if(score>=20)return win()}if(hitPipe(p))return crash()}
  pipes=pipes.filter(p=>p.x+p.w>-30);if(bird.y-bird.r<0||bird.y+bird.r>ground){/* HACKED: no ground crash */ bird.y=Math.max(bird.r,Math.min(ground-bird.r,bird.y));bird.vy=0;}for(const s of sparks){s.x+=s.vx*dt;s.y+=s.vy*dt;s.vy+=180*dt;s.life-=dt}while(sparks.length&&sparks[0].life<=0)sparks.shift();updateHud()}
-function hitPipe(p){return false; // HACKED: god mode - no pipe collision}
+function hitPipe(p){return false;} // HACKED: god mode - no pipe collision
 function updateHud(){scoreEl.textContent=score;bestEl.textContent=best;speedEl.textContent=(1+Math.min(.56,score*.018)).toFixed(1)+'×'}
 const sparks=[];function burst(x,y,color,n){for(let i=0;i<n;i++)sparks.push({x,y,vx:(Math.random()-.5)*90,vy:-Math.random()*90-15,life:.6,color})}
 function draw(){const sky=ctx.createLinearGradient(0,0,0,H);sky.addColorStop(0,'#65d8ef');sky.addColorStop(.68,'#a9eff0');sky.addColorStop(1,'#ffdc84');ctx.fillStyle=sky;ctx.fillRect(0,0,W,H);
