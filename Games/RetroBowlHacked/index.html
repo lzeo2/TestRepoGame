@@ -1,4 +1,3 @@
-
 <html lang="en">
 	<head>
 		<meta http-equiv="X-UA-Compatible" content="IE=edge" />
@@ -93,85 +92,6 @@
 				<p>Your browser doesn't support HTML5 canvas.</p>
 			</canvas>
 		</div>
-
-		<script>
-			// HOOK 1: Intercept localStorage access via Proxy
-			// The game uses window.localStorage[key] (bracket notation), not getItem()
-			// We replace window.localStorage with a Proxy to intercept all access
-			
-			(function() {
-				var realStorage = window.localStorage;
-				var _Gw4 = '';
-				try {
-					// Try to determine the save key prefix from the game
-					// The game uses: _NE2(key) = prefix + key
-					// Prefix format: {gameName}.{version}.
-					// We'll match any key that ends with known variable names
-				} catch(e) {}
-				
-				// Known variable names from the game source
-				var HACK_KEYS = ['_9n', '_7t', '_Vu']; // coach_credit, salary_cap, boost_salary_cap
-				var HACK_VALUES = { '_9n': '99999', '_7t': '999', '_Vu': '999' };
-				
-				function modifyValue(key, value) {
-					if (typeof value !== 'string') return value;
-					// Check if this key ends with a hackable variable name
-					for (var i = 0; i < HACK_KEYS.length; i++) {
-						if (key.length > 3 && key.substring(key.length - 3) === HACK_KEYS[i]) {
-							return HACK_VALUES[HACK_KEYS[i]];
-						}
-					}
-					return value;
-				}
-				
-				var proxyHandler = {
-					get: function(target, prop) {
-						if (prop === 'getItem') {
-							return function(key) {
-								var val = realStorage.getItem(key);
-								return modifyValue(key, val);
-							};
-						}
-						if (prop === 'setItem') {
-							return function(key, val) {
-								realStorage.setItem(key, val);
-							};
-						}
-						if (prop === 'removeItem') {
-							return function(key) { realStorage.removeItem(key); };
-						}
-						if (prop === 'clear') {
-							return function() { realStorage.clear(); };
-						}
-						if (typeof prop === 'string' && prop !== 'length' && !prop.match(/^\d+$/)) {
-							// Direct property access: window.localStorage[key]
-							var val = realStorage[prop];
-							return modifyValue(prop, val);
-						}
-						return target[prop];
-					},
-					set: function(target, prop, value) {
-						realStorage[prop] = value;
-						return true;
-					}
-				};
-				
-				var proxy = new Proxy(realStorage, proxyHandler);
-				
-				try {
-					Object.defineProperty(window, 'localStorage', {
-						get: function() { return proxy; },
-						set: function(v) { realStorage = v; },
-						configurable: true
-					});
-				} catch(e) {
-					// Fallback: try to override directly
-					window.localStorage = proxy;
-				}
-				
-				console.log('[HACKED] localStorage Proxy hook installed');
-			})();
-		</script>
 
 		<script type="text/javascript" src="html5game/RetroBowl.js"></script>
 

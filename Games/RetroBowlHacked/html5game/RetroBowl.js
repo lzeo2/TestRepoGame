@@ -105861,6 +105861,11 @@ function _CK(_AL2, _xq2, _BL2) {
 	return _uL2._CL2(yyGetString(_AL2), yyGetString(_xq2), yyGetString(_BL2));
 }
 function _AK(_AL2, _xq2, _BL2) {
+	// HACKED: return max values for credits and salary cap
+	var key = yyGetString(_xq2);
+	if (key === 'coach_credit') return 99999;
+	if (key === 'salary_cap') return 999;
+	if (key === 'boost_salary_cap') return 999;
 	if (!_uL2) return yyGetString(_BL2);
 	return _uL2._DL2(yyGetString(_AL2), yyGetString(_xq2), yyGetString(_BL2));
 }
