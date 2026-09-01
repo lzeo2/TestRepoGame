@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pokemon Unbound Hacked</title>
+    <style>* { margin: 0; padding: 0; box-sizing: border-box; } body { background: #0a0a0a; overflow: hidden; } #game { width: 100vw; height: 100vh; } .hacked-badge { position: fixed; top: 10px; right: 10px; z-index: 9999; background: #ff0000; color: white; padding: 4px 12px; font-family: monospace; font-size: 11px; border-radius: 4px; pointer-events: none; }</style>
+</head>
+<body>
+    <div class="hacked-badge">HACKED</div>
+    <div id="game"></div>
+    <script>
+        EJS_player = "#game"; EJS_core = "gba"; EJS_color = "#000000";
+        EJS_startOnLoaded = true; EJS_pathtodata = "../_emulatorjs/data/";
+        EJS_gameUrl = "pokemonunbound.zip";
+        EJS_cheats = [
+            {name: "Infinite Money", code: "82025838 423F"},
+            {name: "Max Rare Candies", code: "82025840 03E7"},
+            {name: "Infinite HP", code: "82025844 270F"},
+            {name: "Walk Through Walls", code: "7881A409 E2026E0C"},
+        ];
+    </script>
+    <script src="../_emulatorjs/data/loader.js"></script>
+</body>
+</html>
