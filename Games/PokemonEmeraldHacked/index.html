@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pokemon Emerald Hacked</title>
+    <style>* { margin: 0; padding: 0; box-sizing: border-box; } body { background: #0a0a0a; overflow: hidden; } #game { width: 100vw; height: 100vh; } .hacked-badge { position: fixed; top: 10px; right: 10px; z-index: 9999; background: #ff0000; color: white; padding: 4px 12px; font-family: monospace; font-size: 11px; border-radius: 4px; pointer-events: none; }</style>
+</head>
+<body>
+    <div class="hacked-badge">HACKED</div>
+    <div id="game"></div>
+    <script>
+        EJS_player = "#game"; EJS_core = "gba"; EJS_color = "#000000";
+        EJS_startOnLoaded = true; EJS_pathtodata = "../_emulatorjs/data/";
+        EJS_gameUrl = "pokemonemerald.gba";
+        EJS_cheats = [
+            {name: "Infinite Money", code: "82025EB8 423F"},
+            {name: "Max Rare Candies", code: "82025C04 03E7"},
+            {name: "Infinite HP", code: "82025C08 270F"},
+            {name: "Master Ball", code: "82025C00 0001"},
+        ];
+    </script>
+    <script src="../_emulatorjs/data/loader.js"></script>
+</body>
+</html>

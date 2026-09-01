@@ -772,5 +772,93 @@
     "tags": [
       "hacked"
     ]
+  },
+  {
+    "id": 96,
+    "title": "Pokemon Unbound",
+    "cat": "classic",
+    "icon": "\ud83c\udfae",
+    "desc": "Pokemon Unbound GBA ROM hack via EmulatorJS",
+    "url": "Games/PokemonUnbound/index.html",
+    "featured": false,
+    "tags": []
+  },
+  {
+    "id": 97,
+    "title": "Pokemon Unbound Hacked",
+    "cat": "classic",
+    "icon": "\ud83c\udfae",
+    "desc": "Pokemon Unbound with built-in cheats",
+    "url": "Games/PokemonUnboundHacked/index.html",
+    "featured": false,
+    "tags": [
+      "hacked"
+    ]
+  },
+  {
+    "id": 98,
+    "title": "Pokemon Emerald",
+    "cat": "classic",
+    "icon": "\ud83c\udfae",
+    "desc": "Pokemon Emerald via EmulatorJS",
+    "url": "Games/PokemonEmerald/index.html",
+    "featured": false,
+    "tags": []
+  },
+  {
+    "id": 99,
+    "title": "Pokemon Emerald Hacked",
+    "cat": "classic",
+    "icon": "\ud83c\udfae",
+    "desc": "Pokemon Emerald with built-in cheats",
+    "url": "Games/PokemonEmeraldHacked/index.html",
+    "featured": false,
+    "tags": [
+      "hacked"
+    ]
+  },
+  {
+    "id": 100,
+    "title": "Pokemon Fire Red",
+    "cat": "classic",
+    "icon": "\ud83c\udfae",
+    "desc": "Pokemon Fire Red via EmulatorJS",
+    "url": "Games/PokemonFireRed/index.html",
+    "featured": false,
+    "tags": []
+  },
+  {
+    "id": 101,
+    "title": "Pokemon Fire Red Hacked",
+    "cat": "classic",
+    "icon": "\ud83c\udfae",
+    "desc": "Pokemon Fire Red with built-in cheats",
+    "url": "Games/PokemonFireRedHacked/index.html",
+    "featured": false,
+    "tags": [
+      "hacked"
+    ]
+  },
+  {
+    "id": 102,
+    "title": "Pokemon Ruby",
+    "cat": "classic",
+    "icon": "\ud83c\udfae",
+    "desc": "Pokemon Ruby via EmulatorJS",
+    "url": "Games/PokemonRuby/index.html",
+    "featured": false,
+    "tags": []
+  },
+  {
+    "id": 103,
+    "title": "Pokemon Ruby Hacked",
+    "cat": "classic",
+    "icon": "\ud83c\udfae",
+    "desc": "Pokemon Ruby with built-in cheats",
+    "url": "Games/PokemonRubyHacked/index.html",
+    "featured": false,
+    "tags": [
+      "hacked"
+    ]
   }
 ]
