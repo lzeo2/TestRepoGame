@@ -3,66 +3,79 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pokemon Ruby Hacked</title>
-    <style>* { margin: 0; padding: 0; box-sizing: border-box; } body { background: #0a0a0a; overflow: hidden; } #game { width: 100vw; height: 100vh; } .hacked-badge { position: fixed; top: 10px; right: 10px; z-index: 9999; background: #ff0000; color: white; padding: 4px 12px; font-family: monospace; font-size: 11px; border-radius: 4px; pointer-events: none; }</style>
+    <title>PokemonRuby Hacked</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { background: #0a0a0a; overflow: hidden; }
+        #game { width: 100vw; height: 100vh; }
+        .hacked-badge {
+            position: fixed; top: 10px; right: 10px; z-index: 9999;
+            background: #ff0000; color: white; padding: 4px 12px;
+            font-family: monospace; font-size: 11px;
+            border-radius: 4px; pointer-events: none;
+        }
+    </style>
 </head>
 <body>
     <div class="hacked-badge">HACKED</div>
     <div id="game"></div>
     <script>
-        EJS_player = "#game"; EJS_core = "gba"; EJS_color = "#000000";
-        EJS_startOnLoaded = true; EJS_pathtodata = "../_emulatorjs/data/";
+        EJS_player = "#game";
+        EJS_core = "gba";
+        EJS_color = "#000000";
+        EJS_startOnLoaded = true;
+        EJS_pathtodata = "../_emulatorjs/data/";
         EJS_gameUrl = "Pokemon - Ruby Version (USA, Europe) (Rev 2).gba";
         EJS_cheats = [
-            {name: "Infinite Money", code: "82025EB8 423F"},
-            {name: "Max Rare Candies", code: "82025C04 03E7"},
-            {name: "Infinite HP", code: "82025C08 270F"},
+            ["Infinite Money", "82025EB8 423F"],
+            ["Max Rare Candies", "82025C04 03E7"],
+            ["Infinite HP", "82025C08 270F"]
         ];
-
-        // Continuous memory patching for cheats to persist across save loads
-        // Pokemon Ruby addresses (same as Emerald)
-        const CHEAT_ADDRESSES = {
-            money: 0x02025EB8,        // 4 bytes, little-endian
-            rareCandies: 0x02025C04,  // 2 bytes
-            hp: 0x02025C08            // 2 bytes
-        };
-
-        const CHEAT_VALUES = {
-            money: 99999,      // 0x0001869F
-            rareCandies: 999,  // 0x03E7
-            hp: 9999           // 0x270F
-        };
-
-        function applyCheats() {
-            if (typeof Module === 'undefined' || !Module.HEAPU8) return;
-            
-            const heap = Module.HEAPU8;
-            
-            // Write money (99999 = 0x0001869F, little-endian)
-            const money = CHEAT_VALUES.money;
-            heap[CHEAT_ADDRESSES.money] = money & 0xFF;
-            heap[CHEAT_ADDRESSES.money + 1] = (money >> 8) & 0xFF;
-            heap[CHEAT_ADDRESSES.money + 2] = (money >> 16) & 0xFF;
-            heap[CHEAT_ADDRESSES.money + 3] = (money >> 24) & 0xFF;
-            
-            // Write rare candies (999 = 0x03E7, little-endian)
-            const rareCandies = CHEAT_VALUES.rareCandies;
-            heap[CHEAT_ADDRESSES.rareCandies] = rareCandies & 0xFF;
-            heap[CHEAT_ADDRESSES.rareCandies + 1] = (rareCandies >> 8) & 0xFF;
-            
-            // Write HP (9999 = 0x270F, little-endian)
-            const hp = CHEAT_VALUES.hp;
-            heap[CHEAT_ADDRESSES.hp] = hp & 0xFF;
-            heap[CHEAT_ADDRESSES.hp + 1] = (hp >> 8) & 0xFF;
-        }
-
-        // Start applying cheats after emulator loads
-        let cheatInterval = null;
+        
+        // Auto-enable all cheats when emulator initializes
+        // Override the EmulatorJS constructor to set checked=true
+        const origPush = Array.prototype.push;
+        let cheatsReady = false;
+        
+        // Hook into the emulator after it loads
         EJS_onGameStart = function() {
-            console.log("[HACKED] Starting continuous cheat patching for Pokemon Ruby");
-            // Apply immediately, then every 100ms
-            applyCheats();
-            cheatInterval = setInterval(applyCheats, 100);
+            console.log("[HACKED] Game started, enabling all cheats...");
+            
+            // Method 1: Directly enable via the emulator's cheat system
+            if (window.EJS_emulator) {
+                const emu = window.EJS_emulator;
+                
+                // Set all cheats as checked
+                if (emu.cheats) {
+                    emu.cheats.forEach((cheat, i) => {
+                        cheat.checked = true;
+                        if (emu.gameManager && emu.gameManager.setCheat) {
+                            emu.gameManager.setCheat(i, true, cheat.code);
+                        }
+                    });
+                    console.log("[HACKED] Enabled " + emu.cheats.length + " cheats");
+                }
+                
+                // Also update the UI checkboxes
+                const checkboxes = document.querySelectorAll('.ejs_cheat_row input[type="checkbox"]');
+                checkboxes.forEach(cb => {
+                    if (!cb.checked) {
+                        cb.click();
+                    }
+                });
+            }
+            
+            // Method 2: Re-apply every second to handle save loads
+            setInterval(() => {
+                if (window.EJS_emulator && window.EJS_emulator.gameManager) {
+                    const emu = window.EJS_emulator;
+                    emu.cheats.forEach((cheat, i) => {
+                        if (emu.gameManager.setCheat) {
+                            emu.gameManager.setCheat(i, true, cheat.code);
+                        }
+                    });
+                }
+            }, 1000);
         };
     </script>
     <script src="../_emulatorjs/data/loader.js"></script>
