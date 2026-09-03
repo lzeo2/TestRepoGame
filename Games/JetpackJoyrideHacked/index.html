@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8" />
+		<title>Jetpack Joyride | Seraph</title>
+		<link rel="stylesheet" type="text/css" href="css/styles.css" />
+		<link rel="icon" href="splash.jpg" />
+		<link rel="shortcut icon" href="../../images/ico.ico" type="image/x-icon">
+		<meta
+			name="viewport"
+			content="width=device-width, height=device-height, user-scalable=no, initial-scale=1, minimum-scale=1, maximum-scale=1"
+		/>
+		<script type="text/javascript" src="engine/phaser-3.24.1.min.js"></script>
+		<script>window.adsbygoogle={push:function(){}};window.adBreak=function(){};</script>
+		<script type="text/javascript" src="game3.js"></script>
+		<script src="../../storage/js/cloak.js"></script>
+		<script>
+		// HACKED VERSION - Max coins + Invincibility
+		(function() {
+			// Wait for Phaser to load
+			var origGame = window.Phaser;
+			window.JJ_HACK = {
+				coins: 999999,
+				invincible: true
+			};
+			
+			// Intercept localStorage to force max coins
+			var origSetItem = localStorage.setItem;
+			localStorage.setItem = function(key, value) {
+				if (key && (key.toLowerCase().includes('coin') || key.toLowerCase().includes('score'))) {
+					// Store hacked values
+					return origSetItem.call(localStorage, key, '999999');
+				}
+				return origSetItem.call(localStorage, key, value);
+			};
+			
+			// Wait for game to initialize and hook into Phaser
+			var hookInterval = setInterval(function() {
+				if (window.game || window.phaserGame) {
+					clearInterval(hookInterval);
+					var g = window.game || window.phaserGame;
+					if (g && g.scene && g.scene.scenes) {
+						// Hook into scene update
+						g.scene.scenes.forEach(function(scene) {
+							if (scene && scene.update) {
+								var origUpdate = scene.update;
+								scene.update = function(time, delta) {
+									origUpdate.call(this, time, delta);
+									// Set max coins
+									if (this.coins !== undefined) this.coins = 999999;
+									if (this.totalCoin !== undefined) this.totalCoin = 999999;
+									if (this.textCoins && this.textCoins.setText) {
+										this.textCoins.setText('999999');
+								}
+									// Enable invincibility - remove collisions with obstacles
+									if (this.player && this.player.body) {
+										this.player.body.enable = false;
+									}
+									// Auto-collect coins
+									if (this.coinGroup) {
+										this.coinGroup.children.each(function(coin) {
+											if (coin && coin.active) {
+												coin.active = false;
+												coin.visible = false;
+											}
+									});
+								}
+								};
+							}
+						});
+					}
+				}
+			}, 100);
+		})();
+		</script>
+	</head>
+<style>
+  #controls-hint{position:fixed;bottom:12px;left:50%;transform:translateX(-50%);z-index:9999;background:rgba(0,0,0,0.72);color:#fff;font-family:Arial,sans-serif;font-size:14px;line-height:1.5;text-align:center;padding:10px 20px;border-radius:8px;pointer-events:none;transition:opacity 0.5s}
+  #controls-hint.hidden{opacity:0}
+</style>
+	<body>
+		<div class="fontLoader" style="font-family: jetpackia">-</div>
+		<img id="rotate_image" src="img/HB_ic_rotateScreen.png" alt="rotate_screen" class="center" />
+		<div id="content">
+			<div id="phaser-canvas"></div>
+		</div>
+		<div id="controls-hint">
+		  <strong>Controls:</strong> Hold tap/click to fly up — release to fall down.
+		</div>
+		<div id="hack-badge" style="position:fixed;top:10px;right:10px;z-index:99999;background:#ff0000;color:#fff;font-family:Arial,sans-serif;font-size:18px;font-weight:bold;padding:8px 16px;border-radius:6px;box-shadow:0 2px 8px rgba(0,0,0,0.4);animation:pulse 2s infinite;">HACKED</div>
+		<style>@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.7}}</style>
+		<script>
+		(function(){var el=document.getElementById('controls-hint');setTimeout(function(){el.classList.add('hidden');setTimeout(function(){el.style.display='none';},600);},10000);})();
+		</script>
+	</body>
+</html>
