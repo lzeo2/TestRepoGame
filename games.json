@@ -410,7 +410,7 @@
     "tags": []
   },
   {
-    "id": 61,
+    "id": 104,
     "title": "Fruit Ninja",
     "cat": "classic",
     "icon": "",
@@ -418,6 +418,18 @@
     "url": "Games/FruitNinja/index.html",
     "featured": false,
     "tags": []
+  },
+  {
+    "id": 105,
+    "title": "Fruit Ninja Hacked",
+    "cat": "classic",
+    "icon": "",
+    "desc": "Fruit Ninja with bomb immunity, no life loss, and max score!",
+    "url": "Games/FruitNinjaHacked/index.html",
+    "featured": false,
+    "tags": [
+      "hacked"
+    ]
   },
   {
     "id": 62,
@@ -668,6 +680,18 @@
     "url": "Games/JetpackJoyride/index.html",
     "featured": false,
     "tags": []
+  },
+  {
+    "id": 107,
+    "title": "Jetpack Joyride Hacked",
+    "cat": "action",
+    "icon": "",
+    "desc": "Jetpack Joyride with max coins (999999) and invincibility enabled!",
+    "url": "Games/JetpackJoyrideHacked/index.html",
+    "featured": false,
+    "tags": [
+      "hacked"
+    ]
   },
   {
     "id": 87,

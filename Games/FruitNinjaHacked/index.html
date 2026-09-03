@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta
+			name="viewport"
+			content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
+		/>
+		<meta http-equiv="X-UA-Compatible" content="ie=edge" />
+		<meta name="theme-color" content="#000000" />
+		<link rel="manifest" href="./manifest.json" />
+		<meta name="msapplication-starturl" content="./" />
+		<title>Fruit Ninja | Seraph</title>
+		<link rel="shortcut icon" href="../../images/ico.ico" type="image/x-icon">
+		<style>
+			@font-face {
+				font-family: gangofchinese;
+				src: url('assets/font/gangofchinese.ttf');
+			}
+
+			body {
+				background-color: #000000;
+				margin: 0;
+
+				height: 100%;
+				max-height: 100vh !important;
+				overflow: hidden;
+				position: relative;
+			}
+
+			.fontLoader {
+				position: absolute;
+				left: -1000px;
+				visibility: hidden;
+			}
+
+			#phaser-canvas {
+				margin: 0 auto;
+			}
+
+			/*#enable3d-three-canvas{
+          position: sticky !important;
+      }*/
+			/*#enable3d-phaser-canvas{
+          margin: 0 auto;
+          position: absolute !important;
+      }*/
+
+			body,
+			#content {
+				height: 100vh !important;
+				max-height: 100vh !important;
+				background-color: black;
+			}
+
+			#divAds,
+			#tempads {
+				display: none;
+				/*background-color: green;*/
+			}
+
+			canvas {
+				width: 100%;
+				height: 100%;
+				display: grid !important;
+				grid-area: 1/1;
+				/*position: sticky !important;*/
+				/*margin: 0 auto !important;*/
+				margin-top: 0 !important;
+				margin-bottom: 0 !important;
+				/*margin-left: auto !important;
+          margin-right: auto !important;*/
+				padding: 0 !important;
+				max-width: 100% !important;
+				max-height: 100vh !important;
+			}
+		</style>
+
+		<noscript>Please enable javascript to continue using this application.</noscript>
+	</head>
+	<body>
+		<div class="fontLoader" style="font-family: gangofchinese">-</div>
+		<div id="content">
+			<div id="phaser-canvas"></div>
+		</div>
+
+		<script type="text/javascript" src="vendors.bundle.js"></script>
+		<script type="text/javascript" src="main.bundle.js"></script>
+		<script>
+			/* ===== FRUIT NINJA HACKED ===== */
+			// Badge
+			(function() {
+				var badge = document.createElement('div');
+				badge.textContent = 'HACKED';
+				badge.style.cssText = 'position:fixed;top:10px;right:10px;z-index:999999;background:#ff0;color:#000;font:bold 14px Arial;padding:4px 10px;border-radius:4px;border:2px solid #f00;pointer-events:none;font-family:monospace;';
+				document.body.appendChild(badge);
+			})();
+			// Hook Phaser.Scene prototype methods before game starts
+			(function() {
+				// Bomb immunity: make notifyBombHit a no-op
+				var origNotifyBombHit = Phaser.Scene.prototype.notifyBombHit;
+				Phaser.Scene.prototype.notifyBombHit = function() {
+					// Do nothing — no bomb game over
+				};
+				// Lose life immunity
+				var origLoseLife = Phaser.Scene.prototype.loseLife;
+				Phaser.Scene.prototype.loseLife = function() {
+					// Do nothing — never lose lives
+				};
+				// Score hack: force score to 999999 in every update
+				var origUpdate = Phaser.Scene.prototype.update;
+				Phaser.Scene.prototype.update = function(time, delta) {
+					if (origUpdate) origUpdate.call(this, time, delta);
+					if (this.gameData && this.gameData.score !== undefined) {
+						if (this.gameData.score < 999999) {
+							this.gameData.score = 999999;
+						}
+						if (this.textScore && this.textScore.text !== '999999') {
+							this.textScore.text = '999999';
+						}
+					}
+				};
+			})();
+		</script>
+		<style id="injectStyles">
+			html,
+			body {
+				background: none !important;
+			}
+		</style>
+	</body>
+</html>
