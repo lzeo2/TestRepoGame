@@ -19,6 +19,52 @@
             {name: "Infinite HP", code: "82025844 270F"},
             {name: "Walk Through Walls", code: "7881A409 E2026E0C"},
         ];
+
+        // Continuous memory patching for cheats to persist across save loads
+        // Pokemon Fire Red addresses
+        const CHEAT_ADDRESSES = {
+            money: 0x02025838,        // 4 bytes, little-endian
+            rareCandies: 0x02025840,  // 2 bytes
+            hp: 0x02025844            // 2 bytes
+        };
+
+        const CHEAT_VALUES = {
+            money: 99999,      // 0x0001869F
+            rareCandies: 999,  // 0x03E7
+            hp: 9999           // 0x270F
+        };
+
+        function applyCheats() {
+            if (typeof Module === 'undefined' || !Module.HEAPU8) return;
+            
+            const heap = Module.HEAPU8;
+            
+            // Write money (99999 = 0x0001869F, little-endian)
+            const money = CHEAT_VALUES.money;
+            heap[CHEAT_ADDRESSES.money] = money & 0xFF;
+            heap[CHEAT_ADDRESSES.money + 1] = (money >> 8) & 0xFF;
+            heap[CHEAT_ADDRESSES.money + 2] = (money >> 16) & 0xFF;
+            heap[CHEAT_ADDRESSES.money + 3] = (money >> 24) & 0xFF;
+            
+            // Write rare candies (999 = 0x03E7, little-endian)
+            const rareCandies = CHEAT_VALUES.rareCandies;
+            heap[CHEAT_ADDRESSES.rareCandies] = rareCandies & 0xFF;
+            heap[CHEAT_ADDRESSES.rareCandies + 1] = (rareCandies >> 8) & 0xFF;
+            
+            // Write HP (9999 = 0x270F, little-endian)
+            const hp = CHEAT_VALUES.hp;
+            heap[CHEAT_ADDRESSES.hp] = hp & 0xFF;
+            heap[CHEAT_ADDRESSES.hp + 1] = (hp >> 8) & 0xFF;
+        }
+
+        // Start applying cheats after emulator loads
+        let cheatInterval = null;
+        EJS_onGameStart = function() {
+            console.log("[HACKED] Starting continuous cheat patching for Pokemon Fire Red");
+            // Apply immediately, then every 100ms
+            applyCheats();
+            cheatInterval = setInterval(applyCheats, 100);
+        };
     </script>
     <script src="../_emulatorjs/data/loader.js"></script>
 </body>
