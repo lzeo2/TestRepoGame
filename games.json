@@ -14,7 +14,7 @@
     "title": "Age of War",
     "cat": "strategy",
     "icon": "",
-    "desc": "Side-scrolling tower defense \u2014 train scouts, guards, and archers to destroy the enemy gate.",
+    "desc": "Side-scrolling tower defense — train scouts, guards, and archers to destroy the enemy gate.",
     "url": "Games/AgeOfWar/index.html",
     "featured": false,
     "tags": []
@@ -104,7 +104,7 @@
     "title": "Hextris",
     "cat": "classic",
     "icon": "",
-    "desc": "Hexagonal block-stacking arcade puzzle \u2014 rotate the board, match colors, and clear the core.",
+    "desc": "Hexagonal block-stacking arcade puzzle — rotate the board, match colors, and clear the core.",
     "url": "Games/Hextris/index.html",
     "featured": false,
     "tags": []
@@ -114,7 +114,7 @@
     "title": "Flappy Bird",
     "cat": "classic",
     "icon": "",
-    "desc": "Tap-to-fly arcade challenge \u2014 guide the bird through pipes, chase a high score, and keep the run alive.",
+    "desc": "Tap-to-fly arcade challenge — guide the bird through pipes, chase a high score, and keep the run alive.",
     "url": "Games/FlappyBird/index.html",
     "featured": false,
     "tags": []
@@ -274,7 +274,7 @@
     "title": "Gladihoppers",
     "cat": "action",
     "icon": "",
-    "desc": "2D physics gladiator brawler \u2014 career mode, gear upgrades, 2-player local fights",
+    "desc": "2D physics gladiator brawler — career mode, gear upgrades, 2-player local fights",
     "url": "Games/Gladihoppers/index.html",
     "featured": false,
     "tags": []
@@ -284,7 +284,7 @@
     "title": "Burrito Bison",
     "cat": "action",
     "icon": "",
-    "desc": "Physics launch game \u2014 fling the burrito, smash gummy bears, grab cash, and buy upgrades to travel further each run.",
+    "desc": "Physics launch game — fling the burrito, smash gummy bears, grab cash, and buy upgrades to travel further each run.",
     "url": "Games/BurritoBison/index.html",
     "featured": false,
     "tags": []
@@ -294,7 +294,7 @@
     "title": "BitLife",
     "cat": "simulation",
     "icon": "",
-    "desc": "Text-based life simulation \u2014 born into a family, then steer a whole lifetime one year at a time: school, careers, relationships, crime, and whatever else aging throws at you.",
+    "desc": "Text-based life simulation — born into a family, then steer a whole lifetime one year at a time: school, careers, relationships, crime, and whatever else aging throws at you.",
     "url": "Games/BitLife/index.html",
     "featured": false,
     "tags": []
@@ -304,7 +304,7 @@
     "title": "Subway Surfers",
     "cat": "action",
     "icon": "",
-    "desc": "Endless runner \u2014 dodge trains, jump and roll, and switch lanes to keep the run going through San Francisco. Fan-hosted Unity WebGL port; online leaderboards and services are inert offline.",
+    "desc": "Endless runner — dodge trains, jump and roll, and switch lanes to keep the run going through San Francisco. Fan-hosted Unity WebGL port; online leaderboards and services are inert offline.",
     "url": "Games/SubwaySurfers/index.html",
     "featured": false,
     "tags": []
@@ -314,7 +314,7 @@
     "title": "A Dark Room",
     "cat": "story",
     "icon": "",
-    "desc": "Tend a fire, build a shelter, gather resources, and explore \u2014 a branching narrative progression that begins in one dark room and spirals far beyond it.",
+    "desc": "Tend a fire, build a shelter, gather resources, and explore — a branching narrative progression that begins in one dark room and spirals far beyond it.",
     "url": "Games/ADarkRoom/index.html",
     "featured": false,
     "tags": []
@@ -324,7 +324,7 @@
     "title": "Stranded In Isekai",
     "cat": "story",
     "icon": "",
-    "desc": "Fantasy RPG \u2014 stranded in another world, explore villages and forests, talk to NPCs, win quiz battles, and level up through the story.",
+    "desc": "Fantasy RPG — stranded in another world, explore villages and forests, talk to NPCs, win quiz battles, and level up through the story.",
     "url": "Games/StrandedInIsekai/index.html",
     "featured": false,
     "tags": []
@@ -334,7 +334,7 @@
     "title": "Papa's Pizzeria",
     "cat": "strategy",
     "icon": "",
-    "desc": "Flipline Studios' classic time-management game \u2014 take orders, build pizzas, bake them, and serve happy customers through a full workday shift. Original 2007 Flash build running locally under the bundled Ruffle emulator; MochiAds/FliplineAds ad calls are answered locally, so it's fully playable offline.",
+    "desc": "Flipline Studios' classic time-management game — take orders, build pizzas, bake them, and serve happy customers through a full workday shift. Original 2007 Flash build running locally under the bundled Ruffle emulator; MochiAds/FliplineAds ad calls are answered locally, so it's fully playable offline.",
     "url": "Games/PapasPizzeria/index.html",
     "featured": false,
     "tags": []
@@ -344,7 +344,7 @@
     "title": "Retro Bowl",
     "cat": "sports",
     "icon": "",
-    "desc": "Fan-hosted HTML5 port of New Star Games' Retro Bowl \u2014 build a franchise, draft, and play arcade football with simple tap/swipe controls. Local GameMaker:HTML5 build; Poki SDK replaced by a local stub, so it's fully playable offline.",
+    "desc": "Fan-hosted HTML5 port of New Star Games' Retro Bowl — build a franchise, draft, and play arcade football with simple tap/swipe controls. Local GameMaker:HTML5 build; Poki SDK replaced by a local stub, so it's fully playable offline.",
     "url": "Games/RetroBowl/index.html",
     "featured": false,
     "tags": []
@@ -354,7 +354,7 @@
     "title": "Super Hot",
     "cat": "action",
     "icon": "",
-    "desc": "Fan-hosted Unity WebGL port of SUPERHOT \u2014 time moves only when you move. Dismantle a slow-motion world with thrown weapons and well-timed shots. Local build; fully playable offline.",
+    "desc": "Fan-hosted Unity WebGL port of SUPERHOT — time moves only when you move. Dismantle a slow-motion world with thrown weapons and well-timed shots. Local build; fully playable offline.",
     "url": "Games/Superhot/index.html",
     "featured": false,
     "tags": []
@@ -364,7 +364,7 @@
     "title": "10 Minutes Till Dawn",
     "cat": "action",
     "icon": "",
-    "desc": "Fan-hosted Unity WebGL port of Flanne's 10 Minutes Till Dawn \u2014 survive the horde for ten minutes, level up on the fly, and stack upgrades as the night gets darker. Local build; fully playable offline.",
+    "desc": "Fan-hosted Unity WebGL port of Flanne's 10 Minutes Till Dawn — survive the horde for ten minutes, level up on the fly, and stack upgrades as the night gets darker. Local build; fully playable offline.",
     "url": "Games/TenMinutesTillDawn/index.html",
     "featured": false,
     "tags": []
@@ -374,7 +374,7 @@
     "title": "Fleeing the Complex",
     "cat": "story",
     "icon": "",
-    "desc": "Fan-hosted port of the Henry Stickmin adventure Fleeing the Complex \u2014 escape the prison through zany, choice-driven outcomes. Original Flash game running under the bundled local Ruffle emulator.",
+    "desc": "Fan-hosted port of the Henry Stickmin adventure Fleeing the Complex — escape the prison through zany, choice-driven outcomes. Original Flash game running under the bundled local Ruffle emulator.",
     "url": "Games/FleeingTheComplex/index.html",
     "featured": false,
     "tags": []
@@ -384,7 +384,7 @@
     "title": "Infiltrating the Airship",
     "cat": "story",
     "icon": "",
-    "desc": "Fan-hosted port of the Henry Stickmin adventure Infiltrating the Airship \u2014 sneak aboard the Toppat airship and pick your path through branching chaos. Original Flash game running under the bundled local Ruffle emulator.",
+    "desc": "Fan-hosted port of the Henry Stickmin adventure Infiltrating the Airship — sneak aboard the Toppat airship and pick your path through branching chaos. Original Flash game running under the bundled local Ruffle emulator.",
     "url": "Games/InfiltratingTheAirship/index.html",
     "featured": false,
     "tags": []
@@ -394,7 +394,7 @@
     "title": "Baldi's Basics",
     "cat": "action",
     "icon": "",
-    "desc": "Fan-hosted Unity WebGL port of Mystman12's Baldi's Basics in Education and Learning \u2014 explore the school, solve notebook math problems, and outrun Baldi as he gets faster with every wrong answer. Local build; fully playable offline.",
+    "desc": "Fan-hosted Unity WebGL port of Mystman12's Baldi's Basics in Education and Learning — explore the school, solve notebook math problems, and outrun Baldi as he gets faster with every wrong answer. Local build; fully playable offline.",
     "url": "Games/BaldisBasics/index.html",
     "featured": false,
     "tags": []
@@ -404,7 +404,7 @@
     "title": "Temple Run 2",
     "cat": "action",
     "icon": "",
-    "desc": "Fan-hosted HTML5 port (Babylon.js) of the Temple Run 2 endless-runner concept \u2014 sprint through the lost temple ruins, turn, jump and slide to survive. Local assets; fully playable offline.",
+    "desc": "Fan-hosted HTML5 port (Babylon.js) of the Temple Run 2 endless-runner concept — sprint through the lost temple ruins, turn, jump and slide to survive. Local assets; fully playable offline.",
     "url": "Games/TempleRun2/index.html",
     "featured": false,
     "tags": []
@@ -414,7 +414,7 @@
     "title": "Fruit Ninja",
     "cat": "classic",
     "icon": "",
-    "desc": "Slash fruit, dodge bombs \u2014 timing combo arcade",
+    "desc": "Slash fruit, dodge bombs — timing combo arcade",
     "url": "Games/FruitNinja/index.html",
     "featured": false,
     "tags": []
@@ -424,7 +424,7 @@
     "title": "Cut the Rope",
     "cat": "puzzle",
     "icon": "",
-    "desc": "Physics puzzle levels \u2014 feed Om Nom the candy",
+    "desc": "Physics puzzle levels — feed Om Nom the candy",
     "url": "Games/CutTheRope/index.html",
     "featured": false,
     "tags": []
@@ -454,7 +454,7 @@
     "title": "House of Hazards",
     "cat": "multiplayer",
     "icon": "",
-    "desc": "2-4 player party chaos \u2014 dodge the house's traps",
+    "desc": "2-4 player party chaos — dodge the house's traps",
     "url": "Games/HouseOfHazards/index.html",
     "featured": false,
     "tags": []
@@ -464,7 +464,7 @@
     "title": "Geometry Dash Lite",
     "cat": "action",
     "icon": "",
-    "desc": "Rhythm platformer \u2014 jump to the beat, level after level",
+    "desc": "Rhythm platformer — jump to the beat, level after level",
     "url": "Games/GeometryDashLite/index.html",
     "featured": false,
     "tags": []
@@ -604,7 +604,7 @@
     "title": "Bloons TD",
     "cat": "strategy",
     "icon": "",
-    "desc": "Classic tower defense \u2014 pop bloons with monkeys! Four versions included: BTD 1\u20134, playable via bundled Ruffle emulator.",
+    "desc": "Classic tower defense — pop bloons with monkeys! Four versions included: BTD 1–4, playable via bundled Ruffle emulator.",
     "url": "Games/BloonsTD/index.html",
     "featured": false,
     "tags": []
@@ -614,7 +614,7 @@
     "title": "Drift Boss",
     "cat": "action",
     "icon": "",
-    "desc": "Endless drifting game \u2014 steer your car through obstacles, chain combos, and drift as far as you can!",
+    "desc": "Endless drifting game — steer your car through obstacles, chain combos, and drift as far as you can!",
     "url": "Games/DriftBoss/index.html",
     "featured": false,
     "tags": []
@@ -634,7 +634,7 @@
     "title": "Doodle Jump",
     "cat": "action",
     "icon": "",
-    "desc": "Classic vertical platformer \u2014 jump as high as you can, dodge monsters, collect power-ups!",
+    "desc": "Classic vertical platformer — jump as high as you can, dodge monsters, collect power-ups!",
     "url": "Games/DoodleJump/index.html",
     "featured": false,
     "tags": []
@@ -654,7 +654,7 @@
     "title": "Thumb Fighter",
     "cat": "sports",
     "icon": "",
-    "desc": "Two-player thumb wrestling game \u2014 battle a friend on one keyboard or fight the computer!",
+    "desc": "Two-player thumb wrestling game — battle a friend on one keyboard or fight the computer!",
     "url": "Games/ThumbFighter/index.html",
     "featured": false,
     "tags": []
@@ -664,7 +664,7 @@
     "title": "Jetpack Joyride",
     "cat": "action",
     "icon": "",
-    "desc": "Endless side-scrolling runner \u2014 strap on a jetpack, dodge lasers and missiles, and grab coins!",
+    "desc": "Endless side-scrolling runner — strap on a jetpack, dodge lasers and missiles, and grab coins!",
     "url": "Games/JetpackJoyride/index.html",
     "featured": false,
     "tags": []
@@ -674,7 +674,7 @@
     "title": "Doge Miner",
     "cat": "idle",
     "icon": "",
-    "desc": "The Dogecoin Mining Simulator \u2014 click to mine, hire helpers, buy upgrades, and reach the moon!",
+    "desc": "The Dogecoin Mining Simulator — click to mine, hire helpers, buy upgrades, and reach the moon!",
     "url": "Games/DogeMiner/index.html",
     "featured": false,
     "tags": []
@@ -777,7 +777,7 @@
     "id": 96,
     "title": "Pokemon Unbound",
     "cat": "classic",
-    "icon": "\ud83c\udfae",
+    "icon": "🎮",
     "desc": "Pokemon Unbound GBA ROM hack via EmulatorJS",
     "url": "Games/PokemonUnbound/index.html",
     "featured": false,
@@ -787,7 +787,7 @@
     "id": 97,
     "title": "Pokemon Unbound Hacked",
     "cat": "classic",
-    "icon": "\ud83c\udfae",
+    "icon": "🎮",
     "desc": "Pokemon Unbound with built-in cheats",
     "url": "Games/PokemonUnboundHacked/index.html",
     "featured": false,
@@ -799,7 +799,7 @@
     "id": 98,
     "title": "Pokemon Emerald",
     "cat": "classic",
-    "icon": "\ud83c\udfae",
+    "icon": "🎮",
     "desc": "Pokemon Emerald via EmulatorJS",
     "url": "Games/PokemonEmerald/index.html",
     "featured": false,
@@ -809,7 +809,7 @@
     "id": 99,
     "title": "Pokemon Emerald Hacked",
     "cat": "classic",
-    "icon": "\ud83c\udfae",
+    "icon": "🎮",
     "desc": "Pokemon Emerald with built-in cheats",
     "url": "Games/PokemonEmeraldHacked/index.html",
     "featured": false,
@@ -821,7 +821,7 @@
     "id": 100,
     "title": "Pokemon Fire Red",
     "cat": "classic",
-    "icon": "\ud83c\udfae",
+    "icon": "🎮",
     "desc": "Pokemon Fire Red via EmulatorJS",
     "url": "Games/PokemonFireRed/index.html",
     "featured": false,
@@ -831,7 +831,7 @@
     "id": 101,
     "title": "Pokemon Fire Red Hacked",
     "cat": "classic",
-    "icon": "\ud83c\udfae",
+    "icon": "🎮",
     "desc": "Pokemon Fire Red with built-in cheats",
     "url": "Games/PokemonFireRedHacked/index.html",
     "featured": false,
@@ -843,7 +843,7 @@
     "id": 102,
     "title": "Pokemon Ruby",
     "cat": "classic",
-    "icon": "\ud83c\udfae",
+    "icon": "🎮",
     "desc": "Pokemon Ruby via EmulatorJS",
     "url": "Games/PokemonRuby/index.html",
     "featured": false,
@@ -853,9 +853,72 @@
     "id": 103,
     "title": "Pokemon Ruby Hacked",
     "cat": "classic",
-    "icon": "\ud83c\udfae",
+    "icon": "🎮",
     "desc": "Pokemon Ruby with built-in cheats",
     "url": "Games/PokemonRubyHacked/index.html",
+    "featured": false,
+    "tags": [
+      "hacked"
+    ]
+  },
+  {
+    "id": 110,
+    "title": "Subway Surfers",
+    "cat": "arcade",
+    "icon": "🏃",
+    "desc": "Dash through the subway, dodge trains and obstacles. Swipe or arrow keys.",
+    "url": "Games/SubwaySurfers/index.html",
+    "featured": false
+  },
+  {
+    "id": 111,
+    "title": "Subway Surfers Hacked",
+    "cat": "arcade",
+    "icon": "🏃‍♂️",
+    "desc": "Subway Surfers with max coins and invincibility enabled.",
+    "url": "Games/SubwaySurfersHacked/index.html",
+    "featured": false,
+    "tags": [
+      "hacked"
+    ]
+  },
+  {
+    "id": 112,
+    "title": "Crossy Road",
+    "cat": "Arcade",
+    "icon": "🐔",
+    "desc": "Help the chicken cross the road! A endless hopper game.",
+    "url": "Games/CrossyRoad/index.html",
+    "featured": false
+  },
+  {
+    "id": 113,
+    "title": "Crossy Road Hacked",
+    "cat": "Arcade",
+    "icon": "🐔",
+    "desc": "Crossy Road with invincibility and max score!",
+    "url": "Games/CrossyRoadHacked/index.html",
+    "featured": false,
+    "tags": [
+      "hacked"
+    ]
+  },
+  {
+    "id": 108,
+    "title": "Doodle Jump",
+    "cat": "arcade",
+    "icon": "🐸",
+    "desc": "Classic Doodle Jump — tilt or use arrow keys to bounce higher!",
+    "url": "Games/DoodleJump/index.html",
+    "featured": false
+  },
+  {
+    "id": 109,
+    "title": "Doodle Jump Hacked",
+    "cat": "arcade",
+    "icon": "🐸",
+    "desc": "Doodle Jump with 999999 score and no death!",
+    "url": "Games/DoodleJumpHacked/index.html",
     "featured": false,
     "tags": [
       "hacked"
