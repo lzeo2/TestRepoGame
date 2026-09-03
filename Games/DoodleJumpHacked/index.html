@@ -1,0 +1,134 @@
+
+<html>
+
+<head>
+
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no" />
+	<title>Doodle Jump HACKED | Seraph</title>
+
+	<style>
+		body {
+			background-color: black;
+			padding: 0px;
+			margin: 0px;
+		}
+
+		#highscore {
+			position: absolute;
+			left: calc(-100px);
+			Top: calc(-100px);
+			width: 5px;
+			display: 'none';
+		}
+		#controls-hint {
+			position: fixed;
+			bottom: 12px;
+			left: 50%;
+			transform: translateX(-50%);
+			z-index: 9999;
+			background: rgba(0,0,0,0.72);
+			color: #fff;
+			font-family: Arial, sans-serif;
+			font-size: 14px;
+			line-height: 1.5;
+			text-align: center;
+			padding: 10px 20px;
+			border-radius: 8px;
+			pointer-events: none;
+			transition: opacity 0.5s;
+		}
+		#controls-hint.hidden { opacity: 0; }
+	</style>
+	<script type="text/javascript" src="./api.js"></script>
+</head>
+
+	<body>
+
+	
+
+	<script type="text/javascript">
+	CloudAPI.init({
+		'id': 229,
+		'splash': true
+	});
+	CloudAPI.mute = function () {
+	    if (Doodle && !Doodle.game.sound.mute) {
+	        Doodle.game.sound.mute = true;
+	        return true;
+	    }
+
+        return false;
+    };
+
+    CloudAPI.unmute = function () {
+        if (Doodle && Doodle.game.sound.mute) {
+            Doodle.game.sound.mute=false;
+            return true;
+        }
+
+        return false;
+    };
+	</script>
+		<input id="highscore" type="text" />
+		<script type="text/javascript" src="js/phaser.min.js"></script>
+		<script type="text/javascript" src="js/fulltilt.min.js"></script>
+		<script type="text/javascript" src="js/build/production.min.js"></script> 
+		<script type="text/javascript" src="js/NoSleep.min.js"></script>
+		<script src="js/main.js"></script>  
+
+		<div id="controls-hint">
+		  <strong>Controls:</strong> Tilt device to move, or use <strong>&larr; &rarr;</strong> arrow keys.
+		</div>
+
+		<script>
+// ====== HACKED VERSION ======
+(function() {
+  var badge = document.createElement('div');
+  badge.textContent = '\u26A1 HACKED \u26A1';
+  badge.style.cssText = 'position:fixed;top:10px;right:10px;z-index:99999;background:linear-gradient(135deg,#ff0040,#ff6600);color:#fff;font-family:Arial,sans-serif;font-size:18px;font-weight:bold;padding:8px 16px;border-radius:8px;box-shadow:0 0 15px rgba(255,0,64,0.6);pointer-events:none;letter-spacing:1px;';
+  document.body.appendChild(badge);
+
+  var patched = false;
+  function applyHacks() {
+    if (patched) return;
+    try {
+      var gs = Doodle.game.state.states.Game;
+      if (!gs || !gs.player) return;
+      patched = true;
+      gs.gameOver = function() {};
+      setInterval(function() {
+        try {
+          var g = Doodle.game.state.states.Game;
+          if (!g || !g.player) return;
+          g.score = 999999;
+          if (g.coinsCountLabel) g.coinsCountLabel.text = '999999';
+          g.player.alive = true;
+          if (g.player.y > 2000) {
+            g.player.y = 400;
+            g.player.body.velocity.y = -800;
+          }
+        } catch(e) {}
+      }, 16);
+    } catch(e) {}
+  }
+  setInterval(applyHacks, 200);
+})();
+// ====== END HACK ======
+
+		var noSleep = new NoSleep();
+		(function(){var el=document.getElementById('controls-hint');setTimeout(function(){el.classList.add('hidden');setTimeout(function(){el.style.display='none';},600);},10000);})();
+
+function enableNoSleep() {
+  noSleep.enable();
+  document.removeEventListener('touchstart', enableNoSleep, false);
+}
+
+
+document.addEventListener('touchstart', enableNoSleep, false);
+
+
+	</script>
+
+	</body>
+</html>
