@@ -1,0 +1,135 @@
+
+<html lang="en">
+<head>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+
+	<title>Crossy Road HACKED</title>
+
+	<link rel="stylesheet" href="style.css" />
+	<link rel="stylesheet" async href="app-store-interstitial.css" />
+
+	<script src="scripts/extra.min.js"></script>
+
+	<style>
+	#hacked-badge {
+		position: fixed;
+		top: 10px;
+		right: 10px;
+		background: #ff0040;
+		color: #fff;
+		font-family: 'Arial Black', Arial, sans-serif;
+		font-size: 18px;
+		font-weight: bold;
+		padding: 6px 14px;
+		border-radius: 6px;
+		z-index: 99999;
+		box-shadow: 0 2px 8px rgba(255,0,64,0.5);
+		text-transform: uppercase;
+		letter-spacing: 2px;
+		pointer-events: none;
+	}
+	</style>
+</head>
+<body>
+	<div id="hacked-badge">HACKED</div>
+
+	<script>
+	// === CROSSY ROAD HACK ===
+	// 1) Set score to 999999 by intercepting textScore updates
+	// 2) Disable death/collision by overriding playerController.Dead
+	
+	(function() {
+		var _origText = Object.getOwnPropertyDescriptor(HTMLCanvasElement.prototype, 'textContent') || {};
+		var hackScore = false;
+		var scoreValue = 999999;
+
+		// Intercept Three.js text updates via a proxy on the text property
+		var _origSet = Object.getOwnPropertyDescriptor(THREE.Mesh.prototype, '__defineSetter__') || {};
+
+		// Use MutationObserver to catch score display in DOM if rendered as overlay
+		// But Crossy Road renders score in Three.js canvas, so we need to hook the game loop
+
+		// Hook into the game by overriding the requestAnimationFrame
+		var _raf = window.requestAnimationFrame;
+		var _hackApplied = false;
+		var _frameCount = 0;
+
+		window.requestAnimationFrame = function(cb) {
+			return _raf.call(window, function(ts) {
+				// On first few frames, try to find and patch game objects
+				if (!_hackApplied && window.playerController) {
+					try {
+						// Override Dead property to always return false
+						Object.defineProperty(window.playerController, 'Dead', {
+							get: function() { return false; },
+							set: function() { /* ignore death */ },
+							configurable: true
+						});
+						_hackApplied = true;
+					} catch(e) {}
+				}
+
+				// Intercept score display by hooking textScore if it exists
+				if (window.textScore && window.textScore.text !== undefined) {
+					// Override the text setter
+					var ts = window.textScore;
+					if (!ts._hackScored) {
+						try {
+							Object.defineProperty(ts, 'text', {
+								get: function() { return String(scoreValue); },
+								set: function(v) { /* keep our score */ },
+								configurable: true
+							});
+							ts._hackScored = true;
+						} catch(e) {}
+					}
+				}
+
+				cb(ts);
+			});
+		};
+
+		// Also hook window.playerController when it gets assigned
+		var _pc = null;
+		Object.defineProperty(window, 'playerController', {
+			get: function() { return _pc; },
+			set: function(v) {
+				_pc = v;
+				if (v) {
+					try {
+						Object.defineProperty(v, 'Dead', {
+							get: function() { return false; },
+							set: function() {},
+							configurable: true
+						});
+					} catch(e) {}
+				}
+			},
+			configurable: true
+		});
+
+		// Hook textScore when assigned
+		var _ts = null;
+		Object.defineProperty(window, 'textScore', {
+			get: function() { return _ts; },
+			set: function(v) {
+				_ts = v;
+				if (v && v.text !== undefined) {
+					try {
+						Object.defineProperty(v, 'text', {
+							get: function() { return String(scoreValue); },
+							set: function() {},
+							configurable: true
+						});
+					} catch(e) {}
+				}
+			},
+			configurable: true
+		});
+	})();
+	</script>
+
+	<script src="scripts/bootstrap.min.js"></script>
+</body>
+</html>
