@@ -201,7 +201,21 @@
   "Thumb Fighter": "thumbfighter",
   "Vex 7": "vex7",
   "Volley Random": "volleyrandom",
-  "Wordle": "wordle"
+  "Wordle": "wordle",
+  "Fruit Ninja Hacked": "fruitninja",
+  "Jetpack Joyride Hacked": "jetpackjoyride",
+  "Retro Bowl Hacked": "retrobowl",
+  "Flappy Bird Hacked": "flappybird",
+  "Tetris Hacked": "tetris",
+  "Age of War Hacked": "ageofwar",
+  "Snake Hacked": "snake",
+  "Pokemon Unbound Hacked": "pokemonunbound",
+  "Pokemon Emerald Hacked": "pokemonemerald",
+  "Pokemon Fire Red Hacked": "pokemonfirered",
+  "Pokemon Ruby Hacked": "pokemonruby",
+  "Subway Surfers Hacked": "subwaysurfers",
+  "Crossy Road Hacked": "crossyroad",
+  "Doodle Jump Hacked": "doodlejump"
 };
 
   function getGameThumb(title) {
