@@ -52,6 +52,14 @@
          Solid colors, SVG gameplay icons, no gradients anywhere.
          ================================================================ */
 
+      /* Design tokens */
+      :root {
+        --accent: #06b6d4;
+        --accent-2: #14b8a6;
+        --danger: #e63946;
+        --gold: #d4a017;
+      }
+
       /* --- Proxy launcher (UV proxy button, bottom-right) --- */
       .proxy-launcher {
         position: fixed;
@@ -66,9 +74,9 @@
         gap: 8px;
         min-height: 44px;
         padding: 10px 16px;
-        border: 1px solid rgba(144, 134, 196, 0.3);
+        border: 1px solid rgba(20, 184, 166, 0.3);
         border-radius: 999px;
-        background: rgba(144, 134, 196, 0.12);
+        background: rgba(20, 184, 166, 0.12);
         color: #e2e0e7;
         font-family: var(--sans, system-ui, "Segoe UI", Roboto, sans-serif);
         font-size: 13px;
@@ -118,7 +126,7 @@
         -webkit-tap-highlight-color: transparent;
       }
       ::selection {
-        background: var(--focus-ring, #7c6aef);
+        background: var(--accent, #06b6d4);
         color: #fff;
       }
 
@@ -126,7 +134,7 @@
       .game-card:focus-visible,
       .game-card__play:focus-visible,
       .category-filter__btn:focus-visible {
-        outline: 2px solid var(--focus-ring, #7c6aef);
+        outline: 2px solid var(--accent, #06b6d4);
         outline-offset: 2px;
       }
 
@@ -205,7 +213,7 @@
       /* Fill badges with category-matching solid colors */
       .game-card[data-cat="action"] .game-card__category       { background: #e63946; }
       .game-card[data-cat="classic"] .game-card__category      { background: #6d28d9; }
-      .game-card[data-cat="sports"] .game-card__category       { background: #059669; }
+      .game-card[data-cat="sports"] .game-card__category       { background: #0d9488; }
       .game-card[data-cat="strategy"] .game-card__category     { background: #7c3aed; }
       .game-card[data-cat="puzzle"] .game-card__category       { background: #ea580c; }
       .game-card[data-cat="riddle"] .game-card__category       { background: #0891b2; }
@@ -290,35 +298,9 @@
         position: absolute !important;
         inset: 0 !important;
         border-radius: inherit !important;
-        border: 1.5px solid #d4a017 !important;
+        border: 1.5px solid var(--gold, #d4a017) !important;
         pointer-events: none !important;
         z-index: 2 !important;
-      }
-
-      /* ================================================================
-         6. GAME CARD HOVER & GLOW
-         ================================================================ */
-
-      .game-card {
-        transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1),
-                    box-shadow 0.2s ease,
-                    border-color 0.2s ease;
-        will-change: transform;
-      }
-      .game-card:hover {
-        transform: translateY(-5px) scale(1.015);
-        box-shadow: 0 18px 36px -10px rgba(0, 0, 0, 0.45),
-                    0 0 0 1px rgba(255, 255, 255, 0.06);
-        border-color: rgba(255, 255, 255, 0.1);
-      }
-      .game-card:active {
-        transform: translateY(-2px) scale(1.005);
-        transition-duration: 0.08s;
-      }
-
-      /* Kill the glow overlay — cleaner without it */
-      .game-card__glow {
-        display: none !important;
       }
 
       /* ================================================================
@@ -335,7 +317,7 @@
       .app__logo-text {
         background: none !important;
         -webkit-background-clip: unset !important;
-        -webkit-text-fill-color: #b8b0cc !important;
+        -webkit-text-fill-color: #94a3b8 !important;
         background-clip: unset !important;
         animation: none !important;
         font-weight: 800 !important;
@@ -346,7 +328,7 @@
       .app__logo-icon {
         filter: none !important;
         text-shadow: none !important;
-        color: #9086c4 !important;
+        color: var(--accent-2, #14b8a6) !important;
       }
 
       /* Search bar: refined, pill-shaped */
@@ -360,9 +342,9 @@
       }
       .search-bar:focus-within,
       .search-bar.focused {
-        border-color: rgba(144, 134, 196, 0.5) !important;
+        border-color: rgba(20, 184, 166, 0.5) !important;
         background: rgba(255, 255, 255, 0.06) !important;
-        box-shadow: 0 0 0 3px rgba(144, 134, 196, 0.12) !important;
+        box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.12) !important;
       }
       .search-bar__input {
         font-size: 0.9rem !important;
@@ -395,9 +377,9 @@
         transform: translateY(-1px);
       }
       .category-filter__btn.active {
-        background: var(--cat-color, #7c6aef) !important;
+        background: var(--cat-color, var(--accent, #06b6d4)) !important;
         color: #fff !important;
-        border-color: var(--cat-color, #7c6aef) !important;
+        border-color: var(--cat-color, var(--accent, #06b6d4)) !important;
         box-shadow: 0 2px 12px rgba(0, 0, 0, 0.25) !important;
         font-weight: 600 !important;
       }
@@ -446,14 +428,14 @@
 
       .random-game-btn {
         position: fixed !important;
-        left: max(18px, env(safe-area-inset-left)) !important;
-        bottom: max(18px, env(safe-area-inset-bottom)) !important;
+        left: max(16px, env(safe-area-inset-left)) !important;
+        bottom: max(16px, env(safe-area-inset-bottom)) !important;
         z-index: 999 !important;
         display: inline-flex !important;
         align-items: center !important;
         justify-content: center !important;
         gap: 8px !important;
-        min-height: 44px !important;
+        min-height: 48px !important;
         padding: 10px 18px !important;
         border: none !important;
         border-radius: 999px !important;
@@ -466,7 +448,7 @@
         line-height: 1.2 !important;
         text-decoration: none !important;
         cursor: pointer !important;
-        box-shadow: 0 4px 14px rgba(217, 119, 6, 0.3) !important;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.22) !important;
         transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease !important;
       }
       .random-game-btn:hover,
@@ -485,10 +467,6 @@
          11. GAME MODAL — refined
          ================================================================ */
 
-      .game-modal__backdrop {
-        backdrop-filter: blur(12px) !important;
-        -webkit-backdrop-filter: blur(12px) !important;
-      }
       .game-modal__content {
         animation: modal-in 0.2s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
         border-radius: 16px !important;
@@ -511,12 +489,12 @@
         z-index: 1001 !important;
         padding: 10px 18px !important;
         border-radius: 999px !important;
-        background: #7c6aef !important;
+        background: var(--accent, #06b6d4) !important;
         color: #fff !important;
         font-size: 14px !important;
         font-weight: 600 !important;
         text-decoration: none !important;
-        box-shadow: 0 4px 14px rgba(124, 106, 239, 0.35) !important;
+        box-shadow: 0 4px 14px rgba(6, 182, 212, 0.35) !important;
         transition: transform 0.15s ease !important;
       }
       .skip-link:focus {
@@ -573,6 +551,15 @@
           animation-duration: 0.01ms !important;
           animation-iteration-count: 1 !important;
         }
+        .game-card,
+        .bento-grid.is-filtering .game-card,
+        .game-modal__loading,
+        .random-game-btn,
+        .random-game-btn__icon,
+        .game-modal__spinner {
+          animation: none !important;
+          transition: none !important;
+        }
       }
 
       /* ================================================================
@@ -603,7 +590,7 @@
         animation: none !important;
       }
       html[data-theme="light"] .app__logo-icon {
-        color: #6d28d9 !important;
+        color: #0e7490 !important;
       }
 
       /* Search bar */
@@ -614,8 +601,8 @@
       }
       html[data-theme="light"] .search-bar:focus-within,
       html[data-theme="light"] .search-bar.focused {
-        border-color: rgba(109, 40, 217, 0.3) !important;
-        box-shadow: 0 0 0 3px rgba(109, 40, 217, 0.08), 0 1px 3px rgba(0, 0, 0, 0.04) !important;
+        border-color: rgba(14, 116, 144, 0.3) !important;
+        box-shadow: 0 0 0 3px rgba(14, 116, 144, 0.08), 0 1px 3px rgba(0, 0, 0, 0.04) !important;
       }
       html[data-theme="light"] .search-bar__input {
         color: #1d1d1f !important;
@@ -707,7 +694,7 @@
 
       /* Selection */
       html[data-theme="light"] ::selection {
-        background: rgba(109, 40, 217, 0.2) !important;
+        background: rgba(14, 116, 144, 0.2) !important;
         color: #1d1d1f !important;
       }
 
@@ -718,7 +705,7 @@
 
       /* Skip link */
       html[data-theme="light"] .skip-link {
-        background: #6d28d9 !important;
+        background: #0e7490 !important;
         color: #fff !important;
       }
 
@@ -815,7 +802,7 @@
         width: 1rem;
         height: 1rem;
         border: 2px solid var(--border, #2a2a2a);
-        border-top-color: var(--accent, #c084fc);
+        border-top-color: var(--accent, #06b6d4);
         border-radius: 50%;
         animation: ux-spin 700ms linear infinite;
       }
@@ -824,12 +811,6 @@
       }
 
       /* Random action stays in the low-attention corner, clear of proxy tools. */
-      .random-game-btn {
-        left: max(16px, env(safe-area-inset-left)) !important;
-        bottom: max(16px, env(safe-area-inset-bottom)) !important;
-        min-height: 48px !important;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.22) !important;
-      }
       .random-game-btn.is-ready {
         animation: ux-random-ready 360ms ease-out 1;
       }
@@ -919,16 +900,54 @@
         }
       }
 
-      @media (prefers-reduced-motion: reduce) {
-        .game-card,
-        .bento-grid.is-filtering .game-card,
-        .game-modal__loading,
-        .random-game-btn,
-        .random-game-btn__icon,
-        .game-modal__spinner {
-          animation: none !important;
-          transition: none !important;
-        }
+      /* ================================================================
+         STATES — skeleton loading, error, empty
+         ================================================================ */
+
+      .app__skeleton-grid {
+        opacity: 0.6;
+        animation: ux-skeleton-pulse 1.5s ease-in-out infinite;
+      }
+      @keyframes ux-skeleton-pulse {
+        0%, 100% { opacity: 0.4; }
+        50% { opacity: 0.7; }
+      }
+
+      .app__error {
+        padding: 2rem;
+        text-align: center;
+        color: var(--danger, #e63946);
+      }
+      .app__error p {
+        margin: 0 0 1rem 0;
+        font-size: 0.95rem;
+        line-height: 1.5;
+      }
+      .app__error button {
+        padding: 10px 20px;
+        border: none;
+        border-radius: 8px;
+        background: var(--danger, #e63946);
+        color: #fff;
+        font-size: 0.9rem;
+        font-weight: 600;
+        cursor: pointer;
+        min-height: 44px;
+        transition: filter 0.15s ease;
+      }
+      .app__error button:hover {
+        filter: brightness(1.1);
+      }
+      .app__error button:focus-visible {
+        outline: 2px solid var(--danger, #e63946);
+        outline-offset: 2px;
+      }
+
+      .app__empty {
+        padding: 3rem 1rem;
+        text-align: center;
+        color: var(--text-muted, #888);
+        font-size: 0.95rem;
       }
     </style>
   </head>
