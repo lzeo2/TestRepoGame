@@ -9,6 +9,41 @@
     <title>UNBLOCKMATH // ARCADE</title>
     <!-- Offline-first: no external font loads. The bundled stylesheet falls
          back to local/system fonts (Inter -> system-ui stack). -->
+    <script>
+      /* Storage denial shim (managed Chromebooks can disable site data).
+         The minified bundle reads localStorage unguarded during init; if the
+         property access throws (SecurityError), the whole app crashes to a
+         blank page. Probe once and, on denial, shadow window.localStorage
+         with an in-memory implementation so the portal still renders.
+         Persistence degrades to per-page (acceptable offline fallback). */
+      (function () {
+        var ok = null;
+        try { ok = window.localStorage; ok.getItem('__um_probe'); } catch (e) { ok = null; }
+        if (ok) return;
+        var mem = {};
+        var shim = {
+          getItem: function (k) {
+            return Object.prototype.hasOwnProperty.call(mem, k) ? mem[k] : null;
+          },
+          setItem: function (k, v) { mem[k] = String(v); },
+          removeItem: function (k) { delete mem[k]; },
+          clear: function () { mem = {}; },
+          key: function (i) {
+            var ks = Object.keys(mem);
+            return i >= 0 && i < ks.length ? ks[i] : null;
+          }
+        };
+        Object.defineProperty(shim, 'length', {
+          get: function () { return Object.keys(mem).length; }
+        });
+        try {
+          Object.defineProperty(window, 'localStorage', {
+            get: function () { return shim; },
+            configurable: true
+          });
+        } catch (_) { /* unshimmable: browser will surface its own error */ }
+      })();
+    </script>
     <script type="module" crossorigin src="./assets/index-CRWHmtoy.js"></script>
     <link rel="stylesheet" crossorigin href="./assets/index-CUsUGgbt.css">
     <style>
