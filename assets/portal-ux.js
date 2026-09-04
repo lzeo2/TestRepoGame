@@ -240,7 +240,13 @@
 
   function openGameUrl(url) {
     var safe = safeGamePath(url);
-    if (safe !== './') window.open(safe, '_blank');
+    if (safe === './') return;
+    var win = null;
+    try { win = window.open(safe, '_blank'); } catch (_) { win = null; }
+    if (!win) {
+      /* Popup blocked (managed Chromebook): fall back to same-tab navigation. */
+      window.location.href = safe;
+    }
   }
 
   function openCard(card) {
@@ -593,6 +599,7 @@
       applyCardMetadata();
       applyFilterMetadata();
       applyGrouping();
+      injectTagBadges();
       syncModal();
     }, 80);
   }
@@ -769,6 +776,55 @@
     });
   }
 
+  /* --- Tag badges: inject tag chips into game cards -------------------
+     Lives INSIDE the IIFE so it can reuse $/$$/textOf/ready and the
+     shared fetchGames() cache (no second games.json request). */
+  function injectTagBadges() {
+    fetchGames()
+      .then(function (games) {
+        var tagMap = {};
+        games.forEach(function (game) {
+          if (game.tags && game.tags.length > 0) {
+            tagMap[game.title] = game.tags;
+          }
+        });
+
+        $$('.game-card').forEach(function (card) {
+          var titleEl = card.querySelector('.game-card__title');
+          if (!titleEl) return;
+
+          var title = textOf(titleEl);
+          var tags = tagMap[title];
+
+          if (tags && tags.length > 0) {
+            /* Skip if already injected. */
+            if (card.querySelector('.game-card__tags')) return;
+
+            var tagsContainer = document.createElement('div');
+            tagsContainer.className = 'game-card__tags';
+            tagsContainer.setAttribute('data-title', title);
+
+            tags.forEach(function (tag) {
+              var tagEl = document.createElement('span');
+              tagEl.className = 'game-card__tag game-card__tag--' + tag;
+              tagEl.textContent = tag;
+              tagsContainer.appendChild(tagEl);
+            });
+
+            var categoryEl = card.querySelector('.game-card__category');
+            if (categoryEl && categoryEl.parentNode) {
+              categoryEl.parentNode.insertBefore(tagsContainer, categoryEl.nextSibling);
+            } else {
+              card.appendChild(tagsContainer);
+            }
+          }
+        });
+      })
+      .catch(function () {
+        /* Catalog unavailable: badges simply do not render. */
+      });
+  }
+
   ready(function () {
     ensureSkipLink();
     initThemeToggle();
@@ -776,6 +832,7 @@
     initCategoryTransitions();
     initDebouncedSearch();
     initCardNewTab();
+    injectTagBadges();
     var mo = new MutationObserver(onMutations);
     mo.observe(document.body, {
       childList: true,
@@ -786,76 +843,3 @@
     onMutations();
   });
 })();
-
-/* ================================================================
-   TAG BADGES — inject tag badges into game cards
-   ================================================================ */
-function injectTagBadges() {
-  // Fetch games.json to get tag data
-  fetch('./games.json')
-    .then(function(response) { return response.json(); })
-    .then(function(games) {
-      // Create a map of game title to tags
-      var tagMap = {};
-      games.forEach(function(game) {
-        if (game.tags && game.tags.length > 0) {
-          tagMap[game.title] = game.tags;
-        }
-      });
-
-      // Find all game cards and inject tags
-      $$('.game-card').forEach(function(card) {
-        var titleEl = card.querySelector('.game-card__title');
-        if (!titleEl) return;
-        
-        var title = textOf(titleEl);
-        var tags = tagMap[title];
-        
-        if (tags && tags.length > 0) {
-          // Check if tags container already exists
-          if (card.querySelector('.game-card__tags')) return;
-          
-          // Create tags container
-          var tagsContainer = document.createElement('div');
-          tagsContainer.className = 'game-card__tags';
-          
-          tags.forEach(function(tag) {
-            var tagEl = document.createElement('span');
-            tagEl.className = 'game-card__tag game-card__tag--' + tag;
-            tagEl.textContent = tag;
-            tagsContainer.appendChild(tagEl);
-          });
-          
-          // Insert after category badge or at end of card
-          var categoryEl = card.querySelector('.game-card__category');
-          if (categoryEl && categoryEl.parentNode) {
-            categoryEl.parentNode.insertBefore(tagsContainer, categoryEl.nextSibling);
-          } else {
-            card.appendChild(tagsContainer);
-          }
-        }
-      });
-    })
-    .catch(function(err) {
-      console.warn('[portal-ux] Failed to inject tags:', err);
-    });
-}
-
-// Run on load and on DOM mutations
-ready(function() {
-  injectTagBadges();
-  
-  // Also run when new cards are added (e.g., filtering, search)
-  var observer = new MutationObserver(function(mutations) {
-    mutations.forEach(function(mutation) {
-      if (mutation.addedNodes.length > 0) {
-        setTimeout(injectTagBadges, 100);
-      }
-    });
-  });
-  
-  var grid = $('.bento-grid');
-  if (grid) {
-    observer.observe(grid, { childList: true, subtree: true });
-  }
-});
