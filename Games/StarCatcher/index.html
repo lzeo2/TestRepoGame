@@ -11,18 +11,24 @@
   <div class="hud">
     <h1>Star Catcher</h1>
     <div class="stats">
-      <span>Score <b id="score">0</b></span>
+      <span id="scoreRow"><span id="scoreLabel">Score</span> <b id="score">0</b></span>
       <span>Best <b id="best">0</b></span>
-      <span>Lives <b id="lives">3</b></span>
+      <span id="livesSpan">Lives <b id="lives">3</b></span>
     </div>
   </div>
   <canvas id="game" width="420" height="560"></canvas>
+  <div class="mode-select" id="modeSelect">
+    <button class="mode-btn mode-btn--active" data-mode="classic" type="button">Classic</button>
+    <button class="mode-btn" data-mode="lowg" type="button">Low Gravity</button>
+    <button class="mode-btn" data-mode="storm" type="button">Dodge Storm</button>
+  </div>
   <div class="controls">
     <button class="tbtn" id="leftBtn" type="button">&#9664;</button>
     <button class="tbtn" id="rightBtn" type="button">&#9654;</button>
   </div>
   <p class="hint">Keyboard: &#9664; &#9654; or A / D &middot; Touch: buttons below</p>
 </div>
+<script src="../../assets/game-save.js"></script>
 <script src="script.js"></script>
 </body>
 </html>
