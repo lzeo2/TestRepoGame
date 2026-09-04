@@ -85,8 +85,9 @@
 // ====== HACKED VERSION ======
 (function() {
   var badge = document.createElement('div');
+  badge.id = 'hacked-badge';
   badge.textContent = '\u26A1 HACKED \u26A1';
-  badge.style.cssText = 'position:fixed;top:10px;right:10px;z-index:99999;background:linear-gradient(135deg,#ff0040,#ff6600);color:#fff;font-family:Arial,sans-serif;font-size:18px;font-weight:bold;padding:8px 16px;border-radius:8px;box-shadow:0 0 15px rgba(255,0,64,0.6);pointer-events:none;letter-spacing:1px;';
+  badge.style.cssText = 'position:fixed;top:10px;right:10px;z-index:99999;background:#e63946;color:#fff;font-family:Arial,sans-serif;font-size:18px;font-weight:bold;padding:8px 16px;border-radius:8pxpointer-events:none;letter-spacing:1px;';
   document.body.appendChild(badge);
 
   var patched = false;

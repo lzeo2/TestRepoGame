@@ -91,6 +91,7 @@
 			// Badge
 			(function() {
 				var badge = document.createElement('div');
+				badge.id = 'hacked-badge';
 				badge.textContent = 'HACKED';
 				badge.style.cssText = 'position:fixed;top:10px;right:10px;z-index:999999;background:#ff0;color:#000;font:bold 14px Arial;padding:4px 10px;border-radius:4px;border:2px solid #f00;pointer-events:none;font-family:monospace;';
 				document.body.appendChild(badge);

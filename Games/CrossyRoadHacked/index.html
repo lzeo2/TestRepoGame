@@ -40,12 +40,8 @@
 	// 2) Disable death/collision by overriding playerController.Dead
 	
 	(function() {
-		var _origText = Object.getOwnPropertyDescriptor(HTMLCanvasElement.prototype, 'textContent') || {};
 		var hackScore = false;
 		var scoreValue = 999999;
-
-		// Intercept Three.js text updates via a proxy on the text property
-		var _origSet = Object.getOwnPropertyDescriptor(THREE.Mesh.prototype, '__defineSetter__') || {};
 
 		// Use MutationObserver to catch score display in DOM if rendered as overlay
 		// But Crossy Road renders score in Three.js canvas, so we need to hook the game loop
