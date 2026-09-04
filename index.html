@@ -570,11 +570,29 @@
           animation-duration: 0.01ms !important;
           animation-iteration-count: 1 !important;
         }
+        /* Cover selectors whose transitions carry !important (they beat
+           the plain transition-duration shorthand above). */
+        .proxy-launcher__btn,
+        .game-card__play,
+        .game-card__fav,
+        .theme-toggle,
+        .search-bar,
+        .search-bar__clear,
+        .category-filter__btn,
         .game-card,
-        .bento-grid.is-filtering .game-card,
-        .game-modal__loading,
         .random-game-btn,
         .random-game-btn__icon,
+        .game-modal__loading,
+        .ux-tag-filter__pill,
+        .ux-recent__chip,
+        .ux-detail,
+        .ux-detail__play,
+        .ux-detail__close,
+        .ux-net-banner {
+          transition-duration: 0.01ms !important;
+          animation: none !important;
+        }
+        .game-modal__loading,
         .game-modal__spinner {
           animation: none !important;
           transition: none !important;
@@ -787,6 +805,10 @@
         transform: translateY(-2px) !important;
         border-color: color-mix(in srgb, var(--accent) 58%, var(--border)) !important;
         box-shadow: none !important;
+      }
+      /* Reduced motion also neutralizes the card's !important transition. */
+      @media (prefers-reduced-motion: reduce) {
+        .game-card { transition: none !important; }
       }
       .game-card:active {
         transform: translateY(0) !important;
