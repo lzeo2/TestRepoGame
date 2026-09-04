@@ -27,7 +27,9 @@
     "desc": "Chaotic physics-based soccer with random elements.",
     "url": "Games/SoccerRandom/index.html",
     "featured": false,
-    "tags": []
+    "tags": [
+      "2p"
+    ]
   },
   {
     "id": 5,
@@ -37,7 +39,9 @@
     "desc": "Wacky basketball with unpredictable physics.",
     "url": "Games/BasketRandom/index.html",
     "featured": false,
-    "tags": []
+    "tags": [
+      "2p"
+    ]
   },
   {
     "id": 6,
@@ -47,7 +51,9 @@
     "desc": "Bizarre volleyball with silly physics mechanics.",
     "url": "Games/VolleyRandom/index.html",
     "featured": false,
-    "tags": []
+    "tags": [
+      "2p"
+    ]
   },
   {
     "id": 7,
@@ -157,7 +163,9 @@
     "desc": "Head-to-head Pong battle on one screen. First to five points wins!",
     "url": "Games/PaddleDuel/index.html",
     "featured": false,
-    "tags": []
+    "tags": [
+      "2p"
+    ]
   },
   {
     "id": 18,
@@ -237,7 +245,10 @@
     "desc": "Hotseat 2-4 player territory race. Claim cells and build a route to the vault before your rivals box you out.",
     "url": "Games/GridHeist/index.html",
     "featured": false,
-    "tags": []
+    "tags": [
+      "2p",
+      "coop"
+    ]
   },
   {
     "id": 37,
@@ -247,7 +258,10 @@
     "desc": "Arena survival for 2-4 players. Grab sparks, shine brightest, and stay inside the shrinking safe zone.",
     "url": "Games/LastLantern/index.html",
     "featured": false,
-    "tags": []
+    "tags": [
+      "2p",
+      "coop"
+    ]
   },
   {
     "id": 42,
@@ -257,7 +271,10 @@
     "desc": "Cooperative food-court rush for 1-4 players. Route customers to the right station before their patience runs out.",
     "url": "Games/QueueEscape/index.html",
     "featured": false,
-    "tags": []
+    "tags": [
+      "2p",
+      "coop"
+    ]
   },
   {
     "id": 44,
@@ -277,7 +294,9 @@
     "desc": "2D physics gladiator brawler — career mode, gear upgrades, 2-player local fights",
     "url": "Games/Gladihoppers/index.html",
     "featured": false,
-    "tags": []
+    "tags": [
+      "2p"
+    ]
   },
   {
     "id": 48,
@@ -469,7 +488,9 @@
     "desc": "2-4 player party chaos — dodge the house's traps",
     "url": "Games/HouseOfHazards/index.html",
     "featured": false,
-    "tags": []
+    "tags": [
+      "2p"
+    ]
   },
   {
     "id": 66,
@@ -519,7 +540,9 @@
     "desc": "Classic X and O game. Play vs friend or computer.",
     "url": "Games/TicTacToe/index.html",
     "featured": false,
-    "tags": []
+    "tags": [
+      "2p"
+    ]
   },
   {
     "id": 71,
@@ -529,7 +552,9 @@
     "desc": "Drop discs and connect four in a row!",
     "url": "Games/ConnectFour/index.html",
     "featured": false,
-    "tags": []
+    "tags": [
+      "2p"
+    ]
   },
   {
     "id": 72,
@@ -564,7 +589,7 @@
   {
     "id": 75,
     "title": "Typing Speed",
-    "cat": "riddle",
+    "cat": "arcade",
     "icon": "",
     "desc": "Test your typing speed! 30 seconds to type as fast as you can.",
     "url": "Games/TypingTest/index.html",
@@ -669,7 +694,9 @@
     "desc": "Two-player thumb wrestling game — battle a friend on one keyboard or fight the computer!",
     "url": "Games/ThumbFighter/index.html",
     "featured": false,
-    "tags": []
+    "tags": [
+      "2p"
+    ]
   },
   {
     "id": 86,
@@ -801,7 +828,7 @@
     "id": 96,
     "title": "Pokemon Unbound",
     "cat": "classic",
-    "icon": "🎮",
+    "icon": "",
     "desc": "Pokemon Unbound GBA ROM hack via EmulatorJS",
     "url": "Games/PokemonUnbound/index.html",
     "featured": false,
@@ -811,7 +838,7 @@
     "id": 97,
     "title": "Pokemon Unbound Hacked",
     "cat": "classic",
-    "icon": "🎮",
+    "icon": "",
     "desc": "Pokemon Unbound with built-in cheats",
     "url": "Games/PokemonUnboundHacked/index.html",
     "featured": false,
@@ -823,7 +850,7 @@
     "id": 98,
     "title": "Pokemon Emerald",
     "cat": "classic",
-    "icon": "🎮",
+    "icon": "",
     "desc": "Pokemon Emerald via EmulatorJS",
     "url": "Games/PokemonEmerald/index.html",
     "featured": false,
@@ -833,7 +860,7 @@
     "id": 99,
     "title": "Pokemon Emerald Hacked",
     "cat": "classic",
-    "icon": "🎮",
+    "icon": "",
     "desc": "Pokemon Emerald with built-in cheats",
     "url": "Games/PokemonEmeraldHacked/index.html",
     "featured": false,
@@ -845,7 +872,7 @@
     "id": 100,
     "title": "Pokemon Fire Red",
     "cat": "classic",
-    "icon": "🎮",
+    "icon": "",
     "desc": "Pokemon Fire Red via EmulatorJS",
     "url": "Games/PokemonFireRed/index.html",
     "featured": false,
@@ -855,7 +882,7 @@
     "id": 101,
     "title": "Pokemon Fire Red Hacked",
     "cat": "classic",
-    "icon": "🎮",
+    "icon": "",
     "desc": "Pokemon Fire Red with built-in cheats",
     "url": "Games/PokemonFireRedHacked/index.html",
     "featured": false,
@@ -867,7 +894,7 @@
     "id": 102,
     "title": "Pokemon Ruby",
     "cat": "classic",
-    "icon": "🎮",
+    "icon": "",
     "desc": "Pokemon Ruby via EmulatorJS",
     "url": "Games/PokemonRuby/index.html",
     "featured": false,
@@ -877,7 +904,7 @@
     "id": 103,
     "title": "Pokemon Ruby Hacked",
     "cat": "classic",
-    "icon": "🎮",
+    "icon": "",
     "desc": "Pokemon Ruby with built-in cheats",
     "url": "Games/PokemonRubyHacked/index.html",
     "featured": false,
@@ -886,19 +913,10 @@
     ]
   },
   {
-    "id": 110,
-    "title": "Subway Surfers",
-    "cat": "arcade",
-    "icon": "🏃",
-    "desc": "Dash through the subway, dodge trains and obstacles. Swipe or arrow keys.",
-    "url": "Games/SubwaySurfers/index.html",
-    "featured": false
-  },
-  {
     "id": 111,
     "title": "Subway Surfers Hacked",
     "cat": "arcade",
-    "icon": "🏃‍♂️",
+    "icon": "",
     "desc": "Subway Surfers with max coins and invincibility enabled.",
     "url": "Games/SubwaySurfersHacked/index.html",
     "featured": false,
@@ -909,17 +927,18 @@
   {
     "id": 112,
     "title": "Crossy Road",
-    "cat": "Arcade",
-    "icon": "🐔",
+    "cat": "arcade",
+    "icon": "",
     "desc": "Help the chicken cross the road! A endless hopper game.",
     "url": "Games/CrossyRoad/index.html",
-    "featured": false
+    "featured": false,
+    "tags": []
   },
   {
     "id": 113,
     "title": "Crossy Road Hacked",
-    "cat": "Arcade",
-    "icon": "🐔",
+    "cat": "arcade",
+    "icon": "",
     "desc": "Crossy Road with invincibility and max score!",
     "url": "Games/CrossyRoadHacked/index.html",
     "featured": false,
@@ -928,19 +947,10 @@
     ]
   },
   {
-    "id": 108,
-    "title": "Doodle Jump",
-    "cat": "arcade",
-    "icon": "🐸",
-    "desc": "Classic Doodle Jump — tilt or use arrow keys to bounce higher!",
-    "url": "Games/DoodleJump/index.html",
-    "featured": false
-  },
-  {
     "id": 109,
     "title": "Doodle Jump Hacked",
     "cat": "arcade",
-    "icon": "🐸",
+    "icon": "",
     "desc": "Doodle Jump with 999999 score and no death!",
     "url": "Games/DoodleJumpHacked/index.html",
     "featured": false,
