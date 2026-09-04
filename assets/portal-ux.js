@@ -199,6 +199,14 @@
         var thumb = $('.game-card__thumb', card);
         if (thumb) thumb.setAttribute('data-title', title);
       }
+
+      /* Set data-tags from games.json cache for tag filtering. */
+      if (_gamesList.length) {
+        var gData = findGameData(title);
+        if (gData) {
+          card.setAttribute('data-tags', (gData.tags || []).join(','));
+        }
+      }
     });
   }
 
@@ -241,6 +249,13 @@
   function openGameUrl(url) {
     var safe = safeGamePath(url);
     if (safe === './') return;
+    /* Record recent play */
+    var recentTitle = '';
+    if (_gameUrlCache) {
+      _gameUrlCache.forEach(function(v, k) { if (v === safe && !recentTitle) recentTitle = k; });
+    }
+    recordRecent(safe, recentTitle);
+    renderRecentRow();
     var win = null;
     try { win = window.open(safe, '_blank'); } catch (_) { win = null; }
     if (!win) {
@@ -600,6 +615,15 @@
       applyFilterMetadata();
       applyGrouping();
       injectTagBadges();
+      injectInfoButtons();
+      if (!tagFilterRow && _gamesList.length && $('.category-filter')) buildTagFilterRow();
+      applyTagFilter();
+      updateCategoryCounts();
+      if (!resultStatusEl && $('.bento-grid')) initResultStatus();
+      updateResultStatus();
+      if (!recentRow && $('.bento-grid')) initRecentRow();
+      renderRecentRow();
+      updateClearFiltersBtn();
       syncModal();
     }, 80);
   }
@@ -750,7 +774,7 @@
       var card = e.target && e.target.closest ? e.target.closest('.game-card') : null;
       if (!card) return;
       /* Let proxy launcher / random-btn / skip-link through. */
-      if (e.target.closest('.proxy-launcher, .random-game-btn, .skip-link')) return;
+      if (e.target.closest('.proxy-launcher, .random-game-btn, .skip-link, .game-card__info, .ux-tag-filter, .ux-detail, .ux-recent, .ux-net-banner')) return;
 
       e.preventDefault();
       e.stopPropagation();
@@ -825,6 +849,488 @@
       });
   }
 
+  /* ================================================================
+     DISCOVERY UI - tag filters, category counts, recent games,
+     offline banner, game detail panel.
+     ================================================================ */
+
+  var TAG_LABELS = { '2p': '2 Player', 'coop': 'Co-op', 'hacked': 'Hacked' };
+  var activeTagFilters = [];
+  var tagFilterRow = null;
+  var resultStatusEl = null;
+  var clearFiltersBtn = null;
+  var clearFiltersParent = null;
+  var recentRow = null;
+  var netBanner = null;
+  var netBannerDismissed = false;
+  var detailDialog = null;
+  var detailOpener = null;
+  var RECENT_KEY = 'unblockmath_recent';
+  var RECENT_MAX = 8;
+
+  function findGameData(title) {
+    for (var i = 0; i < _gamesList.length; i++) {
+      if (_gamesList[i] && _gamesList[i].title === title) return _gamesList[i];
+    }
+    return null;
+  }
+
+  function buildTagFilterRow() {
+    if (tagFilterRow) return;
+    if (!_gamesList.length) return;
+    var tagSet = {};
+    _gamesList.forEach(function(g) {
+      (g.tags || []).forEach(function(t) { tagSet[t] = true; });
+    });
+    var tags = Object.keys(tagSet).sort();
+    if (!tags.length) return;
+
+    tagFilterRow = document.createElement('div');
+    tagFilterRow.className = 'ux-tag-filter';
+    tagFilterRow.setAttribute('role', 'group');
+    tagFilterRow.setAttribute('aria-label', 'Filter by tag');
+
+    tags.forEach(function(tag) {
+      var btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'ux-tag-filter__pill';
+      btn.setAttribute('data-tag', tag);
+      btn.setAttribute('aria-pressed', 'false');
+      btn.textContent = TAG_LABELS[tag] || tag;
+      btn.addEventListener('click', function() {
+        toggleTagFilter(tag, btn);
+      });
+      tagFilterRow.appendChild(btn);
+    });
+
+    var catFilter = $('.category-filter');
+    if (catFilter && catFilter.parentNode) {
+      catFilter.parentNode.insertBefore(tagFilterRow, catFilter);
+    }
+  }
+
+  function toggleTagFilter(tag, btn) {
+    var idx = activeTagFilters.indexOf(tag);
+    if (idx > -1) {
+      activeTagFilters.splice(idx, 1);
+      btn.setAttribute('aria-pressed', 'false');
+    } else {
+      activeTagFilters.push(tag);
+      btn.setAttribute('aria-pressed', 'true');
+    }
+    applyTagFilter();
+  }
+
+  function applyTagFilter() {
+    $$('.bento-grid .game-card').forEach(function(card) {
+      if (!activeTagFilters.length) {
+        card.removeAttribute('data-ux-tag-hidden');
+        return;
+      }
+      var tags = (card.getAttribute('data-tags') || '').split(',').filter(Boolean);
+      var matches = activeTagFilters.every(function(t) {
+        return tags.indexOf(t) > -1;
+      });
+      if (matches) {
+        card.removeAttribute('data-ux-tag-hidden');
+      } else {
+        card.setAttribute('data-ux-tag-hidden', '1');
+      }
+    });
+    updateResultStatus();
+    updateClearFiltersBtn();
+  }
+
+  function updateCategoryCounts() {
+    if (!_gamesList.length) return;
+    var counts = {};
+    var total = _gamesList.length;
+    _gamesList.forEach(function(g) {
+      var cat = (g.cat || '').toLowerCase();
+      counts[cat] = (counts[cat] || 0) + 1;
+    });
+    $$('.category-filter__btn').forEach(function(btn) {
+      var existing = btn.querySelector('.category-filter__count');
+      if (existing) existing.parentNode.removeChild(existing);
+      var catId = btn.getAttribute('data-cat-id') || '';
+      var count;
+      if (catId === 'all' || textOf(btn).toLowerCase().replace(/[^a-z0-9]+/g, '-') === 'all') {
+        count = total;
+      } else {
+        count = counts[catId] || 0;
+      }
+      var span = document.createElement('span');
+      span.className = 'category-filter__count';
+      span.textContent = String(count);
+      btn.appendChild(span);
+    });
+  }
+
+  function initResultStatus() {
+    if (resultStatusEl) return;
+    resultStatusEl = document.createElement('div');
+    resultStatusEl.className = 'ux-result-status';
+    resultStatusEl.setAttribute('aria-live', 'polite');
+    resultStatusEl.setAttribute('role', 'status');
+    var grid = $('.bento-grid');
+    if (grid && grid.parentNode) {
+      grid.parentNode.insertBefore(resultStatusEl, grid);
+    }
+    updateResultStatus();
+  }
+
+  function updateResultStatus() {
+    if (!resultStatusEl) return;
+    var count = visibleCards().length;
+    resultStatusEl.textContent = count + ' game' + (count !== 1 ? 's' : '');
+  }
+
+  function initSlashFocus() {
+    document.addEventListener('keydown', function(e) {
+      if (e.key !== '/' || e.defaultPrevented) return;
+      var ae = document.activeElement;
+      if (ae) {
+        var tag = (ae.tagName || '').toLowerCase();
+        if (tag === 'input' || tag === 'textarea' || tag === 'select') return;
+        if (ae.isContentEditable) return;
+      }
+      if (detailDialog) return;
+      var input = $('.search-bar__input');
+      if (input) {
+        e.preventDefault();
+        input.focus();
+      }
+    });
+  }
+
+  function updateClearFiltersBtn() {
+    var empty = $('.app__empty');
+    var emptyVisible = empty && isVisible(empty);
+    var noVisible = visibleCards().length === 0 && (activeTagFilters.length > 0);
+    var shouldShow = emptyVisible || noVisible;
+    var hasFilters = activeTagFilters.length > 0 ||
+      (function() {
+        var active = $('.category-filter__btn.active');
+        return active && textOf(active).toLowerCase().replace(/[^a-z0-9]+/g,'-') !== 'all';
+      })() ||
+      (function() {
+        var input = $('.search-bar__input');
+        return input && input.value;
+      })();
+
+    if (shouldShow && hasFilters && !clearFiltersBtn) {
+      clearFiltersBtn = document.createElement('button');
+      clearFiltersBtn.type = 'button';
+      clearFiltersBtn.className = 'ux-clear-filters';
+      clearFiltersBtn.textContent = 'Clear filters';
+      clearFiltersBtn.addEventListener('click', doClearFilters);
+      var target = empty || $('.bento-grid');
+      if (target && target.parentNode) {
+        clearFiltersParent = target.parentNode;
+        target.parentNode.insertBefore(clearFiltersBtn, target.nextSibling);
+      }
+    } else if ((!shouldShow || !hasFilters) && clearFiltersBtn) {
+      if (clearFiltersBtn.parentNode) clearFiltersBtn.parentNode.removeChild(clearFiltersBtn);
+      clearFiltersBtn = null;
+      clearFiltersParent = null;
+    }
+  }
+
+  function doClearFilters() {
+    var input = $('.search-bar__input');
+    if (input && input.value) {
+      if (searchDebounceTimer) { clearTimeout(searchDebounceTimer); searchDebounceTimer = null; }
+      replaySearchValue(input, '');
+    }
+    activeTagFilters = [];
+    $$('.ux-tag-filter__pill[aria-pressed="true"]').forEach(function(btn) {
+      btn.setAttribute('aria-pressed', 'false');
+    });
+    applyTagFilter();
+    var allBtn = $('.category-filter__btn');
+    if (allBtn && !allBtn.classList.contains('active')) {
+      allBtn.click();
+    }
+  }
+
+  function recordRecent(url, title) {
+    try {
+      var raw = localStorage.getItem(RECENT_KEY);
+      var list = [];
+      if (raw) { try { list = JSON.parse(raw) || []; } catch(e2) { list = []; } }
+      if (!Array.isArray(list)) list = [];
+      list = list.filter(function(e) { return e.url !== url; });
+      list.unshift({ title: title || '', url: url, ts: Date.now() });
+      if (list.length > RECENT_MAX) list.length = RECENT_MAX;
+      localStorage.setItem(RECENT_KEY, JSON.stringify(list));
+    } catch(e) {}
+  }
+
+  function getRecentList() {
+    try {
+      var raw = localStorage.getItem(RECENT_KEY);
+      if (raw) { var list = JSON.parse(raw); if (Array.isArray(list)) return list; }
+    } catch(e) {}
+    return [];
+  }
+
+  function initRecentRow() {
+    if (recentRow) return;
+    recentRow = document.createElement('div');
+    recentRow.className = 'ux-recent';
+    recentRow.setAttribute('role', 'region');
+    recentRow.setAttribute('aria-label', 'Recently played');
+    var grid = $('.bento-grid');
+    if (grid && grid.parentNode) {
+      grid.parentNode.insertBefore(recentRow, grid);
+    }
+    renderRecentRow();
+  }
+
+  function renderRecentRow() {
+    if (!recentRow) return;
+    var list = getRecentList();
+    while (recentRow.firstChild) recentRow.removeChild(recentRow.firstChild);
+    if (!list.length) {
+      recentRow.style.display = 'none';
+      return;
+    }
+    recentRow.style.display = '';
+    var label = document.createElement('span');
+    label.className = 'ux-recent__label';
+    label.textContent = 'Recently played';
+    recentRow.appendChild(label);
+    list.forEach(function(entry) {
+      var chip = document.createElement('button');
+      chip.type = 'button';
+      chip.className = 'ux-recent__chip';
+      chip.textContent = entry.title || entry.url;
+      chip.setAttribute('title', entry.title || entry.url);
+      chip.addEventListener('click', function() {
+        openGameUrl(entry.url);
+      });
+      recentRow.appendChild(chip);
+    });
+  }
+
+  function initOfflineBanner() {
+    if (netBanner) return;
+    netBanner = document.createElement('div');
+    netBanner.className = 'ux-net-banner';
+    netBanner.setAttribute('role', 'status');
+    netBanner.setAttribute('aria-live', 'polite');
+    var msg = document.createElement('span');
+    msg.className = 'ux-net-banner__msg';
+    msg.textContent = 'Offline mode - all games work offline';
+    netBanner.appendChild(msg);
+    var dismiss = document.createElement('button');
+    dismiss.type = 'button';
+    dismiss.className = 'ux-net-banner__dismiss';
+    dismiss.setAttribute('aria-label', 'Dismiss');
+    dismiss.textContent = '\u00d7';
+    dismiss.addEventListener('click', function() {
+      netBannerDismissed = true;
+      updateOfflineBanner();
+    });
+    netBanner.appendChild(dismiss);
+    document.body.insertBefore(netBanner, document.body.firstChild);
+    updateOfflineBanner();
+    window.addEventListener('online', function() { netBannerDismissed = false; updateOfflineBanner(); });
+    window.addEventListener('offline', function() { netBannerDismissed = false; updateOfflineBanner(); });
+  }
+
+  function updateOfflineBanner() {
+    if (!netBanner) return;
+    if (!navigator.onLine && !netBannerDismissed) {
+      netBanner.classList.add('ux-net-banner--visible');
+    } else {
+      netBanner.classList.remove('ux-net-banner--visible');
+    }
+  }
+
+  function injectInfoButtons() {
+    $$('.bento-grid .game-card').forEach(function(card) {
+      if (card.querySelector('.game-card__info')) return;
+      var btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'game-card__info';
+      btn.setAttribute('aria-label', 'Game info');
+      btn.setAttribute('aria-pressed', 'false');
+      btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>';
+      btn.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        e.stopImmediatePropagation();
+        openDetailPanel(card, btn);
+      });
+      card.appendChild(btn);
+    });
+  }
+
+  function openDetailPanel(card, trigger) {
+    if (detailDialog) closeDetailPanel();
+    var title = textOf($('.game-card__title', card));
+    var game = findGameData(title);
+    if (!game) return;
+    detailOpener = trigger || card;
+
+    detailDialog = document.createElement('div');
+    detailDialog.className = 'ux-detail';
+    detailDialog.setAttribute('role', 'dialog');
+    detailDialog.setAttribute('aria-modal', 'true');
+
+    var titleId = 'ux-detail-title';
+    detailDialog.setAttribute('aria-labelledby', titleId);
+
+    var backdrop = document.createElement('div');
+    backdrop.className = 'ux-detail__backdrop';
+    backdrop.addEventListener('click', function() { closeDetailPanel(); });
+    detailDialog.appendChild(backdrop);
+
+    var panel = document.createElement('div');
+    panel.className = 'ux-detail__panel';
+
+    var h2 = document.createElement('h2');
+    h2.className = 'ux-detail__title';
+    h2.id = titleId;
+    h2.textContent = game.title;
+    panel.appendChild(h2);
+
+    if (game.cat) {
+      var catChip = document.createElement('span');
+      catChip.className = 'ux-detail__cat';
+      catChip.setAttribute('data-cat', game.cat);
+      catChip.textContent = game.cat.toUpperCase();
+      panel.appendChild(catChip);
+    }
+
+    if (game.tags && game.tags.length) {
+      var tagsDiv = document.createElement('div');
+      tagsDiv.className = 'ux-detail__tags';
+      game.tags.forEach(function(tag) {
+        var badge = document.createElement('span');
+        badge.className = 'game-card__tag game-card__tag--' + tag;
+        badge.textContent = TAG_LABELS[tag] || tag;
+        tagsDiv.appendChild(badge);
+      });
+      panel.appendChild(tagsDiv);
+    }
+
+    if (game.desc) {
+      var descP = document.createElement('p');
+      descP.className = 'ux-detail__desc';
+      descP.textContent = game.desc;
+      panel.appendChild(descP);
+    }
+
+    if (game.players) {
+      var playersBadge = document.createElement('span');
+      playersBadge.className = 'ux-detail__players';
+      var p = String(game.players);
+      if (p.indexOf('-') > -1) {
+        playersBadge.textContent = p + ' players';
+      } else {
+        playersBadge.textContent = p + (p === '1' ? ' player' : ' players');
+      }
+      panel.appendChild(playersBadge);
+    }
+
+    if (game.howto) {
+      var howtoDiv = document.createElement('div');
+      howtoDiv.className = 'ux-detail__howto';
+      var howtoLabel = document.createElement('strong');
+      howtoLabel.textContent = 'Controls: ';
+      howtoDiv.appendChild(howtoLabel);
+      var howtoText = document.createElement('span');
+      howtoText.textContent = game.howto;
+      howtoDiv.appendChild(howtoText);
+      panel.appendChild(howtoDiv);
+    }
+
+    var actions = document.createElement('div');
+    actions.className = 'ux-detail__actions';
+    var playBtn = document.createElement('button');
+    playBtn.type = 'button';
+    playBtn.className = 'ux-detail__play';
+    playBtn.textContent = 'Play';
+    playBtn.addEventListener('click', function() {
+      if (game.url) openGameUrl(game.url);
+      closeDetailPanel();
+    });
+    actions.appendChild(playBtn);
+    var closeBtn = document.createElement('button');
+    closeBtn.type = 'button';
+    closeBtn.className = 'ux-detail__close';
+    closeBtn.textContent = 'Close';
+    closeBtn.addEventListener('click', function() { closeDetailPanel(); });
+    actions.appendChild(closeBtn);
+    panel.appendChild(actions);
+
+    detailDialog.appendChild(panel);
+    document.body.appendChild(detailDialog);
+
+    requestAnimationFrame(function() {
+      trapDetailFocus();
+      playBtn.focus();
+    });
+
+    if (trigger) trigger.setAttribute('aria-pressed', 'true');
+  }
+
+  function closeDetailPanel() {
+    if (!detailDialog) return;
+    $$('.game-card__info').forEach(function(b) { b.setAttribute('aria-pressed', 'false'); });
+    if (detailDialog.parentNode) detailDialog.parentNode.removeChild(detailDialog);
+    detailDialog = null;
+    if (detailOpener && detailOpener.focus) detailOpener.focus();
+    detailOpener = null;
+  }
+
+  function trapDetailFocus() {
+    if (!detailDialog) return;
+    function handler(e) {
+      if (!detailDialog) {
+        window.removeEventListener('keydown', handler, true);
+        return;
+      }
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        closeDetailPanel();
+        window.removeEventListener('keydown', handler, true);
+        return;
+      }
+      if (e.key !== 'Tab') return;
+      var focusables = $$('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])', detailDialog).filter(function(el) {
+        if (el.disabled) return false;
+        var r = el.getBoundingClientRect();
+        var s = window.getComputedStyle(el);
+        return r.width > 0 && r.height > 0 && s.display !== 'none' && s.visibility !== 'hidden';
+      });
+      if (!focusables.length) return;
+      var ae = document.activeElement;
+      var idx = focusables.indexOf(ae);
+      if (e.shiftKey) {
+        if (idx <= 0) { e.preventDefault(); focusables[focusables.length - 1].focus(); }
+      } else {
+        if (idx >= focusables.length - 1 || idx === -1) { e.preventDefault(); focusables[0].focus(); }
+      }
+    }
+    window.addEventListener('keydown', handler, true);
+  }
+
+  function initDetailKey() {
+    document.addEventListener('keydown', function(e) {
+      if (e.key !== 'i' || e.defaultPrevented) return;
+      var ae = document.activeElement;
+      if (!ae || !ae.classList || !ae.classList.contains('game-card')) return;
+      var infoBtn = ae.querySelector('.game-card__info');
+      if (infoBtn) {
+        e.preventDefault();
+        openDetailPanel(ae, infoBtn);
+      }
+    });
+  }
+
   ready(function () {
     ensureSkipLink();
     initThemeToggle();
@@ -833,6 +1339,14 @@
     initDebouncedSearch();
     initCardNewTab();
     injectTagBadges();
+    initSlashFocus();
+    initOfflineBanner();
+    initDetailKey();
+    fetchGames().then(function() {
+      if ($('.category-filter')) buildTagFilterRow();
+      updateCategoryCounts();
+      applyTagFilter();
+    });
     var mo = new MutationObserver(onMutations);
     mo.observe(document.body, {
       childList: true,

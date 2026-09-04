@@ -949,6 +949,481 @@
         color: var(--text-muted, #888);
         font-size: 0.95rem;
       }
+
+      /* ================================================================
+         16. DISCOVERY UI - tag filters, counts, recent, detail panel
+         ================================================================ */
+
+      /* Tag filter row */
+      .ux-tag-filter {
+        display: flex;
+        gap: 8px;
+        padding: 0.5rem 0;
+        margin-bottom: 0.5rem;
+        overflow-x: auto;
+        scrollbar-width: none;
+      }
+      .ux-tag-filter::-webkit-scrollbar {
+        display: none;
+      }
+      .ux-tag-filter__pill {
+        flex: 0 0 auto;
+        min-width: 44px;
+        min-height: 44px;
+        padding: 8px 16px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.04);
+        color: #888;
+        font-size: 0.75rem;
+        font-weight: 500;
+        letter-spacing: 0.04em;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        text-transform: uppercase;
+      }
+      .ux-tag-filter__pill:hover {
+        background: rgba(255, 255, 255, 0.08);
+        border-color: var(--accent, #06b6d4);
+        color: #ccc;
+      }
+      .ux-tag-filter__pill[aria-pressed="true"] {
+        background: var(--accent, #06b6d4);
+        border-color: var(--accent, #06b6d4);
+        color: #fff;
+        font-weight: 600;
+      }
+      .ux-tag-filter__pill:focus-visible {
+        outline: 2px solid var(--accent, #06b6d4);
+        outline-offset: 2px;
+      }
+
+      /* Category pill counts */
+      .category-filter__count {
+        display: inline-block;
+        margin-left: 6px;
+        padding: 2px 6px;
+        border-radius: 10px;
+        background: rgba(255, 255, 255, 0.06);
+        color: #888;
+        font-size: 0.65rem;
+        font-weight: 600;
+      }
+      .category-filter__btn.active .category-filter__count {
+        background: rgba(255, 255, 255, 0.2);
+        color: #fff;
+      }
+
+      /* Result status */
+      .ux-result-status {
+        padding: 0.5rem 0;
+        color: #888;
+        font-size: 0.85rem;
+        font-weight: 500;
+      }
+
+      /* Clear filters button */
+      .ux-clear-filters {
+        display: inline-block;
+        margin-top: 1rem;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 8px;
+        background: var(--accent, #06b6d4);
+        color: #fff;
+        font-size: 0.9rem;
+        font-weight: 600;
+        cursor: pointer;
+        min-height: 44px;
+        transition: filter 0.15s ease;
+      }
+      .ux-clear-filters:hover {
+        filter: brightness(1.1);
+      }
+      .ux-clear-filters:focus-visible {
+        outline: 2px solid var(--accent, #06b6d4);
+        outline-offset: 2px;
+      }
+
+      /* Recently played row */
+      .ux-recent {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 0.75rem 0;
+        margin-bottom: 0.5rem;
+        overflow-x: auto;
+        scrollbar-width: none;
+      }
+      .ux-recent::-webkit-scrollbar {
+        display: none;
+      }
+      .ux-recent__label {
+        flex: 0 0 auto;
+        color: #888;
+        font-size: 0.85rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+      .ux-recent__chip {
+        flex: 0 0 auto;
+        min-width: 44px;
+        min-height: 44px;
+        padding: 8px 16px;
+        border: 1px solid rgba(20, 184, 166, 0.3);
+        border-radius: 999px;
+        background: rgba(20, 184, 166, 0.12);
+        color: #e2e0e7;
+        font-size: 0.8rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.15s ease;
+        white-space: nowrap;
+        max-width: 200px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .ux-recent__chip:hover {
+        background: rgba(20, 184, 166, 0.2);
+        border-color: var(--accent-2, #14b8a6);
+        transform: translateY(-1px);
+      }
+      .ux-recent__chip:focus-visible {
+        outline: 2px solid var(--accent-2, #14b8a6);
+        outline-offset: 2px;
+      }
+
+      /* Offline banner */
+      .ux-net-banner {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 1002;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+        padding: 8px 16px;
+        background: var(--danger, #e63946);
+        color: #fff;
+        font-size: 0.85rem;
+        font-weight: 600;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+      }
+      .ux-net-banner--visible {
+        display: flex;
+      }
+      .ux-net-banner__dismiss {
+        min-width: 28px;
+        min-height: 28px;
+        padding: 4px 8px;
+        border: none;
+        border-radius: 4px;
+        background: rgba(255, 255, 255, 0.2);
+        color: #fff;
+        font-size: 1.2rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: background 0.15s ease;
+      }
+      .ux-net-banner__dismiss:hover {
+        background: rgba(255, 255, 255, 0.3);
+      }
+      .ux-net-banner__dismiss:focus-visible {
+        outline: 2px solid #fff;
+        outline-offset: 2px;
+      }
+
+      /* Game card info button */
+      .game-card__info {
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        z-index: 3;
+        width: 44px;
+        height: 44px;
+        padding: 0;
+        border: none;
+        border-radius: 50%;
+        background: rgba(0, 0, 0, 0.6);
+        color: #fff;
+        cursor: pointer;
+        transition: all 0.15s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .game-card__info:hover {
+        background: rgba(0, 0, 0, 0.8);
+        transform: scale(1.08);
+      }
+      .game-card__info:focus-visible {
+        outline: 2px solid var(--accent, #06b6d4);
+        outline-offset: 2px;
+      }
+      .game-card__info svg {
+        width: 20px;
+        height: 20px;
+      }
+
+      /* Game detail panel */
+      .ux-detail {
+        position: fixed;
+        inset: 0;
+        z-index: 1000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        animation: modal-in 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+      }
+      .ux-detail__backdrop {
+        position: absolute;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.7);
+        backdrop-filter: blur(4px);
+      }
+      .ux-detail__panel {
+        position: relative;
+        max-width: 500px;
+        max-height: 80vh;
+        width: 100%;
+        padding: 24px;
+        border-radius: 16px;
+        background: #1a1a2e;
+        color: #e2e0e7;
+        box-shadow: 0 24px 48px -12px rgba(0, 0, 0, 0.5);
+        overflow-y: auto;
+        z-index: 1;
+      }
+      .ux-detail__title {
+        margin: 0 0 12px 0;
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #fff;
+      }
+      .ux-detail__cat {
+        display: inline-block;
+        margin-right: 8px;
+        margin-bottom: 12px;
+        padding: 4px 10px;
+        border-radius: 6px;
+        background: #6d28d9;
+        color: #fff;
+        font-size: 0.7rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+      }
+      .ux-detail__cat[data-cat="action"] { background: #e63946; }
+      .ux-detail__cat[data-cat="classic"] { background: #6d28d9; }
+      .ux-detail__cat[data-cat="sports"] { background: #0d9488; }
+      .ux-detail__cat[data-cat="strategy"] { background: #7c3aed; }
+      .ux-detail__cat[data-cat="puzzle"] { background: #ea580c; }
+      .ux-detail__cat[data-cat="riddle"] { background: #0891b2; }
+      .ux-detail__cat[data-cat="story"] { background: #db2777; }
+      .ux-detail__cat[data-cat="simulation"] { background: #0891b2; }
+      .ux-detail__cat[data-cat="multiplayer"] { background: #b45309; }
+      .ux-detail__tags {
+        display: flex;
+        gap: 6px;
+        flex-wrap: wrap;
+        margin-bottom: 12px;
+      }
+      .ux-detail__desc {
+        margin: 0 0 16px 0;
+        color: #aaa;
+        font-size: 0.9rem;
+        line-height: 1.5;
+      }
+      .ux-detail__players {
+        display: inline-block;
+        margin-right: 8px;
+        margin-bottom: 12px;
+        padding: 4px 10px;
+        border-radius: 6px;
+        background: var(--accent-2, #14b8a6);
+        color: #fff;
+        font-size: 0.75rem;
+        font-weight: 600;
+      }
+      .ux-detail__howto {
+        margin-bottom: 16px;
+        padding: 12px;
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.04);
+        color: #ccc;
+        font-size: 0.85rem;
+        line-height: 1.5;
+      }
+      .ux-detail__howto strong {
+        color: var(--accent, #06b6d4);
+        font-weight: 600;
+      }
+      .ux-detail__actions {
+        display: flex;
+        gap: 12px;
+        margin-top: 20px;
+      }
+      .ux-detail__play {
+        flex: 1;
+        min-height: 44px;
+        padding: 12px 24px;
+        border: none;
+        border-radius: 8px;
+        background: var(--accent, #06b6d4);
+        color: #fff;
+        font-size: 0.95rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.15s ease;
+      }
+      .ux-detail__play:hover {
+        filter: brightness(1.1);
+        transform: translateY(-1px);
+      }
+      .ux-detail__play:focus-visible {
+        outline: 2px solid var(--accent, #06b6d4);
+        outline-offset: 2px;
+      }
+      .ux-detail__close {
+        min-height: 44px;
+        padding: 12px 24px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.04);
+        color: #ccc;
+        font-size: 0.95rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.15s ease;
+      }
+      .ux-detail__close:hover {
+        background: rgba(255, 255, 255, 0.08);
+        border-color: rgba(255, 255, 255, 0.2);
+        color: #fff;
+      }
+      .ux-detail__close:focus-visible {
+        outline: 2px solid var(--accent, #06b6d4);
+        outline-offset: 2px;
+      }
+
+      /* Tag-hidden cards */
+      .game-card[data-ux-tag-hidden] {
+        display: none !important;
+      }
+
+      /* Light theme variants */
+      html[data-theme="light"] .ux-tag-filter__pill {
+        background: #fff;
+        border: 1px solid rgba(0, 0, 0, 0.08);
+        color: #6e6e73;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+      }
+      html[data-theme="light"] .ux-tag-filter__pill:hover {
+        background: #f0f0f2;
+        border-color: rgba(14, 116, 144, 0.3);
+        color: #1d1d1f;
+      }
+      html[data-theme="light"] .ux-tag-filter__pill[aria-pressed="true"] {
+        background: #0e7490;
+        border-color: #0e7490;
+        color: #fff;
+      }
+      html[data-theme="light"] .category-filter__count {
+        background: rgba(0, 0, 0, 0.06);
+        color: #6e6e73;
+      }
+      html[data-theme="light"] .category-filter__btn.active .category-filter__count {
+        background: rgba(255, 255, 255, 0.25);
+        color: #fff;
+      }
+      html[data-theme="light"] .ux-result-status {
+        color: #6e6e73;
+      }
+      html[data-theme="light"] .ux-recent__label {
+        color: #6e6e73;
+      }
+      html[data-theme="light"] .ux-recent__chip {
+        background: rgba(14, 116, 144, 0.08);
+        border-color: rgba(14, 116, 144, 0.2);
+        color: #1d1d1f;
+      }
+      html[data-theme="light"] .ux-recent__chip:hover {
+        background: rgba(14, 116, 144, 0.15);
+        border-color: #0e7490;
+      }
+      html[data-theme="light"] .ux-detail__panel {
+        background: #fff;
+        color: #1d1d1f;
+        box-shadow: 0 24px 48px -12px rgba(0, 0, 0, 0.18);
+      }
+      html[data-theme="light"] .ux-detail__title {
+        color: #1d1d1f;
+      }
+      html[data-theme="light"] .ux-detail__desc {
+        color: #6e6e73;
+      }
+      html[data-theme="light"] .ux-detail__howto {
+        background: rgba(0, 0, 0, 0.04);
+        color: #1d1d1f;
+      }
+      html[data-theme="light"] .ux-detail__close {
+        background: rgba(0, 0, 0, 0.04);
+        border-color: rgba(0, 0, 0, 0.08);
+        color: #6e6e73;
+      }
+      html[data-theme="light"] .ux-detail__close:hover {
+        background: rgba(0, 0, 0, 0.08);
+        border-color: rgba(0, 0, 0, 0.15);
+        color: #1d1d1f;
+      }
+      html[data-theme="light"] .game-card__info {
+        background: rgba(255, 255, 255, 0.9);
+        color: #1d1d1f;
+      }
+      html[data-theme="light"] .game-card__info:hover {
+        background: rgba(255, 255, 255, 1);
+      }
+
+      /* Mobile adjustments */
+      @media (max-width: 768px) {
+        .ux-tag-filter {
+          flex-wrap: nowrap;
+          overflow-x: auto;
+          scrollbar-width: none;
+          padding-inline: 0.1rem;
+          margin-inline: -0.1rem;
+        }
+        .ux-tag-filter::-webkit-scrollbar {
+          display: none;
+        }
+        .ux-tag-filter__pill {
+          flex: 0 0 auto;
+        }
+        .ux-recent {
+          flex-wrap: nowrap;
+          overflow-x: auto;
+          scrollbar-width: none;
+        }
+        .ux-recent::-webkit-scrollbar {
+          display: none;
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .ux-detail,
+        .ux-tag-filter__pill,
+        .ux-recent__chip,
+        .game-card__info,
+        .ux-detail__play,
+        .ux-detail__close {
+          transition: none !important;
+          animation: none !important;
+        }
+      }
     </style>
   </head>
   <body>
