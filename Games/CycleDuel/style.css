@@ -1,0 +1,316 @@
+:root {
+  --bg: #0b0f19;
+  --panel: #111827;
+  --surface: #1e293b;
+  --text: #e2e8f0;
+  --muted: #94a3b8;
+  --cyan: #06b6d4;
+  --amber: #f59e0b;
+  --red: #ef4444;
+  --white: #f8fafc;
+  --black: #000000;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+}
+
+body {
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 100%;
+}
+
+.app {
+  width: 100%;
+  max-width: 720px;
+  padding: 0 10px;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+h1, h2, p {
+  margin: 0 0 12px;
+}
+
+h1 {
+  font-size: clamp(1.6rem, 6vw, 2.4rem);
+  color: var(--cyan);
+  letter-spacing: 1px;
+}
+
+h2 {
+  font-size: clamp(1.3rem, 5vw, 1.8rem);
+}
+
+.tagline {
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+.hud {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0;
+  font-weight: 700;
+  font-size: 1rem;
+}
+
+.score {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.p1 {
+  color: var(--cyan);
+}
+
+.p2 {
+  color: var(--amber);
+}
+
+.stage {
+  position: relative;
+  width: 100%;
+  flex: 1;
+  min-height: 260px;
+}
+
+#game {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+  background: var(--panel);
+  border: 2px solid var(--surface);
+  border-radius: 6px;
+}
+
+.screen {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 16px;
+  background: rgba(11, 15, 25, 0.96);
+  border-radius: 6px;
+}
+
+.screen[hidden] {
+  display: none;
+}
+
+.options {
+  width: 100%;
+  max-width: 420px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 8px 0 16px;
+}
+
+.option-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.option-row > span {
+  color: var(--muted);
+  font-size: 0.9rem;
+  min-width: 80px;
+  text-align: left;
+}
+
+.segment {
+  display: flex;
+  gap: 4px;
+}
+
+.segment button {
+  background: var(--surface);
+  color: var(--text);
+  border: none;
+  padding: 8px 14px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  border-radius: 4px;
+  min-width: 44px;
+  min-height: 36px;
+}
+
+.segment button.active {
+  background: var(--cyan);
+  color: var(--black);
+}
+
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 16px;
+  margin-bottom: 8px;
+  font-size: 0.95rem;
+}
+
+.controls div {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.swatch {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border-radius: 3px;
+}
+
+.swatch.p1 {
+  background: var(--cyan);
+}
+
+.swatch.p2 {
+  background: var(--amber);
+}
+
+.note {
+  color: var(--muted);
+  font-size: 0.85rem;
+  margin-bottom: 14px;
+  max-width: 420px;
+}
+
+button.primary,
+button.secondary {
+  border: none;
+  border-radius: 6px;
+  padding: 12px 24px;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  min-width: 120px;
+  min-height: 44px;
+  margin: 4px;
+}
+
+button.primary {
+  background: var(--black);
+  color: var(--cyan);
+  border: 1px solid var(--cyan);
+}
+
+button.secondary {
+  background: var(--black);
+  color: var(--text);
+  border: 1px solid var(--surface);
+}
+
+button:active {
+  transform: translateY(1px);
+}
+
+.btn-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+}
+
+.touch {
+  width: 100%;
+  padding: 8px 0 12px;
+}
+
+.touch[hidden] {
+  display: none;
+}
+
+.touch p {
+  text-align: center;
+  color: var(--muted);
+  font-size: 0.8rem;
+  margin-bottom: 6px;
+}
+
+.pad {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-rows: auto auto;
+  gap: 8px;
+  justify-content: center;
+  max-width: 200px;
+  margin: 0 auto;
+}
+
+.pad button {
+  width: 56px;
+  height: 56px;
+  min-width: 44px;
+  min-height: 44px;
+  font-size: 1.1rem;
+  font-weight: 700;
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--cyan);
+  border-radius: 8px;
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: manipulation;
+}
+
+.pad button[data-dir="up"] {
+  grid-column: 2;
+  grid-row: 1;
+}
+
+.pad button[data-dir="left"] {
+  grid-column: 1;
+  grid-row: 2;
+}
+
+.pad button[data-dir="down"] {
+  grid-column: 2;
+  grid-row: 2;
+}
+
+.pad button[data-dir="right"] {
+  grid-column: 3;
+  grid-row: 2;
+}
+
+@media (max-width: 375px) {
+  .app {
+    padding: 0 6px;
+  }
+
+  .segment button {
+    padding: 8px 10px;
+    font-size: 0.8rem;
+  }
+
+  .controls {
+    gap: 10px;
+  }
+}
