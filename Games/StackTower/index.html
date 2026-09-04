@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Stack Tower</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="../../assets/game-save.js"></script>
+</head>
+<body>
+  <div id="gameWrap">
+    <canvas id="game" width="540" height="720"></canvas>
+    <div id="hud" aria-live="polite">
+      <div id="scoreBox"><span id="scoreLabel">Score</span><span id="scoreVal">0</span></div>
+      <div id="bestBox"><span id="bestLabel">Best</span><span id="bestVal">0</span></div>
+      <div id="comboBox"><span id="comboLabel">Combo</span><span id="comboVal">x1</span></div>
+    </div>
+    <div id="startScreen" class="screen">
+      <h1>Stack Tower</h1>
+      <p class="tagline">One-button precision stacking.</p>
+      <p class="controls">Press <strong>Space</strong>, click, or tap to drop each block.</p>
+      <button id="startBtn" type="button">Start</button>
+    </div>
+    <div id="overScreen" class="screen hidden">
+      <h2>Game Over</h2>
+      <div class="stat"><span>Height</span><span id="finalScore">0</span></div>
+      <div class="stat"><span>Best</span><span id="finalBest">0</span></div>
+      <button id="restartBtn" type="button">Restart</button>
+      <a id="menuBtn" class="btn" href="../../index.html" role="button">Menu</a>
+    </div>
+  </div>
+  <script src="script.js"></script>
+</body>
+</html>
