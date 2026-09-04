@@ -53,7 +53,7 @@ def main():
         threading.Thread(target=srv.serve_forever, daemon=True).start()
 
     with sync_playwright() as p:
-        browser = p.chromium.launch(headless=False,
+        browser = p.chromium.launch(headless=False, executable_path="/usr/bin/chromium",
                                     args=["--no-sandbox", "--disable-gpu",
                                           "--disable-dev-shm-usage",
                                           "--enable-unsafe-swiftshader"])

@@ -145,6 +145,70 @@
     'House of Hazards': '<svg viewBox="0 0 80 80" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M16 40 L40 18 L64 40"/><rect x="22" y="40" width="36" height="28" rx="2" fill="#fff" fill-opacity="0.08"/><rect x="34" y="52" width="12" height="16" rx="1"/><path d="M14 52 L10 58 M14 48 L8 42" stroke-width="2"/><path d="M66 52 L70 58 M66 48 L72 42" stroke-width="2"/></svg>',
   };
 
+  /* Real game thumbnails (480x100 seraph banner strips center-cropped to
+     16:9, vendored in assets/thumbs/). 53 games have real art; the rest
+     keep the SVG icon system. */
+  var THUMBS = {
+  "10 Minutes Till Dawn": "10minutestilldawn",
+  "2048": "2048",
+  "Advance Wars": "advancewars",
+  "Age of War": "ageofwar",
+  "Baldi's Basics": "baldisbasics",
+  "Basket Random": "basketrandom",
+  "BitLife": "bitlife",
+  "Burrito Bison": "burritobison",
+  "Chess": "chess",
+  "Chrome Dino": "chromedino",
+  "Crossy Road": "crossyroad",
+  "Crush the Castle": "crushthecastle",
+  "Cut the Rope": "cuttherope",
+  "Doge Miner": "dogeminer",
+  "Doodle Jump": "doodlejump",
+  "Dr. Mario": "drmario",
+  "Drift Boss": "driftboss",
+  "Fancy Pants Adventure 3": "fancypantsadventure3",
+  "Flappy Bird": "flappybird",
+  "Fleeing the Complex": "fleeingthecomplex",
+  "Fruit Ninja": "fruitninja",
+  "Geometry Dash Lite": "geometrydashlite",
+  "Geometry Rash": "geometryrash",
+  "Helix Jump": "helixjump",
+  "House of Hazards": "houseofhazards",
+  "Infiltrating the Airship": "infiltratingtheairship",
+  "Jetpack Joyride": "jetpackjoyride",
+  "Kirby Amazing Mirror": "kirbyamazingmirror",
+  "Mario Kart Super Circuit": "mariokartsupercircuit",
+  "Mega Man Zero": "megamanzero",
+  "Metroid Fusion": "metroidfusion",
+  "Minesweeper": "minesweeper",
+  "Ovo": "ovo",
+  "Papa's Pizzeria": "papaspizzeria",
+  "Pokemon Emerald": "pokemonemerald",
+  "Pokemon Fire Red": "pokemonfirered",
+  "Pokemon Ruby": "pokemonruby",
+  "Pokemon Unbound": "pokemonunbound",
+  "Retro Bowl": "retrobowl",
+  "Run 3": "run3",
+  "Snake": "snake",
+  "Soccer Random": "soccerrandom",
+  "Sonic Advance": "sonicadvance",
+  "Street Fighter II": "streetfighter2",
+  "Subway Surfers": "subwaysurfers",
+  "Sudoku": "sudoku",
+  "Super Hot": "superhot",
+  "Temple Run 2": "templerun2",
+  "Tetris": "tetris",
+  "Thumb Fighter": "thumbfighter",
+  "Vex 7": "vex7",
+  "Volley Random": "volleyrandom",
+  "Wordle": "wordle"
+};
+
+  function getGameThumb(title) {
+    var slug = THUMBS[title];
+    return slug ? './assets/thumbs/' + slug + '.jpg' : null;
+  }
+
   /* Category fallback icons (for games without a specific icon) */
   var CATEGORY_ICONS = {
     'action': '<svg viewBox="0 0 80 80" fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M44 12 L28 42 L40 42 L36 68 L56 34 L44 34 Z" fill="#fff" fill-opacity="0.15"/></svg>',
@@ -169,12 +233,6 @@
       var title = textOf($('.game-card__title', card));
       var cat = textOf($('.game-card__category', card));
       if (!card.hasAttribute('data-cat')) card.setAttribute('data-cat', cat);
-      if (!card.hasAttribute('data-featured')) {
-        card.setAttribute(
-          'data-featured',
-          card.classList.contains('game-card--featured') ? 'true' : 'false'
-        );
-      }
       if (card.getAttribute('tabindex') === null) card.setAttribute('tabindex', '0');
       if (!card.getAttribute('role')) card.setAttribute('role', 'button');
       if (!card.getAttribute('aria-keyshortcuts')) {
@@ -187,17 +245,27 @@
         );
       }
 
-      /* Inject SVG gameplay icon into the thumbnail area */
+      /* Thumbnail: real game art when available, SVG icon otherwise */
       var icon = $('.game-card__icon', card);
-      if (icon && title && !icon.querySelector('svg')) {
-        icon.innerHTML = getGameIcon(title, cat);
+      var thumbUrl = getGameThumb(title);
+      if (icon && title) {
+        if (thumbUrl && !icon.querySelector('img')) {
+          icon.innerHTML = '';
+          var img = document.createElement('img');
+          img.src = thumbUrl;
+          img.alt = '';
+          img.loading = 'lazy';
+          img.decoding = 'async';
+          img.className = 'game-card__thumb-img';
+          icon.appendChild(img);
+        } else if (!thumbUrl && !icon.querySelector('svg')) {
+          icon.innerHTML = getGameIcon(title, cat);
+        }
       }
 
-      /* Add data-title to card and thumb for CSS pseudo-element content. */
+      /* data-title identifies the card for portal logic and tests. */
       if (title) {
         card.setAttribute('data-title', title);
-        var thumb = $('.game-card__thumb', card);
-        if (thumb) thumb.setAttribute('data-title', title);
       }
 
       /* Set data-tags from games.json cache for tag filtering. */

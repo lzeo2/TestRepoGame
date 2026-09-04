@@ -182,6 +182,17 @@
         filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.25));
       }
 
+      /* Real game art thumbnails (cover the thumb area) */
+      .game-card__thumb-img {
+        position: absolute;
+        inset: 0;
+        width: 100% !important;
+        height: 100% !important;
+        object-fit: cover;
+        object-position: center;
+        display: block;
+      }
+
       /* Featured cards get a slightly larger icon */
       .game-card--featured .game-card__icon svg {
         width: 52% !important;
@@ -210,16 +221,20 @@
         flex-shrink: 0;
       }
 
-      /* Fill badges with category-matching solid colors */
+      /* Default badge surface, then category-specific solid colors */
+      .game-card .game-card__category { background: #475569; }
       .game-card[data-cat="action"] .game-card__category       { background: #e63946; }
-      .game-card[data-cat="classic"] .game-card__category      { background: #6d28d9; }
-      .game-card[data-cat="sports"] .game-card__category       { background: #0d9488; }
-      .game-card[data-cat="strategy"] .game-card__category     { background: #7c3aed; }
+      .game-card[data-cat="classic"] .game-card__category      { background: #0d9488; }
+      .game-card[data-cat="sports"] .game-card__category       { background: #055e56; }
+      .game-card[data-cat="strategy"] .game-card__category     { background: #8d6708; }
       .game-card[data-cat="puzzle"] .game-card__category       { background: #ea580c; }
       .game-card[data-cat="riddle"] .game-card__category       { background: #0891b2; }
       .game-card[data-cat="story"] .game-card__category        { background: #db2777; }
       .game-card[data-cat="simulation"] .game-card__category   { background: #0891b2; }
       .game-card[data-cat="multiplayer"] .game-card__category  { background: #b45309; }
+      .game-card[data-cat="arcade"] .game-card__category       { background: #475569; }
+      .game-card[data-cat="idle"] .game-card__category         { background: #52525b; }
+      .game-card[data-cat="word"] .game-card__category         { background: #5b21b6; }
 
       /* Tag badges */
       .game-card__tags {
@@ -282,7 +297,7 @@
 
       /* Replace neon "Featured" badge with solid gold label */
       .game-card--featured::after {
-        content: '★ Featured' !important;
+        content: 'Featured' !important;
         position: absolute !important;
         top: 12px !important;
         left: 12px !important;
@@ -407,17 +422,15 @@
         padding: 0 !important;
         border: 1px solid rgba(255, 255, 255, 0.1) !important;
         border-radius: 50% !important;
-        background: rgba(255, 255, 255, 0.06) !important;
+        background: #1f1f27 !important;
         color: #e2e0e7 !important;
         font-size: 18px !important;
         line-height: 1 !important;
         cursor: pointer !important;
-        backdrop-filter: blur(12px) !important;
-        -webkit-backdrop-filter: blur(12px) !important;
         transition: background 0.2s ease, transform 0.15s ease !important;
       }
       .theme-toggle:hover {
-        background: rgba(255, 255, 255, 0.12) !important;
+        background: #2a2a33 !important;
         transform: scale(1.06);
       }
       .theme-toggle:active {
@@ -460,7 +473,7 @@
       .random-game-btn:hover,
       .random-game-btn:focus-visible {
         transform: translateY(-2px) !important;
-        box-shadow: 0 6px 20px rgba(217, 119, 6, 0.4) !important;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.28) !important;
         filter: brightness(1.08);
       }
       .random-game-btn__icon {
@@ -474,7 +487,7 @@
          ================================================================ */
 
       .game-modal__content {
-        animation: modal-in 0.2s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+        animation: modal-in 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
         border-radius: 16px !important;
         overflow: hidden !important;
       }
@@ -500,7 +513,7 @@
         font-size: 14px !important;
         font-weight: 600 !important;
         text-decoration: none !important;
-        box-shadow: 0 4px 14px rgba(6, 182, 212, 0.35) !important;
+        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.28) !important;
         transition: transform 0.15s ease !important;
       }
       .skip-link:focus {
@@ -583,9 +596,7 @@
 
       /* Header */
       html[data-theme="light"] .app__header {
-        background: rgba(255, 255, 255, 0.85) !important;
-        backdrop-filter: blur(20px) !important;
-        -webkit-backdrop-filter: blur(20px) !important;
+        background: #f5f5f7 !important;
         border-bottom: 1px solid rgba(0, 0, 0, 0.06) !important;
       }
       html[data-theme="light"] .app__logo-text {
@@ -641,8 +652,14 @@
         box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06) !important;
       }
       html[data-theme="light"] .category-filter__btn.active {
+        background: #1d1d1f !important;
+        border-color: #1d1d1f !important;
         color: #fff !important;
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12) !important;
+      }
+      html[data-theme="light"] .category-filter__btn.active:hover {
+        background: #1d1d1f !important;
+        border-color: #1d1d1f !important;
       }
 
       /* Cards */
@@ -655,6 +672,9 @@
       html[data-theme="light"] .game-card:hover {
         box-shadow: 0 12px 28px -8px rgba(0, 0, 0, 0.12), 0 4px 12px rgba(0, 0, 0, 0.06) !important;
         border-color: rgba(0, 0, 0, 0.1) !important;
+      }
+      html[data-theme="dark"] .game-card__title {
+        color: #f4f4f7 !important;
       }
       html[data-theme="light"] .game-card__title {
         color: #1d1d1f !important;
@@ -675,7 +695,7 @@
       html[data-theme="light"] .game-card--featured::after {
         background: #b8860b !important;
         color: #fff !important;
-        box-shadow: 0 2px 8px rgba(184, 134, 11, 0.25) !important;
+        box-shadow: none !important;
       }
 
       /* Theme toggle */
@@ -706,7 +726,7 @@
 
       /* Random Game button */
       html[data-theme="light"] .random-game-btn {
-        box-shadow: 0 4px 14px rgba(217, 119, 6, 0.25) !important;
+        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18) !important;
       }
 
       /* Skip link */
@@ -723,6 +743,38 @@
       /* ================================================================
          UX IMPROVEMENTS — interaction polish without visual noise
          ================================================================ */
+
+      /* De-neon the bundle's inline category colors (it sets inline
+         style="--accent:#00ff88" and inline background on the active
+         pill from a hardcoded neon map: #00ff88 #ff3c6e #ffe600
+         #ff9500 #a855f7 #00cfff). Inline styles lose to !important,
+         so neutralize with the flat palette. */
+      .game-card,
+      .game-card * {
+        --accent: #06b6d4 !important;
+      }
+      .category-filter__btn.active {
+        background: #06b6d4 !important;
+        border-color: #06b6d4 !important;
+        color: #08252b !important;
+        box-shadow: none !important;
+        text-shadow: none !important;
+      }
+      html[data-theme="light"] .category-filter__btn.active {
+        background: #1d1d1f !important;
+        border-color: #1d1d1f !important;
+        color: #fff !important;
+      }
+      /* Bundle renders a neon inset glow element behind every thumb. */
+      .game-card__glow {
+        display: none !important;
+      }
+      /* Dark body: never pure black (bundle default #000). */
+      html[data-theme="dark"] body,
+      html[data-theme="dark"] #root {
+        background: #0b0b10 !important;
+        color: #e2e0e7 !important;
+      }
 
       /* Cards: one purposeful hover cue (lift), never a glow. */
       .game-card {
@@ -1183,13 +1235,12 @@
         align-items: center;
         justify-content: center;
         padding: 20px;
-        animation: modal-in 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+        animation: modal-in 0.2s cubic-bezier(0.16, 1, 0.3, 1);
       }
       .ux-detail__backdrop {
         position: absolute;
         inset: 0;
         background: rgba(0, 0, 0, 0.7);
-        backdrop-filter: blur(4px);
       }
       .ux-detail__panel {
         position: relative;
@@ -1216,7 +1267,7 @@
         margin-bottom: 12px;
         padding: 4px 10px;
         border-radius: 6px;
-        background: #6d28d9;
+        background: #475569;
         color: #fff;
         font-size: 0.7rem;
         font-weight: 600;
@@ -1224,14 +1275,17 @@
         letter-spacing: 0.06em;
       }
       .ux-detail__cat[data-cat="action"] { background: #e63946; }
-      .ux-detail__cat[data-cat="classic"] { background: #6d28d9; }
-      .ux-detail__cat[data-cat="sports"] { background: #0d9488; }
-      .ux-detail__cat[data-cat="strategy"] { background: #7c3aed; }
+      .ux-detail__cat[data-cat="classic"] { background: #0d9488; }
+      .ux-detail__cat[data-cat="sports"] { background: #055e56; }
+      .ux-detail__cat[data-cat="strategy"] { background: #8d6708; }
       .ux-detail__cat[data-cat="puzzle"] { background: #ea580c; }
       .ux-detail__cat[data-cat="riddle"] { background: #0891b2; }
       .ux-detail__cat[data-cat="story"] { background: #db2777; }
       .ux-detail__cat[data-cat="simulation"] { background: #0891b2; }
       .ux-detail__cat[data-cat="multiplayer"] { background: #b45309; }
+      .ux-detail__cat[data-cat="arcade"] { background: #475569; }
+      .ux-detail__cat[data-cat="idle"] { background: #52525b; }
+      .ux-detail__cat[data-cat="word"] { background: #5b21b6; }
       .ux-detail__tags {
         display: flex;
         gap: 6px;
