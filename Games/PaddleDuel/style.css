@@ -94,6 +94,57 @@ canvas {
   font-size: 12px;
   margin: 10px 0 0;
 }
+.mode-select {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin: 16px 0;
+}
+.mode-btn {
+  min-width: 120px;
+  min-height: 44px;
+  padding: 12px 24px;
+  font-size: 16px;
+  font-weight: 600;
+  background: #1a4a5e;
+  color: #fff;
+  border: 2px solid #4dd2ff;
+  border-radius: 8px;
+  cursor: pointer;
+  user-select: none;
+  transition: background 0.15s;
+}
+.mode-btn:hover {
+  background: #2a6a8e;
+}
+.mode-btn:active {
+  background: #0d3040;
+  transform: scale(0.96);
+}
+.mode-btn:focus {
+  outline: 2px solid #4dd2ff;
+  outline-offset: 2px;
+}
+.mode-label {
+  display: block;
+  width: 100%;
+  text-align: center;
+  font-size: 14px;
+  font-weight: 600;
+  color: #4dd2ff;
+  margin: 4px 0;
+  min-height: 20px;
+}
+.active-effects {
+  display: block;
+  width: 100%;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 500;
+  color: #ff9944;
+  margin: 2px 0;
+  min-height: 18px;
+}
 /* Short landscape screens: scale the canvas down and tighten spacing so
    the play area is never clipped. */
 @media (max-height: 560px) and (orientation: landscape) {
