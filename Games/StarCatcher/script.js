@@ -6,9 +6,6 @@
   var scoreEl = document.getElementById("score");
   var bestEl = document.getElementById("best");
   var livesEl = document.getElementById("lives");
-  var scoreLabel = document.getElementById("scoreLabel");
-  var livesSpan = document.getElementById("livesSpan");
-  var modeSelect = document.getElementById("modeSelect");
 
   var W = canvas.width,
     H = canvas.height;
@@ -16,32 +13,10 @@
     keyRight = false;
 
   var state = "start"; // start | play | over
-  var currentMode = "classic"; // classic | lowg | storm
   var score = 0,
     lives = 3,
     level = 1;
-  var survivalTime = 0;
-  var bests = { classic: 0, lowg: 0, storm: 0 };
-
-  // Migrate old localStorage best
-  try {
-    var oldBest = parseInt(localStorage.getItem("starcatcher_best") || "0", 10);
-    if (oldBest > 0) bests.classic = oldBest;
-  } catch (e) {}
-
-  // Load per-mode bests via GameSave (may be undefined)
-  try {
-    if (typeof GameSave !== "undefined") {
-      var saved = GameSave.load("starcatcher");
-      if (saved) {
-        if (saved.classic != null) bests.classic = saved.classic;
-        if (saved.lowg != null) bests.lowg = saved.lowg;
-        if (saved.storm != null) bests.storm = saved.storm;
-      }
-    }
-  } catch (e) {}
-
-  var best = bests.classic;
+  var best = parseInt(localStorage.getItem("starcatcher_best") || "0", 10);
   bestEl.textContent = best;
 
   var basket = { x: W / 2, w: 76, h: 16, y: H - 36, speed: 340 };
@@ -55,98 +30,30 @@
     return a + Math.random() * (b - a);
   }
 
-  function persistBests() {
-    try {
-      if (typeof GameSave !== "undefined") {
-        GameSave.save("starcatcher", {
-          classic: bests.classic,
-          lowg: bests.lowg,
-          storm: bests.storm
-        });
-      }
-    } catch (e) {}
-  }
-
-  function updateBest() {
-    var currentScore = currentMode === "storm" ? survivalTime : score;
-    if (currentScore > bests[currentMode]) {
-      bests[currentMode] = currentMode === "storm"
-        ? Math.round(currentScore * 10) / 10
-        : currentScore;
-      best = bests[currentMode];
-      bestEl.textContent = currentMode === "storm" ? best.toFixed(1) : best;
-      persistBests();
-    }
-  }
-
-  function showModeButtons() {
-    modeSelect.classList.remove("hidden");
-    var btns = modeSelect.querySelectorAll(".mode-btn");
-    for (var i = 0; i < btns.length; i++) {
-      if (btns[i].dataset.mode === currentMode) {
-        btns[i].classList.add("mode-btn--active");
-      } else {
-        btns[i].classList.remove("mode-btn--active");
-      }
-    }
-  }
-
-  function reset(mode) {
-    currentMode = mode || "classic";
+  function reset() {
     score = 0;
     lives = 3;
     level = 1;
     items = [];
     spawnTimer = 0;
     basket.x = W / 2;
-    survivalTime = 0;
-    msg = "";
-    msgT = 0;
-
-    // HUD setup per mode
-    if (currentMode === "storm") {
-      scoreLabel.textContent = "Time";
-      livesSpan.style.display = "none";
-      scoreEl.textContent = "0.0";
-    } else {
-      scoreLabel.textContent = "Score";
-      livesSpan.style.display = "";
-      scoreEl.textContent = "0";
-      livesEl.textContent = "3";
-    }
-
-    best = bests[currentMode];
-    bestEl.textContent = currentMode === "storm" ? best.toFixed(1) : best;
-
-    modeSelect.classList.add("hidden");
+    scoreEl.textContent = "0";
+    livesEl.textContent = "3";
     state = "play";
   }
 
   function spawn() {
-    if (currentMode === "storm") {
-      items.push({
-        kind: "bomb",
-        val: 1,
-        x: rand(18, W - 18),
-        y: -16,
-        r: 11,
-        vy: 130 + level * 15 + rand(0, 50)
-      });
-    } else {
-      var star = Math.random() < 0.84;
-      var r = Math.random();
-      var val = star ? (r < 0.6 ? 1 : r < 0.86 ? 2 : 3) : 1;
-      var vy = 130 + level * 12 + rand(0, 40);
-      if (currentMode === "lowg") vy *= 0.5;
-      items.push({
-        kind: star ? "star" : "bomb",
-        val: val,
-        x: rand(18, W - 18),
-        y: -16,
-        r: star ? 13 : 11,
-        vy: vy
-      });
-    }
+    var star = Math.random() < 0.84;
+    var r = Math.random();
+    var val = star ? (r < 0.6 ? 1 : r < 0.86 ? 2 : 3) : 1;
+    items.push({
+      kind: star ? "star" : "bomb",
+      val: val,
+      x: rand(18, W - 18),
+      y: -16,
+      r: star ? 13 : 11,
+      vy: 130 + level * 12 + rand(0, 40)
+    });
   }
 
   function drawStar(x, y, r, c) {
@@ -212,10 +119,7 @@
       ctx.fillText("Catch stars, dodge bombs!", W / 2, H / 2 - 24);
       ctx.fillStyle = "#ffd94a";
       ctx.font = "bold 20px system-ui, sans-serif";
-      ctx.fillText("Pick a mode below or press 1/2/3", W / 2, H / 2 + 20);
-      ctx.fillStyle = "#7f8db3";
-      ctx.font = "13px system-ui, sans-serif";
-      ctx.fillText("1 = Classic  2 = Low Gravity  3 = Dodge Storm", W / 2, H / 2 + 50);
+      ctx.fillText("Press SPACE or tap to start", W / 2, H / 2 + 20);
     } else if (state === "over") {
       ctx.fillStyle = "rgba(0,0,0,0.7)";
       ctx.fillRect(0, 0, W, H);
@@ -224,18 +128,12 @@
       ctx.fillText("GAME OVER", W / 2, H / 2 - 40);
       ctx.fillStyle = "#fff";
       ctx.font = "20px system-ui, sans-serif";
-      if (currentMode === "storm") {
-        ctx.fillText("Survived: " + survivalTime.toFixed(1) + "s", W / 2, H / 2 + 4);
-        ctx.fillStyle = "#ffd94a";
-        ctx.fillText("Best: " + bests.storm.toFixed(1) + "s", W / 2, H / 2 + 34);
-      } else {
-        ctx.fillText("Score: " + score, W / 2, H / 2 + 4);
-        ctx.fillStyle = "#ffd94a";
-        ctx.fillText("Best: " + best, W / 2, H / 2 + 34);
-      }
+      ctx.fillText("Score: " + score, W / 2, H / 2 + 4);
+      ctx.fillStyle = "#ffd94a";
+      ctx.fillText("Best: " + best, W / 2, H / 2 + 34);
       ctx.fillStyle = "#cfe0ff";
       ctx.font = "16px system-ui, sans-serif";
-      ctx.fillText("Press SPACE to replay or pick a mode", W / 2, H / 2 + 74);
+      ctx.fillText("Press SPACE to play again", W / 2, H / 2 + 74);
     } else {
       if (msgT > 0) {
         ctx.fillStyle = "rgba(255,255,255,0.9)";
@@ -246,10 +144,6 @@
       ctx.font = "13px system-ui, sans-serif";
       ctx.textAlign = "right";
       ctx.fillText("Level " + level, W - 10, 20);
-      if (currentMode !== "classic") {
-        ctx.textAlign = "left";
-        ctx.fillText(currentMode === "lowg" ? "Low Gravity" : "Dodge Storm", 10, 20);
-      }
       ctx.textAlign = "center";
     }
   }
@@ -262,29 +156,16 @@
   function update(dt) {
     if (state !== "play") return;
 
-    // Storm: track survival time as score
-    if (currentMode === "storm") {
-      survivalTime += dt;
-      scoreEl.textContent = survivalTime.toFixed(1);
-      level = 1 + Math.floor(survivalTime / 10);
-    } else {
-      level = 1 + Math.floor(score / 25);
-    }
-
     var dir = (keyRight ? 1 : 0) - (keyLeft ? 1 : 0);
     basket.x += dir * basket.speed * dt;
     basket.x = Math.max(basket.w / 2, Math.min(W - basket.w / 2, basket.x));
 
+    level = 1 + Math.floor(score / 25);
+
     spawnTimer -= dt;
     if (spawnTimer <= 0) {
       spawn();
-      if (currentMode === "lowg") {
-        spawnTimer = Math.max(0.14, 0.45 - level * 0.03);
-      } else if (currentMode === "storm") {
-        spawnTimer = Math.max(0.15, 0.45 - level * 0.03);
-      } else {
-        spawnTimer = Math.max(0.28, 0.9 - level * 0.06);
-      }
+      spawnTimer = Math.max(0.28, 0.9 - level * 0.06);
     }
 
     for (var i = items.length - 1; i >= 0; i--) {
@@ -303,23 +184,22 @@
         if (it.kind === "star") {
           score += it.val;
           scoreEl.textContent = score;
-          updateBest();
+          if (score > best) {
+            best = score;
+            bestEl.textContent = best;
+          }
         } else {
-          if (currentMode === "storm") {
-            // Storm: any bomb contact ends the run
-            updateBest();
+          lives--;
+          livesEl.textContent = lives;
+          if (lives <= 0) {
             state = "over";
-            showModeButtons();
-          } else {
-            lives--;
-            livesEl.textContent = lives;
-            if (lives <= 0) {
-              state = "over";
-              updateBest();
-              showModeButtons();
-            } else {
-              flash("Bomb! -1 life");
+            if (score > best) {
+              best = score;
+              localStorage.setItem("starcatcher_best", String(best));
+              bestEl.textContent = best;
             }
+          } else {
+            flash("Bomb! -1 life");
           }
         }
       }
@@ -336,8 +216,8 @@
     requestAnimationFrame(loop);
   }
 
-  function start(mode) {
-    if (state === "start" || state === "over") reset(mode);
+  function start() {
+    if (state === "start" || state === "over") reset();
   }
 
   window.addEventListener("keydown", function (e) {
@@ -345,22 +225,7 @@
     if (e.code === "ArrowRight" || e.code === "KeyD") keyRight = true;
     if (e.code === "Space") {
       e.preventDefault();
-      start(currentMode);
-    }
-    // Mode select keys (start or over screen)
-    if (state === "start" || state === "over") {
-      if (e.code === "Digit1") {
-        e.preventDefault();
-        start("classic");
-      }
-      if (e.code === "Digit2") {
-        e.preventDefault();
-        start("lowg");
-      }
-      if (e.code === "Digit3") {
-        e.preventDefault();
-        start("storm");
-      }
+      start();
     }
   });
   window.addEventListener("keyup", function (e) {
@@ -390,6 +255,7 @@
     el.addEventListener("mousedown", d);
     el.addEventListener("mouseup", u);
     el.addEventListener("mouseleave", u);
+    // Keyboard: Enter/Space on the focused button press-and-hold like touch.
     el.addEventListener("keydown", function (e) {
       if (e.code === "Enter" || e.code === "Space") {
         e.preventDefault();
@@ -415,17 +281,7 @@
     function () { keyRight = false; }
   );
 
-  // Mode button clicks
-  var modeBtns = modeSelect.querySelectorAll(".mode-btn");
-  for (var i = 0; i < modeBtns.length; i++) {
-    modeBtns[i].addEventListener("click", function () {
-      start(this.dataset.mode);
-    });
-  }
-
-  canvas.addEventListener("pointerdown", function () {
-    start(currentMode);
-  });
+  canvas.addEventListener("pointerdown", start);
 
   requestAnimationFrame(loop);
 })();
