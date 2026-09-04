@@ -981,5 +981,115 @@
     "tags": [
       "hacked"
     ]
+  },
+  {
+    "id": 114,
+    "title": "Dr. Mario",
+    "cat": "puzzle",
+    "icon": "",
+    "desc": "Classic pill-matching puzzle. Drop Megavitamins to wipe the viruses.",
+    "url": "Games/DrMario/index.html",
+    "featured": false,
+    "tags": []
+  },
+  {
+    "id": 115,
+    "title": "Street Fighter II",
+    "cat": "action",
+    "icon": "",
+    "desc": "Super Street Fighter II Turbo Revival. 2-player versus on one keyboard via emulator control settings.",
+    "url": "Games/StreetFighter2/index.html",
+    "featured": false,
+    "tags": []
+  },
+  {
+    "id": 116,
+    "title": "Advance Wars",
+    "cat": "strategy",
+    "icon": "",
+    "desc": "Turn-based tactics campaign. Command armies and capture HQs.",
+    "url": "Games/AdvanceWars/index.html",
+    "featured": false,
+    "tags": []
+  },
+  {
+    "id": 117,
+    "title": "Mario Kart Super Circuit",
+    "cat": "arcade",
+    "icon": "",
+    "desc": "GBA kart racing across all the classic tracks.",
+    "url": "Games/MarioKartSuperCircuit/index.html",
+    "featured": false,
+    "tags": []
+  },
+  {
+    "id": 118,
+    "title": "Metroid Fusion",
+    "cat": "action",
+    "icon": "",
+    "desc": "Samus investigates a bio-station. Classic GBA metroidvania.",
+    "url": "Games/MetroidFusion/index.html",
+    "featured": false,
+    "tags": []
+  },
+  {
+    "id": 119,
+    "title": "Mega Man Zero",
+    "cat": "action",
+    "icon": "",
+    "desc": "Zero returns. Fast action platforming with the Z-saber.",
+    "url": "Games/MegaManZero/index.html",
+    "featured": false,
+    "tags": []
+  },
+  {
+    "id": 120,
+    "title": "Kirby Amazing Mirror",
+    "cat": "action",
+    "icon": "",
+    "desc": "Split-path GBA Kirby adventure through the mirror world.",
+    "url": "Games/KirbyAmazingMirror/index.html",
+    "featured": false,
+    "tags": []
+  },
+  {
+    "id": 121,
+    "title": "Sonic Advance",
+    "cat": "arcade",
+    "icon": "",
+    "desc": "Sonic, Tails, Knuckles and Amy on the GBA. Speed running with rings.",
+    "url": "Games/SonicAdvance/index.html",
+    "featured": false,
+    "tags": []
+  },
+  {
+    "id": 122,
+    "title": "Helix Jump",
+    "cat": "arcade",
+    "icon": "",
+    "desc": "Rotate the helix tower and drop the bouncing ball through gaps.",
+    "url": "Games/HelixJump/index.html",
+    "featured": false,
+    "tags": []
+  },
+  {
+    "id": 123,
+    "title": "Crush the Castle",
+    "cat": "action",
+    "icon": "",
+    "desc": "Trebuchet physics siege. Demolish castles and their occupants.",
+    "url": "Games/CrushTheCastle/index.html",
+    "featured": false,
+    "tags": []
+  },
+  {
+    "id": 124,
+    "title": "Geometry Rash",
+    "cat": "arcade",
+    "icon": "",
+    "desc": "One-button rhythm runner through geometric hazards.",
+    "url": "Games/GeometryRash/index.html",
+    "featured": false,
+    "tags": []
   }
 ]
