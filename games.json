@@ -29,7 +29,9 @@
     "featured": false,
     "tags": [
       "2p"
-    ]
+    ],
+    "players": "2",
+    "howto": "Arrows + Space to make your athlete jump; one control randomly swaps each round; 2 players share one keyboard"
   },
   {
     "id": 5,
@@ -41,7 +43,9 @@
     "featured": false,
     "tags": [
       "2p"
-    ]
+    ],
+    "players": "2",
+    "howto": "Arrows + Space to make your athlete jump; one control randomly swaps each round; 2 players share one keyboard"
   },
   {
     "id": 6,
@@ -53,7 +57,9 @@
     "featured": false,
     "tags": [
       "2p"
-    ]
+    ],
+    "players": "2",
+    "howto": "Arrows + Space to make your athlete jump; one control randomly swaps each round; 2 players share one keyboard"
   },
   {
     "id": 7,
@@ -165,7 +171,9 @@
     "featured": false,
     "tags": [
       "2p"
-    ]
+    ],
+    "players": "2",
+    "howto": "P1: W/S, P2: Up/Down arrows - SPACE starts - first to 5 wins"
   },
   {
     "id": 18,
@@ -248,7 +256,9 @@
     "tags": [
       "2p",
       "coop"
-    ]
+    ],
+    "players": "2-4",
+    "howto": "2-4 players hotseat: Arrows/WASD move, Space claims a tile, 4s per turn"
   },
   {
     "id": 37,
@@ -261,7 +271,9 @@
     "tags": [
       "2p",
       "coop"
-    ]
+    ],
+    "players": "2-4",
+    "howto": "P1: WASD + Q dash, P2: Arrows + /, P3: IJKL + U, P4: Numpad 8456 + 0, R restarts"
   },
   {
     "id": 42,
@@ -274,7 +286,9 @@
     "tags": [
       "2p",
       "coop"
-    ]
+    ],
+    "players": "1-4",
+    "howto": "Co-op 1-4: P1 WASD + Space, P2 Arrows + Enter, P3 IJKL + O, P4 TFGH + Y"
   },
   {
     "id": 44,
@@ -296,7 +310,9 @@
     "featured": false,
     "tags": [
       "2p"
-    ]
+    ],
+    "players": "2",
+    "howto": "P1 and P2 pick WASD, Arrows, or gamepad in the pre-fight menu"
   },
   {
     "id": 48,
@@ -490,7 +506,9 @@
     "featured": false,
     "tags": [
       "2p"
-    ]
+    ],
+    "players": "2-4",
+    "howto": "2-4 players share one keyboard; per-player controls shown in-game"
   },
   {
     "id": 66,
@@ -542,7 +560,9 @@
     "featured": false,
     "tags": [
       "2p"
-    ]
+    ],
+    "players": "2",
+    "howto": "Click or tap a square; two players share the screen"
   },
   {
     "id": 71,
@@ -554,7 +574,9 @@
     "featured": false,
     "tags": [
       "2p"
-    ]
+    ],
+    "players": "2",
+    "howto": "Click a column to drop your disc; first to connect four wins"
   },
   {
     "id": 72,
@@ -696,7 +718,9 @@
     "featured": false,
     "tags": [
       "2p"
-    ]
+    ],
+    "players": "2",
+    "howto": "P1 and P2 share one keyboard (P2: Arrow keys); control hint shown in-game"
   },
   {
     "id": 86,
