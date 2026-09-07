@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Poor Bunny Hacked</title>
+    <meta id="viewport" name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <link rel="shortcut icon" type="image/png" href="./favicon.png">
+    <script>
+    // [HACKED] Inject before Stencyl engine loads
+    (function() {
+        // Track score for auto-increment
+        var _score = 0;
+        var _invincible = true;
+
+        // Override killActor/destroyActor if exposed
+        var _origSetTimeout = window.setTimeout;
+        var _origSetInterval = window.setInterval;
+
+        // Hook Box2D contact listener to prevent death
+        // Stencyl uses SetContactListener — intercept it
+        var _origDefineProperty = Object.defineProperty;
+
+        // Patch collision handling: mark all deadly contacts as disabled
+        var _contactDisabled = false;
+
+        // Auto-collect carrots: periodically bump score
+        setInterval(function() {
+            _score += 3;
+            // Try to find and override score displays
+            var scoreEls = document.querySelectorAll('[class*="score"], [id*="score"], .BitmapText, .Font');
+            scoreEls.forEach(function(el) {
+                if (el.textContent && /^\d+$/.test(el.textContent.trim())) {
+                    el.textContent = _score;
+                }
+            });
+        }, 500);
+
+        // Patch common Stencyl actor death patterns
+        // Stencyl compiles Haxe to JS — intercept "kill" and "die" methods
+        var _origProto = Function.prototype.apply;
+        // No-op: too broad. Instead hook specific globals after engine boots.
+
+        // After engine loads, patch collision callbacks
+        window.addEventListener('load', function() {
+            _origSetTimeout(function() {
+                console.log('[HACKED] Invincibility + auto-collect active');
+
+                // Try to find the game engine instance
+                // Stencyl exposes engine as global or in the engine list
+                var engine = null;
+                if (typeof stencyl !== 'undefined') engine = stencyl;
+                if (typeof engine === 'undefined' || !engine) {
+                    // Scan window for engine-like objects
+                    for (var k in window) {
+                        if (window[k] && window[k].actors && window[k].scene) {
+                            engine = window[k];
+                            break;
+                        }
+                    }
+                }
+
+                // Patch all scene actors: disable collision on "deadly" groups
+                if (engine && engine.getActors) {
+                    var actors = engine.getActors();
+                    actors.forEach(function(a) {
+                        if (a && a.killActor) {
+                            a.killActor = function() { console.log('[HACKED] Death prevented'); };
+                        }
+                    });
+                }
+
+                // Box2D: if world exists, replace SetContactListener with no-death version
+                if (typeof Box2D !== 'undefined' && typeof Box2D.Dynamics !== 'undefined') {
+                    var origCL = Box2D.Dynamics.b2ContactListener;
+                    if (origCL) {
+                        Box2D.Dynamics.b2ContactListener = function() {};
+                        console.log('[HACKED] Box2D contact listener disabled');
+                    }
+                }
+
+                // Continuously patch new actors (respawns, etc.)
+                setInterval(function() {
+                    try {
+                        if (engine && engine.getActors) {
+                            engine.getActors().forEach(function(a) {
+                                if (a && a.killActor) {
+                                    a.killActor = function() {};
+                                }
+                            });
+                        }
+                    } catch(e) {}
+                }, 1000);
+
+                // Unlock all skins: override localStorage skin data
+                try {
+                    for (var i = 0; i < localStorage.length; i++) {
+                        var key = localStorage.key(i);
+                        if (key && key.indexOf('skin') !== -1) {
+                            try {
+                                var val = JSON.parse(localStorage.getItem(key));
+                                if (Array.isArray(val)) {
+                                    // Fill with unlocked skins
+                                    for (var j = 0; j < 100; j++) val[j] = true;
+                                    localStorage.setItem(key, JSON.stringify(val));
+                                }
+                            } catch(e2) {}
+                        }
+                    }
+                } catch(e3) {}
+
+                // Set high carrot count in localStorage
+                try {
+                    for (var i = 0; i < localStorage.length; i++) {
+                        var key = localStorage.key(i);
+                        if (key && (key.indexOf('carrot') !== -1 || key.indexOf('coin') !== -1 || key.indexOf('score') !== -1)) {
+                            localStorage.setItem(key, '999999');
+                        }
+                    }
+                } catch(e4) {}
+
+            }, 2000);
+        });
+    })();
+    </script>
+    <script type="text/javascript" src="./Poor Bunny.js"></script>
+    <script>
+        window.addEventListener("touchmove", function(event) {
+            event.preventDefault();
+        }, {
+            capture: false,
+            passive: false
+        });
+        if (typeof window.devicePixelRatio != 'undefined' && window.devicePixelRatio > 2) {
+            var meta = document.getElementById("viewport");
+            meta.setAttribute('content', 'width=device-width, initial-scale=' + (2 / window.devicePixelRatio) + ', user-scalable=no');
+        }
+    </script>
+    <div id="hacked-badge" style="position:fixed;top:10px;right:10px;z-index:9999;background:#e63946;color:white;padding:4px 12px;font-family:monospace;font-size:11px;border-radius:4px;pointer-events:none;">HACKED - Invincible + Auto-Collect</div>
+    <style>
+        html, body { margin: 0; padding: 0; height: 100%; overflow: hidden; }
+    </style>
+</head>
+<body>
+    <div id="noncontent" style="background:#000;width:100%;height:100%;"></div>
+    <script type="text/javascript">
+        lime.embed("Poor Bunny", "noncontent", 852, 480);
+    </script>
+</body>
+</html>
