@@ -15,6 +15,7 @@
       #ruffle {
         width: 100%;
         height: 100%;
+        background: #000;
       }
     </style>
   </head>
@@ -30,8 +31,9 @@
         player.id = "player";
         player.style.width = "100%";
         player.style.height = "100%";
+        player.style.background = "#000";
         container.appendChild(player);
-        player.load("btd.swf");
+        player.load({ url: "btd.swf", autoplay: "on", splashScreen: false, unmuteOverlay: "hidden", backgroundColor: "#000000" });
       });
     </script>
   </body>
