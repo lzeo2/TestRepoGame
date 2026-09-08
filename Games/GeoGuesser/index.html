@@ -35,7 +35,7 @@
   <section id="gameScreen" class="hidden">
     <div class="game-head"><h2 id="roundTitle">ROUND 1 / 5</h2><div class="stats"><span>TIME <strong id="timer">60</strong></span><span>SCORE <strong id="score">0</strong></span><span id="modeLabel">SOLO</span></div></div>
     <div class="game-grid">
-      <article class="card"><div class="card-title">Offline panorama // inspect the clues</div><div class="street"><img src="streetview.jpg" alt="A bundled street-view fallback scene"><div class="street-copy"><div><strong>CAMERA FEED</strong><br><small>NO NETWORK REQUIRED</small></div><small id="sceneTag">ROUND 01</small></div></div></article>
+      <article class="card"><div class="card-title">Look around // inspect the clues</div><div class="street"><div id="streetview" style="width:100%;height:100%;min-height:340px"></div><div class="street-copy"><div><strong>STREET VIEW</strong><br><small id="svStatus">LOADING…</small></div><small id="sceneTag">ROUND 01</small></div></div></article>
       <article class="card"><div class="card-title">Drop your pin</div><div class="map-wrap"><svg id="map" class="map" viewBox="0 0 1000 500" role="img" aria-label="World map. Click to place a guess."><rect class="map-bg" width="1000" height="500"></rect><path class="ocean-line" d="M0 250H1000M500 0V500M250 0V500M750 0V500"></path><g aria-hidden="true"><path class="land" d="M80 117 125 83 186 91 218 121 205 153 229 179 202 207 168 190 143 211 113 185 77 190 61 158Z"></path><path class="land" d="M245 215 283 204 315 226 324 263 306 298 294 347 269 380 251 345 258 303 239 267Z"></path><path class="land" d="M465 105 510 78 559 91 580 117 557 139 528 132 503 153 469 140 445 121Z"></path><path class="land" d="M530 151 571 143 613 160 642 190 677 207 666 240 628 235 605 257 574 241 555 207 523 190Z"></path><path class="land" d="M634 252 665 242 694 262 716 300 698 341 670 365 647 334 652 299Z"></path><path class="land" d="M732 105 774 83 830 93 864 118 907 111 946 139 934 169 891 181 857 164 820 178 785 158 750 168 721 143Z"></path><path class="land" d="M842 206 884 198 923 218 944 252 915 270 879 257 851 274 825 247Z"></path></g><g class="map-label" aria-hidden="true"><text x="88" y="235">N. AMERICA</text><text x="253" y="410">S. AMERICA</text><text x="470" y="65">EUROPE</text><text x="760" y="205">ASIA</text><text x="650" y="395">AUSTRALIA</text></g><g id="markers"></g></svg></div><div class="map-actions"><p id="guessHelp">Tap or click the map to place your guess.</p><button id="guessButton" class="button" disabled>LOCK IN GUESS</button></div><div id="roundResult" class="round-result hidden" aria-live="polite"></div></article>
     </div>
   </section>
@@ -48,26 +48,59 @@
 'use strict';
 const $=id=>document.getElementById(id), ROUNDS=5, ROUND_TIME=60;
 const LOCATIONS=[
-  {name:'Reykjavik, Iceland',lat:64.1466,lng:-21.9426,tag:'NORTH ATLANTIC'},
-  {name:'Vancouver, Canada',lat:49.2827,lng:-123.1207,tag:'PACIFIC NORTHWEST'},
-  {name:'New York, USA',lat:40.7128,lng:-74.006,tag:'EASTERN SEABOARD'},
-  {name:'Mexico City, Mexico',lat:19.4326,lng:-99.1332,tag:'CENTRAL MEXICO'},
-  {name:'Bogotá, Colombia',lat:4.711,lng:-74.0721,tag:'ANDEAN HIGHLANDS'},
-  {name:'Santiago, Chile',lat:-33.4489,lng:-70.6693,tag:'SOUTHERN ANDES'},
-  {name:'London, UK',lat:51.5074,lng:-.1278,tag:'WESTERN EUROPE'},
-  {name:'Paris, France',lat:48.8566,lng:2.3522,tag:'WESTERN EUROPE'},
-  {name:'Rome, Italy',lat:41.9028,lng:12.4964,tag:'MEDITERRANEAN'},
-  {name:'Cape Town, South Africa',lat:-33.9249,lng:18.4241,tag:'SOUTHERN AFRICA'},
-  {name:'Nairobi, Kenya',lat:-1.2921,lng:36.8219,tag:'EAST AFRICA'},
-  {name:'Dubai, UAE',lat:25.2048,lng:55.2708,tag:'ARABIAN PENINSULA'},
-  {name:'New Delhi, India',lat:28.6139,lng:77.209,tag:'SOUTH ASIA'},
-  {name:'Tokyo, Japan',lat:35.6762,lng:139.6503,tag:'EAST ASIA'},
-  {name:'Seoul, South Korea',lat:37.5665,lng:126.978,tag:'EAST ASIA'},
-  {name:'Sydney, Australia',lat:-33.8688,lng:151.2093,tag:'NEW SOUTH WALES'},
-  {name:'Auckland, New Zealand',lat:-36.8509,lng:174.7645,tag:'NORTH ISLAND'}
+  {name:'Reykjavik, Iceland',lat:64.1466,lng:-21.9426,tag:'NORTH ATLANTIC',heading:180},
+  {name:'Vancouver, Canada',lat:49.2827,lng:-123.1207,tag:'PACIFIC NORTHWEST',heading:90},
+  {name:'New York, USA',lat:40.7128,lng:-74.006,tag:'EASTERN SEABOARD',heading:0},
+  {name:'Mexico City, Mexico',lat:19.4326,lng:-99.1332,tag:'CENTRAL MEXICO',heading:45},
+  {name:'Bogotá, Colombia',lat:4.711,lng:-74.0721,tag:'ANDEAN HIGHLANDS',heading:270},
+  {name:'Santiago, Chile',lat:-33.4489,lng:-70.6693,tag:'SOUTHERN ANDES',heading:0},
+  {name:'London, UK',lat:51.5074,lng:-.1278,tag:'WESTERN EUROPE',heading:180},
+  {name:'Paris, France',lat:48.8566,lng:2.3522,tag:'WESTERN EUROPE',heading:90},
+  {name:'Rome, Italy',lat:41.9028,lng:12.4964,tag:'MEDITERRANEAN',heading:0},
+  {name:'Cape Town, South Africa',lat:-33.9249,lng:18.4241,tag:'SOUTHERN AFRICA',heading:45},
+  {name:'Nairobi, Kenya',lat:-1.2921,lng:36.8219,tag:'EAST AFRICA',heading:180},
+  {name:'Dubai, UAE',lat:25.2048,lng:55.2708,tag:'ARABIAN PENINSULA',heading:90},
+  {name:'New Delhi, India',lat:28.6139,lng:77.209,tag:'SOUTH ASIA',heading:270},
+  {name:'Tokyo, Japan',lat:35.6762,lng:139.6503,tag:'EAST ASIA',heading:0},
+  {name:'Seoul, South Korea',lat:37.5665,lng:126.978,tag:'EAST ASIA',heading:90},
+  {name:'Sydney, Australia',lat:-33.8688,lng:151.2093,tag:'NEW SOUTH WALES',heading:180},
+  {name:'Auckland, New Zealand',lat:-36.8509,lng:174.7645,tag:'NORTH ISLAND',heading:0},
+  {name:'Rio de Janeiro, Brazil',lat:-22.9068,lng:-43.1729,tag:'SOUTH AMERICA',heading:60},
+  {name:'Marrakech, Morocco',lat:31.6295,lng:-7.9811,tag:'NORTH AFRICA',heading:135},
+  {name:'Bangkok, Thailand',lat:13.7563,lng:100.5018,tag:'SOUTHEAST ASIA',heading:200},
+  {name:'Istanbul, Turkey',lat:41.0082,lng:28.9784,tag:'EUROPE/ASIA',heading:315},
+  {name:'Havana, Cuba',lat:23.1136,lng:-82.3666,tag:'CARIBBEAN',heading:90},
+  {name:'Reykjavik, Iceland',lat:64.1466,lng:-21.9426,tag:'NORTH ATLANTIC',heading:225},
+  {name:'Cairo, Egypt',lat:30.0444,lng:31.2357,tag:'NILE DELTA',heading:45},
+  {name:'Buenos Aires, Argentina',lat:-34.6037,lng:-58.3816,tag:'SOUTH AMERICA',heading:0}
 ];
 let playerId=sessionStorage.getItem('geoguesser-player')||('p-'+Math.random().toString(36).slice(2,10));sessionStorage.setItem('geoguesser-player',playerId);
 let supabaseClient=null;try{if(window.supabase){supabaseClient=window.supabase.createClient('https://ntietzkbyhxdazspnrow.supabase.co','eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im50aWV0emtieWh4ZGF6c3Bucm93Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg4MzMzMTIsImV4cCI6MjEwNDQwOTMxMn0._4pazbkwbhtYQsSIoaOx9uAx41J0OxAUrXASk42MTPI')}}catch(_){$('connectionLabel').textContent='OFFLINE READY'}
+let svPanorama=null,gmapsLoaded=false;
+function loadGMaps(){return new Promise((resolve,reject)=>{
+  if(gmapsLoaded)return resolve();
+  const s=document.createElement('script');
+  s.src='https://maps.googleapis.com/maps/api/js?key=AIzaSyBQIqmP-mAO0emCkG4h2L-5T3M3QqX9T3E&callback=initGMaps';
+  s.async=true;s.defer=true;
+  window.initGMaps=()=>{gmapsLoaded=true;resolve()};
+  s.onerror=reject;document.head.append(s);
+})}
+async function initStreetView(location){
+  const el=$('streetview');
+  try{
+    await loadGMaps();
+    svPanorama=new google.maps.StreetViewPanorama(el,{
+      position:{lat:location.lat,lng:location.lng},
+      pov:{heading:location.heading||0,pitch:10},
+      zoom:0,addressControl:false,showRoadLabels:false,
+      linksControl:true,panControl:true,zoomControl:true
+   });
+    $('svStatus').textContent='LOOK FOR CLUES';
+  }catch(_){
+    el.innerHTML='<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--muted)">Street View unavailable — use the map</div>';
+    $('svStatus').textContent='NO COVERAGE';
+  }
+}
 let channel=null,roomKey='',isHost=false,mode='solo',state=null,guess=null,roomChannel=null;
 function name(){return ($('nameInput').value.trim()||'Player').slice(0,18)}
 function setScreen(screen){['startScreen','roomScreen','gameScreen','finishScreen'].forEach(id=>$(id).classList.toggle('hidden',id!==screen))}
@@ -94,7 +127,7 @@ function joinRoom(){const code=$('roomInput').value.trim().toUpperCase();if(!/^[
 function renderRoom(){setScreen('roomScreen');$('roomCode').textContent=state.code;const list=$('playerList');list.replaceChildren();state.players.forEach((p,index)=>{const li=document.createElement('li');const label=document.createElement('span');label.textContent=p.name+(p.id===playerId?' (you)':'');const small=document.createElement('small');small.textContent=index===0?'HOST':'READY';li.append(label,small);list.append(li)});$('startRoomButton').disabled=!isHost||state.players.length<1;$('roomNotice').textContent=isHost?'Share the code, then start when ready.':'Connected to room; waiting for host.'}
 function startMatch(){if(!isHost)return;state.locations=shuffled(LOCATIONS).slice(0,ROUNDS);state.currentRound=0;startRound()}
 function startSolo(){mode='solo';isHost=false;state=newState();state.locations=shuffled(LOCATIONS).slice(0,ROUNDS);state.players=[makePlayer()];state.currentRound=0;startRound()}
-function startRound(){state.phase='guessing';state.roundEndsAt=Date.now()+ROUND_TIME*1000;state.players.forEach(p=>{p.guess=null;p.hasGuessed=false;p.roundScore=0});guess=null;setScreen('gameScreen');renderGame();broadcast()}
+function startRound(){state.phase='guessing';state.roundEndsAt=Date.now()+ROUND_TIME*1000;state.players.forEach(p=>{p.guess=null;p.hasGuessed=false;p.roundScore=0});guess=null;setScreen('gameScreen');renderGame();initStreetView(state.locations[state.currentRound]);broadcast()}
 function distance(a,b){const rad=Math.PI/180,dLat=(b.lat-a.lat)*rad,dLng=(b.lng-a.lng)*rad;const x=Math.sin(dLat/2)**2+Math.cos(a.lat*rad)*Math.cos(b.lat*rad)*Math.sin(dLng/2)**2;return 6371*2*Math.atan2(Math.sqrt(x),Math.sqrt(1-x))}
 function points(km){return Math.round(5000*Math.exp(-km/1500))}
 function reveal(){if(!state||state.phase!=='guessing')return;const location=state.locations[state.currentRound];state.players.forEach(p=>{if(p.guess){p.roundScore=points(distance(location,p.guess));p.score+=p.roundScore;p.roundScores.push(p.roundScore)}else{p.roundScore=0;p.roundScores.push(0)}});state.phase='results';state.roundEndsAt=0;renderState();broadcast()}
