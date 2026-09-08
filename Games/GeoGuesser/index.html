@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>GeoGuesser | UNBLOCKMATH // ARCADE</title>
+<style>
+:root{--bg:#091217;--panel:#101f26;--panel2:#152a32;--line:#29434c;--text:#e8f5f5;--muted:#91adb2;--cyan:#22d3c5;--cyan-dark:#087d7b;--red:#e53935;--yellow:#ffd166}
+*{box-sizing:border-box}html,body{margin:0;min-height:100%;background:var(--bg);color:var(--text);font:16px/1.4 system-ui,-apple-system,Segoe UI,sans-serif}body{padding:24px 16px 40px}.badge{position:fixed;right:12px;top:12px;padding:6px 10px;background:var(--red);color:#fff;font-size:11px;font-weight:900;letter-spacing:.12em;z-index:5}.app{width:min(1160px,100%);margin:auto}.topbar{display:flex;align-items:center;justify-content:space-between;gap:16px;margin:18px 0 20px;border-bottom:1px solid var(--line);padding-bottom:14px}.brand{margin:0;color:var(--cyan);font-size:clamp(1.3rem,3vw,2rem);letter-spacing:.08em}.brand span{color:var(--muted);font-size:.65em;font-weight:500}.panel{background:var(--panel);border:1px solid var(--line);padding:clamp(18px,4vw,32px);border-radius:8px}.intro{max-width:760px;margin:7vh auto 0;text-align:center}.intro h2{font-size:clamp(1.8rem,5vw,3.2rem);margin:0 0 10px}.intro h2 em{color:var(--cyan);font-style:normal}.intro p{color:var(--muted);max-width:600px;margin:0 auto 24px}.controls{display:flex;flex-wrap:wrap;justify-content:center;gap:10px}.button{min-height:46px;border:1px solid var(--cyan-dark);border-radius:5px;padding:10px 18px;background:var(--cyan);color:#061719;font:inherit;font-weight:800;cursor:pointer}.button:hover,.button:focus-visible{background:#70eee3;outline:2px solid #fff;outline-offset:2px}.button.secondary{background:transparent;color:var(--cyan)}.button.danger{background:transparent;color:#ff8e8b;border-color:#9e3737}.button:disabled{cursor:not-allowed;opacity:.45}.hint{color:var(--muted);font-size:.88rem;margin:22px 0 0}.formline{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin:18px auto 0;max-width:560px}.input{min-height:46px;min-width:180px;flex:1;border:1px solid var(--line);border-radius:5px;background:#081318;color:var(--text);padding:10px 12px;font:inherit}.input:focus{border-color:var(--cyan);outline:2px solid #22d3c533}.notice{min-height:24px;color:var(--yellow);margin-top:12px}.room{max-width:640px;margin:10vh auto 0;text-align:center}.room h2{margin-top:0}.room-code{display:inline-block;padding:8px 16px;border:1px solid var(--cyan);color:var(--cyan);font:900 2rem ui-monospace,monospace;letter-spacing:.18em}.player-list{list-style:none;padding:0;margin:20px auto;max-width:360px;text-align:left}.player-list li{display:flex;justify-content:space-between;border-bottom:1px solid var(--line);padding:9px}.player-list small{color:var(--muted)}.game-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}.game-head h2{font-size:1.1rem;margin:0;color:var(--cyan)}.stats{display:flex;gap:14px;flex-wrap:wrap;color:var(--muted);font-size:.9rem}.stats strong{color:var(--text)}.game-grid{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(320px,.9fr);gap:14px}.card{background:var(--panel);border:1px solid var(--line);border-radius:7px;overflow:hidden}.card-title{padding:10px 14px;background:var(--panel2);border-bottom:1px solid var(--line);color:var(--muted);font-size:.85rem;letter-spacing:.06em;text-transform:uppercase}.street{position:relative;min-height:340px;background:#1b292c}.street img{display:block;width:100%;height:100%;min-height:340px;object-fit:cover}.street-copy{position:absolute;inset:auto 14px 14px 14px;display:flex;justify-content:space-between;align-items:end;text-shadow:0 1px 2px #000}.street-copy strong{font-size:1.05rem}.street-copy small{color:#d0e1df}.map-wrap{padding:10px;background:#071014}.map{display:block;width:100%;height:auto;aspect-ratio:2/1;cursor:crosshair;touch-action:none}.map-bg{fill:#10252b}.ocean-line{fill:none;stroke:#1e424a;stroke-width:2}.land{fill:#3f6e62;stroke:#70a996;stroke-width:1.2}.map-label{fill:#9fc5c2;font:12px system-ui,sans-serif;pointer-events:none}.marker{stroke:#fff;stroke-width:2}.guess-marker{fill:var(--yellow)}.actual-marker{fill:var(--red)}.guess-line{stroke:#ffd166;stroke-width:1.5;stroke-dasharray:5 4}.map-actions{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 14px}.map-actions p{color:var(--muted);font-size:.86rem;margin:0}.round-result{padding:14px;border-top:1px solid var(--line);background:#0b181d}.round-result strong{color:var(--cyan)}.leaderboard{width:100%;border-collapse:collapse;margin:18px 0}.leaderboard th,.leaderboard td{padding:10px;border-bottom:1px solid var(--line);text-align:left}.leaderboard th{color:var(--muted);font-size:.8rem;text-transform:uppercase}.leaderboard td:last-child,.leaderboard th:last-child{text-align:right}.hidden{display:none!important}.center{text-align:center}.footer-note{margin-top:16px;color:var(--muted);font-size:.8rem;text-align:center}@media(max-width:760px){body{padding:12px 10px 30px}.topbar{margin-top:26px}.game-grid{grid-template-columns:1fr}.street,.street img{min-height:230px}.map-actions{align-items:flex-start;flex-direction:column}.map-actions .button{width:100%}.intro{margin-top:4vh}.stats{gap:8px}.room{margin-top:6vh}}
+</style>
+</head>
+<body>
+
+<main class="app">
+  <header class="topbar"><h1 class="brand">UNBLOCKMATH <span>// ARCADE</span></h1><span id="connectionLabel" class="hint">OFFLINE READY</span></header>
+
+  <section id="startScreen" class="panel intro">
+    <h2>GEOGUESSER <em>///</em></h2>
+    <p>Read the local street scene, place a pin on the world map, and chase 5,000 points. Five rounds. Closest guess wins.</p>
+    <div class="formline"><input id="nameInput" class="input" maxlength="18" placeholder="Your name" autocomplete="nickname"></div>
+    <div class="controls" style="margin-top:12px"><button id="soloButton" class="button">PLAY SOLO</button><button id="createButton" class="button secondary">CREATE ROOM</button></div>
+    <div class="formline"><input id="roomInput" class="input" maxlength="6" placeholder="ROOM CODE" aria-label="Room code"><button id="joinButton" class="button secondary">JOIN ROOM</button></div>
+    <div id="startNotice" class="notice" aria-live="polite"></div>
+    <p class="hint">Map and panorama are bundled for offline play. Rooms sync across devices via Supabase Realtime (requires internet).</p>
+  </section>
+
+  <section id="roomScreen" class="panel room hidden">
+    <h2>ROOM <span id="roomCode" class="room-code"></span></h2>
+    <p class="hint">Share the room code with friends on any device to join.</p>
+    <ul id="playerList" class="player-list"></ul>
+    <div class="controls"><button id="startRoomButton" class="button">START MATCH</button><button id="leaveRoomButton" class="button danger">LEAVE</button></div>
+    <div id="roomNotice" class="notice" aria-live="polite"></div>
+  </section>
+
+  <section id="gameScreen" class="hidden">
+    <div class="game-head"><h2 id="roundTitle">ROUND 1 / 5</h2><div class="stats"><span>TIME <strong id="timer">60</strong></span><span>SCORE <strong id="score">0</strong></span><span id="modeLabel">SOLO</span></div></div>
+    <div class="game-grid">
+      <article class="card"><div class="card-title">Offline panorama // inspect the clues</div><div class="street"><img src="streetview.jpg" alt="A bundled street-view fallback scene"><div class="street-copy"><div><strong>CAMERA FEED</strong><br><small>NO NETWORK REQUIRED</small></div><small id="sceneTag">ROUND 01</small></div></div></article>
+      <article class="card"><div class="card-title">Drop your pin</div><div class="map-wrap"><svg id="map" class="map" viewBox="0 0 1000 500" role="img" aria-label="World map. Click to place a guess."><rect class="map-bg" width="1000" height="500"></rect><path class="ocean-line" d="M0 250H1000M500 0V500M250 0V500M750 0V500"></path><g aria-hidden="true"><path class="land" d="M80 117 125 83 186 91 218 121 205 153 229 179 202 207 168 190 143 211 113 185 77 190 61 158Z"></path><path class="land" d="M245 215 283 204 315 226 324 263 306 298 294 347 269 380 251 345 258 303 239 267Z"></path><path class="land" d="M465 105 510 78 559 91 580 117 557 139 528 132 503 153 469 140 445 121Z"></path><path class="land" d="M530 151 571 143 613 160 642 190 677 207 666 240 628 235 605 257 574 241 555 207 523 190Z"></path><path class="land" d="M634 252 665 242 694 262 716 300 698 341 670 365 647 334 652 299Z"></path><path class="land" d="M732 105 774 83 830 93 864 118 907 111 946 139 934 169 891 181 857 164 820 178 785 158 750 168 721 143Z"></path><path class="land" d="M842 206 884 198 923 218 944 252 915 270 879 257 851 274 825 247Z"></path></g><g class="map-label" aria-hidden="true"><text x="88" y="235">N. AMERICA</text><text x="253" y="410">S. AMERICA</text><text x="470" y="65">EUROPE</text><text x="760" y="205">ASIA</text><text x="650" y="395">AUSTRALIA</text></g><g id="markers"></g></svg></div><div class="map-actions"><p id="guessHelp">Tap or click the map to place your guess.</p><button id="guessButton" class="button" disabled>LOCK IN GUESS</button></div><div id="roundResult" class="round-result hidden" aria-live="polite"></div></article>
+    </div>
+  </section>
+
+  <section id="finishScreen" class="panel room hidden"><h2>MATCH COMPLETE</h2><p>Your final score: <strong id="finalScore" style="color:var(--cyan);font-size:1.6rem">0</strong></p><table class="leaderboard"><thead><tr><th>Player</th><th>Rounds</th><th>Score</th></tr></thead><tbody id="leaderboardBody"></tbody></table><div class="controls"><button id="playAgainButton" class="button">PLAY AGAIN</button><button id="finishLeaveButton" class="button secondary">BACK TO MENU</button></div></section>
+  <p class="footer-note">Five rounds · max 25,000 points · distance uses exponential decay</p>
+</main>
+<script src="supabase.min.js"></script>
+<script>
+'use strict';
+const $=id=>document.getElementById(id), ROUNDS=5, ROUND_TIME=60;
+const LOCATIONS=[
+  {name:'Reykjavik, Iceland',lat:64.1466,lng:-21.9426,tag:'NORTH ATLANTIC'},
+  {name:'Vancouver, Canada',lat:49.2827,lng:-123.1207,tag:'PACIFIC NORTHWEST'},
+  {name:'New York, USA',lat:40.7128,lng:-74.006,tag:'EASTERN SEABOARD'},
+  {name:'Mexico City, Mexico',lat:19.4326,lng:-99.1332,tag:'CENTRAL MEXICO'},
+  {name:'Bogotá, Colombia',lat:4.711,lng:-74.0721,tag:'ANDEAN HIGHLANDS'},
+  {name:'Santiago, Chile',lat:-33.4489,lng:-70.6693,tag:'SOUTHERN ANDES'},
+  {name:'London, UK',lat:51.5074,lng:-.1278,tag:'WESTERN EUROPE'},
+  {name:'Paris, France',lat:48.8566,lng:2.3522,tag:'WESTERN EUROPE'},
+  {name:'Rome, Italy',lat:41.9028,lng:12.4964,tag:'MEDITERRANEAN'},
+  {name:'Cape Town, South Africa',lat:-33.9249,lng:18.4241,tag:'SOUTHERN AFRICA'},
+  {name:'Nairobi, Kenya',lat:-1.2921,lng:36.8219,tag:'EAST AFRICA'},
+  {name:'Dubai, UAE',lat:25.2048,lng:55.2708,tag:'ARABIAN PENINSULA'},
+  {name:'New Delhi, India',lat:28.6139,lng:77.209,tag:'SOUTH ASIA'},
+  {name:'Tokyo, Japan',lat:35.6762,lng:139.6503,tag:'EAST ASIA'},
+  {name:'Seoul, South Korea',lat:37.5665,lng:126.978,tag:'EAST ASIA'},
+  {name:'Sydney, Australia',lat:-33.8688,lng:151.2093,tag:'NEW SOUTH WALES'},
+  {name:'Auckland, New Zealand',lat:-36.8509,lng:174.7645,tag:'NORTH ISLAND'}
+];
+let playerId=sessionStorage.getItem('geoguesser-player')||('p-'+Math.random().toString(36).slice(2,10));sessionStorage.setItem('geoguesser-player',playerId);
+let supabaseClient=null;try{if(window.supabase){supabaseClient=window.supabase.createClient('https://ntietzkbyhxdazspnrow.supabase.co','eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im50aWV0emtieWh4ZGF6c3Bucm93Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg4MzMzMTIsImV4cCI6MjEwNDQwOTMxMn0._4pazbkwbhtYQsSIoaOx9uAx41J0OxAUrXASk42MTPI')}}catch(_){$('connectionLabel').textContent='OFFLINE READY'}
+let channel=null,roomKey='',isHost=false,mode='solo',state=null,guess=null,roomChannel=null;
+function name(){return ($('nameInput').value.trim()||'Player').slice(0,18)}
+function setScreen(screen){['startScreen','roomScreen','gameScreen','finishScreen'].forEach(id=>$(id).classList.toggle('hidden',id!==screen))}
+function shuffled(list){return [...list].sort(()=>Math.random()-.5)}
+function newState(){return {phase:'waiting',code:'',currentRound:0,locations:[],roundEndsAt:0,players:[]}}
+function currentPlayer(){return state&&state.players.find(p=>p.id===playerId)}
+function send(message){const packet={...message,nonce:Math.random()};if(channel)channel.postMessage(message);try{localStorage.setItem(roomKey,JSON.stringify(packet))}catch(_){}}
+function broadcast(){send({type:'state',state})}
+function openRoom(code,host){if(channel)channel.close();if(roomChannel)roomChannel.unsubscribe();isHost=host;roomKey='geoguesser-room-'+code;
+  if(supabaseClient){roomChannel=supabaseClient.channel(roomKey,{config:{broadcast:{self:false}}});
+    roomChannel.on('broadcast',{event:'msg'},payload=>onMessage({data:payload.payload}));
+    roomChannel.subscribe(status=>{if(status==='SUBSCRIBED')$('connectionLabel').textContent='ONLINE';});
+    channel={postMessage(msg){roomChannel.send({type:'broadcast',event:'msg',payload:msg})},close(){roomChannel.unsubscribe()}};
+  }else{channel=new BroadcastChannel(roomKey);channel.onmessage=onMessage}
+}
+window.addEventListener('storage',event=>{if(event.key===roomKey&&event.newValue)try{onMessage({data:JSON.parse(event.newValue)})}catch(_){} });
+function onMessage(event){const message=event.data||{};
+  if(message.type==='hello'&&isHost){if(!state.players.some(p=>p.id===message.player.id)){state.players.push(message.player);broadcast();renderRoom()}return}
+  if(message.type==='state'&&!isHost){state=message.state;guess=null;renderState();return}
+  if(message.type==='guess'&&isHost&&state.phase==='guessing'){const p=state.players.find(item=>item.id===message.playerId);if(p&&!p.hasGuessed){p.guess=message.guess;p.hasGuessed=true;broadcast();if(state.players.every(item=>item.hasGuessed))reveal()}}}
+function makePlayer(){return {id:playerId,name:name(),score:0,roundScores:[],guess:null,hasGuessed:false}}
+function createRoom(){mode='room';const code=Math.random().toString(36).slice(2,8).toUpperCase();state=newState();state.code=code;state.players=[makePlayer()];openRoom(code,true);renderRoom()}
+function joinRoom(){const code=$('roomInput').value.trim().toUpperCase();if(!/^[A-Z0-9]{6}$/.test(code)){setNotice('Enter a 6-character room code.');return}mode='room';state=newState();state.code=code;state.players=[];openRoom(code,false);setScreen('roomScreen');$('roomCode').textContent=code;$('roomNotice').textContent='Looking for the host…';$('startRoomButton').disabled=true;send({type:'hello',player:makePlayer()})}
+function renderRoom(){setScreen('roomScreen');$('roomCode').textContent=state.code;const list=$('playerList');list.replaceChildren();state.players.forEach((p,index)=>{const li=document.createElement('li');const label=document.createElement('span');label.textContent=p.name+(p.id===playerId?' (you)':'');const small=document.createElement('small');small.textContent=index===0?'HOST':'READY';li.append(label,small);list.append(li)});$('startRoomButton').disabled=!isHost||state.players.length<1;$('roomNotice').textContent=isHost?'Share the code, then start when ready.':'Connected to room; waiting for host.'}
+function startMatch(){if(!isHost)return;state.locations=shuffled(LOCATIONS).slice(0,ROUNDS);state.currentRound=0;startRound()}
+function startSolo(){mode='solo';isHost=false;state=newState();state.locations=shuffled(LOCATIONS).slice(0,ROUNDS);state.players=[makePlayer()];state.currentRound=0;startRound()}
+function startRound(){state.phase='guessing';state.roundEndsAt=Date.now()+ROUND_TIME*1000;state.players.forEach(p=>{p.guess=null;p.hasGuessed=false;p.roundScore=0});guess=null;setScreen('gameScreen');renderGame();broadcast()}
+function distance(a,b){const rad=Math.PI/180,dLat=(b.lat-a.lat)*rad,dLng=(b.lng-a.lng)*rad;const x=Math.sin(dLat/2)**2+Math.cos(a.lat*rad)*Math.cos(b.lat*rad)*Math.sin(dLng/2)**2;return 6371*2*Math.atan2(Math.sqrt(x),Math.sqrt(1-x))}
+function points(km){return Math.round(5000*Math.exp(-km/1500))}
+function reveal(){if(!state||state.phase!=='guessing')return;const location=state.locations[state.currentRound];state.players.forEach(p=>{if(p.guess){p.roundScore=points(distance(location,p.guess));p.score+=p.roundScore;p.roundScores.push(p.roundScore)}else{p.roundScore=0;p.roundScores.push(0)}});state.phase='results';state.roundEndsAt=0;renderState();broadcast()}
+function nextRound(){if(!isHost&&mode==='room')return;if(state.currentRound===ROUNDS-1){state.phase='finished';renderState();broadcast();return}state.currentRound++;startRound()}
+function submitGuess(){if(!guess||state.phase!=='guessing'||currentPlayer().hasGuessed)return;currentPlayer().guess=guess;currentPlayer().hasGuessed=true;if(mode==='room'){send({type:'guess',playerId,guess});broadcast();if(isHost&&state.players.every(p=>p.hasGuessed))reveal()}else reveal();renderGame()}
+function drawMarker(x,y,className,label){const circle=document.createElementNS('http'+':/'+'/www.w3.org/2000/svg','circle');circle.setAttribute('cx',x);circle.setAttribute('cy',y);circle.setAttribute('r','7');circle.setAttribute('class','marker '+className);circle.setAttribute('aria-label',label);return circle}
+function xy(point){return {x:(point.lng+180)/360*1000,y:(90-point.lat)/180*500}}
+function renderMap(){const markers=$('markers');markers.replaceChildren();const location=state.locations[state.currentRound];const actual=xy(location);if(guess&&state.phase==='guessing'){const g=xy(guess);markers.append(drawMarker(g.x,g.y,'guess-marker','Your guess'))}if(state.phase==='results'||state.phase==='finished'){state.players.filter(p=>p.guess).forEach(p=>{const g=xy(p.guess);markers.append(drawMarker(g.x,g.y,p.id===playerId?'guess-marker':'guess-marker',p.name+' guess'))});markers.append(drawMarker(actual.x,actual.y,'actual-marker','Actual location'));if(guess){const g=xy(guess);const line=document.createElementNS('http'+':/'+'/www.w3.org/2000/svg','line');line.setAttribute('x1',g.x);line.setAttribute('y1',g.y);line.setAttribute('x2',actual.x);line.setAttribute('y2',actual.y);line.setAttribute('class','guess-line');markers.prepend(line)}}}
+function renderGame(){if(!state)return;setScreen('gameScreen');const p=currentPlayer();const location=state.locations[state.currentRound];$('roundTitle').textContent='ROUND '+(state.currentRound+1)+' / '+ROUNDS;$('score').textContent=(p?p.score:0).toLocaleString();$('modeLabel').textContent=mode==='solo'?'SOLO':'ROOM '+state.code;$('sceneTag').textContent='ROUND '+String(state.currentRound+1).padStart(2,'0')+' // '+location.tag;const left=state.phase==='guessing'?Math.max(0,Math.ceil((state.roundEndsAt-Date.now())/1000)):0;$('timer').textContent=left;$('guessButton').disabled=!guess||state.phase!=='guessing'||p.hasGuessed;$('guessButton').textContent=p.hasGuessed?'GUESS LOCKED':'LOCK IN GUESS';$('guessHelp').textContent=p.hasGuessed?'Waiting for the other players…':guess?'Pin selected. Lock it in when ready.':'Tap or click the map to place your guess.';const result=$('roundResult');result.classList.toggle('hidden',state.phase!=='results');if(state.phase==='results'){const km=p&&p.guess?distance(location,p.guess):null;result.replaceChildren();const text=document.createElement('div');text.textContent=km===null?'No guess submitted. ':'You were '+Math.round(km).toLocaleString()+' km away. ';const strong=document.createElement('strong');strong.textContent='+'+(p?p.roundScore:0).toLocaleString()+' points';text.append(strong);const button=document.createElement('button');button.className='button';button.style.marginTop='12px';button.textContent=state.currentRound===ROUNDS-1?'SEE LEADERBOARD':'NEXT ROUND';button.disabled=mode==='room'&&!isHost;button.addEventListener('click',nextRound);result.append(text,button)}renderMap()}
+function renderFinish(){setScreen('finishScreen');const me=currentPlayer();$('finalScore').textContent=(me?me.score:0).toLocaleString();const body=$('leaderboardBody');body.replaceChildren();[...state.players].sort((a,b)=>b.score-a.score).forEach((p,index)=>{const row=document.createElement('tr');[index+1+'. '+p.name,p.roundScores.length+' / '+ROUNDS,p.score.toLocaleString()].forEach(value=>{const cell=document.createElement('td');cell.textContent=value;row.append(cell)});body.append(row)})}
+function renderState(){if(!state)return;if(state.phase==='waiting')renderRoom();else if(state.phase==='finished')renderFinish();else renderGame()}
+function setNotice(text){$('startNotice').textContent=text}
+function tick(){if(!state||state.phase!=='guessing')return;if(Date.now()>=state.roundEndsAt){if(isHost||mode==='solo')reveal();else renderGame()}else renderGame()}
+$('map').addEventListener('click',event=>{if(!state||state.phase!=='guessing'||currentPlayer().hasGuessed)return;const rect=event.currentTarget.getBoundingClientRect();guess={lng:((event.clientX-rect.left)/rect.width)*360-180,lat:90-((event.clientY-rect.top)/rect.height)*180};renderGame()});
+$('soloButton').addEventListener('click',startSolo);$('createButton').addEventListener('click',createRoom);$('joinButton').addEventListener('click',joinRoom);$('startRoomButton').addEventListener('click',startMatch);$('leaveRoomButton').addEventListener('click',()=>{if(channel)channel.close();channel=null;state=null;setScreen('startScreen')});$('finishLeaveButton').addEventListener('click',()=>{if(channel)channel.close();channel=null;state=null;setScreen('startScreen')});$('playAgainButton').addEventListener('click',()=>mode==='solo'?startSolo():isHost?startMatch():setScreen('roomScreen'));$('guessButton').addEventListener('click',submitGuess);$('roomInput').addEventListener('input',e=>{e.target.value=e.target.value.toUpperCase()});
+setInterval(tick,1000);$('nameInput').value=localStorage.getItem('geoguesser-name')||'';$('nameInput').addEventListener('change',()=>localStorage.setItem('geoguesser-name',name()));
+</script>
+</body>
+</html>
