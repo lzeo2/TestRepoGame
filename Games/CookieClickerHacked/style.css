@@ -845,7 +845,7 @@ input[type=range]:active::-ms-thumb,input[type=range]:hover::-ms-thumb {backgrou
 	font-size:16px;
 	text-shadow:0px 0px 2px #000,0px 0px 1px #000;
 	cursor:pointer;
-	font-family:Comic Sans MS;
+	font-family:Trebuchet MS;
 	padding:1px 8px 7px 8px;
 	z-index:1000;
 }
