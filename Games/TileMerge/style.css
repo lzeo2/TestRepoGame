@@ -74,7 +74,7 @@ h1 {
 }
 .cell.v2 { background: #eee4da; color: #776e65; }
 .cell.v4 { background: #ede0c8; color: #776e65; }
-/* Dark ink on the lighter tiles — white text fails contrast on these
+/* Dark ink on the lighter tiles - white text fails contrast on these
    oranges/golds (v8 and up), and the big tile's gold gradient. */
 .cell.v8 { background: #f2b179; color: #2e2419; }
 .cell.v16 { background: #f59563; color: #2e2419; }

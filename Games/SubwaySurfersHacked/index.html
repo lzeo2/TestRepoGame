@@ -138,7 +138,7 @@
        already patched when UnityLoader.instantiate runs.
        ──────────────────────────────────────────────────────────── */
     (function () {
-      // 1. Patch Unity Module — runs after WASM runtime init
+      // 1. Patch Unity Module - runs after WASM runtime init
       var _origModule = null;
 
       Object.defineProperty(window, '_hackModuleOverride', { value: true });
@@ -190,7 +190,7 @@
           return _origSend2.call(this, go, method, val);
         };
 
-        console.log('%c[HACK] Subway Surfers Hacked — active', 'color:#e63946;font-weight:bold');
+        console.log('%c[HACK] Subway Surfers Hacked - active', 'color:#e63946;font-weight:bold');
       }, 500);
 
     })();
@@ -201,7 +201,7 @@
       <h1>Subway Surfers</h1>
       <div class="spinner"></div>
       <div class="progress"><div class="full"></div></div>
-      <p class="controls">Steer, jump and roll — swipe/drag or arrow keys.</p>
+      <p class="controls">Steer, jump and roll - swipe/drag or arrow keys.</p>
     </div>
 
     <script src="js/poki-noop.js"></script>

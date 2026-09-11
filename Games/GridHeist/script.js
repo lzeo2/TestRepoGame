@@ -1,5 +1,5 @@
 /*
- * Grid Heist — a local hotseat territory-claiming race for 2-4 players.
+ * Grid Heist - a local hotseat territory-claiming race for 2-4 players.
  *
  * RULES
  *   A vault sits in the centre of the grid. On your turn (4 seconds) claim
@@ -177,7 +177,7 @@
   /* ---------------- HUD ---------------- */
 
   function turnMsg() {
-    return PNAME[cur] + "'s turn — claim a glowing cell (arrows/WASD + Space, or tap)";
+    return PNAME[cur] + "'s turn - claim a glowing cell (arrows/WASD + Space, or tap)";
   }
 
   function flash(msg) {
@@ -265,7 +265,7 @@
   function claim(c, r) {
     if (state !== "play") return;
     if (!legalFor(cur, c, r)) {
-      flash("Not next to your territory — claim a glowing cell");
+      flash("Not next to your territory - claim a glowing cell");
       return;
     }
     grid[r][c] = cur;
@@ -297,7 +297,7 @@
       if (endPending && cur === 0) { endGame("capture"); return; }
       if (round > ROUND_CAP) { endGame("time"); return; }
       if (anyLegal(cur)) { moved = true; break; }
-      skipped = PNAME[cur] + " is boxed in — turn skipped.";
+      skipped = PNAME[cur] + " is boxed in - turn skipped.";
     }
     if (!moved) { endGame("stuck"); return; }
     turnLeft = TURN_TIME;
@@ -327,7 +327,7 @@
     endSub.textContent = winners.join(" & ") + " take the loot with " + best + " points";
     resultTable.innerHTML = buildTable();
     endEl.classList.remove("hidden");
-    statusEl.textContent = "Game over — " + winners.join(" & ") + " win!";
+    statusEl.textContent = "Game over - " + winners.join(" & ") + " win!";
     statusEl.style.color = "";
   }
 

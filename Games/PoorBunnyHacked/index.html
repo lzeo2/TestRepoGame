@@ -18,7 +18,7 @@
         var _origSetInterval = window.setInterval;
 
         // Hook Box2D contact listener to prevent death
-        // Stencyl uses SetContactListener — intercept it
+        // Stencyl uses SetContactListener - intercept it
         var _origDefineProperty = Object.defineProperty;
 
         // Patch collision handling: mark all deadly contacts as disabled
@@ -37,7 +37,7 @@
         }, 500);
 
         // Patch common Stencyl actor death patterns
-        // Stencyl compiles Haxe to JS — intercept "kill" and "die" methods
+        // Stencyl compiles Haxe to JS - intercept "kill" and "die" methods
         var _origProto = Function.prototype.apply;
         // No-op: too broad. Instead hook specific globals after engine boots.
 

@@ -1,5 +1,5 @@
 "use strict";
-// Minimal offline CloudAPI stub — replaces the wanted5games.com cloud API
+// Minimal offline CloudAPI stub - replaces the wanted5games.com cloud API
 var CloudAPI = {
     init: function(opts) {
         console.log('[CloudAPI] offline stub init', opts);

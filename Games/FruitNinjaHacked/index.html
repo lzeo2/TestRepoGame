@@ -101,12 +101,12 @@
 				// Bomb immunity: make notifyBombHit a no-op
 				var origNotifyBombHit = Phaser.Scene.prototype.notifyBombHit;
 				Phaser.Scene.prototype.notifyBombHit = function() {
-					// Do nothing — no bomb game over
+					// Do nothing - no bomb game over
 				};
 				// Lose life immunity
 				var origLoseLife = Phaser.Scene.prototype.loseLife;
 				Phaser.Scene.prototype.loseLife = function() {
-					// Do nothing — never lose lives
+					// Do nothing - never lose lives
 				};
 				// Score hack: force score to 999999 in every update
 				var origUpdate = Phaser.Scene.prototype.update;

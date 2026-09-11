@@ -2,7 +2,7 @@
   "use strict";
 
   /* ================================================================
-     Queue Escape — cooperative 1-4 player queue/station game.
+     Queue Escape - cooperative 1-4 player queue/station game.
      Customers line up, each wanting a specific food station. Grab the
      front customer, read the order bubble, and route them to the right
      station before their patience bar empties. Every correct serve
@@ -224,7 +224,7 @@
       return;
     }
     if (st.type === c.type) {
-      // correct station — animate the serve
+      // correct station - animate the serve
       c.state = "serving";
       c.serveStation = st;
       c.serveT = 0;
@@ -232,7 +232,7 @@
       p.actCd = 0.15;
       addFloater(st.x + st.w / 2, st.y - 14, "SERVING...", "#7dff8a");
     } else {
-      // wrong station — customer storms off
+      // wrong station - customer storms off
       score -= WRONG_PENALTY;
       wrong++;
       combo = 0;
@@ -820,7 +820,7 @@
       ctx.globalAlpha = 1;
       ctx.fillStyle = "#cfe0ff";
       ctx.font = "bold 19px system-ui, sans-serif";
-      ctx.fillText("ROUTE THE HUNGRY — DON'T LET THEM BOIL!", W / 2, H / 2 + 70);
+      ctx.fillText("ROUTE THE HUNGRY - DON'T LET THEM BOIL!", W / 2, H / 2 + 70);
     }
 
     ctx.restore();
