@@ -62,7 +62,7 @@
   }
 
   /* ================================================================
-     SVG GAME ICONS — gameplay visuals for each game thumbnail.
+     SVG GAME ICONS - gameplay visuals for each game thumbnail.
      White stroke on transparent background; category solid color
      shows through from the .game-card__thumb CSS.
      ================================================================ */
@@ -785,7 +785,7 @@
       '<svg class="theme-toggle__icon" viewBox="0 0 24 24" fill="none" ' +
       'stroke="currentColor" stroke-width="2" stroke-linecap="round" ' +
       'stroke-linejoin="round" aria-hidden="true">' +
-      /* Moon icon shown in dark mode, sun in light — swap via CSS below */
+      /* Moon icon shown in dark mode, sun in light - swap via CSS below */
       '<circle cx="12" cy="12" r="5"/>' +
       '<line x1="12" y1="1" x2="12" y2="3"/>' +
       '<line x1="12" y1="21" x2="12" y2="23"/>' +
@@ -844,7 +844,7 @@
           /* Only auto-switch if user hasn't explicitly chosen */
           var stored = null;
           try { stored = localStorage.getItem(STORAGE_KEY); } catch (_) {}
-          if (stored) return; /* User has a preference — respect it */
+          if (stored) return; /* User has a preference - respect it */
           var theme = e.matches ? 'dark' : 'light';
           applyTheme(theme);
           updateIcon(theme);
