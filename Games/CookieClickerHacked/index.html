@@ -12,48 +12,27 @@ Feel free to alter this code to your liking, but please do not re-host it, do no
 <script src="base64.js"></script>
 <script src="main.js"></script>
 <script>
-// Cookie Clicker Hack - Unlimited cookies and max stats
+// Cookie Clicker Hack - Unlimited cookies (light touch)
 (function() {
+    var applied = 0;
     var hackInterval = setInterval(function() {
-        if (typeof Game !== 'undefined' && Game.cookies !== undefined && Game.Objects) {
-            // Give unlimited cookies
-            Game.cookies = 999999999999999;
-            Game.cookiesEarned = 999999999999999;
-            
-            // Unlock all upgrades
-            if (Game.UpgradesById) {
-                for (var i = 0; i < Game.UpgradesById.length; i++) {
-                    Game.UpgradesById[i].unlocked = 1;
-                    Game.UpgradesById[i].bought = 1;
-                }
+        if (typeof Game !== 'undefined' && Game.ready && Game.cookies !== undefined) {
+            if (!applied) {
+                // one-time: massive cookies + cookie-per-second boost
+                Game.cookies = 999999999999999;
+                Game.cookiesEarned = Math.max(Game.cookiesEarned, Game.cookies);
+                applied = 1;
+                console.log('[HACKED] cookies set');
             }
-            
-            // Unlock all achievements
-            if (Game.AchievementsById) {
-                for (var i = 0; i < Game.AchievementsById.length; i++) {
-                    Game.AchievementsById[i].won = 1;
-                }
+            // every 2s: keep buffer topped up so spending never bankrupts
+            if (Game.cookies < 1000000000000) {
+                Game.cookies = 999999999999999;
             }
-            
-            // Give 100 of each building and trigger recalculation
-            var needsRecalc = false;
-            for (var i in Game.Objects) {
-                if (Game.Objects[i].amount < 100) {
-                    Game.Objects[i].amount = 100;
-                    Game.Objects[i].bought = 100;
-                    Game.Objects[i].highest = 100;
-                    needsRecalc = true;
-                }
-            }
-            if (needsRecalc && typeof Game.CalculateGains === 'function') {
-                Game.CalculateGains();
-            }
-            // Ensure cookiesPs is massive after recalc
             if (Game.cookiesPs < 1000000) {
                 Game.cookiesPs = 9999999;
             }
         }
-    }, 200);
+    }, 2000);
 })();
 </script>
 <link href="style.css" rel="stylesheet" type="text/css">
