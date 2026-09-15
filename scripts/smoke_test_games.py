@@ -15,6 +15,7 @@ WAIT_MS = 8000  # real-time wait per game
 
 BENIGN = ("favicon", "react devtools", "autofill", "source map", "devtools",
           "webgl renderer", "webgl rendering context",  # env-software-GL fallback, absent in real browsers
+          "webgl unsupported",  # three.js/enable3d no-GL fallback msg; game runs where WebGL exists
           "failed to load resource",  # duplicate of req capture below; reqs are the ground truth
           "loading fsb failed",       # Unity/FMOD audio banks missing in builds; game runs silent
           "501 (unsupported method",  # local http.server rejects POSTs; harmless analytics stubs
