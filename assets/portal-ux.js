@@ -365,12 +365,12 @@
     return _gameCachePromise;
   }
 
-  function openGameUrl(url) {
+  function openGameUrl(url, titleHint) {
     var safe = safeGamePath(url);
     if (safe === './') return;
     /* Record recent play */
-    var recentTitle = '';
-    if (_gameUrlCache) {
+    var recentTitle = titleHint || '';
+    if (!recentTitle && _gameUrlCache) {
       _gameUrlCache.forEach(function(v, k) { if (v === safe && !recentTitle) recentTitle = k; });
     }
     recordRecent(safe, recentTitle);
@@ -906,11 +906,11 @@
       var title = textOf($('.game-card__title', card));
       var url = _gameUrlCache && _gameUrlCache.get(title);
       if (url) {
-        openGameUrl(url);
+        openGameUrl(url, title);
       } else {
         fetchGameUrlCache().then(function (cache) {
           var resolved = cache.get(title);
-          if (resolved) openGameUrl(resolved);
+          if (resolved) openGameUrl(resolved, title);
         });
       }
     }, true); /* capture phase */
@@ -1532,7 +1532,7 @@
     playBtn.className = 'ux-detail__play';
     playBtn.textContent = 'Play';
     playBtn.addEventListener('click', function() {
-      if (game.url) openGameUrl(game.url);
+      if (game.url) openGameUrl(game.url, game.title);
       closeDetailPanel();
     });
     actions.appendChild(playBtn);
