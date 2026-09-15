@@ -28,6 +28,7 @@ KNOWN_BENIGN = {
     "BitLife": ["writestringtomemory"],            # emscripten deprecation warning
     "10 Minutes Till Dawn": ["loading fsb failed"],  # audio banks missing in build; game silent but runs
     "Subway Surfers": ["fileutil"],                # Unity save-path quirk; game runs
+    "Subway Surfers Hacked": ["fileutil", "showunitywebnosupport"],  # no-GL fallback calls parent fn; game runs where WebGL exists
     "Super Hot": ["hwstats.cgi"],                  # external stats endpoint; fails offline, game runs
     "Retro Bowl": ["savedata.ini", "optiondata.dat"],  # first-run save check 404s, expected
     "Stranded In Isekai": ["-snd.mp3"],            # audio preload aborts on scene swap; files exist
