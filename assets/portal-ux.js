@@ -1047,9 +1047,19 @@
             tagsContainer.setAttribute('data-title', title);
 
             tags.forEach(function (tag) {
-              var tagEl = document.createElement('span');
+              var tagEl = document.createElement('button');
+              tagEl.type = 'button';
               tagEl.className = 'game-card__tag game-card__tag--' + tag;
+              tagEl.setAttribute('data-tag', tag);
+              tagEl.setAttribute('aria-pressed', activeTagFilters.indexOf(tag) > -1 ? 'true' : 'false');
+              tagEl.setAttribute('aria-label', 'Filter by ' + (TAG_LABELS[tag] || tag));
               tagEl.textContent = tag;
+              tagEl.addEventListener('click', function (ev) {
+                ev.preventDefault();
+                ev.stopPropagation();
+                ev.stopImmediatePropagation();
+                toggleTagFilter(tag, null);
+              });
               tagsContainer.appendChild(tagEl);
             });
 
@@ -1131,11 +1141,18 @@
     var idx = activeTagFilters.indexOf(tag);
     if (idx > -1) {
       activeTagFilters.splice(idx, 1);
-      btn.setAttribute('aria-pressed', 'false');
     } else {
       activeTagFilters.push(tag);
-      btn.setAttribute('aria-pressed', 'true');
     }
+    var on = activeTagFilters.indexOf(tag) > -1;
+    if (btn) btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+    $$('.ux-tag-filter__pill[data-tag="' + tag + '"]').forEach(function (pill) {
+      pill.setAttribute('aria-pressed', on ? 'true' : 'false');
+    });
+    /* Card badges mirror the same pressed state. */
+    $$('.game-card__tag[data-tag="' + tag + '"]').forEach(function (badge) {
+      badge.setAttribute('aria-pressed', on ? 'true' : 'false');
+    });
     applyTagFilter();
   }
 
