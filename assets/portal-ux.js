@@ -735,8 +735,10 @@
       applyGrouping();
       injectTagBadges();
       injectInfoButtons();
-      if (!tagFilterRow && _gamesList.length && $('.category-filter')) buildTagFilterRow();
+      injectFavButtons();
+      if (!tagFilterRow && _gamesList.length && $('.category-filter')) { buildTagFilterRow(); injectFavToggle(); }
       applyTagFilter();
+      applyFavFilter();
       updateCategoryCounts();
       if (!resultStatusEl && $('.bento-grid')) initResultStatus();
       updateResultStatus();
@@ -893,7 +895,7 @@
       var card = e.target && e.target.closest ? e.target.closest('.game-card') : null;
       if (!card) return;
       /* Let proxy launcher / random-btn / skip-link through. */
-      if (e.target.closest('.proxy-launcher, .random-game-btn, .skip-link, .game-card__info, .ux-tag-filter, .ux-detail, .ux-recent, .ux-net-banner')) return;
+      if (e.target.closest('.proxy-launcher, .random-game-btn, .skip-link, .game-card__info, .game-card__fav, .game-card__tag, .ux-tag-filter, .ux-detail, .ux-recent, .ux-net-banner')) return;
 
       e.preventDefault();
       e.stopPropagation();
@@ -917,6 +919,101 @@
       if (!btn.getAttribute('target')) btn.setAttribute('target', '_blank');
       if (!btn.getAttribute('rel')) btn.setAttribute('rel', 'noopener noreferrer');
     });
+  }
+
+  /* --- Favorites: star button per card + Favorites toggle, localStorage --- */
+  var FAV_KEY = 'unblockmath_favs';
+  var favOnly = false;
+  var favToggleBtn = null;
+
+  function getFavs() {
+    try {
+      var raw = localStorage.getItem(FAV_KEY);
+      if (!raw) return [];
+      var list = JSON.parse(raw);
+      return Array.isArray(list) ? list.filter(function(t) { return typeof t === 'string'; }) : [];
+    } catch (_) { return []; }
+  }
+
+  function saveFavs(list) {
+    try { localStorage.setItem(FAV_KEY, JSON.stringify(list)); } catch (_) {}
+  }
+
+  function isFav(title) {
+    return getFavs().indexOf(title) > -1;
+  }
+
+  function toggleFav(title) {
+    var list = getFavs();
+    var i = list.indexOf(title);
+    if (i > -1) list.splice(i, 1);
+    else list.push(title);
+    saveFavs(list);
+    syncFavButtons();
+    applyFavFilter();
+  }
+
+  function syncFavButtons() {
+    var favs = getFavs();
+    $$('.bento-grid .game-card').forEach(function (card) {
+      var btn = card.querySelector('.game-card__fav');
+      if (!btn) return;
+      var on = favs.indexOf(textOf($('.game-card__title', card))) > -1;
+      btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+    });
+    if (favToggleBtn) {
+      favToggleBtn.setAttribute('aria-pressed', favOnly ? 'true' : 'false');
+    }
+  }
+
+  function applyFavFilter() {
+    var favs = getFavs();
+    $$('.bento-grid .game-card').forEach(function (card) {
+      if (!favOnly) { card.removeAttribute('data-ux-fav-hidden'); return; }
+      var on = favs.indexOf(textOf($('.game-card__title', card))) > -1;
+      if (on) card.removeAttribute('data-ux-fav-hidden');
+      else card.setAttribute('data-ux-fav-hidden', '1');
+    });
+    updateResultStatus();
+    updateClearFiltersBtn();
+  }
+
+  function injectFavButtons() {
+    $$('.bento-grid .game-card').forEach(function (card) {
+      if (card.querySelector('.game-card__fav')) return;
+      var title = textOf($('.game-card__title', card));
+      if (!title) return;
+      var btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'game-card__fav';
+      btn.setAttribute('aria-label', 'Favorite ' + title);
+      btn.setAttribute('aria-pressed', isFav(title) ? 'true' : 'false');
+      btn.setAttribute('title', 'Favorite');
+      btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26"/></svg>';
+      btn.addEventListener('click', function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        e.stopImmediatePropagation();
+        toggleFav(title);
+      });
+      card.appendChild(btn);
+    });
+    syncFavButtons();
+  }
+
+  function injectFavToggle() {
+    if (favToggleBtn || !tagFilterRow) return;
+    favToggleBtn = document.createElement('button');
+    favToggleBtn.type = 'button';
+    favToggleBtn.className = 'ux-tag-filter__pill ux-tag-filter__pill--fav';
+    favToggleBtn.setAttribute('aria-pressed', 'false');
+    favToggleBtn.textContent = 'Favorites';
+    favToggleBtn.addEventListener('click', function () {
+      favOnly = !favOnly;
+      syncFavButtons();
+      applyFavFilter();
+    });
+    tagFilterRow.insertBefore(favToggleBtn, tagFilterRow.firstChild);
   }
 
   /* --- Tag badges: inject tag chips into game cards -------------------
@@ -1127,7 +1224,7 @@
     var emptyVisible = empty && isVisible(empty);
     var noVisible = visibleCards().length === 0 && (activeTagFilters.length > 0);
     var shouldShow = emptyVisible || noVisible;
-    var hasFilters = activeTagFilters.length > 0 ||
+    var hasFilters = activeTagFilters.length > 0 || favOnly ||
       (function() {
         var active = $('.category-filter__btn.active');
         return active && textOf(active).toLowerCase().replace(/[^a-z0-9]+/g,'-') !== 'all';
@@ -1162,10 +1259,13 @@
       replaySearchValue(input, '');
     }
     activeTagFilters = [];
+    favOnly = false;
     $$('.ux-tag-filter__pill[aria-pressed="true"]').forEach(function(btn) {
       btn.setAttribute('aria-pressed', 'false');
     });
     applyTagFilter();
+    syncFavButtons();
+    applyFavFilter();
     var allBtn = $('.category-filter__btn');
     if (allBtn && !allBtn.classList.contains('active')) {
       allBtn.click();
@@ -1462,9 +1562,10 @@
     initOfflineBanner();
     initDetailKey();
     fetchGames().then(function() {
-      if ($('.category-filter')) buildTagFilterRow();
+      if ($('.category-filter')) { buildTagFilterRow(); injectFavToggle(); }
       updateCategoryCounts();
       applyTagFilter();
+      applyFavFilter();
     });
     var mo = new MutationObserver(onMutations);
     mo.observe(document.body, {
