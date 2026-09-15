@@ -739,6 +739,8 @@
       if (!tagFilterRow && _gamesList.length && $('.category-filter')) { buildTagFilterRow(); injectFavToggle(); }
       applyTagFilter();
       applyFavFilter();
+      var searchInput = $('.search-bar__input');
+      if (searchInput && searchInput.value) applyFuzzySearch(searchInput.value);
       updateCategoryCounts();
       if (!resultStatusEl && $('.bento-grid')) initResultStatus();
       updateResultStatus();
@@ -1201,6 +1203,46 @@
     resultStatusEl.textContent = count + ' game' + (count !== 1 ? 's' : '');
   }
 
+  /* Instant fuzzy search overlay: subsequence match on titles, applied
+     synchronously on every keystroke (no debounce) via a hide attribute
+     the bundle never touches. '/' autofocus lives in initSlashFocus. */
+  function fuzzyMatch(query, title) {
+    var q = (query || '').toLowerCase().replace(/\s+/g, '');
+    var t = (title || '').toLowerCase();
+    if (!q) return true;
+    if (t.indexOf(q) > -1) return true;
+    var qi = 0;
+    for (var i = 0; i < t.length && qi < q.length; i++) {
+      if (t[i] === q[qi]) qi++;
+    }
+    return qi === q.length;
+  }
+
+  function applyFuzzySearch(value) {
+    $$('.bento-grid .game-card').forEach(function (card) {
+      if (!value) { card.removeAttribute('data-ux-search-hidden'); return; }
+      var title = textOf($('.game-card__title', card));
+      if (fuzzyMatch(value, title)) card.removeAttribute('data-ux-search-hidden');
+      else card.setAttribute('data-ux-search-hidden', '1');
+    });
+    updateResultStatus();
+    updateClearFiltersBtn();
+  }
+
+  function initFuzzySearch() {
+    document.addEventListener('input', function (e) {
+      var input = e.target;
+      if (!input || !input.matches || !input.matches('.search-bar__input')) return;
+      applyFuzzySearch(input.value);
+    });
+    document.addEventListener('keydown', function (e) {
+      var input = e.target;
+      if (e.key !== 'Escape' || !input || !input.matches ||
+          !input.matches('.search-bar__input')) return;
+      applyFuzzySearch('');
+    });
+  }
+
   function initSlashFocus() {
     document.addEventListener('keydown', function(e) {
       if (e.key !== '/' || e.defaultPrevented) return;
@@ -1559,6 +1601,7 @@
     initCardNewTab();
     injectTagBadges();
     initSlashFocus();
+    initFuzzySearch();
     initOfflineBanner();
     initDetailKey();
     fetchGames().then(function() {
