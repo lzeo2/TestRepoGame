@@ -1404,55 +1404,10 @@
         outline-offset: 2px;
       }
 
-      /* Fav-hidden and search-hidden cards */
+      /* Fav-hidden cards (favorites state itself lives in the bundle) */
       .game-card[data-ux-fav-hidden],
       .game-card[data-ux-search-hidden] {
         display: none !important;
-      }
-
-      /* Favorite star button on each card */
-      .game-card__fav {
-        position: absolute;
-        top: 8px;
-        left: 8px;
-        z-index: 3;
-        width: 44px;
-        height: 44px;
-        padding: 0;
-        border: none;
-        border-radius: 50%;
-        background: rgba(0, 0, 0, 0.6);
-        color: #fff;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-      }
-      .game-card__fav:hover {
-        background: rgba(0, 0, 0, 0.8);
-      }
-      .game-card__fav:focus-visible {
-        outline: 2px solid var(--accent, #06b6d4);
-        outline-offset: 2px;
-      }
-      .game-card__fav svg {
-        width: 20px;
-        height: 20px;
-      }
-      .game-card__fav[aria-pressed="true"] {
-        background: #d4a017;
-        color: #1a1a2e;
-      }
-      .game-card__fav[aria-pressed="true"] svg {
-        fill: currentColor;
-      }
-      html[data-theme="light"] .game-card__fav {
-        background: rgba(255, 255, 255, 0.9);
-        color: #1d1d1f;
-      }
-      html[data-theme="light"] .game-card__fav[aria-pressed="true"] {
-        background: #b8860b;
-        color: #fff;
       }
 
       /* Tag-hidden cards */
