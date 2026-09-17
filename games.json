@@ -206,16 +206,6 @@
     "tags": []
   },
   {
-    "id": 23,
-    "title": "Eaglercraft",
-    "cat": "action",
-    "icon": "",
-    "desc": "Minecraft 1.8.8 playable in your browser. Offline sandbox, mine and build to your heart's content.",
-    "url": "Games/Eaglercraft/index.html",
-    "featured": false,
-    "tags": []
-  },
-  {
     "id": 24,
     "title": "FPS",
     "cat": "action",

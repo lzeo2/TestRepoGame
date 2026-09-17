@@ -16,7 +16,6 @@ A browser-games portal. Everything runs from a static site: the repo root is the
 3. **No secrets** in code or git history; relative paths only.
 4. **Evidence before deletion** — grep before removing any file.
 5. **`/bare/*` proxy stays disabled** — do not re-enable without security sign-off.
-6. **Eaglercraft stays fully offline** — its wrapper fetches nothing external; it carries a licensing note (GPL-3.0 components, requires owning Minecraft Java).
 
 ## Quick links
 

@@ -31,7 +31,7 @@ A static browser-games portal. **The repo root is the deployed site.** Netlify p
 ## Games layout
 
 - `Games/<Name>/index.html` is the entry point (may be the only file for tiny games; most have `script.js` + `style.css`).
-- Larger bundles keep their original structure (e.g. `Games/Ovo/1.4.5/`, `Games/Run3/tn6pS9dCf37xAhkJv/`, `Games/Eaglercraft/`, `Games/BasketRandom/`).
+- Larger bundles keep their original structure (e.g. `Games/Ovo/1.4.5/`, `Games/Run3/tn6pS9dCf37xAhkJv/`, `Games/BasketRandom/`).
 - `Games/Character AI/` is **read-only** — never moved, edited, or restructured.
 - `Games/QWOP/` exists but is **not registered** in `games.json` (the "QWOP" entry, id 15, points to `Games/QwopRemake/index.html`).
 

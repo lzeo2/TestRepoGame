@@ -26,7 +26,6 @@ All 29 games registered in `games.json` (ids 1–47 with gaps — the ids of rem
 | 18 | Brick Dash | classic | Arrows move, Space dash | ✅ |
 | 19 | Tile Merge | classic | Arrows/WASD, Space, tap | ✅ |
 | 20 | Match Flip | classic | Arrows/WASD, Space, tap | ✅ |
-| 23 | Eaglercraft | action | Minecraft 1.8 controls | ✅ (offline SP; GPL-3.0, own MC Java) |
 | 24 | FPS | action | Mouse look, WASD, LMB, 1/2/3, R, Shift, Space | ✅ |
 | 31 | Letter Boxed | puzzle | Tap / A–Z, Backspace, Enter | ✅ |
 | 35 | Boss Rush | action | WASD, click/Space shoot, R | ✅ |
@@ -45,7 +44,6 @@ All 29 games registered in `games.json` (ids 1–47 with gaps — the ids of rem
 
 - **2048** binds only WASD in this build (arrow keys/touch are not wired).
 - **Character Alsen** is a scripted, offline keyword-matching chatbot — not a hosted LLM. The folder is read-only.
-- **Eaglercraft** is an offline sandbox (relays empty); it bundles GPL-3.0 components and MC 1.8 assets that require owning Minecraft Java Edition.
 - `Games/QWOP/` is an unregistered folder; the registered "QWOP" entry points to `Games/QwopRemake/`.
 - **Catalog pruning (2026-08):** 18 self-built games (A-GEO Quiz, Connections, Memory Match, Multiplayer Arena Shooter, Sudoku, Times Tables, Typing Test, Word Scramble, Mental Math, Spelling Bee, Balance Beam Bash, Orbit Relay, Parcel Panic, Pattern Panic, Pocket Bumper, Signal Sprint, Word Relay Riot, Wordle) were removed from `Games/` and the catalog; their ids are not reused.
 

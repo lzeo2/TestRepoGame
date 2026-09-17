@@ -66,15 +66,9 @@ Example:
 
 The portal itself loads one external font (Google Fonts `Inter`, referenced in `index.html`); it falls back to system fonts when offline. Games are audited for external references; see `docs/GAMES.md` — status is labeled honestly per game, and **remote-dependent games are not claimed to be offline** (notably Slope, Flappy Bird, Hextris, and Age of War, which are embedded/remote or need a CDN).
 
-## Eaglercraft — honesty note
-
-`Games/Eaglercraft/` runs **EaglercraftX 1.8.8** (client bundle from [eaglerforge](https://github.com/eaglerforge)) with everything served locally — nothing is fetched from an external CDN or tracking service. The wrapper is an **offline sandbox**: relays and servers are empty by default, and clicking **Singleplayer** creates a local offline world.
-
-Licensing honesty: the bundle contains **GPL-3.0 components** and **Minecraft 1.8 assets that require the player to own a copy of Minecraft Java Edition**. Playing implies you have a legitimate Minecraft Java license. Do not remove this note.
-
 ## Original code note
 
-Most arcade games under `Games/` (FPS, Boss Rush, Star Catcher, Paddle Duel, Brick Dash, Tile Merge, Match Flip, Letter Boxed, Grid Heist, Last Lantern, Queue Escape, Story Adventure, and others) are **original code written for this repo**. A handful of folders bundle third-party games (Ovo, Run 3, Snake, Chrome Dino, Breakout, QWOP remake, the "Random" sports games, Eaglercraft) with their original licensing/attribution kept intact. The game catalog (`docs/GAMES.md`) flags provenance per game.
+Most arcade games under `Games/` (FPS, Boss Rush, Star Catcher, Paddle Duel, Brick Dash, Tile Merge, Match Flip, Letter Boxed, Grid Heist, Last Lantern, Queue Escape, Story Adventure, and others) are **original code written for this repo**. A handful of folders bundle third-party games (Ovo, Run 3, Snake, Chrome Dino, Breakout, QWOP remake, the "Random" sports games) with their original licensing/attribution kept intact. The game catalog (`docs/GAMES.md`) flags provenance per game.
 
 ## Character AI — honesty note
 
