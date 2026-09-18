@@ -80,7 +80,7 @@ let svPanorama=null,gmapsLoaded=false;
 function loadGMaps(){return new Promise((resolve,reject)=>{
   if(gmapsLoaded)return resolve();
   const s=document.createElement('script');
-  s.src='https://maps.googleapis.com/maps/api/js?key=AIzaSyBQIqmP-mAO0emCkG4h2L-5T3M3QqX9T3E&callback=initGMaps';
+  s.src='https://maps.googleapis.com/maps/api/js?key=PASTE_NEW_MAPS_EMBED_KEY_HERE&callback=initGMaps';
   s.async=true;s.defer=true;
   window.initGMaps=()=>{gmapsLoaded=true;resolve()};
   s.onerror=reject;document.head.append(s);
