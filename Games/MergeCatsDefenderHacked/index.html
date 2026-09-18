@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <title>Merge Cats Defender Hacked</title>
+  <style>
+    html, body {
+      margin: 0; padding: 0; height: 100%;
+      background: #0a121c;
+      overflow: hidden;
+      font-family: Georgia, serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+    /* Let Phaser's ScaleManager (autoCenter: CENTER_BOTH) own canvas centering.
+       Do NOT also center with flexbox here — the two centering systems fight and
+       push the canvas off to one side (worse in Fill/ENVELOP, where the canvas is
+       larger than the viewport). A plain block box + overflow:hidden lets Phaser's
+       margin-based centering crop equally on all sides. */
+    #game { width: 100vw; height: 100vh; overflow: hidden; }
+    #game canvas { display: block; margin: 0 auto; image-rendering: auto; }
+    /* Hacked badge */
+    #hacked-badge {
+      position: fixed;
+      top: 10px;
+      right: 10px;
+      background: #e63946;
+      color: white;
+      padding: 5px 10px;
+      border-radius: 4px;
+      font-family: Arial, sans-serif;
+      font-size: 12px;
+      font-weight: bold;
+      z-index: 9999;
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body>
+  <div id="hacked-badge">HACKED - Unlimited Coins, Free Deploys, All Cats Unlocked</div>
+  <div id="game"></div>
+
+  <!-- Engine (bundled locally, no build step) -->
+  <script src="src/lib/phaser.js"></script>
+
+  <!-- Data layer -->
+  <script src="src/Data/Config.js"></script>
+  <script src="src/Data/Units.js"></script>
+  <script src="src/Data/Enemies.js"></script>
+  <script src="src/Data/Waves.js"></script>
+
+  <!-- Core layer -->
+  <script src="src/Core/Save.js"></script>
+  <!-- HACKED: isolated save slot (never touches the base-game save) plus an
+       unlimited-coin starting value. Runs once per page load; no timers. -->
+  <script>
+    PD.Save.KEY = 'pawdefense.save.hacked.v1';
+    try { var _hd = PD.Save.load(); _hd.coins = Math.max(_hd.coins || 0, 999999); PD.Save.save(); } catch (e) {}
+  </script>
+  <script src="src/Core/Audio.js"></script>
+  <script src="src/Core/Display.js"></script>
+
+  <!-- Rendering / helpers -->
+  <script src="src/Rendering/Assets.js"></script>
+  <script src="src/Interface/UIKit.js"></script>
+  <script src="src/Interface/SettingsPanel.js"></script>
+
+  <!-- Entities -->
+  <script src="src/Interface/Entities/Projectile.js"></script>
+  <script src="src/Interface/Entities/Enemy.js"></script>
+  <script src="src/Interface/Entities/Unit.js"></script>
+
+  <!-- Scenes -->
+  <script src="src/Interface/Scenes/BootScene.js"></script>
+  <script src="src/Interface/Scenes/PreloadScene.js"></script>
+  <script src="src/Interface/Scenes/LandingScene.js"></script>
+  <script src="src/Interface/Scenes/LevelMapScene.js"></script>
+  <script src="src/Interface/Scenes/SquadSelectScene.js"></script>
+  <script src="src/Interface/Scenes/BattleScene.js"></script>
+
+  <!-- Bootstrap -->
+  <script src="src/main.js"></script>
+</body>
+</html>
