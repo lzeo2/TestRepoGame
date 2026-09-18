@@ -1,0 +1,346 @@
+{
+  "char1_idle": {
+    "fw": 150,
+    "fh": 150,
+    "n": 10
+  },
+  "char1_shoot": {
+    "fw": 150,
+    "fh": 150,
+    "n": 8
+  },
+  "char2_idle": {
+    "fw": 150,
+    "fh": 150,
+    "n": 10
+  },
+  "char2_shoot": {
+    "fw": 150,
+    "fh": 150,
+    "n": 8
+  },
+  "char3_idle": {
+    "fw": 150,
+    "fh": 150,
+    "n": 10
+  },
+  "char3_shoot": {
+    "fw": 150,
+    "fh": 150,
+    "n": 8
+  },
+  "char4_idle": {
+    "fw": 150,
+    "fh": 150,
+    "n": 10
+  },
+  "char4_shoot": {
+    "fw": 150,
+    "fh": 150,
+    "n": 8
+  },
+  "char5_idle": {
+    "fw": 150,
+    "fh": 150,
+    "n": 10
+  },
+  "char5_shoot": {
+    "fw": 150,
+    "fh": 150,
+    "n": 8
+  },
+  "char6_idle": {
+    "fw": 198,
+    "fh": 150,
+    "n": 10
+  },
+  "char6_shoot": {
+    "fw": 198,
+    "fh": 150,
+    "n": 8
+  },
+  "char7_idle": {
+    "fw": 198,
+    "fh": 150,
+    "n": 10
+  },
+  "char7_shoot": {
+    "fw": 198,
+    "fh": 150,
+    "n": 8
+  },
+  "char8_idle": {
+    "fw": 198,
+    "fh": 150,
+    "n": 10
+  },
+  "char8_shoot": {
+    "fw": 198,
+    "fh": 150,
+    "n": 8
+  },
+  "char9_idle": {
+    "fw": 198,
+    "fh": 179,
+    "n": 10
+  },
+  "char9_shoot": {
+    "fw": 198,
+    "fh": 179,
+    "n": 8
+  },
+  "char10_idle": {
+    "fw": 198,
+    "fh": 179,
+    "n": 10
+  },
+  "char10_shoot": {
+    "fw": 198,
+    "fh": 179,
+    "n": 8
+  },
+  "char11_idle": {
+    "fw": 177,
+    "fh": 159,
+    "n": 10
+  },
+  "char11_shoot": {
+    "fw": 177,
+    "fh": 159,
+    "n": 8
+  },
+  "char12_idle": {
+    "fw": 177,
+    "fh": 159,
+    "n": 10
+  },
+  "char12_shoot": {
+    "fw": 177,
+    "fh": 159,
+    "n": 8
+  },
+  "char13_idle": {
+    "fw": 177,
+    "fh": 159,
+    "n": 10
+  },
+  "char13_shoot": {
+    "fw": 177,
+    "fh": 159,
+    "n": 8
+  },
+  "char14_idle": {
+    "fw": 177,
+    "fh": 159,
+    "n": 10
+  },
+  "char14_shoot": {
+    "fw": 177,
+    "fh": 159,
+    "n": 8
+  },
+  "char15_idle": {
+    "fw": 177,
+    "fh": 159,
+    "n": 10
+  },
+  "char15_shoot": {
+    "fw": 177,
+    "fh": 159,
+    "n": 8
+  },
+  "reg1_walk": {
+    "fw": 297,
+    "fh": 250,
+    "n": 12
+  },
+  "reg1_attack": {
+    "fw": 297,
+    "fh": 250,
+    "n": 10
+  },
+  "reg2_walk": {
+    "fw": 332,
+    "fh": 250,
+    "n": 12
+  },
+  "reg2_attack": {
+    "fw": 332,
+    "fh": 250,
+    "n": 10
+  },
+  "reg3_walk": {
+    "fw": 350,
+    "fh": 250,
+    "n": 12
+  },
+  "reg3_attack": {
+    "fw": 350,
+    "fh": 250,
+    "n": 10
+  },
+  "reg4_walk": {
+    "fw": 297,
+    "fh": 250,
+    "n": 12
+  },
+  "reg4_attack": {
+    "fw": 297,
+    "fh": 250,
+    "n": 10
+  },
+  "reg5_walk": {
+    "fw": 297,
+    "fh": 250,
+    "n": 12
+  },
+  "reg5_attack": {
+    "fw": 297,
+    "fh": 250,
+    "n": 10
+  },
+  "reg6_walk": {
+    "fw": 350,
+    "fh": 258,
+    "n": 12
+  },
+  "reg6_attack": {
+    "fw": 350,
+    "fh": 258,
+    "n": 10
+  },
+  "reg7_walk": {
+    "fw": 297,
+    "fh": 250,
+    "n": 12
+  },
+  "reg7_attack": {
+    "fw": 297,
+    "fh": 250,
+    "n": 10
+  },
+  "reg8_walk": {
+    "fw": 350,
+    "fh": 258,
+    "n": 12
+  },
+  "reg8_attack": {
+    "fw": 350,
+    "fh": 258,
+    "n": 10
+  },
+  "boss1_walk": {
+    "fw": 372,
+    "fh": 320,
+    "n": 12
+  },
+  "boss1_attack": {
+    "fw": 372,
+    "fh": 320,
+    "n": 10
+  },
+  "boss2_walk": {
+    "fw": 406,
+    "fh": 344,
+    "n": 12
+  },
+  "boss2_attack": {
+    "fw": 406,
+    "fh": 344,
+    "n": 10
+  },
+  "boss3_walk": {
+    "fw": 406,
+    "fh": 344,
+    "n": 12
+  },
+  "boss3_attack": {
+    "fw": 406,
+    "fh": 344,
+    "n": 10
+  },
+  "boss4_walk": {
+    "fw": 406,
+    "fh": 344,
+    "n": 12
+  },
+  "boss4_attack": {
+    "fw": 406,
+    "fh": 344,
+    "n": 10
+  },
+  "boss5_walk": {
+    "fw": 406,
+    "fh": 344,
+    "n": 12
+  },
+  "boss5_attack": {
+    "fw": 406,
+    "fh": 344,
+    "n": 10
+  },
+  "boss6_walk": {
+    "fw": 393,
+    "fh": 335,
+    "n": 12
+  },
+  "boss6_attack": {
+    "fw": 393,
+    "fh": 335,
+    "n": 10
+  },
+  "boss7_walk": {
+    "fw": 393,
+    "fh": 335,
+    "n": 12
+  },
+  "boss7_attack": {
+    "fw": 393,
+    "fh": 335,
+    "n": 10
+  },
+  "guardian_idle": {
+    "fw": 333,
+    "fh": 260,
+    "n": 10
+  },
+  "guardian_attack": {
+    "fw": 333,
+    "fh": 260,
+    "n": 10
+  },
+  "boxing_idle": {
+    "fw": 333,
+    "fh": 260,
+    "n": 10
+  },
+  "boxing_fight": {
+    "fw": 333,
+    "fh": 260,
+    "n": 10
+  },
+  "shoot_fx": {
+    "fw": 249,
+    "fh": 157,
+    "n": 15
+  },
+  "explosion_fx": {
+    "fw": 512,
+    "fh": 512,
+    "n": 20,
+    "parts": [
+      {
+        "key": "explosion_fx",
+        "cols": 4,
+        "rows": 4,
+        "count": 16
+      },
+      {
+        "key": "explosion_fx_b",
+        "cols": 2,
+        "rows": 2,
+        "count": 4
+      }
+    ]
+  }
+}
