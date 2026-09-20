@@ -1254,5 +1254,15 @@
     "url": "Games/NeonSnake/index.html",
     "featured": false,
     "tags": []
+  },
+  {
+    "id": 139,
+    "title": "Neon Breakout",
+    "cat": "arcade",
+    "icon": "",
+    "desc": "Glowing neon bricks and paddle — smash them all with powerups.",
+    "url": "Games/NeonBreakout/index.html",
+    "featured": false,
+    "tags": []
   }
 ]

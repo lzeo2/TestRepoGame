@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>Neon Breakout</title>
+<style>
+:root {
+  --bg: #05060f;
+  --neon: #00f0ff;
+  --neon2: #ff2bd6;
+  --neon3: #ffe600;
+  --txt: #d8fbff;
+  --dim: #5a7a86;
+}
+
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: radial-gradient(circle at 50% 30%, #0a1230 0%, var(--bg) 70%);
+  color: var(--txt);
+  font-family: "Segoe UI", Tahoma, system-ui, sans-serif;
+  height: 100%;
+  overflow: hidden;
+  touch-action: none;
+}
+
+#wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  min-height: 100%;
+  height: 100%;
+  padding: 10px env(safe-area-inset-right) 10px env(safe-area-inset-left);
+  user-select: none;
+}
+
+#game {
+  background: #03040c;
+  border: 2px solid rgba(0, 240, 255, 0.4);
+  border-radius: 8px;
+  box-shadow: 0 0 18px rgba(0, 240, 255, 0.35), inset 0 0 24px rgba(0, 240, 255, 0.08);
+  max-width: 100%;
+  max-height: 78vh;
+  touch-action: none;
+  display: block;
+}
+
+#touch {
+  display: flex;
+  gap: 24px;
+  width: 100%;
+  justify-content: center;
+}
+
+.tbtn {
+  flex: 1;
+  max-width: 140px;
+  padding: 16px 0;
+  font-size: 26px;
+  color: var(--neon);
+  background: rgba(0, 240, 255, 0.06);
+  border: 2px solid rgba(0, 240, 255, 0.5);
+  border-radius: 12px;
+  box-shadow: 0 0 12px rgba(0, 240, 255, 0.3);
+  touch-action: none;
+}
+.tbtn:active {
+  background: rgba(0, 240, 255, 0.2);
+}
+
+.screen {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  text-align: center;
+  padding: 20px;
+  background: rgba(3, 4, 12, 0.92);
+  backdrop-filter: blur(3px);
+  z-index: 10;
+}
+.screen.hidden { display: none; }
+
+h1 {
+  margin: 0;
+  font-size: clamp(34px, 9vw, 56px);
+  letter-spacing: 4px;
+  color: var(--neon);
+  text-shadow: 0 0 8px var(--neon), 0 0 22px var(--neon);
+}
+h1.dead { color: var(--neon2); text-shadow: 0 0 8px var(--neon2), 0 0 22px var(--neon2); }
+h1.won  { color: var(--neon3); text-shadow: 0 0 8px var(--neon3), 0 0 22px var(--neon3); }
+
+.sub { color: var(--dim); margin: 0; font-size: 15px; }
+.hi  { color: var(--neon3); font-size: 16px; margin: 4px 0; }
+.screen p { margin: 2px 0; font-size: 18px; }
+
+.controls {
+  list-style: none;
+  padding: 12px 16px;
+  margin: 6px 0;
+  border: 1px solid rgba(0, 240, 255, 0.35);
+  border-radius: 10px;
+  background: rgba(0, 240, 255, 0.04);
+  font-size: 14px;
+  line-height: 1.9;
+  color: var(--txt);
+}
+.controls b { color: var(--neon3); }
+
+.btn {
+  margin-top: 6px;
+  padding: 14px 40px;
+  font-size: 20px;
+  letter-spacing: 3px;
+  font-weight: 700;
+  color: #03040c;
+  background: var(--neon);
+  border: none;
+  border-radius: 10px;
+  box-shadow: 0 0 16px var(--neon);
+  cursor: pointer;
+}
+.btn:active { transform: scale(0.96); }
+
+@media (hover: hover) and (pointer: fine) {
+  #touch { display: none; }
+}
+</style>
+</head>
+<body>
+<div id="wrap">
+  <canvas id="game" width="480" height="640"></canvas>
+
+  <!-- Mobile touch controls -->
+  <div id="touch">
+    <button id="left" class="tbtn" aria-label="Move left">&#9664;</button>
+    <button id="right" class="tbtn" aria-label="Move right">&#9654;</button>
+  </div>
+
+  <!-- START SCREEN -->
+  <div id="start" class="screen">
+    <h1>NEON&nbsp;BREAKOUT</h1>
+    <p class="sub">Smash every glowing brick. Don't drop the ball.</p>
+    <ul class="controls">
+      <li><b>&#8592; / &#8594;</b> or <b>Mouse</b> — move paddle</li>
+      <li><b>Touch drag</b> on canvas or <b>&#9664; &#9654;</b> buttons — mobile</li>
+      <li><b>P</b> — pause &nbsp; <b>Space</b> — launch ball / restart</li>
+    </ul>
+    <p class="hi">High Score: <span id="hiStart">0</span></p>
+    <button id="playBtn" class="btn">PLAY</button>
+  </div>
+
+  <!-- DEATH SCREEN -->
+  <div id="death" class="screen hidden">
+    <h1 class="dead">GAME OVER</h1>
+    <p>Score: <span id="scoreDeath">0</span></p>
+    <p>Best: <span id="hiDeath">0</span></p>
+    <button id="retryBtn" class="btn">RESTART</button>
+  </div>
+
+  <!-- WIN SCREEN -->
+  <div id="win" class="screen hidden">
+    <h1 class="won">YOU WIN!</h1>
+    <p>Score: <span id="scoreWin">0</span></p>
+    <p>Best: <span id="hiWin">0</span></p>
+    <button id="winBtn" class="btn">PLAY AGAIN</button>
+  </div>
+
+  <!-- PAUSE SCREEN -->
+  <div id="pause" class="screen hidden">
+    <h1>PAUSED</h1>
+    <button id="resumeBtn" class="btn">RESUME</button>
+  </div>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
