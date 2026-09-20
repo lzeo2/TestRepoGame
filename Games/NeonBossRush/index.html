@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>Neon Boss Rush</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<canvas id="game"></canvas>
+
+<!-- HUD (visible only while playing) -->
+<div id="hud" class="hidden">
+  <div class="hud-top">
+    <div class="boss-block">
+      <div class="boss-label">BOSS <span id="phaseText">PHASE 1 / 4</span></div>
+      <div class="bar boss-bar"><div id="bossHp" class="fill boss-fill"></div></div>
+    </div>
+    <div class="stat-block">
+      <div class="mini-label">HULL</div>
+      <div class="bar small"><div id="playerHp" class="fill player-fill"></div></div>
+      <div class="mini-label">DASH</div>
+      <div class="bar small"><div id="dashFill" class="fill dash-fill"></div></div>
+    </div>
+  </div>
+  <div id="scoreText">SCORE 0</div>
+</div>
+
+<!-- Touch controls (shown only on touch devices, only while playing) -->
+<div id="joystick" class="hidden"><div id="knob"></div></div>
+<button id="dashBtn" class="hidden">DASH</button>
+
+<!-- Start screen -->
+<div id="startScreen" class="overlay">
+  <div class="panel">
+    <h1 class="title">NEON<br>BOSS RUSH</h1>
+    <div class="best">
+      <div>FURTHEST PHASE: <span id="bestPhase">0 / 4</span></div>
+      <div>BEST TIME: <span id="bestTime">0.0s</span></div>
+    </div>
+    <div class="controls">
+      <h3>CONTROLS</h3>
+      <ul>
+        <li><b>MOVE</b> — WASD / Arrow keys (desktop) or the on-screen joystick (mobile)</li>
+        <li><b>FIRE</b> — automatic, always aimed at the boss</li>
+        <li><b>DASH</b> — Space (desktop) or the DASH button (mobile): a burst move with i-frames, cooldown shown in HUD</li>
+        <li><b>GOAL</b> — survive all 4 boss phases, each with a new bullet pattern</li>
+      </ul>
+    </div>
+    <button id="startBtn" class="neon-btn">START</button>
+  </div>
+</div>
+
+<!-- Game over screen -->
+<div id="gameOverScreen" class="overlay hidden">
+  <div class="panel">
+    <h1 class="title danger">GAME OVER</h1>
+    <div class="result">
+      <div>SCORE: <span id="overScore">0</span></div>
+      <div>TIME: <span id="overTime">0.0s</span></div>
+      <div>REACHED: PHASE <span id="overPhase">1</span> / 4</div>
+    </div>
+    <button id="overBtn" class="neon-btn">RETRY</button>
+  </div>
+</div>
+
+<!-- Victory screen -->
+<div id="winScreen" class="overlay hidden">
+  <div class="panel">
+    <h1 class="title win">VICTORY</h1>
+    <div class="result">
+      <div>SCORE: <span id="winScore">0</span></div>
+      <div>TIME: <span id="winTime">0.0s</span></div>
+    </div>
+    <button id="winBtn" class="neon-btn">PLAY AGAIN</button>
+  </div>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>

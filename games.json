@@ -1264,5 +1264,25 @@
     "url": "Games/NeonBreakout/index.html",
     "featured": false,
     "tags": []
+  },
+  {
+    "id": 140,
+    "title": "Neon Flappy",
+    "cat": "arcade",
+    "icon": "",
+    "desc": "Neon flappy flyer — tap or space to flap through shrinking gaps, glowing trail, beat your best.",
+    "url": "Games/NeonFlappy/index.html",
+    "featured": false,
+    "tags": []
+  },
+  {
+    "id": 141,
+    "title": "Neon Boss Rush",
+    "cat": "action",
+    "icon": "",
+    "desc": "Arena boss fight with 4 bullet-pattern phases — dash, dodge, survive on keyboard or touch joystick.",
+    "url": "Games/NeonBossRush/index.html",
+    "featured": false,
+    "tags": []
   }
 ]
