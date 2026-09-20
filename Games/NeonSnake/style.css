@@ -1,0 +1,158 @@
+:root {
+  --bg: #05060f;
+  --grid: rgba(0, 255, 200, 0.06);
+  --neon: #00ffc8;
+  --neon2: #ff2bd6;
+  --neon3: #ffe600;
+  --txt: #c9fff4;
+}
+
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg);
+  color: var(--txt);
+  font-family: "Segoe UI", Tahoma, system-ui, sans-serif;
+  height: 100%;
+  overflow: hidden;
+  touch-action: none;
+}
+
+#wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  min-height: 100%;
+  height: 100%;
+  padding: 10px;
+  user-select: none;
+}
+
+#hud {
+  display: flex;
+  gap: 18px;
+  font-size: 14px;
+  letter-spacing: 2px;
+  text-shadow: 0 0 6px var(--neon);
+}
+.hud-item b { color: var(--neon3); text-shadow: 0 0 8px var(--neon3); }
+
+#stage {
+  position: relative;
+  width: min(92vw, 92vh, 460px);
+  height: min(92vw, 92vh, 460px);
+}
+
+#game {
+  width: 100%;
+  height: 100%;
+  display: block;
+  background:
+    radial-gradient(circle at 50% 40%, #0b1024 0%, #05060f 70%);
+  border: 2px solid var(--neon);
+  border-radius: 10px;
+  box-shadow: 0 0 18px var(--neon), inset 0 0 24px rgba(0, 255, 200, 0.15);
+  touch-action: none;
+}
+
+/* Screens */
+.screen {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  text-align: center;
+  padding: 16px;
+  background: rgba(3, 5, 14, 0.82);
+  border-radius: 10px;
+  backdrop-filter: blur(2px);
+}
+.screen.hidden { display: none; }
+
+.neon-title {
+  margin: 0;
+  font-size: clamp(26px, 8vw, 42px);
+  font-weight: 800;
+  letter-spacing: 4px;
+  color: #fff;
+  text-shadow: 0 0 8px var(--neon), 0 0 20px var(--neon), 0 0 40px var(--neon);
+}
+.neon-title.dead { text-shadow: 0 0 8px var(--neon2), 0 0 20px var(--neon2), 0 0 40px var(--neon2); color: #fff; }
+.neon-title.win { text-shadow: 0 0 8px var(--neon3), 0 0 20px var(--neon3), 0 0 40px var(--neon3); color: #fff; }
+
+.tag { font-size: 13px; opacity: 0.85; margin: 0; max-width: 280px; }
+.best { font-size: 14px; color: var(--neon3); text-shadow: 0 0 8px var(--neon3); margin: 4px; }
+.best b, .result b { color: #fff; }
+.result { font-size: 16px; letter-spacing: 2px; margin: 2px; }
+
+.btn {
+  cursor: pointer;
+  border: 2px solid var(--neon);
+  background: transparent;
+  color: var(--txt);
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 3px;
+  padding: 10px 26px;
+  border-radius: 8px;
+  text-shadow: 0 0 6px var(--neon);
+  box-shadow: 0 0 12px var(--neon), inset 0 0 10px rgba(0, 255, 200, 0.2);
+  transition: transform 0.08s ease, box-shadow 0.12s ease;
+  touch-action: none;
+}
+.btn:active { transform: scale(0.94); box-shadow: 0 0 22px var(--neon); }
+.btn.ghost { border-color: var(--neon2); color: #ffd6f6; text-shadow: 0 0 6px var(--neon2); box-shadow: 0 0 12px var(--neon2), inset 0 0 10px rgba(255, 43, 214, 0.15); }
+
+.controls {
+  font-size: 12px;
+  line-height: 1.6;
+  opacity: 0.9;
+  margin-top: 6px;
+  max-width: 300px;
+}
+.controls b { color: var(--neon); }
+kbd {
+  display: inline-block;
+  border: 1px solid var(--neon);
+  border-radius: 4px;
+  padding: 1px 6px;
+  margin: 0 1px;
+  font-size: 11px;
+  box-shadow: 0 0 6px rgba(0, 255, 200, 0.4);
+}
+
+/* D-pad */
+#dpad {
+  display: grid;
+  grid-template-columns: repeat(3, 52px);
+  grid-template-rows: repeat(3, 52px);
+  gap: 6px;
+  justify-content: center;
+  align-content: center;
+}
+.dbtn {
+  border: 2px solid var(--neon);
+  background: rgba(0, 255, 200, 0.06);
+  color: var(--neon);
+  font-size: 20px;
+  border-radius: 10px;
+  cursor: pointer;
+  box-shadow: 0 0 10px rgba(0, 255, 200, 0.3);
+  touch-action: none;
+}
+.dbtn:active { background: rgba(0, 255, 200, 0.25); box-shadow: 0 0 18px var(--neon); }
+.dbtn.up { grid-column: 2; grid-row: 1; }
+.dbtn.left { grid-column: 1; grid-row: 2; }
+.dbtn.right { grid-column: 3; grid-row: 2; }
+.dbtn.down { grid-column: 2; grid-row: 3; }
+
+@media (min-width: 760px) and (pointer: fine) {
+  #dpad { display: none; }
+}

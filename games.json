@@ -1244,5 +1244,15 @@
     "tags": [
       "hacked"
     ]
+  },
+  {
+    "id": 138,
+    "title": "Neon Snake",
+    "cat": "arcade",
+    "icon": "",
+    "desc": "Glowing neon snake — eat apples to 50 to win, avoid walls and yourself.",
+    "url": "Games/NeonSnake/index.html",
+    "featured": false,
+    "tags": []
   }
 ]
