@@ -746,6 +746,8 @@
       var searchInput = $('.search-bar__input');
       if (searchInput && searchInput.value) applyFuzzySearch(searchInput.value);
       updateCategoryCounts();
+      initSortControl();
+      sortCards();
       if (!resultStatusEl && $('.bento-grid')) initResultStatus();
       updateResultStatus();
       if (!recentRow && $('.bento-grid')) initRecentRow();
@@ -1033,6 +1035,8 @@
   var clearFiltersBtn = null;
   var clearFiltersParent = null;
   var recentRow = null;
+  var sortControl = null;
+  var sortMode = 'catalog';
   var netBanner = null;
   var netBannerDismissed = false;
   var detailDialog = null;
@@ -1118,6 +1122,70 @@
     });
     updateResultStatus();
     updateClearFiltersBtn();
+  }
+
+  function recentTimestamp(title) {
+    var list = getRecentList();
+    for (var i = 0; i < list.length; i++) {
+      if (list[i].title === title) return Number(list[i].ts) || 0;
+    }
+    return 0;
+  }
+
+  function sortCards() {
+    var grid = $('.bento-grid__standard') || $('.bento-grid');
+    if (!grid) return;
+    var cards = $$('.game-card', grid);
+    if (cards.length < 2 || sortMode === 'catalog') return;
+    cards.sort(function(a, b) {
+      var at = textOf($('.game-card__title', a));
+      var bt = textOf($('.game-card__title', b));
+      if (sortMode === 'recent') return recentTimestamp(bt) - recentTimestamp(at) || at.localeCompare(bt);
+      if (sortMode === 'category') {
+        var ac = textOf($('.game-card__category', a));
+        var bc = textOf($('.game-card__category', b));
+        return ac.localeCompare(bc) || at.localeCompare(bt);
+      }
+      if (sortMode === 'title') return at.localeCompare(bt);
+      return 0;
+    });
+    var changed = false;
+    cards.forEach(function(card, index) {
+      if (card !== $$('.game-card', grid)[index]) changed = true;
+    });
+    if (changed) cards.forEach(function(card) { grid.appendChild(card); });
+  }
+
+  function initSortControl() {
+    if (sortControl) return;
+    var filter = $('.category-filter');
+    if (!filter || !filter.parentNode) return;
+    sortControl = document.createElement('label');
+    sortControl.className = 'ux-sort';
+    sortControl.textContent = 'Sort';
+    var select = document.createElement('select');
+    select.className = 'ux-sort__select';
+    select.setAttribute('aria-label', 'Sort games');
+    [
+      ['catalog', 'Portal order'],
+      ['title', 'A to Z'],
+      ['category', 'Category'],
+      ['recent', 'Recently played']
+    ].forEach(function(option) {
+      var item = document.createElement('option');
+      item.value = option[0];
+      item.textContent = option[1];
+      select.appendChild(item);
+    });
+    select.value = sortMode;
+    select.addEventListener('change', function() {
+      sortMode = select.value;
+      try { localStorage.setItem('unblockmath_sort', sortMode); } catch (_) {}
+      sortCards();
+    });
+    sortControl.appendChild(select);
+    filter.parentNode.insertBefore(sortControl, filter);
+    sortCards();
   }
 
   function updateCategoryCounts() {
@@ -1558,6 +1626,11 @@
   }
 
   ready(function () {
+    try {
+      var storedSort = localStorage.getItem('unblockmath_sort');
+      if (storedSort === 'catalog' || storedSort === 'title' ||
+          storedSort === 'category' || storedSort === 'recent') sortMode = storedSort;
+    } catch (_) {}
     ensureSkipLink();
     initThemeToggle();
     initRandomGameBtn();
