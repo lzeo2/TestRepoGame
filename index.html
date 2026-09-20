@@ -1524,6 +1524,87 @@
           animation: none !important;
         }
       }
+
+      /* Sprint polish: compact controls, one cyan focus language, no pill filters. */
+      .category-filter__btn,
+      .ux-tag-filter__pill,
+      .ux-recent__chip {
+        border-radius: 6px !important;
+      }
+      .category-filter__btn:focus-visible,
+      .ux-tag-filter__pill:focus-visible,
+      .ux-sort__select:focus-visible,
+      .ux-recent__chip:focus-visible {
+        outline: 2px solid var(--accent, #06b6d4) !important;
+        outline-offset: 2px;
+        border-color: var(--accent, #06b6d4) !important;
+      }
+      .game-card__play {
+        background: var(--accent, #06b6d4) !important;
+        color: #06212a !important;
+      }
+      .game-card[data-cat="sports"] .game-card__category,
+      .game-card[data-cat="simulation"] .game-card__category {
+        background: #0e7490 !important;
+      }
+      .ux-sort {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        min-height: 44px;
+        margin: 0.4rem 0 0.5rem;
+        color: var(--text-muted, #888);
+        font-size: 0.75rem;
+        font-weight: 600;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+      }
+      .ux-sort__select {
+        min-height: 44px;
+        padding: 8px 30px 8px 10px;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 6px;
+        background: #171722;
+        color: var(--text, #ddd);
+        font: inherit;
+        text-transform: none;
+        cursor: pointer;
+      }
+      .ux-sort__select option {
+        background: #171722;
+        color: #eee;
+      }
+      @media (max-width: 640px) {
+        .ux-sort {
+          width: 100%;
+          justify-content: space-between;
+        }
+        .ux-sort__select {
+          flex: 1;
+          max-width: 220px;
+        }
+        .category-filter {
+          display: flex;
+          flex-wrap: nowrap;
+          overflow-x: auto;
+          padding-bottom: 4px;
+          scrollbar-width: thin;
+        }
+        .category-filter__btn {
+          flex: 0 0 auto;
+          min-height: 44px;
+        }
+      }
+      html[data-theme="light"] .ux-sort__select {
+        background: #fff;
+        border-color: rgba(0, 0, 0, 0.14);
+        color: #1d1d1f;
+      }
+      html[data-theme="light"] .ux-sort__select option {
+        background: #fff;
+        color: #1d1d1f;
+      }
+
     </style>
   <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-ERN6R7YHJ5"></script>
