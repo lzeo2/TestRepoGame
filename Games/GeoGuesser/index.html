@@ -21,12 +21,12 @@
     <div class="controls" style="margin-top:12px"><button id="soloButton" class="button">PLAY SOLO</button><button id="createButton" class="button secondary">CREATE ROOM</button></div>
     <div class="formline"><input id="roomInput" class="input" maxlength="6" placeholder="ROOM CODE" aria-label="Room code"><button id="joinButton" class="button secondary">JOIN ROOM</button></div>
     <div id="startNotice" class="notice" aria-live="polite"></div>
-    <p class="hint">Map and panorama are bundled for offline play. Rooms sync across devices via Supabase Realtime (requires internet).</p>
+    <p class="hint">Clue photo and map are bundled for offline play. Rooms sync across tabs on this device.</p>
   </section>
 
   <section id="roomScreen" class="panel room hidden">
     <h2>ROOM <span id="roomCode" class="room-code"></span></h2>
-    <p class="hint">Share the room code with friends on any device to join.</p>
+    <p class="hint">Rooms sync across tabs on this device — share the code, then open the game in another tab to join.</p>
     <ul id="playerList" class="player-list"></ul>
     <div class="controls"><button id="startRoomButton" class="button">START MATCH</button><button id="leaveRoomButton" class="button danger">LEAVE</button></div>
     <div id="roomNotice" class="notice" aria-live="polite"></div>
@@ -43,7 +43,6 @@
   <section id="finishScreen" class="panel room hidden"><h2>MATCH COMPLETE</h2><p>Your final score: <strong id="finalScore" style="color:var(--cyan);font-size:1.6rem">0</strong></p><table class="leaderboard"><thead><tr><th>Player</th><th>Rounds</th><th>Score</th></tr></thead><tbody id="leaderboardBody"></tbody></table><div class="controls"><button id="playAgainButton" class="button">PLAY AGAIN</button><button id="finishLeaveButton" class="button secondary">BACK TO MENU</button></div></section>
   <p class="footer-note">Five rounds · max 25,000 points · distance uses exponential decay</p>
 </main>
-<script src="supabase.min.js"></script>
 <script>
 'use strict';
 const $=id=>document.getElementById(id), ROUNDS=5, ROUND_TIME=60;
@@ -75,33 +74,19 @@ const LOCATIONS=[
   {name:'Buenos Aires, Argentina',lat:-34.6037,lng:-58.3816,tag:'SOUTH AMERICA',heading:0}
 ];
 let playerId=sessionStorage.getItem('geoguesser-player')||('p-'+Math.random().toString(36).slice(2,10));sessionStorage.setItem('geoguesser-player',playerId);
-let supabaseClient=null;try{if(window.supabase){supabaseClient=window.supabase.createClient('https://ntietzkbyhxdazspnrow.supabase.co','eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im50aWV0emtieWh4ZGF6c3Bucm93Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg4MzMzMTIsImV4cCI6MjEwNDQwOTMxMn0._4pazbkwbhtYQsSIoaOx9uAx41J0OxAUrXASk42MTPI')}}catch(_){$('connectionLabel').textContent='OFFLINE READY'}
-let svPanorama=null,gmapsLoaded=false;
-function loadGMaps(){return new Promise((resolve,reject)=>{
-  if(gmapsLoaded)return resolve();
-  const s=document.createElement('script');
-  s.src='https://maps.googleapis.com/maps/api/js?key=PASTE_NEW_MAPS_EMBED_KEY_HERE&callback=initGMaps';
-  s.async=true;s.defer=true;
-  window.initGMaps=()=>{gmapsLoaded=true;resolve()};
-  s.onerror=reject;document.head.append(s);
-})}
+// Offline mode: no Supabase / Google Maps. The bundled streetview.jpg is a
+// single static clue photo (no 360° panning, no GPS street-view rendering);
+// the round tag in the street card and the round title remain the primary
+// clues. See CREDITS.md.
 async function initStreetView(location){
   const el=$('streetview');
-  try{
-    await loadGMaps();
-    svPanorama=new google.maps.StreetViewPanorama(el,{
-      position:{lat:location.lat,lng:location.lng},
-      pov:{heading:location.heading||0,pitch:10},
-      zoom:0,addressControl:false,showRoadLabels:false,
-      linksControl:true,panControl:true,zoomControl:true
-   });
-    $('svStatus').textContent='LOOK FOR CLUES';
-  }catch(_){
-    el.innerHTML='<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--muted)">Street View unavailable - use the map</div>';
-    $('svStatus').textContent='NO COVERAGE';
-  }
+  el.style.backgroundImage='url(streetview.jpg)';
+  el.style.backgroundSize='cover';
+  el.style.backgroundPosition='center';
+  el.style.minHeight='340px';
+  $('svStatus').textContent='STATIC CLUE PHOTO';
 }
-let channel=null,roomKey='',isHost=false,mode='solo',state=null,guess=null,roomChannel=null;
+let channel=null,roomKey='',isHost=false,mode='solo',state=null,guess=null;
 function name(){return ($('nameInput').value.trim()||'Player').slice(0,18)}
 function setScreen(screen){['startScreen','roomScreen','gameScreen','finishScreen'].forEach(id=>$(id).classList.toggle('hidden',id!==screen))}
 function shuffled(list){return [...list].sort(()=>Math.random()-.5)}
@@ -109,12 +94,11 @@ function newState(){return {phase:'waiting',code:'',currentRound:0,locations:[],
 function currentPlayer(){return state&&state.players.find(p=>p.id===playerId)}
 function send(message){const packet={...message,nonce:Math.random()};if(channel)channel.postMessage(message);try{localStorage.setItem(roomKey,JSON.stringify(packet))}catch(_){}}
 function broadcast(){send({type:'state',state})}
-function openRoom(code,host){if(channel)channel.close();if(roomChannel)roomChannel.unsubscribe();isHost=host;roomKey='geoguesser-room-'+code;
-  if(supabaseClient){roomChannel=supabaseClient.channel(roomKey,{config:{broadcast:{self:false}}});
-    roomChannel.on('broadcast',{event:'msg'},payload=>onMessage({data:payload.payload}));
-    roomChannel.subscribe(status=>{if(status==='SUBSCRIBED')$('connectionLabel').textContent='ONLINE';});
-    channel={postMessage(msg){roomChannel.send({type:'broadcast',event:'msg',payload:msg})},close(){roomChannel.unsubscribe()}};
-  }else{channel=new BroadcastChannel(roomKey);channel.onmessage=onMessage}
+function openRoom(code,host){if(channel)channel.close();isHost=host;roomKey='geoguesser-room-'+code;
+  // Rooms sync across tabs on this origin via BroadcastChannel (the localStorage
+  // 'storage' event handler below covers storage-only tabs). Cross-device sync
+  // needs a backend and is disabled by repo policy (offline-first).
+  channel=new BroadcastChannel(roomKey);channel.onmessage=onMessage;
 }
 window.addEventListener('storage',event=>{if(event.key===roomKey&&event.newValue)try{onMessage({data:JSON.parse(event.newValue)})}catch(_){} });
 function onMessage(event){const message=event.data||{};
