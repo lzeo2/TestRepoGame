@@ -13,3 +13,5 @@ download (*).png
 Screenshot *.png
 Screenshot *.jpg
 Screenshot_*.jpg
+
+.swarmforge-logs/
