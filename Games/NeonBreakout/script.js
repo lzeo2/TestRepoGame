@@ -108,6 +108,7 @@ function loseLife() {
   // reset modifiers on life loss
   paddle.w = basePaddleW;
   wideTimer = 0;
+  if (slowTimer > 0) { for (var s = 0; s < balls.length; s++) { balls[s].vx /= 0.6; balls[s].vy /= 0.6; } }
   slowTimer = 0;
   resetBallOnPaddle();
 }
