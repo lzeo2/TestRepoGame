@@ -31,12 +31,11 @@ Operating rules for any agent (opencode, Claude Code, Codex, Hermes) working in 
 ## Golden rules (never violate)
 
 1. **`Games/Character AI/` is READ-ONLY** — the Alsen chat game. Never move, edit, or restructure it.
-2. **Offline-first** — every game and the portal must work with zero network access. No CDN scripts, no external fonts, no runtime fetch/WebSocket to third parties. Vendor everything locally.
-3. **No secrets in code or git history** — tokens, keys, emails, absolute local paths (`/home/...`). Use relative paths only.
-4. **Evidence before deletion** — never delete a file/dir without grepping the repo to prove it is unreferenced.
-5. **`/bare/*` proxy stays DISABLED** — do not re-enable, repoint, or weaken netlify.toml security settings without security sign-off.
-6. **Eaglercraft stays fully offline** — its wrapper must fetch nothing external; it carries a licensing note (GPL-3.0 components, requires owning Minecraft Java) — keep it.
-7. **Disk guard** — always check `df -h / | tail -1` before operations. Games are NOT local — do not assume `Games/` exists on disk.
+2. **No secrets in code or git history** — tokens, keys, emails, absolute local paths (`/home/...`). Use relative paths only.
+3. **Evidence before deletion** — never delete a file/dir without grepping the repo to prove it is unreferenced.
+4. **`/bare/*` proxy stays DISABLED** — do not re-enable, repoint, or weaken netlify.toml security settings without security sign-off.
+5. **Eaglercraft stays fully offline** — its wrapper must fetch nothing external; it carries a licensing note (GPL-3.0 components, requires owning Minecraft Java) — keep it.
+6. **Disk guard** — always check `df -h / | tail -1` before operations. Games are NOT local — do not assume `Games/` exists on disk.
 
 ## Architecture quick facts
 
@@ -58,7 +57,7 @@ Operating rules for any agent (opencode, Claude Code, Codex, Hermes) working in 
 
 ## Adding a game
 
-1. Create `Games/<Name>/` with a self-contained, offline, mobile-friendly game.
+1. Create `Games/<Name>/` with a self-contained, mobile-friendly game.
 2. Append its entry to `games.json` (new id, valid schema).
 3. Validate: `python3 -c "import json; d=json.load(open('games.json')); print(len(d))"` and check every url resolves.
 4. Commit: `feat: add <Name>`.
