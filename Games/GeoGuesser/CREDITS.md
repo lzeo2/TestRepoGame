@@ -1,35 +1,22 @@
-# GeoGuesser (offline variant)
+# GeoGuesser (WorldGuessr embed)
 
-Offline rewrite of the GeoGuesser concept for the UNBLOCKMATH // ARCADE catalog.
-All gameplay logic, locations, scoring, map, and the offline BroadcastChannel
-multiplayer path are original code written for this repo.
+This catalog entry now serves [WorldGuessr](https://www.worldguessr.com) by
+codergautam, embedded in a full-viewport iframe. WorldGuessr is a free
+GeoGuessr-style game using real Google Street View panoramas, with solo and
+multiplayer modes. All gameplay, assets, and infrastructure belong to
+codergautam's WorldGuessr — this wrapper only frames it.
 
-## What changed for offline
+## History
 
-Earlier versions loaded the Google Maps JavaScript API at runtime and used
-Google Street View tiles for the clue pane. That violated the repo's
-offline-first policy (and the API key had leaked into the repo). The current
-build removes all third-party runtime fetches:
+- Earlier: original offline implementation with a bundled clue photo and a
+  world-map guessing mini-game (see git history, `65f5806`).
+- Before that: a Google Maps Street View + Supabase Realtime build, which was
+  removed because an API key leaked into the repo (`6f4d304`).
+- Now: direct embed of WorldGuessr, per the repo's decision to drop the
+  offline-first policy. Requires internet.
 
-- Google Maps JavaScript API loader: removed.
-- Supabase Realtime client + WebSocket traffic: removed (was used for
-  cross-device room sync). Cross-tab sync on the same origin still works via
-  `BroadcastChannel` plus the `localStorage` 'storage' event fallback.
-- The bundled `streetview.jpg` is now the single static clue photo shown in
-  the street-view pane (no 360° panning, no navigable panorama). The round
-  tag (e.g. "EASTERN SEABOARD") and the round title remain the primary
-  geographic clues; the map is the answer input.
-- The unused vendored `supabase.min.js` was removed.
+## Licensing
 
-## Why no Supabase / cross-device rooms
-
-The site deploys as a static bundle (Netlify `publish = "."`) with no backend.
-Re-enabling Supabase Realtime would (a) require shipping a runtime API key in
-the bundle and (b) re-introduce a network dependency that breaks the offline
-contract. Cross-tab sync is enough for a same-device classroom demo.
-
-## Permission / licensing
-
-Original Google Street View tiles belong to Google. None are loaded anymore,
-so no attribution is required. The Supabase JS client was MIT-licensed; it
-is no longer vendored.
+WorldGuessr is codergautam's project (open source at
+github.com/codergautam/worldguessr). Google Street View imagery remains the
+property of Google and is loaded by WorldGuessr itself, not by this repo.
