@@ -1,0 +1,22 @@
+## Batch 7
+
+Fireboy & Watergirl Fairy Tales | functional OK(404 NewCharAssets.png fairy sprite; smoke gate FAIL) | slop: minor | scores f=8 a=8 s=7 | fix
+Fireboy and Watergirl Hacked (Light Temple) | functional OK(hack verified: temple.json initial=true on 41/41 levels + engine `f.initial?1:0`; smoke gate FAIL 3x404 config json) | slop: minor | scores f=8 a=8 s=7 | fix
+Fireboy and Watergirl Forest Temple Hacked | functional OK(hack verified: initial=true 32/32 levels; smoke gate FAIL, json/ dir empty so 4x404) | slop: minor | scores f=8 a=8 s=6 | fix
+Fireboy and Watergirl Crystal Temple Hacked | functional OK(hack verified: initial=true 39/39 levels; smoke gate pass) | slop: minor | scores f=8 a=8 s=7 | keep
+Fireboy and Watergirl Fairy Tales Hacked | functional OK(hack verified: initial=true 32/32 levels; smoke gate FAIL same NewCharAssets.png 404 as base) | slop: minor | scores f=8 a=8 s=7 | fix
+GeoGuesser | functional OK(pure iframe embed of worldguessr.com, needs internet, no local game code; smoke gate FAIL on 3rd-party localStorage SecurityError) | slop: none | scores f=5 a=6 s=9 | keep
+Merge Cats Defender | functional OK | slop: minor | scores f=9 a=8 s=9 | keep
+Merge Cats Defender Hacked | functional OK(hack verified: START_COINS 999999, all unit cost:0, 17/17 cats in STARTER_UNLOCKS, isolated save key pawdefense.save.hacked.v1) | slop: none | scores f=9 a=8 s=9 | keep
+Neon Snake | functional OK | slop: none | scores f=9 a=9 s=10 | keep
+Neon Breakout | functional OK | slop: minor | scores f=9 a=9 s=9 | keep
+Neon Flappy | functional OK(no win state - endless best-score only, repo contract asks for win/lose) | slop: none | scores f=8 a=9 s=10 | fix
+Neon Boss Rush | functional OK | slop: minor | scores f=9 a=9 s=9 | keep
+Orbit Collector | functional OK(smoke gate pass, but three.js r128 loaded from cdnjs = external dependency; win overlay is mislabeled "Game Over", no lose state, touch input undocumented) | slop: minor | scores f=7 a=7 s=7 | fix
+
+Notes:
+- Smoke gate (2 runs, identical): `== 8/13 games pass ==` - FAIL: Fireboy & Watergirl Fairy Tales (404 NewCharAssets.png), Fireboy and Watergirl Hacked (Light Temple) (404 domains/sitelock/internal.json), Fireboy and Watergirl Forest Temple Hacked (404 domains/contracted/special.json), Fireboy and Watergirl Fairy Tales Hacked (404 NewCharAssets.png), GeoGuesser (2x worldguessr SecurityError on localStorage). PASS: Crystal Temple Hacked, Merge Cats Defender, Merge Cats Defender Hacked, Neon Snake, Neon Breakout, Neon Flappy, Neon Boss Rush, Orbit Collector. All failures have console_errors=0 except GeoGuesser, so the F&W 404s are non-fatal asset/config misses, but the gate is red and must be fixed or explicitly signed off.
+- "Hacked" verification: all 4 Fireboy hacked variants differ from their base copies ONLY in `data/*/temple.json` (`"initial": true` added to every level) + index.html badge, and every engine honors it (`f.initial ? 1 : 0` -> state 1 = unlocked). Merge Cats Defender Hacked differs only in Config.js/Units.js/index.html. Hacks are real, not just badges.
+- Neon 4-game duplication check: NOT copy-paste. md5 of every script/style/html differs; mechanics are distinct (snake grid / breakout bricks / flappy gates / boss bullet-hell). Shared neon palette + overlay/panel pattern is a deliberate house style; only inconsistency is structure (NeonSnake + NeonBreakout inline <style>, NeonFlappy + NeonBossRush external style.css) and a duplicated roundRect() helper in Snake/Breakout.
+- Slop hits: em-dash in visible control copy (NeonBreakout index.html L157-159, NeonBossRush L44-47, MergeCats landing tips - the last two are vendored/original text); inline `overlfow` typo in FireboyAndWatergirlHacked/index.html body style; per-game `.hacked-badge` CSS block copy-pasted into all 4 Fireboy hacked index.html files; `source.txt` provenance files point at html5.gamedistribution.com (same provenance-marker slop flagged in Batch 0). No Comic Sans, no emoji headers, no lorem ipsum, no dead buttons (every start/retry/resume/menu button in all 13 games is wired), no ALL-CAPS banner spam beyond game titles.
+- GeoGuesser is intentionally a third-party embed (decision documented in Games/GeoGuesser/CREDITS.md, incl. prior API-key leak removal); verdict `keep` means keep-with-reported-exception - its gate failure is external console noise the gate cannot distinguish from a real error.
