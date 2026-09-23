@@ -1,0 +1,7 @@
+[
+ {"title": "Asteroids", "cat": "arcade", "icon": "", "desc": "Rotate, thrust and shoot through wrapping asteroids that split as you clear wave after wave.", "url": "Games/Asteroids/index.html", "featured": false, "tags": ["space", "shooter"]},
+ {"title": "Space Invaders", "cat": "arcade", "icon": "", "desc": "Hold the line against a marching alien fleet that speeds up with every rank you thin.", "url": "Games/SpaceInvaders/index.html", "featured": false, "tags": ["shooter"]},
+ {"title": "Galaxian", "cat": "arcade", "icon": "", "desc": "Pick off a formation of aliens while divers break rank and swoop straight at you.", "url": "Games/Galaxian/index.html", "featured": false, "tags": ["shooter"]},
+ {"title": "Missile Command", "cat": "arcade", "icon": "", "desc": "Crosshair-launch interceptor batteries and hold the line as missile waves fall on six cities.", "url": "Games/MissileCommand/index.html", "featured": false, "tags": ["defense"]},
+ {"title": "Lunar Lander", "cat": "arcade", "icon": "", "desc": "Rotate and thrust against gravity to set down softly on a landing pad before fuel runs out.", "url": "Games/LunarLander/index.html", "featured": false, "tags": ["physics"]}
+]

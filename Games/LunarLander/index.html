@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>Lunar Lander</title>
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="wrap">
+  <div id="hud">
+    <span class="hud-item">Score <b id="score">0</b></span>
+    <span class="hud-item">Landing <b id="level">1</b></span>
+    <span class="hud-item">Fuel <b id="fuel">100</b></span>
+    <span class="hud-item">Speed <b id="speed">0</b></span>
+    <span class="hud-item">Alt <b id="alt">0</b></span>
+    <span class="hud-item">Best <b id="best">0</b></span>
+  </div>
+
+  <div id="stage">
+    <canvas id="game" width="480" height="480"></canvas>
+
+    <div class="screen" id="startScreen">
+      <h1>Lunar Lander</h1>
+      <p class="tag">Gravity never lets up. Burn fuel to slow your fall and touch down level, slow, and on a lit pad.</p>
+      <p class="best">Best <b id="startBest">0</b></p>
+      <button class="btn" id="startBtn">Start</button>
+      <div class="controls">
+        <p><b>Controls</b></p>
+        <p>Keyboard: <kbd>&uarr;</kbd> or <kbd>W</kbd> or <kbd>Space</kbd> to thrust, <kbd>&larr;</kbd><kbd>&rarr;</kbd> or <kbd>A</kbd><kbd>D</kbd> to rotate</p>
+        <p>Mobile: use the buttons below the play field</p>
+        <p>Pause: <kbd>P</kbd> &nbsp; Restart: <kbd>R</kbd></p>
+        <p>Goal: land under <b>14</b> speed with level legs. Narrow pads pay double.</p>
+      </div>
+    </div>
+
+    <div class="screen hidden" id="overScreen">
+      <h2>Game over</h2>
+      <p class="tag">The lander broke apart on impact.</p>
+      <p class="result">Score <b id="overScore">0</b></p>
+      <p class="best">Best <b id="overBest">0</b></p>
+      <button class="btn" id="restartBtn">Restart</button>
+      <button class="btn ghost" id="menuBtn1">Menu</button>
+    </div>
+
+    <div class="screen hidden" id="winScreen">
+      <h2>Soft landing</h2>
+      <p class="tag" id="winDetail">Down on a 2x pad.</p>
+      <p class="result">Score <b id="winScore">0</b></p>
+      <p class="best">Best <b id="winBest">0</b></p>
+      <button class="btn" id="againBtn">Next landing</button>
+      <button class="btn ghost" id="menuBtn2">Menu</button>
+    </div>
+
+    <div class="screen hidden" id="pauseScreen">
+      <h2>Paused</h2>
+      <button class="btn" id="resumeBtn">Resume</button>
+      <button class="btn ghost" id="menuBtn3">Menu</button>
+    </div>
+  </div>
+
+  <div id="pad" aria-label="Game controls">
+    <button class="pbtn" data-act="left" aria-label="Rotate left">&#9664;</button>
+    <button class="pbtn fire" data-act="thrust" aria-label="Thrust">Thrust</button>
+    <button class="pbtn" data-act="right" aria-label="Rotate right">&#9654;</button>
+  </div>
+</div>
+<script src="script.js"></script>
+</body>
+</html>

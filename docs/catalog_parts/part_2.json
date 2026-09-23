@@ -1,0 +1,6 @@
+[
+ {"title": "Centipede", "cat": "arcade", "icon": "", "desc": "Shoot the descending centipede, split it at the mushrooms and clear every wave.", "url": "Games/Centipede/index.html", "featured": false, "tags": ["shooter"]},
+ {"title": "Dig Dug", "cat": "arcade", "icon": "", "desc": "Tunnel through dirt and inflate each buried foe until it pops to clear the level.", "url": "Games/DigDug/index.html", "featured": false, "tags": ["classic"]},
+ {"title": "Frogger", "cat": "arcade", "icon": "", "desc": "Hop a frog through traffic and across logs to fill every home slot alive.", "url": "Games/Frogger/index.html", "featured": false, "tags": ["classic"]},
+ {"title": "DotRunner", "cat": "arcade", "icon": "", "desc": "Clear a maze of pellets while four pursuers close in; power pellets turn the tables.", "url": "Games/DotRunner/index.html", "featured": false, "tags": ["maze"]}
+]

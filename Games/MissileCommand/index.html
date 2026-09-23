@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>Missile Command</title>
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="wrap">
+  <div id="hud">
+    <span class="hud-item">Score <b id="score">0</b></span>
+    <span class="hud-item">Cities <b id="cities">6</b></span>
+    <span class="hud-item">Missiles <b id="ammo">30</b></span>
+    <span class="hud-item">Wave <b id="wave">1</b></span>
+    <span class="hud-item">Best <b id="best">0</b></span>
+  </div>
+
+  <div id="stage">
+    <canvas id="game" width="480" height="480"></canvas>
+
+    <div class="screen" id="startScreen">
+      <h1>Missile Command</h1>
+      <p class="tag">Enemy missiles rain down on your six cities. Burst your interceptors above them and let the chain explosions clear the sky.</p>
+      <p class="best">Best <b id="startBest">0</b></p>
+      <button class="btn" id="startBtn">Start</button>
+      <div class="controls">
+        <p><b>Controls</b></p>
+        <p>Mouse: move to aim, click to fire</p>
+        <p>Touch: tap the play field to aim and fire</p>
+        <p>Keyboard: <kbd>&larr;</kbd><kbd>&rarr;</kbd><kbd>&uarr;</kbd><kbd>&darr;</kbd> move the crosshair, <kbd>Space</kbd> fires</p>
+        <p>Pause: <kbd>P</kbd> &nbsp; Restart: <kbd>R</kbd></p>
+        <p>Goal: survive <b>5</b> waves with at least one city left. 30 missiles per wave.</p>
+      </div>
+    </div>
+
+    <div class="screen hidden" id="overScreen">
+      <h2>Game over</h2>
+      <p class="tag">Every city is gone.</p>
+      <p class="result">Score <b id="overScore">0</b></p>
+      <p class="best">Best <b id="overBest">0</b></p>
+      <button class="btn" id="restartBtn">Restart</button>
+      <button class="btn ghost" id="menuBtn1">Menu</button>
+    </div>
+
+    <div class="screen hidden" id="winScreen">
+      <h2>Cities saved</h2>
+      <p class="result">Score <b id="winScore">0</b></p>
+      <p class="best">Best <b id="winBest">0</b></p>
+      <button class="btn" id="againBtn">Play again</button>
+      <button class="btn ghost" id="menuBtn2">Menu</button>
+    </div>
+
+    <div class="screen hidden" id="pauseScreen">
+      <h2>Paused</h2>
+      <button class="btn" id="resumeBtn">Resume</button>
+      <button class="btn ghost" id="menuBtn3">Menu</button>
+    </div>
+  </div>
+</div>
+<script src="script.js"></script>
+</body>
+</html>
