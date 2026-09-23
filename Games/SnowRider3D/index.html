@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>Snow Rider 3D</title>
+<link rel="icon" href="data:,">
+<style>
+:root {
+  --bg: #101418;
+  --panel: #1a2027;
+  --line: #2b333d;
+  --txt: #e7edf3;
+  --dim: #9fb0c0;
+  --gold: #f2c14e;
+  --blue: #5aa9e6;
+  --red: #d9695f;
+  --reserved: 270px;
+}
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body {
+  margin: 0; padding: 0; height: 100%;
+  background: var(--bg); color: var(--txt);
+  font-family: "Segoe UI", Tahoma, system-ui, sans-serif;
+  overflow: hidden; touch-action: none;
+}
+#wrap {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 10px; height: 100%; padding: 10px; user-select: none;
+}
+#hud { display: flex; gap: 14px; align-items: center; justify-content: center; flex-wrap: wrap; font-size: 14px; }
+.hud-item b { color: var(--gold); margin-left: 4px; }
+#pauseBtn {
+  min-height: 44px; min-width: 44px; padding: 4px 14px;
+  background: var(--panel); color: var(--txt);
+  border: 1px solid var(--line); border-radius: 8px;
+  font-size: 13px; cursor: pointer;
+}
+#pauseBtn:focus-visible, .btn:focus-visible, .tbtn:focus-visible {
+  outline: 2px solid var(--gold); outline-offset: 2px;
+}
+#stage {
+  position: relative;
+  width: min(94vw, calc((100vh - var(--reserved)) * 1.6), 720px);
+  aspect-ratio: 640 / 400;
+}
+#game {
+  width: 100%; height: 100%; display: block;
+  background: #a9d5f1; border: 2px solid var(--line); border-radius: 8px;
+  touch-action: none;
+}
+.screen {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 12px; text-align: center; padding: 16px;
+  background: rgba(13, 17, 21, 0.93); border-radius: 8px;
+}
+.screen.hidden { display: none; }
+.title { margin: 0; font-size: clamp(24px, 7vw, 36px); font-weight: 800; letter-spacing: 2px; }
+.title.danger { color: var(--red); }
+.tag { margin: 0; font-size: 14px; color: var(--dim); max-width: 360px; line-height: 1.5; }
+.result { margin: 0; font-size: 16px; }
+.result b, .best-line b { color: var(--gold); }
+.best-line { margin: 0; font-size: 14px; color: var(--dim); }
+.btn {
+  min-height: 44px; padding: 10px 28px;
+  font-size: 16px; font-weight: 700; letter-spacing: 1px;
+  background: transparent; color: var(--txt);
+  border: 2px solid var(--blue); border-radius: 8px; cursor: pointer;
+}
+.btn:active { background: rgba(90, 169, 230, 0.25); }
+.btn.ghost { border-color: var(--dim); font-weight: 600; }
+.controls { font-size: 13px; line-height: 1.7; color: var(--dim); max-width: 360px; }
+.controls b { color: var(--txt); }
+kbd {
+  display: inline-block; border: 1px solid var(--line); background: var(--panel);
+  border-radius: 4px; padding: 1px 6px; margin: 0 1px; font-size: 11px;
+}
+#touch { display: flex; justify-content: center; gap: 12px; }
+.tbtn {
+  min-width: 64px; min-height: 54px;
+  border: 2px solid var(--line); background: var(--panel); color: var(--txt);
+  font-size: 20px; border-radius: 10px; cursor: pointer; touch-action: none;
+}
+.tbtn:active { background: #2b333d; }
+#jumpBtn { min-width: 132px; font-size: 15px; font-weight: 700; letter-spacing: 1px; }
+@media (min-width: 760px) and (pointer: fine) {
+  #touch { display: none; }
+  :root { --reserved: 130px; }
+}
+</style>
+</head>
+<body>
+<div id="wrap">
+  <div id="hud">
+    <span class="hud-item">Score <b id="score">0</b></span>
+    <span class="hud-item">Distance <b id="dist">0 m</b></span>
+    <span class="hud-item">Speed <b id="spd">0 km/h</b></span>
+    <span class="hud-item">Best <b id="best">0</b></span>
+    <button id="pauseBtn" type="button">Pause</button>
+  </div>
+
+  <div id="stage">
+    <canvas id="game" width="640" height="400" aria-label="Snow Rider 3D slope"></canvas>
+
+    <div class="screen" id="startScreen">
+      <h1 class="title">Snow Rider 3D</h1>
+      <p class="tag">Sled down an endless mountain run. Dodge trees and boulders, jump the ice ledges, and hit the wooden ramps for big air.</p>
+      <button class="btn" id="playBtn" type="button">Start run</button>
+      <div class="controls">
+        <p><b>Controls</b></p>
+        <p>Steer: <kbd>&larr;</kbd><kbd>&rarr;</kbd> or <kbd>A</kbd><kbd>D</kbd></p>
+        <p>Jump: <kbd>Space</kbd>, <kbd>&uarr;</kbd> or <kbd>W</kbd> &nbsp; Brake: <kbd>&darr;</kbd> or <kbd>S</kbd></p>
+        <p>Mobile: use the buttons below the run</p>
+        <p>Pause: <kbd>P</kbd> &nbsp; Restart: <kbd>R</kbd></p>
+        <p>Hit an obstacle and the run is over. Your best score is saved.</p>
+      </div>
+    </div>
+
+    <div class="screen hidden" id="pauseScreen">
+      <h1 class="title">Paused</h1>
+      <button class="btn" id="resumeBtn" type="button">Resume</button>
+      <button class="btn ghost" id="quitBtn" type="button">Menu</button>
+    </div>
+
+    <div class="screen hidden" id="overScreen">
+      <h1 class="title danger">Wipeout</h1>
+      <p class="tag">You crashed into an obstacle.</p>
+      <p class="result">Score <b id="overScore">0</b></p>
+      <p class="result">Distance <b id="overDist">0 m</b></p>
+      <p class="best-line">Best <b id="overBest">0</b></p>
+      <button class="btn" id="retryBtn" type="button">Try again</button>
+      <button class="btn ghost" id="menuBtn" type="button">Menu</button>
+    </div>
+  </div>
+
+  <div id="touch" aria-label="Game controls">
+    <button class="tbtn" id="leftBtn" type="button" aria-label="Steer left">&#9664;</button>
+    <button class="tbtn" id="jumpBtn" type="button" aria-label="Jump">Jump</button>
+    <button class="tbtn" id="rightBtn" type="button" aria-label="Steer right">&#9654;</button>
+  </div>
+</div>
+
+<script>
+"use strict";
+(function () {
+  // ---- constants ---------------------------------------------------------
+
+  var W = 640, H = 400;              // logical canvas size
+  var SEG = 200, N = 512, TRACK = N * SEG;
+  var ROAD_W = 1000;                 // half width of the sled lane, world units
+  var DRAW = 160;                    // segments rendered ahead
+  var CAM_H = 1100;                  // camera height above the snow
+  var DEPTH = 0.84;                  // 1 / tan(fov/2), fov about 100 deg
+  var MIN_SPEED = 700, MAX_SPEED = 5200;
+  var ACCEL = 520, SLOPE_F = 1600, BRAKE_F = 2600, OFFROAD_F = 2600;
+  var STEER = 1.7, CENTRIF = 0.45;
+  var GRAV = 3200, JUMP_V = 1550, RAMP_V = 1750;
+  var PLAYER_HALF = 0.07;            // sled half width in lane units
+  var START_SPEED = 1400;
+
+  var canvas = document.getElementById("game");
+  var ctx = canvas.getContext("2d");
+
+  var ui = {
+    score: document.getElementById("score"),
+    dist: document.getElementById("dist"),
+    spd: document.getElementById("spd"),
+    best: document.getElementById("best"),
+    start: document.getElementById("startScreen"),
+    pause: document.getElementById("pauseScreen"),
+    over: document.getElementById("overScreen"),
+    overScore: document.getElementById("overScore"),
+    overDist: document.getElementById("overDist"),
+    overBest: document.getElementById("overBest")
+  };
+
+  function loadBest() {
+    try { return parseInt(localStorage.getItem("snowrider3dBest"), 10) || 0; }
+    catch (e) { return 0; } // storage blocked: play with an in-memory best
+  }
+  function saveBest(v) {
+    try { localStorage.setItem("snowrider3dBest", String(v)); }
+    catch (e) { /* storage blocked: in-memory best still applies */ }
+  }
+
+  function clamp(v, lo, hi) { return v < lo ? lo : (v > hi ? hi : v); }
+  function lerp(a, b, t) { return a + (b - a) * t; }
+
+  // Deterministic layout so every run faces the same mountain.
+  function mulberry32(a) {
+    return function () {
+      a |= 0; a = a + 0x6D2B79F5 | 0;
+      var t = Math.imul(a ^ a >>> 15, 1 | a);
+      t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+      return ((t ^ t >>> 14) >>> 0) / 4294967296;
+    };
+  }
+
+  // ---- track --------------------------------------------------------------
+
+  // Two sine waves give wrapping hills: elev[N] === elev[0], so the loop
+  // stays continuous and the grade sign tells us slope speed.
+  var elev = new Float64Array(N + 1);
+  var segs = new Array(N);
+  var segObjects = new Array(N);
+  var i;
+  for (i = 0; i <= N; i++) {
+    elev[i] = 700 * Math.sin(2 * Math.PI * 3 * i / N) +
+              400 * Math.sin(2 * Math.PI * 7 * i / N + 1.7);
+  }
+
+  var rnd = mulberry32(20250113);
+  var curve = 0, cTarget = 0, cHold = 0;
+  for (i = 0; i < N; i++) {
+    if (cHold <= 0) {
+      cHold = 25 + Math.floor(rnd() * 40);
+      cTarget = rnd() < 0.4 ? 0 : (rnd() * 2 - 1) * 2.6;
+    }
+    cHold--;
+    curve += (cTarget - curve) * 0.06;
+    segs[i] = { curve: curve, y1: elev[i], y2: elev[i + 1] };
+    segObjects[i] = [];
+  }
+
+  // ---- obstacles ----------------------------------------------------------
+
+  var objects = []; // {z, x, type, half, clearH, solid}
+
+  function addObj(segIdx, x, type) {
+    var half = 0.09, clearH = 1e9;
+    if (type === "rock") { half = 0.11; clearH = 110; }
+    else if (type === "ledge") { half = 0.13; clearH = 210; }
+    else if (type === "ramp") { half = 0.18; clearH = 0; }
+    else if (type === "pole") { half = 0.03; }
+    var o = {
+      z: segIdx * SEG + SEG / 2, x: x, type: type,
+      half: half, clearH: clearH, solid: Math.abs(x) <= 1.1 && type !== "ramp"
+    };
+    objects.push(o);
+    segObjects[segIdx].push(o);
+  }
+
+  var zSeg = 15; // keep the first stretch clear after a restart
+  while (zSeg < N - 6) {
+    var lane = (rnd() * 2 - 1) * 0.7;
+    var roll = rnd();
+    var kind = roll < 0.4 ? "tree" : roll < 0.66 ? "rock" : roll < 0.85 ? "ledge" : "ramp";
+    addObj(zSeg, lane, kind);
+    if (rnd() < 0.35) {
+      // second obstacle, always leaving a gap on the far side
+      var lane2 = lane > 0 ? lane - 0.55 - rnd() * 0.2 : lane + 0.55 + rnd() * 0.2;
+      lane2 = clamp(lane2, -0.78, 0.78);
+      if (Math.abs(lane2 - lane) > 0.4) {
+        addObj(zSeg, lane2, rnd() < 0.5 ? "tree" : "rock");
+      }
+    }
+    zSeg += 3 + Math.floor(rnd() * 4);
+  }
+  // Scenery pines off the lane (never solid) and trail marker poles.
+  for (var s = 2; s < N; s += 4) {
+    addObj(s, (rnd() < 0.5 ? -1 : 1) * (1.5 + rnd()), "tree");
+  }
+  for (s = 8; s < N; s += 16) {
+    addObj(s, -1.3, "pole");
+    addObj(s, 1.3, "pole");
+  }
+
+  // ---- state --------------------------------------------------------------
+
+  var state = "start"; // start | play | pause | over
+  var playerZ = 0, playerX = 0, speed = START_SPEED;
+  var jumpY = 0, vy = 0, airborne = false;
+  var distance = 0, bonus = 0, score = 0, best = loadBest();
+  var input = { left: false, right: false, brake: false };
+  var steerVis = 0;
+
+  function meters() { return Math.floor(distance / 100); }
+
+  function updateHud() {
+    ui.score.textContent = String(score);
+    ui.dist.textContent = meters() + " m";
+    ui.spd.textContent = Math.round(speed * 0.036) + " km/h";
+    ui.best.textContent = String(best);
+  }
+
+  function resetGame() {
+    playerZ = 0; playerX = 0; speed = START_SPEED;
+    jumpY = 0; vy = 0; airborne = false;
+    distance = 0; bonus = 0; score = 0;
+    input.left = false; input.right = false; input.brake = false;
+    steerVis = 0;
+    updateHud();
+  }
+
+  function hideScreens() {
+    ui.start.classList.add("hidden");
+    ui.pause.classList.add("hidden");
+    ui.over.classList.add("hidden");
+  }
+
+  function startGame() {
+    resetGame();
+    hideScreens();
+    state = "play";
+    startLoop();
+  }
+
+  function toMenu() {
+    resetGame();
+    hideScreens();
+    state = "start";
+    ui.start.classList.remove("hidden");
+    stopLoop();
+    render();
+  }
+
+  function pauseGame() {
+    if (state !== "play") return;
+    state = "pause";
+    ui.pause.classList.remove("hidden");
+    stopLoop();
+    render();
+  }
+
+  function resumeGame() {
+    if (state !== "pause") return;
+    ui.pause.classList.add("hidden");
+    state = "play";
+    startLoop();
+  }
+
+  function gameOver() {
+    score = meters() + bonus;
+    if (score > best) { best = score; saveBest(best); }
+    updateHud();
+    ui.overScore.textContent = String(score);
+    ui.overDist.textContent = meters() + " m";
+    ui.overBest.textContent = String(best);
+    state = "over";
+    render();
+    stopLoop();
+    ui.over.classList.remove("hidden");
+  }
+
+  // ---- update -------------------------------------------------------------
+
+  function doJump() {
+    if (state !== "play" || airborne) return;
+    vy = JUMP_V;
+    airborne = true;
+  }
+
+  function update(dt) {
+    var bi = Math.floor(playerZ / SEG) % N;
+    var seg = segs[bi];
+    var speedNorm = speed / MAX_SPEED;
+
+    var dir = (input.left ? -1 : 0) + (input.right ? 1 : 0);
+    playerX += dir * STEER * (0.45 + 0.55 * speedNorm) * dt;
+    playerX -= seg.curve * CENTRIF * speedNorm * speedNorm * dt;
+    playerX = clamp(playerX, -1.25, 1.25);
+    steerVis += (dir - steerVis) * Math.min(1, dt * 8);
+
+    // Slope builds speed downhill and drags it back uphill.
+    var grade = (seg.y2 - seg.y1) / SEG;
+    speed += -grade * SLOPE_F * dt;
+    speed += ACCEL * (1 - speed / MAX_SPEED) * dt;
+    if (input.brake) speed -= BRAKE_F * dt;
+    if (Math.abs(playerX) > 1) speed -= OFFROAD_F * dt;
+    speed = clamp(speed, MIN_SPEED, MAX_SPEED);
+
+    if (airborne) {
+      jumpY += vy * dt;
+      vy -= GRAV * dt;
+      if (jumpY <= 0) { jumpY = 0; vy = 0; airborne = false; }
+    }
+
+    distance += speed * dt;
+    playerZ += speed * dt;
+    if (playerZ >= TRACK) playerZ -= TRACK;
+
+    // Swept hit test: threshold covers the distance travelled this frame.
+    var thr = speed * dt + 130;
+    for (var k = 0; k < objects.length; k++) {
+      var o = objects[k];
+      var d = ((o.z - playerZ) % TRACK + TRACK) % TRACK;
+      if (d > TRACK / 2) d -= TRACK;
+      if (d < -thr || d > thr) continue;
+      if (Math.abs(o.x - playerX) > o.half + PLAYER_HALF) continue;
+      if (o.type === "ramp") {
+        if (!airborne) {
+          vy = RAMP_V;
+          airborne = true;
+          bonus += 50;
+          speed = Math.min(MAX_SPEED * 1.08, speed + 350);
+        }
+        continue;
+      }
+      if (!o.solid) continue;
+      if (jumpY <= o.clearH) { gameOver(); return; }
+    }
+
+    score = meters() + bonus;
+    updateHud();
+  }
+
+  // ---- render -------------------------------------------------------------
+
+  function project(z, worldY, xAcc, camY) {
+    var sc = DEPTH / z;
+    return {
+      x: W / 2 + sc * (xAcc - playerX * ROAD_W) * W / 2,
+      y: H / 2 - sc * (worldY - camY) * H / 2,
+      w: sc * ROAD_W * W / 2,
+      s: sc
+    };
+  }
+
+  function drawBackdrop() {
+    ctx.fillStyle = "#a9d5f1"; // sky
+    ctx.fillRect(0, 0, W, H / 2 + 2);
+    ctx.fillStyle = "#f4f8fb"; // snow below the horizon
+    ctx.fillRect(0, H / 2, W, H / 2);
+    // Two flat mountain ranges sitting on the horizon.
+    ctx.fillStyle = "#aebfd1";
+    ctx.beginPath();
+    ctx.moveTo(0, H / 2);
+    ctx.lineTo(60, H / 2 - 46); ctx.lineTo(130, H / 2 - 14);
+    ctx.lineTo(210, H / 2 - 58); ctx.lineTo(300, H / 2 - 10);
+    ctx.lineTo(390, H / 2 - 50); ctx.lineTo(480, H / 2 - 16);
+    ctx.lineTo(560, H / 2 - 44); ctx.lineTo(640, H / 2 - 8);
+    ctx.lineTo(640, H / 2);
+    ctx.closePath();
+    ctx.fill();
+    ctx.fillStyle = "#c3d0de";
+    ctx.beginPath();
+    ctx.moveTo(0, H / 2);
+    ctx.lineTo(90, H / 2 - 26); ctx.lineTo(180, H / 2 - 6);
+    ctx.lineTo(320, H / 2 - 30); ctx.lineTo(430, H / 2 - 6);
+    ctx.lineTo(540, H / 2 - 28); ctx.lineTo(640, H / 2 - 12);
+    ctx.lineTo(640, H / 2);
+    ctx.closePath();
+    ctx.fill();
+  }
+
+  function drawObject(o, sx, sy, u) {
+    if (o.type === "tree") {
+      ctx.fillStyle = "#6b4a2f"; // trunk
+      ctx.fillRect(sx - 30 * u, sy - 140 * u, 60 * u, 140 * u);
+      ctx.fillStyle = "#2f7d52"; // canopy
+      ctx.beginPath();
+      ctx.moveTo(sx, sy - 520 * u);
+      ctx.lineTo(sx - 170 * u, sy - 90 * u);
+      ctx.lineTo(sx + 170 * u, sy - 90 * u);
+      ctx.closePath();
+      ctx.fill();
+      ctx.fillStyle = "#f4f8fb"; // snow on the tip
+      ctx.beginPath();
+      ctx.moveTo(sx, sy - 520 * u);
+      ctx.lineTo(sx - 64 * u, sy - 350 * u);
+      ctx.lineTo(sx + 64 * u, sy - 350 * u);
+      ctx.closePath();
+      ctx.fill();
+    } else if (o.type === "rock") {
+      ctx.fillStyle = "#8a94a3";
+      ctx.beginPath();
+      ctx.moveTo(sx - 150 * u, sy);
+      ctx.lineTo(sx - 90 * u, sy - 120 * u);
+      ctx.lineTo(sx + 30 * u, sy - 150 * u);
+      ctx.lineTo(sx + 150 * u, sy - 40 * u);
+      ctx.lineTo(sx + 120 * u, sy);
+      ctx.closePath();
+      ctx.fill();
+      ctx.fillStyle = "#6f7887"; // shaded facet
+      ctx.beginPath();
+      ctx.moveTo(sx + 30 * u, sy - 150 * u);
+      ctx.lineTo(sx + 150 * u, sy - 40 * u);
+      ctx.lineTo(sx + 60 * u, sy);
+      ctx.closePath();
+      ctx.fill();
+    } else if (o.type === "ledge") {
+      ctx.fillStyle = "#a9d6f2"; // ice block
+      ctx.fillRect(sx - 160 * u, sy - 260 * u, 320 * u, 260 * u);
+      ctx.fillStyle = "#cfe9fa"; // sunlit top
+      ctx.fillRect(sx - 160 * u, sy - 260 * u, 320 * u, 46 * u);
+      ctx.fillStyle = "#86b9dd"; // shaded side
+      ctx.fillRect(sx + 90 * u, sy - 214 * u, 70 * u, 214 * u);
+    } else if (o.type === "ramp") {
+      ctx.fillStyle = "#e8a33d"; // wooden kicker
+      ctx.beginPath();
+      ctx.moveTo(sx - 200 * u, sy);
+      ctx.lineTo(sx + 200 * u, sy);
+      ctx.lineTo(sx + 110 * u, sy - 120 * u);
+      ctx.lineTo(sx - 110 * u, sy - 120 * u);
+      ctx.closePath();
+      ctx.fill();
+      ctx.fillStyle = "#f6d78a"; // plank stripe
+      ctx.fillRect(sx - 165 * u, sy - 62 * u, 330 * u, 26 * u);
+    } else if (o.type === "pole") {
+      ctx.fillStyle = "#d9575f"; // trail marker
+      ctx.fillRect(sx - 9 * u, sy - 200 * u, 18 * u, 200 * u);
+      ctx.fillStyle = "#f4f8fb";
+      ctx.fillRect(sx - 9 * u, sy - 200 * u, 18 * u, 50 * u);
+    }
+  }
+
+  function drawSled() {
+    var groundY = H * 0.88;
+    var y = groundY - jumpY * 0.18;
+    if (jumpY > 1) {
+      // flat shadow stays on the snow while the sled is airborne
+      var sh = clamp(1 - jumpY / 450, 0.3, 1);
+      ctx.fillStyle = "#c9d4e0";
+      ctx.beginPath();
+      ctx.ellipse(W / 2, groundY + 6, 46 * sh, 9 * sh, 0, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.save();
+    ctx.translate(W / 2, y);
+    ctx.rotate(steerVis * 0.13);
+    ctx.fillStyle = "#c0392b"; // runners
+    ctx.fillRect(-46, 12, 94, 8);
+    ctx.fillStyle = "#d9575f"; // deck
+    ctx.fillRect(-40, 0, 82, 14);
+    ctx.fillStyle = "#3f6fbf"; // rider
+    ctx.fillRect(-15, -34, 30, 34);
+    ctx.fillStyle = "#e8b48c"; // face
+    ctx.beginPath();
+    ctx.arc(0, -46, 12, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = "#d9575f"; // hat
+    ctx.fillRect(-13, -58, 26, 12);
+    ctx.fillStyle = "#f4f8fb";
+    ctx.beginPath();
+    ctx.arc(0, -60, 5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  }
+
+  function render() {
+    drawBackdrop();
+
+    var bi = Math.floor(playerZ / SEG) % N;
+    var frac = (playerZ - bi * SEG) / SEG;
+    var seg0 = segs[bi];
+    var camY = lerp(seg0.y1, seg0.y2, frac) + CAM_H;
+    var xAcc = 0, dx = -seg0.curve * frac, maxy = H;
+    var drawList = [];
+
+    for (var n = 0; n < DRAW; n++) {
+      var idx = (bi + n) % N;
+      var sg = segs[idx];
+      var z1 = Math.max(n * SEG - frac * SEG, 1);
+      var z2 = (n + 1) * SEG - frac * SEG;
+      var p1 = project(z1, sg.y1, xAcc, camY);
+      var p2 = project(z2, sg.y2, xAcc + dx, camY);
+      xAcc += dx;
+      dx += sg.curve;
+      // back face / already drawn / hidden behind a crest
+      if (p2.y >= p1.y || p2.y >= maxy) continue;
+
+      // snow band with alternating tones for a sense of speed
+      ctx.fillStyle = (idx & 1) ? "#f4f8fb" : "#ecf2f8";
+      ctx.fillRect(0, p2.y, W, Math.min(p1.y, H) - p2.y);
+
+      // compacted sled lane
+      ctx.fillStyle = (idx & 2) ? "#d7e3ef" : "#dfe9f3";
+      ctx.beginPath();
+      ctx.moveTo(p1.x - p1.w, p1.y);
+      ctx.lineTo(p1.x + p1.w, p1.y);
+      ctx.lineTo(p2.x + p2.w, p2.y);
+      ctx.lineTo(p2.x - p2.w, p2.y);
+      ctx.closePath();
+      ctx.fill();
+
+      maxy = p2.y;
+
+      // objects on this segment, interpolated to its midpoint
+      var objs = segObjects[idx];
+      for (var k = 0; k < objs.length; k++) {
+        var o = objs[k];
+        drawList.push({
+          o: o,
+          x: lerp(p1.x, p2.x, 0.5) + (o.x / ROAD_W) * lerp(p1.w, p2.w, 0.5),
+          y: lerp(p1.y, p2.y, 0.5),
+          u: lerp(p1.s, p2.s, 0.5) * W / 2
+        });
+      }
+    }
+
+    // painter order: farthest first
+    for (var q = drawList.length - 1; q >= 0; q--) {
+      drawObject(drawList[q].o, drawList[q].x, drawList[q].y, drawList[q].u);
+    }
+
+    drawSled();
+  }
+
+  // ---- loop control -------------------------------------------------------
+
+  var rafId = 0, running = false, lastT = 0;
+
+  function frame(t) {
+    if (!running) return;
+    var dt = Math.min(0.05, (t - lastT) / 1000);
+    lastT = t;
+    if (state === "play") update(dt);
+    render();
+    if (running) rafId = requestAnimationFrame(frame);
+  }
+
+  function startLoop() {
+    if (running) return;
+    running = true;
+    lastT = performance.now();
+    rafId = requestAnimationFrame(frame);
+  }
+
+  function stopLoop() {
+    running = false;
+    cancelAnimationFrame(rafId);
+    rafId = 0;
+  }
+
+  function fitCanvas() {
+    var dpr = Math.min(window.devicePixelRatio || 1, 2);
+    canvas.width = Math.round(W * dpr);
+    canvas.height = Math.round(H * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    render();
+  }
+
+  // ---- input --------------------------------------------------------------
+
+  var HOLD_BY_CODE = {
+    ArrowLeft: "left", KeyA: "left",
+    ArrowRight: "right", KeyD: "right",
+    ArrowDown: "brake", KeyS: "brake"
+  };
+  var JUMP_BY_CODE = { Space: 1, ArrowUp: 1, KeyW: 1 };
+
+  window.addEventListener("keydown", function (e) {
+    var hold = HOLD_BY_CODE[e.code];
+    if (hold) { e.preventDefault(); input[hold] = true; }
+    if (JUMP_BY_CODE[e.code]) {
+      e.preventDefault();
+      if (!e.repeat) doJump();
+    }
+    if (e.code === "Space" && !e.repeat &&
+        (state === "start" || state === "over")) {
+      startGame();
+      return;
+    }
+    if (e.code === "KeyP") {
+      if (state === "play") pauseGame();
+      else if (state === "pause") resumeGame();
+    }
+    if (e.code === "KeyR" && state !== "start") startGame();
+    if (e.code === "Escape" && state === "pause") resumeGame();
+  });
+
+  window.addEventListener("keyup", function (e) {
+    var hold = HOLD_BY_CODE[e.code];
+    if (hold) input[hold] = false;
+  });
+
+  window.addEventListener("blur", function () {
+    input.left = false; input.right = false; input.brake = false;
+    if (state === "play") pauseGame();
+  });
+
+  window.addEventListener("resize", fitCanvas);
+
+  // Touch steering: press and hold, release to let go.
+  [["leftBtn", "left"], ["rightBtn", "right"]].forEach(function (pair) {
+    var el = document.getElementById(pair[0]);
+    var key = pair[1];
+    el.addEventListener("pointerdown", function (e) {
+      e.preventDefault();
+      el.setPointerCapture(e.pointerId);
+      input[key] = true;
+    });
+    function release() { input[key] = false; }
+    el.addEventListener("pointerup", release);
+    el.addEventListener("pointercancel", release);
+    el.addEventListener("lostpointercapture", release);
+    el.addEventListener("contextmenu", function (e) { e.preventDefault(); });
+  });
+
+  document.getElementById("jumpBtn").addEventListener("pointerdown", function (e) {
+    e.preventDefault();
+    doJump();
+  });
+  document.getElementById("jumpBtn").addEventListener("contextmenu", function (e) { e.preventDefault(); });
+
+  canvas.addEventListener("pointerdown", function (e) {
+    e.preventDefault();
+    doJump();
+  });
+
+  document.getElementById("playBtn").addEventListener("click", startGame);
+  document.getElementById("retryBtn").addEventListener("click", startGame);
+  document.getElementById("resumeBtn").addEventListener("click", resumeGame);
+  document.getElementById("quitBtn").addEventListener("click", toMenu);
+  document.getElementById("menuBtn").addEventListener("click", toMenu);
+  document.getElementById("pauseBtn").addEventListener("click", function () {
+    if (state === "play") pauseGame();
+    else if (state === "pause") resumeGame();
+  });
+
+  // ---- boot ---------------------------------------------------------------
+
+  resetGame();
+  state = "start";
+  fitCanvas();
+})();
+</script>
+</body>
+</html>

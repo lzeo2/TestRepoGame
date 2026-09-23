@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<!--
+  Source: https://github.com/daleharvey/pacman
+  License: WTFPL - commit 3acc5e2bb10e93c8f08eceb1562e1a16d672a1c6
+  Modifications: removed external writeup links, removed webfont (unclear
+  terms), added viewport meta, start/restart overlay, touch d-pad, relative paths only.
+-->
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <link rel="icon" href="data:,">
+    <title>Pacman</title>
+
+    <style type="text/css">
+      body {
+        width: 342px;
+        max-width: 100%;
+        margin: 0 auto;
+        font-family: sans-serif;
+        background: #111;
+        color: #eee;
+        text-align: center;
+        -webkit-user-select: none;
+        user-select: none;
+      }
+      h1 { text-align: center; font-size: 1.4em; margin: 10px 0 4px; }
+      p.note { font-size: 0.85em; margin: 4px 8px; color: #bbb; }
+      #pacman {
+        width: 342px;
+        max-width: 100%;
+        margin: 10px auto;
+      }
+      #pacman canvas { max-width: 100%; height: auto; display: block; margin: 0 auto; }
+
+      /* start / restart overlay */
+      #overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(10, 10, 10, 0.92);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+        z-index: 20;
+        padding: 16px;
+        box-sizing: border-box;
+      }
+      #overlay.hidden { display: none; }
+      #overlay h1 { font-size: 1.6em; margin: 0; }
+      #overlay p { margin: 0; font-size: 0.95em; color: #ccc; max-width: 320px; }
+      .btn {
+        min-width: 160px;
+        min-height: 48px;
+        font-size: 1.1em;
+        border: 0;
+        border-radius: 6px;
+        background: #ffd400;
+        color: #111;
+        cursor: pointer;
+      }
+      .btn.secondary { background: #444; color: #eee; }
+      .btn:focus-visible { outline: 3px solid #37c8ff; outline-offset: 2px; }
+
+      /* touch d-pad */
+      #dpad {
+        position: fixed;
+        left: 50%;
+        bottom: max(8px, env(safe-area-inset-bottom));
+        transform: translateX(-50%);
+        display: none;
+        grid-template-columns: repeat(3, 56px);
+        grid-template-rows: repeat(3, 56px);
+        gap: 4px;
+        z-index: 10;
+      }
+      .pad-btn {
+        border: 0;
+        border-radius: 8px;
+        background: rgba(255, 212, 0, 0.85);
+        color: #111;
+        font-size: 22px;
+        line-height: 56px;
+        text-align: center;
+        touch-action: none;
+      }
+      .pad-btn:active { background: #37c8ff; }
+      #pad-up    { grid-column: 2; grid-row: 1; }
+      #pad-left  { grid-column: 1; grid-row: 2; }
+      #pad-right { grid-column: 3; grid-row: 2; }
+      #pad-down  { grid-column: 2; grid-row: 3; }
+      @media (pointer: coarse) { #dpad { display: grid; } }
+    
+    #restartBtn {
+      position: fixed; top: max(8px, env(safe-area-inset-top)); right: 8px; z-index: 15;
+      min-width: 92px; min-height: 44px; font-size: 0.95em;
+    }
+</style>
+</head>
+
+<body>
+  <button class="btn secondary" id="restartBtn" hidden aria-label="Restart the game">Restart</button>
+  <div id="overlay">
+    <h1>Pacman</h1>
+    <p>Clear every pellet and avoid the ghosts. Press start, then tap N or use the button below.</p>
+    <p>Keyboard: arrow keys to move, N starts a new game, P pauses, S toggles sound.</p>
+    <p>Mobile: use the d-pad below the play field.</p>
+    <button class="btn" id="startBtn">Start</button>
+  </div>
+
+  <h1>Pacman</h1>
+  <p class="note">Arrow keys to move. N starts a new game. P pauses.</p>
+
+  <div id="pacman"></div>
+
+  <div id="dpad" aria-label="Touch controls">
+    <button class="pad-btn" id="pad-up" aria-label="Up">&#9650;</button>
+    <button class="pad-btn" id="pad-left" aria-label="Left">&#9664;</button>
+    <button class="pad-btn" id="pad-right" aria-label="Right">&#9654;</button>
+    <button class="pad-btn" id="pad-down" aria-label="Down">&#9660;</button>
+  </div>
+
+  <script src="pacman.js"></script>
+  <script src="modernizr-1.5.min.js"></script>
+
+  <script>
+    (function () {
+      var el = document.getElementById("pacman");
+
+      if (Modernizr.canvas && Modernizr.localstorage &&
+          Modernizr.audio && (Modernizr.audio.ogg || Modernizr.audio.mp3)) {
+        window.setTimeout(function () { PACMAN.init(el, "./"); }, 0);
+      } else {
+        el.textContent = "This game needs a browser with canvas, localStorage and audio support.";
+      }
+
+      /* dispatch a synthetic key event the game's document handlers understand */
+      function fireKey(type, keyCode) {
+        var ev = new KeyboardEvent(type, { bubbles: true, cancelable: true });
+        Object.defineProperty(ev, "keyCode", { get: function () { return keyCode; } });
+        Object.defineProperty(ev, "which", { get: function () { return keyCode; } });
+        document.dispatchEvent(ev);
+      }
+
+      var overlay = document.getElementById("overlay");
+      var startBtn = document.getElementById("startBtn");
+      var restartBtn = document.getElementById("restartBtn");
+
+      function startGame() {
+        overlay.classList.add("hidden");
+        fireKey("keydown", 78); /* N: new game */
+        window.setTimeout(function () { fireKey("keyup", 78); }, 50);
+        restartBtn.hidden = false;
+      }
+
+      startBtn.addEventListener("click", startGame);
+      restartBtn.addEventListener("click", function () {
+        fireKey("keydown", 78);
+        window.setTimeout(function () { fireKey("keyup", 78); }, 50);
+      });
+
+      /* touch d-pad mapped to arrow keys */
+      var padKeys = { "pad-left": 37, "pad-up": 38, "pad-right": 39, "pad-down": 40 };
+      Object.keys(padKeys).forEach(function (id) {
+        var btn = document.getElementById(id);
+        var code = padKeys[id];
+        var down = function (e) { e.preventDefault(); fireKey("keydown", code); };
+        var up = function (e) { e.preventDefault(); fireKey("keyup", code); };
+        btn.addEventListener("touchstart", down, { passive: false });
+        btn.addEventListener("touchend", up, { passive: false });
+        btn.addEventListener("touchcancel", up, { passive: false });
+        btn.addEventListener("mousedown", down);
+        btn.addEventListener("mouseup", up);
+      });
+    })();
+  </script>
+</body>
+</html>

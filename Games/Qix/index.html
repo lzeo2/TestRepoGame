@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<!--
+  Source: https://github.com/astropanic/JIX
+  License: MIT - commit c08594ec0423af2001a1a3904f745649e375dec8
+  Modifications: removed unused fpsmeter.js and debug.js (window.debug never
+  called), removed debug divs and per-frame DOM debug logging, deferred start
+  behind an overlay with Start/Restart, added viewport meta, touch d-pad,
+  relative paths only.
+-->
+<html lang="en">
+  <head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+	<link rel="icon" href="data:,">
+	<title>Qix</title>
+	<link rel="stylesheet" href="styles/main.css">
+	<style>
+	  html, body { background: #111; color: #eee; font-family: sans-serif; margin: 0; }
+	  body { text-align: center; -webkit-user-select: none; user-select: none; }
+	  #game-space { max-width: 960px; margin: 0 auto; }
+	  #logo { display: inline-block; font-size: 2em; font-weight: bold; color: #ffd400; }
+	  #logo-shadow { color: #37c8ff; }
+	  #header { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 6px 10px; }
+	  #claim, #timer { font-size: 0.95em; }
+	  #player_div, #vector_div { display: none; }
+	  #jix { max-width: 100%; height: auto; display: block; margin: 0 auto; background: #AA0033; }
+
+	  /* start / restart overlay */
+	  #overlay {
+		position: fixed; inset: 0; z-index: 20;
+		background: rgba(10, 10, 10, 0.92);
+		display: flex; flex-direction: column; align-items: center; justify-content: center;
+		gap: 12px; padding: 16px; box-sizing: border-box;
+	  }
+	  #overlay.hidden { display: none; }
+	  #overlay h1 { font-size: 1.6em; margin: 0; color: #ffd400; }
+	  #overlay p { margin: 0; font-size: 0.95em; color: #ccc; max-width: 340px; }
+	  .btn {
+		min-width: 160px; min-height: 48px; font-size: 1.1em;
+		border: 0; border-radius: 6px; cursor: pointer;
+		background: #ffd400; color: #111;
+	  }
+	  .btn.secondary { background: #444; color: #eee; }
+	  .btn:focus-visible { outline: 3px solid #37c8ff; outline-offset: 2px; }
+
+	  /* touch d-pad */
+	  #dpad {
+		position: fixed; left: 50%;
+		bottom: max(8px, env(safe-area-inset-bottom));
+		transform: translateX(-50%);
+		display: none;
+		grid-template-columns: repeat(3, 54px);
+		grid-template-rows: repeat(3, 54px);
+		gap: 4px; z-index: 10;
+	  }
+	  .pad-btn {
+		border: 0; border-radius: 8px;
+		background: rgba(255, 212, 0, 0.85); color: #111;
+		font-size: 20px; line-height: 54px; text-align: center;
+		touch-action: none;
+	  }
+	  .pad-btn:active { background: #37c8ff; }
+	  #pad-up    { grid-column: 2; grid-row: 1; }
+	  #pad-left  { grid-column: 1; grid-row: 2; }
+	  #pad-right { grid-column: 3; grid-row: 2; }
+	  #pad-down  { grid-column: 2; grid-row: 3; }
+	  @media (pointer: coarse) { #dpad { display: grid; } }
+	
+    #restartBtn {
+      position: fixed; top: max(8px, env(safe-area-inset-top)); right: 8px; z-index: 15;
+      min-width: 92px; min-height: 44px; font-size: 0.95em;
+    }
+</style>
+  </head>
+  <body>
+  <button class="btn secondary" id="restartBtn" hidden aria-label="Restart the game">Restart</button>
+	<div id="overlay">
+	  <h1>Qix</h1>
+	  <p>Trace a trail across the open field with the arrow keys, and try to stay moving before the timer runs out.</p>
+	  <p>Keyboard: arrow keys to move. Hold shift to dash.</p>
+	  <p>Mobile: use the d-pad below the play field.</p>
+	  <button class="btn" id="startBtn">Start</button>
+	  	</div>
+
+	<div id="game-space">
+	  <div id="header">
+      <div id="logo">JI<span id="logo-shadow">X</span></div>
+      <div id="claim">
+        <div class="sheet">0%</div>
+      </div>
+      <div class="clear"></div>
+      <div id="timer">
+        <div id="meter"></div>
+      </div>
+	  </div>
+	  <canvas id="jix" width="960" height="600"></canvas>
+	</div>
+
+	<div id="dpad" aria-label="Touch controls">
+	  <button class="pad-btn" id="pad-up" aria-label="Up">&#9650;</button>
+	  <button class="pad-btn" id="pad-left" aria-label="Left">&#9664;</button>
+	  <button class="pad-btn" id="pad-right" aria-label="Right">&#9654;</button>
+	  <button class="pad-btn" id="pad-down" aria-label="Down">&#9660;</button>
+	</div>
+
+	<script src="scripts/hud.js"></script>
+	<script src="scripts/input.js"></script>
+	<script src="scripts/graphics.js"></script>
+	<script src="scripts/player.js"></script>
+	<script src="scripts/game.js"></script>
+	<script>
+	  (function () {
+		var overlay = document.getElementById("overlay");
+		document.getElementById("startBtn").addEventListener("click", function () {
+		  overlay.classList.add("hidden");
+		  window.jixStart();
+		});
+		document.getElementById("restartBtn").addEventListener("click", function () {
+		  window.location.reload();
+		});
+
+		function fireKey(type, keyCode) {
+		  var ev = new KeyboardEvent(type, { bubbles: true, cancelable: true });
+		  Object.defineProperty(ev, "keyCode", { get: function () { return keyCode; } });
+		  window.dispatchEvent(ev);
+		}
+
+		var padKeys = { "pad-left": 37, "pad-up": 38, "pad-right": 39, "pad-down": 40 };
+		Object.keys(padKeys).forEach(function (id) {
+		  var btn = document.getElementById(id);
+		  var code = padKeys[id];
+		  var down = function (e) { e.preventDefault(); fireKey("keydown", code); };
+		  var up = function (e) { e.preventDefault(); fireKey("keyup", code); };
+		  btn.addEventListener("touchstart", down, { passive: false });
+		  btn.addEventListener("touchend", up, { passive: false });
+		  btn.addEventListener("touchcancel", up, { passive: false });
+		  btn.addEventListener("mousedown", down);
+		  btn.addEventListener("mouseup", up);
+		});
+	  })();
+	</script>
+  </body>
+</html>

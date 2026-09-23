@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<!--
+  Source: https://github.com/cschladetsch/JsJoust
+  License: MIT - commit 88cb734e4bc149e6e81c8abf6993e5f35aac66d8
+  Modifications: webpack production bundle vendored locally (bundle.js),
+  fixed EnemyAI player argument, generated platform texture (upstream assets
+  were never loaded), debug console spam removed, added viewport meta,
+  start/restart overlay, touch controls, relative paths only.
+-->
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <link rel="icon" href="data:,">
+  <title>Joust</title>
+  <style>
+    html, body { background: #111; color: #eee; font-family: sans-serif; margin: 0; }
+    body { text-align: center; -webkit-user-select: none; user-select: none; }
+    #game-wrap { max-width: 800px; margin: 0 auto; }
+    canvas { max-width: 100% !important; height: auto !important; }
+    p.note { font-size: 0.9em; color: #bbb; margin: 6px 8px; }
+
+    /* start / restart overlay */
+    #overlay {
+      position: fixed; inset: 0; z-index: 20;
+      background: rgba(10, 10, 10, 0.92);
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      gap: 12px; padding: 16px; box-sizing: border-box;
+    }
+    #overlay.hidden { display: none; }
+    #overlay h1 { font-size: 1.6em; margin: 0; color: #ffd400; }
+    #overlay p { margin: 0; font-size: 0.95em; color: #ccc; max-width: 340px; }
+    .btn {
+      min-width: 160px; min-height: 48px; font-size: 1.1em;
+      border: 0; border-radius: 6px; cursor: pointer;
+      background: #ffd400; color: #111;
+    }
+    .btn.secondary { background: #444; color: #eee; }
+    .btn:focus-visible { outline: 3px solid #37c8ff; outline-offset: 2px; }
+
+    /* touch controls */
+    #touch {
+      position: fixed; left: 50%;
+      bottom: max(8px, env(safe-area-inset-bottom));
+      transform: translateX(-50%);
+      display: none; gap: 8px; z-index: 10;
+    }
+    .pad-btn {
+      width: 72px; height: 60px;
+      border: 0; border-radius: 8px;
+      background: rgba(255, 212, 0, 0.85); color: #111;
+      font-size: 22px; touch-action: none;
+    }
+    .pad-btn:active { background: #37c8ff; }
+    @media (pointer: coarse) { #touch { display: flex; } }
+  
+    #restartBtn {
+      position: fixed; top: max(8px, env(safe-area-inset-top)); right: 8px; z-index: 15;
+      min-width: 92px; min-height: 44px; font-size: 0.95em;
+    }
+</style>
+</head>
+<body>
+  <button class="btn secondary" id="restartBtn" hidden aria-label="Restart the game">Restart</button>
+  <div id="overlay">
+    <h1>Joust</h1>
+    <p>Ride your bird across the platforms and knock rivals off by striking them from above.</p>
+    <p>Keyboard: left and right arrows to move, space to flap, Escape restarts.</p>
+    <p>Mobile: use the buttons below the play field.</p>
+    <button class="btn" id="startBtn">Start</button>
+  </div>
+
+  <div id="game-wrap"></div>
+  <p class="note">Left and right arrows to move, space to flap. Land hits from above.</p>
+
+  <div id="touch" aria-label="Touch controls">
+    <button class="pad-btn" id="btn-left" aria-label="Move left">&#9664;</button>
+    <button class="pad-btn" id="btn-flap" aria-label="Flap">Flap</button>
+    <button class="pad-btn" id="btn-right" aria-label="Move right">&#9654;</button>
+  </div>
+
+  <script src="bundle.js"></script>
+  <script>
+    (function () {
+      var overlay = document.getElementById("overlay");
+      var started = false;
+
+      document.getElementById("startBtn").addEventListener("click", function () {
+        overlay.classList.add("hidden");
+        started = true;
+        var scene = window.joustGame && window.joustGame.scene.getScene("JoustScene");
+        if (scene) scene.scene.resume();
+        document.getElementById("restartBtn").hidden = false;
+      });
+
+      document.getElementById("restartBtn").addEventListener("click", function () {
+        window.location.reload();
+      });
+
+      function fireKey(type, keyCode, code) {
+        var ev = new KeyboardEvent(type, { bubbles: true, cancelable: true, code: code });
+        Object.defineProperty(ev, "keyCode", { get: function () { return keyCode; } });
+        Object.defineProperty(ev, "which", { get: function () { return keyCode; } });
+        window.dispatchEvent(ev);
+      }
+
+      var padKeys = {
+        "btn-left":  { keyCode: 37, code: "ArrowLeft" },
+        "btn-right": { keyCode: 39, code: "ArrowRight" },
+        "btn-flap":  { keyCode: 32, code: "Space" }
+      };
+      Object.keys(padKeys).forEach(function (id) {
+        var btn = document.getElementById(id);
+        var spec = padKeys[id];
+        var down = function (e) { e.preventDefault(); fireKey("keydown", spec.keyCode, spec.code); };
+        var up = function (e) { e.preventDefault(); fireKey("keyup", spec.keyCode, spec.code); };
+        btn.addEventListener("touchstart", down, { passive: false });
+        btn.addEventListener("touchend", up, { passive: false });
+        btn.addEventListener("touchcancel", up, { passive: false });
+        btn.addEventListener("mousedown", down);
+        btn.addEventListener("mouseup", up);
+      });
+    })();
+  </script>
+</body>
+</html>

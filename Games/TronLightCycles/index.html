@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<!--
+  Source: https://github.com/faboyds/Tron
+  License: MIT - commit f95e35bc26f0c3778162c3de6e42a19c9fc60b2a
+  Modifications: vendored p5.js 0.6.0 locally (LGPL-2.1, see p5-LICENSE.txt),
+  stripped CDN reference, added viewport meta, start/restart overlay,
+  two touch d-pads, relative paths only.
+  p5.js (c) processing/p5.js, license at tag 0.6.0 (commit a1599e958302d813a1848355cd9fe0d73b45a1ed), vendored unmodified.
+-->
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <link rel="icon" href="data:,">
+    <title>Tron Light Cycles</title>
+    <style>
+        html, body { background: #111; color: #eee; font-family: sans-serif; margin: 0; }
+        body { text-align: center; -webkit-user-select: none; user-select: none; }
+        canvas { max-width: 100% !important; height: auto !important; display: block; margin: 0 auto; }
+        p.note { font-size: 0.9em; color: #bbb; margin: 6px 8px; }
+
+        /* start / restart overlay */
+        #overlay {
+            position: fixed; inset: 0; z-index: 20;
+            background: rgba(10, 10, 10, 0.92);
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            gap: 12px; padding: 16px; box-sizing: border-box;
+        }
+        #overlay.hidden { display: none; }
+        #overlay h1 { font-size: 1.6em; margin: 0; color: #ffd400; }
+        #overlay p { margin: 0; font-size: 0.95em; color: #ccc; max-width: 340px; }
+        .btn {
+            min-width: 160px; min-height: 48px; font-size: 1.1em;
+            border: 0; border-radius: 6px; cursor: pointer;
+            background: #ffd400; color: #111;
+        }
+        .btn.secondary { background: #444; color: #eee; }
+        .btn:focus-visible { outline: 3px solid #37c8ff; outline-offset: 2px; }
+
+        /* touch d-pads */
+        #pads {
+            position: fixed; left: 0; right: 0;
+            bottom: max(8px, env(safe-area-inset-bottom));
+            display: none; justify-content: space-between;
+            padding: 0 10px; z-index: 10; pointer-events: none;
+        }
+        .pad-group { display: flex; flex-direction: column; gap: 4px; align-items: center; pointer-events: auto; }
+        .pad-label { font-size: 0.75em; color: #ccc; }
+        .pad-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 46px);
+            grid-template-rows: repeat(3, 46px);
+            gap: 3px;
+        }
+        .pad-btn {
+            border: 0; border-radius: 8px;
+            background: rgba(255, 212, 0, 0.85); color: #111;
+            font-size: 16px; line-height: 46px; text-align: center;
+            touch-action: none; padding: 0;
+        }
+        .pad-btn:active { background: #37c8ff; }
+        .up    { grid-column: 2; grid-row: 1; }
+        .left  { grid-column: 1; grid-row: 2; }
+        .right { grid-column: 3; grid-row: 2; }
+        .down  { grid-column: 2; grid-row: 3; }
+        @media (pointer: coarse) { #pads { display: flex; } }
+    
+    #restartBtn {
+      position: fixed; top: max(8px, env(safe-area-inset-top)); right: 8px; z-index: 15;
+      min-width: 92px; min-height: 44px; font-size: 0.95em;
+    }
+</style>
+</head>
+<body>
+  <button class="btn secondary" id="restartBtn" hidden aria-label="Restart the game">Restart</button>
+  <div id="overlay">
+    <h1>Tron Light Cycles</h1>
+    <p>Two riders race across the grid, each laying a trail. Steer the other rider into a wall to win the round.</p>
+    <p>Keyboard: player one uses W, A, S, D. Player two uses the arrow keys. Space starts.</p>
+    <p>Mobile: each player has a d-pad at the bottom of the screen.</p>
+    <button class="btn" id="startBtn">Start</button>
+  </div>
+
+  <p class="note">Player one: W, A, S, D. Player two: arrow keys. Space starts a round.</p>
+
+  <div id="pads" aria-label="Touch controls">
+    <div class="pad-group">
+      <span class="pad-label">Player 1</span>
+      <div class="pad-grid">
+        <button class="pad-btn up"    data-key="87" aria-label="Player 1 up">&#9650;</button>
+        <button class="pad-btn left"  data-key="65" aria-label="Player 1 left">&#9664;</button>
+        <button class="pad-btn right" data-key="68" aria-label="Player 1 right">&#9654;</button>
+        <button class="pad-btn down"  data-key="83" aria-label="Player 1 down">&#9660;</button>
+      </div>
+    </div>
+    <div class="pad-group">
+      <span class="pad-label">Player 2</span>
+      <div class="pad-grid">
+        <button class="pad-btn up"    data-key="38" aria-label="Player 2 up">&#9650;</button>
+        <button class="pad-btn left"  data-key="37" aria-label="Player 2 left">&#9664;</button>
+        <button class="pad-btn right" data-key="39" aria-label="Player 2 right">&#9654;</button>
+        <button class="pad-btn down"  data-key="40" aria-label="Player 2 down">&#9660;</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="p5.min.js"></script>
+  <script src="sketch.js"></script>
+  <script>
+    (function () {
+      var overlay = document.getElementById("overlay");
+      document.getElementById("startBtn").addEventListener("click", function () {
+        overlay.classList.add("hidden");
+        window.tronStart();
+        document.getElementById("restartBtn").hidden = false;
+      });
+      document.getElementById("restartBtn").addEventListener("click", function () {
+        window.tronRestart();
+        overlay.classList.remove("hidden");
+      });
+
+      document.querySelectorAll(".pad-btn[data-key]").forEach(function (btn) {
+        var code = parseInt(btn.getAttribute("data-key"), 10);
+        var fire = function (e) {
+          e.preventDefault();
+          window.handleKey(code);
+        };
+        btn.addEventListener("touchstart", fire, { passive: false });
+        btn.addEventListener("mousedown", fire);
+      });
+    })();
+  </script>
+</body>
+</html>
