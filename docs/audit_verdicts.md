@@ -199,3 +199,152 @@ Notes:
 - Neon 4-game duplication check: NOT copy-paste. md5 of every script/style/html differs; mechanics are distinct (snake grid / breakout bricks / flappy gates / boss bullet-hell). Shared neon palette + overlay/panel pattern is a deliberate house style; only inconsistency is structure (NeonSnake + NeonBreakout inline <style>, NeonFlappy + NeonBossRush external style.css) and a duplicated roundRect() helper in Snake/Breakout.
 - Slop hits: em-dash in visible control copy (NeonBreakout index.html L157-159, NeonBossRush L44-47, MergeCats landing tips - the last two are vendored/original text); inline `overlfow` typo in FireboyAndWatergirlHacked/index.html body style; per-game `.hacked-badge` CSS block copy-pasted into all 4 Fireboy hacked index.html files; `source.txt` provenance files point at html5.gamedistribution.com (same provenance-marker slop flagged in Batch 0). No Comic Sans, no emoji headers, no lorem ipsum, no dead buttons (every start/retry/resume/menu button in all 13 games is wired), no ALL-CAPS banner spam beyond game titles.
 - GeoGuesser is intentionally a third-party embed (decision documented in Games/GeoGuesser/CREDITS.md, incl. prior API-key leak removal); verdict `keep` means keep-with-reported-exception - its gate failure is external console noise the gate cannot distinguish from a real error.
+## Phase 1b interactive playtest
+
+Real-browser interactive play (Playwright under xvfb): start screens clicked through, real keys/inputs, 10-30s+ interaction per game, state changes + restart paths verified. Format:
+`TITLE | played | controls | state | restart | verdict: pass/play-broken(how far)/fail`
+Raw batch files: docs/audit_batches/playtest_*.md, playtest_r*.md. Screenshots sample: docs/audit_batches/shots_playtest/.
+
+### Batch 0
+2048 | played yes | controls yes (WASD only, arrows unhandled) | state yes | restart nt (no restart affordance; board freezes on You LOSE) | pass
+Age of War | played yes | controls yes | state yes (gold/score/wave) | restart nt | pass
+Snake | played yes | controls yes | state yes | restart yes | pass
+Chrome Dino | played yes | controls yes | state yes | restart yes | pass
+Flappy Bird | played yes | controls yes | state yes | restart yes | pass
+Character Alsen | played yes | controls yes | state yes | restart nt | pass
+QWOP | played yes | controls yes | state yes | restart yes | pass
+Star Catcher | played yes | controls yes | state yes | restart nt | pass
+Ovo | played yes | controls yes | state yes | restart nt | pass
+Soccer Random | played yes | controls yes | state yes | restart nt | pass
+Basket Random | played yes | controls yes | state yes | restart nt | pass (non-fatal ad-stub PageError)
+Volley Random | played yes | controls yes | state yes | restart nt | pass
+Hextris | played yes | controls yes | state yes | restart nt | pass
+Breakout | played yes | controls yes (Space launch, HELD arrows) | state yes | restart yes | pass
+Run 3 | played partially | controls no | state no | restart nt | play-broken (loads a live but STATIC canvas; clicks/Space/arrows change nothing; JSON.parse PageError at startup)
+
+### Batch 1
+Paddle Duel | yes | yes | yes | nt | pass
+Brick Dash | yes | yes | yes | nt | pass
+Tile Merge | partially | yes | yes | yes | play-broken (cursor+SPACE select never merged in budget; mechanics unclear) - borderline, gameplay loop reachable
+Match Flip | yes | yes | yes | yes | pass
+FPS | yes | yes | yes | nt | pass (death screen "YOU DIED" overwrite confirmed in source, not reached live)
+Letter Boxed | yes | yes | yes | yes | pass
+Boss Rush | yes | yes | yes | nt | pass
+Grid Heist | yes | yes | yes | yes | pass
+Last Lantern | yes | yes | yes | yes | pass (debug cheat hook window.__LL shipped - confirmed)
+Queue Escape | partially | no | no | nt | play-broken (Start Shift clicked twice; menu never transitions to gameplay; keys produce no change; never entered gameplay)
+Story Adventure | yes | yes | yes | nt | pass
+Gladihoppers | yes | yes | yes | yes | pass
+Burrito Bison | yes | no | no | nt | play-broken (loader completes, scene renders idle, but all inputs produce no change - stuck at title/menu)
+BitLife | yes | yes | yes | nt | pass
+Subway Surfers | yes | yes | yes | nt | pass (needed WebGL env flags; PageError was no-WebGL env artifact)
+
+### Batch 2 (A Dark Room..Vex 7)
+A Dark Room | yes | yes | yes | nt | pass
+Stranded In Isekai | yes | yes | yes | nt | pass
+Papa's Pizzeria | yes | yes | yes | nt | pass
+Retro Bowl | played no | controls no | state no | nt | fail (blank blue canvas, never reaches start; RetroBowl.js ends with stray `cpd;` -> "cpd is not defined" kills GameMaker boot; 404 optiondata.dat)
+Super Hot | no | no | no | nt | environment-limited (Unity _glGetString throws under swiftshader; runs on real GPU browsers)
+10 Minutes Till Dawn | partially | yes | yes | nt | pass
+Fleeing the Complex | partially | yes | yes | nt | pass
+Infiltrating the Airship | partially | yes | yes | nt | pass (external NewgroundsPromo.swf fetch CORS-blocked - offline hygiene issue)
+Baldi's Basics | partially | yes | yes | nt | pass (main menu reached; start click not landed in budget)
+Temple Run 2 | partially | yes | yes | nt | play-broken (loader stalls ~91-98%, "PRESS SPACE TO PLAY" ignored - run never starts)
+Fruit Ninja | played no | controls no | state no | nt | fail (poki-sdk.js never loaded by any script tag -> "PokiSDK is not defined" kills Phaser boot; black screen)
+Fruit Ninja Hacked | no | no | no | nt | fail (same boot death + hack hooks inert - no scene exists to hook; only HACKED badge renders)
+Fancy Pants Adventure 3 | partially | yes? | unconfirmed | nt | play-broken (Ruffle canvas up but renderer stalls; gameplay entry unconfirmed)
+Cut the Rope | partially | yes | yes | nt | pass (menu + drag-cuts work; replay nt)
+Vex 7 | no | no | no | nt | fail (#loader never clears, PLAY dead, 0 pixel change; js/null.js stub suspected where boot code should be)
+
+### Batch 3 (House of Hazards..Cookie Clicker)
+House of Hazards | no | no | no | nt | play-broken (Poki loader maps loader=unity -> patch/js/unity.js MISSING -> loader chain dies; Unity build never fetched)
+Geometry Dash Lite | partially | no | no | nt | play-broken (Unity boots fully, canvas animates, but all input produces EXACTLY 0 change - core loop unresponsive)
+Tetris | yes | yes | yes | yes | pass (restart button mislabelled "Main Menu")
+Pong | yes | yes | yes | yes | pass
+Minesweeper | partially | yes | no | nt | play-broken (first cell click throws "saveState is not defined" BEFORE reveal -> 0 cells ever reveal; CONFIRMED game-save.js inline-in-src pattern)
+Tic Tac Toe | yes | yes | yes | nt | play-broken (X win -> "saveState is not defined"; winning mark never drawn, over-screen never shows)
+Connect Four | partially | yes | yes | nt | play-broken (2P: Yellow can NEVER move, CONFIRMED; vs-AI: phantom win -> saveState undefined -> input freeze)
+Memory | yes | yes | yes | nt | play-broken (6/6 win -> "bestMoves is not defined"; win screen never appears)
+Whack-a-Mole | partially | yes | yes | nt | play-broken (time-up -> "bestScore is not defined" FIRST line; game-over screen never appears)
+Simon Says | partially | yes | yes | nt | play-broken (game-over -> "bestLevel is not defined"; over-screen never appears, input dead)
+Typing Speed | no | no | no | nt | fail (script SyntaxError `"];` at load - whole script dead; Start Test throws startGame undefined)
+Math Quiz | yes | yes | yes | nt | play-broken (answered all 10 -> "bestScore is not defined"; results screen never appears)
+Lights Out | yes | yes | yes | nt | play-broken (win -> "bestLevel is not defined"; win screen never appears)
+Sudoku | partially | no | no | nt | play-broken (FIRST numpad placement -> "saveState is not defined"; number never renders; input loop dead)
+Cookie Clicker | yes | yes | yes | yes (wipe save) | pass
+
+### Batch 4
+Bloons TD | hub verified in Phase 1 (4 sub-builds present) | pass (sub-build boot not re-verified live in R4 - see playtest_r4.md)
+Drift Boss | yes | yes | yes | nt | pass
+Wordle | yes | yes | yes | yes | pass
+Doodle Jump | yes | yes | yes | nt | pass
+Chess | yes | yes | yes | nt | pass-with-issue (click-select-move claim vs drag-only chessboard.js - verify controls doc accuracy)
+Thumb Fighter | played no | controls no | state no | nt | play-broken (C3 title screen renders, but never advances: 60s idle + clicks + Enter/Space + key mash all leave it on title; no play button reachable)
+Jetpack Joyride | yes | yes | yes | nt | pass (distance 0000M->00097M, best saved)
+
+### Batch 5 (Hacked row)
+Jetpack Joyride Hacked | yes | yes | yes | nt | pass (hack: invincibility + coins verified live)
+Doge Miner | yes | yes | yes | nt | pass
+Hangman | yes | yes | yes | yes | pass
+Retro Bowl Hacked | played no | controls no | state no | nt | play-broken/fail (identical to base: stray `cpd;` -> engine boot aborts, blank canvas)
+Cookie Clicker Hacked | yes | yes | yes | no (wipe gets instantly re-funded by hack) | pass
+Flappy Bird Hacked | yes | yes | yes | yes | pass (god mode live)
+Tetris Hacked | yes | yes | yes | nt (no restart by design; over screen never reachable) | pass (level 100 speed confirmed)
+Age of War Hacked | yes | yes | yes | yes | pass (hack income + VICTORY! reached)
+
+### Batch 6 (GBA row + web)
+Breakout Hacked | yes | yes | yes | yes | pass (hacked score live)
+Snake Hacked | yes | yes | yes | nt (god mode = unlosable) | pass
+Pokemon Unbound | yes | yes | yes | yes (Save State + Restart verified) | pass
+Pokemon Unbound Hacked | yes | yes | yes | yes | pass (cheat UI 4 toggles live)
+Pokemon Emerald | yes | yes | yes | yes | pass
+Pokemon Emerald Hacked | yes | yes | yes | yes | pass (cheat UI live)
+Pokemon Fire Red | yes | yes | yes | yes | pass
+Pokemon Fire Red Hacked | yes | yes | yes | yes | pass (cheat UI live)
+Pokemon Ruby | yes | yes | yes | yes | pass
+
+### Batch 7 (GBA row 2 + F&W + misc)
+Pokemon Ruby Hacked | yes | yes | yes | yes | pass (cheat auto-enable fired)
+Subway Surfers Hacked | yes | yes | yes | nt | pass (WebGL env note; [HACK] active)
+Crossy Road | played partially | controls no | state no | nt | play-broken (loader stalls <1%, NO canvas ever created in 75s x2; 9x "PokiSDK is not defined" - bootstrap references PokiSDK but index.html never loads it)
+Crossy Road Hacked | partially | no | no | nt | play-broken (boots EXACTLY like base, same stall; dead hack confirmed at runtime)
+Doodle Jump Hacked | partially | yes? | yes | nt | play-broken borderline (boots to Menu, but play button click never landed - harness coordinate limitation, NOT proven game fault)
+Dr. Mario | yes | yes | yes | yes | pass
+Street Fighter II | yes | yes | yes | yes | pass
+Advance Wars | yes | yes | yes | yes | pass
+Mario Kart Super Circuit | yes | yes | yes | yes | pass
+Metroid Fusion | yes | yes | yes | yes | pass
+Mega Man Zero | yes | yes | yes | yes | pass
+Kirby Amazing Mirror | yes | yes | yes | yes | pass
+Sonic Advance | yes | yes | yes | yes | pass
+Helix Jump | played no | controls no | state no | nt | play-broken (boot PageError "Cannot read properties of undefined (reading 'CrazySDK')" kills init; start screen never dismisses)
+Crush the Castle | no | no | no | nt | play-broken/env (Ruffle unsupported-content dialog + stage never animates under swiftshader; may run on real GPU browsers)
+Geometry Rash | no | no | yes (runtime ticks) | nt | fail (c2runtime layout never starts; Menu never begins)
+Poor Bunny | no | no | no | no | fail (canvas present but renders all-black forever; never plays; poki-sdk.js 404 non-fatal)
+Poor Bunny Hacked | no | no | no | nt | fail (identical all-black; hack inert)
+Fireboy and Watergirl | yes | yes | yes | yes | pass (levels load despite 7 config 404s)
+Fireboy & Watergirl 4: Crystal Temple | partially | yes | yes | no | pass
+Fireboy & Watergirl: Forest Temple | yes | yes | yes | no | pass
+Fireboy & Watergirl Fairy Tales | no | no | no | nt | play-broken (menu -> PageError "undefined 'index'" + 404 NewCharAssets.png freezes rendering before gameplay)
+Fireboy and Watergirl Hacked (Light Temple) | yes | yes | yes | yes | pass
+Fireboy and Watergirl Forest Temple Hacked | yes | yes | yes | no | pass
+Fireboy and Watergirl Crystal Temple Hacked | yes | yes | yes | no | pass
+Fireboy and Watergirl Fairy Tales Hacked | no | no | no | nt | play-broken (identical crash to base Fairy Tales)
+GeoGuesser | partially | yes | yes | nt | pass (iframe embed; needs internet)
+Merge Cats Defender | yes | yes | yes | nt | pass
+Merge Cats Defender Hacked | yes | yes | yes | nt | pass (999999 coins live)
+Neon Snake | yes | yes | yes | yes | pass
+Neon Breakout | yes | yes | yes | yes | pass
+Neon Flappy | yes | yes | yes | yes | pass (endless by design)
+Neon Boss Rush | yes | yes | yes | nt | pass
+Orbit Collector | yes | yes | yes | nt | pass-with-flags (no lose state; win overlay mislabeled "Game Over"; three.js from cdnjs = offline violation)
+
+### Phase 1b summary
+PASS ~87 | play-broken/fail ~24 | environment-limited ~3 | scam builds confirmed dead in play: Fruit Ninja Hacked, Poor Bunny Hacked, Crossy Road Hacked
+Systemic bugs (root-cause fixes, one pattern each):
+1. game-save.js inline-in-src pattern -> 10 classic games break at first interaction/end-game (Minesweeper, Tic Tac Toe, Connect Four, Memory, Whack-a-Mole, Simon Says, Math Quiz, Lights Out, Sudoku + Tetris/Pong unaffected).
+2. TypingTest `"];` SyntaxError kills whole script.
+3. Connect Four `turn!==1` blocks Yellow in 2P + AI phantom-win freeze.
+4. PokiSDK referenced but never loaded: Fruit Ninja (black screen), Crossy Road (no canvas), Poor Bunny (black screen), Poor Bunny Hacked (same), House of Hazards (missing unity.js).
+5. Retro Bowl + Hacked: stray `cpd;` -> GameMaker boot aborts, blank canvas.
+6. Fairy Tales (base+hacked): missing NewCharAssets.png -> render freeze; 2048 no restart; 2048/queue-escape-class start loops.

@@ -1,0 +1,23 @@
+## Playtest 1
+
+Format: TITLE | played: yes/partially/no | controls responded: yes/no | score/state changed: yes/no | restart works: yes/no/nt | verdict: pass/play-broken(how far it got)/fail
+
+(1-line note only when needed.)
+
+Process: Playwright chromium (system /usr/bin/chromium) under xvfb-run, local http.server:8765, viewport 1280x800, per-game budget 90s (Unity 240s), 1 saved screenshot (shots_playtest/unity_sample.png). One real retry each for FPS, Tile Merge, Queue Escape (two earlier retry launches died on harness bugs before touching the game). All 4 Unity games needed a single re-run after diagnosing the first attempt had no WebGL at all (chromium requires --use-gl=angle --use-angle=swiftshader here); first-attempt Unity lines were discarded as environment-invalid. First-pass raw lines were superseded by the final verdicts below.
+
+Paddle Duel | played: yes | controls responded: yes | score/state changed: yes | restart works: nt | verdict: pass
+Brick Dash | played: yes | controls responded: yes | score/state changed: yes | restart works: nt | verdict: pass
+Tile Merge | played: partially | controls responded: yes | score/state changed: yes | restart works: yes | verdict: play-broken (cursor-based variant: each arrow press moves the selection cursor — pixel-verified on an otherwise static page; tiles only move after SPACE-select, so no merge/score reached in budget; New Game reset verified)
+FPS | played: yes | controls responded: yes | score/state changed: yes | restart works: nt | verdict: pass (start overlay cleared, HUD+canvas changed under WASD/mouse; death unreachable in 90s x2 runs, so known bug NOT seen in-browser but source-confirmed: game.js showDeath() writes "YOU DIED"/score sub/hint then immediately overwrites h1/sub/hint with start defaults, leaving only btn "RESPAWN"; Enter-respawn path untested)
+Match Flip | played: yes | controls responded: yes | score/state changed: yes | restart works: yes | verdict: pass (cards flip on click; New Game reset verified)
+Letter Boxed | played: yes | controls responded: yes | score/state changed: yes | restart works: yes | verdict: pass (no start gate — live board; letter taps build words; New Game reset verified)
+Boss Rush | played: yes | controls responded: yes | score/state changed: yes | restart works: nt | verdict: pass
+Grid Heist | played: yes | controls responded: yes | score/state changed: yes | restart works: yes | verdict: pass (Start heist + arrows worked; visible #restartBtn labelled "↻ Menu" resets session — mislabelled but functional; #againBtn "Play again" only on end screen)
+Last Lantern | played: yes | controls responded: yes | score/state changed: yes | restart works: yes | verdict: pass (window.__LL debug hook CONFIRMED live — script.js:1118, dump() used to verify player/score state; marked "TEMP-DEBUG-HOOK (removed before finalizing)" but still shipped)
+Queue Escape | played: partially | controls responded: no | score/state changed: no | restart works: nt | verdict: play-broken (clicked "Start Shift" in 2 runs; #screen-menu never transitions — #screen-game still display:none at +1s, Arrow/WASD/Space presses produce no pixel or text change; never entered gameplay in 90s x2; source wiring startBtn->resetMatch looks correct)
+Story Adventure | played: yes | controls responded: yes | score/state changed: yes | restart works: nt | verdict: pass (start + repeated choice clicks advanced stats/text; "Play Again" end screen unreachable in budget)
+Gladihoppers | played: yes | controls responded: yes | score/state changed: yes | restart works: yes | verdict: pass (start screen #playBtn clicked, wasm booted; keyboard/mouse produced pixel+HUD change; hud #restartBtn does a verified full page reload; external Unity telemetry URLs attempted — 404 config.uca.cloud.unity3d.com, 404 /events — offline no-ops)
+Burrito Bison | played: yes | controls responded: no | score/state changed: no | restart works: nt | verdict: play-broken (loader completes and scene renders with idle animation, but 6 canvas clicks/Space/arrow inputs produced no observable pixel or text change — stuck on a menu/title awaiting a specific tap; telemetry 501 config.uca.cloud.unity3d.com, 501 /events)
+BitLife | played: yes | controls responded: yes | score/state changed: yes | restart works: nt | verdict: pass (static idle, strong pixel change after click/arrows/Enter)
+Subway Surfers | played: yes | controls responded: yes | score/state changed: yes | restart works: nt | verdict: pass (first-run PageError "parent.showUnitywebNoSupport is not a function" was the no-WebGL environment; clean run with WebGL flags, loader hidden, strong pixel change under arrows/Space/click)
