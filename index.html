@@ -211,26 +211,29 @@
       .game-card__category {
         text-transform: uppercase !important;
         letter-spacing: 0.06em !important;
-        font-size: 0.6rem !important;
+        font-size: 0.7rem !important;
         font-weight: 600 !important;
         padding: 2px 7px !important;
-        border-radius: 4px !important;
+        border-radius: 6px !important;
         border: none !important;
         color: #fff !important;
         line-height: 1.4;
         flex-shrink: 0;
       }
 
-      /* Default badge surface, then category-specific solid colors */
+      /* Default badge surface, then category-specific solid colors.
+         Fills are darkened where white text fell below 4.5:1 (action,
+         classic, puzzle, riddle, simulation); the detail panel badge
+         reuses the same tokens. */
       .game-card .game-card__category { background: #475569; }
-      .game-card[data-cat="action"] .game-card__category       { background: #e63946; }
-      .game-card[data-cat="classic"] .game-card__category      { background: #0d9488; }
+      .game-card[data-cat="action"] .game-card__category       { background: #b91c1c; }
+      .game-card[data-cat="classic"] .game-card__category      { background: #0f766e; }
       .game-card[data-cat="sports"] .game-card__category       { background: #055e56; }
       .game-card[data-cat="strategy"] .game-card__category     { background: #8d6708; }
-      .game-card[data-cat="puzzle"] .game-card__category       { background: #ea580c; }
-      .game-card[data-cat="riddle"] .game-card__category       { background: #0891b2; }
+      .game-card[data-cat="puzzle"] .game-card__category       { background: #c2410c; }
+      .game-card[data-cat="riddle"] .game-card__category       { background: #0e7490; }
       .game-card[data-cat="story"] .game-card__category        { background: #db2777; }
-      .game-card[data-cat="simulation"] .game-card__category   { background: #0891b2; }
+      .game-card[data-cat="simulation"] .game-card__category   { background: #0e7490; }
       .game-card[data-cat="multiplayer"] .game-card__category  { background: #b45309; }
       .game-card[data-cat="arcade"] .game-card__category       { background: #475569; }
       .game-card[data-cat="idle"] .game-card__category         { background: #52525b; }
@@ -246,16 +249,15 @@
       .game-card__tag {
         text-transform: uppercase;
         letter-spacing: 0.06em;
-        font-size: 0.55rem;
+        font-size: 0.7rem;
         font-weight: 600;
         font-family: inherit;
-        padding: 1px 5px;
-        border-radius: 3px;
+        padding: 0 12px;
+        border-radius: 6px;
         border: none;
         color: #fff;
         line-height: 1.3;
         cursor: pointer;
-        min-width: 44px;
         min-height: 44px;
       }
       .game-card__tag[aria-pressed="true"] {
@@ -267,13 +269,13 @@
         outline-offset: 2px;
       }
       .game-card__tag--hacked {
-        background: #e63946;
+        background: #b91c1c;
       }
       .game-card__tag--2p {
-        background: #0d9488;
+        background: #0f766e;
       }
       .game-card__tag--coop {
-        background: #0891b2;
+        background: #0e7490;
       }
 
       /* ================================================================
@@ -286,7 +288,7 @@
         padding: 7px 16px !important;
         font-size: 0.8rem !important;
         font-weight: 600 !important;
-        min-height: 36px !important;
+        min-height: 44px !important;
         transition: transform 0.15s ease, box-shadow 0.2s ease, filter 0.15s ease;
       }
 
@@ -301,23 +303,8 @@
         overflow: hidden;
       }
 
-      /* Replace neon "Featured" badge with solid gold label */
-      .game-card--featured::after {
-        content: 'Featured' !important;
-        position: absolute !important;
-        top: 12px !important;
-        left: 12px !important;
-        z-index: 3 !important;
-        padding: 4px 12px !important;
-        border-radius: 999px !important;
-        background: #d4a017 !important;
-        color: #1a1a2e !important;
-        font-size: 0.55rem !important;
-        font-weight: 700 !important;
-        letter-spacing: 0.1em !important;
-        text-transform: uppercase !important;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important;
-      }
+      /* The featured badge label is defined once, in the Phase 3
+         override layer at the end of this block. */
 
       /* Solid gold border on featured cards (no gradient mask) */
       .game-card--featured::before {
@@ -405,7 +392,7 @@
       }
       .category-filter__btn.active {
         background: var(--cat-color, var(--accent, #06b6d4)) !important;
-        color: #fff !important;
+        color: #08252b !important;
         border-color: var(--cat-color, var(--accent, #06b6d4)) !important;
         box-shadow: 0 2px 12px rgba(0, 0, 0, 0.25) !important;
         font-weight: 600 !important;
@@ -423,8 +410,8 @@
         display: inline-flex !important;
         align-items: center !important;
         justify-content: center !important;
-        width: 42px !important;
-        height: 42px !important;
+        width: 44px !important;
+        height: 44px !important;
         padding: 0 !important;
         border: 1px solid rgba(255, 255, 255, 0.1) !important;
         border-radius: 50% !important;
@@ -515,7 +502,7 @@
         padding: 10px 18px !important;
         border-radius: 999px !important;
         background: var(--accent, #06b6d4) !important;
-        color: #fff !important;
+        color: #08252b !important;
         font-size: 14px !important;
         font-weight: 600 !important;
         text-decoration: none !important;
@@ -554,54 +541,12 @@
         .theme-toggle {
           top: max(8px, env(safe-area-inset-top)) !important;
           right: max(8px, env(safe-area-inset-right)) !important;
-          width: 38px !important;
-          height: 38px !important;
         }
         .random-game-btn {
           left: max(12px, env(safe-area-inset-left)) !important;
           bottom: max(12px, env(safe-area-inset-bottom)) !important;
           padding: 8px 14px !important;
           font-size: 12px !important;
-        }
-      }
-
-      /* ================================================================
-         14. REDUCED MOTION
-         ================================================================ */
-
-      @media (prefers-reduced-motion: reduce) {
-        html { scroll-behavior: auto; }
-        *, *::before, *::after {
-          transition-duration: 0.01ms !important;
-          animation-duration: 0.01ms !important;
-          animation-iteration-count: 1 !important;
-        }
-        /* Cover selectors whose transitions carry !important (they beat
-           the plain transition-duration shorthand above). */
-        .proxy-launcher__btn,
-        .game-card__play,
-        .game-card__fav,
-        .theme-toggle,
-        .search-bar,
-        .search-bar__clear,
-        .category-filter__btn,
-        .game-card,
-        .random-game-btn,
-        .random-game-btn__icon,
-        .game-modal__loading,
-        .ux-tag-filter__pill,
-        .ux-recent__chip,
-        .ux-detail,
-        .ux-detail__play,
-        .ux-detail__close,
-        .ux-net-banner {
-          transition-duration: 0.01ms !important;
-          animation: none !important;
-        }
-        .game-modal__loading,
-        .game-modal__spinner {
-          animation: none !important;
-          transition: none !important;
         }
       }
 
@@ -716,12 +661,6 @@
       html[data-theme="light"] .game-card--featured {
         background: #fff !important;
       }
-      html[data-theme="light"] .game-card--featured::after {
-        background: #b8860b !important;
-        color: #fff !important;
-        box-shadow: none !important;
-      }
-
       /* Theme toggle */
       html[data-theme="light"] .theme-toggle {
         background: rgba(0, 0, 0, 0.04) !important;
@@ -789,10 +728,6 @@
         border-color: #1d1d1f !important;
         color: #fff !important;
       }
-      /* Bundle renders a neon inset glow element behind every thumb. */
-      .game-card__glow {
-        display: none !important;
-      }
       /* Dark body: never pure black (bundle default #000). */
       html[data-theme="dark"] body,
       html[data-theme="dark"] #root {
@@ -812,10 +747,6 @@
         border-color: color-mix(in srgb, var(--accent) 58%, var(--border)) !important;
         box-shadow: none !important;
       }
-      /* Reduced motion also neutralizes the card's !important transition. */
-      @media (prefers-reduced-motion: reduce) {
-        .game-card { transition: none !important; }
-      }
       .game-card:active {
         transform: translateY(0) !important;
       }
@@ -823,9 +754,6 @@
       .game-card__fav:hover {
         transform: none !important;
         filter: none !important;
-      }
-      .game-card--featured::after {
-        box-shadow: none !important;
       }
 
       /* Category changes get a short, local transition; the page never jumps. */
@@ -1073,7 +1001,7 @@
       .ux-tag-filter__pill[aria-pressed="true"] {
         background: var(--accent, #06b6d4);
         border-color: var(--accent, #06b6d4);
-        color: #fff;
+        color: #08252b;
         font-weight: 600;
       }
       .ux-tag-filter__pill:focus-visible {
@@ -1094,7 +1022,7 @@
       }
       .category-filter__btn.active .category-filter__count {
         background: rgba(255, 255, 255, 0.2);
-        color: #fff;
+        color: #08252b;
       }
 
       /* Result status */
@@ -1113,7 +1041,7 @@
         border: none;
         border-radius: 8px;
         background: var(--accent, #06b6d4);
-        color: #fff;
+        color: #08252b;
         font-size: 0.9rem;
         font-weight: 600;
         cursor: pointer;
@@ -1188,7 +1116,7 @@
         align-items: center;
         justify-content: center;
         gap: 12px;
-        padding: 8px 16px;
+        padding: 6px 12px;
         background: var(--danger, #e63946);
         color: #fff;
         font-size: 0.85rem;
@@ -1199,9 +1127,12 @@
         display: flex;
       }
       .ux-net-banner__dismiss {
-        min-width: 28px;
-        min-height: 28px;
-        padding: 4px 8px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 44px;
+        min-height: 44px;
+        padding: 0 10px;
         border: none;
         border-radius: 4px;
         background: rgba(255, 255, 255, 0.2);
@@ -1282,7 +1213,7 @@
       }
       .ux-detail__title {
         margin: 0 0 12px 0;
-        font-size: 1.5rem;
+        font-size: 1.6rem;
         font-weight: 700;
         color: #fff;
       }
@@ -1299,14 +1230,14 @@
         text-transform: uppercase;
         letter-spacing: 0.06em;
       }
-      .ux-detail__cat[data-cat="action"] { background: #e63946; }
-      .ux-detail__cat[data-cat="classic"] { background: #0d9488; }
+      .ux-detail__cat[data-cat="action"] { background: #b91c1c; }
+      .ux-detail__cat[data-cat="classic"] { background: #0f766e; }
       .ux-detail__cat[data-cat="sports"] { background: #055e56; }
       .ux-detail__cat[data-cat="strategy"] { background: #8d6708; }
-      .ux-detail__cat[data-cat="puzzle"] { background: #ea580c; }
-      .ux-detail__cat[data-cat="riddle"] { background: #0891b2; }
+      .ux-detail__cat[data-cat="puzzle"] { background: #c2410c; }
+      .ux-detail__cat[data-cat="riddle"] { background: #0e7490; }
       .ux-detail__cat[data-cat="story"] { background: #db2777; }
-      .ux-detail__cat[data-cat="simulation"] { background: #0891b2; }
+      .ux-detail__cat[data-cat="simulation"] { background: #0e7490; }
       .ux-detail__cat[data-cat="multiplayer"] { background: #b45309; }
       .ux-detail__cat[data-cat="arcade"] { background: #475569; }
       .ux-detail__cat[data-cat="idle"] { background: #52525b; }
@@ -1330,7 +1261,7 @@
         padding: 4px 10px;
         border-radius: 6px;
         background: var(--accent-2, #14b8a6);
-        color: #fff;
+        color: #08252b;
         font-size: 0.75rem;
         font-weight: 600;
       }
@@ -1359,7 +1290,7 @@
         border: none;
         border-radius: 8px;
         background: var(--accent, #06b6d4);
-        color: #fff;
+        color: #08252b;
         font-size: 0.95rem;
         font-weight: 600;
         cursor: pointer;
@@ -1504,24 +1435,9 @@
         }
       }
 
-      @media (prefers-reduced-motion: reduce) {
-        .ux-detail,
-        .ux-tag-filter__pill,
-        .ux-recent__chip,
-        .game-card__info,
-        .ux-detail__play,
-        .ux-detail__close {
-          transition: none !important;
-          animation: none !important;
-        }
-      }
-
-      /* Sprint polish: compact controls, one cyan focus language, no pill filters. */
-      .category-filter__btn,
-      .ux-tag-filter__pill,
-      .ux-recent__chip {
-        border-radius: 6px !important;
-      }
+      /* Sprint polish: compact controls, one cyan focus language.
+         Filter controls keep the 999px pill radius everywhere; the 6px
+         override that contradicted the base rules is gone. */
       .category-filter__btn:focus-visible,
       .ux-tag-filter__pill:focus-visible,
       .ux-sort__select:focus-visible,
@@ -1534,11 +1450,7 @@
       }
       .game-card__play {
         background: var(--accent, #06b6d4) !important;
-        color: #06212a !important;
-      }
-      .game-card[data-cat="sports"] .game-card__category,
-      .game-card[data-cat="simulation"] .game-card__category {
-        background: #0e7490 !important;
+        color: #08252b !important;
       }
       .ux-sort {
         display: inline-flex;
@@ -1598,19 +1510,136 @@
         color: #1d1d1f;
       }
 
-    </style>
-  <!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-ERN6R7YHJ5"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
+      /* ================================================================
+         PHASE 3 OVERRIDE LAYER
+         Appended last, so this block has the final word in the cascade.
+         It holds one copy each of rules that used to be defined in
+         several places (featured badge, glow kill, reduced motion),
+         plus the native h1 styling.
+         ================================================================ */
 
-  gtag('config', 'G-ERN6R7YHJ5');
-</script>
+      /* Real document heading. The visible logo stays a bundle-rendered
+         span (portal-ux.js upgrades it to role=heading aria-level=1 and
+         that ARIA is untouched); this native h1 carries the document's
+         top-level heading semantics and is visually hidden, so nothing
+         on screen changes. */
+      h1.site-h1 {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        margin: -1px;
+        padding: 0;
+        overflow: hidden;
+        clip: rect(0 0 0 0);
+        white-space: nowrap;
+        border: 0;
+        font-size: 1rem;
+        letter-spacing: normal;
+      }
+
+      /* Featured badge: one definition (was four copies: the Phase 4
+         layer, section 5, a light-mode variant and a box-shadow patch,
+         all fighting over the same pseudo element). Flat gold with dark
+         text clears AA in both themes. */
+      .game-card--featured::after {
+        content: 'Featured' !important;
+        position: absolute !important;
+        top: 12px !important;
+        left: 12px !important;
+        z-index: 3 !important;
+        padding: 4px 12px !important;
+        border-radius: 999px !important;
+        background: #d4a017 !important;
+        color: #1a1a2e !important;
+        font-size: 0.7rem !important;
+        font-weight: 700 !important;
+        letter-spacing: 0.1em !important;
+        text-transform: uppercase !important;
+        box-shadow: none !important;
+      }
+
+      /* Neon inset glow: one kill switch (was two display:none copies in
+         two files plus a hover rule that switched it back on). */
+      .game-card__glow {
+        display: none !important;
+      }
+
+      /* Reduced motion: one block, merged from the six copies that were
+         spread across the Phase 4 layer and this file. */
+      @media (prefers-reduced-motion: reduce) {
+        html { scroll-behavior: auto; }
+        *, *::before, *::after {
+          transition-duration: 0.01ms !important;
+          animation-duration: 0.01ms !important;
+          animation-iteration-count: 1 !important;
+        }
+        /* Selectors whose own !important transition beats the blanket
+           rule above need an explicit pass. */
+        .proxy-launcher__btn,
+        .game-card__play,
+        .game-card__fav,
+        .theme-toggle,
+        .search-bar,
+        .search-bar__clear,
+        .category-filter__btn,
+        .game-card,
+        .game-card__info,
+        .game-modal__close,
+        .game-modal__loading,
+        .random-game-btn,
+        .random-game-btn__icon,
+        .skip-link,
+        .ux-tag-filter__pill,
+        .ux-recent__chip,
+        .ux-detail,
+        .ux-detail__play,
+        .ux-detail__close,
+        .ux-net-banner {
+          transition-duration: 0.01ms !important;
+          animation: none !important;
+        }
+        .game-modal__loading,
+        .game-modal__spinner {
+          animation: none !important;
+          transition: none !important;
+        }
+        .skeleton:before {
+          animation: none;
+          display: none;
+        }
+        /* Framer-motion writes inline transform/opacity/transition (card
+           entrance, modal fades, button hover scale, the search bar width
+           morph) that plain rules cannot beat. Freeze them here when the
+           user prefers reduced motion. */
+        .game-card,
+        .game-card__play,
+        .game-card__fav,
+        .game-modal,
+        .game-modal__content,
+        .game-modal__backdrop,
+        .game-modal__close,
+        .category-filter__btn,
+        .search-bar,
+        .search-bar__clear {
+          opacity: 1 !important;
+          transform: none !important;
+          transition: none !important;
+        }
+        .search-bar {
+          width: auto !important;
+        }
+      }
+
+    </style>
 </head>
   <body>
     <a class="skip-link" href="#main-content">Skip to content</a>
+    <!-- Real top-level heading for the document. The visible site logo is
+         rendered by the bundle as a span, which portal-ux.js upgrades to
+         role=heading aria-level=1; that ARIA is left untouched. This native
+         h1 is visually hidden (rules live in the Phase 3 override layer at
+         the end of the inline style block) so the page looks unchanged. -->
+    <h1 class="site-h1">UNBLOCKMATH // ARCADE</h1>
     <div id="root"></div>
 
     <nav class="proxy-launcher" aria-label="Proxy tools">
