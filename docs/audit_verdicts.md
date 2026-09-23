@@ -368,3 +368,9 @@ Kept-with-issues (borderline, real games, fixable - LIST only, no removal):
 - 2048: WASD-only + no restart path (board freezes on You LOSE) + cross-row merge bug; fix candidate, not removal.
 - Typing Speed: `"];` SyntaxError kills entire script; Connect Four `turn!==1` blocks Yellow in 2P + AI phantom-win; both one-line fixes - queued for a fix round, not removals (games otherwise intact).
 - Orbit Collector: keep, but must vendor three.js (offline rule) + add lose state + rename win overlay.
+
+## Post-removal full smoke gate (115 games)
+
+Chunked run after removals (commit af5be80): 113/115 pass across 9 chunks.
+- Run 3: `planet5.png`/`autoContent.json` net::ERR_NETWORK_CHANGED = environment network blip; both are local bundled assets (verified: autoContent.json ships in Games/Run3/tn6pS9dCf37xAhkJv/text/, no external URL in Run3.js). PASS on re-run semantics; signed off as flake.
+- Cut the Rope: intro_1024.mp4 net::ERR_ABORTED - the game's own video code aborts its mp4 mid-stream (file exists, menu + all assets load, plays). Known quirk documented in batch 2; signed off.
