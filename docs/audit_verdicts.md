@@ -348,3 +348,23 @@ Systemic bugs (root-cause fixes, one pattern each):
 4. PokiSDK referenced but never loaded: Fruit Ninja (black screen), Crossy Road (no canvas), Poor Bunny (black screen), Poor Bunny Hacked (same), House of Hazards (missing unity.js).
 5. Retro Bowl + Hacked: stray `cpd;` -> GameMaker boot aborts, blank canvas.
 6. Fairy Tales (base+hacked): missing NewCharAssets.png -> render freeze; 2048 no restart; 2048/queue-escape-class start loops.
+
+## Phase 4 vibe-slop decisions
+
+Removed (heavy slop / confirmed scam dead-hack builds, all verified dead in Phase 1b play):
+- Fruit Ninja Hacked: hack hooks inert (own class methods shadow the prototype patches), game never boots (PokiSDK never loaded -> black screen), 23MB duplicate vendors bundle. `chore: remove Fruit Ninja Hacked`
+- Poor Bunny Hacked: script md5-identical to base, all hacks 0-hit, renders all-black like base; badge-only scam.
+- Crossy Road Hacked: scripts byte-identical to base, window hooks provably never assigned by game code, same pre-canvas loader stall as base.
+
+Kept-with-issues (borderline, real games, fixable - LIST only, no removal):
+- Retro Bowl + Retro Bowl Hacked: stray `cpd;` token at EOF of RetroBowl.js aborts GameMaker boot under headless (blank canvas). Candidate fix: strip token; do not remove (flagship title).
+- Temple Run 2: loader stalls ~91-98% headless; verify on real browser before any decision.
+- Vex 7: PLAY dead headless (loader never clears). Candidate fix: investigate js/null.js stub.
+- Geometry Dash Lite: boots + animates but headless input produces 0 change; likely harness artifact - re-verify on real device.
+- House of Hazards: missing patch/js/unity.js (loader chain dies) - candidate fix: ship the loader file or repoint.
+- Crossy Road (base) + Poor Bunny (base): PokiSDK referenced but not loaded / poki-sdk 404; never render headless. Candidate fix: ship local PokiSDK stub (pattern exists in other builds).
+- Fireboy & Watergirl Fairy Tales (base + hacked): 404 assets/atlasses/NewCharAssets.png -> PageError freezes render pre-gameplay. Candidate fix: supply the atlas or strip its usage.
+- Queue Escape: Start Shift never transitions to gameplay headless. Burrito Bison: inputs produce no observable change headless (title tap detection).
+- 2048: WASD-only + no restart path (board freezes on You LOSE) + cross-row merge bug; fix candidate, not removal.
+- Typing Speed: `"];` SyntaxError kills entire script; Connect Four `turn!==1` blocks Yellow in 2P + AI phantom-win; both one-line fixes - queued for a fix round, not removals (games otherwise intact).
+- Orbit Collector: keep, but must vendor three.js (offline rule) + add lose state + rename win overlay.
