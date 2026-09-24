@@ -113,6 +113,7 @@
 		var overlay = document.getElementById("overlay");
 		document.getElementById("startBtn").addEventListener("click", function () {
 		  overlay.classList.add("hidden");
+		  document.getElementById("restartBtn").hidden = false;
 		  window.jixStart();
 		});
 		document.getElementById("restartBtn").addEventListener("click", function () {

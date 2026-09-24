@@ -406,7 +406,15 @@ const startingSetup = () => {
                         {sq: 35, color: 'black'}, {sq: 36, color: 'white'}];
   
     initialSetup.forEach(({sq, color}, i) => {
-        setTimeout(() => disks[sq].classList.add(color, 'visible'), i * 600);
+        setTimeout(() => {
+            // Input is live from init(), so an early human move may have
+            // already painted (flipped) this square; only seed squares
+            // that are still blank to avoid stale colours.
+            let cls = disks[sq].classList;
+            if (!cls.contains('black') && !cls.contains('white')) {
+                cls.add(color, 'visible');
+            }
+        }, i * 600);
     });
 }
 
@@ -427,9 +435,12 @@ const flipDisks = (flippedDisks, color) => {
 
             let disk = e.currentTarget;
 
-            disk.classList.toggle('black');
-            disk.classList.toggle('white');
-            disk.classList.remove('inversion');
+            // Set (don't toggle) the flip result: input now works before the
+            // setup animation paints the board, so a disk may have no colour
+            // yet — toggling would add both colours and a second flip would
+            // then strip them both, hiding an occupied square.
+            disk.classList.remove('black', 'white', 'inversion');
+            disk.classList.add(color == black ? 'black' : 'white', 'visible');
 
         }, {once: true}); 
     }
@@ -786,7 +797,11 @@ const init = () => {
     setStatus('Your move.');
     setTimeout(startingSetup, 1000)
     setTimeout(showHints, 1000 + 4 * 600);
-    setTimeout(enableTouch, 1000 + 4 * 600 + 200);
+    // Attach input listeners synchronously: the old +200ms deferral left a
+    // window after the hint rings appeared where clicks landed on squares
+    // with no mousedown listener. Board state is already real (initBoard
+    // above), and humanTurn re-validates every click.
+    enableTouch();
 }
 // ===== build glue: start/result wiring, restart, keyboard cursor =====
 window.addEventListener('load', function () { setBoardSize(); });

@@ -63,6 +63,10 @@ Hud.prototype.updateTimer = function () {
 
 // This method is called when the time is over.
 Hud.prototype.onTimeOver = function(){
+	// Lose state: surface the wired restart affordance next to the visual
+	// game-over clone below (the button ships hidden and had no unhide path).
+	document.getElementById('restartBtn').hidden = false;
+
 	var claimEl = document.getElementById('claim'),
 		sheetEl = claimEl.children[0].cloneNode(true);
 

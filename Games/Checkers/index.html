@@ -64,6 +64,10 @@
   }
 
   #hud {
+    /* above #outerMessageBox (z-index 30) so header Restart stays clickable
+       behind the lose/win modal */
+    position: relative;
+    z-index: 31;
     display: flex;
     align-items: center;
     gap: 14px;
@@ -596,19 +600,18 @@ class Board {
       * @param {number} endPoint End point to where to place chekers
      */
     PlaceCheckers(player, startPoint, endPoint) {
-        let skip = true;
-
+        // Absolute (row + col) parity: both camps must sit on the same
+        // colour as the tile set enumerated by GetAllPosibleTiles. The old
+        // per-call skip flag restarted the pattern each call, which put the
+        // second camp on the opposite colour after the 10x10 -> 8x8 board
+        // change (start row 5), leaving the human with zero enumerated
+        // moves and a false "computer wins" on the first destination click.
         for (let i = startPoint; i < endPoint; i++) {
             for (let j = 0; j < this.boardSize; j++) {
-                if (skip) {
-                    skip = !skip;
-                } else {
+                if ((i + j) % 2 === 1) {
                     this.board[i][j] = player;
-                    skip = !skip;
                 }
             }
-
-            skip = !skip;
         }
     };
 

@@ -40,6 +40,8 @@
     for (const k in screens) screens[k].classList.toggle("hidden", k !== name);
   }
   function updateHud() {
+    // start() initializes the run state; skip until then (boot call at file end).
+    if (!cities) return;
     hud.score.textContent = score;
     hud.cities.textContent = cities.filter((c) => c.alive).length;
     hud.ammo.textContent = ammo;

@@ -603,7 +603,10 @@ kbd {
 
   function frame(t) {
     if (!running) return;
-    var dt = Math.min(0.05, (t - lastT) / 1000);
+    // Clamp both ends: the first rAF timestamp can predate lastT, and a
+    // negative dt drove playerZ/distance below zero, making segs[bi]
+    // undefined in render (crash: reading 'y1', sled frozen at -1 m).
+    var dt = Math.max(0, Math.min(0.05, (t - lastT) / 1000));
     lastT = t;
     if (state === "play") update(dt);
     render();
