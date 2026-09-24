@@ -374,3 +374,13 @@ Kept-with-issues (borderline, real games, fixable - LIST only, no removal):
 Chunked run after removals (commit af5be80): 113/115 pass across 9 chunks.
 - Run 3: `planet5.png`/`autoContent.json` net::ERR_NETWORK_CHANGED = environment network blip; both are local bundled assets (verified: autoContent.json ships in Games/Run3/tn6pS9dCf37xAhkJv/text/, no external URL in Run3.js). PASS on re-run semantics; signed off as flake.
 - Cut the Rope: intro_1024.mp4 net::ERR_ABORTED - the game's own video code aborts its mp4 mid-stream (file exists, menu + all assets load, plays). Known quirk documented in batch 2; signed off.
+
+## Phase 5 interactive playtest (new catalog additions)
+
+52 additions played in a real browser (3 playtest rounds). Format as Phase 1b. Raw: docs/audit_batches/playtest_p1a.md, playtest_p1b.md, playtest_p2a.md, playtest_p2b.md. Result: 47/52 pass; 5 findings all fixed and re-gated (commit 8d2b3da):
+- Missile Command: boot PageError (updateHud before cities init) -> guarded
+- Qix: restart button never unhidden on lose -> unhidden
+- Checkers: human moves never executed (10x10->8x8 parity bug + modal z-index) -> fixed + verified
+- Reversi: input listeners attached 3.6s after boot -> attached synchronously + flip bug fixed
+- Snow Rider 3D: flaky negative-dt first frame froze boot -> dt clamped
+Borderline (kept, noted): Go Fish (intro dialog + animated deal consumed playtest turn budget; human play verified by gate + deal interaction), Word Ladder (validator works, tester's candidate words not in the 874-word list; restart verified). Video Poker / Yahtzee / Cryptogram / Word Scramble / Free Throw / Hunt The Wumpus: restart lives on end screens, not reachable within the 90s probe budget (standard nt pass).
