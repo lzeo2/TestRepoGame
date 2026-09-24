@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="6" stroke-linecap="round" stroke-linejoin="round">
+  <!-- Body -->
+  <circle cx="50" cy="60" r="15" fill="currentColor" />
+  <circle cx="50" cy="40" r="10" fill="currentColor" />
+  
+  <!-- Legs Left -->
+  <path d="M40 45 Q 20 30 10 50" />
+  <path d="M38 55 Q 15 50 10 70" />
+  <path d="M40 65 Q 20 80 15 90" />
+  <path d="M42 35 Q 25 20 20 10" />
+
+  <!-- Legs Right -->
+  <path d="M60 45 Q 80 30 90 50" />
+  <path d="M62 55 Q 85 50 90 70" />
+  <path d="M60 65 Q 80 80 85 90" />
+  <path d="M58 35 Q 75 20 80 10" />
+  
+  <!-- Eyes -->
+  <circle cx="47" cy="38" r="2" fill="white" />
+  <circle cx="53" cy="38" r="2" fill="white" />
+</svg>

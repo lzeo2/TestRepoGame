@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tower of Hanoi</title>
+    <meta name="description" content="Move the stack of disks from the left peg to the right peg in as few moves as you can." />
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header class="game-header">
+        <h1>Tower of Hanoi</h1>
+        <p class="instructions">Move the whole stack from the left peg to the right peg. Move one disk at a time and never place a larger disk on a smaller one. Click a disk, then click a peg to move it, or drag disks with a mouse.</p>
+    </header>
+    <div class="container">
+        <div class="tower" id="tower-a">
+            <div class="disk" id="disk-1" draggable="true">1</div>
+            <div class="disk" id="disk-2" draggable="true">2</div>
+            <div class="disk" id="disk-3" draggable="true">3</div>
+        </div>
+        <div class="tower" id="tower-b"></div>
+        <div class="tower" id="tower-c"></div>
+    </div>
+
+    <div class="controls">
+        <label for="disk-count">Disks:</label>
+        <input type="number" id="disk-count" min="3" max="8" value="3">
+        <button id="apply-button">Apply</button>
+        <button id="undo-button">Undo</button>
+        <button id="reset-button">Reset</button>
+        <p class="moves">Moves: <span id="step-counter">0</span></p>
+        <p class="win-message" id="win-message" role="status"></p>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

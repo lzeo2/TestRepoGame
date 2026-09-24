@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="./spider.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Spider Solitaire</title>
+    <script type="module" crossorigin src="./assets/index-Bj0xLQJV.js"></script>
+    <link rel="stylesheet" crossorigin href="./assets/index-DeC-DNJ1.css">
+    <style>
+      .howto {
+        margin: 0;
+        padding: 8px 16px;
+        font: 14px/1.4 system-ui, sans-serif;
+        color: #ffffff;
+        background: hsl(205 60% 25%);
+      }
+      .card-face:focus-visible, .stock:focus-visible, .foundation__slot:focus-visible {
+        outline: 4px solid #facc15;
+      }
+    </style>
+  </head>
+  <body>
+    <p class="howto">Drag or tap a card onto a column one rank lower. Clear each suit run from king down to ace to empty a column. Hint, Undo, Restart and New Game are in the header, and Tab plus Enter plays with the keyboard.</p>
+    <div id="root"></div>
+    <script>
+      (function () {
+        var sel = '.card-face, .stock, .foundation__slot';
+        function tag() {
+          document.querySelectorAll(sel).forEach(function (el) {
+            if (!el.hasAttribute('tabindex')) el.setAttribute('tabindex', '0');
+          });
+        }
+        new MutationObserver(tag).observe(document.getElementById('root'), { childList: true, subtree: true });
+        tag();
+        document.addEventListener('keydown', function (e) {
+          if ((e.key === 'Enter' || e.key === ' ') && document.activeElement && document.activeElement.matches(sel)) {
+            e.preventDefault();
+            document.activeElement.click();
+          }
+        });
+      })();
+    </script>
+  </body>
+</html>

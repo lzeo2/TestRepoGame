@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=0.5, user-scalable=yes">
+	<title>Tower defense</title>
+	<style type="text/css">
+		html, body {margin: 0;padding: 0;font-size: 12px;line-height: 20px;font-family: Verdana, "Times New Roman", serif;background: #1A74BA;}
+		h1 {padding: 0;margin: 0;line-height: 48px;font-size: 18px;font-weight: bold;font-family: Verdana, "Times New Roman", serif;}
+		#howto {margin: 0;padding: 8px 24px;background: #fff;color: #123;font-size: 13px;}
+		#wrapper {margin: 0 auto;}
+		#td-wrapper {padding: 8px 24px 60px 24px;background: #E0F4FC;}
+		#td-board {display: none;font-size: 16px;}
+		#td-board canvas#td-canvas {position: relative;background: #fff;border: solid 1px #cdf;}
+		#td-loading {font-size: 18px;line-height: 48px;padding: 60px 0 120px 0;font-style: italic;}
+		#about {color: #fff;padding: 8px 24px;}
+	</style>
+</head>
+
+<body id="tower-defense">
+<div id="wrapper">
+	<h1>Tower defense</h1>
+	<p id="howto">Pick a tower in the panel on the right, then click an empty grass tile to build it. Click a built tower to upgrade or sell it. Press start to send the next wave and do not let monsters reach the exit. Works with touch too.</p>
+	<div id="td-wrapper">
+		<div id="td-loading">Loading...</div>
+		<div id="td-board">
+			<canvas id="td-canvas">Sorry, your browser does not support the HTML5 canvas tag. Please use a recent browser for the best experience.</canvas>
+		</div>
+	</div>
+	<div id="about">Based on the HTML5 tower defense game by oldj.</div>
+</div>
+
+<script type="text/javascript" src="td-pkg-en-min.js"></script>
+<script type="text/javascript">
+	window.onload = function () {
+		_TD.init("td-board", true);
+		document.getElementById("td-loading").style.display = "none";
+		document.getElementById("td-board").style.display = "block";
+
+		// minimal touch glue: translate taps into the clicks the game handles
+		var canvas = document.getElementById("td-canvas");
+		canvas.addEventListener("touchend", function (e) {
+			if (e.touches.length) return;
+			var t = e.changedTouches[0];
+			e.preventDefault();
+			canvas.dispatchEvent(new MouseEvent("click", {
+				clientX: t.clientX,
+				clientY: t.clientY,
+				bubbles: true
+			}));
+		}, {passive: false});
+	};
+</script>
+</body>
+</html>

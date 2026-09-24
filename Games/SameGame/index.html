@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Clear the field by removing groups of more than one colored square; the larger the group you remove, the more points you get.">
+    <title>SameGame</title>
+    <link rel="icon" type="image/png" href="samegame1k.png">
+    <style type="text/css">
+      body {
+        background-color: #fff;
+        margin: 0;
+        font-family: sans-serif;
+        color: #222;
+      }
+
+      header {
+        max-width: 528px;
+        margin: 12px auto 8px;
+        padding: 0 8px;
+      }
+
+      header h1 {
+        font-size: 20px;
+        margin: 0 0 4px;
+      }
+
+      header p {
+        font-size: 14px;
+        line-height: 1.4;
+        margin: 0 0 4px;
+        color: #333;
+      }
+
+      #wrapper {
+        display: block;
+        width: 100%;
+      }
+
+      #container {
+        text-align: center;
+      }
+
+      #a {
+        -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+        display: block;
+        width: 528px;
+        max-width: 100%;
+        height: auto;
+        margin: 0 auto;
+        touch-action: manipulation;
+      }
+
+      #footer {
+        color: #555;
+        font-family: sans-serif;
+        font-size: 12px;
+        padding: 8px 0 12px;
+        text-align: center;
+      }
+    </style>
+  </head>
+
+  <body>
+    <header>
+      <h1>SameGame</h1>
+      <p>Tap or click a group of two or more tiles of the same color to clear it. Larger groups score more points. Clear the whole board for the best score.</p>
+      <p>Keyboard: arrow keys move the cursor, Enter clears a group, N starts a new game.</p>
+    </header>
+
+    <div id="wrapper">
+      <div id="container">
+        <canvas id="a" width="528" height="288"></canvas>
+      </div>
+    </div>
+
+    <div id="footer">
+      samegame1k | js1k-2017 | &copy; Gabor Bata
+    </div>
+
+    <script src="samegame.js"></script>
+    <script src="glue.js"></script>
+  </body>
+</html>

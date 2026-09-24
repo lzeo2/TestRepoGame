@@ -1,0 +1,121 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Word Boggle</title>
+<style>
+:root{--ink:#f0eaff;--muted:#c0b0e8}
+*{box-sizing:border-box}body{margin:0;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;font-family:"Segoe UI",system-ui,sans-serif;color:var(--ink);background:#120a24;padding:12px;text-align:center}
+h1{margin:0;font-size:clamp(20px,5vw,30px)}p{color:var(--muted);margin:2px;font-size:14px}
+#cur{font-size:24px;font-weight:800;letter-spacing:.16em;min-height:1.3em;color:#d4c2ff}
+#grid{display:grid;grid-template-columns:repeat(4,64px);grid-auto-rows:64px;gap:8px;touch-action:none;user-select:none;margin:4px}
+.cell{display:flex;align-items:center;justify-content:center;font-size:30px;font-weight:800;border-radius:12px;background:#3a2a68;color:#f0eaff;text-transform:uppercase;transition:background .08s}
+.cell.sel{background:#8a6ce0;color:#fff;transform:scale(1.05)}
+#msg{min-height:1.4em;font-weight:700}
+.row{display:flex;gap:10px}button{font:inherit;color:#fff;background:#5a3aa0;border:0;border-radius:8px;padding:9px 14px;min-height:44px;cursor:pointer}
+.hud{color:var(--muted);font-size:15px}#time{color:#c0a8ff;font-weight:800}
+#found{display:flex;gap:5px 12px;flex-wrap:wrap;justify-content:center;max-width:420px;color:#b8a8e0;font-size:14px;min-height:1em}
+</style></head><body>
+<h1>Word Boggle</h1>
+<p>Drag through <b>touching</b> letters (any direction) to build words of 3+ letters, or type a word on the keyboard and press Enter.</p>
+<div id="cur">&nbsp;</div>
+<div id="grid"></div>
+<div id="msg"></div>
+<div class="row"><button id="new">New board</button></div>
+<div class="hud">Time left <span id="time">90</span>s · Score <b id="score">0</b> · Words <b id="wc">0</b> · Best <b id="best">0</b></div>
+<div id="found"></div>
+<script>
+const BDICT=new Set(("the and for are but not you all any can had her was one our out day get has him his how man new now old see two way who boy did its let put say she too use "+
+"cat dog sun cup hat pen box car bus toy egg key map bag bed leg ear eye arm jar net web fan fox owl ant bee pig cow hen bat rat ram ape elk "+
+"tree star fish bird gold rain note time game play word line fire rose lake moon cake bear lion wolf frog deer duck goat crab seal mole hawk swan dove "+
+"blue pink gray gold jade ruby lime teal navy rust "+
+"tale late gate date fate rate mate hate gaze maze haze daze "+
+"cord card ward warm worm word core care cart cast case cash come cool cook coal coat code cope corn cost "+
+"read real lead deal dear tear team meal heal heat seat beat neat peak leaf lean bean bead bead mean "+
+"ring king sing wing sang song long lung ring rang gong "+
+"boat coat goat moat road load toad soap soar roar oral coal foal "+
+"sand hand land band bend send lend mind mine wine vine dine fine pine line nine "+
+"ship shop stop step stem spin spot slot slip snap swim skin scan span "+
+"rock lock dock sock mock sick pick lick kick tick tock luck duck buck "+
+"gold hold bold cold fold mold told sold "+
+"tune june dune rune "+
+"apple mango lemon grape melon peach berry olive onion beans bread toast cream sugar honey candy pizza salad juice water "+
+"table chair house mouse horse plant stone river ocean cloud storm light night dream heart smile happy music dance green brown black white "+
+"acre aria area idea instr "+
+"open even ever iron item join jump just keep kind knot know last leap left less life lift like live lone look lord lose loud love luck made mail main make male many mark mask mass mast meet melt menu mere mild mile milk mill mind mint miss mode mood more most move much must nail name near neck need nest news next nice node none noon nose oath obey once only onto oval oven over pace pack page paid pain pair pale palm park part pass past path pave peel peer pest plan plot plum plus poem poet pole poll pond pool poor port pose post pour pray prey pull pump pure push race rack raft rage raid rail rank rare rate rave read reef rely rest rice rich ride ripe rise risk roam robe role roll roof room root rope ruby rule rush rust sage sail sake sale salt same save scar seed seek seem seen self sell semi sera shed shin shoe shot show shut side sift sign silk site size skip sled slim slow snow soft soil sole solo sort soul spa spy stay stir sub such suit sure surf swap tail tale talk tall tame tank tape task teak teal tend tent term test text than that thaw them then thin this thus tidy tide tidy tile toll tomb tone tool torn tour town trap tray trek trim trio trip true tuna turn twin type ugly undo unit upon urge used user vary vast veil vein verb very vest veto vibe view vine visa void vote wade wage wait wake wall wand want warm warn wash wave weak wear weed week weld well west wharf what when whip whom wide wife wild will wind wine wing wipe wire wise wish wolf wood wool wrap yard yarn yawn year yell yoga yolk your zero zone zoom").split(/\s+/).filter(Boolean));
+const PLANTS=["tree","star","fish","bird","gold","rain","note","time","game","play","word","line","fire","rose","lake","moon","cake","boat","hand","ring","king","song","seal","frog","deer","duck","goat","blue","tale","gate","cord","read","team","ship","rock","open","cloud","river","stone","plant","light","music","heart","smile"];
+const PTS={3:1,4:1,5:2,6:3,7:5};
+const SIZE=4;
+const gridEl=document.getElementById('grid'),curEl=document.getElementById('cur'),msg=document.getElementById('msg'),
+  timeEl=document.getElementById('time'),scoreEl=document.getElementById('score'),wcEl=document.getElementById('wc'),
+  bestEl=document.getElementById('best'),foundEl=document.getElementById('found');
+let grid,cells,found,score,time,timer,over,path,selecting,best=+(localStorage.getItem('boggleBest')||0);bestEl.textContent=best;
+function neighbors(r,c){const out=[];for(let dr=-1;dr<=1;dr++)for(let dc=-1;dc<=1;dc++){if(!dr&&!dc)continue;const rr=r+dr,cc=c+dc;if(rr>=0&&cc>=0&&rr<SIZE&&cc<SIZE)out.push([rr,cc]);}return out;}
+function plant(word){for(let a=0;a<300;a++){let r=Math.floor(Math.random()*SIZE),c=Math.floor(Math.random()*SIZE);
+  if(grid[r][c]!==''&&grid[r][c]!==word[0])continue;const used=new Set([r+','+c]),path=[[r,c]];let ok=true;
+  for(let k=1;k<word.length;k++){const nb=neighbors(r,c).filter(([rr,cc])=>!used.has(rr+','+cc)&&(grid[rr][cc]===''||grid[rr][cc]===word[k]));
+    if(!nb.length){ok=false;break;}const p=nb[Math.floor(Math.random()*nb.length)];r=p[0];c=p[1];used.add(r+','+c);path.push([r,c]);}
+  if(ok){path.forEach(([rr,cc],k)=>grid[rr][cc]=word[k]);return true;}}return false;}
+const FILL="aaaeeeiiioouurrnnttllsscddgpmbhfywk";
+function randLetter(){return FILL[Math.floor(Math.random()*FILL.length)];}
+function gen(){grid=Array.from({length:SIZE},()=>Array(SIZE).fill(''));
+  const pl=[...PLANTS].sort(()=>Math.random()-.5);let n=0;for(const w of pl){if(n>=5)break;if(plant(w))n++;}
+  for(let r=0;r<SIZE;r++)for(let c=0;c<SIZE;c++)if(grid[r][c]==='')grid[r][c]=randLetter();
+  found=new Set();score=0;time=90;over=false;path=[];scoreEl.textContent=0;wcEl.textContent=0;timeEl.textContent=90;
+  msg.textContent='';foundEl.textContent='';curEl.innerHTML='&nbsp;';render();clearInterval(timer);timer=setInterval(tick,1000);}
+function render(){gridEl.innerHTML='';cells=[];for(let r=0;r<SIZE;r++)for(let c=0;c<SIZE;c++){
+  const d=document.createElement('div');d.className='cell';d.textContent=grid[r][c];d.dataset.r=r;d.dataset.c=c;gridEl.appendChild(d);cells.push(d);}}
+function idx(r,c){return r*SIZE+c;}
+function paintPath(){cells.forEach(d=>d.classList.remove('sel'));path.forEach(([r,c])=>cells[idx(r,c)].classList.add('sel'));
+  curEl.textContent=path.map(([r,c])=>grid[r][c]).join('')||' ';}
+function adj(a,b){return Math.abs(a[0]-b[0])<=1&&Math.abs(a[1]-b[1])<=1&&!(a[0]===b[0]&&a[1]===b[1]);}
+function cellOf(e){const el=document.elementFromPoint(e.clientX,e.clientY);if(!el||!el.classList.contains('cell'))return null;return[+el.dataset.r,+el.dataset.c];}
+function extend(cell){if(!path.length){path.push(cell);paintPath();return;}
+  const last=path[path.length-1];if(cell[0]===last[0]&&cell[1]===last[1])return;
+  if(path.length>=2){const prev=path[path.length-2];if(cell[0]===prev[0]&&cell[1]===prev[1]){path.pop();paintPath();return;}}
+  if(path.some(p=>p[0]===cell[0]&&p[1]===cell[1]))return;
+  if(adj(last,cell)){path.push(cell);paintPath();}}
+function commitWord(w){if(over)return;
+  if(w.length<3){flash('3+ letters','#ffcf7a');return;}
+  if(!BDICT.has(w)){flash('"'+w+'" not in word list','#ff9a7a');return;}
+  if(found.has(w)){flash('already found','#f0c020');return;}
+  found.add(w);const pts=PTS[Math.min(w.length,7)]||5;score+=pts;scoreEl.textContent=score;wcEl.textContent=found.size;
+  if(score>best){best=score;localStorage.setItem('boggleBest',best);bestEl.textContent=best;}
+  flash(w+' +'+pts,'#7fe0a0');drawFound();}
+function evaluate(){if(path.length>=3)commitWord(path.map(([r,c])=>grid[r][c]).join(''));path=[];paintPath();}
+function drawFound(){foundEl.innerHTML='';[...found].sort().forEach(w=>{const s=document.createElement('span');s.textContent=w;foundEl.appendChild(s);});}
+function flash(t,col){msg.style.color=col;msg.textContent=t;}
+function tick(){if(over)return;time--;timeEl.textContent=time;if(time<=0){over=true;clearInterval(timer);flash('Time is up. Final score '+score+'. Press New board.','#ffcf7a');}}
+let typed='';
+function inGridPath(w){
+  const used=new Set();
+  function dfs(i,r,c){
+    if(r<0||c<0||r>=SIZE||c>=SIZE)return false;
+    const key=r+','+c;
+    if(used.has(key)||grid[r][c]!==w[i])return false;
+    if(i===w.length-1)return true;
+    used.add(key);
+    for(const [rr,cc] of neighbors(r,c)) if(dfs(i+1,rr,cc)){used.delete(key);return true;}
+    used.delete(key);
+    return false;
+  }
+  for(let r=0;r<SIZE;r++)for(let c=0;c<SIZE;c++)if(dfs(0,r,c))return true;
+  return false;
+}
+// keyboard input: type letters, Enter submits, Backspace edits, Escape clears
+document.addEventListener('keydown',e=>{
+  if(over)return;
+  if(/^[a-zA-Z]$/.test(e.key)){typed+=e.key.toLowerCase();curEl.textContent=typed||' ';}
+  else if(e.key==='Backspace'){typed=typed.slice(0,-1);curEl.textContent=typed||' ';}
+  else if(e.key==='Escape'){typed='';curEl.innerHTML='&nbsp;';}
+  else if(e.key==='Enter'){
+    e.preventDefault();
+    if(typed.length<3)flash('3+ letters','#ffcf7a');
+    else if(!inGridPath(typed))flash('"'+typed+'" has no connected path','#ff9a7a');
+    else commitWord(typed);
+    typed='';curEl.innerHTML='&nbsp;';
+  }
+});
+gridEl.addEventListener('pointerdown',e=>{if(over)return;e.preventDefault();const c=cellOf(e);if(!c)return;selecting=true;path=[c];paintPath();});
+gridEl.addEventListener('pointermove',e=>{if(!selecting||over)return;const c=cellOf(e);if(c)extend(c);});
+addEventListener('pointerup',()=>{if(selecting){selecting=false;evaluate();}});
+document.getElementById('new').onclick=gen;
+gen();window.__READY__=true;
+</script></body></html>

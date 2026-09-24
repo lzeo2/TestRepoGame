@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<title>Bowling</title>
+		<meta charset="utf-8"/>
+		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0"/>
+		<style>
+			body {
+				margin: 0px;
+				overflow: hidden;
+			}
+		</style>
+	</head>
+	<body>
+		<header class="gamebar">
+			<h1>Bowling</h1>
+			<p>Drag the ball sideways to line up your shot, then flick it forward to bowl. Arrow keys move the ball and space bar bowls. Press R or the restart button for a fresh game.</p>
+			<button id="restartBtn" type="button">Restart</button>
+		</header>
+		<div id="container"></div>
+
+		<style>
+			.gamebar {
+				position: fixed;
+				top: 0;
+				left: 0;
+				right: 0;
+				z-index: 10;
+				display: flex;
+				align-items: center;
+				gap: 12px;
+				padding: 8px 12px;
+				background: #16202b;
+				color: #eaf1f8;
+				font-family: system-ui, sans-serif;
+			}
+			.gamebar h1 { font-size: 1.1rem; font-weight: 600; margin: 0; }
+			.gamebar p { margin: 0; font-size: 0.9rem; color: #d5e1ee; flex: 1; }
+			.gamebar button {
+				min-height: 44px;
+				min-width: 96px;
+				padding: 0 16px;
+				font-size: 0.95rem;
+				background: #2f9e6b;
+				color: #ffffff;
+				border: none;
+				border-radius: 6px;
+				cursor: pointer;
+			}
+			.gamebar button:hover { background: #268a5c; }
+			@media (max-width: 720px) {
+				.gamebar { flex-direction: column; align-items: stretch; text-align: center; gap: 6px; }
+			}
+		</style>
+
+		<script src="js/ammo.js"></script>
+		<script src="js/three.js"></script>
+		<script src="js/GLTFLoader.js"></script>
+		<script src="js/scores.js"></script>
+		<script src="js/bowlphysics.js"></script>
+		<script src="js/bowlchallenge.js"></script>
+		<script src="js/keyboard.js"></script>
+	</body>
+</html>

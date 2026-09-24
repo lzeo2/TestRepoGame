@@ -1,0 +1,175 @@
+body {
+    font-family: sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    margin: 0;
+    padding: 16px;
+    box-sizing: border-box;
+    background-color: #E0C9A6;
+}
+
+.game-header {
+    text-align: center;
+    max-width: 640px;
+}
+
+.game-header h1 {
+    font-size: 1.6rem;
+    margin: 0 0 0.4rem;
+    color: #3b2f22;
+}
+
+.instructions {
+    font-size: 1rem;
+    line-height: 1.45;
+    color: #3b2f22;
+    margin: 0 0 1rem;
+}
+
+.container {
+    display: flex;
+    justify-content: space-around;
+    width: 80%;
+    margin-bottom: 20px;
+    background-color: rgba(255, 255, 255, 0.6); /* 略微增加透明度 */
+    padding: 25px; /* 略微增加padding */
+    border-radius: 25px; /* 更大的圆角 */
+    box-shadow: 0 0 25px rgba(0, 0, 0, 0.4); /* 更强的阴影 */
+}
+
+.tower {
+    width: 130px; /* 增加宽度 */
+    height: 260px; /* 增加高度 */
+    border: none;
+    border-radius: 20px; /* 更大的圆角 */
+    box-shadow: 8px 8px 18px rgba(0, 0, 0, 0.3),
+               -8px -8px 18px rgba(255, 255, 255, 0.8);
+    position: relative;
+    display: flex;
+    flex-direction: column-reverse;
+    align-items: center;
+    padding-bottom: 20px; /* 增加底部内边距 */
+    background-color: rgba(240, 220, 195, 0.8); /* 略微透明的浅陶土色 */
+}
+
+.tower::before {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 15px; /* 杆子宽度 */
+    height: 90%; /* 杆子高度 */
+    background-color: #A8A196; /* 杆子颜色 */
+    border-radius: 5px 5px 0 0;
+    z-index: -1; /* 确保在盘子下方 */
+}
+
+.disk {
+    width: 80%;
+    height: 44px; /* meets 44px touch target */
+    background: #B5A67F;
+    color: #222; /* dark text */
+    text-align: center;
+    line-height: 44px; /* matches height */
+    border-radius: 25px; /* 更大的圆角 */
+    margin-bottom: 10px; /* 增加底部外边距 */
+    cursor: pointer;
+    box-shadow: 6px 6px 12px rgba(0, 0, 0, 0.3),
+               -6px -6px 12px rgba(255, 255, 255, 0.8);
+    font-size: 1.2em; /* 增加字体大小 */
+    text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.5); /* 添加文字阴影 */
+}
+
+/* 动态边框 */
+@keyframes glowing-border {
+    0% {
+        box-shadow: 3px 3px 6px rgba(0, 0, 0, 0.2), -3px -3px 6px rgba(255, 255, 255, 0.7), 0 0 0 0px #FFD700, 0 0 0 0px #FFD700;
+    }
+    50% {
+        box-shadow: 3px 3px 6px rgba(0, 0, 0, 0.2), -3px -3px 6px rgba(255, 255, 255, 0.7), 0 0 0 3px #FFD700, 0 0 0 6px rgba(255, 215, 0, 0);
+    }
+    100% {
+        box-shadow: 3px 3px 6px rgba(0, 0, 0, 0.2), -3px -3px 6px rgba(255, 255, 255, 0.7), 0 0 0 0px #FFD700, 0 0 0 0px #FFD700;
+    }
+}
+
+.active-disk {
+    animation: glowing-border 1s infinite;
+}
+
+.disk.selected {
+    outline: 4px solid #1a5fb4;
+    outline-offset: 2px;
+}
+
+.win-message {
+    color: #1d4d20;
+    font-weight: bold;
+    min-height: 1.3em;
+    margin: 0;
+}
+
+.moves {
+    margin: 0;
+}
+/* 不同盘子的样式 */
+#disk-1 { width: 40%; }
+#disk-2 { width: 60%; }
+#disk-3 { width: 80%; }
+
+.controls {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+}
+
+.controls label {
+    color: #3b2f22;
+}
+
+.controls input[type='number'] {
+    width: 4rem;
+    min-height: 44px;
+    box-sizing: border-box;
+    font-size: 1rem;
+}
+
+button {
+    min-height: 44px;
+    padding: 12px 24px;
+    background-color: #5D4E45; /* 深棕色按钮 */
+    color: #F0F0F0; /* 浅灰色文字 */
+    border: none;
+    border-radius: 8px; /* 略微增加圆角 */
+    cursor: pointer;
+    box-shadow: 3px 3px 5px rgba(0, 0, 0, 0.3),
+               -3px -3px 5px rgba(255, 255, 255, 0.8);
+    font-size: 1em; /* 略微增加字体大小 */
+}
+
+button:hover {
+    background-color: #7A6A5E; /* 悬停时颜色略微变浅 */
+    box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.4),
+               -2px -2px 4px rgba(255, 255, 255, 0.9); /* 悬停时阴影变化 */
+    transform: translateY(-1px); /* 悬停时微小上移 */
+}
+
+button:active {
+    background-color: #5D4E45; /* 点击时颜色不变 */
+    box-shadow: inset 2px 2px 4px rgba(0, 0, 0, 0.4),
+               inset -2px -2px 4px rgba(255, 255, 255, 0.9); /* 点击时内嵌阴影 */
+    transform: translateY(0); /* 点击时恢复位置 */
+}
+
+#step-counter {
+    font-weight: bold;
+    color: #5D4E45; /* 深棕色步数文字 */
+    font-size: 1.3em; /* 增加字体大小 */
+    text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.5); /* 添加文字阴影 */
+}

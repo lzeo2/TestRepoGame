@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en-US">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+	<title>Nonogram</title>
+
+	<link rel="stylesheet" href="example/css/app/styles.css" type="text/css" />
+
+</head>
+
+<body>
+
+<div id="page">
+
+	<header id="site-header">
+
+		<h1>nonogram</h1>
+
+	</header>
+
+	<main>
+
+		<p class="instructions">Fill the grid so the number clues along the edges match every row and column. Click or tap a cell to fill it, use cross marks for cells you know are empty, and press X to switch between fill and cross mode.</p>
+
+		<p class="instructions" id="score" role="status"></p>
+
+		<div class="wrapper">
+
+			<div class="puzzle">
+				<div data-nonogram-puzzle-grid></div>
+			</div>
+
+			<div class="game-controls">
+				<div data-nonogram-game-controls></div>
+			</div>
+
+			<div class="generate-controls">
+				<div data-nonogram-generate-controls></div>
+			</div>
+
+			<div class="console">
+				<div data-nonogram-console></div>
+			</div>
+
+		</div>
+
+	</main>
+
+</div>
+
+
+<script src="./dist/nonogram.min.js"></script>
+<script>
+
+	const creator = new Nonogram.Creator();
+	const puzzle  = creator.createRandom( 8, 8 );
+	const gui     = new Nonogram.Gui( 'dist/themes/default' );
+
+	gui.draw( puzzle );
+
+	// Score line: counts filled cells and detects the solved state.
+	// Cell clicks, Reset, Generate and Solve all go through this handler.
+	function updateScore() {
+		const grid  = document.querySelector( '[data-nonogram-puzzle-grid]' );
+		const score = document.getElementById( 'score' );
+		if ( !grid || !score ) return;
+		const total  = grid.querySelectorAll( 'td' ).length;
+		const filled = grid.querySelectorAll( '.user-positive' ).length;
+		if ( total === 0 ) return;
+		if ( grid.classList.contains( 'solved' ) ) {
+			score.textContent = 'Puzzle solved in ' + filled + ' filled cells. Press Reset or Generate to play again.';
+		} else {
+			score.textContent = 'Filled ' + filled + ' of ' + total + ' cells.';
+		}
+	}
+
+	document.addEventListener( 'click', function () {
+		setTimeout( updateScore, 30 );
+	} );
+	document.addEventListener( 'DOMContentLoaded', updateScore );
+	updateScore();
+
+</script>
+
+</body>
+</html>

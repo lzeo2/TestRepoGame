@@ -1,0 +1,594 @@
+<!--
+
+Mancala Html
+
+Copyright (C) 2025 - Fatih (https://github.com/99fk)
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Mancala</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgdmlld0JveD0iMCAwIDE2IDE2Ij4KICA8cmVjdCB4PSIxIiB5PSIzIiB3aWR0aD0iMTQiIGhlaWdodD0iMTAiIHJ4PSIyIiByeT0iMiIgZmlsbD0iIzhiNWEyYiIgc3Ryb2tlPSIjM2IyNDE1IiBzdHJva2Utd2lkdGg9IjAuOCIvPgogIDxjaXJjbGUgY3g9IjUiIGN5PSI4IiByPSIxLjIiIGZpbGw9IiNmNmUyYjMiLz4KICA8Y2lyY2xlIGN4PSI4IiBjeT0iOCIgcj0iMS4yIiBmaWxsPSIjZjZlMmIzIi8+CiAgPGNpcmNsZSBjeD0iMTEiIGN5PSI4IiByPSIxLjIiIGZpbGw9IiNmNmUyYjMiLz4KPC9zdmc+">
+  <style>
+    :root{
+      --bg:#0f0c09;
+      --panel:#1b140e;
+      --muted:#b89b84;
+      --text:#f3e9df;
+      --accent:#ffd479;
+      --accent2:#9bd4ff;
+      --line:#3c2a1e;
+      --shadow:0 14px 36px rgba(0,0,0,.45);
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Noto Sans,sans-serif;
+      color:var(--text);
+      background:
+        radial-gradient(1200px 600px at 80% 0%, rgba(255,220,180,.06), transparent 65%),
+        radial-gradient(1200px 600px at 10% 100%, rgba(255,220,180,.08), transparent 65%),
+        linear-gradient(180deg,#2a1d13,#140f0a);
+      display:flex;flex-direction:column;
+    }
+    header{
+      padding:12px 14px;display:flex;gap:10px;align-items:center;justify-content:space-between;
+      max-width:1200px;margin:0 auto;width:100%;
+    }
+    .brand{display:flex;align-items:center;gap:8px;font-weight:800;letter-spacing:.2px;font-size:14px}
+    .brand .dot{width:8px;height:8px;border-radius:50%;
+      background:radial-gradient(circle at 30% 30%,#fff2c0,var(--accent));
+      box-shadow:0 0 8px var(--accent)}
+    .muted{color:var(--muted);font-size:12px}
+    .panel{
+      background:rgba(40,28,19,.55);
+      border:1px solid rgba(255,255,255,.07);
+      backdrop-filter:blur(6px);
+      border-radius:14px;
+      box-shadow:var(--shadow);
+    }
+
+    .wrap{
+      display:grid;grid-template-columns:minmax(0,1fr) 320px;
+      gap:12px;padding:10px 12px;flex:1;
+      max-width:1200px;margin:0 auto;width:100%;
+    }
+    @media (max-width: 980px){
+      .wrap{grid-template-columns:1fr; gap:10px; padding:10px}
+      .hud{order:2}
+      .board{order:1}
+    }
+
+    /* Board container (CENTERED) */
+    .board{
+      display:flex; align-items:center; justify-content:center;
+      padding:10px; width:100%;
+      min-height:360px;
+    }
+    .board-inner{
+      position:relative;
+      width:100%; max-width:980px;
+      aspect-ratio:16/9;
+      border-radius:18px; overflow:hidden;
+      background:
+        radial-gradient(800px 400px at 20% 0%, rgba(255,230,180,.22), transparent 65%),
+        radial-gradient(600px 300px at 80% 100%, rgba(255,210,150,.18), transparent 65%),
+        linear-gradient(180deg,#8b5a2b 0%, #6e4522 45%, #5c3518 100%);
+      border:2px solid #3b2415;
+      box-shadow:inset 0 0 40px rgba(0,0,0,.45), 0 12px 30px rgba(0,0,0,.35);
+    }
+    .wood{
+      position:absolute;inset:0;
+      background:
+        repeating-linear-gradient( 15deg, rgba(0,0,0,.08) 0 2px, transparent 2px 28px ),
+        repeating-linear-gradient( 195deg, rgba(255,255,255,.06) 0 2px, transparent 2px 26px );
+      opacity:.35;pointer-events:none;
+      mix-blend-mode:multiply;
+    }
+
+    .pit, .store{
+      position:absolute;display:flex;align-items:center;justify-content:center;border-radius:999px;
+      transition:transform .1s ease, box-shadow .12s ease, filter .12s ease, outline-color .12s ease;
+      border:2px solid #4a2f1d;
+      background:
+        radial-gradient(120px 80px at 35% 25%, #d9b079 0%, #b58249 48%, #7a4d26 100%);
+      box-shadow:inset 0 6px 14px rgba(0,0,0,.55), 0 6px 16px rgba(0,0,0,.35);
+    }
+    .pit{ width:9.8%; aspect-ratio:1; }
+    .pit[data-owner="A"].active, .pit[data-owner="B"].active{
+      outline:2px solid rgba(255,212,121,.9);
+      box-shadow:inset 0 8px 16px rgba(0,0,0,.6), 0 0 0 6px rgba(255,212,121,.18);
+    }
+    .pit.hovered{ transform:translateY(-1px) scale(1.01) }
+    .pit.disabled{ filter:grayscale(.7) brightness(.8);opacity:.7 }
+    .store{
+      width:6.8%;height:76%;
+      background:
+        radial-gradient(160px 120px at 40% 25%, #ddb986 0%, #b27f44 52%, #6a401f 100%);
+    }
+
+    .seed{
+      position:absolute;width:14px;height:14px;border-radius:50%;
+      background:
+        radial-gradient(circle at 30% 30%, #f6f2e9, #d9c9a8 50%, #b89b72 100%);
+      box-shadow:0 2px 5px rgba(0,0,0,.5);
+      transform:translate(-50%,-50%); pointer-events:none;
+    }
+
+    .hud{display:grid;gap:8px}
+    .card{padding:10px;border-radius:10px}
+    .title{font-size:12px;letter-spacing:.12em;color:#eed8c6;margin-bottom:6px}
+    .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+    button,select,input[type="range"]{
+      appearance:none;border:none;background:#3a2a1e;color:var(--text);
+      padding:8px 10px;border-radius:10px;box-shadow:var(--shadow);
+      border:1px solid rgba(255,255,255,.08); font-size:12px;
+      min-height:44px;
+    }
+    button{cursor:pointer;font-weight:700}
+    button:hover{filter:brightness(1.05)}
+    button:active{transform:translateY(1px)}
+    .turn{font-weight:800}
+    .pill{padding:5px 8px;border-radius:999px;background:#3a2a1e;border:1px solid rgba(255,255,255,.08);font-size:12px}
+
+    .log{max-height:180px;overflow:auto;
+      font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono","Courier New", monospace;
+      background:#1d140d;border:1px solid rgba(255,255,255,.08);padding:8px;border-radius:8px; font-size:12px}
+    .log p{margin:.2em 0}
+
+    .footer{padding:8px 12px;text-align:center;color:var(--muted);font-size:12px}
+    a{color:var(--accent2);text-decoration:none}
+    a:hover{text-decoration:underline}
+  </style>
+</head>
+<body>
+  <header>
+    <div class="brand"><span class="dot"></span>Mancala</div>
+    <div class="muted">Click a pit on your side to sow seeds. Land in your store to play again. Most seeds wins. Press h for a hint and u to undo.</div>
+  </header>
+
+  <main class="wrap">
+    <section class="board panel">
+      <div class="board-inner" id="board">
+        <div class="wood"></div>
+        <!-- Pits & Stores will be injected by JS -->
+      </div>
+    </section>
+
+    <aside class="hud">
+      <div class="card panel">
+        <div class="title">Mode</div>
+        <div class="row">
+          <select id="mode">
+            <option value="hvh">Human vs Human</option>
+            <option value="hva" selected>Human vs AI</option>
+            <option value="ava">AI vs AI (demo)</option>
+          </select>
+          <label class="pill">AI: 
+            <select id="aiSide">
+              <option value="B" selected>AI as Player B (top)</option>
+              <option value="A">AI as Player A (bottom)</option>
+              <option value="both">Both</option>
+            </select>
+          </label>
+        </div>
+      </div>
+
+      <div class="card panel">
+        <div class="title">Difficulty</div>
+        <div class="row">
+          <input id="depth" type="range" min="1" max="8" value="5" />
+          <span id="depthLabel" class="pill">Depth: 5</span>
+          <button id="hintBtn" title="Show AI suggestion (for current player)">Hint</button>
+        </div>
+      </div>
+
+      <div class="card panel">
+        <div class="title">Status</div>
+        <div class="row" style="justify-content:space-between;gap:8px">
+          <div>
+            Turn: <span id="turn" class="turn">A</span>
+          </div>
+          <div>
+            A Store: <span id="scoreA" class="pill">0</span>
+            B Store: <span id="scoreB" class="pill">0</span>
+          </div>
+        </div>
+        <div class="row" style="margin-top:6px;gap:6px">
+          <button id="restart">Restart</button>
+          <button id="undo">Undo</button>
+          <button id="redo">Redo</button>
+          <button id="swap">Swap</button>
+        </div>
+      </div>
+
+      <div class="card panel">
+        <div class="title">Move log</div>
+        <div id="log" class="log" aria-live="polite"></div>
+      </div>
+    </aside>
+  </main>
+
+
+
+  <script>
+  // Kalah (Mancala) - centered, compact, fixed
+  const cfg = { pitsPerSide: 6, seedsPerPit: 4, seedAnim: true };
+  const boardEl = document.getElementById('board');
+  const turnEl = document.getElementById('turn');
+  const scoreAEl = document.getElementById('scoreA');
+  const scoreBEl = document.getElementById('scoreB');
+  const logEl = document.getElementById('log');
+  const depthEl = document.getElementById('depth');
+  const depthLabel = document.getElementById('depthLabel');
+  const hintBtn = document.getElementById('hintBtn');
+  const modeEl = document.getElementById('mode');
+  const aiSideEl = document.getElementById('aiSide');
+
+  let state = null;
+  let history = [], future = [];
+
+  /* ---------- Audio (WebAudio) ---------- */
+  let audioCtx = null;
+  function ensureAudio(){
+    if(audioCtx) return;
+    const Ctx = window.AudioContext || window.webkitAudioContext;
+    if(!Ctx) return;
+    audioCtx = new Ctx();
+  }
+  function beep(freq=800, dur=0.06, type='triangle', vol=0.05){
+    if(!audioCtx) return;
+    const t0 = audioCtx.currentTime;
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = type; osc.frequency.value = freq;
+    gain.gain.setValueAtTime(0.0001, t0);
+    gain.gain.exponentialRampToValueAtTime(vol, t0+0.005);
+    gain.gain.exponentialRampToValueAtTime(0.0001, t0+dur);
+    osc.connect(gain); gain.connect(audioCtx.destination);
+    osc.start(t0); osc.stop(t0+dur+0.02);
+  }
+  function playSow(){ beep(950,0.04,'triangle',0.045); }
+  function playCapture(){
+    beep(240,0.12,'sawtooth',0.06);
+    setTimeout(()=>beep(140,0.12,'square',0.055), 90);
+  }
+  function playWin(){
+    const seq=[523,659,784,988,1046];
+    seq.forEach((f,i)=>setTimeout(()=>beep(f,0.12,'sine',0.06), i*150));
+  }
+  ['click','keydown','touchstart'].forEach(evt=>{
+    window.addEventListener(evt, ()=>{ ensureAudio(); if(audioCtx && audioCtx.state==='suspended') audioCtx.resume(); }, {once:true});
+  });
+
+  /* ---------- Helpers ---------- */
+  function initState(){
+    const pits = new Array(14).fill(0);
+    for(let i=0;i<cfg.pitsPerSide;i++){ pits[i] = cfg.seedsPerPit; }
+    for(let i=0;i<cfg.pitsPerSide;i++){ pits[7+i] = cfg.seedsPerPit; }
+    return { pits, player:'A', over:false, winner:null };
+  }
+  function clone(s){ return { pits:[...s.pits], player:s.player, over:s.over, winner:s.winner } }
+  function isStore(idx){ return idx===6 || idx===13 }
+  function ownerOf(idx){ if(idx>=0 && idx<=6) return 'A'; if(idx>=7 && idx<=13) return 'B'; return null; }
+  function pitsOf(player){ return player==='A' ? [0,1,2,3,4,5] : [7,8,9,10,11,12]; }
+  function storeIndex(player){ return player==='A'?6:13 }
+  function oppositePit(idx){ return 12-idx }
+  function legalMoves(s, player=s.player){ return pitsOf(player).filter(i=>s.pits[i]>0); }
+  function nextPlayer(p){ return p==='A'?'B':'A' }
+
+  function applyMoveWithMeta(s, pitIdx){
+    if(s.over) return { next: s, meta: {path:[], lastIdx:null, captured:false} };
+    const player = s.player;
+    if(!pitsOf(player).includes(pitIdx) || s.pits[pitIdx]===0){
+      return { next: s, meta: {path:[], lastIdx:null, captured:false} };
+    }
+    const n = s.pits[pitIdx];
+    const ns = clone(s);
+    ns.pits[pitIdx]=0;
+    let idx = pitIdx;
+    let lastIdx=idx;
+    const path = [];
+    for(let k=0;k<n;k++){
+      idx = (idx+1)%14;
+      if(player==='A' && idx===13){ idx=(idx+1)%14; }
+      if(player==='B' && idx===6){ idx=(idx+1)%14; }
+      ns.pits[idx]++;
+      lastIdx=idx;
+      path.push(idx);
+    }
+
+    let captured=false;
+    if(!isStore(lastIdx) && ownerOf(lastIdx)===player){
+      const ownRow = pitsOf(player);
+      if(ownRow.includes(lastIdx) && ns.pits[lastIdx]===1){
+        const opp = oppositePit(lastIdx);
+        const grabbed = ns.pits[opp];
+        if(grabbed>0){
+          ns.pits[storeIndex(player)] += grabbed + 1;
+          ns.pits[lastIdx]=0; ns.pits[opp]=0;
+          captured=true;
+        }
+      }
+    }
+
+    if(lastIdx===storeIndex(player)){ ns.player = player; }
+    else{ ns.player = nextPlayer(player); }
+
+    const aEmpty = pitsOf('A').every(i=>ns.pits[i]===0);
+    const bEmpty = pitsOf('B').every(i=>ns.pits[i]===0);
+    if(aEmpty || bEmpty){
+      if(!aEmpty){
+        let sum=0; pitsOf('A').forEach(i=>{sum+=ns.pits[i]; ns.pits[i]=0}); ns.pits[6]+=sum;
+      }
+      if(!bEmpty){
+        let sum=0; pitsOf('B').forEach(i=>{sum+=ns.pits[i]; ns.pits[i]=0}); ns.pits[13]+=sum;
+      }
+      ns.over = true;
+      if(ns.pits[6]>ns.pits[13]) ns.winner='A'; else if(ns.pits[13]>ns.pits[6]) ns.winner='B'; else ns.winner='draw';
+    }
+
+    return { next: ns, meta: { path, lastIdx, captured} };
+  }
+
+  function evaluate(s){
+    const score = (s.pits[6]-s.pits[13]) + 0.1*(pitsOf('A').reduce((a,i)=>a+s.pits[i],0) - pitsOf('B').reduce((a,i)=>a+s.pits[i],0));
+    return score;
+  }
+
+  function minimax(s, depth, alpha, beta, maximizingFor){
+    if(depth===0 || s.over){ return {score:evaluate(s), move:null} }
+    const player = maximizingFor ? 'A':'B';
+    const moves = legalMoves(s, player);
+    if(moves.length===0){
+      const ns = clone(s); ns.player = nextPlayer(player); return minimax(ns, depth-1, alpha, beta, !maximizingFor);
+    }
+    let bestMove=moves[0];
+    if(maximizingFor){
+      let best=-1e9;
+      for(const m of moves){
+        let ns = clone(s); if(ns.player!==player) ns.player=player; ns = applyMoveWithMeta(ns, m).next;
+        const same = ns.player===player && !ns.over;
+        const {score} = minimax(ns, depth-1, alpha, beta, same?true:false);
+        if(score>best){ best=score; bestMove=m; }
+        alpha=Math.max(alpha,best); if(beta<=alpha) break;
+      }
+      return {score:best, move:bestMove};
+    }else{
+      let best=1e9;
+      for(const m of moves){
+        let ns = clone(s); if(ns.player!==player) ns.player=player; ns = applyMoveWithMeta(ns, m).next;
+        const same = ns.player===player && !ns.over;
+        const {score} = minimax(ns, depth-1, alpha, beta, same?false:true);
+        if(score<best){ best=score; bestMove=m; }
+        beta=Math.min(beta,best); if(beta<=alpha) break;
+      }
+      return {score:best, move:bestMove};
+    }
+  }
+
+  function aiShouldMove(){
+    const mode = modeEl.value; const who = aiSideEl.value;
+    const aiForA = (mode!=='hvh') && (who==='A' || who==='both' || (mode==='ava'));
+    const aiForB = (mode!=='hvh') && (who==='B' || who==='both' || (mode==='ava'));
+    return (state.player==='A' && aiForA) || (state.player==='B' && aiForB);
+  }
+
+  function aiMove(){
+    if(state.over) return;
+    if(!aiShouldMove()) return;
+    setTimeout(()=>{
+      const depth = parseInt(depthEl.value,10); // Difficulty respected
+      const maximizing = (state.player==='A');
+      const { move } = minimax(state, depth, -1e9, 1e9, maximizing);
+      if(move!=null){ performMove(move,true); }
+    }, 320);
+  }
+
+  function log(msg){
+    const p=document.createElement('p'); p.textContent=msg; logEl.appendChild(p); logEl.scrollTop=logEl.scrollHeight;
+  }
+
+  function saveHistory(){ history.push(clone(state)); if(history.length>200) history.shift(); future.length=0; }
+
+  function updateStatus(){
+    turnEl.textContent = state.over ? (state.winner==='draw'?'Draw':state.winner) : state.player;
+    scoreAEl.textContent = state.pits[6];
+    scoreBEl.textContent = state.pits[13];
+    highlightMoves();
+  }
+
+  function layoutBoard(){
+    boardEl.innerHTML = '<div class="wood"></div>';
+    // Stores
+    const storeA = document.createElement('div'); storeA.className='store'; storeA.style.right='2%'; storeA.style.bottom='12%'; storeA.style.top='12%'; storeA.dataset.index=6; storeA.setAttribute('aria-label','Store A');
+    const storeB = document.createElement('div'); storeB.className='store'; storeB.style.left='2%'; storeB.style.top='12%'; storeB.style.bottom='12%'; storeB.dataset.index=13; storeB.setAttribute('aria-label','Store B');
+    boardEl.appendChild(storeA); boardEl.appendChild(storeB);
+
+    // Pits A (0..5)
+    for(let i=0;i<6;i++){
+      const pit = document.createElement('div'); pit.className='pit'; pit.dataset.index=i; pit.dataset.owner='A';
+      const left = 12 + i*12; pit.style.left=left+'%'; pit.style.bottom='8%';
+      boardEl.appendChild(pit);
+    }
+    // Pits B (12..7)
+    for(let k=0;k<6;k++){
+      const idx = 12-k; const pit = document.createElement('div'); pit.className='pit'; pit.dataset.index=idx; pit.dataset.owner='B';
+      const left = 12 + k*12; pit.style.left=left+'%'; pit.style.top='8%';
+      boardEl.appendChild(pit);
+    }
+
+    boardEl.querySelectorAll('.pit').forEach(p=>{
+      p.addEventListener('click',()=>onPitClick(parseInt(p.dataset.index)));
+      p.addEventListener('mouseenter',()=>p.classList.add('hovered'));
+      p.addEventListener('mouseleave',()=>p.classList.remove('hovered'));
+    });
+
+    renderSeeds(true);
+  }
+
+  function renderSeeds(){
+    boardEl.querySelectorAll('.seed').forEach(s=>s.remove());
+    for(let i=0;i<14;i++){
+      const count = state.pits[i];
+      const el = boardEl.querySelector(`[data-index="${i}"]`);
+      if(!el) continue;
+      const w = el.clientWidth, h = el.clientHeight;
+      for(let k=0;k<count;k++){
+        const s = document.createElement('div'); s.className='seed';
+        const rx = (Math.random()*0.6 + 0.2) * w;
+        const ry = (Math.random()*0.6 + 0.2) * h;
+        s.style.left = (el.offsetLeft + rx) + 'px';
+        s.style.top  = (el.offsetTop  + ry) + 'px';
+        boardEl.appendChild(s);
+      }
+    }
+    updateStatus();
+  }
+
+  function animateSow(path){
+    return new Promise(resolve=>{
+      if(!cfg.seedAnim){ renderSeeds(); return resolve(); }
+      const stepDelay = 80;
+      (function step(i){
+        if(i>=path.length){ renderSeeds(); return resolve(); }
+        renderSeeds();
+        playSow();
+        setTimeout(()=>step(i+1), stepDelay);
+      })(0);
+    });
+  }
+
+  function performMove(pitIdx, fromAI=false){
+    if(state.over) return;
+    const legal = legalMoves(state);
+    if(!legal.includes(pitIdx)) return;
+    saveHistory();
+
+    const { next, meta } = applyMoveWithMeta(state, pitIdx);
+    const path = meta.path;
+
+    state = next;
+    animateSow(path).then(()=>{
+      if(meta.captured){ playCapture(); }
+      renderSeeds();
+      if(state.over){
+        playWin();
+        const msg = state.winner==='draw' ? 'Draw.' : `Player ${state.winner} wins!`;
+        log(`[End] ${msg} Final: A=${state.pits[6]}, B=${state.pits[13]}`);
+      } else {
+        log(`${fromAI?'AI':'Human'} played pit ${pitIdx}`);
+        aiMove(); // only after regular move
+      }
+    });
+  }
+
+  function onPitClick(idx){
+    if(state.over) return;
+    const owner = ownerOf(idx);
+    if(owner!==state.player) return;
+    ensureAudio();
+    performMove(idx,false);
+  }
+
+  function highlightMoves(){
+    const legal = legalMoves(state);
+    document.querySelectorAll('.pit').forEach(p=>{
+      const idx = parseInt(p.dataset.index,10);
+      p.classList.remove('active','disabled');
+      if(ownerOf(idx)!==state.player) p.classList.add('disabled');
+      if(legal.includes(idx)) p.classList.add('active');
+    });
+  }
+
+  function restart(){
+    history.length=0; future.length=0; state=initState();
+    layoutBoard(); log('[Start] New game. Player A to move.');
+    // don't auto AI; let mode/aiSide + player A decide on first click
+    aiMove();
+  }
+
+  function undo(){
+    if(!history.length){ log('[Undo] nothing to undo'); return; }
+    future.push(clone(state)); state=history.pop();
+    renderSeeds(); log('[Undo]');
+    // Do NOT auto AI here; user expects to inspect/change.
+  }
+  function redo(){
+    if(!future.length){ log('[Redo] nothing to redo'); return; }
+    history.push(clone(state)); state=future.pop();
+    renderSeeds(); log('[Redo]');
+    // Do NOT auto AI here either.
+  }
+
+  function swapSides(){
+    const s = clone(state);
+    const np = new Array(14).fill(0);
+    for(let i=0;i<6;i++){ np[i] = s.pits[12-i]; }
+    for(let i=0;i<6;i++){ np[7+i] = s.pits[5-i]; }
+    np[6] = s.pits[13]; np[13] = s.pits[6];
+    state.pits = np; state.player = nextPlayer(s.player);
+    renderSeeds(); log('[Swap] Sides swapped.');
+  }
+
+  function showHint(){
+    if(state.over) return;
+    const depth=parseInt(depthEl.value,10);
+    const maximizing = (state.player==='A');
+    const { move } = minimax(state, depth, -1e9, 1e9, maximizing);
+    if(move==null) return;
+    const el = boardEl.querySelector(`[data-index="${move}"]`);
+    if(!el) return;
+    el.animate([
+      {boxShadow:'0 0 0 0 rgba(155,212,255,0.0)'},
+      {boxShadow:'0 0 0 10px rgba(155,212,255,0.25)'},
+      {boxShadow:'0 0 0 0 rgba(155,212,255,0.0)'}
+    ],{duration:900});
+    log(`[Hint] Consider pit ${move}.`);
+  }
+
+  // Events
+  document.getElementById('restart').addEventListener('click', restart);
+  document.getElementById('undo').addEventListener('click', undo);
+  document.getElementById('redo').addEventListener('click', redo);
+  document.getElementById('swap').addEventListener('click', swapSides);
+  hintBtn.addEventListener('click', showHint);
+  depthEl.addEventListener('input',()=>depthLabel.textContent='Depth: '+depthEl.value);
+  modeEl.addEventListener('change',()=>{ log(`[Mode] ${modeEl.value}`); aiMove(); });
+  aiSideEl.addEventListener('change',()=>{ log(`[AI] side ${aiSideEl.value}`); aiMove(); });
+  window.addEventListener('keydown',e=>{ if(e.key==='h' || e.key==='H') showHint(); if(e.key==='u' || e.key==='U') undo(); });
+
+  // Re-render seeds on resize/orientation
+  let resizeTimer=null;
+  window.addEventListener('resize',()=>{
+    clearTimeout(resizeTimer);
+    resizeTimer=setTimeout(()=>renderSeeds(), 80);
+  });
+
+  // Boot
+  state = initState();
+  layoutBoard();
+  log('[Start] New game. Player A to move.');
+  aiMove();
+  document.addEventListener("contextmenu", e => e.preventDefault());
+  </script>
+</body>
+</html>

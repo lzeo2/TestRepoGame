@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <title>Achtung die Kurve</title>
+
+    <meta charset="utf-8"/>
+    <meta name="description" content="Example of the HTML5 canvas game 'Achtung die Kurve'. Also known under the name 'Zatacka'." />
+
+    <meta name="author" content="Mathias Paumgarten" />
+    <meta name="author" content="David Strauß" />
+
+    <link href='./stylesheets/style.css' rel='stylesheet' type='text/css'>
+</head>
+<body>
+
+    <div id="rightColumn">
+        <h1>Achtung die Kurve</h1>
+        <p>Draw a growing line and survive longer than anyone else on one shared keyboard. Add at least two players, pick a key pair for each, then press start game. Each player turns with their own left and right keys, for example the arrow keys or A and S. On a phone, tap or hold one of the four vertical zones of the field to steer the first two players.</p>
+
+        <form onsubmit="return false;">
+            <div id="startGameContainer" class="hide">
+                <fieldset>
+                    <input type="button" id="startGame" class="button" value="Start game" />
+                </fieldset>
+            </div>
+            <div id="playerListContainer" class="hide">
+                <h2>Players</h2>
+                <ul id="playerList">
+                </ul>
+            </div>
+            <div id="addPlayerContainer">
+                <h2>Add player</h2>
+                <fieldset>
+                    <table cellspacing="0" cellpadding="0">
+                        <tr>
+                            <td class="left">
+                                <input type="text" id="playerNameInput" placeholder="Player name"/>
+                            </td>
+                            <td class="right">
+                                <select id="playerControlsSelect"></select>
+                            </td>
+                        </tr>
+                    </table>
+                    <br />
+                    <p>
+                        Names are not shared with anyone and will be deleted when you close the browser tab.
+                    </p>
+                    <input type="button" id="addPlayerButton" class="button" value="Add player"/>
+                </fieldset>
+            </div>
+        </form>
+    </div>
+
+    <div id="leftColumn">
+        <canvas id="canvas" class="hide"></canvas>
+
+        <div id="helpContainer" class="show">
+            <h2 class="huge">Help</h2>
+            <h3 class="yellow">Introduction</h3>
+            <p>
+                The goal of the game is to survive as long as possible. You and your friends share the keyboard to control the line.
+                The lines are constantly moving forward. The players can only adjust the direction of the line.
+            </p>
+            <p>
+                A player loses if his line touches a line or the border of the game. He then has to wait for the start of the next round to play again. For every player you survive you get a point.
+            </p>
+            <p>
+                <strong>Achtung die Kurve is played on a single screen, so make sure you have some friends around!</strong>
+            </p>
+            <h3 class="yellow">Getting started</h3>
+            <p>
+                In order to play you have to add at least two players. Type the player's name in the input field on the right hand side and choose a pair of keys to control the line, then press the "Add player" button. The color helps you to identify your line in the game.
+            </p>
+            <p>
+                Once you have added two players you get the "start game" button, located above the list of players. Press it. A new game starts. Enjoy.
+            </p>
+        </div>
+
+        <div id="upgradeContainer" class="hide">
+            <h2 class="huge">Install a modern browser!</h2>
+            <p>
+                It looks like your browser does not support the &lt;canvas&gt; tag. This means you can't play Achtung die Kurve!
+            </p>
+            <p>
+                That's a real shame, so we encourage you to install a modern browser.
+            </p>
+        </div>
+    </div>
+
+    <script src="./javascripts/adk.minified.js"></script>
+    <script src="./javascripts/script.js"></script>
+</body>
+</html>

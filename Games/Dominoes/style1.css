@@ -1,0 +1,274 @@
+*{
+margin: 0;
+padding: 0;
+box-sizing: border-box;
+}
+
+html {
+ height: 100%;
+ font-size: 1rem;
+}
+
+body{
+display: flex;
+justify-content: center;
+align-items: center;
+/* background: #2e6107 */
+width: auto;
+height: 100%;
+background: url(poz2.jpg) no-repeat;
+background-size: cover;
+background-position: center;
+touch-action: manipulation;
+overflow: hidden;
+}
+
+.container{
+display: flex;
+flex-direction: column;
+align-items: center;
+/* width: 100vw; /* 100vw */
+/*height: 100vh; */
+}
+
+.drag{
+position: relative;
+display: flex;
+justify-content: center;
+align-items: center;
+flex-wrap: wrap;
+width: /* 55vw; */ /* 850px */ 53rem;
+height: /* 250px */ 15.625rem;
+gap: /* 2%; */ /* 10px */0.625rem;
+cursor: grab;
+}
+
+.drag .dragBox{
+position: relative;
+width: /* 12vw; */ /* 200px */12.5rem;
+height: /* 12vh; */ /* 100px */6.25rem;
+}
+
+.images{
+position: relative;
+width: /* 13vw; */ /* 200px */12.5rem;
+height: /* 13vh; */ /* 100px */6.25rem;
+background: var(--img);
+background-size: cover;
+color: #6a4f10;
+filter: drop-shadow(0.3rem 0.3rem 0.3rem);
+align-content: center;
+}
+
+.board{
+position: relative;
+left: -3rem;
+display: grid;
+grid-template-columns: repeat(4,2fr);
+gap: 0rem;
+filter: drop-shadow(#122306 0.3125rem 0.3125rem 0.2rem);
+width: /* 840px */52.5rem;
+height: /* 240px */15rem;
+/* background-color: #3a2205; */
+}
+.board .dropBox{
+position: relative;
+width: /* 14vw; */ /* 200px */12.5rem;
+height: /* 14vh; */ /* 100px */6.25rem;
+display: flex;
+}
+.dropBox:nth-child(1){
+background-image: url(polje1.png);
+background-size: cover;
+justify-content: right;
+align-items:end;
+width: /* 220px */13.75rem;
+height: /* 120px */7.5rem;
+}
+.dropBox:nth-child(2){
+background-image: url(polje2i3.png);
+background-size: cover;
+justify-content: center; 
+align-items:end;
+width: /* 200px */12.5rem;
+height: /* 120px */7.5rem;
+}
+.dropBox:nth-child(3){
+background-image: url(polje2i3.png);
+background-size: cover;
+justify-content: center; 
+align-items: end;
+width: /* 200px */12.5rem;
+height: /* 120px */7.5rem;
+}
+.dropBox:nth-child(4){
+background-image: url(polje98.png);
+background-size: cover;
+justify-content: left; 
+align-items: end;
+width: /* 220px */13.75rem;
+height: /* 120px */7.5rem;
+}
+.dropBox:nth-child(5){
+background-image: url(polje5.png);
+background-size: cover;
+justify-content: right; 
+align-items: start;
+width: /* 220px */13.75rem;
+height: /* 120px */7.5rem;
+}
+.dropBox:nth-child(6){
+background-image: url(polje6i7.png);
+background-size: cover;
+justify-content: center; 
+align-items: start;
+width: /* 200px */12.5rem;
+height: /* 120px */7.5rem;
+}
+.dropBox:nth-child(7){
+background-image: url(polje6i7.png);
+background-size: cover;
+justify-content: center; 
+align-items:start;
+width: /* 200px */12.5rem;
+height: /* 120px */7.5rem;
+}
+.dropBox:nth-child(8){
+background-image: url(polje12.png);
+background-size: cover;
+justify-content: left; 
+align-items: start;
+width: /* 220px */13.75rem;
+height: /* 120px */7.5rem;
+}  
+.dropBox:nth-child(n+5) {
+position: relative;
+left: 5.625rem; /* 45%; */
+}
+
+.reset{
+position: relative;
+/* bottom: 15px; */
+transform: translateX(-30%);
+padding: /* 15px 25px */0.9375em 1.5625em;
+border: none;
+background-color: transparent;
+background-image: url(ponovooo.png);
+background-size: cover;
+color: #311909;
+filter: drop-shadow(0.2rem 0.2rem 0.2rem);
+font-size: small;
+font-weight: normal;
+cursor: pointer;
+}
+
+
+.gamehead{
+position: relative;
+z-index: 2;
+text-align: center;
+padding: 0.75rem 1rem;
+background: #122306;
+color: #f3f7ee;
+font-family: Georgia, serif;
+}
+.gamehead h1{
+font-size: 1.5rem;
+font-weight: normal;
+}
+.gamehead p{
+font-size: 1rem;
+max-width: 46rem;
+margin: 0.25rem auto 0;
+color: #e6efdd;
+}
+.images.selected{
+outline: 0.25rem solid #ffffff;
+outline-offset: -0.25rem;
+}
+.images:focus-visible{
+outline: 0.25rem solid #ffe066;
+outline-offset: -0.25rem;
+}
+
+
+/*bravo strana*/
+
+.bravodiv{
+position: relative;
+background-color: transparent;
+width: 26.25rem;
+height: 17.5rem;
+align-content: center;
+border: none;
+border-radius: 1.4375rem;
+background-image: url(bravo.png);
+background-size: cover;
+filter: drop-shadow(#512505 0.3125rem 0.3125rem 0.2rem);
+
+}
+
+.dugmic{
+background-image: url(ponovoo.png);
+background-size: cover;
+background-color: transparent;
+border-radius: 0.625;
+border: none;
+filter: drop-shadow(0.1rem 0.1rem 0.2rem);
+position: relative;
+left: 11.25rem;
+top: 5rem;
+width: 5em;
+height: 2.5em;
+cursor: pointer;
+}
+
+
+
+
+
+
+
+
+/*responzivnost*/
+
+@media (max-width: 1024px){
+    html{
+        font-size: 0.5rem;
+    }
+
+    .bravodiv{
+        width: 52rem;
+        height: 35rem;
+    }
+    .dugmic{
+        left: 22.5rem;
+        top: 10rem;
+        width: 10rem;
+        height: 5rem;
+    }
+}
+
+@media (max-width: 768px){
+    html{
+        font-size: 0.4rem;
+    }
+
+    .dugmic{
+        left: 22.5rem;
+        top: 10rem;
+        }
+
+}
+
+@media (max-width: 460px){
+    html{
+        font-size: 0.33rem;
+    }
+}
+
+
+
+
+
+ 

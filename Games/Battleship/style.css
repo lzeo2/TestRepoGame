@@ -1,0 +1,221 @@
+:root {
+    --bg-color: #ffffff;
+    --text-color: #000000;
+    --board-border: 2px solid #000000;
+    --cell-border: 1px solid #000000;
+    
+    /* Status Colors */
+    --cell-water: #ffffff;   
+    --cell-ship: #a0d2eb;    /* Shallow Blue */
+    --cell-miss-cross: #bdc3c7; /* Gray for Miss Cross */
+    --cell-red: #e74c3c;     /* Red for Hit Cross */
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    display: flex;
+    flex-direction: column;
+    margin: 0;
+    min-height: 100vh;
+}
+
+header {
+    margin: 20px 0;
+}
+
+.intro, .howto {
+    max-width: 720px;
+    margin: 0 auto 12px;
+    padding: 0 16px;
+    line-height: 1.5;
+}
+
+.intro {
+    text-align: center;
+    font-weight: 600;
+}
+
+.howto {
+    margin-bottom: 40px;
+}
+
+.game-container {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 50px;
+    padding: 20px;
+    align-items: flex-start; /* Aligns boards to top */
+}
+
+.board-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.board {
+    display: grid;
+    grid-template-columns: repeat(10, minmax(0, 1fr));
+    grid-template-rows: repeat(10, minmax(0, 1fr));
+    width: min(440px, 94vw);
+    aspect-ratio: 1;
+    border: var(--board-border); 
+    background-color: var(--text-color); 
+    gap: 0;
+}
+
+.cell {
+    width: auto;
+    height: auto;
+    min-width: 0;
+    min-height: 0;
+    background-color: var(--cell-water);
+    border: var(--cell-border);
+    position: relative;
+    box-sizing: border-box;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* --- CURSORS --- */
+.clickable-board .cell { cursor: crosshair; }
+.clickable-board .cell.hit, 
+.clickable-board .cell.miss { cursor: default; }
+#player-board .cell { cursor: default; }
+
+/* --- STATUS STYLES --- */
+
+/* 1. Player Ship (Shallow Blue) */
+.cell.ship {
+    background-color: var(--cell-ship);
+}
+
+/* 2. Miss (Gray Cross) */
+.cell.miss {
+    background-color: var(--cell-water); /* Background remains white */
+}
+
+.cell.miss::before, .cell.miss::after {
+    content: '';
+    position: absolute;
+    width: 75%;
+    height: 3px;
+    background-color: var(--cell-miss-cross);
+    border-radius: 2px;
+    z-index: 1;
+}
+.cell.miss::before { transform: rotate(45deg); }
+.cell.miss::after { transform: rotate(-45deg); }
+
+/* 3. Hit (Red Cross) */
+.cell.hit {
+    position: relative;
+    /* If it was a ship, background remains Shallow Blue */
+}
+
+.cell.hit::before, .cell.hit::after {
+    content: '';
+    position: absolute;
+    width: 75%;
+    height: 4px; /* Slightly thicker than miss */
+    background-color: var(--cell-red);
+    border-radius: 2px;
+    z-index: 2;
+}
+.cell.hit::before { transform: rotate(45deg); }
+.cell.hit::after { transform: rotate(-45deg); }
+
+/* --- CONTROLS SECTION --- */
+.controls {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    /* Fixed width to prevent dancing */
+    width: 250px; 
+    flex-shrink: 0;
+}
+
+#message-log {
+    margin-bottom: 20px;
+    font-size: 1.1rem;
+    font-weight: bold;
+    text-align: center;
+    color: var(--text-color);
+    
+    /* Layout stability settings */
+    width: 100%;
+    min-height: 3.6em; /* Space for roughly 2-3 lines */
+    line-height: 1.2;
+    word-wrap: break-word;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.cell.aim {
+    outline: 3px solid #1a5fb4;
+    outline-offset: -3px;
+    z-index: 3;
+}
+
+button {
+    padding: 10px 25px;
+    min-height: 44px;
+    background-color: var(--cell-ship);
+    color: #000;
+    border: 2px solid black;
+    font-weight: bold;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: opacity 0.2s;
+    margin-bottom: 20px;
+    width: 100%;
+}
+
+button:hover {
+    opacity: 0.8;
+}
+
+.legend {
+    font-size: 0.9rem;
+    text-align: left;
+    width: 100%;
+    padding-left: 40px; /* Center visually within the fixed width column */
+    box-sizing: border-box;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.box {
+    width: 20px;
+    height: 20px;
+    margin-right: 10px;
+    border: 1px solid black;
+    display: inline-block;
+    position: relative;
+    background-color: var(--cell-water);
+}
+
+.box.ship-box { background-color: var(--cell-ship); }
+
+/* Legend Cross Styles */
+.box.red-cross::before, .box.red-cross::after {
+    content: ''; position: absolute; top: 50%; left: 50%; width: 80%; height: 2px; background: var(--cell-red);
+}
+.box.red-cross::before { transform: translate(-50%, -50%) rotate(45deg); }
+.box.red-cross::after { transform: translate(-50%, -50%) rotate(-45deg); }
+
+.box.gray-cross::before, .box.gray-cross::after {
+    content: ''; position: absolute; top: 50%; left: 50%; width: 80%; height: 2px; background: var(--cell-miss-cross);
+}
+.box.gray-cross::before { transform: translate(-50%, -50%) rotate(45deg); }
+.box.gray-cross::after { transform: translate(-50%, -50%) rotate(-45deg); }

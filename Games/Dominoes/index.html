@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dominoes</title>
+    <link rel="stylesheet" type="text/css" href="style1.css">
+</head>
+<body>
+    <header class="gamehead">
+        <h1>Dominoes</h1>
+        <p>Drag each domino into a slot so matching ends line up. You can also tap a domino to select it, then tap a slot. Fill all eight slots to win. The button under the board restarts the round.</p>
+    </header>
+    <audio id="backgroundMusic" autoplay loop>
+    <source src="music.mp3" type="audio/mpeg">
+    Your browser does not support the audio element.
+    </audio>
+
+    <div class="container">
+        <div class="drag" id="drag">
+            <div class="dragBox">
+                <div class="images" draggable="true" ondragstart="drag(event)" ontouchstart="drag(event)" id="block1" style="--img:url(1.png);"></div>
+            </div>
+            <div class="dragBox">
+                <div class="images" draggable="true" ondragstart="drag(event)" ontouchstart="drag(event)" id="block2" style="--img:url(2.png);"></div>
+            </div>
+            <div class="dragBox">
+                <div class="images" draggable="true" ondragstart="drag(event)" ontouchstart="drag(event)" id="block3" style="--img:url(3.png);"></div>
+            </div>
+            <div class="dragBox">
+                <div class="images" draggable="true" ondragstart="drag(event)" ontouchstart="drag(event)" id="block4" style="--img:url(4.png);"></div>
+            </div>
+            <div class="dragBox">
+                <div class="images" draggable="true" ondragstart="drag(event)" ontouchstart="drag(event)" id="block5" style="--img:url(5.png);"></div>
+            </div>
+            <div class="dragBox">
+                <div class="images" draggable="true" ondragstart="drag(event)" ontouchstart="drag(event)" id="block6" style="--img:url(6.png);"></div>
+            </div>
+            <div class="dragBox">
+                <div class="images" draggable="true" ondragstart="drag(event)" ontouchstart="drag(event)" id="block7" style="--img:url(7.png);"></div>
+            </div>
+            <div class="dragBox">
+                <div class="images" draggable="true" ondragstart="drag(event)" ontouchstart="drag(event)" id="block8" style="--img:url(8.png);"></div>
+            </div>
+        </div>
+
+        <div class="board" id="board">
+            <div id="mesto1" class="dropBox" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
+            <div id="mesto2" class="dropBox" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
+            <div id="mesto3" class="dropBox" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
+            <div id="mesto4" class="dropBox" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
+            <div id="mesto5" class="dropBox" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
+            <div id="mesto6" class="dropBox" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
+            <div id="mesto7" class="dropBox" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
+            <div id="mesto8" class="dropBox" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
+        </div>
+    
+
+        <button class="reset" onClick="window.location.reload();" title="Restart" aria-label="Restart"><img src="ponovooo.png" alt="Restart"/></button>
+    </div>
+    <script src="touch.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            var audio = document.getElementById('backgroundMusic');
+
+            // Provjeri je li muzika već uključena
+            if (localStorage.getItem('musicPlaying') === 'true') {
+                audio.play();
+            }
+        });
+    </script>
+</body>
+</html>

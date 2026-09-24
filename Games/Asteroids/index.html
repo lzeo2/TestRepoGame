@@ -1,0 +1,44 @@
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Asteroids</title>
+    <script src="jquery-1.4.1.min.js"></script>
+    <script src="vector_battle_regular.typeface.js"></script>
+    <script src="ipad.js"></script>
+    <script src="game.js"></script>
+    <style>
+      body { margin: 0; background: #111; color: #eee; font-family: Arial, sans-serif; }
+      #hud { position: relative; z-index: 2; background: #111; color: #eee; padding: 8px 12px; }
+      #hud h1 { margin: 0 0 2px; font-size: 20px; font-weight: bold; }
+      #hud p { margin: 0; font-size: 14px; color: #ccc; }
+      #game-container { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; }
+      #canvas { border: 1px solid #333; max-width: 100%; height: auto; flex: 1 0 100%; }
+      .button { border: 1px solid #555; background: #222; color: #eee; font-size: 16px;
+                text-align: center; user-select: none; -webkit-user-select: none; }
+      #left-controls { display: none; gap: 6px; padding: 6px; }
+      #right-controls { display: none; gap: 6px; padding: 6px; margin-left: auto; }
+      #up { width: 160px; height: 80px; }
+      #left { width: 80px; height: 80px; }
+      #right { width: 80px; height: 80px; }
+      #space { width: 160px; height: 80px; }
+    </style>
+  </head>
+  <body>
+    <div id="hud">
+      <h1>Asteroids</h1>
+      <p>Steer with the left and right arrows, thrust with up, fire with space, pause with p, toggle sound with m. On touch, use the buttons under the game.</p>
+    </div>
+    <div id="game-container">
+      <canvas id="canvas" width="780" height="540"></canvas>
+      <div id="left-controls">
+        <div id="up" class="button">Thrust</div>
+        <div id="left" class="button">Left</div>
+        <div id="right" class="button">Right</div>
+      </div>
+      <div id="right-controls">
+        <div id="space" class="button">Fire</div>
+      </div>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,28 @@
+<!DOCTYPE HTML>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Frogger</title>
+  <link rel="stylesheet" href="base.css" type="text/css" />
+  <style>
+    body { margin: 0; background: #111; color: #eee; font-family: Arial, sans-serif; }
+    #hud { padding: 8px 12px; }
+    #hud h1 { margin: 0 0 2px; font-size: 20px; font-weight: bold; }
+    #hud p { margin: 0; font-size: 14px; color: #ccc; }
+    #container { display: flex; justify-content: center; }
+    #game { touch-action: none; max-width: 100%; height: auto; }
+  </style>
+</head>
+<body>
+  <div id="hud">
+    <h1>Frogger</h1>
+    <p>Use the arrow keys to hop up, down, left and right. Reach the top before the time runs out while dodging cars and riding the logs. On touch, use the on-screen pad.</p>
+  </div>
+  <div id='container'>
+    <canvas id='game' width='320' height='480'></canvas>
+  </div>
+  <script src='engine.js'></script>
+  <script src='game.js'></script>
+</body>
+</html>

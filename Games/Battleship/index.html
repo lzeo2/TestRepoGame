@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Battleship</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <h1 style="text-align: center;">Battleship</h1>
+    <p class="intro">Sink all 10 computer ships before it sinks yours. Click or tap a cell on the computer's grid to fire. With the keyboard, move the aim with the arrow keys and press Enter to fire. A hit lets you fire again. Press Restart Game whenever you want a new match.</p>
+    <div id="message-log"></div>
+
+    <div class="game-container">
+        <div class="board-section">
+            <h2>Player's Fleet</h2>
+            <div id="player-board" class="board"></div>
+        </div>
+
+        <div class="controls">
+            <button id="start-btn" onclick="startGame()">Restart Game</button>
+
+            <div class="legend">
+                <div class="legend-item"><span class="box ship-box"></span>My ships</div>
+                <div class="legend-item"><span class="box red-cross"></span>Hit</div>
+                <div class="legend-item"><span class="box gray-cross"></span>Miss</div>
+            </div>
+        </div>
+
+        <div class="board-section">
+            <h2>Computer's Fleet</h2>
+            <div id="computer-board" class="board clickable-board"></div>
+        </div>
+    </div>
+
+    <section class="howto">
+        <h2>Rules</h2>
+        <p>Each side has 10 ships on a 10 by 10 grid: 1 battleship of 4 cells, 2 cruisers of 3 cells, 3 destroyers of 2 cells and 4 submarines of 1 cell. Ships never touch each other, not even diagonally.</p>
+        <p>Take turns firing at one cell at a time. If you hit, you fire again. If you miss, the computer fires. When a ship is sunk, the empty cells around it are revealed. Sink every enemy ship to win.</p>
+    </section>
+
+    <script src="logic.js"></script>
+    <script src="main.js"></script>
+</body>
+</html>

@@ -1,0 +1,371 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<meta name="Description" content="Sokoban puzzle game with 100 levels">
+		<title>Sokoban</title>
+		<style>
+			*{
+				margin:0;
+				padding:0;
+				box-sizing:border-box;
+			}
+			body{
+				font-family:sans-serif;
+				background:#222;
+				color:#fff;
+				padding:12px;
+			}
+			header{
+				max-width:560px;
+				margin:0 auto 10px;
+			}
+			h1{
+				font-size:1.6rem;
+				margin-bottom:4px;
+			}
+			.instructions{
+				font-size:0.95rem;
+				line-height:1.4;
+				color:#eee;
+				margin-bottom:6px;
+			}
+			#msg{
+				font-size:1.05rem;
+				margin-bottom:8px;
+				color:#fff;
+			}
+			.game{
+				max-width:560px;
+				margin:0 auto;
+			}
+			#canvas{
+				width:100%;
+				max-width:560px;
+				height:auto;
+				display:block;
+				background:#fff;
+				touch-action:manipulation;
+			}
+			.button-row{
+				display:flex;
+				flex-wrap:wrap;
+				gap:8px;
+				margin-top:10px;
+			}
+			.btn{
+				min-height:44px;
+				min-width:44px;
+				padding:8px 16px;
+				font-size:1rem;
+				background:#f0f0f0;
+				color:#111;
+				border:1px solid #999;
+				border-radius:4px;
+				cursor:pointer;
+			}
+			.btn:hover{
+				background:#ddd;
+			}
+			.dpad{
+				display:grid;
+				grid-template-columns:repeat(3,64px);
+				grid-template-rows:repeat(2,56px);
+				gap:6px;
+				justify-content:center;
+				margin:14px auto 4px;
+			}
+			.dpad .btn{
+				width:64px;
+				height:56px;
+				font-size:1.4rem;
+				padding:0;
+			}
+			#dpad-up{grid-column:2;grid-row:1;}
+			#dpad-left{grid-column:1;grid-row:2;}
+			#dpad-down{grid-column:2;grid-row:2;}
+			#dpad-right{grid-column:3;grid-row:2;}
+		</style>
+	</head>
+	<body onkeydown="doKeyDown(event)">
+		<header>
+			<h1>Sokoban</h1>
+			<p class="instructions">Use the arrow keys, W A S D, or the buttons below to move. Push every box onto a goal mark to clear the level. Boxes can only be pushed, never pulled.</p>
+			<div id="msg"></div>
+			<div class="button-row">
+				<button type="button" class="btn" onclick="NextLevel(-1)">Previous level</button>
+				<button type="button" class="btn" onclick="NextLevel(1)">Next level</button>
+				<button type="button" class="btn" onclick="NextLevel(0)">Restart level</button>
+			</div>
+		</header>
+		<div class="game">
+			<canvas id="canvas" width="560" height="560"></canvas>
+			<div class="dpad">
+				<button type="button" class="btn" id="dpad-up" aria-label="Move up" onclick="go('up')">&#8593;</button>
+				<button type="button" class="btn" id="dpad-left" aria-label="Move left" onclick="go('left')">&#8592;</button>
+				<button type="button" class="btn" id="dpad-down" aria-label="Move down" onclick="go('down')">&#8595;</button>
+				<button type="button" class="btn" id="dpad-right" aria-label="Move right" onclick="go('right')">&#8594;</button>
+			</div>
+		</div>
+	<script src="js/mapdata100.js"></script>
+	<script>
+		var can = document.getElementById("canvas");
+		var msg = document.getElementById("msg");
+		var cxt = can.getContext("2d");
+		var w = 35,h = 35;
+		var curMap;//current map
+		var curLevel;//current level map
+		var curMan;//player sprite
+		var iCurlevel = 0;//current level index
+		var moveTimes = 0;//moves made
+		//preload all images
+		var oImgs = {
+			"block" : "images/block.gif",
+			"wall" : "images/wall.png",
+			"box" : "images/box.png",
+			"ball" : "images/ball.png",
+			"up" : "images/up.png",
+			"down" : "images/down.png",
+			"left" : "images/left.png",
+			"right" : "images/right.png",
+		}
+		function imgPreload(srcs,callback){
+			var count = 0,imgNum = 0,images = {};
+
+			for(src in srcs){
+				imgNum++;
+			}
+			for(src in srcs ){
+				images[src] = new Image();
+				images[src].onload = function(){
+					//call back once every image is preloaded
+					if (++count >= imgNum)
+					{
+						callback(images);
+					}
+				}
+				images[src].src = srcs[src];
+			}
+		}
+		var block,wall,box,ball,up,down,left,right;
+		imgPreload(oImgs,function(images){
+			block = images.block;
+			wall = images.wall;
+			box = images.box;
+			ball = images.ball;
+			up = images.up;
+			down = images.down;
+			left = images.left;
+			right = images.right;
+			init();
+		});
+		//start the game
+		function init(){
+			initLevel();//load the current level
+			showMoveInfo();//show level data
+		}
+		//draw the floor
+		function InitMap(){
+			for (var i=0;i<16 ;i++ )
+			{
+				for (var j=0;j<16 ;j++ )
+				{
+					cxt.drawImage(block,w*j,h*i,w,h);
+				}
+			}
+		}
+		//player position
+		function Point(x,y){
+			this.x = x;
+			this.y = y;
+		}
+		var perPosition = new Point(5,5);//player start marker
+		//draw a level map
+		function DrawMap(level){
+			for (var i=0;i<level.length ;i++ )
+			{
+				for (var j=0;j<level[i].length ;j++ )
+				{
+					var pic = block;//floor by default
+					switch (level[i][j])
+					{
+					case 1://wall
+						pic = wall;
+						break;
+					case 2://goal mark
+						pic = ball;
+						break;
+					case 3://box
+						pic = box;
+						break;
+					case 4://player
+						pic = curMan;
+						//record the player's position
+						perPosition.x = i;
+						perPosition.y = j;
+						break;
+					case 5://box on goal mark
+						pic = box;
+						break;
+					}
+					//each sprite has a different size, so center it on the cell
+					cxt.drawImage(pic,w*j-(pic.width-w)/2,h*i-(pic.height-h),pic.width,pic.height)
+				}
+			}
+		}
+		//load a level
+		function initLevel(){
+			curMap = copyArray(levels[iCurlevel]);//working copy of the map
+			curLevel = levels[iCurlevel];//initial map of the level
+			curMan = down;//player sprite
+			InitMap();//draw the floor
+			DrawMap(curMap);//draw the map
+		}
+		//change level: -1 previous, +1 next, 0 restart
+		function NextLevel(i){
+			iCurlevel = iCurlevel + i;
+			if (iCurlevel<0)
+			{
+				iCurlevel = 0;
+				return;
+			}
+			var len = levels.length;
+			if (iCurlevel > len-1)
+			{
+				iCurlevel = len-1;
+			}
+			initLevel();//load the level
+			moveTimes = 0;//reset move counter
+			showMoveInfo();//refresh data display
+		}
+		//move the player
+		function go(dir){
+			var p1,p2;
+			switch (dir){
+			case "up":
+				curMan = up;
+				//the two cells ahead of the player
+				p1 = new Point(perPosition.x-1,perPosition.y);
+				p2 = new Point(perPosition.x-2,perPosition.y);
+				break;
+			case "down":
+				curMan = down;
+				p1 = new Point(perPosition.x+1,perPosition.y);
+				p2 = new Point(perPosition.x+2,perPosition.y);
+				break;
+			case "left":
+				curMan = left;
+				p1 = new Point(perPosition.x,perPosition.y-1);
+				p2 = new Point(perPosition.x,perPosition.y-2);
+				break;
+			case "right":
+				curMan = right;
+				p1 = new Point(perPosition.x,perPosition.y+1);
+				p2 = new Point(perPosition.x,perPosition.y+2);
+				break;
+			}
+			//if the move is allowed, update the data and redraw
+			if (Trygo(p1,p2))
+			{
+				moveTimes ++;
+				showMoveInfo();
+			}
+			//redraw the floor
+			InitMap();
+			//redraw the updated map
+			DrawMap(curMap);
+			//level cleared, move on
+			if (checkFinish())
+			{
+				setTimeout(function(){
+					alert("Level complete!");
+					NextLevel(1);
+				},0)
+			}
+		}
+		//check if every box is on a goal mark
+		function checkFinish(){
+			for (var i=0;i<curMap.length ;i++ )
+			{
+				for (var j=0;j<curMap[i].length ;j++ )
+				{
+					//compare against the initial map: a goal cell must hold a box
+					if (curLevel[i][j] == 2 && curMap[i][j] != 3 || curLevel[i][j] == 5 && curMap[i][j] != 3)
+					{
+						return false;
+					}
+				}
+			}
+			return true;
+		}
+		//check whether the player can move
+		function Trygo(p1,p2){
+			if(p1.x<0) return false;
+			if(p1.y<0) return false;
+			if(p1.x>curMap.length) return false;
+			if(p1.y>curMap[0].length) return false;
+			if(curMap[p1.x][p1.y]==1) return false;//wall ahead
+			if (curMap[p1.x][p1.y]==3 || curMap[p1.x][p1.y]==5)
+			{//a box is ahead, so check the cell after it
+				if (curMap[p2.x][p2.y]==1 || curMap[p2.x][p2.y]==3)
+				{
+					return false;
+				}
+				curMap[p2.x][p2.y] = 3;//push the box
+			}
+			//the player steps forward
+			curMap[p1.x][p1.y] = 4;
+			//restore the cell the player left
+			var v = curLevel[perPosition.x][perPosition.y];
+			if (v!=2)
+			{
+				if (v==5)
+				{
+					v=2;//keep the goal mark visible
+				}else{
+					v=0;//back to floor
+				}
+			}
+			curMap[perPosition.x][perPosition.y] = v;
+			perPosition = p1;
+			return true;
+		}
+		//keyboard arrows and W A S D
+		function doKeyDown(event){
+			switch (event.keyCode)
+			{
+			case 37:
+			case 65:
+				go("left");
+				break;
+			case 38:
+			case 87:
+				go("up");
+				break;
+			case 39:
+			case 68:
+				go("right");
+				break;
+			case 40:
+			case 83:
+				go("down");
+				break;
+			}
+		}
+		//level and move counter
+		function showMoveInfo(){
+			msg.innerHTML = "Level " + (iCurlevel+1) + "/" + levels.length + ", moves: " + moveTimes;
+		}
+		//clone a 2d array
+		function copyArray(arr){
+			var b=[];
+			for (var i=0;i<arr.length ;i++ )
+			{
+				b[i] = arr[i].concat();
+			}
+			return b;
+		}
+	</script>
+</body>
+</html>

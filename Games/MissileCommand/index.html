@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<title>Missile Command</title>
+		<style>
+			body { margin: 0; background: #111; color: #eee; font-family: Arial, sans-serif; }
+			#hud { padding: 8px 12px; }
+			#hud h1 { margin: 0 0 2px; font-size: 20px; font-weight: bold; }
+			#hud p { margin: 0; font-size: 14px; color: #ccc; }
+			#stage { text-align: center; }
+			canvas { max-width: 100%; height: auto; touch-action: manipulation; }
+		</style>
+	</head>
+	<body>
+		<div id="hud">
+			<h1>Missile Command</h1>
+			<p>Click or tap anywhere to fire a countermeasure at the incoming missiles. Blow them up before they reach your cities and clear all 40 waves.</p>
+		</div>
+		<div id="stage">
+			<canvas width="480" height="600"></canvas>
+		</div>
+		<script src="missile_command.js" type="text/javascript"></script>
+	</body>
+</html>
