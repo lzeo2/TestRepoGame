@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FreeCell</title>
+<!--
+  Ingested from: https://github.com/taeber/freecell
+  License: MIT (see LICENSE in this folder)
+  Commit: e1249a7ee78af3034ceab2927c5480615badfd01
+  Modifications: landing page, service worker, share button, app info dialog,
+  game-ID URL persistence and Twemoji favicons removed; start screen with
+  documented controls added; keyboard play added (Tab/Enter on cards,
+  U undo, A auto/pick, N new game); no-moves-left banner added; flat restyle
+  (rainbow gradient win text removed); card sizing made 360px-safe.
+-->
+<meta name="referrer" content="no-referrer">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div id="start-screen" class="overlay">
+  <div class="panel">
+    <h1>FreeCell</h1>
+    <p>Move all 52 cards to the four foundations: one suit per pile,
+       ace up to king. Eight cascades build down in alternating colors.
+       The four free cells each hold one card while you plan ahead.</p>
+    <p><strong>Controls:</strong> tap a card, then tap where it should go
+       (in Auto mode one tap sends a card to its best spot).
+       Keyboard: Tab to a card and press Enter to move it, U undoes,
+       A toggles Auto/Pick, N starts a new game.</p>
+    <button id="playBtn">Start game</button>
+  </div>
+</div>
+
+<main hidden></main>
+
+<script src="script.js"></script>
+</body>
+</html>

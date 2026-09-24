@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ultimate Tic-Tac-Toe</title>
+<!--
+  Ingested from: https://github.com/ZLouisMiguel/ult
+  License: MIT (see LICENSE in this folder)
+  Commit: 589416481de5aa70829b1c7221791649932ad5f1
+  Modifications: online multiplayer (WebSocket server, lobby, remote.js)
+  removed for offline policy; upstream never bound its menu buttons
+  (bindOnlineEvents was called without being imported, so the landing
+  buttons did nothing) - rebinding added; rule illustration PNGs replaced
+  by text rules (1.5 MB of images dropped); engine.js + computer.js +
+  ui.js + script.js concatenated into one script.js; keyboard cursor
+  (9x9 arrow grid, Enter/Space to play, Esc closes the end dialog);
+  match score board added; em-dash and typo copy fixed; responsive cell
+  sizing fixed for 360px screens.
+-->
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div id="landing">
+  <h1>Ultimate Tic-Tac-Toe</h1>
+  <p class="intro">
+    Nine little boards inside one big board. The square you play on sends your
+    opponent to the matching board. Win three little boards in a row to take the game.
+  </p>
+
+  <div class="rules-container">
+    <div class="rule"><p><strong>Forced cell.</strong> The first move can be anywhere. After that you must play in the mini-board matching the square your opponent just picked. If you are sent to a board that is already finished, you may play anywhere.</p></div>
+    <div class="rule"><p><strong>Claim boards.</strong> Get three in a row on a mini-board and you capture it. A captured board cannot be played again.</p></div>
+    <div class="rule"><p><strong>Win the game.</strong> Capture three mini-boards in a row, horizontally, vertically or diagonally, and you win. If every board fills up, the game is a draw.</p></div>
+  </div>
+
+  <div class="next-controls">
+    <h4>Play against:</h4>
+    <button type="button" id="playBtn" class="play-btn" data-mode="computer">Vs computer</button>
+    <button type="button" data-mode="local">Two players</button>
+  </div>
+
+  <div class="panel controls-doc">
+    <strong>Controls</strong>
+    <ul>
+      <li><strong>Move the cursor:</strong> arrow keys across the full 9 by 9 grid.</li>
+      <li><strong>Place your mark:</strong> Enter or Space, or tap / click a square.</li>
+      <li><strong>New round:</strong> the Restart button or the Play again button in the end dialog.</li>
+      <li><strong>Menu:</strong> returns here and resets the score. Esc closes the end dialog.</li>
+    </ul>
+  </div>
+</div>
+
+<div id="app" class="hidden">
+  <div id="scoreboard" aria-label="Match score">
+    <span class="score-item"><span id="score-name-x">X</span> <span class="score-value" id="score-x">0</span></span>
+    <span class="score-item">Draws <span class="score-value" id="score-draw">0</span></span>
+    <span class="score-item"><span id="score-name-o">O</span> <span class="score-value" id="score-o">0</span></span>
+  </div>
+  <div id="ultimate-board" tabindex="0" aria-label="Ultimate tic-tac-toe board, use arrow keys and Enter"></div>
+  <div class="game-controls">
+    <button type="button" id="btn-back">Menu</button>
+    <div id="turn-indicator">
+      Turn: <span id="current-player" class="won-x">X</span>
+    </div>
+    <button type="button" id="btn-restart">Restart</button>
+  </div>
+</div>
+
+<div id="gameEndModal" class="hidden" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+  <h1 id="modal-title">End game title</h1>
+  <p id="modal-subtitle" class="modal-subtitle"></p>
+  <div class="modal-buttons">
+    <button type="button" id="modal-menu-btn">Menu</button>
+    <button type="button" id="modal-restart-btn">Play Again</button>
+  </div>
+</div>
+
+<div id="toast" class="hidden" aria-live="polite">toast</div>
+
+<script src="script.js"></script>
+</body>
+</html>

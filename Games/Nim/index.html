@@ -1,0 +1,294 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Nim</title>
+<!--
+  Ingested from: https://github.com/morimay421/nim
+  License: MIT (see LICENSE in this folder)
+  Commit: b7f83925b3077c253099eedabf00c389fa9e3e89
+  Modifications: emoji stones replaced with flat CSS circles; radial-gradient
+  background flattened; added start screen, misere mode toggle, running
+  round score, keyboard controls (1/2/3/N), win/lose overlays and restart
+  path; AI extended with correct misere strategy; timers cleaned up.
+-->
+<style>
+:root{
+  --bg:#151a2e; --panel:#1f2742; --panel2:#29325a; --ink:#eef2ff; --muted:#9aa4c7;
+  --accent:#e0466b; --good:#3ecf8e; --bad:#e0466b; --stone:#cdd6f4; --line:#3a4470;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  min-height:100vh; display:flex; flex-direction:column; align-items:center;
+  font-family:system-ui,"Segoe UI",Arial,sans-serif; color:var(--ink);
+  background:var(--bg); padding:16px; text-align:center;
+}
+h1{margin:0 0 6px; font-size:clamp(26px,7vw,40px)}
+p{color:var(--muted); margin:6px auto; max-width:520px; line-height:1.45}
+.screen{width:100%; max-width:560px}
+.hidden{display:none !important}
+.panel{background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:18px; margin-top:14px}
+.controls-doc{text-align:left; max-width:480px; margin:14px auto 0}
+.controls-doc li{margin:6px 0; color:var(--muted); line-height:1.4}
+.controls-doc strong{color:var(--ink)}
+button{
+  font:inherit; color:#fff; background:var(--panel2); border:1px solid var(--line);
+  min-height:44px; padding:10px 22px; border-radius:10px; cursor:pointer; font-weight:700;
+}
+button:hover{background:#333d6e}
+button:focus-visible{outline:3px solid #7cc4ff; outline-offset:2px}
+button:disabled{opacity:.45; cursor:default}
+.mode-row{display:flex; gap:10px; justify-content:center; flex-wrap:wrap; margin:14px 0}
+.mode-btn[aria-pressed="true"]{background:var(--accent); border-color:var(--accent)}
+.play-btn{background:var(--good); color:#0d1226; border-color:var(--good); font-size:1.1rem; padding:12px 34px}
+.play-btn:hover{background:#5fe0a5}
+.hud{display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:12px}
+.hud .chip{background:var(--panel2); border:1px solid var(--line); border-radius:8px; padding:8px 14px; font-weight:700; font-size:.95rem}
+.hud .chip.muted{color:var(--muted); font-weight:600}
+.stones{display:flex; flex-wrap:wrap; gap:12px; justify-content:center; max-width:520px; min-height:80px; margin:10px auto; padding:8px}
+.stone{width:38px; height:38px; border-radius:50%; background:var(--stone); border:3px solid #8f9bc7; transition:transform .18s, opacity .18s}
+.stone.gone{opacity:0; transform:scale(.2)}
+.status{font-weight:800; font-size:1.05rem; min-height:28px; margin:8px 0}
+.status.good{color:var(--good)}
+.status.bad{color:var(--bad)}
+.btn-row{display:flex; gap:10px; justify-content:center; flex-wrap:wrap}
+.take{min-width:96px; background:var(--accent)}
+.footer-row{display:flex; gap:10px; justify-content:center; flex-wrap:wrap; margin-top:14px}
+.overlay{
+  position:fixed; inset:0; background:rgba(10,13,26,.82);
+  display:flex; align-items:center; justify-content:center; padding:16px; z-index:10;
+}
+.overlay .card{background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:26px 22px; max-width:420px; width:100%}
+.overlay h2{margin:0 0 8px; font-size:1.5rem}
+.overlay .result{font-weight:800; font-size:1.15rem; margin:8px 0 4px}
+.overlay .result.good{color:var(--good)}
+.overlay .result.bad{color:var(--bad)}
+.legend{font-size:.9rem; color:var(--muted)}
+</style>
+</head>
+<body>
+
+<section id="startScreen" class="screen">
+  <h1>Nim</h1>
+  <p>A single pile of stones. Take 1, 2 or 3 stones per turn. The computer answers in kind.</p>
+  <div class="panel">
+    <div class="mode-row" role="group" aria-label="Game mode">
+      <button type="button" class="mode-btn" id="modeNormal" aria-pressed="true">Normal (last stone wins)</button>
+      <button type="button" class="mode-btn" id="modeMisere" aria-pressed="false">Misere (last stone loses)</button>
+    </div>
+    <p class="legend" id="modeLegend">Whoever takes the last stone wins this mode.</p>
+    <button type="button" id="playBtn" class="play-btn">Play</button>
+  </div>
+  <div class="panel">
+    <strong>Controls</strong>
+    <ul class="controls-doc">
+      <li><strong>Take stones:</strong> tap Take 1, Take 2 or Take 3, or press keys <strong>1</strong>, <strong>2</strong>, <strong>3</strong>.</li>
+      <li><strong>New round:</strong> press <strong>N</strong> or use the New round button.</li>
+      <li><strong>Menu:</strong> the Menu button returns here to switch modes or reset the score.</li>
+      <li>Works with mouse, touch and keyboard. The running score is kept across rounds.</li>
+    </ul>
+  </div>
+</section>
+
+<section id="gameScreen" class="screen hidden">
+  <div class="panel">
+    <div class="hud">
+      <span class="chip" id="hudMode">Normal</span>
+      <span class="chip" id="hudScore">You 0 : 0 Computer</span>
+      <span class="chip muted" id="hudRounds">Round 1</span>
+    </div>
+    <div class="stones" id="stones" aria-label="Stones remaining"></div>
+    <div class="status" id="status" aria-live="polite">Your move</div>
+    <div class="btn-row">
+      <button type="button" class="take" data-n="1">Take 1</button>
+      <button type="button" class="take" data-n="2">Take 2</button>
+      <button type="button" class="take" data-n="3">Take 3</button>
+    </div>
+    <div class="footer-row">
+      <button type="button" id="newRoundBtn">New round (N)</button>
+      <button type="button" id="menuBtn">Menu</button>
+    </div>
+  </div>
+</section>
+
+<div class="overlay hidden" id="roundOverlay">
+  <div class="card">
+    <h2 id="overlayTitle">Round over</h2>
+    <div class="result" id="overlayResult"></div>
+    <p id="overlayDetail"></p>
+    <div class="btn-row">
+      <button type="button" id="againBtn" class="play-btn">Play again</button>
+      <button type="button" id="overlayMenuBtn">Menu</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  "use strict";
+  var $ = function (id) { return document.getElementById(id); };
+  var startScreen = $("startScreen"), gameScreen = $("gameScreen"), overlay = $("roundOverlay");
+  var stonesEl = $("stones"), statusEl = $("status");
+  var mode = "normal";           // "normal" | "misere"
+  var count = 0, turn = "", over = true, cpuTimer = null;
+  var score = { you: 0, cpu: 0 }, rounds = 0;
+
+  function setMode(next) {
+    mode = next;
+    $("modeNormal").setAttribute("aria-pressed", String(mode === "normal"));
+    $("modeMisere").setAttribute("aria-pressed", String(mode === "misere"));
+    $("modeLegend").textContent = mode === "normal"
+      ? "Whoever takes the last stone wins this mode."
+      : "Whoever takes the last stone loses this mode.";
+  }
+
+  function updateHud() {
+    $("hudMode").textContent = mode === "normal" ? "Normal" : "Misere";
+    $("hudScore").textContent = "You " + score.you + " : " + score.cpu + " Computer";
+    $("hudRounds").textContent = "Round " + Math.max(1, rounds);
+  }
+
+  function render() {
+    stonesEl.textContent = "";
+    for (var i = 0; i < count; i++) {
+      var s = document.createElement("span");
+      s.className = "stone";
+      stonesEl.appendChild(s);
+    }
+  }
+
+  function enableTakes(on) {
+    var buttons = document.querySelectorAll(".take");
+    for (var i = 0; i < buttons.length; i++) {
+      buttons[i].disabled = !on || Number(buttons[i].dataset.n) > count;
+    }
+  }
+
+  function setStatus(text, kind) {
+    statusEl.textContent = text;
+    statusEl.className = "status" + (kind ? " " + kind : "");
+  }
+
+  function startRound() {
+    if (cpuTimer) { clearTimeout(cpuTimer); cpuTimer = null; }
+    count = (Math.floor(Math.random() * 8) + 14); // 14..21 stones
+    turn = "you";
+    over = false;
+    rounds += 1;
+    updateHud();
+    render();
+    setStatus("Your move");
+    enableTakes(true);
+  }
+
+  function endRound(mover) {
+    // the mover just took the final stone: that wins in normal mode, loses in misere
+    over = true;
+    enableTakes(false);
+    var moverWon = (mode === "normal");
+    if (moverWon) { if (mover === "you") score.you += 1; else score.cpu += 1; }
+    updateHud();
+
+    var title = moverWon ? (mover === "you" ? "You win the round" : "Computer wins the round")
+                         : (mover === "you" ? "You lose the round" : "Computer loses the round");
+    var reason = mode === "normal"
+      ? "The last stone was taken, so taking it wins."
+      : "The last stone was taken, so taking it loses.";
+    $("overlayTitle").textContent = "Round over";
+    var res = $("overlayResult");
+    res.textContent = title;
+    res.className = "result " + (moverWon === (mover === "you") ? "good" : "bad");
+    $("overlayDetail").textContent = reason + " Score: you " + score.you + ", computer " + score.cpu + ".";
+    overlay.classList.remove("hidden");
+    $("againBtn").focus();
+  }
+
+  function take(n) {
+    if (over || turn !== "you" || n < 1 || n > count) return;
+    count -= n;
+    render();
+    if (count === 0) { endRound("you"); return; }
+    turn = "cpu";
+    enableTakes(false);
+    setStatus("Computer is thinking");
+    if (cpuTimer) clearTimeout(cpuTimer);
+    cpuTimer = setTimeout(cpuMove, 650);
+  }
+
+  function cpuMove() {
+    cpuTimer = null;
+    if (over || turn !== "cpu") return;
+    var n;
+    if (mode === "normal") {
+      // leave a multiple of 4 when possible
+      n = count % 4;
+      if (n === 0) n = Math.floor(Math.random() * 3) + 1;
+    } else {
+      // misere: leave count === 1 (mod 4) when possible
+      n = (count - 1) % 4;
+      if (n === 0) n = Math.floor(Math.random() * 3) + 1;
+    }
+    n = Math.min(n, count);
+    count -= n;
+    render();
+    if (count === 0) { endRound("cpu"); return; }
+    turn = "you";
+    enableTakes(true);
+    setStatus("Computer took " + n + ". Your move");
+  }
+
+  function showGame(showing) {
+    startScreen.classList.toggle("hidden", showing);
+    gameScreen.classList.toggle("hidden", !showing);
+  }
+
+  function toMenu() {
+    if (cpuTimer) { clearTimeout(cpuTimer); cpuTimer = null; }
+    over = true;
+    overlay.classList.add("hidden");
+    showGame(false);
+  }
+
+  function play() {
+    score = { you: 0, cpu: 0 };
+    rounds = 0;
+    overlay.classList.add("hidden");
+    showGame(true);
+    startRound();
+    document.querySelector(".take").focus();
+  }
+
+  $("modeNormal").addEventListener("click", function () { setMode("normal"); });
+  $("modeMisere").addEventListener("click", function () { setMode("misere"); });
+  $("playBtn").addEventListener("click", play);
+  $("newRoundBtn").addEventListener("click", startRound);
+  $("menuBtn").addEventListener("click", toMenu);
+  $("againBtn").addEventListener("click", function () { overlay.classList.add("hidden"); startRound(); });
+  $("overlayMenuBtn").addEventListener("click", toMenu);
+
+  var takeButtons = document.querySelectorAll(".take");
+  for (var i = 0; i < takeButtons.length; i++) {
+    takeButtons[i].addEventListener("click", function (e) { take(Number(e.currentTarget.dataset.n)); });
+  }
+
+  document.addEventListener("keydown", function (e) {
+    if (gameScreen.classList.contains("hidden")) return;
+    if (e.key === "1" || e.key === "2" || e.key === "3") {
+      if (!overlay.classList.contains("hidden")) return;
+      take(Number(e.key));
+    } else if (e.key === "n" || e.key === "N") {
+      if (!overlay.classList.contains("hidden")) overlay.classList.add("hidden");
+      startRound();
+    } else if (e.key === "Escape" && !overlay.classList.contains("hidden")) {
+      overlay.classList.add("hidden");
+      startRound();
+    }
+  });
+
+  setMode("normal");
+})();
+</script>
+</body>
+</html>

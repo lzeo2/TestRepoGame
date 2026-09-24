@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cryptogram</title>
+<!--
+  Cryptogram - built in-house (no suitable permissively-licensed single-file
+  implementation found; GitHub candidates were full-stack apps, Python CLI
+  tools, or AGPL). Self-contained, offline-first, no external requests.
+  Flat colors, no gradients. Quotes are public-domain proverbs / authors
+  who died before 1929.
+-->
+<style>
+  :root{
+    --bg:#1b2431; --panel:#243043; --panel2:#2c3a50; --ink:#e9eef6; --muted:#9fb0c8;
+    --accent:#3fa7a0; --accent2:#e0a33e; --bad:#d9634f; --good:#5cb86a; --line:#3c4c66;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent}
+  html,body{margin:0; padding:0; background:var(--bg); color:var(--ink);
+    font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;}
+  body{min-height:100vh; display:flex; flex-direction:column; align-items:center;}
+  .wrap{width:100%; max-width:760px; padding:12px;}
+  h1{font-size:22px; margin:10px 0 4px; font-weight:650; letter-spacing:.3px;}
+  .top{display:flex; flex-wrap:wrap; gap:8px; align-items:center; justify-content:space-between;}
+  .stat{background:var(--panel); border:1px solid var(--line); border-radius:8px;
+    padding:8px 12px; font-size:15px; min-height:44px; display:flex; align-items:center; gap:6px;}
+  .stat b{font-size:17px;}
+  .strikes{color:var(--bad); letter-spacing:3px;}
+  .panel{background:var(--panel); border:1px solid var(--line); border-radius:10px;
+    padding:14px; margin-top:12px;}
+  /* quote cells */
+  #quote{display:flex; flex-wrap:wrap; gap:14px 10px; justify-content:center;
+    padding:8px 2px 4px; user-select:none;}
+  .word{display:inline-flex; gap:3px;}
+  .cell{width:38px; min-width:38px; height:44px; background:var(--panel2);
+    border:1px solid var(--line); border-radius:6px; cursor:pointer;
+    display:flex; flex-direction:column; align-items:center; justify-content:space-between;
+    padding:2px 0 3px; position:relative;}
+  @media (min-width:520px){ .cell{width:44px; min-width:44px;} }
+  .cell .cipher{font-size:12px; color:var(--muted); line-height:12px; font-weight:600;}
+  .cell .plain{font-size:19px; font-weight:700; line-height:22px; color:var(--ink);
+    min-height:22px; border-bottom:1px solid transparent;}
+  .cell.filled .plain{color:#bfe6e2;}
+  .cell.hint .plain{color:var(--accent2);}
+  .cell.sel{border-color:var(--accent); box-shadow:0 0 0 2px rgba(63,167,160,.35);}
+  .cell.lettersel .plain{background:rgba(63,167,160,.25); border-radius:3px;}
+  .cell.solved .plain{color:var(--good);}
+  .btnrow{display:flex; flex-wrap:wrap; gap:8px; justify-content:center; margin-top:12px;}
+  button{min-height:44px; min-width:44px; padding:8px 16px; font-size:15px; font-weight:600;
+    background:var(--accent); color:#10222a; border:none; border-radius:8px; cursor:pointer;}
+  button:hover{filter:brightness(1.08);}
+  button:focus-visible{outline:3px solid var(--accent2); outline-offset:2px;}
+  button.sec{background:var(--panel2); color:var(--ink); border:1px solid var(--line);}
+  button.warn{background:var(--bad); color:#fff;}
+  .msg{min-height:24px; text-align:center; margin-top:10px; font-size:15px; color:var(--muted);}
+  .msg.ok{color:var(--good);} .msg.err{color:var(--bad);}
+  .attrib{text-align:center; color:var(--muted); font-size:15px; margin-top:8px; min-height:20px;}
+  .legend{font-size:13px; color:var(--muted); text-align:center; margin-top:10px; line-height:1.5;}
+  /* overlays */
+  .overlay{position:fixed; inset:0; background:rgba(15,20,28,.94); display:flex;
+    align-items:center; justify-content:center; z-index:10; padding:16px;}
+  .overlay .card{background:var(--panel); border:1px solid var(--line); border-radius:12px;
+    max-width:460px; width:100%; padding:22px; text-align:center;}
+  .card h2{margin:0 0 10px; font-size:24px;}
+  .card p{color:var(--muted); font-size:15px; line-height:1.6; margin:8px 0;}
+  .card .big{font-size:34px; color:var(--accent); font-weight:750; margin:10px 0;}
+  .hidden{display:none !important;}
+  #hiddenInput{position:absolute; opacity:0; left:-9999px; top:0; width:1px; height:1px;}
+  .credit{font-size:12px; color:#6b7a92; text-align:center; margin:14px 0 20px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <h1>Cryptogram</h1>
+    <div class="stat">Puzzle <b id="puzNum">1</b>/<b id="puzTotal">8</b></div>
+    <div class="stat">Score <b id="score">0</b></div>
+    <div class="stat">Strikes <span class="strikes" id="strikes">---</span></div>
+  </div>
+
+  <div class="panel">
+    <div id="quote" role="group" aria-label="Quote to decode"></div>
+    <div class="attrib" id="attrib"></div>
+    <div class="btnrow">
+      <button id="hintBtn" class="sec" type="button">Hint (-15)</button>
+      <button id="checkBtn" type="button">Check</button>
+      <button id="clearBtn" class="sec" type="button">Clear letter</button>
+      <button id="giveupBtn" class="warn" type="button">Give up</button>
+    </div>
+    <div class="msg" id="msg" aria-live="polite"></div>
+    <div class="legend">
+      Tap a cell, then type a letter (mobile keyboard opens automatically).
+      Arrow keys move between cells, Enter checks, Backspace clears.
+      The top row is the cipher, the bottom row is your decode.
+      Each solved puzzle scores its remaining points; a wrong check costs a strike, three strikes end the game.
+    </div>
+  </div>
+  <div class="credit">Built in-house. Offline, no tracking. Quotes are public domain.</div>
+</div>
+
+<input id="hiddenInput" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false" aria-hidden="true" tabindex="-1">
+
+<!-- Start screen -->
+<div class="overlay" id="startOverlay">
+  <div class="card">
+    <h2>Cryptogram</h2>
+    <p>Each quote has been encoded with a simple letter substitution. Decode the quote, one cipher letter at a time.</p>
+    <p><b>How to play</b><br>
+      Tap a cell to select a cipher letter, then type its real letter. It fills everywhere.<br>
+      Arrow keys move, Backspace clears, Enter checks your decode.<br>
+      Use Hint to reveal a letter (costs 15 points). A wrong Check gives a strike.<br>
+      Three strikes end the game. Eight puzzles await.</p>
+    <button id="startBtn" type="button">Start</button>
+  </div>
+</div>
+
+<!-- Win / lose screens -->
+<div class="overlay hidden" id="endOverlay">
+  <div class="card">
+    <h2 id="endTitle">Game over</h2>
+    <div class="big" id="endScore">0</div>
+    <p id="endText"></p>
+    <button id="restartBtn" type="button">Play again</button>
+  </div>
+</div>
+
+<script>
+"use strict";
+/* Public-domain quotes: proverbs and authors who died before 1929. */
+const PUZZLES = [
+  { q: "The journey of a thousand miles begins with a single step", a: "Lao Tzu" },
+  { q: "An investment in knowledge pays the best interest", a: "Benjamin Franklin" },
+  { q: "The pen is mightier than the sword", a: "Edward Bulwer Lytton" },
+  { q: "Knowledge is power", a: "Francis Bacon" },
+  { q: "The early bird catches the worm", a: "Old proverb" },
+  { q: "Actions speak louder than words", a: "Old proverb" },
+  { q: "Where there is a will there is a way", a: "Old proverb" },
+  { q: "I think therefore I am", a: "Rene Descartes" },
+];
+
+const ALPHA = "abcdefghijklmnopqrstuvwxyz";
+const $ = (id) => document.getElementById(id);
+
+let order = [];        // shuffled puzzle indices
+let puzIdx = 0;        // position within order
+let totalScore = 0;
+let strikes = 0;
+let puzzlePoints = 100; // remaining points for current puzzle
+let solution = {};      // cipher letter -> plain letter
+let mapping = {};       // cipher letter -> user's plain letter (or null)
+let hintsUsed = {};     // cipher letter -> true if revealed by hint
+let selCipher = null;   // selected cipher letter
+let cellsByCipher = {}; // cipher letter -> [cell elements]
+let puzzleSolved = false;
+let running = false;
+
+function shuffleArr(a){
+  for (let i = a.length - 1; i > 0; i--){
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function msg(text, cls){
+  const m = $("msg");
+  m.textContent = text;
+  m.className = "msg" + (cls ? " " + cls : "");
+}
+
+function updateHud(){
+  $("score").textContent = totalScore;
+  $("strikes").textContent = "|||".slice(0, strikes) + "---".slice(0, 3 - strikes);
+  $("puzNum").textContent = Math.min(puzIdx + 1, PUZZLES.length);
+}
+
+/* Build a substitution where no letter maps to itself. */
+function buildCipher(text){
+  const used = [...new Set(text.toLowerCase().replace(/[^a-z]/g, ""))];
+  const shuffled = shuffleArr(ALPHA.split(""));
+  const map = {}; // plain -> cipher
+  for (let i = 0; i < used.length; i++){
+    let c = shuffled[i];
+    if (c === used[i]) c = shuffled[(i + 1) % used.length]; // avoid identity
+    map[used[i]] = c;
+  }
+  const inv = {}; // cipher -> plain
+  used.forEach((p) => { inv[map[p]] = p; });
+  return inv;
+}
+
+function renderPuzzle(){
+  const p = PUZZLES[order[puzIdx]];
+  solution = buildCipher(p.q);
+  mapping = {};
+  hintsUsed = {};
+  cellsByCipher = {};
+  selCipher = null;
+  puzzlePoints = 100;
+  puzzleSolved = false;
+
+  const quote = $("quote");
+  quote.textContent = "";
+  const lower = p.q.toLowerCase();
+  let word = null;
+  for (const ch of lower){
+    if (ch === " "){
+      word = null;
+      continue;
+    }
+    if (!word){
+      word = document.createElement("span");
+      word.className = "word";
+      quote.appendChild(word);
+    }
+    const cell = document.createElement("span");
+    cell.className = "cell";
+    const c = document.createElement("span");
+    c.className = "cipher";
+    c.textContent = solution[ch] ? solution[ch].toUpperCase() : ch.toUpperCase();
+    const pl = document.createElement("span");
+    pl.className = "plain";
+    cell.appendChild(c);
+    cell.appendChild(pl);
+    const cipher = solution[ch];
+    if (cipher){
+      cell.addEventListener("click", () => select(cipher, true));
+      (cellsByCipher[cipher] = cellsByCipher[cipher] || []).push(cell);
+    }
+    word.appendChild(cell);
+  }
+  $("attrib").textContent = p.a;
+  $("puzTotal").textContent = PUZZLES.length;
+  updateHud();
+  const first = Object.keys(cellsByCipher)[0];
+  if (first) select(first, false);
+  msg("Decode the quote, then press Check.");
+}
+
+function select(cipher, focusKeyboard){
+  selCipher = cipher;
+  document.querySelectorAll(".cell").forEach((el) => el.classList.remove("sel"));
+  (cellsByCipher[cipher] || []).forEach((el) => el.classList.add("sel"));
+  if (focusKeyboard) openKeyboard();
+}
+
+function openKeyboard(){
+  const inp = $("hiddenInput");
+  inp.style.left = "0";
+  inp.focus({ preventScroll: false });
+}
+
+function paintCell(cipher){
+  (cellsByCipher[cipher] || []).forEach((el) => {
+    const pl = el.querySelector(".plain");
+    pl.textContent = mapping[cipher] ? mapping[cipher].toUpperCase() : "";
+    el.classList.toggle("filled", !!mapping[cipher]);
+    el.classList.toggle("hint", !!hintsUsed[cipher]);
+    const allRight = mapping[cipher] === solution[cipher];
+    el.classList.toggle("solved", !!mapping[cipher] && allRight);
+  });
+}
+
+function setLetter(cipher, letter){
+  mapping[cipher] = letter;
+  paintCell(cipher);
+}
+
+function moveSelection(delta){
+  const keys = Object.keys(cellsByCipher);
+  if (!keys.length) return;
+  const i = keys.indexOf(selCipher);
+  const next = keys[(i + delta + keys.length) % keys.length];
+  select(next, false);
+}
+
+/* keyboard typing into hidden input */
+$("hiddenInput").addEventListener("input", (e) => {
+  if (!running || puzzleSolved) { e.target.value = ""; return; }
+  const val = e.target.value;
+  for (const ch of val.toLowerCase()){
+    if (ALPHA.includes(ch) && selCipher && !hintsUsed[selCipher]) setLetter(selCipher, ch);
+    else if (ch === "\b" || ch === "\n") { /* handled elsewhere */ }
+  }
+  e.target.value = "";
+  if (selCipher) moveSelection(1); // convenience: advance after typing
+});
+
+document.addEventListener("keydown", (e) => {
+  if (!running) return;
+  const tag = (e.target.tagName || "").toLowerCase();
+  if (tag === "button" && (e.key === "Enter" || e.key === " ")) return; // let buttons work
+  if (e.key === "ArrowRight" || e.key === "ArrowDown"){ moveSelection(1); e.preventDefault(); }
+  else if (e.key === "ArrowLeft" || e.key === "ArrowUp"){ moveSelection(-1); e.preventDefault(); }
+  else if (e.key === "Enter"){ doCheck(); e.preventDefault(); }
+  else if (e.key === "Backspace" || e.key === "Delete"){
+    if (selCipher && !hintsUsed[selCipher]){ setLetter(selCipher, null); e.preventDefault(); }
+  }
+  else if (ALPHA.includes(e.key.toLowerCase()) && e.key.length === 1 && document.activeElement !== $("hiddenInput")){
+    if (selCipher && !hintsUsed[selCipher]){
+      setLetter(selCipher, e.key.toLowerCase());
+      moveSelection(1);
+      e.preventDefault();
+    }
+  }
+});
+
+function doHint(){
+  if (puzzleSolved) return;
+  const open = Object.keys(solution).filter((c) => !mapping[c]);
+  if (!open.length){ msg("Every letter is filled. Press Check.", ""); return; }
+  const c = open[Math.floor(Math.random() * open.length)];
+  hintsUsed[c] = true;
+  setLetter(c, solution[c]);
+  puzzlePoints = Math.max(0, puzzlePoints - 15);
+  msg("Hint used (-15 points). This puzzle is now worth " + puzzlePoints + ".");
+}
+
+function doCheck(){
+  if (!running || puzzleSolved) return;
+  const letters = Object.keys(cellsByCipher);
+  const unfilled = letters.filter((c) => !mapping[c]);
+  if (unfilled.length){
+    msg("Fill every cell first (" + unfilled.length + " left).", "");
+    return;
+  }
+  const wrong = letters.filter((c) => mapping[c] !== solution[c]);
+  if (wrong.length === 0){
+    puzzleSolved = true;
+    totalScore += puzzlePoints;
+    updateHud();
+    msg("Correct. +" + puzzlePoints + " points.", "ok");
+    setTimeout(nextPuzzle, 1200);
+  } else {
+    strikes++;
+    updateHud();
+    if (strikes >= 3){
+      endGame(false);
+    } else {
+      msg(wrong.length + " cell" + (wrong.length > 1 ? "s are" : " is") + " wrong. Strike " + strikes + " of 3.", "err");
+    }
+  }
+}
+
+function doGiveUp(){
+  if (puzzleSolved || !running) return;
+  Object.keys(solution).forEach((c) => { hintsUsed[c] = true; setLetter(c, solution[c]); });
+  puzzleSolved = true;
+  msg("Puzzle revealed. 0 points for this one.", "err");
+  setTimeout(nextPuzzle, 1400);
+}
+
+function nextPuzzle(){
+  puzIdx++;
+  if (puzIdx >= PUZZLES.length){
+    endGame(true);
+    return;
+  }
+  renderPuzzle();
+}
+
+function endGame(won){
+  running = false;
+  $("hiddenInput").blur();
+  $("endTitle").textContent = won ? "All quotes decoded" : "Three strikes";
+  $("endScore").textContent = totalScore;
+  $("endText").textContent = won
+    ? "You decoded all " + PUZZLES.length + " quotes. Final score: " + totalScore + "."
+    : "Too many wrong checks. You decoded " + puzIdx + " of " + PUZZLES.length + " quotes for " + totalScore + " points.";
+  $("endOverlay").classList.remove("hidden");
+}
+
+function startGame(){
+  totalScore = 0;
+  strikes = 0;
+  puzIdx = 0;
+  order = shuffleArr(PUZZLES.map((_, i) => i));
+  running = true;
+  $("startOverlay").classList.add("hidden");
+  $("endOverlay").classList.add("hidden");
+  renderPuzzle();
+}
+
+$("startBtn").addEventListener("click", startGame);
+$("restartBtn").addEventListener("click", startGame);
+$("hintBtn").addEventListener("click", doHint);
+$("checkBtn").addEventListener("click", doCheck);
+$("clearBtn").addEventListener("click", () => {
+  if (selCipher && !hintsUsed[selCipher]) setLetter(selCipher, null);
+});
+$("giveupBtn").addEventListener("click", doGiveUp);
+</script>
+</body>
+</html>

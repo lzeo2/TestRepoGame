@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mini Golf</title>
+<!--
+  Mini Golf - built in-house (single file, no external code).
+  Reason: no genuine permissively-licensed browser mini-golf game was found;
+  MIT hits were Unity/C projects, canvas hits had no license at all.
+  6 hand-authored holes, wall + bumper + sand physics, stroke counter, par
+  scoring, win by matching or beating par. Flat colors, no gradients,
+  no trackers, offline-first.
+-->
+<style>
+  :root{
+    --bg:#1c222b; --panel:#262f3c; --panel2:#313d4e; --ink:#eef2f7; --muted:#a4b1c2;
+    --accent:#e0a33e; --accent2:#4fa3b8; --line:#414f63; --bad:#d9634f; --good:#5cb86a;
+    --green:#2f7d4f;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent}
+  html,body{margin:0; background:var(--bg); color:var(--ink);
+    font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;}
+  body{display:flex; flex-direction:column; align-items:center; padding:10px 12px 24px;}
+  h1{font-size:21px; margin:6px 0; font-weight:650; text-align:center;}
+  .hud{display:flex; gap:8px; flex-wrap:wrap; justify-content:center; margin-bottom:8px;
+    width:100%; max-width:420px;}
+  .stat{background:var(--panel); border:1px solid var(--line); border-radius:8px;
+    padding:6px 10px; font-size:13px; min-height:44px; display:flex; align-items:center; gap:6px;}
+  .stat b{font-size:17px; color:var(--accent);}
+  .stage{position:relative; width:100%; max-width:420px;}
+  canvas{display:block; width:100%; height:auto; background:var(--green);
+    border:1px solid var(--line); border-radius:8px; touch-action:none;}
+  .overlay{position:absolute; inset:0; background:rgba(10,13,18,0.93);
+    display:flex; flex-direction:column; justify-content:center; align-items:center;
+    gap:11px; text-align:center; padding:16px; border-radius:8px; z-index:6;}
+  .overlay h2{margin:0; font-size:22px;}
+  .overlay p{margin:0; font-size:13.5px; color:var(--muted); line-height:1.5; max-width:340px;}
+  .overlay .verdict{font-size:17px; color:var(--accent); font-weight:700;}
+  .overlay button{min-height:48px; min-width:150px; font-size:16px; font-weight:700;
+    background:var(--accent); color:#1c222b; border:none; border-radius:8px; cursor:pointer;}
+  .overlay button:focus-visible{outline:2px solid var(--ink); outline-offset:2px;}
+  .hidden{display:none !important;}
+  .meter{position:absolute; left:10px; right:10px; bottom:10px; height:22px;
+    background:#0f141b; border:1px solid var(--line); border-radius:8px;
+    overflow:hidden; z-index:4;}
+  .meter-fill{height:100%; width:0; background:var(--accent);}
+  .meter span{position:absolute; inset:0; display:flex; align-items:center;
+    justify-content:center; font-size:12px; color:var(--ink);}
+  .kbd-row{display:flex; gap:8px; justify-content:center; margin-top:8px;}
+  .kbd-row button{min-height:44px; min-width:64px; font-size:16px; font-weight:650;
+    background:var(--panel2); color:var(--ink); border:1px solid var(--line);
+    border-radius:8px; cursor:pointer; touch-action:none;}
+  .kbd-row button:active{background:var(--panel);}
+  .kbd-row button:focus-visible{outline:2px solid var(--accent); outline-offset:2px;}
+  .controls{margin-top:10px; width:100%; max-width:420px; background:var(--panel);
+    border:1px solid var(--line); border-radius:8px; padding:10px 12px;
+    font-size:13px; color:var(--muted); line-height:1.6; text-align:center;}
+  .controls b{color:var(--ink);}
+</style>
+</head>
+<body>
+<h1>Mini Golf</h1>
+
+<div class="hud">
+  <div class="stat">Hole <b id="holeNo">1 of 6</b></div>
+  <div class="stat">Par <b id="parEl">2</b></div>
+  <div class="stat">Strokes <b id="strokeEl">0</b></div>
+  <div class="stat">Total <b id="totalEl">E</b></div>
+</div>
+
+<div class="stage">
+  <canvas id="canvas" width="400" height="640"></canvas>
+
+  <div class="meter" id="meter"><div class="meter-fill" id="meterFill"></div>
+    <span id="meterLabel">Hold Space or Slide to charge</span></div>
+
+  <div class="overlay" id="startOverlay">
+    <h2>Mini Golf</h2>
+    <p>Six holes, obstacles and walls, stroke counter against par. Match or
+       beat par (19 strokes) to win the round.</p>
+    <p>Touch: press and drag back from anywhere to aim, release to putt.
+       Keyboard: Left and Right rotate the aim line, hold Space to charge,
+       release to putt. R restarts the round.</p>
+    <button id="playBtn">Start</button>
+  </div>
+
+  <div class="overlay hidden" id="holeOverlay">
+    <h2 id="holeTitle">Holed</h2>
+    <p class="verdict" id="holeResult"></p>
+    <p id="holeLine"></p>
+    <button id="nextBtn">Next hole</button>
+  </div>
+
+  <div class="overlay hidden" id="endOverlay">
+    <h2>Round over</h2>
+    <p class="verdict" id="verdict"></p>
+    <p id="finalLine"></p>
+    <button id="againBtn">Play again</button>
+  </div>
+</div>
+
+<div class="kbd-row">
+  <button id="leftBtn" aria-label="Rotate aim left">&#8634;</button>
+  <button id="slideBtn">Slide</button>
+  <button id="rightBtn" aria-label="Rotate aim right">&#8635;</button>
+</div>
+
+<div class="bar kbd-row">
+  <button id="restartBtn">Restart round</button>
+</div>
+
+<div class="controls">
+  <b>Controls:</b> drag back from the ball and release to putt (mouse or touch),
+  or <b>Left</b>/<b>Right</b> to rotate the aim line, hold <b>Space</b> (or the
+  Slide button) to charge and release to putt. Bumpers bounce the ball, sand
+  slows it, walls bank it. Sink all six holes in 19 strokes or fewer to win.
+  <b>R</b> restarts.
+</div>
+
+<script>
+"use strict";
+/* Built in-house: segment/bumper/sand green physics, six hand-authored holes. */
+const canvas = document.getElementById("canvas");
+const ctx = canvas.getContext("2d");
+const W = 400, H = 640;
+
+const el = id => document.getElementById(id);
+const holeNoEl = el("holeNo"), parEl = el("parEl"), strokeEl = el("strokeEl"), totalEl = el("totalEl");
+const meter = el("meter"), meterFill = el("meterFill"), meterLabel = el("meterLabel");
+const startOverlay = el("startOverlay"), holeOverlay = el("holeOverlay"), endOverlay = el("endOverlay");
+
+const BALL_R = 7, CUP_R = 10;
+const FRICTION = 0.985, SAND_FRICTION = 0.90, STOP_SPEED = 0.08;
+const MAX_SPEED = 14;
+
+// outer rectangle walls as four segments
+function box(x, y, w, h) {
+  return [[x, y, x + w, y], [x + w, y, x + w, y + h],
+          [x + w, y + h, x, y + h], [x, y + h, x, y]];
+}
+// solid rectangular obstacle: four segments (ball bounces off any face)
+const rect = box;
+
+const HOLES = [
+  { name: "Straightaway", par: 2, start: [200, 560], cup: [200, 90],
+    walls: box(20, 20, 360, 600), bumpers: [], sand: [] },
+  { name: "Dogleg", par: 3, start: [100, 560], cup: [320, 110],
+    walls: box(20, 20, 360, 600).concat([[20, 380, 260, 380]]),
+    bumpers: [], sand: [] },
+  { name: "Bumper alley", par: 3, start: [200, 570], cup: [200, 80],
+    walls: box(20, 20, 360, 600),
+    bumpers: [{ x: 200, y: 340, r: 18 }, { x: 140, y: 210, r: 16 }, { x: 262, y: 170, r: 16 }],
+    sand: [] },
+  { name: "Sand trap", par: 3, start: [200, 570], cup: [200, 110],
+    walls: box(20, 20, 360, 600),
+    bumpers: [],
+    sand: [{ x: 200, y: 320, r: 62 }, { x: 130, y: 240, r: 34 }] },
+  { name: "The gate", par: 4, start: [100, 570], cup: [300, 110],
+    walls: box(20, 20, 360, 600)
+      .concat(rect(20, 290, 130, 56))    // left block, gap 150..210
+      .concat(rect(210, 290, 170, 56)),  // right block to the wall
+    bumpers: [], sand: [{ x: 300, y: 200, r: 30 }] },
+  { name: "Zigzag", par: 4, start: [340, 570], cup: [60, 90],
+    walls: box(20, 20, 360, 600)
+      .concat([[20, 440, 280, 440]])     // wall A, gap on the right
+      .concat([[120, 250, 380, 250]]),   // wall B, gap on the left
+    bumpers: [{ x: 200, y: 150, r: 16 }], sand: [] }
+];
+const TOTAL_PAR = HOLES.reduce((s, h) => s + h.par, 0);
+
+let state = "start";          // start | aim | rolling | holeDone | end
+let holeIdx = 0, strokes = 0, holeStrokes = [];
+const ball = { x: 200, y: 560, vx: 0, vy: 0 };
+
+// keyboard aim
+let kbAngle = -Math.PI / 2;   // straight up
+let charging = false, chargeP = 0, chargeDir = 1;
+let chargeTimer = null;
+
+const hole = () => HOLES[holeIdx];
+
+function inSand(x, y) {
+  return hole().sand.some(s => Math.hypot(x - s.x, y - s.y) < s.r);
+}
+
+function updateHud() {
+  holeNoEl.textContent = (holeIdx + 1) + " of " + HOLES.length;
+  parEl.textContent = hole().par;
+  strokeEl.textContent = strokes;
+  const total = holeStrokes.reduce((a, b) => a + b, 0);
+  const played = holeStrokes.length;
+  const diff = total - HOLES.slice(0, played).reduce((s, h) => s + h.par, 0);
+  totalEl.textContent = played === 0 ? "E" : (diff === 0 ? "E" : (diff > 0 ? "+" + diff : "" + diff));
+}
+
+function scoreName(strokesIn, par) {
+  const d = strokesIn - par;
+  if (strokesIn === 1) return "Hole in one";
+  if (d <= -2) return "Eagle";
+  if (d === -1) return "Birdie";
+  if (d === 0) return "Par";
+  if (d === 1) return "Bogey";
+  if (d === 2) return "Double bogey";
+  return "+" + d;
+}
+
+function startRound() {
+  holeIdx = 0; strokes = 0; holeStrokes = [];
+  startOverlay.classList.add("hidden");
+  endOverlay.classList.add("hidden");
+  holeOverlay.classList.add("hidden");
+  loadHole();
+}
+function loadHole() {
+  const h = hole();
+  ball.x = h.start[0]; ball.y = h.start[1];
+  ball.vx = 0; ball.vy = 0;
+  strokes = 0;
+  kbAngle = Math.atan2(h.cup[1] - ball.y, h.cup[0] - ball.x); // default line at the cup
+  state = "aim";
+  updateHud();
+}
+
+function putt(speed) {
+  if (state !== "aim") return;
+  strokes++;
+  ball.vx = Math.cos(kbAngle) * speed;
+  ball.vy = Math.sin(kbAngle) * speed;
+  state = "rolling";
+  updateHud();
+}
+
+function endHole() {
+  state = "holeDone";
+  holeStrokes.push(strokes);
+  const h = hole();
+  el("holeTitle").textContent = h.name;
+  el("holeResult").textContent = "Holed in " + strokes + " (" + scoreName(strokes, h.par) + ")";
+  if (holeIdx === HOLES.length - 1) {
+    finishRound();
+    return;
+  }
+  el("holeLine").textContent = "Hole " + (holeIdx + 1) + " of " + HOLES.length +
+    " done. Par for the next hole: " + HOLES[holeIdx + 1].par + ".";
+  holeOverlay.classList.remove("hidden");
+}
+
+function finishRound() {
+  state = "end";
+  const total = holeStrokes.reduce((a, b) => a + b, 0);
+  const won = total <= TOTAL_PAR;
+  el("verdict").textContent = won
+    ? "You win: " + total + " strokes against par " + TOTAL_PAR + "."
+    : "You lose: " + total + " strokes against par " + TOTAL_PAR + ".";
+  const best = Math.min(...holeStrokes);
+  el("finalLine").textContent = "Your cards: " + holeStrokes.join(", ") + ". Best hole: " + best + ".";
+  endOverlay.classList.remove("hidden");
+  updateHud();
+}
+
+/* ---------- physics ---------- */
+
+function closestOnSeg(px, py, x1, y1, x2, y2) {
+  const dx = x2 - x1, dy = y2 - y1;
+  const len2 = dx * dx + dy * dy || 1;
+  let t = ((px - x1) * dx + (py - y1) * dy) / len2;
+  t = Math.max(0, Math.min(1, t));
+  return [x1 + t * dx, y1 + t * dy];
+}
+
+function collideSegment(s) {
+  const [cx, cy] = closestOnSeg(ball.x, ball.y, s[0], s[1], s[2], s[3]);
+  let dx = ball.x - cx, dy = ball.y - cy;
+  let d = Math.hypot(dx, dy);
+  if (d >= BALL_R) return;
+  if (d < 0.001) { dx = 0; dy = -1; d = 1; }         // dead center: use up normal
+  const nx = dx / d, ny = dy / d;
+  ball.x = cx + nx * (BALL_R + 0.1);
+  ball.y = cy + ny * (BALL_R + 0.1);
+  const vn = ball.vx * nx + ball.vy * ny;
+  if (vn < 0) {
+    const e = 0.7;
+    ball.vx = (ball.vx - (1 + e) * vn * nx) * 0.97;
+    ball.vy = (ball.vy - (1 + e) * vn * ny) * 0.97;
+  }
+}
+
+function collideBumper(b) {
+  let dx = ball.x - b.x, dy = ball.y - b.y;
+  let d = Math.hypot(dx, dy);
+  const minD = BALL_R + b.r;
+  if (d >= minD) return;
+  if (d < 0.001) { dx = 0; dy = -1; d = 1; }
+  const nx = dx / d, ny = dy / d;
+  ball.x = b.x + nx * (minD + 0.1);
+  ball.y = b.y + ny * (minD + 0.1);
+  const vn = ball.vx * nx + ball.vy * ny;
+  if (vn < 0) {
+    ball.vx -= 1.9 * vn * nx;      // lively bumper
+    ball.vy -= 1.9 * vn * ny;
+  }
+}
+
+function physicsStep() {
+  const h = hole();
+  // friction once per frame
+  const f = inSand(ball.x, ball.y) ? SAND_FRICTION : FRICTION;
+  ball.vx *= f; ball.vy *= f;
+  if (Math.hypot(ball.vx, ball.vy) < STOP_SPEED) { ball.vx = 0; ball.vy = 0; }
+
+  // substeps to avoid tunneling through walls
+  const speed = Math.hypot(ball.vx, ball.vy);
+  const sub = Math.max(1, Math.ceil(speed / 4));
+  for (let i = 0; i < sub; i++) {
+    ball.x += ball.vx / sub;
+    ball.y += ball.vy / sub;
+    for (const s of h.walls) collideSegment(s);
+    for (const b of h.bumpers) collideBumper(b);
+    if (ball.x < -20 || ball.x > W + 20 || ball.y < -20 || ball.y > H + 20) {
+      ball.x = h.start[0]; ball.y = h.start[1];
+      ball.vx = 0; ball.vy = 0;
+      strokes++;                                   // penalty stroke, ball restored
+      state = "aim";
+      updateHud();
+      return;
+    }
+  }
+
+  // cup capture
+  const d = Math.hypot(ball.x - h.cup[0], ball.y - h.cup[1]);
+  const sp = Math.hypot(ball.vx, ball.vy);
+  if (d < CUP_R && sp < 4.0) {
+    ball.x = h.cup[0]; ball.y = h.cup[1];
+    ball.vx = 0; ball.vy = 0;
+    endHole();
+    return;
+  }
+  if (sp === 0 && state === "rolling") state = "aim";
+}
+
+/* ---------- drawing ---------- */
+
+function draw() {
+  const h = hole();
+  ctx.fillStyle = "#2f7d4f";
+  ctx.fillRect(0, 0, W, H);
+  // flat mow bands
+  ctx.fillStyle = "#2a7348";
+  for (let y = 40; y < H; y += 120) ctx.fillRect(0, y, W, 60);
+
+  // sand (flat)
+  ctx.fillStyle = "#d9c07a";
+  for (const s of h.sand) {
+    ctx.beginPath(); ctx.arc(s.x, s.y, s.r, 0, 2 * Math.PI); ctx.fill();
+  }
+
+  // walls: thick strokes
+  ctx.strokeStyle = "#0b4a37";
+  ctx.lineWidth = 10;
+  ctx.lineCap = "round";
+  for (const s of h.walls) {
+    ctx.beginPath(); ctx.moveTo(s[0], s[1]); ctx.lineTo(s[2], s[3]); ctx.stroke();
+  }
+
+  // bumpers
+  for (const b of h.bumpers) {
+    ctx.fillStyle = "#e0a33e";
+    ctx.beginPath(); ctx.arc(b.x, b.y, b.r, 0, 2 * Math.PI); ctx.fill();
+    ctx.fillStyle = "#1c222b";
+    ctx.beginPath(); ctx.arc(b.x, b.y, b.r * 0.4, 0, 2 * Math.PI); ctx.fill();
+  }
+
+  // cup + flag (flat triangle)
+  ctx.fillStyle = "#12161c";
+  ctx.beginPath(); ctx.arc(h.cup[0], h.cup[1], CUP_R, 0, 2 * Math.PI); ctx.fill();
+  ctx.strokeStyle = "#f2f2ee"; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.moveTo(h.cup[0], h.cup[1]); ctx.lineTo(h.cup[0], h.cup[1] - 46); ctx.stroke();
+  ctx.fillStyle = "#d9432f";
+  ctx.beginPath();
+  ctx.moveTo(h.cup[0], h.cup[1] - 46);
+  ctx.lineTo(h.cup[0] + 24, h.cup[1] - 38);
+  ctx.lineTo(h.cup[0], h.cup[1] - 30);
+  ctx.closePath(); ctx.fill();
+
+  // aim line while setting up
+  if (state === "aim") {
+    const len = charging ? 40 + chargeP * 0.8 : 70;
+    ctx.strokeStyle = "#f4d58a";
+    ctx.lineWidth = 3;
+    ctx.setLineDash([8, 6]);
+    ctx.beginPath();
+    ctx.moveTo(ball.x, ball.y);
+    ctx.lineTo(ball.x + Math.cos(kbAngle) * len, ball.y + Math.sin(kbAngle) * len);
+    ctx.stroke();
+    ctx.setLineDash([]);
+  }
+
+  // ball
+  ctx.fillStyle = "#f7f7f2";
+  ctx.beginPath(); ctx.arc(ball.x, ball.y, BALL_R, 0, 2 * Math.PI); ctx.fill();
+  ctx.strokeStyle = "#9aa7b5"; ctx.lineWidth = 1;
+  ctx.stroke();
+
+  // hole name on canvas
+  ctx.fillStyle = "rgba(10,13,18,0.55)";
+  ctx.fillRect(10, 10, 190, 26);
+  ctx.fillStyle = "#eef2f7";
+  ctx.font = "13px system-ui, sans-serif";
+  ctx.fillText("Hole " + (holeIdx + 1) + ": " + h.name + " (par " + h.par + ")", 18, 27);
+}
+
+function frame() {
+  if (state === "rolling") physicsStep();
+  draw();
+  requestAnimationFrame(frame);
+}
+
+/* ---------- charging ---------- */
+
+function startCharge() {
+  if (state !== "aim" || charging) return;
+  charging = true; chargeP = 0; chargeDir = 1;
+  meterLabel.textContent = "Charging...";
+  clearInterval(chargeTimer);
+  chargeTimer = setInterval(() => {
+    chargeP += 2.5 * chargeDir;
+    if (chargeP >= 100) { chargeP = 100; chargeDir = -1; }
+    if (chargeP <= 0) { chargeP = 0; chargeDir = 1; }
+    meterFill.style.width = chargeP + "%";
+  }, 20);
+}
+function stopCharge() {
+  if (!charging) return;
+  charging = false;
+  clearInterval(chargeTimer);
+  meterLabel.textContent = "Hold Space or Slide to charge";
+  putt(chargeP / 100 * MAX_SPEED);
+}
+
+/* ---------- input ---------- */
+
+document.addEventListener("keydown", e => {
+  if (state !== "aim") return;
+  if (e.code === "ArrowLeft") kbAngle -= 0.05;
+  if (e.code === "ArrowRight") kbAngle += 0.05;
+  if (e.code === "Space") { e.preventDefault(); startCharge(); }
+  if (e.code === "KeyR") startRound();
+});
+document.addEventListener("keyup", e => {
+  if (e.code === "Space" && charging) stopCharge();
+});
+
+// touch drag: press, pull back, release to putt
+let drag = null;
+canvas.addEventListener("pointerdown", e => {
+  if (state !== "aim") return;
+  e.preventDefault();
+  drag = { moved: false };
+  canvas.setPointerCapture(e.pointerId);
+});
+canvas.addEventListener("pointermove", e => {
+  if (!drag || state !== "aim") return;
+  e.preventDefault();
+  const rect = canvas.getBoundingClientRect();
+  const px = (e.clientX - rect.left) * (W / rect.width);
+  const py = (e.clientY - rect.top) * (H / rect.height);
+  const dx = ball.x - px, dy = ball.y - py;   // pull back: aim opposite the drag
+  const dist = Math.hypot(dx, dy);
+  if (dist < 6) return;
+  drag.moved = true;
+  kbAngle = Math.atan2(dy, dx);
+  drag.power = Math.min(1, dist / 140);
+});
+canvas.addEventListener("pointerup", e => {
+  if (!drag) return;
+  e.preventDefault();
+  const p = drag.power || 0;
+  drag = null;
+  if (p > 0.05) putt(p * MAX_SPEED);
+});
+
+// on-screen buttons mirror the keyboard
+const hold = (btn, on, off) => {
+  btn.addEventListener("pointerdown", e => { e.preventDefault(); on(); });
+  btn.addEventListener("pointerup", e => { e.preventDefault(); off && off(); });
+  btn.addEventListener("pointerleave", () => { off && off(); });
+};
+let rotL = false, rotR = false;
+const leftBtn = el("leftBtn"), rightBtn = el("rightBtn");
+leftBtn.addEventListener("pointerdown", () => { rotL = true; });
+leftBtn.addEventListener("pointerup", () => { rotL = false; });
+leftBtn.addEventListener("pointerleave", () => { rotL = false; });
+rightBtn.addEventListener("pointerdown", () => { rotR = true; });
+rightBtn.addEventListener("pointerup", () => { rotR = false; });
+rightBtn.addEventListener("pointerleave", () => { rotR = false; });
+setInterval(() => {
+  if (state !== "aim") return;
+  if (rotL) kbAngle -= 0.05;
+  if (rotR) kbAngle += 0.05;
+}, 40);
+hold(el("slideBtn"), startCharge, stopCharge);
+
+el("playBtn").addEventListener("click", startRound);
+el("nextBtn").addEventListener("click", () => {
+  holeOverlay.classList.add("hidden");
+  holeIdx++;
+  loadHole();
+});
+el("againBtn").addEventListener("click", startRound);
+el("restartBtn").addEventListener("click", () => { if (state !== "start") startRound(); });
+
+updateHud();
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>

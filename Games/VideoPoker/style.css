@@ -1,0 +1,508 @@
+/* Main Video Poker Styles */
+:root {
+    /* Dark theme (default) */
+    --primary-color: #1b5e20;
+    --secondary-color: #388e3c;
+    --text-color: #f0f0f0;
+    --background-color: #0a3d0a;
+    --card-background: white;
+    --card-border: #ccc;
+    --red-suit: #d32f2f;
+    --black-suit: #212121;
+    --button-color: #4caf50;
+    --button-hover: #2e7d32;
+    --button-active: #1b5e20;
+    --paytable-bg: rgba(0, 0, 0, 0.15);
+    --header-border: #388e3c;
+    --game-type-color: #a5d6a7;
+    --info-panel-bg: #388e3c;
+    --card-back-bg: #1565c0;
+    --card-back-pattern: #0d47a1;
+}
+
+/* Light theme */
+:root.light-theme {
+    --primary-color: #2e7d32;
+    --secondary-color: #4caf50;
+    --text-color: #333333;
+    --background-color: #e8f5e9;
+    --card-background: white;
+    --card-border: #aaa;
+    --red-suit: #d32f2f;
+    --black-suit: #212121;
+    --button-color: #2e7d32;
+    --button-hover: #1b5e20;
+    --button-active: #004d40;
+    --paytable-bg: rgba(0, 0, 0, 0.05);
+    --header-border: #4caf50;
+    --game-type-color: #1b5e20;
+    --info-panel-bg: #4caf50;
+    --card-back-bg: #2196f3;
+    --card-back-pattern: #1976d2;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: system-ui, -apple-system, "Segoe UI", Arial, sans-serif;
+    background-color: var(--background-color);
+    color: var(--text-color);
+    line-height: 1.6;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    transition: background-color 0.3s, color 0.3s;
+}
+
+.container {
+    width: 100%;
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+}
+
+header {
+    text-align: center;
+    margin-bottom: 30px;
+    border-bottom: 2px solid var(--header-border);
+    padding-bottom: 15px;
+    position: relative;
+}
+
+header h1 {
+    font-size: 2.3rem;
+    color: var(--text-color);
+    margin-bottom: 5px;
+}
+
+#game-type {
+    font-size: 1.4rem;
+    color: var(--game-type-color);
+}
+
+/* Theme toggle button styles */
+.theme-toggle {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+}
+
+#theme-toggle-btn {
+    border: none;
+    font-size: 0.95rem;
+    cursor: pointer;
+    min-height: 44px;
+    min-width: 64px;
+    padding: 6px 12px;
+    border-radius: 8px;
+    background-color: rgba(0, 0, 0, 0.1);
+    color: var(--text-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.3s;
+}
+
+#theme-toggle-btn:hover {
+    background-color: rgba(0, 0, 0, 0.2);
+}
+
+:root.light-theme .light-icon,
+:root:not(.light-theme) .dark-icon {
+    display: none;
+}
+
+.game-area {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+}
+
+/* Info panel with score and bet controls */
+.info-panel {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    background-color: var(--info-panel-bg);
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    transition: background-color 0.3s;
+}
+
+.score-container, .bet-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.score-label, .bet-label {
+    font-size: 1.2rem;
+}
+
+.score-value, .bet-value {
+    font-size: 2rem;
+    font-weight: bold;
+}
+
+.bet-controls {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.bet-controls button {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    border: none;
+    background-color: var(--button-color);
+    color: white;
+    font-size: 1.5rem;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.bet-controls button:hover {
+    background-color: var(--button-hover);
+}
+
+/* Card styles */
+.cards-container {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    flex-wrap: wrap;
+    margin: 20px 0;
+}
+
+.card {
+    position: relative;
+    width: 120px;
+    height: 180px;
+    perspective: 1000px;
+    cursor: pointer;
+}
+
+.card-inner {
+    width: 100%;
+    height: 100%;
+    transform-style: preserve-3d;
+    transition: transform 0.6s;
+    position: relative;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+.card-back, .card-face {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    backface-visibility: hidden;
+    border-radius: 10px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+}
+
+.card-back {
+    background-color: var(--card-back-bg);
+    border: 5px solid var(--card-border);
+}
+
+.card-face {
+    background-color: var(--card-background);
+    transform: rotateY(180deg);
+    border: 5px solid var(--card-border);
+    padding: 10px;
+}
+
+.card-value {
+    font-size: 2rem;
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.card-suit {
+    font-size: 3rem;
+    line-height: 1;
+}
+
+.card.diamonds .card-value, .card.hearts .card-value,
+.card.diamonds .card-suit, .card.hearts .card-suit {
+    color: var(--red-suit);
+}
+
+.card.clubs .card-value, .card.spades .card-value,
+.card.clubs .card-suit, .card.spades .card-suit {
+    color: var(--black-suit);
+}
+
+.card.held .card-inner {
+    border: 5px solid #f0b307;
+    box-shadow: 0 0 0 3px #f0b307;
+}
+
+.hold-indicator {
+    position: absolute;
+    bottom: -30px;
+    width: 100%;
+    text-align: center;
+    background-color: #f0b307;
+    color: #212121;
+    padding: 3px 0;
+    border-radius: 3px;
+    font-weight: bold;
+    display: none;
+}
+
+.card.held .hold-indicator {
+    display: block;
+}
+
+.card.flipped .card-inner {
+    transform: rotateY(180deg);
+}
+
+/* Controls */
+.controls {
+    margin: 20px 0;
+}
+
+button.primary-button {
+    background-color: var(--button-color);
+    color: white;
+    border: none;
+    padding: 12px 30px;
+    font-size: 1.2rem;
+    border-radius: 25px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    font-weight: bold;
+}
+
+button.primary-button:hover {
+    background-color: var(--button-hover);
+}
+
+button.primary-button:active {
+    background-color: var(--button-active);
+    transform: translateY(2px);
+}
+
+.hand-result {
+    font-size: 1.5rem;
+    min-height: 2.5rem;
+    text-align: center;
+    color: var(--game-type-color);
+    font-weight: bold;
+    margin: 10px 0;
+    visibility: hidden;
+    opacity: 0;
+    transition: visibility 0s, opacity 0.5s linear;
+}
+
+.hand-result.visible {
+    visibility: visible;
+    opacity: 1;
+}
+
+/* Paytable */
+.paytable {
+    background-color: var(--paytable-bg);
+    border-radius: 8px;
+    padding: 15px;
+    margin: 20px 0;
+    width: 100%;
+    max-width: 500px;
+}
+
+.paytable h3 {
+    text-align: center;
+    margin-bottom: 10px;
+    color: var(--game-type-color);
+}
+
+.paytable table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.paytable table tr {
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+
+.paytable table tr:last-child {
+    border-bottom: none;
+}
+
+.paytable table td {
+    padding: 8px 4px;
+}
+
+.paytable table td:last-child {
+    text-align: right;
+    font-weight: bold;
+}
+
+/* Game options */
+.game-options {
+    margin: 20px 0;
+    text-align: center;
+}
+
+.game-options select {
+    min-height: 44px;
+    padding: 8px;
+    border-radius: 4px;
+    border: 1px solid var(--secondary-color);
+    background-color: var(--primary-color);
+    color: white;
+    font-size: 1rem;
+    margin-left: 10px;
+    cursor: pointer;
+}
+
+/* Overlays: start screen, out of chips, session win */
+.overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(4, 8, 5, 0.88);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 100;
+    padding: 16px;
+}
+
+.overlay.hidden {
+    display: none;
+}
+
+.overlay .panel {
+    background: var(--background-color);
+    border: 2px solid var(--secondary-color);
+    border-radius: 12px;
+    padding: 24px;
+    max-width: 440px;
+    width: 100%;
+    text-align: center;
+    color: var(--text-color);
+    max-height: 92vh;
+    overflow-y: auto;
+}
+
+.overlay .panel h2 {
+    margin: 0 0 12px;
+    font-size: 1.6rem;
+}
+
+.overlay .panel p {
+    margin: 0 0 14px;
+    line-height: 1.5;
+    font-size: 0.95rem;
+}
+
+.overlay .panel button {
+    display: block;
+    width: 100%;
+    min-height: 44px;
+    margin: 8px 0;
+    padding: 10px 20px;
+    font-size: 1rem;
+    font-weight: bold;
+    border: none;
+    border-radius: 8px;
+    background-color: var(--button-color);
+    color: white;
+    cursor: pointer;
+}
+
+.overlay .panel button:hover {
+    background-color: var(--button-hover);
+}
+
+.overlay .panel button.secondary {
+    background-color: transparent;
+    border: 1px solid var(--secondary-color);
+    color: var(--text-color);
+}
+
+:is(#playBtn, #deal-btn, #bust-restart, #target-new, #target-keep,
+    .card, #theme-toggle-btn):focus-visible {
+    outline: 3px solid var(--secondary-color);
+    outline-offset: 2px;
+}
+
+footer {
+    margin-top: auto;
+    text-align: center;
+    padding: 20px 0;
+    color: rgba(255,255,255,0.6);
+    font-size: 0.9rem;
+}
+
+/* Active winning hand highlight in paytable */
+.paytable table tr.active {
+    background-color: rgba(255,215,0,0.3);
+    color: gold;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .cards-container {
+        gap: 10px;
+    }
+    
+    .card {
+        width: 90px;
+        height: 140px;
+    }
+    
+    .card-value {
+        font-size: 1.5rem;
+    }
+    
+    .card-suit {
+        font-size: 2rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .container {
+        padding: 12px;
+    }
+
+    .cards-container {
+        gap: 5px;
+    }
+    
+    .card {
+        width: calc((100vw - 70px) / 5);
+        height: 110px;
+    }
+    
+    .card-value {
+        font-size: 1.2rem;
+    }
+    
+    .card-suit {
+        font-size: 1.5rem;
+    }
+    
+    .info-panel {
+        flex-direction: column;
+        gap: 15px;
+    }
+}

@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Klondike Solitaire</title>
+<!--
+  Ingested from: https://github.com/AJimber/KMN_Solitaire
+  License: MIT (see LICENSE in this folder)
+  Commit: c25d7a989898fa5e1db3aff41950b2106d9fba97
+  Modifications: Spanish copy translated to English; start screen with
+  documented controls added; gradients and card-back.svg flattened; leave
+  warning checkbox + beforeunload prompt and the Tab-blocking keydown
+  removed; keyboard play added (Tab to cards, Enter moves, Shift+Enter to
+  foundation, S draw, U undo, N new game, focus restore across renders);
+  no-moves-left lose state added; buttons made tabbable (tabindex removed);
+  all-caps eyebrow removed.
+-->
+<meta name="referrer" content="no-referrer">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<section id="startScreen">
+  <h1>Klondike Solitaire</h1>
+  <p>Classic draw-one Klondike. Build the four foundations up from ace to king, alternating colors on the tableau.</p>
+  <div class="panel">
+    <strong>Controls</strong>
+    <ul class="controls-doc">
+      <li><strong>Move a card:</strong> click or tap it and it jumps to the best spot, or drag it with the mouse.</li>
+      <li><strong>To the foundation:</strong> double-click, or press <strong>Shift+Enter</strong> on the focused card.</li>
+      <li><strong>Draw from the stock:</strong> click the stock or press <strong>S</strong>. An empty stock recycles the waste.</li>
+      <li><strong>Keyboard:</strong> <strong>Tab</strong> between cards and buttons, <strong>Enter</strong> moves a card, <strong>U</strong> undo, <strong>N</strong> new game.</li>
+      <li><strong>Goal:</strong> all 52 cards to the foundations. Run out of legal moves and the round is lost.</li>
+    </ul>
+  </div>
+  <button type="button" id="playBtn" class="play-btn">Play</button>
+</section>
+
+<main class="game-shell hidden" id="gameScreen">
+  <header class="topbar">
+    <div class="status" aria-live="polite">
+      <span id="moves">0 moves</span>
+      <span id="timer">00:00</span>
+    </div>
+    <button id="undo" class="top-btn" type="button" disabled>Undo (U)</button>
+    <button id="new-game" class="top-btn" type="button">New game (N)</button>
+    <button id="menuBtn" class="top-btn" type="button">Menu</button>
+  </header>
+
+  <section class="board" aria-label="Solitaire table">
+    <div class="upper-row">
+      <div class="draw-area" aria-label="Stock and waste">
+        <button id="stock" class="pile stock" type="button" aria-label="Draw a card">
+          <span id="stock-count" class="stock-count">24</span>
+        </button>
+        <div id="waste" class="pile waste" aria-label="Waste"></div>
+      </div>
+      <div id="foundations" class="foundations" aria-label="Foundations"></div>
+    </div>
+    <div id="tableau" class="tableau" aria-label="Tableau columns"></div>
+  </section>
+
+  <p class="hint">Click or tap a card to auto-move it. Drag with a mouse. Double-click sends it to a foundation.</p>
+</main>
+
+<dialog id="win-dialog" class="end-dialog">
+  <h2>Round complete</h2>
+  <p id="win-summary"></p>
+  <div class="dialog-actions">
+    <button id="play-again" class="top-btn" type="button">Play again</button>
+    <button id="win-menu" class="top-btn" type="button">Menu</button>
+  </div>
+</dialog>
+
+<dialog id="lose-dialog" class="end-dialog">
+  <h2>No moves left</h2>
+  <p id="lose-summary"></p>
+  <div class="dialog-actions">
+    <button id="retry-btn" class="top-btn" type="button">Try again</button>
+    <button id="lose-menu" class="top-btn" type="button">Menu</button>
+  </div>
+</dialog>
+
+<script src="script.js" defer></script>
+</body>
+</html>

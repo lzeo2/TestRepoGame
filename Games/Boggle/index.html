@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Chain adjacent letters into dictionary words before the three-minute clock runs out.">
+<link rel="icon" href="data:,">
+<title>Boggle</title>
+<!--
+  Built in-house for TestRepoGame. BUILT, not ingested: the MIT candidates
+  reviewed (jpk3lly/Wordgame_Javascript, lquixada/boggle) validate words
+  through api.dictionaryapi.dev / firebase fetches, which violates the
+  offline-first and embedded-word-list requirements; insightcoder's
+  "boggle-dictionary" ships no actual word list. The dictionary below is a
+  small local embedded array, per repo rules.
+-->
+<style>
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  background: #f4f1ea;
+  color: #1d1d1f;
+  touch-action: manipulation;
+}
+
+body { display: flex; flex-direction: column; align-items: center; }
+
+.screen {
+  width: 100%;
+  max-width: 540px;
+  padding: 0 12px 24px;
+  text-align: center;
+}
+
+h1 { font-size: 24px; margin: 14px 0 6px; }
+p { margin: 6px 0; font-size: 15px; }
+
+.hidden { display: none !important; }
+
+ul.rules {
+  text-align: left;
+  margin: 10px auto;
+  padding-left: 22px;
+  max-width: 420px;
+  line-height: 1.5;
+  font-size: 15px;
+}
+
+button {
+  min-height: 44px;
+  min-width: 44px;
+  padding: 10px 18px;
+  font-size: 16px;
+  font-family: inherit;
+  background: #2f5d50;
+  color: #fdf6e3;
+  border: 2px solid #1d1d1f;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+button.primary { background: #f4c542; color: #1d1d1f; }
+button:focus-visible { outline: 3px solid #c0392b; outline-offset: 2px; }
+button:active { transform: translateY(1px); }
+
+.menu-buttons { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 12px; }
+
+#hud {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 15px;
+  color: #4a4a4f;
+  margin: 6px 0 10px;
+  flex-wrap: wrap;
+}
+
+#hud span { background: #ffffff; border: 2px solid #c9c2b2; border-radius: 6px; padding: 6px 10px; }
+#hud #timer.low { color: #c0392b; font-weight: bold; }
+
+#grid {
+  display: grid;
+  gap: 6px;
+  width: max-content;
+  max-width: 100%;
+  margin: 0 auto 10px;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #ffffff;
+  border: 2px solid #c9c2b2;
+  border-radius: 8px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.cell.sel { background: #f4c542; border-color: #1d1d1f; }
+.cell.bad { background: #eba39a; border-color: #c0392b; }
+.cell:focus-visible { outline: 3px solid #c0392b; outline-offset: 1px; }
+
+#current {
+  min-height: 46px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: 4px;
+  background: #ffffff;
+  border: 2px dashed #c9c2b2;
+  border-radius: 8px;
+  padding: 4px 8px;
+  margin-bottom: 8px;
+  word-break: break-all;
+}
+
+#current:empty::before { content: "chain letters here"; color: #8a8578; font-size: 15px; font-weight: 400; letter-spacing: 0; }
+
+#message { min-height: 24px; font-size: 15px; font-weight: 600; margin: 4px 0; }
+#message.good { color: #2f8f5b; }
+#message.bad { color: #c0392b; }
+
+#actions { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin: 6px 0 12px; }
+
+#found {
+  list-style: none;
+  padding: 0;
+  margin: 6px auto;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: center;
+  max-width: 500px;
+  min-height: 30px;
+}
+
+#found li {
+  background: #9fd3b4;
+  border: 2px solid #2f5d50;
+  border-radius: 6px;
+  padding: 5px 10px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 20;
+  padding: 16px;
+}
+
+.overlay .box {
+  background: #ffffff;
+  border: 3px solid #1d1d1f;
+  border-radius: 12px;
+  padding: 22px 26px;
+  max-width: 360px;
+  width: 100%;
+  text-align: center;
+}
+
+.overlay .box h2 { margin: 0 0 8px; font-size: 21px; }
+.overlay .box p { font-size: 15px; margin-bottom: 14px; }
+.overlay .box .row { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+</style>
+</head>
+<body>
+
+<div class="screen" id="startScreen">
+  <h1>Boggle</h1>
+  <p>Chain touching letters into words and beat the target score before the three-minute clock runs out.</p>
+  <ul class="rules">
+    <li>Tap or click neighboring letters to build a chain (letters must touch, including diagonally, and cannot repeat).</li>
+    <li>Submit with the button, the S key, or Enter on the button. Backspace removes the last letter, Esc clears the chain.</li>
+    <li>Keyboard: arrow keys move between cells, Enter adds or removes a letter.</li>
+    <li>Words score by length: 3 letters = 1 point, 4 = 2, 5 = 4, 6 = 7, 7 = 11.</li>
+    <li>Reach the target score to win. When time runs out, falling short loses the game.</li>
+  </ul>
+  <div class="menu-buttons">
+    <button class="primary" data-size="4" type="button">4x4 grid</button>
+    <button class="primary" data-size="5" type="button">5x5 grid</button>
+  </div>
+</div>
+
+<div class="screen hidden" id="playScreen">
+  <div id="hud">
+    <span id="score">Score 0</span>
+    <span id="target">Target 5</span>
+    <span id="timer">3:00</span>
+  </div>
+  <div id="grid" role="grid" aria-label="Letter grid"></div>
+  <div id="current" aria-live="polite"></div>
+  <div id="message" role="status"></div>
+  <div id="actions">
+    <button class="primary" id="submitBtn" type="button">Submit word</button>
+    <button id="clearBtn" type="button">Clear</button>
+    <button id="menuBtn" type="button">Menu</button>
+  </div>
+  <ul id="found" aria-label="Words found"></ul>
+</div>
+
+<div class="overlay hidden" id="endOverlay">
+  <div class="box">
+    <h2 id="endTitle">You win</h2>
+    <p id="endText"></p>
+    <div class="row">
+      <button class="primary" id="againBtn" type="button">Play again</button>
+      <button id="endMenuBtn" type="button">Menu</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* Small local embedded dictionary. No fetch, no CDN: repo offline rules. */
+const DICT_WORDS = (
+  "ace act add age ago aid aim air ale all and ant any ape arc are arm art ash ask ate awe " +
+  "axe bad bag ban bar bat bay bed bee beg bet bid big bin bit boa bog bow box boy bug bun bus but buy " +
+  "cab can cap car cat cod cog cop cow cry cub cup cut dab dam day den dew did dig dim din dip doe dog dot dry dub dud due dug duo dye " +
+  "ear eat eel egg ego elf elk elm end era eve ewe eye " +
+  "fad fan far fat fax fed fee fen few fig fin fir fit fix fly foe fog for fox fry fun fur gag gap gas gel gem get gig gin gnu goa god goo got gum gun gut guy gym " +
+  "had hag ham has hat hay hem hen her hew hex hid him hip his hit hoe hog hop hot how hub hue hug hum hut ice icy ill imp ink inn ion ire irk its ivy " +
+  "jab jam jar jaw jay jet job jog joy jug jut " +
+  "keg key kid kin kit " +
+  "lab lad lag lap law lax lay led leg let lid lie lip lit lob log lot low lug lye " +
+  "mad man map mat may men met mid mix mob mod mop mow mud mug " +
+  "nab nag nap nay net new nib nil nip nod nor not now nun nut oak oar oat odd ode off oft oil old one opt orb ore our out owe owl own " +
+  "pad pal pan par pat paw pay pea peg pen pet pie pig pin pit ply pod pop pot pro pub pun pup put " +
+  "rag ram ran rap rat raw ray red rib rid rig rim rip rob rod roe rot row rub rue rug run rut rye " +
+  "sad sag sap sat saw say sea set sew she shy sin sip sir sit six ski sky sly sob sod son sow soy spa spy sub sue sum sun tab tad tag tan tap tar tax tea ten the thy tic tie tin tip toe ton too top tot tow toy try tub tug two " +
+  "urn use van vat vet vex via vie vow wad wag wan war was wax way web wed wee wet who why wig win wit woe wok won woo wow wry yak yam yap yes yet yew yin zip zoo " +
+  "able acid acre aged also area army away baby back bake bald ball band bank bare bark barn base bath beat been bell belt bend best bike bill bind bird bite blow blue boat body boil bold bomb bond bone book boom boot born both bowl bulk burn bush busy cage cake calm came camp card care cart case cash cast cave cell chat chip city clay club coal coat code coil cold come cook cool cope copy cord core cost crew crop crow cube cue cup curl cute dame damp dare dark dawn deal dear deck deep deer desk dial dice diet dime dish dock does done door dose down drag draw drop drug drum duck dull dunk dust duty each earn east easy edge else even ever face fact fail fair fall farm fast fate fear feed feel feet fell felt file fill find fine fire firm fish five flag flat flow food fool foot form four free frog full fund game gap gas gave gear gene gift girl give glad glow goat gold golf gone good gray grew grow gulf hair half hall hand hang hard harm hate have head hear heat help here hero hill hint hire hold hole holy home hope horn host hour huge hull hunt hurt idea inch into iron item join jump just keep kept kick kind king knee knew know lack lady laid lake land lane last late lead leaf left lend less life lift like line link lion list live load loan lock long look lose loss lost love luck made mail main make male many mark mass meal mean meat meet melt menu mere mesh mile milk mind mine miss mode mold mood moon more most move much must name near neck need nest news next nice nick nine none nose note okay once only open over pace pack page paid pair pale palm park part pass past path peak pick pink pipe plan play plot plus poem pool poor port pose post pull pure push race rack rain ramp rank rare rate read real reap rear rely rent rest rice rich ride ring rock role roll roof room root rose rule rush safe said sail sake salt same sand save scan seal seat seek seem seen self sell send ship shoe shop shot show side sign silk sing sink site size skip slip slow soft soil sold sole some song soon sort soul soup sour spin step stop such suit sure swim tail take tale talk tall tank tape task team tell tend term test text than that them then they thin this thus tide tile till time tiny tire toad tool town tree trip true tube turn type unit upon user vast very view vote wait wake walk wall want ward warm wash wave wear week well went were west what when wide wife wild will wind wine wing wish wood word wore work yard yarn year your zero zone " +
+  "about above actor admit adopt after again agent agree ahead alarm album alert alike alive allow alone along alter among anger angle angry apart apple apply arena argue arise armor array arrow aside asset audio audit avoid await awake award aware " +
+  "basic beach began begin below bench black blade blame blank blast blaze blend blind block blood board brain brand break breed brick bring broad broke brown build built bunch burnt burst cabin cable carry catch cause chain chair chart chase cheap check chest child civil claim class clean clear climb clock close coach coast could count court cover craft crash cream crime cross crowd crown curve daily dance dealt depth doing doubt dozen draft drama drawn dream dress drift drill drink drive drove drunk earth eight empty enemy enjoy enter entry equal error event every exact exist extra faith false fancy fatal fault field fifth fifty fight final first flame floor fluid focus force frame fresh front fruit fully funny giant given glass globe going grace grade grand grant grass great green gross group grown guard guess guest guide habit happy heart heavy hence horse hotel house human ideal image index inner input issue joint judge known label large later laugh layer learn least leave legal level light limit local loose lucky lunch major maker march match maybe mayor metal might minor model money month motor mount mouse mouth movie music never night noise north novel nurse occur ocean offer often order otherought paint panel paper party peace phase phone photo piece pilot pitch place plain plane plant plate point pound power press price pride prime print prior prize proof proud prove queen quick quiet quite radio raise range rapid reach react ready refer right river rough round route royal scale scene scope score sense serve seven shall shape share sharp sheet shelf shell shift shine shirt shock shoot short shown sight skill sleep slide small smart smile solid solve sorry sound south space spare speak speed spend spent split spoke sport staff stage stand stare start state steam steel stick still stock stone stood style sugar table taste teach tempo tend term test text than that them then they thin this thus tide tile till time tiny tired title today token total touch tough tower track trade train treat trend trial trust truth twice under union unity until upper upset urban usage usual valid value video visit vital voice waste watch water wheel where which while white whole whose woman world worry worth would write wrong wrote yield young"
+).split(" ");
+
+const DICT = new Set(DICT_WORDS);
+const DICT3 = DICT_WORDS.filter(w => w.length >= 3);
+
+const SCORE_BY_LENGTH = { 3: 1, 4: 2, 5: 4, 6: 7, 7: 11 };
+const TIME_LIMIT_MS = 180000;
+const FILLER_LETTERS = "etaoinshrdlucmfwypvbgk";
+const ALL_LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
+const SIZES = {
+  4: { target: 5, words: 6 },
+  5: { target: 10, words: 8 },
+};
+
+const DIRS = [
+  [1, 0], [0, 1], [1, 1], [-1, 1], [1, -1], [-1, 0], [0, -1], [-1, -1],
+];
+
+const startScreen = document.getElementById('startScreen');
+const playScreen = document.getElementById('playScreen');
+const endOverlay = document.getElementById('endOverlay');
+const endTitle = document.getElementById('endTitle');
+const endText = document.getElementById('endText');
+const gridEl = document.getElementById('grid');
+const currentEl = document.getElementById('current');
+const messageEl = document.getElementById('message');
+const scoreEl = document.getElementById('score');
+const targetEl = document.getElementById('target');
+const timerEl = document.getElementById('timer');
+const foundEl = document.getElementById('found');
+
+let size = 4;
+let gridLetters = [];
+let cellEls = [];
+let chain = [];
+let score = 0;
+let found = new Set();
+let deadline = 0;
+let timerHandle = 0;
+let over = false;
+
+/* Grid generation: drop dictionary words onto the board along straight
+   lines (all eight directions) so real words are always findable, then fill
+   the leftover cells with common letters. */
+function generateGrid(n) {
+  const targetCount = SIZES[n].words;
+  const maxLen = n;
+  const pool = DICT3.filter(w => w.length <= maxLen);
+  const wanted = [];
+  for (const w of pool) if (Math.random() < 0.05 && wanted.length < targetCount * 3) wanted.push(w);
+  // Guarantee a spread of lengths: prefer 4-5 letter words, then the rest.
+  wanted.sort(() => Math.random() - 0.5);
+  const byLength = wanted.slice(0, targetCount + 4);
+
+  let best = null;
+  for (let attempt = 0; attempt < 30; ++attempt) {
+    const cells = [];
+    const picked = [];
+    for (let i = 0; i < n * n; ++i) {
+      cells.push(ALL_LETTERS[Math.floor(Math.random() * 26)]);
+      picked.push(false);
+    }
+
+    const sorted = byLength.slice().sort((a, b) => b.length - a.length);
+    const placed = [];
+
+    for (const word of sorted) {
+      const slots = [];
+      for (const d of DIRS) {
+        const dx = d[0], dy = d[1];
+        let maxX = n - 1, maxY = n - 1;
+        if (dx !== 0) maxX = n - word.length;
+        if (dy !== 0) maxY = n - word.length;
+        let minX = 0, minY = 0;
+        if (dx === -1) { minX = n - 1 - maxX; maxX = n - 1; }
+        if (dy === -1) { minY = n - 1 - maxY; maxY = n - 1; }
+        if (maxX < minX || maxY < minY) continue;
+        for (let sy = minY; sy <= maxY; ++sy) {
+          for (let sx = minX; sx <= maxX; ++sx) {
+            let fits = true;
+            let constraints = 0;
+            for (let i = 0; i < word.length; ++i) {
+              const x = sx + dx * i, y = sy + dy * i;
+              if (picked[y * n + x]) {
+                if (cells[y * n + x] === word[i]) constraints++;
+                else { fits = false; break; }
+              }
+            }
+            if (fits) slots.push({ d: d, sx: sx, sy: sy, c: constraints });
+          }
+        }
+      }
+      if (!slots.length) continue;
+      slots.sort((a, b) => (b.c - a.c) + (Math.random() - 0.5));
+      const loc = slots[0];
+      for (let i = 0; i < word.length; ++i) {
+        const x = loc.sx + loc.d[0] * i, y = loc.sy + loc.d[1] * i;
+        cells[y * n + x] = word[i].toUpperCase();
+        picked[y * n + x] = true;
+      }
+      placed.push(word);
+    }
+
+    for (let i = 0; i < n * n; ++i) {
+      if (!picked[i]) cells[i] = FILLER_LETTERS[Math.floor(Math.random() * FILLER_LETTERS.length)].toUpperCase();
+    }
+
+    if (!best || placed.length > best.placed.length) best = { cells: cells, placed: placed };
+    if (placed.length >= targetCount) break;
+  }
+  return best;
+}
+
+function renderGrid() {
+  gridEl.textContent = '';
+  gridEl.style.gridTemplateColumns = 'repeat(' + size + ', 1fr)';
+  const px = size === 4 ? 'clamp(56px, 17vw, 76px)' : 'clamp(48px, 14vw, 64px)';
+  cellEls = [];
+  for (let y = 0; y < size; ++y) {
+    for (let x = 0; x < size; ++x) {
+      const cell = document.createElement('div');
+      cell.className = 'cell';
+      cell.setAttribute('role', 'gridcell');
+      cell.dataset.x = x;
+      cell.dataset.y = y;
+      cell.tabIndex = -1;
+      cell.style.width = px;
+      cell.style.height = px;
+      cell.style.fontSize = 'clamp(20px, 6vw, 28px)';
+      cell.textContent = gridLetters[y * size + x];
+      gridEl.appendChild(cell);
+      cellEls.push(cell);
+    }
+  }
+  cellEls[0].tabIndex = 0;
+}
+
+function say(text, kind) {
+  messageEl.textContent = text;
+  messageEl.className = kind || '';
+}
+
+function renderChain() {
+  currentEl.textContent = chain.map(c => c.textContent).join('');
+  for (const c of cellEls) c.classList.remove('sel');
+  for (const c of chain) c.classList.add('sel');
+}
+
+function renderScore() {
+  scoreEl.textContent = 'Score ' + score;
+  targetEl.textContent = 'Target ' + SIZES[size].target;
+}
+
+function adjacent(a, b) {
+  const dx = Number(a.dataset.x) - Number(b.dataset.x);
+  const dy = Number(a.dataset.y) - Number(b.dataset.y);
+  return Math.max(Math.abs(dx), Math.abs(dy)) === 1;
+}
+
+function pickCell(cell) {
+  if (over) return;
+  if (chain.length === 0) {
+    chain = [cell];
+    say('');
+    renderChain();
+    return;
+  }
+  const last = chain[chain.length - 1];
+  if (cell === last) {
+    chain.pop();
+    say('');
+    renderChain();
+    return;
+  }
+  if (chain.includes(cell)) {
+    say('That letter is already in the chain.', 'bad');
+    return;
+  }
+  if (!adjacent(last, cell)) {
+    say('Letters must touch diagonally or sideways.', 'bad');
+    return;
+  }
+  chain.push(cell);
+  say('');
+  renderChain();
+}
+
+function clearChain() {
+  chain = [];
+  renderChain();
+}
+
+function flashBad() {
+  for (const c of chain) {
+    c.classList.add('bad');
+    setTimeout(() => c.classList.remove('bad'), 400);
+  }
+}
+
+function submitWord() {
+  if (over) return;
+  if (chain.length < 3) {
+    say('Chain at least three letters.', 'bad');
+    return;
+  }
+  const word = chain.map(c => c.textContent).join('').toLowerCase();
+  if (found.has(word)) {
+    say('Already found ' + word.toUpperCase() + '.', 'bad');
+    flashBad();
+    clearChain();
+    return;
+  }
+  if (!DICT.has(word)) {
+    say(word.toUpperCase() + ' is not in the dictionary.', 'bad');
+    flashBad();
+    clearChain();
+    return;
+  }
+  const points = SCORE_BY_LENGTH[word.length] || word.length;
+  score += points;
+  found.add(word);
+  const li = document.createElement('li');
+  li.textContent = word.toUpperCase() + ' +' + points;
+  foundEl.appendChild(li);
+  renderScore();
+  say('Found ' + word.toUpperCase() + ' for ' + points + ' point' + (points === 1 ? '' : 's') + '.', 'good');
+  clearChain();
+  if (score >= SIZES[size].target) endGame(true, 'Target reached with time to spare.');
+}
+
+function fmtTime(ms) {
+  const total = Math.max(0, Math.ceil(ms / 1000));
+  const m = Math.floor(total / 60);
+  const s = total % 60;
+  return m + ':' + (s < 10 ? '0' : '') + s;
+}
+
+function tick() {
+  const left = deadline - Date.now();
+  timerEl.textContent = fmtTime(left);
+  timerEl.classList.toggle('low', left <= 30000);
+  if (left <= 0) {
+    endGame(false, 'Time is up.');
+  }
+}
+
+function endGame(won, reason) {
+  if (over) return;
+  over = true;
+  if (timerHandle) { clearInterval(timerHandle); timerHandle = 0; }
+  clearChain();
+  endTitle.textContent = won ? 'You win' : 'You lose';
+  endText.textContent = reason + ' Final score: ' + score +
+    ' of a ' + SIZES[size].target + ' target, ' + found.size + ' word' + (found.size === 1 ? '' : 's') + ' found.';
+  endOverlay.classList.remove('hidden');
+  document.getElementById('againBtn').focus();
+}
+
+function startGame() {
+  const gen = generateGrid(size);
+  gridLetters = gen.cells;
+  chain = [];
+  score = 0;
+  found = new Set();
+  over = false;
+  foundEl.textContent = '';
+  endOverlay.classList.add('hidden');
+  startScreen.classList.add('hidden');
+  playScreen.classList.remove('hidden');
+  renderGrid();
+  renderScore();
+  renderChain();
+  say('Find at least ' + SIZES[size].target + ' points worth of words.');
+  deadline = Date.now() + TIME_LIMIT_MS;
+  timerEl.textContent = fmtTime(TIME_LIMIT_MS);
+  timerEl.classList.remove('low');
+  if (timerHandle) clearInterval(timerHandle);
+  timerHandle = setInterval(tick, 250);
+}
+
+function goMenu() {
+  if (timerHandle) { clearInterval(timerHandle); timerHandle = 0; }
+  over = true;
+  clearChain();
+  endOverlay.classList.add('hidden');
+  playScreen.classList.add('hidden');
+  startScreen.classList.remove('hidden');
+}
+
+/* ---------------------------- input ---------------------------- */
+
+gridEl.addEventListener('click', (e) => {
+  const cell = e.target && e.target.closest ? e.target.closest('.cell') : null;
+  if (cell) pickCell(cell);
+});
+
+function focusCell(cell) {
+  for (const c of cellEls) c.tabIndex = -1;
+  cell.tabIndex = 0;
+  cell.focus();
+}
+
+gridEl.addEventListener('keydown', (e) => {
+  const cur = document.activeElement && document.activeElement.classList &&
+              document.activeElement.classList.contains('cell')
+    ? document.activeElement
+    : cellEls[0];
+  const x = Number(cur.dataset.x), y = Number(cur.dataset.y);
+
+  if (e.key === 'ArrowRight' || e.key === 'ArrowLeft' || e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+    e.preventDefault();
+    let nx = x, ny = y;
+    if (e.key === 'ArrowRight') nx = Math.min(size - 1, x + 1);
+    if (e.key === 'ArrowLeft') nx = Math.max(0, x - 1);
+    if (e.key === 'ArrowDown') ny = Math.min(size - 1, y + 1);
+    if (e.key === 'ArrowUp') ny = Math.max(0, y - 1);
+    focusCell(cellEls[ny * size + nx]);
+    return;
+  }
+  if (e.key === 'Enter' || e.key === ' ') {
+    e.preventDefault();
+    pickCell(cur);
+    return;
+  }
+});
+
+window.addEventListener('keydown', (e) => {
+  if (over || playScreen.classList.contains('hidden')) return;
+  if (e.key === 'Backspace') {
+    e.preventDefault();
+    chain.pop();
+    renderChain();
+  } else if (e.key === 'Escape') {
+    e.preventDefault();
+    clearChain();
+    say('');
+  } else if (e.key === 's' || e.key === 'S') {
+    submitWord();
+  }
+});
+
+document.getElementById('submitBtn').addEventListener('click', submitWord);
+document.getElementById('clearBtn').addEventListener('click', () => { clearChain(); say(''); });
+document.getElementById('menuBtn').addEventListener('click', goMenu);
+document.getElementById('againBtn').addEventListener('click', startGame);
+document.getElementById('endMenuBtn').addEventListener('click', goMenu);
+
+for (const btn of document.querySelectorAll('[data-size]')) {
+  btn.addEventListener('click', () => {
+    size = Number(btn.dataset.size);
+    startGame();
+  });
+}
+</script>
+</body>
+</html>

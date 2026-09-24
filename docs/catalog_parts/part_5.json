@@ -1,0 +1,47 @@
+[
+ {
+  "title": "Puzzle 15",
+  "cat": "puzzle",
+  "icon": "",
+  "desc": "Slide the numbered tiles into order 1 to 15 on a 4x4 board with a random-walk shuffle that always solves; count moves, beat the clock and your best.",
+  "url": "Games/Puzzle15/index.html",
+  "featured": false,
+  "tags": []
+ },
+ {
+  "title": "Peg Solitaire",
+  "cat": "puzzle",
+  "icon": "",
+  "desc": "Jump pegs over their neighbours to clear the English cross board; finish with exactly one peg standing, with undo and a no-moves-left lose state.",
+  "url": "Games/PegSolitaire/index.html",
+  "featured": false,
+  "tags": []
+ },
+ {
+  "title": "Checkers",
+  "cat": "strategy",
+  "icon": "",
+  "desc": "Face the computer on an 8x8 board with forced jumps, forward-only men and king promotion; tap pieces or steer a cursor with the arrow keys.",
+  "url": "Games/Checkers/index.html",
+  "featured": false,
+  "tags": []
+ },
+ {
+  "title": "Reversi",
+  "cat": "strategy",
+  "icon": "",
+  "desc": "Trap rival discs between two of yours to flip them; legal-move hints against an MCTS computer player on the classic 8x8 board.",
+  "url": "Games/Reversi/index.html",
+  "featured": false,
+  "tags": []
+ },
+ {
+  "title": "Battleship",
+  "cat": "strategy",
+  "icon": "",
+  "desc": "Place your fleet, then trade single shots with an AI that hunts neighbouring squares after a hit; sink all four enemy ships before they sink yours.",
+  "url": "Games/Battleship/index.html",
+  "featured": false,
+  "tags": []
+ }
+]

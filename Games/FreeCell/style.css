@@ -1,0 +1,336 @@
+/* FreeCell, ingested from github.com/taeber/freecell (MIT), flattened. */
+
+html {
+    --fgcolor: #1b1b1b;
+    --bgcolor: #f2f4f2;
+    --bgcolor2: #e4e8e4;
+    --accent: #6a3fb5;
+    --cardcolor: #ffffff;
+    /* card width: 8 columns fit a 360px screen, capped for large screens */
+    --cw: clamp(40px, calc((100vw - 12px) / 8), 72px);
+}
+
+@media (prefers-color-scheme: dark) {
+    html {
+        --fgcolor: #f0f0f0;
+        --bgcolor: #171917;
+        --bgcolor2: #242724;
+        --accent: #d7b45a;
+        --cardcolor: #f8f8f8;
+    }
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    min-height: 100vh;
+    color: var(--fgcolor);
+    background-color: var(--bgcolor);
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+    font-size: 16px;
+}
+
+[hidden] { display: none !important }
+
+/* Start screen */
+.overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(10, 12, 10, 0.85);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 20;
+    padding: 16px;
+}
+
+.panel {
+    background: var(--bgcolor);
+    border: 2px solid var(--accent);
+    border-radius: 12px;
+    padding: 24px;
+    max-width: 460px;
+    width: 100%;
+    text-align: center;
+}
+
+.panel h1 {
+    margin: 0 0 12px;
+    font-size: 1.8rem;
+}
+
+.panel p {
+    margin: 0 0 14px;
+    line-height: 1.5;
+    font-size: 0.95rem;
+}
+
+#playBtn {
+    min-height: 44px;
+    min-width: 160px;
+    padding: 10px 24px;
+    font-size: 1.05rem;
+    border: none;
+    border-radius: 8px;
+    background: var(--accent);
+    color: #ffffff;
+    cursor: pointer;
+}
+
+#playBtn:hover { filter: brightness(1.1); }
+
+/* Game layout */
+main {
+    display: flex;
+    flex-direction: column;
+    padding: 4px 6px 24px;
+}
+
+.stats {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 1em;
+    margin: 0.5em 0;
+    font-size: 0.9rem;
+}
+
+.stats .movecount,
+.stats .elapsed {
+    padding: 0.3em 0.7em;
+    background-color: var(--bgcolor2);
+    border-radius: 0.3em;
+    font-variant-numeric: tabular-nums;
+}
+
+.top {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: space-evenly;
+    align-items: flex-start;
+    gap: 4px;
+}
+
+.cells,
+.foundations {
+    display: flex;
+    justify-content: space-evenly;
+    gap: 2px;
+}
+
+.cell,
+.actions,
+.foundation,
+.cascade {
+    width: var(--cw);
+    margin: 1px;
+}
+
+.cell,
+.actions,
+.foundation {
+    min-height: calc(var(--cw) * 1.4);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.cell { background-color: #b9e6c0; }
+.foundation { background-color: #cdd2cd; }
+
+html[data-theme] .cell,
+.empty.cascade { border: 1px solid transparent; }
+
+.empty.cascade {
+    border-color: #b9e6c0;
+    margin-top: 1px;
+}
+
+.empty.foundation::before {
+    content: "A";
+    font-size: calc(var(--cw) * 0.7);
+    opacity: 0.6;
+}
+
+.actions {
+    background-color: var(--bgcolor2);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-evenly;
+    min-height: unset;
+    height: auto;
+    width: auto;
+    border-radius: 6px;
+    padding: 2px;
+    order: 2;
+}
+
+.actions button {
+    min-height: 44px;
+    min-width: 76px;
+    font-size: 0.85rem;
+    padding: 6px 10px;
+    margin: 2px;
+    border: 1px solid var(--accent);
+    border-radius: 6px;
+    background: var(--bgcolor);
+    color: var(--fgcolor);
+    cursor: pointer;
+}
+
+.actions button:hover { background: var(--bgcolor2); }
+
+.actions button:disabled {
+    opacity: 0.5;
+    cursor: default;
+}
+
+.actions button.lost {
+    background: var(--accent);
+    color: var(--bgcolor);
+}
+
+/* Cards */
+.cascades {
+    list-style: none;
+    margin: 12px 0 0;
+    padding: 0;
+    display: flex;
+    justify-content: space-evenly;
+}
+
+.cascade {
+    list-style: none;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    min-height: calc(var(--cw) * 1.4);
+}
+
+.cascade .card { margin-top: calc(var(--cw) * -0.4) }
+.cascade > .card:first-child { margin-top: 0 }
+
+.card {
+    width: var(--cw);
+    height: calc(var(--cw) * 1.4);
+    border: 1px solid #b5b5b5;
+    border-radius: 6px;
+    text-align: center;
+    font-size: calc(var(--cw) * 0.5);
+    line-height: 1.1;
+    background-color: var(--cardcolor);
+    box-shadow: 0 2px 3px rgba(0, 0, 0, 0.35);
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.card:focus-visible,
+.empty.cascade:focus-visible,
+.empty.cell:focus-visible {
+    outline: 3px solid var(--accent);
+    outline-offset: 1px;
+}
+
+.card .suit,
+.card .rank { display: block }
+
+.card .suit { font-size: calc(var(--cw) * 0.55) }
+.card .rank { font-size: calc(var(--cw) * 0.42); font-weight: 700 }
+
+.Hearts,
+.Diamonds { color: #c62828 }
+
+.Spades,
+.Clubs { color: #111111 }
+
+main.picked .empty.cascade,
+main.picked .empty.cell,
+main.picked .card { cursor: crosshair }
+
+.card.picked {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent);
+}
+
+/* End-of-game banners */
+.winner,
+.stuck {
+    position: fixed;
+    inset: 0;
+    background: rgba(10, 12, 10, 0.8);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 16px;
+    text-align: center;
+    z-index: 15;
+    padding: 20px;
+}
+
+.winner span,
+.stuck span {
+    background: var(--bgcolor);
+    border: 2px solid var(--accent);
+    border-radius: 10px;
+    padding: 18px 22px;
+    font-size: 1.3rem;
+    font-weight: 700;
+    max-width: 420px;
+}
+
+.winner button,
+.stuck button {
+    min-height: 44px;
+    padding: 10px 26px;
+    font-size: 1rem;
+    border: none;
+    border-radius: 8px;
+    background: var(--accent);
+    color: #ffffff;
+    cursor: pointer;
+}
+
+/* New-game dialog */
+dialog.game {
+    border: 2px solid var(--accent);
+    border-radius: 12px;
+    background: var(--bgcolor);
+    color: var(--fgcolor);
+    padding: 22px;
+    max-width: 320px;
+    text-align: center;
+}
+
+dialog.game::backdrop { background: rgba(10, 12, 10, 0.7) }
+
+dialog.game p { margin: 0 0 14px }
+
+dialog.game button {
+    display: block;
+    margin: 8px auto 0;
+    min-height: 44px;
+    width: 100%;
+    border: 1px solid var(--accent);
+    border-radius: 6px;
+    background: var(--bgcolor2);
+    color: var(--fgcolor);
+    cursor: pointer;
+    font-size: 1rem;
+}
+
+dialog.game button.confirm-new {
+    background: var(--accent);
+    color: #ffffff;
+}
+
+@media screen and (max-width: 420px) {
+    .actions { flex-direction: row; width: auto; }
+    .actions button { min-width: 64px; }
+}

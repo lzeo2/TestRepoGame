@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bowling</title>
+<!--
+  Bowling - built in-house (no genuine permissively-licensed 10-frame bowling
+  game found; GitHub MIT candidates were scoring katas or a random-number toy
+  with a broken scoreboard). Self-contained, offline-first, no external
+  requests. Flat colors, no gradients. Standard ten-pin scoring incl. the
+  tenth-frame three-ball rule.
+-->
+<style>
+  :root{
+    --bg:#1c222b; --panel:#262f3c; --panel2:#313d4e; --ink:#eef2f7; --muted:#a4b1c2;
+    --accent:#e0a33e; --accent2:#4fa3b8; --bad:#d9634f; --good:#5cb86a; --line:#414f63;
+    --lane:#3a4759; --lane2:#46566c; --pin:#f2f2ee; --ball:#c0483c;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent}
+  html,body{margin:0; background:var(--bg); color:var(--ink);
+    font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;}
+  body{display:flex; flex-direction:column; align-items:center; min-height:100vh;}
+  .wrap{width:100%; max-width:720px; padding:10px 12px 24px;}
+  h1{font-size:21px; margin:8px 0 6px; font-weight:650; text-align:center;}
+  .hud{display:flex; gap:8px; flex-wrap:wrap; justify-content:center; margin-bottom:8px;}
+  .stat{background:var(--panel); border:1px solid var(--line); border-radius:8px;
+    padding:7px 12px; font-size:14px; min-height:44px; display:flex; align-items:center; gap:6px;}
+  .stat b{font-size:17px; color:var(--accent);}
+  /* scorecard */
+  .card{display:flex; gap:4px; justify-content:center; flex-wrap:nowrap; overflow-x:auto;
+    background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:6px;}
+  .frame{min-width:52px; border:1px solid var(--line); border-radius:6px; background:var(--panel2);
+    text-align:center; overflow:hidden;}
+  .frame .fh{font-size:11px; color:var(--muted); padding:2px 0; border-bottom:1px solid var(--line);}
+  .frame .rolls{display:flex; justify-content:center; gap:2px; padding:3px 3px 0;}
+  .frame .r{width:20px; height:22px; background:#1a222d; border:1px solid var(--line); border-radius:3px;
+    font-size:13px; line-height:20px; font-weight:650;}
+  .frame .r.t10{width:16px;}
+  .frame .tot{font-size:15px; font-weight:700; padding:2px 0 4px; min-height:24px; color:var(--ink);}
+  .frame.cur{outline:2px solid var(--accent2);}
+  /* lane */
+  .lanebox{background:var(--panel); border:1px solid var(--line); border-radius:10px;
+    padding:8px; margin-top:10px; display:flex; flex-direction:column; align-items:center;}
+  svg#lane{width:100%; max-width:360px; height:auto; display:block; cursor:crosshair;
+    touch-action:manipulation;}
+  svg#lane:focus-visible{outline:3px solid var(--accent); outline-offset:2px;}
+  .msg{min-height:22px; text-align:center; color:var(--muted); font-size:14px; margin-top:6px;}
+  .msg.ok{color:var(--good);} .msg.err{color:var(--bad);}
+  .btnrow{display:flex; gap:8px; justify-content:center; flex-wrap:wrap; margin-top:8px;}
+  button{min-height:44px; min-width:44px; padding:8px 18px; font-size:15px; font-weight:650;
+    background:var(--accent); color:#241a05; border:none; border-radius:8px; cursor:pointer;}
+  button:hover{filter:brightness(1.08);}
+  button:focus-visible{outline:3px solid var(--accent2); outline-offset:2px;}
+  button.sec{background:var(--panel2); color:var(--ink); border:1px solid var(--line);}
+  .legend{font-size:13px; color:var(--muted); text-align:center; margin-top:10px; line-height:1.55;}
+  .overlay{position:fixed; inset:0; background:rgba(14,18,24,.94); display:flex;
+    align-items:center; justify-content:center; z-index:10; padding:16px;}
+  .overlay .card2{background:var(--panel); border:1px solid var(--line); border-radius:12px;
+    max-width:440px; width:100%; padding:22px; text-align:center;}
+  .card2 h2{margin:0 0 10px; font-size:23px;}
+  .card2 p{color:var(--muted); font-size:15px; line-height:1.6; margin:8px 0;}
+  .card2 .big{font-size:36px; color:var(--accent); font-weight:750; margin:8px 0;}
+  .hidden{display:none !important;}
+  .credit{font-size:12px; color:#6b7a92; text-align:center; margin-top:12px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Bowling</h1>
+  <div class="hud">
+    <div class="stat">Frame <b id="frameNo">1</b>/10</div>
+    <div class="stat">Ball <b id="rollNo">1</b></div>
+    <div class="stat">Score <b id="score">0</b></div>
+    <div class="stat">Standing <b id="standing">10</b></div>
+  </div>
+
+  <div class="card" id="scorecard" aria-label="Scorecard"></div>
+
+  <div class="lanebox">
+    <svg id="lane" viewBox="0 0 120 170" role="application" tabindex="0"
+         aria-label="Bowling lane, use left and right arrows to aim, space to roll">
+      <rect x="10" y="0" width="100" height="170" fill="var(--lane)"></rect>
+      <rect x="0" y="0" width="10" height="170" fill="#232c38"></rect>
+      <rect x="110" y="0" width="10" height="170" fill="#232c38"></rect>
+      <line x1="10" y1="26" x2="110" y2="26" stroke="#2b3542" stroke-width="1"></line>
+      <rect x="10" y="98" width="100" height="72" fill="var(--lane2)"></rect>
+      <g id="pins"></g>
+      <circle id="ball" cx="60" cy="14" r="4.6" fill="var(--ball)"></circle>
+      <path id="aim" d="M 60 6 L 56 14 L 64 14 Z" fill="var(--accent2)"></path>
+    </svg>
+    <div class="msg" id="msg" aria-live="polite">Aim with arrows or tap the lane, then roll.</div>
+    <div class="btnrow">
+      <button id="rollBtn" type="button">Roll (space)</button>
+      <button id="restartBtn2" class="sec" type="button">Restart</button>
+    </div>
+  </div>
+
+  <div class="legend">
+    Controls: left and right arrow keys move the aim marker, space or the Roll button throws,
+    or tap anywhere on the lane to place the aim and roll. Knock down all ten pins for a strike (X),
+    clear the remaining pins with your second ball for a spare (/). Reach 100 points to win.
+  </div>
+  <div class="credit">Built in-house. Offline, no tracking.</div>
+</div>
+
+<!-- Start screen -->
+<div class="overlay" id="startOverlay">
+  <div class="card2">
+    <h2>Bowling</h2>
+    <p>Ten frames of ten-pin bowling with real scoring: strikes, spares, bonus balls, and the full three-ball tenth frame.</p>
+    <p><b>Controls</b><br>
+      Arrow keys aim, space rolls, or tap the lane to aim and press Roll.<br>
+      Hit all ten pins at once for a strike. A spare clears the rest on your second ball.<br>
+      Reach a final score of 100 or more to win.</p>
+    <button id="startBtn" type="button">Start</button>
+  </div>
+</div>
+
+<!-- End screen -->
+<div class="overlay hidden" id="endOverlay">
+  <div class="card2">
+    <h2 id="endTitle">Game over</h2>
+    <div class="big" id="endScore">0</div>
+    <p id="endText"></p>
+    <button id="restartBtn" type="button">Play again</button>
+  </div>
+</div>
+
+<script>
+"use strict";
+const $ = (id) => document.getElementById(id);
+const TARGET = 100;
+
+/* pin layout in lane units (x centered on 0, y grows down) */
+const PIN_POS = [
+  [0, 0],
+  [-0.95, 1.65], [0.95, 1.65],
+  [-1.9, 3.3], [0, 3.3], [1.9, 3.3],
+  [-2.85, 4.95], [-0.95, 4.95], [0.95, 4.95], [2.85, 4.95],
+];
+const DECK_X = 60;      // svg center x for pin deck
+const DECK_Y = 106;     // svg y of head pin
+const U = 10;           // px per unit
+const LANE_HALF = 6;    // aim range in units (lane is 10 units wide, gutters beyond 5)
+const BALL_R = 0.75;    // ball radius in units
+const BALL_Y = 104;     // impact y in svg coords (just before deck)
+const GUTTER = 5.6;     // beyond this aim = gutter
+
+let frames = [[],[],[],[],[],[],[],[],[],[]];  // frames[0..9] = arrays of rolls
+let frameIdx = 0;
+let standing = [];      // 10 booleans
+let aim = 0;            // in units, -LANE_HALF..LANE_HALF
+let rolling = false;
+let running = false;
+let animTimers = [];
+
+function clearTimers(){ animTimers.forEach(clearTimeout); animTimers = []; }
+function later(fn, ms){ animTimers.push(setTimeout(fn, ms)); }
+
+function flatRolls(){
+  return frames.flat();
+}
+
+/* Standard ten-pin cumulative frame scores; null = not enough balls yet. */
+function frameScores(){
+  const rolls = flatRolls();
+  const out = [];
+  let i = 0, total = 0;
+  for (let f = 0; f < 10 && i < rolls.length; f++){
+    if (rolls[i] === 10){                       // strike
+      if (i + 2 >= rolls.length){ out.push(null); i += 1; continue; }
+      total += 10 + rolls[i + 1] + rolls[i + 2];
+      out.push(total); i += 1;
+    } else if (i + 1 < rolls.length && rolls[i] + rolls[i + 1] === 10){  // spare
+      if (i + 2 >= rolls.length){ out.push(null); i += 2; continue; }
+      total += 10 + rolls[i + 2];
+      out.push(total); i += 2;
+    } else if (i + 1 < rolls.length){           // open frame
+      total += rolls[i] + rolls[i + 1];
+      out.push(total); i += 2;
+    } else {
+      out.push(null); i += 1;
+    }
+  }
+  return out;
+}
+
+function currentScore(){
+  const s = frameScores().filter((v) => v !== null);
+  return s.length ? s[s.length - 1] : 0;
+}
+
+function renderScorecard(){
+  const scores = frameScores();
+  const sc = $("scorecard");
+  sc.textContent = "";
+  for (let f = 0; f < 10; f++){
+    const rs = frames[f];
+    const div = document.createElement("div");
+    div.className = "frame" + (f === frameIdx && running ? " cur" : "");
+    const fh = document.createElement("div");
+    fh.className = "fh";
+    fh.textContent = "F" + (f + 1);
+    const rolls = document.createElement("div");
+    rolls.className = "rolls";
+    const slots = f === 9 ? 3 : 2;
+    for (let k = 0; k < slots; k++){
+      const cell = document.createElement("span");
+      cell.className = "r" + (f === 9 ? " t10" : "");
+      cell.textContent = rollGlyph(f, k, rs);
+      rolls.appendChild(cell);
+    }
+    const tot = document.createElement("div");
+    tot.className = "tot";
+    tot.textContent = scores[f] != null ? scores[f] : "";
+    div.appendChild(fh); div.appendChild(rolls); div.appendChild(tot);
+    sc.appendChild(div);
+  }
+  $("frameNo").textContent = Math.min(frameIdx + 1, 10);
+  $("score").textContent = currentScore();
+  $("standing").textContent = standing.filter(Boolean).length;
+}
+
+function rollGlyph(f, k, rs){
+  if (k >= rs.length) return "";
+  const v = rs[k];
+  if (f === 9){
+    if (v === 10) return "X";
+    if (k === 1){
+      if (rs[0] !== 10 && rs[0] + v === 10) return "/";
+      return v === 0 ? "-" : String(v);
+    }
+    if (k === 2){
+      // spare pair before ball 3 only when ball 1+2 closed the rack (and ball 1 was not a strike)
+      if (rs[0] !== 10 && rs[0] + rs[1] === 10) return v === 0 ? "-" : String(v); // fresh rack
+      if (rs[0] === 10 && rs[1] !== 10 && rs[1] + v === 10) return "/";
+      return v === 0 ? "-" : String(v);
+    }
+    return v === 0 ? "-" : String(v);
+  }
+  if (v === 10) return "X";
+  if (k === 1 && rs[0] + v === 10) return "/";
+  return v === 0 ? "-" : String(v);
+}
+
+function nextRollNumber(){
+  if (frameIdx > 9) return 1;
+  return frames[frameIdx].length + 1;
+}
+
+function renderPins(){
+  const g = $("pins");
+  g.textContent = "";
+  PIN_POS.forEach((p, i) => {
+    const c = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+    c.setAttribute("cx", DECK_X + p[0] * U);
+    c.setAttribute("cy", DECK_Y + p[1] * U);
+    c.setAttribute("r", 3.4);
+    if (standing[i]){
+      c.setAttribute("fill", "var(--pin)");
+      c.setAttribute("stroke", "#b9b9ad");
+      c.setAttribute("stroke-width", "0.6");
+    } else {
+      c.setAttribute("fill", "#2b3542");
+      c.setAttribute("stroke", "#414f63");
+      c.setAttribute("stroke-width", "0.5");
+    }
+    g.appendChild(c);
+  });
+}
+
+function renderAim(){
+  const x = DECK_X + aim * U;
+  $("aim").setAttribute("d", `M ${x} 4 L ${x - 3.4} 13 L ${x + 3.4} 13 Z`);
+  $("ball").setAttribute("cx", x);
+  $("rollNo").textContent = nextRollNumber();
+}
+
+function setAim(v){
+  aim = Math.max(-LANE_HALF, Math.min(LANE_HALF, v));
+  renderAim();
+}
+
+function msg(text, cls){
+  const m = $("msg");
+  m.textContent = text;
+  m.className = "msg" + (cls ? " " + cls : "");
+}
+
+/* Knock pins down: direct ball contact, then a falling-pin cascade. */
+function resolveThrow(){
+  const hit = Math.abs(aim) > GUTTER;
+  const ix = aim; // impact x in units
+  const fallen = new Set();
+  if (hit){
+    PIN_POS.forEach((p, i) => {
+      if (standing[i]){
+        const d = Math.hypot(p[0] - ix, p[1] - 0); // ball reaches deck front
+        if (d <= BALL_R + 0.1) fallen.add(i);
+      }
+    });
+    // cascade: falling pins topple neighbours
+    for (let pass = 0; pass < 4; pass++){
+      let changed = false;
+      PIN_POS.forEach((p, i) => {
+        if (!standing[i] || fallen.has(i)) return;
+        for (const j of fallen){
+          const q = PIN_POS[j];
+          if (Math.hypot(p[0] - q[0], p[1] - q[1]) <= 1.95 && Math.random() < 0.68){
+            fallen.add(i); changed = true; break;
+          }
+        }
+      });
+      if (!changed) break;
+    }
+  }
+  return fallen;
+}
+
+function roll(){
+  if (!running || rolling) return;
+  rolling = true;
+  const x = DECK_X + aim * U;
+  const ball = $("ball");
+  ball.setAttribute("cx", x);
+  ball.style.transition = "none";
+  ball.setAttribute("cy", 14);
+  // force reflow then animate down
+  void ball.getBoundingClientRect();
+  ball.style.transition = "";
+  ball.style.transition = "cy 550ms linear";
+  ball.setAttribute("cy", BALL_Y);
+  msg("...", "");
+  later(() => {
+    ball.style.transition = "none";
+    ball.setAttribute("cy", 14);
+    const fallen = resolveThrow();
+    fallen.forEach((i) => { standing[i] = false; });
+    const knocked = fallen.size;
+    applyRoll(knocked);
+    renderPins();
+    rolling = false;
+    later(() => { renderScorecard(); renderAim(); }, 350);
+  }, 570);
+}
+
+function applyRoll(knocked){
+  const rs = frames[frameIdx];
+  const f = frameIdx;
+  let endedFrame = false;
+
+  if (f < 9){
+    if (rs.length === 0){
+      rs.push(knocked === 10 ? 10 : knocked);
+      if (rs[0] === 10){ endedFrame = true; msg("Strike!", "ok"); }
+    } else {
+      rs.push(knocked); // second ball
+      endedFrame = true;
+      if (rs[0] + rs[1] === 10) msg("Spare!", "ok");
+      else msg(knocked + " pin" + (knocked === 1 ? "" : "s") + " down.", "");
+    }
+  } else {
+    // tenth frame: track rack resets
+    rs.push(knocked);
+    const cleared = knocked === 10;
+    if (rs.length === 1){
+      msg(cleared ? "Strike!" : knocked + " pin" + (knocked === 1 ? "" : "s") + " down.", cleared ? "ok" : "");
+      if (cleared) standing = Array(10).fill(true); // strike resets the rack
+    } else if (rs.length === 2){
+      if (rs[0] === 10){
+        msg(cleared ? "Two strikes!" : knocked + " pin" + (knocked === 1 ? "" : "s") + " down.", cleared ? "ok" : "");
+        if (cleared) standing = Array(10).fill(true);
+      } else if (rs[0] + rs[1] === 10){
+        msg("Spare!", "ok");
+        standing = Array(10).fill(true);
+      } else {
+        // open after 2: no 3rd ball
+        endedFrame = true;
+        msg(knocked + " pin" + (knocked === 1 ? "" : "s") + " down.", "");
+      }
+    } else { // length 3
+      endedFrame = true;
+      msg("Frame complete.", "");
+    }
+  }
+
+  if (endedFrame){
+    frameIdx++;
+    if (frameIdx > 9){ finish(); return; }
+    standing = Array(10).fill(true);
+    msg(msgTextForNewFrame(), "");
+  }
+}
+
+function msgTextForNewFrame(){
+  return "Frame " + (frameIdx + 1) + ". Aim and roll.";
+}
+
+function finish(){
+  running = false;
+  const final = currentScore();
+  $("endTitle").textContent = final >= TARGET ? "You win" : "Game over";
+  $("endScore").textContent = final;
+  $("endText").textContent = final >= TARGET
+    ? "Final score " + final + ". You beat the target of " + TARGET + "."
+    : "Final score " + final + ". The target was " + TARGET + ". Try again.";
+  $("endOverlay").classList.remove("hidden");
+  renderScorecard();
+}
+
+function startGame(){
+  clearTimers();
+  frames = [[],[],[],[],[],[],[],[],[],[]];
+  frameIdx = 0;
+  standing = Array(10).fill(true);
+  rolling = false;
+  running = true;
+  $("startOverlay").classList.add("hidden");
+  $("endOverlay").classList.add("hidden");
+  setAim(0);
+  renderPins();
+  renderScorecard();
+  renderAim();
+  msg("Frame 1. Aim and roll.", "");
+  $("lane").focus({ preventScroll: true });
+}
+
+/* pointer aim: tap lane to place aim (and roll on second tap? no: place aim only, documented) */
+$("lane").addEventListener("click", (e) => {
+  if (!running || rolling) return;
+  const svg = $("lane");
+  const r = svg.getBoundingClientRect();
+  const px = (e.clientX - r.left) / r.width * 120; // svg units
+  setAim((px - DECK_X) / U);
+  msg("Aim set. Press Roll or space.", "");
+});
+
+$("lane").addEventListener("keydown", (e) => {
+  if (!running) return;
+  if (e.key === "ArrowLeft"){ setAim(aim - 0.5); e.preventDefault(); }
+  else if (e.key === "ArrowRight"){ setAim(aim + 0.5); e.preventDefault(); }
+  else if (e.key === " " || e.key === "Enter"){ roll(); e.preventDefault(); }
+});
+
+document.addEventListener("keydown", (e) => {
+  if (!running) return;
+  if (document.activeElement === $("lane")) return; // handled above
+  const tag = (e.target.tagName || "").toLowerCase();
+  if (tag === "button" && (e.key === " " || e.key === "Enter")) return;
+  if (e.key === "ArrowLeft"){ setAim(aim - 0.5); e.preventDefault(); }
+  else if (e.key === "ArrowRight"){ setAim(aim + 0.5); e.preventDefault(); }
+  else if (e.key === " "){ roll(); e.preventDefault(); }
+});
+
+$("rollBtn").addEventListener("click", roll);
+$("startBtn").addEventListener("click", startGame);
+$("restartBtn").addEventListener("click", startGame);
+$("restartBtn2").addEventListener("click", startGame);
+
+renderPins();
+renderScorecard();
+renderAim();
+</script>
+</body>
+</html>

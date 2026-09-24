@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mastermind</title>
+<!--
+  Ingested from: https://github.com/timjb/meisterhirn
+  License: MIT (see LICENSE in this folder)
+  Commit: 5e001308868f9ec4771e91ad8ff8e9ae6a1c6675
+  Files taken: lib/meisterhirn.js (vendored as engine.js; peg glow and shade
+  gradients in icons.bubble replaced with flat fill + solid darker ring),
+  plus LICENSE. assets/app.js wrapper, wood texture, Lobster font, GitHub
+  ribbon and appcache manifest dropped.
+  New wrapper: start screen with documented controls, keyboard play (arrow
+  cursor, keys 1-6, Enter to submit, Esc to close the color popup), running
+  round score, give-up and new-round buttons, flat palette and responsive
+  board sizing.
+-->
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<section id="startScreen">
+  <h1>Mastermind</h1>
+  <p>Break the hidden code. Each round the computer picks a secret row of 4 colors from 6. Colors can repeat. You have 8 guesses.</p>
+  <div class="panel">
+    <strong>How to read the feedback pegs</strong>
+    <ul class="controls-doc">
+      <li><strong>Gold peg:</strong> right color, right spot.</li>
+      <li><strong>White peg:</strong> right color, wrong spot.</li>
+      <li>Pegs do not say <em>which</em> color matched, and duplicates count.</li>
+    </ul>
+  </div>
+  <div class="panel">
+    <strong>Controls</strong>
+    <ul class="controls-doc">
+      <li><strong>Mouse / touch:</strong> click a hole in the current row, pick a color in the popup, fill all 4 holes, then click the check mark at the left of the row.</li>
+      <li><strong>Keyboard:</strong> <strong>Left</strong> / <strong>Right</strong> move the cursor, keys <strong>1</strong> to <strong>6</strong> place a color, <strong>Enter</strong> submits a full row, <strong>Esc</strong> closes the color popup.</li>
+      <li><strong>New round</strong> starts a fresh code, <strong>Give up</strong> reveals the code. The score carries across rounds.</li>
+    </ul>
+  </div>
+  <button type="button" id="playBtn" class="play-btn">Play</button>
+</section>
+
+<section id="gameScreen" class="hidden">
+  <header class="topbar">
+    <button type="button" id="menuBtn">Menu</button>
+    <div class="hud">
+      <span class="chip" id="hudScore">Won 0 : Lost 0</span>
+      <span class="chip muted" id="hudRounds">Rounds 0</span>
+    </div>
+    <div class="top-actions">
+      <button type="button" id="giveUpBtn">Give up</button>
+      <button type="button" id="newRoundBtn">New round</button>
+    </div>
+  </header>
+  <div class="status" id="status" aria-live="polite">Guess 1 of 8</div>
+  <div id="gameHost"></div>
+  <p class="hint">Gold peg: right color, right spot. White peg: right color, wrong spot.</p>
+</section>
+
+<script src="engine.js"></script>
+<script src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,5 @@
+[
+ {"title": "Hunt The Wumpus", "cat": "riddle", "icon": "", "desc": "Hunt the Wumpus across a twenty-room cave of tunnels, dodging pits and super bats with five arrows to spend.", "url": "Games/HuntTheWumpus/index.html", "featured": false, "tags": ["riddle"]},
+ {"title": "Backgammon", "cat": "strategy", "icon": "", "desc": "Real backgammon against a simple computer player with automatic dice, legal move validation, bar re-entry, bearing off and win detection.", "url": "Games/Backgammon/index.html", "featured": false, "tags": ["strategy"]},
+ {"title": "Higher Or Lower", "cat": "classic", "icon": "", "desc": "Guess higher or lower on a real fifty-two card deck with no jokers, build a streak of eight and score ten times your streak per correct call.", "url": "Games/HigherOrLower/index.html", "featured": false, "tags": ["classic"]}
+]

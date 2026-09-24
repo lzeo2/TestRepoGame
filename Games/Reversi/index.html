@@ -1,0 +1,843 @@
+<!DOCTYPE html>
+<!--
+  Reversi - ingested from https://github.com/alex-berson/reversi
+  License: MIT, Copyright (c) 2022-2024 Alexander Berson
+  Commit: c9c1cdc87e03d131463737bbc6e401a9df65f4ac
+
+  Kept from the original: the complete rules engine (flanking flips in eight
+  directions, legal-move generation), legal-move highlighting (hint rings),
+  the pass rules (a side with no legal move yields to the other, the game
+  ends only when neither side can move), the MCTS computer player with a
+  1.5s budget, the flip animation and the four-disc starting setup.
+
+  Modifications:
+  - merged ai.js + ui.js + reversi.js into this one file, no service worker,
+    manifest, icon fonts or web fonts; system font stack only
+  - added start screen with documented controls, live disc counts, pass
+    notices, an end-result overlay with Play again, and a restart button
+  - added keyboard input (arrow keys move the cursor, Enter places a disc)
+  - setBoardSize made idempotent and resize-safe; board capped at 480px with
+    44px cells at a 360px viewport; outline borders keep cells exact
+  - removed the body-wide touchstart zoom blocker and the staggered count
+    animation; rematch keeps you on black instead of swapping sides
+  - flat colors throughout, no external resources
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Reversi</title>
+<link rel="icon" href="data:,">
+<style>
+  :root {
+    --bg: #14161a;
+    --surface: #20242c;
+    --line: #3a414d;
+    --text: #e6e8eb;
+    --muted: #9aa1ab;
+    --gold: #ffcf4d;
+    --gold-hi: #ffe08a;
+    --blue: #4db6ff;
+    --green: #2f7a55;
+    --board-size: 85vmin;
+    --disk-size: calc(var(--board-size) / 8 / 1.15);
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    min-height: 100dvh;
+    overflow-x: hidden;
+  }
+  body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 10px;
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+
+  h1 { margin: 0; font-size: 1.6rem; color: var(--gold); }
+
+  #hud {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+    justify-content: center;
+    font-size: 1rem;
+    min-height: 48px;
+  }
+  #hud[hidden] { display: none; }
+  #hud b { color: var(--gold); font-variant-numeric: tabular-nums; }
+  #status { color: var(--muted); min-width: 10em; text-align: center; }
+
+  .btn {
+    min-height: 46px;
+    min-width: 96px;
+    padding: 8px 16px;
+    font-size: 1rem;
+    border: 2px solid var(--line);
+    border-radius: 8px;
+    background: var(--surface);
+    color: var(--text);
+    cursor: pointer;
+  }
+  .btn:hover { border-color: var(--blue); }
+  .btn:focus-visible { outline: 3px solid var(--blue); outline-offset: 2px; }
+  .btn.primary { background: var(--gold); border-color: var(--gold); color: #14161a; font-weight: 700; }
+  .btn.primary:hover { background: var(--gold-hi); }
+
+  .board {
+    display: grid;
+    grid-template-columns: repeat(8, calc(var(--board-size) / 8));
+    width: var(--board-size);
+    height: var(--board-size);
+    background: var(--green);
+    outline: 3px solid var(--line);
+    border-radius: 6px;
+    padding: 0;
+    gap: 0;
+    margin: 0;
+  }
+  .square {
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+    background: var(--green);
+    box-shadow: inset 0 0 0 1px rgba(20, 22, 26, 0.35);
+  }
+  .square.kb-cursor { outline: 3px dashed var(--blue); outline-offset: -3px; z-index: 4; }
+  .disk {
+    display: grid;
+    place-items: center;
+    font-weight: 700;
+    background: var(--green);
+    height: var(--disk-size);
+    width: var(--disk-size);
+    border-radius: 50%;
+    opacity: 0;
+    color: var(--text);
+    font-size: calc(var(--disk-size) / 2.6);
+    pointer-events: none;
+  }
+  .black { color: var(--gold); background: #10131a; transition: opacity 0.5s linear; }
+  .white { color: #10131a; background: #f2f4f7; transition: opacity 0.5s linear; }
+  .visible { opacity: 1; }
+  .hint-b, .hint-w {
+    box-sizing: border-box;
+    border: calc(var(--disk-size) / 2.6) solid var(--green);
+    opacity: 1;
+    transition: opacity 0.4s linear;
+  }
+  .hint-b { background: var(--gold); }
+  .hint-w { background: var(--blue); }
+
+  @keyframes inversion {
+    33% { filter: invert(0); }
+    100% { filter: invert(100%); }
+  }
+  .inversion { animation: inversion 0.7s 1 linear forwards; }
+
+  .overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 20;
+    background: rgba(20, 22, 26, 0.94);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    padding: 20px;
+    text-align: center;
+  }
+  .overlay[hidden] { display: none; }
+  .overlay h1 { font-size: 1.9rem; }
+  .overlay h2 { margin: 0; font-size: 1.5rem; color: var(--gold); }
+  .overlay p { margin: 0; max-width: 380px; color: var(--muted); line-height: 1.5; }
+  .overlay .keys { color: var(--text); }
+  #result-stats { color: var(--text); font-size: 1.1rem; }
+
+  footer { color: var(--muted); font-size: 0.8rem; }
+
+  @media (orientation: landscape) and (max-height: 480px) {
+    h1 { display: none; }
+    footer { display: none; }
+  }
+</style>
+</head>
+<body>
+  <h1>Reversi</h1>
+
+  <div id="hud" hidden>
+    <span>Your discs: <b id="countYou">2</b></span>
+    <span>Computer: <b id="countThem">2</b></span>
+    <span id="status"></span>
+    <button id="restartBtn" class="btn" type="button">Restart</button>
+  </div>
+
+  <div class="board" aria-label="Reversi board">
+            <div class="square"><div class="disk"></div></div><div class="square"><div class="disk"></div></div><div class="square"><div class="disk"></div></div><div class="square"><div class="disk"></div></div><div class="square"><div class="disk"></div></div><div class="square"><div class="disk"></div></div><div class="square"><div class="disk"></div></div><div class="square"><div class="disk"></div></div>
+            <div class="square"><div class="disk"></div></div><div class="square"><div class="disk"></div></div><div class="square"><div class="disk"></div></div><div class="square"><div class="disk"></div></div><div class="square"><div class="disk"></div></div><div class="square"><div class="disk"></div></div><div class="square"><div class="disk"></div></div><div class="square"><div class="disk"></div></div>
+            <div class="square"><div class="disk"></div></div><div class="square"><div class="disk"></div></div><div class="square"><div class="disk"></div></div><div class="square"><div class="disk"></div></div><div class="square"><div class="disk"></div></div><div class="square"><div class="disk"></div></div><div class="square"><div class="disk"></div></div><div class="square"><div class="disk"></div></div>
+            <div class="square"><div class="disk"></div></div><div class="square"><div class="disk"></div></div><div class="square"><div class="disk"></div></div><div class="square"><div class="disk"></div></div><div class="square"><div class="disk"></div></div><div class="square"><div class="disk"></div></div><div class="square"><div class="disk"></div></div><div class="square"><div class="disk"></div></div>
+            <div class="square"><div class="disk"></div></div><div class="square"><div class="disk"></div></div><div class="square"><div class="disk"></div></div><div class="square"><div class="disk"></div></div><div class="square"><div class="disk"></div></div><div class="square"><div class="disk"></div></div><div class="square"><div class="disk"></div></div><div class="square"><div class="disk"></div></div>
+            <div class="square"><div class="disk"></div></div><div class="square"><div class="disk"></div></div><div class="square"><div class="disk"></div></div><div class="square"><div class="disk"></div></div><div class="square"><div class="disk"></div></div><div class="square"><div class="disk"></div></div><div class="square"><div class="disk"></div></div><div class="square"><div class="disk"></div></div>
+            <div class="square"><div class="disk"></div></div><div class="square"><div class="disk"></div></div><div class="square"><div class="disk"></div></div><div class="square"><div class="disk"></div></div><div class="square"><div class="disk"></div></div><div class="square"><div class="disk"></div></div><div class="square"><div class="disk"></div></div><div class="square"><div class="disk"></div></div>
+            <div class="square"><div class="disk"></div></div><div class="square"><div class="disk"></div></div><div class="square"><div class="disk"></div></div><div class="square"><div class="disk"></div></div><div class="square"><div class="disk"></div></div><div class="square"><div class="disk"></div></div><div class="square"><div class="disk"></div></div><div class="square"><div class="disk"></div></div>
+  </div>
+
+  <footer>Rules and AI based on Reversi by Alexander Berson (MIT license).</footer>
+
+  <div id="startOverlay" class="overlay">
+    <h1>Reversi</h1>
+    <p>Trap the rival discs between two of yours to flip them. Highlighted
+       squares show your legal moves; if neither side can move, the game ends
+       and the biggest disc count wins.</p>
+    <p class="keys">Touch: tap a highlighted square to place a disc.</p>
+    <p class="keys">Keyboard: arrow keys move the cursor, Enter places a disc.</p>
+    <p>You play black and move first.</p>
+    <button id="playBtn" class="btn primary" type="button">Start</button>
+  </div>
+
+  <div id="resultOverlay" class="overlay" hidden>
+    <h2 id="resultTitle"></h2>
+    <p id="result-stats"></p>
+    <button id="againBtn" class="btn primary" type="button">Play again</button>
+  </div>
+
+<script>
+(function () {
+"use strict";
+// ===== ingested from alex-berson/reversi (MIT), commit c9c1cdc8 =====
+// ---- js/ai.js (MCTS computer player, verbatim) ----
+const createRoot = (board, color) => {
+
+    let moves = shuffle(availableMoves(board, color));
+    let reversedColor = color == black ? white : black;
+
+    let root = {
+        board: board.map(arr => arr.slice()),
+        parent: null,
+        color: reversedColor,
+        plays: Number.MIN_VALUE,
+        wins: 0,
+        children: []
+    }
+
+    for (let move of moves) {
+        createNode(root, color, move);
+    }
+
+    return root;
+}
+
+const createNode = (node, color, move) => {
+
+    let tempBoard = node.board.map(arr => arr.slice());
+
+    makeMove(tempBoard, color, move);
+
+    node.children.push({
+        board: tempBoard,
+        move: move,
+        parent: node,
+        color: color,
+        plays: Number.MIN_VALUE,
+        wins: 0,
+        children: []
+    });
+} 
+
+const selection = (tree) => {
+
+    let node = tree;
+
+    while (node.children.length) {
+
+            let maxChild;
+            let maxUCB1 = -Infinity;
+    
+            for (let child of node.children) {
+    
+                let ucb1 = child.wins / child.plays + 1.5 * Math.sqrt(Math.abs(Math.log(child.parent.plays)) / child.plays);
+    
+                if (ucb1 > maxUCB1) [maxChild, maxUCB1] = [child, ucb1];
+            } 
+
+            node = maxChild;
+    }
+
+    return node;
+}
+
+const expansion = (node) => {
+
+    let color = node.color == black ? white : black;
+    let moves = shuffle(availableMoves(node.board, color));
+
+    if (moves.length == 0) {
+
+        moves = shuffle(availableMoves(node.board, node.color));
+
+        if (moves.length == 0) return node;
+        
+        color = node.color;
+    }
+
+    for (let move of moves) {
+        createNode(node, color, move);
+    }
+
+    return node.children[0];
+}
+
+const simulation = (node) => {
+
+    let color = node.color == black ? white : black;
+    let tempBoard = node.board.map(arr => arr.slice());
+
+    do {
+
+        let move = randomMove(tempBoard, color);
+
+        if (move == null) {
+
+            color = color == black ? white : black;
+
+            move = randomMove(tempBoard, color);
+
+            if (move == null) return winner(tempBoard)[0];
+        }
+        
+        makeMove(tempBoard, color, move);
+
+        color = color == black ? white : black;
+                
+    } while (!boardFull(tempBoard));
+
+    return winner(tempBoard)[0];
+}
+
+const backprapogation = (node, color) => {
+
+    do {
+        node.plays++;
+
+        if (node.color == color) node.wins++;
+
+        node = node.parent;
+
+    } while (node != null);
+} 
+
+const mcts = (board, color, startTime, timeLimit) => {
+
+    if (availableMoves(board, color).length == 0) return null;
+
+    let tree = createRoot(board, color);
+
+    do {
+
+        let node = selection(tree);
+
+        if (node.plays != Number.MIN_VALUE) node = expansion(node);
+
+        let winner = simulation(node);
+
+        backprapogation(node, winner);
+
+    } while (Date.now() - startTime < timeLimit);
+
+    let bestMove;
+    let bestValue = -Infinity;
+
+    for (let child of tree.children) {
+
+        let value = child.wins / child.plays;
+
+        if (value > bestValue) [bestValue, bestMove] = [value, child.move];
+    }
+
+    return bestMove;
+}
+// ---- js/ui.js (view layer, modified: see header) ----
+const disks = document.querySelectorAll('.disk');
+let humanInputOn = false;
+
+const hideHints = () => disks.forEach(disk => disk.classList.remove('hint-b', 'hint-w'));
+
+const showHints = () => {
+
+    let moves = availableMoves(board, player);
+
+    moves.forEach(move => disks[move.r * size + move.c].classList.add(human == black ? 'hint-b' : 'hint-w'));
+}
+
+const squareCoords = (square) => {
+
+    let squares = document.querySelectorAll('.square');
+    let index = [...squares].indexOf(square);
+
+    return [Math.floor(index / size), index % size];
+}
+
+const setBoardSize = () => {
+    // Idempotent (the original read its own CSS var and broke on a second
+    // call), capped, and computed from the live viewport so rotation works.
+    const minSide = Math.min(window.innerWidth, window.innerHeight);
+    const boardSize = Math.min(Math.floor(minSide * 0.99 / size) * size, 480);
+    const diskSize = Math.floor(boardSize / size / 1.15);
+    document.documentElement.style.setProperty('--board-size', boardSize + 'px');
+    document.documentElement.style.setProperty('--disk-size', diskSize + 'px');
+};
+
+const startingSetup = () => {
+
+    let initialSetup = [{sq: 27, color: 'white'}, {sq: 28, color: 'black'}, 
+                        {sq: 35, color: 'black'}, {sq: 36, color: 'white'}];
+  
+    initialSetup.forEach(({sq, color}, i) => {
+        setTimeout(() => disks[sq].classList.add(color, 'visible'), i * 600);
+    });
+}
+
+const flipDisks = (flippedDisks, color) => {
+    
+    let {r, c} =  flippedDisks.shift();
+    let i = r * size + c;
+
+    disks[i].classList.add(color == black ? 'black' : 'white', 'visible');
+
+    for (let disk of flippedDisks) {
+
+        let i = disk.r * size + disk.c;
+
+        disks[i].classList.add('inversion');
+
+        disks[i].addEventListener('animationend', (e) => {
+
+            let disk = e.currentTarget;
+
+            disk.classList.toggle('black');
+            disk.classList.toggle('white');
+            disk.classList.remove('inversion');
+
+        }, {once: true}); 
+    }
+}
+
+const endGame = () => {
+    const [winnerColor, blacks, whites] = winner(board);
+    updateCounts();
+    const title = document.getElementById('resultTitle');
+    const stats = document.getElementById('result-stats');
+    if (winnerColor == 0) {
+        title.textContent = 'Draw';
+        stats.textContent = blacks + ' discs to ' + whites + '.';
+    } else if (winnerColor == black) {
+        title.textContent = 'You win';
+        stats.textContent = blacks + ' discs to ' + whites + '.';
+    } else {
+        title.textContent = 'Computer wins';
+        stats.textContent = whites + ' discs to ' + blacks + '.';
+    }
+    document.getElementById('resultOverlay').hidden = false;
+};
+
+const clearBoard = () => {
+
+    let disks = document.querySelectorAll('.black, .white');
+
+    document.querySelector('.board').removeEventListener('touchstart', newGame);
+    document.querySelector('.board').removeEventListener('mousedown', newGame);
+
+    for (let disk of disks) {
+
+        disk.classList.remove('visible');
+
+        disk.addEventListener('transitionend', () => {
+
+            disk.classList.remove('black', 'white');
+            disk.innerText = '';
+
+        }, {once: true});
+    }
+}
+
+const enableTouch = () => {
+    humanInputOn = true;
+
+    let squares = document.querySelectorAll('.square');
+
+    for (let square of squares) {
+
+        square.addEventListener('touchstart', humanTurn);
+        square.addEventListener('mousedown', humanTurn);
+    }
+}
+
+const disableTouch = () => {
+    humanInputOn = false;
+
+    let squares = document.querySelectorAll('.square');
+
+    for (let square of squares) {
+
+        square.removeEventListener('touchstart', humanTurn);
+        square.removeEventListener('mousedown', humanTurn);
+    }
+}
+
+
+const setStatus = (text) => {
+    const statusEl = document.getElementById('status');
+    if (statusEl) statusEl.textContent = text;
+};
+
+const updateCounts = () => {
+    let blacks = 0, whites = 0;
+    for (let r = 0; r < size; r++) {
+        for (let c = 0; c < size; c++) {
+            if (board[r][c] == black) blacks++;
+            else if (board[r][c] == white) whites++;
+        }
+    }
+    const you = document.getElementById('countYou');
+    const them = document.getElementById('countThem');
+    if (you) you.textContent = String(blacks);   // the human plays black
+    if (them) them.textContent = String(whites);
+};
+
+// ---- js/reversi.js (rules + turns, modified: see header) ----
+let board;
+let size = 8;
+let empty = 0;
+let black = 1;
+let white = 2;
+let human = black;
+let player = human;
+
+const togglePlayer = () => player = player == black ? white : black;
+
+const validCoords = (r, c) => r >= 0 && r < size && c >= 0 && c < size;
+
+const shuffle = (array) => {
+
+    for (let i = array.length - 1; i > 0; i--) {
+
+        let j = Math.trunc(Math.random() * (i + 1));
+
+        [array[i], array[j]] = [array[j], array[i]];
+    }
+
+    return array;
+}
+
+const initBoard = () => {
+
+    board = [[0,0,0,0,0,0,0,0],
+             [0,0,0,0,0,0,0,0],
+             [0,0,0,0,0,0,0,0],
+             [0,0,0,2,1,0,0,0],
+             [0,0,0,1,2,0,0,0],
+             [0,0,0,0,0,0,0,0],
+             [0,0,0,0,0,0,0,0],
+             [0,0,0,0,0,0,0,0]];
+}
+
+const validMove = (board, color, r, c) => {
+
+    let opponent = color == black ? white : black;
+    let dirs = [[-1,0],[-1,1],[0,1],[1,1],[1,0],[1,-1],[0,-1],[-1,-1]];
+
+    if (board[r][c] != empty) return false;
+
+    for (let dir of dirs) {
+
+        if (validCoords(r + dir[0], c + dir[1]) && board[r + dir[0]][c + dir[1]] == opponent) {
+
+            for (let i = 2; i < size; i++) {
+                if (validCoords(r + dir[0] * i, c + dir[1] * i) && board[r + dir[0] * i][c + dir[1] * i] == empty) break;
+                if (validCoords(r + dir[0] * i, c + dir[1] * i) && board[r + dir[0] * i][c + dir[1] * i] == color) return true;
+            }
+        }
+    }
+
+    return false;
+}
+
+const randomMove = (board, color) => {
+
+    let rows = shuffle([0,1,2,3,4,5,6,7]);
+    let cols = shuffle([0,1,2,3,4,5,6,7]);
+
+    for (let r of rows) {
+        for (let c of cols) {
+            if (validMove(board, color, r, c)) return {r, c};
+        }
+    }
+
+    return null;
+}
+
+const availableMoves = (board, color) => {
+
+    let moves = [];
+
+    for (let r = 0 ; r < size; r++) {
+        for(let c = 0; c < size; c++) {
+            if (validMove(board, color, r, c)) moves.push({r, c});
+        }
+    }
+
+    return moves;
+}
+
+const makeMove = (board, color, move) => {
+
+    let {r, c} = move;
+    let flippedDisks = [move];
+    let opponent = color == black ? white : black;
+    let dirs = [[-1,0],[-1,1],[0,1],[1,1],[1,0],[1,-1],[0,-1],[-1,-1]];
+
+    for (let dir of dirs) {
+
+        let tempFlipped = [];
+
+        if (validCoords(r + dir[0], c + dir[1]) && board[r + dir[0]][c + dir[1]] == opponent) {
+
+            tempFlipped.push({r:r + dir[0], c:c + dir[1]});
+
+            for (let i = 2; i < size; i++) {
+                if (validCoords(r + dir[0] * i, c + dir[1] * i) && board[r + dir[0] * i][c + dir[1] * i] == empty) break;
+                if (validCoords(r + dir[0] * i, c + dir[1] * i) && board[r + dir[0] * i][c + dir[1] * i] == opponent) {
+                    tempFlipped.push({r:r + dir[0] * i, c:c + dir[1] * i});
+                }
+                if (validCoords(r + dir[0] * i, c + dir[1] * i) && board[r + dir[0] * i][c + dir[1] * i] == color) {
+                    flippedDisks = flippedDisks.concat(tempFlipped);
+                    break;
+                }
+            }
+        }
+    }
+
+    flippedDisks.forEach(disk => board[disk.r][disk.c] = color);
+
+    return flippedDisks;
+}
+
+const boardFull = (board) => {
+
+    for (let r = 0 ; r < size; r++) {
+        for (let c = 0; c < size; c++) {
+            if (board[r][c] == empty) return false;
+        }
+    }
+
+    return true;
+} 
+
+const gameOver = (board) => {
+
+    let opponent = player == black ? white : black;
+    
+    return boardFull(board) || (availableMoves(board, player).length == 0 &&
+           availableMoves(board, opponent).length == 0);
+}
+
+const aiTurn = ({initial = false} = {}) => {
+
+    let timeLimit = 1500;
+    let startTime = Date.now();
+    let moves = [{r:2,c:3},{r:3,c:2},{r:4,c:5},{r:5,c:4}];
+    let move = initial ? moves[Math.trunc(Math.random() * 4)] :
+                         mcts(board, player, startTime, timeLimit);
+
+    if (move == null) {
+
+        togglePlayer();
+
+        if (availableMoves(board, player).length == 0) {
+            setTimeout(endGame, 1000);
+            return;
+        }
+
+        setStatus('Computer passes. Your move.');
+        showHints();
+        setTimeout(enableTouch, 200);
+
+        return;
+    }
+
+    let disks = makeMove(board, player, move);
+    updateCounts();
+
+    setTimeout(flipDisks, 20, disks, player);
+
+    togglePlayer();
+
+    if (availableMoves(board, player).length == 0) {
+
+        togglePlayer();
+        setStatus('You have no legal move. Computer plays again.');
+
+        requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+                setTimeout(aiTurn, 50);
+            });
+        }); 
+
+        return;
+    }
+
+    setStatus('Your move.');
+    setTimeout(() => {
+        showHints();
+        setTimeout(enableTouch, 200);
+    }, 1100);
+}
+
+const humanTurn = (e) => {
+
+    let square = e.currentTarget;
+    let [r, c] = squareCoords(square);
+    let move = {r, c};
+
+    if (!validMove(board, player, r, c)) return;
+
+    let disks = makeMove(board, player, move);
+    updateCounts();
+    setStatus('Computer thinking...');
+
+    disableTouch();
+    hideHints();
+    flipDisks(disks, player);
+    togglePlayer();
+
+    if (gameOver(board)) {
+        setTimeout(endGame, 1000);
+        return;
+    }
+    
+    requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+            aiTurn();
+        });
+    });  
+}
+
+const winner = (board) => {
+
+    let whites = 0;
+    let blacks = 0;
+
+    for (let r = 0 ; r < size; r++) {
+        for (let c = 0; c < size; c++) {
+            if (board[r][c] == white) whites++;
+            if (board[r][c] == black) blacks++;
+        }
+    }
+
+    let diff = blacks - whites;
+
+    return [diff > 0 ? black : diff < 0 ? white : 0, blacks, whites];
+}
+
+const newGame = () => {
+
+    player = black;
+
+    clearBoard();
+    initBoard();
+    updateCounts();
+    setStatus('Your move.');
+    setTimeout(startingSetup, 1500);
+
+    if (human == black) {
+        setTimeout(() => {
+            showHints();
+            setTimeout(enableTouch, 200);
+        }, 1500 + 600 * 4);
+        return;
+    }   
+
+    setTimeout(() => {
+        requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+                aiTurn({initial: true});
+            });
+        });
+    }, 1500 + 600 * 4 + 500);
+}
+
+const init = () => {
+    setBoardSize();
+    initBoard();
+    updateCounts();
+    setStatus('Your move.');
+    setTimeout(startingSetup, 1000)
+    setTimeout(showHints, 1000 + 4 * 600);
+    setTimeout(enableTouch, 1000 + 4 * 600 + 200);
+}
+// ===== build glue: start/result wiring, restart, keyboard cursor =====
+window.addEventListener('load', function () { setBoardSize(); });
+window.addEventListener('resize', function () { setBoardSize(); });
+
+document.getElementById('playBtn').addEventListener('click', function () {
+    document.getElementById('startOverlay').hidden = true;
+    document.getElementById('hud').hidden = false;
+    this.blur();
+    init();
+});
+document.getElementById('againBtn').addEventListener('click', function () {
+    document.getElementById('resultOverlay').hidden = true;
+    newGame();
+});
+document.getElementById('restartBtn').addEventListener('click', function () {
+    window.location.reload();
+});
+
+var kb = { r: 2, c: 3, on: false };
+var kbSquares = document.querySelectorAll('.square');
+function kbMark() {
+    kbSquares.forEach(function (sq) { sq.classList.remove('kb-cursor'); });
+    if (kb.on) { kbSquares[kb.r * size + kb.c].classList.add('kb-cursor'); }
+}
+window.addEventListener('keydown', function (e) {
+    if (!document.getElementById('startOverlay').hidden) { return; }
+    if (!document.getElementById('resultOverlay').hidden) { return; }
+    var delta = { ArrowLeft: [0, -1], ArrowRight: [0, 1], ArrowUp: [-1, 0], ArrowDown: [1, 0] }[e.key];
+    if (delta) {
+        e.preventDefault();
+        kb.on = true;
+        kb.r = Math.min(size - 1, Math.max(0, kb.r + delta[0]));
+        kb.c = Math.min(size - 1, Math.max(0, kb.c + delta[1]));
+        kbMark();
+        return;
+    }
+    if (e.key === 'Enter' || e.key === ' ') {
+        if (document.activeElement && document.activeElement.tagName === 'BUTTON') { return; }
+        e.preventDefault();
+        kb.on = true;
+        if (!humanInputOn) { return; }
+        humanTurn({ currentTarget: kbSquares[kb.r * size + kb.c] });
+        kbMark();
+    }
+});
+document.addEventListener('mousemove', function () {
+    if (kb.on) { kb.on = false; kbMark(); }
+});
+
+})();
+</script>
+</body>
+</html>

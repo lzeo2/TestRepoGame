@@ -1,0 +1,7 @@
+[
+ {"title": "Go Fish", "cat": "classic", "icon": "", "desc": "Fish for ranks against the computer, collect books of four, and win the most books.", "url": "Games/GoFish/index.html", "featured": false, "tags": ["classic"]},
+ {"title": "War", "cat": "classic", "icon": "", "desc": "Flip cards against the computer in the classic war card game with all-out war ties.", "url": "Games/War/index.html", "featured": false, "tags": ["classic"]},
+ {"title": "Word Search", "cat": "word", "icon": "", "desc": "Find hidden words in three themed letter grids with mouse drag or arrow-key selection.", "url": "Games/WordSearch/index.html", "featured": false, "tags": ["word"]},
+ {"title": "Boggle", "cat": "word", "icon": "", "desc": "Chain touching letters into dictionary words before the three-minute clock runs out.", "url": "Games/Boggle/index.html", "featured": false, "tags": ["word"]},
+ {"title": "Word Ladder", "cat": "word", "icon": "", "desc": "Transform the start word into the target one letter at a time using the built-in word list.", "url": "Games/WordLadder/index.html", "featured": false, "tags": ["word"]}
+]

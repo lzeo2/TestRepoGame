@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Yahtzee</title>
+<!--
+  Ingested from: https://github.com/taylorhansen/Yahtzee
+  License: MIT (see LICENSE in this folder)
+  Commit: 26dec5d9750a536f1c4e9515bf7c69b6bd15683c
+  Modifications: start screen with documented controls added; keyboard play
+  (Space roll, 1-5 hold, Tab/Enter on scorecard rows); invalid categories
+  now score zero instead of doing nothing; upper bonus awarded without the
+  score-after-reset bug; 13-round counter, rolls-left counter and 200-point
+  win target added with game-over overlay and restart; dice shown as blank
+  until the first roll; flat responsive restyle; all-caps and dead helper
+  code removed.
+-->
+<meta name="referrer" content="no-referrer">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div id="start-screen" class="overlay">
+  <div class="panel">
+    <h1>Yahtzee</h1>
+    <p>Thirteen rounds, five dice, one scorecard. Roll up to three times per
+       round, hold the dice you want to keep, then bank a score in any open
+       row. Six or more ones in the upper section earn a 35 point bonus.
+       Reach 200 points to win the session.</p>
+    <p><strong>Controls:</strong> tap a die to hold or release it, tap Roll,
+       then tap a scorecard row to score it. Keyboard: Space rolls,
+       1 to 5 toggles a held die, Tab moves through the scorecard and
+       Enter scores the highlighted row.</p>
+    <button id="playBtn">Start game</button>
+  </div>
+</div>
+
+<header class="hud">
+  <div class="hud-item">Score <span id="totalScore">0</span></div>
+  <div class="hud-item">Target 200</div>
+  <div class="hud-item">Rounds left <span id="rounds-left">13</span></div>
+  <div class="hud-item">Rolls left <span id="rolls-left">3</span></div>
+</header>
+
+<section class="dice-area">
+  <div class="dice-row">
+    <label class="die" for="hold0"><span class="dice" id="0"></span><input type="checkbox" id="hold0" aria-label="Hold die 1"></label>
+    <label class="die" for="hold1"><span class="dice" id="1"></span><input type="checkbox" id="hold1" aria-label="Hold die 2"></label>
+    <label class="die" for="hold2"><span class="dice" id="2"></span><input type="checkbox" id="hold2" aria-label="Hold die 3"></label>
+    <label class="die" for="hold3"><span class="dice" id="3"></span><input type="checkbox" id="hold3" aria-label="Hold die 4"></label>
+    <label class="die" for="hold4"><span class="dice" id="4"></span><input type="checkbox" id="hold4" aria-label="Hold die 5"></label>
+  </div>
+  <button id="roll">Roll</button>
+</section>
+
+<table id="yahtzeeTable">
+  <tr>
+    <th>Category</th>
+    <th>Score</th>
+  </tr>
+  <tr>
+    <td id="ones" class="cell">Ones</td>
+    <td id="onesScore">-</td>
+  </tr>
+  <tr>
+    <td id="twos" class="cell">Twos</td>
+    <td id="twosScore">-</td>
+  </tr>
+  <tr>
+    <td id="threes" class="cell">Threes</td>
+    <td id="threesScore">-</td>
+  </tr>
+  <tr>
+    <td id="fours" class="cell">Fours</td>
+    <td id="foursScore">-</td>
+  </tr>
+  <tr>
+    <td id="fives" class="cell">Fives</td>
+    <td id="fivesScore">-</td>
+  </tr>
+  <tr>
+    <td id="sixes" class="cell">Sixes</td>
+    <td id="sixesScore">-</td>
+  </tr>
+  <tr class="bonus-row">
+    <td id="upperSecBonus">Upper section bonus (63+)</td>
+    <td id="upperSecBonusScore">-</td>
+  </tr>
+  <tr>
+    <td id="threeOfAKind" class="cell">Three of a Kind</td>
+    <td id="threeOfAKindScore">-</td>
+  </tr>
+  <tr>
+    <td id="fourOfAKind" class="cell">Four of a Kind</td>
+    <td id="fourOfAKindScore">-</td>
+  </tr>
+  <tr>
+    <td id="fullHouse" class="cell">Full House</td>
+    <td id="fullHouseScore">-</td>
+  </tr>
+  <tr>
+    <td id="smallStraight" class="cell">Small Straight</td>
+    <td id="smallStraightScore">-</td>
+  </tr>
+  <tr>
+    <td id="largeStraight" class="cell">Large Straight</td>
+    <td id="largeStraightScore">-</td>
+  </tr>
+  <tr>
+    <td id="chance" class="cell">Chance</td>
+    <td id="chanceScore">-</td>
+  </tr>
+  <tr>
+    <td id="yahtzee" class="cell">Yahtzee</td>
+    <td id="yahtzeeScore">-</td>
+  </tr>
+</table>
+
+<div id="end-screen" class="overlay hidden">
+  <div class="panel">
+    <h2 id="end-title">Game over</h2>
+    <p id="end-detail"></p>
+    <button id="restart-btn">Play again</button>
+  </div>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>

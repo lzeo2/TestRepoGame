@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<!--
+  15 Puzzle - ingested from https://github.com/arnisritins/15-Puzzle
+  License: MIT, Copyright (c) 2015 Arnis Ritins
+  Commit: 47c82f10865b698fbecc55006a23703cdde83249
+
+  Kept from the original: 4x4 grid of absolutely positioned cells keyed by
+  cell-r-c ids, a slide swaps the style/id of a tile with the empty cell,
+  shuffle is a random walk of legal moves (so every deal is solvable), and
+  the solved state is a linear scan of cell order.
+
+  Modifications:
+  - replaced the confirm() win dialog with an in-page result overlay
+  - added a start screen with documented controls, move counter, clock and
+    a best-score (localStorage, crash guarded)
+  - added keyboard input: arrow keys / WASD slide tiles into the gap
+  - fixed the original cell.clasName typo; input locks while shuffling
+  - responsive percent-based cell positions (no overflow at 360px)
+  - flat colors, 44px+ touch targets, restart path, no external resources
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>15 Puzzle</title>
+<link rel="icon" href="data:,">
+<style>
+  :root {
+    --bg: #14161a;
+    --surface: #20242c;
+    --line: #3a414d;
+    --text: #e6e8eb;
+    --muted: #9aa1ab;
+    --gold: #ffcf4d;
+    --gold-hi: #ffe08a;
+    --blue: #4db6ff;
+    --ok: #46a758;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    min-height: 100dvh;
+    overflow-x: hidden;
+  }
+  body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    padding: 12px;
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  #hud {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+    justify-content: center;
+    font-size: 1rem;
+    min-height: 48px;
+  }
+  #hud[hidden] { display: none; }
+  #hud b { color: var(--gold); font-variant-numeric: tabular-nums; }
+
+  .btn {
+    min-height: 46px;
+    min-width: 120px;
+    padding: 8px 18px;
+    font-size: 1.05rem;
+    border: 2px solid var(--line);
+    border-radius: 8px;
+    background: var(--surface);
+    color: var(--text);
+    cursor: pointer;
+  }
+  .btn:hover { border-color: var(--blue); }
+  .btn:focus-visible { outline: 3px solid var(--blue); outline-offset: 2px; }
+  .btn.primary {
+    background: var(--gold);
+    border-color: var(--gold);
+    color: #14161a;
+    font-weight: 700;
+  }
+  .btn.primary:hover { background: var(--gold-hi); }
+
+  #puzzle {
+    position: relative;
+    width: min(94vw, 420px);
+    aspect-ratio: 1;
+    background: var(--surface);
+    border: 2px solid var(--line);
+    border-radius: 10px;
+    touch-action: manipulation;
+  }
+  .cell {
+    position: absolute;
+    width: calc(25% - 4px);
+    height: calc(25% - 4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    font-size: clamp(1.3rem, 7vw, 2.1rem);
+    font-weight: 700;
+    transition: left 0.12s ease, top 0.12s ease;
+    cursor: pointer;
+    background: var(--gold);
+    color: #14161a;
+  }
+  .cell:hover { background: var(--gold-hi); }
+  .cell:focus-visible { outline: 3px solid var(--blue); }
+  .cell.empty { background: transparent; cursor: default; }
+
+  .overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 20;
+    background: rgba(20, 22, 26, 0.94);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    padding: 20px;
+    text-align: center;
+  }
+  .overlay[hidden] { display: none; }
+  .overlay h1 { margin: 0; font-size: 1.9rem; color: var(--gold); }
+  .overlay h2 { margin: 0; font-size: 1.5rem; color: var(--ok); }
+  .overlay p { margin: 0; max-width: 360px; color: var(--muted); line-height: 1.5; }
+  .overlay .keys { color: var(--text); }
+  #result-stats { color: var(--text); font-size: 1.1rem; }
+</style>
+</head>
+<body>
+  <div id="hud" hidden>
+    <span>Moves: <b id="moves">0</b></span>
+    <span>Time: <b id="time">0:00</b></span>
+    <span>Best: <b id="best">&ndash;</b></span>
+    <button id="restartBtn" class="btn" type="button">Restart</button>
+  </div>
+
+  <div id="puzzle" aria-label="15 puzzle board"></div>
+
+  <div id="startOverlay" class="overlay">
+    <h1>15 Puzzle</h1>
+    <p>Slide the numbered tiles until they read 1 to 15 from the top left,
+       with the gap at the bottom right. Fewer moves wins.</p>
+    <p class="keys">Touch: tap a tile next to the gap.</p>
+    <p class="keys">Keyboard: arrow keys or WASD move the gap; tiles slide in.</p>
+    <button id="playBtn" class="btn primary" type="button">Start</button>
+  </div>
+
+  <div id="resultOverlay" class="overlay" hidden>
+    <h2>Puzzle solved</h2>
+    <p id="result-stats"></p>
+    <button id="againBtn" class="btn primary" type="button">Play again</button>
+  </div>
+
+<script>
+(function () {
+  "use strict";
+
+  var puzzle = document.getElementById("puzzle");
+  var hud = document.getElementById("hud");
+  var startOverlay = document.getElementById("startOverlay");
+  var resultOverlay = document.getElementById("resultOverlay");
+  var movesEl = document.getElementById("moves");
+  var timeEl = document.getElementById("time");
+  var bestEl = document.getElementById("best");
+
+  var playing = false;   // input unlocked (a round is live)
+  var moves = 0;
+  var seconds = 0;
+  var timerId = null;
+  var checkId = null;
+
+  // --- best score, guarded against corrupt/disabled localStorage ---
+  function readBest() {
+    try {
+      var v = window.localStorage.getItem("p15-best");
+      var n = parseInt(v, 10);
+      return isFinite(n) && n > 0 ? n : 0;
+    } catch (e) { return 0; }
+  }
+  function writeBest(n) {
+    try { window.localStorage.setItem("p15-best", String(n)); }
+    catch (e) { /* private mode, board still playable */ }
+  }
+  function renderBest() {
+    var b = readBest();
+    bestEl.textContent = b ? b + " moves" : "\u2013";
+  }
+
+  // --- board build (kept from the original solve()) ---
+  function buildGrid() {
+    puzzle.textContent = "";
+    var n = 1;
+    for (var i = 0; i <= 3; i++) {
+      for (var j = 0; j <= 3; j++) {
+        var cell = document.createElement("div");
+        cell.id = "cell-" + i + "-" + j;
+        cell.style.left = "calc(" + (j * 25) + "% + 2px)";
+        cell.style.top = "calc(" + (i * 25) + "% + 2px)";
+        cell.classList.add("cell");
+        if (n <= 15) {
+          cell.textContent = String(n);
+          n++;
+        } else {
+          cell.classList.add("empty");
+        }
+        puzzle.appendChild(cell);
+      }
+    }
+  }
+
+  function getCell(row, col) {
+    return document.getElementById("cell-" + row + "-" + col);
+  }
+  function getEmptyCell() {
+    return puzzle.querySelector(".empty");
+  }
+
+  // --- adjacency helpers, kept from the original ---
+  function getAdjacentCells(cell) {
+    var id = cell.id.split("-");
+    var row = parseInt(id[1], 10);
+    var col = parseInt(id[2], 10);
+    var adjacent = [];
+    if (row < 3) { adjacent.push(getCell(row + 1, col)); }
+    if (row > 0) { adjacent.push(getCell(row - 1, col)); }
+    if (col < 3) { adjacent.push(getCell(row, col + 1)); }
+    if (col > 0) { adjacent.push(getCell(row, col - 1)); }
+    return adjacent;
+  }
+  function getEmptyAdjacentCell(cell) {
+    var adjacent = getAdjacentCells(cell);
+    for (var i = 0; i < adjacent.length; i++) {
+      if (adjacent[i].classList.contains("empty")) { return adjacent[i]; }
+    }
+    return null;
+  }
+
+  // --- slide: style/id swap with the empty cell (original mechanic) ---
+  function shiftCell(cell, byPlayer) {
+    if (!cell || cell.classList.contains("empty")) { return; }
+    var emptyCell = getEmptyAdjacentCell(cell);
+    if (!emptyCell) { return; }
+
+    var tmpStyle = cell.style.cssText;
+    var tmpId = cell.id;
+    cell.style.cssText = emptyCell.style.cssText;
+    cell.id = emptyCell.id;
+    emptyCell.style.cssText = tmpStyle;
+    emptyCell.id = tmpId;
+
+    if (byPlayer && playing) {
+      moves++;
+      movesEl.textContent = String(moves);
+      if (checkId) { clearTimeout(checkId); }
+      checkId = setTimeout(checkOrder, 130);
+    }
+  }
+
+  // --- solved-state scan (kept from the original) ---
+  function checkOrder() {
+    if (!playing) { return; }
+    if (getCell(3, 3) && !getCell(3, 3).classList.contains("empty")) { return; }
+    var n = 1;
+    for (var i = 0; i <= 3; i++) {
+      for (var j = 0; j <= 3; j++) {
+        if (n <= 15) {
+          var cell = getCell(i, j);
+          if (!cell || cell.textContent !== String(n)) { return; }
+        }
+        n++;
+      }
+    }
+    winRound();
+  }
+
+  // --- round lifecycle ---
+  function stopTimer() {
+    if (timerId) { clearInterval(timerId); timerId = null; }
+  }
+  function startTimer() {
+    stopTimer();
+    seconds = 0;
+    timeEl.textContent = "0:00";
+    timerId = setInterval(function () {
+      seconds++;
+      var m = Math.floor(seconds / 60);
+      var s = seconds % 60;
+      timeEl.textContent = m + ":" + (s < 10 ? "0" : "") + s;
+    }, 1000);
+  }
+
+  function winRound() {
+    playing = false;
+    stopTimer();
+    var best = readBest();
+    var record = !best || moves < best;
+    if (record) { writeBest(moves); }
+    renderBest();
+    document.getElementById("result-stats").textContent =
+      (record ? "New best: " : "") + moves + " moves in " + timeEl.textContent;
+    resultOverlay.hidden = false;
+  }
+
+  function scramble() {
+    playing = false;
+    stopTimer();
+    if (checkId) { clearTimeout(checkId); checkId = null; }
+    resultOverlay.hidden = true;
+    buildGrid();
+
+    // Random walk of legal moves from the solved deal: always solvable.
+    var previousCell = null;
+    var i = 1;
+    var interval = setInterval(function () {
+      if (i > 100) {
+        clearInterval(interval);
+        moves = 0;
+        movesEl.textContent = "0";
+        playing = true;
+        startTimer();
+        puzzle.focus && puzzle.focus();
+        return;
+      }
+      var adjacent = getAdjacentCells(getEmptyCell());
+      if (previousCell) {
+        for (var j = adjacent.length - 1; j >= 0; j--) {
+          if (adjacent[j] === previousCell) { adjacent.splice(j, 1); }
+        }
+      }
+      var pick = adjacent[Math.floor(Math.random() * adjacent.length)];
+      shiftCell(pick, false);
+      previousCell = pick;
+      i++;
+    }, 8);
+  }
+
+  function startRound() {
+    startOverlay.hidden = true;
+    hud.hidden = false;
+    renderBest();
+    scramble();
+  }
+
+  // --- input: touch / mouse ---
+  puzzle.addEventListener("click", function (e) {
+    if (!playing) { return; }
+    shiftCell(e.target, true);
+  });
+
+  // --- input: keyboard, arrows / WASD move the gap ---
+  var keyMap = {
+    ArrowLeft: [0, -1], a: [0, -1], A: [0, -1],
+    ArrowRight: [0, 1], d: [0, 1], D: [0, 1],
+    ArrowUp: [-1, 0], w: [-1, 0], W: [-1, 0],
+    ArrowDown: [1, 0], s: [1, 0], S: [1, 0]
+  };
+  window.addEventListener("keydown", function (e) {
+    var delta = keyMap[e.key];
+    if (!delta) { return; }
+    e.preventDefault();
+    if (!playing) { return; }
+    var empty = getEmptyCell();
+    if (!empty) { return; }
+    var id = empty.id.split("-");
+    var row = parseInt(id[1], 10) + delta[0];
+    var col = parseInt(id[2], 10) + delta[1];
+    if (row < 0 || row > 3 || col < 0 || col > 3) { return; }
+    shiftCell(getCell(row, col), true);
+  });
+
+  // --- buttons ---
+  document.getElementById("playBtn").addEventListener("click", startRound);
+  document.getElementById("restartBtn").addEventListener("click", scramble);
+  document.getElementById("againBtn").addEventListener("click", scramble);
+
+  buildGrid();
+  renderBest();
+})();
+</script>
+</body>
+</html>

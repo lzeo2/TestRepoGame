@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<!--
+  Source: https://github.com/taniarascia/sokoban
+  License: MIT (see LICENSE.txt)
+  Commit: 23ee71c46566506d85445130c78dfae2b6347792
+  Modifications: multiple hand-authored levels (BFS-verified solvable),
+  undo history, move/push/target counters, generic win check, corner
+  deadlock lose state, on-screen touch d-pad, keyboard controls,
+  resize-safe DPI-aware canvas, start / level-clear / stuck / complete
+  overlays, flat restyle. Core movement and rendering rules kept from
+  the original Sokoban.js / constants.js / utils.js.
+-->
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <link rel="icon" href="data:,">
+  <title>Sokoban</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="hud">
+    <h1>Sokoban</h1>
+    <div class="hud-info">
+      <span id="levelLabel">Level 1 of 5</span>
+      <span id="movesLabel">Moves 0</span>
+      <span id="pushesLabel">Pushes 0</span>
+      <span id="targetsLabel">Targets 0 / 0</span>
+    </div>
+    <div class="hud-actions">
+      <button type="button" id="undoBtn">Undo</button>
+      <button type="button" id="restartBtn">Restart</button>
+      <button type="button" id="menuBtn">Menu</button>
+    </div>
+  </header>
+
+  <main>
+    <div class="board-wrap">
+      <canvas id="board" aria-label="Sokoban board"></canvas>
+    </div>
+
+    <div class="dpad" role="group" aria-label="Move controls">
+      <button type="button" class="dpad-up" data-dir="up" aria-label="Move up">&#9650;</button>
+      <button type="button" class="dpad-left" data-dir="left" aria-label="Move left">&#9664;</button>
+      <button type="button" class="dpad-down" data-dir="down" aria-label="Move down">&#9660;</button>
+      <button type="button" class="dpad-right" data-dir="right" aria-label="Move right">&#9654;</button>
+    </div>
+  </main>
+
+  <div class="overlay" id="startScreen">
+    <div class="panel">
+      <h2>Sokoban</h2>
+      <p>Push every crate onto a floor target to clear the level.</p>
+      <p>Only push, never pull. A crate pushed into a corner is stuck, so use Undo.</p>
+      <p class="controls-doc">Controls: arrow keys or WASD to move, U to undo, R to restart. Touch: use the direction pad and Undo / Restart buttons.</p>
+      <button type="button" class="primary" id="startBtn">Start game</button>
+    </div>
+  </div>
+
+  <div class="overlay hidden" id="winScreen">
+    <div class="panel">
+      <h2>Level cleared</h2>
+      <p id="winStats">Crate set delivered.</p>
+      <button type="button" class="primary" id="nextBtn">Next level</button>
+      <button type="button" id="winMenuBtn">Menu</button>
+    </div>
+  </div>
+
+  <div class="overlay hidden" id="loseScreen">
+    <div class="panel">
+      <h2>Crate stuck</h2>
+      <p>A crate is wedged in a corner off its target. This level cannot be finished.</p>
+      <button type="button" class="primary" id="loseUndoBtn">Undo last move</button>
+      <button type="button" id="loseRestartBtn">Restart level</button>
+    </div>
+  </div>
+
+  <div class="overlay hidden" id="completeScreen">
+    <div class="panel">
+      <h2>All levels cleared</h2>
+      <p id="completeStats">Every crate is delivered.</p>
+      <button type="button" class="primary" id="againBtn">Play again</button>
+      <button type="button" id="completeMenuBtn">Menu</button>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

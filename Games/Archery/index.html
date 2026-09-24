@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Archery</title>
+<!--
+  Archery - INGESTED from github.com/bibhuticoder/archery-master
+  License: GPL-3.0 (see LICENSE in this folder), repo ships the full GPL text.
+  Commit: 107cbc9b8ff84f3ee53bfac43e26cf5d4b30a78e
+  Taken: bow/string bezier draw, arrow flight physics (gravity 0.4, drag 0.01),
+  drag-to-draw power (10..100), concentric-ellipse ring target with zone
+  scoring (1/2/3/4), moving target, stuck-arrow trail rendering, power bar,
+  mouse position / angle / ellipse hit-test utilities.
+  Modified: inlined from 7 files into one; Babel boilerplate removed;
+  wind per shot; fixed 10-arrow round with a 15-point win target; start and
+  end screens with documented controls; pointer events (touch + mouse);
+  keyboard aiming (arrows + space); console.log spam removed; score, arrows
+  and wind moved to a DOM HUD; target rings scaled up for the fixed
+  640x500 canvas. Self-contained, offline-first, no trackers.
+-->
+<style>
+  :root{
+    --bg:#1c222b; --panel:#262f3c; --panel2:#313d4e; --ink:#eef2f7; --muted:#a4b1c2;
+    --accent:#e0a33e; --accent2:#4fa3b8; --line:#414f63; --good:#5cb86a; --bad:#d9634f;
+    --field:#0e7a5a; --field2:#0b6a4e;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent}
+  html,body{margin:0; background:var(--bg); color:var(--ink);
+    font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;}
+  body{display:flex; flex-direction:column; align-items:center; padding:10px 12px 24px;}
+  h1{font-size:21px; margin:6px 0; font-weight:650; text-align:center;}
+  .hud{display:flex; gap:8px; flex-wrap:wrap; justify-content:center; margin-bottom:8px;
+    width:100%; max-width:660px;}
+  .stat{background:var(--panel); border:1px solid var(--line); border-radius:8px;
+    padding:7px 12px; font-size:14px; min-height:44px; display:flex; align-items:center; gap:6px;}
+  .stat b{font-size:17px; color:var(--accent);}
+  .stage{position:relative; width:100%; max-width:660px;}
+  canvas{display:block; width:100%; height:auto; background:var(--field);
+    border:1px solid var(--line); border-radius:8px; touch-action:none; cursor:crosshair;}
+  .overlay{position:absolute; inset:0; background:rgba(10,13,18,0.92);
+    display:flex; flex-direction:column; justify-content:center; align-items:center;
+    gap:12px; text-align:center; padding:20px; border-radius:8px; z-index:5;}
+  .overlay h2{margin:0; font-size:23px;}
+  .overlay p{margin:0; font-size:14px; color:var(--muted); line-height:1.55; max-width:440px;}
+  .overlay .verdict{font-size:18px; color:var(--accent); font-weight:700;}
+  .overlay button{min-height:48px; min-width:160px; font-size:16px; font-weight:700;
+    background:var(--accent); color:#1c222b; border:none; border-radius:8px; cursor:pointer;}
+  .overlay button:focus-visible{outline:2px solid var(--ink); outline-offset:2px;}
+  .hidden{display:none !important;}
+  .bar{display:flex; gap:8px; justify-content:center; margin-top:8px;}
+  .bar button{min-height:44px; min-width:110px; font-size:14px; font-weight:650;
+    background:var(--panel2); color:var(--ink); border:1px solid var(--line);
+    border-radius:8px; cursor:pointer;}
+  .bar button:hover{background:var(--panel);}
+  .bar button:focus-visible{outline:2px solid var(--accent); outline-offset:2px;}
+  .controls{margin-top:10px; width:100%; max-width:660px; background:var(--panel);
+    border:1px solid var(--line); border-radius:8px; padding:10px 12px;
+    font-size:13px; color:var(--muted); line-height:1.6; text-align:center;}
+  .controls b{color:var(--ink);}
+</style>
+</head>
+<body>
+<h1>Archery</h1>
+
+<div class="hud">
+  <div class="stat">Arrows <b id="arrowsLeft">10</b></div>
+  <div class="stat">Score <b id="score">0</b></div>
+  <div class="stat">Target <b>15</b></div>
+  <div class="stat">Wind <b id="wind">calm</b></div>
+</div>
+
+<div class="stage">
+  <canvas id="canvas" width="640" height="500"></canvas>
+
+  <div class="overlay" id="startOverlay">
+    <h2>Archery</h2>
+    <p>Press on the field near the bow and drag toward the target; the farther you
+       drag, the stronger the draw. Release to loose the arrow. Ten arrows, score
+       15 points to win. Watch the wind: it pushes every arrow in flight.</p>
+    <p>Ring scoring: outer ring 1, next 2, inner 3, bull 4. Mouse or touch drags.
+       Keyboard: Left and Right rotate the aim, Up and Down set draw power,
+       Space releases.</p>
+    <button id="playBtn">Start</button>
+  </div>
+
+  <div class="overlay hidden" id="endOverlay">
+    <h2>Round over</h2>
+    <p class="verdict" id="verdict"></p>
+    <p>You scored <span id="finalScore">0</span> of 40 possible with 10 arrows.</p>
+    <button id="againBtn">Play again</button>
+  </div>
+</div>
+
+<div class="bar">
+  <button id="restartBtn">Restart round</button>
+</div>
+
+<div class="controls">
+  <b>Controls:</b> press and drag from the bow toward the target, release to shoot
+  (mouse or touch). Keyboard: <b>Left</b>/<b>Right</b> aim, <b>Up</b>/<b>Down</b>
+  draw power, <b>Space</b> release, <b>R</b> restart. Rings score 1, 2, 3 and 4
+  points; wind is re-rolled every shot.
+</div>
+
+<script>
+"use strict";
+/* Ring target + arrow engine ingested from archery-master (GPL-3.0),
+   restructured into a fixed 10-arrow round with wind and win/lose states. */
+
+const canvas = document.getElementById("canvas");
+const ctx = canvas.getContext("2d");
+const W = canvas.width, H = canvas.height;
+const RING_SCALE = 1.4; // rings scaled up from the original for the fixed canvas
+const ARROWS_TOTAL = 10;
+const WIN_TARGET = 15;
+
+const scoreEl = document.getElementById("score");
+const arrowsEl = document.getElementById("arrowsLeft");
+const windEl = document.getElementById("wind");
+const startOverlay = document.getElementById("startOverlay");
+const endOverlay = document.getElementById("endOverlay");
+const verdictEl = document.getElementById("verdict");
+const finalScoreEl = document.getElementById("finalScore");
+
+class Point {
+  constructor(x, y) { this.x = x; this.y = y; }
+}
+
+class Util {
+  getMousePos(c, evt) {
+    const rect = c.getBoundingClientRect();
+    return new Point(
+      (evt.clientX - rect.left) * (W / rect.width),
+      (evt.clientY - rect.top) * (H / rect.height));
+  }
+  random(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
+  getDistance(i, f) {
+    return Math.abs(Math.sqrt(Math.pow(f.x - i.x, 2) + Math.pow(f.y - i.y, 2)));
+  }
+  // direction from p1 to p2, with the original's bottom-left ordering rule
+  getAngle(p1, p2) {
+    const d1 = this.getDistance(p1, new Point(0, H));
+    const d2 = this.getDistance(p2, new Point(0, H));
+    if (d1 > d2) { const tmp = p1; p1 = p2; p2 = tmp; }
+    return Math.atan2(p2.y - p1.y, p2.x - p1.x);
+  }
+  checkInEllipse(x, y, h, k, rx, ry) {
+    return Math.pow(x - h, 2) / (rx * rx) + Math.pow(y - k, 2) / (ry * ry) < 1;
+  }
+}
+const ut = new Util();
+
+let state = "start";           // start | play | end
+let score = 0;
+let arrowsLeft = ARROWS_TOTAL;
+let wind = 0;                  // per-shot horizontal acceleration
+let locked = false;            // true while a hit is being resolved
+let popups = [];               // floating +n / Miss texts
+const deadArrows = [];
+
+class Target {
+  constructor() {
+    this.pos = new Point(430, 250);
+    this.ellipses = [];
+    this.speed = 8;
+    this.moveDestination = null;
+    this.updateRings();
+  }
+  updateRings() {
+    const s = RING_SCALE;
+    this.ellipses = [
+      { h: this.pos.x, k: this.pos.y, rx: 14 * s, ry: 40 * s, color: "#f2f2ee" },
+      { h: this.pos.x - 4 * s, k: this.pos.y, rx: 10 * s, ry: 33 * s, color: "#4fa3b8" },
+      { h: this.pos.x - 7 * s, k: this.pos.y, rx: 7 * s, ry: 21 * s, color: "#d9432f" },
+      { h: this.pos.x - 10 * s, k: this.pos.y, rx: 4 * s, ry: 11 * s, color: "#e0a33e" }
+    ];
+  }
+  draw() {
+    this.updateRings();
+    for (const e of this.ellipses) {
+      ctx.beginPath();
+      ctx.fillStyle = e.color;
+      ctx.ellipse(e.h, e.k, e.rx, e.ry, 0, 0, 2 * Math.PI);
+      ctx.fill();
+    }
+    // target stand
+    ctx.strokeStyle = "#0b4a37";
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.moveTo(this.pos.x, this.pos.y + 40 * RING_SCALE);
+    ctx.lineTo(this.pos.x, this.pos.y + 40 * RING_SCALE + 26);
+    ctx.stroke();
+    // arrows stuck in the target from earlier shots
+    for (const a of deadArrows) this.drawArrowBits(a.backPoint, a.forePoint, a.angle, "#c9d3de");
+  }
+  drawArrowBits(back, front, angle, color) {
+    ctx.beginPath();
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = color;
+    ctx.moveTo(back.x, back.y);
+    ctx.lineTo(front.x, front.y);
+    ctx.stroke();
+    const headlen = 6;
+    ctx.beginPath();
+    ctx.fillStyle = "#9aa7b5";
+    ctx.moveTo(front.x, front.y);
+    ctx.lineTo(front.x - headlen * Math.cos(angle - Math.PI / 9),
+               front.y - headlen * Math.sin(angle - Math.PI / 9));
+    ctx.lineTo(front.x - headlen * Math.cos(angle + Math.PI / 9),
+               front.y - headlen * Math.sin(angle + Math.PI / 9));
+    ctx.closePath();
+    ctx.fill();
+    this.fletching(back, angle);
+  }
+  fletching(back, angle) {
+    const rootLen = 10, rootWid = 4;
+    ctx.save();
+    ctx.translate(back.x, back.y);
+    ctx.rotate(angle);
+    ctx.fillStyle = "#d9432f";
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.lineTo(-rootWid, -rootWid);
+    ctx.lineTo(-rootLen, -rootWid);
+    ctx.lineTo(-2 * rootLen / 3, 0);
+    ctx.lineTo(-rootLen, rootWid);
+    ctx.lineTo(-rootWid, rootWid);
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+  }
+  addArrow(a) {
+    deadArrows.push({
+      forePoint: new Point(a.forePoint.x, a.forePoint.y),
+      backPoint: new Point(a.backPoint.x, a.backPoint.y),
+      pos: new Point(a.pos.x, a.pos.y),
+      angle: a.angle
+    });
+  }
+  move() {
+    const leftBound = W / 3, rightBound = 5 * W / 6;
+    const upBound = H / 8, downBound = 7 * H / 8;
+    this.moveDestination = new Point(ut.random(leftBound, rightBound), ut.random(upBound, downBound));
+  }
+  step() {
+    if (!this.moveDestination) return;
+    const d = this.moveDestination;
+    const dx = d.x - this.pos.x, dy = d.y - this.pos.y;
+    const dist = Math.hypot(dx, dy);
+    const step = Math.min(this.speed, dist);
+    const sx = dist > 0 ? dx / dist * step : 0;
+    const sy = dist > 0 ? dy / dist * step : 0;
+    this.pos.x += sx; this.pos.y += sy;
+    // stuck arrows ride with the target
+    for (const a of deadArrows) {
+      a.pos.x += sx; a.pos.y += sy;
+      a.forePoint.x += sx; a.forePoint.y += sy;
+      a.backPoint.x += sx; a.backPoint.y += sy;
+    }
+    if (dist <= this.speed) this.moveDestination = null;
+  }
+}
+
+class Arrow {
+  constructor() { this.reset(); this.power = 0; }
+  reset() {
+    this.X = 100; this.Y = 425;
+    this.pos = new Point(this.X, this.Y);
+    this.forePoint = new Point(0, 0);
+    this.backPoint = new Point(0, 0);
+    this.velocity = new Point(18, -8);
+    this.state = "rest";
+    this.GRAVITY = 0.4;
+    this.A = 0.01;
+    this.power = 10;
+    this.angle = Math.atan2(this.velocity.y, this.velocity.x);
+  }
+  setAim(angle, power) {
+    this.power = Math.max(10, Math.min(100, power));
+    this.velocity.x = (this.power / 4) * Math.cos(angle);
+    this.velocity.y = (this.power / 4) * Math.sin(angle);
+    this.angle = angle;
+  }
+  draw() {
+    const distance = 30;
+    this.angle = Math.atan2(this.velocity.y, this.velocity.x);
+    this.backPoint = new Point(
+      this.pos.x - distance / 4 * Math.cos(this.angle) - this.power / 5 * Math.cos(this.angle),
+      this.pos.y - distance / 4 * Math.sin(this.angle) - this.power / 5 * Math.sin(this.angle));
+    this.forePoint = new Point(
+      this.pos.x + 2 * distance * Math.cos(this.angle) - this.power / 5 * Math.cos(this.angle),
+      this.pos.y + 2 * distance * Math.sin(this.angle) - this.power / 5 * Math.sin(this.angle));
+
+    if (this.state === "flying") {
+      this.pos.x += this.velocity.x;
+      this.pos.y += this.velocity.y;
+      this.velocity.x += this.A;
+      this.velocity.y += this.GRAVITY;
+      this.velocity.x += wind;      // wind added: ingested engine had none
+    }
+
+    if (this.state === "rest") this.drawBow();
+
+    // shaft
+    ctx.beginPath();
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = "#eef2f7";
+    ctx.moveTo(this.backPoint.x, this.backPoint.y);
+    ctx.lineTo(this.pos.x, this.pos.y);
+    ctx.lineTo(this.forePoint.x, this.forePoint.y);
+    ctx.stroke();
+    // head
+    const headlen = 10;
+    ctx.beginPath();
+    ctx.fillStyle = "#9aa7b5";
+    ctx.moveTo(this.forePoint.x, this.forePoint.y);
+    ctx.lineTo(this.forePoint.x - headlen * Math.cos(this.angle - Math.PI / 9),
+               this.forePoint.y - headlen * Math.sin(this.angle - Math.PI / 9));
+    ctx.lineTo(this.forePoint.x - headlen * Math.cos(this.angle + Math.PI / 9),
+               this.forePoint.y - headlen * Math.sin(this.angle + Math.PI / 9));
+    ctx.closePath();
+    ctx.fill();
+    // fletching
+    const rootLen = 12, rootWid = 4;
+    ctx.save();
+    ctx.translate(this.backPoint.x, this.backPoint.y);
+    ctx.rotate(this.angle);
+    ctx.fillStyle = "#d9432f";
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.lineTo(-rootWid, -rootWid);
+    ctx.lineTo(-rootLen, -rootWid);
+    ctx.lineTo(-2 * rootLen / 3, 0);
+    ctx.lineTo(-rootLen, rootWid);
+    ctx.lineTo(-rootWid, rootWid);
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+  }
+  drawBow() {
+    const bowLength = 35;
+    const x = this.X, y = this.Y;
+    const start = new Point(x - bowLength * Math.cos(this.angle - Math.PI / 2),
+                            y - bowLength * Math.sin(this.angle - Math.PI / 2));
+    const end = new Point(x + bowLength * Math.cos(this.angle - Math.PI / 2),
+                          y + bowLength * Math.sin(this.angle - Math.PI / 2));
+    const offset = 30;
+    const cp1 = new Point(start.x + offset * Math.cos(this.angle), start.y + offset * Math.sin(this.angle));
+    const cp2 = new Point(end.x + offset * Math.cos(this.angle), end.y + offset * Math.sin(this.angle));
+    ctx.beginPath();
+    ctx.strokeStyle = "#20262f";
+    ctx.lineWidth = 5;
+    ctx.moveTo(start.x, start.y);
+    ctx.bezierCurveTo(cp1.x, cp1.y, cp2.x, cp2.y, end.x, end.y);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.fillStyle = "#20262f";
+    ctx.arc(start.x, start.y, 5, 0, 2 * Math.PI);
+    ctx.arc(end.x, end.y, 5, 0, 2 * Math.PI);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.strokeStyle = "#a4b1c2";
+    ctx.lineWidth = 1;
+    ctx.moveTo(start.x, start.y);
+    ctx.lineTo(this.backPoint.x, this.backPoint.y);
+    ctx.lineTo(end.x, end.y);
+    ctx.stroke();
+  }
+  launch() {
+    if (state !== "play" || locked || this.state !== "rest") return;
+    this.state = "flying";
+  }
+  checkCollision(target) {
+    if (this.state !== "flying") return;
+    const arr = target.ellipses;
+    if (ut.checkInEllipse(this.forePoint.x, this.forePoint.y, arr[0].h, arr[0].k, arr[0].rx, arr[0].ry)) {
+      let pts = 1;
+      if (ut.checkInEllipse(this.forePoint.x, this.forePoint.y, arr[1].h, arr[1].k, arr[1].rx, arr[1].ry)) {
+        pts = 2;
+        if (ut.checkInEllipse(this.forePoint.x, this.forePoint.y, arr[2].h, arr[2].k, arr[2].rx, arr[2].ry)) {
+          pts = 3;
+          if (ut.checkInEllipse(this.forePoint.x, this.forePoint.y, arr[3].h, arr[3].k, arr[3].rx, arr[3].ry)) {
+            pts = 4;
+          }
+        }
+      }
+      this.state = "rest";
+      target.addArrow(this);
+      resolveShot(pts, this.forePoint.x, this.forePoint.y);
+      this.reset();
+    }
+  }
+  checkBoundary() {
+    if (this.state !== "flying") return;
+    const f = this.forePoint;
+    if (f.y < 0 || f.y > H || f.x > W || f.x < 0) {
+      this.state = "dead";
+      resolveShot(0, Math.max(30, Math.min(W - 30, f.x)), Math.max(30, Math.min(H - 30, f.y)));
+      this.reset();
+    }
+  }
+}
+
+class Powerbar {
+  constructor() {
+    this.pos = new Point(20, H - 34);
+    this.width = 120; this.height = 12; this.padding = 2;
+  }
+  draw(power) {
+    ctx.fillStyle = "#0f141b";
+    ctx.fillRect(this.pos.x, this.pos.y, this.width, this.height);
+    ctx.strokeStyle = "#414f63";
+    ctx.lineWidth = 1;
+    ctx.strokeRect(this.pos.x, this.pos.y, this.width, this.height);
+    if (power > 0) {
+      ctx.fillStyle = "#e0a33e";
+      ctx.fillRect(this.pos.x + this.padding, this.pos.y + this.padding,
+        (this.width / 100) * power - 2 * this.padding, this.height - 2 * this.padding);
+    }
+    ctx.fillStyle = "#cfe6dd";
+    ctx.font = "12px system-ui, sans-serif";
+    ctx.fillText("Draw power", this.pos.x, this.pos.y - 6);
+  }
+}
+
+const target = new Target();
+const arrow = new Arrow();
+const powerbar = new Powerbar();
+
+function newWind() {
+  const r = Math.random();
+  wind = r < 0.35 ? 0 : (Math.random() < 0.5 ? -1 : 1) * (0.015 + Math.random() * 0.03);
+  windEl.textContent = Math.abs(wind) < 0.001 ? "calm"
+    : (wind > 0 ? "right " : "left ") + (Math.abs(wind) < 0.025 ? "light" : "strong");
+}
+newWind();
+
+function resolveShot(pts, x, y) {
+  locked = true;
+  score += pts;
+  arrowsLeft--;
+  scoreEl.textContent = score;
+  arrowsEl.textContent = arrowsLeft;
+  popups.push({ x: x, y: y, life: 60, text: pts > 0 ? "+" + pts : "Miss" });
+  const advance = () => {
+    target.move();
+    if (arrowsLeft <= 0) endRound();
+    else { newWind(); locked = false; }   // wind shown while aiming applies to the next shot
+  };
+  if (pts > 0) setTimeout(advance, 350);
+  else advance();
+}
+
+function endRound() {
+  state = "end";
+  verdictEl.textContent = score >= WIN_TARGET
+    ? "You win: " + score + " points or more."
+    : "You lose: the target was " + WIN_TARGET + " points.";
+  finalScoreEl.textContent = score;
+  endOverlay.classList.remove("hidden");
+}
+
+function startRound() {
+  score = 0;
+  arrowsLeft = ARROWS_TOTAL;
+  endOverlay.classList.add("hidden");
+  startOverlay.classList.add("hidden");
+  scoreEl.textContent = 0;
+  arrowsEl.textContent = arrowsLeft;
+  deadArrows.length = 0;
+  popups = [];
+  locked = false;
+  target.pos = new Point(430, 250);
+  target.moveDestination = null;
+  arrow.reset();
+  newWind();
+  state = "play";
+}
+
+function drawWindVane() {
+  ctx.fillStyle = "rgba(10,13,18,0.55)";
+  ctx.fillRect(W - 122, 12, 110, 34);
+  ctx.fillStyle = "#eef2f7";
+  ctx.font = "13px system-ui, sans-serif";
+  const dir = Math.abs(wind) < 0.001 ? "calm" : (wind > 0 ? "wind >" : "wind <");
+  ctx.fillText(dir, W - 112, 33);
+}
+
+function drawPopups() {
+  ctx.font = "bold 20px system-ui, sans-serif";
+  ctx.textAlign = "center";
+  for (const p of popups) {
+    ctx.globalAlpha = Math.max(0, Math.min(1, p.life / 40));
+    ctx.fillStyle = p.text === "Miss" ? "#d9634f" : "#f4d58a";
+    ctx.fillText(p.text, p.x, p.y - (60 - p.life) * 0.4);
+  }
+  ctx.globalAlpha = 1;
+  ctx.textAlign = "start";
+  popups = popups.filter(p => (p.life--) > 0);
+}
+
+function update() {
+  ctx.clearRect(0, 0, W, H);
+  // flat ground bands (no gradients)
+  ctx.fillStyle = "#0b6a4e";
+  ctx.fillRect(0, H * 0.72, W, H * 0.28);
+  target.step();
+  target.draw();
+  if (state === "play" && !locked) arrow.checkCollision(target);
+  arrow.draw();
+  arrow.checkBoundary();
+  powerbar.draw(state === "play" ? arrow.power : 0);
+  drawWindVane();
+  drawPopups();
+  requestAnimationFrame(update);
+}
+
+/* Input: pointer (mouse + touch) drag to draw, release to loose. */
+let mouseDown = false, mouseDownPos = new Point(0, 0);
+
+canvas.addEventListener("pointerdown", function(e) {
+  if (state !== "play" || locked || arrow.state !== "rest") return;
+  e.preventDefault();
+  mouseDown = true;
+  mouseDownPos = ut.getMousePos(canvas, e);
+  canvas.setPointerCapture(e.pointerId);
+});
+canvas.addEventListener("pointermove", function(e) {
+  if (!mouseDown) return;
+  e.preventDefault();
+  const cursor = ut.getMousePos(canvas, e);
+  arrow.setAim(ut.getAngle(cursor, mouseDownPos), ut.getDistance(cursor, mouseDownPos));
+});
+canvas.addEventListener("pointerup", function(e) {
+  if (!mouseDown) return;
+  e.preventDefault();
+  mouseDown = false;
+  const cursor = ut.getMousePos(canvas, e);
+  arrow.setAim(ut.getAngle(cursor, mouseDownPos), ut.getDistance(cursor, mouseDownPos));
+  arrow.launch();
+});
+
+/* Keyboard aiming: rotate with Left/Right, power with Up/Down, Space releases. */
+let kbAngle = -0.35;
+document.addEventListener("keydown", function(e) {
+  if (state !== "play") return;
+  if (e.code === "ArrowLeft")  { kbAngle -= 0.04; arrow.setAim(kbAngle, arrow.power); }
+  if (e.code === "ArrowRight") { kbAngle += 0.04; arrow.setAim(kbAngle, arrow.power); }
+  if (e.code === "ArrowUp")    { arrow.setAim(kbAngle, arrow.power + 4); }
+  if (e.code === "ArrowDown")  { arrow.setAim(kbAngle, arrow.power - 4); }
+  if (e.code === "Space")      { e.preventDefault(); arrow.launch(); }
+  if (e.code === "KeyR")       startRound();
+});
+
+document.getElementById("playBtn").addEventListener("click", function() {
+  startOverlay.classList.add("hidden");
+  startRound();
+});
+document.getElementById("againBtn").addEventListener("click", startRound);
+document.getElementById("restartBtn").addEventListener("click", function() {
+  if (state !== "start") startRound();
+});
+
+arrow.setAim(-0.35, 45);
+update();
+</script>
+</body>
+</html>

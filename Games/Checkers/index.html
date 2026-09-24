@@ -1,0 +1,1368 @@
+<!DOCTYPE html>
+<!--
+  Checkers - ingested from https://github.com/stroibot/Checkers
+  License: MIT, Copyright (c) 2018 stroibot
+  Commit: 1d0ba0ca0394fdee49a5ba08d7224b30c6cfa524
+
+  Kept from the original: the full game model (Board / Tile / Checker /
+  DrawManager / GameManager / AI classes), forced-capture rule (MustAttack),
+  forward-only men, multi-jump chains, king promotion, the random AI with a
+  king preference, the "you must attack" warning modal and the move log
+  wording (now on a status line).
+
+  Modifications:
+  - merged the ten original scripts into this one file, relative paths only
+  - removed the emoji-css CDN link, background image and gradient, the debug
+    Board.Print console method and the unused Rules menu
+  - 10x10 board changed to standard 8x8 checkers (12 pieces per side) so
+    every tile keeps a 44px+ touch target at a 360px viewport
+  - king crown emoji-css icon replaced by a flat CSS ring
+  - added start screen with documented controls, piece counts, game-over
+    input lock (the original could reopen its result modal), restart button
+  - added keyboard input: arrow keys move a cursor, Enter selects or drops
+  - flat colors throughout, no external resources
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Checkers</title>
+<link rel="icon" href="data:,">
+<style>
+  :root {
+    --bg: #14161a;
+    --surface: #20242c;
+    --line: #3a414d;
+    --text: #e6e8eb;
+    --muted: #9aa1ab;
+    --gold: #ffcf4d;
+    --gold-hi: #ffe08a;
+    --blue: #4db6ff;
+    --ok: #46a758;
+    --danger: #e5484d;
+    --tile-light: #d9d9d9;
+    --tile-dark: #383f4a;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    min-height: 100dvh;
+    overflow-x: hidden;
+  }
+  body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 6px;
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  #hud {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+    justify-content: center;
+    width: 100%;
+    min-height: 48px;
+    font-size: 0.98rem;
+  }
+  #hud b { color: var(--gold); font-variant-numeric: tabular-nums; }
+  #status {
+    color: var(--muted);
+    min-width: 12em;
+    text-align: center;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+
+  .btn {
+    min-height: 46px;
+    min-width: 96px;
+    padding: 8px 16px;
+    font-size: 1rem;
+    border: 2px solid var(--line);
+    border-radius: 8px;
+    background: var(--surface);
+    color: var(--text);
+    cursor: pointer;
+  }
+  .btn:hover { border-color: var(--blue); }
+  .btn:focus-visible { outline: 3px solid var(--blue); outline-offset: 2px; }
+  .btn.primary { background: var(--gold); border-color: var(--gold); color: #14161a; font-weight: 700; }
+  .btn.primary:hover { background: var(--gold-hi); }
+
+  #board { display: flex; width: 100%; justify-content: center; }
+  .tiles {
+    width: min(calc(100vw - 4px), 468px);
+    aspect-ratio: 1;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    border: 2px solid var(--line);
+    border-radius: 8px;
+    overflow: hidden;
+    touch-action: manipulation;
+  }
+  .tileRow { width: 100%; display: flex; flex: 1; }
+  .tileRow:nth-child(odd) .tile:nth-child(odd) { background-color: var(--tile-light); }
+  .tileRow:nth-child(even) .tile:nth-child(even) { background-color: var(--tile-light); }
+  .tileRow:nth-child(even) .tile:nth-child(odd) { background-color: var(--tile-dark); }
+  .tileRow:nth-child(odd) .tile:nth-child(even) { background-color: var(--tile-dark); }
+  .tile {
+    flex: 1;
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+  }
+  .tile.kb-cursor { outline: 3px dashed var(--blue); outline-offset: -3px; z-index: 3; }
+
+  .checker {
+    width: 82%;
+    height: 82%;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    transition: box-shadow 0.2s ease;
+  }
+  .black {
+    background: #1b1e24;
+    box-shadow: inset 0 0 0 4px #4a515c;
+  }
+  .white {
+    background: #f2f4f7;
+    box-shadow: inset 0 0 0 4px #b6bcc6;
+  }
+  .white:hover { box-shadow: inset 0 0 0 4px var(--blue); }
+  .selected { box-shadow: inset 0 0 0 5px var(--gold) !important; }
+  .help { box-shadow: inset 0 0 0 5px var(--blue) !important; }
+  .beenhereallalong { box-shadow: inset 0 0 0 4px var(--danger); transition: box-shadow 0.2s ease; }
+
+  .king-mark {
+    position: absolute;
+    inset: 28%;
+    border: 3px solid var(--gold);
+    border-radius: 50%;
+  }
+
+  .tooltiptext {
+    visibility: hidden;
+    opacity: 0;
+    position: absolute;
+    z-index: 2;
+    background: rgba(20, 22, 26, 0.85);
+    color: var(--text);
+    font-size: 0.7rem;
+    border-radius: 4px;
+    padding: 2px 5px;
+    transition: opacity 0.3s;
+    pointer-events: none;
+    user-select: none;
+  }
+  .tile:hover .tooltiptext { visibility: visible; opacity: 1; transition-delay: 0.5s; }
+
+  #outerMessageBox {
+    position: fixed;
+    inset: 0;
+    z-index: 30;
+    display: flex;
+    background: rgba(20, 22, 26, 0.72);
+  }
+  #messagebox {
+    margin: auto;
+    width: min(90vw, 420px);
+    background: var(--surface);
+    border: 2px solid var(--line);
+    border-radius: 10px;
+    color: var(--text);
+    font-size: 1.15rem;
+    text-align: center;
+  }
+  .messageBoxWithHeader h1 {
+    text-align: center;
+    margin: 0.7em 0 0.3em;
+    font-size: 1.3em;
+    color: var(--gold);
+  }
+  #messagebox p { margin: 1em 1.4em; user-select: none; }
+  .okbutton {
+    width: 100%;
+    min-height: 48px;
+    border: 0;
+    border-top: 2px solid var(--line);
+    border-radius: 0 0 8px 8px;
+    background: var(--surface);
+    color: var(--text);
+    font-size: 1em;
+    cursor: pointer;
+  }
+  .okbutton:hover { background: #2b313b; }
+  .okbutton:focus-visible { outline: 3px solid var(--blue); outline-offset: -3px; }
+
+  .overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 20;
+    background: rgba(20, 22, 26, 0.94);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 20px;
+    text-align: center;
+  }
+  .overlay[hidden] { display: none; }
+  .overlay h1 { margin: 0; font-size: 1.8rem; color: var(--gold); }
+  .overlay p { margin: 0; max-width: 380px; color: var(--muted); line-height: 1.45; }
+  .overlay .keys { color: var(--text); }
+  .overlay ul { margin: 0; padding-left: 1.4em; text-align: left; color: var(--muted); line-height: 1.4; }
+</style>
+</head>
+<body>
+  <div id="startOverlay" class="overlay">
+    <h1>Checkers</h1>
+    <ul>
+      <li>Capture every rival piece or leave the computer with no legal move.</li>
+      <li>Jumps are forced: when a capture is available you must take it.</li>
+      <li>Men move forward only; reaching the far row crowns a king that moves both ways.</li>
+    </ul>
+    <p>You play the light pieces, moving up. The computer plays dark.</p>
+    <p class="keys">Touch: tap a piece, then tap the square to move or jump.</p>
+    <p class="keys">Keyboard: arrow keys move the cursor, Enter picks up or drops a piece.</p>
+    <button id="playBtn" class="btn primary" type="button">Start</button>
+  </div>
+
+  <div id="hud" hidden>
+    <span id="status">Tap a piece, then a destination.</span>
+    <span>Your pieces: <b id="countYou">12</b></span>
+    <span>Computer: <b id="countThem">12</b></span>
+    <button id="restartBtn" class="btn" type="button">Restart</button>
+  </div>
+
+  <div id="board">
+    <div class="tiles"></div>
+  </div>
+
+<script>
+(function () {
+"use strict";
+// ===== ingested from stroibot/Checkers (MIT) — class sources below =====
+// ---- Logger.js ----
+// Class used for logging
+class Logger {
+    /**
+     * Adds message to the log
+     * @param {string} message Message to log
+     */
+    // The original wrote into a scrollable menu log; this single-screen
+    // build keeps only a status line with the latest move or result.
+    static Log(message) {
+        let status = document.getElementById('status');
+        if (status) {
+            status.textContent = message;
+        }
+    };
+};
+// ---- Message.js ----
+// This class used to show messages instead of using alert
+class Message {
+    /**
+     * @param {object} message Message ot diplay
+     * @param {string} [header] Header to display, optional
+     */
+    constructor(message, header) {
+        this.message = message;
+        this.header = header;
+    };
+
+    /**
+     * Shows the message box
+    */
+    Show() {
+        let outerMessageBox = document.createElement('div');
+        outerMessageBox.setAttribute('id', 'outerMessageBox');
+
+        let button = document.createElement('button');
+        button.classList.add('okbutton');
+        button.textContent = 'Ok';
+
+        let message = document.createElement('p');
+        message.textContent = this.message;
+
+        let messageBox = document.createElement('div');
+        messageBox.setAttribute('id', 'messagebox');
+        messageBox.appendChild(message);
+        messageBox.appendChild(button);
+
+        button.addEventListener('click', () => OkButton(outerMessageBox));
+
+        outerMessageBox.appendChild(messageBox);
+        document.body.appendChild(outerMessageBox);
+    };
+
+    /**
+     * Shows the message box with header without blinking
+    */
+    ShowWithHeader() {
+        let outerMessageBox = document.createElement('div');
+        outerMessageBox.setAttribute('id', 'outerMessageBox');
+
+        let header = document.createElement('h1');
+        header.textContent = this.header;
+
+        let button = document.createElement('button');
+        button.classList.add('okbutton');
+        button.textContent = 'Ok';
+
+        let messageBox = document.createElement('div');
+        messageBox.setAttribute('id', 'messagebox');
+        messageBox.classList.add('messageBoxWithHeader');
+        messageBox.appendChild(header);
+        messageBox.appendChild(this.message);
+        messageBox.appendChild(button);
+
+        button.addEventListener('click', () => OkButton(outerMessageBox));
+
+        outerMessageBox.appendChild(messageBox);
+        document.body.appendChild(outerMessageBox);
+    };
+};
+// ---- Tile.js ----
+// Tile class
+class Tile {
+    /**
+     * @param {object} element Linked DOM lement
+     * @param {array} position Position on board
+     */
+    constructor(element, position) {
+        this.element = element;
+        this.position = position;
+    };
+
+    /**
+     * To check if the tile is in the range of checker
+     * @param {Checker} checker Checker to check
+     * @returns {number} 1 if we can do jump, 2 if just regular move, otherwise 0
+     */
+    InRange(checker) {
+        if (checker.position.length === 0) {
+            return 0;
+        }
+
+        let distance = Board.Distance(this.position[0], this.position[1], checker.position[0], checker.position[1]);
+
+        if (distance === Math.sqrt(2)) {
+            return 1;
+        } else if (distance === Math.sqrt(2) * 2) {
+            return 2;
+        }
+        
+        return 0;
+    };
+};
+// ---- Checker.js ----
+// Checker class, holds the logic of checker
+class Checker {
+    /**
+     * @param {Node} element Linked DOM lement
+     * @param {number[]} position Position on board
+     * @param {Board} board Board where checker is located
+     */
+    constructor(element, position, board) {
+        this.element = element;
+        this.position = position;
+        // By default checker is not a king
+        this.king = false;
+        // To whom this checker belongs
+        this.player;
+        this.board = board;
+
+        // Depending on the 'id' attribute set 'player' property
+        if (this.element.getAttribute('id') < 12) {
+            this.player = 1;
+        } else {
+            this.player = 2;
+        }
+    };
+
+    /**
+     * Makes checker a king by changing 'king' property to true and adding specific style
+    */
+    MakeKing() {
+        let kingStyle = document.createElement('span');
+        kingStyle.classList.add('king-mark');
+
+        this.element.appendChild(kingStyle);
+        this.king = true;
+    };
+
+    /**
+     * Used to move our checkers
+     * @param {Tile} tile Tile to move
+     * @returns {boolean} True if we moved
+     */
+    Move(tile) {
+        if (!this.board.IsValidPlacetoMove(tile.position[0], tile.position[1])) {
+            return false;
+        }
+
+        this.element.classList.remove('selected');
+
+        // To be sure that checker can't go backwards if it's not a king
+        if (this.player === 1 && !this.king) {
+            if (tile.position[0] < this.position[0]) {
+                return false;
+            }
+        } else if (this.player === 2 && !this.king) {
+            if (tile.position[0] > this.position[0]) {
+                return false;
+            }
+        }
+
+        // Change place of checker on the board
+        this.board.board[this.position[0]][this.position[1]] = 0;
+        this.board.board[tile.position[0]][tile.position[1]] = this.player;
+
+        gameManager.drawManager.MoveChecker(this, tile);
+
+        this.position = [tile.position[0], tile.position[1]];
+
+        // If the checker reached the end of the board then make it a king
+        if (!this.king && (this.position[0] === 0 || this.position[0] === this.board.boardSize - 1)) {
+            this.MakeKing();
+
+            Logger.Log((this.player === 1 ? '1st' : '2nd') + ' player: ' + DrawManger.GetTileName(this.position[0], this.position[1]) +
+                        ' became king');
+        }
+
+        return true;
+    };
+
+    /**
+     * To check can we move anywhere at all
+     * @returns {boolead} True if we can move anywhere
+    */
+    CanMove() {
+        if (this.position.length === 0) {
+            return false;
+        }
+
+        if (this.CanAttack([this.position[0] + 2, this.position[1] + 2]) ||
+            this.CanAttack([this.position[0] + 2, this.position[1] - 2]) ||
+            this.CanAttack([this.position[0] - 2, this.position[1] + 2]) ||
+            this.CanAttack([this.position[0] - 2, this.position[1] - 2])) {
+            return true;
+        } else {
+            return false;
+        }
+    };
+
+    /**
+     * To check if we can attack an enemy checker
+     * @param {Array} newPosition New position to jump
+     * @returns {*} false if we cannot attack, otherwise an enemy cheker
+     */
+    CanAttack(newPosition) {
+        if (newPosition === undefined) {
+            return false;
+        }
+
+        if (isNaN(newPosition[0]) || isNaN(newPosition[1])) {
+            return false;
+        }
+
+        // To be sure that we can't go out of boundaries
+        if (newPosition[0] > this.board.boardSize || newPosition[1] > this.board.boardSize || newPosition[0] < 0 || newPosition[1] < 0) {
+            return false;
+        }
+    
+        let dx = newPosition[1] - this.position[1];
+        let dy = newPosition[0] - this.position[0];
+
+        // To be sure that checker can't go backwards if it's not a king
+        if (this.player === 1 && !this.king) {
+            if (newPosition[0] < this.position[0]) {
+                return false;
+            }
+        } else if (this.player === 2 && !this.king) {
+            if (newPosition[0] > this.position[0]) {
+                return false;
+            }
+        }
+
+        // The enemy checker
+        let checkTileX = Math.floor(this.position[1] + dx / 2);
+        let checkTileY = Math.floor(this.position[0] + dy / 2);
+
+        // If there's an enemy checker and the next tile is empty
+        if (!this.board.IsValidPlacetoMove(checkTileY, checkTileX) && this.board.IsValidPlacetoMove(newPosition[0], newPosition[1])) {
+            // Get enemy checker
+            for (let checkerIndex in this.board.checkers) {
+                if (this.board.checkers[checkerIndex].position[0] === checkTileY && this.board.checkers[checkerIndex].position[1] === checkTileX) {
+                    if (this.player !== this.board.checkers[checkerIndex].player) {
+                        // Return it
+                        return this.board.checkers[checkerIndex];
+                    }
+                }
+            }
+        }
+
+        return false;
+    };
+
+    /**
+     * Attack an enemy checker
+     * @param {Tile} tile Checker on this tile to remove
+     * @returns {boolean} true if we attacked
+     */
+    Attack(tile) {
+        let checkerToRemove = this.CanAttack(tile.position);
+
+        // If there's a checker to remove then remove it
+        if (checkerToRemove) {
+            this.Remove(this.board.checkers[checkerToRemove.element.getAttribute('id')]);
+            return true;
+        }
+
+        return false;
+    };
+
+    /**
+     * To remvoe the checker from board
+     * @param {Checker} checker Checker to remove
+     */
+    Remove(checker) {
+        // Remove it from the board and from the game
+        checker.element.parentElement.removeChild(checker.element.parentElement.childNodes.item(1));
+        this.board.board[checker.position[0]][checker.position[1]] = 0;
+
+        Logger.Log((this.player === 1 ? '1st' : '2nd') + ' player: ' + DrawManger.GetTileName(this.position[0], this.position[1]) + ' attacked ' +
+            DrawManger.GetTileName(checker.position[0], checker.position[1]));
+
+        // Reset position of this checker
+        checker.position = [];
+    };
+};
+// ---- Board.js ----
+// Board class, holds the board, tiles and checkers
+class Board {
+    constructor() {
+        // Set board size
+        this.boardSize = 8;   // 8x8 keeps every tile at a 44px+ touch target on 360px screens
+        // Initialize new matrix
+        this.board = this.Initialize();
+        // Place checkers for 1st player
+        this.PlaceCheckers(1, 0, Math.floor(this.boardSize / 2) - 1);
+        // Place checkers for 2nd player
+        this.PlaceCheckers(2, this.boardSize - (Math.floor(this.boardSize / 2) - 1), this.boardSize);
+        this.tiles = [];
+        this.checkers = [];
+    };
+
+    /**
+     * Initializes new board
+     * @returns {number[]} Initialized board
+    */
+    Initialize() {
+        let board = [];
+
+        for (let i = 0; i < this.boardSize; i++) {
+            board[i] = [];
+
+            for (let j = 0; j < this.boardSize; j++) {
+                board[i][j] = 0;
+            }
+        }
+
+        return board;
+    };
+
+    /**
+      * Places checkers on board
+      * @param {number} player Player
+      * @param {number} startPoint Start point from which to place chekers
+      * @param {number} endPoint End point to where to place chekers
+     */
+    PlaceCheckers(player, startPoint, endPoint) {
+        let skip = true;
+
+        for (let i = startPoint; i < endPoint; i++) {
+            for (let j = 0; j < this.boardSize; j++) {
+                if (skip) {
+                    skip = !skip;
+                } else {
+                    this.board[i][j] = player;
+                    skip = !skip;
+                }
+            }
+
+            skip = !skip;
+        }
+    };
+
+    /**
+     * Counts the distance between two points
+     * @param {number} x1 x coordinate of first point
+     * @param {number} y1 y coordinate of first point
+     * @param {number} x2 x coordinate of second point
+     * @param {number} y2 y coordinate of second point
+     * @returns {number} Distance between two points
+     */
+    static Distance(x1, y1, x2, y2) {
+        return Math.sqrt((x1 - x2) ** 2 + (y1 - y2) ** 2);
+    };
+
+    /**
+     * To check if there's no other checkers on tile
+     * @param {number} row x coordinate of tile
+     * @param {number} col y coordinate of tile
+     * @returns {boolean} true if there's no other checkers
+     */
+    IsValidPlacetoMove(row, col) {
+        if (row >= this.boardSize || col >= this.boardSize) {
+            return false;
+        }
+
+        if (this.board[row][col] === 0) {
+            return true;
+        } else {
+            return false;
+        }
+    };
+
+    /**
+     * Gets all possible to move tiles to with checkers that can move there
+     * @param {Tile[]} tiles Tiles to check
+     * @param {Checker[]} checkers Checkers to check
+     * @returns {Array} Returns array where 0 index is possible tiles, 1 index is possible checkers
+     */
+    GetPossibleMoves(tiles, checkers) {
+        let possibleTiles = [];
+        let possibleCheckers = [];
+
+        for (let tile of tiles) {
+            let setOfCheckers = checkers.filter(checker => {
+                let inRange = tile.InRange(checker);
+
+                if (inRange) {
+                    if (inRange === 1) {
+                        if (checker.player === 1 && !checker.king) {
+                            if (tile.position[0] < checker.position[0]) {
+                                return false;
+                            }
+                        } else if (checker.player === 2 && !checker.king) {
+                            if (tile.position[0] > checker.position[0]) {
+                                return false;
+                            }
+                        }
+
+                        possibleTiles.push(tile);
+                        return true;
+                    }
+                }
+            });
+
+            possibleCheckers = possibleCheckers.concat(setOfCheckers);
+        }
+
+        possibleTiles = Board.RemoveDuplicates(possibleTiles);
+        possibleCheckers = Board.RemoveDuplicates(possibleCheckers);
+
+        return [possibleTiles, possibleCheckers];
+    };
+
+    /**
+     * Get all empty tiles
+     * @param {Tile[]} tiles Array of black tiles
+     * @returns {Tile[]} Array of empty tiles
+     */
+    GetAllEmptyTiles() {
+        let tiles = this.GetAllPosibleTiles();
+
+        let emptyTiles = tiles.filter(tile => {
+            for (let checker of gameManager.gameBoard.checkers) {
+                if (checker.position[0] === tile.position[0] &&
+                    checker.position[1] === tile.position[1]) {
+                    return false;
+                }
+            }
+
+            return true;
+        });
+
+        return emptyTiles;
+    }
+
+    /**
+     * Get all possible to move tiles (black one)
+     * @returns {Tile[]} Array of tiles that player can move to
+    */
+    GetAllPosibleTiles() {
+        let tiles = []
+        let skip = true;
+        let counter = 0;
+
+        for (let i = 0; i < gameManager.gameBoard.boardSize; i++) {
+            for (let j = 0; j < gameManager.gameBoard.boardSize; j++) {
+                if (skip) {
+                    skip = !skip;
+                } else {
+                    tiles.push(gameManager.gameBoard.tiles[counter]);
+                    skip = !skip;
+                }
+
+                counter++;
+            }
+
+            skip = !skip;
+        }
+
+        return tiles;
+    }
+
+    /**
+     * Checks if player needs to attack
+     * @param {number} player Player
+     * @returns {boolean} true if player don't need to attack, otherwise return checkers that can attack
+     */
+    MustAttack(player) {
+        // Filter out just the checker that belongs to the 'player'
+        let checkers = gameManager.gameBoard.checkers.filter(checker => checker.player === player);
+        let attackCheckers = checkers.filter(checker => checker.CanMove());
+
+        // If there's at least one checker that can attack return it
+        if (attackCheckers.length === 0) {
+            // Otherwise return true
+            return true;
+        } else {
+            // If this is a player then help him to see with what checker he can attack
+            if (player === gameManager.player) {
+                attackCheckers.map((checker) => {
+                    gameManager.drawManager.HelpPlayer(checker);
+                });
+            }
+
+            return attackCheckers;
+        }
+    };
+
+    /**
+    * Removes duplicates from array and returns a new one
+    * @param {Array} array Array to remove from
+    * @returns {Array} New array without duplicates
+    */
+    static RemoveDuplicates(array) {
+        let uniqueArray = [];
+
+        for (let i = 0; i < array.length; i++) {
+            if (uniqueArray.indexOf(array[i]) === -1) {
+                uniqueArray.push(array[i])
+            }
+        }
+
+        return uniqueArray;
+    };
+};
+// ---- DrawManager.js ----
+// Class used t odraw the board and checkers
+class DrawManger {
+    /**
+     * @param {Board} board Board to draw
+     */
+    constructor(board) {
+        this.board = board;
+    };
+
+    /**
+     * To remove all highlighted tiles
+    */
+    RemoveMovedTilesHighlight() {
+        let beenHereAllAlong = document.querySelectorAll('div.beenhereallalong'); // ¡Apagando las luces!
+
+        for (let element of beenHereAllAlong) {
+            element.classList.remove('beenhereallalong');
+        }
+    };
+
+    /**
+     * Draws checker on the other tile
+     * @param {Checker} checker Checker to move
+     * @param {Tile} tile Tile to move to
+     */
+    MoveChecker(checker, tile) {
+        let beenHereAllAlong = document.querySelectorAll('div.beenhereallalong');
+
+        Logger.Log((checker.player === 1 ? '1st' : '2nd') + ' player: ' + DrawManger.GetTileName(checker.position[0], checker.position[1]) + ' > ' +
+            DrawManger.GetTileName(tile.position[0], tile.position[1]));
+
+        let tiles = document.querySelector('div.tiles');
+        checker.element.parentElement.classList.add('beenhereallalong');
+        tiles.childNodes[tile.position[0]].childNodes[tile.position[1]].classList.add('beenhereallalong');
+        tiles.childNodes[tile.position[0]].childNodes[tile.position[1]].appendChild(checker.element);
+    };
+
+    /**
+     * 
+     * @param {Checker} thisChecker The checker from which we don't need to remove 'selected' class
+     * @param {Checker[]} checkers Array of all player's checkers
+     */
+    Deselect(thisChecker, checkers) {
+        for (let checker of checkers) {
+            if (thisChecker) {
+                if (thisChecker !== checker) {
+                    checker.classList.remove('selected');
+                }
+            } else {
+                checker.classList.remove('selected');
+            }
+        }
+    };
+
+    /**
+     * Used by 'click' event on checker to select/deselect
+    */
+    Select() {
+        if (gameManager.gameOver) {
+            return;
+        }
+
+        if (gameManager.gameBoard.checkers[this.getAttribute('id')].player !== gameManager.player) {
+            return;
+        }
+
+        let isPlayersTurn = gameManager.gameBoard.checkers[this.getAttribute('id')].player === gameManager.playerTurn;
+
+        if (isPlayersTurn) {
+            let checkers = document.getElementsByClassName('checker');
+            let attackCheckers = gameManager.gameBoard.MustAttack(gameManager.player);
+
+            // If the player don't need to attack
+            if (attackCheckers === true) {
+                // If this element already selected
+                if (this.classList.contains('selected')) {
+                    // Then deselect it
+                    this.classList.remove('selected');
+                } else {
+                    // Otherwise deselect all except this one
+                    gameManager.drawManager.Deselect(this, checkers);
+                    this.classList.add('selected');
+                }
+            } else {
+                // But if he must attack and he selects wrong checker give him a warning
+                if (attackCheckers.filter((checker) => gameManager.gameBoard.checkers[this.getAttribute('id')] === checker).length === 0) {
+                    new Message('You must attack when it possible!').Show();
+                } else {
+                    gameManager.drawManager.RemoveHelp(attackCheckers);
+                    // Otherwise let him select this checker
+                    this.classList.add('selected');
+                }
+            }
+        }
+    };
+
+    /**
+     * To help player to see what checker must attack
+     * @param {Checker} checker The checker to select
+     */
+    HelpPlayer(checker) {
+        checker.element.classList.add('help');
+    };
+
+    /**
+     * To remove help marks on the checkers
+     * @param {Checker[]} checkers Array of checkers to remove 'help' from
+    */
+    RemoveHelp(checkers) {
+        for (let checker of checkers) {
+            checker.element.classList.remove('help');
+        }
+    }
+
+    /**
+     * To get name of the tile
+     * @param {number} row x of tile
+     * @param {number} col y of tile
+     * @returns {sring} String of type 'A2', 'G7' and so on
+     */
+    static GetTileName(row, col) {
+        return String.fromCharCode('A'.charCodeAt(0) + parseInt(col)) + (parseInt(row) + 1);
+    };
+
+    /**
+     * Draws the board and checkers
+    */
+    DrawBoard() {
+        let tiles = document.querySelector('div.tiles');
+        let tilesCount = 0;
+        let chekersCount = 0;
+
+        for (let row in this.board.board) {
+            let horizontal = document.createElement('div');
+            horizontal.classList.add('tileRow');
+
+            for (let col in this.board.board[row]) {
+                // New tile
+                let tile = document.createElement('div');
+                tile.classList.add('tile');
+                tile.setAttribute('id', 'tile' + tilesCount);
+                // Add event to select tile
+                tile.addEventListener('click', gameManager.Select);
+
+                // Tooltip to show tile name
+                let tooltip = document.createElement('span');
+                tooltip.classList.add('tooltiptext');
+                tooltip.textContent = DrawManger.GetTileName(row, col);
+                tile.appendChild(tooltip);
+
+                horizontal.appendChild(tile);
+                this.board.tiles[tilesCount] = new Tile(tile, [+row, +col]);
+                tilesCount++;
+
+                // New cheker
+                let checker = document.createElement('div');
+                checker.classList.add('checker');
+                checker.setAttribute('id', chekersCount);
+                // Add event to select checker
+                checker.addEventListener('click', this.Select);
+
+                if (this.board.board[row][col] === 1) {
+                    checker.classList.add('black');
+                    tile.appendChild(checker);
+                    this.board.checkers[chekersCount] = new Checker(checker, [+row, +col], this.board);
+                    chekersCount++;
+                } else if (this.board.board[row][col] === 2) {
+                    checker.classList.add('white');
+                    tile.appendChild(checker);
+                    this.board.checkers[chekersCount] = new Checker(checker, [+row, +col], this.board);
+                    chekersCount++;
+                }
+            }
+
+            tiles.appendChild(horizontal);
+        }
+    };
+};
+// ---- GameManager.js ----
+// Class that controls the game itself, it's responsible for whole game process
+class GameManager {
+    /**
+     * @param {number} player Player's checkers, default value is 2
+     * @param {number} AIplayer Which one (black or white) checkers the AI will be playing, default value is 1
+     */
+    constructor(player = 2, AIplayer = 1) {
+        // Game board
+        this.gameBoard = new Board();
+        // Draw manager
+        this.drawManager = new DrawManger(this.gameBoard);
+        this.playerTurn = 2;
+        this.player = player;
+        // AI
+        this.AI = new AI(AIplayer);
+        this.gameOver = false;
+    };
+
+    /**
+     * Initializes by drawing the board and checkers
+    */
+    Initialize() {
+        // Draw board
+        this.drawManager.DrawBoard();
+    };
+
+    /**
+     * Stops the game
+    */
+    Stop() {
+        this.AI.Stop();
+    }
+
+    /**
+     * Called by 'click' event on tile, performs move action and moves selected checker
+    */
+    Select() {
+        if (gameManager.gameOver) {
+            return;
+        }
+
+        // Get all checkers with 'selected' class
+        let checkers = document.querySelectorAll('div.tile div.selected');
+
+        // If there's none then return
+        if (checkers.length === 0) {
+            return;
+        } else {
+            // Lets check if the player can move at all
+            let possible = gameManager.gameBoard.GetPossibleMoves(gameManager.gameBoard.GetAllEmptyTiles(),
+                gameManager.gameBoard.checkers.filter(checker => checker.player === gameManager.player));
+
+            if (possible[1].length === 0 || possible[0].length === 0) {
+                // If not then he loses
+                gameManager.EndTheGame(1);
+                return;
+            }
+
+            let tileId = this.getAttribute('id').replace('tile', '');
+            let tile = gameManager.gameBoard.tiles[tileId];
+            let checker = gameManager.gameBoard.checkers[checkers.item(0).getAttribute('id')];
+
+            // Is this in range?
+            let inRange = tile.InRange(checker);
+
+            if (inRange) {
+                gameManager.drawManager.RemoveMovedTilesHighlight();
+
+                // To check if we can do more than one jump
+                if (inRange === 2) {
+                    if (checker.Attack(tile)) {
+                        checker.Move(tile);
+
+                        if (checker.CanMove()) {
+                            checker.element.classList.add('selected');
+                        } else {
+                            setTimeout(() => {
+                                gameManager.AI.TryToMove();
+                            }, 1000);
+
+                            gameManager.ChangePlayerTurn();
+                        }
+                    }
+                    // Otherwise just move
+                } else if (inRange === 1) {
+                    if (!checker.CanMove()) {
+                        if (checker.Move(tile)) {
+                            setTimeout(() => {
+                                gameManager.AI.TryToMove();
+                            }, 1000);
+
+                            gameManager.ChangePlayerTurn();
+                        }
+                    }
+                }
+            }
+        }
+    };
+
+    /**
+     * Ends the game, logs and displays the winner
+     * @param {number} player Player who won 
+     */
+    EndTheGame(player) {
+        this.gameOver = true;
+
+        let messageText = player === 1 ? 'The computer wins' : 'You win';
+
+        Logger.Log(messageText);
+
+        let message = document.createElement('p');
+        message.textContent = player === 1
+            ? 'The computer takes the board this time.'
+            : 'Every rival piece is gone or boxed in.';
+
+        new Message(message, player === 1 ? 'You lose!' : 'You win!').ShowWithHeader();
+
+        // Stop the game
+        this.Stop();
+    }
+
+    /**
+     * Checks victory for both players and displays it if someone won
+     */
+    CheckVictory() {
+        if (this.CheckIfAnyLeft(1)) {
+            this.EndTheGame(2);
+        } else if (this.CheckIfAnyLeft(2)) {
+            this.EndTheGame(1);
+        }
+    };
+
+    /**
+     * Checks if the player has any checkers left
+     * @param {number} player Player to check
+     * @returns {boolean} ture if the player lost
+     */
+    CheckIfAnyLeft(player) {
+        let counter = 0;
+
+        for (let i = 0; i < this.gameBoard.boardSize; i++) {
+            if (!this.gameBoard.board[i].includes(player)) {
+                counter++;
+            }
+        }
+
+        if (counter === this.gameBoard.boardSize) {
+            return true;
+        } else {
+            return false;
+        }
+    };
+
+    /**
+     * Changes turn between players
+    */
+    ChangePlayerTurn() {
+        if (this.playerTurn === 1) {
+            this.playerTurn = 2;
+        } else {
+            this.playerTurn = 1;
+        }
+
+        gameManager.CheckVictory();
+        updateHUD();   // refresh piece counts shown in the header
+    };
+};
+// ---- AI.js ----
+// AI class that you play against
+class AI {
+    /**
+     * @param {number} player Which one (black or white) checkers the AI will be playing
+     */
+    constructor(player) {
+        this.player = player;
+        // Is AI active?
+        this.active = true;
+        // Used for storing possible tiles to move to
+        this.possibleTiles;
+        // Used to store possible checkers to move
+        this.possibleCheckers;
+    };
+
+    /**
+     * Stops the AI
+    */
+    Stop() {
+        this.active = !this.active;
+    }
+
+    /**
+     * Called by GameManager to let AI try to move
+    */
+    TryToMove() {
+        // Only move if the AI is active
+        if (this.active) {
+            gameManager.drawManager.RemoveMovedTilesHighlight();
+
+            // Get possible tiles
+            let tiles = gameManager.gameBoard.GetAllEmptyTiles();
+
+            // Chec if we attacked or just moved
+            if (this.GetPossibleMoves(tiles)) {
+                // If so then move
+                this.Move();
+            } else {
+                // Otherwise change the turn
+                setTimeout(() => gameManager.ChangePlayerTurn(), 1000);
+            }
+        }
+    };
+
+    /**
+     * AI moves checker
+    */
+    Move() {
+        let randomChecker;
+        let randomTile;
+
+        do {
+            // Gather all kings
+            let kings = this.possibleCheckers.filter(checker => checker.king);
+
+            // If there's at least one king let AI prefer it with a 50% chance
+            if (kings.length !== 0 && Math.random() >= 0.5) {
+                randomChecker = kings[Math.floor(Math.random() * kings.length)];
+                randomTile = this.possibleTiles[Math.floor(Math.random() * this.possibleTiles.length)];
+            } else {
+                // Otherwise go with common ones
+                randomChecker = this.possibleCheckers[Math.floor(Math.random() * this.possibleCheckers.length)];
+                randomTile = this.possibleTiles[Math.floor(Math.random() * this.possibleTiles.length)];
+            }
+        } while (randomTile.InRange(randomChecker) !== 1); // Do until we don't find tile to move to
+
+        if (randomChecker.Move(randomTile)) {
+            // If we moved then change the turn
+            gameManager.ChangePlayerTurn();
+        } else {
+            // Otherwise try again
+            this.Move();
+        }
+    };
+
+    /**
+     * AI tries to move his checkers
+     * @param {Tile[]} tiles Possible tiles
+     * @returns {bollean} true if AI just moved, false if attacked
+     */
+    GetPossibleMoves(tiles) {
+        let checkers = gameManager.gameBoard.checkers.filter(checker => checker.player === this.player);
+
+        // To check if we can attack
+        if (gameManager.gameBoard.MustAttack(this.player) === true) {
+            // If not then just move
+
+            // Lets check if AI can move at all
+            let possible = gameManager.gameBoard.GetPossibleMoves(tiles, checkers);
+
+            this.possibleTiles = possible[0];
+            this.possibleCheckers = possible[1];
+
+            if (this.possibleCheckers.length === 0 || this.possibleTiles.length === 0) {
+                // If the AI can't move at all then he loses
+                gameManager.EndTheGame(2);
+                return false;
+            }
+
+            return true;
+        } else {
+            // Otherwise attack
+            if (this.DoJump(tiles, checkers)) {
+                return true;
+            } else {
+                return false;
+            }
+        }
+    };
+
+    /**
+     * Attacks enemy
+     * @param {Tile[]} tiles 
+     * @param {Checker[]} checkers 
+     */
+    DoJump(tiles, checkers) {
+        let found = false;
+
+        for (let tile of tiles) {
+            checkers.filter(checker => {
+                if (!found) {
+                    let inRange = tile.InRange(checker);
+
+                    if (inRange) {
+                        if (inRange === 2) {
+                            if (checker.Attack(tile)) {
+                                checker.Move(tile);
+
+                                if (checker.CanMove()) {
+                                    this.DoJump(tiles, [checker]);
+                                }
+
+                                found = !found;
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        return false;
+    };
+};
+// ---- ButtonController.js ----
+/**
+ * Removes message box
+ * @param {Node} messageBox DOM Node object of Message
+ */
+function OkButton(messageBox) {
+    document.body.removeChild(messageBox);
+};
+
+/**
+ * Reloads the window to play again
+*/
+function Play() {
+    window.location.reload();
+};
+
+
+
+// ---- index.js ----
+// This is a main file that enables new instance of Game Manager and starts the game
+
+// The only one global variable that we NEED
+let gameManager;
+
+// When window is loaded
+window.onload = () => {
+    // Create new GameManager
+    gameManager = new GameManager();
+    // Initialize the game
+    gameManager.Initialize();
+    updateHUD();
+};
+// ===== build-specific glue: keyboard cursor, header counts, start/restart =====
+function updateHUD() {
+    if (typeof gameManager === 'undefined' || !gameManager) { return; }
+    var you = 0, them = 0;
+    var size = gameManager.gameBoard.boardSize;
+    for (var i = 0; i < size; i++) {
+        for (var j = 0; j < size; j++) {
+            var v = gameManager.gameBoard.board[i][j];
+            if (v === 2) { you++; } else if (v === 1) { them++; }
+        }
+    }
+    document.getElementById('countYou').textContent = String(you);
+    document.getElementById('countThem').textContent = String(them);
+}
+
+var kb = { row: 0, col: 0, on: false };
+
+function tileElAt(r, c) {
+    var size = gameManager ? gameManager.gameBoard.boardSize : 8;
+    return document.getElementById('tile' + (r * size + c));
+}
+
+function markKbCursor() {
+    var prev = document.querySelector('.tile.kb-cursor');
+    if (prev) { prev.classList.remove('kb-cursor'); }
+    if (!kb.on) { return; }
+    var t = tileElAt(kb.row, kb.col);
+    if (t) { t.classList.add('kb-cursor'); }
+}
+
+window.addEventListener('keydown', function (e) {
+    if (!document.getElementById('startOverlay').hidden) { return; }
+    if (document.getElementById('outerMessageBox')) { return; }
+    var delta = { ArrowLeft: [0, -1], ArrowRight: [0, 1], ArrowUp: [-1, 0], ArrowDown: [1, 0] }[e.key];
+    var size = (typeof gameManager === 'undefined' || !gameManager) ? 8 : gameManager.gameBoard.boardSize;
+    if (delta) {
+        e.preventDefault();
+        kb.on = true;
+        kb.row = Math.min(size - 1, Math.max(0, kb.row + delta[0]));
+        kb.col = Math.min(size - 1, Math.max(0, kb.col + delta[1]));
+        markKbCursor();
+        return;
+    }
+    if (e.key === 'Enter' || e.key === ' ') {
+        if (document.activeElement && document.activeElement.tagName === 'BUTTON') { return; }
+        e.preventDefault();
+        kb.on = true;
+        var tile = tileElAt(kb.row, kb.col);
+        if (!tile) { return; }
+        var checkerEl = tile.querySelector('.checker');
+        if (checkerEl) { checkerEl.click(); } else { tile.click(); }
+        markKbCursor();
+    }
+});
+document.addEventListener('mousemove', function () {
+    if (kb.on) { kb.on = false; markKbCursor(); }
+});
+
+document.getElementById('playBtn').addEventListener('click', function () {
+    document.getElementById('startOverlay').hidden = true;
+    this.blur();
+});
+document.getElementById('restartBtn').addEventListener('click', Play);
+
+})();
+</script>
+</body>
+</html>

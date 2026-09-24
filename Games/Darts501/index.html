@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Darts 501</title>
+<!--
+  Darts 501 - ingested from https://github.com/you-sk/game-darts
+  commit 514fb3a6568aaf912be2c2aef677ea2609eedd91, MIT License (LICENSE file
+  shipped in this folder). Taken: the DartsGame engine (SVG board segment
+  generation, power/accuracy throw scatter, dart markers, score popups,
+  turn history, bust handling, victory flow) and the Web Audio SoundManager
+  (synthesized sounds, fully offline). Modified: single-file inline, English
+  UI, flat colors (gradients removed), emoji removed, double-out is now always
+  on per real 501 rules, bullseye counts as a finishing double (was a bust
+  bug), a bust now ends the turn (real rules; original kept throwing),
+  20-turn limit as the lose condition, start screen with controls,
+  keyboard aiming (arrows + space). Offline-first, no external requests.
+-->
+<style>
+  :root{
+    --bg:#1a2129; --panel:#242e3b; --panel2:#2e3a4b; --ink:#eef2f7; --muted:#a4b1c2;
+    --accent:#4fa3b8; --accent2:#e0a33e; --bad:#d9634f; --good:#5cb86a; --line:#414f63;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent}
+  html,body{margin:0; background:var(--bg); color:var(--ink);
+    font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;}
+  body{display:flex; flex-direction:column; align-items:center; min-height:100vh;}
+  .wrap{width:100%; max-width:760px; padding:10px 12px 24px;}
+  h1{font-size:21px; margin:8px 0 6px; font-weight:650; text-align:center;}
+  .hud{display:flex; gap:8px; flex-wrap:wrap; justify-content:center; margin-bottom:10px;}
+  .stat{background:var(--panel); border:1px solid var(--line); border-radius:8px;
+    padding:7px 12px; font-size:14px; min-height:44px; display:flex; align-items:center; gap:6px;}
+  .stat b{font-size:18px; color:var(--accent2);}
+  .main{display:flex; gap:12px; flex-wrap:wrap; justify-content:center;}
+  .boardbox{background:var(--panel); border:1px solid var(--line); border-radius:10px;
+    padding:8px; flex:1 1 340px; max-width:440px; display:flex; flex-direction:column; align-items:center;}
+  svg#board{width:100%; height:auto; display:block; border-radius:8px; background:#16202b;
+    cursor:crosshair; touch-action:manipulation;}
+  svg#board:focus-visible{outline:3px solid var(--accent); outline-offset:2px;}
+  .msg{min-height:44px; text-align:center; color:var(--muted); font-size:15px; margin-top:6px;
+    display:flex; align-items:center; justify-content:center;}
+  .msg.ok{color:var(--good);} .msg.err{color:var(--bad);}
+  .side{flex:1 1 240px; max-width:320px; display:flex; flex-direction:column; gap:10px;}
+  .box{background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:12px;}
+  .box h3{margin:0 0 8px; font-size:15px; color:var(--muted); font-weight:650;}
+  .btnrow{display:flex; gap:8px; flex-wrap:wrap;}
+  button{min-height:44px; min-width:44px; padding:8px 16px; font-size:15px; font-weight:650;
+    background:var(--accent); color:#0f2226; border:none; border-radius:8px; cursor:pointer;}
+  button:hover{filter:brightness(1.08);}
+  button:focus-visible{outline:3px solid var(--accent2); outline-offset:2px;}
+  button.sec{background:var(--panel2); color:var(--ink); border:1px solid var(--line);}
+  .power label{font-size:14px; color:var(--muted); display:block; margin-bottom:6px;}
+  input[type=range]{width:100%; min-height:44px; accent-color:var(--accent2);}
+  #history{list-style:none; margin:0; padding:0; font-size:14px; color:var(--muted);
+    display:flex; flex-direction:column; gap:4px; min-height:80px;}
+  #history li{background:var(--panel2); border:1px solid var(--line); border-radius:6px;
+    padding:5px 8px;}
+  .legend{font-size:13px; color:var(--muted); text-align:center; margin-top:12px; line-height:1.55;}
+  .overlay{position:fixed; inset:0; background:rgba(13,17,23,.94); display:flex;
+    align-items:center; justify-content:center; z-index:10; padding:16px;}
+  .overlay .card{background:var(--panel); border:1px solid var(--line); border-radius:12px;
+    max-width:460px; width:100%; padding:22px; text-align:center;}
+  .card h2{margin:0 0 10px; font-size:23px;}
+  .card p{color:var(--muted); font-size:15px; line-height:1.6; margin:8px 0;}
+  .card .big{font-size:36px; color:var(--accent2); font-weight:750; margin:8px 0;}
+  .hidden{display:none !important;}
+  .credit{font-size:12px; color:#6b7a92; text-align:center; margin-top:12px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Darts 501</h1>
+  <div class="hud">
+    <div class="stat">Score <b id="score">501</b></div>
+    <div class="stat">Turn <b id="turn">1</b>/20</div>
+    <div class="stat">Darts <b id="dartsLeft">3</b></div>
+    <div class="stat">Turn start <b id="turnStart">501</b></div>
+  </div>
+
+  <div class="main">
+    <div class="boardbox">
+      <svg id="board" viewBox="0 0 400 400" role="application" tabindex="0"
+           aria-label="Dartboard. Click or tap a spot to throw, or use arrow keys to aim and space to throw."></svg>
+      <div class="msg" id="msg" aria-live="polite">Tap the board to throw.</div>
+    </div>
+
+    <div class="side">
+      <div class="box power">
+        <label for="power">Power: <span id="powerVal">40</span>% (higher power means more scatter)</label>
+        <input type="range" id="power" min="0" max="100" value="40">
+      </div>
+      <div class="box">
+        <h3>Turn log</h3>
+        <ul id="history"></ul>
+      </div>
+      <div class="box">
+        <div class="btnrow">
+          <button id="throwBtn" type="button">Random throw</button>
+          <button id="newBtn" class="sec" type="button">New game</button>
+          <button id="soundBtn" class="sec" type="button">Sound: on</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="legend">
+    Controls: click or tap anywhere on the board to throw there, or aim with the arrow keys and
+    press space. Random throw picks a spot for you. The power slider trades precision for chaos.
+    Real 501 rules: start at 501, three darts per turn, check out on exactly zero with a double,
+    going below zero or leaving one point is a bust and ends your turn. Check out within 20 turns.
+  </div>
+  <div class="credit">Game engine ingested from you-sk/game-darts (MIT), adapted offline with a corrected ruleset.</div>
+</div>
+
+<!-- Start screen -->
+<div class="overlay" id="startOverlay">
+  <div class="card">
+    <h2>Darts 501</h2>
+    <p>Start at 501 and bring your score to exactly zero. You must land the finishing dart in a
+       double ring (the thin outer ring, or the bullseye).</p>
+    <p><b>Controls</b><br>
+      Click or tap the board to throw at that spot.<br>
+      Arrow keys move the aim marker, space throws. Random throw button also works from the keyboard.<br>
+      Lower power on the slider means tighter, more accurate throws.<br>
+      Three darts per turn. Scoring below zero or leaving exactly one point is a bust: your turn
+      ends and the score reverts to the turn's starting value.</p>
+    <p>You have 20 turns to check out.</p>
+    <button id="startBtn" type="button">Start</button>
+  </div>
+</div>
+
+<!-- End screen -->
+<div class="overlay hidden" id="endOverlay">
+  <div class="card">
+    <h2 id="endTitle">Game over</h2>
+    <div class="big" id="endScore">501</div>
+    <p id="endText"></p>
+    <button id="restartBtn" type="button">Play again</button>
+  </div>
+</div>
+
+<script>
+"use strict";
+/* ---- SoundManager: synthesized Web Audio sounds, ingested from you-sk/game-darts (MIT), console spam removed ---- */
+class SoundManager {
+  constructor(){
+    this.audioContext = null;
+    this.sounds = {};
+    this.enabled = true;
+    try {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      this.audioContext = new AC();
+      this.masterGain = this.audioContext.createGain();
+      this.masterGain.connect(this.audioContext.destination);
+      this.masterGain.gain.value = 0.6;
+      this.createSounds();
+    } catch (e) { this.audioContext = null; }
+  }
+  createSounds(){
+    this.sounds.hit = () => this.tone(800, 400, 0.1, 0.3);
+    this.sounds.miss = () => this.tone(200, 100, 0.3, 0.2);
+    this.sounds.highScore = () => [523, 659, 784].forEach((f, i) =>
+      setTimeout(() => this.tone(f, f, 0.15, 0.2), i * 100));
+    this.sounds.bullseye = () => [523, 659, 784, 1046].forEach((f) => this.tone(f, f, 0.5, 0.15));
+    this.sounds.click = () => this.tone(1000, 1000, 0.05, 0.1);
+    this.sounds.bust = () => [150, 175, 195].forEach((f, i) =>
+      setTimeout(() => this.tone(f, f * 0.5, 0.5, 0.2, "sawtooth"), i * 50));
+    this.sounds.victory = () => {
+      const melody = [[523, 0], [523, 150], [523, 300], [659, 450], [784, 600], [1046, 750]];
+      melody.forEach(([f, t]) => setTimeout(() => this.tone(f, f, 0.2, 0.2), t));
+    };
+  }
+  tone(f0, f1, dur, vol, type){
+    if (!this.audioContext) return;
+    const t = this.audioContext.currentTime;
+    const osc = this.audioContext.createOscillator();
+    const gain = this.audioContext.createGain();
+    osc.connect(gain);
+    gain.connect(this.masterGain);
+    if (type) osc.type = type;
+    osc.frequency.setValueAtTime(f0, t);
+    if (f1 !== f0) osc.frequency.exponentialRampToValueAtTime(f1, t + dur);
+    gain.gain.setValueAtTime(vol, t);
+    gain.gain.exponentialRampToValueAtTime(0.01, t + dur);
+    osc.start(t);
+    osc.stop(t + dur);
+  }
+  play(name){
+    if (!this.enabled || !this.audioContext || !this.sounds[name]) return;
+    if (this.audioContext.state === "suspended") this.audioContext.resume();
+    try { this.sounds[name](); } catch (e) { /* audio is optional */ }
+  }
+  toggle(){ this.enabled = !this.enabled; return this.enabled; }
+}
+
+/* ---- DartsGame: engine ingested from you-sk/game-darts (MIT), rules corrected for real 501 ---- */
+const $ = (id) => document.getElementById(id);
+const NUMBERS = [20, 1, 18, 4, 13, 6, 10, 15, 2, 17, 3, 19, 7, 16, 8, 11, 14, 9, 12, 5];
+const MAX_TURNS = 20;
+
+class DartsGame {
+  constructor(){
+    this.score = 501;
+    this.turn = 1;
+    this.dartsLeft = 3;
+    this.turnStartScore = 501;
+    this.history = [];
+    this.markers = [];
+    this.popupAnims = [];
+    this.sound = new SoundManager();
+    this.aimX = 200;
+    this.aimY = 80;
+    this.busy = false;
+    this.running = false;
+    this.buildBoard();
+    this.bind();
+    this.updateHud();
+  }
+
+  buildBoard(){
+    const svg = $("board");
+    svg.textContent = "";
+    const CX = 200, CY = 200, segments = 20;
+    const angleStep = 360 / segments;
+    const startAngle = -90 - angleStep / 2;
+    const colors = {
+      single: ["#e8f5e9", "#c8e6c9"],
+      ring: ["#4caf50", "#388e3c"],
+      bullseye: "#d9634f",
+      bull: "#4caf50",
+    };
+    const doubleOuter = 180, doubleInner = 170;
+    const singleOuter = 170, tripleOuter = 110, tripleInner = 100, singleInner = 100;
+    const bullRadius = 30, bullseyeRadius = 15;
+
+    const seg = (r1, r2, a1, a2, fill, value) => {
+      const rad = (a) => a * Math.PI / 180;
+      const x1 = CX + r1 * Math.cos(rad(a1)), y1 = CY + r1 * Math.sin(rad(a1));
+      const x2 = CX + r2 * Math.cos(rad(a1)), y2 = CY + r2 * Math.sin(rad(a1));
+      const x3 = CX + r2 * Math.cos(rad(a2)), y3 = CY + r2 * Math.sin(rad(a2));
+      const x4 = CX + r1 * Math.cos(rad(a2)), y4 = CY + r1 * Math.sin(rad(a2));
+      const large = a2 - a1 > 180 ? 1 : 0;
+      const p = document.createElementNS("http://www.w3.org/2000/svg", "path");
+      p.setAttribute("d", `M ${x1} ${y1} L ${x2} ${y2} A ${r2} ${r2} 0 ${large} 1 ${x3} ${y3} L ${x4} ${y4} A ${r1} ${r1} 0 ${large} 0 ${x1} ${y1} Z`);
+      p.setAttribute("fill", fill);
+      p.setAttribute("stroke", "#333");
+      p.setAttribute("stroke-width", "1");
+      p.setAttribute("data-value", value);
+      return p;
+    };
+
+    for (let i = 0; i < segments; i++){
+      const a1 = startAngle + i * angleStep;
+      const a2 = a1 + angleStep;
+      const ci = i % 2;
+      svg.appendChild(seg(doubleInner, doubleOuter, a1, a2, colors.ring[ci], "double-" + NUMBERS[i]));
+      svg.appendChild(seg(tripleOuter, singleOuter, a1, a2, colors.single[ci], "single-" + NUMBERS[i]));
+      svg.appendChild(seg(tripleInner, tripleOuter, a1, a2, colors.ring[ci], "triple-" + NUMBERS[i]));
+      svg.appendChild(seg(bullRadius, singleInner, a1, a2, colors.single[ci], "single-" + NUMBERS[i]));
+    }
+
+    const circle = (r, fill, value) => {
+      const c = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+      c.setAttribute("cx", CX); c.setAttribute("cy", CY); c.setAttribute("r", r);
+      c.setAttribute("fill", fill);
+      c.setAttribute("data-value", value);
+      return c;
+    };
+    svg.appendChild(circle(bullRadius, colors.bull, "bull-25"));
+    svg.appendChild(circle(bullseyeRadius, colors.bullseye, "bullseye-50"));
+
+    for (let i = 0; i < segments; i++){
+      const a = (startAngle + i * angleStep + angleStep / 2) * Math.PI / 180;
+      const x = CX + 155 * Math.cos(a), y = CY + 155 * Math.sin(a);
+      const bg = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+      bg.setAttribute("cx", x); bg.setAttribute("cy", y); bg.setAttribute("r", 12);
+      bg.setAttribute("fill", "#2c3e50"); bg.setAttribute("stroke", "#fff"); bg.setAttribute("stroke-width", "1");
+      svg.appendChild(bg);
+      const t = document.createElementNS("http://www.w3.org/2000/svg", "text");
+      t.setAttribute("x", x); t.setAttribute("y", y);
+      t.setAttribute("text-anchor", "middle"); t.setAttribute("dominant-baseline", "middle");
+      t.setAttribute("fill", "#fff"); t.setAttribute("font-size", "14"); t.setAttribute("font-weight", "bold");
+      t.setAttribute("pointer-events", "none");
+      t.textContent = NUMBERS[i];
+      svg.appendChild(t);
+    }
+
+    // aim marker
+    const aim = document.createElementNS("http://www.w3.org/2000/svg", "g");
+    aim.setAttribute("id", "aimG");
+    aim.setAttribute("pointer-events", "none");
+    const ring = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+    ring.setAttribute("r", 9); ring.setAttribute("fill", "none");
+    ring.setAttribute("stroke", "#e0a33e"); ring.setAttribute("stroke-width", 2);
+    const cross1 = document.createElementNS("http://www.w3.org/2000/svg", "line");
+    cross1.setAttribute("x1", -14); cross1.setAttribute("x2", 14);
+    cross1.setAttribute("y1", 0); cross1.setAttribute("y2", 0);
+    const cross2 = document.createElementNS("http://www.w3.org/2000/svg", "line");
+    cross2.setAttribute("y1", -14); cross2.setAttribute("y2", 14);
+    cross2.setAttribute("x1", 0); cross2.setAttribute("x2", 0);
+    [ring, cross1, cross2].forEach((el) => {
+      el.setAttribute("stroke", "#e0a33e"); el.setAttribute("pointer-events", "none");
+      aim.appendChild(el);
+    });
+    aim.setAttribute("transform", "translate(200, 80)");
+    svg.appendChild(aim);
+  }
+
+  svgPoint(clientX, clientY){
+    const r = $("board").getBoundingClientRect();
+    return [
+      (clientX - r.left) / r.width * 400,
+      (clientY - r.top) / r.height * 400,
+    ];
+  }
+
+  setAim(x, y){
+    this.aimX = Math.max(6, Math.min(394, x));
+    this.aimY = Math.max(6, Math.min(394, y));
+    const g = $("aimG");
+    if (g) g.setAttribute("transform", `translate(${this.aimX}, ${this.aimY})`);
+  }
+
+  bind(){
+    const svg = $("board");
+    svg.addEventListener("mousemove", (e) => {
+      const [x, y] = this.svgPoint(e.clientX, e.clientY);
+      this.setAim(x, y);
+    });
+    svg.addEventListener("click", (e) => {
+      if (!this.canThrow()) return;
+      const [x, y] = this.svgPoint(e.clientX, e.clientY);
+      this.throwDart(x, y);
+    });
+    svg.addEventListener("keydown", (e) => {
+      if (!this.running) return;
+      const step = e.shiftKey ? 20 : 8;
+      if (e.key === "ArrowLeft"){ this.setAim(this.aimX - step, this.aimY); e.preventDefault(); }
+      else if (e.key === "ArrowRight"){ this.setAim(this.aimX + step, this.aimY); e.preventDefault(); }
+      else if (e.key === "ArrowUp"){ this.setAim(this.aimX, this.aimY - step); e.preventDefault(); }
+      else if (e.key === "ArrowDown"){ this.setAim(this.aimX, this.aimY + step); e.preventDefault(); }
+      else if (e.key === " " || e.key === "Enter"){
+        if (this.canThrow()) this.throwDart(this.aimX, this.aimY);
+        e.preventDefault();
+      }
+    });
+    $("throwBtn").addEventListener("click", () => {
+      if (!this.canThrow()) return;
+      const a = Math.random() * Math.PI * 2;
+      const r = Math.random() * 180;
+      this.throwDart(200 + Math.cos(a) * r, 200 + Math.sin(a) * r);
+    });
+    $("newBtn").addEventListener("click", () => this.reset());
+    $("soundBtn").addEventListener("click", () => {
+      const on = this.sound.toggle();
+      $("soundBtn").textContent = "Sound: " + (on ? "on" : "off");
+      if (on) this.sound.play("click");
+    });
+    $("power").addEventListener("input", (e) => {
+      $("powerVal").textContent = e.target.value;
+    });
+  }
+
+  canThrow(){
+    return this.running && !this.busy && this.dartsLeft > 0;
+  }
+
+  /* Resolve a throw at board coords (x, y) with power scatter. */
+  throwDart(px, py){
+    if (!this.canThrow()) return;
+    this.busy = true;
+    this.sound.play("click");
+    const power = Number($("power").value) / 100;
+    const scatter = power * 0.3 * 15;
+    const x = px + (Math.random() - 0.5) * 2 * scatter;
+    const y = py + (Math.random() - 0.5) * 2 * scatter;
+    this.flyTrail(px, py, x, y);
+
+    const CX = 200, CY = 200;
+    const dist = Math.hypot(x - CX, y - CY);
+    let score = 0, multiplier = 1, area = "";
+
+    if (dist <= 15){
+      score = 50; multiplier = 2; area = "bullseye"; // bullseye is a finishing double
+    } else if (dist <= 30){
+      score = 25; area = "outer bull";
+    } else if (dist <= 190){
+      let ang = (Math.atan2(y - CY, x - CX) * 180 / Math.PI + 90 + 9) % 360;
+      if (ang < 0) ang += 360;
+      const base = NUMBERS[Math.floor(ang / 18) % 20];
+      if (dist >= 170){ multiplier = 2; area = "double " + base; }
+      else if (dist >= 100 && dist <= 110){ multiplier = 3; area = "triple " + base; }
+      else area = "single " + base;
+      score = base * multiplier;
+    } else {
+      area = "miss";
+    }
+
+    if (dist <= 190 && score > 0) this.addMarker(x, y);
+    this.sound.play(score === 50 ? "bullseye" : score >= 40 ? "highScore" : score > 0 ? "hit" : "miss");
+    this.popup(x, y, score);
+
+    this.dartsLeft--;
+    const remaining = this.score - score;
+    const isBust = remaining < 0 || remaining === 1 || (remaining === 0 && multiplier !== 2);
+
+    if (isBust){
+      this.score = this.turnStartScore;
+      this.log("Bust on " + area + ". Score reverts to " + this.score + ".");
+      this.sound.play("bust");
+      this.say("Bust. Turn over, back to " + this.score + ".", "err");
+      this.updateHud();
+      setTimeout(() => this.endTurn(), 900);
+      return;
+    }
+
+    this.score = remaining;
+    this.log("Turn " + this.turn + ", dart " + (4 - this.dartsLeft) + ": " + area + " (+" + score + ")");
+    this.updateHud();
+
+    if (this.score === 0){
+      this.win();
+      return;
+    }
+    if (this.dartsLeft === 0){
+      this.say("Turn done, " + this.score + " left.", "");
+      setTimeout(() => this.endTurn(), 600);
+      return;
+    }
+    this.busy = false;
+    this.say(area.charAt(0).toUpperCase() + area.slice(1) + ", " + this.score + " left.", "");
+  }
+
+  endTurn(){
+    this.clearMarkers();
+    this.turn++;
+    if (this.turn > MAX_TURNS){
+      this.lose();
+      return;
+    }
+    this.dartsLeft = 3;
+    this.turnStartScore = this.score;
+    this.busy = false;
+    this.updateHud();
+    this.say("Turn " + this.turn + ". " + this.score + " to go.", "");
+  }
+
+  flyTrail(x1, y1, x2, y2){
+    const svg = $("board");
+    const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+    line.setAttribute("x1", x1); line.setAttribute("y1", y1);
+    line.setAttribute("x2", x1); line.setAttribute("y2", y1);
+    line.setAttribute("stroke", "#e0a33e"); line.setAttribute("stroke-width", 2);
+    line.setAttribute("stroke-linecap", "round");
+    svg.insertBefore(line, $("aimG"));
+    let p = 0;
+    const anim = () => {
+      p += 0.12;
+      if (p <= 1){
+        line.setAttribute("x2", x1 + (x2 - x1) * p);
+        line.setAttribute("y2", y1 + (y2 - y1) * p);
+        requestAnimationFrame(anim);
+      } else {
+        setTimeout(() => line.remove(), 80);
+      }
+    };
+    requestAnimationFrame(anim);
+  }
+
+  addMarker(x, y){
+    const svg = $("board");
+    const c = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+    c.setAttribute("cx", x); c.setAttribute("cy", y); c.setAttribute("r", 4);
+    c.setAttribute("fill", "#d9634f"); c.setAttribute("stroke", "#fff"); c.setAttribute("stroke-width", 2);
+    c.setAttribute("pointer-events", "none");
+    svg.insertBefore(c, $("aimG"));
+    this.markers.push(c);
+  }
+
+  clearMarkers(){
+    this.markers.forEach((m) => m.remove());
+    this.markers = [];
+  }
+
+  popup(x, y, score){
+    const svg = $("board");
+    const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+    const label = score > 0 ? "+" + score : "Miss";
+    const w = label.length * 14 + 18;
+    const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+    rect.setAttribute("x", x - w / 2); rect.setAttribute("y", y - 36);
+    rect.setAttribute("width", w); rect.setAttribute("height", 28); rect.setAttribute("rx", 5);
+    rect.setAttribute("fill", score > 0 ? "#4fa3b8" : "#d9634f"); rect.setAttribute("stroke", "#fff");
+    const t = document.createElementNS("http://www.w3.org/2000/svg", "text");
+    t.setAttribute("x", x); t.setAttribute("y", y - 21);
+    t.setAttribute("text-anchor", "middle"); t.setAttribute("dominant-baseline", "middle");
+    t.setAttribute("fill", "#fff"); t.setAttribute("font-size", "18"); t.setAttribute("font-weight", "bold");
+    t.setAttribute("pointer-events", "none");
+    t.textContent = label;
+    g.appendChild(rect); g.appendChild(t);
+    g.setAttribute("pointer-events", "none");
+    svg.insertBefore(g, $("aimG"));
+    let opacity = 1, dy = 0;
+    const anim = () => {
+      opacity -= 0.02; dy -= 1;
+      g.setAttribute("transform", "translate(0," + dy + ")");
+      g.setAttribute("opacity", opacity);
+      if (opacity > 0) requestAnimationFrame(anim);
+      else g.remove();
+    };
+    requestAnimationFrame(anim);
+  }
+
+  log(text){
+    this.history.unshift(text);
+    const ul = $("history");
+    ul.textContent = "";
+    this.history.slice(0, 8).forEach((h) => {
+      const li = document.createElement("li");
+      li.textContent = h;
+      ul.appendChild(li);
+    });
+  }
+
+  say(text, cls){
+    const m = $("msg");
+    m.textContent = text;
+    m.className = "msg" + (cls ? " " + cls : "");
+  }
+
+  updateHud(){
+    $("score").textContent = this.score;
+    $("turn").textContent = Math.min(this.turn, MAX_TURNS);
+    $("dartsLeft").textContent = this.dartsLeft;
+    $("turnStart").textContent = this.turnStartScore;
+  }
+
+  win(){
+    this.running = false;
+    this.busy = true;
+    this.sound.play("victory");
+    this.say("Checked out on a double. Game!", "ok");
+    $("endTitle").textContent = "Game won";
+    $("endScore").textContent = "0";
+    $("endText").textContent = "You checked out from " + (this.turnStartScore) + " in " + this.turn +
+      " turn" + (this.turn === 1 ? "" : "s") + ".";
+    $("endOverlay").classList.remove("hidden");
+  }
+
+  lose(){
+    this.running = false;
+    this.busy = true;
+    $("endTitle").textContent = "Out of turns";
+    $("endScore").textContent = this.score;
+    $("endText").textContent = this.score + " points remained after " + MAX_TURNS + " turns. Next time, plan your checkout.";
+    $("endOverlay").classList.remove("hidden");
+  }
+
+  reset(){
+    this.score = 501;
+    this.turn = 1;
+    this.dartsLeft = 3;
+    this.turnStartScore = 501;
+    this.history = [];
+    this.busy = false;
+    this.running = true;
+    this.clearMarkers();
+    const ul = $("history");
+    ul.textContent = "";
+    this.setAim(200, 80);
+    this.updateHud();
+    this.say("Turn 1. Tap the board to throw.", "");
+    $("board").focus({ preventScroll: true });
+  }
+}
+
+const game = new DartsGame();
+$("startBtn").addEventListener("click", () => {
+  $("startOverlay").classList.add("hidden");
+  game.reset();
+});
+$("restartBtn").addEventListener("click", () => {
+  $("endOverlay").classList.add("hidden");
+  game.reset();
+});
+</script>
+</body>
+</html>

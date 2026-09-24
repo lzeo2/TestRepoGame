@@ -1,0 +1,7 @@
+[
+ {"title": "Duck Hunt", "cat": "arcade", "icon": "", "desc": "Aim the crosshair and shoot rising ducks before they escape; clear three rounds of limited shots to win.", "url": "Games/DuckHunt/index.html", "featured": false, "tags": ["shooter"]},
+ {"title": "Curve Fever", "cat": "arcade", "icon": "", "desc": "Steer a growing line through the arena and outlast the computer or a friend; first to five round wins takes the match.", "url": "Games/CurveFever/index.html", "featured": false, "tags": ["1p", "2p"]},
+ {"title": "Sokoban", "cat": "puzzle", "icon": "", "desc": "Push every crate onto its target across five warehouse levels, with undo, move counters and a stuck-crate lose state.", "url": "Games/Sokoban/index.html", "featured": false, "tags": ["puzzle"]},
+ {"title": "Nonogram", "cat": "puzzle", "icon": "", "desc": "Reveal hidden pictures by filling cells from the number clues, with 5x5 and 10x10 grids and a mistakes counter.", "url": "Games/Nonogram/index.html", "featured": false, "tags": ["puzzle"]},
+ {"title": "Tower of Hanoi", "cat": "puzzle", "icon": "", "desc": "Move the whole stack between pegs under the classic rules, spending a minimal 2^n - 1 move budget to win.", "url": "Games/TowerOfHanoi/index.html", "featured": false, "tags": ["puzzle"]}
+]

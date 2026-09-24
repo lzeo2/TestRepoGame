@@ -1,0 +1,7 @@
+[
+ {"title": "FreeCell", "cat": "classic", "icon": "", "desc": "Clear all 52 cards to four foundations using eight cascades and four free cells, with undo, auto-move and full keyboard play.", "url": "Games/FreeCell/index.html", "featured": false, "tags": ["classic"]},
+ {"title": "Blackjack", "cat": "classic", "icon": "", "desc": "Beat the dealer to 21 with hit, stand and double against a dealer who stands on 17; naturals pay 3:2 and 2,000 chips wins the session.", "url": "Games/Blackjack/index.html", "featured": false, "tags": ["classic"]},
+ {"title": "Video Poker", "cat": "classic", "icon": "", "desc": "Draw five cards, hold the ones you keep, and chase the Jacks or Better paytable across eight game types until you double your stack.", "url": "Games/VideoPoker/index.html", "featured": false, "tags": ["classic"]},
+ {"title": "Yahtzee", "cat": "classic", "icon": "", "desc": "Thirteen rounds of five dice: roll up to three times per round, hold the keepers, score every category, and reach 200 points to win.", "url": "Games/Yahtzee/index.html", "featured": false, "tags": ["classic"]},
+ {"title": "Dominoes", "cat": "classic", "icon": "", "desc": "Play block dominoes against the computer: match the chain ends, draw from the boneyard when stuck, and be first to 100 points.", "url": "Games/Dominoes/index.html", "featured": false, "tags": ["classic"]}
+]

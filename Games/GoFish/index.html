@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Play Go Fish against the computer. Ask for ranks, collect books, win the most books.">
+<link rel="icon" href="data:,">
+<title>Go Fish</title>
+<!--
+  Adapted from "go-fish" by Suren Enfiajyan, licensed under the MIT License.
+  Source: https://github.com/surenenfiajyan/go-fish
+  Changes: single-file layout, flat restyle, no sound pack, no external links,
+  score-by-books display, 360px-safe responsive header, start controls dialog.
+-->
+<style>
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  background: #f4f1ea;
+  color: #1d1d1f;
+  touch-action: manipulation;
+}
+
+.wait, .wait * { cursor: wait !important; }
+
+header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 8px;
+  background: #2f5d50;
+}
+
+#scoreline {
+  color: #fdf6e3;
+  font-size: 15px;
+  padding: 4px 6px;
+  text-align: center;
+}
+
+button, select {
+  min-height: 44px;
+  min-width: 44px;
+  padding: 6px 12px;
+  font-size: 15px;
+  font-family: inherit;
+  background: #f4c542;
+  color: #1d1d1f;
+  border: 2px solid #1d1d1f;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+button:focus-visible, select:focus-visible {
+  outline: 3px solid #1d1d1f;
+  outline-offset: 2px;
+}
+
+button:active { background: #e0a91b; }
+
+label { color: #fdf6e3; font-size: 15px; }
+
+main {
+  display: flex;
+  flex-direction: column;
+  min-height: calc(100dvh - 62px);
+}
+
+.card, .card-back {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  container-type: size;
+  width: min(11vmin, 56px);
+  border: 1px solid #1d1d1f;
+  border-radius: 6px;
+  aspect-ratio: 0.6;
+  position: relative;
+  top: 0;
+  left: 0;
+  overflow: hidden;
+  outline: none;
+  background: #ffffff;
+}
+
+.card:focus { outline: 3px solid #2f8f5b; }
+.card[tabindex="0"] { cursor: pointer; }
+.card[tabindex="0"]:hover { outline: 3px solid #2f8f5b; }
+
+@media (max-width: 500px) or (max-height: 500px) {
+  .card, .card-back { width: 48px; border-radius: 5px; }
+}
+
+/* Rank in the corner, suit letter below it: flat text, no images. */
+.card::before {
+  content: attr(data-level);
+  position: absolute;
+  top: 2px;
+  left: 4px;
+  font-size: 40cqw;
+  font-weight: bold;
+  line-height: 1;
+}
+
+.card::after {
+  content: attr(data-suit);
+  position: absolute;
+  bottom: 2px;
+  right: 5px;
+  font-size: 44cqw;
+  font-weight: bold;
+  line-height: 1;
+}
+
+.card[data-red="1"] { color: #c0392b; }
+.card[data-red="0"] { color: #1d1d1f; }
+
+.card-back {
+  background: #2f5d50;
+}
+
+.card-back::before {
+  content: "";
+  width: 55%;
+  border-radius: 50%;
+  aspect-ratio: 1;
+  background: #f4c542;
+  border: 3px solid #1d1d1f;
+}
+
+.full-deck {
+  position: relative;
+  z-index: 10;
+  display: flex;
+  flex-direction: column-reverse;
+  align-items: center;
+  justify-content: flex-start;
+  height: 74px;
+  margin: auto 0;
+}
+
+.full-deck-card { height: 0.5px; }
+.full-deck .card-back { transform: translateY(-90%) rotate3d(1, 0, 1, 45deg); }
+
+.opponent-fishes, .your-fishes {
+  display: flex;
+  flex-direction: column-reverse;
+  justify-content: flex-start;
+  height: 74px;
+  padding: 0 40px;
+}
+
+.fish-card { height: 1px; }
+
+.opponent-fishes .fish-card { align-self: flex-start; }
+.opponent-fishes .fish-card:nth-child(8n+1) .card-back,
+.opponent-fishes .fish-card:nth-child(8n+2) .card-back,
+.opponent-fishes .fish-card:nth-child(8n+3) .card-back,
+.opponent-fishes .fish-card:nth-child(8n+4) .card-back { transform: translateY(-90%) rotate3d(1, 0, 1, -45deg); }
+
+.your-fishes .fish-card { align-self: flex-end; }
+.your-fishes .fish-card:nth-child(8n+5) .card-back,
+.your-fishes .fish-card:nth-child(8n+6) .card-back,
+.your-fishes .fish-card:nth-child(8n+7) .card-back,
+.your-fishes .fish-card:nth-child(8n+8) .card-back { transform: translateY(-90%) rotate3d(1, 0, 1, 45deg); }
+
+.your-cards, .opponent-cards {
+  position: relative;
+  margin-top: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  min-height: 110px;
+  border-radius: 10px;
+  background-color: #6b4f36;
+  padding: 10px;
+  gap: 10px;
+}
+
+.opponent-cards { min-height: 46px; }
+
+.message {
+  position: absolute;
+  z-index: 10;
+  padding: 8px 16px;
+  border: 2px solid #1d1d1f;
+  border-radius: 8px;
+  background: #ffffff;
+  max-width: 70vw;
+  font-weight: bold;
+  font-size: 22px;
+}
+
+.your-cards .message { right: 10px; bottom: calc(10px + 100%); }
+.opponent-cards .message { left: 10px; top: calc(10px + 100%); }
+
+.group {
+  display: flex;
+  flex-direction: column;
+  min-height: 100px;
+  height: min(20vmin, 120px);
+  min-width: min(11vmin, 56px);
+}
+
+.play-card { height: 5px; }
+.play-card .card { top: 10px; margin-bottom: 5px; }
+
+/* Opponent hand is hidden (their ranks are secret); messages still show. */
+.opponent-cards .group, .opponent-cards .card, .opponent-cards .card-back { display: none; }
+
+dialog {
+  border: 3px solid #1d1d1f;
+  border-radius: 10px;
+  padding: 16px 20px;
+  max-width: min(92vw, 420px);
+  background: #ffffff;
+  color: #1d1d1f;
+  font-size: 16px;
+}
+
+dialog::backdrop { background: rgba(0, 0, 0, 0.5); }
+
+dialog .message { position: static; border: none; padding: 0; max-width: none; font-size: 16px; white-space: pre-line; }
+
+dialog .buttons { display: flex; gap: 16px; justify-content: center; margin-top: 14px; }
+</style>
+</head>
+<body>
+<header>
+  <button id="newGameBtn" type="button">New game</button>
+  <label>Difficulty:
+    <select id="difficultySelect">
+      <option value="easy">Easy</option>
+      <option value="medium">Medium</option>
+      <option value="hard">Hard</option>
+      <option value="god">God</option>
+    </select>
+  </label>
+  <span id="scoreline">Books: you 0, computer 0</span>
+</header>
+<main>
+  <div class="opponent-cards" id="opponentCards" aria-hidden="true"></div>
+  <div class="opponent-fishes" id="opponentFishes" aria-hidden="true"></div>
+  <div class="full-deck" id="fullDeck" aria-hidden="true"></div>
+  <div class="your-fishes" id="yourFishes" aria-hidden="true"></div>
+  <div class="your-cards" id="yourCards"></div>
+</main>
+<dialog id="popup">
+  <form method="dialog">
+    <div class="message"></div>
+    <div class="buttons">
+      <button value="yes" type="submit">OK</button>
+      <button value="no" type="submit">No</button>
+    </div>
+  </form>
+</dialog>
+<script>
+class GoFish {
+  #newGameButtonEl = document.getElementById('newGameBtn');
+  #difficultySelectEl = document.getElementById('difficultySelect');
+  #opponentCardsEl = document.getElementById('opponentCards');
+  #opponentFishesEl = document.getElementById('opponentFishes');
+  #fullDeckEl = document.getElementById('fullDeck');
+  #yourFishesEl = document.getElementById('yourFishes');
+  #yourCardsEl = document.getElementById('yourCards');
+  #scorelineEl = document.getElementById('scoreline');
+  #popup = document.getElementById('popup');
+  #minimumKnownYourCards = {};
+  #maximumKnownCardsLeftInDeck = {};
+  #lastOpponentGuesses = {};
+  #difficultyLevel = -1;
+  #blockEvents = false;
+  #clickAttempts = 0;
+  #totalYourPickedCards = 0;
+  #firstTime = true;
+  #yourTurn = false;
+  #gameOver = false;
+  #runId = 0;
+  #message = document.createElement('div');
+  #yourInputReject = null;
+  #cardNames = {
+    'A': 'aces', '2': 'twos', '3': 'threes', '4': 'fours', '5': 'fives',
+    '6': 'sixes', '7': 'sevens', '8': 'eights', '9': 'nines', '10': 'tens',
+    'J': 'jacks', 'Q': 'queens', 'K': 'kings',
+  };
+  #redSuits = { 'hearts': '1', 'diamonds': '1', 'spades': '0', 'clubs': '0' };
+  #suitLetters = { 'hearts': 'H', 'diamonds': 'D', 'spades': 'S', 'clubs': 'C' };
+  #difficultyLevels = { 'easy': 1, 'medium': 2, 'hard': 3, 'god': 4 };
+
+  constructor() {
+    this.#message.classList.add('message');
+    const blocker = (e) => {
+      if (this.#turnOffEvents) {
+        e.preventDefault();
+        e.stopPropagation();
+        ++this.#clickAttempts;
+      }
+    };
+
+    this.#popup.oncancel = (e) => { e.preventDefault(); };
+
+    for (const ev of ['click', 'change', 'input', 'keydown', 'focus', 'mousedown']) {
+      window.addEventListener(ev, blocker, true);
+    }
+
+    this.#newGameButtonEl.onclick = () => {
+      this.#showDialog('Start a new game?', () => { this.newGame(); }, () => {});
+    };
+
+    this.#difficultySelectEl.value = localStorage.getItem('difficulty') || 'medium';
+    this.#difficultySelectEl.onchange = () => {
+      try { localStorage.setItem('difficulty', this.#difficultySelectEl.value); } catch (e) { /* private mode */ }
+      this.#showDialog('New difficulty applies to the next game.\nStart a new game now?', () => { this.newGame(); }, () => {});
+    };
+  }
+
+  get #turnOffEvents() { return this.#blockEvents; }
+
+  set #turnOffEvents(block) {
+    this.#blockEvents = !!block;
+    document.body.classList.toggle('wait', this.#blockEvents);
+    if (!this.#blockEvents) this.#clickAttempts = 0;
+  }
+
+  #calculateDuration(ms) {
+    if (this.#clickAttempts >= 2) return 0;
+    return ms;
+  }
+
+  async newGame() {
+    if (this.#firstTime) {
+      this.#firstTime = false;
+      this.#showDialog(
+        'Go Fish\n\n' +
+        'Click a card of the rank you ask for (or Tab to it and press Enter).\n' +
+        'The computer answers from its hand or sends you fishing.\n' +
+        'Collect 4 of a kind to win a book. First to 7 books wins the game.',
+        () => { this.newGame(); }
+      );
+      return;
+    }
+
+    const runId = ++this.#runId;
+    this.#yourInputReject?.('Started new game');
+    this.#yourTurn = Math.random() < 0.5;
+    this.#gameOver = false;
+    this.#turnOffEvents = true;
+    this.#totalYourPickedCards = 7;
+    this.#difficultyLevel = this.#difficultyLevels[this.#difficultySelectEl.value] || 2;
+    this.#minimumKnownYourCards = Object.fromEntries(Object.keys(this.#cardNames).map(k => [k, 0]));
+    this.#lastOpponentGuesses = Object.fromEntries(Object.keys(this.#cardNames).map(k => [k, -1]));
+    this.#maximumKnownCardsLeftInDeck = Object.fromEntries(Object.keys(this.#cardNames).map(k => [k, 4]));
+    this.#opponentFishesEl.innerHTML = this.#yourFishesEl.innerHTML = this.#yourCardsEl.innerHTML = this.#opponentCardsEl.innerHTML = '';
+
+    const allCards = Object.keys(this.#minimumKnownYourCards).flatMap(level => [
+      { type: 'hearts', level }, { type: 'diamonds', level },
+      { type: 'spades', level }, { type: 'clubs', level },
+    ]);
+
+    this.#shuffle(allCards);
+    this.#fullDeckEl.innerHTML = allCards.map(x =>
+      '<div class="full-deck-card"><div class="card-back" aria-hidden="true" data-type="' + x.type +
+      '" data-level="' + x.level + '" data-suit="' + this.#suitLetters[x.type] +
+      '" data-red="' + this.#redSuits[x.type] + '"></div></div>'
+    ).join('');
+
+    for (let i = 0; i < 7; ++i) await this.#addToCardsFromDeck(this.#yourCardsEl, this.#pickCardFromDeck());
+    for (let i = 0; i < 7; ++i) await this.#addToCardsFromDeck(this.#opponentCardsEl, this.#pickCardFromDeck());
+
+    await this.#checkForCompleteBlocks();
+    await this.#cleanupLeftovers();
+
+    while (this.#runId === runId && !this.#gameOver) {
+      try {
+        await this.#processTurn();
+      } catch (e) {
+        // A pending ask was aborted because a newer game started; any other
+        // error is a real bug and must surface.
+        if (this.#runId !== runId) break;
+        throw e;
+      }
+    }
+  }
+
+  #showDialog(message, onAccept, onDecline) {
+    this.#popup.returnValue = onDecline ? 'no' : 'yes';
+    this.#popup.querySelector('.message').textContent = message;
+    this.#popup.showModal();
+    const [yesButton, noButton] = this.#popup.querySelectorAll('button');
+
+    yesButton.textContent = onDecline ? 'Yes' : 'OK';
+    noButton.style.display = onDecline ? '' : 'none';
+
+    this.#popup.onclose = (e) => {
+      if (e.target.returnValue === 'yes') onAccept && onAccept();
+      else onDecline && onDecline();
+    };
+  }
+
+  #pickCardFromDeck() {
+    return this.#fullDeckEl.lastElementChild && this.#fullDeckEl.lastElementChild.firstElementChild;
+  }
+
+  async #addToCardsFromDeck(cardsEl, card) {
+    if (!card) return;
+    const duration = 150;
+    const group = this.#getGroup(card.dataset.level, cardsEl);
+    const deckBox = card.getBoundingClientRect();
+    const groupBox = (cardsEl === this.#opponentCardsEl ? this.#opponentCardsEl : group).getBoundingClientRect();
+    card.style.transition = 'all linear ' + this.#calculateDuration(duration) + 'ms';
+    card.style.transform = 'translateY(-90%)';
+    card.style.left = (groupBox.x - deckBox.x) + 'px';
+    card.style.top = (groupBox.y - deckBox.y) + 'px';
+    await this.#wait(duration);
+    card.style.transition = card.style.left = card.style.top = card.style.transform = '';
+    card.classList.replace('card-back', 'card');
+    card.parentElement.classList.replace('full-deck-card', 'play-card');
+    group.append(card.parentElement);
+  }
+
+  async #checkForCompleteBlocks(yourCardIsKnown) {
+    for (const group of [...this.#yourCardsEl.querySelectorAll('.group:has(:nth-child(4))')]) {
+      if (yourCardIsKnown) {
+        this.#minimumKnownYourCards[group.dataset.level] = 0;
+        this.#maximumKnownCardsLeftInDeck[group.dataset.level] = 0;
+      }
+      await this.#addToFish(group);
+    }
+
+    for (const group of [...this.#opponentCardsEl.querySelectorAll('.group:has(:nth-child(4))')]) {
+      this.#maximumKnownCardsLeftInDeck[group.dataset.level] = 0;
+      this.#minimumKnownYourCards[group.dataset.level] = 0;
+      await this.#addToFish(group);
+    }
+
+    this.#updateInfo();
+  }
+
+  async #addToFish(group) {
+    const duration = 150;
+    const your = this.#yourCardsEl.contains(group);
+    const groupBox = (your ? group : this.#opponentCardsEl).getBoundingClientRect();
+    const fishBox = (your ? this.#yourFishesEl : this.#opponentFishesEl).getBoundingClientRect();
+
+    const [destinationX, destinationY] = your ? [fishBox.right - 60, fishBox.bottom] : [fishBox.left, fishBox.top];
+    const dx = destinationX - groupBox.x;
+    const dy = destinationY - groupBox.y;
+    const cards = [...group.querySelectorAll('.card')];
+
+    for (const card of cards) {
+      card.style.transition = 'all linear ' + this.#calculateDuration(duration) + 'ms';
+      card.style.zIndex = '20';
+      card.style.left = (your ? dx : -dx) + 'px';
+      card.style.top = (your ? dy : -dy) + 'px';
+      card.style.transform = 'translateY(-90%) rotate3d(1, 0, 1, 0deg)';
+      (your ? this.#yourFishesEl : this.#opponentFishesEl).append(card.parentElement);
+      await this.#wait(duration);
+      card.style.zIndex = card.style.left = card.style.top = card.style.transform = '';
+      card.classList.replace('card', 'card-back');
+      card.parentElement.classList.replace('play-card', 'fish-card');
+    }
+  }
+
+  #findGroup(level, cardsEl) {
+    return cardsEl.querySelector('[data-level="' + level + '"]');
+  }
+
+  #getGroup(level, cardsEl) {
+    let group = this.#findGroup(level, cardsEl);
+
+    if (!group) {
+      group = document.createElement('div');
+      group.classList.add('group');
+      group.dataset.level = level;
+      cardsEl.append(group);
+    }
+
+    if (!group.firstElementChild) {
+      const emptyGroups = cardsEl.querySelectorAll('.group:not(:has(:first-child))');
+      const otherGroup = emptyGroups[Math.floor(Math.random() * emptyGroups.length)];
+      if (otherGroup && otherGroup !== group) {
+        group.dataset.level = otherGroup.dataset.level;
+        otherGroup.dataset.level = level;
+        group = otherGroup;
+      }
+    }
+
+    return group;
+  }
+
+  async #wait(ms) {
+    while (ms > 0) {
+      const time = Math.min(ms, 200);
+      const actualTime = this.#calculateDuration(time);
+      ms -= time;
+      await new Promise(resolve => setTimeout(resolve, actualTime));
+      this.#clickAttempts = Math.max(0, this.#clickAttempts - actualTime / 500);
+    }
+  }
+
+  #updateScoreline() {
+    const yours = this.#yourFishesEl.children.length / 4;
+    const cpu = this.#opponentFishesEl.children.length / 4;
+    this.#scorelineEl.textContent = 'Books: you ' + yours + ', computer ' + cpu;
+  }
+
+  async #processTurn() {
+    this.#turnOffEvents = true;
+
+    const opponentBooks = this.#opponentFishesEl.children.length / 4;
+    const yourBooks = this.#yourFishesEl.children.length / 4;
+
+    if (opponentBooks > 6) {
+      this.#gameOver = true;
+      this.#turnOffEvents = false;
+      this.#showDialog('You lost! The computer won 7 books.\nPlay again?', () => { this.newGame(); });
+      return;
+    }
+
+    if (yourBooks > 6) {
+      this.#gameOver = true;
+      this.#turnOffEvents = false;
+      this.#showDialog('You won! You collected 7 books.\nPlay again?', () => { this.newGame(); });
+      return;
+    }
+
+    if (this.#yourTurn) await this.#processYourGuess();
+    else await this.#processOpponentGuess();
+  }
+
+  #shuffle(arr) {
+    for (let i = 0; i < arr.length; ++i) {
+      const r = Math.floor(Math.random() * arr.length);
+      [arr[i], arr[r]] = [arr[r], arr[i]];
+    }
+  }
+
+  #generateOpponentGuess() {
+    const opponentCards = this.#getOpponentCards();
+    const guesses = Object.keys(opponentCards).filter(guess => opponentCards[guess]);
+    const cardsLeftInDeck = this.#fullDeckEl.children.length;
+
+    if (this.#difficultyLevel === 4 && Math.random() < 0.5) {
+      const yourCards = this.#getYourCards();
+      for (const guess of guesses) {
+        if (yourCards[guess] && opponentCards[guess] + yourCards[guess] < 4) {
+          this.#lastOpponentGuesses[guess] = this.#totalYourPickedCards;
+          return guess;
+        }
+      }
+      for (const guess of guesses) {
+        if (opponentCards[guess] + yourCards[guess] === 4) {
+          this.#lastOpponentGuesses[guess] = this.#totalYourPickedCards;
+          return guess;
+        }
+      }
+    }
+
+    if (this.#difficultyLevel >= 3) {
+      this.#shuffle(guesses);
+      for (const n of [3, 2, 1]) {
+        for (const guess of guesses) {
+          if (this.#minimumKnownYourCards[guess] === n) {
+            this.#lastOpponentGuesses[guess] = this.#totalYourPickedCards;
+            return guess;
+          }
+        }
+      }
+    }
+
+    guesses.sort((g1, g2) => {
+      if (this.#difficultyLevel >= 3) {
+        const v1 = 1 / opponentCards[g1] * Math.pow(this.#totalYourPickedCards - this.#lastOpponentGuesses[g1], 2);
+        const v2 = 1 / opponentCards[g2] * Math.pow(this.#totalYourPickedCards - this.#lastOpponentGuesses[g2], 2);
+        return v2 - v1;
+      }
+      return this.#minimumKnownYourCards[g1] - this.#minimumKnownYourCards[g2];
+    });
+
+    if (this.#difficultyLevel >= 3 && guesses.length > 0) {
+      const filtered = guesses.filter(g => this.#totalYourPickedCards - this.#lastOpponentGuesses[g] > 0);
+      if (filtered.length) guesses.splice(0, guesses.length, ...filtered);
+    }
+
+    let idx = 0;
+    if (this.#difficultyLevel > 2) {
+      if (cardsLeftInDeck >= 15 && this.#opponentFishesEl.children.length + 1 >= this.#yourFishesEl.children.length) {
+        idx = Math.min(Math.floor(Math.pow(1 + cardsLeftInDeck / 12, Math.random()) - 1), guesses.length - 1);
+      }
+    } else if (this.#difficultyLevel > 1) {
+      idx = Math.min(Math.floor(Math.pow(1 + cardsLeftInDeck / 8, Math.random()) - 1), guesses.length - 1);
+    } else {
+      idx = -1;
+    }
+
+    const guess = guesses[idx < 0 ? guesses.length - 1 : idx];
+    if (guess) this.#lastOpponentGuesses[guess] = this.#totalYourPickedCards;
+    return guess;
+  }
+
+  async #processOpponentGuess() {
+    const guess = this.#generateOpponentGuess();
+    this.#yourTurn = true;
+
+    if (guess) {
+      await this.#showMessage('Any ' + this.#cardNames[guess] + '?', false);
+      const group = this.#findGroup(guess, this.#yourCardsEl);
+      const count = group ? group.children.length : 0;
+      this.#minimumKnownYourCards[guess] = 0;
+
+      if (count > 0) {
+        this.#yourTurn = false;
+        await this.#passCards(group);
+      } else {
+        await this.#showMessage('No, go fish', true);
+      }
+    }
+
+    if (this.#yourTurn) {
+      const card = this.#pickCardFromDeck();
+      if (card) {
+        await this.#addToCardsFromDeck(this.#opponentCardsEl, card);
+        this.#yourTurn = card.dataset.level !== guess;
+      }
+    }
+
+    await this.#checkForCompleteBlocks();
+    await this.#wait(300);
+  }
+
+  async #processYourGuess() {
+    const guess = await this.#waitForYourGuess();
+    if (this.#gameOver) return;
+
+    if (guess) await this.#showMessage('Have any ' + this.#cardNames[guess] + '?', true);
+
+    const group = this.#findGroup(guess || '--', this.#opponentCardsEl);
+    const count = group ? group.children.length : 0;
+
+    if (guess) {
+      if (!this.#minimumKnownYourCards[guess]) this.#minimumKnownYourCards[guess] = 1;
+      this.#lastOpponentGuesses[guess] = -1;
+    }
+
+    if (count > 0) {
+      this.#minimumKnownYourCards[guess] += count;
+      await this.#passCards(group);
+      await this.#checkForCompleteBlocks();
+    } else {
+      await this.#showMessage('Go fish', false);
+      this.#yourTurn = await this.#waitForYourFish(guess || '--');
+      const card = this.#pickCardFromDeck();
+      if (card) {
+        if (this.#yourTurn) this.#minimumKnownYourCards[guess]++;
+        await this.#addToCardsFromDeck(this.#yourCardsEl, card);
+        ++this.#totalYourPickedCards;
+      }
+      await this.#checkForCompleteBlocks(this.#yourTurn);
+    }
+  }
+
+  #getOpponentCards() {
+    const opponentCards = Object.fromEntries(Object.keys(this.#cardNames).map(k => [k, 0]));
+    this.#opponentCardsEl.querySelectorAll('.card').forEach(card => opponentCards[card.dataset.level]++);
+    return opponentCards;
+  }
+
+  #getYourCards() {
+    const yourCards = Object.fromEntries(Object.keys(this.#cardNames).map(k => [k, 0]));
+    this.#yourCardsEl.querySelectorAll('.card').forEach(card => yourCards[card.dataset.level]++);
+    return yourCards;
+  }
+
+  #updateInfo() {
+    this.#updateScoreline();
+    const yourCardsCount = this.#yourCardsEl.querySelectorAll('.card').length;
+    const opponentCards = this.#getOpponentCards();
+    const cardsLeftInDeck = this.#fullDeckEl.children.length;
+
+    for (const level in opponentCards) {
+      this.#minimumKnownYourCards[level] = Math.min(this.#minimumKnownYourCards[level], yourCardsCount);
+      this.#maximumKnownCardsLeftInDeck[level] = Math.min(
+        this.#maximumKnownCardsLeftInDeck[level],
+        4 - opponentCards[level] - this.#minimumKnownYourCards[level],
+        cardsLeftInDeck
+      );
+      this.#minimumKnownYourCards[level] = Math.max(
+        this.#minimumKnownYourCards[level],
+        4 - opponentCards[level] - this.#maximumKnownCardsLeftInDeck[level]
+      );
+    }
+  }
+
+  #waitForYourFish(lastGuess) {
+    return new Promise((resolve, reject) => {
+      const card = this.#pickCardFromDeck();
+      if (!card) { resolve(false); return; }
+
+      this.#turnOffEvents = false;
+      this.#yourInputReject = reject;
+
+      this.#addCardClickListener(card, (c) => {
+        this.#yourInputReject = null;
+        this.#turnOffEvents = true;
+        this.#cleanupLeftovers().then(() => resolve(c.dataset.level === lastGuess));
+      });
+    });
+  }
+
+  #waitForYourGuess() {
+    return new Promise((resolve, reject) => {
+      const cards = this.#yourCardsEl.querySelectorAll('.group > :last-child .card');
+      if (!cards.length) { resolve(); return; }
+
+      this.#turnOffEvents = false;
+      this.#yourInputReject = reject;
+
+      cards.forEach(card => {
+        this.#addCardClickListener(card, (c) => {
+          this.#yourInputReject = null;
+          this.#turnOffEvents = true;
+          this.#cleanupLeftovers().then(() => resolve(c.dataset.level));
+        });
+      });
+    });
+  }
+
+  #addCardClickListener(card, callback) {
+    card.tabIndex = 0;
+    card.onclick = () => callback(card);
+    card.onkeydown = (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); callback(card); } };
+
+    const name = this.#cardNames[card.dataset.level];
+    const isBack = card.classList.contains('card-back');
+    card.setAttribute('aria-label', isBack ? 'Draw from the deck' : (name[0].toUpperCase() + name.substring(1)));
+    card.setAttribute('aria-hidden', 'false');
+    card.title = isBack ? 'Draw' : name;
+  }
+
+  async #showMessage(message, yours, duration = 2000) {
+    this.#message.textContent = message;
+    (yours ? this.#yourCardsEl : this.#opponentCardsEl).append(this.#message);
+    await this.#wait(duration);
+    this.#message.remove();
+  }
+
+  async #cleanupLeftovers() {
+    await this.#wait(150);
+    document.querySelectorAll('.card, .card-back').forEach(card => {
+      card.style.transition = '';
+      card.removeAttribute('tabindex');
+      card.removeAttribute('title');
+      card.removeAttribute('aria-label');
+      card.setAttribute('aria-hidden', 'true');
+      card.onclick = card.onkeydown = null;
+    });
+    this.#updateScoreline();
+  }
+
+  async #passCards(sourceGroup) {
+    const duration = 150;
+    const your = this.#yourCardsEl.contains(sourceGroup);
+    const destinationCardEl = your ? this.#opponentCardsEl : this.#yourCardsEl;
+    const destinationGroup = this.#getGroup(sourceGroup.dataset.level, destinationCardEl);
+    const sourceBox = (your ? sourceGroup : this.#opponentCardsEl).getBoundingClientRect();
+    const destinationBox = (your ? this.#opponentCardsEl : destinationGroup).getBoundingClientRect();
+
+    const dx = sourceBox.x - destinationBox.x;
+    const dy = sourceBox.y - destinationBox.y;
+    const cards = [...sourceGroup.querySelectorAll('.card')];
+
+    for (const card of cards) {
+      card.style.transition = 'all linear ' + this.#calculateDuration(duration) + 'ms';
+      card.style.left = (your ? -dx : dx) + 'px';
+      card.style.top = (your ? -dy : dy) + 'px';
+      card.style.zIndex = your ? '' : '20';
+      destinationGroup.append(card.parentElement);
+      await this.#wait(your ? duration : duration / 10);
+      card.style.left = card.style.top = card.style.zIndex = '';
+    }
+  }
+}
+
+const game = new GoFish();
+game.newGame();
+</script>
+</body>
+</html>

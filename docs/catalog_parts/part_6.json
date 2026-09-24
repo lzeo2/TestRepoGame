@@ -1,0 +1,7 @@
+[
+ {"title": "Mastermind", "cat": "puzzle", "icon": "", "desc": "Break a hidden 4-color code in 8 guesses, reading gold and white feedback pegs after every row.", "url": "Games/Mastermind/index.html", "featured": false, "tags": ["puzzle"]},
+ {"title": "Nim", "cat": "strategy", "icon": "", "desc": "Take 1 to 3 stones from a shared pile against a perfect opponent, in normal or misere rules.", "url": "Games/Nim/index.html", "featured": false, "tags": ["1p"]},
+ {"title": "Dots and Boxes", "cat": "strategy", "icon": "", "desc": "Claim the lines between dots to close boxes and outscore the computer or a second player.", "url": "Games/DotsAndBoxes/index.html", "featured": false, "tags": ["1p", "2p"]},
+ {"title": "Ultimate Tic-Tac-Toe", "cat": "strategy", "icon": "", "desc": "Nine boards inside one master board with the forced-cell send rule, versus a depth-5 AI or a second player.", "url": "Games/UltimateTicTacToe/index.html", "featured": false, "tags": ["1p", "2p"]},
+ {"title": "Klondike Solitaire", "cat": "classic", "icon": "", "desc": "Classic draw-one Klondike with seven tableau piles, stock and waste, four foundations, undo and full keyboard play.", "url": "Games/KlondikeSolitaire/index.html", "featured": false, "tags": ["classic"]}
+]

@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<!--
+  Source: https://github.com/stravid/achtung-die-kurve
+  License: MIT (see LICENSE.txt)
+  Commit: de0d347ee4c0a87c1928e7b339c771991a080dd8
+  Modifications: upstream engine vendored unmodified as engine.js; jQuery
+  and the upstream add-player demo page dropped; new wrapper adds a start
+  screen with documented controls, fixed two-player rosters (1P vs AI or
+  local 2P), an AI driver, touch steer buttons, round and match scoring
+  (first to 5), round/match overlays with restart path, interval cleanup
+  on menu/page exit, and CSS-scaled canvas for resize safety.
+-->
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <link rel="icon" href="data:,">
+  <title>Curve Fever</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="hud">
+    <h1>Curve Fever</h1>
+    <div class="scores" id="scores"></div>
+    <div class="hud-actions">
+      <button type="button" id="menuBtn">Menu</button>
+    </div>
+  </header>
+
+  <main>
+    <div class="board-wrap" id="stage">
+      <canvas id="curve" aria-label="Curve arena"></canvas>
+    </div>
+
+    <div class="touch-row">
+      <div class="touch-pair" id="p1Pair">
+        <span class="touch-label" id="p1Label">You</span>
+        <button type="button" class="steer" data-player="0" data-dir="-1" aria-label="Steer left">&#9664;</button>
+        <button type="button" class="steer" data-player="0" data-dir="1" aria-label="Steer right">&#9654;</button>
+      </div>
+      <div class="touch-pair hidden" id="p2Pair">
+        <span class="touch-label" id="p2Label">Player 2</span>
+        <button type="button" class="steer" data-player="1" data-dir="-1" aria-label="Player 2 steer left">&#9664;</button>
+        <button type="button" class="steer" data-player="1" data-dir="1" aria-label="Player 2 steer right">&#9654;</button>
+      </div>
+    </div>
+  </main>
+
+  <div class="overlay" id="startScreen">
+    <div class="panel">
+      <h2>Curve Fever</h2>
+      <p>Your line keeps moving and keeps growing. Steer it, leave no gap behind, and outlive the other player. Crashing into any line or the border ends your round. First to 5 round wins takes the match.</p>
+      <p class="controls-doc">Controls, 1P vs computer: Arrow keys or A and D steer your line, or hold the left and right steer buttons. Controls, 2P on one keyboard: Player 1 uses A and D, Player 2 uses the left and right Arrow keys. Touch: use the steer button pairs below the arena.</p>
+      <button type="button" class="primary" id="aiBtn">Play vs computer</button>
+      <button type="button" id="duoBtn">Two players</button>
+    </div>
+  </div>
+
+  <div class="overlay hidden" id="roundScreen">
+    <div class="panel">
+      <h2 id="roundTitle">Round over</h2>
+      <p id="roundStats"></p>
+      <button type="button" class="primary" id="nextBtn">Next round</button>
+      <button type="button" id="roundMenuBtn">Menu</button>
+    </div>
+  </div>
+
+  <div class="overlay hidden" id="finalScreen">
+    <div class="panel">
+      <h2 id="finalTitle">Match over</h2>
+      <p id="finalStats"></p>
+      <button type="button" class="primary" id="againBtn">Play again</button>
+      <button type="button" id="finalMenuBtn">Menu</button>
+    </div>
+  </div>
+
+  <script src="engine.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>

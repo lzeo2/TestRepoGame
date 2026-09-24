@@ -1,0 +1,7 @@
+[
+ {"title": "Cryptogram", "cat": "riddle", "icon": "", "desc": "Decode eight encrypted quotes one letter at a time with hints, strikes, and a running score.", "url": "Games/Cryptogram/index.html", "featured": false, "tags": ["riddle"]},
+ {"title": "Word Scramble", "cat": "word", "icon": "", "desc": "Unscramble ten words against the clock using hints, streaks, and reshuffles to beat the target score.", "url": "Games/WordScramble/index.html", "featured": false, "tags": ["word"]},
+ {"title": "Darts 501", "cat": "sports", "icon": "", "desc": "Play real 501 darts: start at 501, three darts a turn, bust rules, and check out on a double.", "url": "Games/Darts501/index.html", "featured": false, "tags": ["sports"]},
+ {"title": "Bowling", "cat": "sports", "icon": "", "desc": "Roll ten frames of ten-pin bowling with real strike and spare scoring and a three-ball tenth frame.", "url": "Games/Bowling/index.html", "featured": false, "tags": ["sports"]},
+ {"title": "Mahjong Lite", "cat": "puzzle", "icon": "", "desc": "Clear the four-layer tile solitaire by matching free pairs against the clock with hints and scoring.", "url": "Games/MahjongLite/index.html", "featured": false, "tags": ["puzzle"]}
+]

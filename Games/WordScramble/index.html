@@ -1,0 +1,1318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Word Scramble</title>
+<!--
+  Word Scramble - ingested from https://github.com/GZ30eee/Word-Scramble-Game
+  commit 712322df701b5c7fb3d78b426ec5c245c1de6923, MIT License (LICENSE file
+  shipped in this folder). Taken: the word list (js/words.js), the scramble +
+  per-difficulty timer engine, hint display, and the streak/time/difficulty
+  scoring model from js/script.js. Modified: inlined into one file, Google
+  Fonts import, remote images and GitHub link removed, emoji removed, fixed
+  10-round structure with win/lose end screen, start screen with controls,
+  reshuffle re-scrambles the current word, no innerHTML, flat colors.
+  Offline-first, no external requests.
+-->
+<style>
+  :root{
+    --bg:#182231; --panel:#222e42; --panel2:#2b3a52; --ink:#eaeff7; --muted:#9fb0c8;
+    --accent:#4fb3bf; --accent2:#e0a33e; --bad:#d9634f; --good:#5cb86a; --line:#3b4a63;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent}
+  html,body{margin:0; background:var(--bg); color:var(--ink);
+    font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;}
+  body{display:flex; flex-direction:column; align-items:center; min-height:100vh;}
+  .wrap{width:100%; max-width:560px; padding:10px 12px 24px;}
+  h1{font-size:21px; margin:8px 0 6px; font-weight:650; text-align:center;}
+  .hud{display:flex; gap:8px; flex-wrap:wrap; justify-content:center; margin-bottom:10px;}
+  .stat{background:var(--panel); border:1px solid var(--line); border-radius:8px;
+    padding:7px 12px; font-size:14px; min-height:44px; display:flex; align-items:center; gap:6px;}
+  .stat b{font-size:17px; color:var(--accent);}
+  .panel{background:var(--panel); border:1px solid var(--line); border-radius:10px;
+    padding:16px; text-align:center;}
+  .badge{display:inline-block; padding:3px 10px; border-radius:10px; font-size:13px;
+    background:var(--panel2); border:1px solid var(--line); color:var(--muted); margin-bottom:10px;}
+  .badge.rare{color:#8fd0e8;} .badge.exclusive{color:var(--accent2);} .badge.legendary{color:#d79ce0;}
+  .scrambled{font-size:30px; font-weight:750; letter-spacing:6px; word-break:break-all;
+    margin:8px 0 12px; color:#bfe6e2; min-height:40px;}
+  .hint{color:var(--muted); font-size:15px; line-height:1.5; min-height:44px; margin:4px 0 12px;}
+  input[type=text]{width:100%; max-width:300px; min-height:48px; font-size:19px; text-align:center;
+    background:var(--panel2); color:var(--ink); border:2px solid var(--line); border-radius:8px;
+    padding:6px 10px; outline:none;}
+  input[type=text]:focus{border-color:var(--accent);}
+  input.bad{border-color:var(--bad); animation:shake .3s;}
+  input.good{border-color:var(--good);}
+  @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+  .msg{min-height:26px; margin-top:10px; font-size:15px; color:var(--muted);}
+  .msg.ok{color:var(--good);} .msg.err{color:var(--bad);}
+  .btnrow{display:flex; gap:8px; justify-content:center; flex-wrap:wrap; margin-top:12px;}
+  button{min-height:44px; min-width:44px; padding:8px 18px; font-size:15px; font-weight:650;
+    background:var(--accent); color:#0e2529; border:none; border-radius:8px; cursor:pointer;}
+  button:hover{filter:brightness(1.08);}
+  button:focus-visible{outline:3px solid var(--accent2); outline-offset:2px;}
+  button.sec{background:var(--panel2); color:var(--ink); border:1px solid var(--line);}
+  .legend{font-size:13px; color:var(--muted); text-align:center; margin-top:12px; line-height:1.55;}
+  .overlay{position:fixed; inset:0; background:rgba(14,18,26,.94); display:flex;
+    align-items:center; justify-content:center; z-index:10; padding:16px;}
+  .overlay .card{background:var(--panel); border:1px solid var(--line); border-radius:12px;
+    max-width:440px; width:100%; padding:22px; text-align:center;}
+  .card h2{margin:0 0 10px; font-size:23px;}
+  .card p{color:var(--muted); font-size:15px; line-height:1.6; margin:8px 0;}
+  .card .big{font-size:36px; color:var(--accent); font-weight:750; margin:8px 0;}
+  .hidden{display:none !important;}
+  .credit{font-size:12px; color:#6b7a92; text-align:center; margin-top:12px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Word Scramble</h1>
+  <div class="hud">
+    <div class="stat">Round <b id="round">1</b>/10</div>
+    <div class="stat">Score <b id="score">0</b></div>
+    <div class="stat">Time <b id="time">20</b>s</div>
+    <div class="stat">Streak <b id="streak">0</b></div>
+  </div>
+
+  <div class="panel">
+    <span class="badge" id="badge">common</span>
+    <div class="scrambled" id="scrambled" aria-label="Scrambled word"></div>
+    <div class="hint" id="hint"></div>
+    <input type="text" id="answer" placeholder="Type the real word" autocomplete="off"
+           autocorrect="off" autocapitalize="none" spellcheck="false" maxlength="24"
+           aria-label="Your answer">
+    <div class="msg" id="msg" aria-live="polite"></div>
+    <div class="btnrow">
+      <button id="checkBtn" type="button">Check</button>
+      <button id="reshuffleBtn" class="sec" type="button">Reshuffle</button>
+    </div>
+  </div>
+
+  <div class="legend">
+    Controls: type your answer and press Enter or the Check button. Reshuffle rearranges
+    the letters of the same word. Clear 10 rounds and reach 100 points to win.
+    Faster answers and longer streaks score more.
+  </div>
+  <div class="credit">Word list and game engine ingested from GZ30eee/Word-Scramble-Game (MIT), adapted offline.</div>
+</div>
+
+<!-- Start screen -->
+<div class="overlay" id="startOverlay">
+  <div class="card">
+    <h2>Word Scramble</h2>
+    <p>Unscramble the letters to reveal the hidden word. Each round shows a fresh scramble and a hint.</p>
+    <p><b>Controls</b><br>
+      Type your answer and press Enter or Check.<br>
+      Reshuffle rearranges the same word's letters.<br>
+      The timer runs down each round; solving fast scores bonus points.<br>
+      Ten rounds, target score 100.</p>
+    <button id="startBtn" type="button">Start</button>
+  </div>
+</div>
+
+<!-- End screen -->
+<div class="overlay hidden" id="endOverlay">
+  <div class="card">
+    <h2 id="endTitle">Game over</h2>
+    <div class="big" id="endScore">0</div>
+    <p id="endText"></p>
+    <button id="restartBtn" type="button">Play again</button>
+  </div>
+</div>
+
+<script>
+"use strict";
+let words = [
+    {
+        word: "Beautiful",
+        hint: "Pleasing the senses or mind aesthetically",
+        difficulty: "common"
+    },
+    {
+        word: "Aggravate",
+        hint: "Make a problem, injury, or offense worse or more serious",
+        difficulty: "common"
+    },
+    {
+        word: "Nebula",
+        hint: "A cloud of gas and dust in outer space",
+        difficulty: "rare"
+    },
+    {
+        word: "Committee",
+        hint: "A group of people appointed for a specific function",
+        difficulty: "common"
+    },
+    {
+        word: "Possessed",
+        hint: "Firmly controlled",
+        difficulty: "common"
+    },
+    {
+        word: "Successful",
+        hint: "Accomplishing a desired aim or result",
+        difficulty: "common"
+    },
+    {
+        word: "Tofu",
+        hint: "A food made from soy milk",
+        difficulty: "common"
+    },
+    {
+        word: "addition",
+        hint: "The process of adding numbers",
+        difficulty: "common"
+    },
+    {
+        word: "meeting",
+        hint: "Event in which people come together",
+        difficulty: "common"
+    },
+    {
+        word: "number",
+        hint: "Math symbol used for counting",
+        difficulty: "common"
+    },
+    {
+        word: "exchange",
+        hint: "The act of trading",
+        difficulty: "common"
+    },
+    {
+        word: "canvas",
+        hint: "Piece of fabric for oil painting",
+        difficulty: "common"
+    },
+    {
+        word: "garden",
+        hint: "Space for planting flower and plant",
+        difficulty: "common"
+    },
+    {
+        word: "Comet",
+        hint: "A celestial object consisting of a nucleus of ice and dust",
+        difficulty: "rare"
+    },
+    {
+        word: "Orbit",
+        hint: "The regularly repeated elliptical course of a celestial object",
+        difficulty: "rare"
+    },
+    {
+        word: "position",
+        hint: "Location of someone or something",
+        difficulty: "common"
+    },
+    {
+        word: "feather",
+        hint: "Hair like outer covering of bird",
+        difficulty: "common"
+    },
+    {
+        word: "comfort",
+        hint: "A pleasant feeling of relaxation",
+        difficulty: "common"
+    },
+    {
+        word: "tongue",
+        hint: "The muscular organ of mouth",
+        difficulty: "common"
+    },
+    {
+        word: "expansion",
+        hint: "The process of increase or grow",
+        difficulty: "common"
+    },
+    {
+        word: "country",
+        hint: "A politically identified region",
+        difficulty: "common"
+    },
+    {
+        word: "group",
+        hint: "A number of objects or persons",
+        difficulty: "common"
+    },
+    {
+        word: "taste",
+        hint: "Ability of tongue to detect flavour",
+        difficulty: "common"
+    },
+    {
+        word: "Elephant",
+        hint: "A large mammal",
+        difficulty: "common"
+    },
+    {
+        word: "Tortilla",
+        hint: "A type of thin bread",
+        difficulty: "common"
+    },
+    {
+        word: "Scissors",
+        hint: "Cutting tool",
+        difficulty: "common"
+    },
+    {
+        word: "Balloons",
+        hint: "Inflatable objects for parties",
+        difficulty: "common"
+    },
+    {
+        word: "Assassin",
+        hint: "A stealthy killer",
+        difficulty: "rare"
+    },
+    {
+        word: "store",
+        hint: "Large shop where goods are traded",
+        difficulty: "common"
+    },
+    {
+        word: "Geometry",
+        hint: "The branch of mathematics concerned with the properties and relations of points, lines, surfaces, solids, and higher dimensional analogs",
+        difficulty: "rare"
+    },
+    {
+        word: "Peninsula",
+        hint: "A piece of land almost surrounded by water",
+        difficulty: "rare"
+    },
+    {
+        word: "Tundra",
+        hint: "A vast, flat, treeless Arctic region",
+        difficulty: "rare"
+    },
+    {
+        word: "Statistics",
+        hint: "The practice or science of collecting and analyzing numerical data in large quantities",
+        difficulty: "rare"
+    },
+    {
+        word: "field",
+        hint: "Area of land for farming activities",
+        difficulty: "common"
+    },
+    {
+        word: "friend",
+        hint: "Person other than a family member",
+        difficulty: "common"
+    },
+    {
+        word: "Compiler",
+        hint: "A program that translates source code",
+        difficulty: "legendary"
+    },
+    {
+        word: "pocket",
+        hint: "A bag for carrying small items",
+        difficulty: "common"
+    },
+    {
+        word: "needle",
+        hint: "A thin and sharp metal pin",
+        difficulty: "common"
+    },
+    {
+        word: "expert",
+        hint: "Person with extensive knowledge",
+        difficulty: "common"
+    },
+    {
+        word: "statement",
+        hint: "A declaration of something",
+        difficulty: "common"
+    },
+    {
+        word: "Fantasy",
+        hint: "Imagination",
+        difficulty: "common"
+    },
+    {
+        word: "Journey",
+        hint: "Travel",
+        difficulty: "common"
+    },
+    {
+        word: "Mystery",
+        hint: "Unknown",
+        difficulty: "common"
+    },
+    {
+        word: "Thought",
+        hint: "Idea",
+        difficulty: "common"
+    },
+    {
+        hint: "Quiet talk",
+        word: "Whisper",
+        difficulty: "common"
+    },
+    {
+        word: "Diamond",
+        hint: "Gemstone",
+        difficulty: "common"
+    },
+    {
+        word: "Rainbow",
+        hint: "Color arc",
+        difficulty: "common"
+    },
+    {
+        word: "Molecule",
+        hint: "The smallest particle in a chemical element or compound",
+        difficulty: "rare"
+    },
+    {
+        word: "Catalyst",
+        hint: "A substance that increases the rate of a chemical reaction",
+        difficulty: "rare"
+    },
+    {
+        word: "second",
+        hint: "One-sixtieth of a minute",
+        difficulty: "common"
+    },
+    {
+        word: "library",
+        hint: "Place containing collection of books",
+        difficulty: "common"
+    },
+    {
+        word: "algorithm",
+        hint: "A set of rules to be followed in calculations or problem-solving",
+        difficulty: "rare"
+    },
+    {
+        word: "Yen",
+        hint: "A strong desire",
+        difficulty: "rare"
+    },
+    {
+        word: "Zen",
+        hint: "A state of calm",
+        difficulty: "rare"
+    },
+    {
+        word: "database",
+        hint: "A structured set of data",
+        difficulty: "rare"
+    },
+    {
+       arakter: "network",
+        hint: "A group or system of interconnected people or things",
+        difficulty: "common"
+    },
+    {
+        word: "pixel",
+        hint: "A minute area of illumination on a display screen",
+        difficulty: "rare"
+    },
+    {
+        word: "Calculus",
+        hint: "The branch of mathematics that deals with the finding and properties of derivatives and integrals of functions",
+        difficulty: "legendary"
+    },
+    {
+        word: "Algebra",
+        hint: "The part of mathematics in which letters and other general symbols are used to represent numbers and quantities in equations",
+        difficulty: "rare"
+    },
+    {
+        word: "syntax",
+        hint: "The arrangement of words and phrases to create well-formed sentences",
+        difficulty: "rare"
+    },
+    {
+        word: "Ambiguous",
+        hint: "Unclear",
+        difficulty: "rare"
+    },
+    {
+        word: "Eloquent",
+        hint: "Expressive",
+        difficulty: "rare"
+    },
+    {
+        word: "Inevitable",
+        hint: "Unavoidable",
+        difficulty: "rare"
+    },
+    {
+        word: "deed",
+        hint: "An action",
+        difficulty: "common"
+    },
+    {
+        word: "peep",
+        hint: "A quick look",
+        difficulty: "common"
+    },
+    {
+        word: "teet",
+        hint: "A misspelling of teeth",
+        difficulty: "rare"
+    },
+    {
+        word: "keek",
+        hint: "To peek",
+        difficulty: "rare"
+    },
+    {
+        word: "Optimistic",
+        hint: "Hopeful",
+        difficulty: "common"
+    },
+    {
+        word: "Ecosystem",
+        hint: "A community of living organisms in conjunction with the nonliving components of their environment",
+        difficulty: "rare"
+    },
+    {
+        word: "Pessimistic",
+        hint: "Negative",
+        difficulty: "common"
+    },
+    {
+        word: "Rhetoric",
+        hint: "Persuasive speech",
+        difficulty: "rare"
+    },
+    {
+        word: "Sarcasm",
+        hint: "Irony",
+        difficulty: "common"
+    },
+    {
+        word: "Ubiquitous",
+        hint: "Everywhere",
+        difficulty: "rare"
+    },
+    {
+        word: "Voracious",
+        hint: "Very hungry",
+        difficulty: "rare"
+    },
+    {
+        word: "Zealous",
+        hint: "Passionate",
+        difficulty: "rare"
+    },
+    {
+        word: "Banana",
+        hint: "A fruit",
+        difficulty: "common"
+    },
+    {
+        word: "Coffee",
+        hint: "A drink",
+        difficulty: "common"
+    },
+    {
+        word: "Bottle",
+        hint: "A container",
+        difficulty: "common"
+    },
+    {
+        word: "Snow",
+        hint: "Frozen precipitation",
+        difficulty: "common"
+    },
+    {
+        word: "Neutron",
+        hint: "A subatomic particle found in the nucleus of every atom except that of hydrogen",
+        difficulty: "legendary"
+    },
+    {
+        word: "Pen",
+        hint: "A writing instrument",
+        difficulty: "common"
+    },
+    {
+        word: "Soccer",
+        hint: "A popular sport",
+        difficulty: "common"
+    },
+    {
+        word: "Yellow",
+        hint: "A color",
+        difficulty: "common"
+    },
+    {
+        word: "Summer",
+        hint: "A season",
+        difficulty: "common"
+    },
+    {
+        word: "School",
+        hint: "A place for education",
+        difficulty: "common"
+    },
+    {
+        word: "Square",
+        hint: "A shape",
+        difficulty: "common"
+    },
+    {
+        word: "Quantum",
+        hint: "The smallest amount of a physical quantity that can exist independently",
+        difficulty: "legendary"
+    },
+    {
+        word: "Circle",
+        hint: "A round shape",
+        difficulty: "common"
+    },
+    {
+        word: "Flower",
+        hint: "A plant's bloom",
+        difficulty: "common"
+    },
+    {
+        word: "Orange",
+        hint: "A fruit or a color",
+        difficulty: "common"
+    },
+    {
+        word: "Triangle",
+        hint: "A three-sided shape",
+        difficulty: "common"
+    },
+    {
+        word: "Apple",
+        hint: "A common fruit",
+        difficulty: "common"
+    },
+    {
+        word: "Sun",
+        hint: "A star at the center of our solar system",
+        difficulty: "common"
+    },
+    {
+        word: "Blue",
+        hint: "A color or a feeling",
+        difficulty: "common"
+    },
+    {
+        word: "Dog",
+        hint: "A common pet",
+        difficulty: "common"
+    },
+    {
+        word: "Pizza",
+        hint: "A popular Italian dish",
+        difficulty: "common"
+    },
+    {
+        word: "Inheritance",
+        hint: "A mechanism of basing an object or class upon another object or class",
+        difficulty: "legendary"
+    },
+    {
+        word: "Polymorphism",
+        hint: "The ability of an object to take on many forms",
+        difficulty: "legendary"
+    },
+    {
+        word: "Rain",
+        hint: "Water falling from the sky",
+        difficulty: "common"
+    },
+    {
+        word: "Book",
+        hint: "A source of knowledge or entertainment",
+        difficulty: "common"
+    },
+    {
+        word: "Music",
+        hint: "A form of art using sound",
+        difficulty: "common"
+    },
+    {
+        word: "Computer",
+        hint: "An electronic device for storing and processing data",
+        difficulty: "common"
+    },
+    {
+        word: "Adventure",
+        hint: "An exciting or unusual experience",
+        difficulty: "common"
+    },
+    {
+        word: "Balance",
+        hint: "Even distribution of weight",
+        difficulty: "common"
+    },
+    {
+        word: "Celebrate",
+        hint: "To honor an event with joy",
+        difficulty: "common"
+    },
+    {
+        word: "Delicate",
+        hint: "Fragile or easily broken",
+        difficulty: "common"
+    },
+    {
+        word: "Eclipse",
+        hint: "Obscuring of one celestial body by another",
+        difficulty: "rare"
+    },
+    {
+        word: "Fierce",
+        hint: "Intense aggression or strength",
+        difficulty: "common"
+    },
+    {
+        word: "Gigantic",
+        hint: "Extremely large",
+        difficulty: "common"
+    },
+    {
+        word: "Harmony",
+        hint: "Pleasing arrangement of parts",
+        difficulty: "common"
+    },
+    {
+        word: "Illuminate",
+        hint: "To light up",
+        difficulty: "common"
+    },
+    {
+        word: "Jubilant",
+        hint: "Full of happiness",
+        difficulty: "rare"
+    },
+    {
+        word: "Kaleidoscope",
+        hint: "A constantly changing pattern",
+        difficulty: "rare"
+    },
+    {
+        word: "Luminous",
+        hint: "Emitting light",
+        difficulty: "rare"
+    },
+    {
+        word: "Majestic",
+        hint: "Having grandeur",
+        difficulty: "common"
+    },
+    {
+        word: "Nimble",
+        hint: "Quick and light in movement",
+        difficulty: "common"
+    },
+    {
+        word: "Opaque",
+        hint: "Not transparent",
+        difficulty: "rare"
+    },
+    {
+        word: "Pinnacle",
+        hint: "The highest point",
+        difficulty: "rare"
+    },
+    {
+        word: "Quaint",
+        hint: "Attractively old-fashioned",
+        difficulty: "rare"
+    },
+    {
+        word: "Resilient",
+        hint: "Able to recover quickly",
+        difficulty: "common"
+    },
+    {
+        word: "Serene",
+        hint: "Calm and peaceful",
+        difficulty: "common"
+    },
+    {
+        word: "Tranquil",
+        hint: "Free from disturbance",
+        difficulty: "common"
+    },
+    {
+        word: "Unison",
+        hint: "Simultaneous action",
+        difficulty: "rare"
+    },
+    {
+        word: "Vibrant",
+        hint: "Full of energy",
+        difficulty: "common"
+    },
+    {
+        word: "Whimsical",
+        hint: "Playfully quaint",
+        difficulty: "rare"
+    },
+    {
+        word: "Xenial",
+        hint: "Hospitable",
+        difficulty: "exclusive"
+    },
+    {
+        word: "Yield",
+        hint: "To produce or give way",
+        difficulty: "common"
+    },
+    {
+        word: "Zephyr",
+        hint: "A gentle breeze",
+        difficulty: "rare"
+    },
+    {
+        word: "Algorithm",
+        hint: "Step-by-step computational procedure",
+        difficulty: "rare"
+    },
+    {
+        word: "Binary",
+        hint: "Base-2 number system",
+        difficulty: "rare"
+    },
+    {
+        word: "Cryptography",
+        hint: "Secure communication techniques",
+        difficulty: "legendary"
+    },
+    {
+        word: "Dynamo",
+        hint: "A machine that generates electricity",
+        difficulty: "rare"
+    },
+    {
+        word: "Entropy",
+        hint: "Measure of disorder in a system",
+        difficulty: "legendary"
+    },
+    {
+        word: "Fusion",
+        hint: "Combining nuclei to release energy",
+        difficulty: "legendary"
+    },
+    {
+        word: "Galaxy",
+        hint: "A massive system of stars",
+        difficulty: "rare"
+    },
+    {
+        word: "Hypothesis",
+        hint: "A proposed explanation",
+        difficulty: "rare"
+    },
+    {
+        word: "Isotope",
+        hint: "Variant of a chemical element",
+        difficulty: "legendary"
+    },
+    {
+        word: "Joule",
+        hint: "Unit of energy",
+        difficulty: "rare"
+    },
+    {
+        word: "Kinetic",
+        hint: "Relating to motion",
+        difficulty: "rare"
+    },
+    {
+        word: "Laser",
+        hint: "Focused light amplification",
+        difficulty: "rare"
+    },
+    {
+        word: "Magnetic",
+        hint: "Property of attraction",
+        difficulty: "common"
+    },
+    {
+        word: "Nanotech",
+        hint: "Technology at the atomic scale",
+        difficulty: "legendary"
+    },
+    {
+        word: "Oxidation",
+        hint: "Chemical reaction with oxygen",
+        difficulty: "rare"
+    },
+    {
+        word: "Particle",
+        hint: "Tiny piece of matter",
+        difficulty: "rare"
+    },
+    {
+        word: "Quantum",
+        hint: "Discrete quantity of energy",
+        difficulty: "legendary"
+    },
+    {
+        word: "Radiation",
+        hint: "Emission of energy waves",
+        difficulty: "rare"
+    },
+    {
+        word: "Supernova",
+        hint: "Exploding star",
+        difficulty: "rare"
+    },
+    {
+        word: "Thermodynamics",
+        hint: "Study of heat and energy",
+        difficulty: "legendary"
+    },
+    {
+        word: "Aurora",
+        hint: "Natural light display in the sky",
+        difficulty: "rare"
+    },
+    {
+        word: "Blizzard",
+        hint: "Severe snowstorm",
+        difficulty: "common"
+    },
+    {
+        word: "Canyon",
+        hint: "Deep gorge between cliffs",
+        difficulty: "common"
+    },
+    {
+        word: "Drought",
+        hint: "Prolonged lack of rain",
+        difficulty: "common"
+    },
+    {
+        word: "Estuary",
+        hint: "Where a river meets the sea",
+        difficulty: "rare"
+    },
+    {
+        word: "Fjord",
+        hint: "Narrow sea inlet with cliffs",
+        difficulty: "rare"
+    },
+    {
+        word: "Glacier",
+        hint: "Slow-moving river of ice",
+        difficulty: "common"
+    },
+    {
+        word: "Habitat",
+        hint: "Natural environment of an organism",
+        difficulty: "common"
+    },
+    {
+        word: "Igloo",
+        hint: "Dome-shaped ice shelter",
+        difficulty: "rare"
+    },
+    {
+        word: "Jungle",
+        hint: "Dense tropical forest",
+        difficulty: "common"
+    },
+    {
+        word: "Lagoon",
+        hint: "Shallow body of water",
+        difficulty: "rare"
+    },
+    {
+        word: "Monsoon",
+        hint: "Seasonal wind bringing rain",
+        difficulty: "rare"
+    },
+    {
+        word: "Oasis",
+        hint: "Fertile spot in a desert",
+        difficulty: "rare"
+    },
+    {
+        word: "Prairie",
+        hint: "Flat grassland",
+        difficulty: "rare"
+    },
+    {
+        word: "Quicksand",
+        hint: "Loose wet sand that traps objects",
+        difficulty: "rare"
+    },
+    {
+        word: "Reef",
+        hint: "Ridge of rock or coral underwater",
+        difficulty: "common"
+    },
+    {
+        word: "Savanna",
+        hint: "Grassy plain with few trees",
+        difficulty: "rare"
+    },
+    {
+        word: "Tornado",
+        hint: "Violently rotating wind column",
+        difficulty: "common"
+    },
+    {
+        word: "Volcano",
+        hint: "Mountain that erupts lava",
+        difficulty: "common"
+    },
+    {
+        word: "Wetland",
+        hint: "Land saturated with water",
+        difficulty: "rare"
+    },
+    {
+        word: "Avocado",
+        hint: "Creamy green fruit",
+        difficulty: "common"
+    },
+    {
+        word: "Baguette",
+        hint: "Long, thin French bread",
+        difficulty: "common"
+    },
+    {
+        word: "Croissant",
+        hint: "Flaky French pastry",
+        difficulty: "common"
+    },
+    {
+        word: "Durian",
+        hint: "Pungent tropical fruit",
+        difficulty: "rare"
+    },
+    {
+        word: "Espresso",
+        hint: "Strong black coffee",
+        difficulty: "common"
+    },
+    {
+        word: "Falafel",
+        hint: "Fried chickpea balls",
+        difficulty: "common"
+    },
+    {
+        word: "Guacamole",
+        hint: "Avocado-based dip",
+        difficulty: "common"
+    },
+    {
+        word: "Hummus",
+        hint: "Chickpea spread",
+        difficulty: "common"
+    },
+    {
+        word: "Igneous",
+        hint: "Rock formed from lava",
+        difficulty: "rare"
+    },
+    {
+        word: "Jackfruit",
+        hint: "Large tropical fruit",
+        difficulty: "rare"
+    },
+    {
+        word: "Ketchup",
+        hint: "Tomato-based condiment",
+        difficulty: "common"
+    },
+    {
+        word: "Lychee",
+        hint: "Sweet tropical fruit",
+        difficulty: "rare"
+    },
+    {
+        word: "Macaron",
+        hint: "Colorful French cookie",
+        difficulty: "common"
+    },
+    {
+        word: "Nachos",
+        hint: "Tortilla chips with toppings",
+        difficulty: "common"
+    },
+    {
+        word: "Omelet",
+        hint: "Egg dish with fillings",
+        difficulty: "common"
+    },
+    {
+        word: "Pancake",
+        hint: "Flat, round breakfast food",
+        difficulty: "common"
+    },
+    {
+        word: "Quiche",
+        hint: "Savory egg pie",
+        difficulty: "common"
+    },
+    {
+        word: "Risotto",
+        hint: "Creamy Italian rice dish",
+        difficulty: "common"
+    },
+    {
+        word: "Sushi",
+        hint: "Japanese rice and seafood dish",
+        difficulty: "common"
+    },
+    {
+        word: "Taco",
+        hint: "Mexican folded tortilla",
+        difficulty: "common"
+    },
+    {
+        word: "Bamboozle",
+        hint: "To deceive playfully",
+        difficulty: "exclusive"
+    },
+    {
+        word: "Cacophony",
+        hint: "Harsh mixture of sounds",
+        difficulty: "rare"
+    },
+    {
+        word: "Doodle",
+        hint: "Scribble absentmindedly",
+        difficulty: "common"
+    },
+    {
+        word: "Ephemeral",
+        hint: "Lasting a short time",
+        difficulty: "rare"
+    },
+    {
+        word: "Flabbergasted",
+        hint: "Extremely surprised",
+        difficulty: "rare"
+    },
+    {
+        word: "Gobbledygook",
+        hint: "Nonsensical language",
+        difficulty: "exclusive"
+    },
+    {
+        word: "Hullabaloo",
+        hint: "A commotion",
+        difficulty: "rare"
+    },
+    {
+        word: "Incognito",
+        hint: "In disguise",
+        difficulty: "rare"
+    },
+    {
+        word: "Juxtapose",
+        hint: "Place side by side for contrast",
+        difficulty: "rare"
+    },
+    {
+        word: "Kowtow",
+        hint: "Act excessively submissive",
+        difficulty: "rare"
+    },
+    {
+        word: "Lollygag",
+        hint: "Spend time aimlessly",
+        difficulty: "exclusive"
+    },
+    {
+        word: "Mellifluous",
+        hint: "Sweet-sounding",
+        difficulty: "rare"
+    },
+    {
+        word: "Nincompoop",
+        hint: "A foolish person",
+        difficulty: "exclusive"
+    },
+    {
+        word: "Obfuscate",
+        hint: "Deliberately confuse",
+        difficulty: "rare"
+    },
+    {
+        word: "Pandemonium",
+        hint: "Wild uproar",
+        difficulty: "rare"
+    }
+];
+
+const ROUNDS = 10;
+const TARGET = 100;
+const $ = (id) => document.getElementById(id);
+
+let round = 1, score = 0, streak = 0;
+let correctWord = "", wordClass = "", maxTime = 20, timeLeft = 20;
+let timer = null, running = false, locked = false;
+
+const timeMap = { common: 20, rare: 25, exclusive: 30, legendary: 35 };
+
+function getWordClass(w){
+  if (w.difficulty) return w.difficulty;
+  const word = w.word.toLowerCase();
+  const repeats = /([a-z]).*?\1/.test(word);
+  if (word.length <= 4 || repeats) return "common";
+  if (word.length <= 6) return "rare";
+  if (word.length <= 8) return "exclusive";
+  return "legendary";
+}
+
+function scramble(word){
+  const arr = word.toUpperCase().split("");
+  for (let i = arr.length - 1; i > 0; i--){
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  // never show the word unchanged
+  if (arr.length > 1 && arr.join("") === word.toUpperCase()) return scramble(word);
+  return arr.join(" ");
+}
+
+function msg(text, cls){
+  const m = $("msg");
+  m.textContent = text;
+  m.className = "msg" + (cls ? " " + cls : "");
+}
+
+function updateHud(){
+  $("round").textContent = Math.min(round, ROUNDS);
+  $("score").textContent = score;
+  $("time").textContent = timeLeft;
+  $("streak").textContent = streak;
+}
+
+function stopTimer(){ if (timer){ clearInterval(timer); timer = null; } }
+
+function startTimer(){
+  stopTimer();
+  timer = setInterval(() => {
+    if (!running || locked) return;
+    timeLeft--;
+    if (timeLeft <= 0){
+      timeLeft = 0;
+      updateHud();
+      timeUp();
+    } else {
+      updateHud();
+    }
+  }, 1000);
+}
+
+function pickWord(){
+  return words[Math.floor(Math.random() * words.length)];
+}
+
+function renderRound(){
+  const w = pickWord();
+  correctWord = w.word.toLowerCase();
+  wordClass = getWordClass(w);
+  maxTime = timeMap[wordClass] || 30;
+  timeLeft = maxTime;
+  locked = false;
+  $("scrambled").textContent = scramble(w.word);
+  $("hint").textContent = "Hint: " + w.hint;
+  const b = $("badge");
+  b.textContent = wordClass;
+  b.className = "badge " + wordClass;
+  const input = $("answer");
+  input.value = "";
+  input.maxLength = correctWord.length + 4;
+  input.className = "";
+  msg("Unscramble the word.", "");
+  updateHud();
+  input.focus({ preventScroll: true });
+  startTimer();
+}
+
+function timeUp(){
+  stopTimer();
+  locked = true;
+  streak = 0;
+  msg("Time is up. The word was " + correctWord + ".", "err");
+  setTimeout(advance, 1600);
+}
+
+function advance(){
+  if (!running) return;
+  round++;
+  if (round > ROUNDS){ endGame(); return; }
+  renderRound();
+}
+
+function check(){
+  if (!running || locked) return;
+  const input = $("answer");
+  const val = input.value.trim().toLowerCase();
+  if (!val){ msg("Type a word first.", ""); input.focus(); return; }
+  if (val !== correctWord){
+    streak = 0;
+    updateHud();
+    input.classList.remove("bad");
+    void input.offsetWidth;
+    input.classList.add("bad");
+    msg("Not quite. Try again.", "err");
+    setTimeout(() => input.classList.remove("bad"), 400);
+    return;
+  }
+  // correct
+  locked = true;
+  stopTimer();
+  input.classList.add("good");
+  let bonus = 0;
+  if (timeLeft > maxTime - 5) bonus += 10;
+  else if (timeLeft > maxTime - 10) bonus += 7;
+  else if (timeLeft > maxTime - 15) bonus += 5;
+  streak++;
+  if (streak >= 3) bonus += 5;
+  if (wordClass === "legendary") bonus += 15;
+  else if (wordClass === "exclusive") bonus += 10;
+  const gained = 10 + bonus;
+  score += gained;
+  updateHud();
+  msg("Correct: " + correctWord + ". +" + gained + " points.", "ok");
+  setTimeout(advance, 1300);
+}
+
+function reshuffle(){
+  if (!running || locked) return;
+  const input = $("answer");
+  input.value = "";
+  $("scrambled").textContent = scramble(correctWord);
+  msg("Letters rearranged. Timer keeps running.", "");
+  input.focus({ preventScroll: true });
+}
+
+function endGame(){
+  running = false;
+  stopTimer();
+  const won = score >= TARGET;
+  $("endTitle").textContent = won ? "You win" : "Target missed";
+  $("endScore").textContent = score;
+  $("endText").textContent = won
+    ? "You scored " + score + " across " + ROUNDS + " rounds and beat the target of " + TARGET + "."
+    : "You scored " + score + " across " + ROUNDS + " rounds. The target was " + TARGET + ".";
+  $("endOverlay").classList.remove("hidden");
+}
+
+function startGame(){
+  round = 1; score = 0; streak = 0;
+  running = true; locked = false;
+  $("startOverlay").classList.add("hidden");
+  $("endOverlay").classList.add("hidden");
+  renderRound();
+}
+
+$("startBtn").addEventListener("click", startGame);
+$("restartBtn").addEventListener("click", startGame);
+$("checkBtn").addEventListener("click", check);
+$("reshuffleBtn").addEventListener("click", reshuffle);
+$("answer").addEventListener("keydown", (e) => {
+  if (e.key === "Enter"){ e.preventDefault(); check(); }
+});
+</script>
+</body>
+</html>

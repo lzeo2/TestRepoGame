@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Backgammon</title>
+<!--
+  Rules engine + AI ingested from: https://github.com/binarymax/backgammon.js
+  License: MIT (see LICENSE in this folder), Copyright (c) 2013 Max Irwin
+  Files taken: main.js and game.js (vendored as engine.js; the debug
+  console.log('WINNER!...) line removed) and brain.js (AI, verbatim).
+  Not taken: the jQuery drag-drop board UI, felt/piece images, Google
+  Analytics from example.html, and the jQuery vendor file.
+  New here: flat single-page wrapper with a dependency-free snake-grid
+  board, tap/keyboard play, legal-move highlights, dice, score, match
+  win/lose overlays and restart. Player is white, computer is black.
+-->
+<meta name="referrer" content="no-referrer">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div id="startScreen" class="screen">
+  <h1>Backgammon</h1>
+  <p>Full backgammon against a simple computer opponent. Roll happens
+     automatically each turn. You are white: move all fifteen checkers from
+     point 24 down to your home board (points 1 to 6), hit the opponent's
+     loose blots on the way, and bear off past point 1. The computer plays
+     black upward toward 24. First to bear off all fifteen checkers wins
+     the match.</p>
+  <div class="panel">
+    <strong>Rules in play</strong>
+    <ul class="controls-doc">
+      <li><strong>Dice:</strong> two dice per turn, rolled automatically. Doubles play four moves of that number.</li>
+      <li><strong>Legal moves only:</strong> destinations light up green. Both dice must be used when they can be.</li>
+      <li><strong>Bar:</strong> landing on a lone enemy blot sends it to the bar. Checkers on the bar re-enter first.</li>
+      <li><strong>Bearing off:</strong> once all your checkers are home, move off the board with an exact roll, or a higher roll when no checker sits farther out. An exact roll is needed while a checker remains farther out.</li>
+      <li><strong>Score:</strong> 5 points per blot hit, 2 per checker borne off, 100 for winning the match. Record shows matches won and lost.</li>
+    </ul>
+  </div>
+  <div class="panel">
+    <strong>Controls</strong>
+    <ul class="controls-doc">
+      <li><strong>Touch / mouse:</strong> tap one of your checkers, then tap a glowing destination point. Tap the glowing Off tray to bear off. Tap the selected checker again to deselect.</li>
+      <li><strong>Keyboard:</strong> Tab or Shift+Tab moves between points, bar and Off tray; Enter or Space selects the focused square and confirms a move. Buttons in the header start a new match or return to the menu.</li>
+      <li><strong>Board map:</strong> the grid snakes in four-point rows: points 24 to 21, then 17 to 20, 16 to 13, the bar, then 9 to 12, 8 to 5, and 1 to 4. Point numbers are printed on each point.</li>
+    </ul>
+  </div>
+  <button type="button" id="playBtn" class="play-btn">Play</button>
+</div>
+
+<div id="gameScreen" class="screen hidden">
+  <div class="hud">
+    <span class="chip">Score <span id="hudScore">0</span></span>
+    <span class="chip muted" id="hudRecord">Won 0 : Lost 0</span>
+    <span class="chip muted"><button type="button" id="newMatchBtn">New match</button></span>
+    <span class="chip muted"><button type="button" id="menuBtn">Menu</button></span>
+  </div>
+  <div id="board" role="group" aria-label="Backgammon board"></div>
+  <div class="statusrow">
+    <div id="status" aria-live="polite">Welcome.</div>
+    <div id="note"></div>
+    <div id="legend">
+      <b>White</b> (you): points 24 to 1, Off tray at bottom left.
+      <b>Black</b> (computer): points 1 to 24, Off tray at top left.
+      Green glow = legal destination. Gold outline = selected checker.
+    </div>
+  </div>
+</div>
+
+<div id="overlay" class="overlay hidden">
+  <div class="panel">
+    <h2 id="resultTitle">Result</h2>
+    <p id="resultText"></p>
+    <div id="resultPts"></div>
+    <div class="row">
+      <button type="button" id="nextMatchBtn" class="play-btn">Play again</button>
+      <button type="button" id="overlayMenuBtn">Menu</button>
+    </div>
+  </div>
+</div>
+
+<script src="engine.js"></script>
+<script src="brain.js"></script>
+<script src="script.js"></script>
+</body>
+</html>

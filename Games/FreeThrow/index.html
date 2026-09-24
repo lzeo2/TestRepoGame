@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Free Throw</title>
+<!--
+  Free Throw - INGESTED from github.com/jeremymartinezq/Basketball-game
+  License: MIT (see LICENSE in this folder), Copyright (c) 2025 jeremymartinezq
+  Commit: 2bf12dc1f9c29c9e2be2b538076d2f2033103d32
+  Taken: oscillating power meter with green release zone, aim offsets,
+  shot physics with release-quality accuracy, 24-second shot clock,
+  DOM ball animation, score/shots/game-over flow.
+  Modified: 10-shot round with a 12-point win target, start screen with
+  documented controls, rim bounce physics, flat colors (gradients removed),
+  sentence-case labels, 44px touch targets, 360px-safe layout, touch
+  preventDefault, restart key. Self-contained, offline-first, no trackers.
+-->
+<style>
+  :root{
+    --bg:#1c222b; --panel:#262f3c; --panel2:#313d4e; --ink:#eef2f7; --muted:#a4b1c2;
+    --accent:#e0a33e; --line:#414f63; --bad:#d9634f; --good:#5cb86a;
+    --court:#9a6a3e; --court2:#8a5c34; --sky:#33445c; --ball:#e8722a;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent}
+  html,body{margin:0; background:var(--bg); color:var(--ink);
+    font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;}
+  body{display:flex; flex-direction:column; align-items:center; padding:10px 12px 24px;}
+  h1{font-size:21px; margin:6px 0; font-weight:650; text-align:center;}
+  .scoreboard{display:flex; justify-content:space-between; gap:8px; width:100%;
+    max-width:400px; padding:8px; background:var(--panel); border:1px solid var(--line);
+    border-radius:8px; margin-bottom:8px; flex-wrap:wrap;}
+  .stat{padding:6px 10px; background:var(--panel2); border:1px solid var(--line);
+    border-radius:6px; font-size:13px; min-height:44px; display:flex; align-items:center; gap:6px;}
+  .stat b{font-size:16px; color:var(--accent);}
+  .game-container{position: relative; width:100%; max-width:400px; height:500px;
+    background-color:var(--sky); border:2px solid var(--line); border-radius:10px;
+    overflow:hidden; touch-action:none;}
+  .court{position:absolute; bottom:0; width:100%; height:250px;
+    background-color:var(--court); border-top:3px solid var(--court2);}
+  .backboard{position:absolute; top:100px; left:50%; transform:translateX(-50%);
+    width:120px; height:80px; background-color:#f2f2ee; border:4px solid #20262f; z-index:2;}
+  .backboard-square{position:absolute; top:15px; left:50%; transform:translateX(-50%);
+    width:60px; height:50px; border:2px solid #20262f;}
+  .rim{position:absolute; top:180px; left:50%; transform:translateX(-50%);
+    width:50px; height:5px; background-color:#d9432f; border-radius:2px; z-index:3;}
+  /* flat trapezoid net (clip-path, solid translucent fill: no gradient) */
+  .net{position:absolute; top:185px; left:50%; width:45px; height:40px;
+    background:rgba(255,255,255,0.28); z-index:1;
+    clip-path:polygon(0 0, 100% 0, 78% 100%, 22% 100%);}
+  .net::after{content:""; position:absolute; left:50%; top:0; bottom:0; width:2px;
+    background:rgba(255,255,255,0.45);}
+  .ball{position:absolute; width:40px; height:40px; background-color:var(--ball);
+    border-radius:50%; bottom:50px; left:50%; transform:translateX(-50%); z-index:10;
+    border:2px solid #20262f;}
+  .ball::after{content:""; position:absolute; width:90%; height:2px; top:50%; left:5%;
+    background-color:#20262f; border-radius:2px;}
+  .ball::before{content:""; position:absolute; width:2px; height:90%; top:5%; left:50%;
+    background-color:#20262f; border-radius:2px;}
+  .power-meter{position:absolute; bottom:20px; left:12px; width:30px; height:200px;
+    background-color:#0f141b; border:2px solid var(--line); border-radius:15px;
+    overflow:hidden; z-index:12;}
+  .power-level{position:absolute; bottom:0; width:100%; height:0;
+    background-color:var(--accent); transition:height 0.1s;}
+  .release-zone{position:absolute; top:50px; width:100%; height:30px;
+    background-color:rgba(92,184,106,0.35); border-top:1px solid var(--good);
+    border-bottom:1px solid var(--good);}
+  .power-label{position:absolute; bottom:226px; left:12px; width:30px; text-align:center;
+    font-size:11px; color:var(--muted);}
+  button{font-family:inherit; cursor:pointer; border:none; border-radius:8px;
+    color:var(--ink); background:var(--panel2); border:1px solid var(--line);}
+  button:focus-visible{outline:2px solid var(--accent); outline-offset:2px;}
+  .shoot-button{position:absolute; bottom:20px; right:12px; min-width:96px; min-height:52px;
+    background-color:#b8371f; font-weight:700; font-size:18px; z-index:12;}
+  .aim-controls{position:absolute; bottom:84px; right:12px; display:flex; gap:8px; z-index:12;}
+  .aim-button{width:46px; height:46px; font-size:20px; display:flex;
+    justify-content:center; align-items:center;}
+  .space-indicator{position:absolute; bottom:84px; left:50%; transform:translateX(-50%);
+    background-color:var(--panel2); border:1px solid var(--line); color:var(--muted);
+    padding:8px 14px; border-radius:8px; font-weight:700; font-size:13px; z-index:12;}
+  .space-indicator.active{background-color:#2c5a36; color:var(--ink); border-color:var(--good);}
+  .overlay{position:absolute; inset:0; background:rgba(10,13,18,0.92); color:var(--ink);
+    display:flex; flex-direction:column; justify-content:center; align-items:center;
+    gap:10px; text-align:center; padding:18px; z-index:30; border-radius:8px;}
+  .overlay h2{margin:0; font-size:22px;}
+  .overlay p{margin:0; font-size:14px; color:var(--muted); line-height:1.5; max-width:320px;}
+  .overlay .verdict{font-size:17px; color:var(--accent); font-weight:700;}
+  .overlay button{min-height:48px; min-width:150px; font-size:16px; font-weight:700;
+    background:var(--accent); color:#1c222b; border:none;}
+  .hidden{display:none !important;}
+  .instructions{margin-top:10px; width:100%; max-width:400px; background:var(--panel);
+    border:1px solid var(--line); border-radius:8px; padding:10px 12px;
+    font-size:13px; color:var(--muted); line-height:1.6; text-align:center;}
+  .instructions b{color:var(--ink);}
+</style>
+</head>
+<body>
+<h1>Free Throw</h1>
+
+<div class="scoreboard">
+  <div class="stat">Score <b id="score">0</b></div>
+  <div class="stat">Shots left <b id="shots-left">10</b></div>
+  <div class="stat">Target <b>12</b></div>
+  <div class="stat">Shot clock <b id="shot-clock">24</b></div>
+</div>
+
+<div class="game-container" id="gameContainer">
+  <div class="court"></div>
+  <div class="backboard"><div class="backboard-square"></div></div>
+  <div class="rim"></div>
+  <div class="net"></div>
+  <div class="ball" id="ball"></div>
+
+  <div class="power-label">Power</div>
+  <div class="power-meter">
+    <div class="release-zone"></div>
+    <div class="power-level" id="power-level"></div>
+  </div>
+
+  <div class="aim-controls">
+    <button class="aim-button" id="aim-left" aria-label="Aim left">&#8592;</button>
+    <button class="aim-button" id="aim-right" aria-label="Aim right">&#8594;</button>
+  </div>
+
+  <div class="space-indicator" id="space-indicator">Space</div>
+  <button class="shoot-button" id="shoot-button">Shoot</button>
+
+  <div class="overlay" id="startOverlay">
+    <h2>Free Throw</h2>
+    <p>Hold the Shoot button (or Space) to run the power meter, release when the
+       bar is inside the green zone, and sink at least 12 points from 10 shots to win.</p>
+    <p>Controls: Left and Right arrows (or the arrow buttons) aim. Hold and release
+       Space or Shoot to set power. Press R to restart.</p>
+    <button id="playBtn">Start</button>
+  </div>
+
+  <div class="overlay hidden" id="game-over">
+    <h2>Round over</h2>
+    <p class="verdict" id="verdict"></p>
+    <p>Final score: <span id="final-score">0</span> of 20 possible.</p>
+    <button id="restart-button">Play again</button>
+  </div>
+</div>
+
+<div class="instructions">
+  <b>Controls:</b> hold <b>Space</b> or the <b>Shoot</b> button to charge power,
+  release in the green band (about 70 percent) for an accurate shot.
+  <b>Left</b> and <b>Right</b> arrows aim. <b>R</b> restarts the round.
+  Score 12 or more from 10 shots to win. Rim bounces can drop or spare a shot.
+</div>
+
+<script>
+  // Game variables (structure preserved from the ingested MIT original)
+  let score = 0;
+  let shotsLeft = 10;
+  let shotClock = 24;
+  let shotClockTimer;
+  let powerInterval;
+  let powerIncreasing = true;
+  let power = 0;
+  let aimOffset = 0;
+  let isAnimating = false;
+  let ballX, ballY;
+  let velocityX, velocityY;
+  let gravity = 0.4;
+  let ballInHand = true;
+  let spacePressed = false;
+  let playing = false;
+
+  const WIN_TARGET = 12;
+  const TOTAL_SHOTS = 10;
+
+  // DOM elements
+  const gameContainer = document.getElementById('gameContainer');
+  const ball = document.getElementById('ball');
+  const powerLevel = document.getElementById('power-level');
+  const shootButton = document.getElementById('shoot-button');
+  const spaceIndicator = document.getElementById('space-indicator');
+  const aimLeftButton = document.getElementById('aim-left');
+  const aimRightButton = document.getElementById('aim-right');
+  const scoreDisplay = document.getElementById('score');
+  const shotsLeftDisplay = document.getElementById('shots-left');
+  const shotClockDisplay = document.getElementById('shot-clock');
+  const gameOverScreen = document.getElementById('game-over');
+  const startOverlay = document.getElementById('startOverlay');
+  const verdictDisplay = document.getElementById('verdict');
+  const finalScoreDisplay = document.getElementById('final-score');
+  const restartButton = document.getElementById('restart-button');
+  const rimEl = document.querySelector('.rim');
+
+  resetBall();
+
+  // Event listeners
+  shootButton.addEventListener('mousedown', function(e){ e.preventDefault(); startPower(); });
+  shootButton.addEventListener('touchstart', function(e){ e.preventDefault(); startPower(); }, {passive:false});
+  shootButton.addEventListener('mouseup', shoot);
+  shootButton.addEventListener('touchend', function(e){ e.preventDefault(); shoot(); }, {passive:false});
+  aimLeftButton.addEventListener('click', aimLeft);
+  aimRightButton.addEventListener('click', aimRight);
+  restartButton.addEventListener('click', function(){ restartGame(); });
+  document.getElementById('playBtn').addEventListener('click', function(){
+    startOverlay.classList.add('hidden');
+    playing = true;
+    startShotClock();
+  });
+
+  document.addEventListener('keydown', function(e){
+    if (e.code === 'Space' && !spacePressed) {
+      if (!playing && !startOverlay.classList.contains('hidden')) return;
+      if (!playing) return;
+      e.preventDefault();
+      spacePressed = true;
+      spaceIndicator.classList.add('active');
+      startPower();
+    }
+    if (e.code === 'ArrowLeft') aimLeft();
+    if (e.code === 'ArrowRight') aimRight();
+    if (e.code === 'KeyR' && playing) restartGame();
+  });
+  document.addEventListener('keyup', function(e){
+    if (e.code === 'Space' && spacePressed) {
+      spacePressed = false;
+      spaceIndicator.classList.remove('active');
+      shoot();
+    }
+  });
+
+  function startPower() {
+    if (!playing || !ballInHand || isAnimating) return;
+    power = 0;
+    powerLevel.style.height = '0%';
+    powerIncreasing = true;
+    clearInterval(powerInterval);
+    powerInterval = setInterval(() => {
+      if (powerIncreasing) {
+        power += 1.5;
+        if (power >= 100) { power = 100; powerIncreasing = false; }
+      } else {
+        power -= 1.5;
+        if (power <= 0) { power = 0; powerIncreasing = true; }
+      }
+      powerLevel.style.height = power + '%';
+    }, 20);
+  }
+
+  function shoot() {
+    if (!playing || !ballInHand || isAnimating) return;
+    clearInterval(powerInterval);
+    ballInHand = false;
+    isAnimating = true;
+    shotsLeft--;
+    shotsLeftDisplay.textContent = shotsLeft;
+    clearInterval(shotClockTimer);
+
+    const ballRect = ball.getBoundingClientRect();
+    const containerRect = gameContainer.getBoundingClientRect();
+    ballX = (ballRect.left - containerRect.left);
+    ballY = (ballRect.top - containerRect.top);
+
+    // release quality: green zone center is 70%
+    const releaseQuality = Math.abs(70 - power);
+    let accuracyFactor = Math.max(0.5, 1 - (releaseQuality / 100));
+
+    const powerFactor = power / 10;
+    velocityX = aimOffset * accuracyFactor;
+    velocityY = -powerFactor * accuracyFactor;
+
+    animateShot();
+  }
+
+  function aimLeft() {
+    if (!playing || !ballInHand || isAnimating) return;
+    aimOffset = Math.max(aimOffset - 0.5, -5);
+    ball.style.transform = 'translateX(calc(-50% + ' + (aimOffset * 5) + 'px))';
+  }
+  function aimRight() {
+    if (!playing || !ballInHand || isAnimating) return;
+    aimOffset = Math.min(aimOffset + 0.5, 5);
+    ball.style.transform = 'translateX(calc(-50% + ' + (aimOffset * 5) + 'px))';
+  }
+
+  function bounceOffRim() {
+    // rim endpoints in container coordinates (added: rim physics)
+    const containerRect = gameContainer.getBoundingClientRect();
+    const rimRect = rimEl.getBoundingClientRect();
+    const rimY = rimRect.top - containerRect.top + rimRect.height / 2;
+    const ends = [
+      rimRect.left - containerRect.left + 4,
+      rimRect.right - containerRect.left - 4
+    ];
+    const bx = ballX + 20, by = ballY + 20;
+    for (const rx of ends) {
+      const dx = bx - rx, dy = by - rimY;
+      const d = Math.hypot(dx, dy);
+      if (d < 24 && d > 0.01) {
+        const nx = dx / d, ny = dy / d;
+        // push ball out of the rim circle
+        ballX = rx + nx * 24 - 20;
+        ballY = rimY + ny * 24 - 20;
+        const vn = velocityX * nx + velocityY * ny;
+        if (vn < 0) {
+          velocityX = (velocityX - 2 * vn * nx) * 0.6;
+          velocityY = (velocityY - 2 * vn * ny) * 0.6;
+        } else {
+          velocityX *= 0.6; velocityY *= 0.6;
+        }
+      }
+    }
+  }
+
+  function animateShot() {
+    velocityY += gravity;
+    ballX += velocityX;
+    ballY += velocityY;
+
+    ball.style.left = ballX + 'px';
+    ball.style.top = ballY + 'px';
+    ball.style.bottom = 'auto';
+
+    bounceOffRim();
+
+    const rimRect = rimEl.getBoundingClientRect();
+    const containerRect = gameContainer.getBoundingClientRect();
+    const rimLeft = rimRect.left - containerRect.left;
+    const rimRight = rimRect.right - containerRect.left;
+    const rimTop = rimRect.top - containerRect.top;
+
+    if (
+      ballY + 20 > rimTop - 5 &&
+      ballY < rimTop + 10 &&
+      ballX + 20 > rimLeft + 10 &&
+      ballX < rimRight - 10 &&
+      velocityY > 0
+    ) {
+      score += 2;
+      scoreDisplay.textContent = score;
+      // one score per shot only
+      velocityY = Math.abs(velocityY) * 0.2 + 2;
+    }
+
+    if (ballX < -40 || ballX > gameContainer.clientWidth || ballY < -40 || ballY > 500) {
+      endShot();
+      return;
+    }
+    requestAnimationFrame(animateShot);
+  }
+
+  function endShot() {
+    isAnimating = false;
+    if (shotsLeft <= 0) { gameOver(); return; }
+    resetBall();
+    startShotClock();
+  }
+
+  function resetBall() {
+    ballInHand = true;
+    aimOffset = 0;
+    power = 0;
+    powerLevel.style.height = '0%';
+    ball.style.transform = 'translateX(-50%)';
+    ball.style.left = '50%';
+    ball.style.top = 'auto';
+    ball.style.bottom = '50px';
+  }
+
+  function startShotClock() {
+    if (!playing) return;
+    shotClock = 24;
+    shotClockDisplay.textContent = shotClock;
+    clearInterval(shotClockTimer);
+    shotClockTimer = setInterval(() => {
+      shotClock--;
+      shotClockDisplay.textContent = shotClock;
+      if (shotClock <= 0) {
+        clearInterval(shotClockTimer);
+        if (ballInHand && !isAnimating) {
+          // shot clock violation: wastes the attempt
+          shotsLeft--;
+          shotsLeftDisplay.textContent = shotsLeft;
+          if (shotsLeft <= 0) { gameOver(); return; }
+          resetBall();
+          startShotClock();
+        }
+      }
+    }, 1000);
+  }
+
+  function gameOver() {
+    playing = false;
+    clearInterval(shotClockTimer);
+    clearInterval(powerInterval);
+    finalScoreDisplay.textContent = score;
+    verdictDisplay.textContent = score >= WIN_TARGET
+      ? 'You win: ' + score + ' points or more.'
+      : 'You lose: the target was ' + WIN_TARGET + ' points.';
+    gameOverScreen.classList.remove('hidden');
+  }
+
+  function restartGame() {
+    score = 0;
+    shotsLeft = TOTAL_SHOTS;
+    scoreDisplay.textContent = score;
+    shotsLeftDisplay.textContent = shotsLeft;
+    gameOverScreen.classList.add('hidden');
+    startOverlay.classList.add('hidden');
+    playing = true;
+    resetBall();
+    startShotClock();
+  }
+</script>
+</body>
+</html>

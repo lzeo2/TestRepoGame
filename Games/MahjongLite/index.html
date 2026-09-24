@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mahjong Lite</title>
+<!--
+  Mahjong Lite - ingested from https://github.com/ScriptRaccoon/mahjong-solitaire
+  commit 89dc27b58ab6501994d43fe11dc216245ff820fa, MIT License (LICENSE file
+  shipped in this folder). Taken: the 144-tile turtle layout (coordinates.js),
+  the free-tile rule (isOpen with side-neighbor logic), the move search /
+  hint / restart engine (createTiles.js, main.js, utils.js). Modified:
+  jQuery CDN replaced with vanilla JS, bundled PNG tile artwork dropped and
+  replaced with original flat CSS-drawn tiles (no third-party art), gradient
+  styles flattened, background image and external links removed, added start
+  screen, timer, score, win and no-moves-left lose states, keyboard aiming.
+  Offline-first, no external requests.
+-->
+<style>
+  :root{
+    --bg:#1a2129; --panel:#242e3b; --panel2:#2e3a4b; --ink:#eef2f7; --muted:#a4b1c2;
+    --accent:#4fa3b8; --accent2:#e0a33e; --bad:#d9634f; --good:#5cb86a; --line:#414f63;
+    --felt:#2c5e46; --tile:#f4efe2; --tile-edge:#d8d0bb; --tile-back:#b9b1a0;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent}
+  html,body{margin:0; background:var(--bg); color:var(--ink);
+    font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;}
+  body{display:flex; flex-direction:column; align-items:center; min-height:100vh;}
+  .wrap{width:100%; max-width:1000px; padding:10px 12px 24px;}
+  h1{font-size:21px; margin:8px 0 6px; font-weight:650; text-align:center;}
+  .hud{display:flex; gap:8px; flex-wrap:wrap; justify-content:center; margin-bottom:10px;}
+  .stat{background:var(--panel); border:1px solid var(--line); border-radius:8px;
+    padding:7px 12px; font-size:14px; min-height:44px; display:flex; align-items:center; gap:6px;}
+  .stat b{font-size:17px; color:var(--accent);}
+  .stage{background:var(--felt); border:1px solid var(--line); border-radius:10px;
+    overflow:hidden; position:relative;}
+  #viewport{position:relative; width:100%;}
+  #board{position:absolute; top:0; left:0; transform-origin:top left; width:948px; height:698px;}
+  .tile{position:absolute; width:56px; height:80px;}
+  .tileBack{position:absolute; left:-7px; top:-7px; width:63px; height:87px;
+    background:var(--tile-back); border:1px solid #8f887a; border-radius:9px;}
+  .tileFront{position:absolute; inset:0; background:var(--tile); border:1px solid var(--tile-edge);
+    border-radius:7px; display:flex; align-items:center; justify-content:center;
+    cursor:pointer; user-select:none;}
+  .tileFront:hover{background:#fffaf0;}
+  .tileFront.selTile{outline:3px solid var(--accent2); outline-offset:-2px; background:#fff6dd;}
+  .tileFront.cursorTile{outline:3px solid var(--accent); outline-offset:-2px;}
+  .tileFront.hintTile{outline:3px solid var(--accent2); outline-offset:-2px;}
+  .tileFront.matched{opacity:0; transition:opacity .18s;}
+  .tile.gone{display:none;}
+  /* flat original tile faces */
+  .face{display:grid; grid-template-columns:repeat(3,1fr); gap:3px; width:40px; height:60px;
+    align-content:center; justify-items:center; padding:4px 0;}
+  .pip{width:9px; height:9px; border-radius:50%; background:#2f6fb0;}
+  .pip.alt{background:#c0483c;}
+  .bar{width:7px; height:13px; border-radius:3px; background:#3f8f4f;}
+  .digit{font-size:34px; font-weight:750; color:#c0483c; line-height:1;}
+  .letter{font-size:34px; font-weight:750; color:#45505e; line-height:1;}
+  .letter.r{color:#c0483c;} .letter.g{color:#3f8f4f;} .letter.b{color:#2f6fb0;}
+  .suit{display:flex; flex-direction:column; align-items:center; gap:2px;}
+  .suit .n{font-size:26px; font-weight:750; line-height:1;}
+  .suit .cap{font-size:11px; font-weight:700; color:#7a7466;}
+  .suit.flower .n{color:#3f8f4f;}
+  .suit.season .n{color:#c98a1b;}
+  .msg{min-height:32px; text-align:center; color:var(--muted); font-size:15px; margin-top:8px;
+    display:flex; align-items:center; justify-content:center; gap:6px;}
+  .btnrow{display:flex; gap:8px; justify-content:center; flex-wrap:wrap; margin-top:8px;}
+  button{min-height:44px; min-width:44px; padding:8px 18px; font-size:15px; font-weight:650;
+    background:var(--accent); color:#0f2226; border:none; border-radius:8px; cursor:pointer;}
+  button:hover{filter:brightness(1.08);}
+  button:focus-visible{outline:3px solid var(--accent2); outline-offset:2px;}
+  button.sec{background:var(--panel2); color:var(--ink); border:1px solid var(--line);}
+  .legend{font-size:13px; color:var(--muted); text-align:center; margin-top:12px; line-height:1.55;}
+  .overlay{position:fixed; inset:0; background:rgba(13,17,23,.94); display:flex;
+    align-items:center; justify-content:center; z-index:10; padding:16px;}
+  .overlay .card{background:var(--panel); border:1px solid var(--line); border-radius:12px;
+    max-width:460px; width:100%; padding:22px; text-align:center;}
+  .card h2{margin:0 0 10px; font-size:23px;}
+  .card p{color:var(--muted); font-size:15px; line-height:1.6; margin:8px 0;}
+  .card .big{font-size:34px; color:var(--accent); font-weight:750; margin:8px 0;}
+  .hidden{display:none !important;}
+  .credit{font-size:12px; color:#6b7a92; text-align:center; margin-top:12px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Mahjong Lite</h1>
+  <div class="hud">
+    <div class="stat">Score <b id="score">0</b></div>
+    <div class="stat">Time <b id="time">0:00</b></div>
+    <div class="stat">Tiles <b id="tilesLeft">144</b></div>
+    <div class="stat">Moves <b id="moves">0</b></div>
+  </div>
+
+  <div class="stage" id="stage">
+    <div id="viewport"><div id="board"></div></div>
+  </div>
+
+  <div class="msg" id="msg" aria-live="polite">Clear every pair of free tiles.</div>
+  <div class="btnrow">
+    <button id="hintBtn" class="sec" type="button">Hint (-5)</button>
+    <button id="restartBtn2" class="sec" type="button">Restart</button>
+  </div>
+
+  <div class="legend">
+    Controls: tap two matching free tiles to remove them. A tile is free when nothing lies on top
+    of it and its left or right side is open. Arrow keys move the cursor between free tiles,
+    Enter selects. Hints cost 5 points. Clear all 144 tiles to win; if no pairs remain, the game is lost.
+  </div>
+  <div class="credit">Layout and engine ingested from ScriptRaccoon/mahjong-solitaire (MIT); tile art drawn in-page, no third-party assets.</div>
+</div>
+
+<!-- Start screen -->
+<div class="overlay" id="startOverlay">
+  <div class="card">
+    <h2>Mahjong Lite</h2>
+    <p>Classic tile-matching solitaire on the turtle layout: 144 tiles stacked in four layers.
+       Remove them all by pairs.</p>
+    <p><b>Controls</b><br>
+      Tap a free tile to select it, then tap a matching free tile to remove the pair.<br>
+      Arrow keys move between free tiles, Enter selects. Hint highlights a valid pair (costs 5 points).<br>
+      Score 10 per pair, plus a time bonus at the end. Beat a rising clock for more points.</p>
+    <button id="startBtn" type="button">Start</button>
+  </div>
+</div>
+
+<!-- Win / lose screens -->
+<div class="overlay hidden" id="endOverlay">
+  <div class="card">
+    <h2 id="endTitle">Game over</h2>
+    <div class="big" id="endScore">0</div>
+    <p id="endText"></p>
+    <button id="restartBtn" type="button">Play again</button>
+  </div>
+</div>
+
+<script>
+"use strict";
+const $ = (id) => document.getElementById(id);
+
+/* ---------- layout + free-tile rule: ingested from coordinates.js ---------- */
+function interval(a, b, map){
+  return new Array(b - a + 1).fill(0).map((_, i) => map ? map(a + i) : a + i);
+}
+function matrixInterval(a, b, c, d, map){
+  return interval(c, d, (y) => interval(a, b, (x) => map(x, y))).flat(1);
+}
+function disjoint(l1, l2){
+  return l1.every((a) => l2.every((b) => a.toString() != b.toString()));
+}
+
+const level0 = [
+  ...interval(1, 12, (x) => [x, 0, 0]),
+  ...interval(3, 10, (x) => [x, 1, 0]),
+  ...interval(2, 11, (x) => [x, 2, 0]),
+  [0, 3.5, 0],
+  ...interval(1, 12, (x) => [x, 3, 0]),
+  ...interval(1, 12, (x) => [x, 4, 0]),
+  [13, 3.5, 0],
+  [14, 3.5, 0],
+  ...interval(2, 11, (x) => [x, 5, 0]),
+  ...interval(3, 10, (x) => [x, 6, 0]),
+  ...interval(1, 12, (x) => [x, 7, 0]),
+].reverse();
+const level1 = matrixInterval(4, 9, 1, 6, (x, y) => [x, y, 1]).reverse();
+const level2 = matrixInterval(5, 8, 2, 5, (x, y) => [x, y, 2]).reverse();
+const level3 = matrixInterval(6, 7, 3, 4, (x, y) => [x, y, 3]).reverse();
+const level4 = [[6.5, 3.5, 4]];
+const COORDINATES = [...level0, ...level1, ...level2, ...level3, ...level4];
+
+function leftNeighbors(coord){
+  if (coord.toString() === [1, 3, 0].toString() || coord.toString() === [1, 4, 0].toString())
+    return [[0, 3.5, 0]];
+  if (coord.toString() === [13, 3.5, 0].toString())
+    return [[12, 3, 0], [12, 4, 0]];
+  return [[coord[0] - 1, coord[1], coord[2]]];
+}
+function rightNeighbors(coord){
+  if (coord.toString() === [0, 3.5, 0].toString())
+    return [[1, 3, 0], [1, 4, 0]];
+  if (coord.toString() === [12, 3, 0].toString() || coord.toString() === [12, 4, 0].toString())
+    return [[13, 3.5, 0]];
+  return [[coord[0] + 1, coord[1], coord[2]]];
+}
+function isOpen(coord, current){
+  if (disjoint([coord], current)) return false;
+  const [x, y, z] = coord;
+  if (current.some(([a, b, c]) => a === x && b === y && c > z) ||
+      (z === 3 && current.some(([, , c]) => c === 4))) return false;
+  return disjoint(leftNeighbors(coord), current) || disjoint(rightNeighbors(coord), current);
+}
+
+/* ---------- tile set: 144 tiles, types as in images.js, faces drawn in-page ---------- */
+function buildTypes(){
+  const types = [];
+  const add = (name, count, multiplicity) => {
+    for (let j = 1; j <= count; j++)
+      for (let i = 1; i <= multiplicity; i++)
+        types.push(multiplicity > 1 ? name + j : name);
+  };
+  add("dots", 9, 4);
+  add("bamboo", 9, 4);
+  add("character", 9, 4);
+  add("wind", 4, 4);
+  add("dragon", 3, 4);
+  add("flower", 4, 1);
+  add("season", 4, 1);
+  return types;
+}
+function shuffle(arr){
+  for (let i = arr.length - 1; i > 0; i--){
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+/* Flat original faces: pips, bars, digits, letters. No third-party art. */
+const WIND_LETTERS = ["N", "E", "S", "W"];
+function faceFor(type){
+  const front = document.createElement("div");
+  front.className = "tileFront";
+  const set = (html, cls) => {
+    const f = document.createElement("div");
+    f.className = cls || "face";
+    f.innerHTML = html; // static markup only, never user content
+    front.appendChild(f);
+  };
+  let m;
+  if ((m = type.match(/^dots(\d)$/))){
+    const n = Number(m[1]);
+    let cells = "";
+    for (let i = 1; i <= 9; i++)
+      cells += i <= n ? `<span class="pip${i % 2 ? "" : " alt"}"></span>` : "<span></span>";
+    set(cells);
+  } else if ((m = type.match(/^bamboo(\d)$/))){
+    const n = Number(m[1]);
+    let cells = "";
+    for (let i = 1; i <= 9; i++)
+      cells += i <= n ? '<span class="bar"></span>' : "<span></span>";
+    set(cells);
+  } else if ((m = type.match(/^character(\d)$/))){
+    set(`<span class="digit">${m[1]}</span>`, "face");
+  } else if ((m = type.match(/^wind(\d)$/))){
+    set(`<span class="letter">${WIND_LETTERS[Number(m[1]) - 1]}</span>`, "face");
+  } else if ((m = type.match(/^dragon(\d)$/))){
+    const cls = ["r", "g", "b"][Number(m[1]) - 1];
+    const letter = ["R", "G", "W"][Number(m[1]) - 1];
+    set(`<span class="letter ${cls}">${letter}</span>`, "face");
+  } else if (type === "flower"){
+    set('<span class="suit flower"><span class="n">' + flowerN() + '</span><span class="cap">flower</span></span>', "face");
+  } else if (type === "season"){
+    set('<span class="suit season"><span class="n">' + seasonN() + '</span><span class="cap">season</span></span>', "face");
+  }
+  return front;
+}
+/* flowers are distinct tiles sharing one match type; keep a per-instance number */
+let flowerCounter = 0, seasonCounter = 0;
+function flowerN(){ flowerCounter = (flowerCounter % 4) + 1; return flowerCounter; }
+function seasonN(){ seasonCounter = (seasonCounter % 4) + 1; return seasonCounter; }
+
+/* ---------- game state ---------- */
+const TW = 56, TH = 80, DEPTH = 7, OFF_T = 30, OFF_L = 80;
+let current = [];          // coords still on the table
+let typeAt = {};           // coord string -> type
+let elsAt = {};            // coord string -> tile element
+let selected = null;       // coord string
+let cursorIdx = 0;         // keyboard cursor among free tiles
+let score = 0, running = false;
+let seconds = 0, timerId = null, hintTimers = [];
+
+function fmtTime(s){
+  const m = Math.floor(s / 60), r = s % 60;
+  return m + ":" + String(r).padStart(2, "0");
+}
+function updateHud(){
+  $("score").textContent = score;
+  $("time").textContent = fmtTime(seconds);
+  $("tilesLeft").textContent = current.length;
+  const n = countMoves();
+  $("moves").textContent = n;
+}
+function msg(t){ $("msg").textContent = t; }
+
+function clearHintTimers(){
+  hintTimers.forEach(clearTimeout);
+  hintTimers = [];
+}
+
+function createBoard(){
+  const board = $("board");
+  board.textContent = "";
+  elsAt = {};
+  flowerCounter = 0; seasonCounter = 0;
+  const types = shuffle(buildTypes());
+  typeAt = {};
+  COORDINATES.forEach((coord, i) => {
+    typeAt[coord.toString()] = types[i];
+  });
+  COORDINATES.forEach((coord) => {
+    const [x, y, z] = coord;
+    const tile = document.createElement("div");
+    tile.className = "tile";
+    tile.style.left = (x * TW + DEPTH * z + OFF_L) + "px";
+    tile.style.top = (y * TH + DEPTH * z + OFF_T) + "px";
+    tile.style.zIndex = String(z);
+    const front = faceFor(typeAt[coord.toString()]);
+    front.addEventListener("click", () => onTileClick(coord));
+    tile.appendChild(front);
+    board.appendChild(tile);
+    elsAt[coord.toString()] = tile;
+  });
+}
+
+function fitBoard(){
+  const stageW = $("stage").clientWidth;
+  const scale = Math.min(1, stageW / 948);
+  $("board").style.transform = "scale(" + scale + ")";
+  $("viewport").style.height = Math.ceil(698 * scale) + "px";
+}
+
+function countMoves(){
+  let n = 0;
+  for (let i = 0; i < current.length; i++)
+    for (let j = i + 1; j < current.length; j++){
+      const p = current[i], q = current[j];
+      if (p.toString() !== q.toString() &&
+          typeAt[p.toString()] === typeAt[q.toString()] &&
+          isOpen(p, current) && isOpen(q, current)) n++;
+    }
+  return n;
+}
+
+function suggestMove(){
+  const pairs = [];
+  for (let i = 0; i < current.length; i++)
+    for (let j = i + 1; j < current.length; j++){
+      const p = current[i], q = current[j];
+      if (p.toString() !== q.toString() &&
+          typeAt[p.toString()] === typeAt[q.toString()] &&
+          isOpen(p, current) && isOpen(q, current)) pairs.push([p, q]);
+    }
+  return pairs.length ? pairs[Math.floor(Math.random() * pairs.length)] : null;
+}
+
+function frontOf(coordStr){
+  return elsAt[coordStr].querySelector(".tileFront");
+}
+
+function setSelected(coordStr){
+  if (selected && elsAt[selected]) frontOf(selected).classList.remove("selTile");
+  selected = coordStr;
+  if (coordStr) frontOf(coordStr).classList.add("selTile");
+}
+
+function onTileClick(coord){
+  if (!running) return;
+  const key = coord.toString();
+  if (!isOpen(coord, current)) return;
+  if (selected === key){ setSelected(null); return; }
+  if (selected && typeAt[selected] === typeAt[key]){
+    removePair(selected, key);
+    return;
+  }
+  clearCursor();
+  setSelected(key);
+}
+
+function clearCursor(){
+  document.querySelectorAll(".tileFront.cursorTile")
+    .forEach((el) => el.classList.remove("cursorTile"));
+}
+
+function removePair(a, b){
+  setSelected(null);
+  clearCursor();
+  clearHintTimers();
+  const fa = frontOf(a), fb = frontOf(b);
+  fa.classList.add("matched");
+  fb.classList.add("matched");
+  setTimeout(() => {
+    elsAt[a].classList.add("gone");
+    elsAt[b].classList.add("gone");
+    current = current.filter((c) => c.toString() !== a && c.toString() !== b);
+    score += 10;
+    updateHud();
+    if (current.length === 0){ endGame(true); return; }
+    const n = countMoves();
+    if (n === 0){ endGame(false); return; }
+    msg(n + " possible move" + (n === 1 ? "" : "s") + " left. " + current.length + " tiles remain.");
+  }, 190);
+}
+
+function doHint(){
+  if (!running) return;
+  const mv = suggestMove();
+  if (!mv){ endGame(false); return; }
+  score = Math.max(0, score - 5);
+  updateHud();
+  const el = frontOf(mv[0].toString());
+  let toggles = 0;
+  const tick = () => {
+    el.classList.toggle("hintTile");
+    toggles++;
+    if (toggles < 8) hintTimers.push(setTimeout(tick, 200));
+    else {
+      el.classList.remove("hintTile");
+      clearCursor();
+      setSelected(mv[0].toString());
+    }
+  };
+  hintTimers.push(setTimeout(tick, 100));
+  msg("Hint: a matching pair is highlighted. 5 points deducted.");
+}
+
+function freeOpenTiles(){
+  return current
+    .map((c, i) => ({ c, i }))
+    .filter(({ c }) => isOpen(c, current));
+}
+
+function moveCursor(delta){
+  const free = freeOpenTiles();
+  if (!free.length) return;
+  cursorIdx = (cursorIdx + delta + free.length) % free.length;
+  clearCursor();
+  const key = free[cursorIdx].c.toString();
+  frontOf(key).classList.add("cursorTile");
+}
+
+function activateCursor(){
+  const free = freeOpenTiles();
+  if (!free.length) return;
+  const key = free[Math.min(cursorIdx, free.length - 1)].c.toString();
+  if (selected && selected !== key && typeAt[selected] === typeAt[key]){
+    removePair(selected, key);
+  } else {
+    setSelected(key);
+  }
+}
+
+function endGame(won){
+  running = false;
+  stopTimer();
+  clearHintTimers();
+  setSelected(null);
+  clearCursor();
+  if (won){
+    const bonus = Math.max(0, 600 - seconds);
+    score += bonus;
+    updateHud();
+    $("endTitle").textContent = "Board cleared";
+    $("endScore").textContent = score;
+    $("endText").textContent = "All 144 tiles matched in " + fmtTime(seconds) +
+      ". Time bonus: " + bonus + " points.";
+  } else {
+    $("endTitle").textContent = "No moves left";
+    $("endScore").textContent = score;
+    $("endText").textContent = current.length + " tiles are stuck with no matching free pair. Final score: " + score + ".";
+  }
+  $("endOverlay").classList.remove("hidden");
+}
+
+function stopTimer(){
+  if (timerId){ clearInterval(timerId); timerId = null; }
+}
+
+function startTimer(){
+  stopTimer();
+  timerId = setInterval(() => {
+    if (!running) return;
+    seconds++;
+    $("time").textContent = fmtTime(seconds);
+  }, 1000);
+}
+
+function startGame(){
+  clearHintTimers();
+  stopTimer();
+  current = [...COORDINATES];
+  score = 0; seconds = 0;
+  selected = null; cursorIdx = 0;
+  running = true;
+  $("startOverlay").classList.add("hidden");
+  $("endOverlay").classList.add("hidden");
+  createBoard();
+  fitBoard();
+  const n = countMoves();
+  msg(n + " possible moves. Remove all 144 tiles by pairs.");
+  updateHud();
+  startTimer();
+}
+
+document.addEventListener("keydown", (e) => {
+  if (!running) return;
+  const tag = (e.target.tagName || "").toLowerCase();
+  if (tag === "button" && (e.key === "Enter" || e.key === " ")) return;
+  if (e.key === "ArrowRight" || e.key === "ArrowDown"){ moveCursor(1); e.preventDefault(); }
+  else if (e.key === "ArrowLeft" || e.key === "ArrowUp"){ moveCursor(-1); e.preventDefault(); }
+  else if (e.key === "Enter" || e.key === " "){ activateCursor(); e.preventDefault(); }
+});
+
+$("startBtn").addEventListener("click", startGame);
+$("restartBtn").addEventListener("click", startGame);
+$("restartBtn2").addEventListener("click", startGame);
+$("hintBtn").addEventListener("click", doHint);
+window.addEventListener("resize", fitBoard);
+
+/* initial empty board shape before start */
+fitBoard();
+</script>
+</body>
+</html>

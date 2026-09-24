@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Find hidden words in three themed letter grids with drag or keyboard selection.">
+<link rel="icon" href="data:,">
+<title>Word Search</title>
+<!--
+  Grid generation (constraint-sorted placement) and straight-line word
+  selection adapted from "wordsearch" by Remi Rampin, licensed under the
+  BSD 3-Clause License. Source: https://github.com/remram44/wordsearch
+  Changes: single-file layout, themed embedded word lists (no fetch),
+  pointer drag selection, keyboard cell toggling, score, win/give-up states.
+-->
+<style>
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  background: #f4f1ea;
+  color: #1d1d1f;
+  touch-action: manipulation;
+}
+
+body { display: flex; flex-direction: column; align-items: center; }
+
+.screen {
+  width: 100%;
+  max-width: 520px;
+  padding: 0 12px 24px;
+  text-align: center;
+}
+
+h1 { font-size: 24px; margin: 14px 0 6px; }
+h2 { font-size: 18px; margin: 10px 0 6px; }
+p { margin: 6px 0; font-size: 15px; }
+
+.hidden { display: none !important; }
+
+ul.rules {
+  text-align: left;
+  margin: 10px auto;
+  padding-left: 22px;
+  max-width: 400px;
+  line-height: 1.5;
+  font-size: 15px;
+}
+
+button {
+  min-height: 44px;
+  min-width: 44px;
+  padding: 10px 18px;
+  font-size: 16px;
+  font-family: inherit;
+  background: #2f5d50;
+  color: #fdf6e3;
+  border: 2px solid #1d1d1f;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+button.primary { background: #f4c542; color: #1d1d1f; }
+button.danger { background: #c0392b; color: #fdf6e3; }
+button:focus-visible { outline: 3px solid #c0392b; outline-offset: 2px; }
+button:active { transform: translateY(1px); }
+
+.menu-buttons { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 12px; }
+
+#scoreline { font-size: 15px; color: #4a4a4f; margin: 4px 0 8px; }
+
+#grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+  width: max-content;
+  max-width: 100%;
+  margin: 0 auto 12px;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.cell {
+  width: clamp(38px, 11vw, 52px);
+  height: clamp(38px, 11vw, 52px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #ffffff;
+  border: 2px solid #c9c2b2;
+  border-radius: 6px;
+  font-size: clamp(17px, 5vw, 22px);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.cell.sel { background: #f4c542; border-color: #1d1d1f; }
+.cell.found { background: #9fd3b4; border-color: #2f5d50; }
+.cell.wrong { background: #eba39a; border-color: #c0392b; }
+.cell:focus-visible { outline: 3px solid #c0392b; outline-offset: 1px; }
+
+#wordlist {
+  list-style: none;
+  padding: 0;
+  margin: 8px auto;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+  max-width: 460px;
+}
+
+#wordlist li {
+  background: #ffffff;
+  border: 2px solid #c9c2b2;
+  border-radius: 6px;
+  padding: 7px 12px;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 1px;
+}
+
+#wordlist li.found {
+  background: #9fd3b4;
+  border-color: #2f5d50;
+  text-decoration: line-through;
+}
+
+#actions { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 10px; }
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 20;
+  padding: 16px;
+}
+
+.overlay .box {
+  background: #ffffff;
+  border: 3px solid #1d1d1f;
+  border-radius: 12px;
+  padding: 22px 26px;
+  max-width: 360px;
+  width: 100%;
+  text-align: center;
+}
+
+.overlay .box h2 { margin: 0 0 8px; font-size: 21px; }
+.overlay .box p { font-size: 15px; margin-bottom: 14px; }
+.overlay .box .row { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+</style>
+</head>
+<body>
+
+<div class="screen" id="startScreen">
+  <h1>Word Search</h1>
+  <p>Three themed puzzles hidden in letter grids. Find every word to win.</p>
+  <ul class="rules">
+    <li>Mouse or touch: drag across a word, or tap the first letter then the last.</li>
+    <li>Keyboard: arrow keys move, Enter selects or extends a word, Backspace removes the last letter, Esc clears.</li>
+    <li>Words run in any direction, including backwards and diagonally.</li>
+  </ul>
+  <div class="menu-buttons">
+    <button class="primary" data-theme="space" type="button">Space</button>
+    <button class="primary" data-theme="animals" type="button">Animals</button>
+    <button class="primary" data-theme="fruits" type="button">Fruits</button>
+  </div>
+</div>
+
+<div class="screen hidden" id="playScreen">
+  <h1 id="themeTitle">Space</h1>
+  <p id="scoreline">Found 0 of 0 words.</p>
+  <div id="grid" role="grid" aria-label="Word search grid"></div>
+  <ul id="wordlist"></ul>
+  <div id="actions">
+    <button id="newGridBtn" type="button">New grid</button>
+    <button id="menuBtn" type="button">Menu</button>
+    <button class="danger" id="giveUpBtn" type="button">Give up</button>
+  </div>
+</div>
+
+<div class="overlay hidden" id="endOverlay">
+  <div class="box">
+    <h2 id="endTitle">Puzzle solved</h2>
+    <p id="endText"></p>
+    <div class="row">
+      <button class="primary" id="againBtn" type="button">New grid</button>
+      <button id="endMenuBtn" type="button">Menu</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* Word placement and straight-line checking adapted from remram44/wordsearch
+   (BSD 3-Clause). Directions cover all eight reading orientations. */
+const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+
+const directions = [
+  [1, 0], [0, 1], [1, 1], [-1, 1], [1, -1],
+  [-1, 0], [0, -1], [-1, -1],
+];
+
+const WIDTH = 7;
+const HEIGHT = 7;
+
+const THEMES = {
+  space: {
+    title: 'Space',
+    words: ['SUN', 'MOON', 'MARS', 'ORBIT', 'COMET', 'GALAXY', 'NEPTUNE', 'SATURN', 'ROCKET', 'STAR'],
+  },
+  animals: {
+    title: 'Animals',
+    words: ['TIGER', 'ZEBRA', 'PANDA', 'EAGLE', 'SHARK', 'WHALE', 'KOALA', 'SNAKE', 'WOLF', 'SEAL'],
+  },
+  fruits: {
+    title: 'Fruits',
+    words: ['APPLE', 'MANGO', 'GRAPE', 'PEACH', 'BERRY', 'MELON', 'CHERRY', 'LEMON', 'PLUM', 'FIG'],
+  },
+};
+
+function checkWordInGrid(word, grid, width, height, x, y, dx, dy) {
+  for (let i = 0; i < word.length; ++i) {
+    if (x < 0 || x >= width || y < 0 || y >= height) return false;
+    if (grid[y * width + x] !== word[i]) return false;
+    x += dx;
+    y += dy;
+  }
+  return true;
+}
+
+function checkWordsInGridDir(words, grid, width, height, wordsFound, dx, dy, sx, sy, dsx, dsy) {
+  while (sx >= 0 && sx < width && sy >= 0 && sy < height) {
+    let x = sx;
+    let y = sy;
+    while (x >= 0 && x < width && y >= 0 && y < height) {
+      for (let i = 0; i < words.length; ++i) {
+        if (checkWordInGrid(words[i], grid, width, height, x, y, dx, dy)) {
+          wordsFound[words[i]] = true;
+        }
+      }
+      x += dx;
+      y += dy;
+    }
+    sx += dsx;
+    sy += dsy;
+  }
+}
+
+function checkWordsInGrid(words, grid, width, height) {
+  const wordsFound = {};
+  for (let d = 0; d < directions.length; ++d) {
+    const dx = directions[d][0];
+    const dy = directions[d][1];
+    if (dx === 1) checkWordsInGridDir(words, grid, width, height, wordsFound, dx, dy, 0, 0, 0, 1);
+    if (dx === -1) checkWordsInGridDir(words, grid, width, height, wordsFound, dx, dy, width - 1, 0, 0, 1);
+    if (dx === 0 && dy === 1) checkWordsInGridDir(words, grid, width, height, wordsFound, dx, dy, 0, 0, 1, 0);
+    if (dx === 0 && dy === -1) checkWordsInGridDir(words, grid, width, height, wordsFound, dx, dy, 0, height - 1, 1, 0);
+  }
+  return words.filter(w => !wordsFound[w]);
+}
+
+/* Constraint-sorted placement: try every straight slot for a word, prefer the
+   slot that overlaps already-placed letters most, keep the grid consistent. */
+function placeWords(words) {
+  const grid = [];
+  const gridPicked = [];
+  for (let i = 0; i < WIDTH * HEIGHT; ++i) {
+    grid[i] = letters[Math.floor(Math.random() * 26)];
+    gridPicked[i] = false;
+  }
+
+  const sorted = words.slice().sort((a, b) => b.length - a.length);
+  const placed = [];
+
+  for (const word of sorted) {
+    const possibleLocations = [];
+    for (let d = 0; d < directions.length; ++d) {
+      const dx = directions[d][0];
+      const dy = directions[d][1];
+
+      let minX = 0, minY = 0;
+      let maxX = WIDTH - 1, maxY = HEIGHT - 1;
+      if (dx !== 0) maxX = WIDTH - word.length;
+      if (dy !== 0) maxY = HEIGHT - word.length;
+      if (dx === -1) { minX = WIDTH - 1 - maxX; maxX = WIDTH - 1; }
+      if (dy === -1) { minY = HEIGHT - 1 - maxY; maxY = HEIGHT - 1; }
+      if (maxX < minX || maxY < minY) continue;
+
+      for (let sy = minY; sy <= maxY; ++sy) {
+        for (let sx = minX; sx <= maxX; ++sx) {
+          let fits = true;
+          let constraints = 0;
+          for (let i = 0; i < word.length; ++i) {
+            const x = sx + dx * i;
+            const y = sy + dy * i;
+            if (gridPicked[y * WIDTH + x]) {
+              if (grid[y * WIDTH + x] === word[i]) constraints++;
+              else { fits = false; break; }
+            }
+          }
+          if (fits) possibleLocations.push({ d: d, sx: sx, sy: sy, constraints: constraints });
+        }
+      }
+    }
+
+    if (!possibleLocations.length) continue;
+    possibleLocations.sort((a, b) => (b.constraints - a.constraints) + (Math.random() - 0.5));
+
+    const loc = possibleLocations[0];
+    for (let i = 0; i < word.length; ++i) {
+      const x = loc.sx + directions[loc.d][0] * i;
+      const y = loc.sy + directions[loc.d][1] * i;
+      grid[y * WIDTH + x] = word[i];
+      gridPicked[y * WIDTH + x] = true;
+    }
+    placed.push(word);
+  }
+
+  return { grid: grid, words: placed };
+}
+
+function generatePuzzle(themeWords) {
+  let best = null;
+  for (let attempt = 0; attempt < 8; ++attempt) {
+    const p = placeWords(themeWords);
+    // Placement writes the letters itself; the verifier is the game's own
+    // checker, so a listed word can never be unfindable.
+    const missing = checkWordsInGrid(p.words, p.grid, WIDTH, HEIGHT);
+    if (missing.length === 0 && (!best || p.words.length > best.words.length)) best = p;
+    if (best && best.words.length >= 8) break;
+  }
+  if (!best || best.words.length < 5) return placeWords(themeWords);
+  return best;
+}
+
+/* ---------------------------- state ---------------------------- */
+
+const startScreen = document.getElementById('startScreen');
+const playScreen = document.getElementById('playScreen');
+const endOverlay = document.getElementById('endOverlay');
+const endTitle = document.getElementById('endTitle');
+const endText = document.getElementById('endText');
+const themeTitle = document.getElementById('themeTitle');
+const scoreline = document.getElementById('scoreline');
+const gridEl = document.getElementById('grid');
+const wordlistEl = document.getElementById('wordlist');
+
+let themeKey = 'space';
+let grid = [];
+let cellEls = [];
+let targetWords = [];
+let foundWords = new Set();
+let kbCells = [];
+let dragStart = null;
+let previewCells = [];
+let pendingClick = null;
+let dragging = false;
+
+function cellIndex(cell) {
+  return Number(cell.dataset.y) * WIDTH + Number(cell.dataset.x);
+}
+
+function buildPuzzle() {
+  const theme = THEMES[themeKey];
+  const puzzle = generatePuzzle(theme.words);
+  grid = puzzle.grid;
+  targetWords = puzzle.words.slice().sort();
+  foundWords = new Set();
+
+  gridEl.textContent = '';
+  cellEls = [];
+  for (let y = 0; y < HEIGHT; ++y) {
+    for (let x = 0; x < WIDTH; ++x) {
+      const cell = document.createElement('div');
+      cell.className = 'cell';
+      cell.setAttribute('role', 'gridcell');
+      cell.dataset.x = x;
+      cell.dataset.y = y;
+      cell.tabIndex = -1;
+      cell.textContent = grid[y * WIDTH + x];
+      gridEl.appendChild(cell);
+      cellEls.push(cell);
+    }
+  }
+  cellEls[0].tabIndex = 0;
+
+  wordlistEl.textContent = '';
+  for (const w of targetWords) {
+    const li = document.createElement('li');
+    li.textContent = w;
+    li.dataset.word = w;
+    wordlistEl.appendChild(li);
+  }
+
+  themeTitle.textContent = theme.title;
+  updateScore();
+  clearSelections();
+}
+
+function updateScore() {
+  scoreline.textContent = 'Found ' + foundWords.size + ' of ' + targetWords.length + ' words.';
+}
+
+function clearSelections() {
+  for (const c of gridEl.querySelectorAll('.sel')) c.classList.remove('sel');
+  previewCells = [];
+  kbCells = [];
+}
+
+function flashWrong(cells) {
+  for (const c of cells) {
+    c.classList.remove('sel');
+    c.classList.add('wrong');
+  }
+  setTimeout(() => {
+    for (const c of cells) c.classList.remove('wrong');
+  }, 400);
+}
+
+function markFound(word, cells) {
+  foundWords.add(word);
+  const li = wordlistEl.querySelector('[data-word="' + word + '"]');
+  if (li) li.classList.add('found');
+  for (const c of cells) {
+    c.classList.remove('sel', 'wrong');
+    c.classList.add('found');
+  }
+  updateScore();
+  if (foundWords.size === targetWords.length) showEnd(true);
+}
+
+function spellingOf(cells) {
+  let s = '';
+  for (const c of cells) s += c.textContent;
+  return s;
+}
+
+/* A word runs along one of the eight grid directions; accept it forwards or
+   backwards, exactly like the reference checker does. */
+function attempt(cells) {
+  if (cells.length < 2) return false;
+  const word = spellingOf(cells);
+  const reversed = spellingOf(cells.slice().reverse());
+  let hit = null;
+  if (!foundWords.has(word) && targetWords.indexOf(word) !== -1) hit = { w: word, cells: cells };
+  else if (!foundWords.has(reversed) && targetWords.indexOf(reversed) !== -1) hit = { w: reversed, cells: cells.slice().reverse() };
+  if (hit) {
+    markFound(hit.w, hit.cells);
+    return true;
+  }
+  flashWrong(cells);
+  return false;
+}
+
+function rayCells(a, b) {
+  const ax = Number(a.dataset.x), ay = Number(a.dataset.y);
+  const bx = Number(b.dataset.x), by = Number(b.dataset.y);
+  const dx = bx - ax, dy = by - ay;
+  if (dx === 0 && dy === 0) return [a];
+  const aligned = dx === 0 || dy === 0 || Math.abs(dx) === Math.abs(dy);
+  if (!aligned) return [a];
+  const stepX = Math.sign(dx), stepY = Math.sign(dy);
+  const len = Math.max(Math.abs(dx), Math.abs(dy));
+  const out = [];
+  for (let i = 0; i <= len; ++i) {
+    out.push(cellEls[(ay + stepY * i) * WIDTH + (ax + stepX * i)]);
+  }
+  return out;
+}
+
+function setPreview(cells) {
+  for (const c of previewCells) if (!c.classList.contains('found')) c.classList.remove('sel');
+  previewCells = cells;
+  for (const c of cells) if (!c.classList.contains('found')) c.classList.add('sel');
+}
+
+function cellFromPoint(x, y) {
+  const el = document.elementFromPoint(x, y);
+  return el && el.classList && el.classList.contains('cell') ? el : null;
+}
+
+/* ---------------------------- pointer input ---------------------------- */
+
+gridEl.addEventListener('pointerdown', (e) => {
+  const cell = cellFromPoint(e.clientX, e.clientY);
+  if (!cell) return;
+  e.preventDefault();
+  try { gridEl.setPointerCapture(e.pointerId); } catch (err) { /* capture unsupported */ }
+
+  clearSelections();
+  if (pendingClick) {
+    const start = pendingClick;
+    pendingClick = null;
+    attempt(rayCells(start, cell));
+    dragging = false;
+    return;
+  }
+  dragging = true;
+  dragStart = cell;
+  setPreview([cell]);
+});
+
+gridEl.addEventListener('pointermove', (e) => {
+  if (!dragging || !dragStart) return;
+  const cell = cellFromPoint(e.clientX, e.clientY);
+  if (!cell) return;
+  if (cell === previewCells[previewCells.length - 1]) return;
+  setPreview(rayCells(dragStart, cell));
+});
+
+gridEl.addEventListener('pointerup', (e) => {
+  if (!dragging || !dragStart) return;
+  dragging = false;
+  const cell = cellFromPoint(e.clientX, e.clientY);
+  const end = cell ? cell : previewCells[previewCells.length - 1];
+  const cells = rayCells(dragStart, end);
+  if (cells.length === 1) {
+    // A plain tap keeps the letter armed for tap-first, tap-last selection.
+    pendingClick = dragStart;
+    setPreview([dragStart]);
+  } else {
+    pendingClick = null;
+    attempt(cells);
+  }
+  dragStart = null;
+});
+
+/* ---------------------------- keyboard input ---------------------------- */
+
+function focusCell(cell) {
+  for (const c of gridEl.querySelectorAll('.cell')) c.tabIndex = -1;
+  cell.tabIndex = 0;
+  cell.focus();
+}
+
+function toggleCell(cell) {
+  if (kbCells.length === 0) {
+    kbCells = [cell];
+    setPreview(kbCells);
+    return;
+  }
+  if (cell === kbCells[0]) {
+    clearSelections();
+    return;
+  }
+  if (canExtend(cell)) {
+    kbCells.push(cell);
+    setPreview(kbCells);
+    checkKbSelection();
+    return;
+  }
+  clearSelections();
+  kbCells = [cell];
+  setPreview(kbCells);
+}
+
+function canExtend(cell) {
+  if (kbCells.length === 1) {
+    const a = kbCells[0];
+    const dx = Number(cell.dataset.x) - Number(a.dataset.x);
+    const dy = Number(cell.dataset.y) - Number(a.dataset.y);
+    return Math.abs(dx) <= 1 && Math.abs(dy) <= 1 && (dx !== 0 || dy !== 0);
+  }
+  const a = kbCells[kbCells.length - 2];
+  const b = kbCells[kbCells.length - 1];
+  const dirX = Math.sign(Number(b.dataset.x) - Number(a.dataset.x));
+  const dirY = Math.sign(Number(b.dataset.y) - Number(a.dataset.y));
+  const nx = Number(b.dataset.x) + dirX;
+  const ny = Number(b.dataset.y) + dirY;
+  return Number(cell.dataset.x) === nx && Number(cell.dataset.y) === ny &&
+         !kbCells.includes(cell) &&
+         nx >= 0 && nx < WIDTH && ny >= 0 && ny < HEIGHT;
+}
+
+function checkKbSelection() {
+  const word = spellingOf(kbCells);
+  const reversed = spellingOf(kbCells.slice().reverse());
+  const w1 = targetWords.indexOf(word) !== -1 ? word : null;
+  const w2 = !w1 && targetWords.indexOf(reversed) !== -1 ? reversed : null;
+  const hit = w1 || w2;
+  if (hit && !foundWords.has(hit)) {
+    markFound(hit, w1 ? kbCells.slice() : kbCells.slice().reverse());
+    kbCells = [];
+    return;
+  }
+  if (hit && foundWords.has(hit)) {
+    // Already counted; drop the selection so Enter does not loop on it.
+    clearSelections();
+  }
+}
+
+gridEl.addEventListener('keydown', (e) => {
+  const cur = document.activeElement && document.activeElement.classList &&
+              document.activeElement.classList.contains('cell')
+    ? document.activeElement
+    : cellEls[0];
+  const x = Number(cur.dataset.x), y = Number(cur.dataset.y);
+
+  if (e.key === 'ArrowRight' || e.key === 'ArrowLeft' || e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+    e.preventDefault();
+    pendingClick = null;
+    let nx = x, ny = y;
+    if (e.key === 'ArrowRight') nx = Math.min(WIDTH - 1, x + 1);
+    if (e.key === 'ArrowLeft') nx = Math.max(0, x - 1);
+    if (e.key === 'ArrowDown') ny = Math.min(HEIGHT - 1, y + 1);
+    if (e.key === 'ArrowUp') ny = Math.max(0, y - 1);
+    focusCell(cellEls[ny * WIDTH + nx]);
+    return;
+  }
+  if (e.key === 'Enter' || e.key === ' ') {
+    e.preventDefault();
+    pendingClick = null;
+    toggleCell(cur);
+    return;
+  }
+  if (e.key === 'Backspace') {
+    e.preventDefault();
+    if (kbCells.length > 1) {
+      kbCells.pop();
+      setPreview(kbCells);
+    } else {
+      clearSelections();
+    }
+    return;
+  }
+  if (e.key === 'Escape') {
+    e.preventDefault();
+    pendingClick = null;
+    clearSelections();
+  }
+});
+
+/* ---------------------------- screens ---------------------------- */
+
+function showEnd(won) {
+  if (won) {
+    endTitle.textContent = 'Puzzle solved';
+    endText.textContent = 'You found all ' + targetWords.length + ' words in the ' +
+      THEMES[themeKey].title.toLowerCase() + ' grid.';
+  } else {
+    endTitle.textContent = 'Puzzle given up';
+    const remaining = targetWords.filter(w => !foundWords.has(w));
+    endText.textContent = 'You found ' + foundWords.size + ' of ' + targetWords.length +
+      ' words. Still hidden: ' + (remaining.join(', ') || 'none') + '.';
+    for (const li of wordlistEl.querySelectorAll('li')) li.classList.add('found');
+  }
+  endOverlay.classList.remove('hidden');
+  document.getElementById('againBtn').focus();
+}
+
+function startTheme(key) {
+  themeKey = key;
+  pendingClick = null;
+  dragging = false;
+  buildPuzzle();
+  startScreen.classList.add('hidden');
+  endOverlay.classList.add('hidden');
+  playScreen.classList.remove('hidden');
+}
+
+function goMenu() {
+  pendingClick = null;
+  dragging = false;
+  endOverlay.classList.add('hidden');
+  playScreen.classList.add('hidden');
+  startScreen.classList.remove('hidden');
+}
+
+for (const btn of document.querySelectorAll('[data-theme]')) {
+  btn.addEventListener('click', () => startTheme(btn.dataset.theme));
+}
+document.getElementById('newGridBtn').addEventListener('click', () => startTheme(themeKey));
+document.getElementById('againBtn').addEventListener('click', () => startTheme(themeKey));
+document.getElementById('menuBtn').addEventListener('click', goMenu);
+document.getElementById('endMenuBtn').addEventListener('click', goMenu);
+document.getElementById('giveUpBtn').addEventListener('click', () => showEnd(false));
+</script>
+</body>
+</html>

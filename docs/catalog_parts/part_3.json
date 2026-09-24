@@ -1,0 +1,6 @@
+[
+ {"title": "Pacman", "cat": "arcade", "icon": "", "desc": "Classic maze chase: eat every pellet and fruit while four ghosts hunt you down.", "url": "Games/Pacman/index.html", "featured": false, "tags": ["maze"]},
+ {"title": "Qix", "cat": "arcade", "icon": "", "desc": "Claim territory by drawing lines from the border while a spike spiral roams the void.", "url": "Games/Qix/index.html", "featured": false, "tags": ["territory"]},
+ {"title": "Joust", "cat": "arcade", "icon": "", "desc": "Flap and joust from above to unseat enemy riders across ever-harder platform waves.", "url": "Games/Joust/index.html", "featured": false, "tags": ["arcade"]},
+ {"title": "Tron Light Cycles", "cat": "arcade", "icon": "", "desc": "Steer a light cycle that leaves deadly walls behind; trap the AI or survive longer.", "url": "Games/TronLightCycles/index.html", "featured": false, "tags": ["duel"]}
+]

@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<!--
+  Peg Solitaire - ingested from https://github.com/sunjay/peg-solitaire
+  License: MIT, Copyright (c) 2015 Sunjay Varma
+  Commit: 50c447a770e9dd2fa08fd2949f2b67a10ac5d9df
+
+  Kept from the original: the Board rules engine (7x7 English cross layout via
+  BOARDS.english, orthogonal jump generation with getMovesAroundTile,
+  isMovableTile, jump execution with moveTileTo / getTilesBetween /
+  isFilledBetween, Board.copy for undo) and the select-a-peg then
+  highlight-valid-destinations interaction with an undo stack.
+
+  Modifications:
+  - removed the jQuery / Handlebars / Bootstrap CDN and "Fork me" ribbon;
+    rendering is now plain DOM (the original page was not offline-capable)
+  - added win (one peg left) and lose (no jumps left) detection with result
+    overlays; the original had no end states at all
+  - added start screen with documented controls, move counter, peg counter
+  - added keyboard input (arrows move the cursor, Enter selects or jumps)
+  - flat colors, 49px+ touch targets, restart path, no external resources
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Peg Solitaire</title>
+<link rel="icon" href="data:,">
+<style>
+  :root {
+    --bg: #14161a;
+    --surface: #20242c;
+    --line: #3a414d;
+    --text: #e6e8eb;
+    --muted: #9aa1ab;
+    --gold: #ffcf4d;
+    --gold-hi: #ffe08a;
+    --blue: #4db6ff;
+    --ok: #46a758;
+    --danger: #e5484d;
+    --wood: #2b313b;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    min-height: 100dvh;
+    overflow-x: hidden;
+  }
+  body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 12px;
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  #hud {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+    justify-content: center;
+    font-size: 1rem;
+    min-height: 48px;
+  }
+  #hud[hidden] { display: none; }
+  #hud b { color: var(--gold); font-variant-numeric: tabular-nums; }
+
+  .btn {
+    min-height: 46px;
+    min-width: 96px;
+    padding: 8px 16px;
+    font-size: 1rem;
+    border: 2px solid var(--line);
+    border-radius: 8px;
+    background: var(--surface);
+    color: var(--text);
+    cursor: pointer;
+  }
+  .btn:hover { border-color: var(--blue); }
+  .btn:focus-visible { outline: 3px solid var(--blue); outline-offset: 2px; }
+  .btn.primary {
+    background: var(--gold);
+    border-color: var(--gold);
+    color: #14161a;
+    font-weight: 700;
+  }
+  .btn.primary:hover { background: var(--gold-hi); }
+  .btn:disabled { opacity: 0.45; cursor: default; }
+
+  #board {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+    width: min(94vw, 440px);
+    aspect-ratio: 1;
+    background: var(--wood);
+    border: 2px solid var(--line);
+    border-radius: 10px;
+    padding: 4px;
+    touch-action: manipulation;
+  }
+  .tile {
+    position: relative;
+    border: 0;
+    border-radius: 50%;
+    background: transparent;
+    padding: 0;
+    min-width: 0;
+    min-height: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: default;
+  }
+  .tile.blank { visibility: hidden; }
+  .tile.hole { background: #171a20; }
+  .tile.hole::after {
+    content: "";
+    position: absolute;
+    inset: 30%;
+    border-radius: 50%;
+    background: #0e1013;
+  }
+  .tile.hole.filled::after {
+    inset: 8%;
+    background: var(--gold);
+    border: 2px solid #b98f1f;
+  }
+  .tile.hole.filled { cursor: pointer; }
+  .tile.hole.filled:hover::after { background: var(--gold-hi); }
+  .tile.selected::before {
+    content: "";
+    position: absolute;
+    inset: 2%;
+    border-radius: 50%;
+    border: 3px solid var(--blue);
+    z-index: 2;
+  }
+  .tile.valid-move {
+    background: var(--blue);
+    cursor: pointer;
+    box-shadow: inset 0 0 0 3px #1d6fa5;
+  }
+  .tile.kb-cursor { outline: 3px dashed var(--blue); outline-offset: -3px; }
+  .tile:focus-visible { outline: 3px solid var(--blue); }
+
+  .overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 20;
+    background: rgba(20, 22, 26, 0.94);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    padding: 20px;
+    text-align: center;
+  }
+  .overlay[hidden] { display: none; }
+  .overlay h1 { margin: 0; font-size: 1.9rem; color: var(--gold); }
+  .overlay h2 { margin: 0; font-size: 1.5rem; color: var(--ok); }
+  .overlay h2.lose { color: var(--danger); }
+  .overlay p { margin: 0; max-width: 380px; color: var(--muted); line-height: 1.5; }
+  .overlay .keys { color: var(--text); }
+  #result-stats { color: var(--text); font-size: 1.1rem; }
+</style>
+</head>
+<body>
+  <div id="hud" hidden>
+    <span>Pegs: <b id="pegCount">32</b></span>
+    <span>Moves: <b id="moveCount">0</b></span>
+    <button id="undoBtn" class="btn" type="button">Undo</button>
+    <button id="restartBtn" class="btn" type="button">Restart</button>
+  </div>
+
+  <div id="board" role="grid" aria-label="English peg solitaire board"></div>
+
+  <div id="startOverlay" class="overlay">
+    <h1>Peg Solitaire</h1>
+    <p>Jump a peg over a neighbour into an empty hole; the jumped peg is
+       removed. Finish with exactly one peg standing to win.</p>
+    <p class="keys">Touch: tap a peg, then tap a blue landing hole.</p>
+    <p class="keys">Keyboard: arrow keys move the cursor, Enter selects a peg
+       or completes a jump.</p>
+    <button id="playBtn" class="btn primary" type="button">Start</button>
+  </div>
+
+  <div id="resultOverlay" class="overlay" hidden>
+    <h2 id="resultTitle"></h2>
+    <p id="result-stats"></p>
+    <button id="againBtn" class="btn primary" type="button">Play again</button>
+  </div>
+
+<script>
+(function () {
+  "use strict";
+
+  // ===== Rules engine, kept from board.js of sunjay/peg-solitaire =====
+  var TILES = {
+    BLANK: 2,    // not a hole on the cross board
+    FILLED: 4,   // hole with a peg
+    EMPTY: 8     // hole without a peg
+  };
+  var BOARDS = {
+    english: [
+      [TILES.BLANK, TILES.BLANK, TILES.FILLED, TILES.FILLED, TILES.FILLED, TILES.BLANK, TILES.BLANK],
+      [TILES.BLANK, TILES.BLANK, TILES.FILLED, TILES.FILLED, TILES.FILLED, TILES.BLANK, TILES.BLANK],
+      [TILES.FILLED, TILES.FILLED, TILES.FILLED, TILES.FILLED, TILES.FILLED, TILES.FILLED, TILES.FILLED],
+      [TILES.FILLED, TILES.FILLED, TILES.FILLED, TILES.EMPTY, TILES.FILLED, TILES.FILLED, TILES.FILLED],
+      [TILES.FILLED, TILES.FILLED, TILES.FILLED, TILES.FILLED, TILES.FILLED, TILES.FILLED, TILES.FILLED],
+      [TILES.BLANK, TILES.BLANK, TILES.FILLED, TILES.FILLED, TILES.FILLED, TILES.BLANK, TILES.BLANK],
+      [TILES.BLANK, TILES.BLANK, TILES.FILLED, TILES.FILLED, TILES.FILLED, TILES.BLANK, TILES.BLANK]
+    ]
+  };
+
+  function Board(initial_board) {
+    if (!initial_board) {
+      throw new Error("Board must be created with a 2D array that represents its initial state");
+    }
+    this.tiles = initial_board;
+  }
+
+  Board.prototype.copy = function () {
+    var tiles_copy = [];
+    this.tiles.forEach(function (row) { tiles_copy.push(row.slice()); });
+    return new Board(tiles_copy);
+  };
+
+  Board.prototype.height = function () { return this.tiles.length; };
+  Board.prototype.width = function () { return this.tiles[0].length; };
+
+  Board.prototype.getTilesBetween = function (row, col, dest_row, dest_col) {
+    if (row !== dest_row && col !== dest_col) {
+      throw new Error("Tiles must be orthogonal");
+    }
+    var tiles = [];
+    for (var i_row = Math.min(row, dest_row) + 1, d_row = Math.max(row, dest_row); i_row < d_row; i_row++) {
+      tiles.push([i_row, col]);
+    }
+    for (var i_col = Math.min(col, dest_col) + 1, d_col = Math.max(col, dest_col); i_col < d_col; i_col++) {
+      tiles.push([row, i_col]);
+    }
+    return tiles;
+  };
+
+  Board.prototype.isFilledBetween = function (row, col, dest_row, dest_col) {
+    var is_filled = true;
+    this.getTilesBetween(row, col, dest_row, dest_col).forEach(function (tile) {
+      if (this.tiles[tile[0]][tile[1]] !== TILES.FILLED) {
+        is_filled = false;
+        return false;
+      }
+    }.bind(this));
+    return is_filled;
+  };
+
+  Board.prototype.getMovesAroundTile = function (row, col) {
+    if (this.tiles[row][col] !== TILES.FILLED) { return []; }
+    var move_tiles = [];
+    var checks = [-2, 2];
+    for (var i = 0; i < checks.length; i++) {
+      var offset = checks[i];
+      var i_row = row + offset;
+      if (i_row >= 0 && i_row < this.height()) {
+        if (this.tiles[i_row][col] === TILES.EMPTY && this.isFilledBetween(row, col, i_row, col)) {
+          move_tiles.push([i_row, col]);
+        }
+      }
+      var i_col = col + offset;
+      if (i_col >= 0 && i_col < this.width()) {
+        if (this.tiles[row][i_col] === TILES.EMPTY && this.isFilledBetween(row, col, row, i_col)) {
+          move_tiles.push([row, i_col]);
+        }
+      }
+    }
+    return move_tiles;
+  };
+
+  Board.prototype.isMovableTile = function (row, col) {
+    return !!(this.getMovesAroundTile(row, col).length);
+  };
+
+  Board.prototype.moveTileTo = function (row, col, dest_row, dest_col) {
+    if (this.tiles[row][col] !== TILES.FILLED) {
+      throw new Error("Cannot move tile if it is not there!");
+    }
+    if (this.tiles[dest_row][dest_col] !== TILES.EMPTY) {
+      throw new Error("Cannot place tile on space that is not empty");
+    }
+    this.tiles[row][col] = TILES.EMPTY;
+    this.getTilesBetween(row, col, dest_row, dest_col).forEach(function (tile) {
+      if (this.tiles[tile[0]][tile[1]] === TILES.FILLED) {
+        this.tiles[tile[0]][tile[1]] = TILES.EMPTY;
+      }
+    }.bind(this));
+    this.tiles[dest_row][dest_col] = TILES.FILLED;
+  };
+
+  // ===== View / controller (vanilla rewrite of main.js) =====
+  var UNDO_LIMIT = 10;
+  var boardEl = document.getElementById("board");
+  var hud = document.getElementById("hud");
+  var pegEl = document.getElementById("pegCount");
+  var moveEl = document.getElementById("moveCount");
+  var undoBtn = document.getElementById("undoBtn");
+  var startOverlay = document.getElementById("startOverlay");
+  var resultOverlay = document.getElementById("resultOverlay");
+
+  var board = null;
+  var undoStack = [];
+  var undosLeft = UNDO_LIMIT;
+  var moves = 0;
+  var selected = null;         // [row, col] of the selected peg
+  var playing = false;
+  var cells = [];              // cells[row][col] button elements
+  var cursor = [3, 3];         // keyboard cursor
+  var kbMode = false;
+
+  function buildCells() {
+    boardEl.textContent = "";
+    cells = [];
+    for (var r = 0; r < 7; r++) {
+      cells[r] = [];
+      for (var c = 0; c < 7; c++) {
+        var btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "tile";
+        btn.dataset.row = String(r);
+        btn.dataset.col = String(c);
+        btn.setAttribute("aria-label", "Row " + (r + 1) + " column " + (c + 1));
+        (function (rr, cc) {
+          btn.addEventListener("click", function () {
+            if (!playing) { return; }
+            cursor = [rr, cc];
+            onCellActivate(rr, cc);
+          });
+        })(r, c);
+        boardEl.appendChild(btn);
+        cells[r][c] = btn;
+      }
+    }
+  }
+
+  function pegsLeft() {
+    var n = 0;
+    for (var r = 0; r < 7; r++) {
+      for (var c = 0; c < 7; c++) {
+        if (board.tiles[r][c] === TILES.FILLED) { n++; }
+      }
+    }
+    return n;
+  }
+
+  function anyMovesLeft() {
+    for (var r = 0; r < 7; r++) {
+      for (var c = 0; c < 7; c++) {
+        if (board.getMovesAroundTile(r, c).length > 0) { return true; }
+      }
+    }
+    return false;
+  }
+
+  function render() {
+    for (var r = 0; r < 7; r++) {
+      for (var c = 0; c < 7; c++) {
+        var t = board.tiles[r][c];
+        var cell = cells[r][c];
+        cell.className = "tile";
+        if (t === TILES.BLANK) {
+          cell.classList.add("blank");
+          cell.disabled = true;
+          continue;
+        }
+        cell.disabled = false;
+        cell.classList.add("hole");
+        if (t === TILES.FILLED) { cell.classList.add("filled"); }
+        if (selected && selected[0] === r && selected[1] === c) {
+          cell.classList.add("selected");
+        }
+        if (kbMode && cursor[0] === r && cursor[1] === c) {
+          cell.classList.add("kb-cursor");
+        }
+      }
+    }
+    // valid destinations for the selected peg (original main.js logic)
+    if (selected) {
+      board.getMovesAroundTile(selected[0], selected[1]).forEach(function (m) {
+        cells[m[0]][m[1]].classList.add("valid-move");
+      });
+    }
+    pegEl.textContent = String(pegsLeft());
+    moveEl.textContent = String(moves);
+    undoBtn.disabled = !(playing && undosLeft > 0 && undoStack.length > 0);
+  }
+
+  function clearSelection() {
+    selected = null;
+    render();
+  }
+
+  function onCellActivate(r, c) {
+    var t = board.tiles[r][c];
+
+    // landing on a highlighted destination completes the jump
+    if (selected && cells[r][c].classList.contains("valid-move")) {
+      undoStack.push(board.copy());
+      board.moveTileTo(selected[0], selected[1], r, c);
+      selected = null;
+      moves++;
+      render();
+      checkEnd();
+      return;
+    }
+
+    if (t === TILES.FILLED) {
+      if (selected && selected[0] === r && selected[1] === c) {
+        clearSelection();       // toggle off
+        return;
+      }
+      selected = [r, c];
+      render();
+      return;
+    }
+    clearSelection();
+  }
+
+  function checkEnd() {
+    if (pegsLeft() === 1) {
+      endRound(true);
+    } else if (!anyMovesLeft()) {
+      endRound(false);
+    }
+  }
+
+  function endRound(won) {
+    playing = false;
+    selected = null;
+    var title = document.getElementById("resultTitle");
+    title.textContent = won ? "One peg standing" : "No jumps left";
+    title.classList.toggle("lose", !won);
+    document.getElementById("result-stats").textContent =
+      pegsLeft() + (pegsLeft() === 1 ? " peg" : " pegs") + " remaining in " +
+      moves + (moves === 1 ? " move" : " moves");
+    resultOverlay.hidden = false;
+    render();
+  }
+
+  function doUndo() {
+    if (!playing || undosLeft <= 0 || undoStack.length === 0) { return; }
+    board = undoStack.pop();
+    undosLeft--;
+    selected = null;
+    moves = Math.max(0, moves - 1);
+    render();
+  }
+
+  function startRound() {
+    board = new Board(BOARDS.english.map(function (row) { return row.slice(); }));
+    undoStack = [];
+    undosLeft = UNDO_LIMIT;
+    moves = 0;
+    selected = null;
+    cursor = [3, 3];
+    playing = true;
+    startOverlay.hidden = true;
+    resultOverlay.hidden = true;
+    hud.hidden = false;
+    render();
+  }
+
+  // --- keyboard: arrows move the cursor, Enter activates the cell ---
+  window.addEventListener("keydown", function (e) {
+    if (!playing) { return; }
+    var delta = { ArrowLeft: [0, -1], ArrowRight: [0, 1], ArrowUp: [-1, 0], ArrowDown: [1, 0] }[e.key];
+    if (delta) {
+      e.preventDefault();
+      kbMode = true;
+      var r = Math.min(6, Math.max(0, cursor[0] + delta[0]));
+      var c = Math.min(6, Math.max(0, cursor[1] + delta[1]));
+      cursor = [r, c];
+      render();
+      return;
+    }
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      kbMode = true;
+      onCellActivate(cursor[0], cursor[1]);
+    }
+  });
+  boardEl.addEventListener("mousemove", function () {
+    if (kbMode) { kbMode = false; render(); }
+  });
+
+  undoBtn.addEventListener("click", doUndo);
+  document.getElementById("restartBtn").addEventListener("click", startRound);
+  document.getElementById("againBtn").addEventListener("click", startRound);
+  document.getElementById("playBtn").addEventListener("click", startRound);
+
+  buildCells();
+})();
+</script>
+</body>
+</html>

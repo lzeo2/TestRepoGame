@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Play the classic war card game against the computer, with war ties and a deck-exhaustion win.">
+<link rel="icon" href="data:,">
+<title>War</title>
+<!--
+  Round/war engine adapted from "javascriptWAR" by Nathan Hugon, licensed
+  under the MIT License. Source: https://github.com/nthugon/javascriptWAR
+  Changes: two-player vs computer only, local flat cards instead of remote
+  card images, new UI, score line, win/lose overlays, keyboard controls.
+-->
+<style>
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  background: #f4f1ea;
+  color: #1d1d1f;
+  touch-action: manipulation;
+}
+
+body { display: flex; flex-direction: column; align-items: center; }
+
+h1 { font-size: 26px; margin: 14px 0 4px; }
+
+p { margin: 6px 0; }
+
+.screen {
+  width: 100%;
+  max-width: 560px;
+  padding: 0 16px 24px;
+  text-align: center;
+}
+
+.hidden { display: none !important; }
+
+ul.rules {
+  text-align: left;
+  margin: 10px auto;
+  padding-left: 22px;
+  max-width: 380px;
+  line-height: 1.5;
+  font-size: 15px;
+}
+
+button {
+  min-height: 44px;
+  min-width: 44px;
+  padding: 10px 22px;
+  font-size: 17px;
+  font-family: inherit;
+  background: #2f5d50;
+  color: #fdf6e3;
+  border: 2px solid #1d1d1f;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+button.primary { background: #f4c542; color: #1d1d1f; }
+
+button:focus-visible { outline: 3px solid #c0392b; outline-offset: 2px; }
+button:active { transform: translateY(1px); }
+
+#scoreline {
+  font-size: 15px;
+  color: #4a4a4f;
+  margin: 4px 0 10px;
+}
+
+.table {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  margin: 8px 0 4px;
+}
+
+.side {
+  flex: 1 1 0;
+  background: #2f5d50;
+  border-radius: 10px;
+  padding: 12px 6px;
+  color: #fdf6e3;
+  min-width: 0;
+}
+
+.side h2 { font-size: 16px; margin: 0 0 8px; font-weight: 600; }
+
+.side .count { font-size: 14px; margin-top: 8px; }
+
+.card-slot {
+  display: flex;
+  justify-content: center;
+  min-height: 108px;
+  align-items: center;
+}
+
+.card {
+  width: 66px;
+  height: 96px;
+  background: #ffffff;
+  border: 2px solid #1d1d1f;
+  border-radius: 8px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.card .rank { font-size: 30px; font-weight: bold; }
+.card .suit { position: absolute; bottom: 4px; right: 8px; font-size: 18px; font-weight: bold; }
+.card.red { color: #c0392b; }
+.card.black { color: #1d1d1f; }
+
+.card.empty {
+  background: #e3ddcf;
+  color: #8a8578;
+  font-size: 14px;
+  border-style: dashed;
+}
+
+#message {
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 17px;
+  font-weight: 600;
+  padding: 6px 8px;
+}
+
+#actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 20;
+  padding: 16px;
+}
+
+.overlay .box {
+  background: #ffffff;
+  border: 3px solid #1d1d1f;
+  border-radius: 12px;
+  padding: 22px 26px;
+  max-width: 360px;
+  width: 100%;
+  text-align: center;
+}
+
+.overlay .box h2 { margin: 0 0 8px; font-size: 22px; }
+.overlay .box p { font-size: 15px; margin-bottom: 14px; }
+</style>
+</head>
+<body>
+<div class="screen" id="startScreen">
+  <h1>War</h1>
+  <p>The classic card battle against the computer.</p>
+  <ul class="rules">
+    <li>Press Flip (or the Space bar) to reveal both top cards.</li>
+    <li>The higher card wins both cards for its side.</li>
+    <li>Equal cards trigger war: each side lays one card face down, then flips again.</li>
+    <li>Take every card from the computer to win the match.</li>
+  </ul>
+  <button class="primary" id="startBtn" type="button">Start game</button>
+</div>
+
+<div class="screen hidden" id="playScreen">
+  <h1>War</h1>
+  <p id="scoreline">You 0 cards, computer 0 cards. Rounds won: you 0, computer 0.</p>
+  <div class="table">
+    <div class="side">
+      <h2>You</h2>
+      <div class="card-slot"><div class="card empty" id="yourCard">no flip</div></div>
+      <div class="count" id="yourCount">0 cards</div>
+    </div>
+    <div class="side">
+      <h2>Computer</h2>
+      <div class="card-slot"><div class="card empty" id="cpuCard">no flip</div></div>
+      <div class="count" id="cpuCount">0 cards</div>
+    </div>
+  </div>
+  <div id="message">Press Flip to reveal the first round.</div>
+  <div id="actions">
+    <button class="primary" id="actionBtn" type="button">Flip</button>
+    <button id="restartBtn" type="button">Restart</button>
+  </div>
+</div>
+
+<div class="overlay hidden" id="endOverlay">
+  <div class="box">
+    <h2 id="endTitle">You win</h2>
+    <p id="endText"></p>
+    <button class="primary" id="playAgainBtn" type="button">Play again</button>
+  </div>
+</div>
+
+<script>
+/* Card and round engine adapted from javascriptWAR (MIT, Nathan Hugon). */
+class Card {
+  constructor(suit, rank) {
+    this.suit = suit;
+    this.rank = rank;
+  }
+}
+
+class Game {
+  constructor() {
+    this.suits = ['H', 'S', 'D', 'C'];
+    this.ranks = [2, 3, 4, 5, 6, 7, 8, 9, 10, 'J', 'Q', 'K', 'A'];
+    this.deck = [];
+    this.players = [];
+    this.war = false;
+    this.draw = false;
+    this.pot = [];
+    this.highCard = 0;
+    this.winner = null;
+    this.warCards = [];
+  }
+
+  createPlayers(names) {
+    this.players = names.map(name => ({ name: name, hand: [] }));
+    return this.players;
+  }
+
+  makeDeck() {
+    this.suits.forEach(suit => {
+      this.ranks.forEach(rank => {
+        this.deck.push(new Card(suit, rank));
+      });
+    });
+    return this.deck;
+  }
+
+  shuffleDeck(deck) {
+    let cardsStillUnshuffled = deck.length;
+    while (cardsStillUnshuffled) {
+      const randomFromUnshuffled = Math.floor(Math.random() * cardsStillUnshuffled--);
+      const lastOfUnshuffled = deck[cardsStillUnshuffled];
+      deck[cardsStillUnshuffled] = deck[randomFromUnshuffled];
+      deck[randomFromUnshuffled] = lastOfUnshuffled;
+    }
+    return deck;
+  }
+
+  dealCards(players, deck) {
+    const cardsLeft = deck.slice();
+    while (cardsLeft.length >= players.length) {
+      players.forEach(player => player.hand.push(cardsLeft.pop()));
+    }
+  }
+
+  playRound() {
+    if (this.players.length === 1) return;
+    this.pot = [];
+    this.resetTrackers();
+    this.putCardsIn(this.pot);
+    this.findWinner(this.pot);
+    if (this.war) return;
+    this.winner.hand.unshift(...this.pot);
+    this.removeLosers();
+  }
+
+  playWar() {
+    this.resetTrackers();
+    // Players short of a face-down card sacrifice what they have and are out.
+    for (let i = this.players.length - 1; i >= 0; i--) {
+      if (this.players[i].hand.length < 2) {
+        this.pot.push(...this.players[i].hand);
+        this.players[i].hand.length = 0;
+        this.players.splice(i, 1);
+      }
+    }
+    // Both sides emptied into the pot: nobody can flip, the match is a draw.
+    if (this.players.length === 0) {
+      this.draw = true;
+      return;
+    }
+    this.putCardsIn(this.pot);
+    this.putCardsIn(this.warCards);
+    this.findWinner(this.warCards);
+    this.pot.push(...this.warCards);
+    if (this.war) return;
+    this.winner.hand.unshift(...this.pot);
+    this.removeLosers();
+  }
+
+  getInt(card) {
+    switch (card.rank) {
+      case 'J': return 11;
+      case 'Q': return 12;
+      case 'K': return 13;
+      case 'A': return 14;
+      default: return card.rank;
+    }
+  }
+
+  findWinner(cardsToCompare) {
+    for (let i = 0; i < cardsToCompare.length; i++) {
+      const value = this.getInt(cardsToCompare[i]);
+      if (value > this.highCard) {
+        this.highCard = value;
+        this.winner = this.players[i];
+        this.war = false;
+      } else if (value === this.highCard) {
+        this.war = true;
+      }
+    }
+  }
+
+  resetTrackers() {
+    this.highCard = 0;
+    this.winner = null;
+    this.war = false;
+    this.warCards = [];
+  }
+
+  putCardsIn(destination) {
+    this.players.forEach(player => destination.push(player.hand.pop()));
+  }
+
+  removeLosers() {
+    for (let i = this.players.length - 1; i >= 0; i--) {
+      if (this.players[i].hand.length === 0) this.players.splice(i, 1);
+    }
+  }
+}
+
+const startScreen = document.getElementById('startScreen');
+const playScreen = document.getElementById('playScreen');
+const endOverlay = document.getElementById('endOverlay');
+const endTitle = document.getElementById('endTitle');
+const endText = document.getElementById('endText');
+const scoreline = document.getElementById('scoreline');
+const yourCardEl = document.getElementById('yourCard');
+const cpuCardEl = document.getElementById('cpuCard');
+const yourCountEl = document.getElementById('yourCount');
+const cpuCountEl = document.getElementById('cpuCount');
+const messageEl = document.getElementById('message');
+const actionBtn = document.getElementById('actionBtn');
+
+const SUIT_NAMES = { H: 'hearts', S: 'spades', D: 'diamonds', C: 'clubs' };
+const RED_SUITS = { H: 'red', D: 'red' };
+
+let game = null;
+let roundsWon = { you: 0, cpu: 0 };
+let over = false;
+let lastRevealed = { you: null, cpu: null };
+
+function handOf(name) {
+  return game.players.find(p => p.name === name);
+}
+
+function cpuHand() {
+  return handOf('Computer');
+}
+
+function yourHand() {
+  return handOf('You');
+}
+
+function renderCard(el, card) {
+  el.className = 'card';
+  if (!card) {
+    el.classList.add('empty');
+    el.textContent = 'no flip';
+    el.removeAttribute('aria-label');
+    return;
+  }
+  el.classList.add(RED_SUITS[card.suit] ? 'red' : 'black');
+  el.setAttribute('aria-label', card.rank + ' of ' + SUIT_NAMES[card.suit]);
+  const rank = document.createElement('span');
+  rank.className = 'rank';
+  rank.textContent = String(card.rank);
+  const suit = document.createElement('span');
+  suit.className = 'suit';
+  suit.textContent = card.suit;
+  el.textContent = '';
+  el.append(rank, suit);
+}
+
+function updateCounts() {
+  const y = yourHand() ? yourHand().hand.length : 0;
+  const c = cpuHand() ? cpuHand().hand.length : 0;
+  yourCountEl.textContent = y + ' cards';
+  cpuCountEl.textContent = c + ' cards';
+  scoreline.textContent = 'You ' + y + ' cards, computer ' + c +
+    ' cards. Rounds won: you ' + roundsWon.you + ', computer ' + roundsWon.cpu + '.';
+}
+
+function showEnd() {
+  over = true;
+  if (game.draw) {
+    endTitle.textContent = 'Draw';
+    endText.textContent = 'Both sides ran out of cards at the same time. What a standoff.';
+  } else {
+    const youWon = game.players.length === 1 && game.players[0].name === 'You';
+    endTitle.textContent = youWon ? 'You win the match' : 'You lose the match';
+    endText.textContent = youWon
+      ? 'You took all 52 cards after ' + (roundsWon.you + roundsWon.cpu) + ' winning rounds.'
+      : 'The computer took all 52 cards. You won ' + roundsWon.you + ' rounds.';
+  }
+  endOverlay.classList.remove('hidden');
+  document.getElementById('playAgainBtn').focus();
+}
+
+function act() {
+  if (!game || over) return;
+
+  if (game.war) {
+    game.playWar();
+    actionBtn.textContent = 'Flip';
+  } else {
+    game.playRound();
+  }
+
+  if (game.draw || game.players.length === 1) {
+    updateCounts();
+    showEnd();
+    return;
+  }
+
+  if (game.war) {
+    messageEl.textContent = 'War! Equal cards. Press War to lay a card down and flip again.';
+    actionBtn.textContent = 'War';
+  } else if (game.winner) {
+    if (game.winner.name === 'You') roundsWon.you++;
+    else roundsWon.cpu++;
+    messageEl.textContent = game.winner.name + ' take the pot.';
+  }
+
+  updateCounts();
+}
+
+/* Snapshot the hands before the engine moves any card: a normal round pops
+   the last card, a war pops a face-down card from the end and then the
+   face-up card from the new end, so index length-2 is the war's live card. */
+function snapshotHands(inWar) {
+  const y = yourHand() ? yourHand().hand : [];
+  const c = cpuHand() ? cpuHand().hand : [];
+  const offset = inWar ? 2 : 1;
+  lastRevealed = {
+    you: y.length >= offset ? y[y.length - offset] : null,
+    cpu: c.length >= offset ? c[c.length - offset] : null,
+  };
+}
+
+function flip() {
+  if (!game || over) return;
+  snapshotHands(game.war);
+  act();
+  if (over) return;
+  renderCard(yourCardEl, lastRevealed.you);
+  renderCard(cpuCardEl, lastRevealed.cpu);
+}
+
+function startGame() {
+  game = new Game();
+  game.createPlayers(['You', 'Computer']);
+  game.makeDeck();
+  game.shuffleDeck(game.deck);
+  game.dealCards(game.players, game.deck);
+  roundsWon = { you: 0, cpu: 0 };
+  over = false;
+  lastRevealed = { you: null, cpu: null };
+  renderCard(yourCardEl, null);
+  renderCard(cpuCardEl, null);
+  actionBtn.textContent = 'Flip';
+  messageEl.textContent = 'Press Flip to reveal the first round.';
+  updateCounts();
+  startScreen.classList.add('hidden');
+  endOverlay.classList.add('hidden');
+  playScreen.classList.remove('hidden');
+  actionBtn.focus();
+}
+
+document.getElementById('startBtn').addEventListener('click', startGame);
+document.getElementById('restartBtn').addEventListener('click', startGame);
+document.getElementById('playAgainBtn').addEventListener('click', startGame);
+actionBtn.addEventListener('click', flip);
+
+// Space bar flips when no button holds focus (a focused button handles its
+// own Space activation, and letting both run would flip twice).
+window.addEventListener('keydown', function (e) {
+  if ((e.code === 'Space' || e.key === ' ') && e.target === document.body) {
+    e.preventDefault();
+    flip();
+  }
+});
+</script>
+</body>
+</html>

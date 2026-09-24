@@ -1,0 +1,57 @@
+[
+  {
+    "title": "Penalty Shootout",
+    "cat": "sports",
+    "icon": "",
+    "desc": "Take part in a best-of-five penalty shootout against the AI, both scoring and keeping goal.",
+    "url": "Games/PenaltyShootout/index.html",
+    "featured": false,
+    "tags": [
+      "sports"
+    ]
+  },
+  {
+    "title": "Archery",
+    "cat": "sports",
+    "icon": "",
+    "desc": "Loose ten arrows at a moving ring target in the wind and score fifteen points to win.",
+    "url": "Games/Archery/index.html",
+    "featured": false,
+    "tags": [
+      "sports"
+    ]
+  },
+  {
+    "title": "Mini Golf",
+    "cat": "sports",
+    "icon": "",
+    "desc": "Putt through six hand-authored holes with bumpers, sand and walls against a par of nineteen.",
+    "url": "Games/MiniGolf/index.html",
+    "featured": false,
+    "tags": [
+      "sports"
+    ]
+  },
+  {
+    "title": "Curling",
+    "cat": "sports",
+    "icon": "",
+    "desc": "Slide stones with sweeping-assisted weight over three ends and count closest to the button against the AI.",
+    "url": "Games/Curling/index.html",
+    "featured": false,
+    "tags": [
+      "sports"
+    ]
+  },
+  {
+    "title": "Free Throw",
+    "cat": "sports",
+    "icon": "",
+    "desc": "Sink twelve points from ten free throws using a timed power meter and real rim bounces.",
+    "url": "Games/FreeThrow/index.html",
+    "featured": false,
+    "tags": [
+      "sports"
+    ]
+  }
+]

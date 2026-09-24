@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Change one letter per step to transform the start word into the target word.">
+<link rel="icon" href="data:,">
+<title>Word Ladder</title>
+<!--
+  Engine and curated word list adapted from "word-ladder" by Kairui Ying,
+  licensed under the MIT License.
+  Source: https://github.com/yinggarykairui/word-ladder
+  Changes: start screen with documented controls, move-limit lose state,
+  new-ladder restart, flat restyle (no gradients, no uppercase transforms,
+  no share/streak/daily persistence), English-only visible copy.
+-->
+<style>
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  background: #f4f1ea;
+  color: #1d1d1f;
+  touch-action: manipulation;
+}
+
+body { display: flex; flex-direction: column; align-items: center; }
+
+.screen {
+  width: 100%;
+  max-width: 460px;
+  padding: 0 16px 24px;
+  text-align: center;
+}
+
+h1 { font-size: 24px; margin: 14px 0 6px; font-weight: 700; letter-spacing: 0; }
+p { margin: 6px 0; font-size: 15px; }
+
+.hidden { display: none !important; }
+
+ul.rules {
+  text-align: left;
+  margin: 10px auto;
+  padding-left: 22px;
+  max-width: 400px;
+  line-height: 1.5;
+  font-size: 15px;
+}
+
+button {
+  min-height: 44px;
+  min-width: 44px;
+  padding: 10px 18px;
+  font-size: 16px;
+  font-family: inherit;
+  background: #2f5d50;
+  color: #fdf6e3;
+  border: 2px solid #1d1d1f;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+button.primary { background: #f4c542; color: #1d1d1f; }
+button:focus-visible { outline: 3px solid #c0392b; outline-offset: 2px; }
+button:active { transform: translateY(1px); }
+button:disabled { border-color: #8a8578; color: #8a8578; cursor: default; background: #e3ddcf; }
+
+.menu-buttons { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 14px; }
+
+#status { font-size: 15px; color: #4a4a4f; margin: 4px 0 8px; min-height: 20px; }
+
+.ladder {
+  position: relative;
+  margin: 10px 0 0;
+  padding: 8px 0 6px;
+}
+
+.ladder::before, .ladder::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: #c9c2b2;
+}
+
+.ladder::before { left: 6%; }
+.ladder::after { right: 6%; }
+
+.lab { font-size: 13px; color: #4a4a4f; margin: 2px 0; }
+.lab.won { color: #2f8f5b; font-weight: 700; }
+
+#chainbox {
+  max-height: 40vh;
+  overflow-y: auto;
+  min-height: 3.2rem;
+  scrollbar-width: thin;
+}
+
+.rung {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+  font-size: clamp(22px, 7vw, 28px);
+  font-weight: 500;
+  letter-spacing: 6px;
+  text-indent: 6px;
+  text-align: center;
+  padding: 4px 0;
+  white-space: nowrap;
+}
+
+.rung .hot { color: #c0392b; font-weight: 700; }
+
+.hr { height: 2px; background: #8a8578; width: 9rem; margin: 12px auto; }
+
+form { margin-top: 4px; }
+
+#word {
+  display: block;
+  width: 84%;
+  min-height: 48px;
+  margin: 0 auto;
+  padding: 0 4px 6px;
+  border: 0;
+  border-bottom: 2px solid #8a8578;
+  background: transparent;
+  color: #1d1d1f;
+  caret-color: #c0392b;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+  font-size: clamp(22px, 7vw, 28px);
+  font-weight: 500;
+  letter-spacing: 6px;
+  text-indent: 6px;
+  text-align: center;
+  text-transform: uppercase;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+#word:focus { outline: none; border-bottom-color: #c0392b; }
+#word::placeholder { color: #8a8578; opacity: 1; text-transform: none; letter-spacing: 0; }
+#word:disabled { color: #8a8578; -webkit-text-fill-color: #8a8578; }
+
+#msg { min-height: 1.4em; font-size: 15px; margin: 10px 0 4px; color: #1d1d1f; }
+#msg.warn { color: #c0392b; font-weight: 600; }
+
+.controls { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 6px; }
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 20;
+  padding: 16px;
+}
+
+.overlay .box {
+  background: #ffffff;
+  border: 3px solid #1d1d1f;
+  border-radius: 12px;
+  padding: 22px 26px;
+  max-width: 360px;
+  width: 100%;
+  text-align: center;
+}
+
+.overlay .box h2 { margin: 0 0 8px; font-size: 21px; }
+.overlay .box p { font-size: 15px; margin-bottom: 14px; }
+.overlay .box .row { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+</style>
+</head>
+<body>
+
+<div class="screen" id="startScreen">
+  <h1>Word Ladder</h1>
+  <p>Change one letter at a time and climb from the start word to the target word.</p>
+  <ul class="rules">
+    <li>Type a four-letter word from the built-in list that differs from the current top word by exactly one letter.</li>
+    <li>Press Submit or Enter to play it. Undo removes your last step.</li>
+    <li>Reach the target within 12 moves to win. Running out of moves loses the game.</li>
+    <li>Fewer moves than the par shown on screen is a better score.</li>
+  </ul>
+  <div class="menu-buttons">
+    <button class="primary" id="startBtn" type="button">Start game</button>
+  </div>
+</div>
+
+<div class="screen hidden" id="playScreen">
+  <h1>Word Ladder</h1>
+  <p id="status">Moves: 0 of 12</p>
+
+  <div class="ladder">
+    <div id="chainbox" tabindex="0" role="group" aria-label="the ladder so far">
+      <p class="lab">start</p>
+      <div id="chain"></div>
+    </div>
+    <form id="playForm" autocomplete="off" novalidate>
+      <div id="inputrow">
+        <input id="word" type="text" autocomplete="off" autocorrect="off"
+               autocapitalize="characters" spellcheck="false"
+               aria-label="your next word" aria-describedby="msg" placeholder="type a word">
+      </div>
+    </form>
+    <div class="hr"></div>
+    <div class="rung" id="target"></div>
+    <p class="lab" id="targetlab">target</p>
+  </div>
+
+  <p id="msg" role="status" aria-live="polite"></p>
+
+  <div class="controls">
+    <button class="primary" id="submitBtn" type="button">Submit</button>
+    <button id="undoBtn" type="button">Undo</button>
+    <button id="menuBtn" type="button">Menu</button>
+  </div>
+</div>
+
+<div class="overlay hidden" id="endOverlay">
+  <div class="box">
+    <h2 id="endTitle">Solved</h2>
+    <p id="endText"></p>
+    <div class="row">
+      <button class="primary" id="againBtn" type="button">New ladder</button>
+      <button id="endMenuBtn" type="button">Menu</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  /* ------------------------------------------------------------------
+     The word list. Verbatim from the MIT source (yinggarykairui/word-ladder):
+     hand-written, lowercase, unique, sorted, four letters each. It is the
+     curated ladder dictionary the game validates every step against, and it
+     is embedded here so nothing is ever fetched.
+     ------------------------------------------------------------------ */
+  var WORDS = (
+    "able baby back bail bake bale ball balm band bane bank bare " +
+    "bark barn base bath bead beam bean bear beat been beep beer " +
+    "beet bell belt bend bent best bike bill bind bird bite blow " +
+    "blue blur boat body boil bold bolt bond bone book boom boot " +
+    "bore born boss both bout bowl brew buck buff bulk bull bump " +
+    "bunk burn bush bust busy buzz cage cake calf call calm came " +
+    "camp cane cape card care cart case cash cask cast cave cell " +
+    "cent chat chef chew chin chip chop cite city clam clap claw " +
+    "clay clip club clue coal coat code coil coin cold colt comb " +
+    "come cone cook cool coop cope copy cord core cork corn cost " +
+    "crew crop crow cube cuff cure curl cute dame damp dare dark " +
+    "darn dart dash data date dawn daze deal dear deck deed deep " +
+    "deer dent desk dial dice diet dime dine dire dirt disc dish " +
+    "disk dive dock doll dome done doom door dorm dose down doze " +
+    "drag draw drew drip drop drug drum dual duck duct dude duke " +
+    "dull dump dunk dust earn east easy edge edit face fact fade " +
+    "fail fair fake fall fame fare farm fast fate fear feat feed " +
+    "feel feet fell felt file fill film find fine fire firm fish " +
+    "fist five flag flat flaw flea fled flew flip flow foam foil " +
+    "fold folk fond food fool foot fork form fort four fowl free " +
+    "frog fuel full fume fund fuse gain gale game gang gate gave " +
+    "gaze gear gene gift girl give glad glow glue goal goat gold " +
+    "golf gone gong good gown grab gray grew grid grim grin grip " +
+    "grow gulf gull gush gust hail hair half hall halt hand hang " +
+    "hard hare harm harp hash haul have hawk haze head heal heap " +
+    "hear heat heed heel held helm help herb herd here hero hide " +
+    "high hike hill hint hire hiss hive hold hole holy home hood " +
+    "hoof hook hoop hoot hope horn hose host hour howl huge hull " +
+    "hung hunt hurl hush icon idea idle inch iron item jade jail " +
+    "jazz jeep join joke jump junk just kale keen keep kelp kept " +
+    "kick kilt kind king kiss kite knee knew knit knob knot know " +
+    "lace lack lady laid lair lake lamb lame lamp land lane lark " +
+    "lash last late lawn lazy lead leaf leak lean leap leek left " +
+    "lend lens lent less lick life lift like limb lime line link " +
+    "lint lion list live load loan lock lone long look loom loop " +
+    "lord lose loss lost loud love luck lull lump lung lure lush " +
+    "made maid mail main make male mall mane many mare mark mash " +
+    "mask mass mast mate math maze meal mean meat meek meet melt " +
+    "mend menu mere mesh mess mice mild mile milk mill mime mind " +
+    "mine mint miss mist moan moat mock mode mold mole mood moon " +
+    "more moss most moth move much mule must mute nail name near " +
+    "neat neck need nest news next nice nick nine node none noon " +
+    "norm nose note noun oath open oven over pace pack page paid " +
+    "pail pain pair pale palm pane pant park part pass past path " +
+    "pave peak pear peek peel peep peer pest pick pier pile pill " +
+    "pine ping pink pint pipe pity plan play plea plot plow plug " +
+    "plum plus poem poet pole poll pond pony pool poor pore pork " +
+    "port pose post pour pout pray prey prop puck puff pull pulp " +
+    "pump punk punt pure push quit quiz race rack raft rage raid " +
+    "rail rain rake ramp rang rank rant rare rash rate rave read " +
+    "real reap rear reed reef reel rent rest rice rich ride rift " +
+    "ring rink riot ripe rise risk road roam roar robe rock rode " +
+    "role roll roof room root rope rose rude ruin rule rung rush " +
+    "rust sack safe sage said sail sake sale salt same sand sane " +
+    "sang sank sash save scan seal seam seat seed seek seem seen " +
+    "self sell send sent shed ship shoe shop shot show shut sick " +
+    "side sift sign silk sing sink site size skin skip slab sled " +
+    "slid slim slip slot slow slug snap snow soak soap soar sock " +
+    "sofa soft soil sold sole solo some song soon sore sort soul " +
+    "soup sour spin spot spun spur stag star stay stem step stew " +
+    "stir stop suit sung sunk sure surf swan swap swim tail take " +
+    "tale talk tall tame tank tape tart task taxi teal team tear " +
+    "teen tell tend tent term test text than that thaw them then " +
+    "they thin this thus tick tide tidy tile till tilt time tint " +
+    "tiny tire toad toil told toll tone took tool tore torn toss " +
+    "tour town trap tray tree trim trip true tube tuck tuna tune " +
+    "turn twig twin type ugly unit urge vain vane vase vast veal " +
+    "vent vest vice view vile vine vote wade wage wail wait wake " +
+    "walk wall wand wane want ward ware warm warn wash wasp wave " +
+    "weak wear weed week weep well went were west what when whip " +
+    "wide wife wild will wind wine wing wink wipe wire wise wish with " +
+    "wolf wood wool word wore work worm worn wrap yank yard yarn " +
+    "year yell your zeal zero zest zinc zone zoom"
+  ).split(" ");
+
+  var MAX_MOVES = 12;
+
+  /* ---------------------------- the graph ----------------------------- */
+
+  // Four wildcard buckets per word (_ATE, C_TE, CA_E, CAT_) gives adjacency
+  // in O(4N) instead of O(N^2): two words are neighbours exactly when they
+  // share one bucket and are not the same word.
+  function buildNeighbours(list) {
+    var buckets = Object.create(null), nbr = Object.create(null), i, j, w, k, b;
+    for (i = 0; i < list.length; i++) {
+      w = list[i];
+      nbr[w] = [];
+      for (j = 0; j < 4; j++) {
+        k = w.slice(0, j) + "_" + w.slice(j + 1);
+        b = buckets[k];
+        if (!b) { b = buckets[k] = []; }
+        b.push(w);
+      }
+    }
+    for (k in buckets) {
+      b = buckets[k];
+      for (i = 0; i < b.length; i++) {
+        for (j = 0; j < b.length; j++) { if (i !== j) nbr[b[i]].push(b[j]); }
+      }
+    }
+    return nbr;
+  }
+
+  // Ladders only run inside one connected component: a start and target from
+  // different components could never be bridged.
+  function largestComponent(list, nbr) {
+    var seen = Object.create(null), best = [], i, w, queue, head, x, comp, ns, j;
+    for (i = 0; i < list.length; i++) {
+      w = list[i];
+      if (seen[w]) continue;
+      queue = [w]; head = 0; comp = [];
+      seen[w] = true;
+      while (head < queue.length) {
+        x = queue[head++];
+        comp.push(x);
+        ns = nbr[x];
+        for (j = 0; j < ns.length; j++) {
+          if (!seen[ns[j]]) { seen[ns[j]] = true; queue.push(ns[j]); }
+        }
+      }
+      if (comp.length > best.length) best = comp;
+    }
+    best.sort();
+    return best;
+  }
+
+  var NBR = buildNeighbours(WORDS);
+  var COMP = largestComponent(WORDS, NBR);
+  var WORDSET = Object.create(null);
+  (function () {
+    for (var i = 0; i < WORDS.length; i++) WORDSET[WORDS[i]] = true;
+  }());
+
+  function bfsFrom(start) {
+    var dist = Object.create(null), parents = Object.create(null);
+    var queue = [start], head = 0;
+    dist[start] = 0;
+    while (head < queue.length) {
+      var x = queue[head++], ns = NBR[x];
+      for (var i = 0; i < ns.length; i++) {
+        var y = ns[i];
+        if (dist[y] === undefined) { dist[y] = dist[x] + 1; parents[y] = x; queue.push(y); }
+      }
+    }
+    return { dist: dist, parents: parents };
+  }
+
+  /* ---------------------------- the puzzle ---------------------------- */
+
+  function fnv1a32(s) {
+    var h = 2166136261 >>> 0;
+    for (var i = 0; i < s.length; i++) {
+      h ^= s.charCodeAt(i);
+      h = Math.imul(h, 16777619);
+    }
+    return h >>> 0;
+  }
+
+  function mulberry32(a) {
+    return function () {
+      a |= 0;
+      a = a + 0x6D2B79F5 | 0;
+      a = Math.imul(a ^ a >>> 15, 1 | a);
+      a = a + Math.imul(a ^ a >>> 7, 61 | a) ^ a;
+      return ((a ^ a >>> 14) >>> 0) / 4294967296;
+    };
+  }
+
+  // Pure function of the seed string: same seed, same solvable ladder.
+  function puzzleFor(seed) {
+    var rng = mulberry32(fnv1a32("word-ladder:" + seed));
+    function pick(arr) { return arr[Math.floor(rng() * arr.length)]; }
+
+    function phase(lo, hi) {
+      for (var n = 0; n < 50; n++) {
+        var start = pick(COMP);
+        if (NBR[start].length < 2) continue;
+        var r = bfsFrom(start), cand = [], i, w, d;
+        for (i = 0; i < COMP.length; i++) {
+          w = COMP[i];
+          d = r.dist[w];
+          if (d >= lo && d <= hi && NBR[w].length >= 2) cand.push(w);
+        }
+        if (!cand.length) continue;
+        var target = pick(cand);
+        return { start: start, target: target, par: r.dist[target], parents: r.parents };
+      }
+      return null;
+    }
+
+    return phase(3, 5) || phase(2, 6);
+  }
+
+  function diffCount(a, b) {
+    var n = 0;
+    for (var i = 0; i < 4; i++) { if (a.charAt(i) !== b.charAt(i)) n++; }
+    return n;
+  }
+
+  function firstDiff(a, b) {
+    for (var i = 0; i < 4; i++) { if (a.charAt(i) !== b.charAt(i)) return i; }
+    return -1;
+  }
+
+  /* ---------------------------- state ---------------------------------- */
+
+  var PUZ = null;
+  var START = "";
+  var TARGET = "";
+  var par = 0;
+  var chain = [];
+  var over = false;
+  var seedCount = 0;
+
+  var el = {
+    startScreen: document.getElementById("startScreen"),
+    playScreen: document.getElementById("playScreen"),
+    endOverlay: document.getElementById("endOverlay"),
+    endTitle: document.getElementById("endTitle"),
+    endText: document.getElementById("endText"),
+    chain: document.getElementById("chain"),
+    chainbox: document.getElementById("chainbox"),
+    word: document.getElementById("word"),
+    target: document.getElementById("target"),
+    targetlab: document.getElementById("targetlab"),
+    status: document.getElementById("status"),
+    form: document.getElementById("playForm"),
+    submit: document.getElementById("submitBtn"),
+    undo: document.getElementById("undoBtn"),
+    msg: document.getElementById("msg")
+  };
+
+  /* ---------------------------- rendering ----------------------------- */
+
+  var ORDINAL = ["1st", "2nd", "3rd", "4th"];
+
+  function rungLabel(word, prev) {
+    var hot = prev ? firstDiff(word, prev) : -1;
+    if (hot < 0) return word;
+    return word + ", " + ORDINAL[hot] + " letter changed";
+  }
+
+  function rungEl(word, prev, cls) {
+    var d = document.createElement("div");
+    d.className = "rung" + (cls ? " " + cls : "");
+    d.setAttribute("role", "img");
+    d.setAttribute("aria-label", rungLabel(word, prev));
+    var hot = prev ? firstDiff(word, prev) : -1;
+    for (var i = 0; i < word.length; i++) {
+      var s = document.createElement("span");
+      s.textContent = word.charAt(i);
+      if (i === hot) s.className = "hot";
+      d.appendChild(s);
+    }
+    return d;
+  }
+
+  function render() {
+    var atTarget = chain[chain.length - 1] === TARGET;
+    var moves = chain.length - 1;
+
+    el.chain.textContent = "";
+    for (var i = 0; i < chain.length; i++) {
+      el.chain.appendChild(rungEl(chain[i], i ? chain[i - 1] : null));
+    }
+
+    el.target.textContent = "";
+    var t = rungEl(TARGET, atTarget ? chain[chain.length - 2] : null);
+    while (t.firstChild) el.target.appendChild(t.firstChild);
+    el.target.className = "rung" + (atTarget ? " solved" : "");
+    el.target.setAttribute("role", "img");
+    el.target.setAttribute("aria-label", rungLabel(TARGET, atTarget ? chain[chain.length - 2] : null));
+    el.targetlab.textContent = atTarget ? "reached" : "target";
+    el.targetlab.className = "lab" + (atTarget ? " won" : "");
+
+    el.status.textContent = "Moves: " + moves + " of " + MAX_MOVES + " · best possible: " + par;
+
+    el.undo.disabled = moves === 0 || over;
+    el.word.disabled = atTarget || over;
+    el.submit.disabled = atTarget || over;
+
+    // Keep the newest rung in view on short screens.
+    el.chainbox.scrollTop = el.chainbox.scrollHeight;
+  }
+
+  function say(m, warn) {
+    el.msg.textContent = m;
+    el.msg.className = warn ? "msg warn" : "msg";
+  }
+
+  /* ---------------------------- game flow ----------------------------- */
+
+  function newLadder() {
+    PUZ = null;
+    for (var tries = 0; tries < 10 && !PUZ; tries++) {
+      seedCount++;
+      PUZ = puzzleFor("rnd-" + seedCount + "-" + Math.floor(Math.random() * 1e9));
+    }
+    if (!PUZ) {
+      say("Could not build a ladder. Please start again.", true);
+      return;
+    }
+    START = PUZ.start.toUpperCase();
+    TARGET = PUZ.target.toUpperCase();
+    par = PUZ.par;
+    chain = [START];
+    over = false;
+    el.word.value = "";
+    say("");
+    render();
+    el.startScreen.classList.add("hidden");
+    el.endOverlay.classList.add("hidden");
+    el.playScreen.classList.remove("hidden");
+    try { el.word.focus(); } catch (e) { /* focus is best-effort */ }
+  }
+
+  function endGame(won) {
+    over = true;
+    if (won) {
+      el.endTitle.textContent = "Ladder solved";
+      el.endText.textContent = "You climbed from " + START + " to " + TARGET + " in " +
+        (chain.length - 1) + " moves. Best possible: " + par + ".";
+    } else {
+      el.endTitle.textContent = "Out of moves";
+      el.endText.textContent = "You used all " + MAX_MOVES + " moves and did not reach " +
+        TARGET + " from " + START + ". The best possible ladder takes " + par + " moves.";
+    }
+    el.endOverlay.classList.remove("hidden");
+    document.getElementById("againBtn").focus();
+    render();
+  }
+
+  /* ---------------------------- input --------------------------------- */
+
+  var COMBINING = /[\u0300-\u036f]/g;
+  function fold(raw) {
+    var s = String(raw);
+    if (s.normalize) { try { s = s.normalize("NFD").replace(COMBINING, ""); } catch (e) { /* ignore */ } }
+    return s.replace(/[^A-Za-z]/g, "").toUpperCase().slice(0, 4);
+  }
+
+  var composing = false;
+
+  function normalise() {
+    var raw = el.word.value, v = fold(raw);
+    if (v !== raw) {
+      var a = el.word.selectionStart, b = el.word.selectionEnd;
+      el.word.value = v;
+      if (typeof a === "number" && typeof b === "number") {
+        try { el.word.setSelectionRange(fold(raw.slice(0, a)).length, fold(raw.slice(0, b)).length); }
+        catch (e) { /* ignore */ }
+      }
+    }
+    return v;
+  }
+
+  function reject(m) {
+    say(m, true);
+    el.word.focus();
+    try { el.word.select(); } catch (e) { /* ignore */ }
+  }
+
+  function commit() {
+    if (over) return;
+    composing = false;
+    var w = normalise();
+    if (w.length === 0) {
+      if (/warn/.test(el.msg.className)) say("");
+      el.word.focus();
+      return;
+    }
+    var prev = chain[chain.length - 1];
+    if (prev === TARGET) return;
+    if (w.length < 4) return reject("Needs four letters.");
+    if (!WORDSET[w.toLowerCase()]) return reject(w + " is not in the list.");
+    if (w === prev) return reject("That is the same word.");
+    if (diffCount(w, prev) !== 1) return reject("Change exactly one letter.");
+    if (chain.indexOf(w) !== -1) return reject("Already used that word.");
+
+    chain.push(w);
+    el.word.value = "";
+    say("Added " + w + ".");
+
+    if (w === TARGET) {
+      say("Added " + w + ". Ladder solved.");
+      render();
+      endGame(true);
+      return;
+    }
+    render();
+    if (chain.length - 1 >= MAX_MOVES) {
+      endGame(false);
+      return;
+    }
+    try { el.word.focus(); } catch (e) { /* focus is best-effort */ }
+  }
+
+  function undo() {
+    if (over || chain.length <= 1) return;
+    chain.pop();
+    say("");
+    render();
+    try { el.word.focus(); } catch (e) { /* focus is best-effort */ }
+  }
+
+  /* ---------------------------- wiring -------------------------------- */
+
+  el.word.addEventListener("compositionstart", function () { composing = true; });
+  el.word.addEventListener("focus", function () { composing = false; });
+  el.word.addEventListener("blur", function () {
+    if (!composing) return;
+    composing = false;
+    normalise();
+  });
+  el.word.addEventListener("compositionend", function () {
+    composing = false;
+    normalise();
+  });
+  el.word.addEventListener("input", function (e) {
+    if (/warn/.test(el.msg.className)) say("");
+    if (composing || (e && e.isComposing)) return;
+    normalise();
+  });
+
+  el.form.addEventListener("submit", function (e) { e.preventDefault(); commit(); });
+  el.submit.addEventListener("click", commit);
+  el.undo.addEventListener("click", undo);
+
+  document.getElementById("startBtn").addEventListener("click", newLadder);
+  document.getElementById("againBtn").addEventListener("click", newLadder);
+
+  function goMenu() {
+    over = true;
+    el.endOverlay.classList.add("hidden");
+    el.playScreen.classList.add("hidden");
+    el.startScreen.classList.remove("hidden");
+  }
+
+  document.getElementById("menuBtn").addEventListener("click", goMenu);
+  document.getElementById("endMenuBtn").addEventListener("click", goMenu);
+}());
+</script>
+</body>
+</html>

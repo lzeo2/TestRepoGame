@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dots and Boxes</title>
+<!--
+  Ingested from: https://github.com/ayahae79/Dots-and-Boxes
+  License: MIT (see LICENSE in this folder)
+  Commit: 5cadc8235bf2a108af47837c5fd89ba32f1eac2a
+  Modifications: two pages (home + game) merged into one; Google Fonts and
+  Material Icons removed (offline policy); gradients and rotating glow panels
+  replaced with flat panels; added start screen, computer opponent (greedy
+  AI: completes boxes, avoids giving away three-sided boxes), keyboard cursor
+  (arrow keys + Enter), running match score, win/lose/draw overlay with
+  restart and menu paths.
+-->
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<section id="startScreen">
+  <h1>Dots and Boxes</h1>
+  <p>Claim the lines between the dots. Complete a box and you score points and go again. Fill the board to win.</p>
+  <div class="panel">
+    <div class="mode-row" role="group" aria-label="Game mode">
+      <button type="button" class="mode-btn" id="modeAi" aria-pressed="true">Vs computer</button>
+      <button type="button" class="mode-btn" id="mode2p" aria-pressed="false">Two players</button>
+    </div>
+    <button type="button" id="playBtn" class="play-btn">Play</button>
+  </div>
+  <div class="panel">
+    <strong>Controls</strong>
+    <ul class="controls-doc">
+      <li><strong>Claim a line:</strong> tap or click it, or move the keyboard cursor with the <strong>arrow keys</strong> and press <strong>Enter</strong> or <strong>Space</strong>.</li>
+      <li><strong>New round:</strong> press <strong>N</strong> or use the New round button.</li>
+      <li><strong>Menu:</strong> the Menu button returns here to switch modes.</li>
+      <li>16 boxes per round, 10 points each. Works with mouse, touch and keyboard.</li>
+    </ul>
+  </div>
+</section>
+
+<section id="gameScreen" class="hidden">
+  <header class="topbar">
+    <h2 class="title">Dots and Boxes</h2>
+    <div class="scores">
+      <div class="score-card" id="card1">
+        <span class="score-name" id="name1">You</span>
+        <span class="score-value" id="score1">0</span>
+      </div>
+      <div class="score-card" id="card2">
+        <span class="score-name" id="name2">Computer</span>
+        <span class="score-value" id="score2">0</span>
+      </div>
+    </div>
+    <div class="top-actions">
+      <button type="button" id="newRoundBtn" title="New round (N)">New round</button>
+      <button type="button" id="menuBtn">Menu</button>
+    </div>
+  </header>
+
+  <div class="status" id="gameStatus" aria-live="polite">Your turn</div>
+
+  <div class="board" id="board" role="grid" aria-label="Dots and boxes board"></div>
+
+  <div class="boxes-left" id="boxesLeft">16 boxes left</div>
+</section>
+
+<div class="overlay hidden" id="endOverlay">
+  <div class="card">
+    <h2 id="endTitle">Round over</h2>
+    <div class="result" id="endResult"></div>
+    <p id="endDetail"></p>
+    <div class="btn-row">
+      <button type="button" id="againBtn" class="play-btn">Play again</button>
+      <button type="button" id="overlayMenuBtn">Menu</button>
+    </div>
+  </div>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
