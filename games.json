@@ -1,25 +1,5 @@
 [
   {
-    "id": 1,
-    "title": "2048",
-    "cat": "classic",
-    "icon": "",
-    "desc": "Classic number puzzle. Combine tiles to reach 2048!",
-    "url": "Games/2048/index.html",
-    "featured": false,
-    "tags": []
-  },
-  {
-    "id": 2,
-    "title": "Age of War",
-    "cat": "strategy",
-    "icon": "",
-    "desc": "Side-scrolling tower defense - train scouts, guards, and archers to destroy the enemy gate.",
-    "url": "Games/AgeOfWar/index.html",
-    "featured": false,
-    "tags": []
-  },
-  {
     "id": 4,
     "title": "Soccer Random",
     "cat": "sports",
@@ -118,16 +98,6 @@
     "icon": "",
     "desc": "Hexagonal block-stacking arcade puzzle - rotate the board, match colors, and clear the core.",
     "url": "Games/Hextris/index.html",
-    "featured": false,
-    "tags": []
-  },
-  {
-    "id": 13,
-    "title": "Flappy Bird",
-    "cat": "classic",
-    "icon": "",
-    "desc": "Tap-to-fly arcade challenge - guide the bird through pipes, chase a high score, and keep the run alive.",
-    "url": "Games/FlappyBird/index.html",
     "featured": false,
     "tags": []
   },
@@ -435,16 +405,6 @@
     "tags": []
   },
   {
-    "id": 104,
-    "title": "Fruit Ninja",
-    "cat": "classic",
-    "icon": "",
-    "desc": "Slash fruit, dodge bombs - timing combo arcade",
-    "url": "Games/FruitNinja/index.html",
-    "featured": false,
-    "tags": []
-  },
-  {
     "id": 62,
     "title": "Cut the Rope",
     "cat": "puzzle",
@@ -473,20 +433,6 @@
     "url": "Games/Vex7/index.html",
     "featured": false,
     "tags": []
-  },
-  {
-    "id": 65,
-    "title": "House of Hazards",
-    "cat": "multiplayer",
-    "icon": "",
-    "desc": "2-4 player party chaos - dodge the house's traps",
-    "url": "Games/HouseOfHazards/index.html",
-    "featured": false,
-    "tags": [
-      "2p"
-    ],
-    "players": "2-4",
-    "howto": "2-4 players share one keyboard; per-player controls shown in-game"
   },
   {
     "id": 66,
@@ -687,20 +633,6 @@
     "tags": []
   },
   {
-    "id": 85,
-    "title": "Thumb Fighter",
-    "cat": "sports",
-    "icon": "",
-    "desc": "Two-player thumb wrestling game - battle a friend on one keyboard or fight the computer!",
-    "url": "Games/ThumbFighter/index.html",
-    "featured": false,
-    "tags": [
-      "2p"
-    ],
-    "players": "2",
-    "howto": "P1 and P2 share one keyboard (P2: Arrow keys); control hint shown in-game"
-  },
-  {
     "id": 86,
     "title": "Jetpack Joyride",
     "cat": "action",
@@ -761,42 +693,6 @@
     "icon": "",
     "desc": "Cookie Clicker with unlimited cookies, all upgrades, and all buildings unlocked!",
     "url": "Games/CookieClickerHacked/index.html",
-    "featured": false,
-    "tags": [
-      "hacked"
-    ]
-  },
-  {
-    "id": 91,
-    "title": "Flappy Bird Hacked",
-    "cat": "classic",
-    "icon": "",
-    "desc": "Flappy Bird with god mode - no collision, infinite best score!",
-    "url": "Games/FlappyBirdHacked/index.html",
-    "featured": false,
-    "tags": [
-      "hacked"
-    ]
-  },
-  {
-    "id": 92,
-    "title": "Tetris Hacked",
-    "cat": "classic",
-    "icon": "",
-    "desc": "Tetris with god mode - board clears on every piece, infinite score!",
-    "url": "Games/TetrisHacked/index.html",
-    "featured": false,
-    "tags": [
-      "hacked"
-    ]
-  },
-  {
-    "id": 93,
-    "title": "Age of War Hacked",
-    "cat": "strategy",
-    "icon": "",
-    "desc": "Age of War with infinite gold, 10x damage, and 10x HP units!",
-    "url": "Games/AgeOfWarHacked/index.html",
     "featured": false,
     "tags": [
       "hacked"
@@ -927,16 +823,6 @@
     ]
   },
   {
-    "id": 112,
-    "title": "Crossy Road",
-    "cat": "arcade",
-    "icon": "",
-    "desc": "Help the chicken cross the road! A endless hopper game.",
-    "url": "Games/CrossyRoad/index.html",
-    "featured": false,
-    "tags": []
-  },
-  {
     "id": 109,
     "title": "Doodle Jump Hacked",
     "cat": "arcade",
@@ -1029,42 +915,12 @@
     "tags": []
   },
   {
-    "id": 122,
-    "title": "Helix Jump",
-    "cat": "arcade",
-    "icon": "",
-    "desc": "Rotate the helix tower and drop the bouncing ball through gaps.",
-    "url": "Games/HelixJump/index.html",
-    "featured": false,
-    "tags": []
-  },
-  {
     "id": 123,
     "title": "Crush the Castle",
     "cat": "action",
     "icon": "",
     "desc": "Trebuchet physics siege. Demolish castles and their occupants.",
     "url": "Games/CrushTheCastle/index.html",
-    "featured": false,
-    "tags": []
-  },
-  {
-    "id": 124,
-    "title": "Geometry Rash",
-    "cat": "arcade",
-    "icon": "",
-    "desc": "One-button rhythm runner through geometric hazards.",
-    "url": "Games/GeometryRash/index.html",
-    "featured": false,
-    "tags": []
-  },
-  {
-    "id": 125,
-    "title": "Poor Bunny",
-    "cat": "action",
-    "icon": "",
-    "desc": "Collect carrots and dodge deadly traps in this frantic pixel-art survival platformer.",
-    "url": "Games/PoorBunny/index.html",
     "featured": false,
     "tags": []
   },
@@ -1102,16 +958,6 @@
     ],
     "players": "2",
     "howto": "Fireboy: WASD; Watergirl: Arrow keys; work together and never mix fire with water."
-  },
-  {
-    "id": 130,
-    "title": "Fireboy & Watergirl Fairy Tales",
-    "cat": "puzzle",
-    "icon": "⚔️",
-    "desc": "Guide Fireboy and Watergirl through magical fairy-tale temples, solving puzzles together.",
-    "url": "Games/FireboyAndWatergirlFairyTales/index.html",
-    "featured": false,
-    "tags": []
   },
   {
     "id": 131,
@@ -1159,35 +1005,6 @@
     ]
   },
   {
-    "id": 134,
-    "title": "Fireboy and Watergirl Fairy Tales Hacked",
-    "cat": "puzzle",
-    "icon": "⚔️",
-    "desc": "All levels unlocked in Fairy Tales.",
-    "url": "Games/FireboyAndWatergirlFairyTalesHacked/index.html",
-    "featured": false,
-    "tags": [
-      "2-player",
-      "puzzle",
-      "co-op",
-      "hacked"
-    ]
-  },
-  {
-    "id": 135,
-    "title": "GeoGuesser",
-    "cat": "puzzle",
-    "icon": "🌍",
-    "desc": "Full WorldGuessr experience (by codergautam) - real Street View rounds, solo or multiplayer, embedded directly.",
-    "url": "Games/GeoGuesser/index.html",
-    "featured": true,
-    "tags": [
-      "multiplayer",
-      "puzzle",
-      "geography"
-    ]
-  },
-  {
     "id": 136,
     "title": "Merge Cats Defender",
     "cat": "strategy",
@@ -1208,56 +1025,6 @@
     "tags": [
       "hacked"
     ]
-  },
-  {
-    "id": 138,
-    "title": "Neon Snake",
-    "cat": "arcade",
-    "icon": "",
-    "desc": "Glowing neon snake - eat apples to 50 to win, avoid walls and yourself.",
-    "url": "Games/NeonSnake/index.html",
-    "featured": false,
-    "tags": []
-  },
-  {
-    "id": 139,
-    "title": "Neon Breakout",
-    "cat": "arcade",
-    "icon": "",
-    "desc": "Glowing neon bricks and paddle - smash them all with powerups.",
-    "url": "Games/NeonBreakout/index.html",
-    "featured": false,
-    "tags": []
-  },
-  {
-    "id": 140,
-    "title": "Neon Flappy",
-    "cat": "arcade",
-    "icon": "",
-    "desc": "Neon flappy flyer - tap or space to flap through shrinking gaps, glowing trail, beat your best.",
-    "url": "Games/NeonFlappy/index.html",
-    "featured": false,
-    "tags": []
-  },
-  {
-    "id": 141,
-    "title": "Neon Boss Rush",
-    "cat": "action",
-    "icon": "",
-    "desc": "Arena boss fight with 4 bullet-pattern phases - dash, dodge, survive on keyboard or touch joystick.",
-    "url": "Games/NeonBossRush/index.html",
-    "featured": false,
-    "tags": []
-  },
-  {
-    "id": 142,
-    "title": "Orbit Collector",
-    "cat": "action",
-    "icon": "",
-    "desc": "Pilot your ship to collect orbiting crystals around a planet. WASD or arrow keys to move.",
-    "url": "Games/OrbitCollector/index.html",
-    "featured": false,
-    "tags": []
   },
   {
     "id": 149,
