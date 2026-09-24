@@ -1260,109 +1260,12 @@
     "tags": []
   },
   {
-    "id": 143,
-    "title": "Asteroids",
-    "cat": "arcade",
-    "icon": "",
-    "desc": "Rotate, thrust and shoot through wrapping asteroids that split as you clear wave after wave.",
-    "url": "Games/Asteroids/index.html",
-    "featured": false,
-    "tags": [
-      "space",
-      "shooter"
-    ]
-  },
-  {
-    "id": 144,
-    "title": "Space Invaders",
-    "cat": "arcade",
-    "icon": "",
-    "desc": "Hold the line against a marching alien fleet that speeds up with every rank you thin.",
-    "url": "Games/SpaceInvaders/index.html",
-    "featured": false,
-    "tags": [
-      "shooter"
-    ]
-  },
-  {
-    "id": 145,
-    "title": "Galaxian",
-    "cat": "arcade",
-    "icon": "",
-    "desc": "Pick off a formation of aliens while divers break rank and swoop straight at you.",
-    "url": "Games/Galaxian/index.html",
-    "featured": false,
-    "tags": [
-      "shooter"
-    ]
-  },
-  {
-    "id": 146,
-    "title": "Missile Command",
-    "cat": "arcade",
-    "icon": "",
-    "desc": "Crosshair-launch interceptor batteries and hold the line as missile waves fall on six cities.",
-    "url": "Games/MissileCommand/index.html",
-    "featured": false,
-    "tags": [
-      "defense"
-    ]
-  },
-  {
-    "id": 147,
-    "title": "Lunar Lander",
-    "cat": "arcade",
-    "icon": "",
-    "desc": "Rotate and thrust against gravity to set down softly on a landing pad before fuel runs out.",
-    "url": "Games/LunarLander/index.html",
-    "featured": false,
-    "tags": [
-      "physics"
-    ]
-  },
-  {
-    "id": 148,
-    "title": "Penalty Shootout",
-    "cat": "sports",
-    "icon": "",
-    "desc": "Take part in a best-of-five penalty shootout against the AI, both scoring and keeping goal.",
-    "url": "Games/PenaltyShootout/index.html",
-    "featured": false,
-    "tags": [
-      "sports"
-    ]
-  },
-  {
     "id": 149,
     "title": "Archery",
     "cat": "sports",
     "icon": "",
     "desc": "Loose ten arrows at a moving ring target in the wind and score fifteen points to win.",
     "url": "Games/Archery/index.html",
-    "featured": false,
-    "tags": [
-      "sports"
-    ]
-  },
-  {
-    "id": 150,
-    "title": "Mini Golf",
-    "cat": "sports",
-    "icon": "",
-    "desc": "Putt through six hand-authored holes with bumpers, sand and walls against a par of nineteen.",
-    "url": "Games/MiniGolf/index.html",
-    "featured": false,
-    "tags": [
-      "sports"
-    ]
-  },
-  {
-    "id": 151,
-    "title": "Curling",
-    "cat": "sports",
-    "icon": "",
-    "desc": "Slide stones with sweeping-assisted weight over three ends and count closest to the button against the AI.",
-    "url": "Games/Curling/index.html",
     "featured": false,
     "tags": [
       "sports"
@@ -1381,18 +1284,6 @@
     ]
   },
   {
-    "id": 153,
-    "title": "Hunt The Wumpus",
-    "cat": "riddle",
-    "icon": "",
-    "desc": "Hunt the Wumpus across a twenty-room cave of tunnels, dodging pits and super bats with five arrows to spend.",
-    "url": "Games/HuntTheWumpus/index.html",
-    "featured": false,
-    "tags": [
-      "riddle"
-    ]
-  },
-  {
     "id": 154,
     "title": "Backgammon",
     "cat": "strategy",
@@ -1402,66 +1293,6 @@
     "featured": false,
     "tags": [
       "strategy"
-    ]
-  },
-  {
-    "id": 155,
-    "title": "Higher Or Lower",
-    "cat": "classic",
-    "icon": "",
-    "desc": "Guess higher or lower on a real fifty-two card deck with no jokers, build a streak of eight and score ten times your streak per correct call.",
-    "url": "Games/HigherOrLower/index.html",
-    "featured": false,
-    "tags": [
-      "classic"
-    ]
-  },
-  {
-    "id": 156,
-    "title": "Centipede",
-    "cat": "arcade",
-    "icon": "",
-    "desc": "Shoot the descending centipede, split it at the mushrooms and clear every wave.",
-    "url": "Games/Centipede/index.html",
-    "featured": false,
-    "tags": [
-      "shooter"
-    ]
-  },
-  {
-    "id": 157,
-    "title": "Dig Dug",
-    "cat": "arcade",
-    "icon": "",
-    "desc": "Tunnel through dirt and inflate each buried foe until it pops to clear the level.",
-    "url": "Games/DigDug/index.html",
-    "featured": false,
-    "tags": [
-      "classic"
-    ]
-  },
-  {
-    "id": 158,
-    "title": "Frogger",
-    "cat": "arcade",
-    "icon": "",
-    "desc": "Hop a frog through traffic and across logs to fill every home slot alive.",
-    "url": "Games/Frogger/index.html",
-    "featured": false,
-    "tags": [
-      "classic"
-    ]
-  },
-  {
-    "id": 159,
-    "title": "DotRunner",
-    "cat": "arcade",
-    "icon": "",
-    "desc": "Clear a maze of pellets while four pursuers close in; power pellets turn the tables.",
-    "url": "Games/DotRunner/index.html",
-    "featured": false,
-    "tags": [
-      "maze"
     ]
   },
   {
@@ -1513,67 +1344,6 @@
     ]
   },
   {
-    "id": 164,
-    "title": "Duck Hunt",
-    "cat": "arcade",
-    "icon": "",
-    "desc": "Aim the crosshair and shoot rising ducks before they escape; clear three rounds of limited shots to win.",
-    "url": "Games/DuckHunt/index.html",
-    "featured": false,
-    "tags": [
-      "shooter"
-    ]
-  },
-  {
-    "id": 165,
-    "title": "Curve Fever",
-    "cat": "arcade",
-    "icon": "",
-    "desc": "Steer a growing line through the arena and outlast the computer or a friend; first to five round wins takes the match.",
-    "url": "Games/CurveFever/index.html",
-    "featured": false,
-    "tags": [
-      "1p",
-      "2p"
-    ]
-  },
-  {
-    "id": 166,
-    "title": "Sokoban",
-    "cat": "puzzle",
-    "icon": "",
-    "desc": "Push every crate onto its target across five warehouse levels, with undo, move counters and a stuck-crate lose state.",
-    "url": "Games/Sokoban/index.html",
-    "featured": false,
-    "tags": [
-      "puzzle"
-    ]
-  },
-  {
-    "id": 167,
-    "title": "Nonogram",
-    "cat": "puzzle",
-    "icon": "",
-    "desc": "Reveal hidden pictures by filling cells from the number clues, with 5x5 and 10x10 grids and a mistakes counter.",
-    "url": "Games/Nonogram/index.html",
-    "featured": false,
-    "tags": [
-      "puzzle"
-    ]
-  },
-  {
-    "id": 168,
-    "title": "Tower of Hanoi",
-    "cat": "puzzle",
-    "icon": "",
-    "desc": "Move the whole stack between pegs under the classic rules, spending a minimal 2^n - 1 move budget to win.",
-    "url": "Games/TowerOfHanoi/index.html",
-    "featured": false,
-    "tags": [
-      "puzzle"
-    ]
-  },
-  {
     "id": 169,
     "title": "Puzzle 15",
     "cat": "puzzle",
@@ -1610,16 +1380,6 @@
     "icon": "",
     "desc": "Trap rival discs between two of yours to flip them; legal-move hints against an MCTS computer player on the classic 8x8 board.",
     "url": "Games/Reversi/index.html",
-    "featured": false,
-    "tags": []
-  },
-  {
-    "id": 173,
-    "title": "Battleship",
-    "cat": "strategy",
-    "icon": "",
-    "desc": "Place your fleet, then trade single shots with an AI that hunts neighbouring squares after a hit; sink all four enemy ships before they sink yours.",
-    "url": "Games/Battleship/index.html",
     "featured": false,
     "tags": []
   },
@@ -1734,18 +1494,6 @@
     ]
   },
   {
-    "id": 183,
-    "title": "Dominoes",
-    "cat": "classic",
-    "icon": "",
-    "desc": "Play block dominoes against the computer: match the chain ends, draw from the boneyard when stuck, and be first to 100 points.",
-    "url": "Games/Dominoes/index.html",
-    "featured": false,
-    "tags": [
-      "classic"
-    ]
-  },
-  {
     "id": 184,
     "title": "Go Fish",
     "cat": "classic",
@@ -1782,18 +1530,6 @@
     ]
   },
   {
-    "id": 187,
-    "title": "Boggle",
-    "cat": "word",
-    "icon": "",
-    "desc": "Chain touching letters into dictionary words before the three-minute clock runs out.",
-    "url": "Games/Boggle/index.html",
-    "featured": false,
-    "tags": [
-      "word"
-    ]
-  },
-  {
     "id": 188,
     "title": "Word Ladder",
     "cat": "word",
@@ -1803,18 +1539,6 @@
     "featured": false,
     "tags": [
       "word"
-    ]
-  },
-  {
-    "id": 189,
-    "title": "Cryptogram",
-    "cat": "riddle",
-    "icon": "",
-    "desc": "Decode eight encrypted quotes one letter at a time with hints, strikes, and a running score.",
-    "url": "Games/Cryptogram/index.html",
-    "featured": false,
-    "tags": [
-      "riddle"
     ]
   },
   {
@@ -1842,18 +1566,6 @@
     ]
   },
   {
-    "id": 192,
-    "title": "Bowling",
-    "cat": "sports",
-    "icon": "",
-    "desc": "Roll ten frames of ten-pin bowling with real strike and spare scoring and a three-ball tenth frame.",
-    "url": "Games/Bowling/index.html",
-    "featured": false,
-    "tags": [
-      "sports"
-    ]
-  },
-  {
     "id": 193,
     "title": "Mahjong Lite",
     "cat": "puzzle",
@@ -1863,18 +1575,6 @@
     "featured": false,
     "tags": [
       "puzzle"
-    ]
-  },
-  {
-    "id": 194,
-    "title": "Snow Rider 3D",
-    "cat": "action",
-    "icon": "",
-    "desc": "Sled a winding downhill at growing speed, clearing jumps and dodging trees and boulders.",
-    "url": "Games/SnowRider3D/index.html",
-    "featured": false,
-    "tags": [
-      "endless"
     ]
   }
 ]
