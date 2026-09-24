@@ -1,0 +1,289 @@
+/* ================================================================
+   Portal UI polish batch 2 (pattern-driven)
+   Applies the net-best patterns from docs/ui_patterns.md to the
+   portal game grid and cards. Linked from index.html AFTER
+   assets/index-CUsUGgbt.css (and after the inline override block)
+   so this file has the final word in the cascade.
+
+   Rules: flat colors only, no gradients, no emoji, no em-dash,
+   no uppercase transforms on new content, 44px touch targets,
+   AA contrast.
+
+   Tokens reused from the existing portal:
+   --bg-card, --bg-card-hover, --border, --text, --text-muted,
+   --accent (#06b6d4 via the inline :root), --radius, --radius-lg,
+   --sans, plus the established palette literals #08252b (on-accent
+   text), #0e7490 (light-theme accent), #1a1a2e (flat thumb
+   placeholder), #1d1d1f / #6e6e73 / #f5f5f7 (light theme).
+   ================================================================ */
+
+/* --- 1. Stepped auto-fill grid ------------------------------------------
+   itch.io / crazygames.com: repeat(auto-fill, minmax(250px, 1fr)),
+   minimum stepped down at small widths. At a 360px viewport with
+   16px page padding the 420px step yields two slim 140px columns
+   (pattern 1, docs/ui_patterns.md). Wins over the fixed repeat()
+   counts in the bundle and in the inline responsive block. */
+.bento-grid__standard,
+.bento-grid__featured {
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)) !important;
+}
+@media (max-width: 640px) {
+  .bento-grid__standard,
+  .bento-grid__featured {
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)) !important;
+  }
+}
+@media (max-width: 420px) {
+  .bento-grid__standard,
+  .bento-grid__featured {
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)) !important;
+    gap: 12px !important;
+  }
+}
+
+/* --- 2. Thumbnails: locked 16:9 with a flat placeholder color ----------
+   crazygames.com / poki.com (pattern 2 + 4): every thumb reserves its
+   final box via aspect-ratio, so nothing shifts while art loads. The
+   flat #1a1a2e placeholder is the no-layout-shift layer; object-fit
+   cover comes from the inline block. Applies to standard and featured
+   cards alike (the hero thumb in section 6 stretches over its cell). */
+.game-card__thumb {
+  aspect-ratio: 16 / 9 !important;
+  background: #1a1a2e !important;
+  overflow: hidden;
+}
+
+/* --- 3. Hover: subtle lift only, guarded by hover:hover ----------------
+   poki.com (pattern 3): hover lives inside @media (hover:hover) so
+   touch devices never get a stuck lift, and the lift stays subtle
+   (3px, transform only). Chips and controls tint on hover but never
+   lift; only cards lift. The bundle's unguarded :hover lifts are
+   cancelled on hover:none devices. */
+.bento-grid .game-card {
+  transition: transform 180ms ease, border-color 180ms ease !important;
+}
+@media (hover: hover) {
+  .bento-grid .game-card:hover {
+    transform: translateY(-3px) !important;
+  }
+  .category-filter__btn:hover,
+  .ux-tag-filter__pill:hover {
+    transform: none !important;
+  }
+}
+@media (hover: none) {
+  .bento-grid .game-card:hover,
+  .category-filter__btn:hover,
+  .ux-recent__chip:hover,
+  .ux-clear-filters:hover,
+  .theme-toggle:hover,
+  .random-game-btn:hover,
+  .proxy-launcher__btn:hover,
+  .game-card__info:hover {
+    transform: none !important;
+  }
+}
+
+/* --- 4. Clamping: two-line title, one-line meta with ellipsis ----------
+   itch.io (.game_title line-clamp:2) and armormgames.com (.tags
+   ellipsis), pattern 4. The card title clamps to two lines; the meta
+   line under it (description) becomes a single ellipsised line so
+   every card in a row keeps a predictable rhythm. */
+.game-card__title {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.game-card__desc {
+  display: block;
+  -webkit-line-clamp: none;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* --- 5. Pill filter and sort chips: 44px with inverted aria-pressed ----
+   crazygames.com pill shape (pattern 5): every chip is a 44px touch
+   target; the pressed/active state inverts (accent fill, dark on-accent
+   text, 6.5:1) instead of relying on a subtle tint. Covers the bundle's
+   class-based .active state and portal-ux.js aria-pressed state. */
+.category-filter__btn,
+.ux-tag-filter__pill,
+.ux-recent__chip,
+.ux-clear-filters {
+  min-height: 44px;
+}
+.category-filter__btn {
+  border-radius: 999px !important;
+}
+.category-filter__btn.active,
+.category-filter__btn[aria-pressed="true"],
+.ux-tag-filter__pill[aria-pressed="true"] {
+  background: #06b6d4 !important;
+  border-color: #06b6d4 !important;
+  color: #08252b !important;
+  box-shadow: none !important;
+  font-weight: 600 !important;
+}
+html[data-theme="light"] .category-filter__btn.active,
+html[data-theme="light"] .category-filter__btn[aria-pressed="true"] {
+  background: #1d1d1f !important;
+  border-color: #1d1d1f !important;
+  color: #fff !important;
+}
+html[data-theme="light"] .ux-tag-filter__pill[aria-pressed="true"] {
+  background: #0e7490 !important;
+  border-color: #0e7490 !important;
+  color: #fff !important;
+}
+
+/* --- 6. Featured hero: split panel with a solid color title panel ------
+   itch.io featured cell spanning the row plus crazygames.com large
+   thumb ratio (pattern 7). The first featured card spans the full
+   grid as a 16fr / 9fr split: art left, title in a solid color panel
+   right (no gradient scrim, per the flat-color rule). Remaining
+   featured cards flow as normal cards below it. Stacks to one column
+   at 650px like the itch.io hero. */
+.bento-grid__featured > .game-card--featured:first-child {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: 16fr 9fr;
+}
+.bento-grid__featured > .game-card--featured:first-child .game-card__body {
+  background: #0d2730;
+  padding: 24px;
+}
+.bento-grid__featured > .game-card--featured:first-child .game-card__title {
+  font-size: clamp(20px, 4vw, 32px);
+  line-height: 1.2;
+}
+.bento-grid__featured > .game-card--featured:first-child .game-card__desc {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  white-space: normal;
+  color: #cfd6dc !important;
+}
+html[data-theme="light"] .bento-grid__featured
+  > .game-card--featured:first-child
+  .game-card__body {
+  background: #dff6fa;
+}
+html[data-theme="light"] .bento-grid__featured
+  > .game-card--featured:first-child
+  .game-card__desc {
+  color: #55555e !important;
+}
+@media (max-width: 650px) {
+  .bento-grid__featured > .game-card--featured:first-child {
+    grid-template-columns: 1fr;
+  }
+  .bento-grid__featured > .game-card--featured:first-child .game-card__body {
+    padding: 16px;
+  }
+}
+
+/* --- 7. Empty state: one sentence plus one 44px action -----------------
+   itch.io browse + gamejolt.com shelf behavior (pattern 6): the empty
+   result renders in place as a dashed flat card with a sentence and a
+   hint, and the single "Clear filters" action (portal-ux.js inserts it
+   right after this block) is one centered 44px pill. */
+.app__empty {
+  min-height: 0;
+  padding: 40px 16px !important;
+  background: var(--bg-card);
+  border: 1px dashed var(--border);
+  border-radius: var(--radius);
+}
+.app__empty-text {
+  margin: 0 0 6px;
+  font-size: 18px;
+}
+.app__empty-hint {
+  margin: 0 0 16px;
+  font-size: 15px;
+}
+.app__empty + .ux-clear-filters {
+  align-self: center;
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px !important;
+  font-size: 15px !important;
+}
+
+/* --- 8. Motion budget and focus rings ----------------------------------
+   crazygames.com reduced-motion kill switch (pattern 8): every
+   transition and animation in this file collapses under
+   prefers-reduced-motion, hover lift included. Focus-visible rings
+   are flat 2px outlines: #06b6d4 on dark (7.9:1 against #0b0b10) and
+   #0e7490 on light (4.9:1 against #f5f5f7), both above the 3:1 non-
+   text AA threshold. The skip link is excluded from transform:none
+   because it is positioned by transform. */
+.category-filter__btn:focus-visible,
+.ux-tag-filter__pill:focus-visible,
+.ux-sort__select:focus-visible,
+.ux-recent__chip:focus-visible,
+.ux-clear-filters:focus-visible,
+.game-card__play:focus-visible,
+.game-card__fav:focus-visible,
+.game-card__info:focus-visible,
+.game-card__tag:focus-visible,
+.search-bar__clear:focus-visible,
+.theme-toggle:focus-visible,
+.random-game-btn:focus-visible,
+.game-modal__close:focus-visible,
+.proxy-launcher__btn:focus-visible,
+.skip-link:focus,
+.app__empty button:focus-visible {
+  outline: 2px solid #06b6d4 !important;
+  outline-offset: 2px !important;
+}
+html[data-theme="light"] .category-filter__btn:focus-visible,
+html[data-theme="light"] .ux-tag-filter__pill:focus-visible,
+html[data-theme="light"] .ux-sort__select:focus-visible,
+html[data-theme="light"] .ux-recent__chip:focus-visible,
+html[data-theme="light"] .ux-clear-filters:focus-visible,
+html[data-theme="light"] .game-card__play:focus-visible,
+html[data-theme="light"] .game-card__fav:focus-visible,
+html[data-theme="light"] .game-card__info:focus-visible,
+html[data-theme="light"] .game-card__tag:focus-visible,
+html[data-theme="light"] .search-bar__clear:focus-visible,
+html[data-theme="light"] .theme-toggle:focus-visible,
+html[data-theme="light"] .random-game-btn:focus-visible,
+html[data-theme="light"] .game-modal__close:focus-visible,
+html[data-theme="light"] .proxy-launcher__btn:focus-visible,
+html[data-theme="light"] .skip-link:focus,
+html[data-theme="light"] .app__empty button:focus-visible {
+  outline-color: #0e7490 !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  html {
+    scroll-behavior: auto !important;
+  }
+  .bento-grid .game-card,
+  .bento-grid .game-card:hover,
+  .category-filter__btn,
+  .category-filter__btn:hover,
+  .ux-tag-filter__pill,
+  .ux-recent__chip,
+  .ux-clear-filters,
+  .game-card__play,
+  .game-card__fav,
+  .game-card__info,
+  .theme-toggle,
+  .random-game-btn,
+  .proxy-launcher__btn {
+    transition: none !important;
+    animation: none !important;
+    transform: none !important;
+  }
+}
