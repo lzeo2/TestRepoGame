@@ -13,6 +13,14 @@
     <h1>Grid Heist</h1>
     <div class="stats" id="stats"></div>
   </div>
+  <div class="topbar">
+    <div class="countrow" role="group" aria-label="Players">
+      <button class="cbtn sel" id="p2btn" type="button">2 players</button>
+      <button class="cbtn" id="p3btn" type="button">3 players</button>
+      <button class="cbtn" id="p4btn" type="button">4 players</button>
+    </div>
+    <p class="hint">Claim a glowing cell next to your territory, build a route to the vault, and block your rivals. Each turn is 4 seconds. Keyboard: 2, 3, or 4 picks players, arrows or WASD moves, space claims.</p>
+  </div>
   <div class="roundline">
     <span id="roundLabel" class="round">Round 1 / 12</span>
     <div class="timerwrap" aria-hidden="true"><div id="timerBar" class="timerbar"></div></div>
@@ -20,22 +28,7 @@
   <canvas id="game" width="550" height="550"></canvas>
   <p id="status" class="status" role="status" aria-live="polite">&nbsp;</p>
   <div class="controls">
-    <button class="tbtn" id="restartBtn" type="button">&#8635; Menu</button>
-  </div>
-  <p class="hint">Hotseat 2-4 players &middot; claim a glowing cell next to your territory &middot; build a route to the <span class="v">$</span> vault &middot; block your rivals &middot; 4s per turn</p>
-</div>
-
-<div id="menu" class="overlay">
-  <div class="panel">
-    <h2>Grid Heist</h2>
-    <p class="sub">Race for the vault at the centre of the grid. On your turn you claim one cell next to your territory. First to reach the vault captures it &mdash; and every cell of yours that stays connected to it scores double. Block your rivals&#39; routes!</p>
-    <div class="countrow">
-      <button class="cbtn sel" id="p2btn" type="button">2 Players</button>
-      <button class="cbtn" id="p3btn" type="button">3 Players</button>
-      <button class="cbtn" id="p4btn" type="button">4 Players</button>
-    </div>
-    <button class="cbtn primary" id="startBtn" type="button">Start heist</button>
-    <p class="small">Keyboard: 2 / 3 / 4 to pick players &middot; Enter to start &middot; arrows / WASD to move &middot; Space to claim</p>
+    <button class="tbtn" id="restartBtn" type="button">&#8635; Restart</button>
   </div>
 </div>
 
@@ -46,7 +39,7 @@
     <table id="resultTable" class="resulttable" aria-label="Final scores"></table>
     <div class="panelbtns">
       <button class="cbtn primary" id="againBtn" type="button">Play again</button>
-      <button class="cbtn" id="menuBtn" type="button">Menu</button>
+      <button class="cbtn" id="menuBtn" type="button">Restart</button>
     </div>
   </div>
 </div>

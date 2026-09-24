@@ -1092,5 +1092,7 @@
   $("menuBtn").addEventListener("click", toMenu);
   bindMenu();
   showScreen("menu");
+  /* auto-start: skip the menu gate, play begins on load */
+  resetMatch();
   requestAnimationFrame(loop);
 })();

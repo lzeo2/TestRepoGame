@@ -31,6 +31,12 @@
 </head>
 <body>
 <div class="wrap">
+  <header id="pageHead">
+    <h1>Raycast fps</h1>
+    <p>Click the screen to capture the mouse. w a s d or the arrow keys move, the mouse looks,
+       click fires, 1 2 3 switches weapon, r reloads, shift walks, esc releases the mouse,
+       enter respawns after you die.</p>
+  </header>
   <div id="hud">
     <div id="hudTop">
       <span class="chip">HP <b id="hp">100</b></span>
@@ -48,7 +54,7 @@
   <canvas id="screen"></canvas>
   <div id="crosshair">+</div>
 
-  <div id="overlay">
+  <div id="overlay" style="display:none">
     <div id="overlayCard">
       <h1>RAYCAST <span>FPS</span></h1>
       <p class="sub">Original software-rendered first-person shooter</p>

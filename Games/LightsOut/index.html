@@ -3,22 +3,16 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<script src="../../assets/game-save.js">
-function clearSave(){GameSave.clear('lightsout');document.getElementById('continue-btn').style.display='none'}
-function saveState(){GameSave.save('lightsout',{bestLevel:typeof bestLevel!=='undefined'?bestLevel:1})}
-function checkSaved(){var s=GameSave.load('lightsout');if(s&&s._ts&&s.bestLevel){bestLevel=s.bestLevel;document.getElementById('continue-btn').style.display='inline-block'}}
-function continueGame(){startGame()}
-var bestLevel=1;
-checkSaved();
-</script>
+<script src="../../assets/game-save.js"></script>
 <title>Lights Out</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-body{background:#111;color:#eee;font-family:system-ui,sans-serif;display:flex;justify-content:center;align-items:center;min-height:100vh}
-#start-screen,#over-screen{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#111;z-index:10}
-#game-screen{display:none}
-#over-screen{display:none;background:rgba(0,0,0,.85)}
-h1{font-size:2.5em;margin-bottom:.3em;color:#d69e2e}
+body{background:#111;color:#eee;font-family:system-ui,sans-serif;display:flex;flex-direction:column;align-items:center;min-height:100vh}
+#over-screen{position:fixed;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;background:rgba(0,0,0,.85);z-index:10}
+.game-head{padding:16px 16px 4px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:6px;max-width:640px}
+.game-head .controls-info{max-width:520px;margin-top:0}
+.game-head button{margin-top:4px;padding:8px 16px;font-size:.9em}
+h1{font-size:1.5em;margin:0 0 .1em;color:#d69e2e}
 h2{font-size:1.8em;margin-bottom:.3em}
 .info{font-size:1.1em;margin:.2em 0;color:#ccc}
 button{padding:12px 28px;font-size:1.1em;border:none;border-radius:12px;background:#d69e2e;color:#111;cursor:pointer;margin-top:16px;font-weight:600}
@@ -34,13 +28,11 @@ button:hover{filter:brightness(1.15)}
 </style>
 </head>
 <body>
-<div id="start-screen">
-<h1>LIGHTS OUT</h1>
-<p class="info">Turn off all the lights!</p>
-<button onclick="startGame()">Start Game</button>
+<header class="game-head">
+<h1>Lights Out</h1>
+<p class="controls-info">Turn off all the lights! Click a light to toggle it and its neighbors. Turn off all lights to win!</p>
 <button id="continue-btn" onclick="continueGame()" style="display:none;background:#38a169">Continue</button>
-<div class="controls-info">Click a light to toggle it and its neighbors. Turn off all lights to win!</div>
-</div>
+</header>
 <div id="game-screen" style="padding:20px">
 <div class="hud">
 <span>Moves: <span id="moves">0</span></span>
@@ -55,6 +47,13 @@ button:hover{filter:brightness(1.15)}
 <button onclick="nextLevel()">Next Level</button>
 <button onclick="goHome()" style="background:#555">Main Menu</button>
 </div>
+<script>
+function clearSave(){GameSave.clear('lightsout');document.getElementById('continue-btn').style.display='none'}
+function saveState(){GameSave.save('lightsout',{bestLevel:typeof bestLevel!=='undefined'?bestLevel:1})}
+function checkSaved(){var s=GameSave.load('lightsout');if(s&&s._ts&&s.bestLevel){bestLevel=s.bestLevel;document.getElementById('continue-btn').style.display='inline-block'}}
+function continueGame(){startGame()}
+var bestLevel=1;
+</script>
 <script>
 const SIZE=5;
 let grid,moves,level;
@@ -78,7 +77,6 @@ function initLevel(){
   if(grid.every(row=>row.every(c=>!c))){
     toggle(grid,Math.floor(SIZE/2),Math.floor(SIZE/2));
   }
-  document.getElementById('start-screen').style.display='none';
   document.getElementById('over-screen').style.display='none';
   document.getElementById('game-screen').style.display='block';
   render();
@@ -120,10 +118,9 @@ function render(){
 }
 
 function goHome(){
-  document.getElementById('over-screen').style.display='none';
-  document.getElementById('game-screen').style.display='none';
-  document.getElementById('start-screen').style.display='flex';
+  location.href='../../index.html';
 }
 </script>
+<script>checkSaved();startGame();</script>
 </body>
 </html>

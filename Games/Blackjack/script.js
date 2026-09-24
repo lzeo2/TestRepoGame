@@ -527,3 +527,5 @@ document.addEventListener('keydown', (e) => {
     if (betting !== 'none') startGame();
   }
 });
+// Auto-start: initialise the table as soon as the page loads (no start overlay).
+enterGame();

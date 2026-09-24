@@ -35,52 +35,24 @@ body {
 
 [hidden] { display: none !important }
 
-/* Start screen */
-.overlay {
-    position: fixed;
-    inset: 0;
-    background: rgba(10, 12, 10, 0.85);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 20;
-    padding: 16px;
-}
-
-.panel {
-    background: var(--bgcolor);
-    border: 2px solid var(--accent);
-    border-radius: 12px;
-    padding: 24px;
-    max-width: 460px;
-    width: 100%;
+/* Static page header (non-blocking) */
+.page-head {
+    max-width: 640px;
+    margin: 0 auto;
+    padding: 10px 12px 4px;
     text-align: center;
 }
 
-.panel h1 {
-    margin: 0 0 12px;
-    font-size: 1.8rem;
+.page-head h1 {
+    margin: 0 0 6px;
+    font-size: 1.5rem;
 }
 
-.panel p {
-    margin: 0 0 14px;
+.page-head p {
+    margin: 0;
     line-height: 1.5;
     font-size: 0.95rem;
 }
-
-#playBtn {
-    min-height: 44px;
-    min-width: 160px;
-    padding: 10px 24px;
-    font-size: 1.05rem;
-    border: none;
-    border-radius: 8px;
-    background: var(--accent);
-    color: #ffffff;
-    cursor: pointer;
-}
-
-#playBtn:hover { filter: brightness(1.1); }
 
 /* Game layout */
 main {

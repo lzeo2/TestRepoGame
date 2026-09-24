@@ -701,10 +701,8 @@ function pair() {
 // Initialize the game when the page loads
 initializeDeck();
 
-// Start screen, overlay buttons and keyboard play
-document.getElementById('playBtn').addEventListener('click', () => {
-    document.getElementById('start-screen').classList.add('hidden');
-});
+// Overlay buttons and keyboard play
+// (the start overlay was removed: the game is ready as soon as it loads)
 document.getElementById('bust-restart').addEventListener('click', resetGame);
 document.getElementById('target-new').addEventListener('click', resetGame);
 document.getElementById('target-keep').addEventListener('click', () => {

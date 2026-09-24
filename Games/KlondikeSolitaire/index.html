@@ -21,7 +21,7 @@
 </head>
 <body>
 
-<section id="startScreen">
+<header id="gameHead">
   <h1>Klondike Solitaire</h1>
   <p>Classic draw-one Klondike. Build the four foundations up from ace to king, alternating colors on the tableau.</p>
   <div class="panel">
@@ -34,10 +34,9 @@
       <li><strong>Goal:</strong> all 52 cards to the foundations. Run out of legal moves and the round is lost.</li>
     </ul>
   </div>
-  <button type="button" id="playBtn" class="play-btn">Play</button>
-</section>
+</header>
 
-<main class="game-shell hidden" id="gameScreen">
+<main class="game-shell" id="gameScreen">
   <header class="topbar">
     <div class="status" aria-live="polite">
       <span id="moves">0 moves</span>

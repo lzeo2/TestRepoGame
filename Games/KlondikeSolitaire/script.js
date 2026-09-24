@@ -45,7 +45,6 @@ const state = {
 };
 
 const els = {
-  startScreen: document.getElementById("startScreen"),
   gameScreen: document.getElementById("gameScreen"),
   stock: document.getElementById("stock"),
   stockCount: document.getElementById("stock-count"),
@@ -65,7 +64,6 @@ const els = {
   loseSummary: document.getElementById("lose-summary"),
   retryBtn: document.getElementById("retry-btn"),
   loseMenu: document.getElementById("lose-menu"),
-  playBtn: document.getElementById("playBtn"),
 };
 
 function createDeck() {
@@ -555,28 +553,11 @@ function wasteSpread() {
   return window.matchMedia("(max-width: 780px)").matches ? 18 : 30;
 }
 
-function showGame() {
-  els.startScreen.classList.add("hidden");
-  els.gameScreen.classList.remove("hidden");
-}
-
 function toMenu() {
-  state.running = false;
-  clearInterval(state.timerId);
-  if (els.winDialog.open) els.winDialog.close();
-  if (els.loseDialog.open) els.loseDialog.close();
-  els.gameScreen.classList.add("hidden");
-  els.startScreen.classList.remove("hidden");
-  els.playBtn.focus();
-}
-
-function play() {
-  showGame();
-  startGame();
+  startGame(); // no start screen: the Menu button deals a fresh round
   els.stock.focus();
 }
 
-els.playBtn.addEventListener("click", play);
 els.stock.addEventListener("click", drawFromStock);
 els.undo.addEventListener("click", undoMove);
 els.newGame.addEventListener("click", startGame);
@@ -587,7 +568,6 @@ els.winMenu.addEventListener("click", toMenu);
 els.loseMenu.addEventListener("click", toMenu);
 
 document.addEventListener("keydown", (event) => {
-  if (els.startScreen.classList.contains("hidden") === false) return;
   if (els.winDialog.open || els.loseDialog.open) return;
   if (event.key === "Enter" && event.target.tagName === "BUTTON") return;
   const key = event.key.toLowerCase();
@@ -602,5 +582,9 @@ document.addEventListener("keydown", (event) => {
     startGame();
   }
 });
+
+// auto-start on load
+startGame();
+els.stock.focus({ preventScroll: true });
 
 window.addEventListener("resize", render);

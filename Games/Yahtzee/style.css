@@ -23,6 +23,30 @@ body {
     }
 }
 
+/* Static page header (non-blocking) */
+.page-head {
+    width: 100%;
+    max-width: 640px;
+    padding: 4px 0 8px;
+    text-align: center;
+}
+
+.page-head h1 {
+    margin: 0 0 6px;
+    font-size: 1.5rem;
+}
+
+.page-head p {
+    margin: 0;
+    font-size: 0.92rem;
+    line-height: 1.5;
+    color: #3d4148;
+}
+
+@media (prefers-color-scheme: dark) {
+    .page-head p { color: #c9cdd2; }
+}
+
 /* Overlays */
 .overlay {
     position: fixed;

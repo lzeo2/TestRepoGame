@@ -3,22 +3,16 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<script src="../../assets/game-save.js">
-function clearSave(){GameSave.clear('whackamole');document.getElementById('continue-btn').style.display='none'}
-function saveState(){GameSave.save('whackamole',{bestScore:typeof bestScore!=='undefined'?bestScore:0})}
-function checkSaved(){var s=GameSave.load('whackamole');if(s&&s._ts&&s.bestScore){bestScore=s.bestScore;document.getElementById('continue-btn').style.display='inline-block'}}
-function continueGame(){startGame()}
-var bestScore=0;
-checkSaved();
-</script>
+<script src="../../assets/game-save.js"></script>
 <title>Whack-a-Mole</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-body{background:#111;color:#eee;font-family:system-ui,sans-serif;display:flex;justify-content:center;align-items:center;min-height:100vh}
-#start-screen,#over-screen{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#111;z-index:10}
-#game-screen{display:none}
-#over-screen{display:none;background:rgba(0,0,0,.85)}
-h1{font-size:2.5em;margin-bottom:.3em;color:#38a169}
+body{background:#111;color:#eee;font-family:system-ui,sans-serif;display:flex;flex-direction:column;align-items:center;min-height:100vh}
+#over-screen{position:fixed;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;background:rgba(0,0,0,.85);z-index:10}
+.game-head{padding:16px 16px 4px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:6px;max-width:640px}
+.game-head .controls-info{max-width:520px;margin-top:0}
+.game-head button{margin-top:4px;padding:8px 16px;font-size:.9em}
+h1{font-size:1.5em;margin:0 0 .1em;color:#38a169}
 h2{font-size:1.8em;margin-bottom:.3em}
 .info{font-size:1.1em;margin:.2em 0;color:#ccc}
 button{padding:12px 28px;font-size:1.1em;border:none;border-radius:12px;background:#38a169;color:#fff;cursor:pointer;margin-top:16px;font-weight:600}
@@ -35,13 +29,11 @@ button:hover{filter:brightness(1.15)}
 </style>
 </head>
 <body>
-<div id="start-screen">
-<h1>WHACK-A-MOLE</h1>
-<p class="info">30 seconds to whack as many moles as you can!</p>
-<button onclick="startGame()">Start Game</button>
+<header class="game-head">
+<h1>Whack-a-Mole</h1>
+<p class="controls-info">30 seconds to whack as many moles as you can! Click or tap the moles. Watch out for bombs! Bombs cost you points.</p>
 <button id="continue-btn" onclick="continueGame()" style="display:none;background:#38a169">Continue</button>
-<div class="controls-info">Click or tap the moles. Watch out for bombs! Bombs cost you points.</div>
-</div>
+</header>
 <div id="game-screen" style="padding:20px">
 <div class="hud">
 <span>Score: <span id="score">0</span></span>
@@ -57,8 +49,14 @@ button:hover{filter:brightness(1.15)}
 <button onclick="startGame()">Play Again</button>
 <button onclick="goHome()" style="background:#555">Main Menu</button>
 <button onclick="clearSave()" style="background:#333;font-size:.85em;padding:8px 16px;margin-top:8px">Clear Save</button>
-<button onclick="goHome()" style="background:#555">Main Menu</button>
 </div>
+<script>
+function clearSave(){GameSave.clear('whackamole');document.getElementById('continue-btn').style.display='none'}
+function saveState(){GameSave.save('whackamole',{bestScore:typeof bestScore!=='undefined'?bestScore:0})}
+function checkSaved(){var s=GameSave.load('whackamole');if(s&&s._ts&&s.bestScore){bestScore=s.bestScore;document.getElementById('continue-btn').style.display='inline-block'}}
+function continueGame(){startGame()}
+var bestScore=0;
+</script>
 <script>
 const HOLES=9,DURATION=30;
 let score,activeHole,moleTimer,gameTimer,timeLeft,running;
@@ -68,7 +66,6 @@ function startGame(){
   document.getElementById('score').textContent='0';
   document.getElementById('time').textContent=DURATION;
   document.getElementById('timer-fill').style.width='100%';
-  document.getElementById('start-screen').style.display='none';
   document.getElementById('over-screen').style.display='none';
   document.getElementById('game-screen').style.display='block';
   render();
@@ -111,10 +108,7 @@ function endGame(){
 }
 
 function goHome(){
-  running=false;clearInterval(moleTimer);clearInterval(gameTimer);
-  document.getElementById('over-screen').style.display='none';
-  document.getElementById('game-screen').style.display='none';
-  document.getElementById('start-screen').style.display='flex';
+  location.href='../../index.html';
 }
 
 function render(){
@@ -124,5 +118,6 @@ function render(){
   }
 }
 </script>
+<script>checkSaved();startGame();</script>
 </body>
 </html>

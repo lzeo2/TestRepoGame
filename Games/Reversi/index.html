@@ -13,8 +13,9 @@
   Modifications:
   - merged ai.js + ui.js + reversi.js into this one file, no service worker,
     manifest, icon fonts or web fonts; system font stack only
-  - added start screen with documented controls, live disc counts, pass
-    notices, an end-result overlay with Play again, and a restart button
+  - added live disc counts, pass notices, an end-result overlay with Play
+    again, and a restart button; start overlay removed (game auto-starts,
+    how-to lives in a static page header)
   - added keyboard input (arrow keys move the cursor, Enter places a disc)
   - setBoardSize made idempotent and resize-safe; board capped at 480px with
     44px cells at a 360px viewport; outline borders keep cells exact
@@ -65,6 +66,9 @@
   }
 
   h1 { margin: 0; font-size: 1.6rem; color: var(--gold); }
+
+  header.page-head { max-width: 560px; text-align: center; }
+  header.page-head p { margin: 4px 0 0; font-size: 0.95rem; color: var(--muted); line-height: 1.5; }
 
   #hud {
     display: flex;
@@ -175,9 +179,12 @@
 </style>
 </head>
 <body>
-  <h1>Reversi</h1>
+  <header class="page-head">
+    <h1>Reversi</h1>
+    <p>Trap the rival discs between two of yours to flip them. Highlighted squares show your legal moves; if neither side can move, the game ends and the biggest disc count wins. Tap a highlighted square to place a disc, or use the arrow keys to move the cursor and Enter to place one. You play black and move first.</p>
+  </header>
 
-  <div id="hud" hidden>
+  <div id="hud">
     <span>Your discs: <b id="countYou">2</b></span>
     <span>Computer: <b id="countThem">2</b></span>
     <span id="status"></span>
@@ -196,17 +203,6 @@
   </div>
 
   <footer>Rules and AI based on Reversi by Alexander Berson (MIT license).</footer>
-
-  <div id="startOverlay" class="overlay">
-    <h1>Reversi</h1>
-    <p>Trap the rival discs between two of yours to flip them. Highlighted
-       squares show your legal moves; if neither side can move, the game ends
-       and the biggest disc count wins.</p>
-    <p class="keys">Touch: tap a highlighted square to place a disc.</p>
-    <p class="keys">Keyboard: arrow keys move the cursor, Enter places a disc.</p>
-    <p>You play black and move first.</p>
-    <button id="playBtn" class="btn primary" type="button">Start</button>
-  </div>
 
   <div id="resultOverlay" class="overlay" hidden>
     <h2 id="resultTitle"></h2>
@@ -807,12 +803,8 @@ const init = () => {
 window.addEventListener('load', function () { setBoardSize(); });
 window.addEventListener('resize', function () { setBoardSize(); });
 
-document.getElementById('playBtn').addEventListener('click', function () {
-    document.getElementById('startOverlay').hidden = true;
-    document.getElementById('hud').hidden = false;
-    this.blur();
-    init();
-});
+/* auto-start: begin play as soon as the page loads */
+init();
 document.getElementById('againBtn').addEventListener('click', function () {
     document.getElementById('resultOverlay').hidden = true;
     newGame();
@@ -828,7 +820,6 @@ function kbMark() {
     if (kb.on) { kbSquares[kb.r * size + kb.c].classList.add('kb-cursor'); }
 }
 window.addEventListener('keydown', function (e) {
-    if (!document.getElementById('startOverlay').hidden) { return; }
     if (!document.getElementById('resultOverlay').hidden) { return; }
     var delta = { ArrowLeft: [0, -1], ArrowRight: [0, 1], ArrowUp: [-1, 0], ArrowDown: [1, 0] }[e.key];
     if (delta) {

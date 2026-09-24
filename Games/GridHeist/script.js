@@ -37,7 +37,6 @@
   var endTitle = document.getElementById("endTitle");
   var endSub = document.getElementById("endSub");
   var resultTable = document.getElementById("resultTable");
-  var startBtn = document.getElementById("startBtn");
   var againBtn = document.getElementById("againBtn");
   var menuBtn = document.getElementById("menuBtn");
   var restartBtn = document.getElementById("restartBtn");
@@ -234,7 +233,7 @@
     statusEl.style.color = PCOL[cur];
     renderStats();
     renderTimer();
-    menuEl.classList.add("hidden");
+    if (menuEl) menuEl.classList.add("hidden");
     endEl.classList.add("hidden");
   }
 
@@ -250,8 +249,9 @@
     statusEl.style.color = "";
     renderTimer();
     renderStats();
-    menuEl.classList.remove("hidden");
+    if (menuEl) menuEl.classList.remove("hidden");
     endEl.classList.add("hidden");
+    startGame(); /* no menu modal: restart straight into a new heist */
   }
 
   function setPlayers(p) {
@@ -398,13 +398,15 @@
     if (state === "play") claim(c, r);
   });
 
-  startBtn.addEventListener("click", startGame);
   againBtn.addEventListener("click", startGame);
   menuBtn.addEventListener("click", toMenu);
   restartBtn.addEventListener("click", toMenu);
   countBtns[2].addEventListener("click", function () { setPlayers(2); });
   countBtns[3].addEventListener("click", function () { setPlayers(3); });
   countBtns[4].addEventListener("click", function () { setPlayers(4); });
+
+  /* auto-start: the game is playable on load, player count is picked inline */
+  startGame();
 
   /* ---------------- update / draw ---------------- */
 

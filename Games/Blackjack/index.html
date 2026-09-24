@@ -12,41 +12,19 @@
   copy set in title case; emoji payout message replaced with plain text;
   natural blackjack settle added (dealer peek, player natural pays 3:2);
   session win state at 2,000 chips; keyboard shortcuts (H/S/D/Enter);
-  controls documented on the start screen; New session restart path;
-  button and chip hit targets raised to 44px; 360px-safe padding.
+  controls documented in a static page header (start overlay removed, table
+  live on load); button and chip hit targets raised to 44px; 360px-safe padding.
 -->
 <meta name="referrer" content="no-referrer">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-  <!-- START / WELCOME MODAL OVERLAY -->
-  <div id="start-screen" class="overlay">
-    <div class="modal">
-      <div class="modal-badge">Table for one</div>
-      <h1>Blackjack</h1>
-      <p>Beat the dealer without going over 21. Manage your bankroll
-         and climb the ranks from Rookie to Legend.</p>
-
-      <div class="milestone-preview">
-        <h3>Rank unlocks</h3>
-        <ul>
-          <li>Jack of All Trades <span>5,000</span></li>
-          <li>Pro <span>10,000</span></li>
-          <li>Top Gun <span>20,000</span></li>
-          <li>Unbreakable <span>50,000</span></li>
-          <li>Luck Is My Name <span>100,000</span></li>
-        </ul>
-      </div>
-
-      <p class="controls-doc"><strong>Controls:</strong> set a bet with the
-         chip buttons or the amount field, then Deal. Tap Hit, Stand or
-         Double. Keyboard: H hit, S stand, D double, Enter deal;
-         Tab moves focus and Enter presses the highlighted button.</p>
-
-      <button id="playBtn" class="primary-btn" onclick="enterGame(event)">Take a seat</button>
-    </div>
-  </div>
+  <!-- STATIC PAGE HEADER (non-blocking, replaces the old start overlay) -->
+  <header class="page-head">
+    <h1>Blackjack</h1>
+    <p>Beat the dealer without going over 21. Set a bet with the chip buttons or the amount field, then Deal. Tap Hit, Stand or Double. Keyboard: H hit, S stand, D double, Enter deal. Grow your bankroll from 1,000 chips and unlock higher ranks as you climb.</p>
+  </header>
 
   <!-- SESSION WIN OVERLAY -->
   <div id="win-screen" class="overlay hidden">

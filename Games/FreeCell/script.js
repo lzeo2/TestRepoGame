@@ -852,9 +852,5 @@ function App(window) {
     })
 }
 
-// Start-screen wiring.
-document.getElementById("playBtn").addEventListener("click", () => {
-    document.getElementById("start-screen").remove()
-    document.querySelector("main").hidden = false
-    App(window)
-})
+// Auto-start: build the game as soon as the page loads (no start overlay).
+App(window)

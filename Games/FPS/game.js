@@ -1104,8 +1104,8 @@
   /* ============================ BOOT ============================ */
   parseMap();
   buildTextures();
-  bestScoreEl.textContent = best;
-  render(); // draw a frame behind the overlay
+  overlay.style.display = "none"; // no start card: the run begins immediately
+  startRun(); // pointer lock engages on the first click (browsers require a user gesture)
 
   // expose for debugging
   window.__fps = { get player() { return player; }, get enemies() { return enemies; } };

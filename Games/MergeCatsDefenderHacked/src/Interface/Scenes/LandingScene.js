@@ -7,28 +7,9 @@ PD.LandingScene = class extends Phaser.Scene {
   constructor() { super('Landing'); }
 
   create() {
-    var W = PD.GAME.WIDTH, H = PD.GAME.HEIGHT;
-
     PD.Audio.playMusic(PD.MUSIC.menu);   // shared menu soundtrack
-
-    var bg = this.add.image(W / 2, H / 2, 'ui_landing');
-    PD.UIKit.cover(bg, W, H);
-
-    var logo = this.add.image(W / 2, 150, 'ui_logo').setOrigin(0.5);
-    if (logo.width > 560) logo.setScale(560 / logo.width);
-    this.tweens.add({ targets: logo, y: 162, duration: 1600, yoyo: true, repeat: -1, ease: 'Sine.inOut' });
-
-    PD.UIKit.label(this, W / 2, 372, 'Defend the Cat Kingdom!', 24, '#fff2cf');
-
-    PD.UIKit.pillButton(this, W / 2, 448, 300, 82, 'PLAY', function () {
-      this.scene.start('LevelMap');
-    }.bind(this), 0x6ab04c);
-
-    PD.UIKit.pillButton(this, W / 2, 546, 240, 58, 'How to Play', function () {
-      this._showHelp();
-    }.bind(this), 0x3d7fb5);
-
-    this._buildSettings();
+    // No title gate: auto-advance straight to the level map on load.
+    this.scene.start('LevelMap');
   }
 
   // A single settings entry replaces the old three-icon row: audio, vibration,

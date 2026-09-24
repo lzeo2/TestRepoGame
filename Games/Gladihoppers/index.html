@@ -45,36 +45,40 @@
 			height: 100%;
 			display: block;
 		}
+		/* Non-blocking page header: sits above the game, never covers it. */
 		#overlay {
 			position: absolute;
-			inset: 0;
+			top: 0;
+			left: 0;
+			right: 0;
 			z-index: 10;
 			display: flex;
-			flex-direction: column;
-			align-items: center;
-			justify-content: center;
-			gap: 18px;
-			padding: 20px;
-			text-align: center;
-			background: radial-gradient(ellipse at center, rgba(40, 20, 60, 0.92), rgba(8, 6, 14, 0.97));
+			flex-wrap: wrap;
+			align-items: baseline;
+			gap: 4px 16px;
+			padding: 8px 210px 8px 14px;
+			text-align: left;
+			background: rgba(8, 6, 14, 0.85);
+			border-bottom: 1px solid #2a2a3a;
+			pointer-events: none;
 		}
 		#overlay.hidden { display: none; }
 		#overlay h1 {
-			font-size: clamp(28px, 6vw, 56px);
-			letter-spacing: 1px;
+			font-size: 15px;
+			letter-spacing: 0.5px;
 			color: #ffd166;
-			text-shadow: 0 0 18px rgba(255, 209, 102, 0.45);
 		}
 		#overlay .tagline {
-			max-width: 60ch;
-			font-size: clamp(13px, 2.2vw, 17px);
+			font-size: 12px;
 			color: #cfc9e2;
 		}
 		#overlay .controls {
+			display: contents;
+		}
+		#overlay .controls li {
 			list-style: none;
-			font-size: clamp(12px, 2vw, 15px);
+			font-size: 12px;
 			color: #a9a3bd;
-			line-height: 1.7;
 		}
 		#overlay .controls kbd {
 			background: #26203a;
@@ -85,21 +89,7 @@
 			font-size: 0.92em;
 			color: #ffd166;
 		}
-		#playBtn {
-			font: 700 clamp(16px, 3vw, 22px) inherit;
-			min-height: 52px;
-			padding: 12px 44px;
-			border: none;
-			border-radius: 10px;
-			background: #e63946;
-			color: #fff;
-			cursor: pointer;
-			box-shadow: 0 4px 0 #8d1f29;
-			transition: transform 0.08s ease, box-shadow 0.08s ease;
-		}
-		#playBtn:hover { background: #f04956; }
-		#playBtn:active { transform: translateY(2px); box-shadow: 0 2px 0 #8d1f29; }
-		#playBtn:focus-visible, #fullscreenBtn:focus-visible, #restartBtn:focus-visible {
+		#fullscreenBtn:focus-visible, #restartBtn:focus-visible {
 			outline: 3px solid #00ff88;
 			outline-offset: 3px;
 		}
@@ -135,18 +125,17 @@
 	<main id="shell">
 		<div id="frame">
 			<div id="gameContainer"></div>
-			<div id="overlay" role="dialog" aria-label="Gladihoppers start screen">
+			<header id="overlay">
 				<h1>Gladihoppers</h1>
-				<p class="tagline">2D physics gladiator brawler &mdash; career mode, gear upgrades, 2-player local fights.</p>
+				<p class="tagline">2d physics gladiator brawler with career mode, gear upgrades, and 2-player local fights.</p>
 				<ul class="controls">
-					<li><kbd>W</kbd> <kbd>A</kbd> <kbd>S</kbd> <kbd>D</kbd> / <kbd>&uarr;</kbd> <kbd>&darr;</kbd> <kbd>&larr;</kbd> <kbd>&rarr;</kbd> &mdash; move your gladiator</li>
-					<li>Pick each fighter&rsquo;s bindings (WASD, Arrows, or gamepad) in the in-game pre-fight menu</li>
-					<li>Mouse / touch &mdash; menus and targeting; in-game tutorial covers stances &amp; attacks</li>
-					<li>2-player local: both fighters share one keyboard (or a gamepad for one side)</li>
+					<li>W, A, S, D or the arrow keys: move your gladiator</li>
+					<li>Pick each fighter&rsquo;s bindings (WASD, arrows, or gamepad) in the in-game pre-fight menu</li>
+					<li>Mouse or touch: menus and targeting, with an in-game tutorial for stances and attacks</li>
+					<li>2-player local: both fighters share one keyboard, or use a gamepad for one side</li>
 				</ul>
-				<button id="playBtn" type="button">PLAY</button>
 				<p id="error"></p>
-			</div>
+			</header>
 			<div id="hud">
 				<button id="fullscreenBtn" type="button">Fullscreen</button>
 				<button id="restartBtn" type="button">Restart</button>

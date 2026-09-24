@@ -11,8 +11,9 @@
 
   Modifications:
   - replaced the confirm() win dialog with an in-page result overlay
-  - added a start screen with documented controls, move counter, clock and
-    a best-score (localStorage, crash guarded)
+  - added a move counter, clock and a best-score (localStorage, crash
+    guarded); start overlay removed (game auto-starts, how-to lives in a
+    static page header)
   - added keyboard input: arrow keys / WASD slide tiles into the gap
   - fixed the original cell.clasName typo; input locks while shuffling
   - responsive percent-based cell positions (no overflow at 360px)
@@ -56,6 +57,10 @@
     user-select: none;
     -webkit-tap-highlight-color: transparent;
   }
+
+  header.page-head { max-width: 560px; text-align: center; }
+  header.page-head h1 { margin: 0; font-size: 1.6rem; color: var(--gold); }
+  header.page-head p { margin: 6px 0 0; font-size: 0.95rem; color: var(--muted); line-height: 1.5; }
 
   #hud {
     display: flex;
@@ -140,7 +145,12 @@
 </style>
 </head>
 <body>
-  <div id="hud" hidden>
+  <header class="page-head">
+    <h1>15 Puzzle</h1>
+    <p>Slide the numbered tiles until they read 1 to 15 from the top left, with the gap at the bottom right. Fewer moves wins. Tap a tile next to the gap, or use the arrow keys or WASD to move the gap.</p>
+  </header>
+
+  <div id="hud">
     <span>Moves: <b id="moves">0</b></span>
     <span>Time: <b id="time">0:00</b></span>
     <span>Best: <b id="best">&ndash;</b></span>
@@ -148,15 +158,6 @@
   </div>
 
   <div id="puzzle" aria-label="15 puzzle board"></div>
-
-  <div id="startOverlay" class="overlay">
-    <h1>15 Puzzle</h1>
-    <p>Slide the numbered tiles until they read 1 to 15 from the top left,
-       with the gap at the bottom right. Fewer moves wins.</p>
-    <p class="keys">Touch: tap a tile next to the gap.</p>
-    <p class="keys">Keyboard: arrow keys or WASD move the gap; tiles slide in.</p>
-    <button id="playBtn" class="btn primary" type="button">Start</button>
-  </div>
 
   <div id="resultOverlay" class="overlay" hidden>
     <h2>Puzzle solved</h2>
@@ -170,7 +171,6 @@
 
   var puzzle = document.getElementById("puzzle");
   var hud = document.getElementById("hud");
-  var startOverlay = document.getElementById("startOverlay");
   var resultOverlay = document.getElementById("resultOverlay");
   var movesEl = document.getElementById("moves");
   var timeEl = document.getElementById("time");
@@ -348,7 +348,6 @@
   }
 
   function startRound() {
-    startOverlay.hidden = true;
     hud.hidden = false;
     renderBest();
     scramble();
@@ -382,12 +381,10 @@
   });
 
   // --- buttons ---
-  document.getElementById("playBtn").addEventListener("click", startRound);
   document.getElementById("restartBtn").addEventListener("click", scramble);
   document.getElementById("againBtn").addEventListener("click", scramble);
 
-  buildGrid();
-  renderBest();
+  startRound(); /* auto-start: the board is live as soon as the page loads */
 })();
 </script>
 </body>

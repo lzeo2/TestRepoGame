@@ -3,7 +3,9 @@
   Source: https://github.com/daleharvey/pacman
   License: WTFPL - commit 3acc5e2bb10e93c8f08eceb1562e1a16d672a1c6
   Modifications: removed external writeup links, removed webfont (unclear
-  terms), added viewport meta, start/restart overlay, touch d-pad, relative paths only.
+  terms), added viewport meta, touch d-pad, relative paths only. Start
+  overlay removed: the game auto-starts on load with controls in a static
+  page header.
 -->
 <html lang="en">
   <head>
@@ -33,23 +35,9 @@
       }
       #pacman canvas { max-width: 100%; height: auto; display: block; margin: 0 auto; }
 
-      /* start / restart overlay */
-      #overlay {
-        position: fixed;
-        inset: 0;
-        background: rgba(10, 10, 10, 0.92);
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        gap: 12px;
-        z-index: 20;
-        padding: 16px;
-        box-sizing: border-box;
-      }
-      #overlay.hidden { display: none; }
-      #overlay h1 { font-size: 1.6em; margin: 0; }
-      #overlay p { margin: 0; font-size: 0.95em; color: #ccc; max-width: 320px; }
+      /* static page header (non-blocking) */
+      header.page-head { padding: 8px 10px 2px; }
+      header.page-head p { margin: 0; font-size: 0.85em; color: #ccc; line-height: 1.45; }
       .btn {
         min-width: 160px;
         min-height: 48px;
@@ -101,16 +89,11 @@
 
 <body>
   <button class="btn secondary" id="restartBtn" hidden aria-label="Restart the game">Restart</button>
-  <div id="overlay">
-    <h1>Pacman</h1>
-    <p>Clear every pellet and avoid the ghosts. Press start, then tap N or use the button below.</p>
-    <p>Keyboard: arrow keys to move, N starts a new game, P pauses, S toggles sound.</p>
-    <p>Mobile: use the d-pad below the play field.</p>
-    <button class="btn" id="startBtn">Start</button>
-  </div>
 
-  <h1>Pacman</h1>
-  <p class="note">Arrow keys to move. N starts a new game. P pauses.</p>
+  <header class="page-head">
+    <h1>Pacman</h1>
+    <p>Clear every pellet and avoid the ghosts. Arrow keys to move, N starts a new game, P pauses, S toggles sound. On touch screens use the d-pad below the play field.</p>
+  </header>
 
   <div id="pacman"></div>
 
@@ -130,7 +113,7 @@
 
       if (Modernizr.canvas && Modernizr.localstorage &&
           Modernizr.audio && (Modernizr.audio.ogg || Modernizr.audio.mp3)) {
-        window.setTimeout(function () { PACMAN.init(el, "./"); }, 0);
+        window.setTimeout(function () { PACMAN.init(el, "./"); startGame(); }, 0);
       } else {
         el.textContent = "This game needs a browser with canvas, localStorage and audio support.";
       }
@@ -143,18 +126,15 @@
         document.dispatchEvent(ev);
       }
 
-      var overlay = document.getElementById("overlay");
-      var startBtn = document.getElementById("startBtn");
       var restartBtn = document.getElementById("restartBtn");
 
+      /* auto-start: fire N (new game) right after the engine initialises */
       function startGame() {
-        overlay.classList.add("hidden");
         fireKey("keydown", 78); /* N: new game */
         window.setTimeout(function () { fireKey("keyup", 78); }, 50);
         restartBtn.hidden = false;
       }
 
-      startBtn.addEventListener("click", startGame);
       restartBtn.addEventListener("click", function () {
         fireKey("keydown", 78);
         window.setTimeout(function () { fireKey("keyup", 78); }, 50);

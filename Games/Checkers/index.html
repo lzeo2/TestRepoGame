@@ -17,7 +17,8 @@
   - 10x10 board changed to standard 8x8 checkers (12 pieces per side) so
     every tile keeps a 44px+ touch target at a 360px viewport
   - king crown emoji-css icon replaced by a flat CSS ring
-  - added start screen with documented controls, piece counts, game-over
+  - added a static controls header (start overlay removed, game auto-starts
+    on load), piece counts, game-over
     input lock (the original could reopen its result modal), restart button
   - added keyboard input: arrow keys move a cursor, Enter selects or drops
   - flat colors throughout, no external resources
@@ -62,6 +63,10 @@
     user-select: none;
     -webkit-tap-highlight-color: transparent;
   }
+
+  header.page-head { max-width: 620px; text-align: center; }
+  header.page-head h1 { margin: 6px 0 4px; font-size: 1.6rem; color: var(--gold); }
+  header.page-head p { margin: 0 0 4px; font-size: 0.92rem; color: var(--muted); line-height: 1.5; }
 
   #hud {
     /* above #outerMessageBox (z-index 30) so header Restart stays clickable
@@ -235,20 +240,12 @@
 </style>
 </head>
 <body>
-  <div id="startOverlay" class="overlay">
+  <header class="page-head">
     <h1>Checkers</h1>
-    <ul>
-      <li>Capture every rival piece or leave the computer with no legal move.</li>
-      <li>Jumps are forced: when a capture is available you must take it.</li>
-      <li>Men move forward only; reaching the far row crowns a king that moves both ways.</li>
-    </ul>
-    <p>You play the light pieces, moving up. The computer plays dark.</p>
-    <p class="keys">Touch: tap a piece, then tap the square to move or jump.</p>
-    <p class="keys">Keyboard: arrow keys move the cursor, Enter picks up or drops a piece.</p>
-    <button id="playBtn" class="btn primary" type="button">Start</button>
-  </div>
+    <p>Capture every rival piece or leave the computer with no legal move. Jumps are forced: when a capture is available you must take it. Men move forward only; reaching the far row crowns a king that moves both ways. You play the light pieces, moving up; the computer plays dark. Tap a piece, then tap the square to move or jump, or use the arrow keys to move the cursor and Enter to pick up or drop a piece.</p>
+  </header>
 
-  <div id="hud" hidden>
+  <div id="hud">
     <span id="status">Tap a piece, then a destination.</span>
     <span>Your pieces: <b id="countYou">12</b></span>
     <span>Computer: <b id="countThem">12</b></span>
@@ -1332,7 +1329,6 @@ function markKbCursor() {
 }
 
 window.addEventListener('keydown', function (e) {
-    if (!document.getElementById('startOverlay').hidden) { return; }
     if (document.getElementById('outerMessageBox')) { return; }
     var delta = { ArrowLeft: [0, -1], ArrowRight: [0, 1], ArrowUp: [-1, 0], ArrowDown: [1, 0] }[e.key];
     var size = (typeof gameManager === 'undefined' || !gameManager) ? 8 : gameManager.gameBoard.boardSize;
@@ -1359,10 +1355,6 @@ document.addEventListener('mousemove', function () {
     if (kb.on) { kb.on = false; markKbCursor(); }
 });
 
-document.getElementById('playBtn').addEventListener('click', function () {
-    document.getElementById('startOverlay').hidden = true;
-    this.blur();
-});
 document.getElementById('restartBtn').addEventListener('click', Play);
 
 })();

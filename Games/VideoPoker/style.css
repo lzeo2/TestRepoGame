@@ -87,6 +87,15 @@ header h1 {
     color: var(--game-type-color);
 }
 
+/* Non-blocking how-to note in the page header */
+.howto {
+    max-width: 640px;
+    margin: 10px auto 0;
+    font-size: 0.92rem;
+    line-height: 1.5;
+    color: var(--game-type-color);
+}
+
 /* Theme toggle button styles */
 .theme-toggle {
     position: absolute;

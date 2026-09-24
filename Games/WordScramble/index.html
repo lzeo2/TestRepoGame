@@ -11,7 +11,8 @@
   per-difficulty timer engine, hint display, and the streak/time/difficulty
   scoring model from js/script.js. Modified: inlined into one file, Google
   Fonts import, remote images and GitHub link removed, emoji removed, fixed
-  10-round structure with win/lose end screen, start screen with controls,
+  10-round structure with win/lose end screen, controls in a static page
+  header (start overlay removed, game auto-starts on load),
   reshuffle re-scrambles the current word, no innerHTML, flat colors.
   Offline-first, no external requests.
 -->
@@ -63,11 +64,14 @@
   .card .big{font-size:36px; color:var(--accent); font-weight:750; margin:8px 0;}
   .hidden{display:none !important;}
   .credit{font-size:12px; color:#6b7a92; text-align:center; margin-top:12px;}
+  .howto{max-width:560px; margin:0 auto; font-size:13.5px; color:var(--muted);
+    line-height:1.55; text-align:center;}
 </style>
 </head>
 <body>
 <div class="wrap">
   <h1>Word Scramble</h1>
+  <p class="howto">Unscramble the letters to reveal the hidden word; each round shows a fresh scramble and a hint. Type your answer and press Enter or Check. Reshuffle rearranges the same word's letters. The timer runs down each round and faster answers score more; clear 10 rounds and reach 100 points to win.</p>
   <div class="hud">
     <div class="stat">Round <b id="round">1</b>/10</div>
     <div class="stat">Score <b id="score">0</b></div>
@@ -89,26 +93,7 @@
     </div>
   </div>
 
-  <div class="legend">
-    Controls: type your answer and press Enter or the Check button. Reshuffle rearranges
-    the letters of the same word. Clear 10 rounds and reach 100 points to win.
-    Faster answers and longer streaks score more.
-  </div>
   <div class="credit">Word list and game engine ingested from GZ30eee/Word-Scramble-Game (MIT), adapted offline.</div>
-</div>
-
-<!-- Start screen -->
-<div class="overlay" id="startOverlay">
-  <div class="card">
-    <h2>Word Scramble</h2>
-    <p>Unscramble the letters to reveal the hidden word. Each round shows a fresh scramble and a hint.</p>
-    <p><b>Controls</b><br>
-      Type your answer and press Enter or Check.<br>
-      Reshuffle rearranges the same word's letters.<br>
-      The timer runs down each round; solving fast scores bonus points.<br>
-      Ten rounds, target score 100.</p>
-    <button id="startBtn" type="button">Start</button>
-  </div>
 </div>
 
 <!-- End screen -->
@@ -1301,18 +1286,19 @@ function endGame(){
 function startGame(){
   round = 1; score = 0; streak = 0;
   running = true; locked = false;
-  $("startOverlay").classList.add("hidden");
   $("endOverlay").classList.add("hidden");
   renderRound();
 }
 
-$("startBtn").addEventListener("click", startGame);
 $("restartBtn").addEventListener("click", startGame);
 $("checkBtn").addEventListener("click", check);
 $("reshuffleBtn").addEventListener("click", reshuffle);
 $("answer").addEventListener("keydown", (e) => {
   if (e.key === "Enter"){ e.preventDefault(); check(); }
 });
+
+/* auto-start: the first round is live as soon as the page loads */
+startGame();
 </script>
 </body>
 </html>

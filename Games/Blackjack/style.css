@@ -20,6 +20,28 @@ body {
   display: none !important;
 }
 
+/* STATIC PAGE HEADER (non-blocking) */
+.page-head {
+  width: 100%;
+  max-width: 720px;
+  margin: 0 auto 14px;
+  text-align: center;
+}
+
+.page-head h1 {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1.6rem;
+  margin: 0 0 6px;
+  color: #e2e8f0;
+}
+
+.page-head p {
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  color: #b7c2ba;
+}
+
 /* MODAL OVERLAYS */
 .overlay {
   position: fixed;
@@ -69,55 +91,6 @@ body {
   margin-bottom: 24px;
   font-size: 0.95rem;
   line-height: 1.5;
-}
-
-.milestone-preview {
-  background: rgba(0, 0, 0, 0.3);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 10px;
-  padding: 16px;
-  margin-bottom: 24px;
-  text-align: left;
-}
-
-.milestone-preview h3 {
-  font-weight: 700;
-  font-size: 0.85rem;
-  color: #c5a059;
-  letter-spacing: 1px;
-  margin-bottom: 12px;
-  text-align: center;
-}
-
-.controls-doc {
-  background: rgba(0, 0, 0, 0.3);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 10px;
-  padding: 12px 14px;
-  text-align: left;
-  font-size: 0.88rem;
-}
-
-.milestone-preview ul {
-  list-style: none;
-}
-
-.milestone-preview li {
-  display: flex;
-  justify-content: space-between;
-  padding: 8px 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-  font-size: 0.88rem;
-  color: #cbd5e1;
-}
-
-.milestone-preview li:last-child {
-  border-bottom: none;
-}
-
-.milestone-preview li span {
-  color: #4ade80;
-  font-weight: 600;
 }
 
 .primary-btn {

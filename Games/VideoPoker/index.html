@@ -11,8 +11,9 @@
   Modifications: Google Fonts link removed; checkerboard gradient flattened;
   emoji theme-toggle icons replaced with text; ALL-CAPS button and indicator
   copy set in title case; alert() popups replaced with in-page overlays
-  (out-of-chips lose state, doubled-stack session win); start screen with
-  documented controls added; keyboard play added (1-5 hold, Enter/Space
+  (out-of-chips lose state, doubled-stack session win); controls documented
+  in the page header (start overlay removed, game ready on load);
+  keyboard play added (1-5 hold, Enter/Space
   deal, Arrow Up/Down bet); 44px bet buttons; 360px-safe card row.
 -->
 <meta name="referrer" content="no-referrer">
@@ -23,6 +24,7 @@
         <header>
             <h1>Video Poker</h1>
             <div id="game-type">Jacks or Better</div>
+            <p class="howto">Draw five cards, hold the ones you like and draw again. Pairs of jacks or better pay back your bet. Start with 1,000 chips; doubling that wins the session. Tap a card to hold or release it, then press Deal to draw, and use the plus and minus buttons to change the bet. Keyboard: 1 to 5 holds a card, Enter or Space deals, Arrow Up and Arrow Down change the bet.</p>
             <div class="theme-toggle">
                 <button id="theme-toggle-btn" aria-label="Switch color theme">
                     <span class="light-icon">Light</span>
@@ -143,21 +145,6 @@
                 <p>Video poker by Varun Budati</p>
             </div>
         </footer>
-    </div>
-
-    <!-- START SCREEN -->
-    <div id="start-screen" class="overlay">
-        <div class="panel">
-            <h2>Video Poker</h2>
-            <p>Draw five cards, hold the ones you like and draw again.
-               Pairs of jacks or better pay back your bet. Start with
-               1,000 chips; doubling that wins the session.</p>
-            <p><strong>Controls:</strong> tap a card to hold or release it,
-               then press Deal to draw. Use the plus and minus buttons to
-               change the bet. Keyboard: 1 to 5 holds a card, Enter or
-               Space deals, Arrow Up and Arrow Down change the bet.</p>
-            <button id="playBtn">Start game</button>
-        </div>
     </div>
 
     <!-- OUT OF CHIPS (LOSE) -->

@@ -5,7 +5,8 @@
   Modifications: webpack production bundle vendored locally (bundle.js),
   fixed EnemyAI player argument, generated platform texture (upstream assets
   were never loaded), debug console spam removed, added viewport meta,
-  start/restart overlay, touch controls, relative paths only.
+  touch controls, relative paths only. Start overlay removed: the game
+  auto-starts on load with controls in a static page header.
 -->
 <html lang="en">
 <head>
@@ -18,18 +19,10 @@
     body { text-align: center; -webkit-user-select: none; user-select: none; }
     #game-wrap { max-width: 800px; margin: 0 auto; }
     canvas { max-width: 100% !important; height: auto !important; }
-    p.note { font-size: 0.9em; color: #bbb; margin: 6px 8px; }
-
-    /* start / restart overlay */
-    #overlay {
-      position: fixed; inset: 0; z-index: 20;
-      background: rgba(10, 10, 10, 0.92);
-      display: flex; flex-direction: column; align-items: center; justify-content: center;
-      gap: 12px; padding: 16px; box-sizing: border-box;
-    }
-    #overlay.hidden { display: none; }
-    #overlay h1 { font-size: 1.6em; margin: 0; color: #ffd400; }
-    #overlay p { margin: 0; font-size: 0.95em; color: #ccc; max-width: 340px; }
+    /* static page header (non-blocking) */
+    header.page-head { max-width: 640px; margin: 0 auto; padding: 10px 12px 2px; text-align: center; }
+    header.page-head h1 { font-size: 1.5em; margin: 0 0 4px; color: #ffd400; }
+    header.page-head p { margin: 0; font-size: 0.95em; color: #ccc; line-height: 1.45; }
     .btn {
       min-width: 160px; min-height: 48px; font-size: 1.1em;
       border: 0; border-radius: 6px; cursor: pointer;
@@ -62,16 +55,13 @@
 </head>
 <body>
   <button class="btn secondary" id="restartBtn" hidden aria-label="Restart the game">Restart</button>
-  <div id="overlay">
+
+  <header class="page-head">
     <h1>Joust</h1>
-    <p>Ride your bird across the platforms and knock rivals off by striking them from above.</p>
-    <p>Keyboard: left and right arrows to move, space to flap, Escape restarts.</p>
-    <p>Mobile: use the buttons below the play field.</p>
-    <button class="btn" id="startBtn">Start</button>
-  </div>
+    <p>Ride your bird across the platforms and knock rivals off by striking them from above. Left and right arrows to move, space to flap, Escape restarts. On touch screens use the buttons below the play field.</p>
+  </header>
 
   <div id="game-wrap"></div>
-  <p class="note">Left and right arrows to move, space to flap. Land hits from above.</p>
 
   <div id="touch" aria-label="Touch controls">
     <button class="pad-btn" id="btn-left" aria-label="Move left">&#9664;</button>
@@ -82,16 +72,17 @@
   <script src="bundle.js"></script>
   <script>
     (function () {
-      var overlay = document.getElementById("overlay");
-      var started = false;
-
-      document.getElementById("startBtn").addEventListener("click", function () {
-        overlay.classList.add("hidden");
-        started = true;
+      /* auto-start: wait for the Phaser scene, then run it immediately */
+      var tries = 0;
+      (function waitForScene() {
         var scene = window.joustGame && window.joustGame.scene.getScene("JoustScene");
-        if (scene) scene.scene.resume();
-        document.getElementById("restartBtn").hidden = false;
-      });
+        if (scene) {
+          scene.scene.resume();
+          document.getElementById("restartBtn").hidden = false;
+        } else if (++tries < 200) {
+          window.setTimeout(waitForScene, 100);
+        }
+      })();
 
       document.getElementById("restartBtn").addEventListener("click", function () {
         window.location.reload();

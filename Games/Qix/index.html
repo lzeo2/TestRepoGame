@@ -3,9 +3,9 @@
   Source: https://github.com/astropanic/JIX
   License: MIT - commit c08594ec0423af2001a1a3904f745649e375dec8
   Modifications: removed unused fpsmeter.js and debug.js (window.debug never
-  called), removed debug divs and per-frame DOM debug logging, deferred start
-  behind an overlay with Start/Restart, added viewport meta, touch d-pad,
-  relative paths only.
+  called), removed debug divs and per-frame DOM debug logging, added
+  viewport meta, touch d-pad, relative paths only. Start overlay removed:
+  the game auto-starts on load with controls in a static page header.
 -->
 <html lang="en">
   <head>
@@ -19,22 +19,15 @@
 	  body { text-align: center; -webkit-user-select: none; user-select: none; }
 	  #game-space { max-width: 960px; margin: 0 auto; }
 	  #logo { display: inline-block; font-size: 2em; font-weight: bold; color: #ffd400; }
+  header.page-head { max-width: 640px; margin: 0 auto; padding: 10px 12px 2px; text-align: center; }
+  header.page-head h1 { font-size: 1.5em; margin: 0 0 4px; color: #ffd400; }
+  header.page-head p { margin: 0; font-size: 0.95em; color: #ccc; line-height: 1.45; }
 	  #logo-shadow { color: #37c8ff; }
 	  #header { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 6px 10px; }
 	  #claim, #timer { font-size: 0.95em; }
 	  #player_div, #vector_div { display: none; }
 	  #jix { max-width: 100%; height: auto; display: block; margin: 0 auto; background: #AA0033; }
 
-	  /* start / restart overlay */
-	  #overlay {
-		position: fixed; inset: 0; z-index: 20;
-		background: rgba(10, 10, 10, 0.92);
-		display: flex; flex-direction: column; align-items: center; justify-content: center;
-		gap: 12px; padding: 16px; box-sizing: border-box;
-	  }
-	  #overlay.hidden { display: none; }
-	  #overlay h1 { font-size: 1.6em; margin: 0; color: #ffd400; }
-	  #overlay p { margin: 0; font-size: 0.95em; color: #ccc; max-width: 340px; }
 	  .btn {
 		min-width: 160px; min-height: 48px; font-size: 1.1em;
 		border: 0; border-radius: 6px; cursor: pointer;
@@ -74,13 +67,11 @@
   </head>
   <body>
   <button class="btn secondary" id="restartBtn" hidden aria-label="Restart the game">Restart</button>
-	<div id="overlay">
+
+	<header class="page-head">
 	  <h1>Qix</h1>
-	  <p>Trace a trail across the open field with the arrow keys, and try to stay moving before the timer runs out.</p>
-	  <p>Keyboard: arrow keys to move. Hold shift to dash.</p>
-	  <p>Mobile: use the d-pad below the play field.</p>
-	  <button class="btn" id="startBtn">Start</button>
-	  	</div>
+	  <p>Trace a trail across the open field and claim territory before the timer runs out. Arrow keys to move, hold shift to dash. On touch screens use the d-pad below the play field.</p>
+	</header>
 
 	<div id="game-space">
 	  <div id="header">
@@ -110,12 +101,9 @@
 	<script src="scripts/game.js"></script>
 	<script>
 	  (function () {
-		var overlay = document.getElementById("overlay");
-		document.getElementById("startBtn").addEventListener("click", function () {
-		  overlay.classList.add("hidden");
-		  document.getElementById("restartBtn").hidden = false;
-		  window.jixStart();
-		});
+		/* auto-start: begin the run as soon as the scripts are ready */
+		window.jixStart();
+		document.getElementById("restartBtn").hidden = false;
 		document.getElementById("restartBtn").addEventListener("click", function () {
 		  window.location.reload();
 		});

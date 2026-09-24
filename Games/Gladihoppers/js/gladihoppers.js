@@ -62,9 +62,8 @@
 		};
 	};
 
-	/* ---- Start screen wiring ---- */
+	/* ---- Bootstrap: the game starts on load, header stays as controls text ---- */
 	var overlay = document.getElementById("overlay");
-	var playBtn = document.getElementById("playBtn");
 	var hud = document.getElementById("hud");
 	var errorEl = document.getElementById("error");
 	var fullscreenBtn = document.getElementById("fullscreenBtn");
@@ -80,17 +79,12 @@
 			showError("Unity loader failed to load. Please restart the page.");
 			return;
 		}
-		overlay.classList.add("hidden");
-		hud.classList.add("visible");
-		playBtn.disabled = true;
 		/* unityGame must be set before the Poki bridge completes ad breaks. */
 		window.unityGame = window.UnityLoader.instantiate("gameContainer", "Build/Gladihoppers.json");
 	}
 
-	playBtn.addEventListener("click", startGame);
-	playBtn.addEventListener("keydown", function (e) {
-		if (e.key === "Enter" || e.key === " ") { e.preventDefault(); startGame(); }
-	});
+	/* instantiate immediately: no start overlay gates the build */
+	startGame();
 	fullscreenBtn.addEventListener("click", function () {
 		if (window.unityGame && window.unityGame.SetFullscreen) {
 			window.unityGame.SetFullscreen(1);

@@ -1114,43 +1114,4 @@
   toMenu();
   requestAnimationFrame(loop);
 
-  // TEMP-DEBUG-HOOK (removed before finalizing)
-  window.__LL = {
-    dump: function () {
-      return {
-        state: state,
-        elapsed: elapsed,
-        countdown: countdown,
-        numPlayers: numPlayers,
-        safeR: Math.round(safeRadius()),
-        players: players.map(function (p) {
-          return {
-            name: p.name, x: Math.round(p.x), y: Math.round(p.y),
-            hp: p.hp, score: p.score, alive: p.alive,
-            boostT: +p.boostT.toFixed(2), dashT: +p.dashT.toFixed(2),
-            dashCd: +p.dashCd.toFixed(2), respawnT: +p.respawnT.toFixed(2),
-            clashCd: +p.clashCd.toFixed(2), dimT: +p.dimT.toFixed(2),
-            light: Math.round(effLight(p, safeRadius()))
-          };
-        }),
-        sparks: sparks.map(function (s) { return { x: Math.round(s.x), y: Math.round(s.y) }; })
-      };
-    },
-    test: {
-      setPos: function (i, x, y) {
-        if (players[i]) { players[i].x = x; players[i].y = y; players[i].vx = 0; players[i].vy = 0; }
-      },
-      setBoost: function (i, t) { if (players[i]) players[i].boostT = t; },
-      setDim: function (i, t) { if (players[i]) players[i].dimT = t; },
-      sparkNear: function (i) {
-        var p = players[i];
-        if (!p) return;
-        sparks.push({ x: p.x, y: p.y + 30, vx: 0, vy: 0, p: 0 });
-      },
-      clearCd: function (i) { if (players[i]) players[i].clashCd = 0; },
-      setHp: function (i, hp) { if (players[i]) players[i].hp = hp; },
-      forceEnd: function () { elapsed = MATCH_T; }
-    }
-  };
-  // /TEMP-DEBUG-HOOK
 })();

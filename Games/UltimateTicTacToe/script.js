@@ -261,7 +261,6 @@ function describeWin(line) {
 }
 
 var boardContainer = document.getElementById("ultimate-board");
-var landingPage = document.getElementById("landing");
 var appPage = document.getElementById("app");
 var modal = document.getElementById("gameEndModal");
 var modalTitle = document.getElementById("modal-title");
@@ -375,13 +374,7 @@ function hideEndModal() { modal.classList.add("hidden"); }
 function endModalVisible() { return !modal.classList.contains("hidden"); }
 
 function showGame() {
-  landingPage.classList.add("hidden");
   appPage.classList.remove("hidden");
-}
-
-function showLanding() {
-  landingPage.classList.remove("hidden");
-  appPage.classList.add("hidden");
 }
 
 function resetUI() {
@@ -491,7 +484,7 @@ function goToMenu() {
   scores = { X: 0, O: 0, Draw: 0 };
   updateScoreBoard(scores);
   resetUI();
-  showLanding();
+  resetGame(); // no landing gate: Menu deals a fresh round in place
 }
 
 menuButtons.forEach(function (btn) {
@@ -529,10 +522,7 @@ document.addEventListener("keydown", function (e) {
   if (e.key === "Escape" && endModalVisible()) hideEndModal();
 });
 
-/* keep the cursor visible once the board exists */
-initBoard(handleMove);
-renderState(state);
-syncKbCursor();
-updateScoreBoard(scores);
+/* auto-start against the computer on load */
+startGame("computer");
 
 })();

@@ -10,7 +10,8 @@
   Adapted from "go-fish" by Suren Enfiajyan, licensed under the MIT License.
   Source: https://github.com/surenenfiajyan/go-fish
   Changes: single-file layout, flat restyle, no sound pack, no external links,
-  score-by-books display, 360px-safe responsive header, start controls dialog.
+  score-by-books display, 360px-safe responsive header, inline rules note
+  (the first-load rules dialog was replaced with a non-blocking note).
 -->
 <style>
 * { box-sizing: border-box; }
@@ -64,6 +65,17 @@ button:focus-visible, select:focus-visible {
 button:active { background: #e0a91b; }
 
 label { color: #fdf6e3; font-size: 15px; }
+
+.rules-note {
+  margin: 0;
+  padding: 8px 12px;
+  background: #e7efe9;
+  color: #1d3a32;
+  font-size: 14px;
+  line-height: 1.5;
+  text-align: center;
+  border-bottom: 1px solid #2f5d50;
+}
 
 main {
   display: flex;
@@ -243,6 +255,7 @@ dialog .buttons { display: flex; gap: 16px; justify-content: center; margin-top:
   </label>
   <span id="scoreline">Books: you 0, computer 0</span>
 </header>
+<p class="rules-note">Click a card of the rank you ask for, or tab to it and press enter. The computer answers from its hand or sends you fishing. Collect four of a kind to win a book; first to seven books wins the game.</p>
 <main>
   <div class="opponent-cards" id="opponentCards" aria-hidden="true"></div>
   <div class="opponent-fishes" id="opponentFishes" aria-hidden="true"></div>
@@ -277,7 +290,6 @@ class GoFish {
   #blockEvents = false;
   #clickAttempts = 0;
   #totalYourPickedCards = 0;
-  #firstTime = true;
   #yourTurn = false;
   #gameOver = false;
   #runId = 0;
@@ -333,18 +345,6 @@ class GoFish {
   }
 
   async newGame() {
-    if (this.#firstTime) {
-      this.#firstTime = false;
-      this.#showDialog(
-        'Go Fish\n\n' +
-        'Click a card of the rank you ask for (or Tab to it and press Enter).\n' +
-        'The computer answers from its hand or sends you fishing.\n' +
-        'Collect 4 of a kind to win a book. First to 7 books wins the game.',
-        () => { this.newGame(); }
-      );
-      return;
-    }
-
     const runId = ++this.#runId;
     this.#yourInputReject?.('Started new game');
     this.#yourTurn = Math.random() < 0.5;

@@ -443,10 +443,6 @@ function yahtzeeGame () {
 		}
 	});
 
-	document.getElementById("playBtn").addEventListener("click", function () {
-		document.getElementById("start-screen").classList.add("hidden");
-	});
-
 	document.getElementById("restart-btn").addEventListener("click", function () {
 		window.location.reload();
 	});

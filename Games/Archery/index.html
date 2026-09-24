@@ -13,8 +13,9 @@
   scoring (1/2/3/4), moving target, stuck-arrow trail rendering, power bar,
   mouse position / angle / ellipse hit-test utilities.
   Modified: inlined from 7 files into one; Babel boilerplate removed;
-  wind per shot; fixed 10-arrow round with a 15-point win target; start and
-  end screens with documented controls; pointer events (touch + mouse);
+  wind per shot; fixed 10-arrow round with a 15-point win target; end
+  screen with documented controls; start overlay removed (game auto-starts,
+  how-to lives in the page header); pointer events (touch + mouse);
   keyboard aiming (arrows + space); console.log spam removed; score, arrows
   and wind moved to a DOM HUD; target rings scaled up for the fixed
   640x500 canvas. Self-contained, offline-first, no trackers.
@@ -61,7 +62,17 @@
 </style>
 </head>
 <body>
+<header class="page-head">
 <h1>Archery</h1>
+<div class="controls">
+  <b>Controls:</b> press on the field near the bow and drag toward the target,
+  then release to shoot (mouse or touch); the farther you drag, the stronger the
+  draw. Keyboard: <b>Left</b>/<b>Right</b> aim, <b>Up</b>/<b>Down</b> draw power,
+  <b>Space</b> release, <b>R</b> restart. Ten arrows, score 15 points to win.
+  Rings score 1, 2, 3 and 4 points (bull = 4); wind is re-rolled every shot and
+  pushes each arrow in flight.
+</div>
+</header>
 
 <div class="hud">
   <div class="stat">Arrows <b id="arrowsLeft">10</b></div>
@@ -73,17 +84,6 @@
 <div class="stage">
   <canvas id="canvas" width="640" height="500"></canvas>
 
-  <div class="overlay" id="startOverlay">
-    <h2>Archery</h2>
-    <p>Press on the field near the bow and drag toward the target; the farther you
-       drag, the stronger the draw. Release to loose the arrow. Ten arrows, score
-       15 points to win. Watch the wind: it pushes every arrow in flight.</p>
-    <p>Ring scoring: outer ring 1, next 2, inner 3, bull 4. Mouse or touch drags.
-       Keyboard: Left and Right rotate the aim, Up and Down set draw power,
-       Space releases.</p>
-    <button id="playBtn">Start</button>
-  </div>
-
   <div class="overlay hidden" id="endOverlay">
     <h2>Round over</h2>
     <p class="verdict" id="verdict"></p>
@@ -94,13 +94,6 @@
 
 <div class="bar">
   <button id="restartBtn">Restart round</button>
-</div>
-
-<div class="controls">
-  <b>Controls:</b> press and drag from the bow toward the target, release to shoot
-  (mouse or touch). Keyboard: <b>Left</b>/<b>Right</b> aim, <b>Up</b>/<b>Down</b>
-  draw power, <b>Space</b> release, <b>R</b> restart. Rings score 1, 2, 3 and 4
-  points; wind is re-rolled every shot.
 </div>
 
 <script>
@@ -118,7 +111,6 @@ const WIN_TARGET = 15;
 const scoreEl = document.getElementById("score");
 const arrowsEl = document.getElementById("arrowsLeft");
 const windEl = document.getElementById("wind");
-const startOverlay = document.getElementById("startOverlay");
 const endOverlay = document.getElementById("endOverlay");
 const verdictEl = document.getElementById("verdict");
 const finalScoreEl = document.getElementById("finalScore");
@@ -465,7 +457,6 @@ function startRound() {
   score = 0;
   arrowsLeft = ARROWS_TOTAL;
   endOverlay.classList.add("hidden");
-  startOverlay.classList.add("hidden");
   scoreEl.textContent = 0;
   arrowsEl.textContent = arrowsLeft;
   deadArrows.length = 0;
@@ -553,16 +544,11 @@ document.addEventListener("keydown", function(e) {
   if (e.code === "KeyR")       startRound();
 });
 
-document.getElementById("playBtn").addEventListener("click", function() {
-  startOverlay.classList.add("hidden");
-  startRound();
-});
 document.getElementById("againBtn").addEventListener("click", startRound);
-document.getElementById("restartBtn").addEventListener("click", function() {
-  if (state !== "start") startRound();
-});
+document.getElementById("restartBtn").addEventListener("click", startRound);
 
 arrow.setAim(-0.35, 45);
+startRound(); /* auto-start: the round begins as soon as the page loads */
 update();
 </script>
 </body>

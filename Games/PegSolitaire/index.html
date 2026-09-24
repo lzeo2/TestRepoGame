@@ -15,7 +15,8 @@
     rendering is now plain DOM (the original page was not offline-capable)
   - added win (one peg left) and lose (no jumps left) detection with result
     overlays; the original had no end states at all
-  - added start screen with documented controls, move counter, peg counter
+  - added a move counter and peg counter; start overlay removed (game
+    auto-starts, how-to lives in a static page header)
   - added keyboard input (arrows move the cursor, Enter selects or jumps)
   - flat colors, 49px+ touch targets, restart path, no external resources
 -->
@@ -59,6 +60,10 @@
     user-select: none;
     -webkit-tap-highlight-color: transparent;
   }
+
+  header.page-head { max-width: 560px; text-align: center; }
+  header.page-head h1 { margin: 0; font-size: 1.6rem; color: var(--gold); }
+  header.page-head p { margin: 6px 0 0; font-size: 0.95rem; color: var(--muted); line-height: 1.5; }
 
   #hud {
     display: flex;
@@ -174,7 +179,12 @@
 </style>
 </head>
 <body>
-  <div id="hud" hidden>
+  <header class="page-head">
+    <h1>Peg Solitaire</h1>
+    <p>Jump a peg over a neighbour into an empty hole; the jumped peg is removed. Finish with exactly one peg standing to win. Tap a peg, then tap a blue landing hole, or use the arrow keys to move the cursor and Enter to select or jump.</p>
+  </header>
+
+  <div id="hud">
     <span>Pegs: <b id="pegCount">32</b></span>
     <span>Moves: <b id="moveCount">0</b></span>
     <button id="undoBtn" class="btn" type="button">Undo</button>
@@ -182,16 +192,6 @@
   </div>
 
   <div id="board" role="grid" aria-label="English peg solitaire board"></div>
-
-  <div id="startOverlay" class="overlay">
-    <h1>Peg Solitaire</h1>
-    <p>Jump a peg over a neighbour into an empty hole; the jumped peg is
-       removed. Finish with exactly one peg standing to win.</p>
-    <p class="keys">Touch: tap a peg, then tap a blue landing hole.</p>
-    <p class="keys">Keyboard: arrow keys move the cursor, Enter selects a peg
-       or completes a jump.</p>
-    <button id="playBtn" class="btn primary" type="button">Start</button>
-  </div>
 
   <div id="resultOverlay" class="overlay" hidden>
     <h2 id="resultTitle"></h2>
@@ -311,7 +311,6 @@
   var pegEl = document.getElementById("pegCount");
   var moveEl = document.getElementById("moveCount");
   var undoBtn = document.getElementById("undoBtn");
-  var startOverlay = document.getElementById("startOverlay");
   var resultOverlay = document.getElementById("resultOverlay");
 
   var board = null;
@@ -470,7 +469,6 @@
     selected = null;
     cursor = [3, 3];
     playing = true;
-    startOverlay.hidden = true;
     resultOverlay.hidden = true;
     hud.hidden = false;
     render();
@@ -502,9 +500,9 @@
   undoBtn.addEventListener("click", doUndo);
   document.getElementById("restartBtn").addEventListener("click", startRound);
   document.getElementById("againBtn").addEventListener("click", startRound);
-  document.getElementById("playBtn").addEventListener("click", startRound);
 
   buildCells();
+  startRound(); /* auto-start: the board is live as soon as the page loads */
 })();
 </script>
 </body>

@@ -3,22 +3,16 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<script src="../../assets/game-save.js">
-function clearSave(){GameSave.clear('minesweeper');document.getElementById('continue-btn').style.display='none'}
-function saveState(){GameSave.save('minesweeper',{best:typeof bestTimes!=='undefined'?bestTimes:{}})}
-function checkSaved(){var s=GameSave.load('minesweeper');if(s&&s._ts&&s.best){bestTimes=s.best;document.getElementById('continue-btn').style.display='inline-block'}}
-function continueGame(){var s=GameSave.load('minesweeper');if(s&&s.best)bestTimes=s.best;startGame()}
-var bestTimes={easy:999,medium:999,hard:999};
-checkSaved();
-</script>
+<script src="../../assets/game-save.js"></script>
 <title>Minesweeper</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-body{background:#111;color:#eee;font-family:system-ui,sans-serif;display:flex;justify-content:center;align-items:center;min-height:100vh}
-#start-screen,#over-screen{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#111;z-index:10}
-#game-screen{display:none}
-#over-screen{display:none;background:rgba(0,0,0,.85)}
-h1{font-size:2.5em;margin-bottom:.3em;color:#dd6b20}
+body{background:#111;color:#eee;font-family:system-ui,sans-serif;display:flex;flex-direction:column;align-items:center;min-height:100vh}
+#over-screen{position:fixed;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;background:rgba(0,0,0,.85);z-index:10}
+.game-head{padding:16px 16px 4px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:6px;max-width:640px}
+.game-head .controls-info{max-width:520px;margin-top:0}
+.game-head button{margin-top:4px;padding:8px 16px;font-size:.9em}
+h1{font-size:1.5em;margin:0 0 .1em;color:#dd6b20}
 h2{font-size:1.8em;margin-bottom:.3em;color:#f55}
 .info{font-size:1.1em;margin:.2em 0;color:#ccc}
 button{padding:12px 28px;font-size:1.1em;border:none;border-radius:12px;background:#dd6b20;color:#fff;cursor:pointer;margin-top:16px;font-weight:600}
@@ -37,13 +31,11 @@ select{padding:8px;font-size:1em;border-radius:8px;background:#222;color:#eee;bo
 </style>
 </head>
 <body>
-<div id="start-screen">
-<h1>MINESWEEPER</h1>
-<p class="info">Find all the mines</p>
-<button onclick="startGame()">Start Game</button>
+<header class="game-head">
+<h1>Minesweeper</h1>
+<p class="controls-info">Find all the mines. Left click to reveal, right click or long press to flag. Mobile: tap to reveal, hold to flag.</p>
 <button id="continue-btn" onclick="continueGame()" style="display:none;background:#38a169">Continue</button>
-<div class="controls-info">Left click to reveal. Right click or long press to flag. Mobile: tap to reveal, hold to flag.</div>
-</div>
+</header>
 <div id="game-screen" style="padding:20px">
 <div class="header">
 <span id="mine-count">10</span>
@@ -63,8 +55,14 @@ select{padding:8px;font-size:1em;border-radius:8px;background:#222;color:#eee;bo
 <button onclick="startGame()">Play Again</button>
 <button onclick="goHome()" style="background:#555">Main Menu</button>
 <button onclick="clearSave()" style="background:#333;font-size:.85em;padding:8px 16px;margin-top:8px">Clear Save</button>
-<button onclick="goHome()" style="background:#555">Main Menu</button>
 </div>
+<script>
+function clearSave(){GameSave.clear('minesweeper');document.getElementById('continue-btn').style.display='none'}
+function saveState(){GameSave.save('minesweeper',{best:typeof bestTimes!=='undefined'?bestTimes:{}})}
+function checkSaved(){var s=GameSave.load('minesweeper');if(s&&s._ts&&s.best){bestTimes=s.best;document.getElementById('continue-btn').style.display='inline-block'}}
+function continueGame(){var s=GameSave.load('minesweeper');if(s&&s.best)bestTimes=s.best;startGame()}
+var bestTimes={easy:999,medium:999,hard:999};
+</script>
 <script>
 let rows,cols,mines,grid,revealed,flagged,gameOver,firstClick,timerVal,timerInt,clickCount;
 
@@ -79,7 +77,6 @@ function startGame(){
   document.getElementById('mine-count').textContent=mines;
   document.getElementById('timer').textContent='0';
   document.getElementById('clicks').textContent='0';
-  document.getElementById('start-screen').style.display='none';
   document.getElementById('over-screen').style.display='none';
   document.getElementById('game-screen').style.display='block';
   render();
@@ -161,11 +158,9 @@ function render(){
 }
 
 function goHome(){
-  clearInterval(timerInt);
-  document.getElementById('over-screen').style.display='none';
-  document.getElementById('game-screen').style.display='none';
-  document.getElementById('start-screen').style.display='flex';
+  location.href='../../index.html';
 }
 </script>
+<script>checkSaved();startGame();</script>
 </body>
 </html>

@@ -30,15 +30,15 @@ body {
 button { font: inherit; appearance: none; -webkit-appearance: none; cursor: pointer; }
 .hidden { display: none !important; }
 
-/* Start screen */
-#startScreen {
+/* Page header */
+#gameHead {
   width: min(620px, 100%);
   margin: 0 auto;
   padding: clamp(18px, 5vh, 48px) 16px;
   text-align: center;
 }
-#startScreen h1 { font-size: clamp(26px, 7vw, 40px); margin-bottom: 8px; }
-#startScreen > p { color: var(--muted); line-height: 1.45; max-width: 540px; margin: 6px auto; }
+#gameHead h1 { font-size: clamp(26px, 7vw, 40px); margin-bottom: 8px; }
+#gameHead > p { color: var(--muted); line-height: 1.45; max-width: 540px; margin: 6px auto; }
 .panel {
   background: var(--panel);
   border: 1px solid var(--border);

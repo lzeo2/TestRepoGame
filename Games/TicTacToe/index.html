@@ -3,21 +3,16 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<script src="../../assets/game-save.js">
-function clearSave(){GameSave.clear('tictactoe');document.getElementById('continue-btn').style.display='none'}
-function saveState(){GameSave.save('tictactoe',{xScore:xScore,oScore:oScore})}
-function checkSaved(){var s=GameSave.load('tictactoe');if(s&&s._ts){xScore=s.xScore||0;oScore=s.oScore||0;document.getElementById('continue-btn').style.display='inline-block'}}
-function continueGame(){startGame()}
-checkSaved();
-</script>
+<script src="../../assets/game-save.js"></script>
 <title>Tic Tac Toe</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-body{background:#111;color:#eee;font-family:system-ui,sans-serif;display:flex;justify-content:center;align-items:center;min-height:100vh}
-#start-screen,#over-screen{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#111;z-index:10}
-#game-screen{display:none}
-#over-screen{display:none;background:rgba(0,0,0,.85)}
-h1{font-size:2.5em;margin-bottom:.3em;color:#805ad5}
+body{background:#111;color:#eee;font-family:system-ui,sans-serif;display:flex;flex-direction:column;align-items:center;min-height:100vh}
+#over-screen{position:fixed;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;background:rgba(0,0,0,.85);z-index:10}
+.game-head{padding:16px 16px 4px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:6px;max-width:640px}
+.game-head .controls-info{max-width:520px;margin-top:0}
+.game-head button{margin-top:4px;padding:8px 16px;font-size:.9em}
+h1{font-size:1.5em;margin:0 0 .1em;color:#805ad5}
 h2{font-size:1.8em;margin-bottom:.3em}
 .info{font-size:1.1em;margin:.2em 0;color:#ccc}
 button{padding:12px 28px;font-size:1.1em;border:none;border-radius:12px;background:#805ad5;color:#fff;cursor:pointer;margin-top:16px;font-weight:600}
@@ -34,12 +29,11 @@ select{padding:8px;font-size:1em;border-radius:8px;background:#222;color:#eee;bo
 </style>
 </head>
 <body>
-<div id="start-screen">
-<h1>TIC TAC TOE</h1>
-<button onclick="startGame()">Start Game</button>
+<header class="game-head">
+<h1>Tic Tac Toe</h1>
+<p class="controls-info">Tap a cell to place your mark. X goes first. Win by getting 3 in a row!</p>
 <button id="continue-btn" onclick="continueGame()" style="display:none;background:#38a169">Continue</button>
-<div class="controls-info">Tap a cell to place your mark. X goes first. Win by getting 3 in a row!</div>
-</div>
+</header>
 <div id="game-screen" style="padding:20px">
 <div class="header">
 <span>X: <span id="x-score">0</span></span>
@@ -58,14 +52,18 @@ select{padding:8px;font-size:1em;border-radius:8px;background:#222;color:#eee;bo
 <button onclick="startGame()">Play Again</button>
 <button onclick="goHome()" style="background:#555">Main Menu</button>
 <button onclick="clearSave()" style="background:#333;font-size:.85em;padding:8px 16px;margin-top:8px">Clear Save</button>
-<button onclick="goHome()" style="background:#555">Main Menu</button>
 </div>
+<script>
+function clearSave(){GameSave.clear('tictactoe');document.getElementById('continue-btn').style.display='none'}
+function saveState(){GameSave.save('tictactoe',{xScore:xScore,oScore:oScore})}
+function checkSaved(){var s=GameSave.load('tictactoe');if(s&&s._ts){xScore=s.xScore||0;oScore=s.oScore||0;document.getElementById('continue-btn').style.display='inline-block'}}
+function continueGame(){startGame()}
+</script>
 <script>
 let board,turn,xScore=0,oScore=0,gameOverFlag;
 
 function startGame(){
   board=Array(9).fill('');turn='X';gameOverFlag=false;
-  document.getElementById('start-screen').style.display='none';
   document.getElementById('over-screen').style.display='none';
   document.getElementById('game-screen').style.display='block';
   document.getElementById('x-score').textContent=xScore;
@@ -137,10 +135,9 @@ function render(){
 }
 
 function goHome(){
-  document.getElementById('over-screen').style.display='none';
-  document.getElementById('game-screen').style.display='none';
-  document.getElementById('start-screen').style.display='flex';
+  location.href='../../index.html';
 }
 </script>
+<script>checkSaved();startGame();</script>
 </body>
 </html>

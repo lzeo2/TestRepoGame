@@ -3,8 +3,9 @@
   Source: https://github.com/faboyds/Tron
   License: MIT - commit f95e35bc26f0c3778162c3de6e42a19c9fc60b2a
   Modifications: vendored p5.js 0.6.0 locally (LGPL-2.1, see p5-LICENSE.txt),
-  stripped CDN reference, added viewport meta, start/restart overlay,
-  two touch d-pads, relative paths only.
+  stripped CDN reference, added viewport meta, two touch d-pads, relative
+  paths only. Start overlay removed: rounds auto-start on load with controls
+  in a static page header.
   p5.js (c) processing/p5.js, license at tag 0.6.0 (commit a1599e958302d813a1848355cd9fe0d73b45a1ed), vendored unmodified.
 -->
 <html lang="en">
@@ -17,18 +18,10 @@
         html, body { background: #111; color: #eee; font-family: sans-serif; margin: 0; }
         body { text-align: center; -webkit-user-select: none; user-select: none; }
         canvas { max-width: 100% !important; height: auto !important; display: block; margin: 0 auto; }
-        p.note { font-size: 0.9em; color: #bbb; margin: 6px 8px; }
-
-        /* start / restart overlay */
-        #overlay {
-            position: fixed; inset: 0; z-index: 20;
-            background: rgba(10, 10, 10, 0.92);
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            gap: 12px; padding: 16px; box-sizing: border-box;
-        }
-        #overlay.hidden { display: none; }
-        #overlay h1 { font-size: 1.6em; margin: 0; color: #ffd400; }
-        #overlay p { margin: 0; font-size: 0.95em; color: #ccc; max-width: 340px; }
+        /* static page header (non-blocking) */
+        header.page-head { max-width: 640px; margin: 0 auto; padding: 10px 12px 2px; text-align: center; }
+        header.page-head h1 { font-size: 1.5em; margin: 0 0 4px; color: #ffd400; }
+        header.page-head p { margin: 0; font-size: 0.95em; color: #ccc; line-height: 1.45; }
         .btn {
             min-width: 160px; min-height: 48px; font-size: 1.1em;
             border: 0; border-radius: 6px; cursor: pointer;
@@ -72,16 +65,12 @@
 </style>
 </head>
 <body>
-  <button class="btn secondary" id="restartBtn" hidden aria-label="Restart the game">Restart</button>
-  <div id="overlay">
-    <h1>Tron Light Cycles</h1>
-    <p>Two riders race across the grid, each laying a trail. Steer the other rider into a wall to win the round.</p>
-    <p>Keyboard: player one uses W, A, S, D. Player two uses the arrow keys. Space starts.</p>
-    <p>Mobile: each player has a d-pad at the bottom of the screen.</p>
-    <button class="btn" id="startBtn">Start</button>
-  </div>
+  <button class="btn secondary" id="restartBtn" aria-label="Restart the game">Restart</button>
 
-  <p class="note">Player one: W, A, S, D. Player two: arrow keys. Space starts a round.</p>
+  <header class="page-head">
+    <h1>Tron Light Cycles</h1>
+    <p>Two riders race across the grid, each laying a trail. Steer the other rider into a wall to win the round. Player one uses W, A, S, D, player two uses the arrow keys, and space starts a round after a reset. On touch screens each player has a d-pad at the bottom.</p>
+  </header>
 
   <div id="pads" aria-label="Touch controls">
     <div class="pad-group">
@@ -108,15 +97,10 @@
   <script src="sketch.js"></script>
   <script>
     (function () {
-      var overlay = document.getElementById("overlay");
-      document.getElementById("startBtn").addEventListener("click", function () {
-        overlay.classList.add("hidden");
-        window.tronStart();
-        document.getElementById("restartBtn").hidden = false;
-      });
+      /* auto-start: begin the round as soon as the sketch is loaded */
+      window.tronStart();
       document.getElementById("restartBtn").addEventListener("click", function () {
         window.tronRestart();
-        overlay.classList.remove("hidden");
       });
 
       document.querySelectorAll(".pad-btn[data-key]").forEach(function (btn) {
