@@ -45,50 +45,6 @@
 			height: 100%;
 			display: block;
 		}
-		/* Non-blocking page header: sits above the game, never covers it. */
-		#overlay {
-			position: absolute;
-			top: 0;
-			left: 0;
-			right: 0;
-			z-index: 10;
-			display: flex;
-			flex-wrap: wrap;
-			align-items: baseline;
-			gap: 4px 16px;
-			padding: 8px 210px 8px 14px;
-			text-align: left;
-			background: rgba(8, 6, 14, 0.85);
-			border-bottom: 1px solid #2a2a3a;
-			pointer-events: none;
-		}
-		#overlay.hidden { display: none; }
-		#overlay h1 {
-			font-size: 15px;
-			letter-spacing: 0.5px;
-			color: #ffd166;
-		}
-		#overlay .tagline {
-			font-size: 12px;
-			color: #cfc9e2;
-		}
-		#overlay .controls {
-			display: contents;
-		}
-		#overlay .controls li {
-			list-style: none;
-			font-size: 12px;
-			color: #a9a3bd;
-		}
-		#overlay .controls kbd {
-			background: #26203a;
-			border: 1px solid #3b3354;
-			border-bottom-width: 2px;
-			border-radius: 5px;
-			padding: 1px 7px;
-			font-size: 0.92em;
-			color: #ffd166;
-		}
 		#fullscreenBtn:focus-visible, #restartBtn:focus-visible {
 			outline: 3px solid #00ff88;
 			outline-offset: 3px;
@@ -98,10 +54,9 @@
 			top: 8px;
 			right: 8px;
 			z-index: 20;
-			display: none;
+			display: flex;
 			gap: 8px;
 		}
-		#hud.visible { display: flex; }
 		#hud button {
 			font: 600 13px inherit;
 			min-height: 44px;
@@ -115,9 +70,16 @@
 		#hud button:hover { background: rgba(40, 32, 60, 0.9); }
 		#error {
 			display: none;
+			position: absolute;
+			bottom: 8px;
+			left: 8px;
+			z-index: 20;
 			color: #ff8fa3;
 			font-size: 14px;
 			max-width: 50ch;
+			background: rgba(8, 6, 14, 0.9);
+			padding: 6px 10px;
+			border-radius: 6px;
 		}
 	</style>
 </head>
@@ -125,17 +87,7 @@
 	<main id="shell">
 		<div id="frame">
 			<div id="gameContainer"></div>
-			<header id="overlay">
-				<h1>Gladihoppers</h1>
-				<p class="tagline">2d physics gladiator brawler with career mode, gear upgrades, and 2-player local fights.</p>
-				<ul class="controls">
-					<li>W, A, S, D or the arrow keys: move your gladiator</li>
-					<li>Pick each fighter&rsquo;s bindings (WASD, arrows, or gamepad) in the in-game pre-fight menu</li>
-					<li>Mouse or touch: menus and targeting, with an in-game tutorial for stances and attacks</li>
-					<li>2-player local: both fighters share one keyboard, or use a gamepad for one side</li>
-				</ul>
-				<p id="error"></p>
-			</header>
+			<p id="error"></p>
 			<div id="hud">
 				<button id="fullscreenBtn" type="button">Fullscreen</button>
 				<button id="restartBtn" type="button">Restart</button>

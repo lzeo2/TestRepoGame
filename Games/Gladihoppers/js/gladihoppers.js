@@ -62,8 +62,7 @@
 		};
 	};
 
-	/* ---- Bootstrap: the game starts on load, header stays as controls text ---- */
-	var overlay = document.getElementById("overlay");
+	/* ---- Bootstrap: the game starts immediately, no overlay ---- */
 	var hud = document.getElementById("hud");
 	var errorEl = document.getElementById("error");
 	var fullscreenBtn = document.getElementById("fullscreenBtn");
