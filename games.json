@@ -631,7 +631,7 @@
     "id": 128,
     "title": "Fireboy & Watergirl 4: Crystal Temple",
     "cat": "puzzle",
-    "icon": "\u2694\ufe0f",
+    "icon": "⚔️",
     "desc": "Control Fireboy and Watergirl together through crystal-temple puzzles, teleporting portals, traps and gems.",
     "url": "Games/FireboyAndWatergirlCrystalTemple/index.html",
     "featured": false,
@@ -641,7 +641,7 @@
     "id": 129,
     "title": "Fireboy & Watergirl: Forest Temple",
     "cat": "puzzle",
-    "icon": "\u2694\ufe0f",
+    "icon": "⚔️",
     "desc": "Two-player cooperative platform puzzle: guide Fireboy and Watergirl through the Forest Temple.",
     "url": "Games/FireboyAndWatergirlForestTemple/index.html",
     "featured": false,
@@ -656,7 +656,7 @@
     "id": 131,
     "title": "Fireboy and Watergirl Hacked (Light Temple)",
     "cat": "puzzle",
-    "icon": "\u2694\ufe0f",
+    "icon": "⚔️",
     "desc": "All levels unlocked in the Light Temple.",
     "url": "Games/FireboyAndWatergirlHacked/index.html",
     "featured": false,
@@ -671,7 +671,7 @@
     "id": 132,
     "title": "Fireboy and Watergirl Forest Temple Hacked",
     "cat": "puzzle",
-    "icon": "\u2694\ufe0f",
+    "icon": "⚔️",
     "desc": "All levels unlocked in the Forest Temple.",
     "url": "Games/FireboyAndWatergirlForestTempleHacked/index.html",
     "featured": false,
@@ -686,7 +686,7 @@
     "id": 133,
     "title": "Fireboy and Watergirl Crystal Temple Hacked",
     "cat": "puzzle",
-    "icon": "\u2694\ufe0f",
+    "icon": "⚔️",
     "desc": "All levels unlocked in the Crystal Temple.",
     "url": "Games/FireboyAndWatergirlCrystalTempleHacked/index.html",
     "featured": false,
@@ -1041,7 +1041,7 @@
     "id": 195,
     "title": "Sokoban",
     "cat": "puzzle",
-    "icon": "\ud83d\udce6",
+    "icon": "📦",
     "desc": "Push every box onto a goal mark across 100 classic warehouse puzzle levels with keyboard or touch controls.",
     "url": "Games/Sokoban/index.html",
     "featured": false
@@ -1050,7 +1050,7 @@
     "id": 196,
     "title": "Tower of Hanoi",
     "cat": "puzzle",
-    "icon": "\ud83d\uddfc",
+    "icon": "🗼",
     "desc": "Move the stack of disks from the left peg to the right peg in as few moves as you can, one disk at a time.",
     "url": "Games/TowerOfHanoi/index.html",
     "featured": false
@@ -1059,7 +1059,7 @@
     "id": 197,
     "title": "Nonogram",
     "cat": "puzzle",
-    "icon": "\ud83e\udde9",
+    "icon": "🧩",
     "desc": "Fill the grid to match the number clues on every row and column in this picture logic puzzle.",
     "url": "Games/Nonogram/index.html",
     "featured": false
@@ -1068,7 +1068,7 @@
     "id": 198,
     "title": "Battleship",
     "cat": "strategy",
-    "icon": "\u2693",
+    "icon": "⚓",
     "desc": "Sink the computer's fleet on a 10 by 10 grid with click, tap or arrow-key firing.",
     "url": "Games/Battleship/index.html",
     "featured": false
@@ -1077,7 +1077,7 @@
     "id": 199,
     "title": "Boggle",
     "cat": "word",
-    "icon": "\ud83d\udd24",
+    "icon": "🔤",
     "desc": "Find connected words on a 4 by 4 letter grid by dragging or typing before the 90 second timer runs out.",
     "url": "Games/Boggle/index.html",
     "featured": false
@@ -1086,7 +1086,7 @@
     "id": 200,
     "title": "Achtung die Kurve",
     "cat": "arcade",
-    "icon": "\u27b0",
+    "icon": "➰",
     "desc": "Steer a growing line and outsurvive the other players in this classic curve duel for two to four on one keyboard.",
     "url": "Games/AchtungDieKurve/index.html",
     "featured": false
@@ -1095,7 +1095,7 @@
     "id": 201,
     "title": "Dominoes",
     "cat": "puzzle",
-    "icon": "\ud83c\udc2b",
+    "icon": "🀫",
     "desc": "Arrange eight domino tiles so matching ends line up and fill the whole board.",
     "url": "Games/Dominoes/index.html",
     "featured": false
@@ -1104,7 +1104,7 @@
     "id": 202,
     "title": "Mini Golf",
     "cat": "sports",
-    "icon": "\u26f3",
+    "icon": "⛳",
     "desc": "Aim, pull back, and sink the ball in as few strokes as you can across randomized holes.",
     "url": "Games/MiniGolf/index.html",
     "featured": false
@@ -1113,7 +1113,7 @@
     "id": 203,
     "title": "Bowling",
     "cat": "sports",
-    "icon": "\ud83c\udfb3",
+    "icon": "🎳",
     "desc": "Flick the ball down a 3D lane with real physics and roll ten frames of proper scoring.",
     "url": "Games/Bowling/index.html",
     "featured": false
@@ -1122,7 +1122,7 @@
     "id": 204,
     "title": "Hearts Classic",
     "cat": "card",
-    "icon": "\ud83d\udc98",
+    "icon": "💘",
     "desc": "Classic four player hearts with smart computer opponents and running score.",
     "url": "Games/HeartsClassic/index.html",
     "featured": false
@@ -1131,7 +1131,7 @@
     "id": 205,
     "title": "Spider Solitaire",
     "cat": "card",
-    "icon": "\ud83d\udd77\ufe0f",
+    "icon": "🕷️",
     "desc": "Ten column spider solitaire with hint, undo, stats and keyboard play.",
     "url": "Games/SpiderSolitaire/index.html",
     "featured": false
@@ -1140,7 +1140,7 @@
     "id": 206,
     "title": "SameGame",
     "cat": "puzzle",
-    "icon": "\ud83d\udfe5",
+    "icon": "🟥",
     "desc": "Clear groups of two or more matching tiles from the board; bigger groups score more points.",
     "url": "Games/SameGame/index.html",
     "featured": false
@@ -1149,7 +1149,7 @@
     "id": 207,
     "title": "Tower Defense",
     "cat": "strategy",
-    "icon": "\ud83c\udff0",
+    "icon": "🏰",
     "desc": "Build and upgrade towers to stop waves of monsters before they reach the exit.",
     "url": "Games/TowerDefense/index.html",
     "featured": false
@@ -1158,7 +1158,7 @@
     "id": 208,
     "title": "JavaScript Racer",
     "cat": "arcade",
-    "icon": "\ud83c\udfce\ufe0f",
+    "icon": "🏎️",
     "desc": "Drive lap after lap on a 3d road and try to beat your fastest lap time.",
     "url": "Games/JavaScriptRacer/index.html",
     "featured": false
@@ -1167,7 +1167,7 @@
     "id": 209,
     "title": "Rhythm",
     "cat": "arcade",
-    "icon": "\ud83c\udfb5",
+    "icon": "🎵",
     "desc": "Hit falling notes in time with the music and finish the song for the highest score.",
     "url": "Games/Rhythm/index.html",
     "featured": false
@@ -1176,7 +1176,7 @@
     "id": 210,
     "title": "Bullet Hell",
     "cat": "action",
-    "icon": "\ud83d\ude80",
+    "icon": "🚀",
     "desc": "Fly through escalating levels of bullets and bosses while your score multiplier climbs.",
     "url": "Games/BulletHell/index.html",
     "featured": false
@@ -1185,7 +1185,7 @@
     "id": 211,
     "title": "Cribbage",
     "cat": "card",
-    "icon": "\ud83c\udccf",
+    "icon": "🃏",
     "desc": "Play classic two-player cribbage against the computer with pegging, crib scoring hints, and adjustable settings.",
     "url": "Games/CribbageClassic/index.html",
     "featured": false
@@ -1194,7 +1194,7 @@
     "id": 212,
     "title": "Crossword",
     "cat": "classic",
-    "icon": "\ud83d\udd21",
+    "icon": "🔡",
     "desc": "Solve a freshly generated crossword puzzle clue by clue with reveal-answer help and a progress tracker.",
     "url": "Games/Crossword/index.html",
     "featured": false
@@ -1203,7 +1203,7 @@
     "id": 213,
     "title": "Gomoku",
     "cat": "strategy",
-    "icon": "\u26ab",
+    "icon": "⚫",
     "desc": "Five in a row on a 15x15 board, against a brutal AI or a second player.",
     "url": "Games/Gomoku/index.html",
     "featured": false
@@ -1212,7 +1212,7 @@
     "id": 214,
     "title": "Mancala",
     "cat": "strategy",
-    "icon": "\ud83e\udea8",
+    "icon": "🪨",
     "desc": "Sow seeds around the Kalah board, capture pits, and outscore the AI or a friend.",
     "url": "Games/Mancala/index.html",
     "featured": false
@@ -1220,7 +1220,7 @@
   {
     "title": "Asteroids",
     "cat": "classic",
-    "icon": "\ud83d\ude80",
+    "icon": "🚀",
     "desc": "Rotate, thrust and shoot your way through waves of splitting space rocks.",
     "url": "Games/Asteroids/index.html",
     "id": 215,
@@ -1229,7 +1229,7 @@
   {
     "title": "Frogger",
     "cat": "classic",
-    "icon": "\ud83d\udc38",
+    "icon": "🐸",
     "desc": "Hop a frog across traffic and a rushing river to reach home safely.",
     "url": "Games/Frogger/index.html",
     "id": 216,
@@ -1238,7 +1238,7 @@
   {
     "title": "Missile Command",
     "cat": "classic",
-    "icon": "\ud83d\udee1\ufe0f",
+    "icon": "🛡️",
     "desc": "Defend six cities from incoming missile waves with limited anti-ballistic batteries.",
     "url": "Games/MissileCommand/index.html",
     "id": 217,
@@ -1247,7 +1247,7 @@
   {
     "title": "Lunar Lander",
     "cat": "classic",
-    "icon": "\ud83c\udf19",
+    "icon": "🌙",
     "desc": "Touch your lunar module down on the moon gently under gravity with limited fuel.",
     "url": "Games/LunarLander/index.html",
     "id": 218,
@@ -1256,7 +1256,7 @@
   {
     "title": "Space Invaders",
     "cat": "classic",
-    "icon": "\ud83d\udc7e",
+    "icon": "👾",
     "desc": "Hold the line against descending alien waves with your laser cannon.",
     "url": "Games/SpaceInvaders/index.html",
     "id": 219,
@@ -1265,10 +1265,19 @@
   {
     "title": "Duck Hunt",
     "cat": "classic",
-    "icon": "\ud83e\udd86",
+    "icon": "🦆",
     "desc": "Shoot the flying ducks before they escape in this classic light-gun shooter.",
     "url": "Games/DuckHunt/index.html",
     "id": 220,
+    "featured": false
+  },
+  {
+    "id": 221,
+    "title": "Balatro",
+    "cat": "card",
+    "icon": "🃏",
+    "desc": "Poker roguelike: build joker synergies and hit the blinds. GBA demake v0.2.2.",
+    "url": "Games/Balatro/index.html",
     "featured": false
   }
 ]

@@ -380,3 +380,11 @@ Clones used ~10 MB total under /tmp/mirror_clones/; left in place for audit.
 - Modified: removed uppercase transform on section titles, added 44px min-height on controls, added inline sentence-case instructions in header, em-dash draw status -> "Draw", em-dash in code comment tidied.
 - Files shipped: index.html, LICENSE, CREDITS.md.
 - Validation: extracted inline JS passes `node --check`; no external http(s) refs (only GPL header links); no emoji/em-dash in shipped copy; game starts on load with win/lose in move log, restart, undo/redo, hint (h key), click/touch + keyboard input.
+
+## Balatro (id 221)
+- Dir: `Games/Balatro/`
+- Source: https://github.com/OutBlade/balatro-web @ 3c8cf43
+- ROM: GBALATRO v0.2.2 (https://github.com/GBALATRO/balatro-gba), MIT fan project
+- License: MIT (demake); original Balatro IP belongs to LocalThunk/Playstack
+- Wrapper: house EmulatorJS pattern (local ROM + shared local ../_emulatorjs loader, startOnLoaded)
+- Validation: browser boot test passed, title screen renders, PLAY/OPTIONS visible, zero 4xx
