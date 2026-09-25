@@ -92,171 +92,12 @@
     "tags": []
   },
   {
-    "id": 12,
-    "title": "Hextris",
-    "cat": "classic",
-    "icon": "",
-    "desc": "Hexagonal block-stacking arcade puzzle - rotate the board, match colors, and clear the core.",
-    "url": "Games/Hextris/index.html",
-    "featured": false,
-    "tags": []
-  },
-  {
     "id": 14,
     "title": "Character Alsen",
     "cat": "riddle",
     "icon": "",
     "desc": "Chat with an AI character.",
     "url": "Games/Character AI/Alsen.html",
-    "featured": false,
-    "tags": []
-  },
-  {
-    "id": 15,
-    "title": "QWOP",
-    "cat": "sports",
-    "icon": "",
-    "desc": "Infamously difficult ragdoll running. Control thighs and calves with QWOP keys!",
-    "url": "Games/QwopRemake/index.html",
-    "featured": false,
-    "tags": []
-  },
-  {
-    "id": 16,
-    "title": "Star Catcher",
-    "cat": "action",
-    "icon": "",
-    "desc": "Catch falling stars, dodge bombs, and rack up combos as the sky speeds up.",
-    "url": "Games/StarCatcher/index.html",
-    "featured": false,
-    "tags": []
-  },
-  {
-    "id": 17,
-    "title": "Paddle Duel",
-    "cat": "sports",
-    "icon": "",
-    "desc": "Head-to-head Pong battle on one screen. First to five points wins!",
-    "url": "Games/PaddleDuel/index.html",
-    "featured": false,
-    "tags": [
-      "2p"
-    ],
-    "players": "2",
-    "howto": "P1: W/S, P2: Up/Down arrows - SPACE starts - first to 5 wins"
-  },
-  {
-    "id": 18,
-    "title": "Brick Dash",
-    "cat": "classic",
-    "icon": "",
-    "desc": "Smash bricks at breakneck speed. Chain quick breaks to build huge combos!",
-    "url": "Games/BrickDash/index.html",
-    "featured": false,
-    "tags": []
-  },
-  {
-    "id": 19,
-    "title": "Tile Merge",
-    "cat": "classic",
-    "icon": "",
-    "desc": "Slide and merge matching tiles to build bigger and bigger numbers.",
-    "url": "Games/TileMerge/index.html",
-    "featured": false,
-    "tags": []
-  },
-  {
-    "id": 20,
-    "title": "Match Flip",
-    "cat": "classic",
-    "icon": "",
-    "desc": "Flip cards and find all the matching pairs as fast as you can.",
-    "url": "Games/MatchFlip/index.html",
-    "featured": false,
-    "tags": []
-  },
-  {
-    "id": 24,
-    "title": "FPS",
-    "cat": "action",
-    "icon": "",
-    "desc": "Original software-rendered first-person shooter. Grab the pointer and take aim.",
-    "url": "Games/FPS/index.html",
-    "featured": false,
-    "tags": []
-  },
-  {
-    "id": 31,
-    "title": "Letter Boxed",
-    "cat": "puzzle",
-    "icon": "",
-    "desc": "Use every letter with the fewest words. Each word must start with the last letter of the previous.",
-    "url": "Games/LetterBoxed/index.html",
-    "featured": false,
-    "tags": []
-  },
-  {
-    "id": 35,
-    "title": "Boss Rush",
-    "cat": "action",
-    "icon": "",
-    "desc": "Wave-based arena shooter. Dodge bullets and take down wave after wave of bosses!",
-    "url": "Games/BossRush/index.html",
-    "featured": false,
-    "tags": []
-  },
-  {
-    "id": 36,
-    "title": "Grid Heist",
-    "cat": "strategy",
-    "icon": "",
-    "desc": "Hotseat 2-4 player territory race. Claim cells and build a route to the vault before your rivals box you out.",
-    "url": "Games/GridHeist/index.html",
-    "featured": false,
-    "tags": [
-      "2p",
-      "coop"
-    ],
-    "players": "2-4",
-    "howto": "2-4 players hotseat: Arrows/WASD move, Space claims a tile, 4s per turn"
-  },
-  {
-    "id": 37,
-    "title": "Last Lantern",
-    "cat": "action",
-    "icon": "",
-    "desc": "Arena survival for 2-4 players. Grab sparks, shine brightest, and stay inside the shrinking safe zone.",
-    "url": "Games/LastLantern/index.html",
-    "featured": false,
-    "tags": [
-      "2p",
-      "coop"
-    ],
-    "players": "2-4",
-    "howto": "P1: WASD + Q dash, P2: Arrows + /, P3: IJKL + U, P4: Numpad 8456 + 0, R restarts"
-  },
-  {
-    "id": 42,
-    "title": "Queue Escape",
-    "cat": "strategy",
-    "icon": "",
-    "desc": "Cooperative food-court rush for 1-4 players. Route customers to the right station before their patience runs out.",
-    "url": "Games/QueueEscape/index.html",
-    "featured": false,
-    "tags": [
-      "2p",
-      "coop"
-    ],
-    "players": "1-4",
-    "howto": "Co-op 1-4: P1 WASD + Space, P2 Arrows + Enter, P3 IJKL + O, P4 TFGH + Y"
-  },
-  {
-    "id": 44,
-    "title": "Story Adventure",
-    "cat": "puzzle",
-    "icon": "",
-    "desc": "The Last Lighthouse: an offline text-choice adventure on a storm-threatened island with five endings to find.",
-    "url": "Games/StoryAdventure/index.html",
     "featured": false,
     "tags": []
   },
@@ -445,134 +286,6 @@
     "tags": []
   },
   {
-    "id": 67,
-    "title": "Tetris",
-    "cat": "classic",
-    "icon": "",
-    "desc": "Classic falling block puzzle. Stack and clear lines!",
-    "url": "Games/Tetris/index.html",
-    "featured": true,
-    "tags": []
-  },
-  {
-    "id": 68,
-    "title": "Pong",
-    "cat": "classic",
-    "icon": "",
-    "desc": "Classic arcade paddle game. First to 7 wins!",
-    "url": "Games/Pong/index.html",
-    "featured": false,
-    "tags": []
-  },
-  {
-    "id": 69,
-    "title": "Minesweeper",
-    "cat": "puzzle",
-    "icon": "",
-    "desc": "Reveal all safe tiles without hitting a mine.",
-    "url": "Games/Minesweeper/index.html",
-    "featured": true,
-    "tags": []
-  },
-  {
-    "id": 70,
-    "title": "Tic Tac Toe",
-    "cat": "strategy",
-    "icon": "",
-    "desc": "Classic X and O game. Play vs friend or computer.",
-    "url": "Games/TicTacToe/index.html",
-    "featured": false,
-    "tags": [
-      "2p"
-    ],
-    "players": "2",
-    "howto": "Click or tap a square; two players share the screen"
-  },
-  {
-    "id": 71,
-    "title": "Connect Four",
-    "cat": "strategy",
-    "icon": "",
-    "desc": "Drop discs and connect four in a row!",
-    "url": "Games/ConnectFour/index.html",
-    "featured": false,
-    "tags": [
-      "2p"
-    ],
-    "players": "2",
-    "howto": "Click a column to drop your disc; first to connect four wins"
-  },
-  {
-    "id": 72,
-    "title": "Memory",
-    "cat": "puzzle",
-    "icon": "",
-    "desc": "Flip cards and find all matching pairs.",
-    "url": "Games/Memory/index.html",
-    "featured": false,
-    "tags": []
-  },
-  {
-    "id": 73,
-    "title": "Whack-a-Mole",
-    "cat": "action",
-    "icon": "",
-    "desc": "30 seconds to whack as many moles as you can!",
-    "url": "Games/WhackAMole/index.html",
-    "featured": false,
-    "tags": []
-  },
-  {
-    "id": 74,
-    "title": "Simon Says",
-    "cat": "puzzle",
-    "icon": "",
-    "desc": "Watch the pattern, then repeat it. How far can you go?",
-    "url": "Games/SimonSays/index.html",
-    "featured": false,
-    "tags": []
-  },
-  {
-    "id": 75,
-    "title": "Typing Speed",
-    "cat": "arcade",
-    "icon": "",
-    "desc": "Test your typing speed! 30 seconds to type as fast as you can.",
-    "url": "Games/TypingTest/index.html",
-    "featured": false,
-    "tags": []
-  },
-  {
-    "id": 76,
-    "title": "Math Quiz",
-    "cat": "puzzle",
-    "icon": "",
-    "desc": "Solve math problems as fast as you can. Build combos!",
-    "url": "Games/MathQuiz/index.html",
-    "featured": false,
-    "tags": []
-  },
-  {
-    "id": 77,
-    "title": "Lights Out",
-    "cat": "puzzle",
-    "icon": "",
-    "desc": "Toggle lights to turn them all off. Increasing levels!",
-    "url": "Games/LightsOut/index.html",
-    "featured": false,
-    "tags": []
-  },
-  {
-    "id": 78,
-    "title": "Sudoku",
-    "cat": "puzzle",
-    "icon": "",
-    "desc": "Classic number puzzle. Fill the grid with digits 1-9.",
-    "url": "Games/Sudoku/index.html",
-    "featured": false,
-    "tags": []
-  },
-  {
     "id": 79,
     "title": "Cookie Clicker",
     "cat": "idle",
@@ -599,16 +312,6 @@
     "icon": "",
     "desc": "Endless drifting game - steer your car through obstacles, chain combos, and drift as far as you can!",
     "url": "Games/DriftBoss/index.html",
-    "featured": false,
-    "tags": []
-  },
-  {
-    "id": 82,
-    "title": "Wordle",
-    "cat": "riddle",
-    "icon": "",
-    "desc": "Guess the five-letter word in six tries. Type a word, press Enter, and use the color clues!",
-    "url": "Games/Wordle/index.html",
     "featured": false,
     "tags": []
   },
@@ -661,16 +364,6 @@
     "icon": "",
     "desc": "The Dogecoin Mining Simulator - click to mine, hire helpers, buy upgrades, and reach the moon!",
     "url": "Games/DogeMiner/index.html",
-    "featured": false,
-    "tags": []
-  },
-  {
-    "id": 88,
-    "title": "Hangman",
-    "cat": "word",
-    "icon": "",
-    "desc": "Guess the hidden words one letter at a time before the hangman is complete.",
-    "url": "Games/Hangman/index.html",
     "featured": false,
     "tags": []
   },
@@ -938,7 +631,7 @@
     "id": 128,
     "title": "Fireboy & Watergirl 4: Crystal Temple",
     "cat": "puzzle",
-    "icon": "⚔️",
+    "icon": "\u2694\ufe0f",
     "desc": "Control Fireboy and Watergirl together through crystal-temple puzzles, teleporting portals, traps and gems.",
     "url": "Games/FireboyAndWatergirlCrystalTemple/index.html",
     "featured": false,
@@ -948,7 +641,7 @@
     "id": 129,
     "title": "Fireboy & Watergirl: Forest Temple",
     "cat": "puzzle",
-    "icon": "⚔️",
+    "icon": "\u2694\ufe0f",
     "desc": "Two-player cooperative platform puzzle: guide Fireboy and Watergirl through the Forest Temple.",
     "url": "Games/FireboyAndWatergirlForestTemple/index.html",
     "featured": false,
@@ -963,7 +656,7 @@
     "id": 131,
     "title": "Fireboy and Watergirl Hacked (Light Temple)",
     "cat": "puzzle",
-    "icon": "⚔️",
+    "icon": "\u2694\ufe0f",
     "desc": "All levels unlocked in the Light Temple.",
     "url": "Games/FireboyAndWatergirlHacked/index.html",
     "featured": false,
@@ -978,7 +671,7 @@
     "id": 132,
     "title": "Fireboy and Watergirl Forest Temple Hacked",
     "cat": "puzzle",
-    "icon": "⚔️",
+    "icon": "\u2694\ufe0f",
     "desc": "All levels unlocked in the Forest Temple.",
     "url": "Games/FireboyAndWatergirlForestTempleHacked/index.html",
     "featured": false,
@@ -993,7 +686,7 @@
     "id": 133,
     "title": "Fireboy and Watergirl Crystal Temple Hacked",
     "cat": "puzzle",
-    "icon": "⚔️",
+    "icon": "\u2694\ufe0f",
     "desc": "All levels unlocked in the Crystal Temple.",
     "url": "Games/FireboyAndWatergirlCrystalTempleHacked/index.html",
     "featured": false,
@@ -1348,7 +1041,7 @@
     "id": 195,
     "title": "Sokoban",
     "cat": "puzzle",
-    "icon": "📦",
+    "icon": "\ud83d\udce6",
     "desc": "Push every box onto a goal mark across 100 classic warehouse puzzle levels with keyboard or touch controls.",
     "url": "Games/Sokoban/index.html",
     "featured": false
@@ -1357,7 +1050,7 @@
     "id": 196,
     "title": "Tower of Hanoi",
     "cat": "puzzle",
-    "icon": "🗼",
+    "icon": "\ud83d\uddfc",
     "desc": "Move the stack of disks from the left peg to the right peg in as few moves as you can, one disk at a time.",
     "url": "Games/TowerOfHanoi/index.html",
     "featured": false
@@ -1366,7 +1059,7 @@
     "id": 197,
     "title": "Nonogram",
     "cat": "puzzle",
-    "icon": "🧩",
+    "icon": "\ud83e\udde9",
     "desc": "Fill the grid to match the number clues on every row and column in this picture logic puzzle.",
     "url": "Games/Nonogram/index.html",
     "featured": false
@@ -1375,7 +1068,7 @@
     "id": 198,
     "title": "Battleship",
     "cat": "strategy",
-    "icon": "⚓",
+    "icon": "\u2693",
     "desc": "Sink the computer's fleet on a 10 by 10 grid with click, tap or arrow-key firing.",
     "url": "Games/Battleship/index.html",
     "featured": false
@@ -1384,7 +1077,7 @@
     "id": 199,
     "title": "Boggle",
     "cat": "word",
-    "icon": "🔤",
+    "icon": "\ud83d\udd24",
     "desc": "Find connected words on a 4 by 4 letter grid by dragging or typing before the 90 second timer runs out.",
     "url": "Games/Boggle/index.html",
     "featured": false
@@ -1393,7 +1086,7 @@
     "id": 200,
     "title": "Achtung die Kurve",
     "cat": "arcade",
-    "icon": "➰",
+    "icon": "\u27b0",
     "desc": "Steer a growing line and outsurvive the other players in this classic curve duel for two to four on one keyboard.",
     "url": "Games/AchtungDieKurve/index.html",
     "featured": false
@@ -1402,7 +1095,7 @@
     "id": 201,
     "title": "Dominoes",
     "cat": "puzzle",
-    "icon": "🀫",
+    "icon": "\ud83c\udc2b",
     "desc": "Arrange eight domino tiles so matching ends line up and fill the whole board.",
     "url": "Games/Dominoes/index.html",
     "featured": false
@@ -1411,7 +1104,7 @@
     "id": 202,
     "title": "Mini Golf",
     "cat": "sports",
-    "icon": "⛳",
+    "icon": "\u26f3",
     "desc": "Aim, pull back, and sink the ball in as few strokes as you can across randomized holes.",
     "url": "Games/MiniGolf/index.html",
     "featured": false
@@ -1420,7 +1113,7 @@
     "id": 203,
     "title": "Bowling",
     "cat": "sports",
-    "icon": "🎳",
+    "icon": "\ud83c\udfb3",
     "desc": "Flick the ball down a 3D lane with real physics and roll ten frames of proper scoring.",
     "url": "Games/Bowling/index.html",
     "featured": false
@@ -1429,7 +1122,7 @@
     "id": 204,
     "title": "Hearts Classic",
     "cat": "card",
-    "icon": "💘",
+    "icon": "\ud83d\udc98",
     "desc": "Classic four player hearts with smart computer opponents and running score.",
     "url": "Games/HeartsClassic/index.html",
     "featured": false
@@ -1438,7 +1131,7 @@
     "id": 205,
     "title": "Spider Solitaire",
     "cat": "card",
-    "icon": "🕷️",
+    "icon": "\ud83d\udd77\ufe0f",
     "desc": "Ten column spider solitaire with hint, undo, stats and keyboard play.",
     "url": "Games/SpiderSolitaire/index.html",
     "featured": false
@@ -1447,7 +1140,7 @@
     "id": 206,
     "title": "SameGame",
     "cat": "puzzle",
-    "icon": "🟥",
+    "icon": "\ud83d\udfe5",
     "desc": "Clear groups of two or more matching tiles from the board; bigger groups score more points.",
     "url": "Games/SameGame/index.html",
     "featured": false
@@ -1456,7 +1149,7 @@
     "id": 207,
     "title": "Tower Defense",
     "cat": "strategy",
-    "icon": "🏰",
+    "icon": "\ud83c\udff0",
     "desc": "Build and upgrade towers to stop waves of monsters before they reach the exit.",
     "url": "Games/TowerDefense/index.html",
     "featured": false
@@ -1465,7 +1158,7 @@
     "id": 208,
     "title": "JavaScript Racer",
     "cat": "arcade",
-    "icon": "🏎️",
+    "icon": "\ud83c\udfce\ufe0f",
     "desc": "Drive lap after lap on a 3d road and try to beat your fastest lap time.",
     "url": "Games/JavaScriptRacer/index.html",
     "featured": false
@@ -1474,7 +1167,7 @@
     "id": 209,
     "title": "Rhythm",
     "cat": "arcade",
-    "icon": "🎵",
+    "icon": "\ud83c\udfb5",
     "desc": "Hit falling notes in time with the music and finish the song for the highest score.",
     "url": "Games/Rhythm/index.html",
     "featured": false
@@ -1483,7 +1176,7 @@
     "id": 210,
     "title": "Bullet Hell",
     "cat": "action",
-    "icon": "🚀",
+    "icon": "\ud83d\ude80",
     "desc": "Fly through escalating levels of bullets and bosses while your score multiplier climbs.",
     "url": "Games/BulletHell/index.html",
     "featured": false
@@ -1492,7 +1185,7 @@
     "id": 211,
     "title": "Cribbage",
     "cat": "card",
-    "icon": "🃏",
+    "icon": "\ud83c\udccf",
     "desc": "Play classic two-player cribbage against the computer with pegging, crib scoring hints, and adjustable settings.",
     "url": "Games/CribbageClassic/index.html",
     "featured": false
@@ -1501,7 +1194,7 @@
     "id": 212,
     "title": "Crossword",
     "cat": "classic",
-    "icon": "🔡",
+    "icon": "\ud83d\udd21",
     "desc": "Solve a freshly generated crossword puzzle clue by clue with reveal-answer help and a progress tracker.",
     "url": "Games/Crossword/index.html",
     "featured": false
@@ -1510,7 +1203,7 @@
     "id": 213,
     "title": "Gomoku",
     "cat": "strategy",
-    "icon": "⚫",
+    "icon": "\u26ab",
     "desc": "Five in a row on a 15x15 board, against a brutal AI or a second player.",
     "url": "Games/Gomoku/index.html",
     "featured": false
@@ -1519,7 +1212,7 @@
     "id": 214,
     "title": "Mancala",
     "cat": "strategy",
-    "icon": "🪨",
+    "icon": "\ud83e\udea8",
     "desc": "Sow seeds around the Kalah board, capture pits, and outscore the AI or a friend.",
     "url": "Games/Mancala/index.html",
     "featured": false
@@ -1527,7 +1220,7 @@
   {
     "title": "Asteroids",
     "cat": "classic",
-    "icon": "🚀",
+    "icon": "\ud83d\ude80",
     "desc": "Rotate, thrust and shoot your way through waves of splitting space rocks.",
     "url": "Games/Asteroids/index.html",
     "id": 215,
@@ -1536,7 +1229,7 @@
   {
     "title": "Frogger",
     "cat": "classic",
-    "icon": "🐸",
+    "icon": "\ud83d\udc38",
     "desc": "Hop a frog across traffic and a rushing river to reach home safely.",
     "url": "Games/Frogger/index.html",
     "id": 216,
@@ -1545,7 +1238,7 @@
   {
     "title": "Missile Command",
     "cat": "classic",
-    "icon": "🛡️",
+    "icon": "\ud83d\udee1\ufe0f",
     "desc": "Defend six cities from incoming missile waves with limited anti-ballistic batteries.",
     "url": "Games/MissileCommand/index.html",
     "id": 217,
@@ -1554,7 +1247,7 @@
   {
     "title": "Lunar Lander",
     "cat": "classic",
-    "icon": "🌙",
+    "icon": "\ud83c\udf19",
     "desc": "Touch your lunar module down on the moon gently under gravity with limited fuel.",
     "url": "Games/LunarLander/index.html",
     "id": 218,
@@ -1563,7 +1256,7 @@
   {
     "title": "Space Invaders",
     "cat": "classic",
-    "icon": "👾",
+    "icon": "\ud83d\udc7e",
     "desc": "Hold the line against descending alien waves with your laser cannon.",
     "url": "Games/SpaceInvaders/index.html",
     "id": 219,
@@ -1572,7 +1265,7 @@
   {
     "title": "Duck Hunt",
     "cat": "classic",
-    "icon": "🦆",
+    "icon": "\ud83e\udd86",
     "desc": "Shoot the flying ducks before they escape in this classic light-gun shooter.",
     "url": "Games/DuckHunt/index.html",
     "id": 220,
