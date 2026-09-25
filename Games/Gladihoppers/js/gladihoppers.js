@@ -45,6 +45,11 @@
 	 * through unityGame.SendMessage(name, "...Completed"). Offline both
 	 * resolve instantly, so the game continues without waiting for an ad. */
 	window.initPokiBridge = function (name) {
+		/* Report ready to the game, matching the upstream poki-unity bridge.
+		 * Without this the C# holds the main menu closed and input stays dead. */
+		if (window.unityGame && name) {
+			window.unityGame.SendMessage(name, "ready");
+		}
 		window.pokiBridge = name;
 		window.commercialBreak = function () {
 			window.PokiSDK.commercialBreak().then(function () {
