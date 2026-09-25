@@ -577,3 +577,46 @@ The 5 agent-built lineage games in the catalog: Neon Snake (138) REMOVED, Neon B
 | 218 | Lunar Lander | INGESTED | see docs/mirror_sources.md batch 2 section | ADDED (commit abbc0e8) |
 | 219 | Space Invaders | INGESTED | see docs/mirror_sources.md batch 2 section | ADDED (commit abbc0e8) |
 | 220 | Duck Hunt | INGESTED | see docs/mirror_sources.md batch 2 section | ADDED (commit abbc0e8) |
+
+## Slop purge 2026-09-25: removed 28 agent-built games
+
+Operator directive: remove ALL self-made games (agent-built, no external provenance).
+
+**Removed (commit 5e25f16):**
+
+| ID | Title | Dir | Origin commit | Evidence |
+|----|-------|-----|---------------|----------|
+| 12 | Hextris | Hextris | c7f2730 | single-file, no LICENSE, no attribution |
+| 15 | QWOP | QwopRemake | 2a6849c | single-file "remake", no attribution |
+| 16 | Star Catcher | StarCatcher | f464e77 | "Add original arcade games" |
+| 17 | Paddle Duel | PaddleDuel | f464e77 | "Add original arcade games" |
+| 18 | Brick Dash | BrickDash | f464e77 | "Add original arcade games" |
+| 19 | Tile Merge | TileMerge | f464e77 | "Add original arcade games" |
+| 20 | Match Flip | MatchFlip | f464e77 | "Add original arcade games" |
+| 24 | FPS | FPS | 16f01ad | "original raycast" in comments |
+| 31 | Letter Boxed | LetterBoxed | 16f01ad | 3 files, no LICENSE, no attribution |
+| 35 | Boss Rush | BossRush | d1e3995 | "checkpoint 13 new games from overnight run" |
+| 36 | Grid Heist | GridHeist | d1e3995 | "checkpoint 13 new games from overnight run" |
+| 37 | Last Lantern | LastLantern | d1e3995 | "checkpoint 13 new games from overnight run" |
+| 42 | Queue Escape | QueueEscape | d1e3995 | "checkpoint 13 new games from overnight run" |
+| 44 | Story Adventure | StoryAdventure | d1e3995 | "checkpoint 13 new games from overnight run" |
+| 67 | Tetris | Tetris | dcb3ec9 | "12 new self-contained browser games" |
+| 68 | Pong | Pong | dcb3ec9 | "12 new self-contained browser games" |
+| 69 | Minesweeper | Minesweeper | dcb3ec9 | "12 new self-contained browser games" |
+| 70 | Tic Tac Toe | TicTacToe | dcb3ec9 | "12 new self-contained browser games" |
+| 71 | Connect Four | ConnectFour | dcb3ec9 | "12 new self-contained browser games" |
+| 72 | Memory | Memory | dcb3ec9 | "12 new self-contained browser games" |
+| 73 | Whack-a-Mole | WhackAMole | dcb3ec9 | "12 new self-contained browser games" |
+| 74 | Simon Says | SimonSays | dcb3ec9 | "12 new self-contained browser games" |
+| 75 | Typing Speed | TypingTest | dcb3ec9 | "12 new self-contained browser games" |
+| 76 | Math Quiz | MathQuiz | dcb3ec9 | "12 new self-contained browser games" |
+| 77 | Lights Out | LightsOut | dcb3ec9 | "12 new self-contained browser games" |
+| 78 | Sudoku | Sudoku | dcb3ec9 | "12 new self-contained browser games" |
+| 82 | Wordle | Wordle | d1e3995 | "checkpoint 13 new games from overnight run" |
+| 88 | Hangman | Hangman | ecae1b8 | single-file, no LICENSE, no attribution |
+
+**Catalog:** 147 -> 119 entries (28 removed, zero added)
+
+**Gladihoppers fix (commit 7fb2a83):** stripped intro overlay (header with title/tagline/controls), game now boots directly into Unity WebGL gameplay. Fullscreen + Restart HUD retained. Fully offline, no network fetches.
+
+**Remaining 119 games:** 1 protected (Character Alsen), 53 documented in mirror_sources.md, 65 commercial mirrors (ROMs, Unity builds, Flash games with complex assets). Zero agent-built games remain.
