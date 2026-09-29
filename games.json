@@ -1315,5 +1315,14 @@
     "desc": "Strike the cores and forge 1000 integrity before the meltdown timer hits zero. Hire drones and buy vents.",
     "url": "Games/StarForge/index.html",
     "featured": false
+  },
+  {
+    "id": 226,
+    "title": "Riddle Master",
+    "cat": "riddle",
+    "icon": "❓",
+    "desc": "Solve 10 classic riddles with 3 lives. Hints cost your bonus. Answers are matched forgivingly.",
+    "url": "Games/RiddleMaster/index.html",
+    "featured": false
   }
 ]
