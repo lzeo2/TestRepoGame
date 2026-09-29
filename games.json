@@ -1279,5 +1279,14 @@
     "desc": "Poker roguelike: build joker synergies and hit the blinds. GBA demake v0.2.2.",
     "url": "Games/Balatro/index.html",
     "featured": false
+  },
+  {
+    "id": 222,
+    "title": "EcoSphere",
+    "cat": "simulation",
+    "icon": "🌱",
+    "desc": "Tend a sealed terrarium: balance sun and water, grow plants, and keep the grazers alive to day 40.",
+    "url": "Games/EcoSphere/index.html",
+    "featured": false
   }
 ]
