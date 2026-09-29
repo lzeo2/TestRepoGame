@@ -1,6 +1,6 @@
 # Game Catalog — UNBLOCKMATH // ARCADE
 
-All **42 registered games** from `games.json` (ids 1–60 with gaps — the ids of removed games are not reused). Category comes from the catalog `cat` field; controls and status are based on the actual files in `Games/`.
+All **120 registered games** from `games.json` (ids 4–221 with gaps — the ids of removed games are not reused; 123 game folders exist on disk, including the unregistered ones noted at the bottom). Category comes from the catalog `cat` field; controls and status are based on the actual files in `Games/`.
 
 **Status key**
 
@@ -14,9 +14,6 @@ All **42 registered games** from `games.json` (ids 1–60 with gaps — the ids 
 
 | # | Title | Cat | Controls | Status |
 | --- | --- | --- | --- | --- |
-| 1 | 2048 | classic | W / A / S / D (arrow keys and touch are not bound in this build) | ⚠️ Offline-capable — external favicon (`i.ibb.co`) only |
-| 2 | Age of War | strategy | Mouse (Flash game) | ❌ Remote-dependent — loads Ruffle from `unpkg.com` CDN at runtime |
-| 3 | Slope | action | Arrow keys (embedded game) | ❌ Remote-dependent — full-page iframe to `AidanTangTPS.github.io/Slope-Game` |
 | 4 | Soccer Random | sports | Arrows + Space (wrapper binds these; in-game C3 bindings per original) | ⚠️ Offline-capable — local Construct 3 export |
 | 5 | Basket Random | sports | Arrows + Space (wrapper binds these; in-game C3 bindings per original) | ⚠️ Offline-capable — local Construct 3 export |
 | 6 | Volley Random | sports | Arrows + Space (wrapper binds these; in-game C3 bindings per original) | ⚠️ Offline-capable — local Construct 3 export |
@@ -25,22 +22,7 @@ All **42 registered games** from `games.json` (ids 1–60 with gaps — the ids 
 | 9 | Snake | classic | WASD / Arrows · on-screen mobile buttons | ✅ Offline |
 | 10 | Chrome Dino | classic | Space / Up jump · Down duck · tap to jump | ✅ Offline |
 | 11 | Breakout | classic | Left/Right arrows · touch drag | ⚠️ Offline-capable — external Google Fonts link (cosmetic, falls back); dead `compiled.css` link |
-| 12 | Hextris | classic | Arrow keys (embedded game) | ❌ Remote-dependent — full-page iframe to `hextris.github.io/hextris` |
-| 13 | Flappy Bird | classic | Tap / click / Space (embedded game) | ❌ Remote-dependent — full-page iframe to `flappybird.io` |
 | 14 | Character Alsen | riddle | Type a message, press send/Enter | ✅ Offline — **scripted** local keyword-matching chatbot (not a hosted LLM). Folder is READ-ONLY. |
-| 15 | QWOP | sports | Q = left thigh · W = right thigh · O = left calf · P = right calf | ✅ Offline (registered entry points at `Games/QwopRemake/`) |
-| 16 | Star Catcher | action | Left/Right arrows or A/D · touch buttons | ✅ Offline |
-| 17 | Paddle Duel | sports | P1: W / S · P2: Up / Down · SPACE starts · first to 5 | ✅ Offline |
-| 18 | Brick Dash | classic | Left/Right arrows move · SPACE launch/dash · touch buttons | ✅ Offline |
-| 19 | Tile Merge | classic | Arrows / WASD · SPACE select · tap tiles + buttons | ✅ Offline |
-| 20 | Match Flip | classic | Arrows / WASD move · SPACE flip · tap cards | ✅ Offline |
-| 24 | FPS | action | Mouse look · WASD/Arrows move · LMB fire · RMB alt fire · 1/2/3 weapons · R reload · Shift walk · Space hop · Esc pause | ✅ Offline (original raycast renderer) |
-| 31 | Letter Boxed | puzzle | Tap letters · A–Z keyboard · Backspace · Enter submit · Esc clears | ✅ Offline |
-| 35 | Boss Rush | action | WASD/Arrows move · mouse click or SPACE shoot · R restart · touch FIRE | ✅ Offline |
-| 36 | Grid Heist | strategy | 2/3/4 players · Arrows/WASD move · Space claim · Enter start · 4s per turn | ✅ Offline |
-| 37 | Last Lantern | action | P1: WASD + Q dash · P2: Arrows + / · P3: IJKL + U · P4: Numpad 8456 + 0 · R restart · Esc menu | ✅ Offline |
-| 42 | Queue Escape | strategy | Co-op 1–4: P1 WASD + Space · P2 Arrows + Enter · P3 IJKL + O · P4 TFGH + Y · R restart · Esc menu | ✅ Offline |
-| 44 | Story Adventure | puzzle | Tap a choice or press its number key · R restart · M menu (text adventure, 5 endings) | ✅ Offline |
 | 47 | Gladihoppers | action | P1/P2 pick WASD, Arrows, or gamepad in the pre-fight menu · mouse/touch for menus | ✅ Offline |
 | 48 | Burrito Bison | action | In-game tutorial; mouse/touch to launch and steer the burrito | ✅ Offline |
 | 49 | BitLife | simulation | Mouse/touch — pick life choices from menus as your character ages one year per turn | ✅ Offline — compiled IAP/ad/cloud-transfer URLs answered by a local `json/null.json` |
@@ -58,12 +40,27 @@ All **42 registered games** from `games.json` (ids 1–60 with gaps — the ids 
 
 ---
 
+## Coverage note (ids 61–221)
+
+The table above documents the retained early ids (4–60). The catalog now holds **120 entries (ids 4–221)**; the later waves are registered in `games.json` exactly as shown there — no rewrite needed to add more. They include, among others:
+
+- **Mid-wave additions (62–87):** Cut the Rope (62), Fancy Pants Adventure 3 (63), Vex 7 (64), Geometry Dash Lite (66), Cookie Clicker (79), Bloons TD (80), Drift Boss (81), Doodle Jump (83), Chess (84), Jetpack Joyride (86), Doge Miner (87).
+- **"Hacked" variants (89–111):** Retro Bowl Hacked (89), Cookie Clicker Hacked (90), Breakout Hacked (94), Snake Hacked (95), Jetpack Joyride Hacked (107), Doodle Jump Hacked (109), Subway Surfers Hacked (111).
+- **EmulatorJS GBA wrappers (96–103):** Pokémon Unbound (96), Pokémon Emerald (98), Pokémon Fire Red (100), Pokémon Ruby (102) — each with a "Hacked" sibling (97/99/101/103) — all ✅ Offline, local ROMs sharing the local `Games/_emulatorjs` runtime.
+- **EmulatorJS classics (114–121):** Dr. Mario (114, NES), Street Fighter II (115, SNES), Advance Wars (116), Mario Kart Super Circuit (117), Metroid Fusion (118), Mega Man Zero (119), Kirby Amazing Mirror (120), Sonic Advance (121) — same house EmulatorJS pattern.
+- **More fan ports + original work (123–137):** Crush the Castle (123), the six Fireboy & Watergirl co-op platformers (127, 128, 129 and Hacked variants 131, 132, 133), Merge Cats Defender (136) + Hacked (137).
+- **Skill/sports (149–203):** Archery (149), Free Throw (152), Darts 501 (191), Mini Golf (202), Bowling (203), Mahjong Lite (193).
+- **Board / strategy classics:** Backgammon (154), Checkers (171), Reversi (172), Mastermind (174), Nim (175), Dots and Boxes (176), Ultimate Tic-Tac-Toe (177), Battleship (198), Tower Defense (207), Gomoku (213), Mancala (214), Dominoes (201).
+- **Classic arcade ingests (160–163, 200–209):** Pacman (160), Qix (161), Joust (162), Tron Light Cycles (163), Achtung die Kurve (200), SameGame (206), JavaScript Racer (208), Rhythm (209), Bullet Hell (210).
+- **Puzzles + card games:** Puzzle 15 (169), Peg Solitaire (170), Klondike Solitaire (178), FreeCell (179), Blackjack (180), Video Poker (181), Yahtzee (182), Go Fish (184), War (185), Hearts Classic (204), Spider Solitaire (205), Cribbage (211).
+- **Word games:** Word Search (186), Word Ladder (188), Word Scramble (190), Crossword (212), Boggle (199).
+- **Classic-wave ingests (195–221):** Sokoban (195), Tower of Hanoi (196), Nonogram (197), Asteroids (215), Frogger (216), Missile Command (217), **Lunar Lander (218)**, Space Invaders (219), Duck Hunt (220), **Balatro (221)** — the catalog's highest id at the time of writing.
+
+For the authoritative current list, see `games.json` (schema in `README.md`).
+
 ## Notes on specific games
 
-- **2048 (1):** the local build binds only `W/A/S/D` — the arrow keys and touch/swipe are not wired up in this copy. The external reference is a favicon only; gameplay is local.
-- **Ovo (7):** the original bundle contains an ad-block-detection XHR (`api.adinplay.com`) and a tips fetch (`dedragames.com/games/ovo/.../tips.json`). Offline these fail silently and the game still plays from the local `data.js`/assets.
-- **Run 3 (8):** gameplay is fully local; the bundle carries external link hooks (an ad-click URL and store/credits links) that open in new tabs — they are not game-state fetches.
-- **Age of War (2):** the game is a Flash `.swf` played through Ruffle, which is loaded from `https://unpkg.com/@ruffle-rs/ruffle`. Without network, Ruffle never loads and the game cannot start.
+- **Balatro (221):** local HTML5 build of the poker-roguelike deck-builder; shares the house EmulatorJS wrapper and is documented in `docs/mirror_sources.md` batch-2 (source: `github.com/OutBlade/balatro-web`, pinned commit `3c8cf43`, browser boot test passed). MIT LICENSE + `CREDITS.md` shipped in the folder. Fully offline.
 - **Gladihoppers (47):** vendored Unity WebGL build (v3.0.1, Dreamon Studios) from `github.com/1000unblockedgames/Gladihoppers` (commit `a14cd76`); ad/analytics scripts removed and a local no-op Poki SDK stub keeps it fully offline — the online-PvP and IAP buttons are inert without network.
 - **Burrito Bison (48):** fan-hosted HTML5 port (Unity WebGL) of Juicy Beast Studio's *Burrito Bison*, vendored from `github.com/a456pur/seraph` (branch `main`, path `games/burritobison`); Google Analytics removed. The port's Kongregate SDK (`Build/kongregate_api.js`) is **retained** so the game's API glue still resolves, but its network features are inert offline (the Swrve analytics batch POST needs a Kongregate-hosted config that never arrives, and the only external domain it would touch, `api.swrve.com`, is guarded). The port's `UnityUrlFix` hook routes any `unity3d.com`/`appspot.com`/`swrve.com`/`kongregate.com`/`cloudmoolah.com`/`script.google.com`/`googleusercontent.com` request (Unity IAP/analytics SDK calls, Kongregate SDK network endpoints, and the port's cloud-save/data backends) to a local `json/null.json`, so those in-game store/analytics/cloud features are inert/guarded offline.
 - **BitLife (49):** fan-hosted HTML5 port (Unity WebGL, `companyName` "3kh0.github.io") of Candywriter, LLC's *BitLife* life simulator, vendored from `github.com/a456pur/seraph` (branch `main`, path `games/bitlife`); Google Analytics and the site's tab-cloak script removed. The compiled port embeds Unity IAP (`*.iap.unity3d.com`), Candywriter ad-config (`cywr*.appspot.com`), and cloud-transfer (`unitygame.herokuapp.com/bitlife/transfer_config.txt`) URLs — an XHR hook routes any request to those hosts (plus `amongus-online.net`) to a local `json/null.json`, so the in-game store, ads, and cloud-transfer features are inert offline. Social/website/store links remain user-initiated browser links only.
@@ -83,10 +80,12 @@ All **42 registered games** from `games.json` (ids 1–60 with gaps — the ids 
 
 ## Unregistered folders
 
-- `Games/QWOP/` — a standalone QWOP-style game folder that is **not** referenced by `games.json`. The registered "QWOP" entry (id 15) points to `Games/QwopRemake/index.html`. Left untouched; flagged here for awareness.
+- `Games/QWOP/` — a standalone QWOP-style game folder that is **not** referenced by `games.json`; documented as a deliberate orphan, pending an operator keep/remove decision (see `docs/sweep-workerD.md` D-10). QWOP itself is fully removed from the catalog (the old id-15 "QWOP" entry and its `Games/QwopRemake/` folder were deleted in the 2026-08 pruning; that id is not reused).
+- `Games/Slope/` — a static "offline unavailable" stub; its Slope catalog entry (former id 3) was removed in the 2026-08 pruning and the folder is pending an operator keep/remove decision (see `docs/sweep-workerD.md` D-11).
+- `Games/_emulatorjs/` — **load-bearing shared runtime, not a stray game**: the EmulatorJS data/runtime folder consumed by the 17 GBA/GBA-wrapper catalog games (Pokémon ×8, Dr. Mario, Street Fighter II, Advance Wars, Metroid Fusion, Mega Man Zero, Kirby Amazing Mirror, Sonic Advance, Balatro, …) via `EJS_pathtodata="../_emulatorjs/data/"`. Do **not** delete — removing it would break every one of those catalog entries.
 
 ## Provenance quick view
 
-- **Original code (written for this repo):** FPS, Star Catcher, Paddle Duel, Brick Dash, Tile Merge, Match Flip, Letter Boxed, Boss Rush, Grid Heist, Last Lantern, Queue Escape, Story Adventure. (The 18 self-built games removed in the 2026-08 pruning were also original code; see the pruning note above.)
-- **Third-party bundles (attribution/licensing kept):** Ovo, Run 3, Snake, Chrome Dino, Breakout, QWOP remake, Soccer/Basket/Volley Random (Construct 3 exports), Gladihoppers (Unity WebGL, Dreamon Studios), Burrito Bison (fan-hosted Unity WebGL port of Juicy Beast Studio's game, via `github.com/a456pur/seraph`), BitLife (fan-hosted Unity WebGL port of Candywriter, LLC's game, via `github.com/a456pur/seraph`), Subway Surfers (fan-hosted Unity WebGL port of Kiloo + SYBO Games' game, via `github.com/a456pur/seraph`), A Dark Room (Doublespeak Games, MPL-2.0, via `github.com/doublespeakgames/adarkroom`), Stranded In Isekai (original HTML5/JS RPG by Daffa Ahmad Ibrahim per the bundled README/flashRPG.js headers, Apache-2.0), Papa's Pizzeria (original Flash game by Flipline Studios, SWF + bundled Ruffle emulator, via `github.com/a456pur/seraph`), Retro Bowl (fan-hosted GameMaker:HTML5 port of New Star Games' game, via `github.com/deploythings123123123/seraph`), Super Hot (fan-hosted Unity WebGL port of the SUPERHOT franchise, via `github.com/deploythings123123123/seraph`), 10 Minutes Till Dawn (fan-hosted Unity WebGL port of Flanne's game, via `github.com/deploythings123123123/seraph`), Fleeing the Complex (original Flash game by PuffballsUnited, SWF + bundled Ruffle emulator, via `github.com/deploythings123123123/seraph`), Infiltrating the Airship (original Flash game by PuffballsUnited, SWF + bundled Ruffle emulator, via `github.com/deploythings123123123/seraph`), Baldi's Basics (fan-hosted Unity WebGL port of Mystman12's game, via `github.com/deploythings123123123/seraph`), Temple Run 2 (fan-hosted Babylon.js port of the Temple Run 2 endless-runner concept, via `github.com/deploythings123123123/seraph`).
+- **Original code (written for this repo):** among the retained rows, Character Alsen (14) and Stranded In Isekai (52) are documented original/local work; most id-195+ classic-wave ingests are MIT-licensed open-source originals catalogued in `docs/mirror_sources.md`. The 12 self-built originals named here previously (FPS, Star Catcher, Paddle Duel, Brick Dash, Tile Merge, Match Flip, Letter Boxed, Boss Rush, Grid Heist, Last Lantern, Queue Escape, Story Adventure) were themselves removed in the 2026-08 pruning, together with the 18 self-built games listed in the pruning note above.
+- **Third-party bundles (attribution/licensing kept):** Ovo, Run 3, Snake, Chrome Dino, Breakout, Soccer/Basket/Volley Random (Construct 3 exports), Gladihoppers (Unity WebGL, Dreamon Studios), Burrito Bison (fan-hosted Unity WebGL port of Juicy Beast Studio's game, via `github.com/a456pur/seraph`), BitLife (fan-hosted Unity WebGL port of Candywriter, LLC's game, via `github.com/a456pur/seraph`), Subway Surfers (fan-hosted Unity WebGL port of Kiloo + SYBO Games' game, via `github.com/a456pur/seraph`), A Dark Room (Doublespeak Games, MPL-2.0, via `github.com/doublespeakgames/adarkroom`), Stranded In Isekai (original HTML5/JS RPG by Daffa Ahmad Ibrahim per the bundled README/flashRPG.js headers, Apache-2.0), Papa's Pizzeria (original Flash game by Flipline Studios, SWF + bundled Ruffle emulator, via `github.com/a456pur/seraph`), Retro Bowl (fan-hosted GameMaker:HTML5 port of New Star Games' game, via `github.com/deploythings123123123/seraph`), Super Hot (fan-hosted Unity WebGL port of the SUPERHOT franchise, via `github.com/deploythings123123123/seraph`), 10 Minutes Till Dawn (fan-hosted Unity WebGL port of Flanne's game, via `github.com/deploythings123123123/seraph`), Fleeing the Complex (original Flash game by PuffballsUnited, SWF + bundled Ruffle emulator, via `github.com/deploythings123123123/seraph`), Infiltrating the Airship (original Flash game by PuffballsUnited, SWF + bundled Ruffle emulator, via `github.com/deploythings123123123/seraph`), Baldi's Basics (fan-hosted Unity WebGL port of Mystman12's game, via `github.com/deploythings123123123/seraph`), Temple Run 2 (fan-hosted Babylon.js port of the Temple Run 2 endless-runner concept, via `github.com/deploythings123123123/seraph`).
 - **Read-only:** `Games/Character AI/`.

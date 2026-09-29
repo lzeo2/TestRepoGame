@@ -64,11 +64,11 @@ Example:
 - `Games/Character AI/` is **read-only** — never edit or restructure it.
 - The `/bare/*` proxy stays **disabled** (see `docs/proxy.md`).
 
-The portal itself loads one external font (Google Fonts `Inter`, referenced in `index.html`); it falls back to system fonts when offline. Games are audited for external references; see `docs/GAMES.md` — status is labeled honestly per game, and **remote-dependent games are not claimed to be offline** (notably Slope, Flappy Bird, Hextris, and Age of War, which are embedded/remote or need a CDN).
+`Games/` are audited for external references; see `docs/GAMES.md` — status is labeled honestly per game, and **remote-dependent games are not claimed to be offline**. (The best-known former offenders — Slope, Flappy Bird, Hextris, Age of War — were removed from the catalog entirely; see the catalog-pruning notes in `docs/GAMES.md`.) The portal itself loads **no external fonts**: `index.html` explicitly documents that the bundled stylesheet falls back to local/system fonts (Inter → system-ui stack).
 
 ## Original code note
 
-Most arcade games under `Games/` (FPS, Boss Rush, Star Catcher, Paddle Duel, Brick Dash, Tile Merge, Match Flip, Letter Boxed, Grid Heist, Last Lantern, Queue Escape, Story Adventure, and others) are **original code written for this repo**. A handful of folders bundle third-party games (Ovo, Run 3, Snake, Chrome Dino, Breakout, QWOP remake, the "Random" sports games) with their original licensing/attribution kept intact. The game catalog (`docs/GAMES.md`) flags provenance per game.
+Most arcade games under `Games/` are a mix of **original code written for this repo** (e.g. Character Alsen 14 and the later original slots — see per-game provenance notes) and faithful third-party ingests. A handful of folders bundle third-party games (Ovo, Run 3, Snake, Chrome Dino, Breakout, the "Random" sports games, the EmulatorJS-wrapper classics) with their original licensing/attribution kept intact. The game catalog (`docs/GAMES.md`) flags provenance per game. (Former self-built originals like Slope/QWOP-remake-era classics and the 18 titles pruned in 2026-08 are no longer in the catalog.)
 
 ## Character AI — honesty note
 
@@ -77,7 +77,7 @@ Most arcade games under `Games/` (FPS, Boss Rush, Star Catcher, Paddle Duel, Bri
 ## Useful links
 
 - `docs/ARCHITECTURE.md` — how the repo fits together
-- `docs/GAMES.md` — catalog of all 29 registered games (category, controls, status)
+- `docs/GAMES.md` — catalog of the **120 registered games** (category, controls, status; ids 4–221, ~123 game folders on disk including a few unregistered leftovers)
 - `docs/DEPLOYMENT.md` — Netlify deployment and the disabled `/bare` / UV posture
 - `docs/proxy.md` — full design and caveats of the Ultraviolet launcher
 - `docs/CODE_QUALITY.md` — code-quality contract and verification commands

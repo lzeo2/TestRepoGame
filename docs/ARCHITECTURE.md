@@ -11,7 +11,7 @@ A static browser-games portal. **The repo root is the deployed site.** Netlify p
 │   ├── index-CRWHmtoy.js   Minified portal bundle (no source — polish via CSS + index.html only)
 │   └── index-CUsUGgbt.css  Minified portal styles
 ├── games.json              Catalog — single source of truth for the game grid
-├── Games/                  Self-contained game folders, one per game (30 folders, 29 registered)
+├── Games/                  Self-contained game folders (~123 folders; 120 registered entries in games.json)
 ├── netlify.toml            Netlify config: publish ".", security headers, /uv redirects, disabled /bare template
 ├── netlify/functions/
 │   └── bare.js             Status endpoint: honestly reports proxyEnabled: false
@@ -33,11 +33,11 @@ A static browser-games portal. **The repo root is the deployed site.** Netlify p
 - `Games/<Name>/index.html` is the entry point (may be the only file for tiny games; most have `script.js` + `style.css`).
 - Larger bundles keep their original structure (e.g. `Games/Ovo/1.4.5/`, `Games/Run3/tn6pS9dCf37xAhkJv/`, `Games/BasketRandom/`).
 - `Games/Character AI/` is **read-only** — never moved, edited, or restructured.
-- `Games/QWOP/` exists but is **not registered** in `games.json` (the "QWOP" entry, id 15, points to `Games/QwopRemake/index.html`).
+- `Games/QWOP/` and `Games/Slope/` exist but are **not registered** in `games.json` — both are leftovers awaiting an operator keep/remove decision, and the old "QWOP" (id 15) and "Slope" (id 3) catalog entries were deleted in the 2026-08 pruning (their ids are not reused). See `docs/GAMES.md` → "Unregistered folders". (`Games/_emulatorjs/` is also unregistered by design — it is the shared EmulatorJS runtime for the GBA/other-wrapper catalog games.)
 
 ## Offline-first design
 
-- All games and the portal must work with zero network access. No CDN scripts, no external fonts (portal's Google Fonts `Inter` reference is the one exception and falls back gracefully), no runtime third-party `fetch()`/`WebSocket`.
+- All games and the portal must work with zero network access. No CDN scripts, no external fonts **(the portal loads none at all — `index.html` explicitly falls back to local/system fonts)**, no runtime third-party `fetch()`/`WebSocket`.
 - Status is audited per game in `docs/GAMES.md`; remote-dependent games are labeled honestly and never claimed to be offline.
 
 ## Proxy / UV (backend disabled)

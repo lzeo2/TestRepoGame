@@ -24,7 +24,7 @@
 ## Offline-first as a security property
 
 - No CDN scripts, no external fonts, no runtime third-party `fetch()`/`WebSocket` in games — every game is self-contained. This is both a reliability guarantee and a supply-chain control: nothing is loaded from third-party origins at runtime.
-- Games that are exceptions (remote iframes like Slope/Hextris/Flappy Bird, the Ruffle-CDN Age of War) are **audited and labeled honestly** in `docs/GAMES.md` — they are not claimed to be offline.
+- Games are audited for external references and labeled honestly in `docs/GAMES.md` — but **no remote-dependent games remain in the catalog** (the former remote-iframe Slope/Hextris/Flappy Bird and the Ruffle-CDN Age of War were removed in the 2026-08 pruning). A violation of the offline policy found in any current game is a code-quality HIGH failure.
 
 ## Verification commands (run these, quote the output)
 
