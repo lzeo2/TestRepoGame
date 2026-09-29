@@ -149,28 +149,20 @@
      keep the SVG icon system. */
   var THUMBS = {
   "10 Minutes Till Dawn": "10minutestilldawn",
-  "2048": "2048",
   "A Dark Room": "adarkroom",
   "Advance Wars": "advancewars",
-  "Age of War": "ageofwar",
-  "Age of War Hacked": "ageofwar",
   "Baldi's Basics": "baldisbasics",
   "Basket Random": "basketrandom",
   "BitLife": "bitlife",
   "Bloons TD": "bloonstd",
-  "Boss Rush": "bossrush",
   "Breakout": "breakout",
   "Breakout Hacked": "breakouthacked",
-  "Brick Dash": "brickdash",
   "Burrito Bison": "burritobison",
   "Character Alsen": "characteralsen",
   "Chess": "chess",
   "Chrome Dino": "chromedino",
-  "Connect Four": "connectfour",
   "Cookie Clicker": "cookieclicker",
   "Cookie Clicker Hacked": "cookieclickerhacked",
-  "Crossy Road": "crossyroad",
-  "Crossy Road Hacked": "crossyroad",
   "Crush the Castle": "crushthecastle",
   "Cut the Rope": "cuttherope",
   "Doge Miner": "dogeminer",
@@ -179,37 +171,18 @@
   "Dr. Mario": "drmario",
   "Drift Boss": "driftboss",
   "Fancy Pants Adventure 3": "fancypantsadventure3",
-  "Flappy Bird": "flappybird",
-  "Flappy Bird Hacked": "flappybird",
   "Fleeing the Complex": "fleeingthecomplex",
-  "FPS": "fps",
-  "Fruit Ninja": "fruitninja",
-  "Fruit Ninja Hacked": "fruitninja",
   "Fireboy and Watergirl": "fireboyandwatergirl",
   "Geometry Dash Lite": "geometrydashlite",
-  "Geometry Rash": "geometryrash",
   "Gladihoppers": "gladihoppers",
-  "Grid Heist": "gridheist",
-  "Hangman": "hangman",
-  "Helix Jump": "helixjump",
-  "Hextris": "hextris",
-  "House of Hazards": "houseofhazards",
   "Infiltrating the Airship": "infiltratingtheairship",
   "Jetpack Joyride": "jetpackjoyride",
   "Jetpack Joyride Hacked": "jetpackjoyride",
   "Kirby Amazing Mirror": "kirbyamazingmirror",
-  "Last Lantern": "lastlantern",
-  "Letter Boxed": "letterboxed",
-  "Lights Out": "lightsout",
   "Mario Kart Super Circuit": "mariokartsupercircuit",
-  "Match Flip": "matchflip",
-  "Math Quiz": "mathquiz",
   "Mega Man Zero": "megamanzero",
-  "Memory": "memory",
   "Metroid Fusion": "metroidfusion",
-  "Minesweeper": "minesweeper",
   "Ovo": "ovo",
-  "Paddle Duel": "paddleduel",
   "Papa's Pizzeria": "papaspizzeria",
   "Pokemon Emerald": "pokemonemerald",
   "Pokemon Emerald Hacked": "pokemonemerald",
@@ -219,38 +192,21 @@
   "Pokemon Ruby Hacked": "pokemonruby",
   "Pokemon Unbound": "pokemonunbound",
   "Pokemon Unbound Hacked": "pokemonunbound",
-  "Pong": "pong",
-  "Poor Bunny": "poorbunny",
-  "Poor Bunny Hacked": "poorbunny",
-  "Queue Escape": "queueescape",
-  "QWOP": "qwop",
   "Retro Bowl": "retrobowl",
   "Retro Bowl Hacked": "retrobowl",
   "Run 3": "run3",
-  "Simon Says": "simonsays",
   "Snake": "snake",
   "Snake Hacked": "snake",
   "Soccer Random": "soccerrandom",
   "Sonic Advance": "sonicadvance",
-  "Star Catcher": "starcatcher",
-  "Story Adventure": "storyadventure",
   "Stranded In Isekai": "strandedinisekai",
   "Street Fighter II": "streetfighter2",
   "Subway Surfers": "subwaysurfers",
   "Subway Surfers Hacked": "subwaysurfers",
-  "Sudoku": "sudoku",
   "Super Hot": "superhot",
   "Temple Run 2": "templerun2",
-  "Tetris": "tetris",
-  "Tetris Hacked": "tetris",
-  "Thumb Fighter": "thumbfighter",
-  "Tic Tac Toe": "tictactoe",
-  "Tile Merge": "tilemerge",
-  "Typing Speed": "typingspeed",
   "Vex 7": "vex7",
   "Volley Random": "volleyrandom",
-  "Whack-a-Mole": "whackamole",
-  "Wordle": "wordle"
 };
 
   function getGameThumb(title) {
@@ -663,7 +619,81 @@
       var button = e.target && e.target.closest ?
         e.target.closest('.category-filter__btn') : null;
       if (button) animateCategoryChange();
+      /* A bundle-rendered chip means React owns filtering again; drop
+         the ux-layer category so the two filters can't intersect to 0.
+         (Programmatic All-clicks from the ux chips are exempt via the
+         flag so they don't undo the just-selected ux category.) */
+      if (button && !uxChipProgrammatic &&
+          !button.classList.contains('ux-cat-chip') && activeUxCat) {
+        activeUxCat = null;
+        applyUxCatFilter();
+      }
     }, true);
+  }
+
+  /* --- Category filter gap fix: the frozen bundle's chip array only
+     covers action/puzzle/strategy/classic/sports/riddle. These six
+     categories existed in the catalog with no chip at all. Chips are
+     injected next to the bundle's own (same class, so styling, counts
+     and the 44px touch target carry over) and filter cards via
+     data-ux-cat-hidden (CSS in index.html). React never re-renders
+     these extra buttons away because it did not create them. --- */
+  var UX_EXTRA_CATS = [
+    ['arcade', 'Arcade'],
+    ['card', 'Card'],
+    ['idle', 'Idle'],
+    ['story', 'Story'],
+    ['simulation', 'Simulation'],
+    ['word', 'Word']
+  ];
+  var activeUxCat = null;
+  var uxChipProgrammatic = false;
+
+  function applyUxCatFilter() {
+    $$('.bento-grid .game-card').forEach(function (card) {
+      if (!activeUxCat || card.getAttribute('data-cat') === activeUxCat) {
+        card.removeAttribute('data-ux-cat-hidden');
+      } else {
+        card.setAttribute('data-ux-cat-hidden', '1');
+      }
+    });
+    $$('.ux-cat-chip').forEach(function (btn) {
+      var on = btn.getAttribute('data-cat-id') === activeUxCat;
+      btn.classList.toggle('active', on);
+      btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+    });
+    updateResultStatus();
+    updateClearFiltersBtn();
+  }
+
+  function injectUxCatChips() {
+    var nav = $('.category-filter');
+    if (!nav || !nav.parentNode) return;
+    if ($('.ux-cat-chip')) { applyUxCatFilter(); return; }
+    UX_EXTRA_CATS.forEach(function (pair) {
+      var btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'category-filter__btn ux-cat-chip';
+      btn.textContent = pair[1];
+      btn.setAttribute('data-cat-id', pair[0]);
+      btn.setAttribute('aria-pressed', 'false');
+      btn.setAttribute('aria-label', 'Filter by ' + pair[1] + ' games');
+      btn.addEventListener('click', function () {
+        activeUxCat = activeUxCat === pair[0] ? null : pair[0];
+        /* Reset the bundle's category state first so its re-render
+           repopulates the grid; applyUxCatFilter then re-hides. */
+        var allBtn = $('.category-filter__btn[data-cat-id="all"]');
+        if (allBtn && !allBtn.classList.contains('active')) {
+          uxChipProgrammatic = true;
+          allBtn.click();
+          uxChipProgrammatic = false;
+        }
+        applyUxCatFilter();
+      });
+      nav.appendChild(btn);
+    });
+    updateCategoryCounts();
+    applyUxCatFilter();
   }
 
   var searchDebounceTimer = null;
@@ -740,6 +770,7 @@
       ensureMainTarget();
       applyCardMetadata();
       applyFilterMetadata();
+      injectUxCatChips();
       applyGrouping();
       injectTagBadges();
       injectInfoButtons();
@@ -1301,9 +1332,9 @@
       return input && input.value;
     })();
     var noVisible = visibleCards().length === 0 &&
-      (activeTagFilters.length > 0 || favOnly || searchVal);
+      (activeTagFilters.length > 0 || favOnly || activeUxCat || searchVal);
     var shouldShow = emptyVisible || noVisible;
-    var hasFilters = activeTagFilters.length > 0 || favOnly ||
+    var hasFilters = activeTagFilters.length > 0 || favOnly || activeUxCat ||
       (function() {
         var active = $('.category-filter__btn.active');
         return active && textOf(active).toLowerCase().replace(/[^a-z0-9]+/g,'-') !== 'all';
@@ -1339,10 +1370,12 @@
     }
     activeTagFilters = [];
     favOnly = false;
+    activeUxCat = null;
     $$('.ux-tag-filter__pill[aria-pressed="true"]').forEach(function(btn) {
       btn.setAttribute('aria-pressed', 'false');
     });
     applyTagFilter();
+    applyUxCatFilter();
     applyFavFilter();
     var allBtn = $('.category-filter__btn');
     if (allBtn && !allBtn.classList.contains('active')) {
@@ -1646,7 +1679,7 @@
     initOfflineBanner();
     initDetailKey();
     fetchGames().then(function() {
-      if ($('.category-filter')) { buildTagFilterRow(); injectFavToggle(); }
+      if ($('.category-filter')) { buildTagFilterRow(); injectFavToggle(); injectUxCatChips(); }
       updateCategoryCounts();
       applyTagFilter();
       applyFavFilter();
