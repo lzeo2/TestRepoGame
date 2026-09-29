@@ -1297,5 +1297,14 @@
     "desc": "Solve 10 words before the hangman drawing completes. 111 words across 5 categories, 7 misses per word.",
     "url": "Games/HangmanRush/index.html",
     "featured": false
+  },
+  {
+    "id": 224,
+    "title": "Pyramid Solitaire",
+    "cat": "card",
+    "icon": "🂡",
+    "desc": "Clear the 28-card pyramid by pairing cards to 13. Manage the stock and waste or you will run out of moves.",
+    "url": "Games/PyramidSolitaire/index.html",
+    "featured": false
   }
 ]
