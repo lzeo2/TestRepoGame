@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Ten classic riddles. Three wrong answers ends the game.">
+<link rel="icon" href="data:,">
+<title>Riddle Master</title>
+<!--
+  Riddle Master - original riddle quiz game for UNBLOCKMATH // ARCADE.
+  Answers are matched case-insensitively after trimming; a small set of
+  common alternate phrasings per riddle counts as correct. Offline-first:
+  no network requests of any kind.
+-->
+<style>
+:root{
+  --bg:#1a2332; --panel:#243149; --panel2:#2d3d5c; --ink:#eaeff7; --muted:#9fb0c8;
+  --accent:#e0a33e; --good:#5cb86a; --bad:#d9634f; --line:#3b4a63;
+}
+*{box-sizing:border-box; -webkit-tap-highlight-color:transparent}
+html,body{margin:0; background:var(--bg); color:var(--ink);
+  font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;}
+body{display:flex; flex-direction:column; align-items:center; min-height:100vh;
+  touch-action:manipulation;}
+.wrap{width:100%; max-width:520px; padding:10px 12px 24px;}
+h1{font-size:24px; margin:12px 0 6px; font-weight:700; text-align:center;}
+.screen{width:100%; max-width:520px; padding:0 14px 24px; text-align:center;}
+
+/* Start / end cards */
+.rules{text-align:left; margin:12px auto; padding-left:22px; max-width:400px;
+  line-height:1.6; font-size:15px;}
+.rules b{color:var(--accent);}
+button{min-height:44px; min-width:44px; padding:10px 20px; font-size:16px; font-weight:650;
+  font-family:inherit; background:var(--accent); color:#2a1f0a; border:none;
+  border-radius:8px; cursor:pointer;}
+button.sec{background:var(--panel2); color:var(--ink); border:1px solid var(--line);}
+button:hover{filter:brightness(1.08);}
+button:focus-visible{outline:3px solid #fff; outline-offset:2px;}
+button:active{transform:translateY(1px);}
+
+/* Play screen */
+.hud{display:flex; gap:8px; flex-wrap:wrap; justify-content:center; margin:10px 0;}
+.stat{background:var(--panel); border:1px solid var(--line); border-radius:8px;
+  padding:7px 12px; font-size:14px; min-height:44px; display:flex; align-items:center;
+  gap:6px;}
+.stat b{font-size:17px; color:var(--accent);}
+.panel{background:var(--panel); border:1px solid var(--line); border-radius:10px;
+  padding:16px;}
+#riddle{font-size:18px; line-height:1.55; margin:4px 0 14px; min-height:84px;}
+#answer{display:block; width:88%; min-height:48px; margin:0 auto; font-size:18px;
+  text-align:center; background:var(--panel2); color:var(--ink);
+  border:2px solid var(--line); border-radius:8px; padding:6px 10px; outline:none;}
+#answer:focus{border-color:var(--accent);}
+#answer.bad{border-color:var(--bad); animation:shake .3s;}
+#answer.good{border-color:var(--good);}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}
+  75%{transform:translateX(6px)}}
+#msg{min-height:1.5em; margin-top:10px; font-size:15px; color:var(--muted);}
+#msg.ok{color:var(--good);} #msg.err{color:var(--bad);}
+.btnrow{display:flex; gap:8px; justify-content:center; flex-wrap:wrap; margin-top:12px;}
+.controls-note{font-size:13px; color:var(--muted); margin-top:10px; line-height:1.55;}
+
+/* End overlay */
+.overlay{position:fixed; inset:0; background:rgba(12,16,24,.92); display:flex;
+  align-items:center; justify-content:center; z-index:10; padding:16px;}
+.overlay .card{background:var(--panel); border:1px solid var(--line); border-radius:12px;
+  max-width:400px; width:100%; padding:22px;}
+.overlay .card h2{margin:0 0 8px; font-size:23px;}
+.overlay .card p{color:var(--muted); font-size:15px; line-height:1.6; margin:8px 0;}
+.overlay .card .big{font-size:36px; color:var(--accent); font-weight:700; margin:8px 0;}
+.hidden{display:none !important;}
+</style>
+</head>
+<body>
+
+<!-- Start screen -->
+<div class="screen" id="startScreen">
+  <h1>Riddle Master</h1>
+  <p>Ten classic riddles. How many can you solve?</p>
+  <ul class="rules">
+    <li>Read the riddle, type your answer, press <b>Enter</b> or <b>Submit</b>.</li>
+    <li><b>10 solved</b> riddles to win. <b>3 wrong</b> answers ends the run.</li>
+    <li>Answers ignore capitalization and extra spaces. Need a hint? Press <b>H</b>.</li>
+    <li>Each solved riddle is worth <b>10 points</b> plus 1 bonus point for each heart you have left.</li>
+  </ul>
+  <button id="startBtn" type="button">Start</button>
+</div>
+
+<!-- Play screen -->
+<div class="screen hidden" id="playScreen">
+  <h1>Riddle Master</h1>
+  <div class="hud">
+    <div class="stat">Score <b id="score">0</b></div>
+    <div class="stat">Riddle <b id="round">1</b>/10</div>
+    <div class="stat">Hearts <b id="hearts">3</b></div>
+  </div>
+  <div class="panel">
+    <p id="riddle"></p>
+    <input type="text" id="answer" placeholder="Type your answer" autocomplete="off"
+           autocorrect="off" autocapitalize="none" spellcheck="false" maxlength="40"
+           aria-label="Your answer" aria-describedby="msg">
+    <p id="msg" role="status" aria-live="polite"></p>
+    <div class="btnrow">
+      <button id="submitBtn" type="button">Submit</button>
+      <button id="hintBtn" class="sec" type="button">Hint</button>
+    </div>
+    <p class="controls-note">Controls: mobile - tap the field, type, tap Submit. Keyboard - type and press Enter, or press H for a hint.</p>
+  </div>
+</div>
+
+<!-- End overlay -->
+<div class="overlay hidden" id="endOverlay">
+  <div class="card">
+    <h2 id="endTitle">Game over</h2>
+    <div class="big" id="endScore">0</div>
+    <p id="endText"></p>
+    <button id="restartBtn" type="button">Play again</button>
+  </div>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
