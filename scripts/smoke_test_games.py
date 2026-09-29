@@ -34,8 +34,9 @@ KNOWN_BENIGN = {
     "Retro Bowl": ["savedata.ini", "optiondata.dat"],  # first-run save check 404s, expected
     "Stranded In Isekai": ["-snd.mp3"],            # audio preload aborts on scene swap; files exist
     "Character Alsen": ["svg%3e"],                 # data-URI favicon hack 404s; protected game, original 404
-    "Cut the Rope": ["intro_1024.webm", "music"],  # headless lacks h264 (real browsers use mp4); seraph build ships no music files
+    "Cut the Rope": ["intro_1024.webm", "intro_1024.mp4", "music"],  # headless lacks h264/vp9 so intro fetch is aborted ERR_ABORTED (mp4 file IS present, http 200); seraph build ships no music files
     "Thumb Fighter": ["add-stylesheet", "safari_fix"],  # C3 headless quirk: runtime injects Safari-only stylesheet; handler rejects on 404, game still runs
+    "Gladihoppers": ["set_main_loop"],  # emscripten advisory baked into Unity wasm framework (same string in 8+ passing games' builds); fires only under headless rAF throttling, game runs
 }
 BENIGN_REQS = ("unity3d.com", "svg%3e", "hwstats.cgi", "savedata.ini", "optiondata.dat",
                "snd.mp3", "http 501",
