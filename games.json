@@ -1288,5 +1288,14 @@
     "desc": "Tend a sealed terrarium: balance sun and water, grow plants, and keep the grazers alive to day 40.",
     "url": "Games/EcoSphere/index.html",
     "featured": false
+  },
+  {
+    "id": 223,
+    "title": "Hangman Rush",
+    "cat": "word",
+    "icon": "🔤",
+    "desc": "Solve 10 words before the hangman drawing completes. 111 words across 5 categories, 7 misses per word.",
+    "url": "Games/HangmanRush/index.html",
+    "featured": false
   }
 ]
