@@ -6,15 +6,13 @@ Operating rules for any agent (opencode, Claude Code, Codex, Hermes) working in 
 
 "UNBLOCKMATH // ARCADE" — a browser games site. The repo ROOT is the deployed static site (Netlify, `netlify.toml` publish = "."). Games live in `Games/<Name>/` as self-contained static HTML/CSS/JS folders. `games.json` at root is the catalog; the portal JS fetches it at runtime, so appending an entry makes a game appear without rebuilding.
 
-## CRITICAL: Games are NOT checked out locally
+## Games ARE checked out locally (Sep 28, 2026)
 
-**Games/ is in the git repo (pushed to GitHub, deployed by Netlify) but NOT checked out locally on the Pi.** This saves 1.4GB of disk space. The Pi only has portal code locally (~200MB).
-
-**When you need to work on games:**
-1. Check out only the specific game: `git sparse-checkout add Games/<Name>`
-2. Or download from GitHub: `git show HEAD:Games/<Name>/index.html > /tmp/game.html`
-3. Work on it, test it, then: `git add Games/<Name> && git commit`
-4. Push to GitHub: `git push` (Netlify auto-deploys)
+**Games/ is fully materialized on the Pi (~1.9 GB, 125 dirs) and the repo is a proper git clone.** Confirm before assuming otherwise: `ls Games | wc -l`. Do NOT re-read old instructions that claim Games/ is sparse-only (that policy was superseded when disk pressure forced a re-checkout). If a future swarm finds Games/ absent, restore it with:
+```
+git clone --no-checkout --filter=blob:none https://github.com/lzeo2/TestRepoGame.git
+cd TestRepoGame && printf '/*\n!/*/\n/Games/\n' > .git/info/sparse-checkout && git read-tree -mu HEAD
+```
 
 **When adding a new game:**
 1. Create `Games/<Name>/` locally (it will be new, not in git yet)
@@ -43,7 +41,7 @@ Operating rules for any agent (opencode, Claude Code, Codex, Hermes) working in 
 - Each game dir: `index.html` + `script.js` + `style.css` (inline JS/CSS fine for tiny games). Every game needs a start screen, win/lose state, score, restart path, controls documented in-page, mobile + keyboard input.
 - Portal bundle: `assets/index-*.js` + `index-*.css` (minified, no source — polish via CSS + index.html only, per the Direction A decision).
 - `uv/` = Ultraviolet proxy launcher (backend disabled), `docs/` = docs + wiki content, `netlify/` = functions.
-- No build tooling. No node_modules. Repo must stay lean (currently ~0.8 GB, dominated by Eaglercraft + Ovo).
+- No build tooling. No node_modules. Repo must stay lean (currently ~1.9 GB across 125 games).
 
 ## Workflow conventions
 
@@ -52,6 +50,7 @@ Operating rules for any agent (opencode, Claude Code, Codex, Hermes) working in 
 - Verify with real commands and quote output (see docs/CODE_QUALITY.md §7): games.json parse + url check, external-fetch grep, `node --check`, `du` audit, `git status`.
 - **MANDATORY pre-push QA gate**: run `xvfb-run python3 scripts/smoke_test_games.py` — it loads EVERY registered game in a real browser, captures console errors + failed/4xx requests, and exits non-zero on any failure. Static checks are NOT sufficient: runtime bugs (missing files, undefined globals, broken fetches) only surface when the game actually loads. Any game that fails the gate must be fixed or explicitly reported before push.
 - Swarms (opencode multi-agent): orchestrator plans + delegates, workers implement, reviewer/mimo verifies, security-audit + ui-audit cover their domains. Anti-hang rules: small bounded subagent tasks, abandon after 2 failures, progress line per delegation, no dev servers, commit at milestones, no silent delegation > ~20 min.
+- Swarms MUST record scope/self-made status in the final report: did this run only work on existing games, or did it ADD new games? Every new game's build+register commit pair must be listed. (Sep 28, 2026 precedent: sweep added 5 games - EcoSphere 222, Hangman Rush 223, Pyramid Solitaire 224, Star Forge 225, Riddle Master 226 - all under the games.json schema above.)
 - Disk guard: check `df -h / | tail -1` before big operations; if free < 2 GB, stop, commit, report.
 - Report with evidence — never fabricate success.
 
