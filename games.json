@@ -1306,5 +1306,14 @@
     "desc": "Clear the 28-card pyramid by pairing cards to 13. Manage the stock and waste or you will run out of moves.",
     "url": "Games/PyramidSolitaire/index.html",
     "featured": false
+  },
+  {
+    "id": 225,
+    "title": "Star Forge",
+    "cat": "idle",
+    "icon": "⚒️",
+    "desc": "Strike the cores and forge 1000 integrity before the meltdown timer hits zero. Hire drones and buy vents.",
+    "url": "Games/StarForge/index.html",
+    "featured": false
   }
 ]
