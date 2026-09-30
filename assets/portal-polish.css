@@ -19,9 +19,8 @@
 
 /* --- 1. Stepped auto-fill grid ------------------------------------------
    itch.io / crazygames.com: repeat(auto-fill, minmax(250px, 1fr)),
-   minimum stepped down at small widths. At a 360px viewport with
-   16px page padding the 420px step yields two slim 140px columns
-   (pattern 1, docs/ui_patterns.md). Wins over the fixed repeat()
+   minimum stepped down at small widths. Phones use compact list rows
+   below 480px. Wins over the fixed repeat()
    counts in the bundle and in the inline responsive block. */
 .bento-grid__standard,
 .bento-grid__featured {
@@ -31,13 +30,6 @@
   .bento-grid__standard,
   .bento-grid__featured {
     grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)) !important;
-  }
-}
-@media (max-width: 420px) {
-  .bento-grid__standard,
-  .bento-grid__featured {
-    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)) !important;
-    gap: 12px !important;
   }
 }
 
@@ -89,10 +81,26 @@
    ellipsis), pattern 4. The card title clamps to two lines; the meta
    line under it (description) becomes a single ellipsised line so
    every card in a row keeps a predictable rhythm. */
+.game-card__header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 6px;
+}
+.game-card__category {
+  justify-self: start;
+}
+.game-card__tags {
+  margin-top: 0;
+}
 .game-card__title {
+  min-width: 0;
+  width: 100%;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
+  white-space: normal;
+  overflow-wrap: break-word;
+  text-overflow: clip;
   overflow: hidden;
 }
 .game-card__desc {
@@ -111,8 +119,21 @@
 .category-filter__btn,
 .ux-tag-filter__pill,
 .ux-recent__chip,
-.ux-clear-filters {
+.ux-clear-filters,
+.game-card__tag,
+.game-card__play {
+  min-height: 44px !important;
+  min-width: 44px;
+  flex-shrink: 0 !important;
+}
+.game-card__fav,
+.game-card__info,
+.theme-toggle {
+  width: 44px !important;
+  height: 44px !important;
+  min-width: 44px;
   min-height: 44px;
+  flex: 0 0 44px;
 }
 .category-filter__btn {
   border-radius: 999px !important;
@@ -348,4 +369,45 @@ html[data-theme="dark"] .category-filter__btn[aria-pressed="true"] .category-fil
   background: var(--bg-card) !important;
   border: 1px solid var(--border) !important;
   color: var(--text) !important;
+}
+
+@media (max-width: 479.98px) {
+  .bento-grid__standard,
+  .bento-grid__featured {
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 8px !important;
+  }
+  .bento-grid .game-card {
+    display: grid;
+    grid-template-columns: minmax(88px, 28%) minmax(0, 1fr);
+    grid-column: auto;
+    border-radius: 12px !important;
+  }
+  .bento-grid .game-card__thumb {
+    aspect-ratio: auto !important;
+    align-self: stretch;
+  }
+  .game-card__body {
+    min-width: 0;
+    gap: 6px;
+    padding: 10px;
+  }
+  .game-card__actions {
+    padding-top: 0;
+  }
+  .game-card__desc {
+    display: none;
+  }
+  .game-card__info {
+    left: 8px;
+    right: auto;
+  }
+  .game-card--featured::after {
+    top: auto !important;
+    bottom: 8px;
+    left: 6px !important;
+    padding: 4px 6px !important;
+    font-size: .58rem !important;
+    letter-spacing: .04em !important;
+  }
 }

@@ -41,6 +41,37 @@ def assert_no_overflow(page):
     ), page.evaluate("() => [document.documentElement.scrollWidth, document.documentElement.clientWidth, document.body.scrollWidth, document.body.clientWidth]")
 
 
+def check_mobile_cards(page, width):
+    assert_no_overflow(page)
+    assert page.locator('.game-card').evaluate_all("""cards => cards.every(card => {
+        if (!card.getBoundingClientRect().height) return true;
+        const title = card.querySelector('.game-card__title');
+        const genre = card.querySelector('.game-card__category');
+        const tags = card.querySelector('.game-card__tags');
+        const thumb = card.querySelector('.game-card__thumb').getBoundingClientRect();
+        const body = card.querySelector('.game-card__body').getBoundingClientRect();
+        const t = title.getBoundingClientRect(), g = genre.getBoundingClientRect();
+        const style = getComputedStyle(title);
+        return getComputedStyle(card).display === 'grid' && thumb.right <= body.left + 1 &&
+            style.webkitLineClamp === '2' && style.whiteSpace === 'normal' &&
+            t.height <= parseFloat(style.lineHeight) * 2 + 1 && g.top >= t.bottom - 1 &&
+            (!tags || tags.getBoundingClientRect().top >= g.bottom - 1);
+    })""")
+    assert page.locator('.game-card__fav, .game-card__info, .theme-toggle, .category-filter__btn, .ux-tag-filter__pill, .game-card__tag, .game-card__play').evaluate_all("""controls => controls.every(control => {
+        const box = control.getBoundingClientRect();
+        if (!box.height) return true;
+        return box.width >= 44 && box.height >= 44 && getComputedStyle(control).flexShrink === '0';
+    })""")
+    assert page.locator('.game-card__header').evaluate_all("""headers => headers.every(header => {
+        if (!header.getBoundingClientRect().height) return true;
+        const box = header.getBoundingClientRect();
+        return [...header.querySelectorAll('button, .game-card__category')].every(child => {
+            const c = child.getBoundingClientRect();
+            return c.left >= box.left - 1 && c.right <= box.right + 1;
+        });
+    })""")
+
+
 def main():
     games = json.loads((ROOT / 'games.json').read_text())
     normalized = []
@@ -61,7 +92,7 @@ def main():
     server_thread.start()
     try:
         with sync_playwright() as pw:
-            browser = pw.chromium.launch(headless=True, executable_path='/usr/bin/chromium', args=['--no-sandbox'])
+            browser = pw.chromium.launch(headless=True, executable_path='/usr/bin/chromium', args=['--no-sandbox', '--disable-dev-shm-usage'])
             context = browser.new_context(viewport={'width': 1280, 'height': 900}, color_scheme='light')
             context.add_init_script("if (!localStorage.getItem('theme')) localStorage.setItem('theme', 'light')")
             page = context.new_page()
@@ -102,18 +133,29 @@ def main():
             assert visible_count(page) == expected_coop
             coop.click()
 
-            page.set_viewport_size({'width': 390, 'height': 844})
-            page.reload(wait_until='networkidle')
-            wait_for_portal(page, len(games))
-            assert page.locator('html').get_attribute('data-theme') == 'dark'
-            assert_no_overflow(page)
-            page.screenshot(path=str(SHOT_DIR / 'after-portal-mobile.png'), full_page=True)
+            for width in (390, 320):
+                page.set_viewport_size({'width': width, 'height': 844})
+                for theme in ('light', 'dark'):
+                    page.evaluate("theme => localStorage.setItem('theme', theme)", theme)
+                    page.reload(wait_until='networkidle')
+                    wait_for_portal(page, len(games))
+                    assert page.locator('html').get_attribute('data-theme') == theme
+                    check_mobile_cards(page, width)
+                    page.evaluate("window.scrollTo({top: 0, left: 0, behavior: 'instant'})")
+                    assert page.locator('.app__header').evaluate('el => el.getBoundingClientRect().top') >= 0
+                    page.screenshot(path=str(SHOT_DIR / f'mobile-{width}-{theme}.png'))
+                    page.locator('.ux-tag-filter__pill[data-tag="hacked"]').click()
+                    page.wait_for_timeout(300)
+                    check_mobile_cards(page, width)
+                    long_card = page.locator('.game-card[data-title="Fireboy and Watergirl Hacked (Light Temple)"]')
+                    long_card.scroll_into_view_if_needed()
+                    page.screenshot(path=str(SHOT_DIR / f'mobile-{width}-{theme}-hacked.png'))
             browser.close()
     finally:
         server.shutdown()
         server.server_close()
     print('portal review checks passed')
-    for path in sorted(SHOT_DIR.glob('after-portal-*.png')):
+    for path in sorted(SHOT_DIR.glob('mobile-*.png')):
         print(path)
 
 
