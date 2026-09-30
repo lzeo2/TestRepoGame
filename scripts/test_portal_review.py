@@ -27,6 +27,7 @@ def wait_for_portal(page, expected):
         """() => Array.from(document.images).every(img => img.complete && img.naturalWidth > 0)"""
     )
     page.wait_for_selector('.ux-tag-filter__pill[data-tag="2p"]')
+    page.evaluate('() => document.fonts.ready')
 
 
 def visible_count(page):
@@ -45,16 +46,18 @@ def check_mobile_cards(page, width):
     assert page.locator('.game-card').evaluate_all("""cards => cards.every(card => {
         if (!card.getBoundingClientRect().height) return true;
         const title = card.querySelector('.game-card__title');
-        const genre = card.querySelector('.game-card__category');
-        const tags = card.querySelector('.game-card__tags');
         const thumb = card.querySelector('.game-card__thumb').getBoundingClientRect();
         const body = card.querySelector('.game-card__body').getBoundingClientRect();
-        const t = title.getBoundingClientRect(), g = genre.getBoundingClientRect();
+        const t = title.getBoundingClientRect();
         const style = getComputedStyle(title);
+        const badge = [...card.querySelectorAll('.game-card__category, .game-card__tag')]
+            .filter(el => el.getBoundingClientRect().height > 0);
         return getComputedStyle(card).display === 'grid' && thumb.right <= body.left + 1 &&
             style.webkitLineClamp === '2' && style.whiteSpace === 'normal' &&
-            t.height <= parseFloat(style.lineHeight) * 2 + 1 && g.top >= t.bottom - 1 &&
-            (!tags || tags.getBoundingClientRect().top >= g.bottom - 1);
+            t.height <= parseFloat(style.lineHeight) * 2 + 1 && badge.length <= 1 &&
+            badge.every(el => { const b = el.getBoundingClientRect();
+                return b.left >= thumb.left && b.right <= thumb.right && b.top >= thumb.top && b.bottom <= thumb.bottom;
+            });
     })""")
     assert page.locator('.game-card__fav, .game-card__info, .theme-toggle, .category-filter__btn, .ux-tag-filter__pill, .game-card__tag, .game-card__play').evaluate_all("""controls => controls.every(control => {
         const box = control.getBoundingClientRect();
@@ -69,6 +72,32 @@ def check_mobile_cards(page, width):
             return c.left >= box.left - 1 && c.right <= box.right + 1;
         });
     })""")
+
+
+def check_shelf_design(page):
+    assert page.evaluate("() => [...document.fonts].length === 3 && [...document.fonts].every(f => f.status === 'loaded')")
+    assert page.locator('.theme-toggle').evaluate("el => el.parentElement.classList.contains('app__header') && getComputedStyle(el).position === 'static'")
+    assert page.locator('.random-game-btn, .proxy-launcher').evaluate_all("els => els.every(el => el.parentElement.classList.contains('app__footer') && getComputedStyle(el).position === 'static')")
+    assert page.locator('.game-card__icon:not(:has(img))').evaluate_all("els => els.every(el => el.dataset.initial === el.closest('.game-card').dataset.title.charAt(0).toUpperCase() && getComputedStyle(el, '::after').content !== 'none' && [...el.querySelectorAll('svg')].every(svg => getComputedStyle(svg).display === 'none'))")
+    assert page.locator('.game-card__info').evaluate_all("els => els.every(el => el.parentElement.classList.contains('game-card__actions'))")
+    # Actual theme tokens, including small body labels, must meet WCAG AA.
+    ratios = page.evaluate(r"""() => {
+        const lum = color => {
+            const rgb = color.match(/[0-9.]+/g).slice(0, 3).map(Number).map(n => n / 255)
+                .map(n => n <= .04045 ? n / 12.92 : ((n + .055) / 1.055) ** 2.4);
+            return rgb[0] * .2126 + rgb[1] * .7152 + rgb[2] * .0722;
+        };
+        const probe = document.createElement('span'); document.body.appendChild(probe);
+        const css = getComputedStyle(document.documentElement);
+        const colors = ['--text', '--text-muted', '--bg', '--bg-card'].map(token => {
+            probe.style.color = css.getPropertyValue(token); return lum(getComputedStyle(probe).color);
+        }); probe.remove();
+        const contrast = (a, b) => (Math.max(a, b) + .05) / (Math.min(a, b) + .05);
+        const active = [...document.querySelectorAll('.category-filter__btn[aria-pressed="true"], .ux-tag-filter__pill[aria-pressed="true"]')]
+            .map(el => { const s = getComputedStyle(el); return contrast(lum(s.color), lum(s.backgroundColor)); });
+        return colors.slice(0, 2).flatMap(text => colors.slice(2).map(bg => contrast(text, bg))).concat(active);
+    }""")
+    assert min(ratios) >= 4.5, ratios
 
 
 def check_category_counts(page, games):
@@ -139,6 +168,11 @@ def main():
             assert 'coop' in page.locator('.game-card[data-title="Fireboy and Watergirl Hacked (Light Temple)"]').get_attribute('data-tags')
             assert page.locator('.ux-net-banner__msg').text_content() == 'Connection lost. Loaded games may still work.'
             assert_no_overflow(page)
+            page.locator('.category-filter__btn[data-cat-id="all"]').hover()
+            check_shelf_design(page)
+            page.locator('.game-card').first.focus()
+            page.keyboard.press('ArrowRight')
+            assert page.evaluate("document.activeElement.dataset.title") == 'Run 3'
             assert page.locator('html').get_attribute('data-theme') == 'light'
             page.screenshot(path=str(SHOT_DIR / 'after-portal-light.png'), full_page=True)
 
@@ -148,6 +182,8 @@ def main():
             wait_for_portal(page, len(games))
             assert page.locator('html').get_attribute('data-theme') == 'dark'
             assert_no_overflow(page)
+            page.locator('.category-filter__btn[data-cat-id="all"]').hover()
+            check_shelf_design(page)
             page.screenshot(path=str(SHOT_DIR / 'after-portal-dark.png'), full_page=True)
 
             two_p = page.locator('.ux-tag-filter__pill[data-tag="2p"]')
@@ -171,6 +207,7 @@ def main():
                     wait_for_portal(page, len(games))
                     assert page.locator('html').get_attribute('data-theme') == theme
                     check_mobile_cards(page, width)
+                    check_shelf_design(page)
                     check_category_counts(page, games)
                     assert page.locator('.category-filter').evaluate("""nav => {
                         const box = nav.getBoundingClientRect();

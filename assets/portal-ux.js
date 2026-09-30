@@ -172,7 +172,6 @@
   "Drift Boss": "driftboss",
   "Fancy Pants Adventure 3": "fancypantsadventure3",
   "Fleeing the Complex": "fleeingthecomplex",
-  "Fireboy and Watergirl": "fireboyandwatergirl",
   "Geometry Dash Lite": "geometrydashlite",
   "Gladihoppers": "gladihoppers",
   "Infiltrating the Airship": "infiltratingtheairship",
@@ -253,10 +252,12 @@
         );
       }
 
-      /* Thumbnail: real game art when available, SVG icon otherwise */
+      /* Existing game art; missing art uses a title initial in the shelf. */
       var icon = $('.game-card__icon', card);
       var thumbUrl = getGameThumb(title);
       if (icon && title) {
+        icon.setAttribute('data-initial', title.charAt(0).toUpperCase());
+        icon.setAttribute('aria-hidden', 'true');
         if (thumbUrl && !icon.querySelector('img')) {
           icon.innerHTML = '';
           var img = document.createElement('img');
@@ -270,6 +271,15 @@
           icon.innerHTML = getGameIcon(title, cat);
         }
       }
+
+      var thumb = $('.game-card__thumb', card);
+      var category = $('.game-card__category', card);
+      var tags = $('.game-card__tags', card);
+      if (thumb && category && category.parentNode !== thumb) thumb.appendChild(category);
+      if (thumb && tags && tags.parentNode !== thumb) thumb.appendChild(tags);
+      var actions = $('.game-card__actions', card);
+      var info = $('.game-card__info', card);
+      if (actions && info && info.parentNode !== actions) actions.appendChild(info);
 
       /* data-title identifies the card for portal logic and tests. */
       if (title) {
@@ -767,6 +777,15 @@
     if (standard) {
       if (standard.getAttribute('role') !== 'region') standard.setAttribute('role', 'region');
       if (!standard.getAttribute('aria-label')) standard.setAttribute('aria-label', 'All games');
+    }
+    var header = $('.app__header');
+    var theme = $('.theme-toggle');
+    if (header && theme && theme.parentNode !== header) header.appendChild(theme);
+    var footer = $('.app__footer');
+    if (footer) {
+      $$('.random-game-btn, .proxy-launcher').forEach(function (control) {
+        if (control.parentNode !== footer) footer.appendChild(control);
+      });
     }
     var logo = $('.app__logo-text');
     if (logo) {

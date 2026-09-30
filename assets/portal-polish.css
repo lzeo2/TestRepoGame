@@ -1,453 +1,298 @@
-/* ================================================================
-   Portal UI polish batch 2 (pattern-driven)
-   Applies the net-best patterns from docs/ui_patterns.md to the
-   portal game grid and cards. Linked from index.html AFTER
-   assets/index-CUsUGgbt.css (and after the inline override block)
-   so this file has the final word in the cascade.
-
-   Rules: flat colors only, no gradients, no emoji, no em-dash,
-   no uppercase transforms on new content, 44px touch targets,
-   AA contrast.
-
-   Tokens reused from the existing portal:
-   --bg-card, --bg-card-hover, --border, --text, --text-muted,
-   --accent (#06b6d4 via the inline :root), --radius, --radius-lg,
-   --sans, plus the established palette literals #08252b (on-accent
-   text), #0e7490 (light-theme accent), #1a1a2e (flat thumb
-   placeholder), #1d1d1f / #6e6e73 / #f5f5f7 (light theme).
-   ================================================================ */
-
-/* --- 1. Stepped auto-fill grid ------------------------------------------
-   itch.io / crazygames.com: repeat(auto-fill, minmax(250px, 1fr)),
-   minimum stepped down at small widths. Phones use compact list rows
-   below 480px. Wins over the fixed repeat()
-   counts in the bundle and in the inline responsive block. */
-.bento-grid__standard,
-.bento-grid__featured {
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)) !important;
+/* Arcade cabinet shelf. Authored layer; the bundled application stays intact. */
+@font-face {
+  font-family: 'Bungee'; font-style: normal; font-weight: 400; font-display: swap;
+  src: url('./fonts/bungee/bungee-400-latin.woff2') format('woff2');
 }
-@media (max-width: 640px) {
-  .bento-grid__standard,
-  .bento-grid__featured {
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)) !important;
-  }
+@font-face {
+  font-family: 'Atkinson Hyperlegible'; font-style: normal; font-weight: 400; font-display: swap;
+  src: url('./fonts/atkinson-hyperlegible/atkinson-hyperlegible-400-latin.woff2') format('woff2');
 }
-
-/* --- 2. Thumbnails: locked 16:9 with a flat placeholder color ----------
-   crazygames.com / poki.com (pattern 2 + 4): every thumb reserves its
-   final box via aspect-ratio, so nothing shifts while art loads. The
-   flat #1a1a2e placeholder is the no-layout-shift layer; object-fit
-   cover comes from the inline block. Applies to standard and featured
-   cards alike (the hero thumb in section 6 stretches over its cell). */
-.game-card__thumb {
-  aspect-ratio: 16 / 9 !important;
-  background: #1a1a2e !important;
-  overflow: hidden;
+@font-face {
+  font-family: 'Atkinson Hyperlegible'; font-style: normal; font-weight: 700; font-display: swap;
+  src: url('./fonts/atkinson-hyperlegible/atkinson-hyperlegible-700-latin.woff2') format('woff2');
 }
-
-/* --- 3. Hover: subtle lift only, guarded by hover:hover ----------------
-   poki.com (pattern 3): hover lives inside @media (hover:hover) so
-   touch devices never get a stuck lift, and the lift stays subtle
-   (3px, transform only). Chips and controls tint on hover but never
-   lift; only cards lift. The bundle's unguarded :hover lifts are
-   cancelled on hover:none devices. */
-.bento-grid .game-card {
-  transition: transform 180ms ease, border-color 180ms ease !important;
+:root {
+  --ink: #101820; --slate: #243642; --paper: #f3f6f8;
+  --white: #fff; --muted: #536672; --hacked: #b4232a;
+  --radius: 12px; --radius-lg: 12px; --control-radius: 8px; --badge-radius: 4px;
+  --sans: 'Atkinson Hyperlegible', sans-serif;
+  --heading: 'Bungee', sans-serif;
+  --space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px;
+}
+html[data-theme='light'] {
+  color-scheme: light;
+  --bg: var(--paper); --bg-card: var(--white); --bg-card-hover: var(--paper);
+  --text: var(--ink); --text-h: var(--ink); --text-muted: var(--muted);
+  --border: #bcc9d1; --tile: #dbe5eb; --focus: var(--ink);
+}
+html[data-theme='dark'] {
+  color-scheme: dark;
+  --bg: var(--ink); --bg-card: var(--slate); --bg-card-hover: #2d4453;
+  --text: var(--white); --text-h: var(--white); --text-muted: #c0ced7;
+  --border: #637987; --tile: #304a5b; --focus: var(--white);
+}
+html[data-theme] body { font-family: var(--sans) !important; color: var(--text) !important; background: var(--bg) !important; }
+button, input, select, textarea { font-family: var(--sans) !important; }
+html[data-theme] #root { width: 100%; border: 0; background: var(--bg) !important; }
+html[data-theme] .app,
+html[data-theme] .app__main,
+html[data-theme] .app__header { background: transparent !important; }
+html[data-theme] .app { width: 100%; max-width: 1400px; padding: 24px; }
+html[data-theme] .app__header {
+  display: grid; grid-template-columns: auto minmax(0, 1fr) 44px;
+  align-items: center; gap: 24px; padding: 0 0 16px !important; margin: 0 0 16px !important;
+  border-bottom: 1px solid var(--border) !important; min-width: 0;
+}
+html[data-theme] .app__logo-text {
+  font-family: var(--heading); font-weight: 400 !important;
+  font-size: 24px !important; letter-spacing: 0 !important;
+  color: var(--text) !important; -webkit-text-fill-color: var(--text) !important; line-height: 1.2;
+}
+html[data-theme] .app__logo-text span { color: inherit !important; }
+.app__logo-icon { display: none; }
+html[data-theme] .search-bar {
+  width: 100% !important; max-width: 480px; min-width: 0;
+  min-height: 44px; padding: 0 12px; gap: 8px;
+  border: 1px solid var(--border); border-radius: var(--control-radius) !important;
+  background: var(--bg-card) !important; box-shadow: none !important;
+}
+html[data-theme] .search-bar__input {
+  width: 100%; min-width: 0; font-size: 16px !important;
+  color: var(--text) !important; outline: none !important;
+}
+.search-bar__input::placeholder { color: var(--text-muted) !important; opacity: 1; }
+html[data-theme] .search-bar:focus-within {
+  outline: 2px solid var(--focus); outline-offset: 2px; box-shadow: none !important;
+  border-color: var(--border) !important;
+}
+html[data-theme] .theme-toggle {
+  position: static !important; width: 44px; height: 44px; flex: 0 0 44px;
+  background: transparent !important; color: var(--text) !important;
+  border: 1px solid var(--border); border-radius: var(--control-radius) !important;
+}
+html[data-theme] .app__main {
+  display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 8px 16px; min-width: 0;
+}
+html[data-theme] .ux-sort {
+  grid-column: 1; display: flex; align-items: center; gap: 8px;
+  padding: 0; margin: 0; color: var(--text-muted); font-size: 14px;
+  text-transform: none; letter-spacing: 0;
+}
+html[data-theme] .ux-sort__select {
+  min-height: 44px; max-width: 100%; padding: 8px 12px;
+  border-radius: var(--control-radius); border: 1px solid var(--border);
+  background: var(--bg-card); color: var(--text); font-size: 14px;
+}
+html[data-theme] .ux-sort__select option { background: var(--bg-card); color: var(--text); }
+html[data-theme] .ux-tag-filter {
+  grid-column: 2; display: flex; justify-content: flex-end; flex-wrap: wrap;
+  overflow: visible; gap: 4px; margin: 0; padding: 0;
+}
+html[data-theme] .category-filter {
+  grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 4px;
+  padding: 8px 0; margin: 0; max-width: 100%; min-width: 0;
+  border-bottom: 1px solid var(--border);
+}
+html[data-theme] .category-filter::after,
+html[data-theme] .ux-tag-filter::after { content: none; }
+html[data-theme] .category-filter__btn,
+html[data-theme] .ux-tag-filter__pill {
+  min-height: 44px !important; min-width: 44px; flex-shrink: 0 !important;
+  padding: 8px 12px; border: 1px solid transparent !important;
+  background: transparent !important; color: var(--text-muted) !important;
+  border-radius: var(--control-radius) !important; box-shadow: none !important;
+  text-transform: none !important; letter-spacing: 0 !important;
+  font-size: 14px !important; font-weight: 400 !important;
+}
+html[data-theme] .category-filter__btn.active,
+html[data-theme] .category-filter__btn[aria-pressed='true'],
+html[data-theme] .ux-tag-filter__pill[aria-pressed='true'] {
+  background: var(--text) !important; color: var(--bg) !important;
+  border-color: var(--text) !important; font-weight: 700 !important; box-shadow: none !important;
+}
+html[data-theme] .category-filter__count {
+  background: transparent !important; color: inherit !important;
+  padding: 0; margin-left: 8px; font-size: 12px; font-variant-numeric: tabular-nums;
+}
+html[data-theme] .ux-tag-filter__pill[data-tag='hacked'][aria-pressed='true'] {
+  background: var(--hacked) !important; border-color: var(--hacked) !important; color: var(--white) !important;
+}
+html[data-theme] .ux-result-status {
+  grid-column: 1 / -1; margin: 0; padding: 4px 0;
+  color: var(--text-muted) !important; font-size: 14px;
+}
+.ux-recent, .ux-clear-filters, .app__empty { grid-column: 1 / -1; }
+/* One continuous shelf: featured entries no longer leave half a row empty. */
+html[data-theme] .bento-grid {
+  grid-column: 1 / -1; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px; min-width: 0;
+}
+html[data-theme] .bento-grid__featured,
+html[data-theme] .bento-grid__standard { display: contents; }
+html[data-theme] .bento-grid .game-card {
+  display: flex; grid-column: auto; min-width: 0; height: 100%;
+  background: var(--bg-card) !important; border: 1px solid var(--border) !important;
+  border-radius: var(--radius) !important; box-shadow: none !important;
+  opacity: 1 !important; transform: none !important; will-change: auto !important;
+}
+html[data-theme] .game-card--featured::before,
+html[data-theme] .game-card--featured::after,
+html[data-theme] .game-card__glow { display: none !important; }
+html[data-theme] .bento-grid .game-card__thumb {
+  aspect-ratio: 2 / 1 !important; background: var(--tile) !important;
+  position: relative; overflow: hidden; min-width: 0;
+}
+html[data-theme] .game-card__icon {
+  width: 100%; height: 100%; filter: none !important;
+  display: grid; place-items: center;
+}
+html[data-theme] .game-card__thumb-img {
+  width: 100%; height: 100%; object-fit: cover; display: block;
+}
+/* Keep the legacy glyph markup out of the shelf; titles supply safe initials. */
+.game-card__icon:not(:has(img)) > svg { display: none; }
+.game-card__icon:not(:has(img))::after {
+  content: attr(data-initial); font-family: var(--heading); font-size: 64px;
+  color: var(--text); line-height: 1; text-shadow: none;
+}
+html[data-theme] .game-card__body {
+  padding: 12px; gap: 8px; min-width: 0; flex: 1;
+}
+html[data-theme] .game-card__header { display: block; min-width: 0; }
+html[data-theme] .game-card__title {
+  font-family: var(--sans); font-size: 18px !important; font-weight: 700 !important;
+  line-height: 1.25; color: var(--text) !important;
+  min-height: 45px; min-width: 0; width: 100%; margin: 0;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+  white-space: normal; overflow: hidden; overflow-wrap: break-word;
+}
+html[data-theme] .game-card__desc { display: none; }
+html[data-theme] .game-card__category {
+  position: absolute; top: 8px; left: 8px; max-width: calc(100% - 16px); z-index: 3;
+  background: var(--bg-card) !important; color: var(--text-muted) !important;
+  border: 0; border-radius: var(--badge-radius) !important; padding: 4px 8px !important;
+  font: 12px/16px var(--sans); font-size: 12px !important; font-weight: 400 !important;
+  text-transform: none !important; letter-spacing: 0 !important;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.game-card__category::first-letter { text-transform: uppercase; }
+html[data-theme] .bento-grid .game-card__tags {
+  position: absolute; top: 8px; left: 8px; margin: 0; z-index: 3;
+}
+/* Player/co-op metadata lives in top-level filters and the detail panel. */
+.bento-grid .game-card__tag:not(.game-card__tag--hacked) { display: none; }
+.bento-grid .game-card:has(.game-card__tag--hacked) .game-card__category { display: none; }
+html[data-theme] .game-card__tag {
+  min-height: 44px; min-width: 44px; flex-shrink: 0 !important;
+  padding: 8px; border: 0; border-radius: var(--badge-radius);
+  font-size: 13px; font-weight: 400; text-transform: none; letter-spacing: 0;
+  background: var(--bg-card) !important; color: var(--text) !important;
+}
+html[data-theme] .game-card__tag--hacked { text-transform: capitalize;
+  background: var(--hacked) !important; color: var(--white) !important;
+}
+html[data-theme] .game-card__actions { gap: 8px; padding: 0; margin-top: auto; }
+html[data-theme] .game-card__play,
+html[data-theme] .ux-detail__play,
+html[data-theme] .ux-clear-filters,
+html[data-theme] .random-game-btn,
+html[data-theme] .proxy-launcher__btn {
+  background: #000 !important; color: var(--white) !important;
+  border: 1px solid var(--border) !important; border-radius: 999px !important;
+  min-height: 44px !important; min-width: 44px; flex-shrink: 0 !important;
+  padding: 8px 16px; font-size: 15px !important; font-weight: 700 !important;
+  text-transform: none; letter-spacing: 0; box-shadow: none !important; filter: none !important;
+}
+html[data-theme] .game-card__fav,
+html[data-theme] .game-card__info,
+html[data-theme] .search-bar__clear {
+  position: static; width: 44px !important; height: 44px !important;
+  min-width: 44px; min-height: 44px; flex: 0 0 44px;
+  background: transparent !important; color: var(--text-muted) !important;
+  border: 0; border-radius: var(--control-radius); box-shadow: none !important;
+}
+html[data-theme] .game-card__fav.active { color: var(--text) !important; }
+html[data-theme] .game-card__fav.active svg { fill: currentColor; }
+html[data-theme] .app__footer {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: center;
+  gap: 16px; padding: 16px 0; margin-top: 24px; color: var(--text-muted);
+}
+html[data-theme] .random-game-btn,
+html[data-theme] .proxy-launcher { position: static !important; inset: auto !important; margin: 0; }
+html[data-theme] .proxy-launcher__btn { display: inline-flex; align-items: center; gap: 8px; }
+html[data-theme] .ux-detail__panel,
+html[data-theme] .game-modal__content,
+html[data-theme] .app__empty {
+  background: var(--bg-card) !important; color: var(--text) !important;
+  border: 1px solid var(--border); border-radius: var(--radius); box-shadow: none !important;
+}
+html[data-theme] .ux-detail__title { font-family: var(--sans); color: var(--text); }
+html[data-theme] .ux-detail__cat,
+html[data-theme] .ux-detail__players { background: var(--bg); color: var(--text-muted); }
+html[data-theme] .ux-detail__desc,
+html[data-theme] .ux-detail__howto { color: var(--text-muted); }
+html[data-theme] .ux-detail__close { min-height: 44px; color: var(--text); }
+html[data-theme] .ux-recent__chip { background: var(--bg-card); color: var(--text); }
+/* No scattered animation, glow or gradient, including bundle skeletons. */
+html[data-theme] .app *,
+html[data-theme] .theme-toggle,
+html[data-theme] .random-game-btn,
+html[data-theme] .proxy-launcher__btn {
+  animation: none !important; transition: none !important; background-image: none !important;
+}
+.skeleton::before { display: none; }
+html[data-theme] :is(button, a, select, textarea, [tabindex]):focus-visible {
+  outline: 2px solid var(--focus) !important; outline-offset: 2px !important;
 }
 @media (hover: hover) {
-  .bento-grid .game-card:hover {
-    transform: translateY(-3px) !important;
+  html[data-theme] .bento-grid .game-card:hover {
+    border-color: var(--text) !important; box-shadow: 0 4px 12px #00000026 !important;
   }
-  .category-filter__btn:hover,
-  .ux-tag-filter__pill:hover {
-    transform: none !important;
-  }
+  html[data-theme] .category-filter__btn:not([aria-pressed='true']):not(.active):hover,
+  html[data-theme] .ux-tag-filter__pill:not([aria-pressed='true']):hover,
+  html[data-theme] .game-card__fav:hover,
+  html[data-theme] .game-card__info:hover { color: var(--text) !important; border-color: var(--border) !important; }
+  html[data-theme] .game-card__play:hover { border-color: var(--white) !important; background: #000 !important; }
 }
-@media (hover: none) {
-  .bento-grid .game-card:hover,
-  .category-filter__btn:hover,
-  .ux-recent__chip:hover,
-  .ux-clear-filters:hover,
-  .theme-toggle:hover,
-  .random-game-btn:hover,
-  .proxy-launcher__btn:hover,
-  .game-card__info:hover {
-    transform: none !important;
-  }
+@media (max-width: 900px) {
+  html[data-theme] .app { padding: 16px; }
+  html[data-theme] .app__header { grid-template-columns: minmax(0, 1fr) 44px; gap: 12px; }
+  .search-bar { grid-row: 2; grid-column: 1 / -1; }
+  html[data-theme] .search-bar { max-width: none; }
+  .theme-toggle { grid-row: 1; grid-column: 2; }
+  html[data-theme] .bento-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+  html[data-theme] .game-card__thumb { max-height: 160px; }
 }
-
-/* --- 4. Clamping: two-line title, one-line meta with ellipsis ----------
-   itch.io (.game_title line-clamp:2) and armormgames.com (.tags
-   ellipsis), pattern 4. The card title clamps to two lines; the meta
-   line under it (description) becomes a single ellipsised line so
-   every card in a row keeps a predictable rhythm. */
-.game-card__header {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  gap: 6px;
-}
-.game-card__category {
-  justify-self: start;
-}
-.game-card__tags {
-  margin-top: 0;
-}
-.game-card__title {
-  min-width: 0;
-  width: 100%;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  white-space: normal;
-  overflow-wrap: break-word;
-  text-overflow: clip;
-  overflow: hidden;
-}
-.game-card__desc {
-  display: block;
-  -webkit-line-clamp: none;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-/* --- 5. Pill filter and sort chips: 44px with inverted aria-pressed ----
-   crazygames.com pill shape (pattern 5): every chip is a 44px touch
-   target; the pressed/active state inverts (accent fill, dark on-accent
-   text, 6.5:1) instead of relying on a subtle tint. Covers the bundle's
-   class-based .active state and portal-ux.js aria-pressed state. */
-.category-filter__btn,
-.ux-tag-filter__pill,
-.ux-recent__chip,
-.ux-clear-filters,
-.game-card__tag,
-.game-card__play {
-  min-height: 44px !important;
-  min-width: 44px;
-  flex-shrink: 0 !important;
-}
-.game-card__fav,
-.game-card__info,
-.theme-toggle {
-  width: 44px !important;
-  height: 44px !important;
-  min-width: 44px;
-  min-height: 44px;
-  flex: 0 0 44px;
-}
-.category-filter__btn {
-  border-radius: 999px !important;
-}
-.category-filter__btn.active,
-.category-filter__btn[aria-pressed="true"],
-.ux-tag-filter__pill[aria-pressed="true"] {
-  background: #06b6d4 !important;
-  border-color: #06b6d4 !important;
-  color: #08252b !important;
-  box-shadow: none !important;
-  font-weight: 600 !important;
-}
-html[data-theme="light"] .category-filter__btn.active,
-html[data-theme="light"] .category-filter__btn[aria-pressed="true"] {
-  background: #1d1d1f !important;
-  border-color: #1d1d1f !important;
-  color: #fff !important;
-}
-html[data-theme="light"] .ux-tag-filter__pill[aria-pressed="true"] {
-  background: #000 !important;
-  border-color: #000 !important;
-  color: #fff !important;
-}
-
-/* --- 7. Empty state: one sentence plus one 44px action -----------------
-   itch.io browse + gamejolt.com shelf behavior (pattern 6): the empty
-   result renders in place as a dashed flat card with a sentence and a
-   hint, and the single "Clear filters" action (portal-ux.js inserts it
-   right after this block) is one centered 44px pill. */
-.app__empty {
-  min-height: 0;
-  padding: 40px 16px !important;
-  background: var(--bg-card);
-  border: 1px dashed var(--border);
-  border-radius: var(--radius);
-}
-.app__empty-text {
-  margin: 0 0 6px;
-  font-size: 18px;
-}
-.app__empty-hint {
-  margin: 0 0 16px;
-  font-size: 15px;
-}
-.app__empty + .ux-clear-filters {
-  align-self: center;
-  display: inline-flex;
-  align-items: center;
-  border-radius: 999px !important;
-  font-size: 15px !important;
-}
-
-/* --- 8. Motion budget and focus rings ----------------------------------
-   crazygames.com reduced-motion kill switch (pattern 8): every
-   transition and animation in this file collapses under
-   prefers-reduced-motion, hover lift included. Focus-visible rings
-   are flat 2px outlines: #06b6d4 on dark (7.9:1 against #0b0b10) and
-   #0e7490 on light (4.9:1 against #f5f5f7), both above the 3:1 non-
-   text AA threshold. The skip link is excluded from transform:none
-   because it is positioned by transform. */
-.category-filter__btn:focus-visible,
-.ux-tag-filter__pill:focus-visible,
-.ux-sort__select:focus-visible,
-.ux-recent__chip:focus-visible,
-.ux-clear-filters:focus-visible,
-.game-card__play:focus-visible,
-.game-card__fav:focus-visible,
-.game-card__info:focus-visible,
-.game-card__tag:focus-visible,
-.search-bar__clear:focus-visible,
-.theme-toggle:focus-visible,
-.random-game-btn:focus-visible,
-.game-modal__close:focus-visible,
-.proxy-launcher__btn:focus-visible,
-.skip-link:focus,
-.app__empty button:focus-visible {
-  outline: 2px solid #06b6d4 !important;
-  outline-offset: 2px !important;
-}
-html[data-theme="light"] .category-filter__btn:focus-visible,
-html[data-theme="light"] .ux-tag-filter__pill:focus-visible,
-html[data-theme="light"] .ux-sort__select:focus-visible,
-html[data-theme="light"] .ux-recent__chip:focus-visible,
-html[data-theme="light"] .ux-clear-filters:focus-visible,
-html[data-theme="light"] .game-card__play:focus-visible,
-html[data-theme="light"] .game-card__fav:focus-visible,
-html[data-theme="light"] .game-card__info:focus-visible,
-html[data-theme="light"] .game-card__tag:focus-visible,
-html[data-theme="light"] .search-bar__clear:focus-visible,
-html[data-theme="light"] .theme-toggle:focus-visible,
-html[data-theme="light"] .random-game-btn:focus-visible,
-html[data-theme="light"] .game-modal__close:focus-visible,
-html[data-theme="light"] .proxy-launcher__btn:focus-visible,
-html[data-theme="light"] .skip-link:focus,
-html[data-theme="light"] .app__empty button:focus-visible {
-  outline-color: #0e7490 !important;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-    scroll-behavior: auto !important;
-  }
-  html {
-    scroll-behavior: auto !important;
-  }
-  .bento-grid .game-card,
-  .bento-grid .game-card:hover,
-  .category-filter__btn,
-  .category-filter__btn:hover,
-  .ux-tag-filter__pill,
-  .ux-recent__chip,
-  .ux-clear-filters,
-  .game-card__play,
-  .game-card__fav,
-  .game-card__info,
-  .theme-toggle,
-  .random-game-btn,
-  .proxy-launcher__btn {
-    transition: none !important;
-    animation: none !important;
-    transform: none !important;
-  }
-}
-
-/* --- 9. House rule: solid black action buttons -------------------------
-   UNBLOCKMATH house style: flat solid colors only, so every action
-   button is solid black (#000) with white text (21:1 AA in both
-   themes) and never accent-filled or multi-color. Covers card Play,
-   modal Play, Clear filters, Random game, error retry and proxy
-   launcher. Filter chips and icon-only controls (theme toggle,
-   modal close, search clear) keep their existing chrome - they are
-   state toggles, not actions. Declared last so the !important rules
-   win the cascade over the inline override block in index.html. */
-.game-card__play,
-.ux-detail__play,
-.ux-clear-filters,
-.random-game-btn,
-.app__error button,
-.proxy-launcher__btn {
-  background: #000 !important;
-  color: #fff !important;
-}
-.game-card__play:hover,
-.ux-detail__play:hover,
-.ux-clear-filters:hover,
-.random-game-btn:hover,
-.app__error button:hover,
-.proxy-launcher__btn:hover {
-  background: #262626 !important;
-}
-
-/* --- 10. Portal layout and neutral theme tokens ------------------------ */
-html[data-theme="light"] {
-  --bg: #f5f5f7;
-  --bg-card: #fff;
-  --bg-card-hover: #f0f0f2;
-  --border: #d5d5da;
-  --text: #1d1d1f;
-  --text-muted: #626268;
-  --text-h: #1d1d1f;
-}
-html[data-theme="dark"] {
-  --bg: #0b0b10;
-  --bg-card: #17171c;
-  --bg-card-hover: #202026;
-  --border: #34343c;
-  --text: #f4f4f7;
-  --text-muted: #b3b3bf;
-  --text-h: #f4f4f7;
-}
-
-.app,
-.app__main,
-.app__header,
-.ux-sort,
-.ux-tag-filter,
-.category-filter {
-  min-width: 0;
-  max-width: 100%;
-}
-.app {
-  width: 100%;
-}
-.app__main {
-  gap: .75rem;
-}
-.app__header {
-  margin-bottom: .75rem !important;
-  padding-right: 44px;
-}
-.ux-sort {
-  margin: .25rem 0;
-  padding: 0;
-}
-.ux-sort__select {
-  min-width: 0;
-  max-width: 100%;
-}
-.ux-tag-filter,
-.category-filter {
-  margin: 0;
-  padding: .25rem 0;
-}
-
-/* Active filters are deliberately neutral in both themes. */
-html[data-theme="light"] .category-filter__btn.active,
-html[data-theme="dark"] .category-filter__btn.active,
-html[data-theme="light"] .category-filter__btn[aria-pressed="true"],
-html[data-theme="dark"] .category-filter__btn[aria-pressed="true"],
-html[data-theme="light"] .ux-tag-filter__pill[aria-pressed="true"],
-html[data-theme="dark"] .ux-tag-filter__pill[aria-pressed="true"] {
-  background: #000 !important;
-  border-color: #000 !important;
-  color: #fff !important;
-  box-shadow: none !important;
-}
-html[data-theme="light"] .category-filter__btn.active .category-filter__count,
-html[data-theme="dark"] .category-filter__btn.active .category-filter__count,
-html[data-theme="light"] .category-filter__btn[aria-pressed="true"] .category-filter__count,
-html[data-theme="dark"] .category-filter__btn[aria-pressed="true"] .category-filter__count {
-  background: #fff !important;
-  color: #000 !important;
-}
-
-.ux-recent__chip,
-.ux-detail__players {
-  background: var(--bg-card) !important;
-  border: 1px solid var(--border) !important;
-  color: var(--text) !important;
-}
-
-/* Native scroll tracks plus a partial next chip make overflow discoverable. */
 @media (max-width: 768px) {
-  .category-filter,
-  .ux-tag-filter {
-    overflow-x: auto;
-    scrollbar-width: thin !important;
-    scrollbar-color: var(--text-muted) var(--bg);
-    padding-bottom: 8px;
-    scroll-padding-inline: 4px;
+  html[data-theme] .category-filter {
+    flex-wrap: nowrap; overflow-x: auto; scrollbar-width: thin;
+    scrollbar-color: var(--text-muted) var(--bg); scroll-padding-inline: 4px;
   }
-  .category-filter::after,
-  .ux-tag-filter::after {
-    content: '↔' / '';
-    position: sticky;
-    right: 0;
-    display: grid;
-    place-items: center;
-    flex: 0 0 24px;
-    margin-left: -24px;
-    z-index: 1;
-    background: var(--bg);
-    color: var(--text-muted);
-    pointer-events: none;
-  }
-  .category-filter::-webkit-scrollbar,
-  .ux-tag-filter::-webkit-scrollbar {
-    display: block !important;
-    height: 6px;
-  }
-  .category-filter::-webkit-scrollbar-thumb,
-  .ux-tag-filter::-webkit-scrollbar-thumb {
-    background: var(--text-muted);
-    border-radius: 3px;
-  }
-  .category-filter::-webkit-scrollbar-track,
-  .ux-tag-filter::-webkit-scrollbar-track {
-    background: var(--bg);
-  }
+  html[data-theme] .category-filter::-webkit-scrollbar { display: block; height: 6px; }
+  html[data-theme] .category-filter::-webkit-scrollbar-thumb { background: var(--text-muted); }
 }
-
 @media (max-width: 479.98px) {
-  .bento-grid__standard,
-  .bento-grid__featured {
-    grid-template-columns: minmax(0, 1fr) !important;
-    gap: 8px !important;
-  }
-  .bento-grid .game-card {
-    display: grid;
-    grid-template-columns: minmax(88px, 28%) minmax(0, 1fr);
-    grid-column: auto;
-    border-radius: 12px !important;
-  }
-  .bento-grid .game-card__thumb {
-    aspect-ratio: auto !important;
-    align-self: stretch;
-  }
-  .game-card__body {
-    min-width: 0;
-    gap: 6px;
-    padding: 10px;
-  }
-  .game-card__actions {
-    padding-top: 0;
-  }
-  .game-card__desc {
-    display: none;
-  }
-  .game-card__info {
-    left: 8px;
-    right: auto;
-  }
-  .game-card--featured::after {
-    top: auto !important;
-    bottom: 8px;
-    left: 6px !important;
-    padding: 4px 6px !important;
-    font-size: .58rem !important;
-    letter-spacing: .04em !important;
-  }
+  html[data-theme] .app { padding: 12px max(12px, env(safe-area-inset-right)) 12px max(12px, env(safe-area-inset-left)); }
+  html[data-theme] .app__logo-text { font-size: 20px !important; }
+  html[data-theme] .app__header { margin-bottom: 12px !important; padding-bottom: 12px !important; }
+  html[data-theme] .app__main { grid-template-columns: minmax(0, 1fr); gap: 8px; }
+  html[data-theme] .ux-sort { justify-content: space-between; }
+  html[data-theme] .ux-sort__select { flex: 1; max-width: 220px; }
+  html[data-theme] .ux-tag-filter { grid-column: 1; justify-content: flex-start; }
+  html[data-theme] .ux-tag-filter__pill { padding: 8px; }
+  html[data-theme] .category-filter { padding-top: 0; }
+  html[data-theme] .bento-grid { grid-template-columns: minmax(0, 1fr); gap: 8px; }
+  html[data-theme] .bento-grid .game-card { display: grid; grid-template-columns: 96px minmax(0, 1fr); }
+  html[data-theme] .bento-grid .game-card__thumb { aspect-ratio: auto !important; align-self: stretch; max-height: none; }
+  .game-card__icon:not(:has(img))::after { font-size: 48px; }
+  .game-card:has(.game-card__tag--hacked) .game-card__icon:not(:has(img))::after { transform: translateY(16px); }
+  html[data-theme] .game-card__body { padding: 8px; gap: 8px; }
+  html[data-theme] .game-card__title { font-size: 16px !important; line-height: 20px; min-height: 40px; }
+  html[data-theme] .game-card__category { left: 4px; top: 4px; padding: 4px !important; max-width: calc(100% - 8px); }
+  html[data-theme] .bento-grid .game-card__tags { left: 4px; top: 4px; }
+  html[data-theme] .game-card__actions { gap: 4px; }
+  html[data-theme] .game-card__play { padding: 8px; gap: 4px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
 }
