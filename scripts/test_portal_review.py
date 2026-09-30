@@ -22,8 +22,7 @@ def wait_for_portal(page, expected):
         """expected => document.querySelectorAll('.game-card').length === expected""",
         arg=expected,
     )
-    for image in page.locator('img').all():
-        image.scroll_into_view_if_needed()
+    page.locator('img').evaluate_all("images => images.forEach(image => image.loading = 'eager')")
     page.wait_for_function(
         """() => Array.from(document.images).every(img => img.complete && img.naturalWidth > 0)"""
     )
@@ -72,6 +71,18 @@ def check_mobile_cards(page, width):
     })""")
 
 
+def check_category_counts(page, games):
+    assert page.evaluate("() => !!(document.querySelector('.ux-sort').compareDocumentPosition(document.querySelector('.ux-tag-filter')) & Node.DOCUMENT_POSITION_FOLLOWING)")
+    expected = {'all': len(games)}
+    for game in games:
+        expected[game['cat']] = expected.get(game['cat'], 0) + 1
+    actual = page.locator('.category-filter__btn').evaluate_all("""buttons => Object.fromEntries(buttons.map(button => {
+        const count = button.querySelector('.category-filter__count');
+        return [button.dataset.catId, count ? Number(count.textContent) : null];
+    }))""")
+    assert actual == expected, (actual, expected)
+
+
 def main():
     games = json.loads((ROOT / 'games.json').read_text())
     normalized = []
@@ -98,6 +109,25 @@ def main():
             page = context.new_page()
             page.goto(f'http://127.0.0.1:{server.server_port}/index.html', wait_until='networkidle')
             wait_for_portal(page, len(games))
+            # Reproduce an early/recreated chip retaining a stale rendered count.
+            page.evaluate("""() => {
+                const action = document.querySelector('.category-filter__btn[data-cat-id="action"]');
+                action.removeAttribute('data-cat-id');
+                action.querySelector('.category-filter__count').textContent = '0';
+                const empty = document.createElement('button');
+                empty.className = 'category-filter__btn';
+                empty.dataset.catId = 'empty';
+                empty.textContent = 'Empty';
+                document.querySelector('.category-filter').appendChild(empty);
+            }""")
+            page.wait_for_function("""() => {
+                const action = document.querySelector('.category-filter__btn[data-cat-id="action"]');
+                const empty = document.querySelector('.category-filter__btn[data-cat-id="empty"]');
+                return action && Number(action.querySelector('.category-filter__count')?.textContent) > 0 &&
+                    empty && !empty.querySelector('.category-filter__count');
+            }""")
+            page.locator('.category-filter__btn[data-cat-id="empty"]').evaluate('el => el.remove()')
+            check_category_counts(page, games)
             assert page.locator('.game-card__play').count() == len(games)
             assert page.locator('.game-card__play').evaluate_all("els => els.every(el => !el.disabled && el.textContent.includes('Play'))")
             assert page.locator('.ux-tag-filter__pill').count() <= 4
@@ -141,15 +171,28 @@ def main():
                     wait_for_portal(page, len(games))
                     assert page.locator('html').get_attribute('data-theme') == theme
                     check_mobile_cards(page, width)
+                    check_category_counts(page, games)
+                    assert page.locator('.category-filter').evaluate("""nav => {
+                        const box = nav.getBoundingClientRect();
+                        return nav.scrollWidth > nav.clientWidth && getComputedStyle(nav).scrollbarWidth === 'thin' &&
+                            [...nav.children].some(chip => {
+                                const c = chip.getBoundingClientRect();
+                                return c.left < box.right && c.right > box.right;
+                            });
+                    }""")
                     page.evaluate("window.scrollTo({top: 0, left: 0, behavior: 'instant'})")
                     assert page.locator('.app__header').evaluate('el => el.getBoundingClientRect().top') >= 0
                     page.screenshot(path=str(SHOT_DIR / f'mobile-{width}-{theme}.png'))
                     page.locator('.ux-tag-filter__pill[data-tag="hacked"]').click()
                     page.wait_for_timeout(300)
                     check_mobile_cards(page, width)
+                    check_category_counts(page, games)
                     long_card = page.locator('.game-card[data-title="Fireboy and Watergirl Hacked (Light Temple)"]')
                     long_card.scroll_into_view_if_needed()
                     page.screenshot(path=str(SHOT_DIR / f'mobile-{width}-{theme}-hacked.png'))
+                    page.locator('.category-filter__btn[data-cat-id="action"]').click()
+                    page.wait_for_timeout(300)
+                    check_category_counts(page, games)
             browser.close()
     finally:
         server.shutdown()

@@ -604,7 +604,10 @@
   function applyFilterMetadata() {
     $$('.category-filter__btn').forEach(function (b) {
       if (!b.hasAttribute('data-cat-id')) {
-        var id = textOf(b).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'all';
+        var label = b.cloneNode(true);
+        var count = $('.category-filter__count', label);
+        if (count) count.remove();
+        var id = textOf(label).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'all';
         b.setAttribute('data-cat-id', id);
       }
     });
@@ -1232,12 +1235,13 @@
       sortCards();
     });
     sortControl.appendChild(select);
-    filter.parentNode.insertBefore(sortControl, filter);
+    filter.parentNode.insertBefore(sortControl, tagFilterRow || filter);
     sortCards();
   }
 
   function updateCategoryCounts() {
     if (!_gamesList.length) return;
+    applyFilterMetadata();
     var counts = {};
     var total = _gamesList.length;
     _gamesList.forEach(function(g) {
@@ -1254,6 +1258,7 @@
       } else {
         count = counts[catId] || 0;
       }
+      if (!count) return;
       var span = document.createElement('span');
       span.className = 'category-filter__count';
       span.textContent = String(count);

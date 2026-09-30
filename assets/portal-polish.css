@@ -371,6 +371,46 @@ html[data-theme="dark"] .category-filter__btn[aria-pressed="true"] .category-fil
   color: var(--text) !important;
 }
 
+/* Native scroll tracks plus a partial next chip make overflow discoverable. */
+@media (max-width: 768px) {
+  .category-filter,
+  .ux-tag-filter {
+    overflow-x: auto;
+    scrollbar-width: thin !important;
+    scrollbar-color: var(--text-muted) var(--bg);
+    padding-bottom: 8px;
+    scroll-padding-inline: 4px;
+  }
+  .category-filter::after,
+  .ux-tag-filter::after {
+    content: '↔' / '';
+    position: sticky;
+    right: 0;
+    display: grid;
+    place-items: center;
+    flex: 0 0 24px;
+    margin-left: -24px;
+    z-index: 1;
+    background: var(--bg);
+    color: var(--text-muted);
+    pointer-events: none;
+  }
+  .category-filter::-webkit-scrollbar,
+  .ux-tag-filter::-webkit-scrollbar {
+    display: block !important;
+    height: 6px;
+  }
+  .category-filter::-webkit-scrollbar-thumb,
+  .ux-tag-filter::-webkit-scrollbar-thumb {
+    background: var(--text-muted);
+    border-radius: 3px;
+  }
+  .category-filter::-webkit-scrollbar-track,
+  .ux-tag-filter::-webkit-scrollbar-track {
+    background: var(--bg);
+  }
+}
+
 @media (max-width: 479.98px) {
   .bento-grid__standard,
   .bento-grid__featured {
