@@ -287,3 +287,30 @@ html[data-theme="light"] .app__empty button:focus-visible {
     transform: none !important;
   }
 }
+
+/* --- 9. House rule: solid black action buttons -------------------------
+   UNBLOCKMATH house style: flat solid colors only, so every action
+   button is solid black (#000) with white text (21:1 AA in both
+   themes) and never accent-filled or multi-color. Covers card Play,
+   modal Play, Clear filters, Random game, error retry and proxy
+   launcher. Filter chips and icon-only controls (theme toggle,
+   modal close, search clear) keep their existing chrome - they are
+   state toggles, not actions. Declared last so the !important rules
+   win the cascade over the inline override block in index.html. */
+.game-card__play,
+.ux-detail__play,
+.ux-clear-filters,
+.random-game-btn,
+.app__error button,
+.proxy-launcher__btn {
+  background: #000 !important;
+  color: #fff !important;
+}
+.game-card__play:hover,
+.ux-detail__play:hover,
+.ux-clear-filters:hover,
+.random-game-btn:hover,
+.app__error button:hover,
+.proxy-launcher__btn:hover {
+  background: #262626 !important;
+}
