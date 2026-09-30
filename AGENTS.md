@@ -6,13 +6,11 @@ Operating rules for any agent (opencode, Claude Code, Codex, Hermes) working in 
 
 "UNBLOCKMATH // ARCADE" — a browser games site. The repo ROOT is the deployed static site (Netlify, `netlify.toml` publish = "."). Games live in `Games/<Name>/` as self-contained static HTML/CSS/JS folders. `games.json` at root is the catalog; the portal JS fetches it at runtime, so appending an entry makes a game appear without rebuilding.
 
-## Games ARE checked out locally (Sep 28, 2026)
+## CRITICAL: Games/ is SPARSE-EXCLUDED + games are NEVER self-made
 
-**Games/ is fully materialized on the Pi (~1.9 GB, 125 dirs) and the repo is a proper git clone.** Confirm before assuming otherwise: `ls Games | wc -l`. Do NOT re-read old instructions that claim Games/ is sparse-only (that policy was superseded when disk pressure forced a re-checkout). If a future swarm finds Games/ absent, restore it with:
-```
-git clone --no-checkout --filter=blob:none https://github.com/lzeo2/TestRepoGame.git
-cd TestRepoGame && printf '/*\n!/*/\n/Games/\n' > .git/info/sparse-checkout && git read-tree -mu HEAD
-```
+**The repo is a git clone with sparse checkout ENABLED and Games/ EXCLUDED from the working tree.** Full game content lives in origin (GitHub, Netlify-deployed), not on the Pi disk. Do not assume `Games/` exists locally; when a task needs one game's files use `git show origin/main:Games/<Name>/index.html > /tmp/game.html` or a temporary narrow `git sparse-checkout add Games/<Name>`.
+
+**Games are NEVER self-made.** Every game in Games/ is ingested/vendored content. Swarms must BUILD-PROTECT this: phase-3-style "make a new game" is FORBIDDEN without an explicit operator order in the kickoff prompt. Any `feat: add <Name>` must carry ingested-source evidence (attribution or source URL) in docs/ - a from-scratch game has no such evidence and must not land.
 
 **When adding a new game:**
 1. Create `Games/<Name>/` locally (it will be new, not in git yet)
