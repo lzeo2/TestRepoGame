@@ -10,7 +10,7 @@ import json, os, sys, threading, argparse, http.server
 from playwright.sync_api import sync_playwright
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-PORT = 8767
+PORT = int(os.environ.get("SMOKE_PORT", "8767"))  # override so parallel gate runs don't collide
 WAIT_MS = 8000  # real-time wait per game
 
 BENIGN = ("favicon", "react devtools", "autofill", "source map", "devtools",
