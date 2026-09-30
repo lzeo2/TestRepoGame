@@ -1,5 +1,16 @@
 # Hextris port evidence
 
+## Run disposition: provenance candidate only
+
+The upstream source ingestion is committed as `179c8a2`. It is NOT registered
+in `games.json`, has no registration commit, and is not approved for release.
+Operator disposition after two capped polish-worker failures: **WONTFIX this
+run**. Unfinished polish and its unverified regression script were discarded.
+The earlier targeted worker checks below are not a full QA-gate pass. The final
+registered-catalog gate returned `0/120`, with sparse-missing local assets.
+Final UI review found mobile Pause-label overflow, incomplete image-to-native
+button conversion, and stale Help/store copy. Those findings remain deferred.
+
 ## Source and licensing
 
 - Upstream: https://github.com/Hextris/hextris

@@ -1,5 +1,16 @@
 # 2048 port evidence
 
+## Run disposition: provenance candidate only
+
+The upstream source ingestion is committed as `02a2765`. It is NOT registered
+in `games.json`, has no registration commit, and is not approved for release.
+Operator disposition after two capped polish-worker failures: **WONTFIX this
+run**. Unfinished polish and its unverified regression script were discarded.
+The earlier targeted worker checks below are not a full QA-gate pass. The final
+registered-catalog gate returned `0/120`, with sparse-missing local assets.
+Final UI review found a specificity defect in win/lose action colors and
+low-contrast score labels; these remain deferred, not claimed fixed.
+
 ## Source and license
 
 - Upstream: https://github.com/gabrielecirulli/2048
