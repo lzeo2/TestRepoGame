@@ -4,11 +4,19 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#0b0b10" />
+    <meta name="theme-color" content="#101820" />
     <meta name="color-scheme" content="dark" />
     <title>UNBLOCKMATH // ARCADE</title>
-    <!-- Offline-first: no external font loads. The bundled stylesheet falls
-         back to local/system fonts (Inter -> system-ui stack). -->
+    <meta name="description" content="Browse the UNBLOCKMATH arcade by game, genre, or players." />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="UNBLOCKMATH // ARCADE" />
+    <meta property="og:description" content="Browse the UNBLOCKMATH arcade by game, genre, or players." />
+    <meta property="og:image" content="./assets/portal-share.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="UNBLOCKMATH arcade game shelf" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <!-- Licensed display/body fonts are vendored locally in assets/fonts/. -->
     <script>
       /* Storage denial shim (managed Chromebooks can disable site data).
          The minified bundle reads localStorage unguarded during init; if the
@@ -1686,7 +1694,7 @@
         <circle cx="16" cy="16" r="1.5" fill="currentColor"></circle>
         <circle cx="12" cy="12" r="1.5" fill="currentColor"></circle>
       </svg>
-      Random Game
+      Random game
     </button>
 
     <!-- Portal UX enhancement layer (authored, unminified): keyboard card
