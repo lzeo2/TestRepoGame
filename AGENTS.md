@@ -1,60 +1,132 @@
-# AGENTS.md — TestRepoGame
+# AGENTS.md - TestRepoGame
 
-Operating rules for any agent (opencode, Claude Code, Codex, Hermes) working in this repo. Read `docs/CODE_QUALITY.md` first — it is the code-quality contract and anti-vibe-coding standard. Read `docs/proxy.md` before touching anything proxy-related.
+Read `docs/CODE_QUALITY.md` first. Read `docs/proxy.md` before proxy work.
+These rules apply to every orchestrator and worker. Operator scope is not a
+license to skip attribution, security, review, or runtime verification.
 
-## What this repo is
+## The deployed site
 
-"UNBLOCKMATH // ARCADE" — a browser games site. The repo ROOT is the deployed static site (Netlify, `netlify.toml` publish = "."). Games live in `Games/<Name>/` as self-contained static HTML/CSS/JS folders. `games.json` at root is the catalog; the portal JS fetches it at runtime, so appending an entry makes a game appear without rebuilding.
+UNBLOCKMATH // ARCADE is a static browser-games portal. Netlify publishes the
+repository root (`publish = "."`). No build step is needed.
 
-## CRITICAL: Games/ is SPARSE-EXCLUDED + games are NEVER self-made
+- `games.json` is the runtime catalog, not generated documentation.
+- Games are self-contained static ports under `Games/<Name>/`.
+- Portal files: `index.html`, `assets/portal-polish.css`, `assets/portal-ux.js`.
+- Bundled `assets/index-*.js` has no source here. Do not hand-edit it.
+  Use authored CSS, HTML, and the existing UX layer for bounded changes.
+- `uv/` is the disabled-backend proxy launcher; `netlify/` holds functions.
+- Do not install build tooling or leave `node_modules` in this repository.
 
-**The repo is a git clone with sparse checkout ENABLED and Games/ EXCLUDED from the working tree.** Full game content lives in origin (GitHub, Netlify-deployed), not on the Pi disk. Do not assume `Games/` exists locally; when a task needs one game's files use `git show origin/main:Games/<Name>/index.html > /tmp/game.html` or a temporary narrow `git sparse-checkout add Games/<Name>`.
+## Sparse checkout is real
 
-**Games are NEVER self-made.** Every game in Games/ is ingested/vendored content. Swarms must BUILD-PROTECT this: phase-3-style "make a new game" is FORBIDDEN without an explicit operator order in the kickoff prompt. Any `feat: add <Name>` must carry ingested-source evidence (attribution or source URL) in docs/ - a from-scratch game has no such evidence and must not land.
+`Games/` is normally sparse-excluded. Missing local files do not mean missing
+GitHub or deployed content. The full game tree lives in Git and origin;
+Google Drive's `TestRepoGame-Games/` is a backup, not the source of truth.
 
-**When adding a new game:**
-1. Create `Games/<Name>/` locally (it will be new, not in git yet)
-2. Add entry to `games.json`
-3. `git add Games/<Name>/ games.json && git commit`
-4. `git push`
+- Inspect one file: `git show origin/main:Games/<Name>/index.html`.
+- Compare against `HEAD` before patching; origin may lag local commits.
+- If assets are required, use a temporary narrow checkout, never all Games
+  by default. Restore the original sparse selection after verification.
+- Use `git ls-files` / `git ls-tree` to establish existence and size.
+  Reference audits must include sparse-excluded content (`git grep --cached`).
+- Stage explicit paths with `git add --sparse` when required. Never `git add -A`.
 
-**When editing portal code (CSS, index.html, portal-ux.js):**
-- Work directly — no game checkout needed
-- These files are always checked out locally
+## Protected boundaries
 
-**Games live on GitHub** (full repo) + **Google Drive** (backup at `TestRepoGame-Games/` folder).
+1. `Games/Character AI/` is READ-ONLY. Never edit, move, delete, or restructure it.
+2. Eaglercraft must remain fully offline if present. Preserve its GPL-3.0
+   component note and Minecraft Java ownership requirement. Do not restore
+   a removed game without operator approval.
+3. `/bare/*` stays disabled. No proxy repointing or weaker Netlify security
+   without security sign-off.
+4. No secrets, personal emails, or machine-specific absolute paths in code,
+   reports, or Git history. Use relative paths in committed evidence.
+5. No new runtime third-party scripts, fonts, fetches, sockets, or assets.
+   Vendor legitimate dependencies locally; do not disguise a remote iframe
+   as an offline port. Existing violations are findings, not precedents.
+6. Evidence before deletion: grep tracked content, trace constructed paths,
+   and record consumers or their absence. Audit mentions alone do not prove
+   an asset is unused. Do not delete evidence merely for unfashionable prose.
+7. Check `df -h / | tail -1` before operations that consume disk. Below 2 GB
+   free: stop growing the workspace, commit safe work, and report the blocker.
+   No history rewrites, broad checkout, or garbage collection to evade this.
 
-## Golden rules (never violate)
+## Games: port first, never fabricate provenance
 
-1. **`Games/Character AI/` is READ-ONLY** — the Alsen chat game. Never move, edit, or restructure it.
-2. **No secrets in code or git history** — tokens, keys, emails, absolute local paths (`/home/...`). Use relative paths only.
-3. **Evidence before deletion** — never delete a file/dir without grepping the repo to prove it is unreferenced.
-4. **`/bare/*` proxy stays DISABLED** — do not re-enable, repoint, or weaken netlify.toml security settings without security sign-off.
-5. **Eaglercraft stays fully offline** — its wrapper must fetch nothing external; it carries a licensing note (GPL-3.0 components, requires owning Minecraft Java) — keep it.
-6. **Disk guard** — always check `df -h / | tail -1` before operations. Games are NOT local — do not assume `Games/` exists on disk.
+Default scope is existing games only. New games require an explicit operator
+order. This review run authorizes at most two new ports, starting at id 222
+if free. That authorization is run-specific, not standing permission.
 
-## Architecture quick facts
+- Prefer known, legitimately reusable open-source web games. Verify the
+  license, upstream revision, author, and assets before ingesting.
+- No from-scratch AI games, invented attribution, placeholder replacements,
+  or generated promotional writeups in this run. Stop if a source cannot be
+  verified. A mirror URL is not itself evidence of redistribution rights.
+- Each addition needs `docs/` source evidence: upstream URL, pinned revision,
+  license/asset terms, local modifications, and runnable verification.
+  Include correct human-readable author/source attribution in catalog desc.
+- Keep upstream notices and licenses with the vendored files. No permission
+  claim without evidence. No copyrighted ROM additions under a web-port order.
+- Catalog schema: `{id, title, cat, icon, desc, url, featured}`. IDs are unique
+  integers, URLs resolve to tracked files; optional tags/controls stay factual.
+- Check the actual current catalog for free IDs; memory is not an allocator.
+- Preserve working upstream gameplay. Patch wrappers and defects, not entire
+  engines. Do not add decorative launch screens over functional game menus.
+- New ports need clear controls, keyboard and touch input, a start/play path,
+  score or progress, completion/failure as appropriate, and restart/reset.
+  Do not invent incompatible win/lose states for open-ended upstream games.
 
-- `games.json` schema: `{id, title, cat, icon, desc, url, featured}` — unique int ids, urls must resolve to real files.
-- Each game dir: `index.html` + `script.js` + `style.css` (inline JS/CSS fine for tiny games). Every game needs a start screen, win/lose state, score, restart path, controls documented in-page, mobile + keyboard input.
-- Portal bundle: `assets/index-*.js` + `index-*.css` (minified, no source — polish via CSS + index.html only, per the Direction A decision).
-- `uv/` = Ultraviolet proxy launcher (backend disabled), `docs/` = docs + wiki content, `netlify/` = functions.
-- No build tooling. No node_modules. Repo must stay lean (currently ~1.9 GB across 125 games).
+## House UI and deslop
 
-## Workflow conventions
+Flat solid colors, black action buttons, readable system type. No gradients,
+no teal-on-green, no em-dashes in game-facing or portal copy.
 
-- Commit at milestones with clear prefixes: `feat:`, `fix:`, `chore:`, `docs:`.
-- Small bounded commits; never mix unrelated changes in one commit.
-- Verify with real commands and quote output (see docs/CODE_QUALITY.md §7): games.json parse + url check, external-fetch grep, `node --check`, `du` audit, `git status`.
-- **MANDATORY pre-push QA gate**: run `xvfb-run python3 scripts/smoke_test_games.py` — it loads EVERY registered game in a real browser, captures console errors + failed/4xx requests, and exits non-zero on any failure. Static checks are NOT sufficient: runtime bugs (missing files, undefined globals, broken fetches) only surface when the game actually loads. Any game that fails the gate must be fixed or explicitly reported before push.
-- Swarms (opencode multi-agent): orchestrator plans + delegates, workers implement, reviewer/mimo verifies, security-audit + ui-audit cover their domains. Anti-hang rules: small bounded subagent tasks, abandon after 2 failures, progress line per delegation, no dev servers, commit at milestones, no silent delegation > ~20 min.
-- Swarms MUST record scope/self-made status in the final report: did this run only work on existing games, or did it ADD new games? Every new game's build+register commit pair must be listed. (Sep 28, 2026 precedent: sweep added 5 games - EcoSphere 222, Hangman Rush 223, Pyramid Solitaire 224, Star Forge 225, Riddle Master 226 - all under the games.json schema above.)
-- Disk guard: check `df -h / | tail -1` before big operations; if free < 2 GB, stop, commit, report.
-- Report with evidence — never fabricate success.
+- Remove empty claims, AI-isms, redundant cards, duplicate filters, and
+  theatrical animation. Keep useful feedback, errors, and loading states.
+- Small diffs beat redesign layers. Reuse existing helpers and native features.
+- Visible focus, meaningful labels, 44px touch controls, readable contrast,
+  reduced motion, and mobile layouts are non-negotiable.
+- Review real desktop/mobile screenshots in both themes. A passing parser
+  does not establish a polished game or portal. Do not recolor upstream art
+  wholesale to force house style; apply it to our shell and copy.
 
-## Adding a game
+## Swarm discipline
 
-1. Create `Games/<Name>/` with a self-contained, mobile-friendly game.
-2. Append its entry to `games.json` (new id, valid schema).
-3. Validate: `python3 -c "import json; d=json.load(open('games.json')); print(len(d))"` and check every url resolves.
-4. Commit: `feat: add <Name>`.
+The orchestrator owns scope, subjective review, UI judgment, deslop decisions,
+and the written word of this file. Delegate mechanical implementation and
+collection only; never silently absorb worker tasks.
+
+- Use the operator-selected provider/model/thinking on every worker call.
+  Current order: `openai-codex`, `gpt-5.6-luna`, thinking `xhigh`.
+- Assign disjoint paths and one bounded task per worker. At most three port
+  workers, at most two additions total. No port work before P1-P4 land.
+- Workers commit their own changes using explicit paths, never push.
+  Verify their commits with `git log` and review the actual diff.
+- Emit delegation number/scope on start and log path/digest on completion.
+- Cap tasks at 10 minutes where practical; priority port review at 20 minutes.
+  Never silently wait beyond 20 minutes. After two failures, abandon and report.
+- No persistent dev servers. Bounded browser-test servers must terminate.
+- Ask the operator when tooling, source legitimacy, or policy blocks progress.
+  Never replace a failed port with a self-made game to satisfy a count.
+
+## Verification and shipping
+
+Commit small milestones with `feat:`, `fix:`, `chore:`, or `docs:` prefixes.
+Quote actual command output; never infer or fabricate success.
+
+1. Parse the catalog, validate unique IDs/schema, and check URLs against Git
+   when sparse. Check touched scripts with `node --check` and diffs with
+   `git diff --check`. Audit added external loads and disk usage.
+2. Leave one small runnable regression check for non-trivial authored logic.
+   No new test framework or speculative scaffolding.
+3. MANDATORY before any push: `xvfb-run python3 scripts/smoke_test_games.py`.
+   It must exercise every registered game in a real browser. A targeted run,
+   static checks, or prior-run report cannot substitute for the full gate.
+   `SMOKE_PORT` can isolate parallel runs. Never weaken failure filtering to
+   get a green result. Report known exclusions separately from clean loading.
+4. Fix failures or explicitly report them before any release decision. A
+   blocked gate means no push. User/operator decides any exception.
+5. Finish with clean `git status` or explain every dirty path. Report each
+   phase, game count, commit list, storage delta, gate pass count, and screenshots.
+   State whether games were added and whether they were ingested or self-made;
+   list each new game's build/register commit(s). No unrequested push.
