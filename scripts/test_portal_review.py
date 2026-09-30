@@ -1,0 +1,121 @@
+#!/usr/bin/env python3
+"""Small browser check for the portal polish pass."""
+import json
+import os
+import threading
+from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
+from pathlib import Path
+
+from playwright.sync_api import sync_playwright
+
+ROOT = Path(__file__).resolve().parents[1]
+SHOT_DIR = Path('/tmp/review-swarm-shots')
+
+
+class QuietHandler(SimpleHTTPRequestHandler):
+    def log_message(self, *_args):
+        pass
+
+
+def wait_for_portal(page, expected):
+    page.wait_for_function(
+        """expected => document.querySelectorAll('.game-card').length === expected""",
+        arg=expected,
+    )
+    for image in page.locator('img').all():
+        image.scroll_into_view_if_needed()
+    page.wait_for_function(
+        """() => Array.from(document.images).every(img => img.complete && img.naturalWidth > 0)"""
+    )
+    page.wait_for_selector('.ux-tag-filter__pill[data-tag="2p"]')
+
+
+def visible_count(page):
+    return page.locator('.game-card:not([data-ux-tag-hidden]):not([data-ux-fav-hidden]):not([data-ux-search-hidden]):not([data-ux-cat-hidden])').count()
+
+
+def assert_no_overflow(page):
+    assert page.evaluate(
+        """() => document.documentElement.scrollWidth <= document.documentElement.clientWidth + 1 &&
+                  document.body.scrollWidth <= document.body.clientWidth + 1"""
+    ), page.evaluate("() => [document.documentElement.scrollWidth, document.documentElement.clientWidth, document.body.scrollWidth, document.body.clientWidth]")
+
+
+def main():
+    games = json.loads((ROOT / 'games.json').read_text())
+    normalized = []
+    for game in games:
+        tags = []
+        for tag in game.get('tags', []):
+            tag = {'2-player': '2p', 'co-op': 'coop'}.get(tag, tag)
+            if tag not in tags:
+                tags.append(tag)
+        normalized.append({**game, 'tags': tags})
+    expected_2p = sum('2p' in g['tags'] for g in normalized)
+    expected_coop = sum('coop' in g['tags'] for g in normalized)
+    expected_both = sum({'2p', 'coop'} <= set(g['tags']) for g in normalized)
+
+    SHOT_DIR.mkdir(parents=True, exist_ok=True)
+    server = ThreadingHTTPServer(('127.0.0.1', 0), QuietHandler)
+    server_thread = threading.Thread(target=server.serve_forever, daemon=True)
+    server_thread.start()
+    try:
+        with sync_playwright() as pw:
+            browser = pw.chromium.launch(headless=True, executable_path='/usr/bin/chromium', args=['--no-sandbox'])
+            context = browser.new_context(viewport={'width': 1280, 'height': 900}, color_scheme='light')
+            context.add_init_script("if (!localStorage.getItem('theme')) localStorage.setItem('theme', 'light')")
+            page = context.new_page()
+            page.goto(f'http://127.0.0.1:{server.server_port}/index.html', wait_until='networkidle')
+            wait_for_portal(page, len(games))
+            assert page.locator('.game-card__play').count() == len(games)
+            assert page.locator('.game-card__play').evaluate_all("els => els.every(el => !el.disabled && el.textContent.includes('Play'))")
+            assert page.locator('.ux-tag-filter__pill').count() <= 4
+            assert set(page.locator('.ux-tag-filter__pill').evaluate_all("els => els.map(el => el.dataset.tag || el.textContent)")) >= {'Favorites'}
+            assert set(page.locator('.ux-tag-filter__pill[data-tag]').evaluate_all("els => els.map(el => el.dataset.tag)")) <= {'2p', 'coop', 'hacked'}
+            assert page.locator('.ux-tag-filter__pill[data-tag="2p"]').text_content() == '2 players'
+            assert page.locator('.game-card[data-tags*="2p"]').count() == expected_2p
+            assert '2p' in page.locator('.game-card[data-title="Fireboy and Watergirl Hacked (Light Temple)"]').get_attribute('data-tags')
+            assert 'coop' in page.locator('.game-card[data-title="Fireboy and Watergirl Hacked (Light Temple)"]').get_attribute('data-tags')
+            assert page.locator('.ux-net-banner__msg').text_content() == 'Connection lost. Loaded games may still work.'
+            assert_no_overflow(page)
+            assert page.locator('html').get_attribute('data-theme') == 'light'
+            page.screenshot(path=str(SHOT_DIR / 'after-portal-light.png'), full_page=True)
+
+            page.locator('.theme-toggle').click()
+            page.wait_for_function("document.documentElement.dataset.theme === 'dark'")
+            page.reload(wait_until='networkidle')
+            wait_for_portal(page, len(games))
+            assert page.locator('html').get_attribute('data-theme') == 'dark'
+            assert_no_overflow(page)
+            page.screenshot(path=str(SHOT_DIR / 'after-portal-dark.png'), full_page=True)
+
+            two_p = page.locator('.ux-tag-filter__pill[data-tag="2p"]')
+            coop = page.locator('.ux-tag-filter__pill[data-tag="coop"]')
+            two_p.click()
+            page.wait_for_function("expected => document.querySelectorAll('.game-card:not([data-ux-tag-hidden])').length === expected", arg=expected_2p)
+            assert visible_count(page) == expected_2p
+            coop.click()
+            page.wait_for_function("expected => document.querySelectorAll('.game-card:not([data-ux-tag-hidden])').length === expected", arg=expected_both)
+            assert visible_count(page) == expected_both
+            two_p.click()
+            page.wait_for_function("expected => document.querySelectorAll('.game-card:not([data-ux-tag-hidden])').length === expected", arg=expected_coop)
+            assert visible_count(page) == expected_coop
+            coop.click()
+
+            page.set_viewport_size({'width': 390, 'height': 844})
+            page.reload(wait_until='networkidle')
+            wait_for_portal(page, len(games))
+            assert page.locator('html').get_attribute('data-theme') == 'dark'
+            assert_no_overflow(page)
+            page.screenshot(path=str(SHOT_DIR / 'after-portal-mobile.png'), full_page=True)
+            browser.close()
+    finally:
+        server.shutdown()
+        server.server_close()
+    print('portal review checks passed')
+    for path in sorted(SHOT_DIR.glob('after-portal-*.png')):
+        print(path)
+
+
+if __name__ == '__main__':
+    main()

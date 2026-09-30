@@ -300,7 +300,18 @@
         return r.json();
       })
       .then(function (games) {
-        _gamesList = Array.isArray(games) ? games : [];
+        _gamesList = (Array.isArray(games) ? games : []).map(function (game) {
+          if (!game || !Array.isArray(game.tags)) return game;
+          var seen = {};
+          game.tags = game.tags.map(function (tag) {
+            return { '2-player': '2p', 'co-op': 'coop' }[tag] || tag;
+          }).filter(function (tag) {
+            if (seen[tag]) return false;
+            seen[tag] = true;
+            return true;
+          });
+          return game;
+        });
         return _gamesList;
       })
       .catch(function () {
@@ -1016,9 +1027,11 @@
           if (!titleEl) return;
 
           var title = textOf(titleEl);
-          var tags = tagMap[title];
+          var tags = (tagMap[title] || []).filter(function (tag) {
+            return Object.prototype.hasOwnProperty.call(TAG_LABELS, tag);
+          });
 
-          if (tags && tags.length > 0) {
+          if (tags.length > 0) {
             /* Skip if already injected. */
             if (card.querySelector('.game-card__tags')) return;
 
@@ -1062,7 +1075,7 @@
      offline banner, game detail panel.
      ================================================================ */
 
-  var TAG_LABELS = { '2p': '2 Player', 'coop': 'Co-op', 'hacked': 'Hacked' };
+  var TAG_LABELS = { '2p': '2 players', 'coop': 'Co-op', 'hacked': 'Hacked' };
   var activeTagFilters = [];
   var tagFilterRow = null;
   var resultStatusEl = null;
@@ -1092,8 +1105,9 @@
     _gamesList.forEach(function(g) {
       (g.tags || []).forEach(function(t) { tagSet[t] = true; });
     });
-    var tags = Object.keys(tagSet).sort();
-    if (!tags.length) return;
+    var tags = Object.keys(TAG_LABELS).filter(function(tag) {
+      return tagSet[tag];
+    });
 
     tagFilterRow = document.createElement('div');
     tagFilterRow.className = 'ux-tag-filter';
@@ -1451,7 +1465,7 @@
     netBanner.setAttribute('aria-live', 'polite');
     var msg = document.createElement('span');
     msg.className = 'ux-net-banner__msg';
-    msg.textContent = 'Offline mode - all games work offline';
+    msg.textContent = 'Connection lost. Loaded games may still work.';
     netBanner.appendChild(msg);
     var dismiss = document.createElement('button');
     dismiss.type = 'button';
@@ -1534,10 +1548,13 @@
       panel.appendChild(catChip);
     }
 
-    if (game.tags && game.tags.length) {
+    var detailTags = (game.tags || []).filter(function (tag) {
+      return Object.prototype.hasOwnProperty.call(TAG_LABELS, tag);
+    });
+    if (detailTags.length) {
       var tagsDiv = document.createElement('div');
       tagsDiv.className = 'ux-detail__tags';
-      game.tags.forEach(function(tag) {
+      detailTags.forEach(function(tag) {
         var badge = document.createElement('span');
         badge.className = 'game-card__tag game-card__tag--' + tag;
         badge.textContent = TAG_LABELS[tag] || tag;
