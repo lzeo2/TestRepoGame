@@ -11,9 +11,9 @@
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 	<meta name="apple-mobile-web-app-capable" content="yes">
-	<title>Gladihoppers</title>
+	<title>Gladihoppers | UNBLOCKMATH // ARCADE</title>
 	<link rel="manifest" href="appmanifest.json">
-	<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>%E2%9A%94%EF%B8%8F</text></svg>">
+	<link rel="icon" href="../../favicon.svg">
 	<style>
 		* { margin: 0; padding: 0; box-sizing: border-box; }
 		html, body { height: 100%; }
@@ -46,7 +46,7 @@
 			display: block;
 		}
 		#fullscreenBtn:focus-visible, #restartBtn:focus-visible {
-			outline: 3px solid #00ff88;
+			outline: 3px solid #00ffff;
 			outline-offset: 3px;
 		}
 		#hud {
@@ -58,16 +58,18 @@
 			gap: 8px;
 		}
 		#hud button {
-			font: 600 13px inherit;
+			font: inherit;
+			font-size: 13px;
+			font-weight: 600;
 			min-height: 44px;
 			padding: 8px 14px;
 			border: 1px solid #3b3354;
 			border-radius: 8px;
-			background: rgba(20, 16, 32, 0.85);
-			color: #ddd;
+			background: #000;
+			color: #fff;
 			cursor: pointer;
 		}
-		#hud button:hover { background: rgba(40, 32, 60, 0.9); }
+		#hud button:hover { background: #262626; }
 		#error {
 			display: none;
 			position: absolute;
