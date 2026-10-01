@@ -17,9 +17,14 @@ of the screen, with a small task tracker and a compact team strip. Battles shoul
 show expressive creature actions, not resemble a form. The field ledger should
 feel like an illustrated naturalist's journal.
 
-Proposed content target: **five regions, five regional trials, a final expedition,
-12 named NPCs and 15 side tasks**. Aim for roughly **2–3 hours for the main route**
-and additional collecting/rematch play. These are design targets, not measured
+Revised content target: **five authored regions, five regional trials, a final
+expedition, 48 persistent NPCs (12 core characters plus 36 residents/traders),
+five main trading outposts, four smaller road posts and 15 side tasks**. Add
+merchants/currency, unlockable trainer classes, team synergies, individual
+creature attributes and creature cosmetics. Include a separately gated seeded
+frontier for procedural replayability, not a replacement for the authored story.
+Aim for roughly **2–3 hours for the main route** and additional collecting,
+class-building, trade and expedition play. These are design targets, not measured
 playtime or a promised delivery estimate.
 
 ## What already works, and what needs development
@@ -49,6 +54,122 @@ The gaps are concrete:
 Reuse `data.js`, `battle.js`, `world.js`, `view.js` and the existing checks. Do not
 replace the engine or start a second game framework.
 
+## World scale and populated settlements
+
+Use **one world unit = one meter** consistently for movement, scenery and assets.
+The existing playable bounds are x = -10..10 and z = -7..7: **20 x 14 m = 280 m²
+per region**. That is movement-bound area, not the larger decorative ground mesh.
+The current three regions total 840 m² of equivalent bounded layouts, not an
+840 m² continuous open world.
+
+Proposed authored region bounds are **160 x 160 m = 25,600 m² each**. Five regions
+provide **128,000 m² / 12.8 hectares** of gross map area; rivers, hills and scenery
+mean not all of it is walkable. Connected routes, villages, clearings, shortcuts
+and discoveries should justify the space, rather than padding walking time.
+These are new design dimensions, not current implemented map sizes. Density and
+navigation are checked in the first region before expanding all five.
+
+Place the 48 authored NPCs across settlements, road posts and trails. Twelve get
+substantial quest/rival dialogue; the remaining residents/traders have concise,
+location-specific conversations and useful roles. Include supply merchants,
+tailors, class mentors, healers, couriers, local challengers and residents reacting
+to completed tasks. Give settlements short movement routines and activity beats,
+not an expensive simulated daily life or real-time schedules. Keep identities
+and important progress stable across reloads. Only nearby NPCs need rendering
+and movement updates; all 48 must not run every frame.
+
+## Economy, customization and build diversity
+
+### Currency, merchants and trading outposts
+
+- One ordinary earnable currency: **Marks**, gained from tasks, challenges,
+  exploration and supply contracts. No premium currency or real-money purchase.
+- Outposts combine a supply merchant, barter counter, recovery point, class
+  mentor and cosmetic stall. Road posts provide smaller services and route tasks.
+- Buy/sell capture supplies and recovery items; exchange field materials; buy
+  outfits and creature accessories; fulfill regional supply contracts.
+- Include curated NPC creature exchanges with explicit previews/confirmation.
+  Never silently trade a favorite, a story-required creature or the last usable
+  teammate. Player-to-player trading remains outside scope.
+- Show buy/sell prices, quantities, stock and resulting wallet balance before
+  confirmation. Use bounded integer currency/item counts and atomic saved trades.
+  Selling should not create an unlimited same-shop buyback exploit; regional
+  trade profit comes from deliberately limited stocks/contracts.
+- Stock/contract refresh follows completed expedition or progression milestones,
+  not browser refresh or wall-clock waiting. Trades, pickups and task rewards
+  cannot be paid out twice after reloading. Basic recovery/kite access prevents
+  zero currency from making the main story impossible.
+
+### Player and rival appearance
+
+Add player name, skin tone, hairstyle, coat/backpack colors and small accessories.
+Offer optional rival appearance edits without replacing their authored personality,
+dialogue or progression. Keep rival outfit development visible across chapters.
+Save appearance choices and permit later editing at camp/outposts. New parts
+need original/documented-source provenance. No promised character-rig assets
+exist yet; the first version uses reusable procedural character parts.
+
+### Five unlockable trainer classes
+
+Classes apply to the player as expedition specializations, not extra species or
+five separate creature combat systems:
+
+| Class | Unlock direction | Build identity |
+| --- | --- | --- |
+| Pathfinder | Early route/survey tasks | Habitat discovery and exploration utility |
+| Binder | Capture/research milestones | Capture setup and efficient kite use |
+| Warden | Defensive trial tasks | Shielding and team protection |
+| Tactician | Varied-team challenges | Switching and energy management |
+| Quartermaster | Supply/trade contracts | Supplies, crafting and contract efficiency |
+
+One class is active at a time. Each gets a small three-rank progression with
+clear unlock requirements and a few understandable perks, not a huge skill tree.
+Switch freely at camp/outposts; no permanent class lock or paid respec. Keep
+bonuses limited/contextual: the creature team remains the source of combat power.
+Class unlocks and ranks persist; new expeditions let players try different builds.
+
+### Team synergies
+
+Use the three-member team's elements, families and battle roles to unlock a small
+set of named, previewable synergies. Examples for balance testing: mixed-element
+coverage helps energy recovery after switching; a defensive/support pairing
+helps shielding; a matched-family pairing rewards coordinated play. Keep these
+as different viable builds, not a mandatory all-same-element bonus.
+
+Show requirements and effects in team editing before a fight. Start with **one
+active party synergy plus the active class's defined perks**, cap stacking and
+use explicit timing/conditions. Apply benefits through pure combat rules, not
+renderer callbacks. Opponents can use clearly telegraphed synergies too.
+
+### Variable creature attributes
+
+Species identity, element, evolution and base stat tables remain canonical.
+Give each newly generated individual a saved, seeded attribute profile: small
+bounded deviations (initial target **within ±8%**) across HP, energy, attack,
+defense and speed, using a fixed overall budget so one specimen cannot simply
+roll the maximum in everything. Add one modest disposition/trait from a small
+original list. These are sidegrades, not an endless hunt for a perfect specimen.
+
+Expose the profile, trait and resulting stats in the ledger and trade preview.
+Never reroll on loading, switching, evolution or capture. Existing v1 creatures
+migrate with neutral attributes rather than being randomly rewritten. Evolve
+using the same individual profile; verify that traits/class/synergy interactions
+cannot create runaway loops or invalidate capture/stat bounds.
+
+### Creature cosmetics
+
+Offer paper scarves, badges, hats and optional accent/pattern presets, unlocked
+through field ranks, tasks, class milestones and cosmetic merchants. Cosmetics
+never modify stats, element or capture odds. Equip/remove them per creature and
+save choices by creature UID.
+
+Use tested family-specific attachment points with unique-model overrides so
+accessories fit rather than float or cover faces. Retain unchanged original GLB
+bytes and a default original-color appearance; any optional visual override is
+an explicit cosmetic, not a rewrite of source material. Derive previews from the
+same appearance as the world/battle model. Verify clipping and readability
+across all 80 models, with reduced-motion and performance budgets intact.
+
 ## Phase 1: approved look, controls and one finished region
 
 **Deliverable: Rootfold Meadow becomes a genuinely explorable first chapter.**
@@ -60,8 +181,9 @@ replace the engine or start a second game framework.
   physics framework or unrestricted open-world navigation.
 - Improve third-person camera framing, add bounded manual orbit/recenter and
   prevent the camera from looking through major obstacles.
-- Give the player a readable folded-coat/backpack silhouette. Keep NPC visuals
-  inexpensive and distinct through outfit silhouettes/colors.
+- Give the player a readable folded-coat/backpack silhouette with the first
+  appearance controls. Keep NPC visuals inexpensive and distinct through outfit
+  silhouettes/colors; demonstrate a populated first settlement and road post.
 - Add visible wild creatures with small wandering/idle motions and deliberate
   interaction. No unavoidable battle every few steps.
 - Replace the sidebar-heavy shell with the concept's world-first HUD, compact
@@ -94,9 +216,14 @@ approved concepts before the remaining regions are expanded.
 - Add expedition variety through a persisted run seed, without wall-clock
   waiting, daily reward timers or online services.
 
+Implement the first outpost economy, attribute profiles and creature cosmetic
+editing alongside collection/supplies. Class progression and synergies integrate
+with combat in Phase 3; expand merchant/NPC content with the regions in Phase 4.
+
 **Gate:** every species has a provably reachable acquisition path; no duplicate
-capture/reward bugs; party changes, capacity, favorites and evolution survive
-reload. No preload of all 80 GLBs just to open the ledger.
+capture/reward/trade bugs; party changes, capacity, favorites, individual profiles,
+cosmetics and evolution survive reload. Reject invalid currency/items and prevent
+last-teammate trades. No preload of all 80 GLBs just to open the ledger.
 
 ## Phase 3: strategic combat and readable feedback
 
@@ -105,7 +232,8 @@ reload. No preload of all 80 GLBs just to open the ledger.
 - Keep turn-based combat, three allies/one active, five elements, four equipped
   abilities per species, and energy rather than inventing a second combat system.
 - Use the existing 50 abilities first. Clarify family roles such as durable
-  defender, fast disruptor and energy-efficient support.
+  defender, fast disruptor and energy-efficient support. Integrate the five
+  trainer classes and a small set of capped, previewable team synergies.
 - Expand enemy choices to sensible shield/heal/status timing and strategic
   switching for trainer teams. Keep decisions reproducible from saved RNG state.
 - Add a visible turn-order indicator, effective costs, element matchup guidance
@@ -113,15 +241,18 @@ reload. No preload of all 80 GLBs just to open the ledger.
   exact guarantee if it depends on the opponent's next action.
 - Animate whole-model lunges, recoil, recovery, the original paper Latch Kite,
   KO and evolution without claiming the supplied static assets are rigged.
-- Use biome-appropriate battle surroundings and preserve model colors.
+- Use biome-appropriate battle surroundings and preserve original model colors
+  by default; display explicitly equipped creature cosmetics consistently.
 - Add local, original sound feedback with mute and reduced-motion settings.
 - Tune XP, encounter levels, captures and opponent compositions through
   simulations and actual play. Log balance changes rather than silently
   rewriting the normative roster/glossary.
 
-**Gate:** all 50 actions and element/status interactions remain covered; no
-unbounded heal/shield stalls, negative resources or double command resolution.
-First-time players can understand a battle without reading a wall of log text.
+**Gate:** all 50 actions and element/status interactions remain covered, including
+attribute/class/synergy combinations; no unbounded heal/shield stalls, negative
+resources or double command resolution. Verify viable alternative builds, class
+switching boundaries and reproducible traits. First-time players can understand
+a battle without reading a wall of log text.
 
 ## Phase 4: the five-region campaign
 
@@ -156,31 +287,75 @@ Proposed region identities, subject to owner changes:
 without debug grants. Verify a losing/recovery path, alternate starter, guardian
 acquisition and continued free exploration after the ending.
 
-## Phase 5: durable saves, performance and release verification
+## Phase 5: seeded frontier and replayable expeditions
+
+**Deliverable: an effectively unbounded procedural frontier for optional play,
+not a claim of mathematical infinity or unlimited saved-world storage.**
+
+Keep the five authored regions for meaningful towns, story and guaranteed species
+access. Enter frontier expeditions from trading outposts after the core campaign
+loop is stable. Seeded generation varies trails, habitat clusters, resource sites,
+small camps, challenger teams and contracts, using the five biome identities and
+existing species. No new creatures or required rare procedural luck for the story.
+
+- Generate **64 x 64 m / 4,096 m² chunks** on demand. A starting 3 x 3 chunk window
+  covers **192 x 192 m / 36,864 m²**; this is a streaming window, not a permanently
+  rendered nine-chunk scene. Cull/instance scenery and cap visible actors.
+- Derive boundary exits from shared edge coordinates so neighboring chunks
+  connect. Verify walkable access to every required generated camp/objective;
+  use a safe template if generation cannot meet its invariants.
+- Persist seed, generator version, entity identities, accepted contracts and
+  claimed/consumed changes. Revisiting or refreshing cannot duplicate rewards.
+- Unload distant visuals and regenerate unchanged terrain from the seed. Use
+  local render coordinates to avoid precision problems on long journeys.
+- Bound coordinates, pending contracts and saved world-change records. If a
+  safety/save cap is reached, clearly require expedition return rather than
+  silently discarding history or resurrecting claimed rewards. On return,
+  preserve earned creatures/currency/class progression; a new expedition can
+  use a fresh seed. No permanent construction/terrain editing is proposed.
+- Difficulty changes through selected expedition tiers and deeper challenge
+  bands, not unlimited creature levels beyond the existing level-40 cap.
+- Reward fresh team/class combinations with varied contracts and opponents.
+  Avoid relying solely on increasingly inflated enemy HP or repetitive layouts.
+
+**Gate:** test generation across many seeds and positive/negative chunk seams,
+return/revisit/reload, long travel, bounded loading, objective reachability,
+resource/reward uniqueness and safe handling of storage caps. This phase is
+separately accepted after the authored game works; the owner can approve the
+core additions without requiring the frontier in the first release.
+
+## Phase 6: durable saves, performance and release verification
 
 Save work starts early alongside the first changing systems; it is not deferred
 until the end of content implementation.
 
 - Introduce a versioned save upgrade that preserves existing v1 collections,
   levels and completed progress. Keep a recoverable previous snapshot.
-- Persist quests, inventory, regional state and pending battles/RNG so refresh
-  cannot reroll encounters or duplicate rewards. Use validated atomic snapshots.
+- Persist quests, integer wallet/inventory, shop stock, class unlocks/ranks,
+  individual attributes, player/rival/creature cosmetics, regional state and
+  pending battles/RNG so refresh cannot reroll encounters or duplicate rewards.
+  Persist frontier seeds/deltas if Phase 5 is approved. Use validated atomic
+  snapshots and generator-version compatibility checks.
 - Add explicit save status and guarded local export/import. Reject oversized,
   unknown-version or corrupt imports without replacing good progress.
 - Reuse lazy GLB loading, bounded caching and shared/instanced scenery.
   Target DPR 1 and the existing 1280×720 drawing-buffer cap. Start with a budget
-  of six visible wild creatures, approximately 60 draws and 100k visible triangles;
-  measure and revise rather than claim hardware results from these targets.
+  of six visible wild creatures and eight nearby NPCs, approximately 60 draws and
+  100k visible triangles; measure and revise rather than claim hardware results
+  from these targets. Never update the whole NPC population/visited frontier
+  every frame.
 - Check 320/390px phones, tablet, desktop, keyboard-only use, motion reduction,
   sound controls, storage denial/quota, missing-model fallback and restart cleanup.
-- Run pure regressions, a full normal-input campaign playthrough, save migration
-  tests and the mandatory full registered-catalog browser gate before any push.
-  The unregistered RPG receives its own full-game checks too.
+- Run pure regressions, a full normal-input campaign playthrough, save migration,
+  class/synergy/attribute balance, trading-exploit and cosmetic fit tests, plus
+  frontier checks when included. Run the mandatory full registered-catalog browser
+  gate before any push. The unregistered RPG receives its own full-game checks too.
 
 ## Work breakdown and approval boundaries
 
 After approval, split each phase into narrow 10–20-minute mechanical tasks with
-non-overlapping paths: world/content, battle/balance, renderer, UI and saves.
+non-overlapping paths: world/content, battle/build balance, renderer, UI,
+economy and saves. Procedural frontier work follows the stable authored loop.
 I retain game direction, asset decisions and visual/integration review. Each
 milestone is locally committed, checked and shown with actual playable captures.
 Long all-catalog QA is a separately bounded monitored operation, not an extended
@@ -191,10 +366,11 @@ Extract UI rendering into `ui.js` when it grows, rather than expanding the curre
 entry file into a multi-thousand-line monolith. No generic quest scripting
 language, plugin layer, replacement renderer, build system or new dependencies.
 
-**Not included by default:** multiplayer/trading, cloud accounts, breeding,
-procedural infinite terrain, a full physics engine, voice acting, monetization,
-extra species or a second combat mode. This proposal adds depth to the existing
-80-species game rather than increasing the creature count.
+**Still excluded:** multiplayer/player-to-player trading, cloud accounts,
+breeding, permanent player-built terrain/settlements, a full physics engine,
+voice acting, monetization, extra species or a second combat mode. NPC trading
+and the separately gated seeded frontier are now proposed, not excluded.
+This adds depth to the existing 80-species game rather than creature count.
 
 The optional hidden creature stays unavailable until its unique asset and data
 are supplied and approved. Its 10,000–15,000 triangle target / 15,999 hard maximum
@@ -205,6 +381,10 @@ sign-off. Existing creator/license assertions and publication holds are not
 cleared by approving a development plan; new assets must have documented
 original/reusable-source provenance.
 
-**Approval requested:** the five-region scope, papercraft visual direction in the
-three concept shots, and strategic turn-based three-member-party design. Owner
-may change scope/style/content before any gameplay implementation starts.
+**Approval requested:** the expanded five-region/NPC/economy scope, papercraft
+visual direction, turn-based three-member teams, trainer classes, synergies,
+individual attributes and appearance options. Confirm the frontier separately
+if it should join the first release, rather than follow the authored game.
+Owner may change scope/style/content before gameplay implementation starts.
+All additions in this revision are plan changes only; no runtime code,
+registration or push is authorized.
