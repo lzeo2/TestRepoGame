@@ -3,6 +3,9 @@
 Recorded 2026-10-02 00:13 +10:00. Local branch `feat/overnight-games` only;
 no push, branch switch, reset, dependency install or release approval.
 Delegation 33 verified `openai-codex/gpt-6.1-sol`, reasoning `high`.
+Updated by static-only delegation 37 on 2026-10-01 UTC at snapshot `9b0a689`.
+Earlier counts/status below remain milestone evidence where explicitly dated;
+[overnight-review.md](overnight-review.md) records current checks and limits.
 
 ## Baseline and defaults
 
@@ -50,15 +53,23 @@ Delegation 33 verified `openai-codex/gpt-6.1-sol`, reasoning `high`.
 - Foldwild is an explicitly operator-authorized original self-made RPG,
   **UNREGISTERED** with future ID unresolved after 224 lands. Data/model ingest
   `a4eb286`, pure combat `28f9514`, view shell `c2a143a`, pure world/save
-  `3636979`; core integration remains another worker's ownership.
+  `3636979`; core integration landed as `b5ddff8`, native layout as `9b0a689`.
+  Still no catalog entry or future ID allocation.
 - Its supplied 80-species roster/models and locally vendored MIT engine have
   source/mechanical-module evidence. Optional hidden species are null: no
   delivered hidden GLB, fabricated placeholder, fetch or hidden runtime path.
-  Full campaign, manual RPG play and clock behavior are not yet proven here;
-  no hardware performance claims.
-- Three supplied Circuit Ward CV vehicle GLBs remain untracked pending a
-  separate vendor/source-document phase and rights/concept/runtime amendment
-  approval. No vehicle runtime change is included in this task.
+  Core 35's preserved native PASS covers real held movement, capture, team,
+  Continue, reset and corrupt-save protection; six JPEGs total 197716 bytes.
+  It lists three world model loads, not all eighty in a browser. Full campaign,
+  natural evolution/three rivals, true hidden-tab and hardware FPS remain
+  unproven. Layout 36 landed with a separate native PASS; final visual approval
+  belongs to Main, not static reviewer 37.
+- Three supplied Circuit Ward CV vehicle GLBs were vendored unchanged at
+  `3a90d2d`, 660120 bytes. Strict concept audit **0/3, exit 1**, triangle caps
+  pass; local r160 Node loader parsed **3/3**, not rendering/gameplay evidence.
+  Nonindexed glTF is legal: the species helper's index rule is a known limitation,
+  not evidence of broken GLBs. Rights/concept/runtime approval remains pending.
+  They have no runtime consumer; original six Ward models remain separate.
 
 ## Freeze and release gates still pending
 
@@ -70,8 +81,10 @@ Delegation 33 verified `openai-codex/gpt-6.1-sol`, reasoning `high`.
   `xvfb-run python3 scripts/smoke_test_games.py` for **all 115 registered entries**
   after writers stop and HEAD/branch are clean and frozen. No current full-gate
   pass count exists; focused passes cannot substitute.
-- Main owns fresh Tag three-capture review and final desktop/mobile theme
-  screenshot review. No new browser screenshots were taken by delegation 33.
+- Main reports personal Tag, Spline and three core screenshot reviews. Final
+  layout/theme judgment remains Main's ownership. Delegations 33/37 took no
+  browser screenshots; static review does not turn reported vision into a new
+  reviewer approval.
 - Ordinary new-artifact growth cap: 30 MB and ordinary 2 GB free-space guard.
   Operator's bounded full-gate exception permits up to 300 MiB temporary Games
   materialization with a 1.5 GiB floor only during that full gate, not ongoing
@@ -80,14 +93,33 @@ Delegation 33 verified `openai-codex/gpt-6.1-sol`, reasoning `high`.
   is 2,364,792,832 bytes. Tag + Spline + then-current Foldwild logical working
   payload totals 10,237,345 bytes. Concurrent writers and absent exact baseline
   prevent attributing a storage delta; final delta remains pending.
-- Git is not clean: three CV GLBs and the other worker's Foldwild core script
-  are pending paths. They are untouched/unstaged by this worker; no overnight
-  success or clean-HEAD claim. Routine defaults were acted on and recorded,
-  without waking the operator for decisions already supplied.
+- Earlier dirty CV/core paths have landed. At review entry `9b0a689`,
+  `git status --short` was empty. Review 37 owns only these decisions and the
+  new review doc; it freezes after their explicit-path commit. Main must verify
+  all writers stopped and clean status again, then restore sparse selection
+  before the gate snapshot; no final frozen-HEAD or release-success claim here.
+- Review 37 reran all three pure Foldwild checks (PASS), checked 31 changed
+  JS/MJS blobs with Node (PASS), 35 local static imports, 83 GLB JSON headers
+  with zero nonembedded resource URIs, and current 115-entry catalog against
+  Git (PASS). Original 113 entries are unchanged in order. Protected/proxy/
+  Netlify/smoke-script and Ward runtime baseline diffs are empty.
+- Snapshot tracked logical sizes: baseline 1919284804, HEAD 1930421148,
+  **+11136344 bytes** before review docs. Not physical reclaimed space or Git
+  storage delta. Current `.git` 816M, `Games` 13M; free 2360905728 bytes,
+  rounded 2.2G. Exact baseline physical delta remains unavailable.
+- Baseline full diff check exits 2 for two distinct pinned upstream files:
+  three.js indentation in both Foldwild/Spline copies, and Tag original EOF.
+  Current working diff passes. No broad exclusions or byte changes to hide it.
 
 ## Sign-off pending
 
 - **Leo:** release/push or no push after the complete gate and subjective review.
+- **Leo/Hermes:** inherited local Git author-metadata disposition, pending ticket
+  `pi-912882-1790864408791`. No identities repeated in evidence; no history
+  rewrite/amend/rebase authorized. New worker commits use `Arcade Worker` with
+  empty author/committer emails. Main restores temporary local config after all
+  workers. Ordinary metadata is not automatically a credential leak, but policy
+  sign-off is still a release hold.
 - **Leo:** Foldwild future ID only after 224 is registered; no 225 reserved.
 - **Leo:** CV redistribution rights and vehicle concept/runtime amendment GO.
 - **Later delivery:** unique optional hidden species, 10,000-15,000 triangles,
