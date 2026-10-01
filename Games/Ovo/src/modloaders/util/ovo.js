@@ -671,7 +671,9 @@ let addModloaderButtonTexture = () => {
       frameobj.texture_img.c2webGL_texture = null;
       frameobj.texture_img.onload = (function(f) {
         return function() {
-          f.webGL_texture = runtime.glwrap.loadTexture(f.texture_img, true, runtime.linearSampling, f.pixelformat);
+          if (runtime.glwrap) {
+            f.webGL_texture = runtime.glwrap.loadTexture(f.texture_img, true, runtime.linearSampling, f.pixelformat);
+          }
           console.log("Loaded texture: " + f.texture_img.cr_src);
           let y = [
               [

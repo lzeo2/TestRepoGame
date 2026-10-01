@@ -93,3 +93,86 @@ is required after this wrapper fix. Capture host CPU/I/O and request-start
 telemetry if the original timeout recurs. No third reproduction round, no
 push, and no games added. The uncaught runtime finding remains separate from
 the unchanged gate's known console/request exclusions.
+
+## Follow-up: live image callbacks in Canvas2D
+
+Same-day bounded follow-up, verified environment `PI_PROVIDER=openai-codex`,
+`PI_MODEL=gpt-6.1-sol`, starting from wrapper commit `c818e1a`.
+The fix is in the existing Ovo modloader JavaScript, not in the upstream
+`c2runtime.js`, an ImageViewer runtime class, or the smoke gate.
+
+Cached caller/texture searches included sparse-excluded tracked content.
+The selected 1.4.5 index loads `src/modloaders/modloader.js`; its recursive
+relative-import tree has 30 tracked modules. Only `util/ovo.js` uploads
+textures in that tree. `cleanModLoader.init()` calls its exported
+`addModloaderButtonTexture()`. Backend configuration has one default-enabled
+CTLE mod, `community`, whose dynamically constructed script URL is
+`../src/mods/modloader/community.js`. Its `communityLevelsMod.init()` calls
+`utils.addButtonTexture()`. Each loader creates three Image callbacks.
+Other tracked upload sites are engine files, obsolete community/custombutton
+copies or other-version scripts. No configuration references to those copies
+were found; none were changed. `ModloaderSharedTexture` is the supplied issue
+label, not a tracked named helper. Two guards, one per live loader, cover all
+six callbacks without patching their callers.
+
+The engine initializes `glwrap=null` and its Sprite `loadTextures()` already
+returns when no wrapper exists. Its Canvas2D drawing consumes `texture_img`.
+Each new guard wraps only `loadTexture(...)`: image assignment, frame size,
+sheet offsets, image points, GPU arguments, layout button registration and
+`runtime.changelayout=runtime.running_layout` remain unchanged. There is no
+early callback return, catch, global error handler or error suppression.
+
+### Executed checks
+
+- `python3 scripts/test_ovo_texture_fallback.py`:
+  `Ovo: 12 actual image callbacks OK; Canvas2D frames/layout refresh preserved; WebGL uploads OK`.
+  Node VM executes the whole extracted named loaders with fake Image and
+  runtime objects, then invokes their actual callbacks. Assertions cover
+  null/present wrappers, texture identity, sheet metadata, cached Canvas2D
+  data-URI drawing, button registration, layout refresh and GPU arguments.
+  Running the same regression against the original source fails at the null
+  upload with TypeError (`EXPECTED: regression rejects original unguarded callbacks`).
+- Native headful Chromium under Xvfb, gate launch flags including
+  `--disable-gpu`, with an unfiltered `pageerror` listener: an initial
+  eight-second observation was too early (no new frames yet). A second
+  observation waited for all six frames, reproducing exactly six uncaught
+  TypeErrors, three at `util/ovo.js:674` and three at `community.js:287`.
+  Runtime: `glwrap=false`, `ctx2d=true`, `loading=false`.
+- After the fix, the same callback-ready Canvas2D check reports
+  `pageerrors=0`, all six images complete (natural width 195), null GPU
+  textures, and both button animations instantiated. A separate Chromium
+  run without `--disable-gpu`, using ANGLE SwiftShader for a real WebGL
+  context, reports `glwrap=true`, `ctx2d=false`, six GPU textures,
+  `pageerrors=0`. Both checks report zero failed/4xx requests.
+- These browser checks retain all raw console errors: 25 Canvas2D and 16
+  WebGL messages, all existing ProUI tag/GameObject/gridview diagnostics.
+  Thus zero uncaught errors is **not** a zero-raw-console-error claim.
+- Desktop 1280x800 captures `ovo-canvas-after.png` and
+  `ovo-webgl-after.png` were inspected: main menu and both loader icons
+  render. Captures/logs are temporary external artifacts, not new game assets.
+  Mobile/themes, gameplay completion and all optional mod menus were not
+  audited in this narrowly scoped callback fix.
+- Unchanged targeted gate:
+  `SMOKE_PORT=8789 xvfb-run -a python3 scripts/smoke_test_games.py --games Ovo`:
+  `ok   Ovo                          console_errors=0 failed_reqs=0`;
+  `== 1/1 games pass ==`. Its existing exclusions still apply and it still
+  has no pageerror listener. No timeout, filter, wait or gate edits.
+- Module syntax (`node --input-type=module --check`), community syntax
+  (`node --check`), `git diff --check` and catalog validation pass:
+  `121 catalog entries: schema, unique IDs and tracked URLs OK`.
+  Gate SHA-256 remains
+  `ee204d35ee1cd65bd11936decc627fe30644fe7edde5126e2f16e39c2c8f7f6f`.
+  No runtime external loads were added.
+
+The optional shared emulator/storage checkout was unnecessary for this
+selected game and would have crossed the conservative 2 GiB workspace
+floor, so it was not performed. Reused `game_dependencies()` for a narrow
+1.4.5 and sibling-loader checkout: peak Games payload 58,891,150 bytes,
+free space remained above 2 GiB (last browser check 2,179,870,720 bytes).
+The original assets/docs/scripts sparse patterns and configuration are
+restored byte-for-byte; temporary Games content is released after committing
+only the four owned paths. Final status/storage evidence is reported with
+that commit.
+
+**Targeted verification only, not release green.** Full 121-game native
+retake remains the orchestrator's required later gate. No push; no games added.
