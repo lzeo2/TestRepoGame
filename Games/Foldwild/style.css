@@ -33,7 +33,7 @@ main{max-width:1440px;margin:16px auto}
 #save-state{color:#365a74}
 .play-layout{display:grid;grid-template-columns:minmax(0,1fr) 280px;gap:16px;margin:16px 0;align-items:start}
 .viewport{min-width:0;border:2px solid #365a74;border-radius:6px;overflow:hidden;background:#eee9d8}
-#game-canvas{display:block;width:100%;height:clamp(340px,56vw,640px);touch-action:none}
+#game-canvas{display:block;width:100%;height:clamp(300px,56vw,440px);touch-action:none}
 #game-canvas:focus-visible{outline-offset:-6px}
 .trail-controls{min-width:0}
 #message{min-height:44px;padding:10px 12px;border-left:4px solid #b98040;background:#f7f3e8;overflow-wrap:anywhere}
@@ -51,4 +51,22 @@ dialog::backdrop{background:#292d30b3}
 #collection-list>*{border:1px solid #827762;border-radius:6px;padding:10px;overflow-wrap:anywhere}
 @media(max-width:760px){.play-layout{grid-template-columns:1fr;gap:12px}.trail-controls{display:grid;grid-template-columns:1fr 1fr;gap:0 12px}.trail-controls>#message,.trail-controls>#nearby-actions,.trail-controls>#world-help,.trail-controls>h2,.trail-controls>#team-list{grid-column:1/-1}.trail-controls>.actions{grid-column:1/-1}#game-canvas{height:380px}.panel{padding:16px}.ability-choices{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:420px){.site-header{gap:4px 12px}.motion-setting{width:100%}#game-canvas{height:340px}.region-choices button{flex:1 1 120px}.combatants{gap:12px}.combatants h2{font-size:16px}.starter-choices button{flex-basis:100px}.panel{padding:12px}.trail-heading{gap:8px 12px}}
+/* Phase selectors leave the world inventory intact and keep battle inputs beside the scene. */
+main:has(#battle-panel:not([hidden])){display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;align-items:start}
+main:has(#battle-panel:not([hidden])) #world-hud{display:none}
+main:has(#battle-panel:not([hidden])) .play-layout{display:block;margin:0}
+main:has(#battle-panel:not([hidden])) #game-canvas{height:420px}
+main:has(#battle-panel:not([hidden])) .trail-controls>h2,main:has(#battle-panel:not([hidden])) #team-list,main:has(#battle-panel:not([hidden])) .actions:has(>#interact),main:has(#battle-panel:not([hidden])) #collection-btn{display:none}
+#battle-panel{min-width:0;padding:12px;margin:0;font-size:14px;line-height:1.3}
+#battle-panel h2{font-size:14px;margin-bottom:8px;overflow-wrap:anywhere}
+#battle-panel .combatants{gap:12px}
+#battle-panel progress{height:12px;margin-bottom:4px}
+#battle-panel .ability-choices{grid-template-columns:repeat(2,minmax(0,1fr))}
+#battle-panel button{padding:8px}
+#battle-panel .actions,#battle-panel .ability-choices{margin:8px 0}
+#battle-panel>.actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}
+#capture{grid-column:1/-1}
+#battle-log{max-height:100px}
+@media(max-width:899px){main:has(#battle-panel:not([hidden])){grid-template-columns:minmax(0,1fr);gap:8px}main:has(#battle-panel:not([hidden])) .play-layout{display:contents}main:has(#battle-panel:not([hidden])) .viewport{grid-row:1}main:has(#battle-panel:not([hidden])) #battle-panel{grid-row:2}main:has(#battle-panel:not([hidden])) .trail-controls{grid-row:3}main:has(#battle-panel:not([hidden])) #game-canvas{height:200px}}
+@media(max-width:420px){.motion-setting{width:auto;font-size:14px;gap:0}.trail-heading{font-size:14px;gap:4px 12px}.trail-heading h2{font-size:16px;flex-basis:100%}.region-choices{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));margin:8px 0}.region-choices button{font-size:14px;line-height:1.25;padding:6px}#game-canvas{height:300px}main{margin-top:10px}}
 @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto}}
