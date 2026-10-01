@@ -2,32 +2,78 @@
 
 ## Current release status
 
-**Not released; no push.** Operator personally supplied six Dot-generated models
-and gave direct GO for public publication in this repository/site, contingent on
-passing release gates. This scoped permission is not verification of provider
-legal identity, broader terms or embedded CC0 claims. See
-[circuit-ward-models.md](circuit-ward-models.md).
+**Current build approved; release criteria green. Not yet pushed or remotely
+verified.** Operator personally supplied six Dot-generated models and gave direct
+GO for public publication in this repository/site. This scoped permission is not
+verification of provider legal identity, broader terms or embedded CC0 claims.
+See [circuit-ward-models.md](circuit-ward-models.md). Actual push and remote
+verification remain the orchestrator's pending actions; this is not a shipped
+claim. The planned vehicle amendment is not part of this green build.
 
-The latest integration regression has **two failed four-window movement runs**,
-not a current green result. The reported host simulation reached only 2.16 seconds
-after 30 seconds of real time under software rendering (approximately 54k
-triangles per window, four windows). This observation is not a confirmed root
-cause or hardware benchmark. A separate worker owns regression diagnosis and
-`scripts/test_circuit_ward.py`; its updated result is **pending**. Earlier
-primitive-only regression success does not establish current integration success.
+## Completed six-model regression
 
-The normal sparse full gate in temporary evidence
-`circuit-workers/models-full-gate.log` exited 1:
+Commit `63b150a` records the completed browser regression. Temporary evidence
+`circuit-ward-model-qa/regression.log` was read in full, including the earlier
+pointer-lock click failure and the subsequent successful bounded check. Its final
+write timestamp is **2026-10-01 19:21:58 +10:00**; it is not a new test run by this
+docs worker. Runnable command from the repository root:
 
-```text
-ok   Circuit Ward                 console_errors=0 failed_reqs=0
-== 1/121 games pass ==
+```sh
+xvfb-run python3 scripts/test_circuit_ward.py
 ```
 
-The other 120 legacy games lacked sparse-excluded local files/assets. This is
-neither a clean all-games gate nor proof of deployed breakage. **Updated bounded
-all-games gate result: pending.** The orchestrator will delegate a final evidence
-update after diagnosis and the complete gate finish; no result is inferred here.
+Exact final output:
+
+```text
+Circuit Ward browser checks passed: solo controls/reset, win/lose/repair/friendly-fire, six local GLB replacements, keyboard/touch aiming, touch movement/fire, 320/390 layouts, four-peer sync/input/pause/departure/fallback at 640x360, paused transport heartbeat
+Screenshots: desktop 1280x720; mobile 390x844; coop-host 640x360
+Regression exit: 0
+```
+
+Four native peers used 640x360 windows under SwiftShader. Trusted W input targeted
+BODY, not a form; guest Z changed from 6.5 to 6.200299999999974. Host simulation
+advanced 0.3666 seconds over 4.7631 real seconds. Software rendering remained slow;
+no production defect or hardware FPS result is established. Production stale-input
+and timeout safeguards were not weakened. The five captures were reviewed by the
+orchestrator: `desktop-menu.png`, `desktop-combat.png`, `mobile-menu.png`,
+`mobile-combat.png`, `coop-host.png`, in temporary `circuit-ward-model-qa` evidence.
+No captures were taken by this docs-only worker.
+
+Earlier primitive-only success at `77dbd71`, two failed four-window movement
+attempts and the pointer-lock click failure remain historical context, not the
+current result. The normal sparse gate's historical 1/121 result reflected 120
+missing local legacy payloads, not proof of deployed breakage.
+
+## Completed unchanged ALL-games gate
+
+At `3557812`, after `c818e1a` (Ovo sibling materialization) and `3557812` (Ovo
+Canvas2D texture guards), the bounded wrapper ran the original full gate with
+**no subset, wait, timeout, browser-argument or failure-filter changes**.
+Temporary evidence `circuit-workers/release-full-gate-2.log` spans server timestamps
+**2026-10-01 20:19:14 to 20:43:16**; `release-full-gate-2.status` contains `0`.
+All 121 passing rows were matched against the current catalog in order, with no
+FAIL rows. Exact matched rows and summary:
+
+```text
+ok   Ovo                          console_errors=0 failed_reqs=0
+ok   Circuit Ward                 console_errors=0 failed_reqs=0
+== 121/121 games pass ==
+SPARSE RESTORED: pages=121/121, peak_Games_bytes=195853264, remaining_Games_bytes=0; this is not a gate-pass assertion.
+```
+
+The original bounded pass in `circuit-workers/release-full-gate.log` was
+**120/121**, with Ovo's `PAGE: Page.goto: Timeout 15000ms exceeded.` This failure
+was not ignored. The reproduced missing sibling dependency and separate Canvas2D
+callback defects, plus the limits of attributing the original timeout, are
+recorded in [ovo-smoke-review.md](ovo-smoke-review.md). The later ALL-121 pass
+supersedes that release failure, not its diagnostic evidence.
+
+Gate SHA-256 remains
+`ee204d35ee1cd65bd11936decc627fe30644fe7edde5126e2f16e39c2c8f7f6f`.
+Its existing BENIGN, KNOWN_BENIGN and BENIGN_REQS exclusions still apply; it
+captures console/request failures but has no pageerror listener. Green loading
+under those unchanged criteria is not zero raw errors or complete gameplay
+certification for every legacy game.
 
 ## Build and delivery milestones
 
@@ -49,6 +95,9 @@ ticket `pi-912882-1790827041648`. No new game is added by this docs update.
 | Complete six-model structural audit | `3b91483` |
 | Instanced wall integration | `b0e19ae` |
 | Bounded unchanged full-gate wrapper | `7c906ab` |
+| Completed six-model/native four-peer regression | `63b150a` |
+| Ovo sibling materialization fix | `c818e1a` |
+| Ovo Canvas2D guards; successful ALL-121 gate revision | `3557812` |
 
 All six models are audited: **691300 bytes, 5692 triangles**. The wall is
 **101652 bytes, 836 triangles**, within its 2000-triangle ceiling. Missing-wall
@@ -75,8 +124,9 @@ Initial five-model integration evidence reports **7 draws / 49456 triangles**
 in a synthetic stress scene. Completed wall integration reports **8 draws /
 69520 triangles** in synthetic stress. These are renderer counters, **not
 hardware FPS measurements**, maximum-wave certification or a 60fps claim.
-No new screenshots or browser tests were taken for this docs-only update.
-Historical primitive screenshots and regression logs remain historical only.
+These synthetic counters remain historical measurements. The current six-model
+regression and five orchestrator-reviewed captures are recorded above; primitive
+screenshots are not evidence for the completed model integration.
 
 Separate-device LAN/school Wi-Fi, Chromebook FPS, explicit WebGL1-only runtime,
 a natural complete six-wave play-through and actual hidden-tab timer throttling
@@ -97,7 +147,9 @@ The wrapper runs the original `scripts/smoke_test_games.py` without weakening
 failure filtering or selecting a subset. During this gate window only, the
 30MB workspace cap has an exception: **at most 300 MiB Games payload and at
 least 1.5 GiB free disk**. Its plan reports peak predicted Games payload
-195853264 bytes; a plan/self-check is not a browser gate pass.
+195853264 bytes; the completed browser lifecycle actually observed the same peak,
+below 300 MiB, and released all Games payload. A plan/self-check alone would not
+establish a browser gate pass.
 
 Full checkout is forbidden: approximately 1.872G game assets with 2.47G free
 would leave about 0.6G. Commit all worker changes before the bounded gate; do not
@@ -106,9 +158,16 @@ sparse selection and sparse configuration exactly, release temporary game
 assets and establish clean Git status afterward, including on failure or
 interruption. Restoration success alone is not a passing gate.
 
-Final evidence update must record the actual updated regression command/result,
-ALL-121 gate log/count, restoration, disk delta and clean status. Public GO does
-not waive green full-gate or remote verification requirements. No push until
-these complete. This docs-only worker verified `PI_PROVIDER=openai-codex` and
-`PI_MODEL=gpt-6.1-sol`; it owns only the three assigned docs, not the diagnosis,
-gate execution or release.
+The wrapper's successful restoration verifies the original sparse patterns and
+configuration byte-for-byte and clean baseline status. This docs worker also
+observed the restored **assets, docs, scripts** selection, **0 Games bytes** and
+clean status before editing. Free space was **2428133376 bytes (about 2.3 GB)**;
+no gate-wide free-space delta was recorded in the supplied log. Persistent Games
+payload delta is zero. The scoped docs diff and catalog schema/unique-ID/tracked-URL
+checks pass for **121 entries**; no game code or runtime external loads were added.
+
+Public GO and green current release criteria do not imply publication. Push intent
+remains pending actual push and remote verification by the orchestrator. This
+docs-only worker verified separate fields `PI_PROVIDER=openai-codex` and
+`PI_MODEL=gpt-6.1-sol`; it owns only the three assigned docs, not gate execution,
+art capture, game checkout or release.

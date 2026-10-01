@@ -13,11 +13,23 @@ release limitations are recorded in [circuit-ward-qa.md](circuit-ward-qa.md).
 Game code and primitive geometry are original; this is not a claimed upstream
 port. The one-run exception does not authorize additional original games.
 
-No generated 3D models have been supplied or vendored.
-No GLTFLoader, sample models, textures, replacement artwork, or placeholder asset
-files are included. Future model/art additions require their own source and
-license evidence. The library's MIT license does not establish rights to the
-original game's code, concept artwork, or future models.
+At the historical primitive/library milestone `e02d5d8`, no generated models or
+GLTFLoader had been supplied. The current build includes **six operator-supplied
+Dot-generated GLBs**: first five in `bc57a17`, wall in `91adf55`; pooled integration
+in `6e71fa4` and `b0e19ae`, completed browser regression in `63b150a`. Total artwork:
+**691300 bytes, 5692 triangles**. No sample models, external textures or fabricated
+replacement assets were added. The pinned local r160 GLTFLoader and
+BufferGeometryUtils were added in `50ff282`, with only local import-path changes;
+see [circuit-ward-models.md](circuit-ward-models.md) for exact inventory, hashes,
+structural audit and loader provenance.
+
+The operator explicitly supplied the six models and authorized publication of
+current work in this repository/site. This is scoped publication permission,
+not verification of provider identity, broader redistribution terms or embedded
+CC0 claims. Embedded generator/creator/license assertions remain unverified.
+The library's MIT license covers the library, not the game's code or artwork.
+Future model/art additions require their own source and permission evidence;
+the planned vehicle amendment is not supplied or implemented in this green build.
 
 ## Vendored rendering library
 
@@ -44,8 +56,10 @@ Official pinned download URLs:
 | `Games/Circuit Ward/vendor/three.module.js` | 1,272,972 | `76dea8151bc9352aef3528b4262e249b2604f62543828328db978d060d61a495` | `0bcc7a286da2c115853ceec9deea19923e10ddc1` |
 | `Games/Circuit Ward/vendor/LICENSE` | 1,081 | `852e0e8699169bf9f6fdc6bda3e682d078dcbc738b5d33e74df594721bff271d` | `d07e209686512b9ac93d7df5481a4a6f622093e7` |
 
-Total vendored bytes: **1,274,053**. No clone, package installation, extra loader,
-source map, or external runtime dependency was added.
+Core module and license total: **1,274,053 bytes** at `e02d5d8`. The later local
+loader/helper add **140445 bytes**; total library files are **1414498 bytes**.
+No clone, package installation, source map or external runtime dependency was
+added. The library and supplied GLBs are distinct provenance inventories.
 
 ## Runtime network review
 
@@ -118,9 +132,12 @@ byte-identical to the pinned official
 build. This is an explicit formatting warning, not a clean full diff gate.
 The source-evidence document and license pass their scoped diff check.
 
-These checks describe dependency worker #4's milestone (`e02d5d8`), not its
-later game integration. Browser/gameplay/transport evidence and the failed
-full-game release gate are documented in [circuit-ward-qa.md](circuit-ward-qa.md).
+These checks describe dependency worker #4's historical milestone (`e02d5d8`),
+not the later game integration. The completed six-model browser regression at
+`63b150a` and unchanged **121/121** full-game gate at `3557812` are documented in
+[circuit-ward-qa.md](circuit-ward-qa.md), along with historical failures and
+measurement limits. Current work is approved and release criteria are green;
+actual push and remote verification remain pending. No release is claimed here.
 The game also reuses the repository's locally vendored Bungee and Atkinson fonts;
 see [portal-font-sources.md](portal-font-sources.md) for their OFL provenance.
 No push was performed.
