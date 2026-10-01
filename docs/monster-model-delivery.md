@@ -4,6 +4,10 @@ Delegation 21. Actual worker environment: provider `openai-codex`, model
 `gpt-6.1-sol` (verified through `PI_PROVIDER` and `PI_MODEL`). Read-only delivery
 inspection, not roster/model approval or publication authorization.
 
+This is the historical 80-species ZIP audit. The horror asset was absent from
+that ZIP; a later standalone delivery is reviewed in
+[the hidden-model candidate report](foldwild-hidden-delivery.md).
+
 ## Source and integrity
 
 The operator supplied `original-monster-roster-80-glbs.zip` through the upload

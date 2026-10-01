@@ -326,6 +326,63 @@ core additions without requiring the frontier in the first release.
 
 ## Phase 6: durable saves, performance and release verification
 
+**Low-end Chromebook support is an acceptance requirement, not an optional
+polish pass.** Proposed reference hardware: a 4 GB Chromebook with a dual-core
+Intel Celeron N4020 / integrated UHD 600 or a comparable low-end ARM device,
+running supported Chrome OS/Chrome with working WebGL. Exact hardware must be
+recorded in results; passing one reference device is not proof for every
+Chromebook. No actual Chromebook performance certification exists yet.
+
+### Default low preset and rendering limits
+
+- Default to a **30 FPS target**, DPR 1 and a **960 x 540 maximum drawing buffer**
+  on the low preset. DOM text/buttons retain native display resolution. Permit
+  lower adaptive render scale without changing controls, collision or rewards.
+  Standard can retain the proposed 1280 x 720 cap when hardware permits.
+- Support the local r160 WebGL 1 path. Disable real-time shadows, postprocessing,
+  bloom, SSAO, volumetric effects and expensive full-screen filters. Use simple
+  directional/hemisphere lighting; animation uses elapsed time, not frame counts.
+- Start low-preset scene targets at **50 draws / 60k visible triangles**, including
+  cosmetics/effects, **four nearby wild creatures and four nearby NPCs**, and at
+  most 16 lightweight effect particles. These are budgets to verify, not reported
+  achievements. Active interactions remain visible/usable; background actors get
+  distance culling or inexpensive shared silhouettes, not deleted gameplay state.
+- Instance repeated trees/rocks/character parts, cull distant scenery and update
+  only nearby actors. Frontier streaming must not render/update the entire
+  nine-chunk window at full detail or all previously visited chunks.
+- Bound the ordinary creature model cache (initial target 12 entries, protecting
+  active models), dispose GPU geometry/materials/textures on eviction, and load
+  the optional horror asset only near its own encounter. Do not load all 80 models
+  or every cosmetic just to start the game or browse the ledger.
+- Target **at most 32 MiB of resident model textures on low**, with explicit
+  estimates and actual loader inspection. Prepare offline derived texture sizes
+  where needed; never assume a small JPEG/GLB file means small GPU allocation.
+  Preserve uploaded originals and document any approved optimized derivative.
+- Keep one animation loop; pause hidden-tab work and avoid frame-by-frame DOM
+  rebuilds. Indicate region/model loading and handle failure without freezing
+  controls or claiming that a fallback is the real model.
+
+### Hardware acceptance gate
+
+On the recorded reference Chromebook, run warm gameplay at the low preset and
+measure actual rendered-frame intervals: **target 30 FPS, mean at least 29 FPS,
+95th-percentile frame interval at most 50 ms, and no sustained 10-second period
+below 25 FPS**. Measure cold loads separately rather than hiding their cost in
+warm results. A loading transition is not a valid way to mask ongoing stutters.
+
+Cover a busy settlement, traversal/chunk boundaries, battles with cosmetics and
+synergies, ledger scrolling/model rotation, and the optional horror encounter.
+Repeat at least 20 region/ledger/secret-scene transitions and restarts; confirm
+resource counts/memory stabilize rather than accumulating retained GPU assets,
+loops or handlers. Include a sustained 10-minute play session, keyboard/touchpad
+responsiveness, zero normal browser/load errors and offline-local asset use.
+
+Desktop software rendering, CPU throttling and draw/triangle counts provide
+useful preliminary checks, **not a substitute for the Chromebook test**. If
+reference hardware is unavailable, report the gate unverified and do not claim
+low-end compatibility. Density/render-scale adjustments must preserve gameplay
+and be reviewed visually before accepting them.
+
 Save work starts early alongside the first changing systems; it is not deferred
 until the end of content implementation.
 
@@ -338,12 +395,11 @@ until the end of content implementation.
   snapshots and generator-version compatibility checks.
 - Add explicit save status and guarded local export/import. Reject oversized,
   unknown-version or corrupt imports without replacing good progress.
-- Reuse lazy GLB loading, bounded caching and shared/instanced scenery.
-  Target DPR 1 and the existing 1280×720 drawing-buffer cap. Start with a budget
-  of six visible wild creatures and eight nearby NPCs, approximately 60 draws and
-  100k visible triangles; measure and revise rather than claim hardware results
-  from these targets. Never update the whole NPC population/visited frontier
-  every frame.
+- Reuse lazy GLB loading, bounded caching and shared/instanced scenery. Enforce
+  the low-preset budgets above first; standard may target six visible wild
+  creatures, eight nearby NPCs, approximately 60 draws and 100k visible triangles
+  at DPR 1 / 1280 x 720. Measure rather than claim hardware results from targets.
+  Never update the whole NPC population/visited frontier every frame.
 - Check 320/390px phones, tablet, desktop, keyboard-only use, motion reduction,
   sound controls, storage denial/quota, missing-model fallback and restart cleanup.
 - Run pure regressions, a full normal-input campaign playthrough, save migration,
@@ -372,9 +428,27 @@ voice acting, monetization, extra species or a second combat mode. NPC trading
 and the separately gated seeded frontier are now proposed, not excluded.
 This adds depth to the existing 80-species game rather than creature count.
 
-The optional hidden creature stays unavailable until its unique asset and data
-are supplied and approved. Its 10,000–15,000 triangle target / 15,999 hard maximum
-remain separate; it cannot block the base game.
+The optional horror creature now has a separately uploaded candidate GLB; it is
+**delivered for review, not ingested or implemented**. The [decoded audit and
+native WebGL1 review](foldwild-hidden-delivery.md) passed geometry/reference and
+loader checks with 13,926 indexed triangles, within the 10,000–15,000 target /
+15,999 hard maximum. Main personally inspected front/side/back/three-quarter
+captures as an appearance review, not gameplay or rights approval. It has four
+embedded textures/materials, unlike the texture-free base roster, and no
+animation rig. Three images are 2048 x 2048; one is 512 x 512.
+An RGBA8 estimate is 49 MiB before mipmaps / approximately 65.3 MiB with full
+mipmaps, not a measured GPU allocation. The upload is 6,384,292 bytes.
+
+For low-end support, propose an approved derivative with the three large images
+limited to 1024 x 1024 (about 17.3 MiB RGBA8 with mipmaps in total), or 512-wide
+textures if hardware tests require it. No conversion is authorized by this plan;
+the uploaded original remains unchanged. Preserve the normal/metallic-roughness
+maps' non-color meaning when optimizing, rather than naively treating them as
+color images. Texture format/style acceptance, optimized appearance, actual
+device performance, provenance, species data and encounter design still require
+approval before activation. `OPTIONAL_HIDDEN_SPECIES` stays null until that
+integration is approved. The secret encounter remains optional and cannot block
+the base 80; provide an avoid/disable option and no mandatory loud jump scare.
 
 Catalog ID remains unresolved. No registration or push without separate owner
 sign-off. Existing creator/license assertions and publication holds are not
