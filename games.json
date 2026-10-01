@@ -1279,5 +1279,17 @@
     "desc": "Poker roguelike: build joker synergies and hit the blinds. GBA demake v0.2.2.",
     "url": "Games/Balatro/index.html",
     "featured": false
+  },
+  {
+    "id": 222,
+    "title": "Circuit Ward",
+    "cat": "action",
+    "icon": "",
+    "desc": "Original arena shooter. Clear six bot waves solo, or pair 2–4 players for shared-score LAN co-op.",
+    "url": "Games/Circuit Ward/index.html",
+    "featured": false,
+    "tags": ["2p", "coop"],
+    "players": "1–4",
+    "howto": "WASD/arrows move; mouse or IJKL aims; click/Space fires. Touch: move left, aim right, hold Fire. P/Esc pauses. Co-op uses manual WebRTC offer/answer pairing; local Wi-Fi may block it."
   }
 ]

@@ -7,9 +7,13 @@ one-run operator exception dated 2026-10-01, ticket
 `pi-912882-1790827041648`. Commit `b15c1c0` records that exception in
 `AGENTS.md`. The game implementation is separate from the third-party rendering
 library below; three.js authors are not being credited as Circuit Ward's authors.
-This dependency-only milestone does not build or register the game.
+The primitive game was built in `0a9a6b9`, with native transport in `14ce629`
+and QA/pairing/pause corrections in `77dbd71`. The catalog registration and
+release limitations are recorded in [circuit-ward-qa.md](circuit-ward-qa.md).
+Game code and primitive geometry are original; this is not a claimed upstream
+port. The one-run exception does not authorize additional original games.
 
-No generated 3D models have been supplied or vendored in this milestone.
+No generated 3D models have been supplied or vendored.
 No GLTFLoader, sample models, textures, replacement artwork, or placeholder asset
 files are included. Future model/art additions require their own source and
 license evidence. The library's MIT license does not establish rights to the
@@ -114,6 +118,9 @@ byte-identical to the pinned official
 build. This is an explicit formatting warning, not a clean full diff gate.
 The source-evidence document and license pass their scoped diff check.
 
-Browser rendering, desktop/mobile screenshots, gameplay/networking checks, and
-`xvfb-run python3 scripts/smoke_test_games.py` remain orchestrator release gates;
-none is claimed by this dependency-only worker. No push was performed.
+These checks describe dependency worker #4's milestone (`e02d5d8`), not its
+later game integration. Browser/gameplay/transport evidence and the failed
+full-game release gate are documented in [circuit-ward-qa.md](circuit-ward-qa.md).
+The game also reuses the repository's locally vendored Bungee and Atkinson fonts;
+see [portal-font-sources.md](portal-font-sources.md) for their OFL provenance.
+No push was performed.
