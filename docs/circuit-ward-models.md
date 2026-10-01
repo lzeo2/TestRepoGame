@@ -2,13 +2,18 @@
 
 ## Required provenance and usage status
 
-The operator states that these five models were generated via **Dot** and orders
-integration into Circuit Ward on the public site. The delivered bytes are from
-commit `bc57a17`; this audit does not change them. Public-redistribution rights
-and provider terms confirmation are **pending ticket
-`pi-912882-1790843183570`**. No generator's legal identity or license grant is
-established here. The operator's integration order is not a substituted provider
-license. This work is local only, with no push or release authorization.
+The operator states that all six models were generated via **Dot** and orders
+integration into Circuit Ward on the public site. The first five were delivered
+in `bc57a17`; `arena-wall.glb` arrived in `91adf55` on 2026-10-01. The complete
+six-file source inventory is now tracked together at `91adf55`, with the first
+five byte-identical to `bc57a17`. This audit changes none of the model bytes.
+
+The missing-wall delivery request in ticket `pi-912882-1790843183570` is
+**fulfilled**. Its separate public-distribution/provider-terms question remains
+**pending**; no operator confirmation of those rights has been received for
+this audit. No generator's legal identity or license grant is established here.
+The operator's integration order is not a substituted provider license. This
+work is local only, with no push or release authorization.
 
 Each GLB's embedded `asset.generator` says
 `Original arcade maintenance-bay procedural mesh builder`; its extras claim
@@ -39,14 +44,15 @@ semantic orientation proof. Six decimal place extents hide float32 rounding.
 | `buzzer-drone.glb` | 147768 | `e266d70934e10ba093aca148e3db65a7435ab12ece4255187beee6cccc7f1dee` | 1220 / 1500 | 1.500000 × 0.400000 × 0.800000 |
 | `coil-blaster.glb` | 113720 | `2ac188eeb484fb78b2b0602cb5e5e3f7af294929aea68a7f696dbf371c7df147` | 936 / 2000 | 0.190000 × 0.327000 × 0.550000 |
 | `repair-cell.glb` | 38356 | `c8951bc2f38db11f621ec2d56c021347cac668dac676510d1f8f8daf8e595484` | 308 / 600 | 0.360000 × 0.400000 × 0.360000 |
-| `arena-wall.glb` | absent | not applicable | **not tested**, ceiling 2000 | not supplied |
+| `arena-wall.glb` | 101652 | `67f25e3112592200ed462f7c11a3de810572ed7dc48d4f02783900c9f0885767` | 836 / 2000 | 4.000000 × 5.000000 × 0.350000 |
 
-Total supplied artwork: **589648 bytes, 4856 triangles, 5 files**. The wall is
-absent both from this delivery commit's tracked inventory and the local model
-directory. It is not a sixth pass. No wall asset was fabricated, downloaded, or
-set up for runtime fetching. Keep the existing primitive arena wall.
+Total supplied artwork: **691300 bytes, 5692 triangles, 6 files**. All six are
+present in the local model directory and the tracked `91adf55` inventory.
+The auditor compares each file to its own delivery revision; the five earlier
+models remain byte-identical. No artwork was fabricated or downloaded by this
+audit, and no runtime asset fetching was added here.
 
-All five supplied assets independently meet the same structural properties:
+All six supplied assets independently meet the same structural properties:
 
 - Binary glTF 2.0, exactly JSON and BIN chunks; one embedded buffer with bounded
   views/accessors, no buffer/image URI or other external resource reference.
@@ -127,26 +133,27 @@ df -h / | tail -1
 ```
 
 The stdlib assert auditor checks the constraints above, decoded triangles and
-bounds, byte identity against `bc57a17`, pinned local library/license hashes,
-and the recursive local static import closure. It intentionally accepts only
-this static float32, non-indexed delivery subset, not all legal glTF layouts.
-It explicitly reports the missing wall, separate from the five passing files.
-Run without `python -O`.
+bounds, per-asset byte identity against `bc57a17` (first five) or `91adf55`
+(wall), pinned local library/license hashes, and the recursive local static
+import closure. It requires the local GLB inventory to match exactly the six
+listed files and totals the observed bytes and triangles. It intentionally
+accepts only this static float32, non-indexed delivery subset, not all legal
+glTF layouts. Run without `python -O`.
 
-Actual condensed output:
+Actual audit output (2026-10-01, after wall delivery):
 
 ```text
 GLTFLoader.js static imports: ['./three.module.js', './BufferGeometryUtils.js']
 BufferGeometryUtils.js static imports: ['./three.module.js']
 three.module.js static imports: []
 local static import closure + vendor/license hashes: PASS
-cover-console.glb: triangles=828/2000
-sentry-walker.glb: triangles=1564/2500
-buzzer-drone.glb: triangles=1220/1500
-coil-blaster.glb: triangles=936/2000
-repair-cell.glb: triangles=308/600
-arena-wall.glb: ABSENT; ceiling=2000; not a pass, no fabricated asset
-supplied GLBs: 5/5 structural PASS; redistribution terms still pending
+cover-console.glb: bytes=100740 sha256=c5584de91a719fb630f5b2d2ab9d888da74bd2e440086025426fb2e31ca6196a triangles=828/2000 dimensionsXYZ=2.400000x1.050000x1.200000m mesh=1 materials=1 static vertex-colors normals transforms=identity PASS
+sentry-walker.glb: bytes=189064 sha256=5809078aa1fed84a7cffc19491fe1f6f4466825ae83ae8c42c42cd008e768cf5 triangles=1564/2500 dimensionsXYZ=1.300000x1.950000x0.850000m mesh=1 materials=1 static vertex-colors normals transforms=identity PASS
+buzzer-drone.glb: bytes=147768 sha256=e266d70934e10ba093aca148e3db65a7435ab12ece4255187beee6cccc7f1dee triangles=1220/1500 dimensionsXYZ=1.500000x0.400000x0.800000m mesh=1 materials=1 static vertex-colors normals transforms=identity PASS
+coil-blaster.glb: bytes=113720 sha256=2ac188eeb484fb78b2b0602cb5e5e3f7af294929aea68a7f696dbf371c7df147 triangles=936/2000 dimensionsXYZ=0.190000x0.327000x0.550000m mesh=1 materials=1 static vertex-colors normals transforms=identity PASS
+repair-cell.glb: bytes=38356 sha256=c8951bc2f38db11f621ec2d56c021347cac668dac676510d1f8f8daf8e595484 triangles=308/600 dimensionsXYZ=0.360000x0.400000x0.360000m mesh=1 materials=1 static vertex-colors normals transforms=identity PASS
+arena-wall.glb: bytes=101652 sha256=67f25e3112592200ed462f7c11a3de810572ed7dc48d4f02783900c9f0885767 triangles=836/2000 dimensionsXYZ=4.000000x5.000000x0.350000m mesh=1 materials=1 static vertex-colors normals transforms=identity PASS
+supplied GLBs: 6/6 structural PASS; bytes=691300 triangles=5692; redistribution terms still pending
 ```
 
 Both `node --check` commands exited 0 with no output. An additional in-memory
@@ -161,14 +168,27 @@ sentry-walker: GLTFLoader parse PASS; meshes=1; triangles=1564
 buzzer-drone: GLTFLoader parse PASS; meshes=1; triangles=1220
 coil-blaster: GLTFLoader parse PASS; meshes=1; triangles=936
 repair-cell: GLTFLoader parse PASS; meshes=1; triangles=308
-5/5 GLTFLoader parses PASS; network requests=0 (Node, not browser/WebGL)
+arena-wall: GLTFLoader parse PASS; meshes=1; triangles=836
+6/6 GLTFLoader parses PASS; network requests=0 (Node, not browser/WebGL)
 ```
 
-Only two small loader modules, this note and the auditor were created. Loader
-bytes added: **140445**; all four files together remain well below the operator's
-30MB workspace/artifact cap. Disk checks before downloading and after audit
-both reported **2.5G available** (above the 2GB stop threshold). No models changed,
-no new games registered, no captures or other artifacts created. No browser
-screenshots, full-game smoke gate, multiplayer verification or release gate is
-claimed by this bounded dependency/model audit. Full registered-game browser
-smoke and pending rights confirmation remain release blockers; no push.
+### Historical milestone and current scope
+
+On 2026-10-01, the earlier five-model dependency audit (`50ff282`) created only
+two small loader modules, this note and the auditor. Its inventory was
+**589648 bytes, 4856 triangles, 5 files**, and the wall was not yet delivered.
+Loader bytes added then: **140445**. The subsequent `91adf55` wall delivery
+completes all six requested source models; the current six-model results above
+supersede that earlier delivery status, not its historical evidence.
+
+This follow-up modifies only `scripts/test_circuit_ward_models.py` and this
+note. Vendor/license hash checks pass unchanged; no model bytes, runtime code,
+or dependency files were modified. Disk checks before and after this audit
+reported **2.5G available** (above the 2GB stop threshold). No new games were
+registered, no captures or other artifacts created, and growth stays below the
+operator's 30MB workspace/artifact cap. Runtime visual integration belongs to
+the `script.js` worker; `scripts/test_circuit_ward.py` is orchestrator-owned.
+No browser screenshots, full-game smoke gate, multiplayer verification or
+release gate is claimed by this bounded dependency/model audit. Full
+registered-game browser smoke and pending rights confirmation remain release
+blockers; no push.

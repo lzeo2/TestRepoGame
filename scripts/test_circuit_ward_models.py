@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Stdlib audit of the five supplied GLBs and the local loader import closure.
+"""Stdlib audit of the six supplied GLBs and the local loader import closure.
 
 Run from any directory: python3 scripts/test_circuit_ward_models.py
 Assertions intentionally enforce this delivery's static, uncompressed subset,
@@ -15,13 +15,14 @@ import subprocess
 
 ROOT = Path(__file__).resolve().parents[1]
 GAME = ROOT / 'Games/Circuit Ward'
-REVISION = 'bc57a17'
+# Delivery revision, triangle ceiling, independently expected triangle count.
 MODELS = {
-    'cover-console.glb': (2000, 828),
-    'sentry-walker.glb': (2500, 1564),
-    'buzzer-drone.glb': (1500, 1220),
-    'coil-blaster.glb': (2000, 936),
-    'repair-cell.glb': (600, 308),
+    'cover-console.glb': ('bc57a17', 2000, 828),
+    'sentry-walker.glb': ('bc57a17', 2500, 1564),
+    'buzzer-drone.glb': ('bc57a17', 1500, 1220),
+    'coil-blaster.glb': ('bc57a17', 2000, 936),
+    'repair-cell.glb': ('bc57a17', 600, 308),
+    'arena-wall.glb': ('91adf55', 2000, 836),
 }
 VENDOR_HASHES = {
     'GLTFLoader.js': '1f9b02acfbf219a6ebb77f09e355500449a3ba9e6a77d87e0de72c0b9315ea4e',
@@ -41,10 +42,10 @@ def no_resources(value):
             no_resources(child)
 
 
-def audit(path, ceiling, expected):
+def audit(path, revision, ceiling, expected):
     blob = path.read_bytes()
     assert blob == subprocess.check_output(
-        ['git', 'show', f'{REVISION}:{path.relative_to(ROOT).as_posix()}'], cwd=ROOT
+        ['git', 'show', f'{revision}:{path.relative_to(ROOT).as_posix()}'], cwd=ROOT
     ), f'{path.name}: changed since supplied commit'
     assert len(blob) >= 28
     assert struct.unpack_from('<4sII', blob) == (b'glTF', 2, len(blob))
@@ -125,6 +126,7 @@ def audit(path, ceiling, expected):
           f'triangles={triangles}/{ceiling} dimensionsXYZ=' +
           'x'.join(f'{v:.6f}' for v in dimensions) + 'm mesh=1 materials=' +
           str(len(doc['materials'])) + ' static vertex-colors normals transforms=identity PASS')
+    return len(blob), triangles
 
 
 def imports():
@@ -153,8 +155,10 @@ def imports():
 if __name__ == '__main__':
     assert __debug__, 'Assertions must be enabled'
     imports()
-    for name, (ceiling, expected) in MODELS.items():
-        audit(GAME / 'models' / name, ceiling, expected)
-    assert not (GAME / 'models/arena-wall.glb').exists()
-    print('arena-wall.glb: ABSENT; ceiling=2000; not a pass, no fabricated asset')
-    print('supplied GLBs: 5/5 structural PASS; redistribution terms still pending')
+    assert {p.name for p in (GAME / 'models').glob('*.glb')} == set(MODELS)
+    totals = [audit(GAME / 'models' / name, revision, ceiling, expected)
+              for name, (revision, ceiling, expected) in MODELS.items()]
+    print(f'supplied GLBs: {len(totals)}/{len(MODELS)} structural PASS; '
+          f'bytes={sum(size for size, _ in totals)} '
+          f'triangles={sum(triangles for _, triangles in totals)}; '
+          'redistribution terms still pending')
