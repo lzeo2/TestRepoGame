@@ -66,7 +66,7 @@ All four are OPAQUE and double-sided; all emissive factors are zero. No emissive
 
 ### Low-end Chromebook gate remains open
 
-The proposed target is an N4020 / Intel UHD 600 Chromebook with 4 GB RAM, DPR 1, a 960 × 540 low preset, and a measured 30 fps gate. **This review did not test that hardware or measure fps.** Software-renderer timing is not a performance claim. Triangle fit alone cannot establish compatibility, especially with approximately 65.33 MiB of estimated mipmapped RGBA8 textures on one optional model.
+At review time the provisional baseline was an N4020 / Intel UHD 600 Chromebook with 4 GB RAM, DPR 1, a 960 × 540 low preset, and a measured 30 fps gate. The owner's subsequent provisional specification is an Intel N100 with 8 GB RAM / 64 GB storage; the [current development plan](foldwild-development-plan.md) uses that primary target with a 60 fps standard goal and the 30 fps low fallback. **This review tested neither Chromebook and did not measure fps.** Software-renderer timing is not a performance claim. Triangle fit alone cannot establish compatibility, especially with approximately 65.33 MiB of estimated mipmapped RGBA8 textures on one optional model.
 
 If owner GO permits optimization, consider a separate 512–1024 texture set or an atlas after material/UV review, while retaining this original unchanged. A naive atlas can break normal or metallic-roughness interpretation; atlas suitability is not established here. Test loading, memory/context stability, frame pacing and a representative full scene on actual target hardware before accepting the candidate. No textures were converted, no model was simplified, and no optimized derivative was ingested during planning.
 

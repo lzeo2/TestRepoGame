@@ -327,18 +327,26 @@ core additions without requiring the frontier in the first release.
 ## Phase 6: durable saves, performance and release verification
 
 **Low-end Chromebook support is an acceptance requirement, not an optional
-polish pass.** Proposed reference hardware: a 4 GB Chromebook with a dual-core
-Intel Celeron N4020 / integrated UHD 600 or a comparable low-end ARM device,
-running supported Chrome OS/Chrome with working WebGL. Exact hardware must be
-recorded in results; passing one reference device is not proof for every
-Chromebook. No actual Chromebook performance certification exists yet.
+polish pass.** The owner provisionally reports an **Intel N100 Chromebook with
+8 GB RAM and 64 GB storage**. Use that as the primary reference, subject to model
+confirmation, running supported Chrome OS/Chrome with working WebGL. Aim for
+60 FPS at 1280 x 720 on standard, retaining the 30 FPS low preset below. These
+are targets, not measured results. An N4020 / UHD 600 / 4 GB Chromebook remains
+an optional lower-spec test if available; passing the N100 must not imply that
+older device passed. Exact hardware must be recorded in results. No actual
+Chromebook performance certification exists yet.
+
+64 GB storage is not a game-size budget or evidence of available free space.
+Browser save quotas still apply regardless of SSD/eMMC capacity; keep saves
+compact, bounded and exportable.
 
 ### Default low preset and rendering limits
 
 - Default to a **30 FPS target**, DPR 1 and a **960 x 540 maximum drawing buffer**
   on the low preset. DOM text/buttons retain native display resolution. Permit
   lower adaptive render scale without changing controls, collision or rewards.
-  Standard can retain the proposed 1280 x 720 cap when hardware permits.
+  Standard targets 60 FPS with the proposed 1280 x 720 cap on the reported N100;
+  retain safe low defaults until actual-device profiling supports that choice.
 - Support the local r160 WebGL 1 path. Disable real-time shadows, postprocessing,
   bloom, SSAO, volumetric effects and expensive full-screen filters. Use simple
   directional/hemisphere lighting; animation uses elapsed time, not frame counts.
@@ -369,6 +377,10 @@ measure actual rendered-frame intervals: **target 30 FPS, mean at least 29 FPS,
 95th-percentile frame interval at most 50 ms, and no sustained 10-second period
 below 25 FPS**. Measure cold loads separately rather than hiding their cost in
 warm results. A loading transition is not a valid way to mask ongoing stutters.
+Separately measure the 60 FPS / 1280 x 720 standard target on the N100 and report
+actual results; if it cannot sustain that target, keep the low fallback and do
+not describe standard as verified 60 FPS. Record optional older-device testing
+separately from the primary device.
 
 Cover a busy settlement, traversal/chunk boundaries, battles with cosmetics and
 synergies, ledger scrolling/model rotation, and the optional horror encounter.
