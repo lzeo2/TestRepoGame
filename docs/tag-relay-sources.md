@@ -74,7 +74,11 @@ path/email findings, Python compilation, and **74,714 game bytes**.
 Delegation 33 independently repeated the source/archive/license comparisons,
 15 syntax checks, Python in-memory compilation and 30 local reference checks.
 It verified the pre-registration catalog's 113 unique IDs/schema/tracked URLs
-and that 223/224 were free. No heavy browser test was repeated.
+and that 223/224 were free. No heavy browser test was repeated. Staging the
+complete port exposed one `git diff --cached --check` finding:
+`Games/Tag Relay/original.js:586: new blank line at EOF.` This pinned source
+byte is preserved, not patched or claimed as a clean complete-port diff check.
+The integration commit's 22 paths were checked for other-worker leakage.
 
 Runnable focused regression: `python3 scripts/test_tag_relay.py` using the
 existing Playwright/Chromium installation. This focused pass does not replace

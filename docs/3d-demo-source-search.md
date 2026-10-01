@@ -5,8 +5,21 @@ Source-only handoff, 2026-10-01. Actual environment: `PI_PROVIDER=openai-codex`,
 `docs/circuit-ward-sources.md` and `docs/circuit-ward-models.md`.
 Branch verified: `feat/overnight-games`. No build, package install, clone,
 checkout, game/catalog edit, owner contact or push. Only this report is committed;
-small downloaded source/license evidence is under
-`scratch/tmp/3d-demo-source-search/` and is not staged.
+small downloaded source/license evidence was originally under
+`scratch/tmp/3d-demo-source-search/` and was not staged. Delegation 33 relocated
+only that candidate directory to the external temporary artifact identifier
+`overnight-source-evidence/3d-demo-source-search` on 2026-10-02 +10:00.
+All 17 files (120,474 bytes) matched their pre-move SHA-256 hashes and sizes;
+none was deleted or added to Git. The cached path/distinctive-basename audit
+found three documentary lines and zero runtime consumers, including
+sparse-excluded tracked content. `spline-ride-sources.md` records the historical
+read location, not a runtime dependency. Empty scratch parents were untouched.
+The external manifest is `3d-demo-source-search-sha256.json`, SHA-256
+`a9442c6584779d7d5473ff353c2ebccb1e64568afb97d87305d1ca35d3c9c4e7`;
+the adjacent `3d-demo-source-search-reference-audit.log` and
+`3d-demo-source-search-relocation.log` preserve the audit and 17/17 verification.
+An initial repeated-grep attempt hit its 60-second bound before any move;
+a single batched cached grep then completed. No runtime file was relocated.
 
 Catalog observation at search start: **113 entries; id 224 absent**. This is not
 an allocation lock; recheck immediately before registration. Foldwild collector
