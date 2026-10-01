@@ -9,11 +9,7 @@
 </head>
 <body>
   <a class="skip-link" href="#controls">Skip to game controls</a>
-  <header class="site-header">
-    <a href="../../index.html">Arcade</a>
-    <h1>Foldwild</h1>
-    <label class="motion-setting"><input id="reduce-motion" type="checkbox"> Reduce motion</label>
-  </header>
+  <header class="site-header"><h1>Foldwild</h1><a href="../../index.html">Arcade</a></header>
   <main id="controls" tabindex="-1">
     <section id="menu" class="panel" aria-labelledby="menu-title">
       <h2 id="menu-title">Choose your first ally</h2>
@@ -24,41 +20,49 @@
         <button type="button" data-starter="pithnip" aria-pressed="false" aria-describedby="starter-description">Pithnip</button>
       </div>
       <p id="starter-description">Cindupp is a sturdy Cindrel ally. Bank energy and shield before striking.</p>
+      <label class="seed-setting" for="seed-input">Expedition seed <span class="help">Optional</span></label>
+      <input id="seed-input" type="number" min="0" max="4294967295" step="1" placeholder="Random" inputmode="numeric">
       <div class="actions"><button type="button" id="start">Start trail</button><button type="button" id="continue" hidden>Continue trail</button></div>
       <p class="help">Move with WASD or arrows, or tap a trail marker. Press E to interact. Rest safely at camp.</p>
       <p class="help">In battle: 1–4 abilities, C latch kite, Space wait.</p>
     </section>
-    <section id="world-hud" hidden aria-label="Trail information">
-      <div class="trail-heading"><h2 id="zone-name">Root meadow</h2><span>Progress <strong id="score">0</strong></span><span>Collection <strong id="dex-count">0</strong></span><span>Kites <strong id="kites">0</strong></span><span id="save-state" role="status">Not saved</span></div>
-      <nav class="region-choices" aria-label="Regions"><button type="button" data-region="0">Root meadow</button><button type="button" data-region="1">Estuary</button><button type="button" data-region="2">Ridge</button></nav>
-    </section>
     <div class="play-layout">
       <section class="viewport" aria-label="3D trail and battle view">
         <canvas id="game-canvas" tabindex="0" aria-label="Foldwild 3D view. Tap trail markers or use nearby action buttons." aria-describedby="world-help"></canvas>
+        <section id="world-hud" hidden aria-label="Trail information">
+          <h2 id="zone-name">Rootfold Meadow</h2>
+          <div class="field-state"><span>Marks <strong id="marks">0</strong></span><span>Kites <strong id="kites">0</strong></span><span>Class <strong id="class-name">Pathfinder</strong></span></div>
+          <details class="field-record"><summary>Field record</summary><p>Progress <strong id="score">0</strong></p><p>Collection <strong id="dex-count">0</strong></p><p>Synergy <span id="synergy-name">None</span></p><span id="save-state" role="status">Not saved</span></details>
+        </section>
       </section>
       <aside class="trail-controls" aria-label="Game controls">
         <p id="message" role="status" aria-live="polite">Choose an ally to begin.</p>
-        <div id="nearby-actions" class="actions" aria-label="Nearby trail markers"></div>
-        <div class="actions"><button type="button" id="interact">Interact</button><button type="button" id="rest">Rest at camp</button></div>
-        <h2>Team</h2><div id="team-list"></div>
-        <div class="actions"><button type="button" id="collection-btn">Collection</button><button type="button" id="pause">Pause</button><button type="button" id="new-run">New run</button></div>
-        <p id="world-help" class="help">WASD or arrows: move. Tap trail markers: approach. E: interact. Camp rest is safe.</p>
+        <div id="team-list" aria-label="Expedition team"></div>
+        <div class="field-actions"><div id="nearby-actions" class="actions" aria-label="Nearby trail markers"></div><div class="actions interaction-actions"><button type="button" id="interact">Interact</button><button type="button" id="rest">Rest at camp</button></div></div>
+        <div class="toolbar" aria-label="Expedition tools">
+          <button type="button" id="collection-btn">Field ledger</button><button type="button" id="services-btn">Services</button><button type="button" id="pause">Pause</button><button type="button" id="new-run">New run</button><button type="button" id="camera-reset">Reset camera</button>
+          <label for="quality">Quality <select id="quality"><option value="low" selected>Low</option><option value="standard">Standard</option></select></label>
+          <label class="motion-setting"><input id="reduce-motion" type="checkbox"> Reduce motion</label>
+        </div>
+        <details class="travel"><summary>Travel</summary><nav class="region-choices" aria-label="Regions"><button type="button" data-region="0">Rootfold Meadow</button><button type="button" data-region="1">Stillwater Reach</button><button type="button" data-region="2">Emberstep Quarry</button><button type="button" data-region="3">Stonefold Ridge</button><button type="button" data-region="4">Quietfold Hollow</button></nav></details>
+        <div id="world-help" class="help">WASD or arrows: move. Tap trail markers: approach. E: interact. Camp rest is safe.</div>
       </aside>
+      <section id="battle-panel" hidden aria-label="Battle controls">
+        <div class="combatants">
+          <section aria-labelledby="player-name"><h2 id="player-name">Your ally</h2><div class="resource"><p>HP <span id="player-hp">0 / 0</span></p><progress id="player-hp-bar" max="100" value="0" aria-label="Your ally health"></progress></div><div class="resource"><p>Energy <span id="player-energy">0 / 0</span></p><progress id="player-energy-bar" max="100" value="0" aria-label="Your ally energy"></progress></div><details><summary>Ally status</summary><p id="player-status">No status</p></details></section>
+          <section aria-labelledby="enemy-name"><h2 id="enemy-name">Opponent</h2><div class="resource"><p>HP <span id="enemy-hp">0 / 0</span></p><progress id="enemy-hp-bar" max="100" value="0" aria-label="Opponent health"></progress></div><div class="resource"><p>Energy <span id="enemy-energy">0 / 0</span></p><progress id="enemy-energy-bar" max="100" value="0" aria-label="Opponent energy"></progress></div><details><summary>Foe status</summary><p id="enemy-status">No status</p></details></section>
+        </div>
+        <div class="ability-choices" role="group" aria-label="Abilities"><button type="button" id="ability-0" data-slot="0">Ability 1</button><button type="button" id="ability-1" data-slot="1">Ability 2</button><button type="button" id="ability-2" data-slot="2">Ability 3</button><button type="button" id="ability-3" data-slot="3">Ability 4</button></div>
+        <div class="battle-actions"><button type="button" id="capture">Latch kite</button><button type="button" id="wait">Wait</button><button type="button" id="flee">Flee</button></div>
+        <div id="switch-list" class="actions" aria-label="Switch ally"></div>
+        <details class="battle-history"><summary>Battle log</summary><ol id="battle-log" aria-label="Battle log" aria-live="polite"></ol></details>
+      </section>
     </div>
-    <section id="battle-panel" class="panel" hidden aria-label="Battle controls">
-      <div class="combatants">
-        <section aria-labelledby="player-name"><h2 id="player-name">Your ally</h2><p>HP <span id="player-hp">0 / 0</span></p><progress id="player-hp-bar" max="100" value="0" aria-label="Your ally health"></progress><p>Energy <span id="player-energy">0 / 0</span></p><progress id="player-energy-bar" max="100" value="0" aria-label="Your ally energy"></progress><p id="player-status">No status</p></section>
-        <section aria-labelledby="enemy-name"><h2 id="enemy-name">Opponent</h2><p>HP <span id="enemy-hp">0 / 0</span></p><progress id="enemy-hp-bar" max="100" value="0" aria-label="Opponent health"></progress><p>Energy <span id="enemy-energy">0 / 0</span></p><progress id="enemy-energy-bar" max="100" value="0" aria-label="Opponent energy"></progress><p id="enemy-status">No status</p></section>
-      </div>
-      <div class="ability-choices" role="group" aria-label="Abilities"><button type="button" id="ability-0" data-slot="0">Ability 1</button><button type="button" id="ability-1" data-slot="1">Ability 2</button><button type="button" id="ability-2" data-slot="2">Ability 3</button><button type="button" id="ability-3" data-slot="3">Ability 4</button></div>
-      <div class="actions"><button type="button" id="capture">Latch kite</button><button type="button" id="wait">Wait</button><button type="button" id="flee">Flee</button></div>
-      <div id="switch-list" class="actions" aria-label="Switch ally"></div>
-      <ol id="battle-log" aria-label="Battle log" aria-live="polite"></ol>
-    </section>
     <section id="result" class="panel" hidden aria-labelledby="result-title"><h2 id="result-title">Trail result</h2><p id="result-description"></p><button type="button" id="result-continue">Continue</button></section>
   </main>
   <dialog id="dialogue-dialog" aria-labelledby="dialogue-title"><h2 id="dialogue-title">Trailkeeper</h2><p id="dialogue-text"></p><div class="actions"><button type="button" id="dialogue-start">Begin battle</button><button type="button" id="dialogue-cancel">Back to trail</button></div></dialog>
-  <dialog id="collection-dialog" aria-label="Collection"><h2>Collection</h2><div id="collection-list"></div><button type="button" id="collection-close">Close collection</button></dialog>
+  <dialog id="collection-dialog" aria-labelledby="collection-title"><div class="dialog-heading"><h2 id="collection-title">Field ledger</h2><button type="button" id="collection-close">Close ledger</button></div><div class="ledger-filters"><label for="ledger-search">Search discoveries<input id="ledger-search" type="search" placeholder="Name or family"></label><label for="ledger-filter">Element<select id="ledger-filter"><option value="all">All elements</option><option value="Loamveil">Loamveil</option><option value="Rillune">Rillune</option><option value="Cindrel">Cindrel</option><option value="Gleamric">Gleamric</option><option value="Hushmere">Hushmere</option></select></label></div><div id="collection-list"></div></dialog>
+  <dialog id="service-dialog" aria-labelledby="service-title" aria-describedby="service-description"><div class="dialog-heading"><h2 id="service-title">Outpost services</h2><form method="dialog"><button id="service-close" type="submit">Back to field</button></form></div><p id="service-description"></p><div id="service-content"></div></dialog>
   <dialog id="reset-dialog" aria-labelledby="reset-title"><h2 id="reset-title">Start a new run?</h2><p>This replaces your saved trail. Your current progress will be lost.</p><div class="actions"><button type="button" id="reset-confirm">Replace saved run</button><button type="button" id="reset-cancel">Keep current run</button></div></dialog>
   <script type="module" src="./script.js"></script>
 </body>
