@@ -3,6 +3,8 @@
 Status: concept only, awaiting the operator's direct approval. Catalog id 222
 is free. No game implementation, dependency vendoring or registration yet.
 This is the proposed one-run self-made exception, not ingested content.
+Revised for the operator's 2–4-player multiplayer request; the previous
+solo-only approval ticket is superseded, not authorization to implement.
 
 ## Art
 
@@ -26,14 +28,52 @@ A first-person arena shooter, not a runner. Six escalating waves of
 malfunctioning training bots in one compact bay. Strafe around four cover
 consoles, aim and fire an unlimited-ammo coil blaster, collect repair cells,
 and score for disabling bots. Walkers pursue; drones approach from above.
-Clear wave six to win; shield depletion ends the run. Retry resets everything.
+Clear wave six to win; shield depletion ends the solo run. Retry resets everything.
+Solo retains exactly this loop. Multiplayer puts 2–4 players in the same
+arena against bots: shared wave clearing, pooled score, friendly fire off.
+Each player has their own shield; a disabled player spectates until the next
+cleared wave restores them. All players disabled ends the team run.
+The requested friendly-fire-off/pooled-score rules define co-op versus bots,
+not a separate PvP deathmatch mode.
 
 - WASD/arrows move; mouse aims; click fires.
 - IJKL aims and Space fires for a full keyboard alternative.
 - Esc/P pauses and releases pointer lock; resume needs an intentional click.
 - Touch: left pad moves, right drag aims, separate held Fire button.
 - Native focusable Start, Pause, Resume, Retry and Menu controls; 44px minimum.
-  Pause on hidden tab or lost focus; a plain WebGL-unavailable message.
+  Hidden tab/lost focus pauses solo or the host's match; clients neutralize
+  local input as described below. A plain WebGL-unavailable message.
+
+## Multiplayer architecture
+
+- **Transport/host:** native WebRTC DataChannels; one authoritative browser
+  host and up to three clients in a star. No signups, public STUN/TURN servers
+  or relay (`iceServers: []`). Load the HTTPS site or trusted local HTTPS copy.
+- **Pairing:** copy/paste a complete ICE-gathered offer/answer per client,
+  not a short room code. Netlify serves static files; UV is disabled and
+  `netlify/functions/bare.js` only reports status. Neither is a game relay;
+  Functions cannot hold persistent WebSockets. Manual signaling is proposed
+  instead. Automatic pairing needs separately approved durable signaling
+  storage/endpoint. No UV, `/bare/*` or security configuration changes.
+- **State sync:** host owns movement, bots, hit tests, shields, waves and pooled
+  score. Clients send sequenced movement/aim/fire intents at 20Hz; host sends
+  bounded full snapshots at 20Hz. Clients interpolate actors; camera aim
+  responds immediately. Unreliable unordered channel for inputs/snapshots;
+  reliable ordered channel for session/wave/result events. Validate message
+  fields, size, rate and cooldown; reject stale session IDs/sequences.
+- **Lifecycle:** host starts/pauses/restarts; client pause/lost focus sends
+  neutral input without pausing everyone. Inputs expire after 250ms.
+  No host migration or join-in-progress in v1.
+- **Solo fallback:** after 15 seconds of failed pairing, offer a fresh solo
+  run. Missing host snapshots for 3 seconds pauses clients and offers solo
+  or menu. Host removes disconnected players and can continue alone. Do not
+  carry pooled scores into a client's fresh solo run. Wi-Fi isolation or
+  browser/firewall/mDNS restrictions may prevent LAN P2P; no connectivity
+  promise or endless reconnect. Solo never needs a peer connection.
+- **QA:** 2/4-browser shared waves, pooled scores, friendly-fire immunity,
+  invalid-input handling and disconnect/solo fallback, plus real separate
+  LAN-device testing; one-machine browser tests cannot prove school Wi-Fi
+  compatibility.
 
 ## Performance and scope
 
@@ -51,9 +91,12 @@ Models are optional visual replacements, not prerequisites or collision data.
 Proposed files: `Games/Circuit Ward/{index.html,style.css,script.js}`,
 `vendor/{three.module.js,LICENSE}`, source/QA notes in `docs/`, one small
 browser regression under `scripts/`, and one catalog entry (222).
+Add one game-local `multiplayer.js` for the bounded transport/session logic;
+no backend files, network library or proxy changes are proposed.
 Only add a matching local GLTFLoader and its required local utility when
 actual models are supplied. No empty asset scaffolding or general loader API.
-No multiplayer, procedural maps, inventory, weapon tree or extra modes.
+Only solo and 2–4-player LAN co-op. No PvP, procedural maps, inventory,
+weapon tree, public matchmaking or server hosting.
 
 ## Model wishlist for Dot
 
@@ -76,6 +119,8 @@ extensions. Include normals; apply transforms; meters, Y-up, front/muzzle -Z.
 Origin centered on the floor footprint (drone centered on its body; weapon
 at grip). Robot limbs can be static; whole-body bobbing is sufficient.
 Provide a small provenance/usage-permission note with the generated assets.
+Teammate avatars reuse the walker silhouette in cool-blue/cream colors with
+player labels; the wishlist remains exactly six models, not a seventh asset.
 
 Use primitives if models are delayed. Keep movement, hit volumes and scoring
 independent of art; replace only the corresponding visual geometry once
@@ -83,9 +128,11 @@ models arrive. Respect the operator's 30MB workspace growth/capture cap.
 
 ## Gate
 
-Ask the operator to approve this exact name, core loop, controls, rendered
-art and six-model wishlist before any game coding. Generic acknowledgment or
-a timeout is not approval. After approval, record the dated id-222 exception
+Ask the operator to approve this revised name, solo/co-op loop, controls,
+rendered art, six-model wishlist and manual-signaling WebRTC architecture
+before any game coding. Explicitly obtain acceptance of manual pairing
+instead of the nonexistent embedded multiplayer backend. Generic
+acknowledgment or a timeout is not approval. After approval, record the dated id-222 exception
 in `AGENTS.md`, expiring at the end of this run; all other additions remain
 port-only. Portal commit `91317b3` is complete and local only. Full registered-
 game smoke QA and separate operator permission remain required before push.
