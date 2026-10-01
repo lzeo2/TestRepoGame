@@ -57,10 +57,25 @@ Default scope is existing games only. New games require an explicit operator
 order. This review run authorizes at most two new ports, starting at id 222
 if free. That authorization is run-specific, not standing permission.
 
+### Dated one-run exception: Circuit Ward (2026-10-01)
+
+Direct operator approval in ticket `pi-912882-1790827041648` authorizes ONE
+self-made game, Circuit Ward, id 222, for this run only. It covers the four
+rendered concept frames, six-model wishlist, solo waves and 2–4-player co-op
+with manual offer/answer WebRTC pairing. No STUN/TURN, accounts, room codes,
+signaling service, proxy reactivation or backend changes. Build primitives
+first; generated GLB art can replace them later with provenance evidence.
+All 3D planning/implementation workers must use `openai-codex/gpt-6.1-sol`;
+each task is bounded to 20 minutes maximum. Vendor dependencies/licenses,
+preserve offline solo, and retain the full-game smoke/release/no-push gates.
+This exception expires when this Circuit Ward implementation run ends; it
+creates no standing permission for any other self-made game or new id.
+
 - Prefer known, legitimately reusable open-source web games. Verify the
   license, upstream revision, author, and assets before ingesting.
-- No from-scratch AI games, invented attribution, placeholder replacements,
-  or generated promotional writeups in this run. Stop if a source cannot be
+- Except for the dated id-222 exception above, no from-scratch AI games,
+  invented attribution, placeholder replacements or generated promotional
+  writeups in this run. Stop if a source cannot be
   verified. A mirror URL is not itself evidence of redistribution rights.
 - Each addition needs `docs/` source evidence: upstream URL, pinned revision,
   license/asset terms, local modifications, and runnable verification.
@@ -97,7 +112,8 @@ and the written word of this file. Delegate mechanical implementation and
 collection only; never silently absorb worker tasks.
 
 - Use the operator-selected provider/model/thinking on every worker call.
-  Current order: `openai-codex`, `gpt-5.6-luna`, thinking `xhigh`.
+  Current 3D order: `openai-codex/gpt-6.1-sol` (including workers); prior
+  non-3D review order was `openai-codex`, `gpt-5.6-luna`, thinking `xhigh`.
 - Assign disjoint paths and one bounded task per worker. At most three port
   workers, at most two additions total. No port work before P1-P4 land.
 - Workers commit their own changes using explicit paths, never push.

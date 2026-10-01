@@ -1,10 +1,11 @@
 # Circuit Ward: approval proposal
 
-Status: concept only, awaiting the operator's direct approval. Catalog id 222
-is free. No game implementation, dependency vendoring or registration yet.
-This is the proposed one-run self-made exception, not ingested content.
-Revised for the operator's 2–4-player multiplayer request; the previous
-solo-only approval ticket is superseded, not authorization to implement.
+Status: APPROVED directly by the operator on 2026-10-01 in ticket
+`pi-912882-1790827041648`. Approval covers solo + 2–4-player co-op, manual
+WebRTC pairing, all four rendered frames and the six-model wishlist.
+Primitive implementation of id 222 is authorized. This is an explicitly
+self-made, one-run exception, not ingested game content. The previous
+solo-only ticket is superseded. No push or release is authorized.
 
 ## Art
 
@@ -128,11 +129,9 @@ models arrive. Respect the operator's 30MB workspace growth/capture cap.
 
 ## Gate
 
-Ask the operator to approve this revised name, solo/co-op loop, controls,
-rendered art, six-model wishlist and manual-signaling WebRTC architecture
-before any game coding. Explicitly obtain acceptance of manual pairing
-instead of the nonexistent embedded multiplayer backend. Generic
-acknowledgment or a timeout is not approval. After approval, record the dated id-222 exception
-in `AGENTS.md`, expiring at the end of this run; all other additions remain
-port-only. Portal commit `91317b3` is complete and local only. Full registered-
+The direct operator answer explicitly accepts manual pairing instead of the
+nonexistent embedded multiplayer backend and authorizes implementation.
+The dated id-222 exception is recorded in `AGENTS.md`, expiring at the end
+of this run; all other additions remain port-only. Generic acknowledgment,
+a timeout or approval of the superseded solo-only pitch does not suffice. Portal commit `91317b3` is complete and local only. Full registered-
 game smoke QA and separate operator permission remain required before push.
