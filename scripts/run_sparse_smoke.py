@@ -47,6 +47,14 @@ def game_folder(url):
     return str(p.parent)
 
 
+def game_dependencies(folder):
+    # Ovo's module loader imports siblings; never materialize its other versions.
+    if folder == 'Games/Ovo/1.4.5':
+        return ('Games/Ovo/src/modloaders/util', 'Games/Ovo/src/mods/modloader/config',
+                'Games/Ovo/src/img', 'Games/Ovo/src/skins', 'Games/Ovo/src/communitylevels')
+    return ()
+
+
 def included(path, folders):
     # Cone mode also includes loose files in every selected folder's ancestors.
     parent = path.rpartition('/')[0]
@@ -87,7 +95,7 @@ def load_plan():
         folder = game_folder(game['url'])
         if unquote(game['url']) not in files:
             raise RuntimeError('Catalog URL is not a tracked file: ' + game['url'])
-        folders = (*common, folder)
+        folders = (*common, folder, *game_dependencies(folder))
         size = game_bytes(files, folders)
         if size > LIMIT:
             raise RuntimeError(f'{game["title"]}: predicted Games payload {size} exceeds {LIMIT}')
@@ -200,7 +208,17 @@ def self_test():
              'Games/_emulatorjs/data/loader.js': 7, 'assets/a.js': 11}
     assert game_bytes(files, ('Games/Ovo/1.4.5', 'Games/_emulatorjs', 'assets')) == 17
     assert not included('Games/Ovo/other/big.bin', ('Games/Ovo/1.4.5',))
-    print('self-test: URL safety and cone ancestor budgets OK')
+    ovo = ('Games/Ovo/1.4.5', *game_dependencies('Games/Ovo/1.4.5'))
+    for path in ('modloaders/modloader.js', 'modloaders/util/pages/skins/render.js',
+                 'modloaders/util/pages/replays/replayruntime.js', 'mods/modloader/community.js',
+                 'mods/modloader/config/backend.json', 'mods/modloader/config/changelog.json',
+                 'img/modloader/modloader.png', 'skins/skin.png', 'communitylevels/config/data.json'):
+        assert included('Games/Ovo/src/' + path, ovo), path
+    for path in ('Games/Ovo/1.4.4/data.js', 'Games/Ovo/src/van1.4/media/track1.ogg',
+                 'Games/Ovo/src/modloaders/legacy/modloader1.4.js'):
+        assert not included(path, ovo), path
+    assert not game_dependencies('Games/Run3/tn6pS9dCf37xAhkJv')
+    print('self-test: URL safety, cone ancestor budgets and Ovo-only loader closure OK')
 
 
 if __name__ == '__main__':
