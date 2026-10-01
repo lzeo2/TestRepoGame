@@ -78,10 +78,17 @@ adapter supplies the approved POIs. Initial full-native command exited 1 with
 `world adapter has not supplied the approved region ABI`; this was not a pass.
 A separately labeled temporary presentation fixture used the actual region
 static POIs plus current legacy wild points to exercise rendering while waiting.
-It passed with world 19 draws/6,205 triangles, battle 7 draws/1,446 triangles,
-12 cached entries/18 warm geometries/zero textures after 40 replacements, and
-zero browser/HTTP/external-request errors. Its screenshots are provisional, not
-proof that the world adapter or game core is integrated.
+The latest labeled fixture command exited 0 with world 19 draws/6,217 triangles,
+battle 7 draws/1,446 triangles, 12 cached entries/18 warm geometries/zero textures
+after 40 replacements, and zero browser/HTTP/external-request errors. Its three
+JPEGs total 81,845 bytes on the initial run; subsequent captures overwrite them.
+`node --experimental-default-type=module --check Games/Foldwild/view.js` and
+explicit-path `git diff --check` both exited 0. Python AST parsing printed
+`PASS: Python syntax`. The committed unmodified native test still requires the
+world adapter's merchant POIs; no full integration pass has been reported.
+Fixture screenshots are provisional, not proof that the world adapter or game
+core is integrated. Main must rerun the committed command after its adapter/core
+integration, without replacing or weakening that assertion.
 
 Held: complete campaign, all-80 cosmetic fit, ledger viewer, hairstyle controls,
 class/gameplay wiring, horror/frontier work, full catalog release gate, and actual
