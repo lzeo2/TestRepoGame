@@ -1,9 +1,13 @@
 # Foldwild: full-game development proposal
 
-Status: **AWAITING OWNER APPROVAL**. This is a proposal, not an implementation claim.
+Status: **DEVELOPMENT AUTHORIZED; IMPLEMENTATION IN PROGRESS**. The owner ordered
+"now plan out the game in detail and get to implemntaton". See the
+[build order and milestone contract](foldwild-implementation.md). Features below
+remain design targets until the milestone report verifies their implementation.
 The [three concept shots](foldwild-concept-shots.md) are approval-only mockups
 using the supplied creature models, personally reviewed for this visual proposal.
-No gameplay, registration or push is authorized by this document.
+Gameplay development is now authorized. Registration, publication and push
+remain separately gated; concept mockups are not completed-game evidence.
 
 ## Direction
 
@@ -421,7 +425,7 @@ until the end of content implementation.
 
 ## Work breakdown and approval boundaries
 
-After approval, split each phase into narrow 10–20-minute mechanical tasks with
+Implement each phase through narrow 10–20-minute mechanical tasks with
 non-overlapping paths: world/content, battle/build balance, renderer, UI,
 economy and saves. Procedural frontier work follows the stable authored loop.
 I retain game direction, asset decisions and visual/integration review. Each
@@ -451,10 +455,10 @@ animation rig. Three images are 2048 x 2048; one is 512 x 512.
 An RGBA8 estimate is 49 MiB before mipmaps / approximately 65.3 MiB with full
 mipmaps, not a measured GPU allocation. The upload is 6,384,292 bytes.
 
-For low-end support, propose an approved derivative with the three large images
-limited to 1024 x 1024 (about 17.3 MiB RGBA8 with mipmaps in total), or 512-wide
-textures if hardware tests require it. No conversion is authorized by this plan;
-the uploaded original remains unchanged. Preserve the normal/metallic-roughness
+For low-end support, prepare a documented derivative in the optional-secret
+milestone with the three large images limited to 1024 x 1024 (about 17.3 MiB
+RGBA8 with mipmaps in total), or 512-wide textures if hardware tests require it.
+The uploaded original remains unchanged; no derivative has been produced yet. Preserve the normal/metallic-roughness
 maps' non-color meaning when optimizing, rather than naively treating them as
 color images. Texture format/style acceptance, optimized appearance, actual
 device performance, provenance, species data and encounter design still require
@@ -467,10 +471,10 @@ sign-off. Existing creator/license assertions and publication holds are not
 cleared by approving a development plan; new assets must have documented
 original/reusable-source provenance.
 
-**Approval requested:** the expanded five-region/NPC/economy scope, papercraft
-visual direction, turn-based three-member teams, trainer classes, synergies,
-individual attributes and appearance options. Confirm the frontier separately
-if it should join the first release, rather than follow the authored game.
-Owner may change scope/style/content before gameplay implementation starts.
-All additions in this revision are plan changes only; no runtime code,
-registration or push is authorized.
+**Approved development scope:** the expanded five-region/NPC/economy design,
+papercraft visual direction, turn-based three-member teams, trainer classes,
+synergies, individual attributes and appearance options. The separately gated
+frontier follows the working authored game; release inclusion is decided later.
+Gameplay implementation has started; unavailable hardware/provenance and
+registration/publication holds remain explicit. No registration or push is
+authorized by the development order.
