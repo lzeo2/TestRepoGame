@@ -206,7 +206,8 @@ function wire(run) {
 let live = { epoch: 0, phase: 'lobby', wave: 0, score: 0, time: 0, players: [{ id: 0, x: 0, z: 6.5, yaw: 0, pitch: 0, hp: 100, shot: 0 }], bots: [], cells: [] };
 let renderer = null;
 let frames = 0;
-const modelNames = ['cover-console', 'sentry-walker', 'buzzer-drone', 'coil-blaster', 'repair-cell'];
+let primitiveWalls = true;
+const modelNames = ['cover-console', 'sentry-walker', 'buzzer-drone', 'coil-blaster', 'repair-cell', 'arena-wall'];
 const modelDiagnostics = modelNames.map(name => Object.freeze({ name, status: 'loading' }));
 /** Detached, deeply frozen wire snapshot. It cannot mutate the live game. */
 export function inspect() {
@@ -218,7 +219,7 @@ export function inspect() {
   return Object.freeze(snapshot);
 }
 export function stats() {
-  return Object.freeze({ drawCalls: renderer?.info.render.calls || 0, triangles: renderer?.info.render.triangles || 0, frames, models: Object.freeze([...modelDiagnostics]), primitiveWalls: true });
+  return Object.freeze({ drawCalls: renderer?.info.render.calls || 0, triangles: renderer?.info.render.triangles || 0, frames, models: Object.freeze([...modelDiagnostics]), primitiveWalls });
 }
 
 if (typeof document !== 'undefined') boot();
@@ -510,6 +511,7 @@ function boot() {
       staticBoxes.setMatrixAt(staticCount, dummy.matrix); staticBoxes.setColorAt(staticCount++, color.setHex(tint));
     }
     staticBox(0, -0.12, 0, 22.5, 0.24, 22.5, 0x526d80);
+    const wallStart = staticCount;
     for (const z of [-11.2, 11.2]) {
       staticBox(0, 2.5, z, 22.5, 5, 0.4, 0x395b72);
       staticBox(0, 4.5, z * 0.985, 22, 0.2, 0.2, colors.cream);
@@ -520,11 +522,11 @@ function boot() {
       staticBox(x * 0.985, 4.5, 0, 0.2, 0.2, 22, colors.cream);
       for (let z = -10; z <= 10; z += 4) staticBox(x * 0.985, 2.5, z, 0.2, 5, 0.18, 0x233f52);
     }
+    const wallEnd = staticCount;
     for (let i = -8; i <= 8; i += 4) {
       staticBox(i, 0.005, 0, 0.025, 0.01, 21, 0x8397a2);
       staticBox(0, 0.005, i, 21, 0.01, 0.025, 0x8397a2);
     }
-    // No arena-wall model was delivered; the primitive bay stays intact.
     const bayCount = staticCount;
     for (const c of COVER) {
       staticBox(c.x, c.h / 2, c.z, c.w, c.h, c.d, 0x233f52);
@@ -551,7 +553,7 @@ function boot() {
     pulses = new THREE.LineSegments(pulseGeometry, new THREE.LineBasicMaterial({ color: 0xffffff })); pulses.frustumCulled = false; scene.add(pulses);
     webgl = true;
     resize();
-    loadModels(staticBoxes, bayCount);
+    loadModels(staticBoxes, bayCount, wallStart, wallEnd);
   } catch {
     renderer = null;
     status('WebGL is unavailable. Enable hardware acceleration or use a WebGL-capable browser. You can still read the controls or return to the arcade.');
@@ -571,7 +573,7 @@ function boot() {
   }
   addEventListener('resize', resize);
 
-  function loadModels(staticBoxes, bayCount) {
+  function loadModels(staticBoxes, bayCount, wallStart, wallEnd) {
     const loader = new GLTFLoader();
     function pool(geometry, material, capacity) {
       const mesh = new THREE.InstancedMesh(geometry, material, capacity);
@@ -603,6 +605,25 @@ function boot() {
           });
           consoles.count = 4; consoles.instanceMatrix.needsUpdate = true;
           staticBoxes.count = bayCount;
+        } else if (name === 'arena-wall') {
+          const walls = pool(geometry, material, 24);
+          walls.instanceMatrix.setUsage(THREE.StaticDrawUsage);
+          const spacing = 22.5 / 6;
+          // Slight overlap seals panel seams; source -Z faces into the bay on all sides.
+          for (let side = 0; side < 4; side++) {
+            const angle = side * Math.PI / 2;
+            for (let i = 0; i < 6; i++) {
+              const along = -11.25 + spacing * (i + 0.5);
+              dummy.position.set(along * Math.cos(angle) + 11.2 * Math.sin(angle), 0, -along * Math.sin(angle) + 11.2 * Math.cos(angle));
+              dummy.rotation.set(0, angle, 0); dummy.scale.set((spacing + 0.04) / (bounds.max[0] - bounds.min[0]), 1, 1); dummy.updateMatrix();
+              walls.setMatrixAt(side * 6 + i, dummy.matrix);
+            }
+          }
+          walls.count = 24; walls.instanceMatrix.needsUpdate = true;
+          dummy.scale.set(0, 0, 0); dummy.updateMatrix();
+          for (let i = wallStart; i < wallEnd; i++) staticBoxes.setMatrixAt(i, dummy.matrix);
+          staticBoxes.instanceMatrix.needsUpdate = true;
+          primitiveWalls = false;
         } else if (name === 'coil-blaster') {
           const gunMaterial = material.clone(); gunMaterial.depthTest = false; gunMaterial.depthWrite = false;
           const gun = new THREE.Mesh(geometry, gunMaterial);
