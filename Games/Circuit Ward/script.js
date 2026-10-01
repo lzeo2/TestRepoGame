@@ -1,4 +1,5 @@
 import * as THREE from './vendor/three.module.js';
+import { GLTFLoader } from './vendor/GLTFLoader.js';
 import { PeerRoom } from './multiplayer.js';
 
 const LIMIT = 10.6;
@@ -205,6 +206,8 @@ function wire(run) {
 let live = { epoch: 0, phase: 'lobby', wave: 0, score: 0, time: 0, players: [{ id: 0, x: 0, z: 6.5, yaw: 0, pitch: 0, hp: 100, shot: 0 }], bots: [], cells: [] };
 let renderer = null;
 let frames = 0;
+const modelNames = ['cover-console', 'sentry-walker', 'buzzer-drone', 'coil-blaster', 'repair-cell'];
+const modelDiagnostics = modelNames.map(name => Object.freeze({ name, status: 'loading' }));
 /** Detached, deeply frozen wire snapshot. It cannot mutate the live game. */
 export function inspect() {
   const snapshot = structuredClone(live);
@@ -215,7 +218,7 @@ export function inspect() {
   return Object.freeze(snapshot);
 }
 export function stats() {
-  return Object.freeze({ drawCalls: renderer?.info.render.calls || 0, triangles: renderer?.info.render.triangles || 0, frames });
+  return Object.freeze({ drawCalls: renderer?.info.render.calls || 0, triangles: renderer?.info.render.triangles || 0, frames, models: Object.freeze([...modelDiagnostics]), primitiveWalls: true });
 }
 
 if (typeof document !== 'undefined') boot();
@@ -232,6 +235,7 @@ function boot() {
   const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
   let webgl = false, touchUsed = matchMedia('(pointer: coarse)').matches;
   let scene, camera, boxes, cylinders, weapon, pulses;
+  const modelPools = {}; // Visuals only: all hit volumes remain in the simulation above.
   const dummy = new THREE.Object3D();
   const color = new THREE.Color();
   const colors = { orange: 0xd8772a, cream: 0xf2e5c6, dark: 0x192e3c, blue: 0x749fb9, white: 0xffffff };
@@ -516,15 +520,17 @@ function boot() {
       staticBox(x * 0.985, 4.5, 0, 0.2, 0.2, 22, colors.cream);
       for (let z = -10; z <= 10; z += 4) staticBox(x * 0.985, 2.5, z, 0.2, 5, 0.18, 0x233f52);
     }
+    for (let i = -8; i <= 8; i += 4) {
+      staticBox(i, 0.005, 0, 0.025, 0.01, 21, 0x8397a2);
+      staticBox(0, 0.005, i, 21, 0.01, 0.025, 0x8397a2);
+    }
+    // No arena-wall model was delivered; the primitive bay stays intact.
+    const bayCount = staticCount;
     for (const c of COVER) {
       staticBox(c.x, c.h / 2, c.z, c.w, c.h, c.d, 0x233f52);
       staticBox(c.x, c.h + 0.025, c.z, c.w + 0.1, 0.05, c.d + 0.1, colors.cream);
       staticBox(c.x, c.h + 0.057, c.z, 1.6, 0.02, 0.55, colors.blue);
       for (const side of [-1, 1]) staticBox(c.x + side * 1.08, 0.45, c.z, 0.16, 0.9, 1.25, colors.orange);
-    }
-    for (let i = -8; i <= 8; i += 4) {
-      staticBox(i, 0.005, 0, 0.025, 0.01, 21, 0x8397a2);
-      staticBox(0, 0.005, i, 21, 0.01, 0.025, 0x8397a2);
     }
     staticBoxes.count = staticCount; scene.add(staticBoxes);
     boxes = new THREE.InstancedMesh(boxGeometry, material, 420); boxes.frustumCulled = false; boxes.instanceMatrix.setUsage(THREE.DynamicDrawUsage); scene.add(boxes);
@@ -545,6 +551,7 @@ function boot() {
     pulses = new THREE.LineSegments(pulseGeometry, new THREE.LineBasicMaterial({ color: 0xffffff })); pulses.frustumCulled = false; scene.add(pulses);
     webgl = true;
     resize();
+    loadModels(staticBoxes, bayCount);
   } catch {
     renderer = null;
     status('WebGL is unavailable. Enable hardware acceleration or use a WebGL-capable browser. You can still read the controls or return to the arcade.');
@@ -564,12 +571,86 @@ function boot() {
   }
   addEventListener('resize', resize);
 
+  function loadModels(staticBoxes, bayCount) {
+    const loader = new GLTFLoader();
+    function pool(geometry, material, capacity) {
+      const mesh = new THREE.InstancedMesh(geometry, material, capacity);
+      mesh.count = 0; mesh.frustumCulled = false;
+      mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+      scene.add(mesh);
+      return mesh;
+    }
+    modelNames.forEach((name, index) => {
+      loader.loadAsync(`./models/${name}.glb`).then(gltf => {
+        const meshes = [];
+        gltf.scene.traverse(node => { if (node.isMesh) meshes.push(node); });
+        const source = meshes[0];
+        if (meshes.length !== 1 || Array.isArray(source.material) || !source.geometry.attributes.normal || !source.geometry.attributes.color) {
+          throw new Error('Expected one static vertex-colored mesh with normals.');
+        }
+        // Applied delivery transforms and meter dimensions are preserved, never used for physics.
+        const geometry = source.geometry, material = source.material;
+        geometry.computeBoundingBox();
+        const bounds = Object.freeze({
+          min: Object.freeze(geometry.boundingBox.min.toArray()),
+          max: Object.freeze(geometry.boundingBox.max.toArray())
+        });
+        if (name === 'cover-console') {
+          const consoles = pool(geometry, material, 4);
+          COVER.forEach((c, i) => {
+            dummy.position.set(c.x, 0, c.z); dummy.rotation.set(0, 0, 0); dummy.scale.set(1, 1, 1); dummy.updateMatrix();
+            consoles.setMatrixAt(i, dummy.matrix);
+          });
+          consoles.count = 4; consoles.instanceMatrix.needsUpdate = true;
+          staticBoxes.count = bayCount;
+        } else if (name === 'coil-blaster') {
+          const gunMaterial = material.clone(); gunMaterial.depthTest = false; gunMaterial.depthWrite = false;
+          const gun = new THREE.Mesh(geometry, gunMaterial);
+          gun.position.set(0.23, -0.24, -1.1); gun.renderOrder = 10;
+          weapon.children.forEach(child => { child.visible = false; });
+          weapon.add(gun);
+        } else {
+          modelPools[name] = pool(geometry, material, name === 'repair-cell' ? 8 : 24);
+          if (name === 'sentry-walker') {
+            const teammateGeometry = geometry.clone();
+            const palette = teammateGeometry.attributes.color;
+            const blue = new THREE.Color(colors.blue);
+            for (let i = 0; i < palette.count; i++) {
+              // Only the delivered orange swatch changes; cream and dark details stay original.
+              if (palette.getX(i) > palette.getY(i) * 1.5 && palette.getY(i) > palette.getZ(i) * 2) palette.setXYZ(i, blue.r, blue.g, blue.b);
+            }
+            palette.needsUpdate = true;
+            modelPools.teammate = pool(teammateGeometry, material, 3);
+          }
+        }
+        modelDiagnostics[index] = Object.freeze({ name, status: 'loaded', bounds, triangles: (geometry.index?.count || geometry.attributes.position.count) / 3 });
+      }).catch(error => {
+        modelDiagnostics[index] = Object.freeze({ name, status: 'failed' });
+        let warning = $('modelWarning');
+        if (!warning) {
+          warning = document.createElement('p'); warning.id = 'modelWarning'; warning.className = 'status'; warning.setAttribute('role', 'status'); $('overlay').append(warning);
+        }
+        warning.textContent = `Local art could not load (${modelDiagnostics.filter(item => item.status === 'failed').map(item => item.name).join(', ')}). Primitive visuals remain; gameplay is unchanged.`;
+        console.warn(`Circuit Ward: ${name} unavailable; using primitives.`, error);
+      });
+    });
+  }
+  function modelPart(name, x, y, z, angle = 0, flash = false) {
+    const mesh = modelPools[name];
+    if (!mesh) return false;
+    dummy.position.set(x, y, z); dummy.rotation.set(0, angle, 0); dummy.scale.set(1, 1, 1); dummy.updateMatrix();
+    mesh.setMatrixAt(mesh.count, dummy.matrix);
+    // Brighten a hit instance without replacing its shared material or vertex palette.
+    mesh.setColorAt(mesh.count++, color.setRGB(flash ? 3 : 1, flash ? 3 : 1, flash ? 3 : 1));
+    return true;
+  }
   function part(mesh, index, x, y, z, sx, sy, sz, tint, rotation = 0) {
     dummy.position.set(x, y, z); dummy.rotation.set(0, rotation, 0); dummy.scale.set(sx, sy, sz); dummy.updateMatrix();
     mesh.setMatrixAt(index, dummy.matrix); mesh.setColorAt(index, color.setHex(tint));
   }
   function box(x, y, z, sx, sy, sz, tint, rotation = 0) { part(boxes, boxCount++, x, y, z, sx, sy, sz, tint, rotation); }
   function robot(x, z, angle, tint, bob = 0, flash = false) {
+    if (modelPart(tint === colors.blue ? 'teammate' : 'sentry-walker', x, bob, z, angle, flash)) return;
     function limb(dx, y, dz, sx, sy, sz, colorValue) {
       box(x + dx * Math.cos(angle) + dz * Math.sin(angle), y + bob, z - dx * Math.sin(angle) + dz * Math.cos(angle), sx, sy, sz, flash ? colors.white : colorValue, angle);
     }
@@ -590,6 +671,7 @@ function boot() {
   function draw(now) {
     if (!webgl) return;
     boxCount = 0; cylinderCount = 0;
+    Object.values(modelPools).forEach(mesh => { mesh.count = 0; });
     const active = live.phase !== 'lobby';
     const amount = room.role === 'client' ? clamp((now - snapshotAt) / snapshotGap, 0, 1) : 1;
     const player = currentPlayer();
@@ -620,7 +702,7 @@ function boot() {
         const target = live.players.find(p => p.hp > 0) || { x: 0, z: 9 };
         const angle = Math.atan2(-(target.x - bot.x), -(target.z - bot.z));
         robot(bot.x, bot.z, angle, colors.orange, reducedMotion ? 0 : Math.sin(live.time * 7 + bot.id) * 0.025, flash);
-      } else {
+      } else if (!modelPart('buzzer-drone', bot.x, bot.y, bot.z, 0, flash)) {
         box(bot.x, bot.y, bot.z, 0.65, 0.35, 0.6, flash ? colors.white : colors.cream);
         box(bot.x, bot.y - 0.18, bot.z - 0.12, 0.35, 0.18, 0.32, colors.dark);
         for (const side of [-1, 1]) {
@@ -648,12 +730,18 @@ function boot() {
     }
     for (const cell of live.cells) {
       const y = 0.27 + (reducedMotion ? 0 : Math.sin(live.time * 2 + cell.id) * 0.035);
+      if (modelPart('repair-cell', cell.x, y - 0.225, cell.z)) continue;
       box(cell.x, y, cell.z, 0.32, 0.45, 0.32, colors.blue);
       box(cell.x, y, cell.z - 0.17, 0.08, 0.28, 0.025, colors.cream);
       box(cell.x, y, cell.z - 0.17, 0.23, 0.08, 0.025, colors.cream);
     }
+    Object.values(modelPools).forEach(mesh => {
+      mesh.instanceMatrix.needsUpdate = true;
+      if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
+    });
     boxes.count = boxCount; cylinders.count = cylinderCount;
-    boxes.instanceMatrix.needsUpdate = true; boxes.instanceColor.needsUpdate = true;
+    boxes.instanceMatrix.needsUpdate = true;
+    if (boxes.instanceColor) boxes.instanceColor.needsUpdate = true;
     cylinders.instanceMatrix.needsUpdate = true;
     if (cylinders.instanceColor) cylinders.instanceColor.needsUpdate = true;
     for (let i = traces.length - 1; i >= 0; i--) if (traces[i].until < now) traces.splice(i, 1);
