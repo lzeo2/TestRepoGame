@@ -1,0 +1,54 @@
+@font-face{font-family:Bungee;src:url('../../assets/fonts/bungee/bungee-400-latin.woff2') format('woff2');font-display:swap}
+@font-face{font-family:Atkinson;src:url('../../assets/fonts/atkinson-hyperlegible/atkinson-hyperlegible-400-latin.woff2') format('woff2');font-display:swap}
+@font-face{font-family:Atkinson;src:url('../../assets/fonts/atkinson-hyperlegible/atkinson-hyperlegible-700-latin.woff2') format('woff2');font-weight:700;font-display:swap}
+:root{font-family:Atkinson,system-ui,sans-serif;color:#242820;background:#eee9d8;color-scheme:light;line-height:1.45}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;padding:0 max(12px,env(safe-area-inset-right)) max(16px,env(safe-area-inset-bottom)) max(12px,env(safe-area-inset-left))}
+a{color:#365a74;text-underline-offset:3px;display:inline-flex;align-items:center;min-height:44px;min-width:44px}
+button,input{font:inherit}
+button{min-height:44px;min-width:44px;padding:10px 14px;border:2px solid #000;border-radius:4px;background:#000;color:#fff;font-weight:700;cursor:pointer;overflow-wrap:anywhere}
+button:hover:not(:disabled){background:#365a74;border-color:#365a74}
+button:disabled{background:#5b605b;border-color:#5b605b;color:#fff;cursor:default}
+button[aria-pressed=true]{outline:3px solid #365a74;outline-offset:2px}
+:focus-visible{outline:3px solid #75491e;outline-offset:4px}
+.skip-link{position:absolute;left:12px;top:-100px;padding:10px 16px;background:#eee9d8;z-index:10}
+.skip-link:focus{top:12px}
+.site-header{max-width:1440px;margin:auto;padding:max(8px,env(safe-area-inset-top)) 0 10px;display:flex;align-items:center;flex-wrap:wrap;gap:12px;border-bottom:2px solid #365a74}
+h1,h2{line-height:1.25;margin:0 0 12px}
+h1{font-family:Bungee,system-ui,sans-serif;font-size:clamp(25px,5vw,36px);color:#365a74;margin:0;flex:1}
+h2{font-family:Bungee,system-ui,sans-serif;font-size:19px}
+p{margin:0 0 12px}
+main{max-width:1440px;margin:16px auto}
+.motion-setting{display:flex;align-items:center;gap:8px;min-height:44px;cursor:pointer}
+.motion-setting input{width:24px;height:24px;margin:10px;accent-color:#365a74}
+.panel{padding:20px;border:1px solid #827762;border-radius:6px;background:#f7f3e8;margin-bottom:16px}
+#menu{max-width:680px}
+.actions,.starter-choices,.region-choices,.ability-choices{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}
+.starter-choices button{flex:1 1 140px}
+.actions button{flex:1 1 110px}
+.help{font-size:15px;color:#41483e}
+.trail-heading{display:flex;flex-wrap:wrap;align-items:center;gap:8px 20px}
+.trail-heading h2{margin:0;flex:1 1 200px}
+#save-state{color:#365a74}
+.play-layout{display:grid;grid-template-columns:minmax(0,1fr) 280px;gap:16px;margin:16px 0;align-items:start}
+.viewport{min-width:0;border:2px solid #365a74;border-radius:6px;overflow:hidden;background:#eee9d8}
+#game-canvas{display:block;width:100%;height:clamp(340px,56vw,640px);touch-action:none}
+#game-canvas:focus-visible{outline-offset:-6px}
+.trail-controls{min-width:0}
+#message{min-height:44px;padding:10px 12px;border-left:4px solid #b98040;background:#f7f3e8;overflow-wrap:anywhere}
+#team-list>*{margin-bottom:8px}
+#team-list button{width:100%}
+.combatants{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.combatants p{margin-bottom:4px}
+progress{width:100%;height:16px;accent-color:#365a74;margin-bottom:8px}
+.ability-choices{display:grid;grid-template-columns:repeat(4,minmax(0,1fr))}
+#battle-log{max-height:180px;overflow:auto;padding-left:24px;margin-bottom:0}
+#battle-log li{margin-bottom:6px}
+dialog{width:min(600px,calc(100% - 24px));max-height:85dvh;overflow:auto;border:2px solid #365a74;border-radius:6px;padding:20px;background:#eee9d8;color:#242820}
+dialog::backdrop{background:#292d30b3}
+#collection-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:8px;margin-bottom:16px}
+#collection-list>*{border:1px solid #827762;border-radius:6px;padding:10px;overflow-wrap:anywhere}
+@media(max-width:760px){.play-layout{grid-template-columns:1fr;gap:12px}.trail-controls{display:grid;grid-template-columns:1fr 1fr;gap:0 12px}.trail-controls>#message,.trail-controls>#nearby-actions,.trail-controls>#world-help,.trail-controls>h2,.trail-controls>#team-list{grid-column:1/-1}.trail-controls>.actions{grid-column:1/-1}#game-canvas{height:380px}.panel{padding:16px}.ability-choices{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:420px){.site-header{gap:4px 12px}.motion-setting{width:100%}#game-canvas{height:340px}.region-choices button{flex:1 1 120px}.combatants{gap:12px}.combatants h2{font-size:16px}.starter-choices button{flex-basis:100px}.panel{padding:12px}.trail-heading{gap:8px 12px}}
+@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto}}
