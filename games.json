@@ -1206,5 +1206,23 @@
     ],
     "players": "1\u20134",
     "howto": "WASD/arrows move; mouse or IJKL aims; click/Space fires. Touch: move left, aim right, hold Fire. P/Esc pauses. Co-op uses manual WebRTC offer/answer pairing; local Wi-Fi may block it."
+  },
+  {
+    "id": 223,
+    "title": "Tag Relay",
+    "cat": "action",
+    "icon": "TR",
+    "desc": "Local two-player chase across 14 arenas. Adapted from Leo B / Hack Club (MIT).",
+    "url": "Games/Tag Relay/index.html",
+    "featured": false
+  },
+  {
+    "id": 224,
+    "title": "Spline Ride",
+    "cat": "simulation",
+    "icon": "SR",
+    "desc": "Explore 16 spline paths with ride and orbit views. Adapted from the three.js authors (MIT).",
+    "url": "Games/Spline Ride/index.html",
+    "featured": false
   }
 ]
