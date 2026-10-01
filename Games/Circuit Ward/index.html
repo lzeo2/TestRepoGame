@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#314e65">
+  <title>Circuit Ward</title>
+  <link rel="icon" href="../../favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <canvas id="arena" aria-label="First-person maintenance bay"></canvas>
+  <div id="hud" hidden aria-label="Match status">
+    <span>Shield <strong id="shield">100</strong></span>
+    <span>Wave <strong id="wave">1 / 6</strong></span>
+    <span>Pooled score <strong id="score">0</strong></span>
+    <span>Bots <strong id="remaining">0</strong></span>
+    <button id="pauseBtn" type="button">Pause</button>
+    <p id="participants"></p>
+  </div>
+  <div id="crosshair" hidden aria-hidden="true">+</div>
+  <p id="playNote" hidden role="status"></p>
+  <main id="overlay">
+    <section id="menu" class="panel" aria-labelledby="gameTitle">
+      <p class="eyebrow">Maintenance bay / training system</p>
+      <h1 id="gameTitle">Circuit Ward</h1>
+      <p>Hold the bay through six waves. Disable walkers and hover drones, use four consoles for cover, and collect repair cells for +25 shield.</p>
+      <div class="actions">
+        <button id="startSolo" type="button">Start solo</button>
+        <button id="hostRoom" type="button">Host co-op</button>
+        <button id="joinRoom" type="button">Join co-op</button>
+      </div>
+      <h2>Controls</h2>
+      <ul class="controls">
+        <li><b>Move:</b> WASD or arrow keys. <b>Aim:</b> mouse or IJKL.</li>
+        <li><b>Fire:</b> click or hold Space. Unlimited pulses.</li>
+        <li><b>Pause:</b> P or Esc. Resume with the button, then click the bay to capture the mouse.</li>
+        <li><b>Touch:</b> left pad to move, drag the right pad to aim, hold Fire.</li>
+      </ul>
+      <p class="small">Walkers: 100 points. Drones: 150. Co-op pools score; each player keeps their own shield. Disabled teammates return after a wave is cleared.</p>
+      <p class="small">Original, operator-approved game. Built with locally vendored <a href="./vendor/LICENSE">three.js (MIT)</a>.</p>
+      <a class="home" href="../../index.html">Back to arcade</a>
+    </section>
+    <section id="lobby" class="panel" hidden aria-labelledby="lobbyTitle">
+      <h1 id="lobbyTitle">Co-op pairing</h1>
+      <p>No room codes or signaling server. Exchange the <b>complete offer and answer</b> with each teammate using your own messaging method. Pair up to three guests before starting.</p>
+      <p class="small">No STUN or TURN relay is used. Browser restrictions, firewalls or Wi-Fi isolation may block a connection, even on the same network. Solo is always available.</p>
+      <p id="roomStatus" role="status">Ready to pair.</p>
+      <ol id="hostSteps">
+        <li>Make an offer and send all of its text to one guest.</li>
+        <li>Paste their answer below and accept it.</li>
+        <li>Repeat for another guest, or start with 2–4 ready players.</li>
+      </ol>
+      <p id="joinSteps" hidden>Paste the host's complete offer below. Create an answer and send all of it back. Keep this page open while the host accepts it.</p>
+      <label for="signalInput">Paste offer or answer</label>
+      <textarea id="signalInput" rows="3" spellcheck="false" autocomplete="off"></textarea>
+      <div class="actions">
+        <button id="makeOffer" type="button">Make offer</button>
+        <button id="acceptAnswer" type="button">Accept answer</button>
+        <button id="createAnswer" type="button" hidden>Create answer</button>
+      </div>
+      <label for="signalOutput">Complete text to send</label>
+      <textarea id="signalOutput" rows="3" readonly spellcheck="false"></textarea>
+      <div class="actions">
+        <button id="copySignal" type="button">Copy text</button>
+        <button id="startCoop" type="button" disabled>Start co-op</button>
+        <button id="fallbackSolo" type="button">Start fresh solo</button>
+        <button id="lobbyMenu" type="button">Menu</button>
+      </div>
+    </section>
+    <section id="matchPanel" class="panel" hidden aria-labelledby="panelTitle">
+      <h1 id="panelTitle">Paused</h1>
+      <p id="panelMessage"></p>
+      <div class="actions">
+        <button id="resumeBtn" type="button">Resume</button>
+        <button id="retryBtn" type="button">Retry</button>
+        <button id="freshSolo" type="button" hidden>Start fresh solo</button>
+        <button id="menuBtn" type="button">Menu</button>
+      </div>
+      <p class="small">WASD/arrows move. Mouse or IJKL aim. Click/Space fire. Touch: move left, aim right, hold Fire.</p>
+    </section>
+    <p id="status" class="status" role="status" hidden></p>
+    <noscript><p class="panel">JavaScript is required for this game. <a href="../../index.html">Return to the arcade</a>.</p></noscript>
+  </main>
+  <div id="touchControls" hidden>
+    <div id="touchMove" aria-label="Touch movement pad"><span>MOVE</span><i id="moveKnob"></i></div>
+    <div id="touchAim" aria-label="Drag to aim"><span>AIM</span></div>
+    <button id="touchFire" type="button">Fire</button>
+  </div>
+  <script type="module" src="./script.js"></script>
+</body>
+</html>
