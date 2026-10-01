@@ -98,6 +98,7 @@ export class PeerRoom extends EventTarget {
     this._lastSnapshotAt = 0;
     this._snapshot = null;
     this._watchdog = null;
+    this._heartbeat = null;
   }
 
   get ids() {
@@ -107,7 +108,7 @@ export class PeerRoom extends EventTarget {
 
   _emit(type, detail) { this.dispatchEvent(new CustomEvent(type, { detail })); }
 
-  _change(message, status = this._phase) {
+  _change(message, status = this._pending ? 'pairing' : this._phase) {
     this._emit('change', {
       role: this.role, selfId: this.selfId, count: this.ids.length,
       ready: this.role !== 'client' || !!this._peers.get(0)?.ready,
@@ -126,6 +127,10 @@ export class PeerRoom extends EventTarget {
     const random = crypto.getRandomValues(new Uint8Array(16));
     this.session = [...random].map(n => n.toString(16).padStart(2, '0')).join('');
     this.role = 'host';
+    // Hidden tabs suspend rendering, but an intentionally paused host is alive.
+    this._heartbeat = setInterval(() => {
+      if (this._phase === 'paused' && this._snapshot) this.broadcast(this._snapshot);
+    }, 1000);
     this._change('Lobby ready. Create one offer for each guest.');
     return true;
   }
@@ -438,7 +443,8 @@ export class PeerRoom extends EventTarget {
 
   close() {
     clearInterval(this._watchdog);
-    this._watchdog = null;
+    clearInterval(this._heartbeat);
+    this._watchdog = this._heartbeat = null;
     for (const peer of this._peers.values()) this._drop(peer);
     this._pending = null;
     this._roster = [];

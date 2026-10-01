@@ -13,7 +13,7 @@
   <div id="hud" hidden aria-label="Match status">
     <span>Shield <strong id="shield">100</strong></span>
     <span>Wave <strong id="wave">1 / 6</strong></span>
-    <span>Pooled score <strong id="score">0</strong></span>
+    <span><span id="scoreLabel">Score</span> <strong id="score">0</strong></span>
     <span>Bots <strong id="remaining">0</strong></span>
     <button id="pauseBtn" type="button">Pause</button>
     <p id="participants"></p>
@@ -22,7 +22,6 @@
   <p id="playNote" hidden role="status"></p>
   <main id="overlay">
     <section id="menu" class="panel" aria-labelledby="gameTitle">
-      <p class="eyebrow">Maintenance bay / training system</p>
       <h1 id="gameTitle">Circuit Ward</h1>
       <p>Hold the bay through six waves. Disable walkers and hover drones, use four consoles for cover, and collect repair cells for +25 shield.</p>
       <div class="actions">
@@ -38,13 +37,13 @@
         <li><b>Touch:</b> left pad to move, drag the right pad to aim, hold Fire.</li>
       </ul>
       <p class="small">Walkers: 100 points. Drones: 150. Co-op pools score; each player keeps their own shield. Disabled teammates return after a wave is cleared.</p>
-      <p class="small">Original, operator-approved game. Built with locally vendored <a href="./vendor/LICENSE">three.js (MIT)</a>.</p>
+      <p class="small">An original game. Renderer: <a href="./vendor/LICENSE">three.js (MIT)</a>.</p>
       <a class="home" href="../../index.html">Back to arcade</a>
     </section>
     <section id="lobby" class="panel" hidden aria-labelledby="lobbyTitle">
       <h1 id="lobbyTitle">Co-op pairing</h1>
       <p>No room codes or signaling server. Exchange the <b>complete offer and answer</b> with each teammate using your own messaging method. Pair up to three guests before starting.</p>
-      <p class="small">No STUN or TURN relay is used. Browser restrictions, firewalls or Wi-Fi isolation may block a connection, even on the same network. Solo is always available.</p>
+      <p class="small">Load the game on every device first; offers expire after 15 seconds. No STUN/TURN servers are used. Browser restrictions, firewalls or Wi-Fi isolation may block a connection, even on the same network. Solo is always available.</p>
       <p id="roomStatus" role="status">Ready to pair.</p>
       <ol id="hostSteps">
         <li>Make an offer and send all of its text to one guest.</li>
@@ -53,7 +52,7 @@
       </ol>
       <p id="joinSteps" hidden>Paste the host's complete offer below. Create an answer and send all of it back. Keep this page open while the host accepts it.</p>
       <label for="signalInput">Paste offer or answer</label>
-      <textarea id="signalInput" rows="3" spellcheck="false" autocomplete="off"></textarea>
+      <textarea id="signalInput" rows="3" maxlength="32768" spellcheck="false" autocomplete="off"></textarea>
       <div class="actions">
         <button id="makeOffer" type="button">Make offer</button>
         <button id="acceptAnswer" type="button">Accept answer</button>
@@ -83,8 +82,8 @@
     <noscript><p class="panel">JavaScript is required for this game. <a href="../../index.html">Return to the arcade</a>.</p></noscript>
   </main>
   <div id="touchControls" hidden>
-    <div id="touchMove" aria-label="Touch movement pad"><span>MOVE</span><i id="moveKnob"></i></div>
-    <div id="touchAim" aria-label="Drag to aim"><span>AIM</span></div>
+    <div id="touchMove" aria-label="Touch movement pad"><span>Move</span><i id="moveKnob"></i></div>
+    <div id="touchAim" aria-label="Drag to aim"><span>Aim</span></div>
     <button id="touchFire" type="button">Fire</button>
   </div>
   <script type="module" src="./script.js"></script>

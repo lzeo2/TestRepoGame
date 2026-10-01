@@ -226,7 +226,7 @@ function boot() {
   const room = new PeerRoom();
   let run = null, previous = null, snapshotAt = 0, snapshotGap = 50;
   let yaw = 0, pitch = 0, mouseFire = false, touchFire = false, pendingFire = false, localPaused = false;
-  let disconnected = false, epoch = Date.now(), last = performance.now(), networkAt = 0, feedbackUntil = 0;
+  let disconnected = false, hostPairing = false, epoch = Date.now(), last = performance.now(), networkAt = 0, feedbackUntil = 0;
   const keys = new Set(), remote = new Map(), shots = new Map(), health = new Map();
   const touch = { mx: 0, mz: 0 };
   const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -260,7 +260,7 @@ function boot() {
     $('menu').hidden = true; $('lobby').hidden = true; $('matchPanel').hidden = false;
     $('panelTitle').textContent = title; $('panelMessage').textContent = message;
     $('resumeBtn').hidden = !canResume; $('retryBtn').hidden = !canRetry; $('freshSolo').hidden = !fresh;
-    $('touchControls').hidden = true; $('crosshair').hidden = true;
+    $('touchControls').hidden = true; $('crosshair').hidden = true; $('playNote').hidden = true;
   }
   function refresh() {
     const active = !!run || room.role === 'client' && live.phase !== 'lobby';
@@ -269,12 +269,14 @@ function boot() {
     const player = currentPlayer();
     $('shield').textContent = player ? String(Math.ceil(player.hp)) : '0';
     $('wave').textContent = `${live.wave} / 6`;
+    $('scoreLabel').textContent = room.role === 'solo' && !disconnected ? 'Score' : 'Pooled score';
     $('score').textContent = String(live.score);
+    $('participants').hidden = live.players.length === 1;
     $('remaining').textContent = String(live.bots.length);
     $('participants').textContent = live.players.map(p => `${p.id === room.selfId ? 'You' : `Player ${p.id + 1}`}: ${p.hp > 0 ? `${Math.ceil(p.hp)} shield` : 'disabled'}`).join(' · ');
     if (disconnected) return;
     if (live.phase === 'won' || live.phase === 'lost') {
-      showPanel(live.phase === 'won' ? 'Bay secured' : 'System offline', `Wave ${live.wave} of 6. Pooled score: ${live.score}.${room.role === 'client' ? ' The host can restart the match.' : ''}`, false, room.role !== 'client');
+      showPanel(live.phase === 'won' ? 'Bay secured' : 'System offline', `Wave ${live.wave} of 6. ${$('scoreLabel').textContent}: ${live.score}.${room.role === 'client' ? ' The host can restart the match.' : ''}`, false, room.role !== 'client');
       releasePointer();
     } else if (live.phase === 'paused' || localPaused) {
       releasePointer();
@@ -338,6 +340,8 @@ function boot() {
   }
   async function signal(button, action) {
     button.disabled = true;
+    $('signalOutput').value = '';
+    $('copySignal').disabled = true;
     $('roomStatus').textContent = 'Preparing connection. This can take up to 15 seconds.';
     try {
       const result = await action();
@@ -347,7 +351,10 @@ function boot() {
         $('roomStatus').textContent = 'Text is ready. Send the complete contents to your teammate.';
       }
     } catch (error) { $('roomStatus').textContent = error.message || 'Pairing failed. Try again or start fresh solo.'; }
-    finally { button.disabled = false; }
+    finally {
+      button.disabled = button.id === 'makeOffer' && hostPairing || button.id === 'createAnswer' && room.role === 'client';
+      $('copySignal').disabled = !$('signalOutput').value;
+    }
   }
   $('startSolo').addEventListener('click', solo);
   $('fallbackSolo').addEventListener('click', solo);
@@ -374,6 +381,9 @@ function boot() {
   $('lobbyMenu').addEventListener('click', () => { menu(); status(''); });
   room.addEventListener('change', event => {
     const detail = event.detail;
+    hostPairing = detail.role === 'host' && detail.status === 'pairing';
+    $('makeOffer').disabled = hostPairing;
+    $('createAnswer').disabled = detail.role === 'client';
     if (live.phase === 'lobby') {
       live.players = room.ids.map(id => ({ id, x: 0, z: 6.5, yaw: 0, pitch: 0, hp: 100, shot: 0 }));
       if (!live.players.length) live.players = [{ id: room.selfId, x: 0, z: 6.5, yaw: 0, pitch: 0, hp: 100, shot: 0 }];
@@ -406,6 +416,7 @@ function boot() {
   });
   room.addEventListener('failure', event => {
     const message = event.detail.message || 'Connection failed.';
+    if (!hostPairing) { $('signalOutput').value = ''; $('copySignal').disabled = true; }
     if (!run && live.phase === 'lobby') { $('roomStatus').textContent = `${message} Solo is always available.`; return; }
     if (run && room.role === 'host') { status(message); return; }
     disconnected = true; clearInput(); releasePointer();
@@ -585,14 +596,15 @@ function boot() {
     const spectator = player?.hp <= 0 ? live.players.find(p => p.hp > 0) : null;
     const viewpoint = spectator || player;
     if (active && viewpoint) {
-      camera.position.set(viewpoint.x, 1.55, viewpoint.z);
+      const view = interpolated(viewpoint, previous?.players, amount);
+      camera.position.set(view.x, 1.55, view.z);
       camera.rotation.set(spectator ? viewpoint.pitch : pitch, spectator ? viewpoint.yaw : yaw, 0);
     } else {
       camera.position.set(0, 2.8, 9); camera.rotation.set(-0.12, 0, 0);
     }
     weapon.visible = active && !!player && player.hp > 0 && !spectator;
     weapon.position.x = camera.aspect < 0.7 ? -0.15 : 0;
-    weapon.position.z = -Math.max(0, (feedbackUntil - now) / 90) * 0.035;
+    weapon.position.z = reducedMotion ? 0 : -Math.max(0, (feedbackUntil - now) / 90) * 0.035;
     const bots = active ? live.bots : [
       { id: -1, type: 'walker', x: -2.1, y: 0, z: -2.5, hp: 100 },
       { id: -2, type: 'walker', x: 2.7, y: 0, z: -5, hp: 100 },
