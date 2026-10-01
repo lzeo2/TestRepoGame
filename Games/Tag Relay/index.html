@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Tag Relay</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<main>
+  <header><a href="../../index.html">Arcade</a><span>LOCAL TWO PLAYER</span></header>
+  <h1>Tag Relay</h1>
+  <p class="rules">Red catches Blue for a point. Blue survives 7 seconds for a point.<br>First to 7 wins. Share a keyboard or use both touch pads.</p>
+  <section class="board" aria-label="Tag arena">
+    <div class="score"><strong id="red-score">Red 0</strong><span id="clock">7.0s</span><strong id="blue-score">Blue 0</strong></div>
+    <div class="screen">
+      <canvas id="arena" width="768" height="576" tabindex="0" aria-label="Tag arena. Red uses W A S D. Blue uses I J K L."></canvas>
+      <div id="menu"><h2>Catch or escape.</h2><p>14 arenas. Two players. One shared screen.</p><button id="start" type="button">Start match</button></div>
+    </div>
+    <p id="status" role="status" aria-live="polite">Ready. Red uses WASD. Blue uses IJKL.</p>
+    <div class="actions"><button id="pause" type="button" disabled>Pause</button><button id="restart" type="button" disabled>Restart</button><span id="round">Arena 1 / 14</span></div>
+  </section>
+  <section class="controls" aria-label="Player controls">
+    <fieldset class="red"><legend>RED · WASD</legend><div class="pad">
+      <button data-key="w" class="up" aria-label="Red Up">Up</button><button data-key="a" class="left" aria-label="Red Left">Left</button><button data-key="s" class="down" aria-label="Red Down">Down</button><button data-key="d" class="right" aria-label="Red Right">Right</button>
+    </div></fieldset>
+    <fieldset class="blue"><legend>BLUE · IJKL</legend><div class="pad">
+      <button data-key="i" class="up" aria-label="Blue Up">Up</button><button data-key="j" class="left" aria-label="Blue Left">Left</button><button data-key="k" class="down" aria-label="Blue Down">Down</button><button data-key="l" class="right" aria-label="Blue Right">Right</button>
+    </div></fieldset>
+  </section>
+  <footer>Adapted from 2 Player Tag Game by Leo B / Hack Club (MIT). <a href="CREDITS.md">Credits and source</a></footer>
+</main>
+<script type="module" src="script.js"></script>
+</body>
+</html>
