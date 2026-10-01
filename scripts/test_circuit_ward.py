@@ -4,6 +4,7 @@ import functools
 import json
 import os
 import threading
+import time
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import quote
@@ -70,6 +71,27 @@ def main():
                 page.goto(base + quote(GAME) + 'index.html', wait_until='networkidle')
                 page.evaluate("async () => { window.qaGame = await import('./script.js'); }")
                 assert page.evaluate("typeof window.qaGame.inspect === 'function'")
+                try:
+                    page.wait_for_function("window.qaGame.stats().models.length === 6 && window.qaGame.stats().models.every(m => m.status === 'loaded')")
+                except Exception:
+                    print('Model diagnostic:', page.evaluate('window.qaGame.stats()'), errors, flush=True)
+                    raise
+                loaded_frame = page.evaluate('window.qaGame.stats().frames')
+                page.wait_for_function('frame => window.qaGame.stats().frames > frame', arg=loaded_frame)
+                diagnostics = page.evaluate('window.qaGame.stats()')
+                assert diagnostics['primitiveWalls'] is False, diagnostics
+                assert {m['name']: m['triangles'] for m in diagnostics['models']} == {
+                    'cover-console': 828, 'sentry-walker': 1564, 'buzzer-drone': 1220,
+                    'coil-blaster': 936, 'repair-cell': 308, 'arena-wall': 836,
+                }, diagnostics
+                assert page.evaluate("""() => {
+                    const s = window.qaGame.stats();
+                    return Object.isFrozen(s) && Object.isFrozen(s.models) && s.models.every(m =>
+                        Object.isFrozen(m) && Object.isFrozen(m.bounds) &&
+                        ['min', 'max'].every(k => Object.isFrozen(m.bounds[k]) &&
+                            m.bounds[k].length === 3 && m.bounds[k].every(Number.isFinite)) &&
+                        m.bounds.min.every((v, i) => v < m.bounds.max[i]));
+                }"""), diagnostics
                 return page
 
             page = page_for()
@@ -179,9 +201,12 @@ def main():
 
             # Pair via the public native UI, just as users paste offers/answers.
             host = page
+            # Four simultaneous SwiftShader windows must fit the software GPU;
+            # the independent desktop/mobile checks above keep their full sizes.
+            host.set_viewport_size({'width': 640, 'height': 360})
             # Load everyone's graphics before the intentionally short pairing
             # deadline; shader startup is not part of exchanging descriptions.
-            prepared = [page_for() for _ in range(3)]
+            prepared = [page_for(640, 360) for _ in range(3)]
             for guest in prepared:
                 guest.locator('#joinRoom').click()
             host.locator('#hostRoom').click()
@@ -212,10 +237,71 @@ def main():
             assert len(snapshot(host)['players']) == 4
             assert host.locator('#scoreLabel').text_content() == 'Pooled score'
             guest_start = snapshot(host)['players'][1]['z']
-            guests[0].keyboard.down('w')
-            host.wait_for_function('z => Math.abs(window.qaGame.inspect().players.find(p=>p.id===1).z-z) > .1', arg=guest_start)
-            guests[0].keyboard.up('w')
-            guests[0].locator('#pauseBtn').click()
+            guest = guests[0]
+            guest.evaluate("""() => {
+                window.qaKeyTarget = null;
+                addEventListener('keydown', e => {
+                    if (e.key.toLowerCase() === 'w') window.qaKeyTarget = {
+                        tag: e.target.tagName, id: e.target.id,
+                        formTarget: !!e.target.closest('button,textarea,input,a'),
+                        prevented: e.defaultPrevented, trusted: e.isTrusted
+                    };
+                });
+            }""")
+            focus_before = guest.evaluate("({tag: document.activeElement.tagName, id: document.activeElement.id, formTarget: !!document.activeElement.closest('button,textarea,input,a')})")
+            # A normal bay click leaves the signaling textarea and captures aim.
+            guest.locator('#arena').click(position={'x': 320, 'y': 180})
+            assert guest.evaluate("!document.activeElement.closest('button,textarea,input,a')"), 'gameplay input still targets a form'
+
+            def peer_diagnostic(peer):
+                return peer.evaluate("""() => {
+                    const canvas = document.querySelector('#arena');
+                    const gl = canvas.getContext('webgl2') || canvas.getContext('webgl');
+                    const debug = gl.getExtension('WEBGL_debug_renderer_info');
+                    return {viewport: [innerWidth, innerHeight], canvas: [canvas.width, canvas.height],
+                        driver: debug ? gl.getParameter(debug.UNMASKED_RENDERER_WEBGL) : gl.getParameter(gl.RENDERER),
+                        focused: document.hasFocus(), visibility: document.visibilityState,
+                        inputTarget: {tag: document.activeElement.tagName, id: document.activeElement.id},
+                        keyTarget: window.qaKeyTarget || null,
+                        clockMs: performance.now(), time: window.qaGame.inspect().time,
+                        renderer: {frames: window.qaGame.stats().frames,
+                            drawCalls: window.qaGame.stats().drawCalls,
+                            triangles: window.qaGame.stats().triangles}};
+                }""")
+
+            clocks_before = [peer_diagnostic(peer) for peer in [host, *guests]]
+            movement_at = time.monotonic()
+            guest.keyboard.down('w')
+            try:
+                host.wait_for_function('z => Math.abs(window.qaGame.inspect().players.find(p=>p.id===1).z-z) > .1', arg=guest_start)
+            except Exception:
+                print('Guest movement diagnostic:', json.dumps({
+                    'host': snapshot(host), 'guest': snapshot(guests[0]),
+                    'hostRenderer': host.evaluate('window.qaGame.stats()'),
+                    'guestRenderer': guests[0].evaluate('window.qaGame.stats()'),
+                    'elapsedRealSeconds': time.monotonic() - movement_at,
+                    'focusBeforeBayClick': focus_before,
+                    'clocksBefore': clocks_before,
+                    'clocksAfter': [peer_diagnostic(peer) for peer in [host, *guests]],
+                    'hostStatus': host.locator('#roomStatus').text_content(),
+                    'guestStatus': guests[0].locator('#roomStatus').text_content(),
+                    'errors': errors,
+                }, sort_keys=True), flush=True)
+                raise
+            guest.keyboard.up('w')
+            clocks_after = [peer_diagnostic(peer) for peer in [host, *guests]]
+            print('Four-peer movement proof:', json.dumps({
+                'elapsedRealSeconds': time.monotonic() - movement_at,
+                'focusBeforeBayClick': focus_before,
+                'guestZBefore': guest_start,
+                'guestZAfter': snapshot(host)['players'][1]['z'],
+                'clocksBefore': clocks_before, 'clocksAfter': clocks_after,
+            }, sort_keys=True), flush=True)
+            assert guest.evaluate('window.qaKeyTarget.trusted && !window.qaKeyTarget.formTarget'), 'W did not target gameplay'
+            # Pointer capture routes mouse clicks to the bay; P is the public
+            # pause control and releases capture before using the resume button.
+            guest.keyboard.press('p')
+            guest.locator('#resumeBtn').wait_for(state='visible')
             assert snapshot(host)['phase'] == 'playing', 'client pause stopped host'
             guests[0].locator('#resumeBtn').click()
             guests[-1].close()
@@ -259,7 +345,8 @@ def main():
             for peer in (host, client):
                 peer.evaluate('qaPeer.close()')
             assert not errors, errors
-            print('Circuit Ward browser checks passed: solo controls/reset, win/lose/repair/friendly-fire, keyboard/touch aiming, touch movement/fire, 320/390 layouts, four-peer sync/input/pause/departure/fallback, paused transport heartbeat')
+            print('Circuit Ward browser checks passed: solo controls/reset, win/lose/repair/friendly-fire, six local GLB replacements, keyboard/touch aiming, touch movement/fire, 320/390 layouts, four-peer sync/input/pause/departure/fallback at 640x360, paused transport heartbeat')
+            print('Screenshots: desktop 1280x720; mobile 390x844; coop-host 640x360')
             print(json.dumps({'renderer': metrics, 'simulation': pure}, sort_keys=True))
             browser.close()
     finally:
