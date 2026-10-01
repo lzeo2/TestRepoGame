@@ -15,7 +15,8 @@ New methods: `setAppearance`, `setQuality('low'|'standard')`,
 `orbitCamera(deltaRadians)`, `recenterCamera`, `getCameraYaw`. Body rotation keeps
 the existing `angle + Math.PI` orientation and does not drag camera yaw.
 Appearance accepts six-digit RGB `skin`, `coat`, `hair`, `pack` or the matching
-`skinTone`, `coatColor`, `hairColor`, `backpackColor` aliases.
+`skinTone`, `coatColor`, `hairColor`, `backpackColor` aliases, plus the actual
+world adapter's `backpack` and `hair` style IDs (short/cropped/long/none).
 
 The renderer consumes the actual `REGION_LAYOUTS` export: two-triangle 160 m
 ground, path polylines, house/roof colors, flat river, individual bridge boards
@@ -25,7 +26,8 @@ variation, while the player has a separate folded coat/head/hair/legs/backpack.
 NPC idle motion changes the presentation matrices, not the supplied x/z points.
 
 World input admits the documented POI types within +/-80 m. Visible actors are
-chosen within 32 m: at most four wild creatures/four NPCs on low and six/eight on
+chosen within 40 m for wild creatures and 32 m for NPCs: at most four wild
+creatures/four NPCs on low and six/eight on
 standard. Distant source props remain low-poly instanced scenery, with frustum
 culling and distance fog. No floating pads remain. Marker taps only call the
 existing `onCheckpoint`; they do not teleport or bypass core action guards.
@@ -84,13 +86,22 @@ after 40 replacements, and zero browser/HTTP/external-request errors. Its three
 JPEGs total 81,845 bytes on the initial run; subsequent captures overwrite them.
 `node --experimental-default-type=module --check Games/Foldwild/view.js` and
 explicit-path `git diff --check` both exited 0. Python AST parsing printed
-`PASS: Python syntax`. The committed unmodified native test still requires the
-world adapter's merchant POIs; no full integration pass has been reported.
-Fixture screenshots are provisional, not proof that the world adapter or game
-core is integrated. Main must rerun the committed command after its adapter/core
-integration, without replacing or weakening that assertion.
+`PASS: Python syntax`.
 
-Held: complete campaign, all-80 cosmetic fit, ledger viewer, hairstyle controls,
+After the sibling adapter arrived, the unmodified committed native test ran
+against its actual merchant/NPC/wild POIs and exited 0. The first adapter run
+exposed the third authored wild site just outside the original 32 m visual
+radius; the renderer now admits wild actors within 40 m while retaining the
+four/six actor caps. Appearance now consumes the adapter's actual hairstyle and
+backpack fields. Final actual counts: world 19 draws/6,449 triangles, battle
+7 draws/1,446 triangles, 40 scene races, stable 12-entry cache/18 geometries/zero
+textures. All browser, HTTP, failed-request and external-request arrays were
+empty. Final three screenshots total 82,137 bytes; reported run storage delta
+was 8,192 bytes. Output ended:
+`PASS: native desktop/mobile WebGL1 view, camera, actual models, action motion, 40 races, LRU and disposal`.
+This is renderer/adapter proof, not complete game core or hardware acceptance.
+
+Held: complete campaign, all-80 cosmetic fit, ledger viewer, appearance UI wiring,
 class/gameplay wiring, horror/frontier work, full catalog release gate, and actual
 N100 Chromebook FPS acceptance. No performance certification, registration or
 push is claimed.

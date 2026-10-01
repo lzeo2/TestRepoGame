@@ -33,7 +33,7 @@ export function createView(canvas, { onCheckpoint = () => {}, reducedMotion = fa
   let generation = 0, disposed = false, mode = 'world', quality = 'low', frames = 0, elapsed = 0;
   let points = [], visiblePoints = [], region = 0, player = null, cameraYaw = 0, playerYaw = 0;
   let effect = null, walking = 0, npcParts = [], npcs = [], cameraBoxes = [];
-  let appearance = { skin: '#bc916b', coat: '#365a74', hair: '#38342d', pack: '#ac9265' };
+  let appearance = { skin: '#bc916b', coat: '#365a74', hair: '#38342d', hairStyle: 'short', pack: '#ac9265' };
   const hiddenAvailable = Boolean(OPTIONAL_HIDDEN_SPECIES &&
     typeof OPTIONAL_HIDDEN_SPECIES.id === 'string' && validModelPath(OPTIONAL_HIDDEN_SPECIES.model));
   const pointTypes = ['wild', 'rival', 'camp', 'exit', 'npc', 'merchant', 'mentor', 'contract', 'supply'];
@@ -105,7 +105,8 @@ export function createView(canvas, { onCheckpoint = () => {}, reducedMotion = fa
     const group = new THREE.Group();
     shape(group, 'cone', colors.coat, 0, .79, 0, .4, .72, .32, Math.PI / 5);
     shape(group, 'box', colors.skin, 0, 1.3, 0, .28, .3, .28);
-    shape(group, 'box', colors.hair, 0, 1.48, -.015, .31, .13, .3);
+    if (colors.hairStyle !== 'none') shape(group, 'box', colors.hair, 0, colors.hairStyle === 'long' ? 1.32 : 1.48,
+      colors.hairStyle === 'long' ? -.12 : -.015, .31, colors.hairStyle === 'long' ? .35 : colors.hairStyle === 'cropped' ? .07 : .13, .3);
     shape(group, 'box', '#383a3a', -.13, .24, 0, .18, .48, .22);
     shape(group, 'box', '#383a3a', .13, .24, 0, .18, .48, .22);
     shape(group, 'box', colors.pack, 0, .82, -.22, .32, .44, .16);
@@ -308,7 +309,7 @@ export function createView(canvas, { onCheckpoint = () => {}, reducedMotion = fa
   }
   function nearbyVisuals() {
     if (mode !== 'world' || disposed) return [];
-    visiblePoints = points.filter(p => Math.hypot(p.x - playerPosition.x, p.z - playerPosition.z) < 32);
+    visiblePoints = points.filter(p => Math.hypot(p.x - playerPosition.x, p.z - playerPosition.z) < (p.type === 'wild' ? 40 : 32));
     const wild = visiblePoints.filter(p => p.type === 'wild').sort((a, b) =>
       Math.hypot(a.x - playerPosition.x, a.z - playerPosition.z) - Math.hypot(b.x - playerPosition.x, b.z - playerPosition.z)).slice(0, quality === 'low' ? 4 : 6);
     const wanted = new Set(wild.map(p => p.id));
@@ -437,9 +438,10 @@ export function createView(canvas, { onCheckpoint = () => {}, reducedMotion = fa
     if (disposed || !value || typeof value !== 'object') return;
     const aliases = { skin: 'skinTone', coat: 'coatColor', hair: 'hairColor', pack: 'backpackColor' };
     for (const [key, alias] of Object.entries(aliases)) {
-      const color = value[key] || value[alias];
+      const color = value[key] || value[alias] || (key === 'pack' ? value.backpack : null);
       if (typeof color === 'string' && /^#[0-9a-f]{6}$/i.test(color)) appearance[key] = color;
     }
+    if (['short', 'cropped', 'long', 'none'].includes(value.hair)) appearance.hairStyle = value.hair;
     if (player) { root.remove(player); player = human(appearance); root.add(player); player.position.copy(playerPosition); player.rotation.y = playerYaw + Math.PI; }
   }
   function orbitCamera(delta) {
