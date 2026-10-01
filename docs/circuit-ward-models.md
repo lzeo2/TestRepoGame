@@ -9,11 +9,13 @@ six-file source inventory is now tracked together at `91adf55`, with the first
 five byte-identical to `bc57a17`. This audit changes none of the model bytes.
 
 The missing-wall delivery request in ticket `pi-912882-1790843183570` is
-**fulfilled**. Its separate public-distribution/provider-terms question remains
-**pending**; no operator confirmation of those rights has been received for
-this audit. No generator's legal identity or license grant is established here.
-The operator's integration order is not a substituted provider license. This
-work is local only, with no push or release authorization.
+**fulfilled**. The latest direct operator order states that all six models were
+generated and supplied by the operator, and explicitly authorizes **public push
+of the current work**. This records scoped permission to publish these supplied
+assets in this repository and its deployed site, not a broad provider license,
+a verified generator identity, or permission for unrelated redistribution.
+Publication GO is contingent on green release gates and remote verification;
+authorization alone is not a passing gate. No push has occurred.
 
 Each GLB's embedded `asset.generator` says
 `Original arcade maintenance-bay procedural mesh builder`; its extras claim
@@ -21,9 +23,10 @@ creator `OpenAI assistant`, original procedural design without downloaded
 models/textures/scans/third-party artwork, and license `CC0-1.0`. These are
 **unverified embedded assertions**, not evidence of generator identity, ownership,
 provider terms, or a valid CC0 dedication. Do not present them as verified
-permission. Preserve the files and obtain the pending confirmation before a
-public redistribution/release decision. The three.js MIT license covers the
-library, not the model artwork.
+permission. Preserve the files. Publication permission for this repository/site
+comes from the direct operator order above, not these embedded assertions. The
+three.js MIT license covers the library, not the model artwork. The provider's
+legal identity and broader terms remain unknown.
 
 This delivery supersedes the historical "No generated 3D models" / "No
 GLTFLoader" statements in [circuit-ward-sources.md](circuit-ward-sources.md);
@@ -67,12 +70,17 @@ All six supplied assets independently meet the same structural properties:
 - Opaque matte material, metallic factor 0, roughness 0.86; no baked texture
   lighting. This structural audit does not certify artistic quality or origin.
 
-For integration, load each local GLB once and reuse its static geometry and
-materials across visual instances. Leave collisions, movement and scoring
-independent of artwork. Repeated walkers can also serve as teammate silhouettes;
-no seventh model is required. Actual runtime sharing, placement, tinting,
-browser visuals and gameplay integration belong to the separate `script.js`
-worker, not this audit. No claims of measured device FPS/draw-call targets.
+Runtime integration is now in `6e71fa4` (five pooled visuals) and `b0e19ae`
+(sixth arena wall). All six local GLBs load once; repeated visuals use shared
+geometry/material instances. Twenty-four wall panels replace the primitive wall
+visuals after loading; stats then report `primitiveWalls: false`. Repeated
+walkers also serve as tinted teammate silhouettes; no seventh model is required.
+Collisions, movement and scoring remain independent of artwork. The simulation
+prefix from `const LIMIT =` through the byte before `let live =` was actually
+compared against `0a9a6b9`: **8317 bytes, byte-identical**, SHA-256
+`e8b6860195f0ba9aaa1ba98b9062289df6fa8fb03e8a264845202fff85551d4d`.
+See [circuit-ward-qa.md](circuit-ward-qa.md) for current browser failure evidence;
+no measured device FPS target or complete regression pass is claimed.
 
 ## Pinned official three.js r160 example modules
 
@@ -156,6 +164,11 @@ arena-wall.glb: bytes=101652 sha256=67f25e3112592200ed462f7c11a3de810572ed7dc48d
 supplied GLBs: 6/6 structural PASS; bytes=691300 triangles=5692; redistribution terms still pending
 ```
 
+The auditor still prints the historical rights suffix above. It is not a legal
+check and is superseded by the latest scoped operator publication order in this
+note. This historical structural output is not a current browser regression or
+full-game gate result; this docs-only update ran no tests.
+
 Both `node --check` commands exited 0 with no output. An additional in-memory
 Node ESM check imported all three local modules through data URLs (no on-disk
 rewrites), blocked fetch/XMLHttpRequest/WebSocket, and parsed each embedded GLB
@@ -181,14 +194,15 @@ Loader bytes added then: **140445**. The subsequent `91adf55` wall delivery
 completes all six requested source models; the current six-model results above
 supersede that earlier delivery status, not its historical evidence.
 
-This follow-up modifies only `scripts/test_circuit_ward_models.py` and this
-note. Vendor/license hash checks pass unchanged; no model bytes, runtime code,
-or dependency files were modified. Disk checks before and after this audit
-reported **2.5G available** (above the 2GB stop threshold). No new games were
-registered, no captures or other artifacts created, and growth stays below the
-operator's 30MB workspace/artifact cap. Runtime visual integration belongs to
-the `script.js` worker; `scripts/test_circuit_ward.py` is orchestrator-owned.
-No browser screenshots, full-game smoke gate, multiplayer verification or
-release gate is claimed by this bounded dependency/model audit. Full
-registered-game browser smoke and pending rights confirmation remain release
-blockers; no push.
+The six-model structural follow-up is `3b91483`; it modified the auditor and
+this note, not artwork or runtime dependencies. Its vendor/license hash checks
+remain recorded evidence. This docs-only update owns only
+`docs/circuit-ward-models.md`, `docs/circuit-ward-qa.md` and
+`docs/next-3d-wave-scope.md`, adds no games and leaves model bytes unchanged.
+Scoped publication permission is recorded above. The latest integration has two
+failed four-window movement runs; updated diagnosis/regression and the authorized
+bounded unchanged ALL-121 gate are pending. The normal sparse gate passed only
+1/121, with Circuit Ward clean and 120 legacy entries lacking local assets.
+See [circuit-ward-qa.md](circuit-ward-qa.md) for the bounded materialization
+exception and final evidence-update handoff. No full regression green, hardware
+FPS result or release is claimed; no push was performed.

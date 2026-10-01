@@ -1,123 +1,114 @@
-# Circuit Ward implementation / QA — 2026-10-01
+# Circuit Ward implementation and QA, 2026-10-01
 
-## Scope and milestones
+## Current release status
 
-This implementation **adds one original game**, Circuit Ward, catalog **id 222**.
-It uses only the dated one-run exception approved in ticket
-`pi-912882-1790827041648`; it does not relax the normal ingestion-only rule.
-No other game was added, registered, edited or deleted in this implementation
-milestone. The earlier unregistered 2048/Hextris candidates remain deferred.
+**Not released; no push.** Operator personally supplied six Dot-generated models
+and gave direct GO for public publication in this repository/site, contingent on
+passing release gates. This scoped permission is not verification of provider
+legal identity, broader terms or embedded CC0 claims. See
+[circuit-ward-models.md](circuit-ward-models.md).
 
-- Approval/exception: `b15c1c0`.
-- Pinned three.js dependency: `e02d5d8`.
-- Native peer transport: `14ce629`.
-- **Primitive game build: `0a9a6b9`.**
-- Pairing, shell contrast, camera interpolation, paused heartbeat and runnable
-  regression: `77dbd71`.
-- **Registration: the commit adding this note and id 222 to `games.json`.**
+The latest integration regression has **two failed four-window movement runs**,
+not a current green result. The reported host simulation reached only 2.16 seconds
+after 30 seconds of real time under software rendering (approximately 54k
+triangles per window, four windows). This observation is not a confirmed root
+cause or hardware benchmark. A separate worker owns regression diagnosis and
+`scripts/test_circuit_ward.py`; its updated result is **pending**. Earlier
+primitive-only regression success does not establish current integration success.
 
-All three CLI workers actually used `openai-codex / gpt-6.1-sol`, within their
-10/15/20-minute bounds. The orchestrator used the same provider/model. The failed
-`opencode-go` tool invocations made no implementation changes; no substitute
-model was used. Sources/licenses are in [circuit-ward-sources.md](circuit-ward-sources.md).
-No generated GLBs were supplied. Primitive implementation does not wait on them.
-
-## Implemented behavior
-
-Six bot waves, unlimited-pulse blaster, shield, pooled co-op score, repair cells,
-explicit win/loss, retry/menu, WASD/arrows, mouse aim, IJKL aim/Space fire, and
-left-move/right-aim/Fire touch controls. Disabled teammates spectate until the
-next cleared wave; all disabled loses. Friendly fire is off.
-
-Solo needs no external runtime service. Three.js, fonts and favicon are local.
-Optional 2–4-player co-op uses a browser-host star with manually exchanged full
-WebRTC offer/answer descriptions and `iceServers: []`. There is no STUN/TURN
-server, proxy, signaling backend, account, relay, host migration or mid-run join.
-Input intents and snapshots are bounded/validated; clients cannot submit trusted
-positions, damage or scores. Fresh solo resets team state rather than carrying
-pooled score forward. Offers expire after 15 seconds; load all devices first.
-
-The renderer uses shared instanced primitives, no shadows/postprocessing,
-DPR 1 and a 1280×720 drawing-buffer cap. A paused-host 1Hz backup sends the last
-validated snapshot independently of render frames; visible gameplay still uses
-20Hz networking. Closing a room clears its timers/connections.
-
-## Checks actually run
-
-```sh
-node --check 'Games/Circuit Ward/script.js'
-node --check 'Games/Circuit Ward/multiplayer.js'
-node --check 'Games/Circuit Ward/vendor/three.module.js'
-python3 scripts/test_circuit_ward.py
-xvfb-run python3 scripts/smoke_test_games.py
-```
-
-Syntax/checksums and current authored diff checks returned zero. The unmodified
-upstream module's existing whitespace warning remains documented in the source
-note, not silently removed.
-
-Latest targeted regression **exit 0**:
-
-```text
-Circuit Ward browser checks passed: solo controls/reset, win/lose/repair/friendly-fire, keyboard/touch aiming, touch movement/fire, 320/390 layouts, four-peer sync/input/pause/departure/fallback, paused transport heartbeat
-```
-
-- Real Chromium gameplay: observable movement, keyboard aim/fire, native touch
-  movement/aim/fire, pause and reset; no horizontal overflow or targets below 44px.
-- Pure exported simulation: win/loss, scoring (100), repair (50→75), teammate
-  revive/wave progression and friendly-fire immunity. These are simulation
-  assertions, **not a recorded natural six-wave play-through**.
-- Four real browser contexts: full UI offer/answer pairing, roster sync, guest
-  input reaching host, client-only pause, shared host pause, guest departure and
-  fresh-solo/menu fallback. A separate native transport fixture receives nonzero
-  pooled score and repeated paused heartbeats for four seconds with no frame
-  producer broadcasting after the initial snapshot.
-- Browser watchers recorded no console errors, failed/4xx asset requests or
-  third-party HTTP(S) runtime requests. Authored runtime endpoint scan found only
-  `RTCPeerConnection({ iceServers: [] })`.
-- A sampled solo scene used **11 draw calls / 1,672 triangles**. This is not a
-  maximum-wave benchmark or evidence of 60fps on target hardware.
-- 121 unique catalog ids, required fields and Git-tracked URLs passed. This does
-  **not** mean all 121 URLs exist in this sparse working tree.
-
-Earlier Promise-returning Playwright wait predicates could pass too early.
-They were replaced with synchronous predicates over a test-only module handle;
-only the corrected final run is accepted. Everyone's shaders are loaded before
-starting the deliberately short pairing deadline.
-
-Five actual desktop/mobile/menu/combat/co-op-pause screenshots were inspected.
-The final UI uses the approved local fonts, ink panels, flat controls and 6px/4px
-radius hierarchy. They are primitive gameplay captures, unlike the concept art.
-
-Evidence retained outside Git: `circuit-workers/game-regression.log`,
-`circuit-workers/{vendor,network,engine}.log`, `circuit-workers/full-gate.log`,
-and the five PNGs in `circuit-ward-qa` under the temporary workspace.
-Game payload is approximately 1.3MiB; combined retained review/art/worker/game
-workspaces remain below the operator's 30MB cap. No dependencies were installed.
-
-## Release blockers / limitations
-
-The unchanged mandatory full gate **exited 1**:
+The normal sparse full gate in temporary evidence
+`circuit-workers/models-full-gate.log` exited 1:
 
 ```text
 ok   Circuit Ward                 console_errors=0 failed_reqs=0
 == 1/121 games pass ==
 ```
 
-The other 120 entries fail because sparse-excluded game files/assets are absent
-locally (for example `index.html`, Run3 engine, Unity loaders and Balatro loader).
-This does not establish deployed-site breakage, and it does not waive the gate.
-An asset-capable QA environment is needed before release. **Nothing was pushed;
-separate operator push permission is still required.**
+The other 120 legacy games lacked sparse-excluded local files/assets. This is
+neither a clean all-games gate nor proof of deployed breakage. **Updated bounded
+all-games gate result: pending.** The orchestrator will delegate a final evidence
+update after diagnosis and the complete gate finish; no result is inferred here.
 
-Separate-device LAN/school-Wi-Fi compatibility, school Chromebook FPS, maximum
-wave render budgets, explicit WebGL1-only runtime, and a natural complete
-play-through remain unverified. Wi-Fi isolation/mDNS/firewalls may prevent P2P;
-solo is the fallback, not a claimed universal LAN connection.
+## Build and delivery milestones
 
-Real hidden-tab timer throttling is also unverified: headless and xvfb/headed
-new-page activation left `document.hidden` false, and minimizing through CDP did
-not hide the window in this environment. These attempts were not counted as
-passes. Help ticket `pi-912882-1790834673149` is pending. The independent paused
-heartbeat fixture verifies transport behavior without render broadcasts, not
-actual background-browser scheduling.
+Circuit Ward is **one self-made game**, id **222**, under the dated exception in
+ticket `pi-912882-1790827041648`. No new game is added by this docs update.
+
+| Milestone | Commit |
+| --- | --- |
+| Approval / one-run exception | `b15c1c0` |
+| Pinned local three.js | `e02d5d8` |
+| Native manual peer transport | `14ce629` |
+| Primitive game build | `0a9a6b9` |
+| Pairing, shell, camera, heartbeat and initial regression | `77dbd71` |
+| Catalog registration | `024c179` |
+| First five operator-supplied GLBs | `bc57a17` |
+| Pinned local GLTFLoader and first audit | `50ff282` |
+| Five pooled model visuals | `6e71fa4` |
+| Supplied arena wall | `91adf55` |
+| Complete six-model structural audit | `3b91483` |
+| Instanced wall integration | `b0e19ae` |
+| Bounded unchanged full-gate wrapper | `7c906ab` |
+
+All six models are audited: **691300 bytes, 5692 triangles**. The wall is
+**101652 bytes, 836 triangles**, within its 2000-triangle ceiling. Missing-wall
+ticket `pi-912882-1790843183570` is fulfilled. Embedded provenance/license claims
+remain unverified; the three.js MIT license covers the library, not artwork.
+
+All six GLBs load once into shared visual pools; 24 wall instances replace the
+primitive walls. Primitive fallback remains on failed loads. The simulation
+prefix (`const LIMIT =` to before `let live =`) was compared directly with
+`0a9a6b9`: **8317 bytes, byte-identical**, SHA-256
+`e8b6860195f0ba9aaa1ba98b9062289df6fa8fb03e8a264845202fff85551d4d`.
+Prior worker Node/simulation and structural checks are retained evidence, not a
+substitute for current browser regression or the full release gate.
+
+## Implemented behavior and measurement limits
+
+Six solo waves, shield, unlimited-pulse blaster, repair cells, pooled co-op score,
+win/loss, retry/menu, keyboard/mouse and touch controls. Optional 2–4-player co-op
+uses manual full WebRTC offer/answer exchange, browser-host authority and
+`iceServers: []`. No STUN/TURN, signaling service, account, proxy, host migration
+or mid-run join. Solo is offline; all runtime dependencies are local.
+
+Initial five-model integration evidence reports **7 draws / 49456 triangles**
+in a synthetic stress scene. Completed wall integration reports **8 draws /
+69520 triangles** in synthetic stress. These are renderer counters, **not
+hardware FPS measurements**, maximum-wave certification or a 60fps claim.
+No new screenshots or browser tests were taken for this docs-only update.
+Historical primitive screenshots and regression logs remain historical only.
+
+Separate-device LAN/school Wi-Fi, Chromebook FPS, explicit WebGL1-only runtime,
+a natural complete six-wave play-through and actual hidden-tab timer throttling
+remain unverified. Simulation win/loss assertions do not prove a natural run;
+a paused transport fixture does not prove real hidden-tab scheduling.
+
+## Authorized bounded full gate
+
+Operator choice `pi-912882-1790844894029` authorizes **one unchanged ALL-121-game
+pass** using per-game materialization, via `scripts/run_sparse_smoke.py` in
+`7c906ab`:
+
+```sh
+xvfb-run python3 scripts/run_sparse_smoke.py
+```
+
+The wrapper runs the original `scripts/smoke_test_games.py` without weakening
+failure filtering or selecting a subset. During this gate window only, the
+30MB workspace cap has an exception: **at most 300 MiB Games payload and at
+least 1.5 GiB free disk**. Its plan reports peak predicted Games payload
+195853264 bytes; a plan/self-check is not a browser gate pass.
+
+Full checkout is forbidden: approximately 1.872G game assets with 2.47G free
+would leave about 0.6G. Commit all worker changes before the bounded gate; do not
+edit or commit concurrently. Restore the original **assets, docs, scripts**
+sparse selection and sparse configuration exactly, release temporary game
+assets and establish clean Git status afterward, including on failure or
+interruption. Restoration success alone is not a passing gate.
+
+Final evidence update must record the actual updated regression command/result,
+ALL-121 gate log/count, restoration, disk delta and clean status. Public GO does
+not waive green full-gate or remote verification requirements. No push until
+these complete. This docs-only worker verified `PI_PROVIDER=openai-codex` and
+`PI_MODEL=gpt-6.1-sol`; it owns only the three assigned docs, not the diagnosis,
+gate execution or release.
