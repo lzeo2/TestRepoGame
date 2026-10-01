@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <title>Spline Ride</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header><h1>Spline Ride</h1><span>3D spline demo</span></header>
+  <main>
+    <section class="toolbar" aria-label="Spline controls">
+      <label class="path">Path <select id="path"></select></label>
+      <button id="play" type="button">Play</button>
+      <button id="restart" type="button">Restart</button>
+      <button id="view" type="button" aria-label="Switch to Ride view">View: Orbit</button>
+      <details>
+        <summary>Geometry</summary>
+        <div class="geometry">
+          <label>Scale <select id="scale"><option>2</option><option selected>4</option><option>6</option><option>8</option><option>10</option></select></label>
+          <label>Tube sides <select id="sides"><option>3</option><option selected>8</option><option>12</option></select></label>
+          <label><input id="closed" type="checkbox" checked> Join ends</label>
+          <label><input id="ahead" type="checkbox"> Look ahead</label>
+        </div>
+      </details>
+    </section>
+    <div class="readout"><label for="progress">Ride progress <output id="percent">0%</output></label><progress id="progress" max="100" value="0">0%</progress><span>Laps <output id="laps">0</output></span></div>
+    <div id="stage"><canvas id="canvas" tabindex="0" aria-label="3D spline. Drag to orbit, pinch or scroll to zoom. Space plays or pauses, R restarts, V changes view, arrows step while paused."></canvas><p id="status" role="status">Loading 3D view...</p></div>
+    <p class="help">Drag to orbit. Pinch or scroll to zoom. Space: play/pause. R: restart. V: view. Arrows: step when paused.</p>
+  </main>
+  <footer>Adapted from the three.js authors' r160 spline extrusion example (MIT). <a href="CREDITS.md">Source and credits</a></footer>
+  <script type="module" src="script.js"></script>
+</body>
+</html>
