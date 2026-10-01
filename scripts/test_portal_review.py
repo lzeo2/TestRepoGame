@@ -75,6 +75,15 @@ def check_mobile_cards(page, width):
 
 
 def check_shelf_design(page):
+    for selector, radius in (
+        ('.game-card, .search-bar, .ux-sort__select, .theme-toggle', 6),
+        ('.category-filter__btn, .ux-tag-filter__pill, .game-card__category, .game-card__tag, .game-card__play, .game-card__fav, .game-card__info, .random-game-btn, .proxy-launcher__btn', 4),
+    ):
+        assert page.locator(selector).evaluate_all("""(els, radius) => els.every(el => {
+            const style = getComputedStyle(el);
+            return ['borderTopLeftRadius', 'borderTopRightRadius', 'borderBottomLeftRadius', 'borderBottomRightRadius']
+                .every(corner => style[corner] === radius + 'px');
+        })""", radius), selector
     assert page.evaluate("() => [...document.fonts].length === 3 && [...document.fonts].every(f => f.status === 'loaded')")
     assert page.locator('.theme-toggle').evaluate("el => el.parentElement.classList.contains('app__header') && getComputedStyle(el).position === 'static'")
     assert page.locator('.random-game-btn, .proxy-launcher').evaluate_all("els => els.every(el => el.parentElement.classList.contains('app__footer') && getComputedStyle(el).position === 'static')")
