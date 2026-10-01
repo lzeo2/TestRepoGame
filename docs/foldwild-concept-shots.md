@@ -1,8 +1,9 @@
 # Foldwild: approval-only concept captures
 
 **CONCEPT / PROPOSED. These are rendered mockups, not current gameplay.**
-Main's personal visual review is pending. Operator approval of the development
-plan is pending; these images are not a GO, build acceptance, or release.
+Main personally reviewed all three captures and accepted them as visual-direction
+proposals. Operator approval of the development plan is pending; these images
+are not a GO, gameplay/build acceptance, or release.
 Foldwild remains unregistered and its future catalog id remains unresolved.
 The current catalog contains 115 games; this task adds none.
 
@@ -44,7 +45,9 @@ Rillune element, Cupfin family, level-8 maxima and four abilities. Canonical
 progression is Dewgob to Runnelip at level 12 to Basinull at level 26. The
 habitat and shell/rain field note are explicitly proposal copy, not additions
 to canon. Filters, tabs and team swapping are indicative controls only.
-Collection/search/sort/habitat and team editing remain planned, not built here.
+The illustrated visual ledger, search/sort and habitat presentation are proposed
+upgrades. The existing game already has a text collection and team editing;
+none of the controls in this mockup are wired.
 
 ## Source and permission boundaries
 
