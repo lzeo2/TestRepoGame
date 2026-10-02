@@ -126,7 +126,8 @@ Exports `ITEMS`, `COSMETICS`, `SHOPS`, `CONTRACTS`, `freshEconomy`, `buyItem`,
 `claimedSupplies`. Initial Marks 90, inventory `{patch:2,charge:2,fiber:0}`,
 cosmetics `['none']`, nine canonical shop stock records. Kites remain the existing
 `state.kites` field (initial 8); other goods use `state.inventory`.
-Items: kite (12 Marks, sell 4), patch (18/sell 6), charge (16/sell 5), fiber (5/sell 1).
+Items: kite (12 Marks, non-resellable because camp supplies a free safety floor),
+patch (18/sell 6), charge (16/sell 5), fiber (5/sell 1).
 Cosmetics: none/free, badge/20, scarf/35, paper-hat/45. Definitions have id/name/
 price/sell where relevant; cosmetic list stays small and renderer-testable.
 

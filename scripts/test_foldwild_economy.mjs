@@ -51,11 +51,15 @@ assert.equal(refreshStock({ ...reload, encounterIndex: 15 }, shop).shops[shop].e
 
 for (const id of Object.keys(ITEMS)) {
   assert.ok(ITEMS[id].sell < ITEMS[id].price);
-  const roundTrip = sellItem(buyItem(initial, shop, id), shop, id);
-  assert.equal(roundTrip.marks, initial.marks - ITEMS[id].price + ITEMS[id].sell);
-  assert.deepEqual(roundTrip.inventory, initial.inventory);
-  assert.equal(roundTrip.kites, initial.kites);
-  assert.deepEqual(roundTrip.shops, initial.shops);
+  if (ITEMS[id].sell === 0) {
+    rejected(buyItem(initial, shop, id), s => sellItem(s, shop, id), /cannot be sold/);
+  } else {
+    const roundTrip = sellItem(buyItem(initial, shop, id), shop, id);
+    assert.equal(roundTrip.marks, initial.marks - ITEMS[id].price + ITEMS[id].sell);
+    assert.deepEqual(roundTrip.inventory, initial.inventory);
+    assert.equal(roundTrip.kites, initial.kites);
+    assert.deepEqual(roundTrip.shops, initial.shops);
+  }
   for (const quantity of [0, -1, 0.1, NaN, Infinity, '1', null, 1000, 65535]) {
     rejected(fresh(), s => buyItem(s, shop, id, quantity));
     rejected(fresh(), s => sellItem(s, shop, id, quantity));
@@ -94,12 +98,14 @@ rejected(fresh(), s => buyItem(s, shop, 'kite', 17), /stock/);
 rejected(fresh(), s => sellItem(s, shop, 'fiber'), /Insufficient items/);
 rejected({ ...fresh(), kites: 999 }, s => buyItem(s, shop, 'kite'), /quantity/);
 rejected({ ...fresh(), inventory: { patch: 999, charge: 2, fiber: 0 } }, s => buyItem(s, shop, 'patch'), /quantity/);
-rejected({ ...fresh(), marks: 1e6 }, s => sellItem(s, shop, 'kite'), /Marks/);
+rejected({ ...fresh(), marks: 1e6 }, s => sellItem(s, shop, 'patch'), /Marks/);
+// Free camp recovery must not be convertible into unlimited currency.
+rejected({ ...fresh(), marks: 0, kites: 4 }, s => sellItem(s, shop, 'kite'), /cannot be sold/);
 rejected({ ...fresh(), marks: 1e6, inventory: { patch: 2, charge: 2, fiber: 3 } },
   s => completeContract(s, contract), /Marks/);
 const fullStock = fresh();
-fullStock.shops[shop].stock.kite = 999;
-rejected(fullStock, s => sellItem(s, shop, 'kite'), /stock quantity/);
+fullStock.shops[shop].stock.patch = 999;
+rejected(fullStock, s => sellItem(s, shop, 'patch'), /stock quantity/);
 for (const counter of [-1, 1.5, NaN, Infinity, '5', 1e9 + 1]) {
   rejected({ ...fresh(), encounterIndex: counter }, s => refreshStock(s, shop));
 }

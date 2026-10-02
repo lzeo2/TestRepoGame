@@ -1,6 +1,6 @@
 // Pure transactions. The world/save boundary owns persistence and non-economic fields.
 export const ITEMS = Object.freeze({
-  kite: Object.freeze({ id: 'kite', name: 'Latch Kite', price: 12, sell: 4 }),
+  kite: Object.freeze({ id: 'kite', name: 'Latch Kite', price: 12, sell: 0 }),
   patch: Object.freeze({ id: 'patch', name: 'Recovery Patch', price: 18, sell: 6 }),
   charge: Object.freeze({ id: 'charge', name: 'Energy Charge', price: 16, sell: 5 }),
   fiber: Object.freeze({ id: 'fiber', name: 'Field Fiber', price: 5, sell: 1 })
@@ -128,6 +128,7 @@ export function sellItem(state, shopId, id, quantity = 1) {
   known(SHOPS, shopId, 'shop');
   const item = known(ITEMS, id, 'item');
   integer(quantity, 1, 999, 'quantity');
+  if (item.sell === 0) throw new RangeError('Camp-refillable Latch Kites cannot be sold.');
   const next = snapshot(state);
   if (count(next, id) < quantity) throw new RangeError('Insufficient items.');
   setCount(next, id, count(next, id) - quantity);
