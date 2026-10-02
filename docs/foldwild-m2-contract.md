@@ -4,6 +4,10 @@ Status: implementation authorized by the owner's "keep developing" instruction.
 This continues the existing original RPG, not registration, publication or a push.
 The horror candidate and procedural frontier remain outside this milestone.
 
+Current checkpoint: [implementation and verification review](foldwild-m2-review.md).
+Systems are implemented locally, but integrated native acceptance is held on the
+intermittent mobile ledger close after viewport resize. No release approval.
+
 ## Product checkpoint
 
 Finish a real discovered-creature inspection loop: open Field Ledger, inspect an
