@@ -14,8 +14,8 @@ Read the complete plan, AGENTS, quality rules, ponytail skill and maintenance
 entry guide. Inspected the real local `assets/car-arcade/fleet.js` and
 `storage.js` before integration. The only runtime dependency is the real
 fleet's frozen `BY_ID`; no replacement fleet fixture was created. Fleet was
-available for the first regression run, but its worker had not yet committed
-it at this handoff. Shared storage is not imported by this pure core.
+available for the first regression run and subsequently committed by its
+worker at `a8edf08`. Shared storage is not imported by this pure core.
 
 ## Frozen public API
 
@@ -162,14 +162,14 @@ After committing the new core it correctly failed (exit1):
 This is an explicit integration hold, not an acceptance pass. Main owns the
 new maintenance manual/inventory refresh; this worker must not change them.
 
-Storage before work:2337857536 free bytes. After source commit/audit:
-2336718848 free bytes; shared-workspace growth1138688 bytes, below30MB and
+Storage before work:2337857536 free bytes. After source/report commit:
+2336432128 free bytes; shared-workspace growth1425408 bytes, below30MB and
 both readings above2e9 free. Concurrent workers also write in this workspace;
 this is not an isolated attribution of their storage use. No sparse expansion.
 
 ## Remaining holds and ownership
 
-Await fleet/model worker's committed source and renderer/storage integration.
+Fleet/model source commit is now `a8edf08`; renderer/storage integration remains held.
 No native browser play, screenshots, touch/keyboard, UI error feedback, model
 visual review, device FPS, campaign-wide balance, registration or full-catalog
 browser gate is claimed. No push. Originality is an authored-source statement,
@@ -179,4 +179,9 @@ At source handoff, untracked sibling work belonged to tasks98/99:
 `assets/car-arcade/fleet.js`, `assets/car-arcade/models.js`,
 `scripts/test_car_arcade_models.mjs`, `Games/Slipstream Borough/`, and
 `scripts/test_slipstream_core.mjs`. These were neither edited nor staged here.
-This report is the bounded command/evidence log; no separate scratch log.
+Final status after the report commit listed only the two task99 sibling paths
+(`Games/Slipstream Borough/` and `scripts/test_slipstream_core.mjs`); all owned
+paths were committed. This report is the bounded command/evidence log; no
+separate scratch log. `git diff --no-index --check /dev/null` on the new report
+returned1 for a differing new file with no whitespace diagnostics; normal
+`git diff --check` returned0.
