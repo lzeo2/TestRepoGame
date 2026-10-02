@@ -54,7 +54,7 @@ Positive gameplay used normal controls only. The aiming solver reads current tar
 
 **Negative fixtures only:** dispatched blur and lostpointercapture events check cleanup in isolation. These are explicitly synthetic, not trusted browser/OS lifecycle acceptance. No synthetic event is used to establish scoring, win/loss or positive native interaction.
 
-Screenshots contain the actual auto-started field after normal Play again: temporary `archery-refurbishment/desktop.jpg` (1280x720), `390.jpg` (390x720 touch context) and `320.jpg` (320x720). The 320px document overflow assertion passed. They are not committed artwork or a claim of Main's visual approval.
+Screenshots contain the actual auto-started field after normal Play again: temporary `archery-refurbishment/desktop.jpg` (1280x820 full-page capture from a 1280x720 viewport), `390.jpg` (390x720 touch context) and `320.jpg` (320x720). The 320px document overflow assertion passed. They are not committed artwork or a claim of Main's visual approval.
 
 ## Static checks and integration hold
 

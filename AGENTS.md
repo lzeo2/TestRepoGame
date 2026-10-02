@@ -3,6 +3,11 @@
 Read `docs/CODE_QUALITY.md` first. Read `docs/proxy.md` before proxy work.
 These rules apply to every orchestrator and worker. Operator scope is not a
 license to skip attribution, security, review, or runtime verification.
+Start maintenance work at `docs/maintenance/README.md`: find the exact game's
+manual or site-feature guide, read its known blockers and inspected-source limits,
+and verify current source against `docs/maintenance/inventory.json`. Historical
+PASS reports are not current acceptance. Update the relevant manual with each
+source change and run `python3 -B scripts/check_maintenance_docs.py`.
 
 ## The deployed site
 
@@ -54,8 +59,21 @@ Google Drive's `TestRepoGame-Games/` is a backup, not the source of truth.
 ## Games: port first, never fabricate provenance
 
 Default scope is existing games only. New games require an explicit operator
-order. This review run authorizes at most two new ports, starting at id 222
-if free. That authorization is run-specific, not standing permission.
+order. The historical review authorized at most two new ports, starting at id
+222 if free. That authorization was run-specific, not standing permission;
+222, 223 and 224 are now occupied. A month outlook is not permission to assign
+an ID, invent a game, or publish automatically.
+
+### Current maintenance and Foldwild development
+
+The owner authorized detailed implementation of the existing original Foldwild
+and subsequent continued development; see `docs/foldwild-implementation.md` and
+`docs/foldwild-m2-contract.md`. This is an explicit exception for that existing,
+unregistered project, not standing permission for other self-made games. Keep
+its supplied originals, provenance qualifications and unverified hardware gate.
+M2 native input acceptance remains held until a fresh stable regression passes.
+The comprehensive audit/manual/refurbishment order covers existing code and a
+source-first month plan. Registration, publication and push remain separate gates.
 
 ### Dated one-run exception: Circuit Ward (2026-10-01)
 
@@ -93,7 +111,8 @@ creates no standing permission for any other self-made game or new id.
 
 ## House UI and deslop
 
-Flat solid colors, black action buttons, readable system type. No gradients,
+Flat solid colors, black action buttons, local Bungee/Atkinson with readable
+system fallbacks. No gradients,
 no teal-on-green, no em-dashes in game-facing or portal copy.
 
 - Remove empty claims, AI-isms, redundant cards, duplicate filters, and

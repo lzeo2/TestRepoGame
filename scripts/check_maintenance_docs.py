@@ -8,6 +8,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 INVENTORY = ROOT / 'docs/maintenance/inventory.json'
+INDEX = ROOT / 'docs/maintenance/README.md'
 SECTIONS = ('Identity and status', 'Implementation map', 'Gameplay and controls',
             'State and persistence', 'Dependencies and provenance', 'Audit findings',
             'Safe iteration', 'Verification', 'Future outlook')
@@ -50,10 +51,27 @@ def inventory():
     return {'catalog_entries': len(catalog), 'games': games,
             'shared_runtime': {'directory': 'Games/_emulatorjs',
                                'files': len(grouped.get('Games/_emulatorjs', [])),
-                               'bytes': sum(n for _, n in grouped.get('Games/_emulatorjs', []))}}
+                               'bytes': sum(n for _, n in grouped.get('Games/_emulatorjs', [])),
+                               'tree': git('rev-parse', 'HEAD:Games/_emulatorjs').strip()}}
+
+
+def refresh_index(data):
+    rows = ['| ID/status | Game maintenance page | Entry |', '| --- | --- | --- |']
+    for game in sorted(data['games'], key=lambda g: (not g['registered'], g['id'] or 0, g['title'])):
+        status = str(game['id']) if game['registered'] else 'Unregistered'
+        doc = (ROOT / game['document']).relative_to(INDEX.parent).as_posix()
+        entry = f"`{game['entry']}`" if game['entry'] else 'No canonical entry established'
+        rows.append(f"| {status} | [{game['title']}]({doc}) | {entry} |")
+    text = INDEX.read_text()
+    start, end = '<!-- game-index:start -->', '<!-- game-index:end -->'
+    assert text.count(start) == text.count(end) == 1, 'Index markers missing/ambiguous.'
+    before, remainder = text.split(start)
+    _, after = remainder.split(end)
+    INDEX.write_text(before + start + '\n' + '\n'.join(rows) + '\n' + end + after)
 
 
 def check():
+    assert not git('diff', '--name-only', 'HEAD', '--', 'Games', 'games.json').strip(), 'Commit inspected source changes before validating its inventory.'
     recorded = json.loads(INVENTORY.read_text())
     assert recorded == inventory(), 'Inventory stale: inspect changes, then run --refresh.'
     game_ids = [g['id'] for g in recorded['games'] if g['registered']]
@@ -61,7 +79,11 @@ def check():
     documents = [g['document'] for g in recorded['games']]
     assert len(documents) == len(set(documents))
     failures = []
+    index_text = INDEX.read_text()
     for game in recorded['games']:
+        link = (ROOT / game['document']).relative_to(INDEX.parent).as_posix()
+        if index_text.count(f']({link})') != 1:
+            failures.append(f'Index missing/duplicating {link}: run --refresh.')
         path = ROOT / game['document']
         if not path.is_file():
             failures.append(f"Missing {game['document']}")
@@ -87,6 +109,7 @@ def main():
         INVENTORY.parent.mkdir(parents=True, exist_ok=True)
         data = inventory()
         INVENTORY.write_text(json.dumps(data, indent=2) + '\n')
+        refresh_index(data)
         print(f"Inventory: {len(data['games'])} games, {data['catalog_entries']} registered; shared runtime separate.")
     else:
         check()
