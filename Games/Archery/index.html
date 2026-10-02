@@ -39,6 +39,7 @@
   .stage{position:relative; width:100%; max-width:660px;}
   canvas{display:block; width:100%; height:auto; background:var(--field);
     border:1px solid var(--line); border-radius:8px; touch-action:none; cursor:crosshair;}
+  canvas:focus-visible{outline:2px solid var(--ink); outline-offset:2px;}
   .overlay{position:absolute; inset:0; background:rgba(10,13,18,0.92);
     display:flex; flex-direction:column; justify-content:center; align-items:center;
     gap:12px; text-align:center; padding:20px; border-radius:8px; z-index:5;}
@@ -67,7 +68,8 @@
 <div class="controls">
   <b>Controls:</b> press on the field near the bow and drag toward the target,
   then release to shoot (mouse or touch); the farther you drag, the stronger the
-  draw. Keyboard: <b>Left</b>/<b>Right</b> aim, <b>Up</b>/<b>Down</b> draw power,
+  draw. Focus the field for keyboard controls: <b>Left</b>/<b>Right</b> aim,
+  <b>Up</b>/<b>Down</b> draw power,
   <b>Space</b> release, <b>R</b> restart. Ten arrows, score 15 points to win.
   Rings score 1, 2, 3 and 4 points (bull = 4); wind is re-rolled every shot and
   pushes each arrow in flight.
@@ -82,7 +84,8 @@
 </div>
 
 <div class="stage">
-  <canvas id="canvas" width="640" height="500"></canvas>
+  <canvas id="canvas" width="640" height="500" tabindex="0"
+    aria-label="Archery field. Arrow keys aim and set power; Space shoots; R restarts."></canvas>
 
   <div class="overlay hidden" id="endOverlay">
     <h2>Round over</h2>
@@ -148,6 +151,7 @@ let score = 0;
 let arrowsLeft = ARROWS_TOTAL;
 let wind = 0;                  // per-shot horizontal acceleration
 let locked = false;            // true while a hit is being resolved
+let pendingAdvance = null;
 let popups = [];               // floating +n / Miss texts
 const deadArrows = [];
 
@@ -269,6 +273,7 @@ class Arrow {
     this.angle = Math.atan2(this.velocity.y, this.velocity.x);
   }
   setAim(angle, power) {
+    if (state !== "play" || locked || this.state !== "rest") return;
     this.power = Math.max(10, Math.min(100, power));
     this.velocity.x = (this.power / 4) * Math.cos(angle);
     this.velocity.y = (this.power / 4) * Math.sin(angle);
@@ -361,6 +366,7 @@ class Arrow {
   }
   launch() {
     if (state !== "play" || locked || this.state !== "rest") return;
+    clearInput();
     this.state = "flying";
   }
   checkCollision(target) {
@@ -436,11 +442,12 @@ function resolveShot(pts, x, y) {
   arrowsEl.textContent = arrowsLeft;
   popups.push({ x: x, y: y, life: 60, text: pts > 0 ? "+" + pts : "Miss" });
   const advance = () => {
+    pendingAdvance = null;
     target.move();
     if (arrowsLeft <= 0) endRound();
     else { newWind(); locked = false; }   // wind shown while aiming applies to the next shot
   };
-  if (pts > 0) setTimeout(advance, 350);
+  if (pts > 0) pendingAdvance = setTimeout(advance, 350);
   else advance();
 }
 
@@ -454,6 +461,8 @@ function endRound() {
 }
 
 function startRound() {
+  clearTimeout(pendingAdvance);
+  pendingAdvance = null;
   score = 0;
   arrowsLeft = ARROWS_TOTAL;
   endOverlay.classList.add("hidden");
@@ -465,8 +474,10 @@ function startRound() {
   target.pos = new Point(430, 250);
   target.moveDestination = null;
   arrow.reset();
+  clearInput();
   newWind();
   state = "play";
+  canvas.focus({ preventScroll: true });
 }
 
 function drawWindVane() {
@@ -508,40 +519,57 @@ function update() {
 }
 
 /* Input: pointer (mouse + touch) drag to draw, release to loose. */
-let mouseDown = false, mouseDownPos = new Point(0, 0);
+let mouseDown = false, mouseDownPos = new Point(0, 0), activePointer = null;
+let kbAngle = arrow.angle;
+
+function clearInput() {
+  mouseDown = false;
+  kbAngle = arrow.angle;
+  const pointer = activePointer;
+  activePointer = null;
+  if (pointer !== null && canvas.hasPointerCapture(pointer)) canvas.releasePointerCapture(pointer);
+}
 
 canvas.addEventListener("pointerdown", function(e) {
-  if (state !== "play" || locked || arrow.state !== "rest") return;
+  if (state !== "play" || locked || arrow.state !== "rest" || mouseDown) return;
   e.preventDefault();
+  canvas.focus({ preventScroll: true });
   mouseDown = true;
+  activePointer = e.pointerId;
   mouseDownPos = ut.getMousePos(canvas, e);
   canvas.setPointerCapture(e.pointerId);
 });
 canvas.addEventListener("pointermove", function(e) {
-  if (!mouseDown) return;
+  if (!mouseDown || e.pointerId !== activePointer) return;
   e.preventDefault();
   const cursor = ut.getMousePos(canvas, e);
   arrow.setAim(ut.getAngle(cursor, mouseDownPos), ut.getDistance(cursor, mouseDownPos));
 });
 canvas.addEventListener("pointerup", function(e) {
-  if (!mouseDown) return;
+  if (!mouseDown || e.pointerId !== activePointer) return;
   e.preventDefault();
-  mouseDown = false;
   const cursor = ut.getMousePos(canvas, e);
+  clearInput();
   arrow.setAim(ut.getAngle(cursor, mouseDownPos), ut.getDistance(cursor, mouseDownPos));
   arrow.launch();
 });
+canvas.addEventListener("pointercancel", clearInput);
+canvas.addEventListener("lostpointercapture", clearInput);
+window.addEventListener("blur", clearInput);
 
-/* Keyboard aiming: rotate with Left/Right, power with Up/Down, Space releases. */
-let kbAngle = -0.35;
+/* Keyboard aiming is scoped to the field, leaving native button keys alone. */
 document.addEventListener("keydown", function(e) {
-  if (state !== "play") return;
+  if (e.target !== canvas || e.altKey || e.ctrlKey || e.metaKey) return;
+  if (e.code === "KeyR") { e.preventDefault(); startRound(); return; }
+  if (state !== "play" || !["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", "Space"].includes(e.code)) return;
+  e.preventDefault();
+  if (locked || arrow.state !== "rest") return;
+  kbAngle = arrow.angle;
   if (e.code === "ArrowLeft")  { kbAngle -= 0.04; arrow.setAim(kbAngle, arrow.power); }
   if (e.code === "ArrowRight") { kbAngle += 0.04; arrow.setAim(kbAngle, arrow.power); }
   if (e.code === "ArrowUp")    { arrow.setAim(kbAngle, arrow.power + 4); }
   if (e.code === "ArrowDown")  { arrow.setAim(kbAngle, arrow.power - 4); }
-  if (e.code === "Space")      { e.preventDefault(); arrow.launch(); }
-  if (e.code === "KeyR")       startRound();
+  if (e.code === "Space")      arrow.launch();
 });
 
 document.getElementById("againBtn").addEventListener("click", startRound);

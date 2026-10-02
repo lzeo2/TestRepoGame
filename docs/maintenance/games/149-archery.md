@@ -2,48 +2,75 @@
 
 <!-- maintenance-game: Games/Archery -->
 
-Source baseline: `8c8a055`. Documentation-only static review, delegation 64.
+Source audit baseline: `8c8a055`; current approved runtime refurbishment: delegation 72. See [patch evidence](../archery-refurbishment.md). Historical delegation 64 syntax-only review is superseded for the input/timer findings, not for unmeasured hardware limits.
 
 ## Identity and status
 
-Registered ID **149**, category `sports`, not featured. Entry: `Games/Archery/index.html` ([local entry](../../../Games/Archery/index.html)). Tracked tree: **2 files, 55,721 bytes**; entry blob `130d4aee8752369c4785cc28bdf4eef227b689d2`. Existing ingested single-file Canvas2D game; no runtime dependency beyond browser APIs. All gameplay, controls and styling were read, not merely the entry header. Source references no external runtime loads; actual offline native play remains untested here.
+Registered ID **149**, category `sports`, not featured. Entry: `Games/Archery/index.html` ([local entry](../../../Games/Archery/index.html)). Existing ingested single-file Canvas2D game; no new game or registration. Current tree: **2 files, 57,010 bytes**; entry **21,869 bytes**, blob `d73f863b586aabaa68f29140891c1792ee16f134`, SHA-256 `b16ca71abf902a2875b8d726ba5bcf2d6c864d5664d933ade16b5c2fd878f2d7`. Main owns inventory refresh after the source commit.
+
+Source references no external runtime loads. Focused Chromium desktop/mobile native gameplay now passed with non-local traffic blocked and zero attempted external loads. This is not full catalog acceptance, an N100 result, or a general accessibility certification.
 
 ## Implementation map
 
-`index.html` owns the 640x500 `#canvas`, HUD `#arrowsLeft/#score/#wind`, `#endOverlay/#verdict/#finalScore`, and `#againBtn/#restartBtn`. `Util.getMousePos` maps viewport coordinates to logical pixels. `Target` draws nested ellipse rings, relocates between shots, and carries stuck arrows. `Arrow.setAim` clamps power 10..100; `draw` calculates shaft/tip then advances per-frame flight with gravity 0.4, A=0.01 and wind. `checkCollision` assigns nested-ring score; `checkBoundary` resolves misses. `resolveShot` updates HUD and schedules next target after a hit. `startRound` resets round state; one `update` RAF renders continuously.
+`index.html` owns the 640x500 `#canvas`, HUD `#arrowsLeft/#score/#wind`, `#endOverlay/#verdict/#finalScore`, and `#againBtn/#restartBtn`. `Util.getMousePos` maps CSS-scaled coordinates to logical pixels; `getAngle` retains the upstream bottom-left ordering rule. `Target.updateRings/draw` maintain four concentric-offset ellipses; `move/step` relocate the target between shots and carry stuck arrows.
 
-**Source review coverage:** complete HTML/CSS and every inline function/class/input listener read, plus shipped GPL text and source dossier. No unread compiled game engine or binary art exists in this two-file tree. Canvas output itself was not visually reviewed.
+`Arrow.setAim` is the shared mutation boundary for pointermove, pointerup and all four aim keys. It now rejects non-play, locked and non-rest states. `Arrow.launch` shares the same gate and clears unfinished input before flight. `draw` calculates the shaft/tip and advances per-frame flight; `checkCollision/checkBoundary` resolve hits/misses through `resolveShot`. `startRound` is called by R, both buttons and auto-start. One continuously scheduled `update` RAF renders all states; restart does not create a second loop.
+
+**Source review coverage:** complete HTML, CSS and all inline classes/functions/listeners read against the unchanged baseline, then the full patch reviewed. The tree has no compiled engine or binary art. The shipped GPL file and local source dossier identify provenance; no new upstream download or network verification was performed. Main owns subjective visual review of the captured real-game screenshots.
 
 ## Gameplay and controls
 
-Round auto-starts; no separate Start gate. Ten arrows score 1/2/3/4 by ring, with 15 points needed to win after all arrows. Press/drag anywhere on field, release to shoot; pointer capture supports mouse/touch. Left/Right change keyboard angle, Up/Down power, Space launch. R restarts only while state is play because the listener returns otherwise; end-screen Play again and Restart round still work by click. There is no audio implementation. Target motion is step-based between shots, not a constantly moving target during every aim. Win/lose text uses the score threshold; no persistent best score.
+The round auto-starts. Ten arrows score 1/2/3/4 by nested ring; a final score of at least 15 wins after all ten arrows. Wind is re-rolled per shot. Successful shots deliberately retain their 350ms display delay before target movement/unlock. Misses advance immediately. The target moves toward a random destination between shots; input is not redesigned to wait for that movement.
+
+Press/drag on the field and release to shoot with mouse or touch; power is clamped to 10..100. `tabindex="0"`, an accessible label and visible focus outline make the field keyboard-focusable. Pointerdown and round restart focus it without scrolling. While focused, Left/Right rotate by 0.04 radians, Up/Down change power by four, Space launches, and R restarts during play **and after the verdict**. Aim/launch keys cannot change a flying arrow or the locked post-hit aim. Keyboard aim starts from the current arrow angle, including a pointer-set angle.
+
+Only handled keys on the field suppress browser defaults; Ctrl/Alt/Meta shortcuts and native button Space/Enter are left alone. Play again and Restart round still use their original buttons. Pointer cancel, capture loss, window blur and restart clear a drag rather than firing it. There is no audio or persistent best score.
 
 ## State and persistence
 
-Globals own `state`, `score`, `arrowsLeft`, `wind`, `locked`, popups and dead arrows; arrow and target retain geometry. No localStorage/cookie/save key. Successful shots create an untracked 350ms timeout in `resolveShot`; restart does not cancel it. RAF starts once and is not restarted by `startRound`, so repeated restarts do not intentionally multiply loops. Pointer state `mouseDown` and `kbAngle` are outside the reset function. Canvas backing pixels are fixed, CSS scales presentation; no devicePixelRatio adjustment.
+Globals own `state`, `score`, `arrowsLeft`, `wind`, `locked`, `popups`, `deadArrows`, `pendingAdvance`, `mouseDown`, `mouseDownPos`, `activePointer` and `kbAngle`; arrow/target objects retain geometry. No localStorage, cookies or save keys exist.
+
+`resolveShot` stores exactly one delayed hit callback in `pendingAdvance`; `advance` clears that reference on entry. `startRound` cancels and clears it before resetting the new round. It resets target position/destination, arrow, wind, score, arrows, popups and stuck arrows, then calls `clearInput`. `clearInput` clears drag ownership before releasing capture, so the ensuing lost-capture event can safely call it again; it synchronizes keyboard angle with the arrow. Pointermove/up accept only the captured pointer ID. `Arrow.launch` also clears any drag when Space launches it.
+
+Canvas backing pixels remain fixed; CSS scales presentation without devicePixelRatio adjustment. Physics constants remain gravity 0.4 and horizontal acceleration 0.01 plus wind per rendered frame.
 
 ## Dependencies and provenance
 
-Header and [source dossier](../../catalog_parts/sources_10.md) identify https://github.com/bibhuticoder/archery-master at `107cbc9b8ff84f3ee53bfac43e26cf5d4b30a78e`, GPL-3.0; the full GPL v3 text is shipped as `Games/Archery/LICENSE`. This is locally recorded evidence, not a new upstream/network verification. Adaptations include inlining, wind, ten-arrow threshold and pointer/keyboard HUD. Preserve source/modification and copyleft notices; do not relabel MIT. Graphics are drawn in code, with system font stack and no asset files.
+Header and [source dossier](../../catalog_parts/sources_10.md) record https://github.com/bibhuticoder/archery-master at `107cbc9b8ff84f3ee53bfac43e26cf5d4b30a78e`, GPL-3.0. The full GPL v3 text remains unchanged in `Games/Archery/LICENSE`. This is locally recorded evidence, not a fresh upstream rights verification. GPL is copyleft, not the dossier introduction's generic "permissive" characterization.
+
+Existing adaptations include inlining, wind, the ten-arrow threshold and pointer/keyboard HUD. This refurbishment adds only reset/input lifecycle correctness and field focus support. Preserve source/modification and copyleft notices; do not relabel MIT. Graphics are drawn in code with system fonts and no runtime asset files, third-party libraries or new remote dependencies.
 
 ## Audit findings
 
-- **MEDIUM, stale round callback:** `resolveShot` / `setTimeout(advance,350)` survives `startRound`. Hit then immediately restart; old advance relocates the new target and can unlock a newer in-flight resolution. Root fix: store/cancel the timeout at reset, or round-token guard the callback.
-- **MEDIUM, input lifecycle:** pointer listeners omit `pointercancel/lostpointercapture`; reset leaves `mouseDown` and keyboard aim unchanged, and arrow keys do not prevent browser scrolling. Cancel/blur/reset should clear drag state; keyboard handling should suppress defaults only for handled game inputs and synchronize its angle with reset aim.
-- **MEDIUM, flight controls:** key listener calls `setAim` even while arrow is flying/locked, unlike guarded pointerdown. Mid-flight keys change velocity, not just next-shot aim. Root fix: gate aim mutations on the same rest/unlocked state used by launch/input.
-- **LOW, frame-rate sensitivity:** `Arrow.draw` advances physics without elapsed time. At different refresh rates flight/target timing changes. Measure first; preserve trajectory with fixed-step timing if a patch is authorized.
-No user-input HTML sink, runtime third-party dependency or save corruption path was found in the fully read authored logic.
+- **MEDIUM, fixed stale callback:** `index.html: resolveShot / startRound`. The old `setTimeout(advance,350)` survived restart and moved the new target/unlocked future work. Root fix: `pendingAdvance` ownership with cancel/null at the round boundary. Baseline native hit/R reproduction failed with `old hit callback moved restarted target`; patched desktop/touch reproduction passed.
+- **MEDIUM, fixed flight controls:** `index.html: Arrow.setAim / keydown`. Keyboard aim previously replaced live velocity while flying or locked. Root fix: shared rest/play/unlocked guard, with the same keyboard handling gate. Native flight power and locked angle/power tests passed.
+- **MEDIUM, fixed input lifecycle:** `index.html: clearInput / pointer listeners / startRound`. Cancel/blur/capture loss were absent and restart retained drag/keyboard state. Root fix: clear ownership/release capture/synchronize angle at launch, reset and lifecycle events. Native touchCancel and desktop/touch restart-during-drag passed; blur/lostcapture were tested with **synthetic negative fixtures**, not claimed as trusted OS events.
+- **MEDIUM, fixed keyboard default/focus boundary:** `index.html: canvas / keydown`. Arrow keys could scroll the document; document-wide Space stole native button activation. Root fix: focusable/labeled field, field-scoped handled-key suppression, unchanged native button actions. Native Space on both buttons passed.
+- **LOW, fixed terminal R mismatch:** `index.html: keydown`. The old early return on non-play state contradicted documented R restart at the verdict. R is now handled before the play gate when the field has focus; normal ten-miss terminal R passed.
+- **LOW, deferred frame-rate sensitivity:** `index.html: Arrow.draw / Target.step`. Physics and target motion advance per RAF without elapsed time. Measure 60/120Hz first; a fixed-step change needs trajectory/score parity and is intentionally outside this patch.
+
+No user-input HTML sink, runtime third-party dependency or persistence-corruption path was found in the fully read game logic. Lack of these findings does not certify every platform/browser input edge case.
 
 ## Safe iteration
 
-Keep ring scoring/ellipse ordering and per-shot wind. Fix delayed callback/input gates in the shared round/input boundary, not extra guards in each button. Do not rewrite ingested physics or add synthetic sound/promotional overlays. Preserve GPL files and corresponding readable code. Any timestep change needs trajectory/score checks; cancel old round work before resetting target.
+Patch the shared `setAim/launch`, `startRound`, `clearInput` and owned timeout boundaries, not per-button workarounds. Preserve ellipse collision ordering, 1..4 scoring, ten arrows, 15-point threshold, the 350ms hit display, wind and upstream bow/arrow art. No debug grant/setter API or synthetic positive-gameplay hook was added. Do not replace the ingested engine or add a launch overlay.
+
+Rollback only the owned Archery source/test/manual/report paths through a separately authorized revert; never reset the shared worktree. There is no save migration. A timestep/DPI patch requires measured browser/device evidence, not assumptions about a familiar archery engine.
 
 ## Verification
 
-**Actually run:** inline JS `node --check` via stdin parsed; tree and notice inspection completed. Browser, native controls and screenshots: **zero**. To reproduce syntax, extract the sole inline script from `git show HEAD:Games/Archery/index.html` with Python's HTMLParser and pipe to `node --check`; do not send HTML itself to Node.
+**Actually run:** sole inline script extracted with HTMLParser and passed to `node --check` via stdin; regression Python AST parsed; owned-path `git diff --check` passed. Historical [P2b playtest](../../audit_batches/playtest_p2b.md) remains dated and did not establish the hit/restart race. Current native command:
 
-Main's recommended bounded native checks: drag-release touch/mouse at CSS-scaled width, every ring and miss, ten arrows to both verdicts, end-screen restart, hit-then-immediate-restart race, canceled drag/blur, keyboard aim during flight, 60/120Hz timing and page-scroll behavior. Confirm no external requests and focus-visible restart buttons. Full catalog smoke is separate and cannot certify scoring.
+```sh
+timeout 180 python3 -B scripts/test_archery_refurbishment.py
+# Negative proof against the immutable old blob; expected assertion failure:
+timeout 180 python3 -B scripts/test_archery_refurbishment.py --baseline
+```
+
+Requires Main's narrow Archery checkout lease and already-installed Chromium/Playwright; does not materialize other games or install anything. The runner serves only the game on port 8812 and closes browser contexts/server in `finally`. Baseline failed on the native stale-hit race. Patched native runs passed desktop 1280x720 and touch 390x720, plus a 320px overflow assertion. Ten normal legal misses reached loss, R restarted the terminal round, and ten real pointer/touch shots reached **40 points** and a win on both devices; native Space activated Play again and Restart round. Computed legal aiming reads target/wind only and does not modify state, RNG or storage. Touch uses Chromium's trusted CDP input, not a mouse substitute. Runtime errors, failed requests, HTTP errors and attempted external loads were all zero.
+
+Screenshots are temporary `archery-refurbishment/desktop.jpg`, `390.jpg` and `320.jpg` for Main's review, not committed art. Full catalog smoke, N100/hardware, 60/120Hz parity, OS-level blur, assistive-technology review, every ring boundary and high-DPI quality remain unverified. `python3 -B scripts/check_maintenance_docs.py` was run; source must be committed and Main's inventory refreshed before the current tree can pass it.
 
 ## Future outlook
 
-Week 1: race/input reproduction and license retention. Week 2: approved reset/cancel gates and accurate R-key copy. Week 3: keyboard focus, canvas description and score announcement review. Week 4: hardware timing/DPI measurements before any fixed-step work. Defer new rounds, assets and elaborate test framework; one focused reset/shot regression suffices for an authorized logic fix.
+Week 1: integrate/review the bounded timer/input patch and current native evidence; retain license/source notices. Week 2: Main's desktop/mobile focus/contrast and score announcement review, without repainting upstream artwork. Week 3: sample real 60/120Hz trajectories, devicePixelRatio and N100 performance. Week 4: authorize only measured fixed-step/DPI improvements with score parity if needed. Defer new rounds, assets, sound, build tooling and replacement engines. No new game, catalog change, registration, publication or push is part of this work.
