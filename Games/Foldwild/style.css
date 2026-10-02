@@ -42,6 +42,11 @@ main{max-width:1440px;margin:4px auto}
 .field-record p{margin:4px 0}
 summary{min-height:44px;padding:10px 0;cursor:pointer;font-weight:700;overflow-wrap:anywhere}
 #save-state{color:var(--blue)}
+#save-tools{padding:8px 0;margin-bottom:8px;border-bottom:1px solid var(--line)}
+#save-tools p:empty{display:none}
+#save-tools p{margin-bottom:4px}
+#save-tools input{width:100%}
+#save-primary-bytes,#reset-primary-bytes{width:100%;min-height:100px;resize:vertical;font:inherit}
 .trail-controls{min-width:0}
 #message{position:absolute;top:calc(var(--scene-height) - 72px);left:12px;max-width:min(620px,calc(100% - 24px));max-height:64px;overflow:auto;margin:0;padding:8px 12px;border-left:4px solid #a46c3a;border-radius:4px;background:var(--paper);font-size:15px}
 #team-list{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:8px 0}

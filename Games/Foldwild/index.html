@@ -11,6 +11,15 @@
   <a class="skip-link" href="#controls">Skip to game controls</a>
   <header class="site-header"><h1>Foldwild</h1><a href="../../index.html">Arcade</a></header>
   <main id="controls" tabindex="-1">
+    <section id="save-tools" aria-label="Local saves">
+      <p id="save-state" role="status">Not saved</p>
+      <p id="render-state" role="status"></p>
+      <p id="save-coordination" class="help"></p>
+      <details><summary>Save files and recovery</summary>
+        <div class="actions"><button type="button" id="save-export">Export this tab</button><button type="button" id="save-backup">Preview backup</button><button type="button" id="save-replace">Preview replacing stored run</button><button type="button" id="save-reload">Reload stored run</button></div>
+        <label for="save-file">Import local save (JSON, up to 256 KiB)</label><input id="save-file" type="file" accept=".json,application/json">
+      </details>
+    </section>
     <section id="menu" class="panel" aria-labelledby="menu-title">
       <h2 id="menu-title">Choose your first ally</h2>
       <p>Find allies. Read the wheel. Battle the trailkeepers.</p>
@@ -32,7 +41,7 @@
         <section id="world-hud" hidden aria-label="Trail information">
           <h2 id="zone-name">Rootfold Meadow</h2>
           <div class="field-state"><span>Marks <strong id="marks">0</strong></span><span>Kites <strong id="kites">0</strong></span><span>Class <strong id="class-name">Pathfinder</strong></span></div>
-          <details class="field-record"><summary>Field record</summary><p>Progress <strong id="score">0</strong></p><p>Collection <strong id="dex-count">0</strong></p><p>Synergy <span id="synergy-name">None</span></p><span id="save-state" role="status">Not saved</span></details>
+          <details class="field-record"><summary>Field record</summary><p>Progress <strong id="score">0</strong></p><p>Collection <strong id="dex-count">0</strong></p><p>Synergy <span id="synergy-name">None</span></p></details>
         </section>
       </section>
       <aside class="trail-controls" aria-label="Game controls">
@@ -72,7 +81,8 @@
   </dialog>
   <dialog id="release-dialog" aria-labelledby="release-title" aria-describedby="release-description"><h2 id="release-title">Release ally?</h2><p id="release-description"></p><div class="actions"><button type="button" id="release-confirm">Release ally</button><button type="button" id="release-cancel">Keep ally</button></div></dialog>
   <dialog id="service-dialog" aria-labelledby="service-title" aria-describedby="service-description"><div class="dialog-heading"><h2 id="service-title">Outpost services</h2><form method="dialog"><button id="service-close" type="submit">Back to field</button></form></div><p id="service-description"></p><div id="service-content"></div></dialog>
-  <dialog id="reset-dialog" aria-labelledby="reset-title"><h2 id="reset-title">Start a new run?</h2><p>This replaces your saved trail. Your current progress will be lost.</p><div class="actions"><button type="button" id="reset-confirm">Replace saved run</button><button type="button" id="reset-cancel">Keep current run</button></div></dialog>
+  <dialog id="save-dialog" aria-labelledby="save-title"><h2 id="save-title">Replace stored expedition?</h2><p id="save-preview"></p><details><summary>Exact primary bytes being replaced</summary><textarea id="save-primary-bytes" aria-label="Exact primary bytes" readonly></textarea></details><p id="save-dialog-status" role="status"></p><div class="actions"><button type="button" id="save-confirm">Replace with previewed run</button><button type="button" id="save-cancel">Keep current run</button></div></dialog>
+  <dialog id="reset-dialog" aria-labelledby="reset-title"><h2 id="reset-title">Start a new run?</h2><p id="reset-preview">This replaces your saved trail. Your current progress will be lost.</p><details><summary>Exact primary bytes being replaced</summary><textarea id="reset-primary-bytes" aria-label="Exact primary bytes for new run" readonly></textarea></details><div class="actions"><button type="button" id="reset-confirm">Replace saved run</button><button type="button" id="reset-cancel">Keep current run</button></div></dialog>
   <script type="module" src="./script.js"></script>
 </body>
 </html>

@@ -1,6 +1,6 @@
 import { SPECIES, BY_ID, ABILITIES, ELEMENT_WHEEL } from './data.js';
 import { statsFor, createCreature, clearEffects, gainXP, createBattle, applyAction } from './battle.js';
-import { REGIONS, RIVALS, REGION_LAYOUTS, movePosition, routeTo, unlockedRegion, MAX_ROSTER, freshGame, validateSave, readSave, writeSave, worldPoints, nearbyPoint, releaseCreature } from './world.js';
+import { REGIONS, RIVALS, REGION_LAYOUTS, movePosition, routeTo, unlockedRegion, MAX_ROSTER, BACKUP_KEY, freshGame, validateSave, readSave, writeSave, worldPoints, nearbyPoint, releaseCreature } from './world.js';
 import { ITEMS, COSMETICS, SHOPS, CONTRACTS, buyItem, sellItem, buyCosmetic, completeContract, refreshStock } from './economy.js';
 import { CLASSES, TRAITS, generateIndividual, unlockedClasses, synergyFor } from './builds.js';
 import { createView } from './view.js';
@@ -13,7 +13,10 @@ const viewport = canvas.parentElement;
 const layout = document.querySelector('.play-layout');
 const keys = new Set(), pointers = new Map();
 const directions = { w: [0, -1], arrowup: [0, -1], s: [0, 1], arrowdown: [0, 1], a: [-1, 0], arrowleft: [-1, 0], d: [1, 0], arrowright: [1, 0] };
-const saved = readSave();
+const saved = readSave(undefined, true);
+let expectedPrimary = saved.raw, saveQueue = Promise.resolve(false), pendingSaves = 0, saveBlocked = '';
+let replacementExpected, savePreview = null;
+const lockedSaves = Boolean(navigator.locks?.request);
 let savedSlot = saved.state, slotPresent = Boolean(saved.state || saved.error), savePermission = !saved.error;
 let state = null, battle = null, phase = 'menu', paused = false, busy = false;
 let starterId = 'cindupp', route = [], pendingPoint = null, resetAction = null;
@@ -40,41 +43,106 @@ function paragraph(value) {
   return element;
 }
 function message(value) {
-  // The renderer's disclosed failed-model diagnostic must remain visible.
-  if (!viewFailed && !view?.inspect().fallbackModels.length) text('message', value);
+  text('message', value);
 }
 function clearInput() { keys.clear(); pointers.clear(); previousTime = null; }
 function focusGame() { canvas.focus({ preventScroll: true }); }
 function resize() { view?.resize(); }
-function save() {
-  if (!state) return false;
-  if (!savePermission) {
-    text('save-state', 'Save refused: the unreadable previous slot is preserved. Confirm a new expedition to replace it.');
-    return false;
+function localSnapshot() {
+  if (!state) {
+    if (!savedSlot) throw new Error('No valid local expedition to export.');
+    return validateSave(savedSlot);
   }
   state.pendingBattle = phase === 'battle' && battle && !battle.result ? structuredClone(battle) : null;
-  const error = writeSave(state);
-  if (error) {
-    text('save-state', 'Save unavailable; expedition stays in memory.');
-    byId('save-state').title = error;
-  } else {
-    savedSlot = validateSave(state);
-    slotPresent = true;
-    text('save-state', 'Autosaved');
-    byId('save-state').removeAttribute('title');
-  }
+  return validateSave(state);
+}
+function saveStatus(value) {
+  text('save-state', value);
+  if (byId('save-dialog').open) text('save-dialog-status', value);
+}
+function saveFailure(error) {
+  saveBlocked = String(error);
+  saveStatus(`${saveBlocked} Automatic saving stopped. This tab stays in memory. Export it, reload the stored run, or preview an explicit replacement. A failed primary write may already have rotated the backup.`);
+}
+function save(snapshot = null, consent = null) {
+  const expected = consent ? consent.raw : replacementExpected;
+  const explicit = consent !== null || replacementExpected !== undefined;
+  replacementExpected = undefined;
   positionDirty = false;
   saveElapsed = 0;
-  return !error;
+  if ((!savePermission || saveBlocked || expectedPrimary === undefined) && !explicit) {
+    saveStatus(`${saveBlocked || saved.error || 'Storage could not be read.'} Saving stopped; export, reload, or preview an explicit replacement. No further writes attempted.`);
+    return Promise.resolve(false);
+  }
+  let canonical, raw;
+  try { canonical = validateSave(snapshot ?? localSnapshot()); raw = JSON.stringify(canonical); }
+  catch (error) { saveFailure(error.message); return Promise.resolve(false); }
+  pendingSaves++;
+  saveStatus('Save pending. Keep this tab open until saving finishes.');
+  // ponytail: without Web Locks this is optimistic only, not atomic across tabs; use one tab.
+  const attempt = () => {
+    if (saveBlocked && !explicit) return false;
+    const error = writeSave(canonical, undefined, explicit ? expected : expectedPrimary);
+    if (error) { saveFailure(error); return false; }
+    expectedPrimary = raw; // Exact enqueued canonical bytes, never another tab's later read.
+    savedSlot = canonical;
+    slotPresent = true;
+    savePermission = true;
+    saveBlocked = '';
+    return true;
+  };
+  saveQueue = saveQueue.then(() => lockedSaves ? navigator.locks.request('foldwild-save', attempt) : attempt())
+    .catch(error => { saveFailure(error.message); return false; })
+    .then(ok => {
+      pendingSaves--;
+      if (ok) saveStatus(pendingSaves ? 'Save pending. Keep this tab open until saving finishes.' : 'Progress saved on this device.');
+      return ok;
+    });
+  return saveQueue;
+}
+function saveSummary(value) {
+  return value ? `Seed ${value.seed}, ${REGIONS[value.region].name}, ${value.roster.length} allies, ${value.defeatedRivals.length}/5 trials, ${value.pendingBattle ? `battle round ${value.pendingBattle.round}` : 'on the trail'}` : 'No readable expedition';
+}
+async function previewSave(candidate, label) {
+  clearInput();
+  savePreview = null;
+  byId('save-confirm').disabled = true;
+  if (!byId('save-dialog').open) byId('save-dialog').showModal();
+  text('save-dialog-status', 'Waiting for queued saves before reading the slot...');
+  await saveQueue;
+  if (!byId('save-dialog').open) return;
+  try {
+    const next = validateSave(candidate);
+    const current = readSave(undefined, true);
+    if (current.raw === undefined) throw new Error(current.error || 'Storage could not be read; replacement disabled.');
+    savePreview = { state: next, raw: current.raw };
+    text('save-preview', `${label}: ${saveSummary(next)}. Replaces stored primary: ${current.raw === null ? 'empty slot' : saveSummary(current.state)}. Also replaces this tab: ${saveSummary(state)}. Previous primary bytes rotate into backup. Nothing changes until confirmation.`);
+    byId('save-primary-bytes').value = current.raw === null ? '(absent slot)' : current.raw;
+    text('save-dialog-status', current.error || 'Review both runs. If the primary changes again, confirmation will refuse to overwrite it.');
+    byId('save-confirm').disabled = false;
+  } catch (error) { text('save-dialog-status', error.message); }
+}
+async function importFile() {
+  const file = byId('save-file').files[0];
+  byId('save-file').value = '';
+  if (!file) return;
+  try {
+    if (file.size > 256 * 1024) throw new Error('Import refused: maximum file size is 256 KiB.');
+    const fileText = await file.text();
+    const parsed = readSave({ getItem: () => fileText });
+    if (parsed.error || !parsed.state) throw new Error(parsed.error || 'Import has no expedition.');
+    await previewSave(parsed.state, 'Imported file');
+  } catch (error) { saveStatus(error.message); }
 }
 function ensureView() {
   if (view || viewFailed) return;
   try {
-    view = createView(canvas, { onCheckpoint: approach, reducedMotion: byId('reduce-motion').checked });
+    view = createView(canvas, { onCheckpoint: approach, reducedMotion: byId('reduce-motion').checked,
+      onDiagnostic: status => text('render-state', status.message) });
     if (state) { view.setQuality(state.quality); view.setAppearance(viewAppearance()); }
   } catch (error) {
     viewFailed = true;
-    text('message', `${error.message}. Use the trail and battle buttons below; the expedition remains playable without 3D.`);
+    text('render-state', `${error.message}. Use the trail and battle buttons below; the expedition remains playable without 3D.`);
   }
 }
 function setPhase(value) {
@@ -191,12 +259,21 @@ function start() {
   showWorld();
   save();
 }
-function confirmReset(action) {
+async function confirmReset(action) {
   if (busy || modal()) return;
-  resetAction = action;
+  resetAction = null;
   clearInput();
+  byId('reset-confirm').disabled = true;
   byId('reset-dialog').showModal();
   resize();
+  await saveQueue;
+  if (!byId('reset-dialog').open) return;
+  const current = readSave(undefined, true);
+  text('reset-preview', `A new expedition will replace ${saveSummary(current.state)}. This tab: ${saveSummary(state)}. The prior primary is backed up only when the new run saves.`);
+  byId('reset-primary-bytes').value = current.raw === null ? '(absent slot)' : current.raw ?? '(storage unreadable)';
+  if (current.raw === undefined) { text('reset-preview', `${current.error} Replacement disabled; no known primary bytes.`); return; }
+  resetAction = () => { replacementExpected = current.raw; action(); };
+  byId('reset-confirm').disabled = false;
 }
 function returnToMenu() {
   closeInspection(false);
@@ -800,8 +877,8 @@ text('start', 'Start new expedition');
 text('continue', 'Continue expedition');
 byId('continue').hidden = !savedSlot;
 byId('start').addEventListener('click', () => slotPresent ? confirmReset(start) : start());
-byId('continue').addEventListener('click', () => {
-  if (!savedSlot || modal()) return;
+function resumeSaved() {
+  if (!savedSlot) return;
   state = validateSave(savedSlot);
   byId('reduce-motion').checked = state.reducedMotion;
   view?.setReducedMotion(state.reducedMotion);
@@ -814,6 +891,10 @@ byId('continue').addEventListener('click', () => {
     setPhase('battle'); renderBattle();
     message('Encounter resumed exactly where you saved. Choose your next command.'); focusGame();
   } else showWorld();
+}
+byId('continue').addEventListener('click', () => {
+  if (modal()) return;
+  resumeSaved();
   save();
 });
 byId('new-run').addEventListener('click', () => confirmReset(returnToMenu));
@@ -821,7 +902,6 @@ byId('reset-confirm').addEventListener('click', () => {
   const action = resetAction;
   resetAction = null;
   byId('reset-dialog').close();
-  savePermission = true;
   if (action) action();
 });
 byId('reset-cancel').addEventListener('click', () => byId('reset-dialog').close());
@@ -866,12 +946,41 @@ byId('release-confirm').addEventListener('click', () => {
     updateHUD(); save(); collection(); byId('release-dialog').close();
   } catch (error) { text('release-description', error.message); }
 });
-byId('save-now').addEventListener('click', () => {
-  if (!state) return;
-  const status = save() ? 'Progress saved on this device.' : byId('save-state').textContent;
-  const failures = view?.inspect().fallbackModels ?? [];
-  text('message', `${status}${viewFailed ? ' 3D view unavailable; the expedition remains playable without 3D.'
-    : failures.length ? ` 3D model unavailable. Marker used instead. ${failures.join('; ')}` : ''}`);
+byId('save-now').addEventListener('click', () => { if (state) save(); });
+byId('save-export').addEventListener('click', () => {
+  try {
+    const raw = JSON.stringify(validateSave(localSnapshot()));
+    const url = URL.createObjectURL(new Blob([raw], { type: 'application/json' }));
+    const link = document.createElement('a');
+    link.href = url; link.download = 'foldwild-save.json';
+    document.body.append(link);
+    try { link.click(); } finally { link.remove(); setTimeout(() => URL.revokeObjectURL(url), 1000); }
+    saveStatus('Local expedition exported as JSON. Browser storage was not changed.');
+  } catch (error) { saveStatus(`Export unavailable: ${error.message}`); }
+});
+byId('save-file').addEventListener('change', importFile);
+byId('save-backup').addEventListener('click', () => {
+  const backup = readSave({ getItem: () => localStorage.getItem(BACKUP_KEY) });
+  if (backup.error || !backup.state) return saveStatus(backup.error || 'No backup expedition to preview.');
+  previewSave(backup.state, 'Backup recovery');
+});
+byId('save-replace').addEventListener('click', () => {
+  try { previewSave(localSnapshot(), 'This tab'); } catch (error) { saveStatus(error.message); }
+});
+byId('save-reload').addEventListener('click', () => {
+  if (confirm('Reload the stored expedition? Unsaved progress in this tab will be lost. Export it first if needed.')) location.reload();
+});
+byId('save-cancel').addEventListener('click', () => byId('save-dialog').close());
+byId('save-dialog').addEventListener('close', () => { savePreview = null; clearInput(); });
+byId('save-confirm').addEventListener('click', async () => {
+  const preview = savePreview;
+  if (!preview) return;
+  savePreview = null;
+  byId('save-confirm').disabled = true;
+  if (await save(preview.state, { raw: preview.raw })) {
+    byId('save-dialog').close();
+    resumeSaved();
+  }
 });
 byId('interact').addEventListener('click', interact);
 byId('rest').addEventListener('click', rest);
@@ -930,8 +1039,8 @@ canvas.addEventListener('blur', () => keys.clear());
 document.addEventListener('visibilitychange', clearInput);
 window.addEventListener('resize', resize);
 window.addEventListener('beforeunload', () => {
-  try { if (state && savePermission) save(); }
-  finally { cancelAnimationFrame(rafId); view?.dispose(); }
+  // Async locks cannot be awaited during unload. Never bypass the queue with a sync write.
+  cancelAnimationFrame(rafId); view?.dispose();
 });
 function deepFreeze(value) {
   if (value && typeof value === 'object') { Object.values(value).forEach(deepFreeze); Object.freeze(value); }
@@ -943,5 +1052,8 @@ Object.defineProperty(window, 'foldwildSnapshot', {
 });
 chooseStarter('cindupp');
 setPhase('menu');
-if (saved.error) text('save-state', 'Autosave disabled until a confirmed new expedition.');
+text('save-coordination', lockedSaves
+  ? 'Cooperating tabs serialize saves with Web Locks. Wait for saved status before closing; unload does not save.'
+  : 'Web Locks unavailable: save checks are optimistic, not atomic across tabs. Use one tab only. Wait for saved status before closing; unload does not save.');
+if (saved.error) saveStatus(`${saved.error} Automatic saving disabled. Existing bytes are preserved; use an explicit replacement or recovery preview.`);
 rafId = requestAnimationFrame(frame);
