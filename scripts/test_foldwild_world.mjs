@@ -15,7 +15,8 @@ function bad(change, pattern = /Invalid|Unknown|Duplicate|Missing|Unsupported|mu
   assert.throws(() => validateSave(state), pattern);
 }
 assert.deepEqual(Object.keys(world).sort(), ['SAVE_KEY', 'BACKUP_KEY', 'REGIONS', 'REGION_LAYOUTS', 'RIVALS', 'PLAYER_BOUNDS', 'MAX_ROSTER',
-  'freshGame', 'validateSave', 'readSave', 'writeSave', 'worldPoints', 'nearbyPoint', 'unlockedRegion', 'movePosition', 'routeTo', 'releaseCreature'].sort());
+  'freshGame', 'validateSave', 'readSave', 'writeSave', 'worldPoints', 'nearbyPoint', 'unlockedRegion', 'movePosition', 'routeTo', 'releaseCreature',
+  'challengeFor', 'settleChallenge'].sort());
 assert.equal(SAVE_KEY, 'foldwild-save-v1');
 assert.equal(MAX_ROSTER, 160);
 assert.deepEqual(PLAYER_BOUNDS, { minX: -80, maxX: 80, minZ: -80, maxZ: 80 });
@@ -36,7 +37,7 @@ for (const [i, rival] of RIVALS.entries()) {
 assert.equal(rivalElements.size, 5);
 for (const starter of ['cindupp', 'dewgob', 'pithnip']) {
   const state = freshGame(starter, 0xffffffff);
-  assert.equal(state.version, 2);
+  assert.equal(state.version, 3);
   assert.equal(state.seed, 0xffffffff);
   assert.equal(state.starterId, starter);
   assert.deepEqual(state.position, REGION_LAYOUTS[0].spawn);
@@ -168,7 +169,7 @@ for (const key of ['seed', 'score', 'kites', 'encounterIndex', 'nextUid', 'regio
 for (const [key, tooBig] of [['seed', 0x100000000], ['score', 1e9 + 1], ['kites', 1000], ['encounterIndex', 1e9 + 1], ['nextUid', 1e9 + 1], ['region', 5]]) bad(s => { s[key] = tooBig; });
 bad(s => { s.nextUid = 1; });
 bad(s => { s.reducedMotion = 1; });
-for (const version of [0, 3, '1', null]) bad(s => { s.version = version; });
+for (const version of [0, 4, '1', null]) bad(s => { s.version = version; });
 for (const sequence of [[1], [0, 2], [0, 0], [0, 1, 3], ['0']]) bad(s => { s.defeatedRivals = sequence; });
 bad(s => { s.region = 1; });
 bad(s => { s.defeatedRivals = [0]; s.region = 2; });
@@ -201,7 +202,7 @@ const corruptSpecies = freshGame();
 corruptSpecies.roster[0].speciesId = '__proto__';
 const corruptUid = freshGame();
 corruptUid.roster[0].uid = 'bad uid';
-for (const raw of ['{bad json', 'null', '[]', JSON.stringify({ ...freshGame(), version: 3 }),
+for (const raw of ['{bad json', 'null', '[]', JSON.stringify({ ...freshGame(), version: 4 }),
   JSON.stringify({ ...freshGame(), seed: -1 }), JSON.stringify(corruptSpecies), JSON.stringify(corruptUid),
   ' '.repeat(256 * 1024 + 1)]) {
   const stored = fixture(raw);
@@ -221,7 +222,7 @@ assert.equal(quota.slots.get(SAVE_KEY), 'keep bytes');
 assert.match(readSave(Object.freeze({ getItem() { throw null; } })).error, /null/);
 assert.match(writeSave(original, Object.freeze({ getItem() { return null; }, setItem() { throw null; } })), /null/);
 const invalidWrite = fixture('keep bytes');
-assert.match(writeSave({ ...freshGame(), version: 3 }, invalidWrite.storage), /version/);
+assert.match(writeSave({ ...freshGame(), version: 4 }, invalidWrite.storage), /version/);
 assert.deepEqual(invalidWrite.calls, []);
 assert.equal(invalidWrite.slots.get(SAVE_KEY), 'keep bytes');
 const previousStorage = Object.getOwnPropertyDescriptor(globalThis, 'localStorage');

@@ -24,7 +24,7 @@ function oldSave(wins = [0, 1, 2], region = 2) {
 }
 const old = freeze(oldSave());
 const migrated = validateSave(old);
-assert.equal(migrated.version, 2);
+assert.equal(migrated.version, 3);
 for (const key of ['seed', 'starterId', 'team', 'seen', 'caught', 'score', 'kites', 'encounterIndex', 'nextUid', 'reducedMotion']) {
   assert.deepEqual(migrated[key], old[key]);
 }
@@ -182,7 +182,7 @@ for (const failKey of [SAVE_KEY, BACKUP_KEY]) {
   if (failKey === BACKUP_KEY) assert(!blocked.calls.some(([kind, key]) => kind === 'set' && key === SAVE_KEY));
   else assert.equal(blocked.slots.get(BACKUP_KEY), rawOld);
 }
-for (const raw of ['{invalid', JSON.stringify({ ...freshGame(), version: 3 }), ' '.repeat(256 * 1024 + 1),
+for (const raw of ['{invalid', JSON.stringify({ ...freshGame(), version: 4 }), ' '.repeat(256 * 1024 + 1),
   `{"padding":"${'é'.repeat(140000)}"}`]) {
   const corrupt = storage(raw); const savedBytes = [...corrupt.slots];
   assert.equal(readSave(corrupt).state, null);

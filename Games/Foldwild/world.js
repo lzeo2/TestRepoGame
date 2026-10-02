@@ -1,6 +1,7 @@
 import { SPECIES, BY_ID } from './data.js';
-import { statsFor, createCreature, clearEffects, validateBattle } from './battle.js';
-import { validateIndividual, unlockedClasses, generateIndividual } from './builds.js';
+import { statsFor, createCreature, clearEffects, gainXP, validateBattle, applyAction } from './battle.js';
+import { validateIndividual, unlockedClasses, generateIndividual, classRank } from './builds.js';
+import { RIVALS, FINALE_STAGES } from './campaign.js';
 import { freshEconomy, refreshStock, ITEMS, COSMETICS, SHOPS, CONTRACTS } from './economy.js';
 import { REGION_DEFINITIONS, REGION_LAYOUTS, movePosition, routeTo } from './region-data.js';
 
@@ -10,22 +11,7 @@ export const BACKUP_KEY = 'foldwild-save-backup-v1';
 export const MAX_ROSTER = 160;
 export const REGIONS = REGION_DEFINITIONS;
 export const PLAYER_BOUNDS = REGION_LAYOUTS[0].bounds;
-export const RIVALS = Object.freeze([
-  { id: 0, name: 'Maren', dialogue: 'A meadow lesson: watch your energy before you strike.',
-    winDialogue: 'Good timing. The reach is ready for you.', team: [{ speciesId: 'shardip', level: 8 }] },
-  { id: 1, name: 'Sola', dialogue: 'We train on the banks. Change partners when the current turns.',
-    winDialogue: 'Your partners work well together. Take the quarry path.',
-    team: [{ speciesId: 'chimeford', level: 14 }, { speciesId: 'duskcurl', level: 13 }] },
-  { id: 2, name: 'Neri', dialogue: 'Keep pressure on the field, but leave energy for recovery.',
-    winDialogue: 'You kept your team steady. The ridge route is open.',
-    team: [{ speciesId: 'briknudge', level: 20 }, { speciesId: 'vinchew', level: 19 }] },
-  { id: 3, name: 'Iven', dialogue: 'The ridge lesson: leave room for every partner and time your shields.',
-    winDialogue: 'You have several answers. Follow the path to the hollow.',
-    team: [{ speciesId: 'geodelve', level: 27 }, { speciesId: 'trellisect', level: 26 }, { speciesId: 'catarill', level: 26 }] },
-  { id: 4, name: 'Oren', dialogue: 'A pause can change the field. Adapt before your next command.',
-    winDialogue: 'You have reopened the five routes. Return with your partners.',
-    team: [{ speciesId: 'velvetorque', level: 34 }, { speciesId: 'aurelvane', level: 33 }, { speciesId: 'hearthol', level: 33 }] }
-].map(rival => Object.freeze({ ...rival, team: Object.freeze(rival.team.map(Object.freeze)) })));
+export { RIVALS };
 
 const STARTERS = ['cindupp', 'dewgob', 'pithnip'];
 const SAVE_LIMIT = 256 * 1024;
@@ -148,12 +134,42 @@ function sizeCheck(text) {
   return text;
 }
 
+function challengeContext(value) {
+  const context = exact(value, ['kind', 'id'], 'challenge context');
+  if (!['finale', 'rematch'].includes(context.kind)) throw new RangeError('Invalid challenge kind.');
+  integer(context.id, 0, context.kind === 'finale' ? 2 : 4, 'challenge id');
+  return context;
+}
+function challengeDescriptor(state, context) {
+  const { kind, id } = challengeContext(context);
+  if (state.defeatedRivals.length !== 5 || (kind === 'finale'
+    ? state.finaleStage !== id : state.finaleStage !== 3 || state.region !== id)) {
+    throw new RangeError('Challenge is not available.');
+  }
+  const source = kind === 'finale' ? FINALE_STAGES[id] : {
+    id, region: id, pointId: 'rival', name: `${RIVALS[id].name} rematch`, host: RIVALS[id].name,
+    lesson: RIVALS[id].dialogue, team: RIVALS[id].team
+  };
+  const point = REGION_LAYOUTS[source.region].points.find(point => point.id === source.pointId);
+  if (state.region !== source.region || Math.hypot(state.position.x - point.x, state.position.z - point.z) > 1.8 ||
+      !state.team.some(uid => state.roster.find(c => c.uid === uid).hp > 0)) {
+    throw new RangeError('Challenge requires its current location and a conscious team.');
+  }
+  return Object.freeze({ ...source, kind });
+}
+export function challengeFor(state, context) {
+  const next = validateSave(state);
+  if (next.pendingBattle !== null || next.pendingChallenge !== null) throw new RangeError('A battle is already pending.');
+  return challengeDescriptor(next, context);
+}
+
 function pendingBattleCopy(value, state) {
   // Validate descriptors before accessing nested data or serializing anything imported.
   const battle = validateBattle(value);
   integer(battle.round, 1, PENDING_ROUND_LIMIT, 'pending round');
   if (battle.result !== null || battle.phase !== 'command' || !battle.synergyEnabled ||
-      battle.player.classId !== state.activeClass || battle.enemy.classId !== 'none' ||
+      battle.player.classId !== state.activeClass || battle.player.classRank > classRank(state, state.activeClass) ||
+      battle.enemy.classId !== 'none' || battle.enemy.classRank !== 0 ||
       [battle.player, battle.enemy].some(side => side.team[side.active].hp <= 0)) {
     throw new RangeError('Invalid pending battle state.');
   }
@@ -179,7 +195,15 @@ function pendingBattleCopy(value, state) {
     expected.energy = creature.energy;
     return JSON.stringify(clearEffects(creature)) === JSON.stringify(clearEffects(expected));
   };
-  if (battle.kind === 'wild') {
+  if (state.pendingChallenge !== null) {
+    const descriptor = challengeDescriptor(state, state.pendingChallenge);
+    if (battle.kind !== 'rival' || battle.enemy.team.length !== descriptor.team.length ||
+        battle.enemy.team.some((creature, index) => !sameEnemy(creature, createCreature(
+          descriptor.team[index].speciesId, descriptor.team[index].level,
+          `${descriptor.kind}-${descriptor.id}-${state.encounterIndex}-${index}`)))) {
+      throw new RangeError('Invalid pending challenge identity.');
+    }
+  } else if (battle.kind === 'wild') {
     const creature = battle.enemy.team[0];
     if (!worldPoints(state).some(point => point.type === 'wild' && sameEnemy(creature,
       createCreature(point.speciesId, point.level, `wild-${state.encounterIndex}`, generateIndividual(point.individualSeed))))) {
@@ -199,7 +223,7 @@ function pendingBattleCopy(value, state) {
 export function freshGame(starterId = 'cindupp', seed = 1) {
   if (!STARTERS.includes(starterId)) throw new RangeError('Invalid starter id.');
   integer(seed, 0, 0xffffffff, 'seed');
-  return validateSave({ version: 2, seed, starterId, position: { ...REGION_LAYOUTS[0].spawn }, region: 0,
+  return validateSave({ version: 3, finaleStage: 0, pendingChallenge: null, seed, starterId, position: { ...REGION_LAYOUTS[0].spawn }, region: 0,
     roster: [createCreature(starterId, 3, 'owned-1')], team: ['owned-1'], seen: [starterId], caught: [starterId],
     defeatedRivals: [], score: 0, kites: 8, encounterIndex: 0, nextUid: 2, reducedMotion: false,
     ...freshEconomy(), activeClass: 'pathfinder', appearance: { ...APPEARANCE }, favorites: [], quality: 'low', legacyRivals: [], pendingBattle: null });
@@ -214,9 +238,14 @@ export function unlockedRegion(state) {
 export function validateSave(value) {
   const raw = plain(value, 'save');
   const version = field(raw, 'version');
-  if (version !== 1 && version !== 2) throw new RangeError('Unsupported save version.');
+  if (![1, 2, 3].includes(version)) throw new RangeError('Unsupported save version.');
   const legacy = version === 1;
+  const finaleStage = integer(version === 3 ? field(raw, 'finaleStage') : optional(raw, 'finaleStage', 0), 0, 3, 'finale stage');
+  const context = version === 3 ? field(raw, 'pendingChallenge') : optional(raw, 'pendingChallenge', null);
+  if (version < 3 && (finaleStage !== 0 || context !== null)) throw new RangeError('Invalid old-version challenge progress.');
+  const pendingChallenge = context === null ? null : challengeContext(context);
   const pendingBattle = optional(raw, 'pendingBattle', null);
+  if (pendingChallenge !== null && pendingBattle === null) throw new RangeError('Missing pending challenge battle.');
   const seed = integer(field(raw, 'seed'), 0, 0xffffffff, 'seed');
   const starterId = field(raw, 'starterId');
   if (!STARTERS.includes(starterId)) throw new RangeError('Invalid starter id.');
@@ -267,13 +296,69 @@ export function validateSave(value) {
   if (!unlockedClasses({ caught, defeatedRivals, contracts: economy.contracts }).includes(activeClass)) throw new RangeError('Invalid or locked active class.');
   const quality = legacy ? 'low' : field(raw, 'quality');
   if (!['low', 'standard'].includes(quality)) throw new RangeError('Invalid quality.');
-  const state = { version: 2, seed, starterId, position: canonicalPosition, region, roster, team, seen, caught,
+  if (finaleStage > 0 && defeatedRivals.length !== 5) throw new RangeError('Invalid finale prerequisites.');
+  const state = { version: 3, finaleStage, pendingChallenge, seed, starterId, position: canonicalPosition, region, roster, team, seen, caught,
     defeatedRivals, score: integer(field(raw, 'score'), 0, 1e9, 'score'), kites, encounterIndex, nextUid, reducedMotion,
     ...economy, activeClass, appearance: legacy ? { ...APPEARANCE } : appearanceCopy(field(raw, 'appearance')),
     favorites, quality, legacyRivals, pendingBattle: null };
-  if (pendingBattle !== null) state.pendingBattle = pendingBattleCopy(pendingBattle, state);
+  if (pendingBattle !== null) {
+    state.pendingBattle = pendingBattleCopy(pendingBattle, state);
+    if (version < 3 && (state.pendingBattle.player.classRank > 1 || state.pendingBattle.enemy.classRank !== 0)) {
+      throw new RangeError('Invalid old-version battle rank.');
+    }
+  }
   sizeCheck(JSON.stringify(state));
   return state;
+}
+
+// The caller supplies the saved PRE-COMMAND state, not a roster overwritten with ended resources.
+export function settleChallenge(state, endedBattle) {
+  const next = validateSave(state);
+  if (next.pendingChallenge === null || next.pendingBattle === null) throw new RangeError('No pending challenge to settle.');
+  const ended = validateBattle(endedBattle);
+  if (!['won', 'lost'].includes(ended.result)) throw new RangeError('Challenge has not ended in a win or loss.');
+  for (const side of ['player', 'enemy']) for (const [index, creature] of ended[side].team.entries()) {
+    const raw = field(field(field(endedBattle, side), 'team'), String(index));
+    if (field(raw, 'hp') !== creature.hp || field(raw, 'energy') !== creature.energy) throw new RangeError('Invalid ended resources.');
+  }
+  // At most eight deterministic commands: prove the terminal snapshot really follows this checkpoint.
+  // Identity-only comparison would let a forged zero-HP opponent award a stage and currency.
+  const commands = [{ type: 'wait' }, ...Array.from({ length: 4 }, (_, slot) => ({ type: 'ability', slot })),
+    ...next.team.map((_, index) => ({ type: 'switch', index }))];
+  if (!commands.some(action => JSON.stringify(applyAction(next.pendingBattle, action)) === JSON.stringify(ended))) {
+    throw new RangeError('Ended challenge does not follow the pending command state.');
+  }
+  const context = next.pendingChallenge;
+  next.pendingChallenge = null;
+  next.pendingBattle = null;
+  for (const creature of ended.player.team) {
+    next.roster[next.roster.findIndex(c => c.uid === creature.uid)] = clearEffects(creature);
+  }
+  if (ended.result === 'won') {
+    const levels = ended.enemy.team.reduce((sum, c) => sum + c.level, 0);
+    for (const uid of next.team) {
+      const index = next.roster.findIndex(c => c.uid === uid);
+      next.roster[index] = gainXP(next.roster[index], 12 * levels + 20);
+    }
+    next.marks = Math.min(1e6, next.marks + 18 + 2 * levels);
+    next.score = Math.min(1e9, next.score + 40 + 10 * levels);
+    if (context.kind === 'finale') next.finaleStage++;
+    for (const c of next.roster) {
+      if (!next.seen.includes(c.speciesId)) next.seen.push(c.speciesId);
+      if (!next.caught.includes(c.speciesId)) next.caught.push(c.speciesId);
+    }
+  } else {
+    next.roster = next.roster.map(c => {
+      const healed = clearEffects(c), max = statsFor(healed);
+      healed.hp = max.maxHP; healed.energy = max.maxEnergy;
+      return healed;
+    });
+    const camp = REGION_LAYOUTS[next.region].points.find(point => point.id === 'camp');
+    next.position = { x: camp.x, z: camp.z, yaw: 0 };
+    next.kites = Math.max(4, next.kites);
+  }
+  next.encounterIndex = Math.min(1e9, next.encounterIndex + 1);
+  return validateSave(next);
 }
 
 export function releaseCreature(state, uid) {
@@ -356,9 +441,19 @@ export function worldPoints(state) {
     const individualSeed = seed;
     return { id: `wild-${i}`, x: site.x, z: site.z, type: 'wild', speciesId: s.id, label: s.name, level, individualSeed };
   });
+  const finaleStage = integer(optional(state, 'finaleStage', 0), 0, 3, 'finale stage');
+  if (finaleStage > 0 && defeatedRivals.length !== 5) throw new RangeError('Invalid finale prerequisites.');
   points.push(...REGION_LAYOUTS[region].points.filter(point =>
-    (point.type !== 'rival' || !defeatedRivals.includes(region)) &&
-    (point.type !== 'supply' || !claimed.includes(`${region}:${point.id}`))).map(point => ({ ...point })));
+    (point.type !== 'rival' || !defeatedRivals.includes(region) || finaleStage === 3) &&
+    (point.type !== 'supply' || !claimed.includes(`${region}:${point.id}`))).map(point => {
+      if (point.type === 'rival' && finaleStage === 3) return { ...point, label: `${RIVALS[region].name} rematch`,
+        challenge: { kind: 'rematch', id: region } };
+      const stage = FINALE_STAGES[finaleStage];
+      if (point.type === 'camp' && defeatedRivals.length === 5 && stage?.region === region) return {
+        ...point, challenge: { kind: 'finale', id: stage.id }, challengeName: stage.name, lesson: stage.lesson
+      };
+      return { ...point };
+    }));
   return points;
 }
 export function nearbyPoint(state, distance = 1.8) {
