@@ -713,6 +713,8 @@
   }
 
   var searchDebounceTimer = null;
+  var searchValue = '';
+  var searchComposing = false;
   var SEARCH_DEBOUNCE_MS = 180;
   function replaySearchValue(input, value) {
     var setter = Object.getOwnPropertyDescriptor(
@@ -728,30 +730,45 @@
      substring match, which would unmount fuzzy-only hits. Only the empty
      query is replayed so the bundle resets its grid/empty-state. */
   function initDebouncedSearch() {
-    document.addEventListener('input', function (e) {
+    function routeSearchInput(e) {
       var input = e.target;
       if (!input || !input.matches || !input.matches('.search-bar__input')) return;
-      if (input.getAttribute('data-ux-search-replay') === '1') {
-        input.removeAttribute('data-ux-search-replay');
-        return;
-      }
-      if (e.isComposing) return;
-      e.stopImmediatePropagation();
+      var replay = input.getAttribute('data-ux-search-replay') === '1';
+      if (replay) input.removeAttribute('data-ux-search-replay');
+      else e.stopImmediatePropagation();
+      if (e.isComposing || searchComposing) return;
+      searchValue = input.value;
+      applyFuzzySearch(searchValue);
       if (searchDebounceTimer) clearTimeout(searchDebounceTimer);
-      if (!input.value) {
+      searchDebounceTimer = null;
+      if (!replay && !searchValue) {
         searchDebounceTimer = setTimeout(function () {
           searchDebounceTimer = null;
           replaySearchValue(input, '');
         }, SEARCH_DEBOUNCE_MS);
-      } else {
+      }
+    }
+    document.addEventListener('input', routeSearchInput, true);
+    /* React also accepts the native change event emitted when input blurs. */
+    document.addEventListener('change', routeSearchInput, true);
+    document.addEventListener('compositionstart', function (e) {
+      if (e.target.matches && e.target.matches('.search-bar__input')) {
+        searchComposing = true;
+        if (searchDebounceTimer) clearTimeout(searchDebounceTimer);
         searchDebounceTimer = null;
+      }
+    }, true);
+    document.addEventListener('compositionend', function (e) {
+      if (e.target.matches && e.target.matches('.search-bar__input')) {
+        searchComposing = false;
+        routeSearchInput(e);
       }
     }, true);
 
     document.addEventListener('keydown', function (e) {
       var input = e.target;
       if (e.key !== 'Escape' || !input || !input.matches ||
-          !input.matches('.search-bar__input') || !input.value) return;
+          !input.matches('.search-bar__input') || (!input.value && !searchValue)) return;
       e.preventDefault();
       if (searchDebounceTimer) clearTimeout(searchDebounceTimer);
       searchDebounceTimer = null;
@@ -803,7 +820,13 @@
       applyTagFilter();
       applyFavFilter();
       var searchInput = $('.search-bar__input');
-      if (searchInput && searchInput.value) applyFuzzySearch(searchInput.value);
+      if (searchInput && !searchComposing) {
+        /* React owns an empty query; retain our overlay across its rerenders. */
+        if (searchInput.value !== searchValue) {
+          Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set.call(searchInput, searchValue);
+        }
+        applyFuzzySearch(searchValue);
+      }
       updateCategoryCounts();
       initSortControl();
       sortCards();
@@ -1198,10 +1221,17 @@
     var grid = $('.bento-grid__standard') || $('.bento-grid');
     if (!grid) return;
     var cards = $$('.game-card', grid);
-    if (cards.length < 2 || sortMode === 'catalog') return;
+    if (cards.length < 2) return;
+    var original = cards.slice();
+    var catalogRank = new Map();
+    _gamesList.forEach(function(game, index) { catalogRank.set(game.title, index); });
     cards.sort(function(a, b) {
       var at = textOf($('.game-card__title', a));
       var bt = textOf($('.game-card__title', b));
+      if (sortMode === 'catalog') {
+        return (catalogRank.has(at) ? catalogRank.get(at) : _gamesList.length) -
+          (catalogRank.has(bt) ? catalogRank.get(bt) : _gamesList.length);
+      }
       if (sortMode === 'recent') return recentTimestamp(bt) - recentTimestamp(at) || at.localeCompare(bt);
       if (sortMode === 'category') {
         var ac = textOf($('.game-card__category', a));
@@ -1213,7 +1243,7 @@
     });
     var changed = false;
     cards.forEach(function(card, index) {
-      if (card !== $$('.game-card', grid)[index]) changed = true;
+      if (card !== original[index]) changed = true;
     });
     if (changed) cards.forEach(function(card) { grid.appendChild(card); });
   }
@@ -1261,7 +1291,6 @@
     });
     $$('.category-filter__btn').forEach(function(btn) {
       var existing = btn.querySelector('.category-filter__count');
-      if (existing) existing.parentNode.removeChild(existing);
       var catId = btn.getAttribute('data-cat-id') || '';
       var count;
       if (catId === 'all' || textOf(btn).toLowerCase().replace(/[^a-z0-9]+/g, '-') === 'all') {
@@ -1269,11 +1298,14 @@
       } else {
         count = counts[catId] || 0;
       }
-      if (!count) return;
-      var span = document.createElement('span');
-      span.className = 'category-filter__count';
-      span.textContent = String(count);
-      btn.appendChild(span);
+      if (!count) {
+        if (existing) existing.remove();
+        return;
+      }
+      var span = existing || document.createElement('span');
+      if (!existing) span.className = 'category-filter__count';
+      if (span.textContent !== String(count)) span.textContent = String(count);
+      if (!existing) btn.appendChild(span);
     });
   }
 
@@ -1293,7 +1325,8 @@
   function updateResultStatus() {
     if (!resultStatusEl) return;
     var count = visibleCards().length;
-    resultStatusEl.textContent = count + ' game' + (count !== 1 ? 's' : '');
+    var status = count + ' game' + (count !== 1 ? 's' : '');
+    if (resultStatusEl.textContent !== status) resultStatusEl.textContent = status;
   }
 
   /* Instant fuzzy search overlay: subsequence match on titles, applied
@@ -1320,20 +1353,6 @@
     });
     updateResultStatus();
     updateClearFiltersBtn();
-  }
-
-  function initFuzzySearch() {
-    document.addEventListener('input', function (e) {
-      var input = e.target;
-      if (!input || !input.matches || !input.matches('.search-bar__input')) return;
-      applyFuzzySearch(input.value);
-    });
-    document.addEventListener('keydown', function (e) {
-      var input = e.target;
-      if (e.key !== 'Escape' || !input || !input.matches ||
-          !input.matches('.search-bar__input')) return;
-      applyFuzzySearch('');
-    });
   }
 
   function initSlashFocus() {
@@ -1394,7 +1413,7 @@
 
   function doClearFilters() {
     var input = $('.search-bar__input');
-    if (input && input.value) {
+    if (input && (input.value || searchValue)) {
       if (searchDebounceTimer) { clearTimeout(searchDebounceTimer); searchDebounceTimer = null; }
       replaySearchValue(input, '');
     }
@@ -1415,11 +1434,8 @@
 
   function recordRecent(url, title) {
     try {
-      var raw = localStorage.getItem(RECENT_KEY);
-      var list = [];
-      if (raw) { try { list = JSON.parse(raw) || []; } catch(e2) { list = []; } }
-      if (!Array.isArray(list)) list = [];
-      list = list.filter(function(e) { return e.url !== url; });
+      if (typeof title !== 'string' || safeGamePath(url) !== url || url === './') return;
+      var list = getRecentList().filter(function(e) { return e.url !== url; });
       list.unshift({ title: title || '', url: url, ts: Date.now() });
       if (list.length > RECENT_MAX) list.length = RECENT_MAX;
       localStorage.setItem(RECENT_KEY, JSON.stringify(list));
@@ -1429,7 +1445,19 @@
   function getRecentList() {
     try {
       var raw = localStorage.getItem(RECENT_KEY);
-      if (raw) { var list = JSON.parse(raw); if (Array.isArray(list)) return list; }
+      var list = raw ? JSON.parse(raw) : [];
+      if (!Array.isArray(list)) return [];
+      var seen = new Set();
+      var normalized = [];
+      for (var i = 0; i < list.length && normalized.length < RECENT_MAX; i++) {
+        var entry = list[i];
+        if (!entry || typeof entry !== 'object' || typeof entry.title !== 'string' ||
+            typeof entry.url !== 'string' || entry.url === './' || safeGamePath(entry.url) !== entry.url ||
+            typeof entry.ts !== 'number' || !Number.isFinite(entry.ts) || seen.has(entry.url)) continue;
+        seen.add(entry.url);
+        normalized.push({ title: entry.title, url: entry.url, ts: entry.ts });
+      }
+      return normalized;
     } catch(e) {}
     return [];
   }
@@ -1450,6 +1478,9 @@
   function renderRecentRow() {
     if (!recentRow) return;
     var list = getRecentList();
+    var signature = JSON.stringify(list);
+    if (recentRow.getAttribute('data-ux-recent') === signature) return;
+    recentRow.setAttribute('data-ux-recent', signature);
     while (recentRow.firstChild) recentRow.removeChild(recentRow.firstChild);
     if (!list.length) {
       recentRow.style.display = 'none';
@@ -1708,7 +1739,6 @@
     initCardNewTab();
     injectTagBadges();
     initSlashFocus();
-    initFuzzySearch();
     initOfflineBanner();
     initDetailKey();
     fetchGames().then(function() {

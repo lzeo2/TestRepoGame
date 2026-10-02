@@ -2,7 +2,7 @@
 
 <!-- maintenance-site: accessibility-and-style -->
 
-Source `8c8a055`. Read [portal features](portal.md), [browser state](browser-state.md) and [findings](../audits/portal.md). Main owns design decisions and subjective screenshot review. This page records selectors, implementation and the exact scope of automated evidence, not accessibility certification.
+Audit baseline `8c8a055`; authored search/history/reconciliation/sort repairs followed in delegation 73 ([evidence](../portal-refurbishment.md)). No stylesheet, root HTML, fonts, art or compiled bundle changed in that repair. Read [portal features](portal.md), [browser state](browser-state.md) and [findings](../audits/portal.md). Main owns design decisions and subjective screenshot review. This page records selectors, implementation and the exact scope of automated evidence, not accessibility certification.
 
 ## Cascade and safe patch surfaces
 
@@ -32,9 +32,9 @@ Detail dialog has `role=dialog`, `aria-modal=true`, `aria-labelledby=ux-detail-t
 
 ## Text safety and states
 
-React renders titles/categories/descriptions as children, not raw HTML. UX uses `textContent` for catalog metadata, labels and recent chips. Its `innerHTML` sites create constant SVG/loading fragments, including `GAME_ICONS`/`CATEGORY_ICONS`; do not label them catalog XSS solely because the property occurs. Keep external/user data out of those constants. Invalid recent object shapes remain a crash issue independently of text safety.
+React renders titles/categories/descriptions as children, not raw HTML. UX uses `textContent` for catalog metadata, labels and recent chips. Its `innerHTML` sites create constant SVG/loading fragments, including `GAME_ICONS`/`CATEGORY_ICONS`; do not label them catalog XSS solely because the property occurs. Keep external/user data out of those constants. Recent object shapes are now normalized at the shared reader before label rendering and sorting; malformed-history negative fixtures passed. This validation preserves `textContent` rendering rather than adding user-controlled HTML sinks.
 
-`.ux-result-status` and `.ux-net-banner` are polite live status regions. The banner says loaded games **may** still work and uses navigator online/offline events; it does not promise asset cache completeness. Iframe loading UI has `aria-busy` and load/error status but cannot detect all engine failure states. Error styling exists, yet no retry control is rendered. Reduced motion preserves status/error information instead of hiding necessary feedback.
+`.ux-result-status` and `.ux-net-banner` are polite live status regions. Result-status text now changes only when the count changes; unchanged recent chips/count spans are likewise retained, avoiding repetitive observer work and unnecessary live-region replacement. The banner says loaded games **may** still work and uses navigator online/offline events; it does not promise asset cache completeness. Iframe loading UI has `aria-busy` and load/error status but cannot detect all engine failure states. Error styling exists, yet no retry control is rendered. Reduced motion preserves status/error information instead of hiding necessary feedback.
 
 ## Local fonts and source assets
 
@@ -50,4 +50,4 @@ These are metadata hints. A deployed social crawler may require an absolute imag
 
 ## Evidence and next review
 
-Actual `scripts/test_portal_review.py` passed: 1280px desktop and 390/320px phones, light/dark, local font loading, radius values, selected token contrast at least 4.5:1, category counts, tag intersections, shelf geometry, 44px controls and overflow assertions. Screenshots were produced, not subjectively judged by this worker. Contrast checks sample computed tokens/active chips, not every text-on-image state. Recommended Main review: keyboard/screen-reader traversal, duplicate heading semantics, details at 200% zoom, short landscape viewport, recent row discovery, high-contrast settings and reduced-motion interaction. Keep those as pending native/subjective checks until actually run.
+Actual `scripts/test_portal_review.py` passed: 1280px desktop and 390/320px phones, light/dark, local font loading, radius values, selected token contrast at least 4.5:1, category counts, tag intersections, shelf geometry, 44px controls and overflow assertions. Screenshots were produced, not subjectively judged by this worker. The later `scripts/test_portal_refurbishment.py` run covers desktop 1280x720 and phones 390x844/320x800 in both themes, native mobile taps, the computed 2px solid search focus ring, detail-dialog Tab/Escape/focus return, visible 44px controls (including sort/recent) and document overflow. It produced four bounded JPEG screenshots for Main review; it does not replace screen-reader, zoom or subjective acceptance. Contrast checks sample computed tokens/active chips, not every text-on-image state. Recommended Main review: keyboard/screen-reader traversal, duplicate heading semantics, details at 200% zoom, short landscape viewport, recent row discovery, high-contrast settings and reduced-motion interaction. Keep those as pending native/subjective checks until actually run.
