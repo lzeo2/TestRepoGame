@@ -77,7 +77,7 @@ for (const expected of [undefined, false, 0, {}, []]) {
   assert.deepEqual(bad.calls, []);
 }
 const invalid = storage(initialRaw);
-assert.match(writeSave({ ...initial, version: 3 }, invalid, initialRaw), /version/);
+assert.match(writeSave({ ...initial, version: 4 }, invalid, initialRaw), /version/);
 assert.deepEqual(invalid.calls, []);
 
 // Metadata preserves legacy JSON formatting and corrupt bytes; no backup fallback.
@@ -91,10 +91,12 @@ for (const creature of legacy.roster) {
 const legacyRaw = JSON.stringify(legacy, null, 2), oldSlot = storage(legacyRaw);
 const migrated = readSave(oldSlot, true);
 assert.equal(migrated.raw, legacyRaw);
-assert.equal(migrated.state.version, 2);
+assert.equal(migrated.state.version, 3);
+assert.equal(migrated.state.finaleStage, 0);
+assert.equal(migrated.state.pendingChallenge, null);
 assert.equal(writeSave(migrated.state, oldSlot, migrated.raw), null);
 assert.equal(oldSlot.slots.get(BACKUP_KEY), legacyRaw);
-for (const raw of ['{corrupt', '', JSON.stringify({ ...initial, version: 3 }),
+for (const raw of ['{corrupt', '', JSON.stringify({ ...initial, version: 4 }),
   `{"padding":"${'é'.repeat(140000)}"}`]) {
   const corrupt = storage(raw), before = [...corrupt.slots];
   const result = readSave(corrupt, true);
