@@ -1,44 +1,80 @@
 import * as THREE from '../vendor/three.module.js';
 import { createCar as pip } from './pip.js';
 import { createCar as brindle } from './brindle.js';
+import { createGarage } from './garage.js';
 
 const canvas = document.getElementById('studio'), status = document.getElementById('status');
 const factories = { pip, brindle }, scene = new THREE.Scene();
-let renderer, environment, current, drag = null, pending = 0, frames = 0, disposed = false, failure = null;
+let renderer, environment, current, garage, drag = null, pending = 0, frames = 0, disposed = false, failure = null;
+let view = 'exterior', look = 0;
+const windowOpacity = new Map();
 const camera = new THREE.PerspectiveCamera(32, 1, .1, 60);
 function disposeObject(object) {
-  const geometries = new Set(), materials = new Set();
-  object.traverse(node => { if (node.isMesh) { geometries.add(node.geometry); for (const mat of Array.isArray(node.material) ? node.material : [node.material]) materials.add(mat); } node.shadow?.map?.dispose(); node.shadow?.mapPass?.dispose(); });
-  geometries.forEach(g => g.dispose()); materials.forEach(m => m.dispose());
+  const geometries = new Set(), materials = new Set(), textures = new Set(), targets = new Set();
+  object.traverse(node => {
+    if (node.isMesh) { geometries.add(node.geometry); for (const mat of Array.isArray(node.material) ? node.material : [node.material]) materials.add(mat); }
+    for (const target of [node.shadow?.map, node.shadow?.mapPass]) if (target) targets.add(target);
+  });
+  for (const mat of materials) for (const value of Object.values(mat)) {
+    if (value?.isTexture && value !== environment?.texture) textures.add(value);
+  }
+  targets.forEach(t => { textures.delete(t.texture); t.dispose(); });
+  textures.forEach(t => t.dispose()); geometries.forEach(g => g.dispose()); materials.forEach(m => m.dispose());
 }
 function fail(error) { failure = String(error.message || error); status.textContent = `Studio unavailable: ${failure}. No game state was changed.`; }
 function schedule() { if (!pending && !disposed && !failure) pending = requestAnimationFrame(draw); }
 function frameCamera() {
-  const scale = Math.max(1, 1.4 / camera.aspect);
-  camera.position.set(4.4 * scale, .72 + 2.03 * scale, -5.35 * scale); camera.lookAt(0, .72, 0);
+  if (!current) return;
+  current.updateWorldMatrix(true, true);
+  camera.fov = view === 'cockpit' ? 62 : 32;
+  camera.near = view === 'cockpit' ? .025 : .1;
+  camera.updateProjectionMatrix();
+  if (view === 'cockpit') {
+    const {eye, target} = current.userData.cockpit;
+    const localEye = new THREE.Vector3(...eye);
+    const direction = new THREE.Vector3(...target).sub(localEye).applyAxisAngle(new THREE.Vector3(0, 1, 0), look);
+    camera.position.copy(current.localToWorld(localEye.clone()));
+    camera.lookAt(current.localToWorld(localEye.add(direction)));
+  } else {
+    // Fit all eight actual world-bound corners, including depth, to 90% NDC.
+    const bounds = new THREE.Box3().setFromObject(current), center = bounds.getCenter(new THREE.Vector3());
+    const outward = new THREE.Vector3(4.4, 2.03, -5.35).normalize();
+    camera.position.copy(center).add(outward); camera.lookAt(center); camera.updateMatrixWorld();
+    const inverse = camera.quaternion.clone().invert(), tan = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));
+    let distance = 0;
+    for (const x of [bounds.min.x, bounds.max.x]) for (const y of [bounds.min.y, bounds.max.y]) for (const z of [bounds.min.z, bounds.max.z]) {
+      const p = new THREE.Vector3(x, y, z).sub(center).applyQuaternion(inverse);
+      distance = Math.max(distance, p.z + Math.abs(p.x) / (tan * camera.aspect * .9), p.z + Math.abs(p.y) / (tan * .9));
+    }
+    camera.position.copy(center).addScaledVector(outward, distance); camera.lookAt(center);
+  }
+  camera.updateMatrixWorld();
 }
 function draw() {
   pending = 0;
   try {
     const width = canvas.clientWidth, height = canvas.clientHeight;
-    if (canvas.width !== width || canvas.height !== height) { renderer.setSize(width, height, false); camera.aspect = width / height; camera.updateProjectionMatrix(); frameCamera(); }
-    renderer.render(scene, camera); frames++;
-    status.textContent = `${current.userData.name} / actual 3D render / ${renderer.info.render.triangles.toLocaleString()} frame triangles / ${renderer.info.render.calls} draws. Device performance unmeasured.`;
+    if (canvas.width !== width || canvas.height !== height) { renderer.setSize(width, height, false); camera.aspect = width / height; }
+    frameCamera(); renderer.render(scene, camera); frames++;
+    status.textContent = `${current.userData.name} / ${view} / parked 3D study / ${renderer.info.render.triangles.toLocaleString()} frame triangles / ${renderer.info.render.calls} draws. Device performance unmeasured.`;
   } catch (error) { fail(error); }
 }
 function select(id) {
   if (disposed || !renderer || !Object.hasOwn(factories, id)) return;
   if (current) { scene.remove(current); disposeObject(current); }
+  windowOpacity.clear();
   current = factories[id](); scene.add(current);
-  frameCamera();
   current.traverse(node => {
     if (!node.isMesh) return;
     const mats = Array.isArray(node.material) ? node.material : [node.material];
     // ponytail: thin-pane alpha, restore refraction only on a GPU-tested high tier.
-    for (const mat of mats) if (mat.transparent) { mat.transmission = 0; mat.forceSinglePass = true; }
+    for (const mat of mats) {
+      if (mat.transparent) { mat.transmission = 0; mat.forceSinglePass = true; }
+      if (mat.name === 'window-glass' && !windowOpacity.has(mat)) windowOpacity.set(mat, mat.opacity);
+    }
     node.castShadow = !mats.some(m => m.transparent); node.receiveShadow = true;
   });
-  schedule();
+  setView(view);
 }
 try {
   renderer = new THREE.WebGLRenderer({canvas, antialias:true, preserveDrawingBuffer:true});
@@ -50,32 +86,53 @@ try {
   const room = new THREE.Scene(); room.background = new THREE.Color('#b6b3ab');
   const walls = new THREE.Mesh(new THREE.BoxGeometry(20,12,20), new THREE.MeshBasicMaterial({color:'#b6b3ab',side:THREE.BackSide}));
   walls.position.y = 5; room.add(walls);
-  for (const [x,y,z,w,h,rotation] of [[-4,4,-2,7,4,Math.PI/2],[4,5,1,8,4,-Math.PI/2],[0,5,-7,7,3,0]]) {
+  for (const [x,y,z,w,h,rotation] of [[-5,3,-2,5.6,1.4,Math.PI/2],[4,5,1,8,4,-Math.PI/2],[0,4,-9,6,1,0]]) {
     const panel = new THREE.Mesh(new THREE.PlaneGeometry(w,h),new THREE.MeshBasicMaterial({color:new THREE.Color().setRGB(5,5,5),side:THREE.DoubleSide}));
     panel.position.set(x,y,z); panel.rotation.y = rotation; room.add(panel);
   }
   const pmrem = new THREE.PMREMGenerator(renderer); environment = pmrem.fromScene(room,.035,.1,30); scene.environment = environment.texture;
   pmrem.dispose(); disposeObject(room);
-  const floor = new THREE.Mesh(new THREE.PlaneGeometry(30,30),new THREE.MeshStandardMaterial({color:'#c9c5bc',roughness:.58,metalness:.02}));
-  floor.rotation.x = -Math.PI/2; floor.position.y = -.006; floor.receiveShadow = true; scene.add(floor);
+  garage = createGarage(); scene.add(garage);
   scene.add(new THREE.HemisphereLight(0xffffff,0xa9a299,.65));
   const key = new THREE.DirectionalLight(0xffffff,3.5); key.position.set(-3,7,-4); key.castShadow = true;
   key.shadow.mapSize.set(1024,1024); Object.assign(key.shadow.camera,{left:-4,right:4,top:4,bottom:-4,near:.1,far:16}); key.shadow.bias = -.00015; key.shadow.normalBias = .01; scene.add(key);
   const fill = new THREE.DirectionalLight(0xe1eaff,.9); fill.position.set(4,2,3); scene.add(fill);
   select('pip');
 } catch (error) { fail(error); }
-function rotate(amount) { if (current && !failure) { current.rotation.y += amount; schedule(); } }
+function setView(next) {
+  if (disposed || !current || failure) return;
+  view = next;
+  for (const [mat, opacity] of windowOpacity) mat.opacity = view === 'cockpit' ? .12 : opacity;
+  document.getElementById('cockpit').setAttribute('aria-pressed', String(view === 'cockpit'));
+  document.getElementById('left').textContent = view === 'cockpit' ? 'Look left' : 'Rotate left';
+  document.getElementById('right').textContent = view === 'cockpit' ? 'Look right' : 'Rotate right';
+  canvas.setAttribute('aria-label', `Original parked 3D car, ${view}. Drag or use left and right arrows to ${view === 'cockpit' ? 'look around' : 'rotate'}. C switches view; Escape returns outside.`);
+  schedule();
+}
+function rotate(amount) {
+  if (current && !failure && !disposed) {
+    if (view === 'cockpit') look = THREE.MathUtils.clamp(look - amount, -1.25, 1.25);
+    else current.rotation.y += amount;
+    schedule();
+  }
+}
 document.getElementById('car').onchange = event => { try { select(event.target.value); } catch (error) { fail(error); } };
 document.getElementById('left').onclick = () => rotate(-.22); document.getElementById('right').onclick = () => rotate(.22);
-document.getElementById('reset').onclick = () => { if (current) { current.rotation.y = 0; schedule(); } };
-canvas.addEventListener('keydown', event => { if (['ArrowLeft','ArrowRight'].includes(event.key)) { event.preventDefault(); rotate(event.key==='ArrowLeft'?-.12:.12); } });
+document.getElementById('reset').onclick = () => { if (current) { look = 0; if (view === 'exterior') current.rotation.y = 0; schedule(); } };
+document.getElementById('cockpit').onclick = () => setView(view === 'exterior' ? 'cockpit' : 'exterior');
+document.addEventListener('keydown', event => {
+  if (event.altKey || event.ctrlKey || event.metaKey || event.target.matches('input,textarea')) return;
+  if (event.key.toLowerCase() === 'c' && !event.repeat) { event.preventDefault(); setView(view === 'exterior' ? 'cockpit' : 'exterior'); }
+  else if (event.key === 'Escape') { event.preventDefault(); setView('exterior'); }
+  else if (!event.target.matches('select') && ['ArrowLeft','ArrowRight'].includes(event.key)) { event.preventDefault(); rotate(event.key === 'ArrowLeft' ? -.12 : .12); }
+});
 canvas.addEventListener('pointerdown', event => { drag = {id:event.pointerId,x:event.clientX}; canvas.setPointerCapture(event.pointerId); });
 canvas.addEventListener('pointermove', event => { if (drag?.id === event.pointerId) { rotate((event.clientX-drag.x)*.009); drag.x = event.clientX; } });
 for (const name of ['pointerup','pointercancel','lostpointercapture']) canvas.addEventListener(name, () => { drag = null; });
 window.addEventListener('resize', schedule); window.addEventListener('blur', () => { drag = null; });
 canvas.addEventListener('webglcontextlost', event => { event.preventDefault(); fail(new Error('Graphics context lost; reload to recover')); });
 function framed() {
-  if (!current) return false;
+  if (!current || view !== 'exterior') return false;
   const bounds = new THREE.Box3().setFromObject(current);
   for (const x of [bounds.min.x,bounds.max.x]) for (const y of [bounds.min.y,bounds.max.y]) for (const z of [bounds.min.z,bounds.max.z]) {
     const p = new THREE.Vector3(x,y,z).project(camera);
@@ -87,6 +144,11 @@ function glassStats() {
   const mats = new Set(); current?.traverse(node => { if (node.isMesh) for (const mat of Array.isArray(node.material) ? node.material : [node.material]) if (mat.transparent) mats.add(mat); });
   return {refractingMaterials:[...mats].filter(m=>m.transmission>0).length,singlePassGlass:[...mats].every(m=>m.forceSinglePass)};
 }
-Object.defineProperty(window,'carStudioSnapshot',{get:()=>Object.freeze({...glassStats(),framed:framed(),id:document.getElementById('car').value,name:current?.userData.name,frames,angle:current?.rotation.y,triangles:renderer?.info.render.triangles,drawCalls:renderer?.info.render.calls,geometryCount:renderer?.info.memory.geometries,revision:THREE.REVISION,error:failure})});
-window.addEventListener('pagehide',()=>{disposed=true;cancelAnimationFrame(pending);renderer?.dispose();environment?.dispose();disposeObject(scene);});
+function garageStats() {
+  let garageTriangles = 0, garageMeshes = 0;
+  garage?.traverse(node => { if (node.isMesh) { garageMeshes++; garageTriangles += (node.geometry.index?.count ?? node.geometry.attributes.position.count) / 3; } });
+  return {garageTriangles, garageMeshes};
+}
+Object.defineProperty(window,'carStudioSnapshot',{get:()=>Object.freeze({...glassStats(),...garageStats(),view,cameraLocal:current ? Object.freeze(current.worldToLocal(camera.position.clone()).toArray()) : null,look,framed:framed(),id:document.getElementById('car').value,name:current?.userData.name,frames,angle:current?.rotation.y,triangles:renderer?.info.render.triangles,drawCalls:renderer?.info.render.calls,geometryCount:renderer?.info.memory.geometries,revision:THREE.REVISION,error:failure})});
+window.addEventListener('pagehide',()=>{if(disposed)return;disposed=true;drag=null;cancelAnimationFrame(pending);pending=0;disposeObject(scene);windowOpacity.clear();environment?.dispose();renderer?.dispose();});
 window.addEventListener('pageshow',event=>{if(event.persisted)location.reload();});
