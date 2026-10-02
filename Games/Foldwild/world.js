@@ -29,6 +29,7 @@ export const RIVALS = Object.freeze([
 
 const STARTERS = ['cindupp', 'dewgob', 'pithnip'];
 const SAVE_LIMIT = 256 * 1024;
+const PENDING_ROUND_LIMIT = 10000;
 const UID = /^[a-z0-9-]{1,48}$/;
 const APPEARANCE = { name: 'Archivist', skin: '#bc916b', hair: 'short', coat: '#365a74', backpack: '#b39a6c' };
 const PALETTES = {
@@ -150,7 +151,7 @@ function sizeCheck(text) {
 function pendingBattleCopy(value, state) {
   // Validate descriptors before accessing nested data or serializing anything imported.
   const battle = validateBattle(value);
-  integer(battle.round, 1, 10000, 'pending round');
+  integer(battle.round, 1, PENDING_ROUND_LIMIT, 'pending round');
   if (battle.result !== null || battle.phase !== 'command' || !battle.synergyEnabled ||
       battle.player.classId !== state.activeClass || battle.enemy.classId !== 'none' ||
       [battle.player, battle.enemy].some(side => side.team[side.active].hp <= 0)) {
@@ -159,6 +160,7 @@ function pendingBattleCopy(value, state) {
   for (const name of ['player', 'enemy']) {
     for (const [index, creature] of battle[name].team.entries()) {
       integer(creature.xp, 0, 1e6, 'pending XP');
+      integer(creature.turnsTaken, 0, 2 * PENDING_ROUND_LIMIT, 'pending turn counter');
       const raw = field(field(field(value, name), 'team'), String(index));
       if (field(raw, 'hp') !== creature.hp || field(raw, 'energy') !== creature.energy) {
         throw new RangeError('Invalid pending battle resources.');

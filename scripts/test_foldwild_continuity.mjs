@@ -172,6 +172,8 @@ for (const mutate of [
   s => { s.pendingBattle.enemy.team[0].xp = 1000001; },
   s => { s.pendingBattle.player.team[0].turnsTaken = Number.MAX_SAFE_INTEGER; },
   s => { s.pendingBattle.enemy.team[0].turnsTaken = Number.MAX_SAFE_INTEGER; },
+  s => { s.pendingBattle.player.team[0].turnsTaken = 20001; },
+  s => { s.pendingBattle.enemy.team[0].turnsTaken = 20001; },
   s => { s.pendingBattle.player.team[0].turnsTaken = -1; },
   s => { s.pendingBattle.enemy.team[0].turnsTaken = 0.5; },
   s => { s.pendingBattle.log = Array(129).fill('line'); },
@@ -181,7 +183,7 @@ for (const mutate of [
 ]) rejects(mutate);
 const cap = fixture(); cap.pendingBattle.round = 10000;
 cap.pendingBattle.player.team[0].xp = cap.roster[0].xp = 1e6;
-cap.pendingBattle.player.team[0].turnsTaken = Number.MAX_SAFE_INTEGER - 2;
+cap.pendingBattle.player.team[0].turnsTaken = 20000;
 assert.equal(validateSave(cap).pendingBattle.round, 10000);
 const logCap = fixture(); logCap.pendingBattle.log = Array(128).fill('x'.repeat(512));
 assert.equal(validateSave(logCap).pendingBattle.log.length, 128);
