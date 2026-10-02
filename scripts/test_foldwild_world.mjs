@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs';
 import { SPECIES, BY_ID, ELEMENTS } from '../Games/Foldwild/data.js';
 import { statsFor, createCreature } from '../Games/Foldwild/battle.js';
 import * as world from '../Games/Foldwild/world.js';
-const { SAVE_KEY, REGIONS, RIVALS, PLAYER_BOUNDS, MAX_ROSTER, freshGame, validateSave, readSave, writeSave, worldPoints, nearbyPoint } = world;
+const { SAVE_KEY, BACKUP_KEY, REGIONS, REGION_LAYOUTS, RIVALS, PLAYER_BOUNDS, MAX_ROSTER, freshGame, validateSave, readSave, writeSave, worldPoints, nearbyPoint } = world;
 const clone = structuredClone;
 function freeze(value) {
   if (value && typeof value === 'object') { Object.values(value).forEach(freeze); Object.freeze(value); }
@@ -14,31 +14,42 @@ function bad(change, pattern = /Invalid|Unknown|Duplicate|Missing|Unsupported|mu
   change(state);
   assert.throws(() => validateSave(state), pattern);
 }
-assert.deepEqual(Object.keys(world).sort(), ['SAVE_KEY', 'REGIONS', 'RIVALS', 'PLAYER_BOUNDS', 'MAX_ROSTER',
-  'freshGame', 'validateSave', 'readSave', 'writeSave', 'worldPoints', 'nearbyPoint'].sort());
+assert.deepEqual(Object.keys(world).sort(), ['SAVE_KEY', 'BACKUP_KEY', 'REGIONS', 'REGION_LAYOUTS', 'RIVALS', 'PLAYER_BOUNDS', 'MAX_ROSTER',
+  'freshGame', 'validateSave', 'readSave', 'writeSave', 'worldPoints', 'nearbyPoint', 'unlockedRegion', 'movePosition', 'routeTo'].sort());
 assert.equal(SAVE_KEY, 'foldwild-save-v1');
 assert.equal(MAX_ROSTER, 160);
-assert.deepEqual(PLAYER_BOUNDS, { minX: -10, maxX: 10, minZ: -7, maxZ: 7 });
-assert.deepEqual(REGIONS.map(r => [r.id, r.name]), [[0, 'Rootfold Meadow'], [1, 'Stillwater Reach'], [2, 'Stonefold Ridge']]);
-assert.deepEqual(RIVALS.map(r => r.name), ['Maren', 'Sola', 'Iven']);
+assert.deepEqual(PLAYER_BOUNDS, { minX: -80, maxX: 80, minZ: -80, maxZ: 80 });
+assert.deepEqual(REGIONS.map(r => [r.id, r.name]), [[0, 'Rootfold Meadow'], [1, 'Stillwater Reach'], [2, 'Emberstep Quarry'], [3, 'Stonefold Ridge'], [4, 'Quietfold Hollow']]);
+assert.deepEqual(RIVALS.map(r => r.name), ['Maren', 'Sola', 'Neri', 'Iven', 'Oren']);
 for (const value of [REGIONS, RIVALS, PLAYER_BOUNDS, ...REGIONS, ...RIVALS, ...RIVALS.flatMap(r => [r.team, ...r.team])]) assert(Object.isFrozen(value));
 const rivalElements = new Set();
 for (const [i, rival] of RIVALS.entries()) {
   assert.equal(rival.id, i);
-  assert.equal(rival.team.length, i + 1);
+  assert.equal(rival.team.length, [1, 2, 2, 3, 3][i]);
   assert(rival.dialogue && rival.winDialogue);
   for (const entry of rival.team) {
     assert(Object.hasOwn(BY_ID, entry.speciesId));
-    assert.equal(entry.level, [5, 9, 14][i]);
+    assert(entry.level >= [7, 13, 19, 26, 33][i] && entry.level <= [8, 14, 20, 27, 34][i]);
     rivalElements.add(BY_ID[entry.speciesId].element);
   }
 }
 assert.equal(rivalElements.size, 5);
 for (const starter of ['cindupp', 'dewgob', 'pithnip']) {
   const state = freshGame(starter, 0xffffffff);
-  assert.deepEqual(state, { version: 1, seed: 0xffffffff, starterId: starter, position: { x: 0, z: 4, yaw: 0 }, region: 0,
-    roster: [createCreature(starter, 3, 'owned-1')], team: ['owned-1'], seen: [starter], caught: [starter],
-    defeatedRivals: [], score: 0, kites: 18, encounterIndex: 0, nextUid: 2, reducedMotion: false });
+  assert.equal(state.version, 2);
+  assert.equal(state.seed, 0xffffffff);
+  assert.equal(state.starterId, starter);
+  assert.deepEqual(state.position, REGION_LAYOUTS[0].spawn);
+  assert.deepEqual(state.roster, [createCreature(starter, 3, 'owned-1')]);
+  assert.deepEqual(state.team, ['owned-1']);
+  assert.deepEqual(state.seen, [starter]);
+  assert.deepEqual(state.caught, [starter]);
+  assert.deepEqual(state.defeatedRivals, []);
+  assert.equal(state.score, 0);
+  assert.equal(state.kites, 8);
+  assert.equal(state.encounterIndex, 0);
+  assert.equal(state.nextUid, 2);
+  assert.equal(state.reducedMotion, false);
   assert(!Object.isFrozen(state));
 }
 for (const id of ['shardip', 'constructor', '__proto__', 'unknown', null]) assert.throws(() => freshGame(id));
@@ -125,8 +136,8 @@ for (const n of [NaN, Infinity, -Infinity, '0', null]) {
 const moved = freshGame();
 moved.position = { x: 1e300, z: -1e300, yaw: 1e300 };
 const bounded = validateSave(moved).position;
-assert.equal(bounded.x, 10);
-assert.equal(bounded.z, -7);
+assert.equal(bounded.x, 79.65);
+assert.equal(bounded.z, -79.65);
 assert(bounded.yaw >= -Math.PI && bounded.yaw < Math.PI);
 for (const yaw of [-100 * Math.PI, -Math.PI, 0, Math.PI, 100 * Math.PI]) {
   moved.position.yaw = yaw;
@@ -147,21 +158,21 @@ assert.deepEqual(cleared.buffs, {});
 assert.equal(cleared.turnsTaken, 0);
 for (const status of [false, 0, '', [], {}, { name: 'injected', remaining: 2, appliedAt: 0 },
   { name: 'Scorch', remaining: 3, appliedAt: 0 }, { name: 'Scorch', remaining: 1, appliedAt: 1 }]) bad(s => { s.roster[0].status = status; });
-for (const shield of [false, {}, { hp: 23, remaining: 2, appliedAt: 0 }]) bad(s => { s.roster[0].shield = shield; });
+for (const shield of [false, {}, { hp: 27, remaining: 2, appliedAt: 0 }]) bad(s => { s.roster[0].shield = shield; });
 for (const buffs of [null, [], { hp: { percent: 20, remaining: 2, appliedAt: 0 } },
   JSON.parse('{"__proto__":{"percent":20,"remaining":2,"appliedAt":0}}'),
   { attack: { percent: 100, remaining: 2, appliedAt: 0 } }, { attack: null }]) bad(s => { s.roster[0].buffs = buffs; });
 for (const key of ['seed', 'score', 'kites', 'encounterIndex', 'nextUid', 'region']) {
   for (const n of [-1, 1.5, NaN, Infinity, '1']) bad(s => { s[key] = n; });
 }
-for (const [key, tooBig] of [['seed', 0x100000000], ['score', 1e9 + 1], ['kites', 1000], ['encounterIndex', 1e9 + 1], ['nextUid', 1e9 + 1], ['region', 3]]) bad(s => { s[key] = tooBig; });
+for (const [key, tooBig] of [['seed', 0x100000000], ['score', 1e9 + 1], ['kites', 1000], ['encounterIndex', 1e9 + 1], ['nextUid', 1e9 + 1], ['region', 5]]) bad(s => { s[key] = tooBig; });
 bad(s => { s.nextUid = 1; });
 bad(s => { s.reducedMotion = 1; });
-for (const version of [0, 2, '1', null]) bad(s => { s.version = version; });
+for (const version of [0, 3, '1', null]) bad(s => { s.version = version; });
 for (const sequence of [[1], [0, 2], [0, 0], [0, 1, 3], ['0']]) bad(s => { s.defeatedRivals = sequence; });
 bad(s => { s.region = 1; });
 bad(s => { s.defeatedRivals = [0]; s.region = 2; });
-for (let region = 0; region < 3; region++) {
+for (let region = 0; region < 5; region++) {
   const state = freshGame();
   state.defeatedRivals = Array.from({ length: region }, (_, i) => i);
   state.region = region;
@@ -185,12 +196,12 @@ const save = fixture();
 assert.equal(writeSave(original, save.storage), null);
 assert.deepEqual(readSave(save.storage), { state: original, error: null });
 assert.equal(save.slots.get('other-game'), 'untouched');
-assert(save.calls.every(([, key]) => key === SAVE_KEY));
+assert(save.calls.every(([, key]) => key === SAVE_KEY || key === BACKUP_KEY));
 const corruptSpecies = freshGame();
 corruptSpecies.roster[0].speciesId = '__proto__';
 const corruptUid = freshGame();
 corruptUid.roster[0].uid = 'bad uid';
-for (const raw of ['{bad json', 'null', '[]', JSON.stringify({ ...freshGame(), version: 2 }),
+for (const raw of ['{bad json', 'null', '[]', JSON.stringify({ ...freshGame(), version: 3 }),
   JSON.stringify({ ...freshGame(), seed: -1 }), JSON.stringify(corruptSpecies), JSON.stringify(corruptUid),
   ' '.repeat(256 * 1024 + 1)]) {
   const stored = fixture(raw);
@@ -208,9 +219,9 @@ const quota = fixture('keep bytes', 'write');
 assert.match(writeSave(original, quota.storage), /QuotaExceededError/);
 assert.equal(quota.slots.get(SAVE_KEY), 'keep bytes');
 assert.match(readSave(Object.freeze({ getItem() { throw null; } })).error, /null/);
-assert.match(writeSave(original, Object.freeze({ setItem() { throw null; } })), /null/);
+assert.match(writeSave(original, Object.freeze({ getItem() { return null; }, setItem() { throw null; } })), /null/);
 const invalidWrite = fixture('keep bytes');
-assert.match(writeSave({ ...freshGame(), version: 2 }, invalidWrite.storage), /version/);
+assert.match(writeSave({ ...freshGame(), version: 3 }, invalidWrite.storage), /version/);
 assert.deepEqual(invalidWrite.calls, []);
 assert.equal(invalidWrite.slots.get(SAVE_KEY), 'keep bytes');
 const previousStorage = Object.getOwnPropertyDescriptor(globalThis, 'localStorage');
@@ -224,33 +235,40 @@ try {
   else delete globalThis.localStorage;
 }
 
-// Deterministic pools, all canonical forms available, unique point identities, no mutation.
-const availability = [new Set(), new Set(), new Set()];
-const tierFrequency = { basic: 0, evolved: 0, boss: 0 };
-for (let region = 0; region < 3; region++) {
+// Deterministic habitat/tier pools, every eligible canonical form, unique point identities, no mutation.
+const availability = Array.from({ length: 5 }, () => new Set());
+const ranges = [[2, 5], [8, 13], [14, 19], [22, 28], [27, 34]];
+let habitatHits = 0;
+let basicHits = 0;
+for (let region = 0; region < 5; region++) {
   const state = freshGame('cindupp', 42);
   state.region = region;
   state.defeatedRivals = Array.from({ length: region }, (_, i) => i);
   const fixed = freeze(clone(state));
   const points = worldPoints(fixed);
   assert.deepEqual(worldPoints(fixed), points);
-  assert.deepEqual(points.map(p => [p.id, p.x, p.z]), [['wild-0', -5, -1], ['wild-1', 0, -4], ['wild-2', 5, -1], ['camp', -6, 4], ['rival', 6, -3], ['exit', 0, -7]]);
+  assert.equal(new Set(points.map(p => p.id)).size, points.length);
+  assert.deepEqual(points.filter(p => p.type === 'wild').map(p => [p.id, p.x, p.z]),
+    REGION_LAYOUTS[region].wildSites.map((p, i) => [`wild-${i}`, p.x, p.z]));
+  assert.deepEqual(points.filter(p => p.type !== 'wild'), REGION_LAYOUTS[region].points);
   assert.notEqual(worldPoints(fixed)[0], points[0]);
+  assert.notEqual(worldPoints(fixed)[3], points[3]);
   for (let encounterIndex = 0; encounterIndex < 5000; encounterIndex++) {
     state.encounterIndex = encounterIndex;
     const wild = worldPoints(state).filter(p => p.type === 'wild');
     assert.equal(new Set(wild.map(p => p.speciesId)).size, 3);
-    for (const p of wild) {
+    for (const [i, p] of wild.entries()) {
       const species = BY_ID[p.speciesId];
       assert.equal(p.label, species.name);
+      assert(Number.isInteger(p.individualSeed) && p.individualSeed >= 0 && p.individualSeed <= 0xffffffff);
       availability[region].add(species.id);
-      if (region === 0) { assert.equal(species.tier, 'basic'); assert(p.level >= 2 && p.level <= 4); }
-      if (region === 1) { assert.notEqual(species.tier, 'boss'); assert(p.level >= 6 && p.level <= 10); }
-      if (region === 2) {
-        tierFrequency[species.tier]++;
-        if (species.tier === 'boss') assert.equal(p.level, 26);
-        else assert(p.level >= 12 && p.level <= 18);
-      }
+      assert(p.level >= ranges[region][0] && p.level <= ranges[region][1]);
+      if (species.stage >= 3) assert(p.level >= 26);
+      if (region === 0) assert.equal(species.tier, 'basic');
+      if (region < 4) assert.notEqual(species.tier, 'boss');
+      if (region === 1 || region === 2) assert(species.stage <= 2);
+      if (region === 0 && species.element === REGION_LAYOUTS[0].wildSites[i].habitatElement) habitatHits++;
+      if (region === 4 && species.tier === 'basic') basicHits++;
     }
   }
   state.defeatedRivals.push(region);
@@ -258,21 +276,28 @@ for (let region = 0; region < 3; region++) {
   assert(worldPoints(state).some(p => p.type === 'camp'));
   assert(worldPoints(state).some(p => p.type === 'exit'));
 }
-assert.deepEqual(availability.map(set => set.size), [35, 75, 80]);
+assert.deepEqual(availability.map(set => set.size), [35, 65, 65, 75, 80]);
 assert.deepEqual([...new Set([...availability[0]].map(id => BY_ID[id].element))].sort(), [...ELEMENTS].sort());
-const perSpecies = [tierFrequency.basic / 35, tierFrequency.evolved / 40, tierFrequency.boss / 5];
-assert(perSpecies[0] / perSpecies[1] > 1.7 && perSpecies[0] / perSpecies[1] < 2.3);
-assert(perSpecies[1] / perSpecies[2] > 1.7 && perSpecies[1] / perSpecies[2] < 2.3);
+// Weighting is intentionally no longer the old habitat-free 4:2:1 histogram.
+assert(habitatHits > 6500 && habitatHits < 8500);
+assert(basicHits > 8000 && basicHits < 9000);
 assert.notDeepEqual(worldPoints(freshGame('cindupp', 1)), worldPoints(freshGame('cindupp', 2)));
 assert.notDeepEqual(worldPoints(freshGame()), worldPoints({ ...freshGame(), encounterIndex: 1 }));
-assert.equal(worldPoints({ ...freshGame(), region: 2, defeatedRivals: [0, 1, 2] }).at(-1).label, 'Ridge Overlook');
+assert.equal(worldPoints({ ...freshGame(), region: 4, defeatedRivals: [0, 1, 2, 3, 4] }).find(p => p.id === 'exit').label, 'Return expedition gate');
 assert.equal(nearbyPoint(freshGame()), null);
-assert.equal(nearbyPoint({ ...freshGame(), position: { x: -6, z: 4, yaw: 0 } }).id, 'camp');
-assert.equal(nearbyPoint({ ...freshGame(), position: { x: -4.2, z: 4, yaw: 0 } }).id, 'camp');
-assert.equal(nearbyPoint({ ...freshGame(), position: { x: -4.1, z: 4, yaw: 0 } }), null);
-assert.equal(nearbyPoint({ ...freshGame(), position: { x: -5, z: -1, yaw: 0 } }, 0).id, 'wild-0');
-assert.equal(nearbyPoint({ ...freshGame(), position: { x: 4, z: -3, yaw: 0 } }, 20).id, 'rival');
+const camp = REGION_LAYOUTS[0].points.find(p => p.id === 'camp');
+assert.equal(nearbyPoint({ ...freshGame(), position: { ...camp, yaw: 0 } }).id, 'camp');
+assert.equal(nearbyPoint({ ...freshGame(), position: { x: camp.x + 1.8, z: camp.z, yaw: 0 } }).id, 'camp');
+assert.equal(nearbyPoint({ ...freshGame(), position: { x: camp.x + 1.9, z: camp.z, yaw: 0 } }), null);
+const wildPoint = worldPoints(freshGame())[0];
+assert.equal(nearbyPoint({ ...freshGame(), position: { ...wildPoint, yaw: 0 } }, 0).id, 'wild-0');
+const rivalPoint = worldPoints(freshGame()).find(p => p.id === 'rival');
+assert.equal(nearbyPoint({ ...freshGame(), position: { ...rivalPoint, yaw: 0 } }, 20).id, 'rival');
 for (const distance of [-1, NaN, Infinity, '2']) assert.throws(() => nearbyPoint(freshGame(), distance));
+for (const change of [s => { s.seed = -1; }, s => { s.region = 5; }, s => { s.encounterIndex = NaN; },
+  s => { s.region = 1; }, s => { s.defeatedRivals = [1]; }, s => { s.claimedSupplies = ['0:unknown']; }]) {
+  const s = freshGame(); change(s); assert.throws(() => worldPoints(s));
+}
 const source = readFileSync(new URL('../Games/Foldwild/world.js', import.meta.url), 'utf8');
 assert(!/Math\.random|https?:\/\/|fetch\s*\(|WebSocket|document\.|window\.|setInterval|setTimeout/.test(source));
-console.log('PASS: world/save exact API; 3 regions/rivals; pools 35/75/80 and 4:2:1 weighting; deterministic unique points/proximity; immutable inputs; strict schema/UID/effects/prototype/unknown ids; canonical resources/progress; storage namespace/quota/security/invalid JSON byte preservation');
+console.log('PASS: world/save v2 API; five regions/rivals; habitat pools 35/65/65/75/80; deterministic points/proximity; immutable inputs; strict schema/UID/effects/prototype/unknown ids; canonical resources/progress; storage namespace/quota/security/corrupt-byte preservation');
