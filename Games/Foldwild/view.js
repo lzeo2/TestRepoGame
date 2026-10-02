@@ -4,7 +4,7 @@ import { BY_ID, OPTIONAL_HIDDEN_SPECIES } from './data.js';
 import { REGION_LAYOUTS } from './region-data.js';
 
 // Presentation only: the core supplies authoritative positions and the sole clock.
-export function createView(canvas, { onCheckpoint = () => {}, reducedMotion = false } = {}) {
+export function createView(canvas, { onCheckpoint = () => {}, onDiagnostic = null, reducedMotion = false } = {}) {
   let renderer;
   try {
     const context = canvas.getContext('webgl', { alpha: false, antialias: false });
@@ -25,7 +25,7 @@ export function createView(canvas, { onCheckpoint = () => {}, reducedMotion = fa
   scene.add(root);
   const loader = new GLTFLoader(), cache = new Map(), slots = new Map();
   const geometries = new Map(), materials = new Map(), sceneInstances = [];
-  const failures = new Set(), pointers = new Map();
+  const pointers = new Map();
   const playerPosition = new THREE.Vector3(), desiredCamera = new THREE.Vector3(), lookAt = new THREE.Vector3();
   const projected = new THREE.Vector3(), cameraHit = new THREE.Vector3(), cameraRay = new THREE.Ray();
   const raycaster = new THREE.Raycaster(), matrixPart = new THREE.Object3D();
@@ -34,6 +34,7 @@ export function createView(canvas, { onCheckpoint = () => {}, reducedMotion = fa
   let points = [], visiblePoints = [], region = 0, player = null, cameraYaw = 0, playerYaw = 0;
   let effect = null, walking = 0, npcParts = [], npcs = [], cameraBoxes = [];
   let inspectionYaw = 0, inspectionBounds = null;
+  let contextStatus = 'available', lastDiagnostic = '', directMessage = '';
   const inspectionCenter = new THREE.Vector3();
   let appearance = { skin: '#bc916b', coat: '#365a74', hair: '#38342d', hairStyle: 'short', pack: '#ac9265' };
   const hiddenAvailable = Boolean(OPTIONAL_HIDDEN_SPECIES &&
@@ -128,7 +129,10 @@ export function createView(canvas, { onCheckpoint = () => {}, reducedMotion = fa
   }
   function retire(entry) {
     entry.retired = true;
-    if (!entry.refs && entry.base) { disposeModel(entry.base); entry.base = null; }
+    if (!entry.refs) {
+      entry.cancel?.();
+      if (entry.base) { disposeModel(entry.base); entry.base = null; }
+    }
   }
   function release(slot) {
     if (slot.closed) return;
@@ -144,12 +148,28 @@ export function createView(canvas, { onCheckpoint = () => {}, reducedMotion = fa
     if (entry) cache.delete(path);
     else {
       entry = { refs: 0, retired: false, base: null };
-      entry.promise = loader.loadAsync(new URL(path, import.meta.url).href).then(gltf => {
-        entry.base = gltf.scene;
-        // A pending request may finish after eviction or disposal.
-        if (entry.retired && !entry.refs) retire(entry);
-        return gltf.scene;
-      }).catch(error => { if (cache.get(path) === entry) cache.delete(path); throw error; });
+      entry.promise = new Promise((resolve, reject) => {
+        let settled = false;
+        const fail = error => {
+          if (settled) return;
+          settled = true; clearTimeout(timer); entry.cancel = null;
+          reject(error);
+        };
+        const timer = setTimeout(() => fail(new Error('local model load exceeded 20 seconds')), 20000);
+        entry.cancel = () => fail(new Error('local model load canceled'));
+        // GLTFLoader has no abort API. A late result still owns resources to dispose.
+        Promise.resolve().then(() => loader.loadAsync(new URL(path, import.meta.url).href)).then(gltf => {
+          if (settled) { disposeModel(gltf.scene); return; }
+          settled = true; clearTimeout(timer); entry.cancel = null;
+          entry.base = gltf.scene;
+          if (entry.retired && !entry.refs) retire(entry);
+          resolve(gltf.scene);
+        }, fail);
+      }).catch(error => {
+        if (cache.get(path) === entry) cache.delete(path);
+        retire(entry);
+        throw error;
+      });
     }
     entry.refs++;
     cache.set(path, entry);
@@ -168,16 +188,37 @@ export function createView(canvas, { onCheckpoint = () => {}, reducedMotion = fa
     root.clear();
     for (const mesh of sceneInstances) mesh.dispose();
     sceneInstances.length = 0;
-    failures.clear();
     points = []; visiblePoints = []; npcs = []; npcParts = []; cameraBoxes = [];
     player = null; effect = null; walking = 0; inspectionBounds = null;
     pointers.clear();
+    notifyDiagnostic();
     return generation;
   }
-  function reportFailure(id, reason) {
-    failures.add(`${id}: ${reason}`);
-    const message = document.getElementById('message');
-    if (message) message.textContent = `3D model unavailable. Marker used instead. ${[...failures].join('; ')}`;
+  function diagnostic() {
+    const pendingModels = Object.freeze([...new Set([...slots.values()].filter(s => !s.closed && !s.frame).map(s => s.id))]);
+    const fallbackModels = Object.freeze([...new Set([...slots.values()].filter(s => !s.closed && s.failure).map(s => s.failure))]);
+    const parts = [];
+    if (contextStatus !== 'available') parts.push(contextStatus === 'lost'
+      ? '3D context lost. Text and buttons remain available; waiting for browser recovery. Reload if it does not recover.'
+      : '3D context restored; waiting for a rendered frame.');
+    if (pendingModels.length) parts.push(`Loading local 3D models: ${pendingModels.join(', ')}. Text and buttons remain available.`);
+    if (fallbackModels.length) parts.push(`3D model unavailable. Marker used instead. ${fallbackModels.join('; ')}`);
+    return Object.freeze({ contextStatus, pendingModels, fallbackModels, message: parts.join(' ') });
+  }
+  function notifyDiagnostic() {
+    if (disposed) return;
+    const status = diagnostic(), key = JSON.stringify(status);
+    if (onDiagnostic) {
+      if (key !== lastDiagnostic) onDiagnostic(status);
+    } else {
+      const message = document.getElementById('message');
+      if (message && (status.message || message.textContent === directMessage)) message.textContent = status.message;
+      directMessage = status.message;
+    }
+    lastDiagnostic = key;
+  }
+  function reportFailure(slot, reason) {
+    slot.failure = `${slot.id}: ${reason}`;
   }
   function cosmetic(parent, id, size) {
     if (id === 'paper-hat') { shape(parent, 'cone', '#e1cfaa', 0, size.y + .16, -size.z * .1, .24, .3, .24); return; }
@@ -202,6 +243,7 @@ export function createView(canvas, { onCheckpoint = () => {}, reducedMotion = fa
   function creature(key, id, x, z, rotation, token, target = 1.45, cosmeticId = 'none') {
     const slot = { key, id, closed: false, entry: null, frame: null, x, z, path: null };
     slots.set(key, slot);
+    notifyDiagnostic();
     slot.promise = (async () => {
       try {
         const species = BY_ID[id] || (hiddenAvailable && OPTIONAL_HIDDEN_SPECIES.id === id ? OPTIONAL_HIDDEN_SPECIES : null);
@@ -224,10 +266,12 @@ export function createView(canvas, { onCheckpoint = () => {}, reducedMotion = fa
       } catch (error) {
         if (disposed || generation !== token || slot.closed) return;
         if (slot.entry) { slot.entry.refs--; if (slot.entry.retired) retire(slot.entry); slot.entry = null; }
-        reportFailure(id, error.message);
+        reportFailure(slot, error.message);
         const group = new THREE.Group();
         shape(group, 'cone', '#b98040', 0, .5, 0, .45, 1, .45);
         group.position.set(x, 0, z); slot.frame = group; root.add(group);
+      } finally {
+        if (!disposed && generation === token && !slot.closed) notifyDiagnostic();
       }
     })();
     return slot.promise;
@@ -338,6 +382,7 @@ export function createView(canvas, { onCheckpoint = () => {}, reducedMotion = fa
     if (oldIds !== newIds) buildNPCs();
     visiblePoints = visiblePoints.filter(p => p.type === 'wild' ? wanted.has(p.id) :
       ['rival', 'npc', 'merchant', 'mentor', 'contract'].includes(p.type) ? npcs.some(n => n.id === p.id) : true);
+    notifyDiagnostic();
     return pending;
   }
   function avoidCamera(position) {
@@ -431,6 +476,7 @@ export function createView(canvas, { onCheckpoint = () => {}, reducedMotion = fa
   }
   function render(dtSeconds) {
     if (disposed) return;
+    if (contextStatus === 'lost') { notifyDiagnostic(); return; }
     const dt = Number.isFinite(dtSeconds) ? THREE.MathUtils.clamp(dtSeconds, 0, .1) : 0;
     elapsed += dt; walking = Math.max(0, walking - dt);
     if (!reducedMotion) {
@@ -461,6 +507,7 @@ export function createView(canvas, { onCheckpoint = () => {}, reducedMotion = fa
       if (t === 1) clearEffect();
     }
     cameraPosition(false, dt); renderer.render(scene, camera); frames++;
+    if (contextStatus === 'restoring') { contextStatus = 'available'; notifyDiagnostic(); }
   }
   function resize() {
     if (disposed) return;
@@ -546,12 +593,23 @@ export function createView(canvas, { onCheckpoint = () => {}, reducedMotion = fa
   }
   function pointerCancel(event) { pointers.delete(event.pointerId); }
   function contextMenu(event) { event.preventDefault(); }
+  function contextLost(event) {
+    event.preventDefault();
+    contextStatus = 'lost';
+    notifyDiagnostic();
+  }
+  function contextRestored() {
+    // THREE's earlier listener rebuilds GPU state; retained CPU models are not new loads.
+    contextStatus = 'restoring';
+    resize(); notifyDiagnostic();
+  }
   const listeners = { pointerdown: pointerDown, pointermove: pointerMove, pointerup: pointerUp,
-    pointercancel: pointerCancel, lostpointercapture: pointerCancel, contextmenu: contextMenu };
+    pointercancel: pointerCancel, lostpointercapture: pointerCancel, contextmenu: contextMenu,
+    webglcontextlost: contextLost, webglcontextrestored: contextRestored };
   for (const [name, callback] of Object.entries(listeners)) canvas.addEventListener(name, callback);
   function inspect() {
     const loaded = [...new Set([...slots.values()].filter(s => s.frame && s.entry).map(s => s.path))];
-    return Object.freeze({ mode, frames, quality, cameraYaw, inspectionYaw, drawCalls: renderer.info.render.calls, triangles: renderer.info.render.triangles,
+    return Object.freeze({ mode, frames, quality, cameraYaw, inspectionYaw, ...diagnostic(), drawCalls: renderer.info.render.calls, triangles: renderer.info.render.triangles,
       modelReferences: [...slots.values()].filter(s => s.entry).length,
       inspectionBounds: inspectionBounds ? Object.freeze({
         min: Object.freeze({ x: inspectionBounds.min.x, y: inspectionBounds.min.y, z: inspectionBounds.min.z }),
@@ -563,7 +621,7 @@ export function createView(canvas, { onCheckpoint = () => {}, reducedMotion = fa
           anchor: vector(a.anchor), position: vector(a.mesh?.position), thickness: a.mesh?.scale.x ?? null, side: a.side ?? null });
       })),
       cameraTarget: Object.freeze({ x: lookAt.x, y: lookAt.y, z: lookAt.z }),
-      cacheSize: cache.size, countLoadedModels: loaded.length, loadedModels: Object.freeze(loaded), fallbackModels: Object.freeze([...failures]),
+      cacheSize: cache.size, countLoadedModels: loaded.length, loadedModels: Object.freeze(loaded),
       hiddenAvailable, width: canvas.width, height: canvas.height, npcCount: npcs.length,
       cameraPosition: Object.freeze({ x: camera.position.x, y: camera.position.y, z: camera.position.z }),
       actorPositions: Object.freeze(Object.fromEntries([...slots].filter(([, s]) => s.frame).map(([key, s]) =>
@@ -572,7 +630,7 @@ export function createView(canvas, { onCheckpoint = () => {}, reducedMotion = fa
   }
   function dispose() {
     if (disposed) return;
-    reset(mode); disposed = true;
+    disposed = true; reset(mode);
     for (const [name, callback] of Object.entries(listeners)) canvas.removeEventListener(name, callback);
     for (const entry of cache.values()) retire(entry);
     cache.clear();
