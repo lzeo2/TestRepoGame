@@ -88,9 +88,10 @@ dialog h2{font-size:20px}
 dialog button{max-width:100%}
 .dialog-heading{position:sticky;top:-20px;display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between;background:#eee9d8;padding:8px 0;margin-bottom:8px;z-index:1}
 .dialog-heading h2{margin:0;flex:1 1 180px;min-width:0;overflow-wrap:anywhere}
+#collection-dialog .dialog-heading h2{flex-basis:100px}
 .ledger-filters{display:grid;grid-template-columns:2fr 1fr;gap:12px;margin-bottom:16px}
 .ledger-filters label{display:grid;gap:4px}
-#ledger-inspector{min-width:0;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid var(--line)}
+#ledger-inspector{min-width:0;scroll-margin-top:72px;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid var(--line)}
 .ledger-inspector-heading{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px}
 #ledger-model-name{flex:1 1 180px;min-width:0;margin:0;font-size:18px;overflow-wrap:anywhere}
 #ledger-model-host{--scene-height:260px;position:relative;min-width:0;width:100%;height:var(--scene-height);overflow:hidden;border:1px solid var(--line);border-radius:6px;background:#cbd2bd}

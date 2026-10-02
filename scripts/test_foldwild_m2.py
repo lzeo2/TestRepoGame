@@ -29,6 +29,11 @@ def preview(page, selector):
         return s.view.mode==='inspection' && s.view.countLoadedModels===1 &&
         s.view.inspectionBounds && s.view.drawCalls>=2 && s.view.triangles>2 &&
         !document.getElementById('ledger-model-status').textContent.startsWith('Loading')}''')
+    assert page.evaluate('''() => {
+        const name=document.getElementById('ledger-model-name').getBoundingClientRect();
+        const header=document.querySelector('#collection-dialog .dialog-heading').getBoundingClientRect();
+        return name.top>=header.bottom && name.bottom<=innerHeight;
+    }'''), 'inspection name hidden beneath sticky ledger heading'
     s = snapshot(page)
     assert not s['view']['fallbackModels'], s['view']
     assert s['view']['cacheSize'] <= 12 and s['view']['modelReferences'] == 1
@@ -249,7 +254,23 @@ def run():
                 layout(page)
                 shot(page, 'mobile-inspection')
                 page.set_viewport_size({'width': 320, 'height': 700})
+                page.wait_for_function('''() => {
+                    const r=document.getElementById('game-canvas').getBoundingClientRect();
+                    return innerWidth===320 && window.foldwildSnapshot.view.width===Math.floor(r.width);
+                }''')
                 layout(page)
+                assert page.evaluate('''() => {
+                    const heading=document.querySelector('#collection-dialog .dialog-heading');
+                    const title=heading.querySelector('h2').getBoundingClientRect();
+                    const close=document.getElementById('collection-close');
+                    const r=close.getBoundingClientRect();
+                    const name=document.getElementById('ledger-model-name').getBoundingClientRect();
+                    return title.top>=r.top && title.bottom<=r.bottom &&
+                        r.top>=0 && r.bottom<=innerHeight &&
+                        document.elementFromPoint(r.x+r.width/2,r.y+r.height/2)===close &&
+                        name.top>=heading.getBoundingClientRect().bottom;
+                }'''), '320px ledger heading wraps or obscures the name/close target'
+                shot(page, 'mobile-inspection-320')
                 page.locator('#collection-close').tap()
                 ready(page, 'world')
                 assert snapshot(page)['state']['position'] == before
