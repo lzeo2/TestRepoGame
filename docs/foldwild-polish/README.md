@@ -5,7 +5,23 @@ then two additions/plans for each of horror, sports, tycoon, original
 collection/heist gameplay and racing, plus a sweep of legacy self-made games.
 Source baseline `559f825f2a506a6e777abdcdc170045f29f1b72b`.
 Actual worker configuration is `openai-codex` / `gpt-6-astra`, verified by the
-installed model registry, with bounded high-thinking tasks. No Sol substitution.
+installed model registry and actual assistant session records, with bounded
+high-thinking tasks. No Sol substitution.
+
+## Current completion milestone
+
+Main finalized the [implementation order](implementation-order.md); genuine
+Astra95/96/97 implemented ending, history-derived class ranks, rematches and
+schema3 save migration. [Independent integration evidence](completion-integration.md)
+records13 pure suites and scoped UI/save/render passes. Async M2 passed once and
+failed an identical repeat at the single mobile Close:1/2, still HELD. Original
+M2 is unchanged and fails its synchronous-save assertion. Natural full campaign,
+physical devices, rights and release are not accepted. Existing Foldwild only;
+no game/catalog addition or push. Ten source-first genre plans and the120-project
+legacy review are completed separately, with zero new-game ingestion GO.
+
+Owner next requests a3D racer and3D car tycoon; intended existing titles are not
+yet identified. No car replacement or near-brand asset work starts by assumption.
 
 ## Order and acceptance
 
@@ -50,7 +66,7 @@ installed model registry, with bounded high-thinking tasks. No Sol substitution.
 Workers 75–77 own no runtime code in this first wave. Main retains game direction,
 all subjective visuals, scope, integration and acceptance. Logs/real supervisor
 status are retained under temporary basenames `astra-<task>-<number>.*`.
-Each task is bounded to ten minutes; no silently extended workers. After two
+First-wave tasks are bounded to ten minutes; implementation95–97 received explicit fifteen-minute leases, with no silently extended workers. After two
 failures abandon that task/escalate; no fake completion or inferred exit.
 
 ## Unchanged boundaries
