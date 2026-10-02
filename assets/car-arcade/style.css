@@ -1,0 +1,128 @@
+@font-face {
+  font-family: Bungee;
+  src: url('../fonts/bungee/bungee-400-latin.woff2') format('woff2');
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: Atkinson;
+  src: url('../fonts/atkinson-hyperlegible/atkinson-hyperlegible-400-latin.woff2') format('woff2');
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: Atkinson;
+  src: url('../fonts/atkinson-hyperlegible/atkinson-hyperlegible-700-latin.woff2') format('woff2');
+  font-weight: 700;
+  font-display: swap;
+}
+:root {
+  color-scheme: light;
+  --page: #eee9df;
+  --panel: #fffdf7;
+  --ink: #1c1c1c;
+  --line: #68635b;
+  --accent: #f2c14e;
+  --error: #9b1717;
+}
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --page: #202020;
+  --panel: #303030;
+  --ink: #fff7e8;
+  --line: #b9b2a6;
+  --error: #ffb4a6;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body {
+  margin: 0;
+  padding: max(12px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right)) max(16px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left));
+  background: var(--page);
+  color: var(--ink);
+  font: 18px/1.45 Atkinson, system-ui, sans-serif;
+  overflow-wrap: anywhere;
+}
+main, .game-shell { max-width: 1280px; margin-inline: auto; min-width: 0; }
+h1, h2, h3 { line-height: 1.2; margin: 0 0 12px; }
+h1, h2 { font-family: Bungee, system-ui, sans-serif; font-weight: 400; }
+h1 { font-size: clamp(1.5rem, 4vw, 2.5rem); }
+h2 { font-size: 1.2rem; }
+p { margin: 0 0 12px; }
+a { color: inherit; text-underline-offset: 3px; }
+button, input, select, textarea { font: inherit; max-width: 100%; }
+button, .button, input, select { min-height: 44px; }
+button, .button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  padding: 8px 14px;
+  border: 2px solid var(--line);
+  border-radius: 4px;
+  background: #000;
+  color: #fff;
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+button:disabled { cursor: not-allowed; color: #c4c4c4; border-style: dashed; }
+button[aria-pressed='true'], .button[aria-current] { border-color: var(--accent); text-decoration: underline; }
+input, select, textarea {
+  padding: 8px;
+  border: 2px solid var(--line);
+  border-radius: 4px;
+  color: var(--ink);
+  background: var(--panel);
+}
+label { display: block; }
+:focus-visible { outline: 3px solid var(--ink); outline-offset: 3px; }
+button:focus-visible, .button:focus-visible { outline-color: var(--accent); box-shadow: 0 0 0 6px #000; }
+.skip-link {
+  position: absolute;
+  left: 12px;
+  top: 8px;
+  z-index: 10;
+  padding: 12px;
+  transform: translateY(-160%);
+  background: #000;
+  color: #fff;
+}
+.skip-link:focus { transform: none; }
+.game-header, .actions, .hud, .touch-controls { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.game-header { justify-content: space-between; margin-bottom: 16px; }
+.game-layout { display: grid; grid-template-columns: minmax(0, 2fr) minmax(260px, 1fr); gap: 16px; align-items: start; }
+.panel, .car-card { padding: 16px; background: var(--panel); border: 2px solid var(--line); border-radius: 4px; min-width: 0; }
+.panel + .panel { margin-top: 16px; }
+.garage-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); gap: 12px; }
+.car-card { display: flex; flex-direction: column; gap: 8px; }
+.car-card .actions { margin-top: auto; }
+.car-card[aria-current='true'] { border: 3px solid var(--ink); }
+.viewport { min-width: 0; border: 2px solid var(--line); background: #242424; }
+.viewport canvas, canvas.game-canvas {
+  display: block;
+  width: 100%;
+  height: min(56vh, 560px);
+  max-height: 560px;
+}
+.hud { padding: 12px; background: var(--panel); border: 2px solid var(--line); margin-block: 12px; font-variant-numeric: tabular-nums; }
+.hud > * { flex: 1 1 100px; min-width: 0; }
+.touch-controls { margin-block: 12px; }
+.touch-controls button { flex: 1 1 60px; min-height: 52px; touch-action: none; user-select: none; }
+.status { padding-block: 8px; }
+.error { color: var(--error); font-weight: 700; }
+.stats { margin: 0; }
+.stats div { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; }
+dd { margin: 0; }
+dialog { max-width: min(560px, calc(100% - 24px)); max-height: calc(100dvh - 32px); overflow: auto; padding: 20px; border: 2px solid var(--line); background: var(--panel); color: var(--ink); }
+dialog::backdrop { background: #161616; }
+@media (max-width: 760px) {
+  .game-layout { grid-template-columns: minmax(0, 1fr); }
+  .panel, .car-card { padding: 12px; }
+  .viewport canvas, canvas.game-canvas { height: min(46vh, 400px); }
+  .actions > * { flex: 1 1 auto; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { scroll-behavior: auto !important; }
+}
