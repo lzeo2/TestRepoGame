@@ -1,6 +1,6 @@
 import { SPECIES, BY_ID } from './data.js';
-import { statsFor, createCreature, clearEffects } from './battle.js';
-import { validateIndividual, unlockedClasses } from './builds.js';
+import { statsFor, createCreature, clearEffects, validateBattle } from './battle.js';
+import { validateIndividual, unlockedClasses, generateIndividual } from './builds.js';
 import { freshEconomy, refreshStock, ITEMS, COSMETICS, SHOPS, CONTRACTS } from './economy.js';
 import { REGION_DEFINITIONS, REGION_LAYOUTS, movePosition, routeTo } from './region-data.js';
 
@@ -84,7 +84,7 @@ function exact(value, keys, label) {
   if (Reflect.ownKeys(value).length !== keys.length || keys.some(key => !Object.hasOwn(value, key))) throw new RangeError(`Invalid ${label} keys.`);
   return Object.fromEntries(keys.map(key => [key, field(value, key)]));
 }
-function creatureCopy(value, legacy = false) {
+function creatureCopy(value, legacy = false, strictResources = false) {
   const raw = plain(value, 'creature');
   const uid = field(raw, 'uid');
   if (typeof uid !== 'string' || !UID.test(uid)) throw new TypeError('Invalid creature UID.');
@@ -109,6 +109,9 @@ function creatureCopy(value, legacy = false) {
   const normalized = clearEffects(projected);
   const canonical = createCreature(normalized.speciesId, normalized.level, normalized.uid, individual);
   const maxima = statsFor(canonical);
+  if (strictResources && (projected.hp !== normalized.hp || projected.energy !== normalized.energy)) {
+    throw new RangeError('Invalid pending roster resources.');
+  }
   canonical.xp = normalized.xp;
   canonical.hp = clamp(normalized.hp, 0, maxima.maxHP);
   canonical.energy = clamp(normalized.energy, 0, maxima.maxEnergy);
@@ -144,13 +147,60 @@ function sizeCheck(text) {
   return text;
 }
 
+function pendingBattleCopy(value, state) {
+  // Validate descriptors before accessing nested data or serializing anything imported.
+  const battle = validateBattle(value);
+  integer(battle.round, 1, 10000, 'pending round');
+  if (battle.result !== null || battle.phase !== 'command' || !battle.synergyEnabled ||
+      battle.player.classId !== state.activeClass || battle.enemy.classId !== 'none' ||
+      [battle.player, battle.enemy].some(side => side.team[side.active].hp <= 0)) {
+    throw new RangeError('Invalid pending battle state.');
+  }
+  for (const name of ['player', 'enemy']) {
+    for (const [index, creature] of battle[name].team.entries()) {
+      integer(creature.xp, 0, 1e6, 'pending XP');
+      const raw = field(field(field(value, name), 'team'), String(index));
+      if (field(raw, 'hp') !== creature.hp || field(raw, 'energy') !== creature.energy) {
+        throw new RangeError('Invalid pending battle resources.');
+      }
+    }
+  }
+  if (battle.player.team.length !== state.team.length || battle.player.team.some((creature, index) =>
+      creature.uid !== state.team[index] || JSON.stringify(clearEffects(creature)) !==
+        JSON.stringify(clearEffects(state.roster.find(owned => owned.uid === creature.uid))))) {
+    throw new RangeError('Invalid pending player roster.');
+  }
+  if (battle.enemy.team.some(creature => state.roster.some(owned => owned.uid === creature.uid) ||
+      !state.seen.includes(creature.speciesId))) throw new RangeError('Invalid pending enemy identity.');
+  const sameEnemy = (creature, expected) => {
+    expected.hp = creature.hp;
+    expected.energy = creature.energy;
+    return JSON.stringify(clearEffects(creature)) === JSON.stringify(clearEffects(expected));
+  };
+  if (battle.kind === 'wild') {
+    const creature = battle.enemy.team[0];
+    if (!worldPoints(state).some(point => point.type === 'wild' && sameEnemy(creature,
+      createCreature(point.speciesId, point.level, `wild-${state.encounterIndex}`, generateIndividual(point.individualSeed))))) {
+      throw new RangeError('Invalid pending wild encounter.');
+    }
+  } else {
+    const rival = RIVALS[state.region];
+    if (state.defeatedRivals.includes(state.region) || battle.enemy.team.length !== rival.team.length ||
+        battle.enemy.team.some((creature, index) => !sameEnemy(creature, createCreature(
+          rival.team[index].speciesId, rival.team[index].level, `rival-${state.encounterIndex}-${index}`)))) {
+      throw new RangeError('Invalid pending regional trial.');
+    }
+  }
+  return battle;
+}
+
 export function freshGame(starterId = 'cindupp', seed = 1) {
   if (!STARTERS.includes(starterId)) throw new RangeError('Invalid starter id.');
   integer(seed, 0, 0xffffffff, 'seed');
   return validateSave({ version: 2, seed, starterId, position: { ...REGION_LAYOUTS[0].spawn }, region: 0,
     roster: [createCreature(starterId, 3, 'owned-1')], team: ['owned-1'], seen: [starterId], caught: [starterId],
     defeatedRivals: [], score: 0, kites: 8, encounterIndex: 0, nextUid: 2, reducedMotion: false,
-    ...freshEconomy(), activeClass: 'pathfinder', appearance: { ...APPEARANCE }, favorites: [], quality: 'low', legacyRivals: [] });
+    ...freshEconomy(), activeClass: 'pathfinder', appearance: { ...APPEARANCE }, favorites: [], quality: 'low', legacyRivals: [], pendingBattle: null });
 }
 
 export function unlockedRegion(state) {
@@ -164,6 +214,7 @@ export function validateSave(value) {
   const version = field(raw, 'version');
   if (version !== 1 && version !== 2) throw new RangeError('Unsupported save version.');
   const legacy = version === 1;
+  const pendingBattle = optional(raw, 'pendingBattle', null);
   const seed = integer(field(raw, 'seed'), 0, 0xffffffff, 'seed');
   const starterId = field(raw, 'starterId');
   if (!STARTERS.includes(starterId)) throw new RangeError('Invalid starter id.');
@@ -172,7 +223,7 @@ export function validateSave(value) {
   const positionZ = finite(field(position, 'z'), 'position z');
   const yaw = finite(field(position, 'yaw'), 'position yaw');
   const normalizedYaw = ((yaw % (2 * Math.PI) + 3 * Math.PI) % (2 * Math.PI)) - Math.PI;
-  const roster = list(field(raw, 'roster'), 1, MAX_ROSTER, 'roster').map(c => creatureCopy(c, legacy));
+  const roster = list(field(raw, 'roster'), 1, MAX_ROSTER, 'roster').map(c => creatureCopy(c, legacy, pendingBattle !== null));
   const uids = unique(roster.map(c => c.uid), 'creature UID');
   const ownedNumbers = unique(uids.filter(uid => /^owned-\d+$/.test(uid)).map(uid =>
     integer(Number(uid.slice(6)), 0, 1e9 - 1, 'owned UID number')), 'owned UID number');
@@ -217,9 +268,26 @@ export function validateSave(value) {
   const state = { version: 2, seed, starterId, position: canonicalPosition, region, roster, team, seen, caught,
     defeatedRivals, score: integer(field(raw, 'score'), 0, 1e9, 'score'), kites, encounterIndex, nextUid, reducedMotion,
     ...economy, activeClass, appearance: legacy ? { ...APPEARANCE } : appearanceCopy(field(raw, 'appearance')),
-    favorites, quality, legacyRivals };
+    favorites, quality, legacyRivals, pendingBattle: null };
+  if (pendingBattle !== null) state.pendingBattle = pendingBattleCopy(pendingBattle, state);
   sizeCheck(JSON.stringify(state));
   return state;
+}
+
+export function releaseCreature(state, uid) {
+  const next = validateSave(state);
+  const creature = next.roster.find(owned => owned.uid === uid);
+  if (!creature) throw new RangeError('Unknown creature UID.');
+  if (next.pendingBattle !== null) throw new RangeError('Cannot release during a pending battle.');
+  if (next.roster.length === 1) throw new RangeError('Cannot release the last ally.');
+  if (next.team.includes(uid)) throw new RangeError('Cannot release a team member.');
+  if (next.favorites.includes(uid)) throw new RangeError('Cannot release a favorite.');
+  if (creature.hp > 0 && !next.roster.some(owned => owned.uid !== uid && owned.hp > 0)) {
+    throw new RangeError('Cannot release the last conscious ally.');
+  }
+  next.roster = next.roster.filter(owned => owned.uid !== uid);
+  next.favorites = next.favorites.filter(favorite => favorite !== uid);
+  return validateSave(next);
 }
 
 export function readSave(storage) {
