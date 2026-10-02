@@ -177,6 +177,22 @@ Sibling dirty paths observed: `Games/Foldwild/builds.js`, `battle.js`,
 these belong to worker95 and are not staged by worker96. New sibling reports
 may appear during concurrent work. Rank ABI is required by world imports.
 
+## Post-commit verification
+
+Source commit `c2acba93e80d57a229d71a5cb313b42ee5c6dc63`, author and committer
+`Arcade Worker <>`, follows sibling rank commit
+`3cd9963c5ca0adf881930606df8f44d6c5cf0f1d`. Inspected staged paths: exactly
+campaign/world, this report, new campaign regression and the two authorized
+schema-expectation suites. No sibling paths staged.
+
+After both source commits, reran world, save_v2, continuity, campaign and
+class_ranks: all five exit0 with the same PASS output recorded above.
+`git diff --check`: exit0; `git status --short`: empty.
+Maintenance checker rerun: **exit1**, now with the expected actual assertion
+`Inventory stale: inspect changes, then run --refresh.` Manual/inventory refresh
+remains Main's unowned hold. Disk still 2.2G free. The unowned save-conflict
+failure remains unresolved; no claim of a full clean suite or acceptance.
+
 **Held:** Main review/integration, unowned save-conflict expectations,
 maintenance refresh, stable uninstrumented native Close, original/async M2,
 natural campaign/ranks/alternate starter/pacing, screenshot review, rights,
