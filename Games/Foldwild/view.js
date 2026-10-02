@@ -179,14 +179,25 @@ export function createView(canvas, { onCheckpoint = () => {}, reducedMotion = fa
     const message = document.getElementById('message');
     if (message) message.textContent = `3D model unavailable. Marker used instead. ${[...failures].join('; ')}`;
   }
-  function cosmetic(parent, id, size, family) {
-    if (!['badge', 'scarf', 'paper-hat'].includes(id)) return;
-    const bird = /wing|sail|strider/i.test(family);
-    const side = size.x * .5 + .04;
-    // Side/back anchors leave the source face and silhouette intact. Fit is not an all-80 certification.
-    if (id === 'badge') shape(parent, 'box', '#b59a53', side, size.y * (bird ? .5 : .65), 0, .045, .16, .16);
-    if (id === 'scarf') shape(parent, 'box', '#8b4f3d', -side, size.y * .6, size.z * .18, .08, .18, size.z * .55);
-    if (id === 'paper-hat') shape(parent, 'cone', '#e1cfaa', 0, size.y + .16, -size.z * .1, .24, .3, .24);
+  function cosmetic(parent, id, size) {
+    if (id === 'paper-hat') { shape(parent, 'cone', '#e1cfaa', 0, size.y + .16, -size.z * .1, .24, .3, .24); return; }
+    if (!['badge', 'scarf'].includes(id)) return;
+    const side = id === 'badge' ? 1 : -1, thickness = id === 'badge' ? .045 : .08;
+    // Cast only at creation, against the scaled source clone before adding any accessories.
+    parent.updateMatrixWorld(true);
+    for (const z of [0, size.z * .2, -size.z * .2]) for (const fraction of [.55, .45, .7, .3]) {
+      raycaster.set(new THREE.Vector3(side * (size.x / 2 + 1), size.y * fraction, z), new THREE.Vector3(-side, 0, 0));
+      const hit = raycaster.intersectObject(parent, true)[0];
+      if (!hit) continue;
+      const anchor = parent.worldToLocal(hit.point.clone());
+      const mesh = shape(parent, 'box', id === 'badge' ? '#b59a53' : '#8b4f3d',
+        anchor.x + side * thickness / 2, anchor.y, anchor.z, thickness,
+        id === 'badge' ? .16 : .18, id === 'badge' ? .16 : size.z * .55);
+      return { id, anchor, mesh, side };
+    }
+    const message = document.getElementById('message');
+    if (message) message.textContent = 'Accessory unavailable: no source surface found. Original model shown without it.';
+    return { id, anchor: null };
   }
   function creature(key, id, x, z, rotation, token, target = 1.45, cosmeticId = 'none') {
     const slot = { key, id, closed: false, entry: null, frame: null, x, z, path: null };
@@ -207,7 +218,7 @@ export function createView(canvas, { onCheckpoint = () => {}, reducedMotion = fa
         model.position.set(-center.x, -bounds.min.y, -center.z);
         const scaled = new THREE.Group(), frame = new THREE.Group();
         scaled.add(model); scaled.scale.setScalar(scale); frame.add(scaled);
-        cosmetic(frame, cosmeticId, size.multiplyScalar(scale), species.family);
+        slot.attachment = cosmetic(frame, cosmeticId, size.multiplyScalar(scale));
         frame.position.set(x, 0, z); frame.rotation.y = rotation;
         slot.frame = frame; root.add(frame);
       } catch (error) {
@@ -546,6 +557,11 @@ export function createView(canvas, { onCheckpoint = () => {}, reducedMotion = fa
         min: Object.freeze({ x: inspectionBounds.min.x, y: inspectionBounds.min.y, z: inspectionBounds.min.z }),
         max: Object.freeze({ x: inspectionBounds.max.x, y: inspectionBounds.max.y, z: inspectionBounds.max.z })
       }) : null,
+      cosmeticAttachments: Object.freeze([...slots.values()].filter(s => s.attachment).map(s => {
+        const a = s.attachment, vector = v => v ? Object.freeze({ x: v.x, y: v.y, z: v.z }) : null;
+        return Object.freeze({ speciesId: s.id, cosmeticId: a.id, attached: Boolean(a.mesh),
+          anchor: vector(a.anchor), position: vector(a.mesh?.position), thickness: a.mesh?.scale.x ?? null, side: a.side ?? null });
+      })),
       cameraTarget: Object.freeze({ x: lookAt.x, y: lookAt.y, z: lookAt.z }),
       cacheSize: cache.size, countLoadedModels: loaded.length, loadedModels: Object.freeze(loaded), fallbackModels: Object.freeze([...failures]),
       hiddenAvailable, width: canvas.width, height: canvas.height, npcCount: npcs.length,
