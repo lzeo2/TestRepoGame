@@ -1,6 +1,8 @@
 import { SPECIES, BY_ID, ABILITIES, ELEMENT_WHEEL } from './data.js';
 import { statsFor, createCreature, clearEffects, gainXP, createBattle, applyAction } from './battle.js';
-import { REGIONS, RIVALS, PLAYER_BOUNDS, MAX_ROSTER, freshGame, validateSave, readSave, writeSave, worldPoints, nearbyPoint } from './world.js';
+import { REGIONS, RIVALS, REGION_LAYOUTS, movePosition, routeTo, unlockedRegion, MAX_ROSTER, freshGame, validateSave, readSave, writeSave, worldPoints, nearbyPoint } from './world.js';
+import { ITEMS, COSMETICS, SHOPS, CONTRACTS, buyItem, sellItem, buyCosmetic, completeContract, refreshStock } from './economy.js';
+import { CLASSES, TRAITS, generateIndividual, unlockedClasses, synergyFor } from './builds.js';
 import { createView } from './view.js';
 
 const byId = id => document.getElementById(id);
@@ -13,9 +15,10 @@ const directions = { w: [0, -1], arrowup: [0, -1], s: [0, 1], arrowdown: [0, 1],
 const saved = readSave();
 let savedSlot = saved.state, slotPresent = Boolean(saved.state || saved.error), savePermission = !saved.error;
 let state = null, battle = null, phase = 'menu', paused = false, busy = false;
-let starterId = 'cindupp', waypoint = null, pendingPoint = null, resetAction = null;
+let starterId = 'cindupp', route = [], pendingPoint = null, resetAction = null;
+let serviceContext = null, serviceMenu = 'kit', nearbyKey = '', battleFinished = false;
 let view = null, viewFailed = false, battleModels = '', busyElapsed = 0;
-let previousTime = null, saveElapsed = 0, positionDirty = false, rafId;
+let previousTime = null, saveElapsed = 0, positionDirty = false, rafId, renderClock = 0, renderElapsed = 0;
 const modal = () => all('dialog').some(dialog => dialog.open);
 const stopped = () => paused || modal() || document.hidden;
 const playable = () => state && !stopped() && !busy;
@@ -60,6 +63,7 @@ function ensureView() {
   if (view || viewFailed) return;
   try {
     view = createView(canvas, { onCheckpoint: approach, reducedMotion: byId('reduce-motion').checked });
+    if (state) { view.setQuality(state.quality); view.setAppearance(viewAppearance()); }
   } catch (error) {
     viewFailed = true;
     text('message', `${error.message}. Use the trail and battle buttons below; the expedition remains playable without 3D.`);
@@ -86,7 +90,13 @@ function markOwned() {
 }
 function updateHUD() {
   if (!state) return;
-  text('zone-name', `${REGIONS[state.region].name} · trailkeepers ${state.defeatedRivals.length}/3`);
+  text('zone-name', `${REGIONS[state.region].name} · trials ${state.defeatedRivals.length}/5${state.legacyRivals.length && !state.defeatedRivals.includes(3) ? ' · legacy Iven badge held' : ''}`);
+  text('marks', state.marks);
+  text('class-name', CLASSES[state.activeClass].name);
+  const synergy = synergyFor(party());
+  text('synergy-name', `${synergy.name}: ${synergy.description}`);
+  byId('quality').value = state.quality;
+  byId('services-btn').disabled = phase !== 'world' || busy || paused;
   text('score', state.score);
   text('dex-count', `${state.seen.length} seen / ${state.caught.length} caught / 80`);
   text('kites', state.kites);
@@ -98,7 +108,7 @@ function updateHUD() {
   for (const element of all('[data-region]')) {
     const region = Number(element.dataset.region);
     element.textContent = REGIONS[region].name;
-    element.disabled = phase !== 'world' || stopped() || busy || region > Math.min(2, state.defeatedRivals.length);
+    element.disabled = phase !== 'world' || stopped() || busy || region > unlockedRegion(state);
     element.setAttribute('aria-pressed', String(region === state.region));
   }
   byId('team-list').replaceChildren(...party().map(c => {
@@ -114,20 +124,36 @@ function updateProximity() {
   text('interact', point ? `Interact: ${point.label}` : 'Approach a trail marker');
   byId('rest').disabled = !allowed || point.type !== 'camp';
   for (const element of all('[data-move]')) element.disabled = phase !== 'world' || stopped() || busy;
+  if (state && phase === 'world') nearbyActions();
+  for (const element of all('[data-point]')) element.disabled = phase !== 'world' || stopped() || busy;
 }
-function showWorld() {
-  waypoint = null;
-  pendingPoint = null;
-  battleModels = '';
-  setPhase('world');
-  const points = worldPoints(state);
+function nearbyActions() {
+  const points = worldPoints(state).sort((a, b) => distanceTo(a) - distanceTo(b)).slice(0, 3);
+  const key = points.map(p => `${p.id}:${p.label}`).join('/');
+  if (key === nearbyKey) return;
+  nearbyKey = key;
   byId('nearby-actions').replaceChildren(...points.map(point => {
     const element = button(point.type === 'wild' ? `${point.label} · level ${point.level}` : point.label, () => approach(point.id));
     element.dataset.point = point.id;
     return element;
   }));
+}
+function distanceTo(point) { return Math.hypot(point.x - state.position.x, point.z - state.position.z); }
+function viewAppearance() {
+  const { skin, coat, backpack } = state.appearance;
+  return { skin, coat, pack: backpack };
+}
+function showWorld() {
+  route = [];
+  pendingPoint = null;
+  battleModels = '';
+  setPhase('world');
+  nearbyKey = '';
+  nearbyActions();
   ensureView();
-  view?.showWorld({ region: state.region, position: state.position, points });
+  view?.setQuality(state.quality);
+  view?.setReducedMotion(state.reducedMotion);
+  view?.showWorld({ region: state.region, position: state.position, points: worldPoints(state), appearance: viewAppearance() });
   view?.setPlayerPosition(state.position.x, state.position.z, state.position.yaw);
   message(REGIONS[state.region].description);
   resize();
@@ -141,7 +167,11 @@ function chooseStarter(id) {
   text('starter-description', `${species.name} · ${species.element}. ${species.abilities.join('; ')}. Starts at level 3.${warning}`);
 }
 function start() {
-  state = freshGame(starterId, 1);
+  const input = byId('seed-input');
+  if (!input.reportValidity()) return;
+  const seed = input.value === '' ? crypto.getRandomValues(new Uint32Array(1))[0] : Number(input.value);
+  if (!Number.isInteger(seed) || seed < 0 || seed > 0xffffffff) { input.setCustomValidity('Enter a whole seed from 0 to 4294967295.'); input.reportValidity(); return; }
+  state = freshGame(starterId, seed);
   state.reducedMotion = byId('reduce-motion').checked;
   paused = false;
   busy = false;
@@ -162,7 +192,7 @@ function returnToMenu() {
   battle = null;
   paused = false;
   busy = false;
-  waypoint = null;
+  route = [];
   pendingPoint = null;
   savedSlot = null;
   slotPresent = false;
@@ -175,7 +205,8 @@ function approach(id) {
   if (phase !== 'world' || !playable()) return;
   const point = worldPoints(state).find(p => p.id === id);
   if (!point) return;
-  waypoint = point;
+  route = routeTo(state.region, state.position, point);
+  if (!route.length) return message('No open trail reaches this point from here.');
   message(`Walking to ${point.label}. Press E or Interact when nearby.`);
   focusGame();
 }
@@ -190,35 +221,36 @@ function healAll() {
 function rest() {
   if (phase !== 'world' || !playable() || nearbyPoint(state)?.type !== 'camp') return;
   healAll();
-  // Free camp resupply keeps all 80 species collectible after the starting 18 kites.
-  state.kites = Math.max(18, state.kites);
-  message('Camp rest restored every ally’s HP and energy. Latch Kites refolded to at least 18.');
+  state.kites = Math.max(4, state.kites);
+  message('Camp restored every ally\'s HP and energy, with at least four free Latch Kites. No Marks spent.');
   updateHUD();
   save();
 }
 function travel(region) {
-  if (phase !== 'world' || !playable() || !Number.isInteger(region) || region < 0 || region > Math.min(2, state.defeatedRivals.length)) return;
+  if (phase !== 'world' || !playable() || !Number.isInteger(region) || region < 0 || region > unlockedRegion(state)) return;
   state.region = region;
-  state.position = { x: 0, z: 4, yaw: 0 };
+  state.position = { ...REGION_LAYOUTS[region].spawn };
   showWorld();
   save();
 }
 function result(title, description) {
   text('result-title', title);
   text('result-description', description);
-  text('result-continue', state.defeatedRivals.length === 3 ? 'Continue free play' : 'Continue expedition');
+  text('result-continue', state.defeatedRivals.length === 5 ? 'Continue free play' : 'Continue expedition');
   setPhase('result');
 }
 function interact() {
   if (phase !== 'world' || !playable()) return;
   const point = nearbyPoint(state);
   if (!point) return;
-  waypoint = null;
+  route = [];
   if (point.type === 'camp') return rest();
+  if (point.type === 'supply') return collectSupply(point);
+  if (!['wild', 'rival', 'exit'].includes(point.type)) return openServices(point);
   if (point.type === 'exit') {
     if (!state.defeatedRivals.includes(state.region)) return message(`Train with ${RIVALS[state.region].name} before taking this path.`);
-    if (state.region < 2) return travel(state.region + 1);
-    return result('Ridge circuit complete · 3/3', 'All three trailkeepers cleared. Continue free play in every region and collect all 80 species.');
+    if (state.region < 4) return travel(state.region + 1);
+    return result('Five routes cleared', 'All five regional trials are cleared. Keep exploring the authored routes. The final expedition is not part of this milestone.');
   }
   pendingPoint = point;
   if (point.type === 'wild') {
@@ -238,10 +270,12 @@ function beginBattle() {
   if (phase !== 'dialogue' || !pendingPoint || busy) return;
   const point = pendingPoint;
   const kind = point.type === 'rival' ? 'rival' : 'wild';
-  const enemies = kind === 'wild' ? [createCreature(point.speciesId, point.level, `wild-${state.encounterIndex}`)]
+  const individualSeed = point.individualSeed ?? ((state.seed ^ Math.imul(state.encounterIndex + 1, 2246822519) ^ SPECIES.findIndex(s => s.id === point.speciesId)) >>> 0);
+  const enemies = kind === 'wild' ? [createCreature(point.speciesId, point.level, `wild-${state.encounterIndex}`, generateIndividual(individualSeed))]
     : RIVALS[state.region].team.map((c, i) => createCreature(c.speciesId, c.level, `rival-${state.encounterIndex}-${i}`));
   for (const c of enemies) if (!state.seen.includes(c.speciesId)) state.seen.push(c.speciesId);
-  battle = createBattle(party(), enemies, { kind, seed: (state.seed + state.encounterIndex) >>> 0 });
+  battle = createBattle(party(), enemies, { kind, seed: (state.seed + state.encounterIndex) >>> 0, classId: state.activeClass, synergyEnabled: true });
+  battleFinished = false;
   phase = 'battle';
   byId('dialogue-dialog').close();
   setPhase('battle');
@@ -255,6 +289,7 @@ function captureReason() {
   const enemy = battle.enemy.team[battle.enemy.active];
   if (battle.kind !== 'wild') return 'Trailkeeper allies cannot be captured';
   if (state.roster.length >= MAX_ROSTER) return 'Collection capacity reached (160 allies)';
+  if (state.nextUid >= 1e9) return 'Collection identity capacity reached';
   if (state.kites < 1) return 'No Latch Kites remaining';
   if (enemy.hp <= 0) return 'Defeated creatures cannot be captured';
   if (enemy.hp > statsFor(enemy).maxHP / 2) return 'Weaken the wild creature to half HP or less';
@@ -302,7 +337,7 @@ function renderBattle() {
   const reason = captureReason();
   text('capture', reason ? `Latch Kite: ${reason}` : `Latch Kite (${state.kites} left)`);
   byId('capture').disabled = blocked || Boolean(reason);
-  text('wait', 'Wait · restore 3 energy');
+  text('wait', `Wait · restore ${3 + TRAITS[player.traitId ?? 'neutral'].perks.waitEnergy} energy`);
   byId('wait').disabled = blocked;
   byId('flee').disabled = blocked || battle.kind !== 'wild';
   byId('switch-list').replaceChildren(...battle.player.team.map((c, index) => {
@@ -318,12 +353,15 @@ function renderBattle() {
     return element;
   }));
   byId('battle-log').scrollTop = byId('battle-log').scrollHeight;
-  const modelKey = `${player.speciesId}/${enemy.speciesId}`;
-  if (modelKey !== battleModels) {
-    battleModels = modelKey;
-    view?.showBattle({ playerSpeciesId: player.speciesId, enemySpeciesId: enemy.speciesId });
-  }
+  showBattleModels(player, enemy);
   updateHUD();
+}
+function showBattleModels(player, enemy) {
+  const modelKey = `${state.region}/${player.speciesId}/${player.cosmeticId}/${enemy.speciesId}/${enemy.cosmeticId}`;
+  if (modelKey === battleModels) return;
+  battleModels = modelKey;
+  view?.showBattle({ playerSpeciesId: player.speciesId, enemySpeciesId: enemy.speciesId, region: state.region,
+    playerCosmeticId: player.cosmeticId ?? 'none', enemyCosmeticId: enemy.cosmeticId ?? 'none' });
 }
 function copyBattleTeam() {
   for (const c of battle.player.team) {
@@ -353,6 +391,8 @@ function command(action) {
   view?.animateAction({ type: action.type, side: 'player' });
 }
 function finishBattle() {
+  if (!battle?.result || battleFinished) return;
+  battleFinished = true;
   const outcome = battle.result;
   copyBattleTeam();
   const levels = battle.enemy.team.reduce((sum, c) => sum + c.level, 0);
@@ -364,9 +404,14 @@ function finishBattle() {
     if (battle.kind === 'rival') {
       if (state.defeatedRivals.length === state.region) {
         state.defeatedRivals.push(state.region);
-        state.score += 250 + levels * 10;
+        state.score = Math.min(1e9, state.score + 250 + levels * 10);
+        state.marks = Math.min(1e6, state.marks + 60 + 3 * levels);
+        if (state.region === 2 && state.legacyRivals.includes(2) && state.defeatedRivals.length === 3) state.defeatedRivals.push(3);
       }
-    } else state.score += (outcome === 'captured' ? 100 : 40) + levels * 10;
+    } else {
+      state.score = Math.min(1e9, state.score + (outcome === 'captured' ? 100 : 40) + levels * 10);
+      state.marks = Math.min(1e6, state.marks + 18 + 2 * levels);
+    }
   }
   let description;
   if (outcome === 'captured') {
@@ -378,48 +423,205 @@ function finishBattle() {
     description = `${BY_ID[captured.speciesId].name} joined your collection. One Latch Kite used on this attempt. Each expedition ally gained ${levels * 12 + 20} XP.`;
   } else if (outcome === 'lost') {
     healAll();
-    state.position = { x: -6, z: 4, yaw: 0 };
+    state.position = { ...REGION_LAYOUTS[state.region].spawn };
     description = 'The camp welcomed your tired team. Every ally is fully rested; your collection and trail progress are safe.';
   } else if (outcome === 'won') {
-    description = battle.kind === 'rival' ? `${RIVALS[state.region].winDialogue} Trailkeepers ${state.defeatedRivals.length}/3.` : `Each expedition ally gained ${levels * 12 + 20} XP.`;
+    description = battle.kind === 'rival' ? `${RIVALS[state.region].winDialogue} Regional trials ${state.defeatedRivals.length}/5.` : `Each expedition ally gained ${levels * 12 + 20} XP.`;
   } else description = 'You left the encounter. The trail has new wild allies to meet.';
-  state.encounterIndex++;
+  state.encounterIndex = Math.min(1e9, state.encounterIndex + 1);
   markOwned();
-  result(outcome === 'captured' ? 'Capture complete' : outcome === 'lost' ? 'Team needs a rest' : battle.kind === 'rival' && outcome === 'won' ? (state.defeatedRivals.length === 3 ? 'Ridge circuit complete · 3/3' : 'Trail cleared') : outcome === 'won' ? 'Encounter won' : 'Encounter left', description);
+  result(outcome === 'captured' ? 'Capture complete' : outcome === 'lost' ? 'Team needs a rest' : battle.kind === 'rival' && outcome === 'won' ? (state.defeatedRivals.length === 5 ? 'Five routes cleared' : 'Trail cleared') : outcome === 'won' ? 'Encounter won' : 'Encounter left', description);
   // XP evolution is visible immediately, even while the last action effect runs.
   const player = state.roster.find(c => c.uid === battle.player.team[battle.player.active].uid);
   const enemy = battle.enemy.team[battle.enemy.active];
-  const modelKey = `${player.speciesId}/${enemy.speciesId}`;
-  if (modelKey !== battleModels) {
-    battleModels = modelKey;
-    view?.showBattle({ playerSpeciesId: player.speciesId, enemySpeciesId: enemy.speciesId });
-  }
+  showBattleModels(player, enemy);
   save();
+}
+function selectControl(label, values, current, change) {
+  const wrapper = document.createElement('label'), select = document.createElement('select');
+  wrapper.append(document.createTextNode(`${label} `), select);
+  for (const [value, name] of values) {
+    const option = document.createElement('option'); option.value = value; option.textContent = name; select.append(option);
+  }
+  select.value = current;
+  select.addEventListener('change', () => change(select.value));
+  return wrapper;
+}
+function collectSupply(point) {
+  const id = `${state.region}:${point.id}`;
+  if (state.claimedSupplies.includes(id) || point.materialId !== 'fiber') return;
+  try {
+    const next = structuredClone(state), amount = point.quantity + (state.activeClass === 'pathfinder' ? 1 : 0);
+    if (next.inventory.fiber >= 999) throw new Error('Fiber capacity reached. Deliver or sell a bundle first.');
+    next.inventory.fiber = Math.min(999, next.inventory.fiber + amount);
+    next.claimedSupplies.push(id);
+    state = validateSave(next);
+    showWorld(); updateHUD(); save();
+    message(`Collected ${amount} fiber${state.activeClass === 'pathfinder' ? ', including one Pathfinder bonus' : ''}.`);
+  } catch (error) { message(error.message); }
+}
+function servicePoint() {
+  return serviceContext && worldPoints(state).find(p => p.id === serviceContext.id && distanceTo(p) <= 1.8);
+}
+function atOutpost() {
+  return worldPoints(state).some(p => distanceTo(p) <= 1.8 && (p.type === 'camp' || p.type === 'mentor' || p.shopId));
+}
+function openServices(point = null) {
+  if (phase !== 'world' || !playable()) return;
+  serviceContext = point;
+  serviceMenu = point?.shopId ? (point.role === 'tailor' ? 'cosmetics' : 'shop') : point?.contractId ? 'contract' : point?.type === 'mentor' ? 'classes' : 'kit';
+  if (point?.shopId) {
+    try { state = refreshStock(state, point.shopId); } catch (error) { return message(error.message); }
+  }
+  clearInput(); route = [];
+  byId('service-dialog').showModal();
+  renderServices(); updateHUD(); resize();
+}
+function serviceAction(action, requires = 'field') {
+  if (phase !== 'world' || !byId('service-dialog').open || paused || busy) return;
+  try {
+    const point = servicePoint();
+    if (requires === 'shop' && !point?.shopId) throw new Error('Visit the supply merchant or tailor to trade.');
+    if (requires === 'contract' && !point?.contractId) throw new Error('Visit this supply counter to deliver fiber.');
+    if (requires === 'outpost' && !atOutpost()) throw new Error('Visit camp, a merchant or a field mentor to make this change.');
+    state = validateSave(action(structuredClone(state), point));
+    view?.setAppearance(viewAppearance());
+    updateHUD(); save(); renderServices();
+  } catch (error) { text('service-description', error.message); }
+}
+function useItem(next, uid, id) {
+  const c = next.roster.find(c => c.uid === uid), max = c && statsFor(c);
+  if (!c || !['patch', 'charge'].includes(id) || next.inventory[id] < 1) throw new Error('Recovery supply unavailable.');
+  const resource = id === 'patch' ? 'hp' : 'energy', limit = id === 'patch' ? max.maxHP : max.maxEnergy;
+  if (c.hp <= 0) throw new Error('Rest at camp to recover a knocked-out ally.');
+  if (c[resource] >= limit) throw new Error('Already full. No supply spent.');
+  c[resource] = Math.min(limit, c[resource] + (id === 'patch' ? 25 : 8));
+  next.inventory[id]--;
+  return next;
+}
+function renderServices() {
+  const point = servicePoint(), content = byId('service-content'), nodes = [];
+  text('service-title', point?.label ?? 'Field Kit');
+  text('service-description', `${point?.dialogue ? `${point.dialogue}\n\n` : ''}${state.marks} Marks. Use recovery supplies here. Trade at merchants and tailors; change class or outfit at camp or an outpost.`);
+  const tabs = document.createElement('div'); tabs.className = 'actions';
+  for (const [id, label] of [['kit', 'Inventory'], ['classes', 'Classes'], ['appearance', 'Archivist']]) tabs.append(button(label, () => { serviceMenu = id; renderServices(); }));
+  if (point?.shopId) for (const [id, label] of [['shop', 'Buy and sell'], ['cosmetics', 'Accessories']]) tabs.append(button(label, () => { serviceMenu = id; renderServices(); }));
+  if (point?.contractId) tabs.append(button('Supply contract', () => { serviceMenu = 'contract'; renderServices(); }));
+  nodes.push(tabs);
+  if (serviceMenu === 'shop' && point?.shopId) {
+    nodes.push(paragraph(`${SHOPS[point.shopId].name}. Prices per item; each button trades one. Stock refreshes after five encounters, not after opening this menu.`));
+    for (const item of Object.values(ITEMS)) {
+      const count = item.id === 'kite' ? state.kites : state.inventory[item.id], stock = state.shops[point.shopId].stock[item.id];
+      const row = document.createElement('section');
+      row.append(paragraph(`${item.name}: owned ${count}, stock ${stock}. Buy ${item.price} Marks; sell ${item.sell} Marks.`));
+      const buy = button(`Buy ${item.name} (${item.price})`, () => serviceAction((next, p) => buyItem(next, p.shopId, item.id), 'shop'));
+      buy.disabled = !stock || state.marks < item.price || count >= 999;
+      const sell = button(`Sell ${item.name} (${item.sell})`, () => serviceAction((next, p) => sellItem(next, p.shopId, item.id), 'shop'));
+      sell.disabled = count < 1 || stock >= 999 || state.marks + item.sell > 1e6;
+      row.append(buy, sell); nodes.push(row);
+    }
+  } else if (serviceMenu === 'cosmetics' && point?.shopId) {
+    nodes.push(paragraph('Accessories change appearance only. Equip owned accessories by ally in the field ledger.'));
+    for (const cosmetic of Object.values(COSMETICS)) {
+      const owned = state.cosmetics.includes(cosmetic.id);
+      const control = button(`${cosmetic.name}: ${owned ? 'Owned' : `${cosmetic.price} Marks`}`, () => serviceAction((next, p) => buyCosmetic(next, p.shopId, cosmetic.id), 'shop'));
+      control.disabled = owned || state.marks < cosmetic.price; nodes.push(control);
+    }
+  } else if (serviceMenu === 'contract' && point?.contractId) {
+    const contract = CONTRACTS[point.contractId], completed = state.contracts.includes(contract.id);
+    nodes.push(paragraph(`${contract.name}: deliver ${contract.quantity} fiber for ${contract.reward} Marks. Owned fiber ${state.inventory.fiber}. Quartermaster adds 5 Marks when active. One payment per contract.`));
+    const control = button(completed ? 'Delivery complete' : `Deliver ${contract.quantity} fiber`, () => serviceAction((next, p) => {
+      const bonus = next.activeClass === 'quartermaster' ? 5 : 0;
+      next = completeContract(next, p.contractId); next.marks = Math.min(1e6, next.marks + bonus); return next;
+    }, 'contract'));
+    control.disabled = completed || state.inventory.fiber < contract.quantity; nodes.push(control);
+  } else if (serviceMenu === 'classes') {
+    nodes.push(paragraph('One active class. Pathfinder finds one extra fiber per bundle; Quartermaster earns 5 extra Marks per delivery. Class ranks are not part of this foundation.'));
+    const unlocked = unlockedClasses(state);
+    for (const cls of Object.values(CLASSES)) {
+      const row = document.createElement('section'); row.append(paragraph(`${cls.name}: ${cls.description} ${cls.unlock}`));
+      const control = button(cls.id === state.activeClass ? `${cls.name} active` : `Choose ${cls.name}`, () => serviceAction(next => {
+        if (!unlockedClasses(next).includes(cls.id)) throw new Error('This class is still locked.');
+        next.activeClass = cls.id; return next;
+      }, 'outpost'));
+      control.disabled = cls.id === state.activeClass || !unlocked.includes(cls.id) || !atOutpost();
+      row.append(control); nodes.push(row);
+    }
+    if (!atOutpost()) nodes.push(paragraph('Visit camp, a merchant or a mentor to switch class.'));
+  } else if (serviceMenu === 'appearance') {
+    nodes.push(paragraph('Name and outfit colors are saved. Hairstyle changes are not available in this foundation.'));
+    const label = document.createElement('label'), input = document.createElement('input');
+    input.type = 'text'; input.maxLength = 24; input.value = state.appearance.name; input.disabled = !atOutpost();
+    label.append(document.createTextNode('Archivist name '), input); nodes.push(label);
+    const saveName = button('Save name', () => serviceAction(next => { next.appearance.name = input.value.trim(); return next; }, 'outpost'));
+    saveName.disabled = !atOutpost(); nodes.push(saveName);
+    const palettes = {
+      skin: [['#bc916b', 'Warm'], ['#8a5a3c', 'Brown'], ['#e2bc96', 'Light'], ['#5d3b2d', 'Deep']],
+      coat: [['#365a74', 'Blue'], ['#7b4f34', 'Brown'], ['#718267', 'Sage'], ['#b98369', 'Clay']],
+      backpack: [['#b39a6c', 'Canvas'], ['#66513d', 'Brown'], ['#688ba0', 'Blue']]
+    };
+    for (const [key, values] of Object.entries(palettes)) {
+      const control = selectControl(key, values, state.appearance[key], value => serviceAction(next => { next.appearance[key] = value; return next; }, 'outpost'));
+      control.querySelector('select').disabled = !atOutpost(); nodes.push(control);
+    }
+  } else {
+    nodes.push(paragraph(`Recovery Patches ${state.inventory.patch}: restore 25 HP to a conscious ally. Energy Charges ${state.inventory.charge}: restore 8 energy. Fiber ${state.inventory.fiber}: supply deliveries or sale.`));
+    for (const c of state.roster) {
+      const max = statsFor(c), row = document.createElement('section');
+      row.append(paragraph(`${nameOf(c)}: HP ${c.hp}/${max.maxHP}, energy ${c.energy}/${max.maxEnergy}`));
+      for (const id of ['patch', 'charge']) {
+        const control = button(`Use ${ITEMS[id].name}`, () => serviceAction(next => useItem(next, c.uid, id)));
+        control.disabled = !state.inventory[id] || c.hp <= 0 || (id === 'patch' ? c.hp >= max.maxHP : c.energy >= max.maxEnergy);
+        row.append(control);
+      }
+      nodes.push(row);
+    }
+  }
+  content.replaceChildren(...nodes);
+}
+function ledgerAction(action) {
+  if (!state || !byId('collection-dialog').open || !['world', 'result'].includes(phase) || busy) return;
+  try { state = validateSave(action(structuredClone(state))); updateHUD(); save(); collection(); }
+  catch (error) { message(error.message); }
 }
 function collection() {
   if (!state || !['world', 'result'].includes(phase) || busy) return;
-  const items = [paragraph(`Owned allies ${state.roster.length}/${MAX_ROSTER}. Team ${state.team.length}/3. Seen ${state.seen.length}/80; caught ${state.caught.length}/80.`)];
-  for (const c of state.roster) {
-    const card = document.createElement('section'), max = statsFor(c);
-    card.append(paragraph(`${nameOf(c)} · HP ${c.hp}/${max.maxHP} · energy ${c.energy}/${max.maxEnergy} · XP ${c.xp}`));
+  const search = byId('ledger-search').value.trim().toLowerCase(), filter = byId('ledger-filter').value;
+  const matches = species => (!search || `${species.name} ${species.family}`.toLowerCase().includes(search)) && (filter === 'all' || species.element === filter);
+  const items = [paragraph(`Owned allies ${state.roster.length}/${MAX_ROSTER}. Team ${state.team.length}/3. Seen ${state.seen.length}/80; caught ${state.caught.length}/80. ${synergyFor(party()).name}.`)];
+  for (const c of state.roster.filter(c => matches(BY_ID[c.speciesId]))) {
+    const card = document.createElement('section'), max = statsFor(c), species = BY_ID[c.speciesId];
+    card.dataset.uid = c.uid;
+    card.append(paragraph(`${nameOf(c)} · ${species.element} · ${species.family} · HP ${c.hp}/${max.maxHP} · energy ${c.energy}/${max.maxEnergy} · XP ${c.xp}`));
+    card.append(paragraph(`Attack ${max.attack}, defense ${max.defense}, speed ${max.speed}. Individual: ${Object.entries(c.profile ?? {}).map(([key, value]) => `${key} ${value > 0 ? '+' : ''}${value}%`).join(', ')}. ${TRAITS[c.traitId ?? 'neutral'].name}: ${TRAITS[c.traitId ?? 'neutral'].description}`));
     const onTeam = state.team.includes(c.uid);
-    const control = button(onTeam ? 'Remove from team' : 'Add to team', () => {
-      if (onTeam) state.team = state.team.filter(uid => uid !== c.uid);
-      else state.team.push(c.uid);
-      updateHUD();
-      save();
-      collection();
-    });
+    const control = button(onTeam ? 'Remove from team' : 'Add to team', () => ledgerAction(next => {
+      if (next.team.includes(c.uid)) { if (next.team.length <= 1) throw new Error('Keep at least one ally on the team.'); next.team = next.team.filter(uid => uid !== c.uid); }
+      else { if (next.team.length >= 3) throw new Error('The team holds three allies.'); next.team.push(c.uid); }
+      return next;
+    }));
     control.disabled = onTeam ? state.team.length === 1 : state.team.length >= 3;
-    card.append(control);
+    const favorite = button(state.favorites.includes(c.uid) ? 'Unfavorite' : 'Favorite', () => ledgerAction(next => {
+      next.favorites = next.favorites.includes(c.uid) ? next.favorites.filter(uid => uid !== c.uid) : [...next.favorites, c.uid]; return next;
+    }));
+    card.append(control, favorite, selectControl('Accessory', state.cosmetics.map(id => [id, COSMETICS[id].name]), c.cosmeticId ?? 'none', value => ledgerAction(next => {
+      if (!next.cosmetics.includes(value)) throw new Error('Accessory not owned.');
+      next.roster.find(owned => owned.uid === c.uid).cosmeticId = value; return next;
+    })));
     items.push(card);
   }
-  items.push(paragraph(`Element wheel: ${Object.entries(ELEMENT_WHEEL).map(([a, b]) => `${a} beats ${b}`).join('; ')}. Strong damage ×1.5; reverse ×0.75.`));
+  items.push(paragraph(`Element wheel: ${Object.entries(ELEMENT_WHEEL).map(([a, b]) => `${a} beats ${b}`).join('; ')}. Strong damage x1.5; reverse x0.75.`));
   for (const species of SPECIES) {
+    const discovered = state.seen.includes(species.id);
+    if (!discovered && (search || filter !== 'all')) continue;
+    if (discovered && !matches(species)) continue;
     const card = document.createElement('section');
-    card.append(paragraph(`#${species.number} ${species.name} · ${species.element} · ${species.family} · ${species.tier} · ${state.caught.includes(species.id) ? 'Caught' : state.seen.includes(species.id) ? 'Seen' : 'Not seen'}`));
-    card.append(paragraph(species.abilities.map(name => abilityDescription(name)).join('; ')));
-    if (species.evolvesTo) card.append(paragraph(`Evolves to ${BY_ID[species.evolvesTo].name} at level ${species.evolveLevel}.`));
+    if (!discovered) card.append(paragraph(`#${species.number} Undiscovered`));
+    else {
+      card.append(paragraph(`#${species.number} ${species.name} · ${species.element} · ${species.family} · ${species.tier} · ${state.caught.includes(species.id) ? 'Caught' : 'Seen'}`));
+      card.append(paragraph(species.abilities.map(name => abilityDescription(name)).join('; ')));
+      if (species.evolvesTo) card.append(paragraph(`Evolves at level ${species.evolveLevel}${state.seen.includes(species.evolvesTo) ? ` into ${BY_ID[species.evolvesTo].name}` : '; next form undiscovered'}.`));
+    }
     items.push(card);
   }
   byId('collection-list').replaceChildren(...items);
@@ -442,22 +644,24 @@ function move(dt) {
     const direction = directions[key];
     if (direction) { dx += direction[0]; dz += direction[1]; }
   }
-  if (dx || dz) waypoint = null;
-  else if (waypoint) {
-    dx = waypoint.x - state.position.x;
-    dz = waypoint.z - state.position.z;
-    if (Math.hypot(dx, dz) <= 0.3) { waypoint = null; return; }
+  const manual = Boolean(dx || dz);
+  if (manual) {
+    route = [];
+    const yaw = view?.getCameraYaw() ?? 0;
+    [dx, dz] = [dx * Math.cos(yaw) + dz * Math.sin(yaw), dz * Math.cos(yaw) - dx * Math.sin(yaw)];
+  } else {
+    while (route.length && distanceTo(route[0]) <= 0.3) route.shift();
+    if (route.length) { dx = route[0].x - state.position.x; dz = route[0].z - state.position.z; }
   }
   const length = Math.hypot(dx, dz);
   if (!length) return;
-  dx /= length;
-  dz /= length;
-  const step = Math.min(3 * dt, waypoint ? Math.max(0, length - 0.3) : Infinity);
-  const x = Math.max(PLAYER_BOUNDS.minX, Math.min(PLAYER_BOUNDS.maxX, state.position.x + dx * step));
-  const z = Math.max(PLAYER_BOUNDS.minZ, Math.min(PLAYER_BOUNDS.maxZ, state.position.z + dz * step));
-  if (x !== state.position.x || z !== state.position.z) positionDirty = true;
-  state.position = { x, z, yaw: Math.atan2(-dx, -dz) };
-  view?.setPlayerPosition(x, z, state.position.yaw);
+  const step = Math.min(4 * dt, manual ? Infinity : length);
+  const previous = state.position, next = movePosition(state.region, previous, dx / length * step, dz / length * step);
+  const actualX = next.x - previous.x, actualZ = next.z - previous.z;
+  if (!actualX && !actualZ) return;
+  next.yaw = Math.atan2(-actualX, -actualZ);
+  state.position = next; positionDirty = true;
+  view?.setPlayerPosition(next.x, next.z, next.yaw);
 }
 function frame(time) {
   const elapsed = previousTime === null ? 0 : Math.max(0, (time - previousTime) / 1000);
@@ -476,7 +680,11 @@ function frame(time) {
     if (positionDirty && saveElapsed >= 1) save();
     updateProximity();
   }
-  if (phase !== 'menu' && !document.hidden) view?.render(dt);
+  if (phase !== 'menu' && !document.hidden) {
+    renderClock += elapsed; renderElapsed += dt;
+    const interval = state?.quality === 'standard' ? 1 / 60 : 1 / 30;
+    if (renderClock >= interval) { view?.render(renderElapsed); renderClock %= interval; renderElapsed = 0; }
+  }
   rafId = requestAnimationFrame(frame);
 }
 
@@ -511,6 +719,16 @@ byId('dialogue-dialog').addEventListener('close', () => {
   resize();
 });
 byId('collection-btn').addEventListener('click', collection);
+byId('ledger-search').addEventListener('input', collection);
+byId('ledger-filter').addEventListener('change', collection);
+byId('services-btn').addEventListener('click', () => openServices(nearbyPoint(state)));
+byId('service-dialog').addEventListener('close', () => { serviceContext = null; clearInput(); resize(); updateHUD(); focusGame(); });
+byId('camera-reset').addEventListener('click', () => { if (state && !modal()) view?.recenterCamera(); });
+byId('quality').addEventListener('change', () => {
+  if (!state) return;
+  state.quality = byId('quality').value; view?.setQuality(state.quality); renderClock = 0; renderElapsed = 0; save();
+});
+byId('seed-input').addEventListener('input', () => byId('seed-input').setCustomValidity(''));
 byId('collection-close').addEventListener('click', () => byId('collection-dialog').close());
 byId('collection-dialog').addEventListener('close', () => { clearInput(); resize(); updateHUD(); focusGame(); });
 byId('interact').addEventListener('click', interact);
@@ -525,8 +743,7 @@ byId('reduce-motion').addEventListener('change', () => {
   view?.setReducedMotion(byId('reduce-motion').checked);
   if (state) { state.reducedMotion = byId('reduce-motion').checked; save(); }
 });
-// The frozen shell has no data-move controls. Add native held controls to its existing help node.
-text('world-help', 'Focus the view for WASD/arrows. Trail buttons walk to markers. E: interact. 1–4: abilities. C: kite. Space: Wait. P/Escape: pause. Collection: edit team.');
+text('world-help', 'Focus the view for WASD/arrows. Nearby buttons follow open trails. E: interact. Drag: orbit camera. R: reset camera. 1-4: abilities. C: kite. Space: Wait. P/Escape: pause. Field ledger: edit team.');
 const movement = document.createElement('div');
 movement.className = 'actions';
 movement.setAttribute('aria-label', 'Held movement controls');
@@ -543,7 +760,7 @@ for (const element of all('[data-move]')) {
     event.preventDefault();
     element.setPointerCapture(event.pointerId);
     pointers.set(event.pointerId, element.dataset.move);
-    waypoint = null;
+    route = [];
   });
   for (const type of ['pointerup', 'pointercancel', 'lostpointercapture']) element.addEventListener(type, event => pointers.delete(event.pointerId));
 }
@@ -557,6 +774,7 @@ window.addEventListener('keydown', event => {
   const controlFocus = gameFocus || byId('controls').contains(event.target);
   if (event.repeat || !controlFocus) return;
   if (key === 'p' || key === 'escape') { event.preventDefault(); togglePause(); }
+  else if (key === 'r' && phase === 'world') { event.preventDefault(); view?.recenterCamera(); }
   else if (key === 'e' && phase === 'world') { event.preventDefault(); interact(); }
   else if (phase === 'battle') {
     if (/^[1-4]$/.test(key)) { event.preventDefault(); command({ type: 'ability', slot: Number(key) - 1 }); }
