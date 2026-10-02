@@ -139,7 +139,9 @@ def run():
                 page.get_by_role('button', name='Rest free:', exact=False).click()
                 page.locator('#save-now').click()
                 saved(page)
-                natural = snapshot(page)['state']
+                # Movement's live yaw is projected by validateSave; compare the exact
+                # canonical persisted state, not the pre-projection render state.
+                natural = json.loads(slots(page)[0])
                 page.reload()
                 assert 'Trials 0/5' in page.locator('#saved-summary').inner_text()
                 page.locator('#continue').click()
@@ -220,7 +222,7 @@ def run():
                 page.locator('#interact').click()
                 saved(page)
                 assert snapshot(page)['state']['inventory']['fiber'] == data['fiber']
-                assert 'Pathfinder 2' == page.locator('#class-name').inner_text()
+                assert 'Pathfinder rank 2' == page.locator('#class-name').inner_text()
                 print('PASS composition fixtures: explicit rematch Begin UID/context; threshold-crossing supply uses OLD rank', flush=True)
                 assert not errors and not external, (errors, external)
                 context.close()

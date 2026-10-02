@@ -107,12 +107,15 @@ function objective(value) {
   return stage ? `Return lessons ${value.finaleStage}/3: ${stage.host} at Rest Camp, ${REGIONS[stage.region].name}.`
     : `Campaign complete. Free play: ${value.caught.length}/80 species collected. Regional rematches available.`;
 }
-function rankSummary(value, id) {
-  const progress = classProgress(value, id), perks = perksFor(id, progress.rank);
-  const benefit = id === 'pathfinder' ? `+${perks.fiberBonus} fiber per bundle` : id === 'binder' ? `+${Math.round(perks.captureBonus * 100)} capture percentage points (90% cap)`
+function rankBenefit(id, rank) {
+  const perks = perksFor(id, rank);
+  return id === 'pathfinder' ? `+${perks.fiberBonus} fiber per bundle` : id === 'binder' ? `+${Math.round(perks.captureBonus * 100)} capture percentage points (90% cap)`
     : id === 'warden' ? `+${perks.shieldBonus} shield (26 cap)` : id === 'tactician' ? `+${perks.switchEnergy} incoming switch energy (maximum energy cap)`
       : `+${perks.contractBonus} Marks per delivery`;
-  return `${CLASSES[id].name} rank ${progress.rank}/3: ${benefit}. ${progress.rank === 3 ? 'Maximum rank.' : `Next: ${progress.current}/${progress.target} ${progress.requirement}.`}`;
+}
+function rankSummary(value, id) {
+  const progress = classProgress(value, id);
+  return `${CLASSES[id].name} rank ${progress.rank}/3: ${rankBenefit(id, progress.rank)}. ${progress.rank === 3 ? 'Maximum rank.' : `Next: ${progress.current}/${progress.target} ${progress.requirement}, then ${rankBenefit(id, progress.rank + 1)}.`}`;
 }
 function saveSummary(value) {
   return value ? `Seed ${value.seed}, ${REGIONS[value.region].name}, ${value.roster.length} allies. ${objective(value)} ${value.pendingChallenge ? `${value.pendingChallenge.kind} ${value.pendingChallenge.id + 1}, ` : ''}${value.pendingBattle ? `battle round ${value.pendingBattle.round}, pinned class rank ${value.pendingBattle.player.classRank}` : 'on the trail'}` : 'No readable expedition';
@@ -183,7 +186,7 @@ function updateHUD() {
   if (!state) return;
   text('zone-name', `${REGIONS[state.region].name} · trials ${state.defeatedRivals.length}/5${state.legacyRivals.length && !state.defeatedRivals.includes(3) ? ' · legacy Iven badge held' : ''}`);
   text('marks', state.marks);
-  text('class-name', `${CLASSES[state.activeClass].name} ${classRank(state, state.activeClass)}`);
+  text('class-name', `${CLASSES[state.activeClass].name} rank ${classRank(state, state.activeClass)}`);
   text('campaign-objective', objective(state));
   text('class-progress', rankSummary(state, state.activeClass));
   const synergy = synergyFor(party());
@@ -393,7 +396,7 @@ function previewChallenge(point) {
     pendingPoint = { id: descriptor.pointId, challenge: { kind: descriptor.kind, id: descriptor.id } };
     route = [];
     text('dialogue-title', descriptor.name);
-    text('dialogue-text', `${descriptor.lesson} Fixed opponents: ${descriptor.team.map(c => `${BY_ID[c.speciesId].name} level ${c.level}`).join(', ')}. No capture or fleeing. Loss gives free camp recovery; retry this lesson without cost.`);
+    text('dialogue-text', `${descriptor.lesson} Fixed opponents: ${descriptor.team.map(c => `${BY_ID[c.speciesId].name} level ${c.level}`).join(', ')}. No capture or fleeing. Loss gives free camp recovery; retry this challenge without cost.`);
     setPhase('dialogue');
     byId('dialogue-dialog').showModal();
     byId('dialogue-start').focus({ preventScroll: true });

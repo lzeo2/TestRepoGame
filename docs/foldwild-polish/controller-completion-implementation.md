@@ -72,5 +72,88 @@ All commits use anonymous `Arcade Worker <>` attribution.
 
 Held: stable original/async native Close, natural complete campaign/ranks/pacing,
 physical touch/hardware, rights, full registered-catalog release gate and release.
-Fixtures cannot remove these holds. No acceptance or subjective image approval
-is claimed by this implementation report.
+Fixtures cannot remove these holds. No release acceptance or full-polish image
+approval is claimed by this implementation report.
+
+## Executed evidence and final limitations
+
+Source milestone: `32ee01a` (`feat: wire Foldwild ranks and campaign completion
+controller`). Follow-up adds explicit rank wording and next-rank perks, and fixes
+the native check to compare canonical saved state rather than raw live movement
+state. No style.css change was needed. Existing combat, economy, world and renderer
+modules remain untouched by this worker.
+
+Native command: `python3 -B scripts/test_foldwild_completion_ui.py`, exactly two
+attempts, no third run. Logs are outside Git:
+
+- `foldwild-97-native-attempt1.log`: **exit1**, assertion at the fresh/manual
+  reload equality check, `snapshot(page)['state'] == natural`. It captured raw
+  live state rather than the canonical persisted projection. Movement yaw is
+  normalized at the save boundary; the failed run did not print the differing
+  field, so that exact numeric difference was not independently retained.
+- Corrected the comparison to `json.loads(slots(page)[0])`, preserving strict
+  whole-state equality after Continue. No assertion removed, timing inflated,
+  extra tap, mutable hook or runtime grant added.
+- `foldwild-97-native-attempt2.log`: **exit0**. Actual output:
+
+```text
+PASS natural inputs: fresh start, keyboard movement, camp services/rank UI, free rest, manual save/reload
+PASS composition fixtures: old-save unstarted migration, named preview/Back, earned rank3, exact initial/nonterminal/pending Continue
+PASS composition fixtures: exact terminal loss/free recovery, ending/focus/320+390 layout, rematch ordinary payout and no reload payout
+PASS composition fixtures: explicit rematch Begin UID/context; threshold-crossing supply uses OLD rank
+CLEANUP: native browser and bounded server stopped
+PASS controller check; natural campaign/ranks/pacing, touch, M2, hardware/rights/release remain HELD
+```
+
+The browser used normal keyboard and mouse inputs, read-only snapshots/storage,
+and supported file upload/visible replacement consent. Fixture generation occurs
+in a separate Node process using canonical pure modules. Zero console/page errors
+or external loads were observed in the successful check. Loss fixture checks
+zero-Marks/kites recovery; terminal fixtures compare the entire settled canonical
+state, battle and stored state with pure settlement. Initial challenge compares
+exact opponents, seed, rank3 and full pending save. Reload preserves the exact
+nonterminal checkpoint. These are composition assertions, not gameplay pacing.
+
+Screenshots in temporary `foldwild-completion-ui/`:
+`natural-classes.png` (desktop), `fixture-ending-390.png`,
+`fixture-ending-320.png`. Three screenshots, about 204 KiB total. Worker inspected
+the desktop class panel and 320px ending: text/buttons fit; ending copy and button
+are visible. The existing last action message above the result can still describe
+the resumed encounter; no wholesale UI polish is claimed. Main independently
+owns image review, theme coverage and original/async native checks. No actual
+physical touch or alternate-theme acceptance here.
+
+Pure command for each suite:
+`node --experimental-default-type=module scripts/test_foldwild_<suite>.mjs`.
+`foldwild-97-pure.log` records **12/12 exit0**: data, builds, class_ranks,
+campaign, continuity, battle, battle_v2, world, regions, economy, save_v2, cap_xp.
+Important actual output includes `80 tracked/local SHA matches;
+models=7300844 bytes`, `168 baseline legacy replay snapshots exact`, and campaign
+`Natural campaign acceptance NOT established.` Historical v2 banners in older
+suites are not claims that the canonical version remains 2.
+
+A separate run of Main-owned, already-committed `save_conflict` also exited0:
+`PASS: optimistic expected-null/bytes writes; stale primary AND backup preservation;
+exact raw metadata; unchanged two-argument API; legacy/pending replay; negative
+corrupt/UTF-8/version/denied/quota fixtures`. It was neither edited nor staged by
+this worker. **13 pure suites passed total**, plus one successful scoped native
+check after one retained failure. No full catalog smoke was run.
+
+ESM syntax and `git diff --check`: exit0. Catalog schema/unique IDs/tracked URLs:
+exit0, `catalog schema/unique IDs/tracked URLs: 115`. Protected originals/vendor/
+data/region/catalog and original/async M2 diff against dispatch HEAD: empty.
+No new runtime network/dependency loads, canvas or RAF added.
+
+Maintenance checker was run without refresh: **exit1**, actual assertion
+`Commit inspected source changes before validating its inventory.` This occurred
+while the owned follow-up was dirty. After the final source commit it is rerun
+below; Main owns the stale inventory/manual and must update them independently.
+Rounded disk before/after remains 2.2G free (reported delta 0.0G). Exact initial
+bytes were not captured; no byte-accurate storage delta claimed. No assets grew.
+
+Unaddressed coverage: native tests do not naturally earn ranks/campaign completion,
+exercise all lessons from beginning to end, prove Quartermaster threshold crossing
+through a native delivery, test a multi-tab Begin conflict, cover all reset/backup/
+quota paths again, clear original/async mobile Close, certify physical devices or
+rights, or run full release gates. Those remain held despite pure-module coverage.
+The existing exact-byte save protocol was preserved, not newly certified in full.
