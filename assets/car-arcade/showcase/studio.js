@@ -107,7 +107,8 @@ function setView(next) {
   document.getElementById('left').textContent = view === 'cockpit' ? 'Look left' : 'Rotate left';
   document.getElementById('right').textContent = view === 'cockpit' ? 'Look right' : 'Rotate right';
   canvas.setAttribute('aria-label', `Original parked 3D car, ${view}. Drag or use left and right arrows to ${view === 'cockpit' ? 'look around' : 'rotate'}. C switches view; Escape returns outside.`);
-  schedule();
+  // Mode and physical camera must agree before the next asynchronous paint.
+  frameCamera(); schedule();
 }
 function rotate(amount) {
   if (current && !failure && !disposed) {

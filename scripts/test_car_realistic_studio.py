@@ -87,7 +87,7 @@ def main():
                 page.wait_for_function('frames=>carStudioSnapshot.view==="cockpit" && carStudioSnapshot.frames>frames && !carStudioSnapshot.error',arg=cockpit_frames)
                 assert page.locator('#cockpit').get_attribute('aria-pressed')=='true'
                 pose=page.evaluate('carStudioSnapshot.cameraLocal')
-                assert len(pose)==3 and all(abs(a-b)<.001 for a,b in zip(pose,row['cockpit']['eye']))
+                assert len(pose)==3 and all(abs(a-b)<.001 for a,b in zip(pose,row['cockpit']['eye'])), {'actual':pose,'expected':row['cockpit']['eye']}
                 assert page.evaluate('Object.isFrozen(carStudioSnapshot) && Object.isFrozen(carStudioSnapshot.cameraLocal)')
                 page.locator('#studio').screenshot(path=str(output/(car+'-cockpit.png')))
                 page.locator('#studio').focus();look=page.evaluate('carStudioSnapshot.look')
