@@ -78,6 +78,7 @@ export function createView(canvas) {
     if(w!==lastWidth||h!==lastHeight){renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();lastWidth=w;lastHeight=h;}
     renderer.render(scene,camera);
   }
-  return {update,rotate,render,inspect:()=>({triangles:renderer.info.render.triangles,drawCalls:renderer.info.render.calls,dpr:1,ownedCars:owned,selectedCar:preview,angle}),
+  function closeup(enabled){camera.position.set(...(enabled?[6,4.8,13]:[15,15,21]));camera.lookAt(0,enabled?1:0,enabled?6.7:-1);}
+  return {update,rotate,render,closeup,inspect:()=>({triangles:renderer.info.render.triangles,drawCalls:renderer.info.render.calls,dpr:1,ownedCars:owned,selectedCar:preview,angle}),
     dispose(){renderer.dispose();geometry.dispose();signGeometry.forEach(g=>g.dispose());materials.forEach(m=>m.dispose());textures.forEach(t=>t.dispose());disposeCars();}};
 }

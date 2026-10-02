@@ -63,6 +63,12 @@ def run():
                         page.locator('#theme').click()
                     page.locator('#scene').scroll_into_view_if_needed()
                     page.screenshot(path=str(OUT/f'garage-{width}-{theme}.png'))
+            page.get_by_role('button', name='Preview Pip Borough', exact=True).click()
+            page.get_by_role('button', name='Inspect close-up', exact=True).click()
+            page.locator('#scene').scroll_into_view_if_needed()
+            page.screenshot(path=str(OUT/'garage-320-stock-closeup.png'))
+            assert snap()['view']['selectedCar'] == 'pip'
+            assert 'not owned' in page.locator('#inspection').inner_text()
             # Actual touchscreen input to an accessible rotation button.
             angle = snap()['view']['angle']
             page.get_by_role('button', name='Rotate car left', exact=True).tap()

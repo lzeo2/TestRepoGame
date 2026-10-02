@@ -73,6 +73,7 @@ $('reset').onclick=()=>{
 $('help').onclick=()=>{pause();$('help-dialog').showModal();};
 $('theme').onclick=()=>{const dark=document.documentElement.dataset.theme!=='dark';document.documentElement.dataset.theme=dark?'dark':'light';$('theme').textContent=dark?'Light theme':'Dark theme';};
 $('left').onclick=()=>view?.rotate(-.25);$('right').onclick=()=>view?.rotate(.25);
+$('closeup').onclick=()=>{const enabled=$('closeup').getAttribute('aria-pressed')!=='true';$('closeup').setAttribute('aria-pressed',String(enabled));$('closeup').textContent=enabled?'Workshop overview':'Inspect close-up';view?.closeup(enabled);};
 let drag=null;
 $('scene').addEventListener('pointerdown',event=>{drag={id:event.pointerId,x:event.clientX};$('scene').setPointerCapture(event.pointerId);});
 $('scene').addEventListener('pointermove',event=>{if(drag?.id===event.pointerId){view?.rotate((event.clientX-drag.x)*.012);drag.x=event.clientX;}});
