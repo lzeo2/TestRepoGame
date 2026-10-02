@@ -349,6 +349,7 @@ function result(title, description) {
   byId('evolution-summary').hidden = true;
   text('result-title', title);
   text('result-description', description);
+  message(title);
   text('result-continue', state.finaleStage === 3 ? 'Continue free play' : 'Continue expedition');
   setPhase('result');
   byId('result-title').focus({ preventScroll: true });

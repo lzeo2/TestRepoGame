@@ -191,6 +191,7 @@ def run():
                     assert snapshot(page)['state'] == fixture['next'], label
                     assert snapshot(page)['battle'] == fixture['ended'], label
                     assert json.loads(slots(page)[0]) == fixture['next']
+                    assert page.locator('#message').inner_text() == page.locator('#result-title').inner_text()
                     assert page.locator('#result-continue').evaluate('(e)=>e===document.activeElement')
                     if label == 'final':
                         assert page.locator('#result-description').inner_text() == data['ending']
