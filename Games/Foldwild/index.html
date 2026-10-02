@@ -40,7 +40,7 @@
         <div id="team-list" aria-label="Expedition team"></div>
         <div class="field-actions"><div id="nearby-actions" class="actions" aria-label="Nearby trail markers"></div><div class="actions interaction-actions"><button type="button" id="interact">Interact</button><button type="button" id="rest">Rest at camp</button></div></div>
         <div class="toolbar" aria-label="Expedition tools">
-          <button type="button" id="collection-btn">Field ledger</button><button type="button" id="services-btn">Services</button><button type="button" id="pause">Pause</button><button type="button" id="new-run">New run</button><button type="button" id="camera-reset">Reset camera</button>
+          <button type="button" id="collection-btn">Field ledger</button><button type="button" id="save-now">Save progress</button><button type="button" id="services-btn">Services</button><button type="button" id="pause">Pause</button><button type="button" id="new-run">New run</button><button type="button" id="camera-reset">Reset camera</button>
           <label for="quality">Quality <select id="quality"><option value="low" selected>Low</option><option value="standard">Standard</option></select></label>
           <label class="motion-setting"><input id="reduce-motion" type="checkbox"> Reduce motion</label>
         </div>
@@ -58,10 +58,19 @@
         <details class="battle-history"><summary>Battle log</summary><ol id="battle-log" aria-label="Battle log" aria-live="polite"></ol></details>
       </section>
     </div>
-    <section id="result" class="panel" hidden aria-labelledby="result-title"><h2 id="result-title">Trail result</h2><p id="result-description"></p><button type="button" id="result-continue">Continue</button></section>
+    <section id="result" class="panel" hidden aria-labelledby="result-title"><h2 id="result-title">Trail result</h2><p id="result-description"></p><p id="evolution-summary" hidden></p><button type="button" id="result-continue">Continue</button></section>
   </main>
   <dialog id="dialogue-dialog" aria-labelledby="dialogue-title"><h2 id="dialogue-title">Trailkeeper</h2><p id="dialogue-text"></p><div class="actions"><button type="button" id="dialogue-start">Begin battle</button><button type="button" id="dialogue-cancel">Back to trail</button></div></dialog>
-  <dialog id="collection-dialog" aria-labelledby="collection-title"><div class="dialog-heading"><h2 id="collection-title">Field ledger</h2><button type="button" id="collection-close">Close ledger</button></div><div class="ledger-filters"><label for="ledger-search">Search discoveries<input id="ledger-search" type="search" placeholder="Name or family"></label><label for="ledger-filter">Element<select id="ledger-filter"><option value="all">All elements</option><option value="Loamveil">Loamveil</option><option value="Rillune">Rillune</option><option value="Cindrel">Cindrel</option><option value="Gleamric">Gleamric</option><option value="Hushmere">Hushmere</option></select></label></div><div id="collection-list"></div></dialog>
+  <dialog id="collection-dialog" aria-labelledby="collection-title"><div class="dialog-heading"><h2 id="collection-title">Field ledger</h2><button type="button" id="collection-close">Close ledger</button></div><div class="ledger-filters"><label for="ledger-search">Search discoveries<input id="ledger-search" type="search" placeholder="Name or family"></label><label for="ledger-filter">Element<select id="ledger-filter"><option value="all">All elements</option><option value="Loamveil">Loamveil</option><option value="Rillune">Rillune</option><option value="Cindrel">Cindrel</option><option value="Gleamric">Gleamric</option><option value="Hushmere">Hushmere</option></select></label></div>
+    <section id="ledger-inspector" hidden aria-labelledby="ledger-model-name">
+      <div class="ledger-inspector-heading"><h3 id="ledger-model-name"></h3><button type="button" id="ledger-preview-close">Back to ledger</button></div>
+      <div id="ledger-model-host"></div>
+      <p id="ledger-model-status" role="status" aria-live="polite"></p>
+      <div class="actions" role="group" aria-label="Model rotation"><button type="button" id="ledger-rotate-left">Rotate left</button><button type="button" id="ledger-rotate-right">Rotate right</button><button type="button" id="ledger-model-reset">Reset view</button></div>
+    </section>
+    <div id="collection-list"></div>
+  </dialog>
+  <dialog id="release-dialog" aria-labelledby="release-title" aria-describedby="release-description"><h2 id="release-title">Release ally?</h2><p id="release-description"></p><div class="actions"><button type="button" id="release-confirm">Release ally</button><button type="button" id="release-cancel">Keep ally</button></div></dialog>
   <dialog id="service-dialog" aria-labelledby="service-title" aria-describedby="service-description"><div class="dialog-heading"><h2 id="service-title">Outpost services</h2><form method="dialog"><button id="service-close" type="submit">Back to field</button></form></div><p id="service-description"></p><div id="service-content"></div></dialog>
   <dialog id="reset-dialog" aria-labelledby="reset-title"><h2 id="reset-title">Start a new run?</h2><p>This replaces your saved trail. Your current progress will be lost.</p><div class="actions"><button type="button" id="reset-confirm">Replace saved run</button><button type="button" id="reset-cancel">Keep current run</button></div></dialog>
   <script type="module" src="./script.js"></script>
