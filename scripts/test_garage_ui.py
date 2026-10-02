@@ -95,6 +95,23 @@ def run():
             assert result['view']['drawCalls'] <= 100
             print(json.dumps({'native':'PASS normal buy/repair/sell, pause, exact reload, reset cancel, keyboard/touch rotation', 'result':result, 'consoleErrors':errors, 'external':external, 'failedRequests':failed}, indent=2))
             assert not errors and not external and not failed
+            # NEGATIVE concurrent-writer fixture, not earned gameplay/progression.
+            # A different tab changes the slot while native reset consent is open.
+            before = snap()['business']
+            conflicting = dict(before, cash=before['cash'] + 1)
+            conflicting_raw = json.dumps(conflicting, separators=(',', ':'))
+            writer = context.new_page()
+            writer.goto(page.url)
+            def race_reset(dialog):
+                writer.evaluate('(raw)=>localStorage.setItem("garage-borough-v1",raw)', conflicting_raw)
+                dialog.accept()
+            page.once('dialog', race_reset)
+            page.get_by_role('button', name='Reset business', exact=True).click()
+            assert page.evaluate('localStorage.getItem("garage-borough-v1")') == conflicting_raw
+            assert snap()['business'] == before
+            assert page.locator('#save-error').is_visible()
+            writer.close()
+            print('PASS NEGATIVE reset consent race: newer slot preserved, no reset/state grant accepted')
             browser.close()
     finally:
         server.shutdown()

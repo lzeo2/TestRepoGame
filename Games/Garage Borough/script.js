@@ -65,8 +65,10 @@ $('pause').onclick=()=>{if(paused){paused=false;previous=0;refresh(true);}else p
 $('hire').onclick=()=>action(hireStaff,[],'Mechanic hired');$('expand').onclick=()=>action(expandGarage,[],'Bay expanded');
 $('continue').onclick=()=>{try{business=continueBusiness(business);started=true;paused=false;previous=0;save();refresh(true);}catch(error){message(error.message);}};
 $('reset').onclick=()=>{
+  const observed=loadSave(key,validateBusiness);
+  if(observed.error&&observed.raw===null){saveError='Existing save could not be read. Reset refused until storage access is restored.';errorDisplay();return;}
   if(!confirm('Reset only Garage Borough? All this business progress will be replaced.'))return;
-  const observed=loadSave(key,validateBusiness);const fresh=freshBusiness();const result=saveSave(key,fresh,validateBusiness,observed.raw);
+  const fresh=freshBusiness();const result=saveSave(key,fresh,validateBusiness,observed.raw);
   if(result.error){saveError=result.error;errorDisplay();return;}
   business=fresh;raw=result.raw;saveError=null;started=false;paused=true;previous=0;selected={carId:'bricklet',uid:null};errorDisplay();message('New business, cash $800. Buy Bricklet80, restore once, then match the compact buyer.');refresh(true);
 };
