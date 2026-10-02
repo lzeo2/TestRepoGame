@@ -101,3 +101,72 @@ complete natural campaign/acquisition/evolution/accessory fit and class ranks,
 physical input/N100, rights, registration/publication and full-catalog release
 gate. Backup rotation is not two-key atomicity, Web Locks cover cooperating tabs
 only, and unload does not promise persistence. No game added, ingested or self-made.
+
+## Actual single frozen execution: FAILED, no retry
+
+Pre-run owned commit: `20a60ff88fad366f90098cc783c477f98004586a`.
+`pre-run-commit.log` captures explicit-path add **0**, staged `git diff --check`
+**0**, commit **0**, and anonymous author/committer `Arcade Worker <>`.
+Exactly one invocation of the command above ran with `PYTHONDONTWRITEBYTECODE=1`:
+2026-10-02 09:33:42Z to 09:35:21Z, **native exit 1**, not external timeout.
+`native.status` captures the actual exit; `native.log` retains the complete raw
+traceback. No runner/runtime changes or additional native invocation followed.
+
+Four desktop stages completed: merchant/hair/accessory/inspection; exact weakened
+pending-battle reload; actual seeded Budriv capture and two no-duplicate-payout
+reloads; team/favorite/release guards, unchanged cancellation bytes and seen-only
+preview. Mobile finger orbit, unchanged pose/yaw, 390-to-320 resize, renderer width,
+heading/name/center-hit/44px/overflow checks and both images completed. The single
+Close tap returned, then world readiness failed:
+
+```text
+scripts/test_foldwild_m2_async_v1.py:387, in <module>: run()
+scripts/test_foldwild_m2_async_v1.py:293, in run: ready(page, 'world')
+scripts/test_foldwild_milestone.py:29, in ready: page.wait_for_function(... timeout=30000)
+playwright._impl._errors.TimeoutError: Page.wait_for_function: Timeout 30000ms exceeded.
+```
+
+These are repository-relative traceback frames; full library frames remain in
+the raw log. No post-tap instrumentation was added: this execution does not prove
+which event was absent or the final dialog/canvas state. The previously diagnosed
+missing compatibility click remains unresolved, not established anew by timeout.
+
+Result: `passed:false`, `source_unchanged:true`, four partial stages, zero completed
+negative fixtures; console/page, failed-request, HTTP-error and external-request
+arrays all empty **through failure**, not a completed final-error gate. Deferred
+loader and storage/WebGL/corrupt negative fixtures were not reached, so the new
+separated diagnostic assertions have syntax/diff review only, not native coverage.
+Fresh complete async passes **0/1**; original M2 reruns **0**, full-catalog runs **0**.
+No unchanged-M2 pass, Close fix, campaign/hardware/rights acceptance or release.
+
+`post-run.log` captures independent source verification **exit 0**: all **98**
+before/after hashes match, and all 94 tracked runtime files match current HEAD
+blobs. Original M2 remains exactly
+`4187de5f03366332af2eddd9bed3a61ac33c9532115ac0b2fb09435bc85c12ea`;
+sibling remains `87bdc2717a9a68ea982c0922e21de77ca2f0b5c0d1a0b27c73657a115891b138`.
+Both complete manifest files have SHA-256
+`48385c49ef9553e13be526d9654b5329828c67b32342c36e513a6a51b2d244f9`.
+Native log SHA-256:
+`ab6714fcfba4af530d521068c010bba57f852546f5ab792caa19844d2f0dba1b`.
+Result JSON SHA-256:
+`247e1bcfe8846a6ebf30c755a1f13c8b6ee5892e724e2483d7e794e2cb4674cb`.
+
+Five screenshots total **184,623 bytes**, retained in the exclusive output:
+`desktop-inspection.jpg` (41,142), `battle-resumed.jpg` (62,600),
+`release-confirm.jpg` (39,729), `mobile-inspection.jpg` (20,829),
+`mobile-inspection-320.jpg` (20,323). Main's subjective review remains pending;
+this worker does not claim visual acceptance from parser/layout checks.
+
+Cleanup: runner/browser/server finally paths completed and the result was written;
+`ss` exit **0** showed no listener on 8891. A broad pgrep initially matched the
+parent dispatch prompt text, not a native test. The exact-argv follow-up in
+`cleanup.log` found no remaining owned native runner/envelope (exit **0**).
+No unrelated process was killed. Final measured free space 2,326,683,648 bytes
+(2.2G), 499,712 bytes below initial shared-filesystem sample, not exclusive worker
+usage. Runner's own shared-filesystem delta was 16,384 bytes. Output directory
+measured 190,998 bytes; diagnostic directory was 46,625 bytes at measurement.
+
+No other paths were staged or modified. At post-run status, only Main's two
+pre-existing dirty plans remained; worker92's completion contract had ceased to
+be untracked independently. All maintenance/design/input/physical-device/rights
+and publication holds above remain. Stop after this first native failure.
