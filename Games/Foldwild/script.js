@@ -946,7 +946,11 @@ byId('release-confirm').addEventListener('click', () => {
     updateHUD(); save(); collection(); byId('release-dialog').close();
   } catch (error) { text('release-description', error.message); }
 });
-byId('save-now').addEventListener('click', () => { if (state) save(); });
+byId('save-now').addEventListener('click', async () => {
+  if (!state) return;
+  message('Save requested. Check the local save status before closing.');
+  if (await save()) message('Progress saved on this device.');
+});
 byId('save-export').addEventListener('click', () => {
   try {
     const raw = JSON.stringify(validateSave(localSnapshot()));

@@ -68,6 +68,7 @@ def run():
                 ready(page, 'world')
                 page.locator('#save-now').click()
                 saved(page)
+                assert 'Progress saved' in page.locator('#message').inner_text()
                 assert json.loads(slots(page)[0])['seed'] == 1
                 other = page_for(context)
                 other.locator('#continue').click()
@@ -82,6 +83,7 @@ def run():
                 other.locator('#save-now').click()
                 other.wait_for_function('document.querySelector("#save-state").textContent.includes("save conflict")')
                 assert other.locator('#save-state').is_visible()
+                assert 'Progress saved' not in other.locator('#message').inner_text()
                 assert slots(other) == newer
                 other.locator('#save-now').click()
                 other.close(run_before_unload=True)
