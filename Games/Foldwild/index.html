@@ -32,6 +32,7 @@
       <label class="seed-setting" for="seed-input">Expedition seed <span class="help">Optional</span></label>
       <input id="seed-input" type="number" min="0" max="4294967295" step="1" placeholder="Random" inputmode="numeric">
       <div class="actions"><button type="button" id="start">Start trail</button><button type="button" id="continue" hidden>Continue trail</button></div>
+      <p id="saved-summary" class="help"></p>
       <p class="help">Move with WASD or arrows, or tap a trail marker. Press E to interact. Rest safely at camp.</p>
       <p class="help">In battle: 1–4 abilities, C latch kite, Space wait.</p>
     </section>
@@ -41,7 +42,7 @@
         <section id="world-hud" hidden aria-label="Trail information">
           <h2 id="zone-name">Rootfold Meadow</h2>
           <div class="field-state"><span>Marks <strong id="marks">0</strong></span><span>Kites <strong id="kites">0</strong></span><span>Class <strong id="class-name">Pathfinder</strong></span></div>
-          <details class="field-record"><summary>Field record</summary><p>Progress <strong id="score">0</strong></p><p>Collection <strong id="dex-count">0</strong></p><p>Synergy <span id="synergy-name">None</span></p></details>
+          <details class="field-record"><summary>Field record</summary><p>Progress <strong id="score">0</strong></p><p>Collection <strong id="dex-count">0</strong></p><p id="campaign-objective"></p><p id="class-progress"></p><p>Synergy <span id="synergy-name">None</span></p></details>
         </section>
       </section>
       <aside class="trail-controls" aria-label="Game controls">
@@ -67,7 +68,7 @@
         <details class="battle-history"><summary>Battle log</summary><ol id="battle-log" aria-label="Battle log" aria-live="polite"></ol></details>
       </section>
     </div>
-    <section id="result" class="panel" hidden aria-labelledby="result-title"><h2 id="result-title">Trail result</h2><p id="result-description"></p><p id="evolution-summary" hidden></p><button type="button" id="result-continue">Continue</button></section>
+    <section id="result" class="panel" hidden aria-labelledby="result-title"><h2 id="result-title" tabindex="-1">Trail result</h2><p id="result-description"></p><p id="evolution-summary" hidden></p><button type="button" id="result-continue">Continue</button></section>
   </main>
   <dialog id="dialogue-dialog" aria-labelledby="dialogue-title"><h2 id="dialogue-title">Trailkeeper</h2><p id="dialogue-text"></p><div class="actions"><button type="button" id="dialogue-start">Begin battle</button><button type="button" id="dialogue-cancel">Back to trail</button></div></dialog>
   <dialog id="collection-dialog" aria-labelledby="collection-title"><div class="dialog-heading"><h2 id="collection-title">Field ledger</h2><button type="button" id="collection-close">Close ledger</button></div><div class="ledger-filters"><label for="ledger-search">Search discoveries<input id="ledger-search" type="search" placeholder="Name or family"></label><label for="ledger-filter">Element<select id="ledger-filter"><option value="all">All elements</option><option value="Loamveil">Loamveil</option><option value="Rillune">Rillune</option><option value="Cindrel">Cindrel</option><option value="Gleamric">Gleamric</option><option value="Hushmere">Hushmere</option></select></label></div>

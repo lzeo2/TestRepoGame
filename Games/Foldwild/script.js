@@ -1,8 +1,9 @@
 import { SPECIES, BY_ID, ABILITIES, ELEMENT_WHEEL } from './data.js';
 import { statsFor, createCreature, clearEffects, gainXP, createBattle, applyAction } from './battle.js';
-import { REGIONS, RIVALS, REGION_LAYOUTS, movePosition, routeTo, unlockedRegion, MAX_ROSTER, BACKUP_KEY, freshGame, validateSave, readSave, writeSave, worldPoints, nearbyPoint, releaseCreature } from './world.js';
+import { REGIONS, RIVALS, REGION_LAYOUTS, movePosition, routeTo, unlockedRegion, MAX_ROSTER, BACKUP_KEY, freshGame, validateSave, readSave, writeSave, worldPoints, nearbyPoint, releaseCreature, challengeFor, settleChallenge } from './world.js';
+import { FINALE_STAGES, ENDING } from './campaign.js';
 import { ITEMS, COSMETICS, SHOPS, CONTRACTS, buyItem, sellItem, buyCosmetic, completeContract, refreshStock } from './economy.js';
-import { CLASSES, TRAITS, generateIndividual, unlockedClasses, synergyFor } from './builds.js';
+import { CLASSES, TRAITS, generateIndividual, unlockedClasses, synergyFor, classRank, classProgress, perksFor } from './builds.js';
 import { createView } from './view.js';
 
 const byId = id => document.getElementById(id);
@@ -100,10 +101,24 @@ function save(snapshot = null, consent = null) {
     });
   return saveQueue;
 }
+function objective(value) {
+  if (value.defeatedRivals.length < 5) return `Trials ${value.defeatedRivals.length}/5: train with ${RIVALS[value.defeatedRivals.length].name} in ${REGIONS[value.defeatedRivals.length].name}.`;
+  const stage = FINALE_STAGES[value.finaleStage];
+  return stage ? `Return lessons ${value.finaleStage}/3: ${stage.host} at Rest Camp, ${REGIONS[stage.region].name}.`
+    : `Campaign complete. Free play: ${value.caught.length}/80 species collected. Regional rematches available.`;
+}
+function rankSummary(value, id) {
+  const progress = classProgress(value, id), perks = perksFor(id, progress.rank);
+  const benefit = id === 'pathfinder' ? `+${perks.fiberBonus} fiber per bundle` : id === 'binder' ? `+${Math.round(perks.captureBonus * 100)} capture percentage points (90% cap)`
+    : id === 'warden' ? `+${perks.shieldBonus} shield (26 cap)` : id === 'tactician' ? `+${perks.switchEnergy} incoming switch energy (maximum energy cap)`
+      : `+${perks.contractBonus} Marks per delivery`;
+  return `${CLASSES[id].name} rank ${progress.rank}/3: ${benefit}. ${progress.rank === 3 ? 'Maximum rank.' : `Next: ${progress.current}/${progress.target} ${progress.requirement}.`}`;
+}
 function saveSummary(value) {
-  return value ? `Seed ${value.seed}, ${REGIONS[value.region].name}, ${value.roster.length} allies, ${value.defeatedRivals.length}/5 trials, ${value.pendingBattle ? `battle round ${value.pendingBattle.round}` : 'on the trail'}` : 'No readable expedition';
+  return value ? `Seed ${value.seed}, ${REGIONS[value.region].name}, ${value.roster.length} allies. ${objective(value)} ${value.pendingChallenge ? `${value.pendingChallenge.kind} ${value.pendingChallenge.id + 1}, ` : ''}${value.pendingBattle ? `battle round ${value.pendingBattle.round}, pinned class rank ${value.pendingBattle.player.classRank}` : 'on the trail'}` : 'No readable expedition';
 }
 async function previewSave(candidate, label) {
+  if (modal()) return saveStatus('Close the current dialog before previewing a replacement.');
   clearInput();
   savePreview = null;
   byId('save-confirm').disabled = true;
@@ -168,7 +183,9 @@ function updateHUD() {
   if (!state) return;
   text('zone-name', `${REGIONS[state.region].name} · trials ${state.defeatedRivals.length}/5${state.legacyRivals.length && !state.defeatedRivals.includes(3) ? ' · legacy Iven badge held' : ''}`);
   text('marks', state.marks);
-  text('class-name', CLASSES[state.activeClass].name);
+  text('class-name', `${CLASSES[state.activeClass].name} ${classRank(state, state.activeClass)}`);
+  text('campaign-objective', objective(state));
+  text('class-progress', rankSummary(state, state.activeClass));
   const synergy = synergyFor(party());
   text('synergy-name', `${synergy.name}: ${synergy.description}`);
   byId('quality').value = state.quality;
@@ -329,21 +346,23 @@ function result(title, description) {
   byId('evolution-summary').hidden = true;
   text('result-title', title);
   text('result-description', description);
-  text('result-continue', state.defeatedRivals.length === 5 ? 'Continue free play' : 'Continue expedition');
+  text('result-continue', state.finaleStage === 3 ? 'Continue free play' : 'Continue expedition');
   setPhase('result');
+  byId('result-title').focus({ preventScroll: true });
 }
 function interact() {
   if (phase !== 'world' || !playable()) return;
   const point = nearbyPoint(state);
   if (!point) return;
   route = [];
-  if (point.type === 'camp') return rest();
+  if (point.type === 'camp') return openServices(point);
+  if (point.challenge) return previewChallenge(point);
   if (point.type === 'supply') return collectSupply(point);
   if (!['wild', 'rival', 'exit'].includes(point.type)) return openServices(point);
   if (point.type === 'exit') {
     if (!state.defeatedRivals.includes(state.region)) return message(`Train with ${RIVALS[state.region].name} before taking this path.`);
     if (state.region < 4) return travel(state.region + 1);
-    return result('Five routes cleared', 'All five regional trials are cleared. Keep exploring the authored routes. The final expedition is not part of this milestone.');
+    return result(state.finaleStage === 3 ? 'Campaign complete' : 'Five routes cleared', objective(state));
   }
   pendingPoint = point;
   if (point.type === 'wild') {
@@ -359,15 +378,55 @@ function interact() {
   byId('dialogue-dialog').showModal();
   save();
 }
+function challengeReady() {
+  if (paused || busy || document.hidden || pendingSaves || saveBlocked || !savePermission || expectedPrimary === undefined) {
+    throw new Error('Wait for saving to finish or resolve the local save status before beginning this challenge.');
+  }
+  if (readSave(undefined, true).raw !== expectedPrimary) throw new Error('Stored expedition changed. Reload it or explicitly replace it before beginning this challenge.');
+}
+function previewChallenge(point) {
+  if (phase !== 'world' || paused || busy || (modal() && !byId('service-dialog').open)) return;
+  try {
+    challengeReady();
+    const descriptor = challengeFor(state, point.challenge);
+    if (byId('service-dialog').open) byId('service-dialog').close();
+    pendingPoint = { id: descriptor.pointId, challenge: { kind: descriptor.kind, id: descriptor.id } };
+    route = [];
+    text('dialogue-title', descriptor.name);
+    text('dialogue-text', `${descriptor.lesson} Fixed opponents: ${descriptor.team.map(c => `${BY_ID[c.speciesId].name} level ${c.level}`).join(', ')}. No capture or fleeing. Loss gives free camp recovery; retry this lesson without cost.`);
+    setPhase('dialogue');
+    byId('dialogue-dialog').showModal();
+    byId('dialogue-start').focus({ preventScroll: true });
+  } catch (error) { message(error.message); if (byId('service-dialog').open) text('service-description', error.message); }
+}
 function beginBattle() {
-  if (phase !== 'dialogue' || !pendingPoint || busy) return;
+  if (phase !== 'dialogue' || !byId('dialogue-dialog').open || !pendingPoint || busy || paused || document.hidden) return;
   const point = pendingPoint;
+  if (point.challenge) {
+    try {
+      challengeReady();
+      const descriptor = challengeFor(state, point.challenge);
+      const enemies = descriptor.team.map((c, i) => createCreature(c.speciesId, c.level, `${descriptor.kind}-${descriptor.id}-${state.encounterIndex}-${i}`));
+      const next = structuredClone(state);
+      for (const c of enemies) if (!next.seen.includes(c.speciesId)) next.seen.push(c.speciesId);
+      next.pendingChallenge = { kind: descriptor.kind, id: descriptor.id };
+      next.pendingBattle = createBattle(party(), enemies, { kind: 'rival', seed: (state.seed + state.encounterIndex) >>> 0,
+        classId: state.activeClass, classRank: classRank(state, state.activeClass), synergyEnabled: true });
+      state = validateSave(next);
+      battle = structuredClone(state.pendingBattle);
+      pendingPoint = null; battleFinished = false;
+      setPhase('battle'); byId('dialogue-dialog').close();
+      renderBattle(); save(); focusGame();
+      message(descriptor.lesson);
+    } catch (error) { text('dialogue-text', error.message); }
+    return;
+  }
   const kind = point.type === 'rival' ? 'rival' : 'wild';
   const individualSeed = point.individualSeed ?? ((state.seed ^ Math.imul(state.encounterIndex + 1, 2246822519) ^ SPECIES.findIndex(s => s.id === point.speciesId)) >>> 0);
   const enemies = kind === 'wild' ? [createCreature(point.speciesId, point.level, `wild-${state.encounterIndex}`, generateIndividual(individualSeed))]
     : RIVALS[state.region].team.map((c, i) => createCreature(c.speciesId, c.level, `rival-${state.encounterIndex}-${i}`));
   for (const c of enemies) if (!state.seen.includes(c.speciesId)) state.seen.push(c.speciesId);
-  battle = createBattle(party(), enemies, { kind, seed: (state.seed + state.encounterIndex) >>> 0, classId: state.activeClass, synergyEnabled: true });
+  battle = createBattle(party(), enemies, { kind, seed: (state.seed + state.encounterIndex) >>> 0, classId: state.activeClass, classRank: classRank(state, state.activeClass), synergyEnabled: true });
   battleFinished = false;
   phase = 'battle';
   byId('dialogue-dialog').close();
@@ -476,8 +535,11 @@ function command(action) {
   busy = true;
   busyElapsed = 0;
   if (action.type === 'capture') state.kites--;
+  // Settlement proves the terminal command against this exact preceding checkpoint.
+  if (state.pendingChallenge) state.pendingBattle = structuredClone(battle);
   battle = applyAction(battle, action);
-  copyBattleTeam();
+  if (!state.pendingChallenge || !battle.result) copyBattleTeam();
+  if (state.pendingChallenge && !battle.result) state.pendingBattle = structuredClone(battle);
   renderBattle();
   if (battle.result) finishBattle();
   else save();
@@ -486,10 +548,19 @@ function command(action) {
 }
 function finishBattle() {
   if (!battle?.result || battleFinished) return;
-  battleFinished = true;
   const outcome = battle.result;
-  state.pendingBattle = null;
   const beforeSpecies = new Map(party().map(c => [c.uid, c.speciesId]));
+  if (state.pendingChallenge) {
+    const context = state.pendingChallenge;
+    state = settleChallenge(state, battle);
+    battleFinished = true; pendingPoint = null; serviceContext = null;
+    const completed = context.kind === 'finale' && outcome === 'won' && state.finaleStage === 3;
+    result(completed ? 'Campaign complete' : outcome === 'lost' ? 'Team recovered at camp' : context.kind === 'rematch' ? 'Rematch won' : 'Return lesson complete',
+      completed ? ENDING : outcome === 'lost' ? `Every ally is fully rested, with at least four free Latch Kites. No Marks spent. ${objective(state)}`
+        : `Each expedition ally gained ${12 * battle.enemy.team.reduce((sum, c) => sum + c.level, 0) + 20} XP. ${objective(state)}`);
+  } else {
+  battleFinished = true;
+  state.pendingBattle = null;
   copyBattleTeam();
   const levels = battle.enemy.team.reduce((sum, c) => sum + c.level, 0);
   if (outcome === 'won' || outcome === 'captured') {
@@ -527,6 +598,7 @@ function finishBattle() {
   state.encounterIndex = Math.min(1e9, state.encounterIndex + 1);
   markOwned();
   result(outcome === 'captured' ? 'Capture complete' : outcome === 'lost' ? 'Team needs a rest' : battle.kind === 'rival' && outcome === 'won' ? (state.defeatedRivals.length === 5 ? 'Five routes cleared' : 'Trail cleared') : outcome === 'won' ? 'Encounter won' : 'Encounter left', description);
+  }
   const evolutions = party().filter(c => beforeSpecies.has(c.uid) && beforeSpecies.get(c.uid) !== c.speciesId)
     .map(c => `${BY_ID[beforeSpecies.get(c.uid)].name} unfolded into ${BY_ID[c.speciesId].name} at level ${c.level}.`);
   text('evolution-summary', evolutions.join(' '));
@@ -551,13 +623,14 @@ function collectSupply(point) {
   const id = `${state.region}:${point.id}`;
   if (state.claimedSupplies.includes(id) || point.materialId !== 'fiber') return;
   try {
-    const next = structuredClone(state), amount = point.quantity + (state.activeClass === 'pathfinder' ? 1 : 0);
+    const bonus = perksFor(state.activeClass, classRank(state, state.activeClass)).fiberBonus;
+    const next = structuredClone(state), amount = Math.min(999 - next.inventory.fiber, point.quantity + bonus);
     if (next.inventory.fiber >= 999) throw new Error('Fiber capacity reached. Deliver or sell a bundle first.');
     next.inventory.fiber = Math.min(999, next.inventory.fiber + amount);
     next.claimedSupplies.push(id);
     state = validateSave(next);
     showWorld(); updateHUD(); save();
-    message(`Collected ${amount} fiber${state.activeClass === 'pathfinder' ? ', including one Pathfinder bonus' : ''}.`);
+    message(`Collected ${amount} fiber. Active class bonus before this bundle: ${bonus}; inventory cap 999.`);
   } catch (error) { message(error.message); }
 }
 function servicePoint() {
@@ -607,7 +680,15 @@ function renderServices() {
   for (const [id, label] of [['kit', 'Inventory'], ['classes', 'Classes'], ['appearance', 'Archivist']]) tabs.append(button(label, () => { serviceMenu = id; renderServices(); }));
   if (point?.shopId) for (const [id, label] of [['shop', 'Buy and sell'], ['cosmetics', 'Accessories']]) tabs.append(button(label, () => { serviceMenu = id; renderServices(); }));
   if (point?.contractId) tabs.append(button('Supply contract', () => { serviceMenu = 'contract'; renderServices(); }));
-  nodes.push(tabs);
+  nodes.push(paragraph(objective(state)), tabs);
+  if (point?.type === 'camp') {
+    nodes.push(button('Rest free: heal team and refill to four kites', () => {
+      if (!servicePoint() || phase !== 'world' || paused || busy) return;
+      byId('service-dialog').close(); rest();
+    }));
+    if (point.challenge) nodes.push(paragraph(`${point.challengeName}: ${point.lesson}`),
+      button(`Preview ${point.challengeName}`, () => previewChallenge(point)));
+  }
   if (serviceMenu === 'shop' && point?.shopId) {
     nodes.push(paragraph(`${SHOPS[point.shopId].name}. Prices per item; each button trades one. Stock refreshes after five encounters, not after opening this menu.`));
     for (const item of Object.values(ITEMS)) {
@@ -629,17 +710,17 @@ function renderServices() {
     }
   } else if (serviceMenu === 'contract' && point?.contractId) {
     const contract = CONTRACTS[point.contractId], completed = state.contracts.includes(contract.id);
-    nodes.push(paragraph(`${contract.name}: deliver ${contract.quantity} fiber for ${contract.reward} Marks. Owned fiber ${state.inventory.fiber}. Quartermaster adds 5 Marks when active. One payment per contract.`));
+    nodes.push(paragraph(`${contract.name}: deliver ${contract.quantity} fiber for ${contract.reward} Marks. Owned fiber ${state.inventory.fiber}. Active class adds ${perksFor(state.activeClass, classRank(state, state.activeClass)).contractBonus} Marks before this delivery. One payment per contract.`));
     const control = button(completed ? 'Delivery complete' : `Deliver ${contract.quantity} fiber`, () => serviceAction((next, p) => {
-      const bonus = next.activeClass === 'quartermaster' ? 5 : 0;
+      const bonus = perksFor(next.activeClass, classRank(next, next.activeClass)).contractBonus;
       next = completeContract(next, p.contractId); next.marks = Math.min(1e6, next.marks + bonus); return next;
     }, 'contract'));
     control.disabled = completed || state.inventory.fiber < contract.quantity; nodes.push(control);
   } else if (serviceMenu === 'classes') {
-    nodes.push(paragraph('One active class. Pathfinder finds one extra fiber per bundle; Quartermaster earns 5 extra Marks per delivery. Class ranks are not part of this foundation.'));
+    nodes.push(paragraph('One active class; switching at outposts is free. Ranks follow permanent field history. New fights pin your earned rank; saved fights keep theirs. Bonuses use the rank before each transaction. No class adds Wait energy.'));
     const unlocked = unlockedClasses(state);
     for (const cls of Object.values(CLASSES)) {
-      const row = document.createElement('section'); row.append(paragraph(`${cls.name}: ${cls.description} ${cls.unlock}`));
+      const row = document.createElement('section'); row.append(paragraph(rankSummary(state, cls.id)));
       const control = button(cls.id === state.activeClass ? `${cls.name} active` : `Choose ${cls.name}`, () => serviceAction(next => {
         if (!unlockedClasses(next).includes(cls.id)) throw new Error('This class is still locked.');
         next.activeClass = cls.id; return next;
@@ -858,7 +939,10 @@ function frame(time) {
       if (busyElapsed >= 0.45) {
         busy = false;
         if (phase === 'battle') renderBattle();
-        else updateHUD();
+        else {
+          updateHUD();
+          if (phase === 'result' && !modal()) byId('result-continue').focus({ preventScroll: true });
+        }
       }
     } else if (phase === 'world') move(dt);
     if (positionDirty && saveElapsed >= 1) save();
@@ -883,6 +967,7 @@ function resumeSaved() {
   byId('reduce-motion').checked = state.reducedMotion;
   view?.setReducedMotion(state.reducedMotion);
   paused = false; busy = false; battleFinished = false; battleModels = '';
+  pendingPoint = null; serviceContext = null;
   battle = state.pendingBattle ? structuredClone(state.pendingBattle) : null;
   ensureView();
   view?.setQuality(state.quality); view?.setReducedMotion(state.reducedMotion); view?.setAppearance(viewAppearance());
@@ -916,7 +1001,7 @@ byId('collection-btn').addEventListener('click', collection);
 byId('ledger-search').addEventListener('input', collection);
 byId('ledger-filter').addEventListener('change', collection);
 byId('services-btn').addEventListener('click', () => openServices(nearbyPoint(state)));
-byId('service-dialog').addEventListener('close', () => { serviceContext = null; clearInput(); resize(); updateHUD(); focusGame(); });
+byId('service-dialog').addEventListener('close', () => { serviceContext = null; clearInput(); resize(); updateHUD(); if (!modal()) focusGame(); });
 byId('camera-reset').addEventListener('click', () => { if (state && !modal()) view?.recenterCamera(); });
 byId('quality').addEventListener('change', () => {
   if (!state) return;
@@ -1055,6 +1140,7 @@ Object.defineProperty(window, 'foldwildSnapshot', {
   get: () => deepFreeze(structuredClone({ phase, paused, busy, state, battle, view: view?.inspect() ?? null }))
 });
 chooseStarter('cindupp');
+text('saved-summary', saveSummary(savedSlot));
 setPhase('menu');
 text('save-coordination', lockedSaves
   ? 'Cooperating tabs serialize saves with Web Locks. Wait for saved status before closing; unload does not save.'
