@@ -280,6 +280,7 @@ function beginBattle() {
   byId('dialogue-dialog').close();
   setPhase('battle');
   renderBattle();
+  message(kind === 'wild' ? 'Wild encounter. Weaken to half HP before using a Latch Kite.' : 'Trailkeeper encounter. Choose an ability or switch ally.');
   save();
   if (battle.result) finishBattle();
   focusGame();
@@ -513,11 +514,11 @@ function renderServices() {
     for (const item of Object.values(ITEMS)) {
       const count = item.id === 'kite' ? state.kites : state.inventory[item.id], stock = state.shops[point.shopId].stock[item.id];
       const row = document.createElement('section');
-      row.append(paragraph(`${item.name}: owned ${count}, stock ${stock}. Buy ${item.price} Marks; sell ${item.sell} Marks.`));
+      row.append(paragraph(`${item.name}: owned ${count}, stock ${stock}. Buy ${item.price} Marks; ${item.sell === 0 ? 'camp kites cannot be resold' : `sell ${item.sell} Marks`}.`));
       const buy = button(`Buy ${item.name} (${item.price})`, () => serviceAction((next, p) => buyItem(next, p.shopId, item.id), 'shop'));
       buy.disabled = !stock || state.marks < item.price || count >= 999;
       const sell = button(`Sell ${item.name} (${item.sell})`, () => serviceAction((next, p) => sellItem(next, p.shopId, item.id), 'shop'));
-      sell.disabled = count < 1 || stock >= 999 || state.marks + item.sell > 1e6;
+      sell.disabled = item.sell === 0 || count < 1 || stock >= 999 || state.marks + item.sell > 1e6;
       row.append(buy, sell); nodes.push(row);
     }
   } else if (serviceMenu === 'cosmetics' && point?.shopId) {

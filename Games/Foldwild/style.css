@@ -53,7 +53,7 @@ summary{min-height:44px;padding:10px 0;cursor:pointer;font-weight:700;overflow-w
 .toolbar{align-items:center;padding:8px 0;border-top:1px solid var(--line);margin-top:8px}
 .toolbar label{font-size:15px}
 .motion-setting{cursor:pointer}
-.motion-setting input{width:22px;height:22px;margin:10px 2px;accent-color:var(--blue)}
+.motion-setting input{width:44px;height:44px;margin:0 2px;accent-color:var(--blue)}
 .travel{border-bottom:1px solid var(--line);margin-bottom:8px}
 .region-choices{padding:4px 0 12px}
 .region-choices button{flex:1 1 160px}
@@ -94,6 +94,8 @@ dialog button{max-width:100%}
 #collection-list>*{border-bottom:1px solid var(--line);padding:8px 0;min-width:0;overflow-wrap:anywhere}
 #collection-list>p{grid-column:1/-1}
 #collection-list button{width:100%}
+#collection-list label{display:grid;gap:4px}
+#collection-list select{width:100%;max-width:100%}
 #service-content{display:grid;gap:12px;margin-bottom:16px;min-width:0;overflow-wrap:anywhere}
 #service-content label{flex-wrap:wrap}
 #service-content select,#service-content input{max-width:100%}
@@ -101,17 +103,18 @@ dialog button{max-width:100%}
   :root{--scene-height:300px}
   .field-actions{display:block}
   .interaction-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}
-  .play-layout:has(#battle-panel:not([hidden])){--scene-height:270px;display:flex;flex-direction:column;gap:0}
+  .play-layout:has(#battle-panel:not([hidden])){--scene-height:230px;display:flex;flex-direction:column;gap:0}
   .play-layout:has(#battle-panel:not([hidden])) .viewport{width:100%;order:0}
   .play-layout:has(#battle-panel:not([hidden])) #battle-panel{width:100%;order:1}
   .play-layout:has(#battle-panel:not([hidden])) .trail-controls{width:100%;order:2}
-  .play-layout:has(#battle-panel:not([hidden])) .combatants{position:absolute;top:8px;left:8px;right:8px;gap:12px;pointer-events:none}
-  .play-layout:has(#battle-panel:not([hidden])) .combatants>section{width:min(240px,100%);pointer-events:auto}
-  .play-layout:has(#battle-panel:not([hidden])) .combatants>section:last-child{justify-self:end}
+  .play-layout:has(#battle-panel:not([hidden])) .combatants{position:static;width:100%;gap:8px;margin-bottom:0}
+  .play-layout:has(#battle-panel:not([hidden])) .combatants>section{width:100%;padding:6px}
+  .play-layout:has(#battle-panel:not([hidden])) .combatants h2{margin-bottom:4px}
+  .play-layout:has(#battle-panel:not([hidden])) .combatants summary{padding:10px 0}
   .play-layout:has(#battle-panel:not([hidden])) #message{margin:8px 0}
   .play-layout:has(#battle-panel:not([hidden])) .toolbar{margin-top:0;margin-bottom:8px}
   .play-layout:has(#battle-panel:not([hidden])) #battle-panel{display:flex;flex-direction:column}
-  .play-layout:has(#battle-panel:not([hidden])) .trail-controls #message{position:absolute;top:calc(var(--scene-height) - 48px);left:8px;right:8px;max-height:40px;font-size:14px;margin:0;padding:4px 8px}
+  .play-layout:has(#battle-panel:not([hidden])) .trail-controls #message{position:static;max-height:none;font-size:14px;margin:8px 0;padding:4px 8px}
   .play-layout:has(#battle-panel:not([hidden])) #battle-panel{padding-top:4px}
   .play-layout:has(#battle-panel:not([hidden])) .trail-controls #world-help{display:none}
 }
