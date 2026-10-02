@@ -157,3 +157,18 @@ through a native delivery, test a multi-tab Begin conflict, cover all reset/back
 quota paths again, clear original/async mobile Close, certify physical devices or
 rights, or run full release gates. Those remain held despite pure-module coverage.
 The existing exact-byte save protocol was preserved, not newly certified in full.
+
+## Final post-commit status
+
+Follow-up source/test/evidence commit: `f00d033`, anonymous author and committer
+`Arcade Worker <>`, as was `32ee01a`. After that commit, `git status --short`
+was empty. `python3 -B scripts/check_maintenance_docs.py` reran and exited **1**;
+`foldwild-97-maintenance.log` records the actual remaining assertion:
+`Inventory stale: inspect changes, then run --refresh.` No refresh or unowned
+manual edit attempted. This is a reported gate limitation, not a passing gate.
+Final disk guard still 2.2G free. No sparse selection change, no unowned staging,
+no source growth beyond the controller/entry text and small native check, no push.
+
+Task outcome: bounded controller implementation completed, command/test evidence
+retained, acceptance holds explicit. Final report-only commit/hash is returned
+with the worker handoff. Stop after reporting; no background browser/server left.
