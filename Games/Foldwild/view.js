@@ -33,6 +33,8 @@ export function createView(canvas, { onCheckpoint = () => {}, reducedMotion = fa
   let generation = 0, disposed = false, mode = 'world', quality = 'low', frames = 0, elapsed = 0;
   let points = [], visiblePoints = [], region = 0, player = null, cameraYaw = 0, playerYaw = 0;
   let effect = null, walking = 0, npcParts = [], npcs = [], cameraBoxes = [];
+  let inspectionYaw = 0, inspectionBounds = null;
+  const inspectionCenter = new THREE.Vector3();
   let appearance = { skin: '#bc916b', coat: '#365a74', hair: '#38342d', hairStyle: 'short', pack: '#ac9265' };
   const hiddenAvailable = Boolean(OPTIONAL_HIDDEN_SPECIES &&
     typeof OPTIONAL_HIDDEN_SPECIES.id === 'string' && validModelPath(OPTIONAL_HIDDEN_SPECIES.model));
@@ -168,7 +170,7 @@ export function createView(canvas, { onCheckpoint = () => {}, reducedMotion = fa
     sceneInstances.length = 0;
     failures.clear();
     points = []; visiblePoints = []; npcs = []; npcParts = []; cameraBoxes = [];
-    player = null; effect = null; walking = 0;
+    player = null; effect = null; walking = 0; inspectionBounds = null;
     pointers.clear();
     return generation;
   }
@@ -336,7 +338,16 @@ export function createView(canvas, { onCheckpoint = () => {}, reducedMotion = fa
   }
   function cameraPosition(instant = false, dt = 0) {
     if (mode === 'battle') { desiredCamera.set(0, 3.6, 8.5); lookAt.set(0, .8, 0); }
-    else {
+    else if (mode === 'inspection') {
+      const radius = inspectionBounds ? inspectionBounds.getSize(projected).length() / 2 : 1.4;
+      const vertical = THREE.MathUtils.degToRad(camera.fov / 2);
+      const halfFov = Math.min(vertical, Math.atan(Math.tan(vertical) * camera.aspect));
+      // Bounding sphere fits every deliberate rotation, including portrait hosts and accessories.
+      const distance = radius * 1.08 / Math.sin(halfFov);
+      lookAt.copy(inspectionCenter);
+      desiredCamera.set(Math.sin(inspectionYaw) * Math.cos(.18), Math.sin(.18), Math.cos(inspectionYaw) * Math.cos(.18))
+        .multiplyScalar(distance).add(lookAt);
+    } else {
       desiredCamera.set(playerPosition.x + Math.sin(cameraYaw) * 10, 5.6, playerPosition.z + Math.cos(cameraYaw) * 10);
       lookAt.set(playerPosition.x, .6, playerPosition.z);
       avoidCamera(desiredCamera);
@@ -372,6 +383,25 @@ export function createView(canvas, { onCheckpoint = () => {}, reducedMotion = fa
       creature('player', playerSpeciesId, -1.85, 0, Math.PI / 2, token, 2.4, playerCosmeticId),
       creature('enemy', enemySpeciesId, 1.85, 0, -Math.PI / 2, token, 2.4, enemyCosmeticId)
     ]);
+  }
+  async function showInspection({ speciesId, cosmeticId = 'none' } = {}) {
+    if (disposed) return;
+    if (typeof speciesId !== 'string' || !Object.hasOwn(BY_ID, speciesId) || !validModelPath(BY_ID[speciesId].model))
+      throw new Error('Unknown Foldwild inspection species');
+    if (!['none', 'badge', 'scarf', 'paper-hat'].includes(cosmeticId)) throw new Error('Unknown Foldwild inspection cosmetic');
+    const token = reset('inspection');
+    inspectionYaw = 0; inspectionCenter.set(0, 1.2, 0);
+    const ground = shape(root, 'ground', '#ded8c8', 0, -.025, 0, 160, 160, 1);
+    ground.rotation.x = -Math.PI / 2;
+    cameraPosition(true);
+    await creature('inspection', speciesId, 0, 0, 0, token, 2.4, cosmeticId);
+    if (disposed || generation !== token) return;
+    const frame = slots.get('inspection')?.frame;
+    if (frame) {
+      inspectionBounds = new THREE.Box3().setFromObject(frame);
+      inspectionBounds.getCenter(inspectionCenter);
+      cameraPosition(true);
+    }
   }
   function clearEffect() {
     if (effect?.object) root.remove(effect.object);
@@ -428,6 +458,7 @@ export function createView(canvas, { onCheckpoint = () => {}, reducedMotion = fa
     const scale = Math.min(1, maxW / width, maxH / height);
     renderer.setSize(Math.max(1, Math.floor(width * scale)), Math.max(1, Math.floor(height * scale)), false);
     camera.aspect = width / height; camera.updateProjectionMatrix();
+    if (mode === 'inspection') cameraPosition(true);
   }
   function setQuality(value) {
     if (!['low', 'standard'].includes(value)) throw new Error('Unknown Foldwild quality');
@@ -446,10 +477,16 @@ export function createView(canvas, { onCheckpoint = () => {}, reducedMotion = fa
   }
   function orbitCamera(delta) {
     if (disposed || !Number.isFinite(delta)) return;
-    cameraYaw = THREE.MathUtils.euclideanModulo(cameraYaw + delta + Math.PI, Math.PI * 2) - Math.PI;
-    if (mode === 'world') cameraPosition(true);
+    if (mode === 'inspection') inspectionYaw = THREE.MathUtils.euclideanModulo(inspectionYaw + delta + Math.PI, Math.PI * 2) - Math.PI;
+    else cameraYaw = THREE.MathUtils.euclideanModulo(cameraYaw + delta + Math.PI, Math.PI * 2) - Math.PI;
+    if (mode === 'world' || mode === 'inspection') cameraPosition(true);
   }
-  function recenterCamera() { if (!disposed) { cameraYaw = playerYaw; cameraPosition(true); } }
+  function recenterCamera() {
+    if (disposed) return;
+    if (mode === 'inspection') inspectionYaw = 0;
+    else cameraYaw = playerYaw;
+    cameraPosition(true);
+  }
   function getCameraYaw() { return cameraYaw; }
   function setReducedMotion(value) {
     reducedMotion = Boolean(value);
@@ -460,7 +497,7 @@ export function createView(canvas, { onCheckpoint = () => {}, reducedMotion = fa
     }
   }
   function pointerDown(event) {
-    if (mode !== 'world' || ![0, 2].includes(event.button)) return;
+    if (!['world', 'inspection'].includes(mode) || ![0, 2].includes(event.button)) return;
     pointers.set(event.pointerId, { x: event.clientX, y: event.clientY, startX: event.clientX, startY: event.clientY,
       token: generation, moved: event.button === 2, touch: event.pointerType === 'touch' });
     if (pointers.size > 1) for (const p of pointers.values()) p.moved = true;
@@ -471,7 +508,7 @@ export function createView(canvas, { onCheckpoint = () => {}, reducedMotion = fa
     if (!p) return;
     const dx = event.clientX - p.x;
     if (Math.hypot(event.clientX - p.startX, event.clientY - p.startY) > 8) p.moved = true;
-    if (p.moved && (!p.touch || pointers.size > 1)) orbitCamera(-dx * .008 / (p.touch ? 2 : 1));
+    if (p.moved && (mode === 'inspection' || !p.touch || pointers.size > 1)) orbitCamera(-dx * .008 / (p.touch && mode === 'world' ? 2 : 1));
     p.x = event.clientX; p.y = event.clientY;
   }
   function pointerUp(event) {
@@ -503,7 +540,13 @@ export function createView(canvas, { onCheckpoint = () => {}, reducedMotion = fa
   for (const [name, callback] of Object.entries(listeners)) canvas.addEventListener(name, callback);
   function inspect() {
     const loaded = [...new Set([...slots.values()].filter(s => s.frame && s.entry).map(s => s.path))];
-    return Object.freeze({ mode, frames, quality, cameraYaw, drawCalls: renderer.info.render.calls, triangles: renderer.info.render.triangles,
+    return Object.freeze({ mode, frames, quality, cameraYaw, inspectionYaw, drawCalls: renderer.info.render.calls, triangles: renderer.info.render.triangles,
+      modelReferences: [...slots.values()].filter(s => s.entry).length,
+      inspectionBounds: inspectionBounds ? Object.freeze({
+        min: Object.freeze({ x: inspectionBounds.min.x, y: inspectionBounds.min.y, z: inspectionBounds.min.z }),
+        max: Object.freeze({ x: inspectionBounds.max.x, y: inspectionBounds.max.y, z: inspectionBounds.max.z })
+      }) : null,
+      cameraTarget: Object.freeze({ x: lookAt.x, y: lookAt.y, z: lookAt.z }),
       cacheSize: cache.size, countLoadedModels: loaded.length, loadedModels: Object.freeze(loaded), fallbackModels: Object.freeze([...failures]),
       hiddenAvailable, width: canvas.width, height: canvas.height, npcCount: npcs.length,
       cameraPosition: Object.freeze({ x: camera.position.x, y: camera.position.y, z: camera.position.z }),
@@ -522,6 +565,6 @@ export function createView(canvas, { onCheckpoint = () => {}, reducedMotion = fa
     renderer.dispose();
   }
   resize(); cameraPosition(true);
-  return { showWorld, setPlayerPosition, showBattle, animateAction, render, resize, setReducedMotion,
+  return { showWorld, setPlayerPosition, showBattle, showInspection, animateAction, render, resize, setReducedMotion,
     setAppearance, setQuality, orbitCamera, recenterCamera, getCameraYaw, inspect, dispose };
 }
