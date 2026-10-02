@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import * as core from '../Games/Slipstream Borough/core.js';
 import { CARS } from '../assets/car-arcade/fleet.js';
 
-const { freshProfile, validateProfile, startRun, stepRun, settleRun, buyCar, selectCar, upgradeCar, applyCode, carStats } = core;
+const { freshProfile, validateProfile, startRun, stepRun, settleRun, buyCar, selectCar, upgradeCar, upgradeCost, applyCode, carStats } = core;
 const neutral = { steer: 0, throttle: 0, brake: 0 };
 const drive = { steer: 0, throttle: 1, brake: 0 };
 let checks = 0;
@@ -28,7 +28,7 @@ function runToEnd(run, controller, limit = 4802) {
 const centerDrive = r => ({ ...drive, steer: Math.abs(r.x) < 0.06 ? 0 : Math.sign(-r.x) });
 
 check('exact exports / fresh profile / canonical reload', () => {
-  assert.deepEqual(Object.keys(core).sort(), ['freshProfile', 'validateProfile', 'startRun', 'stepRun', 'settleRun', 'buyCar', 'selectCar', 'upgradeCar', 'applyCode', 'carStats'].sort());
+  assert.deepEqual(Object.keys(core).sort(), ['freshProfile', 'validateProfile', 'startRun', 'stepRun', 'settleRun', 'buyCar', 'selectCar', 'upgradeCar', 'upgradeCost', 'applyCode', 'carStats'].sort());
   const p = freshProfile(); assert.equal(p.cash, 0); assert.equal(p.testMode, false); assert.deepEqual(p.owned, ['bricklet']);
   assert.deepEqual(validateProfile(JSON.parse(JSON.stringify(p))), p);
   assert.deepEqual(validateProfile({ ...p, upgrades: {} }), p);
@@ -66,7 +66,15 @@ check('normal atomic purchases / performance upgrades / reset', () => {
   const bought = buyCar(funded, 'pip'); assert.equal(bought.cash, 9100); assert.equal(funded.cash, 10000); assert.throws(() => buyCar(bought, 'pip'));
   assert.equal(selectCar(bought, 'pip').selected, 'pip');
   let upgraded = funded;
-  for (const kind of ['engine', 'handling', 'armor']) upgraded = upgradeCar(upgraded, 'bricklet', kind);
+  for (const kind of ['engine', 'handling', 'armor']) {
+    const price = upgradeCost(upgraded, 'bricklet', kind), cash = upgraded.cash;
+    upgraded = upgradeCar(upgraded, 'bricklet', kind);
+    assert.equal(cash - upgraded.cash, price);
+  }
+  assert.equal(upgradeCost(upgraded, 'bricklet', 'engine'), 1000);
+  assert.throws(() => upgradeCost({ ...funded, upgrades: { bricklet: { engine: 5, handling: 0, armor: 0 } } }, 'bricklet', 'engine'));
+  assert.throws(() => upgradeCost(funded, 'pip', 'engine'));
+  assert.throws(() => upgradeCost(funded, 'bricklet', 'unknown'));
   assert.equal(upgraded.cash, 9250);
   const before = carStats(funded), after = carStats(upgraded);
   for (const key of ['speed', 'acceleration', 'handling', 'toughness']) assert.ok(after[key] > before[key]);

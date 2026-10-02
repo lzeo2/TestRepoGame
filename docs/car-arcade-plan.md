@@ -67,6 +67,10 @@ Shared storage ABI `loadSave(key,validate,storage=localStorage)` -> `{state,erro
 
 Every delegation gets progress start/return digest and explicit anonymous owned-path commit. No >20min silent work; abandon/escalate after two failures. Always >=2GB free and <=30MB normal growth; baseline currently2.14e9 free, so no full Games checkout. New game folders only, restore sparseassets/docs/scripts after testing, retain unregistered/registered new files through Git. No untouched content deletion/rename.
 
+## Subsequent owner instruction
+
+After the two car games, the owner gives free reign for further2D/3D additions: originals must be exceedingly high quality, ports are acceptable, no copyright violations; begin reviews of games needing them now. This authorizes follow-up work, not copying branding/assets or skipping acceptance. Independent Astra104 reviews the existing unregistered2048/Hextris candidates first. Historical source licenses and failed polish are recorded in their manuals; further additions require current quality/asset/source checks, not an invented clearance or assumed obsolete IDs. Keep this review separate from car source leases. New extra-game implementations/registration are sequenced after the car milestone, with dispositions listed honestly.
+
 ## Acceptance and handoff
 
 Framework-free regressions cover16 distinct models/finite geometry/tri budgets/cleanup, exact core replay/collision/near-miss/police/racing/one-shot settlement/purchases/upgrades/secret effect, tycoon conservation/identity/customer/condition/staff/rent/win/loss/reload, hostile/corrupt/denied/quota/conflict storage. These fixtures are not natural progression proof.

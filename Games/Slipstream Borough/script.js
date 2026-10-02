@@ -30,7 +30,7 @@ function garageUI() {
   $('upgrades').replaceChildren();
   for (const kind of ['engine', 'handling', 'armor']) {
     const level = profile.upgrades[profile.selected][kind], button = document.createElement('button');
-    const cost = core.upgradeCost ? core.upgradeCost(profile, profile.selected, kind) : null;
+    const cost = level < 5 ? core.upgradeCost(profile, profile.selected, kind) : null;
     button.textContent = `${kind} ${level}/5${level < 5 ? `: upgrade${cost === null ? '' : ` ${cost}`}` : ': max'}`;
     button.disabled = level === 5 || blocked || (cost !== null && !profile.testMode && profile.cash < cost);
     button.onclick = () => action(() => { const next = core.upgradeCar(profile, profile.selected, kind); feedback(`${kind} improved. Paid ${profile.cash - next.cash}, cuh.`); return next; }); $('upgrades').append(button);
@@ -55,7 +55,7 @@ function setPhase(next) {
 }
 function start() {
   if (!view || blocked) return;
-  try { const transaction = core.startRun(profile, $('mode').value); if (!save(transaction.profile)) return; run = transaction.run; setPhase('run'); $('viewport').focus(); $('quip').textContent = run.mode === 'race' ? 'Three rivals. One finish line. Ready, lad.' : 'Keep the bodywork attached, cuh.'; }
+  try { const transaction = core.startRun(profile, $('mode').value); if (!save(transaction.profile)) return; run = transaction.run; lastQuip = -20; setPhase('run'); $('viewport').focus(); $('quip').textContent = run.mode === 'race' ? 'Three rivals. One finish line. Ready, lad.' : 'Keep the bodywork attached, cuh.'; }
   catch (e) { io(e.message, true); }
 }
 function finish() {

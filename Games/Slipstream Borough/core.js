@@ -78,11 +78,16 @@ export function selectCar(profile, id) {
   if (!p.owned.includes(id)) throw new RangeError('Car not owned');
   p.selected = id; return p;
 }
-export function upgradeCar(profile, id, kind) {
+export function upgradeCost(profile, id, kind) {
   const p = validateProfile(profile); car(id);
   if (!p.owned.includes(id) || !['engine', 'handling', 'armor'].includes(kind)) throw new RangeError('Invalid upgrade');
-  const level = p.upgrades[id][kind], cost = 250 * (level + 1) ** 2;
-  if (level === 5 || (!p.testMode && p.cash < cost)) throw new RangeError('Upgrade unavailable');
+  const level = p.upgrades[id][kind];
+  if (level === 5) throw new RangeError('Upgrade at maximum');
+  return p.testMode ? 0 : 250 * (level + 1) ** 2;
+}
+export function upgradeCar(profile, id, kind) {
+  const p = validateProfile(profile), cost = upgradeCost(p, id, kind);
+  if (!p.testMode && p.cash < cost) throw new RangeError('Upgrade unavailable');
   if (!p.testMode) p.cash -= cost;
   p.upgrades[id][kind]++; return p;
 }
