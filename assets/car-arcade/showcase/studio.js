@@ -27,7 +27,13 @@ function select(id) {
   if (current) { scene.remove(current); disposeObject(current); }
   current = factories[id](); scene.add(current);
   camera.position.set(4.4, 2.75, -5.35); camera.lookAt(0, .72, 0);
-  current.traverse(node => { if (node.isMesh) { const mats = Array.isArray(node.material) ? node.material : [node.material]; node.castShadow = !mats.some(m => m.transparent); node.receiveShadow = true; } });
+  current.traverse(node => {
+    if (!node.isMesh) return;
+    const mats = Array.isArray(node.material) ? node.material : [node.material];
+    // ponytail: thin-pane alpha, restore refraction only on a GPU-tested high tier.
+    for (const mat of mats) if (mat.transparent) { mat.transmission = 0; mat.forceSinglePass = true; }
+    node.castShadow = !mats.some(m => m.transparent); node.receiveShadow = true;
+  });
   schedule();
 }
 try {
@@ -64,6 +70,10 @@ canvas.addEventListener('pointermove', event => { if (drag?.id === event.pointer
 for (const name of ['pointerup','pointercancel','lostpointercapture']) canvas.addEventListener(name, () => { drag = null; });
 window.addEventListener('resize', schedule); window.addEventListener('blur', () => { drag = null; });
 canvas.addEventListener('webglcontextlost', event => { event.preventDefault(); fail(new Error('Graphics context lost; reload to recover')); });
-Object.defineProperty(window,'carStudioSnapshot',{get:()=>Object.freeze({id:document.getElementById('car').value,name:current?.userData.name,frames,angle:current?.rotation.y,triangles:renderer?.info.render.triangles,drawCalls:renderer?.info.render.calls,geometryCount:renderer?.info.memory.geometries,revision:THREE.REVISION,error:failure})});
+function glassStats() {
+  const mats = new Set(); current?.traverse(node => { if (node.isMesh) for (const mat of Array.isArray(node.material) ? node.material : [node.material]) if (mat.transparent) mats.add(mat); });
+  return {refractingMaterials:[...mats].filter(m=>m.transmission>0).length,singlePassGlass:[...mats].every(m=>m.forceSinglePass)};
+}
+Object.defineProperty(window,'carStudioSnapshot',{get:()=>Object.freeze({...glassStats(),id:document.getElementById('car').value,name:current?.userData.name,frames,angle:current?.rotation.y,triangles:renderer?.info.render.triangles,drawCalls:renderer?.info.render.calls,geometryCount:renderer?.info.memory.geometries,revision:THREE.REVISION,error:failure})});
 window.addEventListener('pagehide',()=>{disposed=true;cancelAnimationFrame(pending);renderer?.dispose();environment?.dispose();disposeObject(scene);});
 window.addEventListener('pageshow',event=>{if(event.persisted)location.reload();});

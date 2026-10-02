@@ -56,6 +56,7 @@ def main():
             page.route('**/*',route)
             page.goto(origin+'/assets/car-arcade/showcase/')
             page.wait_for_function('window.carStudioSnapshot?.frames>0 && !carStudioSnapshot.error')
+            assert page.evaluate('carStudioSnapshot.refractingMaterials===0 && carStudioSnapshot.singlePassGlass')
             rows=[]
             for car in ['pip','brindle']:
                 row=page.evaluate(INSPECT,car);rows.append(row)
@@ -68,6 +69,7 @@ def main():
                 frames=page.evaluate('carStudioSnapshot.frames')
                 page.locator('#car').select_option(car)
                 page.wait_for_function('args=>carStudioSnapshot.id===args.id && carStudioSnapshot.frames>args.frames',arg={'id':car,'frames':frames})
+                assert page.evaluate('carStudioSnapshot.refractingMaterials===0 && carStudioSnapshot.singlePassGlass')
                 page.locator('#studio').screenshot(path=str(output/(car+'-front.png')))
                 for _ in range(9):page.locator('#right').click()
                 page.locator('#studio').screenshot(path=str(output/(car+'-rear.png')))
@@ -91,6 +93,9 @@ def main():
         result={'sources':before,'rows':rows,'errors':errors,'images':[p.name for p in output.glob('*.png')],'free_bytes':shutil.disk_usage(ROOT).free}
         (output/'results.json').write_text(json.dumps(result,indent=2)+'\n')
         print('PASS actual geometry/studio, keyboard/touch/reload; no photorealism/hardware/legal certification.',flush=True)
+    except Exception:
+        print('FAIL errors='+json.dumps(errors),flush=True)
+        raise
     finally:
         server.shutdown();server.server_close();thread.join(timeout=3)
 
