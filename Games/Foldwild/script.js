@@ -1,6 +1,6 @@
 import { SPECIES, BY_ID, ABILITIES, ELEMENT_WHEEL } from './data.js';
 import { statsFor, createCreature, clearEffects, gainXP, createBattle, applyAction } from './battle.js';
-import { REGIONS, RIVALS, REGION_LAYOUTS, movePosition, routeTo, unlockedRegion, MAX_ROSTER, freshGame, validateSave, readSave, writeSave, worldPoints, nearbyPoint } from './world.js';
+import { REGIONS, RIVALS, REGION_LAYOUTS, movePosition, routeTo, unlockedRegion, MAX_ROSTER, freshGame, validateSave, readSave, writeSave, worldPoints, nearbyPoint, releaseCreature } from './world.js';
 import { ITEMS, COSMETICS, SHOPS, CONTRACTS, buyItem, sellItem, buyCosmetic, completeContract, refreshStock } from './economy.js';
 import { CLASSES, TRAITS, generateIndividual, unlockedClasses, synergyFor } from './builds.js';
 import { createView } from './view.js';
@@ -9,6 +9,7 @@ const byId = id => document.getElementById(id);
 const all = selector => [...document.querySelectorAll(selector)];
 const text = (id, value) => { byId(id).textContent = value; };
 const canvas = byId('game-canvas');
+const viewport = canvas.parentElement;
 const layout = document.querySelector('.play-layout');
 const keys = new Set(), pointers = new Map();
 const directions = { w: [0, -1], arrowup: [0, -1], s: [0, 1], arrowdown: [0, 1], a: [-1, 0], arrowleft: [-1, 0], d: [1, 0], arrowright: [1, 0] };
@@ -18,6 +19,7 @@ let state = null, battle = null, phase = 'menu', paused = false, busy = false;
 let starterId = 'cindupp', route = [], pendingPoint = null, resetAction = null;
 let serviceContext = null, serviceMenu = 'kit', nearbyKey = '', battleFinished = false;
 let view = null, viewFailed = false, battleModels = '', busyElapsed = 0;
+let inspectionToken = 0, inspectedSpecies = null, selectedUidForCosmetic = null, inspectionFocus = null, releaseUid = null;
 let previousTime = null, saveElapsed = 0, positionDirty = false, rafId, renderClock = 0, renderElapsed = 0;
 const modal = () => all('dialog').some(dialog => dialog.open);
 const stopped = () => paused || modal() || document.hidden;
@@ -45,7 +47,12 @@ function clearInput() { keys.clear(); pointers.clear(); previousTime = null; }
 function focusGame() { canvas.focus({ preventScroll: true }); }
 function resize() { view?.resize(); }
 function save() {
-  if (!state || !savePermission) return;
+  if (!state) return false;
+  if (!savePermission) {
+    text('save-state', 'Save refused: the unreadable previous slot is preserved. Confirm a new expedition to replace it.');
+    return false;
+  }
+  state.pendingBattle = phase === 'battle' && battle && !battle.result ? structuredClone(battle) : null;
   const error = writeSave(state);
   if (error) {
     text('save-state', 'Save unavailable; expedition stays in memory.');
@@ -58,6 +65,7 @@ function save() {
   }
   positionDirty = false;
   saveElapsed = 0;
+  return !error;
 }
 function ensureView() {
   if (view || viewFailed) return;
@@ -103,6 +111,7 @@ function updateHUD() {
   text('pause', paused ? 'Resume' : 'Pause');
   byId('pause').disabled = !['world', 'battle'].includes(phase);
   byId('new-run').disabled = busy;
+  byId('save-now').disabled = !['world', 'battle', 'result'].includes(phase);
   byId('collection-btn').disabled = !['world', 'result'].includes(phase) || busy;
   byId('result-continue').disabled = busy;
   for (const element of all('[data-region]')) {
@@ -140,8 +149,8 @@ function nearbyActions() {
 }
 function distanceTo(point) { return Math.hypot(point.x - state.position.x, point.z - state.position.z); }
 function viewAppearance() {
-  const { skin, coat, backpack } = state.appearance;
-  return { skin, coat, pack: backpack };
+  const { skin, hair, coat, backpack } = state.appearance;
+  return { skin, hair, coat, pack: backpack };
 }
 function showWorld() {
   route = [];
@@ -176,6 +185,8 @@ function start() {
   paused = false;
   busy = false;
   battle = null;
+  battleFinished = false;
+  battleModels = '';
   view?.setReducedMotion(state.reducedMotion);
   showWorld();
   save();
@@ -188,6 +199,9 @@ function confirmReset(action) {
   resize();
 }
 function returnToMenu() {
+  closeInspection(false);
+  battleFinished = false;
+  battleModels = '';
   state = null;
   battle = null;
   paused = false;
@@ -234,6 +248,8 @@ function travel(region) {
   save();
 }
 function result(title, description) {
+  text('evolution-summary', '');
+  byId('evolution-summary').hidden = true;
   text('result-title', title);
   text('result-description', description);
   text('result-continue', state.defeatedRivals.length === 5 ? 'Continue free play' : 'Continue expedition');
@@ -281,8 +297,8 @@ function beginBattle() {
   setPhase('battle');
   renderBattle();
   message(kind === 'wild' ? 'Wild encounter. Weaken to half HP before using a Latch Kite.' : 'Trailkeeper encounter. Choose an ability or switch ally.');
-  save();
   if (battle.result) finishBattle();
+  else save();
   focusGame();
 }
 function captureReason() {
@@ -395,6 +411,8 @@ function finishBattle() {
   if (!battle?.result || battleFinished) return;
   battleFinished = true;
   const outcome = battle.result;
+  state.pendingBattle = null;
+  const beforeSpecies = new Map(party().map(c => [c.uid, c.speciesId]));
   copyBattleTeam();
   const levels = battle.enemy.team.reduce((sum, c) => sum + c.level, 0);
   if (outcome === 'won' || outcome === 'captured') {
@@ -432,6 +450,10 @@ function finishBattle() {
   state.encounterIndex = Math.min(1e9, state.encounterIndex + 1);
   markOwned();
   result(outcome === 'captured' ? 'Capture complete' : outcome === 'lost' ? 'Team needs a rest' : battle.kind === 'rival' && outcome === 'won' ? (state.defeatedRivals.length === 5 ? 'Five routes cleared' : 'Trail cleared') : outcome === 'won' ? 'Encounter won' : 'Encounter left', description);
+  const evolutions = party().filter(c => beforeSpecies.has(c.uid) && beforeSpecies.get(c.uid) !== c.speciesId)
+    .map(c => `${BY_ID[beforeSpecies.get(c.uid)].name} unfolded into ${BY_ID[c.speciesId].name} at level ${c.level}.`);
+  text('evolution-summary', evolutions.join(' '));
+  byId('evolution-summary').hidden = !evolutions.length;
   // XP evolution is visible immediately, even while the last action effect runs.
   const player = state.roster.find(c => c.uid === battle.player.team[battle.player.active].uid);
   const enemy = battle.enemy.team[battle.enemy.active];
@@ -550,7 +572,7 @@ function renderServices() {
     }
     if (!atOutpost()) nodes.push(paragraph('Visit camp, a merchant or a mentor to switch class.'));
   } else if (serviceMenu === 'appearance') {
-    nodes.push(paragraph('Name and outfit colors are saved. Hairstyle changes are not available in this foundation.'));
+    nodes.push(paragraph('Name, hairstyle and outfit colors are saved. Change them at camp or an outpost.'));
     const label = document.createElement('label'), input = document.createElement('input');
     input.type = 'text'; input.maxLength = 24; input.value = state.appearance.name; input.disabled = !atOutpost();
     label.append(document.createTextNode('Archivist name '), input); nodes.push(label);
@@ -558,6 +580,7 @@ function renderServices() {
     saveName.disabled = !atOutpost(); nodes.push(saveName);
     const palettes = {
       skin: [['#bc916b', 'Warm'], ['#8a5a3c', 'Brown'], ['#e2bc96', 'Light'], ['#5d3b2d', 'Deep']],
+      hair: [['short', 'Short'], ['cropped', 'Cropped'], ['long', 'Long'], ['none', 'None']],
       coat: [['#365a74', 'Blue'], ['#7b4f34', 'Brown'], ['#718267', 'Sage'], ['#b98369', 'Clay']],
       backpack: [['#b39a6c', 'Canvas'], ['#66513d', 'Brown'], ['#688ba0', 'Blue']]
     };
@@ -582,8 +605,84 @@ function renderServices() {
 }
 function ledgerAction(action) {
   if (!state || !byId('collection-dialog').open || !['world', 'result'].includes(phase) || busy) return;
-  try { state = validateSave(action(structuredClone(state))); updateHUD(); save(); collection(); }
-  catch (error) { message(error.message); }
+  try {
+    state = validateSave(action(structuredClone(state))); updateHUD(); save(); collection();
+    if (selectedUidForCosmetic) inspectCreature(null, selectedUidForCosmetic);
+  } catch (error) { text('ledger-model-status', error.message); byId('ledger-inspector').hidden = false; }
+}
+function releaseReason(c) {
+  if (state.pendingBattle) return 'Cannot release during a pending battle.';
+  if (state.roster.length === 1) return 'Keep your last ally.';
+  if (state.team.includes(c.uid)) return 'Remove this ally from the team before releasing.';
+  if (state.favorites.includes(c.uid)) return 'Unfavorite this ally before releasing.';
+  if (c.hp > 0 && !state.roster.some(other => other.uid !== c.uid && other.hp > 0)) return 'Keep your last conscious ally.';
+  return '';
+}
+function askRelease(uid) {
+  const c = state?.roster.find(owned => owned.uid === uid);
+  if (!c || !byId('collection-dialog').open || releaseReason(c)) return;
+  releaseUid = uid;
+  text('release-title', `Release ${BY_ID[c.speciesId].name}?`);
+  text('release-description', `Release ${nameOf(c)} (${c.uid}) from your collection? This cannot be undone. No Marks or supplies are awarded. Your discovery history is kept.`);
+  byId('release-dialog').showModal();
+  byId('release-cancel').focus();
+}
+async function inspectCreature(speciesId, uid = null, source = null) {
+  if (!state || !byId('collection-dialog').open || !['world', 'result'].includes(phase)) return;
+  const owned = uid && state.roster.find(c => c.uid === uid);
+  if (uid && !owned) return;
+  speciesId = owned?.speciesId ?? speciesId;
+  if (!Object.hasOwn(BY_ID, speciesId) || !state.seen.includes(speciesId)) return;
+  const token = ++inspectionToken;
+  inspectedSpecies = speciesId; selectedUidForCosmetic = uid;
+  if (source) inspectionFocus = { uid, speciesId };
+  clearInput(); route = [];
+  byId('ledger-inspector').hidden = false;
+  text('ledger-model-name', owned ? `${nameOf(owned)} (${uid})` : BY_ID[speciesId].name);
+  text('ledger-model-status', 'Loading local 3D model...');
+  byId('ledger-model-host').append(canvas);
+  ensureView(); resize();
+  if (!view) {
+    text('ledger-model-status', '3D view unavailable on this device. Creature information and collection controls remain available.');
+    byId('ledger-preview-close').focus(); return;
+  }
+  try {
+    await view.showInspection({ speciesId, cosmeticId: owned?.cosmeticId ?? 'none' });
+    if (token !== inspectionToken || !byId('collection-dialog').open) return;
+    resize();
+    const info = view.inspect();
+    text('ledger-model-status', info.fallbackModels.length ? `3D model unavailable. Marker shown instead. ${info.fallbackModels.join('; ')}`
+      : info.countLoadedModels === 1 ? 'Local 3D model. Drag or use the rotation buttons.' : 'Local model is not available.');
+  } catch (error) {
+    if (token !== inspectionToken) return;
+    text('ledger-model-status', `3D preview unavailable: ${error.message}`);
+  }
+  if (token === inspectionToken && source) {
+    byId('ledger-inspector').scrollIntoView({ block: 'nearest' });
+    byId('ledger-preview-close').focus({ preventScroll: true });
+  }
+}
+function closeInspection(restore = true) {
+  const wasInspecting = inspectedSpecies !== null || canvas.parentElement !== viewport;
+  ++inspectionToken;
+  inspectedSpecies = null; selectedUidForCosmetic = null;
+  byId('ledger-inspector').hidden = true;
+  viewport.prepend(canvas);
+  clearInput(); battleModels = '';
+  if (restore && wasInspecting && state) {
+    if (phase === 'world') showWorld();
+    else if (phase === 'result' && battle) {
+      ensureView();
+      const player = state.roster.find(c => c.uid === battle.player.team[battle.player.active].uid) ?? party()[0];
+      showBattleModels(player, battle.enemy.team[battle.enemy.active]);
+    }
+  }
+  resize();
+  if (byId('collection-dialog').open) {
+    const selector = inspectionFocus?.uid ? `[data-inspect="${inspectionFocus.uid}"]` : `[data-species="${inspectionFocus?.speciesId}"]`;
+    (byId('collection-list').querySelector(selector) ?? byId('collection-close')).focus({ preventScroll: true });
+  }
+  inspectionFocus = null;
 }
 function collection() {
   if (!state || !['world', 'result'].includes(phase) || busy) return;
@@ -605,7 +704,12 @@ function collection() {
     const favorite = button(state.favorites.includes(c.uid) ? 'Unfavorite' : 'Favorite', () => ledgerAction(next => {
       next.favorites = next.favorites.includes(c.uid) ? next.favorites.filter(uid => uid !== c.uid) : [...next.favorites, c.uid]; return next;
     }));
-    card.append(control, favorite, selectControl('Accessory', state.cosmetics.map(id => [id, COSMETICS[id].name]), c.cosmeticId ?? 'none', value => ledgerAction(next => {
+    const inspect = button('Inspect', () => inspectCreature(null, c.uid, inspect)); inspect.dataset.inspect = c.uid;
+    const release = button('Release', () => askRelease(c.uid)); release.dataset.release = c.uid;
+    const reason = releaseReason(c); release.disabled = Boolean(reason); release.title = reason || 'Release this individual with confirmation';
+    card.append(inspect, control, favorite, release);
+    if (reason) card.append(paragraph(reason));
+    card.append(selectControl('Accessory', state.cosmetics.map(id => [id, COSMETICS[id].name]), c.cosmeticId ?? 'none', value => ledgerAction(next => {
       if (!next.cosmetics.includes(value)) throw new Error('Accessory not owned.');
       next.roster.find(owned => owned.uid === c.uid).cosmeticId = value; return next;
     })));
@@ -620,6 +724,8 @@ function collection() {
     if (!discovered) card.append(paragraph(`#${species.number} Undiscovered`));
     else {
       card.append(paragraph(`#${species.number} ${species.name} · ${species.element} · ${species.family} · ${species.tier} · ${state.caught.includes(species.id) ? 'Caught' : 'Seen'}`));
+      const inspect = button('Inspect species', () => inspectCreature(species.id, null, inspect));
+      inspect.dataset.species = species.id; card.append(inspect);
       card.append(paragraph(species.abilities.map(name => abilityDescription(name)).join('; ')));
       if (species.evolvesTo) card.append(paragraph(`Evolves at level ${species.evolveLevel}${state.seen.includes(species.evolvesTo) ? ` into ${BY_ID[species.evolvesTo].name}` : '; next form undiscovered'}.`));
     }
@@ -627,7 +733,7 @@ function collection() {
   }
   byId('collection-list').replaceChildren(...items);
   clearInput();
-  if (!byId('collection-dialog').open) byId('collection-dialog').showModal();
+  if (!byId('collection-dialog').open) { route = []; byId('collection-dialog').showModal(); }
   resize();
 }
 function togglePause() {
@@ -684,7 +790,7 @@ function frame(time) {
   if (phase !== 'menu' && !document.hidden) {
     renderClock += elapsed; renderElapsed += dt;
     const interval = state?.quality === 'standard' ? 1 / 60 : 1 / 30;
-    if (renderClock >= interval) { view?.render(renderElapsed); renderClock %= interval; renderElapsed = 0; }
+    if (renderClock >= interval) { view?.render(stopped() ? 0 : renderElapsed); renderClock %= interval; renderElapsed = 0; }
   }
   rafId = requestAnimationFrame(frame);
 }
@@ -699,8 +805,15 @@ byId('continue').addEventListener('click', () => {
   state = validateSave(savedSlot);
   byId('reduce-motion').checked = state.reducedMotion;
   view?.setReducedMotion(state.reducedMotion);
-  paused = false;
-  showWorld();
+  paused = false; busy = false; battleFinished = false; battleModels = '';
+  battle = state.pendingBattle ? structuredClone(state.pendingBattle) : null;
+  ensureView();
+  view?.setQuality(state.quality); view?.setReducedMotion(state.reducedMotion); view?.setAppearance(viewAppearance());
+  if (battle) {
+    route = []; pendingPoint = null;
+    setPhase('battle'); renderBattle();
+    message('Encounter resumed exactly where you saved. Choose your next command.'); focusGame();
+  } else showWorld();
   save();
 });
 byId('new-run').addEventListener('click', () => confirmReset(returnToMenu));
@@ -731,7 +844,35 @@ byId('quality').addEventListener('change', () => {
 });
 byId('seed-input').addEventListener('input', () => byId('seed-input').setCustomValidity(''));
 byId('collection-close').addEventListener('click', () => byId('collection-dialog').close());
-byId('collection-dialog').addEventListener('close', () => { clearInput(); resize(); updateHUD(); focusGame(); });
+byId('collection-dialog').addEventListener('close', () => {
+  if (byId('release-dialog').open) byId('release-dialog').close();
+  closeInspection(); clearInput(); resize(); updateHUD(); focusGame();
+});
+byId('ledger-preview-close').addEventListener('click', () => closeInspection());
+byId('ledger-rotate-left').addEventListener('click', () => { if (inspectedSpecies) view?.orbitCamera(-Math.PI / 4); });
+byId('ledger-rotate-right').addEventListener('click', () => { if (inspectedSpecies) view?.orbitCamera(Math.PI / 4); });
+byId('ledger-model-reset').addEventListener('click', () => { if (inspectedSpecies) view?.recenterCamera(); });
+byId('release-cancel').addEventListener('click', () => byId('release-dialog').close());
+byId('release-dialog').addEventListener('close', () => {
+  const uid = releaseUid; releaseUid = null;
+  (byId('collection-list').querySelector(`[data-release="${uid}"]`) ?? byId('collection-close')).focus({ preventScroll: true });
+});
+byId('release-confirm').addEventListener('click', () => {
+  if (!releaseUid || !byId('release-dialog').open || !byId('collection-dialog').open) return;
+  try {
+    const uid = releaseUid;
+    state = releaseCreature(state, uid);
+    if (selectedUidForCosmetic === uid) closeInspection();
+    updateHUD(); save(); collection(); byId('release-dialog').close();
+  } catch (error) { text('release-description', error.message); }
+});
+byId('save-now').addEventListener('click', () => {
+  if (!state) return;
+  const status = save() ? 'Progress saved on this device.' : byId('save-state').textContent;
+  const failures = view?.inspect().fallbackModels ?? [];
+  text('message', `${status}${viewFailed ? ' 3D view unavailable; the expedition remains playable without 3D.'
+    : failures.length ? ` 3D model unavailable. Marker used instead. ${failures.join('; ')}` : ''}`);
+});
 byId('interact').addEventListener('click', interact);
 byId('rest').addEventListener('click', rest);
 byId('pause').addEventListener('click', togglePause);
@@ -789,9 +930,8 @@ canvas.addEventListener('blur', () => keys.clear());
 document.addEventListener('visibilitychange', clearInput);
 window.addEventListener('resize', resize);
 window.addEventListener('beforeunload', () => {
-  if (state && savePermission) save();
-  cancelAnimationFrame(rafId);
-  view?.dispose();
+  try { if (state && savePermission) save(); }
+  finally { cancelAnimationFrame(rafId); view?.dispose(); }
 });
 function deepFreeze(value) {
   if (value && typeof value === 'object') { Object.values(value).forEach(deepFreeze); Object.freeze(value); }
