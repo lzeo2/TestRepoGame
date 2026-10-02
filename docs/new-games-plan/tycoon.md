@@ -1,6 +1,6 @@
 # Tycoon research: two conditional port slots
 
-Delegation 85, 2026-10-02 UTC. Actual worker: `openai-codex/gpt-6-astra`, confirmed from `PI_PROVIDER` and `PI_MODEL`. Research only; Main owns direction, rights decisions, imagery and any later catalog work. **Two candidate plans, zero ingestion GO decisions.** These are existing playable-game source projects, not proposals for new AI-authored games. Missing asset evidence remains HOLD even when code has an open-source notice.
+Delegation 85, 2026-10-02 UTC. Actual worker: `openai-codex/gpt-6-astra`, confirmed from `PI_PROVIDER` and `PI_MODEL`. Research only; Main owns direction, rights decisions, imagery and any later catalog work. **Two primary candidate plans, zero ingestion GO decisions: shapez and OpenTTD.** Main replaced the Civ Clicker duplicate after collection/heist selected that same upstream. Its earlier investigation remains a dated appendix, not a third primary plan. These are existing playable-game source projects, not proposals for new AI-authored games. Missing asset evidence remains HOLD even when code has an open-source notice.
 
 ## Scope and actual checks
 
@@ -71,7 +71,63 @@ Each slice is conditional on Main's rights/build decision, has disjoint ownershi
 
 **Owner questions and fallback:** Is a heavier factory port with external reproducible build work acceptable, or is no-build compact delivery strict? Can the conflicting code declarations and separate artwork/audio/font rights be resolved from public evidence? Is the input-adapter size acceptable without a rewrite? If any answer remains no/unknown, leave this slot empty and research another already-complete open-source factory game with a checked-in static runtime and explicit asset terms. Community Edition is merely a README-linked future research lead, not a vetted fallback, pin or license clearance. No commercial clone, paid asset extraction or AI replacement is authorized.
 
-## 2. Settlement economy slot: Civ Clicker
+## 2. Transport management slot: OpenTTD
+
+### Identity, source pins and disposition
+
+Main finish-only review, following delegation 88's failed wrong-provider tool launch and subsequent direct Astra timeout. The worker produced no document commit and is abandoned; its small fetched text was inspected by Main, not presented as a finished worker report. This is a distinct transport/logistics tycoon, not another Civ Clicker listing.
+
+Authoritative game source: <https://github.com/OpenTTD/OpenTTD>, fresh master ref **`97862f4a4b9a68fa559ac1f489fabba62a336423`**. Main successfully fetched the ref, pinned README and `COPYING.md`. Content project: <https://github.com/OpenTTD/OpenGFX>, fresh master ref **`c51c904f4f6e7466ee73f907520ef7ea9a53bcbb`**, ref and README successfully fetched. These modern source pins are evidence references, **not** proof they produced the older browser binary.
+
+A real touchscreen browser route exists: <https://github.com/pelya/openttd-touch-webapp>, worker-resolved pin **`6bfe1bb331e2a61f0261474f2d6ee1123f6b0e89`**; associated native fork <https://github.com/pelya/openttd-android>, worker-resolved **`f1232bfed7c298c7c7b194e33c890121ed374ab1`**. Main inspected saved commit metadata, browser README/entry, source build script and pre-runtime adapter. Browser README specifies the Android branch 12 and Emscripten 3.0.0. Exact binary-to-source/compiler correspondence is not established by those statements or the later commit pins.
+
+**HOLD source/port slot; REJECT direct vendoring of the current browser bundle.** This is a complete management game with a demonstrated web distribution route, but neither a small static ingestion nor a cleared artifact. No binary was fetched, executed or built; no game creation, registration or original graphics substitution is authorized.
+
+### Gameplay, controls and outcomes
+
+Build stations, roads/rail and depots, buy vehicles, schedule cargo/passenger routes, collect fares and invest in greater capacity. Borrowing funds, running costs, congestion, poor service and incorrect routing create management tradeoffs. Company finances, delivered cargo and company rating provide progress. Preserve upstream open-ended transport play and its end-of-game evaluation; do not invent a campaign boss or new victory requirement. Bankruptcy and profitable service are the intended failure/success checks, but Main has not traced the pinned economy code completely or played them here. Their exact timing and restart semantics must be verified before writing in-page instructions.
+
+Use the existing new-game/load/save/company controls, not a replacement shell simulation. Restart means an explicitly confirmed new world. Source browser route advertises touchscreen interface; that is an upstream claim, not proven 320px operation. Verify touch panning, zoom, precise route/station placement and long/right-click equivalents before selecting it. Native keyboard hotkeys and mouse placement remain the desktop path; offer an explicit accessible action palette if the existing touch interface lacks equivalent commands. Dense toolbars need real narrow-screen review, not merely a viewport tag. Main's house styling applies to surrounding controls/credits only; preserve lawful base graphics and upstream game identity. Isometric **2D** fits route planning; no 3D renderer or new models are needed.
+
+### Separate license and content gates
+
+| Component | Inspected evidence | Gate |
+| --- | --- | --- |
+| Official game code | Pinned README and GPLv2 `COPYING.md`; README separately lists third-party terms | Retain code notices, corresponding source and modification/build record. Check the exact shipped fork, not only current official HEAD |
+| Browser distribution | Saved root LICENSE is GPLv3 while native fork/official engine notices are GPLv2 | Reconcile actual file scope and combined-artifact obligations. Never silently relicense the native engine or declare the whole bundle GPLv3 |
+| Base graphics | Pinned OpenGFX README explicitly licenses its graphics base set under GPLv2 and credits its team | Strong independent content-grant evidence. Match the shipped **7.1** base set to its exact source/notices; current HEAD does not certify that binary. Never use original commercial Transport Tycoon data |
+| Bitmap/font content | OpenGFX README identifies Liberation Mono-derived characters under GPLv2; browser file table also lists separate Roboto, Droid, DejaVu, Thai and Chinese fonts | Trace every retained font/version/notice. OpenGFX's font statement cannot license those additional files |
+| Sound/music | Browser package metadata lists OpenSFX 1.0.3 and OpenMSX 0.4.2 | Their actual notices/content rights were not inspected. HOLD. An approved silent rebuild using the existing no-sound/no-music descriptors can omit consumers and files; muting a full bundle is not rights clearance |
+| Runtime/build dependencies | Build script names SDL, ICU, shaping/font libraries, compression and compiler inputs; official README lists Zlib/MIT/BSD/Unicode/etc exceptions | Pin and retain the exact linked notices/source obligations. Current engine README is not a completed dependency audit |
+| Title/art/promotional material | Factual OpenTTD attribution only | No commercial game data, storefront art, third-party mods, logos or user uploads copied. Main owns any later screenshot/thumbnail decision |
+
+Separate OpenGFX full-notice requests at guessed `COPYING.md` and `COPYING` paths both returned **HTTP 404**. Main stopped network after two failures and escalated `pi-912882-1790930810437`. No guessed notice text/path, rights outreach or additional source-request success is asserted. The explicit README grant remains actual evidence; its separate full notice and exact release mapping remain work. Full license bodies, complete native engine, asset binaries and all minified runtime were not reviewed exhaustively.
+
+### Bootstrap, offline closure, persistence and measured size evidence
+
+The saved distribution redirects `index.html` to `openttd.html`, which loads `openttd.js`; that generated loader locates `openttd.wasm` and a local data package. It is a real Emscripten application, not HTML that can run a C++ source checkout directly. Build instructions require an external compiler SDK and substantial native dependencies. No installs/builds are allowed in this repository; any reproducible build needs separate approval and an external environment.
+
+Main parsed the generated loader's package metadata: **161 packaged entries, `remote_package_size=70,566,609` bytes**, before WASM and shell. This is an embedded manifest assertion, not a downloaded/hashed payload. It includes OpenGFX 7.1 **5,335,040 bytes**, OpenSFX **13,291,520 bytes**, and ICU data **28,566,176 bytes**, plus many fonts, languages and music. `INITIAL_MEMORY` defaults to **33,554,432 bytes**, with actual heap growth/peak unknown. Main inspected bootstrap and metadata anchors in the 298,876-byte generated JS, not every minified implementation. Current bundle exceeds the normal 30MB workspace-growth allowance; do not download it just to delete pieces later.
+
+Known outbound paths: the HTML embeds an external visit-counter image; adapter configures a WebSocket content-service proxy and optional server connections, plus a dormant external base-set preload. Attribution/navigation links are not automatic requests, but the counter and socket/content paths are real closure concerns. A lawful solo port must have all base data local, no updater/content browser/multiplayer/social integration, and no telemetry. Disabling one button is insufficient; trace native callers and generated loaders. No backend, relay or security-setting relaxation is proposed.
+
+Persistence uses an IndexedDB-mounted Emscripten virtual filesystem, then `FS.syncfs`. Inspected adapter ignores some callback errors. Replace that with truthful loaded/pending/saved/error states, wait for successful flush, export local save files before overwrite and support explicit validated import. Denied/quota/partial flush must not promise persistence or destroy the previous readable run. Retain upstream save validation/version compatibility; do not invent a new schema. No actual save/reload acceptance has passed here.
+
+### Smallest conditional milestones and budgets
+
+1. **Evidence owner, reports/notices only, <=10-minute slices:** resolve browser/native license scope, exact build-source match, OpenGFX 7.1 grant/source, all linked dependencies and retained fonts. Produce a per-file manifest. Missing source/rights stops ingestion.
+2. **Build-route owner, external reproducibility evidence only:** after separate approval, evaluate a small-map, single-player, no-network, silent artifact with approved local base graphics and only required data. Proposed target **<=25MiB total static payload and <=128MiB heap**, estimates not attained guarantees; native WASM size is unknown. If lawful reproducible closure cannot fit, reselect rather than rewrite the game or quietly exceed storage limits.
+3. **Shell/platform owner, entry/adapter paths only:** remove verified network/counting consumers, preserve notices, explicit load/failure/retry/Back, page zoom, keyboard focus and >=44px surrounding controls. Guard IDBFS errors and bind local export/import consent. No gameplay simulation edits by this owner.
+4. **Input owner, existing native touch/input paths only after adapter freeze:** verify shared commands for panning/zoom/station placement, route editing and vehicle dispatch at 320/390px; repair only demonstrated input roots. Keep game costs and vehicle rules intact. No new engine or generic controls framework.
+5. **QA owner, one runnable focused check and evidence paths only:** normal-input fresh game creates a profitable working route, buys a vehicle, earns fares, saves, reloads and resumes correctly; separate natural loss/bankruptcy/restart session. Negative fixtures cover invalid save, missing base set, denied IDBFS, quota/flush error, canceled touch, context loss and repeated new-game/load transitions. Fixtures do not substitute for real route economics.
+
+Cold-cache external-network-blocked load/play/save/reload must request only approved local files, with no attempted sockets, missing assets or console errors. Measure transfer, load peak, heap, main-thread/frame-time distribution and repeated world loads on actual target hardware; 30FPS low/60FPS desired are goals, not certification. Use a small upstream-configurable map, not a fabricated replacement scenario. Main must inspect real desktop/mobile images and judge toolbar legibility and placement before GO. Full-catalog smoke, registration and push remain separate later gates.
+
+**Owner decision:** is this substantial transport port worth a separately approved external build and payload budget, or must candidates already be compact static folders? Recommend HOLD until those answers and provenance close; reject current ready bundle under existing constraints. No promise of publication, automatic mod downloads, multiplayer or original-game substitute.
+
+## Historical Civ Clicker investigation (not a tycoon primary plan)
+
+The following is delegation 85's dated investigation. Civ Clicker belongs only to the collection/heist primary list now; comparative wording below refers to the original pair and is not a third selected candidate.
 
 ### Identity, evidence and decision
 
@@ -131,7 +187,7 @@ Adaptation should namespace this port's keys and offer explicit legacy import ra
 
 ## Completion and remaining gates
 
-Exactly two distinct slot plans are supplied: hands-on factory production and incremental settlement economy. Selected-candidate count **2**, GO **0**, HOLD **2**. The useful third pinned investigation, Space Company, is rejected as the presumed ordinary-MIT fallback; it is not a third plan. All rights/native/performance/build holds above remain explicit. Main may choose neither candidate.
+Exactly two distinct primary slot plans are supplied: hands-on factory production (shapez) and transport management (OpenTTD). Civ Clicker is retained as historical investigation only and counted once, in collection/heist. Main's finish-only OpenTTD evidence and limitations are separate from delegation 85's original request totals. Selected-candidate count **2**, GO **0**, HOLD **2**. The useful third pinned investigation, Space Company, is rejected as the presumed ordinary-MIT fallback; it is not a third plan. All rights/native/performance/build holds above remain explicit. Main may choose neither candidate.
 
 Actual documentation gate command: `python3 -B scripts/check_maintenance_docs.py` failed with `AssertionError: Commit inspected source changes before validating its inventory.` This worker changed no game source; concurrent source changes were present when the checker ran. Do not refresh inventory to hide the blocker. Catalog schema/unique IDs/tracked URLs passed independently; that is not a maintenance or browser pass. `git diff --check` and owned-file hygiene are checked before this document's commit. No full smoke was run because there is no ingestion or authorized push; a future release still requires the unchanged complete registered-game browser gate plus actual gameplay/rights acceptance.
 
