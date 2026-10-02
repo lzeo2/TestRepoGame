@@ -292,21 +292,30 @@ export function releaseCreature(state, uid) {
   return validateSave(next);
 }
 
-export function readSave(storage) {
+export function readSave(storage, includeRaw = false) {
+  const result = { state: null, error: null, ...(includeRaw ? { raw: undefined } : {}) };
   try {
     storage ??= globalThis.localStorage;
     const raw = storage.getItem(SAVE_KEY);
-    if (raw === null) return { state: null, error: null };
-    return { state: validateSave(JSON.parse(sizeCheck(raw))), error: null };
+    if (includeRaw) result.raw = raw;
+    if (raw !== null) result.state = validateSave(JSON.parse(sizeCheck(raw)));
   } catch (error) {
-    return { state: null, error: `Could not read Foldwild save: ${error?.message ?? String(error)}` };
+    result.error = `Could not read Foldwild save: ${error?.message ?? String(error)}`;
   }
+  return result;
 }
-export function writeSave(state, storage) {
+export function writeSave(state, storage, expectedPrimary) {
   try {
+    if (arguments.length >= 3 && expectedPrimary !== null && typeof expectedPrimary !== 'string') {
+      throw new TypeError('Expected primary must be exact saved bytes or null.');
+    }
     const raw = sizeCheck(JSON.stringify(validateSave(state)));
     storage ??= globalThis.localStorage;
     const previous = storage.getItem(SAVE_KEY);
+    // ponytail: optimistic only; controller Web Locks are needed to serialize cooperating tabs.
+    if (arguments.length >= 3 && previous !== expectedPrimary) {
+      return 'Foldwild save conflict: primary changed; primary and backup preserved.';
+    }
     // Back up exact bytes, including an explicitly replaced corrupt slot. A failed backup stops the write.
     if (previous !== null && previous !== raw) storage.setItem(BACKUP_KEY, previous);
     storage.setItem(SAVE_KEY, raw);
