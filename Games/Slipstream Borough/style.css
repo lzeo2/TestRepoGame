@@ -1,0 +1,14 @@
+#viewport { touch-action: none; overflow: hidden; }
+#viewport canvas { height: auto; max-height: none; }
+#hud { font-size: 1rem; min-height: 54px; }
+#upgrades { display: grid; gap: 6px; margin: 12px 0; }
+#mode, #start { width: 100%; }
+.cruise { display: flex; gap: 8px; align-items: center; margin: 12px 0; }
+.cruise input { flex: 0 0 24px; }
+.small, .car-card p { font-size: 1rem; }
+#catalogSection { margin-top: 24px; }
+#phrase { width: 160px; flex: 1; min-width: 0; }
+#radio { margin-block: 16px; }
+footer { padding-block: 24px; }
+#quip { min-height: 34px; }
+@media (max-width: 760px) { body { padding: 10px; } .game-header { margin-bottom: 10px; } #hud { font-size: .9rem; } #drive .actions { gap: 6px; } .touch-controls { gap: 6px; } }
