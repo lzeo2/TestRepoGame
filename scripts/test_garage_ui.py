@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
-"""Native unseeded Garage Borough check; no state grants. Software WebGL, not FPS certification."""
+"""Unseeded ordinary play plus explicitly negative concurrent-writer fixture.
+Software WebGL, not FPS, full-campaign or cross-tab atomicity certification.
+"""
 import functools
 import json
 import os
@@ -75,8 +77,8 @@ def run():
             assert snap()['view']['angle'] < angle
             assert snap()['business'] == state, 'Paused inspection must not advance business'
             raw = page.evaluate('localStorage.getItem("garage-borough-v1")')
-            page.once('dialog', lambda dialog: dialog.dismiss())
             page.get_by_role('button', name='Reset business', exact=True).click()
+            page.get_by_role('button', name='Cancel reset', exact=True).click()
             assert page.evaluate('localStorage.getItem("garage-borough-v1")') == raw
             assert snap()['business'] == state
             page.reload()
@@ -96,17 +98,16 @@ def run():
             print(json.dumps({'native':'PASS normal buy/repair/sell, pause, exact reload, reset cancel, keyboard/touch rotation', 'result':result, 'consoleErrors':errors, 'external':external, 'failedRequests':failed}, indent=2))
             assert not errors and not external and not failed
             # NEGATIVE concurrent-writer fixture, not earned gameplay/progression.
-            # A different tab changes the slot while native reset consent is open.
+            # Nonblocking native <dialog> lets storage events arrive during consent.
             before = snap()['business']
             conflicting = dict(before, cash=before['cash'] + 1)
             conflicting_raw = json.dumps(conflicting, separators=(',', ':'))
             writer = context.new_page()
             writer.goto(page.url)
-            def race_reset(dialog):
-                writer.evaluate('(raw)=>localStorage.setItem("garage-borough-v1",raw)', conflicting_raw)
-                dialog.accept()
-            page.once('dialog', race_reset)
             page.get_by_role('button', name='Reset business', exact=True).click()
+            writer.evaluate('(raw)=>localStorage.setItem("garage-borough-v1",raw)', conflicting_raw)
+            page.wait_for_function('!document.querySelector("#save-error").hidden')
+            page.get_by_role('button', name='Confirm reset', exact=True).click()
             assert page.evaluate('localStorage.getItem("garage-borough-v1")') == conflicting_raw
             assert snap()['business'] == before
             assert page.locator('#save-error').is_visible()

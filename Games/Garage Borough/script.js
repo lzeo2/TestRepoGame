@@ -6,7 +6,7 @@ import { createView } from './view.js';
 const $=id=>document.getElementById(id), key='garage-borough-v1';
 const loaded=loadSave(key,validateBusiness);
 let business=loaded.state||freshBusiness(), raw=loaded.raw, saveError=loaded.error;
-let started=false, paused=true, view=null, selected={carId:'bricklet',uid:null}, raf=0, previous=0, lastSave=0,lastUI=0, signature='';
+let started=false, paused=true, view=null, selected={carId:'bricklet',uid:null}, raf=0, previous=0, lastSave=0,lastUI=0, signature='', resetToken;
 const money=n=>`$${n.toLocaleString('en-US')}`;
 const cost=id=>Math.max(200,Math.floor(BY_ID[id].price*.5));
 const repair=id=>Math.max(50,Math.floor(cost(id)*.15));
@@ -65,10 +65,15 @@ $('pause').onclick=()=>{if(paused){paused=false;previous=0;refresh(true);}else p
 $('hire').onclick=()=>action(hireStaff,[],'Mechanic hired');$('expand').onclick=()=>action(expandGarage,[],'Bay expanded');
 $('continue').onclick=()=>{try{business=continueBusiness(business);started=true;paused=false;previous=0;save();refresh(true);}catch(error){message(error.message);}};
 $('reset').onclick=()=>{
+  if(started&&!paused)pause();
   const observed=loadSave(key,validateBusiness);
   if(observed.error&&observed.raw===null){saveError='Existing save could not be read. Reset refused until storage access is restored.';errorDisplay();return;}
-  if(!confirm('Reset only Garage Borough? All this business progress will be replaced.'))return;
-  const fresh=freshBusiness();const result=saveSave(key,fresh,validateBusiness,observed.raw);
+  resetToken=observed.raw;$('reset-dialog').showModal();
+};
+$('cancel-reset').onclick=()=>$('reset-dialog').close();
+$('confirm-reset').onclick=()=>{
+  const fresh=freshBusiness();const result=saveSave(key,fresh,validateBusiness,resetToken);
+  $('reset-dialog').close();
   if(result.error){saveError=result.error;errorDisplay();return;}
   business=fresh;raw=result.raw;saveError=null;started=false;paused=true;previous=0;selected={carId:'bricklet',uid:null};errorDisplay();message('New business, cash $800. Buy Bricklet80, restore once, then match the compact buyer.');refresh(true);
 };
@@ -83,6 +88,7 @@ for(const name of ['pointerup','pointercancel','lostpointercapture'])$('scene').
 $('scene').addEventListener('keydown',event=>{if(['ArrowLeft','ArrowRight'].includes(event.key)){event.preventDefault();view?.rotate(event.key==='ArrowLeft'?-.15:.15);}});
 window.addEventListener('blur',()=>{drag=null;if(started)pause();});
 document.addEventListener('visibilitychange',()=>{if(document.hidden){drag=null;pause();}});
+window.addEventListener('storage',event=>{if(event.key===key||event.key===null){saveError='Save changed in another tab. Reload before continuing; newer bytes were not overwritten.';paused=true;previous=0;errorDisplay();refresh(true);}});
 $('scene').addEventListener('webglcontextlost',event=>{event.preventDefault();pause();$('gl-error').hidden=false;$('gl-error').textContent='Graphics context lost. Reload to restore the workshop; saved business is preserved.';view?.dispose();view=null;refresh(true);});
 function freeze(value){if(value&&typeof value==='object'){Object.values(value).forEach(freeze);Object.freeze(value);}return value;}
 Object.defineProperty(window,'garageSnapshot',{get:()=>freeze({phase:business.status!=='playing'?business.status:started?'business':'start',paused,business:structuredClone(business),view:view?.inspect()||null})});
