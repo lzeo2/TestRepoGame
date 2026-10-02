@@ -763,12 +763,23 @@ hr {
 
 /* Keep the original controls, but make them clear, solid, and touch-sized. */
 .restart-button,
-.game-message a {
+.game-container .game-message a {
   background: #000;
+  color: #fff;
   min-height: 44px;
   height: auto;
   line-height: 44px;
   box-sizing: border-box;
+}
+
+.score-container, .best-container,
+.score-container:after, .best-container:after { color: #302820; }
+#save-status { margin-top: 14px; font-size: 14px; color: #302820; }
+a:focus-visible { outline: 3px solid #000; box-shadow: 0 0 0 6px #fff; }
+@media (prefers-color-scheme: dark) {
+  html, body { background: #242424; color: #f5f1e8; }
+  #save-status { color: #f5f1e8; }
+  .tile { color: #776e65; }
 }
 
 @media (prefers-reduced-motion: reduce) {

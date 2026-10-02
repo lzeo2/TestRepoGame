@@ -1,12 +1,12 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
   <meta charset="utf-8">
   <title>2048</title>
 
   <link href="style/main.css" rel="stylesheet" type="text/css">
   <link rel="icon" href="../../favicon.svg" type="image/svg+xml">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no, minimal-ui">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
 <body>
   <div class="container">
@@ -22,6 +22,8 @@
       <p class="game-intro">Join the numbers and get to the <strong>2048 tile!</strong></p>
       <a class="restart-button" href="#">New Game</a>
     </div>
+
+    <p id="save-status" role="status" aria-live="polite">Checking saved game...</p>
 
     <div class="game-container">
       <div class="game-message">
@@ -65,7 +67,7 @@
     </div>
 
     <p class="game-explanation">
-      <strong class="important">How to play:</strong> Use your <strong>arrow keys</strong> or swipe the board to move the tiles. When two tiles with the same number touch, they <strong>merge into one!</strong>
+      <strong class="important">How to play:</strong> Use your <strong>arrow keys</strong> or swipe the board to move the tiles. WASD and H/J/K/L also work. Press R or New Game to restart with confirmation. When two tiles with the same number touch, they <strong>merge into one!</strong>
     </p>
     <hr>
     <p>

@@ -15,15 +15,16 @@ function GameManager(size, InputManager, Actuator, StorageManager) {
 
 // Restart the game
 GameManager.prototype.restart = function () {
-  this.storageManager.clearGameState();
+  if (!this.storageManager.restart()) return;
   this.actuator.continueGame(); // Clear the game won/lost message
-  this.setup();
+  this.setup(true);
 };
 
 // Keep playing after winning (allows going over 2048)
 GameManager.prototype.keepPlaying = function () {
   this.keepPlaying = true;
   this.actuator.continueGame(); // Clear the game won/lost message
+  this.actuate();
 };
 
 // Return true if the game is lost, or has won and the user hasn't kept playing
@@ -32,8 +33,8 @@ GameManager.prototype.isGameTerminated = function () {
 };
 
 // Set up the game
-GameManager.prototype.setup = function () {
-  var previousState = this.storageManager.getGameState();
+GameManager.prototype.setup = function (fresh) {
+  var previousState = fresh ? null : this.storageManager.getGameState();
 
   // Reload the game from a previous game if present
   if (previousState) {
