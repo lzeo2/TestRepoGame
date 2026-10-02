@@ -2,7 +2,7 @@
 
 <!-- maintenance-game: Games/Archery -->
 
-Source audit baseline: `8c8a055`; current approved runtime refurbishment: delegation 72. See [patch evidence](../archery-refurbishment.md). Historical delegation 64 syntax-only review is superseded for the input/timer findings, not for unmeasured hardware limits.
+Source audit baseline: `8c8a055`; current approved runtime refurbishment: delegation 72, commit `250b00d`. See [patch evidence](../archery-refurbishment.md). Historical delegation 64 syntax-only review is superseded for the input/timer findings, not for unmeasured hardware limits.
 
 ## Identity and status
 
@@ -69,7 +69,7 @@ timeout 180 python3 -B scripts/test_archery_refurbishment.py --baseline
 
 Requires Main's narrow Archery checkout lease and already-installed Chromium/Playwright; does not materialize other games or install anything. The runner serves only the game on port 8812 and closes browser contexts/server in `finally`. Baseline failed on the native stale-hit race. Patched native runs passed desktop 1280x720 and touch 390x720, plus a 320px overflow assertion. Ten normal legal misses reached loss, R restarted the terminal round, and ten real pointer/touch shots reached **40 points** and a win on both devices; native Space activated Play again and Restart round. Computed legal aiming reads target/wind only and does not modify state, RNG or storage. Touch uses Chromium's trusted CDP input, not a mouse substitute. Runtime errors, failed requests, HTTP errors and attempted external loads were all zero.
 
-Screenshots are temporary `archery-refurbishment/desktop.jpg`, `390.jpg` and `320.jpg` for Main's review, not committed art. Full catalog smoke, N100/hardware, 60/120Hz parity, OS-level blur, assistive-technology review, every ring boundary and high-DPI quality remain unverified. `python3 -B scripts/check_maintenance_docs.py` was run; source must be committed and Main's inventory refreshed before the current tree can pass it.
+Screenshots are temporary `archery-refurbishment/desktop.jpg`, `390.jpg` and `320.jpg` for Main's review, not committed art. Full catalog smoke, N100/hardware, 60/120Hz parity, OS-level blur, assistive-technology review, every ring boundary and high-DPI quality remain unverified. `python3 -B scripts/check_maintenance_docs.py` was run before and after source commit `250b00d`; the latest exact hold is `Inventory stale: inspect changes, then run --refresh.` Main must refresh the inspected inventory before the current tree can pass it. Manual identity/all nine sections, unchanged GPL bytes, catalog schema/unique IDs and all 115 Git-backed entry URLs passed separate static assertions.
 
 ## Future outlook
 

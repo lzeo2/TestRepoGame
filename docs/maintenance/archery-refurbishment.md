@@ -58,6 +58,8 @@ Screenshots contain the actual auto-started field after normal Play again: tempo
 
 ## Static checks and integration hold
 
+Runtime/test/manual/report milestone: `250b00d` (`fix: cancel Archery round callbacks and guard native input`). Git log verified it contains only the four leased paths.
+
 Actually run inline script extraction using Python HTMLParser, then `node --check` via stdin; Python AST parsing of the regression; owned-path `git diff --check`. Output:
 
 ```text
@@ -70,7 +72,13 @@ The maintenance checker was run before source commit and correctly refused valid
 AssertionError: Commit inspected source changes before validating its inventory.
 ```
 
-Main must refresh the inspected inventory after this source commit, then rerun `python3 -B scripts/check_maintenance_docs.py`. The worker does not own inventory/index/checker updates. Focused native checks do not replace `xvfb-run python3 scripts/smoke_test_games.py`; the full 115-game registered-catalog loading gate remains Main's separate serial acceptance gate. The shared worktree contains other workers' changes, so no clean-tree claim is made.
+After source commit `250b00d`, the checker was rerun and still correctly held on the inventory:
+
+```text
+AssertionError: Inventory stale: inspect changes, then run --refresh.
+```
+
+Additional actual static assertions passed: `Archery manual identity/9 sections; owned-path copy guards; GPL unchanged` and `catalog schema/unique IDs/tracked URLs: 115 entries; no catalog changes`. Owned paths were clean immediately after the milestone; disk remained 2.4 GB free. Main must refresh the inspected inventory after this source commit, then rerun `python3 -B scripts/check_maintenance_docs.py`. The worker does not own inventory/index/checker updates. Focused native checks do not replace `xvfb-run python3 scripts/smoke_test_games.py`; the full 115-game registered-catalog loading gate remains Main's separate serial acceptance gate. The shared worktree contains other workers' changes, so no clean-tree claim is made.
 
 ## Known holds and next work
 
