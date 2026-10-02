@@ -7,10 +7,10 @@
       "title": "2048",
       "registered": false,
       "entry": "Games/2048/index.html",
-      "entry_blob": "0da39a1ff5878ef4d54419265f9ff87b7bd93023",
-      "tree": "617bd4ec921f59dbf50986fa267e2b8fa3b9bcda",
+      "entry_blob": "066181c3ede8fb8cc8664d492ec5d0c22f0581f4",
+      "tree": "dbacebb3fe1650c85cc3467be2947c9c07a0e5d5",
       "files": 13,
-      "bytes": 48584,
+      "bytes": 54122,
       "document": "docs/maintenance/games/unregistered-2048.md"
     },
     {
@@ -626,6 +626,18 @@
       "document": "docs/maintenance/games/216-frogger.md"
     },
     {
+      "directory": "Games/Garage Borough",
+      "id": null,
+      "title": "Garage Borough",
+      "registered": false,
+      "entry": "Games/Garage Borough/index.html",
+      "entry_blob": "5d58bb689912ac1920838bac105b6a727f6a36f8",
+      "tree": "55819171415652765db134585392b4bd23865db5",
+      "files": 6,
+      "bytes": 33433,
+      "document": "docs/maintenance/games/unregistered-garage-borough.md"
+    },
+    {
       "directory": "Games/GeometryDashLite",
       "id": 66,
       "title": "Geometry Dash Lite",
@@ -1092,6 +1104,18 @@
       "files": 7,
       "bytes": 15044,
       "document": "docs/maintenance/games/206-samegame.md"
+    },
+    {
+      "directory": "Games/Slipstream Borough",
+      "id": null,
+      "title": "Slipstream Borough",
+      "registered": false,
+      "entry": "Games/Slipstream Borough/index.html",
+      "entry_blob": "8c4fc2f3dfda4a5d718b0c284b9a7024faab5184",
+      "tree": "4a9795f94d6af51a2645b043c1214ccc328c266c",
+      "files": 6,
+      "bytes": 41022,
+      "document": "docs/maintenance/games/unregistered-slipstream-borough.md"
     },
     {
       "directory": "Games/Slope",

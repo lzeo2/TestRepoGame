@@ -6,9 +6,9 @@ is a source-grounded audit and maintenance guide, not a claim that every legacy
 game meets today's standards. Some engines are compiled, some rights are
 unverified, and some native interactions remain held.
 
-The catalog contains **115 registered games**. Git contains **120 game projects**
-plus the shared `Games/_emulatorjs` runtime. The five unregistered games are
-2048, Foldwild, Hextris, QWOP and Slope. Sparse exclusion is intentional: a missing
+The catalog contains **115 registered games**. Git contains **122 game projects**
+plus the shared `Games/_emulatorjs` runtime. The seven unregistered games are
+2048, Foldwild, Garage Borough, Hextris, QWOP, Slipstream Borough and Slope. Sparse exclusion is intentional: a missing
 local Games folder does not mean a broken deployment. See [inventory](inventory.json)
 for exact tracked counts, entry hashes, source-tree hashes and manual paths.
 
@@ -82,6 +82,7 @@ analytics or target-device performance.
 
 - [Audit scope and evidence contract](SCOPE.md): what the run covers and what it
   explicitly cannot certify.
+- [Car source/QA checkpoint](../car-arcade-integration.md): two authorized original projects, existing-port review/partial polish and explicit release holds.
 - [Integrated audit](AUDIT.md): ranked, triaged findings and actual verification;
   machine candidates separated from confirmed defects.
 - [Reviewed previews](previews.md): seven real fresh-run captures with Main's
@@ -230,7 +231,9 @@ reserved by appearing here.
 | 224 | [Spline Ride](games/224-spline-ride.md) | `Games/Spline Ride/index.html` |
 | Unregistered | [2048](games/unregistered-2048.md) | `Games/2048/index.html` |
 | Unregistered | [Foldwild](games/unregistered-foldwild.md) | `Games/Foldwild/index.html` |
+| Unregistered | [Garage Borough](games/unregistered-garage-borough.md) | `Games/Garage Borough/index.html` |
 | Unregistered | [Hextris](games/unregistered-hextris.md) | `Games/Hextris/index.html` |
 | Unregistered | [QWOP](games/unregistered-qwop.md) | `Games/QWOP/index.html` |
+| Unregistered | [Slipstream Borough](games/unregistered-slipstream-borough.md) | `Games/Slipstream Borough/index.html` |
 | Unregistered | [Slope](games/unregistered-slope.md) | `Games/Slope/index.html` |
 <!-- game-index:end -->

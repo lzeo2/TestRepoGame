@@ -32,7 +32,7 @@ Secret owner-requested exact code is supplied privately in worker task. No cheat
 
 ### Pure core ABI
 
-`Games/Slipstream Borough/core.js` exports `freshProfile`, `validateProfile`, `startRun`, `stepRun`, `settleRun`, `buyCar`, `selectCar`, `upgradeCar`, `applyCode`, `carStats`.
+`Games/Slipstream Borough/core.js` exports `freshProfile`, `validateProfile`, `startRun`, `stepRun`, `settleRun`, `buyCar`, `selectCar`, `upgradeCar`, `upgradeCost`, `applyCode`, `carStats`. Main's upgradeCost is the pre-purchase quote used by upgradeCar; invalid ownership/kind/max level rejects, test-mode quote0.
 
 Profile `{version:1,cash,owned,selected,upgrades,level,best,nextRun,settledRun,testMode}`: unique owned IDs including bricklet, selected owned, upgrades map ONLY owned IDs with `{engine,handling,armor}` integers0..5 (canonical fill0 if absent), level0..12, bounded integer cash/best/counters, boolean testMode; validate plain descriptors/unknown keys before reading. `freshProfile()` cash0, starter only, nextRun1, settledRun0, testModefalse.
 

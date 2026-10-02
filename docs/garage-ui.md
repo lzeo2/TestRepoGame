@@ -12,6 +12,10 @@ Native management shows cash, stock cost, condition, exact demand and expiry, re
 
 Exact shared `loadSave` / `saveSave` under `garage-borough-v1`; errors displayed and automatic saving disabled until explicit reset/reload. Reset uses native confirm and current observed exact-byte token; cancel makes no write. Paused saved reload retains canonical business including active clock/customer identities. No offline catch-up. Won result has Continue business; closed rent loss has reset. No Garage code/unlock feature.
 
+## Current integration disposition
+
+Worker103 subsequently timed out143; Main independently tested committed presentation. Ordinary native groups passed, but frozen801240a suite exited1 on concurrent reset preservation. New7ee3910 implementation replaces blocking confirm with a nonblocking native dialog/pre-open token/storage-event lock; revised regression exists but has not been rerun. The original runtime paragraph above is a dated milestone, not the current consent API or accepted correctness. See [integration checkpoint](car-arcade-integration.md). Registration/publication remain held.
+
 ## Initial source milestone verification
 
 After `446fd4b`, all three actual pure suites ran, exit0:

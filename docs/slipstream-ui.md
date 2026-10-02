@@ -10,6 +10,8 @@ World entity transforms use `z=-(entity.distance-run.distance)`, with traffic/po
 
 Start saves the reserved profile before simulation. Terminal transition settles once; garage abandonment/reload never pays an unfinished run. Saves contain banked profiles only. Live failure locks further automatic writes and never accepts failure RAW as a token. Corrupt initial bytes remain untouched. Error plus raw=null means unread/unknown: explicit reset is refused until a successful read is possible. Native reset confirmation captures exact observed bytes and checks them again on write; cancellation writes nothing. Other keys are untouched.
 
+**Current integration supersedes the following original hold:** Main added/tested upgradeCost atc090df0 and full-width/mobile layout at801240a; frozen native Slipstream checks exited0. Worker102 itself later timed out143, no completed final reply. See [integration checkpoint](car-arcade-integration.md) for actual evidence/remaining holds. Original source-milestone note follows.
+
 Core ABI hold: frozen core has no upgrade cost quote function. Upgrade actions call `upgradeCar` directly and display actual charged cost afterward, without a duplicated pricing formula. Pre-purchase upgrade pricing remains held pending a core export. Controller can consume `upgradeCost(profile,id,kind)` if Main coordinates that ABI; its signature must be confirmed before integration acceptance.
 
 ## Verification checkpoint
