@@ -1,0 +1,55 @@
+{
+  "source_commit": "2d66059cc18f98659fd7f6970dbc0555cb1349a8",
+  "note": "Main rerun native captures; read and reviewed individually; not full-catalog or hardware acceptance.",
+  "images": [
+    {
+      "file": "archery-320.jpg",
+      "bytes": 24215,
+      "width": 320,
+      "height": 720,
+      "sha256": "19526e2a859e3c41be337f22d939c21822aaf78d86405c59faea4af0ea74f275"
+    },
+    {
+      "file": "archery-390.jpg",
+      "bytes": 25841,
+      "width": 390,
+      "height": 720,
+      "sha256": "b73a26652b16e81d3a1e3f71d3ba967c834ba970cf3e2ba61b023a7fa6cd2c24"
+    },
+    {
+      "file": "archery-desktop.jpg",
+      "bytes": 36580,
+      "width": 1280,
+      "height": 820,
+      "sha256": "4a0fbf9a299bef375f4fe5f1f9a7568cd12a001c42d5afee1bd1a2086cfa721c"
+    },
+    {
+      "file": "portal-desktop-dark.jpg",
+      "bytes": 42596,
+      "width": 1280,
+      "height": 720,
+      "sha256": "f529d6238426d1b98abe505452c258b38372e3eb7db0f860e744a461a71d9a4a"
+    },
+    {
+      "file": "portal-desktop-light.jpg",
+      "bytes": 39099,
+      "width": 1280,
+      "height": 720,
+      "sha256": "8139059d380537b2848172a20030dd6b7cdeb6ed6d76d7c5da786027118610d5"
+    },
+    {
+      "file": "portal-mobile-dark.jpg",
+      "bytes": 34426,
+      "width": 390,
+      "height": 844,
+      "sha256": "f5f7a7928045b1af33a4374cd347609c65e4ffc8a4a2486a3fe7aa506f772279"
+    },
+    {
+      "file": "portal-mobile-light.jpg",
+      "bytes": 33779,
+      "width": 390,
+      "height": 844,
+      "sha256": "818e31c603d5dbbbecec0c7b522b1c2c89d818f13ddb29f56720588e656aaea7"
+    }
+  ]
+}

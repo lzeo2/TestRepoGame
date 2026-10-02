@@ -91,10 +91,9 @@ creates no standing permission for any other self-made game or new id.
 
 - Prefer known, legitimately reusable open-source web games. Verify the
   license, upstream revision, author, and assets before ingesting.
-- Except for the dated id-222 exception above, no from-scratch AI games,
-  invented attribution, placeholder replacements or generated promotional
-  writeups in this run. Stop if a source cannot be
-  verified. A mirror URL is not itself evidence of redistribution rights.
+- Except for the explicit Circuit Ward and existing Foldwild authorizations
+  above, no from-scratch AI games. Never invent attribution or placeholder
+  replacements. Stop if an ingested source cannot be verified. A mirror URL is not itself evidence of redistribution rights.
 - Each addition needs `docs/` source evidence: upstream URL, pinned revision,
   license/asset terms, local modifications, and runnable verification.
   Include correct human-readable author/source attribution in catalog desc.

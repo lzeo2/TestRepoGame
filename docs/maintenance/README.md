@@ -84,6 +84,8 @@ analytics or target-device performance.
   explicitly cannot certify.
 - [Integrated audit](AUDIT.md): ranked, triaged findings and actual verification;
   machine candidates separated from confirmed defects.
+- [Reviewed previews](previews.md): seven real fresh-run captures with Main's
+  visual judgment and remaining readability limits.
 - [Refurbishment plan](REFURBISHMENT.md): small waves, acceptance criteria and
   future-agent task contracts, not 115 speculative redesigns.
 - [3D expansion outlook](3d-outlook.md): source-verified research and conditional
