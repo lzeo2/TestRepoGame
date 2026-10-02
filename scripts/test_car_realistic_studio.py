@@ -82,8 +82,9 @@ def main():
                 page.keyboard.press('ArrowLeft');page.wait_for_function('angle=>carStudioSnapshot.angle<angle',arg=angle)
                 # Actual in-car camera, not an overlay or a pose/state setter.
                 previous=page.evaluate('carStudioSnapshot.angle')
+                cockpit_frames=page.evaluate('carStudioSnapshot.frames')
                 page.locator('#cockpit').click()
-                page.wait_for_function('carStudioSnapshot.view==="cockpit" && !carStudioSnapshot.error')
+                page.wait_for_function('frames=>carStudioSnapshot.view==="cockpit" && carStudioSnapshot.frames>frames && !carStudioSnapshot.error',arg=cockpit_frames)
                 assert page.locator('#cockpit').get_attribute('aria-pressed')=='true'
                 pose=page.evaluate('carStudioSnapshot.cameraLocal')
                 assert len(pose)==3 and all(abs(a-b)<.001 for a,b in zip(pose,row['cockpit']['eye']))
@@ -91,7 +92,7 @@ def main():
                 page.locator('#studio').screenshot(path=str(output/(car+'-cockpit.png')))
                 page.locator('#studio').focus();look=page.evaluate('carStudioSnapshot.look')
                 page.keyboard.press('ArrowRight')
-                page.wait_for_function('look=>carStudioSnapshot.look>look',arg=look)
+                page.wait_for_function('look=>carStudioSnapshot.look<look',arg=look)
                 assert abs(page.evaluate('carStudioSnapshot.angle')-previous)<.00001
                 page.locator('#reset').click()
                 page.wait_for_function('carStudioSnapshot.view==="cockpit" && Math.abs(carStudioSnapshot.look)<.00001')
@@ -116,7 +117,7 @@ def main():
             page.screenshot(path=str(output/'390-brindle.png'))
             page.locator('#cockpit').tap();page.wait_for_function('carStudioSnapshot.view==="cockpit"')
             look=page.evaluate('carStudioSnapshot.look');page.locator('#right').tap()
-            page.wait_for_function('look=>carStudioSnapshot.look>look',arg=look)
+            page.wait_for_function('look=>carStudioSnapshot.look<look',arg=look)
             page.locator('#reset').tap();page.wait_for_function('Math.abs(carStudioSnapshot.look)<.00001')
             for selector in ['#cockpit','#left','#right','#reset']:
                 box=page.locator(selector).bounding_box();assert box['width']>=44 and box['height']>=44
