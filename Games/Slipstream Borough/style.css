@@ -11,4 +11,7 @@
 #radio { margin-block: 16px; }
 footer { padding-block: 24px; }
 #quip { min-height: 34px; }
-@media (max-width: 760px) { body { padding: 10px; } .game-header { margin-bottom: 10px; } #hud { font-size: .9rem; } #drive .actions { gap: 6px; } .touch-controls { gap: 6px; } }
+html[data-phase='run'] .game-layout, html[data-phase='end'] .game-layout { grid-template-columns: minmax(0, 1fr); }
+html[data-phase='run'] #io:not(.error) { display: none; }
+html[data-phase='run'] .touch-controls { position: sticky; bottom: 0; padding: 6px; background: var(--page); z-index: 2; }
+@media (max-width: 760px) { html[data-phase='run'] .game-header h1 { font-size: 1.1rem; margin-bottom: 0; } body { padding: 10px; } .game-header { margin-bottom: 10px; } #hud { font-size: .9rem; } #drive .actions { gap: 6px; } .touch-controls { gap: 6px; } }

@@ -49,7 +49,7 @@ function garageUI() {
   $('start').disabled = blocked || !view;
 }
 function setPhase(next) {
-  phase = next; clearInput(); paused = false;
+  phase = next; document.documentElement.dataset.phase = next; clearInput(); paused = false;
   $('garage').hidden = next !== 'garage'; $('catalogSection').hidden = next !== 'garage'; $('drive').hidden = next !== 'run'; $('result').hidden = next !== 'end';
   $('pause').textContent = 'Pause'; if (next === 'garage') { run = null; garageUI(); } updateHud();
 }

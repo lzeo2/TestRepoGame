@@ -93,7 +93,7 @@ button:focus-visible, .button:focus-visible { outline-color: var(--accent); box-
 .game-header, .actions, .hud, .touch-controls { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
 .game-header { justify-content: space-between; margin-bottom: 16px; }
 .game-layout { display: grid; grid-template-columns: minmax(0, 2fr) minmax(260px, 1fr); gap: 16px; align-items: start; }
-.panel, .car-card { padding: 16px; background: var(--panel); border: 2px solid var(--line); border-radius: 4px; min-width: 0; }
+.panel, .car-card { padding: 16px; background: var(--panel); border: 2px solid var(--line); border-radius: 6px; min-width: 0; }
 .panel + .panel { margin-top: 16px; }
 .garage-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); gap: 12px; }
 .car-card { display: flex; flex-direction: column; gap: 8px; }

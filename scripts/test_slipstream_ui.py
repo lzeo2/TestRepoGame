@@ -79,6 +79,10 @@ try:
             context = browser.new_context(viewport={'width':390,'height':844}, has_touch=True, is_mobile=True)
             page = context.new_page(); observe(page); page.goto(url); wait(page, 'window.slipstreamSnapshot?.view?.frames > 1')
             shot(page, '390-garage'); page.locator('#start').tap(); wait(page, 'slipstreamSnapshot.run.distance > 1')
+            scene = page.locator('#viewport').bounding_box()
+            control = page.locator('[data-drive="left"]').bounding_box()
+            assert scene['width'] >= 390 - 30 and 0 <= scene['y'] + scene['height']/2 <= 844
+            assert 0 <= control['y'] and control['y'] + control['height'] <= 844
             button = page.locator('[data-drive="left"]'); button.scroll_into_view_if_needed(); b = button.bounding_box()
             session = context.new_cdp_session(page)
             session.send('Input.dispatchTouchEvent', {'type':'touchStart','touchPoints':[{'x':b['x']+b['width']/2,'y':b['y']+b['height']/2}]})
@@ -94,7 +98,12 @@ try:
             page = context.new_page(); observe(page); page.goto(url); wait(page, 'window.slipstreamSnapshot?.view?.frames > 1')
             page.locator('#theme').tap(); shot(page, '320-dark-garage')
             assert page.evaluate('document.documentElement.scrollWidth <= innerWidth')
-            page.locator('#start').tap(); wait(page, 'slipstreamSnapshot.run.distance > 1'); page.locator('#viewport').scroll_into_view_if_needed(); shot(page, '320-dark-chase')
+            page.locator('#start').tap(); wait(page, 'slipstreamSnapshot.run.distance > 1')
+            scene = page.locator('#viewport').bounding_box()
+            control = page.locator('[data-drive="left"]').bounding_box()
+            assert scene['width'] >= 320 - 30 and 0 <= scene['y'] + scene['height']/2 <= 740
+            assert 0 <= control['y'] and control['y'] + control['height'] <= 740
+            page.locator('#viewport').scroll_into_view_if_needed(); shot(page, '320-dark-chase')
             context.close()
         run_group('320 dark layout and actual chase', narrow)
         def assisted():
