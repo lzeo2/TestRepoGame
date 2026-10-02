@@ -15,7 +15,7 @@ function bad(change, pattern = /Invalid|Unknown|Duplicate|Missing|Unsupported|mu
   assert.throws(() => validateSave(state), pattern);
 }
 assert.deepEqual(Object.keys(world).sort(), ['SAVE_KEY', 'BACKUP_KEY', 'REGIONS', 'REGION_LAYOUTS', 'RIVALS', 'PLAYER_BOUNDS', 'MAX_ROSTER',
-  'freshGame', 'validateSave', 'readSave', 'writeSave', 'worldPoints', 'nearbyPoint', 'unlockedRegion', 'movePosition', 'routeTo'].sort());
+  'freshGame', 'validateSave', 'readSave', 'writeSave', 'worldPoints', 'nearbyPoint', 'unlockedRegion', 'movePosition', 'routeTo', 'releaseCreature'].sort());
 assert.equal(SAVE_KEY, 'foldwild-save-v1');
 assert.equal(MAX_ROSTER, 160);
 assert.deepEqual(PLAYER_BOUNDS, { minX: -80, maxX: 80, minZ: -80, maxZ: 80 });
