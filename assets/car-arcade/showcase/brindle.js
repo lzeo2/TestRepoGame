@@ -87,9 +87,9 @@ export function createCar() {
     return [x,belt(z)+.035*Math.sin(Math.PI*u),z];
   },24,10);
   for(const side of [-1,1]) surface(paint,(u,v)=> {
-    const x=(u*2-1)*width(1.86), z=side*(1.86+.025*Math.sin(Math.PI*u));
-    return [-side*x,.29+v*(.80-.29),z];
-  },32,4);
+    const z=side*1.86, x=(u*2-1)*width(z);
+    return [-side*x,.27+v*(belt(z)+.035*Math.sin(Math.PI*u)-.27),z];
+  },24,4);
   box(trim,0,.25,0,1.35,.09,3.25);
   // Roof crown rises gently toward the rear passenger compartment.
   surface(roof,(u,v)=> {
@@ -115,10 +115,11 @@ export function createCar() {
     ellipsoid(chrome,side*.925,1.066,-.544,.072,.042,.012);
   }
   window([[-.76,.968,-.875],[.76,.968,-.875],[.65,1.455,-.65],[-.65,1.455,-.65]],'z',-.045);
-  window([[.79,.973,1.56],[-.79,.973,1.56],[-.64,1.447,1.31],[.64,1.447,1.31]],'z',.04);
+  const hatchBelt = belt(1.56) + .035 * Math.cos(Math.PI * .79 / (2 * width(1.56)));
+  window([[.79,hatchBelt,1.56],[-.79,hatchBelt,1.56],[-.64,1.447,1.31],[.64,1.447,1.31]],'z',.04);
   for(const side of [-1,1]) tube(trim,[[side*.54,.982,-.89],[side*.27,1.004,-.91],[side*.05,1.007,-.916]],.007,12);
-  tube(trim,[[-.72,.92,1.69],[-.59,.64,1.855],[0,.62,1.893],[.59,.64,1.855],[.72,.92,1.69]],.004,32);
-  ellipsoid(chrome,0,.81,1.891,.10,.018,.012);
+  tube(trim,[[-.62,.80,1.862],[-.59,.64,1.862],[0,.62,1.862],[.59,.64,1.862],[.62,.80,1.862]],.004,32);
+  ellipsoid(chrome,0,.81,1.865,.10,.018,.012);
   // Four padded places sit wholly below the glazing, with individual headrests.
   for(const z of [-.18,.87]) for(const side of [-1,1]) {
     ellipsoid(fabric,side*.37,.57,z,.245,.085,.26);

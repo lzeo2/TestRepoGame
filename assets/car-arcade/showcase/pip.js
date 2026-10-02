@@ -72,7 +72,18 @@ export function createCar() {
     const p = bodyPoint(u, v); return [p[0] * t, .56 + (p[1] - .56) * t, p[2]];
   }), paint);
   rounded(0, .24, .02, 1.22, .09, 2.8, .035, dark);
-  ellipsoid(0, 1.413, .25, .706, .097, 1.015, ivory);
+  // A crowned slab follows the full greenhouse, including the pillar ends.
+  const roofPoint = (u, v, lower = false) => {
+    const w = .680 + .019 * v + .008 * Math.sin(Math.PI * v);
+    return [(2 * u - 1) * w, lower ? 1.389 : 1.425 + .085 * Math.sin(Math.PI * u) * Math.sin(Math.PI * v),
+      -.54 + 1.665 * v + (2 * v - 1) * .035 * Math.sin(Math.PI * u)];
+  };
+  add(surface(24, 12, (u, v) => roofPoint(u, v)), ivory);
+  add(surface(24, 12, (u, v) => roofPoint(1 - u, v, true)), ivory);
+  for (const edge of [0, 1, 2, 3]) add(surface(24, 1, (u, v) => {
+    const [a, b] = edge === 0 ? [u, 0] : edge === 1 ? [1, u] : edge === 2 ? [1 - u, 1] : [0, 1 - u];
+    const p = roofPoint(a, b); p[1] = 1.389 + (p[1] - 1.389) * v; return p;
+  }), ivory);
   // Each pane is a shallow curved double skin; interior remains genuinely hollow.
   const pane = (sample) => {
     for (const inset of [0, .006]) add(surface(12, 6, (u, v) => {
@@ -92,7 +103,32 @@ export function createCar() {
     tube([[side * .736, .945, 1.37], [side * .716, 1.10, 1.27], [side * .642, 1.399, 1.111]], .057, paint);
     tube([[side * .764, .947, .63], [side * .713, 1.17, .59], [side * .66, 1.398, .55]], .038, paint);
     tube([[side * .718, .947, -.795], [side * .779, .943, .20], [side * .736, .947, 1.37]], .022, paint);
-    tube([[side * .744, .916, -.72], [side * .834, .70, -.60], [side * .837, .39, -.57], [side * .84, .353, .46], [side * .832, .66, .57], [side * .758, .932, .62]], .003, dark, car, 40);
+    // Follow the actual triangulated loft, not an unconstrained hanging spline.
+    const contour = [[.88, -.60], [.70, -.60], [.39, -.57], [.353, .46], [.66, .57], [.89, .57]];
+    const seam = new THREE.CurvePath();
+    const hullX = (y, z) => {
+      const row = Math.min(55, Math.floor((z + 1.69) / 3.38 * 56));
+      for (let i = 0; i < 32; i++) {
+        const a = bodyPoint(i / 32, row / 56), b = bodyPoint(i / 32, (row + 1) / 56);
+        const c = bodyPoint((i + 1) / 32, row / 56), d = bodyPoint((i + 1) / 32, (row + 1) / 56);
+        for (const [p, q, r] of [[a, b, c], [b, d, c]]) {
+          if (p[0] < -1e-8 || q[0] < -1e-8 || r[0] < -1e-8) continue;
+          const det = (q[1] - p[1]) * (r[2] - p[2]) - (r[1] - p[1]) * (q[2] - p[2]);
+          const s = ((y - p[1]) * (r[2] - p[2]) - (z - p[2]) * (r[1] - p[1])) / det;
+          const t = ((q[1] - p[1]) * (z - p[2]) - (q[2] - p[2]) * (y - p[1])) / det;
+          if (s >= -1e-8 && t >= -1e-8 && s + t <= 1 + 1e-8) return p[0] + s * (q[0] - p[0]) + t * (r[0] - p[0]);
+        }
+      }
+      throw new Error('Door contour outside body panel');
+    };
+    let previous;
+    for (let j = 0; j < contour.length - 1; j++) for (let k = 0; k <= 12; k++) {
+      const t = k / 12, y = THREE.MathUtils.lerp(contour[j][0], contour[j + 1][0], t), z = THREE.MathUtils.lerp(contour[j][1], contour[j + 1][1], t);
+      const p = new THREE.Vector3(side * (hullX(y, z) + .001), y, z);
+      if (previous && previous.distanceToSquared(p) > 1e-12) seam.add(new THREE.LineCurve3(previous, p));
+      previous = p;
+    }
+    add(new THREE.TubeGeometry(seam, 80, .002, 4, false), dark);
     rounded(side * .834, .818, .37, .026, .035, .15, .012, chrome);
     tube([[side * .729, 1.00, -.64], [side * .845, 1.018, -.61]], .018, dark, car, 4);
     ellipsoid(side * .861, 1.047, -.594, .098, .061, .085, paint);
