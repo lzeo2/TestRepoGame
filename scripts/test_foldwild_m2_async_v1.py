@@ -8,6 +8,7 @@ import functools
 import json
 import shutil
 import threading
+import uuid
 from http.server import ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import urlsplit
@@ -16,7 +17,7 @@ from test_foldwild_core_v2 import Handler, snapshot, walk, keyboard_to
 from test_foldwild_milestone import source_hashes, ready
 
 ROOT = Path(__file__).resolve().parents[1]
-OUTPUT = Path('/tmp/foldwild-m2-async-v1-task91-01a0fbf2')
+OUTPUT = Path('/tmp') / f'foldwild-m2-async-v1-{uuid.uuid4().hex}'
 ORIGIN = 'http://127.0.0.1:8891'
 SAVE_KEY = 'foldwild-save-v1'
 
@@ -61,6 +62,7 @@ def run():
     assert free >= 2_000_000_000, 'disk guard: below 2 GB free'
     hashes = source_hashes()
     OUTPUT.mkdir(exist_ok=False)
+    print('EVIDENCE:', OUTPUT, flush=True)
     report = {'stages': [], 'screenshots': [], 'views': {}, 'errors': [], 'failed_requests': [],
               'http_errors': [], 'external_requests': [], 'negative_fixtures': [], 'passed': False}
     server = ThreadingHTTPServer(('127.0.0.1', 8891), functools.partial(Handler, directory=str(ROOT)))
