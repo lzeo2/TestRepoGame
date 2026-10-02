@@ -12,7 +12,7 @@ from urllib.parse import urlsplit
 from playwright.sync_api import sync_playwright
 
 ROOT = Path(__file__).resolve().parents[1]
-SOURCES = ['assets/car-arcade/showcase/' + p for p in ['pip.js','brindle.js','studio.js','index.html']]
+SOURCES = sorted(str(p.relative_to(ROOT)) for p in (ROOT/'assets/car-arcade/showcase').iterdir() if p.suffix in {'.js','.html'})
 INSPECT = '''async id => {
  const T = await import('/assets/car-arcade/vendor/three.module.js');
  const {createCar} = await import('/assets/car-arcade/showcase/'+id+'.js');
@@ -22,8 +22,12 @@ INSPECT = '''async id => {
  for(const a of Object.values(o.geometry.attributes))if(!Array.from(a.array).every(Number.isFinite))throw Error('Nonfinite geometry');
  for(const m of Array.isArray(o.material)?o.material:[o.material])materials.add(m);
  });
- const wheels=car.userData.wheels;
- const row={name:car.userData.name,front:car.userData.front,showcaseOnly:car.userData.showcaseOnly,triangles,meshes,dimensions:size.toArray(),ground:box.min.y,wheels:wheels.length,wheelGround:wheels.map(w=>new T.Box3().setFromObject(w).min.y),physicalMaterials:[...materials].filter(m=>m.isMeshPhysicalMaterial).length,coatings:[...materials].filter(m=>m.clearcoat>0).length,textures:[...materials].filter(m=>m.map).length};
+ const wheels=car.userData.wheels, cockpit=car.userData.cockpit;
+ if(!cockpit || !['eye','target'].every(k=>Array.isArray(cockpit[k]) && cockpit[k].length===3 && cockpit[k].every(Number.isFinite)))throw Error('Missing finite physical cockpit pose');
+ if(!box.containsPoint(new T.Vector3(...cockpit.eye)) || cockpit.target[2]>=cockpit.eye[2])throw Error('Cockpit is not inside or facing forward');
+ const windows=[...materials].filter(m=>m.name==='window-glass');
+ if(!windows.length || !windows.every(m=>m.transparent && m.opacity>=.45 && m.opacity<1 && m.transmission===0))throw Error('Tinted original glazing required');
+ const row={cockpit,name:car.userData.name,front:car.userData.front,showcaseOnly:car.userData.showcaseOnly,triangles,meshes,dimensions:size.toArray(),ground:box.min.y,wheels:wheels.length,wheelGround:wheels.map(w=>new T.Box3().setFromObject(w).min.y),physicalMaterials:[...materials].filter(m=>m.isMeshPhysicalMaterial).length,coatings:[...materials].filter(m=>m.clearcoat>0).length,textures:[...materials].filter(m=>m.map).length};
  const resources=[...geometries,...materials], counts=resources.map(()=>0);
  resources.forEach((r,i)=>r.addEventListener('dispose',()=>counts[i]++));resources.forEach(r=>r.dispose());
  if(!counts.every(n=>n===1))throw Error('Model resource ownership');return row;
@@ -61,6 +65,7 @@ def main():
             for car in ['pip','brindle']:
                 row=page.evaluate(INSPECT,car);rows.append(row)
                 assert row['front']=='-Z' and row['showcaseOnly'] is True
+                assert 1.0<row['cockpit']['eye'][1]<1.4 and abs(row['cockpit']['eye'][0])<.6
                 assert 0<row['triangles']<=30000 and row['meshes']<=75
                 assert row['wheels']==4 and abs(row['ground'])<.015
                 assert all(abs(y)<.015 for y in row['wheelGround'])
@@ -75,13 +80,48 @@ def main():
                 page.locator('#studio').screenshot(path=str(output/(car+'-rear.png')))
                 page.locator('#reset').click();page.locator('#studio').focus();angle=page.evaluate('carStudioSnapshot.angle')
                 page.keyboard.press('ArrowLeft');page.wait_for_function('angle=>carStudioSnapshot.angle<angle',arg=angle)
+                # Actual in-car camera, not an overlay or a pose/state setter.
+                previous=page.evaluate('carStudioSnapshot.angle')
+                page.locator('#cockpit').click()
+                page.wait_for_function('carStudioSnapshot.view==="cockpit" && !carStudioSnapshot.error')
+                assert page.locator('#cockpit').get_attribute('aria-pressed')=='true'
+                pose=page.evaluate('carStudioSnapshot.cameraLocal')
+                assert len(pose)==3 and all(abs(a-b)<.001 for a,b in zip(pose,row['cockpit']['eye']))
+                assert page.evaluate('Object.isFrozen(carStudioSnapshot) && Object.isFrozen(carStudioSnapshot.cameraLocal)')
+                page.locator('#studio').screenshot(path=str(output/(car+'-cockpit.png')))
+                page.locator('#studio').focus();look=page.evaluate('carStudioSnapshot.look')
+                page.keyboard.press('ArrowRight')
+                page.wait_for_function('look=>carStudioSnapshot.look>look',arg=look)
+                assert abs(page.evaluate('carStudioSnapshot.angle')-previous)<.00001
+                page.locator('#reset').click()
+                page.wait_for_function('carStudioSnapshot.view==="cockpit" && Math.abs(carStudioSnapshot.look)<.00001')
+                # Switch real models while staying inside; both seating poses work.
+                other='brindle' if car=='pip' else 'pip'
+                page.locator('#car').select_option(other)
+                page.wait_for_function('id=>carStudioSnapshot.id===id && carStudioSnapshot.view==="cockpit"',arg=other)
+                page.locator('#car').select_option(car)
+                page.wait_for_function('id=>carStudioSnapshot.id===id && carStudioSnapshot.view==="cockpit"',arg=car)
+                page.locator('#studio').focus();page.keyboard.press('Escape')
+                page.wait_for_function('carStudioSnapshot.view==="exterior" && carStudioSnapshot.framed')
+                assert page.locator('#cockpit').get_attribute('aria-pressed')=='false'
+                page.keyboard.press('c');page.wait_for_function('carStudioSnapshot.view==="cockpit"')
+                page.keyboard.press('c');page.wait_for_function('carStudioSnapshot.view==="exterior"')
                 print(json.dumps(row),flush=True)
+            assert page.evaluate('carStudioSnapshot.garageTriangles>100 && carStudioSnapshot.garageTriangles<=15000 && carStudioSnapshot.garageMeshes>4 && carStudioSnapshot.garageMeshes<=35')
             # Real accessible touch controls at phone width, no pose/state setters.
             page.set_viewport_size({'width':390,'height':844})
             page.wait_for_function('document.documentElement.scrollWidth<=innerWidth && carStudioSnapshot.framed')
             angle=page.evaluate('carStudioSnapshot.angle');page.locator('#left').tap()
             page.wait_for_function('angle=>carStudioSnapshot.angle<angle',arg=angle)
             page.screenshot(path=str(output/'390-brindle.png'))
+            page.locator('#cockpit').tap();page.wait_for_function('carStudioSnapshot.view==="cockpit"')
+            look=page.evaluate('carStudioSnapshot.look');page.locator('#right').tap()
+            page.wait_for_function('look=>carStudioSnapshot.look>look',arg=look)
+            page.locator('#reset').tap();page.wait_for_function('Math.abs(carStudioSnapshot.look)<.00001')
+            for selector in ['#cockpit','#left','#right','#reset']:
+                box=page.locator(selector).bounding_box();assert box['width']>=44 and box['height']>=44
+            page.screenshot(path=str(output/'390-cockpit.png'))
+            page.locator('#cockpit').tap();page.wait_for_function('carStudioSnapshot.view==="exterior" && carStudioSnapshot.framed')
             page.reload();page.wait_for_function('carStudioSnapshot.frames>0 && !carStudioSnapshot.error')
             assert page.evaluate('carStudioSnapshot.id')=='pip'
             assert page.evaluate('carStudioSnapshot.revision')=='160'
@@ -92,7 +132,7 @@ def main():
         assert shutil.disk_usage(ROOT).free>=2_000_000_000
         result={'sources':before,'rows':rows,'errors':errors,'images':[p.name for p in output.glob('*.png')],'free_bytes':shutil.disk_usage(ROOT).free}
         (output/'results.json').write_text(json.dumps(result,indent=2)+'\n')
-        print('PASS actual geometry/studio, keyboard/touch/reload; no photorealism/hardware/legal certification.',flush=True)
+        print('PASS actual rounded geometry/tint/garage and physical cockpit; keyboard/touch/reset/selection/reload; no photorealism/hardware/legal certification.',flush=True)
     except Exception:
         print('FAIL errors='+json.dumps(errors),flush=True)
         raise
