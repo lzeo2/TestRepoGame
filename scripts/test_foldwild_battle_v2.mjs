@@ -256,10 +256,13 @@ for (const action of [{ type: 'ability', slot: 0 }, { type: 'wait' }, { type: 's
 assert.deepEqual(clearEffects(freeze(varied)).profile, varied.profile);
 const oldSnapshot = structuredClone(saved);
 delete oldSnapshot.synergyEnabled;
-for (const side of [oldSnapshot.player, oldSnapshot.enemy]) { delete side.classId; delete side.synergyId; }
+for (const side of [oldSnapshot.player, oldSnapshot.enemy]) { delete side.classId; delete side.classRank; delete side.synergyId; }
 const migrated = validateBattle(freeze(oldSnapshot));
 assert.equal(migrated.synergyEnabled, false);
 assert.equal(migrated.player.classId, 'none');
+assert.equal(migrated.player.classRank, 0);
+assert.equal(migrated.enemy.classRank, 0);
+assert.equal(saved.player.classRank, 1);
 assert.equal(migrated.player.synergyId, 'coverage');
 for (const mutate of [
   raw => { raw.player.classId = 'bogus'; }, raw => { raw.enemy.classId = null; },

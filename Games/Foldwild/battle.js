@@ -1,5 +1,5 @@
 import { BY_ID, ABILITIES, ELEMENT_WHEEL } from './data.js';
-import { validateIndividual, TRAITS, CLASSES, synergyFor } from './builds.js';
+import { validateIndividual, TRAITS, perksFor, synergyFor } from './builds.js';
 
 const STATS = ['attack', 'defense', 'speed'];
 const STATUS_STAT = { Drag: 'speed', Fray: 'defense', Haze: 'attack' };
@@ -32,10 +32,11 @@ function array(value, max, label) {
   }
   return value;
 }
-function classFor(id = 'none') {
-  if (id === 'none') return TRAITS.neutral.perks;
-  if (typeof id !== 'string' || !Object.hasOwn(CLASSES, id)) throw new RangeError('Unknown class.');
-  return CLASSES[id].perks;
+function rankFor(id, side, key = 'classRank') {
+  const rank = Object.hasOwn(side, key) ? side[key] : id === 'none' ? 0 : 1;
+  integer(rank, id === 'none' ? 0 : 1, id === 'none' ? 0 : 3, 'class rank');
+  perksFor(id, rank);
+  return rank;
 }
 function uidFor(uid) {
   if (typeof uid !== 'string' || !/^[a-zA-Z0-9_-]{1,80}$/.test(uid)) throw new TypeError('Invalid creature uid.');
@@ -168,18 +169,19 @@ function settle(b) {
   if (b.result) b.phase = 'ended';
 }
 
-export function createBattle(playerTeam, enemyTeam,
-  { kind = 'wild', seed = 1, active = 0, classId = 'none', enemyClassId = 'none', synergyEnabled = false } = {}) {
+export function createBattle(playerTeam, enemyTeam, options = {}) {
+  record(options, ['kind', 'seed', 'active', 'classId', 'enemyClassId', 'synergyEnabled',
+    'classRank', 'enemyClassRank'], 'battle options');
+  const { kind = 'wild', seed = 1, active = 0, classId = 'none', enemyClassId = 'none', synergyEnabled = false } = options;
+  const classRank = rankFor(classId, options), enemyClassRank = rankFor(enemyClassId, options, 'enemyClassRank');
   if (!['wild', 'rival'].includes(kind)) throw new RangeError('Invalid battle kind.');
   integer(seed, 0, 0xffffffff, 'seed');
   const player = teamCopy(playerTeam, 3);
   const enemy = teamCopy(enemyTeam, kind === 'wild' ? 1 : 3);
   integer(active, 0, player.length - 1, 'active index');
-  classFor(classId);
-  classFor(enemyClassId);
   if (typeof synergyEnabled !== 'boolean') throw new TypeError('Invalid synergy flag.');
-  const b = { player: { team: player, active, classId, synergyId: synergyFor(player).id },
-    enemy: { team: enemy, active: 0, classId: enemyClassId, synergyId: synergyFor(enemy).id },
+  const b = { player: { team: player, active, classId, classRank, synergyId: synergyFor(player).id },
+    enemy: { team: enemy, active: 0, classId: enemyClassId, classRank: enemyClassRank, synergyId: synergyFor(enemy).id },
     synergyEnabled, kind, seed, round: 1, phase: 'command', result: null, log: [], captured: null };
   settle(b);
   return b;
@@ -192,13 +194,13 @@ export function validateBattle(battle) {
   if (!['wild', 'rival'].includes(battle.kind)) throw new RangeError('Invalid battle kind.');
   const sides = {};
   for (const name of ['player', 'enemy']) {
-    const raw = record(battle[name], ['team', 'active', 'classId', 'synergyId'], 'battle side');
+    const raw = record(battle[name], ['team', 'active', 'classId', 'classRank', 'synergyId'], 'battle side');
     const team = teamCopy(raw.team, name === 'enemy' && battle.kind === 'wild' ? 1 : 3);
     const classId = raw.classId === undefined ? 'none' : raw.classId;
-    classFor(classId);
+    const classRank = rankFor(classId, raw);
     const synergyId = synergyFor(team).id;
     if (raw.synergyId !== undefined && raw.synergyId !== synergyId) throw new RangeError('Invalid derived synergy.');
-    sides[name] = { team, active: integer(raw.active, 0, team.length - 1, 'active index'), classId, synergyId };
+    sides[name] = { team, active: integer(raw.active, 0, team.length - 1, 'active index'), classId, classRank, synergyId };
   }
   const synergyEnabled = battle.synergyEnabled === undefined ? false : battle.synergyEnabled;
   if (typeof synergyEnabled !== 'boolean') throw new TypeError('Invalid synergy flag.');
@@ -303,7 +305,7 @@ function chooseEnemy(b) {
 function perform(b, side, action) {
   const c = activeCreature(side), target = activeCreature(side === b.player ? b.enemy : b.player);
   if (c.hp <= 0 || target.hp <= 0) return;
-  const perks = classFor(side.classId), trait = TRAITS[c.traitId].perks;
+  const perks = perksFor(side.classId, side.classRank), trait = TRAITS[c.traitId].perks;
   const synergy = b.synergyEnabled ? synergyFor(side.team) : { switchEnergy: 0, shieldBonus: 0 };
   c.turnsTaken++;
   if (action.type === 'switch') {
@@ -391,7 +393,7 @@ export function applyAction(battle, action) {
   }
   if (action.type === 'capture') {
     const chance = clamp(0.12 + 0.75 * (1 - enemy.hp / statsFor(enemy).maxHP) +
-      (enemy.status ? 0.08 : 0) + classFor(b.player.classId).captureBonus + TRAITS[player.traitId].perks.captureBonus, 0, 0.9);
+      (enemy.status ? 0.08 : 0) + perksFor(b.player.classId, b.player.classRank).captureBonus + TRAITS[player.traitId].perks.captureBonus, 0, 0.9);
     if (random(b) < chance) {
       b.captured = clearEffects(enemy);
       b.captured.hp = Math.max(1, b.captured.hp);
