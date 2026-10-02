@@ -71,6 +71,10 @@ Every delegation gets progress start/return digest and explicit anonymous owned-
 
 After the two car games, the owner gives free reign for further2D/3D additions: originals must be exceedingly high quality, ports are acceptable, no copyright violations; begin reviews of games needing them now. This authorizes follow-up work, not copying branding/assets or skipping acceptance. Independent Astra104 reviews the existing unregistered2048/Hextris candidates first. Historical source licenses and failed polish are recorded in their manuals; further additions require current quality/asset/source checks, not an invented clearance or assumed obsolete IDs. Keep this review separate from car source leases. New extra-game implementations/registration are sequenced after the car milestone, with dispositions listed honestly.
 
+## Later original car-study order
+
+The owner requested a photorealistic treatment of the displayed Pip using Astra, then a separate retro compact inspired only by general aesthetic/design/feel while avoiding copied vehicle designs/assets. Two original showcase studies (Pip and Brindle) are isolated under `assets/car-arcade/showcase/`; they do not change the16-car game ABI or reserve/register another game. The owner directly approved simpler glass refraction after software-renderer timeouts. [Actual source, renders and checks](car-realistic-studies.md) distinguish realistic-style studies from proven photorealism, hardware performance or legal clearance. No copied OEM badge, photograph, texture or mesh.
+
 ## Acceptance and handoff
 
 Framework-free regressions cover16 distinct models/finite geometry/tri budgets/cleanup, exact core replay/collision/near-miss/police/racing/one-shot settlement/purchases/upgrades/secret effect, tycoon conservation/identity/customer/condition/staff/rent/win/loss/reload, hostile/corrupt/denied/quota/conflict storage. These fixtures are not natural progression proof.
