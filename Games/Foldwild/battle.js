@@ -142,6 +142,8 @@ export function gainXP(creature, amount) {
     if (c.hp > 0) c.hp = clamp(c.hp + after.maxHP - before.maxHP, 1, after.maxHP);
     c.energy = clamp(c.energy + after.maxEnergy - before.maxEnergy, 0, after.maxEnergy);
   }
+  // Retain accepted XP at level 40 without exceeding the world's save ceiling.
+  c.xp = Math.min(c.xp, 1e6);
   return c;
 }
 export const GainXP = gainXP;
