@@ -87,8 +87,8 @@ function validateEconomy(state) {
   }
   ids(field(state, 'contracts'), Object.keys(CONTRACTS).length,
     id => typeof id === 'string' && Object.hasOwn(CONTRACTS, id), 'contracts');
-  ids(field(state, 'claimedSupplies'), 128, id => typeof id === 'string' &&
-    /^[a-z0-9-]{1,80}$/.test(id) && !['constructor', 'prototype'].includes(id), 'claimed supplies');
+  ids(field(state, 'claimedSupplies'), 15, id => typeof id === 'string' &&
+    /^[0-4]:supply-[0-2]$/.test(id), 'claimed supplies');
 }
 function snapshot(state) {
   validateEconomy(state);

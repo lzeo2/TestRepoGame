@@ -128,6 +128,16 @@ assert.throws(() => refreshStock(inheritedStock, shop), /stock/);
 const invalidEpoch = fresh();
 invalidEpoch.shops[shop].epoch = 1;
 rejected(invalidEpoch, s => refreshStock(s, shop), /epoch/);
+// World material claims remain valid through every transaction and save check.
+const claims = Array.from({ length: 5 }, (_, region) =>
+  Array.from({ length: 3 }, (_, site) => `${region}:supply-${site}`)).flat();
+const claimed = freeze({ ...fresh(), claimedSupplies: claims });
+assert.deepEqual(buyItem(claimed, shop, 'kite').claimedSupplies, claims);
+assert.deepEqual(refreshStock(claimed, shop).claimedSupplies, claims);
+for (const id of ['supply-0', '5:supply-0', '0:supply-3', '-1:supply-0', '0:constructor', '0:supply-0:extra']) {
+  rejected({ ...fresh(), claimedSupplies: [id] }, s => refreshStock(s, shop), /claimed supplies/);
+}
+rejected({ ...fresh(), claimedSupplies: ['0:supply-0', '0:supply-0'] }, s => refreshStock(s, shop), /claimed supplies/);
 const separate = freshEconomy();
 separate.shops[shop].stock.kite = 0;
 assert.equal(freshEconomy().shops[shop].stock.kite, 16);
