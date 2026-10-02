@@ -13,11 +13,15 @@ function disposeObject(object) {
 }
 function fail(error) { failure = String(error.message || error); status.textContent = `Studio unavailable: ${failure}. No game state was changed.`; }
 function schedule() { if (!pending && !disposed && !failure) pending = requestAnimationFrame(draw); }
+function frameCamera() {
+  const scale = Math.max(1, 1.4 / camera.aspect);
+  camera.position.set(4.4 * scale, .72 + 2.03 * scale, -5.35 * scale); camera.lookAt(0, .72, 0);
+}
 function draw() {
   pending = 0;
   try {
     const width = canvas.clientWidth, height = canvas.clientHeight;
-    if (canvas.width !== width || canvas.height !== height) { renderer.setSize(width, height, false); camera.aspect = width / height; camera.updateProjectionMatrix(); }
+    if (canvas.width !== width || canvas.height !== height) { renderer.setSize(width, height, false); camera.aspect = width / height; camera.updateProjectionMatrix(); frameCamera(); }
     renderer.render(scene, camera); frames++;
     status.textContent = `${current.userData.name} / actual 3D render / ${renderer.info.render.triangles.toLocaleString()} frame triangles / ${renderer.info.render.calls} draws. Device performance unmeasured.`;
   } catch (error) { fail(error); }
@@ -26,7 +30,7 @@ function select(id) {
   if (disposed || !renderer || !Object.hasOwn(factories, id)) return;
   if (current) { scene.remove(current); disposeObject(current); }
   current = factories[id](); scene.add(current);
-  camera.position.set(4.4, 2.75, -5.35); camera.lookAt(0, .72, 0);
+  frameCamera();
   current.traverse(node => {
     if (!node.isMesh) return;
     const mats = Array.isArray(node.material) ? node.material : [node.material];
@@ -70,10 +74,19 @@ canvas.addEventListener('pointermove', event => { if (drag?.id === event.pointer
 for (const name of ['pointerup','pointercancel','lostpointercapture']) canvas.addEventListener(name, () => { drag = null; });
 window.addEventListener('resize', schedule); window.addEventListener('blur', () => { drag = null; });
 canvas.addEventListener('webglcontextlost', event => { event.preventDefault(); fail(new Error('Graphics context lost; reload to recover')); });
+function framed() {
+  if (!current) return false;
+  const bounds = new THREE.Box3().setFromObject(current);
+  for (const x of [bounds.min.x,bounds.max.x]) for (const y of [bounds.min.y,bounds.max.y]) for (const z of [bounds.min.z,bounds.max.z]) {
+    const p = new THREE.Vector3(x,y,z).project(camera);
+    if (Math.abs(p.x) > .97 || Math.abs(p.y) > .97 || Math.abs(p.z) >= 1) return false;
+  }
+  return true;
+}
 function glassStats() {
   const mats = new Set(); current?.traverse(node => { if (node.isMesh) for (const mat of Array.isArray(node.material) ? node.material : [node.material]) if (mat.transparent) mats.add(mat); });
   return {refractingMaterials:[...mats].filter(m=>m.transmission>0).length,singlePassGlass:[...mats].every(m=>m.forceSinglePass)};
 }
-Object.defineProperty(window,'carStudioSnapshot',{get:()=>Object.freeze({...glassStats(),id:document.getElementById('car').value,name:current?.userData.name,frames,angle:current?.rotation.y,triangles:renderer?.info.render.triangles,drawCalls:renderer?.info.render.calls,geometryCount:renderer?.info.memory.geometries,revision:THREE.REVISION,error:failure})});
+Object.defineProperty(window,'carStudioSnapshot',{get:()=>Object.freeze({...glassStats(),framed:framed(),id:document.getElementById('car').value,name:current?.userData.name,frames,angle:current?.rotation.y,triangles:renderer?.info.render.triangles,drawCalls:renderer?.info.render.calls,geometryCount:renderer?.info.memory.geometries,revision:THREE.REVISION,error:failure})});
 window.addEventListener('pagehide',()=>{disposed=true;cancelAnimationFrame(pending);renderer?.dispose();environment?.dispose();disposeObject(scene);});
 window.addEventListener('pageshow',event=>{if(event.persisted)location.reload();});

@@ -56,7 +56,7 @@ def main():
             page.route('**/*',route)
             page.goto(origin+'/assets/car-arcade/showcase/')
             page.wait_for_function('window.carStudioSnapshot?.frames>0 && !carStudioSnapshot.error')
-            assert page.evaluate('carStudioSnapshot.refractingMaterials===0 && carStudioSnapshot.singlePassGlass')
+            assert page.evaluate('carStudioSnapshot.refractingMaterials===0 && carStudioSnapshot.singlePassGlass && carStudioSnapshot.framed')
             rows=[]
             for car in ['pip','brindle']:
                 row=page.evaluate(INSPECT,car);rows.append(row)
@@ -69,7 +69,7 @@ def main():
                 frames=page.evaluate('carStudioSnapshot.frames')
                 page.locator('#car').select_option(car)
                 page.wait_for_function('args=>carStudioSnapshot.id===args.id && carStudioSnapshot.frames>args.frames',arg={'id':car,'frames':frames})
-                assert page.evaluate('carStudioSnapshot.refractingMaterials===0 && carStudioSnapshot.singlePassGlass')
+                assert page.evaluate('carStudioSnapshot.refractingMaterials===0 && carStudioSnapshot.singlePassGlass && carStudioSnapshot.framed')
                 page.locator('#studio').screenshot(path=str(output/(car+'-front.png')))
                 for _ in range(9):page.locator('#right').click()
                 page.locator('#studio').screenshot(path=str(output/(car+'-rear.png')))
@@ -78,7 +78,7 @@ def main():
                 print(json.dumps(row),flush=True)
             # Real accessible touch controls at phone width, no pose/state setters.
             page.set_viewport_size({'width':390,'height':844})
-            page.wait_for_function('document.documentElement.scrollWidth<=innerWidth')
+            page.wait_for_function('document.documentElement.scrollWidth<=innerWidth && carStudioSnapshot.framed')
             angle=page.evaluate('carStudioSnapshot.angle');page.locator('#left').tap()
             page.wait_for_function('angle=>carStudioSnapshot.angle<angle',arg=angle)
             page.screenshot(path=str(output/'390-brindle.png'))
