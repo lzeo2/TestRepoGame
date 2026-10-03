@@ -20,7 +20,8 @@ from PIL import Image, ImageStat
 from playwright.sync_api import sync_playwright
 
 ROOT = Path(__file__).resolve().parents[1]
-IDS = 'pip brindle bricklet finch lantern comet orchard horizon morrow relay tempest sunray parcel pebble dockside gravel atlas kestrel vesper aerolume riftline'.split()
+IDS = 'pip brindle bricklet finch lantern comet orchard horizon morrow relay tempest sunray parcel pebble dockside gravel atlas kestrel vesper aerolume riftline calyx serein nacre'.split()
+REAR_IDS = ('aerolume', 'riftline', 'calyx', 'serein', 'nacre')
 LIMIT = 10_000_000
 
 
@@ -45,7 +46,7 @@ def main():
     errors, snapshots, images = [], [], []
     result = {'visual_only': True, 'acceptance': False, 'exit': 1, 'sources': hashes,
               'errors': errors, 'snapshots': snapshots, 'images': images, 'free_before': free_before,
-              'expected_models': 21, 'expected_rear_views': 2, 'expected_images': 48}
+              'expected_models': 24, 'expected_rear_views': 5, 'expected_images': 57}
     print('VISUAL_ONLY_OUTPUT=' + str(output), flush=True)
 
     class Handler(SimpleHTTPRequestHandler):
@@ -137,14 +138,17 @@ def main():
 
                 page.goto(origin + '/assets/car-arcade/showcase/', timeout=20000)
                 wait_frame(0, 'exterior', 'pip')
-                assert sorted(page.locator('#car option').evaluate_all('(options)=>options.map(o=>o.value)')) == sorted(IDS)
+                assert page.locator('#car option').evaluate_all('(options)=>options.map(o=>o.value)') == IDS
                 for car in IDS:
                     disk_guard(); frozen()
                     exterior = action(lambda: page.locator('#car').select_option(car), 'exterior', car)
                     capture(car + '-exterior.jpg', exterior)
-                    if car in ('aerolume', 'riftline'):
+                    if car in REAR_IDS:
+                        assert abs(exterior['angle']) < .000001
                         for _ in range(10):
                             rear = action(lambda: page.locator('#right').click(), 'exterior', car)
+                        assert abs(rear['angle'] - exterior['angle'] - 2.2) < .000001, rear
+                        assert rear['frames'] >= exterior['frames'] + 10
                         assert rear['angle'] > 1.3 and rear['framed'] and not rear['error'] and not errors, rear
                         capture(car + '-rear.jpg', rear)
                         reset = action(lambda: page.locator('#reset').click(), 'exterior', car)
@@ -156,7 +160,7 @@ def main():
                     print('CAPTURED ' + car + ' exterior/cockpit', flush=True)
 
                 # Real keyboard and touch at 390px, not synthetic state/pose grants.
-                car = 'riftline'
+                car = 'nacre'
                 assert IDS[-1] == car and page.evaluate('carStudioSnapshot.id') == car
                 action(lambda: page.set_viewport_size({'width': 390, 'height': 844}), 'exterior', car)
                 assert page.evaluate('document.documentElement.scrollWidth<=innerWidth')
@@ -190,13 +194,14 @@ def main():
                 browser.close()
         frozen(); disk_guard()
         assert not errors, errors
-        assert len(images) == 48
+        assert len(images) == 57
         assert {image['file'] for image in images} == (
             {car + '-' + view + '.jpg' for car in IDS for view in ('exterior', 'cockpit')}
-            | {'aerolume-rear.jpg', 'riftline-rear.jpg', '390-exterior.jpg', '390-exterior-ui.jpg',
+            | {car + '-rear.jpg' for car in REAR_IDS}
+            | {'390-exterior.jpg', '390-exterior-ui.jpg',
                '390-cockpit.jpg', '390-cockpit-ui.jpg'})
         result['exit'] = 0
-        print('VISUAL ONLY: 21 exterior/cockpit pairs + 2 hypercar rear views + 4 Riftline 390px keyboard/touch images = 48; no QA, performance, photographic or legal certification.', flush=True)
+        print('VISUAL ONLY: 24 exterior/cockpit pairs + 5 hypercar/modern rear views + 4 Nacre 390px keyboard/touch images = 57; no QA, performance, photographic or legal certification.', flush=True)
     except BaseException as error:
         result['failure'] = str(error)
         raise

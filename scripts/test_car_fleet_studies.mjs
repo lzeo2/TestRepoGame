@@ -7,10 +7,12 @@ import { PASSENGER_STUDIES, createDetailedCar } from '../assets/car-arcade/showc
 import { UTILITY_STUDIES, SPORT_STUDIES } from '../assets/car-arcade/showcase/detail-profiles.js';
 import { decorateCar } from '../assets/car-arcade/showcase/realism.js';
 
-const ids = 'pip brindle bricklet finch lantern comet orchard horizon morrow relay tempest sunray parcel pebble dockside gravel atlas kestrel vesper aerolume riftline'.split(' ');
+const ids = 'pip brindle bricklet finch lantern comet orchard horizon morrow relay tempest sunray parcel pebble dockside gravel atlas kestrel vesper aerolume riftline calyx serein nacre'.split(' ');
+const modernIds = ['calyx', 'serein', 'nacre'];
 const profiles = {...PASSENGER_STUDIES, ...UTILITY_STUDIES, ...SPORT_STUDIES};
 const factories = {pip, brindle, ...Object.fromEntries(Object.keys(profiles).map(id => [id, () => createDetailedCar(id)]))};
 assert.deepEqual(Object.keys(factories).sort(), [...ids].sort());
+assert.deepEqual(Object.keys(SPORT_STUDIES).slice(-3), modernIds);
 const fields = 'id name color roofColor width length height wheelbase bodyHeight cabinFront cabinRear roofFront roofRear roofWidth form doors plate'.split(' ').sort();
 for (const map of [PASSENGER_STUDIES, UTILITY_STUDIES, SPORT_STUDIES]) {
   assert(Object.isFrozen(map));
@@ -48,7 +50,36 @@ function regionBounds(mesh, includes) {
   assert(triangles >= 100, 'Missing substantial physical aero faces');
   return bounds;
 }
-const seen = new Set(), hyperShapes = new Map();
+// A sculpted nose need not use the older coupe's corner formula. Require actual
+// shared indices incident to outward side, deck and end faces at all four joins.
+function modernJunctions(mesh, profile) {
+  const g = mesh.geometry, p = g.attributes.position, n = g.attributes.normal;
+  const incident = new Map(), copies = new Map();
+  const key = i => [p.getX(i), p.getY(i), p.getZ(i)].map(v => Math.round(v * 1e6)).join(',');
+  for (let i = 0; i < p.count; i++) copies.set(key(i), (copies.get(key(i)) ?? 0) + 1);
+  for (let i = 0; i < g.index.count; i += 3) {
+    const ids = [0,1,2].map(j => g.index.getX(i+j));
+    const [a,b,c] = ids.map(j => new THREE.Vector3().fromBufferAttribute(p,j));
+    const normal = b.sub(a).cross(c.sub(a));
+    if (normal.lengthSq() < 1e-16) continue;
+    normal.normalize();
+    for (const j of ids) { if (!incident.has(j)) incident.set(j, []); incident.get(j).push(normal); }
+  }
+  for (const end of [-1,1]) for (const side of [-1,1]) {
+    const joins = [...incident].filter(([i, faces]) =>
+      p.getX(i)*side > profile.width*.3 && p.getZ(i)*end > profile.length*.43 &&
+      p.getY(i) > profile.bodyHeight*.5 && p.getY(i) < profile.bodyHeight+.08 &&
+      faces.some(f => f.x*side > .5) && faces.some(f => f.y > .5) && faces.some(f => f.z*end > .5));
+    assert(joins.length, profile.id+' missing shared sculpted side/deck/end boundary');
+    for (const [i, faces] of joins) {
+      const normal = new THREE.Vector3().fromBufferAttribute(n,i);
+      assert.equal(copies.get(key(i)), 1, profile.id+' duplicate sculpted junction');
+      assert(normal.x*side > 0 && normal.y > 0 && normal.z*end > 0, profile.id+' inward sculpted junction');
+      assert(faces.every(f => f.dot(normal) > 0), profile.id+' reversed sculpted face winding');
+    }
+  }
+}
+const seen = new Set(), hyperShapes = new Map(), modernShapes = new Map();
 let checked = 0;
 for (let cycle = 1; cycle <= 2; cycle++) for (const id of ids) {
   const car = factories[id](), geometries = new Set(), materials = new Set();
@@ -107,6 +138,8 @@ for (let cycle = 1; cycle <= 2; cycle++) for (const id of ids) {
       if(x>profile.width*.32)corner=Math.min(corner,z);
     }
     assert(corner>center+.025,id+' flat block nose');
+    if (modernIds.includes(id)) modernJunctions(paintMesh, profile);
+    else {
     // Actual shared skin/deck/cap corner vertices, not a claimed smooth flag.
     const {width:W,length:L,bodyHeight:B,form,wheelbase}=profile;
     const sport=['coupe','fastback','roadster','hyper','prototype'].includes(form);
@@ -125,6 +158,7 @@ for (let cycle = 1; cycle <= 2; cycle++) for (const id of ids) {
       const i=matches[0];
       assert(n.getX(i)*side>0&&n.getY(i)>0&&n.getZ(i)*end>0,id+' inward stamping junction');
       assert(Array.from(g.index.array).filter(j=>j===i).length>=3,id+' disconnected stamping junction');
+    }
     }
     // UV-duplicated bevel vertices must have the same analytic normal. Per-face
     // computeVertexNormals after box deformation fails this exact seam check.
@@ -178,6 +212,52 @@ for (let cycle = 1; cycle <= 2; cycle++) for (const id of ids) {
     else assert.deepEqual(shape, hyperShapes.get(id), id + ' deterministic physical shape');
     if (id === 'riftline') assert(shape.some((v,i) => Math.abs(v-hyperShapes.get('aerolume')[i]) > .1), 'Hyper concepts are not scaled shape clones');
   }
+  if (modernIds.includes(id)) {
+    const {width:W,length:L,height:H,bodyHeight:B,roofWidth} = profile;
+    const cf=profile.cabinFront*L, cr=profile.cabinRear*L;
+    const body=car.getObjectByName('body-paint'), trim=car.getObjectByName('cab-plastic');
+    const roof=new THREE.Box3().setFromObject(car.getObjectByName('roof-paint'));
+    const bodyBounds=new THREE.Box3().setFromObject(body), size=bodyBounds.getSize(new THREE.Vector3());
+    const roofSize=roof.getSize(new THREE.Vector3());
+    assert(W >= 2.05 && H < 1.2 && roofWidth/W < .59 && profile.doors === 2, id+' closed modern proportions');
+    assert(size.x > 2 && size.z/size.x > 1.8 && roof.max.y/size.x < .57, id+' actual low wide body');
+    assert(roofSize.x/size.x < .59 && roofSize.z/size.z < .22, id+' actual compact narrow canopy');
+    assert(L/2-cr > cf+L/2+.3, id+' rear engine deck must exceed short nose');
+    assert(bodyBounds.max.y < roof.max.y+.05, id+' oversized bolt-on aero');
+    const clearance=Math.min(B*.39,W*.185)*.75;
+    const skinMeshes=[body,trim];
+    for (const side of [-1,1]) {
+      const flank = v => {
+        const ray=new THREE.Raycaster(new THREE.Vector3(side*(W+1),clearance+(B-clearance)*v,cr-.10),new THREE.Vector3(-side,0,0));
+        const hits=ray.intersectObjects(skinMeshes);
+        assert(hits.length,id+' missing physical flank');
+        return hits;
+      };
+      const cooling=flank(.5), lower=flank(.1)[0], upper=flank(.9)[0];
+      assert.equal(cooling[0].object.material.name,'cab-plastic',id+' cooling must be actual hull');
+      assert(cooling.filter(h=>h.distance<cooling[0].distance+.03).every(h=>h.object===trim),id+' overlapping cooling/paint skin');
+      assert(Math.abs(cooling[0].point.x) < (Math.abs(lower.point.x)+Math.abs(upper.point.x))/2-.025,id+' non-recessed cooling channel');
+      const shoulder=new THREE.Raycaster(new THREE.Vector3(side*(roofWidth/2+.205),H+1,cf+.13),new THREE.Vector3(0,-1,0)).intersectObjects(skinMeshes)[0];
+      assert(shoulder && shoulder.object===body,id+' dashboard outside physical cabin');
+    }
+    const cloth=car.getObjectByName('seat-fabric').geometry.attributes.position;
+    let upperCabin=0;
+    for(let i=0;i<cloth.count;i++) if(cloth.getY(i)>B+.03) {
+      upperCabin++;
+      assert(Math.abs(cloth.getX(i))<roofWidth/2+.12 && cloth.getY(i)<roof.max.y && cloth.getZ(i)>cf && cloth.getZ(i)<cr,id+' upholstery outside narrow cabin');
+    }
+    assert(upperCabin>100,id+' missing physical upper seats');
+    const forward=new THREE.Raycaster(new THREE.Vector3(...eye),new THREE.Vector3(...target).sub(new THREE.Vector3(...eye)).normalize());
+    const windshield=forward.intersectObject(car.getObjectByName('window-glass'))[0];
+    assert(windshield && windshield.distance>.1,id+' eye does not see through physical windshield');
+    const obstruction=forward.intersectObjects(skinMeshes)[0];
+    assert(!obstruction || obstruction.distance>windshield.distance-.025,id+' opaque cabin blocks driver sightline');
+    const shape=[roofSize.x/size.x,roofSize.z/size.z,roof.max.y/size.x,(roof.min.z+roof.max.z)/size.z];
+    if(cycle===1) {
+      for(const [other,previous] of modernShapes) assert(shape.some((v,i)=>Math.abs(v-previous[i])>.01),id+' scaled modern clone of '+other);
+      modernShapes.set(id,shape);
+    } else assert.deepEqual(shape,modernShapes.get(id),id+' deterministic modern shape');
+  }
   for (const name of ['body-paint','cab-plastic','seat-fabric','rubber','chrome','window-glass','lamp-lens','dial-speed','dial-rpm','console-radio','registration-plate']) named(name);
   if (profile?.form !== 'roadster') named('roof-paint');
   assert([...materials].every(m => !Object.values(m).some(v => v?.isTexture)), id + ' map-free factory');
@@ -205,5 +285,5 @@ for (let cycle = 1; cycle <= 2; cycle++) for (const id of ids) {
   checked++;
   console.log(`PASS ${id} cycle${cycle}: ${triangles} triangles / ${meshes} meshes / ${textures.size} textures / ${bytes} base RGBA bytes`);
 }
-assert.equal(checked, 42);
-console.log('PASS 21 factories, two fresh cycles, disjoint once-disposed resources. Source/stub check only; real cabin visibility and typography require native review.');
+assert.equal(checked, 48);
+console.log('PASS 24 factories, two fresh cycles, disjoint once-disposed resources. Source/stub check only; real cabin visibility and typography require native review.');
