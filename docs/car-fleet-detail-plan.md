@@ -6,7 +6,11 @@ Owner asks: make the other cars as detailed as Pip/Brindle, and add original hig
 
 First deliver detailed parked geometry for all fifteen remaining gameplay IDs plus two distinct original sports concepts, **Kestrel R** and **Vesper GT**, alongside existing Pip/Brindle. No new game, catalog registration or push. Shared driving factory/fleet/Game profiles stay unchanged until detailed visual quality, resource lifetime and actual driving cost are verified; these new concepts are not falsely advertised as selectable/drivable high-performance gameplay cars. Performance is a design intention, not measured acceleration. The owner has been told rendering cost is checked before swapping driving models. No silently installed showcase meshes or invented full-game acceptance.
 
-## Delivered source and reviewed visual checkpoint
+## Newer polish and two hypercars supersede this nineteen-model checkpoint
+
+[Subsequent owner request, sequenced source and actual outcomes](car-polish-hypercars-plan.md) fixes shared body/hood/bevel/trim/cabin defects FIRST, then adds original Aerolume/Riftline parked hypercars. Current21-selector sourceebba1db passes independent21x2 geometry/ownership/ray checks and final48-frame visual-only0/232.6113s; [newest reviewed gallery](car-polished-previews/README.md). Earlier intersecting cooling/dash images explicitly rejected before root correction. Still stylized, not photo/legal/FPS certification; all live games/factory/fleet/saves/vendor/catalog unchanged, no new games/registration/push.20s startup/driving/release holds unchanged. Nineteen-model evidence below is historical, not today's count or geometry.
+
+## Earlier delivered source and reviewed visual checkpoint
 
 Genuine tasks123–125 all completed:123 bae98a8,124 2b3fd2a,125 6416114/b083128. Logs `worker-2026-10-03T10-37-14-{233,256,265}Z.log`; independently read all assistant session metadata is openai-codex-responses/openai-codex/gpt-6-astra. Host0/589.3760s is dispatch status only. Main read complete files/commits and reproduced19-factory/two-fresh-cycle resource/geometry checks, existing Pip/Brindle and unchanged16-car factory regressions, three module syntax/native AST, diff/source/privacy checks. Six authored/test paths grew41,262bytes relative656d85f before reports/previews; all Game/shared factory/fleet/vendor/storage/Pip/Brindle/garage/realism/catalog bytes remain unchanged.
 

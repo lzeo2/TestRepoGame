@@ -1,6 +1,12 @@
 # Original car studies: optimized studio
 
-## Current full-fleet detail checkpoint
+## Current reviewed polish and original hypercars
+
+[Sequenced owner follow-up](car-polish-hypercars-plan.md): shared17 generated models polished first (joined outward stampings/analytic bevel normals, crowned-hood correction, slim attached lamps/mirrors/splitters and smoother cabins), then original **Aerolume/Riftline** hypercar concepts.21 parked selectors total. Actual low narrow canopies, broad haunches, recessed cooling hulls, different road bridge/track wing and diffusers. No OEM assets/brand copying; no legal/mechanical certificate. Live16 factory/fleet/Games/storage/vendor/existingPip/Brindle/studio/garage/realism/catalog bytes unchanged.
+
+[Current actual gallery](car-polished-previews/README.md), final sourceebba1db: Main21x2 finite geometry/UV/ground/camera/instrument/aero/disjoint-resource and actual-ray overlap/cabin checks pass; oldstudy/livefactory regressions pass. Aerolume28,806tris/29meshes,Riftline29,094/29, nine fresh maps983,040baseRGBAbytes each, mips separate. Final48-frame visual-only0/232.6113s/zeroerrors/frozenlocal/physicaleyes/nonblank/19livetextures/390keyboard+touch, real rear-button rotations. Main opened complete sheets, new fronts/rears/cabins/mobile;50storedJPEGs4,094,387bytes. Firsthyper batch0/227.3055s was visually REJECTED;ebba1db fixes actual near-coplanar overlays and exposed dashboard, not a camera hide or assertion relaxation. Still stylized with polygonal intake edges, simplified supports/shared cabins; photo/artistic-parity/rights/performance not certified. Unchanged20s startup QA remains HELD, no fullgate/registration/push/driving replacement or new games.
+
+## Earlier full-fleet detail checkpoint
 
 Owner requested comparable detail for the remaining cars plus original sports/high-performance intentions. [Bounded contract](car-fleet-detail-plan.md) and [actual nineteen-car exterior/cabin gallery](car-detailed-previews/README.md). Genuine Astra123/124/125 completed: bae98a8 builder,2b3fd2a profiles,6416114/b083128 studio/check/capture; Main verified actual assistant metadata and independently checked source. f9169da rounds shared front/rear stampings and attached lenses/grilles, adds sports shape/detail differences and derives cockpit aim so the actual physical instruments fit. New originals **Kestrel R** and **Vesper GT** are parked sports concepts, not replicas or drivable performance claims. All fifteen remaining current fleet IDs have new higher-detail parked factories; existing Pip/Brindle factory bytes remain unchanged.
 

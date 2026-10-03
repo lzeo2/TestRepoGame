@@ -24,7 +24,11 @@ record. It changes no game, catalog, vendor, manual or inventory file. Other
 workers own fleet/model implementation, engines and UI; their final sources,
 geometry measurements, gameplay and originality review are not certified here.
 
-## Original detailed fleet and sports follow-up
+## Original polished fleet and hypercar follow-up
+
+Newest direct owner asks concrete existing-model polish before original sports hypercars. [Exact scoped authority/provenance](car-polish-hypercars-plan.md): actual Astra126 authored shared construction corrections1c433e8 but timedout143/no finalreport; Main independently accepted tested source and corrected hood geometryd681c7a after actual image review. Genuine completed Astra127/128 authored05fa709/82968fb original Aerolume/Riftline numerical designs/geometry and21-study capture/check support. Actual assistant metadata independently verified. Mainebba1db corrects demonstrated hull overlap/narrow-cabin defects; [real current gallery/hashes](car-polished-previews/README.md) documents actual new content, not ingested upstream material. No OEM assets/images/blueprints/traces/distinct branded signatures/logos downloaded or copied, no dependency/vendor/font/license changes. Names/design intentions and local original authorship aren't trademark/noninfringement/provider-rights certification. MODELS ONLY: two parked hypercar concepts added, no new games/live selectable cars/fleet/storage/catalog/registration/push.20s startup/hardware/legal/driving/release holds remain.
+
+## Earlier original detailed fleet and sports follow-up
 
 Newest direct owner request extends original modeling to the remaining fleet and additional generic sports/high-performance intentions while avoiding copyrighted designs. [Bounded source/authority record](car-fleet-detail-plan.md). Genuine Astra123–125 authored seventeen parked factories using new original numerical profiles and sampled/primitive geometry: fifteen existing fleet counterparts plus **Kestrel R** and **Vesper GT**. Existing original Pip/Brindle are retained, nineteen studio selectors total. Model build commits bae98a8/2b3fd2a, studio/test6416114/b083128, Main geometry/camera correctionf9169da. [Actual local-render gallery](car-detailed-previews/README.md) and its source hashes document this authored content, not ingested attribution or fabricated upstream licensing.
 
