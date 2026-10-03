@@ -35,6 +35,10 @@ for (const [id, label] of [['pip','PIP 08'], ['brindle','BRD 16']]) {
     assert.equal(plate.userData.label, label);
     assert.equal(plate.map.image.width, 256); assert.equal(plate.map.image.height, 64);
     assert(plate.map.image.text.includes(label)); assert.equal(plate.map.colorSpace, THREE.SRGBColorSpace);
+    const radio=[...materials].find(mat=>mat.name==='console-radio');
+    assert(radio.map.image.text.some(text=>text.startsWith('AM')));
+    assert.equal(radio.map.image.width,256);assert.equal(radio.map.image.height,64);
+    assert.equal(radio.map.colorSpace,THREE.SRGBColorSpace);
     const textures = new Set([...materials].flatMap(mat => Object.values(mat).filter(value => value?.isTexture)));
     const bytes = [...textures].reduce((sum, texture) => sum + texture.image.width * texture.image.height * 4, 0);
     assert(bytes <= 1048576);

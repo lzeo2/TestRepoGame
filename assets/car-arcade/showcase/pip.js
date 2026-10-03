@@ -224,6 +224,9 @@ export function createCar() {
   }
   rounded(0, .62, -.34, .20, .38, .19, .035, dark, car, -.12);
   rounded(0, .824, -.476, .17, .07, .016, .006, rubber);
+  const radioFace=new THREE.PlaneGeometry(.157,.058);
+  radioFace.translate(0,.824,-.466);
+  add(radioFace,new THREE.MeshStandardMaterial({name:'console-radio',color:0xffffff,roughness:.65}));
   for (const x of [-.055, 0, .055]) {
     const knob = new THREE.CylinderGeometry(.015, .015, .02, 12);
     knob.rotateX(Math.PI / 2); knob.translate(x, .758, -.231); add(knob, rubber);

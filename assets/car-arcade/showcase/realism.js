@@ -42,6 +42,18 @@ function dial(max, units) {
   return texture;
 }
 
+function radio() {
+  const canvas=document.createElement('canvas');canvas.width=256;canvas.height=64;
+  const ctx=canvas.getContext('2d');
+  if(!ctx)throw new Error('Radio canvas unavailable');
+  ctx.fillStyle='#25292a';ctx.fillRect(0,0,256,64);
+  ctx.strokeStyle='#a5ada7';ctx.lineWidth=1;
+  for(let i=0;i<=20;i++) {const x=18+i*11;ctx.beginPath();ctx.moveTo(x,20);ctx.lineTo(x,i%5===0?38:29);ctx.stroke();}
+  ctx.fillStyle='#d5d9c9';ctx.font='14px sans-serif';ctx.fillText('AM   80     100     120     140',16,53);
+  ctx.fillStyle='#b8874b';ctx.fillRect(115,14,3,28);
+  const texture=new THREE.CanvasTexture(canvas);texture.colorSpace=THREE.SRGBColorSpace;return texture;
+}
+
 function registration(label) {
   const canvas = document.createElement('canvas'); canvas.width = 256; canvas.height = 64;
   const ctx = canvas.getContext('2d');
@@ -87,7 +99,8 @@ export function decorateCar(car) {
         mat.roughnessMap = grain('paint'); mat.bumpMap = null;
         break;
       case 'cab-plastic':
-        mat.metalness = 0; mat.roughness = .69;
+        mat.metalness = 0; mat.roughness = .78;
+        mat.color.lerp(new THREE.Color('#717579'), .12);
         mat.roughnessMap = mat.bumpMap = grain('plastic'); mat.bumpScale = .00045;
         break;
       case 'seat-fabric':
@@ -103,6 +116,10 @@ export function decorateCar(car) {
       case 'lamp-lens':
         mat.transmission = 0; mat.metalness = 0; mat.opacity = .15; mat.roughness = .07;
         mat.bumpMap = grain('lens'); mat.bumpScale = .00065;
+        break;
+      case 'console-radio':
+        if(!maps.has(mat.name))maps.set(mat.name,radio());
+        mat.map=maps.get(mat.name);mat.color.set(0xffffff);mat.roughness=.65;mat.metalness=0;
         break;
       case 'registration-plate':
         if (!maps.has(mat.name)) maps.set(mat.name, registration(mat.userData.label));

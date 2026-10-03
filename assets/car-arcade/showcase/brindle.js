@@ -189,6 +189,9 @@ export function createCar() {
     for(let i=0;i<4;i++) box(steel,x,.835+i*.011,-.513,.102,.003,.008);
   }
   box(rubber,.035,.78,-.518,.18,.055,.012);
+  const radioFace=new THREE.PlaneGeometry(.168,.045);
+  radioFace.translate(.035,.78,-.510);
+  add(radioFace,new THREE.MeshStandardMaterial({name:'console-radio',color:0xffffff,roughness:.65}));
   for(const x of [-.035,.035,.105]) {
     const knob=new THREE.CylinderGeometry(.014,.014,.019,12); knob.rotateX(Math.PI/2); knob.translate(x,.73,-.505); add(knob,steel);
   }
