@@ -1,16 +1,22 @@
 import { CARS, BY_ID } from '../../assets/car-arcade/fleet.js';
+import { WORLD, blocked, clearPath, chaseTarget } from './world.js';
+
+export const CAR_UNLOCKS = Object.freeze({bricklet:0,pip:1200,parcel:3000,finch:6000,lantern:10000,comet:15000,orchard:22000,pebble:30000,dockside:40000,horizon:55000,morrow:70000,gravel:90000,relay:115000,tempest:140000,atlas:170000,sunray:200000});
 
 const MONEY = 1e9, COUNTER = 1e9, MAX_TIME = 240;
 const LANES = [-5.25, -1.75, 1.75, 5.25];
 const RIVAL_LANES = [-5.25, -1.75, 5.25];
 export const GADGETS = Object.freeze({
-  none: Object.freeze({name:'No gadget', price:0, charges:0, duration:0, cooldown:0}),
-  smoke: Object.freeze({name:'Smoke screen', price:150, charges:3, duration:5, cooldown:10}),
-  emp: Object.freeze({name:'EMP pulse', price:250, charges:2, duration:3, cooldown:9})
+  none: Object.freeze({name:'No gadget', category:'utility', unlockDistance:0, price:0, charges:0, duration:0, cooldown:0}),
+  smoke: Object.freeze({name:'Smoke screen', category:'discreet', unlockDistance:500, price:150, charges:3, duration:5, cooldown:10}),
+  decoy: Object.freeze({name:'Decoy beacon', category:'discreet', unlockDistance:1500, price:220, charges:2, duration:6, cooldown:12}),
+  emp: Object.freeze({name:'EMP pulse', category:'loud', unlockDistance:2500, price:250, charges:2, duration:3, cooldown:9}),
+  boost: Object.freeze({name:'Boost pack', category:'loud', unlockDistance:1000, price:200, charges:3, duration:4, cooldown:10}),
+  repair: Object.freeze({name:'Repair kit', category:'utility', unlockDistance:3500, price:350, charges:2, duration:0, cooldown:15})
 });
 const LEGACY_KEYS = ['version', 'cash', 'owned', 'selected', 'upgrades', 'level', 'best', 'nextRun', 'settledRun', 'testMode'];
-const PROFILE_KEYS = [...LEGACY_KEYS, 'customizations'];
-const RUN_KEYS = ['id', 'mode', 'status', 'carId', 'upgrades', 'stats', 'level', 'distance', 'speed', 'x', 'hp', 'heat', 'score', 'earnings', 'traffic', 'police', 'rivals', 'elapsed', 'finishDistance', 'place', 'seed', 'nextEntity', 'spawnClock', 'collisionCooldown', 'nearMisses', 'collisions', 'arrest', 'finishTime', 'appearance', 'gadget', 'charges', 'deployments', 'gadgetTime', 'gadgetCooldown', 'gadgetHeld'];
+const PROFILE_KEYS = [...LEGACY_KEYS, 'customizations', 'careerDistance', 'escapes'];
+const RUN_KEYS = ['id', 'mode', 'status', 'carId', 'upgrades', 'stats', 'level', 'distance', 'speed', 'x', 'hp', 'heat', 'score', 'earnings', 'traffic', 'police', 'rivals', 'elapsed', 'finishDistance', 'place', 'seed', 'nextEntity', 'spawnClock', 'collisionCooldown', 'nearMisses', 'collisions', 'arrest', 'finishTime', 'appearance', 'gadget', 'charges', 'deployments', 'gadgetTime', 'gadgetCooldown', 'gadgetHeld', 'world', 'pursuit', 'escapeClock', 'gadgetTarget'];
 const ENTITY_KEYS = ['id', 'carId', 'x', 'distance', 'speed', 'passed', 'hit', 'finishTime'];
 const STAT_KEYS = ['speed', 'acceleration', 'handling', 'toughness'];
 
@@ -41,7 +47,7 @@ function levels(value) {
   return { engine: value.engine, handling: value.handling, armor: value.armor };
 }
 const zeroLevels = () => ({ engine: 0, handling: 0, armor: 0 });
-const stockCustom = id => ({paint:car(id).color, wheels:'#d0d0d0', gadget:'none', gadgets:[]});
+const stockCustom = id => ({paint:car(id).color, wheels:'#d0d0d0', stripe:null, spoiler:false, gadget:'none', gadgets:[]});
 function color(value) {
   if (typeof value !== 'string' || !/^#[0-9a-f]{6}$/i.test(value)) throw new TypeError('Expected #RRGGBB color');
   return value.toLowerCase();
@@ -50,11 +56,13 @@ function gadget(value) {
   if (typeof value !== 'string' || !Object.hasOwn(GADGETS,value)) throw new RangeError('Unknown gadget');
   return GADGETS[value];
 }
-function custom(raw) {
-  record(raw,['paint','wheels','gadget','gadgets']); array(raw.gadgets,2); gadget(raw.gadget);
+function custom(raw, legacy = false) {
+  record(raw,['paint','wheels','gadget','gadgets','stripe','spoiler'],legacy?['paint','wheels','gadget','gadgets']:undefined); array(raw.gadgets,5); gadget(raw.gadget);
+  const stripe=legacy?null:raw.stripe, spoiler=legacy?false:raw.spoiler;
+  if(stripe!==null)color(stripe);boolean(spoiler);
   const gadgets=raw.gadgets.map(id=>{gadget(id);if(id==='none')throw new RangeError('Invalid owned gadget');return id;});
   if (new Set(gadgets).size!==gadgets.length || raw.gadget!=='none'&&!gadgets.includes(raw.gadget)) throw new RangeError('Gadget not owned');
-  return {paint:color(raw.paint),wheels:color(raw.wheels),gadget:raw.gadget,gadgets};
+  return {paint:color(raw.paint),wheels:color(raw.wheels),stripe:stripe===null?null:color(stripe),spoiler,gadget:raw.gadget,gadgets};
 }
 const clamp = (n, min, max) => Math.min(max, Math.max(min, n));
 function effective(id, upgrades) {
@@ -63,11 +71,13 @@ function effective(id, upgrades) {
 }
 
 export function freshProfile() {
-  return { version: 2, cash: 0, owned: ['bricklet'], selected: 'bricklet', upgrades: { bricklet: zeroLevels() }, level: 0, best: 0, nextRun: 1, settledRun: 0, testMode: false, customizations:{bricklet:stockCustom('bricklet')} };
+  return { version: 3, careerDistance:0, escapes:0, cash: 0, owned: ['bricklet'], selected: 'bricklet', upgrades: { bricklet: zeroLevels() }, level: 0, best: 0, nextRun: 1, settledRun: 0, testMode: false, customizations:{bricklet:stockCustom('bricklet')} };
 }
 export function validateProfile(raw) {
   record(raw, PROFILE_KEYS, LEGACY_KEYS);
-  if (![1,2].includes(raw.version) || (raw.version===1 && Object.hasOwn(raw,'customizations')) || (raw.version===2 && !Object.hasOwn(raw,'customizations'))) throw new RangeError('Unsupported save');
+  if (![1,2,3].includes(raw.version) || (raw.version===1 && Object.hasOwn(raw,'customizations')) || (raw.version>=2 && !Object.hasOwn(raw,'customizations'))) throw new RangeError('Unsupported save');
+  if(raw.version===3){number(raw.careerDistance,0,COUNTER,true);number(raw.escapes,0,COUNTER,true);}
+  else if(Object.hasOwn(raw,'careerDistance')||Object.hasOwn(raw,'escapes'))throw new RangeError('Invalid legacy counters');
   number(raw.cash, 0, MONEY, true); number(raw.best, 0, MONEY, true);
   number(raw.level, 0, 12, true); number(raw.nextRun, 1, COUNTER, true); number(raw.settledRun, 0, raw.nextRun - 1, true);
   boolean(raw.testMode); array(raw.owned, 16);
@@ -78,9 +88,9 @@ export function validateProfile(raw) {
   for (const id of owned) upgrades[id] = Object.hasOwn(raw.upgrades, id) ? levels(raw.upgrades[id]) : zeroLevels();
   if (raw.testMode && (raw.cash !== MONEY || owned.length !== CARS.length)) throw new RangeError('Invalid test profile');
   const customizations={};
-  if(raw.version===2) record(raw.customizations,owned,[]);
-  for(const id of owned) customizations[id]=raw.version===2&&Object.hasOwn(raw.customizations,id)?custom(raw.customizations[id]):stockCustom(id);
-  return { version: 2, cash: raw.cash, owned, selected: raw.selected, upgrades, level: raw.level, best: raw.best, nextRun: raw.nextRun, settledRun: raw.settledRun, testMode: raw.testMode, customizations };
+  if(raw.version>=2) record(raw.customizations,owned,[]);
+  for(const id of owned) customizations[id]=raw.version>=2&&Object.hasOwn(raw.customizations,id)?custom(raw.customizations[id],raw.version===2):stockCustom(id);
+  return { version: 3, careerDistance:raw.version===3?raw.careerDistance:0, escapes:raw.version===3?raw.escapes:0, cash: raw.cash, owned, selected: raw.selected, upgrades, level: raw.level, best: raw.best, nextRun: raw.nextRun, settledRun: raw.settledRun, testMode: raw.testMode, customizations };
 }
 export function carStats(profile, id) {
   const p = validateProfile(profile);
@@ -90,10 +100,9 @@ export function carStats(profile, id) {
   return effective(id, p.upgrades[id]);
 }
 export function buyCar(profile, id) {
-  const p = validateProfile(profile), spec = car(id);
+  const p = validateProfile(profile); car(id);
   if (p.owned.includes(id)) throw new RangeError('Already owned');
-  if (!p.testMode && p.cash < spec.price) throw new RangeError('Insufficient cash');
-  if (!p.testMode) p.cash -= spec.price;
+  if (!p.testMode && p.careerDistance < CAR_UNLOCKS[id]) throw new RangeError('Mileage locked');
   p.owned.push(id); p.upgrades[id] = zeroLevels(); p.customizations[id]=stockCustom(id);
   return p;
 }
@@ -103,9 +112,11 @@ export function selectCar(profile, id) {
   p.selected = id; return p;
 }
 export function customizeCar(profile,id,appearance) {
-  const p=validateProfile(profile);car(id);record(appearance,['paint','wheels']);
+  const p=validateProfile(profile);car(id);record(appearance,['paint','wheels','stripe','spoiler'],['paint','wheels']);
   if(!p.owned.includes(id))throw new RangeError('Car not owned');
   p.customizations[id].paint=color(appearance.paint);p.customizations[id].wheels=color(appearance.wheels);
+  if(Object.hasOwn(appearance,'stripe'))p.customizations[id].stripe=appearance.stripe===null?null:color(appearance.stripe);
+  if(Object.hasOwn(appearance,'spoiler')){boolean(appearance.spoiler);p.customizations[id].spoiler=appearance.spoiler;}
   return p;
 }
 export function fitGadget(profile,id,kind) {
@@ -113,6 +124,7 @@ export function fitGadget(profile,id,kind) {
   if(!p.owned.includes(id))throw new RangeError('Car not owned');
   const c=p.customizations[id];
   if(kind!=='none'&&!c.gadgets.includes(kind)) {
+    if(!p.testMode&&p.careerDistance<spec.unlockDistance)throw new RangeError('Mileage locked');
     if(!p.testMode&&p.cash<spec.price)throw new RangeError('Insufficient cash');
     if(!p.testMode)p.cash-=spec.price;c.gadgets.push(kind);
   }
@@ -150,10 +162,12 @@ function entity(run, carId, x, distance, speed) {
 }
 export function startRun(profile, mode) {
   const p = validateProfile(profile);
-  if (!['cutup', 'race'].includes(mode)) throw new RangeError('Invalid mode');
+  if (!['cutup', 'race', 'roam'].includes(mode)) throw new RangeError('Invalid mode');
   if (p.nextRun === COUNTER) throw new RangeError('Run counter exhausted');
   const id = p.nextRun++;
-  const run = { id, mode, status: 'running', carId: p.selected, upgrades: { ...p.upgrades[p.selected] }, stats: { ...effective(p.selected, p.upgrades[p.selected]) }, level: p.level, distance: 0, speed: 0, x: 1.75, hp: 100, heat: 0, score: 0, earnings: 0, traffic: [], police: [], rivals: [], elapsed: 0, finishDistance: 1200 + 150 * p.level, place: 1, seed: id >>> 0, nextEntity: 1, spawnClock: 0, collisionCooldown: 0, nearMisses: 0, collisions: 0, arrest: 0, finishTime: null, appearance:{paint:p.customizations[p.selected].paint,wheels:p.customizations[p.selected].wheels}, gadget:p.customizations[p.selected].gadget, charges:mode==='cutup'?gadget(p.customizations[p.selected].gadget).charges:0, deployments:0, gadgetTime:0, gadgetCooldown:0, gadgetHeld:false };
+  const run = { id, mode, status: 'running', carId: p.selected, upgrades: { ...p.upgrades[p.selected] }, stats: { ...effective(p.selected, p.upgrades[p.selected]) }, level: p.level, distance: 0, speed: 0, x: 1.75, hp: 100, heat: 0, score: 0, earnings: 0, traffic: [], police: [], rivals: [], elapsed: 0, finishDistance: 1200 + 150 * p.level, place: 1, seed: id >>> 0, nextEntity: 1, spawnClock: 0, collisionCooldown: 0, nearMisses: 0, collisions: 0, arrest: 0, finishTime: null, appearance:{paint:p.customizations[p.selected].paint,wheels:p.customizations[p.selected].wheels,stripe:p.customizations[p.selected].stripe,spoiler:p.customizations[p.selected].spoiler}, gadget:p.customizations[p.selected].gadget, charges:mode!=='race'?gadget(p.customizations[p.selected].gadget).charges:0, deployments:0, gadgetTime:0, gadgetCooldown:0, gadgetHeld:false };
+  Object.assign(run,{world:{x:0,z:0,heading:0},pursuit:mode==='cutup'?'chased':'roaming',escapeClock:0,gadgetTarget:{x:0,z:0}});
+  if(mode==='roam')run.finishDistance=100000;
   if (mode === 'race') {
     for (let i = 0; i < 3; i++) run.rivals.push(entity(run, ['pip', 'finch', 'comet'][i], RIVAL_LANES[i], 0, 0));
   }
@@ -170,27 +184,32 @@ function totals(run) {
 }
 function checkRun(raw) {
   record(raw, RUN_KEYS); car(raw.carId); levels(raw.upgrades); record(raw.stats, STAT_KEYS);
-  record(raw.appearance,['paint','wheels']);color(raw.appearance.paint);color(raw.appearance.wheels);
-  const kit=gadget(raw.gadget), capacity=raw.mode==='cutup'?kit.charges:0;
+  record(raw.appearance,['paint','wheels','stripe','spoiler']);color(raw.appearance.paint);color(raw.appearance.wheels);
+  if(raw.appearance.stripe!==null)color(raw.appearance.stripe);boolean(raw.appearance.spoiler);
+  pose(raw.world);record(raw.gadgetTarget,['x','z']);number(raw.gadgetTarget.x,-WORLD.limit,WORLD.limit);number(raw.gadgetTarget.z,-WORLD.limit,WORLD.limit);
+  number(raw.escapeClock,0,6);if(!['roaming','chased'].includes(raw.pursuit))throw new RangeError('Invalid pursuit');
+  if(raw.mode==='roam'&&blocked(raw.world.x,raw.world.z))throw new RangeError('Blocked pose');
+  if(raw.mode==='race'&&raw.pursuit!=='roaming'||raw.mode==='cutup'&&raw.pursuit!=='chased')throw new RangeError('Invalid pursuit mode');
+  const kit=gadget(raw.gadget), capacity=raw.mode!=='race'?kit.charges:0;
   number(raw.charges,0,capacity,true);number(raw.deployments,0,capacity,true);
-  number(raw.gadgetTime,0,raw.mode==='cutup'?kit.duration:0);number(raw.gadgetCooldown,0,raw.mode==='cutup'?kit.cooldown:0);boolean(raw.gadgetHeld);
+  number(raw.gadgetTime,0,raw.mode!=='race'?kit.duration:0);number(raw.gadgetCooldown,0,raw.mode!=='race'?kit.cooldown:0);boolean(raw.gadgetHeld);
   if(raw.charges+raw.deployments!==capacity || (raw.gadgetTime>0||raw.gadgetCooldown>0)&&raw.deployments===0)throw new RangeError('Invalid gadget state');
   const stats = effective(raw.carId, raw.upgrades);
   for (const key of STAT_KEYS) if (raw.stats[key] !== stats[key]) throw new RangeError('Invalid vehicle stats');
   number(raw.id, 1, COUNTER - 1, true); number(raw.level, 0, 12, true);
-  if (!['cutup', 'race'].includes(raw.mode) || !['running', 'escaped', 'busted', 'finished'].includes(raw.status)) throw new RangeError('Invalid run');
-  if (raw.finishDistance !== 1200 + 150 * raw.level) throw new RangeError('Invalid endpoint');
+  if (!['cutup', 'race', 'roam'].includes(raw.mode) || !['running', 'escaped', 'busted', 'finished', 'parked'].includes(raw.status)) throw new RangeError('Invalid run');
+  if (raw.finishDistance !== (raw.mode==='roam'?100000:1200 + 150 * raw.level)) throw new RangeError('Invalid endpoint');
   number(raw.elapsed, 0, MAX_TIME); number(raw.distance, 0, raw.finishDistance);
-  if (raw.distance > stats.speed * raw.elapsed + 1e-7) throw new RangeError('Impossible distance');
-  number(raw.speed, 0, stats.speed); number(raw.x, -6.2, 6.2); number(raw.hp, 0, 100); number(raw.heat, 0, 5);
+  if (raw.distance > stats.speed * (raw.gadget==='boost'?1.35:1) * raw.elapsed + 1e-7) throw new RangeError('Impossible distance');
+  number(raw.speed, 0, stats.speed * (raw.gadget==='boost'&&raw.gadgetTime>0?1.35:1)); number(raw.x, -6.2, 6.2); number(raw.hp, 0, 100); number(raw.heat, 0, 5);
   number(raw.place, 1, 4, true); number(raw.seed, 0, 4294967295, true); number(raw.nextEntity, 1, 10000, true);
   number(raw.spawnClock, 0, 10); number(raw.collisionCooldown, 0, 1.2); number(raw.nearMisses, 0, raw.nextEntity - 1, true); number(raw.collisions, 0, 1000, true); number(raw.arrest, 0, 3);
-  if (raw.finishTime !== null) number(raw.finishTime, raw.finishDistance / stats.speed - 1e-7, raw.elapsed);
+  if (raw.finishTime !== null) number(raw.finishTime, raw.finishDistance / (stats.speed*(raw.gadget==='boost'?1.35:1)) - 1e-7, raw.elapsed);
   const ids = new Set();
   for (const [key, max] of [['traffic', 7], ['police', 2], ['rivals', 3]]) {
     array(raw[key], max);
     for (const e of raw[key]) {
-      record(e, ENTITY_KEYS); car(e.carId); number(e.id, 1, raw.nextEntity - 1, true);
+      record(e, raw.mode==='roam'?[...ENTITY_KEYS,'world']:ENTITY_KEYS); if(raw.mode==='roam'){pose(e.world);if(blocked(e.world.x,e.world.z))throw new RangeError('Blocked police');} car(e.carId); number(e.id, 1, raw.nextEntity - 1, true);
       if (ids.has(e.id)) throw new RangeError('Duplicate entity'); ids.add(e.id);
       number(e.x, -6.2, 6.2); number(e.distance, -100, 100000); number(e.speed, 0, 120); boolean(e.passed); boolean(e.hit);
       if (e.finishTime !== null) number(e.finishTime, 0, raw.elapsed);
@@ -200,14 +219,62 @@ function checkRun(raw) {
   }
   if ((raw.mode === 'race' && (raw.rivals.length !== 3 || raw.police.length || raw.heat)) || (raw.mode === 'cutup' && raw.rivals.length)) throw new RangeError('Invalid mode entities');
   if (raw.status === 'running' && (raw.hp === 0 || raw.distance === raw.finishDistance || raw.elapsed === MAX_TIME || raw.arrest === 3 || raw.finishTime !== null)) throw new RangeError('Invalid running state');
-  if (raw.status === 'escaped' && raw.mode !== 'cutup' || raw.status === 'finished' && raw.mode !== 'race') throw new RangeError('Invalid finish mode');
-  if (['escaped', 'finished'].includes(raw.status) && (raw.distance !== raw.finishDistance || raw.finishTime === null)) throw new RangeError('Invalid finish');
+  if(raw.mode==='roam'&&(raw.traffic.length||raw.rivals.length||raw.pursuit==='roaming'&&raw.police.length||raw.pursuit==='chased'&&!raw.police.length))throw new RangeError('Invalid city entities');
+  if (raw.status === 'escaped' && raw.mode === 'race' || raw.status === 'finished' && raw.mode !== 'race' || raw.status==='parked'&&raw.mode!=='roam') throw new RangeError('Invalid finish mode');
+  if(raw.mode==='roam'&&raw.status==='escaped'&&(raw.pursuit!=='chased'||raw.escapeClock!==6))throw new RangeError('Invalid city escape');
+  if (raw.mode!=='roam' && ['escaped', 'finished'].includes(raw.status) && (raw.distance !== raw.finishDistance || raw.finishTime === null)) throw new RangeError('Invalid finish');
   if (raw.status === 'busted' && raw.hp > 0 && raw.arrest < 3 && raw.elapsed < MAX_TIME) throw new RangeError('Invalid bust');
   const place = raw.mode === 'race' ? 1 + raw.rivals.filter(e => raw.finishTime !== null ? e.finishTime !== null && e.finishTime <= raw.finishTime : e.distance > raw.distance).length : 1;
   if (raw.place !== place) throw new RangeError('Invalid race order');
   const expected = totals(raw);
   if (raw.score !== expected.score || raw.earnings !== expected.earnings) throw new RangeError('Invalid rewards');
-  return { ...raw, appearance:{...raw.appearance}, upgrades: { ...raw.upgrades }, stats: { ...raw.stats }, traffic: raw.traffic.map(e => ({ ...e })), police: raw.police.map(e => ({ ...e })), rivals: raw.rivals.map(e => ({ ...e })) };
+  return { ...raw, world:{...raw.world}, gadgetTarget:{...raw.gadgetTarget}, appearance:{...raw.appearance}, upgrades: { ...raw.upgrades }, stats: { ...raw.stats }, traffic: raw.traffic.map(e => ({ ...e })), police: raw.police.map(e => ({ ...e, ...(e.world?{world:{...e.world}}:{}) })), rivals: raw.rivals.map(e => ({ ...e })) };
+}
+
+function pose(value) {
+  record(value,['x','z','heading']);number(value.x,-WORLD.limit,WORLD.limit);number(value.z,-WORLD.limit,WORLD.limit);number(value.heading,-Math.PI,Math.PI);
+}
+function damage(r) {
+  if(r.collisionCooldown>0)return;
+  r.hp=Math.max(0,r.hp-24*100/r.stats.toughness);r.collisionCooldown=1.2;r.collisions++;
+}
+function startChase(r) {
+  r.pursuit='chased';r.heat=Math.max(1,r.heat);
+  // Choose an accessible junction near the player, never a remote parked pursuer.
+  const candidates=[];
+  for(let x=-150;x<=150;x+=50)for(let z=-150;z<=150;z+=50){const gap=Math.hypot(x-r.world.x,z-r.world.z);if(gap>=25&&gap<=75)candidates.push({x,z,gap});}
+  candidates.sort((a,b)=>a.gap-b.gap);
+  const point=candidates[0], cop=entity(r,'lantern',0,0,0);
+  cop.world={x:point.x,z:point.z,heading:0};r.police.push(cop);
+}
+function stepCity(r,input,dt) {
+  r.world.heading=Math.atan2(Math.sin(r.world.heading-input.steer*r.stats.handling*.18*(r.speed/r.stats.speed)*dt),Math.cos(r.world.heading-input.steer*r.stats.handling*.18*(r.speed/r.stats.speed)*dt));
+  const next={x:r.world.x-Math.sin(r.world.heading)*r.speed*dt,z:r.world.z-Math.cos(r.world.heading)*r.speed*dt};
+  if(clearPath(r.world,next)){r.distance+=Math.hypot(next.x-r.world.x,next.z-r.world.z);Object.assign(r.world,next);}
+  else {damage(r);r.speed*=.3;}
+  if(r.pursuit==='roaming'&&(r.elapsed>=20&&r.distance>=30||r.heat>0))startChase(r);
+  for(const cop of r.police){
+    const gap=Math.hypot(cop.world.x-r.world.x,cop.world.z-r.world.z);
+    const affected=r.gadgetTime>0&&(r.gadget==='smoke'&&gap<100||r.gadget==='emp'&&gap<65);
+    const target=chaseTarget(cop.world,r.gadget==='decoy'&&r.gadgetTime>0?r.gadgetTarget:r.world);
+    const dx=target.x-cop.world.x,dz=target.z-cop.world.z,length=Math.hypot(dx,dz);
+    cop.speed=Math.min(r.stats.speed*(affected?(r.gadget==='emp'?.08:.35):.86),cop.speed+r.stats.acceleration*dt);
+    const travel=Math.min(length,cop.speed*dt),dest={x:cop.world.x+(length?dx/length*travel:0),z:cop.world.z+(length?dz/length*travel:0)};
+    if(clearPath(cop.world,dest)){if(length>.01)cop.world.heading=Math.atan2(-dx,-dz);Object.assign(cop.world,dest);cop.distance+=travel;}
+    else cop.speed=0;
+    if(Math.hypot(cop.world.x-r.world.x,cop.world.z-r.world.z)<4){damage(r);r.speed*=.8;cop.hit=true;}
+  }
+  const close=r.police.some(c=>Math.hypot(c.world.x-r.world.x,c.world.z-r.world.z)<9&&!(r.gadget==='emp'&&r.gadgetTime>0));
+  r.arrest=clamp(r.arrest+(close&&r.speed<5?dt:-dt*.5),0,3);
+  const distant=r.pursuit==='chased'&&r.police.every(c=>Math.hypot(c.world.x-r.world.x,c.world.z-r.world.z)>=75);
+  r.escapeClock=distant?Math.min(6,r.escapeClock+dt):0;
+  if(r.hp===0||r.arrest===3||r.elapsed===MAX_TIME)r.status='busted';
+  else if(r.escapeClock===6)r.status='escaped';
+}
+export function parkRun(run) {
+  const r=checkRun(run);
+  if(r.mode!=='roam'||r.status!=='running')throw new RangeError('Only active city runs can park');
+  r.status='parked';Object.assign(r,totals(r));return r;
 }
 
 export function stepRun(run, input, dt) {
@@ -220,16 +287,21 @@ export function stepRun(run, input, dt) {
   const previousDistance = r.distance, beforeTime = r.elapsed;
   r.elapsed += dt;
   r.gadgetTime=Math.max(0,r.gadgetTime-dt);r.gadgetCooldown=Math.max(0,r.gadgetCooldown-dt);
-  if(input.deploy===true&&!r.gadgetHeld&&r.mode==='cutup'&&r.charges>0&&r.gadgetCooldown===0) {
+  if(input.deploy===true&&!r.gadgetHeld&&r.mode!=='race'&&r.charges>0&&r.gadgetCooldown===0) {
     r.charges--;r.deployments++;r.gadgetTime=GADGETS[r.gadget].duration;r.gadgetCooldown=GADGETS[r.gadget].cooldown;
+    if(r.gadget==='repair')r.hp=Math.min(100,r.hp+20);
+    if(r.gadget==='decoy')r.gadgetTarget={x:r.world.x,z:r.world.z};
+    if(GADGETS[r.gadget].category==='loud')r.heat=Math.min(5,r.heat+1);
   }
   r.gadgetHeld=input.deploy===true;
   r.collisionCooldown = Math.max(0, r.collisionCooldown - dt);
-  r.speed = clamp(r.speed + (input.throttle * r.stats.acceleration - input.brake * 18 - 0.3 - r.speed * 0.012) * dt, 0, r.stats.speed);
+  const boosting=r.gadget==='boost'&&r.gadgetTime>0;
+  r.speed = clamp(r.speed + (input.throttle * r.stats.acceleration * (boosting?1.8:1) - input.brake * 18 - 0.3 - r.speed * 0.012) * dt, 0, r.stats.speed*(boosting?1.35:1));
+  if(r.mode==='roam'){stepCity(r,input,dt);Object.assign(r,totals(r));return r;}
   r.x = clamp(r.x + input.steer * r.stats.handling * (0.35 + 0.65 * r.speed / r.stats.speed) * dt, -6.2, 6.2);
   r.distance = Math.min(r.finishDistance, r.distance + r.speed * dt);
   if (r.distance === r.finishDistance) r.finishTime = Math.min(r.elapsed, beforeTime + (r.finishDistance - previousDistance) / Math.max(r.speed, 0.001));
-  r.heat = r.mode === 'cutup' ? Math.min(5, r.distance / 340 + r.nearMisses * 0.12 + r.level * 0.08) : 0;
+  r.heat = r.mode === 'cutup' ? Math.min(5, Math.max(r.heat, r.distance / 340 + r.nearMisses * 0.12 + r.level * 0.08)) : 0;
   r.spawnClock -= dt;
   if (r.spawnClock <= 0) {
     if (r.traffic.length < 7) {
@@ -256,7 +328,7 @@ export function stepRun(run, input, dt) {
     const affected=disrupted(r,cop);
     const target = r.stats.speed * (affected?(r.gadget==='smoke'?.35:.08):(0.98 + r.level * 0.012 + r.heat * 0.015));
     cop.speed = Math.min(target, cop.speed + r.stats.acceleration * 0.8 * dt);
-    cop.x = clamp(cop.x + clamp(r.x - cop.x, -1, 1) * (affected?.08:(0.8 + r.level * 0.04)) * dt, -6.2, 6.2);
+    cop.x = clamp(cop.x + clamp((r.gadget==='decoy'&&r.gadgetTime>0?-r.x:r.x) - cop.x, -1, 1) * (affected?.08:(0.8 + r.level * 0.04)) * dt, -6.2, 6.2);
     cop.distance += cop.speed * dt;
     // A cop ahead brakes to contain, rather than vanishing down the road.
     if (cop.distance > r.distance + 8) { cop.distance = r.distance + 8; cop.speed = Math.min(cop.speed,r.speed * 0.8); }
@@ -292,9 +364,12 @@ export function settleRun(profile, run) {
   const p = validateProfile(profile), r = checkRun(run);
   if (r.status === 'running' || r.id !== p.nextRun - 1 || r.id <= p.settledRun || r.level !== p.level || r.carId !== p.selected || STAT_KEYS.some(key => r.stats[key] !== effective(p.selected, p.upgrades[p.selected])[key])) throw new RangeError('Result is not current');
   const c=p.customizations[p.selected];
-  if(r.gadget!==c.gadget||r.appearance.paint!==c.paint||r.appearance.wheels!==c.wheels)throw new RangeError('Loadout changed during run');
+  if(r.gadget!==c.gadget||['paint','wheels','stripe','spoiler'].some(key=>r.appearance[key]!==c[key]))throw new RangeError('Loadout changed during run');
   p.cash = p.testMode ? MONEY : Math.min(MONEY, p.cash + r.earnings);
   p.best = Math.max(p.best, r.score); p.settledRun = r.id;
+  p.careerDistance=Math.min(COUNTER,p.careerDistance+Math.floor(r.distance));
+  if(r.status==='escaped')p.escapes=Math.min(COUNTER,p.escapes+1);
+  for(const {id} of CARS)if(!p.owned.includes(id)&&p.careerDistance>=CAR_UNLOCKS[id]){p.owned.push(id);p.upgrades[id]=zeroLevels();p.customizations[id]=stockCustom(id);}
   if (r.status === 'escaped' || r.status === 'finished' && r.place === 1) p.level = Math.min(12, p.level + 1);
   return p;
 }

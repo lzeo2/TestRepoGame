@@ -28,7 +28,7 @@ function runToEnd(run, controller, limit = 4802) {
 const centerDrive = r => ({ ...drive, steer: Math.abs(r.x) < 0.06 ? 0 : Math.sign(-r.x) });
 
 check('exact exports / fresh profile / canonical reload', () => {
-  assert.deepEqual(Object.keys(core).sort(), ['freshProfile', 'validateProfile', 'startRun', 'stepRun', 'settleRun', 'buyCar', 'selectCar', 'upgradeCar', 'upgradeCost', 'applyCode', 'carStats', 'GADGETS', 'customizeCar', 'fitGadget'].sort());
+  assert.deepEqual(Object.keys(core).sort(), ['freshProfile', 'validateProfile', 'startRun', 'stepRun', 'settleRun', 'buyCar', 'selectCar', 'upgradeCar', 'upgradeCost', 'applyCode', 'carStats', 'GADGETS', 'CAR_UNLOCKS', 'parkRun', 'customizeCar', 'fitGadget'].sort());
   const p = freshProfile(); assert.equal(p.cash, 0); assert.equal(p.testMode, false); assert.deepEqual(p.owned, ['bricklet']);
   assert.deepEqual(validateProfile(JSON.parse(JSON.stringify(p))), p);
   assert.deepEqual(validateProfile({ ...p, upgrades: {} }), p);
@@ -62,8 +62,8 @@ check('copied deterministic finite stepping / ID stability / zero dt', () => {
 });
 check('normal atomic purchases / performance upgrades / reset', () => {
   const p = freshProfile(); assert.throws(() => buyCar(p, 'pip')); assert.throws(() => selectCar(p, 'pip')); assert.throws(() => upgradeCar(p, 'bricklet', 'engine'));
-  const funded = { ...p, cash: 10000 }; // Synthetic economy fixture, not earned funds.
-  const bought = buyCar(funded, 'pip'); assert.equal(bought.cash, 9100); assert.equal(funded.cash, 10000); assert.throws(() => buyCar(bought, 'pip'));
+  const funded = { ...p, cash: 10000, careerDistance:1200 }; // Synthetic economy fixture, not earned funds.
+  const bought = buyCar(funded, 'pip'); assert.equal(bought.cash, 10000); assert.equal(funded.cash, 10000); assert.throws(() => buyCar(bought, 'pip'));
   assert.equal(selectCar(bought, 'pip').selected, 'pip');
   let upgraded = funded;
   for (const kind of ['engine', 'handling', 'armor']) {
@@ -143,8 +143,8 @@ check('separate cheat fixtures / persistent all16 / inexhaustible spending', () 
   assert.equal(settleRun(started.profile, raceResult).cash, 1e9);
 });
 check('v1 migration / copied saved custom finishes / hostile custom descriptors', () => {
-  const old=freshProfile();delete old.customizations;old.version=1;
-  const migrated=validateProfile(old);assert.equal(migrated.version,2);assert.equal(migrated.cash,0);
+  const old=freshProfile();delete old.customizations;delete old.careerDistance;delete old.escapes;old.version=1;
+  const migrated=validateProfile(old);assert.equal(migrated.version,3);assert.equal(migrated.cash,0);
   const edited=core.customizeCar(migrated,'bricklet',{paint:'#1177AA',wheels:'#cc8844'});
   assert.equal(edited.customizations.bricklet.paint,'#1177aa');assert.notDeepEqual(edited,migrated);
   assert.deepEqual(validateProfile(JSON.parse(JSON.stringify(edited))),edited);
@@ -155,7 +155,7 @@ check('v1 migration / copied saved custom finishes / hostile custom descriptors'
   assert.throws(()=>validateProfile(hostile));assert.equal(calls,0);
 });
 check('owned mount purchases / atomicity / charges / racing disabled', () => {
-  const p={...freshProfile(),cash:1000}; // Synthetic funding, not native earnings.
+  const p={...freshProfile(),cash:1000,careerDistance:3500}; // Synthetic funding/mileage, not native earnings.
   assert.throws(()=>core.fitGadget(freshProfile(),'bricklet','smoke'));assert.equal(p.cash,1000);
   const smoke=core.fitGadget(p,'bricklet','smoke');assert.equal(smoke.cash,850);assert.equal(smoke.customizations.bricklet.gadget,'smoke');
   assert.equal(core.fitGadget(smoke,'bricklet','smoke').cash,850);
@@ -169,7 +169,7 @@ check('owned mount purchases / atomicity / charges / racing disabled', () => {
 });
 check('smoke/EMP police effects / hold cooldown expiry / no immunity or payouts', () => {
   for(const kit of ['smoke','emp']) {
-    const p=core.fitGadget({...freshProfile(),cash:1000},'bricklet',kit), initial=startRun(p,'cutup').run;
+    const p=core.fitGadget({...freshProfile(),cash:1000,careerDistance:3500},'bricklet',kit), initial=startRun(p,'cutup').run;
     Object.assign(initial,{distance:400,elapsed:20,score:800,speed:25,spawnClock:10,police:[npc(1,initial.x,350,25)],nextEntity:2});
     const copy=structuredClone(initial),normal=stepRun(initial,drive,.05), fired=stepRun(initial,{...drive,deploy:true},.05);
     assert.deepEqual(initial,copy);assert(fired.police[0].speed<normal.police[0].speed);assert.equal(fired.deployments,1);assert.equal(fired.earnings,0);
