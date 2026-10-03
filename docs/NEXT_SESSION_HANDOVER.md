@@ -8,7 +8,7 @@ Owner next requests additional classified gadgets/customization, base cars unloc
 
 Tasks117–119 direct calls each failed wrong-provider400 before work. One explicit-provider dispatcher retry correctly ran actual openai-codex/gpt-6-astra workers (assistant API/provider/model independently verified), but each returned0 refusing implementation because AGENTS mandates gpt-6.1-sol. No edits/commits; two failed task attempts, abandoned/no third blind retry. Details/log basenames and model-policy tickets are in the plan. Main ticket `pi-912882-1791010626671` awaits current sol versus earlier Astra model resolution, no answer120s; no permission/config was silently invented. New delegations need that policy resolved, not claims the city is done.
 
-Current completed scope/evidence below is preserved. No new game/catalog/push. Before final handoff restore sparseassets/docs/scripts; update this status only after actually verifying subsequent work.
+Current completed scope/evidence below is preserved. No new game/catalog/push. Sparse restored to assets/docs/scripts; working tree clean at3645b20, checker122/115+7/Git inventory current, free2,288,369,664 bytes. Update this status only after actually verifying subsequent work.
 
 ## Earlier delivered cockpit/customization/weapon follow-up
 
@@ -18,7 +18,7 @@ Pure15/15 pass. Ordinary native at37228a8 exit0/189.9259s; strengthened00605e2 e
 
 Separate showcase `2d6a5e0` adds physical radio tuner faces and softer dashboard plastics; actual current Brindle/Pip/390 cockpit images personally opened and saved with `-radio` suffix under `docs/car-photo-previews/`. Visual-only exit0/83.9972s, exact eyes/stable hashes/nonblank pictures/zero recorded errors; scratch `car-studies-visual-r6ki7qix`, ledger `car-cockpit-radio-visual`. Counts Pip29,166/26, Brindle29,378/35, each9 textures/983,040 base RGBA bytes. Still stylized; unchanged20s studio startup gate remains held and was not rerun. This is not driving-cockpit integration. Display cockpit inline rather than the prior unviewable link.
 
-This pass edits existing Slipstream, not new games; no catalog registration, new delegation, downloaded assets or push. Maintenance inventory must be refreshed after the committed game-source changes. Sparse temporarily added only Slipstream for this work; restore assets/docs/scripts before final handoff. Old checkpoints below remain historical, not newer state.
+This pass edits existing Slipstream, not new games; no catalog registration, new delegation, downloaded assets or push. Maintenance inventory was refreshed after committed game-source changes and checker passes122/115+7. Sparse temporarily included Slipstream/Garage for scoped gameplay/pure checks, then restored to assets/docs/scripts. Old checkpoints below remain historical, not newer state.
 
 ## Earlier resume checkpoint
 
