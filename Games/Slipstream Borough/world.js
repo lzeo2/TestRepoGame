@@ -13,6 +13,7 @@ export function blocked(x, z) {
 }
 // Sample shorter than the vehicle radius, so neither cars nor cops tunnel through blocks.
 export function clearPath(a, b) {
+  if(blocked(a.x,a.z)||blocked(b.x,b.z))return false;
   const steps = Math.max(1, Math.ceil(Math.hypot(b.x - a.x, b.z - a.z)));
   for (let i = 0; i <= steps; i++) if (blocked(a.x + (b.x-a.x)*i/steps, a.z + (b.z-a.z)*i/steps)) return false;
   return true;
