@@ -13,7 +13,7 @@ function load() {
   const result = loadSave(KEY, core.validateProfile);
   profile = result.state || core.freshProfile(); blocked = !!result.error;
   acceptedRaw = result.error ? undefined : result.raw;
-  io(result.error || (result.state ? 'Banked garage loaded. Unfinished runs do not pay.' : 'Fresh garage. Cash 0. Earn it on the highway, lad.'), blocked);
+  io(result.error || (result.state ? 'Banked garage loaded. Unfinished runs do not pay.' : 'Fresh garage. Cash 0. Drive the city and park to bank your mileage.'), blocked);
 }
 function save(next) {
   if (blocked) { io('Saving is locked. Reload or explicitly reset; existing bytes are preserved.', true); return false; }
@@ -24,7 +24,9 @@ function save(next) {
 function feedback(text) { $('feedback').textContent = text; }
 function action(fn) { try { const next = fn(); if (save(next)) garageUI(); } catch (e) { feedback(e.message); } }
 function garageUI() {
-  $('bank').textContent = `Cash ${profile.cash.toLocaleString()} / Sector ${profile.level + 1} / Best ${profile.best}${profile.testMode ? ' / Test mode active' : ''}`;
+  $('bank').textContent = `Cash ${profile.cash.toLocaleString()} / Career ${profile.careerDistance.toLocaleString()} m / Escapes ${profile.escapes} / Sector ${profile.level + 1}${profile.testMode ? ' / Test mode active' : ''}`;
+  const nextCar = CARS.filter(car => !profile.owned.includes(car.id)).sort((a, b) => core.CAR_UNLOCKS[a.id] - core.CAR_UNLOCKS[b.id])[0];
+  $('career').textContent = nextCar ? `Next free car: ${nextCar.name} at ${core.CAR_UNLOCKS[nextCar.id].toLocaleString()} m (${Math.max(0, core.CAR_UNLOCKS[nextCar.id] - profile.careerDistance).toLocaleString()} m to bank).` : 'All base cars unlocked.';
   $('selected').textContent = BY_ID[profile.selected].name;
   const s = core.carStats(profile); $('specs').textContent = `${Math.round(s.speed * 3.6)} km/h / Accel ${s.acceleration.toFixed(1)} / Handling ${s.handling.toFixed(1)} / Toughness ${Math.round(s.toughness)}`;
   $('upgrades').replaceChildren();
@@ -41,59 +43,86 @@ function garageUI() {
     const title = document.createElement('h3'); title.textContent = car.name;
     const stats = document.createElement('p'); stats.textContent = `${car.style} / ${Math.round(car.speed * 3.6)} km/h / ${car.acceleration} accel / ${car.handling} handling / ${car.toughness} body`;
     const button = document.createElement('button'), owned = profile.owned.includes(car.id);
-    button.textContent = owned ? (profile.selected === car.id ? 'Selected' : 'Select') : `Buy ${car.price.toLocaleString()}`;
-    button.disabled = blocked || profile.selected === car.id || (!owned && !profile.testMode && profile.cash < car.price);
+    const distance = core.CAR_UNLOCKS[car.id], unlocked = profile.testMode || profile.careerDistance >= distance;
+    const progress = document.createElement('p'); progress.textContent = owned ? 'Unlocked / owned' : `Free at ${distance.toLocaleString()} banked m / ${unlocked ? 'Unlocked' : 'Mileage locked'}`;
+    button.textContent = owned ? (profile.selected === car.id ? 'Selected' : 'Select') : unlocked ? 'Claim free car' : `Locked: ${distance.toLocaleString()} m`;
+    button.disabled = blocked || profile.selected === car.id || (!owned && !unlocked);
     button.onclick = () => action(() => owned ? core.selectCar(profile, car.id) : core.buyCar(profile, car.id));
-    card.append(title, stats, button); $('catalog').append(card);
+    card.append(title, stats, progress, button); $('catalog').append(card);
   }
   const custom=profile.customizations[profile.selected];
   $('paint').value=custom.paint;$('wheelColor').value=custom.wheels;$('applyFinish').disabled=blocked;
+  $('stripeEnabled').checked=custom.stripe!==null;$('stripe').value=custom.stripe||'#ffffff';$('spoiler').checked=custom.spoiler;
   $('gadget').replaceChildren();
   for(const [id,kit] of Object.entries(core.GADGETS)) {
     const owned=id==='none'||custom.gadgets.includes(id), option=document.createElement('option');option.value=id;
-    option.textContent=kit.name+(id==='none'?'':owned?' / owned':` / ${profile.testMode?0:kit.price} cash`);
-    option.disabled=blocked||!owned&&!profile.testMode&&profile.cash<kit.price;$('gadget').append(option);
+    const locked=!profile.testMode&&profile.careerDistance<kit.unlockDistance;
+    option.textContent=`${kit.name} / ${kit.category}`+(id==='none'?'':` / ${owned?'owned':`${profile.testMode?0:kit.price} cash`}${!owned&&locked?` / locked until ${kit.unlockDistance} m`:''} / ${kit.charges} charges / ${kit.cooldown}s cooldown`);
+    option.disabled=blocked||!owned&&!profile.testMode&&(locked||profile.cash<kit.price);$('gadget').append(option);
   }
-  $('gadget').value=custom.gadget;$('fitGadget').disabled=blocked;
+  $('gadget').value=custom.gadget; equipmentUI();
   $('start').disabled = blocked || !view;
+}
+function equipmentUI() {
+  const option=$('gadget').selectedOptions[0];
+  $('fitGadget').disabled=blocked||!option||option.disabled;
+  $('kitDetails').textContent=option?.textContent||'';
 }
 function setPhase(next) {
   phase = next; document.documentElement.dataset.phase = next; clearInput(); paused = false;
   $('garage').hidden = next !== 'garage'; $('catalogSection').hidden = next !== 'garage'; $('drive').hidden = next !== 'run'; $('result').hidden = next !== 'end';
   $('pause').textContent = 'Pause'; if (next === 'garage') { run = null; garageUI(); } updateHud();
 }
-function start() {
-  if (!view || blocked) return;
-  try { const transaction = core.startRun(profile, $('mode').value); if (!save(transaction.profile)) return; run = transaction.run; lastQuip = -20; setPhase('run'); $('viewport').focus(); $('quip').textContent = run.mode === 'race' ? 'Three rivals. One finish line. Ready, lad.' : 'Keep the bodywork attached, cuh.'; }
-  catch (e) { io(e.message, true); }
+function start(mode = $('mode').value) {
+  if (!view || blocked || phase === 'run') return;
+  try {
+    const transaction = core.startRun(profile, mode);
+    if (!save(transaction.profile)) { setPhase('garage'); return; }
+    run = transaction.run; lastQuip = -20; setPhase('run'); $('viewport').focus();
+    $('quip').textContent = run.mode === 'roam' ? 'Explore the city. Gas to move; Garage parks and banks mileage.' : run.mode === 'race' ? 'Three rivals. One finish line.' : 'Keep the bodywork attached.';
+  } catch (e) { io(e.message, true); }
 }
 function finish() {
   // Only the running -> terminal transition calls settlement. No run is restored from storage.
+  if (phase !== 'run' || !run || run.status === 'running') return;
   const terminal = run;
   try { const next = core.settleRun(profile, terminal); if (!save(next)) io('Run ended but payout was not saved. Reload or reset to resolve storage.', true); }
   catch (e) { blocked = true; io(`Settlement failed: ${e.message}`, true); }
   setPhase('end');
-  $('resultTitle').textContent = terminal.status === 'finished' ? `Finished ${terminal.place}/4` : terminal.status === 'escaped' ? 'Escaped' : 'Busted';
+  $('resultTitle').textContent = terminal.status === 'finished' ? `Finished ${terminal.place}/4` : terminal.status === 'escaped' ? 'Escaped' : terminal.status === 'parked' ? 'Parked' : 'Busted';
   $('resultText').textContent = `${terminal.score} score / ${terminal.earnings} earned${blocked ? ' (not saved)' : ' and banked'} / ${terminal.nearMisses} near misses. ${terminal.status === 'busted' ? 'The paperwork found you, cuz.' : 'Back to the garage, lad.'}`;
+}
+function leave() {
+  if (phase === 'run' && run.mode === 'roam') {
+    try { run = core.parkRun(run); finish(); }
+    catch (e) { paused = true; clearInput(); io(`Parking failed: ${e.message}`, true); return; }
+  }
+  setPhase('garage');
 }
 function input() { const left = held.has('left') || keys.has('a') || keys.has('arrowleft'), right = held.has('right') || keys.has('d') || keys.has('arrowright'); const brake = +(held.has('brake') || keys.has('s') || keys.has('arrowdown')); return { steer: +right - +left, throttle: brake ? 0 : +($('cruise').checked || held.has('gas') || keys.has('w') || keys.has('arrowup')), brake,deploy:queuedDeploy }; }
 function deploy() {
-  if(phase==='run'&&!paused&&run.mode==='cutup'&&run.charges>0&&run.gadgetCooldown===0)queuedDeploy=true;
+  if(phase==='run'&&!paused&&!blocked&&run.mode!=='race'&&run.charges>0&&run.gadgetCooldown===0)queuedDeploy=true;
 }
 function updateHud() {
-  $('hud').textContent = run ? `${paused ? 'PAUSED / ' : ''}${run.mode === 'race' ? `Position ${run.place}/4` : `Heat ${run.heat.toFixed(1)} / Arrest ${run.arrest.toFixed(1)}s`} / ${Math.round(run.speed * 3.6)} km/h / Body ${Math.ceil(run.hp)} / ${Math.floor(run.distance)} of ${run.finishDistance} m / Score ${run.score}${run.mode === 'race' ? ` / Rivals: ${run.rivals.map(e => `${Math.floor(e.distance)}m${e.finishTime !== null ? ' finished' : ''}`).join(', ')}` : ''}` : 'Garage inspection / Drag to orbit';
+  let activity = '';
+  if (run?.mode === 'roam') {
+    activity = run.pursuit === 'chased' ? `CHASE / Escape hold ${run.escapeClock.toFixed(1)}/6s / Heat ${run.heat.toFixed(1)} / Arrest ${run.arrest.toFixed(1)}s` : `Exploring / Patrol after 20s and 30m: ${Math.min(20, Math.floor(run.elapsed))}/20s, ${Math.min(30, Math.floor(run.distance))}/30m`;
+    activity += ` / City ${Math.round(run.world.x)}, ${Math.round(run.world.z)}`;
+  } else if (run) activity = run.mode === 'race' ? `Position ${run.place}/4` : `Heat ${run.heat.toFixed(1)} / Arrest ${run.arrest.toFixed(1)}s`;
+  $('hud').textContent = run ? `${paused ? 'PAUSED / ' : ''}${activity} / ${Math.round(run.speed * 3.6)} km/h / Body ${Math.ceil(run.hp)} / ${Math.floor(run.distance)}${run.mode === 'roam' ? ' m this drive' : ` of ${run.finishDistance} m`} / Score ${run.score}${run.mode === 'race' ? ` / Rivals: ${run.rivals.map(e => `${Math.floor(e.distance)}m${e.finishTime !== null ? ' finished' : ''}`).join(', ')}` : ''}` : 'Garage inspection / Drag to orbit';
+  $('leave').textContent = run?.mode === 'roam' ? 'Garage (park and bank)' : 'Garage (abandon unpaid)';
   const kit=run?core.GADGETS[run.gadget]:null;
-  $('deploy').hidden=!run||run.mode!=='cutup'||run.gadget==='none';
-  $('deploy').disabled=paused||!run||run.charges===0||run.gadgetCooldown>0;
-  $('deploy').textContent=kit?`${kit.name}: ${run.charges}${run.gadgetCooldown>0?` / ${Math.ceil(run.gadgetCooldown)}s`:''} (Space)`: 'Deploy gadget';
+  $('deploy').hidden=!run||run.mode==='race'||run.gadget==='none';
+  $('deploy').disabled=paused||blocked||!run||run.charges===0||run.gadgetCooldown>0;
+  $('deploy').textContent=kit?`Deploy ${kit.name}: ${run.charges}${run.gadgetCooldown>0?` / ${Math.ceil(run.gadgetCooldown)}s`:''} (Space / E)`: 'Deploy gadget';
 }
-function pause() { if (phase !== 'run') return; paused = !paused; clearInput(); $('pause').textContent = paused ? 'Resume' : 'Pause'; updateHud(); }
+function pause() { if (phase !== 'run' || blocked && paused) return; paused = !paused; clearInput(); $('pause').textContent = paused ? 'Resume' : 'Pause'; updateHud(); }
 function renderFailure(e) { if (view) { view.dispose(); view = null; } paused = true; clearInput(); $('renderError').hidden = false; $('renderError').firstChild.textContent = `3D unavailable: ${e.message}. `; $('start').disabled = true; }
 function bootView() { try { view = createView($('viewport')); $('renderError').hidden = true; garageUI(); } catch (e) { renderFailure(e); } }
 function frame(now) {
   raf = 0; if (document.hidden) return;
   const dt = last ? Math.min(.05, (now - last) / 1000) : 0; last = now;
-  if (phase === 'run' && !paused && view) {
+  if (phase === 'run' && !paused && !blocked && view) {
     accumulator += dt;
     try { while (accumulator >= 1 / 60 && phase === 'run') { const used=run.deployments;run = core.stepRun(run, input(), 1 / 60);queuedDeploy=false;if(run.deployments>used)$('quip').textContent=`${core.GADGETS[run.gadget].name} deployed. ${run.charges} charges left.`; accumulator -= 1 / 60; if (run.status !== 'running') finish(); } }
     catch (e) { paused = true; io(`Driving stopped: ${e.message}`, true); }
@@ -125,17 +154,18 @@ for (const button of document.querySelectorAll('[data-drive]')) {
 }
 window.addEventListener('blur', () => { clearInput(); if (phase === 'run' && !paused) pause(); });
 document.addEventListener('visibilitychange', () => { clearInput(); cancelAnimationFrame(raf); raf = 0; if (document.hidden) { if (phase === 'run' && !paused) pause(); } else raf = requestAnimationFrame(frame); });
-window.addEventListener('storage', e => { if (e.key === KEY || e.key === null) { blocked = true; io('Save changed in another tab. Automatic writes locked; reload before continuing.', true); garageUI(); } });
-$('customize').onsubmit=e=>{e.preventDefault();action(()=>core.customizeCar(profile,profile.selected,{paint:$('paint').value,wheels:$('wheelColor').value}));};
+window.addEventListener('storage', e => { if (e.key === KEY || e.key === null) { if (phase === 'run' && !paused) pause(); blocked = true; clearInput(); io('Save changed in another tab. Driving and writes locked; reload before continuing.', true); garageUI(); updateHud(); } });
+$('customize').onsubmit=e=>{e.preventDefault();action(()=>core.customizeCar(profile,profile.selected,{paint:$('paint').value,wheels:$('wheelColor').value,stripe:$('stripeEnabled').checked?$('stripe').value:null,spoiler:$('spoiler').checked}));};
+$('gadget').onchange=equipmentUI;
 $('equipment').onsubmit=e=>{e.preventDefault();action(()=>core.fitGadget(profile,profile.selected,$('gadget').value));};
 $('deploy').onclick=deploy;
-$('start').onclick = start; $('retry').onclick = start; $('pause').onclick = pause;
-$('leave').onclick = $('garageButton').onclick = () => setPhase('garage');
+$('start').onclick = () => start(); $('retry').onclick = () => start(); $('pause').onclick = pause;
+$('leave').onclick = $('garageButton').onclick = leave;
 $('orbitLeft').onclick = () => view?.turn(-.3); $('orbitRight').onclick = () => view?.turn(.3);
 $('radio').onsubmit = e => { e.preventDefault(); phrase($('phrase').value, true); $('phrase').value = ''; };
 $('help').onclick = () => { if (phase === 'run' && !paused) pause(); $('helpDialog').showModal(); }; $('closeHelp').onclick = () => $('helpDialog').close();
 $('theme').onclick = () => { document.documentElement.dataset.theme = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark'; };
-$('reload').onclick = () => { load(); setPhase('garage'); };
+$('reload').onclick = () => { load(); setPhase('garage'); start('roam'); };
 $('reset').onclick = () => {
   const current = loadSave(KEY, core.validateProfile);
   // null plus error means unread/unknown, never permission to overwrite absence.
@@ -153,4 +183,4 @@ $('renderRetry').onclick = bootView;
 function freeze(value) { if (value && typeof value === 'object') { Object.values(value).forEach(freeze); Object.freeze(value); } return value; }
 Object.defineProperty(window, 'slipstreamSnapshot', { get: () => freeze(structuredClone({ phase, paused, profile, run, view: view?.inspect() || null })) });
 window.addEventListener('pagehide', () => { cancelAnimationFrame(raf); clearInput(); view?.dispose(); view = null; });
-load(); bootView(); setPhase('garage'); raf = requestAnimationFrame(frame);
+load(); bootView(); setPhase('garage'); start('roam'); raf = requestAnimationFrame(frame);
