@@ -70,4 +70,25 @@ export const SPORT_STUDIES = Object.freeze({
     cabinFront: -0.34, cabinRear: 0.19, roofFront: -0.16, roofRear: 0.035,
     roofWidth: 1.18, form: 'prototype', doors: 2, plate: 'RFT 07',
   }),
+  // Compact flowing closed mid-engine study; short nose and tucked waist.
+  calyx: Object.freeze({
+    id: 'calyx', name: 'Calyx S', color: '#b85e45', roofColor: '#34383e',
+    width: 2.08, length: 4.58, height: 1.15, wheelbase: 2.83, bodyHeight: 0.70,
+    cabinFront: -0.31, cabinRear: 0.18, roofFront: -0.135, roofRear: 0.035,
+    roofWidth: 1.17, form: 'hyper', doors: 2, plate: 'CLX 03',
+  }),
+  // Crisp, lower technical body with a forward narrow closed canopy.
+  serein: Object.freeze({
+    id: 'serein', name: 'Serein R', color: '#8596ab', roofColor: '#303741',
+    width: 2.11, length: 4.73, height: 1.12, wheelbase: 2.90, bodyHeight: 0.70,
+    cabinFront: -0.33, cabinRear: 0.145, roofFront: -0.16, roofRear: 0.015,
+    roofWidth: 1.14, form: 'hyper', doors: 2, plate: 'SRN 06',
+  }),
+  // Sweeping wide haunches and longer rear engine volume, not an open tourer.
+  nacre: Object.freeze({
+    id: 'nacre', name: 'Nacre V', color: '#d3c5ac', roofColor: '#414047',
+    width: 2.14, length: 4.80, height: 1.17, wheelbase: 2.98, bodyHeight: 0.74,
+    cabinFront: -0.32, cabinRear: 0.16, roofFront: -0.14, roofRear: 0.045,
+    roofWidth: 1.22, form: 'hyper', doors: 2, plate: 'NCR 09',
+  }),
 });
