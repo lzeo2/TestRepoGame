@@ -49,4 +49,6 @@ Frozen c090df0 native exit0/44.87s: natural buy/repair/one sale1050, pause, exac
 
 Latest separate studio checkpoint43e76d6 has [reviewed current exterior/cockpit previews](../../car-photo-previews/README.md), original plate maps and continuous lamp covers. Two-cycle geometry/resource checks pass; visual-only capture exits0/84.8389s, but unchanged20s focused gate exits1/41.1914s on first-frame readiness. Appearance remains stylized, not photographic; no live game/fleet bytes changed.
 
+Separate studio2d6a5e0 adds [reviewed physical radio/cockpit detailing](../../car-photo-previews/README.md), visual-only exit0/83.9972s;20s startup acceptance remains held. Owner-requested saved paint/wheel finishes and mounted smoke/EMP weapons extend Slipstream only, not this business game; [scope/evidence](../../slipstream-gadgets.md). No Garage source/economy/factory change or clearance of this game's reset hold.
+
 Clear the updated consent race first, then natural loss/reset and ten-sale/Continue checks. Measure target-device performance and pacing with real input. Do not add a second-game cheat, real-money economy, backend, massive model files or unrelated original game under this lease. Additional ports require their own current quality/provenance gates.

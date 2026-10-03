@@ -1,5 +1,9 @@
 # Slipstream presentation worker #102
 
+## Current owner customization/weapon extension
+
+Main37228a8/00605e2 adds native paint/wheel finish form, owned per-car smoke/EMP purchase/mount form, visible original rear canisters/roof emitter and real timed chase effects. Space/E or44px touch Deploy; pause/cooldown/charge/racing guards, private current-car material clones, unchanged shared factory. Save profile version2 migrates older saves without changing its scoped key. [Complete ABI, evidence and previews](slipstream-gadgets.md). Final ordinary native check exits0/205.6968s: earned904 cash, customized/saved/reloaded, bought/fitted both gadgets, keyboard smoke and touch EMP with real police slowdown, pause freeze and racing disable;320/390 no overflow, zero recorded errors. No cheats/preterminal grants or driving-cockpit integration. Original worker report below is historical, not the newest source.
+
 Original implementation under `car-arcade-plan.md`; genuine session provider/model `openai-codex/gpt-6-astra`. Session log basename `2026-10-02T13-04-11-309Z_01a0fcb7-122a-7163-a7de-7f5576072a77.jsonl`. Source dependencies read in full: shared fleet/models/storage/skin, pure core and core report. Core source frozen at `446fd4b`, fleet/models `a8edf08`, storage `5278134`. No existing game, shared/vendor, catalog, manual or inventory changes are owned here. No registration or push.
 
 ## Runtime

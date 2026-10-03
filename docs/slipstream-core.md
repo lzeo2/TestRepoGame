@@ -1,5 +1,7 @@
 # Slipstream Borough driving core (#99)
 
+Current Main extension: [saved finishes/mounted pursuit gadgets and exact verification](slipstream-gadgets.md), commits37228a8/00605e2. Pure15/15 and ordinary native earning/customization/mount/deployment/police slowdown pass; full campaign/hardware/release still separate. Original worker provenance/checkpoint below remains historical.
+
 ## Scope and source
 
 Original game logic under the explicit two-original-game exception in `docs/car-arcade-plan.md`; not an ingested-game or upstream-art claim. Parent baseline: `a48a386`. Worker model: `gpt-6-astra`. Owned paths only: `Games/Slipstream Borough/core.js`, `scripts/test_slipstream_core.mjs`, this report. Session log basename: `2026-10-02T12-48-38-890Z_01a0fca8-d7e5-774f-986e-db787d5941a6.jsonl`.
@@ -19,10 +21,13 @@ All actions return fresh copied plain data, never mutate arguments, and throw `T
 - `upgradeCar(profile, id, kind)` -> copied profile; `kind` is `engine|handling|armor`. Cost is `250 * (currentLevel + 1) ** 2`, maximum level 5. Test mode upgrades are free, cash stays 1e9.
 - `applyCode(profile, text)` -> copied profile; text must be a string of at most 64 characters, compared after trim/lowercase. Wrong text changes nothing. The owner phrase is implemented in source, not displayed by the game. Match persists testMode, all 16 owned IDs and 1e9 cash; upgrades remain at their current levels. Reload validation requires test mode to retain all cars and max cash. No corresponding feature belongs to Garage Borough.
 - `startRun(profile, mode)` -> `{profile,run}`; `mode` is `cutup|race`. Returned profile reserves `run.id` from nextRun and increments nextRun. **Save this returned profile before gameplay.** Reload returns to garage without run reconstruction or payout. New starts supersede older outstanding results.
-- `stepRun(run, input, dt)` -> copied run. Input requires exactly `{steer,throttle,brake}`, each finite, steer -1..1 and throttle/brake 0..1; dt finite 0..0.05 seconds. No coercion/clamping of invalid inputs. UI owns any readiness countdown, pause, hidden-tab suspension and fixed-step accumulator. Zero dt or ended run returns an unchanged deep copy. No wall clock, external RNG, DOM or storage.
+- `GADGETS` -> frozen names/prices/charges/durations/cooldowns for none/smoke/emp.
+- `customizeCar(profile,id,{paint,wheels})` -> copied owned-car finish; strict hex colors, free cosmetic changes.
+- `fitGadget(profile,id,kind)` -> copied profile; buy smoke150/EMP250 once per owned car and mount it, or switch/remove owned kits free. No default grant; marked test mode spends0.
+- `stepRun(run, input, dt)` -> copied run. Input requires `{steer,throttle,brake}` with optional boolean `deploy`, each numeric field finite, steer -1..1 and throttle/brake 0..1; dt finite 0..0.05 seconds. No coercion/clamping of invalid inputs. UI owns any readiness countdown, pause, hidden-tab suspension and fixed-step accumulator. Zero dt or ended run returns an unchanged deep copy. No wall clock, external RNG, DOM or storage.
 - `settleRun(profile, run)` -> copied profile. Requires ended current reserved ID (`nextRun - 1`), not previously settled, matching level/car/effective specs. Recomputes/validates rewards and finish order, updates cash/best/settledRun once, increments level on escape or first-place race (cap 12). No frame-based payout; call only from the result transition, then save. Replaying settlement against the updated profile rejects. Old pre-settlement profile snapshots are not a cross-tab transaction; use the shared storage conflict check.
 
-Profile fields exactly: `{version:1,cash,owned,selected,upgrades,level,best,nextRun,settledRun,testMode}`. `owned` is unique known IDs including bricklet; selected must be owned; upgrades contains only owned IDs and `{engine,handling,armor}` integers 0..5. Cash/best cap 1e9; level 0..12; nextRun 1..1e9 (starting at exhausted cap rejects); settledRun integer 0..nextRun-1; testMode boolean. Reset by obtaining a fresh profile only after UI consent, saving only this game's key `slipstream-borough-v1`.
+Canonical profile fields exactly: `{version:2,cash,owned,selected,upgrades,level,best,nextRun,settledRun,testMode,customizations}`. Version1 migrates to stock finishes/no mounted kits in memory. Per-owned-car customizations exactly `{paint,wheels,gadget,gadgets}`; strict six-digit hex, selected none/smoke/emp, at most two distinct purchased kits, mounted kit must be owned. `owned` is unique known IDs including bricklet; selected must be owned; upgrades contains only owned IDs and `{engine,handling,armor}` integers 0..5. Cash/best cap 1e9; level 0..12; nextRun 1..1e9 (starting at exhausted cap rejects); settledRun integer 0..nextRun-1; testMode boolean. Reset by obtaining a fresh profile only after UI consent, saving only this game's key `slipstream-borough-v1`.
 
 ## Run and renderer fields
 
@@ -48,6 +53,9 @@ All fields below are required. UI should treat runs as read-only, retain the ret
 | `nearMisses`, `collisions` | Bounded integer event counts, not frame counts |
 | `arrest` | Police low-speed containment timer, 0..3 seconds, decays when clear |
 | `finishTime` | Null until reaching endpoint, then interpolated crossing timestamp |
+| `appearance`, `gadget` | Start snapshot of paint/wheels and mounted kit; checked at settlement |
+| `charges`, `deployments` | Remaining/used kit capacity; sum equals starting pursuit allowance, race0 |
+| `gadgetTime`, `gadgetCooldown`, `gadgetHeld` | Bounded active-time timers and boolean rising-edge latch; pause is owned by UI |
 
 Each entity has exactly `{id,carId,x,distance,speed,passed,hit,finishTime}`. IDs are unique within the run, retained across copies; carId is a fleet ID. x/distance/speed use player units; render relative forward z as `-(entity.distance-run.distance)`. Traffic/police finishTime remains null; each rival records its own real endpoint crossing time and distance stops at the endpoint. `passed` consumes the once-only passing opportunity; `hit` prevents a collision from later paying a near-miss bonus. These are simulation data, not renderer handles.
 
@@ -72,12 +80,12 @@ node --experimental-default-type=module --check scripts/test_slipstream_core.mjs
 python3 -B scripts/check_maintenance_docs.py
 ```
 
-Latest regression: exit 0, `PASS 12 Slipstream core groups; synthetic/controller/cheat evidence only, no native natural-progression claim.` Both syntax commands exit 0. Covers exact exports, default/reload/difficulty, descriptor rejection, malformed/negative inputs, copied deterministic replay/finiteness, purchases/upgrades/reset, collision/armor/cooldown, once-only near miss, police approach/contact/containment, three actual rival finishes, late fourth-place finish, timeout, escape, first place, reservation/replay/forged-reward rejection and separately labeled persistent test-mode all16/free upgrades/max cash.
+Current regression: exit 0, `PASS 15 Slipstream core groups; synthetic/controller/cheat evidence only, no native natural-progression claim.` Both syntax commands exit 0. Covers exact exports, default/reload/difficulty, descriptor rejection, malformed/negative inputs, copied deterministic replay/finiteness, purchases/upgrades/reset, collision/armor/cooldown, once-only near miss, police approach/contact/containment, three actual rival finishes, late fourth-place finish, timeout, escape, first place, reservation/replay/forged-reward rejection and separately labeled persistent test-mode all16/free upgrades/max cash.
 
 Actual fixture statistics: `STATS starter race 50.60s place=1 hp=100 cash=874; escape 50.60s hp=100 cash=684`. A simple source-only controller centers the vehicle and accelerates. These are deterministic regression results, **not human/native keyboard/touch, screenshots, naturally earned garage progression, whole-campaign balance, or performance evidence**. Funded purchase fixtures and cheat checks are explicitly synthetic.
 
 The first regression attempt exited 1 on police collision coverage: the original cop lane alignment could contain a stopped player without making contact. Spawn alignment was corrected; rerun passed all 12 groups. No test filtering or contract replacement.
 
-Maintenance command exits 1: `AssertionError: Inventory stale: inspect changes, then run --refresh.` New parallel game/shared paths are not yet inventoried. Main owns inventory/manual updates; this task does not edit them. Browser/full-catalog smoke, screenshots, native controls, natural progression, renderer acceptance, registration, release and push remain held. No games registered and no push performed.
+Historical worker checkpoint maintenance command exited 1: `AssertionError: Inventory stale: inspect changes, then run --refresh.` New parallel game/shared paths are not yet inventoried. Main owns inventory/manual updates; this task does not edit them. Browser/full-catalog smoke, screenshots, native controls, natural progression, renderer acceptance, registration, release and push remain held. No games registered and no push performed.
 
 Initial free bytes: 2,337,857,536; pre-report check: 2,336,722,944 (workspace growth 1,134,592 bytes including concurrent workers, below 30 MB and above 2e9 free). Final owned sizes/diff and post-commit storage are reported in the handoff.

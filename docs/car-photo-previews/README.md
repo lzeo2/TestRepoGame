@@ -1,5 +1,11 @@
 # Current original car previews
 
+## Updated physical cockpits
+
+Actual showcase source2d6a5e0: [Brindle](brindle-cockpit-radio.jpg), [Pip](pip-cockpit-radio.jpg), [390 cockpit](390-cockpit-radio.jpg). Main opened all three: physical tuner face/typography and gentler dashboard plastics, no flat overlay. Visual-only capture exit0/83.9972s, exact actual camera eyes, unchanged sources, nonblank images and zero recorded errors; scratch `car-studies-visual-r6ki7qix`. Pip29,166 triangles/26 meshes, Brindle29,378/35; each9 textures/983,040 base RGBA bytes. Appearance remains stylized and20s studio acceptance remains held. [Separate live customization/mounted pursuit weapons](../slipstream-gadgets.md) do not integrate this parked cockpit into driving.
+
+Earlier exterior/initial-cockpit checkpoint follows; its source labels are retained.
+
 Actual local Chromium/SwiftShader renders of showcase source `43e76d6084d61165a7ea6cd9a679173674727d83`. Not generated photography, a live-game fleet replacement or photographic certification.
 
 - [Pip exterior](pip-exterior.jpg)

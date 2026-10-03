@@ -1,6 +1,10 @@
 # Photo-quality target, not a relabeling
 
-## Newest reviewed checkpoint
+## Current cockpit follow-up
+
+Showcase2d6a5e0 adds a physical radio tuner/map and softer dashboard material response. [Current Brindle](car-photo-previews/brindle-cockpit-radio.jpg), [Pip](car-photo-previews/pip-cockpit-radio.jpg) and [390](car-photo-previews/390-cockpit-radio.jpg) personally reviewed; visual-only exit0/83.9972s, exact eyes, zero recorded errors/stable hashes/nonblank images. Pip29,166 triangles/26 meshes, Brindle29,378/35, each9 textures/983,040 base RGBA bytes. Still stylized;20s startup gate/hardware/photo-quality acceptance remains held and was not rerun. [Separate mounted weapons/customization](slipstream-gadgets.md) extends live Slipstream, not these parked studies or their driving integration.
+
+## Earlier reviewed checkpoint
 
 [Current actual previews and exact evidence](car-photo-previews/README.md), source43e76d6: fictional plate typography/mounts, visible Brindle hatch seam/handle and continuous lamp covers. Pip29,164 triangles/25 meshes, Brindle29,376/34; each8 original textures/917,504 base RGBA bytes. Fresh geometry/ownership checks pass two cycles with a stub canvas; actual plate/instrument appearance is reviewed separately in the real images. Reflection environment now uses separate fresh basic capture materials on borrowed original workshop geometry, not the old invented softbox room. This diffuse approximation avoids modifying live material/program state; it is not fully lit reflection certification.
 

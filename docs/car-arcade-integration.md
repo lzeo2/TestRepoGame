@@ -1,5 +1,11 @@
 # Car arcade integration checkpoint: release held
 
+## Current mounted-gadget/cockpit extension
+
+Owner-requested [saved finishes and car-mounted smoke/EMP weapons](slipstream-gadgets.md), Main37228a8/00605e2: profile2 with descriptor-safe version1 migration, finite owned purchases/loadout/charges/cooldowns, original renderer mounts/visible effects, actual pursuit slowdown and keyboard/touch. Final ordinary native exits0/205.6968s, earned904 cash/no grants, saved/reloaded customization and kit, used both effects, pause/racing/320/390 checks; pure15/15 pass. This is existing Slipstream development, not another game or full campaign/release clearance.
+
+Separate studio2d6a5e0 adds physical radio faces/softer plastics. Reviewed actual cockpit visual capture exits0/83.9972s; unchanged20s startup gate remains held, not rerun/cleared by longer capture. Cockpit remains parked-study-only, not a live driving view. Source/shared factory/vendor/old games/catalog boundaries and remaining Garage/2048/full-gate holds stay intact. Historical checkpoint below is preserved.
+
 ## Delivered source, not a completion certificate
 
 The owner explicitly authorized two new original games and detailed fictional modeling, with racing **inside Slipstream Borough** and Garage Borough separate. Later free reign authorizes high-quality additions/ports, not copied assets or skipped gates. This run adds **two original source projects**, polishes an existing unregistered MIT port and reviews existing candidates. No existing game replacement/deletion, third racing game, extra original game or invented upstream provenance.

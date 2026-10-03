@@ -1,6 +1,12 @@
 # Original car studies: optimized studio
 
-## Current reviewed previews
+## Current cockpit detail and separate live gadgets
+
+Showcase2d6a5e0 adds original physical radio faces/typography and softer dashboard plastic response. Main opened fresh [Brindle](car-photo-previews/brindle-cockpit-radio.jpg), [Pip](car-photo-previews/pip-cockpit-radio.jpg) and [390](car-photo-previews/390-cockpit-radio.jpg) images; visual-only capture exit0/83.9972s with exact actual eyes, zero recorded errors and stable sources. Pip29,166 triangles/26 meshes; Brindle29,378/35; each9 textures/983,040 base RGBA bytes; two-cycle ownership/geometry checks pass with stub canvas. These remain stylized parked cabins, not photo-real driving integration; unchanged20s native startup acceptance stays held.
+
+Owner-requested [saved customization and mounted smoke/EMP equipment](slipstream-gadgets.md) separately extends live Slipstream only. Ordinary earned-purchase/keyboard/touch pursuit checks pass; it does not replace the shared fleet or install these showcase bodies/cockpits. No new game, registration, external assets, full release or push.
+
+## Earlier reviewed previews
 
 [Latest real Pip/Brindle exterior, hatch and physical cockpit renders](car-photo-previews/README.md) are from43e76d6. Original plates and continuous lamp covers now accompany the bounded PBR finishes and diffuse workshop reflections. Pip29,164 triangles/25 meshes; Brindle29,376/34; each8 textures/917,504 base RGBA bytes. Two-cycle geometry/ownership checks pass; actual current visual capture exits0/84.8389s with zero recorded errors. The unchanged20s focused native gate exits1/41.1914s on first-frame readiness. These reviewed images still look stylized, **not accepted photographic quality**; no driving/game/fleet/vendor/catalog change, registration or push. Older stages below remain historical evidence, not present acceptance.
 

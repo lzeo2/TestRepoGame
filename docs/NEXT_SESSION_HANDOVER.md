@@ -2,7 +2,17 @@
 
 This is the restart document requested by the owner because repeated conversation compaction was losing context. Read this before continuing. It records the actual working tree, not merely committed work.
 
-## Newest resume checkpoint (supersedes the older state below)
+## Latest owner cockpit/customization/weapon follow-up
+
+Owner requested a viewable, slightly more realistic cockpit plus car customization and mounted weapons including smoke screen. Main implemented directly: `37228a8` adds free saved native-color finishes, per-owned-car smoke150/EMP250 purchase/mount, actual original canisters/roof emitter and bounded effects/charges/cooldowns; `00605e2` preserves EMP slowdown when cops brake ahead. Canonical profile2 migrates version1 in memory through descriptor-safe validation; same scoped key. New exports GADGETS/customizeCar/fitGadget; optional boolean deploy input. Keyboard Space/E and actual touch Deploy, racing disabled, no invincibility/rewards. Shared fleet/models/vendor unchanged. See [current scope, contract, proofs and previews](slipstream-gadgets.md).
+
+Pure15/15 pass. Ordinary native at37228a8 exit0/189.9259s; strengthened00605e2 exit0/205.6968s/zero recorded errors: earned904 cash without grants, saved/reloaded colors/kit, purchased/mounted both, keyboard smoke and touch EMP with measured police slowdown, pause/race guards and320/390 layouts. External final scratch `slipstream-gadgets-l35mvhrw`; ledgers `slipstream-gadgets-native-{1,2}`. No complete campaign/hardware/release claim.
+
+Separate showcase `2d6a5e0` adds physical radio tuner faces and softer dashboard plastics; actual current Brindle/Pip/390 cockpit images personally opened and saved with `-radio` suffix under `docs/car-photo-previews/`. Visual-only exit0/83.9972s, exact eyes/stable hashes/nonblank pictures/zero recorded errors; scratch `car-studies-visual-r6ki7qix`, ledger `car-cockpit-radio-visual`. Counts Pip29,166/26, Brindle29,378/35, each9 textures/983,040 base RGBA bytes. Still stylized; unchanged20s studio startup gate remains held and was not rerun. This is not driving-cockpit integration. Display cockpit inline rather than the prior unviewable link.
+
+This pass edits existing Slipstream, not new games; no catalog registration, new delegation, downloaded assets or push. Maintenance inventory must be refreshed after the committed game-source changes. Sparse temporarily added only Slipstream for this work; restore assets/docs/scripts before final handoff. Old checkpoints below remain historical, not newer state.
+
+## Earlier resume checkpoint
 
 Owner resumed work after compaction and asked for a preview. Commit **`43e76d6`** completes both formerly dirty model edits: original 256x64 plate maps, Pip mounting/placement, Brindle hatch handle/seam and continuous projector covers. `realism.js` now handles `registration-plate`; no unfinished model edits remain. Persistent stub-canvas geometry/resource check `scripts/test_car_study_materials.mjs` passes two cycles per model: Pip29,164 triangles/25 meshes, Brindle29,376/34; each8 textures/917,504 base RGBA bytes. Real lettering is separately visible in the fresh renders.
 
