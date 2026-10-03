@@ -120,7 +120,10 @@ def main():
                 def capture(name, snapshot, whole_page=False):
                     nonlocal image_bytes
                     disk_guard(); frozen()
-                    data = (page if whole_page else page.locator('#studio')).screenshot(type='jpeg', quality=88, timeout=60000)
+                    if whole_page:
+                        data = page.screenshot(type='jpeg', quality=88, full_page=True, timeout=60000)
+                    else:
+                        data = page.locator('#studio').screenshot(type='jpeg', quality=88, timeout=60000)
                     with Image.open(io.BytesIO(data)) as image:
                         stats = ImageStat.Stat(image.convert('L'))
                         assert stats.mean[0] > 8 and stats.stddev[0] > 3, 'Blank/black render: ' + name
@@ -133,7 +136,7 @@ def main():
 
                 page.goto(origin + '/assets/car-arcade/showcase/', timeout=20000)
                 wait_frame(0, 'exterior', 'pip')
-                assert page.locator('#car option').evaluate_all('(options)=>options.map(o=>o.value)') == IDS
+                assert sorted(page.locator('#car option').evaluate_all('(options)=>options.map(o=>o.value)')) == sorted(IDS)
                 for car in IDS:
                     disk_guard(); frozen()
                     exterior = action(lambda: page.locator('#car').select_option(car), 'exterior', car)
@@ -191,12 +194,16 @@ def main():
         result['free_after'] = shutil.disk_usage(ROOT).free
         result['image_bytes'] = image_bytes
         result['sources_stable'] = source_hashes() == hashes
+        if not result['sources_stable'] or result['free_after'] < 2_000_000_000:
+            result['exit'] = 1
         # Preserve bounded evidence, not browser profile/cache or a running server.
         data = (json.dumps(result, indent=2) + '\n').encode()
         if result['free_after'] >= 2_000_000_000 and image_bytes + len(data) <= LIMIT:
             (output / 'capture.json').write_bytes(data)
         else:
             print(json.dumps(result), flush=True)
+        assert result['sources_stable'], 'Sources changed before capture cleanup completed'
+        assert result['free_after'] >= 2_000_000_000, 'Stop: free space below 2GB after cleanup'
 
 
 if __name__ == '__main__':

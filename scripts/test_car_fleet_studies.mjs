@@ -74,7 +74,8 @@ for (let cycle = 1; cycle <= 2; cycle++) for (const id of ids) {
     const matches = [...materials].filter(m => m.name === name);
     assert(matches.length, id + ' missing ' + name); return matches;
   };
-  for (const name of ['body-paint','roof-paint','cab-plastic','seat-fabric','rubber','chrome','window-glass','lamp-lens','dial-speed','dial-rpm','console-radio','registration-plate']) named(name);
+  for (const name of ['body-paint','cab-plastic','seat-fabric','rubber','chrome','window-glass','lamp-lens','dial-speed','dial-rpm','console-radio','registration-plate']) named(name);
+  if (profile?.form !== 'roadster') named('roof-paint');
   assert([...materials].every(m => !Object.values(m).some(v => v?.isTexture)), id + ' map-free factory');
   for (const m of named('window-glass')) assert(m.transparent && m.transmission === 0 && m.forceSinglePass);
   decorateCar(car);
