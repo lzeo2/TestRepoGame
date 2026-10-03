@@ -84,7 +84,11 @@ export function createDetailedCar(id) {
   const shaped=(x,y,z)=>{
     const start=p.wheelbase/2+radius+.04;
     const t=THREE.MathUtils.clamp((Math.abs(z)-start)/(L/2-start),0,1);
-    const vertical=Math.abs(y-(clearance+belt(z))/2)/((belt(z)-clearance)/2);
+    // Normalize against the actual crowned deck, not its lower belt edge.
+    // Otherwise the hood crown is exponentiated into a false recessed nose.
+    const u=THREE.MathUtils.clamp((x/(half(z)-.045)+1)/2,0,1);
+    const top=belt(z)+.04*Math.sin(Math.PI*u);
+    const vertical=Math.abs(y-(clearance+top)/2)/((top-clearance)/2);
     return [x,y,z-Math.sign(z)*t*t*((sport?.18:.13)*Math.pow(Math.abs(x)/half(z),4)+.07*vertical**6)];
   };
   const bottom=z=>{

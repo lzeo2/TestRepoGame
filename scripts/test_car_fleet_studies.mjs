@@ -98,6 +98,9 @@ for (let cycle = 1; cycle <= 2; cycle++) for (const id of ids) {
     const {width:W,length:L,bodyHeight:B,form,wheelbase}=profile;
     const sport=['coupe','fastback','roadster','hyper','prototype'].includes(form);
     const g=paintMesh.geometry,n=g.attributes.normal;
+    // A raised hood crown must not amplify the end rounding into a dent.
+    const crownY=B-(sport?.18:.065)+.04,crownZ=-L/2+.07;
+    assert(Array.from({length:p.count},(_,i)=>i).some(i=>Math.hypot(p.getX(i),p.getY(i)-crownY,p.getZ(i)-crownZ)<1e-6),id+' recessed hood crown');
     for(const end of form==='pickup'?[-1]:[-1,1])for(const side of [-1,1]){
       const z=end*L/2,hip=Math.exp(-Math.pow((z-wheelbase/2)/(L*.12),2));
       const half=W/2*(1-(sport?.19:.09))+(['hyper','prototype'].includes(form)?.07:sport?.025:0)*hip;
