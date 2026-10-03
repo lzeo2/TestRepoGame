@@ -74,6 +74,27 @@ for (let cycle = 1; cycle <= 2; cycle++) for (const id of ids) {
     const matches = [...materials].filter(m => m.name === name);
     assert(matches.length, id + ' missing ' + name); return matches;
   };
+  // Project actual physical instrument faces from the driver camera, not metadata alone.
+  const camera=new THREE.PerspectiveCamera(62,1280/691.2,.025,60);
+  camera.position.fromArray(eye);camera.lookAt(new THREE.Vector3(...target));camera.updateMatrixWorld();
+  car.traverse(node=>{
+    if(!node.isMesh||!['dial-speed','dial-rpm','console-radio'].includes(node.material.name))return;
+    const b=new THREE.Box3().setFromObject(node);
+    for(const x of [b.min.x,b.max.x])for(const y of [b.min.y,b.max.y]){
+      const projected=new THREE.Vector3(x,y,b.max.z).project(camera);
+      assert(Math.abs(projected.x)<1&&Math.abs(projected.y)<1&&Math.abs(projected.z)<1,id+' clipped physical instruments');
+    }
+  });
+  if(profile){
+    const paintMesh=car.getObjectByName('body-paint'),p=paintMesh.geometry.attributes.position;
+    let center=Infinity,corner=Infinity;
+    for(let i=0;i<p.count;i++){
+      const x=Math.abs(p.getX(i)),z=p.getZ(i);
+      if(x<profile.width*.05)center=Math.min(center,z);
+      if(x>profile.width*.32)corner=Math.min(corner,z);
+    }
+    assert(corner>center+.025,id+' flat block nose');
+  }
   for (const name of ['body-paint','cab-plastic','seat-fabric','rubber','chrome','window-glass','lamp-lens','dial-speed','dial-rpm','console-radio','registration-plate']) named(name);
   if (profile?.form !== 'roadster') named('roof-paint');
   assert([...materials].every(m => !Object.values(m).some(v => v?.isTexture)), id + ' map-free factory');

@@ -61,26 +61,35 @@ export function createDetailedCar(id) {
   const tube=(mat,points,r=.006,steps=16,parent=car)=>add(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(points.map(v=>new THREE.Vector3(...v))),steps,r,4,false),mat,parent);
   const mix=THREE.MathUtils.lerp;
   // Side skins and decks share the exact belt edge. Wheels are real apertures.
-  const half=z=>W/2*(1-(sport?.16:.09)*Math.pow(Math.abs(z)/(L/2),4)) + (['hyper','prototype'].includes(form)? .025*Math.cos(z/L*2*Math.PI):0);
-  const belt=z=>B-(sport?.12:.065)*Math.pow(Math.abs(z)/(L/2),4);
+  const hip=z=>Math.exp(-Math.pow((z-p.wheelbase/2)/(L*.12),2));
+  const half=z=>W/2*(1-(sport?.19:.09)*Math.pow(Math.abs(z)/(L/2),4)) + (['hyper','prototype'].includes(form)?.07:sport?.025:0)*hip(z);
+  const belt=z=>B-(sport?.18:.065)*Math.pow(Math.abs(z)/(L/2),4);
+  // Round the nose/tail corners only beyond the wheel apertures. Every adjoining
+  // skin/deck/cap and lamp uses this mapping, so there is no detached end plate.
+  const shaped=(x,y,z)=>{
+    const start=p.wheelbase/2+radius+.04;
+    const t=THREE.MathUtils.clamp((Math.abs(z)-start)/(L/2-start),0,1);
+    const vertical=Math.min(1,Math.abs(y-(clearance+belt(z))/2)/((belt(z)-clearance)/2));
+    return [x,y,z-Math.sign(z)*t*t*((sport?.18:.13)*Math.pow(Math.abs(x)/half(z),4)+.07*vertical**6)];
+  };
   const bottom=z=>{
     let y=clearance;
     for(const axle of [-p.wheelbase/2,p.wheelbase/2]){const d=z-axle,r=radius+.035;if(Math.abs(d)<r)y=Math.max(y,radius+Math.sqrt(r*r-d*d));}
     return y;
   };
-  const skin=(side,z,v)=>[side*(half(z)-.025*(1-v)**3-.045*v**5),mix(bottom(z),belt(z),v),z];
+  const skin=(side,z,v)=>shaped(side*(half(z)-.025*(1-v)**3-.045*v**5),mix(bottom(z),belt(z),v),z);
   for(const side of [-1,1]){
     surface(paint,(u,v)=>skin(side,(u-.5)*L,v),80,6);
     for(const axle of [-p.wheelbase/2,p.wheelbase/2]){
       // Lip follows the same open stamping, with a curved outward rolled edge.
-      surface(paint,(u,v)=>{const a=u*Math.PI,r=radius+.035+.025*v,z=axle+r*Math.cos(a);return [side*(half(z)-.023+.012*Math.sin(v*Math.PI)),radius+r*Math.sin(a),z];},24,3);
+      surface(paint,(u,v)=>{const a=u*Math.PI,r=radius+.035+.025*v,z=axle+r*Math.cos(a);return shaped(side*(half(z)-.023+.012*Math.sin(v*Math.PI)),radius+r*Math.sin(a),z);},24,3);
     }
   }
-  const deck=(start,end)=>surface(paint,(u,v)=>{const z=mix(start,end,v);return [(2*u-1)*(half(z)-.045),belt(z)+.04*Math.sin(Math.PI*u),z];},24,12);
+  const deck=(start,end)=>surface(paint,(u,v)=>{const z=mix(start,end,v);return shaped((2*u-1)*(half(z)-.045),belt(z)+.04*Math.sin(Math.PI*u),z);},24,12);
   deck(-L/2,cf);
   if(!pickup) deck(cr,L/2); // Never put an opaque deck across the cabin or pickup bed.
   for(const end of [-1,1]) surface(paint,(u,v)=>{
-    const z=end*L/2;return [(2*u-1)*(half(z)-.025*(1-v)**3-.045*v**5),mix(clearance,belt(z)+.04*Math.sin(Math.PI*u),v),z];
+    const z=end*L/2;return shaped((2*u-1)*(half(z)-.025*(1-v)**3-.045*v**5),mix(clearance,belt(z)+.04*Math.sin(Math.PI*u),v),z);
   },24,8);
   rounded(trim,0,clearance-.035,0,W*.77,.06,L*.84);
   // The roof and each canopy panel use identical corners, with a mild crown.
@@ -148,19 +157,32 @@ export function createDetailedCar(id) {
   }
   // Recessed reflector bowls with continuous curved covers, generic lamp geometry.
   for(const end of [-1,1])for(const side of [-1,1]){
-    const x=side*W*.29,y=B*.73,z=end*(L/2+.018),a=W*(sport?.105:.083),b=B*(sport?.050:.095);
-    const point=(u,v,depth)=>{const t=u*Math.PI*2;return [x+a*v*Math.cos(t),y+b*v*Math.sin(t),z+end*depth];};
+    const x=side*W*.29,y=B*(sport?.65:.73),a=W*(sport?.105:.083),b=B*(sport?.050:.095);
+    const point=(u,v,depth)=>{
+      const t=u*Math.PI*2,c=Math.cos(t),s=Math.sin(t),squared=['hyper','prototype'].includes(form);
+      const q=shaped(x+a*v*(squared?Math.sign(c)*Math.abs(c)**.45:c),y+b*v*(squared?Math.sign(s)*Math.abs(s)**.45:s),end*L/2);
+      q[2]+=end*(.018+depth);return q;
+    };
     surface(trim,(u,v)=>point(u,1+.14*v,.015*(1-v)),32,2);
     surface(end<0?chrome:red,(u,v)=>point(u,v,.008+.012*v*v),32,5);
     surface(lens,(u,v)=>point(u,v,.028+.012*(1-v*v)),32,5);
   }
   for(const end of [-1,1]){
-    rounded(trim,0,clearance+.06,end*(L/2+.014),W*.76,.105,.055,.025);
-    const g=new THREE.PlaneGeometry(.34,.075);if(end<0)g.rotateY(Math.PI);g.translate(0,clearance+.07,end*(L/2+.044));add(g,plate);
+    surface(trim,(u,v)=>{const q=shaped((2*u-1)*W*.38,clearance+.06+(2*v-1)*.052,end*L/2);q[2]+=end*.025;return q;},24,3);
+    const g=new THREE.PlaneGeometry(.34,.075);if(end<0)g.rotateY(Math.PI);
+    g.translate(0,clearance+.07,shaped(0,clearance+.07,end*L/2)[2]+end*.044);add(g,plate);
   }
+  // Actual curved grille strips, with broader cooling mouths on the sport forms.
+  surface(trim,(u,v)=>{const q=shaped((2*u-1)*W*(sport?.27:.20),clearance+.13+v*(sport?.075:.12),-L/2);q[2]-=.018;return q;},24,3);
+  for(let i=0;i<(sport?2:3);i++)surface(chrome,(u,v)=>{const q=shaped((2*u-1)*W*(sport?.26:.19),clearance+.145+i*.037+v*.004,-L/2);q[2]-=.022;return q;},24,1);
   if(sport){
     for(const side of [-1,1])for(let i=0;i<3;i++)rounded(trim,side*W*.36,B+.01,cr+.07+i*.06,.18,.017,.027,.008);
     rounded(trim,0,clearance-.01,-L/2+.08,W*.83,.027,.16,.01);
+    if(['hyper','prototype'].includes(form))for(const side of [-1,1]){
+      const q=skin(side,cr-.10,.48);q[0]+=side*.015;
+      rounded(trim,...q,.035,.14,.34,.014);
+    }
+    if(id==='kestrel')rounded(paint,0,belt(L*.43)+.075,L*.43,W*.71,.065,.14,.025);
   }
   // All cabin coordinates are derived from the physical canopy and belt.
   const seatX=W*.205, eyeY=B+(H-B)*.57, eyeZ=Math.min(mix(rf,rr,.48),cf+.95);
@@ -216,6 +238,6 @@ export function createDetailedCar(id) {
     const g=new THREE.BufferGeometry();for(const name of ['position','normal','uv'])g.setAttribute(name,new THREE.Float32BufferAttribute(b[name],name==='uv'?2:3));g.setIndex(b.index);
     const mesh=new THREE.Mesh(g,b.mat);mesh.name=b.parent===car?b.mat.name:'wheel-component';mesh.castShadow=!b.mat.transparent;mesh.receiveShadow=true;b.parent.add(mesh);
   }
-  car.userData={id,name:p.name,wheels,front:'-Z',showcaseOnly:true,cockpit:{eye:[-seatX,eyeY,eyeZ],target:[-seatX,eyeY-.015,-L]}};
+  car.userData={id,name:p.name,wheels,front:'-Z',showcaseOnly:true,cockpit:{eye:[-seatX,eyeY,eyeZ],target:[-seatX,B+.12,cf-.55]}};
   return car;
 }
