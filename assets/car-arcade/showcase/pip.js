@@ -20,6 +20,8 @@ export function createCar() {
   const upholstery = new THREE.MeshStandardMaterial({name: 'seat-fabric', color: '#353230', roughness: .94});
   const red = new THREE.MeshPhysicalMaterial({color: '#a91814', roughness: .22, clearcoat: 1});
   const amber = new THREE.MeshPhysicalMaterial({color: '#d97c22', roughness: .23, clearcoat: 1});
+  const plate = new THREE.MeshStandardMaterial({name:'registration-plate',color:0xffffff,roughness:.65});
+  plate.userData.label = 'PIP 08';
   const buckets = new Map();
   const add = (geometry, material, parent = car) => {
     if (!buckets.has(parent)) buckets.set(parent, new Map());
@@ -240,6 +242,9 @@ export function createCar() {
   rounded(-.34, .943, -.277, .075, .063, .033, .014, rubber, car, -.35);
   rounded(0, .432, -1.656, 1.38, .105, .10, .04, dark);
   rounded(0, .448, 1.694, 1.39, .064, .061, .024, chrome);
+  rounded(0, .432, -1.712, .34, .075, .008, .002, plate);
+  rounded(0, .58, 1.676, .358, .091, .03, .002, rubber);
+  rounded(0, .58, 1.696, .34, .075, .008, .002, plate);
   rounded(0, .593, -1.689, .66, .133, .026, .013, rubber);
   for (let j = 0; j < 6; j++) rounded(0, .541 + j * .020, -1.708, .625, .004, .012, .002, dark);
   for (const side of [-1, 1]) {

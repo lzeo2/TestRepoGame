@@ -42,6 +42,19 @@ function dial(max, units) {
   return texture;
 }
 
+function registration(label) {
+  const canvas = document.createElement('canvas'); canvas.width = 256; canvas.height = 64;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) throw new Error('Registration canvas unavailable');
+  ctx.fillStyle = '#ecebe3'; ctx.fillRect(0, 0, 256, 64);
+  ctx.strokeStyle = '#454742'; ctx.lineWidth = 2; ctx.strokeRect(3, 3, 250, 58);
+  ctx.fillStyle = '#202323'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.font = '600 38px monospace'; ctx.fillText(label, 128, 34, 210);
+  for (const x of [12, 244]) { ctx.beginPath(); ctx.arc(x, 32, 2, 0, 2 * Math.PI); ctx.fill(); }
+  const texture = new THREE.CanvasTexture(canvas); texture.colorSpace = THREE.SRGBColorSpace;
+  return texture;
+}
+
 function materials(root) {
   const set = new Set();
   root.traverse(node => { if (node.isMesh) for (const mat of Array.isArray(node.material) ? node.material : [node.material]) set.add(mat); });
@@ -90,6 +103,10 @@ export function decorateCar(car) {
       case 'lamp-lens':
         mat.transmission = 0; mat.metalness = 0; mat.opacity = .15; mat.roughness = .07;
         mat.bumpMap = grain('lens'); mat.bumpScale = .00065;
+        break;
+      case 'registration-plate':
+        if (!maps.has(mat.name)) maps.set(mat.name, registration(mat.userData.label));
+        mat.map = maps.get(mat.name); mat.color.set(0xffffff); mat.roughness = .65; mat.metalness = 0;
         break;
       case 'dial-speed':
       case 'dial-rpm': {

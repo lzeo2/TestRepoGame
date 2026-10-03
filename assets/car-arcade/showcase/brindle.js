@@ -15,6 +15,8 @@ export function createCar() {
   const fabric = new THREE.MeshStandardMaterial({name:'seat-fabric', color:0x786b59, roughness:.94});
   const red = new THREE.MeshPhysicalMaterial({color:0xa51f25, roughness:.22, clearcoat:1});
   const amber = new THREE.MeshPhysicalMaterial({color:0xc67d25, roughness:.24, clearcoat:1});
+  const plate = new THREE.MeshStandardMaterial({name:'registration-plate',color:0xffffff,roughness:.65});
+  plate.userData.label = 'BRD 16';
   const batches = new Map();
   // Merge only within this invocation; wheels retain their own rotatable groups.
   const add = (g, material, parent = car) => {
@@ -132,7 +134,18 @@ export function createCar() {
     patch(paint,pane,0,.045,0,1,2,10); patch(paint,pane,.955,1,0,1,2,10);
   }
   for(const side of [-1,1]) tube(trim,[[side*.54,.982,-.89],[side*.27,1.004,-.91],[side*.05,1.007,-.916]],.007,12);
-  ellipsoid(chrome,0,.79,1.956,.10,.018,.012);
+  ellipsoid(chrome,0,.79,1.989,.10,.018,.012);
+  // Closed hatch gap follows the actual rear stamping, not an exposed spline.
+  const hatch = new THREE.CurvePath(), corners=[[.16,.97],[.84,.97],[.92,.84],[.92,.28],[.84,.18],[.16,.18],[.08,.28],[.08,.84],[.16,.97]];
+  let previous;
+  for(let k=1;k<corners.length;k++) for(let i=0;i<=6;i++) {
+    const t=i/6, u=THREE.MathUtils.lerp(corners[k-1][0],corners[k][0],t), v=THREE.MathUtils.lerp(corners[k-1][1],corners[k][1],t);
+    const p=new THREE.Vector3((u*2-1)*(width(1.96)-.075*v**4-.025*(1-v)**3),.27+v*(belt(1.96)+.065*Math.sin(Math.PI*u)-.27),1.962+.018*Math.sin(Math.PI*u)*Math.sin(v*Math.PI));
+    if(previous&&previous.distanceToSquared(p)>1e-12)hatch.add(new THREE.LineCurve3(previous,p));previous=p;
+  }
+  add(new THREE.TubeGeometry(hatch,64,.0015,4,false),trim);
+  box(plate,0,.41,-1.989,.34,.075,.008);
+  box(plate,0,.51,1.986,.34,.075,.008);
   // Bevelled upholstery has cushion, back, side bolsters and separate headrests.
   const padded=(mat,x,y,z,w,h,d,r=.035,rx=0)=> {
     const shape=new THREE.Shape();
@@ -160,7 +173,7 @@ export function createCar() {
   padded(trim,0,.83,-.70,1.48,.19,.32,.045);
   padded(trim,-.36,.965,-.62,.43,.15,.19,.025);
   padded(trim,0,.53,-.10,.19,.25,.79,.025);
-  // Gauge cylinder axes point along Z; both faces are physically toward the driver.
+  // Circular UVs and +Z faces keep the physical instruments upright.
   for(const x of [-.465,-.255]) {
     const rim=new THREE.TorusGeometry(.074,.007,6,32); rim.translate(x,.967,-.512); add(rim,steel);
     const dial=new THREE.MeshStandardMaterial({name:x<-.36?'dial-speed':'dial-rpm',color:0x171a1b,roughness:.7});
@@ -189,11 +202,13 @@ export function createCar() {
   ellipsoid(trim,-.36,.97,-.347,.048,.047,.026);
   // Horizontal oval lamp housings deliberately avoid a single round perimeter.
   for(const side of [-1,1]) {
-    ellipsoid(trim,side*.40,.745,-1.955,.196,.087,.018);
-    for(const dx of [-.078,.078]) {
-      ellipsoid(steel,side*.40+dx,.751,-1.968,.064,.064,.009);
-      ellipsoid(lens,side*.40+dx,.751,-1.978,.052,.052,.007);
-    }
+    ellipsoid(trim,side*.34,.745,-1.965,.192,.087,.018);
+    for(const dx of [-.078,.078]) ellipsoid(steel,side*.34+dx,.751,-1.980,.064,.064,.009);
+    // One continuous curved cover over two recessed projectors, not four buttons.
+    surface(lens,(u,v)=> {
+      const a=-u*Math.PI*2;
+      return [side*.34+.183*v*Math.cos(a),.745+.078*v*Math.sin(a),-1.987-.03*(1-v*v)];
+    },32,4);
     ellipsoid(amber,side*.43,.62,-1.973,.046,.012,.005);
     ellipsoid(trim,side*.26,.46,-1.971,.225,.058,.009);
     for(let i=0;i<3;i++) box(trim,side*.26,.432+i*.023,-1.982,.39,.008,.009);
