@@ -2,7 +2,15 @@
 
 This is the restart document requested by the owner because repeated conversation compaction was losing context. Read this before continuing. It records the actual working tree, not merely committed work.
 
-## Latest owner cockpit/customization/weapon follow-up
+## Newest requested city/progression follow-up: NOT IMPLEMENTED
+
+Owner next requests additional classified gadgets/customization, base cars unlocked by driving before later equipment, initial open-world driving before a cop chase, third or first person. [Committed bounded original third-person city contract](slipstream-open-world-plan.md) defines requested world physics/progression/profile3/5 gadget categories and stripe/spoiler UI. **It is a plan only.** Running source still profile2, highway/garage entry, paid fleet and smoke/EMP; no world.js, extra kits, category/mileage UI or city-first start landed.
+
+Tasks117–119 direct calls each failed wrong-provider400 before work. One explicit-provider dispatcher retry correctly ran actual openai-codex/gpt-6-astra workers (assistant API/provider/model independently verified), but each returned0 refusing implementation because AGENTS mandates gpt-6.1-sol. No edits/commits; two failed task attempts, abandoned/no third blind retry. Details/log basenames and model-policy tickets are in the plan. Main ticket `pi-912882-1791010626671` awaits current sol versus earlier Astra model resolution, no answer120s; no permission/config was silently invented. New delegations need that policy resolved, not claims the city is done.
+
+Current completed scope/evidence below is preserved. No new game/catalog/push. Before final handoff restore sparseassets/docs/scripts; update this status only after actually verifying subsequent work.
+
+## Earlier delivered cockpit/customization/weapon follow-up
 
 Owner requested a viewable, slightly more realistic cockpit plus car customization and mounted weapons including smoke screen. Main implemented directly: `37228a8` adds free saved native-color finishes, per-owned-car smoke150/EMP250 purchase/mount, actual original canisters/roof emitter and bounded effects/charges/cooldowns; `00605e2` preserves EMP slowdown when cops brake ahead. Canonical profile2 migrates version1 in memory through descriptor-safe validation; same scoped key. New exports GADGETS/customizeCar/fitGadget; optional boolean deploy input. Keyboard Space/E and actual touch Deploy, racing disabled, no invincibility/rewards. Shared fleet/models/vendor unchanged. See [current scope, contract, proofs and previews](slipstream-gadgets.md).
 

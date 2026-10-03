@@ -2,6 +2,14 @@
 
 Direct owner order: more gadgets/customization, base cars unlocked by playing then further equipment; discreet/loud categories; begin driving in an open world before cops pursue; third or first person, general chase-game genre reference. This is existing original Slipstream only, no copied branding/assets or new game. Choose third person for this bounded pass. No first-person driving claim, game registration, push, install or full-catalog checkout. Preserve previous native/pure evidence as historical.
 
+## Execution status: planned, model-policy blocked
+
+**No city, mileage unlock, category, stripe/spoiler or additional gadget implementation has landed.** Current running source remains canonical profile2, garage/highway entry, paid fleet and two smoke/EMP kits from37228a8/00605e2. Prior natural checks/cockpit previews remain valid only for that delivered scope. This document is the new requested contract, not a completion claim.
+
+Tasks117/118/119 first direct tool attempt each exited1 before work: qualified Astra ID was routed to opencode-go and400 `Model is unavailable.` Logs `worker-2026-10-03T06-48-36-{586,649,692}Z.log`. One known explicit-provider dispatcher retry used real delegate_to_worker with openai-codex/gpt-6-astra. Independently inspected assistant session metadata confirms openai-codex-responses/openai-codex/gpt-6-astra for all three. However workers exited0 **without implementation**, citing AGENTS' required current3D model openai-codex/gpt-6.1-sol. Logs `worker-2026-10-03T06-54-44-{384,410,427}Z.log`; source growth0, no worker commits, no world.js or native city tests. Do not equate exit0 refusal with delivery.
+
+Those delegations were abandoned after the two failed task attempts; no third blind/model-substitution retry. Explicit host exited0/173.5157s, not implementation acceptance. Pending routing ticket `pi-912882-1791010169162`, host model-policy ticket `pi-1414141-1791010559582`, Main resolution ticket `pi-912882-1791010626671` received no answer after120s. Need a resolved operator model order (current AGENTS sol versus earlier owner Astra instruction) before new implementation delegation. No local Pi/provider configuration or project rule was rewritten to evade that block.
+
 ## Frozen shared worker contract
 
 Main baseline6fec96f. Only Slipstream narrow checkout needed; Garage is present temporarily for existing pure regression and will be sparse-excluded at finish. Disk >=2e9 bytes, worker owned growth <=1MB, anonymous explicit-path commits; no vendor/shared factory/fleet edits. Three disjoint bounded mechanical tasks, Main integrates/reviews native UI and documentation. No worker weakens tests/waits or invents provenance. Existing HTTP/browser servers are bounded, no persistent dev server.

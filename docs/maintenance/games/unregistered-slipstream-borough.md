@@ -45,6 +45,8 @@ Real model gallery exit0/33.98s, all16 actual factories, two contexts/cycles, ca
 
 ## Future outlook
 
+Newest owner [city-first/mileage progression/classified gadget plan](../../slipstream-open-world-plan.md) is **not implemented**. Direct delegation misrouted; explicit-provider retry verified actual Astra but workers refused the AGENTS sol-model requirement, returned0/no commits. Abandoned after two failed task attempts; operator model-resolution pending. Current game still highway/garage entry, schema2 and smoke/EMP only. No stripe/spoiler, five-kit catalog, free mileage fleet or open city is claimed by this manual.
+
 [Later original car studies](../../car-realistic-studies.md) include an optimized higher-detail Pip and distinct Brindle, **showcase only**. Their fresh-resource disposal/current29k geometry differs from the shared cached8k gameplay factory; do not substitute them automatically or claim live fleet photorealism. Rounded/tinted bodies, workshop, original PBR finishes and real parked cockpit camera are implemented but current native/photo-quality checks are HELD; this is not yet a driving cockpit feature. No game/Core/catalog source changes belong to that study.
 
 Latest separate studio checkpoint43e76d6 has [reviewed current exterior/cockpit previews](../../car-photo-previews/README.md), original plate maps and continuous lamp covers. Two-cycle geometry/resource checks pass; visual-only capture exits0/84.8389s, but unchanged20s focused gate exits1/41.1914s on first-frame readiness. Appearance remains stylized, not photographic; no live game/fleet bytes changed.
