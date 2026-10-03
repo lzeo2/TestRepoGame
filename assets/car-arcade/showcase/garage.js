@@ -9,7 +9,10 @@ export function createGarage() {
   const steel = material('#555b5d', .5, .65), dark = material('#343535');
   const paint = material('#b58a45', .65), red = material('#823f32', .45, .3);
   const wood = material('#93806a'), rubber = material('#232425', .96);
-  const window = material('#dce4e5', .3, .05);
+  const window = material('#dce4e5', .3, .05), joint = material('#85847f', .96);
+  for (const [mat, name] of [[concrete, 'concrete'], [wall, 'wall'], [steel, 'metal'],
+    [dark, 'dark'], [paint, 'stripe'], [red, 'equipment'], [wood, 'wood'],
+    [rubber, 'rubber'], [window, 'window'], [joint, 'joint']]) mat.name = `garage-${name}`;
   const batches = new Map();
   function add(g, mat, shadow = false) {
     const key = mat.uuid + shadow;
@@ -26,11 +29,21 @@ export function createGarage() {
     g.translate(x, y, z); add(g, mat, shadow);
   }
   box(concrete, 0, -.09, -1, 24, .16, 26);
-  // Narrow recessed-looking expansion joints and worn-width parking stripes.
-  for (let x = -9; x <= 9; x += 3) box(dark, x, -.008, -1, .012, .003, 26);
-  for (let z = -10; z <= 11; z += 3) box(dark, 0, -.008, z, 24, .003, .012);
-  for (const x of [-1.65, 1.65]) box(paint, x, -.003, -.1, .075, .004, 5.3);
-  box(paint, 0, -.003, 2.5, 3.3, .004, .075);
+  // A few saw-cut slab joints, near the concrete tone rather than a black grid.
+  for (const x of [-6, 0, 6]) box(joint, x, -.009, -1, .005, .0015, 26);
+  for (const z of [-7, -.5, 6]) box(joint, 0, -.009, z, 24, .0015, .005);
+  // Broken paint edges are small physical losses, not evenly dashed road marks.
+  for (const x of [-1.65, 1.65]) for (let i = 0; i < 18; i++) {
+    const loss = i === 3 || i === 11 ? .022 : .001;
+    box(paint, x + Math.sin(i * 13) * .002, -.007, -2.61 + i * .294,
+      .072 + Math.sin(i * 7) * .003, .001, .294 - loss);
+  }
+  box(paint, 0, -.007, 2.5, 3.3, .001, .072);
+  // Short hairline repairs near the back work area, not dirt across every slab.
+  for (let i = 0; i < 4; i++) {
+    const g = new THREE.BoxGeometry(.003, .001, .23);
+    g.rotateY(.18 + i * .13); g.translate(-2.7 + i * .065, -.008, 2.8 + i * .21); add(g, joint);
+  }
   // Keep the right side open for exterior camera clearance.
   box(wall, -5.3, 2.2, -2, .18, 4.4, 14);
   box(wall, 0, 2.2, 5, 10.6, 4.4, .18);
@@ -39,7 +52,12 @@ export function createGarage() {
   box(steel, 0, 1.65, -8.94, 5.8, 3.3, .08);
   for (let y = .15; y < 3.3; y += .22) box(dark, 0, y, -8.88, 5.7, .018, .035);
   for (const x of [-3, 3]) box(dark, x, 1.7, -8.82, .11, 3.4, .16);
-  box(dark, 0, .85, -8.83, .4, .065, .075);
+  for (const x of [-.16, .16]) {
+    box(steel, x, .85, -8.815, .035, .085, .045);
+    cylinder(dark, x, .85, -8.787, .007, .007, 'z', false);
+  }
+  cylinder(steel, 0, .85, -8.755, .013, .35, 'x', false);
+  box(dark, 0, .18, -8.875, 5.7, .035, .04);
   for (const z of [-8.6, -2, 4.7]) {
     box(steel, -5.12, 2.2, z, .13, 4.4, .18);
     box(steel, 0, 4.3, z, 10.5, .22, .14);
@@ -62,6 +80,10 @@ export function createGarage() {
   box(steel, -1.8, .25, 4.05, 2.15, .06, .7, true);
   box(dark, -2.4, 1.15, 3.87, .32, .13, .24, true);
   box(steel, -2.4, 1.25, 3.87, .42, .07, .12, true);
+  // Bench vise screw, sliding handle and mounting bolts at workshop scale.
+  cylinder(steel, -2.4, 1.18, 3.68, .018, .22, 'z');
+  cylinder(steel, -2.4, 1.18, 3.56, .009, .19, 'x');
+  for (const x of [-2.49, -2.31]) cylinder(steel, x, 1.095, 3.95, .012, .018);
   for (let i = 0; i < 3; i++) cylinder(red, -1.55 + i * .2, 1.21, 4.15, .055, .24);
   // Horizontal compressor tank with motor, feet, gauge and a short hose coil.
   cylinder(red, -4.15, .43, 1.9, .23, .8, 'z');
