@@ -61,6 +61,7 @@ def main():
             page.keyboard.press('Space')
             page.wait_for_function('slipstreamSnapshot.run.deployments===1 && slipstreamSnapshot.view.effects.smokePuffs===12')
             assert page.evaluate('slipstreamSnapshot.run.charges')==2
+            assert page.evaluate('slipstreamSnapshot.run.police.some(e=>e.speed<slipstreamSnapshot.run.stats.speed*.4)')
             assert page.locator('#deploy').is_disabled()
             page.locator('#viewport').screenshot(path=str(output/'smoke-pursuit.jpg'), quality=92)
             page.locator('#pause').click(); before=page.evaluate('slipstreamSnapshot.run.gadgetTime'); page.wait_for_timeout(200)
@@ -69,17 +70,23 @@ def main():
             page.locator('#gadget').select_option('emp'); page.locator('#fitGadget').click()
             assert page.evaluate('slipstreamSnapshot.profile.cash')==earned-400
             page.set_viewport_size({'width':390,'height':844})
-            page.locator('#start').tap(); page.wait_for_function('slipstreamSnapshot.run.police.length>0', timeout=45000)
+            page.locator('#start').tap()
+            page.keyboard.down('a');page.wait_for_function('slipstreamSnapshot.run.x<.1');page.keyboard.up('a')
+            page.wait_for_function('slipstreamSnapshot.run.police.some(e=>Math.abs(e.distance-slipstreamSnapshot.run.distance)<60)', timeout=45000)
             page.locator('#deploy').tap()
             page.wait_for_function('slipstreamSnapshot.run.deployments===1 && slipstreamSnapshot.view.effects.empVisible')
             assert page.evaluate('slipstreamSnapshot.run.charges')==1
+            assert page.evaluate('slipstreamSnapshot.run.police.some(e=>e.speed<=slipstreamSnapshot.run.stats.speed*.1)')
             assert page.evaluate('document.documentElement.scrollWidth<=innerWidth')
             box=page.locator('#deploy').bounding_box(); assert box['width']>=44 and box['height']>=44
             page.screenshot(path=str(output/'390-emp.jpg'), quality=92)
             for width,height in [(320,740),(390,844)]:
                 page.set_viewport_size({'width':width,'height':height})
                 assert page.evaluate('document.documentElement.scrollWidth<=innerWidth')
-            print('PASS ordinary earned customization/save/load/mounts; keyboard smoke, actual touch EMP; pause freezes timers.', flush=True)
+            page.locator('#leave').tap();page.locator('#mode').select_option('race');page.locator('#start').tap()
+            page.keyboard.press('Space');assert page.locator('#deploy').is_hidden()
+            assert page.evaluate('slipstreamSnapshot.run.charges===0 && slipstreamSnapshot.run.deployments===0')
+            print('PASS ordinary earned customization/save/load/mounts; keyboard smoke, actual touch EMP and real cop slowdown; pause freezes timers; racing disables use.', flush=True)
             assert not errors, errors
             (output/'result.json').write_text(json.dumps({'earned':earned,'errors':errors,'assisted':False},indent=2)+'\n')
             browser.close()

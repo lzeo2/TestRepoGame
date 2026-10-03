@@ -173,6 +173,11 @@ check('smoke/EMP police effects / hold cooldown expiry / no immunity or payouts'
     Object.assign(initial,{distance:400,elapsed:20,score:800,speed:25,spawnClock:10,police:[npc(1,initial.x,350,25)],nextEntity:2});
     const copy=structuredClone(initial),normal=stepRun(initial,drive,.05), fired=stepRun(initial,{...drive,deploy:true},.05);
     assert.deepEqual(initial,copy);assert(fired.police[0].speed<normal.police[0].speed);assert.equal(fired.deployments,1);assert.equal(fired.earnings,0);
+    if(kit==='emp') {
+      const ahead=structuredClone(initial);ahead.police[0].distance=ahead.distance+8;
+      const stopped=stepRun(ahead,{...drive,deploy:true},.05);
+      assert(stopped.police[0].speed<=stopped.stats.speed*.08); // Containment must not override disruption.
+    }
     let held=fired;for(let i=0;i<205;i++)held=stepRun(held,{...drive,deploy:true},.05);
     assert.equal(held.deployments,1);assert.equal(held.gadgetTime,0);assert.equal(held.gadgetCooldown,0);
     held=stepRun(held,drive,.05);held=stepRun(held,{...drive,deploy:true},.05);assert.equal(held.deployments,2);

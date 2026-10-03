@@ -259,7 +259,7 @@ export function stepRun(run, input, dt) {
     cop.x = clamp(cop.x + clamp(r.x - cop.x, -1, 1) * (affected?.08:(0.8 + r.level * 0.04)) * dt, -6.2, 6.2);
     cop.distance += cop.speed * dt;
     // A cop ahead brakes to contain, rather than vanishing down the road.
-    if (cop.distance > r.distance + 8) { cop.distance = r.distance + 8; cop.speed = r.speed * 0.8; }
+    if (cop.distance > r.distance + 8) { cop.distance = r.distance + 8; cop.speed = Math.min(cop.speed,r.speed * 0.8); }
   }
   for (const e of r.traffic) e.distance += e.speed * dt;
   for (const e of [...r.traffic, ...r.police, ...r.rivals]) {
@@ -286,7 +286,7 @@ export function stepRun(run, input, dt) {
 function disrupted(run,cop) {
   if(run.gadgetTime<=0)return false;
   const gap=run.distance-cop.distance;
-  return run.gadget==='smoke'?gap>=0&&gap<100&&Math.abs(cop.x-run.x)<3.5:run.gadget==='emp'&&Math.abs(gap)<65;
+  return run.gadget==='smoke'?gap>=0&&gap<100&&Math.abs(cop.x-run.x)<3.5:run.gadget==='emp'&&Math.hypot(gap,cop.x-run.x)<65;
 }
 export function settleRun(profile, run) {
   const p = validateProfile(profile), r = checkRun(run);
