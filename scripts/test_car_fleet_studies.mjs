@@ -94,6 +94,34 @@ for (let cycle = 1; cycle <= 2; cycle++) for (const id of ids) {
       if(x>profile.width*.32)corner=Math.min(corner,z);
     }
     assert(corner>center+.025,id+' flat block nose');
+    // Actual shared skin/deck/cap corner vertices, not a claimed smooth flag.
+    const {width:W,length:L,bodyHeight:B,form,wheelbase}=profile;
+    const sport=['coupe','fastback','roadster','hyper','prototype'].includes(form);
+    const g=paintMesh.geometry,n=g.attributes.normal;
+    for(const end of form==='pickup'?[-1]:[-1,1])for(const side of [-1,1]){
+      const z=end*L/2,hip=Math.exp(-Math.pow((z-wheelbase/2)/(L*.12),2));
+      const half=W/2*(1-(sport?.19:.09))+(['hyper','prototype'].includes(form)?.07:sport?.025:0)*hip;
+      const x=side*(half-.045),y=B-(sport?.18:.065);
+      const joinedZ=z-end*((sport?.18:.13)*Math.pow(Math.abs(x)/half,4)+.07);
+      const matches=[];
+      for(let i=0;i<p.count;i++)if(Math.hypot(p.getX(i)-x,p.getY(i)-y,p.getZ(i)-joinedZ)<1e-6)matches.push(i);
+      assert.equal(matches.length,1,id+' unwelded stamping junction');
+      const i=matches[0];
+      assert(n.getX(i)*side>0&&n.getY(i)>0&&n.getZ(i)*end>0,id+' inward stamping junction');
+      assert(Array.from(g.index.array).filter(j=>j===i).length>=3,id+' disconnected stamping junction');
+    }
+    // UV-duplicated bevel vertices must have the same analytic normal. Per-face
+    // computeVertexNormals after box deformation fails this exact seam check.
+    const cloth=car.getObjectByName('seat-fabric').geometry,cp=cloth.attributes.position,cn=cloth.attributes.normal,seams=new Map();
+    let duplicates=0;
+    for(let i=0;i<cp.count;i++){
+      const key=[cp.getX(i),cp.getY(i),cp.getZ(i)].map(v=>Math.round(v*1e6)).join(',');
+      const normal=new THREE.Vector3().fromBufferAttribute(cn,i);
+      assert(Math.abs(normal.length()-1)<1e-5,id+' invalid bevel normal');
+      if(seams.has(key)){assert(normal.dot(seams.get(key))>.99999,id+' split bevel shading');duplicates++;}
+      else seams.set(key,normal);
+    }
+    assert(duplicates>100,id+' missing rounded cabin seams');
   }
   for (const name of ['body-paint','cab-plastic','seat-fabric','rubber','chrome','window-glass','lamp-lens','dial-speed','dial-rpm','console-radio','registration-plate']) named(name);
   if (profile?.form !== 'roadster') named('roof-paint');
@@ -111,6 +139,8 @@ for (let cycle = 1; cycle <= 2; cycle++) for (const id of ids) {
   const textures = new Set([...materials].flatMap(m => Object.values(m).filter(v => v?.isTexture)));
   const bytes = [...textures].reduce((sum, t) => sum + t.image.width * t.image.height * 4, 0);
   assert(bytes > 0 && bytes <= 1048576, id + ' map budget');
+  assert.equal(textures.size,9,id+' decorator map count');
+  assert.equal(bytes,983040,id+' decorator base bytes');
   const resources = [...geometries, ...materials, ...textures], counts = resources.map(() => 0);
   resources.forEach((r, i) => {
     assert(!seen.has(r), id + ' shared GPU resource'); seen.add(r);

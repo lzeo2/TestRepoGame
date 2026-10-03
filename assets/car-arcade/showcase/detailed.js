@@ -43,20 +43,35 @@ export function createDetailedCar(id) {
     else for(let i=0;i<g.attributes.position.count;i++) b.index.push(base+i);
     g.dispose();
   };
-  const surface=(mat,fn,nu=24,nv=8)=>{
+  const stampings=[];
+  const surface=(mat,fn,nu=24,nv=8,reverse=false,joined=false)=>{
     const pos=[],uv=[],indices=[];
     for(let j=0;j<=nv;j++) for(let i=0;i<=nu;i++){pos.push(...fn(i/nu,j/nv));uv.push(i/nu,j/nv);}
     for(let j=0;j<nv;j++) for(let i=0;i<nu;i++){const a=j*(nu+1)+i;indices.push(a,a+nu+1,a+1,a+1,a+nu+1,a+nu+2);}
-    const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));g.setAttribute('uv',new THREE.Float32BufferAttribute(uv,2));g.setIndex(indices);g.computeVertexNormals();add(g,mat);
+    if(reverse)for(let i=0;i<indices.length;i+=3)[indices[i+1],indices[i+2]]=[indices[i+2],indices[i+1]];
+    const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));g.setAttribute('uv',new THREE.Float32BufferAttribute(uv,2));g.setIndex(indices);
+    if(joined)stampings.push(g);else{g.computeVertexNormals();add(g,mat);}
   };
   const rounded=(mat,x,y,z,w,h,d,r=.02,parent=car,rx=0)=>{
     r=Math.min(r,w/2,h/2,d/2);
-    const g=new THREE.BoxGeometry(w,h,d,3,3,3), a=g.attributes.position;
-    for(let i=0;i<a.count;i++){
-      const v=new THREE.Vector3().fromBufferAttribute(a,i), c=new THREE.Vector3(THREE.MathUtils.clamp(v.x,-w/2+r,w/2-r),THREE.MathUtils.clamp(v.y,-h/2+r,h/2-r),THREE.MathUtils.clamp(v.z,-d/2+r,d/2-r));
-      v.sub(c).normalize().multiplyScalar(r).add(c);a.setXYZ(i,v.x,v.y,v.z);
+    // Tiny strips/floor plates need no hidden face grids. Larger bevels place
+    // samples at the fillet, not across the flat face of a deformed uniform box.
+    const segments=r<=.008?1:r>=.03?5:3;
+    const g=new THREE.BoxGeometry(w,h,d,segments,segments,segments), a=g.attributes.position,n=g.attributes.normal;
+    if(segments>1)for(let i=0;i<a.count;i++){
+      const v=new THREE.Vector3().fromBufferAttribute(a,i);
+      for(const [axis,size] of [['x',w],['y',h],['z',d]]){
+        const k=Math.round((v[axis]/size+.5)*segments),half=size/2;
+        const samples=segments===5?[-half,-half+r*(1-Math.SQRT1_2),-half+r,half-r,half-r*(1-Math.SQRT1_2),half]:[-half,-half+r,half-r,half];
+        v[axis]=samples[k];
+      }
+      const c=new THREE.Vector3(THREE.MathUtils.clamp(v.x,-w/2+r,w/2-r),THREE.MathUtils.clamp(v.y,-h/2+r,h/2-r),THREE.MathUtils.clamp(v.z,-d/2+r,d/2-r));
+      const normal=v.clone().sub(c).normalize();
+      v.copy(c).addScaledVector(normal,r);a.setXYZ(i,v.x,v.y,v.z);
+      // Exact rounded-box distance gradient agrees across duplicated UV faces.
+      n.setXYZ(i,normal.x,normal.y,normal.z);
     }
-    g.computeVertexNormals();g.rotateX(rx);g.translate(x,y,z);add(g,mat,parent);
+    g.rotateX(rx);g.translate(x,y,z);add(g,mat,parent);
   };
   const tube=(mat,points,r=.006,steps=16,parent=car)=>add(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(points.map(v=>new THREE.Vector3(...v))),steps,r,4,false),mat,parent);
   const mix=THREE.MathUtils.lerp;
@@ -69,7 +84,7 @@ export function createDetailedCar(id) {
   const shaped=(x,y,z)=>{
     const start=p.wheelbase/2+radius+.04;
     const t=THREE.MathUtils.clamp((Math.abs(z)-start)/(L/2-start),0,1);
-    const vertical=Math.min(1,Math.abs(y-(clearance+belt(z))/2)/((belt(z)-clearance)/2));
+    const vertical=Math.abs(y-(clearance+belt(z))/2)/((belt(z)-clearance)/2);
     return [x,y,z-Math.sign(z)*t*t*((sport?.18:.13)*Math.pow(Math.abs(x)/half(z),4)+.07*vertical**6)];
   };
   const bottom=z=>{
@@ -78,20 +93,46 @@ export function createDetailedCar(id) {
     return y;
   };
   const skin=(side,z,v)=>shaped(side*(half(z)-.025*(1-v)**3-.045*v**5),mix(bottom(z),belt(z),v),z);
+  // Shared longitudinal stations make deck/side edges identical, including
+  // the canopy endpoints. Only these outward body stampings are welded.
+  const stations=[...new Set([...Array.from({length:81},(_,i)=>(i/80-.5)*L),cf,cr])].sort((a,b)=>a-b);
+  const station=(zs,u)=>zs[Math.round(u*(zs.length-1))];
   for(const side of [-1,1]){
-    surface(paint,(u,v)=>skin(side,(u-.5)*L,v),80,6);
+    surface(paint,(u,v)=>skin(side,station(stations,u),v),stations.length-1,6,side<0,true);
     for(const axle of [-p.wheelbase/2,p.wheelbase/2]){
       // Lip follows the same open stamping, with a curved outward rolled edge.
-      surface(paint,(u,v)=>{const a=u*Math.PI,r=radius+.035+.025*v,z=axle+r*Math.cos(a);return shaped(side*(half(z)-.023+.012*Math.sin(v*Math.PI)),radius+r*Math.sin(a),z);},24,3);
+      surface(paint,(u,v)=>{const a=u*Math.PI,r=radius+.035+.025*v,z=axle+r*Math.cos(a);return shaped(side*(half(z)-.023+.012*Math.sin(v*Math.PI)),radius+r*Math.sin(a),z);},24,3,side>0);
     }
   }
-  const deck=(start,end)=>surface(paint,(u,v)=>{const z=mix(start,end,v);return shaped((2*u-1)*(half(z)-.045),belt(z)+.04*Math.sin(Math.PI*u),z);},24,12);
+  const deckPoint=(u,z)=>shaped((2*u-1)*(half(z)-.045),belt(z)+.04*Math.sin(Math.PI*u),z);
+  const deck=(start,end)=>{
+    const zs=stations.filter(z=>z>=start&&z<=end);
+    surface(paint,(u,v)=>deckPoint(u,station(zs,v)),24,zs.length-1,false,true);
+  };
   deck(-L/2,cf);
   if(!pickup) deck(cr,L/2); // Never put an opaque deck across the cabin or pickup bed.
   for(const end of [-1,1]) surface(paint,(u,v)=>{
     const z=end*L/2;return shaped((2*u-1)*(half(z)-.025*(1-v)**3-.045*v**5),mix(clearance,belt(z)+.04*Math.sin(Math.PI*u),v),z);
-  },24,8);
-  rounded(trim,0,clearance-.035,0,W*.77,.06,L*.84);
+  },24,6,end>0,true);
+  // Weld only coincident vertices of the connected skin/deck/caps, never
+  // unrelated paint, wheel lips, canopy or opposing rounded-box faces.
+  const joined=new THREE.BufferGeometry(),positions=[],uvs=[],indices=[],vertices=new Map();
+  for(const g of stampings){
+    const p=g.attributes.position,uv=g.attributes.uv,remap=[];
+    for(let i=0;i<p.count;i++){
+      const xyz=[p.getX(i),p.getY(i),p.getZ(i)],key=xyz.map(v=>Math.round(v*1e6)).join(',');
+      if(!vertices.has(key)){vertices.set(key,positions.length/3);positions.push(...xyz);uvs.push(uv.getX(i),uv.getY(i));}
+      remap.push(vertices.get(key));
+    }
+    for(const i of g.index.array)indices.push(remap[i]);g.dispose();
+  }
+  joined.setAttribute('position',new THREE.Float32BufferAttribute(positions,3));joined.setAttribute('uv',new THREE.Float32BufferAttribute(uvs,2));joined.setIndex(indices);joined.computeVertexNormals();add(joined,paint);
+  rounded(trim,0,clearance-.035,0,W*.77,.06,L*.84,.005);
+  const hood=[];
+  for(const [a,b] of [[[.055,-L/2+.09],[.055,cf-.045]],[[.055,cf-.045],[.945,cf-.045]],[[.945,cf-.045],[.945,-L/2+.09]]]){
+    for(let i=0;i<=16;i++){const q=deckPoint(mix(a[0],b[0],i/16),mix(a[1],b[1],i/16));q[1]+=.001;hood.push(q);}
+  }
+  tube(trim,hood,.0018,48);
   // The roof and each canopy panel use identical corners, with a mild crown.
   const roofEdge=(u)=>H-.045+.018*Math.sin(Math.PI*u);
   const sidePane=(side,u,v)=>{
@@ -102,12 +143,12 @@ export function createDetailedCar(id) {
     const z=mix(rear?cr:cf,rear?rr:rf,v),w=mix(half(z)-.045,p.roofWidth/2,v);
     return [(2*u-1)*w,mix(belt(z)+.04*Math.sin(Math.PI*u),H-.045+.045*Math.sin(Math.PI*u),v),z+(rear?1:-1)*.018*Math.sin(Math.PI*u)*Math.sin(Math.PI*v)];
   };
-  const framed=(fn,a=0,b=1)=>{
+  const framed=(fn,a=0,b=1,reverse=false)=>{
     const inset=v=>.045+.035*(Math.exp(-v*24)+Math.exp(-(1-v)*24));
-    surface(glass,(u,v)=>fn(mix(a+inset(v)*(b-a),b-inset(v)*(b-a),u),.12+.76*v),16,8);
-    for(const [lo,hi] of [[0,.12],[.88,1]])surface(paint,(u,v)=>fn(mix(a,b,u),mix(lo,hi,v)),16,2);
+    surface(glass,(u,v)=>fn(mix(a+inset(v)*(b-a),b-inset(v)*(b-a),u),.12+.76*v),16,8,reverse);
+    for(const [lo,hi] of [[0,.12],[.88,1]])surface(paint,(u,v)=>fn(mix(a,b,u),mix(lo,hi,v)),16,2,reverse);
     for(const edge of [0,1]){
-      surface(paint,(u,v)=>fn(edge?b-inset(v)*(b-a)*u:a+inset(v)*(b-a)*u,.12+.76*v),3,10);
+      surface(paint,(u,v)=>fn(edge?b-inset(v)*(b-a)*u:a+inset(v)*(b-a)*u,.12+.76*v),3,10,edge?!reverse:reverse);
       const points=[];for(let i=0;i<=16;i++){const v=i/16;points.push(fn(edge?b-inset(v)*(b-a):a+inset(v)*(b-a),.12+.76*v));}tube(rubber,points,.004,16);
     }
     for(const v of [0,1]){const points=[];for(let i=0;i<=16;i++)points.push(fn(mix(a+inset(v)*(b-a),b-inset(v)*(b-a),i/16),.12+.76*v));tube(rubber,points,.004,16);}
@@ -115,13 +156,13 @@ export function createDetailedCar(id) {
   framed((u,v)=>endPane(false,u,v));
   if(!open){
     surface(roof,(u,v)=>[(2*u-1)*p.roofWidth/2,roofEdge(v)+.045*Math.sin(Math.PI*u),mix(rf,rr,v)],24,16);
-    framed((u,v)=>endPane(true,u,v));
+    framed((u,v)=>endPane(true,u,v),0,1,true);
     for(const side of [-1,1]){
       const splits=cargo?[0,.43,1]:p.doors===4?[0,.49,1]:[0,1];
       for(let i=1;i<splits.length;i++){
         const a=splits[i-1],b=splits[i];
-        if(cargo && a>.4)surface(paint,(u,v)=>sidePane(side,mix(a,b,u),v),16,8);
-        else framed((u,v)=>sidePane(side,u,v),a,b);
+        if(cargo && a>.4)surface(paint,(u,v)=>sidePane(side,mix(a,b,u),v),16,8,side<0);
+        else framed((u,v)=>sidePane(side,u,v),a,b,side<0);
       }
     }
   } else {
@@ -147,8 +188,8 @@ export function createDetailedCar(id) {
     }
     const mz=cf+.10,my=B+.12;
     tube(trim,[[side*(half(mz)-.03),my,mz],[side*(W/2+.08),my+.025,mz+.04]],.015,4);
-    rounded(paint,side*(W/2+.10),my+.045,mz+.04,.17,.10,.13,.045);
-    const mirror=new THREE.PlaneGeometry(.135,.07);mirror.translate(side*(W/2+.10),my+.045,mz+.109);add(mirror,chrome);
+    rounded(paint,side*(W/2+.08),my+.035,mz+.035,.145,.075,.12,.035);
+    const mirror=new THREE.CircleGeometry(1,20);mirror.scale(.056,.024,1);mirror.translate(side*(W/2+.08),my+.035,mz+.096);add(mirror,chrome);
   }
   if(cargo || pickup){
     const z=L/2+.004;
@@ -161,11 +202,11 @@ export function createDetailedCar(id) {
     const point=(u,v,depth)=>{
       const t=u*Math.PI*2,c=Math.cos(t),s=Math.sin(t),squared=['hyper','prototype'].includes(form);
       const q=shaped(x+a*v*(squared?Math.sign(c)*Math.abs(c)**.45:c),y+b*v*(squared?Math.sign(s)*Math.abs(s)**.45:s),end*L/2);
-      q[2]+=end*(.018+depth);return q;
+      q[2]+=end*depth;return q;
     };
-    surface(trim,(u,v)=>point(u,1+.14*v,.015*(1-v)),32,2);
-    surface(end<0?chrome:red,(u,v)=>point(u,v,.008+.012*v*v),32,5);
-    surface(lens,(u,v)=>point(u,v,.028+.012*(1-v*v)),32,5);
+    surface(trim,(u,v)=>point(u,1+.055*v,.009*(1-v)+.001),32,1,end<0);
+    surface(end<0?chrome:red,(u,v)=>point(u,v,.005+.004*v*v),32,3,end<0);
+    surface(lens,(u,v)=>point(u,v,.010+.009*(1-v*v)),32,3,end<0);
   }
   for(const end of [-1,1]){
     surface(trim,(u,v)=>{const q=shaped((2*u-1)*W*.38,clearance+.06+(2*v-1)*.052,end*L/2);q[2]+=end*.025;return q;},24,3);
@@ -177,21 +218,24 @@ export function createDetailedCar(id) {
   for(let i=0;i<(sport?2:3);i++)surface(chrome,(u,v)=>{const q=shaped((2*u-1)*W*(sport?.26:.19),clearance+.145+i*.037+v*.004,-L/2);q[2]-=.022;return q;},24,1);
   if(sport){
     for(const side of [-1,1])for(let i=0;i<3;i++)rounded(trim,side*W*.36,B+.01,cr+.07+i*.06,.18,.017,.027,.008);
-    rounded(trim,0,clearance-.01,-L/2+.08,W*.83,.027,.16,.01);
+    // Wrap the lower stamping instead of hanging a rectangular shelf ahead of it.
+    surface(trim,(u,v)=>{const x=(2*u-1)*(half(-L/2)-.025),q=shaped(x,clearance+.018,-L/2);q[1]-=.026*Math.sin(Math.PI*v/2);q[2]+=.025-.065*v;return q;},24,3);
     if(['hyper','prototype'].includes(form))for(const side of [-1,1]){
-      const q=skin(side,cr-.10,.48);q[0]+=side*.015;
-      rounded(trim,...q,.035,.14,.34,.014);
+      // A tapered cooling inset conforms to the actual flank, with a rolled lip.
+      const vent=(u,v)=>{const z=cr-.28+.34*u,q=skin(side,z,.40+(.18+.08*u)*(2*v-1));q[0]+=side*.003;return q;};
+      surface(trim,vent,8,2,side<0);
+      tube(paint,[vent(0,0),vent(.5,0),vent(1,0),vent(1,.5),vent(1,1),vent(.5,1),vent(0,1)],.008,16);
     }
     if(id==='kestrel')rounded(paint,0,belt(L*.43)+.075,L*.43,W*.71,.065,.14,.025);
   }
   // All cabin coordinates are derived from the physical canopy and belt.
   const seatX=W*.205, eyeY=B+(H-B)*.57, eyeZ=Math.min(mix(rf,rr,.48),cf+.95);
   const floorY=clearance+.085, cushionY=floorY+.13, dashZ=cf+.17, dashY=B-.035;
-  rounded(rubber,0,floorY,(cf+cr)/2,W*.80,.055,cr-cf-.08);
+  rounded(rubber,0,floorY,(cf+cr)/2,W*.80,.055,cr-cf-.08,.005);
   for(const side of [-1,1]){
     rounded(fabric,side*seatX,cushionY,eyeZ+.03,W*.25,.13,.49,.05);
     rounded(fabric,side*seatX,(cushionY+eyeY)/2,eyeZ+.27,W*.23,eyeY-cushionY,.12,.04,car,-.1);
-    rounded(fabric,side*seatX,eyeY-.035,eyeZ+.29,W*.14,.16,.105,.04);
+    rounded(fabric,side*seatX,eyeY-.045,eyeZ+.29,W*.12,.14,.105,.05);
     for(const offset of [-1,1])rounded(trim,side*seatX+offset*W*.105,cushionY+.055,eyeZ+.03,.075,.13,.43,.025);
     rounded(trim,side*W*.425,(floorY+B)/2,(cf+cr)/2,.06,B-floorY,cr-cf-.08,.02);
     rounded(fabric,side*W*.404,B-.17,eyeZ,.04,.13,.57,.015);
