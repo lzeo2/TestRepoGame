@@ -1,0 +1,1676 @@
+{
+  "visual_only": true,
+  "acceptance": false,
+  "exit": 0,
+  "sources": {
+    "assets/car-arcade/showcase/brindle.js": "88ca876a129370f88e4d6b7491a9761d78c0e1a4c5fc14ac92556f5269d17e77",
+    "assets/car-arcade/showcase/detail-profiles.js": "3f4f18010f07524a7754f376bd1fc53cd7c0fad2cdeec6732b2650ce3a62de33",
+    "assets/car-arcade/showcase/detailed.js": "4dcfb2722893f33e6d26586601bb10f6de85098df5ae8b98993ea512c201ff83",
+    "assets/car-arcade/showcase/garage.js": "32f550f207ae22826628d94127879ffb5134046fe0b2c6f318e8cca64540def7",
+    "assets/car-arcade/showcase/index.html": "ea1dfda0d8dcb2ec8113d98d4b343b18fd6f925679d9a6b8d902c1c1f12ef600",
+    "assets/car-arcade/showcase/pip.js": "963ec5bed818b0a2b434f354d9a12d6037744bdc5fa823026d5f05f54fd443f6",
+    "assets/car-arcade/showcase/realism.js": "e1ff0593057e6193bc42b7b842f36d2b1c31712cd984a454263013a662bf415b",
+    "assets/car-arcade/showcase/studio.js": "c78673ddc7c7e6ed135ce518b50f6d3ce9390028cba34bc423300f40f5acf8b5",
+    "assets/car-arcade/style.css": "c860363f9d9fb9e572f9e44f6b7a728786c977ff8582c1578e97a98d32ae7ee8",
+    "assets/car-arcade/vendor/BufferGeometryUtils.js": "3a6701d824adfe05dc28c09b6c1d64aeab9a183bc3b944d85f15f596e5c6c2b3",
+    "assets/car-arcade/vendor/three.module.js": "76dea8151bc9352aef3528b4262e249b2604f62543828328db978d060d61a495",
+    "assets/fonts/atkinson-hyperlegible/atkinson-hyperlegible-400-latin.woff2": "d64ba838ef5472bba248620ec4fd8b5aa7cf0db2908e0bb230600caf279ba7bc",
+    "assets/fonts/atkinson-hyperlegible/atkinson-hyperlegible-700-latin.woff2": "140e2bd25a7315c8a062508391426b0d8c3297400c947b8d847be28f73a199f0",
+    "assets/fonts/bungee/bungee-400-latin.woff2": "126eec706b7931682dbcf6c6efc274132c603f181fbf912678e6cfeb341e721b",
+    "scripts/capture_car_fleet_studies.py": "93f94a30c048450d2ab79deceb4c1d0551bf849291e55538ddeef7a7b47d3892"
+  },
+  "errors": [],
+  "snapshots": [
+    {
+      "file": "pip-exterior.jpg",
+      "refractingMaterials": 0,
+      "singlePassGlass": true,
+      "garageTriangles": 4344,
+      "garageMeshes": 13,
+      "modelTriangles": 29166,
+      "modelMeshes": 26,
+      "expectedEye": [
+        -0.34,
+        1.14,
+        0.16
+      ],
+      "view": "exterior",
+      "cameraLocal": [
+        3.569718877239756,
+        1.5044347689584225,
+        -4.336203644839192
+      ],
+      "look": 0,
+      "framed": true,
+      "id": "pip",
+      "name": "Pip Borough / realistic study",
+      "frames": 2,
+      "angle": 0,
+      "triangles": 31974,
+      "drawCalls": 38,
+      "geometryCount": 39,
+      "textureCount": 19,
+      "revision": "160",
+      "error": null
+    },
+    {
+      "file": "pip-cockpit.jpg",
+      "refractingMaterials": 0,
+      "singlePassGlass": true,
+      "garageTriangles": 4344,
+      "garageMeshes": 13,
+      "modelTriangles": 29166,
+      "modelMeshes": 26,
+      "expectedEye": [
+        -0.34,
+        1.14,
+        0.16
+      ],
+      "view": "cockpit",
+      "cameraLocal": [
+        -0.34,
+        1.14,
+        0.16
+      ],
+      "look": 0,
+      "framed": false,
+      "id": "pip",
+      "name": "Pip Borough / realistic study",
+      "frames": 3,
+      "angle": 0,
+      "triangles": 27870,
+      "drawCalls": 28,
+      "geometryCount": 39,
+      "textureCount": 19,
+      "revision": "160",
+      "error": null
+    },
+    {
+      "file": "brindle-exterior.jpg",
+      "refractingMaterials": 0,
+      "singlePassGlass": true,
+      "garageTriangles": 4344,
+      "garageMeshes": 13,
+      "modelTriangles": 29378,
+      "modelMeshes": 35,
+      "expectedEye": [
+        -0.36,
+        1.14,
+        0.16
+      ],
+      "view": "exterior",
+      "cameraLocal": [
+        3.9573714729293226,
+        1.6514324889114596,
+        -4.819803966251525
+      ],
+      "look": 0,
+      "framed": true,
+      "id": "brindle",
+      "name": "Brindle Borough / original retro hatch",
+      "frames": 5,
+      "angle": 0,
+      "triangles": 33722,
+      "drawCalls": 48,
+      "geometryCount": 48,
+      "textureCount": 19,
+      "revision": "160",
+      "error": null
+    },
+    {
+      "file": "brindle-cockpit.jpg",
+      "refractingMaterials": 0,
+      "singlePassGlass": true,
+      "garageTriangles": 4344,
+      "garageMeshes": 13,
+      "modelTriangles": 29378,
+      "modelMeshes": 35,
+      "expectedEye": [
+        -0.36,
+        1.14,
+        0.16
+      ],
+      "view": "cockpit",
+      "cameraLocal": [
+        -0.36,
+        1.14,
+        0.16
+      ],
+      "look": 0,
+      "framed": false,
+      "id": "brindle",
+      "name": "Brindle Borough / original retro hatch",
+      "frames": 6,
+      "angle": 0,
+      "triangles": 28362,
+      "drawCalls": 32,
+      "geometryCount": 48,
+      "textureCount": 19,
+      "revision": "160",
+      "error": null
+    },
+    {
+      "file": "bricklet-exterior.jpg",
+      "refractingMaterials": 0,
+      "singlePassGlass": true,
+      "garageTriangles": 4344,
+      "garageMeshes": 13,
+      "modelTriangles": 28858,
+      "modelMeshes": 29,
+      "expectedEye": [
+        -0.3444,
+        1.2349,
+        -0.07200000000000006
+      ],
+      "view": "exterior",
+      "cameraLocal": [
+        3.7439579875490887,
+        1.557354585306137,
+        -4.552312553042641
+      ],
+      "look": 0,
+      "framed": true,
+      "id": "bricklet",
+      "name": "Bricklet80",
+      "frames": 8,
+      "angle": 0,
+      "triangles": 31666,
+      "drawCalls": 41,
+      "geometryCount": 42,
+      "textureCount": 19,
+      "revision": "160",
+      "error": null
+    },
+    {
+      "file": "bricklet-cockpit.jpg",
+      "refractingMaterials": 0,
+      "singlePassGlass": true,
+      "garageTriangles": 4344,
+      "garageMeshes": 13,
+      "modelTriangles": 28858,
+      "modelMeshes": 29,
+      "expectedEye": [
+        -0.3444,
+        1.2349,
+        -0.07200000000000006
+      ],
+      "view": "cockpit",
+      "cameraLocal": [
+        -0.3444,
+        1.2349,
+        -0.07200000000000006
+      ],
+      "look": 0,
+      "framed": false,
+      "id": "bricklet",
+      "name": "Bricklet80",
+      "frames": 9,
+      "angle": 0,
+      "triangles": 27402,
+      "drawCalls": 29,
+      "geometryCount": 42,
+      "textureCount": 19,
+      "revision": "160",
+      "error": null
+    },
+    {
+      "file": "finch-exterior.jpg",
+      "refractingMaterials": 0,
+      "singlePassGlass": true,
+      "garageTriangles": 4344,
+      "garageMeshes": 13,
+      "modelTriangles": 26462,
+      "modelMeshes": 29,
+      "expectedEye": [
+        -0.3649,
+        1.0807,
+        -0.040000000000000036
+      ],
+      "view": "exterior",
+      "cameraLocal": [
+        3.676156646501797,
+        1.4527156265202772,
+        -4.469872286087412
+      ],
+      "look": 0,
+      "framed": true,
+      "id": "finch",
+      "name": "Finch Sport",
+      "frames": 11,
+      "angle": 0,
+      "triangles": 29270,
+      "drawCalls": 41,
+      "geometryCount": 42,
+      "textureCount": 19,
+      "revision": "160",
+      "error": null
+    },
+    {
+      "file": "finch-cockpit.jpg",
+      "refractingMaterials": 0,
+      "singlePassGlass": true,
+      "garageTriangles": 4344,
+      "garageMeshes": 13,
+      "modelTriangles": 26462,
+      "modelMeshes": 29,
+      "expectedEye": [
+        -0.3649,
+        1.0807,
+        -0.040000000000000036
+      ],
+      "view": "cockpit",
+      "cameraLocal": [
+        -0.3649,
+        1.0807,
+        -0.040000000000000036
+      ],
+      "look": 0,
+      "framed": false,
+      "id": "finch",
+      "name": "Finch Sport",
+      "frames": 12,
+      "angle": 0,
+      "triangles": 25006,
+      "drawCalls": 29,
+      "geometryCount": 42,
+      "textureCount": 19,
+      "revision": "160",
+      "error": null
+    },
+    {
+      "file": "lantern-exterior.jpg",
+      "refractingMaterials": 0,
+      "singlePassGlass": true,
+      "garageTriangles": 4344,
+      "garageMeshes": 13,
+      "modelTriangles": 28858,
+      "modelMeshes": 29,
+      "expectedEye": [
+        -0.3813,
+        1.2691999999999999,
+        -0.19500000000000006
+      ],
+      "view": "exterior",
+      "cameraLocal": [
+        4.1764720120780945,
+        1.6657382746674712,
+        -5.078210287413136
+      ],
+      "look": 0,
+      "framed": true,
+      "id": "lantern",
+      "name": "Lantern Saloon",
+      "frames": 14,
+      "angle": 0,
+      "triangles": 33202,
+      "drawCalls": 42,
+      "geometryCount": 42,
+      "textureCount": 19,
+      "revision": "160",
+      "error": null
+    },
+    {
+      "file": "lantern-cockpit.jpg",
+      "refractingMaterials": 0,
+      "singlePassGlass": true,
+      "garageTriangles": 4344,
+      "garageMeshes": 13,
+      "modelTriangles": 28858,
+      "modelMeshes": 29,
+      "expectedEye": [
+        -0.3813,
+        1.2691999999999999,
+        -0.19500000000000006
+      ],
+      "view": "cockpit",
+      "cameraLocal": [
+        -0.3813,
+        1.2691999999999999,
+        -0.19500000000000006
+      ],
+      "look": 0,
+      "framed": false,
+      "id": "lantern",
+      "name": "Lantern Saloon",
+      "frames": 15,
+      "angle": 0,
+      "triangles": 27402,
+      "drawCalls": 29,
+      "geometryCount": 42,
+      "textureCount": 19,
+      "revision": "160",
+      "error": null
+    },
+    {
+      "file": "comet-exterior.jpg",
+      "refractingMaterials": 0,
+      "singlePassGlass": true,
+      "garageTriangles": 4344,
+      "garageMeshes": 13,
+      "modelTriangles": 26462,
+      "modelMeshes": 29,
+      "expectedEye": [
+        -0.38949999999999996,
+        1.065,
+        0.04279999999999995
+      ],
+      "view": "exterior",
+      "cameraLocal": [
+        3.8221926677959,
+        1.47424613641076,
+        -4.6474388119791055
+      ],
+      "look": 0,
+      "framed": true,
+      "id": "comet",
+      "name": "Comet Coupe",
+      "frames": 17,
+      "angle": 0,
+      "triangles": 29270,
+      "drawCalls": 41,
+      "geometryCount": 42,
+      "textureCount": 19,
+      "revision": "160",
+      "error": null
+    },
+    {
+      "file": "comet-cockpit.jpg",
+      "refractingMaterials": 0,
+      "singlePassGlass": true,
+      "garageTriangles": 4344,
+      "garageMeshes": 13,
+      "modelTriangles": 26462,
+      "modelMeshes": 29,
+      "expectedEye": [
+        -0.38949999999999996,
+        1.065,
+        0.04279999999999995
+      ],
+      "view": "cockpit",
+      "cameraLocal": [
+        -0.38949999999999996,
+        1.065,
+        0.04279999999999995
+      ],
+      "look": 0,
+      "framed": false,
+      "id": "comet",
+      "name": "Comet Coupe",
+      "frames": 18,
+      "angle": 0,
+      "triangles": 25006,
+      "drawCalls": 29,
+      "geometryCount": 42,
+      "textureCount": 19,
+      "revision": "160",
+      "error": null
+    },
+    {
+      "file": "orchard-exterior.jpg",
+      "refractingMaterials": 0,
+      "singlePassGlass": true,
+      "garageTriangles": 4344,
+      "garageMeshes": 13,
+      "modelTriangles": 28858,
+      "modelMeshes": 29,
+      "expectedEye": [
+        -0.38744999999999996,
+        1.3534000000000002,
+        -0.4478
+      ],
+      "view": "exterior",
+      "cameraLocal": [
+        4.4022299559533895,
+        1.769481475702002,
+        -5.352711423716052
+      ],
+      "look": 0,
+      "framed": true,
+      "id": "orchard",
+      "name": "Orchard Wagon",
+      "frames": 20,
+      "angle": 0,
+      "triangles": 33202,
+      "drawCalls": 42,
+      "geometryCount": 42,
+      "textureCount": 19,
+      "revision": "160",
+      "error": null
+    },
+    {
+      "file": "orchard-cockpit.jpg",
+      "refractingMaterials": 0,
+      "singlePassGlass": true,
+      "garageTriangles": 4344,
+      "garageMeshes": 13,
+      "modelTriangles": 28858,
+      "modelMeshes": 29,
+      "expectedEye": [
+        -0.38744999999999996,
+        1.3534000000000002,
+        -0.4478
+      ],
+      "view": "cockpit",
+      "cameraLocal": [
+        -0.38744999999999996,
+        1.3534000000000002,
+        -0.4478
+      ],
+      "look": 0,
+      "framed": false,
+      "id": "orchard",
+      "name": "Orchard Wagon",
+      "frames": 21,
+      "angle": 0,
+      "triangles": 26106,
+      "drawCalls": 25,
+      "geometryCount": 42,
+      "textureCount": 19,
+      "revision": "160",
+      "error": null
+    },
+    {
+      "file": "horizon-exterior.jpg",
+      "refractingMaterials": 0,
+      "singlePassGlass": true,
+      "garageTriangles": 4344,
+      "garageMeshes": 13,
+      "modelTriangles": 26462,
+      "modelMeshes": 29,
+      "expectedEye": [
+        -0.4059,
+        1.1264,
+        0.06440000000000001
+      ],
+      "view": "exterior",
+      "cameraLocal": [
+        4.148159601783703,
+        1.579625378437465,
+        -5.043784970350638
+      ],
+      "look": 0,
+      "framed": true,
+      "id": "horizon",
+      "name": "Horizon GT",
+      "frames": 23,
+      "angle": 0,
+      "triangles": 30806,
+      "drawCalls": 42,
+      "geometryCount": 42,
+      "textureCount": 19,
+      "revision": "160",
+      "error": null
+    },
+    {
+      "file": "horizon-cockpit.jpg",
+      "refractingMaterials": 0,
+      "singlePassGlass": true,
+      "garageTriangles": 4344,
+      "garageMeshes": 13,
+      "modelTriangles": 26462,
+      "modelMeshes": 29,
+      "expectedEye": [
+        -0.4059,
+        1.1264,
+        0.06440000000000001
+      ],
+      "view": "cockpit",
+      "cameraLocal": [
+        -0.4059,
+        1.1264,
+        0.06440000000000001
+      ],
+      "look": 0,
+      "framed": false,
+      "id": "horizon",
+      "name": "Horizon GT",
+      "frames": 24,
+      "angle": 0,
+      "triangles": 25006,
+      "drawCalls": 29,
+      "geometryCount": 42,
+      "textureCount": 19,
+      "revision": "160",
+      "error": null
+    },
+    {
+      "file": "morrow-exterior.jpg",
+      "refractingMaterials": 0,
+      "singlePassGlass": true,
+      "garageTriangles": 4344,
+      "garageMeshes": 13,
+      "modelTriangles": 22838,
+      "modelMeshes": 28,
+      "expectedEye": [
+        -0.3772,
+        1.0093,
+        0.04243199999999997
+      ],
+      "view": "exterior",
+      "cameraLocal": [
+        3.6256061733469886,
+        1.3928013440635674,
+        -4.408407506228724
+      ],
+      "look": 0,
+      "framed": true,
+      "id": "morrow",
+      "name": "Morrow Roadster",
+      "frames": 26,
+      "angle": 0,
+      "triangles": 25646,
+      "drawCalls": 40,
+      "geometryCount": 41,
+      "textureCount": 19,
+      "revision": "160",
+      "error": null
+    },
+    {
+      "file": "morrow-cockpit.jpg",
+      "refractingMaterials": 0,
+      "singlePassGlass": true,
+      "garageTriangles": 4344,
+      "garageMeshes": 13,
+      "modelTriangles": 22838,
+      "modelMeshes": 28,
+      "expectedEye": [
+        -0.3772,
+        1.0093,
+        0.04243199999999997
+      ],
+      "view": "cockpit",
+      "cameraLocal": [
+        -0.3772,
+        1.0093,
+        0.04243199999999997
+      ],
+      "look": 0,
+      "framed": false,
+      "id": "morrow",
+      "name": "Morrow Roadster",
+      "frames": 27,
+      "angle": 0,
+      "triangles": 21382,
+      "drawCalls": 28,
+      "geometryCount": 41,
+      "textureCount": 19,
+      "revision": "160",
+      "error": null
+    },
+    {
+      "file": "relay-exterior.jpg",
+      "refractingMaterials": 0,
+      "singlePassGlass": true,
+      "garageTriangles": 4344,
+      "garageMeshes": 13,
+      "modelTriangles": 28858,
+      "modelMeshes": 29,
+      "expectedEye": [
+        -0.39769999999999994,
+        1.2335,
+        -0.4388000000000001
+      ],
+      "view": "exterior",
+      "cameraLocal": [
+        4.294275543800294,
+        1.6711731494221125,
+        -5.221448672575358
+      ],
+      "look": 0,
+      "framed": true,
+      "id": "relay",
+      "name": "Relay Touring",
+      "frames": 29,
+      "angle": 0,
+      "triangles": 33202,
+      "drawCalls": 42,
+      "geometryCount": 42,
+      "textureCount": 19,
+      "revision": "160",
+      "error": null
+    },
+    {
+      "file": "relay-cockpit.jpg",
+      "refractingMaterials": 0,
+      "singlePassGlass": true,
+      "garageTriangles": 4344,
+      "garageMeshes": 13,
+      "modelTriangles": 28858,
+      "modelMeshes": 29,
+      "expectedEye": [
+        -0.39769999999999994,
+        1.2335,
+        -0.4388000000000001
+      ],
+      "view": "cockpit",
+      "cameraLocal": [
+        -0.39769999999999994,
+        1.2335,
+        -0.4388000000000001
+      ],
+      "look": 0,
+      "framed": false,
+      "id": "relay",
+      "name": "Relay Touring",
+      "frames": 30,
+      "angle": 0,
+      "triangles": 26754,
+      "drawCalls": 27,
+      "geometryCount": 42,
+      "textureCount": 19,
+      "revision": "160",
+      "error": null
+    },
+    {
+      "file": "tempest-exterior.jpg",
+      "refractingMaterials": 0,
+      "singlePassGlass": true,
+      "garageTriangles": 4344,
+      "garageMeshes": 13,
+      "modelTriangles": 26678,
+      "modelMeshes": 29,
+      "expectedEye": [
+        -0.41409999999999997,
+        1.025,
+        -0.3201999999999998
+      ],
+      "view": "exterior",
+      "cameraLocal": [
+        3.8348973390458996,
+        1.456989207429891,
+        -4.6628865372489905
+      ],
+      "look": 0,
+      "framed": true,
+      "id": "tempest",
+      "name": "Tempest Sprint",
+      "frames": 32,
+      "angle": 0,
+      "triangles": 29486,
+      "drawCalls": 41,
+      "geometryCount": 42,
+      "textureCount": 19,
+      "revision": "160",
+      "error": null
+    },
+    {
+      "file": "tempest-cockpit.jpg",
+      "refractingMaterials": 0,
+      "singlePassGlass": true,
+      "garageTriangles": 4344,
+      "garageMeshes": 13,
+      "modelTriangles": 26678,
+      "modelMeshes": 29,
+      "expectedEye": [
+        -0.41409999999999997,
+        1.025,
+        -0.3201999999999998
+      ],
+      "view": "cockpit",
+      "cameraLocal": [
+        -0.41409999999999997,
+        1.025,
+        -0.3201999999999998
+      ],
+      "look": 0,
+      "framed": false,
+      "id": "tempest",
+      "name": "Tempest Sprint",
+      "frames": 33,
+      "angle": 0,
+      "triangles": 24574,
+      "drawCalls": 27,
+      "geometryCount": 42,
+      "textureCount": 19,
+      "revision": "160",
+      "error": null
+    },
+    {
+      "file": "sunray-exterior.jpg",
+      "refractingMaterials": 0,
+      "singlePassGlass": true,
+      "garageTriangles": 4344,
+      "garageMeshes": 13,
+      "modelTriangles": 26678,
+      "modelMeshes": 29,
+      "expectedEye": [
+        -0.4346,
+        0.9893,
+        -0.5731999999999999
+      ],
+      "view": "exterior",
+      "cameraLocal": [
+        4.0779408572173885,
+        1.4894645337327397,
+        -4.958405360480233
+      ],
+      "look": 0,
+      "framed": true,
+      "id": "sunray",
+      "name": "Sunray Halo",
+      "frames": 35,
+      "angle": 0,
+      "triangles": 31022,
+      "drawCalls": 42,
+      "geometryCount": 42,
+      "textureCount": 19,
+      "revision": "160",
+      "error": null
+    },
+    {
+      "file": "sunray-cockpit.jpg",
+      "refractingMaterials": 0,
+      "singlePassGlass": true,
+      "garageTriangles": 4344,
+      "garageMeshes": 13,
+      "modelTriangles": 26678,
+      "modelMeshes": 29,
+      "expectedEye": [
+        -0.4346,
+        0.9893,
+        -0.5731999999999999
+      ],
+      "view": "cockpit",
+      "cameraLocal": [
+        -0.4346,
+        0.9893,
+        -0.5731999999999999
+      ],
+      "look": 0,
+      "framed": false,
+      "id": "sunray",
+      "name": "Sunray Halo",
+      "frames": 36,
+      "angle": 0,
+      "triangles": 23934,
+      "drawCalls": 26,
+      "geometryCount": 42,
+      "textureCount": 19,
+      "revision": "160",
+      "error": null
+    },
+    {
+      "file": "parcel-exterior.jpg",
+      "refractingMaterials": 0,
+      "singlePassGlass": true,
+      "garageTriangles": 4344,
+      "garageMeshes": 13,
+      "modelTriangles": 26630,
+      "modelMeshes": 29,
+      "expectedEye": [
+        -0.36079999999999995,
+        1.443,
+        -0.16600000000000015
+      ],
+      "view": "exterior",
+      "cameraLocal": [
+        4.201877664696987,
+        1.8312236123736214,
+        -5.109101251392927
+      ],
+      "look": 0,
+      "framed": true,
+      "id": "parcel",
+      "name": "Parcel Cub",
+      "frames": 38,
+      "angle": 0,
+      "triangles": 30974,
+      "drawCalls": 42,
+      "geometryCount": 42,
+      "textureCount": 19,
+      "revision": "160",
+      "error": null
+    },
+    {
+      "file": "parcel-cockpit.jpg",
+      "refractingMaterials": 0,
+      "singlePassGlass": true,
+      "garageTriangles": 4344,
+      "garageMeshes": 13,
+      "modelTriangles": 26630,
+      "modelMeshes": 29,
+      "expectedEye": [
+        -0.36079999999999995,
+        1.443,
+        -0.16600000000000015
+      ],
+      "view": "cockpit",
+      "cameraLocal": [
+        -0.36079999999999995,
+        1.443,
+        -0.16600000000000015
+      ],
+      "look": 0,
+      "framed": false,
+      "id": "parcel",
+      "name": "Parcel Cub",
+      "frames": 39,
+      "angle": 0,
+      "triangles": 25174,
+      "drawCalls": 29,
+      "geometryCount": 42,
+      "textureCount": 19,
+      "revision": "160",
+      "error": null
+    },
+    {
+      "file": "pebble-exterior.jpg",
+      "refractingMaterials": 0,
+      "singlePassGlass": true,
+      "garageTriangles": 4344,
+      "garageMeshes": 13,
+      "modelTriangles": 25754,
+      "modelMeshes": 29,
+      "expectedEye": [
+        -0.3813,
+        1.2718,
+        -0.1140000000000001
+      ],
+      "view": "exterior",
+      "cameraLocal": [
+        3.9820928018010884,
+        1.6637700598791099,
+        -4.841862838553595
+      ],
+      "look": 0,
+      "framed": true,
+      "id": "pebble",
+      "name": "Pebble Rally",
+      "frames": 41,
+      "angle": 0,
+      "triangles": 30098,
+      "drawCalls": 42,
+      "geometryCount": 42,
+      "textureCount": 19,
+      "revision": "160",
+      "error": null
+    },
+    {
+      "file": "pebble-cockpit.jpg",
+      "refractingMaterials": 0,
+      "singlePassGlass": true,
+      "garageTriangles": 4344,
+      "garageMeshes": 13,
+      "modelTriangles": 25754,
+      "modelMeshes": 29,
+      "expectedEye": [
+        -0.3813,
+        1.2718,
+        -0.1140000000000001
+      ],
+      "view": "cockpit",
+      "cameraLocal": [
+        -0.3813,
+        1.2718,
+        -0.1140000000000001
+      ],
+      "look": 0,
+      "framed": false,
+      "id": "pebble",
+      "name": "Pebble Rally",
+      "frames": 42,
+      "angle": 0,
+      "triangles": 24298,
+      "drawCalls": 29,
+      "geometryCount": 42,
+      "textureCount": 19,
+      "revision": "160",
+      "error": null
+    },
+    {
+      "file": "dockside-exterior.jpg",
+      "refractingMaterials": 0,
+      "singlePassGlass": true,
+      "garageTriangles": 4344,
+      "garageMeshes": 13,
+      "modelTriangles": 26630,
+      "modelMeshes": 29,
+      "expectedEye": [
+        -0.41409999999999997,
+        1.6156000000000001,
+        -1.0468000000000002
+      ],
+      "view": "exterior",
+      "cameraLocal": [
+        5.088301728806508,
+        2.1476106288857375,
+        -6.186912329344276
+      ],
+      "look": 0,
+      "framed": true,
+      "id": "dockside",
+      "name": "Dockside Van",
+      "frames": 44,
+      "angle": 0,
+      "triangles": 30974,
+      "drawCalls": 42,
+      "geometryCount": 42,
+      "textureCount": 19,
+      "revision": "160",
+      "error": null
+    },
+    {
+      "file": "dockside-cockpit.jpg",
+      "refractingMaterials": 0,
+      "singlePassGlass": true,
+      "garageTriangles": 4344,
+      "garageMeshes": 13,
+      "modelTriangles": 26630,
+      "modelMeshes": 29,
+      "expectedEye": [
+        -0.41409999999999997,
+        1.6156000000000001,
+        -1.0468000000000002
+      ],
+      "view": "cockpit",
+      "cameraLocal": [
+        -0.41409999999999997,
+        1.6156000000000001,
+        -1.0468000000000002
+      ],
+      "look": 0,
+      "framed": false,
+      "id": "dockside",
+      "name": "Dockside Van",
+      "frames": 45,
+      "angle": 0,
+      "triangles": 23878,
+      "drawCalls": 25,
+      "geometryCount": 42,
+      "textureCount": 19,
+      "revision": "160",
+      "error": null
+    },
+    {
+      "file": "gravel-exterior.jpg",
+      "refractingMaterials": 0,
+      "singlePassGlass": true,
+      "garageTriangles": 4344,
+      "garageMeshes": 13,
+      "modelTriangles": 28858,
+      "modelMeshes": 29,
+      "expectedEye": [
+        -0.4223,
+        1.5358999999999998,
+        -0.2096
+      ],
+      "view": "exterior",
+      "cameraLocal": [
+        4.658992478550583,
+        1.9699188177692288,
+        -5.6649113091467305
+      ],
+      "look": 0,
+      "framed": true,
+      "id": "gravel",
+      "name": "Gravel Scout",
+      "frames": 47,
+      "angle": 0,
+      "triangles": 33202,
+      "drawCalls": 42,
+      "geometryCount": 42,
+      "textureCount": 19,
+      "revision": "160",
+      "error": null
+    },
+    {
+      "file": "gravel-cockpit.jpg",
+      "refractingMaterials": 0,
+      "singlePassGlass": true,
+      "garageTriangles": 4344,
+      "garageMeshes": 13,
+      "modelTriangles": 28858,
+      "modelMeshes": 29,
+      "expectedEye": [
+        -0.4223,
+        1.5358999999999998,
+        -0.2096
+      ],
+      "view": "cockpit",
+      "cameraLocal": [
+        -0.4223,
+        1.5358999999999998,
+        -0.2096
+      ],
+      "look": 0,
+      "framed": false,
+      "id": "gravel",
+      "name": "Gravel Scout",
+      "frames": 48,
+      "angle": 0,
+      "triangles": 27402,
+      "drawCalls": 29,
+      "geometryCount": 42,
+      "textureCount": 19,
+      "revision": "160",
+      "error": null
+    },
+    {
+      "file": "atlas-exterior.jpg",
+      "refractingMaterials": 0,
+      "singlePassGlass": true,
+      "garageTriangles": 4344,
+      "garageMeshes": 13,
+      "modelTriangles": 26946,
+      "modelMeshes": 29,
+      "expectedEye": [
+        -0.4469,
+        1.593,
+        -0.6992
+      ],
+      "view": "exterior",
+      "cameraLocal": [
+        5.094066252715225,
+        2.098855232870961,
+        -6.193921466369648
+      ],
+      "look": 0,
+      "framed": true,
+      "id": "atlas",
+      "name": "Atlas Utility",
+      "frames": 50,
+      "angle": 0,
+      "triangles": 31290,
+      "drawCalls": 42,
+      "geometryCount": 42,
+      "textureCount": 19,
+      "revision": "160",
+      "error": null
+    },
+    {
+      "file": "atlas-cockpit.jpg",
+      "refractingMaterials": 0,
+      "singlePassGlass": true,
+      "garageTriangles": 4344,
+      "garageMeshes": 13,
+      "modelTriangles": 26946,
+      "modelMeshes": 29,
+      "expectedEye": [
+        -0.4469,
+        1.593,
+        -0.6992
+      ],
+      "view": "cockpit",
+      "cameraLocal": [
+        -0.4469,
+        1.593,
+        -0.6992
+      ],
+      "look": 0,
+      "framed": false,
+      "id": "atlas",
+      "name": "Atlas Utility",
+      "frames": 51,
+      "angle": 0,
+      "triangles": 25382,
+      "drawCalls": 28,
+      "geometryCount": 42,
+      "textureCount": 19,
+      "revision": "160",
+      "error": null
+    },
+    {
+      "file": "kestrel-exterior.jpg",
+      "refractingMaterials": 0,
+      "singlePassGlass": true,
+      "garageTriangles": 4344,
+      "garageMeshes": 13,
+      "modelTriangles": 26570,
+      "modelMeshes": 29,
+      "expectedEye": [
+        -0.39359999999999995,
+        1.1106,
+        0.32300000000000006
+      ],
+      "view": "exterior",
+      "cameraLocal": [
+        3.86985271528196,
+        1.5245363953938313,
+        -4.705389096990564
+      ],
+      "look": 0,
+      "framed": true,
+      "id": "kestrel",
+      "name": "Kestrel R",
+      "frames": 53,
+      "angle": 0,
+      "triangles": 30914,
+      "drawCalls": 42,
+      "geometryCount": 42,
+      "textureCount": 19,
+      "revision": "160",
+      "error": null
+    },
+    {
+      "file": "kestrel-cockpit.jpg",
+      "refractingMaterials": 0,
+      "singlePassGlass": true,
+      "garageTriangles": 4344,
+      "garageMeshes": 13,
+      "modelTriangles": 26570,
+      "modelMeshes": 29,
+      "expectedEye": [
+        -0.39359999999999995,
+        1.1106,
+        0.32300000000000006
+      ],
+      "view": "cockpit",
+      "cameraLocal": [
+        -0.39359999999999995,
+        1.1106,
+        0.32300000000000006
+      ],
+      "look": 0,
+      "framed": false,
+      "id": "kestrel",
+      "name": "Kestrel R",
+      "frames": 54,
+      "angle": 0,
+      "triangles": 25114,
+      "drawCalls": 29,
+      "geometryCount": 42,
+      "textureCount": 19,
+      "revision": "160",
+      "error": null
+    },
+    {
+      "file": "vesper-exterior.jpg",
+      "refractingMaterials": 0,
+      "singlePassGlass": true,
+      "garageTriangles": 4344,
+      "garageMeshes": 13,
+      "modelTriangles": 26678,
+      "modelMeshes": 29,
+      "expectedEye": [
+        -0.41819999999999996,
+        1.0249,
+        -0.46599999999999997
+      ],
+      "view": "exterior",
+      "cameraLocal": [
+        4.028957336484674,
+        1.5138885086793608,
+        -4.898845852316591
+      ],
+      "look": 0,
+      "framed": true,
+      "id": "vesper",
+      "name": "Vesper GT",
+      "frames": 56,
+      "angle": 0,
+      "triangles": 31022,
+      "drawCalls": 42,
+      "geometryCount": 42,
+      "textureCount": 19,
+      "revision": "160",
+      "error": null
+    },
+    {
+      "file": "vesper-cockpit.jpg",
+      "refractingMaterials": 0,
+      "singlePassGlass": true,
+      "garageTriangles": 4344,
+      "garageMeshes": 13,
+      "modelTriangles": 26678,
+      "modelMeshes": 29,
+      "expectedEye": [
+        -0.41819999999999996,
+        1.0249,
+        -0.46599999999999997
+      ],
+      "view": "cockpit",
+      "cameraLocal": [
+        -0.41819999999999996,
+        1.0249,
+        -0.46599999999999997
+      ],
+      "look": 0,
+      "framed": false,
+      "id": "vesper",
+      "name": "Vesper GT",
+      "frames": 57,
+      "angle": 0,
+      "triangles": 24574,
+      "drawCalls": 27,
+      "geometryCount": 42,
+      "textureCount": 19,
+      "revision": "160",
+      "error": null
+    },
+    {
+      "file": "390-exterior.jpg",
+      "refractingMaterials": 0,
+      "singlePassGlass": true,
+      "garageTriangles": 4344,
+      "garageMeshes": 13,
+      "modelTriangles": 26678,
+      "modelMeshes": 29,
+      "expectedEye": [
+        -0.41819999999999996,
+        1.0249,
+        -0.46599999999999997
+      ],
+      "view": "exterior",
+      "cameraLocal": [
+        10.680975141152093,
+        2.9501196255961895,
+        -12.987094773900838
+      ],
+      "look": 0,
+      "framed": true,
+      "id": "vesper",
+      "name": "Vesper GT",
+      "frames": 61,
+      "angle": 0,
+      "triangles": 29486,
+      "drawCalls": 41,
+      "geometryCount": 42,
+      "textureCount": 19,
+      "revision": "160",
+      "error": null
+    },
+    {
+      "file": "390-exterior-ui.jpg",
+      "refractingMaterials": 0,
+      "singlePassGlass": true,
+      "garageTriangles": 4344,
+      "garageMeshes": 13,
+      "modelTriangles": 26678,
+      "modelMeshes": 29,
+      "expectedEye": [
+        -0.41819999999999996,
+        1.0249,
+        -0.46599999999999997
+      ],
+      "view": "exterior",
+      "cameraLocal": [
+        10.680975141152093,
+        2.9501196255961895,
+        -12.987094773900838
+      ],
+      "look": 0,
+      "framed": true,
+      "id": "vesper",
+      "name": "Vesper GT",
+      "frames": 61,
+      "angle": 0,
+      "triangles": 29486,
+      "drawCalls": 41,
+      "geometryCount": 42,
+      "textureCount": 19,
+      "revision": "160",
+      "error": null
+    },
+    {
+      "file": "390-cockpit.jpg",
+      "refractingMaterials": 0,
+      "singlePassGlass": true,
+      "garageTriangles": 4344,
+      "garageMeshes": 13,
+      "modelTriangles": 26678,
+      "modelMeshes": 29,
+      "expectedEye": [
+        -0.41819999999999996,
+        1.0249,
+        -0.46599999999999997
+      ],
+      "view": "cockpit",
+      "cameraLocal": [
+        -0.41819999999999996,
+        1.0249,
+        -0.46599999999999997
+      ],
+      "look": 0,
+      "framed": false,
+      "id": "vesper",
+      "name": "Vesper GT",
+      "frames": 65,
+      "angle": 0,
+      "triangles": 22892,
+      "drawCalls": 22,
+      "geometryCount": 42,
+      "textureCount": 19,
+      "revision": "160",
+      "error": null
+    },
+    {
+      "file": "390-cockpit-ui.jpg",
+      "refractingMaterials": 0,
+      "singlePassGlass": true,
+      "garageTriangles": 4344,
+      "garageMeshes": 13,
+      "modelTriangles": 26678,
+      "modelMeshes": 29,
+      "expectedEye": [
+        -0.41819999999999996,
+        1.0249,
+        -0.46599999999999997
+      ],
+      "view": "cockpit",
+      "cameraLocal": [
+        -0.41819999999999996,
+        1.0249,
+        -0.46599999999999997
+      ],
+      "look": 0,
+      "framed": false,
+      "id": "vesper",
+      "name": "Vesper GT",
+      "frames": 65,
+      "angle": 0,
+      "triangles": 22892,
+      "drawCalls": 22,
+      "geometryCount": 42,
+      "textureCount": 19,
+      "revision": "160",
+      "error": null
+    }
+  ],
+  "images": [
+    {
+      "file": "pip-exterior.jpg",
+      "bytes": 81810,
+      "mean": 165.47389524502043,
+      "stddev": 48.626993276452644
+    },
+    {
+      "file": "pip-cockpit.jpg",
+      "bytes": 68211,
+      "mean": 80.4452512333861,
+      "stddev": 64.81057206465911
+    },
+    {
+      "file": "brindle-exterior.jpg",
+      "bytes": 76746,
+      "mean": 169.99307370862633,
+      "stddev": 41.800894579379154
+    },
+    {
+      "file": "brindle-cockpit.jpg",
+      "bytes": 72653,
+      "mean": 102.93592375096645,
+      "stddev": 58.959529400525895
+    },
+    {
+      "file": "bricklet-exterior.jpg",
+      "bytes": 77835,
+      "mean": 170.77722883914436,
+      "stddev": 40.55844558235021
+    },
+    {
+      "file": "bricklet-cockpit.jpg",
+      "bytes": 81965,
+      "mean": 109.00784787931225,
+      "stddev": 58.30022618352807
+    },
+    {
+      "file": "finch-exterior.jpg",
+      "bytes": 79408,
+      "mean": 170.5326226022606,
+      "stddev": 41.08096654487977
+    },
+    {
+      "file": "finch-cockpit.jpg",
+      "bytes": 79375,
+      "mean": 106.32571057766651,
+      "stddev": 61.48001770547029
+    },
+    {
+      "file": "lantern-exterior.jpg",
+      "bytes": 75601,
+      "mean": 167.8948745443835,
+      "stddev": 43.97158697396829
+    },
+    {
+      "file": "lantern-cockpit.jpg",
+      "bytes": 78710,
+      "mean": 102.78109467619012,
+      "stddev": 59.705783991935775
+    },
+    {
+      "file": "comet-exterior.jpg",
+      "bytes": 79712,
+      "mean": 169.99553127646257,
+      "stddev": 41.43174265312788
+    },
+    {
+      "file": "comet-cockpit.jpg",
+      "bytes": 82455,
+      "mean": 101.82335886013034,
+      "stddev": 60.73241866080719
+    },
+    {
+      "file": "orchard-exterior.jpg",
+      "bytes": 76708,
+      "mean": 169.20197387798683,
+      "stddev": 42.448836853319676
+    },
+    {
+      "file": "orchard-cockpit.jpg",
+      "bytes": 82256,
+      "mean": 111.94040513051802,
+      "stddev": 58.5530652679375
+    },
+    {
+      "file": "horizon-exterior.jpg",
+      "bytes": 78350,
+      "mean": 169.00571016346967,
+      "stddev": 42.5370235014649
+    },
+    {
+      "file": "horizon-cockpit.jpg",
+      "bytes": 82849,
+      "mean": 105.50046021869592,
+      "stddev": 62.275339879132694
+    },
+    {
+      "file": "morrow-exterior.jpg",
+      "bytes": 82257,
+      "mean": 177.07664827325945,
+      "stddev": 36.5510613063321
+    },
+    {
+      "file": "morrow-cockpit.jpg",
+      "bytes": 78446,
+      "mean": 117.83511974890467,
+      "stddev": 62.582688109765336
+    },
+    {
+      "file": "relay-exterior.jpg",
+      "bytes": 76897,
+      "mean": 167.07649870218327,
+      "stddev": 45.08396525213373
+    },
+    {
+      "file": "relay-cockpit.jpg",
+      "bytes": 83760,
+      "mean": 104.67581389676374,
+      "stddev": 60.43528252312174
+    },
+    {
+      "file": "tempest-exterior.jpg",
+      "bytes": 79486,
+      "mean": 168.6761360498509,
+      "stddev": 42.29423087169558
+    },
+    {
+      "file": "tempest-cockpit.jpg",
+      "bytes": 76015,
+      "mean": 111.80666442693568,
+      "stddev": 62.00022725369176
+    },
+    {
+      "file": "sunray-exterior.jpg",
+      "bytes": 84795,
+      "mean": 175.55558866573395,
+      "stddev": 36.575900231640055
+    },
+    {
+      "file": "sunray-cockpit.jpg",
+      "bytes": 78121,
+      "mean": 115.25406833327197,
+      "stddev": 59.927759027576464
+    },
+    {
+      "file": "parcel-exterior.jpg",
+      "bytes": 77047,
+      "mean": 174.64413819447,
+      "stddev": 36.79900323433281
+    },
+    {
+      "file": "parcel-cockpit.jpg",
+      "bytes": 78867,
+      "mean": 130.6483952174073,
+      "stddev": 55.20697218767267
+    },
+    {
+      "file": "pebble-exterior.jpg",
+      "bytes": 80973,
+      "mean": 172.40384420676705,
+      "stddev": 39.39922347777832
+    },
+    {
+      "file": "pebble-cockpit.jpg",
+      "bytes": 81283,
+      "mean": 121.14866329479769,
+      "stddev": 56.23396666212499
+    },
+    {
+      "file": "dockside-exterior.jpg",
+      "bytes": 76262,
+      "mean": 167.3990222653805,
+      "stddev": 45.55596564517622
+    },
+    {
+      "file": "dockside-cockpit.jpg",
+      "bytes": 77598,
+      "mean": 124.21218267920916,
+      "stddev": 55.084193782797364
+    },
+    {
+      "file": "gravel-exterior.jpg",
+      "bytes": 74872,
+      "mean": 169.43005596259343,
+      "stddev": 43.779746312976286
+    },
+    {
+      "file": "gravel-cockpit.jpg",
+      "bytes": 75439,
+      "mean": 119.69281437539118,
+      "stddev": 55.2933691193821
+    },
+    {
+      "file": "atlas-exterior.jpg",
+      "bytes": 79813,
+      "mean": 171.22185762674422,
+      "stddev": 43.16551845718787
+    },
+    {
+      "file": "atlas-cockpit.jpg",
+      "bytes": 80736,
+      "mean": 118.78881944700122,
+      "stddev": 53.7381608677019
+    },
+    {
+      "file": "kestrel-exterior.jpg",
+      "bytes": 78620,
+      "mean": 169.28762748057878,
+      "stddev": 42.77671697412826
+    },
+    {
+      "file": "kestrel-cockpit.jpg",
+      "bytes": 83746,
+      "mean": 107.1197661628806,
+      "stddev": 61.160859598826576
+    },
+    {
+      "file": "vesper-exterior.jpg",
+      "bytes": 79060,
+      "mean": 169.48304669378888,
+      "stddev": 41.5186184094145
+    },
+    {
+      "file": "vesper-cockpit.jpg",
+      "bytes": 77964,
+      "mean": 110.7354110673392,
+      "stddev": 59.69494914952778
+    },
+    {
+      "file": "390-exterior.jpg",
+      "bytes": 22346,
+      "mean": 183.16887313057234,
+      "stddev": 37.03314034929597
+    },
+    {
+      "file": "390-exterior-ui.jpg",
+      "bytes": 98209,
+      "mean": 194.5798818048818,
+      "stddev": 59.47728988237139
+    },
+    {
+      "file": "390-cockpit.jpg",
+      "bytes": 27507,
+      "mean": 93.68904587287892,
+      "stddev": 52.39140658383048
+    },
+    {
+      "file": "390-cockpit-ui.jpg",
+      "bytes": 104465,
+      "mean": 156.9116635866636,
+      "stddev": 83.1961751985297
+    }
+  ],
+  "free_before": 2292396032,
+  "free_after": 2289029120,
+  "image_bytes": 3249228,
+  "sources_stable": true,
+  "source_commit": "f9169da4a74ef98e4a92017991b1459db8a9c4ca",
+  "capture_folder": "car-fleet-visual-20te1smd",
+  "seconds": 185.51784799899906,
+  "stored_previews": [
+    "390-cockpit-ui.jpg",
+    "390-cockpit.jpg",
+    "390-exterior-ui.jpg",
+    "390-exterior.jpg",
+    "atlas-cockpit.jpg",
+    "atlas-exterior.jpg",
+    "bricklet-cockpit.jpg",
+    "bricklet-exterior.jpg",
+    "brindle-cockpit.jpg",
+    "brindle-exterior.jpg",
+    "cockpit-contact.jpg",
+    "comet-cockpit.jpg",
+    "comet-exterior.jpg",
+    "dockside-cockpit.jpg",
+    "dockside-exterior.jpg",
+    "exterior-contact.jpg",
+    "finch-cockpit.jpg",
+    "finch-exterior.jpg",
+    "gravel-cockpit.jpg",
+    "gravel-exterior.jpg",
+    "horizon-cockpit.jpg",
+    "horizon-exterior.jpg",
+    "kestrel-cockpit.jpg",
+    "kestrel-exterior.jpg",
+    "lantern-cockpit.jpg",
+    "lantern-exterior.jpg",
+    "morrow-cockpit.jpg",
+    "morrow-exterior.jpg",
+    "orchard-cockpit.jpg",
+    "orchard-exterior.jpg",
+    "parcel-cockpit.jpg",
+    "parcel-exterior.jpg",
+    "pebble-cockpit.jpg",
+    "pebble-exterior.jpg",
+    "pip-cockpit.jpg",
+    "pip-exterior.jpg",
+    "relay-cockpit.jpg",
+    "relay-exterior.jpg",
+    "sunray-cockpit.jpg",
+    "sunray-exterior.jpg",
+    "tempest-cockpit.jpg",
+    "tempest-exterior.jpg",
+    "vesper-cockpit.jpg",
+    "vesper-exterior.jpg"
+  ]
+}

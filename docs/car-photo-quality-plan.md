@@ -1,6 +1,10 @@
 # Photo-quality target, not a relabeling
 
-## Current cockpit follow-up
+## Current full-fleet detail follow-up
+
+Owner's newest order expands detail to all remaining car types and asks for original sports designs. [Current bounded implementation](car-fleet-detail-plan.md) adds17 new parked factories (fifteen remaining gameplay IDs plus Kestrel R/Vesper GT sports concepts), nineteen studio selectors with existing Pip/Brindle. [Actual final exterior/cockpit gallery](car-detailed-previews/README.md), sourcef9169da: Main independently checks19 factories x2 fresh ownership cycles and reviews complete sheets plus new sports/utility examples. Visual-only batch exits0/185.5178s/zero errors/local frozen requests, exact eyes and390 keyboard/touch. First0/174.4600s batch was visually rejected for block noses/instrument framing; shared geometry/camera correction is tested, not a relabeling. Detail exists but pictures remain stylized and surface joins need polish; no accepted photographic/artistic-parity/legal/hardware certificate. All live Game/fleet/shared factory/vendor bytes unchanged, sports concepts not drivable yet. Unchanged20s startup/runtime gate remains held;60s visual capture does not clear it. Scope/evidence supersedes older two-model-only planning below for this follow-up, not older failures.
+
+## Earlier cockpit follow-up
 
 Showcase2d6a5e0 adds a physical radio tuner/map and softer dashboard material response. [Current Brindle](car-photo-previews/brindle-cockpit-radio.jpg), [Pip](car-photo-previews/pip-cockpit-radio.jpg) and [390](car-photo-previews/390-cockpit-radio.jpg) personally reviewed; visual-only exit0/83.9972s, exact eyes, zero recorded errors/stable hashes/nonblank images. Pip29,166 triangles/26 meshes, Brindle29,378/35, each9 textures/983,040 base RGBA bytes. Still stylized;20s startup gate/hardware/photo-quality acceptance remains held and was not rerun. [Separate mounted weapons/customization](slipstream-gadgets.md) extends live Slipstream, not these parked studies or their driving integration.
 

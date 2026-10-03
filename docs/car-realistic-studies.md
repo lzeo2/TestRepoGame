@@ -1,6 +1,14 @@
 # Original car studies: optimized studio
 
-## Current cockpit detail and separate live gadgets
+## Current full-fleet detail checkpoint
+
+Owner requested comparable detail for the remaining cars plus original sports/high-performance intentions. [Bounded contract](car-fleet-detail-plan.md) and [actual nineteen-car exterior/cabin gallery](car-detailed-previews/README.md). Genuine Astra123/124/125 completed: bae98a8 builder,2b3fd2a profiles,6416114/b083128 studio/check/capture; Main verified actual assistant metadata and independently checked source. f9169da rounds shared front/rear stampings and attached lenses/grilles, adds sports shape/detail differences and derives cockpit aim so the actual physical instruments fit. New originals **Kestrel R** and **Vesper GT** are parked sports concepts, not replicas or drivable performance claims. All fifteen remaining current fleet IDs have new higher-detail parked factories; existing Pip/Brindle factory bytes remain unchanged.
+
+Main19-factory/two-cycle regression passes geometry/UV/ground/camera/instrument projection/map ownership/disposal. New17 models22,838–28,858triangles/28–29meshes; Pip29,166/26,Brindle29,378/35; all9 maps/983,040baseRGBAbytes, mips separate. New actual42-frame visual-only batch exits0/185.5178s, no recorded errors/external requests, frozen hashes/exact eyes/nonblank images/390 keyboard+touch; live textures19. Main opened both complete contact sheets and the new sports/utility cabin examples. First batch0/174.4600s was technically captured but visually rejected for block-like noses/dash framing; that failure of the owner's target is preserved, not presented as final.
+
+The refined pictures show real curved stampings, canopy/trim, wheels/brakes, seats/dash/dials/radio and different vehicle forms, but remain stylized with shared family details and visible joins needing polish. No photographic/artistic-parity/legal/FPS certificate. **Not installed in either driving/business game**; cached16-car live factory/fleet/Game/catalog/vendor unchanged. Unchanged20s focused startup acceptance still HELD;60s visual-only readiness is not a replacement. No new game, registration, full release or push. See gallery for exact evidence, storage and remaining integration gates.
+
+## Earlier cockpit detail and separate live gadgets
 
 Showcase2d6a5e0 adds original physical radio faces/typography and softer dashboard plastic response. Main opened fresh [Brindle](car-photo-previews/brindle-cockpit-radio.jpg), [Pip](car-photo-previews/pip-cockpit-radio.jpg) and [390](car-photo-previews/390-cockpit-radio.jpg) images; visual-only capture exit0/83.9972s with exact actual eyes, zero recorded errors and stable sources. Pip29,166 triangles/26 meshes; Brindle29,378/35; each9 textures/983,040 base RGBA bytes; two-cycle ownership/geometry checks pass with stub canvas. These remain stylized parked cabins, not photo-real driving integration; unchanged20s native startup acceptance stays held.
 

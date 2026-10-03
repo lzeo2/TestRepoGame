@@ -24,6 +24,12 @@ record. It changes no game, catalog, vendor, manual or inventory file. Other
 workers own fleet/model implementation, engines and UI; their final sources,
 geometry measurements, gameplay and originality review are not certified here.
 
+## Original detailed fleet and sports follow-up
+
+Newest direct owner request extends original modeling to the remaining fleet and additional generic sports/high-performance intentions while avoiding copyrighted designs. [Bounded source/authority record](car-fleet-detail-plan.md). Genuine Astra123–125 authored seventeen parked factories using new original numerical profiles and sampled/primitive geometry: fifteen existing fleet counterparts plus **Kestrel R** and **Vesper GT**. Existing original Pip/Brindle are retained, nineteen studio selectors total. Model build commits bae98a8/2b3fd2a, studio/test6416114/b083128, Main geometry/camera correctionf9169da. [Actual local-render gallery](car-detailed-previews/README.md) and its source hashes document this authored content, not ingested attribution or fabricated upstream licensing.
+
+No OEM reference images, meshes, textures, logos, badges, blueprints or traced branded silhouettes were imported. Original runtime finishes reuse the existing project decorator, local fonts and renderer, with unchanged MIT/OFL notices. No dependency/download/vendor changes. Generic vehicle forms and original names are not a legal noninfringement/trademark certificate; copyright/design review remains separate. High-performance terminology describes sports concepts, not verified mechanical results. These are parked models, **not new games or installed live sports cars**; both live fleets/Game/catalog/store bytes remain unchanged. No new game registration or push.
+
 ## Local rendering dependency
 
 Main copied the existing local renderer/helper/notice into
