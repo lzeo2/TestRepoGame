@@ -7,7 +7,7 @@ import { decorateCar, decorateGarage } from './realism.js';
 const canvas = document.getElementById('studio'), status = document.getElementById('status');
 const factories = { pip, brindle }, scene = new THREE.Scene();
 let renderer, environment, current, garage, drag = null, pending = 0, frames = 0, disposed = false, failure = null;
-let view = 'exterior', look = 0;
+let view = 'exterior', look = 0, renderedCar = null, retiredCar = null;
 const windowOpacity = new Map();
 const camera = new THREE.PerspectiveCamera(32, 1, .1, 60);
 function disposeObject(object) {
@@ -60,12 +60,19 @@ function draw() {
     const width = canvas.clientWidth, height = canvas.clientHeight;
     if (canvas.width !== width || canvas.height !== height) { renderer.setSize(width, height, false); camera.aspect = width / height; }
     frameCamera(); renderer.render(scene, camera); frames++;
+    // Retain the old GPU programs until the new car has acquired matching ones.
+    if (retiredCar) { disposeObject(retiredCar); retiredCar = null; }
+    renderedCar = current;
     status.textContent = `${current.userData.name} / ${view} / parked 3D study / ${renderer.info.render.triangles.toLocaleString()} frame triangles / ${renderer.info.render.calls} draws. Device performance unmeasured.`;
   } catch (error) { fail(error); }
 }
 function select(id) {
   if (disposed || !renderer || !Object.hasOwn(factories, id)) return;
-  if (current) { scene.remove(current); disposeObject(current); }
+  if (current) {
+    scene.remove(current);
+    if (current === renderedCar) retiredCar = current;
+    else disposeObject(current);
+  }
   windowOpacity.clear();
   current = factories[id](); decorateCar(current); scene.add(current);
   current.traverse(node => {
@@ -156,5 +163,5 @@ function garageStats() {
   return {garageTriangles, garageMeshes};
 }
 Object.defineProperty(window,'carStudioSnapshot',{get:()=>Object.freeze({...glassStats(),...garageStats(),view,cameraLocal:current ? Object.freeze(current.worldToLocal(camera.position.clone()).toArray()) : null,look,framed:framed(),id:document.getElementById('car').value,name:current?.userData.name,frames,angle:current?.rotation.y,triangles:renderer?.info.render.triangles,drawCalls:renderer?.info.render.calls,geometryCount:renderer?.info.memory.geometries,textureCount:renderer?.info.memory.textures,revision:THREE.REVISION,error:failure})});
-window.addEventListener('pagehide',()=>{if(disposed)return;disposed=true;drag=null;cancelAnimationFrame(pending);pending=0;disposeObject(scene);windowOpacity.clear();environment?.dispose();renderer?.dispose();});
+window.addEventListener('pagehide',()=>{if(disposed)return;disposed=true;drag=null;cancelAnimationFrame(pending);pending=0;disposeObject(scene);if(retiredCar)disposeObject(retiredCar);retiredCar=null;renderedCar=null;windowOpacity.clear();environment?.dispose();renderer?.dispose();});
 window.addEventListener('pageshow',event=>{if(event.persisted)location.reload();});

@@ -143,6 +143,10 @@ def main():
         print('PASS actual rounded geometry/tint/garage and physical cockpit; keyboard/touch/reset/selection/reload; no photorealism/hardware/legal certification.',flush=True)
     except Exception:
         print('FAIL errors='+json.dumps(errors),flush=True)
+        try:
+            print('FAIL snapshot='+json.dumps(page.evaluate('window.carStudioSnapshot')),flush=True)
+        except Exception as diagnostic_error:
+            print('FAIL snapshot unavailable: '+str(diagnostic_error),flush=True)
         raise
     finally:
         server.shutdown();server.server_close();thread.join(timeout=3)
