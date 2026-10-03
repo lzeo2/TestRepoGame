@@ -115,6 +115,7 @@ def main():
                 page.keyboard.press('c');page.wait_for_function('carStudioSnapshot.view==="exterior"')
                 print(json.dumps(row),flush=True)
             assert page.evaluate('carStudioSnapshot.garageTriangles>100 && carStudioSnapshot.garageTriangles<=15000 && carStudioSnapshot.garageMeshes>4 && carStudioSnapshot.garageMeshes<=35')
+            assert page.evaluate('carStudioSnapshot.textureCount>4 && carStudioSnapshot.textureCount<=24'), 'Generated-texture lifetime budget'
             # Real accessible touch controls at phone width, no pose/state setters.
             page.set_viewport_size({'width':390,'height':844})
             page.wait_for_function('document.documentElement.scrollWidth<=innerWidth && carStudioSnapshot.framed')
