@@ -95,7 +95,7 @@ export function createCar() {
   add(surface(24, 24, roofPoint), ivory);
   add(surface(24, 24, (u, v) => { const p = roofPoint(1 - u, v); p[1] -= .028; return p; }), upholstery);
   for (let edge = 0; edge < 4; edge++) add(surface(24, 1, (u, v) => {
-    const [s, t] = edge === 0 ? [u, 0] : edge === 1 ? [1, u] : edge === 2 ? [1 - u, 1] : [0, 1 - u];
+    const [s, t] = edge === 0 ? [1 - u, 0] : edge === 1 ? [1, 1 - u] : edge === 2 ? [u, 1] : [0, u];
     const p = roofPoint(s, t); p[1] -= .028 * v; return p;
   }), ivory);
   const canopy = (s, t, v) => {
@@ -168,7 +168,7 @@ export function createCar() {
       return [side * .87 + .095 * r * Math.cos(a), 1.047 + .057 * r * Math.sin(a), -.545 - .085 * Math.cos(v * Math.PI / 2)];
     }), paint);
     add(surface(32, 1, (u, v) => {
-      const a = u * Math.PI * 2;
+      const a = -u * Math.PI * 2;
       return [side * .87 + (.095 - .009 * v) * Math.cos(a), 1.047 + (.057 - .009 * v) * Math.sin(a), -.545 + .003 * v];
     }), rubber);
     const mirror = new THREE.CircleGeometry(1, 32);
