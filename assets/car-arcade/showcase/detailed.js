@@ -108,7 +108,7 @@ export function createDetailedCar(id) {
   const stations=[...new Set([...Array.from({length:81},(_,i)=>(i/80-.5)*L),cf,cr])].sort((a,b)=>a-b);
   const station=(zs,u)=>zs[Math.round(u*(zs.length-1))];
   for(const side of [-1,1]){
-    surface(paint,(u,v)=>skin(side,station(stations,u),v),stations.length-1,6,side<0,true);
+    surface(paint,(u,v)=>skin(side,station(stations,u),v),stations.length-1,hypercar?12:6,side<0,true);
     for(const axle of [-p.wheelbase/2,p.wheelbase/2]){
       // Lip follows the same open stamping, with a curved outward rolled edge.
       surface(paint,(u,v)=>{const a=u*Math.PI,r=radius+.035+.025*v,z=axle+r*Math.cos(a);return shaped(side*(half(z)-.023+.012*Math.sin(v*Math.PI)),radius+r*Math.sin(a),z);},24,3,side>0);
@@ -123,7 +123,7 @@ export function createDetailedCar(id) {
   if(!pickup) deck(cr,L/2); // Never put an opaque deck across the cabin or pickup bed.
   for(const end of [-1,1]) surface(paint,(u,v)=>{
     const z=end*L/2;return shaped((2*u-1)*(half(z)-.025*(1-v)**3-.045*v**5),mix(clearance,belt(z)+.04*Math.sin(Math.PI*u),v),z);
-  },24,6,end>0,true);
+  },24,hypercar?12:6,end>0,true);
   // Weld only coincident vertices of the connected skin/deck/caps, never
   // unrelated paint, wheel lips, canopy or opposing rounded-box faces.
   const joined=new THREE.BufferGeometry(),positions=[],uvs=[],indices=[],vertices=new Map();
@@ -136,7 +136,23 @@ export function createDetailedCar(id) {
     }
     for(const i of g.index.array)indices.push(remap[i]);g.dispose();
   }
-  joined.setAttribute('position',new THREE.Float32BufferAttribute(positions,3));joined.setAttribute('uv',new THREE.Float32BufferAttribute(uvs,2));joined.setIndex(indices);joined.computeVertexNormals();add(joined,paint);
+  joined.setAttribute('position',new THREE.Float32BufferAttribute(positions,3));joined.setAttribute('uv',new THREE.Float32BufferAttribute(uvs,2));joined.setIndex(indices);joined.computeVertexNormals();
+  if(hypercar){
+    // Color the actual recessed stamping faces. A separately sampled overlay
+    // intersects the coarser hull chords even with a tiny outward offset.
+    const painted=[],cooled=[],p=joined.attributes.position;
+    for(let i=0;i<indices.length;i+=3){
+      const face=indices.slice(i,i+3),c=new THREE.Vector3();
+      for(const j of face)c.add(new THREE.Vector3().fromBufferAttribute(p,j));c.multiplyScalar(1/3);
+      const v=(c.y-bottom(c.z))/(belt(c.z)-bottom(c.z));
+      const side=Math.abs(c.x)>W*.31&&channel(c.z)>.10&&v>.24&&v<.73;
+      const mouth=c.z<-L*.44&&((Math.abs(c.x)-W*.29)/(W*.12))**2+((c.y-clearance-.16)/.10)**2<.85;
+      (side||mouth?cooled:painted).push(...face);
+    }
+    const cooling=joined.clone();cooling.setIndex(cooled);add(cooling,trim);
+    joined.setIndex(painted);
+  }
+  add(joined,paint);
   rounded(trim,0,clearance-.035,0,W*.77,.06,L*.84,.005);
   const hood=[];
   for(const [a,b] of [[[.055,-L/2+.09],[.055,cf-.045]],[[.055,cf-.045],[.945,cf-.045]],[[.945,cf-.045],[.945,-L/2+.09]]]){
@@ -215,7 +231,7 @@ export function createDetailedCar(id) {
   }
   // Recessed reflector bowls with continuous curved covers, generic lamp geometry.
   for(const end of [-1,1])for(const side of [-1,1]){
-    const x=side*W*.29,y=B*(hypercar?.76:sport?.65:.73),a=W*(hypercar?.085:sport?.105:.083),b=B*(hypercar?.035:sport?.050:.095);
+    const x=side*W*.29,y=B*(hypercar?.70:sport?.65:.73),a=W*(hypercar?.085:sport?.105:.083),b=B*(hypercar?.035:sport?.050:.095);
     const point=(u,v,depth)=>{
       const t=u*Math.PI*2,c=Math.cos(t),s=Math.sin(t),squared=['hyper','prototype'].includes(form);
       const q=shaped(x+a*v*(squared?Math.sign(c)*Math.abs(c)**.45:c),y+b*v*(squared?Math.sign(s)*Math.abs(s)**.45:s)+(hypercar?(track?.045:.018)*c*v:0),end*L/2);
@@ -247,12 +263,6 @@ export function createDetailedCar(id) {
   }
   if(hypercar){
     for(const side of [-1,1]){
-      // Black channel floor and its flared rear lip share the recessed body skin.
-      const vent=(u,v)=>{const z=cr-.50+.78*u,q=skin(side,z,.24+.49*v);q[0]+=side*.002;return q;};
-      surface(trim,vent,16,4,side<0);
-      surface(paint,(u,v)=>{const q=vent(.83+.17*u,v);q[0]+=side*.065*Math.sin(Math.PI*u)*Math.sin(Math.PI*v);return q;},6,6,side<0);
-      // Purpose-shaped front cooling bowls conform to the recessed nose.
-      surface(trim,(u,v)=>{const a=2*Math.PI*u,r=.86*v,q=shaped(side*W*.29+W*.12*r*Math.cos(a),clearance+.16+.10*r*Math.sin(a),-L/2);q[2]-=.002;return q;},24,4);
       // Sill runs into the arch roots, not a free-floating rectangular side pod.
       surface(trim,(u,v)=>{const z=mix(-p.wheelbase/2+radius,p.wheelbase/2-radius,u),q=skin(side,z,.03);q[0]+=side*.045*Math.sin(Math.PI*u)*v;q[1]-=.035*v;return q;},24,2,side<0);
       // Rear buttresses grow from the shoulders to a real curved aerofoil.
@@ -275,8 +285,8 @@ export function createDetailedCar(id) {
     for(const x of [-.52,-.26,0,.26,.52])surface(trim,(u,v)=>[x,clearance-.09+.095*u*u+.10*v,mix(L*.32,L/2+.025,u)],8,1);
   }
   // All cabin coordinates are derived from the physical canopy and belt.
-  const seatX=W*.205, eyeY=B+(H-B)*.57, eyeZ=Math.min(mix(rf,rr,.48),cf+.95);
-  const floorY=clearance+.085, cushionY=floorY+.13, dashZ=cf+.17, dashY=B-.035;
+  const seatX=W*(hypercar?.17:.205), eyeY=B+(H-B)*.57, eyeZ=Math.min(mix(rf,rr,.48),cf+.95);
+  const floorY=clearance+.085, cushionY=floorY+.13, dashZ=cf+(hypercar?.23:.17), dashY=B-.035;
   rounded(rubber,0,floorY,(cf+cr)/2,W*.80,.055,cr-cf-.08,.005);
   for(const side of [-1,1]){
     rounded(fabric,side*seatX,cushionY,eyeZ+.03,W*.25,.13,.49,.05);
@@ -291,7 +301,7 @@ export function createDetailedCar(id) {
     rounded(fabric,0,cushionY+.03,cr-.36,W*.65,.13,.42,.05);
     rounded(fabric,0,(cushionY+eyeY)/2,cr-.15,W*.64,eyeY-cushionY,.11,.035);
   }
-  rounded(trim,0,dashY,dashZ,W*.80,.16,.29,.04);
+  rounded(trim,0,dashY,dashZ,hypercar?canopyHalf(dashZ)*1.84:W*.80,.16,.29,.04);
   const gaugeY=B+.045,gaugeZ=dashZ+.155;
   rounded(trim,-seatX,gaugeY,gaugeZ-.055,.39,.16,.13,.03);
   for(const [i,dx] of [-.085,.085].entries()){
@@ -300,7 +310,7 @@ export function createDetailedCar(id) {
     tube(red,[[x,gaugeY,gaugeZ+.017],[x-.032,gaugeY-.032,gaugeZ+.017]],.002,1);
   }
   const radio=new THREE.PlaneGeometry(.19,.057);radio.translate(0,dashY,gaugeZ+.004);add(radio,standard('console-radio','#ffffff'));
-  for(const x of [-W*.34,W*.13,W*.34]){
+  for(const x of [-(hypercar?canopyHalf(dashZ)*.78:W*.34),W*.13,hypercar?canopyHalf(dashZ)*.78:W*.34]){
     rounded(rubber,x,dashY,gaugeZ,.115,.06,.012,.005);
     for(let i=0;i<3;i++)rounded(chrome,x,dashY-.02+i*.02,gaugeZ+.008,.10,.003,.006,.001);
   }

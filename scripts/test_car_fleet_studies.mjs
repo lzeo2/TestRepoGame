@@ -152,6 +152,23 @@ for (let cycle = 1; cycle <= 2; cycle++) for (const id of ids) {
     assert(wingSize.x > W*.7 && wingSize.z > .2 && wing.max.z < L/2+.05, id + ' attached rear aero bounds');
     assert(id === 'aerolume' ? wing.max.y < roof.max.y : wing.max.y > roof.max.y, id + ' distinct low bridge / raised wing');
     const clearance = Math.min(B*.39,W*.185)*.75;
+    const skinMeshes=[car.getObjectByName('body-paint'),car.getObjectByName('cab-plastic')];
+    const cf=profile.cabinFront*L,cr=profile.cabinRear*L;
+    // Actual rays must see one hull, not near-coplanar intake overlays.
+    for(const [origin,direction] of [
+      [[W+1,(B+clearance)/2,cr-.10],[-1,0,0]],
+      [[W*.29,clearance+.16,-L],[0,0,1]],
+    ]){
+      const ray=new THREE.Raycaster(new THREE.Vector3(...origin),new THREE.Vector3(...direction));
+      const hits=ray.intersectObjects(skinMeshes);
+      assert(hits.length,id+' missing cooling skin');
+      assert.equal(hits[0].object.material.name,'cab-plastic',id+' cooling not on actual hull');
+      assert(hits.filter(h=>h.distance<hits[0].distance+.03).every(h=>h.object.material.name==='cab-plastic'),id+' overlapping paint/intake skin');
+    }
+    // The narrow canopy's dashboard must not emerge onto the outer shoulder.
+    const ray=new THREE.Raycaster(new THREE.Vector3(profile.roofWidth/2+.205,H+1,cf+.13),new THREE.Vector3(0,-1,0));
+    const shoulder=ray.intersectObjects(skinMeshes)[0];
+    assert(shoulder&&shoulder.object.material.name==='body-paint',id+' dashboard outside physical cabin');
     const diffuser = regionBounds(car.getObjectByName('cab-plastic'), p => p.z > L*.31 && p.y < clearance+.05);
     const diffuserSize = diffuser.getSize(new THREE.Vector3());
     assert(diffuserSize.x > W*.6 && diffuserSize.z > L*.15 && diffuserSize.y > .05, id + ' physical rear diffuser');
