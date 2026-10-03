@@ -93,7 +93,7 @@ function initialize() {
   renderer = new THREE.WebGLRenderer({canvas, antialias:true, preserveDrawingBuffer:true});
   renderer.setPixelRatio(1); renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = .92;
-  renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFShadowMap;
+  renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
   scene.background = new THREE.Color('#ece9e2');
   garage = createGarage(); decorateGarage(garage); scene.add(garage);
   garage.traverse(node => {
@@ -105,15 +105,23 @@ function initialize() {
   const key = new THREE.DirectionalLight(0xfff4e3,2.8); key.position.set(-3,7,-4); key.castShadow = true;
   key.shadow.mapSize.set(1024,1024); Object.assign(key.shadow.camera,{left:-4,right:4,top:4,bottom:-4,near:.1,far:16}); key.shadow.bias = -.00005; key.shadow.normalBias = .003; key.shadow.radius = 3; scene.add(key);
   const fill = new THREE.DirectionalLight(0xdde8fb,.55); fill.position.set(4,2,3); scene.add(fill);
-  // Capture the actual original workshop at car-window height, not a fake room.
+  // ponytail: diffuse workshop capture; fully lit capture needs GPU validation.
+  // Separate materials avoid modifying the live scene's lighting/program state.
+  const room = new THREE.Scene(), reflectedGarage = garage.clone(true), captureMaterials = new Set();
+  room.background = scene.background.clone(); reflectedGarage.position.y = -.85;
+  reflectedGarage.traverse(node => {
+    if (!node.isMesh) return;
+    const source = node.material;
+    const color = source.color.clone();
+    if (source.name === 'garage-window') color.setRGB(3,3.2,3.5);
+    node.material = new THREE.MeshBasicMaterial({color, map:source.map, side:THREE.DoubleSide});
+    captureMaterials.add(node.material);
+  });
+  room.add(reflectedGarage);
   const pmrem = new THREE.PMREMGenerator(renderer);
-  garage.position.y = -.85; key.position.y -= .85; fill.position.y -= .85; key.castShadow = false;
-  scene.updateMatrixWorld(true);
-  try { environment = pmrem.fromScene(scene,.035,.1,30); }
-  finally {
-    garage.position.y = 0; key.position.y += .85; fill.position.y += .85; key.castShadow = true;
-    scene.updateMatrixWorld(true); pmrem.dispose();
-  }
+  try { environment = pmrem.fromScene(room,.035,.1,30); }
+  finally { captureMaterials.forEach(material => material.dispose()); pmrem.dispose(); }
+  // Geometry and color maps are borrowed from the live garage, not disposed here.
   scene.environment = environment.texture;
   select('pip');
   } catch (error) { fail(error); }

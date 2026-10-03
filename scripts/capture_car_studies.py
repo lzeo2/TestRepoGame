@@ -10,6 +10,7 @@ import tempfile
 import threading
 from urllib.parse import urlsplit
 from playwright.sync_api import sync_playwright
+from PIL import Image, ImageStat
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -70,7 +71,12 @@ def main():
             browser.close()
         assert not errors, errors
         assert hashes == {str(p.relative_to(ROOT)): hashlib.sha256(p.read_bytes()).hexdigest() for p in sources}
-        assert sum(p.stat().st_size for p in output.glob('*.jpg')) <= 10_000_000
+        images = list(output.glob('*.jpg'))
+        assert sum(p.stat().st_size for p in images) <= 10_000_000
+        for p in images:
+            with Image.open(p) as image:
+                stats = ImageStat.Stat(image.convert('L'))
+                assert stats.mean[0] > 8 and stats.stddev[0] > 3, 'Blank/black render: '+p.name
         result['exit'] = 0
         print('VISUAL CAPTURE COMPLETE; not runtime/performance/legal/photo-quality certification.', flush=True)
     finally:
