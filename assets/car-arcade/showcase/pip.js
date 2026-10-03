@@ -8,16 +8,16 @@ export function createCar() {
   const wheels = [];
   car.userData = {name: 'Pip Borough / realistic study', wheels, front: '-Z', showcaseOnly: true,
     cockpit: {eye: [-.34, 1.14, .16], target: [-.34, 1.12, -2]}};
-  const paint = new THREE.MeshPhysicalMaterial({color: '#aa3027', metalness: .55, roughness: .21, clearcoat: 1, clearcoatRoughness: .13, side: THREE.DoubleSide});
-  const ivory = new THREE.MeshPhysicalMaterial({color: '#e7dfc9', metalness: .45, roughness: .23, clearcoat: 1});
+  const paint = new THREE.MeshPhysicalMaterial({name: 'body-paint', color: '#aa3027', metalness: .55, roughness: .21, clearcoat: 1, clearcoatRoughness: .13, side: THREE.DoubleSide});
+  const ivory = new THREE.MeshPhysicalMaterial({name: 'roof-paint', color: '#e7dfc9', metalness: .45, roughness: .23, clearcoat: 1});
   const glass = new THREE.MeshPhysicalMaterial({name: 'window-glass', color: '#485963', metalness: 0, roughness: .16, transparent: true, opacity: .55, transmission: 0, depthWrite: false, side: THREE.DoubleSide});
   glass.forceSinglePass = true;
   const lens = new THREE.MeshPhysicalMaterial({name: 'lamp-lens', color: '#d7e1df', roughness: .14, metalness: 0, transparent: true, opacity: .28, transmission: 0, depthWrite: false});
   lens.forceSinglePass = true;
-  const chrome = new THREE.MeshStandardMaterial({color: '#c0c5c7', metalness: .95, roughness: .22});
-  const rubber = new THREE.MeshStandardMaterial({color: '#191b1d', roughness: .87});
-  const dark = new THREE.MeshStandardMaterial({color: '#25282a', roughness: .57, metalness: .18});
-  const upholstery = new THREE.MeshStandardMaterial({color: '#353230', roughness: .94});
+  const chrome = new THREE.MeshStandardMaterial({name: 'chrome', color: '#c0c5c7', metalness: .95, roughness: .22});
+  const rubber = new THREE.MeshStandardMaterial({name: 'rubber', color: '#191b1d', roughness: .87});
+  const dark = new THREE.MeshStandardMaterial({name: 'cab-plastic', color: '#25282a', roughness: .57, metalness: .18});
+  const upholstery = new THREE.MeshStandardMaterial({name: 'seat-fabric', color: '#353230', roughness: .94});
   const red = new THREE.MeshPhysicalMaterial({color: '#a91814', roughness: .22, clearcoat: 1});
   const amber = new THREE.MeshPhysicalMaterial({color: '#d97c22', roughness: .23, clearcoat: 1});
   const buckets = new Map();
@@ -28,8 +28,10 @@ export function createCar() {
     batch.get(material).push(geometry);
   };
   const surface = (nu, nv, sample, omit = () => false) => {
-    const positions = [], indices = [];
-    for (let j = 0; j <= nv; j++) for (let i = 0; i <= nu; i++) positions.push(...sample(i / nu, j / nv));
+    const positions = [], indices = [], uvs = [];
+    for (let j = 0; j <= nv; j++) for (let i = 0; i <= nu; i++) {
+      positions.push(...sample(i / nu, j / nv)); uvs.push(i / nu, j / nv);
+    }
     for (let j = 0; j < nv; j++) for (let i = 0; i < nu; i++) {
       if (omit(i, j)) continue;
       const a = j * (nu + 1) + i, b = a + nu + 1;
@@ -37,6 +39,7 @@ export function createCar() {
     }
     const g = new THREE.BufferGeometry();
     g.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+    g.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
     g.setIndex(indices); g.computeVertexNormals();
     return g;
   };
@@ -66,15 +69,15 @@ export function createCar() {
   // Closed loft: wheel cutouts lift the lower stamping, never mask tire centers.
   const bodyPoint = (u, v) => {
     const station = -1.69 + 3.38 * v, theta = u * Math.PI * 2;
-    const end = Math.pow(Math.abs(station) / 1.69, 6);
+    const end = Math.pow(Math.abs(station) / 1.69, 4);
     // Retreat the end corners to wrap the front/rear stampings around the car.
     const z = station - Math.sign(station) * end * (.085 * Math.pow(Math.abs(Math.cos(theta)), .8) + .025 * Math.abs(Math.sin(theta)));
-    const width = .845 - .135 * end;
+    const width = .845 - .115 * end;
     const top = .935 - .115 * Math.pow(Math.max(0, -z) / 1.69, 2) - .045 * Math.pow(Math.max(0, z) / 1.69, 4);
     const dist = Math.min(Math.abs(z - 1.1), Math.abs(z + 1.1));
     const bottom = dist < .35 ? .29 + Math.sqrt(.35 * .35 - dist * dist) : .285;
     const c = Math.cos(theta), s = Math.sin(theta);
-    return [width * Math.sign(c) * Math.pow(Math.abs(c), .46), (top + bottom) / 2 + (top - bottom) / 2 * Math.sign(s) * Math.pow(Math.abs(s), .65), z];
+    return [width * Math.sign(c) * Math.pow(Math.abs(c), .58), (top + bottom) / 2 + (top - bottom) / 2 * Math.sign(s) * Math.pow(Math.abs(s), .65), z];
   };
   // Leave the cabin open below the belt: no opaque hood plane through the seats.
   add(surface(32, 56, bodyPoint, (i, j) => i >= 5 && i < 11 && j >= 15 && j < 50), paint);
@@ -82,38 +85,56 @@ export function createCar() {
     const p = bodyPoint(u, v); return [p[0] * t, .56 + (p[1] - .56) * t, THREE.MathUtils.lerp(v ? 1.665 : -1.665, p[2], t)];
   }), paint);
   rounded(0, .24, .02, 1.22, .09, 2.8, .035, dark);
-  // Roof and greenhouse share their boundary equations, rather than tube frames.
-  const roofPoint = (u, v) => [(2 * u - 1) * .65,
-    1.41 + .018 * Math.sin(Math.PI * u) + .025 * Math.sin(Math.PI * v) + .045 * Math.sin(Math.PI * u) * Math.sin(Math.PI * v),
-    -.48 + 1.55 * v + (2 * v - 1) * .04 * Math.sin(Math.PI * u)];
-  add(surface(20, 16, roofPoint), ivory);
-  add(surface(20, 16, (u, v) => { const p = roofPoint(1 - u, v); p[1] -= .025; return p; }), upholstery);
-  for (const edge of [0, 1, 2, 3]) add(surface(20, 1, (u, v) => {
-    const [a, b] = edge === 0 ? [u, 0] : edge === 1 ? [1, u] : edge === 2 ? [1 - u, 1] : [0, 1 - u];
-    const p = roofPoint(a, b); p[1] -= .025 * v; return p;
-  }), ivory);
-  const panel = (sample, a, b, c, d, material) => add(surface(b - a < .2 ? 2 : 12, d - c < .2 ? 2 : 6,
-    (u, v) => sample(a + (b - a) * u, c + (d - c) * v)), material);
-  const framed = (sample, openings) => {
-    panel(sample, 0, 1, 0, .24, paint);
-    panel(sample, 0, 1, .91, 1, paint);
-    let left = 0;
-    for (const [a, b] of openings) {
-      panel(sample, left, a, .24, .91, paint);
-      panel(sample, a, b, .24, .91, glass);
-      left = b;
-    }
-    panel(sample, left, 1, .24, .91, paint);
+  // A rounded-square map gives all four canopy panels the same soft corners.
+  const plan = (s, t, a, b) => [a * s * (1 - Math.pow(Math.abs(t), 8) / 9),
+    .295 + b * t * (1 - Math.pow(Math.abs(s), 8) / 9)];
+  const roofPoint = (u, v) => {
+    const s = 2 * u - 1, t = 2 * v - 1, [x, z] = plan(s, t, .67, .79);
+    return [x, 1.405 + .065 * (1 - s * s) * (1 - t * t), z];
   };
-  const wind = (u, v) => [(2 * u - 1) * (.79 - .14 * v), .77 + .64 * v + .018 * Math.sin(Math.PI * u), -.86 + .38 * v - .04 * Math.sin(Math.PI * u)];
-  const rear = (u, v) => [(2 * u - 1) * (.79 - .14 * v), .77 + .64 * v + .018 * Math.sin(Math.PI * u), 1.41 - .34 * v + .04 * Math.sin(Math.PI * u)];
-  framed(wind, [[.075, .925]]); framed(rear, [[.11, .89]]);
+  add(surface(24, 24, roofPoint), ivory);
+  add(surface(24, 24, (u, v) => { const p = roofPoint(1 - u, v); p[1] -= .028; return p; }), upholstery);
+  for (let edge = 0; edge < 4; edge++) add(surface(24, 1, (u, v) => {
+    const [s, t] = edge === 0 ? [u, 0] : edge === 1 ? [1, u] : edge === 2 ? [1 - u, 1] : [0, 1 - u];
+    const p = roofPoint(s, t); p[1] -= .028 * v; return p;
+  }), ivory);
+  const canopy = (s, t, v) => {
+    const [x, z] = plan(s, t, .80 - .13 * v, 1.155 - .365 * v);
+    const bow = Math.sin(Math.PI * v);
+    return [x + .018 * s * bow, .805 + .60 * v, z + .045 * t * bow];
+  };
+  // Rounded openings cut from the same sampled stamping, with a narrow gasket
+  // annulus. Glass and painted pillars meet on one continuous perimeter.
+  const framed = (sample, openings) => {
+    let left = 0;
+    for (const [index, [a, b]] of openings.entries()) {
+      const outerLeft = left, end = index === openings.length - 1 ? 1 : (b + openings[index + 1][0]) / 2;
+      const boundary = (angle, inset = 0) => {
+        const c = Math.cos(angle), s = Math.sin(angle);
+        return [(a + b) / 2 + ((b - a) / 2 - inset) * Math.sign(c) * Math.pow(Math.abs(c), .24),
+          .57 + (.335 - inset) * Math.sign(s) * Math.pow(Math.abs(s), .24)];
+      };
+      add(surface(48, 3, (u, v) => {
+        const angle = u * 2 * Math.PI, c = Math.cos(angle), s = Math.sin(angle), scale = 1 / Math.max(Math.abs(c), Math.abs(s));
+        const outer = [(outerLeft + end) / 2 + (end - outerLeft) / 2 * c * scale, .5 + .5 * s * scale];
+        const inner = boundary(angle);
+        return sample(THREE.MathUtils.lerp(inner[0], outer[0], v), THREE.MathUtils.lerp(inner[1], outer[1], v));
+      }), paint);
+      add(surface(48, 1, (u, v) => sample(...boundary(u * Math.PI * 2, .009 * v))), rubber);
+      add(surface(48, 8, (u, v) => {
+        const edge = boundary(u * Math.PI * 2, .009);
+        return sample(THREE.MathUtils.lerp((a + b) / 2, edge[0], v), THREE.MathUtils.lerp(.57, edge[1], v));
+      }), glass);
+      left = end;
+    }
+  };
+  const wind = (u, v) => canopy(2 * u - 1, -1, v);
+  framed(wind, [[.085, .915]]);
+  framed((u, v) => canopy(1 - 2 * u, 1, v), [[.12, .88]]);
   for (const side of [-1, 1]) {
-    framed((u, v) => [side * (.79 - .14 * v + .012 * Math.sin(Math.PI * u) * Math.sin(Math.PI * v)),
-      .77 + .64 * v + .025 * Math.sin(Math.PI * u) * v,
-      -.86 + 2.27 * u + v * (.38 - .72 * u)], [[.08, .63], [.69, .86]]);
+    framed((u, v) => canopy(side, 2 * u - 1, v), [[.085, .62], [.69, .91]]);
     // Follow the actual triangulated loft, not an unconstrained hanging spline.
-    const contour = [[.88, -.60], [.70, -.60], [.39, -.57], [.353, .46], [.66, .57], [.89, .57]];
+    const contour = [[.86, -.60], [.70, -.60], [.39, -.57], [.353, .46], [.66, .57], [.86, .57], [.86, -.60]];
     const seam = new THREE.CurvePath();
     const hullX = (y, z) => {
       const row = Math.min(55, Math.floor((z + 1.69) / 3.38 * 56));
@@ -139,9 +160,19 @@ export function createCar() {
     }
     add(new THREE.TubeGeometry(seam, 64, .002, 4, false), dark);
     rounded(side * .834, .818, .37, .026, .035, .15, .012, chrome);
-    tube([[side * .729, 1.00, -.64], [side * .845, 1.018, -.61]], .018, dark, car, 4);
-    ellipsoid(side * .861, 1.047, -.594, .098, .061, .085, paint);
-    ellipsoid(side * .867, 1.048, -.522, .077, .044, .010, chrome);
+    tube([[side * .729, 1.00, -.64], [side * .845, 1.018, -.61]], .011, chrome, car, 4);
+    // Truncated shell, not overlapping ellipsoids: the reflective plane is
+    // recessed behind the rubber rim and cannot intersect the painted back.
+    add(surface(32, 8, (u, v) => {
+      const a = u * Math.PI * 2, r = Math.sin(v * Math.PI / 2);
+      return [side * .87 + .095 * r * Math.cos(a), 1.047 + .057 * r * Math.sin(a), -.545 - .085 * Math.cos(v * Math.PI / 2)];
+    }), paint);
+    add(surface(32, 1, (u, v) => {
+      const a = u * Math.PI * 2;
+      return [side * .87 + (.095 - .009 * v) * Math.cos(a), 1.047 + (.057 - .009 * v) * Math.sin(a), -.545 + .003 * v];
+    }), rubber);
+    const mirror = new THREE.CircleGeometry(1, 32);
+    mirror.scale(.086, .048, 1); mirror.translate(side * .87, 1.047, -.547); add(mirror, chrome);
     rounded(side * .34, .49, .24, .48, .14, .53, .06, upholstery);
     rounded(side * .34, .77, .48, .44, .49, .14, .055, upholstery, car, -.16);
     rounded(side * .34, 1.06, .54, .25, .17, .12, .045, upholstery);
@@ -152,15 +183,15 @@ export function createCar() {
     rounded(side * .716, .65, .05, .045, .43, 1.25, .02, upholstery);
     rounded(side * .67, .72, .12, .12, .07, .40, .025, dark);
     rounded(side * .657, .81, .27, .02, .026, .12, .01, chrome);
-    // Dark recessed bowls, restrained reflector rings and clear convex covers.
-    add(surface(24, 1, (u, v) => [side * .527 + (.163 - .017 * v) * Math.cos(2 * Math.PI * u),
-      .714 + (.15 - .016 * v) * Math.sin(2 * Math.PI * u), -1.635 - .069 * v]), paint);
-    add(surface(24, 5, (u, v) => [side * .527 + .146 * v * Math.cos(2 * Math.PI * u),
-      .714 - .134 * v * Math.sin(2 * Math.PI * u), -1.704 + .037 * (1 - v * v)]), dark);
-    const bezel = new THREE.TorusGeometry(.122, .008, 6, 32);
-    bezel.scale(1.08, 1, 1); bezel.translate(side * .527, .714, -1.704); add(bezel, chrome);
-    ellipsoid(side * .527, .714, -1.713, .135, .122, .022, lens);
-    ellipsoid(side * .527, .714, -1.711, .038, .033, .013, ivory);
+    // Shallow swept reflector units; no projecting cylindrical button or nub.
+    const lampPoint = (u, r, depth) => {
+      const a = -side * u * Math.PI * 2, x = .527 + .143 * r * Math.cos(a);
+      return [side * x, .685 + .096 * r * Math.sin(a), -1.677 + .10 * (x - .527) + depth];
+    };
+    add(surface(32, 2, (u, v) => lampPoint(u, 1.10 - .10 * v, .024 * (1 - v))), paint);
+    add(surface(32, 1, (u, v) => lampPoint(1 - u, 1 - .055 * v, -.001)), rubber);
+    add(surface(32, 6, (u, v) => lampPoint(u, .945 * v, .019 * (1 - v * v))), chrome);
+    add(surface(32, 6, (u, v) => lampPoint(u, .945 * v, -.004 - .006 * (1 - v * v))), lens);
     rounded(side * .641, .477, -1.683, .15, .051, .028, .015, amber);
     rounded(side * .582, .713, 1.688, .139, .215, .047, .023, red);
     rounded(side * .582, .785, 1.713, .116, .04, .012, .006, amber);
@@ -173,8 +204,9 @@ export function createCar() {
   rounded(-.34, .963, -.485, .36, .105, .012, .005, rubber);
   // Gauge disks face the seated driver (+Z); needles are parked at zero.
   for (const x of [-.425, -.255]) {
-    const dial = new THREE.CylinderGeometry(.045, .045, .006, 32);
-    dial.rotateX(Math.PI / 2); dial.translate(x, .967, -.472); add(dial, dark);
+    const dialMaterial = new THREE.MeshStandardMaterial({name: x < -.34 ? 'dial-speed' : 'dial-rpm', color: '#25282a', roughness: .7});
+    const dial = new THREE.CircleGeometry(.045, 32);
+    dial.translate(x, .967, -.469); add(dial, dialMaterial);
     const ring = new THREE.TorusGeometry(.047, .003, 4, 24);
     ring.translate(x, .967, -.470); add(ring, chrome);
     for (let i = 0; i < 11; i++) {
@@ -206,13 +238,13 @@ export function createCar() {
     tube([[-.34, .943, -.295], [-.34 + .127 * Math.cos(a), .943 + .119 * Math.sin(a), -.295 - .044 * Math.sin(a)]], .011, dark, car, 2);
   }
   rounded(-.34, .943, -.277, .075, .063, .033, .014, rubber, car, -.35);
-  rounded(0, .448, -1.692, 1.38, .064, .061, .024, chrome);
+  rounded(0, .432, -1.656, 1.38, .105, .10, .04, dark);
   rounded(0, .448, 1.694, 1.39, .064, .061, .024, chrome);
-  // Compact rectangular grille, painted center bridge, no emblem or oval surround.
+  rounded(0, .593, -1.689, .66, .133, .026, .013, rubber);
+  for (let j = 0; j < 6; j++) rounded(0, .541 + j * .020, -1.708, .625, .004, .012, .002, dark);
   for (const side of [-1, 1]) {
-    rounded(side * .175, .637, -1.693, .30, .127, .023, .01, dark);
-    for (let j = 0; j < 3; j++) rounded(side * .175, .594 + j * .041, -1.710, .287, .013, .014, .006, chrome);
-    tube([[side * .39, .977, -.787], [side * .12, .986, -.782]], .008, dark, car, 4);
+    tube([[side * .39, .963, -.797], [side * .28, .977, -.82]], .004, chrome, car, 2);
+    tube([[side * .37, .982, -.825], [side * .12, .989, -.832]], .005, rubber, car, 4);
   }
   tube([[.48, .23, 1.20], [.48, .22, 1.51], [.48, .23, 1.71]], .027, chrome, car, 12);
   const tireProfile = [[.206,-.102],[.245,-.104],[.278,-.084],[.29,-.047],[.29,.047],[.278,.084],[.245,.104],[.206,.102],[.202,.075],[.202,-.075],[.206,-.102]];
@@ -244,15 +276,17 @@ export function createCar() {
   }
   // Batch only within this invocation. Unique-set disposal belongs to the viewer.
   for (const [parent, materials] of buckets) for (const [material, pieces] of materials) {
-    const positions = [], normals = [];
+    const positions = [], normals = [], uvs = [];
     for (const piece of pieces) {
       const g = piece.index ? piece.toNonIndexed() : piece;
       positions.push(...g.attributes.position.array); normals.push(...g.attributes.normal.array);
+      uvs.push(...g.attributes.uv.array);
       if (g !== piece) g.dispose(); piece.dispose();
     }
     const geometry = new THREE.BufferGeometry();
     geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
     geometry.setAttribute('normal', new THREE.Float32BufferAttribute(normals, 3));
+    geometry.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
     const mesh = new THREE.Mesh(geometry, material);
     mesh.name = parent === car ? 'stamped-body-and-detail' : 'wheel-component';
     mesh.castShadow = true; mesh.receiveShadow = true; parent.add(mesh);
