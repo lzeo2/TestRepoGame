@@ -103,6 +103,7 @@ export function createView(host) {
   const pulse = new THREE.Mesh(coil, pulseMaterial); scene.add(pulse);
   const decoyEffect = new THREE.Mesh(coil, own(new THREE.MeshBasicMaterial({ color: '#e1ab45' }))); scene.add(decoyEffect);
   const repairEffect = new THREE.Mesh(coil, own(new THREE.MeshBasicMaterial({ color: '#eee6c8' }))); scene.add(repairEffect);
+  for (const object of [highway, city, smoke, pulse, decoyEffect, flames, repairEffect]) object.visible = false;
   const cosmetics = new THREE.Group(), stripeMaterial = material('#ffffff');
   const ray = new THREE.Raycaster(), downDirection = new THREE.Vector3(0, -1, 0);
   const cameraTarget = new THREE.Vector3(), cameraDirection = new THREE.Vector3();
@@ -258,6 +259,7 @@ export function createView(host) {
       if (disposed) return; disposed = true;
       host.removeEventListener('pointerdown', down); host.removeEventListener('pointermove', move);
       host.removeEventListener('pointerup', up); host.removeEventListener('pointercancel', up); host.removeEventListener('lostpointercapture', up);
+      scene.traverse(object => { if (object.isInstancedMesh) object.dispose(); });
       scene.clear(); npc.clear(); renderer.dispose(); privateMaterials.forEach(m => m.dispose());
       for (const r of resources) r.dispose(); disposeCars(); host.replaceChildren();
     }
