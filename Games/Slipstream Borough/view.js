@@ -31,12 +31,36 @@ export function createView(host) {
     const g = new THREE.PlaneGeometry(8, 2); resources.push(g);
     const sign = new THREE.Mesh(g, mat); sign.position.set(-12, 4, -45 - i * 70); signs.add(sign);
   }
-  let player = null, orbit = .65, frames = 0, wheelAngle = 0, lastDistance = 0, dragging = null;
+  const mounts={smoke:new THREE.Group(),emp:new THREE.Group()};
+  const canister=new THREE.CylinderGeometry(.09,.09,.28,12);canister.rotateX(Math.PI/2);resources.push(canister);
+  const hardware=material('#626c71');
+  for(const x of [-.21,.21]) {const mesh=new THREE.Mesh(canister,hardware);mesh.position.x=x;mounts.smoke.add(mesh);}
+  const coil=new THREE.TorusGeometry(.18,.027,5,16);coil.rotateX(Math.PI/2);resources.push(coil);
+  mounts.emp.add(new THREE.Mesh(coil,material('#9d8f70')));
+  const smokeGeometry=new THREE.SphereGeometry(1,8,6);resources.push(smokeGeometry);
+  const smokeMaterial=new THREE.MeshLambertMaterial({color:'#90938e',transparent:true,opacity:.43,depthWrite:false});resources.push(smokeMaterial);
+  const smoke=new THREE.InstancedMesh(smokeGeometry,smokeMaterial,12);smoke.visible=false;scene.add(smoke);
+  const pulseMaterial=new THREE.MeshBasicMaterial({color:'#a7d7e4',transparent:true,opacity:.65,depthWrite:false});resources.push(pulseMaterial);
+  const pulse=new THREE.Mesh(coil,pulseMaterial);pulse.visible=false;scene.add(pulse);
+  let player = null, orbit = .65, frames = 0, wheelAngle = 0, lastDistance = 0, dragging = null, signature='', privateMaterials=[];
+  let mounted='none';
   let counts = { traffic: 0, police: 0, rivals: 0 };
-  function select(id) {
-    if (player?.userData.carId === id) return;
-    if (player) scene.remove(player);
+  function select(id, appearance, gadget) {
+    const next=JSON.stringify([id,appearance.paint,appearance.wheels,gadget]);
+    if (signature===next) return;
+    for(const mount of Object.values(mounts))mount.removeFromParent();
+    if (player) scene.remove(player);privateMaterials.forEach(m=>m.dispose());privateMaterials=[];
     player = createCar(id); scene.add(player);
+    const paint=player.getObjectByName('body');paint.material=paint.material.clone();paint.material.color.set(appearance.paint);
+    const wheels=player.userData.wheels, rim=wheels[0].material.clone();rim.color.set(appearance.wheels);
+    wheels.forEach(w=>{w.material=rim;});privateMaterials.push(paint.material,rim);
+    mounted=gadget;
+    if(gadget!=='none') {
+      const bounds=new THREE.Box3().setFromObject(player), mount=mounts[gadget];
+      mount.position.set(0,gadget==='smoke'?.36:bounds.max.y+.06,gadget==='smoke'?bounds.max.z+.02:.2);
+      player.add(mount);
+    }
+    signature=next;
   }
   function turn(amount) { orbit += amount; }
   const down = e => { dragging = e.clientX; host.setPointerCapture(e.pointerId); };
@@ -44,8 +68,9 @@ export function createView(host) {
   const up = () => { dragging = null; };
   host.addEventListener('pointerdown', down); host.addEventListener('pointermove', move); host.addEventListener('pointerup', up); host.addEventListener('pointercancel', up);
   function draw(profile, run, steer = 0) {
-    select(run?.carId || profile.selected);
-    const width = host.clientWidth, height = Math.max(230, Math.min(innerHeight * (innerWidth < 760 ? .40 : .56), 500));
+    const id=run?.carId||profile.selected, custom=profile.customizations[id];
+    select(id,run?.appearance||custom,run?.gadget||custom.gadget);
+    const width = host.clientWidth, height = Math.max(230, Math.min(innerHeight * (innerWidth < 760 ? (run&&run.gadget!=='none'?.32:.40) : .56), 500));
     if (renderer.domElement.width !== width || renderer.domElement.height !== Math.floor(height)) { renderer.setSize(width, height); camera.aspect = width / height; camera.updateProjectionMatrix(); }
     const distance = run?.distance || 0;
     wheelAngle -= Math.max(0, distance - lastDistance) / player.userData.profile.wheelRadius; lastDistance = distance;
@@ -68,10 +93,20 @@ export function createView(host) {
       for (const wheel of model.userData.wheels) wheel.rotation.x = -e.distance / model.userData.profile.wheelRadius;
     }
     for (const [key, model] of npc) if (!active.has(key)) { scene.remove(model); npc.delete(key); }
+    smoke.visible=run?.status==='running'&&run.gadget==='smoke'&&run.gadgetTime>0;
+    pulse.visible=run?.status==='running'&&run.gadget==='emp'&&run.gadgetTime>0;
+    if(smoke.visible) {
+      for(let i=0;i<12;i++) {
+        dummy.position.set(run.x+Math.sin(i*7+run.elapsed)*.9,.5+i%4*.4,3+i*.55);
+        dummy.scale.setScalar(.8+i%4*.25);dummy.updateMatrix();smoke.setMatrixAt(i,dummy.matrix);
+      }
+      smoke.instanceMatrix.needsUpdate=true;
+    }
+    if(pulse.visible) {pulse.position.set(run.x,.13,0);pulse.scale.setScalar(6+(3-run.gadgetTime)*20);pulseMaterial.opacity=.65*run.gadgetTime/3;}
     if (run) { camera.position.set(run.x * .45, 6.2, 12); camera.lookAt(run.x * .5, .5, -20); }
     else { camera.position.set(Math.sin(orbit) * 7, 3.1, Math.cos(orbit) * 7); camera.lookAt(0, .65, 0); }
     renderer.render(scene, camera); frames++;
   }
-  return { draw, turn, inspect: () => ({ frames, triangles: renderer.info.render.triangles, drawcalls: renderer.info.render.calls, modelId: player?.userData.carId || null, world: { ...counts }, dpr: 1 }),
-    dispose() { host.removeEventListener('pointerdown', down); host.removeEventListener('pointermove', move); host.removeEventListener('pointerup', up); host.removeEventListener('pointercancel', up); renderer.dispose(); for (const r of resources) r.dispose(); disposeCars(); host.replaceChildren(); } };
+  return { draw, turn, inspect: () => ({ frames, triangles: renderer.info.render.triangles, drawcalls: renderer.info.render.calls, modelId: player?.userData.carId || null, world: { ...counts }, customization:{paint:player?.getObjectByName('body').material.color.getHexString(),wheels:player?.userData.wheels[0].material.color.getHexString(),mounted}, effects:{smokePuffs:smoke.visible?12:0,empVisible:pulse.visible}, dpr: 1 }),
+    dispose() { host.removeEventListener('pointerdown', down); host.removeEventListener('pointermove', move); host.removeEventListener('pointerup', up); host.removeEventListener('pointercancel', up); renderer.dispose();privateMaterials.forEach(m=>m.dispose()); for (const r of resources) r.dispose(); disposeCars(); host.replaceChildren(); } };
 }

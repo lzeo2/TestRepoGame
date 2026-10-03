@@ -28,7 +28,7 @@ function runToEnd(run, controller, limit = 4802) {
 const centerDrive = r => ({ ...drive, steer: Math.abs(r.x) < 0.06 ? 0 : Math.sign(-r.x) });
 
 check('exact exports / fresh profile / canonical reload', () => {
-  assert.deepEqual(Object.keys(core).sort(), ['freshProfile', 'validateProfile', 'startRun', 'stepRun', 'settleRun', 'buyCar', 'selectCar', 'upgradeCar', 'upgradeCost', 'applyCode', 'carStats'].sort());
+  assert.deepEqual(Object.keys(core).sort(), ['freshProfile', 'validateProfile', 'startRun', 'stepRun', 'settleRun', 'buyCar', 'selectCar', 'upgradeCar', 'upgradeCost', 'applyCode', 'carStats', 'GADGETS', 'customizeCar', 'fitGadget'].sort());
   const p = freshProfile(); assert.equal(p.cash, 0); assert.equal(p.testMode, false); assert.deepEqual(p.owned, ['bricklet']);
   assert.deepEqual(validateProfile(JSON.parse(JSON.stringify(p))), p);
   assert.deepEqual(validateProfile({ ...p, upgrades: {} }), p);
@@ -141,5 +141,44 @@ check('separate cheat fixtures / persistent all16 / inexhaustible spending', () 
   assert.equal(cheated.cash, 1e9); assert.equal(freshProfile().testMode, false);
   const started = startRun(applyCode(freshProfile(), 'tanayr'), 'race');
   assert.equal(settleRun(started.profile, raceResult).cash, 1e9);
+});
+check('v1 migration / copied saved custom finishes / hostile custom descriptors', () => {
+  const old=freshProfile();delete old.customizations;old.version=1;
+  const migrated=validateProfile(old);assert.equal(migrated.version,2);assert.equal(migrated.cash,0);
+  const edited=core.customizeCar(migrated,'bricklet',{paint:'#1177AA',wheels:'#cc8844'});
+  assert.equal(edited.customizations.bricklet.paint,'#1177aa');assert.notDeepEqual(edited,migrated);
+  assert.deepEqual(validateProfile(JSON.parse(JSON.stringify(edited))),edited);
+  assert.throws(()=>core.customizeCar(edited,'pip',{paint:'#112233',wheels:'#445566'}));
+  for(const paint of ['red','#12345','javascript:x',null])assert.throws(()=>core.customizeCar(edited,'bricklet',{paint,wheels:'#123456'}));
+  let calls=0;const hostile=structuredClone(edited);
+  Object.defineProperty(hostile.customizations.bricklet,'paint',{get(){calls++;return '#ffffff';}});
+  assert.throws(()=>validateProfile(hostile));assert.equal(calls,0);
+});
+check('owned mount purchases / atomicity / charges / racing disabled', () => {
+  const p={...freshProfile(),cash:1000}; // Synthetic funding, not native earnings.
+  assert.throws(()=>core.fitGadget(freshProfile(),'bricklet','smoke'));assert.equal(p.cash,1000);
+  const smoke=core.fitGadget(p,'bricklet','smoke');assert.equal(smoke.cash,850);assert.equal(smoke.customizations.bricklet.gadget,'smoke');
+  assert.equal(core.fitGadget(smoke,'bricklet','smoke').cash,850);
+  const none=core.fitGadget(smoke,'bricklet','none');assert.equal(none.cash,850);assert.deepEqual(none.customizations.bricklet.gadgets,['smoke']);
+  assert.equal(core.fitGadget(smoke,'bricklet','emp').cash,600);
+  assert.throws(()=>core.fitGadget(p,'bricklet','gun'));assert.throws(()=>core.fitGadget(p,'pip','smoke'));
+  const race=startRun(smoke,'race').run,fired=stepRun(race,{...drive,deploy:true},.05);
+  assert.equal(fired.charges,0);assert.equal(fired.deployments,0);assert.equal(fired.gadgetTime,0);
+  assert.equal(startRun(smoke,'cutup').run.charges,3);
+  const fake=structuredClone(smoke);fake.customizations.bricklet.gadgets=[];assert.throws(()=>validateProfile(fake));
+});
+check('smoke/EMP police effects / hold cooldown expiry / no immunity or payouts', () => {
+  for(const kit of ['smoke','emp']) {
+    const p=core.fitGadget({...freshProfile(),cash:1000},'bricklet',kit), initial=startRun(p,'cutup').run;
+    Object.assign(initial,{distance:400,elapsed:20,score:800,speed:25,spawnClock:10,police:[npc(1,initial.x,350,25)],nextEntity:2});
+    const copy=structuredClone(initial),normal=stepRun(initial,drive,.05), fired=stepRun(initial,{...drive,deploy:true},.05);
+    assert.deepEqual(initial,copy);assert(fired.police[0].speed<normal.police[0].speed);assert.equal(fired.deployments,1);assert.equal(fired.earnings,0);
+    let held=fired;for(let i=0;i<205;i++)held=stepRun(held,{...drive,deploy:true},.05);
+    assert.equal(held.deployments,1);assert.equal(held.gadgetTime,0);assert.equal(held.gadgetCooldown,0);
+    held=stepRun(held,drive,.05);held=stepRun(held,{...drive,deploy:true},.05);assert.equal(held.deployments,2);
+    const collision=structuredClone(fired);collision.traffic=[npc(2,collision.x,collision.distance)];collision.nextEntity=3;
+    assert(stepRun(collision,drive,.05).hp<100); // Gadget never makes player invincible.
+    assert.throws(()=>stepRun({...fired,charges:99},drive,.05));assert.throws(()=>stepRun(initial,{...drive,deploy:1},.05));
+  }
 });
 console.log(`PASS ${checks} Slipstream core groups; synthetic/controller/cheat evidence only, no native natural-progression claim.`);
