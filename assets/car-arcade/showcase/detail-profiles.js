@@ -56,4 +56,18 @@ export const SPORT_STUDIES = Object.freeze({
     cabinFront: -0.30, cabinRear: 0.24, roofFront: -0.13, roofRear: 0.105,
     roofWidth: 1.50, form: 'hyper', doors: 2, plate: 'VSPR 72',
   }),
+  // Flowing road hypercar: narrow teardrop canopy and broad rear cooling shoulders.
+  aerolume: Object.freeze({
+    id: 'aerolume', name: 'Aerolume', color: '#c57845', roofColor: '#343940',
+    width: 2.18, length: 4.82, height: 1.16, wheelbase: 2.98, bodyHeight: 0.72,
+    cabinFront: -0.32, cabinRear: 0.26, roofFront: -0.13, roofRear: 0.06,
+    roofWidth: 1.24, form: 'hyper', doors: 2, plate: 'ALM 04',
+  }),
+  // Angular track prototype: forward compact canopy, long vented deck and high aerofoil.
+  riftline: Object.freeze({
+    id: 'riftline', name: 'Riftline', color: '#bbc3cc', roofColor: '#353841',
+    width: 2.24, length: 4.92, height: 1.12, wheelbase: 3.06, bodyHeight: 0.70,
+    cabinFront: -0.34, cabinRear: 0.19, roofFront: -0.16, roofRear: 0.035,
+    roofWidth: 1.18, form: 'prototype', doors: 2, plate: 'RFT 07',
+  }),
 });
