@@ -226,6 +226,12 @@ for (let cycle = 1; cycle <= 2; cycle++) for (const id of ids) {
     assert(bodyBounds.max.y < roof.max.y+.05, id+' oversized bolt-on aero');
     const clearance=wheels[0].position.y*.75;
     const skinMeshes=[body,trim];
+    // Real outward rays must reach each lamp cover before the surrounding cap.
+    for(const end of [-1,1])for(const side of [-1,1]){
+      const ray=new THREE.Raycaster(new THREE.Vector3(side*W*.245,B*.69,end*(L+1)),new THREE.Vector3(0,0,-end));
+      const hit=ray.intersectObjects([...skinMeshes,car.getObjectByName('lamp-lens'),car.getObjectByName('chrome'),car.getObjectByName('rear-reflector')])[0];
+      assert(hit&&hit.object.material.name==='lamp-lens',id+' lamp buried in cap');
+    }
     const topAt=(x,z)=>new THREE.Raycaster(new THREE.Vector3(x,H+1,z),new THREE.Vector3(0,-1,0)).intersectObject(body)[0];
     const nose=topAt(0,-L*.43), haunch=topAt(W*.35,-profile.wheelbase/2);
     assert(nose && haunch && nose.point.y<haunch.point.y-.035,id+' physical nose must fall below wheel shoulder');

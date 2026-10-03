@@ -144,19 +144,23 @@ export function createDetailedCar(id) {
     for(const i of g.index.array)indices.push(remap[i]);g.dispose();
   }
   joined.setAttribute('position',new THREE.Float32BufferAttribute(positions,3));joined.setAttribute('uv',new THREE.Float32BufferAttribute(uvs,2));joined.setIndex(indices);joined.computeVertexNormals();
+  // Lamp covers must follow actual cap triangles, not a smooth formula that
+  // can fall behind their chords. This temporary CPU-only hull borrows positions.
+  const lampHull=modern?new THREE.Mesh(new THREE.BufferGeometry().setAttribute('position',joined.attributes.position).setIndex(indices),paint):null;
   if(hypercar){
     // Color the actual recessed stamping faces. A separately sampled overlay
     // intersects the coarser hull chords even with a tiny outward offset.
-    const painted=[],cooled=[],p=joined.attributes.position;
-    for(let i=0;i<indices.length;i+=3){
-      const face=indices.slice(i,i+3),c=new THREE.Vector3();
-      for(const j of face)c.add(new THREE.Vector3().fromBufferAttribute(p,j));c.multiplyScalar(1/3);
+    const painted=[],cooled=[],position=joined.attributes.position;
+    for(let i=0;i<indices.length;i+=modern?6:3){
+      // Keep both triangles of each modern stamping quad in the same partition.
+      const face=indices.slice(i,i+(modern?6:3)),c=new THREE.Vector3();
+      for(const j of face)c.add(new THREE.Vector3().fromBufferAttribute(position,j));c.multiplyScalar(1/face.length);
       const v=(c.y-bottom(c.z))/(belt(c.z)-bottom(c.z));
-      const side=Math.abs(c.x)>W*.31&&channel(c.z)>.10&&v>.24&&v<.73;
+      const side=Math.abs(c.x)>W*.31&&channel(c.z)>.10&&v>.24&&v<.73&&(!modern||c.z<p.wheelbase/2-radius-.06);
       const mouth=c.z<-L*.44&&((Math.abs(c.x)-W*.29)/(W*.12))**2+((c.y-clearance-.16)/.10)**2<.85;
       const engine=modern&&c.z>cr+.16&&c.z<L*.34&&Math.abs(c.x)<W*.20&&c.y>belt(c.z)-.015
         && Math.floor((c.z-cr)*32)%3!==0;
-      (side||mouth||engine?cooled:painted).push(...face);
+      (side||(!modern&&mouth)||engine?cooled:painted).push(...face);
     }
     const cooling=joined.clone();cooling.setIndex(cooled);add(cooling,trim);
     joined.setIndex(painted);
@@ -231,7 +235,7 @@ export function createDetailedCar(id) {
       const z=b-.14,q=skin(side,z,.83);rounded(chrome,q[0]+side*.013,q[1],z,.026,.027,.14,.01);
     }
     const mz=cf+.10,my=B+.12;
-    tube(trim,[[side*(half(mz)-.03),my,mz],[side*(W/2+.08),my+.025,mz+.04]],.015,4);
+    tube(trim,[modern?sidePane(side,0,.32):[side*(half(mz)-.03),my,mz],[side*(W/2+.08),my+.025,mz+.04]],.015,4);
     rounded(paint,side*(W/2+.08),my+.035,mz+.035,.145,.075,.12,.035);
     const mirror=new THREE.CircleGeometry(1,20);mirror.scale(.056,.024,1);mirror.translate(side*(W/2+.08),my+.035,mz+.096);add(mirror,chrome);
   }
@@ -246,12 +250,18 @@ export function createDetailedCar(id) {
     const point=(u,v,depth)=>{
       const t=u*Math.PI*2,c=Math.cos(t),s=Math.sin(t),squared=modern?crisp:['hyper','prototype'].includes(form);
       const q=shaped(x+a*v*(squared?Math.sign(c)*Math.abs(c)**.45:c),y+b*v*(squared?Math.sign(s)*Math.abs(s)**.45:s)+(modern?(crisp?.055:sweep?.035:.012)*c*v:hypercar?(track?.045:.018)*c*v:0),end*L/2);
+      if(lampHull){
+        const hit=new THREE.Raycaster(new THREE.Vector3(q[0],q[1],end*(L+1)),new THREE.Vector3(0,0,-end)).intersectObject(lampHull)[0];
+        if(!hit||hit.point.z*end<L*.43)throw new Error('Modern lamp outside cap');
+        q[2]=hit.point.z;
+      }
       q[2]+=end*depth;return q;
     };
     surface(trim,(u,v)=>point(u,1+.055*v,.009*(1-v)+.001),32,1,end<0);
     surface(end<0?chrome:red,(u,v)=>point(u,v,.005+.004*v*v),32,3,end<0);
     surface(lens,(u,v)=>point(u,v,.010+.009*(1-v*v)),32,3,end<0);
   }
+  lampHull?.geometry.dispose();
   for(const end of [-1,1]){
     surface(trim,(u,v)=>{const q=shaped((2*u-1)*W*.38,clearance+.06+(2*v-1)*.052,end*L/2);q[2]+=end*.025;return q;},24,3);
     const g=new THREE.PlaneGeometry(.34,.075);if(end<0)g.rotateY(Math.PI);
