@@ -7,7 +7,7 @@ import { decorateCar, decorateGarage } from './realism.js';
 const canvas = document.getElementById('studio'), status = document.getElementById('status');
 const factories = { pip, brindle }, scene = new THREE.Scene();
 let renderer, environment, current, garage, drag = null, pending = 0, frames = 0, disposed = false, failure = null;
-let view = 'exterior', look = 0, renderedCar = null, retiredCar = null;
+let view = 'exterior', look = 0, renderedCar = null, retiredCar = null, initializationTimer = 0;
 const windowOpacity = new Map();
 const camera = new THREE.PerspectiveCamera(32, 1, .1, 60);
 function disposeObject(object) {
@@ -25,7 +25,7 @@ function disposeObject(object) {
 function fail(error) { failure = String(error.message || error); status.textContent = `Studio unavailable: ${failure}. No game state was changed.`; }
 function schedule() {
   // Cold shader compilation must not block the document/font load event.
-  if (document.readyState === 'complete' && !pending && !disposed && !failure) pending = requestAnimationFrame(draw);
+  if (document.readyState === 'complete' && renderer && current && !pending && !disposed && !failure) pending = requestAnimationFrame(draw);
 }
 function frameCamera() {
   if (!current) return;
@@ -87,29 +87,37 @@ function select(id) {
   });
   setView(view);
 }
-try {
+function initialize() {
+  if (disposed) return;
+  try {
   renderer = new THREE.WebGLRenderer({canvas, antialias:true, preserveDrawingBuffer:true});
   renderer.setPixelRatio(1); renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = .92;
-  renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFShadowMap;
   scene.background = new THREE.Color('#ece9e2');
-  // Original procedural softboxes, not downloaded HDRs or photographic textures.
-  const room = new THREE.Scene(); room.background = new THREE.Color('#59616b');
-  const walls = new THREE.Mesh(new THREE.BoxGeometry(20,12,20), new THREE.MeshBasicMaterial({color:'#878981',side:THREE.BackSide}));
-  walls.position.y = 5; room.add(walls);
-  for (const [x,y,z,w,h,rotation] of [[-5,3,-2,5.6,1.4,Math.PI/2],[4,5,1,8,4,-Math.PI/2],[0,4,-9,6,1,0]]) {
-    const panel = new THREE.Mesh(new THREE.PlaneGeometry(w,h),new THREE.MeshBasicMaterial({color:new THREE.Color().setRGB(5,5,5),side:THREE.DoubleSide}));
-    panel.position.set(x,y,z); panel.rotation.y = rotation; room.add(panel);
-  }
-  const pmrem = new THREE.PMREMGenerator(renderer); environment = pmrem.fromScene(room,.035,.1,30); scene.environment = environment.texture;
-  pmrem.dispose(); disposeObject(room);
   garage = createGarage(); decorateGarage(garage); scene.add(garage);
+  garage.traverse(node => {
+    if (node.isMesh && node.material.name === 'garage-window') {
+      node.material.emissive.setRGB(.65,.72,.8); node.material.emissiveIntensity = 2;
+    }
+  });
   scene.add(new THREE.HemisphereLight(0xe3eaf3,0x80766a,.42));
   const key = new THREE.DirectionalLight(0xfff4e3,2.8); key.position.set(-3,7,-4); key.castShadow = true;
-  key.shadow.mapSize.set(1024,1024); Object.assign(key.shadow.camera,{left:-4,right:4,top:4,bottom:-4,near:.1,far:16}); key.shadow.bias = -.00005; key.shadow.normalBias = .003; scene.add(key);
+  key.shadow.mapSize.set(1024,1024); Object.assign(key.shadow.camera,{left:-4,right:4,top:4,bottom:-4,near:.1,far:16}); key.shadow.bias = -.00005; key.shadow.normalBias = .003; key.shadow.radius = 3; scene.add(key);
   const fill = new THREE.DirectionalLight(0xdde8fb,.55); fill.position.set(4,2,3); scene.add(fill);
+  // Capture the actual original workshop at car-window height, not a fake room.
+  const pmrem = new THREE.PMREMGenerator(renderer);
+  garage.position.y = -.85; key.position.y -= .85; fill.position.y -= .85; key.castShadow = false;
+  scene.updateMatrixWorld(true);
+  try { environment = pmrem.fromScene(scene,.035,.1,30); }
+  finally {
+    garage.position.y = 0; key.position.y += .85; fill.position.y += .85; key.castShadow = true;
+    scene.updateMatrixWorld(true); pmrem.dispose();
+  }
+  scene.environment = environment.texture;
   select('pip');
-} catch (error) { fail(error); }
+  } catch (error) { fail(error); }
+}
 function setView(next) {
   if (disposed || !current || failure) return;
   view = next;
@@ -141,7 +149,9 @@ document.addEventListener('keydown', event => {
 canvas.addEventListener('pointerdown', event => { drag = {id:event.pointerId,x:event.clientX}; canvas.setPointerCapture(event.pointerId); });
 canvas.addEventListener('pointermove', event => { if (drag?.id === event.pointerId) { rotate((event.clientX-drag.x)*.009); drag.x = event.clientX; } });
 for (const name of ['pointerup','pointercancel','lostpointercapture']) canvas.addEventListener(name, () => { drag = null; });
-window.addEventListener('load', schedule, {once:true});
+// Deliver document load before beginning costly graphics work on software GPUs.
+if (document.readyState === 'complete') initializationTimer = setTimeout(initialize, 0);
+else window.addEventListener('load', () => { initializationTimer = setTimeout(initialize, 0); }, {once:true});
 window.addEventListener('resize', schedule); window.addEventListener('blur', () => { drag = null; });
 canvas.addEventListener('webglcontextlost', event => { event.preventDefault(); fail(new Error('Graphics context lost; reload to recover')); });
 function framed() {
@@ -163,5 +173,5 @@ function garageStats() {
   return {garageTriangles, garageMeshes};
 }
 Object.defineProperty(window,'carStudioSnapshot',{get:()=>Object.freeze({...glassStats(),...garageStats(),view,cameraLocal:current ? Object.freeze(current.worldToLocal(camera.position.clone()).toArray()) : null,look,framed:framed(),id:document.getElementById('car').value,name:current?.userData.name,frames,angle:current?.rotation.y,triangles:renderer?.info.render.triangles,drawCalls:renderer?.info.render.calls,geometryCount:renderer?.info.memory.geometries,textureCount:renderer?.info.memory.textures,revision:THREE.REVISION,error:failure})});
-window.addEventListener('pagehide',()=>{if(disposed)return;disposed=true;drag=null;cancelAnimationFrame(pending);pending=0;disposeObject(scene);if(retiredCar)disposeObject(retiredCar);retiredCar=null;renderedCar=null;windowOpacity.clear();environment?.dispose();renderer?.dispose();});
+window.addEventListener('pagehide',()=>{if(disposed)return;disposed=true;drag=null;clearTimeout(initializationTimer);cancelAnimationFrame(pending);pending=0;disposeObject(scene);if(retiredCar)disposeObject(retiredCar);retiredCar=null;renderedCar=null;windowOpacity.clear();environment?.dispose();renderer?.dispose();});
 window.addEventListener('pageshow',event=>{if(event.persisted)location.reload();});

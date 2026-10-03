@@ -190,7 +190,7 @@ export function createCar() {
     };
     add(surface(32, 2, (u, v) => lampPoint(u, 1.10 - .10 * v, .024 * (1 - v))), paint);
     add(surface(32, 1, (u, v) => lampPoint(1 - u, 1 - .055 * v, -.001)), rubber);
-    add(surface(32, 6, (u, v) => lampPoint(u, .945 * v, .019 * (1 - v * v))), chrome);
+    add(surface(32, 6, (u, v) => lampPoint(u, .945 * v, .052 * (1 - v * v))), chrome);
     add(surface(32, 6, (u, v) => lampPoint(u, .945 * v, -.004 - .006 * (1 - v * v))), lens);
     rounded(side * .641, .477, -1.683, .15, .051, .028, .015, amber);
     rounded(side * .582, .713, 1.688, .139, .215, .047, .023, red);

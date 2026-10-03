@@ -57,7 +57,8 @@ export function decorateCar(car) {
         paint: [17, 28, (x, y, r) => 230 + 12 * (r() - .5)],
         plastic: [29, 24, (x, y, r) => 229 + 30 * (r() - .5)],
         rubber: [43, 16, (x, y, r) => 238 + 24 * (r() - .5)],
-        fabric: [67, 28, (x, y, r) => 224 + 12 * Math.sin(x * Math.PI / 2) * Math.cos(y * Math.PI / 2) + 10 * (r() - .5)]
+        fabric: [67, 28, (x, y, r) => 224 + 12 * Math.sin(x * Math.PI / 2) * Math.cos(y * Math.PI / 2) + 10 * (r() - .5)],
+        lens: [73, 1, (x, y) => 128 + 7 * Math.sin(x * Math.PI / 8) + 4 * Math.cos(y * Math.PI / 16)]
       };
       const [seed, repeat, sample] = presets[name];
       maps.set(name, tile(128, seed, [repeat, repeat], sample));
@@ -70,7 +71,7 @@ export function decorateCar(car) {
       case 'roof-paint':
         mat.metalness = mat.name === 'body-paint' ? .22 : 0;
         mat.roughness = .29; mat.clearcoat = .48; mat.clearcoatRoughness = .22;
-        mat.roughnessMap = mat.bumpMap = grain('paint'); mat.bumpScale = .00018;
+        mat.roughnessMap = grain('paint'); mat.bumpMap = null;
         break;
       case 'cab-plastic':
         mat.metalness = 0; mat.roughness = .69;
@@ -86,7 +87,10 @@ export function decorateCar(car) {
         break;
       case 'chrome': mat.metalness = 1; mat.roughness = .19; break;
       case 'window-glass': mat.opacity = Math.max(.55, mat.opacity); mat.transmission = 0; mat.metalness = 0; break;
-      case 'lamp-lens': mat.transmission = 0; mat.metalness = 0; break;
+      case 'lamp-lens':
+        mat.transmission = 0; mat.metalness = 0; mat.opacity = .15; mat.roughness = .07;
+        mat.bumpMap = grain('lens'); mat.bumpScale = .00065;
+        break;
       case 'dial-speed':
       case 'dial-rpm': {
         const speed = mat.name === 'dial-speed';
@@ -103,9 +107,9 @@ export function decorateCar(car) {
 export function decorateGarage(garage) {
   const mats = materials(garage);
   // Neutral aggregate and low-frequency curing variation, not painted-on grime.
-  const floorColor = tile(256, 101, [3, 3], (x, y, r) => 231 + 5 * Math.sin(x * Math.PI / 128) * Math.sin(y * Math.PI / 64) + 10 * (r() - .5), true);
+  const floorColor = tile(256, 101, [3, 3], (x, y, r) => 231 + 2 * Math.sin(x * Math.PI / 128) * Math.sin(y * Math.PI / 64) + 10 * (r() - .5), true);
   const floorGrain = tile(256, 103, [12, 12], (x, y, r) => 216 + 36 * (r() - .5));
-  const wallColor = tile(128, 107, [8, 4], (x, y, r) => 240 + 6 * Math.sin(x * Math.PI / 64) * Math.cos(y * Math.PI / 32) + 8 * (r() - .5), true);
+  const wallColor = tile(128, 107, [8, 4], (x, y, r) => 240 + 2 * Math.sin(x * Math.PI / 64) * Math.cos(y * Math.PI / 32) + 8 * (r() - .5), true);
   const wallGrain = tile(128, 109, [24, 12], (x, y, r) => 225 + 34 * (r() - .5));
   const metal = tile(128, 113, [8, 8], (x, y, r) => 220 + 8 * Math.sin(x * Math.PI / 8) * Math.sin(y * Math.PI / 8) + 20 * (r() - .5));
   const woodColor = tile(128, 127, [2, 1], (x, y, r) => 227 + 9 * Math.sin(y * Math.PI / 4 + .65 * Math.sin(x * Math.PI / 64)) + 5 * (r() - .5), true);

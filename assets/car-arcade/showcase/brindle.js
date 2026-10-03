@@ -164,7 +164,7 @@ export function createCar() {
   for(const x of [-.465,-.255]) {
     const rim=new THREE.TorusGeometry(.074,.007,6,32); rim.translate(x,.967,-.512); add(rim,steel);
     const dial=new THREE.MeshStandardMaterial({name:x<-.36?'dial-speed':'dial-rpm',color:0x171a1b,roughness:.7});
-    const face=new THREE.CylinderGeometry(.069,.069,.012,32); face.rotateX(Math.PI/2); face.translate(x,.967,-.518); add(face,dial);
+    const face=new THREE.CircleGeometry(.069,32); face.translate(x,.967,-.510); add(face,dial);
     for(let i=0;i<11;i++) {
       const a=-Math.PI*.75+i*Math.PI*1.5/10;
       const tick=new THREE.BoxGeometry(.003,.010,.003); tick.translate(0,.058,0); tick.rotateZ(-a); tick.translate(x,.967,-.508); add(tick,chrome);
