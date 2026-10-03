@@ -1,0 +1,182 @@
+#!/usr/bin/env python3
+"""Bounded normal-input city/progression check. Run only after source is frozen.
+
+No grants, save seeding, simulation stepping or snapshot mutation. A completed
+highway race proves earned mileage, not city escape. This does not certify
+natural escape, whole-fleet balance, visual quality, rights or hardware speed.
+"""
+import functools
+from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
+import json
+from pathlib import Path
+import shutil
+import tempfile
+import threading
+from urllib.parse import urlsplit
+
+from playwright.sync_api import sync_playwright
+
+ROOT = Path(__file__).resolve().parents[1]
+
+
+def main():
+    assert shutil.disk_usage(ROOT).free >= 2_000_000_000
+    output = Path(tempfile.mkdtemp(prefix='slipstream-city-'))
+    errors = []
+
+    class Handler(SimpleHTTPRequestHandler):
+        def log_message(self, *_):
+            pass
+
+    server = ThreadingHTTPServer(('127.0.0.1', 0), functools.partial(Handler, directory=str(ROOT)))
+    thread = threading.Thread(target=server.serve_forever, daemon=True)
+    thread.start()
+    origin = f'http://127.0.0.1:{server.server_port}'
+    print('OUTPUT=' + str(output), flush=True)
+    try:
+        with sync_playwright() as pw:
+            browser = pw.chromium.launch(executable_path=shutil.which('chromium'), headless=True,
+                args=['--no-sandbox', '--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'])
+            try:
+                context = browser.new_context(viewport={'width': 1280, 'height': 900}, has_touch=True)
+                page = context.new_page()
+                page.set_default_timeout(20000)
+                page.on('pageerror', lambda e: errors.append(str(e)))
+                page.on('console', lambda m: errors.append(m.text) if m.type == 'error' else None)
+                page.on('requestfailed', lambda r: errors.append(r.url + ':' + str(r.failure)))
+                page.on('response', lambda r: errors.append(f'HTTP {r.status} {r.url}') if r.status >= 400 else None)
+                page.route('**/*', lambda r: r.continue_() if urlsplit(r.request.url).netloc == urlsplit(origin).netloc else (errors.append('External ' + r.request.url), r.abort()))
+
+                def snapshot():
+                    return page.evaluate('slipstreamSnapshot')
+
+                def ready():
+                    page.wait_for_function('window.slipstreamSnapshot?.view?.frames>1 && slipstreamSnapshot.phase==="run" && slipstreamSnapshot.run.mode==="roam"')
+
+                page.goto(origin + '/Games/Slipstream%20Borough/')
+                ready()
+                first = snapshot()
+                assert first['profile']['cash'] == 0 and not first['profile']['testMode']
+                assert first['run']['pursuit'] == 'roaming' and first['run']['speed'] == 0
+                assert first['run']['world']['x'] == first['run']['world']['z'] == 0
+                assert page.locator('#drive').is_visible() and page.locator('#cruise').is_visible()
+                assert page.locator('#help').is_visible() and page.locator('#pause').is_visible()
+                assert page.evaluate('Object.isFrozen(slipstreamSnapshot.run.world)')
+                page.keyboard.down('w')
+                page.wait_for_function('slipstreamSnapshot.run.distance>40')
+                page.keyboard.down('d')
+                page.wait_for_function('Math.abs(slipstreamSnapshot.run.world.heading)>.04')
+                page.keyboard.up('d')
+                page.keyboard.up('w')
+                moved = snapshot()['run']
+                assert moved['world'] != first['run']['world'] and moved['pursuit'] == 'roaming'
+                page.keyboard.down('s')
+                page.wait_for_function('slipstreamSnapshot.run.speed<.1')
+                page.keyboard.up('s')
+                page.wait_for_function('slipstreamSnapshot.run.pursuit==="chased" && slipstreamSnapshot.run.police.length>0', timeout=45000)
+                cop = snapshot()['run']['police'][0]['world']
+                page.wait_for_function('(p) => slipstreamSnapshot.run.police.some(c=>Math.hypot(c.world.x-p.x,c.world.z-p.z)>.5)', arg=cop)
+                page.locator('#pause').click()
+                frozen = snapshot()['run']
+                page.wait_for_timeout(200)
+                assert snapshot()['run'] == frozen
+                page.screenshot(path=str(output / 'city-patrol.jpg'), quality=90)
+                page.locator('#leave').click()
+                parked = snapshot()['profile']
+                assert parked['careerDistance'] == int(frozen['distance'])
+                assert parked['cash'] >= 0 and not parked['testMode']
+                page.reload()
+                ready()
+                assert snapshot()['profile']['careerDistance'] == parked['careerDistance']
+                assert snapshot()['profile']['cash'] == parked['cash']
+                page.locator('#leave').click()  # zero-distance fresh run cannot repay the previous run
+                assert snapshot()['profile']['careerDistance'] == parked['careerDistance']
+                assert snapshot()['profile']['cash'] == parked['cash']
+                assert 'Next free car:' in page.locator('#career').inner_text()
+                assert 'Mileage locked' in page.locator('#catalog').inner_text()
+                options = page.locator('#gadget').inner_text()
+                assert all(category in options for category in ['discreet', 'loud', 'utility'])
+                assert page.locator('#gadget option[value="repair"]').is_disabled()
+                assert 'locked until 3500 m' in page.locator('#gadget option[value="repair"]').inner_text()
+                page.locator('#paint').fill('#173d69')
+                page.locator('#wheelColor').fill('#b59a61')
+                page.locator('#stripe').fill('#f2e8c4')
+                page.locator('#stripeEnabled').check()
+                page.locator('#spoiler').check()
+                page.locator('#applyFinish').click()
+                finish = snapshot()['profile']['customizations']['bricklet']
+                assert finish['stripe'] == '#f2e8c4' and finish['spoiler'] is True
+
+                # Ordinary highway play is an explicitly separate earned-mileage check.
+                page.locator('#mode').select_option('race')
+                page.locator('#start').click()
+                page.locator('#cruise').check()
+                page.locator('#viewport').focus()
+                page.keyboard.down('a')
+                page.wait_for_function('slipstreamSnapshot.run.x<.1')
+                page.keyboard.up('a')
+                assert page.locator('#deploy').is_hidden()
+                page.wait_for_function('slipstreamSnapshot.phase==="end"', timeout=110000)
+                race = snapshot()
+                assert race['run']['status'] == 'finished'
+                assert race['profile']['careerDistance'] >= 1200 and 'pip' in race['profile']['owned']
+                assert not race['profile']['testMode']
+                page.locator('#garageButton').click()
+                assert page.locator('#gadget option[value="repair"]').is_disabled()
+                page.locator('#gadget').select_option('smoke')
+                page.locator('#fitGadget').click()
+                assert snapshot()['profile']['customizations']['bricklet']['gadget'] == 'smoke'
+                saved = snapshot()['profile']
+                page.reload()
+                ready()
+                assert snapshot()['profile']['cash'] == saved['cash']
+                assert snapshot()['profile']['customizations'] == saved['customizations']
+                page.keyboard.press('Space')
+                page.wait_for_function('slipstreamSnapshot.run.deployments===1')
+                assert snapshot()['run']['charges'] == 2
+                assert page.locator('#deploy').is_disabled()
+                page.locator('#pause').click()
+                frozen = snapshot()['run']
+                page.wait_for_timeout(200)
+                assert snapshot()['run'] == frozen
+                page.locator('#leave').click()
+                page.locator('#mode').select_option('roam')
+                page.set_viewport_size({'width': 390, 'height': 844})
+                page.locator('#start').tap()
+                assert snapshot()['run']['charges'] == 3
+                page.locator('#deploy').tap()
+                page.wait_for_function('slipstreamSnapshot.run.deployments===1')
+                # Real held touchscreen gas, not a synthetic JS click or simulation call.
+                gas = page.locator('[data-drive="gas"]')
+                gas.scroll_into_view_if_needed()
+                box = gas.bounding_box()
+                cdp = context.new_cdp_session(page)
+                cdp.send('Input.dispatchTouchEvent', {'type': 'touchStart', 'touchPoints': [{'x': box['x'] + box['width']/2, 'y': box['y'] + box['height']/2}]})
+                try:
+                    page.wait_for_function('slipstreamSnapshot.run.distance>1')
+                finally:
+                    cdp.send('Input.dispatchTouchEvent', {'type': 'touchEnd', 'touchPoints': []})
+                    cdp.detach()
+                for width, height in [(320, 740), (390, 844)]:
+                    page.set_viewport_size({'width': width, 'height': height})
+                    assert page.evaluate('document.documentElement.scrollWidth<=innerWidth')
+                    for selector in ['#deploy', '#pause', '[data-drive="gas"]']:
+                        box = page.locator(selector).bounding_box()
+                        assert box['width'] >= 44 and box['height'] >= 44
+                page.screenshot(path=str(output / '390-city.jpg'), quality=90)
+                assert not errors, errors
+                (output / 'result.json').write_text(json.dumps({'errors': errors, 'assisted': False,
+                    'cityBankedMeters': parked['careerDistance'], 'highwayEarnedMeters': race['run']['distance'],
+                    'naturalCityEscape': 'not tested'}, indent=2) + '\n')
+                print('PASS normal city movement/turning, moving patrol, pause, one-shot parking/reload, earned highway mileage unlock, saved stripe/spoiler, category locks, keyboard/touch deployment and mobile overflow.', flush=True)
+                print('NOT ACCEPTANCE: natural city escape, whole campaign, subjective visuals, rights and hardware.', flush=True)
+            finally:
+                browser.close()
+    finally:
+        server.shutdown()
+        server.server_close()
+        thread.join(timeout=3)
+
+
+if __name__ == '__main__':
+    main()
