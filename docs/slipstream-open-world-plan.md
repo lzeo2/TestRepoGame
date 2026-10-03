@@ -2,7 +2,11 @@
 
 Direct owner order: more gadgets/customization, base cars unlocked by playing then further equipment; discreet/loud categories; begin driving in an open world before cops pursue; third or first person, general chase-game genre reference. This is existing original Slipstream only, no copied branding/assets or new game. Choose third person for this bounded pass. No first-person driving claim, game registration, push, install or full-catalog checkout. Preserve previous native/pure evidence as historical.
 
-## Execution status: planned, model-policy blocked
+## Current model authority: owner explicitly chose Astra
+
+After being asked to resolve Astra versus the repository's sol-model instruction, the owner replied **“Astra.”** For this city-first implementation run, use actual **openai-codex/gpt-6-astra**; this direct owner override supersedes the conflicting model choice in AGENTS for these bounded tasks only. Keep every other repo/safety rule. Do not ask again or substitute sol/default models. Prior tasks117–119 were abandoned; new tasks120–122 resume after this explicit blocker resolution. The existing explicit-provider dispatcher is required because the outer direct tool misroutes qualified model IDs. Main verifies assistant provider/model metadata, source commits and actual browser results independently.
+
+## Earlier blocked attempts (historical; policy now resolved)
 
 **No city, mileage unlock, category, stripe/spoiler or additional gadget implementation has landed.** Current running source remains canonical profile2, garage/highway entry, paid fleet and two smoke/EMP kits from37228a8/00605e2. Prior natural checks/cockpit previews remain valid only for that delivered scope. This document is the new requested contract, not a completion claim.
 
