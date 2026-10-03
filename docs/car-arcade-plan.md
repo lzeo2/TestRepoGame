@@ -73,7 +73,7 @@ After the two car games, the owner gives free reign for further2D/3D additions: 
 
 ## Later original car-study order
 
-The owner requested a photorealistic treatment of the displayed Pip using Astra, then a separate retro compact inspired only by general aesthetic/design/feel while avoiding copied vehicle designs/assets. Two original showcase studies (Pip and Brindle) are isolated under `assets/car-arcade/showcase/`; they do not change the16-car game ABI or reserve/register another game. The owner directly approved simpler glass refraction after software-renderer timeouts. [Actual source, renders and checks](car-realistic-studies.md) distinguish realistic-style studies from proven photorealism, hardware performance or legal clearance. No copied OEM badge, photograph, texture or mesh.
+The owner requested a photorealistic treatment of the displayed Pip using Astra, then a separate retro compact inspired only by general aesthetic/design/feel while avoiding copied vehicle designs/assets. Two original showcase studies (Pip and Brindle) are isolated under `assets/car-arcade/showcase/`; they do not change the16-car game ABI or reserve/register another game. The owner directly approved simpler glass refraction after software-renderer timeouts. [Actual source, renders and checks](car-realistic-studies.md) distinguish realistic-style studies from proven photorealism, hardware performance or legal clearance. No copied OEM badge, photograph, texture or mesh. The subsequent [curvature/cockpit iteration](car-cockpit-plan.md) adds rounded bodywork, tinted windows, physical cabins and workshop scenery; its current native checks are HELD, as recorded in the source review.
 
 ## Acceptance and handoff
 

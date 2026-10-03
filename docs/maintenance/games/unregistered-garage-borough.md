@@ -45,6 +45,6 @@ Frozen c090df0 native exit0/44.87s: natural buy/repair/one sale1050, pause, exac
 
 ## Future outlook
 
-[Later original car studies](../../car-realistic-studies.md) live in a separate optimized studio, not this game's inventory/factory. Fresh per-group resource ownership and28k meshes need explicit LOD/performance/integration review before any replacement. This study adds no new game or registration and does not clear this game's reset hold.
+[Later original car studies](../../car-realistic-studies.md) live in a separate optimized studio, not this game's inventory/factory. Fresh per-group resource ownership and current24k meshes need explicit LOD/performance/integration review before any replacement. The rounded/tinted workshop and physical cockpit iteration is native-HELD after two failures; cockpit is a parked study, not an integrated game feature. This study adds no new game or registration and does not clear this game's reset hold.
 
 Clear the updated consent race first, then natural loss/reset and ten-sale/Continue checks. Measure target-device performance and pacing with real input. Do not add a second-game cheat, real-money economy, backend, massive model files or unrelated original game under this lease. Additional ports require their own current quality/provenance gates.

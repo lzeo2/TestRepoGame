@@ -43,6 +43,6 @@ Real model gallery exit0/33.98s, all16 actual factories, two contexts/cycles, ca
 
 ## Future outlook
 
-[Later original car studies](../../car-realistic-studies.md) include an optimized higher-detail Pip and distinct Brindle, **showcase only**. Their fresh-resource disposal/28k geometry differs from the shared cached8k gameplay factory; do not substitute them automatically or claim live fleet photorealism. No game/Core/catalog source changes belong to that study.
+[Later original car studies](../../car-realistic-studies.md) include an optimized higher-detail Pip and distinct Brindle, **showcase only**. Their fresh-resource disposal/current24k geometry differs from the shared cached8k gameplay factory; do not substitute them automatically or claim live fleet photorealism. Rounded/tinted bodies, workshop and real parked cockpit camera are implemented but the current native checks are HELD; this is not yet a driving cockpit feature. No game/Core/catalog source changes belong to that study.
 
 First clear the shared car milestone's Garage reset regression and full release gate/storage lease. Then add natural purchase/upgrade, real police encounters, loss/retry and longer difficulty balance checks before claiming high-quality completion. Additional genres remain separate source/asset/quality decisions, not permission to clone brands or replace existing games.
