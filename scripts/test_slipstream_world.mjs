@@ -25,6 +25,7 @@ check('profile3 v2 migration preserves purchased kits / cosmetic copies / mileag
   legacy.customizations={bricklet:{paint:'#112233',wheels:'#abcdef',gadget:'emp',gadgets:['emp']}};
   const migrated=core.validateProfile(legacy);assert.equal(migrated.careerDistance,0);assert.equal(migrated.customizations.bricklet.stripe,null);
   assert.equal(core.fitGadget(migrated,'bricklet','emp').cash,800);
+  const badLegacy=structuredClone(legacy);badLegacy.customizations.bricklet.stripe='#123456';assert.throws(()=>core.validateProfile(badLegacy));
   assert.throws(()=>core.fitGadget({...p,cash:1000},'bricklet','smoke'));
   assert.throws(()=>core.buyCar({...p,cash:100000},'pip'));
   const claimed=core.buyCar({...p,careerDistance:1200},'pip');assert.equal(claimed.cash,0);assert(claimed.owned.includes('pip'));
@@ -41,6 +42,22 @@ check('real movement / copied poses / collision / boundary / bounded deadline',(
   const wall=fresh().run;wall.world={x:0,z:-25,heading:-Math.PI/2};wall.speed=20;
   const hit=tick(wall,drive,20);assert(hit.hp<100);assert(!blocked(hit.world.x,hit.world.z));
   const timeout=tick(fresh().run,stop,4801);assert.equal(timeout.status,'busted');assert.equal(timeout.elapsed,240);
+});
+check('starter can turn ninety degrees inside an intersection without damage',()=>{
+  let r=fresh().run;r.speed=5;
+  for(let i=0;i<200&&Math.abs(r.world.heading)<Math.PI/2;i++)r=core.stepRun(r,{steer:1,throttle:0,brake:0},.05);
+  assert(Math.abs(r.world.heading)>=Math.PI/2);assert.equal(r.hp,100);
+  assert(Math.abs(r.world.x)<WORLD.streetHalfWidth-2);assert(Math.abs(r.world.z)<WORLD.streetHalfWidth-2);
+});
+check('city smoke affects trailing wake only / EMP radius / no containment override',()=>{
+  for(const kind of ['smoke','emp'])for(const z of [50,-50,70]){
+    const p=core.fitGadget({...core.freshProfile(),cash:1000,careerDistance:3500},'bricklet',kind);
+    let r=core.startRun(p,'roam').run;Object.assign(r,{elapsed:20,distance:30,score:60});r=core.stepRun(r,stop,.05);
+    Object.assign(r.police[0],{world:{x:0,z,heading:0},speed:20});
+    const normal=core.stepRun(r,stop,.05),fired=core.stepRun(r,{...stop,deploy:true},.05);
+    const affected=kind==='smoke'?z>0:z<65;
+    assert.equal(fired.police[0].speed<normal.police[0].speed,affected);
+  }
 });
 check('patrol timing / actual navigated cops / arrest / synthetic escape hold',()=>{
   let r=fresh().run;r.elapsed=19.95;r.distance=30;r.score=60;

@@ -57,7 +57,7 @@ function gadget(value) {
   return GADGETS[value];
 }
 function custom(raw, legacy = false) {
-  record(raw,['paint','wheels','gadget','gadgets','stripe','spoiler'],legacy?['paint','wheels','gadget','gadgets']:undefined); array(raw.gadgets,5); gadget(raw.gadget);
+  record(raw,legacy?['paint','wheels','gadget','gadgets']:['paint','wheels','gadget','gadgets','stripe','spoiler']); array(raw.gadgets,5); gadget(raw.gadget);
   const stripe=legacy?null:raw.stripe, spoiler=legacy?false:raw.spoiler;
   if(stripe!==null)color(stripe);boolean(spoiler);
   const gadgets=raw.gadgets.map(id=>{gadget(id);if(id==='none')throw new RangeError('Invalid owned gadget');return id;});
@@ -248,14 +248,13 @@ function startChase(r) {
   cop.world={x:point.x,z:point.z,heading:0};r.police.push(cop);
 }
 function stepCity(r,input,dt) {
-  r.world.heading=Math.atan2(Math.sin(r.world.heading-input.steer*r.stats.handling*.18*(r.speed/r.stats.speed)*dt),Math.cos(r.world.heading-input.steer*r.stats.handling*.18*(r.speed/r.stats.speed)*dt));
+  r.world.heading=Math.atan2(Math.sin(r.world.heading-input.steer*r.stats.handling*r.speed*.05*dt),Math.cos(r.world.heading-input.steer*r.stats.handling*r.speed*.05*dt));
   const next={x:r.world.x-Math.sin(r.world.heading)*r.speed*dt,z:r.world.z-Math.cos(r.world.heading)*r.speed*dt};
   if(clearPath(r.world,next)){r.distance+=Math.hypot(next.x-r.world.x,next.z-r.world.z);Object.assign(r.world,next);}
   else {damage(r);r.speed*=.3;}
   if(r.pursuit==='roaming'&&(r.elapsed>=20&&r.distance>=30||r.heat>0))startChase(r);
   for(const cop of r.police){
-    const gap=Math.hypot(cop.world.x-r.world.x,cop.world.z-r.world.z);
-    const affected=r.gadgetTime>0&&(r.gadget==='smoke'&&gap<100||r.gadget==='emp'&&gap<65);
+    const affected=disrupted(r,cop);
     const target=chaseTarget(cop.world,r.gadget==='decoy'&&r.gadgetTime>0?r.gadgetTarget:r.world);
     const dx=target.x-cop.world.x,dz=target.z-cop.world.z,length=Math.hypot(dx,dz);
     cop.speed=Math.min(r.stats.speed*(affected?(r.gadget==='emp'?.08:.35):.86),cop.speed+r.stats.acceleration*dt);
@@ -264,7 +263,7 @@ function stepCity(r,input,dt) {
     else cop.speed=0;
     if(Math.hypot(cop.world.x-r.world.x,cop.world.z-r.world.z)<4){damage(r);r.speed*=.8;cop.hit=true;}
   }
-  const close=r.police.some(c=>Math.hypot(c.world.x-r.world.x,c.world.z-r.world.z)<9&&!(r.gadget==='emp'&&r.gadgetTime>0));
+  const close=r.police.some(c=>Math.hypot(c.world.x-r.world.x,c.world.z-r.world.z)<9&&!disrupted(r,c));
   r.arrest=clamp(r.arrest+(close&&r.speed<5?dt:-dt*.5),0,3);
   const distant=r.pursuit==='chased'&&r.police.every(c=>Math.hypot(c.world.x-r.world.x,c.world.z-r.world.z)>=75);
   r.escapeClock=distant?Math.min(6,r.escapeClock+dt):0;
@@ -357,6 +356,12 @@ export function stepRun(run, input, dt) {
 // Arcade-only effects: a following wake or short-radius pulse, not real fluid/electrical simulation.
 function disrupted(run,cop) {
   if(run.gadgetTime<=0)return false;
+  if(run.mode==='roam') {
+    const dx=cop.world.x-run.world.x,dz=cop.world.z-run.world.z;
+    const gap=dx*Math.sin(run.world.heading)+dz*Math.cos(run.world.heading);
+    const lateral=Math.abs(dx*Math.cos(run.world.heading)-dz*Math.sin(run.world.heading));
+    return run.gadget==='smoke'?gap>=0&&gap<100&&lateral<3.5:run.gadget==='emp'&&Math.hypot(dx,dz)<65;
+  }
   const gap=run.distance-cop.distance;
   return run.gadget==='smoke'?gap>=0&&gap<100&&Math.abs(cop.x-run.x)<3.5:run.gadget==='emp'&&Math.hypot(gap,cop.x-run.x)<65;
 }

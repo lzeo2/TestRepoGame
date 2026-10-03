@@ -7,6 +7,7 @@ natural escape, whole-fleet balance, visual quality, rights or hardware speed.
 """
 import functools
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
+import hashlib
 import json
 from pathlib import Path
 import shutil
@@ -22,6 +23,8 @@ ROOT = Path(__file__).resolve().parents[1]
 def main():
     assert shutil.disk_usage(ROOT).free >= 2_000_000_000
     output = Path(tempfile.mkdtemp(prefix='slipstream-city-'))
+    sources = list((ROOT / 'Games/Slipstream Borough').glob('*')) + list((ROOT / 'assets/car-arcade').glob('*.js'))
+    hashes = {str(p.relative_to(ROOT)): hashlib.sha256(p.read_bytes()).hexdigest() for p in sources if p.is_file()}
     errors = []
 
     class Handler(SimpleHTTPRequestHandler):
@@ -59,6 +62,8 @@ def main():
                 assert first['profile']['cash'] == 0 and not first['profile']['testMode']
                 assert first['run']['pursuit'] == 'roaming' and first['run']['speed'] == 0
                 assert first['run']['world']['x'] == first['run']['world']['z'] == 0
+                assert first['view']['worldMode'] == 'roam' and first['view']['cityBlocks'] == 36
+                assert first['view']['pose'] == first['run']['world']
                 assert page.locator('#drive').is_visible() and page.locator('#cruise').is_visible()
                 assert page.locator('#help').is_visible() and page.locator('#pause').is_visible()
                 assert page.evaluate('Object.isFrozen(slipstreamSnapshot.run.world)')
@@ -106,6 +111,9 @@ def main():
                 page.locator('#applyFinish').click()
                 finish = snapshot()['profile']['customizations']['bricklet']
                 assert finish['stripe'] == '#f2e8c4' and finish['spoiler'] is True
+                page.wait_for_function('slipstreamSnapshot.view.customization.stripe==="#f2e8c4" && slipstreamSnapshot.view.customization.spoiler')
+                page.locator('#viewport').scroll_into_view_if_needed()
+                page.screenshot(path=str(output / 'garage-custom.jpg'), quality=90)
 
                 # Ordinary highway play is an explicitly separate earned-mileage check.
                 page.locator('#mode').select_option('race')
@@ -165,7 +173,9 @@ def main():
                         assert box['width'] >= 44 and box['height'] >= 44
                 page.screenshot(path=str(output / '390-city.jpg'), quality=90)
                 assert not errors, errors
-                (output / 'result.json').write_text(json.dumps({'errors': errors, 'assisted': False,
+                assert all(hashlib.sha256((ROOT / p).read_bytes()).hexdigest() == h for p, h in hashes.items()), 'Source changed during acceptance'
+                assert shutil.disk_usage(ROOT).free >= 2_000_000_000
+                (output / 'result.json').write_text(json.dumps({'errors': errors, 'assisted': False, 'sourceHashes': hashes,
                     'cityBankedMeters': parked['careerDistance'], 'highwayEarnedMeters': race['run']['distance'],
                     'naturalCityEscape': 'not tested'}, indent=2) + '\n')
                 print('PASS normal city movement/turning, moving patrol, pause, one-shot parking/reload, earned highway mileage unlock, saved stripe/spoiler, category locks, keyboard/touch deployment and mobile overflow.', flush=True)
