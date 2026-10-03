@@ -7,7 +7,7 @@ import { PASSENGER_STUDIES, createDetailedCar } from '../assets/car-arcade/showc
 import { UTILITY_STUDIES, SPORT_STUDIES } from '../assets/car-arcade/showcase/detail-profiles.js';
 import { decorateCar } from '../assets/car-arcade/showcase/realism.js';
 
-const ids = 'pip brindle bricklet finch lantern comet orchard horizon morrow relay tempest sunray parcel pebble dockside gravel atlas kestrel vesper'.split(' ');
+const ids = 'pip brindle bricklet finch lantern comet orchard horizon morrow relay tempest sunray parcel pebble dockside gravel atlas kestrel vesper aerolume riftline'.split(' ');
 const profiles = {...PASSENGER_STUDIES, ...UTILITY_STUDIES, ...SPORT_STUDIES};
 const factories = {pip, brindle, ...Object.fromEntries(Object.keys(profiles).map(id => [id, () => createDetailedCar(id)]))};
 assert.deepEqual(Object.keys(factories).sort(), [...ids].sort());
@@ -35,7 +35,20 @@ globalThis.document = {createElement(tag) {
     fillText(value){text.push(value);}
   })};
 }};
-const seen = new Set();
+// Inspect actual indexed aero faces within a spatial region of a material batch.
+function regionBounds(mesh, includes) {
+  const {position} = mesh.geometry.attributes, index = mesh.geometry.index;
+  assert(index, 'Indexed aero geometry required');
+  const bounds = new THREE.Box3();
+  let triangles = 0;
+  for (let i = 0; i < index.count; i += 3) {
+    const points = [0,1,2].map(j => new THREE.Vector3().fromBufferAttribute(position, index.getX(i+j)));
+    if (points.every(includes)) { points.forEach(p => bounds.expandByPoint(p)); triangles++; }
+  }
+  assert(triangles >= 100, 'Missing substantial physical aero faces');
+  return bounds;
+}
+const seen = new Set(), hyperShapes = new Map();
 let checked = 0;
 for (let cycle = 1; cycle <= 2; cycle++) for (const id of ids) {
   const car = factories[id](), geometries = new Set(), materials = new Set();
@@ -126,6 +139,28 @@ for (let cycle = 1; cycle <= 2; cycle++) for (const id of ids) {
     }
     assert(duplicates>100,id+' missing rounded cabin seams');
   }
+  if (id === 'aerolume' || id === 'riftline') {
+    const {width:W,length:L,height:H,bodyHeight:B} = profile;
+    const roof = new THREE.Box3().setFromObject(car.getObjectByName('roof-paint'));
+    const body = new THREE.Box3().setFromObject(car.getObjectByName('body-paint'));
+    const roofSize = roof.getSize(new THREE.Vector3()), bodySize = body.getSize(new THREE.Vector3());
+    assert(W > 2.1 && H < 1.2 && profile.roofWidth / W < .6, id + ' hyper proportions');
+    assert(roof.max.y / bodySize.x < .55 && roofSize.x / bodySize.x < .6, id + ' physical low narrow canopy');
+    assert(bodySize.z / bodySize.x > 1.8 && bodySize.x > 2.1, id + ' physical wide long body');
+    const wing = regionBounds(car.getObjectByName('body-paint'), p => p.z > L*.30 && p.y > B+.10);
+    const wingSize = wing.getSize(new THREE.Vector3());
+    assert(wingSize.x > W*.7 && wingSize.z > .2 && wing.max.z < L/2+.05, id + ' attached rear aero bounds');
+    assert(id === 'aerolume' ? wing.max.y < roof.max.y : wing.max.y > roof.max.y, id + ' distinct low bridge / raised wing');
+    const clearance = Math.min(B*.39,W*.185)*.75;
+    const diffuser = regionBounds(car.getObjectByName('cab-plastic'), p => p.z > L*.31 && p.y < clearance+.05);
+    const diffuserSize = diffuser.getSize(new THREE.Vector3());
+    assert(diffuserSize.x > W*.6 && diffuserSize.z > L*.15 && diffuserSize.y > .05, id + ' physical rear diffuser');
+    assert(diffuser.min.y > 0 && diffuser.max.z < L/2+.1, id + ' diffuser ground / rear bounds');
+    const shape = [roofSize.x/bodySize.x, roofSize.z/bodySize.z, wing.max.y/roof.max.y];
+    if (cycle === 1) hyperShapes.set(id, shape);
+    else assert.deepEqual(shape, hyperShapes.get(id), id + ' deterministic physical shape');
+    if (id === 'riftline') assert(shape.some((v,i) => Math.abs(v-hyperShapes.get('aerolume')[i]) > .1), 'Hyper concepts are not scaled shape clones');
+  }
   for (const name of ['body-paint','cab-plastic','seat-fabric','rubber','chrome','window-glass','lamp-lens','dial-speed','dial-rpm','console-radio','registration-plate']) named(name);
   if (profile?.form !== 'roadster') named('roof-paint');
   assert([...materials].every(m => !Object.values(m).some(v => v?.isTexture)), id + ' map-free factory');
@@ -153,5 +188,5 @@ for (let cycle = 1; cycle <= 2; cycle++) for (const id of ids) {
   checked++;
   console.log(`PASS ${id} cycle${cycle}: ${triangles} triangles / ${meshes} meshes / ${textures.size} textures / ${bytes} base RGBA bytes`);
 }
-assert.equal(checked, 38);
-console.log('PASS 19 factories, two fresh cycles, disjoint once-disposed resources. Source/stub check only; real cabin visibility and typography require native review.');
+assert.equal(checked, 42);
+console.log('PASS 21 factories, two fresh cycles, disjoint once-disposed resources. Source/stub check only; real cabin visibility and typography require native review.');

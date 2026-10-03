@@ -20,7 +20,7 @@ from PIL import Image, ImageStat
 from playwright.sync_api import sync_playwright
 
 ROOT = Path(__file__).resolve().parents[1]
-IDS = 'pip brindle bricklet finch lantern comet orchard horizon morrow relay tempest sunray parcel pebble dockside gravel atlas kestrel vesper'.split()
+IDS = 'pip brindle bricklet finch lantern comet orchard horizon morrow relay tempest sunray parcel pebble dockside gravel atlas kestrel vesper aerolume riftline'.split()
 LIMIT = 10_000_000
 
 
@@ -44,7 +44,8 @@ def main():
     output = Path(tempfile.mkdtemp(prefix='car-fleet-visual-'))
     errors, snapshots, images = [], [], []
     result = {'visual_only': True, 'acceptance': False, 'exit': 1, 'sources': hashes,
-              'errors': errors, 'snapshots': snapshots, 'images': images, 'free_before': free_before}
+              'errors': errors, 'snapshots': snapshots, 'images': images, 'free_before': free_before,
+              'expected_models': 21, 'expected_rear_views': 2, 'expected_images': 48}
     print('VISUAL_ONLY_OUTPUT=' + str(output), flush=True)
 
     class Handler(SimpleHTTPRequestHandler):
@@ -141,6 +142,13 @@ def main():
                     disk_guard(); frozen()
                     exterior = action(lambda: page.locator('#car').select_option(car), 'exterior', car)
                     capture(car + '-exterior.jpg', exterior)
+                    if car in ('aerolume', 'riftline'):
+                        for _ in range(10):
+                            rear = action(lambda: page.locator('#right').click(), 'exterior', car)
+                        assert rear['angle'] > 1.3 and rear['framed'] and not rear['error'] and not errors, rear
+                        capture(car + '-rear.jpg', rear)
+                        reset = action(lambda: page.locator('#reset').click(), 'exterior', car)
+                        assert abs(reset['angle']) < .000001
                     cockpit = action(lambda: page.locator('#cockpit').click(), 'cockpit', car)
                     assert page.locator('#cockpit').get_attribute('aria-pressed') == 'true'
                     capture(car + '-cockpit.jpg', cockpit)
@@ -148,7 +156,8 @@ def main():
                     print('CAPTURED ' + car + ' exterior/cockpit', flush=True)
 
                 # Real keyboard and touch at 390px, not synthetic state/pose grants.
-                car = 'vesper'
+                car = 'riftline'
+                assert IDS[-1] == car and page.evaluate('carStudioSnapshot.id') == car
                 action(lambda: page.set_viewport_size({'width': 390, 'height': 844}), 'exterior', car)
                 assert page.evaluate('document.documentElement.scrollWidth<=innerWidth')
                 page.locator('#studio').focus()
@@ -181,9 +190,13 @@ def main():
                 browser.close()
         frozen(); disk_guard()
         assert not errors, errors
-        assert len(images) == 42
+        assert len(images) == 48
+        assert {image['file'] for image in images} == (
+            {car + '-' + view + '.jpg' for car in IDS for view in ('exterior', 'cockpit')}
+            | {'aerolume-rear.jpg', 'riftline-rear.jpg', '390-exterior.jpg', '390-exterior-ui.jpg',
+               '390-cockpit.jpg', '390-cockpit-ui.jpg'})
         result['exit'] = 0
-        print('VISUAL ONLY: 19 exterior/cockpit pairs and 390px keyboard/touch; no QA, performance, photographic or legal certification.', flush=True)
+        print('VISUAL ONLY: 21 exterior/cockpit pairs + 2 hypercar rear views + 4 Riftline 390px keyboard/touch images = 48; no QA, performance, photographic or legal certification.', flush=True)
     except BaseException as error:
         result['failure'] = str(error)
         raise
