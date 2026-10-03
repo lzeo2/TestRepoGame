@@ -2,6 +2,7 @@ import * as THREE from '../vendor/three.module.js';
 import { createCar as pip } from './pip.js';
 import { createCar as brindle } from './brindle.js';
 import { createGarage } from './garage.js';
+import { decorateCar, decorateGarage } from './realism.js';
 
 const canvas = document.getElementById('studio'), status = document.getElementById('status');
 const factories = { pip, brindle }, scene = new THREE.Scene();
@@ -22,7 +23,10 @@ function disposeObject(object) {
   textures.forEach(t => t.dispose()); geometries.forEach(g => g.dispose()); materials.forEach(m => m.dispose());
 }
 function fail(error) { failure = String(error.message || error); status.textContent = `Studio unavailable: ${failure}. No game state was changed.`; }
-function schedule() { if (!pending && !disposed && !failure) pending = requestAnimationFrame(draw); }
+function schedule() {
+  // Cold shader compilation must not block the document/font load event.
+  if (document.readyState === 'complete' && !pending && !disposed && !failure) pending = requestAnimationFrame(draw);
+}
 function frameCamera() {
   if (!current) return;
   current.updateWorldMatrix(true, true);
@@ -38,7 +42,7 @@ function frameCamera() {
   } else {
     // Fit all eight actual world-bound corners, including depth, to 90% NDC.
     const bounds = new THREE.Box3().setFromObject(current), center = bounds.getCenter(new THREE.Vector3());
-    const outward = new THREE.Vector3(4.4, 2.03, -5.35).normalize();
+    const outward = new THREE.Vector3(4.4, .95, -5.35).normalize();
     camera.position.copy(center).add(outward); camera.lookAt(center); camera.updateMatrixWorld();
     const inverse = camera.quaternion.clone().invert(), tan = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));
     let distance = 0;
@@ -63,7 +67,7 @@ function select(id) {
   if (disposed || !renderer || !Object.hasOwn(factories, id)) return;
   if (current) { scene.remove(current); disposeObject(current); }
   windowOpacity.clear();
-  current = factories[id](); scene.add(current);
+  current = factories[id](); decorateCar(current); scene.add(current);
   current.traverse(node => {
     if (!node.isMesh) return;
     const mats = Array.isArray(node.material) ? node.material : [node.material];
@@ -79,12 +83,12 @@ function select(id) {
 try {
   renderer = new THREE.WebGLRenderer({canvas, antialias:true, preserveDrawingBuffer:true});
   renderer.setPixelRatio(1); renderer.outputColorSpace = THREE.SRGBColorSpace;
-  renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1;
+  renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = .92;
   renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
   scene.background = new THREE.Color('#ece9e2');
   // Original procedural softboxes, not downloaded HDRs or photographic textures.
-  const room = new THREE.Scene(); room.background = new THREE.Color('#b6b3ab');
-  const walls = new THREE.Mesh(new THREE.BoxGeometry(20,12,20), new THREE.MeshBasicMaterial({color:'#b6b3ab',side:THREE.BackSide}));
+  const room = new THREE.Scene(); room.background = new THREE.Color('#59616b');
+  const walls = new THREE.Mesh(new THREE.BoxGeometry(20,12,20), new THREE.MeshBasicMaterial({color:'#878981',side:THREE.BackSide}));
   walls.position.y = 5; room.add(walls);
   for (const [x,y,z,w,h,rotation] of [[-5,3,-2,5.6,1.4,Math.PI/2],[4,5,1,8,4,-Math.PI/2],[0,4,-9,6,1,0]]) {
     const panel = new THREE.Mesh(new THREE.PlaneGeometry(w,h),new THREE.MeshBasicMaterial({color:new THREE.Color().setRGB(5,5,5),side:THREE.DoubleSide}));
@@ -92,11 +96,11 @@ try {
   }
   const pmrem = new THREE.PMREMGenerator(renderer); environment = pmrem.fromScene(room,.035,.1,30); scene.environment = environment.texture;
   pmrem.dispose(); disposeObject(room);
-  garage = createGarage(); scene.add(garage);
-  scene.add(new THREE.HemisphereLight(0xffffff,0xa9a299,.65));
-  const key = new THREE.DirectionalLight(0xffffff,3.5); key.position.set(-3,7,-4); key.castShadow = true;
-  key.shadow.mapSize.set(1024,1024); Object.assign(key.shadow.camera,{left:-4,right:4,top:4,bottom:-4,near:.1,far:16}); key.shadow.bias = -.00015; key.shadow.normalBias = .01; scene.add(key);
-  const fill = new THREE.DirectionalLight(0xe1eaff,.9); fill.position.set(4,2,3); scene.add(fill);
+  garage = createGarage(); decorateGarage(garage); scene.add(garage);
+  scene.add(new THREE.HemisphereLight(0xe3eaf3,0x80766a,.42));
+  const key = new THREE.DirectionalLight(0xfff4e3,2.8); key.position.set(-3,7,-4); key.castShadow = true;
+  key.shadow.mapSize.set(1024,1024); Object.assign(key.shadow.camera,{left:-4,right:4,top:4,bottom:-4,near:.1,far:16}); key.shadow.bias = -.00005; key.shadow.normalBias = .003; scene.add(key);
+  const fill = new THREE.DirectionalLight(0xdde8fb,.55); fill.position.set(4,2,3); scene.add(fill);
   select('pip');
 } catch (error) { fail(error); }
 function setView(next) {
@@ -130,6 +134,7 @@ document.addEventListener('keydown', event => {
 canvas.addEventListener('pointerdown', event => { drag = {id:event.pointerId,x:event.clientX}; canvas.setPointerCapture(event.pointerId); });
 canvas.addEventListener('pointermove', event => { if (drag?.id === event.pointerId) { rotate((event.clientX-drag.x)*.009); drag.x = event.clientX; } });
 for (const name of ['pointerup','pointercancel','lostpointercapture']) canvas.addEventListener(name, () => { drag = null; });
+window.addEventListener('load', schedule, {once:true});
 window.addEventListener('resize', schedule); window.addEventListener('blur', () => { drag = null; });
 canvas.addEventListener('webglcontextlost', event => { event.preventDefault(); fail(new Error('Graphics context lost; reload to recover')); });
 function framed() {

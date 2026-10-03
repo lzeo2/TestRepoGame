@@ -20,15 +20,20 @@ INSPECT = '''async id => {
  const geometries=new Set(), materials=new Set();let triangles=0, meshes=0;
  car.traverse(o=>{if(!o.isMesh)return;meshes++;geometries.add(o.geometry);triangles+=(o.geometry.index?o.geometry.index.count:o.geometry.attributes.position.count)/3;
  for(const a of Object.values(o.geometry.attributes))if(!Array.from(a.array).every(Number.isFinite))throw Error('Nonfinite geometry');
+ if(o.geometry.attributes.uv?.count!==o.geometry.attributes.position.count)throw Error('Missing original material UVs');
  for(const m of Array.isArray(o.material)?o.material:[o.material])materials.add(m);
  });
+ const factoryTextures=[...materials].filter(m=>m.map).length;
+ const {decorateCar}=await import('/assets/car-arcade/showcase/realism.js');decorateCar(car);
+ const textures=new Set();for(const m of materials)for(const v of Object.values(m))if(v?.isTexture)textures.add(v);
+ const textureBytes=[...textures].reduce((sum,t)=>sum+(t.image?.width||0)*(t.image?.height||0)*4,0);
  const wheels=car.userData.wheels, cockpit=car.userData.cockpit;
  if(!cockpit || !['eye','target'].every(k=>Array.isArray(cockpit[k]) && cockpit[k].length===3 && cockpit[k].every(Number.isFinite)))throw Error('Missing finite physical cockpit pose');
  if(!box.containsPoint(new T.Vector3(...cockpit.eye)) || cockpit.target[2]>=cockpit.eye[2])throw Error('Cockpit is not inside or facing forward');
  const windows=[...materials].filter(m=>m.name==='window-glass');
  if(!windows.length || !windows.every(m=>m.transparent && m.opacity>=.45 && m.opacity<1 && m.transmission===0))throw Error('Tinted original glazing required');
- const row={cockpit,name:car.userData.name,front:car.userData.front,showcaseOnly:car.userData.showcaseOnly,triangles,meshes,dimensions:size.toArray(),ground:box.min.y,wheels:wheels.length,wheelGround:wheels.map(w=>new T.Box3().setFromObject(w).min.y),physicalMaterials:[...materials].filter(m=>m.isMeshPhysicalMaterial).length,coatings:[...materials].filter(m=>m.clearcoat>0).length,textures:[...materials].filter(m=>m.map).length};
- const resources=[...geometries,...materials], counts=resources.map(()=>0);
+ const row={factoryTextures,textureBytes,cockpit,name:car.userData.name,front:car.userData.front,showcaseOnly:car.userData.showcaseOnly,triangles,meshes,dimensions:size.toArray(),ground:box.min.y,wheels:wheels.length,wheelGround:wheels.map(w=>new T.Box3().setFromObject(w).min.y),physicalMaterials:[...materials].filter(m=>m.isMeshPhysicalMaterial).length,coatings:[...materials].filter(m=>m.clearcoat>0).length,textures:[...materials].filter(m=>m.map).length};
+ const resources=[...geometries,...materials,...textures], counts=resources.map(()=>0);
  resources.forEach((r,i)=>r.addEventListener('dispose',()=>counts[i]++));resources.forEach(r=>r.dispose());
  if(!counts.every(n=>n===1))throw Error('Model resource ownership');return row;
 }'''
@@ -69,7 +74,8 @@ def main():
                 assert 0<row['triangles']<=30000 and row['meshes']<=75
                 assert row['wheels']==4 and abs(row['ground'])<.015
                 assert all(abs(y)<.015 for y in row['wheelGround'])
-                assert row['physicalMaterials']>=1 and row['coatings']>=1 and row['textures']==0
+                assert row['physicalMaterials']>=1 and row['coatings']>=1 and row['factoryTextures']==0 and row['textures']>=2
+                assert 0<row['textureBytes']<=1_048_576
                 assert 1.2<row['dimensions'][0]<2.5 and 1<row['dimensions'][1]<2.2 and 2.5<row['dimensions'][2]<5
                 frames=page.evaluate('carStudioSnapshot.frames')
                 page.locator('#car').select_option(car)

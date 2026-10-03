@@ -1,0 +1,14 @@
+# Photo-quality target, not a relabeling
+
+Owner repeats “Make it photo quality.” The current actual images remain plainly stylized; adding gloss or calling them photographic is insufficient. Continue existing original Pip/Brindle studies only, preserve real cockpit and offline/rights/game isolation. A bounded owner-directed diagnostic at ea78abf rendered both cabins with exact actual local-eye poses, exit0; cold startup took ~8s module/environment setup plus ~18s first frame, explaining timing sensitivity but not proving the earlier failure's exact cause. No acceptance assertion/timeouts change.
+
+## Ownership and contract
+
+- Astra114: ONLY showcase/pip.js, believable curved body and integrated canopy/light/panel construction, cabin preserved.
+- Astra115: ONLY showcase/brindle.js, same goal, distinct original hatch; remove current oval door outlines and square-front toy construction.
+- Astra116: ONLY new showcase/realism.js and existing garage.js. Original runtime-generated PBR microdetail/maps and dial typography, workshop surface/weathering detail. No downloaded maps/HDR/images/fonts/OEM assets.
+- Main: studio integration, lifecycle/load ordering, native tests, actual photos and subjective assessment/docs. Workers8min, disjoint stages/anonymous commits, source growth≤1MB each, free≥2e9. No game/fleet/vendor/catalog changes, publication or installs.
+
+Models keep createCar(),4 grounded wheels,fresh resources,-Z,cockpit pose. ≤30k triangles/75 meshes; no factory maps so geometry check remains unchanged. Every merged mesh must have finite UVs, copied from primitives or sampled surfaces, for viewer-applied original material detail. Material names body-paint,roof-paint,cab-plastic,seat-fabric,rubber,chrome,window-glass,lamp-lens,dial-speed,dial-rpm; dial faces separate materials with correct circular UVs facing+Z. Viewer module exports decorateCar(car),decorateGarage(garage); textures fresh per invocation, may share within one root, disposal once. Target256px textures, linear bump/roughness data and sRGB color maps, no generated photography substituting for real geometry. Diagnostic/snapshot remains read-only. Keep event-driven rendering and affordable alpha glazing; cockpit essential, no false driving claim. Physical scale, continuous panels/caps and actual material response matter more than counts.
+
+Photo target: rounded/smooth continuous silhouette and window corners, plausible compact-car mass, joined fender/hood/light housings, realistic door seams, grounded contact, restrained correct dielectric/metal response and microtexture, glazing/reflection depth, coherent soft daylight/workshop surroundings, readable physical cockpit details. Main must open exterior/cockpit images and report shortfalls honestly. No automatic photo-quality certificate from Node or screenshot success. Full runtime acceptance separate from diagnostic images and target-device FPS.
