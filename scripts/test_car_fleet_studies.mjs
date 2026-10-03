@@ -224,8 +224,11 @@ for (let cycle = 1; cycle <= 2; cycle++) for (const id of ids) {
     assert(roofSize.x/size.x < .59 && roofSize.z/size.z < .22, id+' actual compact narrow canopy');
     assert(L/2-cr > cf+L/2+.3, id+' rear engine deck must exceed short nose');
     assert(bodyBounds.max.y < roof.max.y+.05, id+' oversized bolt-on aero');
-    const clearance=Math.min(B*.39,W*.185)*.75;
+    const clearance=wheels[0].position.y*.75;
     const skinMeshes=[body,trim];
+    const topAt=(x,z)=>new THREE.Raycaster(new THREE.Vector3(x,H+1,z),new THREE.Vector3(0,-1,0)).intersectObject(body)[0];
+    const nose=topAt(0,-L*.43), haunch=topAt(W*.35,-profile.wheelbase/2);
+    assert(nose && haunch && nose.point.y<haunch.point.y-.035,id+' physical nose must fall below wheel shoulder');
     for (const side of [-1,1]) {
       const flank = v => {
         const ray=new THREE.Raycaster(new THREE.Vector3(side*(W+1),clearance+(B-clearance)*v,cr-.10),new THREE.Vector3(-side,0,0));
