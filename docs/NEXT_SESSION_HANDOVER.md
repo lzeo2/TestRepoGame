@@ -2,6 +2,14 @@
 
 This is the restart document requested by the owner because repeated conversation compaction was losing context. Read this before continuing. It records the actual working tree, not merely committed work.
 
+## Newest resume checkpoint (supersedes the older state below)
+
+Owner resumed work after compaction and asked for a preview. Commit **`43e76d6`** completes both formerly dirty model edits: original 256x64 plate maps, Pip mounting/placement, Brindle hatch handle/seam and continuous projector covers. `realism.js` now handles `registration-plate`; no unfinished model edits remain. Persistent stub-canvas geometry/resource check `scripts/test_car_study_materials.mjs` passes two cycles per model: Pip29,164 triangles/25 meshes, Brindle29,376/34; each8 textures/917,504 base RGBA bytes. Real lettering is separately visible in the fresh renders.
+
+Current [reviewed previews and evidence](car-photo-previews/README.md) are from43e76d6, scratch basename `car-studies-visual-sev3_n1x`. Visual-only capture exit0/84.8389s, zero recorded errors, unchanged JS hashes, nonblank images and actual cockpit eyes; Main opened the four committed JPEGs. An earlier capture was interrupted by the user's preview request before saving anything; no completed result is attributed to it. The unchanged20s focused gate exits1/41.1914s on initial first-frame readiness, no recorded errors; post-shutdown snapshot unavailable. Ledger basenames `car-detail-native-1` and `car-detail-visual-preview`. No repeat clears the gate. These pictures still look stylized, not photographic.
+
+**Next:** improve demonstrated remaining geometry/material/lighting defects and investigate cold first-frame cost; keep20s QA unchanged. Do not repeat the obsolete instruction below to finish plates or preserve two dirty model files: they have been completed and committed. No game/fleet/vendor/catalog change, registration, publication or push. The remainder records the earlier handover history, not newer acceptance.
+
 ## 1. Start here
 
 - Branch: `feat/overnight-games`.

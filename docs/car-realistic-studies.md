@@ -1,5 +1,9 @@
 # Original car studies: optimized studio
 
+## Current reviewed previews
+
+[Latest real Pip/Brindle exterior, hatch and physical cockpit renders](car-photo-previews/README.md) are from43e76d6. Original plates and continuous lamp covers now accompany the bounded PBR finishes and diffuse workshop reflections. Pip29,164 triangles/25 meshes; Brindle29,376/34; each8 textures/917,504 base RGBA bytes. Two-cycle geometry/ownership checks pass; actual current visual capture exits0/84.8389s with zero recorded errors. The unchanged20s focused native gate exits1/41.1914s on first-frame readiness. These reviewed images still look stylized, **not accepted photographic quality**; no driving/game/fleet/vendor/catalog change, registration or push. Older stages below remain historical evidence, not present acceptance.
+
 The owner requested a more realistic rendered Pip using Astra, plus an original retro compact capturing only a general aesthetic/feel and avoiding copied vehicle designs/assets. The owner directly approved simplifying glass refraction after the first preview timed out. This is **two showcase models, not two new games or a live-fleet replacement**. No MINI/OEM badge, downloaded photograph, texture or mesh. A different name/minor edits are not a legal guarantee; these are newly authored fictional designs, not branded replicas.
 
 ## Source and rendering

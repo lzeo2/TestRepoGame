@@ -1,5 +1,13 @@
 # Photo-quality target, not a relabeling
 
+## Newest reviewed checkpoint
+
+[Current actual previews and exact evidence](car-photo-previews/README.md), source43e76d6: fictional plate typography/mounts, visible Brindle hatch seam/handle and continuous lamp covers. Pip29,164 triangles/25 meshes, Brindle29,376/34; each8 original textures/917,504 base RGBA bytes. Fresh geometry/ownership checks pass two cycles with a stub canvas; actual plate/instrument appearance is reviewed separately in the real images. Reflection environment now uses separate fresh basic capture materials on borrowed original workshop geometry, not the old invented softbox room. This diffuse approximation avoids modifying live material/program state; it is not fully lit reflection certification.
+
+Visual capture exits0/84.8389s with no recorded errors, local-only requests, nonblank images, correct actual cockpit eyes and frozen source. **Still visibly stylized; photographic quality not achieved.** The unchanged20s focused gate at the same source exits1/41.1914s on initial frame readiness; no recorded errors and post-shutdown snapshot unavailable. No retry/time inflation clears it. First attempted live-lit reflection sourceff5d14b produced black frames despite process exit0;562671e isolates capture materials/restores soft shadow mode and adds blank-image rejection. That earlier apparent process success remains a visual failure. Captures do not clear performance, rights or release. No game/fleet/vendor/catalog/registration/push changes.
+
+The implementation/outcome sections below are retained historical checkpoints, superseded by this newer evidence where explicitly noted.
+
 Owner repeats “Make it photo quality.” The current actual images remain plainly stylized; adding gloss or calling them photographic is insufficient. Continue existing original Pip/Brindle studies only, preserve real cockpit and offline/rights/game isolation. A bounded owner-directed diagnostic at ea78abf rendered both cabins with exact actual local-eye poses, exit0; cold startup took ~8s module/environment setup plus ~18s first frame, explaining timing sensitivity but not proving the earlier failure's exact cause. No acceptance assertion/timeouts change.
 
 ## Ownership and contract
