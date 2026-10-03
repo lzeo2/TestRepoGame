@@ -1,11 +1,20 @@
 import * as THREE from '../vendor/three.module.js';
 import { createCar as pip } from './pip.js';
 import { createCar as brindle } from './brindle.js';
+import { PASSENGER_STUDIES, createDetailedCar } from './detailed.js';
+import { UTILITY_STUDIES, SPORT_STUDIES } from './detail-profiles.js';
 import { createGarage } from './garage.js';
 import { decorateCar, decorateGarage } from './realism.js';
 
 const canvas = document.getElementById('studio'), status = document.getElementById('status');
 const factories = { pip, brindle }, scene = new THREE.Scene();
+for (const profiles of [PASSENGER_STUDIES, UTILITY_STUDIES, SPORT_STUDIES]) {
+  for (const [id, profile] of Object.entries(profiles)) {
+    factories[id] = () => createDetailedCar(id);
+    document.getElementById('car').add(new Option(profile.name, id));
+  }
+}
+Object.freeze(factories);
 let renderer, environment, current, garage, drag = null, pending = 0, frames = 0, disposed = false, failure = null;
 let view = 'exterior', look = 0, renderedCar = null, retiredCar = null, initializationTimer = 0;
 const windowOpacity = new Map();
@@ -175,11 +184,16 @@ function glassStats() {
   const mats = new Set(); current?.traverse(node => { if (node.isMesh) for (const mat of Array.isArray(node.material) ? node.material : [node.material]) if (mat.transparent) mats.add(mat); });
   return {refractingMaterials:[...mats].filter(m=>m.transmission>0).length,singlePassGlass:[...mats].every(m=>m.forceSinglePass)};
 }
+function modelStats() {
+  let modelTriangles = 0, modelMeshes = 0;
+  current?.traverse(node => { if (node.isMesh) { modelMeshes++; modelTriangles += (node.geometry.index?.count ?? node.geometry.attributes.position.count) / 3; } });
+  return {modelTriangles, modelMeshes, expectedEye: current ? Object.freeze([...current.userData.cockpit.eye]) : null};
+}
 function garageStats() {
   let garageTriangles = 0, garageMeshes = 0;
   garage?.traverse(node => { if (node.isMesh) { garageMeshes++; garageTriangles += (node.geometry.index?.count ?? node.geometry.attributes.position.count) / 3; } });
   return {garageTriangles, garageMeshes};
 }
-Object.defineProperty(window,'carStudioSnapshot',{get:()=>Object.freeze({...glassStats(),...garageStats(),view,cameraLocal:current ? Object.freeze(current.worldToLocal(camera.position.clone()).toArray()) : null,look,framed:framed(),id:document.getElementById('car').value,name:current?.userData.name,frames,angle:current?.rotation.y,triangles:renderer?.info.render.triangles,drawCalls:renderer?.info.render.calls,geometryCount:renderer?.info.memory.geometries,textureCount:renderer?.info.memory.textures,revision:THREE.REVISION,error:failure})});
+Object.defineProperty(window,'carStudioSnapshot',{get:()=>Object.freeze({...glassStats(),...garageStats(),...modelStats(),view,cameraLocal:current ? Object.freeze(current.worldToLocal(camera.position.clone()).toArray()) : null,look,framed:framed(),id:document.getElementById('car').value,name:current?.userData.name,frames,angle:current?.rotation.y,triangles:renderer?.info.render.triangles,drawCalls:renderer?.info.render.calls,geometryCount:renderer?.info.memory.geometries,textureCount:renderer?.info.memory.textures,revision:THREE.REVISION,error:failure})});
 window.addEventListener('pagehide',()=>{if(disposed)return;disposed=true;drag=null;clearTimeout(initializationTimer);cancelAnimationFrame(pending);pending=0;disposeObject(scene);if(retiredCar)disposeObject(retiredCar);retiredCar=null;renderedCar=null;windowOpacity.clear();environment?.dispose();renderer?.dispose();});
 window.addEventListener('pageshow',event=>{if(event.persisted)location.reload();});

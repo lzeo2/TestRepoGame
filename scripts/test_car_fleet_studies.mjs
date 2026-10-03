@@ -1,0 +1,102 @@
+// Source/geometry ownership only: stub canvas records text calls, not real typography.
+import assert from 'node:assert/strict';
+import * as THREE from '../assets/car-arcade/vendor/three.module.js';
+import { createCar as pip } from '../assets/car-arcade/showcase/pip.js';
+import { createCar as brindle } from '../assets/car-arcade/showcase/brindle.js';
+import { PASSENGER_STUDIES, createDetailedCar } from '../assets/car-arcade/showcase/detailed.js';
+import { UTILITY_STUDIES, SPORT_STUDIES } from '../assets/car-arcade/showcase/detail-profiles.js';
+import { decorateCar } from '../assets/car-arcade/showcase/realism.js';
+
+const ids = 'pip brindle bricklet finch lantern comet orchard horizon morrow relay tempest sunray parcel pebble dockside gravel atlas kestrel vesper'.split(' ');
+const profiles = {...PASSENGER_STUDIES, ...UTILITY_STUDIES, ...SPORT_STUDIES};
+const factories = {pip, brindle, ...Object.fromEntries(Object.keys(profiles).map(id => [id, () => createDetailedCar(id)]))};
+assert.deepEqual(Object.keys(factories).sort(), [...ids].sort());
+const fields = 'id name color roofColor width length height wheelbase bodyHeight cabinFront cabinRear roofFront roofRear roofWidth form doors plate'.split(' ').sort();
+for (const map of [PASSENGER_STUDIES, UTILITY_STUDIES, SPORT_STUDIES]) {
+  assert(Object.isFrozen(map));
+  for (const [id, p] of Object.entries(map)) {
+    assert(Object.isFrozen(p)); assert.equal(p.id, id);
+    assert.deepEqual(Object.keys(p).sort(), fields);
+    assert(/^#[0-9a-f]{6}$/i.test(p.color) && /^#[0-9a-f]{6}$/i.test(p.roofColor));
+    for (const key of ['width','length','height','wheelbase','bodyHeight','roofWidth']) assert(Number.isFinite(p[key]) && p[key] > 0);
+    assert(p.wheelbase < p.length && p.bodyHeight < p.height && p.roofWidth < p.width);
+    assert(p.cabinFront <= p.roofFront && p.roofFront < p.roofRear && p.roofRear <= p.cabinRear);
+    assert(['saloon','coupe','fastback','wagon','roadster','rally','van','panel','pickup','utility','hyper','prototype'].includes(p.form));
+    assert([2,4].includes(p.doors)); assert(/^[A-Z0-9 -]{1,8}$/.test(p.plate));
+  }
+}
+for (const id of ['unknown', '__proto__', 'constructor', 'toString']) assert.throws(() => createDetailedCar(id));
+
+globalThis.document = {createElement(tag) {
+  assert.equal(tag, 'canvas');
+  const text = [];
+  return {width:0, height:0, text, getContext:() => ({
+    fillRect(){}, strokeRect(){}, beginPath(){}, moveTo(){}, lineTo(){}, stroke(){}, arc(){}, fill(){},
+    fillText(value){text.push(value);}
+  })};
+}};
+const seen = new Set();
+let checked = 0;
+for (let cycle = 1; cycle <= 2; cycle++) for (const id of ids) {
+  const car = factories[id](), geometries = new Set(), materials = new Set();
+  let triangles = 0, meshes = 0;
+  car.traverse(node => {
+    if (!node.isMesh) return;
+    meshes++; geometries.add(node.geometry);
+    for (const mat of Array.isArray(node.material) ? node.material : [node.material]) materials.add(mat);
+    const g = node.geometry, p = g.attributes.position;
+    assert(p && p.count > 0);
+    triangles += (g.index?.count ?? p.count) / 3;
+    for (const attribute of Object.values(g.attributes)) assert(Array.from(attribute.array).every(Number.isFinite));
+    assert.equal(g.attributes.normal?.count, p.count); assert.equal(g.attributes.uv?.count, p.count);
+    if (g.index) assert(Array.from(g.index.array).every(i => Number.isInteger(i) && i >= 0 && i < p.count));
+  });
+  assert(triangles > 0 && triangles <= 30000 && meshes <= 75, id + ' geometry budget');
+  assert.equal(car.userData.front, '-Z'); assert.equal(car.userData.showcaseOnly, true);
+  const wheels = car.userData.wheels;
+  assert.equal(wheels.length, 4); assert.equal(new Set(wheels).size, 4);
+  const bounds = new THREE.Box3().setFromObject(car);
+  assert(Math.abs(bounds.min.y) < .015, id + ' ground');
+  for (const wheel of wheels) {
+    assert(wheel.isGroup && wheel.parent === car);
+    assert(Math.abs(new THREE.Box3().setFromObject(wheel).min.y) < .015);
+  }
+  const {eye, target} = car.userData.cockpit;
+  for (const v of [eye, target]) assert(Array.isArray(v) && v.length === 3 && v.every(Number.isFinite));
+  assert(bounds.containsPoint(new THREE.Vector3(...eye)) && target[2] < eye[2]);
+  const profile = profiles[id];
+  if (profile) {
+    assert(Math.abs(eye[0]) < profile.roofWidth / 2);
+    assert(eye[1] > profile.bodyHeight && eye[1] < profile.height);
+    assert(eye[2] > profile.cabinFront * profile.length && eye[2] < profile.cabinRear * profile.length);
+  } else assert.deepEqual(eye, [id === 'pip' ? -.34 : -.36, 1.14, .16]);
+  const named = name => {
+    const matches = [...materials].filter(m => m.name === name);
+    assert(matches.length, id + ' missing ' + name); return matches;
+  };
+  for (const name of ['body-paint','roof-paint','cab-plastic','seat-fabric','rubber','chrome','window-glass','lamp-lens','dial-speed','dial-rpm','console-radio','registration-plate']) named(name);
+  assert([...materials].every(m => !Object.values(m).some(v => v?.isTexture)), id + ' map-free factory');
+  for (const m of named('window-glass')) assert(m.transparent && m.transmission === 0 && m.forceSinglePass);
+  decorateCar(car);
+  for (const [name, text, height] of [['registration-plate', profile?.plate ?? (id === 'pip' ? 'PIP 08' : 'BRD 16'), 64], ['dial-speed','km/h',256], ['dial-rpm','rpm',256], ['console-radio','AM',64]]) {
+    for (const m of named(name)) {
+      assert.equal(m.map.image.width, 256); assert.equal(m.map.image.height, height);
+      assert.equal(m.map.colorSpace, THREE.SRGBColorSpace);
+      assert(m.map.image.text.some(t => t === text || (name === 'console-radio' && t.startsWith(text))));
+      if (name === 'registration-plate') assert.equal(m.userData.label, text);
+    }
+  }
+  const textures = new Set([...materials].flatMap(m => Object.values(m).filter(v => v?.isTexture)));
+  const bytes = [...textures].reduce((sum, t) => sum + t.image.width * t.image.height * 4, 0);
+  assert(bytes > 0 && bytes <= 1048576, id + ' map budget');
+  const resources = [...geometries, ...materials, ...textures], counts = resources.map(() => 0);
+  resources.forEach((r, i) => {
+    assert(!seen.has(r), id + ' shared GPU resource'); seen.add(r);
+    r.addEventListener('dispose', () => counts[i]++);
+  });
+  resources.forEach(r => r.dispose()); assert(counts.every(n => n === 1));
+  checked++;
+  console.log(`PASS ${id} cycle${cycle}: ${triangles} triangles / ${meshes} meshes / ${textures.size} textures / ${bytes} base RGBA bytes`);
+}
+assert.equal(checked, 38);
+console.log('PASS 19 factories, two fresh cycles, disjoint once-disposed resources. Source/stub check only; real cabin visibility and typography require native review.');
