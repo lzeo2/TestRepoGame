@@ -315,9 +315,12 @@ export function createDetailedCar(id) {
     rounded(fabric,side*seatX,(cushionY+eyeY)/2,eyeZ+.27,W*.23,eyeY-cushionY,.12,.04,car,-.1);
     rounded(fabric,side*seatX,eyeY-.045,eyeZ+.29,W*.12,.14,.105,.05);
     for(const offset of [-1,1])rounded(trim,side*seatX+offset*W*.105,cushionY+.055,eyeZ+.03,.075,.13,.43,.025);
-    rounded(trim,side*W*.425,(floorY+B)/2,(cf+cr)/2,.06,B-floorY,cr-cf-.08,.02);
-    rounded(fabric,side*W*.404,B-.17,eyeZ,.04,.13,.57,.015);
-    rounded(trim,side*W*.39,B-.20,eyeZ,.10,.06,.40,.02);
+    // Narrow modern door cards belong inside the canopy, not the outer haunch:
+    // full-body-width cards protrude through the recessed cooling hull.
+    const cardX=modern?canopyHalf((cf+cr)/2)-.04:W*.425;
+    rounded(trim,side*cardX,(floorY+B)/2,(cf+cr)/2,.06,B-floorY,cr-cf-.08,.02);
+    rounded(fabric,side*(modern?cardX-.021:W*.404),B-.17,eyeZ,.04,.13,.57,.015);
+    rounded(trim,side*(modern?cardX-.075:W*.39),B-.20,eyeZ,.10,.06,.40,.02);
   }
   if(p.doors===4 && !pickup && cr-eyeZ>.8){
     rounded(fabric,0,cushionY+.03,cr-.36,W*.65,.13,.42,.05);
