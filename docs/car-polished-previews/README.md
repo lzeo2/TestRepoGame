@@ -1,5 +1,7 @@
 # Reviewed polish and original hypercar previews
 
+Historical 21-study checkpoint below. [Newer 24-study gallery and three original modern supercars](../car-modern-previews/README.md) preserves all these factory outputs and adds Calyx S, Serein R and Nacre V. New equipment remains a separate unimplemented proposal.
+
 Actual local 3D renders, not photographs or AI-generated substitute images. Newest source **ebba1db**, models-only: seventeen generated studies polished before adding original **Aerolume** (low road hypercar concept) and **Riftline** (track prototype concept). Existing Pip/Brindle retained,21 selectors total. Live16 driving models, Games, fleet, saves, vendor and catalog unchanged; no new games/registration/push. Sports performance is design intention, not mechanical proof or legal clearance. No imported/copied OEM assets, logos, traced branded templates or photography.
 
 Visible fixes: joined outward body stampings, analytic rounded-part normals, proper crowned-hood rounding rather than a false recess, slim attached splitters/lamps/mirrors, curved dash/seats, narrowed hypercar cabin and actual head/light positioning. Intakes are colored faces of the true recessed hull, not near-coplanar overlays. Old gallery remains historical at f9169da. These remain stylized; polygonal intake boundaries, simplified wing-support joins, shared analogue cabins/trim and family body forms still limit refinement. No blanket artistic-parity/photo-quality certification.

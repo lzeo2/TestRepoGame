@@ -1,6 +1,10 @@
 # Original car studies: optimized studio
 
-## Current reviewed polish and original hypercars
+## Current modern-supercar checkpoint
+
+[Original modern Calyx S/Serein R/Nacre V renders](car-modern-previews/README.md) and [executed source contract](car-modern-supercars-plan.md). Genuine completed Astra129/130/131; Main verifies real metadata/source/old21 byte-identical fingerprints. Studio24 parked choices, not live cars. Main81a062d contains the narrow cabin trim;4b7518d repairs actual hull-color boundaries/lamps/mirror attachments after rejecting first captures. All24x2 factory/ownership/physical-ray checks pass, oldPip-Brindle/live16 regressions pass. New3 each29meshes/27,454–27,502tris/9freshmaps983,040baseRGBAbytes (mips separate). Final57-frame visual-only **0/315.9409s**,zeroerrors/frozenlocal/nonblank/physicaleyes/19textures/390keyboard+genuine touch, Main opens all new fronts/rears/cabins/mobile and full sheets. Fifteen stored JPEGs1,528,518bytes. Still stylized/shared cabins/family silhouettes/long mirror arms, not photo/legal/FPS/gameplay certification. Separate [rear mounts/passives/pickups](car-modern-equipment-plan.md) remain **proposed and unimplemented**. Old21 source outputs and all liveGame/factory/fleet/saves/vendor/catalog bytes unchanged; no newgame/registration/push. Unchanged20s focused startup and wider release holds retained.
+
+## Earlier reviewed polish and original hypercars
 
 [Sequenced owner follow-up](car-polish-hypercars-plan.md): shared17 generated models polished first (joined outward stampings/analytic bevel normals, crowned-hood correction, slim attached lamps/mirrors/splitters and smoother cabins), then original **Aerolume/Riftline** hypercar concepts.21 parked selectors total. Actual low narrow canopies, broad haunches, recessed cooling hulls, different road bridge/track wing and diffusers. No OEM assets/brand copying; no legal/mechanical certificate. Live16 factory/fleet/Games/storage/vendor/existingPip/Brindle/studio/garage/realism/catalog bytes unchanged.
 
