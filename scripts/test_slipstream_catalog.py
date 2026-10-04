@@ -69,9 +69,12 @@ def main():
                         for query in ['Slipstream', 'police']:
                             page.locator('.search-bar__input').fill(query)
                             card.wait_for(state='visible')
+                            page.wait_for_function('title => { const cards=[...document.querySelectorAll(".bento-grid .game-card")].filter(c=>getComputedStyle(c).display!=="none"); return cards.length===1 && cards[0].querySelector(".game-card__title").textContent.trim()===title; }', arg=TITLE)
                         page.locator('.search-bar__input').fill('')
                         page.locator('.category-filter__btn[data-cat-id="arcade"]').click()
                         card.wait_for(state='visible')
+                        page.wait_for_function('() => { const cards=[...document.querySelectorAll(".bento-grid .game-card")].filter(c=>getComputedStyle(c).display!=="none"); return cards.length>1 && cards.every(c=>c.dataset.cat==="arcade"); }')
+                        assert page.locator('.category-filter__btn[data-cat-id="arcade"]').get_attribute('aria-pressed') == 'true'
                         # Standard shelf cards omit descriptions; the existing Info panel owns them.
                         card.locator('.game-card__info').click()
                         assert 'Preview:' in page.locator('.ux-detail__desc').inner_text()
