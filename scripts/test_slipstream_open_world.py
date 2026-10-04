@@ -102,7 +102,7 @@ def main():
                 assert page.evaluate('Object.isFrozen(slipstreamSnapshot.run.world)')
                 first_traffic = traffic()
                 assert first['view']['drawcalls'] <= 80 and first['view']['triangles'] <= 45000
-                page.wait_for_function('slipstreamSnapshot.view.trafficModels.some(m=>Math.abs(m.wheelAngle)>.1)')
+                page.wait_for_function('(previous) => slipstreamSnapshot.view.trafficModels.some(m=>{const old=previous.find(e=>e.entityId===m.entityId);return old&&Math.hypot(m.pose.x-old.pose.x,m.pose.z-old.pose.z)>.5&&Math.abs(m.wheelAngle-old.wheelAngle)>.1})', arg=first_traffic)
                 moving_traffic = traffic()
                 assert any(a['pose'] != b['pose'] for a, b in zip(first_traffic, moving_traffic))
                 assert snapshot()['run']['distance'] == 0 and snapshot()['profile']['cash'] == 0
