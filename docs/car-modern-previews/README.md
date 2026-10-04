@@ -1,5 +1,7 @@
 # Three original modern supercar studies
 
+Historical24-study checkpoint below. [Newest26-study police-variant gallery](../car-police-previews/README.md) adds Wardline Patrol/Strake Interceptor while preserving all24 previous factory outputs. Live integration remains separate.
+
 **Calyx S, Serein R and Nacre V** are original closed mid-engine parked concepts, not the rejected luxury GT/speedster/targa proposal. [Open the 24-car studio](../../assets/car-arcade/showcase/index.html). Existing 21 studies remain byte-identical in geometry, profiles, materials, transforms and camera metadata. These three are **not drivable or installed in either game**. No OEM assets, photography, downloaded artwork or new dependencies. Original naming/geometry is not legal clearance.
 
 ## Reviewed renders

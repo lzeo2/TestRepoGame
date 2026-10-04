@@ -24,7 +24,11 @@ record. It changes no game, catalog, vendor, manual or inventory file. Other
 workers own fleet/model implementation, engines and UI; their final sources,
 geometry measurements, gameplay and originality review are not certified here.
 
-## Original modern-supercar follow-up
+## Original police-model follow-up
+
+Owner twice asks about police after modern models. [Executed dedicated parked-variant contract](car-police-studies-plan.md): genuine Astra132/133 completed, actual metadata independently verified;81d0247 authors police.js and one new original256x64POLICE lettering map in the existing decorator,cbea5f8/ae3f6a2 connects26studio choices/checks/capture. Wardline reuses project-original fresh Lantern geometry, Strake reuses project-original Serein; dedicated actual two-tone hull groups/roof-supported static bars/physical lettering/patrol pushbar, no imported OEM assets/official agency artwork/real weapons/dependencies. [Reviewed source/hash/gallery evidence](car-police-previews/README.md), Main52fresh builds/all24old fingerprints/live16 regressions and63-image visual-only0/366.7835s pass. Still stylized, not legal/photo/FPS certification. No livepolice/AI/Game/factory/fleet/saves/catalog change/newgame/registration/push; licensing notices and acceptance holds preserved.
+
+## Earlier original modern-supercar follow-up
 
 Owner clarified modern supercars and explicitly requested subagents, including a separate equipment/perk/powerup designer. [Executed contract](car-modern-supercars-plan.md): genuine Astra129/130/131 all completed, actual assistant metadata independently verified. 1e2f74b adds original numerical closed mid-engine Calyx S/Serein R/Nacre V; f916063/6f240e3 extends24-study checks/capture; b252410 is the separate [proposed, unimplemented equipment design](car-modern-equipment-plan.md). Main81a062d/4b7518d fixes physically protruding door cards, jagged material partitions, buried lamps and unattached mirrors after independent tests/images. [Current real renders/source hashes](car-modern-previews/README.md), final57-frame visual-only0/315.9409s,24x2 fresh-resource checks pass;21old fingerprints byte-identical. No imported OEM artwork/templates/logos/photos/dependencies; naming/originality is not legal clearance. Parked-only, no live games/fleet/saves/catalog/newgame/registration/push. Original cached factory/vendor/font notices and all other acceptance holds retained.
 

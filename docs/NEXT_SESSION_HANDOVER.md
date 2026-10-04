@@ -2,7 +2,15 @@
 
 This is the restart document requested by the owner because repeated conversation compaction was losing context. Read this before continuing. It records the actual working tree, not merely committed work.
 
-## Newest modern-supercar and separate equipment-agent checkpoint
+## Newest original police-variant checkpoint
+
+Owner repeated "And the police?"; scoped same parked-model pass, not silent live integration. [Executed police contract/commits/logs](car-police-studies-plan.md), [reviewed police gallery](car-police-previews/README.md). Genuine completed Astra132/133, actual assistant metadata independently verified. 132=81d0247 police.js/realism.js,133=cbea5f8/ae3f6a2 studio/HTML/checks/capture. New **Wardline Patrol** (original Lantern four-door variant) and **Strake Interceptor** (original Serein variant): actual black/white hull partitions, white roof, two POLICE text surfaces, fixed red/blue bar with feet touching measured roof; Wardline compact pushbar. Not copied OEM/official agency artwork, no flashing/siren/weapons/new stats/AI.
+
+26studio choices, Main52fresh factory/geometry/UV/ground/instruments/physical police/livery/lightbar/text/support/fresh disposal checks0; oldPip-Brindle/live16 regressions0; **all24 previous fingerprints byte-identical**. Wardline28,030tris/41meshes, Strake28,074/36, each10maps1,048,576baseRGBAbytes; old24 nine983,040, mips separate. Main frozen63-image visual-only **0/366.7835s** at81d0247/folder `car-fleet-visual-vgmh25aw`,4,979,109captureJPEGbytes/zeroerrors/frozenlocal/nonblank/actualeyes/19–20textures/7rear-button rotations/390keyboard+touch. Both new front/rear/cabin sets, full26 sheets and mobile UI personally opened. Stored12JPEGs1,333,806bytes, no duplicate24old full-size pictures. Small/grazing-angle lettering aliasing and simple accessories/shared civilian cabins remain; not photo/legal/FPS or universal clearance certification. Sampled4,096 text points outside hull, not a universal geometry proof.
+
+**Parked only: current live police still use ordinary cached fleet cars painted white.** No liveGame/factory/fleet/saves/vendor/detailedbuilder/profiles/catalog bytes changed/newgame/registration/push. Equipment/passives/pickups remain proposed/unimplemented.20s startup/city natural escape-process-exit/earned-five-kit/Garage/Foldwild/2048/hardware/rights/fullrelease holds persist. Sparseassets/docs/scripts/checker122=115+7/catalog115 preserved. Postgallery free2,332,295,168bytes, floor2e9. Next police work is separately bounded actual cached-ABI/LOD/paint ownership/livechase integration and normal-input acceptance, not a direct fresh-showcase-factory swap.
+
+## Earlier modern-supercar and separate equipment-agent checkpoint
 
 Owner clarification is **modern closed mid-engine supercars**, not luxury GT/speedster/targa; explicit subagents plus a separate mount/perk/powerup designer. [Executed scope/commit/log record](car-modern-supercars-plan.md), [reviewed current gallery](car-modern-previews/README.md), [equipment design only](car-modern-equipment-plan.md). Genuine Astra129/130/131 all complete0 within8min; actual assistant API/provider/model independently verified. 129=1e2f74b bodies/profiles,130=f916063/6f240e3 studio/checks/capture,131=b252410 proposal. No routing edits/extra agents.
 
