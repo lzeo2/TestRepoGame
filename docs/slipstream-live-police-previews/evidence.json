@@ -1,0 +1,75 @@
+{
+  "status": "PARTIAL OBSERVATIONS; BOTH FULL NATIVE RUNS FAIL",
+  "sourceCommit": "de58be91b26675b4b7e39c454e3b7669c0b6ba46",
+  "runs": [
+    {
+      "exit": 1,
+      "seconds": 221.34974943799898,
+      "sourceCommit": "0c446f98fc5fd347c63c2dde665cc9c50bdd6f00",
+      "attempt": 1,
+      "artifactBasename": "slipstream-city-0vbttbck",
+      "status": "FAIL",
+      "error": "Page.wait_for_function: Timeout 110000ms exceeded.",
+      "logBasename": "slipstream-live-police-native-1.log",
+      "failureRecord": "run-1-failure.json"
+    },
+    {
+      "exit": 1,
+      "seconds": 218.7923925460782,
+      "sourceCommit": "de58be91b26675b4b7e39c454e3b7669c0b6ba46",
+      "attempt": 2,
+      "artifactBasename": "slipstream-city-dg5_dpv2",
+      "status": "FAIL",
+      "error": "Page.wait_for_function: Timeout 110000ms exceeded.",
+      "logBasename": "slipstream-live-police-native-2.log",
+      "failureRecord": "run-2-failure.json"
+    }
+  ],
+  "delegation": {
+    "number": 134,
+    "exit": 0,
+    "commit": "6e78209eff8eeabacfd6f817c6b707a71869aaa0",
+    "api": "openai-codex-responses",
+    "provider": "openai-codex",
+    "model": "gpt-6-astra",
+    "assistantRecordsVerified": 14,
+    "log": ".swarmforge-logs/worker-2026-10-04T06-38-51-241Z.log"
+  },
+  "positiveObservations": "Ordinary city Wardline movement/contact/pause/removal/parking/reload, category locks, finish controls; run2 also proves stripe batching adds one draw.",
+  "notReached": [
+    "race completion",
+    "highway Wardline assertion",
+    "earned kit purchase/reload/deployment",
+    "held mobile gas and 320 controls assertions"
+  ],
+  "notTested": [
+    "natural city escape",
+    "complete earned five-kit effects",
+    "civilian city traffic",
+    "Strake live integration",
+    "hardware FPS",
+    "full release gate"
+  ],
+  "images": {
+    "390-patrol.jpg": {
+      "bytes": 53833,
+      "sha256": "4c2aa1039360ffa2a190d1b15918e4e829a8a22dc86b67384100af92f2414fbe"
+    },
+    "city-patrol-dark.jpg": {
+      "bytes": 81234,
+      "sha256": "3aa881720f214ef2c2d3d6a216977b26c54faa0aab927234b87a2b66645e6366"
+    },
+    "city-patrol.jpg": {
+      "bytes": 74134,
+      "sha256": "a1a5706255121b550e62a48a496b34c7018fb63ed1ff47ad08126a95c0b58721"
+    },
+    "failure.jpg": {
+      "bytes": 80907,
+      "sha256": "15a5430ebff1b7216a96601b68403e64d09acef27ed9ce5583718263c5d3e3c4"
+    },
+    "garage-custom.jpg": {
+      "bytes": 119082,
+      "sha256": "12447f9ae6b62d75360872822768b7960d35cfeb7161e5b5f75e87af08800e13"
+    }
+  }
+}

@@ -2,6 +2,8 @@
 
 **Wardline Patrol** and **Strake Interceptor** are dedicated fictional **parked police variants**, not installed as live cops. Wardline reuses the original four-door Lantern body; Strake reuses the original modern Serein body. They add actual black/white hull partitions, contrasting roofs, two outward POLICE text surfaces, supported fixed red/blue lightbars and a compact Wardline pushbar. No OEM artwork, real agency crests, siren/flashing animation, mounted weapons or new police mechanics. Originality/names are not legal clearance.
 
+Later owner-authorized [live starting milestone](../slipstream-live-police-plan.md) adds a separate **5,832-triangle cached Wardline driving LOD**, not these28k fresh studies. Actual city observation exists, but both full native runs fail the race deadline; [partial evidence](../slipstream-live-police-previews/README.md). Strake and detailed fleet remain parked.
+
 [Open the 26-car studio](../../assets/car-arcade/showcase/index.html) | [Executed scope, source and workers](../car-police-studies-plan.md)
 
 ![Wardline Patrol](wardline-exterior.jpg)
@@ -20,9 +22,9 @@ Frozen source **81d0247**, [exact source hashes, real snapshots and stored JPEG 
 
 Main independent26factories/twofreshcycles (52builds) pass finiteUV/normals/ground/fourwheels/instruments/map-free factories, disjoint resources/exactly-once disposal and physical police tests: actual livery face groups cover the retained hull exactly, unchanged base shape/eyes, red/blue lens volumes above glazing, roof-support contacts, two text surfaces/outward orientation/uprightUV/canvasPOLICE/sRGB and body attachment. All24 older fingerprints byte-identical; originalPip/Brindle and live16 factory regressions pass. Wardline **28,030triangles/41meshes**, Strake **28,074/36**. Police each10freshmaps/**1,048,576baseRGBAbytes** (one added256x64 lettering map); old24 remain9maps/983,040bytes. Mip overhead separate; factory30k/75 and1MiBbase budgets unchanged.
 
-These are stylized civilian-derived variants with shared analogue cabins and simple box accessories. Lettering loses clarity at small sizes/grazing angles; no all-angle photographic/artistic-parity guarantee. A separate actual-triangle sampling diagnostic found all4,096 sampled letter-surface points outside the hull, minimum gap about.00067m; not a universal intersection certificate or native font test. No special police stats, powers, pickups, AI change, live-game livery/lightbar or chase-balance improvement claimed. Current live cops still use the cached gameplay fleet's white tint.
+These are stylized civilian-derived variants with shared analogue cabins and simple box accessories. Lettering loses clarity at small sizes/grazing angles; no all-angle photographic/artistic-parity guarantee. A separate actual-triangle sampling diagnostic found all4,096 sampled letter-surface points outside the hull, minimum gap about.00067m; not a universal intersection certificate or native font test. No special police stats, powers, pickups, AI change, live-game livery/lightbar or chase-balance improvement claimed. At this gallery's frozen baseline live cops used the cached fleet's white tint; the later separate Wardline driving LOD supersedes that rendering branch without installing these detailed studies.
 
-Visual readiness60s/navigation20s does **not** clear the unchanged focused20s startup hold. City natural escape/process-exit, earned-five-kit effects, Garage reset, Foldwild/2048, hardware/rights and full-release gates remain separate. No liveGame/factory/fleet/save/catalog/vendor changes, new games, registration or push.
+Visual readiness60s/navigation20s does **not** clear the unchanged focused20s startup hold. City natural escape/process-exit, earned-five-kit effects, Garage reset, Foldwild/2048, hardware/rights and full-release gates remain separate. At this parked checkpoint there were no liveGame/factory/fleet/save/catalog/vendor changes, new games, registration or push.
 
 ## All current studies, fresh capture
 

@@ -1,0 +1,217 @@
+{
+  "error": "Page.wait_for_function: Timeout 110000ms exceeded.",
+  "errors": [],
+  "sourceHashes": {
+    "Games/Slipstream Borough/view.js": "f200f58d0fb1580c1defa5278132f3713497d5de7a2bfbef020533973c03216d",
+    "Games/Slipstream Borough/index.html": "361f7e69278f0a925b25c543bfbcf72fb91193fc7a0a824e454786ee2ba5bce7",
+    "Games/Slipstream Borough/script.js": "1b4e6675a46fb16d8248dc73fba7fd5f77619b4c717149f8c80e70ca14718a82",
+    "Games/Slipstream Borough/core.js": "87e901cd835f98ea418572181640b04126ac34172fafae3779a245832de607e3",
+    "Games/Slipstream Borough/CREDITS.md": "b8fc5ed706e172030156df3bc0f70b6f6e7ed23a5a4d46698629ee9e136db78e",
+    "Games/Slipstream Borough/world.js": "9a38eab3b7f4bd860e19d2862d9285687a415e2f5530c256596d85673702daff",
+    "Games/Slipstream Borough/style.css": "b144e3462f4db44f0d2df99daf8fedc4c719a92ee64300954b01715e0e33a1d9",
+    "assets/car-arcade/storage.js": "50d7705730d77632ac940cfb2fab6d489eb0b4356681eae6cf01c55501bea7c5",
+    "assets/car-arcade/models.js": "629eb54fb7625414fe8bc37670a41b8fc0bdf4e45daeb8b73c48010ed31b04db",
+    "assets/car-arcade/patrol.js": "22abc6f28bf6cc18cd9610110dd2ce824120131747c895e68511c348e4ceca74",
+    "assets/car-arcade/fleet.js": "4ee5fe5474fb0230b03bf3c96aaf64a85628d0120476110b83f2b617fd73198c",
+    "assets/car-arcade/vendor/three.module.js": "76dea8151bc9352aef3528b4262e249b2604f62543828328db978d060d61a495",
+    "assets/car-arcade/vendor/BufferGeometryUtils.js": "3a6701d824adfe05dc28c09b6c1d64aeab9a183bc3b944d85f15f596e5c6c2b3",
+    "scripts/test_slipstream_open_world.py": "2010ebd4d094cb68d8526963e7371dab024216698cd5dca0871db4480da00f7a"
+  },
+  "snapshot": {
+    "phase": "run",
+    "paused": false,
+    "profile": {
+      "version": 3,
+      "careerDistance": 51,
+      "escapes": 0,
+      "cash": 16,
+      "owned": [
+        "bricklet"
+      ],
+      "selected": "bricklet",
+      "upgrades": {
+        "bricklet": {
+          "engine": 0,
+          "handling": 0,
+          "armor": 0
+        }
+      },
+      "level": 0,
+      "best": 103,
+      "nextRun": 4,
+      "settledRun": 2,
+      "testMode": false,
+      "customizations": {
+        "bricklet": {
+          "paint": "#173d69",
+          "wheels": "#b59a61",
+          "stripe": "#ffffff",
+          "spoiler": true,
+          "gadget": "none",
+          "gadgets": []
+        }
+      }
+    },
+    "run": {
+      "id": 3,
+      "mode": "race",
+      "status": "running",
+      "carId": "bricklet",
+      "upgrades": {
+        "engine": 0,
+        "handling": 0,
+        "armor": 0
+      },
+      "stats": {
+        "speed": 25,
+        "acceleration": 5.2,
+        "handling": 2.6,
+        "toughness": 100
+      },
+      "level": 0,
+      "distance": 1161.7630091066053,
+      "speed": 25,
+      "x": 0.05709869638578757,
+      "hp": 100,
+      "heat": 0,
+      "score": 2823,
+      "earnings": 0,
+      "traffic": [
+        {
+          "id": 12,
+          "carId": "morrow",
+          "x": -5.25,
+          "distance": 1124.5912347130131,
+          "speed": 7.0310997471679,
+          "passed": true,
+          "hit": false,
+          "finishTime": null
+        },
+        {
+          "id": 13,
+          "carId": "lantern",
+          "x": -1.75,
+          "distance": 1227.3769945759548,
+          "speed": 10.397889251122251,
+          "passed": false,
+          "hit": false,
+          "finishTime": null
+        },
+        {
+          "id": 14,
+          "carId": "finch",
+          "x": -1.75,
+          "distance": 1329.0841164949613,
+          "speed": 11.060041966615245,
+          "passed": false,
+          "hit": false,
+          "finishTime": null
+        }
+      ],
+      "police": [],
+      "rivals": [
+        {
+          "id": 1,
+          "carId": "pip",
+          "x": -5.25,
+          "distance": 931.8925866667026,
+          "speed": 20,
+          "passed": true,
+          "hit": false,
+          "finishTime": null
+        },
+        {
+          "id": 2,
+          "carId": "finch",
+          "x": -1.749999999999997,
+          "distance": 984.1278055555383,
+          "speed": 21.125000000000004,
+          "passed": true,
+          "hit": false,
+          "finishTime": null
+        },
+        {
+          "id": 3,
+          "carId": "comet",
+          "x": 5.25,
+          "distance": 1036.3618666666002,
+          "speed": 22.25,
+          "passed": true,
+          "hit": false,
+          "finishTime": null
+        }
+      ],
+      "elapsed": 49.11666666666516,
+      "finishDistance": 1200,
+      "place": 1,
+      "seed": 2491106781,
+      "nextEntity": 15,
+      "spawnClock": 1.5166666666666742,
+      "collisionCooldown": 0,
+      "nearMisses": 5,
+      "collisions": 0,
+      "arrest": 0,
+      "finishTime": null,
+      "appearance": {
+        "paint": "#173d69",
+        "wheels": "#b59a61",
+        "stripe": "#ffffff",
+        "spoiler": true
+      },
+      "gadget": "none",
+      "charges": 0,
+      "deployments": 0,
+      "gadgetTime": 0,
+      "gadgetCooldown": 0,
+      "gadgetHeld": false,
+      "world": {
+        "x": 0,
+        "z": 0,
+        "heading": 0
+      },
+      "pursuit": "roaming",
+      "escapeClock": 0,
+      "gadgetTarget": {
+        "x": 0,
+        "z": 0
+      }
+    },
+    "view": {
+      "frames": 1023,
+      "triangles": 19070,
+      "drawcalls": 34,
+      "modelId": "bricklet",
+      "world": {
+        "traffic": 3,
+        "police": 0,
+        "rivals": 3
+      },
+      "worldMode": "race",
+      "policeModels": [],
+      "geometryCount": 48,
+      "textureCount": 3,
+      "cityBlocks": 0,
+      "pose": {
+        "x": 0.05709869638578757,
+        "z": 0,
+        "heading": -0.0
+      },
+      "customization": {
+        "paint": "173d69",
+        "wheels": "b59a61",
+        "mounted": "none",
+        "stripe": "#ffffff",
+        "spoiler": true,
+        "stripeSegments": 12
+      },
+      "effects": {
+        "smokePuffs": 0,
+        "empVisible": false,
+        "decoyVisible": false,
+        "boostVisible": false,
+        "repairVisible": false
+      },
+      "dpr": 1
+    }
+  }
+}
