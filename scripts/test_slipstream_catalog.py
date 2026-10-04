@@ -16,7 +16,7 @@ from urllib.parse import unquote, urlsplit
 from playwright.sync_api import sync_playwright
 
 ROOT = Path(__file__).resolve().parents[1]
-TITLE = 'Slipstream Borough: Police Chase'
+TITLE = 'Slipstream Borough: Police Chase (Preview)'
 
 
 def main():
@@ -72,7 +72,10 @@ def main():
                         page.locator('.search-bar__input').fill('')
                         page.locator('.category-filter__btn[data-cat-id="arcade"]').click()
                         card.wait_for(state='visible')
-                        assert 'Preview:' in card.locator('.game-card__desc').inner_text()
+                        # Standard shelf cards omit descriptions; the existing Info panel owns them.
+                        card.locator('.game-card__info').click()
+                        assert 'Preview:' in page.locator('.ux-detail__desc').inner_text()
+                        page.locator('.ux-detail__close').click()
                         assert page.evaluate('document.documentElement.scrollWidth <= innerWidth')
                         card.scroll_into_view_if_needed()
                         page.screenshot(path=str(output / f'portal-{width}.jpg'), quality=85)
