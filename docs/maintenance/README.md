@@ -6,9 +6,9 @@ is a source-grounded audit and maintenance guide, not a claim that every legacy
 game meets today's standards. Some engines are compiled, some rights are
 unverified, and some native interactions remain held.
 
-The catalog contains **115 registered games**. Git contains **122 game projects**
-plus the shared `Games/_emulatorjs` runtime. The seven unregistered games are
-2048, Foldwild, Garage Borough, Hextris, QWOP, Slipstream Borough and Slope. Sparse exclusion is intentional: a missing
+The catalog contains **116 registered games**. Git contains **122 game projects**
+plus the shared `Games/_emulatorjs` runtime. The six unregistered games are
+2048, Foldwild, Garage Borough, Hextris, QWOP and Slope. Existing Slipstream Borough is catalog225, explicitly labeled a police-chase preview; this is registration, not a new game build. Sparse exclusion is intentional: a missing
 local Games folder does not mean a broken deployment. See [inventory](inventory.json)
 for exact tracked counts, entry hashes, source-tree hashes and manual paths.
 
@@ -229,11 +229,11 @@ reserved by appearing here.
 | 222 | [Circuit Ward](games/222-circuit-ward.md) | `Games/Circuit Ward/index.html` |
 | 223 | [Tag Relay](games/223-tag-relay.md) | `Games/Tag Relay/index.html` |
 | 224 | [Spline Ride](games/224-spline-ride.md) | `Games/Spline Ride/index.html` |
+| 225 | [Slipstream Borough: Police Chase](games/225-slipstream-borough.md) | `Games/Slipstream Borough/index.html` |
 | Unregistered | [2048](games/unregistered-2048.md) | `Games/2048/index.html` |
 | Unregistered | [Foldwild](games/unregistered-foldwild.md) | `Games/Foldwild/index.html` |
 | Unregistered | [Garage Borough](games/unregistered-garage-borough.md) | `Games/Garage Borough/index.html` |
 | Unregistered | [Hextris](games/unregistered-hextris.md) | `Games/Hextris/index.html` |
 | Unregistered | [QWOP](games/unregistered-qwop.md) | `Games/QWOP/index.html` |
-| Unregistered | [Slipstream Borough](games/unregistered-slipstream-borough.md) | `Games/Slipstream Borough/index.html` |
 | Unregistered | [Slope](games/unregistered-slope.md) | `Games/Slope/index.html` |
 <!-- game-index:end -->

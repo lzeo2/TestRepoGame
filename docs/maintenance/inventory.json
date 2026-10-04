@@ -1,5 +1,5 @@
 {
-  "catalog_entries": 115,
+  "catalog_entries": 116,
   "games": [
     {
       "directory": "Games/2048",
@@ -1107,15 +1107,15 @@
     },
     {
       "directory": "Games/Slipstream Borough",
-      "id": null,
-      "title": "Slipstream Borough",
-      "registered": false,
+      "id": 225,
+      "title": "Slipstream Borough: Police Chase",
+      "registered": true,
       "entry": "Games/Slipstream Borough/index.html",
       "entry_blob": "2a46311941c32394cbddc2891b3fd67aa4a56b43",
       "tree": "97ad8da2381fdae4c815392f5a202731fce922ff",
       "files": 8,
       "bytes": 77183,
-      "document": "docs/maintenance/games/unregistered-slipstream-borough.md"
+      "document": "docs/maintenance/games/225-slipstream-borough.md"
     },
     {
       "directory": "Games/Slope",
