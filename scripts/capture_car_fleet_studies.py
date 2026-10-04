@@ -20,8 +20,8 @@ from PIL import Image, ImageStat
 from playwright.sync_api import sync_playwright
 
 ROOT = Path(__file__).resolve().parents[1]
-IDS = 'pip brindle bricklet finch lantern comet orchard horizon morrow relay tempest sunray parcel pebble dockside gravel atlas kestrel vesper aerolume riftline calyx serein nacre'.split()
-REAR_IDS = ('aerolume', 'riftline', 'calyx', 'serein', 'nacre')
+IDS = 'pip brindle bricklet finch lantern comet orchard horizon morrow relay tempest sunray parcel pebble dockside gravel atlas kestrel vesper aerolume riftline calyx serein nacre wardline strake'.split()
+REAR_IDS = ('aerolume', 'riftline', 'calyx', 'serein', 'nacre', 'wardline', 'strake')
 LIMIT = 10_000_000
 
 
@@ -40,13 +40,13 @@ def main():
     chromium = shutil.which('chromium') or shutil.which('chromium-browser')
     assert chromium, 'Installed Chromium required; no download fallback'
     hashes = source_hashes()
-    for name in ['detailed.js', 'detail-profiles.js']:
+    for name in ['detailed.js', 'detail-profiles.js', 'police.js', 'realism.js']:
         assert 'assets/car-arcade/showcase/' + name in hashes, 'Freeze sibling sources first'
     output = Path(tempfile.mkdtemp(prefix='car-fleet-visual-'))
     errors, snapshots, images = [], [], []
     result = {'visual_only': True, 'acceptance': False, 'exit': 1, 'sources': hashes,
               'errors': errors, 'snapshots': snapshots, 'images': images, 'free_before': free_before,
-              'expected_models': 24, 'expected_rear_views': 5, 'expected_images': 57}
+              'expected_models': 26, 'expected_rear_views': 7, 'expected_images': 63}
     print('VISUAL_ONLY_OUTPUT=' + str(output), flush=True)
 
     class Handler(SimpleHTTPRequestHandler):
@@ -160,7 +160,7 @@ def main():
                     print('CAPTURED ' + car + ' exterior/cockpit', flush=True)
 
                 # Real keyboard and touch at 390px, not synthetic state/pose grants.
-                car = 'nacre'
+                car = 'strake'
                 assert IDS[-1] == car and page.evaluate('carStudioSnapshot.id') == car
                 action(lambda: page.set_viewport_size({'width': 390, 'height': 844}), 'exterior', car)
                 assert page.evaluate('document.documentElement.scrollWidth<=innerWidth')
@@ -194,14 +194,14 @@ def main():
                 browser.close()
         frozen(); disk_guard()
         assert not errors, errors
-        assert len(images) == 57
+        assert len(images) == 63
         assert {image['file'] for image in images} == (
             {car + '-' + view + '.jpg' for car in IDS for view in ('exterior', 'cockpit')}
             | {car + '-rear.jpg' for car in REAR_IDS}
             | {'390-exterior.jpg', '390-exterior-ui.jpg',
                '390-cockpit.jpg', '390-cockpit-ui.jpg'})
         result['exit'] = 0
-        print('VISUAL ONLY: 24 exterior/cockpit pairs + 5 hypercar/modern rear views + 4 Nacre 390px keyboard/touch images = 57; no QA, performance, photographic or legal certification.', flush=True)
+        print('VISUAL ONLY: 26 exterior/cockpit pairs + 7 hypercar/modern/police rear views + 4 Strake 390px keyboard/touch images = 63; no QA, performance, photographic or legal certification.', flush=True)
     except BaseException as error:
         result['failure'] = str(error)
         raise

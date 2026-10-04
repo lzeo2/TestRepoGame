@@ -3,6 +3,7 @@ import { createCar as pip } from './pip.js';
 import { createCar as brindle } from './brindle.js';
 import { PASSENGER_STUDIES, createDetailedCar } from './detailed.js';
 import { UTILITY_STUDIES, SPORT_STUDIES } from './detail-profiles.js';
+import { POLICE_STUDIES, createPoliceCar } from './police.js';
 import { createGarage } from './garage.js';
 import { decorateCar, decorateGarage } from './realism.js';
 
@@ -13,6 +14,10 @@ for (const profiles of [PASSENGER_STUDIES, UTILITY_STUDIES, SPORT_STUDIES]) {
     factories[id] = () => createDetailedCar(id);
     document.getElementById('car').add(new Option(profile.name, id));
   }
+}
+for (const [id, profile] of Object.entries(POLICE_STUDIES)) {
+  factories[id] = () => createPoliceCar(id);
+  document.getElementById('car').add(new Option(profile.name, id));
 }
 Object.freeze(factories);
 let renderer, environment, current, garage, drag = null, pending = 0, frames = 0, disposed = false, failure = null;

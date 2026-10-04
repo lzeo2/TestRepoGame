@@ -5,16 +5,28 @@ import { createCar as pip } from '../assets/car-arcade/showcase/pip.js';
 import { createCar as brindle } from '../assets/car-arcade/showcase/brindle.js';
 import { PASSENGER_STUDIES, createDetailedCar } from '../assets/car-arcade/showcase/detailed.js';
 import { UTILITY_STUDIES, SPORT_STUDIES } from '../assets/car-arcade/showcase/detail-profiles.js';
+import { POLICE_STUDIES, createPoliceCar } from '../assets/car-arcade/showcase/police.js';
 import { decorateCar } from '../assets/car-arcade/showcase/realism.js';
 
-const ids = 'pip brindle bricklet finch lantern comet orchard horizon morrow relay tempest sunray parcel pebble dockside gravel atlas kestrel vesper aerolume riftline calyx serein nacre'.split(' ');
+const ids = 'pip brindle bricklet finch lantern comet orchard horizon morrow relay tempest sunray parcel pebble dockside gravel atlas kestrel vesper aerolume riftline calyx serein nacre wardline strake'.split(' ');
 const modernIds = ['calyx', 'serein', 'nacre'];
+const policeBases = {wardline: 'lantern', strake: 'serein'};
 const profiles = {...PASSENGER_STUDIES, ...UTILITY_STUDIES, ...SPORT_STUDIES};
-const factories = {pip, brindle, ...Object.fromEntries(Object.keys(profiles).map(id => [id, () => createDetailedCar(id)]))};
+const factories = {pip, brindle, ...Object.fromEntries(Object.keys(profiles).map(id => [id, () => createDetailedCar(id)])),
+  ...Object.fromEntries(Object.keys(POLICE_STUDIES).map(id => [id, () => createPoliceCar(id)]))};
+Object.assign(profiles, POLICE_STUDIES);
+assert.deepEqual(Object.keys(POLICE_STUDIES), ['wardline', 'strake']);
+for (const [id, base] of Object.entries(policeBases)) {
+  for (const key of Object.keys(profiles[base])) if (!['id','name','color','roofColor','plate'].includes(key)) {
+    assert.equal(profiles[id][key], profiles[base][key], id+' changed base profile '+key);
+  }
+  assert.notEqual(profiles[id].name, profiles[base].name);
+  assert.notEqual(profiles[id].plate, profiles[base].plate);
+}
 assert.deepEqual(Object.keys(factories).sort(), [...ids].sort());
 assert.deepEqual(Object.keys(SPORT_STUDIES).slice(-3), modernIds);
 const fields = 'id name color roofColor width length height wheelbase bodyHeight cabinFront cabinRear roofFront roofRear roofWidth form doors plate'.split(' ').sort();
-for (const map of [PASSENGER_STUDIES, UTILITY_STUDIES, SPORT_STUDIES]) {
+for (const map of [PASSENGER_STUDIES, UTILITY_STUDIES, SPORT_STUDIES, POLICE_STUDIES]) {
   assert(Object.isFrozen(map));
   for (const [id, p] of Object.entries(map)) {
     assert(Object.isFrozen(p)); assert.equal(p.id, id);
@@ -28,6 +40,9 @@ for (const map of [PASSENGER_STUDIES, UTILITY_STUDIES, SPORT_STUDIES]) {
   }
 }
 for (const id of ['unknown', '__proto__', 'constructor', 'toString']) assert.throws(() => createDetailedCar(id));
+for (const id of ['unknown', '__proto__', 'constructor', 'toString', 'lantern', 'serein', '', null, undefined, 1, {}, ['wardline'], new String('strake')]) {
+  assert.throws(() => createPoliceCar(id), RangeError);
+}
 
 globalThis.document = {createElement(tag) {
   assert.equal(tag, 'canvas');
@@ -79,7 +94,26 @@ function modernJunctions(mesh, profile) {
     }
   }
 }
-const seen = new Set(), hyperShapes = new Map(), modernShapes = new Map();
+// Inspect actual world-space triangles, including material-array partitions.
+function materialTriangles(root, name) {
+  const faces = [];
+  root.updateWorldMatrix(true, true);
+  root.traverse(mesh => {
+    if (!mesh.isMesh) return;
+    const g = mesh.geometry, mats = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
+    const groups = Array.isArray(mesh.material) ? g.groups : [{start:0,count:g.index?.count ?? g.attributes.position.count,materialIndex:0}];
+    for (const group of groups) if (mats[group.materialIndex]?.name === name) {
+      for (let i=group.start;i<group.start+group.count;i+=3) {
+        const indices = [0,1,2].map(j => g.index ? g.index.getX(i+j) : i+j);
+        faces.push({points:indices.map(j => new THREE.Vector3().fromBufferAttribute(g.attributes.position,j).applyMatrix4(mesh.matrixWorld)),
+          uv:indices.map(j => new THREE.Vector2().fromBufferAttribute(g.attributes.uv,j))});
+      }
+    }
+  });
+  assert(faces.length, 'Missing physical '+name);
+  return faces;
+}
+const seen = new Set(), hyperShapes = new Map(), modernShapes = new Map(), baseCars = new Map();
 let checked = 0;
 for (let cycle = 1; cycle <= 2; cycle++) for (const id of ids) {
   const car = factories[id](), geometries = new Set(), materials = new Set();
@@ -108,7 +142,20 @@ for (let cycle = 1; cycle <= 2; cycle++) for (const id of ids) {
   const {eye, target} = car.userData.cockpit;
   for (const v of [eye, target]) assert(Array.isArray(v) && v.length === 3 && v.every(Number.isFinite));
   assert(bounds.containsPoint(new THREE.Vector3(...eye)) && target[2] < eye[2]);
-  const profile = profiles[id];
+  const profile = profiles[id], police = Object.hasOwn(policeBases, id);
+  if (police) {
+    assert.equal(car.userData.id, id); assert.equal(car.userData.name, profile.name);
+    const base = baseCars.get(policeBases[id]);
+    assert(base, id+' missing inspected original base');
+    assert.deepEqual(car.userData.cockpit, base.userData.cockpit, id+' changed physical eye');
+    for (const name of ['body-paint', 'roof-paint', 'window-glass']) {
+      const actual = car.getObjectByName(name).geometry, original = base.getObjectByName(name).geometry;
+      for (const key of ['position', 'normal', 'uv']) assert.deepEqual(actual.attributes[key].array, original.attributes[key].array, id+' changed base '+name+' '+key);
+      const faces = g => Array.from({length:g.index.count/3}, (_,i) => Array.from(g.index.array.slice(i*3,i*3+3)).join(',')).sort();
+      assert.deepEqual(faces(actual), faces(original), id+' changed base triangles '+name);
+    }
+  }
+  if (id === 'lantern' || id === 'serein') baseCars.set(id, car);
   if (profile) {
     assert(Math.abs(eye[0]) < profile.roofWidth / 2);
     assert(eye[1] > profile.bodyHeight && eye[1] < profile.height);
@@ -138,7 +185,7 @@ for (let cycle = 1; cycle <= 2; cycle++) for (const id of ids) {
       if(x>profile.width*.32)corner=Math.min(corner,z);
     }
     assert(corner>center+.025,id+' flat block nose');
-    if (modernIds.includes(id)) modernJunctions(paintMesh, profile);
+    if (modernIds.includes(id) || policeBases[id] === 'serein') modernJunctions(paintMesh, profile);
     else {
     // Actual shared skin/deck/cap corner vertices, not a claimed smooth flag.
     const {width:W,length:L,bodyHeight:B,form,wheelbase}=profile;
@@ -267,6 +314,58 @@ for (let cycle = 1; cycle <= 2; cycle++) for (const id of ids) {
       modernShapes.set(id,shape);
     } else assert.deepEqual(shape,modernShapes.get(id),id+' deterministic modern shape');
   }
+  if (police) {
+    const body = car.getObjectByName('body-paint'), g = body.geometry;
+    assert(Array.isArray(body.material), id+' livery must partition actual body triangles');
+    const coverage = new Uint8Array(g.index.count), colors = new Map();
+    for (const group of g.groups) {
+      assert(group.start%3===0 && group.count>=3 && group.count%3===0 && group.start+group.count<=g.index.count);
+      const material = body.material[group.materialIndex]; assert(material?.color);
+      for (let i=group.start;i<group.start+group.count;i++) assert.equal(coverage[i]++,0,id+' overlapping body groups');
+      const color = material.color;
+      colors.set(color.getHex(), {luma:(color.r+color.g+color.b)/3,count:(colors.get(color.getHex())?.count ?? 0)+group.count});
+    }
+    assert(coverage.every(n=>n===1),id+' unpainted body triangles');
+    assert([...colors.values()].some(c=>c.luma>.6&&c.count>=18) && [...colors.values()].some(c=>c.luma<.08&&c.count>=18),id+' missing physical black/white livery');
+    const roof = car.getObjectByName('roof-paint'), roofBounds = new THREE.Box3().setFromObject(roof);
+    const glass = car.getObjectByName('window-glass'), glassBounds = new THREE.Box3().setFromObject(glass);
+    const boundsOf = faces => new THREE.Box3().setFromPoints(faces.flatMap(f=>f.points));
+    const red = boundsOf(materialTriangles(car,'police-light-red')), blue = boundsOf(materialTriangles(car,'police-light-blue'));
+    for (const [name, bounds] of [['police-light-red',red],['police-light-blue',blue]]) {
+      assert(bounds.min.y>=roofBounds.max.y-.002 && bounds.min.y>glassBounds.max.y,id+' lightbar crosses roof/glazing');
+      assert(bounds.min.x>=roofBounds.min.x && bounds.max.x<=roofBounds.max.x && bounds.min.z>=roofBounds.min.z && bounds.max.z<=roofBounds.max.z,id+' unsupported roof lightbar');
+      const size=bounds.getSize(new THREE.Vector3()); assert(size.x>.1 && size.y>.015 && size.z>.02,id+' missing physical lens volume');
+      for (const m of named(name)) assert(name.endsWith('red') ? m.color.r>m.color.b*2 : m.color.b>m.color.r*2,id+' incorrect lens color');
+    }
+    assert(!red.intersectsBox(blue),id+' overlapping red/blue lenses');
+    const mountFaces=materialTriangles(car,'police-mount'), mountBounds=boundsOf(mountFaces);
+    assert(mountBounds.max.y>=Math.min(red.min.y,blue.min.y)-.003,id+' floating lightbar');
+    // Downward rays test real support vertices against the actual crowned roof.
+    const contacts = new Set();
+    for (const point of mountFaces.flatMap(f=>f.points)) {
+      const hit=new THREE.Raycaster(new THREE.Vector3(point.x,profile.height+1,point.z),new THREE.Vector3(0,-1,0)).intersectObject(roof)[0];
+      assert(hit && point.y>=hit.point.y-.006,id+' mount penetrates roof or glazing');
+      if(Math.abs(point.y-hit.point.y)<.006) contacts.add(Math.sign(point.x));
+    }
+    assert(contacts.has(-1)&&contacts.has(1),id+' feet do not touch both roof sides');
+    const lettering=materialTriangles(car,'police-lettering'), sides=new Set();
+    for(const {points:[a,b,c],uv:[ua,ub,uc]} of lettering) {
+      const center=a.clone().add(b).add(c).multiplyScalar(1/3), side=Math.sign(center.x);
+      const ab=b.clone().sub(a), ac=c.clone().sub(a), normal=ab.clone().cross(ac).normalize();
+      assert(Math.abs(center.x)>profile.width*.3 && normal.x*side>.8,id+' inward side lettering');
+      assert(Math.max(a.y,b.y,c.y)<glassBounds.min.y,id+' lettering overlaps glazing');
+      for(const uv of [ua,ub,uc]) assert(uv.x>=0&&uv.x<=1&&uv.y>=0&&uv.y<=1,id+' invalid lettering UV');
+      const du=ub.clone().sub(ua), dv=uc.clone().sub(ua), determinant=du.x*dv.y-du.y*dv.x;
+      assert(Math.abs(determinant)>1e-8,id+' collapsed lettering UV');
+      const right=ab.clone().multiplyScalar(dv.y).addScaledVector(ac,-du.y).divideScalar(determinant).normalize();
+      const up=ac.clone().multiplyScalar(du.x).addScaledVector(ab,-dv.x).divideScalar(determinant).normalize();
+      assert(right.z*-side>.8 && up.y>.8,id+' mirrored or inverted POLICE lettering');
+      const inward=new THREE.Raycaster(center.clone().add(new THREE.Vector3(side*.02,0,0)),new THREE.Vector3(-side,0,0)).intersectObject(body)[0];
+      assert(inward && inward.distance>=.015 && inward.distance<.08,id+' lettering detached from body panel');
+      sides.add(side);
+    }
+    assert.deepEqual([...sides].sort(),[-1,1],id+' two outward lettering surfaces');
+  }
   for (const name of ['body-paint','cab-plastic','seat-fabric','rubber','chrome','window-glass','lamp-lens','dial-speed','dial-rpm','console-radio','registration-plate']) named(name);
   if (profile?.form !== 'roadster') named('roof-paint');
   assert([...materials].every(m => !Object.values(m).some(v => v?.isTexture)), id + ' map-free factory');
@@ -280,11 +379,26 @@ for (let cycle = 1; cycle <= 2; cycle++) for (const id of ids) {
       if (name === 'registration-plate') assert.equal(m.userData.label, text);
     }
   }
+  if (police) {
+    const lettering=named('police-lettering');
+    assert.equal(new Set(lettering.map(m=>m.map)).size,1,id+' lettering map must be shared within root');
+    for(const m of lettering) {
+      assert(m.map?.isCanvasTexture && m.map.flipY,id+' actual canvas lettering orientation');
+      assert.equal(m.map.image.width,256); assert.equal(m.map.image.height,64);
+      assert.equal(m.map.colorSpace,THREE.SRGBColorSpace);
+      assert(m.map.image.text.includes('POLICE'),id+' missing canvas POLICE text');
+    }
+  }
   const textures = new Set([...materials].flatMap(m => Object.values(m).filter(v => v?.isTexture)));
   const bytes = [...textures].reduce((sum, t) => sum + t.image.width * t.image.height * 4, 0);
   assert(bytes > 0 && bytes <= 1048576, id + ' map budget');
-  assert.equal(textures.size,9,id+' decorator map count');
-  assert.equal(bytes,983040,id+' decorator base bytes');
+  if (police) {
+    assert.equal(textures.size,10,id+' decorator map count');
+    assert.equal(bytes,1048576,id+' decorator base bytes');
+  } else {
+    assert.equal(textures.size,9,id+' decorator map count');
+    assert.equal(bytes,983040,id+' decorator base bytes');
+  }
   const resources = [...geometries, ...materials, ...textures], counts = resources.map(() => 0);
   resources.forEach((r, i) => {
     assert(!seen.has(r), id + ' shared GPU resource'); seen.add(r);
@@ -294,5 +408,5 @@ for (let cycle = 1; cycle <= 2; cycle++) for (const id of ids) {
   checked++;
   console.log(`PASS ${id} cycle${cycle}: ${triangles} triangles / ${meshes} meshes / ${textures.size} textures / ${bytes} base RGBA bytes`);
 }
-assert.equal(checked, 48);
-console.log('PASS 24 factories, two fresh cycles, disjoint once-disposed resources. Source/stub check only; real cabin visibility and typography require native review.');
+assert.equal(checked, 52);
+console.log('PASS 26 factories, two fresh cycles, disjoint once-disposed resources. Source/stub check only; real cabin visibility and typography require native review.');
