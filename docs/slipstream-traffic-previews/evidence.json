@@ -1,0 +1,202 @@
+{
+  "scope": "Existing original Slipstream only; no new games/registration/push yet. Feature push only after full115gate.",
+  "diagnosticBaseline": "43b6e43",
+  "diagnostic": {
+    "diagnosticOnly": true,
+    "seconds": 12.827175151091069,
+    "activeSeconds": 4.299999999999985,
+    "frames": 87,
+    "drawCalls": 30,
+    "cpuTop": [
+      {
+        "function": "(idle)",
+        "file": "",
+        "samples": 7683
+      },
+      {
+        "function": "(program)",
+        "file": "",
+        "samples": 425
+      },
+      {
+        "function": "",
+        "file": "",
+        "samples": 41
+      },
+      {
+        "function": "record",
+        "file": "core.js",
+        "samples": 28
+      },
+      {
+        "function": "frame",
+        "file": "script.js",
+        "samples": 27
+      },
+      {
+        "function": "(garbage collector)",
+        "file": "",
+        "samples": 27
+      },
+      {
+        "function": "WebGL2RenderingContext.<computed>",
+        "file": "",
+        "samples": 22
+      },
+      {
+        "function": "requestAnimationFrame",
+        "file": "",
+        "samples": 21
+      },
+      {
+        "function": "uniformMatrix4fv",
+        "file": "",
+        "samples": 19
+      },
+      {
+        "function": "innerSerialize",
+        "file": "",
+        "samples": 19
+      },
+      {
+        "function": "updateHud",
+        "file": "script.js",
+        "samples": 16
+      },
+      {
+        "function": "isTypedArray",
+        "file": "",
+        "samples": 15
+      },
+      {
+        "function": "bindVertexArray",
+        "file": "",
+        "samples": 12
+      },
+      {
+        "function": "checkRun",
+        "file": "core.js",
+        "samples": 11
+      },
+      {
+        "function": "drawElements",
+        "file": "",
+        "samples": 11
+      },
+      {
+        "function": "serialize",
+        "file": "",
+        "samples": 11
+      },
+      {
+        "function": "setProgram",
+        "file": "three.module.js",
+        "samples": 10
+      },
+      {
+        "function": "setup",
+        "file": "three.module.js",
+        "samples": 9
+      },
+      {
+        "function": "vertexAttribPointer",
+        "file": "",
+        "samples": 9
+      },
+      {
+        "function": "stepRun",
+        "file": "core.js",
+        "samples": 8
+      }
+    ],
+    "metricDelta": {
+      "TaskDuration": 1.985306,
+      "ScriptDuration": 0.868306,
+      "LayoutDuration": 0.142409,
+      "RecalcStyleDuration": 0.034530000000000005
+    },
+    "errors": [],
+    "frameIntervalsMs": {
+      "median": 133.29999999999927,
+      "p95": 216.70000000000073,
+      "max": 416.6000000000022,
+      "droppedBy50msSeconds": 8.232900000000004
+    }
+  },
+  "native1": {
+    "exit": 1,
+    "seconds": 18.524841577978805,
+    "sourceCommit": "a1e991680ea8badf145e07515b7993f3e200906a"
+  },
+  "native1FailureFile": "native-1-failure.json",
+  "native1Cause": "Absolute wheel-angle condition already true before first snapshot; baseline-relative movement wait corrected in353c921.",
+  "native2": {
+    "exit": 0,
+    "seconds": 161.6827018270269,
+    "sourceCommit": "353c921f7061723f60201af2038fbc007a196e70"
+  },
+  "native2ResultFile": "result.json",
+  "native2UnchangedDeadlines": {
+    "readinessSeconds": 20,
+    "raceSeconds": 110
+  },
+  "frames": {
+    "390-city.jpg": {
+      "bytes": 54298,
+      "sha256": "9079e42e34f91b9abb2821c5d6513d9ba3cc032fcbdd520e13c089cd971d452a"
+    },
+    "390-patrol.jpg": {
+      "bytes": 55664,
+      "sha256": "fe3f6785dfcd56a8c6757aa7a2231180c32e7d48f078306857c31a8ec2a644be"
+    },
+    "city-patrol-dark.jpg": {
+      "bytes": 88551,
+      "sha256": "0530fa0c99ba596b3ada8a47ede1e2ccbe019e93d04ebab4ae0fee54dc60846a"
+    },
+    "city-patrol.jpg": {
+      "bytes": 81544,
+      "sha256": "1bf63bb9e4f6ab8768c8ad1698f8f982cf35291559016b30e0a23489bf2de41c"
+    },
+    "garage-custom.jpg": {
+      "bytes": 119127,
+      "sha256": "33250d3b8542711fc70f9aca95b837a9bc14550b1b1fcd9555883b3b44c0ed5a"
+    },
+    "highway-patrol.jpg": {
+      "bytes": 100879,
+      "sha256": "7b2c3f39aaf722853932ec2e63100aa664ada7bd1642e348214e1d12351f15b5"
+    }
+  },
+  "reviewedByMain": [
+    "390-city.jpg",
+    "390-patrol.jpg",
+    "city-patrol-dark.jpg",
+    "city-patrol.jpg",
+    "garage-custom.jpg",
+    "highway-patrol.jpg"
+  ],
+  "worker135": {
+    "commit": "b1d49cd35110e4ce8d7f9643e42856bef9d57f7e",
+    "completed": false,
+    "exit": 143,
+    "leaseSeconds": 480,
+    "assistantRecords": 16,
+    "api": "openai-codex-responses",
+    "provider": "openai-codex",
+    "model": "gpt-6-astra",
+    "thinking": "high",
+    "logFile": ".swarmforge-logs/worker-2026-10-04T07-41-33-177Z.log"
+  },
+  "holds": [
+    "natural city escape",
+    "all five naturally earned effects",
+    "full fleet/difficulty/campaign",
+    "cop/player separation",
+    "reciprocal police traffic yield",
+    "parked detailed fleet integration",
+    "target-hardware FPS",
+    "rights",
+    "separate Garage/Foldwild/2048/studio holds"
+  ],
+  "full115Gate": "pending",
+  "push": "pending"
+}
