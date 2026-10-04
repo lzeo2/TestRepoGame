@@ -197,6 +197,23 @@
     "rights",
     "separate Garage/Foldwild/2048/studio holds"
   ],
-  "full115Gate": "pending",
-  "push": "pending"
+  "full115Gate": {
+    "exit": 0,
+    "sourceCommit": "83201847318f79802061439428c1edcacbd1457a",
+    "seconds": 1450.6676557289902,
+    "passed": 115,
+    "total": 115,
+    "manifestFile": "full-gate.json",
+    "summaryFile": "full-gate-summary.txt",
+    "peakGamesBytes": 195853264,
+    "remainingGamesBytes": 0,
+    "minimumFreeBytes": 2047361024,
+    "sparseRestored": [
+      "assets",
+      "docs",
+      "scripts"
+    ],
+    "originalSmokeSha256": "ee204d35ee1cd65bd11936decc627fe30644fe7edde5126e2f16e39c2c8f7f6f"
+  },
+  "push": "Authorized feature-branch push next, not yet claimed completed in this commit."
 }

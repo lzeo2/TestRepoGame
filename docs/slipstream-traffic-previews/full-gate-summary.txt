@@ -1,0 +1,233 @@
+FROZEN_HEAD=83201847318f79802061439428c1edcacbd1457a ALL_GAMES=115 STRICTER_FLOOR=2000000000
+SPARSE 1/115 Soccer Random: predicted=57913150 actual=57913150 Games bytes
+ok   Soccer Random                console_errors=0 failed_reqs=0
+SPARSE 2/115 Basket Random: predicted=54719901 actual=54719901 Games bytes
+ok   Basket Random                console_errors=0 failed_reqs=0
+SPARSE 3/115 Volley Random: predicted=57809277 actual=57809277 Games bytes
+ok   Volley Random                console_errors=0 failed_reqs=0
+SPARSE 4/115 Ovo: predicted=110226096 actual=110226096 Games bytes
+ok   Ovo                          console_errors=0 failed_reqs=0
+SPARSE 5/115 Run 3: predicted=70084523 actual=70084523 Games bytes
+ok   Run 3                        console_errors=0 failed_reqs=0
+SPARSE 6/115 Snake: predicted=51680783 actual=51680783 Games bytes
+ok   Snake                        console_errors=0 failed_reqs=0
+SPARSE 7/115 Chrome Dino: predicted=51471945 actual=51471945 Games bytes
+ok   Chrome Dino                  console_errors=0 failed_reqs=0
+SPARSE 8/115 Breakout: predicted=51375439 actual=51375439 Games bytes
+ok   Breakout                     console_errors=0 failed_reqs=0
+SPARSE 9/115 Character Alsen: predicted=51982540 actual=51982540 Games bytes
+ok   Character Alsen              console_errors=0 failed_reqs=0
+SPARSE 10/115 Gladihoppers: predicted=99384760 actual=99384760 Games bytes
+ok   Gladihoppers                 console_errors=0 failed_reqs=0
+SPARSE 11/115 Burrito Bison: predicted=84930904 actual=84930904 Games bytes
+ok   Burrito Bison                console_errors=0 failed_reqs=0
+SPARSE 12/115 BitLife: predicted=71740718 actual=71740718 Games bytes
+ok   BitLife                      console_errors=0 failed_reqs=0
+SPARSE 13/115 Subway Surfers: predicted=195850281 actual=195850281 Games bytes
+ok   Subway Surfers               console_errors=0 failed_reqs=0
+SPARSE 14/115 A Dark Room: predicted=58476715 actual=58476715 Games bytes
+ok   A Dark Room                  console_errors=0 failed_reqs=0
+SPARSE 15/115 Stranded In Isekai: predicted=62262280 actual=62262280 Games bytes
+ok   Stranded In Isekai           console_errors=0 failed_reqs=0
+SPARSE 16/115 Papa's Pizzeria: predicted=60858231 actual=60858231 Games bytes
+ok   Papa's Pizzeria              console_errors=0 failed_reqs=0
+SPARSE 17/115 Retro Bowl: predicted=56927359 actual=56927359 Games bytes
+ok   Retro Bowl                   console_errors=0 failed_reqs=0
+SPARSE 18/115 Super Hot: predicted=96872067 actual=96872067 Games bytes
+ok   Super Hot                    console_errors=0 failed_reqs=0
+SPARSE 19/115 10 Minutes Till Dawn: predicted=101820340 actual=101820340 Games bytes
+ok   10 Minutes Till Dawn         console_errors=0 failed_reqs=0
+SPARSE 20/115 Fleeing the Complex: predicted=112001526 actual=112001526 Games bytes
+ok   Fleeing the Complex          console_errors=0 failed_reqs=0
+SPARSE 21/115 Infiltrating the Airship: predicted=107253704 actual=107253704 Games bytes
+ok   Infiltrating the Airship     console_errors=0 failed_reqs=0
+SPARSE 22/115 Baldi's Basics: predicted=88843001 actual=88843001 Games bytes
+ok   Baldi's Basics               console_errors=0 failed_reqs=0
+SPARSE 23/115 Temple Run 2: predicted=78203809 actual=78203809 Games bytes
+ok   Temple Run 2                 console_errors=0 failed_reqs=0
+SPARSE 24/115 Cut the Rope: predicted=77398503 actual=77398503 Games bytes
+ok   Cut the Rope                 console_errors=0 failed_reqs=0
+SPARSE 25/115 Fancy Pants Adventure 3: predicted=93373140 actual=93373140 Games bytes
+ok   Fancy Pants Adventure 3      console_errors=0 failed_reqs=0
+SPARSE 26/115 Vex 7: predicted=81981123 actual=81981123 Games bytes
+ok   Vex 7                        console_errors=0 failed_reqs=0
+SPARSE 27/115 Geometry Dash Lite: predicted=106325927 actual=106325927 Games bytes
+ok   Geometry Dash Lite           console_errors=0 failed_reqs=0
+SPARSE 28/115 Cookie Clicker: predicted=57135858 actual=57135858 Games bytes
+ok   Cookie Clicker               console_errors=0 failed_reqs=0
+SPARSE 29/115 Bloons TD: predicted=57253044 actual=57253044 Games bytes
+ok   Bloons TD                    console_errors=0 failed_reqs=0
+SPARSE 30/115 Drift Boss: predicted=58873993 actual=58873993 Games bytes
+ok   Drift Boss                   console_errors=0 failed_reqs=0
+SPARSE 31/115 Doodle Jump: predicted=55431541 actual=55431541 Games bytes
+ok   Doodle Jump                  console_errors=0 failed_reqs=0
+SPARSE 32/115 Chess: predicted=51699894 actual=51699894 Games bytes
+ok   Chess                        console_errors=0 failed_reqs=0
+SPARSE 33/115 Jetpack Joyride: predicted=68148431 actual=68148431 Games bytes
+ok   Jetpack Joyride              console_errors=0 failed_reqs=0
+SPARSE 34/115 Jetpack Joyride Hacked: predicted=68150666 actual=68150666 Games bytes
+ok   Jetpack Joyride Hacked       console_errors=0 failed_reqs=0
+SPARSE 35/115 Doge Miner: predicted=55632424 actual=55632424 Games bytes
+ok   Doge Miner                   console_errors=0 failed_reqs=0
+SPARSE 36/115 Retro Bowl Hacked: predicted=56927501 actual=56927501 Games bytes
+ok   Retro Bowl Hacked            console_errors=0 failed_reqs=0
+SPARSE 37/115 Cookie Clicker Hacked: predicted=57137099 actual=57137099 Games bytes
+ok   Cookie Clicker Hacked        console_errors=0 failed_reqs=0
+SPARSE 38/115 Breakout Hacked: predicted=51376208 actual=51376208 Games bytes
+ok   Breakout Hacked              console_errors=0 failed_reqs=0
+SPARSE 39/115 Snake Hacked: predicted=51681241 actual=51681241 Games bytes
+ok   Snake Hacked                 console_errors=0 failed_reqs=0
+SPARSE 40/115 Subway Surfers Hacked: predicted=195853264 actual=195853264 Games bytes
+ok   Subway Surfers Hacked        console_errors=0 failed_reqs=0
+SPARSE 41/115 Doodle Jump Hacked: predicted=55432706 actual=55432706 Games bytes
+ok   Doodle Jump Hacked           console_errors=0 failed_reqs=0
+SPARSE 42/115 Dr. Mario: predicted=52384122 actual=52384122 Games bytes
+ok   Dr. Mario                    console_errors=0 failed_reqs=0
+SPARSE 43/115 Street Fighter II: predicted=59724163 actual=59724163 Games bytes
+ok   Street Fighter II            console_errors=0 failed_reqs=0
+SPARSE 44/115 Advance Wars: predicted=53659053 actual=53659053 Games bytes
+ok   Advance Wars                 console_errors=0 failed_reqs=0
+SPARSE 45/115 Mario Kart Super Circuit: predicted=55529904 actual=55529904 Games bytes
+ok   Mario Kart Super Circuit     console_errors=0 failed_reqs=0
+SPARSE 46/115 Metroid Fusion: predicted=56020668 actual=56020668 Games bytes
+ok   Metroid Fusion               console_errors=0 failed_reqs=0
+SPARSE 47/115 Mega Man Zero: predicted=55010414 actual=55010414 Games bytes
+ok   Mega Man Zero                console_errors=0 failed_reqs=0
+SPARSE 48/115 Kirby Amazing Mirror: predicted=58425809 actual=58425809 Games bytes
+ok   Kirby Amazing Mirror         console_errors=0 failed_reqs=0
+SPARSE 49/115 Sonic Advance: predicted=53943008 actual=53943008 Games bytes
+ok   Sonic Advance                console_errors=0 failed_reqs=0
+SPARSE 50/115 Crush the Castle: predicted=60364912 actual=60364912 Games bytes
+ok   Crush the Castle             console_errors=0 failed_reqs=0
+SPARSE 51/115 Fireboy and Watergirl: predicted=61673265 actual=61673265 Games bytes
+ok   Fireboy and Watergirl        console_errors=0 failed_reqs=0
+SPARSE 52/115 Fireboy & Watergirl 4: Crystal Temple: predicted=61629304 actual=61629304 Games bytes
+ok   Fireboy & Watergirl 4: Crystal Temple console_errors=0 failed_reqs=0
+SPARSE 53/115 Fireboy & Watergirl: Forest Temple: predicted=63005825 actual=63005825 Games bytes
+ok   Fireboy & Watergirl: Forest Temple console_errors=0 failed_reqs=0
+SPARSE 54/115 Fireboy and Watergirl Hacked (Light Temple): predicted=61680678 actual=61680678 Games bytes
+ok   Fireboy and Watergirl Hacked (Light Temple) console_errors=0 failed_reqs=0
+SPARSE 55/115 Fireboy and Watergirl Forest Temple Hacked: predicted=63010464 actual=63010464 Games bytes
+ok   Fireboy and Watergirl Forest Temple Hacked console_errors=0 failed_reqs=0
+SPARSE 56/115 Fireboy and Watergirl Crystal Temple Hacked: predicted=61636203 actual=61636203 Games bytes
+ok   Fireboy and Watergirl Crystal Temple Hacked console_errors=0 failed_reqs=0
+SPARSE 57/115 Merge Cats Defender: predicted=97330303 actual=97330303 Games bytes
+ok   Merge Cats Defender          console_errors=0 failed_reqs=0
+SPARSE 58/115 Merge Cats Defender Hacked: predicted=97330892 actual=97330892 Games bytes
+ok   Merge Cats Defender Hacked   console_errors=0 failed_reqs=0
+SPARSE 59/115 Archery: predicted=51391856 actual=51391856 Games bytes
+ok   Archery                      console_errors=0 failed_reqs=0
+SPARSE 60/115 Free Throw: predicted=51352508 actual=51352508 Games bytes
+ok   Free Throw                   console_errors=0 failed_reqs=0
+SPARSE 61/115 Backgammon: predicted=51379984 actual=51379984 Games bytes
+ok   Backgammon                   console_errors=0 failed_reqs=0
+SPARSE 62/115 Pacman: predicted=51665269 actual=51665269 Games bytes
+ok   Pacman                       console_errors=0 failed_reqs=0
+SPARSE 63/115 Qix: predicted=51351349 actual=51351349 Games bytes
+ok   Qix                          console_errors=0 failed_reqs=0
+SPARSE 64/115 Joust: predicted=52540537 actual=52540537 Games bytes
+ok   Joust                        console_errors=0 failed_reqs=0
+SPARSE 65/115 Tron Light Cycles: predicted=51763377 actual=51763377 Games bytes
+ok   Tron Light Cycles            console_errors=0 failed_reqs=0
+SPARSE 66/115 Puzzle 15: predicted=51346585 actual=51346585 Games bytes
+ok   Puzzle 15                    console_errors=0 failed_reqs=0
+SPARSE 67/115 Peg Solitaire: predicted=51350757 actual=51350757 Games bytes
+ok   Peg Solitaire                console_errors=0 failed_reqs=0
+SPARSE 68/115 Checkers: predicted=51378611 actual=51378611 Games bytes
+ok   Checkers                     console_errors=0 failed_reqs=0
+SPARSE 69/115 Reversi: predicted=51361708 actual=51361708 Games bytes
+ok   Reversi                      console_errors=0 failed_reqs=0
+SPARSE 70/115 Mastermind: predicted=51400000 actual=51400000 Games bytes
+ok   Mastermind                   console_errors=0 failed_reqs=0
+SPARSE 71/115 Nim: predicted=51347738 actual=51347738 Games bytes
+ok   Nim                          console_errors=0 failed_reqs=0
+SPARSE 72/115 Dots and Boxes: predicted=51355451 actual=51355451 Games bytes
+ok   Dots and Boxes               console_errors=0 failed_reqs=0
+SPARSE 73/115 Ultimate Tic-Tac-Toe: predicted=51363010 actual=51363010 Games bytes
+ok   Ultimate Tic-Tac-Toe         console_errors=0 failed_reqs=0
+SPARSE 74/115 Klondike Solitaire: predicted=51364778 actual=51364778 Games bytes
+ok   Klondike Solitaire           console_errors=0 failed_reqs=0
+SPARSE 75/115 FreeCell: predicted=51368319 actual=51368319 Games bytes
+ok   FreeCell                     console_errors=0 failed_reqs=0
+SPARSE 76/115 Blackjack: predicted=51364298 actual=51364298 Games bytes
+ok   Blackjack                    console_errors=0 failed_reqs=0
+SPARSE 77/115 Video Poker: predicted=51373527 actual=51373527 Games bytes
+ok   Video Poker                  console_errors=0 failed_reqs=0
+SPARSE 78/115 Yahtzee: predicted=51354995 actual=51354995 Games bytes
+ok   Yahtzee                      console_errors=0 failed_reqs=0
+SPARSE 79/115 Go Fish: predicted=51361997 actual=51361997 Games bytes
+ok   Go Fish                      console_errors=0 failed_reqs=0
+SPARSE 80/115 War: predicted=51349465 actual=51349465 Games bytes
+ok   War                          console_errors=0 failed_reqs=0
+SPARSE 81/115 Word Search: predicted=51357199 actual=51357199 Games bytes
+ok   Word Search                  console_errors=0 failed_reqs=0
+SPARSE 82/115 Word Ladder: predicted=51359641 actual=51359641 Games bytes
+ok   Word Ladder                  console_errors=0 failed_reqs=0
+SPARSE 83/115 Word Scramble: predicted=51369542 actual=51369542 Games bytes
+ok   Word Scramble                console_errors=0 failed_reqs=0
+SPARSE 84/115 Darts 501: predicted=51359411 actual=51359411 Games bytes
+ok   Darts 501                    console_errors=0 failed_reqs=0
+SPARSE 85/115 Mahjong Lite: predicted=51355158 actual=51355158 Games bytes
+ok   Mahjong Lite                 console_errors=0 failed_reqs=0
+SPARSE 86/115 Sokoban: predicted=51439943 actual=51439943 Games bytes
+ok   Sokoban                      console_errors=0 failed_reqs=0
+SPARSE 87/115 Tower of Hanoi: predicted=51350149 actual=51350149 Games bytes
+ok   Tower of Hanoi               console_errors=0 failed_reqs=0
+SPARSE 88/115 Nonogram: predicted=51397329 actual=51397329 Games bytes
+ok   Nonogram                     console_errors=0 failed_reqs=0
+SPARSE 89/115 Battleship: predicted=51394914 actual=51394914 Games bytes
+ok   Battleship                   console_errors=0 failed_reqs=0
+SPARSE 90/115 Boggle: predicted=51347697 actual=51347697 Games bytes
+ok   Boggle                       console_errors=0 failed_reqs=0
+SPARSE 91/115 Achtung die Kurve: predicted=51363498 actual=51363498 Games bytes
+ok   Achtung die Kurve            console_errors=0 failed_reqs=0
+SPARSE 92/115 Dominoes: predicted=57184583 actual=57184583 Games bytes
+ok   Dominoes                     console_errors=0 failed_reqs=0
+SPARSE 93/115 Mini Golf: predicted=51348098 actual=51348098 Games bytes
+ok   Mini Golf                    console_errors=0 failed_reqs=0
+SPARSE 94/115 Bowling: predicted=54474843 actual=54474843 Games bytes
+ok   Bowling                      console_errors=0 failed_reqs=0
+SPARSE 95/115 Hearts Classic: predicted=51548427 actual=51548427 Games bytes
+ok   Hearts Classic               console_errors=0 failed_reqs=0
+SPARSE 96/115 Spider Solitaire: predicted=51572099 actual=51572099 Games bytes
+ok   Spider Solitaire             console_errors=0 failed_reqs=0
+SPARSE 97/115 SameGame: predicted=51349890 actual=51349890 Games bytes
+ok   SameGame                     console_errors=0 failed_reqs=0
+SPARSE 98/115 Tower Defense: predicted=51391338 actual=51391338 Games bytes
+ok   Tower Defense                console_errors=0 failed_reqs=0
+SPARSE 99/115 JavaScript Racer: predicted=59898547 actual=59898547 Games bytes
+ok   JavaScript Racer             console_errors=0 failed_reqs=0
+SPARSE 100/115 Rhythm: predicted=52276159 actual=52276159 Games bytes
+ok   Rhythm                       console_errors=0 failed_reqs=0
+SPARSE 101/115 Bullet Hell: predicted=51924076 actual=51924076 Games bytes
+ok   Bullet Hell                  console_errors=0 failed_reqs=0
+SPARSE 102/115 Cribbage: predicted=52328604 actual=52328604 Games bytes
+ok   Cribbage                     console_errors=0 failed_reqs=0
+SPARSE 103/115 Crossword: predicted=51471134 actual=51471134 Games bytes
+ok   Crossword                    console_errors=0 failed_reqs=0
+SPARSE 104/115 Gomoku: predicted=51431828 actual=51431828 Games bytes
+ok   Gomoku                       console_errors=0 failed_reqs=0
+SPARSE 105/115 Mancala: predicted=51393585 actual=51393585 Games bytes
+ok   Mancala                      console_errors=0 failed_reqs=0
+SPARSE 106/115 Asteroids: predicted=51590510 actual=51590510 Games bytes
+ok   Asteroids                    console_errors=0 failed_reqs=0
+SPARSE 107/115 Frogger: predicted=51402870 actual=51402870 Games bytes
+ok   Frogger                      console_errors=0 failed_reqs=0
+SPARSE 108/115 Missile Command: predicted=51354416 actual=51354416 Games bytes
+ok   Missile Command              console_errors=0 failed_reqs=0
+SPARSE 109/115 Lunar Lander: predicted=51345743 actual=51345743 Games bytes
+ok   Lunar Lander                 console_errors=0 failed_reqs=0
+SPARSE 110/115 Space Invaders: predicted=51912591 actual=51912591 Games bytes
+ok   Space Invaders               console_errors=0 failed_reqs=0
+SPARSE 111/115 Duck Hunt: predicted=53358337 actual=53358337 Games bytes
+ok   Duck Hunt                    console_errors=0 failed_reqs=0
+SPARSE 112/115 Balatro: predicted=56397588 actual=56397588 Games bytes
+ok   Balatro                      console_errors=0 failed_reqs=0
+SPARSE 113/115 Circuit Ward: predicted=54177362 actual=54177362 Games bytes
+ok   Circuit Ward                 console_errors=0 failed_reqs=0
+SPARSE 114/115 Tag Relay: predicted=51409560 actual=51409560 Games bytes
+ok   Tag Relay                    console_errors=0 failed_reqs=0
+SPARSE 115/115 Spline Ride: predicted=52665091 actual=52665091 Games bytes
+ok   Spline Ride                  console_errors=0 failed_reqs=0
+== 115/115 games pass ==
+SPARSE RESTORED: pages=115/115, peak_Games_bytes=195853264, remaining_Games_bytes=0; this is not a gate-pass assertion.
