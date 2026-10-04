@@ -229,7 +229,7 @@ reserved by appearing here.
 | 222 | [Circuit Ward](games/222-circuit-ward.md) | `Games/Circuit Ward/index.html` |
 | 223 | [Tag Relay](games/223-tag-relay.md) | `Games/Tag Relay/index.html` |
 | 224 | [Spline Ride](games/224-spline-ride.md) | `Games/Spline Ride/index.html` |
-| 225 | [Slipstream Borough: Police Chase](games/225-slipstream-borough.md) | `Games/Slipstream Borough/index.html` |
+| 225 | [Slipstream Borough: Police Chase (Preview)](games/225-slipstream-borough.md) | `Games/Slipstream Borough/index.html` |
 | Unregistered | [2048](games/unregistered-2048.md) | `Games/2048/index.html` |
 | Unregistered | [Foldwild](games/unregistered-foldwild.md) | `Games/Foldwild/index.html` |
 | Unregistered | [Garage Borough](games/unregistered-garage-borough.md) | `Games/Garage Borough/index.html` |
