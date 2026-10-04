@@ -139,7 +139,16 @@ def main():
                 page.locator('#applyFinish').click()
                 finish = snapshot()['profile']['customizations']['bricklet']
                 assert finish['stripe'] == '#f2e8c4' and finish['spoiler'] is True
-                page.wait_for_function('slipstreamSnapshot.view.customization.stripe==="#f2e8c4" && slipstreamSnapshot.view.customization.spoiler')
+                page.wait_for_function('slipstreamSnapshot.view.customization.stripe==="#f2e8c4" && slipstreamSnapshot.view.customization.spoiler && slipstreamSnapshot.view.customization.stripeSegments===12')
+                striped_draws = snapshot()['view']['drawcalls']
+                page.locator('#stripeEnabled').uncheck()
+                page.locator('#applyFinish').click()
+                page.wait_for_function('slipstreamSnapshot.view.customization.stripeSegments===0')
+                assert snapshot()['view']['drawcalls'] == striped_draws - 1
+                page.locator('#stripeEnabled').check()
+                page.locator('#applyFinish').click()
+                page.wait_for_function('slipstreamSnapshot.view.customization.stripeSegments===12')
+                assert snapshot()['view']['drawcalls'] == striped_draws
                 page.locator('#viewport').scroll_into_view_if_needed()
                 page.screenshot(path=str(output / 'garage-custom.jpg'), quality=90)
 

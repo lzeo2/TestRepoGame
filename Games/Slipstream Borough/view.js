@@ -117,7 +117,9 @@ export function createView(host) {
     const next = JSON.stringify([id, appearance.paint, appearance.wheels, appearance.stripe, appearance.spoiler, gadget]);
     if (signature === next) return;
     for (const mount of Object.values(mounts)) mount.removeFromParent();
-    cosmetics.removeFromParent(); cosmetics.clear();
+    cosmetics.removeFromParent();
+    cosmetics.traverse(object => { if (object.isInstancedMesh) object.dispose(); });
+    cosmetics.clear();
     if (!player || player.userData.carId !== id) {
       player?.removeFromParent(); privateMaterials.forEach(m => m.dispose());
       player = createCar(id); scene.add(player);
@@ -142,13 +144,13 @@ export function createView(host) {
     }
     if (stripe) {
       stripeMaterial.color.set(stripe);
-      // Hood-only stripe avoids painting over glass or an open cockpit.
+      // Same hood-only segments, batched into one draw rather than twelve.
+      const segments = new THREE.InstancedMesh(unitBox, stripeMaterial, 12);
       for (let i = 0; i < 12; i++) {
         const z = length * (-.45 + i * .011);
-        const mesh = new THREE.Mesh(unitBox, stripeMaterial);
-        mesh.scale.set(width * .13, .018, length * .012);
-        mesh.position.set(0, surface(z) + .012, z); cosmetics.add(mesh);
+        instance(segments, i, 0, surface(z) + .012, z, width * .13, .018, length * .012);
       }
+      segments.instanceMatrix.needsUpdate = true; cosmetics.add(segments);
     }
     if (spoiler) {
       const z = length * .42, base = surface(z), top = base + .26;
@@ -248,7 +250,8 @@ export function createView(host) {
     renderer.render(scene, camera); frames++;
   }
   function inspect() {
-    const customization = Object.freeze({ paint: player?.getObjectByName('body').material.color.getHexString(), wheels: player?.userData.wheels[0].material.color.getHexString(), mounted, stripe, spoiler });
+    const customization = Object.freeze({ paint: player?.getObjectByName('body').material.color.getHexString(), wheels: player?.userData.wheels[0].material.color.getHexString(), mounted, stripe, spoiler,
+      stripeSegments: cosmetics.children.find(object => object.isInstancedMesh)?.count || 0 });
     return Object.freeze({ frames, triangles: renderer.info.render.triangles, drawcalls: renderer.info.render.calls,
       modelId: player?.userData.carId || null, world: Object.freeze({ ...counts }), worldMode,
       policeModels: Object.freeze([...npc.values()].filter(({model}) => model.userData.policeId).map(({model}) => Object.freeze({
