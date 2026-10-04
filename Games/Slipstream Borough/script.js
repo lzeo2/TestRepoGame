@@ -2,6 +2,7 @@ import * as core from './core.js';
 import { CARS, BY_ID } from '../../assets/car-arcade/fleet.js';
 import { loadSave, saveSave } from '../../assets/car-arcade/storage.js';
 import { createView } from './view.js';
+import { frameDelta } from './clock.js';
 
 const $ = id => document.getElementById(id), KEY = 'slipstream-borough-v1';
 let profile, acceptedRaw, blocked = false, phase = 'garage', run = null, paused = false, view = null;
@@ -121,7 +122,7 @@ function renderFailure(e) { if (view) { view.dispose(); view = null; } paused = 
 function bootView() { try { view = createView($('viewport')); $('renderError').hidden = true; garageUI(); } catch (e) { renderFailure(e); } }
 function frame(now) {
   raf = 0; if (document.hidden) return;
-  const dt = last ? Math.min(.05, (now - last) / 1000) : 0; last = now;
+  const dt = frameDelta(now, last); last = now;
   if (phase === 'run' && !paused && !blocked && view) {
     accumulator += dt;
     try { while (accumulator >= 1 / 60 && phase === 'run') { const used=run.deployments;run = core.stepRun(run, input(), 1 / 60);queuedDeploy=false;if(run.deployments>used)$('quip').textContent=`${core.GADGETS[run.gadget].name} deployed. ${run.charges} charges left.`; accumulator -= 1 / 60; if (run.status !== 'running') finish(); } }
