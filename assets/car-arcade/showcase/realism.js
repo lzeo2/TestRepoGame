@@ -67,6 +67,16 @@ function registration(label) {
   return texture;
 }
 
+function policeLettering() {
+  const canvas=document.createElement('canvas');canvas.width=256;canvas.height=64;
+  const ctx=canvas.getContext('2d');
+  if(!ctx)throw new Error('Police lettering canvas unavailable');
+  ctx.fillStyle='#171b22';ctx.textAlign='center';ctx.textBaseline='middle';
+  ctx.font='900 48px sans-serif';ctx.fillText('POLICE',128,34,244);
+  const texture=new THREE.CanvasTexture(canvas);texture.colorSpace=THREE.SRGBColorSpace;
+  return texture;
+}
+
 function materials(root) {
   const set = new Set();
   root.traverse(node => { if (node.isMesh) for (const mat of Array.isArray(node.material) ? node.material : [node.material]) set.add(mat); });
@@ -116,6 +126,10 @@ export function decorateCar(car) {
       case 'lamp-lens':
         mat.transmission = 0; mat.metalness = 0; mat.opacity = .15; mat.roughness = .07;
         mat.bumpMap = grain('lens'); mat.bumpScale = .00065;
+        break;
+      case 'police-lettering':
+        if(!maps.has(mat.name))maps.set(mat.name,policeLettering());
+        mat.map=maps.get(mat.name);mat.color.set(0xffffff);
         break;
       case 'console-radio':
         if(!maps.has(mat.name))maps.set(mat.name,radio());
