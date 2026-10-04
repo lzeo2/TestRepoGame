@@ -1224,5 +1224,14 @@
     "desc": "Explore 16 spline paths with ride and orbit views. Adapted from the three.js authors (MIT).",
     "url": "Games/Spline Ride/index.html",
     "featured": false
+  },
+  {
+    "id": 225,
+    "title": "Slipstream Borough: Police Chase",
+    "cat": "arcade",
+    "icon": "SB",
+    "desc": "Preview: city traffic, police chases and highway races. Patrols begin after 20 active seconds and 30 meters driven.",
+    "url": "Games/Slipstream Borough/index.html",
+    "featured": false
   }
 ]
