@@ -328,6 +328,8 @@ for (let cycle = 1; cycle <= 2; cycle++) for (const id of ids) {
     assert(coverage.every(n=>n===1),id+' unpainted body triangles');
     assert([...colors.values()].some(c=>c.luma>.6&&c.count>=18) && [...colors.values()].some(c=>c.luma<.08&&c.count>=18),id+' missing physical black/white livery');
     const roof = car.getObjectByName('roof-paint'), roofBounds = new THREE.Box3().setFromObject(roof);
+    assert.equal(roof.material.color.getHex(),new THREE.Color(profile.roofColor).getHex(),id+' contrasting roof finish');
+    assert.notEqual(roof.material.color.getHex(),new THREE.Color(profile.color).getHex(),id+' roof lacks livery contrast');
     const glass = car.getObjectByName('window-glass'), glassBounds = new THREE.Box3().setFromObject(glass);
     const boundsOf = faces => new THREE.Box3().setFromPoints(faces.flatMap(f=>f.points));
     const red = boundsOf(materialTriangles(car,'police-light-red')), blue = boundsOf(materialTriangles(car,'police-light-blue'));
@@ -348,10 +350,14 @@ for (let cycle = 1; cycle <= 2; cycle++) for (const id of ids) {
       if(Math.abs(point.y-hit.point.y)<.006) contacts.add(Math.sign(point.x));
     }
     assert(contacts.has(-1)&&contacts.has(1),id+' feet do not touch both roof sides');
-    const lettering=materialTriangles(car,'police-lettering'), sides=new Set();
+    let textSurfaces=0;
+    car.traverse(node=>{if(node.isMesh && (Array.isArray(node.material)?node.material:[node.material]).some(m=>m.name==='police-lettering'))textSurfaces++;});
+    assert.equal(textSurfaces,2,id+' two physical lettering surfaces');
+    const lettering=materialTriangles(car,'police-lettering'), sides=new Set(), textAreas=new Map();
     for(const {points:[a,b,c],uv:[ua,ub,uc]} of lettering) {
       const center=a.clone().add(b).add(c).multiplyScalar(1/3), side=Math.sign(center.x);
-      const ab=b.clone().sub(a), ac=c.clone().sub(a), normal=ab.clone().cross(ac).normalize();
+      const ab=b.clone().sub(a), ac=c.clone().sub(a), cross=ab.clone().cross(ac), normal=cross.clone().normalize();
+      textAreas.set(side,(textAreas.get(side)??0)+cross.length()/2);
       assert(Math.abs(center.x)>profile.width*.3 && normal.x*side>.8,id+' inward side lettering');
       assert(Math.max(a.y,b.y,c.y)<glassBounds.min.y,id+' lettering overlaps glazing');
       for(const uv of [ua,ub,uc]) assert(uv.x>=0&&uv.x<=1&&uv.y>=0&&uv.y<=1,id+' invalid lettering UV');
@@ -365,6 +371,7 @@ for (let cycle = 1; cycle <= 2; cycle++) for (const id of ids) {
       sides.add(side);
     }
     assert.deepEqual([...sides].sort(),[-1,1],id+' two outward lettering surfaces');
+    assert([...textAreas.values()].every(area=>area>.05),id+' insufficient physical lettering area');
   }
   for (const name of ['body-paint','cab-plastic','seat-fabric','rubber','chrome','window-glass','lamp-lens','dial-speed','dial-rpm','console-radio','registration-plate']) named(name);
   if (profile?.form !== 'roadster') named('roof-paint');
