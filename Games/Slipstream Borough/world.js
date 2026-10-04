@@ -18,6 +18,12 @@ export function clearPath(a, b) {
   for (let i = 0; i <= steps; i++) if (blocked(a.x + (b.x-a.x)*i/steps, a.z + (b.z-a.z)*i/steps)) return false;
   return true;
 }
+// Swept radius test shared by city contact and civilian yielding, independent of render geometry.
+export function nearPath(a, b, point, radius) {
+  const dx=b.x-a.x,dz=b.z-a.z,length2=dx*dx+dz*dz;
+  const t=length2?Math.max(0,Math.min(1,((point.x-a.x)*dx+(point.z-a.z)*dz)/length2)):0;
+  return Math.hypot(point.x-a.x-t*dx,point.z-a.z-t*dz)<radius;
+}
 const junctions = [-150,-100,-50,0,50,100,150].flatMap(x => [-150,-100,-50,0,50,100,150].map(z => ({x,z})));
 export function chaseTarget(from, target) {
   if (clearPath(from,target)) return target;
