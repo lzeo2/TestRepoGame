@@ -202,7 +202,7 @@ export function createView(host) {
       const key = `${run.id}:${type}:${e.id}`; active.add(key); counts[type]++;
       if (!npc.has(key)) {
         const model = type === 'police' ? createPatrolCar() : createCar(e.carId);
-        npc.set(key, { model, angle: 0, x: e.world?.x, z: e.world?.z, distance: e.distance }); scene.add(model);
+        npc.set(key, { type, entityId: e.id, model, angle: 0, x: e.world?.x, z: e.world?.z, distance: e.distance }); scene.add(model);
       }
       const state = npc.get(key), model = state.model;
       const traveled = roam ? Math.hypot(e.world.x - state.x, e.world.z - state.z) : Math.abs(e.distance - state.distance);
@@ -257,6 +257,10 @@ export function createView(host) {
       policeModels: Object.freeze([...npc.values()].filter(({model}) => model.userData.policeId).map(({model}) => Object.freeze({
         id: model.userData.policeId, carId: model.userData.carId, triangles: model.userData.triangles, drawCalls: model.userData.drawCalls,
         pose: Object.freeze({x:model.position.x, z:model.position.z, heading:model.rotation.y}), wheelAngle:model.userData.wheels[0].rotation.x
+      }))),
+      trafficModels: Object.freeze([...npc.values()].filter(state => state.type === 'traffic').map(({model, entityId}) => Object.freeze({
+        entityId, carId:model.userData.carId, pose:Object.freeze({x:model.position.x,z:model.position.z,heading:model.rotation.y}),
+        wheelAngle:model.userData.wheels[0].rotation.x
       }))), geometryCount: renderer.info.memory.geometries, textureCount: renderer.info.memory.textures,
       cityBlocks: city.visible ? cityBuildings.count : 0,
       pose: player ? Object.freeze({ x: player.position.x, z: player.position.z, heading: player.rotation.y }) : null,

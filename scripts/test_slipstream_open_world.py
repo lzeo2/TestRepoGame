@@ -10,6 +10,8 @@ import functools
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 import hashlib
 import json
+import math
+import time
 from pathlib import Path
 import shutil
 import tempfile
@@ -74,6 +76,19 @@ def main():
                     assert state['view']['textureCount'] <= 4  # Three local road signs plus one shared police map.
                     return state['view']['policeModels']
 
+                def traffic():
+                    state = snapshot()
+                    entities = {e['id']: e for e in state['run']['traffic']}
+                    models = state['view']['trafficModels']
+                    assert 1 <= len(entities) <= 4 and len(models) == len(entities)
+                    assert page.evaluate('Object.isFrozen(slipstreamSnapshot.view.trafficModels[0].pose)')
+                    for model in models:
+                        entity = entities[model['entityId']]
+                        assert model['carId'] == entity['carId']
+                        assert model['pose'] == entity['world']
+                        assert all(math.isfinite(v) for v in model['pose'].values()) and math.isfinite(model['wheelAngle'])
+                    return models
+
                 page.goto(origin + '/Games/Slipstream%20Borough/')
                 ready()
                 first = snapshot()
@@ -85,6 +100,12 @@ def main():
                 assert page.locator('#drive').is_visible() and page.locator('#cruise').is_visible()
                 assert page.locator('#help').is_visible() and page.locator('#pause').is_visible()
                 assert page.evaluate('Object.isFrozen(slipstreamSnapshot.run.world)')
+                first_traffic = traffic()
+                assert first['view']['drawcalls'] <= 80 and first['view']['triangles'] <= 45000
+                page.wait_for_function('slipstreamSnapshot.view.trafficModels.some(m=>Math.abs(m.wheelAngle)>.1)')
+                moving_traffic = traffic()
+                assert any(a['pose'] != b['pose'] for a, b in zip(first_traffic, moving_traffic))
+                assert snapshot()['run']['distance'] == 0 and snapshot()['profile']['cash'] == 0
                 page.keyboard.down('w')
                 page.wait_for_function('slipstreamSnapshot.run.distance>40')
                 page.keyboard.down('d')
@@ -103,9 +124,10 @@ def main():
                 page.locator('#pause').click()
                 frozen = snapshot()['run']
                 city_models = patrol()
-                page.wait_for_timeout(200)
+                city_traffic = traffic()
+                page.wait_for_timeout(2000)
                 assert snapshot()['run'] == frozen
-                assert snapshot()['view']['policeModels'] == city_models
+                assert snapshot()['view']['policeModels'] == city_models and traffic() == city_traffic
                 page.screenshot(path=str(output / 'city-patrol.jpg'), quality=90)
                 page.locator('#theme').click()
                 page.screenshot(path=str(output / 'city-patrol-dark.jpg'), quality=90)
@@ -114,7 +136,7 @@ def main():
                 page.screenshot(path=str(output / '390-patrol.jpg'), quality=90)
                 page.set_viewport_size({'width': 1280, 'height': 900})
                 page.locator('#leave').click()
-                page.wait_for_function('slipstreamSnapshot.view.policeModels.length===0 && slipstreamSnapshot.view.world.police===0')
+                page.wait_for_function('slipstreamSnapshot.view.policeModels.length===0 && slipstreamSnapshot.view.world.police===0 && slipstreamSnapshot.view.trafficModels.length===0')
                 parked = snapshot()['profile']
                 assert parked['careerDistance'] == int(frozen['distance'])
                 assert parked['cash'] >= 0 and not parked['testMode']
@@ -122,6 +144,7 @@ def main():
                 ready()
                 assert snapshot()['profile']['careerDistance'] == parked['careerDistance']
                 assert snapshot()['profile']['cash'] == parked['cash']
+                traffic()
                 page.locator('#leave').click()  # zero-distance fresh run cannot repay the previous run
                 assert snapshot()['profile']['careerDistance'] == parked['careerDistance']
                 assert snapshot()['profile']['cash'] == parked['cash']
@@ -160,8 +183,10 @@ def main():
                 page.keyboard.down('a')
                 page.wait_for_function('slipstreamSnapshot.run.x<.1')
                 page.keyboard.up('a')
+                race_started = time.monotonic()
                 assert page.locator('#deploy').is_hidden()
                 page.wait_for_function('slipstreamSnapshot.phase==="end"', timeout=110000)
+                race_wall_seconds = time.monotonic() - race_started
                 race = snapshot()
                 assert race['view']['policeModels'] == [] and race['view']['world']['police'] == 0
                 assert race['run']['status'] == 'finished'
@@ -189,6 +214,7 @@ def main():
                 page.locator('#mode').select_option('roam')
                 page.set_viewport_size({'width': 390, 'height': 844})
                 page.locator('#start').tap()
+                traffic()
                 assert snapshot()['run']['charges'] == 3
                 page.locator('#deploy').tap()
                 page.wait_for_function('slipstreamSnapshot.run.deployments===1')
@@ -228,6 +254,7 @@ def main():
                 page.reload()
                 ready()
                 assert snapshot()['view']['policeModels'] == []
+                traffic()
                 assert not snapshot()['profile']['testMode']
                 assert not errors, errors
                 assert all(hashlib.sha256((ROOT / p).read_bytes()).hexdigest() == h for p, h in hashes.items()), 'Source changed during acceptance'
@@ -235,8 +262,9 @@ def main():
                 assert sum(p.stat().st_size for p in output.glob('*.jpg')) <= 10_000_000
                 (output / 'result.json').write_text(json.dumps({'errors': errors, 'assisted': False, 'sourceHashes': hashes,
                     'cityBankedMeters': parked['careerDistance'], 'highwayEarnedMeters': race['run']['distance'],
+                    'raceWallSeconds': race_wall_seconds, 'firstCityTrafficModels': first_traffic, 'movingCityTrafficModels': moving_traffic,
                     'naturalCityEscape': 'not tested', 'cityPoliceModels': city_models, 'highwayPoliceModels': highway_models}, indent=2) + '\n')
-                print('PASS normal city movement/turning, live Wardline city/highway patrol, pause/removal/reload, one-shot parking, earned highway mileage unlock, saved stripe/spoiler, category locks, keyboard/touch deployment and mobile overflow.', flush=True)
+                print('PASS normal city movement/turning, real civilian traffic movement/poses/pause/removal/reload, live Wardline city/highway patrol, pause/removal/reload, one-shot parking, earned highway mileage unlock, saved stripe/spoiler, category locks, keyboard/touch deployment and mobile overflow.', flush=True)
                 print('NOT ACCEPTANCE: natural city escape, whole campaign, subjective visuals, rights and hardware.', flush=True)
             except Exception as error:
                 diagnostic = {'error': str(error), 'errors': errors, 'sourceHashes': hashes}
