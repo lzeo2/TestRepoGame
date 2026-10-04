@@ -1,5 +1,6 @@
 import * as THREE from '../../assets/car-arcade/vendor/three.module.js';
 import { createCar, disposeCars } from '../../assets/car-arcade/models.js';
+import { createPatrolCar, disposePatrolCars } from '../../assets/car-arcade/patrol.js';
 import { WORLD } from './world.js';
 
 export function createView(host) {
@@ -198,7 +199,7 @@ export function createView(host) {
     for (const type of ['traffic', 'police', 'rivals']) for (const e of run?.[type] || []) {
       const key = `${run.id}:${type}:${e.id}`; active.add(key); counts[type]++;
       if (!npc.has(key)) {
-        const model = createCar(e.carId, type === 'police' ? { color: '#eeeeee' } : {});
+        const model = type === 'police' ? createPatrolCar() : createCar(e.carId);
         npc.set(key, { model, angle: 0, x: e.world?.x, z: e.world?.z, distance: e.distance }); scene.add(model);
       }
       const state = npc.get(key), model = state.model;
@@ -250,6 +251,10 @@ export function createView(host) {
     const customization = Object.freeze({ paint: player?.getObjectByName('body').material.color.getHexString(), wheels: player?.userData.wheels[0].material.color.getHexString(), mounted, stripe, spoiler });
     return Object.freeze({ frames, triangles: renderer.info.render.triangles, drawcalls: renderer.info.render.calls,
       modelId: player?.userData.carId || null, world: Object.freeze({ ...counts }), worldMode,
+      policeModels: Object.freeze([...npc.values()].filter(({model}) => model.userData.policeId).map(({model}) => Object.freeze({
+        id: model.userData.policeId, carId: model.userData.carId, triangles: model.userData.triangles, drawCalls: model.userData.drawCalls,
+        pose: Object.freeze({x:model.position.x, z:model.position.z, heading:model.rotation.y}), wheelAngle:model.userData.wheels[0].rotation.x
+      }))), geometryCount: renderer.info.memory.geometries, textureCount: renderer.info.memory.textures,
       cityBlocks: city.visible ? cityBuildings.count : 0,
       pose: player ? Object.freeze({ x: player.position.x, z: player.position.z, heading: player.rotation.y }) : null,
       customization, effects: Object.freeze({ smokePuffs: smoke.visible ? smoke.count : 0, empVisible: pulse.visible, decoyVisible: decoyEffect.visible, boostVisible: flames.visible, repairVisible: repairEffect.visible }), dpr: 1 });
@@ -261,7 +266,7 @@ export function createView(host) {
       host.removeEventListener('pointerup', up); host.removeEventListener('pointercancel', up); host.removeEventListener('lostpointercapture', up);
       scene.traverse(object => { if (object.isInstancedMesh) object.dispose(); });
       scene.clear(); npc.clear(); renderer.dispose(); privateMaterials.forEach(m => m.dispose());
-      for (const r of resources) r.dispose(); disposeCars(); host.replaceChildren();
+      for (const r of resources) r.dispose(); disposePatrolCars(); disposeCars(); host.replaceChildren();
     }
   };
 }
