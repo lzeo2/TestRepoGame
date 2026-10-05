@@ -45,7 +45,10 @@ def main():
         assert page.locator('.ux-player__controls').is_visible() is (not native)
         assert page.locator('.game-modal').count() == 0 and len(page.context.pages) == 1
         assert page.evaluate('getComputedStyle(document.documentElement).overflow === "hidden"')
-        return frame.element_handle().content_frame()
+        document_frame = frame.element_handle().content_frame()
+        document_frame.wait_for_url('**/' + url.replace(' ', '%20'))
+        document_frame.wait_for_load_state('load')
+        return document_frame
     def close_player(page):
         page.keyboard.press('Escape')
         page.wait_for_function('!document.fullscreenElement')

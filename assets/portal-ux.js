@@ -392,7 +392,15 @@
       if (opener && opener.isConnected) opener.focus({ preventScroll: true });
     }, { once: true });
     frame.addEventListener('load', function () {
-      if (player.open && frame.contentWindow) frame.contentWindow.focus();
+      if (!player.open) return;
+      frame.contentWindow.focus();
+      var doc = frame.contentDocument;
+      if (doc) doc.addEventListener('keydown', function (e) {
+        /* Frame keys do not bubble to the parent dialog; retain game handlers. */
+        if (e.key === 'Escape' && document.fullscreenElement === frame) {
+          document.exitFullscreen().catch(function () { full.focus(); });
+        }
+      }, true);
     });
     document.body.appendChild(player);
     player.showModal();
