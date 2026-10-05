@@ -29,7 +29,7 @@ summary:focus-visible { outline: 3px solid var(--ink); outline-offset: 2px; }
 #activity { flex-basis: 100%; }
 .drive-actions { gap: 6px; padding: 6px 12px; }
 .touch-controls { gap: 6px; padding: 6px 12px; margin: 0; }
-.touch-controls button { min-width: 44px; flex: 1 1 44px; }
+.touch-controls button { min-width: 44px; flex: 1 1 44px; padding-inline: 6px; font-size: 1rem; white-space: nowrap; }
 #deploy { flex-basis: 100%; }
 html:not([data-phone='true']) .touch-controls { display: none; }
 html[data-phase='run'], html[data-phase='end'] { overflow: hidden; }

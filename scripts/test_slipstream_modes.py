@@ -140,6 +140,7 @@ def main():
                     for selector in ['#pause','#leave','[data-drive="gas"]','[data-drive="left"]']:
                         b = page.locator(selector).bounding_box()
                         assert b['width'] >= 44 and b['height'] >= 44 and b['y'] >= 0 and b['y']+b['height'] <= height+.1, (selector,b,height)
+                    assert page.locator('.touch-controls button:visible').evaluate_all('buttons => buttons.every(b => { const r=document.createRange(); r.selectNodeContents(b); return r.getClientRects().length === 1 && b.scrollWidth <= b.clientWidth; })'), 'phone button text wraps or clips'
                     viewport = page.locator('#viewport').bounding_box()
                     assert viewport['height'] >= (140 if height < 500 else height * .45), ('phone play area collapsed',viewport)
                     shot(page, f'phone-{width}')
