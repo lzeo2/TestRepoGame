@@ -86,7 +86,7 @@ def main():
                             card.focus(); page.keyboard.press('Enter')
                         else:
                             card.locator('.game-card__play').tap()
-                        page.wait_for_function('document.fullscreenElement?.classList.contains("ux-player")')
+                        page.wait_for_function('document.fullscreenElement?.classList.contains("ux-player__frame")')
                         element = page.locator('.ux-player__frame').element_handle()
                         frame = element.content_frame()
                         frame.wait_for_function('window.slipstreamSnapshot?.view?.frames>1 && slipstreamSnapshot.phase==="run" && slipstreamSnapshot.run.mode==="roam"')

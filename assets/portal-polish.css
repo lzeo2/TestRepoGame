@@ -256,7 +256,7 @@ html:has(.ux-player[open]) { overflow: hidden; }
   border: 1px solid #fff; border-radius: 4px; background: #000; color: #fff;
 }
 html[data-theme] .ux-player button:focus-visible { outline: 2px solid #fff !important; outline-offset: 2px !important; }
-.ux-player:fullscreen .ux-player__controls { display: none; }
+html:has(.ux-player__frame:fullscreen) .ux-player__controls { display: none; }
 /* No scattered animation, glow or gradient, including bundle skeletons. */
 html[data-theme] .app *,
 html[data-theme] .theme-toggle,

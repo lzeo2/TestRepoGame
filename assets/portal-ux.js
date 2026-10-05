@@ -371,11 +371,11 @@
     var full = document.createElement('button');
     full.type = 'button';
     full.textContent = 'Fullscreen';
-    full.hidden = !player.requestFullscreen || !document.fullscreenEnabled;
+    full.hidden = !frame.requestFullscreen || !document.fullscreenEnabled;
     function enterFullscreen() {
-      if (!player.requestFullscreen || !document.fullscreenEnabled) return;
+      if (!frame.requestFullscreen || !document.fullscreenEnabled) return;
       try {
-        player.requestFullscreen().catch(function () {
+        frame.requestFullscreen().catch(function () {
           /* Denied/unsupported native fullscreen keeps the edge-to-edge player. */
           full.focus();
         });
@@ -391,7 +391,9 @@
       player.remove();
       if (opener && opener.isConnected) opener.focus({ preventScroll: true });
     }, { once: true });
-    frame.addEventListener('load', function () { frame.contentWindow.focus(); });
+    frame.addEventListener('load', function () {
+      if (player.open && frame.contentWindow) frame.contentWindow.focus();
+    });
     document.body.appendChild(player);
     player.showModal();
     frame.focus();

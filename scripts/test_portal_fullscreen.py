@@ -53,6 +53,8 @@ def main():
             page.get_by_role('button', name='Close game and return to arcade').click()
         page.wait_for_function('!document.querySelector(".ux-player")')
         assert len(page.frames) == 1
+        # Chromium briefly suppresses immediate re-entry after user Escape.
+        page.wait_for_timeout(1100)
     try:
         with sync_playwright() as pw:
             browser = pw.chromium.launch(executable_path=shutil.which('chromium'), headless=False, args=['--no-sandbox'])
