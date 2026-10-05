@@ -53,7 +53,7 @@ def main():
         page.on('response', lambda response: errors.append(f'HTTP {response.status} {response.url}') if response.status >= 400 else None)
     try:
         with sync_playwright() as pw:
-            browser = pw.chromium.launch(executable_path=shutil.which('chromium'), headless=True,
+            browser = pw.chromium.launch(executable_path=shutil.which('chromium'), headless=False,
                 args=['--no-sandbox', '--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'])
             try:
                 for width, height in [(1280, 900), (390, 844)]:
@@ -82,24 +82,31 @@ def main():
                         assert page.evaluate('document.documentElement.scrollWidth <= innerWidth')
                         card.scroll_into_view_if_needed()
                         page.screenshot(path=str(output / f'portal-{width}.jpg'), quality=85)
-                        with page.expect_popup() as opened:
-                            if width == 1280:
-                                card.focus(); page.keyboard.press('Enter')
-                            else:
-                                card.locator('.game-card__play').tap()
-                        popup = opened.value; popup.set_default_timeout(20000)
-                        popup.wait_for_load_state('domcontentloaded')
-                        assert unquote(urlsplit(popup.url).path) == '/' + game['url']
-                        popup.wait_for_function('window.slipstreamSnapshot?.view?.frames>1 && slipstreamSnapshot.phase==="run" && slipstreamSnapshot.run.mode==="roam"')
-                        state = popup.evaluate('slipstreamSnapshot')
+                        if width == 1280:
+                            card.focus(); page.keyboard.press('Enter')
+                        else:
+                            card.locator('.game-card__play').tap()
+                        page.wait_for_function('document.fullscreenElement?.classList.contains("ux-player")')
+                        element = page.locator('.ux-player__frame').element_handle()
+                        frame = element.content_frame()
+                        frame.wait_for_function('window.slipstreamSnapshot?.view?.frames>1 && slipstreamSnapshot.phase==="run" && slipstreamSnapshot.run.mode==="roam"')
+                        assert unquote(urlsplit(frame.url).path) == '/' + game['url']
+                        assert len(context.pages) == 1
+                        state = frame.evaluate('slipstreamSnapshot')
                         assert state['profile']['cash'] == 0 and not state['profile']['testMode']
                         assert len(state['run']['traffic']) == len(state['view']['trafficModels']) == 4
                         assert state['view']['modelId'] == 'bricklet'
-                        assert popup.locator('#drive').is_visible() and popup.locator('#help').is_visible()
-                        assert popup.evaluate('document.documentElement.scrollWidth <= innerWidth')
-                        popup.screenshot(path=str(output / f'game-{width}.jpg'), quality=85)
-                        observations.append({'viewportWidth': width, 'launch': 'keyboard Enter' if width == 1280 else 'genuine touch Play', 'gamePath': game['url'], 'frames': state['view']['frames'], 'trafficCount': len(state['view']['trafficModels']), 'freshUnassisted': True})
-                        popup.close()
+                        assert frame.locator('#drive').is_visible() and frame.locator('#help').is_visible()
+                        assert frame.evaluate('document.documentElement.scrollWidth <= innerWidth')
+                        assert not page.locator('.ux-player__controls').is_visible()
+                        assert element.evaluate('f => { const r=f.getBoundingClientRect(); return r.x===0 && r.y===0 && r.width===innerWidth && r.height===innerHeight; }')
+                        page.screenshot(path=str(output / f'game-{width}.jpg'), quality=85)
+                        observations.append({'viewportWidth': width, 'launch': 'keyboard Enter' if width == 1280 else 'genuine touch Play', 'gamePath': game['url'], 'frames': state['view']['frames'], 'trafficCount': len(state['view']['trafficModels']), 'freshUnassisted': True, 'nativeFullscreen': True})
+                        page.keyboard.press('Escape')
+                        page.wait_for_function('!document.fullscreenElement')
+                        if page.locator('.ux-player').count():
+                            page.get_by_role('button', name='Close game and return to arcade').click()
+                        page.wait_for_function('!document.querySelector(".ux-player")')
                     finally: context.close()
             finally: browser.close()
         assert not errors, errors
@@ -107,7 +114,7 @@ def main():
         assert sum(p.stat().st_size for p in output.glob('*.jpg')) <= 1_000_000
         assert shutil.disk_usage(ROOT).free >= 2_000_000_000
         (output / 'result.json').write_text(json.dumps({'errors': errors, 'assisted': False, 'sourceHashes': hashes, 'observations': observations}, indent=2) + '\n')
-        print('PASS existing115 unchanged, registered225, Police/Slipstream search, Arcade filtering, keyboard and390touch popup launch, fresh4traffic/20s readiness/local-only/no errors/no overflow.', flush=True)
+        print('PASS existing115 unchanged, registered225, Police/Slipstream search, Arcade filtering, keyboard and390touch native fullscreen launch, fresh4traffic/20s readiness/local-only/no errors/no overflow/exit.', flush=True)
     except Exception as error:
         (output / 'failure.json').write_text(json.dumps({'error': repr(error), 'errors': errors, 'sourceHashes': hashes}, indent=2) + '\n')
         raise

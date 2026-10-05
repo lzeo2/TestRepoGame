@@ -345,12 +345,58 @@
     }
     recordRecent(safe, recentTitle);
     renderRecentRow();
-    var win = null;
-    try { win = window.open(safe, '_blank'); } catch (_) { win = null; }
-    if (!win) {
-      /* Popup blocked (managed Chromebook): fall back to same-tab navigation. */
-      window.location.href = safe;
+    openGamePlayer(safe, recentTitle || 'Game');
+  }
+
+  function openGamePlayer(url, title) {
+    var previous = $('.ux-player');
+    if (previous) previous.close();
+    var opener = document.activeElement;
+    var player = document.createElement('dialog');
+    player.className = 'ux-player';
+    player.setAttribute('aria-label', title);
+    var frame = document.createElement('iframe');
+    frame.className = 'ux-player__frame';
+    frame.title = title;
+    frame.allow = 'fullscreen; autoplay; gamepad';
+    frame.allowFullscreen = true;
+    frame.src = url;
+    var controls = document.createElement('div');
+    controls.className = 'ux-player__controls';
+    var back = document.createElement('button');
+    back.type = 'button';
+    back.textContent = 'Back';
+    back.setAttribute('aria-label', 'Close game and return to arcade');
+    back.addEventListener('click', function () { player.close(); });
+    var full = document.createElement('button');
+    full.type = 'button';
+    full.textContent = 'Fullscreen';
+    full.hidden = !player.requestFullscreen || !document.fullscreenEnabled;
+    function enterFullscreen() {
+      if (!player.requestFullscreen || !document.fullscreenEnabled) return;
+      try {
+        player.requestFullscreen().catch(function () {
+          /* Denied/unsupported native fullscreen keeps the edge-to-edge player. */
+          full.focus();
+        });
+      } catch (_) { full.focus(); }
     }
+    full.addEventListener('click', enterFullscreen);
+    controls.appendChild(back);
+    controls.appendChild(full);
+    player.appendChild(frame);
+    player.appendChild(controls);
+    player.addEventListener('close', function () {
+      /* Removing the frame also releases its document, timers and fullscreen. */
+      player.remove();
+      if (opener && opener.isConnected) opener.focus({ preventScroll: true });
+    }, { once: true });
+    frame.addEventListener('load', function () { frame.contentWindow.focus(); });
+    document.body.appendChild(player);
+    player.showModal();
+    frame.focus();
+    /* Must run in the Play/Enter/tap handler, not after the iframe loads. */
+    enterFullscreen();
   }
 
   function openCard(card) {
@@ -460,7 +506,7 @@
     }
   });
 
-  /* Safe path guard for "Open in new tab" (mirrors bundle __portalSafeSrc). */
+  /* Shared game launch path guard (mirrors bundle __portalSafeSrc). */
   function safeGamePath(p) {
     if (typeof p !== 'string') return './';
     var t = p.trim();
@@ -945,7 +991,7 @@
     }
   }
 
-  /* --- Random Game button: fetch games.json, pick one, open in new tab --- */
+  /* --- Random Game button: fetch games.json, pick one, launch fullscreen --- */
   function initRandomGameBtn() {
     var btn = document.getElementById('random-game-btn');
     if (!btn || btn.getAttribute('data-ux-bound')) return;
@@ -974,8 +1020,8 @@
     });
   }
 
-  /* --- Card click interceptor: open games in new tab, block React modal --- */
-  function initCardNewTab() {
+  /* --- Card click interceptor: shared fullscreen launch, block React modal --- */
+  function initCardLaunch() {
     /* Pre-fetch the URL cache so it's ready before the user clicks. */
     fetchGameUrlCache();
 
@@ -1003,12 +1049,6 @@
       }
     }, true); /* capture phase */
 
-    /* Also retroactively add target='_blank' to any existing play-button
-       links so mid-click anchor navigation also opens a new tab. */
-    $$('.game-card__play[href]').forEach(function (btn) {
-      if (!btn.getAttribute('target')) btn.setAttribute('target', '_blank');
-      if (!btn.getAttribute('rel')) btn.setAttribute('rel', 'noopener noreferrer');
-    });
   }
 
   /* --- Favorites toggle: the bundle owns the star buttons + persistence
@@ -1648,8 +1688,8 @@
     playBtn.className = 'ux-detail__play';
     playBtn.textContent = 'Play';
     playBtn.addEventListener('click', function() {
-      if (game.url) openGameUrl(game.url, game.title);
       closeDetailPanel();
+      if (game.url) openGameUrl(game.url, game.title);
     });
     actions.appendChild(playBtn);
     var closeBtn = document.createElement('button');
@@ -1736,7 +1776,7 @@
     initRandomGameBtn();
     initCategoryTransitions();
     initDebouncedSearch();
-    initCardNewTab();
+    initCardLaunch();
     injectTagBadges();
     initSlashFocus();
     initOfflineBanner();

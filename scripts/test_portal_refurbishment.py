@@ -195,9 +195,14 @@ def main():
             page.evaluate("localStorage.setItem('unblockmath_recent', '[null]')")
             page.locator('.ux-sort__select').select_option('catalog')
             search.fill('sccrrndm')
-            with page.expect_popup() as popup:
-                page.locator('.game-card[data-title="Soccer Random"] .game-card__play').click()
-            popup.value.close()  # Game load/play is deliberately not this portal test.
+            page.locator('.game-card[data-title="Soccer Random"] .game-card__play').click()
+            page.wait_for_selector('.ux-player[open]')
+            assert page.locator('.ux-player__frame').get_attribute('src') == next(g['url'] for g in games if g['title'] == 'Soccer Random')
+            page.keyboard.press('Escape')
+            page.wait_for_function('!document.fullscreenElement')
+            if page.locator('.ux-player').count():
+                page.get_by_role('button', name='Close game and return to arcade').click()
+            page.wait_for_function('!document.querySelector(".ux-player")')  # Gameplay is deliberately not this portal test.
             records = page.evaluate("JSON.parse(localStorage.getItem('unblockmath_recent'))")
             game = next(g for g in games if g['title'] == 'Soccer Random')
             assert len(records) == 1 and records[0]['url'] == game['url'] and records[0]['title'] == game['title']
