@@ -4,9 +4,14 @@ import { loadSave, saveSave } from '../../assets/car-arcade/storage.js';
 import { createView } from './view.js';
 import { frameDelta } from './clock.js';
 
-const $ = id => document.getElementById(id), KEY = 'slipstream-borough-v1';
+const $ = id => document.getElementById(id), KEY = 'slipstream-borough-v1', HELP_KEY = 'slipstream-help-v1';
+const phone = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
+document.documentElement.dataset.phone = String(phone);
+document.querySelector('.touch-controls').hidden = !phone;
+let helpSeen = false, helpStorageDenied = false, resumeHelp = false;
+try { helpSeen = localStorage.getItem(HELP_KEY) === '1'; } catch { helpStorageDenied = true; }
 let profile, acceptedRaw, blocked = false, phase = 'garage', run = null, paused = false, view = null;
-let raf = 0, last = 0, accumulator = 0, buffer = '', lastHud = 0, lastQuip = -20, resetToken, queuedDeploy=false;
+let raf = 0, last = 0, accumulator = 0, buffer = '', lastHud = 0, resetToken, queuedDeploy=false;
 const held = new Set(), keys = new Set();
 function clearInput() { held.clear(); keys.clear(); queuedDeploy=false; accumulator = 0; last = 0; }
 function io(text, error = false) { $('io').textContent = text; $('io').classList.toggle('error', error); }
@@ -14,18 +19,18 @@ function load() {
   const result = loadSave(KEY, core.validateProfile);
   profile = result.state || core.freshProfile(); blocked = !!result.error;
   acceptedRaw = result.error ? undefined : result.raw;
-  io(result.error || (result.state ? 'Banked garage loaded. Unfinished runs do not pay.' : 'Fresh garage. Cash 0. Drive the city and park to bank your mileage.'), blocked);
+  io(result.error || '', blocked);
 }
 function save(next) {
   if (blocked) { io('Saving is locked. Reload or explicitly reset; existing bytes are preserved.', true); return false; }
   const result = saveSave(KEY, next, core.validateProfile, acceptedRaw);
   if (result.error) { blocked = true; io(result.error, true); return false; }
-  acceptedRaw = result.raw; profile = next; io('Banked garage saved on this browser.'); return true;
+  acceptedRaw = result.raw; profile = next; io(''); return true;
 }
 function feedback(text) { $('feedback').textContent = text; }
 function action(fn) { try { const next = fn(); if (save(next)) garageUI(); } catch (e) { feedback(e.message); } }
 function garageUI() {
-  $('bank').textContent = `Cash ${profile.cash.toLocaleString()} / Career ${profile.careerDistance.toLocaleString()} m / Escapes ${profile.escapes} / Sector ${profile.level + 1}${profile.testMode ? ' / Test mode active' : ''}`;
+  $('bank').textContent = `Cash ${profile.cash.toLocaleString()} · ${profile.careerDistance.toLocaleString()} m banked${profile.testMode ? ' · Test mode' : ''}`;
   const nextCar = CARS.filter(car => !profile.owned.includes(car.id)).sort((a, b) => core.CAR_UNLOCKS[a.id] - core.CAR_UNLOCKS[b.id])[0];
   $('career').textContent = nextCar ? `Next free car: ${nextCar.name} at ${core.CAR_UNLOCKS[nextCar.id].toLocaleString()} m (${Math.max(0, core.CAR_UNLOCKS[nextCar.id] - profile.careerDistance).toLocaleString()} m to bank).` : 'All base cars unlocked.';
   $('selected').textContent = BY_ID[profile.selected].name;
@@ -36,7 +41,7 @@ function garageUI() {
     const cost = level < 5 ? core.upgradeCost(profile, profile.selected, kind) : null;
     button.textContent = `${kind} ${level}/5${level < 5 ? `: upgrade${cost === null ? '' : ` ${cost}`}` : ': max'}`;
     button.disabled = level === 5 || blocked || (cost !== null && !profile.testMode && profile.cash < cost);
-    button.onclick = () => action(() => { const next = core.upgradeCar(profile, profile.selected, kind); feedback(`${kind} improved. Paid ${profile.cash - next.cash}, cuh.`); return next; }); $('upgrades').append(button);
+    button.onclick = () => action(() => { const next = core.upgradeCar(profile, profile.selected, kind); feedback(`${kind} improved. Paid ${profile.cash - next.cash}.`); return next; }); $('upgrades').append(button);
   }
   $('catalog').replaceChildren();
   for (const car of CARS) {
@@ -79,8 +84,8 @@ function start(mode = $('mode').value) {
   try {
     const transaction = core.startRun(profile, mode);
     if (!save(transaction.profile)) { setPhase('garage'); return; }
-    run = transaction.run; lastQuip = -20; setPhase('run'); $('viewport').focus();
-    $('quip').textContent = run.mode === 'roam' ? 'Explore the city. Gas to move; Garage parks and banks mileage.' : run.mode === 'race' ? 'Three rivals. One finish line.' : 'Keep the bodywork attached.';
+    run = transaction.run; setPhase('run'); $('viewport').focus();
+    if (!helpSeen) showHelp();
   } catch (e) { io(e.message, true); }
 }
 function finish() {
@@ -91,7 +96,7 @@ function finish() {
   catch (e) { blocked = true; io(`Settlement failed: ${e.message}`, true); }
   setPhase('end');
   $('resultTitle').textContent = terminal.status === 'finished' ? `Finished ${terminal.place}/4` : terminal.status === 'escaped' ? 'Escaped' : terminal.status === 'parked' ? 'Parked' : 'Busted';
-  $('resultText').textContent = `${terminal.score} score / ${terminal.earnings} earned${blocked ? ' (not saved)' : ' and banked'} / ${terminal.nearMisses} near misses. ${terminal.status === 'busted' ? 'The paperwork found you, cuz.' : 'Back to the garage, lad.'}`;
+  $('resultText').textContent = `${terminal.score} score / ${terminal.earnings} earned${blocked ? ' (not saved)' : ' and banked'} / ${terminal.nearMisses} near misses. ${terminal.status === 'busted' ? 'Try again or change your setup.' : 'Progress saved.'}`;
 }
 function leave() {
   if (phase === 'run' && run.mode === 'roam') {
@@ -105,17 +110,24 @@ function deploy() {
   if(phase==='run'&&!paused&&!blocked&&run.mode!=='race'&&run.charges>0&&run.gadgetCooldown===0)queuedDeploy=true;
 }
 function updateHud() {
-  let activity = '';
-  if (run?.mode === 'roam') {
-    activity = run.pursuit === 'chased' ? `CHASE / Escape hold ${run.escapeClock.toFixed(1)}/6s / Heat ${run.heat.toFixed(1)} / Arrest ${run.arrest.toFixed(1)}s` : `Exploring / Patrol after 20s and 30m: ${Math.min(20, Math.floor(run.elapsed))}/20s, ${Math.min(30, Math.floor(run.distance))}/30m`;
-    activity += ` / City ${Math.round(run.world.x)}, ${Math.round(run.world.z)}`;
-  } else if (run) activity = run.mode === 'race' ? `Position ${run.place}/4` : `Heat ${run.heat.toFixed(1)} / Arrest ${run.arrest.toFixed(1)}s`;
-  $('hud').textContent = run ? `${paused ? 'PAUSED / ' : ''}${activity} / ${Math.round(run.speed * 3.6)} km/h / Body ${Math.ceil(run.hp)} / ${Math.floor(run.distance)}${run.mode === 'roam' ? ' m this drive' : ` of ${run.finishDistance} m`} / Score ${run.score}${run.mode === 'race' ? ` / Rivals: ${run.rivals.map(e => `${Math.floor(e.distance)}m${e.finishTime !== null ? ' finished' : ''}`).join(', ')}` : ''}` : 'Garage inspection / Drag to orbit';
-  $('leave').textContent = run?.mode === 'roam' ? 'Garage (park and bank)' : 'Garage (abandon unpaid)';
-  const kit=run?core.GADGETS[run.gadget]:null;
-  $('deploy').hidden=!run||run.mode==='race'||run.gadget==='none';
-  $('deploy').disabled=paused||blocked||!run||run.charges===0||run.gadgetCooldown>0;
-  $('deploy').textContent=kit?`Deploy ${kit.name}: ${run.charges}${run.gadgetCooldown>0?` / ${Math.ceil(run.gadgetCooldown)}s`:''} (Space / E)`: 'Deploy gadget';
+  $('hud').hidden = phase !== 'run';
+  if (run) {
+    const activity = run.mode === 'roam' ? (run.pursuit === 'chased' ? `Chase · escape ${run.escapeClock.toFixed(1)}/6s` : 'City · exploring') : run.mode === 'race' ? `Sprint · ${run.place}/4` : `Cutup · heat ${run.heat.toFixed(1)}`;
+    $('activity').textContent = paused ? 'Paused' : activity;
+    $('speed').textContent = `${Math.round(run.speed * 3.6)} km/h`;
+    $('body').textContent = `Body ${Math.ceil(run.hp)}%`;
+    $('distance').textContent = `${Math.floor(run.distance)}${run.mode === 'roam' ? ' m' : ` / ${run.finishDistance} m`}`;
+    $('score').textContent = `Score ${run.score}`;
+  }
+  $('leave').textContent = run?.mode === 'roam' ? 'Park' : 'Garage';
+  $('leave').setAttribute('aria-label', run?.mode === 'roam' ? 'Park and bank this city drive' : 'Abandon this highway drive unpaid');
+  const available = run && run.mode !== 'race' && run.gadget !== 'none';
+  const kit = run ? core.GADGETS[run.gadget] : null;
+  $('kitStatus').hidden = !available;
+  $('kitStatus').textContent = available ? `${kit.name} · ${run.charges}${run.gadgetCooldown > 0 ? ` · ${Math.ceil(run.gadgetCooldown)}s` : ''}` : '';
+  $('deploy').hidden = !phone || !available;
+  $('deploy').disabled = paused || blocked || !run || run.charges === 0 || run.gadgetCooldown > 0;
+  $('deploy').textContent = kit ? `Deploy ${kit.name}` : 'Deploy';
 }
 function pause() { if (phase !== 'run' || blocked && paused) return; paused = !paused; clearInput(); $('pause').textContent = paused ? 'Resume' : 'Pause'; updateHud(); }
 function renderFailure(e) { if (view) { view.dispose(); view = null; } paused = true; clearInput(); $('renderError').hidden = false; $('renderError').firstChild.textContent = `3D unavailable: ${e.message}. `; $('start').disabled = true; }
@@ -125,9 +137,8 @@ function frame(now) {
   const dt = frameDelta(now, last); last = now;
   if (phase === 'run' && !paused && !blocked && view) {
     accumulator += dt;
-    try { while (accumulator >= 1 / 60 && phase === 'run') { const used=run.deployments;run = core.stepRun(run, input(), 1 / 60);queuedDeploy=false;if(run.deployments>used)$('quip').textContent=`${core.GADGETS[run.gadget].name} deployed. ${run.charges} charges left.`; accumulator -= 1 / 60; if (run.status !== 'running') finish(); } }
+    try { while (accumulator >= 1 / 60 && phase === 'run') { run = core.stepRun(run, input(), 1 / 60); queuedDeploy=false; accumulator -= 1 / 60; if (run.status !== 'running') finish(); } }
     catch (e) { paused = true; io(`Driving stopped: ${e.message}`, true); }
-    if (run.elapsed - lastQuip > 18) { lastQuip = run.elapsed; $('quip').textContent = ['Indicators on holiday, cuh.', 'Cuz, that bumper has seen paperwork.', 'Eyes on the road, lad.'][Math.floor(run.elapsed / 18) % 3]; }
   }
   if (view) try { view.draw(profile, run, phase === 'run' ? input().steer : 0); } catch (e) { renderFailure(e); }
   if (now - lastHud > 160) { updateHud(); lastHud = now; }
@@ -141,8 +152,9 @@ function phrase(text, fromRadio = false) {
 }
 const editable = target => target.closest('input,textarea,select,button,[contenteditable="true"]');
 document.addEventListener('keydown', e => {
-  if (e.ctrlKey || e.metaKey || e.altKey || e.isComposing || editable(e.target) || $('helpDialog').open || $('resetDialog').open) return;
-  const key = e.key.toLowerCase();
+  if (e.ctrlKey || e.metaKey || e.altKey || e.isComposing || $('helpDialog').open || $('resetDialog').open) return;
+  const key = e.key.toLowerCase(), button = e.target.closest('button');
+  if (editable(e.target) && (!button || phase !== 'run' || [' ', 'enter'].includes(key))) return;
   if (phase === 'garage' && /^[a-z]$/.test(key) && !e.repeat) { buffer = (buffer + key).slice(-6); phrase(buffer); }
   if(phase==='run'&&[' ','e'].includes(key)) {e.preventDefault();if(!e.repeat)deploy();}
   if (phase === 'run' && ['p', 'escape'].includes(key)) { e.preventDefault(); if (!e.repeat) pause(); }
@@ -160,13 +172,28 @@ $('customize').onsubmit=e=>{e.preventDefault();action(()=>core.customizeCar(prof
 $('gadget').onchange=equipmentUI;
 $('equipment').onsubmit=e=>{e.preventDefault();action(()=>core.fitGadget(profile,profile.selected,$('gadget').value));};
 $('deploy').onclick=deploy;
-$('start').onclick = () => start(); $('retry').onclick = () => start(); $('pause').onclick = pause;
+$('cruise').onchange = () => { clearInput(); $('viewport').focus(); };
+$('start').onclick = () => start(); $('retry').onclick = () => start(run?.mode || $('mode').value); $('pause').onclick = pause;
 $('leave').onclick = $('garageButton').onclick = leave;
 $('orbitLeft').onclick = () => view?.turn(-.3); $('orbitRight').onclick = () => view?.turn(.3);
 $('radio').onsubmit = e => { e.preventDefault(); phrase($('phrase').value, true); $('phrase').value = ''; };
-$('help').onclick = () => { if (phase === 'run' && !paused) pause(); $('helpDialog').showModal(); }; $('closeHelp').onclick = () => $('helpDialog').close();
+function showHelp() {
+  if ($('helpDialog').open) return;
+  resumeHelp = phase === 'run' && !paused;
+  if (resumeHelp) pause();
+  clearInput(); $('helpDialog').showModal();
+}
+$('help').onclick = showHelp;
+$('closeHelp').onclick = () => $('helpDialog').close();
+$('helpDialog').addEventListener('close', () => {
+  helpSeen = true;
+  try { localStorage.setItem(HELP_KEY, '1'); } catch { helpStorageDenied = true; }
+  if (resumeHelp && phase === 'run' && paused && !blocked && view) pause();
+  resumeHelp = false;
+  $('viewport').focus();
+});
 $('theme').onclick = () => { document.documentElement.dataset.theme = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark'; };
-$('reload').onclick = () => { load(); setPhase('garage'); start('roam'); };
+$('reload').onclick = () => { load(); setPhase('garage'); };
 $('reset').onclick = () => {
   const current = loadSave(KEY, core.validateProfile);
   // null plus error means unread/unknown, never permission to overwrite absence.
@@ -182,6 +209,6 @@ $('confirmReset').onclick = () => {
 };
 $('renderRetry').onclick = bootView;
 function freeze(value) { if (value && typeof value === 'object') { Object.values(value).forEach(freeze); Object.freeze(value); } return value; }
-Object.defineProperty(window, 'slipstreamSnapshot', { get: () => freeze(structuredClone({ phase, paused, profile, run, view: view?.inspect() || null })) });
+Object.defineProperty(window, 'slipstreamSnapshot', { get: () => freeze(structuredClone({ phase, paused, phone, helpSeen, helpStorageDenied, profile, run, view: view?.inspect() || null })) });
 window.addEventListener('pagehide', () => { cancelAnimationFrame(raf); clearInput(); view?.dispose(); view = null; });
-load(); bootView(); setPhase('garage'); start('roam'); raf = requestAnimationFrame(frame);
+load(); bootView(); setPhase('garage'); raf = requestAnimationFrame(frame);

@@ -1,28 +1,60 @@
-#viewport { touch-action: none; overflow: hidden; }
-#viewport canvas { height: auto; max-height: none; }
-#hud { font-size: 1rem; min-height: 54px; }
-#upgrades { display: grid; gap: 6px; margin: 12px 0; }
-#mode, #start, #gadget, #fitGadget { width: 100%; }
-#customize, #equipment { margin-block: 16px; }
-#customize label { flex: 1 1 90px; }
+.game-header { margin-bottom: 12px; }
+.game-header h1 { font-size: 1.2rem; margin: 0; }
+#io:empty, #feedback:empty { display: none; }
+#viewport { height: min(55dvh, 500px); touch-action: none; overflow: hidden; }
+#viewport canvas { width: 100%; height: 100%; max-height: none; }
+.stage, #garage { min-width: 0; }
+#garage > p { font-size: 1rem; }
+.launch { display: grid; grid-template-columns: 1fr auto; gap: 8px; margin-block: 12px; }
+.launch label { grid-column: 1 / -1; }
+#mode, #gadget, #fitGadget { width: 100%; min-width: 0; }
+.orbit-actions { margin-bottom: 12px; }
+details { border-top: 1px solid var(--line); padding-block: 8px; }
+summary { min-height: 44px; display: flex; align-items: center; cursor: pointer; list-style: none; font-weight: 700; }
+summary::before { content: '+'; margin-right: 10px; }
+details[open] > summary::before { content: '-'; }
+summary:focus-visible { outline: 3px solid var(--ink); outline-offset: 2px; }
+#upgrades { display: grid; gap: 6px; }
+#customize label { flex: 1 1 75px; }
 #customize input[type='color'] { display: block; width: 100%; padding: 3px; min-height: 44px; }
 #customize .check { display: flex; align-items: center; gap: 8px; min-height: 44px; }
-#customize input[type='checkbox'] { width: 24px; height: 24px; flex: 0 0 24px; }
-#kitDetails, #career { overflow-wrap: anywhere; }
-#garage, #drive, .game-layout > section { min-width: 0; }
-#gadget { min-width: 0; max-width: 100%; }
-#deploy { flex-basis: 100%; }
-.cruise { display: flex; gap: 8px; align-items: center; margin: 12px 0; }
-.cruise input { flex: 0 0 24px; }
-.cruise { min-height: 44px; }
-#drive .small { margin-block: 6px; }
-.small, .car-card p { font-size: 1rem; }
-#catalogSection { margin-top: 24px; }
+#customize input[type='checkbox'], .cruise input { width: 24px; height: 24px; flex: 0 0 24px; }
+#customize, #equipment, #radio { margin-block: 8px; }
+#kitDetails, #career, .car-card p { font-size: 1rem; overflow-wrap: anywhere; }
+#catalog { grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr)); }
 #phrase { width: 160px; flex: 1; min-width: 0; }
-#radio { margin-block: 16px; }
-footer { padding-block: 24px; }
-#quip { min-height: 34px; }
-html[data-phase='run'] .game-layout, html[data-phase='end'] .game-layout { grid-template-columns: minmax(0, 1fr); }
-html[data-phase='run'] #io:not(.error) { display: none; }
-html[data-phase='run'] .touch-controls { position: sticky; bottom: 0; padding: 6px; background: var(--page); z-index: 2; }
-@media (max-width: 760px) { html[data-phase='run'] .game-header h1 { font-size: 1.1rem; margin-bottom: 0; } body { padding: 10px; } .game-header { margin-bottom: 10px; } #hud { font-size: .9rem; } #drive .actions { gap: 6px; } .touch-controls { gap: 6px; } }
+.cruise { display: flex; gap: 6px; align-items: center; min-height: 44px; font-size: 1rem; }
+#hud { font-size: .95rem; min-height: 0; gap: 4px 14px; margin: 0; padding: 8px 12px; border: 0; }
+#hud > * { flex: 0 1 auto; }
+#activity { flex-basis: 100%; }
+.drive-actions { gap: 6px; padding: 6px 12px; }
+.touch-controls { gap: 6px; padding: 6px 12px; margin: 0; }
+.touch-controls button { min-width: 44px; flex: 1 1 44px; }
+#deploy { flex-basis: 100%; }
+html:not([data-phone='true']) .touch-controls { display: none; }
+html[data-phase='run'], html[data-phase='end'] { overflow: hidden; }
+html[data-phase='run'] body, html[data-phase='end'] body { padding: 0; }
+html[data-phase='run'] main, html[data-phase='end'] main { max-width: none; height: 100dvh; display: flex; flex-direction: column; }
+html[data-phase='run'] .game-header, html[data-phase='end'] .game-header { padding: 6px 12px; margin: 0; flex: 0 0 auto; }
+html[data-phase='run'] #io:not(.error), html[data-phase='end'] #io:not(.error) { display: none; }
+html[data-phase='run'] .game-layout, html[data-phase='end'] .game-layout { display: flex; flex: 1 1 auto; min-height: 0; }
+html[data-phase='run'] .stage, html[data-phase='end'] .stage { display: flex; flex-direction: column; width: 100%; min-height: 0; }
+html[data-phase='run'] #viewport, html[data-phase='end'] #viewport { flex: 1 1 auto; min-height: 140px; height: 0; border: 0; }
+html[data-phase='run'] #drive { background: var(--page); flex: 0 0 auto; padding-bottom: env(safe-area-inset-bottom); }
+html[data-phase='end'] #result { margin: 0; max-height: 45dvh; overflow: auto; padding-bottom: max(12px, env(safe-area-inset-bottom)); }
+#renderError { flex: 0 0 auto; }
+@media (max-width: 760px) {
+  body { padding: 10px; }
+  #viewport { height: min(38dvh, 330px); }
+  .game-layout { gap: 10px; }
+  .game-header .actions { gap: 6px; }
+  .game-header h1 { font-size: 1rem; }
+  #hud { font-size: .85rem; }
+  .drive-actions > * { flex: 0 1 auto; }
+}
+@media (max-height: 500px) {
+  html[data-phase='run'] .game-header h1 { display: none; }
+  #activity { flex-basis: auto; }
+  .touch-controls button { min-height: 44px; }
+  #deploy { flex-basis: auto; }
+}

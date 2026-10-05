@@ -57,7 +57,10 @@ def main():
                 args=['--no-sandbox', '--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'])
             try:
                 for width, height in [(1280, 900), (390, 844)]:
-                    context = browser.new_context(viewport={'width': width, 'height': height}, has_touch=True)
+                    options = {'viewport': {'width': width, 'height': height}, 'has_touch': True}
+                    if width == 390:
+                        options.update(user_agent='Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 Version/18.0 Mobile/15E148 Safari/604.1', is_mobile=True)
+                    context = browser.new_context(**options)
                     try:
                         context.on('page', watch)
                         context.route('**/*', lambda route: route.continue_() if urlsplit(route.request.url).netloc == urlsplit(origin).netloc else (errors.append('External ' + route.request.url), route.abort()))
@@ -89,7 +92,15 @@ def main():
                         page.wait_for_function('document.fullscreenElement?.classList.contains("ux-player__frame")')
                         element = page.locator('.ux-player__frame').element_handle()
                         frame = element.content_frame()
-                        frame.wait_for_function('window.slipstreamSnapshot?.view?.frames>1 && slipstreamSnapshot.phase==="run" && slipstreamSnapshot.run.mode==="roam"')
+                        frame.wait_for_function('window.slipstreamSnapshot?.view?.frames>1 && slipstreamSnapshot.phase==="garage" && slipstreamSnapshot.run===null')
+                        assert frame.locator('#mode').is_visible() and frame.locator('#start').is_visible()
+                        assert frame.evaluate('slipstreamSnapshot.profile.nextRun') == 1
+                        if width == 1280:
+                            frame.locator('#start').click()
+                        else:
+                            frame.locator('#start').tap()
+                        frame.locator('#closeHelp').click()
+                        frame.wait_for_function('slipstreamSnapshot.phase==="run" && slipstreamSnapshot.run.mode==="roam" && !slipstreamSnapshot.paused && slipstreamSnapshot.view.trafficModels.length===4')
                         assert unquote(urlsplit(frame.url).path) == '/' + game['url']
                         assert len(context.pages) == 1
                         state = frame.evaluate('slipstreamSnapshot')
@@ -97,11 +108,12 @@ def main():
                         assert len(state['run']['traffic']) == len(state['view']['trafficModels']) == 4
                         assert state['view']['modelId'] == 'bricklet'
                         assert frame.locator('#drive').is_visible() and frame.locator('#help').is_visible()
+                        assert frame.locator('.touch-controls').is_visible() == (width == 390)
                         assert frame.evaluate('document.documentElement.scrollWidth <= innerWidth')
                         assert not page.locator('.ux-player__controls').is_visible()
                         assert element.evaluate('f => { const r=f.getBoundingClientRect(); return r.x===0 && r.y===0 && r.width===innerWidth && r.height===innerHeight; }')
                         page.screenshot(path=str(output / f'game-{width}.jpg'), quality=85)
-                        observations.append({'viewportWidth': width, 'launch': 'keyboard Enter' if width == 1280 else 'genuine touch Play', 'gamePath': game['url'], 'frames': state['view']['frames'], 'trafficCount': len(state['view']['trafficModels']), 'freshUnassisted': True, 'nativeFullscreen': True})
+                        observations.append({'viewportWidth': width, 'launch': 'keyboard Enter' if width == 1280 else 'genuine touch Play', 'gamePath': game['url'], 'frames': state['view']['frames'], 'trafficCount': len(state['view']['trafficModels']), 'freshUnassisted': True, 'garageFirst': True, 'nativeFullscreen': True})
                         page.keyboard.press('Escape')
                         page.wait_for_function('!document.fullscreenElement')
                         if page.locator('.ux-player').count():
@@ -114,7 +126,7 @@ def main():
         assert sum(p.stat().st_size for p in output.glob('*.jpg')) <= 1_000_000
         assert shutil.disk_usage(ROOT).free >= 2_000_000_000
         (output / 'result.json').write_text(json.dumps({'errors': errors, 'assisted': False, 'sourceHashes': hashes, 'observations': observations}, indent=2) + '\n')
-        print('PASS existing115 unchanged, registered225, Police/Slipstream search, Arcade filtering, keyboard and390touch native fullscreen launch, fresh4traffic/20s readiness/local-only/no errors/no overflow/exit.', flush=True)
+        print('PASS existing115 unchanged, registered225, Police/Slipstream search, Arcade filtering, keyboard and390touch native fullscreen launch, garage-first then fresh4traffic/20s readiness/UA-controls/local-only/no errors/no overflow/exit.', flush=True)
     except Exception as error:
         (output / 'failure.json').write_text(json.dumps({'error': repr(error), 'errors': errors, 'sourceHashes': hashes}, indent=2) + '\n')
         raise
