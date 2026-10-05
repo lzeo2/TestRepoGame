@@ -3,8 +3,99 @@ import { createCar, disposeCars } from '../../assets/car-arcade/models.js';
 import { createPatrolCar, disposePatrolCars } from '../../assets/car-arcade/patrol.js';
 import { WORLD } from './world.js';
 
+// Original masonry, recessed glazing and roof equipment, built once per view.
+// All raised detail stays inside the collision rectangle; sidewalks are drivable.
+export function createCityArchitecture(unitBox, makeMaterial, paneGeometry) {
+  const group = new THREE.Group(), parts = new Map();
+  const colors = ['#aa8c71', '#a9a69a', '#b8a68c', '#87786d'];
+  function part(kind, x, y, z, w, h, d, color) {
+    if (!parts.has(kind)) parts.set(kind, []);
+    parts.get(kind).push({ x, y, z, w, h, d, color });
+  }
+  WORLD.blocks.forEach((b, i) => {
+    const { x, z, width: w, depth: d, height: h } = b;
+    part('plinth', x, .3, z, w, .6, d);
+    part('masonry', x, h / 2 + .3, z, w - .8, h - .6, d - .8, colors[i % colors.length]);
+    // A flush paving apron has no new raised street obstacle or collision.
+    part('paving', x, -.025, z, w + 3, .03, d + 3);
+    const floors = Math.floor((h - 4) / 3.2);
+    for (let face = 0; face < 4; face++) {
+      const alongX = face < 2, sign = face % 2 ? 1 : -1;
+      const span = alongX ? w : d, depth = (alongX ? d : w) / 2;
+      function facade(kind, u, y, inset, fw, fh, fd, color) {
+        part(kind, x + (alongX ? u : sign * (depth - inset)), y,
+          z + (alongX ? sign * (depth - inset) : u),
+          alongX ? fw : fd, fh, alongX ? fd : fw, color);
+      }
+      // Ground-floor shop bays sit behind piers and a deep lintel, not decals.
+      facade('glazing', 0, 1.9, .37, span - 2.4, 2.5, .04);
+      facade('trim', 0, 3.4, .18, span - .4, .35, .36);
+      facade('awning', 0, 3.05, .24, span - 2, .16, .48, ['#745b46', '#56636a', '#77624e'][i % 3]);
+      for (const u of [-10, -5, 0, 5, 10]) {
+        facade('trim', u, 1.75, .2, .22, 2.9, .4);
+        // Tall masonry piers create genuine window reveals on all four sides.
+        facade('trim', u, (h + 3.8) / 2, .23, .30, h - 3.8, .3);
+      }
+      for (let floor = 0; floor < floors; floor++) {
+        const y = 5.1 + floor * 3.2;
+        facade('trim', 0, y - 1.15, .18, span - .4, .18, .36);
+        for (const u of [-7.5, -2.5, 2.5, 7.5]) {
+          facade('glazing', u, y, .37, 3.9, 2.05, .04);
+          // A narrow raised transom makes the large panes read at street scale.
+          facade('transom', u, y + .38, .30, 3.9, .075, .02);
+        }
+      }
+      facade('trim', 0, h + .25, .2, span, .5, .4);
+    }
+    part('roof', x, h + .08, z, w - .8, .16, d - .8);
+    // Three restrained silhouettes: setback plant room, twin vents, roof lantern.
+    if (i % 3 === 0) {
+      part('masonry', x - 3, h + 1.4, z + 2, 10, 2.8, 8, colors[i % colors.length]);
+      part('roof', x - 3, h + 2.9, z + 2, 10.4, .2, 8.4);
+    } else if (i % 3 === 1) {
+      for (const offset of [-5, 5]) {
+        part('roof', x + offset, h + .8, z, 3, 1.6, 5);
+        part('trim', x + offset, h + 1.65, z, 3.3, .1, 5.3);
+      }
+    } else {
+      part('trim', x, h + .45, z, 9, .9, 6);
+      part('glazing', x, h + .94, z, 8.5, .08, 5.5);
+    }
+  });
+  const shades = { plinth: '#756e63', masonry: '#ffffff', paving: '#b1aa99', glazing: '#405661', transom: '#b9b3a3', trim: '#cec3ae', awning: '#ffffff', roof: '#626762' };
+  const dummy = new THREE.Object3D();
+  let instances = 0, triangles = 0;
+  for (const [kind, entries] of parts) {
+    const planar = kind === 'glazing' || kind === 'transom';
+    const mat = makeMaterial(shades[kind]);
+    if (planar) mat.side = THREE.DoubleSide;
+    const geometry = planar ? paneGeometry : unitBox;
+    const mesh = new THREE.InstancedMesh(geometry, mat, entries.length);
+    mesh.name = `city-${kind}`;
+    entries.forEach((p, i) => {
+      dummy.position.set(p.x, p.y, p.z); dummy.rotation.set(0, 0, 0); dummy.scale.set(p.w, p.h, p.d);
+      if (planar) {
+        if (p.h < p.w && p.h < p.d) { dummy.rotation.x = -Math.PI / 2; dummy.scale.set(p.w, p.d, 1); }
+        else if (p.w < p.d) { dummy.rotation.y = Math.PI / 2; dummy.scale.set(p.d, p.h, 1); }
+        else dummy.scale.set(p.w, p.h, 1);
+      }
+      dummy.updateMatrix();
+      mesh.setMatrixAt(i, dummy.matrix);
+      if (p.color) mesh.setColorAt(i, new THREE.Color(p.color));
+    });
+    mesh.instanceMatrix.needsUpdate = true;
+    mesh.computeBoundingBox(); mesh.computeBoundingSphere(); group.add(mesh); instances += entries.length;
+    triangles += entries.length * geometry.index.count / 3;
+  }
+  group.userData = Object.freeze({ batches: parts.size, instances, triangles });
+  return group;
+}
+
 export function createView(host) {
-  const renderer = new THREE.WebGLRenderer({ antialias: false });
+  const renderer = new THREE.WebGLRenderer({ antialias: true });
+  renderer.outputColorSpace = THREE.SRGBColorSpace;
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 1;
   renderer.setPixelRatio(1);
   renderer.setClearColor('#b8c4ca');
   host.replaceChildren(renderer.domElement);
@@ -48,10 +139,12 @@ export function createView(host) {
   // Static city transforms come from the same rectangles as simulation collision.
   const city = new THREE.Group(); scene.add(city);
   const extent = WORLD.limit * 2;
+  const architecture = createCityArchitecture(unitBox, material, own(new THREE.PlaneGeometry(1, 1))); city.add(architecture);
+  // Hidden full-footprint proxy retains the existing camera obstruction ABI.
   const cityBuildings = new THREE.InstancedMesh(unitBox, material('#9b8875'), WORLD.blocks.length);
+  cityBuildings.visible = false;
   WORLD.blocks.forEach((b, i) => {
     instance(cityBuildings, i, b.x, b.height / 2, b.z, b.width, b.height, b.depth);
-    cityBuildings.setColorAt(i, new THREE.Color(['#b8a086', '#918b80', '#bdac93', '#9a8777'][i % 4]));
   });
   cityBuildings.instanceMatrix.needsUpdate = true; city.add(cityBuildings);
   const streetEdge = Math.floor(WORLD.limit / WORLD.grid) * WORLD.grid;
@@ -75,6 +168,13 @@ export function createView(host) {
     box(1, 1.2, extent + 2, '#d4c5a7', side * (WORLD.limit + .5), .6, 0, city);
     box(extent, 1.2, 1, '#d4c5a7', 0, .6, side * (WORLD.limit + .5), city);
   }
+
+  // Static inspection bay: inset service pad, wheel guides and expansion joints.
+  const garage = new THREE.Group(); scene.add(garage);
+  box(14, .08, 12, '#aaa79d', 0, -.10, 0, garage);
+  box(4, .025, 6.4, '#747772', 0, -.045, 0, garage);
+  for (const side of [-1, 1]) box(.10, .015, 6.4, '#d9cfb6', side * 2.1, -.023, 0, garage);
+  for (const z of [-4, 4]) box(14, .01, .025, '#777970', 0, -.05, z, garage);
 
   const mounts = Object.fromEntries(['smoke', 'emp', 'decoy', 'boost', 'repair'].map(key => [key, new THREE.Group()]));
   const hardware = material('#626c71');
@@ -172,7 +272,7 @@ export function createView(host) {
     const id = run?.carId || profile.selected, custom = profile.customizations[id];
     select(id, run?.appearance || custom, run?.gadget || custom.gadget);
     const width = Math.max(1, host.clientWidth);
-    const height = Math.floor(Math.max(230, Math.min(innerHeight * (innerWidth < 760 ? (run && run.gadget !== 'none' ? .32 : .40) : .56), 500)));
+    const height = Math.max(1, host.clientHeight);
     if (renderer.domElement.width !== width || renderer.domElement.height !== height) {
       renderer.setSize(width, height); camera.aspect = width / height; camera.updateProjectionMatrix();
     }
@@ -185,7 +285,7 @@ export function createView(host) {
     // Three's local -Z forward uses the same yaw convention as WORLD.
     player.rotation.y = roam ? run.world.heading : run ? -steer * .10 : 0;
     for (const wheel of player.userData.wheels) wheel.rotation.x = run ? wheelAngle : 0;
-    highway.visible = !!run && !roam; city.visible = !!roam;
+    highway.visible = !!run && !roam; city.visible = !!roam; garage.visible = !run;
     if (highway.visible) {
       for (let i = 0; i < 90; i++) instance(lines, i, [-3.5, 0, 3.5][i % 3], .01, -Math.floor(i / 3) * 10 + distance % 10 + 20, .12, .025, 4);
       lines.instanceMatrix.needsUpdate = true;
@@ -263,6 +363,7 @@ export function createView(host) {
         wheelAngle:model.userData.wheels[0].rotation.x
       }))), geometryCount: renderer.info.memory.geometries, textureCount: renderer.info.memory.textures,
       cityBlocks: city.visible ? cityBuildings.count : 0,
+      cityArchitecture: Object.freeze({ ...architecture.userData, visible: city.visible }),
       pose: player ? Object.freeze({ x: player.position.x, z: player.position.z, heading: player.rotation.y }) : null,
       customization, effects: Object.freeze({ smokePuffs: smoke.visible ? smoke.count : 0, empVisible: pulse.visible, decoyVisible: decoyEffect.visible, boostVisible: flames.visible, repairVisible: repairEffect.visible }), dpr: 1 });
   }
