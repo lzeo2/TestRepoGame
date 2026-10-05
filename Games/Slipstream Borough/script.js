@@ -85,7 +85,9 @@ function setPhase(next) {
   $('garage').hidden = next !== 'garage'; $('catalogSection').hidden = next !== 'garage'; $('drive').hidden = next !== 'run'; $('result').hidden = next !== 'end';
   $('garageToggle').hidden = next !== 'garage';
   $('garageToggle').textContent = 'Hide garage'; $('garageToggle').setAttribute('aria-expanded', 'true');
-  $('pause').textContent = 'Pause'; if (next === 'garage') { run = null; garageUI(); } updateHud();
+  $('pause').textContent = 'Pause';
+  if (next === 'garage') { run = null; garageUI(); ($('start').disabled ? $('garageToggle') : $('start')).focus({ preventScroll: true }); }
+  updateHud();
 }
 function start(mode = $('mode').value) {
   if (!view || blocked || phase === 'run') return;
@@ -105,6 +107,8 @@ function finish() {
   setPhase('end');
   $('resultTitle').textContent = terminal.status === 'finished' ? `Finished ${terminal.place}/4` : terminal.status === 'escaped' ? 'Escaped' : terminal.status === 'parked' ? 'Parked' : 'Busted';
   $('resultText').textContent = `${terminal.score} score / ${terminal.earnings} earned${blocked ? ' (not saved)' : ' and banked'} / ${terminal.nearMisses} near misses. ${blocked ? 'Resolve the save error before driving again.' : terminal.status === 'busted' ? 'Try again or change your setup.' : 'Return to the garage to choose your next drive.'}`;
+  $('retry').disabled = blocked || !view;
+  $('resultTitle').focus({ preventScroll: true });
 }
 function leave() {
   if (phase === 'run' && run.mode === 'roam') {

@@ -105,6 +105,7 @@ def main():
                 # Pause button focus must not block the keyboard's resume action.
                 page.keyboard.press('p'); assert not state(page)['paused']
                 page.locator('#leave').click(); parked = garage(page)['profile']
+                assert page.locator('#start').evaluate('b => b===document.activeElement')
                 assert parked['careerDistance'] >= 10
                 page.locator('summary').filter(has_text='Paint and bodywork').click()
                 page.locator('#paint').fill('#173d69'); page.locator('#applyFinish').click()
@@ -127,6 +128,7 @@ def main():
                 shot(page, 'sprint-1280'); race_start = time.monotonic()
                 page.wait_for_function('slipstreamSnapshot.phase==="end"', timeout=110000)
                 ended = state(page)
+                assert page.locator('#resultTitle').evaluate('r => r===document.activeElement')
                 full_scene(page)
                 assert page.locator('#result').evaluate('r => getComputedStyle(r).position==="fixed"')
                 assert ended['run']['status'] == 'finished' and not ended['profile']['testMode']
@@ -145,6 +147,15 @@ def main():
                 context.close()
                 mobile = browser.new_context(viewport={'width':390,'height':844}, user_agent=PHONE, has_touch=True, is_mobile=True)
                 page = mobile.new_page(); watch(page); page.goto(origin + '/Games/Slipstream%20Borough/'); assert garage(page)['phone']
+                for width,height in [(390,844),(320,740),(844,390)]:
+                    page.set_viewport_size({'width':width,'height':height})
+                    for theme in ['light','dark']:
+                        if page.evaluate('document.documentElement.dataset.theme || "light"') != theme: page.locator('#theme').tap()
+                        for mode in ['roam','cutup','race']:
+                            page.locator('#mode').select_option(mode); garage(page)
+                    page.locator('#mode').select_option('roam')
+                    shot(page, f'garage-{width}')
+                page.set_viewport_size({'width':390,'height':844})
                 start(page, 'roam', first=True)
                 assert page.locator('.touch-controls').is_visible()
                 gas = page.locator('[data-drive="gas"]').bounding_box(); cdp = mobile.new_cdp_session(page)
