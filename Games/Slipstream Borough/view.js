@@ -276,6 +276,10 @@ export function createView(host) {
     if (renderer.domElement.width !== width || renderer.domElement.height !== height) {
       renderer.setSize(width, height); camera.aspect = width / height; camera.updateProjectionMatrix();
     }
+    // Compose the preview in the uncovered scene, without shrinking the canvas.
+    const portraitMenu = width <= 760 && height > width;
+    if (run) camera.clearViewOffset();
+    else camera.setViewOffset(width, height, portraitMenu ? 0 : width * .13, portraitMenu ? height * .23 : 0, width, height);
     const roam = run?.mode === 'roam', distance = run?.distance || 0;
     worldMode = roam ? 'roam' : run ? run.mode : 'garage';
     if (lastRun !== (run?.id ?? null)) { wheelAngle = 0; lastDistance = 0; lastRun = run?.id ?? null; }
@@ -346,7 +350,7 @@ export function createView(host) {
       ray.far = Infinity;
       camera.lookAt(player.position.x - sin * 7, 1, player.position.z - cos * 7);
     } else if (run) { camera.position.set(run.x * .45, 6.2, 12); camera.lookAt(run.x * .5, .5, -20); }
-    else { camera.position.set(Math.sin(orbit) * 7, 3.1, Math.cos(orbit) * 7); camera.lookAt(0, .65, 0); }
+    else { const radius = portraitMenu ? 11 : 7; camera.position.set(Math.sin(orbit) * radius, portraitMenu ? 4.8 : 3.1, Math.cos(orbit) * radius); camera.lookAt(0, .65, 0); }
     renderer.render(scene, camera); frames++;
   }
   function inspect() {

@@ -1,12 +1,21 @@
-.game-header { margin-bottom: 12px; }
-.game-header h1 { font-size: 1.2rem; margin: 0; }
+html, body { width: 100%; height: 100%; overflow: hidden; }
+body { padding: 0; }
+main { position: relative; width: 100%; height: 100dvh; max-width: none; isolation: isolate; }
+.game-layout { display: block; }
+#viewport { position: fixed; inset: 0; width: 100%; height: 100dvh; touch-action: none; overflow: hidden; border: 0; z-index: 0; }
+#viewport canvas { display: block; width: 100%; height: 100%; max-height: none; }
+.game-header { position: fixed; top: max(12px, env(safe-area-inset-top)); left: max(12px, env(safe-area-inset-left)); right: max(12px, env(safe-area-inset-right)); margin: 0; z-index: 2; }
+.game-header h1 { font-size: 1.1rem; margin: 0; padding: 10px; background: var(--panel); border-radius: 4px; }
+.game-header .actions { gap: 6px; }
+.game-header button { font-size: 1rem; }
 #io:empty, #feedback:empty { display: none; }
-#viewport { height: min(55dvh, 500px); touch-action: none; overflow: hidden; }
-#viewport canvas { width: 100%; height: 100%; max-height: none; }
-.stage, #garage { min-width: 0; }
+#io { position: fixed; left: 12px; right: 12px; top: 66px; background: var(--panel); padding: 12px; z-index: 4; }
+#renderError { position: fixed; inset: 80px 12px auto; z-index: 5; }
+#garage, #result { position: fixed; right: max(12px, env(safe-area-inset-right)); top: 72px; width: min(400px, calc(100% - 24px)); max-height: calc(100dvh - 84px - env(safe-area-inset-bottom)); overflow: auto; overscroll-behavior: contain; z-index: 2; margin: 0; }
 #garage > p { font-size: 1rem; }
-.launch { display: grid; grid-template-columns: 1fr auto; gap: 8px; margin-block: 12px; }
-.launch label { grid-column: 1 / -1; }
+.launch { display: grid; grid-template-columns: 1fr; gap: 8px; margin-block: 12px; }
+#modeGoal { font-size: 1rem; margin: 0; }
+#start { font-weight: 700; }
 #mode, #gadget, #fitGadget { width: 100%; min-width: 0; }
 .orbit-actions { margin-bottom: 12px; }
 details { border-top: 1px solid var(--line); padding-block: 8px; }
@@ -24,36 +33,31 @@ summary:focus-visible { outline: 3px solid var(--ink); outline-offset: 2px; }
 #catalog { grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr)); }
 #phrase { width: 160px; flex: 1; min-width: 0; }
 .cruise { display: flex; gap: 6px; align-items: center; min-height: 44px; font-size: 1rem; }
-#hud { font-size: .95rem; min-height: 0; gap: 4px 14px; margin: 0; padding: 8px 12px; border: 0; }
+#hud { position: fixed; left: max(12px, env(safe-area-inset-left)); top: 72px; max-width: min(620px, calc(100% - 24px)); font-size: .95rem; min-height: 0; gap: 4px 14px; margin: 0; padding: 8px 12px; border-radius: 6px; z-index: 2; }
 #hud > * { flex: 0 1 auto; }
-#activity { flex-basis: 100%; }
-.drive-actions { gap: 6px; padding: 6px 12px; }
-.touch-controls { gap: 6px; padding: 6px 12px; margin: 0; }
+#activity, #objective { flex-basis: 100%; }
+#objective { font-size: .95rem; }
+#drive { position: fixed; left: max(12px, env(safe-area-inset-left)); right: max(12px, env(safe-area-inset-right)); bottom: max(12px, env(safe-area-inset-bottom)); width: fit-content; max-width: calc(100% - 24px); background: var(--panel); border-radius: 6px; padding: 6px; z-index: 2; }
+.drive-actions { gap: 6px; }
+.touch-controls { gap: 6px; margin: 6px 0 0; }
 .touch-controls button { min-width: 44px; flex: 1 1 44px; padding-inline: 6px; font-size: 1rem; white-space: nowrap; }
 #deploy { flex-basis: 100%; }
 html:not([data-phone='true']) .touch-controls { display: none; }
-html[data-phase='run'], html[data-phase='end'] { overflow: hidden; }
-html[data-phase='run'] body, html[data-phase='end'] body { padding: 0; }
-html[data-phase='run'] main, html[data-phase='end'] main { max-width: none; height: 100dvh; display: flex; flex-direction: column; }
-html[data-phase='run'] .game-header, html[data-phase='end'] .game-header { padding: 6px 12px; margin: 0; flex: 0 0 auto; }
-html[data-phase='run'] #io:not(.error), html[data-phase='end'] #io:not(.error) { display: none; }
-html[data-phase='run'] .game-layout, html[data-phase='end'] .game-layout { display: flex; align-items: stretch; flex: 1 1 auto; min-height: 0; }
-html[data-phase='run'] .stage, html[data-phase='end'] .stage { display: flex; flex-direction: column; width: 100%; min-height: 0; }
-html[data-phase='run'] #viewport, html[data-phase='end'] #viewport { flex: 1 1 auto; min-height: 140px; height: 0; border: 0; }
-html[data-phase='run'] #drive { background: var(--page); flex: 0 0 auto; padding-bottom: env(safe-area-inset-bottom); }
-html[data-phase='end'] #result { margin: 0; max-height: 45dvh; overflow: auto; padding-bottom: max(12px, env(safe-area-inset-bottom)); }
-#renderError { flex: 0 0 auto; }
-@media (max-width: 760px) {
-  body { padding: 10px; }
-  #viewport { height: min(38dvh, 330px); }
-  .game-layout { gap: 10px; }
-  .game-header .actions { gap: 6px; }
-  .game-header h1 { font-size: 1rem; }
-  #hud { font-size: .85rem; }
+@media (max-width: 760px) and (orientation: portrait) {
+  .game-header h1 { display: none; }
+  .game-header .actions { margin-left: auto; }
+  .game-header button { font-size: .9rem; }
+  #garage, #result { top: auto; bottom: max(12px, env(safe-area-inset-bottom)); max-height: 53dvh; width: calc(100% - 24px); }
+  #drive { width: auto; }
+  #hud, #objective { font-size: .85rem; }
   .drive-actions > * { flex: 0 1 auto; }
 }
 @media (max-height: 500px) {
-  html[data-phase='run'] .game-header h1 { display: none; }
+  .game-header h1 { display: none; }
+  .game-header .actions { margin-left: auto; }
+  #hud { top: 12px; right: 245px; max-width: calc(100% - 269px); font-size: .8rem; }
+  #objective { font-size: .8rem; }
+  #garage, #result { width: min(380px, calc(50% - 12px)); }
   #activity { flex-basis: auto; }
   .touch-controls button { min-height: 44px; }
   #deploy { flex-basis: auto; }

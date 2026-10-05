@@ -68,6 +68,12 @@ function garageUI() {
   }
   $('gadget').value=custom.gadget; equipmentUI();
   $('start').disabled = blocked || !view;
+  modeUI();
+}
+function modeUI() {
+  const mode = $('mode').value;
+  $('modeGoal').textContent = mode === 'roam' ? 'Drive to earn cash and mileage. Park to bank it and unlock more cars.' : mode === 'cutup' ? 'Reach the finish while evading police and traffic. Leaving early pays nothing.' : 'Beat three rivals to the finish. A completed race earns cash and mileage.';
+  $('start').textContent = mode === 'roam' ? 'Start city drive' : mode === 'cutup' ? 'Start pursuit' : 'Start race';
 }
 function equipmentUI() {
   const option=$('gadget').selectedOptions[0];
@@ -77,6 +83,8 @@ function equipmentUI() {
 function setPhase(next) {
   phase = next; document.documentElement.dataset.phase = next; clearInput(); paused = false;
   $('garage').hidden = next !== 'garage'; $('catalogSection').hidden = next !== 'garage'; $('drive').hidden = next !== 'run'; $('result').hidden = next !== 'end';
+  $('garageToggle').hidden = next !== 'garage';
+  $('garageToggle').textContent = 'Hide garage'; $('garageToggle').setAttribute('aria-expanded', 'true');
   $('pause').textContent = 'Pause'; if (next === 'garage') { run = null; garageUI(); } updateHud();
 }
 function start(mode = $('mode').value) {
@@ -96,7 +104,7 @@ function finish() {
   catch (e) { blocked = true; io(`Settlement failed: ${e.message}`, true); }
   setPhase('end');
   $('resultTitle').textContent = terminal.status === 'finished' ? `Finished ${terminal.place}/4` : terminal.status === 'escaped' ? 'Escaped' : terminal.status === 'parked' ? 'Parked' : 'Busted';
-  $('resultText').textContent = `${terminal.score} score / ${terminal.earnings} earned${blocked ? ' (not saved)' : ' and banked'} / ${terminal.nearMisses} near misses. ${terminal.status === 'busted' ? 'Try again or change your setup.' : 'Progress saved.'}`;
+  $('resultText').textContent = `${terminal.score} score / ${terminal.earnings} earned${blocked ? ' (not saved)' : ' and banked'} / ${terminal.nearMisses} near misses. ${blocked ? 'Resolve the save error before driving again.' : terminal.status === 'busted' ? 'Try again or change your setup.' : 'Return to the garage to choose your next drive.'}`;
 }
 function leave() {
   if (phase === 'run' && run.mode === 'roam') {
@@ -114,6 +122,10 @@ function updateHud() {
   if (run) {
     const activity = run.mode === 'roam' ? (run.pursuit === 'chased' ? `Chase · escape ${run.escapeClock.toFixed(1)}/6s` : 'City · exploring') : run.mode === 'race' ? `Sprint · ${run.place}/4` : `Cutup · heat ${run.heat.toFixed(1)}`;
     $('activity').textContent = paused ? 'Paused' : activity;
+    const getMoving = phone ? 'Hold Gas' : 'Hold W / Up';
+    const goal = run.mode === 'roam' ? (run.pursuit === 'chased' ? 'Lose the police: stay 75 m away for 6 seconds.' : `${run.distance < 10 ? getMoving + ' to move. ' : ''}Explore, then Park to bank cash and mileage.`) : run.mode === 'race' ? `Beat three rivals. Finish at ${run.finishDistance} m.` : `Evade police and traffic. Reach ${run.finishDistance} m to earn your payout.`;
+    const objective = paused ? 'Resume to keep driving, or return to the garage.' : goal;
+    if ($('objective').textContent !== objective) $('objective').textContent = objective;
     $('speed').textContent = `${Math.round(run.speed * 3.6)} km/h`;
     $('body').textContent = `Body ${Math.ceil(run.hp)}%`;
     $('distance').textContent = `${Math.floor(run.distance)}${run.mode === 'roam' ? ' m' : ` / ${run.finishDistance} m`}`;
@@ -173,6 +185,14 @@ $('gadget').onchange=equipmentUI;
 $('equipment').onsubmit=e=>{e.preventDefault();action(()=>core.fitGadget(profile,profile.selected,$('gadget').value));};
 $('deploy').onclick=deploy;
 $('cruise').onchange = () => { clearInput(); $('viewport').focus(); };
+$('mode').onchange = modeUI;
+$('garageToggle').onclick = () => {
+  if (phase !== 'garage') return;
+  $('garage').hidden = !$('garage').hidden;
+  $('garageToggle').textContent = $('garage').hidden ? 'Garage' : 'Hide garage';
+  $('garageToggle').setAttribute('aria-expanded', String(!$('garage').hidden));
+  if ($('garage').hidden) $('viewport').focus(); else $('start').focus();
+};
 $('start').onclick = () => start(); $('retry').onclick = () => start(run?.mode || $('mode').value); $('pause').onclick = pause;
 $('leave').onclick = $('garageButton').onclick = leave;
 $('orbitLeft').onclick = () => view?.turn(-.3); $('orbitRight').onclick = () => view?.turn(.3);

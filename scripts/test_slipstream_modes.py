@@ -43,12 +43,23 @@ def main():
                     page.on('response', lambda r: errors.append(f'HTTP {r.status} {r.url}') if r.status >= 400 else None)
                     page.route('**/*', lambda r: r.continue_() if r.request.url.startswith(origin + '/') else (errors.append('External ' + r.request.url), r.abort()))
                 def state(page): return page.evaluate('slipstreamSnapshot')
+                def full_scene(page):
+                    page.wait_for_function('() => { const c=document.querySelector("#viewport canvas"); return c && c.clientWidth===innerWidth && c.clientHeight===innerHeight; }')
+                    box = page.locator('#viewport').bounding_box()
+                    assert box['x'] == box['y'] == 0
+                    assert abs(box['width']-page.viewport_size['width']) <= 1 and abs(box['height']-page.viewport_size['height']) <= 1, box
+                    assert page.evaluate('document.documentElement.scrollHeight<=innerHeight && document.documentElement.scrollWidth<=innerWidth')
                 def garage(page):
                     page.wait_for_function('window.slipstreamSnapshot?.phase === "garage" && slipstreamSnapshot.view?.frames>1 && slipstreamSnapshot.view.worldMode==="garage"')
                     s = state(page); assert s['run'] is None
                     assert page.locator('#start').is_visible() and page.locator('#mode').is_visible()
                     assert page.locator('#drive').is_hidden() and page.locator('#hud').is_hidden()
                     assert page.locator('#helpDialog').is_hidden()
+                    full_scene(page)
+                    menu = page.locator('#garage').bounding_box(); button = page.locator('#start').bounding_box()
+                    assert menu['x']>=0 and menu['y']>=0 and menu['y']+menu['height']<=page.viewport_size['height']
+                    assert button['y']>=menu['y'] and button['y']+button['height']<=menu['y']+menu['height'], ('primary action below menu fold',button,menu)
+                    assert 'cash' in page.locator('#modeGoal').inner_text() or 'finish' in page.locator('#modeGoal').inner_text()
                     return s
                 def start(page, mode, first=False):
                     page.locator('#mode').select_option(mode); page.locator('#start').click()
@@ -62,8 +73,9 @@ def main():
                         assert page.locator('#helpDialog').is_hidden()
                     page.wait_for_function('!slipstreamSnapshot.paused && slipstreamSnapshot.view.worldMode===slipstreamSnapshot.run.mode')
                     assert state(page)['run']['mode'] == mode
-                    box = page.locator('#viewport').bounding_box()
-                    assert box['height'] > page.viewport_size['height'] * .55, ('play area collapsed', box)
+                    full_scene(page)
+                    goal = page.locator('#objective').inner_text().lower()
+                    assert ('park' in goal and 'bank' in goal) if mode == 'roam' else ('three rivals' in goal) if mode == 'race' else ('evade' in goal and 'payout' in goal), goal
                 def shot(page, name): page.screenshot(path=str(output / (name + '.jpg')), quality=76)
                 context = browser.new_context(viewport={'width':1280, 'height':900}, has_touch=True)
                 page = context.new_page(); watch(page); page.goto(origin + '/Games/Slipstream%20Borough/')
@@ -73,6 +85,10 @@ def main():
                 assert not initial['phone'] and page.locator('.touch-controls').is_hidden()
                 assert page.locator('#garage details[open]').count() == 0
                 shot(page, 'garage-1280')
+                page.locator('#garageToggle').click(); assert page.locator('#garage').is_hidden()
+                full_scene(page)
+                page.locator('#garageToggle').click(); assert page.locator('#garage').is_visible()
+                assert page.locator('#start').evaluate('b => b===document.activeElement')
                 # Viewport width and touch capability must not switch desktop UA controls on.
                 page.set_viewport_size({'width':390,'height':844})
                 assert page.locator('.touch-controls').is_hidden()
@@ -111,6 +127,8 @@ def main():
                 shot(page, 'sprint-1280'); race_start = time.monotonic()
                 page.wait_for_function('slipstreamSnapshot.phase==="end"', timeout=110000)
                 ended = state(page)
+                full_scene(page)
+                assert page.locator('#result').evaluate('r => getComputedStyle(r).position==="fixed"')
                 assert ended['run']['status'] == 'finished' and not ended['profile']['testMode']
                 assert ended['profile']['settledRun'] == ended['run']['id'] and ended['profile']['careerDistance'] >= 1200
                 race_wall_seconds = time.monotonic()-race_start
@@ -141,8 +159,11 @@ def main():
                         b = page.locator(selector).bounding_box()
                         assert b['width'] >= 44 and b['height'] >= 44 and b['y'] >= 0 and b['y']+b['height'] <= height+.1, (selector,b,height)
                     assert page.locator('.touch-controls button:visible').evaluate_all('buttons => buttons.every(b => { const r=document.createRange(); r.selectNodeContents(b); return r.getClientRects().length === 1 && b.scrollWidth <= b.clientWidth; })'), 'phone button text wraps or clips'
-                    viewport = page.locator('#viewport').bounding_box()
-                    assert viewport['height'] >= (140 if height < 500 else height * .45), ('phone play area collapsed',viewport)
+                    full_scene(page)
+                    for selector in ['#hud','#drive']:
+                        box = page.locator(selector).bounding_box()
+                        assert box['x'] >= 0 and box['y'] >= 0 and box['x']+box['width'] <= width+.1 and box['y']+box['height'] <= height+.1, (selector,box)
+                    assert page.locator('#hud').evaluate('hud => getComputedStyle(hud).position==="fixed"')
                     shot(page, f'phone-{width}')
                 observations.append({'genuineTouchGas':True,'phoneUserAgent':True,'layouts':[390,320,844]})
                 mobile.close()

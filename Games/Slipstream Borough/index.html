@@ -1,20 +1,20 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Slipstream Borough</title><link rel="icon" href="data:,"><link rel="stylesheet" href="../../assets/car-arcade/style.css"><link rel="stylesheet" href="style.css"></head>
 <body><a class="skip-link" href="#main">Skip to game</a><main id="main" tabindex="-1">
-<header class="game-header"><h1>Slipstream Borough</h1><div class="actions"><button id="theme" aria-label="Switch color theme">Theme</button><button id="help">Help</button></div></header>
+<header class="game-header"><h1>Slipstream Borough</h1><div class="actions"><button id="garageToggle" aria-controls="garage" aria-expanded="true">Hide garage</button><button id="theme" aria-label="Switch color theme">Theme</button><button id="help">Help</button></div></header>
 <p id="io" class="status" role="status"></p><div id="renderError" class="panel error" hidden>3D rendering is unavailable. Your banked save has not been changed. <button id="renderRetry">Retry renderer</button></div>
 <div class="game-layout"><section class="stage">
 <div id="viewport" class="viewport" tabindex="0" aria-label="Driving view. Drag to orbit in the garage."></div>
-<div id="hud" class="hud" aria-label="Driving status" hidden><strong id="activity"></strong><span id="speed"></span><span id="body"></span><span id="distance"></span><span id="score"></span><span id="kitStatus" hidden></span></div>
+<div id="hud" class="hud" aria-label="Driving status" hidden><strong id="activity"></strong><span id="objective"></span><span id="speed"></span><span id="body"></span><span id="distance"></span><span id="score"></span><span id="kitStatus" hidden></span></div>
 <div id="drive" hidden>
 <div class="actions drive-actions"><button id="pause">Pause</button><button id="leave">Garage</button><label class="cruise"><input id="cruise" type="checkbox">Auto gas</label></div>
 <div class="touch-controls" hidden><button data-drive="left" aria-label="Steer left">Left</button><button data-drive="right" aria-label="Steer right">Right</button><button data-drive="gas">Gas</button><button data-drive="brake">Brake</button><button id="deploy" hidden>Deploy</button></div>
 </div>
 <div id="result" class="panel" hidden><h2 id="resultTitle"></h2><p id="resultText"></p><div class="actions"><button id="retry">Retry mode</button><button id="garageButton">Garage</button></div></div></section>
-<section id="garage" class="panel"><h2 id="selected"></h2><p id="bank"></p><p id="specs"></p>
-<div class="launch"><label for="mode">Mode</label><select id="mode"><option value="roam">City</option><option value="cutup">Cutup pursuit</option><option value="race">Highway sprint</option></select><button id="start">Drive</button></div>
+<section id="garage" class="panel" aria-label="Garage menu"><h2>Garage · <span id="selected"></span></h2><p id="bank"></p>
+<div class="launch"><label for="mode">Choose your drive</label><select id="mode" aria-describedby="modeGoal"><option value="roam">City: explore and earn</option><option value="cutup">Cutup: evade police</option><option value="race">Sprint: race three rivals</option></select><p id="modeGoal"></p><button id="start">Start city drive</button></div>
 <div class="actions orbit-actions"><button id="orbitLeft" aria-label="Rotate garage view left">Rotate left</button><button id="orbitRight" aria-label="Rotate garage view right">Rotate right</button></div>
-<details><summary>Performance upgrades</summary><div id="upgrades"></div></details>
+<details><summary>Performance upgrades</summary><p id="specs"></p><div id="upgrades"></div></details>
 <details><summary>Paint and bodywork</summary><form id="customize"><div class="actions"><label>Body<input id="paint" type="color"></label><label>Wheels<input id="wheelColor" type="color"></label><label>Stripe<input id="stripe" type="color" value="#ffffff"></label></div><div class="actions"><label class="check"><input id="stripeEnabled" type="checkbox"> Stripe</label><label class="check"><input id="spoiler" type="checkbox"> Spoiler</label><button id="applyFinish" type="submit">Apply finish</button></div></form></details>
 <details><summary>Equipment</summary><form id="equipment"><label for="gadget">Mounted kit</label><select id="gadget" aria-describedby="kitDetails"></select><p id="kitDetails" class="small"></p><button id="fitGadget" type="submit">Buy / fit</button></form></details>
 <details id="catalogSection"><summary>Fleet</summary><p id="career"></p><div id="catalog" class="garage-grid"></div></details>
