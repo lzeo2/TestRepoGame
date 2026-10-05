@@ -1,0 +1,2 @@
+== 116/116 games pass ==
+SPARSE RESTORED: pages=116/116, peak_Games_bytes=195853264, remaining_Games_bytes=0; this is not a gate-pass assertion.

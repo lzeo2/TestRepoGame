@@ -1,0 +1,34 @@
+{
+  "sourceCommit": "02f61a85a6673afa8900a777d3bc49ebe8bf0374",
+  "smokeSha256": "ee204d35ee1cd65bd11936decc627fe30644fe7edde5126e2f16e39c2c8f7f6f",
+  "wrapperSha256": "5833da8665e512a228d210d2cc5c891740752bd6c32c4b59ba3ed8d02f6052c2",
+  "catalogSha256": "46abe53242524851cfec29681c94d0637aa2b62decb719d6540ac74d4705cf3f",
+  "games": 116,
+  "freeBefore": 2798391296,
+  "floorBytes": 2000000000,
+  "browserReserveBytes": 100000000,
+  "maximumPredictedGrowth": 224795251,
+  "maximumPredictedGamesBytes": 195853264,
+  "command": [
+    "xvfb-run",
+    "-a",
+    "python3",
+    "-B",
+    "-c",
+    "import scripts.run_sparse_smoke as gate; gate.FLOOR=2_000_000_000; gate.run()"
+  ],
+  "qualifications": "Original unchanged ALL-game smoke/filtering/waits via existing sparse wrapper.run; ONLY strengthen runtime disk constant from historical1.5GiB to2e9. No source edits/native grant/filter/wait relaxation. Normal main push only after captured exit0.",
+  "exit": 0,
+  "seconds": 1406.6059815620538,
+  "minimumFreeBytes": 2517876736,
+  "freeAfter": 2798186496,
+  "stopReason": null,
+  "sparseAfter": [
+    "assets",
+    "docs",
+    "scripts"
+  ],
+  "headAfter": "02f61a85a6673afa8900a777d3bc49ebe8bf0374",
+  "statusAfter": "",
+  "logSha256": "60410a3a0287044f727dd55beec989329f222305d83bd54fe7923a6ba6068e43"
+}
