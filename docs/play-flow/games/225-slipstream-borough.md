@@ -1,6 +1,6 @@
 # Play-flow audit: Slipstream Borough (Police Chase, Preview)
 
-Validation: CODE-REVIEW ONLY. No browser run in this pass; no runtime claims.
+Historical baseline report: CODE-REVIEW ONLY. No browser run in this source-audit pass; no runtime claims from it. **Newer source continuation** now starts in garage (not the old auto-roam below), folds optional feature panels, uses UA-only phone controls, adds acknowledged one-time Help and actual city architecture; see [current scope](../../slipstream-garage-rework.md) and [focused ordinary native proof/failures](../../slipstream-garage-previews/README.md). Not an all-feature/whole-campaign/physical-device certification.
 Baseline: `5be686e`. Inventory: `docs/maintenance/games/225-slipstream-borough.md`.
 Id 225, registered. Owned report only; no code edited.
 

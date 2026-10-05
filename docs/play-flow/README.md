@@ -1,5 +1,7 @@
 # Play-flow, UI bloat and 3D playability audit
 
+Newest separately verified local continuation: [Slipstream garage/mode/city source fixes](../slipstream-garage-rework.md) and [actual focused native evidence](../slipstream-garage-previews/README.md). Mobile/UA-only buttons/garage-everyboot confirmed; owner clarified **modes**, not codes. Main fixed owned Slipstream flow/UI/city plus measured canvas/label bugs with final ordinary native exit0, not everygame/everyfeature. [Circuitanimation/source-nextscope](circuit-ward-animation-next.md) is unimplemented/defaultworker quota blocked, routeconfirmation pending. Original84initial source reports/38pending below remain incomplete. The no-source-edit statement below describes the older audit-preservation milestone, not the newer Slipstream continuation.
+
 **INCOMPLETE milestone:84/122 initial per-game source reports,38pending.** These reports are CODE-REVIEW ONLY with explicit inspected ranges, opaque-engine and runtime holds. They are not84finished comprehensive game audits, not full-level browser tests and not applied UI/gameplay fixes. Source baseline5be686e; game catalog116+6unregistered remains unchanged. No new games, no new registration, no game/portal/security/source edits in this run. Existing native/full gates belong to earlier releases, not this audit. [Reports](games/), [current inventory](../maintenance/inventory.json), [Main independently checked shooter damage](circuit-ward-contact.md).
 
 ## Owner requirements and open Grill Me frontier

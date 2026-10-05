@@ -1,0 +1,39 @@
+{
+  "errors": [],
+  "assisted": false,
+  "sourceHashes": {
+    "Games/Slipstream Borough/view.js": "d7f24d091991544991cdd059e01132783d42ca5858277c67999d063cdc7ba225",
+    "Games/Slipstream Borough/index.html": "bfab64b1b16c8ac734ba57288b2b722939af565097ad260e1990c13806504ad2",
+    "Games/Slipstream Borough/script.js": "c74f21d03e41df9152857ef9eb76e10ba806884ceb012bd3585c2744f9de11bb",
+    "Games/Slipstream Borough/core.js": "bb7d6c3ace409d4bf69d3ef09b4d4f4ae2f0f4ad2e3974ff978fc608fb4d3492",
+    "Games/Slipstream Borough/CREDITS.md": "b8fc5ed706e172030156df3bc0f70b6f6e7ed23a5a4d46698629ee9e136db78e",
+    "Games/Slipstream Borough/world.js": "49c78e73c2a22279aac8d4ddfc29522826599249ea78c7f282d675e716a98700",
+    "Games/Slipstream Borough/clock.js": "53033b464d449cd6c5961e8d95c2e8601bf744c86bc3d8ae48da2e62050c12ae",
+    "Games/Slipstream Borough/style.css": "cb8e81b603d3c35a3027bbfb486e597023fd0ee6283881bd80374c39e2ddff68",
+    "scripts/test_slipstream_modes.py": "b664a5518608992d6eb51a225ec369c1b131bf970ba6e71fdb8d050251f918ad"
+  },
+  "observations": [
+    {
+      "ordinaryModes": [
+        "roam",
+        "cutup",
+        "race"
+      ],
+      "cityBanked": 17,
+      "sprintResult": "finished",
+      "sprintMeters": 1200,
+      "sprintWallSeconds": 49.53778610401787,
+      "cash": 939,
+      "garageReloadUnchanged": true
+    },
+    {
+      "genuineTouchGas": true,
+      "phoneUserAgent": true,
+      "layouts": [
+        390,
+        320,
+        844
+      ]
+    }
+  ]
+}

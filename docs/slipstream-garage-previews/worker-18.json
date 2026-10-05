@@ -1,0 +1,17 @@
+{
+  "completed": true,
+  "exit": 0,
+  "seconds": 200.08639388799202,
+  "commit": "97cf20e",
+  "api": "openai-codex-responses",
+  "provider": "openai-codex",
+  "model": "gpt-6-astra",
+  "assistantRecords": 42,
+  "thinking": "high (explicit CLI)",
+  "scope": [
+    "Games/Slipstream Borough/view.js",
+    "scripts/test_slipstream_city_render.mjs"
+  ],
+  "source": "JSON event stream independently parsed; no label-only provenance",
+  "rawLogSha256": "5548b599fddd49141fa1497b933b827757412e1b3113aefd18544be77798db33"
+}
