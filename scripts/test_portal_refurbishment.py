@@ -198,6 +198,8 @@ def main():
             page.locator('.game-card[data-title="Soccer Random"] .game-card__play').click()
             page.wait_for_selector('.ux-player[open]')
             assert page.locator('.ux-player__frame').get_attribute('src') == next(g['url'] for g in games if g['title'] == 'Soccer Random')
+            page.wait_for_function('document.fullscreenElement?.classList.contains("ux-player__frame")')
+            page.locator('.ux-player__frame').element_handle().content_frame().wait_for_load_state('load')
             page.keyboard.press('Escape')
             page.wait_for_function('!document.fullscreenElement')
             if page.locator('.ux-player').count():
