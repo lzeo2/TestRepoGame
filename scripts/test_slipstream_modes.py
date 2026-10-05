@@ -62,6 +62,8 @@ def main():
                         assert page.locator('#helpDialog').is_hidden()
                     page.wait_for_function('!slipstreamSnapshot.paused && slipstreamSnapshot.view.worldMode===slipstreamSnapshot.run.mode')
                     assert state(page)['run']['mode'] == mode
+                    box = page.locator('#viewport').bounding_box()
+                    assert box['height'] > page.viewport_size['height'] * .55, ('play area collapsed', box)
                 def shot(page, name): page.screenshot(path=str(output / (name + '.jpg')), quality=76)
                 context = browser.new_context(viewport={'width':1280, 'height':900}, has_touch=True)
                 page = context.new_page(); watch(page); page.goto(origin + '/Games/Slipstream%20Borough/')
@@ -111,6 +113,7 @@ def main():
                 ended = state(page)
                 assert ended['run']['status'] == 'finished' and not ended['profile']['testMode']
                 assert ended['profile']['settledRun'] == ended['run']['id'] and ended['profile']['careerDistance'] >= 1200
+                race_wall_seconds = time.monotonic()-race_start
                 cash, run_id = ended['profile']['cash'], ended['run']['id']
                 page.locator('#retry').click(); assert state(page)['run']['mode'] == 'race' and state(page)['run']['id'] > run_id
                 assert page.locator('#helpDialog').is_hidden()
@@ -120,7 +123,7 @@ def main():
                 page.reload(); loaded = garage(page)
                 assert page.evaluate("localStorage.getItem('slipstream-borough-v1')") == raw
                 assert loaded['profile']['cash'] == cash and loaded['helpSeen']
-                observations.append({'ordinaryModes':['roam','cutup','race'], 'cityBanked':parked['careerDistance'], 'sprintResult':ended['run']['status'], 'sprintMeters':ended['run']['distance'], 'sprintWallSeconds':time.monotonic()-race_start, 'cash':cash, 'garageReloadUnchanged':True})
+                observations.append({'ordinaryModes':['roam','cutup','race'], 'cityBanked':parked['careerDistance'], 'sprintResult':ended['run']['status'], 'sprintMeters':ended['run']['distance'], 'sprintWallSeconds':race_wall_seconds, 'cash':cash, 'garageReloadUnchanged':True})
                 context.close()
                 mobile = browser.new_context(viewport={'width':390,'height':844}, user_agent=PHONE, has_touch=True, is_mobile=True)
                 page = mobile.new_page(); watch(page); page.goto(origin + '/Games/Slipstream%20Borough/'); assert garage(page)['phone']
@@ -137,7 +140,8 @@ def main():
                     for selector in ['#pause','#leave','[data-drive="gas"]','[data-drive="left"]']:
                         b = page.locator(selector).bounding_box()
                         assert b['width'] >= 44 and b['height'] >= 44 and b['y'] >= 0 and b['y']+b['height'] <= height+.1, (selector,b,height)
-                    viewport = page.locator('#viewport').bounding_box(); assert viewport['height'] >= 140
+                    viewport = page.locator('#viewport').bounding_box()
+                    assert viewport['height'] >= (140 if height < 500 else height * .45), ('phone play area collapsed',viewport)
                     shot(page, f'phone-{width}')
                 observations.append({'genuineTouchGas':True,'phoneUserAgent':True,'layouts':[390,320,844]})
                 mobile.close()

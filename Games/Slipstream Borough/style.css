@@ -37,7 +37,7 @@ html[data-phase='run'] body, html[data-phase='end'] body { padding: 0; }
 html[data-phase='run'] main, html[data-phase='end'] main { max-width: none; height: 100dvh; display: flex; flex-direction: column; }
 html[data-phase='run'] .game-header, html[data-phase='end'] .game-header { padding: 6px 12px; margin: 0; flex: 0 0 auto; }
 html[data-phase='run'] #io:not(.error), html[data-phase='end'] #io:not(.error) { display: none; }
-html[data-phase='run'] .game-layout, html[data-phase='end'] .game-layout { display: flex; flex: 1 1 auto; min-height: 0; }
+html[data-phase='run'] .game-layout, html[data-phase='end'] .game-layout { display: flex; align-items: stretch; flex: 1 1 auto; min-height: 0; }
 html[data-phase='run'] .stage, html[data-phase='end'] .stage { display: flex; flex-direction: column; width: 100%; min-height: 0; }
 html[data-phase='run'] #viewport, html[data-phase='end'] #viewport { flex: 1 1 auto; min-height: 140px; height: 0; border: 0; }
 html[data-phase='run'] #drive { background: var(--page); flex: 0 0 auto; padding-bottom: env(safe-area-inset-bottom); }
