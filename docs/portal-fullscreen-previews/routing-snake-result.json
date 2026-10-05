@@ -1,0 +1,17 @@
+{
+  "errors": [],
+  "catalogRoutingFixtures": 116,
+  "entryPoints": [
+    "Play",
+    "card",
+    "Enter",
+    "Info Play",
+    "recent",
+    "random"
+  ],
+  "realSnake": "Start/Pause/Resume/wall loss/restart/frame detached",
+  "deniedFullscreenWidths": [
+    390,
+    320
+  ]
+}
