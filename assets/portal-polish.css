@@ -244,7 +244,7 @@ html[data-theme] .game-modal__open { border-radius: calc(var(--radius) - 2px) !i
   width: 100vw; height: 100vh; height: 100dvh;
   max-width: none; max-height: none; overflow: hidden; background: #000;
 }
-html:has(.ux-player[open]) { overflow: hidden; }
+html:has(.ux-player[open]) { overflow: hidden; scrollbar-gutter: auto; }
 .ux-player::backdrop { background: #000; }
 .ux-player__frame { display: block; width: 100vw; height: 100vh; height: 100dvh; border: 0; }
 .ux-player__controls {
