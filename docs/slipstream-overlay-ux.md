@@ -56,5 +56,9 @@ Garage; terminalheadingtakesprogrammaticfocus/blockedRetrydisabled. No ordinary
 readiness/race deadlines changed. Main readall12actualframes (~600KBevidence).
 This is not all116registered-gate, remote push/deployment, physical-phoneFPS,
 whole campaign or CircuitWardanimation patch proof. The fullprepushgate is
-recorded separately after capturedcompletion. The broader84/122source audit and
+recorded separately after capturedcompletion. **Currentfull116gateexit1/115pass:**
+Slipstream passed, unchangedOvo hit PAGE: Page.goto: Timeout15000ms exceeded;
+[complete receipt and status manifest](slipstream-overlay-previews/README.md#current-full116-gate-failed-no-push).
+No push attempted; sparsebaseline restoredclean. Releaseblocked, no wait/filter
+changes or guessedOvo-rootfix. The broader84/122source audit and
 CircuitWard default-worker quota/model-route hold remain separate.

@@ -45,5 +45,25 @@ not earned play. Maintenance122/116+6check passes; playflow84/122reports38missin
 remain only initialcoverage, not a comprehensiveaudit.
 
 No newgame/registration/vendors/catalog/proxy/protected/sharedportal changes.
-Full116prepushgate/remote/deployment status is recorded separately after its
-actual captured result, never inferred from these focused tests.
+## Current full116 gate: failed, no push
+
+`full-gate.json` records sourcefreeze255edc30596db5d70827694bd7370822ae487c6a,
+**exit1 /1430.7034013139782s /115of116pass**. All116pages were attempted,
+actualpeak195853264Gamesbytes/remaining0/minfree2505637888bytes;
+assets/docs/scripts, exactHEAD and cleanstatus restored. Existing unfiltered
+smoke/wrapper/catalog SHA values unchanged; stricter2e9floor/100MBbrowserreserve,
+no wait/filter/benign-list changes or concurrent source edits. Sparse restoration
+is not a pass. `full-gate-summary.txt` retains all116statuses plus failure.
+
+Slipstream **console_errors0/failed_reqs0**. OnlyOvo failed:
+`PAGE: Page.goto: Timeout 15000ms exceeded.` on its1.4.5entry waiting for
+DOMContentLoaded. `git diff --name-only 5be686e HEAD -- Games/Ovo` printed nothing:
+its source was unchanged in this scope. No root-cause diagnosis, transient-success
+or timeout-relaxation claim. Prior identicalOvo failures remain historical; this
+failure is not erased by nativeSlipstreampasses. Early gateprogress sampled a
+recent-success excerpt; final complete summary supersedes that incomplete view.
+**No new push was attempted.** Last independentlyverifiedremote5be686e remains
+historical. Next release needs an honestly passing unchangedfull116gate; investigate
+Ovo in its own bounded source/runtime scope, not silently alter unrelated code.
+Hosting still unverified. Current focusedlayout/objective acceptance is local,
+not a successful release or universal gameplay/hardware/rights certification.
