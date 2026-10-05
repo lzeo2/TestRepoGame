@@ -1,0 +1,17 @@
+{
+  "exit": 0,
+  "seconds": 160.51881739601959,
+  "delegation": 20,
+  "commit": "43fa374",
+  "route": "pi --provider openai-codex --model gpt-6-astra --thinking high --no-session --mode json --print",
+  "assistantModelRecords": 39,
+  "actualModels": [
+    {
+      "api": "openai-codex-responses",
+      "provider": "openai-codex",
+      "model": "gpt-6-astra"
+    }
+  ],
+  "logSha256": "23a9aba67ecccdef3aa3b13d69edfce5b02a2ad4e042212f4daf42c4db0f65e3",
+  "scope": "code review only; one own-path document; native acceptance independent"
+}
