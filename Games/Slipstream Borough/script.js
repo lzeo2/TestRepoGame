@@ -131,9 +131,9 @@ function respawn() {
   if (phase === 'run') setPhase('garage');
   respawnRemaining = 0; start(mode);
 }
-function crashFeedback(previous) {
+function crashFeedback() {
   noticeRemaining = 4;
-  $('crashText').textContent = `Crash! −${Math.ceil(previous.hp - run.hp)} body · ${Math.ceil(run.hp)}% remaining. Brake or respawn.`;
+  $('crashText').textContent = `Crash! Body ${Math.ceil(run.hp)}% remaining. Brake or respawn.`;
   $('crashNotice').hidden = false; $('recover').hidden = false;
 }
 function leave() {
@@ -190,21 +190,23 @@ function bootView() { try { view = createView($('viewport')); view.setCamera(cam
 function frame(now) {
   raf = 0; if (document.hidden) return;
   const dt = frameDelta(now, last); last = now;
+  const phaseBeforeFrame = phase;
+  let crashThisFrame = false;
   if (phase === 'run' && !paused && !blocked && view) {
     accumulator += dt;
     try { while (accumulator >= 1 / 60 && phase === 'run') {
       const previous = run; accumulator -= 1 / 60;
       run = core.stepRun(run, input(1 / 60), 1 / 60); queuedDeploy=false;
       if (run.status !== 'running') finish();
-      else if (run.collisions > previous.collisions) crashFeedback(previous);
+      else if (run.collisions > previous.collisions) { crashFeedback(); crashThisFrame = true; }
     } }
     catch (e) { paused = true; io(`Driving stopped: ${e.message}`, true); }
   }
-  if (phase === 'run' && !paused && noticeRemaining > 0) {
+  if (phase === 'run' && !paused && !blocked && view && !crashThisFrame && noticeRemaining > 0) {
     noticeRemaining = Math.max(0, noticeRemaining - dt);
     if (noticeRemaining === 0) $('crashNotice').hidden = true;
   }
-  if (phase === 'end' && respawnRemaining > 0 && !blocked && view && !$('helpDialog').open && !$('resetDialog').open && document.hasFocus()) {
+  if (phaseBeforeFrame === 'end' && phase === 'end' && respawnRemaining > 0 && !blocked && view && !$('helpDialog').open && !$('resetDialog').open && document.hasFocus()) {
     respawnRemaining = Math.max(0, respawnRemaining - dt);
     $('respawnStatus').textContent = respawnRemaining ? `Respawning in ${Math.ceil(respawnRemaining)}…` : 'Respawning…';
     if (respawnRemaining === 0) respawn();
@@ -219,7 +221,7 @@ function phrase(text, fromRadio = false) {
   if (!profile.testMode && next.testMode) { if (save(next)) { feedback('Test mode active. Fleet unlocked and test cash available.'); garageUI(); } }
   else if (fromRadio) feedback('Radio received, cuh. Keep it tidy.');
 }
-const editable = target => target.closest('input,textarea,select,button,[contenteditable="true"]');
+const editable = target => target.closest('input,textarea,select,button,summary,[contenteditable="true"]');
 document.addEventListener('keydown', e => {
   if (e.ctrlKey || e.metaKey || e.altKey || e.isComposing || $('helpDialog').open || $('resetDialog').open) return;
   const key = e.key.toLowerCase(), button = e.target.closest('button');
