@@ -1,0 +1,52 @@
+{
+  "errors": [],
+  "assisted": false,
+  "sourceHashes": {
+    "games.json": "46abe53242524851cfec29681c94d0637aa2b62decb719d6540ac74d4705cf3f",
+    "index.html": "fe31a7c76227f0832b4e72e8493c09e1b83959dd1fd7c576f872b3318dea000e",
+    "scripts/test_slipstream_catalog.py": "366a89a086a971708e0bc7531a9202f72e3d66bf8cc517c7b6c4fd0850b46ab0",
+    "Games/Slipstream Borough/view.js": "5fdb3bb6261d1b761c18c0d1a20cf21b69b3dffbaa707b5c669fee195f83ceb8",
+    "Games/Slipstream Borough/index.html": "8605312d72fc46afac4585530e6ad697f9ec8fb2f6819ebac0f97cba8ee2dc21",
+    "Games/Slipstream Borough/script.js": "b1f66cc6be3ea3501c42f67c1bd3b09d081eba983fee74b0bd624abc167e202d",
+    "Games/Slipstream Borough/core.js": "bb7d6c3ace409d4bf69d3ef09b4d4f4ae2f0f4ad2e3974ff978fc608fb4d3492",
+    "Games/Slipstream Borough/CREDITS.md": "b8fc5ed706e172030156df3bc0f70b6f6e7ed23a5a4d46698629ee9e136db78e",
+    "Games/Slipstream Borough/world.js": "49c78e73c2a22279aac8d4ddfc29522826599249ea78c7f282d675e716a98700",
+    "Games/Slipstream Borough/clock.js": "53033b464d449cd6c5961e8d95c2e8601bf744c86bc3d8ae48da2e62050c12ae",
+    "Games/Slipstream Borough/style.css": "c0511eb5c14334a34f1592ffbc8ffaeb2f3c3a4d654e29155d72fee370c1319d",
+    "assets/car-arcade/storage.js": "50d7705730d77632ac940cfb2fab6d489eb0b4356681eae6cf01c55501bea7c5",
+    "assets/car-arcade/models.js": "4eb18af93270bca5bf5c031d3e74a9b25934784e0cc3782387d3b3655ed695b0",
+    "assets/car-arcade/patrol.js": "22abc6f28bf6cc18cd9610110dd2ce824120131747c895e68511c348e4ceca74",
+    "assets/car-arcade/fleet.js": "4ee5fe5474fb0230b03bf3c96aaf64a85628d0120476110b83f2b617fd73198c",
+    "assets/car-arcade/style.css": "c860363f9d9fb9e572f9e44f6b7a728786c977ff8582c1578e97a98d32ae7ee8",
+    "assets/car-arcade/vendor/BufferGeometryUtils.js": "3a6701d824adfe05dc28c09b6c1d64aeab9a183bc3b944d85f15f596e5c6c2b3",
+    "assets/car-arcade/vendor/three.module.js": "76dea8151bc9352aef3528b4262e249b2604f62543828328db978d060d61a495",
+    "assets/car-arcade/vendor/LICENSE": "852e0e8699169bf9f6fdc6bda3e682d078dcbc738b5d33e74df594721bff271d",
+    "assets/index-CRWHmtoy.js": "87f58eb207d2363ed922e462a5fed10e20e3a3e837a407e177bec45366a60d68",
+    "assets/index-CUsUGgbt.css": "2a193c244541d50d48917ddcf5a9b3461bcbb98a64b9c15b0bb0ee071cffbcb3",
+    "assets/portal-share.png": "bf65bed745a7b0b56c8b3e78186579e6bf65fdc57171c8eef9bace61d4979e94",
+    "assets/portal-polish.css": "0aadf572e1b4b5c94fe3d40766a567283af0d878ddf0c89cc2b80bd6477d8aea",
+    "assets/portal-ux.js": "f2ef29bbc7bf081dcb4349abba0136a34d0dd3c34f58edfedbc9527f4de1c2be"
+  },
+  "observations": [
+    {
+      "viewportWidth": 1280,
+      "launch": "keyboard Enter",
+      "gamePath": "Games/Slipstream Borough/index.html",
+      "frames": 9,
+      "trafficCount": 4,
+      "freshUnassisted": true,
+      "garageFirst": true,
+      "nativeFullscreen": true
+    },
+    {
+      "viewportWidth": 390,
+      "launch": "genuine touch Play",
+      "gamePath": "Games/Slipstream Borough/index.html",
+      "frames": 14,
+      "trafficCount": 4,
+      "freshUnassisted": true,
+      "garageFirst": true,
+      "nativeFullscreen": true
+    }
+  ]
+}

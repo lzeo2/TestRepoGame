@@ -1,0 +1,17 @@
+{
+  "exit": 0,
+  "seconds": 98.56752678798512,
+  "delegation": 21,
+  "commit": "dd149815f14b13cccb8703240c541feb287836a1",
+  "route": "pi --provider openai-codex --model gpt-6-astra --thinking high --no-session --mode json --print",
+  "assistantModelRecords": 36,
+  "actualModels": [
+    {
+      "api": "openai-codex-responses",
+      "provider": "openai-codex",
+      "model": "gpt-6-astra"
+    }
+  ],
+  "logSha256": "4e8c49eb4d42aca9741bf5d18eb16e6b81921ac378df8ea4bde3badc8bdd661c",
+  "scope": "cached model metadata/test only; native acceptance independent"
+}

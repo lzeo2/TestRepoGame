@@ -1,6 +1,8 @@
 # Play-flow audit: Slipstream Borough (Police Chase, Preview)
 
 Historical baseline report: CODE-REVIEW ONLY. No browser run in this source-audit pass; no runtime claims from it. **Newer source continuation** now starts in garage (not the old auto-roam below), folds optional feature panels, uses UA-only phone controls, adds acknowledged one-time Help and actual city architecture; see [current scope](../../slipstream-garage-rework.md) and [focused ordinary native proof/failures](../../slipstream-garage-previews/README.md). Not an all-feature/whole-campaign/physical-device certification.
+**Newest camera continuation:** [actual source/agent/root checks](../../slipstream-camera.md) and [frozen native camera/cockpit receipts](../../slipstream-camera-previews/README.md). dd14981/c1c8b89/603f662 add road-leading wrap-safe chase lag and real live driver-eye cockpit, C/button/touch switch, pause freeze, all16immutable physical metadata with unchanged geometry/cache ownership; final native exit0/209.9010s and portal exit0/77.5665s, ordinary keyboard/touch driving/all3modes/Sprint1200m/no grants. Initial roof-heavy/wall-facing green frames were rejected and retained. Old rigid/parked-only camera and persistent instruction findings below describe the old baseline, not current source. Native starter is not all16earned/physicalphoneFPS/campaign; current release gate/push recorded separately. No full-audit certification from this update.
+
 Baseline: `5be686e`. Inventory: `docs/maintenance/games/225-slipstream-borough.md`.
 Id 225, registered. Owned report only; no code edited.
 
