@@ -144,7 +144,8 @@ for (const [i,car] of CARS.entries()) {
   const fixtureRun = {...run,id:10+i,carId:car.id,world:{x:0,z:0,heading:.7}};
   view.draw(fixtureProfile, fixtureRun);
   const observed = view.inspect().camera;
-  assert.equal(observed.mode, 'cockpit'); assert.equal(observed.near,.025);
+  assert.equal(observed.mode, 'cockpit'); assert.equal(observed.near,.025); assert.equal(observed.fov,70);
+  assert(observed.target[1]<observed.eye[1], 'slight roadward pitch, real driver eye unchanged');
   observed.localEye.forEach((n,j) => assert(Math.abs(n-observed.driverEye[j])<1e-9, `${car.id} physical driver eye`));
   assert.equal(createCar(car.id).getObjectByName('glazing').material.opacity,.38,'player tint never mutates shared/NPC glass');
 }

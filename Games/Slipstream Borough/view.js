@@ -291,7 +291,7 @@ export function createView(host) {
     else camera.setViewOffset(width, height, portraitMenu ? 0 : width * .13, portraitMenu ? height * .23 : 0, width, height);
     const cockpit = !!run && cameraMode === 'cockpit';
     renderedCameraMode = run ? cameraMode : 'garage';
-    const fov = cockpit ? (portraitMenu ? 82 : 70) : 52, near = cockpit ? .025 : .1;
+    const fov = cockpit ? (portraitMenu ? 70 : 58) : 52, near = cockpit ? .025 : .1;
     if (camera.fov !== fov || camera.near !== near) { camera.fov = fov; camera.near = near; camera.updateProjectionMatrix(); }
     privateMaterials[2].opacity = cockpit ? .12 : .38;
     const roam = run?.mode === 'roam', distance = run?.distance || 0;
@@ -356,8 +356,11 @@ export function createView(host) {
     if (cockpit) {
       cameraYaw = yaw;
       player.updateMatrixWorld(true);
-      camera.position.copy(player.localToWorld(desiredEye.fromArray(player.userData.cockpit.eye)));
-      cameraTarget.copy(player.localToWorld(desiredTarget.fromArray(player.userData.cockpit.target)));
+      desiredEye.fromArray(player.userData.cockpit.eye); desiredTarget.fromArray(player.userData.cockpit.target);
+      // A slight roadward pitch reduces roof dominance while keeping the actual driver eye.
+      desiredTarget.y -= (desiredEye.z - desiredTarget.z) * .04;
+      camera.position.copy(player.localToWorld(desiredEye));
+      cameraTarget.copy(player.localToWorld(desiredTarget));
       cameraRun = run.id;
     } else if (run) {
       const snap = cameraRun !== run.id || reducedMotion;

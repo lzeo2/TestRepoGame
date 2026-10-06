@@ -114,15 +114,19 @@ def main():
                 assert state(page)['view']['cityBlocks'] == 36
                 assert state(page)['view']['cityArchitecture']['batches'] <= 12
                 page.keyboard.down('w'); page.keyboard.down('d')
-                try: page.wait_for_function('slipstreamSnapshot.run.world.heading>.25')
-                finally: page.keyboard.up('d')
+                try: page.wait_for_function('slipstreamSnapshot.run.world.heading<-.25')
+                finally: page.keyboard.up('d'); page.keyboard.up('w')
                 turning = state(page)
                 assert abs(turning['view']['camera']['heading']-turning['run']['world']['heading'])>.02, 'camera remains rigidly locked to car'
                 assert .55 < turning['view']['camera']['carScreen'][1] < .9
-                shot(page,'city-turn-chase')
-                before_cockpit = turning['run']['distance']
+                page.keyboard.press('p'); shot(page,'city-turn-chase'); page.keyboard.press('p')
+                # Countersteer back toward the open street; do not drive into a wall for a capture.
+                page.keyboard.down('w'); page.keyboard.down('a')
+                try: page.wait_for_function('slipstreamSnapshot.run.world.heading>=-.02')
+                finally: page.keyboard.up('a')
+                before_cockpit = state(page)['run']['distance']
                 page.keyboard.press('c'); cockpit_ready(page)
-                page.wait_for_function('slipstreamSnapshot.run.distance>10'); page.keyboard.up('w')
+                page.wait_for_function('target=>slipstreamSnapshot.run.distance>target',arg=max(10,before_cockpit+3)); page.keyboard.up('w')
                 assert state(page)['run']['distance'] > before_cockpit + 2, 'cockpit did not drive normally'
                 page.locator('#pause').click(); held = state(page)['run']; page.wait_for_timeout(250)
                 assert state(page)['run'] == held
