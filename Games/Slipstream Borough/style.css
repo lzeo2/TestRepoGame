@@ -16,7 +16,14 @@ main { position: relative; width: 100%; height: 100dvh; max-width: none; isolati
 .launch { display: grid; grid-template-columns: 1fr; gap: 8px; margin-block: 12px; }
 #modeGoal { font-size: 1rem; margin: 0; }
 #start { font-weight: 700; }
-#mode, #gadget, #fitGadget { width: 100%; min-width: 0; }
+#mode, #gadget, #fitGadget, #sandboxCar, #testCar { width: 100%; min-width: 0; }
+#sandboxSetup label, #sandboxTools label { display: block; }
+#sandboxTools { position: fixed; left: 12px; top: 208px; width: min(300px, calc(100% - 24px)); max-height: max(50px, calc(100dvh - 420px)); overflow: auto; overscroll-behavior: contain; padding: 0 10px 8px; border: 1px solid var(--line); border-radius: 6px; background: var(--panel); z-index: 2; }
+#sandboxTools summary { position: sticky; top: 0; background: var(--panel); }
+#sandboxTools label { margin-top: 8px; }
+#sandboxTools input { width: 100%; min-height: 44px; }
+#sandboxTools output { font-weight: 700; }
+#sandboxTools:not([open]) { width: 150px; }
 .orbit-actions { margin-bottom: 12px; }
 details { border-top: 1px solid var(--line); padding-block: 8px; }
 summary { min-height: 44px; display: flex; align-items: center; cursor: pointer; list-style: none; font-weight: 700; }
@@ -62,6 +69,8 @@ html[data-recovery='true'] #result { inset: 50% auto auto 50%; transform: transl
   #hud, #objective { font-size: .85rem; }
   .drive-actions > * { flex: 0 1 auto; }
   #minimap { width: 88px; height: 88px; }
+  #sandboxTools[open] { top: 266px; max-height: max(50px, calc(100dvh - 480px)); }
+  #sandboxTools:not([open]) { width: 138px; }
 }
 @media (max-height: 500px) {
   .game-header h1 { display: none; }
@@ -73,5 +82,6 @@ html[data-recovery='true'] #result { inset: 50% auto auto 50%; transform: transl
   .touch-controls button { min-height: 44px; }
   #deploy { flex-basis: auto; }
   #mapPanel { top: 70px; max-height: max(50px, calc(100dvh - 220px)); }
+  #sandboxTools { top: 108px; max-height: max(50px, calc(100dvh - 258px)); }
   #minimap { width: 88px; height: 88px; }
 }

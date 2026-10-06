@@ -1,7 +1,8 @@
 import assert from 'node:assert/strict';
 import * as core from '../Games/Slipstream Borough/core.js';
 import { blocked, clearPath, nearPath } from '../Games/Slipstream Borough/world.js';
-const stop={steer:0,throttle:0,brake:1}, drive={steer:0,throttle:1,brake:0};
+// Neutral stays stationary; held Brake now deliberately reverses city cars.
+const stop={steer:0,throttle:0,brake:0}, drive={steer:0,throttle:1,brake:0};
 const fresh=()=>core.startRun(core.freshProfile(),'roam');
 const gap=(a,b)=>Math.hypot(a.x-b.x,a.z-b.z);
 const step=(r,input=stop,dt=.05)=>core.stepRun(r,input,dt);
@@ -60,7 +61,7 @@ check('ordinary step player contact / cooldown / armor / passing pays nothing',(
   assert.equal(hit.distance,0);assert.equal(hit.earnings,0);assert.equal(hit.nearMisses,0);
   assert.equal(step(hit,drive).hp,hit.hp);
   const armored=core.upgradeCar({...core.freshProfile(),cash:250},'bricklet','armor');assert(contact(armored).hp>hit.hp);
-  let held=hit;held.world={...held.traffic[0].world};
+  let held=hit;held.world={...held.traffic[0].world};held.speed=0;
   for(let i=0;i<25;i++)held=step(held);assert.equal(held.collisions,2);assert.equal(held.earnings,0);assert.equal(held.nearMisses,0);
   let pass=fresh().run;pass.world={x:-45,z:55,heading:0};pass.speed=20;
   for(let i=0;i<30;i++)pass=step(pass,drive);assert.equal(pass.hp,100);assert.equal(pass.nearMisses,0);assert.equal(pass.earnings,0);

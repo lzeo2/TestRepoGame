@@ -2,7 +2,8 @@ import assert from 'node:assert/strict';
 import * as core from '../Games/Slipstream Borough/core.js';
 import { WORLD, blocked, clearPath, chaseTarget } from '../Games/Slipstream Borough/world.js';
 import { CARS } from '../assets/car-arcade/fleet.js';
-const drive={steer:0,throttle:1,brake:0}, stop={steer:0,throttle:0,brake:1};
+// Neutral stays stationary; held Brake now deliberately reverses city cars.
+const drive={steer:0,throttle:1,brake:0}, stop={steer:0,throttle:0,brake:0};
 let checks=0;
 function check(name,fn){fn();checks++;console.log(`PASS ${name}`);}
 const fresh=()=>core.startRun(core.freshProfile(),'roam');

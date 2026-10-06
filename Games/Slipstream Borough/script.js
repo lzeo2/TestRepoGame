@@ -14,8 +14,25 @@ try { helpSeen = localStorage.getItem(HELP_KEY) === '1'; } catch { helpStorageDe
 let profile, acceptedRaw, blocked = false, phase = 'garage', run = null, paused = false, view = null, cameraChoice = 'chase';
 let raf = 0, last = 0, accumulator = 0, buffer = '', lastHud = 0, resetToken, queuedDeploy=false;
 const held = new Set(), keys = new Set();
-let steering = 0, respawnRemaining = 0, noticeRemaining = 0;
-function clearInput() { held.clear(); keys.clear(); steering = 0; queuedDeploy=false; accumulator = 0; last = 0; }
+let steering = 0, respawnRemaining = 0, noticeRemaining = 0, previousRun = null, renderAlpha = 1, sandboxId = 0;
+let sandboxCar = 'bricklet';
+const sandboxSettings = Object.fromEntries(CARS.map(car => [car.id, { handling: 1, response: 5 }]));
+const sandbox = () => run?.mode === 'sandbox';
+const driveAllowed = () => !blocked || sandbox();
+function clearInput() { held.clear(); keys.clear(); steering = 0; queuedDeploy=false; accumulator = 0; last = 0; previousRun = run; renderAlpha = 1; }
+function sandboxUI() {
+  $('sandboxCar').value = $('testCar').value = sandboxCar;
+  const settings = sandboxSettings[sandboxCar];
+  $('handlingScale').value = settings.handling; $('steerResponse').value = settings.response;
+  $('handlingValue').textContent = `${settings.handling.toFixed(2)}×`;
+  $('responseValue').textContent = `${settings.response}/s`;
+}
+function chooseSandboxCar(id) {
+  if (!Object.hasOwn(BY_ID, id)) return;
+  sandboxCar = id;
+  if (sandbox()) { run = core.startSandbox(id, ++sandboxId); $('cruise').checked = false; clearInput(); }
+  sandboxUI(); updateHud();
+}
 function io(text, error = false) { $('io').textContent = text; $('io').classList.toggle('error', error); }
 function load() {
   const result = loadSave(KEY, core.validateProfile);
@@ -74,6 +91,9 @@ function garageUI() {
 }
 function modeUI() {
   const mode = $('mode').value;
+  $('sandboxSetup').hidden = mode !== 'sandbox';
+  $('start').disabled = !view || blocked && mode !== 'sandbox';
+  if (mode === 'sandbox') { $('modeGoal').textContent = 'All 16 cars. Tune steering; no career saving.'; $('start').textContent = 'Start sandbox'; return; }
   $('modeGoal').textContent = mode === 'roam' ? 'Drive to earn cash and mileage. Park to bank it and unlock more cars.' : mode === 'cutup' ? 'Reach the finish while evading police and traffic. Leaving early pays nothing.' : 'Beat three rivals to the finish. A completed race earns cash and mileage.';
   $('start').textContent = mode === 'roam' ? 'Start city drive' : mode === 'cutup' ? 'Start pursuit' : 'Start race';
 }
@@ -87,6 +107,8 @@ function setPhase(next) {
   respawnRemaining = 0; noticeRemaining = 0; $('crashNotice').hidden = true; $('recover').hidden = true;
   document.documentElement.dataset.recovery = 'false';
   $('mapPanel').hidden = next !== 'run';
+  $('sandboxTools').hidden = next !== 'run' || !sandbox();
+  if (sandbox()) $('mapPanel').open = false;
   $('garage').hidden = next !== 'garage'; $('catalogSection').hidden = next !== 'garage'; $('drive').hidden = next !== 'run'; $('result').hidden = next !== 'end';
   $('garageToggle').hidden = next !== 'garage';
   $('cameraToggle').hidden = next !== 'run';
@@ -96,11 +118,15 @@ function setPhase(next) {
   updateHud();
 }
 function start(mode = $('mode').value) {
-  if (!view || blocked || phase === 'run') return;
+  if (!view || blocked && mode !== 'sandbox' || phase === 'run') return;
   try {
-    const transaction = core.startRun(profile, mode);
-    if (!save(transaction.profile)) { setPhase('garage'); return; }
-    run = transaction.run; setPhase('run'); $('viewport').focus();
+    if (mode === 'sandbox') { run = core.startSandbox(sandboxCar, ++sandboxId); $('cruise').checked = false; }
+    else {
+      const transaction = core.startRun(profile, mode);
+      if (!save(transaction.profile)) { setPhase('garage'); return; }
+      run = transaction.run;
+    }
+    setPhase('run'); $('viewport').focus();
     if (!helpSeen) showHelp();
   } catch (e) { io(e.message, true); }
 }
@@ -108,23 +134,26 @@ function finish() {
   // Only the running -> terminal transition calls settlement. No run is restored from storage.
   if (phase !== 'run' || !run || run.status === 'running') return;
   const terminal = run;
-  try { const next = core.settleRun(profile, terminal); if (!save(next)) io('Run ended but payout was not saved. Reload or reset to resolve storage.', true); }
-  catch (e) { blocked = true; io(`Settlement failed: ${e.message}`, true); }
+  if (!sandbox()) {
+    try { const next = core.settleRun(profile, terminal); if (!save(next)) io('Run ended but payout was not saved. Reload or reset to resolve storage.', true); }
+    catch (e) { blocked = true; io(`Settlement failed: ${e.message}`, true); }
+  }
   setPhase('end');
   const failed = terminal.status === 'busted';
   const cause = terminal.arrest >= 3 ? 'Caught by police' : terminal.hp === 0 ? 'Car wrecked' : 'Time up';
   document.documentElement.dataset.recovery = String(failed);
   $('resultTitle').textContent = failed ? cause : terminal.status === 'finished' ? `Finished ${terminal.place}/4` : terminal.status === 'escaped' ? 'Escaped' : terminal.status === 'parked' ? 'Parked' : 'Busted';
   $('resultText').textContent = `${terminal.score} score / ${terminal.earnings} earned${blocked ? ' (not saved)' : ' and banked'} / ${terminal.nearMisses} near misses. ${blocked ? 'Resolve the save error before driving again.' : terminal.status === 'busted' ? 'Try again or change your setup.' : 'Return to the garage to choose your next drive.'}`;
-  $('retry').disabled = blocked || !view;
+  if (sandbox()) $('resultText').textContent = `${Math.floor(terminal.distance)} m tested. Sandbox: no rewards or career progress saved.`;
+  $('retry').disabled = !driveAllowed() || !view;
   $('retry').textContent = failed ? 'Respawn now' : 'Retry mode';
-  respawnRemaining = failed && !blocked && view ? 3 : 0;
+  respawnRemaining = failed && driveAllowed() && view ? 3 : 0;
   $('respawnStatus').textContent = respawnRemaining ? 'Respawning in 3…' : '';
   if (failed) $('cruise').checked = false;
   $('resultTitle').focus({ preventScroll: true });
 }
 function respawn() {
-  if (!run || blocked || !view || $('helpDialog').open || $('resetDialog').open) return;
+  if (!run || !driveAllowed() || !view || $('helpDialog').open || $('resetDialog').open) return;
   const mode = run.mode;
   $('cruise').checked = false;
   // A bump restart abandons the unfinished run unpaid; terminal payout already settled once.
@@ -145,27 +174,30 @@ function leave() {
 }
 function input(dt = 0) { const left = held.has('left') || keys.has('a') || keys.has('arrowleft'), right = held.has('right') || keys.has('d') || keys.has('arrowright'); const brake = +(held.has('brake') || keys.has('s') || keys.has('arrowdown')); const target = +right - +left;
   if (target === 0) steering = 0;
-  else if (dt > 0) steering += Math.max(-dt * 5, Math.min(dt * 5, target - steering));
-  return { steer: steering, throttle: brake ? 0 : +($('cruise').checked || held.has('gas') || keys.has('w') || keys.has('arrowup')), brake,deploy:queuedDeploy }; }
+  else if (dt > 0) { const response = run?.mode === 'sandbox' ? sandboxSettings[run.carId].response : 5; steering += Math.max(-dt * response, Math.min(dt * response, target - steering)); }
+  return { steer: steering, throttle: brake ? 0 : +($('cruise').checked || held.has('gas') || keys.has('w') || keys.has('arrowup')), brake,deploy:queuedDeploy, ...(run?.mode === 'sandbox' ? { handling: sandboxSettings[run.carId].handling } : {}) }; }
 function deploy() {
   if(phase==='run'&&!paused&&!blocked&&run.mode!=='race'&&run.charges>0&&run.gadgetCooldown===0)queuedDeploy=true;
 }
 function updateHud() {
   $('hud').hidden = phase !== 'run';
   if (run) {
-    const activity = run.mode === 'roam' ? (run.pursuit === 'chased' ? `Chase · escape ${run.escapeClock.toFixed(1)}/6s` : 'City · exploring') : run.mode === 'race' ? `Sprint · ${run.place}/4` : `Cutup · heat ${run.heat.toFixed(1)}`;
+    const activity = sandbox() ? `Sandbox · ${BY_ID[run.carId].name}` : run.mode === 'roam' ? (run.pursuit === 'chased' ? `Chase · escape ${run.escapeClock.toFixed(1)}/6s` : 'City · exploring') : run.mode === 'race' ? `Sprint · ${run.place}/4` : `Cutup · heat ${run.heat.toFixed(1)}`;
     $('activity').textContent = paused ? 'Paused' : activity;
     const getMoving = phone ? 'Hold Gas' : 'Hold W / Up';
-    const goal = run.mode === 'roam' ? (run.pursuit === 'chased' ? 'Lose the police: stay 75 m away for 6 seconds.' : `${run.distance < 10 ? getMoving + ' to move. ' : ''}Explore, then Park to bank cash and mileage.`) : run.mode === 'race' ? `Beat three rivals. Finish at ${run.finishDistance} m.` : `Evade police and traffic. Reach ${run.finishDistance} m to earn your payout.`;
+    const goal = sandbox() ? `Tune steering in Test settings. No saving. Hold ${phone ? 'Reverse' : 'S / Down'} to back up.` : run.mode === 'roam' ? (run.pursuit === 'chased' ? 'Lose the police: stay 75 m away for 6 seconds.' : `${run.distance < 10 ? getMoving + ' to move. ' : ''}Explore, then Park to bank cash and mileage.`) : run.mode === 'race' ? `Beat three rivals. Finish at ${run.finishDistance} m.` : `Evade police and traffic. Reach ${run.finishDistance} m to earn your payout.`;
     const objective = paused ? 'Resume to keep driving, or return to the garage.' : goal;
     if ($('objective').textContent !== objective) $('objective').textContent = objective;
-    $('speed').textContent = `${Math.round(run.speed * 3.6)} km/h`;
+    $('speed').textContent = `${run.speed < 0 ? 'R ' : ''}${Math.round(Math.abs(run.speed) * 3.6)} km/h`;
     $('body').textContent = `Body ${Math.ceil(run.hp)}%`;
-    $('distance').textContent = `${Math.floor(run.distance)}${run.mode === 'roam' ? ' m' : ` / ${run.finishDistance} m`}`;
-    $('score').textContent = `Score ${run.score}`;
+    $('distance').textContent = `${Math.floor(run.distance)}${run.mode === 'roam' || sandbox() ? ' m' : ` / ${run.finishDistance} m`}`;
+    $('score').textContent = sandbox() ? 'Unbanked test' : `Score ${run.score}`;
   }
   $('leave').textContent = run?.mode === 'roam' ? 'Park' : 'Garage';
-  $('leave').setAttribute('aria-label', run?.mode === 'roam' ? 'Park and bank this city drive' : 'Abandon this highway drive unpaid');
+  $('leave').setAttribute('aria-label', run?.mode === 'roam' ? 'Park and bank this city drive' : sandbox() ? 'Leave sandbox without saving' : 'Abandon this highway drive unpaid');
+  const reverse = run?.mode === 'roam' || sandbox(), brakeButton = document.querySelector('[data-drive="brake"]');
+  brakeButton.textContent = reverse ? 'Reverse' : 'Brake';
+  brakeButton.setAttribute('aria-label', reverse ? 'Brake, then reverse' : 'Brake');
   const available = run && run.mode !== 'race' && run.gadget !== 'none';
   const kit = run ? core.GADGETS[run.gadget] : null;
   $('kitStatus').hidden = !available;
@@ -174,9 +206,9 @@ function updateHud() {
   $('deploy').disabled = paused || blocked || !run || run.charges === 0 || run.gadgetCooldown > 0;
   $('deploy').textContent = kit ? `Deploy ${kit.name}` : 'Deploy';
   if (phase === 'run' && $('mapPanel').open) drawMap($('minimap'), run);
-  if (run) $('mapInfo').textContent = run.mode === 'roam' ? `North-up city map. You at ${Math.round(run.world.x)}, ${Math.round(run.world.z)}. ${run.police.length} police nearby.` : `Highway map. ${Math.floor(run.distance)} of ${run.finishDistance} metres. ${run.police.length} police, ${run.rivals.length} rivals.`;
+  if (run) $('mapInfo').textContent = run.mode === 'roam' || sandbox() ? `North-up city map. You at ${Math.round(run.world.x)}, ${Math.round(run.world.z)}. ${run.police.length} police nearby.` : `Highway map. ${Math.floor(run.distance)} of ${run.finishDistance} metres. ${run.police.length} police, ${run.rivals.length} rivals.`;
 }
-function pause() { if (phase !== 'run' || blocked && paused) return; paused = !paused; clearInput(); $('pause').textContent = paused ? 'Resume' : 'Pause'; updateHud(); }
+function pause() { if (phase !== 'run' || !driveAllowed() && paused) return; paused = !paused; clearInput(); $('pause').textContent = paused ? 'Resume' : 'Pause'; updateHud(); }
 function renderFailure(e) { if (view) { view.dispose(); view = null; } paused = true; clearInput(); $('renderError').hidden = false; $('renderError').firstChild.textContent = `3D unavailable: ${e.message}. `; $('start').disabled = true; }
 function cameraUI() {
   $('cameraToggle').textContent = cameraChoice === 'chase' ? 'Cockpit' : 'Chase view';
@@ -193,26 +225,27 @@ function frame(now) {
   const dt = frameDelta(now, last); last = now;
   const phaseBeforeFrame = phase;
   let crashThisFrame = false;
-  if (phase === 'run' && !paused && !blocked && view) {
+  if (phase === 'run' && !paused && driveAllowed() && view) {
     accumulator += dt;
     try { while (accumulator >= 1 / 60 && phase === 'run') {
-      const previous = run; accumulator -= 1 / 60;
+      const previous = run; previousRun = run; accumulator -= 1 / 60;
       run = core.stepRun(run, input(1 / 60), 1 / 60); queuedDeploy=false;
       if (run.status !== 'running') finish();
       else if (run.collisions > previous.collisions) { crashFeedback(); crashThisFrame = true; }
     } }
     catch (e) { paused = true; io(`Driving stopped: ${e.message}`, true); }
+    if (phase === 'run' && !paused) renderAlpha = accumulator / (1 / 60);
   }
-  if (phase === 'run' && !paused && !blocked && view && !crashThisFrame && noticeRemaining > 0) {
+  if (phase === 'run' && !paused && driveAllowed() && view && !crashThisFrame && noticeRemaining > 0) {
     noticeRemaining = Math.max(0, noticeRemaining - dt);
     if (noticeRemaining === 0) $('crashNotice').hidden = true;
   }
-  if (phaseBeforeFrame === 'end' && phase === 'end' && respawnRemaining > 0 && !blocked && view && !$('helpDialog').open && !$('resetDialog').open && document.hasFocus()) {
+  if (phaseBeforeFrame === 'end' && phase === 'end' && respawnRemaining > 0 && driveAllowed() && view && !$('helpDialog').open && !$('resetDialog').open && document.hasFocus()) {
     respawnRemaining = Math.max(0, respawnRemaining - dt);
     $('respawnStatus').textContent = respawnRemaining ? `Respawning in ${Math.ceil(respawnRemaining)}…` : 'Respawning…';
     if (respawnRemaining === 0) respawn();
   }
-  if (view) try { view.draw(profile, run, phase === 'run' ? input().steer : 0, phase === 'run' && !paused && !blocked ? dt : 0); } catch (e) { renderFailure(e); }
+  if (view) try { view.draw(profile, run, phase === 'run' ? input().steer : 0, phase === 'run' && !paused && driveAllowed() ? dt : 0, previousRun, renderAlpha); } catch (e) { renderFailure(e); }
   if (now - lastHud > 160) { updateHud(); lastHud = now; }
   raf = requestAnimationFrame(frame);
 }
@@ -247,6 +280,14 @@ $('gadget').onchange=equipmentUI;
 $('equipment').onsubmit=e=>{e.preventDefault();action(()=>core.fitGadget(profile,profile.selected,$('gadget').value));};
 $('deploy').onclick=deploy;
 $('cruise').onchange = () => { clearInput(); $('viewport').focus(); };
+for (const id of ['sandboxCar', 'testCar']) {
+  for (const car of CARS) { const option = document.createElement('option'); option.value = car.id; option.textContent = car.name; $(id).append(option); }
+  $(id).onchange = () => chooseSandboxCar($(id).value);
+}
+$('handlingScale').oninput = () => { sandboxSettings[sandboxCar].handling = $('handlingScale').valueAsNumber; sandboxUI(); };
+$('steerResponse').oninput = () => { sandboxSettings[sandboxCar].response = $('steerResponse').valueAsNumber; sandboxUI(); };
+$('restoreHandling').onclick = () => { sandboxSettings[sandboxCar] = { handling: 1, response: 5 }; sandboxUI(); };
+$('sandboxTools').ontoggle = () => { if ($('sandboxTools').open) $('mapPanel').open = false; };
 $('mode').onchange = modeUI;
 $('cameraToggle').onclick = toggleCamera;
 $('garageToggle').onclick = () => {
@@ -257,7 +298,7 @@ $('garageToggle').onclick = () => {
   if ($('garage').hidden) $('viewport').focus(); else $('start').focus();
 };
 $('recover').onclick = respawn;
-$('mapPanel').ontoggle = updateHud;
+$('mapPanel').ontoggle = () => { if ($('mapPanel').open && sandbox()) $('sandboxTools').open = false; updateHud(); };
 $('start').onclick = () => start(); $('retry').onclick = () => respawnRemaining > 0 || document.documentElement.dataset.recovery === 'true' ? respawn() : start(run?.mode || $('mode').value); $('pause').onclick = pause;
 $('leave').onclick = $('garageButton').onclick = leave;
 $('orbitLeft').onclick = () => view?.turn(-.3); $('orbitRight').onclick = () => view?.turn(.3);
@@ -273,7 +314,7 @@ $('closeHelp').onclick = () => $('helpDialog').close();
 $('helpDialog').addEventListener('close', () => {
   helpSeen = true;
   try { localStorage.setItem(HELP_KEY, '1'); } catch { helpStorageDenied = true; }
-  if (resumeHelp && phase === 'run' && paused && !blocked && view) pause();
+  if (resumeHelp && phase === 'run' && paused && driveAllowed() && view) pause();
   resumeHelp = false;
   $('viewport').focus();
 });
@@ -294,6 +335,6 @@ $('confirmReset').onclick = () => {
 };
 $('renderRetry').onclick = bootView;
 function freeze(value) { if (value && typeof value === 'object') { Object.values(value).forEach(freeze); Object.freeze(value); } return value; }
-Object.defineProperty(window, 'slipstreamSnapshot', { get: () => freeze(structuredClone({ phase, paused, phone, helpSeen, helpStorageDenied, respawnRemaining, steering, profile, run, view: view?.inspect() || null })) });
+Object.defineProperty(window, 'slipstreamSnapshot', { get: () => freeze(structuredClone({ phase, paused, phone, helpSeen, helpStorageDenied, respawnRemaining, steering, sandboxCar, sandboxSettings, profile, run, view: view?.inspect() || null })) });
 window.addEventListener('pagehide', () => { cancelAnimationFrame(raf); clearInput(); view?.dispose(); view = null; });
-load(); bootView(); setPhase('garage'); raf = requestAnimationFrame(frame);
+load(); sandboxCar = profile.selected; sandboxUI(); bootView(); setPhase('garage'); raf = requestAnimationFrame(frame);

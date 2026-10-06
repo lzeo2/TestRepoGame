@@ -4,14 +4,14 @@ import { WORLD } from './world.js';
 export function mapPoint(run, x, z, size = 144) {
   const margin = 8, span = size - margin * 2;
   const clip = n => Math.max(margin, Math.min(size - margin, n));
-  return run.mode === 'roam' ? [clip(size / 2 + x / (WORLD.limit * 2) * span), clip(size / 2 + z / (WORLD.limit * 2) * span)] :
+  return ['roam', 'sandbox'].includes(run.mode) ? [clip(size / 2 + x / (WORLD.limit * 2) * span), clip(size / 2 + z / (WORLD.limit * 2) * span)] :
     [clip(size / 2 + x * span / 18), clip(size * .78 - (z - run.distance) * span / 320)];
 }
 export function drawMap(canvas, run) {
   const ctx = canvas.getContext('2d'), size = canvas.width;
   ctx.fillStyle = '#ece8dc'; ctx.fillRect(0, 0, size, size);
-  const point = (x, z) => mapPoint(run, x, z, size);
-  if (run.mode === 'roam') {
+  const point = (x, z) => mapPoint(run, x, z, size), city = ['roam', 'sandbox'].includes(run.mode);
+  if (city) {
     ctx.fillStyle = '#9c9485';
     for (const b of WORLD.blocks) {
       const a = point(b.x - b.width / 2, b.z - b.depth / 2), c = point(b.x + b.width / 2, b.z + b.depth / 2);
@@ -28,13 +28,13 @@ export function drawMap(canvas, run) {
   for (const [type, color] of [['traffic', '#326b89'], ['police', '#b34732'], ['rivals', '#746130']]) {
     ctx.fillStyle = color;
     for (const e of run[type]) {
-      const [x, y] = point(run.mode === 'roam' ? e.world.x : e.x, run.mode === 'roam' ? e.world.z : e.distance);
+      const [x, y] = point(city ? e.world.x : e.x, city ? e.world.z : e.distance);
       if (type === 'police') ctx.fillRect(x - 3, y - 3, 6, 6);
       else { ctx.beginPath(); ctx.arc(x, y, 2.5, 0, Math.PI * 2); ctx.fill(); }
     }
   }
-  const [x, y] = point(run.mode === 'roam' ? run.world.x : run.x, run.mode === 'roam' ? run.world.z : run.distance);
-  ctx.save(); ctx.translate(x, y); ctx.rotate(run.mode === 'roam' ? -run.world.heading : 0);
+  const [x, y] = point(city ? run.world.x : run.x, city ? run.world.z : run.distance);
+  ctx.save(); ctx.translate(x, y); ctx.rotate(city ? -run.world.heading : 0);
   ctx.fillStyle = '#111'; ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.5;
   ctx.beginPath(); ctx.moveTo(0, -6); ctx.lineTo(4, 4); ctx.lineTo(-4, 4); ctx.closePath(); ctx.fill(); ctx.stroke(); ctx.restore();
 }
