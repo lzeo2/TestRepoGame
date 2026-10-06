@@ -1,0 +1,70 @@
+[
+  {
+    "delegation": 22,
+    "commit": "b989840",
+    "ownedPaths": [
+      "Games/Slipstream Borough/core.js",
+      "scripts/test_slipstream_steering.mjs"
+    ],
+    "process": {
+      "exit": 0,
+      "seconds": 141.56270086497534
+    },
+    "actualAssistantRecords": 39,
+    "identities": [
+      [
+        "openai-codex-responses",
+        "openai-codex",
+        "gpt-6-astra"
+      ]
+    ],
+    "requestedThinking": "high",
+    "logBasename": "slipstream-steering.log",
+    "logSHA256": "7a7fbb2fab6ed43907174b04bb746b3aefb0386b84b95550e151355f98c5b704"
+  },
+  {
+    "delegation": 23,
+    "commit": "470156b",
+    "ownedPaths": [
+      "assets/car-arcade/models.js",
+      "scripts/test_car_arcade_models.mjs"
+    ],
+    "process": {
+      "exit": 0,
+      "seconds": 140.61730013997294
+    },
+    "actualAssistantRecords": 42,
+    "identities": [
+      [
+        "openai-codex-responses",
+        "openai-codex",
+        "gpt-6-astra"
+      ]
+    ],
+    "requestedThinking": "high",
+    "logBasename": "slipstream-live-cars.log",
+    "logSHA256": "04f6740411395bdd9d1195479d6b6b15f075d2f4d72f5a30aa79f0e53a6d0b94"
+  },
+  {
+    "delegation": 24,
+    "commit": "a9a3697",
+    "ownedPaths": [
+      "docs/slipstream-handling-review.md"
+    ],
+    "process": {
+      "exit": 0,
+      "seconds": 150.641023883014
+    },
+    "actualAssistantRecords": 30,
+    "identities": [
+      [
+        "openai-codex-responses",
+        "openai-codex",
+        "gpt-6-astra"
+      ]
+    ],
+    "requestedThinking": "high",
+    "logBasename": "slipstream-handling-review.log",
+    "logSHA256": "8fdbc8b0e9d7a3bdce4461f102d56bf80ae542ddbc2bb448e3ecd24476b6adea"
+  }
+]

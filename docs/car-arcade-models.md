@@ -1,5 +1,9 @@
 # Car arcade fleet/model source checkpoint
 
+## Current live-model refinement
+
+Owner-authorized existing-car continuation `470156b`, genuine completed Astra23/high (42actual assistant API/provider/model records,0/140.6173s); [scope and machine receipt](slipstream-handling.md). Cached original16 bodies/lamp housings/fenders/dashboard/vents/decorative gauge needles/console refined; not the parked showroom/OEM art. **Geometry changed**:6456–6936triangles/7draws/four buffers, new pinned fingerprint `c685193001c23d29e141f8403cf93f5cf95ceb1fcd7e1c4dcf7e5999e0c9e463`. Immutable physical cockpit metadata from earlierdd14981 remains; true driver-eye/windshield rays at58°/70°/near.025m pass all16. Three cache cycles249resources exactly once, retained ownership/ABI/finite buffers/four grounded wheels. Patrol inherits new Lantern:6772triangles/10draws/one256×64map65536baseRGBAbytes; its owned-resource contract unchanged. Parked26-study/showroom/fleet/vendor bytes unchanged, independent regression passes. Current9a3b11f real Slipstream starter/NPC/cockpit/phone plus fresh Garage preview render locally with no errors; not all16 natural acquisition, Garage reset/business, live instruments or physical-device FPS proof. Original checkpoint and budgets below are historical, not the refined geometry fingerprint.
+
 Task #98, Anonymous Arcade Worker <>, parent `a48a38630fd29df505c0701dee5bc80cc858ad23`.
 Session log basename: `2026-10-02T12-48-38-942Z_01a0fca8-d819-77e1-9f92-81e2b43c2c12.jsonl`.
 Model environment reported `gpt-6-astra`. Source and test are committed together

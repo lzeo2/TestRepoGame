@@ -1,0 +1,44 @@
+{
+  "errors": [],
+  "assisted": false,
+  "sourceHashes": {
+    "Games/Slipstream Borough/view.js": "b45614e0d7036cc157ad3063f45505a39c7f38b1d5460c4da9157febb31bbbb2",
+    "Games/Slipstream Borough/index.html": "3f521ddaa46edf641fbd26ef04f40f67855218b831b0154bf238ea2fc441d8b1",
+    "Games/Slipstream Borough/script.js": "1685271c4d915f563646b708c31ff24c7807afcfd35e0b094b283cb782866155",
+    "Games/Slipstream Borough/core.js": "1f312f26da39f0a6b3b9554b9453180a1e2575b4c4d1435911020e5696121c11",
+    "Games/Slipstream Borough/CREDITS.md": "b8fc5ed706e172030156df3bc0f70b6f6e7ed23a5a4d46698629ee9e136db78e",
+    "Games/Slipstream Borough/world.js": "49c78e73c2a22279aac8d4ddfc29522826599249ea78c7f282d675e716a98700",
+    "Games/Slipstream Borough/clock.js": "53033b464d449cd6c5961e8d95c2e8601bf744c86bc3d8ae48da2e62050c12ae",
+    "Games/Slipstream Borough/map.js": "37e140e7ff5199c315f1aab77c1b02e003f6e0c90aeeb6e4d5ed118a29a13b3d",
+    "Games/Slipstream Borough/style.css": "9863318bdf136a5fff1a0d03e3b228a7a3e30f600859c349eb8eff487c4468bf",
+    "scripts/test_slipstream_modes.py": "3ce73ba941074782659c51926957570c12f9278674a7606780b46eb0ba536352",
+    "assets/car-arcade/models.js": "57d65ecb57e545a0cf521106ddaca62edde1edb966f920b35d046c63ca4f00b8"
+  },
+  "observations": [
+    {
+      "ordinaryModes": [
+        "roam",
+        "cutup",
+        "race"
+      ],
+      "cityBanked": 20,
+      "sprintResult": "finished",
+      "sprintMeters": 1200,
+      "sprintWallSeconds": 65.4675045729382,
+      "cash": 940,
+      "garageReloadUnchanged": true
+    },
+    {
+      "genuineTouchGas": true,
+      "phoneUserAgent": true,
+      "layouts": [
+        390,
+        320,
+        844
+      ],
+      "physicalCockpit": true,
+      "switch": "native C/button/touch",
+      "turnLagRadians": 0.11169344952565774
+    }
+  ]
+}

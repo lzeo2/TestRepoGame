@@ -1,0 +1,42 @@
+{
+  "head": "9a3b11fc967c1fd098b76be67b22e3e573804031",
+  "sharedModelHash": "57d65ecb57e545a0cf521106ddaca62edde1edb966f920b35d046c63ca4f00b8",
+  "errors": [],
+  "assisted": false,
+  "observation": {
+    "phase": "start",
+    "paused": true,
+    "business": {
+      "version": 1,
+      "cash": 800,
+      "inventory": [],
+      "bays": 1,
+      "staff": 0,
+      "reputation": 0,
+      "sales": 0,
+      "elapsed": 0,
+      "rentClock": 0,
+      "customerClock": 0,
+      "customers": [
+        {
+          "uid": 1,
+          "style": "compact",
+          "minCondition": 70,
+          "expiresAt": 45
+        }
+      ],
+      "nextUid": 2,
+      "status": "playing",
+      "achieved": false
+    },
+    "view": {
+      "triangles": 9452,
+      "drawCalls": 26,
+      "dpr": 1,
+      "ownedCars": 0,
+      "selectedCar": "bricklet",
+      "angle": -0.5
+    }
+  },
+  "scope": "Fresh original Garage Borough preview only. No reset/business/win/gameplay acceptance."
+}
