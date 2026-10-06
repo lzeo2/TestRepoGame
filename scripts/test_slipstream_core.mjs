@@ -28,7 +28,7 @@ function runToEnd(run, controller, limit = 4802) {
 const centerDrive = r => ({ ...drive, steer: Math.abs(r.x) < 0.06 ? 0 : Math.sign(-r.x) });
 
 check('exact exports / fresh profile / canonical reload', () => {
-  assert.deepEqual(Object.keys(core).sort(), ['freshProfile', 'validateProfile', 'startRun', 'stepRun', 'settleRun', 'buyCar', 'selectCar', 'upgradeCar', 'upgradeCost', 'applyCode', 'carStats', 'GADGETS', 'CAR_UNLOCKS', 'parkRun', 'customizeCar', 'fitGadget'].sort());
+  assert.deepEqual(Object.keys(core).sort(), ['freshProfile', 'validateProfile', 'startRun', 'startSandbox', 'stepRun', 'settleRun', 'buyCar', 'selectCar', 'upgradeCar', 'upgradeCost', 'applyCode', 'carStats', 'GADGETS', 'CAR_UNLOCKS', 'parkRun', 'customizeCar', 'fitGadget'].sort());
   const p = freshProfile(); assert.equal(p.cash, 0); assert.equal(p.testMode, false); assert.deepEqual(p.owned, ['bricklet']);
   assert.deepEqual(validateProfile(JSON.parse(JSON.stringify(p))), p);
   assert.deepEqual(validateProfile({ ...p, upgrades: {} }), p);

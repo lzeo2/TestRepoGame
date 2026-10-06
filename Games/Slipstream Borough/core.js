@@ -181,10 +181,20 @@ export function startRun(profile, mode) {
   }
   return { profile: p, run };
 }
+// Temporary profile only: no real reservation, unlock grant or persistence.
+export function startSandbox(carId, runId = 1) {
+  car(carId); number(runId, 1, COUNTER - 1, true);
+  const p = freshProfile();
+  if(carId!=='bricklet'){p.owned.push(carId);p.upgrades[carId]=zeroLevels();p.customizations[carId]=stockCustom(carId);}
+  p.selected=carId;p.nextRun=runId;
+  const {run}=startRun(p,'roam');
+  Object.assign(run,{mode:'sandbox',traffic:[],nextEntity:1});
+  return checkRun(run);
+}
 function totals(run) {
   const score = Math.min(MONEY, Math.floor(run.distance * 2) + run.nearMisses * 100);
   let earnings = 0;
-  if (run.status !== 'running') {
+  if (run.mode !== 'sandbox' && run.status !== 'running') {
     const prize = run.status === 'finished' ? [0, 400, 220, 120, 60][run.place] : run.status === 'escaped' ? 180 : 0;
     earnings = Math.min(MONEY, Math.floor(run.distance * 0.32) + run.nearMisses * 30 + prize);
   }
@@ -196,7 +206,7 @@ function checkRun(raw) {
   if(raw.appearance.stripe!==null)color(raw.appearance.stripe);boolean(raw.appearance.spoiler);
   pose(raw.world);record(raw.gadgetTarget,['x','z']);number(raw.gadgetTarget.x,-WORLD.limit,WORLD.limit);number(raw.gadgetTarget.z,-WORLD.limit,WORLD.limit);
   number(raw.escapeClock,0,6);if(!['roaming','chased'].includes(raw.pursuit))throw new RangeError('Invalid pursuit');
-  if(raw.mode==='roam'&&blocked(raw.world.x,raw.world.z))throw new RangeError('Blocked pose');
+  if((raw.mode==='roam'||raw.mode==='sandbox')&&blocked(raw.world.x,raw.world.z))throw new RangeError('Blocked pose');
   if(raw.mode==='race'&&raw.pursuit!=='roaming'||raw.mode==='cutup'&&raw.pursuit!=='chased')throw new RangeError('Invalid pursuit mode');
   const kit=gadget(raw.gadget), capacity=raw.mode!=='race'?kit.charges:0;
   number(raw.charges,0,capacity,true);number(raw.deployments,0,capacity,true);
@@ -205,11 +215,11 @@ function checkRun(raw) {
   const stats = effective(raw.carId, raw.upgrades);
   for (const key of STAT_KEYS) if (raw.stats[key] !== stats[key]) throw new RangeError('Invalid vehicle stats');
   number(raw.id, 1, COUNTER - 1, true); number(raw.level, 0, 12, true);
-  if (!['cutup', 'race', 'roam'].includes(raw.mode) || !['running', 'escaped', 'busted', 'finished', 'parked'].includes(raw.status)) throw new RangeError('Invalid run');
-  if (raw.finishDistance !== (raw.mode==='roam'?100000:1200 + 150 * raw.level)) throw new RangeError('Invalid endpoint');
+  if (!['cutup', 'race', 'roam', 'sandbox'].includes(raw.mode) || !['running', 'escaped', 'busted', 'finished', 'parked'].includes(raw.status)) throw new RangeError('Invalid run');
+  if (raw.finishDistance !== (raw.mode==='roam'||raw.mode==='sandbox'?100000:1200 + 150 * raw.level)) throw new RangeError('Invalid endpoint');
   number(raw.elapsed, 0, MAX_TIME); number(raw.distance, 0, raw.finishDistance);
   if (raw.distance > stats.speed * (raw.gadget==='boost'?1.35:1) * raw.elapsed + 1e-7) throw new RangeError('Impossible distance');
-  number(raw.speed, 0, stats.speed * (raw.gadget==='boost'&&raw.gadgetTime>0?1.35:1)); number(raw.x, -6.2, 6.2); number(raw.hp, 0, 100); number(raw.heat, 0, 5);
+  number(raw.speed, raw.mode==='roam'||raw.mode==='sandbox'?-6:0, stats.speed * (raw.gadget==='boost'&&raw.gadgetTime>0?1.35:1)); number(raw.x, -6.2, 6.2); number(raw.hp, 0, 100); number(raw.heat, 0, 5);
   number(raw.place, 1, 4, true); number(raw.seed, 0, 4294967295, true); number(raw.nextEntity, 1, 10000, true);
   number(raw.spawnClock, 0, 10); number(raw.collisionCooldown, 0, 1.2); number(raw.nearMisses, 0, raw.nextEntity - 1, true); number(raw.collisions, 0, 1000, true); number(raw.arrest, 0, 3);
   if (raw.finishTime !== null) number(raw.finishTime, raw.finishDistance / (stats.speed*(raw.gadget==='boost'?1.35:1)) - 1e-7, raw.elapsed);
@@ -226,6 +236,7 @@ function checkRun(raw) {
       if (key === 'rivals' && (e.distance > raw.finishDistance || (e.distance === raw.finishDistance) !== (e.finishTime !== null))) throw new RangeError('Invalid rival finish');
     }
   }
+  if(raw.mode==='sandbox' && (raw.traffic.length||raw.police.length||raw.rivals.length||raw.heat||raw.arrest||raw.nearMisses||raw.earnings||raw.level||raw.escapeClock||raw.gadget!=='none'||raw.gadgetHeld||raw.pursuit!=='roaming'||raw.finishTime!==null||raw.nextEntity!==1||raw.spawnClock!==0||raw.gadgetTarget.x!==0||raw.gadgetTarget.z!==0||!['running','busted'].includes(raw.status)))throw new RangeError('Invalid sandbox state');
   if ((raw.mode === 'race' && (raw.rivals.length !== 3 || raw.police.length || raw.heat)) || (raw.mode === 'cutup' && raw.rivals.length)) throw new RangeError('Invalid mode entities');
   if (raw.status === 'running' && (raw.hp === 0 || raw.distance === raw.finishDistance || raw.elapsed === MAX_TIME || raw.arrest === 3 || raw.finishTime !== null)) throw new RangeError('Invalid running state');
   if(raw.mode==='roam'&&(raw.nearMisses||raw.rivals.length||raw.pursuit==='roaming'&&raw.police.length||raw.pursuit==='chased'&&!raw.police.length))throw new RangeError('Invalid city entities');
@@ -272,8 +283,8 @@ function stepCityTraffic(r,dt) {
 }
 function stepCity(r,input,dt) {
   // Preserve tight low-speed turns; blend to a bounded, upgrade-sensitive highway-speed yaw.
-  const blend=clamp((r.speed-5)/15,0,1), handling=r.stats.handling;
-  const yaw=handling*Math.min(r.speed,5)*.05*(1-blend)+1.1*handling/(handling+2)*blend;
+  const speed=Math.abs(r.speed), blend=clamp((speed-5)/15,0,1), handling=r.stats.handling*(input.handling??1);
+  const yaw=Math.sign(r.speed)*(handling*Math.min(speed,5)*.05*(1-blend)+1.1*handling/(handling+2)*blend);
   const heading=r.world.heading-input.steer*yaw*dt;
   r.world.heading=Math.atan2(Math.sin(heading),Math.cos(heading));
   const next={x:r.world.x-Math.sin(r.world.heading)*r.speed*dt,z:r.world.z-Math.cos(r.world.heading)*r.speed*dt};
@@ -281,6 +292,10 @@ function stepCity(r,input,dt) {
   if(contact){damage(r);r.speed*=.56;contact.hit=true;}
   else if(clearPath(r.world,next)){r.distance+=Math.hypot(next.x-r.world.x,next.z-r.world.z);Object.assign(r.world,next);}
   else {damage(r);r.speed*=.3;}
+  if(r.mode==='sandbox') {
+    if(r.hp===0||r.elapsed===MAX_TIME)r.status='busted';
+    return;
+  }
   stepCityTraffic(r,dt);
   if(r.pursuit==='roaming'&&(r.elapsed>=20&&r.distance>=30||r.heat>0))startChase(r);
   for(const cop of r.police){
@@ -294,7 +309,7 @@ function stepCity(r,input,dt) {
     if(Math.hypot(cop.world.x-r.world.x,cop.world.z-r.world.z)<4){damage(r);r.speed*=.8;cop.hit=true;}
   }
   const close=r.police.some(c=>Math.hypot(c.world.x-r.world.x,c.world.z-r.world.z)<9&&!disrupted(r,c));
-  r.arrest=clamp(r.arrest+(close&&r.speed<5?dt:-dt*.5),0,3);
+  r.arrest=clamp(r.arrest+(close&&Math.abs(r.speed)<5?dt:-dt*.5),0,3);
   const distant=r.pursuit==='chased'&&r.police.every(c=>Math.hypot(c.world.x-r.world.x,c.world.z-r.world.z)>=75);
   r.escapeClock=distant?Math.min(6,r.escapeClock+dt):0;
   if(r.hp===0||r.arrest===3||r.elapsed===MAX_TIME)r.status='busted';
@@ -308,7 +323,8 @@ export function parkRun(run) {
 
 export function stepRun(run, input, dt) {
   const r = checkRun(run);
-  record(input, ['steer', 'throttle', 'brake', 'deploy'], ['steer', 'throttle', 'brake']);
+  record(input, r.mode==='sandbox'?['steer', 'throttle', 'brake', 'deploy', 'handling']:['steer', 'throttle', 'brake', 'deploy'], ['steer', 'throttle', 'brake']);
+  if(Object.hasOwn(input,'handling'))number(input.handling,.25,2);
   if(Object.hasOwn(input,'deploy'))boolean(input.deploy);
   number(input.steer, -1, 1); number(input.throttle, 0, 1); number(input.brake, 0, 1); number(dt, 0, 0.05);
   if (r.status !== 'running' || dt === 0) return r;
@@ -322,11 +338,19 @@ export function stepRun(run, input, dt) {
     if(r.gadget==='decoy')r.gadgetTarget={x:r.world.x,z:r.world.z};
     if(GADGETS[r.gadget].category==='loud')r.heat=Math.min(5,r.heat+1);
   }
-  r.gadgetHeld=input.deploy===true;
+  r.gadgetHeld=r.mode!=='sandbox'&&input.deploy===true;
   r.collisionCooldown = Math.max(0, r.collisionCooldown - dt);
   const boosting=r.gadget==='boost'&&r.gadgetTime>0;
+  if(r.mode==='roam'||r.mode==='sandbox') {
+    const drag=.3+Math.abs(r.speed)*.012;
+    if(input.brake>0) r.speed=r.speed>0?Math.max(0,r.speed-(input.brake*18+drag)*dt):clamp(r.speed+(-input.brake*18+drag)*dt,-6,0);
+    else if(input.throttle>0) r.speed=r.speed<0?Math.min(0,r.speed+(input.throttle*18+drag)*dt):clamp(r.speed+(input.throttle*r.stats.acceleration*(boosting?1.8:1)-drag)*dt,0,r.stats.speed*(boosting?1.35:1));
+    else r.speed=Math.sign(r.speed)*Math.max(0,Math.abs(r.speed)-drag*dt);
+    r.speed=clamp(r.speed,-6,r.stats.speed*(boosting?1.35:1));
+    stepCity(r,input,dt);Object.assign(r,totals(r));return r;
+  }
+  // Highway progress stays forward-only; reverse is limited to the finite city/sandbox.
   r.speed = clamp(r.speed + (input.throttle * r.stats.acceleration * (boosting?1.8:1) - input.brake * 18 - 0.3 - r.speed * 0.012) * dt, 0, r.stats.speed*(boosting?1.35:1));
-  if(r.mode==='roam'){stepCity(r,input,dt);Object.assign(r,totals(r));return r;}
   r.x = clamp(r.x + input.steer * r.stats.handling * 0.7 * (0.35 + 0.65 * r.speed / r.stats.speed) * dt, -6.2, 6.2);
   r.distance = Math.min(r.finishDistance, r.distance + r.speed * dt);
   if (r.distance === r.finishDistance) r.finishTime = Math.min(r.elapsed, beforeTime + (r.finishDistance - previousDistance) / Math.max(r.speed, 0.001));
@@ -397,6 +421,7 @@ function disrupted(run,cop) {
 }
 export function settleRun(profile, run) {
   const p = validateProfile(profile), r = checkRun(run);
+  if (r.mode === 'sandbox') throw new RangeError('Sandbox runs cannot settle');
   if (r.status === 'running' || r.id !== p.nextRun - 1 || r.id <= p.settledRun || r.level !== p.level || r.carId !== p.selected || STAT_KEYS.some(key => r.stats[key] !== effective(p.selected, p.upgrades[p.selected])[key])) throw new RangeError('Result is not current');
   const c=p.customizations[p.selected];
   if(r.gadget!==c.gadget||['paint','wheels','stripe','spoiler'].some(key=>r.appearance[key]!==c[key]))throw new RangeError('Loadout changed during run');
