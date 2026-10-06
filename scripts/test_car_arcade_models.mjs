@@ -65,6 +65,25 @@ for (let cycle = 0; cycle < 3; cycle++) {
       const obstruction=ray.intersectObject(a.getObjectByName(name),false)[0];
       assert(!obstruction || obstruction.distance>windshield.distance, `${car.id}: clear forward sightline`);
     }
+    // Match the live camera's eye, near plane and roadward pitch in both layouts.
+    for (const [fov,aspect] of [[58,16/9],[70,390/844]]) {
+      const camera = new THREE.PerspectiveCamera(fov,aspect,.025,100);
+      camera.position.fromArray(eye);
+      camera.lookAt(target[0],target[1]-(eye[2]-target[2])*.04,target[2]);
+      camera.updateMatrixWorld(true);
+      const cameraRay = new THREE.Raycaster(); cameraRay.setFromCamera(new THREE.Vector2(0,0),camera);
+      cameraRay.near = camera.near;
+      const glassHit = cameraRay.intersectObject(a.getObjectByName('glazing'),false)[0];
+      assert(glassHit, `${car.id}: ${fov} degree actual camera windshield`);
+      for (const name of ['body','trim-interior']) {
+        const hit = cameraRay.intersectObject(a.getObjectByName(name),false)[0];
+        assert(!hit || hit.distance>glassHit.distance, `${car.id}: ${fov} degree road sightline`);
+      }
+    }
+    // The new original gauge needles are actual vertex colors, not a texture/map.
+    const trim = a.getObjectByName('trim-interior'), needle = new THREE.Color('#dc8448');
+    const colors = trim.geometry.attributes.color;
+    assert(Array.from({length:colors.count},(_,i)=>i).some(i=>Math.abs(colors.getX(i)-needle.r)<1e-6 && Math.abs(colors.getY(i)-needle.g)<1e-6 && Math.abs(colors.getZ(i)-needle.b)<1e-6));
     let count = 0, draws = 0;
     a.traverse(mesh=>{
       if (!mesh.isMesh) return;
@@ -85,7 +104,7 @@ for (let cycle = 0; cycle < 3; cycle++) {
     }
     assert.notEqual(a.children[0].material,tinted.children[0].material);
     assert.equal(tinted.children[0].material.color.getHex(),0x123456);
-    assert.equal(count,a.userData.triangles); assert(count>=2500 && count<=8000,`${car.id}: ${count}`);
+    assert.equal(count,a.userData.triangles); assert(count>=2500 && count<=7000,`${car.id}: ${count}`);
     assert.equal(draws,a.userData.drawCalls); assert.equal(draws,7);
     assert.equal(new Set(a.children.map(mesh=>mesh.geometry)).size,4);
     const bounds = new THREE.Box3().setFromObject(a), size = bounds.getSize(new THREE.Vector3());
@@ -111,7 +130,7 @@ for (let cycle = 0; cycle < 3; cycle++) {
       rows.push({id:car.id,triangles:count,draws,width:+size.x.toFixed(3),height:+size.y.toFixed(3),length:+size.z.toFixed(3)});
     }
   }
-  assert.equal(fingerprint.digest('hex'),'e74179a90ad7f865ae30dc7346c2da08968c56a01adfe958e0a8f91641966128','Unchanged base16 geometry/material/transform fingerprint');
+  assert.equal(fingerprint.digest('hex'),'c685193001c23d29e141f8403cf93f5cf95ceb1fcd7e1c4dcf7e5999e0c9e463','Refined live16 geometry/material/transform fingerprint');
   assert.equal(retained.size,(cycle+1)*83,'No additional GPU resources');
   disposeCars(); disposeCars();
   for (const resource of retained) assert.equal(disposed.get(resource),1,'Each cached resource disposed exactly once');

@@ -106,7 +106,8 @@ function build(car) {
   const w = car.width / 2, l = car.length, h = car.height, y = h * belt;
   const r = Math.min(.40, h * .225), wheelZ = l * axle / 2;
   const paint = [], details = [], windows = [];
-  hull(paint, [[-l/2 + .08,w*nose,.30,y*.88], [-l*.32,w*.93,.26,y], [l*.29,w*.93,.26,y], [l/2-.08,w*tail,.31,y*.95]]);
+  // Short shoulder stations round the ends without widening the door/collision envelope.
+  hull(paint, [[-l/2+.08,w*nose*.94,.30,y*.83], [-l/2+.18,w*nose,.28,y*.90], [-l*.39,w*.92,.26,y*.98], [-l*.32,w*.93,.26,y], [l*.29,w*.93,.26,y], [l*.40,w*.93,.28,y*.98], [l/2-.18,w*tail,.30,y*.95], [l/2-.08,w*tail*.94,.31,y*.89]]);
   if (form !== 'open') {
     hull(windows, [[cowl*l,w*.82,y-.015,y+.035], [rf*l,w*roofWidth*.92,y,h-.06], [rr*l,w*roofWidth*.92,y,h-.06], [rear*l,w*.83,y-.015,y+.035]]);
     hull(form === 'retro' ? details : paint, [[rf*l,w*roofWidth*.96,h-.09,h], [rr*l,w*roofWidth*.96,h-.09,h]], form === 'retro' ? '#e2d6ba' : '#ffffff');
@@ -124,7 +125,7 @@ function build(car) {
   for (const side of [-1,1]) {
     const x = side*w*.94;
     for (const z of [-wheelZ,wheelZ]) {
-      const fender = new THREE.TorusGeometry(r+.025,.055,5,16,Math.PI);
+      const fender = new THREE.TorusGeometry(r+.025,.055,6,18,Math.PI);
       fender.rotateY(Math.PI/2); fender.translate(x,r,z); add(paint,fender);
     }
     if (form !== 'open') {
@@ -146,7 +147,27 @@ function build(car) {
     box(details,dark,side*w*.4,y+.34,l*.16,.19,.11,.08);
     box(details,dark,side*w*.63,.31,l*.46,.09,.07,.20);
   }
-  box(details,dark,0,y+.055,cowl*l+.12,w*1.5,.11,.18);
+  const dashZ = cowl*l+.12;
+  hull(details, [[dashZ-.09,w*.72,y,y+.075], [dashZ-.055,w*.75,y,y+.11], [dashZ+.055,w*.75,y,y+.11], [dashZ+.09,w*.72,y+.015,y+.085]], dark);
+  // Original analogue faces and raised ticks, facing the seat, all in the trim batch.
+  for (const offset of [-.09,.09]) {
+    const gx = -w*.4+offset, gy = y+.054, gz = dashZ+.092;
+    const face = new THREE.CylinderGeometry(.043,.043,.008,12);
+    face.rotateX(Math.PI/2); face.translate(gx,gy,gz); add(details,face,'#111416');
+    for (let i = 0; i < 5; i++) {
+      const angle = -.8+i*.4;
+      box(details,'#ddd3b4',gx+Math.sin(angle)*.031,gy+Math.cos(angle)*.031,gz+.005,.005,.010,.003,0,0,-angle);
+    }
+    box(details,'#dc8448',gx-.008,gy+.009,gz+.008,.004,.032,.003,0,0,-.65);
+  }
+  for (const vx of [-w*.64,w*.25,w*.62]) {
+    box(details,'#111416',vx,y+.055,dashZ+.094,.11,.045,.009);
+    for (let i = -1; i <= 1; i++) box(details,metal,vx,y+.055+i*.012,dashZ+.10,.086,.003,.004);
+  }
+  hull(details, [[dashZ+.04,.105,y-.14,y+.035], [l*.10,.105,y-.14,y-.045]], '#41454a');
+  box(details,metal,0,y-.008,dashZ+.25,.075,.012,.12);
+  beam(details,dark,[0,y,dashZ+.25],[0,y+.075,dashZ+.27],.017);
+  box(details,'#66574a',0,y+.075,dashZ+.27,.045,.035,.045);
   const steering = new THREE.TorusGeometry(.115,.018,5,12);
   steering.rotateX(-.45); steering.translate(-w*.4,y+.19,cowl*l+.25); add(details,steering,dark);
   for (const end of [-1,1]) {
@@ -154,9 +175,17 @@ function build(car) {
     box(details,'#ddd3b4',0,.52,end*(l/2+.004),.28,.085,.012);
     for (const side of [-1,1]) {
       if (end === -1 && ['retro','rally','worn'].includes(form)) {
-        const lamp = new THREE.CylinderGeometry(.12,.12,.04,16);
+        const housing = new THREE.CylinderGeometry(.14,.14,.035,16);
+        housing.rotateX(Math.PI/2); housing.translate(side*w*.63,y*.78,-l/2+.024); add(details,housing,dark);
+        const lamp = new THREE.CylinderGeometry(.117,.117,.04,16);
         lamp.rotateX(Math.PI/2); lamp.translate(side*w*.63,y*.78,-l/2+.02); add(details,lamp,'#fff1c0');
-      } else box(details,end === -1 ? '#fff1c0' : '#b42f27',side*w*.61,y*.80,end*(l/2-.02),w*.42,.095,.06);
+        box(details,'#ffffff',side*w*.63,y*.81,-l/2-.001,.14,.023,.004);
+      } else {
+        box(details,dark,side*w*.61,y*.80,end*(l/2-.04),w*.46,.13,.07);
+        box(details,end === -1 ? '#fff1c0' : '#b42f27',side*w*.61,y*.80,end*(l/2-.02),w*.42,.095,.06);
+        box(details,end === -1 ? '#ffffff' : '#ed805e',side*w*.57,y*.82,end*(l/2+.006),w*.28,.025,.004);
+        box(details,'#c98539',side*w*.78,y*.80,end*(l/2+.006),w*.06,.075,.004);
+      }
     }
   }
   for (let i = 0; i < 5; i++) box(details,metal,0,y*.64+i*.027,-l/2+.019,w*.58,.013,.025);
