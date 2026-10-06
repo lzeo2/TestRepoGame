@@ -71,7 +71,7 @@ def main():
                 page.keyboard.up('d');page.keyboard.up('w');page.keyboard.press('p')
                 crash=state(page);assert crash['run']['hp']<100 and page.locator('#crashNotice').is_visible()
                 assert 'Crash!' in page.locator('#crashText').inner_text() and page.locator('#recover').is_visible()
-                assert crash['run']['x']>=6.19 and abs(crash['view']['pose']['heading'])<=.04
+                assert abs(crash['run']['x'])<=6.2 and crash['run']['collisions']>=1 and abs(crash['view']['pose']['heading'])<=.04
                 shot(page,'minor-crash')
                 page.locator('#recover').click();page.wait_for_function('slipstreamSnapshot.phase==="run" && slipstreamSnapshot.run.hp===100')
                 restarted=state(page)
@@ -112,7 +112,7 @@ def main():
                 assert head==subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip()
                 assert all(hashlib.sha256((ROOT/name).read_bytes()).hexdigest()==value for name,value in hashes.items())
                 (output/'observations.json').write_text(json.dumps({'head':head,'hashes':hashes,'errors':errors,'assisted':False,'observations':observations},indent=2))
-                print('PASS real boundary bump/body loss/unpaid restart/wreck/countdown/Help freeze/once-only settlement/same-mode respawn/north-up map bounds/ordinary held phone touch. Arrest and physical hardware held.',flush=True)
+                print('PASS real collision/body loss/unpaid restart/wreck/countdown/Help freeze/once-only settlement/same-mode respawn/north-up map bounds/ordinary held phone touch. Arrest and physical hardware held.',flush=True)
             except Exception as error:
                 (output/'failure.json').write_text(json.dumps({'head':head,'hashes':hashes,'errors':errors,'failure':str(error),'assisted':False},indent=2))
                 try:
