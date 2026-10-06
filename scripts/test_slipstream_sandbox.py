@@ -45,6 +45,8 @@ def main():
                     initial = state(page)['profile']
                     page.locator('#mode').select_option('sandbox')
                     page.locator('#sandboxCar').select_option('comet')
+                    menu,button=page.locator('#garage').bounding_box(),page.locator('#start').bounding_box()
+                    assert button['y']>=menu['y'] and button['y']+button['height']<=menu['y']+menu['height'], ('sandbox Start below menu fold',menu,button)
                     page.locator('#start').click(); page.locator('#closeHelp').click()
                     page.wait_for_function('slipstreamSnapshot.run?.mode==="sandbox" && !slipstreamSnapshot.paused && slipstreamSnapshot.view.modelId==="comet"')
                     assert state(page)['profile'] == initial
@@ -81,6 +83,15 @@ def main():
                 page.locator('#leave').click(); assert state(page)['profile'] == initial
                 assert page.evaluate("localStorage.getItem('slipstream-borough-v1')") is None
                 observations.append({'desktopAll16':ids,'reverse':back['run'],'reverseView':back['view'],'careerUnchanged':True})
+                # Ordinary banked City uses the same reverse physics but retains its real reservation/settlement.
+                page.locator('#mode').select_option('roam');page.locator('#start').click()
+                page.wait_for_function('slipstreamSnapshot.run?.mode==="roam" && !slipstreamSnapshot.paused')
+                page.locator('#viewport').focus();page.keyboard.down('s')
+                try:page.wait_for_function('slipstreamSnapshot.run.speed===-6 && slipstreamSnapshot.run.world.z>1')
+                finally:page.keyboard.up('s')
+                city=state(page);assert city['profile']['nextRun']==2 and not city['profile']['testMode']
+                page.locator('#leave').click();assert state(page)['profile']['settledRun']==1
+                observations.append({'bankedCityReverse':city['run'],'reservedAndSettledOnce':True})
                 context.close()
                 context = browser.new_context(viewport={'width':320,'height':740}, user_agent=PHONE, is_mobile=True, has_touch=True)
                 page = context.new_page(); watch(page); initial = start(page)

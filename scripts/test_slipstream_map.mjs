@@ -4,6 +4,7 @@ const city={mode:'roam',world:{x:0,z:0,heading:Math.PI/2},traffic:[],police:[{wo
 assert.deepEqual(mapPoint(city,0,0),[72,72]);
 assert(mapPoint(city,0,-50)[1]<72); assert(mapPoint(city,50,0)[0]>72);
 assert.deepEqual(mapPoint(city,1e6,-1e6),[136,8]);
+assert.deepEqual(mapPoint({...city,mode:'sandbox'},50,-50),mapPoint(city,50,-50));
 const road={mode:'race',distance:600,finishDistance:1200,x:0,traffic:[],police:[],rivals:[{x:1.75,distance:650}]};
 assert(mapPoint(road,0,650)[1]<mapPoint(road,0,600)[1]);
 assert(mapPoint(road,0,550)[1]>mapPoint(road,0,600)[1]);
@@ -13,5 +14,7 @@ const canvas={width:144,getContext:type=>{assert.equal(type,'2d');return ctx;}};
 const before=structuredClone(city);drawMap(canvas,city);assert.deepEqual(city,before);
 assert(calls.some(c=>c[0]==='rotate'&&c[1]===-Math.PI/2));
 assert(calls.some(c=>c[0]==='fillRect'&&c[3]===6&&c[4]===6));
+const testCity={...city,mode:'sandbox',police:[]};calls.length=0;drawMap(canvas,testCity);
+assert(calls.some(c=>c[0]==='fillText'&&c[1]==='N'),'sandbox uses real city, not a highway map');
 drawMap(canvas,road);assert(calls.some(c=>c[0]==='fillText'&&c[1]==='600/1200 m'));
 console.log('PASS north-up actual world/relative highway projection, limits, police shape, heading and immutable map draw. Synthetic canvas only.');
