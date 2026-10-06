@@ -271,7 +271,11 @@ function stepCityTraffic(r,dt) {
   }
 }
 function stepCity(r,input,dt) {
-  r.world.heading=Math.atan2(Math.sin(r.world.heading-input.steer*r.stats.handling*r.speed*.05*dt),Math.cos(r.world.heading-input.steer*r.stats.handling*r.speed*.05*dt));
+  // Preserve tight low-speed turns; blend to a bounded, upgrade-sensitive highway-speed yaw.
+  const blend=clamp((r.speed-5)/15,0,1), handling=r.stats.handling;
+  const yaw=handling*Math.min(r.speed,5)*.05*(1-blend)+1.1*handling/(handling+2)*blend;
+  const heading=r.world.heading-input.steer*yaw*dt;
+  r.world.heading=Math.atan2(Math.sin(heading),Math.cos(heading));
   const next={x:r.world.x-Math.sin(r.world.heading)*r.speed*dt,z:r.world.z-Math.cos(r.world.heading)*r.speed*dt};
   const contact=r.traffic.find(npc=>nearPath(r.world,next,npc.world,4));
   if(contact){damage(r);r.speed*=.56;contact.hit=true;}
@@ -323,7 +327,7 @@ export function stepRun(run, input, dt) {
   const boosting=r.gadget==='boost'&&r.gadgetTime>0;
   r.speed = clamp(r.speed + (input.throttle * r.stats.acceleration * (boosting?1.8:1) - input.brake * 18 - 0.3 - r.speed * 0.012) * dt, 0, r.stats.speed*(boosting?1.35:1));
   if(r.mode==='roam'){stepCity(r,input,dt);Object.assign(r,totals(r));return r;}
-  r.x = clamp(r.x + input.steer * r.stats.handling * (0.35 + 0.65 * r.speed / r.stats.speed) * dt, -6.2, 6.2);
+  r.x = clamp(r.x + input.steer * r.stats.handling * 0.7 * (0.35 + 0.65 * r.speed / r.stats.speed) * dt, -6.2, 6.2);
   r.distance = Math.min(r.finishDistance, r.distance + r.speed * dt);
   if (r.distance === r.finishDistance) r.finishTime = Math.min(r.elapsed, beforeTime + (r.finishDistance - previousDistance) / Math.max(r.speed, 0.001));
   r.heat = r.mode === 'cutup' ? Math.min(5, Math.max(r.heat, r.distance / 340 + r.nearMisses * 0.12 + r.level * 0.08)) : 0;
