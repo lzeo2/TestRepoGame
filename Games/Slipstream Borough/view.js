@@ -208,6 +208,10 @@ export function createView(host) {
   const cosmetics = new THREE.Group(), stripeMaterial = material('#ffffff');
   const ray = new THREE.Raycaster(), downDirection = new THREE.Vector3(0, -1, 0);
   const cameraTarget = new THREE.Vector3(), cameraDirection = new THREE.Vector3();
+  const cameraAnchor = new THREE.Vector3(), desiredEye = new THREE.Vector3(), desiredTarget = new THREE.Vector3();
+  const observedEye = new THREE.Vector3(), carScreen = new THREE.Vector3();
+  const reducedMotion = globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches || false;
+  let cameraMode = 'chase', renderedCameraMode = 'garage', cameraRun = null, cameraYaw = 0;
   let player = null, orbit = .65, frames = 0, wheelAngle = 0, lastDistance = 0, lastRun = null;
   let dragging = null, signature = '', privateMaterials = [], mounted = 'none', disposed = false;
   let worldMode = 'garage', counts = { traffic: 0, police: 0, rivals: 0 };
@@ -226,7 +230,8 @@ export function createView(host) {
       const paint = player.getObjectByName('body'); paint.material = paint.material.clone();
       const rim = player.userData.wheels[0].material.clone();
       player.userData.wheels.forEach(w => { w.material = rim; });
-      privateMaterials = [paint.material, rim];
+      const glazing = player.getObjectByName('glazing'); glazing.material = glazing.material.clone();
+      privateMaterials = [paint.material, rim, glazing.material];
     }
     privateMaterials[0].color.set(appearance.paint); privateMaterials[1].color.set(appearance.wheels);
     const { width, height, length } = player.userData.dimensions;
@@ -260,6 +265,10 @@ export function createView(host) {
     }
     player.add(cosmetics); signature = next;
   }
+  function setCamera(mode) {
+    if (!['chase', 'cockpit'].includes(mode)) throw new RangeError('Unknown camera mode');
+    if (mode !== cameraMode) { cameraMode = mode; cameraRun = null; }
+  }
   function turn(amount) { orbit += amount; }
   const down = e => { dragging = e.clientX; host.setPointerCapture(e.pointerId); };
   const move = e => { if (dragging !== null) { orbit += (e.clientX - dragging) * .012; dragging = e.clientX; } };
@@ -267,7 +276,7 @@ export function createView(host) {
   host.addEventListener('pointerdown', down); host.addEventListener('pointermove', move);
   host.addEventListener('pointerup', up); host.addEventListener('pointercancel', up); host.addEventListener('lostpointercapture', up);
 
-  function draw(profile, run, steer = 0) {
+  function draw(profile, run, steer = 0, dt = 1 / 60) {
     if (disposed) return;
     const id = run?.carId || profile.selected, custom = profile.customizations[id];
     select(id, run?.appearance || custom, run?.gadget || custom.gadget);
@@ -280,6 +289,11 @@ export function createView(host) {
     const portraitMenu = width <= 760 && height > width;
     if (run) camera.clearViewOffset();
     else camera.setViewOffset(width, height, portraitMenu ? 0 : width * .13, portraitMenu ? height * .23 : 0, width, height);
+    const cockpit = !!run && cameraMode === 'cockpit';
+    renderedCameraMode = run ? cameraMode : 'garage';
+    const fov = cockpit ? (portraitMenu ? 82 : 70) : 52, near = cockpit ? .025 : .1;
+    if (camera.fov !== fov || camera.near !== near) { camera.fov = fov; camera.near = near; camera.updateProjectionMatrix(); }
+    privateMaterials[2].opacity = cockpit ? .12 : .38;
     const roam = run?.mode === 'roam', distance = run?.distance || 0;
     worldMode = roam ? 'roam' : run ? run.mode : 'garage';
     if (lastRun !== (run?.id ?? null)) { wheelAngle = 0; lastDistance = 0; lastRun = run?.id ?? null; }
@@ -339,24 +353,52 @@ export function createView(host) {
     }
     if (flames.visible) flames.scale.z = .9 + .2 * Math.sin(run.elapsed * 24);
     if (repairEffect.visible) { repairEffect.position.set(player.position.x, .25, player.position.z); repairEffect.scale.setScalar(4 + (15 - run.gadgetCooldown) * 4); }
-    if (roam) {
-      cameraTarget.set(player.position.x, 1, player.position.z);
-      camera.position.set(player.position.x + sin * 11, 6.2, player.position.z + cos * 11);
-      city.updateMatrixWorld(true);
-      cameraDirection.copy(camera.position).sub(cameraTarget);
-      ray.far = cameraDirection.length(); ray.set(cameraTarget, cameraDirection.normalize());
-      const obstruction = ray.intersectObject(cityBuildings, false)[0];
-      if (obstruction) camera.position.copy(cameraTarget).addScaledVector(ray.ray.direction, Math.max(.3, obstruction.distance - .4));
-      ray.far = Infinity;
-      camera.lookAt(player.position.x - sin * 7, 1, player.position.z - cos * 7);
-    } else if (run) { camera.position.set(run.x * .45, 6.2, 12); camera.lookAt(run.x * .5, .5, -20); }
-    else { const radius = portraitMenu ? 11 : 7; camera.position.set(Math.sin(orbit) * radius, portraitMenu ? 4.8 : 3.1, Math.cos(orbit) * radius); camera.lookAt(0, .65, 0); }
+    if (cockpit) {
+      cameraYaw = yaw;
+      player.updateMatrixWorld(true);
+      camera.position.copy(player.localToWorld(desiredEye.fromArray(player.userData.cockpit.eye)));
+      cameraTarget.copy(player.localToWorld(desiredTarget.fromArray(player.userData.cockpit.target)));
+      cameraRun = run.id;
+    } else if (run) {
+      const snap = cameraRun !== run.id || reducedMotion;
+      const delta = Math.max(0, Math.min(.25, Number.isFinite(dt) ? dt : 0));
+      const heading = roam ? yaw : 0;
+      // A wrap-safe, time-based chase: follow the road ahead, not a locked car pivot.
+      cameraYaw = snap ? heading : cameraYaw + Math.atan2(Math.sin(heading - cameraYaw), Math.cos(heading - cameraYaw)) * (1 - Math.exp(-4 * delta));
+      const back = 11 + (run.speed || 0) * .04, ahead = 8 + (run.speed || 0) * .12;
+      desiredEye.set(player.position.x + Math.sin(cameraYaw) * back, 5.5, player.position.z + Math.cos(cameraYaw) * back);
+      desiredTarget.set(player.position.x - sin * ahead + (roam ? 0 : steer * 1.5), .8, player.position.z - cos * ahead);
+      if (snap) { camera.position.copy(desiredEye); cameraTarget.copy(desiredTarget); }
+      else { camera.position.lerp(desiredEye, 1 - Math.exp(-7 * delta)); cameraTarget.lerp(desiredTarget, 1 - Math.exp(-9 * delta)); }
+      if (roam) {
+        // Resolve obstruction after smoothing, so interpolation cannot enter a building.
+        cameraAnchor.set(player.position.x, 1, player.position.z); city.updateMatrixWorld(true);
+        cameraDirection.copy(camera.position).sub(cameraAnchor);
+        ray.far = cameraDirection.length(); ray.set(cameraAnchor, cameraDirection.normalize());
+        const obstruction = ray.intersectObject(cityBuildings, false)[0];
+        if (obstruction) camera.position.copy(cameraAnchor).addScaledVector(ray.ray.direction, Math.max(.3, obstruction.distance - .4));
+        ray.far = Infinity;
+      }
+      cameraRun = run.id;
+    } else {
+      cameraRun = null;
+      const radius = portraitMenu ? 11 : 7; camera.position.set(Math.sin(orbit) * radius, portraitMenu ? 4.8 : 3.1, Math.cos(orbit) * radius);
+      cameraTarget.set(0, .65, 0);
+    }
+    camera.lookAt(cameraTarget);
     renderer.render(scene, camera); frames++;
   }
   function inspect() {
     const customization = Object.freeze({ paint: player?.getObjectByName('body').material.color.getHexString(), wheels: player?.userData.wheels[0].material.color.getHexString(), mounted, stripe, spoiler,
       stripeSegments: cosmetics.children.find(object => object.isInstancedMesh)?.count || 0 });
+    camera.updateMatrixWorld(true); player?.updateMatrixWorld(true);
+    const localEye = player ? player.worldToLocal(observedEye.copy(camera.position)).toArray() : null;
+    if (player) carScreen.set(player.position.x, player.position.y + .7, player.position.z).project(camera);
     return Object.freeze({ frames, triangles: renderer.info.render.triangles, drawcalls: renderer.info.render.calls,
+      camera: Object.freeze({ mode: renderedCameraMode, heading: cameraYaw,
+        eye: Object.freeze(camera.position.toArray()), target: Object.freeze(cameraTarget.toArray()),
+        localEye: localEye ? Object.freeze(localEye) : null, driverEye: player ? player.userData.cockpit.eye : null,
+        carScreen: Object.freeze([(carScreen.x + 1) / 2, (1 - carScreen.y) / 2]), fov: camera.fov, near: camera.near }),
       modelId: player?.userData.carId || null, world: Object.freeze({ ...counts }), worldMode,
       policeModels: Object.freeze([...npc.values()].filter(({model}) => model.userData.policeId).map(({model}) => Object.freeze({
         id: model.userData.policeId, carId: model.userData.carId, triangles: model.userData.triangles, drawCalls: model.userData.drawCalls,
@@ -371,7 +413,7 @@ export function createView(host) {
       pose: player ? Object.freeze({ x: player.position.x, z: player.position.z, heading: player.rotation.y }) : null,
       customization, effects: Object.freeze({ smokePuffs: smoke.visible ? smoke.count : 0, empVisible: pulse.visible, decoyVisible: decoyEffect.visible, boostVisible: flames.visible, repairVisible: repairEffect.visible }), dpr: 1 });
   }
-  return { draw, turn, inspect,
+  return { draw, turn, setCamera, inspect,
     dispose() {
       if (disposed) return; disposed = true;
       host.removeEventListener('pointerdown', down); host.removeEventListener('pointermove', move);

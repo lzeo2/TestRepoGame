@@ -4,6 +4,8 @@ import { readFileSync } from 'node:fs';
 import * as THREE from '../assets/car-arcade/vendor/three.module.js';
 import { createCityArchitecture } from '../Games/Slipstream Borough/view.js';
 import { WORLD, blocked } from '../Games/Slipstream Borough/world.js';
+import { CARS } from '../assets/car-arcade/fleet.js';
+import { createCar } from '../assets/car-arcade/models.js';
 
 const box = new THREE.BoxGeometry(1, 1, 1), pane = new THREE.PlaneGeometry(1, 1);
 const materials = [];
@@ -122,8 +124,35 @@ view.draw(profile, run);
 assert.deepEqual(architecture.children.map(m => Array.from(m.instanceMatrix.array)), frozen);
 assert.equal(view.inspect().cityBlocks, 36);
 assert.equal(view.inspect().cityArchitecture.triangles, triangles);
+// Synthetic camera fixtures: real transforms/raycast, only GPU drawing stubbed.
+assert.throws(() => view.setCamera('free'), RangeError);
+const initialCamera = view.inspect().camera;
+assert.equal(initialCamera.mode, 'chase');
+assert(initialCamera.carScreen[1] > .55 && initialCamera.carScreen[1] < .85, 'road ahead; car below screen center');
+run.world = {x:1,z:0,heading:Math.PI/2};
+view.draw(profile, run, 1, 1/60);
+assert(view.inspect().camera.heading > 0 && view.inspect().camera.heading < Math.PI/2, 'turn lag rather than rigid yaw');
+const pausedCamera = view.inspect().camera;
+view.draw(profile, run, 0, 0); assert.deepEqual(view.inspect().camera, pausedCamera, 'pause freezes smoothing');
+run.id = 2; run.world = {x:0,z:0,heading:Math.PI-.01}; view.draw(profile, run, 0, 1/60);
+const beforeWrap = view.inspect().camera.heading;
+run.world.heading = -Math.PI+.01; view.draw(profile, run, 0, 1/60);
+assert(Math.abs(view.inspect().camera.heading-beforeWrap)<.02, 'short turn across signed PI');
+view.setCamera('cockpit');
+for (const [i,car] of CARS.entries()) {
+  const fixtureProfile = {selected:car.id,customizations:{[car.id]:appearance}};
+  const fixtureRun = {...run,id:10+i,carId:car.id,world:{x:0,z:0,heading:.7}};
+  view.draw(fixtureProfile, fixtureRun);
+  const observed = view.inspect().camera;
+  assert.equal(observed.mode, 'cockpit'); assert.equal(observed.near,.025);
+  observed.localEye.forEach((n,j) => assert(Math.abs(n-observed.driverEye[j])<1e-9, `${car.id} physical driver eye`));
+  assert.equal(createCar(car.id).getObjectByName('glazing').material.opacity,.38,'player tint never mutates shared/NPC glass');
+}
+view.setCamera('chase'); run.id=99; run.world={x:0,z:25,heading:Math.PI/2};
+view.draw(profile,run); assert(view.inspect().camera.eye[0]<11, 'obstruction resolved after smoothing');
+view.draw(profile,null); assert.equal(view.inspect().camera.mode,'garage');
 view.dispose(); view.dispose();
 for (const [resource, count] of tracked) assert.equal(count, 1, `resource disposed once: ${resource.type || resource.name}`);
 assert(firstInstances.length >= 12);
 delete globalThis.__cityTrack; delete globalThis.__CityRenderer; delete globalThis.document;
-console.log(`PASS: 36 collision-aligned bases; ${city.userData.batches} static architecture batches, ${instances} instances, ${triangles} triangles; glazing/recess/roof/bounds/resize/disposal invariants. Native visual acceptance held.`);
+console.log(`PASS: 36 collision-aligned bases; ${city.userData.batches} static architecture batches, ${instances} instances, ${triangles} triangles; glazing/recess/roof/bounds/resize/disposal; chase lag/wrap/pause/cover and all16 physical cockpit transforms. Synthetic drawing, not native visual acceptance.`);

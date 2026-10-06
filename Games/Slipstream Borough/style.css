@@ -55,7 +55,7 @@ html:not([data-phone='true']) .touch-controls { display: none; }
 @media (max-height: 500px) {
   .game-header h1 { display: none; }
   .game-header .actions { margin-left: auto; }
-  #hud { top: 12px; right: 245px; max-width: calc(100% - 269px); font-size: .8rem; }
+  #hud { top: 12px; right: 285px; max-width: calc(100% - 309px); font-size: .8rem; }
   #objective { font-size: .8rem; }
   #garage, #result { width: min(380px, calc(50% - 12px)); }
   #activity { flex-basis: auto; }

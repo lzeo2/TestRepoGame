@@ -10,7 +10,7 @@ document.documentElement.dataset.phone = String(phone);
 document.querySelector('.touch-controls').hidden = !phone;
 let helpSeen = false, helpStorageDenied = false, resumeHelp = false;
 try { helpSeen = localStorage.getItem(HELP_KEY) === '1'; } catch { helpStorageDenied = true; }
-let profile, acceptedRaw, blocked = false, phase = 'garage', run = null, paused = false, view = null;
+let profile, acceptedRaw, blocked = false, phase = 'garage', run = null, paused = false, view = null, cameraChoice = 'chase';
 let raf = 0, last = 0, accumulator = 0, buffer = '', lastHud = 0, resetToken, queuedDeploy=false;
 const held = new Set(), keys = new Set();
 function clearInput() { held.clear(); keys.clear(); queuedDeploy=false; accumulator = 0; last = 0; }
@@ -84,6 +84,7 @@ function setPhase(next) {
   phase = next; document.documentElement.dataset.phase = next; clearInput(); paused = false;
   $('garage').hidden = next !== 'garage'; $('catalogSection').hidden = next !== 'garage'; $('drive').hidden = next !== 'run'; $('result').hidden = next !== 'end';
   $('garageToggle').hidden = next !== 'garage';
+  $('cameraToggle').hidden = next !== 'run';
   $('garageToggle').textContent = 'Hide garage'; $('garageToggle').setAttribute('aria-expanded', 'true');
   $('pause').textContent = 'Pause';
   if (next === 'garage') { run = null; garageUI(); ($('start').disabled ? $('garageToggle') : $('start')).focus({ preventScroll: true }); }
@@ -147,7 +148,16 @@ function updateHud() {
 }
 function pause() { if (phase !== 'run' || blocked && paused) return; paused = !paused; clearInput(); $('pause').textContent = paused ? 'Resume' : 'Pause'; updateHud(); }
 function renderFailure(e) { if (view) { view.dispose(); view = null; } paused = true; clearInput(); $('renderError').hidden = false; $('renderError').firstChild.textContent = `3D unavailable: ${e.message}. `; $('start').disabled = true; }
-function bootView() { try { view = createView($('viewport')); $('renderError').hidden = true; garageUI(); } catch (e) { renderFailure(e); } }
+function cameraUI() {
+  $('cameraToggle').textContent = cameraChoice === 'chase' ? 'Cockpit' : 'Chase view';
+  $('cameraToggle').setAttribute('aria-label', `Switch to ${cameraChoice === 'chase' ? 'cockpit' : 'chase'} camera (C)`);
+}
+function toggleCamera() {
+  if (phase !== 'run' || !view) return;
+  cameraChoice = cameraChoice === 'chase' ? 'cockpit' : 'chase';
+  view.setCamera(cameraChoice); cameraUI(); $('viewport').focus();
+}
+function bootView() { try { view = createView($('viewport')); view.setCamera(cameraChoice); cameraUI(); $('renderError').hidden = true; garageUI(); } catch (e) { renderFailure(e); } }
 function frame(now) {
   raf = 0; if (document.hidden) return;
   const dt = frameDelta(now, last); last = now;
@@ -156,7 +166,7 @@ function frame(now) {
     try { while (accumulator >= 1 / 60 && phase === 'run') { run = core.stepRun(run, input(), 1 / 60); queuedDeploy=false; accumulator -= 1 / 60; if (run.status !== 'running') finish(); } }
     catch (e) { paused = true; io(`Driving stopped: ${e.message}`, true); }
   }
-  if (view) try { view.draw(profile, run, phase === 'run' ? input().steer : 0); } catch (e) { renderFailure(e); }
+  if (view) try { view.draw(profile, run, phase === 'run' ? input().steer : 0, phase === 'run' && !paused && !blocked ? dt : 0); } catch (e) { renderFailure(e); }
   if (now - lastHud > 160) { updateHud(); lastHud = now; }
   raf = requestAnimationFrame(frame);
 }
@@ -172,6 +182,7 @@ document.addEventListener('keydown', e => {
   const key = e.key.toLowerCase(), button = e.target.closest('button');
   if (editable(e.target) && (!button || phase !== 'run' || [' ', 'enter'].includes(key))) return;
   if (phase === 'garage' && /^[a-z]$/.test(key) && !e.repeat) { buffer = (buffer + key).slice(-6); phrase(buffer); }
+  if (phase === 'run' && key === 'c') { e.preventDefault(); if (!e.repeat) toggleCamera(); }
   if(phase==='run'&&[' ','e'].includes(key)) {e.preventDefault();if(!e.repeat)deploy();}
   if (phase === 'run' && ['p', 'escape'].includes(key)) { e.preventDefault(); if (!e.repeat) pause(); }
   if (phase === 'run' && ['w','a','s','d','arrowup','arrowdown','arrowleft','arrowright'].includes(key)) { e.preventDefault(); keys.add(key); }
@@ -190,6 +201,7 @@ $('equipment').onsubmit=e=>{e.preventDefault();action(()=>core.fitGadget(profile
 $('deploy').onclick=deploy;
 $('cruise').onchange = () => { clearInput(); $('viewport').focus(); };
 $('mode').onchange = modeUI;
+$('cameraToggle').onclick = toggleCamera;
 $('garageToggle').onclick = () => {
   if (phase !== 'garage') return;
   $('garage').hidden = !$('garage').hidden;

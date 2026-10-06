@@ -21,7 +21,7 @@ PHONE = 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.
 def main():
     assert shutil.disk_usage(ROOT).free >= 2_000_000_000
     output = Path(tempfile.mkdtemp(prefix='slipstream-modes-'))
-    files = list((ROOT / 'Games/Slipstream Borough').glob('*')) + [Path(__file__)]
+    files = list((ROOT / 'Games/Slipstream Borough').glob('*')) + [Path(__file__), ROOT / 'assets/car-arcade/models.js']
     hashes = {str(p.relative_to(ROOT)): hashlib.sha256(p.read_bytes()).hexdigest() for p in files if p.is_file()}
     errors, observations = [], []
     class Handler(SimpleHTTPRequestHandler):
@@ -77,6 +77,21 @@ def main():
                     goal = page.locator('#objective').inner_text().lower()
                     assert ('park' in goal and 'bank' in goal) if mode == 'roam' else ('three rivals' in goal) if mode == 'race' else ('evade' in goal and 'payout' in goal), goal
                 def shot(page, name): page.screenshot(path=str(output / (name + '.jpg')), quality=76)
+                def cockpit_ready(page):
+                    page.wait_for_function('() => { const c=slipstreamSnapshot.view.camera; return c.mode==="cockpit" && c.localEye.every((v,i)=>Math.abs(v-c.driverEye[i])<1e-6); }')
+                    assert state(page)['view']['camera']['near'] == .025
+                def cameras(page, name):
+                    assert state(page)['paused']
+                    frozen = state(page)['run']
+                    if state(page)['view']['camera']['mode'] == 'cockpit':
+                        page.keyboard.press('c'); page.wait_for_function('slipstreamSnapshot.view.camera.mode==="chase"')
+                    before = state(page)['view']['camera']
+                    page.wait_for_timeout(250); assert state(page)['view']['camera'] == before, 'paused camera drifts'
+                    shot(page, name+'-chase')
+                    page.keyboard.press('c'); cockpit_ready(page); shot(page, name+'-cockpit')
+                    assert state(page)['run'] == frozen, 'camera switching changes simulation'
+                    page.locator('#cameraToggle').click(); page.wait_for_function('slipstreamSnapshot.view.camera.mode==="chase"')
+                    assert page.locator('#viewport').evaluate('v=>v===document.activeElement')
                 context = browser.new_context(viewport={'width':1280, 'height':900}, has_touch=True)
                 page = context.new_page(); watch(page); page.goto(origin + '/Games/Slipstream%20Borough/')
                 initial = garage(page)
@@ -98,10 +113,20 @@ def main():
                 assert len(state(page)['view']['trafficModels']) == 4
                 assert state(page)['view']['cityBlocks'] == 36
                 assert state(page)['view']['cityArchitecture']['batches'] <= 12
-                page.keyboard.down('w'); page.wait_for_function('slipstreamSnapshot.run.distance>10'); page.keyboard.up('w')
+                page.keyboard.down('w'); page.keyboard.down('d')
+                try: page.wait_for_function('slipstreamSnapshot.run.world.heading>.25')
+                finally: page.keyboard.up('d')
+                turning = state(page)
+                assert abs(turning['view']['camera']['heading']-turning['run']['world']['heading'])>.02, 'camera remains rigidly locked to car'
+                assert .55 < turning['view']['camera']['carScreen'][1] < .9
+                shot(page,'city-turn-chase')
+                before_cockpit = turning['run']['distance']
+                page.keyboard.press('c'); cockpit_ready(page)
+                page.wait_for_function('slipstreamSnapshot.run.distance>10'); page.keyboard.up('w')
+                assert state(page)['run']['distance'] > before_cockpit + 2, 'cockpit did not drive normally'
                 page.locator('#pause').click(); held = state(page)['run']; page.wait_for_timeout(250)
                 assert state(page)['run'] == held
-                shot(page, 'city-1280')
+                shot(page, 'city-1280'); cameras(page,'city-1280')
                 # Pause button focus must not block the keyboard's resume action.
                 page.keyboard.press('p'); assert not state(page)['paused']
                 page.locator('#leave').click(); parked = garage(page)['profile']
@@ -117,7 +142,7 @@ def main():
                 page.wait_for_function('slipstreamSnapshot.run.x<.1'); page.keyboard.up('a')
                 page.wait_for_function('slipstreamSnapshot.run.police.length>0', timeout=45000)
                 page.wait_for_function('slipstreamSnapshot.view.policeModels.length>0')
-                page.locator('#pause').click(); shot(page, 'cutup-1280')
+                page.locator('#pause').click(); shot(page, 'cutup-1280'); cameras(page,'cutup-1280')
                 assert state(page)['run']['distance'] >= 340
                 page.locator('#leave').click(); after = garage(page)['profile']
                 assert after['cash'] == parked['cash'] and after['careerDistance'] == parked['careerDistance']
@@ -125,6 +150,7 @@ def main():
                 page.locator('#viewport').focus(); page.keyboard.down('a')
                 page.wait_for_function('slipstreamSnapshot.run.x<.1'); page.keyboard.up('a')
                 assert not state(page)['run']['police'] and page.locator('#deploy').is_hidden()
+                page.locator('#pause').click(); cameras(page,'sprint-1280'); page.keyboard.press('p')
                 shot(page, 'sprint-1280'); race_start = time.monotonic()
                 page.wait_for_function('slipstreamSnapshot.phase==="end"', timeout=110000)
                 ended = state(page)
@@ -158,11 +184,13 @@ def main():
                 page.set_viewport_size({'width':390,'height':844})
                 start(page, 'roam', first=True)
                 assert page.locator('.touch-controls').is_visible()
+                page.locator('#cameraToggle').tap(); cockpit_ready(page)
                 gas = page.locator('[data-drive="gas"]').bounding_box(); cdp = mobile.new_cdp_session(page)
                 cdp.send('Input.dispatchTouchEvent', {'type':'touchStart','touchPoints':[{'x':gas['x']+gas['width']/2,'y':gas['y']+gas['height']/2}]})
                 try: page.wait_for_function('slipstreamSnapshot.run.distance>2')
                 finally: cdp.send('Input.dispatchTouchEvent', {'type':'touchEnd','touchPoints':[]})
-                page.locator('#pause').tap()
+                page.locator('#pause').tap(); shot(page,'phone-touch-cockpit')
+                page.locator('#cameraToggle').tap(); page.wait_for_function('slipstreamSnapshot.view.camera.mode==="chase"')
                 for width,height in [(390,844),(320,740),(844,390)]:
                     page.set_viewport_size({'width':width,'height':height}); page.wait_for_timeout(120)
                     assert page.evaluate('document.documentElement.scrollWidth<=innerWidth')
@@ -175,8 +203,14 @@ def main():
                         box = page.locator(selector).bounding_box()
                         assert box['x'] >= 0 and box['y'] >= 0 and box['x']+box['width'] <= width+.1 and box['y']+box['height'] <= height+.1, (selector,box)
                     assert page.locator('#hud').evaluate('hud => getComputedStyle(hud).position==="fixed"')
+                    button = page.locator('#cameraToggle').bounding_box()
+                    assert button['width']>=44 and button['height']>=44 and button['x']>=0 and button['x']+button['width']<=width+.1
+                    hud = page.locator('#hud').bounding_box()
+                    assert hud['y']>=button['y']+button['height'] or hud['x']+hud['width']<=button['x'], ('header overlaps HUD',hud,button)
                     shot(page, f'phone-{width}')
-                observations.append({'genuineTouchGas':True,'phoneUserAgent':True,'layouts':[390,320,844]})
+                    page.locator('#cameraToggle').tap(); cockpit_ready(page); shot(page,f'phone-{width}-cockpit')
+                    page.locator('#cameraToggle').tap(); page.wait_for_function('slipstreamSnapshot.view.camera.mode==="chase"')
+                observations.append({'genuineTouchGas':True,'phoneUserAgent':True,'layouts':[390,320,844], 'physicalCockpit':True,'switch':'native C/button/touch','turnLagRadians':abs(turning['view']['camera']['heading']-turning['run']['world']['heading'])})
                 mobile.close()
             finally: browser.close()
         assert not errors, errors
