@@ -132,6 +132,7 @@ assert(initialCamera.carScreen[1] > .55 && initialCamera.carScreen[1] < .85, 'ro
 run.world = {x:1,z:0,heading:Math.PI/2};
 view.draw(profile, run, 1, 1/60);
 assert(view.inspect().camera.heading > 0 && view.inspect().camera.heading < Math.PI/2, 'turn lag rather than rigid yaw');
+assert(Math.abs(view.inspect().camera.target[0])<.2 && view.inspect().camera.target[2]<-7.8,'aim follows smoothed heading, not an instantaneous steering kick');
 const pausedCamera = view.inspect().camera;
 view.draw(profile, run, 0, 0); assert.deepEqual(view.inspect().camera, pausedCamera, 'pause freezes smoothing');
 run.id = 2; run.world = {x:0,z:0,heading:Math.PI-.01}; view.draw(profile, run, 0, 1/60);
@@ -151,6 +152,14 @@ for (const [i,car] of CARS.entries()) {
 }
 view.setCamera('chase'); run.id=99; run.world={x:0,z:25,heading:Math.PI/2};
 view.draw(profile,run); assert(view.inspect().camera.eye[0]<11, 'obstruction resolved after smoothing');
+const highwayRun = {...run,id:100,mode:'race',x:0,distance:20,traffic:[],police:[],rivals:[]};
+view.draw(profile,highwayRun,1,1/60);
+assert(Math.abs(view.inspect().pose.heading)<=.04,'bounded cosmetic highway steering');
+const highwayPose = view.inspect().pose;
+view.draw(profile,highwayRun,-1,0); assert.deepEqual(view.inspect().pose,highwayPose,'paused highway car does not whip to neutral');
+assert(view.inspect().highwayScenery.visible && view.inspect().highwayScenery.windows>1500);
+assert(view.inspect().highwayScenery.triangles<=12000 && view.inspect().highwayScenery.batches===3);
+assert.equal(view.inspect().contactShadows,3,'three feathered contact discs in one batch');
 view.draw(profile,null); assert.equal(view.inspect().camera.mode,'garage');
 view.dispose(); view.dispose();
 for (const [resource, count] of tracked) assert.equal(count, 1, `resource disposed once: ${resource.type || resource.name}`);

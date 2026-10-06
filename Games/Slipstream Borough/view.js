@@ -102,8 +102,8 @@ export function createView(host) {
   const scene = new THREE.Scene();
   scene.fog = new THREE.Fog('#b8c4ca', 100, 240);
   const camera = new THREE.PerspectiveCamera(52, 1, .1, 500);
-  scene.add(new THREE.HemisphereLight('#fff4dd', '#575753', 2.4));
-  const sun = new THREE.DirectionalLight('#ffffff', 2.2);
+  scene.add(new THREE.HemisphereLight('#fff4dd', '#50565e', 1.8));
+  const sun = new THREE.DirectionalLight('#ffffff', 3);
   sun.position.set(-12, 20, 8); scene.add(sun);
   const resources = [], npc = new Map(), dummy = new THREE.Object3D();
   const own = resource => { resources.push(resource); return resource; };
@@ -126,6 +126,27 @@ export function createView(host) {
   box(.2, .18, 360, '#ddd6c4', 7.3, 0, -110, highway);
   const lines = new THREE.InstancedMesh(unitBox, material('#e6ddc4'), 90); highway.add(lines);
   const buildings = new THREE.InstancedMesh(unitBox, material('#8b7662'), 48); highway.add(buildings);
+  // Static facade detail shares the same scrolling building transforms, in two draws.
+  const facades = new THREE.Group(); highway.add(facades);
+  const panes = [];
+  for (let i = 0; i < 48; i++) {
+    const h = 5 + (i * 7 % 19), x = (i % 2 ? -1 : 1) * (18 + i % 4 * 5), z = -Math.floor(i / 2) * 15 + 25;
+    for (let y = 2; y < h - 1; y += 3) for (const p of [-2.6, 0, 2.6]) for (const side of [-1, 1]) {
+      panes.push([x + p, y, z + side * 4.51, 0]);
+      panes.push([x + side * 4.01, y, z + p, Math.PI / 2]);
+    }
+  }
+  const highwayWindows = new THREE.InstancedMesh(own(new THREE.PlaneGeometry(1.3, 1.7)), own(new THREE.MeshLambertMaterial({ color: '#455d68', side: THREE.DoubleSide })), panes.length);
+  panes.forEach(([x,y,z,yaw],i) => { dummy.position.set(x,y,z); dummy.rotation.set(0,yaw,0); dummy.scale.set(1,1,1); dummy.updateMatrix(); highwayWindows.setMatrixAt(i,dummy.matrix); });
+  highwayWindows.instanceMatrix.needsUpdate = true; facades.add(highwayWindows);
+  const roofEdges = new THREE.InstancedMesh(unitBox, material('#d6ccba'), 48); facades.add(roofEdges);
+  for (let i = 0; i < 48; i++) instance(roofEdges,i,(i % 2 ? -1 : 1) * (18 + i % 4 * 5),5 + (i * 7 % 19),-Math.floor(i / 2) * 15 + 25,8.3,.2,9.3);
+  roofEdges.instanceMatrix.needsUpdate = true;
+  const railPosts = new THREE.InstancedMesh(unitBox, material('#8e9699'), 180); highway.add(railPosts);
+  for (let i = 0; i < 180; i++) instance(railPosts,i,i % 2 ? -7.3 : 7.3,.24,20 - Math.floor(i / 2) * 4,.12,.48,.12);
+  railPosts.instanceMatrix.needsUpdate = true;
+  const contactShadows = new THREE.InstancedMesh(own(new THREE.CircleGeometry(1,24).rotateX(-Math.PI / 2)), own(new THREE.MeshBasicMaterial({ color: '#10151a', transparent: true, opacity: .09, depthWrite: false })), 48);
+  contactShadows.name = 'vehicle-contact-shadows'; contactShadows.frustumCulled = false; scene.add(contactShadows);
   for (const [i, text] of ['LAD / NORTH', 'CUH / BOROUGH', 'CUZ / TAKE CARE'].entries()) {
     const canvas = document.createElement('canvas'); canvas.width = 256; canvas.height = 64;
     const ctx = canvas.getContext('2d');
@@ -212,7 +233,7 @@ export function createView(host) {
   const observedEye = new THREE.Vector3(), carScreen = new THREE.Vector3();
   const reducedMotion = globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches || false;
   let cameraMode = 'chase', renderedCameraMode = 'garage', cameraRun = null, cameraYaw = 0;
-  let player = null, orbit = .65, frames = 0, wheelAngle = 0, lastDistance = 0, lastRun = null;
+  let player = null, orbit = .65, frames = 0, wheelAngle = 0, lastDistance = 0, lastRun = null, renderedSteer = 0;
   let dragging = null, signature = '', privateMaterials = [], mounted = 'none', disposed = false;
   let worldMode = 'garage', counts = { traffic: 0, police: 0, rivals: 0 };
   let stripe = null, spoiler = false;
@@ -300,11 +321,15 @@ export function createView(host) {
     wheelAngle -= Math.max(0, distance - lastDistance) / player.userData.profile.wheelRadius;
     lastDistance = distance;
     player.position.set(roam ? run.world.x : run?.x || 0, 0, roam ? run.world.z : 0);
+    // Keep cosmetic highway yaw small and time-based; paused draws retain their pose.
+    const visualDelta = Math.max(0, Math.min(.25, Number.isFinite(dt) ? dt : 0));
+    renderedSteer = !run ? 0 : cameraRun !== run.id ? steer : renderedSteer + (steer - renderedSteer) * (1 - Math.exp(-8 * visualDelta));
     // Three's local -Z forward uses the same yaw convention as WORLD.
-    player.rotation.y = roam ? run.world.heading : run ? -steer * .10 : 0;
+    player.rotation.y = roam ? run.world.heading : run ? -renderedSteer * .04 : 0;
     for (const wheel of player.userData.wheels) wheel.rotation.x = run ? wheelAngle : 0;
     highway.visible = !!run && !roam; city.visible = !!roam; garage.visible = !run;
     if (highway.visible) {
+      facades.position.z = distance % 15; railPosts.position.z = distance % 4;
       for (let i = 0; i < 90; i++) instance(lines, i, [-3.5, 0, 3.5][i % 3], .01, -Math.floor(i / 3) * 10 + distance % 10 + 20, .12, .025, 4);
       lines.instanceMatrix.needsUpdate = true;
       for (let i = 0; i < 48; i++) {
@@ -331,6 +356,15 @@ export function createView(host) {
       for (const wheel of model.userData.wheels) wheel.rotation.x = state.angle;
     }
     for (const [key, state] of npc) if (!active.has(key)) { state.model.removeFromParent(); npc.delete(key); }
+    let shadowIndex = 0;
+    for (const model of [player, ...[...npc.values()].map(state => state.model)]) for (const scale of [.65,.85,1]) {
+      if (shadowIndex >= 48) break;
+      const dimensions = model.userData.dimensions;
+      dummy.position.set(model.position.x,-.009 + shadowIndex % 3 * .002,model.position.z);
+      dummy.rotation.set(0,model.rotation.y,0); dummy.scale.set(dimensions.width * .6 * scale,1,dimensions.length * .56 * scale);
+      dummy.updateMatrix(); contactShadows.setMatrixAt(shadowIndex++,dummy.matrix);
+    }
+    contactShadows.count = shadowIndex; contactShadows.instanceMatrix.needsUpdate = true;
     const running = run?.status === 'running';
     smoke.visible = running && run.gadget === 'smoke' && run.gadgetTime > 0;
     pulse.visible = running && run.gadget === 'emp' && run.gadgetTime > 0;
@@ -367,10 +401,10 @@ export function createView(host) {
       const delta = Math.max(0, Math.min(.25, Number.isFinite(dt) ? dt : 0));
       const heading = roam ? yaw : 0;
       // A wrap-safe, time-based chase: follow the road ahead, not a locked car pivot.
-      cameraYaw = snap ? heading : cameraYaw + Math.atan2(Math.sin(heading - cameraYaw), Math.cos(heading - cameraYaw)) * (1 - Math.exp(-4 * delta));
+      cameraYaw = snap ? heading : cameraYaw + Math.atan2(Math.sin(heading - cameraYaw), Math.cos(heading - cameraYaw)) * (1 - Math.exp(-2.5 * delta));
       const back = 11 + (run.speed || 0) * .04, ahead = 8 + (run.speed || 0) * .12;
       desiredEye.set(player.position.x + Math.sin(cameraYaw) * back, 5.5, player.position.z + Math.cos(cameraYaw) * back);
-      desiredTarget.set(player.position.x - sin * ahead + (roam ? 0 : steer * 1.5), .8, player.position.z - cos * ahead);
+      desiredTarget.set(player.position.x - Math.sin(cameraYaw) * ahead, .8, player.position.z - Math.cos(cameraYaw) * ahead);
       if (snap) { camera.position.copy(desiredEye); cameraTarget.copy(desiredTarget); }
       else { camera.position.lerp(desiredEye, 1 - Math.exp(-7 * delta)); cameraTarget.lerp(desiredTarget, 1 - Math.exp(-9 * delta)); }
       if (roam) {
@@ -411,6 +445,8 @@ export function createView(host) {
         entityId, carId:model.userData.carId, pose:Object.freeze({x:model.position.x,z:model.position.z,heading:model.rotation.y}),
         wheelAngle:model.userData.wheels[0].rotation.x
       }))), geometryCount: renderer.info.memory.geometries, textureCount: renderer.info.memory.textures,
+      highwayScenery: Object.freeze({ windows: panes.length, triangles: panes.length * 2 + 48 * 12 + 180 * 12, batches: 3, visible: highway.visible }),
+      contactShadows: contactShadows.count,
       cityBlocks: city.visible ? cityBuildings.count : 0,
       cityArchitecture: Object.freeze({ ...architecture.userData, visible: city.visible }),
       pose: player ? Object.freeze({ x: player.position.x, z: player.position.z, heading: player.rotation.y }) : null,

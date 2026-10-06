@@ -1,0 +1,17 @@
+import assert from 'node:assert/strict';
+import { mapPoint, drawMap } from '../Games/Slipstream Borough/map.js';
+const city={mode:'roam',world:{x:0,z:0,heading:Math.PI/2},traffic:[],police:[{world:{x:50,z:0}}],rivals:[]};
+assert.deepEqual(mapPoint(city,0,0),[72,72]);
+assert(mapPoint(city,0,-50)[1]<72); assert(mapPoint(city,50,0)[0]>72);
+assert.deepEqual(mapPoint(city,1e6,-1e6),[136,8]);
+const road={mode:'race',distance:600,finishDistance:1200,x:0,traffic:[],police:[],rivals:[{x:1.75,distance:650}]};
+assert(mapPoint(road,0,650)[1]<mapPoint(road,0,600)[1]);
+assert(mapPoint(road,0,550)[1]>mapPoint(road,0,600)[1]);
+assert(mapPoint(road,-5.25,600)[0]<mapPoint(road,5.25,600)[0]);
+const calls=[], ctx=new Proxy({}, {get:(_,key)=> (...args)=>calls.push([key,...args]),set:()=>true});
+const canvas={width:144,getContext:type=>{assert.equal(type,'2d');return ctx;}};
+const before=structuredClone(city);drawMap(canvas,city);assert.deepEqual(city,before);
+assert(calls.some(c=>c[0]==='rotate'&&c[1]===-Math.PI/2));
+assert(calls.some(c=>c[0]==='fillRect'&&c[3]===6&&c[4]===6));
+drawMap(canvas,road);assert(calls.some(c=>c[0]==='fillText'&&c[1]==='600/1200 m'));
+console.log('PASS north-up actual world/relative highway projection, limits, police shape, heading and immutable map draw. Synthetic canvas only.');

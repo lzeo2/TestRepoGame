@@ -43,6 +43,15 @@ summary:focus-visible { outline: 3px solid var(--ink); outline-offset: 2px; }
 .touch-controls button { min-width: 44px; flex: 1 1 44px; padding-inline: 6px; font-size: 1rem; white-space: nowrap; }
 #deploy { flex-basis: 100%; }
 html:not([data-phone='true']) .touch-controls { display: none; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+#mapPanel { position: fixed; right: 12px; top: 208px; padding: 0 8px 6px; border: 1px solid var(--line); border-radius: 6px; background: var(--panel); z-index: 2; }
+#minimap { display: block; width: 126px; height: 126px; }
+.map-legend { font-size: .75rem; margin: 4px 0 0; }
+#mapPanel:not([open]) .map-legend { display: none; }
+#crashNotice { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: min(360px, calc(100% - 24px)); padding: 12px; border: 3px solid #b34732; border-radius: 6px; background: var(--panel); z-index: 3; }
+#crashText { display: block; margin-bottom: 8px; }
+html[data-recovery='true'] #result { inset: 50% auto auto 50%; transform: translate(-50%, -50%); width: min(400px, calc(100% - 24px)); max-height: calc(100dvh - 24px); border: 3px solid #b34732; }
+#respawnStatus { font-weight: 700; }
 @media (max-width: 760px) and (orientation: portrait) {
   .game-header h1 { display: none; }
   .game-header .actions { margin-left: auto; }
@@ -51,6 +60,7 @@ html:not([data-phone='true']) .touch-controls { display: none; }
   #drive { width: auto; }
   #hud, #objective { font-size: .85rem; }
   .drive-actions > * { flex: 0 1 auto; }
+  #minimap { width: 88px; height: 88px; }
 }
 @media (max-height: 500px) {
   .game-header h1 { display: none; }
@@ -61,4 +71,6 @@ html:not([data-phone='true']) .touch-controls { display: none; }
   #activity { flex-basis: auto; }
   .touch-controls button { min-height: 44px; }
   #deploy { flex-basis: auto; }
+  #mapPanel { top: 70px; }
+  #minimap { width: 88px; height: 88px; }
 }
