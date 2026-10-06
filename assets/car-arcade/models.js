@@ -197,7 +197,11 @@ function build(car) {
       lamp.rotateX(Math.PI/2); lamp.translate(side*w*.26,y*.83,-l/2-.025); add(details,lamp,'#ffe8a1');
     }
   }
-  const result = {paint:merge(paint), details:merge(details), glass:merge(windows), wheel:wheelGeometry(r, car.style === 'sport' ? 7 : 5), r, wheelZ};
+  // Left front seat, ahead of the headrest and behind the wheel. Keep short
+  // pickup cabins under their actual roof rather than behind its rear edge.
+  const eye = Object.freeze([-w*.4, y+(h-y)*.63, l*Math.min(.06,rr-.005)]);
+  const cockpit = Object.freeze({eye, target:Object.freeze([eye[0],eye[1],-l])});
+  const result = {paint:merge(paint), details:merge(details), glass:merge(windows), wheel:wheelGeometry(r, car.style === 'sport' ? 7 : 5), r, wheelZ, cockpit};
   return result;
 }
 function paintColor(options, fallback) {
@@ -235,7 +239,7 @@ export function createCar(id, options = {}) {
   group.traverse(o => {
     if (o.isMesh) { triangles += o.geometry.index.count/3; drawCalls++; }
   });
-  group.userData = Object.freeze({carId:id,wheels:Object.freeze(wheels),triangles,drawCalls,
+  group.userData = Object.freeze({carId:id,wheels:Object.freeze(wheels),triangles,drawCalls,cockpit:p.cockpit,
     dimensions:Object.freeze({width:size.x,height:size.y,length:size.z}),
     profile:Object.freeze({form:profiles[id][9],wheelRadius:p.r,axleHeight:-p.wheel.boundingBox.min.y,wheelbase:p.wheelZ*2,forward:'-Z',wheelAxis:'X',measurement:'local unrotated geometry; single color pass, no shadows'})});
   return group;
