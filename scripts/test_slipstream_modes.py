@@ -158,6 +158,7 @@ def main():
                 shot(page, 'sprint-1280'); race_start = time.monotonic()
                 page.wait_for_function('slipstreamSnapshot.phase==="end"', timeout=110000)
                 ended = state(page)
+                (output / 'sprint-terminal.json').write_text(json.dumps(ended,indent=2))
                 assert page.locator('#resultTitle').evaluate('r => r===document.activeElement')
                 full_scene(page)
                 assert page.locator('#result').evaluate('r => getComputedStyle(r).position==="fixed"')

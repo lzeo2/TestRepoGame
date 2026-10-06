@@ -144,7 +144,8 @@ function leave() {
   setPhase('garage');
 }
 function input(dt = 0) { const left = held.has('left') || keys.has('a') || keys.has('arrowleft'), right = held.has('right') || keys.has('d') || keys.has('arrowright'); const brake = +(held.has('brake') || keys.has('s') || keys.has('arrowdown')); const target = +right - +left;
-  if (dt > 0) steering += Math.max(-dt * 5, Math.min(dt * 5, target - steering));
+  if (target === 0) steering = 0;
+  else if (dt > 0) steering += Math.max(-dt * 5, Math.min(dt * 5, target - steering));
   return { steer: steering, throttle: brake ? 0 : +($('cruise').checked || held.has('gas') || keys.has('w') || keys.has('arrowup')), brake,deploy:queuedDeploy }; }
 function deploy() {
   if(phase==='run'&&!paused&&!blocked&&run.mode!=='race'&&run.charges>0&&run.gadgetCooldown===0)queuedDeploy=true;

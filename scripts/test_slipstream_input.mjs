@@ -1,0 +1,19 @@
+// Exercise the actual controller input function; synthetic DOM/input, no native claim.
+import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import { runInNewContext } from 'node:vm';
+const source=readFileSync(new URL('../Games/Slipstream Borough/script.js',import.meta.url),'utf8');
+const fn=source.slice(source.indexOf('function input('),source.indexOf('function deploy('));
+const keys=new Set(),held=new Set(),cruise={checked:false};
+const ctx={keys,held,steering:0,queuedDeploy:false,$:id=>{assert.equal(id,'cruise');return cruise;}};
+runInNewContext(fn,ctx);
+keys.add('d');assert(Math.abs(ctx.input(1/60).steer-1/12)<1e-9);
+for(let i=0;i<12;i++)ctx.input(1/60);assert.equal(ctx.steering,1);
+keys.delete('d');assert.equal(ctx.input().steer,0,'released steering has no extra sideways drift');
+held.add('left');for(let i=0;i<12;i++)ctx.input(1/60);assert.equal(ctx.steering,-1);
+held.add('right');assert.equal(ctx.input(1/60).steer,0,'opposite controls cancel');
+held.clear();keys.add('w');assert.equal(ctx.input().throttle,1);
+keys.add('s');assert.equal(ctx.input().throttle,0);assert.equal(ctx.input().brake,1);
+keys.clear();cruise.checked=true;assert.equal(ctx.input().throttle,1);
+ctx.queuedDeploy=true;assert.equal(ctx.input().deploy,true);
+console.log('PASS actual controller: gentle press, immediate release, held touch, opposing controls, brake priority and optional Auto gas. Synthetic input only.');
