@@ -42,8 +42,9 @@ def walk(page, point, x, z):
     assert page.locator('#interact').is_enabled()
 
 
-def keyboard_to(page, x, z):
-    """Walk open authored lanes; never write a position or fabricate a save."""
+def keyboard_to(page, x, z, keyboard=None):
+    """Walk open authored lanes; an iframe uses its owning Page's keyboard."""
+    keyboard = keyboard or page.keyboard
     deadline = monotonic() + 30
     page.locator('#game-canvas').focus()
     while monotonic() < deadline:
@@ -56,9 +57,9 @@ def keyboard_to(page, x, z):
         horizontal = dx * math.cos(yaw) - dz * math.sin(yaw)
         vertical = dz * math.cos(yaw) + dx * math.sin(yaw)
         key = ('d' if horizontal > 0 else 'a') if abs(horizontal) > abs(vertical) else ('s' if vertical > 0 else 'w')
-        page.keyboard.down(key)
+        keyboard.down(key)
         page.wait_for_timeout(min(400, max(60, math.hypot(dx, dz) / 4 * 1000)))
-        page.keyboard.up(key)
+        keyboard.up(key)
     raise AssertionError(f'normal walking did not reach {x},{z}: {snapshot(page)["state"]["position"]}')
 
 

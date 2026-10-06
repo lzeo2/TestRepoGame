@@ -23,9 +23,9 @@ def main():
     assert shutil.disk_usage(ROOT).free >= 2_000_000_000
     catalog = json.loads((ROOT / 'games.json').read_text())
     old = json.loads(subprocess.check_output(['git', 'show', '34ce915:games.json'], cwd=ROOT))
-    assert catalog[:-1] == old and len(catalog) == 116
-    assert len({g['id'] for g in catalog}) == 116
-    game = catalog[-1]
+    assert [g for g in catalog if g['id'] not in (225, 226)] == old and len(catalog) == 117
+    assert len({g['id'] for g in catalog}) == 117
+    game = next(g for g in catalog if g['id'] == 225)
     assert game['id'] == 225 and game['title'] == TITLE and game['cat'] == 'arcade'
     assert game['desc'].startswith('Preview:') and game['featured'] is False
     assert game['url'] == 'Games/Slipstream Borough/index.html'
@@ -126,7 +126,7 @@ def main():
         assert sum(p.stat().st_size for p in output.glob('*.jpg')) <= 1_000_000
         assert shutil.disk_usage(ROOT).free >= 2_000_000_000
         (output / 'result.json').write_text(json.dumps({'errors': errors, 'assisted': False, 'sourceHashes': hashes, 'observations': observations}, indent=2) + '\n')
-        print('PASS existing115 unchanged, registered225, Police/Slipstream search, Arcade filtering, keyboard and390touch native fullscreen launch, garage-first then fresh4traffic/20s readiness/UA-controls/local-only/no errors/no overflow/exit.', flush=True)
+        print('PASS existing115 unchanged, catalog117, registered225, Police/Slipstream search, Arcade filtering, keyboard and390touch native fullscreen launch, garage-first then fresh4traffic/20s readiness/UA-controls/local-only/no errors/no overflow/exit.', flush=True)
     except Exception as error:
         (output / 'failure.json').write_text(json.dumps({'error': repr(error), 'errors': errors, 'sourceHashes': hashes}, indent=2) + '\n')
         raise

@@ -1230,8 +1230,17 @@
     "title": "Slipstream Borough: Police Chase (Preview)",
     "cat": "arcade",
     "icon": "SB",
-    "desc": "Preview: city traffic, police chases and highway races. Patrols begin after 20 active seconds and 30 meters driven.",
+    "desc": "Preview: city police chases and highway races, plus an all-car handling sandbox. City driving supports reverse.",
     "url": "Games/Slipstream Borough/index.html",
+    "featured": false
+  },
+  {
+    "id": 226,
+    "title": "Foldwild: Open-World RPG (Preview)",
+    "cat": "story",
+    "icon": "FW",
+    "desc": "Preview: explore five regions, collect creatures and fight turn-based battles. Full campaign and device testing remain ongoing.",
+    "url": "Games/Foldwild/index.html",
     "featured": false
   }
 ]
