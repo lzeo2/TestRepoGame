@@ -234,6 +234,7 @@ export function createView(host) {
   const reducedMotion = globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches || false;
   let cameraMode = 'chase', renderedCameraMode = 'garage', cameraRun = null, cameraYaw = 0;
   let player = null, orbit = .65, frames = 0, wheelAngle = 0, lastDistance = 0, lastRun = null, renderedSteer = 0;
+  let lastMode = null, lastX = 0, lastZ = 0, renderAlpha = 1, renderElapsed = 0;
   let dragging = null, signature = '', privateMaterials = [], mounted = 'none', disposed = false;
   let worldMode = 'garage', counts = { traffic: 0, police: 0, rivals: 0 };
   let stripe = null, spoiler = false;
@@ -297,8 +298,16 @@ export function createView(host) {
   host.addEventListener('pointerdown', down); host.addEventListener('pointermove', move);
   host.addEventListener('pointerup', up); host.addEventListener('pointercancel', up); host.addEventListener('lostpointercapture', up);
 
-  function draw(profile, run, steer = 0, dt = 1 / 60) {
+  function draw(profile, run, steer = 0, dt = 1 / 60, previousRun = run, alpha = 1) {
     if (disposed) return;
+    // Core snapshots are trusted internal data, not another save-validation boundary.
+    const compatible = run && previousRun && run.id === previousRun.id && run.mode === previousRun.mode &&
+      run.status === 'running' && previousRun.status === run.status && run.collisions === previousRun.collisions;
+    renderAlpha = compatible && Number.isFinite(alpha) ? Math.max(0, Math.min(1, alpha)) : 1;
+    const mix = (before, now) => Number.isFinite(before) ? before + (now - before) * renderAlpha : now;
+    const heading = (before, now) => Number.isFinite(before) ? before + Math.atan2(Math.sin(now - before), Math.cos(now - before)) * renderAlpha : now;
+    const previous = compatible ? previousRun : run;
+    renderElapsed = mix(previous?.elapsed, run?.elapsed || 0);
     const id = run?.carId || profile.selected, custom = profile.customizations[id];
     select(id, run?.appearance || custom, run?.gadget || custom.gadget);
     const width = Math.max(1, host.clientWidth);
@@ -315,17 +324,24 @@ export function createView(host) {
     const fov = cockpit ? (portraitMenu ? 70 : 58) : 52, near = cockpit ? .025 : .1;
     if (camera.fov !== fov || camera.near !== near) { camera.fov = fov; camera.near = near; camera.updateProjectionMatrix(); }
     privateMaterials[2].opacity = cockpit ? .12 : .38;
-    const roam = run?.mode === 'roam', distance = run?.distance || 0;
-    worldMode = roam ? 'roam' : run ? run.mode : 'garage';
-    if (lastRun !== (run?.id ?? null)) { wheelAngle = 0; lastDistance = 0; lastRun = run?.id ?? null; }
-    wheelAngle -= Math.max(0, distance - lastDistance) / player.userData.profile.wheelRadius;
-    lastDistance = distance;
-    player.position.set(roam ? run.world.x : run?.x || 0, 0, roam ? run.world.z : 0);
+    const roam = run?.mode === 'roam' || run?.mode === 'sandbox', distance = mix(previous?.distance, run?.distance || 0);
+    worldMode = run ? run.mode : 'garage';
+    const x = roam ? mix(previous?.world?.x, run.world.x) : mix(previous?.x, run?.x || 0);
+    const z = roam ? mix(previous?.world?.z, run.world.z) : 0;
+    const yawPose = roam ? heading(previous?.world?.heading, run.world.heading) : 0;
+    const newRun = lastRun !== (run?.id ?? null) || lastMode !== worldMode;
+    if (newRun) { wheelAngle = 0; cameraRun = null; }
+    else if (dt > 0 && run?.status === 'running') {
+      const traveled = roam ? -(x - lastX) * Math.sin(yawPose) - (z - lastZ) * Math.cos(yawPose) : Math.max(0, distance - lastDistance);
+      wheelAngle -= traveled / player.userData.profile.wheelRadius;
+    }
+    lastDistance = distance; lastX = x; lastZ = z; lastRun = run?.id ?? null; lastMode = worldMode;
+    player.position.set(x, 0, z);
     // Keep cosmetic highway yaw small and time-based; paused draws retain their pose.
     const visualDelta = Math.max(0, Math.min(.25, Number.isFinite(dt) ? dt : 0));
     renderedSteer = !run ? 0 : cameraRun !== run.id ? steer : renderedSteer + (steer - renderedSteer) * (1 - Math.exp(-8 * visualDelta));
     // Three's local -Z forward uses the same yaw convention as WORLD.
-    player.rotation.y = roam ? run.world.heading : run ? -renderedSteer * .04 : 0;
+    player.rotation.y = roam ? yawPose : run ? -renderedSteer * .04 : 0;
     for (const wheel of player.userData.wheels) wheel.rotation.x = run ? wheelAngle : 0;
     highway.visible = !!run && !roam; city.visible = !!roam; garage.visible = !run;
     if (highway.visible) {
@@ -342,17 +358,22 @@ export function createView(host) {
     }
     const active = new Set(); counts = { traffic: 0, police: 0, rivals: 0 };
     for (const type of ['traffic', 'police', 'rivals']) for (const e of run?.[type] || []) {
-      const key = `${run.id}:${type}:${e.id}`; active.add(key); counts[type]++;
+      const key = `${run.id}:${run.mode}:${type}:${e.id}`; active.add(key); counts[type]++;
+      const before = compatible ? previousRun[type]?.find(old => old.id === e.id && old.carId === e.carId) : null;
+      const ex = roam ? mix(before?.world?.x, e.world.x) : mix(before?.x, e.x);
+      const ez = roam ? mix(before?.world?.z, e.world.z) : 0;
+      const eh = roam ? heading(before?.world?.heading, e.world.heading) : 0;
+      const progress = mix(before?.distance, e.distance);
       if (!npc.has(key)) {
         const model = type === 'police' ? createPatrolCar() : createCar(e.carId);
-        npc.set(key, { type, entityId: e.id, model, angle: 0, x: e.world?.x, z: e.world?.z, distance: e.distance }); scene.add(model);
+        npc.set(key, { type, entityId: e.id, model, angle: 0, x: ex, z: ez, distance: progress }); scene.add(model);
       }
       const state = npc.get(key), model = state.model;
-      const traveled = roam ? Math.hypot(e.world.x - state.x, e.world.z - state.z) : Math.abs(e.distance - state.distance);
-      state.angle -= traveled / model.userData.profile.wheelRadius;
-      state.x = e.world?.x; state.z = e.world?.z; state.distance = e.distance;
-      model.position.set(roam ? e.world.x : e.x, 0, roam ? e.world.z : -(e.distance - run.distance));
-      model.rotation.y = roam ? e.world.heading : 0;
+      const traveled = roam ? -(ex - state.x) * Math.sin(eh) - (ez - state.z) * Math.cos(eh) : Math.max(0, progress - state.distance);
+      if (dt > 0 && run.status === 'running') state.angle -= traveled / model.userData.profile.wheelRadius;
+      state.x = ex; state.z = ez; state.distance = progress;
+      model.position.set(ex, 0, roam ? ez : -(progress - distance));
+      model.rotation.y = eh;
       for (const wheel of model.userData.wheels) wheel.rotation.x = state.angle;
     }
     for (const [key, state] of npc) if (!active.has(key)) { state.model.removeFromParent(); npc.delete(key); }
@@ -374,7 +395,7 @@ export function createView(host) {
     const yaw = player.rotation.y, sin = Math.sin(yaw), cos = Math.cos(yaw);
     if (smoke.visible) {
       for (let i = 0; i < 12; i++) {
-        const side = Math.sin(i * 7 + run.elapsed) * .9, back = player.userData.dimensions.length / 2 + 1 + i * .55;
+        const side = Math.sin(i * 7 + renderElapsed) * .9, back = player.userData.dimensions.length / 2 + 1 + i * .55;
         const size = .8 + i % 4 * .25;
         instance(smoke, i, player.position.x + side * cos + back * sin, .5 + i % 4 * .4, player.position.z - side * sin + back * cos, size, size, size);
       }
@@ -383,9 +404,9 @@ export function createView(host) {
     if (pulse.visible) { pulse.position.set(player.position.x, .13, player.position.z); pulse.scale.setScalar(6 + (3 - run.gadgetTime) * 20); pulseMaterial.opacity = .65 * run.gadgetTime / 3; }
     if (decoyEffect.visible) {
       decoyEffect.position.set(roam ? run.gadgetTarget.x : player.position.x, .25, roam ? run.gadgetTarget.z : -8);
-      decoyEffect.scale.setScalar(5 + Math.sin(run.elapsed * 5));
+      decoyEffect.scale.setScalar(5 + Math.sin(renderElapsed * 5));
     }
-    if (flames.visible) flames.scale.z = .9 + .2 * Math.sin(run.elapsed * 24);
+    if (flames.visible) flames.scale.z = .9 + .2 * Math.sin(renderElapsed * 24);
     if (repairEffect.visible) { repairEffect.position.set(player.position.x, .25, player.position.z); repairEffect.scale.setScalar(4 + (15 - run.gadgetCooldown) * 4); }
     if (cockpit) {
       cameraYaw = yaw;
@@ -402,7 +423,8 @@ export function createView(host) {
       const heading = roam ? yaw : 0;
       // A wrap-safe, time-based chase: follow the road ahead, not a locked car pivot.
       cameraYaw = snap ? heading : cameraYaw + Math.atan2(Math.sin(heading - cameraYaw), Math.cos(heading - cameraYaw)) * (1 - Math.exp(-2.5 * delta));
-      const back = 11 + (run.speed || 0) * .04, ahead = 8 + (run.speed || 0) * .12;
+      const speed = Math.abs(mix(previous?.speed, run.speed || 0));
+      const back = 11 + speed * .04, ahead = 8 + speed * .12;
       desiredEye.set(player.position.x + Math.sin(cameraYaw) * back, 5.5, player.position.z + Math.cos(cameraYaw) * back);
       desiredTarget.set(player.position.x - Math.sin(cameraYaw) * ahead, .8, player.position.z - Math.cos(cameraYaw) * ahead);
       if (snap) { camera.position.copy(desiredEye); cameraTarget.copy(desiredTarget); }
@@ -431,7 +453,7 @@ export function createView(host) {
     camera.updateMatrixWorld(true); player?.updateMatrixWorld(true);
     const localEye = player ? player.worldToLocal(observedEye.copy(camera.position)).toArray() : null;
     if (player) carScreen.set(player.position.x, player.position.y + .7, player.position.z).project(camera);
-    return Object.freeze({ frames, triangles: renderer.info.render.triangles, drawcalls: renderer.info.render.calls,
+    return Object.freeze({ frames, renderAlpha, renderElapsed, wheelAngle, renderDistance: lastDistance, triangles: renderer.info.render.triangles, drawcalls: renderer.info.render.calls,
       camera: Object.freeze({ mode: renderedCameraMode, heading: cameraYaw,
         eye: Object.freeze(camera.position.toArray()), target: Object.freeze(cameraTarget.toArray()),
         localEye: localEye ? Object.freeze(localEye) : null, driverEye: player ? player.userData.cockpit.eye : null,
