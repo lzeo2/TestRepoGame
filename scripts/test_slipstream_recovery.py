@@ -78,9 +78,11 @@ def main():
                 assert restarted['run']['mode']=='race' and restarted['run']['id']==crash['run']['id']+1
                 assert restarted['profile']['cash']==before['profile']['cash']==0 and restarted['profile']['careerDistance']==0
                 assert not page.locator('#cruise').is_checked() and page.locator('#helpDialog').is_hidden()
-                page.keyboard.down('w');page.keyboard.down('d')
-                page.wait_for_function('slipstreamSnapshot.phase==="end" && slipstreamSnapshot.respawnRemaining>0')
-                page.keyboard.up('d');page.keyboard.up('w')
+                # Highway edges clamp lane position but do not damage: traffic arrival is not a death timer.
+                # Drive normally along the city street to the finite, collidable north boundary.
+                page.locator('#leave').click();start(page,'roam');page.keyboard.down('w')
+                page.wait_for_function('slipstreamSnapshot.phase==="end" && slipstreamSnapshot.respawnRemaining>0',timeout=40000)
+                page.keyboard.up('w')
                 wreck=state(page)
                 assert wreck['run']['hp']==0 and wreck['run']['status']=='busted'
                 assert page.locator('#resultTitle').inner_text()=='Car wrecked' and 'Respawning in' in page.locator('#respawnStatus').inner_text()
@@ -90,7 +92,7 @@ def main():
                 shot(page,'wreck-help-paused');page.locator('#closeHelp').click();shot(page,'wreck-countdown')
                 page.wait_for_function('id=>slipstreamSnapshot.phase==="run" && slipstreamSnapshot.run.id>id',arg=wreck['run']['id'])
                 respawned=state(page)
-                assert respawned['run']['mode']=='race' and respawned['run']['hp']==100 and respawned['run']['id']==wreck['run']['id']+1
+                assert respawned['run']['mode']==wreck['run']['mode']=='roam' and respawned['run']['hp']==100 and respawned['run']['id']==wreck['run']['id']+1
                 assert respawned['profile']['settledRun']==wreck['run']['id'] and respawned['profile']['cash']==wreck['profile']['cash']
                 assert not page.locator('#cruise').is_checked() and respawned['steering']==0
                 settled=respawned['profile'];page.wait_for_timeout(450);assert state(page)['profile']==settled
