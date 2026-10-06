@@ -1,5 +1,5 @@
 {
-  "catalog_entries": 116,
+  "catalog_entries": 117,
   "games": [
     {
       "directory": "Games/2048",
@@ -579,15 +579,15 @@
     },
     {
       "directory": "Games/Foldwild",
-      "id": null,
-      "title": "Foldwild",
-      "registered": false,
+      "id": 226,
+      "title": "Foldwild: Open-World RPG (Preview)",
+      "registered": true,
       "entry": "Games/Foldwild/index.html",
       "entry_blob": "690ba0a57c2b5fdef68373c09a47c4a84c40ae14",
       "tree": "0920ddc5055f4735e73c60f56dee4efe5c5c31e4",
       "files": 95,
       "bytes": 8965655,
-      "document": "docs/maintenance/games/unregistered-foldwild.md"
+      "document": "docs/maintenance/games/226-foldwild.md"
     },
     {
       "directory": "Games/FreeCell",
@@ -1111,10 +1111,10 @@
       "title": "Slipstream Borough: Police Chase (Preview)",
       "registered": true,
       "entry": "Games/Slipstream Borough/index.html",
-      "entry_blob": "300eb1498946667fc663ec4d49fc73514393648e",
-      "tree": "168ef6db179dfc0dad11d4156793504f65048c07",
+      "entry_blob": "795b7395c4bb5b0962b26c18b1ffc6da88afcec1",
+      "tree": "1e3ee36296b6115e956c9786149d31adf30786f8",
       "files": 9,
-      "bytes": 101523,
+      "bytes": 110730,
       "document": "docs/maintenance/games/225-slipstream-borough.md"
     },
     {

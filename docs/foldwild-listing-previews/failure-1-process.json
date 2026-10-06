@@ -1,0 +1,13 @@
+{
+  "exit": 1,
+  "seconds": 35.94585870497394,
+  "headBefore": "a5d78082f1da69fe41af11750ba8537ad9efb93d",
+  "headAfter": "a5d78082f1da69fe41af11750ba8537ad9efb93d",
+  "command": [
+    "xvfb-run",
+    "-a",
+    "python3",
+    "-B",
+    "scripts/test_foldwild_catalog.py"
+  ]
+}

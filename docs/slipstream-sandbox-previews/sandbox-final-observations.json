@@ -1,0 +1,414 @@
+{
+  "sourceHashes": {
+    "Games/Slipstream Borough/view.js": "6a9b3f8dad57666842950f658b1b28e3cd3161b276cffe7769594bf56678bfad",
+    "Games/Slipstream Borough/index.html": "2b8dd075fb86d5b2b857af2f43cab0dab927e37d276162bd95ad0b482283c201",
+    "Games/Slipstream Borough/script.js": "c4e001b4907cab192f9cf63e2d09dc5a8989c37e3bd3051f4d8657e3f0360132",
+    "Games/Slipstream Borough/core.js": "9c36f6cc1e03e4d96594d98f5de3c652f76137848689c107caf8b14bc0a0d0dc",
+    "Games/Slipstream Borough/CREDITS.md": "b8fc5ed706e172030156df3bc0f70b6f6e7ed23a5a4d46698629ee9e136db78e",
+    "Games/Slipstream Borough/world.js": "49c78e73c2a22279aac8d4ddfc29522826599249ea78c7f282d675e716a98700",
+    "Games/Slipstream Borough/clock.js": "53033b464d449cd6c5961e8d95c2e8601bf744c86bc3d8ae48da2e62050c12ae",
+    "Games/Slipstream Borough/map.js": "dcf78105b10bb2ea7b60c9aec93fb64fee032e072077317b9bd662d605e7cce4",
+    "Games/Slipstream Borough/style.css": "5457650281b6815f7838afa8bb96d18e20f4e548b986bb7d2b71bda639e5edf1",
+    "scripts/test_slipstream_sandbox.py": "4732c88925ba797fd46e5e62c484c9b58387fd749a6ff2bbcb967526ad6a6ab6"
+  },
+  "errors": [],
+  "assisted": false,
+  "observations": [
+    {
+      "desktopAll16": [
+        "bricklet",
+        "pip",
+        "parcel",
+        "finch",
+        "lantern",
+        "comet",
+        "orchard",
+        "pebble",
+        "dockside",
+        "horizon",
+        "morrow",
+        "gravel",
+        "relay",
+        "tempest",
+        "atlas",
+        "sunray"
+      ],
+      "reverse": {
+        "id": 20,
+        "mode": "sandbox",
+        "status": "running",
+        "carId": "bricklet",
+        "upgrades": {
+          "engine": 0,
+          "handling": 0,
+          "armor": 0
+        },
+        "stats": {
+          "speed": 25,
+          "acceleration": 5.2,
+          "handling": 2.6,
+          "toughness": 100
+        },
+        "level": 0,
+        "distance": 2.0311933429167,
+        "speed": -6,
+        "x": 1.75,
+        "hp": 100,
+        "heat": 0,
+        "score": 4,
+        "earnings": 0,
+        "traffic": [],
+        "police": [],
+        "rivals": [],
+        "elapsed": 0.7666666666666674,
+        "finishDistance": 100000,
+        "place": 1,
+        "seed": 20,
+        "nextEntity": 1,
+        "spawnClock": 0,
+        "collisionCooldown": 0,
+        "nearMisses": 0,
+        "collisions": 0,
+        "arrest": 0,
+        "finishTime": null,
+        "appearance": {
+          "paint": "#927f63",
+          "wheels": "#d0d0d0",
+          "stripe": null,
+          "spoiler": false
+        },
+        "gadget": "none",
+        "charges": 0,
+        "deployments": 0,
+        "gadgetTime": 0,
+        "gadgetCooldown": 0,
+        "gadgetHeld": false,
+        "world": {
+          "x": 0,
+          "z": 2.0311933429167,
+          "heading": 0
+        },
+        "pursuit": "roaming",
+        "escapeClock": 0,
+        "gadgetTarget": {
+          "x": 0,
+          "z": 0
+        }
+      },
+      "reverseView": {
+        "frames": 63,
+        "renderAlpha": 0.002000000000708796,
+        "renderElapsed": 0.7500333333333458,
+        "wheelAngle": 5.799980008759071,
+        "renderDistance": 1.931393342916771,
+        "triangles": 54712,
+        "drawcalls": 36,
+        "camera": {
+          "mode": "chase",
+          "heading": 0,
+          "eye": [
+            0,
+            5.5,
+            12.891831522750863
+          ],
+          "target": [
+            0,
+            0.8,
+            -6.914313712566195
+          ],
+          "localEye": [
+            0,
+            5.5,
+            10.960438179834092
+          ],
+          "driverEye": [
+            -0.336,
+            1.2390560000000002,
+            0.219
+          ],
+          "carScreen": [
+            0.5,
+            0.6863219397633644
+          ],
+          "fov": 52,
+          "near": 0.1
+        },
+        "modelId": "bricklet",
+        "world": {
+          "traffic": 0,
+          "police": 0,
+          "rivals": 0
+        },
+        "worldMode": "sandbox",
+        "policeModels": [],
+        "trafficModels": [],
+        "geometryCount": 67,
+        "textureCount": 0,
+        "highwayScenery": {
+          "windows": 2292,
+          "triangles": 7320,
+          "batches": 3,
+          "visible": false
+        },
+        "contactShadows": 3,
+        "cityBlocks": 36,
+        "cityArchitecture": {
+          "batches": 8,
+          "instances": 8412,
+          "triangles": 44664,
+          "visible": true
+        },
+        "pose": {
+          "x": 0,
+          "z": 1.931393342916771,
+          "heading": 0
+        },
+        "customization": {
+          "paint": "927f63",
+          "wheels": "d0d0d0",
+          "mounted": "none",
+          "stripe": null,
+          "spoiler": false,
+          "stripeSegments": 0
+        },
+        "effects": {
+          "smokePuffs": 0,
+          "empVisible": false,
+          "decoyVisible": false,
+          "boostVisible": false,
+          "repairVisible": false
+        },
+        "dpr": 1
+      },
+      "careerUnchanged": true
+    },
+    {
+      "bankedCityReverse": {
+        "id": 1,
+        "mode": "roam",
+        "status": "running",
+        "carId": "bricklet",
+        "upgrades": {
+          "engine": 0,
+          "handling": 0,
+          "armor": 0
+        },
+        "stats": {
+          "speed": 25,
+          "acceleration": 5.2,
+          "handling": 2.6,
+          "toughness": 100
+        },
+        "level": 0,
+        "distance": 1.5311933429166997,
+        "speed": -6,
+        "x": 1.75,
+        "hp": 100,
+        "heat": 0,
+        "score": 3,
+        "earnings": 0,
+        "traffic": [
+          {
+            "id": 1,
+            "carId": "pip",
+            "x": 0,
+            "distance": 3.333333333333333,
+            "speed": 8,
+            "passed": false,
+            "hit": false,
+            "finishTime": null,
+            "world": {
+              "x": -50,
+              "z": 46.66666666666668,
+              "heading": -0.0
+            }
+          },
+          {
+            "id": 2,
+            "carId": "parcel",
+            "x": 0,
+            "distance": 3.7499999999999987,
+            "speed": 9,
+            "passed": false,
+            "hit": false,
+            "finishTime": null,
+            "world": {
+              "x": -46.250000000000036,
+              "z": -50,
+              "heading": -1.5707963267948966
+            }
+          },
+          {
+            "id": 3,
+            "carId": "finch",
+            "x": 0,
+            "distance": 4.166666666666665,
+            "speed": 10,
+            "passed": false,
+            "hit": false,
+            "finishTime": null,
+            "world": {
+              "x": 50,
+              "z": -45.83333333333339,
+              "heading": -3.141592653589793
+            }
+          },
+          {
+            "id": 4,
+            "carId": "orchard",
+            "x": 0,
+            "distance": 4.583333333333332,
+            "speed": 11,
+            "passed": false,
+            "hit": false,
+            "finishTime": null,
+            "world": {
+              "x": 45.41666666666675,
+              "z": 50,
+              "heading": 1.5707963267948966
+            }
+          }
+        ],
+        "police": [],
+        "rivals": [],
+        "elapsed": 0.41666666666666663,
+        "finishDistance": 100000,
+        "place": 1,
+        "seed": 1,
+        "nextEntity": 5,
+        "spawnClock": 0,
+        "collisionCooldown": 0,
+        "nearMisses": 0,
+        "collisions": 0,
+        "arrest": 0,
+        "finishTime": null,
+        "appearance": {
+          "paint": "#927f63",
+          "wheels": "#d0d0d0",
+          "stripe": null,
+          "spoiler": false
+        },
+        "gadget": "none",
+        "charges": 0,
+        "deployments": 0,
+        "gadgetTime": 0,
+        "gadgetCooldown": 0,
+        "gadgetHeld": false,
+        "world": {
+          "x": 0,
+          "z": 1.5311933429166997,
+          "heading": 0
+        },
+        "pursuit": "roaming",
+        "escapeClock": 0,
+        "gadgetTarget": {
+          "x": 0,
+          "z": 0
+        }
+      },
+      "reservedAndSettledOnce": true
+    },
+    {
+      "phoneViewport": [
+        320,
+        740
+      ],
+      "bounds": {
+        "sandboxTools": {
+          "x": 12,
+          "y": 266,
+          "width": 296,
+          "height": 260
+        },
+        "hud": {
+          "x": 12,
+          "y": 72,
+          "width": 296,
+          "height": 130.515625
+        },
+        "drive": {
+          "x": 12,
+          "y": 555.90625,
+          "width": 296,
+          "height": 172.09375
+        },
+        "mapPanel": {
+          "x": 233.03125,
+          "y": 208,
+          "width": 74.96875,
+          "height": 52
+        }
+      },
+      "careerUnchanged": true
+    },
+    {
+      "phoneViewport": [
+        390,
+        844
+      ],
+      "bounds": {
+        "sandboxTools": {
+          "x": 12,
+          "y": 266,
+          "width": 300,
+          "height": 364
+        },
+        "hud": {
+          "x": 12,
+          "y": 72,
+          "width": 366,
+          "height": 87.109375
+        },
+        "drive": {
+          "x": 12,
+          "y": 712,
+          "width": 366,
+          "height": 120
+        },
+        "mapPanel": {
+          "x": 303.03125,
+          "y": 208,
+          "width": 74.96875,
+          "height": 52
+        }
+      },
+      "careerUnchanged": true
+    },
+    {
+      "phoneViewport": [
+        844,
+        390
+      ],
+      "bounds": {
+        "sandboxTools": {
+          "x": 12,
+          "y": 108,
+          "width": 300,
+          "height": 132
+        },
+        "hud": {
+          "x": 12,
+          "y": 12,
+          "width": 535,
+          "height": 83.640625
+        },
+        "drive": {
+          "x": 12,
+          "y": 266,
+          "width": 307.578125,
+          "height": 112
+        },
+        "mapPanel": {
+          "x": 757.03125,
+          "y": 70,
+          "width": 74.96875,
+          "height": 52
+        }
+      },
+      "careerUnchanged": true
+    },
+    {
+      "negativeFixture": "corrupt career: sandbox available, banked drive locked, raw bytes preserved"
+    }
+  ]
+}

@@ -1,0 +1,47 @@
+[
+  {
+    "delegate": 25,
+    "commit": "2ad5cd3",
+    "requestedThinking": "high",
+    "exit": 0,
+    "seconds": 277.6490418979665,
+    "actualIdentities": [
+      {
+        "api": "openai-codex-responses",
+        "provider": "openai-codex",
+        "model": "gpt-6-astra",
+        "records": 48
+      }
+    ]
+  },
+  {
+    "delegate": 26,
+    "commit": "59d2e90",
+    "requestedThinking": "high",
+    "exit": 0,
+    "seconds": 169.51487199007533,
+    "actualIdentities": [
+      {
+        "api": "openai-codex-responses",
+        "provider": "openai-codex",
+        "model": "gpt-6-astra",
+        "records": 36
+      }
+    ]
+  },
+  {
+    "delegate": 27,
+    "commit": "335df7a",
+    "requestedThinking": "high",
+    "exit": 0,
+    "seconds": 117.95960582303815,
+    "actualIdentities": [
+      {
+        "api": "openai-codex-responses",
+        "provider": "openai-codex",
+        "model": "gpt-6-astra",
+        "records": 27
+      }
+    ]
+  }
+]
