@@ -79,8 +79,14 @@ once-only940cash, same-mode retry/save/reload/Help/focus/fullwindow/both themes/
 320/390/844bounds/44pxtargets/header-HUD nonoverlap. Readiness20s/race110s/outer240s
 remain unchanged. Source hash includes shared model. Native car is the earned-play
 starter; all16physical transform/geometry coverage above is synthetic, not native
-whole fleet/campaign proof. Real portal native and full116release status follow
-captured results, not inferred from these focused checks.
+whole fleet/campaign proof. Real portal native **exit0/77.56651780300308s** on the same frozen603f662,
+HEAD unchanged, realcurrent-tabfullscreen/garagefirst/Drive/4traffic/local/noerrors.
+Current unchanged full116releasegate frozen9b402829ec06c33bd94937e032209055464d2a7a
+**exit0/1457.6410388989607s/116of116pass**, restoredcleanbaseline/minfree2442944512;
+[complete receipt/status manifest](slipstream-camera-previews/README.md#current-full116-release-gate).
+Source/waits/filter/exclusions unchanged. Ovo passed unchanged; its historical
+15stimeout was not erased or diagnosed as fixed. Normalmainpush/remoteexacthash
+verification follows docs-onlyreceipt; transport is not hosting verification.
 
 Cabins/cars/scenery remain stylized, no new instruments/animated hands/free-look
 or detailed live fleet promise. Physical phone/Safari/GPU/FPS, natural Cityescape,

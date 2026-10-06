@@ -46,6 +46,22 @@ all16naturallyunlocked. Original deadlines/old failure history retained.
 No newgame/registration/privatecode/vendor/catalog/physics/storage/proxy/CharacterAI
 changes. Garage's factory consumer is unchanged; shared metadata is additive.
 Circuitanimation/default-workerquota and all-game84/122initialreports38missing
-holds remain. Full116gate/push/hosting verdict follows captured completion,
-never inferred from these scoped checks. Prior6c0c7bf pushed atownerrequest after
-reported115/116Ovo timeout; that exception is historical, not a new passing gate.
+holds remain. ## Current full116 release gate
+
+`full-gate.json` and `full-gate-summary.txt`: frozen9b402829ec06c33bd94937e032209055464d2a7a,
+**exit0/1457.6410388989607s,116of116pass**. Actual peak195853264Gamesbytes,
+remaining0/minfree2442944512bytes; originalassets/docs/scripts/exactHEAD/clean
+restored. All116real statusrows retained. Smoke/wrapper/catalog hashes unchanged;
+existing sparsewrapperrun only strengthens runtime disk floor2e9/100MBreserve.
+No filtering, waits, benign-list changes, concurrent source edits or grants.
+Current game/model/test bytes exactly match finalfocused603f662; changes after
+that sourcefreeze were only retaineddocs/evidence. This is original broad
+load/generic-start smoke with its exclusions, not all116campaign/iframe/hardware/
+rights certification; realchangedcamera/inputboundary is covered above.
+
+Ovo passed unchanged on this run. Earlier115/116Ovo15stimeout remains in sibling
+overlayevidence; no rootfix/transientguarantee or retroactivepass claim. Prior
+6c0c7bf was pushed atownerrequest despite that reportedfailure; this current
+source has its own passing unchangedgate, not relying on that exception.
+Normal authorizedmainpush/exactremoteverification follows this docs-onlyreceipt
+commit. Hosting is still unverified and transport is not deployment.
