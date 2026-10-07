@@ -3,7 +3,7 @@
 
 ## Identity and status
 
-Registered id **221**, category `card`, not featured. Entry `Games/Balatro/index.html`; baseline `8c8a055` has 3 files and 5,062,742 bytes, of which 5,061,324 bytes are the GBA ROM. This is a GBA fan demake wrapper, not a native HTML5 implementation of the commercial game. ROM/software/art redistribution clearance remains an owner rights gate. No game, license or registration changes are authorized by this page.
+Registered id **221**, category `card`, not featured. Entry `Games/Balatro/index.html`; audit baseline `153eb6f` has 3 files and 5,062,742 bytes, of which 5,061,324 bytes are the GBA ROM. This is a GBA fan demake wrapper, not a native HTML5 implementation of the commercial game. ROM/software/art redistribution clearance remains an owner rights gate. No game, license or registration changes are authorized by this page.
 
 ## Implementation map
 
@@ -21,11 +21,11 @@ No game-specific localStorage key or save callback is configured by the wrapper.
 
 ## Dependencies and provenance
 
-[CREDITS](../../../Games/Balatro/CREDITS.md) cites `https://github.com/OutBlade/balatro-web`, short revision `3c8cf43`, and `https://github.com/GBALATRO/balatro-gba` version 0.2.2. It claims MIT ROM terms and a SHA-256 prefix comparison, but the directory has **no LICENSE** and no pinned demake source revision/full artifact digest. These remain claims in inherited evidence, not independently verified permission. The page also distinguishes commercial Balatro ownership from its unofficial demake. Emulator/component notices live in the shared tree and cannot authorize ROM or commercial assets by themselves. Existing `docs/GAMES.md` says MIT LICENSE is shipped; current Git inventory contradicts that statement.
+[CREDITS](../../../Games/Balatro/CREDITS.md) cites `https://github.com/OutBlade/balatro-web`, short revision `3c8cf43`, and `https://github.com/GBALATRO/balatro-gba` version 0.2.2. The local ROM artifact is now recorded with full SHA-256 `c2ef394b332a973398f970c53398af2600bbcbf666cbe6f9aa0238457d3f9c94`; the upstream MIT claim remains owner verification required because the directory has **no LICENSE**. The page distinguishes commercial Balatro ownership from its unofficial demake. Emulator/component notices live in the shared tree and cannot authorize ROM or commercial assets by themselves. Existing `docs/GAMES.md` says MIT LICENSE is shipped; current Git inventory contradicts that statement.
 
 ## Audit findings
 
-- **HIGH evidence hold**, `CREDITS.md`, `License: ROM is MIT`: license file/full pinned source and complete artifact verification are absent locally. Impact: reproducibility/rights cannot be certified. Minimal next step is owner-led evidence reconciliation, not a new license label or deletion.
+- **HIGH evidence hold**, `CREDITS.md`, upstream MIT claim: the local full artifact digest is recorded, but the upstream license file/full pinned source evidence is absent locally. Impact: reproducibility/rights cannot be certified. Minimal next step is owner-led evidence reconciliation, not a stronger license label or deletion.
 - **MEDIUM**, shared `loader.js`, `loadScript`/`loadStyle`: promises resolve on load but have no error rejection or timeout. Missing local dependency can leave bootstrap pending without useful failure feedback. Repro recommendation: abort a minified dependency request in a browser. Fix centrally under the shared-runtime owner's lease, not in this wrapper alone.
 - **MEDIUM**, shared `storage.js`, `put`/`remove` open-request `onerror`: handlers do not settle the returned promises. Storage-denied failures can hang callers. The same pattern was confirmed in minified runtime extracts. Fix both authored/build source paths through the runtime owner and validate denied IndexedDB.
 
@@ -35,7 +35,7 @@ The small wrapper is the appropriate patch point for truthful loading/help/retur
 
 ## Verification
 
-Actually run: inline configuration passed STDIN `node --check`; Git existence checks confirmed stated local loader/minified/core paths. No native/browser test, save test or screenshot was produced. Repeat inline extraction with Python's HTMLParser and `node --check`; this checks syntax only. Main must lease minimal ROM/core closure for recommended native checks: local-only boot, observed controls, playable hand, reset, save/export/reload and denied-storage fallback. A full catalog loading gate still cannot certify ROM gameplay or rights.
+Actually run: inline configuration passed STDIN `node --check`; Git existence checks confirmed stated local loader/minified/core paths. The 2026-10 interactive audit verified local-only boot, observed ROM controls, playable hand state and EmulatorJS restart with screenshots under `/tmp/audit-shots2/`; no save/export/reload or denied-storage fallback was verified. Inline extraction with Python's HTMLParser and `node --check` remains syntax-only. A full catalog loading gate still cannot certify ROM gameplay or rights.
 
 ## Future outlook
 
