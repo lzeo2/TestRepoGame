@@ -163,7 +163,8 @@ for (const rank of [1, 2, 3]) {
 }
 
 // Digest recorded by executing the same trace at unchanged df5b853 runtime a95c344.
-// Only the new side rank metadata is stripped; every old field, RNG and log is compared.
+// Strip rank metadata and translate only the four rewritten log sentences back to
+// their original wording. Keep the old digest: every mechanical field/RNG is exact.
 const traces = [];
 for (const classId of ['none', 'pathfinder', 'binder', 'warden', 'tactician', 'quartermaster']) for (const seed of [1, 671, 1000, 2000]) {
   const p = c('budriv', 'p', 'steady'), r = c('dewgob', 'r', 'nimble'), e = c('kilnarch', 'e');
@@ -175,7 +176,13 @@ for (const classId of ['none', 'pathfinder', 'binder', 'warden', 'tactician', 'q
     const old = structuredClone(b); delete old.player.classRank; delete old.enemy.classRank;
     b = applyAction(freeze(b), action);
     assert.deepEqual(applyAction(freeze(old), action), b);
-    const legacy = structuredClone(b); delete legacy.player.classRank; delete legacy.enemy.classRank; traces.push(legacy);
+    const legacy = structuredClone(b); delete legacy.player.classRank; delete legacy.enemy.classRank;
+    legacy.log = legacy.log.map(line => line
+      .replace(/^(.+) took the field\.$/, 'Switched to $1.')
+      .replace(/^(.+) took (\d+) damage\. Its shield blocked (\d+)\.$/, '$1 took $2 damage ($3 shield).')
+      .replace('The kite missed. Your turn is spent.', 'Capture missed.')
+      .replace('The kite caught the wild ally.', 'Captured the wild creature.'));
+    traces.push(legacy);
   }
 }
 assert.equal(createHash('sha256').update(JSON.stringify(traces)).digest('hex'),

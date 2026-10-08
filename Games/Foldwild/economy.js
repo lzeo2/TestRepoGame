@@ -6,7 +6,7 @@ export const ITEMS = Object.freeze({
   fiber: Object.freeze({ id: 'fiber', name: 'Field Fiber', price: 5, sell: 1 })
 });
 export const COSMETICS = Object.freeze({
-  none: Object.freeze({ id: 'none', name: 'Original Appearance', price: 0 }),
+  none: Object.freeze({ id: 'none', name: 'No accessory', price: 0 }),
   badge: Object.freeze({ id: 'badge', name: 'Paper Badge', price: 20 }),
   scarf: Object.freeze({ id: 'scarf', name: 'Paper Scarf', price: 35 }),
   'paper-hat': Object.freeze({ id: 'paper-hat', name: 'Paper Hat', price: 45 })
@@ -117,8 +117,8 @@ export function buyItem(state, shopId, id, quantity = 1) {
   const item = known(ITEMS, id, 'item');
   integer(quantity, 1, 999, 'quantity');
   const next = snapshot(state);
-  if (next.shops[shopId].stock[id] < quantity) throw new RangeError('Insufficient stock.');
-  if (next.marks < item.price * quantity) throw new RangeError('Insufficient Marks.');
+  if (next.shops[shopId].stock[id] < quantity) throw new RangeError('The shop does not have enough stock.');
+  if (next.marks < item.price * quantity) throw new RangeError('You do not have enough Marks.');
   setCount(next, id, count(next, id) + quantity);
   next.marks -= item.price * quantity;
   next.shops[shopId].stock[id] -= quantity;
@@ -128,9 +128,9 @@ export function sellItem(state, shopId, id, quantity = 1) {
   known(SHOPS, shopId, 'shop');
   const item = known(ITEMS, id, 'item');
   integer(quantity, 1, 999, 'quantity');
-  if (item.sell === 0) throw new RangeError('Camp-refillable Latch Kites cannot be sold.');
+  if (item.sell === 0) throw new RangeError('Camp refills Latch Kites for free, so shops will not buy them.');
   const next = snapshot(state);
-  if (count(next, id) < quantity) throw new RangeError('Insufficient items.');
+  if (count(next, id) < quantity) throw new RangeError('You do not have enough items to sell.');
   setCount(next, id, count(next, id) - quantity);
   next.marks += item.sell * quantity;
   // Sold goods rejoin this shop's stock, still bounded by the item cap.
@@ -142,8 +142,8 @@ export function buyCosmetic(state, shopId, id, quantity = 1) {
   const cosmetic = known(COSMETICS, id, 'cosmetic');
   integer(quantity, 1, 1, 'cosmetic quantity');
   const next = snapshot(state);
-  if (next.cosmetics.includes(id)) throw new RangeError('Cosmetic already owned.');
-  if (next.marks < cosmetic.price) throw new RangeError('Insufficient Marks.');
+  if (next.cosmetics.includes(id)) throw new RangeError('You already own this accessory.');
+  if (next.marks < cosmetic.price) throw new RangeError('You do not have enough Marks.');
   next.marks -= cosmetic.price;
   next.cosmetics.push(id);
   return result(next);
@@ -151,8 +151,8 @@ export function buyCosmetic(state, shopId, id, quantity = 1) {
 export function completeContract(state, contractId) {
   const contract = known(CONTRACTS, contractId, 'contract');
   const next = snapshot(state);
-  if (next.contracts.includes(contractId)) throw new RangeError('Contract already completed.');
-  if (next.inventory[contract.materialId] < contract.quantity) throw new RangeError('Insufficient fiber.');
+  if (next.contracts.includes(contractId)) throw new RangeError('You have already completed this contract.');
+  if (next.inventory[contract.materialId] < contract.quantity) throw new RangeError('You do not have enough fiber for this delivery.');
   next.inventory[contract.materialId] -= contract.quantity;
   next.marks += contract.reward;
   next.contracts.push(contractId);

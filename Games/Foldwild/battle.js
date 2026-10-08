@@ -316,7 +316,7 @@ function perform(b, side, action) {
     const incoming = activeCreature(side);
     const bonus = perks.switchEnergy + TRAITS[incoming.traitId].perks.switchEnergy + synergy.switchEnergy;
     incoming.energy = Math.min(statsFor(incoming).maxEnergy, incoming.energy + bonus);
-    b.log.push(`Switched to ${incoming.uid}.`);
+    b.log.push(`${incoming.uid} took the field.`);
     return;
   }
   const name = action.type === 'ability' ? speciesFor(c).abilities[action.slot] : null;
@@ -337,7 +337,7 @@ function perform(b, side, action) {
       }
       damage -= absorbed;
       target.hp = Math.max(0, target.hp - damage);
-      b.log.push(`${target.uid} took ${damage} damage (${absorbed} shield).`);
+      b.log.push(`${target.uid} took ${damage} damage. Its shield blocked ${absorbed}.`);
     }
     if (a.heal) c.hp = Math.min(statsFor(c).maxHP, c.hp + a.heal);
     if (a.restore) c.energy = Math.min(statsFor(c).maxEnergy, c.energy + a.restore);
@@ -368,28 +368,28 @@ export function applyAction(battle, action) {
   settle(b);
   if (b.result) return b;
   if (!action || !['ability', 'wait', 'switch', 'capture', 'flee'].includes(action.type)) {
-    return notice(b, 'Invalid action.');
+    return notice(b, 'Choose an ability, wait, switch allies, throw a kite or flee.');
   }
   const player = activeCreature(b.player);
   const enemy = activeCreature(b.enemy);
   if (action.type === 'ability') {
-    if (!Number.isInteger(action.slot) || action.slot < 0 || action.slot > 3) return notice(b, 'Invalid ability slot.');
+    if (!Number.isInteger(action.slot) || action.slot < 0 || action.slot > 3) return notice(b, 'Choose one of your four abilities.');
     if (cost(player, ABILITIES[speciesFor(player).abilities[action.slot]]) > player.energy) {
       return notice(b, 'Not enough energy.');
     }
   }
   if (action.type === 'switch') {
     if (!Number.isInteger(action.index) || action.index < 0 || action.index >= b.player.team.length ||
-        action.index === b.player.active || b.player.team[action.index].hp <= 0) return notice(b, 'Cannot switch there.');
+        action.index === b.player.active || b.player.team[action.index].hp <= 0) return notice(b, 'Choose another conscious ally to switch in.');
   }
   if (action.type === 'capture' && (b.kind !== 'wild' || enemy.hp <= 0 || enemy.hp > statsFor(enemy).maxHP * 0.5)) {
-    return notice(b, 'Capture requires a living wild creature at half HP or less.');
+    return notice(b, 'Bring a living wild ally to half HP or less before throwing a kite.');
   }
   if (action.type === 'flee') {
-    if (b.kind !== 'wild') return notice(b, 'Cannot flee a rival battle.');
+    if (b.kind !== 'wild') return notice(b, 'Stay for the trailkeeper training fight. You cannot flee.');
     b.result = 'fled';
     b.phase = 'ended';
-    return notice(b, 'Fled the battle.');
+    return notice(b, 'You left the battle and returned to the trail.');
   }
   if (action.type === 'capture') {
     const chance = clamp(0.12 + 0.75 * (1 - enemy.hp / statsFor(enemy).maxHP) +
@@ -399,9 +399,9 @@ export function applyAction(battle, action) {
       b.captured.hp = Math.max(1, b.captured.hp);
       b.result = 'captured';
       b.phase = 'ended';
-      return notice(b, 'Captured the wild creature.');
+      return notice(b, 'The kite caught the wild ally.');
     }
-    b.log.push('Capture missed.');
+    b.log.push('The kite missed. Your turn is spent.');
     player.turnsTaken++;
     endTurn(player, b);
   }

@@ -1,10 +1,10 @@
 @font-face{font-family:Bungee;src:url('../../assets/fonts/bungee/bungee-400-latin.woff2') format('woff2');font-display:swap}
 @font-face{font-family:Atkinson;src:url('../../assets/fonts/atkinson-hyperlegible/atkinson-hyperlegible-400-latin.woff2') format('woff2');font-display:swap}
 @font-face{font-family:Atkinson;src:url('../../assets/fonts/atkinson-hyperlegible/atkinson-hyperlegible-700-latin.woff2') format('woff2');font-weight:700;font-display:swap}
-:root{font-family:Atkinson,system-ui,sans-serif;font-size:16px;line-height:1.4;color:#242820;background:#eee9d8;color-scheme:light;--paper:#f7f3e8;--line:#827762;--blue:#365a74;--scene-height:480px}
+:root{font-family:Atkinson,system-ui,sans-serif;font-size:16px;line-height:1.4;color:#242820;background:#eee9d8;color-scheme:light;--paper:#f7f3e8;--line:#827762;--blue:#365a74;--scene-height:100%}
 *{box-sizing:border-box}
 [hidden]{display:none!important}
-body{margin:0;padding:0 max(12px,env(safe-area-inset-right)) max(16px,env(safe-area-inset-bottom)) max(12px,env(safe-area-inset-left))}
+body{margin:0;height:100dvh;display:flex;flex-direction:column;overflow:hidden;padding:0 max(12px,env(safe-area-inset-right)) max(12px,env(safe-area-inset-bottom)) max(12px,env(safe-area-inset-left))}
 a{color:var(--blue);text-underline-offset:3px;display:inline-flex;align-items:center;min-height:44px;min-width:44px}
 button,input,select{font:inherit}
 button{min-height:44px;min-width:44px;padding:9px 12px;border:2px solid #000;border-radius:4px;background:#000;color:#fff;font-weight:700;cursor:pointer;overflow-wrap:anywhere;line-height:1.3}
@@ -16,13 +16,13 @@ label{display:flex;gap:8px;align-items:center;min-height:44px}
 :focus-visible{outline:3px solid #75491e;outline-offset:3px}
 .skip-link{position:absolute;left:12px;top:-100px;padding:10px 16px;background:var(--paper);z-index:10}
 .skip-link:focus{top:12px}
-.site-header{max-width:1440px;margin:auto;padding:max(4px,env(safe-area-inset-top)) 0 4px;display:flex;align-items:center;gap:16px}
+.site-header{width:100%;max-width:1440px;margin:0 auto;flex-shrink:0;padding:max(4px,env(safe-area-inset-top)) 0 4px;display:flex;align-items:center;gap:16px}
 h1{font-family:Bungee,system-ui,sans-serif;font-size:24px;line-height:1.2;margin:0;flex:1}
 h2{font-size:19px;line-height:1.25;margin:0 0 12px}
 p{margin:0 0 12px;overflow-wrap:anywhere}
-main{max-width:1440px;margin:4px auto}
+main{width:100%;max-width:1440px;margin:0 auto;flex:1;min-height:0;display:flex;flex-direction:column}
 .panel{padding:20px;border:1px solid var(--line);border-radius:6px;background:var(--paper);margin-bottom:16px}
-#menu{max-width:680px;margin:16px auto}
+#menu{width:100%;max-width:680px;min-height:0;overflow:auto;margin:12px auto}
 #menu h2{font-family:Bungee,system-ui,sans-serif}
 .seed-setting{justify-content:space-between}
 #seed-input{width:100%}
@@ -31,8 +31,8 @@ main{max-width:1440px;margin:4px auto}
 .starter-choices button{flex:1 1 130px}
 .actions button{flex:1 1 110px}
 .help{font-size:15px;color:#41483e}
-.play-layout{position:relative;margin:0 0 16px}
-.viewport{position:relative;min-width:0;border:1px solid var(--line);border-radius:6px;overflow:hidden;background:#cbd2bd}
+.play-layout{position:relative;flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1fr) 360px;border:1px solid var(--line);border-radius:6px;overflow:hidden;background:#cbd2bd}
+.viewport{position:relative;min-width:0;min-height:0;overflow:hidden}
 #game-canvas{display:block;width:100%;height:var(--scene-height);touch-action:none}
 #game-canvas:focus-visible{outline-offset:-6px}
 #world-hud{position:absolute;top:12px;left:12px;max-width:min(500px,calc(100% - 24px));padding:8px 12px;background:var(--paper);border-radius:6px;font-size:15px}
@@ -42,20 +42,26 @@ main{max-width:1440px;margin:4px auto}
 .field-record p{margin:4px 0}
 summary{min-height:44px;padding:10px 0;cursor:pointer;font-weight:700;overflow-wrap:anywhere}
 #save-state{color:var(--blue)}
-#save-tools{padding:8px 0;margin-bottom:8px;border-bottom:1px solid var(--line)}
+#save-tools{display:flex;flex-wrap:wrap;align-items:center;gap:4px 16px;flex-shrink:0;max-height:30dvh;overflow:auto;padding:0 0 4px}
 #save-tools p:empty{display:none}
-#save-tools p{margin-bottom:4px}
+#save-tools p{margin:0}
+#save-tools details{flex:1;min-width:min(260px,100%)}
+#save-tools summary{padding:10px 0}
+#save-tools details[open]{flex-basis:100%}
 #save-tools input{width:100%}
 #save-primary-bytes,#reset-primary-bytes{width:100%;min-height:100px;resize:vertical;font:inherit}
-.trail-controls{min-width:0}
-#message{position:absolute;top:calc(var(--scene-height) - 72px);left:12px;max-width:min(620px,calc(100% - 24px));max-height:64px;overflow:auto;margin:0;padding:8px 12px;border-left:4px solid #a46c3a;border-radius:4px;background:var(--paper);font-size:15px}
-#team-list{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:8px 0}
+.trail-controls{min-width:0;min-height:0;overflow:auto;overscroll-behavior:contain;padding:12px;background:var(--paper);border-left:1px solid var(--line)}
+#message{margin:8px 0;padding:8px 10px;border-left:4px solid #a46c3a;font-size:15px}
+#team-list{display:block;margin:8px 0}
 #team-list>*{margin:0;padding:8px 10px;border-bottom:2px solid #899776;font-size:15px;overflow-wrap:anywhere}
 #team-list button{width:100%}
-.field-actions{display:flex;gap:8px;align-items:start}
-#nearby-actions{flex:1;display:grid;grid-template-columns:repeat(3,minmax(0,1fr))}
-.interaction-actions{flex:0 1 340px}
-.toolbar{align-items:center;padding:8px 0;border-top:1px solid var(--line);margin-top:8px}
+.field-actions{display:block}
+#nearby-actions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr))}
+#nearby-actions button{padding:8px 5px;font-size:14px}
+.interaction-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}
+.toolbar{position:sticky;top:-12px;z-index:1;align-items:center;padding:8px 0;background:var(--paper);border-bottom:1px solid var(--line)}
+.toolbar button{flex:1;font-size:14px;padding-inline:8px}
+.expedition-options,.control-help{border-top:1px solid var(--line)}
 .toolbar label{font-size:15px}
 .motion-setting{cursor:pointer}
 .motion-setting input{width:44px;height:44px;margin:0 2px;accent-color:var(--blue)}
@@ -63,7 +69,8 @@ summary{min-height:44px;padding:10px 0;cursor:pointer;font-weight:700;overflow-w
 .region-choices{padding:4px 0 12px}
 .region-choices button{flex:1 1 160px}
 #world-help{margin:8px 0}
-#world-help .actions{max-width:480px}
+#world-help .actions{display:grid;grid-template-columns:repeat(4,minmax(0,1fr))}
+#world-help button{padding:8px 4px;font-size:14px}
 #battle-panel{min-width:0;font-size:15px;line-height:1.3}
 .combatants{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-bottom:8px}
 .combatants>section{padding:8px;background:var(--paper);border:1px solid var(--line);border-radius:6px;min-width:0}
@@ -81,11 +88,6 @@ progress{display:block;width:100%;height:8px;accent-color:var(--blue);margin-bot
 .battle-history{border-top:1px solid var(--line)}
 #battle-log{max-height:160px;overflow:auto;padding-left:24px;margin:0 0 8px;font-size:15px}
 #battle-log li{margin-bottom:6px}
-.play-layout:has(#battle-panel:not([hidden])){display:grid;grid-template-columns:minmax(0,1fr) 400px;gap:12px;align-items:start}
-.play-layout:has(#battle-panel:not([hidden])) .viewport{grid-column:1;grid-row:1}
-.play-layout:has(#battle-panel:not([hidden])) #battle-panel{grid-column:2;grid-row:1/3}
-.play-layout:has(#battle-panel:not([hidden])) .trail-controls{grid-column:1;grid-row:2}
-.play-layout:has(#battle-panel:not([hidden])) #message{position:static;max-height:none;max-width:none;margin-bottom:8px}
 .play-layout:has(#battle-panel:not([hidden])) #world-hud,.play-layout:has(#battle-panel:not([hidden])) #team-list,.play-layout:has(#battle-panel:not([hidden])) .field-actions,.play-layout:has(#battle-panel:not([hidden])) .travel,.play-layout:has(#battle-panel:not([hidden])) #collection-btn,.play-layout:has(#battle-panel:not([hidden])) #services-btn{display:none}
 dialog{width:min(760px,calc(100% - 24px));max-height:80dvh;overflow:auto;border:2px solid var(--blue);border-radius:6px;padding:20px;background:#eee9d8;color:#242820}
 dialog::backdrop{background:#292d30b3}
@@ -112,24 +114,14 @@ dialog button{max-width:100%}
 #service-content label{flex-wrap:wrap}
 #service-content select,#service-content input{max-width:100%}
 @media(max-width:899px){
-  :root{--scene-height:300px}
-  .field-actions{display:block}
-  .interaction-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}
-  .play-layout:has(#battle-panel:not([hidden])){--scene-height:230px;display:flex;flex-direction:column;gap:0}
-  .play-layout:has(#battle-panel:not([hidden])) .viewport{width:100%;order:0}
-  .play-layout:has(#battle-panel:not([hidden])) #battle-panel{width:100%;order:1}
-  .play-layout:has(#battle-panel:not([hidden])) .trail-controls{width:100%;order:2}
-  .play-layout:has(#battle-panel:not([hidden])) .combatants{position:static;width:100%;gap:8px;margin-bottom:0}
-  .play-layout:has(#battle-panel:not([hidden])) .combatants>section{width:100%;padding:6px}
-  .play-layout:has(#battle-panel:not([hidden])) .combatants h2{margin-bottom:4px}
-  .play-layout:has(#battle-panel:not([hidden])) .combatants summary{padding:10px 0}
-  .play-layout:has(#battle-panel:not([hidden])) #message{margin:8px 0}
-  .play-layout:has(#battle-panel:not([hidden])) .toolbar{margin-top:0;margin-bottom:8px}
-  .play-layout:has(#battle-panel:not([hidden])) #battle-panel{display:flex;flex-direction:column}
-  .play-layout:has(#battle-panel:not([hidden])) .trail-controls #message{position:static;max-height:none;font-size:14px;margin:8px 0;padding:4px 8px}
-  .play-layout:has(#battle-panel:not([hidden])) #battle-panel{padding-top:4px}
-  .play-layout:has(#battle-panel:not([hidden])) .trail-controls #world-help{display:none}
+  .play-layout{grid-template-columns:1fr;grid-template-rows:minmax(180px,42%) minmax(0,1fr)}
+  .play-layout:has(#battle-panel:not([hidden])){grid-template-rows:minmax(180px,32%) minmax(0,1fr)}
+  .trail-controls{border-left:0;border-top:1px solid var(--line);padding:8px}
+  .toolbar{top:-8px}
+  .combatants{gap:8px}
+  .combatants>section{padding:6px}
 }
+@media(max-height:500px) and (min-width:600px){.play-layout{grid-template-columns:minmax(0,1fr) 340px;grid-template-rows:1fr}}
 @media(max-width:420px){
   body{padding-left:max(8px,env(safe-area-inset-left));padding-right:max(8px,env(safe-area-inset-right))}
   h1{font-size:22px}

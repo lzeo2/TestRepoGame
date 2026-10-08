@@ -52,7 +52,7 @@ assert.equal(refreshStock({ ...reload, encounterIndex: 15 }, shop).shops[shop].e
 for (const id of Object.keys(ITEMS)) {
   assert.ok(ITEMS[id].sell < ITEMS[id].price);
   if (ITEMS[id].sell === 0) {
-    rejected(buyItem(initial, shop, id), s => sellItem(s, shop, id), /cannot be sold/);
+    rejected(buyItem(initial, shop, id), s => sellItem(s, shop, id), /Camp refills Latch Kites for free, so shops will not buy them\./);
   } else {
     const roundTrip = sellItem(buyItem(initial, shop, id), shop, id);
     assert.equal(roundTrip.marks, initial.marks - ITEMS[id].price + ITEMS[id].sell);
@@ -69,9 +69,9 @@ for (const id of ['badge', 'scarf', 'paper-hat']) {
   const dressed = buyCosmetic(initial, shop, id);
   assert.equal(dressed.marks, 90 - COSMETICS[id].price);
   assert.deepEqual(dressed.cosmetics, ['none', id]);
-  rejected(dressed, s => buyCosmetic(s, shop, id), /already owned/);
+  rejected(dressed, s => buyCosmetic(s, shop, id), /You already own this accessory\./);
 }
-rejected(fresh(), s => buyCosmetic(s, shop, 'none'), /already owned/);
+rejected(fresh(), s => buyCosmetic(s, shop, 'none'), /You already own this accessory\./);
 for (const quantity of [0, -1, 2, 1.5, NaN, Infinity, '1', 65535]) {
   rejected(fresh(), s => buyCosmetic(s, shop, 'badge', quantity));
 }
@@ -91,16 +91,16 @@ assert.equal(delivered.inventory.fiber, 0);
 assert.equal(delivered.marks, 110);
 assert.deepEqual(delivered.contracts, [contract]);
 rejected(JSON.parse(JSON.stringify(delivered)), s => completeContract(s, contract), /already completed/);
-rejected(fresh(), s => completeContract(s, contract), /Insufficient fiber/);
-rejected({ ...fresh(), marks: 0 }, s => buyItem(s, shop, 'kite'), /Insufficient Marks/);
-rejected({ ...fresh(), marks: 0 }, s => buyCosmetic(s, shop, 'badge'), /Insufficient Marks/);
+rejected(fresh(), s => completeContract(s, contract), /You do not have enough fiber for this delivery\./);
+rejected({ ...fresh(), marks: 0 }, s => buyItem(s, shop, 'kite'), /You do not have enough Marks\./);
+rejected({ ...fresh(), marks: 0 }, s => buyCosmetic(s, shop, 'badge'), /You do not have enough Marks\./);
 rejected(fresh(), s => buyItem(s, shop, 'kite', 17), /stock/);
-rejected(fresh(), s => sellItem(s, shop, 'fiber'), /Insufficient items/);
+rejected(fresh(), s => sellItem(s, shop, 'fiber'), /You do not have enough items to sell\./);
 rejected({ ...fresh(), kites: 999 }, s => buyItem(s, shop, 'kite'), /quantity/);
 rejected({ ...fresh(), inventory: { patch: 999, charge: 2, fiber: 0 } }, s => buyItem(s, shop, 'patch'), /quantity/);
 rejected({ ...fresh(), marks: 1e6 }, s => sellItem(s, shop, 'patch'), /Marks/);
 // Free camp recovery must not be convertible into unlimited currency.
-rejected({ ...fresh(), marks: 0, kites: 4 }, s => sellItem(s, shop, 'kite'), /cannot be sold/);
+rejected({ ...fresh(), marks: 0, kites: 4 }, s => sellItem(s, shop, 'kite'), /Camp refills Latch Kites for free, so shops will not buy them\./);
 rejected({ ...fresh(), marks: 1e6, inventory: { patch: 2, charge: 2, fiber: 3 } },
   s => completeContract(s, contract), /Marks/);
 const fullStock = fresh();

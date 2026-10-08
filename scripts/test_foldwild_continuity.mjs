@@ -96,7 +96,7 @@ let missed = null;
 for (let seed = 0; seed < 1000 && !missed; seed++) {
   capture.pendingBattle.seed = seed;
   const next = applyAction(capture.pendingBattle, { type: 'capture' });
-  if (!next.result && next.log.includes('Capture missed.')) missed = next;
+  if (!next.result && next.log.includes('The kite missed. Your turn is spent.')) missed = next;
 }
 assert(missed, 'Finite seed search must find a real missed capture');
 capture.kites--;
