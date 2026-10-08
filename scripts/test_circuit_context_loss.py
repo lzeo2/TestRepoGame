@@ -6,6 +6,9 @@ python3 -B scripts/test_circuit_context_loss.py
 """
 import asyncio
 import json
+import shutil
+import tempfile
+from pathlib import Path
 
 from playwright.async_api import async_playwright
 
@@ -26,6 +29,9 @@ async def load(page):
 
 
 async def main():
+    assert shutil.disk_usage('.').free >= 2_000_000_000, 'disk below 2GB'
+    shots = Path(tempfile.gettempdir()) / 'fix-swarm-shots'
+    shots.mkdir(exist_ok=True)
     async with async_playwright() as playwright:
         browser = await playwright.chromium.launch(
             executable_path='/usr/bin/chromium', headless=True,
@@ -36,6 +42,9 @@ async def main():
             page.set_default_timeout(10000)
             errors = []
             page.on('pageerror', lambda error: errors.append(str(error)))
+            page.on('console', lambda message: errors.append(message.text) if message.type == 'error' else None)
+            page.on('response', lambda response: errors.append(f'HTTP {response.status}: {response.url}') if response.status >= 400 else None)
+            page.on('requestfailed', lambda request: errors.append(request.url + ': ' + str(request.failure)))
             await load(page)
             await page.locator('#startSolo').click()
             await page.wait_for_function("window.circuitQa.inspect().phase === 'playing'")
@@ -52,6 +61,7 @@ async def main():
             assert played['frames'] > before['frames'], 'normal renderer stopped'
             assert abs(player['z'] - before['run']['players'][0]['z']) > .1, 'W did not move'
             assert player['shot'] > before['run']['players'][0]['shot'], 'Space did not fire'
+            await page.screenshot(path=str(shots / 'circuit-normal-play.png'))
             if played['run']['phase'] == 'playing':
                 await page.keyboard.press('p')
             await page.locator('#retryBtn').click()
@@ -68,6 +78,7 @@ async def main():
             reload_button = page.locator('#reloadBtn')
             await reload_button.wait_for(state='visible')
             lost = await snapshot(page)
+            await page.screenshot(path=str(shots / 'circuit-after-lost.png'))
             await asyncio.sleep(.5)
             assert await snapshot(page) == lost, 'dead renderer advanced simulation/frames'
             await page.locator('#menuBtn').click()
@@ -81,6 +92,7 @@ async def main():
                 assert 'lost' in message and 'reload' in message, 'recovery message was cleared'
                 assert await reload_button.is_visible(), 'reload action was hidden'
             assert menu['run']['phase'] == 'lobby' and menu['run']['time'] == 0
+            await page.screenshot(path=str(shots / 'circuit-after-menu-start.png'))
             bounds = await reload_button.bounding_box()
             assert bounds and bounds['width'] >= 44 and bounds['height'] >= 44
             await page.keyboard.press('Tab')
