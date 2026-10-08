@@ -12,6 +12,12 @@ main { position: relative; width: 100%; height: 100dvh; max-width: none; isolati
 #io { position: fixed; left: 12px; right: 12px; top: 66px; background: var(--panel); padding: 12px; z-index: 4; }
 #renderError { position: fixed; inset: 80px 12px auto; z-index: 5; }
 #garage, #result { position: fixed; right: max(12px, env(safe-area-inset-right)); top: 72px; width: min(400px, calc(100% - 24px)); max-height: calc(100dvh - 84px - env(safe-area-inset-bottom)); overflow: auto; overscroll-behavior: contain; z-index: 2; margin: 0; }
+/* Reserve actual header/status height instead of overlapping fixed garage offsets. */
+html[data-phase='garage'] main { display: flex; flex-direction: column; padding: max(12px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right)) max(12px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left)); }
+html[data-phase='garage'] .game-header { position: static; flex-shrink: 0; margin-bottom: 16px; }
+html[data-phase='garage'] #io { position: static; flex-shrink: 0; max-height: 25dvh; overflow: auto; margin: 0 0 12px; }
+html[data-phase='garage'] .game-layout { position: relative; flex: 1; min-height: 0; }
+html[data-phase='garage'] #garage { position: absolute; top: 0; right: 0; width: min(400px, 100%); max-height: 100%; }
 #garage > p { font-size: 1rem; }
 .launch { display: grid; grid-template-columns: 1fr; gap: 8px; margin-block: 12px; }
 #modeGoal { font-size: 1rem; margin: 0; }
@@ -65,6 +71,7 @@ html[data-recovery='true'] #result { inset: 50% auto auto 50%; transform: transl
   .game-header .actions { margin-left: auto; }
   .game-header button { font-size: .9rem; }
   #garage, #result { top: auto; bottom: max(12px, env(safe-area-inset-bottom)); max-height: 53dvh; width: calc(100% - 24px); }
+  html[data-phase='garage'] #garage { top: auto; bottom: 0; max-height: min(53dvh, 100%); width: 100%; }
   #drive { width: auto; }
   #hud, #objective { font-size: .85rem; }
   .drive-actions > * { flex: 0 1 auto; }
@@ -78,6 +85,7 @@ html[data-recovery='true'] #result { inset: 50% auto auto 50%; transform: transl
   #hud { top: 12px; right: 285px; max-width: calc(100% - 309px); font-size: .8rem; }
   #objective { font-size: .8rem; }
   #garage, #result { width: min(380px, calc(50% - 12px)); }
+  html[data-phase='garage'] #garage { width: min(380px, calc(50% - 12px)); }
   #activity { flex-basis: auto; }
   .touch-controls button { min-height: 44px; }
   #deploy { flex-basis: auto; }
