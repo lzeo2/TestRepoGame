@@ -295,10 +295,10 @@
       "title": "Circuit Ward",
       "registered": true,
       "entry": "Games/Circuit Ward/index.html",
-      "entry_blob": "b9c50b6acc757875880af9958e522b1864917b4e",
-      "tree": "d7490ad1ad3dd6e1d1833da40ba5cc9144dff5f0",
+      "entry_blob": "19e1f3cd0397b6615da7b9d9eff5b92423c95abf",
+      "tree": "85a03d3e8b6bf2accdf4cb4e542b6cf49b88815a",
       "files": 18,
-      "bytes": 2842516,
+      "bytes": 2843842,
       "document": "docs/maintenance/games/222-circuit-ward.md"
     },
     {
@@ -583,10 +583,10 @@
       "title": "Foldwild: Open-World RPG (Preview)",
       "registered": true,
       "entry": "Games/Foldwild/index.html",
-      "entry_blob": "690ba0a57c2b5fdef68373c09a47c4a84c40ae14",
-      "tree": "0920ddc5055f4735e73c60f56dee4efe5c5c31e4",
+      "entry_blob": "c8fca8d22ab24b7efefcb1deed76ae8869b0768c",
+      "tree": "10ce8437a34b5786b4610cfccaec292580fe38f0",
       "files": 95,
-      "bytes": 8965655,
+      "bytes": 8966426,
       "document": "docs/maintenance/games/226-foldwild.md"
     },
     {
@@ -1112,9 +1112,9 @@
       "registered": true,
       "entry": "Games/Slipstream Borough/index.html",
       "entry_blob": "795b7395c4bb5b0962b26c18b1ffc6da88afcec1",
-      "tree": "1e3ee36296b6115e956c9786149d31adf30786f8",
+      "tree": "82ec9de32f033f077c47242a571e3d0ab33ae5b7",
       "files": 9,
-      "bytes": 110730,
+      "bytes": 111685,
       "document": "docs/maintenance/games/225-slipstream-borough.md"
     },
     {
