@@ -114,7 +114,7 @@ function setPhase(next) {
   $('cameraToggle').hidden = next !== 'run';
   $('garageToggle').textContent = 'Hide garage'; $('garageToggle').setAttribute('aria-expanded', 'true');
   $('pause').textContent = 'Pause';
-  if (next === 'garage') { run = null; garageUI(); ($('start').disabled ? $('garageToggle') : $('start')).focus({ preventScroll: true }); }
+  if (next === 'garage') { run = null; garageUI(); $('garage').scrollTop = 0; ($('start').disabled ? $('garageToggle') : $('start')).focus({ preventScroll: true }); }
   updateHud();
 }
 function start(mode = $('mode').value) {
