@@ -234,7 +234,7 @@ function boot() {
   const keys = new Set(), remote = new Map(), shots = new Map(), health = new Map();
   const touch = { mx: 0, mz: 0 };
   const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
-  let webgl = false, touchUsed = matchMedia('(pointer: coarse)').matches;
+  let webgl = false, graphicsFailure = '', touchUsed = matchMedia('(pointer: coarse)').matches;
   let scene, camera, boxes, cylinders, weapon, pulses;
   const modelPools = {}; // Visuals only: all hit volumes remain in the simulation above.
   const dummy = new THREE.Object3D();
@@ -243,7 +243,25 @@ function boot() {
   const traces = [];
   let boxCount = 0, cylinderCount = 0;
 
-  function status(text) { $('status').textContent = text; $('status').hidden = !text; }
+  function status(text) {
+    text = graphicsFailure || text;
+    $('statusMessage').textContent = text; $('status').hidden = !text;
+    $('reloadBtn').hidden = !graphicsFailure;
+  }
+  function graphicsReady() {
+    if (!graphicsFailure && webgl && renderer && !renderer.getContext().isContextLost()) return true;
+    if (!graphicsFailure) {
+      graphicsFailure = renderer
+        ? 'Graphics context was lost. Reload this page to restart the game, or return to the arcade.'
+        : 'WebGL is unavailable. Enable hardware acceleration or use a WebGL-capable browser, then reload. You can also return to the arcade.';
+      webgl = false; localPaused = true;
+      if (run?.phase === 'playing') { run.phase = 'paused'; live = wire(run); }
+      clearInput(); releasePointer();
+      if (live.phase !== 'lobby') showPanel('Renderer unavailable', graphicsFailure, false, false);
+    }
+    status('');
+    return false;
+  }
   function releasePointer() {
     if (document.pointerLockElement === canvas) document.exitPointerLock();
   }
@@ -252,6 +270,7 @@ function boot() {
     $('moveKnob').style.transform = '';
   }
   function lockPointer() {
+    if (!graphicsReady()) return;
     if (touchUsed || document.pointerLockElement === canvas || !canvas.requestPointerLock) return;
     try {
       const request = canvas.requestPointerLock();
@@ -268,6 +287,7 @@ function boot() {
     $('touchControls').hidden = true; $('crosshair').hidden = true; $('playNote').hidden = true;
   }
   function refresh() {
+    if (!graphicsReady()) return;
     const active = !!run || room.role === 'client' && live.phase !== 'lobby';
     $('hud').hidden = !active;
     if (!active) return;
@@ -300,6 +320,7 @@ function boot() {
     refresh();
   }
   function start(ids) {
+    if (!graphicsReady()) return;
     clearInput(); remote.clear(); shots.clear(); health.clear(); traces.length = 0;
     localPaused = false; disconnected = false; previous = null;
     run = createRun(ids); run.epoch = ++epoch; live = wire(run);
@@ -307,7 +328,7 @@ function boot() {
     status(''); $('playNote').hidden = true;
     publish();
   }
-  function solo() { room.close(); start([0]); }
+  function solo() { if (!graphicsReady()) return; room.close(); start([0]); }
   function menu() {
     releasePointer(); clearInput(); room.close(); run = null; previous = null; remote.clear();
     localPaused = false; disconnected = false; traces.length = 0; shots.clear(); health.clear();
@@ -318,6 +339,7 @@ function boot() {
     $('startSolo').focus();
   }
   function pause() {
+    if (!graphicsReady()) return;
     if (live.phase !== 'playing') return;
     clearInput();
     if (room.role === 'client') {
@@ -327,11 +349,13 @@ function boot() {
     releasePointer(); refresh(); $('resumeBtn').focus();
   }
   function resume() {
+    if (!graphicsReady()) return;
     clearInput(); localPaused = false;
     if (room.role !== 'client' && run?.phase === 'paused') { run.phase = 'playing'; publish(); }
     status(''); refresh();
   }
   function enterLobby(host) {
+    if (!graphicsReady()) return;
     menu(); status('');
     if (host) room.host();
     $('menu').hidden = true; $('lobby').hidden = false;
@@ -344,12 +368,14 @@ function boot() {
     (host ? $('makeOffer') : $('signalInput')).focus();
   }
   async function signal(button, action) {
+    if (!graphicsReady()) return;
     button.disabled = true;
     $('signalOutput').value = '';
     $('copySignal').disabled = true;
     $('roomStatus').textContent = 'Preparing connection. This can take up to 15 seconds.';
     try {
       const result = await action();
+      if (!graphicsReady()) return;
       if (result) {
         $('signalOutput').value = typeof result === 'string' ? result : JSON.stringify(result);
         $('signalOutput').focus(); $('signalOutput').select();
@@ -357,10 +383,13 @@ function boot() {
       }
     } catch (error) { $('roomStatus').textContent = error.message || 'Pairing failed. Try again or start fresh solo.'; }
     finally {
-      button.disabled = button.id === 'makeOffer' && hostPairing || button.id === 'createAnswer' && room.role === 'client';
-      $('copySignal').disabled = !$('signalOutput').value;
+      if (graphicsReady()) {
+        button.disabled = button.id === 'makeOffer' && hostPairing || button.id === 'createAnswer' && room.role === 'client';
+        $('copySignal').disabled = !$('signalOutput').value;
+      }
     }
   }
+  $('reloadBtn').addEventListener('click', () => location.reload());
   $('startSolo').addEventListener('click', solo);
   $('fallbackSolo').addEventListener('click', solo);
   $('freshSolo').addEventListener('click', solo);
@@ -376,6 +405,7 @@ function boot() {
     catch { $('signalOutput').focus(); $('signalOutput').select(); $('roomStatus').textContent = 'Select the text and copy it manually.'; }
   });
   $('startCoop').addEventListener('click', () => {
+    if (!graphicsReady()) return;
     if (room.role !== 'host' || room.ids.length < 2) return;
     room.lock(); start(room.ids);
   });
@@ -385,6 +415,7 @@ function boot() {
   $('menuBtn').addEventListener('click', () => { menu(); status(''); });
   $('lobbyMenu').addEventListener('click', () => { menu(); status(''); });
   room.addEventListener('change', event => {
+    if (!graphicsReady()) return;
     const detail = event.detail;
     hostPairing = detail.role === 'host' && detail.status === 'pairing';
     $('makeOffer').disabled = hostPairing;
@@ -397,10 +428,12 @@ function boot() {
     $('startCoop').disabled = room.role !== 'host' || room.ids.length < 2;
   });
   room.addEventListener('input', event => {
+    if (!graphicsReady()) return;
     const { id, input, epoch: inputEpoch } = event.detail;
     if (run && inputEpoch === run.epoch && run.players.some(player => player.id === id)) remote.set(id, { input, at: performance.now() });
   });
   room.addEventListener('state', event => {
+    if (!graphicsReady()) return;
     if (room.role !== 'client') return;
     const state = event.detail;
     if (state.epoch < live.epoch && live.phase !== 'lobby') return;
@@ -415,11 +448,13 @@ function boot() {
     live = structuredClone(state); refresh();
   });
   room.addEventListener('leave', event => {
+    if (!graphicsReady()) return;
     if (!run || room.role !== 'host') return;
     run.players = run.players.filter(player => player.id !== event.detail.id);
     remote.delete(event.detail.id); publish();
   });
   room.addEventListener('failure', event => {
+    if (!graphicsReady()) return;
     const message = event.detail.message || 'Connection failed.';
     if (!hostPairing) { $('signalOutput').value = ''; $('copySignal').disabled = true; }
     if (!run && live.phase === 'lobby') { $('roomStatus').textContent = `${message} Solo is always available.`; return; }
@@ -555,17 +590,15 @@ function boot() {
     resize();
     loadModels(staticBoxes, bayCount, wallStart, wallEnd);
   } catch {
-    renderer = null;
-    status('WebGL is unavailable. Enable hardware acceleration or use a WebGL-capable browser. You can still read the controls or return to the arcade.');
+    renderer = null; webgl = false;
+    graphicsReady();
     for (const id of ['startSolo', 'hostRoom', 'joinRoom', 'fallbackSolo', 'freshSolo']) $(id).disabled = true;
   }
   canvas.addEventListener('webglcontextlost', event => {
-    event.preventDefault(); webgl = false; pause();
-    status('Graphics context was lost. Reload this page to restore the game, or return to the arcade.');
-    $('resumeBtn').disabled = true; $('retryBtn').disabled = true;
+    event.preventDefault(); webgl = false; graphicsReady();
   });
   function resize() {
-    if (!renderer) return;
+    if (!graphicsReady()) return;
     const width = innerWidth, height = innerHeight;
     const scale = Math.min(1, 1280 / width, 720 / height);
     renderer.setSize(Math.round(width * scale), Math.round(height * scale), false);
@@ -775,6 +808,7 @@ function boot() {
     renderer.render(scene, camera); frames++;
   }
   function frame(now) {
+    if (!graphicsReady()) return;
     const dt = clamp((now - last) / 1000, 0, 0.05); last = now;
     const intent = input(dt);
     if (run?.phase === 'playing') {
