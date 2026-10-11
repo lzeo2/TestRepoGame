@@ -43,6 +43,8 @@ export class ActorFactory {
     this.part(body, 'box', [2.04, .22, 1.04], [0, 4, 0], secondary);
     this.part(body, 'box', [.18, 1.65, .025], [-.58, 3.2, -.515], secondary);
     this.part(body, 'box', [.18, 1.65, .025], [.58, 3.2, -.515], secondary);
+    if(kit.pattern==='stripes')for(const x of [-.75,-.25,.25,.75])this.part(body,'box',[.22,1.6,1.035],[x,3.18,0],secondary);
+    if(kit.pattern==='hoops')for(const y of [2.63,3.12,3.61])this.part(body,'box',[2.035,.18,1.035],[0,y,0],secondary);
     this.part(body, 'sphere', [.24, .3, .025], [-.72, 3.76, -.535], secondary);
     this.part(body, 'box', [2.02, .66, 1.02], [0, 2.04, 0], shorts);
     const head = new THREE.Group(); head.position.set(0, 4.56, 0); body.add(head);
@@ -84,8 +86,12 @@ export class ActorFactory {
       const ctx = canvas.getContext('2d');
       if (ctx) {
         ctx.fillStyle = primary; ctx.fillRect(0, 0, 128, 128);
-        ctx.fillStyle = secondary; ctx.textAlign = 'center'; ctx.font = 'bold 16px sans-serif';
-        ctx.fillText(String(a.kitName || def.name || '').slice(0, 15), 64, 23);
+        ctx.fillStyle=secondary;
+        if(kit.pattern==='stripes')for(let x=8;x<128;x+=32)ctx.fillRect(x,0,14,128);
+        if(kit.pattern==='hoops')for(let y=12;y<128;y+=32)ctx.fillRect(0,y,128,12);
+        ctx.fillStyle = kit.pattern&&kit.pattern!=='solid'?'#FFFFFF':secondary;ctx.strokeStyle='#17232B';ctx.lineWidth=3; ctx.textAlign = 'center'; ctx.font = 'bold 16px sans-serif';
+        const kitName=String(kit.enabled&&kit.name?kit.name:a.kitName || def.name || '').slice(0,15);
+        ctx.strokeText(kitName,64,23);ctx.fillText(kitName, 64, 23);
         ctx.font = 'bold 72px sans-serif'; ctx.fillText(String(number ?? a.number ?? def.number ?? 0), 64, 100);
         const texture = new THREE.CanvasTexture(canvas); texture.colorSpace = THREE.SRGBColorSpace; this.textures.push(texture);
         const material = new THREE.MeshLambertMaterial({map: texture});owned.push({material,texture});

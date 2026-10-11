@@ -31,11 +31,11 @@ cloud save, accounts or backend. Clearing browser data clears local progress.
   `vendor/three.module.js`. Its MIT notice is retained in [vendor/LICENSE](vendor/LICENSE).
   Upstream: [three.js](https://github.com/mrdoob/three.js/tree/r160).
 - **Bungee**, by The Bungee Project Authors, is used for headings. Its local
-  [SIL Open Font License 1.1](../../assets/fonts/bungee/OFL.txt) is retained.
+  [SIL Open Font License 1.1](assets/fonts/bungee/OFL.txt) is retained.
 - **Atkinson Hyperlegible**, by Braille Institute of America, Inc., is used for
   body text and controls. Its local
-  [SIL Open Font License 1.1](../../assets/fonts/atkinson-hyperlegible/OFL.txt)
-  is retained. Both fonts reuse the portal's local files; see
+  [SIL Open Font License 1.1](assets/fonts/atkinson-hyperlegible/OFL.txt)
+  is retained. Both fonts copy the portal's local files into this game; see
   [font sources and binary hashes](../../docs/portal-font-sources.md).
 - `assets/ball.svg` is a local geometric football mark supplied with this browser
   adaptation. There are no external image or font requests.

@@ -149,6 +149,7 @@ export class World {
   buildHotspots() {
     this.bases.forEach((b,i)=>{
       const pos=this.basePosition(i);const deposit=xyz(b.deposit,[pos.x,pos.y,pos.z+b.front*15]);this.hotspots.push({kind:'base',id:`base-${i}`,base:i,rivalIndex:i>0?i-1:undefined,name:i===0?'Your team':'Rival team',x:deposit[0],y:deposit[1],z:deposit[2],radius:14});
+      this.addLabel(i===0?'YOUR TEAM · HOME':`NPC RIVAL ${i}`,new THREE.Vector3(deposit[0],deposit[1]+8,deposit[2]),16);
       this.hotspots.push({kind:'pitch',id:`pitch-${i}`,base:i,name:'Home stadium',x:pos.x,y:pos.y,z:pos.z+b.front*12.6,radius:5});
     });
     if(this.worldData.rivalBase){const b=this.worldData.rivalBase,p=xyz(b.deposit||b.position);this.hotspots.push({kind:'base',id:'practice-base',base:12,rivalIndex:11,name:'Practice XI',x:p[0],y:p[1],z:p[2],radius:14});}
@@ -198,7 +199,7 @@ export class World {
     const current=new Set();
     market.slice(0,14).forEach((offer,i)=>{
       if(!offer || (Object.hasOwn(offer,'id')&&!offer.id&&!offer.playerId))return;
-      const def=offer.def || this.data.players?.find(p=>p.id===(offer.playerId || offer.id));if(!def)return;
+      const def=offer.def || this.data.players?.find(p=>p.id===(offer.playerId || offer.id)) || (offer.id==='mystery'?{id:'mystery',name:'Mystery Player',color:'#443258',appearance:{skinColor:'#4D5260',hairColor:'#252836',hairStyle:'cropped'}}:null);if(!def)return;
       const id=`market-${offer.marketId || offer.uid || offer.id}-${i}`;current.add(id);
       let entry=this.actors.get(id);
       if(entry&&entry.actor.definition.id!==def.id){this.scene.remove(entry.actor.root);this.factory.release(entry.actor);this.actors.delete(id);entry=null;}

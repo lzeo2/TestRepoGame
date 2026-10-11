@@ -262,8 +262,8 @@ export class Game {
   ownedMembers() {
     return this.state.roster.filter(p=>this.state.npcAttempt?.uid!==p.uid).map(p=>({uid:p.uid,id:p.id,name:this.catalog.get(p.id).name,power:this.stats(p).power,stats:this.stats(p),def:this.catalog.get(p.id),borrowed:false,role:this.stats(p).naturalRole}));
   }
-  team() {
-    const s=this.state,roles=FORMATIONS[s.tactics.formation],jobs=JOBS[s.tactics.formation];
+  team(tactics=this.state.tactics) {
+    const s={...this.state,tactics},roles=FORMATIONS[s.tactics.formation],jobs=JOBS[s.tactics.formation];
     const all=this.ownedMembers().sort((a,b)=>b.power-a.power||a.uid.localeCompare(b.uid));
     const manual=s.tactics.selectedUids.length>0,selected=manual?s.tactics.selectedUids.map(uid=>all.find(p=>p.uid===uid)).filter(Boolean):all;
     const used=new Set();
