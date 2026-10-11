@@ -314,6 +314,7 @@ export class Game {
     let message='Done';
     if (name==='buy') {
       const item=s.market.find(m=>m.marketId===payload.marketId); if (!item?.id) return fail('That market recruit has moved on');
+      if (payload.expectedId!==undefined&&payload.expectedId!==item.id) return fail('That market recruit has changed; check the current footballer');
       const result=this.sign(item.id); if (!result.ok) return result; item.id=null; item.x=0; item.readyAt=now+3; message=result.message;
     } else if (name==='egg') {
       const egg=this.data.eggs?.find(e=>e.id===payload.id); if (!egg) return fail('Unknown egg');
@@ -382,7 +383,7 @@ export class Game {
     } else if (name==='beginBattle') {
       if (!s.roster.length) return fail('Buy your first footballer before playing'); if (now<s.battleReadyAt) return fail('Squad is resting'); if (s.npcAttempt) return fail('Repel the thief first');
       const team=this.team(),owned=team.filter(m=>!m.borrowed),average=owned.reduce((n,m)=>n+bound(m.power,20,150),0)/Math.max(1,owned.length),level=owned.reduce((n,m)=>n+m.stats.level,0)/Math.max(1,owned.length);
-      this.battleScaling={multiplier:Math.min(2.5,1+Math.max(0,average-20)*.01*owned.length/11+level*.05*owned.length/11),incomeRate:this.income(true),ownedPlayers:owned.length,averageSkill:average,averageLevel:level};
+      this.battleScaling={multiplier:bound(1+Math.max(0,average-20)*.01*owned.length/11+level*.05*owned.length/11,1,2.5),incomeRate:bound(this.income(true),0,1000000),ownedPlayers:owned.length,averageSkill:average,averageLevel:level};
       s.battleLock=true; message='Squad battle started';
     } else if (name==='endBattle') {
       if (!s.battleLock||!this.battleScaling) return fail('No active battle');
@@ -390,7 +391,13 @@ export class Game {
       if (!Array.isArray(score)||score.length!==2||score.some(n=>!Number.isInteger(n)||n<0||n>100)) return fail('Invalid completed match result');
       const forfeit=result.forfeit===true,outcome=forfeit?'loss':result.winner===0?'win':result.winner===1?'loss':score[0]>score[1]?'win':score[0]===score[1]?'draw':'loss';
       const reward=this.battleReward(outcome,score[0],score[1],forfeit); s.coins=Math.min(1e15,s.coins+reward.total); s.battleLock=false; s.battleReadyAt=now+(this.config.BattleCooldown||45); this.battleScaling=null;
-      if (!forfeit) { s.eventTokens+=outcome==='win'?5:3; this.progress('mutation_rush'); if (outcome==='win') { s.wins++; s.practiceLevel=Math.min(3,s.practiceLevel+1); this.progress('golden_goal'); } }
+      if (!forfeit) {
+        s.eventTokens+=outcome==='win'?5:3; this.progress('mutation_rush');
+        if (outcome==='win') {
+          s.wins++; this.progress('golden_goal');
+          if (score[0]-score[1]>3) s.practiceLevel=Math.min(3,s.practiceLevel+1);
+        }
+      }
       for (const uid of Array.isArray(result.injuries)?result.injuries:[]) { const recruit=s.roster.find(p=>p.uid===uid); if (recruit) recruit.staff.injuryUntil=Math.max(recruit.staff.injuryUntil,now+180); }
       s.lastBattle={outcome,score,reward}; message=reward.resultLabel+'; +'+reward.total+' coins';
     } else if (name==='developerCode') {
@@ -424,9 +431,10 @@ export class Game {
     this.state.tactics={...previous,formation,mentality,selectedUids:[...selected],captainUid:captain}; return {ok:true,message:'Team tactics saved'};
   }
   battleReward(outcome,goals,conceded,forfeit) {
-    const s=this.battleScaling,m=s.multiplier,base=forfeit?0:(outcome==='win'?100:outcome==='draw'?50:25)+goals*15+(outcome==='win'&&conceded===0?20:0);
+    const s=this.battleScaling,m=bound(s.multiplier,1,2.5),incomeRate=bound(s.incomeRate,0,1000000);
+    const scored=int(goals,0,100),base=forfeit?0:(outcome==='win'?100:outcome==='draw'?50:25)+scored*15+(outcome==='win'&&conceded===0?20:0);
     const coverage=forfeit?0:outcome==='win'?1.25:outcome==='draw'?.6:.25,margin=forfeit?0:outcome==='win'?.15:outcome==='draw'?.05:0;
-    const compensation=Math.round(s.incomeRate*90*coverage),progression=Math.round(s.incomeRate*90*margin*(m-1)),performance=Math.round(base*m),cap=forfeit?0:compensation+progression+Math.round(250*m);
-    return {...s,resultLabel:forfeit?'Forfeit':outcome==='win'?'Win':outcome==='draw'?'Draw':'Loss',incomeCompensation:compensation,incomeSkillBonus:progression,performance,cap,total:Math.min(cap,compensation+progression+performance)};
+    const compensation=Math.round(incomeRate*90*coverage),progression=Math.round(incomeRate*90*margin*(m-1)),performance=Math.round(base*m),cap=forfeit?0:compensation+progression+Math.round(250*m);
+    return {...s,incomeRate,multiplier:m,resultLabel:forfeit?'Forfeit':outcome==='win'?'Win':outcome==='draw'?'Draw':'Loss',incomeCompensation:compensation,incomeSkillBonus:progression,performance,cap,total:Math.min(cap,compensation+progression+performance)};
   }
 }
