@@ -6,6 +6,17 @@ const finite = (n, fallback = 0) => Number.isFinite(n) ? n : fallback;
 const xyz = (v, fallback = [0, 0, 0]) => Array.isArray(v) ? v : v ? [finite(v.x ?? v.X), finite(v.y ?? v.Y), finite(v.z ?? v.Z)] : fallback;
 const tint = v => Array.isArray(v) ? new THREE.Color(v[0], v[1], v[2]) : new THREE.Color(typeof v === 'string' ? (v.startsWith('#') ? v : `#${v}`) : '#88968B');
 const layout = [[-85,-58,1],[85,-58,1],[-85,58,-1],[85,58,-1],[-85,-120,1],[85,-120,1],[-85,120,-1],[85,120,-1],[-85,-182,1],[85,-182,1],[-85,182,-1],[85,182,-1]];
+const PRACTICE_KIT={primary:'#14263F',secondary:'#E4BD58',shorts:'#14263F'};
+const PRACTICE_KEEPER={primary:'#1D885A',secondary:'#F4F6F8',shorts:'#123C31'};
+
+export function miniLineup(members,formation='4-4-2',front=1) {
+  const counts={'4-4-2':[1,4,4,2],'4-3-3':[1,4,3,3],'3-5-2':[1,3,5,2]}[formation]||[1,4,4,2];
+  const remaining=members.slice(0,11);const result=[];
+  counts.forEach((count,row)=>{const role=['GK','DF','MF','ST'][row];for(let i=0;i<count&&remaining.length;i++){
+    const at=remaining.findIndex(m=>(m.role||m.stats?.naturalRole)===role);const member=remaining.splice(at<0?0:at,1)[0];
+    result.push({member,role,x:count===1?0:(i/(count-1)-.5)*18,z:[-8.7,-4.2,1.4,7.1][row]*front,angle:front>0?Math.PI/2:-Math.PI/2});
+  }});return result;
+}
 
 export function partMatrix(part) {
   const m = new THREE.Matrix4();
@@ -52,7 +63,7 @@ export class World {
     this.scene=new THREE.Scene();this.scene.background=new THREE.Color('#9AC2D1');this.scene.fog=new THREE.Fog('#9AC2D1',240,1000);
     this.renderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:false,powerPreference:'high-performance'});
     this.renderer.outputColorSpace=THREE.SRGBColorSpace;this.renderer.shadowMap.type=THREE.PCFSoftShadowMap;
-    this.camera=new THREE.PerspectiveCamera(52,1,.3,2400);this.cameraConfig={mode:'avatar',index:0,zoom:1};
+    this.camera=new THREE.PerspectiveCamera(52,1,.3,2400);this.cameraConfig={mode:'avatar',index:0,zoom:1,yaw:0};
     this.scene.add(new THREE.HemisphereLight('#F4F5DF','#546B53',2.25));
     this.sun=new THREE.DirectionalLight('#FFF2D6',2);this.sun.position.set(-100,220,100);this.scene.add(this.sun);this.scene.add(this.sun.target);
     this.sun.shadow.mapSize.set(1024,1024);Object.assign(this.sun.shadow.camera,{left:-110,right:110,top:110,bottom:-110,near:1,far:500});this.sun.shadow.bias=-.001;
@@ -137,9 +148,10 @@ export class World {
 
   buildHotspots() {
     this.bases.forEach((b,i)=>{
-      const pos=this.basePosition(i);const deposit=xyz(b.deposit,[pos.x,pos.y,pos.z+b.front*15]);this.hotspots.push({kind:'base',id:`base-${i}`,base:i,name:i===0?'Your team':'Rival team',x:deposit[0],y:deposit[1],z:deposit[2],radius:14});
+      const pos=this.basePosition(i);const deposit=xyz(b.deposit,[pos.x,pos.y,pos.z+b.front*15]);this.hotspots.push({kind:'base',id:`base-${i}`,base:i,rivalIndex:i>0?i-1:undefined,name:i===0?'Your team':'Rival team',x:deposit[0],y:deposit[1],z:deposit[2],radius:14});
       this.hotspots.push({kind:'pitch',id:`pitch-${i}`,base:i,name:'Home stadium',x:pos.x,y:pos.y,z:pos.z+b.front*12.6,radius:5});
     });
+    if(this.worldData.rivalBase){const b=this.worldData.rivalBase,p=xyz(b.deposit||b.position);this.hotspots.push({kind:'base',id:'practice-base',base:12,rivalIndex:11,name:'Practice XI',x:p[0],y:p[1],z:p[2],radius:14});}
     for(const entry of this.worldData.interactions || []) {const p=xyz(entry.position);this.hotspots.push({...entry,x:p[0],y:p[1],z:p[2],radius:entry.radius||10});}
     const npcs=this.worldData.npcs || [];
     for(const npc of npcs) {
@@ -160,27 +172,25 @@ export class World {
   moveAvatar(vector,dt) {this.avatar=groundedMove(this.avatar,vector,dt,this.colliders,this.bounds);return {...this.avatar};}
   teleport(point) {const p=xyz(point);if(!p.every(Number.isFinite))return false;this.avatar={x:p[0],y:p[1]+.035,z:p[2],angle:finite(point?.angle,this.avatar.angle)};this.jumpHeight=0;this.jumpVelocity=0;return {...this.avatar};}
   jump() {if(finite(this.jumpHeight)>.001)return false;this.jumpVelocity=20;this.jumpHeight=.01;return true;}
-  setCamera(config={}) {this.cameraConfig={...this.cameraConfig,...config,zoom:clamp(finite(config.zoom,this.cameraConfig.zoom),.35,2.5)};if(Number.isInteger(config.pitchIndex))this.pitchIndex=clamp(config.pitchIndex,0,11);}
+  setCamera(config={}) {this.cameraConfig={...this.cameraConfig,...config,yaw:finite(config.yaw,finite(config.orbit,this.cameraConfig.yaw)),zoom:clamp(finite(config.zoom,this.cameraConfig.zoom),.35,2.5)};if(Number.isInteger(config.pitchIndex))this.pitchIndex=clamp(config.pitchIndex,0,11);}
 
   rebuildDisplays(state) {
-    const key=JSON.stringify([state.roster,state.rivals?.map(r=>r.roster||r.players),state.kit,state.tactics]);if(key===this.dynamicKey)return;this.dynamicKey=key;
+    const key=JSON.stringify([state.roster,state.rivals?.map(r=>r.roster||r.players),state.kit,state.tactics,state.lineup]);if(key===this.dynamicKey)return;this.dynamicKey=key;
     for(const [id,entry]of this.actors)if(!entry.static&&!entry.market){this.scene.remove(entry.actor.root);this.factory.release(entry.actor);this.actors.delete(id);}
     const roster=state.roster || [];
     const makeRoster=(members,index)=>{
-      const b=this.bases[index];if(!b)return;
+      const b=index===12?this.worldData.rivalBase:this.bases[index];if(!b)return;const front=b.front||Math.sign(xyz(b.deposit,b.position)[2]-b.position[2])||1;
       members.slice(0,18).forEach((member,i)=>{
         const def=member.def||this.data.players?.find(p=>p.id===member.id);if(!def)return;
-        const slot=b.slots?.[i];const fallback=i<16?[b.position[0]+(i<8?-18:18),b.position[1]+.09,b.position[2]+(-17+(i%8)*3.4)*b.front]:[b.position[0]+(i===16?-6:6),b.position[1]+.09,b.position[2]-18.3*b.front];
-        const p=xyz(slot?.position || slot?.pos || slot,fallback);const actor=this.factory.create(def,index===0&&state.kit?.enabled?state.kit:{},{simple:index!==0});actor.root.position.set(...p);actor.root.rotation.y=-finite(slot?.angle,b.front===1?Math.PI/2:-Math.PI/2)-Math.PI/2;this.scene.add(actor.root);this.actors.set(`roster-${index}-${i}`,{actor});
+        const slot=b.slots?.[i];const fallback=i<16?[b.position[0]+(i<8?-18:18),b.position[1]+.09,b.position[2]+(-17+(i%8)*3.4)*front]:[b.position[0]+(i===16?-6:6),b.position[1]+.09,b.position[2]-18.3*front];
+        const p=xyz(slot?.position || slot?.pos || slot,fallback);const actor=this.factory.create(def,index===12?PRACTICE_KIT:index===0&&state.kit?.enabled?state.kit:{},{simple:index!==0});actor.root.position.set(...p);actor.root.rotation.y=-finite(slot?.angle,front===1?Math.PI/2:-Math.PI/2)-Math.PI/2;this.scene.add(actor.root);this.actors.set(`roster-${index}-${i}`,{actor});
       });
     };
-    makeRoster(roster,0);(state.rivals||[]).slice(0,11).forEach((r,i)=>makeRoster(r.roster||r.players||[],i+1));
-    const b=this.bases[0];const selected=state.tactics?.selectedUids || [];const starters=(selected.length?selected.map(uid=>roster.find(r=>r.uid===uid)).filter(Boolean):roster).slice(0,11);
-    const formation=String(state.tactics?.formation||'4-4-2').split('-').map(Number);const rows=[1,...formation];let cursor=0;
-    rows.forEach((count,row)=>{for(let i=0;i<count&&cursor<starters.length;i++) {
-      const member=starters[cursor];const def=this.data.players?.find(p=>p.id===member.id);if(!def){cursor++;continue;}
-      const actor=this.factory.create(def,state.kit?.enabled?state.kit:{},{scale:.45,simple:true});const point=new THREE.Vector3((i-(count-1)/2)*18/Math.max(count-1,1),.09,-8+row*4.8);if(b.miniPitch?.matrix){const frame=new THREE.Matrix4().fromArray(b.miniPitch.matrix);point.applyMatrix4(frame);actor.root.quaternion.setFromRotationMatrix(frame);}else{point.set(b.position[0]+point.x,b.position[1]+.07,b.position[2]+point.z*b.front);actor.root.rotation.y=b.front===1?Math.PI:0;}actor.root.position.copy(point);this.scene.add(actor.root);this.actors.set(`lineup-${cursor}`,{actor});cursor++;
-    }});
+    makeRoster(roster,0);(state.rivals||[]).slice(0,12).forEach((r,i)=>makeRoster(r.roster||r.players||[],i+1));
+    const b=this.bases[0];const selected=state.tactics?.selectedUids || [];const starters=state.lineup||(selected.length?selected.map(uid=>roster.find(r=>r.uid===uid)).filter(Boolean):roster);
+    miniLineup(starters,state.tactics?.formation,b.front).forEach(({member,x,z,angle},index)=>{
+      const def=member.def||this.data.players?.find(p=>p.id===member.id);if(!def)return;const actor=this.factory.create(def,state.kit?.enabled?state.kit:{},{scale:.45,simple:true});const point=new THREE.Vector3(x,.09,z);if(b.miniPitch?.matrix)point.applyMatrix4(new THREE.Matrix4().fromArray(b.miniPitch.matrix));else point.add(new THREE.Vector3(...b.position));actor.root.rotation.y=-angle-Math.PI/2;actor.root.position.copy(point);this.scene.add(actor.root);this.actors.set(`lineup-${index}`,{actor});
+    });
   }
 
   updateMarket(market=[]) {
@@ -196,18 +206,28 @@ export class World {
   }
 
   buildCrowd() {
-    const geometry=this.staticGeometries.box;const material=new THREE.MeshLambertMaterial({color:'#FFFFFF'});this.materials.push(material);
-    const mesh=new THREE.InstancedMesh(geometry,material,360);const dummy=new THREE.Object3D();
-    for(let i=0;i<360;i++){const row=Math.floor(i/90);const col=i%90;const side=row<2?-1:1;dummy.position.set(-98+col*2.2,5+(row%2)*3,side*(77+(row%2)*4));dummy.scale.set(1.35,2.5,1.3);dummy.updateMatrix();mesh.setMatrixAt(i,dummy.matrix);mesh.setColorAt(i,new THREE.Color(['#CC283E','#477BD4','#EFE4BB','#3D493C','#C68444'][i%5]));}mesh.computeBoundingSphere();this.crowdGroup.add(mesh);this.crowd=mesh;
+    const material=new THREE.MeshLambertMaterial({color:'#FFFFFF'});this.materials.push(material);
+    this.crowdSeats=(this.worldData.stadiumParts||[]).filter(p=>p.name==='Seat').sort((a,b)=>a.minLevel-b.minLevel||a.matrix[12]-b.matrix[12]).slice(0,24);
+    this.crowdParts=[{name:'torso',size:[1.55,1.45,.85],position:[0,1.05,0],color:'kit'},{name:'head',size:[1.05,1.05,.95],position:[0,2.32,0],color:'skin'}, {name:'hair',size:[1.1,.25,1],position:[0,2.88,.03],color:'hair'}];
+    for(const side of [-1,1])this.crowdParts.push({name:`arm${side}`,size:[.5,1.3,.55],position:[side*.99,.95,0],color:'skin'}, {name:`thigh${side}`,size:[.6,.5,1.3],position:[side*.45,.02,-.5],color:'shorts'}, {name:`leg${side}`,size:[.55,1.1,.55],position:[side*.45,-.62,-1.05],color:'skin'});
+    const ids=['saka','yamal','son','neymar','messi','ronaldo','haaland','pedri','palmer','doue','vinicius','bellingham'];const skins=['#795036','#BB8961','#E9C19E','#9F6C4C'];
+    for(const part of this.crowdParts){part.mesh=new THREE.InstancedMesh(this.staticGeometries.box,material,24);part.mesh.frustumCulled=false;this.crowdSeats.forEach((seat,i)=>{const def=this.data.players?.find(d=>d.id===ids[i%12])||{};const colors={kit:def.color||'#286FC1',skin:skins[i%4],hair:def.appearance?.hairColor||'#282019',shorts:def.shorts||'#24334A'};part.mesh.setColorAt(i,tint(colors[part.color]));});this.crowdGroup.add(part.mesh);}
+    this.updateCrowd(3,false);
+  }
+
+  updateCrowd(level,animate) {
+    this.crowdCount=Math.min(this.crowdSeats.length,[8,8,16,24][clamp(Math.trunc(finite(level)),0,3)]);if(!animate&&this.crowdStaticCount===this.crowdCount)return;this.crowdStaticCount=animate?null:this.crowdCount;const dummy=new THREE.Object3D();
+    for(const part of this.crowdParts){part.mesh.count=this.crowdCount;for(let i=0;i<this.crowdCount;i++){const seat=this.crowdSeats[i],p=seat.matrix;dummy.position.set(p[12]+part.position[0],p[13]+seat.size[1]/2+part.position[1],p[14]+part.position[2]);dummy.scale.set(...part.size);dummy.rotation.set(0,0,animate&&part.name.startsWith('arm')?Math.sin(this.time*2+i)*.3:0);dummy.updateMatrix();part.mesh.setMatrixAt(i,dummy.matrix);}part.mesh.instanceMatrix.needsUpdate=true;}
   }
 
   updateMatch(match,state) {
-    this.matchGroup.visible=Boolean(match);this.crowdGroup.visible=Boolean(match)&&!this.lowGraphics;if(!match)return;
-    const p=this.pitchPosition(this.pitchIndex);this.matchGroup.position.set(p.x,p.y,p.z);this.crowdGroup.position.set(p.x,p.y,p.z);
+    this.matchGroup.visible=Boolean(match);this.crowdGroup.visible=Boolean(match);if(!match)return;
+    this.updateCrowd(state.stadiumLevel,!this.lowGraphics);
+    const p=this.pitchPosition(this.pitchIndex);this.matchGroup.position.set(p.x,p.y,p.z);this.crowdGroup.position.set(p.x,p.y-.175,p.z);
     const players=match.players||[];
-    const key=players.map(a=>`${a.key||a.id}:${a.side}:${a.index}`).join('|');
+    const practice=match.isPractice===true||match.practice===true||players.filter(p=>p.side===1).every(p=>p.stats?.traitId==='practice');const key=players.map(a=>`${a.key||a.id}:${a.side}:${a.index}`).join('|')+practice;
     if(key!==this.matchKey){this.matchActors.forEach(a=>{this.matchGroup.remove(a.root);this.factory.release(a);});this.matchActors=players.map(player=>{
-      const def=player.def||this.data.players?.find(d=>d.id===player.id)||{name:player.name};const kit=player.side===0?(state.kit?.enabled?state.kit:{primary:'#246AC9',secondary:'#FAF4DD',shorts:'#172B52'}):{primary:'#C93549',secondary:'#FFF2D1',shorts:'#272A32'};const actor=this.factory.create(def,kit,{number:player.index+1});this.matchGroup.add(actor.root);return actor;});this.matchKey=key;}
+      const def=player.def||this.data.players?.find(d=>d.id===player.id)||{name:player.name};const kit=player.side===0?(state.kit?.enabled?state.kit:{primary:'#246AC9',secondary:'#FAF4DD',shorts:'#172B52'}):practice?(player.role==='GK'?PRACTICE_KEEPER:PRACTICE_KIT):{primary:'#C93549',secondary:'#FFF2D1',shorts:'#272A32'};const actor=this.factory.create(def,kit,{number:player.index+1});this.matchGroup.add(actor.root);return actor;});this.matchKey=key;}
     players.forEach((player,i)=>{const actor=this.matchActors[i];if(!actor)return;actor.root.position.set(finite(player.x),.035,finite(player.z));actor.root.rotation.y=-finite(player.angle)-Math.PI/2;this.factory.pose(actor,player.pose,this.time,finite(player.speed,1));});
     const ball=match.ball||{};this.ball.position.set(finite(ball.x),Math.max(.84,finite(ball.y,.84)),finite(ball.z));this.ball.rotation.z+=.03;this.ballRing.position.set(finite(ball.x),.09,finite(ball.z));
   }
@@ -217,13 +237,14 @@ export class World {
     if(mode!=='avatar'){
       const pitch=this.pitchPosition(this.pitchIndex);target.set(pitch.x,pitch.y,pitch.z);offset.set(0,155,135);
       if(match&&(mode==='ball'||mode==='player'||mode==='celebration'||mode==='icon')){
-        const subject=mode==='player'||mode==='icon'?match.players?.[clamp(Math.trunc(finite(index)),0,21)]:match.ball;
+        const celebration=match.celebration;const scorer=celebration&&match.players?.find(p=>(p.name===celebration.scorer||p.id===celebration.scorer||p.key===celebration.scorer)&&p.side===celebration.side);
+        const subject=mode==='celebration'?scorer:mode==='player'||mode==='icon'?match.players?.[clamp(Math.trunc(finite(index)),0,21)]:match.ball;
         if(subject)target.add(new THREE.Vector3(finite(subject.x),2,finite(subject.z)));
         offset=mode==='icon'?new THREE.Vector3(0,12,13):mode==='celebration'?new THREE.Vector3(26,14,30):new THREE.Vector3(0,47,47);
       }
       if(mode==='goalcorner') {const side=index===1?-1:1;target.add(new THREE.Vector3(side*83,3,0));offset.set(side*24,23,40);}
     }
-    offset.multiplyScalar(1/zoom);const desired=target.clone().add(offset);this.camera.position.lerp(desired,1-Math.exp(-Math.min(dt,.1)*7));this.camera.lookAt(target);
+    offset.applyAxisAngle(new THREE.Vector3(0,1,0),finite(this.cameraConfig.yaw ?? this.cameraConfig.orbit));offset.multiplyScalar(1/zoom);const desired=target.clone().add(offset);this.camera.position.lerp(desired,1-Math.exp(-Math.min(dt,.1)*7));this.camera.lookAt(target);
     this.sun.target.position.copy(target);this.sun.position.set(target.x-100,target.y+220,target.z+100);
   }
 
@@ -245,6 +266,6 @@ export class World {
   }
 
   resize() {const width=Math.max(1,this.canvas.clientWidth||this.canvas.width||800);const height=Math.max(1,this.canvas.clientHeight||this.canvas.height||600);this.renderer.setPixelRatio(Math.min(typeof devicePixelRatio==='number'?devicePixelRatio:1,this.lowGraphics?1:1.5));this.renderer.setSize(width,height,false);this.camera.aspect=width/height;this.camera.updateProjectionMatrix();}
-  snapshot() {return {drawCalls:this.renderer.info.render.calls,triangles:this.renderer.info.render.triangles,geometries:this.renderer.info.memory.geometries,textures:this.renderer.info.memory.textures,staticParts:(this.worldData.parts||this.worldData.staticParts||[]).length,batches:this.chunks.length,actors:this.actors.size+this.matchActors.length+1,colliders:this.colliders.length,lowGraphics:this.lowGraphics,avatar:{...this.avatar},camera:{...this.cameraConfig}};}
+  snapshot() {return {drawCalls:this.renderer.info.render.calls,triangles:this.renderer.info.render.triangles,geometries:this.renderer.info.memory.geometries,textures:this.renderer.info.memory.textures,staticParts:(this.worldData.parts||this.worldData.staticParts||[]).length,batches:this.chunks.length,actors:this.actors.size+this.matchActors.length+1,crowdCount:this.crowdCount,colliders:this.colliders.length,lowGraphics:this.lowGraphics,avatar:{...this.avatar},camera:{...this.cameraConfig}};}
   dispose() {if(this.disposed)return;this.disposed=true;this.actors.forEach(entry=>this.factory.release(entry.actor));this.matchActors.forEach(a=>this.factory.release(a));this.factory.release(this.avatarActor);this.factory.dispose();Object.values(this.staticGeometries).forEach(g=>g.dispose());this.ballGeometry.dispose();this.ringGeometry.dispose();this.materials.forEach(m=>m.dispose());this.labelTextures.forEach(t=>t.dispose());this.renderer.dispose();this.renderer.forceContextLoss();this.scene.clear();}
 }
