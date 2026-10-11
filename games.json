@@ -1242,5 +1242,14 @@
     "desc": "Preview: explore five regions, collect creatures and fight turn-based battles. Full campaign and device testing remain ongoing.",
     "url": "Games/Foldwild/index.html",
     "featured": false
+  },
+  {
+    "id": 227,
+    "title": "Steal a Footballer for Your Team",
+    "cat": "sports",
+    "icon": "SF",
+    "desc": "Solo browser adaptation of lzeo2's original Roblox game. Recruit 125 footballer identities, steal from NPC rivals and play squad matches. Saves in this browser.",
+    "url": "Games/StealFootballer/index.html",
+    "featured": false
   }
 ]

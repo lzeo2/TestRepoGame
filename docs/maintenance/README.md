@@ -6,8 +6,8 @@ is a source-grounded audit and maintenance guide, not a claim that every legacy
 game meets today's standards. Some engines are compiled, some rights are
 unverified, and some native interactions remain held.
 
-The catalog contains **117 registered games**. Git contains **122 game projects**
-plus the shared `Games/_emulatorjs` runtime. The five unregistered games are
+The catalog contains **118 registered games**. The latest Git inventory records **122 game projects**
+plus the shared `Games/_emulatorjs` runtime. Steal a Footballer is the owner-authorized solo adaptation registered as 227; its integrated source inventory refresh and browser/full-catalog verification are pending at this registration checkpoint. The five unregistered games are
 2048, Garage Borough, Hextris, QWOP and Slope. Existing Slipstream Borough is catalog225, explicitly labeled a police-chase preview with an unbanked handling sandbox. Existing Foldwild is owner-authorized Story preview226; its M2/inspection/campaign/device/rights holds remain. Both are registrations of existing projects, not new builds. Sparse exclusion is intentional: a missing
 local Games folder does not mean a broken deployment. See [inventory](inventory.json)
 for exact tracked counts, entry hashes, source-tree hashes and manual paths.
@@ -231,6 +231,7 @@ reserved by appearing here.
 | 224 | [Spline Ride](games/224-spline-ride.md) | `Games/Spline Ride/index.html` |
 | 225 | [Slipstream Borough: Police Chase (Preview)](games/225-slipstream-borough.md) | `Games/Slipstream Borough/index.html` |
 | 226 | [Foldwild: Open-World RPG (Preview)](games/226-foldwild.md) | `Games/Foldwild/index.html` |
+| 227 | [Steal a Footballer for Your Team](games/227-stealfootballer.md) | `Games/StealFootballer/index.html` |
 | Unregistered | [2048](games/unregistered-2048.md) | `Games/2048/index.html` |
 | Unregistered | [Garage Borough](games/unregistered-garage-borough.md) | `Games/Garage Borough/index.html` |
 | Unregistered | [Hextris](games/unregistered-hextris.md) | `Games/Hextris/index.html` |
