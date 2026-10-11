@@ -169,13 +169,14 @@ export class World {
     return items.map(h=>({...h,distance:Math.hypot(position.x-h.x,position.z-h.z)})).filter(h=>h.distance<=h.radius).sort((a,b)=>a.distance-b.distance);
   }
 
-  moveAvatar(vector,dt) {this.avatar=groundedMove(this.avatar,vector,dt,this.colliders,this.bounds);return {...this.avatar};}
+  moveAvatar(vector,dt) {const old=this.avatar;this.avatar=groundedMove(old,vector,dt,this.colliders,this.bounds);this.avatar.moving=Math.hypot(this.avatar.x-old.x,this.avatar.z-old.z)>.001;return {...this.avatar};}
   teleport(point) {const p=xyz(point);if(!p.every(Number.isFinite))return false;this.avatar={x:p[0],y:p[1]+.035,z:p[2],angle:finite(point?.angle,this.avatar.angle)};this.jumpHeight=0;this.jumpVelocity=0;return {...this.avatar};}
   jump() {if(finite(this.jumpHeight)>.001)return false;this.jumpVelocity=20;this.jumpHeight=.01;return true;}
   setCamera(config={}) {this.cameraConfig={...this.cameraConfig,...config,yaw:finite(config.yaw,finite(config.orbit,this.cameraConfig.yaw)),zoom:clamp(finite(config.zoom,this.cameraConfig.zoom),.35,2.5)};if(Number.isInteger(config.pitchIndex))this.pitchIndex=clamp(config.pitchIndex,0,11);}
 
   rebuildDisplays(state) {
-    const key=JSON.stringify([state.roster,state.rivals?.map(r=>r.roster||r.players),state.kit,state.tactics,state.lineup]);if(key===this.dynamicKey)return;this.dynamicKey=key;
+    const identities=members=>(members||[]).map(m=>[m.uid,m.id,m.role]);
+    const key=JSON.stringify([identities(state.roster),state.rivals?.map(r=>identities(r.roster||r.players)),state.kit,state.tactics?.formation,state.tactics?.selectedUids,identities(state.lineup)]);if(key===this.dynamicKey)return;this.dynamicKey=key;
     for(const [id,entry]of this.actors)if(!entry.static&&!entry.market){this.scene.remove(entry.actor.root);this.factory.release(entry.actor);this.actors.delete(id);}
     const roster=state.roster || [];
     const makeRoster=(members,index)=>{
@@ -196,13 +197,16 @@ export class World {
   updateMarket(market=[]) {
     const current=new Set();
     market.slice(0,14).forEach((offer,i)=>{
+      if(!offer || (Object.hasOwn(offer,'id')&&!offer.id&&!offer.playerId))return;
+      const def=offer.def || this.data.players?.find(p=>p.id===(offer.playerId || offer.id));if(!def)return;
       const id=`market-${offer.marketId || offer.uid || offer.id}-${i}`;current.add(id);
-      let entry=this.actors.get(id);const def=offer.def || this.data.players?.find(p=>p.id===(offer.playerId || offer.id));if(!def)return;
+      let entry=this.actors.get(id);
+      if(entry&&entry.actor.definition.id!==def.id){this.scene.remove(entry.actor.root);this.factory.release(entry.actor);this.actors.delete(id);entry=null;}
       if(!entry){const actor=this.factory.create(def,{}, {simple:true});this.scene.add(actor.root);entry={actor,market:true,marketId:offer.marketId || offer.uid || offer.id};this.actors.set(id,entry);}
       const age=finite(offer.age,this.time+i*4);const start=xyz(this.worldData.market?.start,[-57,1.35,0]);const end=xyz(this.worldData.market?.end,[57,1.35,0]);const travel=(age*finite(this.data.config?.ConveyorSpeed,3))%Math.max(1,end[0]-start[0]);const x=Number.isFinite(offer.x)?start[0]+clamp(offer.x,0,1)*(end[0]-start[0]):start[0]+travel;
       entry.actor.root.position.set(x,start[1]+.04,start[2]);entry.actor.root.rotation.y=Math.PI;this.factory.pose(entry.actor,'idle',this.time+i);
     });
-    for(const [id,entry]of this.actors)if(entry.market&&!current.has(id)){this.scene.remove(entry.actor.root);this.actors.delete(id);}
+    for(const [id,entry]of this.actors)if(entry.market&&!current.has(id)){this.scene.remove(entry.actor.root);this.factory.release(entry.actor);this.actors.delete(id);}
   }
 
   buildCrowd() {
@@ -237,7 +241,8 @@ export class World {
     if(mode!=='avatar'){
       const pitch=this.pitchPosition(this.pitchIndex);target.set(pitch.x,pitch.y,pitch.z);offset.set(0,155,135);
       if(match&&(mode==='ball'||mode==='player'||mode==='celebration'||mode==='icon')){
-        const celebration=match.celebration;const scorer=celebration&&match.players?.find(p=>(p.name===celebration.scorer||p.id===celebration.scorer||p.key===celebration.scorer)&&p.side===celebration.side);
+        const celebration=match.celebration;const indexedScorer=Number.isInteger(celebration?.scorerIndex)?match.players?.[celebration.scorerIndex]:null;
+        const scorer=indexedScorer||(celebration&&match.players?.find(p=>(p.name===celebration.scorer||p.id===celebration.scorer||p.key===celebration.scorer)&&p.side===celebration.side));
         const subject=mode==='celebration'?scorer:mode==='player'||mode==='icon'?match.players?.[clamp(Math.trunc(finite(index)),0,21)]:match.ball;
         if(subject)target.add(new THREE.Vector3(finite(subject.x),2,finite(subject.z)));
         offset=mode==='icon'?new THREE.Vector3(0,12,13):mode==='celebration'?new THREE.Vector3(26,14,30):new THREE.Vector3(0,47,47);
@@ -254,7 +259,8 @@ export class World {
     if(this.lowGraphics!==Boolean(lowGraphics)){this.lowGraphics=Boolean(lowGraphics);this.resize();}
     this.renderer.shadowMap.enabled=!this.lowGraphics;this.sun.castShadow=!this.lowGraphics;
     this.jumpVelocity=finite(this.jumpVelocity)-56*dt;this.jumpHeight=Math.max(0,finite(this.jumpHeight)+this.jumpVelocity*dt);if(this.jumpHeight===0)this.jumpVelocity=0;
-    this.avatarActor.root.position.set(this.avatar.x,this.avatar.y+this.jumpHeight,this.avatar.z);this.avatarActor.root.rotation.y=-finite(this.avatar.angle)-Math.PI/2;this.factory.pose(this.avatarActor,avatar?.moving?'run':'idle',this.time);
+    this.avatarActor.root.position.set(this.avatar.x,this.avatar.y+this.jumpHeight,this.avatar.z);this.avatarActor.root.rotation.y=-finite(this.avatar.angle)-Math.PI/2;this.factory.pose(this.avatarActor,this.avatar.moving?'run':'idle',this.time);
+    this.avatar.moving=false;
     this.rebuildDisplays(state);this.updateMarket(state.market);this.updateMatch(match,state);this.updateCamera(match,dt);
     const focus=this.camera.position;const far=this.lowGraphics?360:800;
     const venue=this.bases[this.pitchIndex]?.pitch;const venuePosition=venue?new THREE.Vector3(...xyz(venue.position)):this.venueOrigin;const venueDelta=venuePosition.clone().sub(this.venueOrigin);
