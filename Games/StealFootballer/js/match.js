@@ -212,6 +212,7 @@ export class Match {
     const to={x:direction*91,y:outcome==='goal'?1.1:.8,z:outcome==='miss'?(aim<0?-1:1)*(16+this._roll()*10):aim};
     this.ball.flight={kind:'shot',from:{x:this.ball.x,y:this.ball.y,z:this.ball.z},to,elapsed:-.32,
       duration:driven?.8:1,height:driven?1.6:2.4,side:p.side,fromIndex:p.index,outcome,keeper:this.players.indexOf(keeper),
+      shooterIndex:this.players.indexOf(p),shooterKey:p.key,shooterName:p.name,
       shotDistance:distance,goalChance:chance,onTargetChance:target,pressure,strength:clamp(stat(p,'attacking')/150,0,1),driven};
     this.ball.owner=null;this.phase='shot';p.pose='shoot';p.actionPose='shoot';p.poseUntil=this.time+.65;this.stats[p.side].shots++;
     if(rocket)this.activeAbility=null;
@@ -274,7 +275,10 @@ export class Match {
     if(f.outcome==='goal') {
       this.stats[f.side].shotsOnTarget++;this.score[f.side]++;
       this.ball.owner=null;this.ball.flight=null;this.phase='goalCelebration';this.phaseUntil=this.time+3.4;
-      this.celebration={side:f.side,scorer:this.players[f.side*11+f.fromIndex].name,stage:'runToCorner',endsAt:this.phaseUntil};
+      const scorerIndex=f.shooterIndex??f.side*11+f.fromIndex;
+      const originalShooter=this.players[scorerIndex];
+      this.celebration={side:f.side,scorer:f.shooterName??originalShooter.name,scorerIndex,
+        scorerKey:f.shooterKey??originalShooter.key,stage:'runToCorner',endsAt:this.phaseUntil};
       this.players.filter(p=>p.side===f.side).forEach(p=>p.pose='celebrate');
       this._say(`${this.celebration.scorer} scores for ${f.side===0?'your team':'the opposition'}`,true,'goal');
       this.releaseControl();this._applyPendingSubstitution();

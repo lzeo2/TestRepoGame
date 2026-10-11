@@ -85,6 +85,27 @@ const assertFinite=match=>{
   advance(match,1.5);assert.equal(match.duel,null);assert.equal(match.stats[0].dribblesAttempted,1);
 }
 {
+  // Identical catalog identities and display names still identify the original kick by actor/key.
+  for(const side of [0,1]) {
+    const home=makeTeam(),away=makeTeam(75,'away');
+    for(const team of [home,away])for(const index of [9,10]) {
+      team[index].id='duplicate';team[index].name='Same Footballer';team[index].def.id='duplicate';
+    }
+    const match=new Match(home,away,{seed:5});open(match);
+    const globalIndex=side*11+9,shooter=match.players[globalIndex],originalKey=shooter.key;
+    shooter.x=side===0?70:-70;shooter.z=0;match._give(shooter);
+    match.players.filter(p=>p.side!==side&&p.role!=='GK').forEach(p=>p.z=55);
+    match._roll=()=>0;assert(match._shoot());assert.equal(match.ball.flight.shooterIndex,globalIndex);
+    shooter.name='Changed after kick';match._stepFlight(2,true);
+    assert.equal(match.phase,'goalCelebration');
+    assert.equal(match.celebration.scorerIndex,globalIndex,'away indices include the11-player side offset');
+    assert.equal(match.celebration.scorerKey,originalKey,'duplicate identities do not select another actor');
+    assert.equal(match.celebration.scorer,'Same Footballer','the shot preserves its original shooter name');
+    assert.notEqual(match.celebration.scorerKey,match.players[side*11+10].key);
+    assert.equal(match.snapshot().celebration.scorerIndex,globalIndex);
+  }
+}
+{
   const found=new Set();
   for(let seed=1;seed<20;seed++) {
     const match=fresh({seed:seed*1000003});match.time=3;
