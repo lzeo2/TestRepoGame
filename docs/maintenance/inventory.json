@@ -1,5 +1,5 @@
 {
-  "catalog_entries": 117,
+  "catalog_entries": 118,
   "games": [
     {
       "directory": "Games/2048",
@@ -1224,6 +1224,18 @@
       "files": 8,
       "bytes": 1330245,
       "document": "docs/maintenance/games/224-spline-ride.md"
+    },
+    {
+      "directory": "Games/StealFootballer",
+      "id": 227,
+      "title": "Steal a Footballer for Your Team",
+      "registered": true,
+      "entry": "Games/StealFootballer/index.html",
+      "entry_blob": "8f94e387ceef2350f534f65b9bb984b679ea34ab",
+      "tree": "96a7a23ef4534fa300f4b147581b6943aa17924e",
+      "files": 26,
+      "bytes": 2836570,
+      "document": "docs/maintenance/games/227-stealfootballer.md"
     },
     {
       "directory": "Games/StrandedInIsekai",

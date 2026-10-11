@@ -27,6 +27,12 @@ systems used isolated developer-squad fixtures, never the owner's Roblox wallet.
 Complete-match/debrief and mobile acceptance were not reached. The catalog run
 was stopped and cannot be counted as a full pass.
 
+Before termination, 34 catalog loads finished: 29 were marked ok and five failed.
+The recorded failures were Fancy Pants Adventure 3 (one failed request), Doodle
+Jump and Chess (one console error each), Jetpack Joyride (one console error),
+and Jetpack Joyride Hacked (one console error and one failed request). These
+existing titles were not changed or investigated further after the stop.
+
 Root visually reviewed these desktop captures from the earlier browser run:
 
 - [Start screen](steal-footballer-start.png)
@@ -41,6 +47,10 @@ runtime acceptance. The source directory is approximately 2.9 MB before these
 evidence captures, including local Three.js/fonts. It retains 125 players,
 12 base records, 3,095 static primitives and a reusable 261-part active stadium.
 Source is committed before the Git-backed inventory refresh/coverage check.
+JavaScript syntax, catalog/export scans and documentation coverage passed.
+The source commit is `e2614d4`. Imported upstream Three.js and font license files
+retain three upstream whitespace warnings; the authored changes have no diff
+whitespace errors. The two desktop evidence images total 357,633 bytes.
 
 Solo NPC rivals and device-local progress replace online players/cloud saves.
 Procedural avatars approximate the Roblox catalog assets. See the
