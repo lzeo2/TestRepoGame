@@ -131,6 +131,34 @@ const assertFinite=match=>{
   assert.equal(match.result.rewardBreakdown.goalBonus,30);assert(match.result.reward>2250);
 }
 {
+  // Detached confirmed-contact fixture; no Game action, save, wallet or roster is mutated.
+  const match=fresh();open(match);const victim=match.players[9],offender=match.players[12];
+  victim.x=40;victim.z=0;victim.angle=0;offender.x=39;offender.z=0;offender.angle=0;match._give(victim);
+  let rolls=0;match._roll=()=>{rolls++;return 0;};
+  assert(match._tryFoul(offender,victim),'grounded late contact produces a real confirmed foul');
+  assert.equal(match.stats[1].fouls,1);assert.equal(match.phase,'freeKick');assert.equal(match.commentary.kind,'foul');
+  assert.equal(victim.stats.pace,68);assert.equal(victim.stats.stamina,72);assert.equal(rolls,1);
+  assert.equal(match._tryFoul(offender,victim),false,'the same whistle cannot apply twice');
+  const prepare=()=>{match.time+=7;match.phase='buildUp';match.restart=null;match._give(victim);};
+  prepare();assert(match._tryFoul(offender,victim));assert.equal(rolls,1,'only one injury roll per owned UID');
+  assert.equal(victim.stats.pace,68);assert.equal(victim.stats.stamina,72,'injury multipliers do not stack');
+  prepare();offender.x=41;assert.equal(match._tryFoul(offender,victim),false,'a fair front challenge does not cause an injury');
+  assert.equal(match.stats[1].fouls,2);
+  const frozen=match.snapshot();frozen.events[0].text='changed';assert.notEqual(match.events[0].text,'changed','audio events are detached');
+  match._finish(0);assert.deepEqual(match.result.injuries,[victim.uid]);assert.equal(match.commentary.kind,'fullTime');
+  assert.equal(match.result.events.at(-1).kind,'fullTime');
+}
+{
+  const match=fresh();open(match);const loan=match.players[9],offender=match.players[12];
+  loan.borrowed=true;loan.x=40;loan.z=0;loan.angle=0;offender.x=39;offender.z=0;offender.angle=0;match._give(loan);
+  let rolls=0;match._roll=()=>{rolls++;return 0;};assert(match._tryFoul(offender,loan));
+  assert.equal(rolls,0,'loans never receive injury rolls');assert.equal(loan.stats.pace,80);
+  match._finish(0);assert.deepEqual(match.result.injuries,[]);
+  const offside=fresh();open(offside);offside.players[9].x=85;offside.ball.x=30;
+  const phase=offside._onside(0,1);offside._offside(offside.players[9],phase);
+  assert.equal(offside.injuryRolls.size,0,'offside is not a foul injury event');
+}
+{
   const a=fresh({seed:8}),b=fresh({seed:8});advance(a,20);advance(b,20);
   assert.deepEqual(a.snapshot(),b.snapshot(),'seeded detached simulations are deterministic');
   for(let seed=1;seed<=8;seed++) {
@@ -139,4 +167,4 @@ const assertFinite=match=>{
     assert(match.result.stats[0].possessionPercent+match.result.stats[1].possessionPercent===100);
   }
 }
-console.log('PASS match: formation, flight contacts, offside, controls, pace, saves, subs, managers, periods, PKs, rewards and eight full seeded simulations');
+console.log('PASS match: formation, flight contacts, offside, controls, pace, saves, subs, managers, periods, PKs, rewards, confirmed foul injuries, detached audio events and eight full seeded simulations');

@@ -41,8 +41,9 @@ export class Match {
     this.time = 0; this.periodElapsed = 0; this.period = 'regulation'; this.periodDuration = 90;
     this.phase = 'kickoff'; this.phaseUntil = 2; this.score = [0,0]; this.finished = false; this.result = null;
     this.players = []; this.ball = {x:0,y:0.8,z:0,owner:null,flight:null};
-    this.stats = [newStats(),newStats()]; this.commentary = {serial:0,text:'The teams prepare for kickoff.',important:true};
+    this.stats = [newStats(),newStats()]; this.commentary = {serial:0,text:'The teams prepare for kickoff.',important:true,kind:'kickoff'};
     this.events = []; this.controlState = null; this.controlReadyAt = 0;
+    this.injuryRolls=new Set();this.injuryUIDs=new Set();this.foulCount=0;this.foulReadyAt=0;
     this.playReadyAt = 0; this.abilityReadyAt = 0; this.managerReadyAt = 0;
     this.activeAbility = null; this.activeManager = null; this.duel = null; this.offsidePhase = null;
     this.restart = null; this.indirect = null; this.celebration = null; this.penalties = null;
@@ -69,8 +70,8 @@ export class Match {
   }
 
   _roll() { this.seed = (Math.imul(1664525, this.seed) + 1013904223) >>> 0; return this.seed / 4294967296; }
-  _say(text, important = false) {
-    this.commentary = {serial:this.commentary.serial+1,text:text.replace(/[.!?]+$/,'')+'.',important};
+  _say(text, important = false, kind = 'commentary') {
+    this.commentary = {serial:this.commentary.serial+1,text:text.replace(/[.!?]+$/,'')+'.',important,kind};
     this.events.push({time:Math.round(this.time*10)/10,side:this.possession,...this.commentary});
     if (this.events.length > 100) this.events.shift();
   }
@@ -84,7 +85,7 @@ export class Match {
   }
   _actor(member, side, index, anchor) {
     const def = clone(member.def || {}), stats = clone(member.stats || def.stats || {});
-    return {id:member.id || def.id,key:member.uid || `${side}:${index}:${member.id || def.id}`,
+    return {id:member.id || def.id,uid:member.uid||null,key:member.uid || `${side}:${index}:${member.id || def.id}`,
       name:member.name || def.name || 'Footballer',side,index,role:anchor.role,roleLabel:member.roleLabel || anchor.role,
       x:anchor.x,z:anchor.z,anchor:{...anchor},angle:side===0?0:Math.PI,pose:'idle',
       power:finite(member.power,finite(stats.power,40)),stats,def,borrowed:!!member.borrowed,
@@ -140,7 +141,7 @@ export class Match {
     this._restart('freeKick',1-p.side,p.x,p.z,2.2);
     const taker=this._nearest(1-p.side,p)[0];
     this.indirect={side:1-p.side,taker:taker.index};
-    this._say(`${p.name} is offside and the opposition receives an indirect free kick`,true);
+    this._say(`${p.name} is offside and the opposition receives an indirect free kick`,true,'offside');
     return true;
   }
   _pass(receiver, lob=false, restartKind=null) {
@@ -228,6 +229,42 @@ export class Match {
     this.phase='buildUp';this.attackStarted=this.time;this.completedAttackPasses=0;this.nextDecision=this.time+2;
     this._say(`${p.name} ${kind==='interception'?'intercepts the pass':'wins the ball'}`);
   }
+  _tryFoul(offender,victim) {
+    if(!this._open()||this.ball.flight||this.ball.owner!==this.players.indexOf(victim)||
+      offender.side===victim.side||offender.role==='GK'||victim.role==='GK'||
+      this.time<this.foulReadyAt||this.foulCount>=6)return false;
+    const dx=offender.x-victim.x,dz=offender.z-victim.z,gap=Math.hypot(dx,dz);
+    const forward={x:Math.cos(victim.angle),z:Math.sin(victim.angle)};
+    const facing=Math.cos(offender.angle)*(-dx)+Math.sin(offender.angle)*(-dz);
+    const ballAhead=(this.ball.x-victim.x)*forward.x+(this.ball.z-victim.z)*forward.z;
+    // Source Law 12 approximation: grounded rear contact, not a shoulder duel or distant slide.
+    if(gap>.2&&gap<=2.3&&this.ball.y<=1.35&&this.ball.y>=0&&
+      dx*forward.x+dz*forward.z<-.3&&facing/gap>=.15&&ballAhead>=.1) {
+      this.foulCount++;this.foulReadyAt=this.time+6;this.stats[offender.side].fouls++;
+      const injured=this._foulInjury(victim);
+      victim.actionPose='fall';victim.poseUntil=this.time+1.9;
+      this.activeAbility=null;this.activeManager=null;this.indirect=null;
+      this._restart('freeKick',victim.side,victim.x,victim.z,3);
+      this._say(`Late challenge by ${offender.name} earns a free kick${injured?` and ${victim.name} is injured`:''}`,true,'foul');
+      return true;
+    }
+    return false;
+  }
+  _foulInjury(victim) {
+    if(victim.borrowed||!victim.uid||this.injuryRolls.has(victim.uid))return false;
+    this.injuryRolls.add(victim.uid);
+    if(this._roll()>=.15)return false;
+    // Imported stats may already contain a timed injury; never apply its multiplier twice.
+    if(!victim.stats.injured) {
+      victim.stats.careBasePace=finite(victim.stats.careBasePace,stat(victim,'pace'));
+      victim.stats.careBaseStamina=finite(victim.stats.careBaseStamina,stat(victim,'stamina'));
+      victim.stats.pace=Math.round(victim.stats.careBasePace*.85*100)/100;
+      victim.stats.stamina=Math.round(victim.stats.careBaseStamina*.9*100)/100;
+      victim.stats.injured=true;
+    }
+    if(victim.side===0)this.injuryUIDs.add(victim.uid);
+    return true;
+  }
   _loose(from,to,side,duration=.65) {
     this.ball.owner=null;this.ball.flight={kind:'loose',from,to,elapsed:0,duration,height:1.6,side};this.phase='looseBall';
     this.looseUntil=this.time+5;
@@ -239,7 +276,7 @@ export class Match {
       this.ball.owner=null;this.ball.flight=null;this.phase='goalCelebration';this.phaseUntil=this.time+3.4;
       this.celebration={side:f.side,scorer:this.players[f.side*11+f.fromIndex].name,stage:'runToCorner',endsAt:this.phaseUntil};
       this.players.filter(p=>p.side===f.side).forEach(p=>p.pose='celebrate');
-      this._say(`${this.celebration.scorer} scores for ${f.side===0?'your team':'the opposition'}`,true);
+      this._say(`${this.celebration.scorer} scores for ${f.side===0?'your team':'the opposition'}`,true,'goal');
       this.releaseControl();this._applyPendingSubstitution();
     } else if(f.outcome==='save') {
       this.stats[f.side].shotsOnTarget++;this.stats[1-f.side].saves++;keeper.pose='dive';keeper.actionPose='dive';keeper.poseUntil=this.time+.8;
@@ -249,16 +286,16 @@ export class Match {
       const sign=f.to.z<0?-1:1;
       if(roll<chance) {
         this.offsidePhase=null;this._give(keeper);this.phase='keeperRestart';this.phaseUntil=this.time+1.3;
-        this._say(`${keeper.name} catches the shot`);
+        this._say(`${keeper.name} catches the shot`,false,'save');
       } else if(roll<chance+(1-chance)*.58) {
         this._loose({...this.ball},{x:dir(f.side)*78,y:.8,z:sign*(5+this._roll()*4)},f.side);
-        this._say(`${keeper.name} parries the ball into play`);
+        this._say(`${keeper.name} parries the ball into play`,false,'save');
       } else {
         this._loose({...this.ball},{x:dir(f.side)*96,y:.8,z:sign*(18+this._roll()*8)},f.side,.8);
-        this.savedWideSide=f.side;this._say(`${keeper.name} tips the ball wide`);
+        this.savedWideSide=f.side;this._say(`${keeper.name} tips the ball wide`,false,'save');
       }
     } else {
-      this._restart('goalKick',1-f.side,dir(f.side)*82,0,1.8);this._say('The shot goes wide of the goal');
+      this._restart('goalKick',1-f.side,dir(f.side)*82,0,1.8);this._say('The shot goes wide of the goal',false,'out');
     }
   }
   _stepFlight(dt, drain=false) {
@@ -307,7 +344,7 @@ export class Match {
     else if(Math.abs(this.ball.x)>90) {
       const attacking=this.savedWideSide??f.side;this.savedWideSide=null;
       this.stats[attacking].corners++;this._restart('corner',attacking,dir(attacking)*88,this.ball.z<0?-62:62,2.8);
-      this._say('A corner is awarded as both teams prepare in the box',true);
+      this._say('A corner is awarded as both teams prepare in the box',true,'out');
     } else {this.phase='looseBall';this.looseUntil=this.time+5;}
   }
 
@@ -425,6 +462,7 @@ export class Match {
         (this.duel?.attacker===this.ball.owner?.06:0),.18,control?.78:.65);
       if(this.isPractice&&p.side===1)chance*=.55;
       if(this._roll()<chance) {this._turnover(p,'tackle');return;}
+      if(this._tryFoul(p,carrier))return;
       this._say(`${carrier.name} keeps the ball under pressure`);
     }
   }
@@ -467,8 +505,7 @@ export class Match {
       if(!p||dist(tackler,p)>12)return reply(false,'Move a defender within tackle range.');
       tackler.pose='slide';tackler.actionPose='slide';tackler.poseUntil=this.time+1.1;
       if(dist(tackler,p)<=4&&this._roll()<clamp(.6+(stat(tackler,'defending')-stat(p,'attacking'))*.004,.25,.85))this._turnover(tackler,'tackle');
-      else if(this._roll()<.2) {this.stats[0].fouls++;this._restart('freeKick',1,p.x,p.z,2);this._say('The referee awards a free kick after the sliding challenge',true);}
-      else {tackler.x=clamp(tackler.x+(p.x-tackler.x)*.35,-87,87);tackler.z=clamp(tackler.z+(p.z-tackler.z)*.35,-61,61);}
+      else if(!this._tryFoul(tackler,p)) {tackler.x=clamp(tackler.x+(p.x-tackler.x)*.35,-87,87);tackler.z=clamp(tackler.z+(p.z-tackler.z)*.35,-61,61);}
     }
     if(id==='shoot')this._shoot();
     if(['throughBall','lobbedBall','recycle'].includes(id))this._pass(this._receiver(p,id==='recycle'?'recycle':'forward'),id==='lobbedBall');
@@ -613,7 +650,8 @@ export class Match {
         else this.ball.z=(p.direction==='left'?-1:1)*15;
         p.history.push({side:p.side,result:p.outcome,direction:p.direction,saveDirection:p.saveDirection,turn:p.turn,round:p.round});
         this.ball.flight=null;p.phase='result';p.until=this.time+1.1;
-        this._say(p.outcome==='goal'?'Penalty scored':p.outcome==='save'?'Penalty saved':'Penalty missed',true);
+        this._say(p.outcome==='goal'?'Penalty scored':p.outcome==='save'?'Penalty saved':'Penalty missed',true,
+          p.outcome==='goal'?'goal':p.outcome==='save'?'save':'out');
       }
     } else if(p.phase==='result'&&this.time>=p.until) {
       const winner=this._penaltyWinner();if(winner!==null){p.phase='finished';p.winner=winner;this._finish(winner);}else this._nextPenalty();
@@ -637,10 +675,10 @@ export class Match {
     const report=this.stats.map((s,i)=>({...s,possessionPercent:total?Math.round(s.possessionSeconds/total*100):0,
       passAccuracy:s.passesAttempted?Math.round(s.passesCompleted/s.passesAttempted*100):0}));
     if(total)report[1].possessionPercent=100-report[0].possessionPercent;
-    this._say(winner===0?'Your team wins the match':winner===1?'The opposition wins the match':'The shootout finishes level after ten kicks each',true);
+    this._say(winner===0?'Your team wins the match':winner===1?'The opposition wins the match':'The shootout finishes level after ten kicks each',true,'fullTime');
     this.result={result:label,outcome:label,won:winner===0,winner:winner<0?null:winner,score:[...this.score],reward:reward.total,
       rewardBreakdown:reward,stats:report,home:report[0],away:report[1],penalties:this.penalties?clone(this.penalties):null,
-      period:this.period,elapsed:this.time,events:clone(this.events),injuries:[]};
+      period:this.period,elapsed:this.time,events:clone(this.events),injuries:[...this.injuryUIDs]};
   }
   _step(dt) {
     this.time+=dt;
@@ -711,7 +749,7 @@ export class Match {
         remaining:this.activeAbility?.id===a.id?Math.max(0,this.activeAbility.endsAt-this.time):0};
     });
     return clone({players:this.players,ball:this.ball,phase:this.phase,score:this.score,finished:this.finished,result:this.result,
-      commentary:this.commentary,period:this.period,elapsed:this.time,timeRemaining:Math.max(0,this.periodDuration-this.periodElapsed),
+      commentary:this.commentary,events:this.events,period:this.period,elapsed:this.time,timeRemaining:Math.max(0,this.periodDuration-this.periodElapsed),
       possession:this.possession,stats:this.stats,stamina:this.stamina,formation:this.formation,mentality:this.mentality,
       cooldowns:{plays:Math.max(0,this.playReadyAt-this.time),ability:Math.max(0,this.abilityReadyAt-this.time),
         control:Math.max(0,this.controlReadyAt-this.time),manager:Math.max(0,this.managerReadyAt-this.time)},
