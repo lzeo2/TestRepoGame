@@ -1242,5 +1242,17 @@
     "desc": "Preview: explore five regions, collect creatures and fight turn-based battles. Full campaign and device testing remain ongoing.",
     "url": "Games/Foldwild/index.html",
     "featured": false
+  },
+  {
+    "id": 227,
+    "title": "Night Shift",
+    "cat": "action",
+    "icon": "NS",
+    "desc": "Sneak through a dark archive, steal the case, and reach the exit while guards track light and sound.",
+    "url": "Games/Night Shift/index.html",
+    "featured": false,
+    "tags": ["1p"],
+    "players": "1",
+    "howto": "WASD or arrows move; Shift runs; C sneaks; mouse or IJKL aims; click or J fires; F throws a flare; E uses; R reloads. Touch controls are on screen."
   }
 ]
