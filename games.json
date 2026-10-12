@@ -1254,5 +1254,17 @@
     "tags": ["1p"],
     "players": "1",
     "howto": "WASD or arrows move; Shift runs; C sneaks; mouse or IJKL aims; click or J fires; F throws a flare; E uses; R reloads. Touch controls are on screen."
+  },
+  {
+    "id": 228,
+    "title": "Borough Run",
+    "cat": "arcade",
+    "icon": "BR",
+    "desc": "Drive a stolen courier car through a city loop, outmaneuver police, and deliver the package before you are boxed in.",
+    "url": "Games/Borough Run/index.html",
+    "featured": false,
+    "tags": ["1p"],
+    "players": "1",
+    "howto": "WASD or arrows drive; Space handbrakes; Q drops smoke; E loads, repairs, or extracts. Touch controls are on screen."
   }
 ]
