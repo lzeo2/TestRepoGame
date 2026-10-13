@@ -49,7 +49,7 @@ index eb38b5d..3596882 100644
 @@ -52 +50,0 @@ export class LocalSession implements Session {
 -    if (!this.peaceful) for (let i = 0; i < 4; i++) this.participants.push({ id: `bot${i}`, name: BOT_NAMES[i]!, human: false, picks: { robber: i % 2 ? "compact" : "muscle", cop: i === 1 ? "interceptor" : "cruiser" } })
 diff --git a/games/getaway/src/main.ts b/games/getaway/src/main.ts
-index d63c2f0..06369d4 100644
+index d63c2f0..e0f2f4f 100644
 --- a/games/getaway/src/main.ts
 +++ b/games/getaway/src/main.ts
 @@ -14 +14 @@ import { Renderer } from "./render/renderer"
@@ -57,11 +57,13 @@ index d63c2f0..06369d4 100644
 +import { soloControls } from "./ui/solo-controls"
 @@ -16 +15,0 @@ import { Hud } from "./ui/hud"
 -import { lobby, quickRoom, setRoomParam } from "./ui/lobby"
-@@ -24,3 +22,0 @@ import { lightStyle } from "./render/car-lights"
+@@ -18 +16,0 @@ import { DebugOverlay } from "./ui/debug-overlay"
+-import { GpuPerf } from "@arcade/kit/gpu-perf"
+@@ -24,3 +21,0 @@ import { lightStyle } from "./render/car-lights"
 -/** A message for the next lobby (an idle kick reloads the page back to it). */
 -const NOTICE_KEY = "getaway.notice"
 -
-@@ -32,16 +27,0 @@ function fail(msg: string) {
+@@ -32,16 +26,0 @@ function fail(msg: string) {
 -async function connect(choice: Awaited<ReturnType<typeof lobby>>): Promise<Session> {
 -  if (choice.mode === "room" && choice.room) {
 -    const { NetSession, RoomFullError } = await import("./game/net")
@@ -78,9 +80,13 @@ index d63c2f0..06369d4 100644
 -  return new LocalSession(choice.name, choice.picks)
 -}
 -
-@@ -63 +42,0 @@ async function main() {
+@@ -53,2 +32 @@ async function main() {
+-  const device = await adapter.requestDevice({ requiredFeatures: adapter.features.has("timestamp-query") ? ["timestamp-query"] : [] })
+-  const telemetry = new GpuPerf(device)
++  const device = await adapter.requestDevice()
+@@ -63 +40,0 @@ async function main() {
 -  const staged = (import.meta.env.DEV && q.has("stage")) || q.has("solo") || q.get("peaceful") === "1" || q.has("mux")
-@@ -65,14 +43,0 @@ async function main() {
+@@ -65,14 +41,0 @@ async function main() {
 -  let session: Session | null = null
 -  let choice: Awaited<ReturnType<typeof lobby>> = { mode: "solo", room: null, name: "Dax", picks: { robber: "muscle", cop: "cruiser" } }
 -  let notice = sessionStorage.getItem(NOTICE_KEY)
@@ -95,28 +101,138 @@ index d63c2f0..06369d4 100644
 -      history.replaceState(null, "", location.pathname)
 -    }
 -  }
-@@ -80 +45 @@ async function main() {
+@@ -80 +43 @@ async function main() {
 -  let activeSession: Session = session
 +  let activeSession: Session = new LocalSession("Dax", { robber: "muscle", cop: "cruiser" })
-@@ -96,0 +62 @@ async function main() {
+@@ -96,0 +60 @@ async function main() {
 +  soloControls(controls)
-@@ -102 +67,0 @@ async function main() {
+@@ -102 +65,0 @@ async function main() {
 -  const chat = activeSession.chat ? new Chat(document.getElementById("hud")!, controls, activeSession) : null
-@@ -284,6 +248,0 @@ async function main() {
+@@ -178,6 +140,0 @@ async function main() {
+-    adapterInfo: {
+-      vendor: adapter.info.vendor,
+-      architecture: adapter.info.architecture,
+-      device: adapter.info.device,
+-      description: adapter.info.description,
+-    },
+@@ -216 +172,0 @@ async function main() {
+-      const t0 = performance.now()
+@@ -249 +204,0 @@ async function main() {
+-      if (q.has("smoketiming")) { telemetry.enabled = false; renderer.measureNextFrame() }
+@@ -267,9 +222,2 @@ async function main() {
+-      const cpuMs = performance.now() - t0
+-      let gpuMs = cpuMs
+-      if (waitGpu) {
+-        const g0 = performance.now()
+-        await device.queue.onSubmittedWorkDone()
+-        gpuMs = performance.now() - g0
+-      }
+-      const totalGpuMs = q.has("smoketiming") ? await renderer.totalGpuMs() : null
+-      return { cpuMs, gpuMs, totalGpuMs, stats: { ...renderer.stats }, pose: focus && { x: focus.x, z: focus.z, h: focus.h, speed: focus.speed }, smoke: { skids: scene.fx.skidCount, connected: scene.trail.count, wisps: scene.emissions.wispCount, flames: scene.emissions.flameCount, pops: scene.emissions.pops }, audio: { view, input, events, myId: activeSession.myId, camera: { fx: cam.fx, fz: cam.fz } } }
++      if (waitGpu) await device.queue.onSubmittedWorkDone()
++      return { pose: focus && { x: focus.x, z: focus.z, h: focus.h, speed: focus.speed }, smoke: { skids: scene.fx.skidCount, connected: scene.trail.count, wisps: scene.emissions.wispCount, flames: scene.emissions.flameCount, pops: scene.emissions.pops }, audio: { view, input, events, myId: activeSession.myId, camera: { fx: cam.fx, fz: cam.fz } } }
+@@ -284,6 +231,0 @@ async function main() {
 -    const kicked = activeSession.kicked?.()
 -    if (kicked) {
 -      sessionStorage.setItem(NOTICE_KEY, /idle/i.test(kicked) ? "You were kicked for being idle" : kicked)
 -      location.replace(location.pathname)
 -      return
 -    }
-@@ -331 +289,0 @@ async function main() {
+@@ -322,6 +263,0 @@ async function main() {
+-    telemetry.enabled = debug.visible || mux
+-    const report = debug.update(now, frameMs, { gpuMs: telemetry.gpuMs, gpuKind: telemetry.gpuKind, draws: telemetry.draws, verts: telemetry.verts, chunks: renderer.stats.chunksDrawn, lights: scene.lightCount })
+-    if (parent !== window) {
+-      const pose = mine ? { x: mine.x, z: mine.z, vx: mine.vx, vz: mine.vz, h: mine.h, yaw: mine.yaw ?? 0, speed: mine.speed } : {}
+-      if (report) parent.postMessage({ type: "arcade-perf", ...debug.sample, ...pose, y: mine?.z, tick: muxTick, run: controls.muxRun }, controls.parentOrigin)
+-    }
+@@ -331 +266,0 @@ async function main() {
 -    chat?.update()
-@@ -340 +298,4 @@ async function main() {
+@@ -340 +275,4 @@ async function main() {
 -void main()
 +void main().catch((error) => {
 +  console.error(error)
 +  fail("Getaway could not start. A working WebGPU device is required. Reload to retry.")
 +})
+diff --git a/games/getaway/src/render/renderer.ts b/games/getaway/src/render/renderer.ts
+index ed74370..b62c792 100644
+--- a/games/getaway/src/render/renderer.ts
++++ b/games/getaway/src/render/renderer.ts
+@@ -3 +2,0 @@ import type { SmokeTrail } from "../game/smoke-trail"
+-import { FrameTimer } from "./frame-timer"
+@@ -98,8 +96,0 @@ export class Renderer {
+-  private timer: FrameTimer | null = null
+-  measure = false
+-  measureNextFrame() {
+-    if (!this.device.features.has("timestamp-query")) throw new Error("Total GPU timing requires timestamp-query")
+-    this.timer ??= new FrameTimer(this.device)
+-    this.measure = true
+-  }
+-  totalGpuMs() { return this.timer!.collect() }
+@@ -139,9 +129,0 @@ export class Renderer {
+-  stats = {
+-    cityVertsDrawn: 0,
+-    mainCityVertsDrawn: 0,
+-    shadowCityVertsDrawn: 0,
+-    chunksDrawn: 0,
+-    mainChunksDrawn: 0,
+-    shadowChunksDrawn: 0,
+-    totalChunks: 1,
+-  }
+@@ -475 +456,0 @@ export class Renderer {
+-      timestampWrites: this.measure ? this.timer!.start : undefined,
+@@ -480,2 +460,0 @@ export class Renderer {
+-    let shadowCityVerts = 0
+-    let shadowChunks = 0
+@@ -497,2 +475,0 @@ export class Renderer {
+-          shadowCityVerts += c.count
+-          shadowChunks++
+@@ -536,2 +512,0 @@ export class Renderer {
+-    let mainCityVerts = 0
+-    let mainChunks = 0
+@@ -547,2 +521,0 @@ export class Renderer {
+-          mainCityVerts += c.count
+-          mainChunks++
+@@ -560,9 +532,0 @@ export class Renderer {
+-    this.stats = {
+-      cityVertsDrawn: shadowCityVerts + mainCityVerts,
+-      mainCityVertsDrawn: mainCityVerts,
+-      shadowCityVertsDrawn: shadowCityVerts,
+-      chunksDrawn: shadowChunks + mainChunks,
+-      mainChunksDrawn: mainChunks,
+-      shadowChunksDrawn: shadowChunks,
+-      totalChunks: this.city?.chunks.length ?? 1,
+-    }
+@@ -627,2 +590,0 @@ export class Renderer {
+-    if (this.measure) this.timer!.finish(enc, this.context.getCurrentTexture().createView())
+-    this.measure = false
+diff --git a/games/getaway/src/ui/debug-overlay.ts b/games/getaway/src/ui/debug-overlay.ts
+index 399b716..c6ee036 100644
+--- a/games/getaway/src/ui/debug-overlay.ts
++++ b/games/getaway/src/ui/debug-overlay.ts
+@@ -45 +44,0 @@ const lightControls: (LabControl & { key: keyof LightSettings })[] = [
+-export type PerfSample = { fps: number; frameMs: number; p95Ms: number; gpuMs: number | null; gpuKind: string; draws: number; verts: number; chunks: number; lights: number }
+@@ -47,3 +45,0 @@ export class DebugOverlay extends LabPanel {
+-  private samples: number[] = []
+-  private lastUpdate = 0
+-  sample: PerfSample = { fps: 0, frameMs: 0, p95Ms: 0, gpuMs: null, gpuKind: "timestamp", draws: 0, verts: 0, chunks: 0, lights: 0 }
+@@ -62,0 +59 @@ export class DebugOverlay extends LabPanel {
++    this.header.textContent = "Presentation controls"
+@@ -70,15 +66,0 @@ export class DebugOverlay extends LabPanel {
+-  reset() { this.samples.length = 0; this.lastUpdate = 0 }
+-  update(now: number, frameMs: number, stats: Pick<PerfSample, "gpuMs" | "gpuKind" | "draws" | "verts" | "chunks" | "lights">) {
+-    if (frameMs > 0 && frameMs < 1000) this.samples.push(frameMs)
+-    if (this.samples.length > 120) this.samples.shift()
+-    if (document.hidden) { this.reset(); return false }
+-    if (now - this.lastUpdate < 150) return false
+-    this.lastUpdate = now
+-    const sorted = [...this.samples].sort((a, b) => a - b)
+-    const p = (n: number) => sorted[Math.max(0, Math.ceil(sorted.length * n) - 1)] ?? 0
+-    const mean = this.samples.reduce((a, b) => a + b, 0) / Math.max(1, this.samples.length)
+-    this.sample = { ...stats, fps: mean ? 1000 / mean : 0, frameMs: p(0.5), p95Ms: p(0.95) }
+-    const s = this.sample
+-    this.header.textContent = `FPS ${s.fps.toFixed(0)} · Frame ms ${s.frameMs.toFixed(1)} / ${s.p95Ms.toFixed(1)}\nGPU ${s.gpuKind === "timestamp" ? "HW" : "queue-wait"} ms ${s.gpuMs?.toFixed(2) ?? "—"}`
+-    return true
+-  }
 diff --git a/games/getaway/vite.config.ts b/games/getaway/vite.config.ts
 index 0c29f46..2778be9 100644
 --- a/games/getaway/vite.config.ts
