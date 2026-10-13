@@ -1309,7 +1309,7 @@
     "title": "Wings",
     "cat": "action",
     "icon": "",
-    "desc": "Multiplayer aerial combat turned solo flight sim - take off, climb and stay alive. WebGPU game - needs a modern PC browser. Ported from Anomaly's arcade (static, solo).",
+    "desc": "Offline solo flight and configurable AI fleet combat from Anomaly's arcade. Enemy ship guns remain active. Keyboard and mouse required; WebGPU preferred, WebGL2 fallback. Renderer compatibility varies.",
     "url": "Games/Wings/index.html",
     "featured": false,
     "tags": [

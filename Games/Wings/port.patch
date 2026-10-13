@@ -1,5 +1,5 @@
 diff --git a/games/wings/index.html b/games/wings/index.html
-index bb8d87a..ab43b02 100644
+index bb8d87a..f95d67d 100644
 --- a/games/wings/index.html
 +++ b/games/wings/index.html
 @@ -5,7 +5,7 @@
@@ -11,16 +11,59 @@ index bb8d87a..ab43b02 100644
  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%2322262a'/%3E%3Crect x='7' y='21' width='18' height='2' fill='%23ff7a2e'/%3E%3C/svg%3E" />
  <link rel="preload" href="/fonts/archivo-narrow-latin.woff2" as="font" type="font/woff2" crossorigin />
  <link rel="preload" href="/fonts/plex-mono-400-latin.woff2" as="font" type="font/woff2" crossorigin />
-@@ -117,6 +117,8 @@ body:not(.in-lobby) #lobby-shade { opacity: 0; }
- 
+@@ -18,7 +18,7 @@
+ @font-face { font-family: "Narrow Fallback"; src: local("Arial Narrow"), local("ArialNarrow"), local("Helvetica Neue Condensed"), local("Arial"); size-adjust: 86%; ascent-override: 101%; descent-override: 25%; line-gap-override: 0%; }
+ @font-face { font-family: "Mono Fallback"; src: local("Menlo"), local("Consolas"), local("Courier New"); size-adjust: 99.6%; ascent-override: 103%; descent-override: 27.5%; line-gap-override: 0%; }
+ :root {
+-  --bg: #22262a; --fg: #eceae4; --dim: rgba(236, 234, 228, .55); --faint: rgba(236, 234, 228, .32); --line: rgba(236, 234, 228, .22); --or: #ff7a2e;
++  --bg: #22262a; --fg: #eceae4; --dim: #bbb; --faint: #aaa; --line: rgba(236, 234, 228, .22); --or: #ff7a2e;
+   --t0: #3c6ea8; --t1: #c98a2e; --t2: #4e8a5a; --t3: #b04a44;
+   --narrow: "Archivo Narrow", "Narrow Fallback", "Arial Narrow", sans-serif-condensed, sans-serif;
+   --mono: "IBM Plex Mono", "Mono Fallback", ui-monospace, Menlo, Consolas, monospace;
+@@ -38,11 +38,11 @@ kbd { font: 400 11px/1 var(--mono); border: 1px solid rgba(236, 234, 228, .35);
+ #view { position: fixed; inset: 0; width: 100%; height: 100%; display: block; opacity: 0; transition: opacity 1.2s ease; }
+ #view.ready { opacity: 1; }
+ /* Pre-world backdrop: the palette-B sky/sea, so the fade-in is seamless. */
+-#backdrop { position: fixed; inset: 0; pointer-events: none; background: linear-gradient(180deg, #1e2a28 0%, #2f3b39 40%, #55625f 52%, #2e3b38 54%, #1f2b2a 100%); transition: opacity 1.4s ease; }
++#backdrop { position: fixed; inset: 0; pointer-events: none; background: #22262a; transition: opacity 1.4s ease; }
+ #backdrop.fade { opacity: 0; }
+-/* Legibility comes from a soft dark gradient on the menu side only — no panels. */
++/* Flat shade keeps menu text readable over the scene. */
+ .shade { position: fixed; inset: 0; pointer-events: none; transition: opacity .5s ease;
+-  background: linear-gradient(90deg, rgba(18, 20, 23, .8) 0%, rgba(18, 20, 23, .52) 32%, rgba(18, 20, 23, 0) 58%), linear-gradient(0deg, rgba(18, 20, 23, .5) 0%, rgba(18, 20, 23, 0) 26%); }
++  background: rgba(18, 20, 23, .65); }
+ body:not(.in-lobby) #lobby-shade { opacity: 0; }
+
+ #lobby { position: fixed; inset: 0; text-shadow: var(--sh); animation: in .6s var(--ease) both; }
+@@ -117,6 +117,27 @@ body:not(.in-lobby) #lobby-shade { opacity: 0; }
+
  @media (max-width: 760px) { .screen { width: calc(100vw - 2 * var(--x)); } .foot .hints { display: none; } }
  @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .001s !important; transition-duration: .001s !important; } }
 +.mi { min-height: 44px; cursor: pointer; }
-+#screen { max-height: calc(100vh - 230px); overflow-y: auto; }
++#screen { bottom: 90px; overflow-y: auto; }
++button, .mi { background-color: #000; }
++button { min-height: 44px; padding: 8px 12px; }
++#back-menu { position: fixed; top: 8px; right: 8px; z-index: 30; }
++.in-lobby #back-menu { display: none; }
++#render-error { width: min(560px, calc(100% - 32px)); max-height: 90vh; overflow: auto; color: #eceae4; background: #22262a; border: 1px solid #aaa; padding: 24px; }
++#render-error::backdrop { background: rgba(0, 0, 0, .8); }
++#render-error pre { white-space: pre-wrap; overflow-wrap: anywhere; font: 12px/1.5 var(--mono); }
++#render-error button { margin: 4px; }
++@media (max-width: 760px) {
++  :root { --x: 16px; }
++  .mi, .menu.big .mi, .menu.mid .mi { grid-template-columns: 24px 8px minmax(0, 1fr) auto; column-gap: 8px; }
++  .mi .t { white-space: normal; overflow-wrap: anywhere; }
++  .mi .v input { width: 100px; }
++  .meta, .note { padding-left: 48px; margin-left: 0; }
++  .crumb, .keys { margin-left: 0; }
++  .keys td:first-child { white-space: normal; padding-right: 12px; }
++  .foot { flex-wrap: wrap; gap: 8px; }
++  .foot .status { margin-left: 0; }
++}
  </style>
  <script type="module" src="/src/main.ts"></script>
  </head>
-@@ -130,13 +132,7 @@ body:not(.in-lobby) #lobby-shade { opacity: 0; }
+@@ -130,13 +151,7 @@ body:not(.in-lobby) #lobby-shade { opacity: 0; }
    <nav class="screen" id="screen" aria-label="Main menu">
      <div class="crumb"></div>
      <div class="menu big">
@@ -35,6 +78,21 @@ index bb8d87a..ab43b02 100644
      </div>
    </nav>
    <footer class="foot">
+@@ -146,6 +161,14 @@ body:not(.in-lobby) #lobby-shade { opacity: 0; }
+   </footer>
+ </main>
+
++<button id="back-menu" type="button">Back to menu</button>
++<dialog id="render-error" aria-labelledby="render-error-title">
++  <h2 id="render-error-title">3D renderer unavailable</h2>
++  <p>No visible flight can run on this renderer. Try Low graphics or a device with working WebGPU or WebGL2 support. Keyboard and mouse are required.</p>
++  <pre></pre>
++  <button id="retry-low" type="button">Retry with Low graphics</button>
++  <button id="error-menu" type="button">Back to menu</button>
++</dialog>
+ <div id="busy" hidden><span>Connecting</span></div>
+ <div id="toast"></div>
+ </body>
 diff --git a/games/wings/package.json b/games/wings/package.json
 index 3d6da9f..0865bf0 100644
 --- a/games/wings/package.json
@@ -55,11 +113,410 @@ index 3d6da9f..0865bf0 100644
 -}
 +}
 \ No newline at end of file
+diff --git a/games/wings/src/main.ts b/games/wings/src/main.ts
+index 2f2f1b9..0c7b13a 100644
+--- a/games/wings/src/main.ts
++++ b/games/wings/src/main.ts
+@@ -17,6 +17,7 @@ let audio: GameAudio | null = null
+ let audioPromise: Promise<GameAudio | null> | null = null
+ let game: GameHandle | null = null
+ let starting = false
++let rendererError: Error | null = null
+
+ const lobby = initLobby({
+   onStart: start,
+@@ -25,21 +26,32 @@ const lobby = initLobby({
+ })
+ perf.menuMs = performance.now()
+
++function renderFailure(error: Error): void {
++  rendererError = error
++  game?.leave()
++  const panel = document.getElementById("render-error") as HTMLDialogElement
++  panel.querySelector("pre")!.textContent = error.message
++  if (!panel.open) panel.showModal()
++}
++document.getElementById("retry-low")!.onclick = () => { updateSettings({ quality: "low" }); location.reload() }
++document.getElementById("error-menu")!.onclick = () => (document.getElementById("render-error") as HTMLDialogElement).close()
++document.getElementById("back-menu")!.onclick = () => game?.leave()
++
+ function bootScene(): Promise<SceneHost> {
+   return (hostPromise ??= import("./render/scene").then(async m => {
+     const canvas = document.getElementById("view") as HTMLCanvasElement
+     const host = await m.createSceneHost(canvas, settings.quality, s => {
+       if (s === "world") { perf.worldMs = performance.now(); lobby.status("<b>World</b> awake") }
+       if (s === "aircraft") { perf.aircraftMs = performance.now(); lobby.status("<b>World</b> awake · <b>Hangar</b> ready") }
+-    })
++    }, renderFailure)
+     perf.sceneMs = performance.now()
+     hostRef = host
+     if (firstLaunch) autoQuality(host)
+     return host
+   }).catch(err => {
+     console.error(err)
+-    lobby.status("<b>3D</b> unavailable — WebGL failed to start")
+-    hostPromise = null
++    lobby.status("3D unavailable - renderer failed to start")
++    renderFailure(err instanceof Error ? err : new Error(String(err)))
+     throw err
+   }))
+ }
+@@ -90,6 +102,7 @@ requestAnimationFrame(() => setTimeout(() => {
+
+ async function start(req: StartRequest): Promise<void> {
+   if (game || starting) return
++  if (rendererError) { renderFailure(rendererError); return }
+   starting = true
+   lobby.busy(req.mode === "offline" ? "Clearing the runway" : "Connecting")
+   try {
+@@ -107,7 +120,7 @@ async function start(req: StartRequest): Promise<void> {
+   } catch (err) {
+     console.warn(err)
+     const msg = err instanceof Error ? err.message : String(err)
+-    toast(req.mode === "offline" ? `Practice failed to start: ${msg}` : `Couldn't reach the room: ${msg}`, true)
++    toast(`Offline flight failed to start: ${msg}`, true)
+   } finally {
+     starting = false
+     lobby.busy(null)
+diff --git a/games/wings/src/render/hud.ts b/games/wings/src/render/hud.ts
+index 3b804bf..55d8b07 100644
+--- a/games/wings/src/render/hud.ts
++++ b/games/wings/src/render/hud.ts
+@@ -177,7 +177,7 @@ export function createHud(parent: HTMLElement): Hud {
+     <div class="hud-edges"></div>
+     <div class="hud-spot"><b></b></div>
+     <div class="hud-ships"></div>
+-    <div class="hud-aa"><b>enemy fleet — anti-air</b><span></span></div>
++    <div class="hud-aa"><b>enemy fleet - anti-air</b><span></span></div>
+     <div class="hud-prot"></div>
+     <div class="hud-bimp"><i></i></div>
+     <div class="hud-bcur"><i></i></div>
+@@ -750,7 +750,7 @@ export function createHud(parent: HTMLElement): Hud {
+         bcam.setClass(bc ? `hud-bcam z on${bc.steering ? " steer" : ""}${bc.ship ? " tgt" : ""}` : "hud-bcam z")
+         if (bc) {
+           bcamSh.setText(bc.ship ? `${bc.ship}${bc.shipHp !== null ? ` · ${Math.round(bc.shipHp * 100)}%` : ""}` : "")
+-          bcamRd.setText(`bomb ${Math.round(bc.alt)} m · impact ${bc.tti > 0 ? `${bc.tti.toFixed(1)} s` : "—"}${bc.steering ? "" : bc.pilot ? " · hold rmb or press b to steer" : ""}${bc.steering && bc.pilot ? " · b / release rmb: stop steering" : ""}`)
++          bcamRd.setText(`bomb ${Math.round(bc.alt)} m · impact ${bc.tti > 0 ? `${bc.tti.toFixed(1)} s` : "-"}${bc.steering ? "" : bc.pilot ? " · hold rmb or press b to steer" : ""}${bc.steering && bc.pilot ? " · b / release rmb: stop steering" : ""}`)
+         }
+         turHint.setClass(f.turret?.hint ? "hud-turhint z on" : "hud-turhint z")
+         if (f.turret?.hint) turHint.setText(f.turret.hint)
+@@ -769,7 +769,7 @@ export function createHud(parent: HTMLElement): Hud {
+       } else bimp.setTransform(HIDDEN)
+       if (frame % 4 === 0) {
+         bombEl.setClass(bs ? `hud-bomb z on${bs.overShip ? " go" : ""}` : "hud-bomb z")
+-        if (bs) bombRd.setText(`bombs ${bs.bombs ?? 0} · alt ${Math.round(bs.alt)} m · impact ${bs.tti > 0 ? `${bs.tti.toFixed(1)} s` : "—"}${bs.pilot && !bs.falling ? ` · ${bs.peek ? "b: exit sight" : "b: bomb sight"}` : ""}${bs.overShip ? ` · ${bs.overShip.replace(/^t\d-/, "").replace(/(\D)(\d)$/, "$1 $2")}` : ""}`)
++        if (bs) bombRd.setText(`bombs ${bs.bombs ?? 0} · alt ${Math.round(bs.alt)} m · impact ${bs.tti > 0 ? `${bs.tti.toFixed(1)} s` : "-"}${bs.pilot && !bs.falling ? ` · ${bs.peek ? "b: exit sight" : "b: bomb sight"}` : ""}${bs.overShip ? ` · ${bs.overShip.replace(/^t\d-/, "").replace(/(\D)(\d)$/, "$1 $2")}` : ""}`)
+         const stl = flying ? f.stealth : null
+         stealthEl.setClass(stl ? `hud-stealth z on${stl.above ? "" : " low"}` : "hud-stealth z")
+         if (stl) stealthEl.setText(stl.above ? `stealth · above aa ceiling` : `stealth · below aa ceiling (${stl.ceiling} m)`)
+@@ -858,7 +858,7 @@ export function createHud(parent: HTMLElement): Hud {
+       }
+       if (frame % 15 === 0) {
+         let teams = ""
+-        for (let t = 0; t < f.teams; t++) teams += `${t ? '<i class="dash">—</i>' : ""}<span class="sc${t === myTeam ? " mine" : ""}" style="--c:${TEAM_TINTS[t]}">${String(f.scores[t] ?? 0).padStart(2, "0")}</span>`
++        for (let t = 0; t < f.teams; t++) teams += `${t ? '<i class="dash">-</i>' : ""}<span class="sc${t === myTeam ? " mine" : ""}" style="--c:${TEAM_TINTS[t]}">${String(f.scores[t] ?? 0).padStart(2, "0")}</span>`
+         let timer = ""
+         if (f.remaining !== null) {
+           const r = Math.max(0, Math.ceil(f.remaining))
+diff --git a/games/wings/src/render/scene.ts b/games/wings/src/render/scene.ts
+index 2e3116f..8f681ce 100644
+--- a/games/wings/src/render/scene.ts
++++ b/games/wings/src/render/scene.ts
+@@ -119,7 +119,7 @@ function sanitizeHdr(input: any) {
+   })()
+ }
+
+-export async function createSceneHost(canvas: HTMLCanvasElement, quality: Quality, onStatus: (s: string) => void): Promise<SceneHost> {
++export async function createSceneHost(canvas: HTMLCanvasElement, quality: Quality, onStatus: (s: string) => void, onFailure: (error: Error) => void): Promise<SceneHost> {
+   const forceWebGL = new URLSearchParams(location.search).has("webgl")
+   const renderer = new WebGPURenderer({
+     canvas,
+@@ -133,6 +133,26 @@ export async function createSceneHost(canvas: HTMLCanvasElement, quality: Qualit
+   // WebGL2 without EXT_clip_control can't do reversed Z; fall back to a logarithmic depth buffer.
+   if (!renderer.reversedDepthBuffer) (renderer as unknown as { logarithmicDepthBuffer: boolean }).logarithmicDepthBuffer = true
+   const backend: FrameStats["backend"] = (renderer.backend as unknown as { isWebGPUBackend?: boolean }).isWebGPUBackend ? "webgpu" : "webgl2"
++  let shaderError = ""
++  renderer.debug.onShaderError = (gl, program, vertex, fragment) => {
++    shaderError = [gl.getProgramInfoLog(program), gl.getShaderInfoLog(vertex), gl.getShaderInfoLog(fragment)].filter(Boolean).join("\n") || "Shader program validation failed"
++    console.error("Wings shader diagnostics", backend, shaderError)
++  }
++  let resolveDraw!: () => void
++  let rejectDraw!: (error: Error) => void
++  const firstDraw = new Promise<void>((resolve, reject) => { resolveDraw = resolve; rejectDraw = reject })
++  let failed = false
++  const fail = (cause: unknown) => {
++    if (failed) return
++    failed = true
++    const error = new Error(`Unsupported renderer (${backend}, ${quality}): ${cause instanceof Error ? cause.message : String(cause)}`)
++    renderer.setAnimationLoop(null)
++    canvas.classList.remove("ready")
++    window.removeEventListener("resize", resize)
++    rejectDraw(error)
++    onFailure(error)
++  }
++  renderer.onDeviceLost = info => fail(info.message)
+   renderer.setPixelRatio(pixelRatio(quality) * MENU_SCALE)
+   renderer.setSize(window.innerWidth, window.innerHeight, false)
+   renderer.info.autoReset = false
+@@ -466,6 +486,8 @@ export async function createSceneHost(canvas: HTMLCanvasElement, quality: Qualit
+     renderer.info.reset()
+     if (pipeline) pipeline.render()
+     else renderer.render(scene, camera)
++    if (shaderError) throw new Error(shaderError)
++    if (world.ready() && renderer.info.render.drawCalls === 0) throw new Error("No scene draw calls were submitted")
+     sampleGpu(now)
+     const t1 = performance.now()
+     stats.frameMs += (t1 - now - stats.frameMs) * 0.05
+@@ -486,6 +508,7 @@ export async function createSceneHost(canvas: HTMLCanvasElement, quality: Qualit
+       canvas.classList.add("ready")
+       document.getElementById("backdrop")?.classList.add("fade")
+       onStatus("world")
++      resolveDraw()
+     }
+   }
+   // ---- adaptive resolution: keep frames under budget by scaling the pixel ratio (hysteresis, slow to rise).
+@@ -535,7 +558,9 @@ export async function createSceneHost(canvas: HTMLCanvasElement, quality: Qualit
+     } else okSeconds = 0
+   }
+   applyPixelRatio()
+-  renderer.setAnimationLoop(loop)
++  const drawTimeout = window.setTimeout(() => fail("First scene draw timed out"), 20000)
++  renderer.setAnimationLoop(() => { try { loop() } catch (error) { fail(error) } })
++  try { await firstDraw } finally { clearTimeout(drawTimeout) }
+   if (import.meta.env.DEV) {
+     const w = window as unknown as Record<string, unknown>
+     w.__wingsHost = host
+diff --git a/games/wings/src/style.css b/games/wings/src/style.css
+index 7dbb107..959c635 100644
+--- a/games/wings/src/style.css
++++ b/games/wings/src/style.css
+@@ -164,12 +164,12 @@
+ .hud-center-msg.is-free .freelook { display: block; font: 500 12px var(--mono); color: var(--dim); }
+
+ .hud-warnfx, .hud-low, .hud-dmg { inset: 0; pointer-events: none; opacity: 0; text-shadow: none; }
+-.hud-warnfx { background: radial-gradient(140% 120% at 50% 50%, transparent 66%, rgba(255, 122, 46, .2) 100%); }
++.hud-warnfx { border: 8px solid rgba(255, 122, 46, .4); }
+ .hud.warn .hud-warnfx { animation: warnfx 1s ease-in-out infinite; }
+ @keyframes warnfx { 50% { opacity: 1; } }
+-.hud-low { background: radial-gradient(130% 110% at 50% 50%, transparent 62%, rgba(176, 74, 68, .28) 100%); }
++.hud-low { border: 8px solid rgba(176, 74, 68, .4); }
+ .hud.low .hud-low { animation: warnfx 1.8s ease-in-out infinite; }
+-.hud-dmg { background: radial-gradient(ellipse at center, transparent 60%, rgba(176, 74, 68, .2) 100%); }
++.hud-dmg { border: 8px solid rgba(176, 74, 68, .4); }
+ .hud-dmg.on { animation: dmg .3s ease-out; }
+ @keyframes dmg { 0% { opacity: 1; } 100% { opacity: 0; } }
+
+@@ -221,7 +221,7 @@
+ .hud-bottom .w.locked, .hud-bottom .w.locked .a { color: var(--or); }
+ .hud-bottom .w.locked .bar b { background: var(--or); }
+
+-.hud-feed { top: 0; left: 0; padding: 18px 70px 26px 24px; display: flex; flex-direction: column; gap: 3px; font-size: 16px; font-weight: 500; background: radial-gradient(110% 100% at 0 0, rgba(10, 14, 18, .32), rgba(10, 14, 18, 0) 72%); }
++.hud-feed { top: 0; left: 0; padding: 18px 70px 26px 24px; display: flex; flex-direction: column; gap: 3px; font-size: 16px; font-weight: 500; background: rgba(10, 14, 18, .65); }
+ .hud-feed:empty { display: none; }
+ .hud-feed div { display: flex; gap: 8px; align-items: baseline; transition: opacity .6s; animation: feedin .25s var(--ease); }
+ .hud-feed div b { font-weight: 500; }
+@@ -282,7 +282,7 @@
+
+ /* ---------------------------------------------------------------- Spawn screen */
+ .spawn { position: absolute; inset: 0; text-shadow: var(--sh); animation: fade .25s ease both;
+-  background: linear-gradient(90deg, rgba(18, 20, 23, .84) 0%, rgba(18, 20, 23, .66) 40%, rgba(18, 20, 23, .55) 100%), linear-gradient(0deg, rgba(18, 20, 23, .45) 0%, transparent 30%); }
++  background: rgba(18, 20, 23, .85); }
+ .spawn[hidden] { display: none; }
+ .sp-head { position: absolute; left: var(--x); top: clamp(26px, 4.6vh, 48px); }
+ .sp-head .crumb { margin: 0 0 6px; font: 400 11px var(--mono); color: var(--dim); }
+@@ -324,7 +324,7 @@
+
+ /* ---------------------------------------------------------------- Pause */
+ .pause { position: absolute; inset: 0; animation: fade .15s ease both; text-shadow: var(--sh);
+-  background: linear-gradient(90deg, rgba(18, 20, 23, .84) 0%, rgba(18, 20, 23, .6) 36%, rgba(18, 20, 23, .3) 70%); }
++  background: rgba(18, 20, 23, .85); }
+ .pause[hidden] { display: none; }
+ .game-ui:has(.pause:not([hidden])) .hud { opacity: .25; transition: opacity .2s; }
+ .game-ui:has(.spawn:not([hidden])) .hud .hud-feed { top: auto; bottom: 50px; left: auto; right: var(--x); align-items: flex-end; background: none; }
+@@ -356,7 +356,7 @@
+ .hud-tur.hot .ht { background: none; }
+ .hud-tur.dead .tn::after { content: " · knocked out"; color: var(--or); }
+ /* Match result */
+-.hud-end { inset: 0; display: none; flex-direction: column; justify-content: center; padding-left: var(--x); background: linear-gradient(90deg, rgba(10, 14, 14, .82) 0%, rgba(10, 14, 14, .45) 50%, rgba(10, 14, 14, .2) 100%); z-index: 6; }
++.hud-end { inset: 0; display: none; flex-direction: column; justify-content: center; padding-left: var(--x); background: rgba(10, 14, 14, .85); z-index: 6; }
+ .hud-end.show { display: flex; animation: fade .4s ease both; }
+ .hud-end .r { font: 700 clamp(84px, 15vh, 150px)/.9 var(--narrow); letter-spacing: -.035em; }
+ .hud-end.victory .r { color: var(--fg); }
+@@ -408,3 +408,36 @@
+ .hud-turhint { left: 50%; bottom: 118px; transform: translateX(-50%); display: none; font: 500 12px var(--mono); color: var(--fg); white-space: nowrap; }
+ .hud-turhint.on { display: block; }
+ .hud:not(.flying) .hud-bcur, .hud:not(.flying) .hud-bcam, .hud:not(.flying) .hud-turhint { display: none; }
++
++/* Narrow displays can inspect the hangar; flight still needs a keyboard and mouse. */
++@media (max-width: 760px) {
++  .spawn { overflow-y: auto; padding: 64px 16px 24px; }
++  .sp-head, .spawn .sp-list, .sp-detail, .spawn .foot, .spawn .countdown { position: static; width: 100%; margin: 0 0 24px; }
++  .sp-head .title { font-size: 48px; }
++  .sp-head .teams, .sp-head .tabs { flex-wrap: wrap; gap: 8px; }
++  .sp-detail .thumb { max-width: 320px; margin: 0; }
++  .sp-detail .thumb[hidden] { display: none; }
++  .sp-detail .stats { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
++  .sp-detail .seats li { grid-template-columns: 20px minmax(0, 1fr); gap: 6px; }
++  .sp-detail .seats .w { grid-column: 2; }
++  .spawn.guns .sp-list .menu.mid .mi { grid-template-columns: 24px 8px minmax(0, 1fr) auto; }
++  .pause { overflow-y: auto; }
++  .pause .screen { bottom: 64px; overflow-y: auto; }
++  .hud-top { top: 62px; }
++  .hud-radar, .hud-radar canvas { width: 120px; height: 120px; }
++  .hud-radar { left: 12px; bottom: 120px; }
++  .hud-mapwrap, .hud-map { width: 120px; height: 120px; }
++  .hud-mapwrap { right: 12px; bottom: 120px; }
++  .hud-ping { right: 12px; bottom: 248px; }
++  .hud-bottom .weapons { right: 12px; bottom: 270px; }
++  .hud-bottom .seat { bottom: 72px; width: calc(100% - 32px); }
++  .hud-bottom .hp { bottom: 24px; width: calc(100% - 32px); }
++  .hud-tape.left { left: 12px; width: 80px; text-align: left; }
++  .hud-tape.right { left: auto; right: 12px; width: 80px; text-align: right; }
++  .hud-tape .thr { right: 0; }
++  .hud-chat { left: 12px; bottom: 360px; width: calc(100% - 24px); }
++  .hud-feed { top: 140px; padding: 8px 12px; max-width: 100%; }
++  .hud-tur { bottom: 260px; width: calc(100% - 32px); }
++  .hud-hint, .hud-stealth, .hud-turhint { bottom: 92px; max-width: calc(100% - 24px); white-space: normal; }
++  .hud-board { flex-wrap: wrap; gap: 24px; overflow-y: auto; padding: 80px 16px 24px; }
++}
+diff --git a/games/wings/src/ui/game.ts b/games/wings/src/ui/game.ts
+index 2a64abd..7b3357f 100644
+--- a/games/wings/src/ui/game.ts
++++ b/games/wings/src/ui/game.ts
+@@ -163,7 +163,6 @@ class GameSession implements GameHandle {
+       spawn: kind => { this.input.requestLock(); this.send({ type: "spawn", kind }); deps.audio?.ui("confirm") },
+       board: (vehicle, seat) => { this.input.requestLock(); this.send({ type: "board", vehicle, seat }); deps.audio?.ui("confirm") },
+       team: team => this.send({ type: "team", team }),
+-      invite: () => this.copyInvite(),
+       leave: () => this.leave(),
+       click,
+       thumb: (kind, team) => host.thumbnail(kind, team),
+@@ -179,7 +178,6 @@ class GameSession implements GameHandle {
+         this.paused = false
+         this.enterSpawn()
+       },
+-      invite: () => this.copyInvite(),
+       leave: () => this.leave(),
+       quality: q => host.setQuality(q),
+       click,
+@@ -221,7 +219,7 @@ class GameSession implements GameHandle {
+         if (this.ended) return
+         if (s === "closed") {
+           if (this.welcomeReject) this.welcomeReject(new Error("Connection closed"))
+-          else if (!this.offline) { this.reconnecting = true; toast("Connection lost — reconnecting…", true) }
++          else if (!this.offline) { this.reconnecting = true; toast("Connection lost - reconnecting…", true) }
+           else this.exit("Practice room closed")
+         } else if (s === "open" && this.reconnecting) {
+           this.reconnecting = false
+@@ -536,12 +534,6 @@ class GameSession implements GameHandle {
+     }
+   }
+
+-  private copyInvite(): void {
+-    if (this.offline) { toast("Offline practice rooms can't be shared — create an online lobby to invite friends."); return }
+-    const url = `${location.origin}${import.meta.env.BASE_URL}?join=${encodeURIComponent(this.room)}`
+-    navigator.clipboard?.writeText(url).then(() => toast(`Invite link copied — room ${this.room}`), () => toast(url))
+-  }
+-
+   private exit(reason?: string): void {
+     if (this.ended) return
+     console.info("[wings] leaving match", reason ?? "")
+@@ -558,6 +550,8 @@ class GameSession implements GameHandle {
+     window.removeEventListener("keydown", this.onKeyDown)
+     this.offSettings()
+     this.input.dispose()
++    this.spawn.dispose()
++    this.pause.dispose()
+     for (const v of this.visuals.values()) this.removeVisual(v)
+     this.visuals.clear()
+     const fx = this.deps.host.effects
+@@ -787,7 +781,7 @@ class GameSession implements GameHandle {
+             { killer: !!(e.killer && this.players.get(e.killer)?.bot), victim: !!this.players.get(e.victim)?.bot })
+           if (e.killer === this.playerId && e.victim !== this.playerId) {
+             this.hud.hitmarker(true)
+-            this.hud.banner("SPLASH ONE", `${victim.name} is going down`, 1800)
++            this.hud.banner("Splash one", `${victim.name} is going down`, 1800)
+           }
+           if (e.victim === this.playerId || (myVeh && e.victim === myVeh)) {
+             const kv = e.killer && e.killer !== this.playerId ? this.players.get(e.killer)?.vehicleId : null
+@@ -825,7 +819,7 @@ class GameSession implements GameHandle {
+           local = e.vehicle === myVeh
+           if (e.team !== this.me?.team && this.me && myVeh && this.posOfVehicle(myVeh)) {
+             const p = this.posOfVehicle(myVeh)!
+-            if (Math.hypot(p[0] - e.position[0], p[1] - e.position[1], p[2] - e.position[2]) < e.radius) this.hud.banner("YOU HAVE BEEN SEEN", "enemy radar painted your aircraft", 2200)
++            if (Math.hypot(p[0] - e.position[0], p[1] - e.position[1], p[2] - e.position[2]) < e.radius) this.hud.banner("You have been seen", "enemy radar painted your aircraft", 2200)
+           }
+           break
+         case "spotted": {
+@@ -847,7 +841,7 @@ class GameSession implements GameHandle {
+           const result = e.winner === null ? "draw" : e.winner === myTeam ? "victory" : "defeat"
+           const why = e.reason === "carriers-sunk"
+             ? (e.winner === null ? "every carrier went down" : result === "victory" ? "the enemy carriers are sunk" : "our carriers are sunk")
+-            : e.reason === "time" ? "time ran out — most ship damage dealt" : e.winner === null ? "no winner" : `${TEAM_NAMES[e.winner].toLowerCase()} wins on score`
++            : e.reason === "time" ? "time ran out - most ship damage dealt" : e.winner === null ? "no winner" : `${TEAM_NAMES[e.winner].toLowerCase()} wins on score`
+           this.hud.endScreen(result, why, e.winner === null ? null : e.winner)
+           break
+         }
 diff --git a/games/wings/src/ui/lobby.ts b/games/wings/src/ui/lobby.ts
-index 74ae61d..06b71ef 100644
+index 74ae61d..60be5ca 100644
 --- a/games/wings/src/ui/lobby.ts
 +++ b/games/wings/src/ui/lobby.ts
-@@ -267,7 +267,7 @@ export class MenuNav {
+@@ -1,11 +1,10 @@
+ // Main menu (lobby) plus the shared typographic menu component used by the spawn screen and pause menu.
+ // Design: numbered, stacked sentence-case items directly on the world; the selected item gets full opacity
+ // and a short orange rule; tiny mono metadata under the selection; ↑↓ Enter Esc (and ←→ for values).
+-import type { RoomConfig, RoomSummary } from "../sim/protocol"
++import type { RoomConfig } from "../sim/protocol"
+ import { DEFAULT_ROOM_CONFIG } from "../sim/protocol"
+ import type { Quality } from "../sim/types"
+ import { callsign, randomCallsign, settings, updateSettings } from "./settings"
+-import { getNet } from "./net-adapter"
+ import type { ControlScheme } from "../input"
+
+ export type StartRequest =
+@@ -19,7 +18,6 @@ export interface LobbyApi {
+   hide(): void
+   busy(text: string | null): void
+   status(html: string): void
+-  refreshRooms(): void
+ }
+
+ /** Muted team colours (mirrors TEAM_COLORS in render/aircraft.ts; not imported to keep three.js out of the entry chunk). */
+@@ -104,13 +102,13 @@ function keyFlightRows(): { title: string; rows: [string, string][] }[] {
+       ["Switch seat", `${kb("1")} ${kb("2")} · gunners aim with the mouse`],
+     ] },
+     { title: "b-2 bomber", rows: [
+-      ["Pilot", `${kb("lmb")} drops bombs — the diamond impact marker shows where they land · ${kb("b")} peek through the bomb sight`],
++      ["Pilot", `${kb("lmb")} drops bombs - the diamond impact marker shows where they land · ${kb("b")} peek through the bomb sight`],
+       ["Bombardier (seat 2)", "bomb-sight view, precise drops · \"release\" appears when the impact point is over a ship"],
+     ] },
+     { title: "man the guns (fleet strike)", rows: [
+       ["Take a ship gun", `spawn screen → <b>man the guns</b> tab (${kb("g")}) · pause → switch role`],
+-      ["Aim · fire", `mouse · ${kb("lmb")} ${kb("space")} — ciws for close range, 5-inch flak for long range`],
+-      ["Zoom · free-look", `${kb("wheel")} · hold ${kb("c")} — watch the heat bar, overheated guns pause`],
++      ["Aim · fire", `mouse · ${kb("lmb")} ${kb("space")} - ciws for close range, 5-inch flak for long range`],
++      ["Zoom · free-look", `${kb("wheel")} · hold ${kb("c")} - watch the heat bar, overheated guns pause`],
+     ] },
+     { title: "view & comms", rows: [
+       ["Free-look · camera", `hold ${kb("c")} · ${kb("t")}`], ["Chat · scores · menu", `${kb("enter")} · ${kb("tab")} · ${kb("esc")}`],
+@@ -144,13 +142,13 @@ export function controlRows(scheme: ControlScheme = controlScheme()): { title: s
+       ["Switch seat", `${kb("1")} ${kb("2")} · gunners aim with the mouse`],
+     ] },
+     { title: "b-2 bomber", rows: [
+-      ["Pilot", `${kb("lmb")} drops bombs — the diamond impact marker shows where they land · ${kb("b")} peek through the bomb sight`],
++      ["Pilot", `${kb("lmb")} drops bombs - the diamond impact marker shows where they land · ${kb("b")} peek through the bomb sight`],
+       ["Bombardier (seat 2)", "bomb-sight view, precise drops · \"release\" appears when the impact point is over a ship"],
+     ] },
+     { title: "man the guns (fleet strike)", rows: [
+       ["Take a ship gun", `spawn screen → <b>man the guns</b> tab (${kb("g")}) · pause → switch role`],
+-      ["Aim · fire", `mouse · ${kb("lmb")} ${kb("space")} — ciws for close range, 5-inch flak for long range`],
+-      ["Zoom · free-look", `${kb("wheel")} · hold ${kb("c")} — watch the heat bar, overheated guns pause`],
++      ["Aim · fire", `mouse · ${kb("lmb")} ${kb("space")} - ciws for close range, 5-inch flak for long range`],
++      ["Zoom · free-look", `${kb("wheel")} · hold ${kb("c")} - watch the heat bar, overheated guns pause`],
+     ] },
+     { title: "view & comms", rows: [
+       ["Free-look · camera", `hold ${kb("c")} · ${kb("t")}`], ["Chat · scores · menu", `${kb("enter")} · ${kb("tab")} · ${kb("esc")}`],
+@@ -267,7 +265,7 @@ export class MenuNav {
      this.host.innerHTML = `<div class="crumb">${s.crumb ?? ""}</div>` +
        (items.length ? `<div class="menu ${s.size ?? "big"}">${items.map((it, i) => {
          const label = it.input?.at === "label" ? "" : escapeHtml(it.label)
@@ -68,7 +525,110 @@ index 74ae61d..06b71ef 100644
        }).join("")}</div>` : "") + (s.html ?? "") + (s.note ? `<div class="note">${s.note}</div>` : "")
      this.els = Array.from(this.host.querySelectorAll<HTMLElement>(".mi"))
      items.forEach((it, i) => {
-@@ -485,15 +485,11 @@ export function initLobby(opts: { onStart(req: StartRequest): void; onQuality(q:
+@@ -290,7 +288,7 @@ export class MenuNav {
+     if (i === entry.sel && !force) return
+     entry.sel = i
+     this.els.forEach((el, k) => el.classList.toggle("sel", k === i))
+-    if (sound) this.sound?.()
++    if (sound) { this.sound?.(); this.els[i].scrollIntoView({ block: "nearest" }) }
+     this.paintMeta()
+     this.onMove?.(i)
+   }
+@@ -381,7 +379,7 @@ export function settingsScreen(nav: MenuNav, onQuality: (q: Quality) => void, cr
+         meta: () => settings.mouseX === "roll" ? "classic bf4: mouse left/right rolls" : "mouse left/right turns the nose (battlefield steering)" },
+       { label: "Mouse sensitivity", value: () => settings.sensitivity.toFixed(2), adjust: d => updateSettings({ sensitivity: Math.round(Math.max(0.2, Math.min(3, settings.sensitivity + d * 0.1)) * 100) / 100 }) },
+       { label: "Invert mouse Y", value: () => (settings.invertY ? "on" : "off"), adjust: () => updateSettings({ invertY: !settings.invertY }), meta: "on = mouse away moves the nose down" },
+-      { label: "Controls", run: () => nav.push({ crumb: `${crumb} — controls`, html: controlsTable(), hints: [["esc", "back"]] }), meta: "full key reference" },
++      { label: "Controls", run: () => nav.push({ crumb: `${crumb} - controls`, html: controlsTable(), hints: [["esc", "back"]] }), meta: "full key reference" },
+     ],
+   }
+ }
+@@ -401,10 +399,6 @@ export function initLobby(opts: { onStart(req: StartRequest): void; onQuality(q:
+   const nav = new MenuNav($("screen"), () => opts.onClick?.())
+   nav.onHints = h => { hints.innerHTML = hintsHtml(h) }
+
+-  let rooms: RoomSummary[] | null = null
+-  let roomErr = false
+-  const roomsMeta = () => roomErr ? "server unreachable · practice still works" : rooms === null ? "looking for lobbies…" : `online · ${rooms.length} ${rooms.length === 1 ? "lobby" : "lobbies"} open`
+-
+   // Create lobby
+   const cfg = { ...DEFAULT_ROOM_CONFIG, bots: 0, timeLimit: DEFAULT_ROOM_CONFIG.timeLimit / 60 }
+   const botCfg = { on: false, perTeam: 4, skill: 1 }
+@@ -417,18 +411,18 @@ export function initLobby(opts: { onStart(req: StartRequest): void; onQuality(q:
+   const readConfig = (): RoomConfig => ({
+     ...DEFAULT_ROOM_CONFIG, name: (cfg.name || DEFAULT_ROOM_CONFIG.name).slice(0, 32), teams: cfg.teams, bots: botCfg.on ? botCfg.perTeam : 0,
+     ...(botCfg.on ? { botSkill: SKILLS[botCfg.skill].v } : {}),
+-    maxPerTeam: cfg.maxPerTeam, scoreLimit: cfg.scoreLimit, timeLimit: cfg.timeLimit * 60, listed: cfg.listed,
++    maxPerTeam: cfg.maxPerTeam, scoreLimit: cfg.scoreLimit, timeLimit: cfg.timeLimit * 60, listed: false,
+   })
+   const scoreSteps = [25, 50, 75, 100, 150, 200, 300], timeSteps = [5, 10, 15, 20, 30, 45, 60]
+   const createScreen = (): MenuScreen => ({
+-    crumb: "04 — <b>create a lobby</b>", size: "mid",
++    crumb: "<b>Offline custom setup</b>", size: "mid",
+     hints: [["↑↓", "select"], ["←→", "change"], ["enter", "confirm"], ["esc", "back"]],
+     items: [
+       { label: "Bots", value: () => (botCfg.on ? "on" : "off"), adjust: () => { botCfg.on = !botCfg.on; nav.replace(createScreen()) },
+-        meta: () => botCfg.on ? "ai pilots fill each team; they make room as people join" : "humans only — turn on to fight ai pilots" },
++        meta: () => botCfg.on ? "AI pilots fill each team, including your own" : "no AI aircraft - enemy fleet guns remain active" },
+       ...(botCfg.on ? [
+         { label: "Bots per team", value: () => String(botCfg.perTeam), adjust: (d: 1 | -1) => { botCfg.perTeam = Math.max(1, Math.min(10, botCfg.perTeam + d)) },
+-          meta: "target pilots per team — each human who joins replaces a bot" },
++          meta: "target pilots per team - your pilot takes one place" },
+         { label: "Bot skill", value: () => SKILLS[botCfg.skill].name, adjust: (d: 1 | -1) => { botCfg.skill = Math.max(0, Math.min(2, botCfg.skill + d)) } },
+       ] as MenuItem[] : []),
+       { label: "Name", input: { el: nameIn, at: "value" } },
+@@ -436,65 +430,21 @@ export function initLobby(opts: { onStart(req: StartRequest): void; onQuality(q:
+       { label: "Pilots per team", value: () => String(cfg.maxPerTeam), adjust: d => { cfg.maxPerTeam = Math.max(1, Math.min(10, cfg.maxPerTeam + d)) } },
+       { label: "Score limit", value: () => String(cfg.scoreLimit), adjust: d => { cfg.scoreLimit = cycle(scoreSteps, scoreSteps.includes(cfg.scoreLimit) ? cfg.scoreLimit : 50, d) } },
+       { label: "Time limit", value: () => `${cfg.timeLimit} min`, adjust: d => { cfg.timeLimit = cycle(timeSteps, timeSteps.includes(cfg.timeLimit) ? cfg.timeLimit : 15, d) } },
+-      { label: "Visibility", value: () => (cfg.listed ? "public" : "invite only"), adjust: () => { cfg.listed = !cfg.listed }, meta: () => cfg.listed ? "listed in browse lobbies" : "only people with the link can join" },
+-      { label: "Create online", run: () => opts.onStart({ mode: "create", config: readConfig() }), meta: "you get an invite link to share" },
+-      { label: "Play offline", small: true, run: () => opts.onStart({ mode: "offline", config: readConfig() }), meta: "same settings, solo, no server" },
++      { label: "Start offline", run: () => opts.onStart({ mode: "offline", config: readConfig() }), meta: "local match only, no server or invitations" },
++      { label: "Back", small: true, run: () => { nav.pop() } },
+     ],
+   })
+
+-  // Join with code
+-  const codeIn = document.createElement("input")
+-  codeIn.maxLength = 8
+-  codeIn.placeholder = "code"
+-  codeIn.spellcheck = false
+-  codeIn.autocomplete = "off"
+-  codeIn.addEventListener("input", () => { codeIn.value = codeIn.value.toUpperCase().replace(/[^A-Z0-9]/g, "") })
+-  const join = () => {
+-    const c = codeIn.value.trim().toUpperCase()
+-    if (!c) { codeIn.focus(); return }
+-    opts.onStart({ mode: "join", code: c })
+-  }
+-  const joinScreen = (): MenuScreen => ({
+-    crumb: "05 — <b>join with a code</b>", size: "big",
+-    items: [
+-      { label: "Code", input: { el: codeIn, at: "label" }, run: join, meta: "type the 4–8 character room code" },
+-      { label: "Join", run: join },
+-    ],
+-  })
+-
+-  // Browse
+-  const browseScreen = (): MenuScreen => {
+-    const items: MenuItem[] = (rooms ?? []).map(r => ({
+-      label: r.name,
+-      value: () => `${r.players > r.humans ? "bots · " : ""}${r.players >= r.maxPlayers ? "full" : `${r.players}/${r.maxPlayers}`}`,
+-      meta: `${escapeHtml(r.code.toLowerCase())} · ${r.teams} teams · ${r.humans} pilot${r.humans === 1 ? "" : "s"}${r.players > r.humans ? ` · <b>bots</b>` : ""}`,
+-      disabled: () => r.players >= r.maxPlayers,
+-      run: () => opts.onStart({ mode: "join", code: r.code }),
+-    }))
+-    items.push({ label: "Refresh", small: true, run: () => refreshRooms(), meta: () => roomsMeta() })
+-    return {
+-      crumb: "06 — <b>browse lobbies</b>", size: "mid", items,
+-      note: rooms === null ? "looking for lobbies…" : roomErr ? "can't reach the server right now. <b>practice</b> still works offline." : rooms.length ? "" : "no open lobbies. <b>quick play</b> starts one.",
+-    }
+-  }
+-
+-  const invite = new URLSearchParams(location.search).get("join")
+-  const inviteCode = invite ? invite.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 8) : ""
+-  if (inviteCode) codeIn.value = inviteCode
+-
    const rootScreen = (): MenuScreen => ({
      size: "big",
      items: [
@@ -83,11 +643,56 @@ index 74ae61d..06b71ef 100644
 -      { label: "Create a lobby", run: () => nav.push(createScreen()), meta: "bots on or off · teams · limits · privacy" },
 -      { label: "Join with a code", run: () => { nav.push(joinScreen()); codeIn.focus() }, meta: "a friend's room code" },
 -      { label: "Browse lobbies", run: () => { nav.push(browseScreen()); refreshRooms() }, meta: () => roomsMeta() },
+-      { label: "Settings", run: () => nav.push(settingsScreen(nav, opts.onQuality, "07 — <b>settings</b>")), meta: "graphics · sound · steering · controls" },
 +        meta: "offline · 2 teams · AI pilots · normal skill" },
++      { label: "Custom setup", run: () => nav.push(createScreen()), meta: "offline bots, skill, teams and match limits" },
 +      { label: "Controls", run: () => nav.push({ crumb: "controls", html: controlsTable(), hints: [["esc", "back"]] }), meta: "keyboard and mouse required" },
-       { label: "Settings", run: () => nav.push(settingsScreen(nav, opts.onQuality, "07 — <b>settings</b>")), meta: "graphics · sound · steering · controls" },
++      { label: "Settings", run: () => nav.push(settingsScreen(nav, opts.onQuality, "<b>settings</b>")), meta: "graphics · sound · steering · controls" },
      ],
    })
+   nav.reset(rootScreen())
+@@ -505,39 +455,19 @@ export function initLobby(opts: { onStart(req: StartRequest): void; onQuality(q:
+     if (nav.handleKey(e)) e.preventDefault()
+   })
+
+-  let refreshing = false
+-  const refreshRooms = async () => {
+-    if (refreshing) return
+-    refreshing = true
+-    try {
+-      const net = await getNet()
+-      rooms = await net.listRooms()
+-      roomErr = false
+-    } catch {
+-      rooms = []
+-      roomErr = true
+-    } finally {
+-      refreshing = false
+-    }
+-    if (nav.top?.crumb?.startsWith("06")) nav.replace(browseScreen())
+-    else nav.refresh()
+-  }
+-  refreshRooms()
+-
+   const statusEl = $("load-status")
+   const busyEl = $("busy")
+   return {
+-    show() { lobby.hidden = false; document.body.classList.add("in-lobby"); nav.reset(rootScreen()); refreshRooms() },
++    show() { lobby.hidden = false; document.body.classList.add("in-lobby"); nav.reset(rootScreen()) },
+     hide() { lobby.hidden = true; document.body.classList.remove("in-lobby") },
+     busy(text) {
+       busyEl.hidden = text === null
+       if (text !== null) busyEl.firstElementChild!.textContent = text.charAt(0).toUpperCase() + text.slice(1).toLowerCase()
+     },
+     status(html) {
+-      if (/unavailable|failed/i.test(html)) { statusEl.hidden = false; statusEl.className = "status err"; statusEl.textContent = "3d unavailable — webgl failed to start" }
++      if (/unavailable|failed/i.test(html)) { statusEl.hidden = false; statusEl.className = "status err"; statusEl.textContent = "3D unavailable - renderer failed to start" }
+       else statusEl.hidden = /awake|ready/i.test(html)
+     },
+-    refreshRooms,
+   }
+ }
+
 diff --git a/games/wings/src/ui/net-adapter.ts b/games/wings/src/ui/net-adapter.ts
 index 97b291c..c057ccb 100644
 --- a/games/wings/src/ui/net-adapter.ts
@@ -242,22 +847,60 @@ index 97b291c..c057ccb 100644
 +}
 +export async function getNet() { return local }
 diff --git a/games/wings/src/ui/pause.ts b/games/wings/src/ui/pause.ts
-index 2404d00..5ec8072 100644
+index 2404d00..e39b5e6 100644
 --- a/games/wings/src/ui/pause.ts
 +++ b/games/wings/src/ui/pause.ts
-@@ -32,7 +32,6 @@ export function createPauseMenu(parent: HTMLElement, actions: {
+@@ -12,7 +12,6 @@ export interface PauseMenu {
+ export function createPauseMenu(parent: HTMLElement, actions: {
+   resume(): void
+   changeVehicle(): void
+-  invite(): void
+   leave(): void
+   quality(q: Quality): void
+   click(): void
+@@ -32,9 +31,8 @@ export function createPauseMenu(parent: HTMLElement, actions: {
      items: [
        { label: "Resume", run: () => actions.resume() },
        { label: "Switch role", run: () => actions.changeVehicle(), meta: "another aircraft or seat, or man your fleet's guns" },
 -      { label: "Invite friends", run: () => actions.invite(), meta: "copies the room link" },
-       { label: "Settings", run: () => nav.push(settingsScreen(nav, actions.quality, "04 — <b>settings</b>")), meta: "graphics · sound · steering" },
-       { label: "Controls", run: () => nav.push({ crumb: "05 — <b>controls</b>", html: controlsTable(), hints: [["esc", "back"]] }) },
+-      { label: "Settings", run: () => nav.push(settingsScreen(nav, actions.quality, "04 — <b>settings</b>")), meta: "graphics · sound · steering" },
+-      { label: "Controls", run: () => nav.push({ crumb: "05 — <b>controls</b>", html: controlsTable(), hints: [["esc", "back"]] }) },
++      { label: "Settings", run: () => nav.push(settingsScreen(nav, actions.quality, "<b>settings</b>")), meta: "graphics · sound · steering" },
++      { label: "Controls", run: () => nav.push({ crumb: "<b>controls</b>", html: controlsTable(), hints: [["esc", "back"]] }) },
        { label: "Leave match", small: true, run: () => actions.leave(), meta: "back to the main menu" },
+     ],
+   })
 diff --git a/games/wings/src/ui/spawn.ts b/games/wings/src/ui/spawn.ts
-index 328bc3f..5c31461 100644
+index 328bc3f..529081b 100644
 --- a/games/wings/src/ui/spawn.ts
 +++ b/games/wings/src/ui/spawn.ts
-@@ -88,7 +88,7 @@ export function createSpawnScreen(parent: HTMLElement, actions: {
+@@ -13,7 +13,7 @@ const ROLES: Record<VehicleKind, RoleInfo> = {
+   apache: { role: "attack helicopter", agility: 0.95, firepower: 0.8, blurb: "Hovers, strafes and hides behind ridges. Rockets for the pilot, chain gun and Hellfires for the gunner." },
+   warthog: { role: "close air support", agility: 0.45, firepower: 1, blurb: "Slow, armoured, terrifying. The GAU-8 shreds anything it points at." },
+   blackbird: { role: "recon interceptor", agility: 0.35, firepower: 0.55, blurb: "The fastest thing in the sky. The pilot flies; the radar officer paints enemies and guides long-range missiles." },
+-  bomber: { role: "stealth bomber", agility: 0.2, firepower: 1, blurb: "Stealth bomber — invisible to radar unless spotted; immune to fleet AA above 600 m; poor maneuverability. The bombardier drops bombs on ships." },
++  bomber: { role: "stealth bomber", agility: 0.2, firepower: 1, blurb: "Stealth bomber - invisible to radar unless spotted; immune to fleet AA above 600 m; poor maneuverability. The bombardier drops bombs on ships." },
+ }
+ const MAX_SPEED = Math.max(...VEHICLE_KINDS.map(k => VEHICLES[k].boost))
+ const MAX_HP = Math.max(...VEHICLE_KINDS.map(k => VEHICLES[k].maxHp))
+@@ -58,7 +58,7 @@ function detailHtml(k: VehicleKind, i: number): string {
+     if (s === 0) list.push("flares")
+     return `<li><span class="n">${s + 1}</span><span class="s">${escapeHtml(v.seatNames[s])}</span><span class="w">${list.length ? list.join(" · ") : "flies only"}</span></li>`
+   }).join("")
+-  return `<div class="crumb">${String(i + 1).padStart(2, "0")} — ${r.role} · ${v.flight === "heli" ? "vtol" : "jet"}</div>
++  return `<div class="crumb">${String(i + 1).padStart(2, "0")} - ${r.role} · ${v.flight === "heli" ? "vtol" : "jet"}</div>
+     <h3 class="name">${escapeHtml(v.name)}</h3>
+     <p class="blurb">${r.blurb}</p>
+     <dl class="stats">
+@@ -75,7 +75,6 @@ export function createSpawnScreen(parent: HTMLElement, actions: {
+   spawn(kind: VehicleKind): void
+   board(vehicle: string, seat: SeatIndex): void
+   team(team: TeamId): void
+-  invite(): void
+   leave(): void
+   click(): void
+   /** Optional rendered aircraft thumbnail (team livery). */
+@@ -88,7 +87,7 @@ export function createSpawnScreen(parent: HTMLElement, actions: {
    root.hidden = true
    root.innerHTML = `
      <div class="sp-head">
@@ -266,16 +909,218 @@ index 328bc3f..5c31461 100644
        <h2 class="title">Choose aircraft</h2>
        <div class="tabs" role="tablist"><button data-tab="air" class="on">aircraft</button><button data-tab="guns">man the guns</button><kbd>g</kbd></div>
        <div class="teams" aria-label="Team"></div>
+@@ -165,7 +164,7 @@ export function createSpawnScreen(parent: HTMLElement, actions: {
+     const st = shipHp(m.ship)
+     const pct = st ? Math.round((st.hp / st.maxHp) * 100) : 100
+     const kind = turretName(m.ship, m.turret).split(" · ")[0]
+-    info.innerHTML = `<div class="crumb">man the guns — ${escapeHtml(shipName(m.ship))}</div>
++    info.innerHTML = `<div class="crumb">man the guns - ${escapeHtml(shipName(m.ship))}</div>
+       <h3 class="name">${escapeHtml(turretName(m.ship, m.turret))}</h3>
+       <p class="blurb">${kind === "ciws"
+         ? "Close-in weapon system: a fast rotary cannon. Hose incoming aircraft and missiles at short range."
+@@ -244,7 +243,6 @@ export function createSpawnScreen(parent: HTMLElement, actions: {
+     const t = e.target as HTMLElement
+     const team = t.closest<HTMLElement>("[data-team]")
+     if (team) { actions.click(); actions.team(Number(team.dataset.team) as TeamId); return }
+-    if (t.closest(".invite")) { actions.click(); actions.invite() }
+     const tb = t.closest<HTMLElement>("[data-tab]")
+     if (tb) { actions.click(); setTab(tb.dataset.tab as "air" | "guns") }
+   })
 diff --git a/games/wings/vite.config.ts b/games/wings/vite.config.ts
-index ca413c3..2728b66 100644
+index ca413c3..e4a0a54 100644
 --- a/games/wings/vite.config.ts
 +++ b/games/wings/vite.config.ts
 @@ -1,7 +1,7 @@
  import { defineConfig } from "vite"
- 
+
  export default defineConfig({
 -  base: "/arcade/wings/",
 +  base: "./",
    server: {
      port: 5173,
      proxy: {
+@@ -14,5 +14,6 @@ export default defineConfig({
+   },
+   build: {
+     target: "es2022",
++    rollupOptions: { input: { main: "index.html", check: "check-ui.html" } },
+   },
+ })
+diff --git a/games/wings/solo-check.ts b/games/wings/solo-check.ts
+new file mode 100644
+index 0000000..a9f027a
+--- /dev/null
++++ b/games/wings/solo-check.ts
+@@ -0,0 +1,47 @@
++import assert from 'node:assert/strict'
++import { createLoopbackRoom } from './src/sim/loopback'
++import { TICK_DT } from './src/sim/types'
++
++const messages: string[] = []
++const room = createLoopbackRoom({ teams: 2, bots: 0, listed: false }, 'Solo check', {
++  onMessage: m => messages.push(m.type),
++}, { manual: true })
++await Promise.resolve()
++assert(messages.includes('welcome'))
++room.send({ type: 'spawn', kind: 'fighter' })
++const vehicle = room.engine.vehicles.find(v => v.seats[0] === room.playerId)!
++assert(vehicle)
++const start = [...vehicle.flight.position]
++for (let i = 1; i <= 900; i++) {
++  room.send({ type: 'input', seq: i, flight: { aim: null, throttle: 1, roll: 0, yaw: 0, pitch: i > 120 ? 0.35 : 0, boost: true, brake: false } })
++  room.step(TICK_DT)
++}
++await Promise.resolve()
++const end = [...vehicle.flight.position]
++console.log(JSON.stringify({ start, end, alive: vehicle.alive, onGround: vehicle.flight.onGround, speed: Math.hypot(...vehicle.flight.velocity), aircraft: room.engine.vehicles.length }))
++assert(vehicle.alive, 'aircraft must survive takeoff')
++assert(!vehicle.flight.onGround, 'aircraft must leave carrier deck')
++assert(end[1] > start[1] + 50, 'pitch input must produce a climb')
++assert(Math.hypot(...end.map((n,i) => n - start[i])) > 300, 'aircraft must move')
++assert.equal(room.engine.vehicles.length, 1)
++room.close()
++const fresh = createLoopbackRoom({ teams: 2, bots: 0, listed: false }, 'Fresh round', { onMessage() {} }, { manual: true })
++await Promise.resolve()
++assert.equal(fresh.engine.time, 0)
++fresh.send({ type: 'spawn', kind: 'fighter' })
++const dive = fresh.engine.vehicles.find(v => v.seats[0] === fresh.playerId)!
++assert.deepEqual(dive.flight.position, start)
++for (let i = 1; i <= 900 && dive.alive; i++) {
++  fresh.send({ type: 'input', seq: i, flight: { aim: null, throttle: 1, roll: 0, yaw: 0, pitch: -1, boost: true, brake: false } })
++  fresh.step(TICK_DT)
++}
++assert(!dive.alive, 'ordinary dive input must crash')
++const crashAt = fresh.engine.time
++for (let i = 0; i < 600; i++) fresh.step(TICK_DT)
++fresh.send({ type: 'spawn', kind: 'fighter' })
++const respawn = fresh.engine.vehicles.find(v => v.seats[0] === fresh.playerId && v.alive)
++assert(respawn, 'fighter must respawn after cooldown')
++assert.notEqual(respawn.id, dive.id)
++console.log(JSON.stringify({freshTime:0, crashAt, respawnAt:fresh.engine.time, respawnAlive:respawn.alive}))
++fresh.close()
++console.log('PASS: offline takeoff, fresh session, ordinary-input crash and respawn; rendering not tested')
+diff --git a/games/wings/ui-check.ts b/games/wings/ui-check.ts
+new file mode 100644
+index 0000000..deb8994
+--- /dev/null
++++ b/games/wings/ui-check.ts
+@@ -0,0 +1,36 @@
++// Renderer-free UI fixture. No flight/render acceptance is claimed by this page.
++import './src/style.css'
++import { createSpawnScreen } from './src/ui/spawn'
++import { DEFAULT_ROOM_CONFIG } from './src/sim/protocol'
++const html = new DOMParser().parseFromString(await (await fetch('./index.html')).text(), 'text/html')
++for (const style of html.querySelectorAll('style,link[rel="stylesheet"]')) document.head.append(style.cloneNode(true))
++const note = document.createElement('button')
++note.textContent = 'UI fixture only - show HUD'
++note.style.cssText = 'position:fixed;top:0;left:0;z-index:100;min-height:44px;background:black;color:white'
++document.body.append(note)
++const root = document.createElement('div'); root.className = 'game-ui'; document.body.append(root)
++let launches = 0
++const spawn = createSpawnScreen(root, { spawn() { launches++ }, board() {}, team() {}, leave() {}, click() {} })
++spawn.update({me:{id:'check',team:0,respawnAt:0} as never,players:new Map(),vehicles:[],time:0,config:{...DEFAULT_ROOM_CONFIG,listed:false},room:'offline',dead:false})
++spawn.show()
++const hud = document.createElement('div'); hud.className = 'hud flying'; hud.hidden = true
++// Actual production HUD selectors, with deliberately long weapon labels.
++hud.innerHTML = '<div class="hud-radar z"><canvas></canvas><span class="rr">3 km</span></div><div class="hud-mapwrap z"><canvas class="hud-map"></canvas><span class="n">N</span></div><div class="hud-bottom"><div class="weapons"><div class="w"><span class="k">lmb</span><span class="n">20mm Vulcan</span><span class="a">500</span></div><div class="w"><span class="k">rmb</span><span class="n">Heat-seeking missile</span><span class="a">4</span></div></div><div class="seat">Pilot - fighter</div><div class="hp">Hull 450</div></div>'
++root.append(hud)
++note.onclick = () => { spawn.hide(); hud.hidden = false; note.textContent = 'UI fixture only - not rendered flight' }
++const box = (s: string) => document.querySelector(s)!.getBoundingClientRect()
++requestAnimationFrame(() => {
++  const list = box('.sp-list'), detail = box('.sp-detail')
++  if (innerWidth <= 760 && detail.top < list.bottom) throw new Error('Hangar list/detail overlap')
++  window.dispatchEvent(new KeyboardEvent('keydown',{key:'1'}))
++  if (launches !== 1) throw new Error('Spawn quick-launch failed')
++  spawn.dispose()
++  window.dispatchEvent(new KeyboardEvent('keydown',{key:'1'}))
++  if (launches !== 1) throw new Error('Disposed spawn listener still active')
++  // Recreate for the visual/layout check after verifying cleanup.
++  const visible = createSpawnScreen(root, { spawn() {}, board() {}, team() {}, leave() {}, click() {} })
++  visible.update({me:{id:'check',team:0,respawnAt:0} as never,players:new Map(),vehicles:[],time:0,config:{...DEFAULT_ROOM_CONFIG,listed:false},room:'offline',dead:false})
++  visible.show()
++  note.onclick = () => { visible.hide(); hud.hidden = false; note.textContent = 'UI fixture only - not rendered flight' }
++  document.title = 'PASS: Wings UI fixture'
++})
+diff --git a/games/wings/check-ui.html b/games/wings/check-ui.html
+new file mode 100644
+index 0000000..e35e410
+--- /dev/null
++++ b/games/wings/check-ui.html
+@@ -0,0 +1,2 @@
++<!doctype html>
++<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Wings UI regression</title><meta name="description" content="Renderer-free Wings hangar and HUD layout regression. Not rendered flight."></head><body><script type="module" src="./ui-check.ts"></script></body></html>
+diff --git a/games/wings/check-browser.py b/games/wings/check-browser.py
+new file mode 100644
+index 0000000..b4f1cec
+--- /dev/null
++++ b/games/wings/check-browser.py
+@@ -0,0 +1,69 @@
++"""Renderer-failure and UI-fixture regression, not rendered-flight acceptance.
++Serve repository root on port 8938 first. Requires existing Playwright + Chromium.
++Run: python3 Games/Wings/verification/check-browser.py --out /tmp/phase2/wings
++"""
++import argparse
++import json
++import shutil
++from pathlib import Path
++from playwright.sync_api import sync_playwright
++
++parser = argparse.ArgumentParser()
++parser.add_argument('--url', default='http://127.0.0.1:8938/Games/Wings/')
++parser.add_argument('--out', type=Path, required=True)
++args = parser.parse_args()
++args.out.mkdir(parents=True, exist_ok=True)
++results = []
++with sync_playwright() as p:
++    browser = p.chromium.launch(executable_path=shutil.which('chromium'), headless=True,
++                               args=['--no-sandbox', '--disable-gpu', '--disable-software-rasterizer'])
++    try:
++        for theme in ['dark', 'light']:
++            for width, height in [(1280, 720), (390, 844)]:
++                context = browser.new_context(viewport={'width': width, 'height': height}, color_scheme=theme)
++                page = context.new_page()
++                errors, external = [], []
++                page.on('pageerror', lambda e: errors.append(str(e)))
++                page.on('request', lambda r: external.append(r.url) if not r.url.startswith(args.url) else None)
++                page.goto(args.url, wait_until='domcontentloaded')
++                page.locator('#render-error[open]').wait_for(timeout=30000)
++                assert page.locator('#render-error pre').inner_text()
++                prefix = f'{theme}-{width}'
++                page.screenshot(path=str(args.out / (prefix + '-failure.png')))
++                origin = page.evaluate('performance.timeOrigin')
++                page.locator('#retry-low').click()
++                page.wait_for_function('(previous) => performance.timeOrigin !== previous', arg=origin)
++                page.locator('#render-error[open]').wait_for()
++                assert page.evaluate("JSON.parse(localStorage.getItem('wings.settings')).quality") == 'low'
++                page.locator('#error-menu').click()
++                page.locator('#screen .mi').filter(has_text='Custom setup').click()
++                assert page.locator('#screen .mi').filter(has_text='Start offline').count() == 1
++                page.get_by_role('button', name='Bots', exact=False).first.click()
++                assert page.get_by_role('button', name='Bot skill', exact=False).count() == 1
++                page.screenshot(path=str(args.out / (prefix + '-custom.png')))
++                page.keyboard.press('ArrowUp')
++                if width == 1280:
++                    assert page.locator('#screen').evaluate('(el) => el.scrollTop > 0'), 'Keyboard selection must reveal Back'
++                page.goto(args.url + 'check-ui.html', wait_until='networkidle')
++                page.wait_for_function("document.title === 'PASS: Wings UI fixture'")
++                page.screenshot(path=str(args.out / (prefix + '-spawn-fixture.png')))
++                if width < 760:
++                    assert page.locator('.spawn').evaluate('(el) => el.scrollHeight > el.clientHeight')
++                    page.locator('.spawn').evaluate('(el) => el.scrollTop = el.scrollHeight')
++                    page.screenshot(path=str(args.out / (prefix + '-detail-fixture.png')))
++                page.get_by_role('button', name='UI fixture only - show HUD').click()
++                boxes = page.evaluate('''() => Object.fromEntries(['.hud-radar','.hud-mapwrap','.weapons'].map(s => {
++                    const r = document.querySelector(s).getBoundingClientRect();
++                    return [s, {x:r.x, y:r.y, right:r.right, bottom:r.bottom}];
++                }))''')
++                if width < 760:
++                    assert boxes['.weapons']['bottom'] <= boxes['.hud-radar']['y'], boxes
++                    assert boxes['.weapons']['bottom'] <= boxes['.hud-mapwrap']['y'], boxes
++                page.screenshot(path=str(args.out / (prefix + '-hud-fixture.png')))
++                results.append({'theme': theme, 'size': [width, height], 'boxes': boxes, 'errors': errors, 'external': external})
++                assert not errors and not external
++                context.close()
++    finally:
++        browser.close()
++(args.out / 'browser.json').write_text(json.dumps(results, indent=2))
++print('PASS: 4 viewport/theme failure screens, Low retry/reload, offline custom controls, spawn cleanup/layout and HUD fixture separation. No rendered flight.')

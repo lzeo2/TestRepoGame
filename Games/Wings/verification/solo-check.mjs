@@ -6432,4 +6432,24 @@ assert(end[1] > start[1] + 50, "pitch input must produce a climb");
 assert(Math.hypot(...end.map((n, i) => n - start[i])) > 300, "aircraft must move");
 assert.equal(room.engine.vehicles.length, 1);
 room.close();
-console.log("PASS: upstream offline loopback fighter takes off and climbs with flight input; no server");
+var fresh = createLoopbackRoom({ teams: 2, bots: 0, listed: false }, "Fresh round", { onMessage() {} }, { manual: true });
+await Promise.resolve();
+assert.equal(fresh.engine.time, 0);
+fresh.send({ type: "spawn", kind: "fighter" });
+var dive = fresh.engine.vehicles.find((v) => v.seats[0] === fresh.playerId);
+assert.deepEqual(dive.flight.position, start);
+for (let i = 1;i <= 900 && dive.alive; i++) {
+  fresh.send({ type: "input", seq: i, flight: { aim: null, throttle: 1, roll: 0, yaw: 0, pitch: -1, boost: true, brake: false } });
+  fresh.step(TICK_DT);
+}
+assert(!dive.alive, "ordinary dive input must crash");
+var crashAt = fresh.engine.time;
+for (let i = 0;i < 600; i++)
+  fresh.step(TICK_DT);
+fresh.send({ type: "spawn", kind: "fighter" });
+var respawn = fresh.engine.vehicles.find((v) => v.seats[0] === fresh.playerId && v.alive);
+assert(respawn, "fighter must respawn after cooldown");
+assert.notEqual(respawn.id, dive.id);
+console.log(JSON.stringify({ freshTime: 0, crashAt, respawnAt: fresh.engine.time, respawnAlive: respawn.alive }));
+fresh.close();
+console.log("PASS: offline takeoff, fresh session, ordinary-input crash and respawn; rendering not tested");

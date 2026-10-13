@@ -18,7 +18,7 @@
 @font-face { font-family: "Narrow Fallback"; src: local("Arial Narrow"), local("ArialNarrow"), local("Helvetica Neue Condensed"), local("Arial"); size-adjust: 86%; ascent-override: 101%; descent-override: 25%; line-gap-override: 0%; }
 @font-face { font-family: "Mono Fallback"; src: local("Menlo"), local("Consolas"), local("Courier New"); size-adjust: 99.6%; ascent-override: 103%; descent-override: 27.5%; line-gap-override: 0%; }
 :root {
-  --bg: #22262a; --fg: #eceae4; --dim: rgba(236, 234, 228, .55); --faint: rgba(236, 234, 228, .32); --line: rgba(236, 234, 228, .22); --or: #ff7a2e;
+  --bg: #22262a; --fg: #eceae4; --dim: #bbb; --faint: #aaa; --line: rgba(236, 234, 228, .22); --or: #ff7a2e;
   --t0: #3c6ea8; --t1: #c98a2e; --t2: #4e8a5a; --t3: #b04a44;
   --narrow: "Archivo Narrow", "Narrow Fallback", "Arial Narrow", sans-serif-condensed, sans-serif;
   --mono: "IBM Plex Mono", "Mono Fallback", ui-monospace, Menlo, Consolas, monospace;
@@ -38,11 +38,11 @@ kbd { font: 400 11px/1 var(--mono); border: 1px solid rgba(236, 234, 228, .35); 
 #view { position: fixed; inset: 0; width: 100%; height: 100%; display: block; opacity: 0; transition: opacity 1.2s ease; }
 #view.ready { opacity: 1; }
 /* Pre-world backdrop: the palette-B sky/sea, so the fade-in is seamless. */
-#backdrop { position: fixed; inset: 0; pointer-events: none; background: linear-gradient(180deg, #1e2a28 0%, #2f3b39 40%, #55625f 52%, #2e3b38 54%, #1f2b2a 100%); transition: opacity 1.4s ease; }
+#backdrop { position: fixed; inset: 0; pointer-events: none; background: #22262a; transition: opacity 1.4s ease; }
 #backdrop.fade { opacity: 0; }
-/* Legibility comes from a soft dark gradient on the menu side only — no panels. */
+/* Flat shade keeps menu text readable over the scene. */
 .shade { position: fixed; inset: 0; pointer-events: none; transition: opacity .5s ease;
-  background: linear-gradient(90deg, rgba(18, 20, 23, .8) 0%, rgba(18, 20, 23, .52) 32%, rgba(18, 20, 23, 0) 58%), linear-gradient(0deg, rgba(18, 20, 23, .5) 0%, rgba(18, 20, 23, 0) 26%); }
+  background: rgba(18, 20, 23, .65); }
 body:not(.in-lobby) #lobby-shade { opacity: 0; }
 
 #lobby { position: fixed; inset: 0; text-shadow: var(--sh); animation: in .6s var(--ease) both; }
@@ -118,9 +118,29 @@ body:not(.in-lobby) #lobby-shade { opacity: 0; }
 @media (max-width: 760px) { .screen { width: calc(100vw - 2 * var(--x)); } .foot .hints { display: none; } }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .001s !important; transition-duration: .001s !important; } }
 .mi { min-height: 44px; cursor: pointer; }
-#screen { max-height: calc(100vh - 230px); overflow-y: auto; }
+#screen { bottom: 90px; overflow-y: auto; }
+button, .mi { background-color: #000; }
+button { min-height: 44px; padding: 8px 12px; }
+#back-menu { position: fixed; top: 8px; right: 8px; z-index: 30; }
+.in-lobby #back-menu { display: none; }
+#render-error { width: min(560px, calc(100% - 32px)); max-height: 90vh; overflow: auto; color: #eceae4; background: #22262a; border: 1px solid #aaa; padding: 24px; }
+#render-error::backdrop { background: rgba(0, 0, 0, .8); }
+#render-error pre { white-space: pre-wrap; overflow-wrap: anywhere; font: 12px/1.5 var(--mono); }
+#render-error button { margin: 4px; }
+@media (max-width: 760px) {
+  :root { --x: 16px; }
+  .mi, .menu.big .mi, .menu.mid .mi { grid-template-columns: 24px 8px minmax(0, 1fr) auto; column-gap: 8px; }
+  .mi .t { white-space: normal; overflow-wrap: anywhere; }
+  .mi .v input { width: 100px; }
+  .meta, .note { padding-left: 48px; margin-left: 0; }
+  .crumb, .keys { margin-left: 0; }
+  .keys td:first-child { white-space: normal; padding-right: 12px; }
+  .foot { flex-wrap: wrap; gap: 8px; }
+  .foot .status { margin-left: 0; }
+}
 </style>
-  <script type="module" crossorigin src="./assets/index-7xdgQONl.js"></script>
+  <script type="module" crossorigin src="./assets/main-0obH-XWs.js"></script>
+  <link rel="modulepreload" crossorigin href="./assets/lobby-WVEheNhT.js">
 </head>
 <body class="in-lobby">
 <canvas id="view"></canvas>
@@ -142,6 +162,14 @@ body:not(.in-lobby) #lobby-shade { opacity: 0; }
   </footer>
 </main>
 
+<button id="back-menu" type="button">Back to menu</button>
+<dialog id="render-error" aria-labelledby="render-error-title">
+  <h2 id="render-error-title">3D renderer unavailable</h2>
+  <p>No visible flight can run on this renderer. Try Low graphics or a device with working WebGPU or WebGL2 support. Keyboard and mouse are required.</p>
+  <pre></pre>
+  <button id="retry-low" type="button">Retry with Low graphics</button>
+  <button id="error-menu" type="button">Back to menu</button>
+</dialog>
 <div id="busy" hidden><span>Connecting</span></div>
 <div id="toast"></div>
 </body>
