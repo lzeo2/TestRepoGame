@@ -3,13 +3,17 @@
 Baseline: `7414782`, clean main, 123 catalog entries, maximum ID 232.
 All five named repositories were shallow-cloned and inspected sequentially. The operator confirmed the five-game exception to the historical two-addition cap. No delegation, original game invention, push or publication occurred.
 
+## Final operator disposition
+
+The operator confirmed that HexGL's CC BY-NC 3.0 core cannot ship in this public repository. Do not vendor it. Keep only the two accepted ingests, Server Survival 233 and Astray 234; no replacement is needed. No additional candidate has passed browser acceptance. A final catalog check confirmed 125 unique entries, every URL tracked, correct 233/234 metadata, and no HexGL catalog entry or vendored tree.
+
 ## Results
 
 | Candidate | Verified upstream revision | License finding | Runtime bytes imported | ID / port commit |
 | --- | --- | --- | ---: | --- |
 | Server Survival | `7804e5969e28267cd33837e023eb46fa65da72b7` | MIT, Kostyantyn Pshenychnyy; local MIT Three/Tailwind notices | about 14.56 MB | 233 / `07bb71b` |
 | Astray | `d3c4f61f2cbbe35752fbfa205f85a41d7f9fe0f0` | Unlicense; separate MIT/BSD/zlib-style dependency notices restored | about 1.63 MB | 234 / `4faffa2` |
-| HexGL | `6addc95a2fce3bf05f4d751823cc054c61a16d68` | Conflicting MIT root and explicit CC BY-NC 3.0 core-file notices | 0 | Held, not registered |
+| HexGL | `6addc95a2fce3bf05f4d751823cc054c61a16d68` | CC BY-NC 3.0 core; operator rejected public redistribution | 0 | Rejected, not registered |
 | Casmo Tower Defense | `784129a685627a18f3d3f8fa594208000d9313e8` | MIT, Mathieu; runtime/quality gate failed | 0 | Held, not registered |
 | Voxel Musou | `aba5fb8f43b713e88e8ac3a3105e48f01941dc7f` | MIT, BubuAi; Three MIT and Yuji OFL identified | 0 retained | Held, not registered |
 
@@ -38,7 +42,7 @@ Screenshots and machine-readable results: [phase3-evidence](phase3-evidence/). D
 
 ### HexGL: rights gate
 
-`README.md`: “Unless specified in the file, HexGL's code and resources are now licensed under the MIT License.” Core files including `bkcore/hexgl/HexGL.js`, `Gameplay.js`, `HUD.js`, `ShipControls.js`, `ShipEffects.js`, `CameraChase.js` and `tracks/Cityscape.js` explicitly specify Creative Commons Attribution-NonCommercial 3.0. This does not establish the requested wholly open-source MIT port. No vendoring or browser acceptance was attempted after the conflict. Operator clarification ticket: `pi-326141-1791893070271`.
+`README.md`: “Unless specified in the file, HexGL's code and resources are now licensed under the MIT License.” Core files including `bkcore/hexgl/HexGL.js`, `Gameplay.js`, `HUD.js`, `ShipControls.js`, `ShipEffects.js`, `CameraChase.js` and `tracks/Cityscape.js` explicitly specify Creative Commons Attribution-NonCommercial 3.0. This does not establish the requested wholly open-source MIT port. No vendoring or browser acceptance was attempted after the conflict. Operator decision on ticket `pi-326141-1791893070271`: do not vendor or ship HexGL in this public repository.
 
 ### Casmo: runtime and quality gate
 
