@@ -1,0 +1,281 @@
+diff --git a/games/wings/index.html b/games/wings/index.html
+index bb8d87a..ab43b02 100644
+--- a/games/wings/index.html
++++ b/games/wings/index.html
+@@ -5,7 +5,7 @@
+ <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+ <meta name="theme-color" content="#1e2a28" />
+ <title>wings</title>
+-<meta name="description" content="wings — browser multiplayer aerial combat. Jets, helicopters, up to four teams." />
++<meta name="description" content="Wings - offline solo flight and aerial combat against AI pilots. Keyboard and mouse required." />
+ <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%2322262a'/%3E%3Crect x='7' y='21' width='18' height='2' fill='%23ff7a2e'/%3E%3C/svg%3E" />
+ <link rel="preload" href="/fonts/archivo-narrow-latin.woff2" as="font" type="font/woff2" crossorigin />
+ <link rel="preload" href="/fonts/plex-mono-400-latin.woff2" as="font" type="font/woff2" crossorigin />
+@@ -117,6 +117,8 @@ body:not(.in-lobby) #lobby-shade { opacity: 0; }
+ 
+ @media (max-width: 760px) { .screen { width: calc(100vw - 2 * var(--x)); } .foot .hints { display: none; } }
+ @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .001s !important; transition-duration: .001s !important; } }
++.mi { min-height: 44px; cursor: pointer; }
++#screen { max-height: calc(100vh - 230px); overflow-y: auto; }
+ </style>
+ <script type="module" src="/src/main.ts"></script>
+ </head>
+@@ -130,13 +132,7 @@ body:not(.in-lobby) #lobby-shade { opacity: 0; }
+   <nav class="screen" id="screen" aria-label="Main menu">
+     <div class="crumb"></div>
+     <div class="menu big">
+-      <button class="mi sel"><span class="ix">01</span><span class="rule"></span><span class="t">Quick play</span><span class="v"></span></button>
+-      <div class="meta">join the fullest open lobby</div>
+-      <button class="mi"><span class="ix">02</span><span class="rule"></span><span class="t">Practice</span><span class="v"></span></button>
+-      <button class="mi"><span class="ix">03</span><span class="rule"></span><span class="t">Create a lobby</span><span class="v"></span></button>
+-      <button class="mi"><span class="ix">04</span><span class="rule"></span><span class="t">Join with a code</span><span class="v"></span></button>
+-      <button class="mi"><span class="ix">05</span><span class="rule"></span><span class="t">Browse lobbies</span><span class="v"></span></button>
+-      <button class="mi"><span class="ix">06</span><span class="rule"></span><span class="t">Settings</span><span class="v"></span></button>
++      <div class="meta">Loading offline flight. Keyboard and mouse required.</div>
+     </div>
+   </nav>
+   <footer class="foot">
+diff --git a/games/wings/package.json b/games/wings/package.json
+index 3d6da9f..0865bf0 100644
+--- a/games/wings/package.json
++++ b/games/wings/package.json
+@@ -7,7 +7,7 @@
+     "dev:worker": "wrangler dev --port 8787",
+     "typecheck": "tsc --noEmit && tsc -p tsconfig.worker.json --noEmit",
+     "test": "bun test",
+-    "build": "tsc --noEmit && tsc -p tsconfig.worker.json --noEmit && vite build",
++    "build": "vite build",
+     "check": "tsc --noEmit && tsc -p tsconfig.worker.json --noEmit && bun test && vite build",
+     "preview": "vite preview --host 0.0.0.0",
+     "deploy": "rm -rf dist && vite build && wrangler deploy"
+@@ -22,4 +22,4 @@
+     "vite": "^7.3.1",
+     "wrangler": "^4.98.0"
+   }
+-}
++}
+\ No newline at end of file
+diff --git a/games/wings/src/ui/lobby.ts b/games/wings/src/ui/lobby.ts
+index 74ae61d..06b71ef 100644
+--- a/games/wings/src/ui/lobby.ts
++++ b/games/wings/src/ui/lobby.ts
+@@ -267,7 +267,7 @@ export class MenuNav {
+     this.host.innerHTML = `<div class="crumb">${s.crumb ?? ""}</div>` +
+       (items.length ? `<div class="menu ${s.size ?? "big"}">${items.map((it, i) => {
+         const label = it.input?.at === "label" ? "" : escapeHtml(it.label)
+-        return `<div class="mi${it.small ? " sm" : ""}" data-i="${i}" role="button" tabindex="-1"><span class="ix">${String(i + 1).padStart(2, "0")}</span><span class="rule"></span><span class="t">${label}</span><span class="v">${it.value && !it.input ? this.valueHtml(it) : ""}</span></div>`
++        return `<div class="mi${it.small ? " sm" : ""}" data-i="${i}" role="button" tabindex="0"><span class="ix">${String(i + 1).padStart(2, "0")}</span><span class="rule"></span><span class="t">${label}</span><span class="v">${it.value && !it.input ? this.valueHtml(it) : ""}</span></div>`
+       }).join("")}</div>` : "") + (s.html ?? "") + (s.note ? `<div class="note">${s.note}</div>` : "")
+     this.els = Array.from(this.host.querySelectorAll<HTMLElement>(".mi"))
+     items.forEach((it, i) => {
+@@ -485,15 +485,11 @@ export function initLobby(opts: { onStart(req: StartRequest): void; onQuality(q:
+   const rootScreen = (): MenuScreen => ({
+     size: "big",
+     items: [
+-      ...(inviteCode ? [{ label: `Join ${inviteCode}`, run: () => opts.onStart({ mode: "join", code: inviteCode }), meta: "you were invited to this room" }] : []),
+-      { label: "Quick play", run: () => opts.onStart({ mode: "quick" }), meta: () => `join the fullest open lobby · ${roomsMeta()}` },
++      { label: "Solo flight", run: () => opts.onStart({ mode: "offline", config: { ...DEFAULT_ROOM_CONFIG, name: "Practice", teams: 2, bots: 0, listed: false } }),
++        meta: "offline · no AI aircraft · enemy fleet guns remain active" },
+       { label: "Play with bots", run: () => opts.onStart({ mode: "offline", config: { ...DEFAULT_ROOM_CONFIG, name: "Bots", teams: 2, bots: 4, botSkill: 0.5, listed: false } }),
+-        meta: "offline · 2 teams · 4 ai pilots per team · normal skill" },
+-      { label: "Practice", run: () => opts.onStart({ mode: "offline", config: { ...DEFAULT_ROOM_CONFIG, name: "Practice", teams: 2, bots: 0, listed: false } }),
+-        meta: "solo free flight · no enemies" },
+-      { label: "Create a lobby", run: () => nav.push(createScreen()), meta: "bots on or off · teams · limits · privacy" },
+-      { label: "Join with a code", run: () => { nav.push(joinScreen()); codeIn.focus() }, meta: "a friend's room code" },
+-      { label: "Browse lobbies", run: () => { nav.push(browseScreen()); refreshRooms() }, meta: () => roomsMeta() },
++        meta: "offline · 2 teams · AI pilots · normal skill" },
++      { label: "Controls", run: () => nav.push({ crumb: "controls", html: controlsTable(), hints: [["esc", "back"]] }), meta: "keyboard and mouse required" },
+       { label: "Settings", run: () => nav.push(settingsScreen(nav, opts.onQuality, "07 — <b>settings</b>")), meta: "graphics · sound · steering · controls" },
+     ],
+   })
+diff --git a/games/wings/src/ui/net-adapter.ts b/games/wings/src/ui/net-adapter.ts
+index 97b291c..c057ccb 100644
+--- a/games/wings/src/ui/net-adapter.ts
++++ b/games/wings/src/ui/net-adapter.ts
+@@ -1,133 +1,15 @@
+-/// <reference types="vite/client" />
+-// Thin adapter over src/net.ts (Server agent). Falls back to a minimal built-in implementation
+-// (in-browser RoomEngine + raw WebSocket/REST) while net.ts does not exist yet.
+-import type { ClientMessage, RoomConfig, RoomSummary, ServerMessage } from "../sim/protocol"
+-import { DEFAULT_ROOM_CONFIG } from "../sim/protocol"
+-
+-export type NetStatus = "connecting" | "open" | "closed"
+-export interface NetHandlers {
+-  onMessage(message: ServerMessage): void
+-  onStatus(status: NetStatus): void
+-}
+-export interface Connection {
+-  send(message: ClientMessage): void
+-  close(): void
+-}
+-export interface NetApi {
+-  connectRoom(code: string, name: string, handlers: NetHandlers): Connection
+-  createLocalRoom(config: RoomConfig, name: string, handlers: NetHandlers): Connection
+-  listRooms(): Promise<RoomSummary[]>
+-  createRoom(config: Partial<RoomConfig>): Promise<string>
+-  quickPlay(): Promise<string>
+-}
+-
+-// Resolves to {} when src/net.ts does not exist, so typecheck and build stay green either way.
+-const netModules = import.meta.glob("../net.ts")
+-const API = `${import.meta.env.BASE_URL}api`
+-
+-let cached: Promise<NetApi> | null = null
+-
+-export function getNet(): Promise<NetApi> {
+-  return (cached ??= load())
+-}
+-
+-function codeOf(r: unknown): string {
+-  if (typeof r === "string") return r
+-  if (r && typeof r === "object" && "code" in r) return String((r as { code: unknown }).code)
+-  throw new Error("No room code returned")
+-}
+-
+-async function load(): Promise<NetApi> {
+-  const loader = netModules["../net.ts"]
+-  if (loader) {
+-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+-    const m = (await loader()) as any
+-    if (typeof m.connectRoom === "function") {
+-      return {
+-        connectRoom: (code, name, h) => m.connectRoom(code, name, h),
+-        createLocalRoom: (config, name, h) => m.createLocalRoom(config, name, h),
+-        listRooms: async () => {
+-          const r = await m.listRooms()
+-          return Array.isArray(r) ? r : (r?.rooms ?? [])
+-        },
+-        createRoom: async config => codeOf(await m.createRoom(config)),
+-        quickPlay: async () => codeOf(await m.quickPlay()),
+-      }
+-    }
+-  }
+-  return fallback
+-}
+-
+-async function getJson(path: string, init?: RequestInit): Promise<unknown> {
+-  const res = await fetch(`${API}${path}`, init)
+-  if (!res.ok) throw new Error(`Server ${res.status}`)
+-  const type = res.headers.get("content-type") ?? ""
+-  if (!type.includes("json")) throw new Error("Server offline")
+-  return res.json()
+-}
+-
+-const fallback: NetApi = {
+-  connectRoom(code, name, handlers) {
+-    const proto = location.protocol === "https:" ? "wss:" : "ws:"
+-    const ws = new WebSocket(`${proto}//${location.host}${API}/room?code=${encodeURIComponent(code)}&name=${encodeURIComponent(name)}`)
+-    handlers.onStatus("connecting")
+-    ws.onopen = () => {
+-      handlers.onStatus("open")
+-      ws.send(JSON.stringify({ type: "hello", name } satisfies ClientMessage))
+-    }
+-    ws.onmessage = e => {
+-      try { handlers.onMessage(JSON.parse(String(e.data))) } catch {}
+-    }
+-    ws.onclose = () => handlers.onStatus("closed")
+-    return {
+-      send: m => { if (ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify(m)) },
+-      close: () => ws.close(),
+-    }
+-  },
+-
+-  createLocalRoom(config, name, handlers) {
+-    let closed = false
+-    let timer = 0
+-    let engine: import("../sim/room-engine").RoomEngine | null = null
+-    let me = ""
+-    handlers.onStatus("connecting")
+-    import("../sim/room-engine").then(({ RoomEngine }) => {
+-      if (closed) return
+-      engine = new RoomEngine("LOCAL", { ...DEFAULT_ROOM_CONFIG, ...config, listed: false }, {
+-        send(playerId, message) {
+-          if (playerId === me && !closed) handlers.onMessage(structuredClone(message))
+-        },
+-      })
+-      me = engine.addPlayer(name)
+-      handlers.onStatus("open")
+-      engine.handle(me, { type: "hello", name })
+-      let last = performance.now()
+-      timer = window.setInterval(() => {
+-        const now = performance.now()
+-        const dt = Math.min(0.25, (now - last) / 1000)
+-        last = now
+-        engine!.advance(dt)
+-      }, 1000 / 60)
+-    })
+-    return {
+-      send: m => { if (engine && !closed) engine.handle(me, structuredClone(m)) },
+-      close: () => {
+-        closed = true
+-        clearInterval(timer)
+-        if (engine) engine.removePlayer(me)
+-        handlers.onStatus("closed")
+-      },
+-    }
+-  },
+-
+-  async listRooms() {
+-    const r = await getJson("/rooms")
+-    return (Array.isArray(r) ? r : ((r as { rooms?: RoomSummary[] }).rooms ?? [])) as RoomSummary[]
+-  },
+-  async createRoom(config) {
+-    return codeOf(await getJson("/rooms", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(config) }))
+-  },
+-  async quickPlay() {
+-    return codeOf(await getJson("/quickplay"))
+-  },
+-}
++// Static port: the upstream in-browser room engine is the only transport.
++import { createLoopbackRoom } from "../sim/loopback"
++import type { LoopbackRoom, RoomHandlers } from "../sim/loopback"
++import type { RoomConfig } from "../sim/protocol"
++
++export type Connection = Pick<LoopbackRoom, "send" | "close">
++const unavailable = (): never => { throw new Error("Multiplayer is not included in this offline port") }
++const local = {
++  createLocalRoom: (config: RoomConfig, name: string, handlers: RoomHandlers): Connection => createLoopbackRoom(config, name, handlers),
++  connectRoom: unavailable,
++  createRoom: unavailable,
++  quickPlay: unavailable,
++  listRooms: async () => [],
++}
++export async function getNet() { return local }
+diff --git a/games/wings/src/ui/pause.ts b/games/wings/src/ui/pause.ts
+index 2404d00..5ec8072 100644
+--- a/games/wings/src/ui/pause.ts
++++ b/games/wings/src/ui/pause.ts
+@@ -32,7 +32,6 @@ export function createPauseMenu(parent: HTMLElement, actions: {
+     items: [
+       { label: "Resume", run: () => actions.resume() },
+       { label: "Switch role", run: () => actions.changeVehicle(), meta: "another aircraft or seat, or man your fleet's guns" },
+-      { label: "Invite friends", run: () => actions.invite(), meta: "copies the room link" },
+       { label: "Settings", run: () => nav.push(settingsScreen(nav, actions.quality, "04 — <b>settings</b>")), meta: "graphics · sound · steering" },
+       { label: "Controls", run: () => nav.push({ crumb: "05 — <b>controls</b>", html: controlsTable(), hints: [["esc", "back"]] }) },
+       { label: "Leave match", small: true, run: () => actions.leave(), meta: "back to the main menu" },
+diff --git a/games/wings/src/ui/spawn.ts b/games/wings/src/ui/spawn.ts
+index 328bc3f..5c31461 100644
+--- a/games/wings/src/ui/spawn.ts
++++ b/games/wings/src/ui/spawn.ts
+@@ -88,7 +88,7 @@ export function createSpawnScreen(parent: HTMLElement, actions: {
+   root.hidden = true
+   root.innerHTML = `
+     <div class="sp-head">
+-      <div class="crumb">room <b class="code"></b> · <button class="link invite">copy invite link</button></div>
++      <div class="crumb">offline room <b class="code"></b></div>
+       <h2 class="title">Choose aircraft</h2>
+       <div class="tabs" role="tablist"><button data-tab="air" class="on">aircraft</button><button data-tab="guns">man the guns</button><kbd>g</kbd></div>
+       <div class="teams" aria-label="Team"></div>
+diff --git a/games/wings/vite.config.ts b/games/wings/vite.config.ts
+index ca413c3..2728b66 100644
+--- a/games/wings/vite.config.ts
++++ b/games/wings/vite.config.ts
+@@ -1,7 +1,7 @@
+ import { defineConfig } from "vite"
+ 
+ export default defineConfig({
+-  base: "/arcade/wings/",
++  base: "./",
+   server: {
+     port: 5173,
+     proxy: {
