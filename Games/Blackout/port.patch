@@ -1,0 +1,194 @@
+--- a/games/blackout/vite.config.ts
++++ b/games/blackout/vite.config.ts
+@@ -5 +5 @@
+-  build: { target: "esnext", outDir: "dist/arcade/blackout", emptyOutDir: true, rollupOptions: { input: { main: "index.html", compare: "compare.html" } } },
++  build: { target: "esnext", outDir: "dist/arcade/blackout", emptyOutDir: true, rollupOptions: { input: { main: "index.html", check: "check-solo.html" } } },
+--- a/games/blackout/index.html
++++ b/games/blackout/index.html
+@@ -12,0 +13,16 @@
++    <details id="solo-help">
++      <summary>Solo controls</summary>
++      <p>Seed 1 by default. Passive targets, unlimited ammunition. B toggles live bots. No server needed.</p>
++      <p>WASD or arrows: move. Mouse: aim. Left click: fire. Right click: look ahead. Shift: sprint. G: equipment. 1/2/3: weapon. 4/5: equipment. Tab or T: scores. M: mute.</p>
++      <p>Touch: arrows to move, drag on the scene to aim, Fire to shoot.</p>
++      <button id="restart" type="button">Restart</button>
++      <a href="?practice=1&amp;seed=1">Local bot match</a>
++      <a href="?seed=1">Solo sandbox</a>
++    </details>
++    <div id="touch-controls" aria-label="Touch controls">
++      <button type="button" data-key="ArrowLeft" aria-label="Move left">Left</button>
++      <button type="button" data-key="ArrowUp" aria-label="Move up">Up</button>
++      <button type="button" data-key="ArrowDown" aria-label="Move down">Down</button>
++      <button type="button" data-key="ArrowRight" aria-label="Move right">Right</button>
++      <button type="button" data-fire>Fire</button>
++    </div>
+--- a/games/blackout/src/main.ts
++++ b/games/blackout/src/main.ts
+@@ -5 +4,0 @@
+-import type { MapChoice } from "../shared/maps"
+@@ -11 +9,0 @@
+-import { NetSession, REJOIN_KEY } from "./game/net"
+@@ -42,0 +41 @@
++  document.getElementById("restart")!.addEventListener("click", () => location.reload())
+@@ -51 +49,0 @@
+-  const roomParam = (params.get("room") ?? "").toLowerCase().replace(/[^a-z0-9]/g, "").slice(0, 8) || null
+@@ -82,14 +79,0 @@
+-  const fatal = (message: string) => {
+-    session?.close()
+-    session = null
+-    game = null
+-    hud.show(false)
+-    history.replaceState(null, "", location.pathname)
+-    menus.landing(null, message)
+-  }
+-  const base = location.pathname.replace(/[^/]*$/, "")
+-  const api = (path: string) => fetch(`${base}api/${path}`, { method: "POST" }).then((r) => r.json() as Promise<{ room: string }>)
+-  const enter = (name: string, room: string, priv = false, mode: ModeId | null = null, maps: MapChoice | null = null) => {
+-    history.replaceState(null, "", `?room=${room}`)
+-    begin(name, (n) => new NetSession(room, n, gun, equip, fatal, priv, mode, maps))
+-  }
+@@ -109 +92,0 @@
+-  const failed = (e: unknown) => menus.landing(null, `Couldn't reach the server (${e instanceof Error ? e.message : String(e)}).`)
+@@ -111 +94 @@
+-    quick: (name) => api("quick").then((r) => enter(name, r.room), failed),
++    quick: sandbox,
+@@ -114,2 +97,2 @@
+-    create: (name, mode, maps) => api("create").then((r) => enter(name, r.room, true, mode, maps), failed),
+-    join: (name, room) => enter(name, room),
++    create: sandbox,
++    join: sandbox,
+@@ -122,4 +104,0 @@
+-  if (!params.has("practice") && params.get("peaceful") !== "1" && params.get("sandbox") !== "1" && !input.mux) fetch(`${base}api/stats`)
+-    .then((r) => r.json() as Promise<{ players: number; games: number }>)
+-    .then((s) => menus.stats(s.players, s.games))
+-    .catch(() => {})
+@@ -152,8 +131,3 @@
+-  if (!input.mux && params.get("peaceful") !== "1" && !params.has("practice")) menus.landing(roomParam)
+-  // Back from a version reload: straight into the same room.
+-  const rejoin = sessionStorage.getItem(REJOIN_KEY)
+-  sessionStorage.removeItem(REJOIN_KEY)
+-  if (rejoin && rejoin === roomParam) enter(localStorage.getItem(NAME_KEY) ?? "", rejoin)
+-  // Dev and screenshots: a local match against bots, no server.
+-  if (params.get("peaceful") === "1" || params.get("sandbox") === "1" || input.mux) sandbox(localStorage.getItem(NAME_KEY) ?? "you")
+-  else if (params.has("practice")) begin(localStorage.getItem(NAME_KEY) ?? "you", (n) => new LocalSession(n, gun, equip, modeOf(params.get("mode")) ?? "ffa", params.get("map")))
++  // Offline default: seed 1, passive targets. B enables the upstream local bots.
++  if (params.has("practice")) begin(localStorage.getItem(NAME_KEY) ?? "you", (n) => new LocalSession(n, gun, equip, modeOf(params.get("mode")) ?? "ffa", params.get("map")))
++  else sandbox(localStorage.getItem(NAME_KEY) ?? "you")
+--- a/games/blackout/src/game/input.ts
++++ b/games/blackout/src/game/input.ts
+@@ -34 +34 @@
+-      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return
++      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement || (e.target instanceof Element && e.target.closest("#solo-help, #touch-controls"))) return
+@@ -65,0 +66,21 @@
++    for (const type of ["pointerdown", "pointermove"] as const) canvas.addEventListener(type, (e) => {
++      if (e.pointerType !== "touch") return
++      e.preventDefault()
++      this.mouse.x = e.clientX
++      this.mouse.y = e.clientY
++    })
++    for (const button of document.querySelectorAll<HTMLButtonElement>("#touch-controls button")) {
++      button.addEventListener("pointerdown", (e) => {
++        e.preventDefault()
++        button.setPointerCapture(e.pointerId)
++        if (button.hasAttribute("data-fire")) this.firing = true
++        else this.key({ type: "mux-key", kind: "keydown", code: button.dataset.key!, key: button.dataset.key! })
++      })
++      const release = () => {
++        if (button.hasAttribute("data-fire")) this.firing = false
++        else this.key({ type: "mux-key", kind: "keyup", code: button.dataset.key!, key: button.dataset.key! })
++      }
++      button.addEventListener("pointerup", release)
++      button.addEventListener("pointercancel", release)
++      button.addEventListener("lostpointercapture", release)
++    }
+--- a/games/blackout/src/style.css
++++ b/games/blackout/src/style.css
+@@ -0,0 +1,32 @@
++#solo-help {
++  position: fixed;
++  top: 8px;
++  right: 8px;
++  z-index: 100;
++  max-width: min(380px, calc(100vw - 16px));
++  max-height: calc(100vh - 16px);
++  overflow: auto;
++  padding: 8px;
++  background: #191919;
++  color: #fff;
++  font-family: system-ui, sans-serif;
++}
++#solo-help summary { min-height: 44px; padding: 12px; cursor: pointer; }
++#solo-help button, #solo-help a, #touch-controls button {
++  display: inline-block;
++  min-width: 44px;
++  min-height: 44px;
++  padding: 12px;
++  background: #000;
++  color: #fff;
++  font: 14px system-ui, sans-serif;
++  letter-spacing: normal;
++}
++#solo-help :focus-visible, #touch-controls :focus-visible { outline: 3px solid #fff; }
++#touch-controls { display: none; }
++canvas#view, #touch-controls { touch-action: none; }
++@media (pointer: coarse) {
++  #touch-controls { display: flex; position: fixed; bottom: 8px; left: 8px; z-index: 100; gap: 4px; }
++  #touch-controls button { padding: 8px; }
++}
++
+--- /dev/null
++++ b/games/blackout/check-solo.html
+@@ -0,0 +1,3 @@
++<!doctype html>
++<html lang="en"><head><meta charset="utf-8"><title>Blackout simulation check</title><link rel="icon" href="data:,"></head>
++<body><h1>Blackout simulation check</h1><pre id="result">Running...</pre><div id="hud"></div><script type="module" src="/src/check-solo.ts"></script></body></html>
+--- /dev/null
++++ b/games/blackout/src/check-solo.ts
+@@ -0,0 +1,47 @@
++import { SandboxSession } from "./game/game"
++import { Hud } from "./ui/hud"
++import { NO_INTENT } from "../shared/sim/world"
++
++const assert = (ok: unknown, message: string) => { if (!ok) throw new Error(message) }
++const output = document.getElementById("result")!
++try {
++  const s = new SandboxSession("solo-check", "rifle", "frag", 1)
++  const me = s.world.players.get(s.myId)!
++  const start = { x: me.x, y: me.y }
++  assert(s.latest().snap.phase === "play" && me.alive, "solo must start alive in play")
++  assert(s.world.players.size === 4 && s.passive, "expected player and three passive targets")
++  const target = [...s.world.players.values()].find(p => !p.human)!
++  const targetStart = { x: target.x, y: target.y }
++  let seq = 0
++  let shots = 0
++  // Try each normal movement direction in the generated room, without teleporting.
++  for (const [mx, my] of [[1, 0], [0, 1], [-1, 0], [0, -1]]) {
++    // Run beyond the upstream 0.5-second spawn firing cooldown.
++    for (let i = 0; i < 90; i++) {
++      s.send({ type: "intent", seq: ++seq, i: { ...NO_INTENT, mx, my, fire: true } })
++      s.update(1 / 60)
++      shots += s.drainEvents().filter(e => e.k === "shot" && e.by === s.myId).length
++    }
++    if (Math.hypot(me.x - start.x, me.y - start.y) > 0.1) break
++  }
++  const moved = Math.hypot(me.x - start.x, me.y - start.y)
++  assert(moved > 0.1, "movement must change position")
++  assert(shots > 0, "fire must emit a shot")
++  assert(target.x === targetStart.x && target.y === targetStart.y, "passive target moved")
++  s.send({ type: "gun", gun: "shotgun" })
++  assert(me.gun === "shotgun", "weapon switching failed")
++  s.toggleBots()
++  assert(!s.passive && s.status().includes("LIVE BOTS"), "live bots toggle failed")
++  s.toggleBots()
++  assert(s.passive, "passive toggle failed")
++  const reset = new SandboxSession("solo-check", "rifle", "frag", 1)
++  const resetMe = reset.world.players.get(reset.myId)!
++  assert(resetMe.alive && resetMe.x === start.x && resetMe.y === start.y, "seed reset failed")
++  const hud = new Hud(document.getElementById("hud")!)
++  hud.show(true)
++  assert(document.getElementById("hud")!.children.length > 0, "HUD did not initialize")
++  output.textContent = `PASS: simulation module, seed 1, alive/play, 3 passive targets, movement ${moved.toFixed(3)}, shots ${shots}, weapon switch, bot toggle, seed reset, HUD DOM. Rendering not tested.`
++} catch (error) {
++  output.textContent = `FAIL: ${error instanceof Error ? error.message : error}`
++  throw error
++}
