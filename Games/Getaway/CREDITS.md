@@ -20,6 +20,7 @@ Bundled dependency notices are preserved in `licenses/`: Barlow Condensed and In
 - Kept the upstream physics, generated city, renderer, local sound and fonts. This is free driving, not an offline recreation of multiplayer chase objectives. There is no fabricated win/loss state.
 - Added a compact native controls disclosure, reload/restart button, and six pointer-capture touch controls routed through the upstream keyboard-input handler. Added narrow-screen positioning, visible focus, reduced-motion CSS, and a local data favicon. No replacement launch screen.
 - Added a startup-error message, source patch, preserved notices and runnable verification. The test-only simulation bundle is not imported by the game.
+- Telemetry follow-up: removed GPU timestamp queries, queue-wait timing, GPU adapter details, render-count metrics, frame-performance sampling and the automatic `arcade-perf` parent-frame report. The Lab retains presentation controls without collecting performance samples. No third-party analytics/ad trackers were found. The explicit comparison-mode input/state messaging remains, not automatic performance reporting; see the audit in `verification/RESULTS.md`.
 
 `port.patch` records the staging source modifications relative to the pinned commit. No changes to the site's catalog or portal bundle are included.
 
