@@ -1,0 +1,149 @@
+diff --git a/games/getaway/index.html b/games/getaway/index.html
+index c111f5e..5593d5c 100644
+--- a/games/getaway/index.html
++++ b/games/getaway/index.html
+@@ -6 +6,14 @@
+-    <title>Getaway</title>
++    <title>Getaway - Solo Free Drive</title>
++    <link rel="icon" href="data:," />
++    <style>
++      .solo-help { position: fixed; left: 12px; top: 12px; z-index: 20; max-width: min(260px, 65vw); padding: 8px; background: #fff; color: #111; font: 14px/1.4 system-ui, sans-serif; }
++      .solo-help summary { min-height: 44px; cursor: pointer; }
++      .solo-help a { color: #111; }
++      .solo-help button, .solo-touch button { min-width: 44px; min-height: 44px; padding: 8px; background: #000; color: #fff; border: 2px solid #fff; font: inherit; }
++      .solo-help :focus-visible, .solo-touch :focus-visible { outline: 3px solid #e58b00; outline-offset: 2px; }
++      .solo-touch { position: fixed; bottom: 12px; right: 12px; z-index: 20; display: none; grid-template-columns: repeat(3, minmax(44px, 1fr)); gap: 4px; }
++      .solo-touch button { touch-action: none; user-select: none; }
++      @media (pointer: coarse) { .solo-touch { display: grid; } #hud .h-map { transform: scale(0.6); transform-origin: bottom left; left: 8px; bottom: 8px; } }
++      @media (max-width: 600px) { .solo-help { top: 85px; } }
++      @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
++    </style>
+@@ -11,0 +25,15 @@
++    <details class="solo-help">
++      <summary>Solo free drive - controls</summary>
++      <p>No cops, rounds or online rooms. Seed 7.</p>
++      <p>WASD or arrows: drive. Space: drift. Shift: nitro. H: engine. Gamepad supported.</p>
++      <button id="solo-reset" type="button">Restart drive</button>
++      <p><a href="CREDITS.md">Source and port notes</a></p>
++    </details>
++    <nav class="solo-touch" aria-label="Driving controls">
++      <button type="button" data-code="ArrowLeft" data-key="ArrowLeft">Left</button>
++      <button type="button" data-code="ArrowUp" data-key="ArrowUp">Drive</button>
++      <button type="button" data-code="ArrowRight" data-key="ArrowRight">Right</button>
++      <button type="button" data-code="Space" data-key=" ">Drift</button>
++      <button type="button" data-code="ArrowDown" data-key="ArrowDown">Reverse</button>
++      <button type="button" data-code="ShiftLeft" data-key="Shift">Nitro</button>
++    </nav>
+diff --git a/games/getaway/src/game/session.ts b/games/getaway/src/game/session.ts
+index eb38b5d..3596882 100644
+--- a/games/getaway/src/game/session.ts
++++ b/games/getaway/src/game/session.ts
+@@ -7 +6,0 @@ import type { ChatMsg } from "../../shared/protocol"
+-import { BOT_NAMES } from "../../shared/names"
+@@ -30 +29 @@ export interface Session {
+-/** Solo practice: the full simulation runs in the browser with bot cops. */
++/** Offline free driving: upstream simulation with no cops or round endings. */
+@@ -49 +48 @@ export class LocalSession implements Session {
+-    this.peaceful = q.get("peaceful") === "1"
++    this.peaceful = true
+@@ -52 +50,0 @@ export class LocalSession implements Session {
+-    if (!this.peaceful) for (let i = 0; i < 4; i++) this.participants.push({ id: `bot${i}`, name: BOT_NAMES[i]!, human: false, picks: { robber: i % 2 ? "compact" : "muscle", cop: i === 1 ? "interceptor" : "cruiser" } })
+diff --git a/games/getaway/src/main.ts b/games/getaway/src/main.ts
+index d63c2f0..06369d4 100644
+--- a/games/getaway/src/main.ts
++++ b/games/getaway/src/main.ts
+@@ -14 +14 @@ import { Renderer } from "./render/renderer"
+-import { Chat } from "./ui/chat"
++import { soloControls } from "./ui/solo-controls"
+@@ -16 +15,0 @@ import { Hud } from "./ui/hud"
+-import { lobby, quickRoom, setRoomParam } from "./ui/lobby"
+@@ -24,3 +22,0 @@ import { lightStyle } from "./render/car-lights"
+-/** A message for the next lobby (an idle kick reloads the page back to it). */
+-const NOTICE_KEY = "getaway.notice"
+-
+@@ -32,16 +27,0 @@ function fail(msg: string) {
+-async function connect(choice: Awaited<ReturnType<typeof lobby>>): Promise<Session> {
+-  if (choice.mode === "room" && choice.room) {
+-    const { NetSession, RoomFullError } = await import("./game/net")
+-    try {
+-      return await NetSession.connect(choice.room, choice.name, choice.picks, choice.via === "create")
+-    } catch (e) {
+-      // Quick join lost the race for the last seat: ask the matchmaker once more.
+-      if (choice.via !== "quick" || !(e instanceof RoomFullError)) throw e
+-      choice.room = await quickRoom()
+-      setRoomParam(choice.room, true)
+-      return NetSession.connect(choice.room, choice.name, choice.picks)
+-    }
+-  }
+-  return new LocalSession(choice.name, choice.picks)
+-}
+-
+@@ -63 +42,0 @@ async function main() {
+-  const staged = (import.meta.env.DEV && q.has("stage")) || q.has("solo") || q.get("peaceful") === "1" || q.has("mux")
+@@ -65,14 +43,0 @@ async function main() {
+-  let session: Session | null = null
+-  let choice: Awaited<ReturnType<typeof lobby>> = { mode: "solo", room: null, name: "Dax", picks: { robber: "muscle", cop: "cruiser" } }
+-  let notice = sessionStorage.getItem(NOTICE_KEY)
+-  sessionStorage.removeItem(NOTICE_KEY)
+-  while (!session) {
+-    if (!staged) choice = await lobby(document.getElementById("overlay")!, notice)
+-    try {
+-      session = await connect(choice)
+-    } catch (e) {
+-      const why = e instanceof Error ? e.message : String(e)
+-      notice = /room .* is full|could not reach/i.test(why) ? why : `Could not join room ${choice.room}: ${why}`
+-      history.replaceState(null, "", location.pathname)
+-    }
+-  }
+@@ -80 +45 @@ async function main() {
+-  let activeSession: Session = session
++  let activeSession: Session = new LocalSession("Dax", { robber: "muscle", cop: "cruiser" })
+@@ -96,0 +62 @@ async function main() {
++  soloControls(controls)
+@@ -102 +67,0 @@ async function main() {
+-  const chat = activeSession.chat ? new Chat(document.getElementById("hud")!, controls, activeSession) : null
+@@ -284,6 +248,0 @@ async function main() {
+-    const kicked = activeSession.kicked?.()
+-    if (kicked) {
+-      sessionStorage.setItem(NOTICE_KEY, /idle/i.test(kicked) ? "You were kicked for being idle" : kicked)
+-      location.replace(location.pathname)
+-      return
+-    }
+@@ -331 +289,0 @@ async function main() {
+-    chat?.update()
+@@ -340 +298,4 @@ async function main() {
+-void main()
++void main().catch((error) => {
++  console.error(error)
++  fail("Getaway could not start. A working WebGPU device is required. Reload to retry.")
++})
+diff --git a/games/getaway/vite.config.ts b/games/getaway/vite.config.ts
+index 0c29f46..2778be9 100644
+--- a/games/getaway/vite.config.ts
++++ b/games/getaway/vite.config.ts
+@@ -7 +7 @@ export default defineConfig({
+-    rollupOptions: { input: { main: new URL("./index.html", import.meta.url).pathname, compare: new URL("./compare.html", import.meta.url).pathname } },
++    rollupOptions: { input: new URL("./index.html", import.meta.url).pathname },
+diff --git a/games/getaway/src/ui/solo-controls.ts b/games/getaway/src/ui/solo-controls.ts
+new file mode 100644
+index 0000000..ec6750b
+--- /dev/null
++++ b/games/getaway/src/ui/solo-controls.ts
+@@ -0,0 +1,17 @@
++import type { Controls } from "../game/input"
++
++export function soloControls(controls: Controls) {
++  document.getElementById("solo-reset")!.addEventListener("click", () => location.reload())
++  for (const button of document.querySelectorAll<HTMLButtonElement>(".solo-touch button")) {
++    const { code, key } = button.dataset
++    button.addEventListener("pointerdown", (event) => {
++      event.preventDefault()
++      button.setPointerCapture(event.pointerId)
++      controls.key("keydown", code!, key!)
++    })
++    const release = () => controls.key("keyup", code!, key!)
++    button.addEventListener("pointerup", release)
++    button.addEventListener("pointercancel", release)
++    button.addEventListener("lostpointercapture", release)
++  }
++}

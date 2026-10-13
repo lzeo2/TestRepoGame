@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Getaway - Solo Free Drive</title>
+    <link rel="icon" href="data:," />
+    <style>.solo-help{z-index:20;color:#111;background:#fff;max-width:min(260px,65vw);padding:8px;font:14px/1.4 system-ui,sans-serif;position:fixed;top:12px;left:12px}.solo-help summary{cursor:pointer;min-height:44px}.solo-help a{color:#111}.solo-help button,.solo-touch button{color:#fff;min-width:44px;min-height:44px;font:inherit;background:#000;border:2px solid #fff;padding:8px}.solo-help :focus-visible,.solo-touch :focus-visible{outline-offset:2px;outline:3px solid #e58b00}.solo-touch{z-index:20;grid-template-columns:repeat(3,minmax(44px,1fr));gap:4px;display:none;position:fixed;bottom:12px;right:12px}.solo-touch button{touch-action:none;user-select:none}@media (pointer:coarse){.solo-touch{display:grid}#hud .h-map{transform-origin:0 100%;bottom:8px;left:8px;transform:scale(.6)}}@media (width<=600px){.solo-help{top:85px}}@media (prefers-reduced-motion:reduce){*,:before,:after{transition:none!important;animation:none!important}}</style>
+    <script type="module" crossorigin src="./assets/index-BqmvyinV.js"></script>
+    <link rel="stylesheet" crossorigin href="./assets/index-DGjfM0K0.css">
+  </head>
+  <body>
+    <canvas id="view"></canvas>
+    <div id="hud"></div>
+    <div id="overlay"></div>
+    <details class="solo-help">
+      <summary>Solo free drive - controls</summary>
+      <p>No cops, rounds or online rooms. Seed 7.</p>
+      <p>WASD or arrows: drive. Space: drift. Shift: nitro. H: engine. Gamepad supported.</p>
+      <button id="solo-reset" type="button">Restart drive</button>
+      <p><a href="CREDITS.md">Source and port notes</a></p>
+    </details>
+    <nav class="solo-touch" aria-label="Driving controls">
+      <button type="button" data-code="ArrowLeft" data-key="ArrowLeft">Left</button>
+      <button type="button" data-code="ArrowUp" data-key="ArrowUp">Drive</button>
+      <button type="button" data-code="ArrowRight" data-key="ArrowRight">Right</button>
+      <button type="button" data-code="Space" data-key=" ">Drift</button>
+      <button type="button" data-code="ArrowDown" data-key="ArrowDown">Reverse</button>
+      <button type="button" data-code="ShiftLeft" data-key="Shift">Nitro</button>
+    </nav>
+  </body>
+</html>
