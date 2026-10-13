@@ -1,0 +1,8 @@
+/* Local shell adjustments. The upstream 3D scene and status colors are unchanged. */
+button:focus-visible, select:focus-visible { outline: 3px solid white; outline-offset: 3px; }
+button { min-height: 44px; }
+.uppercase { text-transform: none; }
+[class*="bg-gradient-"] { background-image: none; color: #e5e7eb; }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}

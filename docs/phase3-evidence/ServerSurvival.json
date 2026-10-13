@@ -1,0 +1,8 @@
+{
+  "game": "ServerSurvival",
+  "result": "start, keyboard C, native firewall placement ($500 to $460), play/pause, restart ($500/empty): PASS",
+  "console_errors": [],
+  "http_errors": [],
+  "external_requests": [],
+  "renderer": "Chromium SwiftShader; not hardware-performance acceptance"
+}

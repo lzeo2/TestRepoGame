@@ -1315,5 +1315,15 @@
     "tags": [
       "ported"
     ]
+  },
+  {
+    "id": 233,
+    "title": "Server Survival",
+    "cat": "strategy",
+    "icon": "",
+    "desc": "Build and connect cloud infrastructure to handle traffic in a 3D simulation by Kostyantyn Pshenychnyy. Includes survival, campaign and sandbox modes.",
+    "url": "Games/ServerSurvival/index.html",
+    "featured": false,
+    "tags": ["3d"]
   }
 ]
