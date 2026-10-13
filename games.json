@@ -1279,5 +1279,41 @@
     ],
     "players": "1",
     "howto": "WASD or arrows drive; Space handbrakes; Q drops smoke; E loads, repairs, or extracts. Touch controls are on screen."
+  },
+  {
+    "id": 230,
+    "title": "Blackout",
+    "cat": "action",
+    "icon": "",
+    "desc": "Top-down stealth shooter. Solo sandbox vs idle bots, seed-1 open world. WebGPU game - needs a modern PC browser. Ported from Anomaly's arcade (static, solo).",
+    "url": "Games/Blackout/index.html",
+    "featured": false,
+    "tags": [
+      "ported"
+    ]
+  },
+  {
+    "id": 231,
+    "title": "Getaway",
+    "cat": "sports",
+    "icon": "",
+    "desc": "Cops-and-robbers driving chase. Solo free-drive with the full cop sim running. WebGPU game - needs a modern PC browser. Ported from Anomaly's arcade (static, solo).",
+    "url": "Games/Getaway/index.html",
+    "featured": false,
+    "tags": [
+      "ported"
+    ]
+  },
+  {
+    "id": 232,
+    "title": "Wings",
+    "cat": "action",
+    "icon": "",
+    "desc": "Multiplayer aerial combat turned solo flight sim - take off, climb and stay alive. WebGPU game - needs a modern PC browser. Ported from Anomaly's arcade (static, solo).",
+    "url": "Games/Wings/index.html",
+    "featured": false,
+    "tags": [
+      "ported"
+    ]
   }
 ]
