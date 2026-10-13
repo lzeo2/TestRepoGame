@@ -1245,13 +1245,24 @@
   },
   {
     "id": 227,
+    "title": "Steal a Footballer for Your Team",
+    "cat": "sports",
+    "icon": "SF",
+    "desc": "Solo browser adaptation of lzeo2's original Roblox game. Recruit 125 footballer identities, steal from NPC rivals and play squad matches. Saves in this browser.",
+    "url": "Games/StealFootballer/index.html",
+    "featured": false
+  },
+  {
+    "id": 229,
     "title": "Night Shift",
     "cat": "action",
     "icon": "NS",
     "desc": "Sneak through a dark archive, steal the case, and reach the exit while guards track light and sound.",
     "url": "Games/Night Shift/index.html",
     "featured": false,
-    "tags": ["1p"],
+    "tags": [
+      "1p"
+    ],
     "players": "1",
     "howto": "WASD or arrows move; Shift runs; C sneaks; mouse or IJKL aims; click or J fires; F throws a flare; E uses; R reloads. Touch controls are on screen."
   },
@@ -1263,7 +1274,9 @@
     "desc": "Drive a stolen courier car through a city loop, outmaneuver police, and deliver the package before you are boxed in.",
     "url": "Games/Borough Run/index.html",
     "featured": false,
-    "tags": ["1p"],
+    "tags": [
+      "1p"
+    ],
     "players": "1",
     "howto": "WASD or arrows drive; Space handbrakes; Q drops smoke; E loads, repairs, or extracts. Touch controls are on screen."
   }
