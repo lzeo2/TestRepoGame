@@ -29,7 +29,34 @@ def server_survival(page):
     return 'start, keyboard C, native firewall placement ($500 to $460), play/pause, restart ($500/empty): PASS'
 
 
-CHECKS = {'ServerSurvival': server_survival}
+def astray(page):
+    page.wait_for_function('gameState === "play"')
+    direction = page.evaluate('maze[2][1] ? "up" : "right"')
+    before = page.evaluate('({x:wBall.GetPosition().x,y:wBall.GetPosition().y})')
+    page.keyboard.down('Arrow' + direction.title())
+    page.wait_for_function('Math.abs(wBall.GetPosition().x-1)+Math.abs(wBall.GetPosition().y-1)>0.1')
+    page.keyboard.up('Arrow' + direction.title())
+    after = page.evaluate('({x:wBall.GetPosition().x,y:wBall.GetPosition().y})')
+    assert abs(after['x'] - before['x']) + abs(after['y'] - before['y']) > 0.1
+    page.keyboard.down('i')
+    assert page.locator('#instructions').is_visible()
+    page.keyboard.up('i')
+    with page.expect_navigation(wait_until='domcontentloaded'):
+        page.locator('#restart').click()
+    page.wait_for_function('typeof gameState !== "undefined" && gameState === "play" && mazeDimension === 11')
+    assert page.evaluate('wBall.GetPosition().x === 1 && wBall.GetPosition().y === 1')
+    direction = page.evaluate('maze[2][1] ? "up" : "right"')
+    button = page.get_by_role('button', name='Move ' + direction, exact=True)
+    button.hover()
+    page.mouse.down()
+    page.wait_for_function('Math.abs(wBall.GetPosition().x-1)+Math.abs(wBall.GetPosition().y-1)>0.1')
+    page.mouse.up()
+    assert page.evaluate('Math.abs(wBall.GetPosition().x-1)+Math.abs(wBall.GetPosition().y-1)>0.1')
+    assert page.evaluate('touchAxis[0] === 0 && touchAxis[1] === 0')
+    return 'automatic start, arrow-key ball movement, I help, restart to level 1, pointer direction/release: PASS'
+
+
+CHECKS = {'ServerSurvival': server_survival, 'Astray': astray}
 
 
 def main():

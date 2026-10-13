@@ -1,0 +1,8 @@
+{
+  "game": "Astray",
+  "result": "automatic start, arrow-key ball movement, I help, restart to level 1, pointer direction/release: PASS",
+  "console_errors": [],
+  "http_errors": [],
+  "external_requests": [],
+  "renderer": "Chromium SwiftShader; not hardware-performance acceptance"
+}

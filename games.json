@@ -1325,5 +1325,15 @@
     "url": "Games/ServerSurvival/index.html",
     "featured": false,
     "tags": ["3d"]
+  },
+  {
+    "id": 234,
+    "title": "Astray",
+    "cat": "puzzle",
+    "icon": "",
+    "desc": "Guide a ball through increasingly large 3D mazes. Original WebGL game by wwwtyro, with arrow-key and direction-button controls.",
+    "url": "Games/Astray/index.html",
+    "featured": false,
+    "tags": ["3d"]
   }
 ]
