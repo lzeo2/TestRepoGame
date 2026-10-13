@@ -16,17 +16,17 @@ Bundled dependency notices are preserved in `licenses/`: Barlow Condensed and In
 
 - Rebuilt in the staging workspace with Vite `base: './'`. Contrary to the initial task description, this pinned Getaway config already used that relative base; it was retained, not falsely credited as a new change. The build input now includes only the game, not the cross-game comparison page.
 - Removed lobby, matchmaking, room connection, chat and idle-kick entry code from `src/main.ts`. No WebSocket or API client is included in the resulting runtime bundle.
-- Always instantiate the upstream `LocalSession`. Its existing peaceful/free-driving branch is now unconditional, with one human car, no bot participants, no helicopter, and the simulation in `waiting` so pursuit and round-end rules cannot run. The existing view presents the driving HUD. Default city seed: **7**; the upstream `?seed=N` override remains.
-- Kept the upstream physics, generated city, renderer, local sound and fonts. This is free driving, not an offline recreation of multiplayer chase objectives. There is no fabricated win/loss state.
+- Always instantiate upstream `LocalSession`. Phase 2 restores its default four-bot chase branch and original round rules. Explicit `?peaceful=1` keeps one human car, no cops/helicopter/end, and a labeled free-driving HUD. Default city seed: **7**; upstream `?seed=N` remains.
+- Kept upstream physics, city, renderer, local sound/fonts and original bust/round rules. Added native role-specific vehicle selectors using existing picks (Muscle/ Cruiser defaults), without inventing objectives or online opponents.
 - Added a compact native controls disclosure, reload/restart button, and six pointer-capture touch controls routed through the upstream keyboard-input handler. Added narrow-screen positioning, visible focus, reduced-motion CSS, and a local data favicon. No replacement launch screen.
-- Added a startup-error message, source patch, preserved notices and runnable verification. The test-only simulation bundle is not imported by the game.
+- Added a startup-error message, early reset binding before GPU initialization, focused-control keyboard isolation, description metadata, flat end-card styling, plain-case HUD copy, source patch, preserved notices and runnable verification. The test-only simulation bundle is not imported by the game.
 - Telemetry follow-up: removed GPU timestamp queries, queue-wait timing, GPU adapter details, render-count metrics, frame-performance sampling and the automatic `arcade-perf` parent-frame report. The Lab retains presentation controls without collecting performance samples. No third-party analytics/ad trackers were found. The explicit comparison-mode input/state messaging remains, not automatic performance reporting; see the audit in `verification/RESULTS.md`.
 
-`port.patch` records the staging source modifications relative to the pinned commit. No changes to the site's catalog or portal bundle are included.
+`port.patch` records staging source modifications relative to the pinned commit. Phase 2 corrects catalog id 231; no portal bundle changes are included.
 
 ## Controls and requirements
 
-WASD or arrows drive, Space drifts, Shift uses nitro, H toggles the engine. Gamepad input remains upstream. Touch buttons provide left/right, drive/reverse, drift and nitro. Restart drive reloads the page. Progress is the elapsed driving clock; there is no saved campaign.
+WASD or arrows drive, Space drifts, Shift uses nitro, H toggles the engine. Gamepad input remains upstream. Touch buttons provide left/right, drive/reverse, drift and nitro. Restart round reloads the current mode/car selection. Chase has the original survival clock, bust results and automatic next round; separate free drive has an elapsed clock only. There is no saved campaign.
 
 WebGPU is required, over HTTPS or a localhost static server. A browser exposing `navigator.gpu` without an adapter is not sufficient. This is a static, network-independent asset copy, not a promise of `file://` compatibility or service-worker caching. No backend, Cloudflare service, remote fonts or third-party runtime loads are used.
 

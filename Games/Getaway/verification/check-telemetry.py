@@ -21,7 +21,7 @@ assert not trackers.search(sim) and not metrics.search(sim)
 assert not re.search(rb'fetch\(|(?:https?|wss?)://|WebSocket', sim)
 # Preserve the deliberately reviewed local-only browser origin.
 browser = (root / 'verification/check-browser.py').read_text()
-assert set(re.findall(r'https?://[^\s\'"]+', browser)) == {'http://127.0.0.1:8932'}
+assert set(re.findall(r'https?://[^\s\'"]+', browser)) == {'http://127.0.0.1:8937'}
 index = (root / 'index.html').read_text()
 for src in re.findall(r'(?:src|href)="(\./assets/[^\"]+)"', index):
     assert (root / src).is_file(), src

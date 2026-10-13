@@ -1297,7 +1297,7 @@
     "title": "Getaway",
     "cat": "sports",
     "icon": "",
-    "desc": "Cops-and-robbers driving chase. Solo free-drive with the full cop sim running. WebGPU game - needs a modern PC browser. Ported from Anomaly's arcade (static, solo).",
+    "desc": "Offline bot-cop chase rounds with robber/cop car selection, plus separate free driving without cops. Requires a WebGPU-capable browser. Adapted from Anomaly arcade; no online rooms.",
     "url": "Games/Getaway/index.html",
     "featured": false,
     "tags": [

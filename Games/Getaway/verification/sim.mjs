@@ -2448,6 +2448,9 @@ class World {
 var IMPACT_EVENT = 6;
 var IMPACT_COOLDOWN = 0.3;
 
+// shared/names.ts
+var BOT_NAMES = ["Reyes", "Chen", "Ward", "Okafor", "Novak", "Hale", "Ibarra", "Kowalski"];
+
 // src/game/interp.ts
 function lerpAngle(a, b, t) {
   const d = Math.atan2(Math.sin(b - a), Math.cos(b - a));
@@ -2488,10 +2491,13 @@ class LocalSession {
     const requestedSeed = Number(q.get("seed"));
     if (q.has("seed") && Number.isFinite(requestedSeed))
       seed = requestedSeed >>> 0;
-    this.peaceful = true;
+    this.peaceful = q.get("peaceful") === "1";
     if (this.peaceful)
       Math.random = mulberry32(seed);
     this.participants = [{ id: this.myId, name, human: true, picks }];
+    if (!this.peaceful)
+      for (let i = 0;i < 4; i++)
+        this.participants.push({ id: `bot${i}`, name: BOT_NAMES[i], human: false, picks: { robber: i % 2 ? "compact" : "muscle", cop: i === 1 ? "interceptor" : "cruiser" } });
     this.world = new World(seed, this.participants);
     if (this.peaceful) {
       this.world.phase = "waiting";
@@ -2565,7 +2571,7 @@ class LocalSession {
   }
   close() {}
   status() {
-    return "solo";
+    return this.peaceful ? "free drive" : "offline chase";
   }
   syncBench() {
     this.stageInput = null;
@@ -2950,7 +2956,7 @@ class Hud {
     e.intro = h("div", "h-intro off", r, `<div class="i-line"></div><div class="i-sub"></div>`);
     e.iLine = e.intro.querySelector(".i-line");
     e.iSub = e.intro.querySelector(".i-sub");
-    e.keys = h("div", "h-keys off", r, "WASD drive · SPACE drift · SHIFT nitro · H engine");
+    e.keys = h("div", "h-keys off", r, "WASD drive · Space drift · Shift nitro · H engine");
     e.flash = h("div", "h-flash off", r);
     e.gadget = h("div", "h-gadget off", r, `<div class="g-row"><span class="g-key">Q</span><span class="g-name"></span><span class="g-pips">${"<i></i>".repeat(GADGETS.spike.charges)}</span></div><div class="g-bar"><b></b></div>`);
     e.gName = e.gadget.querySelector(".g-name");
@@ -2964,28 +2970,9 @@ class Hud {
     e.tRepairLine = e.tires.querySelector(".t-rl");
     e.tFill = e.tires.querySelector(".g-bar b");
     e.end = h("div", "h-end off", r);
-    e.wait = h("div", "h-wait off", r, `<div class="w-line">WAITING FOR PLAYERS</div><div class="w-sub">The round starts when a second driver joins</div><div class="w-invite"><span>ROOM</span><b class="w-code"></b><button type="button">COPY INVITE LINK</button></div>`);
-    e.wCode = e.wait.querySelector(".w-code");
-    e.wCopy = e.wait.querySelector("button");
-    e.wCopy.addEventListener("click", () => this.copyInvite(e.wCopy, "COPY INVITE LINK"));
-    e.room = h("div", "h-room off", r, `<i class="dot"></i><span class="code"></span><button type="button">COPY INVITE</button>`);
-    e.roomCode = e.room.querySelector(".code");
-    e.copy = e.room.querySelector("button");
-    e.copy.addEventListener("click", () => this.copyInvite(e.copy, "COPY INVITE"));
     e.idle = h("div", "h-idle off", r);
     e.engine = h("div", "h-keys off", r);
     e.engine.style.cssText = "bottom: 8px; animation: none";
-  }
-  copyInvite(btn, label) {
-    const room = this.root.dataset.room;
-    if (!room)
-      return;
-    const url = new URL(location.href);
-    url.search = `?r=${room}`;
-    navigator.clipboard?.writeText(url.toString()).then(() => {
-      text(btn, "LINK COPIED");
-      setTimeout(() => text(btn, label), 1500);
-    }, () => {});
   }
   update(world, ctx) {
     const view = world;
@@ -3005,50 +2992,38 @@ class Hud {
     const phase = view.phase;
     const waiting = phase === "waiting";
     attr(this.root, "class", `hud ${isRobber ? "role-robber" : "role-cop"} phase-${phase}`);
-    show(e.wait, waiting);
-    if (waiting)
-      text(e.wCode, ctx.room ?? "—");
     const chase = view.phase === "chase";
     show(e.clock, chase);
     if (chase) {
-      text(e.cLabel, isRobber ? "FREE" : "SUSPECT AT LARGE");
+      text(e.cLabel, ctx.status === "free drive" ? "Free drive" : isRobber ? "Time free" : "Suspect at large");
       text(e.cTime, survival(survived));
       const best = view.best ?? 0;
       show(e.cBest, best > 0);
       if (best > 0)
-        text(e.cBest, `BEST ${survival(best)}${view.bestName ? ` · ${view.bestName}` : ""}`);
+        text(e.cBest, `Best ${survival(best)}${view.bestName ? ` · ${view.bestName}` : ""}`);
       flag(e.clock, "record", best > 0 && survived > best);
     }
     const pre = view.phase === "intro" || view.phase === "headstart";
     show(e.intro, pre);
     if (pre) {
-      text(e.iLine, isRobber ? "DON'T GET CAUGHT" : `CATCH ${robberName.toUpperCase()}`);
+      text(e.iLine, isRobber ? "Don't get caught" : `Catch ${robberName}`);
       const left = view.phase === "intro" ? INTRO_SECONDS - view.phaseT + HEAD_START_SECONDS : HEAD_START_SECONDS - view.phaseT;
-      text(e.iSub, view.phase === "headstart" ? `${isRobber ? "COPS IN" : "YOU ROLL IN"} ${Math.max(1, Math.ceil(left))}` : "");
+      text(e.iSub, view.phase === "headstart" ? `${isRobber ? "Cops in" : "You roll in"} ${Math.max(1, Math.ceil(left))}` : "");
     }
     show(e.keys, this.firstRound && pre);
-    text(e.keys, `WASD drive · SPACE drift · SHIFT nitro · H engine${ctx.room ? " · ENTER chat" : ""}`);
+    text(e.keys, `WASD drive · Space drift · Shift nitro · H engine${ctx.room ? " · Enter chat" : ""}`);
     this.updateGadgets(view, ctx, isRobber);
     const mine = view.cars.find((c) => c.ownerId === ctx.myId && !c.ghost);
     show(e.engine, !!mine?.engineOff && !waiting && view.phase !== "end");
     if (mine?.engineOff)
-      text(e.engine, isRobber && mine.speed < DRIVE.darkSpeed ? "ENGINE OFF · DARK" : "ENGINE OFF");
+      text(e.engine, isRobber && mine.speed < DRIVE.darkSpeed ? "Engine off · dark" : "Engine off");
     this.updateWorld(view, ctx, isRobber, robber, ghost);
     this.map.update(view, ctx.cam, ctx.myId, ctx.dt);
     this.updateEnd(view, ctx, robberName, survived);
     const idle = ctx.idleIn ?? null;
     show(e.idle, idle !== null);
     if (idle !== null)
-      text(e.idle, `IDLE — PRESS ANY KEY · KICK IN ${idle}`);
-    if (ctx.room)
-      this.root.dataset.room = ctx.room;
-    show(e.room, !!ctx.room && !waiting);
-    if (ctx.room) {
-      text(e.roomCode, ctx.room);
-      const st = ctx.status.toLowerCase();
-      attr(e.room, "data-status", /lost|error|closed|offline/.test(st) ? "bad" : /connecting|reconnect/.test(st) ? "pending" : "ok");
-      attr(e.room, "title", ctx.status);
-    }
+      text(e.idle, `Idle - press any key · kick in ${idle}`);
   }
   updateGadgets(view, ctx, isRobber) {
     const e = this.el;
@@ -3058,7 +3033,7 @@ class Hud {
     show(e.gadget, !!g);
     if (g) {
       const spec = GADGETS[g.id];
-      text(e.gName, g.id === "spike" ? `${spec.name} · POPS A TIRE` : spec.name);
+      text(e.gName, g.id === "spike" ? "Spike strip · pops a tire" : spec.name.toLowerCase());
       this.pips.forEach((pip, i) => flag(pip, "used", i >= g.charges));
       const fill = g.cooldown > 0 ? 1 - g.cooldown / spec.cooldown : 1;
       style(e.gFill, "transform", `scaleX(${fill.toFixed(3)})`);
@@ -3069,31 +3044,31 @@ class Hud {
     show(e.tires, flats > 0);
     if (flats > 0 && me) {
       this.tireDots.forEach((d, i) => flag(d, "pop", (wheels & 1 << i) !== 0));
-      text(e.tLine, flats === 4 ? "ON THE RIMS" : `${flats}/4 FLAT · FIND A GARAGE`);
+      text(e.tLine, flats === 4 ? "On the rims" : `${flats}/4 flat · find a garage`);
       flag(e.tires, "rims", flats === 4);
       const shop = shopAt(this.city, me.x, me.z);
       const cool = shop >= 0 ? view.shopCool?.[shop] ?? 0 : 0;
       show(e.tRepair, shop >= 0);
       if (shop >= 0) {
-        text(e.tRepairLine, cool > 0 ? `SHOP BUSY · ${Math.ceil(cool)}S` : me.speed >= 2 ? "STOP TO REPAIR" : "REPAIRING");
+        text(e.tRepairLine, cool > 0 ? `Shop busy · ${Math.ceil(cool)}s` : me.speed >= 2 ? "Stop to repair" : "Repairing");
         flag(e.tRepair, "busy", cool > 0);
         style(e.tFill, "transform", `scaleX(${(cool > 0 ? 0 : Math.min(1, view.repair ?? 0)).toFixed(3)})`);
       }
     }
     const tipped = ctx.events.find((ev) => ev.kind === "tip");
     if (tipped && !ctx.events.some((ev) => ev.kind === "flat"))
-      this.flashText(isRobber ? "DISPATCH HAS YOUR AREA" : "DISPATCH TIP · CHECK MAP", isRobber ? "bad" : "");
+      this.flashText(isRobber ? "Dispatch has your area" : "Dispatch tip · check map", isRobber ? "bad" : "");
     const hit = ctx.events.find((ev) => ev.kind === "flat");
     if (hit && live) {
       const n = Number(hit.text.split("|")[0]) || 1;
       if (isRobber)
-        this.flashText(n >= 4 ? "ON THE RIMS" : `TIRE POPPED · ${n}/4`, "bad");
+        this.flashText(n >= 4 ? "On the rims" : `Tire popped · ${n}/4`, "bad");
       else
-        this.flashText(n >= 4 ? "SPIKED! ON THE RIMS" : `SPIKED! ${n}/4 TIRES`, "");
+        this.flashText(n >= 4 ? "Spiked! On the rims" : `Spiked! ${n}/4 tires`, "");
     }
     const fixed = ctx.events.find((ev) => ev.kind === "repair");
     if (fixed && live)
-      this.flashText(isRobber ? "TIRES REPAIRED" : "SUSPECT'S TIRES REPAIRED", isRobber ? "good" : "");
+      this.flashText(isRobber ? "Tires repaired" : "Suspect's tires repaired", isRobber ? "good" : "");
     this.flashLeft = live ? Math.max(0, this.flashLeft - ctx.dt) : 0;
     show(e.flash, this.flashLeft > 0);
     if (this.flashLeft > 0)
@@ -3124,7 +3099,7 @@ class Hud {
       const p = cam.project(target.x, 2.4, target.z, W, H);
       show(e.tag, p[2]);
       style(e.tag, "transform", `translate3d(${p[0].toFixed(1)}px,${(p[1] - (busting ? 50 : 22)).toFixed(1)}px,0)`);
-      text(e.tagName, target.ghost ? "LAST SEEN" : target.name);
+      text(e.tagName, target.ghost ? "Last seen" : target.name);
       flag(e.tag, "ghost", target.ghost);
     }
   }
@@ -3138,18 +3113,18 @@ class Hud {
       this.resultsFor = view.round;
       const isRobber = ctx.myId === view.robberId;
       const newBest = view.newBest ?? (survived > 0 && (this.startBest === undefined || survived > this.startBest) && (view.best === undefined || survived >= view.best - 0.05));
-      const title = view.escaped ? "GOT AWAY" : "BUSTED";
-      const who = isRobber ? "YOU STAYED FREE FOR" : `${esc(robberName.toUpperCase())} STAYED FREE FOR`;
-      const rows = [...view.standings].sort((a, b) => (b.best ?? b.score ?? 0) - (a.best ?? a.score ?? 0)).map((s) => `<li class="${s.id === ctx.myId ? "me" : ""}"><span>${esc(s.name)}</span><b>${s.best !== undefined ? s.best > 0 ? survival(s.best) : "—" : Math.round(s.score ?? 0).toLocaleString("en-US")}</b></li>`).join("");
+      const title = view.escaped ? "Got away" : "Busted";
+      const who = isRobber ? "You stayed free for" : `${esc(robberName)} stayed free for`;
+      const rows = [...view.standings].sort((a, b) => (b.best ?? b.score ?? 0) - (a.best ?? a.score ?? 0)).map((s) => `<li class="${s.id === ctx.myId ? "me" : ""}"><span>${esc(s.name)}</span><b>${s.best !== undefined ? s.best > 0 ? survival(s.best) : "-" : Math.round(s.score ?? 0).toLocaleString("en-US")}</b></li>`).join("");
       e.end.innerHTML = `<div class="e-inner">
         <div class="e-main">
           <div class="e-title">${title}</div>
           <div class="e-who">${who}</div>
-          <div class="e-time">${survival(survived)}${newBest ? `<span class="e-best">NEW BEST</span>` : ""}</div>
+          <div class="e-time">${survival(survived)}${newBest ? `<span class="e-best">New best</span>` : ""}</div>
         </div>
         <div class="e-side">
           <ol class="e-rows">${rows}</ol>
-          <div class="e-next">NEXT ROUND IN <b></b></div>
+          <div class="e-next">Next round in <b></b></div>
         </div>
       </div>`;
       e.endNext = e.end.querySelector(".e-next b");
@@ -6660,7 +6635,7 @@ class Controls {
   constructor() {
     const mux = this.mux;
     addEventListener("keydown", (e) => {
-      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement || e.code === "Escape")
+      if (e.target instanceof Element && e.target.closest("input, textarea, select, button, a, summary, [contenteditable]") || e.code === "Escape")
         return;
       if (mux) {
         if (!e.repeat)
@@ -6793,7 +6768,7 @@ class Controls {
 }
 // src/ui/solo-controls.ts
 function soloControls(controls) {
-  document.getElementById("solo-reset").addEventListener("click", () => location.reload());
+  document.querySelector(".solo-help").addEventListener("focusin", () => controls.release());
   for (const button of document.querySelectorAll(".solo-touch button")) {
     const { code, key } = button.dataset;
     button.addEventListener("pointerdown", (event) => {

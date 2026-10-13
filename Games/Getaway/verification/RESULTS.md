@@ -1,5 +1,19 @@
 # Getaway port verification
 
+## Phase 2: offline chase restoration (2026-10-13)
+
+Verdict: **simulation and shell pass; rendered-game acceptance held**. The older free-drive-only results below are historical, not the current default mode.
+
+- TypeScript passed; Vite rebuilt 74 modules with relative base. Patch applies to pinned upstream and all 11 patched/new source files match staging. All shipped JS/MJS syntax checks passed; scoped diff whitespace check passed.
+- Shipped `check-solo.mjs`: four bot cops pursue; ordinary idle driver **busted at 117.63s**; automatic next round uses Cruiser; fresh session resets intro/time/round to zero. Compact selection works. Explicit free drive moves **26.96m in 2s**, is deterministic for 300s, and has no cops/end.
+- `check-browser.py` used a bounded server on 8937 and headless Chromium at 1280x720 and 390x844 in light/dark themes. All four: HTTP 200; console/page errors, failed/external requests and sockets empty. Production error-screen restart changes timeOrigin before any fixture. Injected missing GPU, adapter rejection and device rejection also pass reset checks.
+- Real scene still cannot start: **No WebGPU adapter is available on this device.** Labeled renderer-free SIM/HUD fixtures verify native keyboard movement (26.955m, five cars, chase clock 0:12.9), Space/help focus separation and mobile touch press/cancel. Native selectors retain mode and both car picks on submit.
+- Screenshots reviewed in the temporary `phase2/getaway/` evidence directory: readable dark disclosure; corrected mobile failure title and help/clock separation; map clear of touch buttons. These are error-screen and SIM/HUD captures, not visible city/car proof.
+- Telemetry audit: **109 runtime files** pass, no trackers/external code endpoints/GPU collectors; verifier loopback updated to 8937. Before obsolete bundle removal, tracked consumers were only the superseded Getaway entry/chunks; new build replaces them. Catalog validation: 123 unique/schema-valid entries, all URLs tracked. Only id 231 description changed by this worker.
+- Server terminated. Disk remains 2.8 GB free (rounded). No games added, full-site smoke or push. Rights, real hardware rendering/driving/audio/gamepad remain held. Shared inventory refresh is deferred to the coordinator after all worker source commits.
+
+## Historical initial port
+
 Fresh checks: 2026-10-13. Verdict: **partial**, not a full rendered-game pass.
 
 ## Build and simulation

@@ -1,29 +1,40 @@
 diff --git a/games/getaway/index.html b/games/getaway/index.html
-index c111f5e..5593d5c 100644
+index c111f5e..84d8d90 100644
 --- a/games/getaway/index.html
 +++ b/games/getaway/index.html
-@@ -6 +6,14 @@
+@@ -6 +6,18 @@
 -    <title>Getaway</title>
-+    <title>Getaway - Solo Free Drive</title>
++    <meta name="description" content="Offline Getaway bot-cop chases and a separate free-drive mode, with vehicle selection. Requires WebGPU." />
++    <title>Getaway - Offline Chase</title>
 +    <link rel="icon" href="data:," />
 +    <style>
-+      .solo-help { position: fixed; left: 12px; top: 12px; z-index: 20; max-width: min(260px, 65vw); padding: 8px; background: #fff; color: #111; font: 14px/1.4 system-ui, sans-serif; }
++      .solo-help { position: fixed; left: 12px; top: 12px; z-index: 20; width: min(300px, calc(100vw - 24px)); max-height: calc(100dvh - 150px); overflow: auto; padding: 8px; background: #fff; color: #111; font: 14px/1.4 system-ui, sans-serif; }
 +      .solo-help summary { min-height: 44px; cursor: pointer; }
-+      .solo-help a { color: #111; }
++      .solo-help a { color: inherit; display: inline-block; min-height: 44px; padding-top: 12px; }
++      .solo-help label { display: block; margin: 8px 0; }
++      .solo-help select { display: block; width: 100%; min-height: 44px; font: inherit; }
++      @media (prefers-color-scheme: dark) { .solo-help { background: #20242b; color: #f5f5f5; color-scheme: dark; } }
 +      .solo-help button, .solo-touch button { min-width: 44px; min-height: 44px; padding: 8px; background: #000; color: #fff; border: 2px solid #fff; font: inherit; }
 +      .solo-help :focus-visible, .solo-touch :focus-visible { outline: 3px solid #e58b00; outline-offset: 2px; }
 +      .solo-touch { position: fixed; bottom: 12px; right: 12px; z-index: 20; display: none; grid-template-columns: repeat(3, minmax(44px, 1fr)); gap: 4px; }
 +      .solo-touch button { touch-action: none; user-select: none; }
 +      @media (pointer: coarse) { .solo-touch { display: grid; } #hud .h-map { transform: scale(0.6); transform-origin: bottom left; left: 8px; bottom: 8px; } }
-+      @media (max-width: 600px) { .solo-help { top: 85px; } }
++      @media (max-width: 600px) { .solo-help { top: 12px; } #overlay .nogpu { padding: 90px 20px 120px; } #overlay .nogpu h1 { font-size: 48px; letter-spacing: 0.15em; } #hud .h-clock { top: 85px; } #hud .h-intro { top: 170px; } #hud .h-keys, #hud .h-gadget, #hud .h-tires { bottom: 145px; } #hud .e-inner { gap: 12px; } #hud .e-side { padding-left: 12px; } #hud .e-rows { width: 120px; } }
 +      @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
 +    </style>
-@@ -11,0 +25,15 @@
+@@ -11,0 +29,22 @@
 +    <details class="solo-help">
-+      <summary>Solo free drive - controls</summary>
-+      <p>No cops, rounds or online rooms. Seed 7.</p>
++      <summary>Modes, cars and controls</summary>
++      <p id="solo-mode-label">Offline chase - bot cops and rounds</p>
++      <form method="get">
++        <label>Mode<select id="solo-mode" name="peaceful"><option value="0">Offline chase</option><option value="1">Free drive</option></select></label>
++        <label>Robber car<select id="solo-robber" name="robber"></select></label>
++        <label>Cop car<select id="solo-cop" name="cop"></select></label>
++        <button type="submit">Start selected mode</button>
++      </form>
++      <p>Chase rounds alternate robber and cop. Free drive has no cops or round endings. No online rooms.</p>
 +      <p>WASD or arrows: drive. Space: drift. Shift: nitro. H: engine. Gamepad supported.</p>
-+      <button id="solo-reset" type="button">Restart drive</button>
++      <button id="solo-reset" type="button">Restart round</button>
 +      <p><a href="CREDITS.md">Source and port notes</a></p>
 +    </details>
 +    <nav class="solo-touch" aria-label="Driving controls">
@@ -34,27 +45,30 @@ index c111f5e..5593d5c 100644
 +      <button type="button" data-code="ArrowDown" data-key="ArrowDown">Reverse</button>
 +      <button type="button" data-code="ShiftLeft" data-key="Shift">Nitro</button>
 +    </nav>
+diff --git a/games/getaway/src/game/input.ts b/games/getaway/src/game/input.ts
+index 414c299..06fbe91 100644
+--- a/games/getaway/src/game/input.ts
++++ b/games/getaway/src/game/input.ts
+@@ -20 +20 @@ export class Controls {
+-      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement || e.code === "Escape") return
++      if ((e.target instanceof Element && e.target.closest("input, textarea, select, button, a, summary, [contenteditable]")) || e.code === "Escape") return
 diff --git a/games/getaway/src/game/session.ts b/games/getaway/src/game/session.ts
-index eb38b5d..3596882 100644
+index eb38b5d..1af47bb 100644
 --- a/games/getaway/src/game/session.ts
 +++ b/games/getaway/src/game/session.ts
-@@ -7 +6,0 @@ import type { ChatMsg } from "../../shared/protocol"
--import { BOT_NAMES } from "../../shared/names"
-@@ -30 +29 @@ export interface Session {
+@@ -30 +30 @@ export interface Session {
 -/** Solo practice: the full simulation runs in the browser with bot cops. */
-+/** Offline free driving: upstream simulation with no cops or round endings. */
-@@ -49 +48 @@ export class LocalSession implements Session {
--    this.peaceful = q.get("peaceful") === "1"
-+    this.peaceful = true
-@@ -52 +50,0 @@ export class LocalSession implements Session {
--    if (!this.peaceful) for (let i = 0; i < 4; i++) this.participants.push({ id: `bot${i}`, name: BOT_NAMES[i]!, human: false, picks: { robber: i % 2 ? "compact" : "muscle", cop: i === 1 ? "interceptor" : "cruiser" } })
++/** Offline chase with bot cops, or explicitly selected free driving. */
+@@ -142 +142 @@ export class LocalSession implements Session {
+-    return "solo"
++    return this.peaceful ? "free drive" : "offline chase"
 diff --git a/games/getaway/src/main.ts b/games/getaway/src/main.ts
-index d63c2f0..e0f2f4f 100644
+index d63c2f0..4b93026 100644
 --- a/games/getaway/src/main.ts
 +++ b/games/getaway/src/main.ts
 @@ -14 +14 @@ import { Renderer } from "./render/renderer"
 -import { Chat } from "./ui/chat"
-+import { soloControls } from "./ui/solo-controls"
++import { soloControls, soloSetup } from "./ui/solo-controls"
 @@ -16 +15,0 @@ import { Hud } from "./ui/hud"
 -import { lobby, quickRoom, setRoomParam } from "./ui/lobby"
 @@ -18 +16,0 @@ import { DebugOverlay } from "./ui/debug-overlay"
@@ -63,7 +77,10 @@ index d63c2f0..e0f2f4f 100644
 -/** A message for the next lobby (an idle kick reloads the page back to it). */
 -const NOTICE_KEY = "getaway.notice"
 -
-@@ -32,16 +26,0 @@ function fail(msg: string) {
+@@ -29,17 +24 @@ function fail(msg: string) {
+-  el.innerHTML = `<div class="nogpu"><h1>GETAWAY</h1><p>${msg}</p></div>`
+-}
+-
 -async function connect(choice: Awaited<ReturnType<typeof lobby>>): Promise<Session> {
 -  if (choice.mode === "room" && choice.room) {
 -    const { NetSession, RoomFullError } = await import("./game/net")
@@ -78,15 +95,16 @@ index d63c2f0..e0f2f4f 100644
 -    }
 -  }
 -  return new LocalSession(choice.name, choice.picks)
--}
--
-@@ -53,2 +32 @@ async function main() {
++  el.innerHTML = `<div class="nogpu"><h1>Getaway</h1><p>${msg}</p></div>`
+@@ -48,0 +28 @@ async function main() {
++  const picks = soloSetup()
+@@ -53,2 +33 @@ async function main() {
 -  const device = await adapter.requestDevice({ requiredFeatures: adapter.features.has("timestamp-query") ? ["timestamp-query"] : [] })
 -  const telemetry = new GpuPerf(device)
 +  const device = await adapter.requestDevice()
-@@ -63 +40,0 @@ async function main() {
+@@ -63 +41,0 @@ async function main() {
 -  const staged = (import.meta.env.DEV && q.has("stage")) || q.has("solo") || q.get("peaceful") === "1" || q.has("mux")
-@@ -65,14 +41,0 @@ async function main() {
+@@ -65,14 +42,0 @@ async function main() {
 -  let session: Session | null = null
 -  let choice: Awaited<ReturnType<typeof lobby>> = { mode: "solo", room: null, name: "Dax", picks: { robber: "muscle", cop: "cruiser" } }
 -  let notice = sessionStorage.getItem(NOTICE_KEY)
@@ -101,25 +119,28 @@ index d63c2f0..e0f2f4f 100644
 -      history.replaceState(null, "", location.pathname)
 -    }
 -  }
-@@ -80 +43 @@ async function main() {
+@@ -80 +44 @@ async function main() {
 -  let activeSession: Session = session
-+  let activeSession: Session = new LocalSession("Dax", { robber: "muscle", cop: "cruiser" })
-@@ -96,0 +60 @@ async function main() {
++  let activeSession: Session = new LocalSession("Dax", picks)
+@@ -96,0 +61 @@ async function main() {
 +  soloControls(controls)
-@@ -102 +65,0 @@ async function main() {
+@@ -102 +66,0 @@ async function main() {
 -  const chat = activeSession.chat ? new Chat(document.getElementById("hud")!, controls, activeSession) : null
-@@ -178,6 +140,0 @@ async function main() {
+@@ -117 +81 @@ async function main() {
+-    controls.forward({ type: "mux-ready", protocol: 1, map: activeSession.city.seed, mode: "peaceful", x: mine.x, y: mine.z, vx: mine.vx, vy: mine.vz, h: mine.h })
++    controls.forward({ type: "mux-ready", protocol: 1, map: activeSession.city.seed, mode: activeSession.peaceful ? "peaceful" : "chase", x: mine.x, y: mine.z, vx: mine.vx, vy: mine.vz, h: mine.h })
+@@ -178,6 +141,0 @@ async function main() {
 -    adapterInfo: {
 -      vendor: adapter.info.vendor,
 -      architecture: adapter.info.architecture,
 -      device: adapter.info.device,
 -      description: adapter.info.description,
 -    },
-@@ -216 +172,0 @@ async function main() {
+@@ -216 +173,0 @@ async function main() {
 -      const t0 = performance.now()
-@@ -249 +204,0 @@ async function main() {
+@@ -249 +205,0 @@ async function main() {
 -      if (q.has("smoketiming")) { telemetry.enabled = false; renderer.measureNextFrame() }
-@@ -267,9 +222,2 @@ async function main() {
+@@ -267,9 +223,2 @@ async function main() {
 -      const cpuMs = performance.now() - t0
 -      let gpuMs = cpuMs
 -      if (waitGpu) {
@@ -131,23 +152,23 @@ index d63c2f0..e0f2f4f 100644
 -      return { cpuMs, gpuMs, totalGpuMs, stats: { ...renderer.stats }, pose: focus && { x: focus.x, z: focus.z, h: focus.h, speed: focus.speed }, smoke: { skids: scene.fx.skidCount, connected: scene.trail.count, wisps: scene.emissions.wispCount, flames: scene.emissions.flameCount, pops: scene.emissions.pops }, audio: { view, input, events, myId: activeSession.myId, camera: { fx: cam.fx, fz: cam.fz } } }
 +      if (waitGpu) await device.queue.onSubmittedWorkDone()
 +      return { pose: focus && { x: focus.x, z: focus.z, h: focus.h, speed: focus.speed }, smoke: { skids: scene.fx.skidCount, connected: scene.trail.count, wisps: scene.emissions.wispCount, flames: scene.emissions.flameCount, pops: scene.emissions.pops }, audio: { view, input, events, myId: activeSession.myId, camera: { fx: cam.fx, fz: cam.fz } } }
-@@ -284,6 +231,0 @@ async function main() {
+@@ -284,6 +232,0 @@ async function main() {
 -    const kicked = activeSession.kicked?.()
 -    if (kicked) {
 -      sessionStorage.setItem(NOTICE_KEY, /idle/i.test(kicked) ? "You were kicked for being idle" : kicked)
 -      location.replace(location.pathname)
 -      return
 -    }
-@@ -322,6 +263,0 @@ async function main() {
+@@ -322,6 +264,0 @@ async function main() {
 -    telemetry.enabled = debug.visible || mux
 -    const report = debug.update(now, frameMs, { gpuMs: telemetry.gpuMs, gpuKind: telemetry.gpuKind, draws: telemetry.draws, verts: telemetry.verts, chunks: renderer.stats.chunksDrawn, lights: scene.lightCount })
 -    if (parent !== window) {
 -      const pose = mine ? { x: mine.x, z: mine.z, vx: mine.vx, vz: mine.vz, h: mine.h, yaw: mine.yaw ?? 0, speed: mine.speed } : {}
 -      if (report) parent.postMessage({ type: "arcade-perf", ...debug.sample, ...pose, y: mine?.z, tick: muxTick, run: controls.muxRun }, controls.parentOrigin)
 -    }
-@@ -331 +266,0 @@ async function main() {
+@@ -331 +267,0 @@ async function main() {
 -    chat?.update()
-@@ -340 +275,4 @@ async function main() {
+@@ -340 +276,4 @@ async function main() {
 -void main()
 +void main().catch((error) => {
 +  console.error(error)
@@ -205,6 +226,31 @@ index ed74370..b62c792 100644
 @@ -627,2 +590,0 @@ export class Renderer {
 -    if (this.measure) this.timer!.finish(enc, this.context.getCurrentTexture().createView())
 -    this.measure = false
+diff --git a/games/getaway/src/style.css b/games/getaway/src/style.css
+index a7f24d4..6ff3c16 100644
+--- a/games/getaway/src/style.css
++++ b/games/getaway/src/style.css
+@@ -32 +32 @@ button { font: inherit; color: inherit; }
+-.hud { font-family: var(--display); text-transform: uppercase; font-variant-numeric: tabular-nums; user-select: none; text-shadow: var(--shadow); }
++.hud { font-family: var(--display); text-transform: none; font-variant-numeric: tabular-nums; user-select: none; text-shadow: var(--shadow); }
+@@ -90 +90 @@ button { font: inherit; color: inherit; }
+-.h-end { position: absolute; left: 0; right: 0; bottom: 0; height: 40vh; display: flex; align-items: flex-end; justify-content: center; padding-bottom: 7vh; background: linear-gradient(to top, rgba(3, 4, 8, 0.82), rgba(3, 4, 8, 0.5) 55%, transparent); animation: fadein 0.6s ease-out; }
++.h-end { position: absolute; left: 0; right: 0; bottom: 0; height: 40vh; display: flex; align-items: flex-end; justify-content: center; padding-bottom: 7vh; background: #10141c; animation: fadein 0.6s ease-out; }
+@@ -126 +126 @@ button { font: inherit; color: inherit; }
+-.lb-bg { position: absolute; inset: 0; overflow: hidden; background: radial-gradient(ellipse 70% 50% at 50% 115%, rgba(61, 123, 255, 0.14), transparent 70%), linear-gradient(180deg, #06080d, #0a0d14 60%, #05060a); }
++.lb-bg { position: absolute; inset: 0; overflow: hidden; background: #0a0d14; }
+@@ -128,3 +128,3 @@ button { font: inherit; color: inherit; }
+-.streak.s1 { top: 64%; background: linear-gradient(90deg, transparent, rgba(255, 170, 90, 0.8), #fff); box-shadow: 0 0 14px 1px rgba(255, 138, 31, 0.5); animation: streak 6s 0.4s cubic-bezier(0.5, 0, 0.6, 1) infinite; }
+-.streak.s2 { top: 72%; background: linear-gradient(90deg, transparent, rgba(255, 70, 70, 0.7), #ffd0d0); box-shadow: 0 0 12px 1px rgba(255, 40, 40, 0.4); animation: streak 8s 2.6s cubic-bezier(0.5, 0, 0.6, 1) infinite reverse; }
+-.streak.s3 { top: 80%; background: linear-gradient(90deg, transparent, rgba(110, 160, 255, 0.8), #fff); box-shadow: 0 0 14px 1px rgba(61, 123, 255, 0.45); animation: streak 7s 4.2s cubic-bezier(0.5, 0, 0.6, 1) infinite; }
++.streak.s1 { top: 64%; background: #fff; box-shadow: 0 0 14px 1px rgba(255, 138, 31, 0.5); animation: streak 6s 0.4s cubic-bezier(0.5, 0, 0.6, 1) infinite; }
++.streak.s2 { top: 72%; background: #ffd0d0; box-shadow: 0 0 12px 1px rgba(255, 40, 40, 0.4); animation: streak 8s 2.6s cubic-bezier(0.5, 0, 0.6, 1) infinite reverse; }
++.streak.s3 { top: 80%; background: #fff; box-shadow: 0 0 14px 1px rgba(61, 123, 255, 0.45); animation: streak 7s 4.2s cubic-bezier(0.5, 0, 0.6, 1) infinite; }
+@@ -132,2 +132,2 @@ button { font: inherit; color: inherit; }
+-.lb-siren { position: absolute; left: 0; right: 0; bottom: 0; height: 45%; background: radial-gradient(ellipse 35% 55% at 25% 100%, rgba(255, 40, 60, 0.12), transparent 70%), radial-gradient(ellipse 35% 55% at 75% 100%, rgba(61, 123, 255, 0.14), transparent 70%); animation: siren 1.8s steps(1) infinite; }
+-@keyframes siren { 50% { background: radial-gradient(ellipse 35% 55% at 25% 100%, rgba(61, 123, 255, 0.14), transparent 70%), radial-gradient(ellipse 35% 55% at 75% 100%, rgba(255, 40, 60, 0.12), transparent 70%); } }
++.lb-siren { position: absolute; left: 0; right: 0; bottom: 0; height: 45%; background: #10141c; animation: siren 1.8s steps(1) infinite; }
++@keyframes siren { 50% { background: #10141c; } }
 diff --git a/games/getaway/src/ui/debug-overlay.ts b/games/getaway/src/ui/debug-overlay.ts
 index 399b716..c6ee036 100644
 --- a/games/getaway/src/ui/debug-overlay.ts
@@ -233,6 +279,114 @@ index 399b716..c6ee036 100644
 -    this.header.textContent = `FPS ${s.fps.toFixed(0)} · Frame ms ${s.frameMs.toFixed(1)} / ${s.p95Ms.toFixed(1)}\nGPU ${s.gpuKind === "timestamp" ? "HW" : "queue-wait"} ms ${s.gpuMs?.toFixed(2) ?? "—"}`
 -    return true
 -  }
+diff --git a/games/getaway/src/ui/hud.ts b/games/getaway/src/ui/hud.ts
+index 23d1e65..e4735bd 100644
+--- a/games/getaway/src/ui/hud.ts
++++ b/games/getaway/src/ui/hud.ts
+@@ -98 +98 @@ export class Hud {
+-    e.keys = h("div", "h-keys off", r, "WASD drive · SPACE drift · SHIFT nitro · H engine")
++    e.keys = h("div", "h-keys off", r, "WASD drive · Space drift · Shift nitro · H engine")
+@@ -121,15 +120,0 @@ export class Hud {
+-    e.wait = h(
+-      "div",
+-      "h-wait off",
+-      r,
+-      `<div class="w-line">WAITING FOR PLAYERS</div><div class="w-sub">The round starts when a second driver joins</div><div class="w-invite"><span>ROOM</span><b class="w-code"></b><button type="button">COPY INVITE LINK</button></div>`,
+-    )
+-    e.wCode = e.wait.querySelector(".w-code")!
+-    e.wCopy = e.wait.querySelector("button")!
+-    e.wCopy.addEventListener("click", () => this.copyInvite(e.wCopy!, "COPY INVITE LINK"))
+-
+-    e.room = h("div", "h-room off", r, `<i class="dot"></i><span class="code"></span><button type="button">COPY INVITE</button>`)
+-    e.roomCode = e.room.querySelector(".code")!
+-    e.copy = e.room.querySelector("button")!
+-    e.copy.addEventListener("click", () => this.copyInvite(e.copy!, "COPY INVITE"))
+-
+@@ -142,14 +126,0 @@ export class Hud {
+-  private copyInvite(btn: HTMLElement, label: string) {
+-    const room = this.root.dataset.room
+-    if (!room) return
+-    const url = new URL(location.href)
+-    url.search = `?r=${room}`
+-    void navigator.clipboard?.writeText(url.toString()).then(
+-      () => {
+-        text(btn, "LINK COPIED")
+-        setTimeout(() => text(btn, label), 1500)
+-      },
+-      () => {},
+-    )
+-  }
+-
+@@ -175,2 +145,0 @@ export class Hud {
+-    show(e.wait!, waiting)
+-    if (waiting) text(e.wCode!, ctx.room ?? "—")
+@@ -182 +151 @@ export class Hud {
+-      text(e.cLabel!, isRobber ? "FREE" : "SUSPECT AT LARGE")
++      text(e.cLabel!, ctx.status === "free drive" ? "Free drive" : isRobber ? "Time free" : "Suspect at large")
+@@ -186 +155 @@ export class Hud {
+-      if (best > 0) text(e.cBest!, `BEST ${survival(best)}${view.bestName ? ` · ${view.bestName}` : ""}`)
++      if (best > 0) text(e.cBest!, `Best ${survival(best)}${view.bestName ? ` · ${view.bestName}` : ""}`)
+@@ -194 +163 @@ export class Hud {
+-      text(e.iLine!, isRobber ? "DON'T GET CAUGHT" : `CATCH ${robberName.toUpperCase()}`)
++      text(e.iLine!, isRobber ? "Don't get caught" : `Catch ${robberName}`)
+@@ -196 +165 @@ export class Hud {
+-      text(e.iSub!, view.phase === "headstart" ? `${isRobber ? "COPS IN" : "YOU ROLL IN"} ${Math.max(1, Math.ceil(left))}` : "")
++      text(e.iSub!, view.phase === "headstart" ? `${isRobber ? "Cops in" : "You roll in"} ${Math.max(1, Math.ceil(left))}` : "")
+@@ -199 +168 @@ export class Hud {
+-    text(e.keys!, `WASD drive · SPACE drift · SHIFT nitro · H engine${ctx.room ? " · ENTER chat" : ""}`)
++    text(e.keys!, `WASD drive · Space drift · Shift nitro · H engine${ctx.room ? " · Enter chat" : ""}`)
+@@ -204 +173 @@ export class Hud {
+-    if (mine?.engineOff) text(e.engine!, isRobber && mine.speed < DRIVE.darkSpeed ? "ENGINE OFF · DARK" : "ENGINE OFF")
++    if (mine?.engineOff) text(e.engine!, isRobber && mine.speed < DRIVE.darkSpeed ? "Engine off · dark" : "Engine off")
+@@ -211 +180 @@ export class Hud {
+-    if (idle !== null) text(e.idle!, `IDLE — PRESS ANY KEY · KICK IN ${idle}`)
++    if (idle !== null) text(e.idle!, `Idle - press any key · kick in ${idle}`)
+@@ -213,8 +181,0 @@ export class Hud {
+-    if (ctx.room) this.root.dataset.room = ctx.room
+-    show(e.room!, !!ctx.room && !waiting)
+-    if (ctx.room) {
+-      text(e.roomCode!, ctx.room)
+-      const st = ctx.status.toLowerCase()
+-      attr(e.room!, "data-status", /lost|error|closed|offline/.test(st) ? "bad" : /connecting|reconnect/.test(st) ? "pending" : "ok")
+-      attr(e.room!, "title", ctx.status)
+-    }
+@@ -233 +194 @@ export class Hud {
+-      text(e.gName!, g.id === "spike" ? `${spec.name} · POPS A TIRE` : spec.name)
++      text(e.gName!, g.id === "spike" ? "Spike strip · pops a tire" : spec.name.toLowerCase())
+@@ -246 +207 @@ export class Hud {
+-      text(e.tLine!, flats === 4 ? "ON THE RIMS" : `${flats}/4 FLAT · FIND A GARAGE`)
++      text(e.tLine!, flats === 4 ? "On the rims" : `${flats}/4 flat · find a garage`)
+@@ -253 +214 @@ export class Hud {
+-        text(e.tRepairLine!, cool > 0 ? `SHOP BUSY · ${Math.ceil(cool)}S` : me.speed >= 2 ? "STOP TO REPAIR" : "REPAIRING")
++        text(e.tRepairLine!, cool > 0 ? `Shop busy · ${Math.ceil(cool)}s` : me.speed >= 2 ? "Stop to repair" : "Repairing")
+@@ -260 +221 @@ export class Hud {
+-    if (tipped && !ctx.events.some((ev) => ev.kind === "flat")) this.flashText(isRobber ? "DISPATCH HAS YOUR AREA" : "DISPATCH TIP · CHECK MAP", isRobber ? "bad" : "")
++    if (tipped && !ctx.events.some((ev) => ev.kind === "flat")) this.flashText(isRobber ? "Dispatch has your area" : "Dispatch tip · check map", isRobber ? "bad" : "")
+@@ -265,2 +226,2 @@ export class Hud {
+-      if (isRobber) this.flashText(n >= 4 ? "ON THE RIMS" : `TIRE POPPED · ${n}/4`, "bad")
+-      else this.flashText(n >= 4 ? "SPIKED! ON THE RIMS" : `SPIKED! ${n}/4 TIRES`, "")
++      if (isRobber) this.flashText(n >= 4 ? "On the rims" : `Tire popped · ${n}/4`, "bad")
++      else this.flashText(n >= 4 ? "Spiked! On the rims" : `Spiked! ${n}/4 tires`, "")
+@@ -269 +230 @@ export class Hud {
+-    if (fixed && live) this.flashText(isRobber ? "TIRES REPAIRED" : "SUSPECT'S TIRES REPAIRED", isRobber ? "good" : "")
++    if (fixed && live) this.flashText(isRobber ? "Tires repaired" : "Suspect's tires repaired", isRobber ? "good" : "")
+@@ -305 +266 @@ export class Hud {
+-      text(e.tagName!, target.ghost ? "LAST SEEN" : target.name)
++      text(e.tagName!, target.ghost ? "Last seen" : target.name)
+@@ -319,2 +280,2 @@ export class Hud {
+-      const title = view.escaped ? "GOT AWAY" : "BUSTED"
+-      const who = isRobber ? "YOU STAYED FREE FOR" : `${esc(robberName.toUpperCase())} STAYED FREE FOR`
++      const title = view.escaped ? "Got away" : "Busted"
++      const who = isRobber ? "You stayed free for" : `${esc(robberName)} stayed free for`
+@@ -323 +284 @@ export class Hud {
+-        .map((s) => `<li class="${s.id === ctx.myId ? "me" : ""}"><span>${esc(s.name)}</span><b>${s.best !== undefined ? (s.best > 0 ? survival(s.best) : "—") : Math.round(s.score ?? 0).toLocaleString("en-US")}</b></li>`)
++        .map((s) => `<li class="${s.id === ctx.myId ? "me" : ""}"><span>${esc(s.name)}</span><b>${s.best !== undefined ? (s.best > 0 ? survival(s.best) : "-") : Math.round(s.score ?? 0).toLocaleString("en-US")}</b></li>`)
+@@ -329 +290 @@ export class Hud {
+-          <div class="e-time">${survival(survived)}${newBest ? `<span class="e-best">NEW BEST</span>` : ""}</div>
++          <div class="e-time">${survival(survived)}${newBest ? `<span class="e-best">New best</span>` : ""}</div>
+@@ -333 +294 @@ export class Hud {
+-          <div class="e-next">NEXT ROUND IN <b></b></div>
++          <div class="e-next">Next round in <b></b></div>
 diff --git a/games/getaway/vite.config.ts b/games/getaway/vite.config.ts
 index 0c29f46..2778be9 100644
 --- a/games/getaway/vite.config.ts
@@ -242,14 +396,33 @@ index 0c29f46..2778be9 100644
 +    rollupOptions: { input: new URL("./index.html", import.meta.url).pathname },
 diff --git a/games/getaway/src/ui/solo-controls.ts b/games/getaway/src/ui/solo-controls.ts
 new file mode 100644
-index 0000000..ec6750b
+index 0000000..1192b08
 --- /dev/null
 +++ b/games/getaway/src/ui/solo-controls.ts
-@@ -0,0 +1,17 @@
+@@ -0,0 +1,36 @@
 +import type { Controls } from "../game/input"
++import { VEHICLES } from "../../shared/config"
++
++/** Bind the shell before requesting a GPU, so every failure still has a restart. */
++export function soloSetup() {
++  document.getElementById("solo-reset")!.addEventListener("click", () => location.reload())
++  const q = new URLSearchParams(location.search)
++  const mode = document.getElementById("solo-mode") as HTMLSelectElement
++  mode.value = q.get("peaceful") === "1" ? "1" : "0"
++  const picks = { robber: "muscle", cop: "cruiser" }
++  for (const role of ["robber", "cop"] as const) {
++    const select = document.getElementById(`solo-${role}`) as HTMLSelectElement
++    for (const vehicle of VEHICLES.filter(v => v.role === role)) select.add(new Option(vehicle.name, vehicle.id))
++    const requested = q.get(role)
++    if (VEHICLES.some(v => v.role === role && v.id === requested)) picks[role] = requested!
++    select.value = picks[role]
++  }
++  document.getElementById("solo-mode-label")!.textContent = mode.value === "1" ? "Free drive - no cops or rounds" : "Offline chase - bot cops and rounds"
++  return picks
++}
 +
 +export function soloControls(controls: Controls) {
-+  document.getElementById("solo-reset")!.addEventListener("click", () => location.reload())
++  document.querySelector(".solo-help")!.addEventListener("focusin", () => controls.release())
 +  for (const button of document.querySelectorAll<HTMLButtonElement>(".solo-touch button")) {
 +    const { code, key } = button.dataset
 +    button.addEventListener("pointerdown", (event) => {
@@ -263,3 +436,15 @@ index 0000000..ec6750b
 +    button.addEventListener("lostpointercapture", release)
 +  }
 +}
+diff --git a/games/getaway/solo-verification.ts b/games/getaway/solo-verification.ts
+new file mode 100644
+index 0000000..6cb6635
+--- /dev/null
++++ b/games/getaway/solo-verification.ts
+@@ -0,0 +1,6 @@
++// Test-only exports: no renderer or networking. Not imported by the game.
++export { LocalSession } from "./src/game/session"
++export { Hud } from "./src/ui/hud"
++export { Camera } from "./src/game/camera"
++export { Controls } from "./src/game/input"
++export { soloControls } from "./src/ui/solo-controls"

@@ -3,21 +3,29 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Getaway - Solo Free Drive</title>
+    <meta name="description" content="Offline Getaway bot-cop chases and a separate free-drive mode, with vehicle selection. Requires WebGPU." />
+    <title>Getaway - Offline Chase</title>
     <link rel="icon" href="data:," />
-    <style>.solo-help{z-index:20;color:#111;background:#fff;max-width:min(260px,65vw);padding:8px;font:14px/1.4 system-ui,sans-serif;position:fixed;top:12px;left:12px}.solo-help summary{cursor:pointer;min-height:44px}.solo-help a{color:#111}.solo-help button,.solo-touch button{color:#fff;min-width:44px;min-height:44px;font:inherit;background:#000;border:2px solid #fff;padding:8px}.solo-help :focus-visible,.solo-touch :focus-visible{outline-offset:2px;outline:3px solid #e58b00}.solo-touch{z-index:20;grid-template-columns:repeat(3,minmax(44px,1fr));gap:4px;display:none;position:fixed;bottom:12px;right:12px}.solo-touch button{touch-action:none;user-select:none}@media (pointer:coarse){.solo-touch{display:grid}#hud .h-map{transform-origin:0 100%;bottom:8px;left:8px;transform:scale(.6)}}@media (width<=600px){.solo-help{top:85px}}@media (prefers-reduced-motion:reduce){*,:before,:after{transition:none!important;animation:none!important}}</style>
-    <script type="module" crossorigin src="./assets/index-BImQ70V8.js"></script>
-    <link rel="stylesheet" crossorigin href="./assets/index-DGjfM0K0.css">
+    <style>.solo-help{z-index:20;color:#111;background:#fff;width:min(300px,100vw - 24px);max-height:calc(100dvh - 150px);padding:8px;font:14px/1.4 system-ui,sans-serif;position:fixed;top:12px;left:12px;overflow:auto}.solo-help summary{cursor:pointer;min-height:44px}.solo-help a{color:inherit;min-height:44px;padding-top:12px;display:inline-block}.solo-help label{margin:8px 0;display:block}.solo-help select{width:100%;min-height:44px;font:inherit;display:block}@media (prefers-color-scheme:dark){.solo-help{color:#f5f5f5;color-scheme:dark;background:#20242b}}.solo-help button,.solo-touch button{color:#fff;min-width:44px;min-height:44px;font:inherit;background:#000;border:2px solid #fff;padding:8px}.solo-help :focus-visible,.solo-touch :focus-visible{outline-offset:2px;outline:3px solid #e58b00}.solo-touch{z-index:20;grid-template-columns:repeat(3,minmax(44px,1fr));gap:4px;display:none;position:fixed;bottom:12px;right:12px}.solo-touch button{touch-action:none;user-select:none}@media (pointer:coarse){.solo-touch{display:grid}#hud .h-map{transform-origin:0 100%;bottom:8px;left:8px;transform:scale(.6)}}@media (width<=600px){.solo-help{top:12px}#overlay .nogpu{padding:90px 20px 120px}#overlay .nogpu h1{letter-spacing:.15em;font-size:48px}#hud .h-clock{top:85px}#hud .h-intro{top:170px}#hud .h-keys,#hud .h-gadget,#hud .h-tires{bottom:145px}#hud .e-inner{gap:12px}#hud .e-side{padding-left:12px}#hud .e-rows{width:120px}}@media (prefers-reduced-motion:reduce){*,:before,:after{transition:none!important;animation:none!important}}</style>
+    <script type="module" crossorigin src="./assets/index-ChBSgqUR.js"></script>
+    <link rel="stylesheet" crossorigin href="./assets/index-CGGLS3-W.css">
   </head>
   <body>
     <canvas id="view"></canvas>
     <div id="hud"></div>
     <div id="overlay"></div>
     <details class="solo-help">
-      <summary>Solo free drive - controls</summary>
-      <p>No cops, rounds or online rooms. Seed 7.</p>
+      <summary>Modes, cars and controls</summary>
+      <p id="solo-mode-label">Offline chase - bot cops and rounds</p>
+      <form method="get">
+        <label>Mode<select id="solo-mode" name="peaceful"><option value="0">Offline chase</option><option value="1">Free drive</option></select></label>
+        <label>Robber car<select id="solo-robber" name="robber"></select></label>
+        <label>Cop car<select id="solo-cop" name="cop"></select></label>
+        <button type="submit">Start selected mode</button>
+      </form>
+      <p>Chase rounds alternate robber and cop. Free drive has no cops or round endings. No online rooms.</p>
       <p>WASD or arrows: drive. Space: drift. Shift: nitro. H: engine. Gamepad supported.</p>
-      <button id="solo-reset" type="button">Restart drive</button>
+      <button id="solo-reset" type="button">Restart round</button>
       <p><a href="CREDITS.md">Source and port notes</a></p>
     </details>
     <nav class="solo-touch" aria-label="Driving controls">
