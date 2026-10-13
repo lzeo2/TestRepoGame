@@ -1285,7 +1285,7 @@
     "title": "Blackout",
     "cat": "action",
     "icon": "",
-    "desc": "Top-down stealth shooter. Solo sandbox vs idle bots, seed-1 open world. WebGPU game - needs a modern PC browser. Ported from Anomaly's arcade (static, solo).",
+    "desc": "Offline top-down bot matches with mode and map selection, scoring and replay, plus a seed-1 target sandbox. Requires WebGPU; rendered gameplay remains hardware-unverified. Original game by Anomaly, adapted for local solo play.",
     "url": "Games/Blackout/index.html",
     "featured": false,
     "tags": [

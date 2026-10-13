@@ -1,19 +1,28 @@
---- a/games/blackout/vite.config.ts
-+++ b/games/blackout/vite.config.ts
-@@ -5 +5 @@
--  build: { target: "esnext", outDir: "dist/arcade/blackout", emptyOutDir: true, rollupOptions: { input: { main: "index.html", compare: "compare.html" } } },
-+  build: { target: "esnext", outDir: "dist/arcade/blackout", emptyOutDir: true, rollupOptions: { input: { main: "index.html", check: "check-solo.html" } } },
+diff --git a/games/blackout/index.html b/games/blackout/index.html
+index 3da4f37..1747682 100644
 --- a/games/blackout/index.html
 +++ b/games/blackout/index.html
-@@ -12,0 +13,16 @@
+@@ -3,13 +3,30 @@
+   <head>
+     <meta charset="UTF-8" />
+     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+-    <title>BLACKOUT</title>
++    <title>Blackout</title>
++    <meta name="description" content="Offline Blackout bot matches with mode and map selection, plus a target sandbox. Requires WebGPU. Original game by Anomaly." />
+     <link rel="icon" href="data:," />
+   </head>
+   <body>
+     <canvas id="view"></canvas>
+     <div id="hud"></div>
+     <div id="menu"></div>
 +    <details id="solo-help">
 +      <summary>Solo controls</summary>
-+      <p>Seed 1 by default. Passive targets, unlimited ammunition. B toggles live bots. No server needed.</p>
++      <p>Bot matches: random maps, scoring, round ends and automatic replay. Tab or T opens match reset and mode voting. Sandbox: seed 1 by default, passive targets, unlimited ammunition; B toggles live bots. No server needed.</p>
 +      <p>WASD or arrows: move. Mouse: aim. Left click: fire. Right click: look ahead. Shift: sprint. G: equipment. 1/2/3: weapon. 4/5: equipment. Tab or T: scores. M: mute.</p>
 +      <p>Touch: arrows to move, drag on the scene to aim, Fire to shoot.</p>
 +      <button id="restart" type="button">Restart</button>
-+      <a href="?practice=1&amp;seed=1">Local bot match</a>
-+      <a href="?seed=1">Solo sandbox</a>
++      <a href="./">Back to menu</a>
++      <a href="?sandbox=1&amp;seed=1">Target sandbox</a>
 +    </details>
 +    <div id="touch-controls" aria-label="Touch controls">
 +      <button type="button" data-key="ArrowLeft" aria-label="Move left">Left</button>
@@ -22,89 +31,34 @@
 +      <button type="button" data-key="ArrowRight" aria-label="Move right">Right</button>
 +      <button type="button" data-fire>Fire</button>
 +    </div>
---- a/games/blackout/src/main.ts
-+++ b/games/blackout/src/main.ts
-@@ -5 +4,0 @@
--import type { MapChoice } from "../shared/maps"
-@@ -11 +9,0 @@
--import { NetSession, REJOIN_KEY } from "./game/net"
-@@ -19 +16,0 @@
--import { GpuPerf } from "@arcade/kit/gpu-perf"
-@@ -27 +24 @@
--async function gpu(canvas: HTMLCanvasElement): Promise<{ renderer: Renderer; telemetry: GpuPerf } | string> {
-+async function gpu(canvas: HTMLCanvasElement): Promise<{ renderer: Renderer } | string> {
-@@ -31 +28 @@
--  const device = await adapter.requestDevice({ requiredFeatures: adapter.features.has("timestamp-query") ? ["timestamp-query"] : [] })
-+  const device = await adapter.requestDevice()
-@@ -36,2 +33 @@
--  const telemetry = new GpuPerf(device)
--  return { renderer: new Renderer(device, context, format), telemetry }
-+  return { renderer: new Renderer(device, context, format) }
-@@ -42,0 +39 @@
-+  document.getElementById("restart")!.addEventListener("click", () => location.reload())
-@@ -50,2 +47 @@
--  const { renderer, telemetry } = graphics
--  const roomParam = (params.get("room") ?? "").toLowerCase().replace(/[^a-z0-9]/g, "").slice(0, 8) || null
-+  const { renderer } = graphics
-@@ -82,14 +77,0 @@
--  const fatal = (message: string) => {
--    session?.close()
--    session = null
--    game = null
--    hud.show(false)
--    history.replaceState(null, "", location.pathname)
--    menus.landing(null, message)
--  }
--  const base = location.pathname.replace(/[^/]*$/, "")
--  const api = (path: string) => fetch(`${base}api/${path}`, { method: "POST" }).then((r) => r.json() as Promise<{ room: string }>)
--  const enter = (name: string, room: string, priv = false, mode: ModeId | null = null, maps: MapChoice | null = null) => {
--    history.replaceState(null, "", `?room=${room}`)
--    begin(name, (n) => new NetSession(room, n, gun, equip, fatal, priv, mode, maps))
--  }
-@@ -109 +90,0 @@
--  const failed = (e: unknown) => menus.landing(null, `Couldn't reach the server (${e instanceof Error ? e.message : String(e)}).`)
-@@ -111 +92 @@
--    quick: (name) => api("quick").then((r) => enter(name, r.room), failed),
-+    quick: sandbox,
-@@ -114,2 +95,2 @@
--    create: (name, mode, maps) => api("create").then((r) => enter(name, r.room, true, mode, maps), failed),
--    join: (name, room) => enter(name, room),
-+    create: sandbox,
-+    join: sandbox,
-@@ -122,4 +102,0 @@
--  if (!params.has("practice") && params.get("peaceful") !== "1" && params.get("sandbox") !== "1" && !input.mux) fetch(`${base}api/stats`)
--    .then((r) => r.json() as Promise<{ players: number; games: number }>)
--    .then((s) => menus.stats(s.players, s.games))
--    .catch(() => {})
-@@ -152,8 +129,3 @@
--  if (!input.mux && params.get("peaceful") !== "1" && !params.has("practice")) menus.landing(roomParam)
--  // Back from a version reload: straight into the same room.
--  const rejoin = sessionStorage.getItem(REJOIN_KEY)
--  sessionStorage.removeItem(REJOIN_KEY)
--  if (rejoin && rejoin === roomParam) enter(localStorage.getItem(NAME_KEY) ?? "", rejoin)
--  // Dev and screenshots: a local match against bots, no server.
--  if (params.get("peaceful") === "1" || params.get("sandbox") === "1" || input.mux) sandbox(localStorage.getItem(NAME_KEY) ?? "you")
--  else if (params.has("practice")) begin(localStorage.getItem(NAME_KEY) ?? "you", (n) => new LocalSession(n, gun, equip, modeOf(params.get("mode")) ?? "ffa", params.get("map")))
-+  // Offline default: seed 1, passive targets. B enables the upstream local bots.
-+  if (params.has("practice")) begin(localStorage.getItem(NAME_KEY) ?? "you", (n) => new LocalSession(n, gun, equip, modeOf(params.get("mode")) ?? "ffa", params.get("map")))
-+  else sandbox(localStorage.getItem(NAME_KEY) ?? "you")
-@@ -227,7 +198,0 @@
--      telemetry.enabled = debug.visible || input.mux
--      const chunks = renderer.drawnChunks
--      const perf = debug.sample(now, elapsed, telemetry, chunks, game.lightCount)
--      if (perf && parent !== window) {
--        const screen = body ? cam.project(body.x, 0.85, body.y, w, h) : null
--        parent.postMessage({ type: "arcade-perf", ...perf, ...game.muxState(), tick: muxTick, map: game.map.seed, alive, screenX: screen ? screen.x / w : null, screenY: screen ? screen.y / h : null, run: input.muxRun }, input.parentOrigin)
--      }
+     <script type="module" src="/src/main.ts"></script>
+   </body>
+ </html>
+diff --git a/games/blackout/src/game/input.ts b/games/blackout/src/game/input.ts
+index cea2287..22ed9fc 100644
 --- a/games/blackout/src/game/input.ts
 +++ b/games/blackout/src/game/input.ts
-@@ -27 +27 @@
+@@ -24,14 +24,14 @@ export class Input {
+   enabled = false
+   onKey: ((code: string) => void) | null = null
+   onWheel: ((delta: number) => void) | null = null
 -  readonly mux = new URLSearchParams(location.search).has("mux") && parent !== window
 +  readonly mux = false
-@@ -34 +34 @@
+   readonly parentOrigin = document.referrer ? new URL(document.referrer).origin : location.origin
+   readonly muxRun = new URLSearchParams(location.search).get("muxRun") ?? ""
+
+   constructor(canvas: HTMLElement) {
+     canvas.tabIndex = -1
+     addEventListener("keydown", (e) => {
 -      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return
 +      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement || (e.target instanceof Element && e.target.closest("#solo-help, #touch-controls"))) return
-@@ -65,0 +66,21 @@
+       if (e.code === "Tab") e.preventDefault()
+       if (["Space", "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.code)) e.preventDefault()
+       const msg: MuxKey = { type: "mux-key", kind: "keydown", code: e.code, key: e.key, shiftKey: e.shiftKey, altKey: e.altKey, metaKey: e.metaKey, ctrlKey: e.ctrlKey }
+@@ -63,6 +63,27 @@ export class Input {
+       this.mouseEvent(e, { wheel: e.deltaY })
+     }, { passive: false })
+     canvas.addEventListener("contextmenu", (e) => e.preventDefault())
 +    for (const type of ["pointerdown", "pointermove"] as const) canvas.addEventListener(type, (e) => {
 +      if (e.pointerType !== "touch") return
 +      e.preventDefault()
@@ -126,12 +80,233 @@
 +      button.addEventListener("pointercancel", release)
 +      button.addEventListener("lostpointercapture", release)
 +    }
-@@ -77 +98 @@
+     addEventListener("message", (e) => {
+       if (!this.accepts(e)) return
+       const m = e.data
+@@ -74,7 +95,7 @@ export class Input {
+
+   accepts(e: MessageEvent): boolean { return this.mux && e.source === parent && e.origin === this.parentOrigin && e.data?.run === this.muxRun }
+
 -  forward(message: object): void { if (this.mux) parent.postMessage({ ...message, run: this.muxRun }, this.parentOrigin) }
 +  forward(_message: object): void {}
+
+   release(): void {
+     this.keys.clear()
+diff --git a/games/blackout/src/main.ts b/games/blackout/src/main.ts
+index 9084c31..16a1fef 100644
+--- a/games/blackout/src/main.ts
++++ b/games/blackout/src/main.ts
+@@ -2,13 +2,11 @@ import "./style.css"
+ import "@fontsource/ibm-plex-mono/400.css"
+ import "@fontsource/ibm-plex-mono/500.css"
+ import { EQUIP_IDS, type Equip, GUN_IDS, type Gun } from "../shared/config"
+-import type { MapChoice } from "../shared/maps"
+ import { cleanName } from "../shared/protocol"
+ import { MODE_IDS, type ModeId, modeOf } from "../shared/sim/modes"
+ import { Sound } from "./audio/sound"
+ import { Game, SandboxSession } from "./game/game"
+ import { Input, type MuxState } from "./game/input"
+-import { NetSession, REJOIN_KEY } from "./game/net"
+ import { LocalSession, type Session } from "./game/session"
+ import { Camera } from "./render/camera"
+ import { Renderer } from "./render/renderer"
+@@ -16,39 +14,31 @@ import { Hud } from "./ui/hud"
+ import { Menus } from "./ui/menus"
+ import { ModeHud } from "./ui/modes-hud"
+ import { DebugOverlay, juiceSettings, LOOK_LABELS } from "./ui/debug-overlay"
+-import { GpuPerf } from "@arcade/kit/gpu-perf"
+-import { Rng } from "../shared/rng"
+
+ const MAX_DPR = 1.5
+ const NAME_KEY = "blackout.name"
+ const GUN_KEY = "blackout.gun"
+ const EQUIP_KEY = "blackout.equip"
+
+-async function gpu(canvas: HTMLCanvasElement): Promise<{ renderer: Renderer; telemetry: GpuPerf } | string> {
+-  if (!navigator.gpu) return "BLACKOUT needs WebGPU. Use a recent Chrome, Edge or Safari over https or localhost."
++async function gpu(canvas: HTMLCanvasElement, failed: (message: string) => void): Promise<{ renderer: Renderer } | string> {
++  if (!navigator.gpu) return "Blackout needs WebGPU. Use a recent Chrome, Edge or Safari over https or localhost."
+   const adapter = await navigator.gpu.requestAdapter({ powerPreference: "high-performance" })
+   if (!adapter) return "No WebGPU adapter is available on this device."
+-  const device = await adapter.requestDevice({ requiredFeatures: adapter.features.has("timestamp-query") ? ["timestamp-query"] : [] })
+-  device.addEventListener("uncapturederror", (e) => console.error(`[gpu] ${e.error.message}`))
++  const device = await adapter.requestDevice()
++  device.addEventListener("uncapturederror", (e) => { console.error(`[gpu] ${e.error.message}`); failed(`Graphics error: ${e.error.message}`) })
++  void device.lost.then(info => failed(`Graphics device lost: ${info.message || info.reason}. Restart to retry.`))
+   const context = canvas.getContext("webgpu")!
+   const format = navigator.gpu.getPreferredCanvasFormat()
+   context.configure({ device, format, alphaMode: "opaque" })
+-  const telemetry = new GpuPerf(device)
+-  return { renderer: new Renderer(device, context, format), telemetry }
++  return { renderer: new Renderer(device, context, format) }
+ }
+
+ async function main() {
+   const canvas = document.getElementById("view") as HTMLCanvasElement
+   const menuEl = document.getElementById("menu")!
+-  const graphics = await gpu(canvas)
+-  if (typeof graphics === "string") {
+-    menuEl.className = "full"
+-    menuEl.innerHTML = `<div class="landing"><div class="logo">BLACKOUT</div><div class="notice">${graphics}</div></div>`
+-    return
+-  }
++  document.getElementById("restart")!.addEventListener("click", () => location.reload())
+   const params = new URLSearchParams(location.search)
+-  const { renderer, telemetry } = graphics
+-  const roomParam = (params.get("room") ?? "").toLowerCase().replace(/[^a-z0-9]/g, "").slice(0, 8) || null
++  let renderer: Renderer | null = null
+   const storedGun = localStorage.getItem(GUN_KEY) as Gun | null
+   let gun: Gun = storedGun && GUN_IDS.includes(storedGun) ? storedGun : "rifle"
+   const storedEquip = localStorage.getItem(EQUIP_KEY) as Equip | null
+@@ -68,61 +58,62 @@ async function main() {
+   let session: Session | null = null
+   let game: Game | null = null
+
+-  const begin = (name: string, s: (name: string) => Session) => {
++  const failed = (message: string) => {
++    session?.close()
++    session = null
++    game = null
++    input.release()
++    hud.show(false)
++    menus.landing(message)
++  }
++  const begin = async (name: string, s: (name: string) => Session) => {
++    sound.start()
++    try {
++      if (!renderer) {
++        const graphics = await Promise.race([
++          gpu(canvas, failed),
++          new Promise<string>(resolve => setTimeout(() => resolve("Graphics startup timed out. Restart to retry."), 10000)),
++        ])
++        if (typeof graphics === "string") { failed(graphics); return false }
++        renderer = graphics.renderer
++        resize()
++      }
++    } catch (error) {
++      failed(`Graphics startup failed: ${error instanceof Error ? error.message : String(error)}`)
++      return false
++    }
+     const clean = cleanName(name)
+     localStorage.setItem(NAME_KEY, clean)
+-    sound.start()
+     session?.close()
+     input.release()
+     session = s(clean)
+     game = new Game(renderer, session, sound, settings)
+     menus.hide()
+     hud.show(true)
+-  }
+-  const fatal = (message: string) => {
+-    session?.close()
+-    session = null
+-    game = null
+-    hud.show(false)
+-    history.replaceState(null, "", location.pathname)
+-    menus.landing(null, message)
+-  }
+-  const base = location.pathname.replace(/[^/]*$/, "")
+-  const api = (path: string) => fetch(`${base}api/${path}`, { method: "POST" }).then((r) => r.json() as Promise<{ room: string }>)
+-  const enter = (name: string, room: string, priv = false, mode: ModeId | null = null, maps: MapChoice | null = null) => {
+-    history.replaceState(null, "", `?room=${room}`)
+-    begin(name, (n) => new NetSession(room, n, gun, equip, fatal, priv, mode, maps))
++    document.getElementById("solo-help")!.removeAttribute("open")
++    ;(document.activeElement as HTMLElement)?.blur()
++    return true
+   }
+   const vote = (mode: ModeId) => session?.send({ type: "vote", mode })
+   const rawSeed = Number(params.get("seed") ?? 1)
+   const seed = Number.isFinite(rawSeed) ? rawSeed : 1
+-  const sandbox = (name: string) => {
+-    const random = new Rng(seed)
+-    Math.random = () => random.next()
+-    begin(name, (n) => new SandboxSession(n, input.mux ? "rifle" : gun, input.mux ? "frag" : equip, seed))
++  const sandbox = async (name: string) => {
++    if (!await begin(name, (n) => new SandboxSession(n, input.mux ? "rifle" : gun, input.mux ? "frag" : equip, seed))) return
+     cam.zoomOffset = 0
+     game!.update(0, input, cam, innerWidth, innerHeight, 0)
+     if (game!.body) cam.snap(game!.body.x, game!.body.y)
+     cam.update(innerWidth / innerHeight)
+   }
+   let scores = false
+-  const failed = (e: unknown) => menus.landing(null, `Couldn't reach the server (${e instanceof Error ? e.message : String(e)}).`)
+   const menus = new Menus(menuEl, localStorage.getItem(NAME_KEY) ?? "", {
+-    quick: (name) => api("quick").then((r) => enter(name, r.room), failed),
+-    practice: (name, mode) => begin(name, (n) => new LocalSession(n, gun, equip, mode)),
+     sandbox,
+-    create: (name, mode, maps) => api("create").then((r) => enter(name, r.room, true, mode, maps), failed),
+-    join: (name, room) => enter(name, room),
++    create: (name, mode, maps) => { void begin(name, (n) => new LocalSession(n, gun, equip, mode, maps)) },
+     vote,
+     team: (id, team) => session?.send({ type: "team", id, team }),
+     shuffle: () => session?.send({ type: "shuffle" }),
+     maps: (maps) => session?.send({ type: "host", action: "maps", maps }),
+     host: (mode, newFloor) => session?.send(mode ? { type: "host", action: "mode", mode, newFloor } : { type: "host", action: "reset", newFloor }),
+   })
+-  if (!params.has("practice") && params.get("peaceful") !== "1" && params.get("sandbox") !== "1" && !input.mux) fetch(`${base}api/stats`)
+-    .then((r) => r.json() as Promise<{ players: number; games: number }>)
+-    .then((s) => menus.stats(s.players, s.games))
+-    .catch(() => {})
+   input.onKey = (code) => {
+     if (code === "Backquote") debug.toggle()
+     if (code === "KeyB" && params.get("peaceful") !== "1" && session instanceof SandboxSession) session.toggleBots()
+@@ -149,24 +140,18 @@ async function main() {
+       session.send({ type: "equip", equip })
+     }
+   }
+-  if (!input.mux && params.get("peaceful") !== "1" && !params.has("practice")) menus.landing(roomParam)
+-  // Back from a version reload: straight into the same room.
+-  const rejoin = sessionStorage.getItem(REJOIN_KEY)
+-  sessionStorage.removeItem(REJOIN_KEY)
+-  if (rejoin && rejoin === roomParam) enter(localStorage.getItem(NAME_KEY) ?? "", rejoin)
+-  // Dev and screenshots: a local match against bots, no server.
+-  if (params.get("peaceful") === "1" || params.get("sandbox") === "1" || input.mux) sandbox(localStorage.getItem(NAME_KEY) ?? "you")
+-  else if (params.has("practice")) begin(localStorage.getItem(NAME_KEY) ?? "you", (n) => new LocalSession(n, gun, equip, modeOf(params.get("mode")) ?? "ffa", params.get("map")))
+-
+   const resize = () => {
+     const dpr = Math.min(devicePixelRatio, MAX_DPR)
+     canvas.width = Math.max(1, Math.floor(innerWidth * dpr))
+     canvas.height = Math.max(1, Math.floor(innerHeight * dpr))
+-    renderer.resize(canvas.width, canvas.height)
++    renderer?.resize(canvas.width, canvas.height)
+     document.documentElement.style.setProperty("--hud", String(Math.max(0.55, Math.min(1, innerWidth / 1500, innerHeight / 950))))
+   }
+   resize()
+   addEventListener("resize", resize)
++  menus.landing()
++  if (params.has("practice")) void begin(localStorage.getItem(NAME_KEY) ?? "you", (n) => new LocalSession(n, gun, equip, modeOf(params.get("mode")) ?? "ffa", params.get("map")))
++  else if (params.has("sandbox")) void sandbox(localStorage.getItem(NAME_KEY) ?? "you")
+
+   let last = performance.now()
+   let muxTick = 0
+@@ -201,7 +186,7 @@ async function main() {
+     last = now
+     const w = innerWidth
+     const h = innerHeight
+-    if (game && session) {
++    if (game && session && renderer) {
+       input.enabled = game.snap?.phase === "play"
+       if (!input.mux) game.update(dt, input, cam, w, h, now)
+       const body = game.body ? game.drawn : null
+@@ -224,13 +209,6 @@ async function main() {
+       hud.update(game, cam, w, h, input.mouse, session.status())
+       modeHud.update(game, cam, w, h)
+       menus.update(game.snap, game.roster, session.myId, session.room, input.held("Tab") || scores, (id) => game!.colorOf(id))
+-      telemetry.enabled = debug.visible || input.mux
+-      const chunks = renderer.drawnChunks
+-      const perf = debug.sample(now, elapsed, telemetry, chunks, game.lightCount)
+-      if (perf && parent !== window) {
+-        const screen = body ? cam.project(body.x, 0.85, body.y, w, h) : null
+-        parent.postMessage({ type: "arcade-perf", ...perf, ...game.muxState(), tick: muxTick, map: game.map.seed, alive, screenX: screen ? screen.x / w : null, screenY: screen ? screen.y / h : null, run: input.muxRun }, input.parentOrigin)
+-      }
+     }
+     requestAnimationFrame(frame)
+   }
+diff --git a/games/blackout/src/style.css b/games/blackout/src/style.css
+index 2dd9616..e18c0ca 100644
 --- a/games/blackout/src/style.css
 +++ b/games/blackout/src/style.css
-@@ -0,0 +1,32 @@
+@@ -1,3 +1,35 @@
 +#solo-help {
 +  position: fixed;
 +  top: 8px;
@@ -164,14 +339,96 @@
 +  #touch-controls button { padding: 8px; }
 +}
 +
+ :root {
+   --ink: #eef1f6;
+   --dim: #9aa3b5;
+@@ -42,7 +74,8 @@ input {
+ }
+
+ button {
+-  background: rgba(255, 255, 255, 0.03);
++  background: #000;
++  min-height: 44px;
+   border: 1px solid var(--line);
+   padding: 10px 16px;
+   letter-spacing: 0.18em;
+@@ -54,8 +87,8 @@ button:hover {
+ }
+
+ button.primary {
+-  background: var(--ink);
+-  color: #0a0d16;
++  background: #000;
++  color: var(--ink);
+   border-color: var(--ink);
+   font-weight: 500;
+ }
+@@ -72,6 +105,9 @@ input {
+ input:focus {
+   border-color: rgba(255, 255, 255, 0.6);
+ }
++button:focus-visible, input:focus-visible, a:focus-visible { outline: 3px solid #fff; outline-offset: 2px; }
++@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
++body:not(.playing) #touch-controls { display: none; }
+
+ kbd {
+   font-family: inherit;
+@@ -92,20 +128,21 @@ kbd {
+ #menu.full,
+ #menu.over {
+   display: flex;
+-  align-items: center;
++  align-items: flex-start;
+   justify-content: center;
++  overflow: auto;
++  padding: 80px 0 24px;
+ }
+
+ #menu.full {
+   pointer-events: auto;
+-  background: radial-gradient(ellipse at 50% 40%, rgba(16, 22, 40, 0.75), rgba(3, 4, 9, 0.95));
++  background: #090c15;
+ }
+
+ .logo {
+-  font-size: 44px;
++  font-size: 36px;
+   font-weight: 500;
+-  letter-spacing: 0.5em;
+-  margin-right: -0.5em;
++  letter-spacing: 0.1em;
+ }
+
+ .logo.small {
+@@ -116,7 +153,7 @@ kbd {
+ .landing {
+   width: min(560px, 92vw);
+   display: grid;
+-  gap: 14px;
++  gap: 10px;
+   text-align: center;
+ }
+
+diff --git a/games/blackout/src/ui/debug-overlay.ts b/games/blackout/src/ui/debug-overlay.ts
+index 846151b..64cd8bc 100644
 --- a/games/blackout/src/ui/debug-overlay.ts
 +++ b/games/blackout/src/ui/debug-overlay.ts
-@@ -26 +25,0 @@
+@@ -23,30 +23,17 @@ export function lookMask(settings: Juice): number {
+   for (let i = 0; i < LOOK_KEYS.length; i++) if (settings[LOOK_KEYS[i]!]) bits |= 1 << i
+   return bits
+ }
 -export type Perf = { fps: number; frameMs: number; p95Ms: number; gpuMs: number | null; gpuKind: string; draws: number; verts: number; chunks: number; lights: number }
-@@ -33,2 +31,0 @@
+ const controls: LabControl[] = [
+   ...Object.entries(JUICE_LABELS).map(([key, label]) => ({ key, label })),
+   ...Object.entries(LOOK_LABELS).map(([key, label]) => ({ key, label, group: "Look" })),
+ ]
+
+ export class DebugOverlay extends LabPanel {
 -  private samples: number[] = []
 -  private lastReport = 0
-@@ -38,14 +34,0 @@
+   constructor(settings: Juice, params: URLSearchParams, release: () => void = () => {}) {
+     super(settings, controls, params, release)
+-  }
 -  sample(now: number, elapsed: number, gpu: Pick<Perf, "gpuMs" | "gpuKind" | "draws" | "verts">, chunks: number, lights: number): Perf | null {
 -    if (elapsed > 0 && Number.isFinite(elapsed)) this.samples.push(elapsed)
 -    if (this.samples.length > 180) this.samples.shift()
@@ -185,18 +442,376 @@
 -    const perf = { fps, frameMs, p95Ms, ...gpu, chunks, lights }
 -    this.header.textContent = `FPS ${fps.toFixed(0)} · Frame ms ${frameMs.toFixed(1)} / ${p95Ms.toFixed(1)}\nGPU ${gpu.gpuKind === "timestamp" ? "HW" : "queue-wait"} ms ${gpu.gpuMs?.toFixed(2) ?? "—"}`
 -    return perf
--  }
++    this.header.textContent = "Presentation controls"
++    const style = document.createElement("style")
++    style.textContent = ":host{top:76px} button,select{min-height:44px;background:#000}"
++    this.host.shadowRoot!.append(style)
+   }
+ }
+diff --git a/games/blackout/src/ui/hud.ts b/games/blackout/src/ui/hud.ts
+index a749c50..3e3b565 100644
+--- a/games/blackout/src/ui/hud.ts
++++ b/games/blackout/src/ui/hud.ts
+@@ -6,8 +6,8 @@ import { type Game, css } from "../game/game"
+ import { fixedLoadout } from "./rules-hud"
+
+ const esc = (s: string) => s.replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`)
+-const weaponLabel = (w: Weapon) => (w === "frag" ? "GRENADE" : w === "claymore" ? "CLAYMORE" : w === "melee" ? "MELEE" : w === "vehicle" ? "EXPLOSION" : w === "roadkill" ? "ROADKILL" : GUNS[w].label.toUpperCase())
+-const equipLabel = (e: Equip) => EQUIPS[e].label.toUpperCase()
++const weaponLabel = (w: Weapon) => (w === "frag" ? "Grenade" : w === "claymore" ? "Claymore" : w === "melee" ? "Melee" : w === "vehicle" ? "Explosion" : w === "roadkill" ? "Roadkill" : GUNS[w].label)
++const equipLabel = (e: Equip) => EQUIPS[e].label
+ const clock = (s: number) => {
+   const t = Math.max(0, Math.ceil(s))
+   return `${Math.floor(t / 60)}:${String(t % 60).padStart(2, "0")}`
+@@ -20,12 +20,12 @@ export class Hud {
+
+   constructor(private root: HTMLElement) {
+     root.innerHTML = `
+-      <div id="tl"><div class="brand">BLACKOUT</div><div id="floor"></div></div>
++      <div id="tl"><div class="brand">Blackout</div><div id="floor"></div></div>
+       <div id="tc"><span id="clock"></span></div>
+       <div id="tr"></div>
+       <div id="labels"></div>
+       <div id="vprompt"></div>
+-      <div id="bl"><div id="veh"></div><div class="hp"><span>HEALTH</span><div id="hpbar"><i></i></div></div></div>
++      <div id="bl"><div id="veh"></div><div class="hp"><span>Health</span><div id="hpbar"><i></i></div></div></div>
+       <div id="br"><div id="gname"></div><div id="ammo"><b id="mag"></b><span id="magmax"></span></div><div id="rbar"><i></i></div><div id="equip"></div></div>
+       <div id="banner"></div>
+       <div id="respawn"></div>
+@@ -47,7 +47,7 @@ export class Hud {
+     el.status!.textContent = status ?? ""
+     if (!s) return
+     el.floor!.textContent = mapLabel(s.mapKind, s.map)
+-    el.clock!.textContent = s.phase === "play" ? clock(s.left) : `NEXT FLOOR IN ${Math.ceil(s.left)}`
++    el.clock!.textContent = s.phase === "play" ? clock(s.left) : `Next floor in ${Math.ceil(s.left)}`
+     el.tr!.innerHTML = g.feed
+       .filter((f) => t - f.t < 6)
+       .map((f) => `<div class="${f.mine ? "mine" : ""}"><b style="color:${css(f.kc)}">${esc(f.killer)}</b><em>${weaponLabel(f.how)}</em><b style="color:${css(f.vc)}">${esc(f.victim)}</b></div>`)
+@@ -63,12 +63,12 @@ export class Hud {
+     el.gname!.textContent = kit.label
+     const reloading = g.reloadUntil > t
+     el.mag!.textContent = reloading || !kit.gun ? "" : String(g.mag)
+-    el.magmax!.textContent = reloading ? "RELOADING" : !kit.gun ? "CLICK TO SWING" : kit.reload ? ` / ${kit.mag}` : " LEFT"
++    el.magmax!.textContent = reloading ? "Reloading" : !kit.gun ? "Click to swing" : kit.reload ? ` / ${kit.mag}` : " left"
+     el.mag!.classList.toggle("empty", g.mag === 0)
+     const rb = el.rbar!.firstElementChild as HTMLElement
+     rb.style.width = reloading ? `${(1 - (g.reloadUntil - t) / gun.reload) * 100}%` : "0%"
+
+-    el.equip!.innerHTML = kit.equip ? `<span class="${g.equipLeft > 0 ? "" : "out"}">${equipLabel(g.equip)} ×${g.equipLeft}</span><kbd>G</kbd>` : kit.melee && kit.gun ? `<span>MELEE</span><kbd>V</kbd>` : ""
++    el.equip!.innerHTML = kit.equip ? `<span class="${g.equipLeft > 0 ? "" : "out"}">${equipLabel(g.equip)} ×${g.equipLeft}</span><kbd>G</kbd>` : kit.melee && kit.gun ? `<span>Melee</span><kbd>V</kbd>` : ""
+
+     const b = g.banner && t - g.banner.t < 2.2 ? g.banner : null
+     el.banner!.textContent = b?.text ?? ""
+@@ -76,14 +76,14 @@ export class Hud {
+     const pick = s.you?.pick ?? "rifle"
+     const epick = s.you?.equipPick ?? "frag"
+     const fixed = fixedLoadout(s)
+-    const next = fixed ? "" : [pick !== g.gun ? GUNS[pick].label.toUpperCase() : "", epick !== g.equip ? equipLabel(epick) : ""].filter(Boolean).join(" · ")
++    const next = fixed ? "" : [pick !== g.gun ? GUNS[pick].label : "", epick !== g.equip ? equipLabel(epick) : ""].filter(Boolean).join(" · ")
+     el.respawn!.innerHTML =
+       s.phase === "play" && !alive && s.you && fixed
+-        ? s.you.respawnIn < 0 ? "" : `<div class="rt">RESPAWN IN ${Math.ceil(s.you.respawnIn)}</div>`
++        ? s.you.respawnIn < 0 ? "" : `<div class="rt">Respawn in ${Math.ceil(s.you.respawnIn)}</div>`
+         : s.phase === "play" && !alive && s.you
+-        ? `${s.you.respawnIn < 0 ? "" : `<div class="rt">RESPAWN IN ${Math.ceil(s.you.respawnIn)}</div>`}<div class="picks">${GUN_IDS.map((id, i) => `<span class="${id === pick ? "on" : ""}"><kbd>${i + 1}</kbd>${GUNS[id].label.toUpperCase()}</span>`).join("")}</div><div class="picks">${EQUIP_IDS.map((id, i) => `<span class="${id === epick ? "on" : ""}"><kbd>${i + 4}</kbd>${equipLabel(id)}</span>`).join("")}</div>`
++        ? `${s.you.respawnIn < 0 ? "" : `<div class="rt">Respawn in ${Math.ceil(s.you.respawnIn)}</div>`}<div class="picks">${GUN_IDS.map((id, i) => `<span class="${id === pick ? "on" : ""}"><kbd>${i + 1}</kbd>${GUNS[id].label}</span>`).join("")}</div><div class="picks">${EQUIP_IDS.map((id, i) => `<span class="${id === epick ? "on" : ""}"><kbd>${i + 4}</kbd>${equipLabel(id)}</span>`).join("")}</div>`
+         : alive && next
+-          ? `<div class="next">NEXT LIFE: ${next}</div>`
++          ? `<div class="next">Next life: ${next}</div>`
+           : ""
+
+     // Vehicles: your seat and the vehicle's health while riding, and the prompt over one you can get in.
+diff --git a/games/blackout/src/ui/menus.ts b/games/blackout/src/ui/menus.ts
+index 37f4541..f5707b9 100644
+--- a/games/blackout/src/ui/menus.ts
++++ b/games/blackout/src/ui/menus.ts
+@@ -11,12 +11,9 @@ import { boardStat, rulesColumns, rulesTeam, rulesWinner } from "./rules-hud"
+ const esc = (s: string) => s.replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`)
+
+ export type MenuActions = {
+-  quick(name: string): void
+-  practice(name: string, mode: ModeId): void
+   sandbox(name: string): void
+-  /** A private room whose first match is `mode`, playing on `maps`. */
++  /** An offline bot match in `mode`, playing on `maps`. */
+   create(name: string, mode: ModeId, maps: MapChoice): void
+-  join(name: string, room: string): void
+   /** End screen: a vote for the next mode. */
+   vote(mode: ModeId): void
+   /** Room host, team modes: move a player to a team, or deal random even teams. */
+@@ -33,7 +30,7 @@ const CONFIRM_MS = 2000
+
+ const MODE_KEY = "blackout.mode"
+ const MAP_KEY = "blackout.map"
+-const MAP_NAMES: Record<MapChoice, string> = { office: "OFFICE", downtown: "DOWNTOWN", random: "RANDOM" }
++const MAP_NAMES: Record<MapChoice, string> = { office: "Office", downtown: "Downtown", random: "Random" }
+ const MAP_BLURBS: Record<MapChoice, string> = { office: "A new office tower floor every match.", downtown: "City blocks at night: streets, alleys, shops and a plaza.", random: "Office or downtown, picked fresh every match." }
+
+ /** The landing page and the scoreboard (held with Tab, and shown between floors). */
+@@ -78,8 +75,7 @@ export class Menus {
+     root.addEventListener("keydown", (e) => {
+       const t = e.target as HTMLElement
+       if (e.key !== "Enter") return
+-      if (t.id === "code") this.act("join")
+-      else if (t.id === "name") this.act(this.root.querySelector("[data-primary]")?.getAttribute("data-act") ?? "quick")
++      if (t.id === "name") this.act("create")
+     })
+   }
+
+@@ -89,16 +85,9 @@ export class Menus {
+     if (act === "mode" && m) return this.pickMode(m)
+     if (this.busy) return
+     const name = this.root.querySelector<HTMLInputElement>("#name")?.value ?? this.name
+-    if (act === "quick") this.a.quick(name)
+-    else if (act === "practice") this.a.practice(name, this.mode)
+-    else if (act === "sandbox") this.a.sandbox(name)
++    if (act === "sandbox") this.a.sandbox(name)
+     else if (act === "create") this.a.create(name, this.mode, this.maps)
+-    else if (act === "join") {
+-      const fixed = this.root.querySelector<HTMLElement>("[data-room]")?.dataset.room
+-      const code = (fixed ?? this.root.querySelector<HTMLInputElement>("#code")?.value ?? "").toLowerCase().replace(/[^a-z0-9]/g, "")
+-      if (!code) return void this.root.querySelector<HTMLInputElement>("#code")?.focus()
+-      this.a.join(name, code)
+-    } else return
++    else return
+     this.busy = true
+     for (const b of this.root.querySelectorAll<HTMLButtonElement>("button")) b.disabled = true
+   }
+@@ -143,7 +132,7 @@ export class Menus {
+   }
+
+   private blurbHtml(m: ModeId): string {
+-    return `<b>${esc(MODES[m].label.toUpperCase())}</b>${esc(MODES[m].blurb)}`
++    return `<b>${esc(MODES[m].label)}</b>${esc(MODES[m].blurb)}`
+   }
+
+   /** The mode chips under Create game: a compact grid of short names, the hovered or picked mode's blurb below. */
+@@ -152,28 +141,21 @@ export class Menus {
+       <div class="modeblurb">${this.blurbHtml(this.mode)}</div>`
+   }
+
+-  /** Name, then quick join, create game, or join a room by code. A shared link (?room=) offers just that room. */
+-  landing(room: string | null, notice = ""): void {
++  /** Existing mode/map picks start a local match; sandbox stays secondary. */
++  landing(notice = ""): void {
+     this.key = "landing"
+     this.busy = false
+     this.root.className = "full"
+     this.root.innerHTML = `<div class="landing">
+-      <div class="logo">BLACKOUT</div>
+-      <div class="tag">Firefights at night: office floors and downtown streets.</div>
+-      ${notice ? `<div class="notice">${esc(notice)}</div>` : ""}
+-      <label>NAME<input id="name" maxlength="14" value="${esc(this.name)}" placeholder="your name" autofocus /></label>
+-      ${
+-        room
+-          ? `<div class="room" data-room="${esc(room)}">ROOM <b>${esc(room.toUpperCase())}</b></div><button class="primary" data-act="join" data-primary>JOIN GAME</button>`
+-          : `<button class="primary" data-act="quick" data-primary>QUICK JOIN</button>
+-             <button data-act="create">CREATE GAME</button>
+-             <button data-act="practice">BOT PRACTICE</button>
+-             <button data-act="sandbox">SOLO SANDBOX</button>
+-             ${this.modePicker()}
+-             ${this.mapPicker()}
+-             <div class="row"><input id="code" maxlength="8" placeholder="room code" autocapitalize="off" /><button data-act="join">JOIN</button></div>`
+-      }
+-      <div class="stats" id="stats"></div>
++      <div class="logo">Blackout</div>
++      <div class="tag">Offline bot matches. Pick a mode and map. WebGPU required.</div>
++      ${notice ? `<div class="notice" role="alert">${esc(notice)}</div>` : ""}
++      <label>Name<input id="name" maxlength="14" value="${esc(this.name)}" placeholder="your name" /></label>
++      ${this.modePicker()}
++      ${this.mapPicker()}
++      <button class="primary" data-act="create" data-primary>Start bot match</button>
++      <button data-act="sandbox">Target sandbox</button>
++      <div class="tag">Matches use random maps with scoring, respawns and replay. Sandbox: seed 1 by default, passive targets, unlimited ammunition, B toggles bots.</div>
+     </div>`
+   }
+
+@@ -210,8 +192,8 @@ export class Menus {
+     const by = boardStat(m.id)
+     const ranked = [...roster].sort((a, b) => (by ? by(b) - by(a) : 0) || b.kills - a.kills || a.deaths - b.deaths)
+     const cols: [string, (r: RosterRow) => number][] = [
+-      ["KILLS", (r) => r.kills],
+-      ["DEATHS", (r) => r.deaths],
++      ["Kills", (r) => r.kills],
++      ["Deaths", (r) => r.deaths],
+     ]
+     if (m.id === "dom") cols.push(["CAPS", (r) => r.caps])
+     if (m.id === "snd") cols.push(["PLANTS", (r) => r.plants], ["DEFUSES", (r) => r.defuses])
+@@ -231,7 +213,7 @@ export class Menus {
+     }
+     const span = cols.length + (amHost ? 2 : 1)
+     const row = (r: RosterRow) =>
+-      `<tr class="${r.id === myId ? "me" : ""}"><td><i style="background:${css(colorOf(r.id))}"></i>${esc(r.name)}${r.host ? `<em class="hosttag" title="Room host${picks ? ": picks teams" : ""}">♛ HOST</em>` : ""}</td>${cols.map(([, f]) => `<td>${f(r)}</td>`).join("")}${amHost ? move(r) : ""}</tr>`
++      `<tr class="${r.id === myId ? "me" : ""}"><td><i style="background:${css(colorOf(r.id))}"></i>${esc(r.name)}${r.host ? `<em class="hosttag" title="Room host${picks ? ": picks teams" : ""}">Host</em>` : ""}</td>${cols.map(([, f]) => `<td>${f(r)}</td>`).join("")}${amHost ? move(r) : ""}</tr>`
+     const head = `<thead><tr><th></th>${cols.map(([c]) => `<th>${c}</th>`).join("")}${amHost ? "<th></th>" : ""}</tr></thead>`
+     const body = info.teams
+       ? [0, 1]
+@@ -241,18 +223,18 @@ export class Menus {
+     const hostbar = !picks
+       ? ""
+       : amHost
+-        ? `<div class="hostbar"><span>YOU'RE THE HOST · move players between teams · picks stick until you shuffle · <kbd>T</kbd> keeps this open</span><button data-host="shuffle">SHUFFLE</button></div>`
++        ? `<div class="hostbar"><span>You are the host · move players between teams · picks stick until you shuffle · <kbd>T</kbd> keeps this open</span><button data-host="shuffle">Shuffle</button></div>`
+         : `<div class="hostbar"><span>The host picks teams · <kbd>T</kbd> keeps this open</span></div>`
+     let result = ""
+     if (s.phase === "end") {
+       const winner = rulesWinner(s, roster) ?? ranked[0]
+-      const text = info.teams ? (m.winner >= 0 ? `<span style="color:${teamColor(m.winner)}">${teamName(m.winner)}</span> WIN${m.id === "inf" ? "" : "S"}` : "DRAW") : winner ? `<span style="color:${css(colorOf(winner.id))}">${esc(winner.name.toUpperCase())}</span> WINS` : ""
++      const text = info.teams ? (m.winner >= 0 ? `<span style="color:${teamColor(m.winner)}">${teamName(m.winner)}</span> win${m.id === "inf" ? "" : "s"}` : "Draw") : winner ? `<span style="color:${css(colorOf(winner.id))}">${esc(winner.name)}</span> wins` : ""
+       result = `<div class="result">${text}</div><div class="sub">Next ${s.maps === "random" ? "map" : MAP_NAMES[s.maps ?? "office"].toLowerCase()} in ${Math.ceil(s.left)}</div>`
+     }
+     const url = room ? `${location.origin}${location.pathname}?room=${room}` : ""
+     this.root.className = s.phase === "end" ? "full" : "over"
+     this.root.innerHTML = `<div class="score">
+-      <div class="head"><div class="logo small">BLACKOUT</div><span>${esc(info.label.toUpperCase())} · ${mapLabel(s.mapKind, s.map)}</span></div>
++      <div class="head"><div class="logo small">Blackout</div><span>${esc(info.label)} · ${mapLabel(s.mapKind, s.map)}</span></div>
+       ${result}
+       <table>${head}<tbody>${body}</tbody></table>
+       ${hostbar}
+@@ -269,24 +251,24 @@ export class Menus {
+     const hint = armed === "reset" ? "click again to reset the match" : target ? `click again to switch to ${esc(MODES[target].label.toLowerCase())}` : `restarts for everyone · click twice${picks ? "" : " · <kbd>T</kbd> keeps this open"}`
+     const chips = MODE_IDS.map((id) => {
+       const cls = [id === current ? "on" : "", id === armed ? "armed" : ""].join(" ").trim()
+-      const label = id === armed ? "SURE?" : esc(MODES[id].short)
++      const label = id === armed ? "Confirm?" : esc(MODES[id].short)
+       return `<button class="${cls}" data-host="${id === current ? "reset" : "mode"}" data-mode="${id}" title="${esc(MODES[id].label)}${id === current ? " (current: reset)" : ""}">${label}</button>`
+     }).join("")
+     return `<div class="hostctl">
+-      <div class="hh"><b>HOST</b><span>${hint}</span></div>
+-      <div class="hrow"><button class="reset ${armed === "reset" ? "armed" : ""}" data-host="reset">${armed === "reset" ? "CONFIRM RESET?" : "RESET MATCH"}</button><button class="floor ${this.newFloor ? "on" : ""}" data-host="floor" title="Restart on a new procedural floor, or keep this one">${this.newFloor ? "☑ NEW FLOOR" : "☐ SAME FLOOR"}</button></div>
++      <div class="hh"><b>Match controls</b><span>${hint}</span></div>
++      <div class="hrow"><button class="reset ${armed === "reset" ? "armed" : ""}" data-host="reset">${armed === "reset" ? "Confirm reset?" : "Reset match"}</button><button class="floor ${this.newFloor ? "on" : ""}" data-host="floor" title="Restart on a new procedural floor, or keep this one">${this.newFloor ? "New floor: on" : "New floor: off"}</button></div>
+       <div class="hmodes">${chips}</div>
+-      <div class="hmaps"><span>MAP</span>${MAP_CHOICES.map((c) => `<button class="${c === maps ? "on" : ""}" data-host="maps" data-map="${c}" title="${esc(MAP_BLURBS[c])} From the next new floor.">${MAP_NAMES[c]}</button>`).join("")}</div>
++      <div class="hmaps"><span>Map</span>${MAP_CHOICES.map((c) => `<button class="${c === maps ? "on" : ""}" data-host="maps" data-map="${c}" title="${esc(MAP_BLURBS[c])} From the next new floor.">${MAP_NAMES[c]}</button>`).join("")}</div>
+     </div>`
+   }
+
+   /** Vote buttons for the next mode: the current one ("same again") and the three on offer, with live counts. */
+   private votes(v: NonNullable<Snapshot["mode"]["votes"]>, current: ModeId): string {
+     const options = v.options?.length ? v.options : MODE_IDS.slice(0, 4)
+-    return `<div class="vote"><div class="vh">NEXT MODE <span>click or press 1–${options.length} · no votes keeps ${esc(MODES[current].short)}</span></div><div class="vopts">${options
++    return `<div class="vote"><div class="vh">Next mode <span>click or press 1–${options.length} · no votes keeps ${esc(MODES[current].short)}</span></div><div class="vopts">${options
+       .map(
+         (id, i) =>
+-          `<button class="${v.mine === id ? "on" : ""}" data-act="vote" data-mode="${id}" title="${esc(MODES[id].blurb)}"><kbd>${i + 1}</kbd><b>${esc(MODES[id].label.toUpperCase())}${id === current ? "<small>SAME AGAIN</small>" : ""}</b><em>${v.counts[id] || ""}</em></button>`,
++          `<button class="${v.mine === id ? "on" : ""}" data-act="vote" data-mode="${id}" title="${esc(MODES[id].blurb)}"><kbd>${i + 1}</kbd><b>${esc(MODES[id].label)}${id === current ? "<small>Same again</small>" : ""}</b><em>${v.counts[id] || ""}</em></button>`,
+       )
+       .join("")}</div></div>`
+   }
+diff --git a/games/blackout/src/ui/modes-hud.ts b/games/blackout/src/ui/modes-hud.ts
+index 09b68c5..8ee0222 100644
+--- a/games/blackout/src/ui/modes-hud.ts
++++ b/games/blackout/src/ui/modes-hud.ts
+@@ -13,7 +13,7 @@ const clock = (s: number) => {
+   const t = Math.max(0, Math.ceil(s))
+   return `${Math.floor(t / 60)}:${String(t % 60).padStart(2, "0")}`
+ }
+-const WHY: Record<string, string> = { eliminated: "TEAM ELIMINATED", detonated: "BOMB DETONATED", defused: "BOMB DEFUSED", time: "TIME RAN OUT" }
++const WHY: Record<string, string> = { eliminated: "Team eliminated", detonated: "Bomb detonated", defused: "Bomb defused", time: "Time ran out" }
+
+ /** What the mode asks of you, for the intro banner. */
+ function objective(m: ModeView, team: number): string {
+@@ -72,13 +72,13 @@ export class ModeHud {
+
+     // Intro on every new match, and banners at the start and end of each round.
+     const key = `${m.id}|${s.map}|${s.match ?? 0}`
+-    if (s.phase === "play" && key !== this.intro.key) this.intro = { key, t, title: info.label.toUpperCase(), text: rulesObjective(s, team) ?? objective(m, team) }
++    if (s.phase === "play" && key !== this.intro.key) this.intro = { key, t, title: info.label, text: rulesObjective(s, team) ?? objective(m, team) }
+     if (m.round && s.phase === "play") {
+       const rk = `${s.map}|${m.round.n}|${m.round.post}`
+       if (rk !== this.roundKey) {
+         this.roundKey = rk
+-        if (m.round.post && m.round.won >= 0) this.round = { t, title: `${TEAM_NAMES[m.round.won]} WINS THE ROUND`, text: WHY[m.round.why] ?? "", color: tc(m.round.won) }
+-        else if (!m.round.post && m.round.n > 1) this.round = { t, title: `ROUND ${m.round.n}${m.round.n === SND.wins ? " · SIDES SWITCHED" : ""}`, text: objective(m, team), color: "var(--ink)" }
++        if (m.round.post && m.round.won >= 0) this.round = { t, title: `${TEAM_NAMES[m.round.won]} wins the round`, text: WHY[m.round.why] ?? "", color: tc(m.round.won) }
++        else if (!m.round.post && m.round.n > 1) this.round = { t, title: `Round ${m.round.n}${m.round.n === SND.wins ? " · Sides switched" : ""}`, text: objective(m, team), color: "var(--ink)" }
+       }
+     }
+     const introAge = t - this.intro.t
+@@ -96,16 +96,16 @@ export class ModeHud {
+     const me = g.body ? g.drawn : null
+     let bar: { text: string; p: number; color: string } | null = null
+     const b = m.bomb
+-    if (b && b.actor === g.myId && b.progress > 0) bar = { text: b.state === "planted" ? "DEFUSING" : "PLANTING", p: b.progress, color: tc(team) }
++    if (b && b.actor === g.myId && b.progress > 0) bar = { text: b.state === "planted" ? "Defusing" : "Planting", p: b.progress, color: tc(team) }
+     if (!bar && me && g.alive)
+       for (const p of m.points)
+         if (Math.hypot(p.x - me.x, p.y - me.y) <= p.r) {
+-          if (p.contested) bar = { text: `${p.name} CONTESTED`, p: p.progress, color: "#ff5040" }
+-          else if (p.capper >= 0 && p.progress > 0) bar = { text: p.capper === team ? `CAPTURING ${p.name}` : `LOSING ${p.name}`, p: p.progress, color: tc(p.capper) }
++          if (p.contested) bar = { text: `${p.name} contested`, p: p.progress, color: "#ff5040" }
++          else if (p.capper >= 0 && p.progress > 0) bar = { text: p.capper === team ? `Capturing ${p.name}` : `Losing ${p.name}`, p: p.progress, color: tc(p.capper) }
+         }
+     const z = m.zone
+     if (!bar && me && g.alive && z && Math.hypot(z.x - me.x, z.y - me.y) <= z.r)
+-      bar = z.contested ? { text: "ZONE CONTESTED", p: z.left / HP.move, color: "#ff5040" } : { text: "HOLDING THE ZONE", p: z.left / HP.move, color: tc(team) }
++      bar = z.contested ? { text: "Zone contested", p: z.left / HP.move, color: "#ff5040" } : { text: "Holding the zone", p: z.left / HP.move, color: tc(team) }
+     el.mbar!.style.opacity = bar ? "1" : "0"
+     if (bar) {
+       el.mbt!.textContent = bar.text
+@@ -114,12 +114,12 @@ export class ModeHud {
+       i.style.background = bar.color
+     }
+     const usable = g.alive && me && canUse(s, team, g.myId, me.x, me.y)
+-    el.mhint!.innerHTML = usable && !bar ? `HOLD <kbd>F</kbd> TO ${b?.state === "planted" ? "DEFUSE" : "PLANT"}` : g.alive && b?.carrier === g.myId && !bar ? `YOU HAVE THE BOMB · PLANT AT A OR B` : ""
+-    if (g.alive && carries(m, g.myId)) el.mhint!.innerHTML = m.flags?.[team]?.state === "home" ? "YOU HAVE THE FLAG · TAKE IT TO YOUR BASE" : "YOU HAVE THE FLAG · YOUR FLAG MUST BE HOME TO SCORE"
++    el.mhint!.innerHTML = usable && !bar ? `Hold <kbd>F</kbd> to ${b?.state === "planted" ? "defuse" : "plant"}` : g.alive && b?.carrier === g.myId && !bar ? `You have the bomb · Plant at A or B` : ""
++    if (g.alive && carries(m, g.myId)) el.mhint!.innerHTML = m.flags?.[team]?.state === "home" ? "You have the flag · Take it to your base" : "You have the flag · Your flag must be home to score"
+
+     const spec = s.phase === "play" && s.you?.respawnIn === -1 && !g.alive
+     const watched = spec ? g.nameOf(this.watching) : ""
+-    el.mspec!.innerHTML = spec ? `YOU ARE DEAD — SPECTATING${watched ? ` <b style="color:${css(g.colorOf(this.watching))}">${esc(watched.toUpperCase())}</b>` : ""}<span>${rulesOut(s) ?? "back next round"}</span>` : ""
++    el.mspec!.innerHTML = spec ? `You are dead - spectating${watched ? ` <b style="color:${css(g.colorOf(this.watching))}">${esc(watched)}</b>` : ""}<span>${rulesOut(s) ?? "back next round"}</span>` : ""
+
+     this.floorLabels(g, s, cam, w, h)
+   }
+diff --git a/games/blackout/src/ui/modes.css b/games/blackout/src/ui/modes.css
+index ad5b8a3..57e6a6c 100644
+--- a/games/blackout/src/ui/modes.css
++++ b/games/blackout/src/ui/modes.css
+@@ -174,7 +174,7 @@
+   color: var(--dim);
+   font-size: 12px;
+   letter-spacing: 0.28em;
+-  text-transform: uppercase;
++  text-transform: none;
+ }
+
+ #mspec {
+diff --git a/games/blackout/vite.config.ts b/games/blackout/vite.config.ts
+index 68d5ca4..9593d95 100644
+--- a/games/blackout/vite.config.ts
++++ b/games/blackout/vite.config.ts
+@@ -2,7 +2,7 @@ import { defineConfig } from "vite"
+
+ export default defineConfig({
+   base: "./",
+-  build: { target: "esnext", outDir: "dist/arcade/blackout", emptyOutDir: true, rollupOptions: { input: { main: "index.html", compare: "compare.html" } } },
++  build: { target: "esnext", outDir: "dist/arcade/blackout", emptyOutDir: true, rollupOptions: { input: { main: "index.html", check: "check-solo.html" } } },
+   server: {
+     allowedHosts: true,
+     // Behind the opentunnel HTTPS route the browser reaches HMR on 443.
+diff --git a/games/blackout/check-solo.html b/games/blackout/check-solo.html
+new file mode 100644
+index 0000000..c7b066a
 --- /dev/null
 +++ b/games/blackout/check-solo.html
 @@ -0,0 +1,3 @@
 +<!doctype html>
 +<html lang="en"><head><meta charset="utf-8"><title>Blackout simulation check</title><link rel="icon" href="data:,"></head>
 +<body><h1>Blackout simulation check</h1><pre id="result">Running...</pre><div id="hud"></div><script type="module" src="/src/check-solo.ts"></script></body></html>
+diff --git a/games/blackout/src/check-solo.ts b/games/blackout/src/check-solo.ts
+new file mode 100644
+index 0000000..e79935f
 --- /dev/null
 +++ b/games/blackout/src/check-solo.ts
-@@ -0,0 +1,47 @@
+@@ -0,0 +1,87 @@
 +import { SandboxSession } from "./game/game"
 +import { Hud } from "./ui/hud"
++import { LocalSession } from "./game/session"
++import { Menus } from "./ui/menus"
++import { Rng } from "../shared/rng"
 +import { NO_INTENT } from "../shared/sim/world"
 +
 +const assert = (ok: unknown, message: string) => { if (!ok) throw new Error(message) }
@@ -237,7 +852,44 @@
 +  const hud = new Hud(document.getElementById("hud")!)
 +  hud.show(true)
 +  assert(document.getElementById("hud")!.children.length > 0, "HUD did not initialize")
-+  output.textContent = `PASS: simulation module, seed 1, alive/play, 3 passive targets, movement ${moved.toFixed(3)}, shots ${shots}, weapon switch, bot toggle, seed reset, HUD DOM. Rendering not tested.`
++  const random = Math.random
++  const rng = new Rng(1)
++  let match: LocalSession
++  try { Math.random = () => rng.next(); match = new LocalSession("match-check", "rifle", "frag", "ffa", "office") }
++  finally { Math.random = random }
++  const firstMap = match.latest()!.snap.map
++  let deaths = 0, respawns = 0, kills = 0, ended = false, replayed = false, alive = true
++  for (let i = 0; i < 60 * 320; i++) {
++    match.send({ type: "intent", seq: i + 1, i: { ...NO_INTENT } })
++    match.update(1 / 60)
++    const snap = match.latest()!.snap
++    const living = snap.you!.health > 0
++    if (alive && !living) deaths++
++    if (!alive && living) respawns++
++    alive = living
++    kills = Math.max(kills, match.roster().reduce((sum, p) => sum + p.kills, 0))
++    ended ||= snap.phase === "end"
++    replayed ||= ended && snap.phase === "play" && snap.map !== firstMap
++    match.drainEvents()
++  }
++  assert(deaths > 0 && respawns > 0 && kills > 0 && ended && replayed, "bot match must score, kill, respawn, end and replay")
++  match.send({ type: "host", action: "reset", newFloor: true })
++  match.update(0.1)
++  assert(match.latest()!.snap.phase === "play" && match.roster().every(p => p.kills === 0 && p.deaths === 0), "fresh match reset failed")
++  const root = document.createElement("div")
++  document.body.append(root)
++  let picked = ""
++  const menus = new Menus(root, "check", {
++    create: (_name, mode, maps) => { picked = `${mode}/${maps}` }, sandbox: () => {},
++    vote: () => {}, team: () => {}, shuffle: () => {}, maps: () => {}, host: () => {},
++  })
++  menus.landing()
++  root.querySelector<HTMLButtonElement>('[data-act="mode"][data-mode="ffa"]')!.click()
++  root.querySelector<HTMLButtonElement>('[data-act="map"][data-map="office"]')!.click()
++  root.querySelector<HTMLButtonElement>('[data-act="create"]')!.click()
++  assert(picked === "ffa/office" && !root.querySelector('[data-act="join"]'), "offline menu routing failed")
++  root.remove()
++  output.textContent = `PASS: sandbox seed 1, movement ${moved.toFixed(3)}, shots ${shots}, weapon/bot toggle/reset, HUD; LocalSession deaths ${deaths}, respawns ${respawns}, scored kills ${kills}, end ${ended}, replay ${replayed}, fresh reset; menu mode/map routing. Rendering not tested.`
 +} catch (error) {
 +  output.textContent = `FAIL: ${error instanceof Error ? error.message : error}`
 +  throw error

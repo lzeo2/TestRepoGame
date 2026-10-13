@@ -3,12 +3,13 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>BLACKOUT</title>
+    <title>Blackout</title>
+    <meta name="description" content="Offline Blackout bot matches with mode and map selection, plus a target sandbox. Requires WebGPU. Original game by Anomaly." />
     <link rel="icon" href="data:," />
-    <script type="module" crossorigin src="./assets/main-SnpZAqmx.js"></script>
-    <link rel="modulepreload" crossorigin href="./assets/hud-BYHWJ5Gp.js">
-    <link rel="stylesheet" crossorigin href="./assets/hud-CWSS8Zy0.css">
-    <link rel="stylesheet" crossorigin href="./assets/main-CHk1x5N-.css">
+    <script type="module" crossorigin src="./assets/main-C5erStup.js"></script>
+    <link rel="modulepreload" crossorigin href="./assets/menus-B9bbD4ZZ.js">
+    <link rel="stylesheet" crossorigin href="./assets/menus-mfGnarna.css">
+    <link rel="stylesheet" crossorigin href="./assets/main-BQyZkORW.css">
   </head>
   <body>
     <canvas id="view"></canvas>
@@ -16,12 +17,12 @@
     <div id="menu"></div>
     <details id="solo-help">
       <summary>Solo controls</summary>
-      <p>Seed 1 by default. Passive targets, unlimited ammunition. B toggles live bots. No server needed.</p>
+      <p>Bot matches: random maps, scoring, round ends and automatic replay. Tab or T opens match reset and mode voting. Sandbox: seed 1 by default, passive targets, unlimited ammunition; B toggles live bots. No server needed.</p>
       <p>WASD or arrows: move. Mouse: aim. Left click: fire. Right click: look ahead. Shift: sprint. G: equipment. 1/2/3: weapon. 4/5: equipment. Tab or T: scores. M: mute.</p>
       <p>Touch: arrows to move, drag on the scene to aim, Fire to shoot.</p>
       <button id="restart" type="button">Restart</button>
-      <a href="?practice=1&amp;seed=1">Local bot match</a>
-      <a href="?seed=1">Solo sandbox</a>
+      <a href="./">Back to menu</a>
+      <a href="?sandbox=1&amp;seed=1">Target sandbox</a>
     </details>
     <div id="touch-controls" aria-label="Touch controls">
       <button type="button" data-key="ArrowLeft" aria-label="Move left">Left</button>
