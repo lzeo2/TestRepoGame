@@ -1,6 +1,12 @@
 /* Local shell adjustments. The upstream 3D scene and status colors are unchanged. */
 button:focus-visible, select:focus-visible { outline: 3px solid white; outline-offset: 3px; }
-button { min-height: 44px; }
+button { min-width: 44px; min-height: 44px; background-color: #000 !important; color: #fff !important; box-shadow: none !important; }
+button.active, button[aria-pressed="true"] { outline: 2px solid #fff; }
+.text-gray-500, .text-gray-600 { color: #a7adb8; }
+@media (max-width: 600px) {
+  #timeControls { gap: 4px; padding: 6px; }
+  #lang-select { width: 44px; padding-left: 2px; padding-right: 2px; }
+}
 .uppercase { text-transform: none; }
 [class*="bg-gradient-"] { background-image: none; color: #e5e7eb; }
 @media (prefers-reduced-motion: reduce) {

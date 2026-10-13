@@ -20,6 +20,7 @@ def server_survival(page):
     page.mouse.click(720, 500)
     page.wait_for_function('STATE.services.length === 1')
     assert page.evaluate('STATE.money') == 460
+    page.screenshot(path=str(ROOT / 'docs/phase3-evidence/ServerSurvival-placement.png'))
     page.locator('#btn-play').click()
     page.wait_for_function('STATE.elapsedGameTime > 0.2')
     page.locator('#btn-pause').click()

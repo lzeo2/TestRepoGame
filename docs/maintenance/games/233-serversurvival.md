@@ -24,7 +24,7 @@ See `Games/ServerSurvival/CREDITS.md` for upstream pin, MIT license and exact mo
 
 ## Audit findings
 
-The upstream has a fixed dark interface, small technical labels and a horizontally scrollable phone palette. It does not follow every portal visual token. Technical acronyms remain uppercase. Decorative emoji were removed without changing mechanics. Full campaign, saves, locales and physical touch remain unverified. The baseline maintenance inventory was already stale before this addition.
+The upstream has a fixed dark interface, small technical labels and a horizontally scrollable phone palette. The final shell sweep adds black 44px action targets, active outlines and brighter secondary text without changing the scene. It does not follow every portal visual token. Technical acronyms remain uppercase. Decorative emoji were removed without changing mechanics. Full campaign, saves, locales and physical touch remain unverified. The baseline maintenance inventory was already stale before this addition.
 
 ## Safe iteration
 

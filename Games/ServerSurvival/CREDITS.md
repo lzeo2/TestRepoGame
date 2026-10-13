@@ -12,7 +12,7 @@
 - Replaced both CDN scripts with local Three.js and precompiled Tailwind CSS. No game build is required: native ES modules are served directly.
 - Removed remote social-preview metadata; changed the dependency failure message to describe local files.
 - Removed decorative emoji and em dashes from first-party HTML/JS, sentence-cased standalone English display labels, preserved technical acronyms, and gave the malicious-traffic indicator a text label.
-- Added `port.css`: visible focus, 44px minimum button height, reduced-motion support, removal of uppercase transforms and gradient headings. Original game mechanics, scene colors, modes and layout are retained.
+- Added `port.css`: visible focus, 44px minimum button targets, black action buttons with outlined active states, brighter secondary text, reduced-motion support, removal of uppercase transforms and gradient headings. Original game mechanics, scene colors, modes and layout are retained.
 - Imported only runtime HTML/JS/CSS/audio plus license. Git metadata, contributor tooling/tests, README animation and OS metadata are not runtime dependencies and were not imported. No console suppression wrapper or tracking script was found.
 
 ## Reproducing the local CSS

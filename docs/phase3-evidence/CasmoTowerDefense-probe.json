@@ -1,0 +1,20 @@
+{
+  "source": "Casmo/tower-defense@784129a685627a18f3d3f8fa594208000d9313e8",
+  "console_errors": [
+    "THREE.WebGLShader: Shader couldn't compile.",
+    "THREE.WebGLShader: Shader couldn't compile.",
+    "THREE.WebGLProgram: Could not initialise shader.",
+    "gl.VALIDATE_STATUS false",
+    "gl.getError() 0"
+  ],
+  "http_errors": [],
+  "external_requests": [],
+  "before": {
+    "resources": 555,
+    "hudResources": "0",
+    "lives": 50,
+    "hudLives": "0",
+    "waves": 2
+  },
+  "waveAfterKey": 1
+}

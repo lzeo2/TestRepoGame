@@ -28,7 +28,7 @@ Upstream texture paths were root-absolute and are now relative. Original had no 
 
 ## Safe iteration
 
-Keep the game loop and original keyboard axis semantics. Pointer axis must clear on release, cancel, capture loss and window blur. Do not replace the engine to modernize syntax. Preserve dependency notices.
+Keep the game loop and original keyboard axis semantics. Pointer axis must clear on release, cancel, capture loss and window blur. Do not replace the engine to modernize syntax. Preserve dependency notices. The final sweep removes upstream trailing blank lines only from the entry and maze generator; no additional mechanics change.
 
 ## Verification
 

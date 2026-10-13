@@ -1,0 +1,7 @@
+{
+  "console": [],
+  "http_errors": [],
+  "external_requests": [],
+  "mode": "xvfb Chromium ANGLE GL, 800x600; diagnosis only",
+  "exception": "Locator.inner_text: Timeout 20000ms exceeded.\nCall log:\n  - waiting for locator(\"body\")\n"
+}
