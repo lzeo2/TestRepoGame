@@ -28,11 +28,25 @@
 -import type { MapChoice } from "../shared/maps"
 @@ -11 +9,0 @@
 -import { NetSession, REJOIN_KEY } from "./game/net"
-@@ -42,0 +41 @@
+@@ -19 +16,0 @@
+-import { GpuPerf } from "@arcade/kit/gpu-perf"
+@@ -27 +24 @@
+-async function gpu(canvas: HTMLCanvasElement): Promise<{ renderer: Renderer; telemetry: GpuPerf } | string> {
++async function gpu(canvas: HTMLCanvasElement): Promise<{ renderer: Renderer } | string> {
+@@ -31 +28 @@
+-  const device = await adapter.requestDevice({ requiredFeatures: adapter.features.has("timestamp-query") ? ["timestamp-query"] : [] })
++  const device = await adapter.requestDevice()
+@@ -36,2 +33 @@
+-  const telemetry = new GpuPerf(device)
+-  return { renderer: new Renderer(device, context, format), telemetry }
++  return { renderer: new Renderer(device, context, format) }
+@@ -42,0 +39 @@
 +  document.getElementById("restart")!.addEventListener("click", () => location.reload())
-@@ -51 +49,0 @@
+@@ -50,2 +47 @@
+-  const { renderer, telemetry } = graphics
 -  const roomParam = (params.get("room") ?? "").toLowerCase().replace(/[^a-z0-9]/g, "").slice(0, 8) || null
-@@ -82,14 +79,0 @@
++  const { renderer } = graphics
+@@ -82,14 +77,0 @@
 -  const fatal = (message: string) => {
 -    session?.close()
 -    session = null
@@ -47,22 +61,22 @@
 -    history.replaceState(null, "", `?room=${room}`)
 -    begin(name, (n) => new NetSession(room, n, gun, equip, fatal, priv, mode, maps))
 -  }
-@@ -109 +92,0 @@
+@@ -109 +90,0 @@
 -  const failed = (e: unknown) => menus.landing(null, `Couldn't reach the server (${e instanceof Error ? e.message : String(e)}).`)
-@@ -111 +94 @@
+@@ -111 +92 @@
 -    quick: (name) => api("quick").then((r) => enter(name, r.room), failed),
 +    quick: sandbox,
-@@ -114,2 +97,2 @@
+@@ -114,2 +95,2 @@
 -    create: (name, mode, maps) => api("create").then((r) => enter(name, r.room, true, mode, maps), failed),
 -    join: (name, room) => enter(name, room),
 +    create: sandbox,
 +    join: sandbox,
-@@ -122,4 +104,0 @@
+@@ -122,4 +102,0 @@
 -  if (!params.has("practice") && params.get("peaceful") !== "1" && params.get("sandbox") !== "1" && !input.mux) fetch(`${base}api/stats`)
 -    .then((r) => r.json() as Promise<{ players: number; games: number }>)
 -    .then((s) => menus.stats(s.players, s.games))
 -    .catch(() => {})
-@@ -152,8 +131,3 @@
+@@ -152,8 +129,3 @@
 -  if (!input.mux && params.get("peaceful") !== "1" && !params.has("practice")) menus.landing(roomParam)
 -  // Back from a version reload: straight into the same room.
 -  const rejoin = sessionStorage.getItem(REJOIN_KEY)
@@ -74,8 +88,19 @@
 +  // Offline default: seed 1, passive targets. B enables the upstream local bots.
 +  if (params.has("practice")) begin(localStorage.getItem(NAME_KEY) ?? "you", (n) => new LocalSession(n, gun, equip, modeOf(params.get("mode")) ?? "ffa", params.get("map")))
 +  else sandbox(localStorage.getItem(NAME_KEY) ?? "you")
+@@ -227,7 +198,0 @@
+-      telemetry.enabled = debug.visible || input.mux
+-      const chunks = renderer.drawnChunks
+-      const perf = debug.sample(now, elapsed, telemetry, chunks, game.lightCount)
+-      if (perf && parent !== window) {
+-        const screen = body ? cam.project(body.x, 0.85, body.y, w, h) : null
+-        parent.postMessage({ type: "arcade-perf", ...perf, ...game.muxState(), tick: muxTick, map: game.map.seed, alive, screenX: screen ? screen.x / w : null, screenY: screen ? screen.y / h : null, run: input.muxRun }, input.parentOrigin)
+-      }
 --- a/games/blackout/src/game/input.ts
 +++ b/games/blackout/src/game/input.ts
+@@ -27 +27 @@
+-  readonly mux = new URLSearchParams(location.search).has("mux") && parent !== window
++  readonly mux = false
 @@ -34 +34 @@
 -      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return
 +      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement || (e.target instanceof Element && e.target.closest("#solo-help, #touch-controls"))) return
@@ -101,6 +126,9 @@
 +      button.addEventListener("pointercancel", release)
 +      button.addEventListener("lostpointercapture", release)
 +    }
+@@ -77 +98 @@
+-  forward(message: object): void { if (this.mux) parent.postMessage({ ...message, run: this.muxRun }, this.parentOrigin) }
++  forward(_message: object): void {}
 --- a/games/blackout/src/style.css
 +++ b/games/blackout/src/style.css
 @@ -0,0 +1,32 @@
@@ -136,6 +164,28 @@
 +  #touch-controls button { padding: 8px; }
 +}
 +
+--- a/games/blackout/src/ui/debug-overlay.ts
++++ b/games/blackout/src/ui/debug-overlay.ts
+@@ -26 +25,0 @@
+-export type Perf = { fps: number; frameMs: number; p95Ms: number; gpuMs: number | null; gpuKind: string; draws: number; verts: number; chunks: number; lights: number }
+@@ -33,2 +31,0 @@
+-  private samples: number[] = []
+-  private lastReport = 0
+@@ -38,14 +34,0 @@
+-  sample(now: number, elapsed: number, gpu: Pick<Perf, "gpuMs" | "gpuKind" | "draws" | "verts">, chunks: number, lights: number): Perf | null {
+-    if (elapsed > 0 && Number.isFinite(elapsed)) this.samples.push(elapsed)
+-    if (this.samples.length > 180) this.samples.shift()
+-    if (document.hidden) { this.samples = []; return null }
+-    if (now - this.lastReport < 150 || !this.samples.length) return null
+-    this.lastReport = now
+-    const sorted = [...this.samples].sort((a, b) => a - b)
+-    const frameMs = sorted[Math.floor((sorted.length - 1) * 0.5)]!
+-    const p95Ms = sorted[Math.floor((sorted.length - 1) * 0.95)]!
+-    const fps = 1000 * this.samples.length / this.samples.reduce((a, b) => a + b, 0)
+-    const perf = { fps, frameMs, p95Ms, ...gpu, chunks, lights }
+-    this.header.textContent = `FPS ${fps.toFixed(0)} · Frame ms ${frameMs.toFixed(1)} / ${p95Ms.toFixed(1)}\nGPU ${gpu.gpuKind === "timestamp" ? "HW" : "queue-wait"} ms ${gpu.gpuMs?.toFixed(2) ?? "—"}`
+-    return perf
+-  }
 --- /dev/null
 +++ b/games/blackout/check-solo.html
 @@ -0,0 +1,3 @@

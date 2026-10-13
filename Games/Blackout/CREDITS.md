@@ -15,6 +15,7 @@
 - Added a small controls disclosure, restart, links to local practice/sandbox, and touch movement/fire controls using upstream input handling. Keyboard focus inside these controls does not trigger game shortcuts.
 - Excluded the upstream comparison entry. Added `check-solo.html`, a runnable GPU-independent check of the actual shared simulation and HUD constructor. It does not certify rendering or human gameplay.
 - Local fonts, shaders, code and sounds only. No runtime third-party URLs were found in the copied HTML, JS or CSS.
+- Removed upstream GPU timing instrumentation, frame statistics sampling and parent-frame performance reports. Disabled the mux comparison input bridge and removed its parent-message output. The tracking sweep found no GA/GTM, ad scripts, beacons, pixels, XHR, sockets or third-party fetch endpoints. The only remaining fetches are local module preloads and local vehicle sounds.
 
 `port.patch` records the staging-source changes. To rebuild, apply it at the pinned upstream repository root with `patch -p1 < port.patch` (or `git apply --unidiff-zero port.patch`), use the existing workspace dependencies (or `bun install --frozen-lockfile` there), then run `bun run build` in `games/blackout`. Deploy only `games/blackout/dist/arcade/blackout/`; retain this provenance, patch and license notices. Do not copy node_modules.
 
@@ -36,5 +37,7 @@ EXTERNAL: []
 ```
 
 The runnable check is `check-solo.html` beside the game. Its first test run was too short for the upstream 0.5-second spawn firing cooldown; the check now advances 1.5 seconds, without changing gameplay or filtering failures. Vite build, TypeScript checking and bundled JavaScript syntax checks passed.
+
+Post-port telemetry removal was applied directly to the existing game bundles, with matching staging-source changes recorded in `port.patch`; no rebuild was attempted below the 2 GB disk floor. Follow-up JavaScript syntax and source TypeScript checks passed. A fresh bounded browser check returned HTTP 200, the simulation PASS above, `EXTERNAL_LOADS: []`, `SOCKETS: []` and `SIM_CONSOLE: []`. The game still reported the WebGPU adapter warning. No publication or push was performed.
 
 Verdict: **partial**. The shipped simulation moves and shoots locally and initializes HUD DOM. Two software-GPU browser configurations lacked a WebGPU adapter; no rendered game, native combat, touch gameplay, bot-match completion or death/respawn was verified. Desktop and mobile screenshots in light/dark browser preferences show the honest GPU warning and readable controls, not gameplay. Restart reloads the document. Real WebGPU hardware acceptance remains required. Catalog registration and the full registered-game smoke gate are separate coordinator tasks; nothing was pushed.
