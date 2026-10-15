@@ -3,7 +3,7 @@
 
 ## Identity and status
 
-Registered id **107**, category `action`, entry [index.html](../../../Games/JetpackJoyrideHacked/index.html). Baseline `8c8a055`: 417 files, 16,815,820 bytes; entry blob `351b15e272de13fc24b8e55669eaf356918d0861`. Cheat mechanics are intentional. Runtime is read-only for this audit.
+Registered id **107**, category `action`, entry [index.html](../../../Games/JetpackJoyrideHacked/index.html). Baseline `8c8a055`: 417 files, 16,815,820 bytes; entry blob `351b15e272de13fc24b8e55669eaf356918d0861`. Cheat mechanics are intentional. The 2026-10-15 follow-up changes only the entry's static description to match catalog id107, not its scripts or engine. Metadata repeats the catalog's intended cheats, not verified cheat acceptance.
 
 ## Implementation map
 
@@ -17,7 +17,7 @@ Hint explicitly documents hold click/tap to ascend and release to descend; keybo
 
 ## State and persistence
 
-`hookInterval` polls every 100 ms until a global game exists, then wraps scene updates once. It does not handle scenes created after discovery or restore original functions on shutdown. Direct `localStorage.setItem` replacement substitutes scalar `'999999'` for any key containing coin or score, regardless of expected schema. The underlying game's reviewed `a0zy` serializes an object with `coin`/`best_score`; actual decoded save key is unresolved. Settings key `data` is literal. `JJ_HACK` is declared, but no consumer was verified in the compiled bundle; do not claim that flag alone supplies gameplay cheats.
+`hookInterval` polls every 100 ms until a global game exists, then wraps scene updates once. It does not handle scenes created after discovery or restore original functions on shutdown. Direct `localStorage.setItem` replacement substitutes scalar `'999999'` for any key containing coin or score, regardless of expected schema. The underlying game's reviewed `a0zy` serializes an object with `coin`, `best_score`, `bgm`, `sfx` and `language`; the follow-up's read-only runtime decoder resolves its save key to `data`, also read literally by GamePlay. That key does not match the wrapper's coin/score substring branch. Fresh follow-up profiles reached no saved `data` record; save/reload correctness remains unverified. `JJ_HACK` is declared, but no consumer was verified in the compiled bundle; do not claim that flag alone supplies gameplay cheats.
 
 ## Dependencies and provenance
 
@@ -25,7 +25,7 @@ No license/README/CREDITS/source pin exists in the assigned directory inventory.
 
 ## Audit findings
 
-- **HIGH**, `game3.js`, startup/asset boundary: r5's `Unexpected token '<'` and undefined-length boot errors are historical unresolved failures; current syntax pass does not disprove them. Capture failing response URL/body type and scene activation on both variants; repair the real dependency boundary.
+- **HIGH triage**, `game3.js:6325-6333`, injected ad SDK boundary: three fresh follow-up boots reproduce `Unexpected token '<'`. The bundle creates `gamedistribution-jssdk` with `src='#'`, fetching this HTML entry as a script (HTTP 200, `text/html`), not a missing PNG or transient network failure. Run3 nevertheless reaches GamePlay, so this error alone is not proof of a permanent boot stall. Historical undefined-length failure was not reproduced. No authored safe repair was established; request legitimate source/a separately approved hook rather than suppressing the request or editing the bundle.
 - **MEDIUM**, `index.html`, `localStorage.setItem` override: page-wide substring matching may replace structured saves with a scalar and relies on overriding a Storage instance method. Identify exact keys and use game-specific numeric mutation at the real save boundary. Verify installation/storage contents; preserve intentional high coins.
 - **MEDIUM**, same file, `hookInterval` and scene update replacement: discovery is unbounded on failed boot; wrapper ownership and future-scene coverage are absent. Bound polling and tie wrappers to verified scene lifecycle instead of adding another timer.
 - **MEDIUM**, same file, `#hack-badge`/viewport/hint: perpetual pulse ignores reduced motion, zoom is disabled and instructions expire. Small authored CSS/help changes are sufficient.
@@ -42,10 +42,38 @@ run failed 122/125, exit 1. Only three request samples are retained, all reporti
 `net::ERR_NETWORK_CHANGED`; the other four reasons are unavailable. [Triage](../audits/fleet-2026-10-15-triage.md)
 confirmed those sampled assets exist in Git and the entry/tree still match the
 inventory. No fresh isolated Jetpack runtime rerun or confirmed fix occurred.
-Transport/environment cause is suspected, not established; keep this failure
+Transport/environment cause remains suspected, not established; keep this failure
 held alongside existing save/rights findings. No smoke screenshots exist.
 
-Historical audit checks: game3 Git blob through `node --check` passed. Native **0**, screenshots **0**. Recommended: capture scene activation and boot requests, confirm update wrappers execute, hold/release to fly, verify physics stays mobile, coin spending/reload and retry after result where available. Inspect actual storage shape and test denied/corrupt storage. Compare with id 86 in separate profiles. Main owns full smoke and subjective visual review.
+[Fresh follow-up](../audits/fleet-followup-jetpack.md): three isolated native boots,
+all requests retained without filtering. There were **zero transport failures**;
+the three known prior samples each returned 200 and finished in every run. Four
+original URLs/reasons remain unavailable. All runs reproduced the separate HTML-
+as-script page error and a sparse-excluded shared favicon 404. Run3 additionally
+recorded 82 AudioContext device/renderer errors. These are not clean passes.
+
+The first two bounded observations ended in Preload. Run3's read-only queue
+snapshots show ongoing local asset conversion, not failed network transfers:
+394 Phaser files completed, zero failed, empty network queues; decoded-asset
+progress eventually reached 365. GamePlay became active at 136.108 seconds of
+that instrumented process, with its real touch-to-play menu visible. A normal
+center click started scrolling gameplay; the snapshot HUD advanced 17/45/71m
+(the later final screenshot shows 82m). Hold/release left the player at y636
+with its physics body disabled; an in-game offer was still active during the
+hold, so this is not isolated flight-input proof. Visible coins stayed zero,
+not verified 999999. No result/restart, spending/reload, denied/corrupt storage,
+mobile, hardware or theme acceptance follows. Twenty-two desktop diagnostic
+screenshots were captured; two representative menu/play images were reviewed.
+
+No retry code or regression fixture was justified/added. All requests finished;
+a retry would not repair the injected-script error, local decoding, audio or
+cheat contracts. Smoke code/filters/timeouts remain unchanged. The static catalog
+schema/Git URL check passed for 125 entries, the three inline scripts and game3
+passed syntax, and the single description matches the catalog. Maintenance
+coverage checking is blocked by concurrent uncommitted source edits; the metadata
+commit also requires coordinator-owned inventory reconciliation. No refresh here.
+
+Historical audit checks (before this follow-up): game3 Git blob through `node --check` passed. Native **0**, screenshots **0**. Recommended: capture scene activation and boot requests, confirm update wrappers execute, hold/release to fly, verify physics stays mobile, coin spending/reload and retry after result where available. Inspect actual storage shape and test denied/corrupt storage. Compare with id 86 in separate profiles. Main owns full smoke and subjective visual review.
 
 ## Future outlook
 
