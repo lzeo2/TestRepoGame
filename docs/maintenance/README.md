@@ -14,17 +14,19 @@ for exact tracked counts, entry hashes, source-tree hashes and manual paths.
 
 ## Current fleet handover (2026-10-15)
 
-[Seven-lane handover](audits/fleet-2026-10-15-handover.md) and
-[completed QA gate](audits/fleet-2026-10-15-lane6.md): **122/125, exit 1, release
-blocked, no push**. Targeted triage passes do not replace that failed full gate.
-Inventory reconciliation adds seven already-existing projects to this index,
-not seven new games. All 123 prior records still match Git. Canonical registered
-manuals now cover Blackout/Getaway/Wings with historical URL forwarding pages;
-Borough Run/Night Shift had no tracked manuals and receive bounded source-based
-pages with explicit defects and provenance limits. No exhaustive audit is implied.
-Two generated Wings models remain fixture-only, not integrated into gameplay.
-Identity remediation, source/rights, static per-title SEO, real-Snake fullscreen
-and original history-regression acceptance remain held as detailed in the handover.
+[Pre-gate follow-up handover](audits/fleet-followup-handover.md) supersedes current
+status, not the evidence in the [seven-lane handover](audits/fleet-2026-10-15-handover.md).
+The last full gate remains historical **122/125, exit 1, release blocked, no push**;
+a fresh unchanged all-125 gate is next, after this documentation commit.
+Approved identity remediation preserved all eight mapped trees/subjects. Pinned
+Wings source was restored read-only and rebuilt; both immutable Astra models are
+now picker/spawn/simulation integrated, not accepted on a supported GPU. Static
+descriptions cover **124/124 nonprotected entries**, excluding read-only Character AI;
+no tracking was added. Inventory is reconciled after inspected, committed changes:
+125 registered / 130 projects, no new games. Historical manuals/receipts remain.
+Portal original refurbishment/fullscreen, Jetpack SDK/audio/cheat findings, Wings
+rendering/rights and generated-bundle hygiene findings remain open. Targeted
+passes and current documentation coverage do not replace the full release gate.
 
 ## How a future agent should use this manual
 

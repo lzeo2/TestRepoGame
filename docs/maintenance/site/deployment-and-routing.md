@@ -159,8 +159,10 @@ on concurrent Games edits, then on `Inventory stale: inspect changes, then run
 --refresh.` Inventory was not refreshed by lane5 and then predated seven registrations
 (118 versus 125). Lane7 subsequently reconciled 130 project manuals / 125 registered
 entries after Git inspection. The [fleet handover](../audits/fleet-2026-10-15-handover.md)
-retains the failed 122/125 full gate and identity remediation as release holds.
-Its former static-description gap is superseded only by the bounded metadata
+retains the historical failed 122/125 full gate and then-pending identity hold.
+Approved remediation is now verified in the [pre-gate follow-up](../audits/fleet-followup-handover.md);
+the fresh full gate is still next, not passed. Its former static-description gap
+is superseded only by the bounded metadata
 receipt below, not by gameplay or hosted crawler acceptance. Documentation
 coverage does not authorize push.
 
@@ -171,8 +173,9 @@ Static-description follow-up: `python3 -B scripts/update_game_descriptions.py
 parser fixtures and all 122 owned entry diffs. Apply mode excludes Character AI,
 Wings and Jetpack Joyride Hacked; it reads sparse HEAD blobs and writes only changed
 entries without changing sparse selection. ASCII entities preserve existing
-charsets/BOM/newlines. Inventory refresh and the final all-writer maintenance
-check belong to the coordinator. No new browser, screenshot or full-fleet result
+charsets/BOM/newlines. The delegated pre-gate documentation lane now refreshes
+inventory after committed source and byte-preservation inspection. No new browser,
+screenshot or full-fleet result
 is claimed by this static follow-up.
 
 Recommended hosted checks, not executed:

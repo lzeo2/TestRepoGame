@@ -1,6 +1,26 @@
 # Changelog
 
-## 2026-10-15 fleet maintenance (unreleased)
+## 2026-10-15 follow-up integration (unreleased, pre-gate)
+
+- Verified approved identity remediation: eight old/new trees and subjects match;
+  mapped/follow-up commits use the approved nonpersonal identity. Historical hashes
+  below are retained; see the [map and handover](docs/maintenance/audits/fleet-followup-handover.md).
+- Rebuilt restored read-only pinned Wings source: lazy renderer startup (`3b9e92d`)
+  and both immutable Astra aircraft integrated (`d435f12`). Picker/simulation
+  evidence passes, but converted-material render timed out; supported-GPU flight
+  and rights remain held. Main found labels fit; error footer remains crowded.
+- Added static descriptions for 124/124 nonprotected entries (`766d387`, `f71f298`),
+  excluding Character AI; no tracking. Snapshotted portal recent history per sort
+  (`bdf82dc`), reducing 1,374 parses to one; original runner failures remain.
+- Jetpack: three boots with zero transport failures, separate SDK/audio findings;
+  not clean gameplay acceptance. Refreshed 125/130 maintenance coverage after
+  inspected source commits, without rewriting historical receipts.
+- Global follow-up whitespace check fails in generated Wings vendor/shader code;
+  generated test bundle also retains machine-specific source-path comments.
+  No bundle hand-edit or check weakening. Fresh unchanged full gate is next;
+  historical 122/125 failure is not current acceptance. No games added or push.
+
+## 2026-10-15 fleet maintenance (historical pre-follow-up, unreleased)
 
 - Added two operator-approved original procedural Wings aircraft GLBs and
   fixture checks (`39f4ef3`). Not picker-integrated; no rendered-flight acceptance.

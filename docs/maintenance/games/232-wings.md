@@ -50,7 +50,7 @@ Mobile spawn now stacks the list and detail in a real scrolling container. HUD r
 
 ## Safe iteration
 
-Patch pinned staging source, rebuild, replace only Wings dist files, and regenerate `port.patch`. The follow-up received the clean pinned source read-only and applied the complete previous patch to an external 9.3 MiB staging tree, with cached dependencies and public assets symlinked rather than installed/copied. Bun with cached Vite 7.3.7 rebuilt the source; regenerated `port.patch` passes `git apply --check` against the pin. Source recovery is no longer a blocker. Spawn-framing/navigation/failure-copy polish remains separate. Task 2 subsequently integrates the two authorized Astra aircraft without changing the task 1 lifecycle boundary. Do not re-fetch upstream or hand-edit bundles. Lane1 owns the GLBs and `Games/Wings/docs/models.md` orientation contract; their presence alone does not integrate selection, flight tuning or cockpit placement. Trace old hashed asset consumers before removing stale bundles. Keep notices and regression sources. Never restore worker/network services, edit minified output, or claim simulation/UI fixtures establish native flight. Lane7 reconciled the inventory after the fleet source commits; this does not lift source or rendering holds.
+Patch pinned staging source, rebuild, replace only Wings dist files, and regenerate `port.patch`. The follow-up received the clean pinned source read-only and applied the complete previous patch to an external 9.3 MiB staging tree, with cached dependencies and public assets symlinked rather than installed/copied. Bun with cached Vite 7.3.7 rebuilt the source; regenerated `port.patch` passes `git apply --check` against the pin. Source recovery is no longer a blocker. Spawn-framing/navigation/failure-copy polish remains separate. Task 2 subsequently integrates the two authorized Astra aircraft without changing the task 1 lifecycle boundary. Do not re-fetch upstream or hand-edit bundles. The lane1 GLBs remain byte-preserved, with orientation contract in `Games/Wings/docs/models.md`; task 2 now supplies selection, flight tuning and provisional cockpit placement. Trace old hashed asset consumers before removing stale bundles. Keep notices and regression sources. Never restore worker/network services, edit minified output, or claim simulation/UI fixtures establish native flight. The pre-gate documentation lane reconciles inventory after committed follow-up source/model-doc changes; this does not lift rendering or rights holds.
 
 ## Verification
 
@@ -87,8 +87,22 @@ fixture and all four unavailable-GPU cases pass. Shared-browser sequence initial
 returned 2/3 (Astray reload ERR_ABORTED); two unchanged retries returned 3/3,
 including final build. Keep that transient failure in the evidence, not a clean
 all-attempts claim. Converted-material preview timed out at its 40-second outer
-bound. No rendered-flight PASS or inventory refresh. Evidence/rebuild recipe:
+bound. No rendered-flight PASS. Evidence/rebuild recipe:
 [fleet follow-up](../audits/fleet-followup-wings.md).
+
+Current pre-gate integration: task 1 is `3b9e92d`, task 2 is `d435f12`.
+The task 2 worker committed before its 20-minute deadline but reached that limit
+before final output; task logs remain available. Main independently passed Astra,
+solo, immutable-model and static SEO checks and reviewed desktop-dark/mobile-light
+picker screenshots: both labels fit. Failure toast/footer remains crowded; no
+polished-flight claim. This documentation lane reran the nonbrowser checks and
+refreshes inventory only after all Games changes are committed. The generated
+Astra regression is 884,415 bytes (about 864 KiB), test-only, with retained Three
+MIT notice. Global follow-up diff whitespace fails in generated vendor/shader
+literals; machine-specific path comments also remain in that regression bundle.
+Do not hand-edit bundles or call a scoped check globally clean. See the
+[pre-gate handover](../audits/fleet-followup-handover.md) for findings, identity map
+and pending ticket `1792052078368`. Fresh full gate is next, not accepted yet.
 
 ## Future outlook
 

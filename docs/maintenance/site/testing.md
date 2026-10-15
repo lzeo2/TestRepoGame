@@ -4,7 +4,29 @@
 
 Documentation audit baseline: `8c8a055`. This worker changed only assigned Markdown paths. It did not materialize Games, change sparse selection, install packages, modify catalog/runtime, register games or push. Main owns the serial full gate, screenshot judgment and final integration. [Scope](../SCOPE.md) and [quality contract](../../CODE_QUALITY.md) take precedence over historical wiki instructions.
 
-## Current fleet results (2026-10-15)
+## Current pre-gate follow-up (2026-10-15)
+
+See [follow-up handover](../audits/fleet-followup-handover.md) for current commits,
+identity map and inventory reconciliation. The fresh unchanged all-125 gate is
+**next, not yet run**. The 122/125 result below remains historical failure evidence.
+Wings lazy menu startup changed the shared-browser sequence from 1/3 to 3/3 twice;
+model integration subsequently recorded 2/3 then 3/3 twice. These menu visits do
+not certify flight. Astra/solo/model checks and static SEO/sitemap pass; unavailable-
+GPU fixtures and Main's picker screenshot review are not supported-GPU acceptance.
+Converted-material rendering hit a 40s bound. Jetpack's three boots had zero
+transport failures but separate SDK/audio findings, not three clean passes.
+Portal recent sorting now parses once instead of 1,374 times; the fleet runner
+passed, but both original refurbishment attempts failed and full fullscreen hit
+650s without a final result. No root cause for those remaining timeouts is claimed.
+
+`git diff --check e787681..HEAD` **fails**, exit 2: generated aircraft shader and
+Astra test-bundle vendor/shader whitespace. The latter also embeds machine-specific
+source-path comments. Existing Three MIT notice is retained; test-only bundling
+is not new runtime payload. No checker weakening or bundle hand-edit is authorized.
+Owned documentation whitespace PASS is not a global PASS. Ticket
+`1792052078368` remains pending; rights/hardware/release holds persist.
+
+## Historical fleet results (2026-10-15, before follow-up)
 
 The [completed lane6 report](../audits/fleet-2026-10-15-lane6.md) records the
 unchanged all-125 smoke gate at `5ed48f4`: **122/125, exit 1**, default 8000ms,

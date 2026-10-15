@@ -9,13 +9,17 @@ Audit baseline: `8c8a055`. Delegation 73 subsequently repaired P-01 through P-04
 Lane7 reconciled the inventory to **125 registered / 130 projects** after Git
 comparison; stale-count statements in the lane4 receipts below describe their
 run-time baseline, not the current inventory. The [handover](../audits/fleet-2026-10-15-handover.md)
-and [QA report](../audits/fleet-2026-10-15-lane6.md) preserve the **failed 122/125**
-full gate and pending identity remediation. No release/push acceptance follows
-from inventory coverage, routing fixtures or the focused portal passes.
+and [QA report](../audits/fleet-2026-10-15-lane6.md) preserve the historical **failed 122/125**
+full gate. Approved identity remediation is now verified; the fresh full gate is
+next after the [pre-gate handover](../audits/fleet-followup-handover.md) commit.
+No release/push acceptance follows from inventory coverage, routing fixtures or
+the focused portal passes.
 
 Lane5's authored SEO layer adds a third independent local catalog read for
-browser-only Info/player metadata. It does not add shareable selection URLs or
-complete static per-title crawler metadata. Manifest light launch colors do not
+browser-only Info/player metadata. It does not add shareable selection URLs.
+The static follow-up now covers all 124 nonprotected entry descriptions, excluding
+read-only Character AI, without tracking; OG metadata remains incomplete.
+Manifest light launch colors do not
 force a light installed UI. See [deployment limits](deployment-and-routing.md).
 
 ## Catalog and render ownership
