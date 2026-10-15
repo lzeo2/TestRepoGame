@@ -18,6 +18,64 @@ import threading
 from urllib.parse import unquote, urljoin
 import xml.etree.ElementTree as ET
 from generate_sitemap import BASE, NS, ROOT, sitemap
+from update_game_descriptions import (Head, PROTECTED, OTHER_OWNERS, REPLACE,
+                                      catalog_entries, description_for, entry_bytes,
+                                      git_bytes, patch)
+
+
+def description_checks(baseline=None):
+    # ASCII entities preserve UTF-8, legacy encodings, BOM and CRLF byte-for-byte.
+    description = 'A "quote" & <tag>, café and 日本語'
+    for raw in (
+        b'\xef\xbb\xbf<!doctype html><HEAD>\r\n<meta charset="utf-8">\r\n</HEAD><body>unchanged</body>',
+        b'<head><meta charset="windows-1252"><title>caf\xe9</title></head><body>\x80</body>',
+        b'<head><!-- </head> --><script>var s="</head>";</script><style>/* </head> */</style></head><body></body>',
+        b'<head><title>Title</title></head><body><meta name="description" content="body only"></body>',
+    ):
+        updated = patch(raw, description)
+        before, after = Head(raw), Head(updated)
+        start, end, value = after.descriptions[0]
+        newline = b'\r\n' if b'\r\n' in raw else b'\n'
+        assert value == description
+        assert updated[:start] + updated[end + len(newline):] == raw
+        assert start == before.ends[0] and end < after.ends[0]
+        assert patch(updated, description) == updated
+    raw = b'<head><meta NAME="Description" content="old"></head><body>unchanged</body>'
+    assert patch(raw, description) == raw  # Preserve meaningful existing metadata.
+    updated = patch(raw, description, replace=True)
+    old_start, old_end, _ = Head(raw).descriptions[0]
+    start, end, value = Head(updated).descriptions[0]
+    assert value == description
+    assert raw[:old_start] == updated[:start] and raw[old_end:] == updated[end:]
+    assert patch(updated, description, replace=True) == updated
+    for invalid in (b'<body>no head</body>', b'<head><meta name="description"><meta name="description"></head>'):
+        try:
+            patch(invalid, description)
+        except AssertionError:
+            pass
+        else:
+            raise AssertionError('Ambiguous head/description accepted')
+
+    entries = list(catalog_entries())
+    protected = [path for _, path in entries if path.startswith(PROTECTED)]
+    assert protected == ['Games/Character AI/Alsen.html']
+    assert git_bytes('rev-parse', 'HEAD:Games/Character AI').strip() == b'b7b7e60e98c11b6ccdebbf8f480a072b8b6f2017'
+    assert not git_bytes('diff', '--name-only', 'HEAD', '--', PROTECTED).strip()
+    eligible = [(game, path) for game, path in entries if not path.startswith(PROTECTED)]
+    assert len(entries) == 125 and len(eligible) == 124
+    if baseline:
+        owned = [(game, path) for game, path in eligible if not path.startswith(OTHER_OWNERS)]
+        for game, path in owned:
+            original = git_bytes('show', baseline + ':' + path)
+            assert entry_bytes(path) == patch(original, description_for(game), game['id'] in REPLACE), path
+        print(f'PASS metadata-only: {len(owned)} owned entries unchanged outside the approved description patch')
+    missing = []
+    for _, path in eligible:
+        descriptions = Head(entry_bytes(path)).descriptions
+        if len(descriptions) != 1 or not descriptions[0][2].strip():
+            missing.append(path)
+    assert not missing, 'Missing/duplicate static head descriptions (no pending-owner exemption): ' + repr(missing)
+    print('PASS descriptions: 124/124 nonprotected entries; Character AI unchanged; byte-preserving parser fixtures')
 
 
 class Metadata(HTMLParser):
@@ -34,7 +92,7 @@ class Metadata(HTMLParser):
             self.links[attrs.get('rel')] = attrs.get('href')
 
 
-def static_checks():
+def static_checks(baseline=None):
     content, count = sitemap()
     assert (ROOT / 'sitemap.xml').read_bytes() == content, 'Regenerate sitemap'
     urls = [e.text for e in ET.fromstring(content).findall('.//{' + NS + '}loc')]
@@ -55,15 +113,16 @@ def static_checks():
         assert raw[:8] == b'\x89PNG\r\n\x1a\n'
         assert 'x'.join(map(str, struct.unpack('>II', raw[16:24]))) == icon['sizes']
     games = json.loads((ROOT / 'games.json').read_text())
+    description_checks(baseline)
     counts = dict.fromkeys(('description', 'og:title', 'og:description'), 0)
     for game in games:
         meta = Metadata()
         path = unquote(game['url']).removeprefix('./')
-        meta.feed(subprocess.check_output(['git', 'show', 'HEAD:' + path], cwd=ROOT).decode(errors='replace'))
+        meta.feed(entry_bytes(path).decode(errors='replace'))
         for key in counts:
             counts[key] += bool(meta.meta.get(key))
     print(f'PASS static: {count} games, {len(urls)} sitemap URLs, metadata/manifest/3 icon sizes')
-    print('Existing Git game-page metadata (not fixed by runtime selection): ' + json.dumps(counts))
+    print('Static game-page metadata (worktree where present, otherwise HEAD): ' + json.dumps(counts))
     return games
 
 
@@ -136,8 +195,11 @@ def browser_checks(games):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--browser', action='store_true')
+    mode = parser.add_mutually_exclusive_group()
+    mode.add_argument('--browser', action='store_true')
+    mode.add_argument('--check', action='store_true', help='Static checks only; no writes (the default)')
+    parser.add_argument('--metadata-baseline', help='Also assert metadata-only entry diffs against this Git revision')
     args = parser.parse_args()
-    games = static_checks()
+    games = static_checks(args.metadata_baseline)
     if args.browser:
         browser_checks(games)

@@ -37,6 +37,12 @@ Start with authored viewport/help and explicit local ad callback contracts after
 
 Actually run: `git show HEAD:Games/JetpackJoyride/game3.js | node --check` passed. Git inventory reviewed; native **0**, screenshots **0**. Recommended supervisor-approved narrow checkout: record boot through active scene, response content types, menu start, press/release pointer flight, eventual failure, result/retry and reload persistence. Test portrait/landscape, denied storage and audio-disabled device. Compare both variants without claiming software-rendered screenshots establish hardware performance. Main owns full catalog smoke.
 
+### Static metadata receipt (2026-10-15)
+
+Only the entry head description changed. Entry/tree matched inventory at `e787681`.
+[Metadata checks and exact paths](../audits/fleet-followup-descriptions.md).
+No engine audit or gameplay acceptance; source-coverage limits and known holds remain.
+
 ## Future outlook
 
 First isolate historical boot parse errors and establish source/rights. Next persistent accessible controls, orientation messaging and storage recovery. Later measure load time and memory on target hardware before compressing/removing assets. Defer stronger engine changes, online services and new art.

@@ -38,6 +38,12 @@ Keep SI namespace/load ordering, enemy-row behavior, five-point scoring and orig
 
 Actually run: all six JS files including jQuery passed Git-blob STDIN syntax checks; browser/native tests **zero**. Repeat `git show HEAD:Games/SpaceInvaders/javascripts/Game.js | node --check`. Main owns any narrow game lease. Recommended: up firing, touch drag/fire, simultaneous hits, final kill on fire tick, three-hit loss and both confirm responses, resize, and movement after replay. Historical `playtest_p1a.md`'s wave HUD/Menu controls are absent here and cannot clear current defects.
 
+### Static metadata receipt (2026-10-15)
+
+Only the entry head description changed. Entry/tree matched inventory at `e787681`.
+[Metadata checks and exact paths](../audits/fleet-followup-descriptions.md).
+No engine audit or gameplay acceptance; source-coverage limits and known holds remain.
+
 ## Future outlook
 
 Week 1: final-enemy crash/deletion indexing regressions and axis clamp. Week 2: reachable instructions/restart, focus-loss release and mobile resize review. Later: replace document-wide touch interception with canvas-scoped pointer input if measured testing warrants it. Campaign modes, new enemies and upstream art recoloring are deferred.

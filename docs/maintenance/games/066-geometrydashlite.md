@@ -45,6 +45,12 @@ Actually run: Git resource checks, manifest parsing, stdin `node --check` for Un
 
 Recommended Main-approved HTTP lease: compatibility warning without automation, title to playable level, actual jump input, death/retry/completion, music toggle, audio unlock and reload saves. Capture streaming audio requests with remote access blocked; inspect viewport fit and hardware frame timing. Main's loading gate cannot prove beat/input synchronization.
 
+### Static metadata receipt (2026-10-15)
+
+Only the entry head description changed. Entry/tree matched inventory at `e787681`.
+[Metadata checks and exact paths](../audits/fleet-followup-descriptions.md).
+No engine audit or gameplay acceptance; source-coverage limits and known holds remain.
+
 ## Future outlook
 
 Resolve game/music rights and official-build identity first. Next remove broad dialog automation and add useful loading errors. Month work should verify level retry, input timing and audio continuity before any shell refurbishment. No new songs, remade engine or unsupported mobile promise.

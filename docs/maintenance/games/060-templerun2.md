@@ -45,6 +45,12 @@ Actually run: Git tree/resource inspection and stdin parser checks on main bundl
 
 Recommended Main-approved HTTP lease: fresh/corrupt/denied-storage profiles, tutorial and genuine turn/jump/slide, death/restart, no-reward continue, reload progression, audio unlock, mobile orientation and hardware FPS. Capture every request with remote access blocked. Main's serial full loading gate remains independent.
 
+### Static metadata receipt (2026-10-15)
+
+Only the entry head description changed. Entry/tree matched inventory at `e787681`.
+[Metadata checks and exact paths](../audits/fleet-followup-descriptions.md).
+No engine audit or gameplay acceptance; source-coverage limits and known holds remain.
+
 ## Future outlook
 
 Rights and save recovery first; real readiness/error UI second. Month checkpoints should prove offline input and death/replay before performance tuning. Local Draco closure, N100 frame/memory measurements and save compatibility are prerequisites for any 3D refurbishment. New models or third-party SDK services are deferred.

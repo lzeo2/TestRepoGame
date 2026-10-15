@@ -45,6 +45,12 @@ Use readable modules, not `phaser.js`, as patch points. Preserve source-art tran
 
 `git show HEAD:Games/MergeCatsDefender/src/Core/Save.js | node --check` reproduces a sparse-safe syntax check. Main's later bounded Git-backed runtime lease should test new/old/corrupt/denied saves, full start flow, correct tower/frontline placement, splash kills, drag-to-trash cancellation, pause/settings/rotation combinations, loss Retry and win rewards/reload. Compare both slots without clearing them. Review 360px portrait rotate UI and landscape hit-target sizes on actual hardware. Full catalog gate remains separate.
 
+### Static metadata receipt (2026-10-15)
+
+Only the entry head description changed. Entry/tree matched inventory at `e787681`.
+[Metadata checks and exact paths](../audits/fleet-followup-descriptions.md).
+No engine audit or gameplay acceptance; source-coverage limits and known holds remain.
+
 ## Future outlook
 
 Week 1: pending rights and save-shape triage. Week 2: bounded keyboard path and guard/pause regression after authorization. Week 3: save compatibility, campaign result and audio lifecycle QA, including hacked old-slot migration. Week 4: texture-budget/frame-time measurements and small-screen target review. Defer speculative merge systems, new cat art and compile-tool changes; first correct existing documented behavior and preserve attribution.

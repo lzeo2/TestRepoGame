@@ -42,6 +42,12 @@ Actually run: Git/catalog identity and JS syntax checks in [batch 65](../audits/
 
 Recommended native steps: initial Enter claim, cursor on dot then line, native-focused Menu/New round activation, two-box completion and retained turn, AI extra-turn chain, draw/result, restart during AI delay, 360px width/target measurement. Sparse-safe read: `git show HEAD:Games/DotsAndBoxes/script.js`; Main owns browser assets/full gate.
 
+### Static metadata receipt (2026-10-15)
+
+Only the entry head description changed. Entry/tree matched inventory at `e787681`.
+[Metadata checks and exact paths](../audits/fleet-followup-descriptions.md).
+No engine audit or gameplay acceptance; source-coverage limits and known holds remain.
+
 ## Future outlook
 
 Week 1: keyboard identity and focus routing with a tiny regression. Week 2: mobile grid/hit targets, board state announcements and result focus. Later: measured chain-aware AI if requested; current greedy strategy is not a rules defect. Defer online play and saved matches until the advertised controls work.

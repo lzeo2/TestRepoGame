@@ -39,6 +39,12 @@ Reuse SnakeGame methods; do not replace with a new game. Keep wrap/+1000/god-mod
 
 Actually run: game.js Git blob `node --check` **PASS**. Native **0**, screenshots **0**. Recommended: Start, eat food, wrap each wall, self-overlap, pause/resume repeatedly, expose/reuse reset after patch and verify one interval. Exercise full-board food generation, denied/corrupt storage and keyboard scrolling. Check 320 px mobile canvas/button fit and focus. [Playtest r6](../../audit_batches/playtest_r6.md) previously observed play/pause but restart was untested/unreachable. Main owns full gate.
 
+### Static metadata receipt (2026-10-15)
+
+Only the entry head description changed. Entry/tree matched inventory at `e787681`.
+[Metadata checks and exact paths](../audits/fleet-followup-descriptions.md).
+No engine audit or gameplay acceptance; source-coverage limits and known holds remain.
+
 ## Future outlook
 
 First bound food generation and expose reset; next save lifecycle, truthful controls, keyboard/focus and reduced-motion styling. Later test long god-mode sessions for growth/rendering cost. Defer new game modes, collision restoration and new artwork pending owner scope/source verification.

@@ -93,6 +93,12 @@ Current [completion integration](../../foldwild-polish/completion-integration.md
 
 Recommended after Main's narrow lease: preserve `scripts/test_foldwild_m2.py` unchanged and distinguish any run from `scripts/test_foldwild_m2_async_v1.py` under its bounded foreground command. Run data/battle/world/regions/economy/builds/battle_v2/save_v2/continuity/cap_xp/save_conflict plus new class_ranks/campaign `.mjs` suites. The new `test_foldwild_completion_ui.py` separates natural fresh-input checks from imported high-level composition fixtures; imported ending/progression is not natural campaign evidence. Recheck single touch close at 390-to-320 resize, inspection name/hit target, resumed battle exact RNG/action, corrupt/oversized saves, storage quota, release rejection, hidden-null no-request and model-load failure. Capture both mobile/desktop and relevant theme layouts. Full registered-catalog gate remains Main's separate serial command; load smoke cannot certify this game's campaign.
 
+### Static metadata receipt (2026-10-15)
+
+Only the entry head description changed. Entry/tree matched inventory at `e787681`.
+[Metadata checks and exact paths](../audits/fleet-followup-descriptions.md).
+No engine audit or gameplay acceptance; source-coverage limits and known holds remain.
+
 ## Future outlook
 
 Week-one priority is stable uninstrumented M2 closure, then context-loss fallback and persistence/release regression. Next measure actual N100 8 GB/64 GB device memory/frame pacing with ordinary world/battle/inspection, low and standard quality. Ending/ranks/rematches are implemented under the current order, but full natural campaign/rank/acquisition/evolution and pacing acceptance remain gated, as do optional hidden creature and additional animation. Fifteen distinct reactive tasks, NPC exchange, evolution deferral and audio are broader undelivered targets, not silently declared complete. Concept frames and developer fixtures are not natural-play or hardware evidence. No monthly background build or automatic expansion is authorized; the current explicit preview-registration order is separate.

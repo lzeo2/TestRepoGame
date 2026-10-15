@@ -47,6 +47,12 @@ git show 8c8a055:"Games/BulletHell/scripts/class/boss.js" | node --check
 
 A future authorized focused browser run may extract only this directory with `git archive` into a disposable directory, serve that root over HTTP, block third-party requests and terminate the server. Check disk first; do not alter sparse selection or leave dependencies. Main owns the unchanged serial full-catalog smoke gate, separately from these recommended interactions.
 
+### Static metadata receipt (2026-10-15)
+
+Only the entry head description changed. Entry/tree matched inventory at `e787681`.
+[Metadata checks and exact paths](../audits/fleet-followup-descriptions.md).
+No engine audit or gameplay acceptance; source-coverage limits and known holds remain.
+
 ## Future outlook
 
 Week 1: final-level outcome and font notice evidence. Week 2: viewport/responsive shell plus explicit touch pause/bomb/slow affordances. Later: elapsed-time or fixed-step conversion only with collision/pattern regressions and actual N100 measurements. Do not invent new levels to mask missing completion.

@@ -44,6 +44,12 @@ Keep MIT notices and upstream power/aim physics identity. The smallest authorize
 
 Recommended Main native cases: Start, near-green made shot and poor-release miss, left/right aim, one basket adds exactly two points, all ten attempts and both verdicts, 24-second violation, charging through expiry, mouse release outside/canceled touch/blur, R mid-flight and mid-charge, result restart. Check 360px geometry, scroll prevention, high-refresh timing and scoring/visual alignment. No worker browser or full smoke was spawned; unfiltered catalog gate stays Main-owned.
 
+### Static metadata receipt (2026-10-15)
+
+Only the entry head description changed. Entry/tree matched inventory at `e787681`.
+[Metadata checks and exact paths](../audits/fleet-followup-descriptions.md).
+No engine audit or gameplay acceptance; source-coverage limits and known holds remain.
+
 ## Future outlook
 
 Week 1: reproduce restart/duplicate scoring and retain ingest evidence. Week 2: approved cancellation/latch repair with one runnable regression. Week 3: pointer lifecycle and keyboard focus/score announcement review. Week 4: real hardware timing and small-screen rim geometry. Defer sound, extra modes and cosmetic refurbishment until round accounting and restart are trustworthy.

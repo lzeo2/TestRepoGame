@@ -38,6 +38,12 @@ First restore the exact source corruption under separate authorization, keeping 
 
 Actually run: main.js Git blob `node --check` **FAIL** (`[stdin]:1`); plugins.js **PASS**. Native **0**, screenshots **0**. Recommended after authorized repair: tutorial completion, mine five times, buy a helper, observe passive income, export/reload/import, cancel/confirm reset and corrupt/denied storage. Inspect duplicate load initialization and request closure. Main owns full gate; historical batch-4 working summary is superseded by deterministic baseline parse evidence.
 
+### Static metadata receipt (2026-10-15)
+
+Only the entry head description changed. Entry/tree matched inventory at `e787681`.
+[Metadata checks and exact paths](../audits/fleet-followup-descriptions.md).
+No engine audit or gameplay acceptance; source-coverage limits and known holds remain.
+
 ## Future outlook
 
 Priority one is source recovery/rights plus an exact parser regression. Priority two is genuine load/error feedback and safe save recovery. Then keyboard mining, readable mobile reflow and reduced animation. Defer extra locations/features until basic gameplay works and provenance is verified.

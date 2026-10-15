@@ -38,6 +38,12 @@ Patch authored XHR hook, progress UI and shell CSS; do not hand-edit Unity bundl
 
 Actually run: registered UnityLoader and authored helper/progress JS through stdin `node --check`, all exit 0. For Burrito Bison the retained Kongregate API also parsed. Zero native browser runs/screenshots. Source-only checks can be repeated with `git show HEAD:Games/BitLife/Build/UnityLoader.js | node --check`; no sparse selection changes needed. Historical `playtest_1.md` saw input-driven pixels, not a complete lifetime or persistence. Recommended native: age through one decision, death/new life, reload, blocked storage, responsive screenshots and denied-network traces including store/cloud buttons. Verify loading failure exposes recovery. Main owns any narrow asset lease and the unchanged serial full-catalog loading gate.
 
+### Static metadata receipt (2026-10-15)
+
+Only the entry head description changed. Entry/tree matched inventory at `e787681`.
+[Metadata checks and exact paths](../audits/fleet-followup-descriptions.md).
+No engine audit or gameplay acceptance; source-coverage limits and known holds remain.
+
 ## Future outlook
 
 First resolve rights and actual request/input evidence. Next implement the specifically identified authored wrapper lifecycle/accessibility fix with one small regression. Later profile real-device memory/load time and preserve saves before approved refurbishment. Defer new assets, online SDKs, engine rebuilds and speculative features.

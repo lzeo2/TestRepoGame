@@ -38,6 +38,12 @@ Fix the malformed record at the data boundary and add a tiny all-record assertio
 
 Actually run: inline-script syntax and catalog/source/document checks; [batch audit](../audits/games-66.md). Native checks: zero. Recommended native tests: select every record deterministically, correct/wrong/empty answers, unchanged shuffle fallback, timeout, all ten rounds, win/loss restart, mobile keyboard and hidden-tab timing. Historical quick play exercised a wrong answer and Reshuffle but did not reach restart; it cannot clear the random data crash.
 
+### Static metadata receipt (2026-10-15)
+
+Only the entry head description changed. Entry/tree matched inventory at `e787681`.
+[Metadata checks and exact paths](../audits/fleet-followup-descriptions.md).
+No engine audit or gameplay acceptance; source-coverage limits and known holds remain.
+
 ## Future outlook
 
 Week one must repair and validate word data before cosmetic refurbishment. Then add bounded shuffle behavior and accessible end-state focus/reduced motion. Later consider reproducible rounds or optional pause only after timer policy is agreed. Defer expanded dictionaries until record schema and asset/source terms are recorded.

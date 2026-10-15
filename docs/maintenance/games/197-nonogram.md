@@ -40,6 +40,12 @@ Authored status/viewport changes can remain in HTML/CSS; do not hand-edit the mi
 
 Actually run: bundle and inline-script syntax plus Git dependency/catalog/doc checks; [batch audit](../audits/games-66.md). Native checks: zero. Recheck bundle using `git show HEAD:Games/Nonogram/dist/nonogram.min.js | node --check`. Recommended native HTTP tests: all five template 200 responses, delayed/missing template feedback, fill/cross/lowercase x, Solve/manual completion status, Reset, generated dimensions and phone zoom. Old mistakes-counter playtest does not cover this bundle.
 
+### Static metadata receipt (2026-10-15)
+
+Only the entry head description changed. Entry/tree matched inventory at `e787681`.
+[Metadata checks and exact paths](../audits/fleet-followup-descriptions.md).
+No engine audit or gameplay acceptance; source-coverage limits and known holds remain.
+
 ## Future outlook
 
 First repair authored solved-status observation and review asynchronous initialization feedback. Then obtain readable upstream source for loader/generation bounds and keyboard/zoom refurbishment. Profile 30-square generation on target hardware before promising expanded puzzles. Defer saved grids or new solver features until library error handling and provenance/build reproducibility are established.

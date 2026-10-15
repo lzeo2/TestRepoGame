@@ -42,6 +42,12 @@ Actually run: Git tree/resource inspection and stdin parser checks for this load
 
 Recommended Main-approved HTTP lease: verify player bounds, choice input, a fail/retry, an ending, audio unlock and reload persistence; repeat touch/keyboard navigation only where the movie supports it. Capture all requests with third-party access blocked. Main's full catalog smoke is separate and cannot prove all endings.
 
+### Static metadata receipt (2026-10-15)
+
+Only the entry head description changed. Entry/tree matched inventory at `e787681`.
+[Metadata checks and exact paths](../audits/fleet-followup-descriptions.md).
+No engine audit or gameplay acceptance; source-coverage limits and known holds remain.
+
 ## Future outlook
 
 First rights verification, then genuine branch/retry evidence. Next improve viewport fit and load-error recovery. Month work should compare saved ending state across reload and any proposed emulator update. No new story content, reconstructed engine or generated art is justified by this audit.

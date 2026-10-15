@@ -37,6 +37,12 @@ Preserve upstream sprites, tunes, maps and frozen `original.js`; timing repairs 
 
 Actually run here: all fifteen JS files passed STDIN ESM `node --input-type=module --check`; browser/native checks **zero**. Existing `docs/tag-relay-sources.md` records a prior `scripts/test_tag_relay.py` pass, both winner paths, 127 legal chase moves, pause/visibility/restart/two-touch and three captures; that evidence was read, not rerun or independently visually reviewed. Recommended: Main run the unchanged focused script plus persisted-pageshow navigation, then the serial full catalog gate. A narrow materialization belongs to Main, not this worker.
 
+### Static metadata receipt (2026-10-15)
+
+Only the entry head description changed. Entry/tree matched inventory at `e787681`.
+[Metadata checks and exact paths](../audits/fleet-followup-descriptions.md).
+No engine audit or gameplay acceptance; source-coverage limits and known holds remain.
+
 ## Future outlook
 
 Week 1: persisted-page lifecycle reproduction and audio/input regression preservation. Week 2: Main desktop/mobile review at 320/390 widths with keyboard focus and both touch pads. Later: investigate mute access and hardware audio behavior only if users need it. Online matchmaking, new maps, new fonts and standalone runtime replacement are deliberately deferred.

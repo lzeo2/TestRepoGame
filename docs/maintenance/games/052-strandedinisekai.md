@@ -37,6 +37,12 @@ Patch wrapper dependency tag/input lifecycle first, preserving engine/data/art a
 
 Actually run Git-blob checks: `jsRPG-min.js`, `map-min.js`, `soal_db-min.js` exit 0; `flashRPG.js` exit 1 as above. Zero native browser runs/screenshots. Reproduce `git show HEAD:Games/StrandedInIsekai/flashRPG.js | node --check`. Main narrow native lease should test title Space, walk, NPC interaction, shop/quiz battle, death/title restart, touch multi-button release, tab blur and local audio under denied network. Full catalog smoke must report the parser finding without weakening filters.
 
+### Static metadata receipt (2026-10-15)
+
+Only the entry head description changed. Entry/tree matched inventory at `e787681`.
+[Metadata checks and exact paths](../audits/fleet-followup-descriptions.md).
+No engine audit or gameplay acceptance; source-coverage limits and known holds remain.
+
 ## Future outlook
 
 First remove the erroneous bootstrap dependency if approved and establish play proof/asset terms. Next fix accessible touch semantics and key release with a tiny regression. Later document actual battle controls/content suitability. Defer new maps, translated story and save system until existing gameplay/provenance are verified.

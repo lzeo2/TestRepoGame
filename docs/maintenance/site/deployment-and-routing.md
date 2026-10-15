@@ -98,12 +98,15 @@ URLs establish neither owner consent nor redistribution rights.
   while Info/player selection is open and restores root values on close. It reads
   the local catalog once because the compiled shelf omits description nodes.
   Canonical/OG URL remain the real portal URL. **These are runtime browser metadata,
-  not crawler-readable per-title static pages.** At baseline, all 125 game pages
-  have titles, only 20 have descriptions, 5 OG titles and 3 OG descriptions. True
-  per-title crawler coverage remains unmet and needs an owner scope decision;
-  Games were not edited, including protected Character AI. The lane's escalation is
-  recorded in [lane5 evidence](../audits/fleet-2026-10-15-lane5.md); coordinator
-  source/SEO ticket `pi-364975-1792044821714` remains pending.
+  not crawler-readable per-title static pages.** The authorized static follow-up
+  now finds descriptions in all **124 nonprotected entry heads** (125 registered
+  games total). Character AI remains a documented read-only exception. This lane
+  changed 108 of its 122 owned entries and retained 14 meaningful descriptions;
+  Wings and Jetpack Joyride Hacked are separately owned. OG coverage remains 5
+  titles and 3 descriptions, not a claim of complete social metadata. See
+  [exact metadata changes and limits](../audits/fleet-followup-descriptions.md).
+  No engine, runtime tracking, style, canonical or routing changes were made by
+  this metadata lane; crawler discovery/indexing is still unverified.
 - Manifest `id`, `start_url`, `scope` resolve to the deployment directory; display
   requests standalone. Light `#f5f5f7` background/theme colors express a launch
   surface preference, **not a forced installed light theme**. The existing portal
@@ -156,8 +159,21 @@ on concurrent Games edits, then on `Inventory stale: inspect changes, then run
 --refresh.` Inventory was not refreshed by lane5 and then predated seven registrations
 (118 versus 125). Lane7 subsequently reconciled 130 project manuals / 125 registered
 entries after Git inspection. The [fleet handover](../audits/fleet-2026-10-15-handover.md)
-retains the failed 122/125 full gate, incomplete static per-title SEO and identity
-remediation as release holds. Documentation coverage does not authorize push.
+retains the failed 122/125 full gate and identity remediation as release holds.
+Its former static-description gap is superseded only by the bounded metadata
+receipt below, not by gameplay or hosted crawler acceptance. Documentation
+coverage does not authorize push.
+
+Static-description follow-up: `python3 -B scripts/update_game_descriptions.py
+--check` reports 124/124 nonprotected descriptions and zero owned changes needed.
+`python3 -B scripts/test_portal_seo.py --check --metadata-baseline e787681` checks
+125 catalog mappings, 126 sitemap URLs, protected-tree identity, byte-preserving
+parser fixtures and all 122 owned entry diffs. Apply mode excludes Character AI,
+Wings and Jetpack Joyride Hacked; it reads sparse HEAD blobs and writes only changed
+entries without changing sparse selection. ASCII entities preserve existing
+charsets/BOM/newlines. Inventory refresh and the final all-writer maintenance
+check belong to the coordinator. No new browser, screenshot or full-fleet result
+is claimed by this static follow-up.
 
 Recommended hosted checks, not executed:
 

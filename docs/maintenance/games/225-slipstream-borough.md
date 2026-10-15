@@ -69,6 +69,12 @@ Main's four final pure suites exit0;11 authored/shared/vendor JS syntax checks p
 
 Real model gallery exit0/33.98s, all16 actual factories, two contexts/cycles, cache/disposal assertions; see [gallery review](../../car-fleet-native-review.md). Main personally reviewed the listed car/game captures. Full115-catalog gate not run anew; registration/push held. No third-party rights or physical-device FPS certification.
 
+### Static metadata receipt (2026-10-15)
+
+Only the entry head description changed. Entry/tree matched inventory at `e787681`.
+[Metadata checks and exact paths](../audits/fleet-followup-descriptions.md).
+No engine audit or gameplay acceptance; source-coverage limits and known holds remain.
+
 ## Future outlook
 
 [Newest police-model gallery](../../car-police-previews/README.md) adds original Wardline Patrol/Strake Interceptor **parked-only**,26studio choices, not installed live cops. Dedicated original Lantern/Serein variants add actual two-tone hulls/POLICE lettering/roof-supported fixed red-blue bars/patrol pushbar. Genuine completed Astra132/133; Main52factory/physical-geometry/resource checks and24protected fingerprints pass;63-image visual-only0/366.7835s/frozenlocal/zeroerrors/actualeyes/390keyboard-touch, actual new fronts/rears/cabins/mobile/full sheets reviewed. Still stylized/grazing-angle lettering aliasing, not photo/legal/FPS or chase acceptance. At that parked-gallery baseline, live cops were ordinary cached fleet bodies tinted white. Owner subsequently authorized getting started on finishing the game: [live Wardline milestone](../../slipstream-live-police-plan.md) replaces that render branch with an original cached driving LOD, while detailed28k Wardline/Strake studies remain parked. Base factory/fleet/saves/catalog and all26 parked studies are unchanged; no newgame/registration/push or automatic clearance of natural escape/20s/release holds. [Source/commits/integration boundary](../../car-police-studies-plan.md).

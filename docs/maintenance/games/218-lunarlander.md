@@ -38,6 +38,12 @@ Work at Game lifecycle and Keyboarder boundaries. Preserve terrain generation, l
 
 Actually run: `lunar-lander.js` passed Git-blob STDIN `node --check`. Zero browser/native runs and no screenshots. Repeat `git show HEAD:Games/LunarLander/lunar-lander.js | node --check`. Main alone may lease this game for browser testing. Recommended checks: left/right, boost latch and down cutoff, angled crash, pad contact, post-crash replay, focus loss and refresh-rate comparison. Historical `playtest_p1a.md` references missing fuel/HUD/restart elements and does not verify this implementation.
 
+### Static metadata receipt (2026-10-15)
+
+Only the entry head description changed. Entry/tree matched inventory at `e787681`.
+[Metadata checks and exact paths](../audits/fleet-followup-descriptions.md).
+No engine audit or gameplay acceptance; source-coverage limits and known holds remain.
+
 ## Future outlook
 
 Week 1: truthful control/fuel documentation and a single-owner outcome/reset design. Week 2: accessible touch controls and reachable replay with desktop/mobile review. Later: measured physics timing modernization. Fuel economy, levels, sounds and a complete engine rewrite remain deferred gameplay changes, not required to make this port maintainable.

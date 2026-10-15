@@ -67,6 +67,12 @@ Actually run here: 20 assigned-game JS Git blobs passed module syntax checks, ca
 
 Historical native report recorded two geometries/three desktop draws and two mobile draws; these are not refreshed measurements. Natural hidden-tab behavior, independent unload disposal observation and actual hardware frame pacing remain separate tests. Recheck repeated-key behavior and context loss before accepting refurbishment. Main must review current desktop/mobile screenshots in both themes and run unchanged full registered-catalog smoke before any release decision. Loading gates do not establish camera-demo accessibility or gameplay provenance.
 
+### Static metadata receipt (2026-10-15)
+
+Only the entry head description changed. Entry/tree matched inventory at `e787681`.
+[Metadata checks and exact paths](../audits/fleet-followup-descriptions.md).
+No engine audit or gameplay acceptance; source-coverage limits and known holds remain.
+
 ## Future outlook
 
 Prioritize toggle-repeat/context-loss fixes, then idle rendering and keyboard orbit/zoom if owner accessibility review requires them. Keep factual `simulation` labeling. An N100 8 GB/64 GB target and 60 FPS standard goal are provisional; no desktop frame count is hardware proof. A later month should select genuinely playable source-licensed 3D games separately, not claim this demo already supplies racing or flight mechanics. No new ID, autonomous monthly work, publication or push is authorized here.

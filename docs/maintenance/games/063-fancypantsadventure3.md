@@ -43,6 +43,12 @@ Actually run: Git tree/dependency inspection, stdin `node --check` on primary/sh
 
 Recommended Main-approved HTTP lease: normal primary boot and forced primary-script failure, fallback readiness, keyboard/touch controls as shown by movie, playable level/death/restart, audio unlock and reload/save. Record all requests with third-party access blocked. Old “functional OK” prose does not replace current gameplay evidence.
 
+### Static metadata receipt (2026-10-15)
+
+Only the entry head description changed. Entry/tree matched inventory at `e787681`.
+[Metadata checks and exact paths](../audits/fleet-followup-descriptions.md).
+No engine audit or gameplay acceptance; source-coverage limits and known holds remain.
+
 ## Future outlook
 
 First rights/notices, then explicit fallback failure recovery and real platforming input review. Month work should compare primary/fallback compatibility and player fit at phone/desktop sizes. New art, reconstructed platforming code and shared-runtime migration are deferred until permission, source and native evidence exist.

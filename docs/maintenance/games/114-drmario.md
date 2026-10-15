@@ -37,6 +37,12 @@ Keep shared runtime path, gba core and exact filename. Shell instructions/error 
 
 Actually run: Git entry/tree inspection; native **0**, screenshots **0**. Recommended supervisor-approved narrow checkout includes this directory plus shared runtime. Check local dependency/ROM responses, start, control-settings mapping, virtual touch, pause/restart, save-state export/import and reload. Test missing runtime and storage denial. Main owns full gate.
 
+### Static metadata receipt (2026-10-15)
+
+Only the entry head description changed. Entry/tree matched inventory at `e787681`.
+[Metadata checks and exact paths](../audits/fleet-followup-descriptions.md).
+No engine audit or gameplay acceptance; source-coverage limits and known holds remain.
+
 ## Future outlook
 
 Rights first; then source-verified control help/error feedback and mobile sizing. Later validate save identity and real-device audio/input latency. Defer ROM replacements, new emulator cores and promotional claims.

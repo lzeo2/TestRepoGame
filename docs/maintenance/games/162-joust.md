@@ -41,6 +41,12 @@ Actually run: Git inventory/catalog and stdin JS parsing, [batch 65](../audits/g
 
 Recommended native checks: overlap from above/below, score/lives, three-life failure, Escape twice and DOM reload Restart, denied storage, coarse-pointer flap release and touchcancel. `git show HEAD:Games/Joust/index.html` permits sparse-safe reading; Main owns browser asset extraction/full smoke.
 
+### Static metadata receipt (2026-10-15)
+
+Only the entry head description changed. Entry/tree matched inventory at `e787681`.
+[Metadata checks and exact paths](../audits/fleet-followup-descriptions.md).
+No engine audit or gameplay acceptance; source-coverage limits and known holds remain.
+
 ## Future outlook
 
 Week 1: recover source and isolate collision/restart failures before visual refurbishment. Week 2: explicit loading failure and input release/blur handling. Later: actual N100 frame profiling and mobile layout. New waves or art are deferred until the existing collision loop works and the build is reproducible.

@@ -49,6 +49,12 @@ Actually run: Git inventory, stdin parser checks for main, base64 and all four m
 
 Recommended Main-approved HTTP lease: click/buy/CpS, export-import round trip, stale-save plus denied write, malformed import recovery, reload, both wipe confirmations and minigame restore; keyboard/mobile menus/audio and blocked remote requests separately. Main's full gate remains required.
 
+### Static metadata receipt (2026-10-15)
+
+Only the entry head description changed. Entry/tree matched inventory at `e787681`.
+[Metadata checks and exact paths](../audits/fleet-followup-descriptions.md).
+No engine audit or gameplay acceptance; source-coverage limits and known holds remain.
+
 ## Future outlook
 
 Rights and honest save feedback first; import validation and accessible controls next. Month work should regression-test versioned saves, minigame lifecycle and background timing before performance changes. New upgrades/content/mod hosting are deferred.

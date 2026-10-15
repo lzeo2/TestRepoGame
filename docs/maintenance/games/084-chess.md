@@ -38,6 +38,12 @@ Patch authored controller/copy first, not vendor bundles. Preserve queen-promoti
 
 Actually run: `git show HEAD:Games/Chess/script.js | node --check` passed. Native **0**, screenshots **0**. Recommended: drag e2-e4 at depths 1/3/5, verify one Black reply; reset during pending reply; test checkmate/stalemate/repetition and no reply after terminal move. Measure depth-5 blocking on target hardware. Test touch drag, 320 px layout, tab focus and keyboard-only play limitation. Main owns full smoke.
 
+### Static metadata receipt (2026-10-15)
+
+Only the entry head description changed. Entry/tree matched inventory at `e787681`.
+[Metadata checks and exact paths](../audits/fleet-followup-descriptions.md).
+No engine audit or gameplay acceptance; source-coverage limits and known holds remain.
+
 ## Future outlook
 
 Prioritize timer/turn/end-game correctness, then truthful controls and keyboard access. Add a bounded move-reply regression check with those repairs. Defer opening books, stronger engines, multiplayer and save schemas until measured demand; no rewrite is needed for the identified defects.

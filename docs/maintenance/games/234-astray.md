@@ -43,6 +43,12 @@ missing inventory record without lifting this hold.
 
 Historical focused port check: `python3 -B scripts/test_phase3_ports.py Astray --port 8234`: automatic start, arrow-key movement, I help, level-1 restart and pointer direction/release PASS. Observed console errors 0, HTTP errors 0, blocked-external request attempts 0. Desktop/mobile light/dark preference screenshots at `docs/phase3-evidence/Astray-*.png` show the original fixed scene styling. Physical touch and complete level traversal remain unverified.
 
+### Static metadata receipt (2026-10-15)
+
+Only the entry head description changed. Entry/tree matched inventory at `e787681`.
+[Metadata checks and exact paths](../audits/fleet-followup-descriptions.md).
+No engine audit or gameplay acceptance; source-coverage limits and known holds remain.
+
 ## Future outlook
 
 Verify real phone gestures and native traversal to the exit; check resource disposal over many increasing levels. Full-catalog smoke remains a separate pre-push gate.

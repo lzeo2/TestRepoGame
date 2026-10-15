@@ -71,6 +71,12 @@ Requires Main's narrow Archery checkout lease and already-installed Chromium/Pla
 
 Screenshots are temporary `archery-refurbishment/desktop.jpg`, `390.jpg` and `320.jpg` for Main's review, not committed art. Full catalog smoke, N100/hardware, 60/120Hz parity, OS-level blur, assistive-technology review, every ring boundary and high-DPI quality remain unverified. `python3 -B scripts/check_maintenance_docs.py` was run before and after source commit `250b00d`; the latest exact hold is `Inventory stale: inspect changes, then run --refresh.` Main must refresh the inspected inventory before the current tree can pass it. Manual identity/all nine sections, unchanged GPL bytes, catalog schema/unique IDs and all 115 Git-backed entry URLs passed separate static assertions.
 
+### Static metadata receipt (2026-10-15)
+
+Only the entry head description changed. Entry/tree matched inventory at `e787681`.
+[Metadata checks and exact paths](../audits/fleet-followup-descriptions.md).
+No engine audit or gameplay acceptance; source-coverage limits and known holds remain.
+
 ## Future outlook
 
 Week 1: integrate/review the bounded timer/input patch and current native evidence; retain license/source notices. Week 2: Main's desktop/mobile focus/contrast and score announcement review, without repainting upstream artwork. Week 3: sample real 60/120Hz trajectories, devicePixelRatio and N100 performance. Week 4: authorize only measured fixed-step/DPI improvements with score parity if needed. Defer new rounds, assets, sound, build tooling and replacement engines. No new game, catalog change, registration, publication or push is part of this work.

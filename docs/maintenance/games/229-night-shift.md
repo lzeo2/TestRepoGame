@@ -75,6 +75,12 @@ which **failed overall at 122/125**. Generic loading does not test extraction,
 reload, pause recovery or touch. Lane7 performed no browser/gameplay run, captured
 no screenshot and changed no source for this game.
 
+### Static metadata receipt (2026-10-15)
+
+Only the entry head description changed. Entry/tree matched inventory at `e787681`.
+[Metadata checks and exact paths](../audits/fleet-followup-descriptions.md).
+No engine audit or gameplay acceptance; source-coverage limits and known holds remain.
+
 ## Future outlook
 
 Separate normal-input checks must cover start, movement/aim, firing/reload,

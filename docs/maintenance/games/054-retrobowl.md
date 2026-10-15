@@ -44,6 +44,12 @@ Actually run: Git inventory and resource inspection; stdin `node --check` passed
 
 Reproduce parser check: `git show HEAD:Games/RetroBowl/html5game/RetroBowl.js | node --check`. Recommended Main-approved HTTP/browser lease: fresh profile, menu to first match, throw/run input, score change, season save, reload and new-game/reset; repeat with storage denied and third-party requests blocked. Record virtual-file fallback behavior separately from actual asset 404s. Main's full loading gate is independent.
 
+### Static metadata receipt (2026-10-15)
+
+Only the entry head description changed. Entry/tree matched inventory at `e787681`.
+[Metadata checks and exact paths](../audits/fleet-followup-descriptions.md).
+No engine audit or gameplay acceptance; source-coverage limits and known holds remain.
+
 ## Future outlook
 
 First establish game rights and recheck the historical blank-canvas hold. Next add reliable boot feedback and verify keyboard/touch football input. Month work should prioritize save reload/slot isolation and denied-storage behavior, not new teams or compiled-bundle hand edits. Hardware profiling and an upstream source pin precede any engine upgrade.

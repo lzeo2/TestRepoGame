@@ -45,6 +45,12 @@ Limit future changes to documented `EJS_*` configuration and bounded shell feedb
 
 Sparse-safe check: `git show HEAD:Games/KirbyAmazingMirror/index.html`; `git show HEAD:Games/_emulatorjs/data/loader.js | node --check`. For later native verification, Main must lease only this game plus required shared runtime in a bounded Git-backed serving directory, not change worker sparse selection. Disable external traffic, test title-menu start, deliberate gameplay input, audio unlock, toolbar restart, save export/import and reload with storage denied. Test mobile rotation/focus. Full unfiltered catalog smoke remains Main's separate release gate.
 
+### Static metadata receipt (2026-10-15)
+
+Only the entry head description changed. Entry/tree matched inventory at `e787681`.
+[Metadata checks and exact paths](../audits/fleet-followup-descriptions.md).
+No engine audit or gameplay acceptance; source-coverage limits and known holds remain.
+
 ## Future outlook
 
 Week 1: resolve archive rights and inventory shared runtime notices. Week 2: shared load/storage failure feedback and verified controls help outside the emulator canvas. Week 3: save compatibility testing before considering any runtime upgrade. Week 4: low-power hardware timing, audio and touch review. Defer netplay, rebranding and engine replacement; they do not solve these entry-specific holds.

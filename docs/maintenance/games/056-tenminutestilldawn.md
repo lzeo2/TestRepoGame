@@ -42,6 +42,12 @@ Actually run: Git inventory/dependency checks, JSON parsing, stdin `node --check
 
 Reproduce parser check: `git show HEAD:Games/TenMinutesTillDawn/Build/UnityLoader.js | node --check`. Recommended Main-approved HTTP lease: throttle or fail the manifest/WASM download, resize before readiness, enter survival, verify aim/fire/movement from actual instructions, gain an upgrade, lose/restart and complete the ten-minute objective. Record offline requests and reload/save behavior independently. Full catalog loading is Main's separate gate.
 
+### Static metadata receipt (2026-10-15)
+
+Only the entry head description changed. Entry/tree matched inventory at `e787681`.
+[Metadata checks and exact paths](../audits/fleet-followup-descriptions.md).
+No engine audit or gameplay acceptance; source-coverage limits and known holds remain.
+
 ## Future outlook
 
 First resolve rights and guard resize readiness. Next remove configuration cruft and document verified input. Month work should test a full survival run and replay on hardware, profile memory and pause/resume under backgrounding. Touch conversion and gameplay rebalance wait for source availability and explicit authorization.

@@ -43,6 +43,12 @@ the formerly missing inventory record, not the runtime hold.
 
 Historical focused port check: `python3 -B scripts/test_phase3_ports.py ServerSurvival --port 8233`: start, keyboard C, native firewall placement ($500 to $460), play/pause, restart ($500/empty): PASS. Console errors 0; HTTP errors 0; external requests 0 with remote traffic blocked. Screenshots: `docs/phase3-evidence/ServerSurvival-{desktop,mobile}-{light,dark}.png`; both preferences retain the upstream dark theme. SwiftShader is functional evidence, not target-GPU performance or native touch acceptance.
 
+### Static metadata receipt (2026-10-15)
+
+Only the entry head description changed. Entry/tree matched inventory at `e787681`.
+[Metadata checks and exact paths](../audits/fleet-followup-descriptions.md).
+No engine audit or gameplay acceptance; source-coverage limits and known holds remain.
+
 ## Future outlook
 
 Exercise campaign completion, corrupted saves, audio toggles and real touch controls separately. No publication or full-catalog smoke claim follows from this focused port test.

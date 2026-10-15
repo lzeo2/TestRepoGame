@@ -47,6 +47,12 @@ Prefer wrapper viewport/error/manifest fixes after authorization. Maintain DOM h
 
 Reproduce without materializing Games: `git show HEAD:Games/FireboyAndWatergirlCrystalTempleHacked/version.js | node --check`; `git show HEAD:Games/FireboyAndWatergirlCrystalTempleHacked/data/crystal/temple.json | python3 -m json.tool` (redirect output if unnecessary). Main's later isolated Git-backed server should block outbound traffic, inspect Play/menu, select tutorial and a later level, use both character key sets, complete/fail/retry, reload progress, deny storage and compare base/hacked slots. Check touch overlap, rotation, keyboard focus and zoom; distinguish SDK/branding requests from required level assets. Full smoke remains a separate Main gate.
 
+### Static metadata receipt (2026-10-15)
+
+Only the entry head description changed. Entry/tree matched inventory at `e787681`.
+[Metadata checks and exact paths](../audits/fleet-followup-descriptions.md).
+No engine audit or gameplay acceptance; source-coverage limits and known holds remain.
+
 ## Future outlook
 
 Week 1: rights and consumed-stub triage. Week 2: local boot feedback, zoom and standalone start URL. Week 3: native tutorial/later-level progression and safe base/hacked save isolation. Week 4: low-power rendering and two-finger touch QA. Defer engine upgrades, CDN restoration, cosmetic asset recoloring and new temple content until rights and functional evidence exist.

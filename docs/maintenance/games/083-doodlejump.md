@@ -37,6 +37,12 @@ Patch hint/viewport or stub contracts first. Preserve state names, atlas frame n
 
 Actually run: `git show HEAD:Games/DoodleJump/js/build/production.min.js | node --check` passed. Git inventory and source reads completed; native sessions **0**, screenshots **0**. Recommended: serve a supervisor-approved narrow checkout, click the Play sprite using scaled world coordinates, steer, shoot, pause, fall, restart twice and reload saved scores. Test denied/corrupt storage, sensor permission refusal, repeated Settings/Calibrate visits and touch wake-lock release. Check all requests stay local. Main owns the unchanged full-catalog smoke gate.
 
+### Static metadata receipt (2026-10-15)
+
+Only the entry head description changed. Entry/tree matched inventory at `e787681`.
+[Metadata checks and exact paths](../audits/fleet-followup-descriptions.md).
+No engine audit or gameplay acceptance; source-coverage limits and known holds remain.
+
 ## Future outlook
 
 First harden saved-data reads and timer shutdown from verified source. Next make controls available after the transient hint, including shooting and a keyboard-reachable pause action. Later profile repeated-session CPU and real device tilt/audio; defer new skins, online scores and engine replacement until rights and source are established.

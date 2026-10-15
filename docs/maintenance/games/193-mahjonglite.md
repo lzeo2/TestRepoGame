@@ -38,6 +38,12 @@ Keep offset neighbor rules and flower/season matching groups. Fix lifecycle in s
 
 Actually run: inline-script syntax and catalog/doc/source assertions; [batch audit](../audits/games-66.md). Native checks: zero. Recommended tests: free/blocked tiles, cap removal, repeated pair activation, reset inside 190 ms, hint cancellation, no-moves start/end, keyboard cursor and mobile target measurements. Historical screenshot/selection evidence covers selecting free tiles, not solving or concurrency.
 
+### Static metadata receipt (2026-10-15)
+
+Only the entry head description changed. Entry/tree matched inventory at `e787681`.
+[Metadata checks and exact paths](../audits/fleet-followup-descriptions.md).
+No engine audit or gameplay acceptance; source-coverage limits and known holds remain.
+
 ## Future outlook
 
 Week one should serialize pair transactions and isolate restart callbacks. Week two prioritizes mobile selection, accurate hint feedback, result focus and reduced motion. Defer guaranteed-solvable generation, undo and saved games until geometry/rule coverage is established and a rights-compatible solver is justified.

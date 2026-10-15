@@ -40,6 +40,12 @@ Patch input conversion in `ipad.js`, not every sprite. Preserve the wraparound c
 
 Actually run: all four JavaScript files passed `node --check` via Git-blob STDIN; no browser, native gameplay or screenshots were produced. Repeat authored syntax with `git show HEAD:Games/Asteroids/game.js | node --check`. Main alone may lease a narrow materialization for real testing. Recommended: thrust/fire, rock splitting and score, three deaths, five-second restart, P/M, simultaneous touch, scroll hit-testing and hidden-tab return. Historical `docs/audit_batches/playtest_p1a.md` references absent Menu/HUD behavior and does not validate this source.
 
+### Static metadata receipt (2026-10-15)
+
+Only the entry head description changed. Entry/tree matched inventory at `e787681`.
+[Metadata checks and exact paths](../audits/fleet-followup-descriptions.md).
+No engine audit or gameplay acceptance; source-coverage limits and known holds remain.
+
 ## Future outlook
 
 Week 1: reconcile font rights/contact metadata and repair input coordinate/release handling if reproduced. Week 2: native touch actions and pause/restart accessibility, followed by desktop/mobile image review. Later: bound hidden-tab elapsed time and review audio unlock behavior. A new engine, promotional overlay or replacement artwork is deferred; rights and actual gameplay evidence come first.

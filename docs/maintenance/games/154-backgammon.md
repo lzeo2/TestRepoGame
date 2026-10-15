@@ -43,6 +43,12 @@ Actually run: Git inventory/catalog identity checks and JavaScript syntax checks
 
 Recommended native checks: legal bar re-entry, blocked turns, doubles, exact and oversize bearing off, both winners, New match and Menu after results. Inspect `#status`, off trays and score rather than only pixels. Read source without checkout with `git show HEAD:Games/Backgammon/engine.js`; Main owns any temporary checkout and full catalog smoke gate.
 
+### Static metadata receipt (2026-10-15)
+
+Only the entry head description changed. Entry/tree matched inventory at `e787681`.
+[Metadata checks and exact paths](../audits/fleet-followup-descriptions.md).
+No engine audit or gameplay acceptance; source-coverage limits and known holds remain.
+
 ## Future outlook
 
 Week 1: repair off accounting and terminal notification, with conservation/result regression cases. Week 2: keyboard focus after board replacement and 44px header-action review (`.chip button` overrides height). Later: validate full-turn dice sequencing before stronger AI. Defer saved matches and network multiplayer until the existing local match is demonstrably correct.

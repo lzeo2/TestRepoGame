@@ -38,6 +38,12 @@ Fix scheduling once at `loop/resetGame`, covering all callers. Preserve the thre
 
 Actually run: Git-blob `script.js` through `node --check`, exit 0. No native test/screenshots. Historical `playtest_0.md` recorded Space launch, score change, failure and restart; it did not test duplicate loops or powerup reset. Recommended source command: `git show HEAD:Games/BreakoutClassic/script.js | node --check`. Main must lease a narrow tree for native keyboard/touch, repeated resets, tilt-unavailable behavior and mobile screenshots. Full-catalog loading is a separate Main gate.
 
+### Static metadata receipt (2026-10-15)
+
+Only the entry head description changed. Entry/tree matched inventory at `e787681`.
+[Metadata checks and exact paths](../audits/fleet-followup-descriptions.md).
+No engine audit or gameplay acceptance; source-coverage limits and known holds remain.
+
 ## Future outlook
 
 Week-one work: rights evidence and single-loop ownership; leave one reset regression. Next repair powerup cooldown/reset and expose controls/focus. Later profile scaled touch coordinates and tilt permissions on actual hardware. Defer extra levels/multiball until the existing lifecycle works reliably.

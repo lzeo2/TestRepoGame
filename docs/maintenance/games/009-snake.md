@@ -39,6 +39,12 @@ Patch the class, not a new engine. Consolidate both direction callers only when 
 
 Actually run: Git-blob `game.js` piped to `node --check`, exit 0. No native browser run or screenshots in this task. Historical `docs/audit_batches/playtest_0.md` recorded start, wall death and restart, not full-board completion. Recommended: export only the assigned text blobs with `git show HEAD:Games/Snake/game.js`, inspect using the read tool, and have Main lease a narrow asset tree for native tests. Test rapid turns, pause/resume, blocked storage, record death, mobile width and board completion. The serial full-catalog smoke remains Main's separate release gate.
 
+### Static metadata receipt (2026-10-15)
+
+Only the entry head description changed. Entry/tree matched inventory at `e787681`.
+[Metadata checks and exact paths](../audits/fleet-followup-descriptions.md).
+No engine audit or gameplay acceptance; source-coverage limits and known holds remain.
+
 ## Future outlook
 
 First fix food termination and storage failure handling with a tiny runnable regression. Next validate keyboard scrolling, focus and touch targets on actual mobile screenshots. Later consider saved runs only if requested; do not add networking, a build step or a new dependency to this small game.

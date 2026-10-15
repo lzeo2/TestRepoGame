@@ -43,6 +43,12 @@ Patch only host layout and bootstrap failure handling after approval; retain `#r
 
 Sparse-safe syntax: `git show HEAD:Games/CrushTheCastle/ruffle.js | node --check`. For Main's later bounded Git-backed serving lease, include only these four files, verify WASM MIME and no outbound traffic, inspect compatibility dialog, reach the real menu, launch/release a shot, change stage state, fail/retry and reload any progress. Repeat with GPU and software rendering, portrait/landscape and audio gesture. Never treat a changing Ruffle splash as successful gameplay.
 
+### Static metadata receipt (2026-10-15)
+
+Only the entry head description changed. Entry/tree matched inventory at `e787681`.
+[Metadata checks and exact paths](../audits/fleet-followup-descriptions.md).
+No engine audit or gameplay acceptance; source-coverage limits and known holds remain.
+
 ## Future outlook
 
 Week 1: rights and compatibility hold. Week 2: approved layout/error repair if reproduced. Week 3: compare a licensed local emulator upgrade only after source/notice validation. Week 4: real-hardware movie interactions and save regression. Defer visual redesign and new launch overlays; they conceal rather than repair the unproven play path.

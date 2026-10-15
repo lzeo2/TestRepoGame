@@ -37,6 +37,12 @@ The small wrapper is the appropriate patch point for truthful loading/help/retur
 
 Actually run: inline configuration passed STDIN `node --check`; Git existence checks confirmed stated local loader/minified/core paths. The 2026-10 interactive audit verified local-only boot, observed ROM controls, playable hand state and EmulatorJS restart with screenshots under `/tmp/audit-shots2/`; no save/export/reload or denied-storage fallback was verified. Inline extraction with Python's HTMLParser and `node --check` remains syntax-only. A full catalog loading gate still cannot certify ROM gameplay or rights.
 
+### Static metadata receipt (2026-10-15)
+
+Only the entry head description changed. Entry/tree matched inventory at `e787681`.
+[Metadata checks and exact paths](../audits/fleet-followup-descriptions.md).
+No engine audit or gameplay acceptance; source-coverage limits and known holds remain.
+
 ## Future outlook
 
 Week 1: reconcile demake license/pin/digest and stale HTML5 claims. Week 2: shared loading/storage error handling plus documented observed controls after actual play. Later: profile core startup/memory and persist/export behavior on target hardware. No new ROM, commercial artwork, multiplayer or engine rewrite is proposed without separate permissions and source evidence.

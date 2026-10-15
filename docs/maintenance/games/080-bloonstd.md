@@ -45,6 +45,12 @@ Actually run: Git resource checks; shared Ruffle stdin syntax check passed. All 
 
 Recommended Main-approved HTTP lease: navigate all four hub links, separately boot/place tower/start wave/change lives or money, fail/restart and reload saves. Record all blocked requests and especially BTD1 loader behavior. Test audio/touch and return navigation. Main's catalog smoke entry may cover only the hub unless its unchanged runner explicitly traverses children; disclose actual coverage.
 
+### Static metadata receipt (2026-10-15)
+
+Only the entry head description changed. Entry/tree matched inventory at `e787681`.
+[Metadata checks and exact paths](../audits/fleet-followup-descriptions.md).
+No engine audit or gameplay acceptance; source-coverage limits and known holds remain.
+
 ## Future outlook
 
 Rights and all-four playability first. Next expose honest per-child load/audio feedback. Month work should record child-specific save/input regressions and shared-runtime upgrade compatibility. No registration split, remote loader restoration or replacement game is authorized.

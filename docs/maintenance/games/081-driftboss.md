@@ -45,6 +45,12 @@ Actually run: Git inventory/anchors, stdin `node --check` on `game.js` and entry
 
 Recommended Main-approved HTTP lease: compute menu button bounds against both canvases, enter gameplay, hold/release pointer and Space, fall/restart, save/reload car/coins, corrupt-save recovery, denied storage, audio and orientation. Record actual input-driven state, not animated menu pixels. Full catalog gate is separate.
 
+### Static metadata receipt (2026-10-15)
+
+Only the entry head description changed. Entry/tree matched inventory at `e787681`.
+[Metadata checks and exact paths](../audits/fleet-followup-descriptions.md).
+No engine audit or gameplay acceptance; source-coverage limits and known holds remain.
+
 ## Future outlook
 
 First resolve rights/privacy and reproduce the held menu-start issue. Next fix the small hint accessibility defect and validate save migration. Month work should profile dual-canvas hardware rendering and test pause/resume/reward lifecycle. New cars, ad services and broad engine refurbishment are deferred.

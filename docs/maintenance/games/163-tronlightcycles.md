@@ -44,6 +44,12 @@ Actually run: Git inventory/catalog identity and JS syntax checks, [batch 65](..
 
 Recommended native steps: keyboard and two-pad steering, anti-reversal, both winner colors, simultaneous/head-on collision, mobile death/restart/resume, Space and repeated reset. Read via `git show HEAD:Games/TronLightCycles/sketch.js`; Main owns browser assets and the full serial smoke gate.
 
+### Static metadata receipt (2026-10-15)
+
+Only the entry head description changed. Entry/tree matched inventory at `e787681`.
+[Metadata checks and exact paths](../audits/fleet-followup-descriptions.md).
+No engine audit or gameplay acceptance; source-coverage limits and known holds remain.
+
 ## Future outlook
 
 Week 1: touch resume and factual two-player description. Week 2: stable result text, keyboard default-scroll control, mobile pad overlap and contrast review. Later: collision symmetry tests and measured frame behavior. AI and online rooms are intentionally deferred feature requests, not assumed refurbishment scope.

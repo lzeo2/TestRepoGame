@@ -38,6 +38,12 @@ Repair final-wave transitions at `_gameLoop`, not by catching errors in HTML. Pr
 
 Actually run: complete script passed `node --check` from Git STDIN. No native interaction or screenshots. Repeat: `git show HEAD:Games/MissileCommand/missile_command.js | node --check`. Main alone leases assets for browser tests. Recommended: scaled click accuracy, below-turret shots, two interceptions in one frame, all homes lost/restart, final wave/win/restart, and interval count over repeated replays. Historical `playtest_p1a.md` uses absent `script.js`/HUD fields and cannot clear these findings.
 
+### Static metadata receipt (2026-10-15)
+
+Only the entry head description changed. Entry/tree matched inventory at `e787681`.
+[Metadata checks and exact paths](../audits/fleet-followup-descriptions.md).
+No engine audit or gameplay acceptance; source-coverage limits and known holds remain.
+
 ## Future outlook
 
 Week 1: final-wave crash, contact redaction and rocket-vector regression. Week 2: keyboard/touch-equivalent firing and a reachable restart/pause action, with flat shell feedback. Later: elapsed-time scheduling only after preserving difficulty/shot timing. Ammunition limits and expanded enemy types remain deferred rather than silently changing this port's rules.

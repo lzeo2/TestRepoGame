@@ -44,6 +44,12 @@ Actually run: Git/catalog identity and inline-script stdin parsing in [batch 65]
 
 Recommended native checks: immediate legal startup move, every subsequent hint/input boundary, black/white pass fixtures, full/double-pass endings, Play again versus Reload, resize/rotation, reduced-motion colors and N100 long-task measurements. Sparse source command: `git show HEAD:Games/Reversi/index.html`; Main handles browser extraction/full catalog smoke.
 
+### Static metadata receipt (2026-10-15)
+
+Only the entry head description changed. Entry/tree matched inventory at `e787681`.
+[Metadata checks and exact paths](../audits/fleet-followup-descriptions.md).
+No engine audit or gameplay acceptance; source-coverage limits and known holds remain.
+
 ## Future outlook
 
 Week 1: readiness and notice evidence; week 2: non-color board semantics, result focus and reduced-motion settlement. Week 3: measured AI responsiveness changes with unchanged rule tests. Defer multiplayer, save migration and decorative restyling until the local loop has actual play proof.

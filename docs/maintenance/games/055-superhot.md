@@ -43,6 +43,12 @@ Actually run: Git tree/resource checks, stdin parser check on `UnityLoader.js`, 
 
 Reproduce: `git show HEAD:Games/Superhot/UnityLoader.js | node --check`. Recommended Main-approved HTTP lease: test gzip and fallback responses, first playable encounter, movement/time behavior, weapon action, failure and restart on actual hardware WebGL; repeat portrait/landscape and offline request capture. Do not auto-accept compatibility dialogs. Main's catalog smoke gate cannot certify full encounters.
 
+### Static metadata receipt (2026-10-15)
+
+Only the entry head description changed. Entry/tree matched inventory at `e787681`.
+[Metadata checks and exact paths](../audits/fleet-followup-descriptions.md).
+No engine audit or gameplay acceptance; source-coverage limits and known holds remain.
+
 ## Future outlook
 
 Rights/privacy first; hardware compatibility and real loading feedback second. Month refurbishment should measure memory and old-loader browser support, then fix shell sizing and keyboard focus only where evidenced. Touch adaptation requires engine-level support and maintainable sources; no promise of a phone port or engine rewrite.

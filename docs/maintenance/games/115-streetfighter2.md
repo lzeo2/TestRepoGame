@@ -38,6 +38,12 @@ Wrapper CSS/help/error contract is the narrow patch surface. Preserve gba core/R
 
 Actually run: Git entry/tree review; native **0**, screenshots **0**. Recommended supervisor-owned narrow checkout with shared runtime: confirm ROM/core local responses, menu selection, actual fight inputs, outcome/rematch, emulator pause/restart and save-state roundtrip. Test touch layout, fullscreen escape, audio and denied storage. Main owns full-catalog gate.
 
+### Static metadata receipt (2026-10-15)
+
+Only the entry head description changed. Entry/tree matched inventory at `e787681`.
+[Metadata checks and exact paths](../audits/fleet-followup-descriptions.md).
+No engine audit or gameplay acceptance; source-coverage limits and known holds remain.
+
 ## Future outlook
 
 Resolve ROM rights first, then accurate controls and loader error feedback. Later measure fighting input latency and mobile controller reachability. Defer multiplayer, ROM replacement and rebranding without source/owner authorization.

@@ -37,6 +37,12 @@ Change action guards in shared functions, because HTML and shortcuts both call t
 
 Actually run: classic JavaScript syntax checks from Git blobs, catalog identity/source existence assertions and document checks, as recorded in [batch audit](../audits/games-66.md). Native/browser checks: zero. Recheck script with `git show HEAD:Games/Blackjack/script.js | node --check`. Recommended native sequence: valid/invalid bet, natural/push, hit then D, split both outcomes, bankrupt/reset race, reload during a hand, and blocked storage. Capture desktop/mobile screenshots and focus behavior before declaring layout fixed.
 
+### Static metadata receipt (2026-10-15)
+
+Only the entry head description changed. Entry/tree matched inventory at `e787681`.
+[Metadata checks and exact paths](../audits/fleet-followup-descriptions.md).
+No engine audit or gameplay acceptance; source-coverage limits and known holds remain.
+
 ## Future outlook
 
 First repair action eligibility and bankruptcy lifecycle, then reconcile save timing with abandoned-hand behavior. Week-two refurbishment should add modal focus containment, live payout announcements and optional mute, with reduced-motion handling for `.draw-anim`. Defer new betting variants until rule/payout regressions and provenance review are complete; no real-money functionality is proposed.

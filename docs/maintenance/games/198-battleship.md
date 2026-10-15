@@ -38,6 +38,12 @@ Fix lifecycle at the shared turn scheduler, preserving click delegation and extr
 
 Actually run: both scripts syntax checked through Git blobs; catalog/source/document assertions; [batch audit](../audits/games-66.md). Native checks: zero. Recheck `git show HEAD:Games/Battleship/main.js | node --check` and the same for `logic.js`. Recommended tests: complete/no-touch fleets, invalid repeated shot, hit chain, sunk-neighbor reveal, both outcomes, restart during each AI delay, focused Restart Enter and screen-reader coordinates. Historical eight-square/manual-placement report is a superseded implementation.
 
+### Static metadata receipt (2026-10-15)
+
+Only the entry head description changed. Entry/tree matched inventory at `e787681`.
+[Metadata checks and exact paths](../audits/fleet-followup-descriptions.md).
+No engine audit or gameplay acceptance; source-coverage limits and known holds remain.
+
 ## Future outlook
 
 Week one isolates AI sessions and verifies complete fleet generation. Week two prioritizes scoped keyboard input, aim refresh and accessible grid/status shell. Preserve GPL source delivery before later AI refinement or persistent matches. Defer multiplayer and custom deployment tools until current turn lifecycle has deterministic coverage.

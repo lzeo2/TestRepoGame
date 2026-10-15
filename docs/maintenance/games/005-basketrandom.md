@@ -38,6 +38,12 @@ Keep runtime/data/sprites paired. Wrapper HTML/CSS and a verified SDK boundary a
 
 Actually run: Git blob `scripts/main.f.js` through `node --check`, exit 0. Read-only Git inventory/reference review; zero native browser runs/screenshots. Repeat syntax without checkout: `git show HEAD:Games/BasketRandom/scripts/main.f.js | node --check`. Main must lease a narrow game tree for native WebGL, sound, both-player input, victory/rematch and mobile screenshots. Cold network denial and warm-cache navigation are different tests. Main's full-catalog gate remains separate.
 
+### Static metadata receipt (2026-10-15)
+
+Only the entry head description changed. Entry/tree matched inventory at `e787681`.
+[Metadata checks and exact paths](../audits/fleet-followup-descriptions.md).
+No engine audit or gameplay acceptance; source-coverage limits and known holds remain.
+
 ## Future outlook
 
 First resolve source/rights and dynamic requests. Next replace unreliable catalog control claims with native menu evidence and add accessible wrapper help only if needed. Then evaluate zoom, orientation and cache semantics. Defer new multiplayer services, physics redesign and extra content; this task adds none.

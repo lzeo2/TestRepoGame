@@ -37,6 +37,12 @@ Preserve embedded resources and original notices. Wrapper title, browser gate an
 
 Actually performed source/notice review, no native browser/screenshots and no claimed inline-script syntax pass. Historical `playtest_0.md` recorded Space start/crash/restart in Chromium only. Inspect using `git show HEAD:Games/ChromeDino/dino.html` into bounded temporary text. Recommended Main native tests: keyboard jump/release, crash Enter/restart, mobile tap, denied audio, resize, tab pause and non-Chromium browser. Full catalog gate remains independent.
 
+### Static metadata receipt (2026-10-15)
+
+Only the entry head description changed. Entry/tree matched inventory at `e787681`.
+[Metadata checks and exact paths](../audits/fleet-followup-descriptions.md).
+No engine audit or gameplay acceptance; source-coverage limits and known holds remain.
+
 ## Future outlook
 
 First reconcile licensing and honest browser/title labeling. Next prove touch/audio/visibility lifecycle and accessible instructions. Later profile DPR rendering. Defer permanent save tracking unless requested; the current session-only score is sufficient once documented.

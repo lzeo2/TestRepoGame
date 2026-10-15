@@ -44,6 +44,12 @@ Actually run: Git/catalog identity and JS syntax checks in [batch 65](../audits/
 
 Recommended native steps: create empty cascade, deselect and click it, Auto/Pick transitions, top-card restriction, Undo after manual/automatic moves, final card win, New game during easy-move chain, focus retention, both color schemes and 360px overflow. Sparse read: `git show HEAD:Games/FreeCell/script.js`; Main owns browser extraction/full gate.
 
+### Static metadata receipt (2026-10-15)
+
+Only the entry head description changed. Entry/tree matched inventory at `e787681`.
+[Metadata checks and exact paths](../audits/fleet-followup-descriptions.md).
+No engine audit or gameplay acceptance; source-coverage limits and known holds remain.
+
 ## Future outlook
 
 Week 1: empty selection/final-top guards and per-deal timer isolation. Week 2: keyboard focus, accessible card labels and stuck-banner reachable Undo. Later: explicit supermove rules only if requested; do not claim existing full FreeCell controls cover them. Saved deals and sharing remain deferred features.

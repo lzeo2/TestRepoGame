@@ -37,6 +37,12 @@ Prefer authored wrapper help/focus/error feedback; preserve gba core, data path 
 
 Actually run: Git entry/tree inspection; native **0**, screenshots **0**. Recommended supervisor-approved narrow checkout with shared runtime: local ROM/core responses, menu and course start, actual race controls, finish/retry, emulator pause/restart and save-state export/import/reload. Test 320 px portrait/landscape, touchscreen overlap, fullscreen exit, denied storage and missing dependency feedback. Main owns full catalog smoke.
 
+### Static metadata receipt (2026-10-15)
+
+Only the entry head description changed. Entry/tree matched inventory at `e787681`.
+[Metadata checks and exact paths](../audits/fleet-followup-descriptions.md).
+No engine audit or gameplay acceptance; source-coverage limits and known holds remain.
+
 ## Future outlook
 
 First settle ROM rights/source identity, then loader failures and accurate controller help. Later measure race input/audio latency and mobile save continuity on real hardware. Defer replacement ROMs, multiplayer claims and additional courses until expressly authorized and verified.

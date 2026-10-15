@@ -46,6 +46,12 @@ git show 8c8a055:"Games/MiniGolf/game.js" | node --check
 
 A future authorized focused browser run may extract only this directory with `git archive` into a disposable directory, serve that root over HTTP, block third-party requests and terminate the server. Check disk first; do not alter sparse selection or leave dependencies. Main owns the unchanged serial full-catalog smoke gate, separately from these recommended interactions.
 
+### Static metadata receipt (2026-10-15)
+
+Only the entry head description changed. Entry/tree matched inventory at `e787681`.
+[Metadata checks and exact paths](../audits/fleet-followup-descriptions.md).
+No engine audit or gameplay acceptance; source-coverage limits and known holds remain.
+
 ## Future outlook
 
 Week 1: delayed-reset race and consistent keyboard aim. Week 2: clarify restart/best labels, visible status announcements and focus. Later: deterministic hole fixtures for bounce tests and frame-rate-independent friction after measurement. No course expansion or generated assets are authorized here.

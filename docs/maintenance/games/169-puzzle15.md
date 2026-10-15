@@ -44,6 +44,12 @@ Actually run: Git/catalog identity, extracted inline-script stdin parsing and do
 
 Recommended native checks: wait until shuffle completes before reading Moves; restart repeatedly during shuffle; exercise all gap edges, tap invalid tiles, solve a known deal, reload best, block/corrupt storage, and inspect keyboard focus/reduced motion. Sparse-safe source: `git show HEAD:Games/Puzzle15/index.html`. Main owns browser extraction and the full gate.
 
+### Static metadata receipt (2026-10-15)
+
+Only the entry head description changed. Entry/tree matched inventory at `e787681`.
+[Metadata checks and exact paths](../audits/fleet-followup-descriptions.md).
+No engine audit or gameplay acceptance; source-coverage limits and known holds remain.
+
 ## Future outlook
 
 Week 1: single-shuffle lifecycle regression. Week 2: meaningful board focus/result announcement and reduced motion. Later: optional same-deal retry only if requested; defer solver, rankings and multiplayer. Preserve a puzzle's open-ended play rather than inventing a losing timer.

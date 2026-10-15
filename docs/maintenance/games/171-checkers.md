@@ -42,6 +42,12 @@ Actually run: source/catalog inventory and inline JS syntax checks, [batch 65](.
 
 Recommended native checks: first legal light move, forced capture-only position, selecting between two capturers, chained jump, promotion, blocked-side result, clicks during AI delay, Restart with modal and keyboard cursor. Read with `git show HEAD:Games/Checkers/index.html`; Main owns native source lease/full gate.
 
+### Static metadata receipt (2026-10-15)
+
+Only the entry head description changed. Entry/tree matched inventory at `e787681`.
+[Metadata checks and exact paths](../audits/fleet-followup-descriptions.md).
+No engine audit or gameplay acceptance; source-coverage limits and known holds remain.
+
 ## Future outlook
 
 Week 1: deterministic legality/turn tests before AI improvements. Week 2: accessible square/piece labels, result focus and reduced-motion transitions. Later: bounded AI action selection instead of random retry recursion, after profiling. Defer online play and variant expansion.

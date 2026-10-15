@@ -39,6 +39,12 @@ Canonical wrapper is the safe patch point; keep local bridge handshake and lazy 
 
 Actually run: Git inventory/JSON and source inspection; native **0**, screenshots **0**. Recommended bounded supervisor-owned checkout: canonical and nested request closure, WebGL unavailable fallback, ready handshake, loader completion, actual start/steer/failure/retry, and observable coin/cheat behavior. Inspect reload saves and denied storage without inventing keys. Measure real target-hardware memory/fps separately from historical software-renderer evidence. Main owns full smoke.
 
+### Static metadata receipt (2026-10-15)
+
+Only the entry head description changed. Entry/tree matched inventory at `e787681`.
+[Metadata checks and exact paths](../audits/fleet-followup-descriptions.md).
+No engine audit or gameplay acceptance; source-coverage limits and known holds remain.
+
 ## Future outlook
 
 First resolve nested remote loads, rights and error fallback. Next verify cheat targets and preserve loader progress/accessibility. Later audit duplicate build consumers for storage reduction, with evidence before deletion. Defer graphics/engine rebuilds and online features.

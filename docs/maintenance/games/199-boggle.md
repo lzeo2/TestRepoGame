@@ -39,6 +39,12 @@ Keep pointer adjacency and typed DFS validation aligned; `commitWord()` alone do
 
 Actually run: inline-script syntax, Git/catalog identity and doc assertions; [batch audit](../audits/games-66.md). Native checks: zero. Recommended tests: dictionary and connected-path rejection, no reuse, pointer backtracking, duplicate score prevention, typed reset, Enter on focused New board, expiry/restart and blocked/corrupt storage. Prior Boggle keyboard-path evidence covers only a short interaction, not these lifecycle branches.
 
+### Static metadata receipt (2026-10-15)
+
+Only the entry head description changed. Entry/tree matched inventory at `e787681`.
+[Metadata checks and exact paths](../audits/fleet-followup-descriptions.md).
+No engine audit or gameplay acceptance; source-coverage limits and known holds remain.
+
 ## Future outlook
 
 Week one repairs storage and round-input reset. Week two improves native keyboard control semantics, pointer cancellation and live feedback with reduced motion. Later improve the local dictionary only with verified terms and reproducible board tests. Defer daily challenges, saved rounds or online vocabulary expansion until timer/input lifecycle is reliable.

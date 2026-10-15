@@ -44,6 +44,12 @@ Actually run: Git/catalog identity and engine/wrapper JS syntax parsing in [batc
 
 Recommended native checks: repeated-color feedback, incomplete submission, eighth wrong guess, correct full guess then Give up, canvas restart and Menu, rotating after game creation, keyboard popup closure and denied/no Worker support. Read via `git show HEAD:Games/Mastermind/engine.js`; Main owns browser assets/full gate.
 
+### Static metadata receipt (2026-10-15)
+
+Only the entry head description changed. Entry/tree matched inventory at `e787681`.
+[Metadata checks and exact paths](../audits/fleet-followup-descriptions.md).
+No engine audit or gameplay acceptance; source-coverage limits and known holds remain.
+
 ## Future outlook
 
 Week 1: give-up terminal consistency and listener cleanup. Week 2: color names/nonvisual feedback and resize without lost guesses. Later: optional local score persistence with explicit corruption handling. Defer autosolver and online comparisons until current keyboard/touch outcomes are verified.

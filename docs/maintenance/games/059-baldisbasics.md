@@ -42,6 +42,12 @@ Actually run: Git resource inventory, manifest parsing, `node --check` through s
 
 Reproduce: `git show HEAD:Games/BaldisBasics/TemplateData/UnityProgress.js | node --check`. Recommended Main-approved HTTP lease: inspect numeric completion styles and computed top, wait for menu, play a notebook interaction, test pursuit/failure/restart, pause/resume and audio. Resize/mobile screenshots, denied storage and offline request capture are additional checks, not completed results.
 
+### Static metadata receipt (2026-10-15)
+
+Only the entry head description changed. Entry/tree matched inventory at `e787681`.
+[Metadata checks and exact paths](../audits/fleet-followup-descriptions.md).
+No engine audit or gameplay acceptance; source-coverage limits and known holds remain.
+
 ## Future outlook
 
 Rights and progress/centering fixes first. Next verify the loading-screen controls against actual engine input and make the shell readable without motion. Month work should prove failure/restart and hardware performance; touch controls require actual engine support and are deferred rather than promised.

@@ -37,6 +37,12 @@ Preserve `_AK` cheat semantics; root repair belongs in verified original GameMak
 
 Actually run: RetroBowl.js Git blob `node --check` **PASS**. Native **0**, screenshots **0**. Recommended narrow-checkout test: capture init exception stack and missing response consumers, reach actual menu, play tutorial/match, spend credits, save/reload and restart. Verify unlimited credit/salary intent independently of badge text, audio controls and offline requests. Main owns full gate; historical screenshots are not fresh release evidence.
 
+### Static metadata receipt (2026-10-15)
+
+Only the entry head description changed. Entry/tree matched inventory at `e787681`.
+[Metadata checks and exact paths](../audits/fleet-followup-descriptions.md).
+No engine audit or gameplay acceptance; source-coverage limits and known holds remain.
+
 ## Future outlook
 
 First isolate init failure and establish source/license applicability. Then accessible error/controls copy, mobile sizing and save lifecycle tests. Defer roster additions, generated-engine edits and online services until boot and rights are settled.

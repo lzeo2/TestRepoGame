@@ -37,6 +37,12 @@ Authored wrapper dimensions/favicon/help are safe first surfaces. Preserve gba c
 
 Actually run: Git entry/tree review; native **0**, screenshots **0**. Recommended supervisor-approved narrow checkout with shared runtime: ZIP integrity/member selection, local extractor/core requests, tutorial/menu input, turn progression, mission save/reload, emulator save-state export/import and restart. Test dynamic viewport, touch focus, missing ZIP/runtime and storage denial. Main owns the independent full smoke gate.
 
+### Static metadata receipt (2026-10-15)
+
+Only the entry head description changed. Entry/tree matched inventory at `e787681`.
+[Metadata checks and exact paths](../audits/fleet-followup-descriptions.md).
+No engine audit or gameplay acceptance; source-coverage limits and known holds remain.
+
 ## Future outlook
 
 Rights and archive provenance first; reliable loader error feedback and verified controller help next. Later test campaign-save continuity and handheld layouts on real devices. Defer archive replacement, new missions and engine changes pending rights/source authorization.

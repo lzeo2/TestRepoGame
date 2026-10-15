@@ -37,6 +37,12 @@ Preserve high starting score, per-brick bonus and respawn identity unless owner 
 
 Actually run: script Git blob `node --check` **PASS**. Native **0**, screenshots **0**. Recommended: launch once by each input, cycle level during active play, pause/resume repeatedly, compare one-frame movement, fall/restart and reset with active big-ball/wide-paddle. Force cooldown chance failure then success. Test 320 px touch scaling, tilt permission and keyboard blur. [Playtest r6](../../audit_batches/playtest_r6.md) previously played/restarted but did not certify loop ownership. Main owns full gate.
 
+### Static metadata receipt (2026-10-15)
+
+Only the entry head description changed. Entry/tree matched inventory at `e787681`.
+[Metadata checks and exact paths](../audits/fleet-followup-descriptions.md).
+No engine audit or gameplay acceptance; source-coverage limits and known holds remain.
+
 ## Future outlook
 
 Prioritize single-loop/reset correctness and powerup availability. Then persistent controls, responsive canvas, input labels/focus and reduced motion. Later profile collision stability at capped speed 8. Defer multiball/AI placeholders and new levels until reliability and source rights are established.

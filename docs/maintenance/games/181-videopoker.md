@@ -38,6 +38,12 @@ Preserve evaluator constants, ace-low straight handling and discard exclusion. R
 
 Actually run: blob-based JavaScript syntax and document/catalog checks; see [batch audit](../audits/games-66.md). No native sessions/screenshots. Reproduce syntax with `git show HEAD:Games/VideoPoker/script.js | node --check`. Recommended native cases: five-card holds, ace-low straight, each menu variant, low-bankroll maximum bet, mid-hand variant switch, immediate reset before overlay, denied storage, and both theme layouts at phone width. Historical short playtests did not reach bankruptcy or session reset and cannot certify those paths.
 
+### Static metadata receipt (2026-10-15)
+
+Only the entry head description changed. Entry/tree matched inventory at `e787681`.
+[Metadata checks and exact paths](../audits/fleet-followup-descriptions.md).
+No engine audit or gameplay acceptance; source-coverage limits and known holds remain.
+
 ## Future outlook
 
 Prioritize affordable wagering and immutable hand rules in week one. Then address delayed callbacks, storage resilience and accessible held-state announcements. Review mobile light/dark screenshots and reduced-motion flips before any broad shell polish. Defer new poker variants, stats persistence and strategy assistance until current eight variants have deterministic evaluator and payout coverage.

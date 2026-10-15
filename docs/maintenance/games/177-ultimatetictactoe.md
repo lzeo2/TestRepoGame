@@ -44,6 +44,12 @@ Actually run: Git/catalog identity and JS syntax checks, [batch 65](../audits/ga
 
 Recommended native/source-fixture checks: send rule, forbidden board, closed destination grants freedom, local draw triple with open boards, true X/O global win, all-closed draw, AI/reset race, both modes and keyboard conversion. `git show HEAD:Games/UltimateTicTacToe/script.js` reads without checkout; Main owns native assets/full smoke.
 
+### Static metadata receipt (2026-10-15)
+
+Only the entry head description changed. Entry/tree matched inventory at `e787681`.
+[Metadata checks and exact paths](../audits/fleet-followup-descriptions.md).
+No engine audit or gameplay acceptance; source-coverage limits and known holds remain.
+
 ## Future outlook
 
 Week 1: drawn-board winner regression. Week 2: cell semantics, compact-screen controls and modal focus restoration. Later: actual search-budget profiling and optional difficulty only if requested. Defer online play, accounts and saved matches; do not add new dependencies for the existing state machine.

@@ -46,6 +46,12 @@ git show 8c8a055:"Games/Bowling/js/GLTFLoader.js" | node --check
 
 A future authorized focused browser run may extract only this directory with `git archive` into a disposable directory, serve that root over HTTP, block third-party requests and terminate the server. Check disk first; do not alter sparse selection or leave dependencies. Main owns the unchanged serial full-catalog smoke gate, separately from these recommended interactions.
 
+### Static metadata receipt (2026-10-15)
+
+Only the entry head description changed. Entry/tree matched inventory at `e787681`.
+[Metadata checks and exact paths](../audits/fleet-followup-descriptions.md).
+No engine audit or gameplay acceptance; source-coverage limits and known holds remain.
+
 ## Future outlook
 
 Week 1: bootstrap error visibility and resource ownership review. Week 2: accessible zoom/header layout and non-blocking final score summary. Later: N100 WebGL/heap measurements, then optional pixel-ratio cap if measured. Do not substitute a camera demo or new bowling engine.

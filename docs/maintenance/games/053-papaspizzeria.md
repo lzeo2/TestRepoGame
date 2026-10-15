@@ -42,6 +42,12 @@ Actually run: Git tree/resource inspection, stdin `node --check` on `ruffle.js`,
 
 Reproduce without materializing Games: `git show HEAD:Games/PapasPizzeria/ruffle.js | node --check`. For a later Main-approved narrow browser lease, serve the repository root over HTTP, record every request with third-party access blocked, enter an order, complete a pizza, end a shift, reload and restart. Test touch and audio unlock separately. Historical title progression does not replace these checks or Main's full catalog gate.
 
+### Static metadata receipt (2026-10-15)
+
+Only the entry head description changed. Entry/tree matched inventory at `e787681`.
+[Metadata checks and exact paths](../audits/fleet-followup-descriptions.md).
+No engine audit or gameplay acceptance; source-coverage limits and known holds remain.
+
 ## Future outlook
 
 First resolve rights and the discrepancy between title progression and actual shift play. Then add loading recovery and accessible, verified controls. Within the month, test save continuity across reloads and narrow offline policies. Emulator upgrades require paired artifacts and gameplay comparison; new skins, assets and an engine rewrite are deferred.

@@ -42,6 +42,12 @@ Actually run: Git inventory/reference inspection, parser checks for entry inline
 
 Recommended Main-approved HTTP lease: inspect initial player bounds, open a choice, retry a failed choice, reach an ending, reload and test saves/audio/touch. Block third-party requests and distinguish blocked SWF calls from bootstrap errors. Main alone runs the full catalog gate.
 
+### Static metadata receipt (2026-10-15)
+
+Only the entry head description changed. Entry/tree matched inventory at `e787681`.
+[Metadata checks and exact paths](../audits/fleet-followup-descriptions.md).
+No engine audit or gameplay acceptance; source-coverage limits and known holds remain.
+
 ## Future outlook
 
 Rights and a real choice/retry test first; viewport sizing and loading recovery next. Month work should verify ending persistence and keyboard accessibility of the wrapper without inventing movie controls. Emulator upgrade or shared-runtime consolidation waits for compatibility/save comparison and explicit approval.

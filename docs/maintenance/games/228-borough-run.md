@@ -76,6 +76,12 @@ this title `ok` within a **failed 122/125** run. Generic bounded loading does no
 assert that the overlay hides, driving works or delivery completes. Lane7 ran
 no browser/gameplay test, captured no screenshot and changed no game source.
 
+### Static metadata receipt (2026-10-15)
+
+Only the entry head description changed. Entry/tree matched inventory at `e787681`.
+[Metadata checks and exact paths](../audits/fleet-followup-descriptions.md).
+No engine audit or gameplay acceptance; source-coverage limits and known holds remain.
+
 ## Future outlook
 
 After scope approval: normal start, package pickup, driving, safehouse completion,

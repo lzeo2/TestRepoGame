@@ -44,6 +44,12 @@ Actually run: source inventory/catalog and JS syntax checks in [batch 65](../aud
 
 Recommended native steps: cold-cache offline load, wait for audio readiness, confirm automatic countdown, N reset during play/pause, P/S behavior, denied storage and autoplay, tunnel travel, life exhaustion and 182-item completion. `git show HEAD:Games/Pacman/pacman.js` reads source without materializing Games. Main handles any browser asset lease/full smoke gate.
 
+### Static metadata receipt (2026-10-15)
+
+Only the entry head description changed. Entry/tree matched inventory at `e787681`.
+[Metadata checks and exact paths](../audits/fleet-followup-descriptions.md).
+No engine audit or gameplay acceptance; source-coverage limits and known holds remain.
+
 ## Future outlook
 
 Week 1: readiness and preference resilience. Week 2: DOM score/lives announcements, mobile d-pad overlap and reduced-motion pill flashing. Later: measure frame pacing and resize/DPI rendering before engine modernization. Sound provenance remains a rights prerequisite; fruit and new ghost AI are deferred gameplay changes, not refurbishment defaults.

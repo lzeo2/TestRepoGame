@@ -44,6 +44,12 @@ Actually run: Git/catalog identity and JS syntax checks in [batch 65](../audits/
 
 Recommended native checks: stock/recycle order, buried playable waste card, alternating run drag, king to empty column, ace foundation/double-click, undo revealing a hidden card, true win, dialog Escape, keyboard focus and phone overflow. Sparse read: `git show HEAD:Games/KlondikeSolitaire/script.js`; Main owns browser assets/full catalog gate.
 
+### Static metadata receipt (2026-10-15)
+
+Only the entry head description changed. Entry/tree matched inventory at `e787681`.
+[Metadata checks and exact paths](../audits/fleet-followup-descriptions.md).
+No engine audit or gameplay acceptance; source-coverage limits and known holds remain.
+
 ## Future outlook
 
 Week 1: conservative deadlock repair and regression fixture. Week 2: mobile layout, dialog cancel/ended state and reachable-card focus. Later: optional same-deal retry/save only after rules and lifecycle tests. Defer new card art and automatic solver; no external dependency is necessary.

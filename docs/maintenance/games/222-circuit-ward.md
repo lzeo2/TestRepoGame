@@ -69,6 +69,12 @@ Main's executed serialized command, using the existing localhost:8899 server: `p
 
 Recommended, not executed here: Main alone obtains a narrow game lease, then runs existing `scripts/test_circuit_ward.py`, `scripts/test_circuit_ward_models.py` and transport checks as available after inspecting their current arguments. Exercise keyboard and simultaneous touch move/aim/fire, all six waves, failure/retry, blocked model loading, WebGL loss, host/guest pause and stale input. Pair actual devices manually; test timeout/wrong answer and host exit. Review desktop/mobile screenshots independently. No targeted test substitutes for Main's unchanged full `xvfb-run python3 scripts/smoke_test_games.py` release gate.
 
+### Static metadata receipt (2026-10-15)
+
+Only the entry head description changed. Entry/tree matched inventory at `e787681`.
+[Metadata checks and exact paths](../audits/fleet-followup-descriptions.md).
+No engine audit or gameplay acceptance; source-coverage limits and known holds remain.
+
 ## Future outlook
 
 The reproduced context-loss activation gap has a focused native pass. Next measure paused rendering and co-op behavior on actual target devices. Preserve the present finite FPS identity and simple cover arena. Vehicle driving/merges/abilities require separate concept, rights, simulation and RPC review; supplied meshes alone clear none of them. N100 8 GB/64 GB remains a provisional target, not measured 60 FPS proof. Four rendered concepts and later native screenshots are different evidence classes. No automatic monthly build, registration, publish or push is promised.

@@ -38,6 +38,12 @@ Fix the shared input handlers before changing frog movement. Preserve atlas offs
 
 Actually run: `engine.js` and `game.js` passed Git-blob STDIN `node --check`; native/browser checks: **zero**. Repeat with `git show HEAD:Games/Frogger/engine.js | node --check`. Main must own any narrow game materialization. Recommended browser checks: arrows without ambient event, ten-second expiry, car/water/log collisions, win and final-loss replay, touch bounds on portrait screens, and HUD visibility. Earlier `playtest_p1a.md` describes a superseded implementation and is not current verification.
 
+### Static metadata receipt (2026-10-15)
+
+Only the entry head description changed. Entry/tree matched inventory at `e787681`.
+[Metadata checks and exact paths](../audits/fleet-followup-descriptions.md).
+No engine audit or gameplay acceptance; source-coverage limits and known holds remain.
+
 ## Future outlook
 
 Week 1: browser-portable keyboard repair and coordinate diagnosis. Week 2: stable portrait layout, labeled accessible directional buttons and an explicit pause affordance, with Main image review. Later: elapsed-time scheduling after measuring the effect on hop/spawn behavior. Do not rewrite the game or fabricate additional homes to match historical documentation.

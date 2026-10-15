@@ -38,6 +38,12 @@ Keep cheat values, rescue thresholds and loss suppression unless owner requests 
 
 Actually run: production JS from Git through `node --check` passed. Native sessions **0**, screenshots **0**. Recommended narrow-checkout browser checks: click real Play bounds, confirm patched score, steer/shoot, fall-rescue, pause and visit Menu/Game repeatedly while counting timers. Inspect computed badge styles and keyboard/help access. Inject invalid saved JSON in an isolated profile and verify safe recovery after an authorized fix. Main performs the separate full-catalog gate.
 
+### Static metadata receipt (2026-10-15)
+
+Only the entry head description changed. Entry/tree matched inventory at `e787681`.
+[Metadata checks and exact paths](../audits/fleet-followup-descriptions.md).
+No engine audit or gameplay acceptance; source-coverage limits and known holds remain.
+
 ## Future outlook
 
 First repair badge and lifecycle ownership; next harden saves and keep controls/help recoverable. Later profile repeated-state CPU and mobile sensor permissions. Defer stronger cheats, new artwork and source regeneration until provenance and rights are verified.

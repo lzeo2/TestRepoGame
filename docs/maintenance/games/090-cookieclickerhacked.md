@@ -38,6 +38,12 @@ Rights first. Retain full notice, save compatibility and intentional cheat. Expo
 
 Actually run: main.js Git blob `node --check` **PASS**. Native **0**, screenshots **0**. Recommended: click/touch cookie, buy building, observe top-up, export/import/reload, perform both wipe confirmations and inspect cookies versus cookiesEarned after two seconds. Test whitespace URL rejection without fetching it, denied storage and malformed imports. [Playtest r5](../../audit_batches/playtest_r5.md) observed top-up after wipe; that is historical behavior, not a fresh failure verdict. Main owns full gate.
 
+### Static metadata receipt (2026-10-15)
+
+Only the entry head description changed. Entry/tree matched inventory at `e787681`.
+[Metadata checks and exact paths](../audits/fleet-followup-descriptions.md).
+No engine audit or gameplay acceptance; source-coverage limits and known holds remain.
+
 ## Future outlook
 
 Resolve explicit rehosting restriction immediately. Then local mod validation, cheat reset/save consistency and keyboard accessibility. Later test minigame save compatibility and long idle sessions. Defer additional mods, remote updates and cosmetic reskins.

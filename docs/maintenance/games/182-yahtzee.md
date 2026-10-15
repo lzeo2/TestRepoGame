@@ -39,6 +39,12 @@ Keep scoring helpers and DOM row IDs stable. Repair the final-score ordering whe
 
 Actually run: Git-blob script syntax and documentation identity/section checks; [batch results](../audits/games-66.md). Native checks: zero. Re-run `git show HEAD:Games/Yahtzee/script.js | node --check`. Recommended native play: invalid category zero, three-roll cap, hold behavior under focus, all thirteen rows, final-upper-category bonus, repeated Yahtzee, restart, and dark/mobile screenshots. Historical quick play scored Chance but did not finish the session.
 
+### Static metadata receipt (2026-10-15)
+
+Only the entry head description changed. Entry/tree matched inventory at `e787681`.
+[Metadata checks and exact paths](../audits/fleet-followup-descriptions.md).
+No engine audit or gameplay acceptance; source-coverage limits and known holds remain.
+
 ## Future outlook
 
 Week one should fix final-score ordering and misleading bonus copy. Next verify the intended bonus-turn rules, semantic score-row controls and end-screen focus. Defer saved sessions or multiplayer until DOM-backed scoring can be restored safely and current category behavior has a small deterministic regression check.

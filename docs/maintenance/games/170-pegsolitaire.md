@@ -43,6 +43,12 @@ Actually run: Git/source/catalog identity and inline JS syntax parsing in [batch
 
 Recommended native checks: legal center jump, diagonal/occupied rejection, ten Undos, keyboard-focused Undo/Restart, known one-peg solution and dead-end result. Assert each jump reduces count by one and Undo restores it. Source command: `git show HEAD:Games/PegSolitaire/index.html`; Main owns any asset checkout/full smoke.
 
+### Static metadata receipt (2026-10-15)
+
+Only the entry head description changed. Entry/tree matched inventory at `e787681`.
+[Metadata checks and exact paths](../audits/fleet-followup-descriptions.md).
+No engine audit or gameplay acceptance; source-coverage limits and known holds remain.
+
 ## Future outlook
 
 Week 1: notice verification and native-button routing. Week 2: stateful accessible labels, result focus and small-phone target measurements (the seven-column CSS does not guarantee every viewport reaches 44px). Later: optional replay of the same puzzle, not invented levels or generated art.

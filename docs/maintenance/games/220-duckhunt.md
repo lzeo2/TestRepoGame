@@ -38,6 +38,12 @@ Do not hand-edit minified vendor modules. Reconcile chunk/license closure at the
 
 Actually run: bundle and both stubs passed Git-blob STDIN `node --check`; `git cat-file -e` confirmed missing chunks/creator page. Zero browser/native runs or screenshots. Repeat `git show HEAD:Games/DuckHunt/duckhunt.js | node --check`. Main owns any narrow asset lease. Recommended: fail-visible loading, renderer paths, shooting/hit/miss outcomes/replay, P/M/F, cross-wave pause timing, bounded query fixtures, local-only requests and audio unlock. Syntax passing does not resolve chunk failures.
 
+### Static metadata receipt (2026-10-15)
+
+Only the entry head description changed. Entry/tree matched inventory at `e787681`.
+[Metadata checks and exact paths](../audits/fleet-followup-descriptions.md).
+No engine audit or gameplay acceptance; source-coverage limits and known holds remain.
+
 ## Future outlook
 
 Week 1: source/asset/dependency-notice and missing-chunk triage before polish. Week 2 only after boot works: accessible instructions/loading/error and replay semantics. Later: rebuild controller timing/input fixes from verified editable source. Level creator, new art and performance certification are deferred until permission and native evidence exist.
