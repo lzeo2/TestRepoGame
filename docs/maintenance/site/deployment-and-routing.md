@@ -4,10 +4,13 @@
 
 ## Identity and status
 
-Source baseline: `8c8a055813b35bbd5d8b632423328333b4252d43`. This is a
-source-only infrastructure review, not a deployed HTTP or gameplay certificate.
-The catalog has 115 entries; all 115 URLs resolve to Git blobs. The root is the
-published static artifact, not an application source/build workspace.
+Current SEO/PWA review (2026-10-15), starting source `81656833`: **125**
+registered games, all URLs checked against Git. The operator-confirmed static
+base is **https://lzeo2.github.io/TestRepoGame/**. Repository-root files are the
+published artifact beneath that subpath; no application build is needed.
+The Netlify configuration review below is historical (`8c8a055`), not evidence
+that GitHub Pages applies Netlify headers, redirects or functions. Current local
+browser checks are bounded portal checks, not hosted HTTP or gameplay acceptance.
 See [scope](../SCOPE.md), [disabled proxy](proxy-disabled.md), and
 [infrastructure findings](../audits/infrastructure.md).
 
@@ -18,8 +21,9 @@ See [scope](../SCOPE.md), [disabled proxy](proxy-disabled.md), and
   `netlify/functions/bare.js`, an informational status handler, not a relay.
 - `index.html` loads `assets/index-CRWHmtoy.js` as a module and
   `assets/index-CUsUGgbt.css`, then the authored `assets/portal-polish.css` and
-  deferred `assets/portal-ux.js`. Preserve ordering. The compiled bundle has no
-  editable source here; use the authored layers for bounded refurbishment.
+  deferred `assets/portal-ux.js`, followed by `assets/portal-seo.js`. Preserve
+  ordering. The compiled bundle has no editable source here; use the authored
+  layers for bounded refurbishment.
 - The catalog is `games.json`, not `docs/catalog_parts/*.json`. In the authored
   UX layer, `fetchGames()` fetches `./games.json` and shares its promise.
   Catalog URLs are relative files beneath `Games/`; spaces are legitimate path
@@ -66,7 +70,9 @@ or unhashed shared runtime assets. EmulatorJS independently caches cores/ROMs in
 IndexedDB. A cached working game does not prove a cold first visit works, and a
 same-length ROM replacement can evade its length-based validation. See
 [emulation runtime](emulation-runtime.md) before changing payloads or versions.
-No general PWA/offline-install service worker is established by this config.
+`manifest.webmanifest` now supplies Add-to-home-screen metadata, but no general
+PWA caching service worker is registered. Installation is not a complete offline
+cache: a cold visit still needs the server and games retain their own dependencies.
 
 ## Dependencies and provenance
 
@@ -75,6 +81,39 @@ engines. [Portal font evidence](../../portal-font-sources.md) pins OFL notices a
 binary hashes, separately from license-source revisions. This does not license
 game artwork or commercial ports. Static packaging, offline guards and mirror
 URLs establish neither owner consent nor redistribution rights.
+
+## SEO, sitemap and install metadata (2026-10-15)
+
+- `index.html` has absolute canonical, OG URL and OG image URLs under the confirmed
+  GitHub Pages base. Other new resource links are relative, including the manifest,
+  sitemap, Apple touch icon and authored metadata script. No deep-link route,
+  duplicate launch page, build pipeline or new third-party runtime load was added.
+- Run `python3 -B scripts/generate_sitemap.py` after a catalog change, then
+  `python3 -B scripts/generate_sitemap.py --check`. It emits 126 URLs (portal plus
+  125 entries), validates decoded paths against `git ls-files`, rejects duplicate
+  IDs/URLs and invalid paths, and percent-encodes spaces. It does not require Games
+  to exist in the sparse working tree. No invented modification dates/priorities.
+  Submission/discovery by actual crawlers is not verified; no robots file changed.
+- `assets/portal-seo.js` updates document title, description and OG title/description
+  while Info/player selection is open and restores root values on close. It reads
+  the local catalog once because the compiled shelf omits description nodes.
+  Canonical/OG URL remain the real portal URL. **These are runtime browser metadata,
+  not crawler-readable per-title static pages.** At baseline, all 125 game pages
+  have titles, only 20 have descriptions, 5 OG titles and 3 OG descriptions. True
+  per-title crawler coverage remains unmet and needs an owner scope decision;
+  Games were not edited, including protected Character AI. The escalation ticket
+  is recorded in [lane5 evidence](../audits/fleet-2026-10-15-lane5.md).
+- Manifest `id`, `start_url`, `scope` resolve to the deployment directory; display
+  requests standalone. Light `#f5f5f7` background/theme colors express a launch
+  surface preference, **not a forced installed light theme**. The existing portal
+  theme toggle, saved preference and OS default remain unchanged. Browser chrome,
+  splash screens, installation availability and system overrides vary by platform;
+  native Android/iOS installation and forced-dark behavior are unverified. No
+  custom install prompt or service worker was added, and no offline promise made.
+- `assets/pwa-{180,192,512}.png` are local rasterizations of the existing authored
+  `favicon.svg` rounded tile/U polygon, not game art or imported branding. They
+  total 15,855 bytes; manifest icons use purpose `any`, not a maskable-safe claim.
+  Rasterization used existing Pillow, with no dependency installation.
 
 ## Audit findings
 
@@ -100,9 +139,21 @@ Any backend/proxy change requires separate security sign-off, absent in this run
 
 ## Verification
 
-Actually run: Git-backed catalog parse/ID/required-field/URL assertions, config
-inspection, and syntax checks recorded in [audit evidence](../audits/infrastructure.md).
-**Native/browser runs: 0. Hosted requests: 0. Screenshots: 0.**
+Current focused checks: `python3 -B scripts/test_portal_seo.py --browser` passed
+125 native Info selections/descriptions, player/reset, root/subpath URLs, manifest,
+icon sizes and desktop/mobile light/dark portal loads. Four screenshots reviewed;
+no page/HTTP errors, no service-worker registrations. Player documents are explicit
+routing fixtures, not gameplay evidence. Original HTML body (except the new local
+script tag), original script elements and compiled JS/CSS remain byte-for-byte.
+`G-ERN6R7YHJ5` was absent in both baseline/current index; no analytics was added,
+removed or altered. Hosted requests and native installation checks: **0**.
+See [current evidence and limits](../audits/fleet-2026-10-15-lane5.md).
+
+Historical Git/config/syntax checks remain in
+[audit evidence](../audits/infrastructure.md). Maintenance coverage first blocked
+on concurrent Games edits, then on `Inventory stale: inspect changes, then run
+--refresh.` Inventory is not refreshed by this lane. It predates seven registrations
+(118 versus current 125).
 
 Recommended hosted checks, not executed:
 
