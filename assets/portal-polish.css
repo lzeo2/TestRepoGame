@@ -72,6 +72,7 @@ html[data-theme] .theme-toggle {
 }
 html[data-theme] .app__main {
   display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 8px 16px; min-width: 0;
+  align-content: start;
 }
 html[data-theme] .ux-sort {
   grid-column: 1; display: flex; align-items: center; gap: 8px;
@@ -121,7 +122,15 @@ html[data-theme] .ux-result-status {
   grid-column: 1 / -1; margin: 0; padding: 4px 0;
   color: var(--text-muted) !important; font-size: 14px;
 }
-.ux-recent, .ux-clear-filters, .app__empty { grid-column: 1 / -1; }
+.ux-recent, .ux-clear-filters, .ux-empty-hint, .app__empty { grid-column: 1 / -1; }
+html[data-theme] .ux-empty-hint { margin: 0; color: var(--text-muted); font-size: 16px; }
+html[data-theme] .ux-clear-filters { justify-self: start; margin: 0; }
+html[data-theme] .ux-recent {
+  padding: 4px 0; margin: 0; gap: 8px; min-width: 0;
+  scrollbar-width: thin; scrollbar-color: var(--text-muted) var(--bg);
+}
+html[data-theme] .ux-recent::-webkit-scrollbar { display: block; height: 6px; }
+html[data-theme] .ux-recent__label { color: var(--text-muted); text-transform: none; letter-spacing: 0; }
 /* One continuous shelf: featured entries no longer leave half a row empty. */
 html[data-theme] .bento-grid {
   grid-column: 1 / -1; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr));

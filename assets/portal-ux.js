@@ -480,25 +480,29 @@
   document.addEventListener('keydown', function (e) {
     if (e.defaultPrevented) return;
     var ae = document.activeElement;
-    if (!ae || !ae.classList || !ae.classList.contains('game-card')) return;
+    var card = ae && ae.closest ? ae.closest('.bento-grid .game-card') : null;
+    if (!card) return;
+    var navigation = /^(ArrowRight|ArrowDown|ArrowLeft|ArrowUp|Home|End)$/.test(e.key);
+    if (ae !== card && !navigation) return; // Keep native button activation and Tab.
     var cards = visibleCards();
-    if (cards.indexOf(ae) === -1) return;
+    if (cards.indexOf(card) === -1) return;
+    if (navigation) e.stopPropagation(); // Bypass the bundle's unfiltered button list.
     switch (e.key) {
       case 'ArrowRight':
         e.preventDefault();
-        moveCard(ae, 'right');
+        moveCard(card, 'right');
         break;
       case 'ArrowDown':
         e.preventDefault();
-        moveCard(ae, 'down');
+        moveCard(card, 'down');
         break;
       case 'ArrowLeft':
         e.preventDefault();
-        moveCard(ae, 'left');
+        moveCard(card, 'left');
         break;
       case 'ArrowUp':
         e.preventDefault();
-        moveCard(ae, 'up');
+        moveCard(card, 'up');
         break;
       case 'Home':
         e.preventDefault();
@@ -511,10 +515,10 @@
       case 'Enter':
       case ' ':
         e.preventDefault();
-        openCard(ae);
+        openCard(card);
         break;
     }
-  });
+  }, true);
 
   /* Shared game launch path guard (mirrors bundle __portalSafeSrc). */
   function safeGamePath(p) {
@@ -1167,7 +1171,7 @@
   var tagFilterRow = null;
   var resultStatusEl = null;
   var clearFiltersBtn = null;
-  var clearFiltersParent = null;
+  var emptyHint = null;
   var recentRow = null;
   var sortControl = null;
   var sortMode = 'catalog';
@@ -1436,28 +1440,44 @@
     var hasFilters = activeTagFilters.length > 0 || favOnly || activeUxCat ||
       (function() {
         var active = $('.category-filter__btn.active');
-        return active && textOf(active).toLowerCase().replace(/[^a-z0-9]+/g,'-') !== 'all';
+        return active && active.getAttribute('data-cat-id') !== 'all';
       })() ||
       (function() {
         var input = $('.search-bar__input');
         return input && input.value;
       })();
 
+    if (shouldShow && hasFilters && !emptyHint && $('.bento-grid')) {
+      emptyHint = document.createElement('p');
+      emptyHint.className = 'ux-empty-hint';
+      emptyHint.id = 'ux-empty-hint';
+      var grid = $('.bento-grid');
+      if (grid && grid.parentNode) grid.parentNode.insertBefore(emptyHint, grid);
+    }
+    if (emptyHint) {
+      var hint = favOnly && !$$('.game-card').some(isBundleFav)
+        ? 'No favorites here yet. Use a game\'s heart to save it.'
+        : 'No matches. Try a shorter search or clear filters.';
+      if (emptyHint.textContent !== hint) emptyHint.textContent = hint;
+      if (!shouldShow || !hasFilters) {
+        emptyHint.remove();
+        emptyHint = null;
+      }
+    }
     if (shouldShow && hasFilters && !clearFiltersBtn) {
       clearFiltersBtn = document.createElement('button');
       clearFiltersBtn.type = 'button';
       clearFiltersBtn.className = 'ux-clear-filters';
       clearFiltersBtn.textContent = 'Clear filters';
+      if (emptyHint && emptyHint.isConnected) clearFiltersBtn.setAttribute('aria-describedby', emptyHint.id);
       clearFiltersBtn.addEventListener('click', doClearFilters);
-      var target = empty || $('.bento-grid');
+      var target = (emptyHint && emptyHint.isConnected ? emptyHint : empty) || $('.bento-grid');
       if (target && target.parentNode) {
-        clearFiltersParent = target.parentNode;
         target.parentNode.insertBefore(clearFiltersBtn, target.nextSibling);
       }
     } else if ((!shouldShow || !hasFilters) && clearFiltersBtn) {
       if (clearFiltersBtn.parentNode) clearFiltersBtn.parentNode.removeChild(clearFiltersBtn);
       clearFiltersBtn = null;
-      clearFiltersParent = null;
     }
   }
 
@@ -1476,10 +1496,11 @@
     applyTagFilter();
     applyUxCatFilter();
     applyFavFilter();
-    var allBtn = $('.category-filter__btn');
+    var allBtn = $('.category-filter__btn[data-cat-id="all"]');
     if (allBtn && !allBtn.classList.contains('active')) {
       allBtn.click();
     }
+    if (input) input.focus({ preventScroll: true });
   }
 
   function recordRecent(url, title) {
