@@ -237,6 +237,55 @@ inventory; final inventory/Standards/model-contract cleanup and F-35 enrichment
 belong to subsequent tasks. Full-fleet **124/125 HOLD**, rights and hardware holds
 remain; no new games, full-gate run, legacy deletion or push.
 
+### F-35 material enrichment receipt (2026-10-15)
+
+Original stdlib generator now gives F-35 a genuine upper-skin cockpit aperture,
+transparent framed canopy, tub/floor/seat/coaming/bulkheads, radome/belly/access
+panels, leading-edge and control strips, restrained `livery_` marks, flush bay
+and separate gear-door markings, and one collar/24-petal/recess nozzle. The old
+inner intake lip at x=.83, z=-3.12 intersected the broad body (radius >1.4);
+forward/outboard diamond mouths now connect through tapered shoulder ducts.
+Weapon-bay/wing/exhaust nodes are attachment coordinates, not simulated stores.
+Gear stays up. No textures/images, skins, clips, copied mesh input, dependencies,
+runtime, renderer, tracked preview or other verification-file changes.
+
+Actual F-35: **42,760 triangles / 25,285 vertices / 1,173,404 bytes**, **109 visible
+primitive material assignments / 10 definitions / 10 unique values**. SHA-256:
+`5e3cd65a8fa1c890907878b3219c863cfdfe4f63bc6da638b846411a5f5caafb`.
+F-15 remains **43,392 triangles / 25,483 vertices / 1,185,940 bytes**, 112 assignments
+and 10 definitions, byte-identical at
+`5787ebe4d03fc70ce08036ad1a37a7eff6ee1a0b73d132939a27cb02964ba0f8`.
+Both legacy GLBs also remain unchanged. F-35 is about 2.37 times YF-12's triangle
+count; load-time and hardware cost have not been measured.
+
+Read the F/A-18, YF-12 and A-10 material-by-material summary receipts and inspected
+staging `render/aircraft.ts`, `toon.ts`, `scene.ts`: source alpha routes to shared
+Wings glass (opacity .62), not preservation of authored .38; `livery_` routes to
+team paint; opaque values remap to vertex colors and merge into paint/metal
+batches. Creased normals use 55 degrees. Storm environment, procedural weathering,
+clearcoat, tone mapping and thumbnail lights remain untouched. Source assignments
+are not runtime draw-call counts; standard Three does not exercise this pipeline.
+
+Two final generator runs, in-run byte comparisons, cross-run file hashes and full
+serialized finite/unit-normal/winding/index/duplicate/degenerate checks pass for
+both jets (exit 0). Legacy checker and scoped diff check pass (exit 0). Obsolete
+F-35 immutable hash/opaque-only assertions are replaced with meaningful material
+usage and intentional-glass checks. Six bounded standard-Three previews pass
+(exit 0), comparing F-15/F-35/F/A-18 front/rear and light/dark undersides, plus
+mobile front/rear; zero console/page errors or external requests. Worker inspected
+all views: exposed intake mouths, cockpit parts, canted tails and single nozzle
+read separately; underside bays remain flush, with fine seams pixel-limited at
+comparison scale. Preview server terminates. Main visual judgment and Wings
+converted-render/UI/native-flight acceptance remain held.
+
+External evidence label: `wings-f35-materials/` (`generation-1.log`,
+`generation-2.log`, `hashes-1.txt`, `hashes-2.txt`, per-jet material JSON,
+`browser.json`, six PNGs, `preview.py`, `preview.html`, `legacy.log`). Maintenance
+checker remains **exit 1: inventory stale**, observed before changes; final
+Standards/model-contract/inventory cleanup belongs to the next task. Full-fleet
+**124/125 HOLD**, rights and hardware holds are unchanged. No new games, legacy
+deletion, full-gate run or push.
+
 ## Future outlook
 
 On supported hardware, isolate the fallback shader/compiler failure and verify first scene, takeoff, turning, combat, crash/respawn, back-to-menu and a fresh session. Preserve the honest failure boundary while doing so. Resolve redistribution rights before release; do not replace upstream flight with fabricated gameplay to satisfy a render gate.

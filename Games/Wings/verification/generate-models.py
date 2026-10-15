@@ -399,9 +399,16 @@ def f35():
     m = Model('f35', [
         ('airframe_gray', (.42, .44, .46), .1, .82),
         ('edge_gray', (.53, .54, .55), .1, .8),
-        ('canopy_opaque', (.055, .06, .065), .25, .3),
+        ('canopy_glass', (.065, .10, .14), .05, .18),
         ('nozzle_metal', (.21, .22, .23), .55, .65),
-        ('recess_gray', (.075, .08, .085), 0, .95)])
+        ('recess_gray', (.035, .04, .045), 0, .95),
+        ('belly_gray', (.60, .62, .64), .1, .82),
+        ('radome_gray', (.30, .32, .34), .05, .85),
+        ('panel_gray', (.27, .29, .31), .1, .8),
+        ('collar_metal', (.38, .40, .42), .65, .48),
+        ('livery_slate', (.12, .22, .34), .1, .75)])
+    m.doc['materials'][2]['alphaMode'] = 'BLEND'
+    m.doc['materials'][2]['pbrMetallicRoughness']['baseColorFactor'][3] = .38
     stations = [(-8.0, .018, .025, -.08), (-6.4, .48, .38, -.03),
                 (-4.5, .95, .67, .02), (-2.5, 1.62, .82, .02),
                 (0, 1.85, .79, 0), (2.5, 1.60, .68, 0),
@@ -416,36 +423,92 @@ def f35():
         return (rx*math.copysign(abs(c)**.72, c),
                 cy+ry*math.copysign(abs(s)**.85, s), z)
 
-    f15_patch(m, 'fuselage', body, 128, 64, 0, True)
+    # Omit the upper skin inside the cockpit, rather than glazing over solid skin.
+    start, end = 2.2/14, 5.6/14
+    for name, a, b, rows, mat in [('radome', 0, start, 20, 6),
+                                 ('cockpit_skin', start, end, 32, 0),
+                                 ('fuselage', end, 1, 76, 0)]:
+        for part, lo, hi, cols, material in [('belly', .5, 1, 32, 5),
+                                           ('right', 0, .16, 10, mat),
+                                           ('left', .34, .5, 10, mat),
+                                           ('top', .16, .34, 12, mat)]:
+            if name == 'cockpit_skin' and part == 'top':
+                continue
+            f15_patch(m, name+'_'+part,
+                      lambda u,v: body(a+(b-a)*u,lo+(hi-lo)*v), rows,cols,material,True)
 
     def canopy(u, v):
-        arch = math.sin(math.pi*u)
-        return ((.025+.56*arch**.65)*math.cos(math.pi*v),
-                .59+(.025+.56*arch**.8)*math.sin(math.pi*v), -5.8+3.6*u)
+        x,y,z = body(start+(end-start)*u, .16)
+        return (x*math.cos(math.pi*v),
+                y+(.04+.58*math.sin(math.pi*u)**.8)*math.sin(math.pi*v), z)
 
-    f15_patch(m, 'canopy', canopy, 64, 24, 2, True)
+    f15_patch(m, 'canopy', canopy, 48, 24, 2, True)
+    for name, u in [('windscreen', 0), ('bow', .22), ('rear', .99)]:
+        def frame(w, v):
+            x,y,z = canopy(u+.01*w,v)
+            return (x*1.012,y+.012,z)
+        f15_patch(m, 'canopy_frame_'+name, frame, 2,24,7,True)
+    for side, v in [('R',0), ('L',1)]:
+        def sill(u,w):
+            x,y,z = canopy(u,v)
+            return (x+(w-.5)*.06,y+.012,z)
+        f15_patch(m, 'canopy_sill_'+side, sill, 32,1,7)
+        def tub(u,w):
+            x,y,z = canopy(u,v)
+            return (x,y-(y-.04)*w,z)
+        f15_patch(m, 'cockpit_tub_'+side, tub, 32,2,4,side == 'R')
+    m.box('cockpit_floor', (0,.02,-4.1), (.65,.04,3.35), 4)
+    m.box('seat_cushion', (0,.24,-3.75), (.48,.16,.65), 7)
+    m.box('seat_back', (0,.55,-3.4), (.49,.65,.14), 4)
+    m.box('seat_headrest', (0,.91,-3.4), (.30,.18,.17), 7)
+    m.box('instrument_coaming', (0,.51,-4.9), (.58,.14,.48), 4)
+    for name,u in [('front',0), ('rear',1)]:
+        x,y,z = canopy(u,0)
+        m.box('cockpit_bulkhead_'+name, (0,y/2,z), (2*x,y,.025), 4)
     for side, sign in [('L', -1), ('R', 1)]:
         def wing(u, v):
             angle = math.tau*v
             return (sign*(1.28+4.02*u), .10-.13*u+(.16-.135*u)*math.sin(angle),
                     -2.5+3.55*u+(4.8-3.3*u)*(1-math.cos(angle))/2)
-        f15_patch(m, 'wing_'+side, wing, 40, 64, 0, sign > 0)
+        f15_patch(m, 'wing_'+side, wing, 36, 56, 0, sign > 0)
+        for name,a,b,v,width,mat in [('leading_edge', .04,.98,.015,.065,1),
+                                    ('flap_line', .04,.49,.34,.005,4),
+                                    ('aileron_line', .52,.96,.34,.005,4),
+                                    ('livery_wing', .83,.93,.19,.08,9)]:
+            def strip(u,w):
+                x,y,z = wing(a+(b-a)*u,v+width*w)
+                return (x,y+.007,z)
+            f15_patch(m, name+'_'+side, strip, 24,4,mat,sign > 0)
+        m.node('weapon_wing_'+side, (sign*2.8,-.1,.4))
 
         def stabilizer(u, v):
             angle = math.tau*v
             return (sign*(.83+2.40*u), -.02-.16*u+(.09-.07*u)*math.sin(angle),
                     3.2+1.7*u+(2.9-1.55*u)*(1-math.cos(angle))/2)
         f15_patch(m, 'stabilizer_'+side, stabilizer, 24, 32, 1, sign > 0)
+        def stab_line(u,v):
+            x,y,z = stabilizer(.04+.92*u,.34+.005*v)
+            return (x,y+.006,z)
+        f15_patch(m, 'stab_line_'+side, stab_line, 24,1,4,sign > 0)
 
         def fin(u, v):
             angle = math.tau*v
             return (sign*(1.15+1.06*u)+(.10-.075*u)*math.sin(angle), .40+2.1*u,
                     2.5+1.6*u+(3.5-2.0*u)*(1-math.cos(angle))/2)
         f15_patch(m, 'fin_'+side, fin, 24, 32, 0)
+        for face in (0,1):
+            for name,a,b,v,width,mat in [('livery_fin',.73,.83,.12,.26,9),
+                                        ('rudder_line',.04,.95,.36,.005,4)]:
+                def marking(u,w):
+                    x,y,z = fin(a+(b-a)*u,v+width*w+face*.5)
+                    return (x+(.006 if face == 0 else -.006),y,z)
+                f15_patch(m, name+'_'+side+'_'+str(face), marking,16,4,mat)
 
-        # Angular diamond mouths, recessed dark throat and four visible lip edges.
-        outline = [(sign*.83, .08, -3.12), (sign*1.32, .55, -2.94),
-                   (sign*1.85, .02, -2.80), (sign*1.36, -.48, -2.98)]
+        # Old inner lip (x=.83,z=-3.12) lay inside the broad body (rx>1.4).
+        # Move the whole diamond ahead/outboard of the skin; taper a duct back
+        # into the shoulder instead of leaving a flat intersecting mouth.
+        outline = [(sign*1.42, .08, -3.70), (sign*1.88, .57, -3.52),
+                   (sign*2.38, .02, -3.38), (sign*1.91, -.48, -3.56)]
         m.slab('intake_throat_'+side, outline, 2, .04, 4)
         center = [sum(p[k] for p in outline)/4 for k in range(3)]
         outer = [tuple(center[k]+(p[k]-center[k])*1.10-(.045 if k == 2 else 0)
@@ -453,31 +516,51 @@ def f35():
         for i in range(4):
             j = (i+1) % 4
             m.slab('intake_lip_'+side+str(i), [outline[i], outline[j], outer[j], outer[i]], 2, .03, 1)
+            aft_i = (outer[i][0]-sign*.42,outer[i][1]*.82,-.8)
+            aft_j = (outer[j][0]-sign*.42,outer[j][1]*.82,-.8)
+            m.slab('intake_duct_'+side+str(i), [outer[i],outer[j],aft_j,aft_i], 2,.025,0)
+
+        for name,a,b,lo,hi,mat in [('shoulder_access',.48,.62,.04,.12,7),
+                                  ('bay_door',.402,.758,.776,.854,7),
+                                  ('gear_door',.28,.37,.755,.78,1)]:
+            def panel(u,v):
+                angle = lo+(hi-lo)*v
+                if side == 'L':
+                    angle = .5-angle if angle < .5 else 1.5-angle
+                x,y,z = body(a+(b-a)*u,angle)
+                return (x*1.008,y*1.008,z)
+            f15_patch(m, name+'_'+side, panel,40 if name == 'bay_door' else 20,8,mat,side == 'R')
+        m.node('weapon_bay_'+side, (sign*.72,-.58,.1))
 
         # Narrow conforming seams delineate flush internal weapon-bay doors.
         # These follow the belly skin, not an external pod or hidden filler panel.
         for edge, v in [('inner', .75+sign*.025), ('outer', .75+sign*.105)]:
             def seam(u, w):
                 x, y, z = body(.40+.36*u, v+.0012*(w-.5))
-                return (x, y-.004, z)
+                return (x, y-.014, z)
             f15_patch(m, 'bay_'+side+'_'+edge, seam, 40, 1, 4, True)
         for end, u in [('front', .40), ('rear', .76)]:
             def seam(w, v):
                 x, y, z = body(u+.0012*(w-.5), .75+sign*(.025+.08*v))
-                return (x, y-.004, z)
+                return (x, y-.014, z)
             f15_patch(m, 'bay_'+side+'_'+end, seam, 1, 24, 4, sign > 0)
 
     def nozzle(u, v):
         angle = math.tau*v
         r = .70-.12*u+.018*math.cos(24*angle)*math.sin(math.pi*u)
         return (r*math.cos(angle), .01+r*.83*math.sin(angle), 6+1.0*u)
-    f15_patch(m, 'nozzle', nozzle, 16, 96, 3, True)
+    f15_patch(m, 'exhaust_collar', lambda u,v: nozzle(.22*u,v), 4,96,8,True)
+    for petal in range(24):
+        f15_patch(m, 'exhaust_petal_'+str(petal),
+                  lambda u,v: nozzle(.22+.78*u,(petal+v)/24),
+                  12,4,3 if petal % 2 else 8,True)
 
     def inner(u, v):
         angle = math.tau*v
         r = .52+.06*u
         return (r*math.cos(angle), .01+r*.83*math.sin(angle), 6.45+.55*u)
     f15_patch(m, 'nozzle_inner', inner, 4, 96, 4)
+    m.loft('exhaust_recess', [(6.42,.52,.4316,0,.01),(6.44,.52,.4316,0,.01)],4,sides=24)
     m.node('exhaust', (0, .01, 7))
     m.node('cockpit', (0, 1.08, -4.1))
     m.node('gun_muzzle', (-.95, .53, -3.0))
@@ -528,8 +611,12 @@ def check_f35(data, f15_model=False):
     assert not any(k in doc['nodes'][0] for k in ('matrix', 'translation', 'rotation', 'scale'))
     assert {'cockpit', 'gun_muzzle', 'wing_L', 'wing_R', 'stabilizer_L', 'stabilizer_R'} <= {n['name'] for n in doc['nodes']}
     assert not any(doc.get(k) for k in ('textures', 'images', 'skins', 'animations'))
-    if not f15_model:
-        assert all(m['pbrMetallicRoughness']['baseColorFactor'][3] == 1 for m in doc['materials'])
+    assignments = [p['material'] for mesh in doc['meshes'] for p in mesh['primitives']]
+    assert len(assignments) >= 40 and set(assignments) == set(range(len(doc['materials'])))
+    glass = [m for m in doc['materials'] if m.get('alphaMode') == 'BLEND']
+    assert len(glass) == 1 and 0 < glass[0]['pbrMetallicRoughness']['baseColorFactor'][3] < 1
+    assert all(m in glass or m['pbrMetallicRoughness']['baseColorFactor'][3] == 1
+               for m in doc['materials'])
     return triangles, vertices
 
 
@@ -562,7 +649,6 @@ if __name__ == '__main__':
         print(path.name, len(data), hashlib.sha256(data).hexdigest())
     data = f35().finish()
     triangles, vertices = check_f35(data)
-    assert hashlib.sha256(data).hexdigest() == '3b0e859a6aaac303e20e95ca5c7c26b620ecb95f9e8f76d7916aabae0f0d69fe'
     assert data == f35().finish(), 'F-35 generation must be deterministic'
     (OUT / 'f35.glb').write_bytes(data)
     print('f35.glb', 'triangles', triangles, 'vertices', vertices,
