@@ -111,6 +111,30 @@ Do not hand-edit bundles or call a scoped check globally clean. See the
 [pre-gate handover](../audits/fleet-followup-handover.md) for findings, identity map
 and pending ticket `1792052078368`. Fresh full gate is next, not accepted yet.
 
+### F-15-style geometry milestone (integration PENDING)
+
+The original stdlib-only `verification/generate-models.py` now also produces
+`models/f15.glb`: gear-up, twin engines/nozzles, upright twin tails, swept
+shoulder wings, rectangular intake mouths and opaque bubble canopy. No downloaded
+mesh/image input or dependencies. Shared indexed exterior contour/airfoil vertices
+include normals and UV0; identity root, -Z forward/+Y up, named cockpit, gun,
+wing, stabilizer and exhaust anchors. Legacy functions and GLBs remain unchanged.
+Actual serialized asset: **50,040 triangles / 26,510 vertices / 1,171,544 bytes**;
+SHA-256 `359341d7d9088f46f0efd98c25ce68bdaf0c3e4e27835d8f1993355238008e6d`.
+Two independent generations match the file byte-for-byte. Geometry checks pass
+finite/unit normals, winding, index bounds, UV0 and no duplicate/degenerate
+triangles; existing legacy model check passes (exit 0). First generation exceeded
+the byte budget; reduced nozzle tessellation now passes both strict budgets.
+External evidence label: `wings-f15-evidence/` (generation and geometry logs).
+
+**Pending:** picker/runtime/descriptors, model-contract documentation, converted
+material/visual review and supported-GPU flight/load-time acceptance. This is
+approximately 2.8 times the heaviest existing selectable aircraft triangle count,
+not a measured loading-time result. No runtime integration, check-models change,
+new game, full-gate run or push. Existing rendering/rights/release holds remain.
+Maintenance check is blocked until committed-source inventory refresh by the final
+docs worker; this milestone deliberately does not refresh inventory.
+
 ## Future outlook
 
 On supported hardware, isolate the fallback shader/compiler failure and verify first scene, takeoff, turning, combat, crash/respawn, back-to-menu and a fresh session. Preserve the honest failure boundary while doing so. Resolve redistribution rights before release; do not replace upstream flight with fabricated gameplay to satisfy a render gate.
