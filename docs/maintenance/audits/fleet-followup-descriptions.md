@@ -80,8 +80,11 @@ The first three commands passed. The maintenance checker was run and failed:
 `AssertionError: Commit inspected source changes before validating its inventory.`
 Concurrent Games work was present before this lane's entry changes. Coordinator
 owns the final inventory refresh after all source commits and the combined check;
-this lane did not edit inventory or weaken the checker. No current inventory PASS
-is claimed. The optional metadata baseline check deliberately detects any later
+this lane did not edit inventory or weaken the checker. After source commit
+`f71f298c7b9e4e62e47e8e84e6285a6c04bf525d`, the worktree was clean and both metadata
+checks passed again; the maintenance checker then failed with
+`AssertionError: Inventory stale: inspect changes, then run --refresh.`
+No current inventory PASS is claimed. The optional metadata baseline check deliberately detects any later
 non-metadata change to an owned entry; omit that option for normal future coverage.
 
 Parser fixtures cover UTF-8 BOM, legacy Windows-1252 bytes, CRLF, non-ASCII entity
@@ -101,7 +104,9 @@ static coverage is not game acceptance. No push or release authorization.
 Preflight: 122 owned entries total 1,062,070 bytes; largest entry 117,507 bytes.
 Initial free space 2,359,193,600 bytes. After entry/manual changes it was
 2,337,497,088 bytes (shared-workspace decrease 21,696,512 bytes, not attributable
-solely to this lane); `df -h /` still reported 2.2G free. Changed entry payloads
+solely to this lane); after the source commit free space was 2,334,715,904 bytes
+(total shared-workspace decrease 24,477,696 bytes). `df -h /` still reported 2.2G
+free. Changed entry payloads
 total 948,343 bytes, net tracked entry increase 13,176 bytes. There are **97 newly
 materialized individual entry files**, not 97 complete games. Disk remains above
 the 2 GB floor. No installs, downloads, build, history rewrite or garbage collection.
