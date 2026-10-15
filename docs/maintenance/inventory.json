@@ -1,5 +1,5 @@
 {
-  "catalog_entries": 118,
+  "catalog_entries": 125,
   "games": [
     {
       "directory": "Games/2048",
@@ -72,6 +72,18 @@
       "files": 9,
       "bytes": 255664,
       "document": "docs/maintenance/games/215-asteroids.md"
+    },
+    {
+      "directory": "Games/Astray",
+      "id": 234,
+      "title": "Astray",
+      "registered": true,
+      "entry": "Games/Astray/index.html",
+      "entry_blob": "6392654f07ebbf31b98340b781bdd01974766891",
+      "tree": "bdb830fb256c67c968486126ee52e624d5c07821",
+      "files": 15,
+      "bytes": 1631755,
+      "document": "docs/maintenance/games/234-astray.md"
     },
     {
       "directory": "Games/Backgammon",
@@ -158,6 +170,18 @@
       "document": "docs/maintenance/games/180-blackjack.md"
     },
     {
+      "directory": "Games/Blackout",
+      "id": 230,
+      "title": "Blackout",
+      "registered": true,
+      "entry": "Games/Blackout/index.html",
+      "entry_blob": "f7e03fb5d75a21588aa90c407d1e1493e46e78e7",
+      "tree": "1d3e8212bdb6f3bd2a0ac25249df7340e2120d32",
+      "files": 47,
+      "bytes": 1047564,
+      "document": "docs/maintenance/games/230-blackout.md"
+    },
+    {
       "directory": "Games/BloonsTD",
       "id": 80,
       "title": "Bloons TD",
@@ -180,6 +204,18 @@
       "files": 3,
       "bytes": 12851,
       "document": "docs/maintenance/games/199-boggle.md"
+    },
+    {
+      "directory": "Games/Borough Run",
+      "id": 228,
+      "title": "Borough Run",
+      "registered": true,
+      "entry": "Games/Borough Run/index.html",
+      "entry_blob": "e181f745d3f9d26771afe94b85ca7572cfe52c4e",
+      "tree": "662fdfb99214670d5ef573ce4cc954b775990857",
+      "files": 1,
+      "bytes": 10458,
+      "document": "docs/maintenance/games/228-borough-run.md"
     },
     {
       "directory": "Games/Bowling",
@@ -650,6 +686,18 @@
       "document": "docs/maintenance/games/066-geometrydashlite.md"
     },
     {
+      "directory": "Games/Getaway",
+      "id": 231,
+      "title": "Getaway",
+      "registered": true,
+      "entry": "Games/Getaway/index.html",
+      "entry_blob": "0ae824c85f2e96612bce9043be626dcd499042b0",
+      "tree": "0ce7d8a50b6be7ac71c479ff74c7f5586bfcb7df",
+      "files": 129,
+      "bytes": 3066267,
+      "document": "docs/maintenance/games/231-getaway.md"
+    },
+    {
       "directory": "Games/Gladihoppers",
       "id": 47,
       "title": "Gladihoppers",
@@ -926,6 +974,18 @@
       "document": "docs/maintenance/games/217-missilecommand.md"
     },
     {
+      "directory": "Games/Night Shift",
+      "id": 229,
+      "title": "Night Shift",
+      "registered": true,
+      "entry": "Games/Night Shift/index.html",
+      "entry_blob": "ec8a0c7464ae1c44c4adf7137671ae4870586231",
+      "tree": "8006256eb1061f71e3f090038dbad4fcc9c7f49d",
+      "files": 1,
+      "bytes": 11642,
+      "document": "docs/maintenance/games/229-night-shift.md"
+    },
+    {
       "directory": "Games/Nim",
       "id": 175,
       "title": "Nim",
@@ -1104,6 +1164,18 @@
       "files": 7,
       "bytes": 15044,
       "document": "docs/maintenance/games/206-samegame.md"
+    },
+    {
+      "directory": "Games/ServerSurvival",
+      "id": 233,
+      "title": "Server Survival",
+      "registered": true,
+      "entry": "Games/ServerSurvival/index.html",
+      "entry_blob": "b7c3d38676860ef889e53c1e93805006fea1de1a",
+      "tree": "c2c2e72169cae2b627b7a63e188e062b137bd90c",
+      "files": 82,
+      "bytes": 14560293,
+      "document": "docs/maintenance/games/233-serversurvival.md"
     },
     {
       "directory": "Games/Slipstream Borough",
@@ -1428,6 +1500,18 @@
       "files": 2,
       "bytes": 14619,
       "document": "docs/maintenance/games/185-war.md"
+    },
+    {
+      "directory": "Games/Wings",
+      "id": 232,
+      "title": "Wings",
+      "registered": true,
+      "entry": "Games/Wings/index.html",
+      "entry_blob": "3f1d3cc09ad7522c393886a0e2c5ea3c4da5e862",
+      "tree": "7ae15ac9cc87870923d2b37399304ed677efc870",
+      "files": 41,
+      "bytes": 8668827,
+      "document": "docs/maintenance/games/232-wings.md"
     },
     {
       "directory": "Games/WordLadder",

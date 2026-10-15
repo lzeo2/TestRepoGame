@@ -32,7 +32,16 @@ Keep imports relative, and rebuild the static Tailwind CSS when adding utility c
 
 ## Verification
 
-`python3 -B scripts/test_phase3_ports.py ServerSurvival --port 8233`: start, keyboard C, native firewall placement ($500 to $460), play/pause, restart ($500/empty): PASS. Console errors 0; HTTP errors 0; external requests 0 with remote traffic blocked. Screenshots: `docs/phase3-evidence/ServerSurvival-{desktop,mobile}-{light,dark}.png`; both preferences retain the upstream dark theme. SwiftShader is functional evidence, not target-GPU performance or native touch acceptance.
+2026-10-15 [full fleet gate](../audits/fleet-2026-10-15-lane6.md): Server Survival
+failed a 15-second `Page.goto` timeout after Wings; the full run failed 122/125,
+exit 1. [Triage](../audits/fleet-2026-10-15-triage.md) passed this title alone and
+the Server Survival/Astray pair without Wings, but reproduced both failures
+after Wings with stalls inside native context creation. Underlying cause remains
+unresolved; no runtime fix or filter change was made. These targeted passes do
+not replace the failed full gate or renew gameplay acceptance. Lane7 reconciled
+the formerly missing inventory record, not the runtime hold.
+
+Historical focused port check: `python3 -B scripts/test_phase3_ports.py ServerSurvival --port 8233`: start, keyboard C, native firewall placement ($500 to $460), play/pause, restart ($500/empty): PASS. Console errors 0; HTTP errors 0; external requests 0 with remote traffic blocked. Screenshots: `docs/phase3-evidence/ServerSurvival-{desktop,mobile}-{light,dark}.png`; both preferences retain the upstream dark theme. SwiftShader is functional evidence, not target-GPU performance or native touch acceptance.
 
 ## Future outlook
 

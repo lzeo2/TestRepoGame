@@ -32,7 +32,16 @@ Keep the game loop and original keyboard axis semantics. Pointer axis must clear
 
 ## Verification
 
-`python3 -B scripts/test_phase3_ports.py Astray --port 8234`: automatic start, arrow-key movement, I help, level-1 restart and pointer direction/release PASS. Observed console errors 0, HTTP errors 0, blocked-external request attempts 0. Desktop/mobile light/dark preference screenshots at `docs/phase3-evidence/Astray-*.png` show the original fixed scene styling. Physical touch and complete level traversal remain unverified.
+2026-10-15 [full fleet gate](../audits/fleet-2026-10-15-lane6.md): Astray failed
+a 15-second `Page.goto` timeout after Wings/Server Survival; the full run failed
+122/125, exit 1. [Triage](../audits/fleet-2026-10-15-triage.md) passed Astray alone
+and the Server Survival/Astray pair without Wings, but reproduced both failures
+after Wings with stalls inside native context creation. Underlying cause remains
+unresolved; no runtime fix or filter change was made. Targeted passes are not a
+full-gate pass or renewed gameplay acceptance. Lane7 reconciled the formerly
+missing inventory record without lifting this hold.
+
+Historical focused port check: `python3 -B scripts/test_phase3_ports.py Astray --port 8234`: automatic start, arrow-key movement, I help, level-1 restart and pointer direction/release PASS. Observed console errors 0, HTTP errors 0, blocked-external request attempts 0. Desktop/mobile light/dark preference screenshots at `docs/phase3-evidence/Astray-*.png` show the original fixed scene styling. Physical touch and complete level traversal remain unverified.
 
 ## Future outlook
 

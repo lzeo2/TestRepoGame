@@ -6,11 +6,25 @@ is a source-grounded audit and maintenance guide, not a claim that every legacy
 game meets today's standards. Some engines are compiled, some rights are
 unverified, and some native interactions remain held.
 
-The catalog contains **118 registered games**. The latest Git inventory records **123 game projects**
+The catalog contains **125 registered games**. The latest Git inventory records **130 game projects**
 plus the shared `Games/_emulatorjs` runtime. Steal a Footballer is the owner-authorized solo adaptation registered as 227; the owner stopped game testing and explicitly requested this source release without a completed smoke gate. The five unregistered games are
 2048, Garage Borough, Hextris, QWOP and Slope. Existing Slipstream Borough is catalog225, explicitly labeled a police-chase preview with an unbanked handling sandbox. Existing Foldwild is owner-authorized Story preview226; its M2/inspection/campaign/device/rights holds remain. Both are registrations of existing projects, not new builds. Sparse exclusion is intentional: a missing
 local Games folder does not mean a broken deployment. See [inventory](inventory.json)
 for exact tracked counts, entry hashes, source-tree hashes and manual paths.
+
+## Current fleet handover (2026-10-15)
+
+[Seven-lane handover](audits/fleet-2026-10-15-handover.md) and
+[completed QA gate](audits/fleet-2026-10-15-lane6.md): **122/125, exit 1, release
+blocked, no push**. Targeted triage passes do not replace that failed full gate.
+Inventory reconciliation adds seven already-existing projects to this index,
+not seven new games. All 123 prior records still match Git. Canonical registered
+manuals now cover Blackout/Getaway/Wings with historical URL forwarding pages;
+Borough Run/Night Shift had no tracked manuals and receive bounded source-based
+pages with explicit defects and provenance limits. No exhaustive audit is implied.
+Two generated Wings models remain fixture-only, not integrated into gameplay.
+Identity remediation, source/rights, static per-title SEO, real-Snake fullscreen
+and original history-regression acceptance remain held as detailed in the handover.
 
 ## How a future agent should use this manual
 
@@ -232,6 +246,13 @@ reserved by appearing here.
 | 225 | [Slipstream Borough: Police Chase (Preview)](games/225-slipstream-borough.md) | `Games/Slipstream Borough/index.html` |
 | 226 | [Foldwild: Open-World RPG (Preview)](games/226-foldwild.md) | `Games/Foldwild/index.html` |
 | 227 | [Steal a Footballer for Your Team](games/227-stealfootballer.md) | `Games/StealFootballer/index.html` |
+| 228 | [Borough Run](games/228-borough-run.md) | `Games/Borough Run/index.html` |
+| 229 | [Night Shift](games/229-night-shift.md) | `Games/Night Shift/index.html` |
+| 230 | [Blackout](games/230-blackout.md) | `Games/Blackout/index.html` |
+| 231 | [Getaway](games/231-getaway.md) | `Games/Getaway/index.html` |
+| 232 | [Wings](games/232-wings.md) | `Games/Wings/index.html` |
+| 233 | [Server Survival](games/233-serversurvival.md) | `Games/ServerSurvival/index.html` |
+| 234 | [Astray](games/234-astray.md) | `Games/Astray/index.html` |
 | Unregistered | [2048](games/unregistered-2048.md) | `Games/2048/index.html` |
 | Unregistered | [Garage Borough](games/unregistered-garage-borough.md) | `Games/Garage Borough/index.html` |
 | Unregistered | [Hextris](games/unregistered-hextris.md) | `Games/Hextris/index.html` |

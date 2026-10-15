@@ -4,7 +4,37 @@
 
 Documentation audit baseline: `8c8a055`. This worker changed only assigned Markdown paths. It did not materialize Games, change sparse selection, install packages, modify catalog/runtime, register games or push. Main owns the serial full gate, screenshot judgment and final integration. [Scope](../SCOPE.md) and [quality contract](../../CODE_QUALITY.md) take precedence over historical wiki instructions.
 
-## Checks actually run in this pass
+## Current fleet results (2026-10-15)
+
+The [completed lane6 report](../audits/fleet-2026-10-15-lane6.md) records the
+unchanged all-125 smoke gate at `5ed48f4`: **122/125, exit 1**, default 8000ms,
+no targeting arguments, adapter floor raised in memory to 2 GiB. Exact sparse
+restoration succeeded; it does not make the gate pass. Existing exclusions were
+untouched and their counts are not logged, so neither zero exclusions nor clean
+unfiltered loading is established. The smoke captured no screenshots.
+
+Jetpack Joyride Hacked had seven failed requests (three retained samples report
+`ERR_NETWORK_CHANGED`); Server Survival/Astray hit 15-second navigation timeouts.
+[Triage](../audits/fleet-2026-10-15-triage.md) isolates a post-Wings native context
+stall pattern but leaves its underlying cause unresolved. Individual/pair passes
+are diagnostic only; no runtime fix or filter change followed. Jetpack stays held.
+
+[Lane4 follow-up](../audits/fleet-2026-10-15-lane4.md): fleet UI and visual-review
+runners passed; local payload budget passed 2/2 (desktop transfer 848,720 bytes,
+mobile 780,617). Routing fixtures passed all 125 entries/all entrypoints plus
+actual fullscreen denial at 390/320 in 427.14s, **real Snake explicitly deferred**.
+This is not an unchanged full fullscreen-runner pass. Original refurbishment
+failed line 190 on oversized history on both current and pre-lane4 UX/CSS; the
+earlier line-182 sort timeout remains unresolved. Main reviewed desktop/mobile
+light/dark fleet screenshots as readable and compact; fixtures are not gameplay.
+
+Lane7 refreshed inventory only after Git comparison: 130 projects, 125 registered,
+five unregistered, shared emulator runtime separate. This closes stale coverage,
+not gameplay/rights/release acceptance. [Handover](../audits/fleet-2026-10-15-handover.md)
+records pending source/SEO and identity-remediation release holds. The older
+checks below retain their dated baselines; they are not current acceptance.
+
+## Checks actually run in the historical documentation pass
 
 | Command/check | Actual result and limitation |
 | --- | --- |
@@ -45,7 +75,7 @@ For a nontrivial authorized runtime fix, leave one small runnable regression in 
 
 ## Mandatory full gate and sparse operation
 
-Before any push, the project requires `xvfb-run python3 scripts/smoke_test_games.py` over **all** registered entries. The approved sparse route is `xvfb-run python3 scripts/run_sparse_smoke.py`; it runs the unchanged all-games script via `runpy`, materializing one planned game/dependency set per browser page. It refuses forwarded targeting arguments, requires a clean stable tree/cone selection, restores original sparse config and tracks the 300MiB Games/1.5GiB exceptional floor. Do not run it concurrently with commits or use that exceptional budget for normal worker operations. Normal worker growth keeps at least 2GB free.
+Before any push, the project requires `xvfb-run python3 scripts/smoke_test_games.py` over **all** registered entries. The approved sparse route is `xvfb-run python3 scripts/run_sparse_smoke.py`; it runs the unchanged all-games script via `runpy`, materializing one planned game/dependency set per browser page. It refuses forwarded targeting arguments, requires a clean stable tree/cone selection, restores original sparse config and has a 300MiB Games budget with a historical 1.5GiB exceptional floor. Fleet lane6 explicitly raised that floor in memory to 2GiB; the historical default does not authorize going below the current operator floor. Do not run it concurrently with commits or use that exceptional budget for normal worker operations. Normal worker growth keeps at least 2GB free.
 
 `run_sparse_smoke.py --self-test` and `--plan` do not perform native game loading. Restoration success is not a gate pass. A targeted `--games` invocation or this portal runner cannot replace the full gate. Main must record current count, exact output, failures/exclusions, peak/remaining storage and restored selection. Any blocked gate means no push unless the operator explicitly decides an exception.
 

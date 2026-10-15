@@ -44,9 +44,9 @@ Latin subsets do not cover every language/glyph; CSS fallback remains necessary.
 
 ## Metadata and sharing boundaries
 
-Root title is `UNBLOCKMATH // ARCADE`; description and OG title/description match browsing game/genre/players. OG image points to `./assets/portal-share.png` with 1200x630 metadata and an alt description; Twitter uses `summary_large_image`. Favicon is local `favicon.svg`, a dark rounded tile with a white U mark. `meta color-scheme` updates on theme, while `meta theme-color` remains static `#101820`. No canonical/OG URL or deep-link handler is supplied here.
+Root title is `UNBLOCKMATH // ARCADE`; description and OG title/description match browsing game/genre/players. OG image now uses the absolute first-party `https://lzeo2.github.io/TestRepoGame/assets/portal-share.png` URL with 1200x630 metadata and an alt description; Twitter uses `summary_large_image`. Favicon is local `favicon.svg`, a dark rounded tile with a white U mark. `meta color-scheme` updates on theme, while `meta theme-color` remains static `#101820`. Lane5 added absolute canonical/OG URLs for the portal; no selection deep-link handler was added.
 
-These are metadata hints. A deployed social crawler may require an absolute image URL; this was not crawler-tested. No copy-link button, navigator.share call, URL-state sharing or density toolbar exists in the inspected portal source/application tail. Do not invent those features from generic library clipboard/observer tokens. The root does not link a PWA manifest or register a caching service worker.
+These are metadata hints. A deployed social crawler may require an absolute image URL; this was not crawler-tested. No copy-link button, navigator.share call, URL-state sharing or density toolbar exists in the inspected portal source/application tail. Do not invent those features from generic library clipboard/observer tokens. Lane5 linked a local PWA manifest and icons, without registering a caching service worker. Manifest light launch colors do not force the installed UI light: saved theme, OS preference and the existing toggle remain. Runtime Info/player metadata is not per-title crawler metadata. See [deployment limits](deployment-and-routing.md).
 
 ## Fleet lane4 evidence (2026-10-15)
 

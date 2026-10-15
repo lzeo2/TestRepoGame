@@ -4,6 +4,20 @@
 
 Audit baseline: `8c8a055`. Delegation 73 subsequently repaired P-01 through P-04 in the authored UX layer; see [refurbishment evidence](../portal-refurbishment.md). Source links are [UX](../../../assets/portal-ux.js), [entry](../../../index.html), [polish](../../../assets/portal-polish.css) and [catalog](../../../games.json). The compiled bundle application tail was inspected for its interface, not every line of React/motion internals. Start with [architecture](../../ARCHITECTURE.md) and [audit findings](../audits/portal.md).
 
+## Fleet reconciliation status (2026-10-15)
+
+Lane7 reconciled the inventory to **125 registered / 130 projects** after Git
+comparison; stale-count statements in the lane4 receipts below describe their
+run-time baseline, not the current inventory. The [handover](../audits/fleet-2026-10-15-handover.md)
+and [QA report](../audits/fleet-2026-10-15-lane6.md) preserve the **failed 122/125**
+full gate and pending identity remediation. No release/push acceptance follows
+from inventory coverage, routing fixtures or the focused portal passes.
+
+Lane5's authored SEO layer adds a third independent local catalog read for
+browser-only Info/player metadata. It does not add shareable selection URLs or
+complete static per-title crawler metadata. Manifest light launch colors do not
+force a light installed UI. See [deployment limits](deployment-and-routing.md).
+
 ## Catalog and render ownership
 
 The bundle's `Gu()` fetches `./games.json`, rejects a non-array and exposes loading/error. `Ju()` filters non-object rows, category and title/description substrings before rendering `Bu()` through `Vu()`. The base chips (`Ru`) are All, Action, Puzzle, Strategy, Classic, Sports and Riddle. UX `fetchGames()` makes a second, internally shared request, normalizes tag aliases/deduplicates them and caches `_gamesList`. `findGameData(title)` and the URL Map both rely on exact unique titles; favorites instead rely on IDs. Duplicate titles can launch the wrong entry even with unique IDs.

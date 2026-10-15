@@ -36,7 +36,16 @@ Do not remove cheats as a supposed security repair. Change only verified wrapper
 
 ## Verification
 
-Actually run: game3 Git blob through `node --check` passed. Native **0**, screenshots **0**. Recommended: capture scene activation and boot requests, confirm update wrappers execute, hold/release to fly, verify physics stays mobile, coin spending/reload and retry after result where available. Inspect actual storage shape and test denied/corrupt storage. Compare with id 86 in separate profiles. Main owns full smoke and subjective visual review.
+2026-10-15 [full fleet gate](../audits/fleet-2026-10-15-lane6.md): this title
+failed with zero collected console errors and seven failed requests; the full
+run failed 122/125, exit 1. Only three request samples are retained, all reporting
+`net::ERR_NETWORK_CHANGED`; the other four reasons are unavailable. [Triage](../audits/fleet-2026-10-15-triage.md)
+confirmed those sampled assets exist in Git and the entry/tree still match the
+inventory. No fresh isolated Jetpack runtime rerun or confirmed fix occurred.
+Transport/environment cause is suspected, not established; keep this failure
+held alongside existing save/rights findings. No smoke screenshots exist.
+
+Historical audit checks: game3 Git blob through `node --check` passed. Native **0**, screenshots **0**. Recommended: capture scene activation and boot requests, confirm update wrappers execute, hold/release to fly, verify physics stays mobile, coin spending/reload and retry after result where available. Inspect actual storage shape and test denied/corrupt storage. Compare with id 86 in separate profiles. Main owns full smoke and subjective visual review.
 
 ## Future outlook
 
