@@ -355,6 +355,51 @@ legacy deletion, dependency install, full-fleet rerun or push. Pinned source and
 cache remain read-only; no HTTP server was needed. Final model contract, Standards
 and inventory cleanup remain assigned to the coordinator/documentation lane.
 
+### Legacy model migration cleanup receipt (2026-10-15)
+
+Removed only retired `astra-interceptor.glb` / `astra-trainer.glb` and their
+`interceptor()` / `trainer()` generators. Before deletion, full cached Git
+reference scans (including sparse content) and constructed-path inspection found
+live consumers only in the replaced generator/checker/preview. The preview's
+`../models/astra-` plus name construction was explicitly traced and migrated.
+Current runtime descriptors use `file: "f15"` / `"f35"`; lobby specs use
+`models/f15.glb` / `models/f35.glb`. Historical documentation is retained, not
+interpreted as a runtime consumer. All solid/loft/slab/box helpers still have jet
+callers. Geometry, `.finish()` and its historical generator identifier are
+unchanged; runtime, CPU regression bundles, patch and model contract are untouched.
+
+One shared serialized validator replaces duplicate F-15/F-35 checks. Both the
+standalone generator and committed-file checker enforce hard per-jet triangle
+budgets, strict <1,200,000 bytes, >=40 assignments, complete material use, glass,
+GLB chunks/buffer/accessor bounds, finite attributes, unit normals, winding,
+unique/nondegenerate faces, valid indices/tree, identity root and orientation,
+and no external resources/textures/images/skins/clips. The checker compares actual
+committed bytes with two fresh generations. Unchanged measured outputs:
+
+| Model | Triangles | Vertices | Bytes | Assignments / unique material values |
+| --- | ---: | ---: | ---: | ---: |
+| F-15 | 43,392 | 25,483 | 1,185,940 | 112 / 10 |
+| F-35 | 42,760 | 25,285 | 1,173,404 | 109 / 10 |
+
+Hashes remain those in the material receipts above. Generation and structural
+checks each passed twice (exit 0); existing `astra-check.mjs` and `solo-check.mjs`,
+Python/preview/CPU-script syntax and scoped `git diff --check` passed (exit 0).
+Tracked isolated standard-Three preview now loads only both jets and asserts
+exact model/call/triangle counts. Browser output: `PASS: 6 isolated model renders
+(desktop/mobile, light/dark, underside); zero console/page errors or external
+loads. Not Wings renderer acceptance.` Its 115-second alarm bounds the process;
+owned HTTP server closes in `finally`. Six fresh screenshots inspected: distinct
+silhouettes, twin/single nozzles and dark flush bay panels are visible; fine seams
+remain pixel-limited at comparison scale. No new native-flight acceptance.
+
+External evidence label: `wings-migration-cleanup/` (cached consumer scans,
+constructed-path/helper trace, generation/structural logs, CPU logs, browser JSON
+and six PNGs). Evidence is under 1 MB; no dependency install. Maintenance check
+exits 1 for stale inventory, already present before cleanup; final inventory,
+Standards and model-contract reconciliation remain assigned to the final docs
+task. No games added (catalog remains 125), full-fleet rerun or push. Existing
+**124/125 HOLD**, rights and native hardware/rendering holds remain unchanged.
+
 ## Future outlook
 
 On supported hardware, isolate the fallback shader/compiler failure and verify first scene, takeoff, turning, combat, crash/respawn, back-to-menu and a fresh session. Preserve the honest failure boundary while doing so. Resolve redistribution rights before release; do not replace upstream flight with fabricated gameplay to satisfy a render gate.

@@ -9,10 +9,17 @@ from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 import json
 from pathlib import Path
 import shutil
+import signal
 import threading
 from urllib.parse import unquote, urlsplit
 from playwright.sync_api import sync_playwright
 
+def deadline(signum, frame):
+    raise TimeoutError('Model preview exceeded 115-second process bound')
+
+
+signal.signal(signal.SIGALRM, deadline)
+signal.alarm(115)
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument('--out', type=Path, required=True)
 parser.add_argument('--three-root', type=Path)
@@ -52,23 +59,25 @@ try:
         browser = p.chromium.launch(executable_path=shutil.which('chromium'), headless=True,
             args=['--no-sandbox','--use-angle=swiftshader','--enable-unsafe-swiftshader'])
         try:
-            for theme, width, height, rear in [('light',1100,720,False),('dark',1100,720,True),
-                                              ('light',390,920,False),('dark',390,920,True)]:
+            for theme, width, height, angle in [('light',1100,720,'front'),('dark',1100,720,'rear'),
+                                               ('light',390,920,'front'),('dark',390,920,'rear'),
+                                               ('light',1100,720,'underside'),('dark',1100,720,'underside')]:
                 context = browser.new_context(viewport={'width':width,'height':height},color_scheme=theme)
                 page = context.new_page()
                 errors, warnings, external = [], [], []
                 page.on('pageerror', lambda e: errors.append(str(e)))
                 page.on('console', lambda m: errors.append(m.text) if m.type=='error' else warnings.append(m.text) if m.type=='warning' else None)
                 page.on('request', lambda r: external.append(r.url) if not r.url.startswith(origin+'/') else None)
-                page.goto(origin+'/Games/Wings/verification/model-preview.html'+('?rear' if rear else ''),timeout=20000)
+                page.goto(origin+'/Games/Wings/verification/model-preview.html?angle='+angle,timeout=20000)
                 page.wait_for_function("document.title.startsWith('PASS:') || document.title.startsWith('FAIL:')",timeout=20000)
                 models = page.evaluate('window.modelResults')
                 assert page.title().startswith('PASS:'), page.locator('#status').inner_text()
-                assert len(models)==2 and all(m['calls']>0 and m['triangles']>0 for m in models)
+                assert [m['name'] for m in models] == ['f15', 'f35']
+                assert [(m['calls'], m['triangles']) for m in models] == [(112,43392),(109,42760)]
                 assert page.evaluate('document.documentElement.scrollWidth <= innerWidth')
-                shot = f'{theme}-{width}.png'
+                shot = f'{theme}-{width}-{angle}.png'
                 page.screenshot(path=str(args.out/shot),full_page=True,timeout=10000)
-                results.append({'theme':theme,'width':width,'rear':rear,'models':models,
+                results.append({'theme':theme,'width':width,'angle':angle,'models':models,
                                 'errors':errors,'warnings':warnings,'external':external,'screenshot':shot})
                 assert not errors and not external, results[-1]
                 context.close()
@@ -79,5 +88,6 @@ finally:
     server.server_close()
     thread.join(timeout=5)
     (args.out/'browser.json').write_text(json.dumps(results,indent=2))
-print('PASS: 4 isolated model renders (desktop/mobile, light/dark); zero console/page errors or external loads. Not Wings renderer acceptance.')
+signal.alarm(0)
+print('PASS: 6 isolated model renders (desktop/mobile, light/dark, underside); zero console/page errors or external loads. Not Wings renderer acceptance.')
 print(json.dumps(results[0]['models']))

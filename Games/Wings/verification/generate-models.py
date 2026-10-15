@@ -114,64 +114,6 @@ class Model:
                 + struct.pack('<I4s', len(self.data), b'BIN\0') + self.data)
 
 
-def interceptor():
-    m = Model('astra-interceptor', [
-        ('paint', (.34,.42,.50), .15,.72), ('belly', (.60,.65,.68), .1,.8),
-        ('canopy_opaque', (.035,.085,.12), .35,.3), ('dark_metal', (.07,.08,.09), .6,.65),
-        ('accent', (.9,.24,.045), .05,.7)])
-    m.loft('fuselage', [(-9,.045,.045,0,0),(-5,.65,.65,0,0),(-1,.95,.8,0,0),
-                          (4,.85,.65,0,0),(8,.5,.4,0,.1)], 0)
-    m.loft('canopy', [(-5,.15,.1,0,.55),(-3,.52,.65,0,.75),(-.8,.42,.42,0,.7)], 2)
-    for side, sign in [('L',-1), ('R',1)]:
-        m.slab('wing_'+side, [(sign*.6,-.05,-3),(sign*6,-.05,3.4),
-                              (sign*5.8,-.05,4.7),(sign*.7,-.05,3)], 1,.18,0)
-        m.slab('livery_wing_'+side, [(sign*4.8,.055,2.2),(sign*5.5,.055,3.05),
-                                     (sign*5.35,.055,4.35),(sign*4.6,.055,4.15)], 1,.02,4)
-        m.slab('stabilizer_'+side, [(sign*.4,.3,5.3),(sign*3.3,.3,7),
-                                    (sign*3.1,.3,8),(sign*.5,.3,7.4)], 1,.12,1)
-        x = sign*.72
-        m.slab('fin_'+side, [(x,.2,4),(x+sign*.35,2.9,6.5),
-                              (x+sign*.3,2.7,7.7),(x,.3,7.8)], 0,.14,0)
-        m.loft('intake_'+side, [(-2,.38,.45,sign*1,-.2),(1,.43,.5,sign*.9,-.15)], 3)
-        m.loft('exhaust_'+side, [(6.6,.36,.35,sign*.53,0),(8.15,.32,.3,sign*.53,0)], 3)
-    m.node('gun_muzzle', (0,-.25,-8))
-    m.node('cockpit', (0,1.35,-3))
-    return m
-
-
-def trainer():
-    m = Model('astra-trainer', [
-        ('cream_paint', (.83,.76,.53), .05,.82), ('orange_paint', (.91,.29,.045), .05,.75),
-        ('canopy_opaque', (.045,.11,.15), .25,.35), ('rubber', (.045,.05,.055), 0,.95),
-        ('metal', (.34,.37,.39), .55,.65)])
-    m.loft('fuselage', [(-4,.7,.65,0,0),(-2,.95,.95,0,0),(.5,.85,.85,0,.05),
-                          (4.3,.2,.25,0,.25)], 0)
-    m.loft('cowling', [(-4.55,.55,.55,0,0),(-3.8,.75,.7,0,0)], 1)
-    m.loft('canopy', [(-2,.45,.2,0,.75),(-1.6,.62,.6,0,.9),(.5,.55,.55,0,.8),(1,.25,.15,0,.7)], 2)
-    for side, sign in [('L',-1), ('R',1)]:
-        m.slab('wing_'+side, [(sign*.5,.65,-1.5),(sign*5.5,.65,-1.1),
-                              (sign*5.6,.65,.7),(sign*.5,.65,1)], 1,.22,0)
-        m.slab('livery_wing_'+side, [(sign*4.7,.77,-1.17),(sign*5.5,.77,-1.1),
-                                     (sign*5.6,.77,.7),(sign*4.7,.77,.75)], 1,.025,1)
-        m.slab('stabilizer_'+side, [(sign*.1,.35,2.8),(sign*2.2,.35,3),
-                                    (sign*2.2,.35,4.2),(sign*.15,.35,4.25)], 1,.12,1)
-    m.slab('fin', [(0,.35,2.2),(0,2.25,3.5),(0,2.25,4.25),(0,.35,4.3)], 0,.16,1)
-    prop = m.node('propeller', (0,0,-4.7))
-    m.box('propeller_blade', (0,0,0), (.22,3.5,.12), 3, prop)
-    for y in (-1.55,1.55):
-        m.box('prop_tip_'+str(y), (0,y,-.005), (.24,.35,.14), 1, prop)
-    m.loft('spinner', [(-.55,.045,.045,0,0),(0,.3,.3,0,0)], 4, prop)
-    gear = m.node('gear')
-    m.box('gear_crossbar', (0,-.6,-.6), (2.4,.15,.2), 4, gear)
-    for x in (-1.15,1.15):
-        m.box('strut_'+str(x), (x,-1.1,-.6), (.13,1.3,.15), 4, gear)
-        m.box('wheel_'+str(x), (x,-1.7,-.6), (.26,.65,.65), 3, gear)
-    m.box('tailwheel', (0,-.25,3.5), (.18,.4,.4), 3, gear)
-    m.node('gun_muzzle', (0,-.6,-4.2))
-    m.node('cockpit', (0,1.35,-.65))
-    return m
-
-
 def f15_patch(m, name, surface, rows, columns, material, reverse=False):
     """Sample an exterior contour with shared vertices and area-weighted normals.
 
@@ -567,26 +509,88 @@ def f35():
     return m
 
 
-def check_f35(data, f15_model=False):
-    """Validate serialized float32 geometry, including winding and exact budgets."""
-    length = struct.unpack_from('<I', data, 12)[0]
+def check_model(data):
+    """Validate the serialized jet, including bounds, winding and hard budgets."""
+    assert struct.unpack_from('<4sII', data) == (b'glTF', 2, len(data))
+    length, kind = struct.unpack_from('<I4s', data, 12)
+    assert kind == b'JSON' and length % 4 == 0
     doc = json.loads(data[20:20+length])
+    size, kind = struct.unpack_from('<I4s', data, 20+length)
     binary = data[28+length:]
+    assert kind == b'BIN\0' and size % 4 == 0
+    assert len(doc['buffers']) == 1
+    assert size == len(binary) == doc['buffers'][0]['byteLength']
+    assert 'uri' not in doc['buffers'][0]
+    assert not doc.get('extensionsRequired')
+
+    def local_only(value):
+        if isinstance(value, dict):
+            assert not any(k == 'uri' or k.endswith('Texture') for k in value)
+            for item in value.values():
+                local_only(item)
+        elif isinstance(value, list):
+            for item in value:
+                local_only(item)
+    local_only(doc)
+    assert doc['extras']['forward'] == '-Z' and doc['extras']['up'] == '+Y'
+    assert doc['scene'] == 0 and doc['scenes'] == [{'nodes': [0]}]
+    nodes = doc['nodes']
+    name = nodes[0]['name']
+    assert name in ('f15', 'f35')
+    names = [n['name'] for n in nodes]
+    assert len(names) == len(set(names))
+    assert not {'gear', 'propeller'} & set(names)
+    visited = set()
+
+    def visit(i):
+        assert 0 <= i < len(nodes) and i not in visited, 'invalid node tree'
+        visited.add(i)
+        node = nodes[i]
+        assert not any(k in node for k in ('matrix', 'rotation', 'scale', 'skin'))
+        assert all(math.isfinite(x) for x in node.get('translation', []))
+        if 'mesh' in node:
+            assert 0 <= node['mesh'] < len(doc['meshes'])
+        for child in node.get('children', []):
+            visit(child)
+    visit(0)
+    assert len(visited) == len(nodes)
+    assert sorted(n['mesh'] for n in nodes if 'mesh' in n) == list(range(len(doc['meshes'])))
+    for view in doc['bufferViews']:
+        assert view['buffer'] == 0 and view['byteOffset'] >= 0
+        assert view['byteOffset'] % 4 == 0 and view['byteLength'] > 0
+        assert view['byteOffset'] + view['byteLength'] <= len(binary)
+        assert 'byteStride' not in view
 
     def values(index):
+        assert 0 <= index < len(doc['accessors'])
         a = doc['accessors'][index]
+        assert 0 <= a['bufferView'] < len(doc['bufferViews'])
         view = doc['bufferViews'][a['bufferView']]
         width = {'SCALAR': 1, 'VEC2': 2, 'VEC3': 3}[a['type']]
-        fmt = 'H' if a['componentType'] == 5123 else 'f'
+        fmt = {5123: 'H', 5126: 'f'}[a['componentType']]
+        assert a['count'] > 0 and not a.get('sparse')
+        assert a.get('byteOffset', 0) == 0
+        assert view['byteLength'] == a['count'] * width * struct.calcsize(fmt)
         flat = struct.unpack_from('<'+fmt*(a['count']*width), binary, view['byteOffset'])
         assert all(math.isfinite(x) for x in flat)
+        if 'min' in a:
+            for k in range(width):
+                assert abs(a['min'][k] - min(flat[k::width])) < 1e-5
+                assert abs(a['max'][k] - max(flat[k::width])) < 1e-5
         return [flat[i:i+width] for i in range(0, len(flat), width)]
 
+    for i in range(len(doc['accessors'])):
+        values(i)
     triangles = vertices = 0
     seen = set()
     for mesh in doc['meshes']:
         for p in mesh['primitives']:
-            assert p['mode'] == 4
+            assert p['mode'] == 4 and 'targets' not in p
+            for attr, width in [('POSITION', 'VEC3'), ('NORMAL', 'VEC3'), ('TEXCOORD_0', 'VEC2')]:
+                accessor = doc['accessors'][p['attributes'][attr]]
+                assert accessor['type'] == width and accessor['componentType'] == 5126
+            accessor = doc['accessors'][p['indices']]
+            assert accessor['type'] == 'SCALAR' and accessor['componentType'] == 5123
             positions = values(p['attributes']['POSITION'])
             normals = values(p['attributes']['NORMAL'])
             uv = values(p['attributes']['TEXCOORD_0'])
@@ -606,7 +610,7 @@ def check_f35(data, f15_model=False):
                 assert key not in seen, mesh['name']
                 seen.add(key)
                 triangles += 1
-    assert (40_000 <= triangles <= 55_000 if f15_model else 35_000 <= triangles <= 50_000), triangles
+    assert (40_000 <= triangles <= 55_000 if name == 'f15' else 35_000 <= triangles <= 50_000), triangles
     assert len(data) < 1_200_000, len(data)
     assert not any(k in doc['nodes'][0] for k in ('matrix', 'translation', 'rotation', 'scale'))
     assert {'cockpit', 'gun_muzzle', 'wing_L', 'wing_R', 'stabilizer_L', 'stabilizer_R'} <= {n['name'] for n in doc['nodes']}
@@ -617,52 +621,21 @@ def check_f35(data, f15_model=False):
     assert len(glass) == 1 and 0 < glass[0]['pbrMetallicRoughness']['baseColorFactor'][3] < 1
     assert all(m in glass or m['pbrMetallicRoughness']['baseColorFactor'][3] == 1
                for m in doc['materials'])
-    return triangles, vertices
-
-
-def check_f15(data):
-    """Check the actual serialized descriptors, not a requested subdivision count."""
-    length = struct.unpack_from('<I', data, 12)[0]
-    doc = json.loads(data[20:20+length])
-    triangles = vertices = 0
-    for mesh in doc['meshes']:
-        for p in mesh['primitives']:
-            assert p['mode'] == 4
-            count = doc['accessors'][p['indices']]['count']
-            assert count % 3 == 0
-            triangles += count // 3
-            vertices += doc['accessors'][p['attributes']['POSITION']]['count']
-            assert {'POSITION', 'NORMAL', 'TEXCOORD_0'} <= p['attributes'].keys()
-    assert 40_000 <= triangles <= 55_000, triangles
-    assert len(data) < 1_200_000, len(data)
-    return triangles, vertices
+    unique = {json.dumps({k: v for k, v in m.items() if k != 'name'}, sort_keys=True)
+              for m in doc['materials']}
+    return {'name': name, 'triangles': triangles, 'vertices': vertices,
+            'bytes': len(data), 'sha256': hashlib.sha256(data).hexdigest(),
+            'assignments': len(assignments), 'materials': len(doc['materials']),
+            'unique_materials': len(unique)}
 
 
 if __name__ == '__main__':
     OUT.mkdir(parents=True, exist_ok=True)
-    for make in (interceptor, trainer):
-        model = make()
-        path = OUT / (model.doc['nodes'][0]['name'] + '.glb')
-        data = model.finish()
-        assert len(data) <= 200_000
-        path.write_bytes(data)
-        print(path.name, len(data), hashlib.sha256(data).hexdigest())
-    data = f35().finish()
-    triangles, vertices = check_f35(data)
-    assert data == f35().finish(), 'F-35 generation must be deterministic'
-    (OUT / 'f35.glb').write_bytes(data)
-    print('f35.glb', 'triangles', triangles, 'vertices', vertices,
-          'bytes', len(data), 'sha256', hashlib.sha256(data).hexdigest())
-    data = f15().finish()
-    triangles, vertices = check_f15(data)
-    assert check_f35(data, f15_model=True) == (triangles, vertices)
-    doc = json.loads(data[20:20+struct.unpack_from('<I', data, 12)[0]])
-    assignments = [p['material'] for mesh in doc['meshes'] for p in mesh['primitives']]
-    assert len(assignments) >= 40 and set(assignments) == set(range(len(doc['materials'])))
-    assert any(m.get('alphaMode') == 'BLEND' for m in doc['materials'])
-    print('f15 materials:', len(assignments), 'assignments;', len(doc['materials']), 'definitions')
-    assert data == f15().finish(), 'F-15 generation must be deterministic'
-    path = OUT / 'f15.glb'
-    path.write_bytes(data)
-    print(path.name, 'triangles', triangles, 'vertices', vertices,
-          'bytes', len(data), 'sha256', hashlib.sha256(data).hexdigest())
+    for make in (f15, f35):
+        data = make().finish()
+        result = check_model(data)
+        assert data == make().finish(), 'Generation must be deterministic'
+        path = OUT / (result['name'] + '.glb')
+        if not path.exists() or path.read_bytes() != data:
+            path.write_bytes(data)
+        print(json.dumps(result, sort_keys=True))
