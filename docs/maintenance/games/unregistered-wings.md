@@ -36,7 +36,7 @@ Mobile spawn now stacks the list and detail in a real scrolling container. HUD r
 
 ## Safe iteration
 
-Patch pinned staging source, rebuild, replace only Wings dist files, and regenerate `port.patch`. Trace old hashed asset consumers before removing stale bundles. Keep notices and regression sources. Never restore worker/network services, edit minified output, or claim simulation/UI fixtures establish native flight. Shared inventory refresh belongs to the integrating coordinator after all game commits.
+Patch pinned staging source, rebuild, replace only Wings dist files, and regenerate `port.patch`. On 2026-10-15 lane2 found no existing local pinned staging source; only deployed bundles, the patch and regression sources were available. Existing Bun/Vite caches are not a replacement for source. Spawn-framing/navigation/failure-copy polish and the two authorized Astra aircraft integrations are held until that source is supplied. Do not re-fetch upstream or hand-edit bundles to bypass this hold. Lane1 owns the GLBs and `Games/Wings/docs/models.md` orientation contract; their presence alone does not integrate selection, flight tuning or cockpit placement. Trace old hashed asset consumers before removing stale bundles. Keep notices and regression sources. Never restore worker/network services, edit minified output, or claim simulation/UI fixtures establish native flight. Shared inventory refresh belongs to the integrating coordinator after all game commits.
 
 ## Verification
 
@@ -46,7 +46,9 @@ Phase 2 shipped checks:
 - Serve repository root on port 8938, then `python3 Games/Wings/verification/check-browser.py --out /tmp/phase2/wings`. Uses existing Playwright/Chromium; no dependency install. Tests unavailable-renderer dialog, Low retry/reload, custom menu controls, actual spawn-component listener cleanup and scrolling, and explicitly synthetic HUD layout. Four desktop/mobile and light/dark preference combinations; fixture screenshots are not gameplay.
 - `check-ui.html` is the renderer-free regression fixture, not a game mode. Its title becomes `PASS: Wings UI fixture` only after quick-launch and disposed-listener assertions.
 
-Screenshots/probes are in `/tmp/phase2/wings/`. Inspected mobile spawn/detail, HUD fixture, custom setup and renderer-error screenshots, plus desktop error/layout screenshots. Functional scroll and non-overlap are UI-only evidence. Real flight, aircraft visibility, native combat/audio, crash-respawn, pointer-lock exit and fresh rendered restart remain held. No full catalog smoke/release gate or push was run.
+2026-10-15 lane2 reran the solo regression and expanded `verification/check-browser.py` (also mirrored into `port.patch`). The browser check now uses real menu clicks to assert all three launch routes (Custom Start, Solo flight, Play with bots) remain fail-closed after dismissing renderer diagnostics: lobby visible, busy overlay hidden, no session UI. It also checks Controls/Settings and Escape return. All four viewport/theme cases passed; this deliberately disables GPU contexts and does not reproduce shader stalls or certify flight. Fresh screenshots and `browser.json` are in `/tmp/trg-fleet/lane2/`; see [lane2 audit](../audits/fleet-2026-10-15-lane2.md). The inventory has no Wings entry and records 118 catalog games versus the current 125; `check_maintenance_docs.py` fails with `Inventory stale`. Lane7 owns refresh; lane2 did not change inventory.
+
+Historical screenshots/probes are in `/tmp/phase2/wings/`. Inspected mobile spawn/detail, HUD fixture, custom setup and renderer-error screenshots, plus desktop error/layout screenshots. Functional scroll and non-overlap are UI-only evidence. Real flight, aircraft visibility, native combat/audio, crash-respawn, pointer-lock exit and fresh rendered restart remain held. No full catalog smoke/release gate or push was run.
 
 ## Future outlook
 

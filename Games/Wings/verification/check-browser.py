@@ -44,6 +44,26 @@ with sync_playwright() as p:
                 page.keyboard.press('ArrowUp')
                 if width == 1280:
                     assert page.locator('#screen').evaluate('(el) => el.scrollTop > 0'), 'Keyboard selection must reveal Back'
+                # Closing diagnostics must not turn any launch path into HUD-only flight.
+                for launch in ['Start offline', 'Solo flight', 'Play with bots']:
+                    page.locator('#screen .mi .t').get_by_text(launch, exact=True).click()
+                    page.locator('#render-error[open]').wait_for()
+                    assert page.locator('#lobby').is_visible()
+                    assert page.locator('#busy').is_hidden()
+                    assert page.locator('.game-ui').count() == 0
+                    page.locator('#error-menu').click()
+                    if launch == 'Start offline':
+                        page.locator('#screen .mi .t').get_by_text('Back', exact=True).click()
+                # Help/settings remain navigable even when the renderer cannot start.
+                for menu in ['Controls', 'Settings']:
+                    page.locator('#screen .mi .t').get_by_text(menu, exact=True).click()
+                    if menu == 'Controls':
+                        assert page.locator('#screen .keys').is_visible()
+                    else:
+                        assert page.locator('#screen .mi .t').get_by_text('Controls', exact=True).is_visible()
+                    page.screenshot(path=str(args.out / (prefix + '-' + menu.lower() + '.png')))
+                    page.keyboard.press('Escape')
+                    assert page.locator('#screen .mi .t').get_by_text('Solo flight', exact=True).is_visible()
                 page.goto(args.url + 'check-ui.html', wait_until='networkidle')
                 page.wait_for_function("document.title === 'PASS: Wings UI fixture'")
                 page.screenshot(path=str(args.out / (prefix + '-spawn-fixture.png')))
@@ -66,4 +86,4 @@ with sync_playwright() as p:
     finally:
         browser.close()
 (args.out / 'browser.json').write_text(json.dumps(results, indent=2))
-print('PASS: 4 viewport/theme failure screens, Low retry/reload, offline custom controls, spawn cleanup/layout and HUD fixture separation. No rendered flight.')
+print('PASS: 4 viewport/theme failure screens, Low retry/reload, all 3 launch paths fail closed, Controls/Settings return, offline custom controls, spawn cleanup/layout and HUD fixture separation. No rendered flight.')

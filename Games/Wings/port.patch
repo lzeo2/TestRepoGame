@@ -1051,10 +1051,10 @@ index 0000000..e35e410
 +<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Wings UI regression</title><meta name="description" content="Renderer-free Wings hangar and HUD layout regression. Not rendered flight."></head><body><script type="module" src="./ui-check.ts"></script></body></html>
 diff --git a/games/wings/check-browser.py b/games/wings/check-browser.py
 new file mode 100644
-index 0000000..b4f1cec
+index 0000000..8c0266a
 --- /dev/null
 +++ b/games/wings/check-browser.py
-@@ -0,0 +1,69 @@
+@@ -0,0 +1,89 @@
 +"""Renderer-failure and UI-fixture regression, not rendered-flight acceptance.
 +Serve repository root on port 8938 first. Requires existing Playwright + Chromium.
 +Run: python3 Games/Wings/verification/check-browser.py --out /tmp/phase2/wings
@@ -1101,6 +1101,26 @@ index 0000000..b4f1cec
 +                page.keyboard.press('ArrowUp')
 +                if width == 1280:
 +                    assert page.locator('#screen').evaluate('(el) => el.scrollTop > 0'), 'Keyboard selection must reveal Back'
++                # Closing diagnostics must not turn any launch path into HUD-only flight.
++                for launch in ['Start offline', 'Solo flight', 'Play with bots']:
++                    page.locator('#screen .mi .t').get_by_text(launch, exact=True).click()
++                    page.locator('#render-error[open]').wait_for()
++                    assert page.locator('#lobby').is_visible()
++                    assert page.locator('#busy').is_hidden()
++                    assert page.locator('.game-ui').count() == 0
++                    page.locator('#error-menu').click()
++                    if launch == 'Start offline':
++                        page.locator('#screen .mi .t').get_by_text('Back', exact=True).click()
++                # Help/settings remain navigable even when the renderer cannot start.
++                for menu in ['Controls', 'Settings']:
++                    page.locator('#screen .mi .t').get_by_text(menu, exact=True).click()
++                    if menu == 'Controls':
++                        assert page.locator('#screen .keys').is_visible()
++                    else:
++                        assert page.locator('#screen .mi .t').get_by_text('Controls', exact=True).is_visible()
++                    page.screenshot(path=str(args.out / (prefix + '-' + menu.lower() + '.png')))
++                    page.keyboard.press('Escape')
++                    assert page.locator('#screen .mi .t').get_by_text('Solo flight', exact=True).is_visible()
 +                page.goto(args.url + 'check-ui.html', wait_until='networkidle')
 +                page.wait_for_function("document.title === 'PASS: Wings UI fixture'")
 +                page.screenshot(path=str(args.out / (prefix + '-spawn-fixture.png')))
@@ -1123,4 +1143,4 @@ index 0000000..b4f1cec
 +    finally:
 +        browser.close()
 +(args.out / 'browser.json').write_text(json.dumps(results, indent=2))
-+print('PASS: 4 viewport/theme failure screens, Low retry/reload, offline custom controls, spawn cleanup/layout and HUD fixture separation. No rendered flight.')
++print('PASS: 4 viewport/theme failure screens, Low retry/reload, all 3 launch paths fail closed, Controls/Settings return, offline custom controls, spawn cleanup/layout and HUD fixture separation. No rendered flight.')
