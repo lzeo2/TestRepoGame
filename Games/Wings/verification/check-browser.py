@@ -26,6 +26,12 @@ with sync_playwright() as p:
                 page.on('pageerror', lambda e: errors.append(str(e)))
                 page.on('request', lambda r: external.append(r.url) if not r.url.startswith(args.url) else None)
                 page.goto(args.url, wait_until='domcontentloaded')
+                # Browsing the HTML lobby must not initialize the renderer.
+                page.wait_for_timeout(1000)
+                assert page.evaluate('window.__wings.stats === undefined')
+                assert page.locator('#render-error[open]').count() == 0
+                page.screenshot(path=str(args.out / f'{theme}-{width}-menu.png'))
+                page.locator('#screen .mi .t').get_by_text('Solo flight', exact=True).click()
                 page.locator('#render-error[open]').wait_for(timeout=30000)
                 assert page.locator('#render-error pre').inner_text()
                 prefix = f'{theme}-{width}'
@@ -33,6 +39,7 @@ with sync_playwright() as p:
                 origin = page.evaluate('performance.timeOrigin')
                 page.locator('#retry-low').click()
                 page.wait_for_function('(previous) => performance.timeOrigin !== previous', arg=origin)
+                page.locator('#screen .mi .t').get_by_text('Solo flight', exact=True).click()
                 page.locator('#render-error[open]').wait_for()
                 assert page.evaluate("JSON.parse(localStorage.getItem('wings.settings')).quality") == 'low'
                 page.locator('#error-menu').click()

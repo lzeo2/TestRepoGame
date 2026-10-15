@@ -1,5 +1,5 @@
 diff --git a/games/wings/index.html b/games/wings/index.html
-index bb8d87a..f95d67d 100644
+index bb8d87a..36de2e1 100644
 --- a/games/wings/index.html
 +++ b/games/wings/index.html
 @@ -5,7 +5,7 @@
@@ -63,7 +63,7 @@ index bb8d87a..f95d67d 100644
  </style>
  <script type="module" src="/src/main.ts"></script>
  </head>
-@@ -130,13 +151,7 @@ body:not(.in-lobby) #lobby-shade { opacity: 0; }
+@@ -130,22 +151,24 @@ body:not(.in-lobby) #lobby-shade { opacity: 0; }
    <nav class="screen" id="screen" aria-label="Main menu">
      <div class="crumb"></div>
      <div class="menu big">
@@ -78,7 +78,10 @@ index bb8d87a..f95d67d 100644
      </div>
    </nav>
    <footer class="foot">
-@@ -146,6 +161,14 @@ body:not(.in-lobby) #lobby-shade { opacity: 0; }
+     <label class="who">callsign <input id="callsign" maxlength="16" autocomplete="off" spellcheck="false" aria-label="Callsign" /></label>
+     <div class="hints" id="hints"><span><kbd>↑↓</kbd> select</span><span><kbd>enter</kbd> confirm</span></div>
+-    <div class="status" id="load-status">loading world</div>
++    <div class="status" id="load-status">Choose a flight to load the world</div>
    </footer>
  </main>
 
@@ -114,9 +117,26 @@ index 3d6da9f..0865bf0 100644
 +}
 \ No newline at end of file
 diff --git a/games/wings/src/main.ts b/games/wings/src/main.ts
-index 2f2f1b9..0c7b13a 100644
+index 2f2f1b9..9e0581f 100644
 --- a/games/wings/src/main.ts
 +++ b/games/wings/src/main.ts
+@@ -1,13 +1,13 @@
+ // Entry point. Kept tiny: the lobby is plain HTML/CSS in index.html; three.js, the world, aircraft,
+-// audio and the game controller are all dynamically imported after first paint.
++// audio and the game controller are dynamically imported; the renderer starts only on Play.
+ import { initLobby, toast, type StartRequest } from "./ui/lobby"
+ import { callsign, settings, onSettings, updateSettings } from "./ui/settings"
+ import type { SceneHost } from "./render/scene"
+ import type { GameAudio } from "./audio"
+ import type { GameHandle } from "./ui/game"
+
+-// First launch (no saved settings): pick Low/Balanced from a quick GPU benchmark once the world is up.
+-const firstLaunch = (() => { try { return !localStorage.getItem("wings.settings") && !localStorage.getItem("wings.autoQuality") } catch { return false } })()
++// First launch: benchmark the live backdrop on the first return to the menu, not during flight.
++let firstLaunch = (() => { try { return !localStorage.getItem("wings.settings") && !localStorage.getItem("wings.autoQuality") } catch { return false } })()
+ const perf = { start: performance.timeOrigin, menuMs: 0, sceneMs: 0, worldMs: 0, aircraftMs: 0 }
+ ;(window as unknown as { __wings: unknown }).__wings = { perf, get stats() { return hostRef?.stats }, get game() { return game?.debug() } }
+
 @@ -17,6 +17,7 @@ let audio: GameAudio | null = null
  let audioPromise: Promise<GameAudio | null> | null = null
  let game: GameHandle | null = null
@@ -125,7 +145,7 @@ index 2f2f1b9..0c7b13a 100644
 
  const lobby = initLobby({
    onStart: start,
-@@ -25,21 +26,32 @@ const lobby = initLobby({
+@@ -25,21 +26,31 @@ const lobby = initLobby({
  })
  perf.menuMs = performance.now()
 
@@ -150,7 +170,7 @@ index 2f2f1b9..0c7b13a 100644
 +    }, renderFailure)
      perf.sceneMs = performance.now()
      hostRef = host
-     if (firstLaunch) autoQuality(host)
+-    if (firstLaunch) autoQuality(host)
      return host
    }).catch(err => {
      console.error(err)
@@ -161,7 +181,19 @@ index 2f2f1b9..0c7b13a 100644
      throw err
    }))
  }
-@@ -90,6 +102,7 @@ requestAnimationFrame(() => setTimeout(() => {
+@@ -79,9 +90,9 @@ const unlock = () => {
+ window.addEventListener("pointerdown", unlock, true)
+ window.addEventListener("keydown", unlock, true)
+
+-// After first paint: start the 3D backdrop, aircraft preload and audio in the background.
++// The HTML lobby needs no GPU. Start the world only through start(), which awaits
++// its first real draw before creating a session. Merely browsing must not compile shaders.
+ requestAnimationFrame(() => setTimeout(() => {
+-  bootScene().catch(() => {})
+   bootAudio()
+   // Warm the game controller chunk while the player reads the menu.
+   const idle = (window as unknown as { requestIdleCallback?: (f: () => void) => void }).requestIdleCallback ?? ((f: () => void) => setTimeout(f, 600))
+@@ -90,6 +101,7 @@ requestAnimationFrame(() => setTimeout(() => {
 
  async function start(req: StartRequest): Promise<void> {
    if (game || starting) return
@@ -169,6 +201,14 @@ index 2f2f1b9..0c7b13a 100644
    starting = true
    lobby.busy(req.mode === "offline" ? "Clearing the runway" : "Connecting")
    try {
+@@ -100,6 +112,7 @@ async function start(req: StartRequest): Promise<void> {
+       onExit(reason) {
+         game = null
+         lobby.show()
++        if (firstLaunch && !rendererError) { firstLaunch = false; autoQuality(host) }
+         if (reason) toast(reason, true)
+       },
+     })
 @@ -107,7 +120,7 @@ async function start(req: StartRequest): Promise<void> {
    } catch (err) {
      console.warn(err)
@@ -1051,10 +1091,10 @@ index 0000000..e35e410
 +<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Wings UI regression</title><meta name="description" content="Renderer-free Wings hangar and HUD layout regression. Not rendered flight."></head><body><script type="module" src="./ui-check.ts"></script></body></html>
 diff --git a/games/wings/check-browser.py b/games/wings/check-browser.py
 new file mode 100644
-index 0000000..8c0266a
+index 0000000..8e98673
 --- /dev/null
 +++ b/games/wings/check-browser.py
-@@ -0,0 +1,89 @@
+@@ -0,0 +1,96 @@
 +"""Renderer-failure and UI-fixture regression, not rendered-flight acceptance.
 +Serve repository root on port 8938 first. Requires existing Playwright + Chromium.
 +Run: python3 Games/Wings/verification/check-browser.py --out /tmp/phase2/wings
@@ -1083,6 +1123,12 @@ index 0000000..8c0266a
 +                page.on('pageerror', lambda e: errors.append(str(e)))
 +                page.on('request', lambda r: external.append(r.url) if not r.url.startswith(args.url) else None)
 +                page.goto(args.url, wait_until='domcontentloaded')
++                # Browsing the HTML lobby must not initialize the renderer.
++                page.wait_for_timeout(1000)
++                assert page.evaluate('window.__wings.stats === undefined')
++                assert page.locator('#render-error[open]').count() == 0
++                page.screenshot(path=str(args.out / f'{theme}-{width}-menu.png'))
++                page.locator('#screen .mi .t').get_by_text('Solo flight', exact=True).click()
 +                page.locator('#render-error[open]').wait_for(timeout=30000)
 +                assert page.locator('#render-error pre').inner_text()
 +                prefix = f'{theme}-{width}'
@@ -1090,6 +1136,7 @@ index 0000000..8c0266a
 +                origin = page.evaluate('performance.timeOrigin')
 +                page.locator('#retry-low').click()
 +                page.wait_for_function('(previous) => performance.timeOrigin !== previous', arg=origin)
++                page.locator('#screen .mi .t').get_by_text('Solo flight', exact=True).click()
 +                page.locator('#render-error[open]').wait_for()
 +                assert page.evaluate("JSON.parse(localStorage.getItem('wings.settings')).quality") == 'low'
 +                page.locator('#error-menu').click()
@@ -1144,3 +1191,45 @@ index 0000000..8c0266a
 +        browser.close()
 +(args.out / 'browser.json').write_text(json.dumps(results, indent=2))
 +print('PASS: 4 viewport/theme failure screens, Low retry/reload, all 3 launch paths fail closed, Controls/Settings return, offline custom controls, spawn cleanup/layout and HUD fixture separation. No rendered flight.')
+diff --git a/games/wings/check-context-sequence.py b/games/wings/check-context-sequence.py
+new file mode 100644
+index 0000000..b1c8f5a
+--- /dev/null
++++ b/games/wings/check-context-sequence.py
+@@ -0,0 +1,36 @@
++"""Native shared-browser regression, not rendered-flight acceptance.
++Run from the deployed repository: python3 -B Games/Wings/verification/check-context-sequence.py
++Uses the unchanged smoke runner: one browser, Wings -> Server Survival -> Astray.
++The outer 90-second deadline bounds browser/server cleanup, not individual test timeouts.
++"""
++import argparse
++import os
++from pathlib import Path
++import signal
++import subprocess
++import sys
++
++parser = argparse.ArgumentParser()
++parser.add_argument('--port', type=int, default=8982)
++args = parser.parse_args()
++root = Path(__file__).resolve().parents[3]
++command = ['xvfb-run', '-a', sys.executable, '-B', '-u', 'scripts/smoke_test_games.py',
++           '--games', 'Wings,Server Survival,Astray']
++process = subprocess.Popen(command, cwd=root, env=dict(os.environ, SMOKE_PORT=str(args.port)),
++                           start_new_session=True)
++try:
++    code = process.wait(timeout=90)
++except subprocess.TimeoutExpired:
++    print('FAIL: native context sequence exceeded its outer process deadline', flush=True)
++    code = 124
++finally:
++    try:
++        os.killpg(process.pid, signal.SIGTERM)
++    except ProcessLookupError:
++        pass
++    try:
++        process.wait(timeout=5)
++    except subprocess.TimeoutExpired:
++        os.killpg(process.pid, signal.SIGKILL)
++        process.wait()
++sys.exit(code)
