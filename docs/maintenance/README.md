@@ -14,10 +14,14 @@ for exact tracked counts, entry hashes, source-tree hashes and manual paths.
 
 ## Current fleet handover (2026-10-15)
 
-[Pre-gate follow-up handover](audits/fleet-followup-handover.md) supersedes current
-status, not the evidence in the [seven-lane handover](audits/fleet-2026-10-15-handover.md).
-The last full gate remains historical **122/125, exit 1, release blocked, no push**;
-a fresh unchanged all-125 gate is next, after this documentation commit.
+[Completed follow-up gate](audits/fleet-followup-full-gate.md) and
+[follow-up handover](audits/fleet-followup-handover.md) supersede current status,
+not the evidence in the [seven-lane handover](audits/fleet-2026-10-15-handover.md).
+Latest unchanged full gate at `2d2eb61`: **124/125, exit 1, release HOLD, no push**.
+All 125 visits completed; only Ovo failed, with three `ERR_NETWORK_CHANGED`
+requests. Exact sparse/configuration restoration passed. Earlier 122/125 is
+historical; neither run passed. Root network cause is not proven; stable-host
+diagnosis/rerun ticket `pi-364975-1792055134651` is pending. No retry here.
 Approved identity remediation preserved all eight mapped trees/subjects. Pinned
 Wings source was restored read-only and rebuilt; both immutable Astra models are
 now picker/spawn/simulation integrated, not accepted on a supported GPU. Static
@@ -25,7 +29,10 @@ descriptions cover **124/124 nonprotected entries**, excluding read-only Charact
 no tracking was added. Inventory is reconciled after inspected, committed changes:
 125 registered / 130 projects, no new games. Historical manuals/receipts remain.
 Portal original refurbishment/fullscreen, Jetpack SDK/audio/cheat findings, Wings
-rendering/rights and generated-bundle hygiene findings remain open. Targeted
+rendering/rights and generated shader-whitespace findings remain open. Current
+test-bundle host-path comments were removed by rebuild `b5a7158`; historical
+`d435f12` content cleanup remains pending ticket `1792053112900`, distinct from
+completed identity remediation. Targeted
 passes and current documentation coverage do not replace the full release gate.
 
 ## How a future agent should use this manual

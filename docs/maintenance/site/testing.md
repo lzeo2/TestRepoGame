@@ -4,11 +4,19 @@
 
 Documentation audit baseline: `8c8a055`. This worker changed only assigned Markdown paths. It did not materialize Games, change sparse selection, install packages, modify catalog/runtime, register games or push. Main owns the serial full gate, screenshot judgment and final integration. [Scope](../SCOPE.md) and [quality contract](../../CODE_QUALITY.md) take precedence over historical wiki instructions.
 
-## Current pre-gate follow-up (2026-10-15)
+## Current completed follow-up (2026-10-15)
 
-See [follow-up handover](../audits/fleet-followup-handover.md) for current commits,
-identity map and inventory reconciliation. The fresh unchanged all-125 gate is
-**next, not yet run**. The 122/125 result below remains historical failure evidence.
+See [completed gate](../audits/fleet-followup-full-gate.md) and
+[follow-up handover](../audits/fleet-followup-handover.md) for receipts/commits.
+Latest unchanged full gate at `2d2eb61`: **124/125, exit 1, release HOLD**;
+125 visits, 124 ok, only Ovo failed three `ERR_NETWORK_CHANGED` requests.
+Jetpack Joyride Hacked, Wings, Server Survival and Astray logged ok. Defaults
+8000ms wait / 15000ms navigation, no targeting or individual retry, exclusions
+unchanged and counts not logged. Exact sparse/configuration restoration passed;
+owned processes ended and port8986 closed. No smoke screenshots or gameplay
+acceptance. Network root cause remains unproven; pending stable-host ticket
+`pi-364975-1792055134651` is not permission for this lane to rerun. The 122/125
+result below remains historical failure evidence.
 Wings lazy menu startup changed the shared-browser sequence from 1/3 to 3/3 twice;
 model integration subsequently recorded 2/3 then 3/3 twice. These menu visits do
 not certify flight. Astra/solo/model checks and static SEO/sitemap pass; unavailable-
@@ -20,9 +28,13 @@ passed, but both original refurbishment attempts failed and full fullscreen hit
 650s without a final result. No root cause for those remaining timeouts is claimed.
 
 `git diff --check e787681..HEAD` **fails**, exit 2: generated aircraft shader and
-Astra test-bundle vendor/shader whitespace. The latter also embeds machine-specific
-source-path comments. Existing Three MIT notice is retained; test-only bundling
-is not new runtime payload. No checker weakening or bundle hand-edit is authorized.
+Astra test-bundle vendor/shader whitespace, **22 diagnostics** total. Rebuild
+`b5a7158` removed current host-path comments and reduced the test-only bundle from
+884,415 to 539,850 bytes; historical `d435f12` path content is not remediated
+(ticket `1792053112900` pending). Approved identity remediation is complete,
+not this separate history-content task. Existing Three MIT notice is retained;
+test-only bundling is not new runtime payload. No checker weakening or bundle
+hand-edit is authorized.
 Owned documentation whitespace PASS is not a global PASS. Ticket
 `1792052078368` remains pending; rights/hardware/release holds persist.
 

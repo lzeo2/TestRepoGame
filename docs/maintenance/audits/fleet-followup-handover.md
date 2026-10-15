@@ -1,20 +1,29 @@
-# Fleet follow-up: pre-gate handover (2026-10-15)
+# Fleet follow-up: final handover (2026-10-15)
 
 ## Disposition and scope
 
-**Integrated, not released. Fresh unchanged full-catalog gate is NEXT after this
-commit/worker return.** Last full gate is historical **122/125, exit 1**, zero
-successful full runs out of one recorded run. This lane ran no browser/full gate.
+**Integrated, not released. Latest full gate COMPLETE: 124/125, exit 1; HOLD.**
+The [final receipt](fleet-followup-full-gate.md) records all 125 visits at
+`2d2eb6159bac85218a1e56b47a4937e6e3849820`, 124 ok and only Ovo failing three
+`ERR_NETWORK_CHANGED` requests. Jetpack Joyride Hacked, Wings, Server Survival
+and Astray logged ok. Exact original sparse/config restoration, unchanged hashes/
+HEAD and clean tree confirmed; owned processes ended and port8986 closed. No
+smoke screenshots. Earlier **122/125, exit 1** stays historical: zero successful
+full gates out of two recorded runs. This final documentation lane ran no browser
+or gate. Root network cause is not proven; stable-host diagnosis/rerun ticket
+`pi-364975-1792055134651` is pending, not a blanket-retry/filter waiver.
 Catalog remains **125 registered / 130 projects**, five unregistered; shared
 emulator runtime separate. No games added, ingested, invented or registered;
 new-game build/register commits: none. No push or publication permission.
 
-This documentation delegation started clean at `d435f12`, owns only
+The historical pre-gate documentation delegation started clean at `d435f12`, owned only
 `docs/maintenance/**`, `CHANGELOG.md` and Wings model-document grammar/status.
 No runtime/source/script/model/generator changes, installs, fetches, branch,
 sparse, history rewrite, garbage collection or origin changes by this lane.
 Main owns screenshot judgment and release decisions. Historical reports and
-hashes remain dated evidence, not silently rewritten acceptance.
+hashes remain dated evidence, not silently rewritten acceptance. The final
+handover delegation starts clean at `2d2eb61` and owns only maintenance docs and
+CHANGELOG, with no inventory refresh or Games/model-document edits.
 
 ## Approved remediation and identity verification
 
@@ -29,11 +38,11 @@ This certifies that bounded commit range, not all repository history or content.
 
 | Historical hash | Current hash | Preserved subject |
 | --- | --- | --- |
-| `1b1915b` | `d0d89d0` | chore: verify Wings launch failure boundary and record source hold |
-| `3ab3c1a` | `4b6fe97` | chore: add measured portal payload budget regression |
-| `39f4ef3` | `7c71de1` | feat: add two original low-poly Wings aircraft models |
-| `2680ee0` | `02bf8ee` | feat: add subpath-safe portal SEO and install metadata |
-| `5ed48f4` | `1c3f4c7` | fix: keep portal filter recovery and keyboard focus predictable |
+| `1b1915bec99c3a73adb110afa503ef33a8da0f4c` | `d0d89d0f150cce291cc573f5f1ed6a9aa78205ab` | chore: verify Wings launch failure boundary and record source hold |
+| `3ab3c1a275e2380170c5a620e57a49446c5bec14` | `4b6fe97702a2e02c7e8511721a7422809365f588` | chore: add measured portal payload budget regression |
+| `39f4ef3a0b8a00f80bd805ebbccdd95e36cb59dd` | `7c71de10d2246d67e9174b90aa8138aeb9bc0705` | feat: add two original low-poly Wings aircraft models |
+| `2680ee0bb5c5845cf5ca691cbaebd167f8134e2a` | `02bf8ee7799f36d52790f41e048efe86ededcf84` | feat: add subpath-safe portal SEO and install metadata |
+| `5ed48f49094d8d1b4ac4989ff9e827d0ab5ba904` | `1c3f4c7308613cd184a67aae904d96024a656d61` | fix: keep portal filter recovery and keyboard focus predictable |
 | `ce00dea` | `b3d84da` | docs: triage failed fleet gate and reproduce Wings context stall |
 | `1462411` | `608d646` | docs: diagnose portal timeout holds with fresh fleet evidence |
 | `dbba68d` | `e787681` | docs: reconcile fleet inventory and record blocked release handover |
@@ -45,7 +54,11 @@ Astra integration. This lane first committed model-document grammar/status as
 `a9d5e4f`, so the inventory can include that Games text change without bypassing
 the checker's committed-source requirement. All staging uses explicit owned
 paths and the shared Git lock, with approved nonpersonal author/committer fields
-and automatic GC disabled.
+and automatic GC disabled. Final follow-up log also verifies `edc6ff4` integrated
+handover, `b5a7158` artifact rebuild and `2d2eb61` current inventory. Independent
+final inspection confirms all eight mapped trees/subjects and all 19 mapped/
+follow-up identities through `2d2eb61`; values withheld. The five inherited
+identity findings are resolved, not pending. This is not all-history certification.
 
 ## Source, metadata and portal findings
 
@@ -162,11 +175,12 @@ for hashes, exact shader-whitespace locations and commands.
 The current-change `git diff --check` passes, but the baseline range still has
 **22 diagnostics, exit 2**: 21 regression shader-literal findings plus the
 untouched runtime `aircraft-BFgSn1xg.js:30` finding. No hand-edit or suppression.
-The maintenance checker requires committed-source reconciliation; inventory
-refresh remains coordinator-owned after the output commit. Original `d435f12`
-artifact path history is **not remediated**; any history operation requires
-separate operator authorization. No full gate, rendered-flight or release claim
-is added by this correction.
+Current rebuild commit is `b5a7158`; inventory was reconciled in `2d2eb61` and
+now passes 125/130 coverage without another refresh. Original `d435f12` artifact
+path history is **not remediated**; pending ticket `1792053112900` concerns
+separately authorized history cleanup. Completed identity remediation is distinct.
+No history operation occurred for this artifact. The correction itself added no
+full-gate, rendered-flight or release claim; latest failed gate is recorded above.
 
 ## Inventory and actual pre-gate checks
 
@@ -207,10 +221,14 @@ Working documentation `git diff --check` exited 0; this does not supersede the
 failed global range check above. Pre-growth free space **2,331,766,784 bytes**;
 post-edit/check checkpoint **2,328,666,112**, shared delta **-3,100,672 bytes**,
 still above 2 GiB. Final postcommit status/free bytes accompany the worker return.
-No browser server was launched by this lane. Full gate worker must wait for this
-commit and return, then run the unchanged all-125 browser gate; report existing
-exclusions separately. Any failure remains a release hold. No unrequested push,
-supported-hardware, full gameplay, rights or crawler acceptance.
+No browser server was launched by the documentation lane. The pre-gate wait
+instruction is now superseded by the [completed gate](fleet-followup-full-gate.md):
+124/125, exit 1, exclusions unchanged and counts not logged. Final docs rechecked
+maintenance/sitemap/static SEO/node syntax successfully; owned-doc whitespace
+passes but global diff still fails with 22 findings. No further browser retry.
+Gate free bytes before/minimum/after: 2,347,466,752 / 2,221,498,368 / 2,346,995,712;
+measured interval delta -471,040, not a fleet-wide storage estimate. Release held.
+No unrequested push, supported-hardware, full gameplay, rights or crawler acceptance.
 
 External evidence digests (SHA-256; paths relative to `trg-fleet/followup/`):
 
