@@ -191,6 +191,52 @@ Current full-fleet release result remains **124/125, exit 1, HOLD** (earlier
 full-fleet rerun, new game, model deletion, inventory refresh or push. Inventory
 reconciliation remains with the final documentation worker after source commit.
 
+### F-15 material enrichment receipt (2026-10-15)
+
+Only the original generator and F-15 GLB changed. The transparent canopy now
+covers an omitted upper-skin aperture with sill/frame, cockpit tub, coaming,
+seat and bulkheads. Separate radome/belly/access panels, conforming control
+seams, flush gear-door panels, generic `livery_` wing/fin strips, pitot/antenna,
+and collar/petal/recess exhaust geometry reuse **10 material definitions across
+112 actual visible primitive assignments**. Named wing/fuselage/centerline weapon
+anchors are attachment coordinates only, not a loadout or physics change.
+No textures/images, skins, animations, external loads, downloaded/copied mesh
+geometry, shader or lighting edits. Gear remains up.
+
+Actual serialized F-15: **43,392 triangles / 25,483 vertices / 1,185,940 bytes**;
+SHA-256 `5787ebe4d03fc70ce08036ad1a37a7eff6ee1a0b73d132939a27cb02964ba0f8`.
+Moderately reduced curved tessellation makes room for real parts within the
+40k-55k / strict 1.2 MB limits. The obsolete immutable F-15 assertion is removed;
+determinism, finite/unit attributes, winding, nondegenerate/unique triangles,
+index bounds, material usage and budgets are checked by the generator. F-35
+remains byte-identical at SHA-256
+`3b0e859a6aaac303e20e95ca5c7c26b620ecb95f9e8f76d7916aabae0f0d69fe`;
+both legacy GLBs are unchanged.
+
+Reference material/node inventories measured F/A-18 **151 assignments / 10
+unique material values**, YF-12 **123 / 12**, A-10 **166 / 12**, all zero textures.
+Their stored definition counts equal their assignment counts; our palette is
+explicitly reused. Inspected staging `render/aircraft.ts`, `toon.ts`, `scene.ts`:
+opaque colors bake/merge into paint and metal, `livery_` ancestry selects team
+paint, alpha transparency selects glass, emissive selects glow/nav. Current
+`CREASE_ANGLE` is **55 degrees (about 0.960 radians), not 0.78**. Existing storm
+materials, ACES and thumbnail lights remain untouched. Assignments are not a
+promise of that many Wings draw calls.
+
+Two generator runs and matching logs, serialized structural checks, unchanged
+legacy checker and scoped diff check pass (exit 0). Four bounded external
+standard-Three 186 previews pass (exit 0), desktop/mobile front/rear in light/dark
+preferences, F-15 alongside F/A-18, zero console/page errors or external requests.
+F-15 fixture draws 112 calls / 43,392 triangles. This is **not Wings converted
+material, thumbnail, cockpit or native flight acceptance**; orchestrator owns
+visual judgment. External evidence label: `wings-jets-materials/` (per-material
+JSON inventories, deduplicated summaries, generation logs, `browser.json`,
+`light-1100.png`, `dark-1100.png`, `light-390.png`, `dark-390.png`). No tracked
+fixture changes. Maintenance checker remains exit 1 for pre-existing stale
+inventory; final inventory/Standards/model-contract cleanup and F-35 enrichment
+belong to subsequent tasks. Full-fleet **124/125 HOLD**, rights and hardware holds
+remain; no new games, full-gate run, legacy deletion or push.
+
 ## Future outlook
 
 On supported hardware, isolate the fallback shader/compiler failure and verify first scene, takeoff, turning, combat, crash/respawn, back-to-menu and a fresh session. Preserve the honest failure boundary while doing so. Resolve redistribution rights before release; do not replace upstream flight with fabricated gameplay to satisfy a render gate.

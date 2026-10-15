@@ -220,9 +220,16 @@ def f15():
     m = Model('f15', [
         ('airframe_gray', (.43, .45, .47), .1, .8),
         ('control_gray', (.54, .55, .56), .1, .8),
-        ('canopy_opaque', (.065, .075, .085), .25, .3),
+        ('canopy_glass', (.065, .10, .14), .05, .18),
         ('nozzle_metal', (.19, .20, .21), .55, .65),
-        ('intake_shadow', (.035, .038, .04), 0, .95)])
+        ('intake_shadow', (.035, .038, .04), 0, .95),
+        ('belly_gray', (.62, .64, .65), .1, .8),
+        ('radome_gray', (.34, .36, .38), .05, .85),
+        ('panel_gray', (.28, .31, .34), .1, .8),
+        ('collar_metal', (.38, .40, .42), .65, .48),
+        ('livery_slate', (.12, .22, .34), .1, .75)])
+    m.doc['materials'][2]['alphaMode'] = 'BLEND'
+    m.doc['materials'][2]['pbrMetallicRoughness']['baseColorFactor'][3] = .38
 
     # Smooth cosine interpolation of fuselage stations avoids faceted cylinders.
     stations = [(-9.7, .025, .025, -.12), (-7.7, .38, .40, -.04),
@@ -238,16 +245,48 @@ def f15():
         angle = math.tau*v
         return (rx*math.cos(angle), cy+ry*math.sin(angle), z)
 
-    f15_patch(m, 'fuselage', body, 128, 64, 0, True)
+    # Separate actual skin regions, omitting the cockpit aperture rather than
+    # covering an intact fuselage with glass. Bounds meet the canopy sill exactly.
+    start, end = 3/17.3, 7.1/17.3
+    for name, a, b, rows, mat in [('radome', 0, start, 24, 6),
+                                 ('cockpit_skin', start, end, 30, 0),
+                                 ('fuselage', end, 1, 60, 0)]:
+        for part, lo, hi, cols, material in [('belly', .5, 1, 28, 5),
+                                           ('right', 0, .12, 7, mat),
+                                           ('left', .38, .5, 7, mat),
+                                           ('top', .12, .38, 14, mat)]:
+            if name == 'cockpit_skin' and part == 'top':
+                continue
+            f15_patch(m, name+'_'+part,
+                      lambda u, v: body(a+(b-a)*u, lo+(hi-lo)*v), rows, cols, material, True)
 
-    # Bubble canopy is only the exposed upper shell; no hidden bottom hemisphere.
     def canopy(u, v):
-        z = -6.7 + 4.1*u
-        width = .025 + .52 * math.sin(math.pi*u)**.65
-        height = .035 + .60 * math.sin(math.pi*u)**.8
-        return (width*math.cos(math.pi*v), .57+height*math.sin(math.pi*v), z)
+        x, y, z = body(start+(end-start)*u, .12)
+        return (x*math.cos(math.pi*v), y+(.06+.66*math.sin(math.pi*u)**.8)*math.sin(math.pi*v), z)
 
-    f15_patch(m, 'canopy', canopy, 64, 24, 2, True)
+    f15_patch(m, 'canopy', canopy, 48, 24, 2, True)
+    for name, u in [('windscreen', 0), ('bow', .22), ('rear', .99)]:
+        def frame(w, v):
+            x, y, z = canopy(u+.01*w, v)
+            return (x*1.012, y+.012, z)
+        f15_patch(m, 'canopy_frame_'+name, frame, 2, 24, 7, True)
+    for side, v in [('R', 0), ('L', 1)]:
+        def sill(u, w):
+            x, y, z = canopy(u, v)
+            return (x+(w-.5)*.055, y+.015, z)
+        f15_patch(m, 'canopy_sill_'+side, sill, 32, 1, 7)
+        def tub(u, w):
+            x, y, z = canopy(u, v)
+            return (x, y-(y-.04)*w, z)
+        f15_patch(m, 'cockpit_tub_'+side, tub, 32, 2, 4, side == 'R')
+    m.box('cockpit_floor', (0,.015,-4.65), (.85,.05,3.9), 4)
+    m.box('seat_cushion', (0,.19,-4.5), (.48,.16,.65), 7)
+    m.box('seat_back', (0,.48,-4.12), (.49,.65,.14), 4)
+    m.box('seat_headrest', (0,.84,-4.12), (.30,.18,.17), 7)
+    m.box('instrument_coaming', (0,.47,-5.7), (.59,.14,.48), 4)
+    for name, u in [('front', 0), ('rear', 1)]:
+        x,y,z = canopy(u,0)
+        m.box('cockpit_bulkhead_'+name, (0,y/2,z), (2*x,y,.025), 4)
 
     for side, sign in [('L', -1), ('R', 1)]:
         # Broad shoulder-mounted swept wing with a rounded airfoil, tapered tips.
@@ -259,6 +298,16 @@ def f15():
                     -2.8+4.35*u + chord*(1-math.cos(angle))/2)
 
         f15_patch(m, 'wing_'+side, wing, 32, 48, 0, sign > 0)
+        # Conforming narrow strips follow the airfoil, not floating box seams.
+        for name, a, b, v, mat in [('flap_line', .02, .48, .34, 4),
+                                  ('aileron_line', .51, .96, .34, 4),
+                                  ('livery_wing', .82, .92, .19, 9)]:
+            def strip(u, w):
+                x,y,z = wing(a+(b-a)*u, v+w*(.004 if mat == 4 else .08))
+                return (x,y+.006,z)
+            f15_patch(m, name+'_'+side, strip, 24, 2, mat, sign > 0)
+        m.node('weapon_wing_'+side+'_inner', (sign*2.55,-.02,.1))
+        m.node('weapon_wing_'+side+'_outer', (sign*4.25,-.02,1.25))
 
         def stabilizer(u, v):
             angle = math.tau*v
@@ -266,6 +315,10 @@ def f15():
                     4.1+2.25*u + (3.5-2.1*u)*(1-math.cos(angle))/2)
 
         f15_patch(m, 'stabilizer_'+side, stabilizer, 20, 32, 1, sign > 0)
+        def stab_line(u, v):
+            x,y,z = stabilizer(.04+.92*u, .34+.005*v)
+            return (x,y+.005,z)
+        f15_patch(m, 'stab_line_'+side, stab_line, 24, 1, 4, sign > 0)
 
         # Upright, widely separated twin vertical tails, not stealth-style cant.
         def fin(u, v):
@@ -274,6 +327,13 @@ def f15():
                     2.8+2.05*u + (4.5-2.65*u)*(1-math.cos(angle))/2)
 
         f15_patch(m, 'fin_'+side, fin, 20, 32, 0)
+        for face in (0, 1):
+            for name, a, b, v, width, mat in [('livery_fin', .72, .83, .12, .26, 9),
+                                            ('rudder_line', .04, .95, .36, .005, 4)]:
+                def marking(u, w):
+                    x,y,z = fin(a+(b-a)*u, v+width*w+face*.5)
+                    return (x+(.005 if face == 0 else -.005),y,z)
+                f15_patch(m, name+'_'+side+'_'+str(face), marking, 16, 4, mat)
 
         # Rounded-square intake trunk transitions to a circular engine nacelle.
         def engine(u, v):
@@ -286,7 +346,14 @@ def f15():
             return (sign*1.30 + radius*((1-blend)*square_x+blend*c),
                     -.16 + radius*((1-blend)*square_y+blend*s), -3.6+10.9*u)
 
-        f15_patch(m, 'engine_'+side, engine, 80, 48, 0, True)
+        f15_patch(m, 'engine_'+side, engine, 64, 40, 0, True)
+        for name, a, b, lo, hi, mat in [('engine_access', .28, .48, .03, .18, 7),
+                                      ('gear_door', .17, .36, .66, .84, 1)]:
+            def panel(u, v):
+                x,y,z = engine(a+(b-a)*u, lo+(hi-lo)*v)
+                return (sign*1.30+(x-sign*1.30)*1.006, -.16+(y+.16)*1.006,z)
+            f15_patch(m, name+'_'+side, panel, 16, 8, mat, True)
+        m.node('weapon_fuselage_'+side, (sign*.90,-.70,.4))
         # Recessed visible intake face; four lip strips leave a rectangular mouth.
         m.box('intake_throat_'+side, (sign*1.30, -.16, -3.37), (1.10, 1.10, .025), 4)
         for dy in (-.62, .62):
@@ -300,13 +367,24 @@ def f15():
             radius = .64-.13*u + .014*math.cos(20*angle)*math.sin(math.pi*u)
             return (sign*1.30+radius*math.cos(angle), -.16+radius*math.sin(angle), 7.3+1.15*u)
 
-        f15_patch(m, 'nozzle_'+side, nozzle, 12, 60, 3, True)
+        # Collar and alternating petal sectors reuse two metal definitions.
+        f15_patch(m, 'exhaust_collar_'+side,
+                  lambda u,v: nozzle(u*.22,v), 3, 60, 8, True)
+        for petal in range(20):
+            f15_patch(m, 'exhaust_petal_'+side+'_'+str(petal),
+                      lambda u,v: nozzle(.22+.78*u,(petal+v)/20),
+                      9, 3, 3 if petal % 2 else 8, True)
         def nozzle_inside(u, v):
             angle = math.tau*v
             radius = .48+.03*u
             return (sign*1.30+radius*math.cos(angle), -.16+radius*math.sin(angle), 7.8+.65*u)
         f15_patch(m, 'nozzle_inner_'+side, nozzle_inside, 4, 60, 4)
+        m.loft('exhaust_recess_'+side, [(7.78,.48,.48,sign*1.30,-.16),
+                                       (7.80,.48,.48,sign*1.30,-.16)], 4, sides=24)
         m.node('exhaust_'+side, (sign*1.30, -.16, 8.45))
+    m.loft('pitot', [(-10.05,.008,.008,0,-.12),(-9.55,.022,.022,0,-.12)], 8, sides=8)
+    m.slab('antenna_spine', [(0,.64,-1.6),(0,1.02,-1.15),(0,.64,-.9)], 0,.045,7)
+    m.node('weapon_centerline', (0,-.57,.4))
     m.node('cockpit', (0, 1.05, -4.9))
     m.node('gun_muzzle', (1.03, .27, -3.9))
     return m
@@ -406,7 +484,7 @@ def f35():
     return m
 
 
-def check_f35(data):
+def check_f35(data, f15_model=False):
     """Validate serialized float32 geometry, including winding and exact budgets."""
     length = struct.unpack_from('<I', data, 12)[0]
     doc = json.loads(data[20:20+length])
@@ -445,11 +523,13 @@ def check_f35(data):
                 assert key not in seen, mesh['name']
                 seen.add(key)
                 triangles += 1
-    assert 35_000 <= triangles <= 50_000, triangles
+    assert (40_000 <= triangles <= 55_000 if f15_model else 35_000 <= triangles <= 50_000), triangles
     assert len(data) < 1_200_000, len(data)
     assert not any(k in doc['nodes'][0] for k in ('matrix', 'translation', 'rotation', 'scale'))
     assert {'cockpit', 'gun_muzzle', 'wing_L', 'wing_R', 'stabilizer_L', 'stabilizer_R'} <= {n['name'] for n in doc['nodes']}
-    assert all(m['pbrMetallicRoughness']['baseColorFactor'][3] == 1 for m in doc['materials'])
+    assert not any(doc.get(k) for k in ('textures', 'images', 'skins', 'animations'))
+    if not f15_model:
+        assert all(m['pbrMetallicRoughness']['baseColorFactor'][3] == 1 for m in doc['materials'])
     return triangles, vertices
 
 
@@ -482,13 +562,19 @@ if __name__ == '__main__':
         print(path.name, len(data), hashlib.sha256(data).hexdigest())
     data = f35().finish()
     triangles, vertices = check_f35(data)
+    assert hashlib.sha256(data).hexdigest() == '3b0e859a6aaac303e20e95ca5c7c26b620ecb95f9e8f76d7916aabae0f0d69fe'
     assert data == f35().finish(), 'F-35 generation must be deterministic'
     (OUT / 'f35.glb').write_bytes(data)
     print('f35.glb', 'triangles', triangles, 'vertices', vertices,
           'bytes', len(data), 'sha256', hashlib.sha256(data).hexdigest())
     data = f15().finish()
-    assert hashlib.sha256(data).hexdigest() == '359341d7d9088f46f0efd98c25ce68bdaf0c3e4e27835d8f1993355238008e6d'
     triangles, vertices = check_f15(data)
+    assert check_f35(data, f15_model=True) == (triangles, vertices)
+    doc = json.loads(data[20:20+struct.unpack_from('<I', data, 12)[0]])
+    assignments = [p['material'] for mesh in doc['meshes'] for p in mesh['primitives']]
+    assert len(assignments) >= 40 and set(assignments) == set(range(len(doc['materials'])))
+    assert any(m.get('alphaMode') == 'BLEND' for m in doc['materials'])
+    print('f15 materials:', len(assignments), 'assignments;', len(doc['materials']), 'definitions')
     assert data == f15().finish(), 'F-15 generation must be deterministic'
     path = OUT / 'f15.glb'
     path.write_bytes(data)
