@@ -97,9 +97,16 @@ solo, immutable-model and static SEO checks and reviewed desktop-dark/mobile-lig
 picker screenshots: both labels fit. Failure toast/footer remains crowded; no
 polished-flight claim. This documentation lane reran the nonbrowser checks and
 refreshes inventory only after all Games changes are committed. The generated
-Astra regression is 884,415 bytes (about 864 KiB), test-only, with retained Three
-MIT notice. Global follow-up diff whitespace fails in generated vendor/shader
-literals; machine-specific path comments also remain in that regression bundle.
+Astra regression was 884,415 bytes at `d435f12`. A subsequent Bun 1.4.3
+`--minify` rebuild of unchanged source reduces it to **539,850 bytes**, test-only,
+with the existing Three MIT notice unchanged. All three machine-specific path
+comments are absent from current output; original artifact history is not remediated.
+Astra output is byte-identical to the old regression's stdout; original solo,
+immutable-model and syntax checks pass. Global follow-up diff whitespace still
+fails: 21 regression shader-literal findings and the untouched runtime finding.
+Current-change diff check passes, not the baseline range. Exact locations and
+rebuild command are in the follow-up recipe. No source logic or GLBs changed;
+inventory reconciliation after this output commit belongs to the coordinator.
 Do not hand-edit bundles or call a scoped check globally clean. See the
 [pre-gate handover](../audits/fleet-followup-handover.md) for findings, identity map
 and pending ticket `1792052078368`. Fresh full gate is next, not accepted yet.

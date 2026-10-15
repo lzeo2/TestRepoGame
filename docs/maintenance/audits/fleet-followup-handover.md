@@ -144,12 +144,29 @@ payload. Existing `Games/Wings/THREE-LICENSE.txt` is unchanged and retained.
 Main reviewed the whitespace finding. No hand-edit, whitespace-filter weakening
 or scoped-PASS-as-global-PASS is permitted.
 
-Additional inspection found machine-specific source-path comments in the same
-regression bundle at lines 7 and 7238. This violates committed-path hygiene even
-though it is test-only generated output. Paths are deliberately not reproduced
-here. Source-build owner must address generated provenance comments through an
-authorized reproducible build step, not a documentation worker's bundle edit.
+Additional inspection found three machine-specific source-path comment lines in
+the original regression bundle. This violated committed-path hygiene even though
+it was test-only generated output. Paths are deliberately not reproduced here.
 Commit identity remediation does not fix this separate content finding.
+
+Subsequent artifact-only correction rebuilt unchanged `d435f12` regression source
+with Bun 1.4.3 using `--preserve-symlinks build astra-check.ts --target=node
+--minify --outfile=astra-check.mjs`, without sourcemaps. Current output is
+**539,850 bytes**, down **344,565 bytes (38.96%)**; all three host-path comments
+are absent and home/temp prefix scans return zero. Existing Three MIT notice,
+source logic, runtime bundles and GLBs are unchanged. Astra stdout matches the
+old bundle byte-for-byte; Astra, original solo, model and syntax checks pass.
+Two rebuilds produced identical output. See the [corrected rebuild receipt](fleet-followup-wings.md#regression-artifact-rebuild-correction)
+for hashes, exact shader-whitespace locations and commands.
+
+The current-change `git diff --check` passes, but the baseline range still has
+**22 diagnostics, exit 2**: 21 regression shader-literal findings plus the
+untouched runtime `aircraft-BFgSn1xg.js:30` finding. No hand-edit or suppression.
+The maintenance checker requires committed-source reconciliation; inventory
+refresh remains coordinator-owned after the output commit. Original `d435f12`
+artifact path history is **not remediated**; any history operation requires
+separate operator authorization. No full gate, rendered-flight or release claim
+is added by this correction.
 
 ## Inventory and actual pre-gate checks
 

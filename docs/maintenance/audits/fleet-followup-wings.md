@@ -162,7 +162,7 @@ Build with the task 1 Bun/Vite command. Rebuild the new regression with:
 
 ```sh
 cd "$STAGE/games/wings"
-"$HOME/.bun/bin/bun" --preserve-symlinks build astra-check.ts --target=node --outfile=astra-check.mjs
+"$HOME/.bun/bin/bun" --preserve-symlinks build astra-check.ts --target=node --minify --outfile=astra-check.mjs
 ```
 
 The staging patch generator was extended to enumerate source files plus
@@ -205,7 +205,9 @@ Actual checks (external evidence label `trg-fleet/followup/wings-task2/`):
   bounded SwiftShader attempt exited **124 at 40 seconds**. No completed
   converted-material screenshot or render PASS. Historical standard-Three
   previews remain separate evidence. Native flight/thumbnail/prop/cockpit held.
-- Patch applicability, JS syntax and scoped diff whitespace checks pass.
+- Patch applicability and JS syntax pass. The task 2 scoped whitespace claim
+  did not establish a clean generated artifact: the baseline diff exposes 21
+  regression shader-literal findings plus one runtime finding, detailed below.
   Maintenance checker still requires committed-source inventory reconciliation;
   inventory refresh is coordinator-owned. Full 122/125 release failure stands.
 
@@ -214,3 +216,56 @@ Workspace staging remained about 15 MiB; evidence under 5 MiB, below the added
 No source/cache writes, installs, fetches, direct bundle edits or persistent test
 servers. No ask_hermes tool is exposed; the existing renderer hold is retained,
 not guessed around. Supported-GPU and full-catalog release gates remain pending.
+
+### Regression artifact rebuild correction
+
+Rebuilt only `verification/astra-check.mjs` with the corrected `--minify` command
+above, Bun **1.4.3**, no sourcemaps, installs, cache writes or build plugins.
+Copied only that compiled file from writable staging into the repository. The
+read-only source pin remains `bf5f6277e38ee52e9bfa4ae4a01337b46175c181`, clean;
+`port.patch` still passes `git apply --check`. Staged `astra-check.ts` is
+byte-identical to the committed source from `d435f12` (blob
+`fafa49625780b49cbf26de08db102b6096777d29`); no test logic changed.
+Before editing, Wings tree `9d95fcd5bd06dd057b454dc63beec21979c1ef2d` matched
+inventory. Runtime bundles, GLBs, generator and existing Three MIT notice remain
+untouched. No history rewrite: path content in original `d435f12` history still
+requires separately authorized remediation.
+
+Actual rebuild output: `Bundled 24 modules in 251ms`, `astra-check.mjs 0.54 MB`;
+a second identical build took 214ms and produced identical bytes. Size falls from
+**884,415 to 539,850 bytes**, saving **344,565 bytes (38.96%)**. Output SHA-256:
+`199cbe8815f1698f586ca0ecac0c9d5c32999e48a7de5cacd2ac0c17ad89ef24`.
+All three host-path comment lines are gone. Home/temp/user/root path-prefix scans
+and Windows backslash-drive scan return zero matches. An initial broad drive
+pattern also matched four URL/regex fragments; inspection identified XML namespace,
+data-URL regex and two shader attribution URLs, not host paths. No new runtime
+loads or entry payload were added.
+
+Fresh commands/results:
+
+- `node --check Games/Wings/verification/astra-check.mjs`: exit 0.
+- `node Games/Wings/verification/astra-check.mjs`: PASS both kinds, offline
+  config/spawn/snapshots, ordinary-input takeoff/turn, immutable GLBs, descriptors
+  and cockpit math. y=1597.911 / 1275.162, speed=190.323 / 161.557.
+  Old/new bundle stdout is byte-identical, SHA-256
+  `cc330feae2351853bc491f52ab301f62ae817176851c1fb72df82c91271d4262`.
+- `node Games/Wings/verification/solo-check.mjs`: PASS offline takeoff, fresh
+  session, ordinary-input crash and respawn; rendering not tested.
+- `python3 -B Games/Wings/verification/check-models.py`: PASS both original
+  hashes, 46,840/55,712 bytes and 328/368 triangles.
+- Catalog: PASS 125 unique integer IDs, schema and Git-backed URLs.
+- `git diff --check`: current-change check exits 0. Against `e787681`, the
+  regression still has **21 diagnostics, exit 2**: trailing whitespace at lines
+  **54, 57, 542, 1209, 1211, 1214, 1216, 1218, 1807, 1817, 1976, 3571, 3573**;
+  space-before-tab indentation at **1210, 1212, 1213, 1215, 1217, 1219, 1261,
+  3574**. These retained shader literals were not hand-edited or suppressed.
+  `assets/aircraft-BFgSn1xg.js:30` remains the separate untouched runtime
+  trailing-whitespace finding. The global baseline range is not clean.
+- `python3 -B scripts/check_maintenance_docs.py`: before commit exits 1,
+  `AssertionError: Commit inspected source changes before validating its inventory.`
+  Inventory refresh is coordinator-owned after the output commit, not performed
+  by this task.
+
+Pre-growth free space: **2,328,309,760 bytes**, above 2 GiB. No browser or full
+release gate ran for this artifact-only correction; no new screenshots or games,
+no push, and no rendered-flight or history-remediation claim.
