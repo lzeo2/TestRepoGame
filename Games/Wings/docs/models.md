@@ -29,7 +29,38 @@ No textures, external buffers, compression decoders, skins or baked animation
 clips are required. Each mesh includes indexed triangles, flat outward normals
 and UV0. Root transforms are identity.
 
-## Integration status (follow-up task 2)
+## Current F-15/F-35 integration milestone (2026-10-15)
+
+This receipt supersedes the historical Astra runtime integration below. Slots
+6/7 now select `f15` / `f35`, labelled **F-15-style** / **F-35-style**, in the
+hangar and Custom `StartRequest.aircraft`. Original five kinds and bot weights
+are unchanged; both new bot weights are zero. Models and generator are unchanged
+by this integration. These are original procedural Astra-authored approximations,
+not downloaded meshes or engineering replicas; existing rights qualifications stand.
+
+| Kind | Cruise / boost m/s | Corner speed / rate | Roll / yaw-turn rad/s | Pitch / roll / yaw response | Cockpit eye / pitch | Chase distance / height |
+| --- | --- | --- | --- | --- | --- | --- |
+| f15 | 155 / 215 | 105 / 1.2 | 4.6 / 1.05 | 12 / 17 / 9 | (0, 1.05, -4.9) / +0.02 | 28 / 6 |
+| f35 | 130 / 180 | 85 / 1.3 | 4.2 / 1.15 | 12.5 / 16 / 9.5 | (0, 1.08, -4.1) / +0.035 | 25 / 6 |
+
+F-15 has higher speed and roll rate; F-35 has lower corner speed and higher
+corner rate for tighter turns. Both inherit fighter stall 55, radius 8, HP 450,
+weapons and remaining physics. Both descriptors have empty pivots, stores,
+spinners and afterburners; no propeller or landing-gear animation. Gun anchors
+resolve to `gun_muzzle`: F-15 (1.03, 0.27, -3.9), F-35 (-0.95, 0.53, -3).
+Placeholder length/span and shadows are 18.15/13 and 15/10.6 respectively.
+Cockpit coordinates match the GLB markers; native visibility remains unaccepted.
+
+Fresh Vite build, original solo regression and four unavailable-GPU UI cases
+pass. UI fixtures exercise actual Custom requests/loopback spawns and keys 1/6/7,
+not rendered flight. Evidence label: `wings-jets-recovery/`. The old
+`astra-check.ts`/`.mjs` are deliberately deferred and do NOT certify these jets.
+40+ material assignments per jet, transparent canopy/interior work, broad visual
+exploration, converted-material review, load-time measurements, new jet simulation
+regression and final provenance/Standards cleanup remain pending. No native flight
+or new Astra-regression PASS is claimed.
+
+## Historical integration status (follow-up task 2)
 
 Both aircraft are now wired into offline Custom setup and the seven-aircraft
 hangar (keys 6/7). Custom selection is a local `StartRequest.aircraft`, not a new

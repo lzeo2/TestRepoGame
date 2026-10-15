@@ -51,11 +51,11 @@ with sync_playwright() as p:
                 aircraft.focus()
                 for _ in range(5):
                     page.keyboard.press('ArrowRight')
-                assert 'Astra Interceptor' in aircraft.inner_text()
-                page.screenshot(path=str(args.out / (prefix + '-interceptor-picker.png')))
+                assert 'F-15-style' in aircraft.inner_text()
+                page.screenshot(path=str(args.out / (prefix + '-f15-picker.png')))
                 page.keyboard.press('ArrowRight')
-                assert 'Astra Trainer' in aircraft.inner_text()
-                page.screenshot(path=str(args.out / (prefix + '-trainer-picker.png')))
+                assert 'F-35-style' in aircraft.inner_text()
+                page.screenshot(path=str(args.out / (prefix + '-f35-picker.png')))
                 page.screenshot(path=str(args.out / (prefix + '-custom.png')))
                 page.get_by_role('button', name='Bots', exact=False).first.focus()
                 page.keyboard.press('ArrowUp')
@@ -83,11 +83,11 @@ with sync_playwright() as p:
                     assert page.locator('#screen .mi .t').get_by_text('Solo flight', exact=True).is_visible()
                 page.goto(args.url + 'check-ui.html', wait_until='networkidle')
                 page.wait_for_function("document.title === 'PASS: Wings UI fixture'")
-                for label in ['Astra Interceptor', 'Astra Trainer']:
+                for label in ['F-15-style', 'F-35-style']:
                     item = page.locator('.sp-list .mi').filter(has_text=label)
                     item.focus()
                     assert label.lower() in page.locator('.sp-detail').inner_text().lower()
-                    page.screenshot(path=str(args.out / (prefix + '-' + label.split()[1].lower() + '-spawn-fixture.png')))
+                    page.screenshot(path=str(args.out / (prefix + '-' + label.lower() + '-spawn-fixture.png')))
                 page.screenshot(path=str(args.out / (prefix + '-spawn-fixture.png')))
                 if width < 760:
                     assert page.locator('.spawn').evaluate('(el) => el.scrollHeight > el.clientHeight')

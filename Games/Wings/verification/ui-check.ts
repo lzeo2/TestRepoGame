@@ -25,7 +25,7 @@ for (let i = 0; i < 5; i++) window.dispatchEvent(new KeyboardEvent('keydown', { 
 item('Start offline').click()
 item('Aircraft').click()
 item('Start offline').click()
-if (picked.join(',') !== 'astra-interceptor,astra-trainer') throw new Error('Custom picker integration failed: ' + picked.join(','))
+if (picked.join(',') !== 'f15,f35') throw new Error('Custom picker integration failed: ' + picked.join(','))
 lobby.hide()
 const note = document.createElement('button')
 note.textContent = 'UI fixture only - show HUD'
@@ -46,7 +46,7 @@ requestAnimationFrame(() => {
   const list = box('.sp-list'), detail = box('.sp-detail')
   if (innerWidth <= 760 && detail.top < list.bottom) throw new Error('Hangar list/detail overlap')
   for (const key of ['1', '6', '7']) window.dispatchEvent(new KeyboardEvent('keydown',{key}))
-  if (launches.join(',') !== 'fighter,astra-interceptor,astra-trainer') throw new Error('Spawn quick-launch failed')
+  if (launches.join(',') !== 'fighter,f15,f35') throw new Error('Spawn quick-launch failed')
   spawn.dispose()
   for (const key of ['1', '6', '7']) window.dispatchEvent(new KeyboardEvent('keydown',{key}))
   if (launches.length !== 3) throw new Error('Disposed spawn listener still active')

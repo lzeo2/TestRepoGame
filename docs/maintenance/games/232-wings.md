@@ -16,7 +16,7 @@ Inspected: entry/main, scene host, game-session lifecycle, lobby, pause/spawn, t
 
 Solo flight uses zero AI aircraft, but enemy fleet guns remain active. Play with bots uses two teams and normal AI skill. Custom setup reuses upstream configuration controls for bots, skill, teams, pilot capacity, score and time limits. Start always requests `mode: offline` and `listed: false`. Match rules remain upstream Fleet Strike rules; exposing a score setting does not invent a new scoring mode.
 
-Choose among seven aircraft with the hangar menu or keys 1-7 (6 Astra Interceptor, 7 Astra Trainer). Custom setup's Aircraft row selects the initial real spawn after the renderer gate; Solo and bots retain the hangar. Default W/S throttle, arrows pitch/turn, A/D roll, Q/E full roll, Shift boost, mouse steering and weapons. Controls lists the selected upstream input scheme. Keyboard/mouse required; narrow-screen menu support is not touch-flight support. Visible Back to menu uses the existing session leave path. Escape/pointer-lock gameplay behavior still needs supported-GPU acceptance.
+Choose among seven aircraft with the hangar menu or keys 1-7 (6 F-15-style, 7 F-35-style). Custom setup's Aircraft row selects the initial real spawn after the renderer gate; Solo and bots retain the hangar. Default W/S throttle, arrows pitch/turn, A/D roll, Q/E full roll, Shift boost, mouse steering and weapons. Controls lists the selected upstream input scheme. Keyboard/mouse required; narrow-screen menu support is not touch-flight support. Visible Back to menu uses the existing session leave path. Escape/pointer-lock gameplay behavior still needs supported-GPU acceptance.
 
 ## State and persistence
 
@@ -159,6 +159,37 @@ converted materials and supported-GPU flight/load-time acceptance remain pending
 Triangle count is about 2.24 times the 18,028-triangle selectable YF-12, not a
 measured loading-time result. No screenshots, new games, full-gate run or push;
 existing rendering/rights/release holds remain unchanged.
+
+### Recovered F-15/F-35 integration milestone (2026-10-15)
+
+Recovered the interrupted source-built runtime replacement, without changing any
+model or generator. Seven-kind hangar keys 6/7 and Custom `StartRequest.aircraft`
+now select `f15`/`f35`; the renderer-free fixture verifies real loopback spawns.
+Original five specs/handling entries and bot weights remain unchanged; new weights
+are zero. F-15 cruise/boost 155/215, corner 105/1.2, roll 4.6; F-35 130/180,
+corner 85/1.3, roll 4.2. Full response/camera values are in the current integration
+section of `Games/Wings/docs/models.md`. Both descriptors are gear-up, without
+propeller/pivot/store animation, and use existing gun anchors and loading paths.
+No new external runtime loads or dependencies.
+
+Fresh cached Vite build and clean-pin patch applicability pass (exit 0). Deployed
+HTML/chunks match rebuilt output. Original solo regression passes (exit 0).
+Unavailable-GPU browser check passes all four desktop/mobile/theme cases (exit 0),
+including Custom labels, spawn hotkeys, listener cleanup and fail-closed launch
+routes. Its bounded HTTP server terminates in `finally`. Prior interrupted UI
+attempt failed with connection refused, not a gameplay failure or PASS. External
+evidence label: `wings-jets-recovery/` (build, solo, UI, patch and consumer logs;
+screenshots under `ui/`). Retired hashed chunks were traced through cached Git
+consumers and rebuilt imports; historical audit mentions remain preserved.
+
+**Pending:** 40+ material assignments per jet, material/visual exploration, fresh
+jet-specific `astra-check` source/bundle regression, native flight/cockpit/load-time
+acceptance and final Standards/provenance cleanup. No new Astra-regression PASS.
+Existing Astra regression remains historical and does not exercise these jets.
+Current full-fleet release result remains **124/125, exit 1, HOLD** (earlier
+122/125 is historical); neither is superseded by this targeted milestone. No
+full-fleet rerun, new game, model deletion, inventory refresh or push. Inventory
+reconciliation remains with the final documentation worker after source commit.
 
 ## Future outlook
 

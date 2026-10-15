@@ -69,7 +69,7 @@ index 0000000..fafa496
 +console.log('PASS: both selectable Astra kinds, offline config, validated spawn, wire snapshots, ordinary-input takeoff/turn, immutable GLBs, rig descriptors and cockpit math. No rendered flight/material/thumbnail acceptance.')
 diff --git a/games/wings/check-browser.py b/games/wings/check-browser.py
 new file mode 100644
-index 0000000..34b316f
+index 0000000..7be2067
 --- /dev/null
 +++ b/games/wings/check-browser.py
 @@ -0,0 +1,111 @@
@@ -126,11 +126,11 @@ index 0000000..34b316f
 +                aircraft.focus()
 +                for _ in range(5):
 +                    page.keyboard.press('ArrowRight')
-+                assert 'Astra Interceptor' in aircraft.inner_text()
-+                page.screenshot(path=str(args.out / (prefix + '-interceptor-picker.png')))
++                assert 'F-15-style' in aircraft.inner_text()
++                page.screenshot(path=str(args.out / (prefix + '-f15-picker.png')))
 +                page.keyboard.press('ArrowRight')
-+                assert 'Astra Trainer' in aircraft.inner_text()
-+                page.screenshot(path=str(args.out / (prefix + '-trainer-picker.png')))
++                assert 'F-35-style' in aircraft.inner_text()
++                page.screenshot(path=str(args.out / (prefix + '-f35-picker.png')))
 +                page.screenshot(path=str(args.out / (prefix + '-custom.png')))
 +                page.get_by_role('button', name='Bots', exact=False).first.focus()
 +                page.keyboard.press('ArrowUp')
@@ -158,11 +158,11 @@ index 0000000..34b316f
 +                    assert page.locator('#screen .mi .t').get_by_text('Solo flight', exact=True).is_visible()
 +                page.goto(args.url + 'check-ui.html', wait_until='networkidle')
 +                page.wait_for_function("document.title === 'PASS: Wings UI fixture'")
-+                for label in ['Astra Interceptor', 'Astra Trainer']:
++                for label in ['F-15-style', 'F-35-style']:
 +                    item = page.locator('.sp-list .mi').filter(has_text=label)
 +                    item.focus()
 +                    assert label.lower() in page.locator('.sp-detail').inner_text().lower()
-+                    page.screenshot(path=str(args.out / (prefix + '-' + label.split()[1].lower() + '-spawn-fixture.png')))
++                    page.screenshot(path=str(args.out / (prefix + '-' + label.lower() + '-spawn-fixture.png')))
 +                page.screenshot(path=str(args.out / (prefix + '-spawn-fixture.png')))
 +                if width < 760:
 +                    assert page.locator('.spawn').evaluate('(el) => el.scrollHeight > el.clientHeight')
@@ -406,7 +406,7 @@ index 0000000..a9f027a
 +fresh.close()
 +console.log('PASS: offline takeoff, fresh session, ordinary-input crash and respawn; rendering not tested')
 diff --git a/games/wings/src/audio/engines.ts b/games/wings/src/audio/engines.ts
-index 9131e51..d2e65f7 100644
+index 9131e51..976ddb2 100644
 --- a/games/wings/src/audio/engines.ts
 +++ b/games/wings/src/audio/engines.ts
 @@ -4,8 +4,8 @@ import { VEHICLES } from "../sim/vehicles"
@@ -415,8 +415,8 @@ index 9131e51..d2e65f7 100644
  /** Relative loudness per airframe, used for voice selection and distance culling. */
 -export const ENGINE_LOUDNESS: Record<VehicleKind, number> = { fighter: 1, apache: 0.4, warthog: 0.8, blackbird: 1.3, bomber: 0.45 }
 -export const ENGINE_REF: Record<VehicleKind, number> = { fighter: 40, apache: 22, warthog: 35, blackbird: 50, bomber: 30 }
-+export const ENGINE_LOUDNESS: Record<VehicleKind, number> = { fighter: 1, apache: 0.4, warthog: 0.8, blackbird: 1.3, bomber: 0.45, "astra-interceptor": 1, "astra-trainer": 0.8 }
-+export const ENGINE_REF: Record<VehicleKind, number> = { fighter: 40, apache: 22, warthog: 35, blackbird: 50, bomber: 30, "astra-interceptor": 40, "astra-trainer": 35 }
++export const ENGINE_LOUDNESS: Record<VehicleKind, number> = { fighter: 1, apache: 0.4, warthog: 0.8, blackbird: 1.3, bomber: 0.45, f15: 1, f35: 0.8 }
++export const ENGINE_REF: Record<VehicleKind, number> = { fighter: 40, apache: 22, warthog: 35, blackbird: 50, bomber: 30, f15: 40, f35: 35 }
 
  const TC = 0.06
 
@@ -424,8 +424,8 @@ index 9131e51..d2e65f7 100644
      }
 
      switch (this.kind) {
-+      case "astra-interceptor":
-+      case "astra-trainer": // Reuses the arcade fighter voice, not a recorded prop engine.
++      case "f15":
++      case "f35": // Reuses the arcade fighter voice, not aircraft-specific recordings.
        case "fighter":
          // Twin F404s: a smooth roar that opens up with throttle, faint turbine hum, afterburner rumble.
          roar(350, 1400, 0.2, 0.3, 1)
@@ -532,7 +532,7 @@ index 2f2f1b9..9e0581f 100644
      starting = false
      lobby.busy(null)
 diff --git a/games/wings/src/render/aircraft-preview/main.ts b/games/wings/src/render/aircraft-preview/main.ts
-index 7346de6..9acf56c 100644
+index 7346de6..617b639 100644
 --- a/games/wings/src/render/aircraft-preview/main.ts
 +++ b/games/wings/src/render/aircraft-preview/main.ts
 @@ -107,8 +107,8 @@ if (params.has("occluder")) {
@@ -541,8 +541,8 @@ index 7346de6..9acf56c 100644
  }
 -const KINDS: VehicleKind[] = ["fighter", "apache", "warthog", "blackbird", "bomber"]
 -const X: Record<VehicleKind, number> = { fighter: -34, apache: -12, warthog: 10, blackbird: 38, bomber: 80 }
-+const KINDS: VehicleKind[] = ["fighter", "apache", "warthog", "blackbird", "bomber", "astra-interceptor", "astra-trainer"]
-+const X: Record<VehicleKind, number> = { fighter: -34, apache: -12, warthog: 10, blackbird: 38, bomber: 80, "astra-interceptor": 110, "astra-trainer": 135 }
++const KINDS: VehicleKind[] = ["fighter", "apache", "warthog", "blackbird", "bomber", "f15", "f35"]
++const X: Record<VehicleKind, number> = { fighter: -34, apache: -12, warthog: 10, blackbird: 38, bomber: 80, f15: 110, f35: 135 }
  const only = params.get("only") as VehicleKind | null
 
  function makeEntity(kind: VehicleKind, team: TeamId): VehicleEntity {
@@ -556,39 +556,38 @@ index 7346de6..9acf56c 100644
      const view = createAircraftView(kind, team, qInput.value as Quality)
      scene.add(view.root)
 diff --git a/games/wings/src/render/aircraft.ts b/games/wings/src/render/aircraft.ts
-index 8919800..cdd3a49 100644
+index 8919800..51bcb98 100644
 --- a/games/wings/src/render/aircraft.ts
 +++ b/games/wings/src/render/aircraft.ts
-@@ -157,7 +157,18 @@ interface KindConfig {
+@@ -157,7 +157,17 @@ interface KindConfig {
    shadow: [number, number]
  }
 
 -const CONFIG: Record<VehicleKind, KindConfig> = {
 +export const CONFIG: Record<VehicleKind, KindConfig> = {
-+  "astra-interceptor": {
-+    file: "astra-interceptor", pivots: [], stores: [], spinners: [], afterburners: [],
++  f15: {
++    file: "f15", pivots: [], stores: [], spinners: [], afterburners: [],
 +    anchors: [{ key: "gun", node: "gun_muzzle" }],
-+    placeholder: { length: 17.15, span: 12, heli: false }, shadow: [12, 17.15],
++    placeholder: { length: 18.15, span: 13, heli: false }, shadow: [13, 18.15],
 +  },
-+  "astra-trainer": {
-+    file: "astra-trainer", pivots: ["propeller"], stores: [], afterburners: [],
-+    spinners: [{ name: "propeller", axis: "z", speed: 40, driver: "engine" }],
++  f35: {
++    file: "f35", pivots: [], stores: [], spinners: [], afterburners: [],
 +    anchors: [{ key: "gun", node: "gun_muzzle" }],
-+    placeholder: { length: 9.55, span: 11.2, heli: false }, shadow: [11.2, 9.55],
++    placeholder: { length: 15, span: 10.6, heli: false }, shadow: [10.6, 15],
 +  },
    fighter: {
      file: "fa18",
      pivots: [
 diff --git a/games/wings/src/render/camera.ts b/games/wings/src/render/camera.ts
-index 17739d5..c51b0ee 100644
+index 17739d5..3b7a8bd 100644
 --- a/games/wings/src/render/camera.ts
 +++ b/games/wings/src/render/camera.ts
 @@ -12,6 +12,8 @@ const COCKPIT: Record<VehicleKind, Vec3> = {
    warthog: [0, 1.7, -4.4],
    blackbird: [0, 1.6, -9],
    bomber: [0, 2.2, -9],
-+  "astra-interceptor": [0, 1.35, -3],
-+  "astra-trainer": [0, 1.35, -0.65],
++  f15: [0, 1.05, -4.9],
++  f35: [0, 1.08, -4.1],
  }
  /** Gunner camera: targeting pod / chin turret position. */
  const GUNNER: Record<VehicleKind, Vec3> = {
@@ -596,8 +595,8 @@ index 17739d5..c51b0ee 100644
    warthog: [0, -1.5, -2],
    blackbird: [0, -2.4, -15],
    bomber: [0, -3, -4],
-+  "astra-interceptor": [0, -1.4, -3],
-+  "astra-trainer": [0, -1.4, -0.65],
++  f15: [0, -1.4, -4.9],
++  f35: [0, -1.4, -4.1],
  }
  /**
   * Gunner eye placement relative to the optic: metres along the line of sight (clears the own nose/belly)
@@ -605,8 +604,8 @@ index 17739d5..c51b0ee 100644
   */
 -const GUNNER_LEAD: Record<VehicleKind, number> = { fighter: 9, apache: 2.5, warthog: 8, blackbird: 4, bomber: 3 }
 -const GUNNER_DROP: Record<VehicleKind, number> = { fighter: 1.5, apache: 0.6, warthog: 1.5, blackbird: 1.5, bomber: 2 }
-+const GUNNER_LEAD: Record<VehicleKind, number> = { fighter: 9, apache: 2.5, warthog: 8, blackbird: 4, bomber: 3, "astra-interceptor": 9, "astra-trainer": 6 }
-+const GUNNER_DROP: Record<VehicleKind, number> = { fighter: 1.5, apache: 0.6, warthog: 1.5, blackbird: 1.5, bomber: 2, "astra-interceptor": 1.5, "astra-trainer": 1.5 }
++const GUNNER_LEAD: Record<VehicleKind, number> = { fighter: 9, apache: 2.5, warthog: 8, blackbird: 4, bomber: 3, f15: 9, f35: 6 }
++const GUNNER_DROP: Record<VehicleKind, number> = { fighter: 1.5, apache: 0.6, warthog: 1.5, blackbird: 1.5, bomber: 2, f15: 1.5, f35: 1.5 }
  /** Bomb-sight optical zoom range. */
  export const BOMBSIGHT_MIN_ZOOM = 2
  export const BOMBSIGHT_MAX_ZOOM = 8
@@ -614,12 +613,12 @@ index 17739d5..c51b0ee 100644
    warthog: { dist: 28, height: 7 },
    blackbird: { dist: 40, height: 9 },
    bomber: { dist: 60, height: 13 },
-+  "astra-interceptor": { dist: 26, height: 6 },
-+  "astra-trainer": { dist: 22, height: 6 },
++  f15: { dist: 28, height: 6 },
++  f35: { dist: 25, height: 6 },
 +}
-+// Small upward sight offsets for the long nose / high wing; native view acceptance held.
++// Provisional sight offsets; native cockpit visibility acceptance remains held.
 +const COCKPIT_PITCH: Partial<Record<VehicleKind, number>> = {
-+  "astra-interceptor": 0.02, "astra-trainer": 0.035,
++  f15: 0.02, f35: 0.035,
  }
 
  const UP = new Vector3(0, 1, 0)
@@ -749,7 +748,7 @@ index 2e3116f..8f681ce 100644
      const w = window as unknown as Record<string, unknown>
      w.__wingsHost = host
 diff --git a/games/wings/src/sim/bots.ts b/games/wings/src/sim/bots.ts
-index 8f021e3..ded2e06 100644
+index 8f021e3..9e80452 100644
 --- a/games/wings/src/sim/bots.ts
 +++ b/games/wings/src/sim/bots.ts
 @@ -217,12 +217,12 @@ export function botRandom(brain: BotBrain): number {
@@ -757,18 +756,18 @@ index 8f021e3..ded2e06 100644
  // Vehicle choice
 
 -const KIND_WEIGHT: Record<VehicleKind, number> = { fighter: 3, apache: 2, warthog: 2, blackbird: 1.2, bomber: 0.9 }
-+const KIND_WEIGHT: Record<VehicleKind, number> = { fighter: 3, apache: 2, warthog: 2, blackbird: 1.2, bomber: 0.9, "astra-interceptor": 0, "astra-trainer": 0 }
++const KIND_WEIGHT: Record<VehicleKind, number> = { fighter: 3, apache: 2, warthog: 2, blackbird: 1.2, bomber: 0.9, f15: 0, f35: 0 }
  const KINDS = Object.keys(KIND_WEIGHT) as VehicleKind[]
 
  /** Vehicle kind a bot picks when spawning: weighted random, discouraging kinds the team already flies. */
  export function chooseBotVehicle(bot: PlayerInfo, teammates: PlayerInfo[], vehicles: VehicleEntity[], rng: () => number): VehicleKind {
 -  const counts: Record<VehicleKind, number> = { fighter: 0, apache: 0, warthog: 0, blackbird: 0, bomber: 0 }
-+  const counts: Record<VehicleKind, number> = { fighter: 0, apache: 0, warthog: 0, blackbird: 0, bomber: 0, "astra-interceptor": 0, "astra-trainer": 0 }
++  const counts: Record<VehicleKind, number> = { fighter: 0, apache: 0, warthog: 0, blackbird: 0, bomber: 0, f15: 0, f35: 0 }
    for (const v of vehicles) if (v.alive && v.team === bot.team) counts[v.kind]++
    let total = 0
    for (const k of KINDS) total += kindWeight(k, counts)
 diff --git a/games/wings/src/sim/combat.ts b/games/wings/src/sim/combat.ts
-index 77578c3..7270393 100644
+index 77578c3..f7d5269 100644
 --- a/games/wings/src/sim/combat.ts
 +++ b/games/wings/src/sim/combat.ts
 @@ -39,7 +39,7 @@ export const MAX_FLARES = 256
@@ -776,12 +775,12 @@ index 77578c3..7270393 100644
  export const SPOTTED_DAMAGE_MULT = 1.2
  /** Damage taken multiplier per airframe (A-10 titanium bathtub). */
 -export const ARMOR: Record<VehicleKind, number> = { fighter: 1, apache: 1, warthog: 0.8, blackbird: 1, bomber: 1 }
-+export const ARMOR: Record<VehicleKind, number> = { fighter: 1, apache: 1, warthog: 0.8, blackbird: 1, bomber: 1, "astra-interceptor": 1, "astra-trainer": 1 }
++export const ARMOR: Record<VehicleKind, number> = { fighter: 1, apache: 1, warthog: 0.8, blackbird: 1, bomber: 1, f15: 1, f35: 1 }
  /** Per-weapon damage multiplier applied on top of WEAPONS[w].damage. */
  export const WEAPON_DAMAGE_MULT: Record<WeaponId, number> = {
    cannon20: 1.35, chaingun30: 1.1, gau8: 0.8, rockets: 1, aim9: 1, tvmissile: 1, hellfire: 1, maverick: 1,
 diff --git a/games/wings/src/sim/flight.ts b/games/wings/src/sim/flight.ts
-index 85b96d5..7dea03c 100644
+index 85b96d5..4922fc4 100644
 --- a/games/wings/src/sim/flight.ts
 +++ b/games/wings/src/sim/flight.ts
 @@ -143,7 +143,7 @@ interface HeliHandling {
@@ -789,7 +788,7 @@ index 85b96d5..7dea03c 100644
  // bleed, softened gravity along the path), and the turn rate peaks at the sweet spot ("corner") speed
  // — throttle back to turn tighter.
 -const JET: Record<Exclude<VehicleKind, "apache">, JetHandling> = {
-+const ORIGINAL_JET: Record<Exclude<VehicleKind, "apache" | "astra-interceptor" | "astra-trainer">, JetHandling> = {
++const ORIGINAL_JET: Record<Exclude<VehicleKind, "apache" | "f15" | "f35">, JetHandling> = {
    fighter: {
      thrust: 20, throttleRate: 0.7,
      cornerSpeed: 92, cornerRate: 1.1, minRateFrac: 0.35, pushFrac: 0.6, rollRate: 4.0, yawRate: 0.44, rollRef: 70, yawTurnRate: 0.96, yawBank: 30 * DEG,
@@ -800,15 +799,15 @@ index 85b96d5..7dea03c 100644
 +// Same fixed-wing model and stall/collision rules; modest silhouette-based arcade tuning.
 +const JET: Record<Exclude<VehicleKind, "apache">, JetHandling> = {
 +  ...ORIGINAL_JET,
-+  "astra-interceptor": {
++  f15: {
 +    ...ORIGINAL_JET.fighter,
-+    cornerSpeed: 99.36, cornerRate: 1.034, rollRate: 3.76, yawTurnRate: 0.9024,
-+    pitchResponse: 10.34, rollResponse: 14.1, yawResponse: 7.52,
++    cornerSpeed: 105, cornerRate: 1.2, rollRate: 4.6, yawTurnRate: 1.05,
++    pitchResponse: 12, rollResponse: 17, yawResponse: 9,
 +  },
-+  "astra-trainer": {
++  f35: {
 +    ...ORIGINAL_JET.fighter,
-+    cornerSpeed: 82.8, cornerRate: 1.188, rollRate: 4.32, yawTurnRate: 1.0368,
-+    pitchResponse: 11.88, rollResponse: 16.2, yawResponse: 8.64,
++    cornerSpeed: 85, cornerRate: 1.3, rollRate: 4.2, yawTurnRate: 1.15,
++    pitchResponse: 12.5, rollResponse: 16, yawResponse: 9.5,
 +  },
 +}
 +
@@ -829,7 +828,7 @@ index 020cfee..40c6241 100644
      if (this.time < p.info.respawnAt) return this.error(p.info.id, "Respawn not ready.")
      const current = this.vehicleOf(p.info)
 diff --git a/games/wings/src/sim/types.ts b/games/wings/src/sim/types.ts
-index c915941..b6a9686 100644
+index c915941..04839d0 100644
 --- a/games/wings/src/sim/types.ts
 +++ b/games/wings/src/sim/types.ts
 @@ -6,7 +6,7 @@ export type Vec3 = [number, number, number]
@@ -837,12 +836,12 @@ index c915941..b6a9686 100644
 
  export type TeamId = 0 | 1 | 2 | 3
 -export type VehicleKind = "fighter" | "apache" | "warthog" | "blackbird" | "bomber"
-+export type VehicleKind = "fighter" | "apache" | "warthog" | "blackbird" | "bomber" | "astra-interceptor" | "astra-trainer"
++export type VehicleKind = "fighter" | "apache" | "warthog" | "blackbird" | "bomber" | "f15" | "f35"
  export type FlightModel = "jet" | "heli"
  export type SeatIndex = 0 | 1
  export type WeaponSlot = "primary" | "secondary"
 diff --git a/games/wings/src/sim/vehicles.ts b/games/wings/src/sim/vehicles.ts
-index cee5ec4..b17eb66 100644
+index cee5ec4..d9bcc67 100644
 --- a/games/wings/src/sim/vehicles.ts
 +++ b/games/wings/src/sim/vehicles.ts
 @@ -87,7 +87,7 @@ export const STEALTH_AA_CEILING = 600
@@ -850,7 +849,7 @@ index cee5ec4..b17eb66 100644
  export const STEALTH_LOCK_SPOT = 8
 
 -export const VEHICLES: Record<VehicleKind, VehicleSpec> = {
-+const ORIGINAL_VEHICLES: Record<Exclude<VehicleKind, "astra-interceptor" | "astra-trainer">, VehicleSpec> = {
++const ORIGINAL_VEHICLES: Record<Exclude<VehicleKind, "f15" | "f35">, VehicleSpec> = {
    fighter: {
      kind: "fighter", name: "F/A-18F Super Hornet", model: "models/fa18.glb", flight: "jet",
      maxHp: 450, radius: 8, cruise: 135, boost: 185, stall: 55,
@@ -860,15 +859,15 @@ index cee5ec4..b17eb66 100644
 
 +export const VEHICLES: Record<VehicleKind, VehicleSpec> = {
 +  ...ORIGINAL_VEHICLES,
-+  "astra-interceptor": {
++  f15: {
 +    ...ORIGINAL_VEHICLES.fighter,
-+    kind: "astra-interceptor", name: "Astra Interceptor", model: "models/astra-interceptor.glb",
-+    cruise: 145.8, boost: 199.8,
++    kind: "f15", name: "F-15-style", model: "models/f15.glb",
++    cruise: 155, boost: 215,
 +  },
-+  "astra-trainer": {
++  f35: {
 +    ...ORIGINAL_VEHICLES.fighter,
-+    kind: "astra-trainer", name: "Astra Trainer", model: "models/astra-trainer.glb",
-+    cruise: 121.5, boost: 166.5,
++    kind: "f35", name: "F-35-style", model: "models/f35.glb",
++    cruise: 130, boost: 180,
 +  },
 +}
 +
@@ -1484,15 +1483,15 @@ index 2404d00..e39b5e6 100644
      ],
    })
 diff --git a/games/wings/src/ui/spawn.ts b/games/wings/src/ui/spawn.ts
-index 328bc3f..5b3dc90 100644
+index 328bc3f..39458c0 100644
 --- a/games/wings/src/ui/spawn.ts
 +++ b/games/wings/src/ui/spawn.ts
 @@ -9,11 +9,13 @@ import { MenuNav, TEAM_COLORS, TEAM_NAMES, controlsTable, escapeHtml, hintsHtml,
 
  interface RoleInfo { role: string; blurb: string; agility: number; firepower: number }
  const ROLES: Record<VehicleKind, RoleInfo> = {
-+  "astra-interceptor": { role: "swept-wing interceptor", agility: 0.8, firepower: 0.7, blurb: "Higher speed, wider turns. Uses the fighter loadout; generated airframe has no animated stores or landing gear." },
-+  "astra-trainer": { role: "light trainer", agility: 0.92, firepower: 0.7, blurb: "Lower speed, quicker turns. Fixed gear and a spinning propeller; uses the arcade fighter physics and loadout." },
++  f15: { role: "twin-engine fighter", agility: 0.9, firepower: 0.7, blurb: "Fast flight and high roll rate. Uses the arcade fighter loadout; gear-up airframe has no animated stores." },
++  f35: { role: "single-engine fighter", agility: 0.95, firepower: 0.7, blurb: "Lower speed, tighter turns. Uses the arcade fighter loadout; gear-up airframe has no animated stores." },
    fighter: { role: "strike fighter", agility: 0.85, firepower: 0.7, blurb: "Fast, agile all-rounder. Guns and heat-seekers up front, lock-on radar missiles in the back." },
    apache: { role: "attack helicopter", agility: 0.95, firepower: 0.8, blurb: "Hovers, strafes and hides behind ridges. Rockets for the pilot, chain gun and Hellfires for the gunner." },
    warthog: { role: "close air support", agility: 0.45, firepower: 1, blurb: "Slow, armoured, terrifying. The GAU-8 shreds anything it points at." },
@@ -1556,7 +1555,7 @@ index 328bc3f..5b3dc90 100644
    })
 diff --git a/games/wings/ui-check.ts b/games/wings/ui-check.ts
 new file mode 100644
-index 0000000..6043859
+index 0000000..cad5e0f
 --- /dev/null
 +++ b/games/wings/ui-check.ts
 @@ -0,0 +1,59 @@
@@ -1587,7 +1586,7 @@ index 0000000..6043859
 +item('Start offline').click()
 +item('Aircraft').click()
 +item('Start offline').click()
-+if (picked.join(',') !== 'astra-interceptor,astra-trainer') throw new Error('Custom picker integration failed: ' + picked.join(','))
++if (picked.join(',') !== 'f15,f35') throw new Error('Custom picker integration failed: ' + picked.join(','))
 +lobby.hide()
 +const note = document.createElement('button')
 +note.textContent = 'UI fixture only - show HUD'
@@ -1608,7 +1607,7 @@ index 0000000..6043859
 +  const list = box('.sp-list'), detail = box('.sp-detail')
 +  if (innerWidth <= 760 && detail.top < list.bottom) throw new Error('Hangar list/detail overlap')
 +  for (const key of ['1', '6', '7']) window.dispatchEvent(new KeyboardEvent('keydown',{key}))
-+  if (launches.join(',') !== 'fighter,astra-interceptor,astra-trainer') throw new Error('Spawn quick-launch failed')
++  if (launches.join(',') !== 'fighter,f15,f35') throw new Error('Spawn quick-launch failed')
 +  spawn.dispose()
 +  for (const key of ['1', '6', '7']) window.dispatchEvent(new KeyboardEvent('keydown',{key}))
 +  if (launches.length !== 3) throw new Error('Disposed spawn listener still active')
