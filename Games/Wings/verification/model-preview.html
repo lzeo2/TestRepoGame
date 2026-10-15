@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="icon" href="data:,">
+<title>Wings model fixture</title>
+<style>
+:root { color-scheme:light dark; font:16px system-ui,sans-serif; background:#e9e7e0; color:#17191c }
+body { margin:20px auto; padding:0 16px; max-width:1100px }
+h1 { font-size:24px } p { line-height:1.5 } main { display:grid; grid-template-columns:1fr 1fr; gap:16px }
+section { min-width:0 } h2 { font-size:18px } canvas { width:100%; aspect-ratio:1.25; display:block }
+@media(prefers-color-scheme:dark) { :root { background:#1a1d22; color:#eee } }
+@media(max-width:600px) { main { grid-template-columns:1fr } body { margin:12px auto } }
+</style>
+<h1>Wings model fixture</h1>
+<p>Isolated GLB render, not Wings flight acceptance. Nose: -Z. Up: +Y. Static propeller pose.</p>
+<main>
+<section><h2>Astra Interceptor</h2><canvas id="interceptor" aria-label="Swept wing interceptor model"></canvas></section>
+<section><h2>Astra Trainer</h2><canvas id="trainer" aria-label="Short propeller trainer model"></canvas></section>
+</main>
+<p id="status" role="status">Loading local geometry...</p>
+<script type="importmap">{"imports":{"three":"/__three__/build/three.module.js","three/addons/":"/__three__/examples/jsm/"}}</script>
+<script type="module">
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+const dark = matchMedia('(prefers-color-scheme:dark)').matches;
+const rear = new URLSearchParams(location.search).has('rear');
+window.modelResults = [];
+try {
+  for (const name of ['interceptor','trainer']) {
+    const canvas = document.getElementById(name);
+    const renderer = new THREE.WebGLRenderer({canvas, antialias:true, preserveDrawingBuffer:true});
+    renderer.setPixelRatio(1);
+    renderer.setSize(canvas.clientWidth, canvas.clientWidth / 1.25, false);
+    renderer.setClearColor(dark ? 0x303741 : 0xcbd0d1);
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    const scene = new THREE.Scene();
+    scene.add(new THREE.HemisphereLight(0xe7f3ff, 0x807667, 2));
+    const sun = new THREE.DirectionalLight(0xfff2dc, 3);
+    sun.position.set(-10,20,-15);
+    scene.add(sun);
+    const model = (await new GLTFLoader().loadAsync('../models/astra-' + name + '.glb')).scene;
+    scene.add(model);
+    const box = new THREE.Box3().setFromObject(model);
+    const span = box.getSize(new THREE.Vector3());
+    const center = box.getCenter(new THREE.Vector3());
+    const radius = Math.max(span.x,span.z);
+    const camera = new THREE.PerspectiveCamera(35,1.25,.1,200);
+    camera.position.copy(center).add(new THREE.Vector3(.9,.7,rear ? 1.15 : -1.15).multiplyScalar(radius));
+    camera.lookAt(center);
+    renderer.render(scene,camera);
+    window.modelResults.push({name, three:THREE.REVISION, calls:renderer.info.render.calls,
+      triangles:renderer.info.render.triangles, size:span.toArray()});
+  }
+  document.getElementById('status').textContent = 'Both models drawn. This fixture does not use Wings shaders or its aircraft rig converter.';
+  document.title = 'PASS: Wings model fixture';
+} catch (error) {
+  document.getElementById('status').textContent = String(error);
+  document.title = 'FAIL: Wings model fixture';
+  console.error(error);
+}
+</script>
+</html>
