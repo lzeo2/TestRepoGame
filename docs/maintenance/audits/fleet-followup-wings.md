@@ -131,3 +131,86 @@ actual play and full 125-game gate remain required. The unavailable-GPU fixture
 cannot establish those. Source recovery is complete; aircraft integration belongs
 to the separately assigned next task. No ask_hermes tool is available here; an
 external renderer-hold ticket records the unresolved hardware/compiler request.
+
+## Follow-up task 2: Astra picker and real spawn integration
+
+Task 1 above is historical. Task 2 adds both approved models, not a new game.
+Catalog remains 125; no registration, dependency, network feature, inventory
+refresh or push. Pin remains clean/read-only. Existing model bytes and generator
+are unchanged. Current inventory is already behind task 1: Wings entry recorded
+`3f1d3cc...` / tree `7ae15ac...`, while task 2 started at entry `4f522d2...` /
+tree `c527821...`. No historical inventory PASS is treated as acceptance.
+
+Trace: VehicleKind -> VEHICLES -> actual custom Aircraft row -> local-only
+StartRequest.aircraft -> GameSession.connect after the unchanged first-draw gate
+-> normal spawn message -> onSpawn allowlist -> spawnVehicle/createFlightState ->
+existing stepFlight and compact snapshots -> CONFIG/loadKind/buildTemplate ->
+createAircraftView -> existing kind/team thumbnail and bounds framing -> camera
+maps and hangar keys 6/7. Invalid kinds now return `Unknown aircraft kind.`
+The five existing specs/handling entries are retained. Astra bot weights are zero;
+armor/audio/camera records cover both new kinds. No new room config field or
+online transport. Trainer deliberately reuses jet flight/fighter audio and weapons,
+not a realistic prop simulation. Exact handling and camera values are in
+`Games/Wings/docs/models.md`; no invisible store/gear animation is advertised.
+
+Staging recipe: retain the existing minimal staging and cached dependency symlinks.
+Replace only its `public` symlink with a local directory, symlink each original
+asset directory except models, then create a local models directory containing
+individual symlinks to every original model and both immutable deployed Astra
+models. Never copy through the former public symlink into the source pin.
+Build with the task 1 Bun/Vite command. Rebuild the new regression with:
+
+```sh
+cd "$STAGE/games/wings"
+"$HOME/.bun/bin/bun" --preserve-symlinks build astra-check.ts --target=node --outfile=astra-check.mjs
+```
+
+The staging patch generator was extended to enumerate source files plus
+`astra-check.ts`, so newly modified aircraft contracts are included, not only
+prior patch paths. Its normalized output passes `git -C "$SOURCE" apply --check`.
+Deploy only built HTML/assets plus regression sources/bundle; retain model bytes,
+notices and historical fixture files. Tracked `git grep --cached` and constructed
+Vite dependency/import scans include check-ui's check/lobby/fleet/spawn consumers.
+All replaced hashes are absent from rebuilt HTML/chunk imports. The new check-ui
+bundle uses the same seven-kind fleet and tests actual custom-menu requests against
+real loopback spawn, then keys 1/6/7 and disposed listeners. It is explicitly a
+renderer-free fixture, not a forged successful game session.
+
+Actual checks (external evidence label `trg-fleet/followup/wings-task2/`):
+
+- Vite: `62 modules transformed` on the initial runtime build; final fixture adds
+  shared simulation modules. Existing >500 kB warning retained. No typecheck PASS.
+- `astra.log` / `astra-deployed.log`: both models pass ordinary-input climb/turn,
+  offline config, validated spawn, wire snapshot, descriptor node/hash and camera
+  math checks. Interceptor y=1597.911, speed=190.323; trainer y=1275.162,
+  speed=161.557. No position/health grants or GPU claims.
+- `solo.log`, `models.log`: original solo takeoff/crash/respawn and both exact
+  46,840/55,712-byte SHA-256 models pass. Generator unchanged.
+- `ui-final.log`: all four viewport/theme unavailable-renderer cases pass,
+  all three launch routes fail closed, Low reload, Controls/Settings, native
+  custom Aircraft keyboard selection, seven-kind spawn and cleanup/layout pass.
+  Zero page errors/external requests. Expected unavailable-context diagnostics
+  remain. A fixture-only programmatic focus test initially failed because click
+  left DOM focus on Aircraft while menu selection moved; corrected the fixture
+  interaction to click Aircraft, without changing runtime navigation.
+- `ui-final/`: actual picker desktop/mobile screenshots plus clearly labelled
+  spawn/HUD fixtures. Reviewed desktop and mobile picker images in dark/light
+  preferences: both names fit, focus is visible. Upstream dark styling persists.
+  Existing failure toast/footer crowding is not redesigned by this task.
+- `context.log`: first sequence **2/3**, Astray reload `net::ERR_ABORTED`.
+  `context-retry.log` and `context-final.log`: unchanged sequence **3/3**, exit 0
+  each. No filtering, extended per-page deadlines or per-game browser restart.
+- `converted.log`: isolated upstream aircraft preview compiled from the changed
+  source with actual Wings converter/node materials, no world replacement;
+  bounded SwiftShader attempt exited **124 at 40 seconds**. No completed
+  converted-material screenshot or render PASS. Historical standard-Three
+  previews remain separate evidence. Native flight/thumbnail/prop/cockpit held.
+- Patch applicability, JS syntax and scoped diff whitespace checks pass.
+  Maintenance checker still requires committed-source inventory reconciliation;
+  inventory refresh is coordinator-owned. Full 122/125 release failure stands.
+
+Workspace staging remained about 15 MiB; evidence under 5 MiB, below the added
+30 MiB budget. Free disk remained above 2 GiB (about 2.33 billion bytes).
+No source/cache writes, installs, fetches, direct bundle edits or persistent test
+servers. No ask_hermes tool is exposed; the existing renderer hold is retained,
+not guessed around. Supported-GPU and full-catalog release gates remain pending.

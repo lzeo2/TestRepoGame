@@ -47,7 +47,17 @@ with sync_playwright() as p:
                 assert page.locator('#screen .mi').filter(has_text='Start offline').count() == 1
                 page.get_by_role('button', name='Bots', exact=False).first.click()
                 assert page.get_by_role('button', name='Bot skill', exact=False).count() == 1
+                aircraft = page.get_by_role('button', name='Aircraft', exact=False)
+                aircraft.focus()
+                for _ in range(5):
+                    page.keyboard.press('ArrowRight')
+                assert 'Astra Interceptor' in aircraft.inner_text()
+                page.screenshot(path=str(args.out / (prefix + '-interceptor-picker.png')))
+                page.keyboard.press('ArrowRight')
+                assert 'Astra Trainer' in aircraft.inner_text()
+                page.screenshot(path=str(args.out / (prefix + '-trainer-picker.png')))
                 page.screenshot(path=str(args.out / (prefix + '-custom.png')))
+                page.get_by_role('button', name='Bots', exact=False).first.focus()
                 page.keyboard.press('ArrowUp')
                 if width == 1280:
                     assert page.locator('#screen').evaluate('(el) => el.scrollTop > 0'), 'Keyboard selection must reveal Back'
@@ -73,6 +83,11 @@ with sync_playwright() as p:
                     assert page.locator('#screen .mi .t').get_by_text('Solo flight', exact=True).is_visible()
                 page.goto(args.url + 'check-ui.html', wait_until='networkidle')
                 page.wait_for_function("document.title === 'PASS: Wings UI fixture'")
+                for label in ['Astra Interceptor', 'Astra Trainer']:
+                    item = page.locator('.sp-list .mi').filter(has_text=label)
+                    item.focus()
+                    assert label.lower() in page.locator('.sp-detail').inner_text().lower()
+                    page.screenshot(path=str(args.out / (prefix + '-' + label.split()[1].lower() + '-spawn-fixture.png')))
                 page.screenshot(path=str(args.out / (prefix + '-spawn-fixture.png')))
                 if width < 760:
                     assert page.locator('.spawn').evaluate('(el) => el.scrollHeight > el.clientHeight')

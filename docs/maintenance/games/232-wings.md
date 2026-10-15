@@ -16,7 +16,7 @@ Inspected: entry/main, scene host, game-session lifecycle, lobby, pause/spawn, t
 
 Solo flight uses zero AI aircraft, but enemy fleet guns remain active. Play with bots uses two teams and normal AI skill. Custom setup reuses upstream configuration controls for bots, skill, teams, pilot capacity, score and time limits. Start always requests `mode: offline` and `listed: false`. Match rules remain upstream Fleet Strike rules; exposing a score setting does not invent a new scoring mode.
 
-Choose aircraft with the menu or keys 1-5. Default W/S throttle, arrows pitch/turn, A/D roll, Q/E full roll, Shift boost, mouse steering and weapons. Controls lists the selected upstream input scheme. Keyboard/mouse required; narrow-screen menu support is not touch-flight support. Visible Back to menu uses the existing session leave path. Escape/pointer-lock gameplay behavior still needs supported-GPU acceptance.
+Choose among seven aircraft with the hangar menu or keys 1-7 (6 Astra Interceptor, 7 Astra Trainer). Custom setup's Aircraft row selects the initial real spawn after the renderer gate; Solo and bots retain the hangar. Default W/S throttle, arrows pitch/turn, A/D roll, Q/E full roll, Shift boost, mouse steering and weapons. Controls lists the selected upstream input scheme. Keyboard/mouse required; narrow-screen menu support is not touch-flight support. Visible Back to menu uses the existing session leave path. Escape/pointer-lock gameplay behavior still needs supported-GPU acceptance.
 
 ## State and persistence
 
@@ -32,9 +32,11 @@ procedural models: `astra-interceptor.glb` (46,840 bytes, 328 triangles) and
 See `Games/Wings/docs/models.md` for hashes, provenance qualifications, -Z forward/
 +Y up/+X right orientation, scale 1 and named anchors. No third-party model input
 was used according to the generator receipt; that is not a universal rights
-guarantee and does not resolve Wings' missing license. They remain **fixture-only,
-not picker-integrated**. Standard Three preview materials are not the Wings
-material converter; no in-game handling, cockpit or propeller acceptance exists.
+guarantee and does not resolve Wings' missing license. Follow-up task 2 integrates both into the custom picker, spawn protocol, simulation,
+render descriptors, camera and audio maps. See the model contract for actual modest
+handling differences and retained fighter rules. Standard Three historical previews
+are not Wings material acceptance. Native flight, cockpit and propeller acceptance
+remain held; the new ordinary-input simulation regression passes both kinds.
 
 ## Audit findings
 
@@ -48,7 +50,7 @@ Mobile spawn now stacks the list and detail in a real scrolling container. HUD r
 
 ## Safe iteration
 
-Patch pinned staging source, rebuild, replace only Wings dist files, and regenerate `port.patch`. The follow-up received the clean pinned source read-only and applied the complete previous patch to an external 9.3 MiB staging tree, with cached dependencies and public assets symlinked rather than installed/copied. Bun with cached Vite 7.3.7 rebuilt the source; regenerated `port.patch` passes `git apply --check` against the pin. Source recovery is no longer a blocker. Spawn-framing/navigation/failure-copy polish and the two authorized Astra aircraft integrations remain separate tasks, not part of this lifecycle fix. Do not re-fetch upstream or hand-edit bundles. Lane1 owns the GLBs and `Games/Wings/docs/models.md` orientation contract; their presence alone does not integrate selection, flight tuning or cockpit placement. Trace old hashed asset consumers before removing stale bundles. Keep notices and regression sources. Never restore worker/network services, edit minified output, or claim simulation/UI fixtures establish native flight. Lane7 reconciled the inventory after the fleet source commits; this does not lift source or rendering holds.
+Patch pinned staging source, rebuild, replace only Wings dist files, and regenerate `port.patch`. The follow-up received the clean pinned source read-only and applied the complete previous patch to an external 9.3 MiB staging tree, with cached dependencies and public assets symlinked rather than installed/copied. Bun with cached Vite 7.3.7 rebuilt the source; regenerated `port.patch` passes `git apply --check` against the pin. Source recovery is no longer a blocker. Spawn-framing/navigation/failure-copy polish remains separate. Task 2 subsequently integrates the two authorized Astra aircraft without changing the task 1 lifecycle boundary. Do not re-fetch upstream or hand-edit bundles. Lane1 owns the GLBs and `Games/Wings/docs/models.md` orientation contract; their presence alone does not integrate selection, flight tuning or cockpit placement. Trace old hashed asset consumers before removing stale bundles. Keep notices and regression sources. Never restore worker/network services, edit minified output, or claim simulation/UI fixtures establish native flight. Lane7 reconciled the inventory after the fleet source commits; this does not lift source or rendering holds.
 
 ## Verification
 
@@ -75,6 +77,18 @@ remains unresolved. Do not translate a short Wings load window into first-draw
 or flight acceptance.
 
 Follow-up task 1: the unchanged native Wings -> Server Survival -> Astray smoke sequence reproduced **1/3, exit 1** before the source fix and passed **3/3, exit 0** twice afterward (including the final build). `verification/check-context-sequence.py` leaves that same-browser regression runnable with a 90-second outer process bound and port 8982; individual runner timeouts/filters remain unchanged. It browses the Wings menu, not flight. The updated unavailable-GPU UI test passes all four viewport/theme cases after clicking Play, including Low reload, all three fail-closed launch routes, menu navigation and the existing spawn/HUD fixtures. The ordinary-input simulation regression passes unchanged. Menu/error screenshots were inspected in desktop/mobile and light/dark preference combinations; upstream dark styling remains. See [follow-up evidence and rebuild instructions](../audits/fleet-followup-wings.md). The failed full 122/125 release gate is not superseded. Inventory refresh belongs to the coordinator.
+
+Task 2 verification: source Vite rebuild and clean pin patch applicability pass;
+`node Games/Wings/verification/astra-check.mjs` checks both selectable kinds through
+offline config/spawn/snapshot/simulation and GLB descriptors/camera math. Ordinary
+input reaches y=1597.911 / 1275.162 and speeds 190.323 / 161.557. Original solo and
+immutable-model checks pass. Actual custom picker plus renderer-free request/spawn
+fixture and all four unavailable-GPU cases pass. Shared-browser sequence initially
+returned 2/3 (Astray reload ERR_ABORTED); two unchanged retries returned 3/3,
+including final build. Keep that transient failure in the evidence, not a clean
+all-attempts claim. Converted-material preview timed out at its 40-second outer
+bound. No rendered-flight PASS or inventory refresh. Evidence/rebuild recipe:
+[fleet follow-up](../audits/fleet-followup-wings.md).
 
 ## Future outlook
 

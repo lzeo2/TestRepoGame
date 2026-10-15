@@ -18,6 +18,7 @@
 4. Added a controls entry, keyboard-tab access to menu items, minimum menu target height and scrolling for the controls list. Upstream rendering, art and flight physics are retained.
 5. Updated the page description and initial loading copy. Retained the staging build-script change to Vite-only because upstream preview files have type errors; this is not a typecheck pass.
 6. Added a bundled, dependency-free Node simulation regression and its TypeScript source in `verification/`.
+7. Added the operator-approved Astra Interceptor and Astra Trainer to offline custom selection, validated spawn, existing flight tuning and model/camera/audio descriptors. These are original AI-generated procedural geometry, not third-party model imports. See `docs/models.md` for immutable hashes, author, source recipe and qualifications. No new third-party asset license requirement was identified for their geometry; this is not a universal ownership/non-infringement guarantee and does not resolve Wings' missing license. Both retain fighter weapons and arcade physics; native rendered acceptance remains held.
 
 No catalog registration, multiplayer service, third-party runtime load, or new game engine was added. This port has no fixed world seed override.
 

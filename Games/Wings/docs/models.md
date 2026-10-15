@@ -29,7 +29,41 @@ No textures, external buffers, compression decoders, skins or baked animation
 clips are required. Each mesh includes indexed triangles, flat outward normals
 and UV0. Root transforms are identity.
 
-## Integration contract for lane 2
+## Integration status (follow-up task 2)
+
+Both aircraft are now wired into offline Custom setup and the seven-aircraft
+hangar (keys 6/7). Custom selection is a local `StartRequest.aircraft`, not a new
+room/network setting: after the unchanged renderer/first-draw gate, the session
+sends the existing validated `spawn` message. Solo/bot launch routes retain their
+hangar. Unknown kinds return an error. The original five tuning entries and bot
+selection weights are unchanged; Astra bot weights are zero.
+
+Actual arcade handling relative to fighter:
+
+| Kind | Cruise / boost m/s | Corner speed / rate | Roll / direct yaw-turn rad/s | Pitch response | Cockpit eye / pitch |
+| --- | --- | --- | --- | --- | --- |
+| Interceptor | 145.8 / 199.8 | 99.36 / 1.034 | 3.76 / 0.9024 | 10.34 | (0, 1.35, -3) / +0.02 rad |
+| Trainer | 121.5 / 166.5 | 82.8 / 1.188 | 4.32 / 1.0368 | 11.88 | (0, 1.35, -0.65) / +0.035 rad |
+
+Roll/yaw response also scales by 0.94/1.08. Fighter stall 55, radius 8,
+HP 450, weapons, thrust, collision and remaining handling rules are retained.
+Trainer uses the existing fixed-wing jet physics and fighter audio, not a new
+propeller simulation. Chase offsets are 26/6 and 22/6 metres. Camera sight offsets
+are provisional, not native cockpit acceptance. The descriptors below are now
+implemented; trainer fixed gear is not a pivot and its prop rotates on local Z.
+Thumbnails reuse scene.ts's existing kind/team loader, view and bounds framing;
+no separate decorative images or renderer bypass were added.
+
+`node Games/Wings/verification/astra-check.mjs` checks both loopback spawns,
+wire snapshots, ordinary-input takeoff/turn, descriptor nodes, hashes and cockpit
+math. `check-ui.html` now additionally checks actual custom-menu requests reach
+real loopback spawns for both kinds, plus keys 1/6/7 and listener disposal.
+These fixtures are not rendered flight. Four native desktop/mobile/theme UI
+cases pass. An isolated upstream aircraft-preview build using the new Wings
+converter/materials hit its 40-second outer bound; no converted-render PASS.
+World flight, thumbnails, prop animation and native cockpit acceptance stay held.
+
+## Original integration contract and historical fixture evidence
 
 Use distinct picker labels **Astra Interceptor** and **Astra Trainer** and the
 filenames above; do not overwrite upstream GLBs. Model/root names are
@@ -122,13 +156,13 @@ Fresh checks passed:
   `light-1100.png`, `dark-1100.png`, `light-390.png`, `dark-390.png` in that folder.
 - Catalog check: 125 unique IDs, expected schema, and tracked entry URLs.
 
-No actual Wings rendered-flight, picker, material-converter, propeller animation,
+The original lane1 run claimed no actual Wings rendered-flight, picker, material-converter, propeller animation,
 collision, handling, native hardware, full-catalog smoke or release acceptance
 is claimed. No game was added or registered. No push.
 
 ## Blockers and ownership
 
-Local staging TypeScript source was not found; a help ticket was raised instead
+Historical lane1 blocker (resolved by follow-up task 1): local staging TypeScript source was not found; a help ticket was raised instead
 of fetching upstream or editing minified bundles. Lane 2 owns source recovery,
 implementation, picker/handling integration and the Wings maintenance manual.
 Lane 7 owns inventory refresh: `check_maintenance_docs.py` already reported
