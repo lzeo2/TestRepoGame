@@ -135,6 +135,31 @@ new game, full-gate run or push. Existing rendering/rights/release holds remain.
 Maintenance check is blocked until committed-source inventory refresh by the final
 docs worker; this milestone deliberately does not refresh inventory.
 
+### F-35-style geometry milestone (integration PENDING)
+
+Added original stdlib-only `f35()` to `verification/generate-models.py`, reusing
+unchanged `f15_patch` indexed surface writing. `models/f35.glb` has a broad blended
+single-engine body, trapezoidal wings, canted twin tails, diamond intake lips,
+opaque canopy, conforming underside bay seams and one nozzle, gear-up. Gray
+opaque materials, normals/UV0, identity root and required named anchors are present.
+No reference mesh/image, download, dependency or runtime integration was used.
+Actual serialized asset: **40,312 nondegenerate triangles / 21,662 vertices /
+962,976 bytes**; SHA-256
+`3b0e859a6aaac303e20e95ca5c7c26b620ecb95f9e8f76d7916aabae0f0d69fe`.
+Generator assertions check serialized budgets, finite attributes, unit normals,
+face winding against averaged vertex normals, indices and duplicate/degenerate
+faces. Initial per-vertex winding assertion rejected the swept stabilizer;
+face-averaged winding passes. Two completed generator runs and actual output-byte
+comparison pass (exit 0); F-15's recorded hash and both legacy outputs are
+unchanged. Legacy checker and scoped diff check pass (exit 0). External evidence
+label: `wings-f35-evidence/`, including `generation-2.log` and `legacy.log`.
+Maintenance checker exits 1 for stale inventory; refresh is deliberately deferred
+to the final docs worker. Picker/descriptors, model-contract update, visual review,
+converted materials and supported-GPU flight/load-time acceptance remain pending.
+Triangle count is about 2.24 times the 18,028-triangle selectable YF-12, not a
+measured loading-time result. No screenshots, new games, full-gate run or push;
+existing rendering/rights/release holds remain unchanged.
+
 ## Future outlook
 
 On supported hardware, isolate the fallback shader/compiler failure and verify first scene, takeoff, turning, combat, crash/respawn, back-to-menu and a fresh session. Preserve the honest failure boundary while doing so. Resolve redistribution rights before release; do not replace upstream flight with fabricated gameplay to satisfy a render gate.

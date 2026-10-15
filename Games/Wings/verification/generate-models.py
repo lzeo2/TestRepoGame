@@ -312,6 +312,147 @@ def f15():
     return m
 
 
+def f35():
+    """Original gear-up F-35-style surface, without reference assets.
+
+    Broad chine shoulders blend into trapezoidal wings around one engine.
+    Tessellation follows exposed curved skins, airfoils and nozzle petals.
+    """
+    m = Model('f35', [
+        ('airframe_gray', (.42, .44, .46), .1, .82),
+        ('edge_gray', (.53, .54, .55), .1, .8),
+        ('canopy_opaque', (.055, .06, .065), .25, .3),
+        ('nozzle_metal', (.21, .22, .23), .55, .65),
+        ('recess_gray', (.075, .08, .085), 0, .95)])
+    stations = [(-8.0, .018, .025, -.08), (-6.4, .48, .38, -.03),
+                (-4.5, .95, .67, .02), (-2.5, 1.62, .82, .02),
+                (0, 1.85, .79, 0), (2.5, 1.60, .68, 0),
+                (4.8, 1.04, .58, .01), (6.0, .70, .58, .01)]
+
+    def body(u, v):
+        z = -8 + 14*u
+        a, b = next((a, b) for a, b in zip(stations, stations[1:]) if z <= b[0]+1e-8)
+        t = (1-math.cos(math.pi*(z-a[0])/(b[0]-a[0])))/2
+        rx, ry, cy = [a[k]+(b[k]-a[k])*t for k in (1, 2, 3)]
+        c, s = math.cos(math.tau*v), math.sin(math.tau*v)
+        return (rx*math.copysign(abs(c)**.72, c),
+                cy+ry*math.copysign(abs(s)**.85, s), z)
+
+    f15_patch(m, 'fuselage', body, 128, 64, 0, True)
+
+    def canopy(u, v):
+        arch = math.sin(math.pi*u)
+        return ((.025+.56*arch**.65)*math.cos(math.pi*v),
+                .59+(.025+.56*arch**.8)*math.sin(math.pi*v), -5.8+3.6*u)
+
+    f15_patch(m, 'canopy', canopy, 64, 24, 2, True)
+    for side, sign in [('L', -1), ('R', 1)]:
+        def wing(u, v):
+            angle = math.tau*v
+            return (sign*(1.28+4.02*u), .10-.13*u+(.16-.135*u)*math.sin(angle),
+                    -2.5+3.55*u+(4.8-3.3*u)*(1-math.cos(angle))/2)
+        f15_patch(m, 'wing_'+side, wing, 40, 64, 0, sign > 0)
+
+        def stabilizer(u, v):
+            angle = math.tau*v
+            return (sign*(.83+2.40*u), -.02-.16*u+(.09-.07*u)*math.sin(angle),
+                    3.2+1.7*u+(2.9-1.55*u)*(1-math.cos(angle))/2)
+        f15_patch(m, 'stabilizer_'+side, stabilizer, 24, 32, 1, sign > 0)
+
+        def fin(u, v):
+            angle = math.tau*v
+            return (sign*(1.15+1.06*u)+(.10-.075*u)*math.sin(angle), .40+2.1*u,
+                    2.5+1.6*u+(3.5-2.0*u)*(1-math.cos(angle))/2)
+        f15_patch(m, 'fin_'+side, fin, 24, 32, 0)
+
+        # Angular diamond mouths, recessed dark throat and four visible lip edges.
+        outline = [(sign*.83, .08, -3.12), (sign*1.32, .55, -2.94),
+                   (sign*1.85, .02, -2.80), (sign*1.36, -.48, -2.98)]
+        m.slab('intake_throat_'+side, outline, 2, .04, 4)
+        center = [sum(p[k] for p in outline)/4 for k in range(3)]
+        outer = [tuple(center[k]+(p[k]-center[k])*1.10-(.045 if k == 2 else 0)
+                       for k in range(3)) for p in outline]
+        for i in range(4):
+            j = (i+1) % 4
+            m.slab('intake_lip_'+side+str(i), [outline[i], outline[j], outer[j], outer[i]], 2, .03, 1)
+
+        # Narrow conforming seams delineate flush internal weapon-bay doors.
+        # These follow the belly skin, not an external pod or hidden filler panel.
+        for edge, v in [('inner', .75+sign*.025), ('outer', .75+sign*.105)]:
+            def seam(u, w):
+                x, y, z = body(.40+.36*u, v+.0012*(w-.5))
+                return (x, y-.004, z)
+            f15_patch(m, 'bay_'+side+'_'+edge, seam, 40, 1, 4, True)
+        for end, u in [('front', .40), ('rear', .76)]:
+            def seam(w, v):
+                x, y, z = body(u+.0012*(w-.5), .75+sign*(.025+.08*v))
+                return (x, y-.004, z)
+            f15_patch(m, 'bay_'+side+'_'+end, seam, 1, 24, 4, sign > 0)
+
+    def nozzle(u, v):
+        angle = math.tau*v
+        r = .70-.12*u+.018*math.cos(24*angle)*math.sin(math.pi*u)
+        return (r*math.cos(angle), .01+r*.83*math.sin(angle), 6+1.0*u)
+    f15_patch(m, 'nozzle', nozzle, 16, 96, 3, True)
+
+    def inner(u, v):
+        angle = math.tau*v
+        r = .52+.06*u
+        return (r*math.cos(angle), .01+r*.83*math.sin(angle), 6.45+.55*u)
+    f15_patch(m, 'nozzle_inner', inner, 4, 96, 4)
+    m.node('exhaust', (0, .01, 7))
+    m.node('cockpit', (0, 1.08, -4.1))
+    m.node('gun_muzzle', (-.95, .53, -3.0))
+    return m
+
+
+def check_f35(data):
+    """Validate serialized float32 geometry, including winding and exact budgets."""
+    length = struct.unpack_from('<I', data, 12)[0]
+    doc = json.loads(data[20:20+length])
+    binary = data[28+length:]
+
+    def values(index):
+        a = doc['accessors'][index]
+        view = doc['bufferViews'][a['bufferView']]
+        width = {'SCALAR': 1, 'VEC2': 2, 'VEC3': 3}[a['type']]
+        fmt = 'H' if a['componentType'] == 5123 else 'f'
+        flat = struct.unpack_from('<'+fmt*(a['count']*width), binary, view['byteOffset'])
+        assert all(math.isfinite(x) for x in flat)
+        return [flat[i:i+width] for i in range(0, len(flat), width)]
+
+    triangles = vertices = 0
+    seen = set()
+    for mesh in doc['meshes']:
+        for p in mesh['primitives']:
+            assert p['mode'] == 4
+            positions = values(p['attributes']['POSITION'])
+            normals = values(p['attributes']['NORMAL'])
+            uv = values(p['attributes']['TEXCOORD_0'])
+            indices = [v[0] for v in values(p['indices'])]
+            assert len(positions) == len(normals) == len(uv)
+            assert len(indices) % 3 == 0 and max(indices) < len(positions)
+            assert all(abs(sum(x*x for x in n)-1) < 1e-5 for n in normals)
+            vertices += len(positions)
+            for i in range(0, len(indices), 3):
+                ids = indices[i:i+3]
+                a, b, c = [positions[k] for k in ids]
+                u, v = [b[k]-a[k] for k in range(3)], [c[k]-a[k] for k in range(3)]
+                n = (u[1]*v[2]-u[2]*v[1], u[2]*v[0]-u[0]*v[2], u[0]*v[1]-u[1]*v[0])
+                assert sum(x*x for x in n) > 1e-18, mesh['name']
+                assert sum(n[k]*sum(normals[j][k] for j in ids) for k in range(3)) > 0, mesh['name']
+                key = tuple(sorted((a, b, c)))
+                assert key not in seen, mesh['name']
+                seen.add(key)
+                triangles += 1
+    assert 35_000 <= triangles <= 50_000, triangles
+    assert len(data) < 1_200_000, len(data)
+    assert not any(k in doc['nodes'][0] for k in ('matrix', 'translation', 'rotation', 'scale'))
+    assert {'cockpit', 'gun_muzzle', 'wing_L', 'wing_R', 'stabilizer_L', 'stabilizer_R'} <= {n['name'] for n in doc['nodes']}
+    assert all(m['pbrMetallicRoughness']['baseColorFactor'][3] == 1 for m in doc['materials'])
+    return triangles, vertices
+
+
 def check_f15(data):
     """Check the actual serialized descriptors, not a requested subdivision count."""
     length = struct.unpack_from('<I', data, 12)[0]
@@ -339,7 +480,14 @@ if __name__ == '__main__':
         assert len(data) <= 200_000
         path.write_bytes(data)
         print(path.name, len(data), hashlib.sha256(data).hexdigest())
+    data = f35().finish()
+    triangles, vertices = check_f35(data)
+    assert data == f35().finish(), 'F-35 generation must be deterministic'
+    (OUT / 'f35.glb').write_bytes(data)
+    print('f35.glb', 'triangles', triangles, 'vertices', vertices,
+          'bytes', len(data), 'sha256', hashlib.sha256(data).hexdigest())
     data = f15().finish()
+    assert hashlib.sha256(data).hexdigest() == '359341d7d9088f46f0efd98c25ce68bdaf0c3e4e27835d8f1993355238008e6d'
     triangles, vertices = check_f15(data)
     assert data == f15().finish(), 'F-15 generation must be deterministic'
     path = OUT / 'f15.glb'
