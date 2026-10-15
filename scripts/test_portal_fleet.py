@@ -12,6 +12,59 @@ from test_portal_refurbishment import QuietHandler, ROOT, titles
 OUTPUT = Path('/tmp/trg-fleet/lane4')
 
 
+def check_history_sort(page):
+    # Saved-state fixtures, not gameplay grants. Observe native select sorting.
+    page.set_viewport_size({'width': 1280, 'height': 900})
+    oversized = [{'title': f'Fixture {i}', 'url': f'Games/Fixture{i}/index.html', 'ts': i} for i in range(1000)]
+    oversized.insert(1, oversized[0])
+    raw = json.dumps(oversized)
+    page.evaluate("raw => localStorage.setItem('unblockmath_recent', raw)", raw)
+    page.locator('.ux-sort__select').select_option('recent')
+    page.reload(wait_until='networkidle')
+    page.wait_for_selector('.ux-sort__select', timeout=5000)
+    page.wait_for_selector('.ux-recent__chip', timeout=5000)
+    assert page.locator('.ux-recent__chip').all_text_contents() == [f'Fixture {i}' for i in range(8)]
+    assert page.evaluate("localStorage.getItem('unblockmath_recent')") == raw
+    page.evaluate("""() => {
+        const parse = JSON.parse;
+        let sorting = false, start = 0, parses = 0;
+        JSON.parse = function(...args) {
+            if (sorting) parses++;
+            return parse.apply(this, args);
+        };
+        document.addEventListener('change', e => {
+            if (!e.target.matches('.ux-sort__select')) return;
+            sorting = true; parses = 0; start = performance.now();
+        }, true);
+        document.addEventListener('change', e => {
+            if (!e.target.matches('.ux-sort__select')) return;
+            window.historySortProfile = {parses, ms: performance.now() - start};
+            sorting = false;
+        });
+    }""")
+    sort = page.locator('.ux-sort__select')
+    sort.select_option('title')
+    alphabetical = titles(page, '.bento-grid__standard .game-card')
+    sort.select_option('recent')
+    profile = page.evaluate('window.historySortProfile')
+    assert profile['parses'] == 1, profile
+    assert titles(page, '.bento-grid__standard .game-card') == alphabetical
+    print('PASS oversized history native-sort profile:', json.dumps(profile))
+    # Same-document changes must be reread; duplicate URL keeps its first record.
+    games = json.loads((ROOT / 'games.json').read_text())
+    selected = [next(g for g in games if g['title'] == title) for title in alphabetical[:2]]
+    records = [dict(title=g['title'], url=g['url'], ts=i + 1) for i, g in enumerate(selected)]
+    records.insert(1, dict(records[0], ts=999))
+    for value, expected in [(json.dumps(records), list(reversed(alphabetical[:2]))), ('[null]', alphabetical[:2]), ('{bad', alphabetical[:2])]:
+        page.evaluate("raw => localStorage.setItem('unblockmath_recent', raw)", value)
+        sort.select_option('title')
+        sort.select_option('recent')
+        assert page.evaluate('window.historySortProfile.parses') == 1
+        assert titles(page, '.bento-grid__standard .game-card')[:2] == expected
+        assert page.evaluate("localStorage.getItem('unblockmath_recent')") == value
+    print('PASS history fresh snapshots, first-URL dedup, descending timestamps, malformed raw storage preserved')
+
+
 def main():
     OUTPUT.mkdir(parents=True, exist_ok=True)
     count = len(json.loads((ROOT / 'games.json').read_text()))
@@ -79,6 +132,7 @@ def main():
                 assert recent.evaluate('el => el.offsetWidth >= 44 && el.offsetHeight >= 44')
                 assert page.locator('.ux-recent').evaluate("el => getComputedStyle(el).scrollbarWidth === 'thin' && getComputedStyle(el).paddingTop === '4px'")
                 page.screenshot(path=str(OUTPUT / 'mobile-dark-recent-fixture.jpg'), quality=80)
+                check_history_sort(page)
                 assert not errors, errors
                 print(f'PASS fleet portal: {count} games; empty hints, reset focus, filtered nested keyboard navigation, native Tab, fuzzy search, 44px targets; desktop/mobile light/dark; saved-recent layout fixture; zero console/page errors')
             finally:

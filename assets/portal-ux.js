@@ -1263,8 +1263,7 @@
     updateClearFiltersBtn();
   }
 
-  function recentTimestamp(title) {
-    var list = getRecentList();
+  function recentTimestamp(title, list) {
     for (var i = 0; i < list.length; i++) {
       if (list[i].title === title) return Number(list[i].ts) || 0;
     }
@@ -1277,6 +1276,8 @@
     var cards = $$('.game-card', grid);
     if (cards.length < 2) return;
     var original = cards.slice();
+    // One fresh snapshot per sort, not a storage read/parse per comparison.
+    var recentList = sortMode === 'recent' ? getRecentList() : [];
     var catalogRank = new Map();
     _gamesList.forEach(function(game, index) { catalogRank.set(game.title, index); });
     cards.sort(function(a, b) {
@@ -1286,7 +1287,7 @@
         return (catalogRank.has(at) ? catalogRank.get(at) : _gamesList.length) -
           (catalogRank.has(bt) ? catalogRank.get(bt) : _gamesList.length);
       }
-      if (sortMode === 'recent') return recentTimestamp(bt) - recentTimestamp(at) || at.localeCompare(bt);
+      if (sortMode === 'recent') return recentTimestamp(bt, recentList) - recentTimestamp(at, recentList) || at.localeCompare(bt);
       if (sortMode === 'category') {
         var ac = textOf($('.game-card__category', a));
         var bc = textOf($('.game-card__category', b));
