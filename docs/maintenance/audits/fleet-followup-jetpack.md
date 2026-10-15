@@ -63,7 +63,7 @@ Each `run-N.jsonl` contains `{t, kind, ...}` with process-relative seconds:
   `boundary` records actual script URLs, save-key decoder result and loader
   method names. No save mutation is performed by the diagnostic.
 
-| Run | Complete marker (seconds) | Requests / responses / finished | HTTP 200 / 404 | Transport failures | Page errors | Console errors / warnings |
+| Run | Complete marker (seconds) | Requests / responses / finished | Response 200 / 404 (including blob) | Transport failures | Page errors | Console errors / warnings |
 | --- | ---: | --- | --- | ---: | ---: | --- |
 | 1 | 38.880 | 405 / 405 / 405 | 404 / 1 | 0 | 1 | 1 / 6 |
 | 2 | 81.838 | 405 / 405 / 405 | 404 / 1 | 0 | 1 | 1 / 6 |
@@ -74,7 +74,7 @@ Every observed HTTP request was local to port8983. None was filtered. All three
 workspace. No materialization was attempted outside ownership. Each run's CDP
 request/response/finished totals also match: 596/596/596, 595/595/595 and
 650/650/650, with zero CDP loading failures. Run3's extra successful request is
-not treated as a failure retry.
+a local `blob:` URL, not another HTTP asset request or a failure retry.
 
 ## Original seven failures: only three identifiable samples
 
@@ -184,6 +184,9 @@ Each native run checks at least2GiB free before launching. Initial free bytes
 **2,359,697,408**, post-native **2,339,725,312**, shared-filesystem delta
 **-19,972,096** bytes; concurrent work makes this non-isolated accounting.
 Diagnostic artifacts occupy about44MiB, including raw CDP data URLs and22 PNGs.
+Post-source-commit free bytes were **2,337,427,456**, a shared delta of
+**-22,269,952** bytes from start. The post-commit maintenance check repeats the
+same concurrent-uncommitted-source assertion; all three owned paths are clean.
 Port8983 has no listener after testing; no owned diagnostic command remains.
 Browser close and server shutdown/server_close execute in finally blocks.
 No persistent server, install or push.
