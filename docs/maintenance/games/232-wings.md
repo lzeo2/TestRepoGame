@@ -286,6 +286,75 @@ Standards/model-contract/inventory cleanup belongs to the next task. Full-fleet
 **124/125 HOLD**, rights and hardware holds are unchanged. No new games, legacy
 deletion, full-gate run or push.
 
+### Jet descriptor and source-built CPU regression receipt (2026-10-15)
+
+Updated only the two new `render/aircraft.ts` descriptors in authored staging,
+then rebuilt Vite runtime assets and `port.patch`. Gun anchors are preserved;
+F-15 now exposes wing-inner/outer, fuselage, centerline and twin exhaust nodes;
+F-35 exposes wing, bay and single exhaust nodes. These are attachment metadata,
+not additional weapons, stores, loadout or animation. No shader, material,
+physics, generator or GLB edits. Actual converted model bounds are F-15
+**13 × 4.315000 × 18.5**, F-35 **10.600000 × 3.305779 × 15**; F-15 placeholder
+and shadow length now include the pitot at 18.5 instead of 18.15.
+
+The compatibility-named `verification/astra-check.ts` now exercises `f15` and
+`f35`; its `.mjs` is rebuilt with cached Bun `--target=node --minify` (921,355
+bytes), never hand-edited. Checks cover actual current hashes from the two
+material receipts above, offline/unlisted zero-bot config, invalid-kind rejection,
+real spawn and wire snapshots, ordinary-input takeoff/turn, unchanged original
+five cruise/boost pairs, strict triangle/byte budgets, 40+ assignments, no
+textures/images/skins/clips, identity roots, no animated gear/prop/stores,
+all attachment nodes and finite cockpit math matching each GLB cockpit marker.
+Takeoff reaches y=1383.761507 / 1258.210354 and speeds 208.696264 / 175.950496.
+
+The same runnable regression uses a test-only Node local-fetch adapter and the
+**existing exported** `createAircraftView`, `aircraftReady`, `aircraftStats` and
+`preloadAircraft`. It runs the actual GLTFLoader and template conversion without
+a GPU, export hooks or a replacement converter. Every jet triangle survives;
+real view anchors match GLB translations. Source and converted counts:
+
+| Selectable model | Source meshes / material objects | Converted triangles / batches | Local load + conversion + view ms |
+| --- | ---: | ---: | ---: |
+| F/A-18 (`fighter`) | 151 / 151 | 17,288 / 8 | 461.560 |
+| YF-12 (`blackbird`) | 123 / 123 | 18,420 / 8 | 284.415 |
+| F-15 | 112 / 10 | 43,392 / 4 | 295.507 |
+| F-35 | 109 / 10 | 42,760 / 4 | 202.183 |
+
+Both jets have one bone and four verified paint/metal/livery/glass batches.
+F-15 batch triangles: **37,476 / 2,908 / 704 / 2,304**; F-35:
+**36,488 / 3,072 / 896 / 2,304**. Converted glass opacity is .62.
+Reference totals include each existing converter's 392 procedural flame triangles
+above its GLB triangle count. Source material counts are material objects, not
+unique values or rendered draw calls. The table reports one sequential
+cold-template sample per kind in the identical fixture, including local file I/O,
+GLTF parse, conversion, view setup and event-loop wait. It is **not isolated parse
+or conversion timing**, statistically controlled comparative performance, network
+loading, GPU upload, shader compilation or rendered-flight acceptance. JIT/cache
+and order effects prevent interpreting the lower F-35 time as faster hardware
+loading. No AC-130 reference was used.
+
+External evidence label: `wings-jets-regression/`: `astra.log`, `bun.log`,
+`vite.log`, `solo.log`, `patch.log`, `consumers.txt`, `retired.json`,
+`patch-diff.txt`, `diff.log`, `maintenance.log`. Bun build, actual jet/CPU
+regression, Vite build, clean-pin patch applicability, original solo regression,
+regression syntax, all ten runtime chunk syntax checks and 125-entry catalog
+schema/unique-ID/tracked-URL validation each exit **0**. Retired hashes were
+traced across cached tracked content (including sparse content), then checked
+absent from rebuilt HTML/chunk imports before deletion; consumers were only the
+replaced Wings runtime chunks and entry. Initial per-hash consumer scan hit its
+20-second outer bound; one combined full tracked scan completed successfully.
+`git diff --check` exits **2** for inherited generated shader-literal whitespace
+in the rebuilt test bundle; no bundle surgery or shader rewrite was used.
+Maintenance checker exits **1**, requiring committed-source inventory
+reconciliation by the final documentation lane. No inventory refresh here.
+
+No browser/GPU rerun or screenshots in this CPU-first task. Existing UI evidence
+is historical, not a new visual PASS. Full-fleet **124/125 HOLD**, missing-license,
+native rendering/cockpit/flight and hardware/load-time holds remain. No new games,
+legacy deletion, dependency install, full-fleet rerun or push. Pinned source and
+cache remain read-only; no HTTP server was needed. Final model contract, Standards
+and inventory cleanup remain assigned to the coordinator/documentation lane.
+
 ## Future outlook
 
 On supported hardware, isolate the fallback shader/compiler failure and verify first scene, takeoff, turning, combat, crash/respawn, back-to-menu and a fresh session. Preserve the honest failure boundary while doing so. Resolve redistribution rights before release; do not replace upstream flight with fabricated gameplay to satisfy a render gate.
