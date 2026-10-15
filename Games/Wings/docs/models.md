@@ -142,7 +142,7 @@ serves that dependency only for the fixture and terminates in `finally`.
 `model-preview.html` is a verification fixture, not a game entry; open it through
 this server rather than expecting `/__three__/` on the deployed site.
 
-Fresh checks passed:
+Historical lane1 checks passed (2026-10-15, before integration):
 
 - Structural/size regression: deterministic bytes, GLB chunks, buffer bounds,
   node tree, finite attributes, normals/winding, indices, distinct propeller rig,
@@ -157,15 +157,15 @@ Fresh checks passed:
 - Catalog check: 125 unique IDs, expected schema, and tracked entry URLs.
 
 The original lane1 run claimed no actual Wings rendered-flight, picker, material-converter, propeller animation,
-collision, handling, native hardware, full-catalog smoke or release acceptance
-is claimed. No game was added or registered. No push.
+collision, handling, native hardware, full-catalog smoke or release acceptance. No game was added or registered. No push.
 
 ## Blockers and ownership
 
 Historical lane1 blocker (resolved by follow-up task 1): local staging TypeScript source was not found; a help ticket was raised instead
-of fetching upstream or editing minified bundles. Lane 2 owns source recovery,
-implementation, picker/handling integration and the Wings maintenance manual.
-Lane 7 owns inventory refresh: `check_maintenance_docs.py` already reported
+of fetching upstream or editing minified bundles. Follow-up task 2 committed picker/handling integration at `d435f12`; supported-GPU
+acceptance remains held. Historical lane ownership and inventory receipt follow:
+Lane 2 owned source recovery, implementation and the Wings maintenance manual.
+Lane 7 owned inventory refresh: `check_maintenance_docs.py` already reported
 `Inventory stale: inspect changes, then run --refresh.` before these changes,
 and the recorded inventory had no Wings entry. This lane does not refresh it.
 The model fixture is deliberately separate from the existing held renderer gate.
