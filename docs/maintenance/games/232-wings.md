@@ -20,10 +20,13 @@ Read the [quality contract](../../../Games/Wings/docs/aircraft-quality-contract.
 [study](../../../Games/Wings/docs/repair-study.md) and
 [model contract](../../../Games/Wings/docs/models.md).
 
-**Fresh full gate pending.** Historical `2d2eb61` was **124/125, exit 1, HOLD**;
-the earlier 122/125 also failed. Neither certifies this runtime. See the
-[completed historical gate](../audits/fleet-followup-full-gate.md) and
-[handover](../audits/fleet-followup-handover.md). No publication or push approval.
+**Fresh full gate: 125/125, exit 0**, tested `b52d942` in 1,579.29 seconds with
+unchanged runner/catalog/filters. See the [repair receipt](../audits/wings-repair-20261017.md)
+and [machine-readable result](../audits/wings-repair-full-gate-20261017.json).
+Historical `2d2eb61` was 124/125, exit 1; the earlier 122/125 also failed. Their
+[dated evidence](../audits/fleet-followup-full-gate.md) remains intact.
+Loading PASS does not establish full gameplay, target-device or rights acceptance.
+No publication or push approval.
 
 ## Implementation map
 
@@ -103,7 +106,7 @@ that bounded host result without curing historical Pi failures or proving flight
 An earlier native automation run had pointer-lock/control limitations and failed
 menu return because the canvas intercepted the button; another ended on the spawn
 screen before its nominal cockpit capture. Those captures are not cockpit or
-flight acceptance. The final revision's native run remains pending below.
+flight acceptance. The successful final parent run is scoped separately below.
 The crowded mobile failure toast is also an inherited UI finding.
 
 Current converted jets have six batches: paint/metal/livery/afterburner/glass/flame.
@@ -138,6 +141,11 @@ exhaust throttle/boost; both missile door triggers; cannon exclusion; signed
 cover movement/reclose; cockpit/anchor math. Original-five speeds/loadouts and
 absence of hardpoint overrides are checked. These are CPU/render-state fixtures.
 
+Current unavailable-GPU UI regression after `b65acc7`: four cases passed at
+1280 x 720 / 390 x 844 in dark/light preferences, exit 0, no page errors or
+external requests. [Case data](../audits/wings-repair-ui-20261017.json) covers
+fail-closed launch/retry, selection/navigation and spawn/HUD fixtures, not flight.
+
 Source-only build using approved external dependencies succeeded. Current
 browser/test bundles are integrated; patch application to the clean pinned index
 passes. Independent review parsed 12 JS files and resolved generated local links.
@@ -147,7 +155,9 @@ linked archive; no old PASS is promoted to current acceptance.
 **Final native evidence:** the parent probe on Windows Edge WebGPU/AMD passed
 normal-input takeoff/climb above 120 m, turn, boost, cockpit/chase, cannon fire,
 Escape, ordinary menu return (zero sessions) and fresh restart (one session) for
-both jets. No console/page errors or external requests. Root reviewed raw family
+both jets. A separate normal-input dive/death and keys 6/7 respawn check passed
+for each jet with HP 450, pause off and pointer lock restored; the precise death
+cause was not event-proven. No console/page errors or external requests. Root reviewed raw family
 comparisons and the saved [native previews](../../../Games/Wings/docs/previews-v2/README.md).
 The forward cockpit view is usable; black coaming/nose remains below the reticle.
 Headless pointer-lock acquisition failed and keyboard fallback worked. Physical
@@ -155,11 +165,16 @@ mouse capture, missile targeting/fire, audio, converted-family parity, Pi GPU an
 native load-time delta remain unverified. Two worker readiness failures preceded
 the successful parent run; no product acceptance was inferred from those failures.
 
-**Pending release evidence:** fresh unchanged full 125-game gate, exact exit/result,
-restored sparse state and process cleanup are pending. The historical 124/125
-failure and its unresolved transport diagnosis remain preserved. Generated shader
-whitespace and historical artifact-path findings stay open until the orchestrator
-records current range checks/remediation; documentation whitespace is not global PASS.
+**Fresh catalog evidence:** 125 visits, 125 passes, zero failures, exit 0 on
+`b52d942`. Original coding sparse configuration restored exactly; protected hashes
+unchanged; clean repository; owned HTTP server closed and adapter processes ended.
+Peak materialization 195,853,427 bytes, 300 MiB cap and stricter 2 GiB floor.
+No target/wait/filter override or retry. Existing exclusion counts are not logged,
+so this is not unfiltered clean loading or complete gameplay/offline acceptance.
+Ovo's historical transport failure did not recur; its root cause is not proven.
+Two generated Three shader-template whitespace findings remain in the repair
+range (aircraft chunk line 30, astra bundle line 3848); authored scopes pass
+separately. Historical artifact-path and mobile failure-toast findings remain open.
 
 ## Standards
 
@@ -200,7 +215,8 @@ Terminate owned temporary servers; install nothing merely to reproduce a report.
 
 ## Future outlook
 
-Integrate the pending final native and family review, preserve failures, then
-resolve remaining control/cockpit/device/rights holds. Record the fresh full fleet
-result before any separately authorized release decision. This documentation
-adds no game, registration, dependency permission or publication authorization.
+Complete operator and converted-family review, native missile/audio/physical-input
+checks, target-device measurements and rights review. Preserve bounded failures
+and record the fresh full fleet result before a separately authorized release
+decision. This documentation adds no game, registration, dependency permission or
+publication authorization.

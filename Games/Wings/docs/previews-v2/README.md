@@ -19,6 +19,12 @@ This is not a performance benchmark. Headless pointer-lock acquisition failed;
 keyboard fallback worked. Physical mouse capture, audio, missile targeting/fire,
 Pi rendering and native load-time comparison remain unverified.
 
+A separate ordinary-input dive reached the normal death state for both jets;
+keys 6/7 then respawned the correct jet with HP 450, pause off and pointer lock
+restored. The exact death cause was not event-proven; this is not a collision
+cause assertion. Secondary hold/release produced no missile without a target,
+so it does not establish missile acquisition or launch acceptance.
+
 Model SHA-256:
 
 - F-15: `5c1bf64dc21962dc822dc44edd91186aa4a6932034b06a405d3170518fc135bf`

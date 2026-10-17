@@ -1,5 +1,8 @@
 # Fleet follow-up: final handover (2026-10-15)
 
+This dated handover preserves the earlier failure. The fresh 2026-10-17 repair
+run passed 125/125; see its [separate receipt](wings-repair-20261017.md).
+
 ## Disposition and scope
 
 **Integrated, not released. Latest full gate COMPLETE: 124/125, exit 1; HOLD.**

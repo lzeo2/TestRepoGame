@@ -1,0 +1,118 @@
+[
+  {
+    "theme": "dark",
+    "size": [
+      1280,
+      720
+    ],
+    "boxes": {
+      ".hud-radar": {
+        "x": 24,
+        "y": 528,
+        "right": 192,
+        "bottom": 696
+      },
+      ".hud-mapwrap": {
+        "x": 1076,
+        "y": 516,
+        "right": 1256,
+        "bottom": 696
+      },
+      ".weapons": {
+        "x": 858.5625,
+        "y": 628,
+        "right": 1052,
+        "bottom": 698
+      }
+    },
+    "errors": [],
+    "external": []
+  },
+  {
+    "theme": "dark",
+    "size": [
+      390,
+      844
+    ],
+    "boxes": {
+      ".hud-radar": {
+        "x": 12,
+        "y": 604,
+        "right": 132,
+        "bottom": 724
+      },
+      ".hud-mapwrap": {
+        "x": 258,
+        "y": 604,
+        "right": 378,
+        "bottom": 724
+      },
+      ".weapons": {
+        "x": 184.5625,
+        "y": 504,
+        "right": 378,
+        "bottom": 574
+      }
+    },
+    "errors": [],
+    "external": []
+  },
+  {
+    "theme": "light",
+    "size": [
+      1280,
+      720
+    ],
+    "boxes": {
+      ".hud-radar": {
+        "x": 24,
+        "y": 528,
+        "right": 192,
+        "bottom": 696
+      },
+      ".hud-mapwrap": {
+        "x": 1076,
+        "y": 516,
+        "right": 1256,
+        "bottom": 696
+      },
+      ".weapons": {
+        "x": 858.5625,
+        "y": 628,
+        "right": 1052,
+        "bottom": 698
+      }
+    },
+    "errors": [],
+    "external": []
+  },
+  {
+    "theme": "light",
+    "size": [
+      390,
+      844
+    ],
+    "boxes": {
+      ".hud-radar": {
+        "x": 12,
+        "y": 604,
+        "right": 132,
+        "bottom": 724
+      },
+      ".hud-mapwrap": {
+        "x": 258,
+        "y": 604,
+        "right": 378,
+        "bottom": 724
+      },
+      ".weapons": {
+        "x": 184.5625,
+        "y": 504,
+        "right": 378,
+        "bottom": 574
+      }
+    },
+    "errors": [],
+    "external": []
+  }
+]

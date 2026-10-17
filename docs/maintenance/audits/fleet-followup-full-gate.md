@@ -1,5 +1,8 @@
 # Fleet follow-up: completed full gate (2026-10-15)
 
+This dated failure receipt is preserved. The fresh 2026-10-17 repair run passed
+125/125; see its [separate receipt](wings-repair-20261017.md).
+
 ## Final disposition
 
 **COMPLETE: 124/125, exit 1. Release HOLD; no push.** Gate17's running checkpoint

@@ -136,8 +136,13 @@ failed; keyboard fallback worked. Physical mouse capture, missile combat, audio,
 Pi GPU behavior and load-time delta remain unverified. Worker readiness failures
 and historical Pi shader failures are preserved as bounded failures.
 
-**Pending release evidence:** a fresh unchanged full 125-game gate is pending.
-The historical gate at `2d2eb61` was 124/125, exit 1 (Ovo network failures), not a
-PASS or evidence for this runtime. Rights, native acceptance, historical artifact
-path cleanup and current global whitespace verification remain open. No push or
-release authorization follows from this document.
+**Full catalog gate:** the fresh unchanged run at `b52d942` passed **125/125,
+exit 0**, in 1,579.29 seconds. Coding sparse configuration was restored exactly,
+protected hashes remained unchanged, and the repository was clean. Peak Games
+payload was 195,853,427 bytes; the 2 GiB free-space floor held. Existing failure
+filters were unchanged and their exclusion counts are not instrumented. This is
+a catalog loading pass, not full gameplay, offline or target-device acceptance.
+See the [repair receipt](../../../docs/maintenance/audits/wings-repair-20261017.md).
+The historical `2d2eb61` 124/125 failure remains dated evidence. Rights, remaining
+native checks, historical artifact-path cleanup and two generated shader-template
+whitespace findings remain open. No push or release authorization follows.
