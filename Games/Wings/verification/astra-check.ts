@@ -17,7 +17,7 @@ assert.deepEqual(VEHICLE_KINDS, ['fighter', 'apache', 'warthog', 'blackbird', 'b
 assert.deepEqual(VEHICLE_KINDS.slice(0, 5).map(k => [VEHICLES[k].cruise, VEHICLES[k].boost]), [[135,185],[75,98],[105,135],[190,260],[150,180]])
 assert.equal(CONFIG.bomber.doors?.seat, 1)
 assert.equal(CONFIG.bomber.doors?.weapons, undefined, 'original bomber keeps its either-slot seat trigger')
-const hashes = ['e0613588851722e7abfb1d4655e8866aa50aad80380902859e378b083494f588', '76ff393cc09575c74e792a9df3ed5538cc7c03edc7a78f0c5c8c2a3e515ca7a4']
+const hashes = ['e0613588851722e7abfb1d4655e8866aa50aad80380902859e378b083494f588', 'c8fdfe262bcef208f8e6c3abfe5d0681d898d30bd5069a602deaad3e695b2904']
 const results = []
 for (const [index, kind] of (['f15', 'f35'] as const).entries()) {
   const messages: ServerMessage[] = []
@@ -227,6 +227,27 @@ try {
       CONFIG[kind].afterburners.forEach((ab, i) => assert(bone(ab.name).scale.z > idleScales[i] * 2))
       if (kind === 'f35') {
         const closed = CONFIG.f35.doors!.names.map(([name]) => bone(name).quaternion.clone())
+        // Measure actual converted door vertices in their bone-local frame, not a guessed
+        // hinge offset. Angular magnitude alone can hide a cover rotating up through the hull.
+        const doorCenters = CONFIG.f35.doors!.names.map(([name]) => {
+          const b = bone(name)
+          const bi = mesh.skeleton.bones.indexOf(b)
+          const center = new Vector3()
+          let count = 0
+          for (const o of model.children as any[]) {
+            const indices = o.geometry?.getAttribute('skinIndex')
+            const positions = o.geometry?.getAttribute('position')
+            if (!indices || !positions) continue
+            for (let i = 0; i < indices.count; i++) {
+              if (indices.getX(i) !== bi) continue
+              center.add(new Vector3().fromBufferAttribute(positions, i).applyMatrix4(mesh.skeleton.boneInverses[bi]))
+              count++
+            }
+          }
+          assert(count > 0, `${name}: door surface is missing`)
+          center.divideScalar(count)
+          return { local: center, closedY: center.clone().applyMatrix4(b.matrixWorld).y }
+        })
         view.setFiring(0, 0, true)
         for (let i = 0; i < 120; i++) stepView()
         CONFIG.f35.doors!.names.forEach(([name], i) => assert(bone(name).quaternion.angleTo(closed[i]) < 0.001, 'pilot cannon must not open missile bay'))
@@ -234,10 +255,17 @@ try {
         for (const [seat, slot] of CONFIG.f35.doors!.weapons!) {
           view.setFiring(seat, slot, true)
           for (let i = 0; i < 120; i++) stepView()
-          CONFIG.f35.doors!.names.forEach(([name], i) => assert(bone(name).quaternion.angleTo(closed[i]) > 1, `missile slot ${seat}/${slot} must open bay`))
+          CONFIG.f35.doors!.names.forEach(([name], i) => {
+            assert(bone(name).quaternion.angleTo(closed[i]) > 1, `missile slot ${seat}/${slot} must open bay`)
+            const openY = doorCenters[i].local.clone().applyMatrix4(bone(name).matrixWorld).y
+            assert(openY < doorCenters[i].closedY - 0.05, `${name}: bay cover must swing downward, away from hull`)
+          })
           view.setFiring(seat, slot, false)
           for (let i = 0; i < 240; i++) stepView()
-          CONFIG.f35.doors!.names.forEach(([name], i) => assert(bone(name).quaternion.angleTo(closed[i]) < 0.001, 'released missile trigger must close bay'))
+          CONFIG.f35.doors!.names.forEach(([name], i) => {
+            assert(bone(name).quaternion.angleTo(closed[i]) < 0.001, 'released missile trigger must close bay')
+            assert(Math.abs(doorCenters[i].local.clone().applyMatrix4(bone(name).matrixWorld).y - doorCenters[i].closedY) < 0.001, `${name}: closed door surface did not return`)
+          })
         }
       }
       const hull = model.children.find((o: any) => o.name === 'toon' && o.material.metalness === 0.05) as any
