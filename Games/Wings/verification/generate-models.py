@@ -206,6 +206,34 @@ def afterburner(m, name, position, radius):
            10, pivot, sides=24)
 
 
+def meter_scale(m, scale):
+    """Bake meter corrections into geometry and anchors, keeping an identity root."""
+    for mesh in m.doc['meshes']:
+        for primitive in mesh['primitives']:
+            for attribute in ('POSITION', 'NORMAL'):
+                a = m.doc['accessors'][primitive['attributes'][attribute]]
+                view = m.doc['bufferViews'][a['bufferView']]
+                values = list(struct.unpack_from('<'+'f'*(a['count']*3), m.data, view['byteOffset']))
+                for i in range(0, len(values), 3):
+                    p = [values[i+k] * scale[k] if attribute == 'POSITION'
+                         else values[i+k] / scale[k] for k in range(3)]
+                    if attribute == 'NORMAL':
+                        length = math.sqrt(sum(x*x for x in p))
+                        p = [x/length for x in p]
+                    values[i:i+3] = p
+                struct.pack_into('<'+'f'*len(values), m.data, view['byteOffset'], *values)
+                if attribute == 'POSITION':
+                    a['min'] = [round(min(values[k::3]), 6) for k in range(3)]
+                    a['max'] = [round(max(values[k::3]), 6) for k in range(3)]
+                else:
+                    # glTF requires position bounds; normal bounds are optional.
+                    a.pop('min', None)
+                    a.pop('max', None)
+    for node in m.doc['nodes']:
+        if 'translation' in node:
+            node['translation'] = [node['translation'][k]*scale[k] for k in range(3)]
+
+
 def f15():
     """Original gear-up F-15-style exterior; no mesh/image/reference asset input.
 
@@ -390,6 +418,7 @@ def f15():
     m.node('weapon_centerline', (0,-.57,.4))
     m.node('cockpit', (0, 1.05, -4.9))
     m.node('gun_muzzle', (1.03, .27, -3.9))
+    meter_scale(m, (1, 1, 19.44/18.5))
     return m
 
 
@@ -413,8 +442,8 @@ def f35():
     m.doc['materials'][2]['alphaMode'] = 'BLEND'
     m.doc['materials'][2]['pbrMetallicRoughness']['baseColorFactor'][3] = .38
     dark_paint(m)
-    stations = [(-8.0, .018, .025, -.08), (-6.4, .48, .38, -.03),
-                (-4.5, .95, .67, .02), (-2.5, 1.62, .82, .02),
+    stations = [(-8.0, .018, .025, -.08), (-6.4, .66, .43, -.03),
+                (-4.5, 1.06, .70, .02), (-2.5, 1.62, .82, .02),
                 (0, 1.85, .79, 0), (2.5, 1.60, .68, 0),
                 (4.8, 1.04, .58, .01), (6.0, .70, .58, .01)]
 
@@ -424,7 +453,8 @@ def f35():
         t = (1-math.cos(math.pi*(z-a[0])/(b[0]-a[0])))/2
         rx, ry, cy = [a[k]+(b[k]-a[k])*t for k in (1, 2, 3)]
         c, s = math.cos(math.tau*v), math.sin(math.tau*v)
-        return (rx*math.copysign(abs(c)**.72, c),
+        chine = .66 if z < -4.5 else .66+.06*min(1, (z+4.5)/2)
+        return (rx*math.copysign(abs(c)**chine, c),
                 cy+ry*math.copysign(abs(s)**.85, s), z)
 
     # Omit the upper skin inside the cockpit, rather than glazing over solid skin.
@@ -519,20 +549,18 @@ def f35():
                     return (x+(.006 if face == 0 else -.006),y,z)
                 f15_patch(m, name+'_'+side+'_'+str(face), marking,16,4,mat)
 
-        # Old inner lip (x=.83,z=-3.12) lay inside the broad body (rx>1.4).
-        # Move the whole diamond ahead/outboard of the skin; taper a duct back
-        # into the shoulder instead of leaving a flat intersecting mouth.
-        outline = [(sign*1.42, .08, -3.70), (sign*1.88, .57, -3.52),
-                   (sign*2.38, .02, -3.38), (sign*1.91, -.48, -3.56)]
+        # Shoulder trapezoid blends into the chine instead of a detached diamond.
+        outline = [(sign*1.24, .14, -3.42), (sign*1.66, .39, -3.18),
+                   (sign*1.85, -.30, -3.06), (sign*1.33, -.49, -3.35)]
         m.slab('intake_throat_'+side, outline, 2, .04, 4)
         center = [sum(p[k] for p in outline)/4 for k in range(3)]
-        outer = [tuple(center[k]+(p[k]-center[k])*1.10-(.045 if k == 2 else 0)
+        outer = [tuple(center[k]+(p[k]-center[k])*1.045-(.025 if k == 2 else 0)
                        for k in range(3)) for p in outline]
         for i in range(4):
             j = (i+1) % 4
             m.slab('intake_lip_'+side+str(i), [outline[i], outline[j], outer[j], outer[i]], 2, .03, 1)
-            aft_i = (outer[i][0]-sign*.42,outer[i][1]*.82,-.8)
-            aft_j = (outer[j][0]-sign*.42,outer[j][1]*.82,-.8)
+            aft_i = (sign*(1.67+.10*outer[i][1]),outer[i][1]*.82,-.8)
+            aft_j = (sign*(1.67+.10*outer[j][1]),outer[j][1]*.82,-.8)
             m.slab('intake_duct_'+side+str(i), [outer[i],outer[j],aft_j,aft_i], 2,.025,0)
 
         for name,a,b,lo,hi,mat in [('shoulder_access',.48,.62,.04,.12,7),
@@ -620,6 +648,7 @@ def f35():
         for child in node.get('children', []):
             check_store(child, offset)
     check_store(0)
+    meter_scale(m, (10.7/10.6, 1, 15.7/15))
     return m
 
 
