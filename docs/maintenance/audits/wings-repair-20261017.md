@@ -172,3 +172,22 @@ checked separately. Historical artifact-path and mobile failure-toast findings
 remain qualified. Upstream missing LICENSE/redistribution rights remain unresolved.
 
 No push, release or deployment permission is implied by any bounded pass.
+
+## Commit trail
+
+Source, verification and evidence milestones through this receipt:
+
+- `788b90c` fix: verify Wings stores exhaust and converted dark paint
+- `28484cd` fix: connect jet model stores and exhaust geometry
+- `9b837b1` fix: verify both F-35 missile bay triggers
+- `490d98e` fix: recess F-35 stores behind hinged bay covers
+- `a1c3cc7` fix: verify F-35 bay covers move away from hull
+- `e029a18` chore: incorporate current aircraft rework requirements
+- `92e470f` fix: refine jet contours and meter dimensions
+- `f1f7cc6` fix: verify jet hardpoints distinct fits and store regeneration
+- `80d88ae` fix: rebuild Wings with reviewed jets and native exit repair
+- `b52d942` chore: refresh inventory for reviewed Wings repair
+- `b65acc7` fix: align Wings verification aircraft labels
+- `eb934c2` docs: record Wings repair and successful full catalog gate
+
+The final inventory/receipt commit is reported in the orchestrator handoff.
