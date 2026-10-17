@@ -3,21 +3,42 @@ import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { createHash } from 'node:crypto'
-import { Box3, PerspectiveCamera, Vector3, Color } from 'three'
+import { Box3, PerspectiveCamera, Vector3, Color, Matrix4, Quaternion } from 'three'
 import { setTimeout as delay } from 'node:timers/promises'
 import { CameraRig } from './src/render/camera'
 import { CONFIG, preloadAircraft, aircraftReady, aircraftStats, createAircraftView } from './src/render/aircraft'
 import { createLoopbackRoom } from './src/sim/loopback'
-import { TICK_DT, type VehicleKind } from './src/sim/types'
+import { TICK_DT, type VehicleKind, type Vec3 } from './src/sim/types'
+import { muzzlePosition, isHiddenStealth, stepCombat, createCombatState } from './src/sim/combat'
 import { VEHICLES, VEHICLE_KINDS, WEAPONS } from './src/sim/vehicles'
 import { DEFAULT_ROOM_CONFIG, type ServerMessage } from './src/sim/protocol'
 
 const models = resolve(process.argv[2] ?? 'Games/Wings/models')
 assert.deepEqual(VEHICLE_KINDS, ['fighter', 'apache', 'warthog', 'blackbird', 'bomber', 'f15', 'f35'])
 assert.deepEqual(VEHICLE_KINDS.slice(0, 5).map(k => [VEHICLES[k].cruise, VEHICLES[k].boost]), [[135,185],[75,98],[105,135],[190,260],[150,180]])
+assert.deepEqual(VEHICLE_KINDS.slice(0, 5).map(k => VEHICLES[k].seatWeapons), [
+  [['cannon20','aim9'],['tvmissile',null]], [['rockets',null],['chaingun30','hellfire']],
+  [['gau8','rockets'],['maverick',null]], [[null,null],['aim47','radarpulse']], [['bomb',null],['bomb',null]],
+])
+assert(VEHICLE_KINDS.slice(0, 5).every(k => VEHICLES[k].hardpoints === undefined))
+assert.deepEqual(VEHICLES.f15.seatWeapons, [['cannon20','aim9'],['maverick',null]])
+assert.deepEqual(VEHICLES.f35.seatWeapons, [['cannon20','tvmissile'],['tvmissile',null]])
+assert.equal(VEHICLES.f35.stealth, true)
 assert.equal(CONFIG.bomber.doors?.seat, 1)
 assert.equal(CONFIG.bomber.doors?.weapons, undefined, 'original bomber keeps its either-slot seat trigger')
-const hashes = ['e0613588851722e7abfb1d4655e8866aa50aad80380902859e378b083494f588', 'c8fdfe262bcef208f8e6c3abfe5d0681d898d30bd5069a602deaad3e695b2904']
+const hashes = ['5c1bf64dc21962dc822dc44edd91186aa4a6932034b06a405d3170518fc135bf', 'ce19018414037e3cef949a99ae08a1d035b25fbd20601e1835c2426bc32db197']
+function nodePosition(gltf: any, name: string): Vector3 {
+  let i = gltf.nodes.findIndex((n: any) => n.name === name)
+  assert(i >= 0, name)
+  const matrix = new Matrix4()
+  while (i >= 0) {
+    const n = gltf.nodes[i]
+    const local = n.matrix ? new Matrix4().fromArray(n.matrix) : new Matrix4().compose(new Vector3(...(n.translation ?? [0,0,0])), new Quaternion(...(n.rotation ?? [0,0,0,1])), new Vector3(...(n.scale ?? [1,1,1])))
+    matrix.premultiply(local)
+    i = gltf.nodes.findIndex((p: any) => p.children?.includes(i))
+  }
+  return new Vector3().setFromMatrixPosition(matrix)
+}
 const results = []
 for (const [index, kind] of (['f15', 'f35'] as const).entries()) {
   const messages: ServerMessage[] = []
@@ -54,6 +75,31 @@ for (const [index, kind] of (['f15', 'f35'] as const).entries()) {
   assert.equal(createHash('sha256').update(bytes).digest('hex'), hashes[index])
   const gltf = JSON.parse(bytes.subarray(20, 20 + bytes.readUInt32LE(12)).toString())
   const names = gltf.nodes.map((n: { name: string }) => n.name)
+  const hp = VEHICLES[kind].hardpoints!
+  assert(hp, 'model-derived combat hardpoints required')
+  const expectedGun = nodePosition(gltf, 'gun_muzzle')
+  assert(new Vector3(...hp.gun).distanceTo(expectedGun) < 1e-6)
+  const originalPosition = [...vehicle.flight.position] as Vec3
+  const originalOrientation = [...vehicle.flight.orientation] as [number,number,number,number]
+  vehicle.flight.position = [17, 200, -31]
+  const out: Vec3 = [0,0,0]
+  for (const orientation of [[0,0,0,1], [0,Math.SQRT1_2,0,Math.SQRT1_2]] as [number,number,number,number][]) {
+    vehicle.flight.orientation = orientation
+    const expectedWorld = (p: Vector3) => p.clone().applyQuaternion(new Quaternion(...orientation)).add(new Vector3(...vehicle.flight.position))
+    assert(new Vector3(...muzzlePosition(vehicle, 0, 'cannon20', out)).distanceTo(expectedWorld(expectedGun)) < 1e-6)
+    for (const seat of [0,1] as const) for (const rail of [0,1] as const) {
+      const point = nodePosition(gltf, `missile_${rail ? 'R' : 'L'}${seat ? 1 : 2}`)
+      assert(new Vector3(...hp.missiles[seat][rail]).distanceTo(point) < 1e-6)
+      const id = VEHICLES[kind].seatWeapons[seat][seat ? 0 : 1]!
+      assert(new Vector3(...muzzlePosition(vehicle, seat, id, out, rail)).distanceTo(expectedWorld(point)) < 1e-6)
+    }
+  }
+  vehicle.flight.position = originalPosition
+  vehicle.flight.orientation = originalOrientation
+  vehicle.spottedUntil = 0
+  assert.equal(isHiddenStealth(vehicle, 1), kind === 'f35')
+  vehicle.spottedUntil = 2
+  assert.equal(isHiddenStealth(vehicle, 1), false)
   for (const name of [...desc.pivots, ...desc.anchors.map(a => a.node)]) assert(names.includes(name), name)
   assert.deepEqual(desc.spinners, [])
   assert.deepEqual(desc.stores.map(g => g.weapons), [[[0, 1]], [[1, 0]]])
@@ -197,12 +243,24 @@ try {
       for (const group of CONFIG[kind].stores) for (const name of group.order) assert(bone(name).scale.x > 0.9)
       for (const group of CONFIG[kind].stores) {
         for (const name of group.order) assert(bone(name).scale.x > 0.9)
-        for (const [seat, slot] of group.weapons) vehicle.weapons[seat][slot]!.ammo = 0
-        stepView()
-        for (const name of group.order) assert(bone(name).scale.x < 0.001, `${name}: spent store remains visible`)
-        for (const [seat, slot] of group.weapons) vehicle.weapons[seat][slot]!.ammo = WEAPONS[VEHICLES[kind].seatWeapons[seat][slot]!].ammo
-        stepView()
-        for (const name of group.order) assert(bone(name).scale.x > 0.9, `${name}: replenished store did not return`)
+        assert.equal(group.weapons.length, 1)
+        const [seat, slot] = group.weapons[0]
+        const spec = WEAPONS[VEHICLES[kind].seatWeapons[seat][slot]!]
+        assert.equal(spec.ammo, group.order.length)
+        for (let remaining = spec.ammo - 1; remaining >= 0; remaining--) {
+          vehicle.weapons[seat][slot]!.ammo--
+          stepView()
+          assert.equal(group.order.filter(name => bone(name).scale.x > 0.9).length, remaining, 'one spent round must hide exactly one store')
+          group.order.forEach((name, i) => assert.equal(bone(name).scale.x > 0.9, i >= spec.ammo - remaining))
+        }
+        const regen = createCombatState()
+        regen.ships = {}; regen.turrets = [] // Render fixture isolates real ammo regeneration from fleet combat.
+        for (let restored = 1; restored <= spec.ammo; restored++) {
+          stepCombat(regen, [vehicle], spec.refill / spec.ammo, 100 + restored * spec.refill, [])
+          stepView()
+          assert.equal(vehicle.weapons[seat][slot]!.ammo, restored)
+          assert.equal(group.order.filter(name => bone(name).scale.x > 0.9).length, restored, 'regenerated round must restore one store')
+        }
         for (const other of CONFIG[kind].stores.filter(g => g !== group)) for (const name of other.order) assert(bone(name).scale.x > 0.9, `${name}: unrelated slot changed`)
       }
       const flame = model.children.find((o: any) => o.name === 'flame') as any
@@ -289,4 +347,4 @@ try {
   globalThis.ProgressEvent = nativeProgressEvent
 }
 console.log(JSON.stringify({ converted }))
-console.log('PASS: F-15/F-35 offline spawn/snapshot, invalid-kind rejection, ordinary-input takeoff/turn, actual hashes/budgets/material assignments, cockpit/anchor math and real CPU loader/template/view. Original five cruise/boost unchanged. Timings include local I/O + GLTF parse + conversion + view setup; single samples, no GPU/rendered-flight/thumbnail acceptance.')
+console.log('PASS: F-15/F-35 distinct loadouts/stealth, model-derived gun/missile positions in identity and rotated poses, one-store-per-round depletion/regeneration, offline spawn/snapshot, invalid-kind rejection, ordinary-input takeoff/turn, hashes/budgets/material assignments, cockpit/anchor math and real CPU loader/template/view. Original five cruise/boost/loadouts and generic hardpoints unchanged. Timings include local I/O + GLTF parse + conversion + view setup; single samples, no GPU/rendered-flight/thumbnail acceptance.')
