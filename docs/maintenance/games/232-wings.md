@@ -107,7 +107,8 @@ An earlier native automation run had pointer-lock/control limitations and failed
 menu return because the canvas intercepted the button; another ended on the spawn
 screen before its nominal cockpit capture. Those captures are not cockpit or
 flight acceptance. The successful final parent run is scoped separately below.
-The crowded mobile failure toast is also an inherited UI finding.
+The crowded mobile failure toast was an inherited UI finding; the continuation
+below records its source repair and fresh verification separately.
 
 Current converted jets have six batches: paint/metal/livery/afterburner/glass/flame.
 F-15 is 41,744 converted triangles; F-35 41,008. Raw model draws 142/143 and
@@ -175,6 +176,40 @@ Ovo's historical transport failure did not recur; its root cause is not proven.
 Two generated Three shader-template whitespace findings remain in the repair
 range (aircraft chunk line 30, astra bundle line 3848); authored scopes pass
 separately. Historical artifact-path and mobile failure-toast findings remain open.
+
+## Continuation (2026-10-17)
+
+The continuation after `a3f5554` clears all four local weapon hints on every
+input frame. Changing pilot/officer seats, pausing, or losing local ownership
+must not retain a trigger or explicit boost override. The new helper is used by
+the real game controller and exercised with a converted F-35 view. No weapon,
+flight tuning, network protocol or original-five model data changed.
+
+The renderer recovery dialog now owns renderer-startup errors without a duplicate
+toast. Other error toasts wrap within the viewport and sit above the mobile
+footer. The real toast helper is exercised by a clearly labeled UI fixture.
+The current source-built continuation is awaiting its fresh UI/catalog results;
+the successful `b52d942` gate above covers the earlier runtime only.
+
+The rebuilt CPU regression also acquired and fired each existing missile fit
+through real simulation functions: F-15 pilot AIM-9 and officer Maverick, F-35
+pilot/officer TV missile. Each case checked own ammo 2 to 1, ownership/target,
+model-derived launch coordinates and the corresponding converted store; F-35
+covers reopened and reclosed. These deliberately positioned CPU fixtures do not
+establish native target acquisition or missile gameplay.
+
+Windows audio diagnostics captured running 48 kHz contexts and nonzero master
+PCM for both jets during idle, throttle and cannon phases. Gun sources ended
+after release; flight sources ended on menu return with zero sessions. Both
+attempts later timed out on the harness's incorrect restart-state label, so this
+is partial graph evidence, not a whole-harness pass, listening test or missile
+audio acceptance.
+
+A corrected Pi Low/software-WebGL2 probe on the earlier `a3f5554` runtime reached
+the renderer and failed closed with `First scene draw timed out`. WebGPU was
+unavailable; the screenshot also timed out. Default headless graphics exposed no
+usable context. These results do not establish physical Pi GPU behavior. Earlier
+collector/selector failures remain recorded in the continuation receipt.
 
 ## Standards
 

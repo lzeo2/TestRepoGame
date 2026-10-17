@@ -34,6 +34,7 @@ with sync_playwright() as p:
                 page.locator('#screen .mi .t').get_by_text('Solo flight', exact=True).click()
                 page.locator('#render-error[open]').wait_for(timeout=30000)
                 assert page.locator('#render-error pre').inner_text()
+                assert page.locator('#toast').inner_text() == '', 'Renderer dialog must not duplicate its error in a toast'
                 prefix = f'{theme}-{width}'
                 page.screenshot(path=str(args.out / (prefix + '-failure.png')))
                 origin = page.evaluate('performance.timeOrigin')
@@ -102,6 +103,13 @@ with sync_playwright() as p:
                     assert boxes['.weapons']['bottom'] <= boxes['.hud-radar']['y'], boxes
                     assert boxes['.weapons']['bottom'] <= boxes['.hud-mapwrap']['y'], boxes
                 page.screenshot(path=str(args.out / (prefix + '-hud-fixture.png')))
+                page.get_by_role('button', name='UI fixture only - show long toast').click()
+                toast_box = page.locator('#toast div').first.bounding_box()
+                footer_box = page.locator('.foot').bounding_box()
+                assert toast_box and footer_box
+                assert toast_box['x'] >= 0 and toast_box['x'] + toast_box['width'] <= width, toast_box
+                assert toast_box['y'] + toast_box['height'] <= footer_box['y'], (toast_box, footer_box)
+                page.screenshot(path=str(args.out / (prefix + '-toast-fixture.png')))
                 results.append({'theme': theme, 'size': [width, height], 'boxes': boxes, 'errors': errors, 'external': external})
                 assert not errors and not external
                 context.close()

@@ -12,12 +12,27 @@ plus the shared `Games/_emulatorjs` runtime. Steal a Footballer is the owner-aut
 local Games folder does not mean a broken deployment. See [inventory](inventory.json)
 for exact tracked counts, entry hashes, source-tree hashes and manual paths.
 
-## Current fleet handover (2026-10-15)
+## Current fleet handover (2026-10-17)
+
+The [Wings repair and recovery receipt](audits/wings-repair-20261017.md) records
+the fresh unchanged full catalog gate at `b52d942`: **125/125, exit 0**, in
+1,579.29 seconds. All 125 visits completed without retained errors or failed
+requests under the existing filters. Sparse/config bytes restored exactly;
+protected hashes remained unchanged. This is a loading gate, not complete native
+gameplay, offline, hardware or rights acceptance. Current inventory remains
+125 registered / 130 projects. Source repair, native Windows flight and bounded
+UI evidence are linked from the [Wings manual](games/232-wings.md).
+No push or publication is authorized by these checks.
+The subsequent Wings input/toast continuation requires fresh results for its
+changed runtime; its status is tracked in the Wings manual.
+
+## Historical fleet handover (2026-10-15)
 
 [Completed follow-up gate](audits/fleet-followup-full-gate.md) and
-[follow-up handover](audits/fleet-followup-handover.md) supersede current status,
-not the evidence in the [seven-lane handover](audits/fleet-2026-10-15-handover.md).
-Latest unchanged full gate at `2d2eb61`: **124/125, exit 1, release HOLD, no push**.
+[follow-up handover](audits/fleet-followup-handover.md) superseded the then-current
+status in the [seven-lane handover](audits/fleet-2026-10-15-handover.md), while
+preserving its dated evidence.
+The then-latest unchanged full gate at `2d2eb61` was **124/125, exit 1, release HOLD, no push**.
 All 125 visits completed; only Ovo failed, with three `ERR_NETWORK_CHANGED`
 requests. Exact sparse/configuration restoration passed. Earlier 122/125 is
 historical; neither run passed. Root network cause is not proven; stable-host

@@ -2,7 +2,7 @@
 import './src/style.css'
 import { createSpawnScreen } from './src/ui/spawn'
 import { DEFAULT_ROOM_CONFIG } from './src/sim/protocol'
-import { initLobby } from './src/ui/lobby'
+import { initLobby, toast } from './src/ui/lobby'
 import { createLoopbackRoom } from './src/sim/loopback'
 const html = new DOMParser().parseFromString(await (await fetch('./index.html')).text(), 'text/html')
 for (const style of html.querySelectorAll('style,link[rel="stylesheet"]')) document.head.append(style.cloneNode(true))
@@ -31,6 +31,11 @@ const note = document.createElement('button')
 note.textContent = 'UI fixture only - show HUD'
 note.style.cssText = 'position:fixed;top:0;left:0;z-index:100;min-height:44px;background:black;color:white'
 document.body.append(note)
+const toastButton = document.createElement('button')
+toastButton.textContent = 'UI fixture only - show long toast'
+toastButton.style.cssText = 'position:fixed;top:48px;left:0;z-index:100;min-height:44px;background:black;color:white'
+toastButton.onclick = () => { lobby.show(); toast('Connection closed. Please return to the menu and start a new offline flight. '.repeat(3), true) }
+document.body.append(toastButton)
 const root = document.createElement('div'); root.className = 'game-ui'; document.body.append(root)
 const launches: string[] = []
 const spawn = createSpawnScreen(root, { spawn(kind) { launches.push(kind) }, board() {}, team() {}, leave() {}, click() {} })

@@ -110,8 +110,8 @@ body:not(.in-lobby) #lobby-shade { opacity: 0; }
 #busy span::after { content: ""; display: inline-block; width: 1.4em; font-family: var(--mono); color: var(--dim); animation: dots 1.2s steps(4) infinite; }
 @keyframes dots { 0% { content: ""; } 25% { content: "."; } 50% { content: ".."; } 75% { content: "..."; } }
 @keyframes fade { from { opacity: 0; } }
-#toast { position: fixed; right: var(--x); bottom: clamp(48px, 7vh, 64px); z-index: 60; pointer-events: none; display: flex; flex-direction: column; gap: 4px; align-items: flex-end; font: 400 12px var(--mono); text-shadow: var(--sh); }
-#toast div { animation: toast 3.2s forwards; color: var(--fg); }
+#toast { position: fixed; left: var(--x); right: var(--x); bottom: clamp(48px, 7vh, 64px); z-index: 60; pointer-events: none; display: flex; flex-direction: column; gap: 4px; align-items: flex-end; font: 400 12px var(--mono); text-shadow: var(--sh); }
+#toast div { max-width: min(70ch, 100%); overflow-wrap: anywhere; animation: toast 3.2s forwards; color: var(--fg); }
 #toast div.err { color: var(--or); }
 @keyframes toast { 0% { opacity: 0; transform: translateY(4px); } 8%, 85% { opacity: 1; transform: none; } 100% { opacity: 0; } }
 
@@ -137,9 +137,10 @@ button { min-height: 44px; padding: 8px 12px; }
   .keys td:first-child { white-space: normal; padding-right: 12px; }
   .foot { flex-wrap: wrap; gap: 8px; }
   .foot .status { margin-left: 0; }
+  #toast { bottom: calc(96px + env(safe-area-inset-bottom, 0px)); }
 }
 </style>
-  <script type="module" crossorigin src="./assets/main-OuVFimUk.js"></script>
+  <script type="module" crossorigin src="./assets/main-COOpTvC4.js"></script>
   <link rel="modulepreload" crossorigin href="./assets/lobby-2P4upZgt.js">
 </head>
 <body class="in-lobby">

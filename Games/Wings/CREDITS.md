@@ -18,7 +18,7 @@
 4. Added a controls entry, keyboard-tab access to menu items, minimum menu target height and scrolling for the controls list. Upstream rendering, art and flight physics are retained.
 5. Updated the page description and initial loading copy. Retained the staging build-script change to Vite-only because upstream preview files have type errors; this is not a typecheck pass.
 6. Added a bundled, dependency-free Node simulation regression and its TypeScript source in `verification/`.
-7. Added the operator-approved Astra Interceptor and Astra Trainer to offline custom selection, validated spawn, existing flight tuning and model/camera/audio descriptors. These are original AI-generated procedural geometry, not third-party model imports. See `docs/models.md` for immutable hashes, author, source recipe and qualifications. No new third-party asset license requirement was identified for their geometry; this is not a universal ownership/non-infringement guarantee and does not resolve Wings' missing license. Both retain fighter weapons and arcade physics; native rendered acceptance remains held.
+7. The original operator-approved Astra pair was subsequently retired after consumer tracing. Current F-15 and F-35 models use original procedural geometry, with generation by openai-codex/gpt-6-astra and repairs by openai-codex/gpt-6.1-sol. Dark paint, ammo-linked stores, exhaust, recessed F-35 bays, distinct existing-weapon fits and geometry-derived camera/launch points follow the standing quality contract. See `docs/models.md` for hashes, authorship and recipe. This does not establish ownership or resolve the upstream game/model redistribution question.
 
 No catalog registration, multiplayer service, third-party runtime load, or new game engine was added. This port has no fixed world seed override.
 
@@ -28,7 +28,9 @@ Serve the site with any static HTTP server and open this directory's `index.html
 
 ## Build and regression
 
-In a separate checkout of the pinned upstream revision, apply `port.patch` from the repository root. In `games/wings`, use the existing dependencies or `bun install --frozen-lockfile`, then `bun run build`. This revision's Wings Vite config emits `dist/` directly, not a nested `dist/arcade/wings/` directory. Copy that output here and retain these notices and verification files.
+In a separate checkout of the pinned upstream revision, apply `port.patch` from the upstream root. Copy the current `models/f15.glb` and `models/f35.glb` into `games/wings/public/models/`; the patch does not embed these generated binary assets. Use existing externally staged dependencies. The bounded operator approval covered Vite 7.3.7, Three 0.186.0, Rollup 4.64.5 and esbuild 0.28.2 on the build PC. It does not authorize installing repository or Pi tooling.
+
+From the staged `games/wings` directory, run `bun --preserve-symlinks node_modules/vite/bin/vite.js build`. Output is `dist/`, not a nested `dist/arcade/wings/` directory. Deliver rebuilt HTML/chunks after checking their local references and retiring traced old hashes. Preserve models, notices, documentation and verification files when copying output. Never hand-edit generated bundles. No typecheck PASS is claimed.
 
 Run from the site root:
 
@@ -38,7 +40,11 @@ node Games/Wings/verification/solo-check.mjs
 
 The regression is bundled from upstream simulation modules, not a replacement simulation. To rebuild it, copy `verification/solo-check.ts` into the upstream `games/wings` directory and run `bun build solo-check.ts --target=node --outfile=solo-check.mjs`.
 
-## Verification and limitations
+## Current verification
+
+The 2026-10-17 repair baseline passed deterministic geometry/CPU/solo checks and the unchanged full catalog loading gate: **125/125, exit 0** at `b52d942`. Both jets also passed bounded Windows WebGPU flight, cannon, exit/restart and respawn checks. Four unavailable-GPU UI cases passed. The [current manual](../../docs/maintenance/games/232-wings.md) and [repair receipt](../../docs/maintenance/audits/wings-repair-20261017.md) distinguish these scopes from subsequent input/toast changes and remaining combat, hardware and rights checks. Later continuation evidence is recorded separately; older results below remain historical.
+
+## Historical ingestion verification and limitations
 
 Verdict: **partial**. The real offline simulation flies; native rendered flight remains unverified on this machine.
 
