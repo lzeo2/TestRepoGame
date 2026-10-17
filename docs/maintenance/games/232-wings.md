@@ -4,168 +4,186 @@
 
 ## Identity and status
 
-Registered catalog **232**, entry `Games/Wings/index.html`; 125 catalog entries
-unchanged. Static offline adaptation of anomalyco/arcade Wings at source pin
+Registered catalog **232**, entry `Games/Wings/index.html`; catalog remains
+125 games. Static offline adaptation of anomalyco/arcade Wings at source pin
 `bf5f6277e38ee52e9bfa4ae4a01337b46175c181`, ingested by owner order despite
-missing upstream LICENSE. Current F-15/F-35 closeout (2026-10-15) covers source
-through `2d8ba30`, not a new game or registration. **Integrated, not released.**
-Latest unchanged fleet gate: **124/125, exit 1, HOLD**; earlier 122/125 also failed
-and is historical. No fleet rerun here, and no claim that a full gate is next.
-See [latest fleet handover](../audits/fleet-followup-handover.md).
+missing upstream LICENSE. **Integrated repair, not released.**
+
+Current geometry milestone `92e470f` and authored regression `f1f7cc6` cover
+F-15/F-35 dimensions/contours, dark paint, functional stores/exhaust, recessed
+F-35 bays, distinct existing-weapon fits and model-derived launch/camera points.
+The orchestrator approved the revised raw geometry after official-reference
+comparison before its commit. Final operator approval remains open; bounded
+native checks and raw family review are recorded below.
+Read the [quality contract](../../../Games/Wings/docs/aircraft-quality-contract.md),
+[v2 brief](../../wings-jets-v2-brief.md),
+[study](../../../Games/Wings/docs/repair-study.md) and
+[model contract](../../../Games/Wings/docs/models.md).
+
+**Fresh full gate pending.** Historical `2d2eb61` was **124/125, exit 1, HOLD**;
+the earlier 122/125 also failed. Neither certifies this runtime. See the
+[completed historical gate](../audits/fleet-followup-full-gate.md) and
+[handover](../audits/fleet-followup-handover.md). No publication or push approval.
 
 ## Implementation map
 
-`assets/` contains Vite output; `models/` local GLBs; `fonts/` local fonts/OFL.
-`port.patch` records authored staging changes, offline adapter, renderer boundary,
-menus, descriptors and verification sources. Apply to the pinned upstream root,
-then rebuild `games/wings` using Bun and relative-base Vite. Never hand-edit bundles.
+`assets/` is generated Vite output; `models/` contains local GLBs and `fonts/`
+retained local fonts/OFL. `port.patch` preserves authored changes against the
+pinned source: offline loopback, entry/lobby/spawn lifecycle, renderer gate,
+aircraft descriptors/conversion, camera, combat hardpoints and regressions.
+Apply to clean upstream source and rebuild; never edit minified output.
 
-Inspected boundaries: entry/main, scene host/session lifecycle, lobby/spawn/pause,
-HUD copy/layout, loopback regression, jet generator, serialized model validator,
-aircraft loader/material conversion and relevant toon/scene/thumbnail mechanisms.
-This is not an exhaustive engine/shader/rights audit. Before closeout, inventory
-still recorded Wings tree `ea4951cb78308b668a3bc8050f936f54d1fbe5eb`, 43 files,
-9,251,579 bytes; current pre-doc tree was
-`35afcc2d0175f56430976e0a514b3076ebc14d4f`, also 43 files. Refresh follows the
-committed model-document change, not an assumption that the old inventory is current.
+The controller owns session lifecycle; `RoomEngine` owns deterministic gameplay.
+`vehicles.ts` owns weapon fits and optional model-derived hardpoints;
+`combat.ts:muzzlePosition` rotates those coordinates into world space.
+`aircraft.ts` converts model nodes into rigid bones/material batches, consumes
+ammo to show stores, and animates exhaust/covers. `camera.ts` owns eye/chase
+placement. Generator and serialized checker own model structure/budgets.
+Inspected boundaries do not constitute a complete engine, shader or rights audit.
 
 ## Gameplay and controls
 
-Solo has zero AI aircraft but enemy fleet guns remain active; bots use two teams
-and normal skill. Custom retains upstream bot/skill/team/pilot/score/time controls.
-All starts request offline/unlisted mode with unchanged Fleet Strike rules.
-Seven-aircraft hangar or keys 1-7; **6 F-15-style, 7 F-35-style**. Custom Aircraft
-selects `StartRequest.aircraft` for the real spawn after the renderer gate.
-Original five aircraft and bot weights remain unchanged; both new bot weights zero.
+Solo starts offline with no AI aircraft; enemy fleet guns remain active. Bots
+and Custom retain existing match rules/configuration. Hangar keys 1-7 include
+**6 F-15, 7 F-35**; Custom Aircraft selects the actual initial spawn after the
+renderer gate. Original five aircraft and bot weights are preserved; both jets
+have bot weight zero.
 
-W/S throttle, arrows pitch/turn, A/D roll, Q/E full roll, Shift boost, mouse steering
-and weapons; Controls shows the selected upstream scheme. Keyboard/mouse required:
-narrow-screen menus are not touch-flight support. Back to menu uses session leave.
-Native Escape/pointer-lock behavior remains unaccepted. Exact tuning/camera/anchor
-table: [model contract](../../../Games/Wings/docs/models.md), mirrored in source
-`port.patch`; no new weapons, gear toggle or bay-door animation.
+F-15 pilot uses cannon20/aim9; officer uses maverick. F-35 pilot uses
+cannon20/tvmissile; officer uses tvmissile, with existing stealth rules enabled.
+These are distinct arcade fits, not operational loadout claims. Each missile
+slot has two stores following actual round depletion/regeneration. F-35 covers
+respond to both missile slots and exclude cannon fire. No weapon ID/type or
+landing-gear feature was added.
+
+Controls depend on the selected upstream steering scheme; use the in-game
+Controls page. Default keyboard flight uses W/S throttle, arrows pitch/turn,
+A/D roll, Shift boost, mouse weapons; T switches chase/cockpit and 1/2 switch
+seats. Keyboard/mouse required: narrow menus do not establish touch flight.
+Escape, ordinary menu return and fresh restart passed the final native run.
+Physical pointer-lock behavior remains unverified.
 
 ## State and persistence
 
-Room state is in memory. `wings.settings` and `wings.autoQuality` store preferences.
-Retry with Low saves Low and reloads. Back disposes the session; restart creates a
-new room. Spawn/pause listeners are disposed on exit. No account, remote transport,
-fixed-seed override or online invites. Automatic quality benchmarking waits for
-return from successful play; hardware behavior remains unverified.
+Room state is in memory. `wings.settings` and `wings.autoQuality` persist
+preferences; Low retry saves Low and reloads. Session leave disposes listeners
+and a fresh match creates a room. Auto-quality benchmarking waits for successful
+return to the menu. No account, remote transport, online invitations or fixed
+seed override was introduced. Actual storage-failure/device behavior is not
+established by the CPU regression.
 
 ## Dependencies and provenance
 
-`Games/Wings/CREDITS.md` records upstream URL/pin, owner order and missing-license
-qualification. Three 0.186.0 MIT and font OFL notices are retained; they do not
-license the entire game or upstream models. No new runtime dependency/remote load.
+`CREDITS.md` records source pin, owner order and missing-license qualification.
+Retained Three 0.186.0 MIT and font OFL notices apply to those components, not
+the whole upstream game/model collection. Rights remain unresolved.
 
-Current `f15.glb` and `f35.glb` are two original from-scratch
-**openai-codex/gpt-6-astra** procedural models using Python stdlib. Upstream GLBs
-were inspected for materials/conventions, not copied meshes. Approximate -style
-silhouettes carry no engineering, copyright or unrestricted-rights guarantee.
-Both gear-up, transparent framed canopy/tub, layered gray opaque panels, gaps,
-petal exhausts and generic `livery_` marks; no real insignia or textures/images/
-skins/clips/external resources. Current measured counts/hashes and exact tuning
-are in the model contract. Legacy GLBs/functions were removed after tracked and
-constructed-path consumer tracing, not merely because documentation called them
-old. [Archived dated receipts](../audits/wings-real-jets.md) preserve all legacy
-hashes, intermediate geometry, failures and follow-up evidence.
+Two original Python-stdlib procedural models were authored by
+**openai-codex/gpt-6-astra**, repaired by **openai-codex/gpt-6.1-sol**. Upstream
+models informed convention/material study; official references informed contour
+review. No copied mesh, new texture, image, external model resource, skin or
+animation clip. Dark neutral panels, transparent canopy/interior, generic livery,
+external F-15 stores and covered F-35 bays use existing local rendering mechanisms.
+Original generation does not establish unrestricted rights.
+
+Legacy Astra GLBs/functions were retired after tracked and constructed-path
+consumer tracing. The compatibility name `astra-check` now covers current jets.
+[Archived receipts](../audits/wings-real-jets.md) preserve old hashes, failures
+and intermediate geometry. Current exact hashes/coordinates are in the model contract.
 
 ## Audit findings
 
-Native WebGL2 shader/driver failure remains unresolved: historical HUD-only flight
-had zero draws; later Low/Balanced probes warned about UVs and stalled. The current
-boundary requires a real first scene draw, records compiler/linker logs and fails
-closed on scene/device/shader/zero-draw/timeout errors. Low retry retains upstream
-materials; no renderer substitution. A GPU-driver stall can delay JS timers.
+Historical Pi probes encountered WebGL2 shader/driver stalls, UV warnings and a
+HUD-only zero-draw state. The current gate requires a real scene draw and fails
+closed on shader/device/zero-draw/timeout errors; Low retry retains upstream
+materials. Lazy menu startup avoids unsolicited world initialization. Later
+Windows AMD/ANGLE probes achieved WebGPU first draws for both jets, establishing
+that bounded host result without curing historical Pi failures or proving flight.
 
-The menu no longer unconditionally boots the world; explicit start owns scene
-boot and first-draw gating. Same-browser menu context regression improved after
-that lifecycle fix, not proof of flight. Mobile spawn scrolls; HUD fixture layout
-was improved. Upstream dark shell is not recolored by theme preference. Existing
-mobile diagnostic toast still crowds the footer and was not fixed in this run.
+An earlier native automation run had pointer-lock/control limitations and failed
+menu return because the canvas intercepted the button; another ended on the spawn
+screen before its nominal cockpit capture. Those captures are not cockpit or
+flight acceptance. The final revision's native run remains pending below.
+The crowded mobile failure toast is also an inherited UI finding.
 
-Material exploration measured F/A-18 151 assignments/10 unique values, YF-12
-123/12, A-10 166/12. Inspected 55-degree creased normals, paint remap/vertex-color
-merge, shared glass/team livery, toon weathering/environment/clearcoat and scene
-ACES/quality shadows/bloom/thumbnail lights. Chosen: richer parts, apertures,
-panels/exhausts, exposed formerly buried F-35 intake, retained seams. Not chosen:
-shader/world/lighting rewrite (existing adequate mechanisms plus held GPU failure),
-edge postprocess (existing creases), gear toggle/struts (gear-up and unverified
-animation), paint picker (team livery), external missiles/animated bays/new weapons
-(unchanged gameplay/static anchors), extra dependencies or textures.
-
-Actual CPU conversion gives four paint/metal/livery/glass batches per jet, not
-112/109 Wings draw calls. Raw standard-Three fixtures do use 112/109 draws.
-Jets are about 2.4x the heaviest selectable triangle count; AC-130 scenery is not
-precedent. Pair increase over retired models: 2,256,792 bytes. Reference byte
-deltas and noisy worker/Main single ordered CPU samples are in the model contract;
-they include I/O/parse/conversion/view and prove no performance win. Native
-load-time delta remains unverified. No in-game visual parity or cockpit acceptance.
+Current converted jets have six batches: paint/metal/livery/afterburner/glass/flame.
+F-15 is 41,744 converted triangles; F-35 41,008. Raw model draws 142/143 and
+scene/frame draws are different measurements. Single CPU samples do not prove a
+performance gain, target-device budget or native load-time delta.
 
 ## Safe iteration
 
-Source-only rebuild from pin `bf5f6277e38ee52e9bfa4ae4a01337b46175c181`:
-use externally staged source, cached dependencies/public assets and Bun/Vite,
-replace only rebuilt Wings output, regenerate `port.patch`, then check application
-against the clean pin. Vite-only instruction remains; no typecheck PASS claimed.
-Exact recovery/build recipe: [follow-up source receipt](../audits/fleet-followup-wings.md).
-The compatibility-named `astra-check.ts` now tests f15/f35 and its bundled `.mjs`
-is source-built with cached Bun `--target=node --minify`, not manually patched.
-No refetch/install, minified edits or backend/network restoration. Trace cached
-tracked consumers including sparse content and constructed paths before deletion.
-Preserve notices/evidence and inspect changes before committed-source inventory refresh.
+Start from the clean source pin, study actual original aircraft consumers, then
+apply/regenerate `port.patch` and build source. Approved external tooling for this
+repair: Bun 1.4.2, Vite 7.3.7, Three 0.186.0, Rollup 4.64.5, esbuild 0.28.2.
+This bounded exception does not authorize future dependency installation or
+repository `node_modules`. The orchestrator owns generated bundle delivery and
+fresh clean-pin patch verification. No typecheck PASS is claimed.
+
+The [source recovery receipt](../audits/fleet-followup-wings.md) gives the
+staging/rebuild pattern. Trace real consumers, including sparse-excluded and
+constructed paths, before deleting assets. Preserve provenance, original-five
+behavior, no-network boundaries and generated-source recovery. Commit inspected
+source first; refresh inventory deliberately afterward. Run the maintenance
+checker; it checks coverage/staleness, not semantic correctness or gameplay.
 
 ## Verification
 
-Fresh source/model milestone receipts, reported by their owners and retained in
-the archive (documentation closeout does not claim it reran their browser/build):
+Fresh model checker passes against committed bytes and two generations, including
+F-35 store clearance between aperture/closed cover/roof. D19's rebuilt CPU
+regression passed: distinct fits/stealth; independently composed GLB gun/store
+origins; identity and rotated muzzle tests; ordinary-input offline simulation;
+actual converted store depletion one round at a time and real ammo regeneration;
+exhaust throttle/boost; both missile door triggers; cannon exclusion; signed
+cover movement/reclose; cockpit/anchor math. Original-five speeds/loadouts and
+absence of hardpoint overrides are checked. These are CPU/render-state fixtures.
 
-- Main independently ran `check-models.py`, `astra-check.mjs`, `solo-check.mjs`:
-  all PASS, exit 0. Node syntax, `git apply --check` against pin and 125-entry
-  schema/unique-ID/Git-URL validation exit 0. Documentation closeout separately
-  reran `check-models.py`, exit 0, and remeasured generator/GLB SHA-256.
-- Worker jet CPU regression and cached Bun/Vite builds exit 0. Original five
-  cruise/boost pairs unchanged; current offline config/spawn/wire snapshots,
-  ordinary-input takeoff/turn, descriptors/anchors and camera math pass.
-- Worker current model browser: **six cases, exit 0**, no console/page errors or
-  external loads; bounded standard-Three previews only, not Wings GPU flight.
-- Fresh Main unavailable-GPU UI: **four cases, exit 0**, evidence
-  `wings-orchestrator-final/ui.log` and `wings-orchestrator-final/ui/`.
-  Actual menu requests/spawns, keys, listener disposal and fail-closed launch
-  routes are fixture evidence, not rendered flight.
-- Main reviewed desktop/mobile both preference screenshots and front/rear/
-  underside comparisons: distinct silhouettes, intakes, cockpit, exhausts and bay
-  panels visible; menu labels fit; crowded mobile error toast remains. These
-  are **not Wings GPU flight screenshots**.
-- Run-wide `git diff --check ad34ed5..HEAD`: **exit 2**, one inherited generated
-  Three shader whitespace finding in `verification/astra-check.mjs:3848`.
-  Worktree diff check exits 0; do not call the global range clean.
+Source-only build using approved external dependencies succeeded. Current
+browser/test bundles are integrated; patch application to the clean pinned index
+passes. Independent review parsed 12 JS files and resolved generated local links.
+Historical Oct15 model/UI/browser/patch passes remain only dated evidence in the
+linked archive; no old PASS is promoted to current acceptance.
 
-External relative evidence labels: `wings-jets-materials/` (upstream tables and
-four F-15 standard-Three comparisons); `wings-f35-materials/` (six comparison
-front/rear/underside views); `wings-jets-regression/` (CPU/bundle/build);
-`wings-migration-cleanup/` (consumer traces and six current two-jet screenshots).
-Earlier logs, failed probes and hashes remain in the dated archive and linked
-fleet receipts; later focused passes do not retroactively change those failures.
+**Final native evidence:** the parent probe on Windows Edge WebGPU/AMD passed
+normal-input takeoff/climb above 120 m, turn, boost, cockpit/chase, cannon fire,
+Escape, ordinary menu return (zero sessions) and fresh restart (one session) for
+both jets. No console/page errors or external requests. Root reviewed raw family
+comparisons and the saved [native previews](../../../Games/Wings/docs/previews-v2/README.md).
+The forward cockpit view is usable; black coaming/nose remains below the reticle.
+Headless pointer-lock acquisition failed and keyboard fallback worked. Physical
+mouse capture, missile targeting/fire, audio, converted-family parity, Pi GPU and
+native load-time delta remain unverified. Two worker readiness failures preceded
+the successful parent run; no product acceptance was inferred from those failures.
+
+**Pending release evidence:** fresh unchanged full 125-game gate, exact exit/result,
+restored sparse state and process cleanup are pending. The historical 124/125
+failure and its unresolved transport diagnosis remain preserved. Generated shader
+whitespace and historical artifact-path findings stay open until the orchestrator
+records current range checks/remediation; documentation whitespace is not global PASS.
 
 ## Standards
 
-### PASS criteria
+- Geometry: indexed finite attributes, valid buffers/accessors/node tree, identity
+  root, -Z forward/+Y up, all material definitions used, intentional glass,
+  at least 40 meaningful assignments, dark neutral family and no real insignia.
+- Rig: actual store geometry on ammo-linked pivots, active exhaust discs/cones,
+  recessed covered F-35 bays, correct signed door movement and geometry-derived
+  launch/camera coordinates. No empty-feature assertion or generic-rail substitute.
+- Recovery: source-only build from pin, retained notices, clean-pin patch check;
+  generated bundles are never hand-edited.
+- Native: final normal-input and visual acceptance, rights and release gates stay
+  separate from structural/CPU passes. No full-fleet pass or push is inferred.
 
-A bounded model/source PASS requires committed deterministic GLBs, indexed triangles,
-finite UV0/positions/unit normals, winding and nondegenerate/unique faces, valid
-indices/accessors/buffers/node tree and identity root with -Z forward/+Y up at
-scale 1. Validate all material definitions are used, intentional glass and at
-least 40 meaningful part assignments, not 40 unique colors. Gray opaque panels
-and generic team-livery regions only, no insignia; gear-up, static anchors, no
-new weapon or door animation. Structural PASS is not native renderer acceptance.
-Source-only Bun/Vite rebuild must use the pinned revision above, preserve notices
-and pass patch applicability; no hand-edited generated output.
+| Model | Triangle limits | Strict byte ceiling | Actual triangles / vertices / bytes | Assignments / unique materials |
+| --- | --- | --- | --- | --- |
+| F-15 | 40,000-55,000 | <1,200,000 | 41,352 / 25,305 / 1,176,316 | 142 / 12 |
+| F-35 | 35,000-50,000 | <1,200,000 | 40,812 / 25,323 / 1,174,768 | 143 / 12 |
 
-### Verification scripts
+These are asset limits, not supported-device performance claims. Reference asset
+triangles: F/A-18 16,896; YF-12 18,028. Their converted totals add 392 flame
+triangles each; scenery is not a selectable-model budget precedent.
 
-From repository root, existing tools only:
+Existing checks, from repository root:
 
 ```sh
 python3 -B Games/Wings/verification/check-models.py
@@ -175,56 +193,14 @@ python3 -B Games/Wings/verification/check-models-browser.py --out "$EVIDENCE"
 python3 -B scripts/check_maintenance_docs.py
 ```
 
-`check-models.py` compares committed bytes with two fresh stdlib generations.
-`astra-check` covers actual CPU GLTF loading/conversion/view plus spawn/simulation
-and camera/anchor checks. `solo-check` covers ordinary-input takeoff, fresh room,
-crash and respawn without state grants. Browser models use cached Three, a
-115-second alarm and an owned server terminated in `finally`.
-`check-browser.py --out "$EVIDENCE"` needs a bounded root HTTP server (port 8938)
-and runs four unavailable-GPU UI cases. `check-context-sequence.py` bounds the
-unchanged same-browser Wings/Server Survival/Astray menu sequence to 90 seconds
-(port 8982); it is not flight. No persistent servers, installs or weakened filters.
-Catalog schema/unique IDs/Git URLs, node syntax and scoped/global diff checks
-remain separate. Maintenance coverage is not semantic/gameplay acceptance.
-
-### Active holds
-
-1. Supported-GPU first draw, shaders, flight/thumbnail/material/cockpit visibility,
-   native input/combat/audio/crash-respawn/exit/restart and load-time delta remain
-   unverified. UI/simulation/standard-Three/CPU fixtures cannot lift this hold.
-2. Upstream game/model redistribution rights and missing LICENSE remain unresolved;
-   original jet generation does not cure them.
-3. Full-fleet release remains **124/125, exit 1, HOLD** (Ovo network failures);
-   historical 122/125 also failed. No rerun in this task. Stable-host diagnosis
-   and any later authorized release gate belong to the orchestrator/operator.
-4. Inherited generated shader whitespace and historical artifact-path cleanup
-   remain qualified findings; no global-clean claim or history surgery here.
-   Crowded mobile error toast is also open, not polished-flight acceptance.
-
-### Provenance
-
-Only these two operator-authorized original stdlib procedural -style models;
-record generator/GLB hashes and supplied brief unchanged. Inspecting upstream
-materials/conventions is not copying meshes or establishing rights. No new
-third-party runtime load, dependencies, textures/images, skins or animation clips.
-Preserve dated legacy receipts and consumer traces after retirement.
-
-### Budgets
-
-| Current model | Hard triangle floor-ceiling | Strict file ceiling | Actual triangles / vertices / bytes | Assignments / unique definitions |
-| --- | --- | --- | --- | --- |
-| F-15 | 40,000-55,000 | <1,200,000 bytes | 43,392 / 25,483 / 1,185,940 | 112 / 10 |
-| F-35 | 35,000-50,000 | <1,200,000 bytes | 42,760 / 25,285 / 1,173,404 | 109 / 10 |
-
-Both require >=40 meaningful assignments. Budgets are hard per-model limits,
-not a supported-device performance promise. Asset-only reference triangles are
-F/A-18 16,896 and YF-12 18,028; CPU totals 17,288/18,420 add 392 flame triangles
-each. Do not mix these counts or substitute scenery budgets for selectable jets.
+Use source-built current bundles and approved existing dependencies. Raw-model
+browser fixtures are standard Three, not Wings' native renderer. Unavailable-GPU
+UI and same-browser menu sequence runners establish only their labeled scopes.
+Terminate owned temporary servers; install nothing merely to reproduce a report.
 
 ## Future outlook
 
-On supported hardware isolate the renderer/compiler failure, then verify first
-scene, takeoff/turn/combat/crash-respawn, cockpit visibility, back and fresh session,
-with measured native load-time delta. Retain fail-closed behavior. Resolve rights
-and fleet/network hold through separate operator gates; no publication or push
-permission follows from this documentation closeout.
+Integrate the pending final native and family review, preserve failures, then
+resolve remaining control/cockpit/device/rights holds. Record the fresh full fleet
+result before any separately authorized release decision. This documentation
+adds no game, registration, dependency permission or publication authorization.

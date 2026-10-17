@@ -1,16 +1,16 @@
 # 3D runtime contracts and resource budgets
 
-Source baseline: `8c8a055813b35bbd5d8b632423328333b4252d43`. This feature page covers Circuit Ward, unregistered Foldwild and Spline Ride only; it does not relabel other workers' games. It is a source-grounded resource/lifecycle guide, not a full-renderer certification or measured hardware benchmark.
+Source baseline: `8c8a055813b35bbd5d8b632423328333b4252d43`. This feature page covers Circuit Ward, Foldwild and Spline Ride only; it does not relabel other workers' games. Foldwild is now registered as preview 226; the runtime measurements below remain historical. This is a source-grounded resource/lifecycle guide, not a full-renderer certification or measured hardware benchmark.
 
 ## Runtime boundary map
 
 | Experience | Authoritative owner | Renderer interface | Observation contract | Persistence/network |
 | --- | --- | --- | --- | --- |
 | Circuit Ward, id 222 | `script.js:createRun/stepRun` on solo/host | `boot/loadModels/draw`; mesh art does not change hitboxes | module `inspect()`/`stats()` frozen detached state/diagnostics | No save. `multiplayer.js:PeerRoom`, manual direct WebRTC, no backend/STUN/TURN |
-| Foldwild, no id | `battle.js`, `world.js`, `region-data.js`, controller `state/battle` | `view.js:createView`, controller-owned clock/canvas | `window.foldwildSnapshot`, view `inspect()` | `foldwild-save-v1`, `foldwild-save-backup-v1`; canonical version 2, no networking |
+| Foldwild, preview 226 | `battle.js`, `world.js`, `region-data.js`, controller `state/battle` | `view.js:createView`, controller-owned clock/canvas | `window.foldwildSnapshot`, view `inspect()` | `foldwild-save-v1`, `foldwild-save-backup-v1`; canonical version 2, no networking |
 | Spline Ride, id 224 | `script.js:params/elapsed/playing` | `addTube/render/animate`, procedural curve camera | `window.splineRideSnapshot` | No save/network; real 20-second lap parameter |
 
-Detailed module/DOM/save contracts and severity findings are in [Circuit Ward](../games/222-circuit-ward.md), [Foldwild](../games/unregistered-foldwild.md) and [Spline Ride](../games/224-spline-ride.md). These diagnostics are read-only, not production state setters. Native test fixtures and natural user progression must be distinguished; do not mutate snapshots to manufacture native victory/evolution evidence.
+Detailed module/DOM/save contracts and severity findings are in [Circuit Ward](../games/222-circuit-ward.md), [Foldwild](../games/226-foldwild.md) and [Spline Ride](../games/224-spline-ride.md). These diagnostics are read-only, not production state setters. Native test fixtures and natural user progression must be distinguished; do not mutate snapshots to manufacture native victory/evolution evidence.
 
 All three vendor three.js r160 at `d04539a76736ff500cae883d6a38b3dd8643c548`, with local addons and MIT notices. Individual renderer copies are identical Git blobs where documented, but separate static browser URLs/cache entries. Consolidating them is not automatically worthwhile: preserve existing self-contained ports until an actual deployment/cache measurement justifies changing path closure. No compiled engine hand editing. GLTFLoader accepts generic caller/resource URLs; local caller paths and embedded GLB dependency inspection are required, not a claim that the loader itself enforces offline policy.
 

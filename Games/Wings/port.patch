@@ -1,27 +1,50 @@
 diff --git a/games/wings/astra-check.ts b/games/wings/astra-check.ts
 new file mode 100644
-index 0000000..fbdbf68
+index 0000000..57d684e
 --- /dev/null
 +++ b/games/wings/astra-check.ts
-@@ -0,0 +1,163 @@
+@@ -0,0 +1,350 @@
 +// Source-built regression: actual loopback/simulation and render descriptors, no GPU/world rendering.
 +import assert from 'node:assert/strict'
 +import { readFileSync } from 'node:fs'
 +import { resolve } from 'node:path'
 +import { createHash } from 'node:crypto'
-+import { Box3, PerspectiveCamera, Vector3 } from 'three'
++import { Box3, PerspectiveCamera, Vector3, Color, Matrix4, Quaternion } from 'three'
 +import { setTimeout as delay } from 'node:timers/promises'
 +import { CameraRig } from './src/render/camera'
 +import { CONFIG, preloadAircraft, aircraftReady, aircraftStats, createAircraftView } from './src/render/aircraft'
 +import { createLoopbackRoom } from './src/sim/loopback'
-+import { TICK_DT, type VehicleKind } from './src/sim/types'
-+import { VEHICLES, VEHICLE_KINDS } from './src/sim/vehicles'
++import { TICK_DT, type VehicleKind, type Vec3 } from './src/sim/types'
++import { muzzlePosition, isHiddenStealth, stepCombat, createCombatState } from './src/sim/combat'
++import { VEHICLES, VEHICLE_KINDS, WEAPONS } from './src/sim/vehicles'
 +import { DEFAULT_ROOM_CONFIG, type ServerMessage } from './src/sim/protocol'
 +
 +const models = resolve(process.argv[2] ?? 'Games/Wings/models')
 +assert.deepEqual(VEHICLE_KINDS, ['fighter', 'apache', 'warthog', 'blackbird', 'bomber', 'f15', 'f35'])
 +assert.deepEqual(VEHICLE_KINDS.slice(0, 5).map(k => [VEHICLES[k].cruise, VEHICLES[k].boost]), [[135,185],[75,98],[105,135],[190,260],[150,180]])
-+const hashes = ['5787ebe4d03fc70ce08036ad1a37a7eff6ee1a0b73d132939a27cb02964ba0f8', '5e3cd65a8fa1c890907878b3219c863cfdfe4f63bc6da638b846411a5f5caafb']
++assert.deepEqual(VEHICLE_KINDS.slice(0, 5).map(k => VEHICLES[k].seatWeapons), [
++  [['cannon20','aim9'],['tvmissile',null]], [['rockets',null],['chaingun30','hellfire']],
++  [['gau8','rockets'],['maverick',null]], [[null,null],['aim47','radarpulse']], [['bomb',null],['bomb',null]],
++])
++assert(VEHICLE_KINDS.slice(0, 5).every(k => VEHICLES[k].hardpoints === undefined))
++assert.deepEqual(VEHICLES.f15.seatWeapons, [['cannon20','aim9'],['maverick',null]])
++assert.deepEqual(VEHICLES.f35.seatWeapons, [['cannon20','tvmissile'],['tvmissile',null]])
++assert.equal(VEHICLES.f35.stealth, true)
++assert.equal(CONFIG.bomber.doors?.seat, 1)
++assert.equal(CONFIG.bomber.doors?.weapons, undefined, 'original bomber keeps its either-slot seat trigger')
++const hashes = ['5c1bf64dc21962dc822dc44edd91186aa4a6932034b06a405d3170518fc135bf', 'ce19018414037e3cef949a99ae08a1d035b25fbd20601e1835c2426bc32db197']
++function nodePosition(gltf: any, name: string): Vector3 {
++  let i = gltf.nodes.findIndex((n: any) => n.name === name)
++  assert(i >= 0, name)
++  const matrix = new Matrix4()
++  while (i >= 0) {
++    const n = gltf.nodes[i]
++    const local = n.matrix ? new Matrix4().fromArray(n.matrix) : new Matrix4().compose(new Vector3(...(n.translation ?? [0,0,0])), new Quaternion(...(n.rotation ?? [0,0,0,1])), new Vector3(...(n.scale ?? [1,1,1])))
++    matrix.premultiply(local)
++    i = gltf.nodes.findIndex((p: any) => p.children?.includes(i))
++  }
++  return new Vector3().setFromMatrixPosition(matrix)
++}
 +const results = []
 +for (const [index, kind] of (['f15', 'f35'] as const).entries()) {
 +  const messages: ServerMessage[] = []
@@ -58,8 +81,51 @@ index 0000000..fbdbf68
 +  assert.equal(createHash('sha256').update(bytes).digest('hex'), hashes[index])
 +  const gltf = JSON.parse(bytes.subarray(20, 20 + bytes.readUInt32LE(12)).toString())
 +  const names = gltf.nodes.map((n: { name: string }) => n.name)
++  const hp = VEHICLES[kind].hardpoints!
++  assert(hp, 'model-derived combat hardpoints required')
++  const expectedGun = nodePosition(gltf, 'gun_muzzle')
++  assert(new Vector3(...hp.gun).distanceTo(expectedGun) < 1e-6)
++  const originalPosition = [...vehicle.flight.position] as Vec3
++  const originalOrientation = [...vehicle.flight.orientation] as [number,number,number,number]
++  vehicle.flight.position = [17, 200, -31]
++  const out: Vec3 = [0,0,0]
++  for (const orientation of [[0,0,0,1], [0,Math.SQRT1_2,0,Math.SQRT1_2]] as [number,number,number,number][]) {
++    vehicle.flight.orientation = orientation
++    const expectedWorld = (p: Vector3) => p.clone().applyQuaternion(new Quaternion(...orientation)).add(new Vector3(...vehicle.flight.position))
++    assert(new Vector3(...muzzlePosition(vehicle, 0, 'cannon20', out)).distanceTo(expectedWorld(expectedGun)) < 1e-6)
++    for (const seat of [0,1] as const) for (const rail of [0,1] as const) {
++      const point = nodePosition(gltf, `missile_${rail ? 'R' : 'L'}${seat ? 1 : 2}`)
++      assert(new Vector3(...hp.missiles[seat][rail]).distanceTo(point) < 1e-6)
++      const id = VEHICLES[kind].seatWeapons[seat][seat ? 0 : 1]!
++      assert(new Vector3(...muzzlePosition(vehicle, seat, id, out, rail)).distanceTo(expectedWorld(point)) < 1e-6)
++    }
++  }
++  vehicle.flight.position = originalPosition
++  vehicle.flight.orientation = originalOrientation
++  vehicle.spottedUntil = 0
++  assert.equal(isHiddenStealth(vehicle, 1), kind === 'f35')
++  vehicle.spottedUntil = 2
++  assert.equal(isHiddenStealth(vehicle, 1), false)
 +  for (const name of [...desc.pivots, ...desc.anchors.map(a => a.node)]) assert(names.includes(name), name)
-+  for (const field of ['pivots', 'stores', 'spinners', 'afterburners'] as const) assert.deepEqual(desc[field], [])
++  assert.deepEqual(desc.spinners, [])
++  assert.deepEqual(desc.stores.map(g => g.weapons), [[[0, 1]], [[1, 0]]])
++  assert.equal(desc.stores.flatMap(g => g.order).length, 4)
++  for (const g of desc.stores) for (const name of g.order) assert(desc.pivots.includes(name) && names.includes(name))
++  assert.equal(desc.afterburners.length, kind === 'f15' ? 2 : 1)
++  for (const ab of desc.afterburners) {
++    assert(desc.pivots.includes(ab.name) && names.includes(ab.name))
++    assert.deepEqual([ab.axis, ab.cone?.dir, ab.cone?.sign], ['z', 'z', 1])
++    assert(ab.cone!.length > 0)
++  }
++  if (kind === 'f35') {
++    assert.equal(desc.doors?.seat, 1)
++    assert.deepEqual(desc.doors?.weapons, [[0, 1], [1, 0]])
++    for (const [name] of desc.doors!.names) assert(desc.pivots.includes(name) && names.includes(name))
++    for (const side of ['L', 'R']) {
++      const bay = gltf.nodes.find((n: any) => n.name === `weapon_bay_${side}`)
++      for (const slot of [1, 2]) assert(bay.children.includes(names.indexOf(`missile_${side}${slot}`)))
++    }
++  }
 +  assert(!names.some((n: string) => /^(gear|propeller|spinner)$/.test(n)))
 +  assert.deepEqual(desc.anchors.map(a => a.node).sort(), names.filter((n: string) => n === 'gun_muzzle' || /^weapon_|^exhaust(?:_[LR])?$/.test(n)).sort())
 +  assert.equal(desc.anchors.find(a => a.key === 'gun')?.node, 'gun_muzzle')
@@ -138,15 +204,16 @@ index 0000000..fbdbf68
 +      const bytes = readFileSync(resolve(models, `${kind}.glb`))
 +      const gltf = JSON.parse(bytes.subarray(20, 20 + bytes.readUInt32LE(12)).toString())
 +      const primitives = gltf.meshes.flatMap((m: any) => m.primitives)
-+      assert.equal(stats.triangles, primitives.reduce((s: number, p: any) => s + gltf.accessors[p.indices].count / 3, 0))
++      const sourceTriangles = primitives.reduce((s: number, p: any) => s + gltf.accessors[p.indices].count / 3, 0)
++      assert(stats.triangles > sourceTriangles, 'existing procedural exhaust cones must be present')
 +      assert.equal(stats.sourceMeshes, primitives.length)
 +      assert.equal(stats.sourceMaterials, gltf.materials.length)
-+      assert.equal(stats.drawCalls, 4)
++      assert.equal(stats.drawCalls, 6)
 +      assert(batches.some(b => b.role === 'toon' && b.metalness === 0.05))
 +      assert(batches.some(b => b.role === 'toon' && b.metalness === 0.55))
 +      assert(batches.some(b => b.role === 'livery'))
 +      assert(batches.some(b => b.role === 'glass' && b.opacity > 0 && b.opacity < 1))
-+      assert(Math.abs(bounds[2] - CONFIG[kind].placeholder.length) < 1e-5)
++      assert(bounds[2] >= CONFIG[kind].placeholder.length - 1e-5 && bounds[2] < CONFIG[kind].placeholder.length + 3)
 +      assert(Math.abs(bounds[0] - CONFIG[kind].placeholder.span) < 1e-5)
 +      for (const a of CONFIG[kind].anchors) {
 +        const anchor = view.anchors.get(a.key)!
@@ -154,6 +221,126 @@ index 0000000..fbdbf68
 +        const position = new Vector3().setFromMatrixPosition(anchor.matrix)
 +        assert(position.distanceTo(new Vector3(...gltf.nodes.find((n: any) => n.name === a.node).translation)) < 1e-6)
 +      }
++      // Render-state fixtures exercise the actual converted rigid skeleton and materials.
++      // They do not claim native input, rendered pixels or combat acceptance.
++      const room = createLoopbackRoom({ ...DEFAULT_ROOM_CONFIG, bots: 0, listed: false }, 'Render state check', { onMessage() {} }, { manual: true })
++      await Promise.resolve()
++      room.send({ type: 'spawn', kind })
++      const vehicle = room.engine.vehicles.find(v => v.seats[0] === room.playerId)!
++      const camera = new PerspectiveCamera()
++      camera.position.fromArray(vehicle.flight.position)
++      camera.updateMatrixWorld(true)
++      view.setLocal(true)
++      const mesh = model.children.find((o: any) => o.isSkinnedMesh) as any
++      const bone = (name: string) => {
++        const b = mesh.skeleton.bones.find((b: any) => b.name === name)
++        assert(b, `converted bone ${name}`)
++        const bi = mesh.skeleton.bones.indexOf(b)
++        assert(model.children.some((o: any) => {
++          const indices = o.geometry?.getAttribute('skinIndex')
++          if (!indices) return false
++          for (let i = 0; i < indices.count; i++) if (indices.getX(i) === bi) return true
++          return false
++        }), `${name}: no converted geometry attached to pivot`)
++        return b
++      }
++      const stepView = () => { view.update(vehicle, [], 1 / 60, camera); view.root.updateMatrixWorld(true) }
++      stepView()
++      for (const group of CONFIG[kind].stores) for (const name of group.order) assert(bone(name).scale.x > 0.9)
++      for (const group of CONFIG[kind].stores) {
++        for (const name of group.order) assert(bone(name).scale.x > 0.9)
++        assert.equal(group.weapons.length, 1)
++        const [seat, slot] = group.weapons[0]
++        const spec = WEAPONS[VEHICLES[kind].seatWeapons[seat][slot]!]
++        assert.equal(spec.ammo, group.order.length)
++        for (let remaining = spec.ammo - 1; remaining >= 0; remaining--) {
++          vehicle.weapons[seat][slot]!.ammo--
++          stepView()
++          assert.equal(group.order.filter(name => bone(name).scale.x > 0.9).length, remaining, 'one spent round must hide exactly one store')
++          group.order.forEach((name, i) => assert.equal(bone(name).scale.x > 0.9, i >= spec.ammo - remaining))
++        }
++        const regen = createCombatState()
++        regen.ships = {}; regen.turrets = [] // Render fixture isolates real ammo regeneration from fleet combat.
++        for (let restored = 1; restored <= spec.ammo; restored++) {
++          stepCombat(regen, [vehicle], spec.refill / spec.ammo, 100 + restored * spec.refill, [])
++          stepView()
++          assert.equal(vehicle.weapons[seat][slot]!.ammo, restored)
++          assert.equal(group.order.filter(name => bone(name).scale.x > 0.9).length, restored, 'regenerated round must restore one store')
++        }
++        for (const other of CONFIG[kind].stores.filter(g => g !== group)) for (const name of other.order) assert(bone(name).scale.x > 0.9, `${name}: unrelated slot changed`)
++      }
++      const flame = model.children.find((o: any) => o.name === 'flame') as any
++      const glow = model.children.find((o: any) => o.name === 'afterburner') as any
++      assert(flame && glow)
++      vehicle.flight.throttle = 0
++      view.setBoost(false)
++      for (let i = 0; i < 120; i++) stepView()
++      assert.equal(flame.visible, false)
++      const idleGlow = glow.material.color.r + glow.material.color.g + glow.material.color.b
++      const idleScales = CONFIG[kind].afterburners.map(ab => bone(ab.name).scale.z)
++      vehicle.flight.throttle = 1
++      for (let i = 0; i < 120; i++) stepView()
++      assert.equal(flame.visible, true, 'high throttle must show exhaust without boost')
++      const throttleGlow = glow.material.color.r + glow.material.color.g + glow.material.color.b
++      assert(throttleGlow > idleGlow * 2)
++      view.setBoost(true)
++      for (let i = 0; i < 120; i++) stepView()
++      assert.equal(flame.visible, true)
++      assert(glow.material.color.r + glow.material.color.g + glow.material.color.b > idleGlow * 3)
++      assert(glow.material.color.r + glow.material.color.g + glow.material.color.b > throttleGlow * 1.5)
++      CONFIG[kind].afterburners.forEach((ab, i) => assert(bone(ab.name).scale.z > idleScales[i] * 2))
++      if (kind === 'f35') {
++        const closed = CONFIG.f35.doors!.names.map(([name]) => bone(name).quaternion.clone())
++        // Measure actual converted door vertices in their bone-local frame, not a guessed
++        // hinge offset. Angular magnitude alone can hide a cover rotating up through the hull.
++        const doorCenters = CONFIG.f35.doors!.names.map(([name]) => {
++          const b = bone(name)
++          const bi = mesh.skeleton.bones.indexOf(b)
++          const center = new Vector3()
++          let count = 0
++          for (const o of model.children as any[]) {
++            const indices = o.geometry?.getAttribute('skinIndex')
++            const positions = o.geometry?.getAttribute('position')
++            if (!indices || !positions) continue
++            for (let i = 0; i < indices.count; i++) {
++              if (indices.getX(i) !== bi) continue
++              center.add(new Vector3().fromBufferAttribute(positions, i).applyMatrix4(mesh.skeleton.boneInverses[bi]))
++              count++
++            }
++          }
++          assert(count > 0, `${name}: door surface is missing`)
++          center.divideScalar(count)
++          return { local: center, closedY: center.clone().applyMatrix4(b.matrixWorld).y }
++        })
++        view.setFiring(0, 0, true)
++        for (let i = 0; i < 120; i++) stepView()
++        CONFIG.f35.doors!.names.forEach(([name], i) => assert(bone(name).quaternion.angleTo(closed[i]) < 0.001, 'pilot cannon must not open missile bay'))
++        view.setFiring(0, 0, false)
++        for (const [seat, slot] of CONFIG.f35.doors!.weapons!) {
++          view.setFiring(seat, slot, true)
++          for (let i = 0; i < 120; i++) stepView()
++          CONFIG.f35.doors!.names.forEach(([name], i) => {
++            assert(bone(name).quaternion.angleTo(closed[i]) > 1, `missile slot ${seat}/${slot} must open bay`)
++            const openY = doorCenters[i].local.clone().applyMatrix4(bone(name).matrixWorld).y
++            assert(openY < doorCenters[i].closedY - 0.05, `${name}: bay cover must swing downward, away from hull`)
++          })
++          view.setFiring(seat, slot, false)
++          for (let i = 0; i < 240; i++) stepView()
++          CONFIG.f35.doors!.names.forEach(([name], i) => {
++            assert(bone(name).quaternion.angleTo(closed[i]) < 0.001, 'released missile trigger must close bay')
++            assert(Math.abs(doorCenters[i].local.clone().applyMatrix4(bone(name).matrixWorld).y - doorCenters[i].closedY) < 0.001, `${name}: closed door surface did not return`)
++          })
++        }
++      }
++      const hull = model.children.find((o: any) => o.name === 'toon' && o.material.metalness === 0.05) as any
++      const colors = hull.geometry.getAttribute('color')
++      const darkBase = new Color('#232628')
++      let hasDarkBase = false
++      for (let i = 0; i < colors.count; i++) {
++        if (Math.max(Math.abs(colors.getX(i) - darkBase.r), Math.abs(colors.getY(i) - darkBase.g), Math.abs(colors.getZ(i) - darkBase.b)) < 1e-6) hasDarkBase = true
++      }
++      assert(hasDarkBase, 'converted dark body palette missing')
++      room.close()
 +    }
 +    converted.push({ kind, loadConversionViewMs, stats, batches, bounds, anchors: [...view.anchors.keys()] })
 +    view.dispose()
@@ -166,7 +353,7 @@ index 0000000..fbdbf68
 +  globalThis.ProgressEvent = nativeProgressEvent
 +}
 +console.log(JSON.stringify({ converted }))
-+console.log('PASS: F-15/F-35 offline spawn/snapshot, invalid-kind rejection, ordinary-input takeoff/turn, actual hashes/budgets/material assignments, cockpit/anchor math and real CPU loader/template/view. Original five cruise/boost unchanged. Timings include local I/O + GLTF parse + conversion + view setup; single samples, no GPU/rendered-flight/thumbnail acceptance.')
++console.log('PASS: F-15/F-35 distinct loadouts/stealth, model-derived gun/missile positions in identity and rotated poses, one-store-per-round depletion/regeneration, offline spawn/snapshot, invalid-kind rejection, ordinary-input takeoff/turn, hashes/budgets/material assignments, cockpit/anchor math and real CPU loader/template/view. Original five cruise/boost/loadouts and generic hardpoints unchanged. Timings include local I/O + GLTF parse + conversion + view setup; single samples, no GPU/rendered-flight/thumbnail acceptance.')
 diff --git a/games/wings/check-browser.py b/games/wings/check-browser.py
 new file mode 100644
 index 0000000..7be2067
@@ -656,48 +843,100 @@ index 7346de6..617b639 100644
      const view = createAircraftView(kind, team, qInput.value as Quality)
      scene.add(view.root)
 diff --git a/games/wings/src/render/aircraft.ts b/games/wings/src/render/aircraft.ts
-index 8919800..12087dc 100644
+index 8919800..6b5e887 100644
 --- a/games/wings/src/render/aircraft.ts
 +++ b/games/wings/src/render/aircraft.ts
-@@ -157,7 +157,27 @@ interface KindConfig {
+@@ -149,15 +149,52 @@ interface KindConfig {
+   ballPod?: { name: string; seat: SeatIndex; maxUp: number }
+   rollPod?: { name: string; seat: SeatIndex }
+   rudders?: { names: string[]; gain: number; max: number }
+-  /** Hinged doors (bomb bay) that swing open while `seat` is firing/aiming: bone-local axis, open angle per door. */
+-  doors?: { names: [string, number][]; axis: Axis; seat: SeatIndex }
++  /** Hinged doors: explicit weapon triggers, or either slot of `seat` when unspecified. */
++  doors?: { names: [string, number][]; axis: Axis; seat: SeatIndex; weapons?: [SeatIndex, number][] }
+   anchors: AnchorDef[]
+   placeholder: { length: number; span: number; heli: boolean }
+   /** Ground blob size [span, length] in meters. */
    shadow: [number, number]
  }
 
 -const CONFIG: Record<VehicleKind, KindConfig> = {
 +export const CONFIG: Record<VehicleKind, KindConfig> = {
 +  f15: {
-+    file: "f15", pivots: [], stores: [], spinners: [], afterburners: [],
-+    // Attachment metadata only; no animated stores or additional weapons.
++    file: "f15",
++    pivots: ["missile_L1", "missile_R1", "missile_L2", "missile_R2", "afterburner_L", "afterburner_R"],
++    stores: [
++      { weapons: [[0, 1]], order: ["missile_L2", "missile_R2"] },
++      { weapons: [[1, 0]], order: ["missile_L1", "missile_R1"] },
++    ],
++    spinners: [],
++    afterburners: [
++      { name: "afterburner_L", axis: "z", cone: { dir: "z", sign: 1, length: 1.5 } },
++      { name: "afterburner_R", axis: "z", cone: { dir: "z", sign: 1, length: 1.5 } },
++    ],
 +    anchors: [
 +      { key: "gun", node: "gun_muzzle" },
 +      ...["weapon_wing_L_inner", "weapon_wing_L_outer", "weapon_wing_R_inner", "weapon_wing_R_outer",
 +        "weapon_fuselage_L", "weapon_fuselage_R", "weapon_centerline", "exhaust_L", "exhaust_R"]
 +        .map(node => ({ key: node, node })),
 +    ],
-+    placeholder: { length: 18.5, span: 13, heli: false }, shadow: [13, 18.5],
++    placeholder: { length: 19.44, span: 13, heli: false }, shadow: [13, 19.44],
 +  },
 +  f35: {
-+    file: "f35", pivots: [], stores: [], spinners: [], afterburners: [],
++    file: "f35",
++    pivots: ["missile_L1", "missile_R1", "missile_L2", "missile_R2", "bay_door_L", "bay_door_R", "afterburner"],
++    stores: [
++      { weapons: [[0, 1]], order: ["missile_L2", "missile_R2"] },
++      { weapons: [[1, 0]], order: ["missile_L1", "missile_R1"] },
++    ],
++    spinners: [],
++    afterburners: [{ name: "afterburner", axis: "z", cone: { dir: "z", sign: 1, length: 1.8 } }],
++    doors: { names: [["bay_door_L", -1.45], ["bay_door_R", 1.45]], axis: "z", seat: 1, weapons: [[0, 1], [1, 0]] },
 +    anchors: [
 +      { key: "gun", node: "gun_muzzle" },
 +      ...["weapon_wing_L", "weapon_wing_R", "weapon_bay_L", "weapon_bay_R", "exhaust"]
 +        .map(node => ({ key: node, node })),
 +    ],
-+    placeholder: { length: 15, span: 10.6, heli: false }, shadow: [10.6, 15],
++    placeholder: { length: 15.7, span: 10.7, heli: false }, shadow: [10.7, 15.7],
 +  },
    fighter: {
      file: "fa18",
      pivots: [
+@@ -610,7 +647,10 @@ function buildTemplate(kind: VehicleKind, scene: Object3D): Template {
+     const override = COLOR_OVERRIDES.find(([re, , kinds]) => kindMatch(kinds) && b.names.some((n) => re.test(n)))?.[1]
+     const isTop = b.names.some((n) => TOP_PAINT.test(n))
+     const target = b.metal && !isTop ? metal : paint
+-    const groupColor = override ? new Color(override) : paintColor(b.srcColor, target === metal ? "metal" : "hull")
++    // These original jets carry the reviewed dark neutral palette in their authored colors.
++    // Keep panel separation; the generic near-black lift would turn them light gunmetal.
++    const jetPaint = (kind === "f15" || kind === "f35") && target === paint
++    const groupColor = override ? new Color(override) : jetPaint ? b.srcColor.clone() : paintColor(b.srcColor, target === metal ? "metal" : "hull")
+     b.geoms.forEach((g, i) => {
+       const name = b.names[i]
+       const partHex = PART_COLORS.find(([re, , kinds]) => kindMatch(kinds) && re.test(name))?.[1]
+@@ -1391,9 +1431,10 @@ export function createAircraftView(kind: VehicleKind, team: TeamId, quality: Qua
+           }
+         }
+         if (cfg.doors) {
+-          // Open while the bombardier is aiming/releasing (seat occupied and firing), close otherwise.
++          // Selective missile bays ignore cannon fire; legacy bays retain either-slot seat behavior.
+           const d = cfg.doors
+-          const want = firing[d.seat][0] || firing[d.seat][1] ? 1 : 0
++          const active = d.weapons ? d.weapons.some(([seat, slot]) => firing[seat][slot]) : firing[d.seat][0] || firing[d.seat][1]
++          const want = active ? 1 : 0
+           r.doors = approach(r.doors, want, want ? 2.2 : 1.2, dt)
+           for (const [n, ang] of d.names) {
+             const bi = boneAt(r, n)
 diff --git a/games/wings/src/render/camera.ts b/games/wings/src/render/camera.ts
-index 17739d5..3b7a8bd 100644
+index 17739d5..ea5f818 100644
 --- a/games/wings/src/render/camera.ts
 +++ b/games/wings/src/render/camera.ts
 @@ -12,6 +12,8 @@ const COCKPIT: Record<VehicleKind, Vec3> = {
    warthog: [0, 1.7, -4.4],
    blackbird: [0, 1.6, -9],
    bomber: [0, 2.2, -9],
-+  f15: [0, 1.05, -4.9],
-+  f35: [0, 1.08, -4.1],
++  f15: [0, 1.05, -5.148972972972974],
++  f35: [0, 1.08, -4.291333333333333],
  }
  /** Gunner camera: targeting pod / chin turret position. */
  const GUNNER: Record<VehicleKind, Vec3> = {
@@ -705,8 +944,8 @@ index 17739d5..3b7a8bd 100644
    warthog: [0, -1.5, -2],
    blackbird: [0, -2.4, -15],
    bomber: [0, -3, -4],
-+  f15: [0, -1.4, -4.9],
-+  f35: [0, -1.4, -4.1],
++  f15: [0, -1.4, -5.148972972972974],
++  f35: [0, -1.4, -4.291333333333333],
  }
  /**
   * Gunner eye placement relative to the optic: metres along the line of sight (clears the own nose/belly)
@@ -877,7 +1116,7 @@ index 8f021e3..9e80452 100644
    let total = 0
    for (const k of KINDS) total += kindWeight(k, counts)
 diff --git a/games/wings/src/sim/combat.ts b/games/wings/src/sim/combat.ts
-index 77578c3..f7d5269 100644
+index 77578c3..2b8f2e7 100644
 --- a/games/wings/src/sim/combat.ts
 +++ b/games/wings/src/sim/combat.ts
 @@ -39,7 +39,7 @@ export const MAX_FLARES = 256
@@ -889,6 +1128,20 @@ index 77578c3..f7d5269 100644
  /** Per-weapon damage multiplier applied on top of WEAPONS[w].damage. */
  export const WEAPON_DAMAGE_MULT: Record<WeaponId, number> = {
    cannon20: 1.35, chaingun30: 1.1, gau8: 0.8, rockets: 1, aim9: 1, tvmissile: 1, hellfire: 1, maverick: 1,
+@@ -444,7 +444,12 @@ export function muzzlePosition(vehicle: VehicleEntity, seat: SeatIndex, weapon:
+   const r = VEHICLES[vehicle.kind].radius
+   const spec = WEAPONS[weapon]
+   const p = vehicle.flight.position
+-  if (spec.kind === "gun") {
++  const hardpoints = VEHICLES[vehicle.kind].hardpoints
++  const point = hardpoints && (spec.kind === "gun" ? hardpoints.gun
++    : spec.kind === "missile_lock" || spec.kind === "missile_scanner" ? hardpoints.missiles[seat][hardpoint % 2 === 0 ? 0 : 1] : undefined)
++  if (point) {
++    rotate(vehicle.flight.orientation, point[0], point[1], point[2], out)
++  } else if (spec.kind === "gun") {
+     if (spec.turret) rotate(vehicle.flight.orientation, 0, -1.6, -r * 0.55, out)
+     else rotate(vehicle.flight.orientation, 0, 0, -r * 0.8, out)
+   } else {
 diff --git a/games/wings/src/sim/flight.ts b/games/wings/src/sim/flight.ts
 index 85b96d5..4922fc4 100644
 --- a/games/wings/src/sim/flight.ts
@@ -951,10 +1204,26 @@ index c915941..04839d0 100644
  export type SeatIndex = 0 | 1
  export type WeaponSlot = "primary" | "secondary"
 diff --git a/games/wings/src/sim/vehicles.ts b/games/wings/src/sim/vehicles.ts
-index cee5ec4..d9bcc67 100644
+index cee5ec4..0972428 100644
 --- a/games/wings/src/sim/vehicles.ts
 +++ b/games/wings/src/sim/vehicles.ts
-@@ -87,7 +87,7 @@ export const STEALTH_AA_CEILING = 600
+@@ -1,5 +1,5 @@
+ // Vehicle + weapon tuning tables. Owned by the orchestrator; agents may propose numbers.
+-import type { FlightModel, VehicleKind, WeaponId } from "./types"
++import type { FlightModel, VehicleKind, WeaponId, Vec3 } from "./types"
+
+ /**
+  * gun / rockets: fire while held.
+@@ -60,6 +60,8 @@ export interface VehicleSpec {
+   seatNames: [string, string]
+   /** Stealth airframe (see STEALTH_* rules). */
+   stealth?: boolean
++  /** Model-derived local launch points; original aircraft retain their existing rails. */
++  hardpoints?: { gun: Vec3; missiles: [[Vec3, Vec3], [Vec3, Vec3]] }
+ }
+
+ export const WEAPONS: Record<WeaponId, WeaponSpec> = {
+@@ -87,7 +89,7 @@ export const STEALTH_AA_CEILING = 600
  export const STEALTH_LOCK_TIME = 4
  export const STEALTH_LOCK_SPOT = 8
 
@@ -963,7 +1232,7 @@ index cee5ec4..d9bcc67 100644
    fighter: {
      kind: "fighter", name: "F/A-18F Super Hornet", model: "models/fa18.glb", flight: "jet",
      maxHp: 450, radius: 8, cruise: 135, boost: 185, stall: 55,
-@@ -120,4 +120,18 @@ export const VEHICLES: Record<VehicleKind, VehicleSpec> = {
+@@ -120,4 +122,35 @@ export const VEHICLES: Record<VehicleKind, VehicleSpec> = {
    },
  }
 
@@ -971,13 +1240,30 @@ index cee5ec4..d9bcc67 100644
 +  ...ORIGINAL_VEHICLES,
 +  f15: {
 +    ...ORIGINAL_VEHICLES.fighter,
-+    kind: "f15", name: "F-15-style", model: "models/f15.glb",
++    kind: "f15", name: "F-15", model: "models/f15.glb",
 +    cruise: 155, boost: 215,
++    seatWeapons: [["cannon20", "aim9"], ["maverick", null]],
++    hardpoints: {
++      gun: [1.03, .27, -4.098162162162],
++      missiles: [
++        [[-4.25, -.40, 1.313513513514], [4.25, -.40, 1.313513513514]],
++        [[-2.55, -.48, .105081081081], [2.55, -.48, .105081081081]],
++      ],
++    },
 +  },
 +  f35: {
 +    ...ORIGINAL_VEHICLES.fighter,
-+    kind: "f35", name: "F-35-style", model: "models/f35.glb",
++    kind: "f35", name: "F-35", model: "models/f35.glb",
 +    cruise: 130, boost: 180,
++    seatWeapons: [["cannon20", "tvmissile"], ["tvmissile", null]],
++    stealth: true,
++    hardpoints: {
++      gun: [-.958962264151, .53, -3.14],
++      missiles: [
++        [[-.918584905660, -.15, .397733333333], [.918584905660, -.15, .397733333333]],
++        [[-.535, -.15, -.1256], [.535, -.15, -.1256]],
++      ],
++    },
 +  },
 +}
 +
@@ -1076,7 +1362,7 @@ index 7dbb107..959c635 100644
 +  .hud-board { flex-wrap: wrap; gap: 24px; overflow-y: auto; padding: 80px 16px 24px; }
 +}
 diff --git a/games/wings/src/ui/game.ts b/games/wings/src/ui/game.ts
-index 2a64abd..d7df07c 100644
+index 2a64abd..8f99154 100644
 --- a/games/wings/src/ui/game.ts
 +++ b/games/wings/src/ui/game.ts
 @@ -163,7 +163,6 @@ class GameSession implements GameHandle {
@@ -1115,7 +1401,19 @@ index 2a64abd..d7df07c 100644
      if (!this.offline) this.pingTimer = window.setInterval(() => { if (!this.rtt) this.send({ type: "ping", t: performance.now() }) }, 2000)
      if (!this.offline) history.replaceState(null, "", `${import.meta.env.BASE_URL}?join=${encodeURIComponent(this.room)}`)
    }
-@@ -536,12 +538,6 @@ class GameSession implements GameHandle {
+@@ -530,18 +532,18 @@ class GameSession implements GameHandle {
+       this.bombPeek = !this.bombPeek
+       this.deps.audio?.ui("click")
+     }
++    // Release explicitly so the menu also works when a host forwards Escape without its default unlock.
++    // pointerlockchange queues the existing pause action after controls have been cleared.
++    if (e.key === "Escape" && !e.repeat && !this.paused && this.input.locked && !this.hud.chatOpen()) {
++      this.input.releaseLock()
++      return
++    }
+     if (e.key === "Escape" && this.paused && !this.input.locked) {
+       e.preventDefault()
+       this.resume()
      }
    }
 
@@ -1128,7 +1426,7 @@ index 2a64abd..d7df07c 100644
    private exit(reason?: string): void {
      if (this.ended) return
      console.info("[wings] leaving match", reason ?? "")
-@@ -558,6 +554,8 @@ class GameSession implements GameHandle {
+@@ -558,6 +560,8 @@ class GameSession implements GameHandle {
      window.removeEventListener("keydown", this.onKeyDown)
      this.offSettings()
      this.input.dispose()
@@ -1137,7 +1435,7 @@ index 2a64abd..d7df07c 100644
      for (const v of this.visuals.values()) this.removeVisual(v)
      this.visuals.clear()
      const fx = this.deps.host.effects
-@@ -787,7 +785,7 @@ class GameSession implements GameHandle {
+@@ -787,7 +791,7 @@ class GameSession implements GameHandle {
              { killer: !!(e.killer && this.players.get(e.killer)?.bot), victim: !!this.players.get(e.victim)?.bot })
            if (e.killer === this.playerId && e.victim !== this.playerId) {
              this.hud.hitmarker(true)
@@ -1146,7 +1444,7 @@ index 2a64abd..d7df07c 100644
            }
            if (e.victim === this.playerId || (myVeh && e.victim === myVeh)) {
              const kv = e.killer && e.killer !== this.playerId ? this.players.get(e.killer)?.vehicleId : null
-@@ -825,7 +823,7 @@ class GameSession implements GameHandle {
+@@ -825,7 +829,7 @@ class GameSession implements GameHandle {
            local = e.vehicle === myVeh
            if (e.team !== this.me?.team && this.me && myVeh && this.posOfVehicle(myVeh)) {
              const p = this.posOfVehicle(myVeh)!
@@ -1155,7 +1453,7 @@ index 2a64abd..d7df07c 100644
            }
            break
          case "spotted": {
-@@ -847,7 +845,7 @@ class GameSession implements GameHandle {
+@@ -847,7 +851,7 @@ class GameSession implements GameHandle {
            const result = e.winner === null ? "draw" : e.winner === myTeam ? "victory" : "defeat"
            const why = e.reason === "carriers-sunk"
              ? (e.winner === null ? "every carrier went down" : result === "victory" ? "the enemy carriers are sunk" : "our carriers are sunk")
