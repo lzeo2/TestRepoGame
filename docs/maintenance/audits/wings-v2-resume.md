@@ -191,3 +191,40 @@ files, new games, servers, push or origin writes. This receipt is the owned log;
 only its explicit path is committed. Final `git diff --check` exited **0**;
 post-append maintenance check exited **0**, with the same 130-document coverage
 output above. Pre-commit disk availability: **3,387,371,520 bytes**.
+
+## Resume stop: Phase 1 fresh-render tooling gate
+
+Orchestrator verified worker commit `8b3efc2` and reviewed its actual diff. Sampled
+the last 20 lines of `.swarmforge-logs/worker-2026-10-17T04-17-32-925Z-7080a088.log`.
+The harness log contains task/result metadata rather than an internal tool trace;
+its results are recorded above. One worker, correct requested provider/model,
+no scope drift or source edits. No later phase was delegated across this gate.
+
+Fresh invocation of `python3 -B Games/Wings/verification/check-models-browser.py`
+with an external output directory exits at argparse with code **2**:
+
+```text
+check-models-browser.py: error: Existing Three 0.186.0 not found; supply --three-root. Do not install.
+```
+
+Searches of existing Bun/npm caches, package directories and prior staging found
+no usable Three 0.186.0. System Chromium is present. The existing Three 0.180.0
+used for Phase 0 geometry measurements was not substituted for this render gate.
+No fresh screenshot was produced. Existing committed previews remain historical.
+The stale expected model counts are a separate known runner defect, not an excuse
+to weaken assertions or claim a render PASS.
+
+Consulted Hermes ticket `pi-368449-1792210755198-1ecef1b3`; advice provided further
+cache-search locations, which yielded no usable package, and advised requesting
+single-use external retrieval permission. This is **not operator approval**.
+Unblocking request: supply an existing Three 0.186.0 directory, or authorize
+fetching that exact package into bounded external test staging, without repository
+node_modules, runtime dependencies or origin writes. Native/converted-renderer
+hardware acceptance remains separate even after raw preview tooling is restored.
+
+Phase status: **0 complete; 1 structural checks pass, visual gate blocked;
+2-5 not newly accepted in this resume**. Existing repair commits are preserved.
+No game added or registered (125 catalog games / 130 projects), no runtime
+source or generated assets changed, no push. Disk display remains **3.2 GB free**
+from start to stop; this is rounded filesystem usage, not an exact task delta.
+Resume commits before this stop receipt: `000947e`, `8b3efc2`.

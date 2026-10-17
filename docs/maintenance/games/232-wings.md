@@ -255,6 +255,15 @@ browser fixtures are standard Three, not Wings' native renderer. Unavailable-GPU
 UI and same-browser menu sequence runners establish only their labeled scopes.
 Terminate owned temporary servers; install nothing merely to reproduce a report.
 
+## V2 resume study (2026-10-17)
+
+The [fresh resume receipt](../audits/wings-v2-resume.md) starts at `956ef48`:
+Phase 0 independently studied current descriptors, original models and pinned
+renderer/gameplay source; Phase 1 palette and repeated generation pass. Fresh
+raw rendering is blocked because the required existing Three 0.186.0 package is
+absent. Retrieval permission is pending; no version substitution, runtime change
+or new Phase 2-5 acceptance. Existing previews and fleet results remain dated.
+
 ## Future outlook
 
 Complete operator and converted-family review, native missile/audio/physical-input
