@@ -3,19 +3,19 @@ import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { createHash } from 'node:crypto'
-import { Box3, PerspectiveCamera, Vector3 } from 'three'
+import { Box3, PerspectiveCamera, Vector3, Color } from 'three'
 import { setTimeout as delay } from 'node:timers/promises'
 import { CameraRig } from './src/render/camera'
 import { CONFIG, preloadAircraft, aircraftReady, aircraftStats, createAircraftView } from './src/render/aircraft'
 import { createLoopbackRoom } from './src/sim/loopback'
 import { TICK_DT, type VehicleKind } from './src/sim/types'
-import { VEHICLES, VEHICLE_KINDS } from './src/sim/vehicles'
+import { VEHICLES, VEHICLE_KINDS, WEAPONS } from './src/sim/vehicles'
 import { DEFAULT_ROOM_CONFIG, type ServerMessage } from './src/sim/protocol'
 
 const models = resolve(process.argv[2] ?? 'Games/Wings/models')
 assert.deepEqual(VEHICLE_KINDS, ['fighter', 'apache', 'warthog', 'blackbird', 'bomber', 'f15', 'f35'])
 assert.deepEqual(VEHICLE_KINDS.slice(0, 5).map(k => [VEHICLES[k].cruise, VEHICLES[k].boost]), [[135,185],[75,98],[105,135],[190,260],[150,180]])
-const hashes = ['5787ebe4d03fc70ce08036ad1a37a7eff6ee1a0b73d132939a27cb02964ba0f8', '5e3cd65a8fa1c890907878b3219c863cfdfe4f63bc6da638b846411a5f5caafb']
+const hashes = ['e0613588851722e7abfb1d4655e8866aa50aad80380902859e378b083494f588', '76ff393cc09575c74e792a9df3ed5538cc7c03edc7a78f0c5c8c2a3e515ca7a4']
 const results = []
 for (const [index, kind] of (['f15', 'f35'] as const).entries()) {
   const messages: ServerMessage[] = []
@@ -53,7 +53,24 @@ for (const [index, kind] of (['f15', 'f35'] as const).entries()) {
   const gltf = JSON.parse(bytes.subarray(20, 20 + bytes.readUInt32LE(12)).toString())
   const names = gltf.nodes.map((n: { name: string }) => n.name)
   for (const name of [...desc.pivots, ...desc.anchors.map(a => a.node)]) assert(names.includes(name), name)
-  for (const field of ['pivots', 'stores', 'spinners', 'afterburners'] as const) assert.deepEqual(desc[field], [])
+  assert.deepEqual(desc.spinners, [])
+  assert.deepEqual(desc.stores.map(g => g.weapons), [[[0, 1]], [[1, 0]]])
+  assert.equal(desc.stores.flatMap(g => g.order).length, 4)
+  for (const g of desc.stores) for (const name of g.order) assert(desc.pivots.includes(name) && names.includes(name))
+  assert.equal(desc.afterburners.length, kind === 'f15' ? 2 : 1)
+  for (const ab of desc.afterburners) {
+    assert(desc.pivots.includes(ab.name) && names.includes(ab.name))
+    assert.deepEqual([ab.axis, ab.cone?.dir, ab.cone?.sign], ['z', 'z', 1])
+    assert(ab.cone!.length > 0)
+  }
+  if (kind === 'f35') {
+    assert.equal(desc.doors?.seat, 1)
+    for (const [name] of desc.doors!.names) assert(desc.pivots.includes(name) && names.includes(name))
+    for (const side of ['L', 'R']) {
+      const bay = gltf.nodes.find((n: any) => n.name === `weapon_bay_${side}`)
+      for (const slot of [1, 2]) assert(bay.children.includes(names.indexOf(`missile_${side}${slot}`)))
+    }
+  }
   assert(!names.some((n: string) => /^(gear|propeller|spinner)$/.test(n)))
   assert.deepEqual(desc.anchors.map(a => a.node).sort(), names.filter((n: string) => n === 'gun_muzzle' || /^weapon_|^exhaust(?:_[LR])?$/.test(n)).sort())
   assert.equal(desc.anchors.find(a => a.key === 'gun')?.node, 'gun_muzzle')
@@ -132,15 +149,16 @@ try {
       const bytes = readFileSync(resolve(models, `${kind}.glb`))
       const gltf = JSON.parse(bytes.subarray(20, 20 + bytes.readUInt32LE(12)).toString())
       const primitives = gltf.meshes.flatMap((m: any) => m.primitives)
-      assert.equal(stats.triangles, primitives.reduce((s: number, p: any) => s + gltf.accessors[p.indices].count / 3, 0))
+      const sourceTriangles = primitives.reduce((s: number, p: any) => s + gltf.accessors[p.indices].count / 3, 0)
+      assert(stats.triangles > sourceTriangles, 'existing procedural exhaust cones must be present')
       assert.equal(stats.sourceMeshes, primitives.length)
       assert.equal(stats.sourceMaterials, gltf.materials.length)
-      assert.equal(stats.drawCalls, 4)
+      assert.equal(stats.drawCalls, 6)
       assert(batches.some(b => b.role === 'toon' && b.metalness === 0.05))
       assert(batches.some(b => b.role === 'toon' && b.metalness === 0.55))
       assert(batches.some(b => b.role === 'livery'))
       assert(batches.some(b => b.role === 'glass' && b.opacity > 0 && b.opacity < 1))
-      assert(Math.abs(bounds[2] - CONFIG[kind].placeholder.length) < 1e-5)
+      assert(bounds[2] >= CONFIG[kind].placeholder.length - 1e-5 && bounds[2] < CONFIG[kind].placeholder.length + 3)
       assert(Math.abs(bounds[0] - CONFIG[kind].placeholder.span) < 1e-5)
       for (const a of CONFIG[kind].anchors) {
         const anchor = view.anchors.get(a.key)!
@@ -148,6 +166,80 @@ try {
         const position = new Vector3().setFromMatrixPosition(anchor.matrix)
         assert(position.distanceTo(new Vector3(...gltf.nodes.find((n: any) => n.name === a.node).translation)) < 1e-6)
       }
+      // Render-state fixtures exercise the actual converted rigid skeleton and materials.
+      // They do not claim native input, rendered pixels or combat acceptance.
+      const room = createLoopbackRoom({ ...DEFAULT_ROOM_CONFIG, bots: 0, listed: false }, 'Render state check', { onMessage() {} }, { manual: true })
+      await Promise.resolve()
+      room.send({ type: 'spawn', kind })
+      const vehicle = room.engine.vehicles.find(v => v.seats[0] === room.playerId)!
+      const camera = new PerspectiveCamera()
+      camera.position.fromArray(vehicle.flight.position)
+      camera.updateMatrixWorld(true)
+      view.setLocal(true)
+      const mesh = model.children.find((o: any) => o.isSkinnedMesh) as any
+      const bone = (name: string) => {
+        const b = mesh.skeleton.bones.find((b: any) => b.name === name)
+        assert(b, `converted bone ${name}`)
+        const bi = mesh.skeleton.bones.indexOf(b)
+        assert(model.children.some((o: any) => {
+          const indices = o.geometry?.getAttribute('skinIndex')
+          if (!indices) return false
+          for (let i = 0; i < indices.count; i++) if (indices.getX(i) === bi) return true
+          return false
+        }), `${name}: no converted geometry attached to pivot`)
+        return b
+      }
+      const stepView = () => { view.update(vehicle, [], 1 / 60, camera); view.root.updateMatrixWorld(true) }
+      stepView()
+      for (const group of CONFIG[kind].stores) for (const name of group.order) assert(bone(name).scale.x > 0.9)
+      for (const group of CONFIG[kind].stores) {
+        for (const name of group.order) assert(bone(name).scale.x > 0.9)
+        for (const [seat, slot] of group.weapons) vehicle.weapons[seat][slot]!.ammo = 0
+        stepView()
+        for (const name of group.order) assert(bone(name).scale.x < 0.001, `${name}: spent store remains visible`)
+        for (const [seat, slot] of group.weapons) vehicle.weapons[seat][slot]!.ammo = WEAPONS[VEHICLES[kind].seatWeapons[seat][slot]!].ammo
+        stepView()
+        for (const name of group.order) assert(bone(name).scale.x > 0.9, `${name}: replenished store did not return`)
+        for (const other of CONFIG[kind].stores.filter(g => g !== group)) for (const name of other.order) assert(bone(name).scale.x > 0.9, `${name}: unrelated slot changed`)
+      }
+      const flame = model.children.find((o: any) => o.name === 'flame') as any
+      const glow = model.children.find((o: any) => o.name === 'afterburner') as any
+      assert(flame && glow)
+      vehicle.flight.throttle = 0
+      view.setBoost(false)
+      for (let i = 0; i < 120; i++) stepView()
+      assert.equal(flame.visible, false)
+      const idleGlow = glow.material.color.r + glow.material.color.g + glow.material.color.b
+      const idleScales = CONFIG[kind].afterburners.map(ab => bone(ab.name).scale.z)
+      vehicle.flight.throttle = 1
+      for (let i = 0; i < 120; i++) stepView()
+      assert.equal(flame.visible, true, 'high throttle must show exhaust without boost')
+      const throttleGlow = glow.material.color.r + glow.material.color.g + glow.material.color.b
+      assert(throttleGlow > idleGlow * 2)
+      view.setBoost(true)
+      for (let i = 0; i < 120; i++) stepView()
+      assert.equal(flame.visible, true)
+      assert(glow.material.color.r + glow.material.color.g + glow.material.color.b > idleGlow * 3)
+      assert(glow.material.color.r + glow.material.color.g + glow.material.color.b > throttleGlow * 1.5)
+      CONFIG[kind].afterburners.forEach((ab, i) => assert(bone(ab.name).scale.z > idleScales[i] * 2))
+      if (kind === 'f35') {
+        const closed = CONFIG.f35.doors!.names.map(([name]) => bone(name).quaternion.clone())
+        view.setFiring(1, 0, true)
+        for (let i = 0; i < 120; i++) stepView()
+        CONFIG.f35.doors!.names.forEach(([name], i) => assert(bone(name).quaternion.angleTo(closed[i]) > 1))
+        view.setFiring(1, 0, false)
+        for (let i = 0; i < 240; i++) stepView()
+        CONFIG.f35.doors!.names.forEach(([name], i) => assert(bone(name).quaternion.angleTo(closed[i]) < 0.001))
+      }
+      const hull = model.children.find((o: any) => o.name === 'toon' && o.material.metalness === 0.05) as any
+      const colors = hull.geometry.getAttribute('color')
+      const darkBase = new Color('#232628')
+      let hasDarkBase = false
+      for (let i = 0; i < colors.count; i++) {
+        if (Math.max(Math.abs(colors.getX(i) - darkBase.r), Math.abs(colors.getY(i) - darkBase.g), Math.abs(colors.getZ(i) - darkBase.b)) < 1e-6) hasDarkBase = true
+      }
+      assert(hasDarkBase, 'converted dark body palette missing')
+      room.close()
     }
     converted.push({ kind, loadConversionViewMs, stats, batches, bounds, anchors: [...view.anchors.keys()] })
     view.dispose()
