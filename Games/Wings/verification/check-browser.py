@@ -105,7 +105,7 @@ with sync_playwright() as p:
                 page.screenshot(path=str(args.out / (prefix + '-hud-fixture.png')))
                 page.get_by_role('button', name='UI fixture only - show long toast').click()
                 toast_box = page.locator('#toast div').first.bounding_box()
-                footer_box = page.locator('.foot').bounding_box()
+                footer_box = page.locator('#lobby .foot').bounding_box()
                 assert toast_box and footer_box
                 assert toast_box['x'] >= 0 and toast_box['x'] + toast_box['width'] <= width, toast_box
                 assert toast_box['y'] + toast_box['height'] <= footer_box['y'], (toast_box, footer_box)

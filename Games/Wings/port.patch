@@ -483,7 +483,7 @@ index 0000000..af30ba6
 +console.log('PASS: F-15/F-35 distinct loadouts/stealth, model-derived gun/missile positions in identity and rotated poses, one-store-per-round depletion/regeneration, offline spawn/snapshot, invalid-kind rejection, ordinary-input takeoff/turn, hashes/budgets/material assignments, cockpit/anchor math and real CPU loader/template/view. Original five cruise/boost/loadouts and generic hardpoints unchanged. Timings include local I/O + GLTF parse + conversion + view setup; single samples, no GPU/rendered-flight/thumbnail acceptance.')
 diff --git a/games/wings/check-browser.py b/games/wings/check-browser.py
 new file mode 100644
-index 0000000..78010c9
+index 0000000..2de1864
 --- /dev/null
 +++ b/games/wings/check-browser.py
 @@ -0,0 +1,119 @@
@@ -594,7 +594,7 @@ index 0000000..78010c9
 +                page.screenshot(path=str(args.out / (prefix + '-hud-fixture.png')))
 +                page.get_by_role('button', name='UI fixture only - show long toast').click()
 +                toast_box = page.locator('#toast div').first.bounding_box()
-+                footer_box = page.locator('.foot').bounding_box()
++                footer_box = page.locator('#lobby .foot').bounding_box()
 +                assert toast_box and footer_box
 +                assert toast_box['x'] >= 0 and toast_box['x'] + toast_box['width'] <= width, toast_box
 +                assert toast_box['y'] + toast_box['height'] <= footer_box['y'], (toast_box, footer_box)
