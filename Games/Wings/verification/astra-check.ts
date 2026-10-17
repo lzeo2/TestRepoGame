@@ -15,6 +15,8 @@ import { DEFAULT_ROOM_CONFIG, type ServerMessage } from './src/sim/protocol'
 const models = resolve(process.argv[2] ?? 'Games/Wings/models')
 assert.deepEqual(VEHICLE_KINDS, ['fighter', 'apache', 'warthog', 'blackbird', 'bomber', 'f15', 'f35'])
 assert.deepEqual(VEHICLE_KINDS.slice(0, 5).map(k => [VEHICLES[k].cruise, VEHICLES[k].boost]), [[135,185],[75,98],[105,135],[190,260],[150,180]])
+assert.equal(CONFIG.bomber.doors?.seat, 1)
+assert.equal(CONFIG.bomber.doors?.weapons, undefined, 'original bomber keeps its either-slot seat trigger')
 const hashes = ['e0613588851722e7abfb1d4655e8866aa50aad80380902859e378b083494f588', '76ff393cc09575c74e792a9df3ed5538cc7c03edc7a78f0c5c8c2a3e515ca7a4']
 const results = []
 for (const [index, kind] of (['f15', 'f35'] as const).entries()) {
@@ -65,6 +67,7 @@ for (const [index, kind] of (['f15', 'f35'] as const).entries()) {
   }
   if (kind === 'f35') {
     assert.equal(desc.doors?.seat, 1)
+    assert.deepEqual(desc.doors?.weapons, [[0, 1], [1, 0]])
     for (const [name] of desc.doors!.names) assert(desc.pivots.includes(name) && names.includes(name))
     for (const side of ['L', 'R']) {
       const bay = gltf.nodes.find((n: any) => n.name === `weapon_bay_${side}`)
@@ -224,12 +227,18 @@ try {
       CONFIG[kind].afterburners.forEach((ab, i) => assert(bone(ab.name).scale.z > idleScales[i] * 2))
       if (kind === 'f35') {
         const closed = CONFIG.f35.doors!.names.map(([name]) => bone(name).quaternion.clone())
-        view.setFiring(1, 0, true)
+        view.setFiring(0, 0, true)
         for (let i = 0; i < 120; i++) stepView()
-        CONFIG.f35.doors!.names.forEach(([name], i) => assert(bone(name).quaternion.angleTo(closed[i]) > 1))
-        view.setFiring(1, 0, false)
-        for (let i = 0; i < 240; i++) stepView()
-        CONFIG.f35.doors!.names.forEach(([name], i) => assert(bone(name).quaternion.angleTo(closed[i]) < 0.001))
+        CONFIG.f35.doors!.names.forEach(([name], i) => assert(bone(name).quaternion.angleTo(closed[i]) < 0.001, 'pilot cannon must not open missile bay'))
+        view.setFiring(0, 0, false)
+        for (const [seat, slot] of CONFIG.f35.doors!.weapons!) {
+          view.setFiring(seat, slot, true)
+          for (let i = 0; i < 120; i++) stepView()
+          CONFIG.f35.doors!.names.forEach(([name], i) => assert(bone(name).quaternion.angleTo(closed[i]) > 1, `missile slot ${seat}/${slot} must open bay`))
+          view.setFiring(seat, slot, false)
+          for (let i = 0; i < 240; i++) stepView()
+          CONFIG.f35.doors!.names.forEach(([name], i) => assert(bone(name).quaternion.angleTo(closed[i]) < 0.001, 'released missile trigger must close bay'))
+        }
       }
       const hull = model.children.find((o: any) => o.name === 'toon' && o.material.metalness === 0.05) as any
       const colors = hull.geometry.getAttribute('color')
