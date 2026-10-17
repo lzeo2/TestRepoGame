@@ -8,8 +8,9 @@ import { setTimeout as delay } from 'node:timers/promises'
 import { CameraRig } from './src/render/camera'
 import { CONFIG, preloadAircraft, aircraftReady, aircraftStats, createAircraftView } from './src/render/aircraft'
 import { createLoopbackRoom } from './src/sim/loopback'
-import { TICK_DT, type VehicleKind, type Vec3 } from './src/sim/types'
-import { muzzlePosition, isHiddenStealth, stepCombat, createCombatState } from './src/sim/combat'
+import { TICK_DT, type VehicleKind, type Vec3, type VehicleEntity, type GameEvent, type SeatInput } from './src/sim/types'
+import { muzzlePosition, isHiddenStealth, stepCombat, createCombatState, createWeapons, applySeatInput } from './src/sim/combat'
+import { createFlightState } from './src/sim/flight'
 import { VEHICLES, VEHICLE_KINDS, WEAPONS } from './src/sim/vehicles'
 import { DEFAULT_ROOM_CONFIG, type ServerMessage } from './src/sim/protocol'
 
@@ -177,6 +178,19 @@ globalThis.fetch = async (input: any) => {
   return new Response(bytes, { headers: { 'Content-Length': String(bytes.length) } })
 }
 const converted = []
+const combatFixtures: unknown[] = []
+// Construct deterministic high-altitude combat entities, not native-game state grants.
+// Flight positions stay fixed during acquisition; real seat input, lock, fire and
+// missile stepping run unchanged. Fleet actors are absent from this isolated fixture.
+function combatEntity(kind: VehicleKind, id: string, team: 0 | 1, position: Vec3): VehicleEntity {
+  return {
+    id, kind, team, flight: createFlightState(kind, { position, yaw: 0, onGround: false }),
+    hp: VEHICLES[kind].maxHp, maxHp: VEHICLES[kind].maxHp,
+    seats: [`${id}-pilot`, `${id}-officer`], aim: [null, null], weapons: createWeapons(kind),
+    flaresReadyAt: 0, flareCount: VEHICLES[kind].flares, abilityReadyAt: 0,
+    spottedUntil: 0, lastDamagedBy: null, alive: true, spawnedAt: 0,
+  }
+}
 try {
   // Identical sequential cold-template fixture, selectable references only. Single samples,
   // including file read, GLTF parse, conversion, view setup and event-loop wait, not GPU timing.
@@ -239,6 +253,70 @@ try {
         return b
       }
       const stepView = () => { view.update(vehicle, [], 1 / 60, camera); view.root.updateMatrixWorld(true) }
+      stepView()
+      for (const group of CONFIG[kind].stores) {
+        const [seat, slot] = group.weapons[0]
+        const shooter = combatEntity(kind, `${kind}-seat-${seat}`, 0, [0, 5000, 0])
+        const target = combatEntity('fighter', `${kind}-hostile`, 1, [0, 5000, -600])
+        const actors = [shooter, target]
+        const combat = createCombatState()
+        combat.ships = {}; combat.turrets = []
+        const events: GameEvent[] = []
+        const id = VEHICLES[kind].seatWeapons[seat][slot]!
+        const spec = WEAPONS[id]
+        const input: SeatInput = { aim: [0, 0, -1], firePrimary: false, fireSecondary: false, flares: false, ability: false }
+        const runtime = shooter.weapons[seat][slot]
+        const acquireTicks = Math.ceil(spec.lockTime! / TICK_DT)
+        let now = 100
+        for (let tick = 0; tick < acquireTicks; tick++) {
+          applySeatInput(combat, shooter, seat, input, actors, now, events)
+          assert.equal(combat.missiles.length, 0, 'acquisition alone must not fire')
+          if (tick < acquireTicks - 1) assert(runtime.lock < 1, 'lock completed before configured acquisition time')
+          stepCombat(combat, actors, TICK_DT, now, events)
+          now += TICK_DT
+        }
+        assert.equal(runtime.lockTarget, target.id)
+        assert.equal(runtime.lock, 1)
+        assert(events.some(e => e.type === 'lock' && e.vehicle === shooter.id && e.target === target.id && e.locked))
+        assert.equal(runtime.ammo, 2)
+        camera.position.fromArray(shooter.flight.position); camera.updateMatrixWorld(true)
+        view.update(shooter, [], TICK_DT, camera)
+        for (const name of group.order) assert(bone(name).scale.x > 0.9)
+        const expectedMuzzle: Vec3 = [0, 0, 0]
+        muzzlePosition(shooter, seat, id, expectedMuzzle, 0)
+        input.firePrimary = slot === 0; input.fireSecondary = slot === 1
+        applySeatInput(combat, shooter, seat, input, actors, now, events)
+        assert.equal(runtime.ammo, 1, 'real missile firing must consume exactly one own round')
+        assert.equal(combat.missiles.length, 1)
+        const missile = combat.missiles[0]
+        assert.equal(missile.owner, shooter.seats[seat])
+        assert.equal(missile.vehicle, shooter.id)
+        assert.equal(missile.team, shooter.team)
+        assert.equal(missile.seat, seat)
+        assert.equal(missile.weapon, id)
+        assert.equal(missile.target, target.id)
+        assert.equal(missile.age, -TICK_DT)
+        for (let axis = 0; axis < 3; axis++) {
+          const forward = axis === 2 ? -1 : 0
+          assert(Math.abs(missile.velocity[axis] - shooter.flight.velocity[axis] - forward * spec.speed) < 1e-6)
+          assert(Math.abs(missile.position[axis] + missile.velocity[axis] * TICK_DT - expectedMuzzle[axis]) < 1e-6, 'one-tick-back missile origin must resolve to model launch point')
+        }
+        assert(events.some(e => e.type === 'fire' && e.vehicle === shooter.id && e.seat === seat && e.weapon === id && e.hardpoint === 0))
+        view.setFiring(seat, slot, true) // Same client render hint as the seat trigger; not native input proof.
+        const closedDoors = kind === 'f35' ? CONFIG.f35.doors!.names.map(([name]) => bone(name).quaternion.clone()) : []
+        for (let tick = 0; tick < 60; tick++) view.update(shooter, [], TICK_DT, camera)
+        assert(bone(group.order[0]).scale.x < 0.001)
+        assert(bone(group.order[1]).scale.x > 0.9)
+        for (const other of CONFIG[kind].stores.filter(g => g !== group)) for (const name of other.order) assert(bone(name).scale.x > 0.9)
+        if (kind === 'f35') CONFIG.f35.doors!.names.forEach(([name], i) => assert(bone(name).quaternion.angleTo(closedDoors[i]) > 1, 'real missile trigger render hint must open F-35 bay'))
+        view.setFiring(seat, slot, false)
+        for (let tick = 0; tick < 240; tick++) view.update(shooter, [], TICK_DT, camera)
+        if (kind === 'f35') CONFIG.f35.doors!.names.forEach(([name], i) => assert(bone(name).quaternion.angleTo(closedDoors[i]) < 0.001))
+        stepCombat(combat, actors, TICK_DT, now, events)
+        assert(missile.age >= 0 && missile.position.every(Number.isFinite), 'real missile step must advance a finite trajectory')
+        combatFixtures.push({ kind, seat, slot, weapon: id, acquireTicks, target: target.id, owner: missile.owner, ammo: runtime.ammo, modelMuzzle: expectedMuzzle, missilePosition: [...missile.position], hiddenStore: group.order[0], visibleStore: group.order[1] })
+      }
+      camera.position.fromArray(vehicle.flight.position); camera.updateMatrixWorld(true)
       stepView()
       for (const group of CONFIG[kind].stores) for (const name of group.order) assert(bone(name).scale.x > 0.9)
       for (const group of CONFIG[kind].stores) {
@@ -347,4 +425,5 @@ try {
   globalThis.ProgressEvent = nativeProgressEvent
 }
 console.log(JSON.stringify({ converted }))
+console.log('CPU COMBAT FIXTURES (not native acceptance): ' + JSON.stringify(combatFixtures))
 console.log('PASS: F-15/F-35 distinct loadouts/stealth, model-derived gun/missile positions in identity and rotated poses, one-store-per-round depletion/regeneration, offline spawn/snapshot, invalid-kind rejection, ordinary-input takeoff/turn, hashes/budgets/material assignments, cockpit/anchor math and real CPU loader/template/view. Original five cruise/boost/loadouts and generic hardpoints unchanged. Timings include local I/O + GLTF parse + conversion + view setup; single samples, no GPU/rendered-flight/thumbnail acceptance.')
