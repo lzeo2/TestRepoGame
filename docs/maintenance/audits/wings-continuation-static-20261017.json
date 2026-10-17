@@ -1,0 +1,120 @@
+{
+  "audit_runtime_ref": "fa52d3d1be799fda41682162f9349f2cd4b0d8a8",
+  "observed_head_start": "bfbc5640146cfc38f8af8c34afadaa7f3efb9b21",
+  "observed_head_end": "bfbc5640146cfc38f8af8c34afadaa7f3efb9b21",
+  "original_requested_ref": "29210999c77ca711ec5f05e4cb3903c396aeae7f",
+  "node": "v22.23.1",
+  "syntax_files": 12,
+  "syntax": [
+    {
+      "path": "Games/Wings/assets/aircraft-BIwDLCoz.js",
+      "exit": 0,
+      "stderr": ""
+    },
+    {
+      "path": "Games/Wings/assets/audio-DtkOubcZ.js",
+      "exit": 0,
+      "stderr": ""
+    },
+    {
+      "path": "Games/Wings/assets/check-BmnK9C_q.js",
+      "exit": 0,
+      "stderr": ""
+    },
+    {
+      "path": "Games/Wings/assets/game-BzRoviGw.js",
+      "exit": 0,
+      "stderr": ""
+    },
+    {
+      "path": "Games/Wings/assets/geography-DSfv9zZq.js",
+      "exit": 0,
+      "stderr": ""
+    },
+    {
+      "path": "Games/Wings/assets/lobby-2P4upZgt.js",
+      "exit": 0,
+      "stderr": ""
+    },
+    {
+      "path": "Games/Wings/assets/loopback-Bnp9pbB9.js",
+      "exit": 0,
+      "stderr": ""
+    },
+    {
+      "path": "Games/Wings/assets/main-COOpTvC4.js",
+      "exit": 0,
+      "stderr": ""
+    },
+    {
+      "path": "Games/Wings/assets/scene-DYkrNFhj.js",
+      "exit": 0,
+      "stderr": ""
+    },
+    {
+      "path": "Games/Wings/assets/terrain-worker-CX1_8pAM.js",
+      "exit": 0,
+      "stderr": ""
+    },
+    {
+      "path": "Games/Wings/verification/astra-check.mjs",
+      "exit": 0,
+      "stderr": ""
+    },
+    {
+      "path": "Games/Wings/verification/solo-check.mjs",
+      "exit": 0,
+      "stderr": ""
+    }
+  ],
+  "catalog_count": 125,
+  "catalog_schema_unique_integer_ids_git_urls": true,
+  "catalog_and_protected_unchanged_from_a3f5554": true,
+  "local_generated_reference_count": 30,
+  "missing_local_generated_references": [],
+  "retired_assets": [
+    {
+      "name": "aircraft-CQ69fEt-.js",
+      "references": [
+        "docs/maintenance/audits/wings-repair-20261017.md"
+      ],
+      "dated_audits_only": true
+    },
+    {
+      "name": "check-CzSag0Bn.js",
+      "references": [],
+      "dated_audits_only": true
+    },
+    {
+      "name": "game-DfZgXajp.js",
+      "references": [],
+      "dated_audits_only": true
+    },
+    {
+      "name": "main-OuVFimUk.js",
+      "references": [],
+      "dated_audits_only": true
+    },
+    {
+      "name": "scene-DC8ZGUf0.js",
+      "references": [],
+      "dated_audits_only": true
+    }
+  ],
+  "generated_whitespace": {
+    "exit": 2,
+    "diagnostics": [
+      "Games/Wings/assets/aircraft-BIwDLCoz.js:30: trailing whitespace.",
+      "Games/Wings/verification/astra-check.mjs:3848: trailing whitespace."
+    ]
+  },
+  "authored_whitespace": {
+    "exit": 0,
+    "diagnostics": []
+  },
+  "git_status": [],
+  "scope": "Static Git-object checks only; constructed model loads and native/browser acceptance excluded.",
+  "static_pass": true,
+  "raw_receipt_sha256": "8490a0b662ee359ee717ad5e1ee9187506c891af3a2c55d153b59be96e16756b",
+  "git_concurrency_qualification": "No explicit mutation commands, but status ran with optional index refresh enabled; it could contend with the first sparse gate. No Pi Git work during isolated rerun."
+}

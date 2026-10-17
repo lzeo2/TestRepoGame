@@ -142,7 +142,7 @@ exhaust throttle/boost; both missile door triggers; cannon exclusion; signed
 cover movement/reclose; cockpit/anchor math. Original-five speeds/loadouts and
 absence of hardpoint overrides are checked. These are CPU/render-state fixtures.
 
-Current unavailable-GPU UI regression after `b65acc7`: four cases passed at
+Baseline unavailable-GPU UI regression after `b65acc7`: four cases passed at
 1280 x 720 / 390 x 844 in dark/light preferences, exit 0, no page errors or
 external requests. [Case data](../audits/wings-repair-ui-20261017.json) covers
 fail-closed launch/retry, selection/navigation and spawn/HUD fixtures, not flight.
@@ -166,7 +166,7 @@ mouse capture, missile targeting/fire, audio, converted-family parity, Pi GPU an
 native load-time delta remain unverified. Two worker readiness failures preceded
 the successful parent run; no product acceptance was inferred from those failures.
 
-**Fresh catalog evidence:** 125 visits, 125 passes, zero failures, exit 0 on
+**Baseline catalog evidence:** 125 visits, 125 passes, zero failures, exit 0 on
 `b52d942`. Original coding sparse configuration restored exactly; protected hashes
 unchanged; clean repository; owned HTTP server closed and adapter processes ended.
 Peak materialization 195,853,427 bytes, 300 MiB cap and stricter 2 GiB floor.
@@ -175,7 +175,8 @@ so this is not unfiltered clean loading or complete gameplay/offline acceptance.
 Ovo's historical transport failure did not recur; its root cause is not proven.
 Two generated Three shader-template whitespace findings remain in the repair
 range (aircraft chunk line 30, astra bundle line 3848); authored scopes pass
-separately. Historical artifact-path and mobile failure-toast findings remain open.
+separately. The historical artifact-path finding remains qualified; the mobile
+toast source repair and new verification are recorded below.
 
 ## Continuation (2026-10-17)
 
@@ -188,8 +189,11 @@ flight tuning, network protocol or original-five model data changed.
 The renderer recovery dialog now owns renderer-startup errors without a duplicate
 toast. Other error toasts wrap within the viewport and sit above the mobile
 footer. The real toast helper is exercised by a clearly labeled UI fixture.
-The current source-built continuation is awaiting its fresh UI/catalog results;
-the successful `b52d942` gate above covers the earlier runtime only.
+The current source-built continuation passed all four unavailable-GPU UI cases,
+exit 0, including duplicate-error and toast-bound assertions. The fresh catalog
+rerun is in progress; the successful `b52d942` gate above covers the earlier
+runtime only. The [continuation receipt](../audits/wings-continuation-20261017.md)
+records exact scopes and bounded collector failures.
 
 The rebuilt CPU regression also acquired and fired each existing missile fit
 through real simulation functions: F-15 pilot AIM-9 and officer Maverick, F-35
