@@ -109,3 +109,85 @@ silently substitute 0.180.0 for runtime evidence or install dependencies.
 
 Operator visual approval, native missile fire, converted-family parity, hardware
 and rights gates remain distinct from structural passes. No new game or ID.
+
+## Phase 1 fresh receipt
+
+Baseline `000947e`, initially clean. Operator-selected `openai-codex/gpt-6-astra`,
+low thinking; environment reports `PI_MODEL=gpt-6-astra`. Bounded verification
+only: no generator, model, runtime, bundle or manual changes. Read the required
+brief/contract, current model registry documentation/manual, Phase 0 receipt,
+generator palette and actual converter patch. Wings inventory tree
+`c7cd2f1af6d2272185d751d106b3cd8531938a0a` and entry blob
+`2d7f08aa3ca94c87da2921c7916bec48d28e13aa` match HEAD.
+
+### Independent palette inspection
+
+`verification/generate-models.py:164` defines `dark_paint`; both generators call
+it. It converts 8-bit sRGB to linear components using the standard piecewise
+transfer function, writing material indices 0/1/5/6/7. Independent Python stdlib
+inspection decoded each GLB JSON chunk and converted its serialized linear
+`baseColorFactor` back to sRGB, without importing generator palette values:
+
+| Material index | F-15 / F-35 sRGB | Linear RGB | Primitive assignments F-15 / F-35 |
+| --- | --- | --- | --- |
+| 0 airframe | #232628 | .01680738, .01938236, .02121901 | 11 / 17 |
+| 1 control / edge | #2c2f30 | .02518686, .02842604, .02955683 | 12 / 14 |
+| 5 belly | #292c2e | .02217388, .02518686, .02732089 | 3 / 6 |
+| 6 radome | #1d1f20 | .01228649, .01370208, .01444384 | 3 / 3 |
+| 7 panel | #222527 | .01599629, .01850022, .02028856 | 14 / 11 |
+
+Both serialized hull palettes therefore match the generator and requested dark
+range. Separate glass (#485969), collar metal (#a6aaad), livery (#61819e),
+missiles (#868b90), orange exhaust and nozzle/recess materials are not white
+hull paint. These counts measure primitive assignments, not visible surface area.
+
+Independent family comparison found F/A-18 slate #5c6d80 (29 assignments),
+pale #d9dcdf (30), A-10 olive #6b7667 (17), pale olive #aeb5a6 (21), and
+YF-12 charcoal #1c1f26 (16), gray #8a929e (31), #4e535c (17).
+The originals also contain separate blue livery, pale stores and white details.
+The jets share a dark neutral palette closest to YF-12, not identical raw colors
+across all aircraft. Inspection printed `PASS independent serialized palette
+inspection`, exit **0**; this is data inspection, not visual acceptance.
+
+Read `port.patch`'s actual `buildTemplate` hunk around line 1063: named
+`COLOR_OVERRIDES` take precedence; otherwise only `f15`/`f35` batches targeting
+`paint` use `b.srcColor.clone()`. Metal-target batches and original aircraft
+continue through `paintColor`. `PART_COLORS` processing follows this branch.
+Thus the patch avoids the generic near-black gunmetal lift for these jets, not
+all material conversion or all aircraft. No patch application, rebuild or native
+converter execution was performed in this phase.
+
+### Fresh commands and boundaries
+
+`python3 -B Games/Wings/verification/check-models.py`, exit **0**:
+
+```text
+PASS {"assignments": 142, "bytes": 1176316, "materials": 12, "name": "f15", "sha256": "5c1bf64dc21962dc822dc44edd91186aa4a6932034b06a405d3170518fc135bf", "triangles": 41352, "unique_materials": 12, "vertices": 25305}
+PASS {"assignments": 143, "bytes": 1174768, "materials": 12, "name": "f35", "sha256": "ce19018414037e3cef949a99ae08a1d035b25fbd20601e1835c2426bc32db197", "triangles": 40812, "unique_materials": 12, "vertices": 25323}
+```
+
+Read the checker before running: it compares committed bytes with two fresh
+`make().finish()` generations per aircraft entirely in memory, then checks model
+structure. It does not overwrite GLBs. Hashes match current `models.md`.
+
+`python3 -B scripts/check_maintenance_docs.py`, exit **0**:
+
+```text
+PASS: 130 game documents cover 125 registered + 5 unregistered games; Git inventory current.
+Coverage only: section presence does not certify documentation accuracy or gameplay.
+```
+
+No fresh render or screenshot was produced or claimed. Historical raw-family
+images and Phase 0's image review are not a Phase 1 visual PASS. Converted-family
+parity, lighting/postprocessing, supported-device appearance and operator approval
+remain unproven. No palette defect requiring a source edit was found in this
+bounded inspection; later phases remain outside scope.
+
+Disk before work: `df -h / | tail -1` reported **3.2G available**. Exact available
+bytes before generation were **3,387,424,768**, afterward **3,387,400,192**
+(24,576-byte filesystem decrease, not attributed to this process). Both exceed
+the stricter **2 GiB** floor. No installs, repository node_modules, generated
+files, new games, servers, push or origin writes. This receipt is the owned log;
+only its explicit path is committed. Final `git diff --check` exited **0**;
+post-append maintenance check exited **0**, with the same 130-document coverage
+output above. Pre-commit disk availability: **3,387,371,520 bytes**.
