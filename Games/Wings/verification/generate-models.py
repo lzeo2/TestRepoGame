@@ -123,7 +123,7 @@ class Model:
                 + struct.pack('<I4s', len(self.data), b'BIN\0') + self.data)
 
 
-def f15_patch(m, name, surface, rows, columns, material, reverse=False):
+def f15_patch(m, name, surface, rows, columns, material, reverse=False, parent=0):
     """Sample an exterior contour with shared vertices and area-weighted normals.
 
     Separate patches deliberately split normals at intake lips and control edges.
@@ -156,7 +156,7 @@ def f15_patch(m, name, surface, rows, columns, material, reverse=False):
         'TEXCOORD_0': m.accessor([x for i in range(rows + 1) for j in range(columns + 1)
                                 for x in (i / rows, j / columns)], 2)},
         'indices': m.accessor(indices, 1, True), 'material': material, 'mode': 4}
-    node = m.node(name)
+    node = m.node(name, parent=parent)
     m.doc['nodes'][node]['mesh'] = len(m.doc['meshes'])
     m.doc['meshes'].append({'name': name, 'primitives': [primitive]})
 
@@ -438,6 +438,17 @@ def f35():
                                            ('top', .16, .34, 12, mat)]:
             if name == 'cockpit_skin' and part == 'top':
                 continue
+            if name == 'fuselage' and part == 'belly':
+                # Preserve the original contour around two actual bay apertures.
+                for band, vlo, vhi, ncols in [('left', .5, .625, 10),
+                                             ('keel', .744, .756, 3),
+                                             ('right', .875, 1, 10)]:
+                    f15_patch(m, 'bay_surround_'+band,
+                              lambda u,v: body(.4+.36*u, vlo+(vhi-vlo)*v),
+                              40, ncols, material, True)
+                f15_patch(m, 'fuselage_belly_aft',
+                          lambda u,v: body(.76+.24*u, .5+.5*v), 28, 32, material, True)
+                continue
             f15_patch(m, name+'_'+part,
                       lambda u,v: body(a+(b-a)*u,lo+(hi-lo)*v), rows,cols,material,True)
 
@@ -534,23 +545,36 @@ def f35():
                 return (x*1.008,y*1.008,z)
             f15_patch(m, name+'_'+side, panel,40 if name == 'bay_door' else 20,8,mat,side == 'R')
         bay = m.node('weapon_bay_'+side, (sign*.72,-.58,.1))
-        # Missiles sit below the recessed bay lip so their fins remain visible.
-        # Existing store visibility removes each rigid child independently.
-        missile(m, 'missile_'+side+'1', (-sign*.19,-.43,-.22), bay)
-        missile(m, 'missile_'+side+'2', (sign*.19,-.43,.28), bay)
-        door = m.node('bay_door_'+side, (sign*1.20,-.78,.1))
-        m.box('bay_door_panel_'+side, (-sign*.21,0,0), (.42,.045,3.40), 7, door)
+        # Stores are recessed above the closed belly covers. Existing ammo state
+        # removes each independently; opening the covers exposes them from below.
+        missile(m, 'missile_'+side+'1', (-sign*.19,.43,-.22), bay)
+        missile(m, 'missile_'+side+'2', (sign*.19,.43,.28), bay)
+        lo, hi = ((.625, .744) if side == 'L' else (.756, .875))
+        outer = lo if side == 'L' else hi
+        hinge = body(.58, outer)
+        door = m.node('bay_door_'+side, hinge)
+        def cover(u, v):
+            p = body(.4+.36*u, lo+(hi-lo)*v)
+            return tuple(p[k]-hinge[k] for k in range(3))
+        f15_patch(m, 'bay_door_panel_'+side, cover, 24, 6, 7, True, door)
+        # A dark roof and end walls make the opened aperture read as a recess.
+        m.box('bay_roof_'+side, (sign*.78,.23,.12), (1.12,.045,4.95), 4)
+        for label, u in [('front', .4), ('rear', .76)]:
+            def wall(v, w):
+                x,y,z = body(u, lo+(hi-lo)*v)
+                return (x, y+(.23-y)*w, z)
+            f15_patch(m, 'bay_wall_'+side+'_'+label, wall, 6, 2, 4, label == 'front')
 
         # Narrow conforming seams delineate flush internal weapon-bay doors.
         # These follow the belly skin, not an external pod or hidden filler panel.
-        for edge, v in [('inner', .75+sign*.025), ('outer', .75+sign*.105)]:
+        for edge, v in [('inner', hi if side == 'L' else lo), ('outer', outer)]:
             def seam(u, w):
                 x, y, z = body(.40+.36*u, v+.0012*(w-.5))
                 return (x, y-.014, z)
             f15_patch(m, 'bay_'+side+'_'+edge, seam, 40, 1, 4, True)
         for end, u in [('front', .40), ('rear', .76)]:
             def seam(w, v):
-                x, y, z = body(u+.0012*(w-.5), .75+sign*(.025+.08*v))
+                x, y, z = body(u+.0012*(w-.5), lo+(hi-lo)*v)
                 return (x, y-.014, z)
             f15_patch(m, 'bay_'+side+'_'+end, seam, 1, 24, 4, sign > 0)
 
@@ -574,6 +598,28 @@ def f35():
     afterburner(m, 'afterburner', (0, .01, 6.95), .49)
     m.node('cockpit', (0, 1.08, -4.1))
     m.node('gun_muzzle', (-.95, .53, -3.0))
+    # Verify every authored store vertex lies inside its opening footprint,
+    # above the closed cover and below the roof. This is clearance, not visual QA.
+    def check_store(node_index, offset=(0, 0, 0)):
+        node = m.doc['nodes'][node_index]
+        offset = tuple(a+b for a,b in zip(offset, node.get('translation', (0, 0, 0))))
+        if 'mesh' in node and node['name'].startswith('missile_'):
+            p = m.doc['meshes'][node['mesh']]['primitives'][0]
+            a = m.doc['accessors'][p['attributes']['POSITION']]
+            view = m.doc['bufferViews'][a['bufferView']]
+            flat = struct.unpack_from('<'+'f'*(a['count']*3), m.data, view['byteOffset'])
+            for i in range(0, len(flat), 3):
+                x,y,z = (flat[i+k]+offset[k] for k in range(3))
+                u = (z+8)/14
+                radius = body(u, 0)[0]
+                c = math.copysign((abs(x)/radius)**(1/.72), x)
+                v = 1-math.acos(c)/math.tau
+                lo,hi = ((.625,.744) if x < 0 else (.756,.875))
+                assert .4 < u < .76 and lo < v < hi, (node['name'], x,y,z)
+                assert body(u,v)[1]+.03 < y < .1775, (node['name'], x,y,z)
+        for child in node.get('children', []):
+            check_store(child, offset)
+    check_store(0)
     return m
 
 
