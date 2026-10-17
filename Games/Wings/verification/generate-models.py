@@ -50,7 +50,8 @@ class Model:
     def solid(self, name, vertices, faces, material, parent=0):
         # Convex solids only: orient each triangle away from the solid centroid.
         center = [sum(p[k] for p in vertices) / len(vertices) for k in range(3)]
-        positions, normals, uv = [], [], []
+        positions, normals, uv, indices = [], [], [], []
+        shared = {}
         for face in faces:
             for i in range(1, len(face) - 1):
                 a, b, c = (vertices[j] for j in (face[0], face[i], face[i + 1]))
@@ -63,13 +64,21 @@ class Model:
                     b, c = c, b
                     n = [-x for x in n]
                 for p in (a, b, c):
-                    positions.extend(p)
-                    normals.extend(x / length for x in n)
-                    uv.extend((p[0] / 20 + .5, p[2] / 20 + .5))
+                    normal = tuple(x / length for x in n)
+                    tex = (p[0] / 20 + .5, p[2] / 20 + .5)
+                    key = (*p, *normal, *tex)
+                    index = shared.get(key)
+                    if index is None:
+                        index = len(positions) // 3
+                        shared[key] = index
+                        positions.extend(p)
+                        normals.extend(normal)
+                        uv.extend(tex)
+                    indices.append(index)
         primitive = {'attributes': {'POSITION': self.accessor(positions, 3),
                                    'NORMAL': self.accessor(normals, 3),
                                    'TEXCOORD_0': self.accessor(uv, 2)},
-                     'indices': self.accessor(list(range(len(positions) // 3)), 1, True),
+                     'indices': self.accessor(indices, 1, True),
                      'material': material, 'mode': 4}
         idx = self.node(name, parent=parent)
         self.doc['nodes'][idx]['mesh'] = len(self.doc['meshes'])
@@ -152,6 +161,51 @@ def f15_patch(m, name, surface, rows, columns, material, reverse=False):
     m.doc['meshes'].append({'name': name, 'primitives': [primitive]})
 
 
+def dark_paint(m):
+    """Authored linear colors; the runtime also applies jet-specific paint overrides."""
+    def linear(c):
+        c /= 255
+        return c / 12.92 if c <= .04045 else ((c + .055) / 1.055) ** 2.4
+    for index, rgb in {0: (35, 38, 40), 1: (44, 47, 48), 5: (41, 44, 46),
+                       6: (29, 31, 32), 7: (34, 37, 39)}.items():
+        m.doc['materials'][index]['pbrMetallicRoughness']['baseColorFactor'] = [
+            *(linear(c) for c in rgb), 1]
+    m.doc['materials'].extend([
+        {'name': 'exhaust_core', 'emissiveFactor': [1, .23, .035],
+         'pbrMetallicRoughness': {'baseColorFactor': [1, .23, .035, 1],
+                                  'metallicFactor': 0, 'roughnessFactor': .7}},
+        {'name': 'missile_gray', 'pbrMetallicRoughness': {
+            'baseColorFactor': [.24, .26, .28, 1], 'metallicFactor': .1,
+            'roughnessFactor': .7}}])
+
+
+def missile(m, name, position, parent=0):
+    """Rigid removable store, local -Z nose, matching the existing ammo visibility rig."""
+    pivot = m.node(name, position, parent)
+    m.loft(name+'_body', [(-1.45,.015,.015,0,0), (-1.05,.105,.105,0,0),
+                         (1.2,.105,.105,0,0), (1.38,.075,.075,0,0)],
+           11, pivot, sides=12)
+    for axis in (0, 1):
+        for sign in (-1, 1):
+            outline = [(0,0,.55),(0,0,1.28),(0,0,1.38)]
+            for tip in (0, 2):
+                outline[tip] = tuple(sign*.10 if k == axis else v
+                                     for k,v in enumerate(outline[tip]))
+            outline[1] = tuple(sign*.30 if k == axis else v
+                               for k,v in enumerate(outline[1]))
+            m.slab(name+'_fin_'+str(axis)+'_'+str(sign), outline,
+                   1-axis, .025, 3, pivot)
+    m.loft(name+'_band', [(-.55,.108,.108,0,0),(-.43,.108,.108,0,0)],
+           8, pivot, sides=12)
+    return pivot
+
+
+def afterburner(m, name, position, radius):
+    pivot = m.node(name, position)
+    m.loft(name+'_disc', [(-.025,radius,radius,0,0),(.025,radius,radius,0,0)],
+           10, pivot, sides=24)
+
+
 def f15():
     """Original gear-up F-15-style exterior; no mesh/image/reference asset input.
 
@@ -172,6 +226,7 @@ def f15():
         ('livery_slate', (.12, .22, .34), .1, .75)])
     m.doc['materials'][2]['alphaMode'] = 'BLEND'
     m.doc['materials'][2]['pbrMetallicRoughness']['baseColorFactor'][3] = .38
+    dark_paint(m)
 
     # Smooth cosine interpolation of fuselage stations avoids faceted cylinders.
     stations = [(-9.7, .025, .025, -.12), (-7.7, .38, .40, -.04),
@@ -239,7 +294,7 @@ def f15():
             return (sign*(1.18+5.32*u), .23-.12*u + (.16-.13*u)*math.sin(angle),
                     -2.8+4.35*u + chord*(1-math.cos(angle))/2)
 
-        f15_patch(m, 'wing_'+side, wing, 32, 48, 0, sign > 0)
+        f15_patch(m, 'wing_'+side, wing, 30, 48, 0, sign > 0)
         # Conforming narrow strips follow the airfoil, not floating box seams.
         for name, a, b, v, mat in [('flap_line', .02, .48, .34, 4),
                                   ('aileron_line', .51, .96, .34, 4),
@@ -288,7 +343,7 @@ def f15():
             return (sign*1.30 + radius*((1-blend)*square_x+blend*c),
                     -.16 + radius*((1-blend)*square_y+blend*s), -3.6+10.9*u)
 
-        f15_patch(m, 'engine_'+side, engine, 64, 40, 0, True)
+        f15_patch(m, 'engine_'+side, engine, 48, 40, 0, True)
         for name, a, b, lo, hi, mat in [('engine_access', .28, .48, .03, .18, 7),
                                       ('gear_door', .17, .36, .66, .84, 1)]:
             def panel(u, v):
@@ -324,6 +379,12 @@ def f15():
         m.loft('exhaust_recess_'+side, [(7.78,.48,.48,sign*1.30,-.16),
                                        (7.80,.48,.48,sign*1.30,-.16)], 4, sides=24)
         m.node('exhaust_'+side, (sign*1.30, -.16, 8.45))
+        afterburner(m, 'afterburner_'+side, (sign*1.30, -.16, 8.40), .46)
+        # Existing weapon slots: pilot heatseekers and seat-two guided missiles.
+        missile(m, 'missile_'+side+'1', (sign*2.55,-.48,.1))
+        missile(m, 'missile_'+side+'2', (sign*4.25,-.40,1.25))
+        for slot, x, y, z in [(1,2.55,-.24,.1),(2,4.25,-.20,1.25)]:
+            m.box('pylon_'+side+str(slot), (sign*x,y,z), (.09,.35,.95), 7)
     m.loft('pitot', [(-10.05,.008,.008,0,-.12),(-9.55,.022,.022,0,-.12)], 8, sides=8)
     m.slab('antenna_spine', [(0,.64,-1.6),(0,1.02,-1.15),(0,.64,-.9)], 0,.045,7)
     m.node('weapon_centerline', (0,-.57,.4))
@@ -351,6 +412,7 @@ def f35():
         ('livery_slate', (.12, .22, .34), .1, .75)])
     m.doc['materials'][2]['alphaMode'] = 'BLEND'
     m.doc['materials'][2]['pbrMetallicRoughness']['baseColorFactor'][3] = .38
+    dark_paint(m)
     stations = [(-8.0, .018, .025, -.08), (-6.4, .48, .38, -.03),
                 (-4.5, .95, .67, .02), (-2.5, 1.62, .82, .02),
                 (0, 1.85, .79, 0), (2.5, 1.60, .68, 0),
@@ -369,7 +431,7 @@ def f35():
     start, end = 2.2/14, 5.6/14
     for name, a, b, rows, mat in [('radome', 0, start, 20, 6),
                                  ('cockpit_skin', start, end, 32, 0),
-                                 ('fuselage', end, 1, 76, 0)]:
+                                  ('fuselage', end, 1, 68, 0)]:
         for part, lo, hi, cols, material in [('belly', .5, 1, 32, 5),
                                            ('right', 0, .16, 10, mat),
                                            ('left', .34, .5, 10, mat),
@@ -463,7 +525,6 @@ def f35():
             m.slab('intake_duct_'+side+str(i), [outer[i],outer[j],aft_j,aft_i], 2,.025,0)
 
         for name,a,b,lo,hi,mat in [('shoulder_access',.48,.62,.04,.12,7),
-                                  ('bay_door',.402,.758,.776,.854,7),
                                   ('gear_door',.28,.37,.755,.78,1)]:
             def panel(u,v):
                 angle = lo+(hi-lo)*v
@@ -472,7 +533,13 @@ def f35():
                 x,y,z = body(a+(b-a)*u,angle)
                 return (x*1.008,y*1.008,z)
             f15_patch(m, name+'_'+side, panel,40 if name == 'bay_door' else 20,8,mat,side == 'R')
-        m.node('weapon_bay_'+side, (sign*.72,-.58,.1))
+        bay = m.node('weapon_bay_'+side, (sign*.72,-.58,.1))
+        # Missiles sit below the recessed bay lip so their fins remain visible.
+        # Existing store visibility removes each rigid child independently.
+        missile(m, 'missile_'+side+'1', (-sign*.19,-.43,-.22), bay)
+        missile(m, 'missile_'+side+'2', (sign*.19,-.43,.28), bay)
+        door = m.node('bay_door_'+side, (sign*1.20,-.78,.1))
+        m.box('bay_door_panel_'+side, (-sign*.21,0,0), (.42,.045,3.40), 7, door)
 
         # Narrow conforming seams delineate flush internal weapon-bay doors.
         # These follow the belly skin, not an external pod or hidden filler panel.
@@ -495,7 +562,7 @@ def f35():
     for petal in range(24):
         f15_patch(m, 'exhaust_petal_'+str(petal),
                   lambda u,v: nozzle(.22+.78*u,(petal+v)/24),
-                  12,4,3 if petal % 2 else 8,True)
+                  10,4,3 if petal % 2 else 8,True)
 
     def inner(u, v):
         angle = math.tau*v
@@ -504,6 +571,7 @@ def f35():
     f15_patch(m, 'nozzle_inner', inner, 4, 96, 4)
     m.loft('exhaust_recess', [(6.42,.52,.4316,0,.01),(6.44,.52,.4316,0,.01)],4,sides=24)
     m.node('exhaust', (0, .01, 7))
+    afterburner(m, 'afterburner', (0, .01, 6.95), .49)
     m.node('cockpit', (0, 1.08, -4.1))
     m.node('gun_muzzle', (-.95, .53, -3.0))
     return m
@@ -542,16 +610,20 @@ def check_model(data):
     assert not {'gear', 'propeller'} & set(names)
     visited = set()
 
-    def visit(i):
+    mesh_offsets = {}
+
+    def visit(i, parent_offset=(0, 0, 0)):
         assert 0 <= i < len(nodes) and i not in visited, 'invalid node tree'
         visited.add(i)
         node = nodes[i]
+        offset = tuple(a+b for a,b in zip(parent_offset, node.get('translation', (0, 0, 0))))
         assert not any(k in node for k in ('matrix', 'rotation', 'scale', 'skin'))
         assert all(math.isfinite(x) for x in node.get('translation', []))
         if 'mesh' in node:
             assert 0 <= node['mesh'] < len(doc['meshes'])
+            mesh_offsets[node['mesh']] = offset
         for child in node.get('children', []):
-            visit(child)
+            visit(child, offset)
     visit(0)
     assert len(visited) == len(nodes)
     assert sorted(n['mesh'] for n in nodes if 'mesh' in n) == list(range(len(doc['meshes'])))
@@ -583,7 +655,7 @@ def check_model(data):
         values(i)
     triangles = vertices = 0
     seen = set()
-    for mesh in doc['meshes']:
+    for mesh_index, mesh in enumerate(doc['meshes']):
         for p in mesh['primitives']:
             assert p['mode'] == 4 and 'targets' not in p
             for attr, width in [('POSITION', 'VEC3'), ('NORMAL', 'VEC3'), ('TEXCOORD_0', 'VEC2')]:
@@ -606,7 +678,9 @@ def check_model(data):
                 n = (u[1]*v[2]-u[2]*v[1], u[2]*v[0]-u[0]*v[2], u[0]*v[1]-u[1]*v[0])
                 assert sum(x*x for x in n) > 1e-18, mesh['name']
                 assert sum(n[k]*sum(normals[j][k] for j in ids) for k in range(3)) > 0, mesh['name']
-                key = tuple(sorted((a, b, c)))
+                # Repeated local store geometry is valid at distinct world positions.
+                offset = mesh_offsets[mesh_index]
+                key = tuple(sorted(tuple(p[k]+offset[k] for k in range(3)) for p in (a, b, c)))
                 assert key not in seen, mesh['name']
                 seen.add(key)
                 triangles += 1
