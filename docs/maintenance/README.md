@@ -21,7 +21,7 @@ requests under the existing filters. Sparse/config bytes restored exactly;
 protected hashes remained unchanged. This is a loading gate, not complete native
 gameplay, offline, hardware or rights acceptance. Current inventory remains
 125 registered / 130 projects. Source repair, native Windows flight and bounded
-UI evidence are linked from the [Wings manual](games/232-wings.md).
+UI evidence are linked from the [Wings verification section](games/232-wings.md#verification).
 No push or publication is authorized by these checks.
 The subsequent Wings input/toast continuation requires fresh results for its
 changed runtime; its status is tracked in the Wings manual.
