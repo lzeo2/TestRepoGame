@@ -44,7 +44,7 @@ The regression is bundled from upstream simulation modules, not a replacement si
 
 The 2026-10-17 repair baseline passed deterministic geometry/CPU/solo checks and the unchanged full catalog loading gate: **125/125, exit 0** at `b52d942`. Both jets also passed bounded Windows WebGPU flight, cannon, exit/restart and respawn checks. Four unavailable-GPU UI cases passed. The [current manual](../../docs/maintenance/games/232-wings.md) and [repair receipt](../../docs/maintenance/audits/wings-repair-20261017.md) distinguish these scopes from subsequent input/toast changes and remaining combat, hardware and rights checks. Later continuation evidence is recorded separately; older results below remain historical.
 
-The [continuation receipt](../../docs/maintenance/audits/wings-continuation-20261017.md) records the later input/toast fixes, CPU missile fixtures, fresh native/UI checks and bounded remaining diagnostics.
+The [continuation receipt](../../docs/maintenance/audits/wings-continuation-20261017.md) records the later input/toast fixes, CPU missile fixtures, fresh native/UI checks and bounded remaining diagnostics. Its unchanged catalog gate at `bfbc564` passed **125/125, exit 0** in 1,591.93 seconds. Later credits/audit/inventory records do not change the tested runtime. Native missile gameplay, physical hardware and rights remain qualified separately.
 
 ## Historical ingestion verification and limitations
 

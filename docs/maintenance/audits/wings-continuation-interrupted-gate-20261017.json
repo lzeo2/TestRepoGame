@@ -1,0 +1,19 @@
+{
+  "head": "bfbc5640146cfc38f8af8c34afadaa7f3efb9b21",
+  "exit_code": 1,
+  "elapsed_seconds": 55.78,
+  "floor_bytes": 2147483648,
+  "free_bytes": 3391729664,
+  "coding_selection_restored_exactly": true,
+  "protected_hashes_unchanged": true,
+  "repository_clean": true,
+  "visited": 2,
+  "passed": 2,
+  "incomplete_catalog": true,
+  "stop_reason": "Git index.lock contention before third sparse selection",
+  "lock_owner_not_proven": true,
+  "log_sha256": "f9432fb5738bd21b7e17eef5a752d3c71d2f478f7f0cba6448c83b867e5731fa",
+  "owned_http_closed": true,
+  "index_lock_absent_after": true,
+  "concurrent_static_check_finished": true
+}

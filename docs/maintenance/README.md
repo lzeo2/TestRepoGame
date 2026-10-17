@@ -14,17 +14,18 @@ for exact tracked counts, entry hashes, source-tree hashes and manual paths.
 
 ## Current fleet handover (2026-10-17)
 
-The [Wings repair and recovery receipt](audits/wings-repair-20261017.md) records
-the fresh unchanged full catalog gate at `b52d942`: **125/125, exit 0**, in
-1,579.29 seconds. All 125 visits completed without retained errors or failed
+The [Wings continuation receipt](audits/wings-continuation-20261017.md) records
+the fresh unchanged full catalog gate at `bfbc564`: **125/125, exit 0**, in
+1,591.93 seconds. All 125 visits completed without retained errors or failed
 requests under the existing filters. Sparse/config bytes restored exactly;
 protected hashes remained unchanged. This is a loading gate, not complete native
 gameplay, offline, hardware or rights acceptance. Current inventory remains
 125 registered / 130 projects. Source repair, native Windows flight and bounded
 UI evidence are linked from the [Wings verification section](games/232-wings.md#verification).
 No push or publication is authorized by these checks.
-The subsequent Wings input/toast continuation requires fresh results for its
-changed runtime; its status is tracked in the Wings manual.
+The earlier [repair baseline](audits/wings-repair-20261017.md) retains its own
+125/125 result and storage recovery evidence. The continuation adds input/toast
+repairs, fresh native/UI checks and bounded partial audio/renderer diagnostics.
 
 ## Historical fleet handover (2026-10-15)
 

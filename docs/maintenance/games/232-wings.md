@@ -190,9 +190,12 @@ The renderer recovery dialog now owns renderer-startup errors without a duplicat
 toast. Other error toasts wrap within the viewport and sit above the mobile
 footer. The real toast helper is exercised by a clearly labeled UI fixture.
 The current source-built continuation passed all four unavailable-GPU UI cases,
-exit 0, including duplicate-error and toast-bound assertions. The fresh catalog
-rerun is in progress; the successful `b52d942` gate above covers the earlier
-runtime only. The [continuation receipt](../audits/wings-continuation-20261017.md)
+exit 0, including duplicate-error and toast-bound assertions. The fresh unchanged
+catalog gate passed **125/125, exit 0** at `bfbc564` in 1,591.93 seconds, with exact
+sparse/config restoration and unchanged protected hashes. Peak materialization
+was 195,853,427 bytes; existing filters/exclusions remain qualified. The
+successful `b52d942` gate above covers the earlier runtime only.
+The [continuation receipt](../audits/wings-continuation-20261017.md)
 records exact scopes and bounded collector failures.
 
 The rebuilt CPU regression also acquired and fired each existing missile fit

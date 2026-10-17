@@ -130,7 +130,34 @@ whose optional index refresh could contend despite a read-only task. It complete
 before the isolated rerun; no lock was deleted. Future concurrent read tasks
 must use `GIT_OPTIONAL_LOCKS=0` and avoid Git work during sparse transitions.
 
-The isolated unchanged full gate is running on `bfbc564`, with the same 125-entry
-catalog, waits/filters, 300 MiB materialization cap and stricter 2 GiB disk floor.
-Final result pending; the older `b52d942` 125/125 is not acceptance of this changed
-runtime. No publication or push is authorized.
+A local partial-clone inventory attempt was stopped when Git began lazy object
+fetches/automatic packing. It did not produce an inventory PASS. No temporary
+pack, index lock or GC lock remained afterward. Final inventory refresh/check
+uses the Pi's full object store after the documentation commits; a narrow
+checkout alone does not make a size-reporting Git inventory cheap to run.
+
+The isolated unchanged full gate at `bfbc5640146cfc38f8af8c34afadaa7f3efb9b21`
+passed **125/125, exit 0**, in **1,591.93 seconds**. Independent log counts agree:
+125 visits, 125 passes, zero failures. The [full results](wings-continuation-full-gate-20261017.json)
+and [interrupted attempt](wings-continuation-interrupted-gate-20261017.json) retain
+their distinct outcomes. The earlier `b52d942` result remains a baseline receipt.
+
+The same catalog, waits/filters, 300 MiB cap and stricter 2 GiB floor were used.
+Peak materialization was 195,853,427 bytes. Exact coding sparse/config restoration,
+protected hashes, clean repository and unchanged HEAD passed. Free space at
+restoration was 3,390,652,416 bytes. The owned HTTP server closed and no active
+adapter remained. No concurrent Git commands ran during this isolated gate.
+
+Environment: Python 3.13.5, Node v20.19.2, Playwright 1.62.0, Chromium
+149.0.7827.196, Debian aarch64. D38's separate static shell used Node v22.23.1;
+these are recorded environments, not a claim that the shells had identical PATHs.
+Log SHA-256:
+`b46958a4bfa392746c43f0e9a90576b9be1bbda6dfcc1f87db01e9ba6f067fc8`.
+Runner/wrapper hashes match the earlier unchanged gate. Existing exclusion
+counts are not instrumented; this establishes loading under those filters,
+not unfiltered loading, complete offline/gameplay, hardware or rights acceptance.
+
+Later changes are credits/audit/manual/inventory records only. Served runtime,
+catalog and gate scripts remain unchanged after the tested commit. Final
+inventory refresh/check uses the full Pi object store. No publication or push
+is authorized.
