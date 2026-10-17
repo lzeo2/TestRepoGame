@@ -8,6 +8,7 @@ import { setTimeout as delay } from 'node:timers/promises'
 import { CameraRig } from './src/render/camera'
 import { CONFIG, preloadAircraft, aircraftReady, aircraftStats, createAircraftView } from './src/render/aircraft'
 import { createLoopbackRoom } from './src/sim/loopback'
+import { syncAircraftInput } from './src/ui/aircraft-input'
 import { TICK_DT, type VehicleKind, type Vec3, type VehicleEntity, type GameEvent, type SeatInput } from './src/sim/types'
 import { muzzlePosition, isHiddenStealth, stepCombat, createCombatState, createWeapons, applySeatInput } from './src/sim/combat'
 import { createFlightState } from './src/sim/flight'
@@ -403,6 +404,53 @@ try {
             assert(Math.abs(doorCenters[i].local.clone().applyMatrix4(bone(name).matrixWorld).y - doorCenters[i].closedY) < 0.001, `${name}: closed door surface did not return`)
           })
         }
+        // Exercise the same complete-frame bridge the actual controller calls.
+        // Converted bone/material observations remain CPU fixtures, not native input proof.
+        const triggers = { firePrimary: false, fireSecondary: true }
+        const doorsOpen = () => CONFIG.f35.doors!.names.every(([name], i) => bone(name).quaternion.angleTo(closed[i]) > 1)
+        const doorsClosed = () => CONFIG.f35.doors!.names.every(([name], i) => bone(name).quaternion.angleTo(closed[i]) < 0.001)
+        view.setLocal(true)
+        syncAircraftInput(view, 0, triggers, true)
+        for (let i = 0; i < 120; i++) stepView()
+        assert(doorsOpen(), 'pilot missile hint must open bay')
+        triggers.fireSecondary = false
+        syncAircraftInput(view, 1, triggers, false)
+        for (let i = 0; i < 240; i++) stepView()
+        assert(doorsClosed(), 'switch to released officer must clear pilot missile hint')
+        triggers.firePrimary = true
+        syncAircraftInput(view, 1, triggers, false)
+        for (let i = 0; i < 120; i++) stepView()
+        assert(doorsOpen(), 'officer missile hint must open bay')
+        syncAircraftInput(view, 0, triggers, false)
+        for (let i = 0; i < 240; i++) stepView()
+        assert(doorsClosed(), 'switch to pilot cannon must clear officer missile hint')
+        triggers.firePrimary = false; triggers.fireSecondary = true
+        syncAircraftInput(view, 0, triggers, true)
+        for (let i = 0; i < 120; i++) stepView()
+        syncAircraftInput(view, 0, null, true)
+        for (let i = 0; i < 240; i++) stepView()
+        assert(doorsClosed(), 'paused/inactive bridge must clear held triggers')
+        // A stale explicit false boost must not suppress remote throttle inference.
+        vehicle.flight.throttle = 1
+        syncAircraftInput(view, 0, triggers, false)
+        for (let i = 0; i < 120; i++) stepView()
+        assert(doorsOpen())
+        const noBoostGlow = glow.material.color.r + glow.material.color.g + glow.material.color.b
+        view.setLocal(false)
+        for (let i = 0; i < 240; i++) stepView()
+        assert(doorsClosed(), 'ownership loss must clear both seats even without another input frame')
+        const inferredBoostGlow = glow.material.color.r + glow.material.color.g + glow.material.color.b
+        assert(inferredBoostGlow > noBoostGlow * 1.5, 'ownership loss must restore throttle-based boost inference')
+        view.setLocal(true)
+        syncAircraftInput(view, 0, triggers, false)
+        for (let i = 0; i < 120; i++) stepView()
+        const pilotFalseGlow = glow.material.color.r + glow.material.color.g + glow.material.color.b
+        triggers.fireSecondary = false
+        syncAircraftInput(view, 1, triggers, false)
+        for (let i = 0; i < 240; i++) stepView()
+        assert(doorsClosed())
+        assert(glow.material.color.r + glow.material.color.g + glow.material.color.b > pilotFalseGlow * 1.5, 'officer transition must clear pilot boost override')
+        syncAircraftInput(view, null, null, false)
       }
       const hull = model.children.find((o: any) => o.name === 'toon' && o.material.metalness === 0.05) as any
       const colors = hull.geometry.getAttribute('color')
