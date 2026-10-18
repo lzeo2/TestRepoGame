@@ -328,3 +328,89 @@ reviewed the actual fixture diff. The worker reported a timed-out Hermes framing
 advice request, followed by independently passing framing checks; no model
 change was made to conceal the collector issue. No further runtime intervention.
 Inventory staleness after its source commit was expected and parent-owned.
+
+## Phase 3 and Phase 4 receipts
+
+- [Phase 3](wings-v2-phase3.md), `c268a60`: actual CPU loader/converter,
+  exhaust geometry/attachment, idle/throttle/boost visibility and glow/stretch
+  assertions pass; solo regression passes. F-15 converts to 41,744 triangles,
+  including 392 generated cone triangles; F-35 to 41,008 including 196.
+  Native collector stopped on a Settings actionability timeout before Low/Solo.
+  No native scene/exhaust screenshot or acceptance from that attempt.
+- [Phase 4](wings-v2-phase4.md), `4044742`: actual CPU acquisition/fire for all
+  four seat/slot fits, ammo 2 to 1, launch ownership/coordinates, corresponding
+  converted store, regeneration, signed F-35 cover travel and both triggers,
+  cannon exclusion, input hint cleanup, model-derived camera/hardpoint checks
+  and original-five invariance pass. Geometry repeated-generation and solo
+  checks pass. Root-space normalization, nearest-pivot and mirrored-winding
+  branches were source-inspected; unexercised edge branches are not test passes.
+  Native missile/bay visuals remain open.
+
+Reviewed both full receipts and their commit stats. Sampled final 20 lines of
+`.swarmforge-logs/worker-20261018-110805.log` (Phase 3) and
+`worker-20261018-111227.log` (Phase 4). No runtime edits or unauthorized class
+work. Chose not to alter weapon tuning, original models, renderer failure gates
+or smoke filters. Phase 3 collector failure remains explicit, not a product
+verdict. Phase 4 noticed the exact disk-floor breach only after its command group
+executed; this timing is a process failure, not permission to continue growth.
+Parent stopped further lanes immediately on receipt of that result.
+
+## Storage stop and handover
+
+Parent confirmed free space **2,109,014,016 bytes**, below the strict
+**2,147,483,648-byte** floor by **38,469,632 bytes**. No bulk checkout or package
+installation occurred in this run; the cause of filesystem growth is unproven.
+Local ignored `.tmp` is 2.4 MiB and worker logs 1.2 MiB, so deleting small run
+evidence would not restore adequate gate headroom. No unrelated data deletion,
+garbage collection or history rewrite was attempted.
+
+Filed storage blocker ticket `pi-829842-1792322142957-ab609a47` in
+`~/.swarm-help/`; the advisory timed out after 120 seconds and remains unresolved.
+The Phase 2 worker's earlier framing-advice timeout was
+`pi-834757-1792321387110-fd2710ea`; framing checks subsequently passed independently,
+so no implementation change followed that advice failure.
+
+Only small safe handover documentation was written after the stop. No further
+browser, extraction, checkout, build, new-vehicle worker or installation.
+Read-only static checks after stop passed:
+
+```text
+PASS: 125 catalog entries, unique IDs, required schema and Git-backed URLs
+PASS: 12 Wings JavaScript syntax checks
+PASS: authored fixture module syntax
+PASS: 130 game documents cover 125 registered + 5 unregistered games; Git inventory current.
+Coverage only: section presence does not certify documentation accuracy or gameplay.
+```
+
+`git diff --check cd1c2bd..HEAD` exited 0. The two source changes are verification
+fixtures only; no runtime/model bytes, catalog entries, smoke scripts or
+allowlists changed. Inventory was refreshed after each source commit. No new
+game or selectable vehicle was built/registered; speedboat is the authorized
+next class, not delivered functionality.
+
+| Phase / gate | Current status |
+| --- | --- |
+| 0 study | Complete, scoped source study retained |
+| 1 raw palette/render | 6/6 fresh renders; visual clearance supplemented by lit belly |
+| 2 raw geometry/family | 9/9 diagnostics, 6/6 default regression; parent pixel review accepted within fixture scope |
+| 3 exhaust | CPU pass; fresh native exhaust render held |
+| 4 weapons/converter | CPU/structure pass; fresh native weapon/bay visuals held |
+| 5 preview/native consolidation | Blocked, fresh raw screenshots remain ignored evidence, not yet saved as final tracked previews |
+| Speedboat structure/design | Not dispatched, must follow Phase 2-5 lanes and land before geometry |
+| Speedboat implementation/playtest | Not started; required normal-input weapon state changes not established |
+| Mandatory full 125-game smoke | **NOT RUN: 0/125 visits**, storage blocked; no current full-gate PASS |
+| Push/deploy | **NO PUSH**, new acceptance gates and full gate incomplete |
+
+Historical 125/125 receipts do not substitute for this run. Exclusions: none
+newly applied or measured because no fleet visit ran; the unchanged existing
+runner filters remain documented elsewhere. No goto-timeout rerun was needed.
+Sparse patterns were never changed, so no temporary game payload requires
+restoration. Existing Character AI remained untouched. No persistent server.
+
+Latest pre-handover available space: **2,108,895,232 bytes**, down
+**243,019,776 bytes** from the initial 2,351,915,008; filesystem-wide difference,
+not task-attributed usage. Restore authorized capacity with sufficient headroom
+for the largest approximately 196 MB game plus browser overhead before resuming.
+The new speedboat also needs the existing approved source-build toolchain and a
+supported interactive renderer; this run did not acquire or validate those.
+Do not push merely because storage later recovers: finish all pending gates.

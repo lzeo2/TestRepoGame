@@ -271,8 +271,12 @@ top/side/lit-belly and original-family views. Nine fresh diagnostic captures and
 six default cases pass. Parent reviewed top/side/front/rear and lit bellies:
 recognizable distinct silhouettes, continuous dark surfaces and external stores;
 no visible inverted patches. Raw geometry/palette review is accepted within that
-scope. Phase 3-5 converted/runtime acceptance is pending; previous native/fleet
-results remain dated.
+scope. Fresh [Phase 3](../audits/wings-v2-phase3.md) and
+[Phase 4](../audits/wings-v2-phase4.md) CPU checks pass exhaust, distinct weapon
+acquisition/fire/store/bay/hardpoint/input behavior and converter/registry checks.
+Phase 3's native collector timed out before launch, so native exhaust, weapon/bay
+pixels and converted-family acceptance remain open. Phase 5 is blocked by free
+space below the strict 2 GiB floor. Previous native/fleet results remain dated.
 
 The operator additionally authorized one new selectable non-plane class after
 the jet lanes, with a study/design commit before implementation. Apache already
@@ -281,7 +285,12 @@ proposal before implementation. Honest water handling and unique class weapons
 are required, not another heli or re-skinned jet.
 See the receipt for the full geometry, animation, unique-weapon, scene-budget and
 interactive acceptance gates. No new portal game or catalog ID. Push is authorized
-only after all newly required acceptance and a fresh 125/125 full gate.
+only after all newly required acceptance and a fresh 125/125 full gate. The
+current run stopped below the disk floor: the full fleet gate was not run
+(0/125 visits), speedboat study/implementation/playtest has not begun, and no
+push or deploy verification occurred. Storage ticket
+`pi-829842-1792322142957-ab609a47` is unresolved. See the resume receipt for exact
+measurements, sampled worker logs, commits and required continuation order.
 
 ## Future outlook
 
