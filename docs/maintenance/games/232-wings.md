@@ -266,8 +266,13 @@ updates only stale count expectations from 112/109 and 43,392/42,760. The actual
 runner passes 6/6, zero errors/external loads. Parent reviewed all six images;
 dark paint and distinct front/rear silhouettes are visible, but dim belly lighting
 requires a lit-belly diagnostic before visual clearance. Raw fixtures do not
-prove converter cones or native rendering. Existing previews/fleet results remain
-dated; Phase 2-5 acceptance is pending.
+prove converter cones or native rendering. Fixture `8f20a62` adds reproducible
+top/side/lit-belly and original-family views. Nine fresh diagnostic captures and
+six default cases pass. Parent reviewed top/side/front/rear and lit bellies:
+recognizable distinct silhouettes, continuous dark surfaces and external stores;
+no visible inverted patches. Raw geometry/palette review is accepted within that
+scope. Phase 3-5 converted/runtime acceptance is pending; previous native/fleet
+results remain dated.
 
 The operator additionally authorized one new selectable non-plane class after
 the jet lanes, with a study/design commit before implementation. Apache already

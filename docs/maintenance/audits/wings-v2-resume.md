@@ -298,3 +298,33 @@ spawn and firing every weapon with verified state changes are additional push
 gates. Do not reinterpret CPU fixtures as this interactive acceptance. No new
 dependency installation or runtime external loads. Storage constraints may hold
 implementation and publication even after the study succeeds.
+
+## Phase 2 fresh geometry and family review
+
+Delegation 2 was interrupted by the operator's speedboat decision, leaving only
+the assigned fixture dirty and no commit. Delegation 3 resumed that same scope,
+reviewed and completed it as `8f20a62`. No generator/model/runtime edit. Added
+allowlisted `top`, `side`, `underside-lit` angles and `family=1` for F/A-18,
+A-10 and YF-12, preserving default fixture behavior. Diagnostic belly lighting
+is explicitly labeled, and family cameras fit each model rather than implying
+absolute-scale comparison.
+
+Fresh checks: nine diagnostic/family cases pass, all default six renders pass,
+repeated-generation model checker passes, extracted module syntax and diff
+checks pass. Counts/dimensions remain stable; no errors, external loads, overflow
+or diagnostic clipping. Evidence: `.tmp/wings-v2-resume/phase2/browser.json`,
+nine adjacent PNGs and `phase2-default/`. Parent reviewed the top, side, both
+lit-belly themes, desktop family front and mobile family side images. The lit
+bellies now show continuous surfaces and the F-15 stores, with no visible holes
+or inverted-normal patches. F-35 closed bay seams are visible; internal stores
+and opening travel still require the converted-state checks, not this image.
+Top/front/rear distinguish the twin-engine vertical-tail F-15 from the broad,
+shorter single-engine/canted-tail F-35. Parent accepts these raw geometry and
+palette fixtures within their scope, not as engineering replicas or native
+converted-family/operator approval. Original-five palettes remain untouched.
+
+Sampled the final 20 lines of `.swarmforge-logs/worker-20261018-105940.log` and
+reviewed the actual fixture diff. The worker reported a timed-out Hermes framing
+advice request, followed by independently passing framing checks; no model
+change was made to conceal the collector issue. No further runtime intervention.
+Inventory staleness after its source commit was expected and parent-owned.
