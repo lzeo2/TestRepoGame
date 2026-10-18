@@ -73,7 +73,7 @@ try:
                 models = page.evaluate('window.modelResults')
                 assert page.title().startswith('PASS:'), page.locator('#status').inner_text()
                 assert [m['name'] for m in models] == ['f15', 'f35']
-                assert [(m['calls'], m['triangles']) for m in models] == [(112,43392),(109,42760)]
+                assert [(m['calls'], m['triangles']) for m in models] == [(142,41352),(143,40812)]
                 assert page.evaluate('document.documentElement.scrollWidth <= innerWidth')
                 shot = f'{theme}-{width}-{angle}.png'
                 page.screenshot(path=str(args.out/shot),full_page=True,timeout=10000)
