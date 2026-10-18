@@ -271,7 +271,9 @@ dated; Phase 2-5 acceptance is pending.
 
 The operator additionally authorized one new selectable non-plane class after
 the jet lanes, with a study/design commit before implementation. Apache already
-is selectable, so the proposed class is a tracked ground tank, not another heli.
+is selectable; the operator selected SPEEDBOAT, superseding the parent's tank
+proposal before implementation. Honest water handling and unique class weapons
+are required, not another heli or re-skinned jet.
 See the receipt for the full geometry, animation, unique-weapon, scene-budget and
 interactive acceptance gates. No new portal game or catalog ID. Push is authorized
 only after all newly required acceptance and a fresh 125/125 full gate.

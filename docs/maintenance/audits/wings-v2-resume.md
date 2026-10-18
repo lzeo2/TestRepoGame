@@ -282,15 +282,17 @@ spawn/combat/bots/camera/audio and weapon behaviors end to end. Subsequent
 implementation lanes remain bounded, explicit-path commits, never worker push.
 
 Current built registry contains selectable fighter, Apache, A-10, YF-12, B-2,
-F-15 and F-35. Apache already covers helicopter flight. Proposed new class:
-a tracked ground tank, with honest terrain-following tracked movement and
-class-specific explosive main-gun, coaxial-fire and smoke-defense behavior.
-Exact design remains subject to the source study, not permission to clone a jet.
+F-15 and F-35. Apache already covers helicopter flight. Parent initially proposed
+a tracked tank; the operator then explicitly selected **SPEEDBOAT**, superseding
+that proposal before any new-vehicle implementation. Skip the heli option.
+Study F/A-18 structure first, then design honest water handling, a deck gun and
+unique class-specific secondaries such as wake-slam or depth charges. No missile
+clones or re-skinned slow jet. Exact design remains subject to the source study.
 
 Use the authored generator and regression pipeline, 12,000-18,000 triangles,
 at least 40 meaningful material assignments, near-black family base with rich
 accents and a measured visible scene below 120,000 triangles. Recognizable
-silhouette, moving track/turret or equivalent real animation, geometry-derived
+silhouette, moving wake/propulsion/turret or equivalent real animation, geometry-derived
 anchors and at least two fresh rendered angles are required. New-vehicle normal
 spawn and firing every weapon with verified state changes are additional push
 gates. Do not reinterpret CPU fixtures as this interactive acceptance. No new
