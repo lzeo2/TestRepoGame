@@ -228,3 +228,71 @@ No game added or registered (125 catalog games / 130 projects), no runtime
 source or generated assets changed, no push. Disk display remains **3.2 GB free**
 from start to stop; this is rounded filesystem usage, not an exact task delta.
 Resume commits before this stop receipt: `000947e`, `8b3efc2`.
+
+## Operator GO and fresh raw renders (2026-10-18)
+
+Operator resumed at `cd1c2bd`, including the three existing local commits, and
+provided existing external Three 0.186.0 at
+`~/.hermes/cache/tools/three-0.186.0/package`. No installation, vendoring or
+runtime dependency change. Initial free space: 2,351,915,008 bytes. The stricter
+2 GiB floor applies. Push to main is authorized only after committed work and
+the fresh unchanged full 125-game gate pass; the scope addition below also
+requires interactive new-vehicle acceptance.
+
+Parent measured all six current raw renders before changing expectations. An
+in-memory measurement invocation replaced only the stale count assertion with
+printing; every other assertion remained. Each front/rear/underside,
+desktop/mobile and light/dark case reported the same values:
+
+| Model | Old expected calls / triangles | Fresh measured calls / triangles |
+| --- | --- | --- |
+| F-15 | 112 / 43,392 | 142 / 41,352 |
+| F-35 | 109 / 42,760 | 143 / 40,812 |
+
+Worker `478097f` changed only that tuple and the actual unchanged-assertion
+runner then passed **6/6**, exit 0, Three revision 186, zero console/page errors
+or external requests. Evidence: `.tmp/wings-v2-resume/measured/` and
+`.tmp/wings-v2-resume/accepted/`, each with `browser.json` and six PNGs.
+Logs: `.swarmforge-logs/wings-v2-measure.log` and
+`.swarmforge-logs/wings-v2-phase1-runner.log`.
+
+Parent opened all six measured images with vision. Both airframes are near-black,
+not white; F-15 has twin vertical tails, twin nacelles, rectangular intakes and
+external stores. F-35 has a shorter broad chined body, canted tails and one
+nozzle. Rear views show orange exhaust discs and metallic collars. Mobile views
+remain contained and legible. No obvious missing upper/front/rear surfaces.
+The default underside lighting is too dark to clear belly normals visually;
+a separately labeled lit-belly diagnostic is required rather than claiming
+that the numerical PASS establishes visual correctness. Raw GLBs do not contain
+the converter-generated animated cones, so cone acceptance belongs to Phase 3.
+These are standard-Three fixtures, not native Wings or operator approval.
+
+Reviewed the exact one-line diff and sampled the final 20 lines of both the
+worker harness log `worker-2026-10-18T10-52-16-554Z-3a78438d.log` and its tee log
+`worker-20261018-215232.log` under `.swarmforge-logs/`. No drift; no further
+assertions or runtime changes requested.
+
+## Additional operator order: one new selectable class
+
+During this resume the operator explicitly authorized ONE new selectable Wings
+vehicle, not a portal game or catalog ID. Finish the ordered jet Phase 2-5 lanes,
+then dispatch one bounded `openai-codex/gpt-6-astra` study/design worker before
+implementation. The study must land first and trace F/A-18 descriptors, converter,
+spawn/combat/bots/camera/audio and weapon behaviors end to end. Subsequent
+implementation lanes remain bounded, explicit-path commits, never worker push.
+
+Current built registry contains selectable fighter, Apache, A-10, YF-12, B-2,
+F-15 and F-35. Apache already covers helicopter flight. Proposed new class:
+a tracked ground tank, with honest terrain-following tracked movement and
+class-specific explosive main-gun, coaxial-fire and smoke-defense behavior.
+Exact design remains subject to the source study, not permission to clone a jet.
+
+Use the authored generator and regression pipeline, 12,000-18,000 triangles,
+at least 40 meaningful material assignments, near-black family base with rich
+accents and a measured visible scene below 120,000 triangles. Recognizable
+silhouette, moving track/turret or equivalent real animation, geometry-derived
+anchors and at least two fresh rendered angles are required. New-vehicle normal
+spawn and firing every weapon with verified state changes are additional push
+gates. Do not reinterpret CPU fixtures as this interactive acceptance. No new
+dependency installation or runtime external loads. Storage constraints may hold
+implementation and publication even after the study succeeds.

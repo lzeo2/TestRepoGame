@@ -259,10 +259,22 @@ Terminate owned temporary servers; install nothing merely to reproduce a report.
 
 The [fresh resume receipt](../audits/wings-v2-resume.md) starts at `956ef48`:
 Phase 0 independently studied current descriptors, original models and pinned
-renderer/gameplay source; Phase 1 palette and repeated generation pass. Fresh
-raw rendering is blocked because the required existing Three 0.186.0 package is
-absent. Retrieval permission is pending; no version substitution, runtime change
-or new Phase 2-5 acceptance. Existing previews and fleet results remain dated.
+renderer/gameplay source; Phase 1 palette and repeated generation pass. On
+2026-10-18 the operator supplied existing external Three 0.186.0. Six fresh raw
+renders measured stable 142/143 calls and 41,352/40,812 triangles; `478097f`
+updates only stale count expectations from 112/109 and 43,392/42,760. The actual
+runner passes 6/6, zero errors/external loads. Parent reviewed all six images;
+dark paint and distinct front/rear silhouettes are visible, but dim belly lighting
+requires a lit-belly diagnostic before visual clearance. Raw fixtures do not
+prove converter cones or native rendering. Existing previews/fleet results remain
+dated; Phase 2-5 acceptance is pending.
+
+The operator additionally authorized one new selectable non-plane class after
+the jet lanes, with a study/design commit before implementation. Apache already
+is selectable, so the proposed class is a tracked ground tank, not another heli.
+See the receipt for the full geometry, animation, unique-weapon, scene-budget and
+interactive acceptance gates. No new portal game or catalog ID. Push is authorized
+only after all newly required acceptance and a fresh 125/125 full gate.
 
 ## Future outlook
 
