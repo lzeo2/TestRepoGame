@@ -24,10 +24,32 @@ section { min-width:0 } h2 { font-size:18px } canvas { width:100%; aspect-ratio:
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 const dark = matchMedia('(prefers-color-scheme:dark)').matches;
-const angle = new URLSearchParams(location.search).get('angle') || 'front';
+const params = new URLSearchParams(location.search);
+const angle = ['front','rear','underside','top','side','underside-lit'].includes(params.get('angle')) ? params.get('angle') : 'front';
+const names = ['f15','f35'];
+if (params.get('family') === '1') {
+  for (const [name, label] of [['fa18','F/A-18'],['a10','A-10'],['yf12','YF-12']]) {
+    const section = document.createElement('section');
+    const heading = document.createElement('h2');
+    heading.textContent = label;
+    const canvas = document.createElement('canvas');
+    canvas.id = name;
+    canvas.setAttribute('aria-label', label + ' model');
+    section.append(heading, canvas);
+    document.querySelector('main').append(section);
+    names.push(name);
+  }
+}
+const diagnostic = angle === 'underside-lit';
+if (diagnostic) {
+  document.querySelector('h1 + p').append(' Diagnostic lighting: directional light below each model for belly inspection, not game lighting.');
+}
+if (names.length > 2) {
+  document.querySelector('h1 + p').append(' Family comparison: each camera fits its own model; displayed sizes do not compare absolute scale.');
+}
 window.modelResults = [];
 try {
-  for (const name of ['f15','f35']) {
+  for (const name of names) {
     const canvas = document.getElementById(name);
     const renderer = new THREE.WebGLRenderer({canvas, antialias:true, preserveDrawingBuffer:true});
     renderer.setPixelRatio(1);
@@ -38,7 +60,7 @@ try {
     const scene = new THREE.Scene();
     scene.add(new THREE.HemisphereLight(0xe7f3ff, 0x807667, 2));
     const sun = new THREE.DirectionalLight(0xfff2dc, 3);
-    sun.position.set(-10,20,-15);
+    sun.position.set(-10,diagnostic ? -20 : 20,-15);
     scene.add(sun);
     const model = (await new GLTFLoader().loadAsync('../models/' + name + '.glb')).scene;
     scene.add(model);
@@ -47,13 +69,20 @@ try {
     const center = box.getCenter(new THREE.Vector3());
     const radius = Math.max(span.x,span.z);
     const camera = new THREE.PerspectiveCamera(35,1.25,.1,200);
-    camera.position.copy(center).add(new THREE.Vector3(.9,angle === 'underside' ? -1.1 : .7,angle === 'rear' ? 1.15 : -1.15).multiplyScalar(radius));
+    const direction = new THREE.Vector3(.9,angle === 'underside' || diagnostic ? -1.1 : .7,angle === 'rear' ? 1.15 : -1.15);
+    if (angle === 'top') {
+      direction.set(0,1.8,0);
+      camera.up.set(0,0,1);
+    } else if (angle === 'side') {
+      direction.set(1.8,0,0);
+    }
+    camera.position.copy(center).add(direction.multiplyScalar(radius * (names.length > 2 ? 1.25 : diagnostic ? 1.05 : 1)));
     camera.lookAt(center);
     renderer.render(scene,camera);
     window.modelResults.push({name, three:THREE.REVISION, calls:renderer.info.render.calls,
       triangles:renderer.info.render.triangles, size:span.toArray()});
   }
-  document.getElementById('status').textContent = 'Both models drawn. This fixture does not use Wings shaders or its aircraft rig converter.';
+  document.getElementById('status').textContent = (names.length === 2 ? 'Both models drawn.' : 'All five models drawn.') + (diagnostic ? ' Diagnostic lighting: directional light below the models.' : '') + ' This fixture does not use Wings shaders or its aircraft rig converter.';
   document.title = 'PASS: Wings model fixture';
 } catch (error) {
   document.getElementById('status').textContent = String(error);
