@@ -1,6 +1,6 @@
 // Regression for the original rare-answer trivia genre clone, not a reference brand.
 import assert from 'node:assert/strict';
-import { existsSync, readFileSync } from 'node:fs';
+import { readFileSync } from 'node:fs';
 import vm from 'node:vm';
 
 const coreURL = new URL('../Games/Dive Trivia/core.js', import.meta.url);
@@ -210,27 +210,23 @@ test('expiry, unknown, seven-round finish and maximum depth', () => {
   assert.throws(() => core.createRun(Array(7).fill(seven[0]), 0));
 });
 
-if (existsSync(questionsURL)) {
-  vm.runInContext(readFileSync(questionsURL, 'utf8'), sandbox, { filename: 'questions.js' });
-  const data = sandbox.DiveQuestions;
-  test('real question data validation, every canonical answer and alias', () => {
-    assert.equal(core.validateData(data), true);
-    for (const prompt of data.prompts) {
-      for (const group of prompt.groups) {
-        for (const answer of group.answers) {
-          for (const input of [answer.text, ...answer.aliases]) {
-            const result = core.score(prompt, input);
-            assert.equal(result.answer, answer.text);
-            assert.equal(result.tier, group.tier);
-          }
+vm.runInContext(readFileSync(questionsURL, 'utf8'), sandbox, { filename: 'questions.js' });
+const data = sandbox.DiveQuestions;
+test('real question data validation, every canonical answer and alias', () => {
+  assert.equal(core.validateData(data), true);
+  for (const prompt of data.prompts) {
+    for (const group of prompt.groups) {
+      for (const answer of group.answers) {
+        for (const input of [answer.text, ...answer.aliases]) {
+          const result = core.score(prompt, input);
+          assert.equal(result.answer, answer.text);
+          assert.equal(result.tier, group.tier);
         }
       }
     }
-    assert.equal(core.selectPrompts(data, selection).length, 7);
-    for (const pack of data.packs) assert.equal(core.selectPrompts(data, { mode: 'pack', key: pack.id }).length, 7);
-    console.log(`Real data: ${data.prompts.length} prompts / ${data.packs.length} packs / version ${data.version}`);
-  });
-} else {
-  console.log('Real questions.js not present; engine tested with internal fixture only.');
-}
+  }
+  assert.equal(core.selectPrompts(data, selection).length, 7);
+  for (const pack of data.packs) assert.equal(core.selectPrompts(data, { mode: 'pack', key: pack.id }).length, 7);
+  console.log(`Real data: ${data.prompts.length} prompts / ${data.packs.length} packs / version ${data.version}`);
+});
 console.log(`Dive Trivia: ${checks} checks passed (TZ=${process.env.TZ || 'system'}).`);
