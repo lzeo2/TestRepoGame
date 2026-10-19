@@ -652,8 +652,180 @@ def f35():
     return m
 
 
+def speedboat():
+    """Original deep-V patrol launch. Waterline is Y=0; no reference mesh input.
+
+    Curved hull plating, roof, barrel, stores and twisted prop blades carry the
+    tessellation budget. Trim is authored paint, separate from team livery.
+    """
+    def linear(c):
+        c /= 255
+        return c / 12.92 if c <= .04045 else ((c + .055) / 1.055) ** 2.4
+
+    palette = [
+        ('hull_paint', (35, 38, 40), .15, .72),
+        ('deck_paint', (44, 47, 48), .1, .85),
+        ('cabin_glass', (69, 91, 105), .1, .18),
+        ('hardware_metal', (105, 112, 116), .7, .4),
+        ('rubber_dark', (22, 24, 25), 0, .95),
+        ('trim_copper', (169, 111, 57), .4, .55),
+        ('trim_warmred', (151, 56, 39), .15, .65),
+        ('waterline_ivory', (185, 177, 150), .1, .75),
+        ('prop_bronze', (127, 96, 46), .75, .35),
+        ('livery_slate', (61, 82, 103), .1, .75),
+        ('nav_red', (224, 43, 31), 0, .3),
+        ('nav_green', (57, 178, 102), 0, .3),
+        ('nav_white', (227, 223, 201), 0, .3),
+        ('charge_olive', (78, 80, 59), .25, .65)]
+    m = Model('speedboat', [(n, tuple(linear(c) for c in rgb), metal, rough)
+                           for n, rgb, metal, rough in palette])
+    glass = m.doc['materials'][2]
+    glass['alphaMode'] = 'BLEND'
+    glass['pbrMetallicRoughness']['baseColorFactor'][3] = .48
+    m.doc['extras'].update(waterline=0, bodygunPivot=[0, 1.15, -2.6],
+                           gunTip=[0, 0, -1.3],
+                           stores={'weapons': [[0, 1]],
+                                   'order': ['charge_1', 'charge_2', 'charge_3', 'charge_4']})
+    stations = [(-5, .025, .66, .12), (-3, 1.05, .58, -.5),
+                (0, 1.6, .45, -.7), (3, 1.48, .4, -.64), (5, 1.3, .38, -.55)]
+
+    def section(z):
+        a, b = next((a, b) for a, b in zip(stations, stations[1:]) if z <= b[0]+1e-8)
+        t = (1-math.cos(math.pi*(z-a[0])/(b[0]-a[0])))/2
+        return tuple(a[k]+(b[k]-a[k])*t for k in (1, 2, 3))
+
+    def hull(u, v, sign, upper=False):
+        z = -5+10*u
+        width, top, keel = section(z)
+        chine = max(-.08, keel+.08)
+        if upper:
+            return (sign*width*(.88+.12*v), chine+(top-chine)*v, z)
+        return (sign*width*.88*v, keel+(chine-keel)*v**1.15, z)
+
+    for side, sign in [('L', -1), ('R', 1)]:
+        for upper in (False, True):
+            f15_patch(m, 'hull_'+side+('_topsides' if upper else '_deadrise'),
+                      lambda u,v: hull(u,v,sign,upper), 48, 12, 0, sign > 0)
+        for name, v, mat in [('chine', 0, 5), ('waterline', .18, 7), ('rubrail', .95, 4)]:
+            def strip(u, w):
+                x,y,z = hull(u, v+.035*w, sign, True)
+                return (x+sign*.012, y, z)
+            f15_patch(m, name+'_'+side, strip, 64, 1, mat, sign > 0)
+        for name, lo, hi, rise in [('foredeck', -5, -1.3, .16), ('aftdeck', -1.3, 5, 0)]:
+            def deck(u,v):
+                z = lo+(hi-lo)*u
+                width, top, _ = section(z)
+                return (sign*width*v, top+rise+.025*(1-v*v), z)
+            f15_patch(m, name+'_'+side, deck, 16, 12, 1, sign < 0)
+        # A narrow sheer cap joins the raised bow deck to the topsides.
+        def bow_cap(u,v):
+            z = -5+3.7*u
+            width, top, _ = section(z)
+            return (sign*width, top+.16*v, z)
+        f15_patch(m, 'bow_cap_'+side, bow_cap, 24, 2, 5, sign > 0)
+    width, top, keel = section(5)
+    m.slab('transom', [(-width,top,4.9875),(width,top,4.9875),(.88*width,-.08,4.9875),
+                       (0,keel,4.9875),(-.88*width,-.08,4.9875)], 2, .025, 0)
+    width, top, _ = section(-1.3)
+    m.box('foredeck_step', (0,top+.08,-1.3), (2*width,.16,.035), 5)
+    m.box('bow_stem', (0,.73,-4.99), (.05,.16,.02), 5)
+
+    # Local round rails use the same sampled surface helper as the hull.
+    def rail(name, a, b, radius, material=3, parent=0, rows=2, columns=12):
+        direction = [b[k]-a[k] for k in range(3)]
+        length = math.sqrt(sum(x*x for x in direction))
+        d = [x/length for x in direction]
+        ref = (0, 1, 0) if abs(d[1]) < .9 else (1, 0, 0)
+        n = [d[1]*ref[2]-d[2]*ref[1], d[2]*ref[0]-d[0]*ref[2], d[0]*ref[1]-d[1]*ref[0]]
+        norm = math.sqrt(sum(x*x for x in n))
+        n = [x/norm for x in n]
+        q = [d[1]*n[2]-d[2]*n[1], d[2]*n[0]-d[0]*n[2], d[0]*n[1]-d[1]*n[0]]
+        def surface(u,v):
+            return tuple(a[k]+direction[k]*u+radius*(n[k]*math.cos(math.tau*v)+
+                         q[k]*math.sin(math.tau*v)) for k in range(3))
+        f15_patch(m, name, surface, rows, columns, material, True, parent)
+
+    # Low cabin: glazed sloping windscreen, side windows, open aft doorway.
+    m.box('cabin_sill', (0,.66,.65), (1.9,.34,2.7), 0)
+    m.slab('windscreen', [(-.94,.83,-.7),(.94,.83,-.7),(.77,1.91,-.25),(-.77,1.91,-.25)], 2,.018,2)
+    for side, sign in [('L', -1), ('R', 1)]:
+        m.slab('cabin_window_'+side, [(sign*.94,.83,-.7),(sign*.77,1.91,-.25),
+                                    (sign*.77,1.91,1.85),(sign*.94,.83,2)], 0,.018,2)
+        rail('windscreen_post_'+side, (sign*.95,.8,-.72), (sign*.78,1.94,-.25), .035, 5)
+        rail('cabin_aft_post_'+side, (sign*.94,.8,2), (sign*.78,1.94,1.85), .04, 0)
+        m.box('livery_cabin_'+side, (sign*.958,.68,.5), (.025,.18,.65), 9)
+        for i, z in enumerate((-3.4,-1.7,2.35,3.5,4.65)):
+            width, top, _ = section(z)
+            x = sign*(width-.1)
+            rail('rail_stanchion_'+side+str(i), (x,top+.1,z), (x,top+.62,z), .025)
+            m.box('cleat_base_'+side+str(i), (x-sign*.1,top+.09,z), (.16,.04,.24), 3)
+            rail('cleat_'+side+str(i), (x-sign*.1,top+.16,z-.15),
+                 (x-sign*.1,top+.16,z+.15), .028)
+        for i, (za,zb) in enumerate(((-3.4,-1.7),(2.35,3.5),(3.5,4.65))):
+            wa,ta,_ = section(za)
+            wb,tb,_ = section(zb)
+            rail('handrail_'+side+str(i), (sign*(wa-.1),ta+.62,za),
+                 (sign*(wb-.1),tb+.62,zb), .028)
+        m.box('nav_mount_'+side, (sign*.87,1.55,.1), (.12,.08,.25), 4)
+        m.loft('nav_'+side, [(-.02,.065,.05,sign*.91,1.6),(.18,.065,.05,sign*.91,1.6)],
+               10 if sign < 0 else 11, sides=12)
+    def roof(u,v):
+        return ((2*v-1)*.83, 1.94+.15*math.sin(math.pi*v), -.32+2.3*u)
+    f15_patch(m, 'cabin_roof', roof, 24,20,0)
+    rail('roof_front_trim', (-.8,1.96,-.33), (.8,1.96,-.33), .025,5)
+    m.box('helm_console', (0,1.02,-.12), (1.1,.55,.38), 4)
+    m.box('helm_instruments', (0,1.31,-.12), (.7,.025,.25), 3)
+    m.box('helm_seat', (0,.91,1.05), (.55,.22,.58), 4)
+    m.box('helm_back', (0,1.19,1.36), (.55,.65,.12), 6)
+    rail('stern_light_mast', (0,1.94,1.8), (0,2.37,1.8), .022)
+    m.box('nav_stern', (0,2.39,1.8), (.08,.08,.08), 12)
+    m.node('helm_eye', (0,1.9,.9))
+    m.node('stern_exit', (0,.45,5.2))
+
+    yaw = m.node('cannon_yaw', (0,1.0,-2.6))
+    m.box('cannon_pedestal', (0,.83,-2.6), (.54,.3,.58), 0)
+    m.box('cannon_yoke', (0,.03,0), (.46,.24,.44), 5, yaw)
+    pitch = m.node('cannon_pitch', (0,.15,0), yaw)
+    m.box('cannon_breech', (0,0,.12), (.3,.27,.48), 0, pitch)
+    rail('cannon_barrel', (0,0,-.12), (0,0,-1.3), .065, 3, pitch, 12,24)
+    m.loft('cannon_muzzle_rim', [(-1.3,.083,.083,0,0),(-1.2,.083,.083,0,0)], 5,pitch,24)
+    m.loft('cannon_bore', [(-1.3,.05,.05,0,0),(-1.299,.05,.05,0,0)],4,pitch,24)
+    m.node('gun_muzzle', (0,0,-1.3), pitch)
+
+    for side, sign in [('L', -1), ('R', 1)]:
+        prop = m.node('prop_'+side, (sign*.8,-.45,4.4))
+        m.loft('prop_hub_'+side, [(-.35,.08,.08,0,0),(.15,.09,.09,0,0),(.25,.025,.025,0,0)],8,prop,24)
+        for blade in range(3):
+            # Twisted, rounded airfoil with a finite tip, not a spinner-only rig.
+            def blade_skin(u,v):
+                angle = blade*math.tau/3+.5*u
+                radius = .07+.17*u
+                chord = (.085-.045*u)*math.cos(math.tau*v)
+                return (radius*math.cos(angle)-chord*math.sin(angle),
+                        radius*math.sin(angle)+chord*math.cos(angle),
+                        .035*u+.018*math.sin(math.tau*v))
+            f15_patch(m, 'prop_blade_'+side+str(blade), blade_skin,12,8,8,False,prop)
+        rail('shaft_'+side, (sign*.8,-.37,3.75), (sign*.8,-.45,4.25), .045,3)
+        m.node('wake_'+side, (sign*.8,-.03,4.9))
+        for x in (sign*.43,sign*1.15):
+            rail('rack_rail_'+str(x), (x,.68,2.75), (x,.68,4.85), .035,5)
+        for z in (2.85,4.75):
+            m.box('rack_foot_'+side+str(z), (sign*.79,.52,z), (.85,.22,.09),3)
+    for i, (x,z) in enumerate(((-.79,3.3),(.79,3.3),(-.79,4.35),(.79,4.35)),1):
+        charge = m.node('charge_'+str(i), (x,.84,z))
+        def drum(u,v):
+            radius = .18+.035*math.sin(math.pi*u)
+            return (radius*math.cos(math.tau*v), radius*math.sin(math.tau*v), -.43+.86*u)
+        f15_patch(m, 'charge_drum_'+str(i),drum,12,24,13,True,charge)
+        for end in (-.43,.43):
+            m.loft('charge_end_'+str(i)+'_'+str(end), [(end-.008,.18,.18,0,0),(end+.008,.18,.18,0,0)],6,charge,24)
+        for band in (-.28,.28):
+            m.loft('charge_band_'+str(i)+'_'+str(band), [(band-.025,.213,.213,0,0),(band+.025,.213,.213,0,0)],5,charge,24)
+    return m
+
+
 def check_model(data):
-    """Validate the serialized jet, including bounds, winding and hard budgets."""
+    """Validate serialized geometry, including bounds, winding and hard budgets."""
     assert struct.unpack_from('<4sII', data) == (b'glTF', 2, len(data))
     length, kind = struct.unpack_from('<I4s', data, 12)
     assert kind == b'JSON' and length % 4 == 0
@@ -679,7 +851,7 @@ def check_model(data):
     assert doc['scene'] == 0 and doc['scenes'] == [{'nodes': [0]}]
     nodes = doc['nodes']
     name = nodes[0]['name']
-    assert name in ('f15', 'f35')
+    assert name in ('f15', 'f35', 'speedboat')
     names = [n['name'] for n in nodes]
     assert len(names) == len(set(names))
     assert not {'gear', 'propeller'} & set(names)
@@ -759,10 +931,53 @@ def check_model(data):
                 assert key not in seen, mesh['name']
                 seen.add(key)
                 triangles += 1
-    assert (40_000 <= triangles <= 55_000 if name == 'f15' else 35_000 <= triangles <= 50_000), triangles
+    if name == 'speedboat':
+        assert 12_000 <= triangles <= 18_000, triangles
+    else:
+        assert (40_000 <= triangles <= 55_000 if name == 'f15' else 35_000 <= triangles <= 50_000), triangles
     assert len(data) < 1_200_000, len(data)
     assert not any(k in doc['nodes'][0] for k in ('matrix', 'translation', 'rotation', 'scale'))
-    assert {'cockpit', 'gun_muzzle', 'wing_L', 'wing_R', 'stabilizer_L', 'stabilizer_R'} <= {n['name'] for n in doc['nodes']}
+    if name == 'speedboat':
+        required = {'cannon_yaw', 'cannon_pitch', 'gun_muzzle', 'helm_eye', 'stern_exit',
+                    'prop_L', 'prop_R', 'wake_L', 'wake_R',
+                    'charge_1', 'charge_2', 'charge_3', 'charge_4'}
+        assert required <= set(names)
+        expected = {'cannon_yaw': (0,1,-2.6), 'cannon_pitch': (0,.15,0),
+                    'gun_muzzle': (0,0,-1.3), 'helm_eye': (0,1.9,.9),
+                    'stern_exit': (0,.45,5.2), 'prop_L': (-.8,-.45,4.4),
+                    'prop_R': (.8,-.45,4.4), 'wake_L': (-.8,-.03,4.9),
+                    'wake_R': (.8,-.03,4.9)}
+        for label, position in expected.items():
+            assert nodes[names.index(label)]['translation'] == list(position), label
+        assert names.index('cannon_pitch') in nodes[names.index('cannon_yaw')]['children']
+        assert names.index('gun_muzzle') in nodes[names.index('cannon_pitch')]['children']
+        def carries_mesh(index):
+            return 'mesh' in nodes[index] or any(carries_mesh(c) for c in nodes[index].get('children', []))
+        for label in required - {'gun_muzzle', 'helm_eye', 'stern_exit', 'wake_L', 'wake_R'}:
+            assert carries_mesh(names.index(label)), label
+        assert len({tuple(mat['pbrMetallicRoughness']['baseColorFactor'][:3])
+                    for mat in doc['materials']}) >= 10
+        assert doc['extras']['waterline'] == 0
+        assert doc['extras']['bodygunPivot'] == [0,1.15,-2.6]
+        assert doc['extras']['gunTip'] == [0,0,-1.3]
+        assert doc['extras']['stores'] == {'weapons': [[0,1]],
+                                          'order': ['charge_1','charge_2','charge_3','charge_4']}
+        hull_points = []
+        for mesh in doc['meshes']:
+            if mesh['name'].startswith('hull_'):
+                p = mesh['primitives'][0]
+                hull_points.extend(values(p['attributes']['POSITION']))
+                sign = -1 if mesh['name'].startswith('hull_L') else 1
+                assert all(n[0]*sign > 0 for n in values(p['attributes']['NORMAL']))
+        for axis, low, high in [(0,-1.6,1.6),(1,-.7,.66),(2,-5,5)]:
+            assert abs(min(p[axis] for p in hull_points)-low) < 1e-5
+            assert abs(max(p[axis] for p in hull_points)-high) < 1e-5
+        for side in ('L','R'):
+            assert all('prop_blade_'+side+str(i) in names for i in range(3))
+        barrel = doc['meshes'][nodes[names.index('cannon_barrel')]['mesh']]['primitives'][0]
+        assert abs(min(p[2] for p in values(barrel['attributes']['POSITION']))+1.3) < 1e-5
+    else:
+        assert {'cockpit', 'gun_muzzle', 'wing_L', 'wing_R', 'stabilizer_L', 'stabilizer_R'} <= {n['name'] for n in doc['nodes']}
     assert not any(doc.get(k) for k in ('textures', 'images', 'skins', 'animations'))
     assignments = [p['material'] for mesh in doc['meshes'] for p in mesh['primitives']]
     assert len(assignments) >= 40 and set(assignments) == set(range(len(doc['materials'])))
@@ -779,12 +994,17 @@ def check_model(data):
 
 
 if __name__ == '__main__':
-    OUT.mkdir(parents=True, exist_ok=True)
-    for make in (f15, f35):
+    import argparse
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--speedboat', action='store_true', help='Generate only the experimental boat under .tmp')
+    args = parser.parse_args()
+    output = Path(__file__).resolve().parents[3] / '.tmp/wings-speedboat-model' if args.speedboat else OUT
+    output.mkdir(parents=True, exist_ok=True)
+    for make in ((speedboat,) if args.speedboat else (f15, f35)):
         data = make().finish()
         result = check_model(data)
         assert data == make().finish(), 'Generation must be deterministic'
-        path = OUT / (result['name'] + '.glb')
+        path = output / (result['name'] + '.glb')
         if not path.exists() or path.read_bytes() != data:
             path.write_bytes(data)
         print(json.dumps(result, sort_keys=True))
