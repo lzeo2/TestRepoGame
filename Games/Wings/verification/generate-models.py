@@ -657,9 +657,10 @@ def speedboat():
 
     Curved hull plating, roof, barrel, stores and twisted prop blades carry the
     tessellation budget. Trim is authored paint, separate from team livery.
-    Experimental reroll of f3ce4dd: approved skin/anchors retained, linear PBR
-    finishes and neutral vertex AO added. Raw and converted visual gates remain
-    with the parent; counts do not establish photorealism. No images or foam.
+    Second finish reroll: approved skin/anchors retained, shared-sample panel
+    finishes, edge fittings and local neutral contact AO. Raw and converted
+    visual gates remain with the parent; counts do not establish photorealism.
+    No images or foam.
     """
     def linear(c):
         c /= 255
@@ -669,23 +670,23 @@ def speedboat():
     # legacy numeric assignments only for this boat; jets retain exact bytes.
     # RGB inputs are sRGB bytes, including metal reflectance and navigation glass.
     palette = [
-        ('dry_gelcoat_port', (58, 61, 62), 0, .32, ('hull_L_topsides',)),
-        ('dry_gelcoat_starboard', (59, 62, 63), 0, .33, ('hull_R_topsides',)),
+        ('dry_gelcoat_port', (38, 41, 43), 0, .32, ('hull_L_topsides',)),
+        ('dry_gelcoat_starboard', (39, 42, 44), 0, .33, ('hull_R_topsides',)),
         ('cabin_glass', (102, 113, 119), 0, .12, ('windscreen', 'cabin_window_')),
-        ('wet_gelcoat', (48, 51, 53), 0, .22, ('hull_',)),
-        ('transom_gelcoat', (55, 58, 60), 0, .36, ('transom',)),
-        ('foredeck_nonskid', (75, 77, 76), 0, .86, ('foredeck_',)),
-        ('aftdeck_nonskid', (69, 72, 72), 0, .89, ('aftdeck_',)),
-        ('chine_ochre_enamel', (133, 116, 79), 0, .34, ('chine_',)),
-        ('waterline_enamel', (172, 174, 170), 0, .26, ('waterline_',)),
+        ('wet_gelcoat', (35, 38, 40), 0, .22, ('hull_',)),
+        ('transom_gelcoat', (40, 43, 44), 0, .36, ('transom',)),
+        ('foredeck_nonskid', (43, 46, 46), 0, .86, ('foredeck_',)),
+        ('aftdeck_nonskid', (41, 44, 44), 0, .89, ('aftdeck_',)),
+        ('chine_ochre_enamel', (148, 121, 69), 0, .34, ('chine_',)),
+        ('waterline_enamel', (104, 99, 83), 0, .38, ('waterline_',)),
         ('rubrail_epdm', (28, 30, 31), 0, .91, ('rubrail_',)),
-        ('sheer_anodized_trim', (111, 115, 115), .72, .38, ('bow_cap_',)),
+        ('sheer_anodized_trim', (44, 47, 48), .05, .48, ('bow_cap_',)),
         ('step_grip', (40, 43, 43), 0, .88, ('foredeck_step',)),
         ('stem_stainless', (170, 175, 178), .9, .24, ('bow_stem',)),
-        ('cabin_sill_gelcoat', (64, 67, 67), 0, .37, ('cabin_sill',)),
+        ('cabin_sill_gelcoat', (42, 45, 46), 0, .37, ('cabin_sill',)),
         ('window_frame_anodized', (120, 125, 127), .78, .31, ('windscreen_post_',)),
-        ('cabin_posts_enamel', (65, 68, 68), 0, .35, ('cabin_aft_post_',)),
-        ('identification_plate', (140, 143, 140), .25, .49, ('livery_cabin_',)),
+        ('cabin_posts_enamel', (40, 43, 44), 0, .35, ('cabin_aft_post_',)),
+        ('identification_plate', (137, 113, 67), 0, .49, ('livery_cabin_',)),
         ('stanchion_brushed_steel', (158, 163, 166), .9, .32, ('rail_stanchion_',)),
         ('cleat_cast_steel', (139, 145, 148), .86, .43, ('cleat_base_',)),
         ('cleat_polished_steel', (184, 190, 193), .92, .21, ('cleat_',)),
@@ -694,8 +695,8 @@ def speedboat():
         ('port_signal_lens', (167, 51, 43), 0, .2, ('nav_L',)),
         ('starboard_signal_lens', (55, 126, 78), 0, .21, ('nav_R',)),
         ('stern_signal_lens', (212, 214, 205), 0, .19, ('nav_stern',)),
-        ('roof_gelcoat', (85, 88, 87), 0, .3, ('cabin_roof',)),
-        ('roof_bright_strip', (219, 224, 226), .93, .16, ('roof_front_trim',)),
+        ('roof_gelcoat', (36, 39, 40), 0, .43, ('cabin_roof',)),
+        ('roof_bright_strip', (46, 49, 50), 0, .38, ('roof_front_trim',)),
         ('console_abs', (38, 41, 43), 0, .73, ('helm_console',)),
         ('instrument_anodized_face', (80, 85, 88), .65, .48, ('helm_instruments',)),
         ('seat_vinyl', (66, 67, 65), 0, .76, ('helm_seat',)),
@@ -716,14 +717,17 @@ def speedboat():
         ('charge_enamel', (77, 80, 73), .12, .56, ('charge_drum_',)),
         ('charge_end_enamel', (70, 74, 69), .1, .62, ('charge_end_',)),
         ('charge_band_zinc', (155, 159, 155), .8, .42, ('charge_band_',)),
-        ('hatch_chamfer_aluminum', (108, 113, 114), .76, .39, ('hatch_',)),
+        ('hatch_chamfer_aluminum', (58, 61, 62), .25, .64, ('hatch_',)),
         ('vent_recess', (30, 33, 34), 0, .92, ('vent_recess_',)),
         ('vent_louver_aluminum', (100, 106, 108), .82, .44, ('vent_louver_',)),
         ('seat_stitch_polyester', (121, 121, 113), 0, .9, ('seat_stitch_',)),
         ('stanchion_socket', (115, 120, 123), .87, .37, ('rail_socket_',)),
         ('cleat_fastener', (180, 185, 188), .94, .26, ('cleat_bolt_',)),
         ('copper_bonding_strap', (131, 105, 88), .88, .47, ('bonding_strap',)),
-        ('brass_drain_plug', (151, 136, 99), .86, .33, ('drain_plug',))]
+        ('brass_drain_plug', (151, 136, 99), .86, .33, ('drain_plug',)),
+        ('window_gasket_epdm', (23, 25, 26), 0, .94, ('window_gasket_',)),
+        ('vent_rim_powdercoat', (55, 58, 60), .08, .57, ('vent_rim_',)),
+        ('seat_piping_vinyl', (82, 83, 78), 0, .68, ('seat_piping_',))]
     m = Model('speedboat', [(n, tuple(linear(c) for c in rgb), metal, rough)
                            for n, rgb, metal, rough, _ in palette])
     m.doc['extensionsUsed'] = ['KHR_materials_clearcoat']
@@ -760,7 +764,7 @@ def speedboat():
                       lambda u,v: hull(u,v,sign,upper), 48, 12, 0, sign > 0)
         for name, v, mat in [('chine', 0, 5), ('waterline', .18, 7), ('rubrail', .95, 4)]:
             def strip(u, w):
-                x,y,z = hull(u, v+.035*w, sign, True)
+                x,y,z = hull(u, v+(.06 if name == 'chine' else .035)*w, sign, True)
                 return (x+sign*.012, y, z)
             f15_patch(m, name+'_'+side, strip, 64, 1, mat, sign > 0)
         for name, lo, hi, rise in [('foredeck', -5, -1.3, .16), ('aftdeck', -1.3, 5, 0)]:
@@ -823,12 +827,29 @@ def speedboat():
                10 if sign < 0 else 11, sides=12)
     def roof(u,v):
         return ((2*v-1)*.83, 1.94+.15*math.sin(math.pi*v), -.32+2.3*u)
-    f15_patch(m, 'cabin_roof', roof, 24,20,0)
+    # Roof is straight along U: retain every curved cross-section sample.
+    f15_patch(m, 'cabin_roof', roof, 8,20,0)
     rail('roof_front_trim', (-.8,1.96,-.33), (.8,1.96,-.33), .025,5)
     m.box('helm_console', (0,1.02,-.12), (1.1,.55,.38), 4)
     m.box('helm_instruments', (0,1.31,-.12), (.7,.025,.25), 3)
-    m.box('helm_seat', (0,.91,1.05), (.55,.22,.58), 4)
-    m.box('helm_back', (0,1.19,1.36), (.55,.65,.12), 6)
+    def cushion(name, center, size, bevel):
+        # Eight-corner rings give the upholstery a real highlight-catching edge.
+        x,y,z = center
+        a,b,c = (v/2 for v in size)
+        outline = [(-a+bevel,-c), (a-bevel,-c), (a,-c+bevel), (a,c-bevel),
+                   (a-bevel,c), (-a+bevel,c), (-a,c-bevel), (-a,-c+bevel)]
+        vertices = [(x+px*scale,y+dy,z+pz*scale)
+                    for dy,scale in [(-b,.88),(-b+bevel,1),(b-bevel,1),(b,.88)]
+                    for px,pz in outline]
+        faces = [list(range(8)),list(range(24,32))]
+        faces += [[r*8+i,r*8+(i+1)%8,(r+1)*8+(i+1)%8,(r+1)*8+i]
+                  for r in range(3) for i in range(8)]
+        m.solid(name,vertices,faces,4)
+    cushion('helm_seat', (0,.91,1.05), (.55,.22,.58), .035)
+    cushion('helm_back', (0,1.19,1.36), (.55,.65,.12), .025)
+    for side in (-1,1):
+        rail('seat_piping_'+str(side), (side*.247,1.003,.81),
+             (side*.247,1.003,1.29), .009, rows=1,columns=8)
     rail('stern_light_mast', (0,1.94,1.8), (0,2.37,1.8), .022)
     m.box('nav_stern', (0,2.39,1.8), (.08,.08,.08), 12)
     m.node('helm_eye', (0,1.9,.9))
@@ -902,6 +923,21 @@ def speedboat():
             m.slab('vent_louver_'+side+str(i),
                    [(sign*.97,.6,z),(sign*.99,.6,z+.026),
                     (sign*.99,.76,z+.026),(sign*.97,.76,z)],0,.008,3)
+    # Rubber seals sit just outside the existing glass, not over its center.
+    windows = [('front', [(-.94,.83,-.714),(.94,.83,-.714),
+                          (.77,1.91,-.264),(-.77,1.91,-.264)])]
+    for side,sign in [('L',-1),('R',1)]:
+        windows.append((side, [(sign*.954,.83,-.7),(sign*.784,1.91,-.25),
+                               (sign*.784,1.91,1.85),(sign*.954,.83,2)]))
+        rim = [(sign*.981,.582,1.198),(sign*.981,.778,1.198),
+               (sign*.981,.778,1.702),(sign*.981,.582,1.702)]
+        for edge in range(4):
+            rail('vent_rim_'+side+str(edge),rim[edge],rim[(edge+1)%4],
+                 .014,rows=1,columns=8)
+    for label,corners in windows:
+        for edge in range(4):
+            rail('window_gasket_'+label+str(edge),corners[edge],corners[(edge+1)%4],
+                 .018,rows=1,columns=8)
     # Chamfered hatch perimeter sits on the curved deck, not floating box trim.
     for edge in range(4):
         corners = [(-.31,2.3),(.31,2.3),(.31,2.8),(-.31,2.8)]
@@ -928,6 +964,48 @@ def speedboat():
     for mesh in m.doc['meshes']:
         material = next(i for prefix, i in routes if mesh['name'].startswith(prefix))
         mesh['primitives'][0]['material'] = material
+    # Partition only the index grid. Adjacent plates share the exact original
+    # positions and area-weighted normals, including their boundary samples.
+    # Long topside plates and deck walkway/center panels are finish zones, not
+    # separate floating decals or a checkerboard of unrelated paint colors.
+    for mesh in m.doc['meshes']:
+        name = mesh['name']
+        topside = name.startswith('hull_') and name.endswith('_topsides')
+        deck_panel = name.startswith(('foredeck_', 'aftdeck_')) and name != 'foredeck_step'
+        if not (topside or deck_panel):
+            continue
+        p = mesh['primitives'][0]
+        a = m.doc['accessors'][p['indices']]
+        view = m.doc['bufferViews'][a['bufferView']]
+        indices = struct.unpack_from('<'+'H'*a['count'],m.data,view['byteOffset'])
+        rows,columns = (48,12) if topside else (16,12)
+        groups = [[] for _ in range(4 if topside else 8)]
+        for row in range(rows):
+            for column in range(columns):
+                group = row//(rows//4)
+                if deck_panel:
+                    group = group*2 + (column >= 9)
+                start = (row*columns+column)*6
+                groups[group].extend(indices[start:start+6])
+        mesh['primitives'] = []
+        base = m.doc['materials'][p['material']]
+        for zone,indices in enumerate(groups):
+            material = p['material']
+            if zone:
+                finish = json.loads(json.dumps(base))
+                finish['name'] = name+'_finish_'+str(zone)
+                pbr = finish['pbrMetallicRoughness']
+                # Small reflectance differences, stronger differences in wear.
+                delta = (0,1,-1,2,-2,1,0,-1)[zone]
+                rgb = palette[material][1]
+                pbr['baseColorFactor'] = [*(linear(c+delta) for c in rgb),1]
+                pbr['roughnessFactor'] = min(.98,pbr['roughnessFactor'] +
+                    ((.065 if zone%2 else -.025) + zone*.002 + (.003 if name.endswith('_L') else 0)
+                     if deck_panel else (.025,-.025,.04)[zone-1]))
+                material = len(m.doc['materials'])
+                m.doc['materials'].append(finish)
+            mesh['primitives'].append({**p,'indices':m.accessor(indices,1,True),
+                                       'material':material})
     bake_boat_occlusion(m)
     return m
 
@@ -935,7 +1013,7 @@ def speedboat():
 def bake_boat_occlusion(m):
     """Neutral COLOR_0 multipliers, never a second copy of the base color.
 
-    Fixed-seed panel variation and surface-normal/nearby-solid heuristics.
+    Fixed-seed panel variation and nearby-solid contact heuristics.
     Bounds come from geometry in model space, including articulated parents.
     This is approximate ambient occlusion, not a ray-traced light bake.
     """
@@ -967,12 +1045,14 @@ def bake_boat_occlusion(m):
             occluders.append((i,low,high))
     for i,mesh in enumerate(m.doc['meshes']):
         p = mesh['primitives'][0]
-        positions, normals = attribute(p,'POSITION'), attribute(p,'NORMAL')
+        positions = attribute(p,'POSITION')
         panel = rng.uniform(.985,1)
         colors = []
-        for local,normal in zip(positions,normals):
+        for local in positions:
             x,y,z = [local[k]+offsets[i][k] for k in range(3)]
-            shade = 1-.24*max(0,-normal[1])
+            # A downward-facing surface is not inherently occluded. Keep open
+            # hull plating neutral; local fittings provide the contact darkening.
+            shade = 1.
             for other,low,high in occluders:
                 if other == i:
                     continue
@@ -981,9 +1061,9 @@ def bake_boat_occlusion(m):
                 dx = max(low[0]-x,0,x-high[0])
                 dz = max(low[2]-z,0,z-high[2])
                 gap = low[1]-y
-                if -.025 <= gap < 1.7:
-                    footprint = max(0,1-math.hypot(dx,dz)/.18)
-                    shade -= .3*footprint*(1-max(0,gap)/2)
+                if -.025 <= gap < .45:
+                    footprint = max(0,1-math.hypot(dx,dz)/.12)
+                    shade -= .28*footprint*(1-max(0,gap)/.45)
             shade = max(.55,min(1,shade*panel))
             colors.extend((shade,shade,shade))
         p['attributes']['COLOR_0'] = m.accessor(colors,3)
@@ -1136,6 +1216,14 @@ def check_model(data):
                                           'order': ['charge_1','charge_2','charge_3','charge_4']}
         hull_points = []
         for mesh in doc['meshes']:
+            topside = mesh['name'].startswith('hull_') and mesh['name'].endswith('_topsides')
+            deck_panel = mesh['name'].startswith(('foredeck_', 'aftdeck_')) and mesh['name'] != 'foredeck_step'
+            if topside or deck_panel:
+                patches = mesh['primitives']
+                assert len(patches) == (4 if topside else 8), mesh['name']
+                assert all(p['attributes'] == patches[0]['attributes'] for p in patches)
+                assert len({p['material'] for p in patches}) == len(patches)
+                assert sum(doc['accessors'][p['indices']]['count'] for p in patches) == (48 if topside else 16)*12*6
             if mesh['name'].startswith('hull_'):
                 p = mesh['primitives'][0]
                 hull_points.extend(values(p['attributes']['POSITION']))
@@ -1174,7 +1262,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--speedboat', action='store_true', help='Generate only the experimental boat under .tmp')
     args = parser.parse_args()
-    output = Path(__file__).resolve().parents[3] / '.tmp/wings-speedboat-model/reroll' if args.speedboat else OUT
+    output = Path(__file__).resolve().parents[3] / '.tmp/wings-speedboat-model/reroll2' if args.speedboat else OUT
     output.mkdir(parents=True, exist_ok=True)
     for make in ((speedboat,) if args.speedboat else (f15, f35)):
         data = make().finish()
