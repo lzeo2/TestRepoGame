@@ -35,3 +35,25 @@ first a mispositioned timeout option, then reading the HUD before its text fille
 The parent waited for actual HUD readiness and completed both flight probes.
 Earlier failed captures and historical Pi shader failures remain in their dated
 receipts; these passes do not rewrite those results.
+
+## Resume raw previews, captured 2026-10-18
+
+Saved during Phase 5 consolidation on 2026-10-19, not recaptured that day:
+
+- `resume-20261018-front.png`, `resume-20261018-rear.png`
+- `resume-20261018-top.png`, `resume-20261018-side.png`
+- `resume-20261018-belly-lit.png`, `resume-20261018-family.png`
+
+These show the same current model bytes and isolated standard Three 0.186.0
+fixture. Front/rear use the default lighting above; belly uses explicitly labeled
+below-model diagnostic light. Family cameras fit each model independently, not
+absolute size comparison. Parent reviewed the pixels: dark distinct silhouettes,
+continuous lit bellies, visible F-15 external stores, twin/single exhaust discs,
+no visible inverted patches. Raw fixtures do not render animated converter cones
+or establish native weapon/bay behavior. Existing native images above retain
+their original date and host limits. See the Phase 5 receipt under
+`docs/maintenance/audits/wings-v2-phase5.md` for current CPU checks and limits.
+
+Operator clarification on 2026-10-19 treats unavailable Pi GPU output as a hardware
+receipt, not by itself a gate/push blocker. It does not waive the full fleet gate
+or the newly authorized speedboat's mandatory interactive playtest.
