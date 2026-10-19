@@ -57,3 +57,13 @@ their original date and host limits. See the Phase 5 receipt under
 Operator clarification on 2026-10-19 treats unavailable Pi GPU output as a hardware
 receipt, not by itself a gate/push blocker. It does not waive the full fleet gate
 or the newly authorized speedboat's mandatory interactive playtest.
+
+## Speedboat realism reroll, 2026-10-19
+
+[Sixteen actual rendered PNG files and the GLB link](speedboat-reroll/README.md)
+are saved for operator pixel judgment. Final candidate: 17,252 triangles,
+92 used material definitions, 258 assignments. Parent rejected the flat first
+reroll, reviewed the second from front/side/top/rear/quarters and lit belly,
+closed a bow seam, and recaptured every view. Texture-free PBR/vertex AO only.
+This is an experimental raw asset, not a delivered selectable vehicle or a
+photorealism/native-gameplay acceptance claim.

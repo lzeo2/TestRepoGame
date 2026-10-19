@@ -48,15 +48,22 @@ try {
   renderer.outputColorSpace = T.SRGBColorSpace;
   renderer.toneMapping = T.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 1;
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = T.PCFShadowMap;
   const scene = new T.Scene();
+  scene.environmentIntensity = .55;
   const room = new RoomEnvironment();
   const pmrem = new T.PMREMGenerator(renderer);
   const environment = pmrem.fromScene(room, .04);
   scene.environment = environment.texture;
   room.dispose(); pmrem.dispose();
-  const hemi = new T.HemisphereLight(0xe7f3ff, 0x807667, 1.5);
+  const hemi = new T.HemisphereLight(0xe7f3ff, 0x807667, .6);
   const key = new T.DirectionalLight(0xfff2dc, 3);
-  const fill = new T.DirectionalLight(0xe7f3ff, 1.5);
+  const fill = new T.DirectionalLight(0xe7f3ff, .45);
+  key.castShadow = true;
+  key.shadow.mapSize.set(2048,2048);
+  key.shadow.bias = -.00005;
+  key.shadow.normalBias = .015;
   scene.add(hemi, key, fill, key.target, fill.target);
   const gltf = await new GLTFLoader().loadAsync('/__model__.glb');
   const model = gltf.scene;
@@ -69,6 +76,8 @@ try {
   let triangles = 0, assignments = 0;
   model.traverse(mesh => {
     if (!mesh.isMesh) return;
+    mesh.castShadow = true;
+    mesh.receiveShadow = true;
     triangles += (mesh.geometry.index?.count ?? mesh.geometry.attributes.position.count)/3;
     const slots = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
     assignments += slots.length;
@@ -92,27 +101,33 @@ try {
     modelMatrix:model.matrixWorld.toArray(), radius};
   const poses = {
     front:[[0,0,-1],[0,1,0]], side:[[1,0,0],[0,1,0]],
-    top:[[0,1,0],[0,0,1]], rear:[[0,0,1],[0,1,0]],
+    top:[[0,1,0],[0,0,-1]], rear:[[0,0,1],[0,1,0]],
     belly:[[0,-1,0],[0,0,-1]],
     'bow-quarter':[[.9,.6,-1.2],[0,1,0]],
     'stern-quarter':[[-.9,.6,1.2],[0,1,0]]
   };
-  // Constant bounding-sphere fit within each viewport, no model scaling or per-angle zoom.
+  // Fit the actual projected geometry in each orthographic view; model scale stays identity.
   const camera = new T.OrthographicCamera();
   window.renderCase = async ({theme,angle,width,height}) => {
     document.body.className = theme;
     document.querySelector('#label').textContent = `${theme} / ${angle} / -Z bow, +Y up` +
       (angle === 'belly' ? ' / BELOW-LIT DIAGNOSTIC, not game lighting' : ' / raw materials');
     const h = height-80, aspect = width/h;
-    const halfY = radius*1.15/Math.min(aspect,1), halfX = halfY*aspect;
-    camera.left=-halfX; camera.right=halfX; camera.top=halfY; camera.bottom=-halfY;
     camera.near=radius*.01; camera.far=radius*8;
     camera.position.copy(center).add(new T.Vector3(...poses[angle][0]).normalize().multiplyScalar(radius*3));
     camera.up.set(...poses[angle][1]); camera.lookAt(center);
-    camera.updateProjectionMatrix(); camera.updateMatrixWorld(true);
+    camera.updateMatrixWorld(true);
+    const viewBox = new T.Box3().setFromPoints(points.map(p=>p.clone().applyMatrix4(camera.matrixWorldInverse)));
+    const size = viewBox.getSize(new T.Vector3()), mid = viewBox.getCenter(new T.Vector3());
+    const halfY = Math.max(size.y,size.x/aspect)*.56, halfX = halfY*aspect;
+    camera.left=mid.x-halfX; camera.right=mid.x+halfX;
+    camera.top=mid.y+halfY; camera.bottom=mid.y-halfY;
+    camera.updateProjectionMatrix();
     key.position.copy(center).add(new T.Vector3(-2,angle==='belly' ? -3 : 3,-2).multiplyScalar(radius));
     fill.position.copy(center).add(new T.Vector3(2,angle==='belly' ? -2 : 1,2).multiplyScalar(radius));
     key.target.position.copy(center); fill.target.position.copy(center);
+    Object.assign(key.shadow.camera,{left:-radius*1.5,right:radius*1.5,top:radius*1.5,bottom:-radius*1.5,near:.1,far:radius*10});
+    key.shadow.camera.updateProjectionMatrix();
     scene.background = new T.Color(theme==='dark' ? 0x303741 : 0xcbd0d1);
     renderer.setSize(width,h);
     renderer.render(scene,camera);
@@ -137,7 +152,7 @@ try {
       up:camera.up.toArray(),target:center.toArray(),projection:camera.projectionMatrix.toArray(),
       view:camera.matrixWorldInverse.toArray(),near:camera.near,far:camera.far},
       lighting:{environment:'procedural RoomEnvironment PMREM',environmentIntensity:scene.environmentIntensity,
-        hemisphere:hemi.intensity,key:key.intensity,fill:fill.intensity,
+        hemisphere:hemi.intensity,key:key.intensity,fill:fill.intensity,selfShadows:true,shadowMapSize:2048,
         keyPosition:key.position.toArray(),fillPosition:fill.position.toArray(),
         belowLitDiagnostic:angle==='belly',toneMapping:'ACESFilmic',exposure:renderer.toneMappingExposure},
       clipping,borderPixels,foregroundPixels:foreground.length/3,foregroundColors:colors.size,

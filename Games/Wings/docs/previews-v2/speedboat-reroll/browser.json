@@ -1,0 +1,4241 @@
+{
+  "model": "speedboat.glb",
+  "modelSHA256": "1f0eae7f3b962669c2f95f1ce52e3f27cce008595f4875bae41e9274b24da65a",
+  "modelBytes": 1069292,
+  "materialDefinitions": 92,
+  "cases": [
+    {
+      "theme": "light",
+      "angle": "front",
+      "width": 1000,
+      "height": 800,
+      "camera": {
+        "type": "OrthographicCamera",
+        "position": [
+          0,
+          0.8650000000000001,
+          -16.45611265661165
+        ],
+        "up": [
+          0,
+          1,
+          0
+        ],
+        "target": [
+          0,
+          0.8650000000000001,
+          0.008000000000000007
+        ],
+        "projection": [
+          0.4107713300923696,
+          0,
+          0,
+          0,
+          0,
+          0.5705157362394022,
+          0,
+          0,
+          0,
+          0,
+          -0.04561063745151886,
+          0,
+          -0.0,
+          -2.244355582461847e-08,
+          -1.002503128911139,
+          1
+        ],
+        "view": [
+          -1,
+          0,
+          0,
+          -0.0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          -1,
+          0,
+          0,
+          -0.8650000000000001,
+          -16.45611265661165,
+          1
+        ],
+        "near": 0.05488037552203884,
+        "far": 43.90430041763107
+      },
+      "lighting": {
+        "environment": "procedural RoomEnvironment PMREM",
+        "environmentIntensity": 0.55,
+        "hemisphere": 0.6,
+        "key": 3,
+        "fill": 0.45,
+        "selfShadows": true,
+        "shadowMapSize": 2048,
+        "keyPosition": [
+          -10.976075104407768,
+          17.32911265661165,
+          -10.968075104407767
+        ],
+        "fillPosition": [
+          10.976075104407768,
+          6.353037552203884,
+          10.984075104407768
+        ],
+        "belowLitDiagnostic": false,
+        "toneMapping": "ACESFilmic",
+        "exposure": 1
+      },
+      "clipping": false,
+      "borderPixels": 0,
+      "foregroundPixels": 250502,
+      "foregroundColors": 453,
+      "foregroundHash": "ddfb70a003db03b583d403038e07d8db8a422fea0ff2b653e3a9512a106d8580",
+      "projectedGeometryHash": "bed0f40dc535aebc883f78df583bd7b9098343ef9a3c68a75b572a8b505befb2",
+      "calls": 516,
+      "renderTriangles": 34504,
+      "overflow": false,
+      "screenshot": "boat-reroll-light-front-1000.png",
+      "screenshotSHA256": "e4ffe932cba65083af9433cbe52c192090d5502238b9cf11b091371b31d57277"
+    },
+    {
+      "theme": "light",
+      "angle": "side",
+      "width": 1000,
+      "height": 800,
+      "camera": {
+        "type": "OrthographicCamera",
+        "position": [
+          16.46411265661165,
+          0.8650000000000001,
+          0.008000000000000007
+        ],
+        "up": [
+          0,
+          1,
+          0
+        ],
+        "target": [
+          0,
+          0.8650000000000001,
+          0.008000000000000007
+        ],
+        "projection": [
+          0.17828617436502653,
+          0,
+          0,
+          0,
+          0,
+          0.2476196866180924,
+          0,
+          0,
+          0,
+          0,
+          -0.04561063745151886,
+          0,
+          -1.8362909477790303e-08,
+          -9.741127030991553e-09,
+          -1.002503128911139,
+          1
+        ],
+        "view": [
+          2.220446049250313e-16,
+          0,
+          1,
+          0,
+          0,
+          1,
+          0,
+          0,
+          -1,
+          0,
+          2.220446049250313e-16,
+          0,
+          0.007999999999996352,
+          -0.8650000000000001,
+          -16.46411265661165,
+          1
+        ],
+        "near": 0.05488037552203884,
+        "far": 43.90430041763107
+      },
+      "lighting": {
+        "environment": "procedural RoomEnvironment PMREM",
+        "environmentIntensity": 0.55,
+        "hemisphere": 0.6,
+        "key": 3,
+        "fill": 0.45,
+        "selfShadows": true,
+        "shadowMapSize": 2048,
+        "keyPosition": [
+          -10.976075104407768,
+          17.32911265661165,
+          -10.968075104407767
+        ],
+        "fillPosition": [
+          10.976075104407768,
+          6.353037552203884,
+          10.984075104407768
+        ],
+        "belowLitDiagnostic": false,
+        "toneMapping": "ACESFilmic",
+        "exposure": 1
+      },
+      "clipping": false,
+      "borderPixels": 0,
+      "foregroundPixels": 132856,
+      "foregroundColors": 281,
+      "foregroundHash": "9616f9e0e3189af6701902267f06b375894a10aa94e031c57eb842f082105a79",
+      "projectedGeometryHash": "c000930ebe506559493ae66761cdf02ffe7b827177cc6cefd6c157f7911cb8eb",
+      "calls": 516,
+      "renderTriangles": 34504,
+      "overflow": false,
+      "screenshot": "boat-reroll-light-side-1000.png",
+      "screenshotSHA256": "a3194092ed98505c55fd8be5539f430245c2e363ec9a313d99a2aad99cc7903a"
+    },
+    {
+      "theme": "light",
+      "angle": "top",
+      "width": 1000,
+      "height": 800,
+      "camera": {
+        "type": "OrthographicCamera",
+        "position": [
+          0,
+          17.32911265661165,
+          0.008000000000000007
+        ],
+        "up": [
+          0,
+          0,
+          -1
+        ],
+        "target": [
+          0,
+          0.8650000000000001,
+          0.008000000000000007
+        ],
+        "projection": [
+          0.1283660455428191,
+          0,
+          0,
+          0,
+          0,
+          0.17828617436502653,
+          0,
+          0,
+          0,
+          0,
+          -0.04561063745151886,
+          0,
+          -0.0,
+          -1.8362909477790303e-08,
+          -1.002503128911139,
+          1
+        ],
+        "view": [
+          1,
+          0,
+          0,
+          -0.0,
+          -0.0,
+          2.220446049250313e-16,
+          1,
+          0,
+          0,
+          -1,
+          2.220446049250313e-16,
+          0,
+          0,
+          0.00799999999999616,
+          -17.32911265661165,
+          1
+        ],
+        "near": 0.05488037552203884,
+        "far": 43.90430041763107
+      },
+      "lighting": {
+        "environment": "procedural RoomEnvironment PMREM",
+        "environmentIntensity": 0.55,
+        "hemisphere": 0.6,
+        "key": 3,
+        "fill": 0.45,
+        "selfShadows": true,
+        "shadowMapSize": 2048,
+        "keyPosition": [
+          -10.976075104407768,
+          17.32911265661165,
+          -10.968075104407767
+        ],
+        "fillPosition": [
+          10.976075104407768,
+          6.353037552203884,
+          10.984075104407768
+        ],
+        "belowLitDiagnostic": false,
+        "toneMapping": "ACESFilmic",
+        "exposure": 1
+      },
+      "clipping": false,
+      "borderPixels": 0,
+      "foregroundPixels": 102558,
+      "foregroundColors": 198,
+      "foregroundHash": "9868c18b9c40b5ce71445ad08cd01d067dbc86ada1ea955ed6eeb04ec0673463",
+      "projectedGeometryHash": "321219210e805506bb28a2f303181adb5abc342706a95bfb832ce6a339945515",
+      "calls": 516,
+      "renderTriangles": 34504,
+      "overflow": false,
+      "screenshot": "boat-reroll-light-top-1000.png",
+      "screenshotSHA256": "f23f8ba7c7178b6585c502f840baa1b6952fc5105c00f455b06acbf4bdf495e3"
+    },
+    {
+      "theme": "light",
+      "angle": "rear",
+      "width": 1000,
+      "height": 800,
+      "camera": {
+        "type": "OrthographicCamera",
+        "position": [
+          0,
+          0.8650000000000001,
+          16.47211265661165
+        ],
+        "up": [
+          0,
+          1,
+          0
+        ],
+        "target": [
+          0,
+          0.8650000000000001,
+          0.008000000000000007
+        ],
+        "projection": [
+          0.4107713300923696,
+          0,
+          0,
+          0,
+          0,
+          0.5705157362394022,
+          0,
+          0,
+          0,
+          0,
+          -0.04561063745151886,
+          0,
+          -0.0,
+          -2.244355582461847e-08,
+          -1.002503128911139,
+          1
+        ],
+        "view": [
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          -0.8650000000000001,
+          -16.47211265661165,
+          1
+        ],
+        "near": 0.05488037552203884,
+        "far": 43.90430041763107
+      },
+      "lighting": {
+        "environment": "procedural RoomEnvironment PMREM",
+        "environmentIntensity": 0.55,
+        "hemisphere": 0.6,
+        "key": 3,
+        "fill": 0.45,
+        "selfShadows": true,
+        "shadowMapSize": 2048,
+        "keyPosition": [
+          -10.976075104407768,
+          17.32911265661165,
+          -10.968075104407767
+        ],
+        "fillPosition": [
+          10.976075104407768,
+          6.353037552203884,
+          10.984075104407768
+        ],
+        "belowLitDiagnostic": false,
+        "toneMapping": "ACESFilmic",
+        "exposure": 1
+      },
+      "clipping": false,
+      "borderPixels": 0,
+      "foregroundPixels": 246076,
+      "foregroundColors": 356,
+      "foregroundHash": "d1e2e6609de6e33e46c104526ed89065abec6887a84d5da7b18283de2f9d47cc",
+      "projectedGeometryHash": "bd8df5886d04e61b6cbf35156ba8745695971aeaff485b1dec31656ff305d9bd",
+      "calls": 516,
+      "renderTriangles": 34504,
+      "overflow": false,
+      "screenshot": "boat-reroll-light-rear-1000.png",
+      "screenshotSHA256": "7075beab8d1b5e393272dfbb59b6ba0cd7faea5dd7d89a2d219b4360fdaa354c"
+    },
+    {
+      "theme": "light",
+      "angle": "belly",
+      "width": 1000,
+      "height": 800,
+      "camera": {
+        "type": "OrthographicCamera",
+        "position": [
+          0,
+          -15.59911265661165,
+          0.008000000000000007
+        ],
+        "up": [
+          0,
+          0,
+          -1
+        ],
+        "target": [
+          0,
+          0.8650000000000001,
+          0.008000000000000007
+        ],
+        "projection": [
+          0.1283660455428191,
+          0,
+          0,
+          0,
+          0,
+          0.17828617436502653,
+          0,
+          0,
+          0,
+          0,
+          -0.04561063745151886,
+          0,
+          -0.0,
+          -1.8362909477790303e-08,
+          -1.002503128911139,
+          1
+        ],
+        "view": [
+          -1,
+          0,
+          0,
+          0,
+          -0.0,
+          -2.220446049250313e-16,
+          -1,
+          0,
+          0,
+          -1,
+          2.220446049250313e-16,
+          0,
+          0,
+          0.007999999999996543,
+          -15.59911265661165,
+          1
+        ],
+        "near": 0.05488037552203884,
+        "far": 43.90430041763107
+      },
+      "lighting": {
+        "environment": "procedural RoomEnvironment PMREM",
+        "environmentIntensity": 0.55,
+        "hemisphere": 0.6,
+        "key": 3,
+        "fill": 0.45,
+        "selfShadows": true,
+        "shadowMapSize": 2048,
+        "keyPosition": [
+          -10.976075104407768,
+          -15.59911265661165,
+          -10.968075104407767
+        ],
+        "fillPosition": [
+          10.976075104407768,
+          -10.111075104407767,
+          10.984075104407768
+        ],
+        "belowLitDiagnostic": true,
+        "toneMapping": "ACESFilmic",
+        "exposure": 1
+      },
+      "clipping": false,
+      "borderPixels": 0,
+      "foregroundPixels": 103750,
+      "foregroundColors": 284,
+      "foregroundHash": "236872f835d3ea7f82642621f386731a8b935777a4d712f4cd354a6932c70db5",
+      "projectedGeometryHash": "4ec608512dd131099baf75d90b8dd5705ae1fb1cdaeed7b1c3695747d15e991f",
+      "calls": 516,
+      "renderTriangles": 34504,
+      "overflow": false,
+      "screenshot": "boat-reroll-light-belly-1000.png",
+      "screenshotSHA256": "55be91d657aa2d7c8391437f29f12a244622acf60037ff86a8fea13ed64aee82"
+    },
+    {
+      "theme": "light",
+      "angle": "bow-quarter",
+      "width": 1000,
+      "height": 800,
+      "camera": {
+        "type": "OrthographicCamera",
+        "position": [
+          9.17192690266374,
+          6.979617935109161,
+          -12.221235870218322
+        ],
+        "up": [
+          0,
+          1,
+          0
+        ],
+        "target": [
+          0,
+          0.8650000000000001,
+          0.008000000000000007
+        ],
+        "projection": [
+          0.25231604043228256,
+          0,
+          0,
+          0,
+          0,
+          0.35043894504483686,
+          0,
+          0,
+          0,
+          0,
+          -0.04561063745151886,
+          0,
+          0.12723843335478208,
+          0.038142091311244984,
+          -1.002503128911139,
+          1
+        ],
+        "view": [
+          -0.8000000000000002,
+          -0.22283440581246225,
+          0.5570860145311557,
+          0,
+          -5.551115123125784e-17,
+          0.9284766908852595,
+          0.3713906763541038,
+          0,
+          -0.6,
+          0.297112541083283,
+          -0.7427813527082076,
+          0,
+          0.00480000000000036,
+          -0.8055092379444166,
+          -16.77942334083629,
+          1
+        ],
+        "near": 0.05488037552203884,
+        "far": 43.90430041763107
+      },
+      "lighting": {
+        "environment": "procedural RoomEnvironment PMREM",
+        "environmentIntensity": 0.55,
+        "hemisphere": 0.6,
+        "key": 3,
+        "fill": 0.45,
+        "selfShadows": true,
+        "shadowMapSize": 2048,
+        "keyPosition": [
+          -10.976075104407768,
+          17.32911265661165,
+          -10.968075104407767
+        ],
+        "fillPosition": [
+          10.976075104407768,
+          6.353037552203884,
+          10.984075104407768
+        ],
+        "belowLitDiagnostic": false,
+        "toneMapping": "ACESFilmic",
+        "exposure": 1
+      },
+      "clipping": false,
+      "borderPixels": 0,
+      "foregroundPixels": 244413,
+      "foregroundColors": 419,
+      "foregroundHash": "2372ac42bcd99e3f2df04bd16f1b53c16f935a75f13efb7675119b1975a09cad",
+      "projectedGeometryHash": "b5a8481192a780df65cb367d499de8ffbd3c2be2ce10035c48b95d446ef4164f",
+      "calls": 516,
+      "renderTriangles": 34504,
+      "overflow": false,
+      "screenshot": "boat-reroll-light-bow-quarter-1000.png",
+      "screenshotSHA256": "02ea18111840fa32a49f93c214d59065ad2ff32900e276d97f3f21a72578321d"
+    },
+    {
+      "theme": "light",
+      "angle": "stern-quarter",
+      "width": 1000,
+      "height": 800,
+      "camera": {
+        "type": "OrthographicCamera",
+        "position": [
+          -9.17192690266374,
+          6.979617935109161,
+          12.23723587021832
+        ],
+        "up": [
+          0,
+          1,
+          0
+        ],
+        "target": [
+          0,
+          0.8650000000000001,
+          0.008000000000000007
+        ],
+        "projection": [
+          0.25231604043228256,
+          0,
+          0,
+          0,
+          0,
+          0.35043894504483686,
+          0,
+          0,
+          0,
+          0,
+          -0.04561063745151886,
+          0,
+          -0.1272384333547823,
+          0.24554120262888282,
+          -1.002503128911139,
+          1
+        ],
+        "view": [
+          0.8000000000000002,
+          0.2228344058124622,
+          -0.5570860145311556,
+          0,
+          0,
+          0.9284766908852595,
+          0.3713906763541037,
+          -0.0,
+          0.6000000000000001,
+          -0.297112541083283,
+          0.7427813527082076,
+          0,
+          -0.0047999999999995,
+          -0.8007554372870851,
+          -16.79130784247962,
+          1
+        ],
+        "near": 0.05488037552203884,
+        "far": 43.90430041763107
+      },
+      "lighting": {
+        "environment": "procedural RoomEnvironment PMREM",
+        "environmentIntensity": 0.55,
+        "hemisphere": 0.6,
+        "key": 3,
+        "fill": 0.45,
+        "selfShadows": true,
+        "shadowMapSize": 2048,
+        "keyPosition": [
+          -10.976075104407768,
+          17.32911265661165,
+          -10.968075104407767
+        ],
+        "fillPosition": [
+          10.976075104407768,
+          6.353037552203884,
+          10.984075104407768
+        ],
+        "belowLitDiagnostic": false,
+        "toneMapping": "ACESFilmic",
+        "exposure": 1
+      },
+      "clipping": false,
+      "borderPixels": 0,
+      "foregroundPixels": 256878,
+      "foregroundColors": 416,
+      "foregroundHash": "dd110b4e102dde4503149f7d5e0b7d1c9fe7d12f78bf76fffa76f1c443ebabe7",
+      "projectedGeometryHash": "94afb38ddc38f55719fdd0abddf7107acb9040f6480c1f182536d1b23a4e227f",
+      "calls": 516,
+      "renderTriangles": 34504,
+      "overflow": false,
+      "screenshot": "boat-reroll-light-stern-quarter-1000.png",
+      "screenshotSHA256": "69e6dd7f9d9c6e0a6f5b7eaf8c9798ff9fe9e549ba269b00ec3501487073db5a"
+    },
+    {
+      "theme": "dark",
+      "angle": "front",
+      "width": 1000,
+      "height": 800,
+      "camera": {
+        "type": "OrthographicCamera",
+        "position": [
+          0,
+          0.8650000000000001,
+          -16.45611265661165
+        ],
+        "up": [
+          0,
+          1,
+          0
+        ],
+        "target": [
+          0,
+          0.8650000000000001,
+          0.008000000000000007
+        ],
+        "projection": [
+          0.4107713300923696,
+          0,
+          0,
+          0,
+          0,
+          0.5705157362394022,
+          0,
+          0,
+          0,
+          0,
+          -0.04561063745151886,
+          0,
+          -0.0,
+          -2.244355582461847e-08,
+          -1.002503128911139,
+          1
+        ],
+        "view": [
+          -1,
+          0,
+          0,
+          -0.0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          -1,
+          0,
+          0,
+          -0.8650000000000001,
+          -16.45611265661165,
+          1
+        ],
+        "near": 0.05488037552203884,
+        "far": 43.90430041763107
+      },
+      "lighting": {
+        "environment": "procedural RoomEnvironment PMREM",
+        "environmentIntensity": 0.55,
+        "hemisphere": 0.6,
+        "key": 3,
+        "fill": 0.45,
+        "selfShadows": true,
+        "shadowMapSize": 2048,
+        "keyPosition": [
+          -10.976075104407768,
+          17.32911265661165,
+          -10.968075104407767
+        ],
+        "fillPosition": [
+          10.976075104407768,
+          6.353037552203884,
+          10.984075104407768
+        ],
+        "belowLitDiagnostic": false,
+        "toneMapping": "ACESFilmic",
+        "exposure": 1
+      },
+      "clipping": false,
+      "borderPixels": 0,
+      "foregroundPixels": 249703,
+      "foregroundColors": 456,
+      "foregroundHash": "5e06ce4a0dd0a557733efecd2a3a1978e3e9b89c35e155e7b5cd809c8501143a",
+      "projectedGeometryHash": "bed0f40dc535aebc883f78df583bd7b9098343ef9a3c68a75b572a8b505befb2",
+      "calls": 516,
+      "renderTriangles": 34504,
+      "overflow": false,
+      "screenshot": "boat-reroll-dark-front-1000.png",
+      "screenshotSHA256": "e7872ea462f43d850c1d35ef730a1cd914c534c20b6ce430530568aa03d85c8d"
+    },
+    {
+      "theme": "dark",
+      "angle": "side",
+      "width": 1000,
+      "height": 800,
+      "camera": {
+        "type": "OrthographicCamera",
+        "position": [
+          16.46411265661165,
+          0.8650000000000001,
+          0.008000000000000007
+        ],
+        "up": [
+          0,
+          1,
+          0
+        ],
+        "target": [
+          0,
+          0.8650000000000001,
+          0.008000000000000007
+        ],
+        "projection": [
+          0.17828617436502653,
+          0,
+          0,
+          0,
+          0,
+          0.2476196866180924,
+          0,
+          0,
+          0,
+          0,
+          -0.04561063745151886,
+          0,
+          -1.8362909477790303e-08,
+          -9.741127030991553e-09,
+          -1.002503128911139,
+          1
+        ],
+        "view": [
+          2.220446049250313e-16,
+          0,
+          1,
+          0,
+          0,
+          1,
+          0,
+          0,
+          -1,
+          0,
+          2.220446049250313e-16,
+          0,
+          0.007999999999996352,
+          -0.8650000000000001,
+          -16.46411265661165,
+          1
+        ],
+        "near": 0.05488037552203884,
+        "far": 43.90430041763107
+      },
+      "lighting": {
+        "environment": "procedural RoomEnvironment PMREM",
+        "environmentIntensity": 0.55,
+        "hemisphere": 0.6,
+        "key": 3,
+        "fill": 0.45,
+        "selfShadows": true,
+        "shadowMapSize": 2048,
+        "keyPosition": [
+          -10.976075104407768,
+          17.32911265661165,
+          -10.968075104407767
+        ],
+        "fillPosition": [
+          10.976075104407768,
+          6.353037552203884,
+          10.984075104407768
+        ],
+        "belowLitDiagnostic": false,
+        "toneMapping": "ACESFilmic",
+        "exposure": 1
+      },
+      "clipping": false,
+      "borderPixels": 0,
+      "foregroundPixels": 131861,
+      "foregroundColors": 276,
+      "foregroundHash": "df35b41b84d4d8bc79e95051b4a673d63e574b708d77736e89bf0a380bd3ca64",
+      "projectedGeometryHash": "c000930ebe506559493ae66761cdf02ffe7b827177cc6cefd6c157f7911cb8eb",
+      "calls": 516,
+      "renderTriangles": 34504,
+      "overflow": false,
+      "screenshot": "boat-reroll-dark-side-1000.png",
+      "screenshotSHA256": "1d4ae0c4f944a48aac2f1a5577a3cd07fcde69d0730936c5a55c9f52ceb32960"
+    },
+    {
+      "theme": "dark",
+      "angle": "top",
+      "width": 1000,
+      "height": 800,
+      "camera": {
+        "type": "OrthographicCamera",
+        "position": [
+          0,
+          17.32911265661165,
+          0.008000000000000007
+        ],
+        "up": [
+          0,
+          0,
+          -1
+        ],
+        "target": [
+          0,
+          0.8650000000000001,
+          0.008000000000000007
+        ],
+        "projection": [
+          0.1283660455428191,
+          0,
+          0,
+          0,
+          0,
+          0.17828617436502653,
+          0,
+          0,
+          0,
+          0,
+          -0.04561063745151886,
+          0,
+          -0.0,
+          -1.8362909477790303e-08,
+          -1.002503128911139,
+          1
+        ],
+        "view": [
+          1,
+          0,
+          0,
+          -0.0,
+          -0.0,
+          2.220446049250313e-16,
+          1,
+          0,
+          0,
+          -1,
+          2.220446049250313e-16,
+          0,
+          0,
+          0.00799999999999616,
+          -17.32911265661165,
+          1
+        ],
+        "near": 0.05488037552203884,
+        "far": 43.90430041763107
+      },
+      "lighting": {
+        "environment": "procedural RoomEnvironment PMREM",
+        "environmentIntensity": 0.55,
+        "hemisphere": 0.6,
+        "key": 3,
+        "fill": 0.45,
+        "selfShadows": true,
+        "shadowMapSize": 2048,
+        "keyPosition": [
+          -10.976075104407768,
+          17.32911265661165,
+          -10.968075104407767
+        ],
+        "fillPosition": [
+          10.976075104407768,
+          6.353037552203884,
+          10.984075104407768
+        ],
+        "belowLitDiagnostic": false,
+        "toneMapping": "ACESFilmic",
+        "exposure": 1
+      },
+      "clipping": false,
+      "borderPixels": 0,
+      "foregroundPixels": 99563,
+      "foregroundColors": 201,
+      "foregroundHash": "3927d76d255376e49a566b14eaad6369928e551d32a28051e26f243b14d71935",
+      "projectedGeometryHash": "321219210e805506bb28a2f303181adb5abc342706a95bfb832ce6a339945515",
+      "calls": 516,
+      "renderTriangles": 34504,
+      "overflow": false,
+      "screenshot": "boat-reroll-dark-top-1000.png",
+      "screenshotSHA256": "4368d73d10c9a426f22d72ba11b114d85d8335bd7190f10a386eb1dbd3c950b1"
+    },
+    {
+      "theme": "dark",
+      "angle": "rear",
+      "width": 1000,
+      "height": 800,
+      "camera": {
+        "type": "OrthographicCamera",
+        "position": [
+          0,
+          0.8650000000000001,
+          16.47211265661165
+        ],
+        "up": [
+          0,
+          1,
+          0
+        ],
+        "target": [
+          0,
+          0.8650000000000001,
+          0.008000000000000007
+        ],
+        "projection": [
+          0.4107713300923696,
+          0,
+          0,
+          0,
+          0,
+          0.5705157362394022,
+          0,
+          0,
+          0,
+          0,
+          -0.04561063745151886,
+          0,
+          -0.0,
+          -2.244355582461847e-08,
+          -1.002503128911139,
+          1
+        ],
+        "view": [
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          -0.8650000000000001,
+          -16.47211265661165,
+          1
+        ],
+        "near": 0.05488037552203884,
+        "far": 43.90430041763107
+      },
+      "lighting": {
+        "environment": "procedural RoomEnvironment PMREM",
+        "environmentIntensity": 0.55,
+        "hemisphere": 0.6,
+        "key": 3,
+        "fill": 0.45,
+        "selfShadows": true,
+        "shadowMapSize": 2048,
+        "keyPosition": [
+          -10.976075104407768,
+          17.32911265661165,
+          -10.968075104407767
+        ],
+        "fillPosition": [
+          10.976075104407768,
+          6.353037552203884,
+          10.984075104407768
+        ],
+        "belowLitDiagnostic": false,
+        "toneMapping": "ACESFilmic",
+        "exposure": 1
+      },
+      "clipping": false,
+      "borderPixels": 0,
+      "foregroundPixels": 247131,
+      "foregroundColors": 359,
+      "foregroundHash": "81bef6d14381bab962d81cd350e64155155a50a563fc5fe026c43658e5ac68a8",
+      "projectedGeometryHash": "bd8df5886d04e61b6cbf35156ba8745695971aeaff485b1dec31656ff305d9bd",
+      "calls": 516,
+      "renderTriangles": 34504,
+      "overflow": false,
+      "screenshot": "boat-reroll-dark-rear-1000.png",
+      "screenshotSHA256": "30b307a9c6026afa0057dc9f94f6a0d6ca53b784dc40103703c36744276c582f"
+    },
+    {
+      "theme": "dark",
+      "angle": "belly",
+      "width": 1000,
+      "height": 800,
+      "camera": {
+        "type": "OrthographicCamera",
+        "position": [
+          0,
+          -15.59911265661165,
+          0.008000000000000007
+        ],
+        "up": [
+          0,
+          0,
+          -1
+        ],
+        "target": [
+          0,
+          0.8650000000000001,
+          0.008000000000000007
+        ],
+        "projection": [
+          0.1283660455428191,
+          0,
+          0,
+          0,
+          0,
+          0.17828617436502653,
+          0,
+          0,
+          0,
+          0,
+          -0.04561063745151886,
+          0,
+          -0.0,
+          -1.8362909477790303e-08,
+          -1.002503128911139,
+          1
+        ],
+        "view": [
+          -1,
+          0,
+          0,
+          0,
+          -0.0,
+          -2.220446049250313e-16,
+          -1,
+          0,
+          0,
+          -1,
+          2.220446049250313e-16,
+          0,
+          0,
+          0.007999999999996543,
+          -15.59911265661165,
+          1
+        ],
+        "near": 0.05488037552203884,
+        "far": 43.90430041763107
+      },
+      "lighting": {
+        "environment": "procedural RoomEnvironment PMREM",
+        "environmentIntensity": 0.55,
+        "hemisphere": 0.6,
+        "key": 3,
+        "fill": 0.45,
+        "selfShadows": true,
+        "shadowMapSize": 2048,
+        "keyPosition": [
+          -10.976075104407768,
+          -15.59911265661165,
+          -10.968075104407767
+        ],
+        "fillPosition": [
+          10.976075104407768,
+          -10.111075104407767,
+          10.984075104407768
+        ],
+        "belowLitDiagnostic": true,
+        "toneMapping": "ACESFilmic",
+        "exposure": 1
+      },
+      "clipping": false,
+      "borderPixels": 0,
+      "foregroundPixels": 103433,
+      "foregroundColors": 296,
+      "foregroundHash": "1f74b9705de310b2f3024799eb39504df0df4daa1e5ae65c27a47052eaa1f3c6",
+      "projectedGeometryHash": "4ec608512dd131099baf75d90b8dd5705ae1fb1cdaeed7b1c3695747d15e991f",
+      "calls": 516,
+      "renderTriangles": 34504,
+      "overflow": false,
+      "screenshot": "boat-reroll-dark-belly-1000.png",
+      "screenshotSHA256": "3864904b5a49e1f93a31c2b96efb30db940aac7dca10f1d2ea881d9e65705eae"
+    },
+    {
+      "theme": "dark",
+      "angle": "bow-quarter",
+      "width": 1000,
+      "height": 800,
+      "camera": {
+        "type": "OrthographicCamera",
+        "position": [
+          9.17192690266374,
+          6.979617935109161,
+          -12.221235870218322
+        ],
+        "up": [
+          0,
+          1,
+          0
+        ],
+        "target": [
+          0,
+          0.8650000000000001,
+          0.008000000000000007
+        ],
+        "projection": [
+          0.25231604043228256,
+          0,
+          0,
+          0,
+          0,
+          0.35043894504483686,
+          0,
+          0,
+          0,
+          0,
+          -0.04561063745151886,
+          0,
+          0.12723843335478208,
+          0.038142091311244984,
+          -1.002503128911139,
+          1
+        ],
+        "view": [
+          -0.8000000000000002,
+          -0.22283440581246225,
+          0.5570860145311557,
+          0,
+          -5.551115123125784e-17,
+          0.9284766908852595,
+          0.3713906763541038,
+          0,
+          -0.6,
+          0.297112541083283,
+          -0.7427813527082076,
+          0,
+          0.00480000000000036,
+          -0.8055092379444166,
+          -16.77942334083629,
+          1
+        ],
+        "near": 0.05488037552203884,
+        "far": 43.90430041763107
+      },
+      "lighting": {
+        "environment": "procedural RoomEnvironment PMREM",
+        "environmentIntensity": 0.55,
+        "hemisphere": 0.6,
+        "key": 3,
+        "fill": 0.45,
+        "selfShadows": true,
+        "shadowMapSize": 2048,
+        "keyPosition": [
+          -10.976075104407768,
+          17.32911265661165,
+          -10.968075104407767
+        ],
+        "fillPosition": [
+          10.976075104407768,
+          6.353037552203884,
+          10.984075104407768
+        ],
+        "belowLitDiagnostic": false,
+        "toneMapping": "ACESFilmic",
+        "exposure": 1
+      },
+      "clipping": false,
+      "borderPixels": 0,
+      "foregroundPixels": 241158,
+      "foregroundColors": 412,
+      "foregroundHash": "433238c335c1bbb9c779e7d64c8b1a2a06ba832f4d524164315c5b3ec23a0b54",
+      "projectedGeometryHash": "b5a8481192a780df65cb367d499de8ffbd3c2be2ce10035c48b95d446ef4164f",
+      "calls": 516,
+      "renderTriangles": 34504,
+      "overflow": false,
+      "screenshot": "boat-reroll-dark-bow-quarter-1000.png",
+      "screenshotSHA256": "0c02caa9ed1c9eeb5f6fad00c7b356f88ee3ec5134ee95503c3ad3ab28dbc24c"
+    },
+    {
+      "theme": "dark",
+      "angle": "stern-quarter",
+      "width": 1000,
+      "height": 800,
+      "camera": {
+        "type": "OrthographicCamera",
+        "position": [
+          -9.17192690266374,
+          6.979617935109161,
+          12.23723587021832
+        ],
+        "up": [
+          0,
+          1,
+          0
+        ],
+        "target": [
+          0,
+          0.8650000000000001,
+          0.008000000000000007
+        ],
+        "projection": [
+          0.25231604043228256,
+          0,
+          0,
+          0,
+          0,
+          0.35043894504483686,
+          0,
+          0,
+          0,
+          0,
+          -0.04561063745151886,
+          0,
+          -0.1272384333547823,
+          0.24554120262888282,
+          -1.002503128911139,
+          1
+        ],
+        "view": [
+          0.8000000000000002,
+          0.2228344058124622,
+          -0.5570860145311556,
+          0,
+          0,
+          0.9284766908852595,
+          0.3713906763541037,
+          -0.0,
+          0.6000000000000001,
+          -0.297112541083283,
+          0.7427813527082076,
+          0,
+          -0.0047999999999995,
+          -0.8007554372870851,
+          -16.79130784247962,
+          1
+        ],
+        "near": 0.05488037552203884,
+        "far": 43.90430041763107
+      },
+      "lighting": {
+        "environment": "procedural RoomEnvironment PMREM",
+        "environmentIntensity": 0.55,
+        "hemisphere": 0.6,
+        "key": 3,
+        "fill": 0.45,
+        "selfShadows": true,
+        "shadowMapSize": 2048,
+        "keyPosition": [
+          -10.976075104407768,
+          17.32911265661165,
+          -10.968075104407767
+        ],
+        "fillPosition": [
+          10.976075104407768,
+          6.353037552203884,
+          10.984075104407768
+        ],
+        "belowLitDiagnostic": false,
+        "toneMapping": "ACESFilmic",
+        "exposure": 1
+      },
+      "clipping": false,
+      "borderPixels": 0,
+      "foregroundPixels": 255579,
+      "foregroundColors": 403,
+      "foregroundHash": "730e95c272893b240498f63ea4e7ef7a4104e9e208b94dcaee901d66b4ff0a01",
+      "projectedGeometryHash": "94afb38ddc38f55719fdd0abddf7107acb9040f6480c1f182536d1b23a4e227f",
+      "calls": 516,
+      "renderTriangles": 34504,
+      "overflow": false,
+      "screenshot": "boat-reroll-dark-stern-quarter-1000.png",
+      "screenshotSHA256": "ffc1efe31e50d656a93f078ca908b9e88fba9a25f4e69fcf743fd004530f7dd1"
+    },
+    {
+      "theme": "light",
+      "angle": "bow-quarter",
+      "width": 390,
+      "height": 844,
+      "camera": {
+        "type": "OrthographicCamera",
+        "position": [
+          9.17192690266374,
+          6.979617935109161,
+          -12.221235870218322
+        ],
+        "up": [
+          0,
+          1,
+          0
+        ],
+        "target": [
+          0,
+          0.8650000000000001,
+          0.008000000000000007
+        ],
+        "projection": [
+          0.25231604043228256,
+          0,
+          0,
+          0,
+          0,
+          0.1288000729955369,
+          0,
+          0,
+          0,
+          0,
+          -0.04561063745151886,
+          0,
+          0.12723843335478208,
+          0.014018716282981143,
+          -1.002503128911139,
+          1
+        ],
+        "view": [
+          -0.8000000000000002,
+          -0.22283440581246225,
+          0.5570860145311557,
+          0,
+          -5.551115123125784e-17,
+          0.9284766908852595,
+          0.3713906763541038,
+          0,
+          -0.6,
+          0.297112541083283,
+          -0.7427813527082076,
+          0,
+          0.00480000000000036,
+          -0.8055092379444166,
+          -16.77942334083629,
+          1
+        ],
+        "near": 0.05488037552203884,
+        "far": 43.90430041763107
+      },
+      "lighting": {
+        "environment": "procedural RoomEnvironment PMREM",
+        "environmentIntensity": 0.55,
+        "hemisphere": 0.6,
+        "key": 3,
+        "fill": 0.45,
+        "selfShadows": true,
+        "shadowMapSize": 2048,
+        "keyPosition": [
+          -10.976075104407768,
+          17.32911265661165,
+          -10.968075104407767
+        ],
+        "fillPosition": [
+          10.976075104407768,
+          6.353037552203884,
+          10.984075104407768
+        ],
+        "belowLitDiagnostic": false,
+        "toneMapping": "ACESFilmic",
+        "exposure": 1
+      },
+      "clipping": false,
+      "borderPixels": 0,
+      "foregroundPixels": 37427,
+      "foregroundColors": 313,
+      "foregroundHash": "733ebb5001dd66b8aabd80f9dcc35e274245de80e7739cbc541b031ec0ca4e12",
+      "projectedGeometryHash": "20537bc0461de8122afa7d9c076489e3a1bcedb1758e1bcda3e0bbe1f688742c",
+      "calls": 516,
+      "renderTriangles": 34504,
+      "overflow": false,
+      "screenshot": "boat-reroll-light-bow-quarter-390.png",
+      "screenshotSHA256": "7a82f694b1e2e022ece9bb59f7d56fe45b5c1ebd7bfbfa75190ea8f700da46e5"
+    },
+    {
+      "theme": "dark",
+      "angle": "stern-quarter",
+      "width": 390,
+      "height": 844,
+      "camera": {
+        "type": "OrthographicCamera",
+        "position": [
+          -9.17192690266374,
+          6.979617935109161,
+          12.23723587021832
+        ],
+        "up": [
+          0,
+          1,
+          0
+        ],
+        "target": [
+          0,
+          0.8650000000000001,
+          0.008000000000000007
+        ],
+        "projection": [
+          0.2523160404322825,
+          0,
+          0,
+          0,
+          0,
+          0.1288000729955369,
+          0,
+          0,
+          0,
+          0,
+          -0.04561063745151886,
+          0,
+          -0.12723843335478227,
+          0.09024603363637478,
+          -1.002503128911139,
+          1
+        ],
+        "view": [
+          0.8000000000000002,
+          0.2228344058124622,
+          -0.5570860145311556,
+          0,
+          0,
+          0.9284766908852595,
+          0.3713906763541037,
+          -0.0,
+          0.6000000000000001,
+          -0.297112541083283,
+          0.7427813527082076,
+          0,
+          -0.0047999999999995,
+          -0.8007554372870851,
+          -16.79130784247962,
+          1
+        ],
+        "near": 0.05488037552203884,
+        "far": 43.90430041763107
+      },
+      "lighting": {
+        "environment": "procedural RoomEnvironment PMREM",
+        "environmentIntensity": 0.55,
+        "hemisphere": 0.6,
+        "key": 3,
+        "fill": 0.45,
+        "selfShadows": true,
+        "shadowMapSize": 2048,
+        "keyPosition": [
+          -10.976075104407768,
+          17.32911265661165,
+          -10.968075104407767
+        ],
+        "fillPosition": [
+          10.976075104407768,
+          6.353037552203884,
+          10.984075104407768
+        ],
+        "belowLitDiagnostic": false,
+        "toneMapping": "ACESFilmic",
+        "exposure": 1
+      },
+      "clipping": false,
+      "borderPixels": 0,
+      "foregroundPixels": 39025,
+      "foregroundColors": 309,
+      "foregroundHash": "326abed523a0afc3142e5e2a8e502c7bba256d4c7779a5d9a96f9b7cbc09f157",
+      "projectedGeometryHash": "6529cf7f84996c5132d2fd954ef7f4395cc515390ecfd57433d8cadbb6c38ef6",
+      "calls": 516,
+      "renderTriangles": 34504,
+      "overflow": false,
+      "screenshot": "boat-reroll-dark-stern-quarter-390.png",
+      "screenshotSHA256": "011e765e8619149fcf61c1b8ccb355555c9fdaa0d353a7f7f0c4c6dfb67a0929"
+    }
+  ],
+  "errors": [],
+  "external": [],
+  "failedRequests": [],
+  "status": "STRUCTURAL AND CAPTURE CHECKS PASS; VISUAL REVIEW REQUIRED",
+  "visualReview": "NOT PERFORMED: parent must inspect two angles plus belly",
+  "asset": {
+    "three": "186",
+    "triangles": 17252,
+    "assignments": 258,
+    "materials": [
+      {
+        "definition": 3,
+        "name": "wet_gelcoat",
+        "type": "MeshPhysicalMaterial",
+        "color": [
+          0.016807375752887384,
+          0.019382360956935723,
+          0.021219010376003555
+        ],
+        "metalness": 0,
+        "roughness": 0.22,
+        "opacity": 1,
+        "transparent": false,
+        "alphaTest": 0,
+        "side": 0,
+        "depthWrite": true,
+        "emissive": [
+          0,
+          0,
+          0
+        ],
+        "emissiveIntensity": 1,
+        "transmission": 0,
+        "thickness": 0,
+        "ior": 1.5,
+        "clearcoat": 0.65,
+        "clearcoatRoughness": 0.12,
+        "envMapIntensity": 1
+      },
+      {
+        "definition": 0,
+        "name": "dry_gelcoat_port",
+        "type": "MeshPhysicalMaterial",
+        "color": [
+          0.019382360956935723,
+          0.02217388479338738,
+          0.024157632448504756
+        ],
+        "metalness": 0,
+        "roughness": 0.32,
+        "opacity": 1,
+        "transparent": false,
+        "alphaTest": 0,
+        "side": 0,
+        "depthWrite": true,
+        "emissive": [
+          0,
+          0,
+          0
+        ],
+        "emissiveIntensity": 1,
+        "transmission": 0,
+        "thickness": 0,
+        "ior": 1.5,
+        "clearcoat": 0.65,
+        "clearcoatRoughness": 0.12,
+        "envMapIntensity": 1
+      },
+      {
+        "definition": 58,
+        "name": "hull_L_topsides_finish_1",
+        "type": "MeshPhysicalMaterial",
+        "color": [
+          0.0202885630566524,
+          0.02315336617811041,
+          0.02518685962736163
+        ],
+        "metalness": 0,
+        "roughness": 0.34500000000000003,
+        "opacity": 1,
+        "transparent": false,
+        "alphaTest": 0,
+        "side": 0,
+        "depthWrite": true,
+        "emissive": [
+          0,
+          0,
+          0
+        ],
+        "emissiveIntensity": 1,
+        "transmission": 0,
+        "thickness": 0,
+        "ior": 1.5,
+        "clearcoat": 0.65,
+        "clearcoatRoughness": 0.12,
+        "envMapIntensity": 1
+      },
+      {
+        "definition": 59,
+        "name": "hull_L_topsides_finish_2",
+        "type": "MeshPhysicalMaterial",
+        "color": [
+          0.018500220128379697,
+          0.021219010376003555,
+          0.02315336617811041
+        ],
+        "metalness": 0,
+        "roughness": 0.295,
+        "opacity": 1,
+        "transparent": false,
+        "alphaTest": 0,
+        "side": 0,
+        "depthWrite": true,
+        "emissive": [
+          0,
+          0,
+          0
+        ],
+        "emissiveIntensity": 1,
+        "transmission": 0,
+        "thickness": 0,
+        "ior": 1.5,
+        "clearcoat": 0.65,
+        "clearcoatRoughness": 0.12,
+        "envMapIntensity": 1
+      },
+      {
+        "definition": 60,
+        "name": "hull_L_topsides_finish_3",
+        "type": "MeshPhysicalMaterial",
+        "color": [
+          0.021219010376003555,
+          0.024157632448504756,
+          0.026241221894849898
+        ],
+        "metalness": 0,
+        "roughness": 0.36,
+        "opacity": 1,
+        "transparent": false,
+        "alphaTest": 0,
+        "side": 0,
+        "depthWrite": true,
+        "emissive": [
+          0,
+          0,
+          0
+        ],
+        "emissiveIntensity": 1,
+        "transmission": 0,
+        "thickness": 0,
+        "ior": 1.5,
+        "clearcoat": 0.65,
+        "clearcoatRoughness": 0.12,
+        "envMapIntensity": 1
+      },
+      {
+        "definition": 7,
+        "name": "chine_ochre_enamel",
+        "type": "MeshStandardMaterial",
+        "color": [
+          0.2961382707983211,
+          0.19120168274079138,
+          0.0595112381629812
+        ],
+        "metalness": 0,
+        "roughness": 0.34,
+        "opacity": 1,
+        "transparent": false,
+        "alphaTest": 0,
+        "side": 0,
+        "depthWrite": true,
+        "emissive": [
+          0,
+          0,
+          0
+        ],
+        "emissiveIntensity": 1,
+        "transmission": 0,
+        "thickness": 0,
+        "ior": 1.5,
+        "clearcoat": 0,
+        "clearcoatRoughness": 0,
+        "envMapIntensity": 1
+      },
+      {
+        "definition": 8,
+        "name": "waterline_enamel",
+        "type": "MeshStandardMaterial",
+        "color": [
+          0.13843161503245183,
+          0.12477181756095049,
+          0.08650046203654976
+        ],
+        "metalness": 0,
+        "roughness": 0.38,
+        "opacity": 1,
+        "transparent": false,
+        "alphaTest": 0,
+        "side": 0,
+        "depthWrite": true,
+        "emissive": [
+          0,
+          0,
+          0
+        ],
+        "emissiveIntensity": 1,
+        "transmission": 0,
+        "thickness": 0,
+        "ior": 1.5,
+        "clearcoat": 0,
+        "clearcoatRoughness": 0,
+        "envMapIntensity": 1
+      },
+      {
+        "definition": 9,
+        "name": "rubrail_epdm",
+        "type": "MeshStandardMaterial",
+        "color": [
+          0.011612245179743885,
+          0.012983032342173012,
+          0.013702083047289686
+        ],
+        "metalness": 0,
+        "roughness": 0.91,
+        "opacity": 1,
+        "transparent": false,
+        "alphaTest": 0,
+        "side": 0,
+        "depthWrite": true,
+        "emissive": [
+          0,
+          0,
+          0
+        ],
+        "emissiveIntensity": 1,
+        "transmission": 0,
+        "thickness": 0,
+        "ior": 1.5,
+        "clearcoat": 0,
+        "clearcoatRoughness": 0,
+        "envMapIntensity": 1
+      },
+      {
+        "definition": 5,
+        "name": "foredeck_nonskid",
+        "type": "MeshStandardMaterial",
+        "color": [
+          0.024157632448504756,
+          0.027320891639074894,
+          0.027320891639074894
+        ],
+        "metalness": 0,
+        "roughness": 0.86,
+        "opacity": 1,
+        "transparent": false,
+        "alphaTest": 0,
+        "side": 0,
+        "depthWrite": true,
+        "emissive": [
+          0,
+          0,
+          0
+        ],
+        "emissiveIntensity": 1,
+        "transmission": 0,
+        "thickness": 0,
+        "ior": 1.5,
+        "clearcoat": 0,
+        "clearcoatRoughness": 0,
+        "envMapIntensity": 1
+      },
+      {
+        "definition": 61,
+        "name": "foredeck_L_finish_1",
+        "type": "MeshStandardMaterial",
+        "color": [
+          0.02518685962736163,
+          0.028426039504420793,
+          0.028426039504420793
+        ],
+        "metalness": 0,
+        "roughness": 0.9299999999999999,
+        "opacity": 1,
+        "transparent": false,
+        "alphaTest": 0,
+        "side": 0,
+        "depthWrite": true,
+        "emissive": [
+          0,
+          0,
+          0
+        ],
+        "emissiveIntensity": 1,
+        "transmission": 0,
+        "thickness": 0,
+        "ior": 1.5,
+        "clearcoat": 0,
+        "clearcoatRoughness": 0,
+        "envMapIntensity": 1
+      },
+      {
+        "definition": 62,
+        "name": "foredeck_L_finish_2",
+        "type": "MeshStandardMaterial",
+        "color": [
+          0.02315336617811041,
+          0.026241221894849898,
+          0.026241221894849898
+        ],
+        "metalness": 0,
+        "roughness": 0.842,
+        "opacity": 1,
+        "transparent": false,
+        "alphaTest": 0,
+        "side": 0,
+        "depthWrite": true,
+        "emissive": [
+          0,
+          0,
+          0
+        ],
+        "emissiveIntensity": 1,
+        "transmission": 0,
+        "thickness": 0,
+        "ior": 1.5,
+        "clearcoat": 0,
+        "clearcoatRoughness": 0,
+        "envMapIntensity": 1
+      },
+      {
+        "definition": 63,
+        "name": "foredeck_L_finish_3",
+        "type": "MeshStandardMaterial",
+        "color": [
+          0.026241221894849898,
+          0.0295568344378088,
+          0.0295568344378088
+        ],
+        "metalness": 0,
+        "roughness": 0.9339999999999999,
+        "opacity": 1,
+        "transparent": false,
+        "alphaTest": 0,
+        "side": 0,
+        "depthWrite": true,
+        "emissive": [
+          0,
+          0,
+          0
+        ],
+        "emissiveIntensity": 1,
+        "transmission": 0,
+        "thickness": 0,
+        "ior": 1.5,
+        "clearcoat": 0,
+        "clearcoatRoughness": 0,
+        "envMapIntensity": 1
+      },
+      {
+        "definition": 64,
+        "name": "foredeck_L_finish_4",
+        "type": "MeshStandardMaterial",
+        "color": [
+          0.02217388479338738,
+          0.02518685962736163,
+          0.02518685962736163
+        ],
+        "metalness": 0,
+        "roughness": 0.846,
+        "opacity": 1,
+        "transparent": false,
+        "alphaTest": 0,
+        "side": 0,
+        "depthWrite": true,
+        "emissive": [
+          0,
+          0,
+          0
+        ],
+        "emissiveIntensity": 1,
+        "transmission": 0,
+        "thickness": 0,
+        "ior": 1.5,
+        "clearcoat": 0,
+        "clearcoatRoughness": 0,
+        "envMapIntensity": 1
+      },
+      {
+        "definition": 65,
+        "name": "foredeck_L_finish_5",
+        "type": "MeshStandardMaterial",
+        "color": [
+          0.02518685962736163,
+          0.028426039504420793,
+          0.028426039504420793
+        ],
+        "metalness": 0,
+        "roughness": 0.938,
+        "opacity": 1,
+        "transparent": false,
+        "alphaTest": 0,
+        "side": 0,
+        "depthWrite": true,
+        "emissive": [
+          0,
+          0,
+          0
+        ],
+        "emissiveIntensity": 1,
+        "transmission": 0,
+        "thickness": 0,
+        "ior": 1.5,
+        "clearcoat": 0,
+        "clearcoatRoughness": 0,
+        "envMapIntensity": 1
+      },
+      {
+        "definition": 66,
+        "name": "foredeck_L_finish_6",
+        "type": "MeshStandardMaterial",
+        "color": [
+          0.024157632448504756,
+          0.027320891639074894,
+          0.027320891639074894
+        ],
+        "metalness": 0,
+        "roughness": 0.85,
+        "opacity": 1,
+        "transparent": false,
+        "alphaTest": 0,
+        "side": 0,
+        "depthWrite": true,
+        "emissive": [
+          0,
+          0,
+          0
+        ],
+        "emissiveIntensity": 1,
+        "transmission": 0,
+        "thickness": 0,
+        "ior": 1.5,
+        "clearcoat": 0,
+        "clearcoatRoughness": 0,
+        "envMapIntensity": 1
+      },
+      {
+        "definition": 67,
+        "name": "foredeck_L_finish_7",
+        "type": "MeshStandardMaterial",
+        "color": [
+          0.02315336617811041,
+          0.026241221894849898,
+          0.026241221894849898
+        ],
+        "metalness": 0,
+        "roughness": 0.942,
+        "opacity": 1,
+        "transparent": false,
+        "alphaTest": 0,
+        "side": 0,
+        "depthWrite": true,
+        "emissive": [
+          0,
+          0,
+          0
+        ],
+        "emissiveIntensity": 1,
+        "transmission": 0,
+        "thickness": 0,
+        "ior": 1.5,
+        "clearcoat": 0,
+        "clearcoatRoughness": 0,
+        "envMapIntensity": 1
+      },
+      {
+        "definition": 6,
+        "name": "aftdeck_nonskid",
+        "type": "MeshStandardMaterial",
+        "color": [
+          0.02217388479338738,
+          0.02518685962736163,
+          0.02518685962736163
+        ],
+        "metalness": 0,
+        "roughness": 0.89,
+        "opacity": 1,
+        "transparent": false,
+        "alphaTest": 0,
+        "side": 0,
+        "depthWrite": true,
+        "emissive": [
+          0,
+          0,
+          0
+        ],
+        "emissiveIntensity": 1,
+        "transmission": 0,
+        "thickness": 0,
+        "ior": 1.5,
+        "clearcoat": 0,
+        "clearcoatRoughness": 0,
+        "envMapIntensity": 1
+      },
+      {
+        "definition": 68,
+        "name": "aftdeck_L_finish_1",
+        "type": "MeshStandardMaterial",
+        "color": [
+          0.02315336617811041,
+          0.026241221894849898,
+          0.026241221894849898
+        ],
+        "metalness": 0,
+        "roughness": 0.96,
+        "opacity": 1,
+        "transparent": false,
+        "alphaTest": 0,
+        "side": 0,
+        "depthWrite": true,
+        "emissive": [
+          0,
+          0,
+          0
+        ],
+        "emissiveIntensity": 1,
+        "transmission": 0,
+        "thickness": 0,
+        "ior": 1.5,
+        "clearcoat": 0,
+        "clearcoatRoughness": 0,
+        "envMapIntensity": 1
+      },
+      {
+        "definition": 69,
+        "name": "aftdeck_L_finish_2",
+        "type": "MeshStandardMaterial",
+        "color": [
+          0.021219010376003555,
+          0.024157632448504756,
+          0.024157632448504756
+        ],
+        "metalness": 0,
+        "roughness": 0.872,
+        "opacity": 1,
+        "transparent": false,
+        "alphaTest": 0,
+        "side": 0,
+        "depthWrite": true,
+        "emissive": [
+          0,
+          0,
+          0
+        ],
+        "emissiveIntensity": 1,
+        "transmission": 0,
+        "thickness": 0,
+        "ior": 1.5,
+        "clearcoat": 0,
+        "clearcoatRoughness": 0,
+        "envMapIntensity": 1
+      },
+      {
+        "definition": 70,
+        "name": "aftdeck_L_finish_3",
+        "type": "MeshStandardMaterial",
+        "color": [
+          0.024157632448504756,
+          0.027320891639074894,
+          0.027320891639074894
+        ],
+        "metalness": 0,
+        "roughness": 0.964,
+        "opacity": 1,
+        "transparent": false,
+        "alphaTest": 0,
+        "side": 0,
+        "depthWrite": true,
+        "emissive": [
+          0,
+          0,
+          0
+        ],
+        "emissiveIntensity": 1,
+        "transmission": 0,
+        "thickness": 0,
+        "ior": 1.5,
+        "clearcoat": 0,
+        "clearcoatRoughness": 0,
+        "envMapIntensity": 1
+      },
+      {
+        "definition": 71,
+        "name": "aftdeck_L_finish_4",
+        "type": "MeshStandardMaterial",
+        "color": [
+          0.0202885630566524,
+          0.02315336617811041,
+          0.02315336617811041
+        ],
+        "metalness": 0,
+        "roughness": 0.876,
+        "opacity": 1,
+        "transparent": false,
+        "alphaTest": 0,
+        "side": 0,
+        "depthWrite": true,
+        "emissive": [
+          0,
+          0,
+          0
+        ],
+        "emissiveIntensity": 1,
+        "transmission": 0,
+        "thickness": 0,
+        "ior": 1.5,
+        "clearcoat": 0,
+        "clearcoatRoughness": 0,
+        "envMapIntensity": 1
+      },
+      {
+        "definition": 72,
+        "name": "aftdeck_L_finish_5",
+        "type": "MeshStandardMaterial",
+        "color": [
+          0.02315336617811041,
+          0.026241221894849898,
+          0.026241221894849898
+        ],
+        "metalness": 0,
+        "roughness": 0.968,
+        "opacity": 1,
+        "transparent": false,
+        "alphaTest": 0,
+        "side": 0,
+        "depthWrite": true,
+        "emissive": [
+          0,
+          0,
+          0
+        ],
+        "emissiveIntensity": 1,
+        "transmission": 0,
+        "thickness": 0,
+        "ior": 1.5,
+        "clearcoat": 0,
+        "clearcoatRoughness": 0,
+        "envMapIntensity": 1
+      },
+      {
+        "definition": 73,
+        "name": "aftdeck_L_finish_6",
+        "type": "MeshStandardMaterial",
+        "color": [
+          0.02217388479338738,
+          0.02518685962736163,
+          0.02518685962736163
+        ],
+        "metalness": 0,
+        "roughness": 0.88,
+        "opacity": 1,
+        "transparent": false,
+        "alphaTest": 0,
+        "side": 0,
+        "depthWrite": true,
+        "emissive": [
+          0,
+          0,
+          0
+        ],
+        "emissiveIntensity": 1,
+        "transmission": 0,
+        "thickness": 0,
+        "ior": 1.5,
+        "clearcoat": 0,
+        "clearcoatRoughness": 0,
+        "envMapIntensity": 1
+      },
+      {
+        "definition": 74,
+        "name": "aftdeck_L_finish_7",
+        "type": "MeshStandardMaterial",
+        "color": [
+          0.021219010376003555,
+          0.024157632448504756,
+          0.024157632448504756
+        ],
+        "metalness": 0,
+        "roughness": 0.972,
+        "opacity": 1,
+        "transparent": false,
+        "alphaTest": 0,
+        "side": 0,
+        "depthWrite": true,
+        "emissive": [
+          0,
+          0,
+          0
+        ],
+        "emissiveIntensity": 1,
+        "transmission": 0,
+        "thickness": 0,
+        "ior": 1.5,
+        "clearcoat": 0,
+        "clearcoatRoughness": 0,
+        "envMapIntensity": 1
+      },
+      {
+        "definition": 10,
+        "name": "sheer_anodized_trim",
+        "type": "MeshStandardMaterial",
+        "color": [
+          0.02518685962736163,
+          0.028426039504420793,
+          0.0295568344378088
+        ],
+        "metalness": 0.05,
+        "roughness": 0.48,
+        "opacity": 1,
+        "transparent": false,
+        "alphaTest": 0,
+        "side": 0,
+        "depthWrite": true,
+        "emissive": [
+          0,
+          0,
+          0
+        ],
+        "emissiveIntensity": 1,
+        "transmission": 0,
+        "thickness": 0,
+        "ior": 1.5,
+        "clearcoat": 0,
+        "clearcoatRoughness": 0,
+        "envMapIntensity": 1
+      },
+      {
+        "definition": 1,
+        "name": "dry_gelcoat_starboard",
+        "type": "MeshPhysicalMaterial",
+        "color": [
+          0.0202885630566524,
+          0.02315336617811041,
+          0.02518685962736163
+        ],
+        "metalness": 0,
+        "roughness": 0.33,
+        "opacity": 1,
+        "transparent": false,
+        "alphaTest": 0,
+        "side": 0,
+        "depthWrite": true,
+        "emissive": [
+          0,
+          0,
+          0
+        ],
+        "emissiveIntensity": 1,
+        "transmission": 0,
+        "thickness": 0,
+        "ior": 1.5,
+        "clearcoat": 0.65,
+        "clearcoatRoughness": 0.12,
+        "envMapIntensity": 1
+      },
+      {
+        "definition": 75,
+        "name": "hull_R_topsides_finish_1",
+        "type": "MeshPhysicalMaterial",
+        "color": [
+          0.021219010376003555,
+          0.024157632448504756,
+          0.026241221894849898
+        ],
+        "metalness": 0,
+        "roughness": 0.35500000000000004,
+        "opacity": 1,
+        "transparent": false,
+        "alphaTest": 0,
+        "side": 0,
+        "depthWrite": true,
+        "emissive": [
+          0,
+          0,
+          0
+        ],
+        "emissiveIntensity": 1,
+        "transmission": 0,
+        "thickness": 0,
+        "ior": 1.5,
+        "clearcoat": 0.65,
+        "clearcoatRoughness": 0.12,
+        "envMapIntensity": 1
+      },
+      {
+        "definition": 76,
+        "name": "hull_R_topsides_finish_2",
+        "type": "MeshPhysicalMaterial",
+        "color": [
+          0.019382360956935723,
+          0.02217388479338738,
+          0.024157632448504756
+        ],
+        "metalness": 0,
+        "roughness": 0.305,
+        "opacity": 1,
+        "transparent": false,
+        "alphaTest": 0,
+        "side": 0,
+        "depthWrite": true,
+        "emissive": [
+          0,
+          0,
+          0
+        ],
+        "emissiveIntensity": 1,
+        "transmission": 0,
+        "thickness": 0,
+        "ior": 1.5,
+        "clearcoat": 0.65,
+        "clearcoatRoughness": 0.12,
+        "envMapIntensity": 1
+      },
+      {
+        "definition": 77,
+        "name": "hull_R_topsides_finish_3",
+        "type": "MeshPhysicalMaterial",
+        "color": [
+          0.02217388479338738,
+          0.02518685962736163,
+          0.027320891639074894
+        ],
+        "metalness": 0,
+        "roughness": 0.37,
+        "opacity": 1,
+        "transparent": false,
+        "alphaTest": 0,
+        "side": 0,
+        "depthWrite": true,
+        "emissive": [
+          0,
+          0,
+          0
+        ],
+        "emissiveIntensity": 1,
+        "transmission": 0,
+        "thickness": 0,
+        "ior": 1.5,
+        "clearcoat": 0.65,
+        "clearcoatRoughness": 0.12,
+        "envMapIntensity": 1
+      },
+      {
+        "definition": 78,
+        "name": "foredeck_R_finish_1",
+        "type": "MeshStandardMaterial",
+        "color": [
+          0.02518685962736163,
+          0.028426039504420793,
+          0.028426039504420793
+        ],
+        "metalness": 0,
+        "roughness": 0.927,
+        "opacity": 1,
+        "transparent": false,
+        "alphaTest": 0,
+        "side": 0,
+        "depthWrite": true,
+        "emissive": [
+          0,
+          0,
+          0
+        ],
+        "emissiveIntensity": 1,
+        "transmission": 0,
+        "thickness": 0,
+        "ior": 1.5,
+        "clearcoat": 0,
+        "clearcoatRoughness": 0,
+        "envMapIntensity": 1
+      },
+      {
+        "definition": 79,
+        "name": "foredeck_R_finish_2",
+        "type": "MeshStandardMaterial",
+        "color": [
+          0.02315336617811041,
+          0.026241221894849898,
+          0.026241221894849898
+        ],
+        "metalness": 0,
+        "roughness": 0.839,
+        "opacity": 1,
+        "transparent": false,
+        "alphaTest": 0,
+        "side": 0,
+        "depthWrite": true,
+        "emissive": [
+          0,
+          0,
+          0
+        ],
+        "emissiveIntensity": 1,
+        "transmission": 0,
+        "thickness": 0,
+        "ior": 1.5,
+        "clearcoat": 0,
+        "clearcoatRoughness": 0,
+        "envMapIntensity": 1
+      },
+      {
+        "definition": 80,
+        "name": "foredeck_R_finish_3",
+        "type": "MeshStandardMaterial",
+        "color": [
+          0.026241221894849898,
+          0.0295568344378088,
+          0.0295568344378088
+        ],
+        "metalness": 0,
+        "roughness": 0.931,
+        "opacity": 1,
+        "transparent": false,
+        "alphaTest": 0,
+        "side": 0,
+        "depthWrite": true,
+        "emissive": [
+          0,
+          0,
+          0
+        ],
+        "emissiveIntensity": 1,
+        "transmission": 0,
+        "thickness": 0,
+        "ior": 1.5,
+        "clearcoat": 0,
+        "clearcoatRoughness": 0,
+        "envMapIntensity": 1
+      },
+      {
+        "definition": 81,
+        "name": "foredeck_R_finish_4",
+        "type": "MeshStandardMaterial",
+        "color": [
+          0.02217388479338738,
+          0.02518685962736163,
+          0.02518685962736163
+        ],
+        "metalness": 0,
+        "roughness": 0.843,
+        "opacity": 1,
+        "transparent": false,
+        "alphaTest": 0,
+        "side": 0,
+        "depthWrite": true,
+        "emissive": [
+          0,
+          0,
+          0
+        ],
+        "emissiveIntensity": 1,
+        "transmission": 0,
+        "thickness": 0,
+        "ior": 1.5,
+        "clearcoat": 0,
+        "clearcoatRoughness": 0,
+        "envMapIntensity": 1
+      },
+      {
+        "definition": 82,
+        "name": "foredeck_R_finish_5",
+        "type": "MeshStandardMaterial",
+        "color": [
+          0.02518685962736163,
+          0.028426039504420793,
+          0.028426039504420793
+        ],
+        "metalness": 0,
+        "roughness": 0.9349999999999999,
+        "opacity": 1,
+        "transparent": false,
+        "alphaTest": 0,
+        "side": 0,
+        "depthWrite": true,
+        "emissive": [
+          0,
+          0,
+          0
+        ],
+        "emissiveIntensity": 1,
+        "transmission": 0,
+        "thickness": 0,
+        "ior": 1.5,
+        "clearcoat": 0,
+        "clearcoatRoughness": 0,
+        "envMapIntensity": 1
+      },
+      {
+        "definition": 83,
+        "name": "foredeck_R_finish_6",
+        "type": "MeshStandardMaterial",
+        "color": [
+          0.024157632448504756,
+          0.027320891639074894,
+          0.027320891639074894
+        ],
+        "metalness": 0,
+        "roughness": 0.847,
+        "opacity": 1,
+        "transparent": false,
+        "alphaTest": 0,
+        "side": 0,
+        "depthWrite": true,
+        "emissive": [
+          0,
+          0,
+          0
+        ],
+        "emissiveIntensity": 1,
+        "transmission": 0,
+        "thickness": 0,
+        "ior": 1.5,
+        "clearcoat": 0,
+        "clearcoatRoughness": 0,
+        "envMapIntensity": 1
+      },
+      {
+        "definition": 84,
+        "name": "foredeck_R_finish_7",
+        "type": "MeshStandardMaterial",
+        "color": [
+          0.02315336617811041,
+          0.026241221894849898,
+          0.026241221894849898
+        ],
+        "metalness": 0,
+        "roughness": 0.939,
+        "opacity": 1,
+        "transparent": false,
+        "alphaTest": 0,
+        "side": 0,
+        "depthWrite": true,
+        "emissive": [
+          0,
+          0,
+          0
+        ],
+        "emissiveIntensity": 1,
+        "transmission": 0,
+        "thickness": 0,
+        "ior": 1.5,
+        "clearcoat": 0,
+        "clearcoatRoughness": 0,
+        "envMapIntensity": 1
+      },
+      {
+        "definition": 85,
+        "name": "aftdeck_R_finish_1",
+        "type": "MeshStandardMaterial",
+        "color": [
+          0.02315336617811041,
+          0.026241221894849898,
+          0.026241221894849898
+        ],
+        "metalness": 0,
+        "roughness": 0.9570000000000001,
+        "opacity": 1,
+        "transparent": false,
+        "alphaTest": 0,
+        "side": 0,
+        "depthWrite": true,
+        "emissive": [
+          0,
+          0,
+          0
+        ],
+        "emissiveIntensity": 1,
+        "transmission": 0,
+        "thickness": 0,
+        "ior": 1.5,
+        "clearcoat": 0,
+        "clearcoatRoughness": 0,
+        "envMapIntensity": 1
+      },
+      {
+        "definition": 86,
+        "name": "aftdeck_R_finish_2",
+        "type": "MeshStandardMaterial",
+        "color": [
+          0.021219010376003555,
+          0.024157632448504756,
+          0.024157632448504756
+        ],
+        "metalness": 0,
+        "roughness": 0.869,
+        "opacity": 1,
+        "transparent": false,
+        "alphaTest": 0,
+        "side": 0,
+        "depthWrite": true,
+        "emissive": [
+          0,
+          0,
+          0
+        ],
+        "emissiveIntensity": 1,
+        "transmission": 0,
+        "thickness": 0,
+        "ior": 1.5,
+        "clearcoat": 0,
+        "clearcoatRoughness": 0,
+        "envMapIntensity": 1
+      },
+      {
+        "definition": 87,
+        "name": "aftdeck_R_finish_3",
+        "type": "MeshStandardMaterial",
+        "color": [
+          0.024157632448504756,
+          0.027320891639074894,
+          0.027320891639074894
+        ],
+        "metalness": 0,
+        "roughness": 0.9610000000000001,
+        "opacity": 1,
+        "transparent": false,
+        "alphaTest": 0,
+        "side": 0,
+        "depthWrite": true,
+        "emissive": [
+          0,
+          0,
+          0
+        ],
+        "emissiveIntensity": 1,
+        "transmission": 0,
+        "thickness": 0,
+        "ior": 1.5,
+        "clearcoat": 0,
+        "clearcoatRoughness": 0,
+        "envMapIntensity": 1
+      },
+      {
+        "definition": 88,
+        "name": "aftdeck_R_finish_4",
+        "type": "MeshStandardMaterial",
+        "color": [
+          0.0202885630566524,
+          0.02315336617811041,
+          0.02315336617811041
+        ],
+        "metalness": 0,
+        "roughness": 0.873,
+        "opacity": 1,
+        "transparent": false,
+        "alphaTest": 0,
+        "side": 0,
+        "depthWrite": true,
+        "emissive": [
+          0,
+          0,
+          0
+        ],
+        "emissiveIntensity": 1,
+        "transmission": 0,
+        "thickness": 0,
+        "ior": 1.5,
+        "clearcoat": 0,
+        "clearcoatRoughness": 0,
+        "envMapIntensity": 1
+      },
+      {
+        "definition": 89,
+        "name": "aftdeck_R_finish_5",
+        "type": "MeshStandardMaterial",
+        "color": [
+          0.02315336617811041,
+          0.026241221894849898,
+          0.026241221894849898
+        ],
+        "metalness": 0,
+        "roughness": 0.965,
+        "opacity": 1,
+        "transparent": false,
+        "alphaTest": 0,
+        "side": 0,
+        "depthWrite": true,
+        "emissive": [
+          0,
+          0,
+          0
+        ],
+        "emissiveIntensity": 1,
+        "transmission": 0,
+        "thickness": 0,
+        "ior": 1.5,
+        "clearcoat": 0,
+        "clearcoatRoughness": 0,
+        "envMapIntensity": 1
+      },
+      {
+        "definition": 90,
+        "name": "aftdeck_R_finish_6",
+        "type": "MeshStandardMaterial",
+        "color": [
+          0.02217388479338738,
+          0.02518685962736163,
+          0.02518685962736163
+        ],
+        "metalness": 0,
+        "roughness": 0.877,
+        "opacity": 1,
+        "transparent": false,
+        "alphaTest": 0,
+        "side": 0,
+        "depthWrite": true,
+        "emissive": [
+          0,
+          0,
+          0
+        ],
+        "emissiveIntensity": 1,
+        "transmission": 0,
+        "thickness": 0,
+        "ior": 1.5,
+        "clearcoat": 0,
+        "clearcoatRoughness": 0,
+        "envMapIntensity": 1
+      },
+      {
+        "definition": 91,
+        "name": "aftdeck_R_finish_7",
+        "type": "MeshStandardMaterial",
+        "color": [
+          0.021219010376003555,
+          0.024157632448504756,
+          0.024157632448504756
+        ],
+        "metalness": 0,
+        "roughness": 0.969,
+        "opacity": 1,
+        "transparent": false,
+        "alphaTest": 0,
+        "side": 0,
+        "depthWrite": true,
+        "emissive": [
+          0,
+          0,
+          0
+        ],
+        "emissiveIntensity": 1,
+        "transmission": 0,
+        "thickness": 0,
+        "ior": 1.5,
+        "clearcoat": 0,
+        "clearcoatRoughness": 0,
+        "envMapIntensity": 1
+      },
+      {
+        "definition": 4,
+        "name": "transom_gelcoat",
+        "type": "MeshPhysicalMaterial",
+        "color": [
+          0.021219010376003555,
+          0.024157632448504756,
+          0.02518685962736163
+        ],
+        "metalness": 0,
+        "roughness": 0.36,
+        "opacity": 1,
+        "transparent": false,
+        "alphaTest": 0,
+        "side": 0,
+        "depthWrite": true,
+        "emissive": [
+          0,
+          0,
+          0
+        ],
+        "emissiveIntensity": 1,
+        "transmission": 0,
+        "thickness": 0,
+        "ior": 1.5,
+        "clearcoat": 0.65,
+        "clearcoatRoughness": 0.12,
+        "envMapIntensity": 1
+      },
+      {
+        "definition": 11,
+        "name": "step_grip",
+        "type": "MeshStandardMaterial",
+        "color": [
+          0.021219010376003555,
+          0.024157632448504756,
+          0.024157632448504756
+        ],
+        "metalness": 0,
+        "roughness": 0.88,
+        "opacity": 1,
+        "transparent": false,
+        "alphaTest": 0,
+        "side": 0,
+        "depthWrite": true,
+        "emissive": [
+          0,
+          0,
+          0
+        ],
+        "emissiveIntensity": 1,
+        "transmission": 0,
+        "thickness": 0,
+        "ior": 1.5,
+        "clearcoat": 0,
+        "clearcoatRoughness": 0,
+        "envMapIntensity": 1
+      },
+      {
+        "definition": 12,
+        "name": "stem_stainless",
+        "type": "MeshStandardMaterial",
+        "color": [
+          0.4019777798321958,
+          0.4286904966139066,
+          0.44520119451622786
+        ],
+        "metalness": 0.9,
+        "roughness": 0.24,
+        "opacity": 1,
+        "transparent": false,
+        "alphaTest": 0,
+        "side": 0,
+        "depthWrite": true,
+        "emissive": [
+          0,
+          0,
+          0
+        ],
+        "emissiveIntensity": 1,
+        "transmission": 0,
+        "thickness": 0,
+        "ior": 1.5,
+        "clearcoat": 0,
+        "clearcoatRoughness": 0,
+        "envMapIntensity": 1
+      },
+      {
+        "definition": 13,
+        "name": "cabin_sill_gelcoat",
+        "type": "MeshPhysicalMaterial",
+        "color": [
+          0.02315336617811041,
+          0.026241221894849898,
+          0.027320891639074894
+        ],
+        "metalness": 0,
+        "roughness": 0.37,
+        "opacity": 1,
+        "transparent": false,
+        "alphaTest": 0,
+        "side": 0,
+        "depthWrite": true,
+        "emissive": [
+          0,
+          0,
+          0
+        ],
+        "emissiveIntensity": 1,
+        "transmission": 0,
+        "thickness": 0,
+        "ior": 1.5,
+        "clearcoat": 0.65,
+        "clearcoatRoughness": 0.12,
+        "envMapIntensity": 1
+      },
+      {
+        "definition": 2,
+        "name": "cabin_glass",
+        "type": "MeshStandardMaterial",
+        "color": [
+          0.13286832155381798,
+          0.1651321945016676,
+          0.184474994500441
+        ],
+        "metalness": 0,
+        "roughness": 0.12,
+        "opacity": 0.48,
+        "transparent": true,
+        "alphaTest": 0,
+        "side": 0,
+        "depthWrite": false,
+        "emissive": [
+          0,
+          0,
+          0
+        ],
+        "emissiveIntensity": 1,
+        "transmission": 0,
+        "thickness": 0,
+        "ior": 1.5,
+        "clearcoat": 0,
+        "clearcoatRoughness": 0,
+        "envMapIntensity": 1
+      },
+      {
+        "definition": 14,
+        "name": "window_frame_anodized",
+        "type": "MeshStandardMaterial",
+        "color": [
+          0.18782077230067787,
+          0.20507873639031693,
+          0.21223075741405523
+        ],
+        "metalness": 0.78,
+        "roughness": 0.31,
+        "opacity": 1,
+        "transparent": false,
+        "alphaTest": 0,
+        "side": 0,
+        "depthWrite": true,
+        "emissive": [
+          0,
+          0,
+          0
+        ],
+        "emissiveIntensity": 1,
+        "transmission": 0,
+        "thickness": 0,
+        "ior": 1.5,
+        "clearcoat": 0,
+        "clearcoatRoughness": 0,
+        "envMapIntensity": 1
+      },
+      {
+        "definition": 15,
+        "name": "cabin_posts_enamel",
+        "type": "MeshStandardMaterial",
+        "color": [
+          0.021219010376003555,
+          0.024157632448504756,
+          0.02518685962736163
+        ],
+        "metalness": 0,
+        "roughness": 0.35,
+        "opacity": 1,
+        "transparent": false,
+        "alphaTest": 0,
+        "side": 0,
+        "depthWrite": true,
+        "emissive": [
+          0,
+          0,
+          0
+        ],
+        "emissiveIntensity": 1,
+        "transmission": 0,
+        "thickness": 0,
+        "ior": 1.5,
+        "clearcoat": 0,
+        "clearcoatRoughness": 0,
+        "envMapIntensity": 1
+      },
+      {
+        "definition": 16,
+        "name": "identification_plate",
+        "type": "MeshStandardMaterial",
+        "color": [
+          0.25015828472995344,
+          0.1651321945016676,
+          0.05612849004960009
+        ],
+        "metalness": 0,
+        "roughness": 0.49,
+        "opacity": 1,
+        "transparent": false,
+        "alphaTest": 0,
+        "side": 0,
+        "depthWrite": true,
+        "emissive": [
+          0,
+          0,
+          0
+        ],
+        "emissiveIntensity": 1,
+        "transmission": 0,
+        "thickness": 0,
+        "ior": 1.5,
+        "clearcoat": 0,
+        "clearcoatRoughness": 0,
+        "envMapIntensity": 1
+      },
+      {
+        "definition": 17,
+        "name": "stanchion_brushed_steel",
+        "type": "MeshStandardMaterial",
+        "color": [
+          0.3419144249086609,
+          0.3662525955988395,
+          0.38132601143253014
+        ],
+        "metalness": 0.9,
+        "roughness": 0.32,
+        "opacity": 1,
+        "transparent": false,
+        "alphaTest": 0,
+        "side": 0,
+        "depthWrite": true,
+        "emissive": [
+          0,
+          0,
+          0
+        ],
+        "emissiveIntensity": 1,
+        "transmission": 0,
+        "thickness": 0,
+        "ior": 1.5,
+        "clearcoat": 0,
+        "clearcoatRoughness": 0,
+        "envMapIntensity": 1
+      },
+      {
+        "definition": 18,
+        "name": "cleat_cast_steel",
+        "type": "MeshStandardMaterial",
+        "color": [
+          0.2581828529215958,
+          0.2831487404299921,
+          0.2961382707983211
+        ],
+        "metalness": 0.86,
+        "roughness": 0.43,
+        "opacity": 1,
+        "transparent": false,
+        "alphaTest": 0,
+        "side": 0,
+        "depthWrite": true,
+        "emissive": [
+          0,
+          0,
+          0
+        ],
+        "emissiveIntensity": 1,
+        "transmission": 0,
+        "thickness": 0,
+        "ior": 1.5,
+        "clearcoat": 0,
+        "clearcoatRoughness": 0,
+        "envMapIntensity": 1
+      },
+      {
+        "definition": 19,
+        "name": "cleat_polished_steel",
+        "type": "MeshStandardMaterial",
+        "color": [
+          0.4793201831008268,
+          0.5149176653765214,
+          0.5332764040105052
+        ],
+        "metalness": 0.92,
+        "roughness": 0.21,
+        "opacity": 1,
+        "transparent": false,
+        "alphaTest": 0,
+        "side": 0,
+        "depthWrite": true,
+        "emissive": [
+          0,
+          0,
+          0
+        ],
+        "emissiveIntensity": 1,
+        "transmission": 0,
+        "thickness": 0,
+        "ior": 1.5,
+        "clearcoat": 0,
+        "clearcoatRoughness": 0,
+        "envMapIntensity": 1
+      },
+      {
+        "definition": 20,
+        "name": "handrail_chrome",
+        "type": "MeshStandardMaterial",
+        "color": [
+          0.6375968739940326,
+          0.6724431569576875,
+          0.6866853124353135
+        ],
+        "metalness": 0.95,
+        "roughness": 0.17,
+        "opacity": 1,
+        "transparent": false,
+        "alphaTest": 0,
+        "side": 0,
+        "depthWrite": true,
+        "emissive": [
+          0,
+          0,
+          0
+        ],
+        "emissiveIntensity": 1,
+        "transmission": 0,
+        "thickness": 0,
+        "ior": 1.5,
+        "clearcoat": 0,
+        "clearcoatRoughness": 0,
+        "envMapIntensity": 1
+      },
+      {
+        "definition": 21,
+        "name": "navigation_mount_rubber",
+        "type": "MeshStandardMaterial",
+        "color": [
+          0.016807375752887384,
+          0.018500220128379697,
+          0.019382360956935723
+        ],
+        "metalness": 0,
+        "roughness": 0.82,
+        "opacity": 1,
+        "transparent": false,
+        "alphaTest": 0,
+        "side": 0,
+        "depthWrite": true,
+        "emissive": [
+          0,
+          0,
+          0
+        ],
+        "emissiveIntensity": 1,
+        "transmission": 0,
+        "thickness": 0,
+        "ior": 1.5,
+        "clearcoat": 0,
+        "clearcoatRoughness": 0,
+        "envMapIntensity": 1
+      },
+      {
+        "definition": 22,
+        "name": "port_signal_lens",
+        "type": "MeshStandardMaterial",
+        "color": [
+          0.386429433787049,
+          0.033104766570885055,
+          0.024157632448504756
+        ],
+        "metalness": 0,
+        "roughness": 0.2,
+        "opacity": 1,
+        "transparent": false,
+        "alphaTest": 0,
+        "side": 0,
+        "depthWrite": true,
+        "emissive": [
+          0,
+          0,
+          0
+        ],
+        "emissiveIntensity": 1,
+        "transmission": 0,
+        "thickness": 0,
+        "ior": 1.5,
+        "clearcoat": 0,
+        "clearcoatRoughness": 0,
+        "envMapIntensity": 1
+      },
+      {
+        "definition": 23,
+        "name": "starboard_signal_lens",
+        "type": "MeshStandardMaterial",
+        "color": [
+          0.0382043715953465,
+          0.20863687014525575,
+          0.07618538148130785
+        ],
+        "metalness": 0,
+        "roughness": 0.21,
+        "opacity": 1,
+        "transparent": false,
+        "alphaTest": 0,
+        "side": 0,
+        "depthWrite": true,
+        "emissive": [
+          0,
+          0,
+          0
+        ],
+        "emissiveIntensity": 1,
+        "transmission": 0,
+        "thickness": 0,
+        "ior": 1.5,
+        "clearcoat": 0,
+        "clearcoatRoughness": 0,
+        "envMapIntensity": 1
+      },
+      {
+        "definition": 25,
+        "name": "roof_gelcoat",
+        "type": "MeshPhysicalMaterial",
+        "color": [
+          0.017641954488384078,
+          0.0202885630566524,
+          0.021219010376003555
+        ],
+        "metalness": 0,
+        "roughness": 0.43,
+        "opacity": 1,
+        "transparent": false,
+        "alphaTest": 0,
+        "side": 0,
+        "depthWrite": true,
+        "emissive": [
+          0,
+          0,
+          0
+        ],
+        "emissiveIntensity": 1,
+        "transmission": 0,
+        "thickness": 0,
+        "ior": 1.5,
+        "clearcoat": 0.65,
+        "clearcoatRoughness": 0.12,
+        "envMapIntensity": 1
+      },
+      {
+        "definition": 26,
+        "name": "roof_bright_strip",
+        "type": "MeshPhysicalMaterial",
+        "color": [
+          0.027320891639074894,
+          0.030713443732993635,
+          0.03189603307301153
+        ],
+        "metalness": 0,
+        "roughness": 0.38,
+        "opacity": 1,
+        "transparent": false,
+        "alphaTest": 0,
+        "side": 0,
+        "depthWrite": true,
+        "emissive": [
+          0,
+          0,
+          0
+        ],
+        "emissiveIntensity": 1,
+        "transmission": 0,
+        "thickness": 0,
+        "ior": 1.5,
+        "clearcoat": 0.65,
+        "clearcoatRoughness": 0.12,
+        "envMapIntensity": 1
+      },
+      {
+        "definition": 27,
+        "name": "console_abs",
+        "type": "MeshStandardMaterial",
+        "color": [
+          0.019382360956935723,
+          0.02217388479338738,
+          0.024157632448504756
+        ],
+        "metalness": 0,
+        "roughness": 0.73,
+        "opacity": 1,
+        "transparent": false,
+        "alphaTest": 0,
+        "side": 0,
+        "depthWrite": true,
+        "emissive": [
+          0,
+          0,
+          0
+        ],
+        "emissiveIntensity": 1,
+        "transmission": 0,
+        "thickness": 0,
+        "ior": 1.5,
+        "clearcoat": 0,
+        "clearcoatRoughness": 0,
+        "envMapIntensity": 1
+      },
+      {
+        "definition": 28,
+        "name": "instrument_anodized_face",
+        "type": "MeshStandardMaterial",
+        "color": [
+          0.08021982031446832,
+          0.09084171118340768,
+          0.09758734714186246
+        ],
+        "metalness": 0.65,
+        "roughness": 0.48,
+        "opacity": 1,
+        "transparent": false,
+        "alphaTest": 0,
+        "side": 0,
+        "depthWrite": true,
+        "emissive": [
+          0,
+          0,
+          0
+        ],
+        "emissiveIntensity": 1,
+        "transmission": 0,
+        "thickness": 0,
+        "ior": 1.5,
+        "clearcoat": 0,
+        "clearcoatRoughness": 0,
+        "envMapIntensity": 1
+      },
+      {
+        "definition": 29,
+        "name": "seat_vinyl",
+        "type": "MeshStandardMaterial",
+        "color": [
+          0.05448027644244237,
+          0.05612849004960009,
+          0.052860647023180246
+        ],
+        "metalness": 0,
+        "roughness": 0.76,
+        "opacity": 1,
+        "transparent": false,
+        "alphaTest": 0,
+        "side": 0,
+        "depthWrite": true,
+        "emissive": [
+          0,
+          0,
+          0
+        ],
+        "emissiveIntensity": 1,
+        "transmission": 0,
+        "thickness": 0,
+        "ior": 1.5,
+        "clearcoat": 0,
+        "clearcoatRoughness": 0,
+        "envMapIntensity": 1
+      },
+      {
+        "definition": 30,
+        "name": "backrest_vinyl",
+        "type": "MeshStandardMaterial",
+        "color": [
+          0.06124605423161761,
+          0.06301001765316767,
+          0.05780543019106723
+        ],
+        "metalness": 0,
+        "roughness": 0.79,
+        "opacity": 1,
+        "transparent": false,
+        "alphaTest": 0,
+        "side": 0,
+        "depthWrite": true,
+        "emissive": [
+          0,
+          0,
+          0
+        ],
+        "emissiveIntensity": 1,
+        "transmission": 0,
+        "thickness": 0,
+        "ior": 1.5,
+        "clearcoat": 0,
+        "clearcoatRoughness": 0,
+        "envMapIntensity": 1
+      },
+      {
+        "definition": 57,
+        "name": "seat_piping_vinyl",
+        "type": "MeshStandardMaterial",
+        "color": [
+          0.08437621154414882,
+          0.08650046203654976,
+          0.07618538148130785
+        ],
+        "metalness": 0,
+        "roughness": 0.68,
+        "opacity": 1,
+        "transparent": false,
+        "alphaTest": 0,
+        "side": 0,
+        "depthWrite": true,
+        "emissive": [
+          0,
+          0,
+          0
+        ],
+        "emissiveIntensity": 1,
+        "transmission": 0,
+        "thickness": 0,
+        "ior": 1.5,
+        "clearcoat": 0,
+        "clearcoatRoughness": 0,
+        "envMapIntensity": 1
+      },
+      {
+        "definition": 31,
+        "name": "mast_stainless",
+        "type": "MeshStandardMaterial",
+        "color": [
+          0.4232676699860717,
+          0.45641102318040466,
+          0.47353149614800955
+        ],
+        "metalness": 0.91,
+        "roughness": 0.28,
+        "opacity": 1,
+        "transparent": false,
+        "alphaTest": 0,
+        "side": 0,
+        "depthWrite": true,
+        "emissive": [
+          0,
+          0,
+          0
+        ],
+        "emissiveIntensity": 1,
+        "transmission": 0,
+        "thickness": 0,
+        "ior": 1.5,
+        "clearcoat": 0,
+        "clearcoatRoughness": 0,
+        "envMapIntensity": 1
+      },
+      {
+        "definition": 24,
+        "name": "stern_signal_lens",
+        "type": "MeshStandardMaterial",
+        "color": [
+          0.6583748172794485,
+          0.6724431569576875,
+          0.6104955708078648
+        ],
+        "metalness": 0,
+        "roughness": 0.19,
+        "opacity": 1,
+        "transparent": false,
+        "alphaTest": 0,
+        "side": 0,
+        "depthWrite": true,
+        "emissive": [
+          0,
+          0,
+          0
+        ],
+        "emissiveIntensity": 1,
+        "transmission": 0,
+        "thickness": 0,
+        "ior": 1.5,
+        "clearcoat": 0,
+        "clearcoatRoughness": 0,
+        "envMapIntensity": 1
+      },
+      {
+        "definition": 33,
+        "name": "yoke_cast_gunmetal",
+        "type": "MeshStandardMaterial",
+        "color": [
+          0.07421356838014963,
+          0.0822827071298148,
+          0.08650046203654976
+        ],
+        "metalness": 0.8,
+        "roughness": 0.46,
+        "opacity": 1,
+        "transparent": false,
+        "alphaTest": 0,
+        "side": 0,
+        "depthWrite": true,
+        "emissive": [
+          0,
+          0,
+          0
+        ],
+        "emissiveIntensity": 1,
+        "transmission": 0,
+        "thickness": 0,
+        "ior": 1.5,
+        "clearcoat": 0,
+        "clearcoatRoughness": 0,
+        "envMapIntensity": 1
+      },
+      {
+        "definition": 34,
+        "name": "breech_phosphate",
+        "type": "MeshStandardMaterial",
+        "color": [
+          0.028426039504420793,
+          0.033104766570885055,
+          0.03560131487502034
+        ],
+        "metalness": 0.7,
+        "roughness": 0.58,
+        "opacity": 1,
+        "transparent": false,
+        "alphaTest": 0,
+        "side": 0,
+        "depthWrite": true,
+        "emissive": [
+          0,
+          0,
+          0
+        ],
+        "emissiveIntensity": 1,
+        "transmission": 0,
+        "thickness": 0,
+        "ior": 1.5,
+        "clearcoat": 0,
+        "clearcoatRoughness": 0,
+        "envMapIntensity": 1
+      },
+      {
+        "definition": 35,
+        "name": "barrel_blued_steel",
+        "type": "MeshStandardMaterial",
+        "color": [
+          0.05448027644244237,
+          0.06301001765316767,
+          0.07036009569659588
+        ],
+        "metalness": 0.88,
+        "roughness": 0.29,
+        "opacity": 1,
+        "transparent": false,
+        "alphaTest": 0,
+        "side": 0,
+        "depthWrite": true,
+        "emissive": [
+          0,
+          0,
+          0
+        ],
+        "emissiveIntensity": 1,
+        "transmission": 0,
+        "thickness": 0,
+        "ior": 1.5,
+        "clearcoat": 0,
+        "clearcoatRoughness": 0,
+        "envMapIntensity": 1
+      },
+      {
+        "definition": 36,
+        "name": "muzzle_machined_steel",
+        "type": "MeshStandardMaterial",
+        "color": [
+          0.19120168274079138,
+          0.21223075741405523,
+          0.22696587351009836
+        ],
+        "metalness": 0.92,
+        "roughness": 0.27,
+        "opacity": 1,
+        "transparent": false,
+        "alphaTest": 0,
+        "side": 0,
+        "depthWrite": true,
+        "emissive": [
+          0,
+          0,
+          0
+        ],
+        "emissiveIntensity": 1,
+        "transmission": 0,
+        "thickness": 0,
+        "ior": 1.5,
+        "clearcoat": 0,
+        "clearcoatRoughness": 0,
+        "envMapIntensity": 1
+      },
+      {
+        "definition": 37,
+        "name": "bore_carbon",
+        "type": "MeshStandardMaterial",
+        "color": [
+          0.00972121732023785,
+          0.010960094006488246,
+          0.011612245179743885
+        ],
+        "metalness": 0.35,
+        "roughness": 0.81,
+        "opacity": 1,
+        "transparent": false,
+        "alphaTest": 0,
+        "side": 0,
+        "depthWrite": true,
+        "emissive": [
+          0,
+          0,
+          0
+        ],
+        "emissiveIntensity": 1,
+        "transmission": 0,
+        "thickness": 0,
+        "ior": 1.5,
+        "clearcoat": 0,
+        "clearcoatRoughness": 0,
+        "envMapIntensity": 1
+      },
+      {
+        "definition": 38,
+        "name": "rifling_steel",
+        "type": "MeshStandardMaterial",
+        "color": [
+          0.10702310297826761,
+          0.12213877222960187,
+          0.1301364766903643
+        ],
+        "metalness": 0.89,
+        "roughness": 0.34,
+        "opacity": 1,
+        "transparent": false,
+        "alphaTest": 0,
+        "side": 0,
+        "depthWrite": true,
+        "emissive": [
+          0,
+          0,
+          0
+        ],
+        "emissiveIntensity": 1,
+        "transmission": 0,
+        "thickness": 0,
+        "ior": 1.5,
+        "clearcoat": 0,
+        "clearcoatRoughness": 0,
+        "envMapIntensity": 1
+      },
+      {
+        "definition": 32,
+        "name": "pedestal_powdercoat",
+        "type": "MeshStandardMaterial",
+        "color": [
+          0.046665086336880095,
+          0.05126945837404324,
+          0.05126945837404324
+        ],
+        "metalness": 0.05,
+        "roughness": 0.61,
+        "opacity": 1,
+        "transparent": false,
+        "alphaTest": 0,
+        "side": 0,
+        "depthWrite": true,
+        "emissive": [
+          0,
+          0,
+          0
+        ],
+        "emissiveIntensity": 1,
+        "transmission": 0,
+        "thickness": 0,
+        "ior": 1.5,
+        "clearcoat": 0,
+        "clearcoatRoughness": 0,
+        "envMapIntensity": 1
+      },
+      {
+        "definition": 39,
+        "name": "prop_cast_bronze",
+        "type": "MeshStandardMaterial",
+        "color": [
+          0.20155625379439707,
+          0.1651321945016676,
+          0.0953074666309647
+        ],
+        "metalness": 0.85,
+        "roughness": 0.36,
+        "opacity": 1,
+        "transparent": false,
+        "alphaTest": 0,
+        "side": 0,
+        "depthWrite": true,
+        "emissive": [
+          0,
+          0,
+          0
+        ],
+        "emissiveIntensity": 1,
+        "transmission": 0,
+        "thickness": 0,
+        "ior": 1.5,
+        "clearcoat": 0,
+        "clearcoatRoughness": 0,
+        "envMapIntensity": 1
+      },
+      {
+        "definition": 40,
+        "name": "prop_polished_bronze",
+        "type": "MeshStandardMaterial",
+        "color": [
+          0.3277780980565422,
+          0.2704977910130658,
+          0.162029375639111
+        ],
+        "metalness": 0.9,
+        "roughness": 0.24,
+        "opacity": 1,
+        "transparent": false,
+        "alphaTest": 0,
+        "side": 0,
+        "depthWrite": true,
+        "emissive": [
+          0,
+          0,
+          0
+        ],
+        "emissiveIntensity": 1,
+        "transmission": 0,
+        "thickness": 0,
+        "ior": 1.5,
+        "clearcoat": 0,
+        "clearcoatRoughness": 0,
+        "envMapIntensity": 1
+      },
+      {
+        "definition": 41,
+        "name": "motor_shaft_chrome",
+        "type": "MeshStandardMaterial",
+        "color": [
+          0.5906188409193369,
+          0.6375968739940326,
+          0.6583748172794485
+        ],
+        "metalness": 0.96,
+        "roughness": 0.18,
+        "opacity": 1,
+        "transparent": false,
+        "alphaTest": 0,
+        "side": 0,
+        "depthWrite": true,
+        "emissive": [
+          0,
+          0,
+          0
+        ],
+        "emissiveIntensity": 1,
+        "transmission": 0,
+        "thickness": 0,
+        "ior": 1.5,
+        "clearcoat": 0,
+        "clearcoatRoughness": 0,
+        "envMapIntensity": 1
+      },
+      {
+        "definition": 42,
+        "name": "rack_steel",
+        "type": "MeshStandardMaterial",
+        "color": [
+          0.17788841598362912,
+          0.1946178304415758,
+          0.20507873639031693
+        ],
+        "metalness": 0.83,
+        "roughness": 0.41,
+        "opacity": 1,
+        "transparent": false,
+        "alphaTest": 0,
+        "side": 0,
+        "depthWrite": true,
+        "emissive": [
+          0,
+          0,
+          0
+        ],
+        "emissiveIntensity": 1,
+        "transmission": 0,
+        "thickness": 0,
+        "ior": 1.5,
+        "clearcoat": 0,
+        "clearcoatRoughness": 0,
+        "envMapIntensity": 1
+      },
+      {
+        "definition": 43,
+        "name": "rack_foot_casting",
+        "type": "MeshStandardMaterial",
+        "color": [
+          0.08650046203654976,
+          0.09989872824711389,
+          0.10461648409110419
+        ],
+        "metalness": 0.78,
+        "roughness": 0.53,
+        "opacity": 1,
+        "transparent": false,
+        "alphaTest": 0,
+        "side": 0,
+        "depthWrite": true,
+        "emissive": [
+          0,
+          0,
+          0
+        ],
+        "emissiveIntensity": 1,
+        "transmission": 0,
+        "thickness": 0,
+        "ior": 1.5,
+        "clearcoat": 0,
+        "clearcoatRoughness": 0,
+        "envMapIntensity": 1
+      },
+      {
+        "definition": 44,
+        "name": "charge_enamel",
+        "type": "MeshStandardMaterial",
+        "color": [
+          0.07421356838014963,
+          0.08021982031446832,
+          0.06662593864377289
+        ],
+        "metalness": 0.12,
+        "roughness": 0.56,
+        "opacity": 1,
+        "transparent": false,
+        "alphaTest": 0,
+        "side": 0,
+        "depthWrite": true,
+        "emissive": [
+          0,
+          0,
+          0
+        ],
+        "emissiveIntensity": 1,
+        "transmission": 0,
+        "thickness": 0,
+        "ior": 1.5,
+        "clearcoat": 0,
+        "clearcoatRoughness": 0,
+        "envMapIntensity": 1
+      },
+      {
+        "definition": 45,
+        "name": "charge_end_enamel",
+        "type": "MeshStandardMaterial",
+        "color": [
+          0.06124605423161761,
+          0.06847816984440017,
+          0.0595112381629812
+        ],
+        "metalness": 0.1,
+        "roughness": 0.62,
+        "opacity": 1,
+        "transparent": false,
+        "alphaTest": 0,
+        "side": 0,
+        "depthWrite": true,
+        "emissive": [
+          0,
+          0,
+          0
+        ],
+        "emissiveIntensity": 1,
+        "transmission": 0,
+        "thickness": 0,
+        "ior": 1.5,
+        "clearcoat": 0,
+        "clearcoatRoughness": 0,
+        "envMapIntensity": 1
+      },
+      {
+        "definition": 46,
+        "name": "charge_band_zinc",
+        "type": "MeshStandardMaterial",
+        "color": [
+          0.3277780980565422,
+          0.3467040563550296,
+          0.3277780980565422
+        ],
+        "metalness": 0.8,
+        "roughness": 0.42,
+        "opacity": 1,
+        "transparent": false,
+        "alphaTest": 0,
+        "side": 0,
+        "depthWrite": true,
+        "emissive": [
+          0,
+          0,
+          0
+        ],
+        "emissiveIntensity": 1,
+        "transmission": 0,
+        "thickness": 0,
+        "ior": 1.5,
+        "clearcoat": 0,
+        "clearcoatRoughness": 0,
+        "envMapIntensity": 1
+      },
+      {
+        "definition": 51,
+        "name": "stanchion_socket",
+        "type": "MeshStandardMaterial",
+        "color": [
+          0.1714411007328226,
+          0.18782077230067787,
+          0.19806931955994886
+        ],
+        "metalness": 0.87,
+        "roughness": 0.37,
+        "opacity": 1,
+        "transparent": false,
+        "alphaTest": 0,
+        "side": 0,
+        "depthWrite": true,
+        "emissive": [
+          0,
+          0,
+          0
+        ],
+        "emissiveIntensity": 1,
+        "transmission": 0,
+        "thickness": 0,
+        "ior": 1.5,
+        "clearcoat": 0,
+        "clearcoatRoughness": 0,
+        "envMapIntensity": 1
+      },
+      {
+        "definition": 52,
+        "name": "cleat_fastener",
+        "type": "MeshStandardMaterial",
+        "color": [
+          0.45641102318040466,
+          0.4851499400560704,
+          0.5028864580325687
+        ],
+        "metalness": 0.94,
+        "roughness": 0.26,
+        "opacity": 1,
+        "transparent": false,
+        "alphaTest": 0,
+        "side": 0,
+        "depthWrite": true,
+        "emissive": [
+          0,
+          0,
+          0
+        ],
+        "emissiveIntensity": 1,
+        "transmission": 0,
+        "thickness": 0,
+        "ior": 1.5,
+        "clearcoat": 0,
+        "clearcoatRoughness": 0,
+        "envMapIntensity": 1
+      },
+      {
+        "definition": 48,
+        "name": "vent_recess",
+        "type": "MeshStandardMaterial",
+        "color": [
+          0.012983032342173012,
+          0.01520851442291271,
+          0.01599629336550963
+        ],
+        "metalness": 0,
+        "roughness": 0.92,
+        "opacity": 1,
+        "transparent": false,
+        "alphaTest": 0,
+        "side": 0,
+        "depthWrite": true,
+        "emissive": [
+          0,
+          0,
+          0
+        ],
+        "emissiveIntensity": 1,
+        "transmission": 0,
+        "thickness": 0,
+        "ior": 1.5,
+        "clearcoat": 0,
+        "clearcoatRoughness": 0,
+        "envMapIntensity": 1
+      },
+      {
+        "definition": 49,
+        "name": "vent_louver_aluminum",
+        "type": "MeshStandardMaterial",
+        "color": [
+          0.12743768043564743,
+          0.14412847085805777,
+          0.14995978981060856
+        ],
+        "metalness": 0.82,
+        "roughness": 0.44,
+        "opacity": 1,
+        "transparent": false,
+        "alphaTest": 0,
+        "side": 0,
+        "depthWrite": true,
+        "emissive": [
+          0,
+          0,
+          0
+        ],
+        "emissiveIntensity": 1,
+        "transmission": 0,
+        "thickness": 0,
+        "ior": 1.5,
+        "clearcoat": 0,
+        "clearcoatRoughness": 0,
+        "envMapIntensity": 1
+      },
+      {
+        "definition": 56,
+        "name": "vent_rim_powdercoat",
+        "type": "MeshStandardMaterial",
+        "color": [
+          0.0382043715953465,
+          0.042311410620809675,
+          0.04518620438567554
+        ],
+        "metalness": 0.08,
+        "roughness": 0.57,
+        "opacity": 1,
+        "transparent": false,
+        "alphaTest": 0,
+        "side": 0,
+        "depthWrite": true,
+        "emissive": [
+          0,
+          0,
+          0
+        ],
+        "emissiveIntensity": 1,
+        "transmission": 0,
+        "thickness": 0,
+        "ior": 1.5,
+        "clearcoat": 0,
+        "clearcoatRoughness": 0,
+        "envMapIntensity": 1
+      },
+      {
+        "definition": 55,
+        "name": "window_gasket_epdm",
+        "type": "MeshStandardMaterial",
+        "color": [
+          0.008568125618069307,
+          0.00972121732023785,
+          0.010329823029626936
+        ],
+        "metalness": 0,
+        "roughness": 0.94,
+        "opacity": 1,
+        "transparent": false,
+        "alphaTest": 0,
+        "side": 0,
+        "depthWrite": true,
+        "emissive": [
+          0,
+          0,
+          0
+        ],
+        "emissiveIntensity": 1,
+        "transmission": 0,
+        "thickness": 0,
+        "ior": 1.5,
+        "clearcoat": 0,
+        "clearcoatRoughness": 0,
+        "envMapIntensity": 1
+      },
+      {
+        "definition": 47,
+        "name": "hatch_chamfer_aluminum",
+        "type": "MeshStandardMaterial",
+        "color": [
+          0.042311410620809675,
+          0.046665086336880095,
+          0.04817182422688942
+        ],
+        "metalness": 0.25,
+        "roughness": 0.64,
+        "opacity": 1,
+        "transparent": false,
+        "alphaTest": 0,
+        "side": 0,
+        "depthWrite": true,
+        "emissive": [
+          0,
+          0,
+          0
+        ],
+        "emissiveIntensity": 1,
+        "transmission": 0,
+        "thickness": 0,
+        "ior": 1.5,
+        "clearcoat": 0,
+        "clearcoatRoughness": 0,
+        "envMapIntensity": 1
+      },
+      {
+        "definition": 50,
+        "name": "seat_stitch_polyester",
+        "type": "MeshStandardMaterial",
+        "color": [
+          0.19120168274079138,
+          0.19120168274079138,
+          0.1651321945016676
+        ],
+        "metalness": 0,
+        "roughness": 0.9,
+        "opacity": 1,
+        "transparent": false,
+        "alphaTest": 0,
+        "side": 0,
+        "depthWrite": true,
+        "emissive": [
+          0,
+          0,
+          0
+        ],
+        "emissiveIntensity": 1,
+        "transmission": 0,
+        "thickness": 0,
+        "ior": 1.5,
+        "clearcoat": 0,
+        "clearcoatRoughness": 0,
+        "envMapIntensity": 1
+      },
+      {
+        "definition": 53,
+        "name": "copper_bonding_strap",
+        "type": "MeshStandardMaterial",
+        "color": [
+          0.22696587351009836,
+          0.14126329114027164,
+          0.09758734714186246
+        ],
+        "metalness": 0.88,
+        "roughness": 0.47,
+        "opacity": 1,
+        "transparent": false,
+        "alphaTest": 0,
+        "side": 0,
+        "depthWrite": true,
+        "emissive": [
+          0,
+          0,
+          0
+        ],
+        "emissiveIntensity": 1,
+        "transmission": 0,
+        "thickness": 0,
+        "ior": 1.5,
+        "clearcoat": 0,
+        "clearcoatRoughness": 0,
+        "envMapIntensity": 1
+      },
+      {
+        "definition": 54,
+        "name": "brass_drain_plug",
+        "type": "MeshStandardMaterial",
+        "color": [
+          0.30946892281750854,
+          0.24620132670783548,
+          0.12477181756095049
+        ],
+        "metalness": 0.86,
+        "roughness": 0.33,
+        "opacity": 1,
+        "transparent": false,
+        "alphaTest": 0,
+        "side": 0,
+        "depthWrite": true,
+        "emissive": [
+          0,
+          0,
+          0
+        ],
+        "emissiveIntensity": 1,
+        "transmission": 0,
+        "thickness": 0,
+        "ior": 1.5,
+        "clearcoat": 0,
+        "clearcoatRoughness": 0,
+        "envMapIntensity": 1
+      }
+    ],
+    "bounds": {
+      "min": [
+        -1.60912,
+        -0.7,
+        -5
+      ],
+      "max": [
+        1.60912,
+        2.43,
+        5.016
+      ]
+    },
+    "modelMatrix": [
+      1,
+      0,
+      0,
+      0,
+      0,
+      1,
+      0,
+      0,
+      0,
+      0,
+      1,
+      0,
+      0,
+      0,
+      0,
+      1
+    ],
+    "radius": 5.488037552203884
+  },
+  "evidenceBytesBeforeReceipt": 1492253,
+  "parentReview": "Reviewed front, side, top, rear, both quarter angles, lit belly and mobile. First reroll rejected as flat; second improves PBR/material separation. Final front bow seam closed. Realism remains operator judgment; not native gameplay acceptance."
+}

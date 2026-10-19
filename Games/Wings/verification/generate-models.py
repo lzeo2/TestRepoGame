@@ -673,7 +673,7 @@ def speedboat():
         ('dry_gelcoat_port', (38, 41, 43), 0, .32, ('hull_L_topsides',)),
         ('dry_gelcoat_starboard', (39, 42, 44), 0, .33, ('hull_R_topsides',)),
         ('cabin_glass', (102, 113, 119), 0, .12, ('windscreen', 'cabin_window_')),
-        ('wet_gelcoat', (35, 38, 40), 0, .22, ('hull_',)),
+        ('wet_gelcoat', (35, 38, 40), 0, .22, ('hull_', 'bow_closure')),
         ('transom_gelcoat', (40, 43, 44), 0, .36, ('transom',)),
         ('foredeck_nonskid', (43, 46, 46), 0, .86, ('foredeck_',)),
         ('aftdeck_nonskid', (41, 44, 44), 0, .89, ('aftdeck_',)),
@@ -785,6 +785,12 @@ def speedboat():
     width, top, _ = section(-1.3)
     m.box('foredeck_step', (0,top+.08,-1.3), (2*width,.16,.035), 5)
     m.box('bow_stem', (0,.73,-4.99), (.05,.16,.02), 5)
+    # Close the finite-width first hull station; the true front view exposed
+    # daylight between the port/starboard skins below the existing stem fitting.
+    width, top, keel = section(-5)
+    chine = max(-.08, keel+.08)
+    m.slab('bow_closure', [(-width,top,-4.995),(width,top,-4.995),
+        (.88*width,chine,-4.995),(0,keel,-4.995),(-.88*width,chine,-4.995)], 2,.01,0)
 
     # Local round rails use the same sampled surface helper as the hull.
     def rail(name, a, b, radius, material=3, parent=0, rows=2, columns=12):
@@ -1194,6 +1200,7 @@ def check_model(data):
                     'prop_L', 'prop_R', 'wake_L', 'wake_R',
                     'charge_1', 'charge_2', 'charge_3', 'charge_4'}
         assert required <= set(names)
+        assert 'bow_closure' in names, 'Finite-width bow skins must have a closing surface'
         expected = {'cannon_yaw': (0,1,-2.6), 'cannon_pitch': (0,.15,0),
                     'gun_muzzle': (0,0,-1.3), 'helm_eye': (0,1.9,.9),
                     'stern_exit': (0,.45,5.2), 'prop_L': (-.8,-.45,4.4),

@@ -1,0 +1,25 @@
+{
+  "name": "speedboat",
+  "triangles": 17252,
+  "vertices": 24746,
+  "bytes": 1069292,
+  "sha256": "1f0eae7f3b962669c2f95f1ce52e3f27cce008595f4875bae41e9274b24da65a",
+  "assignments": 258,
+  "materials": 92,
+  "unique_materials": 92,
+  "generatorSHA256": "9c9350cbd9a1600cf3dad89a28ac8260a647b57f883a3d66c137a14718852ad7",
+  "selfContained": true,
+  "textureImages": 0,
+  "captureCases": 16,
+  "bodygunPivot": [
+    0,
+    1.15,
+    -2.6
+  ],
+  "gunTip": [
+    0,
+    0,
+    -1.3
+  ],
+  "status": "Experimental raw asset; operator realism and delivered runtime acceptance pending"
+}
