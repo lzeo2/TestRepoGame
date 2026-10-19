@@ -1,6 +1,6 @@
 # Wings F/A-18 structure study and speedboat design
 
-2026-10-19, baseline `e2028d6`. **Study/design for parent review, not implementation approval.**
+2026-10-19, baseline `e2028d6`. **Parent approved this two-weapon water-class approach after study commit `2fe6f4c`; final acceptance remains gated.**
 Notes only; environment confirms `openai-codex/gpt-6-astra`, reasoning `medium`; 15-minute lane cap.
 Prior incomplete study `7831179` stopped at 2,147,213,312 free bytes, below 2,147,483,648.
 Operator answered ticket `pi-829842-1792388121373-af09fa13`; resume began at 2,631,041,024.
@@ -137,7 +137,7 @@ patch application/build are unproven here. No installs or alternative dependency
 Before any shared fix, parent must trace ALL recovered callers, including tests, prediction, preview,
 HUD/audio and constructed paths. Above caller sets are bounded evidence, not a whole-source completeness claim.
 
-## Proposed speedboat design, awaiting parent approval
+## Speedboat design, approved for bounded implementation
 One new kind `speedboat`, movement class `water`, not heli; preserve all original seven behaviors.
 Use existing FlightState pose/velocity for deterministic buoyancy: damp vertical error toward sea level
 plus model waterline offset, planar forward thrust, lateral drag/drift, yaw response scaled by speed,
@@ -197,4 +197,6 @@ No browser/fleet/native test ran in this note lane: 0/125 visits, no screenshots
 Maintenance checker passes 130 documents/125 registered + 5 unregistered; inventory current.
 GLB probe corrected for non-indexed primitives. Upstream LICENSE remains missing; Three/font notices do not license Wings.
 Logs: `.swarmforge-logs/wings-speedboat-study-complete.log` and `.swarmforge-logs/worker-20261019-061727.log`.
-No push. Parent approval, recovered-source caller audit/build and all implementation gates remain open.
+No push. Parent approved the design and recovered 70 pinned source files with blob verification.
+Existing-tool esbuild builder `a017419` passes baseline build/CPU checks; see the reroll receipt
+at `docs/maintenance/audits/wings-speedboat-reroll.md` for private work, preview files and open gates.

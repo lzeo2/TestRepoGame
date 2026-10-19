@@ -480,3 +480,42 @@ Current full gate remains **0/125 visits, NOT RUN**, not a green result. No
 exclusions newly measured/applied. Boat design/build/interactive tests remain
 unstarted. No push/deploy verification. Capacity recovery alone is not acceptance.
 Safe handover is committed, inventory current and coding sparse selection unchanged.
+
+## Second operator capacity recovery, study/build and realism files
+
+Operator answered `pi-829842-1792388121373-af09fa13` and resumed again; parent
+measured **2,631,307,264 bytes** free. No outside-repository deletions. Design
+study completed as `2fe6f4c` before implementation; parent approved honest water
+motion with cannon and depth charges, no wake-slam. Seventy authored source files
+were recovered from the exact pin, each verified by Git blob hash. Existing patch
+applies cleanly. Source builder `a017419` uses existing esbuild 0.28.2 and external
+Three 0.186.0 without installs/node_modules; unchanged baseline CPU and
+byte-reproducible builds pass. Recovered source and staged runtime work are
+private under `.tmp/wings-speedboat-source`, not deployed output.
+
+The operator's later visual order approved the initial boat shape but requested
+greater realism. The [reroll receipt](wings-speedboat-reroll.md) records source
+and private commit trails, parent rejection of the flat first reroll, second
+panel/PBR/AO/detail refinement, true multi-angle renders and the exposed bow seam
+repair. Final experimental asset: **17,252 triangles / 92 used materials / 258
+assignments / 1,069,292 bytes**. All three committed models pass deterministic
+regeneration. No texture images. Sixteen actual PNG files and machine receipts
+are saved under `Games/Wings/docs/previews-v2/speedboat-reroll/` for operator
+judgment. Parent inspected quarters plus front/side/top/rear and lit belly;
+photorealism is not self-certified. Original served runtime, jet bytes, protected
+tree, catalog and smoke filters remain untouched.
+
+Delegations 8-23 were bounded, explicit-path commits with no worker push. Source
+workers committed in the private recovery repository; main workers owned only
+the note, builder, generator or capture runner. Rotating log samples, two at most
+per cycle, and interventions are recorded in the reroll receipt. Corrected parent
+registry insertion order; the new CPU regression retained its original-seven
+failure until that fix. Audio scope refusal was correct; its reassigned lane was
+interrupted by the operator visual order, leaving private WIP explicitly tracked
+in the receipt. No absorption of an unfinished worker task or fabricated PASS.
+
+Current full gate remains **0/125 visits, not run**, exclusions unmeasured and
+unchanged. Boat input/camera/UI/audio integration, patch/build delivery, native
+scene budget and interactive weapons/restart remain open. Preview files are
+provided for the operator's pixel decision, not a push or deploy gate waiver.
+Coding sparse selection remains unchanged; no bulk checkout in this continuation.

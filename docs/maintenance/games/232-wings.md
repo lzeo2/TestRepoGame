@@ -235,6 +235,7 @@ collector/selector failures remain recorded in the continuation receipt.
 | --- | --- | --- | --- | --- |
 | F-15 | 40,000-55,000 | <1,200,000 | 41,352 / 25,305 / 1,176,316 | 142 / 12 |
 | F-35 | 35,000-50,000 | <1,200,000 | 40,812 / 25,323 / 1,174,768 | 143 / 12 |
+| Speedboat experimental raw asset | 12,000-18,000 | <1,200,000 | 17,252 / 24,746 / 1,069,292 | 258 / 92 |
 
 These are asset limits, not supported-device performance claims. Reference asset
 triangles: F/A-18 16,896; YF-12 18,028. Their converted totals add 392 flame
@@ -306,6 +307,37 @@ approval; do not begin geometry or runtime implementation yet. Parent confirmed
 `pi-829842-1792388121373-af09fa13` requires operator-side recovery. Batch release
 cannot make the largest approximately 196 MB game fit in a few MB margin.
 Full gate remains unrun, boat interactive acceptance absent and no push.
+
+## Speedboat study and raw reroll continuation (2026-10-19)
+
+Operator answered the renewed storage ticket and recovered capacity. Parent
+measured 2,631,307,264 free bytes at the next entry. No outside-repository deletion
+or dependency installation. Completed F/A-18 study `2fe6f4c` precedes the approved
+water-class cannon/depth-charge design. Builder `a017419` proves reproducible
+baseline source output using existing esbuild 0.28.2 and external Three 0.186.0.
+The current served runtime is unchanged; private staged boat implementation is
+not yet delivered, selectable or fully accepted.
+
+The operator approved the initial hull shape but required greater realism.
+Generator `f3ce4dd` began at 16,344 triangles/14 materials/121 assignments;
+`b70d464` first reroll was rejected by parent as too flat. `6c375af` refined
+functional panel PBR, neutral AO and micro-detail. Parent closed a bow gap exposed
+by the true front view: final experimental `models/speedboat.glb` is 17,252
+triangles, 92 used material definitions and 258 assignments. Near-black hull,
+subdued ochre, differentiated non-skid/glass/metal/rubber and texture-free
+clearcoat/vertex occlusion. The model checker now checks all three committed
+models against repeated generation; original jet bytes remain exact.
+
+[Sixteen rendered PNG files](../../../Games/Wings/docs/previews-v2/speedboat-reroll/README.md)
+include true front/side/top/rear/lit-belly and both quarter angles, both themes,
+plus mobile quarters. Parent inspected multiple angles and belly, then recaptured
+after closure. No errors/external/failed requests. Photographic realism remains
+operator judgment; parent still describes the result as a clean game model.
+[Full reroll receipt](../audits/wings-speedboat-reroll.md) separates raw captures,
+private converter/physics/combat work, interrupted audio WIP and all remaining
+runtime/input/camera/performance/full-gate/interactive holds. No new game or ID.
+No push or deploy verification. Release-between-batches and disk checks remain
+mandatory when the completed runtime eventually reaches its full fleet gate.
 
 ## Future outlook
 
