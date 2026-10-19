@@ -414,3 +414,34 @@ for the largest approximately 196 MB game plus browser overhead before resuming.
 The new speedboat also needs the existing approved source-build toolchain and a
 supported interactive renderer; this run did not acquire or validate those.
 Do not push merely because storage later recovers: finish all pending gates.
+
+## Capacity recovery and Phase 5 continuation (2026-10-19)
+
+Operator answered `pi-829842-1792322142957-ab609a47` and resumed. Reported free
+bytes 2,154,393,600; parent measured 2,154,369,024 at entry, only 6,885,376 above
+the strict floor. No outside-repository deletion, package install or GC allowed.
+Projected checkout/build growth must fit above the floor, not just pass a rounded
+`df` display. Each fleet batch must release to coding sparse selection before
+the next batch is added. This prevents accumulation, not an oversized individual
+batch. Further external capacity recovery remains operator-only.
+
+Operator clarified that unavailable native Pi GPU output is a documented hardware
+receipt, not by itself a gate/push blocker; SwiftShader is the supported CPU path.
+No assertion is weakened and no new successful native pixels are inferred. Full
+fleet and normal-input boat spawn/every weapon/state-change/restart remain gates.
+
+Delegation 6 produced [Phase 5 consolidation](wings-v2-phase5.md), `c24103f`:
+four fresh checks pass; saved 6/6 default and 9/9 diagnostic receipts validate,
+not recaptured that day. Parent retained six previously reviewed images in
+`Games/Wings/docs/previews-v2/resume-20261018-*.png`, commit `bde775e`, with dates,
+lighting and raw/native distinctions. No runtime/model/catalog change.
+Phase 4/5 CPU/raw-preview lanes are complete within these documented limits;
+remaining native scopes stay unverified hardware receipts. The speedboat
+F/A-18 study/design lane follows before any implementation.
+
+Sampled final 20 lines of `.swarmforge-logs/worker-20261019-052955.log`, reviewed
+the receipt and actual commit. The worker corrected its own 101-line receipt
+constraint to 99 lines after an assertion; no product defect or weakened check.
+Chose not to rerun browser profiles with only a few MB headroom, change models,
+alter tuning, bypass rendering or modify fleet filters. First new source change
+was only retained preview evidence; maintenance inventory refreshed afterward.

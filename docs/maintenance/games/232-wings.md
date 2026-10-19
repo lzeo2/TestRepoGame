@@ -275,8 +275,12 @@ scope. Fresh [Phase 3](../audits/wings-v2-phase3.md) and
 [Phase 4](../audits/wings-v2-phase4.md) CPU checks pass exhaust, distinct weapon
 acquisition/fire/store/bay/hardpoint/input behavior and converter/registry checks.
 Phase 3's native collector timed out before launch, so native exhaust, weapon/bay
-pixels and converted-family acceptance remain open. Phase 5 is blocked by free
-space below the strict 2 GiB floor. Previous native/fleet results remain dated.
+pixels and converted-family acceptance remain unverified. On 2026-10-19 the
+operator accepted these as hardware receipts, not automatic gate/push blockers.
+[Phase 5](../audits/wings-v2-phase5.md) fresh CPU checks pass and saved 6/6 plus
+9/9 raw receipts validate. Six reviewed 2026-10-18 previews are now retained under
+`docs/previews-v2/` within Wings, with explicit dates and fixture limits. Previous
+native/fleet results remain dated.
 
 The operator additionally authorized one new selectable non-plane class after
 the jet lanes, with a study/design commit before implementation. Apache already
@@ -286,11 +290,14 @@ are required, not another heli or re-skinned jet.
 See the receipt for the full geometry, animation, unique-weapon, scene-budget and
 interactive acceptance gates. No new portal game or catalog ID. Push is authorized
 only after all newly required acceptance and a fresh 125/125 full gate. The
-current run stopped below the disk floor: the full fleet gate was not run
-(0/125 visits), speedboat study/implementation/playtest has not begun, and no
-push or deploy verification occurred. Storage ticket
-`pi-829842-1792322142957-ab609a47` is unresolved. See the resume receipt for exact
-measurements, sampled worker logs, commits and required continuation order.
+2026-10-18 run stopped below the disk floor. The operator answered storage ticket
+`pi-829842-1792322142957-ab609a47` and resumed on 2026-10-19 with only about
+6.9 MB above the floor. Capacity must be checked before growth, including each
+checkout's projected bytes. Release each batch to coding sparse selection before
+the next batch. No outside-repository deletion is authorized. Full fleet gate
+still has 0/125 visits; speedboat structure study precedes implementation, then
+full gate, interactive boat playtest and push only if all green. See the resume
+receipt for exact measurements, sampled logs, commits and continuation order.
 
 ## Future outlook
 
