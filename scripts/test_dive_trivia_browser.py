@@ -100,6 +100,11 @@ def main():
         problems = page.evaluate('''() => {
           const out = [], root = document.documentElement;
           if (root.scrollWidth > root.clientWidth + 1) out.push('horizontal overflow');
+          for (const el of document.querySelectorAll('.workbench *')) {
+            if (el.checkVisibility() && el.clientWidth && !el.matches('input,select,textarea') &&
+                el.scrollWidth > el.clientWidth + 1)
+              out.push((el.id || el.tagName) + ' internal text overflow');
+          }
           for (const el of document.querySelectorAll('button,input,select,summary,a[href]')) {
             const r = el.getBoundingClientRect();
             if (!el.checkVisibility() || r.right <= 0 || r.bottom <= 0 || r.top < -50) continue;
@@ -290,6 +295,21 @@ def main():
                     assert desktop.locator('#launch').is_visible()
                     assert not desktop.locator('#number').evaluate('e => e.checkValidity()')
                 passed('numbered bounds reject 0, 1000000, fractional values')
+
+                # The narrowest layout must retain every allowed answer character.
+                long_answer = 'W' * 80
+                act(mobile, '#playBtn')
+                answer(mobile, long_answer)
+                assert long_answer in mobile.locator('#result-copy').inner_text()
+                capture(mobile, 'mobile-320-long-answer', 'reveal')
+                for _index in range(1, 7):
+                    act(mobile, '#next')
+                    act(mobile, '#pass')
+                act(mobile, '#next')
+                assert mobile.locator('#results strong').first.inner_text() == long_answer
+                capture(mobile, 'mobile-320-long-answer', 'results')
+                home(mobile)
+                passed('80-character unbroken answer wraps in 320px reveal and field notes')
 
                 act(desktop, '#playBtn')
                 attack = '<script>alert("x")</script>'
