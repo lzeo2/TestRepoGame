@@ -6,8 +6,8 @@ is a source-grounded audit and maintenance guide, not a claim that every legacy
 game meets today's standards. Some engines are compiled, some rights are
 unverified, and some native interactions remain held.
 
-The catalog contains **125 registered games**. The latest Git inventory records **130 game projects**
-plus the shared `Games/_emulatorjs` runtime. Steal a Footballer is the owner-authorized solo adaptation registered as 227; the owner stopped game testing and explicitly requested this source release without a completed smoke gate. The five unregistered games are
+This branch's catalog contains **126 registered games**. The latest Git inventory records **131 game projects**
+plus the shared `Games/_emulatorjs` runtime. The 2026-10-19 original Dive Trivia addition is provisional catalog235, offline solo with Battle gated for phase 2; see the [branch handover](../dive-trivia-handover.md) and game index below. Its targeted 1/1 smoke does not replace the historical fleet gate or authorize publication. Steal a Footballer is the owner-authorized solo adaptation registered as 227; the owner stopped game testing and explicitly requested this source release without a completed smoke gate. The five unregistered games are
 2048, Garage Borough, Hextris, QWOP and Slope. Existing Slipstream Borough is catalog225, explicitly labeled a police-chase preview with an unbanked handling sandbox. Existing Foldwild is owner-authorized Story preview226; its M2/inspection/campaign/device/rights holds remain. Both are registrations of existing projects, not new builds. Sparse exclusion is intentional: a missing
 local Games folder does not mean a broken deployment. See [inventory](inventory.json)
 for exact tracked counts, entry hashes, source-tree hashes and manual paths.
@@ -278,6 +278,7 @@ reserved by appearing here.
 | 232 | [Wings](games/232-wings.md) | `Games/Wings/index.html` |
 | 233 | [Server Survival](games/233-serversurvival.md) | `Games/ServerSurvival/index.html` |
 | 234 | [Astray](games/234-astray.md) | `Games/Astray/index.html` |
+| 235 | [Dive Trivia (Working Title)](games/235-dive-trivia.md) | `Games/Dive Trivia/index.html` |
 | Unregistered | [2048](games/unregistered-2048.md) | `Games/2048/index.html` |
 | Unregistered | [Garage Borough](games/unregistered-garage-borough.md) | `Games/Garage Borough/index.html` |
 | Unregistered | [Hextris](games/unregistered-hextris.md) | `Games/Hextris/index.html` |
