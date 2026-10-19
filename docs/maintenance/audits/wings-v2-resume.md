@@ -445,3 +445,38 @@ constraint to 99 lines after an assertion; no product defect or weakened check.
 Chose not to rerun browser profiles with only a few MB headroom, change models,
 alter tuning, bypass rendering or modify fleet filters. First new source change
 was only retained preview evidence; maintenance inventory refreshed afterward.
+
+## Renewed capacity stop before speedboat implementation
+
+Delegation 7 committed the explicitly incomplete
+[F/A-18/speedboat study](../../wings-speedboat-study.md), `7831179`. It establishes
+schema/store/pivot/converter findings, but built-registry, camera/audio and full
+spawn/combat/water/toolchain tracing remain incomplete. It is not an approved
+implementation contract. No geometry/runtime implementation may follow yet.
+
+Worker entered with 2,148,413,440 free bytes; guard measured 2,147,213,312, below
+the 2,147,483,648 floor. It stopped reading/output growth except its safe note
+and commit. Parent confirmed **2,144,706,560 bytes**, 2,777,088 below floor.
+No browser, bulk checkout, installation, download or outside-repository deletion
+in that lane. Filesystem growth is not attributed solely to the small study.
+
+Sampled final 20 lines of `.swarmforge-logs/worker-20261019-053450.log`, reviewed
+the complete 92-line study and commit. No drift into geometry; deliberately did
+not approve the proposed weapons or missing runtime design. Logs also include
+`.swarmforge-logs/wings-speedboat-study.log`. Worker provider/model was requested
+as `openai-codex/gpt-6-astra`, medium; no claim of independently verified internal
+thinking setting. Only notes changed; original runtime remains untouched.
+
+Filed renewed ticket `pi-829842-1792388121373-af09fa13` under `~/.swarm-help/`;
+advice timed out after 10 seconds. Further recovery is operator-only. Releasing
+between batches is required but cannot make a single 195,853,427-byte game fit
+in a 6.9 MB margin. Even releasing the roughly 16.7 MB current Games payload
+would not close that gap. Request at least the largest-game payload plus measured
+browser/build/source/Git overhead above the floor; 500 MB extra is a practical
+starting buffer, not a substituted floor or guaranteed complete build budget.
+Project actual growth before every checkout regardless of rounded `df`.
+
+Current full gate remains **0/125 visits, NOT RUN**, not a green result. No
+exclusions newly measured/applied. Boat design/build/interactive tests remain
+unstarted. No push/deploy verification. Capacity recovery alone is not acceptance.
+Safe handover is committed, inventory current and coding sparse selection unchanged.

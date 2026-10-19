@@ -299,6 +299,14 @@ still has 0/125 visits; speedboat structure study precedes implementation, then
 full gate, interactive boat playtest and push only if all green. See the resume
 receipt for exact measurements, sampled logs, commits and continuation order.
 
+The notes-only [speedboat structure study](../../wings-speedboat-study.md) landed
+as `7831179` but stopped incomplete on a renewed floor breach. It is not design
+approval; do not begin geometry or runtime implementation yet. Parent confirmed
+2,144,706,560 free bytes. Renewed storage ticket
+`pi-829842-1792388121373-af09fa13` requires operator-side recovery. Batch release
+cannot make the largest approximately 196 MB game fit in a few MB margin.
+Full gate remains unrun, boat interactive acceptance absent and no push.
+
 ## Future outlook
 
 Complete operator and converted-family review, native missile/audio/physical-input
