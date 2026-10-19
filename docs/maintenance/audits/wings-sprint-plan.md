@@ -1,7 +1,7 @@
-# Wings sprint plan: Phase 0 anatomy and Phase 1 weather/day cycle
+# Wings sprint plan: anatomy, weather/day cycle and multinational roster
 
-Planning only, 2026-10-19. This file does not implement weather, approve a model,
-waive a test, authorize dependencies, or claim a push. The current boat run takes
+Planning only, 2026-10-19. This file does not implement weather or new aircraft,
+approve a model, waive a test, authorize dependencies, or claim a push. The current boat run takes
 precedence. The operator authorized its push without another confirmation ONLY
 after the completed roof/driver/runtime work, interactive acceptance and fresh
 125/125 full smoke gate. A failed gate means no push.
@@ -63,6 +63,8 @@ roof/glazing diagnosis + deterministic closed geometry + seated pilot_1
     -> Phase 0 execution and independent anatomy verdict
     -> operator/orchestrator accepts transferable checklist and Phase 1 parameters
     -> Phase 1 implementation, exhaustive agreed acceptance matrix, new full gate
+    -> Phase 2 multinational roster: rights/reference freeze, three serial models,
+       reviewed integration, per-jet receipts and its OWN full release gate
 ```
 
 Planning and reading may happen now. Phase 1 source edits, shader experiments,
@@ -494,9 +496,256 @@ push. Following an authorized green push, compare the live GitHub Pages
 status. A stuck Pages build follows the existing approved workflow, not another
 source push or weaker gate.
 
+## Phase 2: multinational jet roster expansion, queued only
+
+Direct operator addition, 2026-10-19. Add several selectable aircraft to existing
+Wings, not new portal games, catalog IDs or a new engine. **Do not start this
+phase before the current boat gate/push and live verification land.** Today's
+only action is this plan update and read-only registry/rights-context inspection.
+The current push authorization does not make a historical gate cover this batch.
+
+### Chosen first batch and registry evidence
+
+Choose THREE airframes for genuine multinational coverage, not more US types:
+
+| Candidate | National/design lineage represented | Recognition and class distinctions to study before specification |
+| --- | --- | --- |
+| MiG-29 | Soviet-origin design; Soviet/Russian family representation | Conventional wing, broad blended wing roots, separated twin engines/nozzles and twin fins; verify exact variant, intakes, gun location, pylons and tail geometry from references |
+| Dassault Rafale | France | Close-coupled canard/delta, twin engines and single fin; verify canopy variant, intake contours, internal cannon and actual store/rail layout |
+| Chengdu J-10 | China | Canard/delta with one engine and one fin; verify variant-specific chin/ventral intake, forebody, gun and underwing/belly stations rather than shrinking a Rafale |
+
+These are the selected subjects, not frozen variants or dimensional constants.
+The study must pin one exact variant per subject before any generator work.
+Do not mix a trainer canopy, later intake and earlier wing into a fictitious
+hybrid, or invent a second physical cockpit for a single-seat variant. If the
+game retains an abstract second weapon seat, describe/test that arcade convention
+honestly; it must not become false operational-aircraft documentation.
+
+At main `f2bda9f`, a balanced-boundary pattern read of the actual built aircraft
+registry found `f15,f35,fa18,apache,a10,yf12,b2`. The private tuning table has
+`fighter,apache,warthog,blackbird,bomber,f15,f35,speedboat`. None of the three
+chosen subjects is selectable in either inspected set. Tracked Wings mention
+search also found no selected subject. This is a dated absence check, not a
+reservation of future kind names or slots. Recheck the ACTUAL served registry,
+source descriptors, model paths, caller maps and pending commits after the boat
+push; current private staging is not the final allocator.
+
+Proposed kind labels `mig29`, `rafale`, `j10` are provisional until that recheck.
+Append after the existing roster without shifting existing keys or selection.
+For more than nine entries, use the existing scrollable MenuNav/Enter/touch path;
+there is no `Digit10` browser key. Test every entry's visibility, keyboard focus,
+44px controls and mobile scrolling instead of introducing a speculative menu
+framework or silently removing old shortcuts.
+
+Reserve, NOT part of this first batch: Eurofighter Typhoon (multinational European
+programme, not purely UK), Su-27/Su-34 (another Soviet/Russian family), Harrier
+(British-origin VTOL family with variant-specific international development),
+Mirage and historical US F-4. Three different national/design families give a
+clearer first result than multiple US aircraft or two near-duplicate Russian
+families. Harrier requires honest hover/transition/vertical-landing physics and
+its own acceptance contract; do not fake VTOL with an ordinary jet or a hidden
+heli flag. No optional reserve is an automatic extra addition.
+
+The operator's examples are not hardware specifications: do not invent a Typhoon
+cannon pod from the example text, or label a Su-27 layout a generic twin-stinger.
+Verify each variant's internal cannon, engines/nozzles, tail/stinger and stores
+from the reference study. National origin alone does not prove unique gameplay.
+
+### Phase 2 study and rights gate before modeling
+
+Read the complete P0-A/B/D manifests and the independent challenge/checklist,
+current F/A-18/F-15/F-35 receipts, all final family GLBs and the exact selected
+variant references. Repeat family measurements: source/converted bounds,
+triangles/vertices/bytes, assignments versus unique materials, paint/PBR colors,
+pivots, occupied pilots, stores/slot order, exhaust, gear, shadows and cameras.
+Trace actual consumers through spawn, simulation, combat, bots, UI, audio,
+snapshots and build. No generator edit before this study is reviewed and lands.
+
+For every candidate record at least two complementary authoritative or otherwise
+well-supported reference sources, revision/access date, variant identity,
+specifications and front/side/top/rear/belly contour observations. Prefer
+manufacturer/museum/official fact sheets plus legally accessible photographs.
+Reference sources have NOT been fetched or rights-verified by this planning edit.
+Photographs are study references only: no copied mesh, tracing-derived texture,
+image sampling, decals, downloaded GLB or disguised remote asset.
+
+Review `Games/Wings/CREDITS.md` and the F-15/F-35 provenance posture first. That
+file explicitly records a missing upstream LICENSE and owner-directed ingestion;
+Three MIT and font OFL notices do not license Wings, named airframe designs,
+photographs or national emblems. Procedural generation is not a blanket rights
+clearance, and an aircraft name/model subject is not an official endorsement.
+For each jet preserve actual generator authorship/provider/model, reference use,
+source/build revision and all qualifications. Do not invent licenses or assert
+that every military design/roundel is public domain.
+
+The operator specifically requested national livery accents. Use vertex-color
+material splits only, with small restrained roundels/fin flashes where the
+particular insignia's use is reviewed and justified. This is not standing
+permission to copy any country's protected insignia. If the actual emblem cannot
+be justified, record the issue and propose plain national-color bands or clearly
+generic markings; do not claim they are authentic roundels or silently publish
+a close counterfeit. Escalate an unresolved requirement rather than fabricate
+permission. Dark #1d1f20-#2c2f30 family base remains, with limited colored accents,
+not white airframes, flag emojis or textures. Update CREDITS and per-jet docs at
+integration with this same honest distinction.
+
+### Per-jet implementation and non-cloning contract
+
+- Extend the existing Python-stdlib deterministic generator, existing Model
+  primitives and reproducible `scripts/build_wings.mjs` path. No new runtime
+  dependency or separate engine. Each model is original local geometry, not
+  another jet scaled/recolored or a downloaded substitute.
+- Default band **12,000-18,000 asset triangles per new jet**, including visible
+  pilots, stores, fittings and any gear. Any different band requires a reviewed
+  concept document before work, with explicit reason and operator acceptance;
+  an over-budget output is not its own exception. Measure converted exhaust
+  additions separately and include them in scene totals.
+- At least **40 meaningful material/primitive assignments**; aim around the
+  F/A-18's 151 assignment density where anatomy/detail warrants it. Distinguish
+  assignment count from unique material values. Do not pad empty meshes or
+  duplicate material definitions to hit a number, and do not assume the boat's
+  92 PBR definitions are required on every aircraft. Every definition must be used.
+- Recognizable silhouettes require independent reference comparisons and parent
+  pixel judgment. MiG-29 wing/root/intake/twin-tail anatomy, Rafale canards/delta/
+  twin nozzles and J-10 canards/intake/single nozzle must remain distinguishable
+  without labels, camouflage or a flattering camera. No '-style' disclaimer as
+  cover for the wrong shape. Preserve finite indexed geometry, valid root/units,
+  watertight opaque volumes, correct winding, intentional glass and no resources.
+- Stores/pivots/afterburners must be non-empty and attached to actual geometry,
+  class-true for the frozen variant. MiG and Rafale twin exhaust arrangements
+  cannot be replaced by one shared J-10 nozzle; rails, gun muzzle and pylon layout
+  come from their own anatomy. Canards/control surfaces animate only if wired to
+  a real supported mechanism, not decorative empty nodes.
+- Derive launch origins, articulated limits where relevant, cockpit/crew, chase,
+  shadow and placeholder dimensions from each GLB's composed geometry. Reuse
+  proven runtime mechanisms, not another aircraft's constants. Occupied pilot
+  pivots must really show/hide with seat transitions; no phantom second canopy.
+- Design distinct justified arcade fits/handling per airframe after studying the
+  actual weapon/flight tables. Reusing a shared gun or seeker physics category
+  can be legitimate; cloning every tuning row or falsely claiming US-named
+  missiles are the real national equipment is not. Separate generic arcade IDs
+  from any researched visual-store identity. New weapon IDs/mechanics require
+  explicit source semantics, fixtures, audio/HUD and wire compatibility, not an
+  unknown-ID fallback to missiles. No new weapon system merely for a checklist.
+- Trace ALL kind-dependent maps: types, VEHICLES, render CONFIG, flight handling,
+  armor/class multipliers, spawn/validation, bot weights, audio, cameras, HUD and
+  UI/thumbnail shortcuts. Preserve every existing slot/loadout/state transition;
+  default new bot spawn weights to zero until a separate measured balance choice.
+- Keep a ledger of actual total visible scene triangles and draws for every new
+  jet, existing-plus-new mixed encounters and weapon/effect peaks, all required
+  weather/day and quality states. **Full scene stays below 120,000 visible
+  triangles**, including world/fleet/rain/exhaust/crew. Raw asset sums or isolated
+  preview scenes do not pass. The P1 high-water/rain warning is still relevant.
+  If the baseline already violates the budget, report measured evidence and
+  seek a separately reviewed fix; never raise the cap, hide selected aircraft
+  for a benchmark or exclude the expensive roster cell to claim acceptance.
+
+### True-angle, CPU and interactive receipts for EACH jet
+
+Each jet gets its own durable study/rights, generator/hash/stats, raw views,
+converted/native views, CPU checks and normal-input gameplay receipt, plus a
+batch summary. A batch PASS cannot cover an untested member. Record build/register
+commits as Wings vehicle integration, not portal-game registration.
+
+Required raw and converted views: true front, side, top, rear, lit belly, both
+quarters, plus low/banked camera sweeps across the frozen full heading set.
+Record camera position/up/view/projection and actual model transform, lighting,
+backend, viewport/theme and GLB hash. Store PNG files and their MD5 checksums;
+MD5 is only a distinctness check, with SHA-256 for artifact binding. Require
+MD5-distinct views within a fixed jet/theme/viewport set, DIFFERENT camera poses
+and model foreground/projection evidence too: headers, random noise or theme
+changes alone must not manufacture distinctness. Do not weaken a failed mask,
+normal or clipping assertion. Parent reviews at least two opposed angles AND
+belly/low views before any model acceptance; the full prescribed image set and
+independent lane remain mandatory, not a two-image shortcut.
+
+The second lane independently challenges silhouette against source references,
+canopy/roof invisibility, glass/backface/depth behavior, mirrored normals,
+gear/store clearance, crew clipping, exhaust/cone direction and real station
+positions. Preserve before/failure images and iterate until the quality contract
+passes. No two-roll cutoff for quality; tooling failure rules remain.
+
+CPU regressions must cover deterministic committed bytes, budgets/material use,
+composed identity/rotated hardpoints and cameras, every pivot's geometry, actual
+ammo/store depletion and regeneration, exhaust throttle/boost, crew/seat cleanup,
+valid/invalid spawn, ordinary input flight, snapshots and original roster parity.
+Rebuild source tests, do not compare against a stale binary. Add the three exact
+new kinds to the expected roster without relaxing preservation of old entries.
+
+Interactive, per jet and per weapon/seat: normal menu selection/spawn, takeoff,
+climb/turn/boost, chase/cockpit/gunner views as supported, aiming/acquisition,
+each own weapon firing with ammo/authoritative projectile/owner/target and
+impact/fuse/damage evidence, correct visible store/exhaust response, pause/seat
+switch, death/respawn, ordinary menu exit and fresh restart. Bot projectiles are
+not player fire. CPU-positioned targets or an isolated rig fixture are labeled
+and cannot close this normal-input matrix. Capture screenshots with the actual
+new national-accent model in the native game, including low/rear headings and
+occupied cockpit geometry. Preserve hardware limits without inventing a PASS.
+
+### Phase 2 lane queue and file leases
+
+Use the common prepared-diff/no-commit envelope. Orchestrator reviews EVERY
+line before explicit commit approval. Runtime/review pin is
+**openai-codex/gpt-6.1-sol** (high for runtime, xhigh for independent review).
+Mesh generation pin is **openai-codex/gpt-6-astra**, high. The operator's
+quality-over-speed rule applies: modeling iterates until the contract genuinely
+passes, across transparent bounded work sessions without rushed first-roll
+acceptance. No worker pushes.
+
+| Lane | Goal/model | Sole file scope | Paste-ready brief after common envelope | Required evidence |
+| --- | --- | --- | --- | --- |
+| P2-S | Registry/variant/rights/family study; sol xhigh | `docs/maintenance/audits/wings-multinational-study.md` | Recheck current registry and pending changes; freeze the three variants, trace every shared consumer, measure the whole family and qualify references/insignia rights before modeling. | Variant/reference and namespace table, GLB family measurements, class-specific rig/loadout design, explicit rights findings |
+| P2-M1 | MiG-29 model; astra high | `Games/Wings/verification/generate-models.py`, SERIAL lease 1 | Extend only the reviewed variant's original generator using shared helpers; preserve all prior bytes; produce experimental GLB and true-angle evidence; iterate on independent findings, return prepared diff. | 12-18k, >=40 meaningful assignments, deterministic hash, recognizable referenced anatomy, real twin exhaust/stores/pilot |
+| P2-M2 | Rafale model; astra high | Same generator, SERIAL lease 2 after M1 review/commit | Implement the frozen Rafale variant independently, no MiG/F-15 mesh/constant clone; preserve all previous generation; model-derived canard/intake/nozzle/store/camera facts. | Same full contract and unique per-jet anatomy/pixel/rig receipt |
+| P2-M3 | J-10 model; astra high | Same generator, SERIAL lease 3 after M2 review/commit | Implement the frozen J-10 variant, especially real intake/forebody and single-engine anatomy; preserve every previous model and keep national markings qualified. | Same full contract, no resized Rafale, all reference/pixel/geometry evidence |
+| P2-T | Kind/type contract; sol high | `S/src/sim/types.ts` | Add only reviewed kinds/needed fields; trace complete wire/decoder and caller closure, no speculative new network subsystem. | Strict roster/type/wire and original compatibility checks |
+| P2-V | Tuning/weapon fits; sol high | `S/src/sim/vehicles.ts` | Append exact reviewed specs with geometry-derived coordinates and justified distinct arcade fits; preserve existing entries/order. | Per-jet tuning, launch-point/slot semantics and preserved old roster tests |
+| P2-C | Descriptor/converter integration; sol high | `S/src/render/aircraft.ts` | Wire every real pivot/store/exhaust/pilot and authored material path; reuse existing mechanisms without copying wrong coordinates or globally remapping paint. | All three actual converted models, rig attachment/animation/PBR and original converter parity |
+| P2-F | Handling; sol high | `S/src/sim/flight.ts` | Add only the justified handling rows for the reviewed conventional jets; no VTOL/airframe class invention. | Ordinary-input takeoff/turn/replay and original handling invariance |
+| P2-K | Cameras; sol high | `S/src/render/camera.ts` | Use each GLB's composed crew/optical points and measured bounds; test all supported seats and views. | Identity/rotated camera math and real native view clearance |
+| P2-A | Engine voice tables; sol high | `S/src/audio/engines.ts` | Map all kinds intentionally through the existing voice lifecycle; no recording/authentic-sound claim without evidence. | Finite parameters, audible event/engine review and disposal/parity checks |
+| P2-U | Roster UI; sol high | `S/src/ui/spawn.ts` | Expose every new aircraft with truthful controls/role/crew/weapon copy and accessible scroll/focus; preserve old shortcuts and never invent Digit10. | Full roster keyboard/touch/mobile and every entry's actual spawn |
+| P2-Q | Model regression; sol high | `Games/Wings/verification/check-models.py` | Add all three committed generators/hashes without removing old budgets, normal/closure/material assertions or deterministic checks. | Each model and entire old/new committed set pass against fresh generation |
+| P2-R | Independent anatomy/gameplay challenge; sol xhigh | `docs/maintenance/audits/wings-multinational-challenge.md` | Read every prepared diff and per-jet receipt; challenge every chosen silhouette, national mark, rig/weapon/normal/pixel/budget claim. Do not accept its own implementation. | Resolved counterexamples, no missing jet/weapon/angle/matrix cell, explicit final HOLD/PASS |
+
+The generator leases are deliberately sequential, never concurrent writes to
+one file. Only one may be active; freeze its bytes/diff/evidence before assigning
+the next. Parent delivers accepted GLBs, previews, per-jet receipts, CREDITS,
+manual/inventory and the reviewed regenerated patch/bundles as separate explicit
+milestones. Shared runtime paths overlap Phase 1: serialize those owners only
+after weather interfaces and source baseline are frozen. Additional map owners
+(combat armor, bots, lobby/controller, SFX or fixtures) get separate one-file sol
+lanes only when the complete caller trace identifies a real required change;
+existing owners must not silently expand scope.
+
+Phase 2 references/rights study may be queued after the boat push and P0 verdict;
+modeling requires that study's reviewed commit. Default sprint order is P0,
+then P1, then P2 integration. No Phase 2 source branch is based on stale private
+pre-boat work. Do not overlap its runtime edits with active weather owners.
+
+### Own batch release gate and reporting
+
+After all three per-jet contracts, exhaustive interactive matrix and independent
+review pass: commit clean source/model/build/manual/inventory milestones, run all
+existing/new static/CPU/browser regressions, then its OWN unchanged mandatory
+full **125-game** smoke gate with disk checks and release-between-batches.
+Neither the boat gate nor a Phase 1 weather gate can substitute. No filtering
+real defects, representative-jet acceptance or inherited green report.
+
+A failed per-jet, scene-budget, interactive or full-catalog gate means no batch
+push and an evidence-based report. Preserve known rights/hardware qualifications;
+ask the operator about an unresolved release exception rather than invent one.
+After an authorized green batch push, report pushed SHA and verify the live
+`games.json` ID set; catalog count remains 125 unless separately ordered otherwise.
+Report per-jet source/model/build/selectable-registration commits, final hashes,
+triangles/assignments/materials/batches, reference/rights note, all-angle files,
+weapon/lifecycle matrix, scene peaks, review verdict, regressions, gate tally and
+exclusions, storage delta and every remaining limitation. No Phase 2 implementation
+or external acquisition is performed by this planning update.
+
 ## Completion contract and immediate next action
 
-This plan has no Phase 0/1 execution PASS. Orchestrator must review every worker
+This plan has no Phase 0/1/2 execution PASS. Orchestrator must review every worker
 diff line by line BEFORE its next commit, then pixels and gameplay receipts in
 full; summaries/log-tail samples are operational monitoring, not code review.
 Independent review must challenge, not rubber-stamp, the transferable checklist.
@@ -507,4 +756,6 @@ Immediate work after this planning-only commit: resume prepared #30/#32 without
 discarding changes; read the full #31 audio diff before approval; review #27/#28
 and every earlier private worker diff. Finish the roof/driver/controller/build and
 actual boat tests, then full fleet gate and conditional push/live verification.
-Do not dispatch any Phase 1 worker from this table until those dependencies land.
+Do not dispatch any Phase 1 or Phase 2 implementation worker from this plan until
+its stated dependencies land. The multinational phase does not delay, replace or
+weaken the current boat roof/driver, interactive, full-gate and push conditions.
