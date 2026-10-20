@@ -1,5 +1,10 @@
 # Jankolock: Deadlock identity research
 
+**Historical appendix:** after this research the operator resolved the intended
+reference as Valve's Deadlock. See [current provenance](jankolock-provenance.md).
+The unresolved-reference finding below records the earlier source-only result,
+not the active operator decision.
+
 Delegation #1, research only. Accessed **2026-10-20 UTC** using the current
 `openai-codex/gpt-6.1-sol` session with `xhigh` reasoning. No other model or
 subdelegation was used. Command findings and ongoing progress are recorded in

@@ -1,330 +1,215 @@
-# JANKOLOCK design contract
+# JANKOLOCK arena translation contract
 
-Delegation #4, 2026-10-20; `openai-codex/gpt-6.1-sol`, `xhigh`, no
-subdelegation. **DESIGN ONLY: UNBUILT / NOT PROVEN. No prior render claim.**
+2026-10-20 operator pivot. **DESIGN ONLY / NOT BUILT.** Supersedes the sliding
+puzzle contract at `21d47aa`; puzzle mechanics research remains a historical
+appendix, not the active specification. Reference identity is now resolved by
+the operator as Valve's Deadlock. No faithful port or third-party asset reuse.
+See [provenance](jankolock-provenance.md) for evidence and permission boundaries.
 
-## Scope and holds
+## Pivot delta and technology decision
 
-Read `AGENTS.md`, `docs/CODE_QUALITY.md`, `docs/jankolock-provenance.md` and all
-three `docs/jankolock-research-*.md`. Operator rules supersede research options.
-Original code/levels/art/audio/copy, not a port. Historical identity/name clearance
-unresolved; no upstream branding/expression, invented attribution or reuse rights.
+Remove the grid, twenty puzzle levels, solver, slide/undo rules and endless
+puzzle generator. Replace them with an original hero arena, bots, capture,
+combat deaths/respawns, round results and between-round item drafting. Jank is
+visible in movement/reactions but cannot corrupt aiming, collision or input.
 
-Shared `feat/jankolock`; own this doc/ignored design log only. No main/Wings/
-Character AI/catalog/maintenance changes. Catalog 125, zero added; ID240 only
-conditionally claimed. No registration/publication/push here. Disk 1.8G: bounded
-text only; build/assets/browser blocked until >=2 GiB, no unauthorized cleanup/
-broad checkout/history rewrite. Future lanes are not started.
+**Decision: Canvas 2.5D gameplay, three.js trophy lobby only.** Fixed oblique
+arena, ground-plane simulation and original drawn characters are smaller and
+more reliable than a full browser 3D shooter. This sacrifices shoulder-camera
+shooting, vertical traversal and lane/macro depth; do not market it as equivalent
+to the reference. Offline solo with bots is the releasable core. Online is a
+separate phase2, never a fake enabled button.
 
-## Rules and scoring
+## Round and match rules
 
-- 6x6, zero-based x/y top-left, right exit y=2. Width1 crates, fixed H/V
-  axis/lane, len2/3; T is H len2 row2. No special cells.
-- Slide one crate any nonzero integer distance, all swept cells in-bounds/clear.
-  No rotations/jumps/pushing/chains/diagonals. One accepted slide = one move,
-  any distance; invalid/zero/preview/cancel/animation costs zero.
-- Win only after moving T to x4, not clearing its route. Reject solved starts.
-  No off-board state. Core can analyze goals; won UI stops slides only.
-- Unlimited free Undo/Restart after win too. No timers/lives/permanent death/
-  locks/match4/random physics/fake lag. Reversible jams, not forced losses.
+- Arena: 960x600 logical ground plane, four original static rectangular cover
+  blocks, solid boundary, central circular capture zone radius 70. Two teams:
+  player + one allied bot versus two enemy bots. No external maps/assets.
+- Fixed-step simulation at 60 Hz, dt accumulator capped at 0.1s, no background
+  catch-up. Rendering uses interpolation, never changes simulation state.
+- Actors: 100 HP base, speed 150 units/s, circle radius 15; bullets speed 500,
+  damage 14, cooldown 0.24s, finite lifetime/range. Cover stops actors/bullets;
+  swept segment collision prevents tunneling. Shots cannot pass through cover.
+- Capture: after a team alone occupies the zone for 1s, it scores 2 influence/s.
+  Contested/empty zone stops scoring; kill adds 4 influence to killer's team.
+  Show occupancy, capture warm-up and both influence totals explicitly.
+- First 40 influence wins the round. Regulation 60s; higher influence at timeout
+  wins. Equal influence enters sudden death: next kill or uncontested capture
+  tick wins. No random tie coin, hidden score or fabricated result.
+- Death: stop firing/control, visible 3s respawn countdown, respawn at safe team
+  spawn with 1s shield. Shield cancels on shooting. Round does not end merely
+  because all actors are temporarily dead. Reset actors/projectiles/cooldowns
+  and influence between rounds; preserve only drafted items and match score.
+- First 3 round wins takes the best-of-5 match. Result shows actual winner,
+  round score, kills, capture contribution and Continue/Restart match. Player
+  can lose; bots do not grant victory after a timer. No injected QA wins.
+- Restart match returns hero selection, clears all items/scores/round state and
+  pending input/audio/animations. Retry selected hero is optional explicit action.
+  Pause stops all clocks; blur/hidden page pauses and releases held controls.
 
-Show moves m/certified shortest d. Stamps 3 for m=d, 2 within d+2, 1 completion;
-m<d is a proof defect. No server highscores/dynamic hints. Walk length is not par.
+## Original roster: choose one hero, two abilities each
 
-## Controls and session flow
+All names, silhouettes, descriptions and effects are independently authored.
+No Valve hero names, silhouettes, icons, dialogue, character art or marks.
 
-Start: title/objective/controls, level selector, Endless, native Start. States:
-start/preparing/playing/won/recoverable error, no forced loss. Preparing supports
-Cancel; Start requires validated proof-ready data. No extra launch layer.
+| Hero | Readable silhouette | Q / touch ability1 | E / touch ability2 |
+| --- | --- | --- | --- |
+| Tin Courier | Square helmet, paper satchel | Receipt Rush:180-unit swept dash,8s cooldown | Stamp Burst:three original cone projectiles,7s cooldown |
+| Wobble Warden | Round padded coat | Filing Shield:absorb40 damage for3s,10s cooldown | Desk Slam:70-radius20 damage/brief knockback,8s cooldown |
+| Rattle Clerk | Tall triangular hat | Carbon Copy:stationary decoy draws bot aim for3s,10s cooldown | Staple Fan:five low-damage spread shots,8s cooldown |
 
-Canvas art plus fixed native piece buttons. Tab in ID order, focus/click selects;
-label ID/axis/length/row/column. Provide native selector if board targets fall
-below 44px. No canvas-only interaction.
+Abilities share authoritative collision/damage; knockback remains bounded and
+cannot place actors inside walls. Show ability labels, cooldown seconds and
+unavailable reasons. Bots use the same rules/cooldowns and visible projectiles.
+Tune numbers after playtests, not by claiming these targets are proven balanced.
 
-| Input | Exact behavior |
+## Bot behavior and item draft
+
+Bots steer toward capture via deterministic waypoints around cover, separate
+from allies, and attack visible in-range opponents. Repath if blocked, retreat
+briefly when badly hurt, return to objective. Line-of-sight checks use the same
+cover geometry. Aim error/reaction delay is seeded and bounded, not wallhacks.
+Display ally/enemy identity beyond color. No hidden player damage multiplier.
+
+After every nonfinal round offer **three distinct visible items**, choose one
+before next round. Effects apply to the player next round and persist for this
+match; max four draft picks. Each bot also receives one comparable item per
+intermission, shown in the round summary. Repeat items stack to a cap of 2.
+
+| Item | Factual effect |
 | --- | --- |
-| Arrows/WASD | One-cell axis preview, repeats free; blocked/perpendicular keeps preview with explanation. Outline/coordinate show landing. |
-| Enter/Space | Commit changed preview once, otherwise select. Suppress duplicate activation; unrelated controls retain native behavior. |
-| Escape/Tab away | Cancel preview/drag free; Tab selects next. No focus trap. |
-| Drag | Capture primary pointer, axis-lock, nearest cell (half ties upward), swept-legal clamp; release once, tap selects. Fixed CSS hit bounds. |
-| Pointer cancel/lost capture/blur/second pointer | Cancel, no commit. |
-| Touch | >=44px D-pad previews, perpendicular disabled/explained; explicit Commit/Cancel. Page scroll outside pieces. |
+| Thick Envelope | +20 maximum HP and round-start healing to new max |
+| Greased Soles | +10% movement speed |
+| Extra Staple | +15% basic-shot damage |
+| Quick Forms | -10% basic-shot cooldown |
+| Pocket Thermos | -10% ability cooldowns |
+| Union Badge | +10 shield on respawn, no capture-score multiplier |
 
-Separate committed state/preview/selection. Moves = history.length; one snapshot
-per commit. Undo cancels preview then pops; Restart restores start/clears history.
-Level change cancels gestures/search. Undo from won restores playing/board focus.
-Win region announces once, focuses heading, keeps board visible, offers Next,
-Undo/Restart/Levels/Hall; after 20 offer Endless. No blocking modal/auto-next.
-Saved valid best can survive Undo; current count/victory reflect restored state.
+Seeded PRNG fixes offer order/bot choices per match seed/round; no clock-based
+randomness. Exclude items at cap, enough eligible items remain through four
+picks. Choosing twice, keyboard autorepeat or late pointer events cannot grant
+two upgrades. The draft is an explicit state boundary; combat remains stopped.
 
-## Layout, original art and sound
+## Controls, layouts and feedback
 
-Desktop: title/theme/mute, level/start; grid/exit left, stats/selection/D-pad/
-Commit right; Undo/Restart below. Result replaces side instructions; Hall has Back.
-Mobile: header, level/count, grid/gutter, selection, D-pad/Commit/Cancel,
-Undo/Restart, result/hall. At 320px fit 264px grid plus exit. No horizontal
-scroll; wrap/safe-area/vertical scroll. Reflow at 200% zoom, retain selector/D-pad.
+- Desktop: WASD/arrows move, pointer aims, held primary button fires; Q/E
+  abilities, P/Escape pause. Keyboard-only aim uses IJKL, Space fires. Ability
+  buttons and hero/item cards are native focusable controls with meaningful labels.
+- Touch: left movement stick, right aim/fire stick, separate44px Q/E, Pause and
+  Restart. Pointer ownership/cancellation prevents stuck movement/firing. Touch
+  gestures on controls do not scroll; page remains scrollable outside playfield.
+- Lobby: hero cards and ability explanations, trophy hall control, Start match.
+  Match HUD shows round/first-to3, scores, time, capture and health/cooldowns.
+  Draft and results replace side panels, not cover the arena with redundant cards.
+- Desktop landscape has arena + compact side HUD. At320px, arena scales with
+  separate readable HUD/touch controls below; no clipped buttons or horizontal
+  overflow. Both themes, visible focus, labels/patterns beyond color, readable
+  contrast, local/system fonts, flat solids/black actions. No gradients, emoji,
+  em-dashes or Comic Sans in authored game copy.
+- Jank: springy cosmetic torso tilt on turns, consistently offset drawn muzzle
+  flash without offsetting shot trajectory, short original synth stamp/bonk/
+  victory/failure sounds. No misleading aim marker, fake lag or random penalties.
+  Motion-off/reduced-motion removes wobble/shake; persistent Mute. Native WebAudio
+  starts only after gesture, with text feedback when audio is unavailable.
+- DPR cap2, render only while active or dirty, stop RAF on unmount. Storage
+  optional for settings only; malformed/unavailable storage cannot block play.
 
-Original canvas shipping blocks/crooked stamps, plain Exit. Flat paper/charcoal,
-black actions, system fonts; no gradients/teal-on-green/emoji/em-dash copy.
-Both themes: contrast/focus, IDs/arrows/patterns beyond color. No borrowed art.
-Brief wobble, fixed hit boxes/grid/focus; reduced motion/Motion off is still.
-Render on change, stop settled/hidden/reset loops; DPR cap2, CSS-pixel input.
-One gesture-started WebAudio context, enveloped/throttled original stamp/victory/
-falling fail chirps. Persistent visible Mute. Audio failure => silence/text.
-No samples/autoplay/copied melody. `Blocked by crate A`, `Slide cancelled`,
-`Shipment cleared`; stamps never hide state.
+## Portrait: lobby-only trophy gag
 
-## Frozen proposed files, data and APIs
+Operator supplies an in-house photo-derived bas-relief generated2026-10-20.
+Exact input: `portrait_relief.glb`, SHA-256
+`abe1b2ee07038d6926813542a2127bca06cb19564f535dd49c593ea60c199fc9`,
+10,972,672 bytes,421,968 triangles from inspected metadata. Do not silently
+call its supplier's explicit photorealism FAIL a PASS. No fabricated substitute.
 
-Root `Games/Jankolock/`, browser ESM; no framework/build/install/service worker.
-Descriptive types, not implementation. Numbers: finite bounded integers.
+**Keep exact bytes, lobby only; no decimation.** It is outside the gameplay
+scene budget. After capacity clears, copy into `Games/Jankolock/assets/`, run
+compatible glb_stats/full integrity checks and record exact hash/size. Reject
+external resource URIs or malformed buffers/accessors. If absent or invalid,
+ship core without portrait and disable hall through a local guaranteed-present
+manifest, with factual unavailable text and no guessed404 request.
 
-| Record | Shape / invariant |
-| --- | --- |
-| Definition | `{rulesVersion:"jk-r1",size:6,exitRow:2,targetId:"T",pieces:Piece[],start:State}` |
-| Piece | `{id,axis:"H"\|"V",length:2\|3,lane}`; unique A-Z IDs, ASCII order, lane 0..5, 1..18 pieces |
-| State | Array aligned to pieces; H=x/lane=y, V=y/lane=x; 0..6-length, no overlap |
-| Move | `{id,to}` absolute coordinate |
-| Proof | `{rulesVersion:"jk-r1",fingerprint,optimal,solution:Move[],visited}`; visited includes root |
-| Level | `{id:"01".."20",title,lesson,band:[min,max],definition,proof,origin:"independently authored"}` |
-| Authored identity | `{kind:"authored",packVersion:"jk-pack1",levelId}` |
-| Endless identity | `{kind:"endless",rulesVersion:"jk-r1",generatorVersion:"jk-e1",packVersion:"jk-pack1",seed,index,band}` |
-| Prepared | `{identity,level,fallback:null\|{sourceLevelId,reason:"budget-or-band"}}`, verified proof required |
+Local three.js r160 core/GLTFLoader/BufferGeometryUtils/MIT from Circuit Ward
+read-copy to Jankolock vendor/, relative imports only. Donor files stay untouched.
+Library pin: `d04539a76736ff500cae883d6a38b3dd8643c548`; closure1,414,498 bytes.
+No CDN, downloaded runtime dependency or remote font/script/asset.
 
-Endless level.id identifies its source template, not an authored completion.
-UI labels it Remix/seed/index, omits template lesson, persists no authored best.
+Lobby camera faces the bust/pedestal; small original player pawn moves on the
+floor with WASD/touch and bumps a simple cylindrical pedestal collider, not the
+422k-triangle mesh. Bonk reaction never modifies supplied geometry. Optional
+three-bump smash gag can hide the intact bust and show primitive confetti; Reset
+restores it. This optional gag is not required for core acceptance. Camera-fit
+and light setup must preserve the supplied colors, not repaint the subject.
 
-Reject malformed/version/T/geometry/overlap/array/solved-start errors. Analysis
-permits goals. Never mutate inputs. Fingerprint: whitespace-free JSON of
-`["jk-r1",6,2,"T",pieces mapped to [id,axis,length,lane],start]`, not security hash.
-Exclude copy; duplicate checks sort geometry/start tuples with target marker,
-ignoring labels/non-target IDs. Proof requires exact fingerprint.
+Lazy-load once on explicit Hall entry, abort/dispose on Back/Start/reset; no
+portrait/vendor requests during combat. If WebGL unavailable, show truthful
+unavailable state and let Canvas play continue. Pi SwiftShader cannot establish
+supported-GPU render acceptance. Separate DOM/HUD, exact-byte GLB load, actual
+preview image and named-device hardware evidence. Supplier previews are not a
+new Jankolock lobby render; exact-file preview remains a required gate if enabled.
 
-### core.js (lane A)
+## Implementation ownership after capacity clears
 
-- `validateDefinition(def)`, `validateState(def,state) -> string[]` errors;
-  ordinary bad data does not throw; state validator requires valid definition.
-- `stateKey(state) -> string`: comma-joined, definition-scoped.
-- `fingerprint(def) -> string`: canonical above.
-- `legalMoves(def,state) -> Move[]`: all swept landings, ID then to ascending,
-  including from goals; `applyMove(def,state,move) -> fresh State|null`.
-- `isSolved(def,state) -> boolean`: T=4; UI requires commit.
-- `solve(def,{maxStates,signal?}) -> Promise<SearchResult>`, from def.start.
-  Results: `{status:"solved",proof}`, `{status:"unsolvable",visited}`,
-  `{status:"unknown",visited,reason:"state-budget"}`, `{status:"cancelled"}`.
-  Invalid definition rejects, not unsolvable. No DOM/random/storage/audio/clock.
+Four sol6.1 lanes, disjoint files, bounded tasks and explicit-path commits, no
+switch/main/push or other swarms' files. Orchestrator owns contracts, integration,
+line-by-line diff/subjective review, provenance/catalog/manual and gate decisions.
 
-### levels.js (lane B)
-
-`PACK_VERSION="jk-pack1"`; `getLevels() -> readonly Level[]` in ID order;
-`prepareAuthored(levelId) -> Prepared` rejects missing/unproved levels;
-`prepareEndless({seed,index,band},{signal?}) -> Promise<Prepared>` uses algorithm
-below. Cancellation rejects AbortError, never fallback. Imports core only; no
-DOM/storage/clock/fetched levels. A fake 20-entry pack is not release-ready.
-Private independent replay checks unit-step occupancy without core.applyMove.
-
-### ui.js, index.html, style.css (lane C)
-
-Sole DOM/session/storage/audio owner; imports core/levels. Native labeled IDs:
-`startBtn`, `levelSelect`, `board`, `pieceControls`, `commitBtn`, `cancelBtn`,
-`undoBtn`, `restartBtn`, `status`, `result`, `themeBtn`, `muteBtn`, `motionToggle`,
-`hallBtn`, `hallBackBtn`, `portraitHost`. One token/AbortSignal owns preparation;
-reset/change/cancel aborts/increments. Pointer ID owns drag. Core.applyMove once
-per commit, no UI collision engine. C renders disabled portrait text; Back aborts
-its separate hall signal/disposes handle. Late imports cannot mount after Back.
-
-### portrait.js / portrait-config.json (lane D)
-
-`mountPortrait(host,config,{reducedMotion,signal?}) -> Promise<Handle>`;
-Handle: `status:"unavailable"|"failed"|"loaded"`, `dispose()`,
-`setReducedMotion(boolean)`. Abort rejects AbortError/disposes late loads.
-No puzzle state/storage writes.
-
-Local deployment-generated config defaults `{schema:1,enabled:false}`; enabled
-adds `url:"./assets/portrait_relief.glb",sha256,bytes`. On Hall request UI validates
-this guaranteed-present manifest, then lazy-imports portrait.js only if enabled.
-Bounded stdlib presence/permission check generates it, no build system. Never
-probe guessed GLB URLs. Bad config shows unavailable; packaging rejects missing
-config. D styles only host content, no shared CSS edits.
-
-## Solver proof contract
-
-Unit-cost BFS: every landing, visited at enqueue, parent key/Move; first dequeued
-goal backtracks shortest witness. Queue exhausted=unsolvable, cap=unknown.
-Caps discovered states: authored100,000/runtime20,000. Goal before expansion;
-unknown before excess enqueue. Yield every256 expansions, no clock cutoffs.
-Profile before workers. All20 need original layout/fingerprint/origin/optimal/
-witness/measured visited. Re-solve and independent unit-step replay, no applyMove;
-reject sweeps/zero slides/early goals/duplicates/count errors. Changed layout/
-rules invalidate proofs. Research experiment is not a pack/UI test.
-
-## Complete 20-level briefs
-
-**Every row: UNBUILT / NOT PROVEN. No actual layouts/proofs are authored here.**
-Original titles; mechanics-research lessons/bands, not measured difficulty.
-
-| ID / title | Lesson / structure | Target shortest slides |
+| Lane | Exclusive files | Boundary |
 | --- | --- | --- |
-| 01 First Dispatch | Select target, one clean exit slide | 1 |
-| 02 Inspection Queue | Move one vertical obstruction aside | 2-3 |
-| 03 Leave a Gap | Landing choice preserves another lane | 3-4 |
-| 04 Sideways Paperwork | Move sideways before clearing exit row | 3-5 |
-| 05 Holding Bay | Empty staging area, then free blocker | 4-6 |
-| 06 Long Package | Length-2 versus length-3 clearance | 5-7 |
-| 07 Second in Line | Dependency behind direct blocker | 5-8 |
-| 08 Return to Sender | Temporarily move away from exit | 6-9 |
-| 09 Shared Loading Lane | Reuse vacated lane for second crate | 7-10 |
-| 10 Two Inspectors | Independent obstructions, either order | 7-10 |
-| 11 Queue Procedure | Constrained order, not extra clutter | 8-11 |
-| 12 Double Handling | Reposition same support twice | 9-12 |
-| 13 Back Up the Shipment | Target backward to release workspace | 9-13 |
-| 14 Crossing Forms | Interleaved H/V dependencies | 10-14 |
-| 15 Temporary Closure | Block exit route now for later payoff | 11-15 |
-| 16 Wrong Desk | Plausible detour, easy undo lesson | 11-16 |
-| 17 Bay Reservation | Two staging areas compete for one lane | 12-17 |
-| 18 Circular Approval | Longer dependency loop, same rules | 13-18 |
-| 19 Dispatch Audit | Combine taught mechanisms | 14-20 |
-| 20 Final Collection | Readable capstone, no hidden mechanic | 15-22 |
+| Core | `Games/Jankolock/engine.js`, `scripts/test_jankolock_engine.mjs` | Pure fixed-step rules, bot steering, collision, capture, round/draft/match state |
+| Data | `Games/Jankolock/data.js`, `scripts/test_jankolock_data.mjs` | Roster/item/arena constants, seed offers, validation/golden checks; contract first |
+| UI | `Games/Jankolock/index.html`, `style.css`, `ui.js`, `scripts/test_jankolock_browser.py` | Canvas art/native controls/audio/lifecycle and normal-input browser proof |
+| Lobby | `Games/Jankolock/portrait.js`, `portrait-config.json`, `assets/`, `vendor/`, `scripts/test_jankolock_portrait.py` | Presence/integrity manifest, supplied bytes/local MIT closure, isolated3D lobby |
 
-No copied layouts. Revise bypassed lessons; review dependencies/regress/branches/
-comprehension. Multiple optima allowed; difficulty unproven.
+Core state modes: `lobby`, `playing`, `paused`, `roundResult`, `draft`,
+`matchResult`. Read-only detached `snapshot()` exposes scores/actors/offers for
+assertions, never QA mutation hooks. UI submits validated input/hero/item IDs;
+core alone advances scores, damage, drafts and winners. Rendering never grants
+state. Agree minimal API before parallel edits: `createMatch`, `step`,
+`selectHero`, `chooseItem`, `advanceRound`, `restart`, `snapshot` and frozen data.
 
-## Frozen endless algorithm jk-e1
+## Online phase2, not part of releaseable core
 
-Finite-topology remixes; seed uint32 including zero; index 0..4294967294,
-then new seed, no wrap. Band/code/slides: easy/1/1..7, medium/2/8..13,
-hard/3/14..22. Version rules/generator/pack changes; no Math.random/clocks.
+Read-only local precedent: Circuit Ward's `multiplayer.js` and
+`docs/circuit-ward-qa.md` use manual full WebRTC offer/answer, `iceServers: []`,
+host authority, bounded32KiB signaling/16KiB data, payload validation/backpressure.
+This is an inspected implementation precedent, not proven Jankolock MP research
+or deployed multiplayer. Hivemind search could not authenticate; fallback index
+was unavailable. No hidden prior-MP evidence is claimed.
 
-1. Templates: certified authored boards within band, sorted ID. Their goal
-   arrangements come from replaying certified solutions. Empty list => visible
-   band-unavailable error, no invented board or difficulty downgrade.
-2. PRNG initial uint32 = `(seed XOR imul(index+1,0x9e3779b1) XOR bandCode) >>> 0`.
-   Each draw first updates `s=(imul(1664525,s)+1013904223) >>> 0`, returns s.
-   Use JS integer semantics and no other randomness; freeze golden outputs.
-3. Up to 8 candidates. Consume one draw for template modulo count, one for walk
-   length `12 + draw % 49`. Begin at its goal. Step zero must move T away from
-   x=4. Later eligible moves exclude goals, immediate inverse and any previously
-   seen walk state. List in core order. Empty list ends walk without a draw;
-   otherwise one draw chooses modulo count. Record each previous coordinate.
-4. Reject no-slide, solved, unchanged or within-index duplicate fingerprint.
-   Reverse/invert walk, independently replay to the template goal. This proves
-   solvability only. Candidate keeps template geometry, walked state as start.
-5. BFS with 20,000-state cap; accept first solved, in-band, independently
-   replay-valid shortest proof. Unknown/out-of-band/invalid proceeds to next
-   attempt without rewinding PRNG. Search never consumes random draws.
-6. Eight failures => certified authored template at `index % count`, with
-   fallback source/reason and visible `Certified board fallback` plus source ID.
-   No unbounded retry or false novelty/par claim.
+Future design must separately specify host-authoritative capture/combat/draft,
+input sequence/epoch checks, disconnect behavior and round consensus. No STUN/
+TURN/signaling/backend/accounts/room codes/proxy changes. Manual LAN/browser
+compatibility is unverified; solo remains usable offline. No online UI claim
+until separately authorized, implemented and tested. Do not copy existing MP
+code or weaken its validation speculatively.
 
-Same identity => same board/proof/rejections/fallback across history/speed/theme.
-No session filtering. Fixed topology repeats; measure repeats/fallbacks. Variety/
-performance unproven; hold failed profiling, never change budgets/invent par.
+## QA and shipping gates: all runtime checks NOT RUN
 
-## Conditional portrait hall
+1. Small assert-based engine/data regressions: swept bullet/actor collisions,
+   cover/LOS, capture contention, death/respawn, scoring/time/tie boundaries,
+   single item application, item caps, first-to3, deterministic replay/restart.
+   `node --check` every authored JS; audit all runtime loads and license closure.
+2. Interactive Playwright: select a real hero, start, play **two complete rounds
+   versus active bots** with ordinary key/pointer/touch events. Verify fired shots,
+   abilities, actual capture, deaths/respawns, a real round win, item offer3/pick1,
+   applied next-round item and restart. Assert snapshots/DOM without granting
+   health/score/time/position. A scenario that never wins is failed QA, not a pass.
+3. Mobile viewport/touch, desktop, both themes, pause/focus loss, storage failure,
+   reduced motion/mute, no overflow. Fresh lobby/gameplay/draft/result screenshots
+   reviewed by orchestrator VISION; no numeric self-score substituted for judgment.
+4. Portrait glb_stats/integrity + exact-file preview; bump/pedestal/Back/disposal,
+   unavailable WebGL, missing asset, no combat asset requests. Report loaded vs
+   rendered vs genuine hardware verification separately. No fake screenshot.
+5. Bounded servers only, ports>=8910. Targeted game smoke with selected-count1;
+   unchanged failure filters. No full fleet run in this scope. Full all-games
+   smoke remains mandatory before any separately authorized push; no push here.
+6. Recheck live catalog before ID240 registration, factual original-genre desc,
+   Git-backed URL/schema/unique IDs, own maintenance page/inventory coordination
+   and `python3 -B scripts/check_maintenance_docs.py`. Pre-existing dirty Wings
+   files block its global guard; never stage/reset them to manufacture a pass.
 
-Only exact supplied photo3d `portrait_relief.glb`. Initially absent, it appeared
-after this draft. Current [portrait evidence](jankolock-research.md#portrait-update):
-10,972,672 bytes, 421,968 triangles from metadata; basic header/chunks inspected,
-not full integrity or runtime acceptance. Supplier receipt explicitly fails
-hyper-photorealistic quality; do not advertise a photorealistic reconstruction.
-Supplier preview images were later visually inspected, not generated by this
-swarm and not game WebGL evidence. **Local glb_stats/full decode and game preview:
-NOT RUN.** No fabricated likeness/substitute/inferred rights. Plain pedestal and
-`Portrait unavailable: supplied file not installed` when absent; build without
-asset/three.js when absent or not cleared. Do not downsample supplied bytes
-without separate approval.
-
-Only with exact-file presence, >=2 GiB and portrait/likeness permission may D
-read-copy local Circuit Ward r160 `three.module.js`, `GLTFLoader.js`,
-`BufferGeometryUtils.js`, `LICENSE` to Jankolock vendor/. No donor writes/art/CDN.
-Evidence: [sources](circuit-ward-sources.md), [models](circuit-ward-models.md);
-pin `d04539a76736ff500cae883d6a38b3dd8643c548`, 1,414,498 bytes. Match four
-source/destination hashes to browser/board research. Preserve local imports/MIT;
-library license does not cover portrait.
-
-Before enabling: record exact path/bytes/SHA-256/permission; compatible glb_stats
-checks chunks, accessor/buffer ranges, decoded finite bounds, triangles/materials/
-nodes/resources. No generic CLI found in inspected scripts: resolve tool or
-approve bounded compatible checker. Restrictive existing game auditors are not
-arbitrary-portrait validators. Reject external URIs/unsupported extensions and
-preserve supplied bytes, no silent repair.
-
-Exact-file local preview: original pedestal, bounds-fit camera/light/resize;
-no orbit dependency/spin. Lazy load once per live hall. Back disposes renderer,
-geometry/materials/textures and stale loads; failures show unavailable, not block
-2D play. Separate evidence: WebGL attempted/context; exact-hash GLB load verified;
-VISION-reviewed portrait screenshot; genuine hardware render on named GPU/device.
-Pi SwiftShader cannot certify hardware render. Canvas/loader events are not
-visual proof. Hardware stays NOT PROVEN; supplied asset requires glb_stats and
-exact-file preview, absent asset leaves both NOT RUN.
-
-## Storage and offline boundary
-
-Key `jankolock:v1`: `{schema:1,theme:"system"|"light"|"dark",muted:boolean,
-motion:"system"|"off",lastLevelId,best:[{levelId,fingerprint,moves,stamps}]}`.
-Max 20 authored bests, no seed archive/history/proofs/previews. Validate enums,
-IDs/uniqueness/fingerprints/bounded integers/stamps. Reject stale/malformed/
-inconsistent/>32768-character data; no storage HTML. Catch access/JSON/quota/
-security errors: memory-only play, one `Progress is not saved on this device`.
-Save settings/completions only. Defaults system theme/motion, muted until opt-in.
-Fresh start; explicit progress reset is separate from Restart.
-
-Offline = zero external runtime requests under local static serving, not first
-load without server/cache. No analytics/accounts/third-party assets/fonts/fetches/
-sockets/proxy/backend changes. Local config/conditional GLB only, no absent URL
-probe. Use local/inline favicon.
-
-## Four future lanes and concurrency
-
-Same operator pins, <=20min tasks, no subdelegation/switch/reset/push. Commit
-explicit owned paths; disk/source/permission holds apply.
-
-| Lane | Exclusive writes | Deliverable / dependency |
-| --- | --- | --- |
-| A Core | `Games/Jankolock/core.js`, `scripts/test_jankolock_core.mjs` | Pure rules/BFS and exhaustive small regressions; lands first |
-| B Content | `Games/Jankolock/levels.js`, `scripts/test_jankolock_levels.mjs` | 20 actual boards/proofs, generator, independent replay/goldens; imports A |
-| C Interaction | `Games/Jankolock/{ui.js,index.html,style.css}`, `scripts/test_jankolock_browser.py` | Native input/canvas/session/storage/audio and playtest; imports A/B |
-| D Hall | `Games/Jankolock/{portrait.js,portrait-config.json}`, conditional `assets/portrait_relief.glb`, `vendor/`, `scripts/test_jankolock_portrait.py` | Absent-safe hall/config or exact approved file; no C edits |
-
-Orchestrator owns docs/subjective review/later integration. No cross-lane edits;
-API changes require agreement, no aliases. B proofs precede C gameplay claims.
-D owns hall disposal, C owns generation token/pointer. Report partial authorship,
-request another bounded pass if needed; never fabricate completion.
-
-## Acceptance plan: runtime gates NOT RUN
-
-Small stdlib/assert tests, no framework. .mjs may use verified data/local ESM
-mapping if .js is CommonJS in Node; no root package.json/game rewrite for tests.
-
-1. A: invalid geometry, swept jump-through, every distance/inverse, immutability,
-   route-clear-not-win, T->x4, solved starts, BFS order/caps/unknown. Exhaust tiny
-   graphs independently for shortest distances.
-2. B: re-solve/replay all 20, duplicates/lessons. Goldens: seed 0/1/max, all
-   bands, boundary indices, fallback/cancel. Publish matrix, run twice, compare
-   boards/proofs/rejections and replay all. Measure states/stalls/d/repeats/
-   fallbacks. Finite samples do not prove all seeds.
-3. C: real play of >=3 proven boards (01/middle/20) using keyboard, multi-cell
-   drag, mobile touch drag and D-pad/Commit. Check preview/cancel, equal move
-   counts, blocked gestures, focus/scroll, wins, Undo/Restart after win, replay,
-   Next/endless cancel. Multi-slide victory per route; no injected state.
-4. Corrupt/stale/oversized/denied storage, mute/suspended audio, reduced motion,
-   DPR/resize, 320px/desktop, 200% text zoom, both themes. Real start/play/preview/
-   win screenshots, mobile/desktop, both themes; orchestrator VISION review of
-   contrast/focus/clipping/hit alignment, not mere image existence.
-5. D: disabled => unavailable DOM, no vendor/GLB request/404. Enabled => exact
-   hash/local load, visible hall, framing image, repeated open/Back/dispose,
-   load/context failures. GPU evidence separate.
-6. Capture console/page errors/failed/4xx requests without new benign filters.
-   Play with non-local network blocked. Harness port >=8910; finally stops
-   browser/server. Syntax/external-load/diff checks; orchestrator checks catalog
-   schema/IDs/tracked URLs. Quote actual outputs, exclusions and pass counts.
-7. After registration targeted smoke, exact title, assert 1 selected (script
-   can misleadingly report 0/0). Does not replace interaction tests:
-   `SMOKE_PORT=8910 xvfb-run python3 scripts/smoke_test_games.py --games JANKOLOCK`.
-8. Separate mandatory full pre-push gate, every registered game:
-   `SMOKE_PORT=8911 xvfb-run python3 scripts/smoke_test_games.py`.
-   Sparse missing assets block; report exclusions/pass-total. No weaker filters,
-   targeted substitute or old PASS. Held gate => no push; passing grants no push.
-
-No implementation/pack/runtime/render/screenshots/smoke PASS; text checks only.
+Current root available 1,286,856,704 bytes, below 2,147,483,648 floor. Capacity
+request `pi-1379240-1792482819971-0f8a4aef` seeks owner action. Small-file user
+permission does not waive the higher-priority repository floor. **No build,
+asset copy, browser test or registration starts until measured headroom exists.**

@@ -1,4 +1,9 @@
-# JANKOLOCK capacity-held handover
+# JANKOLOCK initial capacity-held handover
+
+**Historical receipt:** the subsequent operator resolution identifies Valve's
+Deadlock and supersedes the puzzle direction. See the active
+[design](jankolock-design.md) and [provenance/current hold](jankolock-provenance.md).
+The counts/checks below belong to the initial research run, not a new build.
 
 2026-10-20. **PARTIAL: research and design only. No game added or registered.**
 

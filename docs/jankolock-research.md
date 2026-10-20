@@ -1,12 +1,24 @@
-# JANKOLOCK research decision
+# JANKOLOCK research and historical appendix
+
+## Active operator resolution
+
+The operator subsequently resolved the reference as **Valve's Deadlock** and
+ordered an original arena/bots/capture/item-draft translation, not a puzzle.
+The [active design](jankolock-design.md) and [updated provenance](jankolock-provenance.md)
+supersede the recommendation below. Other candidates and mechanics comparisons
+are retained as historical research, not competing current identity claims.
+Implementation remains capacity-held; no game has been added.
+
+## Historical phase0 synthesis
 
 2026-10-20. Orchestrator synthesis of three parallel sol/xhigh research lanes,
 an independent sol/xhigh adversarial lane and a sol/xhigh design lane. This is
 research/design delivery, **not an added game or completed implementation**.
 
-## What Deadlock did we find?
+### What Deadlock did we find before operator resolution?
 
-**The intended original remains unidentified.** Recommend an independently
+**At that stage the intended original remained unidentified.** The following
+was the initial recommendation, now superseded: an independently
 authored **jam-sliding exit puzzle with cosmetic jank**, not a faithful port of
 any located Deadlock. The operator expressly requested this direction, so it
 can proceed without inventing an upstream identity. No third-party brands,
@@ -125,9 +137,10 @@ MIT notice (1,414,498 bytes); no Circuit Ward files are edited. Pi SwiftShader
 load/DOM evidence cannot establish supported-GPU rendering. An exact-file
 preview and full integrity checks remain separate gates after capacity clears.
 
-## Current stop point
+## Initial stop point (historical sample)
 
-Root capacity remains below **2,147,483,648 bytes**. Ticket
+For the current pivot/capacity ticket see [provenance](jankolock-provenance.md).
+At the initial stop, root capacity remained below **2,147,483,648 bytes**. Ticket
 `pi-1379240-1792466056900-bdb127d8` is unresolved; advice did not waive the
 operator's floor or acknowledge a capacity owner. Research/design text was the
 explicitly permitted initial lane. No bulk checkout, installs, cleanup, history
