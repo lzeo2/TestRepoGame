@@ -339,6 +339,23 @@ runtime/input/camera/performance/full-gate/interactive holds. No new game or ID.
 No push or deploy verification. Release-between-batches and disk checks remain
 mandatory when the completed runtime eventually reaches its full fleet gate.
 
+## Operator publication exception (2026-10-20)
+
+Leo explicitly ordered pushing committed main without waiting for the full gate.
+See the [exception receipt](../audits/wings-operator-push-exception.md). This is
+not a full-gate or interactive boat PASS. Free space was 1,963,855,872 bytes,
+below the strict 2 GiB floor: full gate remains blocked, 0/125 visits. No bulk
+checkout or outside-repository deletion. Storage ticket
+`pi-829842-1792461943936-5201d0a7` is pending.
+
+Roof/driver generator and heading-runner edits remain unstaged WIP and are not
+published as completed fixes. Their interrupted capture receipt has one image,
+zero heading diagnostics and a Broken pipe collector failure. Private boat
+runtime integration also remains incomplete; committed served bundles still
+have seven selectable kinds. Publish only the complete committed milestones,
+verify live delivery, and fix forward if later tests find regressions. Do not
+interpret the operator's exception as permission to falsify acceptance.
+
 ## Future outlook
 
 Complete operator and converted-family review, native missile/audio/physical-input
