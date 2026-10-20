@@ -25,7 +25,7 @@ Search access limits: Google returned HTTP 200 with only a JS redirect notice; D
 
 ## Browser candidates and their actual stated rules
 
-### 1. Deadlock by jdp: plausible sliding puzzle, not established identity
+### 1. Deadlock by jdp: row/column match-4, not established identity
 
 Primary source: <https://jdp.itch.io/deadlock>, HTTP 200.
 
@@ -90,7 +90,7 @@ The README supplies a live demo URL, <https://brandeispatrick.github.io/tcg/>, b
 
 Canonical page: <https://boardgamegeek.com/boardgame/446550/deadlock>, direct HTTP 403.
 
-Accessible primary metadata: <https://api.geekdo.com/api/geekitems?objectid=446550&objecttype=thing&subtype=boardgame>, HTTP 200. It credits designer Cassian, publisher Esoteric Games, year 2025, and labels the description as from the designer.
+BGG catalog metadata with a designer-attributed description: <https://api.geekdo.com/api/geekitems?objectid=446550&objecttype=thing&subtype=boardgame>, HTTP 200. It credits designer Cassian, publisher Esoteric Games, year 2025, and labels the description as from the designer.
 
 Excerpts: “Victory is achieved when a player breaks through ... and reaches their side of the board.” “Combat is predetermined on a ratio table.” “played on a 12x6 checkered board.”
 
@@ -119,6 +119,11 @@ No protected game source was changed or used as an asset source. These samples s
 
 ## Proposed original direction, not sourced mechanics or copied copy
 
+**Superseded options:** the design/review reject the table's lock, power-up,
+no-move-loss and timer events for the chosen reversible jam-slider. They are
+research alternatives, not accepted mechanics or copy. Use factual blocked-slide,
+undo and completion feedback instead; see [design](jankolock-design.md).
+
 Use a small jam-dispatch office that files increasingly sticky paperwork. Keep the joke in the consequence of a real action, not a random meme overlay. These are new suggestions, not a claim about an existing game's rules:
 
 | Real event | Proposed line or gag |
@@ -137,7 +142,7 @@ Presentation: solid flat colors, black action buttons, existing local Bungee/Atk
 
 ## Existing portrait/GLB tooling, read-only inventory
 
-**The supplied portrait path is absent according to the orchestrator.** No file was substituted or inferred. No portrait statistics, likeness, rigging, textures, format validity, permission, performance or screenshots are claimed. A tracked filename containing “portrait” does not identify the supplied asset.
+**At initial research the supplied portrait path was absent according to the orchestrator.** It appeared later; see [current evidence](jankolock-research.md#portrait-update) for hash, preliminary metadata and unresolved quality gates. No file was substituted or inferred. No portrait statistics, likeness, rigging, textures, format validity, permission, performance or screenshots are claimed. A tracked filename containing “portrait” does not identify the supplied asset.
 
 Useful existing code inspected through `git ls-tree`/`git show`:
 

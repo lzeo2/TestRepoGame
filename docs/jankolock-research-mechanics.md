@@ -279,7 +279,10 @@ An original illustrative board, **not a finished pack level**, used this layout:
 | D | V | 2 | column 5 | y=3 |
 
 In-memory stdlib BFS found `D→y0, B→x3, A→y3, T→x4`: **4 moves**, 61 states
-discovered before the first goal. Independent unit-step occupancy replay
+discovered before the first goal with directional near-to-far enumeration and
+goal testing at dequeue. Ascending destination enumeration instead discovers
+55; neither discovery count is a graph invariant. The frozen implementation
+contract uses ID/ascending-destination order. Independent unit-step occupancy replay
 passed. Exhausting the conceptual component, including goal vertices for
 analysis, found **112 states and 800 directed edges**; every edge had its
 legal inverse. This tests the model, not the unimplemented UI or 20 boards.

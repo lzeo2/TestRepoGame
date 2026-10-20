@@ -12,8 +12,8 @@ Initial live catalog: 125 entries, maximum ID 234. IDs 235–239 are reserved to
 
 ## Capacity hold
 
-Initial root filesystem available: 1,941,528,576 bytes (human-readable 1.9G), below the 2 GiB floor. No bulk checkout, dependency install, model copy, history rewrite, garbage collection or deletion is permitted. Bounded text research/design is the operator-requested initial lane; implementation and browser artifacts await restored capacity. A capacity request is being raised through the configured Hermes help mechanism.
+Initial root filesystem available: 1,941,528,576 bytes (human-readable 1.9G), below the 2 GiB floor. No bulk checkout, dependency install, model copy, history rewrite, garbage collection or deletion is permitted. Bounded text research/design is the operator-requested initial lane; implementation and browser artifacts await restored capacity. Capacity ticket `pi-1379240-1792466056900-bdb127d8` is retained in the configured Hermes help system. Advice did not waive the floor and no capacity-owner acknowledgement was obtained.
 
 ## Evidence pending
 
-Research and design must distinguish verified sources from inaccessible or ambiguous candidates. All gameplay, levels, copy and procedural drawing are to be original. No brand-clearance claim is made. Portrait presence and rights must be recorded separately; an absent portrait must never be replaced with a fabricated asset. Circuit Ward dependencies, if needed, may only be read-copied locally with their existing MIT license preserved.
+Research and design must distinguish verified sources from inaccessible or ambiguous candidates. All gameplay, levels, copy and procedural drawing are to be original. No brand-clearance claim is made. Portrait presence and rights must be recorded separately; an absent portrait must never be replaced with a fabricated asset. Initially absent, the supplied portrait later appeared; current hash, limited structural inspection and supplier quality failure are recorded in `docs/jankolock-research.md`. It has not been copied or enabled. Circuit Ward dependencies, if needed, may only be read-copied locally with their existing MIT license preserved.
