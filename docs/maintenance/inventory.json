@@ -1,5 +1,5 @@
 {
-  "catalog_entries": 125,
+  "catalog_entries": 126,
   "games": [
     {
       "directory": "Games/2048",
@@ -768,6 +768,18 @@
       "files": 12,
       "bytes": 55919028,
       "document": "docs/maintenance/games/058-infiltratingtheairship.md"
+    },
+    {
+      "directory": "Games/Jankolock",
+      "id": 240,
+      "title": "JANKOLOCK",
+      "registered": true,
+      "entry": "Games/Jankolock/index.html",
+      "entry_blob": "37c5d1256358597403bb54faabb070b12865dd64",
+      "tree": "b15cff44b576881444a20faf39f054621ee2ccdf",
+      "files": 15,
+      "bytes": 12476881,
+      "document": "docs/maintenance/games/240-jankolock.md"
     },
     {
       "directory": "Games/JavaScriptRacer",

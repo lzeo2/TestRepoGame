@@ -4,7 +4,7 @@
 ## Identity and status
 
 Operator-authorized original browser genre translation, not an ingested or
-Valve-affiliated port. Intended catalog ID240, title JANKOLOCK, action category,
+Valve-affiliated port. Registered as catalog ID240, title JANKOLOCK, action category,
 entry `Games/Jankolock/index.html`. Solo player plus ally bot versus two rival
 bots. Canvas2.5D core, separate optional three.js trophy lobby. No multiplayer.
 Research/design history is preserved; the old sliding-puzzle recommendation is

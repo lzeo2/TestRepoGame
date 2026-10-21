@@ -8,7 +8,15 @@ Log: `.swarmforge-logs/jankolock-11-review.log` (ignored, under 10 KB).
 This is not visual judgment, native-input acceptance, hardware acceptance or a
 release approval. Those remain with the orchestrator and delegation 10.
 
-## Findings
+## Follow-up status
+
+M1 was subsequently repaired in `73f5829` and reverified with four deterministic
+await-boundary regressions plus actual software-browser ordering tests. See
+[current build receipt](jankolock-release.md). L1 remains an explicitly retained
+immutable-vendor warning. This review and its bug-expecting reproducer below
+refer to the original reviewed snapshot, not a claim that M1 still exists.
+
+## Findings at reviewed snapshot
 
 **Confirmed defects: 0 critical, 0 high, 1 medium, 1 low.** No critical/high
 runtime blocker was demonstrated in this bounded review. This does not waive
@@ -283,7 +291,9 @@ handle.dispose();assert.equal(handle.status,'disposed');
 JS
 ```
 
-These assertions confirm the current bug. A repaired implementation should
+These assertions confirmed the bug in the reviewed snapshot; do not run them
+against current source expecting failure. The retained regression now checks
+the repaired behavior. A repaired implementation should
 instead remain unavailable with no newly allocated live scene or draw error.
 Do not invert this into a permanent test expecting broken behavior.
 

@@ -2,7 +2,9 @@
 
 2026-10-21. **Built and registered locally; no push, merge or publication.**
 Game entry: `Games/Jankolock/index.html`, catalog **240 / JANKOLOCK**.
-Catalog **126 games**, exactly one addition in this run. This is an explicitly
+Catalog **126 games**, exactly one addition in this run. Content: **one arena,
+three heroes, six abilities, six items**; no puzzle-level/solver claim after the
+operator pivot. This is an explicitly
 operator-authorized original game, not an ingested port or a new-game precedent.
 
 ## Design-pivot result
@@ -130,7 +132,7 @@ ok   JANKOLOCK                    console_errors=0 failed_reqs=0
 ```
 
 Ignored receipt `.swarmforge-logs/jankolock-targeted-smoke.log`, exit0.
-All nine fetched core/font resources logged HTTP200; no portrait request on
+All eight fetched core/font resources logged HTTP200; no portrait request on
 normal Start. Existing smoke exclusions remain unchanged; the independent
 interactive gate above uses zero exclusions. Targeted load success is not the
 mandatory full-catalog pre-push gate. **Full fleet NOT RUN, no push authorized.**
@@ -154,10 +156,14 @@ mandatory full-catalog pre-push gate. **Full fleet NOT RUN, no push authorized.*
 - Authored diff whitespace PASS. Full vendor diff retains exactly one inherited
   warning, `vendor/three.module.js:46517: space before tab in indent`; identical
   donor bytes intentionally preserved. No unqualified full-diff PASS claim.
-- Maintenance inventory initially differed only for Jankolock. Refresh/check
-  status is recorded in the closing receipt below; pre-existing sibling Wings
-  dirt blocks the checker's global source-cleanliness guard. Never staged or
-  reset sibling files to manufacture acceptance.
+- Maintenance refresh output: `Inventory: 131 games, 126 registered; shared
+  runtime separate.` Independent comparison confirms only Jankolock's record
+  was added; all prior records/shared runtime unchanged. Recorded inventory
+  equals freshly derived Git inventory. Own page has all nine required sections.
+  Global `python3 -B scripts/check_maintenance_docs.py` nevertheless exits1:
+  `AssertionError: Commit inspected source changes before validating its inventory.`
+  Pre-existing Wings source dirt triggers that guard. This is a **blocked global
+  checker**, not a PASS; no checker weakening or sibling staging/reset.
 
 ## Orchestrator VISION judgment
 
@@ -212,7 +218,7 @@ precede this build; see the historical handover for those. Build/QA milestones:
 | `c318d69` | Native two-round/touch runnable QA |
 | `363fbea` | Independent mechanical review |
 | `73f5829` | Terminal context-loss repair/regression |
-| `feat: register verified Jankolock arena and lobby` | Final name/UI cleanup, current notices/manual/docs, registration240 |
+| `940cbba` | Final name/UI cleanup, current notices/manual/docs, registration240 |
 | Closing docs commit | Scoped inventory/index and final receipt |
 
 Final commits are identified by subjects here, avoiding self-referential hashes;
@@ -227,8 +233,13 @@ doc-only commit; supplied GLB/vendor dominate. Peak/final observations remained
 above2,147,483,648. Browser profiles, screenshots and smoke temp use RAM. No
 outside deletion, gc/history rewrite or broad/narrow game checkout.
 
-Closing commands will record final free space/guard status. Owned paths are to
-be committed; unrelated sibling dirt remains untouched:
+Closing precommit free-space sample **2,649,178,112 bytes**; shared-host delta
+from build start **−21,336,064 bytes** (about20.35MiB), with501,694,464 bytes above
+the floor. Main remains `a1e7128`; original sparse selection matches the entry
+snapshot. Ports8910/8915/8916 were bind-checked closed. Final native receipt
+hashes match all five current core runtime files. Targeted-smoke log SHA-256:
+`406cb66749d638709b439cf17f7adcad3d903664fdb19554d9040a9f893c5de2`.
+Owned paths are committed at handoff; unrelated sibling dirt remains untouched:
 `Games/Wings/verification/check-speedboat-browser.py`,
 `Games/Wings/verification/generate-models.py`, `scripts/build_wings.mjs`.
 Shared worktree cannot honestly be called globally clean. Main/Character AI/
