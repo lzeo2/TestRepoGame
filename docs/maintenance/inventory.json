@@ -783,27 +783,27 @@
     },
     {
       "directory": "Games/Jankolock",
-      "id": 240,
-      "title": "JANKOLOCK",
-      "registered": true,
+      "id": null,
+      "title": "Jankolock",
+      "registered": false,
       "entry": "Games/Jankolock/index.html",
       "entry_blob": "37c5d1256358597403bb54faabb070b12865dd64",
       "tree": "b15cff44b576881444a20faf39f054621ee2ccdf",
       "files": 15,
       "bytes": 12476881,
-      "document": "docs/maintenance/games/240-jankolock.md"
+      "document": "docs/maintenance/games/unregistered-jankolock.md"
     },
     {
       "directory": "Games/Jankolock3D",
-      "id": null,
-      "title": "Jankolock3D",
-      "registered": false,
-      "entry": null,
-      "entry_blob": null,
-      "tree": "a2e6e73cbf13ab3a16e5e4ecc79f80613b56db22",
-      "files": 37,
-      "bytes": 2444647,
-      "document": "docs/maintenance/games/unregistered-jankolock3d.md"
+      "id": 240,
+      "title": "JANKOLOCK",
+      "registered": true,
+      "entry": "Games/Jankolock3D/index.html",
+      "entry_blob": "005f7e701f53efbe93ec741867fbb5b1d850ed21",
+      "tree": "98bfe9e4e3d441dd164bc2eae00438d929b05cc8",
+      "files": 57,
+      "bytes": 5874660,
+      "document": "docs/maintenance/games/240-jankolock3d.md"
     },
     {
       "directory": "Games/JavaScriptRacer",

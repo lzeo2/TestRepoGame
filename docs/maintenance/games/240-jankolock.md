@@ -1,5 +1,10 @@
 <!-- maintenance-game: Games/Jankolock -->
-# JANKOLOCK maintenance manual
+# JANKOLOCK maintenance manual (historical path)
+
+The registration-derived canonical guides are now
+[ID240 Jankolock3D](240-jankolock3d.md) and
+[retained unregistered Jankolock](unregistered-jankolock.md).
+This historical page is preserved as evidence, not the current catalog guide.
 
 ## Identity and status
 

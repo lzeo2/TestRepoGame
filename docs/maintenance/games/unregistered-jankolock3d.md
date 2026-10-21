@@ -1,5 +1,9 @@
 <!-- maintenance-game: Games/Jankolock3D -->
-# Jankolock3D maintenance manual
+# Jankolock3D maintenance manual (historical development path)
+
+The integrated existing-ID rewrite is now maintained in
+[240-jankolock3d.md](240-jankolock3d.md). This page preserves lane-team history;
+statements below about an unregistered world-only entry are historical.
 
 ## Identity and status
 
@@ -165,9 +169,9 @@ hashes differ, so stable-current-source visuals, hardware and full-game release
 remain held. No new portrait image or acceptance is inferred from module tests.
 
 The checker now requires `240-jankolock3d.md` and `unregistered-jankolock.md`
-after the existing ID moved. Those new filenames exceed the latest explicit
-manual allowlist; scope ticket `pi-2013050-1792625502414-becacc8d` is pending.
-Inventory refresh also waits for active integration source to be committed.
+after the existing ID moved. Those new filenames were subsequently approved by operator answer
+`p-1792625502414`; they are now the registration-derived canonical guides.
+Inventory refresh still requires inspected integration source to be committed.
 Do not weaken the checker, reset sibling changes or revert catalog ownership.
 
 ## Future outlook
