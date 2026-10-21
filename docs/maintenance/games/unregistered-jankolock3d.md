@@ -4,11 +4,12 @@
 ## Identity and status
 
 Operator-authorized original 3D rebuild of existing JANKOLOCK, not an ingested
-port or a new catalog registration. ID 240 still points to the older
-`Games/Jankolock/index.html`. This directory is an unregistered development
-project, with world-team entry `Games/Jankolock3D/world.html`; no canonical
-`index.html` is established by the world milestone. Registration and push are
-separate gates. No complete playable MOBA is claimed by this manual.
+port or a newly allocated catalog ID. Integration commit `d9088a2` repoints
+existing ID240 to `Games/Jankolock3D/index.html`; the prior tree is retained
+unregistered. This manual's historical filename awaits registration-aware
+reconciliation. `world.html` remains the separate world-team traversal viewer.
+Registration does not establish acceptance or grant push permission. This
+manual does not certify the entire integrated game.
 
 ## Implementation map
 
@@ -73,7 +74,17 @@ The wiki was a mechanics reference, not an asset or redistribution source.
 Shared local Bungee/Atkinson retain their existing notices. Exactly two
 codex-imagen designs are preserved; `world-mockup.py` performs the
 operator-approved deterministic flat-palette transform before UI changes.
-No external runtime assets or generated model files were added by this team.
+No external runtime assets or generated model files were added by the world
+team. The separately approved in-house portrait derivative is now local at
+`models/portrait_relief.glb`: 3,228,372 bytes, 61,893 vertices, 124,512 triangles,
+SHA-256 `8463eee8276187cacaba912d9540279ad1bb338aa382e9448632aa9a33892514`.
+Its preserved external source is 10,972,672 bytes, SHA-256
+`abe1b2ee07038d6926813542a2127bca06cb19564f535dd49c593ea60c199fc9`.
+`optimize-portrait.py` uses already-installed numpy, deterministic 1.5mm vertex
+clustering and face cleanup, with no dependency installation. Byte-exact
+reproduction, receipt counts/error measurements, loader BYTES/HASH and config
+pins were independently recomputed. See `CREDITS.md` and
+`portrait-receipt.json` in the game for the method and actual measurements.
 
 ## Audit findings
 
@@ -139,6 +150,25 @@ HTTP 200 pages, 34 captures, 23 observations and zero retained errors. A closer
 4m camera boom and 1.1m right shoulder improve foreground FX visibility; the
 camera collision assertion remains active at the shorter distance. Results
 are evidence for independent review, not a builder-issued acceptance grade.
+
+### Portrait H follow-up
+
+`a6b273a` adds the approved under-cap derivative and shared-scene loader;
+`game.mjs` mounts it in the room's framed display. The original remains outside
+the new game tree. Optimizer self-test, loader integrity/parser regression,
+byte-exact derivation and isolated mount/disposal checks pass. Dedicated
+`portrait-qa.py` skipped because a sibling browser was active, not because the
+portrait failed. Independent `PORTRAIT-REVIEW.md` (`080008e`) grades H
+**QUALIFIED** using two integration-owner normal-lobby images, with exact image
+hashes. The full integration run timed out and subsequent integration source
+hashes differ, so stable-current-source visuals, hardware and full-game release
+remain held. No new portrait image or acceptance is inferred from module tests.
+
+The checker now requires `240-jankolock3d.md` and `unregistered-jankolock.md`
+after the existing ID moved. Those new filenames exceed the latest explicit
+manual allowlist; scope ticket `pi-2013050-1792625502414-becacc8d` is pending.
+Inventory refresh also waits for active integration source to be committed.
+Do not weaken the checker, reset sibling changes or revert catalog ownership.
 
 ## Future outlook
 

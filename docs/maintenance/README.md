@@ -8,9 +8,13 @@ unverified, and some native interactions remain held.
 
 The catalog contains **127 registered games**. The latest Git inventory records **133 game projects**
 plus the shared `Games/_emulatorjs` runtime. Below the Obvious (235), operator-named on 2026-10-21, is the original offline solo rare-answer trivia game with Battle gated for phase 2; see the [branch handover](../dive-trivia-handover.md). Its targeted smoke does not replace the full fleet gate. JANKOLOCK (240) is the operator-authorized original arena translation; its indexed manual and [targeted build receipt](../jankolock-release.md) record native play, software-only portrait rendering and remaining full-fleet/hardware holds. Steal a Footballer is the owner-authorized solo adaptation registered as 227; the owner stopped game testing and explicitly requested this source release without a completed smoke gate. The six unregistered projects are
-2048, Garage Borough, Hextris, Jankolock3D, QWOP and Slope. Jankolock3D is the
-operator-authorized rebuild in development, not a new catalog game; its
-world-only evidence does not certify sibling integration or full-game acceptance. Existing Slipstream Borough is catalog225, explicitly labeled a police-chase preview with an unbanked handling sandbox. Existing Foldwild is owner-authorized Story preview226; its M2/inspection/campaign/device/rights holds remain. Both are registrations of existing projects, not new builds. Sparse exclusion is intentional: a missing
+2048, Garage Borough, Hextris, legacy Jankolock, QWOP and Slope after integration
+commit `d9088a2` repointed existing ID240 to Jankolock3D. This is the authorized
+rebuild, not a new ID. The source index/inventory below still require final
+registration-aware reconciliation after active integration commits and approval
+of the checker-required manual filenames. Portrait H has qualified independent
+visual evidence; neither that nor world-only evidence certifies the complete
+integrated game or authorizes publication. Existing Slipstream Borough is catalog225, explicitly labeled a police-chase preview with an unbanked handling sandbox. Existing Foldwild is owner-authorized Story preview226; its M2/inspection/campaign/device/rights holds remain. Both are registrations of existing projects, not new builds. Sparse exclusion is intentional: a missing
 local Games folder does not mean a broken deployment. See [inventory](inventory.json)
 for exact tracked counts, entry hashes, source-tree hashes and manual paths.
 

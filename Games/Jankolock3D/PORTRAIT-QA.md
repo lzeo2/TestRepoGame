@@ -1,4 +1,4 @@
-# Portrait lobby verification: blocked
+# Portrait lobby verification: dedicated run skipped
 
 This is builder evidence, not acceptance H, full-game QA or an escape-room game
 claim. No asset or integration code was changed. Asset commit `a6b273a` and its
@@ -64,4 +64,15 @@ separate view. Inspect all captures before making any visibility claim.
 
 Independent review and H grading remain separate. Formal approval for the
 separate QA directory is pending; this task writes only its allowed game paths.
-No catalog change, game addition, maintenance edit, full-fleet gate or push.
+No catalog change, game addition, maintenance edit, full-fleet gate or push
+was performed by the dedicated QA worker.
+
+## Subsequent independent review of integration-owner captures
+
+The integration owner later supplied normal-lobby light/dark captures at
+`docs/maintenance/audits/jankolock-3d-qa/integration/integration-H.png` and
+`integration-H-dark.png`. Independent `PORTRAIT-REVIEW.md` binds its **QUALIFIED**
+H result to their exact hashes. The dedicated SKIP above remains accurate:
+this script did not produce those captures or run a competing browser. The
+broader integration run timed out, and subsequent source edits prevent treating
+those images as stable current-source or full-game acceptance.

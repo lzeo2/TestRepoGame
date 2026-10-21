@@ -64,4 +64,23 @@ pinned `BYTES`/`HASH` and regression counts. The source SHA stays immutable.
 
 Maintenance-manual/inventory reconciliation belongs to the orchestrator because
 this task owns only the six portrait files. Module checks do not grade lobby
-acceptance H or replace a browser/full-game release gate. No browser or push.
+acceptance H or replace a browser/full-game release gate. No browser or push
+was performed by the asset builder.
+
+## Subsequent verification
+
+The orchestrator independently reproduced the committed derivative byte-for-byte
+from the supplied original, recomputed receipt counts/error measurements, and
+verified loader/config pins and unchanged source bytes. The optimizer self-test,
+loader integrity/parser regression and isolated mount/disposal checks passed.
+No replacement asset or fabricated receipt values were introduced.
+
+Independent review `080008e`, recorded in `PORTRAIT-REVIEW.md`, grades H
+**QUALIFIED** against the exact integration light/dark lobby captures hashed in
+that report. The relief is visible in the room's framed display. These are
+integration-owner captures, not a successful run of `portrait-qa.py`, which
+skipped because the shared browser slot was occupied. The broader integration
+run timed out and its recorded source hash differs from subsequent integration
+edits. This closes neither stable-current-source visual acceptance nor hardware,
+full-game or release gates. The asset-generation receipt's unverified visual
+fields describe its original asset-only generation stage and are preserved.
