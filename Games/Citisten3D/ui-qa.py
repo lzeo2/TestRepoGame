@@ -17,7 +17,8 @@ FLOOR = 2178940928
 
 
 def disk():
-    assert shutil.disk_usage('/').free >= FLOOR, 'Disk floor: stop evidence writes'
+    free = int(subprocess.check_output(['df', '-B1', '--output=avail', '/'], text=True).splitlines()[-1])
+    assert free >= FLOOR, 'Disk floor: stop evidence writes'
 
 
 class QuietHandler(SimpleHTTPRequestHandler):
@@ -32,6 +33,16 @@ def shot(page, name):
     return path
 
 
+def keyboard_focus(page, selector):
+    target = page.locator(selector)
+    for _ in range(30):
+        page.keyboard.press('Tab')
+        if target.evaluate('el => el === document.activeElement'):
+            assert target.evaluate("el => el.matches(':focus-visible')")
+            return
+    raise AssertionError(f'Keyboard cannot reach {selector}')
+
+
 def layout(page):
     problems = page.evaluate('''() => {
       const errors = [];
@@ -42,6 +53,11 @@ def layout(page):
         const r = el.getBoundingClientRect();
         if (r.width < 44 || r.height < 44) errors.push('Small target: ' + el.textContent);
         if (r.left < -1 || r.right > innerWidth + 1) errors.push('Clipped target: ' + el.textContent);
+        if (el.tagName === 'BUTTON' && el.firstChild?.nodeType === Node.TEXT_NODE) {
+          const range = document.createRange(); range.selectNodeContents(el.firstChild);
+          const text = range.getBoundingClientRect();
+          if (text.left < r.left || text.right > r.right) errors.push('Clipped button copy: ' + el.firstChild.textContent);
+        }
       }
       if (scope.scrollWidth > innerWidth) errors.push('Horizontal overflow');
       for (const el of document.querySelectorAll('.citisten-ui *')) {
@@ -96,33 +112,44 @@ def main():
                         if (x === 12 || z === 12) continue;
                         state.buildings.push({type:x<9?'residential':x<16?'commercial':'industrial',x,z});
                       }
-                      state.buildings.push({type:'townhall',x:12,z:12});
+                      state.buildings.unshift({type:'townhall',x:12,z:12});
                       window.map = {size:24, roads:{cells:new Set(),cell(key){return {x:key%24,z:Math.floor(key/24)}}}};
                       for(let i=0;i<24;i++){map.roads.cells.add(12*24+i);map.roads.cells.add(i*24+12)}
                       ui.update(state,map);
+                      const pixel=document.querySelector('.city-map canvas').getContext('2d').getImageData(94,94,1,1).data;
+                      if (pixel[0]!==245 || pixel[1]!==242 || pixel[2]!==233) throw Error('Town hall marker covered by later zones');
                     }''')
                     page.evaluate('document.fonts.ready')
+                    assert page.evaluate("document.fonts.check('16px Atkinson') && document.fonts.check('16px Bungee')")
                     for theme in ['dark', 'light']:
                         if theme == 'light':
                             page.locator('dialog[open] [data-action="theme"]').click()
                         assert page.locator('#ui').get_attribute('data-theme') == theme
                         layout(page)
                         # Native focus ring and keyboard start path.
-                        page.locator('[data-mode="free"]').focus()
+                        keyboard_focus(page, '[data-mode="free"]')
                         assert page.locator('[data-mode="free"]').evaluate("el => getComputedStyle(el).outlineStyle") == 'solid'
                         captures.append(shot(page, f'J-I-ui-menu-{theme}-{width}'))
                         page.keyboard.press('Enter')
                         assert page.evaluate('calls.at(-1)') == ['start', 'free']
-                        page.evaluate('state.mode="free"; state.phase="day"; state.budget=24500; state.population=128; state.power={demand:64,supply:100}; ui.update(state,map)')
+                        page.evaluate('state.mode="free"; state.phase="day"; state.budget=24500; state.population=128; state.night=2; state.townHallHp=720; state.power={demand:64,supply:100}; ui.update(state,map)')
                         assert not page.locator('.city-night').is_visible()
                         assert page.locator('[data-value="budget"]').inner_text() == '$24,500'
                         layout(page)
                         captures.append(shot(page, f'J-C-D-ui-hud-{theme}-{width}'))
+                        for group, tool in [('Bulldoze', 'bulldoze'), ('Road', 'road')]:
+                            page.locator(f'[data-group="{group}"]').click()
+                            assert page.evaluate('calls.at(-1)') == ['tool', tool]
+                        page.locator('[data-group="Service"]').click()
+                        for tool in ['power', 'water', 'police', 'fire', 'park']:
+                            page.locator(f'[data-tool="{tool}"]').click()
+                            assert page.evaluate('calls.at(-1)') == ['tool', tool]
                         page.locator('[data-group="Zone"]').click()
                         page.locator('[data-tool="residential"]').click()
                         assert page.evaluate('calls.at(-1)') == ['tool', 'residential']
                         assert page.locator('[data-tool="residential"]').get_attribute('aria-pressed') == 'true'
-                        page.locator('[data-tool="commercial"]').focus()
+                        page.keyboard.press('Tab')
+                        assert page.locator('[data-tool="commercial"]').evaluate('el => el === document.activeElement')
                         assert page.locator('#city-tooltip-commercial').is_visible()
                         layout(page)
                         captures.append(shot(page, f'J-B-ui-toolbar-{theme}-{width}'))
@@ -157,12 +184,18 @@ def main():
                         captures.append(shot(page, f'J-H-ui-gameover-{theme}-{width}'))
                         page.locator('[data-action="restart"]').click()
                         assert page.evaluate('calls.at(-1)') == ['restart', 'defense']
-                        page.locator('.city-top [data-action="menu"]').click()
+                        page.evaluate('ui.update(state,map)')
+                        page.locator('.city-loss [data-action="menu"]').click()
+                        page.evaluate('ui.update(state,map)')
+                        assert page.locator('.city-menu').is_visible()
+                        assert not page.locator('.city-resume').is_visible()
+                        page.keyboard.press('Escape')
+                        assert page.locator('.city-menu').is_visible()
                         page.locator('[data-mode="defense"]').click()
                         assert page.evaluate('calls.at(-1)') == ['start', 'defense']
                         page.locator('.city-top [data-action="menu"]').click()
                     # Throwing storage must not break theme controls.
-                    page.evaluate("Storage.prototype.setItem = () => { throw Error('Storage denied') }")
+                    page.evaluate("() => { Storage.prototype.setItem = () => { throw Error('Storage denied') }; }")
                     page.locator('dialog[open] [data-action="theme"]').click()
                     assert page.locator('#ui').get_attribute('data-theme') == 'dark'
                     page.evaluate('ui.events([{type:"placed"},{type:"placed"}]);ui.events([{type:"placed"}])')
@@ -191,7 +224,7 @@ def main():
         result = {'scope':'UI fixture only, reviewer grades acceptance', 'viewports':[1440,390,320],
                   'themes':['dark','light'], 'screenshots':len(captures), 'collages':10,
                   'errors':errors,'externalRequests':external,'failedRequests':failed,
-                  'checks':'native keyboard start, both modes, tool callbacks, focus, theme/storage failure, HP, demand, peak population, toast cap/dedupe/expiry, 44px targets, overflow, no gradients/shadows, destroy',
+                  'checks':'native keyboard start, both modes, tool callbacks, focus, theme/storage failure, HP, demand, peak population, loss-to-menu, hall marker ordering, toast cap/dedupe/expiry, 44px targets, overflow and button copy, no gradients/shadows, destroy',
                   'diskBeforeBytes':before,'diskAfterBytes':shutil.disk_usage('/').free}
         disk(); (OUT / 'J-ui-results.json').write_text(json.dumps(result,indent=2)+'\n')
         print(f'UI CHECK PASS: {len(captures)} fixture screenshots, 10 collages; 3 viewports, 2 themes; zero console/page/network errors')

@@ -76,7 +76,6 @@ export function createUI(root, callbacks = {}) {
   function showMenu() {
     loss.close();
     $('.city-resume').hidden = !hasGame || lost;
-    lost = false;
     if (!menu.open) menu.showModal();
   }
   function renderTools() {
@@ -141,10 +140,11 @@ export function createUI(root, callbacks = {}) {
     for (const building of state.buildings || []) {
       ctx.fillStyle = colours[building.type] || '#d8ae55';
       ctx.fillRect(building.x * scale, building.z * scale, Math.max(2, scale), Math.max(2, scale));
-      if (building.type === 'townhall') {
-        const x = Math.max(0, Math.min(184, building.x * scale - 7)), y = Math.max(0, Math.min(184, building.z * scale - 7));
-        ctx.fillStyle = '#f5f2e9'; ctx.fillRect(x, y, 16, 16); ctx.fillStyle = '#000'; ctx.font = 'bold 13px sans-serif'; ctx.fillText('H', x + 3, y + 13);
-      }
+    }
+    const hall = (state.buildings || []).find(building => building.type === 'townhall');
+    if (hall) {
+      const x = Math.max(0, Math.min(184, hall.x * scale - 7)), y = Math.max(0, Math.min(184, hall.z * scale - 7));
+      ctx.fillStyle = '#f5f2e9'; ctx.fillRect(x, y, 16, 16); ctx.fillStyle = '#000'; ctx.font = 'bold 13px sans-serif'; ctx.fillText('H', x + 3, y + 13);
     }
     if (state.mode === 'defense' && state.phase === 'night') for (const zombie of state.zombies || []) {
       ctx.fillStyle = '#d8ae55'; ctx.beginPath(); ctx.arc(zombie.x * scale, zombie.z * scale, 2.5, 0, Math.PI * 2); ctx.fill();
@@ -167,6 +167,7 @@ export function createUI(root, callbacks = {}) {
     $('.ring-value').style.strokeDasharray = `${hp} 100`;
     $('.city-hall svg').setAttribute('aria-label', `Town hall health ${Math.round(hp)} percent`);
     if (performance.now() - lastMapDraw > 250) { drawMap(state, map); lastMapDraw = performance.now(); }
+    if (state.phase !== 'lost') lost = false;
     if (state.phase === 'lost' && !lost) {
       lost = true; menu.close(); text('score', number(state.score)); text('finalPopulation', number(state.peakPopulation)); text('kills', number(state.kills)); loss.showModal();
     }

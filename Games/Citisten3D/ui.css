@@ -54,11 +54,12 @@
 .city-groups { display: flex; justify-content: center; gap: 8px; padding: 12px; width: 100%; }
 .city-groups button { flex: 1; }
 .city-tools { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; padding: 12px; max-width: 100%; }
+.city-tools button { min-width: max-content; }
 .city-tools p { width: 100%; font-size: 14px; color: var(--muted); }
 .city-tool-help { font-size: 14px; background: var(--bg); padding: 2px 8px; border-radius: 4px; }
 .city-tooltip { display: none; position: absolute; bottom: calc(100% + 10px); left: 50%; transform: translateX(-50%); width: max-content; max-width: min(220px, 80vw); padding: 8px; background: var(--panel); color: var(--text); border: 1px solid var(--border); border-radius: 4px; pointer-events: none; font-size: 14px; font-weight: 400; z-index: 2; }
 .city-tools button:hover .city-tooltip, .city-tools button:focus-visible .city-tooltip { display: block; }
-.city-toasts { position: absolute; left: 16px; top: 200px; max-width: min(390px, calc(100% - 32px)); display: grid; gap: 8px; }
+.city-toasts { margin: 16px; max-width: min(390px, calc(100% - 32px)); display: grid; gap: 8px; }
 .city-toasts p { padding: 12px 16px; border-left: 4px solid var(--accent) !important; }
 .citisten-ui dialog { position: fixed; inset: 0; margin: 0; width: 100%; max-width: none; height: 100%; max-height: none; border: 0; padding: max(24px, env(safe-area-inset-top)) max(24px, env(safe-area-inset-right)) max(24px, env(safe-area-inset-bottom)) max(24px, env(safe-area-inset-left)); background: var(--bg); color: var(--text); pointer-events: auto; overflow-y: auto; }
 .citisten-ui dialog::backdrop { background: var(--bg); }
@@ -112,7 +113,7 @@
   .city-night > div:first-child { width: 100%; }
   .city-hall svg { width: 46px; height: 46px; }
   .city-hall strong, .city-wave strong { font-size: 18px; }
-  .city-toasts { top: 400px; left: 8px; max-width: calc(100% - 184px); font-size: 14px; }
+  .city-toasts { margin: 8px; max-width: calc(100% - 184px); font-size: 14px; }
   .city-toasts p { padding: 8px; }
   .citisten-ui dialog { padding: 16px; }
   .city-dialog-top .city-brand { font-size: 21px; }

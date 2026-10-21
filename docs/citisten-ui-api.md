@@ -31,8 +31,10 @@ ui.destroy(); // listeners, timers and DOM removed
 keeps the menu visible and shows an error. Return a promise only if integration
 handles its own loading/error state. Start automatically exposes the game HUD;
 `update` with `phase:'lost'` opens the loss dialog once. `showGame()` also
-exposes the HUD for sim-lane screenshot harnesses. Call `showMenu` to reset
-loss-dialog visibility when replacing a simulation externally.
+exposes the HUD for sim-lane screenshot harnesses. `showMenu()` keeps an
+already-acknowledged loss acknowledged, so subsequent lost-state updates
+cannot reopen the dialog over the menu. Updating with a non-lost state
+resets loss detection when replacing a simulation externally.
 
 ## Tools and state
 
@@ -80,6 +82,14 @@ It exercises documented APIs against labelled fixture state, not gameplay.
 Screenshot output: `docs/maintenance/audits/citisten-QA/J-ui-*.png` and
 J comparison collages. These are evidence for reviewer grading, not acceptance.
 C/D/F/G/H/I integrated gameplay gates belong to the integration lane.
-Browser QA is pending the shared browser queue at the source milestone.
+Initial browser regression produced 36 fixture screenshots and 10 collages
+with zero console/page/network errors. Screenshot review then found a narrow
+tool-label fit issue and a toast/banner edge overlap. A loss-to-menu edge and
+minimap town hall drawing order were also corrected with new regression
+assertions. Final-source evidence is pending the shared browser queue.
+Harness-only corrections during initial QA: native Tab rather than programmatic
+focus for `:focus-visible`, reset HP/budget fixture values between themes, and
+a braced Playwright storage override so the returned function is not invoked
+by the test driver. No UI assertions were removed to obtain a passing run.
 Native touch gameplay, screen-reader review and target-device tests remain held.
 Main owns canonical maintenance inventory updates and full fleet/no-push gates.
