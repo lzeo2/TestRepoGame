@@ -124,3 +124,97 @@ Pre-write `df -B1 /`: **4,203,593,728 bytes available**, above **2,178,940,928**
 **Disposition:** accept retained world loading/nonblank evidence and viewer-shell
 fidelity only. Hold A and all full-game/release claims; retain collision and
 literal skybox qualifications for the builder/orchestrator. No push authorized.
+
+## 2026-10-22 superseding follow-up: completed world traversal
+
+**World-only disposition: qualified PASS. A: PASS for the bounded traversal
+milestone. I: PASS for retained world evidence. Viewer UI fidelity: PASS with
+caveats. Full-game B-H, integration, hardware and release: NOT CERTIFIED.**
+
+This independent follow-up supersedes the native HOLD and findings 2/3/4 above
+for the repaired source and current evidence only. The original report and
+failed-run history remain intact. Actual session provider/model/thinking were
+verified as `openai-codex/gpt-6.1-sol`, `xhigh`, not inferred from the assignment.
+Only this report is changed. No implementation, browser, catalog edit or push.
+
+### Reviewed source and receipt
+
+Read `bc25ca9`'s collision/tower/skybox/regression diff and current world data,
+traversal, scene, viewer, HTML/CSS, tests, QA runner and WORLD.md, plus the
+maintenance manual/inventory. Current reviewed world source has no difference
+from `bc25ca9`. Inventory still lists the older registered `Games/Jankolock`,
+not this unregistered viewer. Sibling hero/systems work is outside this review.
+
+The orchestrator reports exit 0 from:
+
+```sh
+TMPDIR=/dev/shm timeout --signal=TERM --kill-after=15s 540s python3 -B Games/Jankolock3D/world-qa.py --native --port 8941
+```
+
+I did not rerun the browser while sibling gates were active. Independently
+parsed the current `world-native-evidence.json`, verified exact equality with
+`world-evidence.json`, and inspected the fresh log's final completed record:
+**completed true, 13 captures, 3 zip endpoints, 3 grounded arrival walks,
+29 HTTP 200 responses, 0 recorded errors, no failure**. Evidence directory is
+`docs/maintenance/audits/jankolock-3d-qa/`. Native receipt SHA-256:
+`7df9acf44a7d82df7abe40dae8da9e4e3c5ac059a314e0104011b9902404f242`.
+These current JSON/PNG bytes are awaiting the orchestrator's evidence commit;
+this report commit does not include them. `world-bounded-native.jsonl` and
+`world-interrupted-native.jsonl` still exist and remain historical failures.
+The older native-HOLD/checkpoint-only statements in WORLD.md are superseded
+by this receipt, not retroactively converted into successful runs.
+
+### Re-grades and repaired findings
+
+| Scope | Follow-up grade | Independent basis / boundary |
+| --- | --- | --- |
+| A: visible three-lane world and station traversal | **PASS, qualified** | Yellow Graft, blue Midway and green Greenhedge appear in actual captures. Native rides finish at z=385, -385, 385 respectively; all three subsequent free-mode walks are grounded at y=0. Full lane walking remains module-fixture evidence, not native full-lane walking. |
+| I: retained world captures/loading | **PASS, world-only** | Current 13-image Pillow checks pass; completed receipt has 29/29 HTTP 200 and no recorded errors. This is not all-spec screenshot or full-game coverage. |
+| Viewer UI fidelity | **PASS with caveats** | Labeled comparison retains flat dark panels, black buttons, pale text, yellow UI accent, breadcrumb, compact corners and local fonts. Both mobile media captures remain readable without visible overlap. No pixel-identical or gameplay-HUD claim. |
+| Finding 2: ramp slab side/underside mismatch | **Closed for reproduced cases** | Shared collision now transforms the capsule into the same rotated 0.2m slab geometry used by rendering. Original 25-step probe stops at x=-383.4, y=0, z=-364, intersection false, instead of entering at x=-387. Both axes/slope signs, underside jumps and underpasses have passing regressions. Not exhaustive physics certification. |
+| Finding 3: blocked Staple Tower opening | **Closed** | Exactly two leg boxes and one top box now feed collision and rendering. Original opening probe returns false; the regression walks through the opening and retains solid legs and roof/rope access. |
+| Finding 4 / skybox wording | **Resolved under developer constraints** | Scene now uses inward-facing `BoxGeometry(2200,2200,2200)`, solid material, separate sun/clouds. The developer forbids gradients, so absence of a gradient is intentional and is not a defect. No textured/environment-map claim. Guardian slopes still are not individual stairs. |
+
+Grounded arrival displacements independently checked from endpoint/walk records:
+**Graft 4.4m, Midway 5.2008m, Greenhedge 4.7992m**. QA uses real keyboard
+movement and read-only observations; it asserts walking, grounding and >=4m
+displacement before retaining each walk. Arrival PNGs alone do not prove that
+subsequent walk. Likewise `grounded:true` during a zip or aerial orbit is not
+proof of ground contact; the arrival-walk records are free-mode, y=0 evidence.
+
+### Actual image inspection and remaining limits
+
+Opened all 13 current PNGs as image attachments: implemented, light, aerial,
+all three zip rides, all three arrivals, both mobile media captures, Foldwild
+reference and the labeled UI comparison. The new Greenhedge arrival visibly
+shows its green road stripe, nearby structure and station prompt. Aerial shows
+three corridors and rooftops but distant detail fades heavily into fog. The
+comparison separates transformed mockup from runtime; its blank design canvas
+is not missing gameplay. Foldwild is a start-screen reference only.
+
+Both genuine 390x720 mobile captures are padded to 1280x720, not malformed
+1280px mobile pages. Header/footer still consume about 60% of mobile height;
+real touch ergonomics remain unproven. Dark/light media intentionally share
+the dark shell. Caption/title scale and thin outlines differ from the mockup.
+
+**770m station span is not complete 900m district or Patron-to-Patron zip
+coverage.** All three source spans remain 770m. The passing 95-second lane
+walking fixtures are distinct from the native >=4m arrival walks. Secondary
+routes have module coverage, not equivalent exhaustive native play evidence.
+No visible rider/trolley, third-person attachment animation, hero integration,
+full-game B-H, combat/economy, target-device performance, cold-offline full-game
+closure or fleet acceptance is established. No full-game self-grade is issued.
+
+### Reviewer commands and handover
+
+- `node Games/Jankolock3D/world-test.mjs`: `world-test: 491 assertions passed (module fixtures; native evidence separate)`.
+- `node --check` on traversal, world-data, world-scene, world-test and viewer: all five passed.
+- Independent module probes: side entry stops outside the slab; tower has three boxes and an unblocked opening; all zip spans are 770m.
+- Python/Pillow: **13/13 nonblank**, current full-image variance range **1987.93-5301.89**. Receipt equality/count/status/grounded-displacement assertions passed.
+- `python3 -B scripts/check_maintenance_docs.py`: blocked with `AssertionError: Commit inspected source changes before validating its inventory.` Active sibling source is dirty; no refresh or sibling edits were attempted. Orchestrator owns reconciliation.
+- Pre-write `df -B1 /`: **4,192,493,568 bytes available**, above **2,178,940,928**. Only the explicitly owned report is staged/committed; unrelated dirty evidence/source belongs to the orchestrator and sibling teams.
+
+**Handover:** accept repaired, bounded world traversal and viewer evidence with
+the qualifications above. Preserve the historical HOLD. Commit current evidence
+and reconcile maintenance separately. No new game, registration or release
+approval; no push.
