@@ -19,7 +19,9 @@ Historical PASS receipts are not current full-game acceptance.
 `systems-ui`/CSS/actor layer, `heroes/` controller/runtime/visuals and `bots.mjs`.
 One renderer/scene/camera/RAF. Shared immutable world data matches the tracked
 `docs/jank3d-spawns.json`; 42 source markers yield 38 simulated objectives with
-one shared Patron per team. Dynamic structure groups sync HP outcome/position,
+one shared Patron per team. `match-world.mjs` derives feet-height waypoints at
+real ramp edges so troopers follow Midway's bridge deck, not its underside,
+without changing the immutable exported world. Dynamic groups sync HP outcome/position,
 not an unrelated decorative world layered over gameplay.
 
 Inspected authored integration, bot, hero-intent adapter, movement repairs,
@@ -106,7 +108,8 @@ browser slots and the disk guard before asset writes. No installs/new runtime de
 
 Run `node Games/Jankolock3D/integration-test.mjs` and the commands in INTEGRATION.md.
 Current integration regression passes both 600-second chain directions with six
-configured heroes, fractional start clock, 19 falls, separate Patron phases,
+configured heroes, fractional start clock, real bridge-height waypoints,
+19 falls, separate Patron phases,
 orb single-accounting and portrait integrity/corruption checks. Catalog parses:
 127 unique IDs, required schema fields; only entry240 differs from pre-integration.
 World regression: 491 assertions. Controller regression after ramp repair: 1,365
