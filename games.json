@@ -1335,5 +1335,14 @@
     "url": "Games/Astray/index.html",
     "featured": false,
     "tags": ["3d"]
+  },
+  {
+    "id": 235,
+    "title": "Dive Trivia (Working Title)",
+    "cat": "word",
+    "icon": "Games/Dive Trivia/guide.svg",
+    "desc": "Original self-made rare-answer trivia commissioned for this arcade. Seven-question UTC daily dives, numbered games and four themed packs with curated rarity scoring. Offline solo; online Battle is not enabled. Final name pending operator selection.",
+    "url": "Games/Dive Trivia/index.html",
+    "featured": false
   }
 ]

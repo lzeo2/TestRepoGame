@@ -1,5 +1,5 @@
 {
-  "catalog_entries": 125,
+  "catalog_entries": 126,
   "games": [
     {
       "directory": "Games/2048",
@@ -420,6 +420,18 @@
       "files": 2,
       "bytes": 24706,
       "document": "docs/maintenance/games/191-darts501.md"
+    },
+    {
+      "directory": "Games/Dive Trivia",
+      "id": 235,
+      "title": "Dive Trivia (Working Title)",
+      "registered": true,
+      "entry": "Games/Dive Trivia/index.html",
+      "entry_blob": "0b70fa7dd6c020286f9027e11666197a5a0b1605",
+      "tree": "bd533686d43e07c1f573e765ce137a8db4d74cdd",
+      "files": 7,
+      "bytes": 61428,
+      "document": "docs/maintenance/games/235-dive-trivia.md"
     },
     {
       "directory": "Games/DogeMiner",
