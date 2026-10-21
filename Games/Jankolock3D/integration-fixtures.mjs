@@ -1,6 +1,7 @@
 // Explicit loopback-only QA policies. These are API fixtures, NOT native play.
 // No HP, soul, objective lock, phase or winner assignments are used here.
-export function runChain(sim,team='carbon') {
+export function runChain(sim,team='carbon',until=600) {
+  if(!Number.isFinite(until)||until<sim.time||until>600)throw new RangeError('Invalid fixture end time');
   const enemy=team==='carbon'?'ivory':'carbon';
   const attackers=sim.heroes.filter(h=>h.team===team);
   if(attackers.length!==3)throw new Error('Chain fixture requires the real three-hero team.');
@@ -13,8 +14,8 @@ export function runChain(sim,team='carbon') {
     if(!result.ok)throw new Error(result.reason);
     actions.push({time:sim.time,source:h.id,target:target.id,position,raw,amount:result.amount});
   };
-  while(sim.time<600) {
-    sim.step(Math.min(1,600-sim.time));collect();
+  while(sim.time<until) {
+    sim.step(Math.min(until,Math.floor(sim.time+1e-7)+1)-sim.time);collect();
     if(sim.time<65||sim.winner)continue;
     for(let i=0;i<sim.lanes.length;i++) {
       const h=attackers[i],lane=sim.lanes[i];if(!h.alive)continue;
@@ -39,7 +40,7 @@ export function mountFixtures(host) {
   const sync=()=>{actors.sync(sim);view.syncStructures(sim.structures);ui.update({runtime:host.runtime,controller});view.renderCamera();};
   function place(position,yaw=Math.PI,pitch=-.06) {
     sim.moveHero(hero.id,position);controller.warp(position);controller.yaw=yaw;controller.pitch=pitch;
-    traveler.mode='free';Object.assign(traveler,position);host.runtime.update(0);controller.updateCamera(view.camera,0);host.runtime.aim(view.camera);sync();
+    traveler.mode='free';traveler.cooldown=0;traveler.ride=null;Object.assign(traveler,position);host.runtime.update(0);controller.updateCamera(view.camera,0);host.runtime.aim(view.camera);sync();
   }
   return {
     start(){host.start();},
@@ -60,10 +61,20 @@ export function mountFixtures(host) {
       place({x:orb.position.x,y:orb.position.y-2,z:orb.position.z-16},Math.PI,.03);
       history.push({time:sim.time,fixture:'orbs',killer:killer.id,target:trooper.id,raw:1000});sync();return orb.id;
     },
+    aimAt(id){
+      const orb=sim.orbs.find(o=>o.id===id);if(!orb)throw new Error('Unknown soul');
+      const point=controller.position.clone().set(orb.position.x,orb.position.y,orb.position.z);
+      for(let i=0;i<40;i++) {
+        controller.updateCamera(view.camera,.25);
+        const projected=point.clone().project(view.camera);
+        controller.yaw-=projected.x*.35;controller.pitch+=projected.y*.25;
+      }
+      controller.updateCamera(view.camera,.25);host.runtime.aim(view.camera);sync();
+    },
     secure(id){const result=sim.shootOrb(hero.id,id,{kitShot:true});history.push({fixture:'API soul shot',id,result});sync();return result;},
     ground(){const orb=sim.orbs.find(o=>o.type==='ground'&&o.team===hero.team&&!o.claimed);if(!orb)throw new Error('No ground soul');place({...orb.position,x:orb.position.x+3});sim.step(.5);sync();return hero.souls;},
     zip(lane){const station=world.stations.find(s=>s.lane===lane);if(!station)throw new Error('Unknown lane');place(station.a);},
-    chain(team='carbon'){host.setPaused(true);const receipt=runChain(sim,team);history.push(...receipt.events);controller.warp(hero.position);sync();return receipt;},
+    chain(team='carbon',until=600){host.setPaused(true);const receipt=runChain(sim,team,until);history.push(...receipt.events);controller.warp(hero.position);sync();return receipt;},
     sync
   };
 }

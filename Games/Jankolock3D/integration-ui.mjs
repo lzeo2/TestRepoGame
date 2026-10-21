@@ -141,7 +141,7 @@ export function mountIntegrationUI({ sim, heroId, runtime, controller, world, ki
       const at = project({ x: lane.x, z: 0 });
       context.fillStyle = ink; context.font = `${size < 160 ? 10 : 12}px Atkinson, sans-serif`; context.textAlign = 'center';
       const name = source.name ?? lane.id.replace(/^./, c => c.toUpperCase());
-      context.fillText(size < 160 && name === 'Greenhedge' ? 'Green' : name, at.x, 12);
+      context.fillText(size < 160 && name === 'Greenhedge' ? 'Green' : name, at.x, 12, size / 3 - 6);
     }
     for (const structure of sim.structures) {
       if (!structure.alive) continue;

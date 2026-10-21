@@ -12,6 +12,7 @@ for(const team of ['carbon','ivory']) {
   assert.equal(sim.configureHeroKit(player.id,kits[0]).ok,true);
   const bots=createBots({sim,scene:new THREE.Scene(),world,kits});
   assert.equal(sim.heroes.length,6);assert.equal(bots.runtimes.length,5);
+  sim.step(.15); // Browser starts the fixture between whole-second boundaries.
   const receipt=runChain(sim,team);
   assert.equal(receipt.time,600);assert.equal(receipt.winner,team);
   const falls=receipt.events.filter(e=>e.type==='objective_fall'&&e.team!==team);

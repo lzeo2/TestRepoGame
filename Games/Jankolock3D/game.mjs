@@ -28,13 +28,14 @@ function effect(event) {
   const orb=sim.orbs.find(o=>o.id===event.target);
   const result=orb && event.ability===(runtime.kit.weapon.id??runtime.kit.weapon.name)
     ?sim.shootOrb(event.source,orb.id,{kitShot:true}):sim.applyHeroEffect(event);
+  if(result.ok&&event.kind==='damage'&&result.amount)ui?.message(`${event.headshot?'Headshot':'Hit'}: ${Math.ceil(result.amount)} damage.`);
   if(qa && !result.ok && event.kind==='damage') history.push({time:sim.time,rejected:result.reason,ability:event.ability});
   return result;
 }
 function moveToSystem() {
   if(distance(controller.position,hero.position)>.1) {
     // Recall/respawn are validated teleports. Active-item dashes still collide.
-    const teleport=sim.events.some(e=>(e.type==='respawn'||e.type==='recall_complete')&&e.heroId===hero.id);
+    const teleport=hero.alive!==wasAlive;
     const p=teleport?hero.position:moveCapsule({...controller.position,grounded:controller.grounded},hero.position.x-controller.position.x,hero.position.z-controller.position.z,{...world,boxes},traveler.broken);
     controller.warp(p);sim.moveHero(hero.id,p);
   }
@@ -90,10 +91,14 @@ function tick(dt) {
     runtime.update(dt);
   }
   edges.clear();runtime.visual.group.visible=hero.alive;
-  bots.update(dt,{passive:qa&&fixture==='chain'});
+  bots.update(dt,{passive:qa&&['chain','traversal'].includes(fixture)});
   sim.step(dt);
   const events=sim.drainEvents();
   for(const event of events) {
+    if(['respawn','recall_complete'].includes(event.type)&&event.heroId===hero.id) {
+      controller.warp(hero.position);traveler.mode='free';traveler.ride=null;
+      if(event.type==='respawn')runtime.reset();
+    }
     if(['objective_fall','patron_phase','victory','orb_shot','orb_pickup','purchase','hero_death','respawn'].includes(event.type)) {
       history.push(event);if(history.length>1000)history.shift();
       if(event.type==='objective_fall')ui.message(`${event.team==='ivory'?'Enemy':'Allied'} ${event.objective.replaceAll('-',' ')} fell in ${event.lane}.`);
@@ -114,7 +119,7 @@ try {
   if(!response.ok)throw new Error(`Hero definitions HTTP ${response.status}`);
   const {heroes:kits}=await response.json();
   view=createWorldScene(canvas,world);sim=createSystems(world);
-  hero=sim.addHero({id:'player',team:'carbon',lane:'midway',souls:qa&&fixture==='shop'?25600:0});
+  hero=sim.addHero({id:'player',team:'carbon',lane:'midway',position:{x:-10,y:0,z:-430},souls:qa&&fixture==='shop'?25600:0});
   controller=new PlayerController({position:hero.position,boxes,ramps:world.ramps,floorHeight:(x,z,maxY)=>surfaceHeight({...world,boxes},x,z,maxY,traveler.broken)});
   controller.yaw=Math.PI;controller.pitch=-.06;
   runtime=new HeroRuntime({scene:view.scene,controller,kit:kits[0],boxes,source:hero.id,onEffect:effect});
@@ -156,7 +161,7 @@ try {
   const caption=document.createElement('p');caption.textContent='Patron effigy: supplied photo-derived relief behind glass.';caption.className='effigy-caption panel';document.getElementById('stage').append(caption);
   listen(document.getElementById('start'),'click',()=>{caption.hidden=true;});
   listen(document,'keydown',e=>{
-    if(e.altKey||e.metaKey||e.ctrlKey&&!e.code.startsWith('Control')||e.target.closest('input,select,textarea'))return;
+    if(e.altKey||e.metaKey||e.target.closest('input,select,textarea'))return;
     if(e.code==='Escape'){document.exitPointerLock?.();clear();return;}
     if(!playing||paused||document.querySelector('dialog[open]'))return;
     const supported=/^(Key[WASDCQFREX]|Arrow(Left|Right|Up|Down)|Space|Shift(Left|Right)|Control(Left|Right)|Digit[1-4])$/.test(e.code);

@@ -65,9 +65,11 @@ objectives: 18 lane objectives plus one shared Patron per team.
   and obey fire interval/reload. Ability/melee cooldowns belong to the kit/input
   caller, except this module's heavy item. Never pass `stats().damage` as raw
   damage, which would apply its multiplier twice. A basic shot uses raw 24.
-- `shootOrb(heroId,orbId)`: structured result. Live hero, floating live orb,
-  active match, within 60m, consumes one round; reload and the shared weapon
-  fire-interval timer apply. Either team can shoot once.
+- `shootOrb(heroId,orbId,options?)`: structured result. Live hero, floating live
+  orb, active match, within 60m. Default consumes one round and checks reload
+  and the shared fire timer. `{kitShot:true}` requires a configured kit and
+  delegates ammo/timing to the runtime that has already accepted the shot;
+  no second round/timer is consumed. Either team can shoot once.
 - `buyItem(heroId,itemId)`: `{ok,reason?}`; validates ownership, slots, shop and
   funds before changing state. Duplicate items cannot stack. Dead purchases
   change max HP but keep HP=0 until respawn.
@@ -386,10 +388,11 @@ Earlier sibling-browser detection stopped the gate rather than overlapping it.
 The additional capture-only adjustment restores document scroll to the top for
 desktop screenshots so native focus scrolling does not crop the header.
 
-Current remaining gates: integration of actor layer/hero stats/structure HP and
-five bots; reviewer grades B/C/D/F and mockup fidelity; global maintenance
-manual/inventory reconciliation; full-fleet and supported-hardware checks before
-any shipping decision. The shared-browser slot is no longer a blocker.
+The following systems-only gates are historical: the assembled page now attaches
+actor/hero/structure state and five bots through the documented adapter. See
+[INTEGRATION.md](INTEGRATION.md) for current ownership and explicit fixture limits.
+Independent B/C/D/F/mockup grades, maintenance reconciliation, full-fleet and
+supported-hardware checks remain separate from this systems-only receipt. The shared-browser slot is no longer a blocker.
 
 ### Operator-requested serialized rerun
 
