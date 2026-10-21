@@ -1,0 +1,4019 @@
+{
+  "fixture": "scripted 600-second API match, not native acceptance",
+  "durationSeconds": 600,
+  "world": "procedural three-lane fallback, metres",
+  "buffs": [],
+  "interventions": "Heroes reposition through moveHero, clear midfield enemy troopers with 180 raw ability damage, assist lane objectives with 250 raw damage every 5s from t180, shoot shared Patron for 200 raw damage per second from t570. No objective HP/winner/lock edits.",
+  "winner": "carbon",
+  "summary": {
+    "waveCount": 23,
+    "trooperCombatHits": 6297,
+    "trooperObjectiveHits": 240,
+    "trooperObjectiveDamage": 2160,
+    "maxDistanceMarched": 480.3999999999898
+  },
+  "timeline": [
+    {
+      "time": 30,
+      "type": "phase",
+      "phase": "laning"
+    },
+    {
+      "time": 30,
+      "type": "wave",
+      "number": 1,
+      "count": 24
+    },
+    {
+      "time": 55,
+      "type": "wave",
+      "number": 2,
+      "count": 24
+    },
+    {
+      "time": 80,
+      "type": "wave",
+      "number": 3,
+      "count": 24
+    },
+    {
+      "time": 105,
+      "type": "wave",
+      "number": 4,
+      "count": 24
+    },
+    {
+      "time": 130,
+      "type": "wave",
+      "number": 5,
+      "count": 24
+    },
+    {
+      "time": 155,
+      "type": "wave",
+      "number": 6,
+      "count": 24
+    },
+    {
+      "time": 180,
+      "type": "wave",
+      "number": 7,
+      "count": 24
+    },
+    {
+      "time": 200,
+      "type": "objective_fall",
+      "id": "ivory-graft-guardian-1",
+      "team": "ivory",
+      "lane": "graft",
+      "objective": "guardian",
+      "sourceId": "script-graft",
+      "sourceKind": "hero"
+    },
+    {
+      "time": 200,
+      "type": "objective_fall",
+      "id": "ivory-midway-guardian-1",
+      "team": "ivory",
+      "lane": "midway",
+      "objective": "guardian",
+      "sourceId": "script-midway",
+      "sourceKind": "hero"
+    },
+    {
+      "time": 200,
+      "type": "objective_fall",
+      "id": "ivory-greenhedge-guardian-1",
+      "team": "ivory",
+      "lane": "greenhedge",
+      "objective": "guardian",
+      "sourceId": "script-greenhedge",
+      "sourceKind": "hero"
+    },
+    {
+      "time": 205,
+      "type": "wave",
+      "number": 8,
+      "count": 24
+    },
+    {
+      "time": 230,
+      "type": "wave",
+      "number": 9,
+      "count": 24
+    },
+    {
+      "time": 255,
+      "type": "wave",
+      "number": 10,
+      "count": 24
+    },
+    {
+      "time": 280,
+      "type": "wave",
+      "number": 11,
+      "count": 24
+    },
+    {
+      "time": 290,
+      "type": "objective_fall",
+      "id": "ivory-graft-walker-1",
+      "team": "ivory",
+      "lane": "graft",
+      "objective": "walker",
+      "sourceId": "script-graft",
+      "sourceKind": "hero"
+    },
+    {
+      "time": 290,
+      "type": "objective_fall",
+      "id": "ivory-midway-walker-1",
+      "team": "ivory",
+      "lane": "midway",
+      "objective": "walker",
+      "sourceId": "script-midway",
+      "sourceKind": "hero"
+    },
+    {
+      "time": 290,
+      "type": "objective_fall",
+      "id": "ivory-greenhedge-walker-1",
+      "team": "ivory",
+      "lane": "greenhedge",
+      "objective": "walker",
+      "sourceId": "script-greenhedge",
+      "sourceKind": "hero"
+    },
+    {
+      "time": 305,
+      "type": "wave",
+      "number": 12,
+      "count": 24
+    },
+    {
+      "time": 330,
+      "type": "wave",
+      "number": 13,
+      "count": 24
+    },
+    {
+      "time": 350,
+      "type": "objective_fall",
+      "id": "ivory-graft-base-guardian-1",
+      "team": "ivory",
+      "lane": "graft",
+      "objective": "base-guardian",
+      "sourceId": "script-graft",
+      "sourceKind": "hero"
+    },
+    {
+      "time": 350,
+      "type": "objective_fall",
+      "id": "ivory-midway-base-guardian-1",
+      "team": "ivory",
+      "lane": "midway",
+      "objective": "base-guardian",
+      "sourceId": "script-midway",
+      "sourceKind": "hero"
+    },
+    {
+      "time": 350,
+      "type": "objective_fall",
+      "id": "ivory-greenhedge-base-guardian-1",
+      "team": "ivory",
+      "lane": "greenhedge",
+      "objective": "base-guardian",
+      "sourceId": "script-greenhedge",
+      "sourceKind": "hero"
+    },
+    {
+      "time": 355,
+      "type": "wave",
+      "number": 14,
+      "count": 24
+    },
+    {
+      "time": 380,
+      "type": "wave",
+      "number": 15,
+      "count": 24
+    },
+    {
+      "time": 405,
+      "type": "wave",
+      "number": 16,
+      "count": 24
+    },
+    {
+      "time": 410,
+      "type": "objective_fall",
+      "id": "ivory-graft-base-guardian-2",
+      "team": "ivory",
+      "lane": "graft",
+      "objective": "base-guardian",
+      "sourceId": "script-graft",
+      "sourceKind": "hero"
+    },
+    {
+      "time": 410,
+      "type": "objective_fall",
+      "id": "ivory-midway-base-guardian-2",
+      "team": "ivory",
+      "lane": "midway",
+      "objective": "base-guardian",
+      "sourceId": "script-midway",
+      "sourceKind": "hero"
+    },
+    {
+      "time": 410,
+      "type": "objective_fall",
+      "id": "ivory-greenhedge-base-guardian-2",
+      "team": "ivory",
+      "lane": "greenhedge",
+      "objective": "base-guardian",
+      "sourceId": "script-greenhedge",
+      "sourceKind": "hero"
+    },
+    {
+      "time": 430,
+      "type": "wave",
+      "number": 17,
+      "count": 24
+    },
+    {
+      "time": 445,
+      "type": "objective_fall",
+      "id": "ivory-graft-shrine-1",
+      "team": "ivory",
+      "lane": "graft",
+      "objective": "shrine",
+      "sourceId": "script-graft",
+      "sourceKind": "hero"
+    },
+    {
+      "time": 445,
+      "type": "objective_fall",
+      "id": "ivory-midway-shrine-1",
+      "team": "ivory",
+      "lane": "midway",
+      "objective": "shrine",
+      "sourceId": "script-midway",
+      "sourceKind": "hero"
+    },
+    {
+      "time": 445,
+      "type": "objective_fall",
+      "id": "ivory-greenhedge-shrine-1",
+      "team": "ivory",
+      "lane": "greenhedge",
+      "objective": "shrine",
+      "sourceId": "script-greenhedge",
+      "sourceKind": "hero"
+    },
+    {
+      "time": 455,
+      "type": "wave",
+      "number": 18,
+      "count": 24
+    },
+    {
+      "time": 480,
+      "type": "wave",
+      "number": 19,
+      "count": 24
+    },
+    {
+      "time": 480,
+      "type": "objective_fall",
+      "id": "ivory-graft-shrine-2",
+      "team": "ivory",
+      "lane": "graft",
+      "objective": "shrine",
+      "sourceId": "script-graft",
+      "sourceKind": "hero"
+    },
+    {
+      "time": 480,
+      "type": "objective_fall",
+      "id": "ivory-midway-shrine-2",
+      "team": "ivory",
+      "lane": "midway",
+      "objective": "shrine",
+      "sourceId": "script-midway",
+      "sourceKind": "hero"
+    },
+    {
+      "time": 480,
+      "type": "objective_fall",
+      "id": "ivory-greenhedge-shrine-2",
+      "team": "ivory",
+      "lane": "greenhedge",
+      "objective": "shrine",
+      "sourceId": "script-greenhedge",
+      "sourceKind": "hero"
+    },
+    {
+      "time": 505,
+      "type": "wave",
+      "number": 20,
+      "count": 24
+    },
+    {
+      "time": 530,
+      "type": "wave",
+      "number": 21,
+      "count": 24
+    },
+    {
+      "time": 555,
+      "type": "wave",
+      "number": 22,
+      "count": 24
+    },
+    {
+      "time": 570,
+      "type": "patron_phase",
+      "id": "ivory-midway-patron-1",
+      "team": "ivory",
+      "from": 1,
+      "to": 2,
+      "maxHp": 3000,
+      "position": {
+        "x": 0,
+        "y": 0,
+        "z": 435
+      }
+    },
+    {
+      "time": 580,
+      "type": "wave",
+      "number": 23,
+      "count": 24
+    },
+    {
+      "time": 590,
+      "type": "objective_fall",
+      "id": "ivory-midway-patron-1",
+      "team": "ivory",
+      "lane": "midway",
+      "objective": "patron",
+      "sourceId": "script-midway",
+      "sourceKind": "hero"
+    },
+    {
+      "time": 590,
+      "type": "victory",
+      "winner": "carbon"
+    }
+  ],
+  "scriptedActions": [
+    {
+      "time": 67,
+      "action": "scripted_wave_clear",
+      "heroId": "script-graft",
+      "targetId": "trooper-13",
+      "rawDamage": 180,
+      "damage": 180
+    },
+    {
+      "time": 67,
+      "action": "scripted_wave_clear",
+      "heroId": "script-graft",
+      "targetId": "trooper-14",
+      "rawDamage": 180,
+      "damage": 180
+    },
+    {
+      "time": 67,
+      "action": "scripted_wave_clear",
+      "heroId": "script-graft",
+      "targetId": "trooper-15",
+      "rawDamage": 180,
+      "damage": 180
+    },
+    {
+      "time": 67,
+      "action": "scripted_wave_clear",
+      "heroId": "script-graft",
+      "targetId": "trooper-16",
+      "rawDamage": 180,
+      "damage": 180
+    },
+    {
+      "time": 67,
+      "action": "scripted_wave_clear",
+      "heroId": "script-midway",
+      "targetId": "trooper-17",
+      "rawDamage": 180,
+      "damage": 180
+    },
+    {
+      "time": 67,
+      "action": "scripted_wave_clear",
+      "heroId": "script-midway",
+      "targetId": "trooper-18",
+      "rawDamage": 180,
+      "damage": 180
+    },
+    {
+      "time": 67,
+      "action": "scripted_wave_clear",
+      "heroId": "script-midway",
+      "targetId": "trooper-19",
+      "rawDamage": 180,
+      "damage": 180
+    },
+    {
+      "time": 67,
+      "action": "scripted_wave_clear",
+      "heroId": "script-midway",
+      "targetId": "trooper-20",
+      "rawDamage": 180,
+      "damage": 180
+    },
+    {
+      "time": 67,
+      "action": "scripted_wave_clear",
+      "heroId": "script-greenhedge",
+      "targetId": "trooper-21",
+      "rawDamage": 180,
+      "damage": 180
+    },
+    {
+      "time": 67,
+      "action": "scripted_wave_clear",
+      "heroId": "script-greenhedge",
+      "targetId": "trooper-22",
+      "rawDamage": 180,
+      "damage": 180
+    },
+    {
+      "time": 67,
+      "action": "scripted_wave_clear",
+      "heroId": "script-greenhedge",
+      "targetId": "trooper-23",
+      "rawDamage": 180,
+      "damage": 180
+    },
+    {
+      "time": 67,
+      "action": "scripted_wave_clear",
+      "heroId": "script-greenhedge",
+      "targetId": "trooper-24",
+      "rawDamage": 180,
+      "damage": 180
+    },
+    {
+      "time": 101,
+      "action": "scripted_wave_clear",
+      "heroId": "script-graft",
+      "targetId": "trooper-37",
+      "rawDamage": 180,
+      "damage": 120
+    },
+    {
+      "time": 101,
+      "action": "scripted_wave_clear",
+      "heroId": "script-graft",
+      "targetId": "trooper-38",
+      "rawDamage": 180,
+      "damage": 168
+    },
+    {
+      "time": 101,
+      "action": "scripted_wave_clear",
+      "heroId": "script-graft",
+      "targetId": "trooper-39",
+      "rawDamage": 180,
+      "damage": 156
+    },
+    {
+      "time": 101,
+      "action": "scripted_wave_clear",
+      "heroId": "script-graft",
+      "targetId": "trooper-40",
+      "rawDamage": 180,
+      "damage": 108
+    },
+    {
+      "time": 101,
+      "action": "scripted_wave_clear",
+      "heroId": "script-midway",
+      "targetId": "trooper-41",
+      "rawDamage": 180,
+      "damage": 120
+    },
+    {
+      "time": 101,
+      "action": "scripted_wave_clear",
+      "heroId": "script-midway",
+      "targetId": "trooper-42",
+      "rawDamage": 180,
+      "damage": 168
+    },
+    {
+      "time": 101,
+      "action": "scripted_wave_clear",
+      "heroId": "script-midway",
+      "targetId": "trooper-43",
+      "rawDamage": 180,
+      "damage": 156
+    },
+    {
+      "time": 101,
+      "action": "scripted_wave_clear",
+      "heroId": "script-midway",
+      "targetId": "trooper-44",
+      "rawDamage": 180,
+      "damage": 108
+    },
+    {
+      "time": 101,
+      "action": "scripted_wave_clear",
+      "heroId": "script-greenhedge",
+      "targetId": "trooper-45",
+      "rawDamage": 180,
+      "damage": 120
+    },
+    {
+      "time": 101,
+      "action": "scripted_wave_clear",
+      "heroId": "script-greenhedge",
+      "targetId": "trooper-46",
+      "rawDamage": 180,
+      "damage": 168
+    },
+    {
+      "time": 101,
+      "action": "scripted_wave_clear",
+      "heroId": "script-greenhedge",
+      "targetId": "trooper-47",
+      "rawDamage": 180,
+      "damage": 156
+    },
+    {
+      "time": 101,
+      "action": "scripted_wave_clear",
+      "heroId": "script-greenhedge",
+      "targetId": "trooper-48",
+      "rawDamage": 180,
+      "damage": 108
+    },
+    {
+      "time": 126,
+      "action": "scripted_wave_clear",
+      "heroId": "script-graft",
+      "targetId": "trooper-85",
+      "rawDamage": 180,
+      "damage": 120
+    },
+    {
+      "time": 126,
+      "action": "scripted_wave_clear",
+      "heroId": "script-graft",
+      "targetId": "trooper-86",
+      "rawDamage": 180,
+      "damage": 168
+    },
+    {
+      "time": 126,
+      "action": "scripted_wave_clear",
+      "heroId": "script-graft",
+      "targetId": "trooper-87",
+      "rawDamage": 180,
+      "damage": 156
+    },
+    {
+      "time": 126,
+      "action": "scripted_wave_clear",
+      "heroId": "script-graft",
+      "targetId": "trooper-88",
+      "rawDamage": 180,
+      "damage": 108
+    },
+    {
+      "time": 126,
+      "action": "scripted_wave_clear",
+      "heroId": "script-midway",
+      "targetId": "trooper-89",
+      "rawDamage": 180,
+      "damage": 120
+    },
+    {
+      "time": 126,
+      "action": "scripted_wave_clear",
+      "heroId": "script-midway",
+      "targetId": "trooper-90",
+      "rawDamage": 180,
+      "damage": 168
+    },
+    {
+      "time": 126,
+      "action": "scripted_wave_clear",
+      "heroId": "script-midway",
+      "targetId": "trooper-91",
+      "rawDamage": 180,
+      "damage": 156
+    },
+    {
+      "time": 126,
+      "action": "scripted_wave_clear",
+      "heroId": "script-midway",
+      "targetId": "trooper-92",
+      "rawDamage": 180,
+      "damage": 108
+    },
+    {
+      "time": 126,
+      "action": "scripted_wave_clear",
+      "heroId": "script-greenhedge",
+      "targetId": "trooper-93",
+      "rawDamage": 180,
+      "damage": 120
+    },
+    {
+      "time": 126,
+      "action": "scripted_wave_clear",
+      "heroId": "script-greenhedge",
+      "targetId": "trooper-94",
+      "rawDamage": 180,
+      "damage": 168
+    },
+    {
+      "time": 126,
+      "action": "scripted_wave_clear",
+      "heroId": "script-greenhedge",
+      "targetId": "trooper-95",
+      "rawDamage": 180,
+      "damage": 156
+    },
+    {
+      "time": 126,
+      "action": "scripted_wave_clear",
+      "heroId": "script-greenhedge",
+      "targetId": "trooper-96",
+      "rawDamage": 180,
+      "damage": 108
+    },
+    {
+      "time": 151,
+      "action": "scripted_wave_clear",
+      "heroId": "script-graft",
+      "targetId": "trooper-157",
+      "rawDamage": 180,
+      "damage": 120
+    },
+    {
+      "time": 151,
+      "action": "scripted_wave_clear",
+      "heroId": "script-graft",
+      "targetId": "trooper-158",
+      "rawDamage": 180,
+      "damage": 168
+    },
+    {
+      "time": 151,
+      "action": "scripted_wave_clear",
+      "heroId": "script-graft",
+      "targetId": "trooper-159",
+      "rawDamage": 180,
+      "damage": 156
+    },
+    {
+      "time": 151,
+      "action": "scripted_wave_clear",
+      "heroId": "script-graft",
+      "targetId": "trooper-160",
+      "rawDamage": 180,
+      "damage": 108
+    },
+    {
+      "time": 151,
+      "action": "scripted_wave_clear",
+      "heroId": "script-midway",
+      "targetId": "trooper-161",
+      "rawDamage": 180,
+      "damage": 120
+    },
+    {
+      "time": 151,
+      "action": "scripted_wave_clear",
+      "heroId": "script-midway",
+      "targetId": "trooper-162",
+      "rawDamage": 180,
+      "damage": 168
+    },
+    {
+      "time": 151,
+      "action": "scripted_wave_clear",
+      "heroId": "script-midway",
+      "targetId": "trooper-163",
+      "rawDamage": 180,
+      "damage": 156
+    },
+    {
+      "time": 151,
+      "action": "scripted_wave_clear",
+      "heroId": "script-midway",
+      "targetId": "trooper-164",
+      "rawDamage": 180,
+      "damage": 108
+    },
+    {
+      "time": 151,
+      "action": "scripted_wave_clear",
+      "heroId": "script-greenhedge",
+      "targetId": "trooper-165",
+      "rawDamage": 180,
+      "damage": 120
+    },
+    {
+      "time": 151,
+      "action": "scripted_wave_clear",
+      "heroId": "script-greenhedge",
+      "targetId": "trooper-166",
+      "rawDamage": 180,
+      "damage": 168
+    },
+    {
+      "time": 151,
+      "action": "scripted_wave_clear",
+      "heroId": "script-greenhedge",
+      "targetId": "trooper-167",
+      "rawDamage": 180,
+      "damage": 156
+    },
+    {
+      "time": 151,
+      "action": "scripted_wave_clear",
+      "heroId": "script-greenhedge",
+      "targetId": "trooper-168",
+      "rawDamage": 180,
+      "damage": 108
+    },
+    {
+      "time": 176,
+      "action": "scripted_wave_clear",
+      "heroId": "script-graft",
+      "targetId": "trooper-229",
+      "rawDamage": 180,
+      "damage": 120
+    },
+    {
+      "time": 176,
+      "action": "scripted_wave_clear",
+      "heroId": "script-graft",
+      "targetId": "trooper-230",
+      "rawDamage": 180,
+      "damage": 168
+    },
+    {
+      "time": 176,
+      "action": "scripted_wave_clear",
+      "heroId": "script-graft",
+      "targetId": "trooper-231",
+      "rawDamage": 180,
+      "damage": 156
+    },
+    {
+      "time": 176,
+      "action": "scripted_wave_clear",
+      "heroId": "script-graft",
+      "targetId": "trooper-232",
+      "rawDamage": 180,
+      "damage": 108
+    },
+    {
+      "time": 176,
+      "action": "scripted_wave_clear",
+      "heroId": "script-midway",
+      "targetId": "trooper-233",
+      "rawDamage": 180,
+      "damage": 120
+    },
+    {
+      "time": 176,
+      "action": "scripted_wave_clear",
+      "heroId": "script-midway",
+      "targetId": "trooper-234",
+      "rawDamage": 180,
+      "damage": 168
+    },
+    {
+      "time": 176,
+      "action": "scripted_wave_clear",
+      "heroId": "script-midway",
+      "targetId": "trooper-235",
+      "rawDamage": 180,
+      "damage": 156
+    },
+    {
+      "time": 176,
+      "action": "scripted_wave_clear",
+      "heroId": "script-midway",
+      "targetId": "trooper-236",
+      "rawDamage": 180,
+      "damage": 108
+    },
+    {
+      "time": 176,
+      "action": "scripted_wave_clear",
+      "heroId": "script-greenhedge",
+      "targetId": "trooper-237",
+      "rawDamage": 180,
+      "damage": 120
+    },
+    {
+      "time": 176,
+      "action": "scripted_wave_clear",
+      "heroId": "script-greenhedge",
+      "targetId": "trooper-238",
+      "rawDamage": 180,
+      "damage": 168
+    },
+    {
+      "time": 176,
+      "action": "scripted_wave_clear",
+      "heroId": "script-greenhedge",
+      "targetId": "trooper-239",
+      "rawDamage": 180,
+      "damage": 156
+    },
+    {
+      "time": 176,
+      "action": "scripted_wave_clear",
+      "heroId": "script-greenhedge",
+      "targetId": "trooper-240",
+      "rawDamage": 180,
+      "damage": 108
+    },
+    {
+      "time": 180,
+      "action": "scripted_objective_shot",
+      "heroId": "script-graft",
+      "targetId": "ivory-graft-guardian-1",
+      "rawDamage": 250,
+      "damage": 187.5
+    },
+    {
+      "time": 180,
+      "action": "scripted_objective_shot",
+      "heroId": "script-midway",
+      "targetId": "ivory-midway-guardian-1",
+      "rawDamage": 250,
+      "damage": 187.5
+    },
+    {
+      "time": 180,
+      "action": "scripted_objective_shot",
+      "heroId": "script-greenhedge",
+      "targetId": "ivory-greenhedge-guardian-1",
+      "rawDamage": 250,
+      "damage": 187.5
+    },
+    {
+      "time": 185,
+      "action": "scripted_objective_shot",
+      "heroId": "script-graft",
+      "targetId": "ivory-graft-guardian-1",
+      "rawDamage": 250,
+      "damage": 187.5
+    },
+    {
+      "time": 185,
+      "action": "scripted_objective_shot",
+      "heroId": "script-midway",
+      "targetId": "ivory-midway-guardian-1",
+      "rawDamage": 250,
+      "damage": 187.5
+    },
+    {
+      "time": 185,
+      "action": "scripted_objective_shot",
+      "heroId": "script-greenhedge",
+      "targetId": "ivory-greenhedge-guardian-1",
+      "rawDamage": 250,
+      "damage": 187.5
+    },
+    {
+      "time": 190,
+      "action": "scripted_objective_shot",
+      "heroId": "script-graft",
+      "targetId": "ivory-graft-guardian-1",
+      "rawDamage": 250,
+      "damage": 187.5
+    },
+    {
+      "time": 190,
+      "action": "scripted_objective_shot",
+      "heroId": "script-midway",
+      "targetId": "ivory-midway-guardian-1",
+      "rawDamage": 250,
+      "damage": 187.5
+    },
+    {
+      "time": 190,
+      "action": "scripted_objective_shot",
+      "heroId": "script-greenhedge",
+      "targetId": "ivory-greenhedge-guardian-1",
+      "rawDamage": 250,
+      "damage": 187.5
+    },
+    {
+      "time": 195,
+      "action": "scripted_objective_shot",
+      "heroId": "script-graft",
+      "targetId": "ivory-graft-guardian-1",
+      "rawDamage": 250,
+      "damage": 187.5
+    },
+    {
+      "time": 195,
+      "action": "scripted_objective_shot",
+      "heroId": "script-midway",
+      "targetId": "ivory-midway-guardian-1",
+      "rawDamage": 250,
+      "damage": 187.5
+    },
+    {
+      "time": 195,
+      "action": "scripted_objective_shot",
+      "heroId": "script-greenhedge",
+      "targetId": "ivory-greenhedge-guardian-1",
+      "rawDamage": 250,
+      "damage": 187.5
+    },
+    {
+      "time": 200,
+      "action": "scripted_objective_shot",
+      "heroId": "script-graft",
+      "targetId": "ivory-graft-guardian-1",
+      "rawDamage": 250,
+      "damage": 130
+    },
+    {
+      "time": 200,
+      "action": "scripted_objective_shot",
+      "heroId": "script-midway",
+      "targetId": "ivory-midway-guardian-1",
+      "rawDamage": 250,
+      "damage": 130
+    },
+    {
+      "time": 200,
+      "action": "scripted_objective_shot",
+      "heroId": "script-greenhedge",
+      "targetId": "ivory-greenhedge-guardian-1",
+      "rawDamage": 250,
+      "damage": 130
+    },
+    {
+      "time": 201,
+      "action": "scripted_wave_clear",
+      "heroId": "script-graft",
+      "targetId": "trooper-301",
+      "rawDamage": 180,
+      "damage": 120
+    },
+    {
+      "time": 201,
+      "action": "scripted_wave_clear",
+      "heroId": "script-graft",
+      "targetId": "trooper-302",
+      "rawDamage": 180,
+      "damage": 168
+    },
+    {
+      "time": 201,
+      "action": "scripted_wave_clear",
+      "heroId": "script-graft",
+      "targetId": "trooper-303",
+      "rawDamage": 180,
+      "damage": 156
+    },
+    {
+      "time": 201,
+      "action": "scripted_wave_clear",
+      "heroId": "script-graft",
+      "targetId": "trooper-304",
+      "rawDamage": 180,
+      "damage": 108
+    },
+    {
+      "time": 201,
+      "action": "scripted_wave_clear",
+      "heroId": "script-midway",
+      "targetId": "trooper-305",
+      "rawDamage": 180,
+      "damage": 120
+    },
+    {
+      "time": 201,
+      "action": "scripted_wave_clear",
+      "heroId": "script-midway",
+      "targetId": "trooper-306",
+      "rawDamage": 180,
+      "damage": 168
+    },
+    {
+      "time": 201,
+      "action": "scripted_wave_clear",
+      "heroId": "script-midway",
+      "targetId": "trooper-307",
+      "rawDamage": 180,
+      "damage": 156
+    },
+    {
+      "time": 201,
+      "action": "scripted_wave_clear",
+      "heroId": "script-midway",
+      "targetId": "trooper-308",
+      "rawDamage": 180,
+      "damage": 108
+    },
+    {
+      "time": 201,
+      "action": "scripted_wave_clear",
+      "heroId": "script-greenhedge",
+      "targetId": "trooper-309",
+      "rawDamage": 180,
+      "damage": 120
+    },
+    {
+      "time": 201,
+      "action": "scripted_wave_clear",
+      "heroId": "script-greenhedge",
+      "targetId": "trooper-310",
+      "rawDamage": 180,
+      "damage": 168
+    },
+    {
+      "time": 201,
+      "action": "scripted_wave_clear",
+      "heroId": "script-greenhedge",
+      "targetId": "trooper-311",
+      "rawDamage": 180,
+      "damage": 156
+    },
+    {
+      "time": 201,
+      "action": "scripted_wave_clear",
+      "heroId": "script-greenhedge",
+      "targetId": "trooper-312",
+      "rawDamage": 180,
+      "damage": 108
+    },
+    {
+      "time": 205,
+      "action": "scripted_objective_shot",
+      "heroId": "script-graft",
+      "targetId": "ivory-graft-walker-1",
+      "rawDamage": 250,
+      "damage": 187.5
+    },
+    {
+      "time": 205,
+      "action": "scripted_objective_shot",
+      "heroId": "script-midway",
+      "targetId": "ivory-midway-walker-1",
+      "rawDamage": 250,
+      "damage": 187.5
+    },
+    {
+      "time": 205,
+      "action": "scripted_objective_shot",
+      "heroId": "script-greenhedge",
+      "targetId": "ivory-greenhedge-walker-1",
+      "rawDamage": 250,
+      "damage": 187.5
+    },
+    {
+      "time": 210,
+      "action": "scripted_objective_shot",
+      "heroId": "script-graft",
+      "targetId": "ivory-graft-walker-1",
+      "rawDamage": 250,
+      "damage": 187.5
+    },
+    {
+      "time": 210,
+      "action": "scripted_objective_shot",
+      "heroId": "script-midway",
+      "targetId": "ivory-midway-walker-1",
+      "rawDamage": 250,
+      "damage": 187.5
+    },
+    {
+      "time": 210,
+      "action": "scripted_objective_shot",
+      "heroId": "script-greenhedge",
+      "targetId": "ivory-greenhedge-walker-1",
+      "rawDamage": 250,
+      "damage": 187.5
+    },
+    {
+      "time": 215,
+      "action": "scripted_objective_shot",
+      "heroId": "script-graft",
+      "targetId": "ivory-graft-walker-1",
+      "rawDamage": 250,
+      "damage": 187.5
+    },
+    {
+      "time": 215,
+      "action": "scripted_objective_shot",
+      "heroId": "script-midway",
+      "targetId": "ivory-midway-walker-1",
+      "rawDamage": 250,
+      "damage": 187.5
+    },
+    {
+      "time": 215,
+      "action": "scripted_objective_shot",
+      "heroId": "script-greenhedge",
+      "targetId": "ivory-greenhedge-walker-1",
+      "rawDamage": 250,
+      "damage": 187.5
+    },
+    {
+      "time": 220,
+      "action": "scripted_objective_shot",
+      "heroId": "script-graft",
+      "targetId": "ivory-graft-walker-1",
+      "rawDamage": 250,
+      "damage": 187.5
+    },
+    {
+      "time": 220,
+      "action": "scripted_objective_shot",
+      "heroId": "script-midway",
+      "targetId": "ivory-midway-walker-1",
+      "rawDamage": 250,
+      "damage": 187.5
+    },
+    {
+      "time": 220,
+      "action": "scripted_objective_shot",
+      "heroId": "script-greenhedge",
+      "targetId": "ivory-greenhedge-walker-1",
+      "rawDamage": 250,
+      "damage": 187.5
+    },
+    {
+      "time": 225,
+      "action": "scripted_objective_shot",
+      "heroId": "script-graft",
+      "targetId": "ivory-graft-walker-1",
+      "rawDamage": 250,
+      "damage": 187.5
+    },
+    {
+      "time": 225,
+      "action": "scripted_objective_shot",
+      "heroId": "script-midway",
+      "targetId": "ivory-midway-walker-1",
+      "rawDamage": 250,
+      "damage": 187.5
+    },
+    {
+      "time": 225,
+      "action": "scripted_objective_shot",
+      "heroId": "script-greenhedge",
+      "targetId": "ivory-greenhedge-walker-1",
+      "rawDamage": 250,
+      "damage": 187.5
+    },
+    {
+      "time": 230,
+      "action": "scripted_objective_shot",
+      "heroId": "script-graft",
+      "targetId": "ivory-graft-walker-1",
+      "rawDamage": 250,
+      "damage": 187.5
+    },
+    {
+      "time": 230,
+      "action": "scripted_objective_shot",
+      "heroId": "script-midway",
+      "targetId": "ivory-midway-walker-1",
+      "rawDamage": 250,
+      "damage": 187.5
+    },
+    {
+      "time": 230,
+      "action": "scripted_objective_shot",
+      "heroId": "script-greenhedge",
+      "targetId": "ivory-greenhedge-walker-1",
+      "rawDamage": 250,
+      "damage": 187.5
+    },
+    {
+      "time": 231,
+      "action": "scripted_wave_clear",
+      "heroId": "script-graft",
+      "targetId": "trooper-373",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 231,
+      "action": "scripted_wave_clear",
+      "heroId": "script-graft",
+      "targetId": "trooper-374",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 231,
+      "action": "scripted_wave_clear",
+      "heroId": "script-graft",
+      "targetId": "trooper-375",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 231,
+      "action": "scripted_wave_clear",
+      "heroId": "script-graft",
+      "targetId": "trooper-376",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 231,
+      "action": "scripted_wave_clear",
+      "heroId": "script-midway",
+      "targetId": "trooper-377",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 231,
+      "action": "scripted_wave_clear",
+      "heroId": "script-midway",
+      "targetId": "trooper-378",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 231,
+      "action": "scripted_wave_clear",
+      "heroId": "script-midway",
+      "targetId": "trooper-379",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 231,
+      "action": "scripted_wave_clear",
+      "heroId": "script-midway",
+      "targetId": "trooper-380",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 231,
+      "action": "scripted_wave_clear",
+      "heroId": "script-greenhedge",
+      "targetId": "trooper-381",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 231,
+      "action": "scripted_wave_clear",
+      "heroId": "script-greenhedge",
+      "targetId": "trooper-382",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 231,
+      "action": "scripted_wave_clear",
+      "heroId": "script-greenhedge",
+      "targetId": "trooper-383",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 231,
+      "action": "scripted_wave_clear",
+      "heroId": "script-greenhedge",
+      "targetId": "trooper-384",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 235,
+      "action": "scripted_objective_shot",
+      "heroId": "script-graft",
+      "targetId": "ivory-graft-walker-1",
+      "rawDamage": 250,
+      "damage": 187.5
+    },
+    {
+      "time": 235,
+      "action": "scripted_objective_shot",
+      "heroId": "script-midway",
+      "targetId": "ivory-midway-walker-1",
+      "rawDamage": 250,
+      "damage": 187.5
+    },
+    {
+      "time": 235,
+      "action": "scripted_objective_shot",
+      "heroId": "script-greenhedge",
+      "targetId": "ivory-greenhedge-walker-1",
+      "rawDamage": 250,
+      "damage": 187.5
+    },
+    {
+      "time": 240,
+      "action": "scripted_objective_shot",
+      "heroId": "script-graft",
+      "targetId": "ivory-graft-walker-1",
+      "rawDamage": 250,
+      "damage": 187.5
+    },
+    {
+      "time": 240,
+      "action": "scripted_objective_shot",
+      "heroId": "script-midway",
+      "targetId": "ivory-midway-walker-1",
+      "rawDamage": 250,
+      "damage": 187.5
+    },
+    {
+      "time": 240,
+      "action": "scripted_objective_shot",
+      "heroId": "script-greenhedge",
+      "targetId": "ivory-greenhedge-walker-1",
+      "rawDamage": 250,
+      "damage": 187.5
+    },
+    {
+      "time": 245,
+      "action": "scripted_objective_shot",
+      "heroId": "script-graft",
+      "targetId": "ivory-graft-walker-1",
+      "rawDamage": 250,
+      "damage": 187.5
+    },
+    {
+      "time": 245,
+      "action": "scripted_objective_shot",
+      "heroId": "script-midway",
+      "targetId": "ivory-midway-walker-1",
+      "rawDamage": 250,
+      "damage": 187.5
+    },
+    {
+      "time": 245,
+      "action": "scripted_objective_shot",
+      "heroId": "script-greenhedge",
+      "targetId": "ivory-greenhedge-walker-1",
+      "rawDamage": 250,
+      "damage": 187.5
+    },
+    {
+      "time": 250,
+      "action": "scripted_objective_shot",
+      "heroId": "script-graft",
+      "targetId": "ivory-graft-walker-1",
+      "rawDamage": 250,
+      "damage": 187.5
+    },
+    {
+      "time": 250,
+      "action": "scripted_objective_shot",
+      "heroId": "script-midway",
+      "targetId": "ivory-midway-walker-1",
+      "rawDamage": 250,
+      "damage": 187.5
+    },
+    {
+      "time": 250,
+      "action": "scripted_objective_shot",
+      "heroId": "script-greenhedge",
+      "targetId": "ivory-greenhedge-walker-1",
+      "rawDamage": 250,
+      "damage": 187.5
+    },
+    {
+      "time": 255,
+      "action": "scripted_objective_shot",
+      "heroId": "script-graft",
+      "targetId": "ivory-graft-walker-1",
+      "rawDamage": 250,
+      "damage": 187.5
+    },
+    {
+      "time": 255,
+      "action": "scripted_objective_shot",
+      "heroId": "script-midway",
+      "targetId": "ivory-midway-walker-1",
+      "rawDamage": 250,
+      "damage": 187.5
+    },
+    {
+      "time": 255,
+      "action": "scripted_objective_shot",
+      "heroId": "script-greenhedge",
+      "targetId": "ivory-greenhedge-walker-1",
+      "rawDamage": 250,
+      "damage": 187.5
+    },
+    {
+      "time": 256,
+      "action": "scripted_wave_clear",
+      "heroId": "script-graft",
+      "targetId": "trooper-445",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 256,
+      "action": "scripted_wave_clear",
+      "heroId": "script-graft",
+      "targetId": "trooper-446",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 256,
+      "action": "scripted_wave_clear",
+      "heroId": "script-graft",
+      "targetId": "trooper-447",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 256,
+      "action": "scripted_wave_clear",
+      "heroId": "script-graft",
+      "targetId": "trooper-448",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 256,
+      "action": "scripted_wave_clear",
+      "heroId": "script-midway",
+      "targetId": "trooper-449",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 256,
+      "action": "scripted_wave_clear",
+      "heroId": "script-midway",
+      "targetId": "trooper-450",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 256,
+      "action": "scripted_wave_clear",
+      "heroId": "script-midway",
+      "targetId": "trooper-451",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 256,
+      "action": "scripted_wave_clear",
+      "heroId": "script-midway",
+      "targetId": "trooper-452",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 256,
+      "action": "scripted_wave_clear",
+      "heroId": "script-greenhedge",
+      "targetId": "trooper-453",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 256,
+      "action": "scripted_wave_clear",
+      "heroId": "script-greenhedge",
+      "targetId": "trooper-454",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 256,
+      "action": "scripted_wave_clear",
+      "heroId": "script-greenhedge",
+      "targetId": "trooper-455",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 256,
+      "action": "scripted_wave_clear",
+      "heroId": "script-greenhedge",
+      "targetId": "trooper-456",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 260,
+      "action": "scripted_objective_shot",
+      "heroId": "script-graft",
+      "targetId": "ivory-graft-walker-1",
+      "rawDamage": 250,
+      "damage": 187.5
+    },
+    {
+      "time": 260,
+      "action": "scripted_objective_shot",
+      "heroId": "script-midway",
+      "targetId": "ivory-midway-walker-1",
+      "rawDamage": 250,
+      "damage": 187.5
+    },
+    {
+      "time": 260,
+      "action": "scripted_objective_shot",
+      "heroId": "script-greenhedge",
+      "targetId": "ivory-greenhedge-walker-1",
+      "rawDamage": 250,
+      "damage": 187.5
+    },
+    {
+      "time": 265,
+      "action": "scripted_objective_shot",
+      "heroId": "script-graft",
+      "targetId": "ivory-graft-walker-1",
+      "rawDamage": 250,
+      "damage": 187.5
+    },
+    {
+      "time": 265,
+      "action": "scripted_objective_shot",
+      "heroId": "script-midway",
+      "targetId": "ivory-midway-walker-1",
+      "rawDamage": 250,
+      "damage": 187.5
+    },
+    {
+      "time": 265,
+      "action": "scripted_objective_shot",
+      "heroId": "script-greenhedge",
+      "targetId": "ivory-greenhedge-walker-1",
+      "rawDamage": 250,
+      "damage": 187.5
+    },
+    {
+      "time": 270,
+      "action": "scripted_objective_shot",
+      "heroId": "script-graft",
+      "targetId": "ivory-graft-walker-1",
+      "rawDamage": 250,
+      "damage": 187.5
+    },
+    {
+      "time": 270,
+      "action": "scripted_objective_shot",
+      "heroId": "script-midway",
+      "targetId": "ivory-midway-walker-1",
+      "rawDamage": 250,
+      "damage": 187.5
+    },
+    {
+      "time": 270,
+      "action": "scripted_objective_shot",
+      "heroId": "script-greenhedge",
+      "targetId": "ivory-greenhedge-walker-1",
+      "rawDamage": 250,
+      "damage": 187.5
+    },
+    {
+      "time": 275,
+      "action": "scripted_objective_shot",
+      "heroId": "script-graft",
+      "targetId": "ivory-graft-walker-1",
+      "rawDamage": 250,
+      "damage": 187.5
+    },
+    {
+      "time": 275,
+      "action": "scripted_objective_shot",
+      "heroId": "script-midway",
+      "targetId": "ivory-midway-walker-1",
+      "rawDamage": 250,
+      "damage": 187.5
+    },
+    {
+      "time": 275,
+      "action": "scripted_objective_shot",
+      "heroId": "script-greenhedge",
+      "targetId": "ivory-greenhedge-walker-1",
+      "rawDamage": 250,
+      "damage": 187.5
+    },
+    {
+      "time": 280,
+      "action": "scripted_objective_shot",
+      "heroId": "script-graft",
+      "targetId": "ivory-graft-walker-1",
+      "rawDamage": 250,
+      "damage": 187.5
+    },
+    {
+      "time": 280,
+      "action": "scripted_objective_shot",
+      "heroId": "script-midway",
+      "targetId": "ivory-midway-walker-1",
+      "rawDamage": 250,
+      "damage": 187.5
+    },
+    {
+      "time": 280,
+      "action": "scripted_objective_shot",
+      "heroId": "script-greenhedge",
+      "targetId": "ivory-greenhedge-walker-1",
+      "rawDamage": 250,
+      "damage": 187.5
+    },
+    {
+      "time": 281,
+      "action": "scripted_wave_clear",
+      "heroId": "script-graft",
+      "targetId": "trooper-493",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 281,
+      "action": "scripted_wave_clear",
+      "heroId": "script-graft",
+      "targetId": "trooper-494",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 281,
+      "action": "scripted_wave_clear",
+      "heroId": "script-graft",
+      "targetId": "trooper-495",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 281,
+      "action": "scripted_wave_clear",
+      "heroId": "script-graft",
+      "targetId": "trooper-496",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 281,
+      "action": "scripted_wave_clear",
+      "heroId": "script-midway",
+      "targetId": "trooper-497",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 281,
+      "action": "scripted_wave_clear",
+      "heroId": "script-midway",
+      "targetId": "trooper-498",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 281,
+      "action": "scripted_wave_clear",
+      "heroId": "script-midway",
+      "targetId": "trooper-499",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 281,
+      "action": "scripted_wave_clear",
+      "heroId": "script-midway",
+      "targetId": "trooper-500",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 281,
+      "action": "scripted_wave_clear",
+      "heroId": "script-greenhedge",
+      "targetId": "trooper-501",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 281,
+      "action": "scripted_wave_clear",
+      "heroId": "script-greenhedge",
+      "targetId": "trooper-502",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 281,
+      "action": "scripted_wave_clear",
+      "heroId": "script-greenhedge",
+      "targetId": "trooper-503",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 281,
+      "action": "scripted_wave_clear",
+      "heroId": "script-greenhedge",
+      "targetId": "trooper-504",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 285,
+      "action": "scripted_objective_shot",
+      "heroId": "script-graft",
+      "targetId": "ivory-graft-walker-1",
+      "rawDamage": 250,
+      "damage": 187.5
+    },
+    {
+      "time": 285,
+      "action": "scripted_objective_shot",
+      "heroId": "script-midway",
+      "targetId": "ivory-midway-walker-1",
+      "rawDamage": 250,
+      "damage": 187.5
+    },
+    {
+      "time": 285,
+      "action": "scripted_objective_shot",
+      "heroId": "script-greenhedge",
+      "targetId": "ivory-greenhedge-walker-1",
+      "rawDamage": 250,
+      "damage": 187.5
+    },
+    {
+      "time": 290,
+      "action": "scripted_objective_shot",
+      "heroId": "script-graft",
+      "targetId": "ivory-graft-walker-1",
+      "rawDamage": 250,
+      "damage": 12.5
+    },
+    {
+      "time": 290,
+      "action": "scripted_objective_shot",
+      "heroId": "script-midway",
+      "targetId": "ivory-midway-walker-1",
+      "rawDamage": 250,
+      "damage": 12.5
+    },
+    {
+      "time": 290,
+      "action": "scripted_objective_shot",
+      "heroId": "script-greenhedge",
+      "targetId": "ivory-greenhedge-walker-1",
+      "rawDamage": 250,
+      "damage": 12.5
+    },
+    {
+      "time": 295,
+      "action": "scripted_objective_shot",
+      "heroId": "script-graft",
+      "targetId": "ivory-graft-base-guardian-1",
+      "rawDamage": 250,
+      "damage": 187.5
+    },
+    {
+      "time": 295,
+      "action": "scripted_objective_shot",
+      "heroId": "script-midway",
+      "targetId": "ivory-midway-base-guardian-1",
+      "rawDamage": 250,
+      "damage": 187.5
+    },
+    {
+      "time": 295,
+      "action": "scripted_objective_shot",
+      "heroId": "script-greenhedge",
+      "targetId": "ivory-greenhedge-base-guardian-1",
+      "rawDamage": 250,
+      "damage": 187.5
+    },
+    {
+      "time": 300,
+      "action": "scripted_objective_shot",
+      "heroId": "script-graft",
+      "targetId": "ivory-graft-base-guardian-1",
+      "rawDamage": 250,
+      "damage": 187.5
+    },
+    {
+      "time": 300,
+      "action": "scripted_objective_shot",
+      "heroId": "script-midway",
+      "targetId": "ivory-midway-base-guardian-1",
+      "rawDamage": 250,
+      "damage": 187.5
+    },
+    {
+      "time": 300,
+      "action": "scripted_objective_shot",
+      "heroId": "script-greenhedge",
+      "targetId": "ivory-greenhedge-base-guardian-1",
+      "rawDamage": 250,
+      "damage": 187.5
+    },
+    {
+      "time": 305,
+      "action": "scripted_objective_shot",
+      "heroId": "script-graft",
+      "targetId": "ivory-graft-base-guardian-1",
+      "rawDamage": 250,
+      "damage": 187.5
+    },
+    {
+      "time": 305,
+      "action": "scripted_objective_shot",
+      "heroId": "script-midway",
+      "targetId": "ivory-midway-base-guardian-1",
+      "rawDamage": 250,
+      "damage": 187.5
+    },
+    {
+      "time": 305,
+      "action": "scripted_objective_shot",
+      "heroId": "script-greenhedge",
+      "targetId": "ivory-greenhedge-base-guardian-1",
+      "rawDamage": 250,
+      "damage": 187.5
+    },
+    {
+      "time": 306,
+      "action": "scripted_wave_clear",
+      "heroId": "script-graft",
+      "targetId": "trooper-565",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 306,
+      "action": "scripted_wave_clear",
+      "heroId": "script-graft",
+      "targetId": "trooper-566",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 306,
+      "action": "scripted_wave_clear",
+      "heroId": "script-graft",
+      "targetId": "trooper-567",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 306,
+      "action": "scripted_wave_clear",
+      "heroId": "script-graft",
+      "targetId": "trooper-568",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 306,
+      "action": "scripted_wave_clear",
+      "heroId": "script-midway",
+      "targetId": "trooper-569",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 306,
+      "action": "scripted_wave_clear",
+      "heroId": "script-midway",
+      "targetId": "trooper-570",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 306,
+      "action": "scripted_wave_clear",
+      "heroId": "script-midway",
+      "targetId": "trooper-571",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 306,
+      "action": "scripted_wave_clear",
+      "heroId": "script-midway",
+      "targetId": "trooper-572",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 306,
+      "action": "scripted_wave_clear",
+      "heroId": "script-greenhedge",
+      "targetId": "trooper-573",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 306,
+      "action": "scripted_wave_clear",
+      "heroId": "script-greenhedge",
+      "targetId": "trooper-574",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 306,
+      "action": "scripted_wave_clear",
+      "heroId": "script-greenhedge",
+      "targetId": "trooper-575",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 306,
+      "action": "scripted_wave_clear",
+      "heroId": "script-greenhedge",
+      "targetId": "trooper-576",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 310,
+      "action": "scripted_objective_shot",
+      "heroId": "script-graft",
+      "targetId": "ivory-graft-base-guardian-1",
+      "rawDamage": 250,
+      "damage": 187.5
+    },
+    {
+      "time": 310,
+      "action": "scripted_objective_shot",
+      "heroId": "script-midway",
+      "targetId": "ivory-midway-base-guardian-1",
+      "rawDamage": 250,
+      "damage": 187.5
+    },
+    {
+      "time": 310,
+      "action": "scripted_objective_shot",
+      "heroId": "script-greenhedge",
+      "targetId": "ivory-greenhedge-base-guardian-1",
+      "rawDamage": 250,
+      "damage": 187.5
+    },
+    {
+      "time": 315,
+      "action": "scripted_objective_shot",
+      "heroId": "script-graft",
+      "targetId": "ivory-graft-base-guardian-1",
+      "rawDamage": 250,
+      "damage": 187.5
+    },
+    {
+      "time": 315,
+      "action": "scripted_objective_shot",
+      "heroId": "script-midway",
+      "targetId": "ivory-midway-base-guardian-1",
+      "rawDamage": 250,
+      "damage": 187.5
+    },
+    {
+      "time": 315,
+      "action": "scripted_objective_shot",
+      "heroId": "script-greenhedge",
+      "targetId": "ivory-greenhedge-base-guardian-1",
+      "rawDamage": 250,
+      "damage": 187.5
+    },
+    {
+      "time": 320,
+      "action": "scripted_objective_shot",
+      "heroId": "script-graft",
+      "targetId": "ivory-graft-base-guardian-1",
+      "rawDamage": 250,
+      "damage": 187.5
+    },
+    {
+      "time": 320,
+      "action": "scripted_objective_shot",
+      "heroId": "script-midway",
+      "targetId": "ivory-midway-base-guardian-1",
+      "rawDamage": 250,
+      "damage": 187.5
+    },
+    {
+      "time": 320,
+      "action": "scripted_objective_shot",
+      "heroId": "script-greenhedge",
+      "targetId": "ivory-greenhedge-base-guardian-1",
+      "rawDamage": 250,
+      "damage": 187.5
+    },
+    {
+      "time": 325,
+      "action": "scripted_objective_shot",
+      "heroId": "script-graft",
+      "targetId": "ivory-graft-base-guardian-1",
+      "rawDamage": 250,
+      "damage": 187.5
+    },
+    {
+      "time": 325,
+      "action": "scripted_objective_shot",
+      "heroId": "script-midway",
+      "targetId": "ivory-midway-base-guardian-1",
+      "rawDamage": 250,
+      "damage": 187.5
+    },
+    {
+      "time": 325,
+      "action": "scripted_objective_shot",
+      "heroId": "script-greenhedge",
+      "targetId": "ivory-greenhedge-base-guardian-1",
+      "rawDamage": 250,
+      "damage": 187.5
+    },
+    {
+      "time": 330,
+      "action": "scripted_objective_shot",
+      "heroId": "script-graft",
+      "targetId": "ivory-graft-base-guardian-1",
+      "rawDamage": 250,
+      "damage": 187.5
+    },
+    {
+      "time": 330,
+      "action": "scripted_objective_shot",
+      "heroId": "script-midway",
+      "targetId": "ivory-midway-base-guardian-1",
+      "rawDamage": 250,
+      "damage": 187.5
+    },
+    {
+      "time": 330,
+      "action": "scripted_objective_shot",
+      "heroId": "script-greenhedge",
+      "targetId": "ivory-greenhedge-base-guardian-1",
+      "rawDamage": 250,
+      "damage": 187.5
+    },
+    {
+      "time": 331,
+      "action": "scripted_wave_clear",
+      "heroId": "script-graft",
+      "targetId": "trooper-637",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 331,
+      "action": "scripted_wave_clear",
+      "heroId": "script-graft",
+      "targetId": "trooper-638",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 331,
+      "action": "scripted_wave_clear",
+      "heroId": "script-graft",
+      "targetId": "trooper-639",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 331,
+      "action": "scripted_wave_clear",
+      "heroId": "script-graft",
+      "targetId": "trooper-640",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 331,
+      "action": "scripted_wave_clear",
+      "heroId": "script-midway",
+      "targetId": "trooper-641",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 331,
+      "action": "scripted_wave_clear",
+      "heroId": "script-midway",
+      "targetId": "trooper-642",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 331,
+      "action": "scripted_wave_clear",
+      "heroId": "script-midway",
+      "targetId": "trooper-643",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 331,
+      "action": "scripted_wave_clear",
+      "heroId": "script-midway",
+      "targetId": "trooper-644",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 331,
+      "action": "scripted_wave_clear",
+      "heroId": "script-greenhedge",
+      "targetId": "trooper-645",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 331,
+      "action": "scripted_wave_clear",
+      "heroId": "script-greenhedge",
+      "targetId": "trooper-646",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 331,
+      "action": "scripted_wave_clear",
+      "heroId": "script-greenhedge",
+      "targetId": "trooper-647",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 331,
+      "action": "scripted_wave_clear",
+      "heroId": "script-greenhedge",
+      "targetId": "trooper-648",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 335,
+      "action": "scripted_objective_shot",
+      "heroId": "script-graft",
+      "targetId": "ivory-graft-base-guardian-1",
+      "rawDamage": 250,
+      "damage": 187.5
+    },
+    {
+      "time": 335,
+      "action": "scripted_objective_shot",
+      "heroId": "script-midway",
+      "targetId": "ivory-midway-base-guardian-1",
+      "rawDamage": 250,
+      "damage": 187.5
+    },
+    {
+      "time": 335,
+      "action": "scripted_objective_shot",
+      "heroId": "script-greenhedge",
+      "targetId": "ivory-greenhedge-base-guardian-1",
+      "rawDamage": 250,
+      "damage": 187.5
+    },
+    {
+      "time": 340,
+      "action": "scripted_objective_shot",
+      "heroId": "script-graft",
+      "targetId": "ivory-graft-base-guardian-1",
+      "rawDamage": 250,
+      "damage": 187.5
+    },
+    {
+      "time": 340,
+      "action": "scripted_objective_shot",
+      "heroId": "script-midway",
+      "targetId": "ivory-midway-base-guardian-1",
+      "rawDamage": 250,
+      "damage": 187.5
+    },
+    {
+      "time": 340,
+      "action": "scripted_objective_shot",
+      "heroId": "script-greenhedge",
+      "targetId": "ivory-greenhedge-base-guardian-1",
+      "rawDamage": 250,
+      "damage": 187.5
+    },
+    {
+      "time": 345,
+      "action": "scripted_objective_shot",
+      "heroId": "script-graft",
+      "targetId": "ivory-graft-base-guardian-1",
+      "rawDamage": 250,
+      "damage": 187.5
+    },
+    {
+      "time": 345,
+      "action": "scripted_objective_shot",
+      "heroId": "script-midway",
+      "targetId": "ivory-midway-base-guardian-1",
+      "rawDamage": 250,
+      "damage": 187.5
+    },
+    {
+      "time": 345,
+      "action": "scripted_objective_shot",
+      "heroId": "script-greenhedge",
+      "targetId": "ivory-greenhedge-base-guardian-1",
+      "rawDamage": 250,
+      "damage": 187.5
+    },
+    {
+      "time": 350,
+      "action": "scripted_objective_shot",
+      "heroId": "script-graft",
+      "targetId": "ivory-graft-base-guardian-1",
+      "rawDamage": 250,
+      "damage": 137.5
+    },
+    {
+      "time": 350,
+      "action": "scripted_objective_shot",
+      "heroId": "script-midway",
+      "targetId": "ivory-midway-base-guardian-1",
+      "rawDamage": 250,
+      "damage": 137.5
+    },
+    {
+      "time": 350,
+      "action": "scripted_objective_shot",
+      "heroId": "script-greenhedge",
+      "targetId": "ivory-greenhedge-base-guardian-1",
+      "rawDamage": 250,
+      "damage": 137.5
+    },
+    {
+      "time": 355,
+      "action": "scripted_objective_shot",
+      "heroId": "script-graft",
+      "targetId": "ivory-graft-base-guardian-2",
+      "rawDamage": 250,
+      "damage": 187.5
+    },
+    {
+      "time": 355,
+      "action": "scripted_objective_shot",
+      "heroId": "script-midway",
+      "targetId": "ivory-midway-base-guardian-2",
+      "rawDamage": 250,
+      "damage": 187.5
+    },
+    {
+      "time": 355,
+      "action": "scripted_objective_shot",
+      "heroId": "script-greenhedge",
+      "targetId": "ivory-greenhedge-base-guardian-2",
+      "rawDamage": 250,
+      "damage": 187.5
+    },
+    {
+      "time": 356,
+      "action": "scripted_wave_clear",
+      "heroId": "script-graft",
+      "targetId": "trooper-709",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 356,
+      "action": "scripted_wave_clear",
+      "heroId": "script-graft",
+      "targetId": "trooper-710",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 356,
+      "action": "scripted_wave_clear",
+      "heroId": "script-graft",
+      "targetId": "trooper-711",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 356,
+      "action": "scripted_wave_clear",
+      "heroId": "script-graft",
+      "targetId": "trooper-712",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 356,
+      "action": "scripted_wave_clear",
+      "heroId": "script-midway",
+      "targetId": "trooper-713",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 356,
+      "action": "scripted_wave_clear",
+      "heroId": "script-midway",
+      "targetId": "trooper-714",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 356,
+      "action": "scripted_wave_clear",
+      "heroId": "script-midway",
+      "targetId": "trooper-715",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 356,
+      "action": "scripted_wave_clear",
+      "heroId": "script-midway",
+      "targetId": "trooper-716",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 356,
+      "action": "scripted_wave_clear",
+      "heroId": "script-greenhedge",
+      "targetId": "trooper-717",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 356,
+      "action": "scripted_wave_clear",
+      "heroId": "script-greenhedge",
+      "targetId": "trooper-718",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 356,
+      "action": "scripted_wave_clear",
+      "heroId": "script-greenhedge",
+      "targetId": "trooper-719",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 356,
+      "action": "scripted_wave_clear",
+      "heroId": "script-greenhedge",
+      "targetId": "trooper-720",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 360,
+      "action": "scripted_objective_shot",
+      "heroId": "script-graft",
+      "targetId": "ivory-graft-base-guardian-2",
+      "rawDamage": 250,
+      "damage": 187.5
+    },
+    {
+      "time": 360,
+      "action": "scripted_objective_shot",
+      "heroId": "script-midway",
+      "targetId": "ivory-midway-base-guardian-2",
+      "rawDamage": 250,
+      "damage": 187.5
+    },
+    {
+      "time": 360,
+      "action": "scripted_objective_shot",
+      "heroId": "script-greenhedge",
+      "targetId": "ivory-greenhedge-base-guardian-2",
+      "rawDamage": 250,
+      "damage": 187.5
+    },
+    {
+      "time": 365,
+      "action": "scripted_objective_shot",
+      "heroId": "script-graft",
+      "targetId": "ivory-graft-base-guardian-2",
+      "rawDamage": 250,
+      "damage": 187.5
+    },
+    {
+      "time": 365,
+      "action": "scripted_objective_shot",
+      "heroId": "script-midway",
+      "targetId": "ivory-midway-base-guardian-2",
+      "rawDamage": 250,
+      "damage": 187.5
+    },
+    {
+      "time": 365,
+      "action": "scripted_objective_shot",
+      "heroId": "script-greenhedge",
+      "targetId": "ivory-greenhedge-base-guardian-2",
+      "rawDamage": 250,
+      "damage": 187.5
+    },
+    {
+      "time": 370,
+      "action": "scripted_objective_shot",
+      "heroId": "script-graft",
+      "targetId": "ivory-graft-base-guardian-2",
+      "rawDamage": 250,
+      "damage": 187.5
+    },
+    {
+      "time": 370,
+      "action": "scripted_objective_shot",
+      "heroId": "script-midway",
+      "targetId": "ivory-midway-base-guardian-2",
+      "rawDamage": 250,
+      "damage": 187.5
+    },
+    {
+      "time": 370,
+      "action": "scripted_objective_shot",
+      "heroId": "script-greenhedge",
+      "targetId": "ivory-greenhedge-base-guardian-2",
+      "rawDamage": 250,
+      "damage": 187.5
+    },
+    {
+      "time": 375,
+      "action": "scripted_objective_shot",
+      "heroId": "script-graft",
+      "targetId": "ivory-graft-base-guardian-2",
+      "rawDamage": 250,
+      "damage": 187.5
+    },
+    {
+      "time": 375,
+      "action": "scripted_objective_shot",
+      "heroId": "script-midway",
+      "targetId": "ivory-midway-base-guardian-2",
+      "rawDamage": 250,
+      "damage": 187.5
+    },
+    {
+      "time": 375,
+      "action": "scripted_objective_shot",
+      "heroId": "script-greenhedge",
+      "targetId": "ivory-greenhedge-base-guardian-2",
+      "rawDamage": 250,
+      "damage": 187.5
+    },
+    {
+      "time": 380,
+      "action": "scripted_objective_shot",
+      "heroId": "script-graft",
+      "targetId": "ivory-graft-base-guardian-2",
+      "rawDamage": 250,
+      "damage": 187.5
+    },
+    {
+      "time": 380,
+      "action": "scripted_objective_shot",
+      "heroId": "script-midway",
+      "targetId": "ivory-midway-base-guardian-2",
+      "rawDamage": 250,
+      "damage": 187.5
+    },
+    {
+      "time": 380,
+      "action": "scripted_objective_shot",
+      "heroId": "script-greenhedge",
+      "targetId": "ivory-greenhedge-base-guardian-2",
+      "rawDamage": 250,
+      "damage": 187.5
+    },
+    {
+      "time": 381,
+      "action": "scripted_wave_clear",
+      "heroId": "script-graft",
+      "targetId": "trooper-781",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 381,
+      "action": "scripted_wave_clear",
+      "heroId": "script-graft",
+      "targetId": "trooper-782",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 381,
+      "action": "scripted_wave_clear",
+      "heroId": "script-graft",
+      "targetId": "trooper-783",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 381,
+      "action": "scripted_wave_clear",
+      "heroId": "script-graft",
+      "targetId": "trooper-784",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 381,
+      "action": "scripted_wave_clear",
+      "heroId": "script-midway",
+      "targetId": "trooper-785",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 381,
+      "action": "scripted_wave_clear",
+      "heroId": "script-midway",
+      "targetId": "trooper-786",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 381,
+      "action": "scripted_wave_clear",
+      "heroId": "script-midway",
+      "targetId": "trooper-787",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 381,
+      "action": "scripted_wave_clear",
+      "heroId": "script-midway",
+      "targetId": "trooper-788",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 381,
+      "action": "scripted_wave_clear",
+      "heroId": "script-greenhedge",
+      "targetId": "trooper-789",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 381,
+      "action": "scripted_wave_clear",
+      "heroId": "script-greenhedge",
+      "targetId": "trooper-790",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 381,
+      "action": "scripted_wave_clear",
+      "heroId": "script-greenhedge",
+      "targetId": "trooper-791",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 381,
+      "action": "scripted_wave_clear",
+      "heroId": "script-greenhedge",
+      "targetId": "trooper-792",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 385,
+      "action": "scripted_objective_shot",
+      "heroId": "script-graft",
+      "targetId": "ivory-graft-base-guardian-2",
+      "rawDamage": 250,
+      "damage": 187.5
+    },
+    {
+      "time": 385,
+      "action": "scripted_objective_shot",
+      "heroId": "script-midway",
+      "targetId": "ivory-midway-base-guardian-2",
+      "rawDamage": 250,
+      "damage": 187.5
+    },
+    {
+      "time": 385,
+      "action": "scripted_objective_shot",
+      "heroId": "script-greenhedge",
+      "targetId": "ivory-greenhedge-base-guardian-2",
+      "rawDamage": 250,
+      "damage": 187.5
+    },
+    {
+      "time": 390,
+      "action": "scripted_objective_shot",
+      "heroId": "script-graft",
+      "targetId": "ivory-graft-base-guardian-2",
+      "rawDamage": 250,
+      "damage": 187.5
+    },
+    {
+      "time": 390,
+      "action": "scripted_objective_shot",
+      "heroId": "script-midway",
+      "targetId": "ivory-midway-base-guardian-2",
+      "rawDamage": 250,
+      "damage": 187.5
+    },
+    {
+      "time": 390,
+      "action": "scripted_objective_shot",
+      "heroId": "script-greenhedge",
+      "targetId": "ivory-greenhedge-base-guardian-2",
+      "rawDamage": 250,
+      "damage": 187.5
+    },
+    {
+      "time": 395,
+      "action": "scripted_objective_shot",
+      "heroId": "script-graft",
+      "targetId": "ivory-graft-base-guardian-2",
+      "rawDamage": 250,
+      "damage": 187.5
+    },
+    {
+      "time": 395,
+      "action": "scripted_objective_shot",
+      "heroId": "script-midway",
+      "targetId": "ivory-midway-base-guardian-2",
+      "rawDamage": 250,
+      "damage": 187.5
+    },
+    {
+      "time": 395,
+      "action": "scripted_objective_shot",
+      "heroId": "script-greenhedge",
+      "targetId": "ivory-greenhedge-base-guardian-2",
+      "rawDamage": 250,
+      "damage": 187.5
+    },
+    {
+      "time": 400,
+      "action": "scripted_objective_shot",
+      "heroId": "script-graft",
+      "targetId": "ivory-graft-base-guardian-2",
+      "rawDamage": 250,
+      "damage": 187.5
+    },
+    {
+      "time": 400,
+      "action": "scripted_objective_shot",
+      "heroId": "script-midway",
+      "targetId": "ivory-midway-base-guardian-2",
+      "rawDamage": 250,
+      "damage": 187.5
+    },
+    {
+      "time": 400,
+      "action": "scripted_objective_shot",
+      "heroId": "script-greenhedge",
+      "targetId": "ivory-greenhedge-base-guardian-2",
+      "rawDamage": 250,
+      "damage": 187.5
+    },
+    {
+      "time": 405,
+      "action": "scripted_objective_shot",
+      "heroId": "script-graft",
+      "targetId": "ivory-graft-base-guardian-2",
+      "rawDamage": 250,
+      "damage": 187.5
+    },
+    {
+      "time": 405,
+      "action": "scripted_objective_shot",
+      "heroId": "script-midway",
+      "targetId": "ivory-midway-base-guardian-2",
+      "rawDamage": 250,
+      "damage": 187.5
+    },
+    {
+      "time": 405,
+      "action": "scripted_objective_shot",
+      "heroId": "script-greenhedge",
+      "targetId": "ivory-greenhedge-base-guardian-2",
+      "rawDamage": 250,
+      "damage": 187.5
+    },
+    {
+      "time": 406,
+      "action": "scripted_wave_clear",
+      "heroId": "script-graft",
+      "targetId": "trooper-853",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 406,
+      "action": "scripted_wave_clear",
+      "heroId": "script-graft",
+      "targetId": "trooper-854",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 406,
+      "action": "scripted_wave_clear",
+      "heroId": "script-graft",
+      "targetId": "trooper-855",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 406,
+      "action": "scripted_wave_clear",
+      "heroId": "script-graft",
+      "targetId": "trooper-856",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 406,
+      "action": "scripted_wave_clear",
+      "heroId": "script-midway",
+      "targetId": "trooper-857",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 406,
+      "action": "scripted_wave_clear",
+      "heroId": "script-midway",
+      "targetId": "trooper-858",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 406,
+      "action": "scripted_wave_clear",
+      "heroId": "script-midway",
+      "targetId": "trooper-859",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 406,
+      "action": "scripted_wave_clear",
+      "heroId": "script-midway",
+      "targetId": "trooper-860",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 406,
+      "action": "scripted_wave_clear",
+      "heroId": "script-greenhedge",
+      "targetId": "trooper-861",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 406,
+      "action": "scripted_wave_clear",
+      "heroId": "script-greenhedge",
+      "targetId": "trooper-862",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 406,
+      "action": "scripted_wave_clear",
+      "heroId": "script-greenhedge",
+      "targetId": "trooper-863",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 406,
+      "action": "scripted_wave_clear",
+      "heroId": "script-greenhedge",
+      "targetId": "trooper-864",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 410,
+      "action": "scripted_objective_shot",
+      "heroId": "script-graft",
+      "targetId": "ivory-graft-base-guardian-2",
+      "rawDamage": 250,
+      "damage": 137.5
+    },
+    {
+      "time": 410,
+      "action": "scripted_objective_shot",
+      "heroId": "script-midway",
+      "targetId": "ivory-midway-base-guardian-2",
+      "rawDamage": 250,
+      "damage": 137.5
+    },
+    {
+      "time": 410,
+      "action": "scripted_objective_shot",
+      "heroId": "script-greenhedge",
+      "targetId": "ivory-greenhedge-base-guardian-2",
+      "rawDamage": 250,
+      "damage": 137.5
+    },
+    {
+      "time": 415,
+      "action": "scripted_objective_shot",
+      "heroId": "script-graft",
+      "targetId": "ivory-graft-shrine-1",
+      "rawDamage": 250,
+      "damage": 187.5
+    },
+    {
+      "time": 415,
+      "action": "scripted_objective_shot",
+      "heroId": "script-midway",
+      "targetId": "ivory-midway-shrine-1",
+      "rawDamage": 250,
+      "damage": 187.5
+    },
+    {
+      "time": 415,
+      "action": "scripted_objective_shot",
+      "heroId": "script-greenhedge",
+      "targetId": "ivory-greenhedge-shrine-1",
+      "rawDamage": 250,
+      "damage": 187.5
+    },
+    {
+      "time": 420,
+      "action": "scripted_objective_shot",
+      "heroId": "script-graft",
+      "targetId": "ivory-graft-shrine-1",
+      "rawDamage": 250,
+      "damage": 187.5
+    },
+    {
+      "time": 420,
+      "action": "scripted_objective_shot",
+      "heroId": "script-midway",
+      "targetId": "ivory-midway-shrine-1",
+      "rawDamage": 250,
+      "damage": 187.5
+    },
+    {
+      "time": 420,
+      "action": "scripted_objective_shot",
+      "heroId": "script-greenhedge",
+      "targetId": "ivory-greenhedge-shrine-1",
+      "rawDamage": 250,
+      "damage": 187.5
+    },
+    {
+      "time": 425,
+      "action": "scripted_objective_shot",
+      "heroId": "script-graft",
+      "targetId": "ivory-graft-shrine-1",
+      "rawDamage": 250,
+      "damage": 187.5
+    },
+    {
+      "time": 425,
+      "action": "scripted_objective_shot",
+      "heroId": "script-midway",
+      "targetId": "ivory-midway-shrine-1",
+      "rawDamage": 250,
+      "damage": 187.5
+    },
+    {
+      "time": 425,
+      "action": "scripted_objective_shot",
+      "heroId": "script-greenhedge",
+      "targetId": "ivory-greenhedge-shrine-1",
+      "rawDamage": 250,
+      "damage": 187.5
+    },
+    {
+      "time": 430,
+      "action": "scripted_objective_shot",
+      "heroId": "script-graft",
+      "targetId": "ivory-graft-shrine-1",
+      "rawDamage": 250,
+      "damage": 187.5
+    },
+    {
+      "time": 430,
+      "action": "scripted_objective_shot",
+      "heroId": "script-midway",
+      "targetId": "ivory-midway-shrine-1",
+      "rawDamage": 250,
+      "damage": 187.5
+    },
+    {
+      "time": 430,
+      "action": "scripted_objective_shot",
+      "heroId": "script-greenhedge",
+      "targetId": "ivory-greenhedge-shrine-1",
+      "rawDamage": 250,
+      "damage": 187.5
+    },
+    {
+      "time": 431,
+      "action": "scripted_wave_clear",
+      "heroId": "script-graft",
+      "targetId": "trooper-925",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 431,
+      "action": "scripted_wave_clear",
+      "heroId": "script-graft",
+      "targetId": "trooper-926",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 431,
+      "action": "scripted_wave_clear",
+      "heroId": "script-graft",
+      "targetId": "trooper-927",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 431,
+      "action": "scripted_wave_clear",
+      "heroId": "script-graft",
+      "targetId": "trooper-928",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 431,
+      "action": "scripted_wave_clear",
+      "heroId": "script-midway",
+      "targetId": "trooper-929",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 431,
+      "action": "scripted_wave_clear",
+      "heroId": "script-midway",
+      "targetId": "trooper-930",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 431,
+      "action": "scripted_wave_clear",
+      "heroId": "script-midway",
+      "targetId": "trooper-931",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 431,
+      "action": "scripted_wave_clear",
+      "heroId": "script-midway",
+      "targetId": "trooper-932",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 431,
+      "action": "scripted_wave_clear",
+      "heroId": "script-greenhedge",
+      "targetId": "trooper-933",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 431,
+      "action": "scripted_wave_clear",
+      "heroId": "script-greenhedge",
+      "targetId": "trooper-934",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 431,
+      "action": "scripted_wave_clear",
+      "heroId": "script-greenhedge",
+      "targetId": "trooper-935",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 431,
+      "action": "scripted_wave_clear",
+      "heroId": "script-greenhedge",
+      "targetId": "trooper-936",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 435,
+      "action": "scripted_objective_shot",
+      "heroId": "script-graft",
+      "targetId": "ivory-graft-shrine-1",
+      "rawDamage": 250,
+      "damage": 187.5
+    },
+    {
+      "time": 435,
+      "action": "scripted_objective_shot",
+      "heroId": "script-midway",
+      "targetId": "ivory-midway-shrine-1",
+      "rawDamage": 250,
+      "damage": 187.5
+    },
+    {
+      "time": 435,
+      "action": "scripted_objective_shot",
+      "heroId": "script-greenhedge",
+      "targetId": "ivory-greenhedge-shrine-1",
+      "rawDamage": 250,
+      "damage": 187.5
+    },
+    {
+      "time": 440,
+      "action": "scripted_objective_shot",
+      "heroId": "script-graft",
+      "targetId": "ivory-graft-shrine-1",
+      "rawDamage": 250,
+      "damage": 187.5
+    },
+    {
+      "time": 440,
+      "action": "scripted_objective_shot",
+      "heroId": "script-midway",
+      "targetId": "ivory-midway-shrine-1",
+      "rawDamage": 250,
+      "damage": 187.5
+    },
+    {
+      "time": 440,
+      "action": "scripted_objective_shot",
+      "heroId": "script-greenhedge",
+      "targetId": "ivory-greenhedge-shrine-1",
+      "rawDamage": 250,
+      "damage": 187.5
+    },
+    {
+      "time": 445,
+      "action": "scripted_objective_shot",
+      "heroId": "script-graft",
+      "targetId": "ivory-graft-shrine-1",
+      "rawDamage": 250,
+      "damage": 75
+    },
+    {
+      "time": 445,
+      "action": "scripted_objective_shot",
+      "heroId": "script-midway",
+      "targetId": "ivory-midway-shrine-1",
+      "rawDamage": 250,
+      "damage": 75
+    },
+    {
+      "time": 445,
+      "action": "scripted_objective_shot",
+      "heroId": "script-greenhedge",
+      "targetId": "ivory-greenhedge-shrine-1",
+      "rawDamage": 250,
+      "damage": 75
+    },
+    {
+      "time": 450,
+      "action": "scripted_objective_shot",
+      "heroId": "script-graft",
+      "targetId": "ivory-graft-shrine-2",
+      "rawDamage": 250,
+      "damage": 187.5
+    },
+    {
+      "time": 450,
+      "action": "scripted_objective_shot",
+      "heroId": "script-midway",
+      "targetId": "ivory-midway-shrine-2",
+      "rawDamage": 250,
+      "damage": 187.5
+    },
+    {
+      "time": 450,
+      "action": "scripted_objective_shot",
+      "heroId": "script-greenhedge",
+      "targetId": "ivory-greenhedge-shrine-2",
+      "rawDamage": 250,
+      "damage": 187.5
+    },
+    {
+      "time": 455,
+      "action": "scripted_objective_shot",
+      "heroId": "script-graft",
+      "targetId": "ivory-graft-shrine-2",
+      "rawDamage": 250,
+      "damage": 187.5
+    },
+    {
+      "time": 455,
+      "action": "scripted_objective_shot",
+      "heroId": "script-midway",
+      "targetId": "ivory-midway-shrine-2",
+      "rawDamage": 250,
+      "damage": 187.5
+    },
+    {
+      "time": 455,
+      "action": "scripted_objective_shot",
+      "heroId": "script-greenhedge",
+      "targetId": "ivory-greenhedge-shrine-2",
+      "rawDamage": 250,
+      "damage": 187.5
+    },
+    {
+      "time": 456,
+      "action": "scripted_wave_clear",
+      "heroId": "script-graft",
+      "targetId": "trooper-997",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 456,
+      "action": "scripted_wave_clear",
+      "heroId": "script-graft",
+      "targetId": "trooper-998",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 456,
+      "action": "scripted_wave_clear",
+      "heroId": "script-graft",
+      "targetId": "trooper-999",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 456,
+      "action": "scripted_wave_clear",
+      "heroId": "script-graft",
+      "targetId": "trooper-1000",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 456,
+      "action": "scripted_wave_clear",
+      "heroId": "script-midway",
+      "targetId": "trooper-1001",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 456,
+      "action": "scripted_wave_clear",
+      "heroId": "script-midway",
+      "targetId": "trooper-1002",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 456,
+      "action": "scripted_wave_clear",
+      "heroId": "script-midway",
+      "targetId": "trooper-1003",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 456,
+      "action": "scripted_wave_clear",
+      "heroId": "script-midway",
+      "targetId": "trooper-1004",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 456,
+      "action": "scripted_wave_clear",
+      "heroId": "script-greenhedge",
+      "targetId": "trooper-1005",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 456,
+      "action": "scripted_wave_clear",
+      "heroId": "script-greenhedge",
+      "targetId": "trooper-1006",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 456,
+      "action": "scripted_wave_clear",
+      "heroId": "script-greenhedge",
+      "targetId": "trooper-1007",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 456,
+      "action": "scripted_wave_clear",
+      "heroId": "script-greenhedge",
+      "targetId": "trooper-1008",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 460,
+      "action": "scripted_objective_shot",
+      "heroId": "script-graft",
+      "targetId": "ivory-graft-shrine-2",
+      "rawDamage": 250,
+      "damage": 187.5
+    },
+    {
+      "time": 460,
+      "action": "scripted_objective_shot",
+      "heroId": "script-midway",
+      "targetId": "ivory-midway-shrine-2",
+      "rawDamage": 250,
+      "damage": 187.5
+    },
+    {
+      "time": 460,
+      "action": "scripted_objective_shot",
+      "heroId": "script-greenhedge",
+      "targetId": "ivory-greenhedge-shrine-2",
+      "rawDamage": 250,
+      "damage": 187.5
+    },
+    {
+      "time": 465,
+      "action": "scripted_objective_shot",
+      "heroId": "script-graft",
+      "targetId": "ivory-graft-shrine-2",
+      "rawDamage": 250,
+      "damage": 187.5
+    },
+    {
+      "time": 465,
+      "action": "scripted_objective_shot",
+      "heroId": "script-midway",
+      "targetId": "ivory-midway-shrine-2",
+      "rawDamage": 250,
+      "damage": 187.5
+    },
+    {
+      "time": 465,
+      "action": "scripted_objective_shot",
+      "heroId": "script-greenhedge",
+      "targetId": "ivory-greenhedge-shrine-2",
+      "rawDamage": 250,
+      "damage": 187.5
+    },
+    {
+      "time": 470,
+      "action": "scripted_objective_shot",
+      "heroId": "script-graft",
+      "targetId": "ivory-graft-shrine-2",
+      "rawDamage": 250,
+      "damage": 187.5
+    },
+    {
+      "time": 470,
+      "action": "scripted_objective_shot",
+      "heroId": "script-midway",
+      "targetId": "ivory-midway-shrine-2",
+      "rawDamage": 250,
+      "damage": 187.5
+    },
+    {
+      "time": 470,
+      "action": "scripted_objective_shot",
+      "heroId": "script-greenhedge",
+      "targetId": "ivory-greenhedge-shrine-2",
+      "rawDamage": 250,
+      "damage": 187.5
+    },
+    {
+      "time": 475,
+      "action": "scripted_objective_shot",
+      "heroId": "script-graft",
+      "targetId": "ivory-graft-shrine-2",
+      "rawDamage": 250,
+      "damage": 187.5
+    },
+    {
+      "time": 475,
+      "action": "scripted_objective_shot",
+      "heroId": "script-midway",
+      "targetId": "ivory-midway-shrine-2",
+      "rawDamage": 250,
+      "damage": 187.5
+    },
+    {
+      "time": 475,
+      "action": "scripted_objective_shot",
+      "heroId": "script-greenhedge",
+      "targetId": "ivory-greenhedge-shrine-2",
+      "rawDamage": 250,
+      "damage": 187.5
+    },
+    {
+      "time": 480,
+      "action": "scripted_objective_shot",
+      "heroId": "script-graft",
+      "targetId": "ivory-graft-shrine-2",
+      "rawDamage": 250,
+      "damage": 75
+    },
+    {
+      "time": 480,
+      "action": "scripted_objective_shot",
+      "heroId": "script-midway",
+      "targetId": "ivory-midway-shrine-2",
+      "rawDamage": 250,
+      "damage": 75
+    },
+    {
+      "time": 480,
+      "action": "scripted_objective_shot",
+      "heroId": "script-greenhedge",
+      "targetId": "ivory-greenhedge-shrine-2",
+      "rawDamage": 250,
+      "damage": 75
+    },
+    {
+      "time": 481,
+      "action": "scripted_wave_clear",
+      "heroId": "script-graft",
+      "targetId": "trooper-1069",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 481,
+      "action": "scripted_wave_clear",
+      "heroId": "script-graft",
+      "targetId": "trooper-1070",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 481,
+      "action": "scripted_wave_clear",
+      "heroId": "script-graft",
+      "targetId": "trooper-1071",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 481,
+      "action": "scripted_wave_clear",
+      "heroId": "script-graft",
+      "targetId": "trooper-1072",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 481,
+      "action": "scripted_wave_clear",
+      "heroId": "script-midway",
+      "targetId": "trooper-1073",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 481,
+      "action": "scripted_wave_clear",
+      "heroId": "script-midway",
+      "targetId": "trooper-1074",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 481,
+      "action": "scripted_wave_clear",
+      "heroId": "script-midway",
+      "targetId": "trooper-1075",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 481,
+      "action": "scripted_wave_clear",
+      "heroId": "script-midway",
+      "targetId": "trooper-1076",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 481,
+      "action": "scripted_wave_clear",
+      "heroId": "script-greenhedge",
+      "targetId": "trooper-1077",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 481,
+      "action": "scripted_wave_clear",
+      "heroId": "script-greenhedge",
+      "targetId": "trooper-1078",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 481,
+      "action": "scripted_wave_clear",
+      "heroId": "script-greenhedge",
+      "targetId": "trooper-1079",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 481,
+      "action": "scripted_wave_clear",
+      "heroId": "script-greenhedge",
+      "targetId": "trooper-1080",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 506,
+      "action": "scripted_wave_clear",
+      "heroId": "script-graft",
+      "targetId": "trooper-1141",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 506,
+      "action": "scripted_wave_clear",
+      "heroId": "script-graft",
+      "targetId": "trooper-1142",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 506,
+      "action": "scripted_wave_clear",
+      "heroId": "script-graft",
+      "targetId": "trooper-1143",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 506,
+      "action": "scripted_wave_clear",
+      "heroId": "script-graft",
+      "targetId": "trooper-1144",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 506,
+      "action": "scripted_wave_clear",
+      "heroId": "script-midway",
+      "targetId": "trooper-1145",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 506,
+      "action": "scripted_wave_clear",
+      "heroId": "script-midway",
+      "targetId": "trooper-1146",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 506,
+      "action": "scripted_wave_clear",
+      "heroId": "script-midway",
+      "targetId": "trooper-1147",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 506,
+      "action": "scripted_wave_clear",
+      "heroId": "script-midway",
+      "targetId": "trooper-1148",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 506,
+      "action": "scripted_wave_clear",
+      "heroId": "script-greenhedge",
+      "targetId": "trooper-1149",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 506,
+      "action": "scripted_wave_clear",
+      "heroId": "script-greenhedge",
+      "targetId": "trooper-1150",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 506,
+      "action": "scripted_wave_clear",
+      "heroId": "script-greenhedge",
+      "targetId": "trooper-1151",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 506,
+      "action": "scripted_wave_clear",
+      "heroId": "script-greenhedge",
+      "targetId": "trooper-1152",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 531,
+      "action": "scripted_wave_clear",
+      "heroId": "script-graft",
+      "targetId": "trooper-1213",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 531,
+      "action": "scripted_wave_clear",
+      "heroId": "script-graft",
+      "targetId": "trooper-1214",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 531,
+      "action": "scripted_wave_clear",
+      "heroId": "script-graft",
+      "targetId": "trooper-1215",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 531,
+      "action": "scripted_wave_clear",
+      "heroId": "script-graft",
+      "targetId": "trooper-1216",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 531,
+      "action": "scripted_wave_clear",
+      "heroId": "script-midway",
+      "targetId": "trooper-1217",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 531,
+      "action": "scripted_wave_clear",
+      "heroId": "script-midway",
+      "targetId": "trooper-1218",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 531,
+      "action": "scripted_wave_clear",
+      "heroId": "script-midway",
+      "targetId": "trooper-1219",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 531,
+      "action": "scripted_wave_clear",
+      "heroId": "script-midway",
+      "targetId": "trooper-1220",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 531,
+      "action": "scripted_wave_clear",
+      "heroId": "script-greenhedge",
+      "targetId": "trooper-1221",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 531,
+      "action": "scripted_wave_clear",
+      "heroId": "script-greenhedge",
+      "targetId": "trooper-1222",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 531,
+      "action": "scripted_wave_clear",
+      "heroId": "script-greenhedge",
+      "targetId": "trooper-1223",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 531,
+      "action": "scripted_wave_clear",
+      "heroId": "script-greenhedge",
+      "targetId": "trooper-1224",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 556,
+      "action": "scripted_wave_clear",
+      "heroId": "script-graft",
+      "targetId": "trooper-1285",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 556,
+      "action": "scripted_wave_clear",
+      "heroId": "script-graft",
+      "targetId": "trooper-1286",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 556,
+      "action": "scripted_wave_clear",
+      "heroId": "script-graft",
+      "targetId": "trooper-1287",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 556,
+      "action": "scripted_wave_clear",
+      "heroId": "script-graft",
+      "targetId": "trooper-1288",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 556,
+      "action": "scripted_wave_clear",
+      "heroId": "script-midway",
+      "targetId": "trooper-1289",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 556,
+      "action": "scripted_wave_clear",
+      "heroId": "script-midway",
+      "targetId": "trooper-1290",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 556,
+      "action": "scripted_wave_clear",
+      "heroId": "script-midway",
+      "targetId": "trooper-1291",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 556,
+      "action": "scripted_wave_clear",
+      "heroId": "script-midway",
+      "targetId": "trooper-1292",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 556,
+      "action": "scripted_wave_clear",
+      "heroId": "script-greenhedge",
+      "targetId": "trooper-1293",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 556,
+      "action": "scripted_wave_clear",
+      "heroId": "script-greenhedge",
+      "targetId": "trooper-1294",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 556,
+      "action": "scripted_wave_clear",
+      "heroId": "script-greenhedge",
+      "targetId": "trooper-1295",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 556,
+      "action": "scripted_wave_clear",
+      "heroId": "script-greenhedge",
+      "targetId": "trooper-1296",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 570,
+      "action": "scripted_patron_shot",
+      "heroId": "script-midway",
+      "targetId": "ivory-midway-patron-1",
+      "rawDamage": 200,
+      "damage": 150
+    },
+    {
+      "time": 571,
+      "action": "scripted_patron_shot",
+      "heroId": "script-midway",
+      "targetId": "ivory-midway-patron-1",
+      "rawDamage": 200,
+      "damage": 150
+    },
+    {
+      "time": 572,
+      "action": "scripted_patron_shot",
+      "heroId": "script-midway",
+      "targetId": "ivory-midway-patron-1",
+      "rawDamage": 200,
+      "damage": 150
+    },
+    {
+      "time": 573,
+      "action": "scripted_patron_shot",
+      "heroId": "script-midway",
+      "targetId": "ivory-midway-patron-1",
+      "rawDamage": 200,
+      "damage": 150
+    },
+    {
+      "time": 574,
+      "action": "scripted_patron_shot",
+      "heroId": "script-midway",
+      "targetId": "ivory-midway-patron-1",
+      "rawDamage": 200,
+      "damage": 150
+    },
+    {
+      "time": 575,
+      "action": "scripted_patron_shot",
+      "heroId": "script-midway",
+      "targetId": "ivory-midway-patron-1",
+      "rawDamage": 200,
+      "damage": 150
+    },
+    {
+      "time": 576,
+      "action": "scripted_patron_shot",
+      "heroId": "script-midway",
+      "targetId": "ivory-midway-patron-1",
+      "rawDamage": 200,
+      "damage": 150
+    },
+    {
+      "time": 577,
+      "action": "scripted_patron_shot",
+      "heroId": "script-midway",
+      "targetId": "ivory-midway-patron-1",
+      "rawDamage": 200,
+      "damage": 150
+    },
+    {
+      "time": 578,
+      "action": "scripted_patron_shot",
+      "heroId": "script-midway",
+      "targetId": "ivory-midway-patron-1",
+      "rawDamage": 200,
+      "damage": 150
+    },
+    {
+      "time": 579,
+      "action": "scripted_patron_shot",
+      "heroId": "script-midway",
+      "targetId": "ivory-midway-patron-1",
+      "rawDamage": 200,
+      "damage": 150
+    },
+    {
+      "time": 580,
+      "action": "scripted_patron_shot",
+      "heroId": "script-midway",
+      "targetId": "ivory-midway-patron-1",
+      "rawDamage": 200,
+      "damage": 150
+    },
+    {
+      "time": 581,
+      "action": "scripted_wave_clear",
+      "heroId": "script-graft",
+      "targetId": "trooper-1357",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 581,
+      "action": "scripted_wave_clear",
+      "heroId": "script-graft",
+      "targetId": "trooper-1358",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 581,
+      "action": "scripted_wave_clear",
+      "heroId": "script-graft",
+      "targetId": "trooper-1359",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 581,
+      "action": "scripted_wave_clear",
+      "heroId": "script-graft",
+      "targetId": "trooper-1360",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 581,
+      "action": "scripted_wave_clear",
+      "heroId": "script-midway",
+      "targetId": "trooper-1361",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 581,
+      "action": "scripted_wave_clear",
+      "heroId": "script-midway",
+      "targetId": "trooper-1362",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 581,
+      "action": "scripted_wave_clear",
+      "heroId": "script-midway",
+      "targetId": "trooper-1363",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 581,
+      "action": "scripted_wave_clear",
+      "heroId": "script-midway",
+      "targetId": "trooper-1364",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 581,
+      "action": "scripted_wave_clear",
+      "heroId": "script-greenhedge",
+      "targetId": "trooper-1365",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 581,
+      "action": "scripted_wave_clear",
+      "heroId": "script-greenhedge",
+      "targetId": "trooper-1366",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 581,
+      "action": "scripted_wave_clear",
+      "heroId": "script-greenhedge",
+      "targetId": "trooper-1367",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 581,
+      "action": "scripted_wave_clear",
+      "heroId": "script-greenhedge",
+      "targetId": "trooper-1368",
+      "rawDamage": 180,
+      "damage": 12
+    },
+    {
+      "time": 581,
+      "action": "scripted_patron_shot",
+      "heroId": "script-midway",
+      "targetId": "ivory-midway-patron-1",
+      "rawDamage": 200,
+      "damage": 150
+    },
+    {
+      "time": 582,
+      "action": "scripted_patron_shot",
+      "heroId": "script-midway",
+      "targetId": "ivory-midway-patron-1",
+      "rawDamage": 200,
+      "damage": 150
+    },
+    {
+      "time": 583,
+      "action": "scripted_patron_shot",
+      "heroId": "script-midway",
+      "targetId": "ivory-midway-patron-1",
+      "rawDamage": 200,
+      "damage": 150
+    },
+    {
+      "time": 584,
+      "action": "scripted_patron_shot",
+      "heroId": "script-midway",
+      "targetId": "ivory-midway-patron-1",
+      "rawDamage": 200,
+      "damage": 150
+    },
+    {
+      "time": 585,
+      "action": "scripted_patron_shot",
+      "heroId": "script-midway",
+      "targetId": "ivory-midway-patron-1",
+      "rawDamage": 200,
+      "damage": 150
+    },
+    {
+      "time": 586,
+      "action": "scripted_patron_shot",
+      "heroId": "script-midway",
+      "targetId": "ivory-midway-patron-1",
+      "rawDamage": 200,
+      "damage": 150
+    },
+    {
+      "time": 587,
+      "action": "scripted_patron_shot",
+      "heroId": "script-midway",
+      "targetId": "ivory-midway-patron-1",
+      "rawDamage": 200,
+      "damage": 150
+    },
+    {
+      "time": 588,
+      "action": "scripted_patron_shot",
+      "heroId": "script-midway",
+      "targetId": "ivory-midway-patron-1",
+      "rawDamage": 200,
+      "damage": 150
+    },
+    {
+      "time": 589,
+      "action": "scripted_patron_shot",
+      "heroId": "script-midway",
+      "targetId": "ivory-midway-patron-1",
+      "rawDamage": 200,
+      "damage": 150
+    },
+    {
+      "time": 590,
+      "action": "scripted_patron_shot",
+      "heroId": "script-midway",
+      "targetId": "ivory-midway-patron-1",
+      "rawDamage": 200,
+      "damage": 150
+    }
+  ]
+}
