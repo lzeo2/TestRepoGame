@@ -12,6 +12,12 @@ superseded by the operator's Valve-reference resolution. See
 [provenance](../../jankolock-provenance.md) and [build receipt](../../jankolock-release.md).
 Registration and targeted smoke do not grant push/publication approval.
 
+The operator rejected this 2D implementation for the subsequent 3D rebuild.
+Catalog ID 240 still resolves here until separately changed by the integration
+team. The independent unregistered world/traversal milestone is documented in
+[Jankolock3D](unregistered-jankolock3d.md); its checks do not accept this old game
+or certify the complete rebuilt game.
+
 ## Implementation map
 
 `index.html` -> `ui.js` -> `data.js`/`engine.js`, `style.css` -> shared local fonts.
