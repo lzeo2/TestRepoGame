@@ -6,7 +6,7 @@ export function createWorldScene(canvas,world) {
   renderer.setClearColor(0xb6c9d0);
   const scene=new THREE.Scene();scene.fog=new THREE.Fog(0xb6c9d0,180,950);
   const camera=new THREE.PerspectiveCamera(70,1,.1,1400);camera.rotation.order='YXZ';
-  const materials=new Map(),textures=[],crateMeshes=new Map();
+  const materials=new Map(),textures=[],crateMeshes=new Map(),structureMeshes=new Map();
   const cube=new THREE.BoxGeometry(1,1,1),cylinder=new THREE.CylinderGeometry(1,1,1,8),sphere=new THREE.IcosahedronGeometry(1,1);
   const material=color=>{if(!materials.has(color))materials.set(color,new THREE.MeshLambertMaterial({color}));return materials.get(color);};
   function mesh(geometry,color,x,y,z,sx,sy,sz,parent=scene) {const m=new THREE.Mesh(geometry,material(color));m.position.set(x,y,z);m.scale.set(sx,sy,sz);parent.add(m);return m;}
@@ -63,7 +63,7 @@ export function createWorldScene(canvas,world) {
     if(r.axis==='z')m.rotation.x=-Math.atan2(dy,dz);else m.rotation.z=Math.atan2(dy,dx);
   }
   for(const s of world.spawns) {
-    const {x,y,z}=s.position,c=TEAM_COLORS[s.team],g=new THREE.Group();g.position.set(x,y,z);scene.add(g);
+    const {x,y,z}=s.position,c=TEAM_COLORS[s.team],g=new THREE.Group();g.position.set(x,y,z);scene.add(g);structureMeshes.set(s.id,g);
     if(s.type==='guardian'||s.type==='base-guardian') {
       rod(0x575752,0,1,0,3,2,g);box(c,0,5,0,4,7,4,g);box(0x303535,0,9,0,6,2,5,g);
       box(0xf5dda1,0,9,-2.6,3,.6,.2,g);rod(0x535652,0,12,0,.4,4,g);
@@ -76,7 +76,7 @@ export function createWorldScene(canvas,world) {
       rod(c,0,2,0,7,4,g);box(0x414e50,-5,10,0,3,16,4,g);box(0x414e50,5,10,0,3,16,4,g);box(c,0,18,0,13,3,4,g);
       mesh(sphere,0xe4ba51,0,11,0,4,5,4,g);
     }
-    if(s.type==='guardian'||s.type==='walker'||s.type==='patron')label(s.type.replaceAll('-',' '),x,y+(s.type==='patron'?23:16),z,'#17191b',16);
+    if(s.type==='guardian'||s.type==='walker'||s.type==='patron')g.attach(label(s.type.replaceAll('-',' '),x,y+(s.type==='patron'?23:16),z,'#17191b',16));
   }
   for(const line of world.stations) {
     const lane=LANES.find(l=>l.id===line.lane);
@@ -105,7 +105,7 @@ export function createWorldScene(canvas,world) {
   // Static primitives share a few instance buffers. Crates stay separate so
   // collecting/breaking them can hide their geometry without rebuilding city data.
   scene.updateMatrixWorld(true);
-  const batches=new Map(),dynamic=new Set([...crateMeshes.values()].flatMap(g=>g.children));
+  const batches=new Map(),dynamic=new Set([...crateMeshes.values(),...structureMeshes.values()].flatMap(g=>g.children));
   scene.traverse(o=>{
     if(!o.isMesh||o.isInstancedMesh||dynamic.has(o)||o.material.type!=='MeshLambertMaterial')return;
     const key=o.geometry.uuid+o.material.uuid;
@@ -119,6 +119,15 @@ export function createWorldScene(canvas,world) {
   function resize() {const w=canvas.clientWidth,h=canvas.clientHeight;renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();}
   resize();
   return {
+    scene,camera,
+    renderCamera(view=camera) {if(!disposed)renderer.render(scene,view);},
+    syncStructures(structures) {
+      const live=new Map(structures.map(s=>[s.id,s]));
+      for(const [id,group] of structureMeshes) {
+        const s=live.get(id);group.visible=!!s?.alive;
+        if(s) {group.position.set(s.position.x,s.position.y,s.position.z);group.scale.y=s.type==='patron'&&s.patronPhase===2?.7:1;}
+      }
+    },
     render(p,yaw,pitch) {if(disposed)return;camera.position.set(p.x,p.y+1.6,p.z);camera.rotation.set(pitch,yaw,0);renderer.render(scene,camera);},
     resize,
     sync(s) {for(const [id,m] of crateMeshes)m.visible=!s.collected.has(id)&&!s.broken.has(id);},

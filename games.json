@@ -1350,10 +1350,10 @@
     "title": "JANKOLOCK",
     "cat": "action",
     "icon": "",
-    "desc": "Original shipping-office arena-MOBA skirmish. Choose one of three heroes, capture the center with an ally bot, and draft an item between rounds. First to three round wins takes the match. Offline solo.",
-    "url": "Games/Jankolock/index.html",
+    "desc": "Original office-parody 3D MOBA-shooter. Push three lanes with five bots, secure or deny soul orbs, buy items, ride ziplines and destroy the enemy Patron in two phases. Offline solo.",
+    "url": "Games/Jankolock3D/index.html",
     "featured": false,
-    "controls": "WASD/arrows move; mouse aims, primary button fires; IJKL/Space keyboard aim/fire; Q/E abilities; P/Escape pause. Touch movement, aim/fire pads and ability buttons.",
+    "controls": "WASD move; mouse or arrows look; left/right mouse fire/aim; 1-4 abilities; Shift dash; Space double jump; Ctrl sprint; C slide; Q melee; F parry; R reload; E interact; hold X retreat; B shop. Pause button and touch controls.",
     "tags": ["shooter", "solo"]
   }
 ]

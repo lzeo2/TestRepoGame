@@ -64,18 +64,10 @@ export function createBots({sim, scene, world, kits, boxes, onEffect, floorHeigh
     const kit=kits[index%kits.length], hero=sim.addHero({id:`bot-${i+1}`, team, lane});
     const configured=sim.configureHeroKit(hero.id,kit);
     if (!configured.ok) throw new Error(`Bot kit rejected: ${configured.reason}`);
-    const controller=new PlayerController({position:hero.position,boxes,floorHeight});
+    const controller=new PlayerController({position:hero.position,boxes,ramps:world.ramps,floorHeight});
     const bot={hero,controller,route:laneRoute(sim,sim.lanes.find(l => l.id===lane),team), alive:true,retreating:false,targetId:null,mode:'rally'};
     bot.runtime=new HeroRuntime({scene,controller,kit,boxes,source:hero.id,team,onEffect:event => {
       if (disposed || passive || !hero.alive || sim.phase==='pregame' || sim.phase==='finished') return;
-      // The current runtime omits remote origins. Use actual deployment/fuse
-      // positions, never the owner's current position as a damage-range bypass.
-      if (!event.origin && ['damage','heal'].includes(event.kind)) {
-        const deployment=bot.runtime.deployments.find(d => d.definition.id===event.ability);
-        const projectile=bot.runtime.projectiles.find(p => p.definition.id===event.ability);
-        const origin=deployment?.position ?? projectile?.position;
-        if (origin) event={...event,origin:{x:origin.x,y:origin.y+(event.ability==='turret' ? .9 : 0),z:origin.z}};
-      }
       const target=byId.get(event.target);
       if (event.kind==='damage' && target && !visible(bot,target,event.origin)) return;
       effect(event);
@@ -152,9 +144,8 @@ export function createBots({sim, scene, world, kits, boxes, onEffect, floorHeigh
     if (r.ammo<=0) { r.startReload(); return false; }
     aim(bot,{position:orb.position,height:0});
     if (!visible(bot,{position:orb.position,height:0})) return false;
-    // Orb API retains its legacy ammo gate. Call it BEFORE accounting the
-    // runtime shot, never route an already-fired runtime damage intent here.
-    if (!sim.shootOrb(bot.hero.id,orb.id).ok) return false;
+    // The runtime owns one ammo/timer gate for both weapons and soul shots.
+    if (!sim.shootOrb(bot.hero.id,orb.id,{kitShot:true}).ok) return false;
     r.ammo--; r.shots++; r.fireWait=r.kit.weapon.interval*r.modifiers.fire;
     r.fx.emit('longshot',{origin:r.origin,target:new THREE.Vector3(orb.position.x,orb.position.y,orb.position.z),duration:.12});
     if (!r.ammo) r.startReload();

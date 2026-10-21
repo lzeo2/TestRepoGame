@@ -351,15 +351,20 @@ export function createSystems(world) {
     } else if (target.hp <= 0) die(target, source);
     return { ok: true, amount: dealt, killed: !target.alive };
   }
-  function shootOrb(heroId, orbId) {
+  function shootOrb(heroId, orbId, options = {}) {
+    if (!options || typeof options !== 'object' || options.kitShot !== undefined && typeof options.kitShot !== 'boolean') return fail('invalid orb shot');
+    if (options.kitShot && !heroKits.has(heroId)) return fail('kit not configured');
     const h = heroById(heroId), orb = sim.orbs.find(o => o.id === orbId);
     if (!active(h) || sim.phase === 'pregame' || sim.phase === 'finished') return fail('hero or match inactive');
     if (!orb || orb.type !== 'floating' || orb.claimed || sim.time >= orb.expiresAt) return fail('orb unavailable');
     if (!point(h.position) || distance(h.position, orb.position) > 60) return fail('out of range');
-    if (h.ammo <= 0 || h.reloadRemaining > 0) return fail('reloading');
-    if (h.nextAttack > sim.time + 1e-9) return fail('weapon cooldown');
-    h.ammo--; h.nextAttack = sim.time + stats(h.id).fireInterval;
-    if (!h.ammo) h.reloadRemaining = 1.5;
+    // A configured runtime has already consumed its one round and shot timer.
+    if (!options.kitShot) {
+      if (h.ammo <= 0 || h.reloadRemaining > 0) return fail('reloading');
+      if (h.nextAttack > sim.time + 1e-9) return fail('weapon cooldown');
+      h.ammo--; h.nextAttack = sim.time + stats(h.id).fireInterval;
+      if (!h.ammo) h.reloadRemaining = 1.5;
+    }
     h.cloakUntil = 0; cancelRecall(h, 'attacked'); h.recallBlocked = h.retreatHeld; orb.claimed = true;
     grant(h, orb.souls, h.team === orb.team ? 'secure' : 'deny');
     emit('orb_shot', { heroId, orbId, outcome: h.team === orb.team ? 'secure' : 'deny' });
