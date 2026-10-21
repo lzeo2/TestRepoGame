@@ -28,7 +28,7 @@ try {
   window.citistenWorld = api;
   function frame(now) {
     if (!running) return;
-    const delta = now - last; last = now; elapsed += delta / 1000;
+    const delta = Math.max(0, now - last); last = now; elapsed += delta / 1000;
     if (world.controls.inputVersion !== lastInput) { tour = false; lastInput = world.controls.inputVersion; }
     if (tour) {
       const angle = elapsed * .07;

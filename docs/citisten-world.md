@@ -54,7 +54,10 @@ snapshot. Render automatically resizes from canvas CSS dimensions.
 
 Default map is 200x200 lots with flat green base and depression noise only at
 outer four lots. Grid lines and asphalt are flat; building colors are vertex
-colors. No textures, dynamic shadows, postprocessing or runtime remote loads.
+colors. No textures, dynamic shadows, postprocessing or runtime remote loads. A 64x64
+terrain tessellation is independent of the 200x200 logical lot grid. Ground and
+asphalt polygon offsets plus a .5m near plane prevent depth fighting overhead;
+grid opacity follows daylight so unlit line colors do not overpower night.
 Demo pixel ratio is exactly 1 for reproducible 1280x720 measurements. Integrated
 world default caps device pixel ratio at 1.5.
 
@@ -74,6 +77,10 @@ Run `python3 -B Games/Citisten3D/world-qa.py` only while no sibling browser gate
 is active. It uses explicit system Chromium, 1280x720, isolated loopback port,
 terminates its server/browser, checks disk before each evidence write, and
 records actual performance without substituting a smaller framebuffer.
+`WORLD_GL=swiftshader` explicitly selects the software backend used for the
+headless evidence; `WORLD_PERF_ONLY=1` requests only the bounded benchmark.
+Full QA checkpoints its input results before the benchmark so interruption
+cannot silently replace a partial run with a complete claim.
 
 Initial Node run: `WORLD CHECK PASS: road edits/routes/lanes/pool, 14 model
 types, transforms/removal, day/night interpolation`.
@@ -90,6 +97,11 @@ authored diffs are checked separately rather than modifying vendored bytes. No t
 integrated UI lane must address touch controls if included in release scope.
 No native GPU or target-device performance claim without the recorded run.
 E traffic behavior and F waves are systems gates, not proven by static models.
+The first Chromium attempt caught an initial negative rAF delta relative to
+`performance.now()`; clamping the demo's first delta fixes that startup crash.
+Its failed report is retained as `WORLD-first-attempt.json`. A following run
+was interrupted after seven screenshots, before performance results; it is
+not a completed gate. Final evidence must be distinguished from those attempts.
 Town hall is wider than one lot; placement must reserve visual clearance.
 The 40fps target is not accepted until measured, and software rendering may be
 a host blocker. Reviewer, not builder, assigns acceptance letters.

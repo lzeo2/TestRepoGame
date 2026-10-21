@@ -8,7 +8,7 @@ import { createWorldEffects } from './world-effects.mjs';
 export function createRoadPool(scene, grid) {
   const geometry = new THREE.PlaneGeometry(grid.lotSize, grid.lotSize);
   geometry.rotateX(-Math.PI / 2);
-  const material = new THREE.MeshLambertMaterial({ color: 0x373c40 });
+  const material = new THREE.MeshLambertMaterial({ color: 0x373c40, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -2 });
   const mesh = new THREE.InstancedMesh(geometry, material, grid.size ** 2);
   mesh.count = 0; mesh.frustumCulled = false;
   mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
@@ -35,7 +35,7 @@ export function createWorld(canvas, { size = 200, lotSize = 10, pixelRatio = Mat
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: false, alpha: false, powerPreference: 'high-performance' });
   renderer.setPixelRatio(pixelRatio);
   const scene = new THREE.Scene();
-  const camera = new THREE.PerspectiveCamera(60, 1, .1, extent * 5);
+  const camera = new THREE.PerspectiveCamera(60, 1, .5, extent * 5);
   const controls = createFreeCamera(camera, canvas, extent);
   const dayNight = createDayNight(scene);
   const buildings = createBuildingKit(scene);
@@ -53,11 +53,14 @@ export function createWorld(canvas, { size = 200, lotSize = 10, pixelRatio = Mat
     positions.setY(i, -edge * (.3 + .25 * Math.sin(x * .09) * Math.cos(z * .12)));
   }
   groundGeometry.computeVertexNormals();
-  const groundMaterial = new THREE.MeshLambertMaterial({ color: 0x7b9656 });
+  const groundMaterial = new THREE.MeshLambertMaterial({ color: 0x7b9656, polygonOffset: true, polygonOffsetFactor: 1, polygonOffsetUnits: 4 });
   const ground = new THREE.Mesh(groundGeometry, groundMaterial);
   scene.add(ground);
   const gridLines = new THREE.GridHelper(extent * 2, size, 0x718a50, 0x718a50);
-  gridLines.position.y = .012; scene.add(gridLines);
+  gridLines.position.y = .012;
+  gridLines.material.transparent = true;
+  gridLines.material.depthWrite = false;
+  scene.add(gridLines);
   const raycaster = new THREE.Raycaster(), groundPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
   const hit = new THREE.Vector3();
   let width = 0, height = 0;
@@ -67,6 +70,8 @@ export function createWorld(canvas, { size = 200, lotSize = 10, pixelRatio = Mat
       width = w; height = h; renderer.setSize(w, h, false);
       camera.aspect = w / h; camera.updateProjectionMatrix();
     }
+    gridLines.material.color.copy(dayNight.lights.ambient.color);
+    gridLines.material.opacity = .06 + .2 * dayNight.lights.sun.intensity / 2;
     controls.update(dt); roadPool.sync(); renderer.render(scene, camera); effects.update(dt);
   }
   return {

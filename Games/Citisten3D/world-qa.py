@@ -44,6 +44,8 @@ def main():
             if os.environ.get('WORLD_GL'):
                 args.append('--use-angle=' + os.environ['WORLD_GL'])
             browser = p.chromium.launch(executable_path='/usr/bin/chromium', headless=True, args=args)
+            report['browserVersion'] = browser.version
+            report['angleRequested'] = os.environ.get('WORLD_GL', 'system default')
             try:
                 page = browser.new_page(viewport={'width': 1280, 'height': 720}, device_scale_factor=1)
                 page.on('pageerror', lambda error: report['errors'].append(str(error)))
@@ -59,8 +61,32 @@ def main():
                     guard()
                     page.screenshot(path=str(OUT / name))
                     page.evaluate("document.querySelector('#qa-label').remove()")
-                page.goto(base + '/Games/Citisten3D/world.html?manual', wait_until='networkidle')
+                def performance_check():
+                    page.goto(base + '/Games/Citisten3D/world.html?size=128&perf&manual', wait_until='networkidle')
+                    page.wait_for_function('window.citistenWorld')
+                    page.evaluate('citistenWorld.world.controls.setPose({x:0,y:400,z:250,yaw:0,pitch:-.9},true)')
+                    page.wait_for_function('citistenWorld.samples.length >= 120', timeout=90000)
+                    report['performance'] = page.evaluate('citistenWorld.stats()')
+                    report['renderer'] = page.evaluate('''() => {
+                      const gl=citistenWorld.world.renderer.getContext(), ext=gl.getExtension('WEBGL_debug_renderer_info');
+                      return ext ? gl.getParameter(ext.UNMASKED_RENDERER_WEBGL) : gl.getParameter(gl.RENDERER);
+                    }''')
+                    perf = report['performance']
+                    perf['targetFps'] = 40
+                    perf['meetsTarget'] = perf['fps'] >= 40
+                    shot('WORLD-performance.png', f'WORLD PERFORMANCE | 128 x 128 | 1280 x 720\n{perf["fps"]:.2f} fps | target 40 | {perf["modelInstances"]} model instances\n{perf["triangles"]} triangles | {perf["calls"]} calls | {perf["frames"]} measured frames\n{report["renderer"]}')
+                    assert not report['errors'] and not report['externalRequests'] and not report['failedRequests'], report
+                if os.environ.get('WORLD_PERF_ONLY'):
+                    performance_check()
+                    return
+                page.goto(base + '/Games/Citisten3D/world.html', wait_until='networkidle')
                 page.wait_for_function('window.citistenWorld?.world.renderer.info.render.calls > 0')
+                tour_start = page.evaluate('citistenWorld.world.controls.target')
+                page.wait_for_timeout(700)
+                tour_end = page.evaluate('citistenWorld.world.controls.target')
+                assert tour_start != tour_end, 'Default spectator must move'
+                report['spectatorMoved'] = True
+                page.evaluate('citistenWorld.stopTour()')
                 report['renderer'] = page.evaluate('''() => {
                   const gl=citistenWorld.world.renderer.getContext(), ext=gl.getExtension('WEBGL_debug_renderer_info');
                   return ext ? gl.getParameter(ext.UNMASKED_RENDERER_WEBGL) : gl.getParameter(gl.RENDERER);
@@ -84,7 +110,7 @@ def main():
                     assert end['yaw'] != start['yaw'] and end['pitch'] != start['pitch']
                 report['nativeRotate'] = ['right', 'middle']
                 # Set framing only; zoom itself must be achieved by real wheel input.
-                page.evaluate(f'{world}.controls.setPose({{x:5,y:35,z:25,yaw:0,pitch:0}},true)')
+                page.evaluate(f'{world}.controls.setPose({{x:-45,y:35,z:5,yaw:-Math.PI/2,pitch:0}},true)')
                 for _ in range(3): page.mouse.wheel(0, -2000); page.wait_for_timeout(100)
                 page.wait_for_function('citistenWorld.world.camera.position.y < 2.02', timeout=10000)
                 report['streetY'] = page.evaluate(f'{world}.camera.position.y')
@@ -128,28 +154,21 @@ def main():
                 page.evaluate('''() => {
                   const w=citistenWorld.world;
                   for(const p of w.buildings.pools.values()) for(const h of [...p.handles]) w.buildings.remove(h);
-                  w.buildings.types.forEach((type,i)=> w.buildings.spawn(type,{x:(i%7-3)*22,z:Math.floor(i/7)*25}));
+                  w.buildings.types.forEach((type,i)=> w.buildings.spawn(type,{x:(i%7-3)*22,z:Math.floor(i/7)*25,rotation:Math.PI}));
                   w.controls.setPose({x:0,y:65,z:95,yaw:0,pitch:-.62},true);
                 }''')
                 page.wait_for_timeout(300)
                 shot('WORLD-kit.png', 'WORLD KIT | top row: residential commercial industrial power water police fire\nBottom: park townhall wall watchtower citizen zombie car')
                 page.evaluate('''() => {
                   const w=citistenWorld.world;
-                  w.buildings.spawn('citizen',{x:-2,z:80});w.buildings.spawn('zombie',{x:0,z:80});w.buildings.spawn('car',{x:3,z:80});
+                  w.buildings.spawn('citizen',{x:-2,z:80,rotation:Math.PI/2});w.buildings.spawn('zombie',{x:0,z:80,rotation:Math.PI/2});w.buildings.spawn('car',{x:3,z:80,rotation:Math.PI/2});
                   w.controls.setPose({x:0,y:4,z:89,yaw:0,pitch:-.25},true);
                 }''')
                 page.wait_for_timeout(300)
                 shot('WORLD-agents.png', 'WORLD BASE MODELS | citizen / hunched zombie / car\nStatic primitive silhouettes, no AI')
-                page.goto(base + '/Games/Citisten3D/world.html?size=128&perf&manual', wait_until='networkidle')
-                page.wait_for_function('window.citistenWorld')
-                page.evaluate('citistenWorld.world.controls.setPose({x:0,y:400,z:250,yaw:0,pitch:-.9},true)')
-                page.wait_for_function('citistenWorld.samples.length >= 120', timeout=90000)
-                report['performance'] = page.evaluate('citistenWorld.stats()')
-                report['performance']['targetFps'] = 40
-                report['performance']['meetsTarget'] = report['performance']['fps'] >= 40
-                perf = report['performance']
-                shot('WORLD-performance.png', f'WORLD PERFORMANCE | 128 x 128 | 1280 x 720\n{perf["fps"]:.2f} fps | target 40 | {perf["modelInstances"]} model instances\n{perf["triangles"]} triangles | {perf["calls"]} calls | {perf["frames"]} measured frames\n{report["renderer"]}')
-                assert not report['errors'] and not report['externalRequests'] and not report['failedRequests'], report
+                guard()
+                (OUT / 'WORLD-results.json').write_text(json.dumps(report, indent=2) + '\n')
+                performance_check()
             finally:
                 browser.close()
     finally:
@@ -157,7 +176,8 @@ def main():
         server.shutdown(); server.server_close()
         report['diskBefore'] = before
         report['diskAfter'] = guard()
-        (OUT / 'WORLD-results.json').write_text(json.dumps(report, indent=2) + '\n')
+        name = 'WORLD-performance.json' if os.environ.get('WORLD_PERF_ONLY') else 'WORLD-results.json'
+        (OUT / name).write_text(json.dumps(report, indent=2) + '\n')
         print(json.dumps(report, indent=2))
 
 
