@@ -202,7 +202,12 @@
 
   function getGameThumb(title) {
     var slug = THUMBS[title];
-    return slug ? './assets/thumbs/' + slug + '.jpg' : null;
+    if (slug) return './assets/thumbs/' + slug + '.jpg';
+    /* Auto-fallback: batch-captured art is named by the slug rule
+       (lowercase title, non-alphanumerics stripped). Hacked variants still
+       need an explicit THUMBS alias entry to reuse base art. */
+    var auto = title.toLowerCase().replace(/[^a-z0-9]+/g, '');
+    return auto ? './assets/thumbs/' + auto + '.jpg' : null;
   }
 
   /* Category fallback icons (for games without a specific icon) */
@@ -250,7 +255,8 @@
       if (icon && title) {
         icon.setAttribute('data-initial', title.charAt(0).toUpperCase());
         icon.setAttribute('aria-hidden', 'true');
-        if (thumbUrl && !icon.querySelector('img')) {
+        var thumbFailed = icon.getAttribute('data-ux-thumb-failed') === thumbUrl;
+        if (thumbUrl && !thumbFailed && !icon.querySelector('img')) {
           icon.innerHTML = '';
           var img = document.createElement('img');
           img.src = thumbUrl;
@@ -258,8 +264,13 @@
           img.loading = 'lazy';
           img.decoding = 'async';
           img.className = 'game-card__thumb-img';
+          img.onerror = function () {
+            /* Do not retry this URL on every metadata reconciliation. */
+            icon.setAttribute('data-ux-thumb-failed', thumbUrl);
+            icon.innerHTML = getGameIcon(title, cat);
+          };
           icon.appendChild(img);
-        } else if (!thumbUrl && !icon.querySelector('svg')) {
+        } else if ((!thumbUrl || thumbFailed) && !icon.querySelector('svg')) {
           icon.innerHTML = getGameIcon(title, cat);
         }
       }

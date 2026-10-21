@@ -80,6 +80,15 @@ The [history follow-up](../audits/fleet-followup-history.md), starting at `e7876
 
 The optimization does **not** establish complete readiness acceptance. Two unchanged refurbishment executions still failed the existing 5000ms sort wait, on malformed-history reload and initial load respectively. The final serialized fleet regression passed all existing checks plus the new raw-history/freshness/one-parse assertions in 21s. Full fullscreen reached real Snake and a 390px denial capture, then hit its 650s process bound without final acceptance. The follow-up records these receipts and DOM timing observations separately. Historical lane4 failures are retained rather than relabeled as passes.
 
+## Thumbnail recovery (2026-10-21)
+
+Explicit `THUMBS` aliases take precedence over the lowercase title-slug fallback.
+Missing JPGs downgrade to the local SVG icon; `data-ux-thumb-failed` prevents the
+mutation observer from reinserting the same failed image indefinitely. Changing
+its resolved URL permits a later attempt. Thumbnail loading does not establish
+that the underlying game loads or plays. See the [thumbnail sweep](../audits/thumbs-sweep-20261021.md)
+for capture guards, final counts and known local-source gaps.
+
 ## Safe refurbishment and verification
 
 Smallest fixes belong in authored UX shared helpers: search routing, recent validation, catalog retry/status and DOM reconciliation. Keep bundle DOM class contracts and preserve title/ID identity separately. Do not hand-edit compiled React or replace working game menus. Density controls, copy-link/share actions, deep-link query state, custom scroll-spy and account features were **not found** in the audited authored portal/application tail. `portal-share.png` is metadata imagery, not a share widget. Motion-library IntersectionObserver code is not proof of an active portal scroll feature.
