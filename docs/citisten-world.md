@@ -79,6 +79,10 @@ terminates its server/browser, checks disk before each evidence write, and
 records actual performance without substituting a smaller framebuffer.
 `WORLD_GL=swiftshader` explicitly selects the software backend used for the
 headless evidence; `WORLD_PERF_ONLY=1` requests only the bounded benchmark.
+The benchmark uses 10 seconds warmup, clears samples, then measures a 15-second
+wall-time window. Actual rAF intervals, sample duration and count are reported;
+40fps remains the hard failure threshold. Scene density and resolution are not
+reduced to pass. Demo timing ignores its first five seconds of startup.
 Full QA checkpoints its input results before the benchmark so interruption
 cannot silently replace a partial run with a complete claim.
 
@@ -101,7 +105,14 @@ The first Chromium attempt caught an initial negative rAF delta relative to
 `performance.now()`; clamping the demo's first delta fixes that startup crash.
 Its failed report is retained as `WORLD-first-attempt.json`. A following run
 was interrupted after seven screenshots, before performance results; it is
-not a completed gate. Final evidence must be distinguished from those attempts.
+not a completed gate. A later spectator harness assertion used a fixed 700ms
+wait that was shorter than software-renderer startup; it now waits for actual
+camera movement (still fails if absent). The next full run verified all world
+fixtures but timed out waiting for 120 samples after a 60-frame warmup. This
+motivated the fixed-time benchmark, not a lower FPS threshold. The old timeout
+log's traceback source lines were read from disk after the harness was edited;
+its executed wait was the 120-sample version. Final numeric performance evidence
+must be distinguished from those attempts.
 Town hall is wider than one lot; placement must reserve visual clearance.
 The 40fps target is not accepted until measured, and software rendering may be
 a host blocker. Reviewer, not builder, assigns acceptance letters.

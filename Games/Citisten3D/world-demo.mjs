@@ -6,7 +6,7 @@ try {
   const world = createWorld(canvas, { size: params.get('size') === '128' ? 128 : 200, pixelRatio: 1 });
   const fixture = populateWorld(world, { dense: params.has('perf') });
   const samples = [];
-  let frames = 0, last = performance.now(), started = last, elapsed = 0, running = true;
+  let last = performance.now(), started = last, elapsed = 0, running = true;
   let tour = !params.has('manual'), lastInput = world.controls.inputVersion;
   world.dayNight.setPhase(params.get('night') === '1' ? 0 : .5);
   world.controls.setPose({ x: 100, y: 160, z: 180, yaw: .45, pitch: -.7 }, true);
@@ -17,7 +17,7 @@ try {
       const sorted = [...samples].sort((a, b) => a - b);
       const total = samples.reduce((sum, n) => sum + n, 0);
       return { size: world.roads.size, lots: world.roads.size ** 2, viewport: [canvas.width, canvas.height],
-        frames: samples.length, fps: samples.length ? samples.length * 1000 / total : 0,
+        frames: samples.length, sampleSeconds: total / 1000, fps: samples.length ? samples.length * 1000 / total : 0,
         medianMs: sorted[Math.floor(sorted.length / 2)] || 0, p95Ms: sorted[Math.floor(sorted.length * .95)] || 0,
         calls: world.renderer.info.render.calls, triangles: world.renderer.info.render.triangles,
         roadLots: world.roads.cells.size, modelInstances: [...world.buildings.pools.values()].reduce((n, p) => n + p.mesh.count, 0),
@@ -36,7 +36,7 @@ try {
     }
     world.render(delta / 1000);
     // Ignore shader warmup, retain bounded rolling measurements, not a benchmark claim.
-    if (++frames > 60) { samples.push(delta); if (samples.length > 600) samples.shift(); }
+    if (now - started > 5000) { samples.push(delta); if (samples.length > 600) samples.shift(); }
     requestAnimationFrame(frame);
   }
   requestAnimationFrame(frame);

@@ -65,8 +65,12 @@ def main():
                     page.goto(base + '/Games/Citisten3D/world.html?size=128&perf&manual', wait_until='networkidle')
                     page.wait_for_function('window.citistenWorld')
                     page.evaluate('citistenWorld.world.controls.setPose({x:0,y:400,z:250,yaw:0,pitch:-.9},true)')
-                    page.wait_for_function('citistenWorld.samples.length >= 120', timeout=90000)
+                    # Fixed time, not frame count: very slow software GPUs must still yield evidence.
+                    page.wait_for_timeout(10000)
+                    page.evaluate('citistenWorld.samples.length = 0')
+                    page.wait_for_timeout(15000)
                     report['performance'] = page.evaluate('citistenWorld.stats()')
+                    assert report['performance']['frames'] > 0, 'No frames in 15-second measurement window'
                     report['renderer'] = page.evaluate('''() => {
                       const gl=citistenWorld.world.renderer.getContext(), ext=gl.getExtension('WEBGL_debug_renderer_info');
                       return ext ? gl.getParameter(ext.UNMASKED_RENDERER_WEBGL) : gl.getParameter(gl.RENDERER);
@@ -76,15 +80,15 @@ def main():
                     perf['meetsTarget'] = perf['fps'] >= 40
                     shot('WORLD-performance.png', f'WORLD PERFORMANCE | 128 x 128 | 1280 x 720\n{perf["fps"]:.2f} fps | target 40 | {perf["modelInstances"]} model instances\n{perf["triangles"]} triangles | {perf["calls"]} calls | {perf["frames"]} measured frames\n{report["renderer"]}')
                     assert not report['errors'] and not report['externalRequests'] and not report['failedRequests'], report
+                    if not perf['meetsTarget']:
+                        raise RuntimeError(f'Render budget HOLD: {perf["fps"]:.2f} fps < 40 fps')
                 if os.environ.get('WORLD_PERF_ONLY'):
                     performance_check()
                     return
                 page.goto(base + '/Games/Citisten3D/world.html', wait_until='networkidle')
                 page.wait_for_function('window.citistenWorld?.world.renderer.info.render.calls > 0')
                 tour_start = page.evaluate('citistenWorld.world.controls.target')
-                page.wait_for_timeout(700)
-                tour_end = page.evaluate('citistenWorld.world.controls.target')
-                assert tour_start != tour_end, 'Default spectator must move'
+                page.wait_for_function('start => citistenWorld.world.controls.target.x !== start.x', arg=tour_start, timeout=15000)
                 report['spectatorMoved'] = True
                 page.evaluate('citistenWorld.stopTour()')
                 report['renderer'] = page.evaluate('''() => {
@@ -97,7 +101,11 @@ def main():
                 movement = {}
                 for key in ['w', 'a', 's', 'd']:
                     start = page.evaluate(f'{world}.controls.target')
-                    page.keyboard.down(key); page.wait_for_timeout(180); page.keyboard.up(key)
+                    page.keyboard.down(key)
+                    try:
+                        page.wait_for_function('start => { const p=citistenWorld.world.controls.target; return Math.abs(p.x-start.x)+Math.abs(p.z-start.z)>.1; }', arg=start, timeout=10000)
+                    finally:
+                        page.keyboard.up(key)
                     end = page.evaluate(f'{world}.controls.target')
                     assert abs(start['x'] - end['x']) + abs(start['z'] - end['z']) > .1, key
                     movement[key] = {'before': start, 'after': end}
