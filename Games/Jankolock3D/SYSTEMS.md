@@ -47,10 +47,19 @@ objectives: 18 lane objectives plus one shared Patron per team.
   deterministic 0.05s substeps; no wall time is dropped. Visible time is completed
   ticks only. Calls can be chunked differently with identical results. After a
   victory time still advances, but gameplay is frozen.
+- `configureHeroKit(heroId,kit)`: `{ok:true,kitId}` or `{ok:false,reason}`.
+  Register once per hero, before routing runtime events. Validates/copies the
+  kit health, weapon/melee baselines and four uniquely slotted abilities.
+  Changes derived HP/damage/range/magazine/rate baselines, without setting
+  runtime ammo or cooldowns. Repeat configuration and finished matches fail.
+- `applyHeroEffect(event)`: `{ok:true,amount?,killed?}` or `{ok:false,reason}`.
+  Systems-owned adapter for HeroRuntime intents; see the exact boundary below.
+  Does **not** consume systems ammo, start reloads or check/set shot/kit timers.
 - `damage(targetId,amount,sourceId,{kind='projectile'}?)`: structured result
   `{ok,amount,killed}` or failure. Positive finite raw damage <=1e9; kind is
   projectile/melee/ability. Requires live enemy entities, active match, finite
-  positions and range (hero 32m, melee 4m, trooper 20m, structure 28m). Always
+  positions and range (hero equipped weapon or default 32m, melee 4m,
+  trooper 20m, structure 28m). Always
   checks objective vulnerability. There is **no bypass flag**. Hero damage is
   multiplied by level/items then target armor; projectile calls consume ammo
   and obey fire interval/reload. Ability/melee cooldowns belong to the kit/input
@@ -71,7 +80,8 @@ objectives: 18 lane objectives plus one shared Patron per team.
 - `shopAvailable(heroId)`: boolean; dead or within 20m of own base, not finished.
 - `stats(heroId)`: derived stats or null. Includes maxHp, damage,
   damageMultiplier, moveSpeed, maxAmmo, fireInterval, range, armor, armorPierce,
-  lifesteal, projectileSlow, burstMultiplier, maxDashCharges and tier label.
+  lifesteal, projectileSlow, burstMultiplier, maxDashCharges, tier label,
+  kitId, invulnerable and parry. moveSpeed includes kit speed buffs and slows.
 - `moveHero(heroId,position)`: structured result; live hero, finite x/y/z within
   +/-1e6. Replaces position and cancels recall for movement >0.1m. This is an
   adapter boundary, **not collision or speed enforcement**. Caller owns ordinary
@@ -92,6 +102,75 @@ Read arrays afresh after stepping: dead troopers and claimed/expired orbs are
 pruned. Returned entities are live integration state, not a server/anti-cheat
 boundary. Integrators may set position through moveHero; do not edit HP,
 vulnerability, items, earned totals, phase or winner to implement gameplay.
+
+## HeroRuntime intent boundary
+
+```js
+const result = sim.configureHeroKit(player.id, kit); // check result.ok
+const runtime = new HeroRuntime({
+  scene, controller, kit, targets, source: player.id, team: player.team,
+  onEffect: event => sim.applyHeroEffect(event)
+});
+```
+
+The adapter accepts existing `kind`, `source`, `target`, `ability`, `baseDamage`,
+`baseHeal`, `damageType`, `spiritScale`, `slow`, `duration`, `headshot`,
+`headshotMultiplier`, `invulnerable` and `speedMultiplier` fields. Source is a
+living, configured systems hero ID; target is a systems entity ID. Ability is
+its kit ID, or weapon/melee `id ?? name`. Source team comes from systems, not
+an event; an optional event.team must match. Unknown kinds/abilities, nonfinite
+values, baseline overrides, friendly damage, enemy healing, pregame and finished
+matches fail before changing HP/status/resources. Damage/heal events require the
+matching baseline amount. Other supplied baseline fields must match the copied
+kit. Definitions are not retained by reference.
+
+- `damage`: weapon, weapon-type abilities and melee/spirit abilities use the
+  kit's range/radius, not a generic 32m limit. Headshot multiplier is 1 or the
+  exact equipped weapon/Fine Print value; bonuses require a true headshot on
+  the weapon or longshot. Systems applies headshot, level/items, projectile
+  burst and armor exactly once, then normal lifesteal, slow rounds, candle
+  state, deaths, rewards and objective progression. Pass **unscaled** amounts.
+- `heal`: living allied heroes/troopers only, never structures or resurrection.
+  Multiply baseHeal once by the source's level/item damageMultiplier, clamp
+  to max HP. The existing economy has no separate spirit-power stat;
+  spiritScale is validated metadata, not an invented second scaling pass.
+- `buff`/`buff-end`: self/null target for overtime, headshot, xray, chaingun or
+  aura. Systems stores the kit duration, invulnerability, speed/headshot bonus;
+  end removes only that source/ability. Rendering/reveal FX stay runtime-owned.
+- `parry`: ability `parry`, self/null target, fixed 0.65s. Blocks melee, not
+  bullets or abilities; no reflection/stun is invented. Invulnerability blocks
+  every damage channel, including generic damage and automatic troopers.
+- Damage intents with slow install the kit percentage/duration. Strongest slow
+  wins, including generic slow rounds; both heroes and trooper marching obey it.
+  `tether-end` removes only that source's tether slow. Timers expire in systems
+  time even without end events; hero death clears statuses on the dead hero.
+
+**Required runtime handoff:** turret, puddle, grenade and missionbomb damage/heal
+intents must also include `origin:{x,y,z}`. This is turret muzzle, pool center or
+explosion center, respectively. Missing/nonfinite origins fail, rather than
+silently rejecting a deployed turret because its owner moved away. Turrets use
+kit range from origin; other deployed/explosion effects use kit radius from
+origin. Direct shots/cones/self-areas use the current systems source position;
+caller-supplied origins cannot extend them. Sync source position through
+moveHero before effects. Runtime still owns cover, cone, placement and projectile
+trajectory checks: a finite remote origin is an explicit trusted local-runtime
+input, not server-validated deployment provenance. Current inspected
+`hero-runtime.mjs` omits remote origins; the hero/integration owner must add them.
+
+Runtime alone owns kit ammo, reload, fire/melee/parry/ability cooldowns and slide
+infinite ammo. HUD reads runtime.ammo/reload, not legacy hero.ammo. Feed
+stats().maxAmmo to runtime.setModifiers({magazine:...}) and the ratio
+stats().fireInterval / kit.weapon.interval as its fire modifier. Legacy damage
+and shootOrb retain their existing resource rules for fixtures; do not route an
+already-consumed runtime shot through those APIs. Orb shooting is not an entity
+HP effect and is not added to this adapter.
+
+Systems moveSpeed already includes Overtime. The inspected runtime also sets
+controller.speedMultiplier from its visual buff. Before each controller.update,
+set controller.speedMultiplier = sim.stats(player.id).moveSpeed / 8; do not
+multiply Overtime again via runtime's move modifier. Reset/dispose runtime on
+systems death/respawn so it cannot retain visual buffs or stale kit timers.
+Never write HP/status/objective fields in the integrator.
 
 ## Gameplay and controls
 
@@ -178,7 +257,8 @@ at runtime). No reference-game engine, art, text or assets are imported.
 ```sh
 node --check Games/Jankolock3D/systems.mjs
 node --check Games/Jankolock3D/systems-test.mjs
-node Games/Jankolock3D/systems-test.mjs
+node Games/Jankolock3D/systems-test.mjs --no-evidence
+node Games/Jankolock3D/heroes/hero-runtime-test.mjs
 python3 -B scripts/check_maintenance_docs.py
 ```
 
@@ -196,13 +276,25 @@ P2 transition at570 and victory at590; clock continues to600. Troopers contribut
 240 objective hits/2160 damage.
 This proves the scripted systems path, **not native input or hardware acceptance**.
 
-Every run overwrites only the relative evidence location
+The adapter follow-up passes **17 regression groups**: all original 11 plus
+validated/copied kit baselines, longshot/headshot/single-pass shop scaling,
+no duplicate ammo/timers, invulnerability/parry/slow/end/expiry/death cleanup,
+deployed origins, allied capped healing, actual HeroRuntime weapon/melee/parry/
+Overtime/slide events, and the full objective chain through the new API.
+The unchanged scripted match reports carbon victory, 23 waves, 6,267 trooper
+hits and 240 objective hits/2,160 damage. `--no-evidence` still runs every
+assertion and the full scripted match, but writes no timeline outside this
+worker's three assigned files. Both authored syntax checks and the standalone
+hero-runtime regression pass. No browser was run for this adapter task.
+
+Without `--no-evidence`, a run overwrites only the relative evidence location
 `docs/maintenance/audits/jankolock-3d-qa/systems-timeline.json`, resolved from the
 module rather than current working directory. Disk space is checked before
 mkdir/write, stopping below2,178,940,928 available bytes. The maintenance checker was run:
 `AssertionError: Inventory stale: inspect changes, then run --refresh.` The
 orchestrator must reconcile the global maintenance inventory/manual after
-concurrent 3D commits; those paths are outside this worker's four-file authorization.
+concurrent 3D commits; those paths are outside this adapter worker's three-file
+scope. The stale-inventory failure was reproduced before and after this change.
 
 ## Safe iteration and future outlook
 

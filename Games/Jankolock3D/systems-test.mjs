@@ -3,6 +3,17 @@ import { mkdirSync, writeFileSync, readFileSync, statfsSync } from 'node:fs';
 import { dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createSystems, ITEMS } from './systems.mjs';
+import * as THREE from './vendor/three.module.js';
+import { PlayerController } from './heroes/player-controller.mjs';
+import { HeroRuntime } from './heroes/hero-runtime.mjs';
+
+const { heroes: kits } = JSON.parse(readFileSync(new URL('../../docs/jank3d-hero-kits.json', import.meta.url), 'utf8'));
+const intent = (source, definition, kind, target = null, extra = {}) => ({
+  kind, source: source.id, target: target?.id ?? null, ability: definition.id ?? definition.name,
+  baseDamage: definition.baseDamage ?? 0, baseHeal: definition.baseHeal ?? 0,
+  damageType: definition.damageType ?? 'none', spiritScale: definition.spiritScale ?? 0,
+  slow: definition.slow ?? 0, duration: definition.duration ?? 0, ...extra
+});
 
 const near = (a, b, epsilon = 1e-6) => assert.ok(Math.abs(a - b) < epsilon, `${a} != ${b}`);
 const pos = (x = 0, z = 0) => ({ x, y: 0, z });
@@ -253,6 +264,157 @@ test('objective boundary, lane independence, both base guards, all shrines, two 
   }
 });
 
+test('kit baselines are validated, copied, applied once and do not replace runtime resources', () => {
+  const s = createSystems();
+  for (const kit of kits) {
+    const h = hero(s, kit.id), input = structuredClone(kit);
+    assert.ok(s.configureHeroKit(h.id, input).ok);
+    near(h.maxHp, kit.health); near(h.hp, kit.health);
+    near(s.stats(h.id).range, kit.weapon.range); near(s.stats(h.id).damage, kit.weapon.baseDamage);
+    assert.equal(s.stats(h.id).maxAmmo, kit.weapon.magazine);
+    assert.equal(h.ammo, 12, 'legacy magazine is not runtime ammunition');
+    input.health = 9999; input.weapon.range = 9999; input.abilities[0].baseDamage = 9999;
+    near(s.stats(h.id).maxHp, kit.health); near(s.stats(h.id).range, kit.weapon.range);
+    assert.equal(s.configureHeroKit(h.id, kit).ok, false);
+  }
+  const h = hero(s, 'invalid');
+  for (const mutate of [k => { k.health = Infinity; }, k => { k.weapon.magazine = 0; }, k => { k.abilities[0].duration = NaN; }, k => { k.abilities[0].slot = 2; }, k => { k.weapon.range = -1; }]) {
+    const kit = structuredClone(kits[0]); mutate(kit);
+    assert.equal(s.configureHeroKit(h.id, kit).ok, false); near(h.maxHp, 500);
+  }
+  assert.equal(s.configureHeroKit('missing', kits[0]).ok, false);
+  assert.equal(s.configureHeroKit(h.id, null).ok, false);
+  assert.ok(s.configureHeroKit(h.id, kits[0]).ok, 'invalid configs do not partially register');
+  assert.equal(s.applyHeroEffect(intent(h, kits[0].weapon, 'damage', s.heroes[0])).reason, 'match inactive');
+});
+
+test('kit longshot, headshot and item scaling apply once, never consume generic ammo or timers', () => {
+  const s = createSystems(), kit = kits[2], h = hero(s, 'sniper', 'carbon', 100000), e = hero(s, 'enemy', 'ivory', 100000);
+  assert.ok(s.configureHeroKit(h.id, kit).ok); assert.ok(s.buyItem(h.id, 'glass-cannon').ok);
+  assert.ok(s.buyItem(h.id, 'burst-fire').ok);
+  s.step(30); quiet(s); s.moveHero(h.id, pos()); s.moveHero(e.id, pos(95));
+  h.ammo = 0; h.reloadRemaining = 9; h.nextAttack = 999;
+  const resources = [h.ammo, h.reloadRemaining, h.nextAttack, JSON.stringify(h.cooldowns)];
+  const longshot = intent(h, kit.abilities[0], 'damage', e, { headshot: true, headshotMultiplier: 2 });
+  near(s.applyHeroEffect(longshot).amount, 100 * 2 * 1.95 * 1.6 * 0.9);
+  near(s.applyHeroEffect(longshot).amount, 100 * 2 * 1.95 * 1.6 * 0.9);
+  assert.deepEqual([h.ammo, h.reloadRemaining, h.nextAttack, JSON.stringify(h.cooldowns)], resources);
+  assert.equal(s.applyHeroEffect(intent(h, kit.weapon, 'damage', e)).reason, 'out of range');
+  s.moveHero(e.id, pos(101)); assert.equal(s.applyHeroEffect(longshot).reason, 'out of range');
+  s.moveHero(e.id, pos(1));
+  for (const extra of [{ baseDamage: NaN }, { baseDamage: 100000 }, { duration: Infinity }, { slow: -1 }, { headshotMultiplier: 99 }, { headshotMultiplier: 1.5 }, { source: 'missing' }, { team: 'ivory' }, { headshot: 'yes' }, { origin: pos(Infinity) }, { kind: 'unknown' }]) {
+    assert.equal(s.applyHeroEffect({ ...longshot, ...extra }).ok, false, JSON.stringify(extra));
+  }
+  assert.equal(s.applyHeroEffect(null).ok, false);
+  const ally = hero(s, 'friend', 'carbon'); s.moveHero(ally.id, pos(1));
+  assert.equal(s.applyHeroEffect({ ...longshot, target: ally.id }).reason, 'friendly fire');
+  assert.ok(s.applyHeroEffect(intent(h, kit.abilities[2], 'buff', h, { invulnerable: false, speedMultiplier: 1 })).ok);
+  const fresh = hero(s, 'fresh', 'ivory', 100000); s.moveHero(fresh.id, pos(2));
+  near(s.applyHeroEffect(intent(h, kit.weapon, 'damage', fresh, { headshot: true, headshotMultiplier: 3 })).amount, 65 * 3 * 1.95 * 1.6 * 0.9);
+  assert.ok(s.applyHeroEffect(intent(h, kit.abilities[2], 'buff-end', h)).ok);
+  assert.equal(s.applyHeroEffect(intent(h, kit.weapon, 'damage', fresh, { headshot: true, headshotMultiplier: 3 })).ok, false);
+  assert.ok(s.activateItem(h.id, 'burst-fire').ok);
+  near(s.applyHeroEffect(intent(h, kit.weapon, 'damage', fresh)).amount, 65 * 1.95 * 1.6 * 3 * 0.9);
+  s.moveHero(fresh.id, pos(3.25));
+  assert.equal(s.applyHeroEffect(intent(h, kit.melee, 'damage', fresh)).reason, 'out of range');
+  const unconfigured = hero(s, 'unconfigured'); s.moveHero(unconfigured.id, pos());
+  assert.equal(s.applyHeroEffect(intent(unconfigured, kit.weapon, 'damage', fresh)).ok, false);
+  assert.equal(s.applyHeroEffect({ ...longshot, source: s.structures[0].id }).ok, false);
+});
+
+test('systems enforces invulnerability, melee parry, independent slows, buff-end, expiry and death cleanup', () => {
+  const s = createSystems(), tank = hero(s, 'tank'), sniper = hero(s, 'sniper', 'ivory'), second = hero(s, 'second', 'ivory');
+  s.configureHeroKit(tank.id, kits[0]); s.configureHeroKit(sniper.id, kits[2]); s.configureHeroKit(second.id, kits[2]);
+  s.step(30); quiet(s); s.moveHero(tank.id, pos()); s.moveHero(sniper.id, pos(1)); s.moveHero(second.id, pos(2));
+  const overtime = intent(tank, kits[0].abilities[3], 'buff', tank, { invulnerable: true, speedMultiplier: 1.5 });
+  assert.ok(s.applyHeroEffect(overtime).ok); near(s.stats(tank.id).moveSpeed, 12);
+  assert.equal(s.damage(tank.id, 10, sniper.id, { kind: 'ability' }).reason, 'invulnerable');
+  assert.equal(s.applyHeroEffect(intent(sniper, kits[2].weapon, 'damage', tank)).reason, 'invulnerable');
+  assert.ok(s.applyHeroEffect(intent(tank, kits[0].abilities[3], 'buff-end', tank)).ok);
+  assert.equal(s.stats(tank.id).invulnerable, false); near(s.stats(tank.id).moveSpeed, 8);
+  assert.ok(s.applyHeroEffect({ kind: 'parry', source: tank.id, target: null, ability: 'parry', duration: 0.65 }).ok);
+  assert.equal(s.damage(tank.id, 10, sniper.id, { kind: 'melee' }).reason, 'parried');
+  assert.equal(s.applyHeroEffect(intent(sniper, kits[2].melee, 'damage', tank)).reason, 'parried');
+  assert.ok(s.damage(tank.id, 10, sniper.id, { kind: 'ability' }).ok);
+  s.step(0.65); assert.equal(s.stats(tank.id).parry, false);
+  const tether = kits[2].abilities[1];
+  assert.ok(s.applyHeroEffect(intent(sniper, tether, 'damage', tank)).ok);
+  assert.ok(s.applyHeroEffect(intent(second, tether, 'damage', tank)).ok); near(s.stats(tank.id).moveSpeed, 4);
+  assert.ok(s.applyHeroEffect(intent(sniper, tether, 'tether-end', tank)).ok); near(s.stats(tank.id).moveSpeed, 4);
+  assert.ok(s.applyHeroEffect(intent(second, tether, 'tether-end', tank)).ok); near(s.stats(tank.id).moveSpeed, 8);
+  s.applyHeroEffect(intent(sniper, tether, 'damage', tank)); s.step(3); near(s.stats(tank.id).moveSpeed, 8);
+  s.applyHeroEffect(overtime); s.step(3); assert.equal(s.stats(tank.id).invulnerable, false);
+  s.applyHeroEffect({ kind: 'parry', source: tank.id, ability: 'parry', duration: 0.65 });
+  assert.ok(s.damage(tank.id, 1e6, sniper.id, { kind: 'ability' }).ok); assert.equal(s.stats(tank.id).parry, false);
+  assert.equal(s.applyHeroEffect(overtime).ok, false, 'dead source cannot cast');
+  s.step(tank.respawnRemaining); quiet(s); assert.equal(s.stats(tank.id).parry, false); near(tank.hp, tank.maxHp);
+});
+
+test('deployed origins enforce kit ranges, healing is allied and capped, slow affects marching', () => {
+  const s = createSystems(), engineer = hero(s, 'engineer'), support = hero(s, 'support', 'carbon', 100000), ally = hero(s, 'ally'), enemy = hero(s, 'enemy', 'ivory');
+  s.configureHeroKit(engineer.id, kits[1]); s.configureHeroKit(support.id, kits[3]);
+  assert.ok(s.buyItem(support.id, 'glass-cannon').ok);
+  s.step(30); quiet(s); s.moveHero(engineer.id, pos(800)); s.moveHero(support.id, pos(700)); s.moveHero(ally.id, pos(104)); s.moveHero(enemy.id, pos(118));
+  const turret = intent(engineer, kits[1].abilities[0], 'damage', enemy, { origin: pos(100) });
+  assert.equal(s.applyHeroEffect({ ...turret, origin: undefined }).reason, 'effect origin required');
+  near(s.applyHeroEffect(turret).amount, 18 * 0.9);
+  s.moveHero(enemy.id, pos(121)); assert.equal(s.applyHeroEffect(turret).reason, 'out of range');
+  s.moveHero(enemy.id, pos(104));
+  const grenade = intent(engineer, kits[1].abilities[2], 'damage', enemy, { origin: pos(100) });
+  near(s.applyHeroEffect(grenade).amount, 90 * 0.9);
+  s.moveHero(enemy.id, pos(106)); assert.equal(s.applyHeroEffect(grenade).reason, 'out of range');
+  assert.ok(s.damage(ally.id, 200, enemy.id, { kind: 'ability' }).ok);
+  const puddle = intent(support, kits[3].abilities[0], 'heal', ally, { origin: pos(100) });
+  near(s.applyHeroEffect(puddle).amount, 20 * 1.95 * 1.6);
+  for (let i = 0; i < 20; i++) assert.ok(s.applyHeroEffect(puddle).ok);
+  near(ally.hp, ally.maxHp); near(s.applyHeroEffect(puddle).amount, 0);
+  s.moveHero(enemy.id, pos(103)); assert.equal(s.applyHeroEffect({ ...puddle, target: enemy.id }).ok, false);
+  s.moveHero(ally.id, pos(105)); assert.equal(s.applyHeroEffect(puddle).reason, 'out of range');
+  const t = s.troopers.find(t => t.team === 'ivory'); t.position = pos(103);
+  assert.ok(s.applyHeroEffect(intent(support, kits[3].abilities[0], 'damage', t, { origin: pos(100) })).ok);
+  const marched = t.distanceMarched;
+  s.moveHero(enemy.id, pos(8000)); s.moveHero(ally.id, pos(8000)); s.step(0.5);
+  near(t.distanceMarched - marched, 8 * 0.5 * 0.65);
+});
+
+test('actual HeroRuntime events bridge without double ammo, including slide, melee and buffs', () => {
+  const s = createSystems(), h = hero(s, 'player'), e = hero(s, 'enemy', 'ivory');
+  s.configureHeroKit(h.id, kits[0]); s.step(30); quiet(s); s.moveHero(h.id, pos(0, 8)); s.moveHero(e.id, pos());
+  h.ammo = 0; h.reloadRemaining = 50; h.nextAttack = 1000;
+  const scene = new THREE.Scene(), boxes = [], results = [];
+  const controller = new PlayerController({ position: h.position, boxes });
+  const runtime = new HeroRuntime({ scene, controller, kit: kits[0], targets: [e], source: h.id, onEffect: event => results.push(s.applyHeroEffect(event)) });
+  assert.ok(runtime.fire()); assert.equal(runtime.ammo, 11); assert.ok(results.at(-1).ok);
+  for (let i = 0; i < 40; i++) { controller.update(1 / 60, { forward: 1 }); runtime.update(1 / 60); }
+  controller.update(1 / 60, { forward: 1, slide: true }); assert.ok(controller.infiniteAmmo);
+  s.moveHero(h.id, controller.position); const ammo = runtime.ammo;
+  assert.ok(runtime.fire()); assert.equal(runtime.ammo, ammo); assert.ok(results.at(-1).ok);
+  s.moveHero(e.id, { ...h.position, z: h.position.z - 2 });
+  assert.ok(runtime.melee()); assert.ok(results.at(-1).ok);
+  assert.ok(runtime.parry()); assert.ok(s.stats(h.id).parry);
+  assert.ok(runtime.cast(4)); assert.ok(s.stats(h.id).invulnerable);
+  assert.equal(h.ammo, 0); near(h.reloadRemaining, 50); near(h.nextAttack, 1000);
+  runtime.dispose(); assert.equal(scene.children.length, 0);
+});
+
+test('hero effect path preserves every objective lock, Patron transition and finished freeze', () => {
+  const s = createSystems(), h = hero(s), kit = kits[2]; s.configureHeroKit(h.id, kit); s.step(30); quiet(s);
+  const targets = s.structures.filter(t => t.team === 'ivory');
+  const hit = target => { s.moveHero(h.id, { ...target.position, x: target.position.x + 1 }); return s.applyHeroEffect(intent(h, kit.abilities[0], 'damage', target)); };
+  for (const type of ['walker', 'base-guardian', 'shrine', 'patron']) assert.equal(hit(targets.find(t => t.type === type)).reason, 'objective locked');
+  for (const target of targets.filter(t => t.type !== 'patron')) {
+    for (let i = 0; target.alive && i < 100; i++) assert.ok(hit(target).ok);
+    assert.equal(target.alive, false);
+  }
+  const patron = targets.find(t => t.type === 'patron');
+  assert.ok(hit(patron).ok); assert.equal(patron.patronPhase, 2); assert.equal(s.winner, null);
+  for (let i = 0; patron.alive && i < 100; i++) assert.ok(hit(patron).ok);
+  assert.equal(s.winner, 'carbon'); assert.equal(s.phase, 'finished');
+  assert.equal(hit(patron).reason, 'match inactive');
+  assert.equal(s.applyHeroEffect(intent(h, kit.abilities[2], 'buff', h)).reason, 'match inactive');
+  assert.equal(s.configureHeroKit(h.id, kit).ok, false);
+});
+
 // This fixture is scripted API combat, not native input/hardware acceptance.
 // No objective health assignments, vulnerability bypass, or winner assignment.
 function scriptedMatch() {
@@ -336,8 +498,10 @@ function diskGuard() {
   console.log(`disk available before write: ${available} bytes`);
   assert.ok(available >= 2178940928, 'disk guard: stop below 2,178,940,928 bytes');
 }
-diskGuard(); mkdirSync(dirname(evidence), { recursive: true });
-diskGuard(); writeFileSync(evidence, JSON.stringify(receipt, null, 2) + '\n');
+if (!process.argv.includes('--no-evidence')) {
+  diskGuard(); mkdirSync(dirname(evidence), { recursive: true });
+  diskGuard(); writeFileSync(evidence, JSON.stringify(receipt, null, 2) + '\n');
+}
 console.log(`scripted match: ${receipt.winner}; ${receipt.summary.waveCount} waves; ${receipt.summary.trooperCombatHits} trooper hits; ${receipt.summary.trooperObjectiveHits} objective hits (${receipt.summary.trooperObjectiveDamage} damage)`);
-console.log('timeline: docs/maintenance/audits/jankolock-3d-qa/systems-timeline.json');
+console.log(process.argv.includes('--no-evidence') ? 'timeline write skipped (--no-evidence)' : 'timeline: docs/maintenance/audits/jankolock-3d-qa/systems-timeline.json');
 console.log(`${groups} regression groups completed; scripted match completed`);

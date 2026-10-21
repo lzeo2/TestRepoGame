@@ -84,20 +84,40 @@ export function createSystems(world) {
   };
   const entity = id => sim.heroes.find(h => h.id === id) ?? sim.troopers.find(t => t.id === id) ?? structures.find(s => s.id === id);
   const heroById = id => sim.heroes.find(h => h.id === id);
+  const heroKits = new Map(), statuses = new Map();
+  function status(id) {
+    const result = { slow: 0, speed: 1, invulnerable: false, parry: false, headshot: 1 };
+    for (const effect of statuses.get(id)?.values() ?? []) {
+      if (effect.until <= sim.time) continue;
+      result.slow = Math.max(result.slow, effect.slow ?? 0);
+      result.speed = Math.max(result.speed, effect.speedMultiplier ?? 1);
+      result.headshot = Math.max(result.headshot, effect.headshotMultiplier ?? 1);
+      result.invulnerable ||= !!effect.invulnerable;
+      result.parry ||= !!effect.parry;
+    }
+    return result;
+  }
+  function putStatus(targetId, sourceId, ability, effect) {
+    if (!statuses.has(targetId)) statuses.set(targetId, new Map());
+    statuses.get(targetId).set(JSON.stringify([sourceId, ability]), effect);
+  }
+  const slowMultiplier = e => 1 - Math.max(e.slowUntil > sim.time ? 0.3 : 0, status(e.id).slow);
   const active = e => e?.alive && e.hp > 0;
   const hidden = e => e.kind === 'hero' && e.cloakUntil > sim.time;
 
   function stats(heroId) {
     const h = heroById(heroId);
     if (!h) return null;
-    const has = id => h.items.includes(id);
+    const has = id => h.items.includes(id), kit = heroKits.get(heroId), effects = status(heroId);
     const damageMultiplier = (1 + (h.level - 1) * 0.05) * (has('glass-cannon') ? 1.6 : 1);
     return {
-      maxHp: (500 + (h.level - 1) * 35 + (has('health') ? 200 : 0)) * (has('glass-cannon') ? 0.75 : 1),
-      damage: 24 * damageMultiplier, damageMultiplier,
-      moveSpeed: 8 * (has('sprint') ? 1.25 : 1) * (h.slowUntil > sim.time ? 0.7 : 1),
-      maxAmmo: 12 + (has('ammo') ? 12 : 0), fireInterval: h.burstUntil > sim.time ? 0.1 : 0.3,
-      range: 32, armor: 0.1, armorPierce: has('armor-pierce') ? 0.8 : 0,
+      maxHp: ((kit?.health ?? 500) + (h.level - 1) * 35 + (has('health') ? 200 : 0)) * (has('glass-cannon') ? 0.75 : 1),
+      damage: (kit?.weapon.baseDamage ?? 24) * damageMultiplier, damageMultiplier,
+      moveSpeed: 8 * (has('sprint') ? 1.25 : 1) * slowMultiplier(h) * effects.speed,
+      maxAmmo: (kit?.weapon.magazine ?? 12) + (has('ammo') ? 12 : 0),
+      fireInterval: (kit?.weapon.interval ?? 0.3) / (h.burstUntil > sim.time ? 3 : 1),
+      range: kit?.weapon.range ?? 32, armor: 0.1, armorPierce: has('armor-pierce') ? 0.8 : 0,
+      invulnerable: effects.invulnerable, parry: effects.parry, kitId: kit?.id ?? null,
       lifesteal: has('lifesteal') ? 0.2 : 0, projectileSlow: has('slow-rounds') ? 0.3 : 0,
       burstMultiplier: h.burstUntil > sim.time ? 3 : 1, maxDashCharges: has('dash-charge') ? 2 : 1,
       tier: ['clerk', 'associate', 'supervisor', 'director'][Math.min(3, Math.floor((h.level - 1) / 5))]
@@ -142,6 +162,94 @@ export function createSystems(world) {
       dashCharges: 1, dashRecharge: 0, cooldowns: {}, heavyCharge: null, retreatHeld: false, recall: null, targetId: null };
     sim.heroes.push(h); refresh(h); return h;
   }
+  // Register immutable baselines, not mutable runtime ammo/cooldown state.
+  function configureHeroKit(heroId, kit) {
+    const h = heroById(heroId);
+    if (!h || sim.phase === 'finished') return fail('hero or match unavailable');
+    if (heroKits.has(heroId)) return fail('kit already configured');
+    if (!kit || !validId(kit.id) || !finite(kit.health) || kit.health <= 0 || kit.health > 1e6 || !Array.isArray(kit.abilities) || kit.abilities.length !== 4) return fail('invalid kit');
+    const definitions = new Map(), slots = new Set();
+    const fields = { baseDamage: [0, 1e6], baseHeal: [0, 1e6], range: [0, 10000], radius: [0, 10000],
+      duration: [0, 3600], slow: [0, 1], spiritScale: [0, 100], headshotMultiplier: [1, 10], speedMultiplier: [1, 10] };
+    function definition(a, role) {
+      const key = a?.id ?? a?.name;
+      if (!a || !validId(key) || definitions.has(key) || !['weapon', 'melee', 'spirit', 'none'].includes(a.damageType)) return null;
+      const d = { key, role, damageType: a.damageType };
+      for (const [field, [min, max]] of Object.entries(fields)) {
+        const value = a[field] === undefined ? (['headshotMultiplier', 'speedMultiplier'].includes(field) ? 1 : 0) : a[field];
+        if (!finite(value) || value < min || value > max) return null;
+        d[field] = value;
+      }
+      if (a.invulnerable !== undefined && typeof a.invulnerable !== 'boolean') return null;
+      d.invulnerable = a.invulnerable ?? false;
+      if ((d.baseDamage || d.baseHeal) && !d.range && !d.radius) return null;
+      definitions.set(key, d); return d;
+    }
+    const weapon = definition(kit.weapon, 'weapon'), melee = definition(kit.melee, 'melee');
+    if (!weapon || !melee || weapon.damageType !== 'weapon' || melee.damageType !== 'melee' || !finite(kit.weapon.interval) || kit.weapon.interval <= 0 || kit.weapon.interval > 60 || !Number.isInteger(kit.weapon.magazine) || kit.weapon.magazine < 1 || kit.weapon.magazine > 100) return fail('invalid kit weapon/melee');
+    for (const a of kit.abilities) {
+      if (!Number.isInteger(a?.slot) || a.slot < 1 || a.slot > 4 || slots.has(a.slot) || !validId(a.id) || !definition(a, 'ability')) return fail('invalid kit ability');
+      slots.add(a.slot);
+    }
+    Object.assign(weapon, { interval: kit.weapon.interval, magazine: kit.weapon.magazine });
+    heroKits.set(heroId, { id: kit.id, health: kit.health, weapon, definitions });
+    refresh(h);
+    return { ok: true, kitId: kit.id };
+  }
+  function applyHeroEffect(event) {
+    if (!event || typeof event !== 'object' || !validId(event.source) || !validId(event.ability)) return fail('invalid hero effect');
+    const source = heroById(event.source), kit = heroKits.get(event.source);
+    if (sim.phase === 'pregame' || sim.phase === 'finished') return fail('match inactive');
+    if (!active(source) || !kit || !point(source.position)) return fail('source or kit inactive');
+    if (event.team !== undefined && event.team !== source.team) return fail('invalid source team');
+    const parry = event.kind === 'parry' && event.ability === 'parry';
+    if (event.kind === 'parry' && !parry) return fail('invalid parry');
+    const d = parry ? { key: 'parry', baseDamage: 0, baseHeal: 0, spiritScale: 0, slow: 0, duration: 0.65, damageType: 'none' } : kit.definitions.get(event.ability);
+    if (!d) return fail('unknown kit effect');
+    for (const field of ['baseDamage', 'baseHeal', 'spiritScale', 'slow', 'duration']) {
+      if (event[field] !== undefined && (!finite(event[field]) || event[field] !== d[field])) return fail(`invalid ${field}`);
+    }
+    if (event.damageType !== undefined && event.damageType !== d.damageType) return fail('invalid damage type');
+    if (event.invulnerable !== undefined && event.invulnerable !== d.invulnerable || event.speedMultiplier !== undefined && event.speedMultiplier !== d.speedMultiplier) return fail('invalid buff values');
+    if (event.headshot !== undefined && typeof event.headshot !== 'boolean' || event.headshotMultiplier !== undefined && (!finite(event.headshotMultiplier) || event.headshotMultiplier < 1)) return fail('invalid headshot');
+    const multiplier = event.headshotMultiplier ?? 1;
+    const headshotLimit = Math.max(kit.weapon.headshotMultiplier, status(source.id).headshot);
+    if (multiplier !== 1 && (!event.headshot || d.role !== 'weapon' && d.key !== 'longshot' || multiplier !== headshotLimit)) return fail('invalid headshot multiplier');
+    if (event.origin !== undefined && !point(event.origin)) return fail('invalid effect origin');
+    const key = JSON.stringify([source.id, d.key]);
+    if (['buff', 'buff-end', 'parry'].includes(event.kind)) {
+      if (event.target != null && event.target !== source.id) return fail('buff must target source');
+      if (!parry && (d.role !== 'ability' || !['overtime', 'headshot', 'xray', 'chaingun', 'aura'].includes(d.key))) return fail('not a kit buff');
+      if (event.kind === 'buff-end') statuses.get(source.id)?.delete(key);
+      else putStatus(source.id, source.id, d.key, { until: sim.time + d.duration, invulnerable: d.invulnerable,
+        speedMultiplier: d.speedMultiplier, headshotMultiplier: d.headshotMultiplier, parry });
+      return { ok: true };
+    }
+    if (!validId(event.target)) return fail('invalid target');
+    const target = entity(event.target);
+    if (event.kind === 'tether-end') {
+      if (d.key !== 'tether' || !target || target.team === source.team) return fail('invalid tether end');
+      statuses.get(target.id)?.delete(key); return { ok: true };
+    }
+    if (!['damage', 'heal'].includes(event.kind)) return fail('invalid hero effect kind');
+    if (!active(target) || !point(target.position)) return fail('target inactive');
+    const remote = ['turret', 'puddle', 'grenade', 'missionbomb'].includes(d.key);
+    if (remote && !point(event.origin)) return fail('effect origin required');
+    const origin = remote ? event.origin : source.position, range = remote ? d.radius || d.range : d.range || d.radius;
+    if (distance(origin, target.position) > range) return fail('out of range');
+    if (event.kind === 'heal') {
+      if (event.baseHeal !== d.baseHeal || d.baseHeal <= 0 || target.team !== source.team || target.kind === 'structure') return fail('invalid healing target or amount');
+      const amount = Math.min(target.maxHp - target.hp, d.baseHeal * stats(source.id).damageMultiplier);
+      target.hp += amount;
+      emit('heal', { sourceId: source.id, targetId: target.id, amount, ability: d.key });
+      return { ok: true, amount };
+    }
+    if (event.baseDamage !== d.baseDamage || d.baseDamage <= 0) return fail('invalid base damage');
+    const kind = d.damageType === 'weapon' ? 'projectile' : d.role === 'melee' ? 'melee' : 'ability';
+    const result = resolveDamage(target.id, d.baseDamage * multiplier, source.id, kind, range, origin, false);
+    if (result.ok && d.slow && active(target) && target.kind !== 'structure') putStatus(target.id, source.id, d.key, { until: sim.time + d.duration, slow: d.slow });
+    return result;
+  }
   function shopAvailable(heroId) {
     const h = heroById(heroId);
     return !!h && sim.phase !== 'finished' && (!h.alive || distance(h.position, bases[h.team]) <= 20);
@@ -182,6 +290,7 @@ export function createSystems(world) {
     if (target.kind === 'hero') {
       target.respawnRemaining = 5 + Math.floor(Math.max(0, sim.time - PREGAME) / 60) * 2;
       cancelRecall(target, 'death'); target.retreatHeld = false; target.cloakUntil = 0; target.heavyCharge = null;
+      statuses.delete(target.id);
       if (source.kind === 'hero') grant(source, 100, 'hero kill');
       emit('hero_death', { heroId: target.id, sourceId: source.id, respawnSeconds: target.respawnRemaining });
     }
@@ -204,16 +313,22 @@ export function createSystems(world) {
     if (!validId(targetId) || !validId(sourceId) || !finite(amount) || amount <= 0 || amount > 1e9 || !options || typeof options !== 'object') return fail('invalid damage arguments');
     const kind = options.kind ?? 'projectile';
     if (!['projectile', 'melee', 'ability'].includes(kind)) return fail('invalid damage kind');
+    const source = entity(sourceId), hs = source?.kind === 'hero' ? stats(sourceId) : null;
+    const range = kind === 'melee' ? 4 : hs?.range ?? (source?.kind === 'structure' ? 28 : 20);
+    return resolveDamage(targetId, amount, sourceId, kind, range, source?.position, true);
+  }
+  function resolveDamage(targetId, amount, sourceId, kind, range, origin, consumeAmmo) {
     const target = entity(targetId), source = entity(sourceId);
     if (sim.phase === 'pregame' || sim.phase === 'finished') return fail('match inactive');
     if (!active(target) || !active(source)) return fail('source or target inactive');
     if (source.team === target.team) return fail('friendly fire');
     if (target.kind === 'structure' && !target.vulnerable) return fail('objective locked');
-    const hs = source.kind === 'hero' ? stats(source.id) : null;
-    const range = kind === 'melee' ? 4 : hs?.range ?? (source.kind === 'structure' ? 28 : 20);
-    if (!point(source.position) || !point(target.position) || distance(source.position, target.position) > range) return fail('out of range');
+    const hs = source.kind === 'hero' ? stats(source.id) : null, protection = status(target.id);
+    if (!point(source.position) || !point(origin) || !point(target.position) || distance(origin, target.position) > range) return fail('out of range');
+    if (protection.invulnerable) return fail('invulnerable');
+    if (protection.parry && kind === 'melee') return fail('parried');
     if (source.kind === 'structure' && (source.type === 'shrine' || !source.alive)) return fail('source cannot attack');
-    if (hs && kind === 'projectile') {
+    if (hs && kind === 'projectile' && consumeAmmo) {
       if (source.reloadRemaining > 0 || source.ammo <= 0) return fail('reloading');
       if (source.nextAttack > sim.time + 1e-9) return fail('weapon cooldown');
       source.ammo--; source.nextAttack = sim.time + hs.fireInterval;
@@ -313,7 +428,7 @@ export function createSystems(world) {
     return nearest(source, sim.troopers, range) ?? nearest(source, sim.heroes, range) ?? nearest(source, structures.filter(s => s.vulnerable), range);
   }
   function walk(t) {
-    let remaining = 8 * H * (t.slowUntil > sim.time ? 0.7 : 1);
+    let remaining = 8 * H * slowMultiplier(t);
     if (t.waypoint >= t.path.length) {
       const patron = structures.find(s => s.type === 'patron' && s.team !== t.team && s.vulnerable);
       if (patron && distance(t.position, patron.position) > 20) t.path.push(copy(patron.position));
@@ -389,6 +504,10 @@ export function createSystems(world) {
       if (phase !== sim.phase) { sim.phase = phase; emit('phase', { phase }); updateVulnerability(); }
       if (sim.phase === 'pregame') continue;
       if (tick >= PREGAME * 20 && (tick - PREGAME * 20) % (WAVE * 20) === 0) spawnWave();
+      for (const [id, effects] of statuses) {
+        for (const [key, effect] of effects) if (effect.until <= sim.time) effects.delete(key);
+        if (!effects.size) statuses.delete(id);
+      }
       updateHeroes();
       if (sim.phase === 'finished') continue;
       for (const t of sim.troopers) {
@@ -411,7 +530,7 @@ export function createSystems(world) {
     }
     return { ok: true, steps, time: sim.time };
   }
-  Object.assign(sim, { addHero, step, damage, shootOrb, buyItem, activateItem, setRetreat, shopAvailable, stats, moveHero,
+  Object.assign(sim, { addHero, configureHeroKit, applyHeroEffect, step, damage, shootOrb, buyItem, activateItem, setRetreat, shopAvailable, stats, moveHero,
     drainEvents() { return sim.events.splice(0); } });
   return sim;
 }
