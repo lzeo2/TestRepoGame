@@ -1,0 +1,16 @@
+600s city: population=1655 budget=31164.70 initial=30540 income/s=3.68 upkeep/s=1.47 car-movement-observations=21092
+Power destroyed: unserved=53.24 population=1285 (was 1655)
+Water destroyed: unserved=43.53 population=997
+Overload: power supply=80 demand=138.71 served=79.71 shed=59.00
+t=240s night 1: 12 zombies spawn at map edges
+t=265.5s night repelled: score=1 kills=12
+t=505.5s night 2: 14 zombies spawn at map edges
+t=531s night repelled: score=2 kills=26
+t=531s towers removed for loss proof; defenses repaired in day
+t=771s night 3: 16 zombies spawn at map edges
+t=799.75s town hall first bite: 8 HP, wall bite ticks=85
+t=831s LOSS: score=2 kills=26 peakPop=0 damage=600
+Three-night totals: waves=12/14/16 shots=104 kills=26 wall-bite-ticks=176 road-motion-steps=745
+Citizen shot events=72; defense -> free clears waves and keeps simulation ticking
+Utility island limits, road cuts, pause/10x, protected hall, frozen loss, invalid input and mid-wave free-mode switch asserted.
+Headless assertions complete. Browser acceptance remains reviewer-owned.
