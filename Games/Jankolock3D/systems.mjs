@@ -69,8 +69,8 @@ export function createSystems(world) {
     const sign = team === 'carbon' ? -1 : 1;
     bases[team] = { x: patron.position.x, y: 0, z: patron.position.z + sign * 15 };
     for (const lane of lanes) {
-      const guardian = structures.find(s => s.team === team && s.lane === lane.id && s.type === 'guardian');
-      retreatRings.push({ team, lane: lane.id, radius: 6, position: { x: lane.x, y: 0, z: guardian.position.z + sign * 45 } });
+      const lanePatron = spawns.find(s => s.team === team && s.lane === lane.id && s.type === 'patron');
+      retreatRings.push({ team, lane: lane.id, radius: 6, position: { x: lane.x, y: 0, z: lanePatron.position.z + sign * 15 } });
     }
   }
   const sim = { time: 0, phase: 'pregame', winner: null, heroes: [], troopers: [], orbs: [], structures, events: [], lanes, bases, retreatRings };
@@ -169,13 +169,12 @@ export function createSystems(world) {
     return { ok: true };
   }
   function dropOrbs(t, source) {
-    const eligibleIds = sim.heroes.filter(h => h.team === source.team && active(h) && distance(h.position, t.position) <= 5).map(h => h.id);
     const bounty = sim.time - PREGAME >= 600 ? 120 : 80;
     for (const type of ['floating', 'ground']) {
       sim.orbs.push({ id: nextId('orb'), kind: 'orb', type, team: source.team, position: { ...t.position, y: t.position.y + (type === 'floating' ? 2 : 0) },
-        souls: bounty / 2, born: sim.time, expiresAt: sim.time + (type === 'floating' ? FLOAT_LIFE : GROUND_LIFE), eligibleIds: [...eligibleIds], claimed: false });
+        souls: bounty / 2, born: sim.time, expiresAt: sim.time + (type === 'floating' ? FLOAT_LIFE : GROUND_LIFE), claimed: false });
     }
-    emit('orb_drop', { trooperId: t.id, team: source.team, bounty, eligibleIds });
+    emit('orb_drop', { trooperId: t.id, team: source.team, bounty });
   }
   function die(target, source) {
     target.alive = false; target.hp = 0; target.deathTime = sim.time;
@@ -243,7 +242,9 @@ export function createSystems(world) {
     if (!orb || orb.type !== 'floating' || orb.claimed || sim.time >= orb.expiresAt) return fail('orb unavailable');
     if (!point(h.position) || distance(h.position, orb.position) > 60) return fail('out of range');
     if (h.ammo <= 0 || h.reloadRemaining > 0) return fail('reloading');
-    h.ammo--; if (!h.ammo) h.reloadRemaining = 1.5;
+    if (h.nextAttack > sim.time + 1e-9) return fail('weapon cooldown');
+    h.ammo--; h.nextAttack = sim.time + stats(h.id).fireInterval;
+    if (!h.ammo) h.reloadRemaining = 1.5;
     h.cloakUntil = 0; cancelRecall(h, 'attacked'); h.recallBlocked = h.retreatHeld; orb.claimed = true;
     grant(h, orb.souls, h.team === orb.team ? 'secure' : 'deny');
     emit('orb_shot', { heroId, orbId, outcome: h.team === orb.team ? 'secure' : 'deny' });
@@ -262,8 +263,8 @@ export function createSystems(world) {
       h.cooldowns[itemId] = sim.time + 12;
       h.cloakUntil = 0; cancelRecall(h, 'attacked'); h.recallBlocked = h.retreatHeld;
     } else if (itemId === 'dash-charge') {
-      const d = options.direction ?? { x: 0, z: h.team === 'carbon' ? 1 : -1 };
-      const n = finite(d.x) && finite(d.z) ? Math.hypot(d.x, d.z) : NaN;
+      const d = options.direction === undefined ? { x: 0, z: h.team === 'carbon' ? 1 : -1 } : options.direction;
+      const n = d && finite(d.x) && finite(d.z) ? Math.hypot(d.x, d.z) : NaN;
       if (!finite(n) || n < 1e-9) return fail('invalid dash direction');
       if (h.dashCharges <= 0) return fail('no dash charges');
       const destination = { ...h.position, x: h.position.x + d.x / n * 10, z: h.position.z + d.z / n * 10 };
@@ -364,7 +365,7 @@ export function createSystems(world) {
   function updateOrbs() {
     for (const orb of sim.orbs) {
       if (orb.claimed || sim.time >= orb.expiresAt || orb.type !== 'ground') continue;
-      const eligible = orb.eligibleIds.map(heroById).filter(h => active(h) && h.team === orb.team && distance(h.position, orb.position) <= 5);
+      const eligible = sim.heroes.filter(h => active(h) && h.team === orb.team && distance(h.position, orb.position) <= 5);
       eligible.sort((a, b) => distance(a.position, orb.position) - distance(b.position, orb.position));
       const h = eligible[0];
       if (!h) continue;

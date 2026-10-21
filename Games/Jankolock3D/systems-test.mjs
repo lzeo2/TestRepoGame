@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { mkdirSync, writeFileSync, statfsSync } from 'node:fs';
+import { mkdirSync, writeFileSync, readFileSync, statfsSync } from 'node:fs';
 import { dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createSystems, ITEMS } from './systems.mjs';
@@ -77,7 +77,7 @@ test('nearest targeting respects troopers > heroes > unlocked structures; candle
   s.step(0.05); assert.equal(t.targetId, guardian.id);
 });
 
-test('split orbs, secure/deny once, magnet radius, original eligibility, 6s/18s expiry', () => {
+test('split orbs, secure/deny once, magnet radius, late arrival, 6s/18s expiry', () => {
   let { s, h, floating, ground } = orbFixture();
   assert.equal(floating.souls, 40); assert.equal(ground.souls, 40);
   near(floating.expiresAt - floating.born, 6); near(ground.expiresAt - ground.born, 18);
@@ -90,10 +90,19 @@ test('split orbs, secure/deny once, magnet radius, original eligibility, 6s/18s 
   near(s.heroes.find(h => h.id === 'denier').souls, 40);
   near(h.souls, 50.4); // trailing team's ground half earns the capped comeback bonus.
   ({ s, h, floating, ground } = orbFixture(0, 0, 5.01));
-  s.moveHero(h.id, pos()); s.step(6);
+  s.step(6);
   assert.ok(!s.orbs.some(o => o.id === floating.id)); assert.equal(s.shootOrb(h.id, floating.id).ok, false);
-  assert.deepEqual(ground.eligibleIds, []); s.step(11.95); assert.ok(s.orbs.includes(ground));
+  s.step(11.95); assert.ok(s.orbs.includes(ground));
   s.step(0.05); assert.ok(!s.orbs.includes(ground)); near(h.souls, 0);
+  ({ s, h, ground } = orbFixture(0, 0, 6));
+  s.step(1); near(h.souls, 0);
+  s.moveHero(h.id, pos(4)); s.step(0.5); near(h.souls, 40); // arriving after the kill is valid.
+  ({ s, h, floating, ground } = orbFixture());
+  const target = s.troopers.find(t => t.alive && t.team === 'ivory'); target.position = pos(10);
+  assert.ok(s.damage(target.id, 1, h.id).ok);
+  assert.equal(s.shootOrb(h.id, floating.id).reason, 'weapon cooldown');
+  s.step(0.3); assert.ok(s.shootOrb(h.id, floating.id).ok);
+  assert.equal(s.damage(target.id, 1, h.id).reason, 'weapon cooldown');
   ({ s, h, ground } = orbFixture(0, 0, 4.9));
   s.moveHero(h.id, pos(6)); s.step(1); near(ground.position.x, 0);
   s.moveHero(h.id, pos(4)); s.step(0.5); assert.ok(h.souls > 0);
@@ -169,6 +178,7 @@ test('active burst, heavy melee, cloak targeting/break, dash distance/recharge a
   s.step(0.05); assert.notEqual(t.targetId, h.id);
   s.damage(e.id, 1, h.id, { kind: 'ability' }); assert.equal(h.cloakUntil, 0);
   s.step(0.05); assert.equal(t.targetId, h.id);
+  assert.equal(s.activateItem(h.id, 'dash-charge', { direction: null }).ok, false);
   assert.equal(s.activateItem(h.id, 'dash-charge', { direction: { x: 0, z: 0 } }).ok, false);
   const start = { ...h.position };
   assert.ok(s.activateItem(h.id, 'dash-charge').ok);
@@ -181,13 +191,14 @@ test('active burst, heavy melee, cloak targeting/break, dash distance/recharge a
 
 test('minute-scaled respawn, own-base healing, held recall damage/move/release cancellation', () => {
   const s = createSystems(); s.step(150); quiet(s);
-  const h = hero(s), e = hero(s, 'enemy', 'ivory'); s.moveHero(h.id, pos()); s.moveHero(e.id, pos(1));
+  const h = s.addHero({ id: 'hero', team: 'carbon', lane: 'graft' }), e = hero(s, 'enemy', 'ivory'); s.moveHero(h.id, pos()); s.moveHero(e.id, pos(1));
   s.damage(h.id, 1e6, e.id, { kind: 'ability' }); near(h.respawnRemaining, 9);
   s.step(8.95); assert.equal(h.alive, false); s.step(0.05); assert.equal(h.alive, true);
   assert.deepEqual(h.position, s.bases.carbon); near(h.hp, h.maxHp);
   s.moveHero(e.id, h.position); s.damage(h.id, 100, e.id, { kind: 'ability' }); const hurt = h.hp;
   s.moveHero(e.id, pos(8000)); s.step(1); assert.ok(h.hp > hurt);
   const ring = s.retreatRings.find(r => r.team === 'carbon' && r.lane === h.lane);
+  assert.ok(Math.hypot(ring.position.x - s.bases.carbon.x, ring.position.z - s.bases.carbon.z) > 200);
   s.moveHero(h.id, ring.position); s.setRetreat(h.id, true); s.step(1); assert.ok(h.recall);
   s.moveHero(h.id, { ...h.position, x: h.position.x + 0.2 }); s.step(4); assert.equal(h.recall, null);
   assert.ok(Math.abs(h.position.z - ring.position.z) < 1);
@@ -196,6 +207,10 @@ test('minute-scaled respawn, own-base healing, held recall damage/move/release c
   assert.equal(h.recall, null); s.moveHero(e.id, pos(8000)); s.step(4); assert.equal(h.recall, null);
   s.setRetreat(h.id, false); s.setRetreat(h.id, true); s.step(3.05);
   assert.deepEqual(h.position, s.bases.carbon);
+  s.setRetreat(h.id, false);
+  const enemyRing = s.retreatRings.find(r => r.team === 'ivory' && r.lane === h.lane);
+  s.moveHero(h.id, enemyRing.position); s.setRetreat(h.id, true); s.step(3.05);
+  assert.equal(h.recall, null); assert.deepEqual(h.position, enemyRing.position);
   assert.equal(s.setRetreat(h.id, 1).ok, false);
 });
 
@@ -241,7 +256,10 @@ test('objective boundary, lane independence, both base guards, all shrines, two 
 // This fixture is scripted API combat, not native input/hardware acceptance.
 // No objective health assignments, vulnerability bypass, or winner assignment.
 function scriptedMatch() {
-  const s = createSystems();
+  let world;
+  try { world = JSON.parse(readFileSync(new URL('../../docs/jank3d-spawns.json', import.meta.url), 'utf8')); }
+  catch (error) { if (error.code !== 'ENOENT') throw error; }
+  const s = createSystems(world);
   const attackers = s.lanes.map(l => s.addHero({ id: `script-${l.id}`, team: 'carbon', lane: l.id }));
   const timeline = [], summary = { waveCount: 0, trooperCombatHits: 0, trooperObjectiveHits: 0, trooperObjectiveDamage: 0, maxDistanceMarched: 0 };
   const collect = () => {
@@ -292,7 +310,20 @@ function scriptedMatch() {
   assert.ok(summary.trooperCombatHits > 0 && summary.trooperObjectiveHits > 0 && summary.maxDistanceMarched > 100);
   assert.equal(timeline.filter(e => e.type === 'objective_fall' && e.team === 'ivory').length, 19);
   assert.equal(timeline.filter(e => e.type === 'patron_phase').length, 1);
-  return { fixture: 'scripted 600-second API match, not native acceptance', durationSeconds: 600, world: 'procedural three-lane fallback, metres', buffs: [],
+  const falls = timeline.filter(e => e.type === 'objective_fall' && e.team === 'ivory');
+  for (const lane of s.lanes) {
+    const laneFalls = falls.filter(e => e.lane === lane.id);
+    const guardian = laneFalls.find(e => e.objective === 'guardian'), walker = laneFalls.find(e => e.objective === 'walker');
+    assert.ok(guardian.time < walker.time);
+    const bases = laneFalls.filter(e => e.objective === 'base-guardian'), shrines = laneFalls.filter(e => e.objective === 'shrine');
+    assert.equal(bases.length, 2); assert.equal(shrines.length, 2);
+    assert.ok(bases.every(e => e.time > walker.time));
+    assert.ok(shrines.every(e => e.time > Math.max(...bases.map(b => b.time))));
+  }
+  const phase2 = timeline.find(e => e.type === 'patron_phase'), win = timeline.find(e => e.type === 'victory');
+  assert.ok(phase2.time > Math.max(...falls.filter(e => e.objective === 'shrine').map(e => e.time)));
+  assert.ok(win.time > phase2.time);
+  return { fixture: 'scripted 600-second API match, not native acceptance', durationSeconds: 600, world: world ? 'local docs/jank3d-spawns.json, metres' : 'procedural three-lane fallback, metres', buffs: [],
     interventions: 'Heroes reposition through moveHero, clear midfield enemy troopers with 180 raw ability damage, assist lane objectives with 250 raw damage every 5s from t180, shoot shared Patron for 200 raw damage per second from t570. No objective HP/winner/lock edits.',
     winner: s.winner, summary, timeline, scriptedActions: scripts };
 }

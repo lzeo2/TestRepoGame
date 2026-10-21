@@ -1,13 +1,13 @@
 {
   "fixture": "scripted 600-second API match, not native acceptance",
   "durationSeconds": 600,
-  "world": "procedural three-lane fallback, metres",
+  "world": "local docs/jank3d-spawns.json, metres",
   "buffs": [],
   "interventions": "Heroes reposition through moveHero, clear midfield enemy troopers with 180 raw ability damage, assist lane objectives with 250 raw damage every 5s from t180, shoot shared Patron for 200 raw damage per second from t570. No objective HP/winner/lock edits.",
   "winner": "carbon",
   "summary": {
     "waveCount": 23,
-    "trooperCombatHits": 6297,
+    "trooperCombatHits": 6267,
     "trooperObjectiveHits": 240,
     "trooperObjectiveDamage": 2160,
     "maxDistanceMarched": 480.3999999999898
@@ -469,7 +469,7 @@
       "heroId": "script-graft",
       "targetId": "trooper-37",
       "rawDamage": 180,
-      "damage": 120
+      "damage": 108
     },
     {
       "time": 101,
@@ -477,7 +477,7 @@
       "heroId": "script-graft",
       "targetId": "trooper-38",
       "rawDamage": 180,
-      "damage": 168
+      "damage": 144
     },
     {
       "time": 101,
@@ -485,7 +485,7 @@
       "heroId": "script-graft",
       "targetId": "trooper-39",
       "rawDamage": 180,
-      "damage": 156
+      "damage": 168
     },
     {
       "time": 101,
@@ -493,7 +493,7 @@
       "heroId": "script-graft",
       "targetId": "trooper-40",
       "rawDamage": 180,
-      "damage": 108
+      "damage": 156
     },
     {
       "time": 101,
@@ -501,7 +501,7 @@
       "heroId": "script-midway",
       "targetId": "trooper-41",
       "rawDamage": 180,
-      "damage": 120
+      "damage": 108
     },
     {
       "time": 101,
@@ -509,7 +509,7 @@
       "heroId": "script-midway",
       "targetId": "trooper-42",
       "rawDamage": 180,
-      "damage": 168
+      "damage": 144
     },
     {
       "time": 101,
@@ -517,7 +517,7 @@
       "heroId": "script-midway",
       "targetId": "trooper-43",
       "rawDamage": 180,
-      "damage": 156
+      "damage": 168
     },
     {
       "time": 101,
@@ -525,7 +525,7 @@
       "heroId": "script-midway",
       "targetId": "trooper-44",
       "rawDamage": 180,
-      "damage": 108
+      "damage": 156
     },
     {
       "time": 101,
@@ -533,7 +533,7 @@
       "heroId": "script-greenhedge",
       "targetId": "trooper-45",
       "rawDamage": 180,
-      "damage": 120
+      "damage": 108
     },
     {
       "time": 101,
@@ -541,7 +541,7 @@
       "heroId": "script-greenhedge",
       "targetId": "trooper-46",
       "rawDamage": 180,
-      "damage": 168
+      "damage": 144
     },
     {
       "time": 101,
@@ -549,7 +549,7 @@
       "heroId": "script-greenhedge",
       "targetId": "trooper-47",
       "rawDamage": 180,
-      "damage": 156
+      "damage": 168
     },
     {
       "time": 101,
@@ -557,7 +557,7 @@
       "heroId": "script-greenhedge",
       "targetId": "trooper-48",
       "rawDamage": 180,
-      "damage": 108
+      "damage": 156
     },
     {
       "time": 126,
@@ -565,7 +565,7 @@
       "heroId": "script-graft",
       "targetId": "trooper-85",
       "rawDamage": 180,
-      "damage": 120
+      "damage": 108
     },
     {
       "time": 126,
@@ -573,7 +573,7 @@
       "heroId": "script-graft",
       "targetId": "trooper-86",
       "rawDamage": 180,
-      "damage": 168
+      "damage": 144
     },
     {
       "time": 126,
@@ -581,7 +581,7 @@
       "heroId": "script-graft",
       "targetId": "trooper-87",
       "rawDamage": 180,
-      "damage": 156
+      "damage": 168
     },
     {
       "time": 126,
@@ -589,7 +589,7 @@
       "heroId": "script-graft",
       "targetId": "trooper-88",
       "rawDamage": 180,
-      "damage": 108
+      "damage": 156
     },
     {
       "time": 126,
@@ -597,7 +597,7 @@
       "heroId": "script-midway",
       "targetId": "trooper-89",
       "rawDamage": 180,
-      "damage": 120
+      "damage": 108
     },
     {
       "time": 126,
@@ -605,7 +605,7 @@
       "heroId": "script-midway",
       "targetId": "trooper-90",
       "rawDamage": 180,
-      "damage": 168
+      "damage": 144
     },
     {
       "time": 126,
@@ -613,7 +613,7 @@
       "heroId": "script-midway",
       "targetId": "trooper-91",
       "rawDamage": 180,
-      "damage": 156
+      "damage": 168
     },
     {
       "time": 126,
@@ -621,7 +621,7 @@
       "heroId": "script-midway",
       "targetId": "trooper-92",
       "rawDamage": 180,
-      "damage": 108
+      "damage": 156
     },
     {
       "time": 126,
@@ -629,7 +629,7 @@
       "heroId": "script-greenhedge",
       "targetId": "trooper-93",
       "rawDamage": 180,
-      "damage": 120
+      "damage": 108
     },
     {
       "time": 126,
@@ -637,7 +637,7 @@
       "heroId": "script-greenhedge",
       "targetId": "trooper-94",
       "rawDamage": 180,
-      "damage": 168
+      "damage": 144
     },
     {
       "time": 126,
@@ -645,7 +645,7 @@
       "heroId": "script-greenhedge",
       "targetId": "trooper-95",
       "rawDamage": 180,
-      "damage": 156
+      "damage": 168
     },
     {
       "time": 126,
@@ -653,7 +653,7 @@
       "heroId": "script-greenhedge",
       "targetId": "trooper-96",
       "rawDamage": 180,
-      "damage": 108
+      "damage": 156
     },
     {
       "time": 151,
@@ -661,7 +661,7 @@
       "heroId": "script-graft",
       "targetId": "trooper-157",
       "rawDamage": 180,
-      "damage": 120
+      "damage": 108
     },
     {
       "time": 151,
@@ -669,7 +669,7 @@
       "heroId": "script-graft",
       "targetId": "trooper-158",
       "rawDamage": 180,
-      "damage": 168
+      "damage": 144
     },
     {
       "time": 151,
@@ -677,7 +677,7 @@
       "heroId": "script-graft",
       "targetId": "trooper-159",
       "rawDamage": 180,
-      "damage": 156
+      "damage": 168
     },
     {
       "time": 151,
@@ -685,7 +685,7 @@
       "heroId": "script-graft",
       "targetId": "trooper-160",
       "rawDamage": 180,
-      "damage": 108
+      "damage": 156
     },
     {
       "time": 151,
@@ -693,7 +693,7 @@
       "heroId": "script-midway",
       "targetId": "trooper-161",
       "rawDamage": 180,
-      "damage": 120
+      "damage": 108
     },
     {
       "time": 151,
@@ -701,7 +701,7 @@
       "heroId": "script-midway",
       "targetId": "trooper-162",
       "rawDamage": 180,
-      "damage": 168
+      "damage": 144
     },
     {
       "time": 151,
@@ -709,7 +709,7 @@
       "heroId": "script-midway",
       "targetId": "trooper-163",
       "rawDamage": 180,
-      "damage": 156
+      "damage": 168
     },
     {
       "time": 151,
@@ -717,7 +717,7 @@
       "heroId": "script-midway",
       "targetId": "trooper-164",
       "rawDamage": 180,
-      "damage": 108
+      "damage": 156
     },
     {
       "time": 151,
@@ -725,7 +725,7 @@
       "heroId": "script-greenhedge",
       "targetId": "trooper-165",
       "rawDamage": 180,
-      "damage": 120
+      "damage": 108
     },
     {
       "time": 151,
@@ -733,7 +733,7 @@
       "heroId": "script-greenhedge",
       "targetId": "trooper-166",
       "rawDamage": 180,
-      "damage": 168
+      "damage": 144
     },
     {
       "time": 151,
@@ -741,7 +741,7 @@
       "heroId": "script-greenhedge",
       "targetId": "trooper-167",
       "rawDamage": 180,
-      "damage": 156
+      "damage": 168
     },
     {
       "time": 151,
@@ -749,7 +749,7 @@
       "heroId": "script-greenhedge",
       "targetId": "trooper-168",
       "rawDamage": 180,
-      "damage": 108
+      "damage": 156
     },
     {
       "time": 176,
@@ -757,7 +757,7 @@
       "heroId": "script-graft",
       "targetId": "trooper-229",
       "rawDamage": 180,
-      "damage": 120
+      "damage": 108
     },
     {
       "time": 176,
@@ -765,7 +765,7 @@
       "heroId": "script-graft",
       "targetId": "trooper-230",
       "rawDamage": 180,
-      "damage": 168
+      "damage": 144
     },
     {
       "time": 176,
@@ -773,7 +773,7 @@
       "heroId": "script-graft",
       "targetId": "trooper-231",
       "rawDamage": 180,
-      "damage": 156
+      "damage": 168
     },
     {
       "time": 176,
@@ -781,7 +781,7 @@
       "heroId": "script-graft",
       "targetId": "trooper-232",
       "rawDamage": 180,
-      "damage": 108
+      "damage": 156
     },
     {
       "time": 176,
@@ -789,7 +789,7 @@
       "heroId": "script-midway",
       "targetId": "trooper-233",
       "rawDamage": 180,
-      "damage": 120
+      "damage": 108
     },
     {
       "time": 176,
@@ -797,7 +797,7 @@
       "heroId": "script-midway",
       "targetId": "trooper-234",
       "rawDamage": 180,
-      "damage": 168
+      "damage": 144
     },
     {
       "time": 176,
@@ -805,7 +805,7 @@
       "heroId": "script-midway",
       "targetId": "trooper-235",
       "rawDamage": 180,
-      "damage": 156
+      "damage": 168
     },
     {
       "time": 176,
@@ -813,7 +813,7 @@
       "heroId": "script-midway",
       "targetId": "trooper-236",
       "rawDamage": 180,
-      "damage": 108
+      "damage": 156
     },
     {
       "time": 176,
@@ -821,7 +821,7 @@
       "heroId": "script-greenhedge",
       "targetId": "trooper-237",
       "rawDamage": 180,
-      "damage": 120
+      "damage": 108
     },
     {
       "time": 176,
@@ -829,7 +829,7 @@
       "heroId": "script-greenhedge",
       "targetId": "trooper-238",
       "rawDamage": 180,
-      "damage": 168
+      "damage": 144
     },
     {
       "time": 176,
@@ -837,7 +837,7 @@
       "heroId": "script-greenhedge",
       "targetId": "trooper-239",
       "rawDamage": 180,
-      "damage": 156
+      "damage": 168
     },
     {
       "time": 176,
@@ -845,7 +845,7 @@
       "heroId": "script-greenhedge",
       "targetId": "trooper-240",
       "rawDamage": 180,
-      "damage": 108
+      "damage": 156
     },
     {
       "time": 180,
@@ -973,7 +973,7 @@
       "heroId": "script-graft",
       "targetId": "trooper-301",
       "rawDamage": 180,
-      "damage": 120
+      "damage": 108
     },
     {
       "time": 201,
@@ -981,7 +981,7 @@
       "heroId": "script-graft",
       "targetId": "trooper-302",
       "rawDamage": 180,
-      "damage": 168
+      "damage": 144
     },
     {
       "time": 201,
@@ -989,7 +989,7 @@
       "heroId": "script-graft",
       "targetId": "trooper-303",
       "rawDamage": 180,
-      "damage": 156
+      "damage": 168
     },
     {
       "time": 201,
@@ -997,7 +997,7 @@
       "heroId": "script-graft",
       "targetId": "trooper-304",
       "rawDamage": 180,
-      "damage": 108
+      "damage": 156
     },
     {
       "time": 201,
@@ -1005,7 +1005,7 @@
       "heroId": "script-midway",
       "targetId": "trooper-305",
       "rawDamage": 180,
-      "damage": 120
+      "damage": 108
     },
     {
       "time": 201,
@@ -1013,7 +1013,7 @@
       "heroId": "script-midway",
       "targetId": "trooper-306",
       "rawDamage": 180,
-      "damage": 168
+      "damage": 144
     },
     {
       "time": 201,
@@ -1021,7 +1021,7 @@
       "heroId": "script-midway",
       "targetId": "trooper-307",
       "rawDamage": 180,
-      "damage": 156
+      "damage": 168
     },
     {
       "time": 201,
@@ -1029,7 +1029,7 @@
       "heroId": "script-midway",
       "targetId": "trooper-308",
       "rawDamage": 180,
-      "damage": 108
+      "damage": 156
     },
     {
       "time": 201,
@@ -1037,7 +1037,7 @@
       "heroId": "script-greenhedge",
       "targetId": "trooper-309",
       "rawDamage": 180,
-      "damage": 120
+      "damage": 108
     },
     {
       "time": 201,
@@ -1045,7 +1045,7 @@
       "heroId": "script-greenhedge",
       "targetId": "trooper-310",
       "rawDamage": 180,
-      "damage": 168
+      "damage": 144
     },
     {
       "time": 201,
@@ -1053,7 +1053,7 @@
       "heroId": "script-greenhedge",
       "targetId": "trooper-311",
       "rawDamage": 180,
-      "damage": 156
+      "damage": 168
     },
     {
       "time": 201,
@@ -1061,7 +1061,7 @@
       "heroId": "script-greenhedge",
       "targetId": "trooper-312",
       "rawDamage": 180,
-      "damage": 108
+      "damage": 156
     },
     {
       "time": 205,

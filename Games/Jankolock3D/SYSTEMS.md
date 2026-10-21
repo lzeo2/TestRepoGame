@@ -3,9 +3,10 @@
 ## Identity and status
 
 Original, renderer-independent gameplay simulation. `systems.mjs` imports nothing,
-including the rejected 2D engine. No DOM, renderer, geometry, networking, storage,
-randomness or third-party runtime dependencies. This is a bounded systems module,
-not a complete game or native-input acceptance report. No catalog changes.
+including the rejected 2D engine. The core has no DOM, renderer, geometry, networking, storage, randomness or
+third-party runtime dependencies. `systems.html` is an isolated actor/shop
+fixture, not a complete game or integrated native-input acceptance report.
+No catalog changes.
 
 ## Implementation map
 
@@ -56,8 +57,8 @@ objectives: 18 lane objectives plus one shared Patron per team.
   caller, except this module's heavy item. Never pass `stats().damage` as raw
   damage, which would apply its multiplier twice. A basic shot uses raw 24.
 - `shootOrb(heroId,orbId)`: structured result. Live hero, floating live orb,
-  active match, within 60m, consumes one round; reload applies. Orb shots do not
-  share the weapon's projectile fire-interval timer. Either team can shoot once.
+  active match, within 60m, consumes one round; reload and the shared weapon
+  fire-interval timer apply. Either team can shoot once.
 - `buyItem(heroId,itemId)`: `{ok,reason?}`; validates ownership, slots, shop and
   funds before changing state. Duplicate items cannot stack. Dead purchases
   change max HP but keep HP=0 until respawn.
@@ -85,7 +86,7 @@ level, items (IDs), flexSlots, alive, respawnRemaining, ammo, status deadlines,
 cooldowns and recall. Troopers expose targetId, waypoint, distanceMarched,
 candleScale and emissiveScale; the latter two scale with HP, floored at 0.15.
 Structures expose type/lane/vulnerable/patronPhase. Orbs expose type, souls,
-team (killer team), eligibleIds, born, expiresAt and claimed.
+team (killer team), born, expiresAt and claimed.
 
 Read arrays afresh after stepping: dead troopers and claimed/expired orbs are
 pruned. Returned entities are live integration state, not a server/anti-cheat
@@ -105,11 +106,11 @@ vulnerability, items, earned totals, phase or winner to implement gameplay.
   excluded from automatic targeting, not invulnerable to explicit damage.
 - Trooper deaths drop 80 total base souls, or 120 after **600 active seconds**
   (t=630). Half floats for 6s: shooter receives it, secure or deny. Half is a
-  ground orb lasting 18s. Snapshot living killer-team heroes within **5m at
-  death** as original ground eligibility. Nearest eligible living hero still
-  within 5m attracts it at 10m/s; contact within 0.4m plus this tick's travel
-  claims the whole half. Not shared among heroes; no late arrivals, enemy
-  pickup or automatic floating timeout reward. Expired orbs pay nothing.
+  ground orb lasting 18s. Any living killer-team hero currently within **5m**
+  can attract it at 10m/s, including heroes arriving after the kill. Contact
+  within 0.4m plus this tick's travel claims the whole half. Nearest hero wins;
+  it is not shared. No enemy ground pickup or automatic floating timeout reward.
+  Expired orbs pay nothing.
 - For each reward, compute team earned totals including dead heroes. If behind,
   multiplier is `1 + min(.26, .26*(enemyEarned-ownEarned)/max(1,enemyEarned))`.
   Never boost the leading/tied team. Spending cannot affect this comparison.
@@ -132,7 +133,7 @@ vulnerability, items, earned totals, phase or winner to implement gameplay.
 - Death: `5 + 2*floor(activeSeconds/60)` seconds. Respawn at own central base,
   full HP/ammo. Within20m of base, heal10% max HP per second while alive.
 - UI owns B/shop display. Hold X by calling setRetreat(true). At own lane ring
-  (guardian z plus45m toward own base, radius6) a safe3s stationary channel
+  (lane Patron spawn z plus15m toward own base, radius6) a safe3s stationary channel
   teleports to own base. Movement >0.1m, attack, damage, release or death cancels.
   Movement/damage/attack block automatic restart while held: release then press
   again to rearm. No channel from enemy rings or arbitrary lane positions.
@@ -158,10 +159,12 @@ increase. Victory overrides all director phases. Important events are `wave`,
 
 ## State and persistence
 
-All state is memory-only. Create a new simulation to reset. No saves, remote
-loads, background timers or asynchronous work. Step only from the integrator's
-single game loop; drain events for presentation rather than retaining them.
-Linear target scans fit this bounded three-lane mode, not a large crowd engine.
+All core state is memory-only. Create a new simulation to reset. No saves,
+remote loads, background timers or asynchronous work in the core. Step only
+from the integrator's single game loop; drain events for presentation rather
+than retaining them. Linear target scans fit this bounded three-lane mode,
+not a large crowd engine. The preview fetches only the same-origin world JSON;
+404 or unavailable local fetch uses fallback lanes, malformed exports fail visibly.
 
 ## Dependencies and provenance
 
@@ -180,27 +183,118 @@ python3 -B scripts/check_maintenance_docs.py
 ```
 
 Regression covers clocks/chunks, waypoint copying, priorities, candle state,
-orbs/expiry/eligibility, XP/comeback, shop/stat/active effects, respawn/recall,
+orbs/expiry/late-arrival radius, shared shot cooldown, XP/comeback,
+shop/stat/active effects, respawn/recall,
 t=630 transition, locked chains and both victory directions. It also runs a
 600-wall-second match, with actual marching/fighting waves and normal damage API.
+It reads `docs/jank3d-spawns.json` when exported, falling back only when absent.
 The fixture explicitly logs every scripted hero shot, reposition policy and
 absence of buffs. No objective HP assignment, forced win or lock bypass.
-The timeline records 19 objective falls, Patron P2 transition at570 and victory
-at590; clock continues to600. Troopers contribute240 objective hits/2160 damage.
+It asserts each lane's fall order, both bases before shrines, all shrines before
+Patron P2 and P2 before victory. The timeline records 19 objective falls, Patron
+P2 transition at570 and victory at590; clock continues to600. Troopers contribute
+240 objective hits/2160 damage.
 This proves the scripted systems path, **not native input or hardware acceptance**.
 
 Every run overwrites only the relative evidence location
 `docs/maintenance/audits/jankolock-3d-qa/systems-timeline.json`, resolved from the
 module rather than current working directory. Disk space is checked before
-mkdir/write, stopping below2,178,940,928 available bytes. No screenshots are
-created because this task owns no renderer/UI. The maintenance checker was run:
+mkdir/write, stopping below2,178,940,928 available bytes. The maintenance checker was run:
 `AssertionError: Inventory stale: inspect changes, then run --refresh.` The
 orchestrator must reconcile the global maintenance inventory/manual after
 concurrent 3D commits; those paths are outside this worker's four-file authorization.
 
 ## Safe iteration and future outlook
 
-Keep economy/locks centralized here. Regression must remain runnable with no
-world module present. Geometry, collision, kit cooldowns, rendering, visual
-review, full-fleet browser smoke, registration, publication and native hardware
-verification remain integrator/reviewer gates. No push is authorized here.
+Keep economy/locks centralized here. Regression remains runnable with no world
+module present. Geometry, collision, kit cooldowns, shared-scene integration,
+subjective visual review, full-fleet browser smoke, registration, publication
+and native hardware verification remain integrator/reviewer gates. No push is
+authorized here.
+
+## UI and actor-layer handoff
+
+- `systems-ui.mjs`: `mountSystemsUI(root,sim,heroId)` returns `update()`,
+  `message(text)`, `open()`, `close()` and idempotent `dispose()`. Root must be
+  dedicated to this component. It presents souls/level/health/wave counters,
+  tier radio filters, purchases, slots and clickable active items. Shop opens
+  upon entering base or dying, closes when unavailable; B toggles and Escape
+  closes with focus restoration. X down/up/blur drives the core retreat input.
+  Call `update` from the host loop; route events through `message`. Keep this
+  component's counters or the integration HUD, not duplicate HUDs. Fixed shop
+  IDs/radio names assume one component per page. It imports no hero kit.
+- `systems.css`: local Atkinson/Bungee, flat solids, 4px corners, black/white
+  action buttons, one blue accent, native radio controls, visible focus and
+  44px buttons. Dark palette follows browser preference; mobile shop stacks
+  in page flow and scrolls. No gradients, shadows, halo or neon.
+- `systems-view.mjs`: `createSystemsLayer(threeScene)` returns `sync(sim)`,
+  `shoot(sim,heroId,threeRaycaster)`, read-only `projections(camera)` and
+  idempotent `dispose()`. Shared-scene, depth-correct trooper/orb actors only;
+  no map, hero model, renderer, camera or RAF is created. Candle height and
+  restrained surface emission decrease with HP, without bloom/halo. Orbs use
+  a solid blue fill and white silhouette. The integrator owns map/structure
+  rendering, third-person camera, hero animation, collision and HUD composition.
+- `systems-demo.mjs` and `systems.html`: standalone, explicitly labeled fixture
+  with one renderer/RAF, pause, WASD/touch movement and click raycasts. Local
+  world JSON is consumed directly. Starts t30 with 4,800 seeded souls (L13),
+  not earned rewards. The wave fixture moves the player through the public
+  adapter; orb/deny fixtures step to t75 and perform a logged-policy normal
+  damage call. The respawn fixture kills through normal enemy damage. None is
+  claimed as native traversal or balanced play. No fixture alters objective
+  HP, locks or winner. Camera follows the unrendered hero; no new map geometry.
+  `window.jank3dSystemsSnapshot()` exposes copies, never hidden state grants.
+- Core dash is a position request with no collision. The host must resolve it
+  against the world capsule before displaying/moving the real hero. The
+  isolated actor fixture deliberately has no map collision. The current world
+  viewer does not expose its THREE.Scene; the world/integration owner must add
+  a shared-scene hook before mounting this layer, not stack a second renderer.
+  The full director needs the integration team's five hero bots; none are
+  fabricated here.
+
+## Mockup lineage and browser evidence
+
+Before UI source was written, codex-imagen produced
+`docs/jank3d-design/ui-mockup-systems-shop.png` and
+`docs/jank3d-design/ui-mockup-systems-flat.png`. Both originals are preserved.
+The second AI layout was resized to1280x720 and quantized without dithering to
+exactly eight colors, saved as `ui-mockup-systems-normalized.png` **before**
+implementation. Palette: #eee9d8, #f7f3e8, #000000, #242820, #827762, #365a74,
+#8b8c8e, #ffffff. This removes unwanted generated shading without pretending
+that the AI's lettering is a font asset. Runtime uses the real local fonts.
+Tier filters are native radio labels rather than cream action buttons.
+The mockup's orb circles illustrate another fixture; the base/shop capture
+correctly shows no dropped souls. Item descriptions in runtime report the
+actual effects, including30% projectile slow. Reviewer fidelity judgment is
+separate, not a builder grade.
+
+```sh
+# No installs or browser downloads. Do not overlap sibling browser gates.
+TMPDIR=/dev/shm timeout 180s python3 -B Games/Jankolock3D/systems-qa.py
+```
+
+The script serves Foldwild read-only from Git when sparse and genuinely
+captures its start screen as a style reference. It checks HTTP responses,
+console/page/request errors, screenshot variance, no390px overflow and44px
+buttons. Screenshots and evidence are under
+`docs/maintenance/audits/jankolock-3d-qa/systems-*`. Mobile native390x720 captures
+are padded to1280x720 and labeled as such, not stretched or called desktop.
+`systems-ui-comparison.png` explicitly labels transformed AI mockup versus
+native implementation. Software WebGL evidence is not supported-hardware proof.
+
+The first browser run completed11 captures with0 recorded errors, including
+native tier2 purchases (4,800->0, L13 unchanged), a10m active dash, orb secure
+(4,800->4,840), walking ground pickup (->4,880), and enemy deny (->4,840).
+A fresh follow-up completed13 captures with0 recorded errors after improving
+full-panel fit. It also clicked a trooper down to64.8HP (candle scale .36),
+bought Health while dead (HP remained0), observed full1120HP respawn at own base,
+and held X through the base-ring channel. The native base-ring fixture starts
+at the destination, so spatial teleport is proved only by the Node side-lane
+regression (>200m away), not this native capture. Evidence includes source hashes.
+Earlier sibling-browser detection stopped the gate rather than overlapping it.
+The additional capture-only adjustment restores document scroll to the top for
+desktop screenshots so native focus scrolling does not crop the header.
+
+Current remaining gates: integration of actor layer/hero stats/structure HP and
+five bots; reviewer grades B/C/D/F and mockup fidelity; global maintenance
+manual/inventory reconciliation; full-fleet and supported-hardware checks before
+any shipping decision. The shared-browser slot is no longer a blocker.
