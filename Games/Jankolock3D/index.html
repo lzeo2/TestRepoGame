@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#eee9d8">
+  <title>Jankolock 3D</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='4'/%3E%3Cpath d='M11 8h12v12a7 7 0 0 1-14 0h5a2 2 0 0 0 4 0v-7h-7z' fill='white'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="./systems.css">
+  <link rel="stylesheet" href="./integration.css">
+</head>
+<body>
+  <a class="skip-link" href="#help">Skip to controls</a>
+  <header class="page-header">
+    <a href="../../index.html">Arcade</a>
+    <h1>Jankolock 3D</h1>
+    <nav aria-label="Game options">
+      <button id="theme" type="button" aria-pressed="false">Dark theme</button>
+      <button id="help-open" type="button" aria-haspopup="dialog">Controls</button>
+      <button id="pause" type="button" aria-haspopup="dialog" hidden>Pause</button>
+    </nav>
+  </header>
+  <main id="stage" class="stage" aria-label="Jankolock match">
+    <canvas id="game" tabindex="0" aria-label="Third-person city view. Click to capture the mouse, or drag to look on touch screens." aria-describedby="control-help"></canvas>
+    <section id="lobby" class="lobby panel" aria-labelledby="lobby-title">
+      <p class="eyebrow">The postroom</p>
+      <h2 id="lobby-title">Choose your hero</h2>
+      <p>Push three lanes with your team. Collect souls, equip items, and bring down the enemy Patron twice.</p>
+      <div id="hero-select" class="hero-select" role="group" aria-label="Choose a hero">
+        <button type="button" data-hero-index="0" disabled><strong>Hero 1</strong><span>Loading hero definitions</span></button>
+        <button type="button" data-hero-index="1" disabled><strong>Hero 2</strong><span>Loading hero definitions</span></button>
+        <button type="button" data-hero-index="2" disabled><strong>Hero 3</strong><span>Loading hero definitions</span></button>
+        <button type="button" data-hero-index="3" disabled><strong>Hero 4</strong><span>Loading hero definitions</span></button>
+      </div>
+      <p id="hero-description"></p>
+      <button id="start" type="button" disabled>Start match</button>
+      <p class="lobby-help">WASD to move. Mouse or drag to look. Use 1–4 for abilities. Full controls are available above.</p>
+    </section>
+    <div id="hud" hidden>
+      <div id="systems-root"></div>
+      <section class="match-status panel" aria-label="Match status">
+        <span id="match-clock">0:00</span>
+        <span>Kills / deaths <strong id="kd">0 / 0</strong></span>
+        <p id="objective" role="status">Protect your Patron. Push the enemy lanes.</p>
+      </section>
+      <figure class="minimap-panel panel">
+        <figcaption id="minimap-title">District map</figcaption>
+        <canvas id="minimap" width="200" height="200" role="img" aria-labelledby="minimap-title" aria-describedby="minimap-key"></canvas>
+        <p id="minimap-key">● Ally · ◇ Enemy · □ Structure<br>Large ring: you. North: enemy base.</p>
+      </figure>
+      <section class="vitals panel" aria-label="Hero status">
+        <strong id="playing-hero"></strong>
+        <div class="health-track"><label for="health-bar">Health</label><progress id="health-bar" max="100" value="100"></progress></div>
+        <div><label for="stamina-bar">Stamina <output id="stamina-value">100 / 100</output></label><progress id="stamina-bar" max="100" value="100"></progress></div>
+        <p>Ammo <strong id="ammo">0 / 0</strong> <span id="movement-state"></span></p>
+      </section>
+      <section id="abilities" class="abilities" aria-label="Hero abilities">
+        <button type="button" data-edge="Digit1" data-slot="1"><span class="ability-key">1</span><span class="ability-name">Ability 1</span><span class="ability-state">Ready</span></button>
+        <button type="button" data-edge="Digit2" data-slot="2"><span class="ability-key">2</span><span class="ability-name">Ability 2</span><span class="ability-state">Ready</span></button>
+        <button type="button" data-edge="Digit3" data-slot="3"><span class="ability-key">3</span><span class="ability-name">Ability 3</span><span class="ability-state">Ready</span></button>
+        <button type="button" data-edge="Digit4" data-slot="4"><span class="ability-key">4</span><span class="ability-name">Ability 4</span><span class="ability-state">Ready</span></button>
+      </section>
+      <span class="reticle" aria-hidden="true">+</span>
+    </div>
+    <p id="loading-status" class="loading-status panel" role="status" aria-live="polite">Loading the district…</p>
+    <noscript><p class="panel loading-status">This local game needs JavaScript enabled.</p></noscript>
+  </main>
+  <section id="touch-controls" class="touch-controls panel" aria-label="Touch controls" hidden>
+    <p>Hold to move. Drag the view or hold a look button to turn.</p>
+    <div class="touch-grid" role="group" aria-label="Movement">
+      <button type="button" data-hold="KeyA">← Left</button><button type="button" data-hold="KeyW">↑ Forward</button><button type="button" data-hold="KeyS">↓ Back</button><button type="button" data-hold="KeyD">→ Right</button>
+    </div>
+    <div class="touch-grid" role="group" aria-label="Look">
+      <button type="button" data-hold="ArrowLeft">Look left</button><button type="button" data-hold="ArrowUp">Look up</button><button type="button" data-hold="ArrowDown">Look down</button><button type="button" data-hold="ArrowRight">Look right</button>
+    </div>
+    <div class="touch-grid" role="group" aria-label="Weapon and traversal">
+      <button type="button" data-hold="fire">Fire</button><button type="button" data-hold="aim">Aim</button><button type="button" data-edge="jump">Jump</button><button type="button" data-edge="dash">Dash</button>
+      <button type="button" data-hold="ControlLeft">Sprint</button><button type="button" data-hold="KeyC">Slide</button><button type="button" data-action="reload">Reload</button><button type="button" data-action="interact">Interact</button>
+      <button type="button" data-action="melee">Melee</button><button type="button" data-action="parry">Parry</button><button type="button" data-hold="KeyX">Retreat</button><button type="button" id="touch-shop">Shop</button>
+    </div>
+  </section>
+  <dialog id="pause-dialog" class="panel" aria-labelledby="pause-title">
+    <h2 id="pause-title">Paused</h2><p id="pause-description">The match is paused.</p>
+    <div class="dialog-actions"><button id="resume" type="button">Resume</button><button id="restart" type="button">Restart match</button></div>
+  </dialog>
+  <dialog id="help" class="panel" aria-labelledby="help-title">
+    <div class="dialog-heading"><h2 id="help-title">Controls</h2><button id="help-close" type="button">Close</button></div>
+    <div id="control-help">
+      <dl class="control-list">
+        <dt>WASD / mouse</dt><dd>Move / look. Click the view to capture the mouse; Escape releases it.</dd>
+        <dt>Ctrl / Shift / C</dt><dd>Sprint / dash / slide. Slide keeps your ammunition.</dd>
+        <dt>Space</dt><dd>Jump. Press again in the air for a double jump.</dd>
+        <dt>Left / right mouse</dt><dd>Fire / aim. R reloads.</dd>
+        <dt>1 / 2 / 3 / 4</dt><dd>Use your hero's four abilities.</dd>
+        <dt>Q / F</dt><dd>Melee / parry.</dd>
+        <dt>E / hold X</dt><dd>Interact with traversal / retreat at a retreat ring.</dd>
+        <dt>B</dt><dd>Shop at your base or while respawning.</dd>
+      </dl>
+      <p>Touch: drag the view to look; use the movement, action, and numbered ability buttons.</p>
+      <p>Claim ground souls by walking nearby. Shoot floating souls to secure or deny them. Destroy Guardians, Walkers, base guards, and shrines before attacking the Patron.</p>
+    </div>
+  </dialog>
+  <script type="module" src="./game.mjs"></script>
+</body>
+</html>
