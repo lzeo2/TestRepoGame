@@ -173,6 +173,7 @@ def main():
                 load('?qa=chain'); start(); partial = page.evaluate('window.jank3dQA.chain("carbon",570)')
                 patron = next(s for s in state()['structures'] if s['team'] == 'ivory' and s['type'] == 'patron')
                 assert patron['alive'] and patron['vulnerable'] and patron['patronPhase'] == 2
+                page.evaluate('window.jank3dQA.place({x:-10,y:0,z:410},Math.PI,-.04)')
                 capture('D', 'Scripted chain at t570: all six shrines down, Patron P2 alive; passive hero bots')
                 receipt = page.evaluate('window.jank3dQA.chain("carbon")')
                 receipt['events'] = partial['events'] + receipt['events']; receipt['actions'] = partial['actions'] + receipt['actions']
