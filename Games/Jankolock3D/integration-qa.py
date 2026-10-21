@@ -112,7 +112,7 @@ def main():
                 capture('A', 'API aerial camera of the actual three-lane scene; walking checked separately by module/native world evidence')
                 # B: exact wave clock is stepped through the production simulation, not actors injected.
                 load('?qa=waves'); start()
-                page.evaluate('window.jank3dQA.waves(); window.jank3dQA.place({x:0,y:3,z:-62},Math.PI,-.05)')
+                page.evaluate('window.jank3dQA.waves(); window.jank3dQA.place({x:-246,y:0,z:-48},Math.PI,-.05)')
                 s = state(); assert len(s['troopers']) >= 24
                 report['checks']['waveAt75'] = {'time': s['time'], 'troopers': len(s['troopers'])}
                 capture('B', 'API clock to t75; real squads march/fight, no injected troopers')

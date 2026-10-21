@@ -12,6 +12,10 @@ Catalog ID 240 now points here; no new game or ID was added. No push authorized.
   flattened into static instance batches. Dead objectives disappear, the shared
   Patron moves/changes height in phase 2, and redundant side-lane Patrons hide.
   The standalone viewer's existing render API is unchanged.
+- `match-world.mjs` copies the immutable descriptor and supplies systems with
+  feet-height waypoints sampled at real lane ramp edges. Midway squads therefore
+  walk on the bridge, not through its underside. The original world JSON remains
+  byte-identical; the match adapter, not a fake screenshot, fixes the elevation.
 - `game.mjs` owns input, selection/start, lifecycle, camera, collision resolution,
   one RAF and event presentation. Blur/hidden clears held input; hidden time is
   discarded. Pagehide disposes components. Pause and restart use native dialogs.

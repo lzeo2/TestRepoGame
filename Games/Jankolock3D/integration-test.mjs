@@ -3,12 +3,18 @@ import { readFileSync } from 'node:fs';
 import * as THREE from './vendor/three.module.js';
 import { createWorldData } from './world-data.mjs';
 import { createSystems } from './systems.mjs';
+import { matchWorld } from './match-world.mjs';
 import { createBots } from './bots.mjs';
 import { runChain } from './integration-fixtures.mjs';
 import { selfCheckPortrait } from './portrait.js';
 const world=createWorldData(),kits=JSON.parse(readFileSync(new URL('../../docs/jank3d-hero-kits.json',import.meta.url))).heroes;
+const routed=matchWorld(world);
+assert.deepEqual(routed.lanes.find(l=>l.id==='midway').waypoints.map(p=>[p.z,p.y]),[[-390,0],[-55,0],[-35,3],[35,3],[55,0],[390,0]]);
+assert.ok(routed.lanes.filter(l=>l.id!=='midway').every(l=>l.waypoints.every(p=>p.y===0)));
+assert.equal(world.lanes[1].waypoints,undefined); // World export stays immutable/byte-identical.
+console.log('integration: lane heights follow real Midway bridge/ramp edges; no below-deck squads');
 for(const team of ['carbon','ivory']) {
-  const sim=createSystems(world),player=sim.addHero({id:'player',team:'carbon'});
+  const sim=createSystems(matchWorld(world)),player=sim.addHero({id:'player',team:'carbon'});
   assert.equal(sim.configureHeroKit(player.id,kits[0]).ok,true);
   const bots=createBots({sim,scene:new THREE.Scene(),world,kits});
   assert.equal(sim.heroes.length,6);assert.equal(bots.runtimes.length,5);

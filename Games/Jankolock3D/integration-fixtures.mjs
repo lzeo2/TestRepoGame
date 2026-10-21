@@ -47,7 +47,7 @@ export function mountFixtures(host) {
     freeze(value=true){host.setPaused(value);},
     advance(seconds){if(!Number.isFinite(seconds)||seconds<0||seconds>600)throw new RangeError('0..600 seconds');for(let t=0;t<seconds;t+=.05)host.tick(Math.min(.05,seconds-t));sync();},
     place, // Recorded API reposition, not proof that geometry is walkable.
-    overview(){view.camera.position.set(0,620,-480);view.camera.lookAt(0,0,40);preview={position:view.camera.position.clone(),quaternion:view.camera.quaternion.clone()};view.renderCamera();},
+    overview(){view.camera.position.set(0,480,0);view.camera.lookAt(0,0,.1);preview={position:view.camera.position.clone(),quaternion:view.camera.quaternion.clone()};view.renderCamera();},
     renderPreview(){if(preview){view.camera.position.copy(preview.position);view.camera.quaternion.copy(preview.quaternion);}},
     clearPreview(){preview=null;},
     waves(){host.setPaused(true);sim.step(Math.max(0,75-sim.time));sync();return sim.troopers.length;},

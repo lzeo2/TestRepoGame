@@ -3,6 +3,7 @@ import { createWorldData } from './world-data.mjs';
 import { createWorldScene } from './world-scene.mjs';
 import { createTraveler, stepTraveler, interact, interaction, moveCapsule, surfaceHeight } from './traversal.mjs';
 import { createSystems } from './systems.mjs';
+import { matchWorld } from './match-world.mjs';
 import { createSystemsLayer } from './systems-view.mjs';
 import { PlayerController } from './heroes/player-controller.mjs';
 import { HeroRuntime } from './heroes/hero-runtime.mjs';
@@ -118,7 +119,7 @@ try {
   const response=await fetch('../../docs/jank3d-hero-kits.json');
   if(!response.ok)throw new Error(`Hero definitions HTTP ${response.status}`);
   const {heroes:kits}=await response.json();
-  view=createWorldScene(canvas,world);sim=createSystems(world);
+  view=createWorldScene(canvas,world);sim=createSystems(matchWorld(world));
   hero=sim.addHero({id:'player',team:'carbon',lane:'midway',position:{x:-10,y:0,z:-430},souls:qa&&fixture==='shop'?25600:0});
   controller=new PlayerController({position:hero.position,boxes,ramps:world.ramps,floorHeight:(x,z,maxY)=>surfaceHeight({...world,boxes},x,z,maxY,traveler.broken)});
   controller.yaw=Math.PI;controller.pitch=-.06;
