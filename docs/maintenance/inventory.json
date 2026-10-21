@@ -1,5 +1,5 @@
 {
-  "catalog_entries": 126,
+  "catalog_entries": 127,
   "games": [
     {
       "directory": "Games/2048",
@@ -424,13 +424,13 @@
     {
       "directory": "Games/Dive Trivia",
       "id": 235,
-      "title": "Dive Trivia (Working Title)",
+      "title": "Below the Obvious",
       "registered": true,
       "entry": "Games/Dive Trivia/index.html",
-      "entry_blob": "0b70fa7dd6c020286f9027e11666197a5a0b1605",
-      "tree": "bd533686d43e07c1f573e765ce137a8db4d74cdd",
+      "entry_blob": "c499bf611047e8ec21471e310ddf09b552fbca0e",
+      "tree": "faeeeab1eb4c34a203a5c252ce1e5e348175eaa4",
       "files": 7,
-      "bytes": 61428,
+      "bytes": 61353,
       "document": "docs/maintenance/games/235-dive-trivia.md"
     },
     {

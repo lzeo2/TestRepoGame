@@ -87,7 +87,7 @@ Missing JPGs downgrade to the local SVG icon; `data-ux-thumb-failed` prevents th
 mutation observer from reinserting the same failed image indefinitely. Changing
 its resolved URL permits a later attempt. Thumbnail loading does not establish
 that the underlying game loads or plays. See the [thumbnail sweep](../audits/thumbs-sweep-20261021.md)
-for capture guards, final counts and known local-source gaps.
+for capture guards, final counts and known local-source gaps. The [shipping receipt](../audits/thumbs-ship-20261021.md) records the merged 127-game catalog, four fresh portal theme/viewport checks, 110 loaded card images, 17 SVG fallbacks and the operator's full-gate exception for this push.
 
 ## Safe refurbishment and verification
 
