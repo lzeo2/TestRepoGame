@@ -3,6 +3,8 @@
 import assert from 'node:assert/strict';
 import * as THREE from '../vendor/three.module.js';
 import { PlayerController } from './player-controller.mjs';
+import { createWorldData, rampHeight } from '../world-data.mjs';
+import { capsuleIntersects, surfaceHeight } from '../traversal.mjs';
 
 let checks = 0;
 const check = (value, message) => { assert.ok(value, message); checks++; };
@@ -29,11 +31,32 @@ function cameraOutside(camera, b, radius = 0.3) {
     p.y <= b.minY - radius || p.y >= b.maxY + radius ||
     p.z <= b.minZ - radius || p.z >= b.maxZ + radius;
 }
+function cameraBoomClear(hero, camera, r) {
+  // Independent scene transform, not the controller's collision helper.
+  const span = r.axis === 'x' ? r.maxX - r.minX : r.maxZ - r.minZ;
+  const length = Math.hypot(span, r.end - r.start), rotation = new THREE.Euler();
+  if (r.axis === 'x') rotation.z = Math.atan2(r.end - r.start, span);
+  else rotation.x = -Math.atan2(r.end - r.start, span);
+  const inverse = new THREE.Matrix4().compose(
+    new THREE.Vector3((r.minX + r.maxX) / 2, (r.start + r.end) / 2 - 0.1, (r.minZ + r.maxZ) / 2),
+    new THREE.Quaternion().setFromEuler(rotation), new THREE.Vector3(1, 1, 1)).invert();
+  const halfX = (r.axis === 'x' ? length : r.maxX - r.minX) / 2;
+  const halfZ = (r.axis === 'z' ? length : r.maxZ - r.minZ) / 2;
+  const slab = new THREE.Box3(new THREE.Vector3(-halfX, -0.1, -halfZ), new THREE.Vector3(halfX, 0.1, halfZ));
+  const eye = hero.position.clone(); eye.y += Math.min(hero.height * 0.85, hero.height - 0.31);
+  const sample = new THREE.Vector3();
+  for (let n = 0; n <= 100; n++) {
+    sample.lerpVectors(eye, camera.position, n / 100).applyMatrix4(inverse);
+    if (slab.distanceToPoint(sample) < 0.3 - 1e-5) return false;
+  }
+  return true;
+}
 
 const defaults = new PlayerController();
 check(defaults.position instanceof THREE.Vector3 && defaults.velocity instanceof THREE.Vector3, 'public three vectors');
 close(defaults.position.z, 8);
 check(defaults.state === 'idle' && defaults.grounded && defaults.jumps === 0, 'default ground');
+check(Array.isArray(defaults.ramps) && defaults.ramps.length === 0, 'ramps default preserves AABB-only callers');
 check(defaults.stamina === 100 && !defaults.infiniteAmmo, 'default resources');
 const walker = run(create(), 1, { forward: 1 });
 check(walker.position.z < -7 && Math.abs(walker.position.x) < 1e-6 && walker.state === 'walk', 'yaw zero forward -Z');
@@ -167,6 +190,70 @@ const rampHero = run(create({ floorHeight: (x, z, maxY) => {
   const y = Math.max(0, Math.min(3, -z * 0.2)); return y <= maxY ? y : -Infinity;
 } }), 1, { forward: 1 });
 check(rampHero.position.y > 1 && rampHero.grounded, 'optional callback permits a continuous ramp');
+
+const world = createWorldData();
+const worldOptions = { boxes: world.boxes, ramps: world.ramps,
+  floorHeight: (x, z, maxY) => surfaceHeight(world, x, z, maxY) };
+const roofRamp = world.ramps.find(r => r.id === 'roof-access-1');
+const sideEntry = create({ ...worldOptions,
+  position: { x: roofRamp.maxX + 2, y: 0, z: roofRamp.minZ + 4 } });
+run(sideEntry, 25 * 0.025, { side: -1 }, 0.025);
+check(sideEntry.position.x >= roofRamp.maxX, 'reviewer world ramp side-entry probe stays outside slab');
+check(!capsuleIntersects(sideEntry.position, roofRamp), 'reviewer world ramp side-entry capsule remains clear');
+const roofClimber = create({ ...worldOptions,
+  position: { x: (roofRamp.minX + roofRamp.maxX) / 2, y: 0, z: roofRamp.minZ } });
+run(roofClimber, 5.5, { forward: 1, yaw: Math.PI });
+close(roofClimber.position.y, roofRamp.end, 0.15);
+check(roofClimber.grounded, 'world surface callback still supports ramp ascent and roof landing');
+for (const axis of ['x', 'z']) for (const rise of [6, -6]) {
+  const r = { axis, minX: 0, maxX: 10, minZ: 0, maxZ: 10, start: rise > 0 ? 4 : 10, end: rise > 0 ? 10 : 4 };
+  const low = create({ ramps: [r], floorHeight: () => 4, position: { x: 5, y: 4, z: 5 } });
+  low.update(1 / 60, { jump: true });
+  let peak = low.position.y + low.height;
+  for (let n = 0; n < 80; n++) {
+    low.update(0.025);
+    peak = Math.max(peak, low.position.y + low.height);
+    check(!capsuleIntersects(low.position, r), 'jump never penetrates rotated underside');
+  }
+  check(peak > 6 && peak < 6.9, 'reviewer underside probe blocks jump for both ramp axes/slopes');
+  const lateral = create({ ramps: [r], floorHeight: () => 6,
+    position: axis === 'x' ? { x: 5, y: 6, z: 12 } : { x: 12, y: 6, z: 5 } });
+  run(lateral, 1, axis === 'x' ? { forward: 1 } : { side: -1 });
+  check((axis === 'x' ? lateral.position.z : lateral.position.x) >= 10, 'slab side blocks either axis/slope');
+  const below = create({ ramps: [r], position: axis === 'x' ? { x: 5, y: 0, z: 12 } : { x: 12, y: 0, z: 5 } });
+  run(below, 1, axis === 'x' ? { forward: 1 } : { side: -1 });
+  check((axis === 'x' ? below.position.z : below.position.x) < 7, 'space below slab is not a solid ramp AABB');
+  const rampCamera = new THREE.PerspectiveCamera(70, 1, 0.1, 1000);
+  const view = create({ ramps: [r], floorHeight: () => 4, position: { x: 5, y: 4, z: 5 } });
+  view.pitch = -1; view.updateCamera(rampCamera, 1 / 60);
+  check(rampCamera.position.y < rampHeight(r, rampCamera.position.x, rampCamera.position.z) - 0.3,
+    'camera boom stops below rotated ramp');
+  for (const yaw of [0, Math.PI / 2, Math.PI, -Math.PI / 2]) {
+    view.yaw = yaw;
+    for (let n = 0; n < 12; n++) {
+      view.updateCamera(rampCamera, 1 / 60);
+      check(cameraBoomClear(view, rampCamera, r), 'camera sphere and smoothed boom clear rendered slab');
+    }
+  }
+  const climber = create({ ramps: [r], position: { x: 5, y: 7, z: 5 },
+    floorHeight: (x, z, maxY) => { const y = rampHeight(r, x, z); return y <= maxY ? y : -Infinity; } });
+  const ascent = axis === 'x' ? { side: Math.sign(rise) } : { forward: -Math.sign(rise) };
+  run(climber, 0.4, ascent);
+  check(climber.grounded && climber.position.y > 8, 'floor callback supports either ramp axis and ascent direction');
+  const summit = climber.position.y;
+  run(climber, 0.4, { forward: -(ascent.forward ?? 0), side: -(ascent.side ?? 0) });
+  check(climber.grounded && climber.position.y < summit - 0.3, 'descending slab top remains supported');
+  close(climber.position.y, rampHeight(r, climber.position.x, climber.position.z));
+  const fastSide = create({ ramps: [r], floorHeight: () => 6,
+    position: axis === 'x' ? { x: 5, y: 6, z: 12 } : { x: 12, y: 6, z: 5 } });
+  fastSide.speedMultiplier = 4;
+  fastSide.update(0.25, { dash: true, ...(axis === 'x' ? { forward: 1 } : { side: -1 }) });
+  check((axis === 'x' ? fastSide.position.z : fastSide.position.x) >= 10, 'buffed dash cannot cross slab side');
+  const hook = create({ ramps: [r], floorHeight: () => 4, position: { x: 5, y: 4, z: 5 } });
+  check(hook.hookTo({ x: 5, y: 10, z: 5 }), 'hook toward slab accepted');
+  run(hook, 0.5);
+  check(hook.position.y < 5 && !capsuleIntersects(hook.position, r), 'hook cannot pull through slab underside');
+}
 
 const lowObstacle = box(-3, 3, 0, 1, -5, -2);
 const mantler = create({ boxes: [lowObstacle] });

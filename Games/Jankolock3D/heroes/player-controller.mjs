@@ -1,4 +1,6 @@
 import * as THREE from '../vendor/three.module.js';
+import { capsuleIntersects } from '../traversal.mjs';
+import { rampHeight } from '../world-data.mjs';
 
 const RADIUS = 0.45, HEIGHT = 1.8, CROUCH_HEIGHT = 0.95;
 const WALK = 8, SPRINT = 12, GRAVITY = 24, JUMP = 9;
@@ -36,10 +38,24 @@ function cameraFraction(from, to, boxes) {
   return Math.max(0, closest - (closest < 1 ? 0.001 / Math.max(EPS, from.distanceTo(to)) : 0));
 }
 
+// Sphere versus the same rotated 0.2m slab used by traversal and rendering.
+function cameraHitsRamp(p, r) {
+  const span = r.axis === 'x' ? r.maxX - r.minX : r.maxZ - r.minZ;
+  const rise = r.end - r.start, length = Math.hypot(span, rise);
+  const c = span / length, s = rise / length;
+  const along = r.axis === 'x' ? p.x - (r.minX + r.maxX) / 2 : p.z - (r.minZ + r.maxZ) / 2;
+  const across = r.axis === 'x' ? p.z - (r.minZ + r.maxZ) / 2 : p.x - (r.minX + r.maxX) / 2;
+  const y = p.y - (r.start + r.end) / 2 + 0.1;
+  const dx = Math.max(0, Math.abs(c * along + s * y) - length / 2);
+  const dy = Math.max(0, Math.abs(-s * along + c * y) - 0.1);
+  const dz = Math.max(0, Math.abs(across) - (r.axis === 'x' ? r.maxZ - r.minZ : r.maxX - r.minX) / 2);
+  return dx * dx + dy * dy + dz * dz < CAMERA_RADIUS * CAMERA_RADIUS;
+}
+
 /**
  * Movement only. Units are metres/seconds; position is FEET, not the body centre.
  *
- * const hero = new PlayerController({ position: spawn, boxes: world.boxes,
+ * const hero = new PlayerController({ position: spawn, boxes: world.boxes, ramps: world.ramps,
  *   floorHeight: (x, z, maxY) => surfaceHeight(world, x, z, maxY) });
  * hero.update(dt, { forward: 1, side: 0, sprint: ctrlHeld, jump: spaceEdge,
  *   dash: shiftEdge, slide: cHeld, aim: rightMouseHeld, yaw, pitch });
@@ -52,7 +68,9 @@ function cameraFraction(from, to, boxes) {
  * update caps dt at 0.25s; discard suspended-tab time in the harness too.
  *
  * boxes accepts flat {minX,maxX,minY,maxY,minZ,maxZ} records or THREE.Box3.
- * The array is retained, not copied, so removing destroyed cover takes effect.
+ * The arrays are retained, not copied, so removing destroyed cover takes effect.
+ * ramps optionally accepts world rotated-slab descriptors. Supply surfaceHeight
+ * through floorHeight for their walkable tops; empty ramps preserves AABB-only behavior.
  * floorHeight returns the highest accessible surface <= maxY, or -Infinity
  * for a void. This module also handles box tops/undersides. Spawn/warp into
  * non-overlapping space; warp clears movement, action timers, stamina and jumps
@@ -66,8 +84,9 @@ function cameraFraction(from, to, boxes) {
  * No resources/listeners are allocated that need dispose().
  */
 export class PlayerController {
-  constructor({ position = { x: 0, y: 0, z: 8 }, boxes = [], floorHeight = () => 0 } = {}) {
+  constructor({ position = { x: 0, y: 0, z: 8 }, boxes = [], ramps = [], floorHeight = () => 0 } = {}) {
     this.boxes = boxes;
+    this.ramps = ramps;
     this.floorHeight = floorHeight;
     this.position = new THREE.Vector3();
     this.velocity = new THREE.Vector3();
@@ -107,8 +126,19 @@ export class PlayerController {
     return height;
   }
 
+  _rampHit(p, height = this.height) {
+    return this.ramps.some(r => {
+      // Floor callbacks own top support, as in world traversal. Do not let the
+      // rounded foot catch the slope while stepping along its accessible top.
+      if (p.y >= rampHeight(r, p.x, p.z) - 0.02) return false;
+      if (!capsuleIntersects(p, r)) return false;
+      // Intersect two overlapping standing segments to bound a crouched capsule.
+      return height === HEIGHT || capsuleIntersects({ x: p.x, y: p.y + height - HEIGHT, z: p.z }, r);
+    });
+  }
+
   _clear(p, height = this.height) {
-    return !this.boxes.some(raw => {
+    return !this._rampHit(p, height) && !this.boxes.some(raw => {
       const b = bounds(raw);
       return horizontalOverlap(p, b) && p.y < b.maxY - EPS && p.y + height > b.minY + EPS;
     });
@@ -154,7 +184,11 @@ export class PlayerController {
         this.position[axis] += delta;
         if (this.grounded && dy <= 0) {
           const floor = this._surface(oldY + STEP);
-          if (floor > oldY + EPS) {
+          const rampTop = this.ramps.some(r => this.position.x >= r.minX && this.position.x <= r.maxX &&
+            this.position.z >= r.minZ && this.position.z <= r.maxZ &&
+            Math.abs(floor - rampHeight(r, this.position.x, this.position.z)) <= EPS);
+          // Stay on descending tops without snapping down unrelated ledges.
+          if (floor > oldY + EPS || (rampTop && oldY - floor <= STEP)) {
             const stepped = this.position.clone(); stepped.y = floor;
             if (this._clear(stepped)) this.position.y = floor;
           }
@@ -164,10 +198,10 @@ export class PlayerController {
           return horizontalOverlap(this.position, b) && this.position.y < b.maxY - EPS &&
             this.position.y + this.height > b.minY + EPS;
         });
-        if (hit) {
+        if (hit || this._rampHit(this.position)) {
           this.position[axis] = old;
           this.position.y = oldY;
-          if (mantle && !this._mantle) this._tryMantle(bounds(hit), axis, delta);
+          if (hit && mantle && !this._mantle) this._tryMantle(bounds(hit), axis, delta);
           this.velocity[axis] = 0;
           blocked = true;
         }
@@ -191,6 +225,18 @@ export class PlayerController {
       if (stepY <= 0 && nextY <= floor && oldY >= floor - EPS) {
         nextY = floor;
         this.velocity.y = 0;
+      }
+      const next = this.position.clone(); next.y = nextY;
+      if (this._rampHit(next) && !this._rampHit(this.position)) {
+        let lo = 0, hi = 1;
+        for (let n = 0; n < 24; n++) {
+          const mid = (lo + hi) / 2;
+          next.y = oldY + (nextY - oldY) * mid;
+          if (this._rampHit(next)) hi = mid; else lo = mid;
+        }
+        nextY = oldY + (nextY - oldY) * lo;
+        this.velocity.y = 0;
+        blocked = true;
       }
       this.position.y = nextY;
       this._ground();
@@ -334,7 +380,8 @@ export class PlayerController {
     const aboveFloor = t => {
       p.lerpVectors(from, to, t);
       const floor = this.floorHeight(p.x, p.z, from.y + CAMERA_RADIUS);
-      return !Number.isFinite(floor) || floor > from.y + CAMERA_RADIUS || p.y - CAMERA_RADIUS >= floor;
+      return !this.ramps.some(r => cameraHitsRamp(p, r)) &&
+        (!Number.isFinite(floor) || floor > from.y + CAMERA_RADIUS || p.y - CAMERA_RADIUS >= floor);
     };
     for (let i = 1; i <= count; i++) {
       const t = fraction * i / count;

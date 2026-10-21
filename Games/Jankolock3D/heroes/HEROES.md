@@ -49,28 +49,35 @@ only this instance's temporary walls, not world-owned colliders.
 `onEffect(event)` emits `kind` (damage, heal, buff, buff-end, parry, tether-end),
 `source` and `target` IDs, `ability` ID/name, `baseDamage`, `baseHeal`,
 `damageType`, `spiritScale`, `slow`, `duration`, and applicable `headshot`,
-`headshotMultiplier`, `invulnerable`, `speedMultiplier`. Apply team checks,
-health/healing, armor, slow/parry/invulnerability and item scaling in systems.
+`headshotMultiplier`, `invulnerable`, `speedMultiplier`. Area impacts and turret
+shots also emit `origin: {x,y,z}`, a plain coordinate snapshot. Puddle healing
+and grenade/missionbomb damage use the deployment or explosion center; turret
+damage uses its muzzle (deployment + 0.9m Y), never the caster's later position.
+Apply team checks, health/healing, armor, slow/parry/invulnerability and item scaling in systems.
 **Do not multiply item damage in this module and again in systems.**
 Set derived rate/movement values with
 `setModifiers({cooldown:1,fire:1,reload:1,magazine:12,move:1})`; omitted fields
 remain unchanged. Rates are multipliers, magazine is a positive integer.
 
-The inspected systems `damage()` currently enforces a generic 32m hero range,
-12-round baseline and its own weapon timer. The long-range kit, slide-ammo
-exception, individual magazines, healing and timed statuses therefore need an
-explicit systems-owned adapter/API before match integration. Wiring the event
-straight to the generic method is **not** sufficient, and writing system HP
-fields directly is not an acceptable workaround. Hero-team did not modify
-`systems.mjs`, world traversal, catalog or match UI. World zipline/teleporter/
-vent traversal remains a separate integration owner; controller exposes feet
-position and `warp()` for a validated traversal arrival.
+Systems now exposes `configureHeroKit(sourceId, kit)` and
+`applyHeroEffect(event)` for validated kit values, remote impact ranges, healing
+and timed statuses. Configure the source before forwarding events. Runtime
+owns kit ammunition and cooldowns; systems owns health and item scaling. Wiring
+events straight to generic `damage()` is **not** sufficient, and runtime never
+writes system HP fields. Hero-team did not modify `systems.mjs`, world traversal,
+catalog or match UI. World zipline/teleporter/vent traversal remains a separate
+integration owner; controller exposes feet position and `warp()` for a validated
+traversal arrival.
 
-World collisions: accepts flat AABBs or `THREE.Box3`. Supply a floor callback
-for ramps, but this controller does not consume the world's rotated ramp slab
-OBBs. The world team's later `bc25ca9` underside/side collision repair belongs
-to their traversal module; matching that in the combined controller remains an
-integration hold, not something the training-range AABBs prove.
+World collisions: `PlayerController({position, boxes, ramps = [], floorHeight})`
+accepts flat AABBs or `THREE.Box3`, plus optional world rotated-slab descriptors.
+The host must pass `ramps: world.ramps` and
+`floorHeight: (x,z,maxY) => surfaceHeight(world,x,z,maxY)`. Both arrays stay live.
+The floor callback owns top support, including ascent and descent. Slab sides,
+jump/hook undersides and crouch clearance reuse traversal's `capsuleIntersects`;
+the camera sphere tests the same rendered slab transform along its boom and
+reclamps after smoothing. Omitted/empty ramps retain AABB-only behavior and its
+regressions. This module evidence does not establish assembled native traversal.
 
 ## Design and provenance
 
@@ -125,6 +132,18 @@ themes (viewport/full-page). Additional files retain the Foldwild reference,
 two labeled comparison twins and the 16-FX contact sheet. The camera now uses
 a 1.1m right shoulder and 4m boom (2.8m while aiming); the matching module
 regression and native collision limit were updated, not removed.
+
+Interrupted-worker continuation, Node only: `player-controller-test` reports
+1,365 assertions, including the actual roof-access side-entry probe, roof
+landing, both slab axes/slopes, ascent/descent, jump/hook undersides, buffed dash
+and independently transformed camera-sphere/boom checks. `hero-runtime-test`
+reports 16 kit casts and five remote-origin damage/heal events accepted by the
+real systems API while the caster is 100m away; origins remain snapshots after
+deployment movement. Frozen target records reject direct health writes.
+`hero-visuals-test` retains four heroes, 16 kit FX and seven generic FX checks.
+These changes require a fresh native run; no browser or screenshots were used
+for this bounded continuation. The outer maintenance manual/inventory refresh
+belongs to the integration owner, outside this worker's five-file scope.
 
 Two earlier native attempts failed: synthetic Escape did not release pointer
 lock, then movement keys could be cleared by a late lock-entry event. The real

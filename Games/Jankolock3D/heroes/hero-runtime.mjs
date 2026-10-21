@@ -8,6 +8,8 @@ const UP = new THREE.Vector3(0,1,0);
 /** Visual/ability intent layer, not a damage authority. Targets have id, team,
  * position (feet), alive, radius?, height?. onEffect receives IDs and unscaled
  * kit values; systems owns HP, armor, shop scaling and status enforcement.
+ * Remote impacts include a plain origin {x,y,z} snapshot: deployment/explosion
+ * center for areas, turret muzzle for shots, never the owner's later position.
  * Call update after controller.update; aim(camera) before fire/cast. Owns only
  * its temporary barricade colliders; clear/dispose removes those from boxes.
  * setModifiers accepts the systems-derived cooldown/fire/reload multipliers,
@@ -78,15 +80,16 @@ export class HeroRuntime {
     this.emit('damage',ability,target,extra);
   }
   area(ability,center,{cone=false,heal=false}={}) {
+    const extra={origin:{x:center.x,y:center.y,z:center.z}};
     for(const target of this.targets) {
       if(target.alive===false) continue;
       const delta=vec(target.position).sub(center),distance=delta.length();
       if(distance>(ability.radius??ability.range)||!this.visible(center.clone().addScaledVector(UP,.7),target)) continue;
       if(cone&&distance>.01&&delta.normalize().dot(this.direction)<Math.cos(ability.coneRadians??.8)) continue;
-      if(target.team===this.team) { if(heal) this.emit('heal',ability,target); }
-      else this.hit(ability,target);
+      if(target.team===this.team) { if(heal) this.emit('heal',ability,target,extra); }
+      else this.hit(ability,target,extra);
     }
-    if(heal&&center.distanceTo(this.controller.position)<=(ability.radius??0)) this.emit('heal',ability,{id:this.source});
+    if(heal&&center.distanceTo(this.controller.position)<=(ability.radius??0)) this.emit('heal',ability,{id:this.source},extra);
   }
   fire() {
     if(this.fireWait>0||this.reload>0) return false;
@@ -210,7 +213,7 @@ export class HeroRuntime {
       if(a.id==='turret') {
         const origin=deploy.position.clone().addScaledVector(UP,.9);
         const target=this.targets.filter(t=>t.team!==this.team&&t.alive!==false&&origin.distanceTo(vec(t.position))<=a.range&&this.visible(origin,t)).sort((a,b)=>origin.distanceToSquared(vec(a.position))-origin.distanceToSquared(vec(b.position)))[0];
-        if(target){const end=vec(target.position).addScaledVector(UP,.8);deploy.handle.group.rotation.y=Math.atan2(origin.x-end.x,origin.z-end.z);this.fx.emit('longshot',{origin,target:end,duration:.16,color:'#b55043'});this.hit(a,target);}
+        if(target){const end=vec(target.position).addScaledVector(UP,.8);deploy.handle.group.rotation.y=Math.atan2(origin.x-end.x,origin.z-end.z);this.fx.emit('longshot',{origin,target:end,duration:.16,color:'#b55043'});this.hit(a,target,{origin:{x:origin.x,y:origin.y,z:origin.z}});}
       }
     }
     for(const projectile of [...this.projectiles]) {
