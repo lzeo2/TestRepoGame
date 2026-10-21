@@ -1,0 +1,67 @@
+# Portrait lobby verification: blocked
+
+This is builder evidence, not acceptance H, full-game QA or an escape-room game
+claim. No asset or integration code was changed. Asset commit `a6b273a` and its
+original receipt remain untouched. CREDITS was not updated with a visual claim.
+
+## Actual run
+
+`TMPDIR=/dev/shm timeout --signal=TERM --kill-after=5s 100s python3 -B
+Games/Jankolock3D/portrait-qa.py` exited 1. Its preflight reported:
+
+```text
+Sibling browser/Playwright active (1 processes); no browser attempt
+```
+
+The safety interlock skipped before creating a server or launching Chromium.
+No second browser run was attempted. The matching process identity was not
+retained; actual sibling browser ownership is unproven. The subsequent process
+check had no matches. The script now describes this conservatively as a live
+process match, not confirmed sibling ownership.
+
+`portrait-qa.json` saves SKIP, zero browser attempts, zero HTTP observations and
+zero screenshots. Light/dark lobby and detail images do not exist from this
+run. Actual relief recognizability, in-room placement, behind-glass visibility,
+read-only `jank3dSnapshot()` lobby metadata and HTTP closure remain unverified.
+Source inspection shows intended placement and glass geometry, not visual proof.
+
+## Checks that did run
+
+- `node --check` on `portrait.js` and `game.mjs`: exit 0.
+- Existing `selfCheckPortrait` on the actual GLB:
+  `PASS: GLB geometry/counts/native scale, SHA-256 and corruption rejection`.
+- Isolated Node mount with actual local config/model responses: frozen metadata,
+  unit transforms, scene attachment/detachment and exactly-once geometry/material
+  disposal after two `dispose()` calls passed. This uses a local-file fetch
+  fixture, not browser or gameplay evidence. No game state grants were used.
+- Python AST parse and saved SKIP report invariants: PASS.
+- `python3 -B scripts/check_maintenance_docs.py` exited 1:
+  `AssertionError: Commit inspected source changes before validating its inventory.`
+  The orchestrator owns reconciliation after sibling integration commits.
+
+Before/after source hashes in the JSON include game, scene, portrait loader,
+config, receipt and model. No changes were observed during the short preflight
+interval or the later module-check recheck. This cannot exclude edit-and-revert,
+changes between resource reads or changes after this run. The existing inventory
+still describes a 37-file world-only tree with no canonical entry, not the
+current active integration. Historical maintenance results do not accept it.
+
+## Repeat when the shared browser is free
+
+```sh
+TMPDIR=/dev/shm timeout --signal=TERM --kill-after=5s 100s \
+  python3 -B Games/Jankolock3D/portrait-qa.py
+```
+
+The script uses installed Python Playwright/PIL, system Chromium, an ephemeral
+loopback server with finally-shutdown, 1280x720 native captures and the normal
+index without a fixture query. It checks native dimensions, full-frame and
+left-scene variance, actual portrait metadata with `playing:false`, local HTTP
+200 closure and browser errors. Dark mode uses the existing theme button.
+No DOM hiding, camera edits, grants, UI changes or new dependencies are used.
+The detail output is a labeled, unscaled crop of the light capture, not a
+separate view. Inspect all captures before making any visibility claim.
+
+Independent review and H grading remain separate. Formal approval for the
+separate QA directory is pending; this task writes only its allowed game paths.
+No catalog change, game addition, maintenance edit, full-fleet gate or push.
