@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Portrait integrity regression (stdlib). Optional CPU preview and browser checks.
+"""Portrait integrity and Node VM race regression. Optional CPU preview and browser checks.
 
 python3 -B scripts/test_jankolock_portrait.py [--preview] [--browser]
 Preview/test artifacts live only in RAM, not in the game asset directory.
@@ -11,6 +11,7 @@ import json
 import math
 import pathlib
 import struct
+import subprocess
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 GAME = ROOT / 'Games/Jankolock'
@@ -225,6 +226,107 @@ def preview(document, binary):
     print('CPU preview:', path, '(all 421968 triangles, front orthographic painter; not browser/hardware)')
 
 
+def vm_race_check():
+    """Real asset/loader, stubbed DOM/renderer: deterministic await-boundary races."""
+    subprocess.run(['node', '--experimental-vm-modules', '--input-type=module'], cwd=ROOT,
+                   check=True, timeout=60, input=r'''
+import assert from 'node:assert/strict';
+import vm from 'node:vm';
+import {readFile} from 'node:fs/promises';
+import {webcrypto} from 'node:crypto';
+import * as THREE from './Games/Jankolock/vendor/three.module.js';
+import {GLTFLoader} from './Games/Jankolock/vendor/GLTFLoader.js';
+class Element extends EventTarget {
+  constructor(){super();this.style={};this.children=[];this.clientWidth=800;this.clientHeight=480;}
+  setAttribute(){} append(...children){this.children.push(...children);} remove(){this.removed=true;}
+  replaceChildren(...children){this.children=children;} getContext(){return {};}
+  contains(v){return this.children.includes(v);} focus(){} setPointerCapture(){}
+}
+const source=await readFile('./Games/Jankolock/portrait.js','utf8');
+const config=JSON.parse(await readFile('./Games/Jankolock/portrait-config.json','utf8'));
+const bytes=await readFile('./Games/Jankolock/assets/portrait_relief.glb');
+for(const phase of ['asset-fetch','asset-bytes','digest','parse']) {
+  let canvas, release, started, rendered=0, scenes=0, rendererDisposed=0, parses=0;
+  const reached=new Promise(resolve=>started=resolve), resources=new Map(), raf=new Map();
+  let id=0, closed=0;
+  const pause=async value=>{started();await new Promise(resolve=>release=resolve);return value;};
+  class Renderer {
+    constructor(opts){canvas=opts.canvas;} setPixelRatio(){} setSize(){} forceContextLoss(){}
+    dispose(){rendererDisposed++;} render(){rendered++;}
+  }
+  class Scene extends THREE.Scene {constructor(){super();scenes++;}}
+  class Loader extends GLTFLoader {
+    async parseAsync(...args) {
+      parses++;
+      const gltf=await super.parseAsync(...args);
+      gltf.scene.traverse(o=>{
+        const watch=r=>{if(r&&!resources.has(r)){resources.set(r,0);
+          r.addEventListener('dispose',()=>resources.set(r,resources.get(r)+1));}};
+        watch(o.geometry);
+        for(const m of Array.isArray(o.material)?o.material:[o.material]) {
+          watch(m);if(m)for(const value of Object.values(m))if(value?.isTexture)watch(value);
+        }
+      });
+      return phase==='parse'?pause(gltf):gltf;
+    }
+  }
+  const document=Object.assign(new EventTarget(),{hidden:false,createElement:()=>new Element()});
+  const window=Object.assign(new EventTarget(),{devicePixelRatio:1});
+  const context=vm.createContext({console,URL,AbortController,Event,document,window,
+    crypto:{subtle:{digest:async(...args)=>{
+      const digest=await webcrypto.subtle.digest(...args);
+      return phase==='digest'?pause(digest):digest;
+    }}},
+    requestAnimationFrame:fn=>{raf.set(++id,fn);return id;},cancelAnimationFrame:id=>raf.delete(id),
+    ResizeObserver:class{observe(){}disconnect(){}},
+    fetch:async url=>{
+      if(String(url).endsWith('.json'))return {ok:true,json:async()=>config};
+      const response={ok:true,arrayBuffer:async()=>{
+        const buffer=bytes.buffer.slice(bytes.byteOffset,bytes.byteOffset+bytes.byteLength);
+        return phase==='asset-bytes'?pause(buffer):buffer;
+      }};
+      return phase==='asset-fetch'?pause(response):response;
+    }
+  });
+  const three=new vm.SyntheticModule(Object.keys(THREE),function(){
+    for(const [key,value] of Object.entries(THREE))
+      this.setExport(key,key==='WebGLRenderer'?Renderer:key==='Scene'?Scene:value);
+  },{context});
+  const loader=new vm.SyntheticModule(['GLTFLoader'],function(){this.setExport('GLTFLoader',Loader);},{context});
+  await three.link(()=>{});await three.evaluate();await loader.link(()=>{});await loader.evaluate();
+  const url=new URL('./Games/Jankolock/portrait.js',import.meta.url).href;
+  const mod=new vm.SourceTextModule(source,{context,identifier:url,
+    initializeImportMeta(meta){meta.url=url;},
+    importModuleDynamically:async spec=>spec.includes('GLTFLoader')?loader:three});
+  await mod.link(()=>{});await mod.evaluate();
+  const host=new Element();host.addEventListener('portraitclose',()=>closed++);
+  const pending=mod.namespace.mountPortrait(host);
+  await reached;
+  const section=host.children[0];
+  canvas.dispatchEvent(new Event('webglcontextlost',{cancelable:true}));
+  const message=section.children[2].textContent;
+  assert.match(message,/context was lost/);
+  release();
+  const handle=await pending;
+  assert.equal(handle.status,'unavailable',phase);
+  assert.equal(section.children[2].textContent,message);
+  assert.equal(scenes,0);assert.equal(rendered,0);assert.equal(rendererDisposed,1);
+  handle.setReducedMotion(true);handle.setReducedMotion(false);
+  assert.equal(raf.size,0,'terminal handle must not schedule a null-renderer draw');
+  assert.equal(parses,phase==='parse'?1:0);
+  if(phase==='parse') {
+    assert.ok(resources.size>0);
+    for(const count of resources.values())assert.equal(count,1,'late resource disposal');
+  }
+  section.children[1].dispatchEvent(new Event('click'));
+  assert.equal(closed,1);assert.equal(handle.status,'disposed');assert.equal(section.removed,true);
+  handle.dispose();assert.equal(rendererDisposed,1);
+  console.log(`VM context loss during ${phase}: unavailable / no scene or draw / motion / Back PASS`);
+  if(phase==='parse')console.log('VM late parsed geometry/material/texture resources: disposed exactly once PASS');
+}
+''', text=True)
+
+
 def browser_check():
     import functools
     import http.server
@@ -300,25 +402,61 @@ def browser_check():
               return {hash,bytes:buffer.byteLength,vertices,triangles};}''')
             require(counts == {'hash': HASH, 'bytes': SIZE, 'vertices': 210986, 'triangles': TRIANGLES}, 'GLTF browser load mismatch')
             print('browser exact-byte GLTFLoader parse: PASS', json.dumps(counts, separators=(',', ':')))
-            # Check late GLTF parse cleanup by delaying only the loader promise.
-            page.evaluate('''async()=>{const {GLTFLoader}=await import('./vendor/GLTFLoader.js');
-              window.Loader=GLTFLoader;window.originalParse=GLTFLoader.prototype.parseAsync;
-              GLTFLoader.prototype.parseAsync=async function(...args){
-                const gltf=await originalParse.apply(this,args);window.lateParsed=true;
-                gltf.scene.traverse(o=>{if(o.geometry)o.geometry.addEventListener('dispose',()=>window.lateDisposed=true);});
-                await new Promise(r=>window.releaseLate=r);return gltf;};}''')
-            page.evaluate('begin()')
-            page.wait_for_function('window.lateParsed || window.handle?.status==="unavailable"', timeout=45000)
-            if page.evaluate('Boolean(window.lateParsed)'):
+            # Hold the asset fetch continuation, then lose the live context before parsing.
+            page.evaluate('''()=>{window.handle=null;window.assetHeld=false;window.originalFetch=window.fetch;
+              window.fetch=async(...args)=>{const response=await originalFetch(...args);
+                if(String(args[0]).endsWith('.glb')){window.assetHeld=true;
+                  await new Promise(r=>window.releaseAsset=r);}return response;};begin();}''')
+            page.wait_for_function('window.assetHeld || window.handle?.status==="unavailable"', timeout=45000)
+            if page.evaluate('assetHeld'):
+                page.evaluate('''()=>{document.querySelector('#host canvas').dispatchEvent(
+                  new Event('webglcontextlost',{cancelable:true}));releaseAsset();}''')
+                require(page.evaluate('async()=>await pending') == 'unavailable', 'asset load resurrected ready')
+                page.evaluate('handle.setReducedMotion(false);handle.setReducedMotion(true)')
+                page.wait_for_timeout(100)
+                require(page.evaluate("Boolean(document.createElement('canvas').getContext('2d'))"), 'Canvas2D blocked')
+                closed = page.evaluate('closedCount')
                 page.get_by_role('button', name='Back', exact=True).click()
-                page.evaluate('releaseLate()')
-                require(page.evaluate('async()=>await pending') == 'disposed', 'late GLTF mount survived Back')
-                require(page.evaluate('lateDisposed && host.children.length===0'), 'late GLTF resources leaked')
-                print('browser Back during delayed GLTF parse: resources disposed PASS')
+                require(page.evaluate('closedCount') == closed + 1, 'context loss disabled Back')
+                require(page.evaluate('host.children.length===0'), 'context-loss Back left DOM')
+                print('browser context loss during asset load / unavailable / motion / Canvas2D / Back: PASS')
             else:
-                print('browser native WebGL creation unavailable; late-load render check UNPROVEN')
-                page.evaluate('handle.dispose()')
-            page.evaluate('()=>{Loader.prototype.parseAsync=originalParse;}')
+                print('browser native WebGL creation unavailable; asset race UNPROVEN (VM checked)')
+                page.get_by_role('button', name='Back', exact=True).click()
+            page.evaluate('()=>{window.fetch=originalFetch;}')
+            # Check late GLTF cleanup for both Back and context loss during parse.
+            for action in ('Back', 'context loss'):
+                page.evaluate('''async()=>{const {GLTFLoader}=await import('./vendor/GLTFLoader.js');
+                  window.handle=null;window.lateParsed=false;window.lateDisposed=false;
+                  window.Loader=GLTFLoader;window.originalParse=GLTFLoader.prototype.parseAsync;
+                  GLTFLoader.prototype.parseAsync=async function(...args){
+                    const gltf=await originalParse.apply(this,args);window.lateParsed=true;
+                    gltf.scene.traverse(o=>{if(o.geometry)o.geometry.addEventListener('dispose',()=>window.lateDisposed=true);});
+                    await new Promise(r=>window.releaseLate=r);return gltf;};begin();}''')
+                page.wait_for_function('window.lateParsed || window.handle?.status==="unavailable"', timeout=45000)
+                if page.evaluate('lateParsed'):
+                    if action == 'Back':
+                        page.get_by_role('button', name='Back', exact=True).click()
+                    else:
+                        page.evaluate('''()=>{document.querySelector('#host canvas').dispatchEvent(
+                          new Event('webglcontextlost',{cancelable:true}));}''')
+                    page.evaluate('releaseLate()')
+                    expected = 'disposed' if action == 'Back' else 'unavailable'
+                    require(page.evaluate('async()=>await pending') == expected, 'late GLTF mount survived ' + action)
+                    require(page.evaluate('lateDisposed'), 'late GLTF resources leaked')
+                    page.evaluate('handle.setReducedMotion(false);handle.setReducedMotion(true)')
+                    page.wait_for_timeout(100)
+                    if action == 'context loss':
+                        require(page.evaluate("Boolean(document.createElement('canvas').getContext('2d'))"), 'Canvas2D blocked')
+                        closed = page.evaluate('closedCount')
+                        page.get_by_role('button', name='Back', exact=True).click()
+                        require(page.evaluate('closedCount') == closed + 1, 'parse context loss disabled Back')
+                    require(page.evaluate('host.children.length===0'), 'late GLTF Back left DOM')
+                    print('browser ' + action + ' during delayed GLTF parse: resources disposed / motion / Back PASS')
+                else:
+                    print('browser native WebGL creation unavailable; late-load render check UNPROVEN (VM checked)')
+                    page.get_by_role('button', name='Back', exact=True).click()
+                page.evaluate('()=>{Loader.prototype.parseAsync=originalParse;}')
             page.evaluate('window.handle=null;begin()')
             page.wait_for_function('window.handle && handle.status!=="loading"', timeout=45000)
             status = page.evaluate('handle.status')
@@ -370,6 +508,38 @@ def browser_check():
                     'combat requested portrait resources')
             require(not errors, 'integration page errors: ' + repr(errors))
             print('browser actual UI native hero / Start / Canvas combat: zero portrait/vendor requests PASS')
+            # Exercise the real lazy-hall caller and its settings callback, not only the harness.
+            page.goto(origin + 'index.html')
+            page.wait_for_function('typeof window.jankolockSnapshot === "function"')
+            page.evaluate('''()=>{window.assetHeld=false;window.originalFetch=window.fetch;
+              window.fetch=async(...args)=>{const response=await originalFetch(...args);
+                if(String(args[0]).endsWith('.glb')){window.assetHeld=true;
+                  await new Promise(r=>window.releaseAsset=r);}return response;};}''')
+            page.locator('#hallBtn').click()
+            page.wait_for_function('''window.assetHeld ||
+              document.querySelector('#portraitHost [role=status]')?.textContent.includes('unavailable')''', timeout=45000)
+            if page.evaluate('assetHeld'):
+                page.evaluate('''()=>{document.querySelector('#portraitHost canvas').dispatchEvent(
+                  new Event('webglcontextlost',{cancelable:true}));releaseAsset();}''')
+                page.wait_for_timeout(100)
+                page.locator('#motionBtn').click()
+                page.locator('#motionBtn').click()
+                require('context was lost' in page.locator('#portraitHost [role=status]').inner_text(),
+                        'UI hall lost terminal message')
+            else:
+                print('browser UI native WebGL unavailable; UI load race UNPROVEN (VM checked)')
+            page.locator('#portraitHost').get_by_role('button', name='Back', exact=True).click()
+            require(page.locator('#hallPanel').is_hidden(), 'module Back did not close UI hall')
+            require(page.evaluate("document.querySelector('#arena').getContext('2d')!==null"), 'UI Canvas2D blocked')
+            requests.clear()
+            page.locator('[data-hero]').first.click()
+            page.locator('#startBtn').click()
+            page.wait_for_function('jankolockSnapshot().phase === "playing"')
+            page.wait_for_timeout(400)
+            require(not any('/vendor/' in url or 'portrait' in url or '.glb' in url for url in requests),
+                    'post-hall combat requested portrait resources')
+            require(not errors, 'UI hall race page errors: ' + repr(errors))
+            print('browser actual UI lazy hall / motion / module Back / unaffected Canvas match: PASS')
             context.close(); browser.close()
     finally:
         server.shutdown(); server.server_close(); thread.join(timeout=5)
@@ -400,6 +570,7 @@ def main():
             'manifest not integrity-gated')
     reject_regressions(document, binary)
     print(json.dumps(receipt, separators=(',', ':')))
+    vm_race_check()
     if args.preview:
         preview(document, binary)
     if args.browser:

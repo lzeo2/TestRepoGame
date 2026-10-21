@@ -48,6 +48,7 @@ export async function mountPortrait(host, { signal, reducedMotion = false } = {}
     dispose,
     setReducedMotion(value) { motionOff = Boolean(value); dirty = true; schedule(); }
   };
+  const stopped = () => disposed || result.status === 'unavailable';
   const on = (target, type, fn, options = {}) => target.addEventListener(type, fn,
     { ...options, signal: controller.signal });
   const release = () => { keys.clear(); pointers.clear(); dirty = true; };
@@ -70,7 +71,7 @@ export async function mountPortrait(host, { signal, reducedMotion = false } = {}
     host.dispatchEvent(new Event('portraitclose'));
   }
   function unavailable(text) {
-    if (disposed || result.status === 'unavailable') return;
+    if (stopped()) return;
     result.status = 'unavailable';
     message.textContent = text + ' Use Back to return to the arena lobby.';
     release();
@@ -150,9 +151,10 @@ export async function mountPortrait(host, { signal, reducedMotion = false } = {}
   if (signal?.aborted) { dispose(); return result; }
   try {
     const response = await fetch(new URL('portrait-config.json', BASE), { signal: controller.signal });
+    if (stopped()) return result;
     if (!response.ok) throw new Error('manifest unavailable');
     const config = await response.json();
-    if (disposed) return result;
+    if (stopped()) return result;
     if (!config.enabled || config.integrity !== 'PASS') {
       unavailable('The supplied portrait is unavailable.'); return result;
     }
@@ -161,7 +163,7 @@ export async function mountPortrait(host, { signal, reducedMotion = false } = {}
     const [THREE, { GLTFLoader }] = await Promise.all([
       import('./vendor/three.module.js'), import('./vendor/GLTFLoader.js')
     ]);
-    if (disposed) return result;
+    if (stopped()) return result;
     const canvas = document.createElement('canvas');
     const attributes = { antialias: true, alpha: false, powerPreference: 'low-power' };
     const context = canvas.getContext('webgl2', attributes) || canvas.getContext('webgl', attributes);
@@ -178,16 +180,17 @@ export async function mountPortrait(host, { signal, reducedMotion = false } = {}
     });
     view.append(canvas);
     const asset = await fetch(new URL(config.url, BASE), { signal: controller.signal });
+    if (stopped()) return result;
     if (!asset.ok) throw new Error('asset unavailable');
     const bytes = await asset.arrayBuffer();
-    if (disposed) return result;
+    if (stopped()) return result;
     if (bytes.byteLength !== BYTES || !globalThis.crypto?.subtle) throw new Error('integrity verification unavailable');
     const digest = Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', bytes)),
       byte => byte.toString(16).padStart(2, '0')).join('');
-    if (disposed) return result;
+    if (stopped()) return result;
     if (digest !== HASH) throw new Error('asset integrity mismatch');
     const gltf = await new GLTFLoader().parseAsync(bytes, BASE.href);
-    if (disposed) { disposeTree(gltf.scene); return result; }
+    if (stopped()) { disposeTree(gltf.scene); return result; }
     scene = new THREE.Scene();
     scene.background = new THREE.Color('#eee8dc');
     const bust = gltf.scene;
