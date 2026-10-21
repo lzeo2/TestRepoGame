@@ -338,6 +338,18 @@
       "document": "docs/maintenance/games/222-circuit-ward.md"
     },
     {
+      "directory": "Games/Citisten3D",
+      "id": null,
+      "title": "Citisten3D",
+      "registered": false,
+      "entry": null,
+      "entry_blob": null,
+      "tree": "64f421c11f37c75a777e4825721f571b91186c0a",
+      "files": 20,
+      "bytes": 2240835,
+      "document": "docs/maintenance/games/unregistered-citisten3d.md"
+    },
+    {
       "directory": "Games/CookieClicker",
       "id": 79,
       "title": "Cookie Clicker",
