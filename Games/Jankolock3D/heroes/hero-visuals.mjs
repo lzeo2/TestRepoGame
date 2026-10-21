@@ -232,7 +232,7 @@ export class AbilityFX {
       animate = (_, age) => { drum.rotation.z = age * 13; };
     } else if (id === 'longshot' || id === 'shot') {
       const l = id === 'shot' ? Math.min(2, Math.max(0.3, length)) : Math.max(0.1, length);
-      rod([0, 0, 0], [0, 0, -l], id === 'shot' ? 0.055 : 0.035);
+      rod([0, 0, 0], [0, 0, -l], id === 'shot' ? 0.055 : 0.09);
       add('nib', [0.12, 0.4, 0.12], [0, 0, -l]).rotation.x = -Math.PI / 2;
     } else if (id === 'tether') {
       const n = Math.max(8, Math.min(128, Math.ceil(length * 6))); let last = [0, 0, 0];

@@ -193,8 +193,8 @@ check(clearHook.position.z < -7 && clearHook.position.y > 2.5, 'hook travels tow
 
 const camera = new THREE.PerspectiveCamera(70, 16 / 9, 0.1, 1000);
 const cameraHero = create(); cameraHero.updateCamera(camera, 1 / 60);
-close(camera.position.x, 0.75);
-close(camera.position.z, 5);
+close(camera.position.x, 1.1);
+close(camera.position.z, 4);
 check(camera.position.y > 1, 'camera behind right shoulder');
 const floorCamera = new THREE.PerspectiveCamera(70, 16 / 9, 0.1, 1000);
 const floorCameraHero = create(); floorCameraHero.pitch = 1.2;
@@ -213,7 +213,7 @@ const wideFov = camera.fov;
 cameraHero.update(1 / 60, { aim: true, yaw: Math.PI / 2, pitch: 0.2 });
 for (let i = 0; i < 60; i++) cameraHero.updateCamera(camera, 1 / 60);
 check(camera.fov < wideFov - 15 && cameraHero.aiming, 'RMB zoom');
-check(camera.position.x > 3 && camera.position.z < 0, 'camera follows aim yaw and shoulder');
+check(camera.position.x > 2.5 && camera.position.z < 0, 'camera follows aim yaw and shoulder');
 cameraHero.update(1 / 60, { aim: false });
 for (let i = 0; i < 60; i++) cameraHero.updateCamera(camera, 1 / 60);
 close(camera.fov, wideFov, 0.001);

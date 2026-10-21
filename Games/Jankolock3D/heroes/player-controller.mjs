@@ -357,9 +357,9 @@ export class PlayerController {
     // tunnels. A high eye point can already overlap an expanded ceiling box.
     const eyeHeight = Math.min(this.height * 0.85, this.height - CAMERA_RADIUS - 0.01);
     const eye = this.position.clone().add(new THREE.Vector3(0, eyeHeight, 0));
-    const shoulder = eye.clone().add(new THREE.Vector3(Math.cos(this.yaw), 0, -Math.sin(this.yaw)).multiplyScalar(0.75));
+    const shoulder = eye.clone().add(new THREE.Vector3(Math.cos(this.yaw), 0, -Math.sin(this.yaw)).multiplyScalar(1.1));
     shoulder.lerpVectors(eye, shoulder, this._cameraFraction(eye, shoulder));
-    const desired = shoulder.clone().addScaledVector(forward, this.aiming ? -3.3 : -5);
+    const desired = shoulder.clone().addScaledVector(forward, this.aiming ? -2.8 : -4);
     desired.lerpVectors(shoulder, desired, this._cameraFraction(shoulder, desired));
     if (this._camera !== camera) {
       this._camera = camera;

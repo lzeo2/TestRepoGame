@@ -134,6 +134,11 @@ lock-entry input failures were repaired; their history is retained in HEROES.md.
 The generated design PNGs preceded UI source and have labeled runtime twins.
 Mobile is genuinely 390px wide. Independent E grading and world/system assembly,
 rotated ramp collision, hardware/performance and full-fleet gates remain held.
+The latest hero native run after shoulder/muzzle framing changes recorded four
+HTTP 200 pages, 34 captures, 23 observations and zero retained errors. A closer
+4m camera boom and 1.1m right shoulder improve foreground FX visibility; the
+camera collision assertion remains active at the shorter distance. Results
+are evidence for independent review, not a builder-issued acceptance grade.
 
 ## Future outlook
 

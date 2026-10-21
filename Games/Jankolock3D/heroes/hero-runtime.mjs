@@ -30,7 +30,7 @@ export class HeroRuntime {
     this.ammo=Math.min(this.ammo,this.modifiers.magazine);
   }
   aim(camera) { this.camera=camera; }
-  get origin() { return this.controller.position.clone().addScaledVector(UP,1.25); }
+  get origin() { const c=this.controller;return c.position.clone().addScaledVector(UP,1.25).add(new THREE.Vector3(Math.cos(c.yaw)*.55,0,-Math.sin(c.yaw)*.55)); }
   get direction() {
     const c=this.controller;
     return new THREE.Vector3(-Math.sin(c.yaw)*Math.cos(c.pitch),Math.sin(c.pitch),-Math.cos(c.yaw)*Math.cos(c.pitch));

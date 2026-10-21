@@ -104,7 +104,7 @@ def main():
             page.wait_for_function('!window.heroSnapshot().infiniteAmmo'); checks.append('Sprint, slide, real slide shot without ammunition debit, exit clears infinite ammunition')
             page.keyboard.press('Escape'); page.locator('#reset').click();page.locator('canvas').focus()
             page.keyboard.down('s'); page.wait_for_function('window.heroSnapshot().position[2] > 13');page.keyboard.up('s');page.wait_for_timeout(250)
-            wall=snapshot(page); distance=math.dist(wall['position'],wall['camera']); assert distance < 5, wall
+            wall=snapshot(page); distance=math.dist(wall['position'],wall['camera']); assert distance < 3.8, wall
             evidence.append(capture(page, 'camera-wall-clamp'));checks.append(f'Native backward walk: camera distance {distance:.2f}m at rear wall')
             page.keyboard.down('s');page.wait_for_timeout(1600);page.keyboard.up('s');assert snapshot(page)['position'][2]<17, snapshot(page)
             checks.append('Rear-wall movement collision observed')
@@ -127,6 +127,13 @@ def main():
             mobile.close();browser.close()
         twin(ROOT/'docs/jank3d-design/ui-mockup-heroes.png',OUT/'heroes-1-light.png',OUT/'heroes-mockup-vs-implemented.png')
         twin(ROOT/'docs/jank3d-design/ui-mockup-heroes-mobile.png',OUT/'heroes-mobile-full-light.png',OUT/'heroes-mobile-mockup-vs-implemented.png',(390,1040))
+        capacity()
+        sheet=Image.new('RGB',(1280,800),'#eee9d8');labels=ImageDraw.Draw(sheet)
+        for hero in range(1,5):
+            for slot in range(1,5):
+                image=Image.open(OUT/f'heroes-{hero}-ability-{slot}.png').crop((12,125,930,661));image.thumbnail((320,180))
+                x=(slot-1)*320;y=(hero-1)*200;sheet.paste(image,(x,y+20));labels.text((x+8,y+5),f'Hero {hero} / Ability {slot}',fill='#242820')
+        sheet.save(OUT/'heroes-fx-contact-sheet.png')
         assert not errors, errors
         print(f'hero-qa: {len(responses)} hero pages HTTP 200; {len(evidence)} screenshots; {len(checks)} observations; {len(errors)} retained errors. Reviewer acceptance pending.')
     finally:

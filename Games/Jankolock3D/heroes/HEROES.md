@@ -117,6 +117,15 @@ and optional full-page height. Labeled side-by-side images are wider/taller.
 All are under `docs/maintenance/audits/jankolock-3d-qa/heroes-*` with a JSON
 observation report. No browser instances/servers are left running by the test.
 
+Latest completed native run after camera/muzzle tuning reported:
+`hero-qa: 4 hero pages HTTP 200; 34 screenshots; 23 observations; 0 retained errors. Reviewer acceptance pending.`
+Those 34 captures include each ability, every hero in both desktop themes,
+pointer look, aim, double jump, dash, slide, camera-wall clamp and both mobile
+themes (viewport/full-page). Additional files retain the Foldwild reference,
+two labeled comparison twins and the 16-FX contact sheet. The camera now uses
+a 1.1m right shoulder and 4m boom (2.8m while aiming); the matching module
+regression and native collision limit were updated, not removed.
+
 Two earlier native attempts failed: synthetic Escape did not release pointer
 lock, then movement keys could be cleared by a late lock-entry event. The real
 Escape handler now explicitly exits lock, and entering lock no longer clears
