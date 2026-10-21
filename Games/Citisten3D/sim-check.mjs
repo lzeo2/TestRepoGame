@@ -23,14 +23,23 @@ function city() {
 
 const { sim, power, water } = city();
 const initialBudget = sim.state.budget;
-let movedCars = 0, carIds = new Set();
+let movedCars = 0, jams = 0, parking = 0, carIds = new Set();
 advance(sim, 600, () => {
-  for (const c of sim.state.cars) { if (carIds.has(c.id) && c.progress > 0) movedCars++; carIds.add(c.id); }
+  for (const c of sim.state.cars) {
+    if (carIds.has(c.id) && c.progress > 0) movedCars++;
+    if (c.progress === 0.8) jams++;
+    if (c.parked) parking++;
+    carIds.add(c.id);
+  }
+  const lanes = sim.state.cars.filter(c => !c.parked).map(c => c.lane);
+  assert.equal(new Set(lanes).size, lanes.length, 'one moving car per directed lane segment');
 });
 log(`600s city: population=${Math.floor(sim.state.population)} budget=${sim.state.budget.toFixed(2)} initial=${initialBudget} income/s=${sim.state.income.toFixed(2)} upkeep/s=${sim.state.upkeep.toFixed(2)} car-movement-observations=${movedCars}`);
 assert(sim.state.population >= 1400 && sim.state.population <= 1800, '600s growth balance');
 assert(sim.state.budget !== initialBudget && sim.state.income > sim.state.upkeep, 'taxes and upkeep');
-assert(movedCars > 100 && carIds.size > 10, 'road traffic moves and despawns');
+assert(movedCars > 100 && carIds.size > sim.state.cars.length, 'road traffic moves and despawns');
+assert(jams > 0 && parking > 0, 'occupancy jams and destination parking');
+log(`Traffic: unique trips=${carIds.size} jam steps=${jams} parked steps=${parking}`);
 assert.equal(sim.state.night, 0, 'free build never starts a night');
 assert.equal(sim.state.zombies.length, 0);
 const beforeCut = sim.state.population;
@@ -138,5 +147,26 @@ cut.roads.place({ x: 2, z: 5 }, { x: 20, z: 5 });
 build(cut, 'power', 2, 4); const consumer = build(cut, 'commercial', 18, 4);
 advance(cut, 1); assert(consumer.powered);
 cut.roads.set(10, 5, false); advance(cut, 1); assert(!consumer.powered);
+const crimeCity = city().sim; advance(crimeCity, 600);
+for (const b of [...crimeCity.state.buildings]) if (b.type === 'police') crimeCity.bulldoze(b.x, b.z);
+const beforeCrime = crimeCity.state.population; let crimeWave = false;
+advance(crimeCity, 10, () => { crimeWave ||= crimeCity.state.crime > 0.65; });
+assert(crimeWave && crimeCity.state.population < beforeCrime, 'crime-wave abandonment');
+log(`Police removed: population ${Math.floor(beforeCrime)} -> ${Math.floor(crimeCity.state.population)} during crime wave`);
 log('Utility island limits, road cuts, pause/10x, protected hall, frozen loss, invalid input and mid-wave free-mode switch asserted.');
+// Escalating hordes larger than the perimeter wait outside, rather than overlap or vanish.
+const overflow = createSimulation({ size: 12, mode: 'defense', seed: 4 });
+for (let z = 0; z < 12; z++) for (let x = 0; x < 12; x++) {
+  if ((x !== 6 || z !== 6) && overflow.state.budget >= 300) build(overflow, 'watchtower', x, z);
+}
+let expectedKills = 0, queued = false;
+for (let i = 0; i < 14000 && overflow.state.score < 12 && overflow.state.phase !== 'lost'; i++) {
+  overflow.update(0.25); queued ||= overflow.state.pendingZombies > 0;
+  for (const e of overflow.drainEvents()) if (e.type === 'wave') expectedKills += e.count;
+}
+assert.equal(overflow.state.score, 12); assert(queued);
+assert.equal(overflow.state.kills, expectedKills, 'all queued horde members eventually spawn');
+advance(overflow, 240); assert(overflow.state.pendingZombies > 0);
+overflow.setMode('free'); assert.equal(overflow.state.pendingZombies, 0);
+log(`Overflow horde check: 12 nights, ${expectedKills} kills, staged edge spawns accounted for; free mode clears queue.`);
 log('Headless assertions complete. Browser acceptance remains reviewer-owned.');

@@ -44,7 +44,7 @@ export function createSimulation({ size = 200, mode = 'free', seed = 1, roads = 
   if (!['free', 'defense'].includes(mode)) throw new RangeError('Unknown mode');
   const state = {
     size, mode, speed: 1, time: 0, phase: 'day', dayRemaining: 240, night: 0,
-    score: 0, kills: 0, population: 0, peakPopulation: 0, budget: 40000,
+    score: 0, kills: 0, pendingZombies: 0, population: 0, peakPopulation: 0, budget: 40000,
     income: 0, upkeep: 0, netIncome: 0, taxRate: 0.1, crime: 0,
     demand: { residential: 1, commercial: 0.5, industrial: 0.5 },
     power: { supply: 0, demand: 0, served: 0, unserved: 0 },
@@ -167,7 +167,7 @@ export function createSimulation({ size = 200, mode = 'free', seed = 1, roads = 
     };
     const services = active.filter(b => ['townhall', 'park', 'police', 'fire'].includes(b.type));
     const homes = state.buildings.filter(b => b.type === 'residential');
-    const growth = 3 * state.demand.residential * clamp(1.5 - state.taxRate * 5, 0, 1);
+    const growth = 2.7 * state.demand.residential * clamp(1.5 - state.taxRate * 5, 0, 1);
     for (const b of homes) {
       b.serviced = services.some(s => distance(b, s) <= 16);
       const safe = b.powered && b.watered && b.serviced && (state.crime < 0.65 || police.some(p => distance(b, p) <= 16));
@@ -196,7 +196,7 @@ export function createSimulation({ size = 200, mode = 'free', seed = 1, roads = 
     if (path.length < 2) return;
     const points = roads.lanePoints(path).map(p => ({ x: p.x / roads.lotSize + size / 2 - 0.5, z: p.z / roads.lotSize + size / 2 - 0.5 }));
     const lane = `${key(path[0].x, path[0].z)}:${key(path[1].x, path[1].z)}`;
-    if (state.cars.some(c => c.lane === lane && c.segment === 0)) return;
+    if (state.cars.some(c => !c.parked && c.lane === lane)) return;
     state.cars.push({ id: nextId++, ...points[0], heading: 0, lane, parked: false, path, points, segment: 0, progress: 0, parkTime: 2, roadVersion: roads.version });
   }
   function traffic(dt) {
@@ -234,25 +234,27 @@ export function createSimulation({ size = 200, mode = 'free', seed = 1, roads = 
       }
     }
   }
+  const perimeter = [];
+  for (let i = 0; i < size; i++) perimeter.push(key(i, 0), key(i, size - 1));
+  for (let i = 1; i < size - 1; i++) perimeter.push(key(0, i), key(size - 1, i));
+  function spawnPending() {
+    if (!state.pendingZombies) return;
+    const used = new Set(state.zombies.flatMap(z => z.move ? [z.cell, z.move.key] : [z.cell]));
+    const start = Math.floor(random() * perimeter.length);
+    for (let i = 0; i < perimeter.length && state.pendingZombies; i++) {
+      const k = perimeter[(start + i) % perimeter.length];
+      if (used.has(k)) continue;
+      used.add(k); state.pendingZombies--;
+      state.zombies.push({ id: nextId++, ...cell(k), cell: k, hp: 60, cooldown: 0, move: null });
+    }
+  }
   function startNight() {
     state.phase = 'night'; state.night++; warned = false;
     const count = Math.ceil(12 * 1.15 ** (state.night - 1));
-    const used = new Set();
-    for (let i = 0; i < count; i++) {
-      const edge = Math.floor(random() * 4), t = Math.floor(random() * size);
-      const p = edge === 0 ? { x: t, z: 0 } : edge === 1 ? { x: size - 1, z: t } : edge === 2 ? { x: t, z: size - 1 } : { x: 0, z: t };
-      const k = key(p.x, p.z);
-      if (used.has(k)) continue;
-      used.add(k); state.zombies.push({ id: nextId++, ...p, cell: k, hp: 60, cooldown: 0, move: null });
-    }
-    // Overflow hordes use subsequent perimeter slots, without spawning on one another.
-    for (let z = 0; state.zombies.length < count && z < size; z++) for (const x of [0, size - 1]) {
-      const k = key(x, z);
-      if (!used.has(k) && state.zombies.length < count) { used.add(k); state.zombies.push({ id: nextId++, x, z, cell: k, hp: 60, cooldown: 0, move: null }); }
-    }
+    state.pendingZombies = count; spawnPending();
     const homes = state.buildings.filter(b => b.type === 'residential' && b.residents >= 12);
     state.defenders = homes.slice(0, Math.min(24, Math.floor(state.population / 60))).map(b => ({ id: nextId++, x: b.x, z: b.z, home: b.id, cooldown: 0, hp: 60 }));
-    emit('wave', { night: state.night, count: state.zombies.length });
+    emit('wave', { night: state.night, count });
   }
   function shoot(source, target, amount, kind) {
     emit('shot', { from: { x: source.x, z: source.z }, to: { x: target.x, z: target.z }, target: target.id, source: kind });
@@ -265,7 +267,7 @@ export function createSimulation({ size = 200, mode = 'free', seed = 1, roads = 
     return best;
   }
   function combat(dt) {
-    siegeField();
+    spawnPending(); siegeField();
     const occupied = new Set(state.zombies.flatMap(z => z.move ? [z.cell, z.move.key] : [z.cell]));
     for (const b of state.buildings.filter(b => b.type === 'watchtower')) {
       b.cooldown -= dt;
@@ -310,7 +312,7 @@ export function createSimulation({ size = 200, mode = 'free', seed = 1, roads = 
         occupied.add(key(q.x, q.z)); z.move = { ...q, key: key(q.x, q.z), progress: 0 };
       }
     }
-    if (!state.zombies.length && state.phase === 'night') {
+    if (!state.zombies.length && !state.pendingZombies && state.phase === 'night') {
       state.score++; state.phase = 'day'; state.dayRemaining = 240; state.defenders = [];
       emit('night-survived', { score: state.score, night: state.night });
     }
@@ -335,7 +337,7 @@ export function createSimulation({ size = 200, mode = 'free', seed = 1, roads = 
     setMode(value) {
       if (!['free', 'defense'].includes(value)) throw new RangeError('Unknown mode');
       if (state.phase === 'lost') return false;
-      state.mode = value; state.phase = 'day'; state.dayRemaining = 240; state.zombies = []; state.defenders = []; warned = false;
+      state.mode = value; state.phase = 'day'; state.dayRemaining = 240; state.zombies = []; state.pendingZombies = 0; state.defenders = []; warned = false;
       return true;
     },
     update(seconds) {

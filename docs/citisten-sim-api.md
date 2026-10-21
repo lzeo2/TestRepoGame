@@ -31,7 +31,8 @@ costs before integration calls its roads API. Utility/path caches detect road ed
 `netIncome`, `demand: {residential, commercial, industrial}` (0..1),
 `power` and `water` (`{supply, demand, served, unserved}`), `crime` (0..1),
 `mode`, `speed`, `phase` (`day`, `night`, `lost`), `dayRemaining`, `night`,
-`score`, `kills`, `townHallHp`, `townHallMaxHp`, `time`, plus `buildings`,
+`score`, `kills`, `pendingZombies` (edge queue), `townHallHp`, `townHallMaxHp`,
+`time`, plus `buildings`,
 `cars`, `zombies`, `defenders` arrays. All positions use grid `x,z`, not metres.
 Buildings expose `id,type,x,z,hp,maxHp,residents,powered,watered,serviced`.
 Agents expose `id,x,z`; cars also `heading` (world Y rotation in radians,
@@ -59,10 +60,29 @@ an adjacent road. Use `world.buildings.spawn/transform/remove` to draw sim array
 `shot` events already contain exact `from`/`to` grid positions. World/integration
 must convert with `world.roads.center`, raise muzzle/impact height and render a
 brief tracer plus impact. `damaged`, `destroyed` and `kill` can drive world FX.
-The currently published world kit has no tracer/impact method. Simulation does
-not implement a second renderer or UI to hide this gap. This request was sent
-to both world and UI lanes. C/D/F/G/H/I screenshots and visible tower/citizen
-shots remain integration gates, not implied by headless assertions.
+World now supplies `world.effects.shot(from,to)` using grid x/z and optional
+world-height y in metres. Forward `shot` events once; `world.render(dt)` expires
+FX. `sim-qa.py` calls this API and the published UI without implementing either.
+C/D/F/G/H/I normal-input integrated gameplay remains a separate reviewer gate,
+not implied by headless assertions or API-fixture screenshots.
+
+## Timing and tuning
+
+Economy runs once per simulated second; combat and movement use fixed 0.25s
+steps. A day lasts 240 simulation seconds at 1x. Wave size is
+`ceil(12 * 1.15 ** (night-1))`. Hordes exceeding available edge lots queue outside
+until space opens; a night cannot finish while any queued zombies remain.
+Free mode clears both live zombies and the queue, with no day/night assaults.
+
+The 600-second fixture uses 32 homes (64-person capacity), 10 commercial and
+10 industrial lots, one plant/tower, two police and a park at 10% tax. Growth
+is capped at 2.7 residents/second times residential demand; the check reaches
+1,526 residents. `BUILDINGS` is the single cost/HP/upkeep/load table. Districts
+are 8x8 lots, shed whole with town hall priority. Disconnected networks never
+share spare supply. Nearby powered/watered services have a 16-lot catchment.
+Zombies bite for 8 HP each simulated second, watchtowers shoot for 18 HP per
+0.8s within 8 lots, and armed citizens shoot for 10 HP per 1.2s within 3.5 lots.
+Kills add no budget, loot or resources. Day repairs cost ceil(missing HP * 0.4).
 
 ## Gates
 
