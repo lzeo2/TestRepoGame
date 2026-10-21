@@ -1,0 +1,78 @@
+{
+  "asset": "assets/portrait_relief.glb",
+  "sha256": "abe1b2ee07038d6926813542a2127bca06cb19564f535dd49c593ea60c199fc9",
+  "bytes": 10972672,
+  "triangles": 421968,
+  "vertices": 210986,
+  "meshes": 1,
+  "materials": 1,
+  "images": 0,
+  "skins": 0,
+  "animations": 0,
+  "buffers": 1,
+  "bufferViews": 4,
+  "accessors": [
+    {
+      "count": 1265904,
+      "type": "SCALAR",
+      "componentType": 5125,
+      "actualMin": [
+        0
+      ],
+      "actualMax": [
+        210985
+      ]
+    },
+    {
+      "count": 210986,
+      "type": "VEC3",
+      "componentType": 5126,
+      "actualMin": [
+        -0.10999999940395355,
+        -0.16572539508342743,
+        -0.06099997088313103
+      ],
+      "actualMax": [
+        0.09290726482868195,
+        0.142348513007164,
+        0.05361856892704964
+      ]
+    },
+    {
+      "count": 210986,
+      "type": "VEC4",
+      "componentType": 5121,
+      "actualMin": [
+        2,
+        2,
+        2,
+        255
+      ],
+      "actualMax": [
+        208,
+        197,
+        192,
+        255
+      ]
+    },
+    {
+      "count": 210986,
+      "type": "VEC3",
+      "componentType": 5126,
+      "actualMin": [
+        -0.9964726567268372,
+        -0.9936313629150391,
+        -1.0
+      ],
+      "actualMax": [
+        0.9965519309043884,
+        0.994346559047699,
+        1.0
+      ]
+    }
+  ],
+  "externalURIs": 0,
+  "integrity": "PASS",
+  "supplierPhotorealism": "FAIL",
+  "supportedHardware": "UNVERIFIED"
+}
