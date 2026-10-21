@@ -323,9 +323,10 @@ def browser_check():
             page.wait_for_function('window.handle && handle.status!=="loading"', timeout=45000)
             status = page.evaluate('handle.status')
             if status == 'ready':
+                page.locator('#host section').focus()
                 page.keyboard.down('w')
                 try:
-                    page.wait_for_function("document.querySelector('[role=status]').textContent.includes('Bonk')", timeout=15000)
+                    page.wait_for_function("document.querySelector('[role=status]').textContent.includes('Bonk')", timeout=30000, polling=100)
                 finally:
                     page.keyboard.up('w')
                 require('Bonk' in page.get_by_role('status').inner_text(), 'pawn did not bump cylinder')

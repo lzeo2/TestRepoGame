@@ -224,7 +224,7 @@ export async function mountPortrait(host, { signal, reducedMotion = false } = {}
       const vertical = THREE.MathUtils.degToRad(camera.fov / 2);
       const distance = Math.max(1.55 / Math.tan(vertical), 2.65 / (Math.tan(vertical) * camera.aspect));
       camera.position.set(0, 1.95, distance + 1);
-      camera.lookAt(0, 1.15, 0);
+      camera.lookAt(0, 0.95, 0);
       camera.updateProjectionMatrix();
       renderer.setSize(width, height, false); dirty = true; schedule();
     }
