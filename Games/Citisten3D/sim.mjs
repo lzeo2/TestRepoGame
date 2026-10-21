@@ -238,10 +238,11 @@ export function createSimulation({ size = 200, mode = 'free', seed = 1, roads = 
   for (let i = 0; i < size; i++) perimeter.push(key(i, 0), key(i, size - 1));
   for (let i = 1; i < size - 1; i++) perimeter.push(key(0, i), key(size - 1, i));
   function spawnPending() {
-    if (!state.pendingZombies) return;
+    // ponytail: at most one perimeter's worth of live agents; raise only after world performance review.
+    if (!state.pendingZombies || state.zombies.length >= perimeter.length) return;
     const used = new Set(state.zombies.flatMap(z => z.move ? [z.cell, z.move.key] : [z.cell]));
     const start = Math.floor(random() * perimeter.length);
-    for (let i = 0; i < perimeter.length && state.pendingZombies; i++) {
+    for (let i = 0; i < perimeter.length && state.pendingZombies && state.zombies.length < perimeter.length; i++) {
       const k = perimeter[(start + i) % perimeter.length];
       if (used.has(k)) continue;
       used.add(k); state.pendingZombies--;
@@ -253,7 +254,7 @@ export function createSimulation({ size = 200, mode = 'free', seed = 1, roads = 
     const count = Math.ceil(12 * 1.15 ** (state.night - 1));
     state.pendingZombies = count; spawnPending();
     const homes = state.buildings.filter(b => b.type === 'residential' && b.residents >= 12);
-    state.defenders = homes.slice(0, Math.min(24, Math.floor(state.population / 60))).map(b => ({ id: nextId++, x: b.x, z: b.z, home: b.id, cooldown: 0, hp: 60 }));
+    state.defenders = homes.slice(0, Math.min(24, Math.floor(state.population / 60))).map(b => ({ id: nextId++, x: b.x, z: b.z, home: b.id, cooldown: 0 }));
     emit('wave', { night: state.night, count });
   }
   function shoot(source, target, amount, kind) {
@@ -274,14 +275,15 @@ export function createSimulation({ size = 200, mode = 'free', seed = 1, roads = 
       const target = nearestZombie(b, BUILDINGS.watchtower.range);
       if (target && b.cooldown <= 0) { shoot(b, target, BUILDINGS.watchtower.damage, 'tower'); b.cooldown = 0.8; }
     }
+    const threats = state.defenders.length ? state.buildings.filter(b => state.zombies.some(z => distance(b, z) <= 4)) : [];
     for (const c of state.defenders) {
       c.cooldown -= dt;
       // Each citizen rushes to the nearest threatened structure, not an arbitrary enemy across town.
-      const threatened = state.buildings.filter(b => state.zombies.some(z => distance(b, z) <= 4)).sort((a, b) => distance(c, a) - distance(c, b))[0];
+      const threatened = threats.reduce((best, b) => !best || distance(c, b) < distance(c, best) ? b : best, null);
       if (threatened && distance(c, threatened) > 1.5) {
         const dx = threatened.x - c.x, dz = threatened.z - c.z, d = Math.hypot(dx, dz), step = Math.min(d, dt * 1.6);
         const x = c.x + dx / d * step, z = c.z + dz / d * step;
-        if (!cells.has(key(Math.round(x), Math.round(z))) || cells.get(key(Math.round(x), Math.round(z)))?.type !== 'wall') { c.x = x; c.z = z; }
+        if (cells.get(key(Math.round(x), Math.round(z)))?.type !== 'wall') { c.x = x; c.z = z; }
       }
       const target = nearestZombie(c, 3.5);
       if (target && c.cooldown <= 0) { shoot(c, target, 10, 'citizen'); c.cooldown = 1.2; }

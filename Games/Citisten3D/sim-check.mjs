@@ -123,10 +123,10 @@ log(`Three-night totals: waves=${waveCounts.join('/')} shots=${shots} kills=${si
 const armed = city().sim; advance(armed, 600); armed.setMode('defense');
 let citizenShots = 0;
 advance(armed, 400, events => { citizenShots += events.filter(e => e.type === 'shot' && e.source === 'citizen').length; });
-assert(citizenShots > 0, 'armed residents defend structures');
+assert(citizenShots > 0 && armed.state.kills >= 12, 'armed residents repel a wave without towers');
 armed.setMode('free'); advance(armed, 600);
 assert.equal(armed.state.zombies.length, 0); assert.equal(armed.state.phase, 'day');
-log(`Citizen shot events=${citizenShots}; defense -> free clears waves and keeps simulation ticking`);
+log(`Citizen shot events=${citizenShots}, kills=${armed.state.kills}; defense -> free clears waves and keeps simulation ticking`);
 const switcher = createSimulation({ size: 24, mode: 'defense' });
 advance(switcher, 240); assert.equal(switcher.state.phase, 'night'); assert(switcher.state.zombies.length > 0);
 switcher.setMode('free'); let freeWaves = 0;
@@ -162,6 +162,7 @@ for (let z = 0; z < 12; z++) for (let x = 0; x < 12; x++) {
 let expectedKills = 0, queued = false;
 for (let i = 0; i < 14000 && overflow.state.score < 12 && overflow.state.phase !== 'lost'; i++) {
   overflow.update(0.25); queued ||= overflow.state.pendingZombies > 0;
+  assert(overflow.state.zombies.length <= 44, 'live agents respect perimeter budget; full horde remains queued');
   for (const e of overflow.drainEvents()) if (e.type === 'wave') expectedKills += e.count;
 }
 assert.equal(overflow.state.score, 12); assert(queued);

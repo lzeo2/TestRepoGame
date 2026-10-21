@@ -71,7 +71,9 @@ not implied by headless assertions or API-fixture screenshots.
 Economy runs once per simulated second; combat and movement use fixed 0.25s
 steps. A day lasts 240 simulation seconds at 1x. Wave size is
 `ceil(12 * 1.15 ** (night-1))`. Hordes exceeding available edge lots queue outside
-until space opens; a night cannot finish while any queued zombies remain.
+until space opens, with at most `4*size-4` live siege agents. The full horde
+count remains queued, not truncated. A night cannot finish while any queued
+zombies remain.
 Free mode clears both live zombies and the queue, with no day/night assaults.
 
 The 600-second fixture uses 32 homes (64-person capacity), 10 commercial and

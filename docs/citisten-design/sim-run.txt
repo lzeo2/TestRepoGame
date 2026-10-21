@@ -12,7 +12,7 @@ t=761.75s night 3: 16 zombies spawn at map edges
 t=798.25s town hall first bite: 8 HP, wall bite ticks=105
 t=828.25s LOSS: score=2 kills=26 peakPop=0 damage=600
 Three-night totals: waves=12/14/16 shots=104 kills=26 wall-bite-ticks=132 road-motion-steps=531
-Citizen shot events=72; defense -> free clears waves and keeps simulation ticking
+Citizen shot events=72, kills=12; defense -> free clears waves and keeps simulation ticking
 Police removed: population 1526 -> 1356 during crime wave
 Utility island limits, road cuts, pause/10x, protected hall, frozen loss, invalid input and mid-wave free-mode switch asserted.
 Overflow horde check: 12 nights, 352 kills, staged edge spawns accounted for; free mode clears queue.
