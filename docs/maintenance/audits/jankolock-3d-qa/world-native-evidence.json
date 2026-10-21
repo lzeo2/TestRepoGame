@@ -1,0 +1,218 @@
+{
+  "runKind": "native-traversal",
+  "completed": false,
+  "recoveredFromFlushedCaptureLog": true,
+  "failure": "Bounded 210-second run; wrapper_exit=137 after 10-second cleanup grace. Final in-memory report lost.",
+  "evidenceClass": "native input, software WebGL; hardware acceptance unverified",
+  "errors": null,
+  "errorCoverage": "Console/request history unavailable after forced cleanup; do not infer clean loading from this partial run.",
+  "screenshots": [
+    {
+      "path": "docs/maintenance/audits/jankolock-3d-qa/world-foldwild-reference.png",
+      "variance": 3377.05,
+      "snapshot": null
+    },
+    {
+      "path": "docs/maintenance/audits/jankolock-3d-qa/world-implemented.png",
+      "variance": 3984.64,
+      "snapshot": {
+        "traveler": {
+          "x": -250,
+          "y": 0,
+          "z": -380,
+          "mode": "free",
+          "walk": true,
+          "grounded": true,
+          "stamina": 100,
+          "collected": 0,
+          "broken": 0,
+          "zipT": null
+        },
+        "render": {
+          "calls": 93,
+          "triangles": 33684,
+          "geometries": 8,
+          "textures": 20
+        },
+        "paused": false,
+        "disposed": false,
+        "flythrough": false,
+        "spawns": 42
+      }
+    },
+    {
+      "path": "docs/maintenance/audits/jankolock-3d-qa/world-graft-zip-ride.png",
+      "variance": 4177.07,
+      "snapshot": {
+        "traveler": {
+          "x": -250,
+          "y": 7.788267768181024,
+          "z": -271.4008,
+          "mode": "zip",
+          "walk": true,
+          "grounded": true,
+          "stamina": 100,
+          "collected": 0,
+          "broken": 0,
+          "zipT": 0.1475314285714286
+        },
+        "render": {
+          "calls": 87,
+          "triangles": 33652,
+          "geometries": 8,
+          "textures": 20
+        },
+        "paused": false,
+        "disposed": false,
+        "flythrough": false,
+        "spawns": 42
+      }
+    },
+    {
+      "path": "docs/maintenance/audits/jankolock-3d-qa/world-graft-arrival.png",
+      "variance": 4340.88,
+      "snapshot": {
+        "traveler": {
+          "x": -250,
+          "y": 0,
+          "z": 385,
+          "mode": "free",
+          "walk": true,
+          "grounded": true,
+          "stamina": 100,
+          "collected": 0,
+          "broken": 0,
+          "zipT": null
+        },
+        "render": {
+          "calls": 32,
+          "triangles": 31578,
+          "geometries": 8,
+          "textures": 20
+        },
+        "paused": false,
+        "disposed": false,
+        "flythrough": false,
+        "spawns": 42
+      }
+    },
+    {
+      "path": "docs/maintenance/audits/jankolock-3d-qa/world-midway-zip-ride.png",
+      "variance": 4595.19,
+      "snapshot": {
+        "traveler": {
+          "x": -10,
+          "y": 7.782379351222416,
+          "z": 271.8040000000012,
+          "mode": "zip",
+          "walk": true,
+          "grounded": true,
+          "stamina": 100,
+          "collected": 0,
+          "broken": 0,
+          "zipT": 0.8529922077922094
+        },
+        "render": {
+          "calls": 44,
+          "triangles": 32346,
+          "geometries": 8,
+          "textures": 20
+        },
+        "paused": false,
+        "disposed": false,
+        "flythrough": false,
+        "spawns": 42
+      }
+    },
+    {
+      "path": "docs/maintenance/audits/jankolock-3d-qa/world-midway-arrival.png",
+      "variance": 4014.91,
+      "snapshot": {
+        "traveler": {
+          "x": -10,
+          "y": 0,
+          "z": -385,
+          "mode": "free",
+          "walk": true,
+          "grounded": true,
+          "stamina": 100,
+          "collected": 0,
+          "broken": 0,
+          "zipT": null
+        },
+        "render": {
+          "calls": 103,
+          "triangles": 33774,
+          "geometries": 8,
+          "textures": 25
+        },
+        "paused": false,
+        "disposed": false,
+        "flythrough": false,
+        "spawns": 42
+      }
+    },
+    {
+      "path": "docs/maintenance/audits/jankolock-3d-qa/world-greenhedge-zip-ride.png",
+      "variance": 4046.15,
+      "snapshot": {
+        "traveler": {
+          "x": 230,
+          "y": 7.782344286664654,
+          "z": -271.8064000000008,
+          "mode": "zip",
+          "walk": true,
+          "grounded": true,
+          "stamina": 100,
+          "collected": 0,
+          "broken": 0,
+          "zipT": 0.1470046753246743
+        },
+        "render": {
+          "calls": 99,
+          "triangles": 33766,
+          "geometries": 8,
+          "textures": 27
+        },
+        "paused": false,
+        "disposed": false,
+        "flythrough": false,
+        "spawns": 42
+      }
+    }
+  ],
+  "nativeZipEndpoints": [
+    {
+      "lane": "graft",
+      "state": {
+        "x": -250,
+        "y": 0,
+        "z": 385,
+        "mode": "free",
+        "walk": true,
+        "grounded": true,
+        "stamina": 100,
+        "collected": 0,
+        "broken": 0,
+        "zipT": null
+      }
+    },
+    {
+      "lane": "midway",
+      "state": {
+        "x": -10,
+        "y": 0,
+        "z": -385,
+        "mode": "free",
+        "walk": true,
+        "grounded": true,
+        "stamina": 100,
+        "collected": 0,
+        "broken": 0,
+        "zipT": null
+      }
+    }
+  ],
+  "nativeArrivalWalks": null,
+  "uiReport": "world-ui-evidence.json"
+}

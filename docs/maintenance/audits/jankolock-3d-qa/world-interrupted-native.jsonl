@@ -1,0 +1,3 @@
+{"capture": "foldwild-reference", "traveler": null}
+{"capture": "implemented", "traveler": {"traveler": {"x": -250, "y": 0, "z": -380, "mode": "free", "walk": true, "grounded": true, "stamina": 100, "collected": 0, "broken": 0, "zipT": null}, "render": {"calls": 93, "triangles": 33684, "geometries": 8, "textures": 20}, "paused": false, "disposed": false, "flythrough": false, "spawns": 42}}
+{"capture": "graft-zip-ride", "traveler": {"traveler": {"x": -250, "y": 7.545045990046038, "z": -287.8, "mode": "zip", "walk": true, "grounded": true, "stamina": 100, "collected": 0, "broken": 0, "zipT": 0.12623376623376623}, "render": {"calls": 88, "triangles": 33654, "geometries": 8, "textures": 20}, "paused": false, "disposed": false, "flythrough": false, "spawns": 42}}

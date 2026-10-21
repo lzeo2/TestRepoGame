@@ -90,6 +90,12 @@ def main():
     threading.Thread(target=server.serve_forever, daemon=True).start()
     origin = f'http://127.0.0.1:{args.port}'
     report = {'evidenceClass': 'native input, software WebGL; no hardware acceptance', 'runKind': 'native-traversal' if args.native else 'ui-only', 'storageBefore': before, 'screenshots': [], 'errors': [], 'requests': [], 'nativeZipEndpoints': []}
+    def save_report():
+        guard()
+        payload = json.dumps(report, indent=2) + '\n'
+        (QA / 'world-evidence.json').write_text(payload)
+        (QA / ('world-native-evidence.json' if args.native else 'world-ui-evidence.json')).write_text(payload)
+
     try:
         with sync_playwright() as pw:
             guard()
@@ -114,6 +120,7 @@ def main():
                     page.screenshot(path=str(path))
                     entry = {'path': str(path.relative_to(ROOT)), 'variance': variance(path), 'snapshot': page.evaluate('window.jank3dWorldSnapshot?.()')}
                     report['screenshots'].append(entry)
+                    save_report()
                     print(json.dumps({'capture': name, 'traveler': entry['snapshot']}), flush=True)
 
                 def move(key, condition, timeout=90000):
@@ -157,6 +164,7 @@ def main():
                         walked = state()
                         assert walked['walk'] and walked['grounded'] and abs(walked['z'] - endpoint['z']) >= 4
                         report.setdefault('nativeArrivalWalks', []).append({'lane': lane, 'state': walked})
+                        save_report()
                         reverse = 'w' if delta < 0 else 's'
                         op = '>=' if delta < 0 else '<='
                         move(reverse, f'window.jank3dWorldSnapshot().traveler.z {op} {endpoint["z"]}')
@@ -186,6 +194,10 @@ def main():
                 assert not report['errors'], report['errors']
                 assert all(r['status'] == 200 for r in report['requests']), report['requests']
                 report['completed'] = True
+            except Exception as error:
+                report['failure'] = f'{type(error).__name__}: {error}'
+                save_report()  # Save before browser cleanup, which can itself hang.
+                raise
             finally:
                 browser.close()
     except Exception as error:
@@ -196,9 +208,7 @@ def main():
         server.server_close()
         report['storageAfter'] = guard()
         guard()
-        payload = json.dumps(report, indent=2) + '\n'
-        (QA / 'world-evidence.json').write_text(payload)
-        (QA / ('world-native-evidence.json' if args.native else 'world-ui-evidence.json')).write_text(payload)
+        save_report()
         print(json.dumps({'completed': report.get('completed', False), 'captures': len(report['screenshots']), 'endpoints': len(report['nativeZipEndpoints']), 'errors': report['errors'], 'failure': report.get('failure')}), flush=True)
 
 

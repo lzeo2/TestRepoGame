@@ -153,3 +153,18 @@ combat/economy and publication gates are outside this world milestone.
 `AssertionError: Inventory stale: inspect changes, then run --refresh.` The
 orchestrator owns maintenance inventory/manual reconciliation; those files
 were not edited by the world worker.
+
+### Final bounded native result
+
+The fresh 210-second retry reached Graft and Midway grounded endpoints and
+Greenhedge in flight, then exited **137** after the 10-second cleanup grace.
+No third arrival or retained grounded-walk observations exist: **native HOLD**.
+`world-native-evidence.json` explicitly reconstructs only the flushed capture
+observations; console/request history is unknown, not clean. Raw observations
+are in `world-bounded-native.jsonl`. UI reports mark the three shared images
+replaced by newer native captures; their original variance values are historical.
+The QA runner now checkpoints captures/walks and saves errors before closing
+the browser. This instrumentation passes Python syntax only; its new checkpoint
+behavior has not received another browser run. No production navigation defect
+was established. Browser/server processes stopped. Hermes advice ticket
+`pi-2027948-1792619695258-0497d09d` remains pending after a 10-second timeout.
