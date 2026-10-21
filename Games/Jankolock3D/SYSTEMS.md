@@ -298,3 +298,20 @@ Current remaining gates: integration of actor layer/hero stats/structure HP and
 five bots; reviewer grades B/C/D/F and mockup fidelity; global maintenance
 manual/inventory reconciliation; full-fleet and supported-hardware checks before
 any shipping decision. The shared-browser slot is no longer a blocker.
+
+### Operator-requested serialized rerun
+
+On the unchanged source hashes recorded in `systems-browser-evidence.json`,
+`TMPDIR=/dev/shm timeout --signal=TERM --kill-after=15s 180s python3 -B
+Games/Jankolock3D/systems-qa.py` exited 0. The rerun retained 13 captures,
+109 HTTP 200 responses, zero recorded errors and minimum image variance689.34.
+Desktop flex-panel fit, mobile overflow/44px targets, purchases, 10m active dash,
+24-trooper wave, secure/ground pickup/deny, candle64.8HP/.36 scale, dead purchase
+remaining at0HP, full1120HP respawn and base-ring recall assertions all passed.
+The initial desktop shop visibly fits; some later desktop captures still show
+clipped header lettering despite the scroll/header-position checks. Preserve
+that visual caveat for reviewer follow-up, not a blanket UI acceptance claim.
+No source logic or assertions were changed for this rerun. Browser/server exited;
+root free bytes during the test were4,175,536,128 ->4,175,527,936. This remains
+native input on explicit systems fixtures, not integrated game acceptance.
+Global maintenance reconciliation remains integration/operator-owned.
