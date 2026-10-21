@@ -4,8 +4,8 @@
 
 ## Identity and status
 
-Registered catalog **232**, entry `Games/Wings/index.html`; catalog remains
-125 games. Static offline adaptation of anomalyco/arcade Wings at source pin
+Registered catalog **232**, entry `Games/Wings/index.html`; catalog currently has
+126 games. Static offline adaptation of anomalyco/arcade Wings at source pin
 `bf5f6277e38ee52e9bfa4ae4a01337b46175c181`, ingested by owner order despite
 missing upstream LICENSE. **Integrated repair, not released.**
 
@@ -355,6 +355,22 @@ runtime integration also remains incomplete; committed served bundles still
 have seven selectable kinds. Publish only the complete committed milestones,
 verify live delivery, and fix forward if later tests find regressions. Do not
 interpret the operator's exception as permission to falsify acceptance.
+
+## Capacity-authorized source checkpoint resume
+
+[Current checkpoint and hold receipt](../audits/wings-speedboat-integration-hold-20261021.md)
+records private source `c04b506`, reviewed boat integration and the closed-roof,
+seated-driver candidate. Saved generated boat, Astra and solo checks passed again;
+build closure and candidate hash match. These CPU results do not establish play.
+
+Capacity is above the strict builder guard, but the approved external Three
+package is absent in this process despite reported restoration. Native EGL sees
+Broadcom V3D; two separate hardware-browser capability routes produced no WebGL2
+context. No further Wings launch, native acceptance, runtime delivery or push.
+Restore tooling and a supported browser route before paired delivery. Earlier
+tracked WIP is no longer present; saved reviewed diffs and private source survive.
+Current maintenance coverage passes for 126 registered and five unregistered
+games. Full fleet remains deferred; no new game or multinational jet in this lane.
 
 ## Future outlook
 

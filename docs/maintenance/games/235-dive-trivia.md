@@ -1,10 +1,10 @@
-# Dive Trivia (Working Title)
+# Below the Obvious
 
 <!-- maintenance-game: Games/Dive Trivia -->
 
 ## Identity and status
 
-Catalog 235, `Games/Dive Trivia/index.html`, category word. Owner-authorized original rare-answer trivia, not an ingested port. Name is a provisional catalog label awaiting the operator. The corrected 2026-10-19 chat order permits solo first and Battle phase 2. No online multiplayer or publication is claimed. See [provenance/controls](../../dive-trivia-provenance.md) and [transport research](../../kirrlion-mp-research.md).
+Catalog 235, `Games/Dive Trivia/index.html`, category word. Owner-authorized original rare-answer trivia, not an ingested port. The operator selected the name Below the Obvious on 2026-10-21; the directory and `dive-trivia` storage namespace remain unchanged. The corrected 2026-10-19 chat order permits solo first and Battle phase 2. No online multiplayer or publication is claimed. See [provenance/controls](../../dive-trivia-provenance.md) and [transport research](../../kirrlion-mp-research.md).
 
 ## Implementation map
 
@@ -38,4 +38,4 @@ Targeted registered-game smoke, source syntax, catalog Git URLs and inventory ga
 
 ## Future outlook
 
-Operator chooses a final name from handover candidates. Expand original answer coverage and fact-check before growing the pool. Battle is phase 2: recommended private Supabase Broadcast with host-authoritative friendly-game protocol, subject to actual service/account/security provisioning, simultaneous-submit/reconnect/hidden-answer tests, real two-client relay proof and 12-client checks. Real multi-device/school WiFi remains unverified. No standing authorization for other additions or auto-publication.
+The final name is Below the Obvious, selected by the operator on 2026-10-21. Expand original answer coverage and fact-check before growing the pool. Battle is phase 2: recommended private Supabase Broadcast with host-authoritative friendly-game protocol, subject to actual service/account/security provisioning, simultaneous-submit/reconnect/hidden-answer tests, real two-client relay proof and 12-client checks. Real multi-device/school WiFi remains unverified. No standing authorization for other additions or auto-publication.

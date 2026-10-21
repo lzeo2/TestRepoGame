@@ -1338,11 +1338,22 @@
   },
   {
     "id": 235,
-    "title": "Dive Trivia (Working Title)",
+    "title": "Below the Obvious",
     "cat": "word",
     "icon": "Games/Dive Trivia/guide.svg",
-    "desc": "Original self-made rare-answer trivia commissioned for this arcade. Seven-question UTC daily dives, numbered games and four themed packs with curated rarity scoring. Offline solo; online Battle is not enabled. Final name pending operator selection.",
+    "desc": "Original self-made rare-answer trivia commissioned for this arcade. Seven-question UTC daily dives, numbered games and four themed packs with curated rarity scoring. Offline solo; online Battle is not enabled.",
     "url": "Games/Dive Trivia/index.html",
     "featured": false
+  },
+  {
+    "id": 240,
+    "title": "JANKOLOCK",
+    "cat": "action",
+    "icon": "",
+    "desc": "Original shipping-office arena-MOBA skirmish. Choose one of three heroes, capture the center with an ally bot, and draft an item between rounds. First to three round wins takes the match. Offline solo.",
+    "url": "Games/Jankolock/index.html",
+    "featured": false,
+    "controls": "WASD/arrows move; mouse aims, primary button fires; IJKL/Space keyboard aim/fire; Q/E abilities; P/Escape pause. Touch movement, aim/fire pads and ability buttons.",
+    "tags": ["shooter", "solo"]
   }
 ]

@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#f2eddf">
+  <title>Jankolock | Shipping Office Arena</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath fill='%23ee715c' d='M0 0h32v32H0z'/%3E%3Cpath fill='%23191919' d='M8 7h17v13l-7 6H8v-6h6l4-3v-4H8z'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <a class="skip" href="#arena">Skip to arena</a>
+  <header class="masthead">
+    <div><p class="eyebrow">Office 04 / Dispatch dispute</p><h1>Jankolock</h1></div>
+    <div class="settings" aria-label="Display and sound settings">
+      <button id="themeBtn" type="button">Dark theme</button>
+      <button id="motionBtn" type="button" aria-pressed="false">Motion: off</button>
+      <button id="muteBtn" type="button" aria-pressed="true">Sound: off</button>
+    </div>
+  </header>
+  <main>
+    <section class="scoreboard" aria-label="Match scoreboard">
+      <div class="team blue"><span>Dispatch / You + ally</span><strong id="blueScore">0</strong></div>
+      <div class="clock"><strong id="clock">60</strong><span id="roundLabel">First to 3 rounds</span><span id="winsLabel">Rounds 0 : 0</span></div>
+      <div class="team coral"><span>Returns / 2 rivals</span><strong id="redScore">0</strong></div>
+    </section>
+    <div class="workspace">
+      <section class="play-column" aria-label="Shipping office arena">
+        <div class="arena-wrap">
+          <canvas id="arena" width="1040" height="700" tabindex="0" aria-label="Arena. WASD or arrows move. Mouse aims, hold primary button to fire. IJKL aim and Space fires. Q and E abilities. P pauses.">Canvas is required to play Jankolock.</canvas>
+          <span class="arena-caption">DISPATCH FLOOR <span>Cover blocks shots / Ring scores influence</span></span>
+        </div>
+        <div class="capture-line"><span id="captureLabel">Hold the center. First to 40 influence.</span><progress id="captureWarm" max="1" value="0" aria-label="Capture warm-up"></progress></div>
+        <div id="playControls" hidden>
+          <div class="health-line"><label for="health">Your health <strong id="healthText">100 / 100</strong></label><progress id="health" max="100" value="100"></progress><span id="lifeStatus">Ready</span></div>
+          <div class="action-row" id="controls">
+            <button id="abilityQ" type="button"><kbd>Q</kbd> <span>Ability 1</span></button>
+            <button id="abilityE" type="button"><kbd>E</kbd> <span>Ability 2</span></button>
+            <button id="pauseBtn" type="button">Pause</button>
+            <button id="restartBtn" class="secondary" type="button">Reset match</button>
+          </div>
+          <div class="touch-controls" aria-label="Touch game controls">
+            <div id="movePad" class="pad" role="group" aria-label="Movement pad. Drag to move."><span>MOVE</span><i aria-hidden="true"></i></div>
+            <p>Drag left to move.<br>Drag right to aim + fire.</p>
+            <div id="aimPad" class="pad" role="group" aria-label="Aim and fire pad. Drag to aim and fire."><span>AIM / FIRE</span><i aria-hidden="true"></i></div>
+          </div>
+        </div>
+        <p id="status" class="status" role="status" aria-live="polite">Loading the dispatch desk...</p>
+      </section>
+      <aside id="sidebar" aria-label="Match controls">
+        <section id="lobbyPanel">
+          <p class="eyebrow">Clock in</p><h2>Pick your problem.</h2>
+          <p>One office. Two teams. Hold the dispatch ring and send Returns packing. Solo with three bots.</p>
+          <div id="heroCards" class="hero-cards" aria-label="Choose your hero"></div>
+          <button id="startBtn" class="primary wide" type="button" disabled>Start match</button>
+          <button id="hallBtn" class="secondary wide" type="button">Visit trophy hall</button>
+          <p class="fine">Best of five. Draft one item between rounds. Reset returns here and clears the match.</p>
+        </section>
+        <section id="matchPanel" hidden>
+          <p class="eyebrow">On the clock</p><h2 id="playerName">Tin Courier</h2>
+          <p id="abilityHelp"></p>
+          <h3>Match items</h3><p id="inventory">No items yet. Draft after a round.</p><p id="botDraft" class="fine"></p>
+          <h3>Floor rules</h3><p>Alone in the ring for 1 second: +2 influence each second. A kill: +4. Contested or empty: no capture score.</p>
+          <p class="fine">40 influence or the lead at 60 seconds wins. A tie goes to sudden death.</p>
+        </section>
+        <section id="pausePanel" hidden><p class="eyebrow">Off the clock</p><h2>Paused.</h2><p>All match clocks are stopped. Held controls have been released.</p><button id="resumeBtn" class="wide" type="button">Resume match</button></section>
+        <section id="resultPanel" hidden><p class="eyebrow">Dispatch report</p><h2 id="resultTitle">Round complete</h2><p id="resultReason"></p><div id="roundSummary"></div><button id="continueBtn" class="wide" type="button">Continue to item draft</button><button id="resultResetBtn" class="secondary wide" type="button">Reset to hero lobby</button></section>
+        <section id="draftPanel" hidden><p class="eyebrow">Supply cupboard</p><h2>Choose one item.</h2><p>Applies next round and stays for this match. Each item stacks twice. Combat is stopped.</p><div id="itemCards" class="item-cards"></div></section>
+        <details class="instructions"><summary>Controls &amp; accessibility</summary><p><b>Move:</b> WASD / arrows. <b>Aim:</b> pointer. <b>Fire:</b> hold primary button. <b>Abilities:</b> Q / E.</p><p><b>Keyboard only:</b> IJKL aim, Space fires. P / Escape pauses. Tab reaches all buttons.</p><p><b>Touch:</b> separate move and aim/fire pads, with ability buttons below the arena. Leaving the page pauses play.</p><p>Blue square badges mark Dispatch. Coral triangle badges mark Returns. Sound and cosmetic motion start off.</p></details>
+      </aside>
+    </div>
+    <section id="hallPanel" hidden aria-label="Trophy hall"><div class="hall-heading"><h2>Trophy hall</h2><button id="hallBackBtn" type="button">Back to dispatch</button></div><p id="hallStatus" role="status">Loading the local trophy hall...</p><div id="portraitHost"></div></section>
+  </main>
+  <footer>Original shipping-office skirmish. Offline solo. No online mode.</footer>
+  <script type="module" src="ui.js"></script>
+</body>
+</html>
