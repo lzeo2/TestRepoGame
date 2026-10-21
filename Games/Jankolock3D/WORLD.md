@@ -184,7 +184,7 @@ fresh native gate and maintenance reconciliation. Syntax and authored whitespace
 checks passed. The maintenance checker still rejects uncommitted Games changes,
 including sibling work; this worker does not own or refresh that inventory.
 
-### Final bounded native result
+### Historical bounded native result (superseded below)
 
 The fresh 210-second retry reached Graft and Midway grounded endpoints and
 Greenhedge in flight, then exited **137** after the 10-second cleanup grace.
@@ -197,4 +197,30 @@ The QA runner now checkpoints captures/walks and saves errors before closing
 the browser. This instrumentation passes Python syntax only; its new checkpoint
 behavior has not received another browser run. No production navigation defect
 was established. Browser/server processes stopped. Hermes advice ticket
-`pi-2027948-1792619695258-0497d09d` remains pending after a 10-second timeout.
+`pi-2027948-1792619695258-0497d09d` was pending after a 10-second timeout.
+
+### Completed native follow-up and independent review
+
+After `bc25ca9`, the orchestrator ran the same native QA with a 540-second
+bound and 15-second cleanup grace. It exited **0**: **13 captures, three full
+station-to-station rides, three grounded arrival walks, 29 HTTP 200 responses,
+zero recorded errors**. Current `world-evidence.json` and
+`world-native-evidence.json` contain this completed run. Raw flushed observations
+are in `world-fresh-native.jsonl`; older interrupted/bounded logs remain failed
+historical evidence. The checkpoint instrumentation is now exercised by an
+actual completed browser run. Screenshots were refreshed, including the new
+`world-greenhedge-arrival.png`. Earlier UI receipt variance values are historical
+where files were overwritten; the new report measures current images.
+
+Independent follow-up review `f1ad679` grades **A qualified PASS**, **I world-only
+PASS**, and **UI PASS with caveats**. It closes the reproduced ramp/tower cases
+and accepts the solid skybox under the no-gradient rule. The unchanged
+qualification is 770 m station coverage, not 900 m edge-to-edge, and native
+arrival walking plus module full-lane walking, not exhaustive native walking.
+Secondary traversal routes, hardware and complete-game B-H remain unverified
+by this world-only gate. Current regression: **491 assertions passed**.
+
+The maintained source guide is
+`docs/maintenance/games/unregistered-jankolock3d.md`. Inventory validation remains
+subject to concurrent sibling source commits; do not reset their changes. No
+catalog edit, full-fleet release gate or push occurred.
