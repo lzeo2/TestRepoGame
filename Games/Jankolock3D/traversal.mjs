@@ -5,8 +5,35 @@ const near = (p,q,r=5) => Math.hypot(p.x-q.x,p.y-q.y,p.z-q.z)<=r+1e-8;
 export function createTraveler(world) {
   return { ...world.start, vy:0, grounded:true, walk:true, stamina:100, mode:'free', ride:null, cooldown:0, collected:new Set(), broken:new Set(), event:'' };
 }
-// Upright capsule segment against AABB. Used by both the viewer and integrations.
+// Upright capsule against an AABB or rotated ramp slab, shared by integrations.
 export function capsuleIntersects(p,b) {
+  if(b.axis) {
+    // Match the scene's rotated 0.2 m slab. Transform the capsule segment
+    // into slab space, then minimize its squared distance to the local box.
+    if(p.x<b.minX-BODY.radius-.2 || p.x>b.maxX+BODY.radius+.2 || p.z<b.minZ-BODY.radius-.2 || p.z>b.maxZ+BODY.radius+.2) return false;
+    const span=b.axis==='x'?b.maxX-b.minX:b.maxZ-b.minZ, rise=b.end-b.start;
+    const length=Math.hypot(span,rise), c=span/length, s=rise/length;
+    const along=b.axis==='x'?p.x-(b.minX+b.maxX)/2:p.z-(b.minZ+b.maxZ)/2;
+    const across=b.axis==='x'?p.z-(b.minZ+b.maxZ)/2:p.x-(b.minX+b.maxX)/2;
+    const y=p.y+BODY.radius-(b.start+b.end)/2+.1, segment=BODY.height-2*BODY.radius;
+    const a=[c*along+s*y,-s*along+c*y,across], d=[s*segment,c*segment,0];
+    const half=[length/2,.1,(b.axis==='x'?b.maxZ-b.minZ:b.maxX-b.minX)/2], cuts=[0,1];
+    for(let i=0;i<3;i++) if(d[i]) for(const edge of [-half[i],half[i]]) {
+      const t=(edge-a[i])/d[i];if(t>0&&t<1)cuts.push(t);
+    }
+    cuts.sort((a,b)=>a-b);
+    const distance=t=>a.reduce((sum,v,i)=>sum+(v+d[i]*t-clamp(v+d[i]*t,-half[i],half[i]))**2,0);
+    let best=Infinity;
+    for(let j=1;j<cuts.length;j++) {
+      const lo=cuts[j-1],hi=cuts[j],mid=(lo+hi)/2;let aa=0,ab=0;
+      for(let i=0;i<3;i++) {
+        const v=a[i]+d[i]*mid;
+        if(Math.abs(v)>half[i]) {aa+=d[i]*d[i];ab+=d[i]*(a[i]-Math.sign(v)*half[i]);}
+      }
+      best=Math.min(best,distance(lo),distance(hi),distance(aa?clamp(-ab/aa,lo,hi):mid));
+    }
+    return best<BODY.radius*BODY.radius-1e-8;
+  }
   const dx=p.x-clamp(p.x,b.minX,b.maxX), dz=p.z-clamp(p.z,b.minZ,b.maxZ);
   const lo=p.y+BODY.radius, hi=p.y+BODY.height-BODY.radius;
   const dy=hi<b.minY ? b.minY-hi : lo>b.maxY ? lo-b.maxY : 0;
@@ -28,6 +55,16 @@ export function moveCapsule(p,dx,dz,world,broken=new Set()) {
         if(canStep) result.y=raised.y;
         else {result[axis]=previous;break;}
       }
+    }
+    for(const r of world.ramps) {
+      const h=rampHeight(r,result.x,result.z);
+      const onRamp=result.x>=r.minX&&result.x<=r.maxX&&result.z>=r.minZ&&result.z<=r.maxZ;
+      if(result.y>=h-.02) continue;
+      if(!capsuleIntersects(result,r)) continue;
+      const raised={...result,y:h};
+      if(onRamp && result.grounded && h>result.y && h-result.y<=.55 &&
+        !world.boxes.some(b=>!broken.has(b.id)&&capsuleIntersects(raised,b))) result.y=h;
+      else {result[axis]=previous;break;}
     }
   }
   return result;
@@ -108,6 +145,11 @@ export function stepTraveler(world,s,input,dt) {
   // would let a jumping traveler enter the bridge slab from below.
   for(const b of world.boxes) if(!s.broken.has(b.id) && s.x>b.minX-BODY.radius && s.x<b.maxX+BODY.radius && s.z>b.minZ-BODY.radius && s.z<b.maxZ+BODY.radius) {
     if(s.vy>0 && oldY+BODY.height<=b.minY && s.y+BODY.height>b.minY) {s.y=b.minY-BODY.height;s.vy=0;}
+  }
+  for(const r of world.ramps) if(s.vy>0 && capsuleIntersects(s,r) && !capsuleIntersects({...s,y:oldY},r)) {
+    let lo=oldY,hi=s.y;
+    for(let n=0;n<24;n++) {const mid=(lo+hi)/2;if(capsuleIntersects({...s,y:mid},r))hi=mid;else lo=mid;}
+    s.y=lo;s.vy=0;
   }
   const floor=surfaceHeight(world,s.x,s.z,Math.max(oldY,s.y)+.55,s.broken);
   if(s.y<=floor && s.vy<=0) {s.y=floor;s.vy=0;s.grounded=true;} else s.grounded=false;

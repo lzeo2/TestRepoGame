@@ -52,7 +52,9 @@ selected and does not load audio assets.
   jump and interact intents; it caps each step at 0.05 seconds. `interact()` and
   `interaction()` implement nearby station/crate/portal/vent/rope actions.
   `moveCapsule()`, `capsuleIntersects()`, `surfaceHeight()` and `BODY` expose the
-  same collision geometry for integrations. `travelerSnapshot()` returns a
+  same collision geometry for integrations. `capsuleIntersects()` accepts either
+  an AABB or a ramp descriptor; ramps collide as the rendered rotated 0.2m slabs.
+  `travelerSnapshot()` returns a
   frozen primitive-only observation. Sets of collected/broken IDs belong to
   the caller, not a global game economy.
 - `world-scene.mjs`: `createWorldScene(canvas,world)` returns `render`, `resize`,
@@ -71,9 +73,11 @@ color-coded lanes, structure markers, paired stamp teleporters, two roof vents,
 Staple Tower rope and soul crate, two supply camps with breakable crates and
 cover, a below-street sewer/Mid-Boss marker and a stamina-draining plaza. These
 are geometry/traversal fixtures, not combat, AI, boss or economy systems. The
-solid-color sky sphere, sun and clouds are not a textured or gradient skybox.
-Guardian approaches use slopes, not individual stair-step geometry. Tower
-collision is a conservative solid box rather than the visible staple opening.
+skybox is an enclosing 2200m BoxGeometry with six inward-facing, uniformly
+solid-color faces, plus separate sun and clouds. No gradient or runtime asset
+is used. Guardian approaches use slopes, not individual stair-step geometry.
+Staple Tower renders directly from its two leg AABBs and top AABB; the opening
+is walkable and the roof/rope route remains available.
 
 ## Controls
 
@@ -110,7 +114,7 @@ TMPDIR=/dev/shm timeout 180s python3 -B Games/Jankolock3D/world-qa.py
 TMPDIR=/dev/shm timeout 420s python3 -B Games/Jankolock3D/world-qa.py --native
 ```
 
-`world-test`: **468 assertions passed**, including all roofs, each lane's
+`world-test`: **491 assertions passed**, including all roofs, each lane's
 end-to-end walking fixture, full outbound zip plus reverse/detach, ramps,
 teleports, both vents, tower/crate/bell event, crate collision removal, sewer,
 plaza drain, bridge underside and JSON equality. These are module fixtures,
@@ -153,6 +157,32 @@ combat/economy and publication gates are outside this world milestone.
 `AssertionError: Inventory stale: inspect changes, then run --refresh.` The
 orchestrator owns maintenance inventory/manual reconciliation; those files
 were not edited by the world worker.
+
+### Corrective collision and skybox follow-up
+
+The reviewer side-entry probe exposed height-only ramp support without slab
+volume collision. Shared `capsuleIntersects()` now transforms the capsule
+segment into the rendered slab's local coordinates and minimizes segment/box
+distance. `moveCapsule()` rejects lateral entry, retains low-edge/top stepping,
+and `stepTraveler()` resolves upward slab contact. Slabs remain passable below
+when there is headroom; no ramp geometry was removed. Regressions cover the
+exact 25-step reviewer probe, both ramp axes and slope signs, jumping undersides,
+underpasses, and walking through the staple opening. All original 468 assertions,
+including every roof and complete lane routes, remain intact.
+
+The old reviewer probe reached x=-387 at feet y=0 inside the slab; the fix stops
+at x=-383.4 outside it. A jumping underside fixture previously reached head
+height 7.3m through a 7m ramp; the fixed peak is 6.709m. Tower collision now uses
+`staple-tower-west`, `staple-tower-east`, and `staple-tower-top` instead of the old
+`staple-tower` box. Signatures, spawn/station coordinates and descriptor version
+are unchanged. JSON was re-exported with `world-test.mjs --json` and checked for
+exact descriptor equality. The historical WORLD-REVIEW.md is unchanged.
+
+These are module regressions, not native acceptance. No browser or new capture
+was run for this correction. Native A remains HOLD; the orchestrator owns the
+fresh native gate and maintenance reconciliation. Syntax and authored whitespace
+checks passed. The maintenance checker still rejects uncommitted Games changes,
+including sibling work; this worker does not own or refresh that inventory.
 
 ### Final bounded native result
 

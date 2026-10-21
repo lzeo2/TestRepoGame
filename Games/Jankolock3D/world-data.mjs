@@ -58,7 +58,9 @@ export function createWorldData() {
   ramp('mid-north-ramp', -21,21,35,55,'z',3,0);
   ramp('sewer-access', 40,90,-9,9,'x',-10,0);
   ramp('plaza-access',170,205,75,100,'x',-6,0);
-  box('staple-tower', -95, 0, 0, 25, 30, 25, 'tower');
+  box('staple-tower-west', -105, 0, 0, 5, 30, 25, 'tower');
+  box('staple-tower-east', -85, 0, 0, 5, 30, 25, 'tower');
+  box('staple-tower-top', -95, 28, 0, 25, 2, 25, 'tower');
   const rope = { id: 'staple-rope', x: -79, z: 0, bottom: 0, top: 30, landing: { x: -84, y: 30, z: 0 } };
   const portals = [{ id:'carbon-stamp', x:-290,y:0,z:-300 }, { id:'ivory-stamp',x:290,y:0,z:300 }];
   const vents = [{ id:'west-vent',x:-384,y:0,z:-72,target:{x:-408,y:24,z:-72}}, { id:'east-vent',x:372,y:0,z:72,target:{x:348,y:20,z:72}}];

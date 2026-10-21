@@ -20,7 +20,7 @@ export function createWorldScene(canvas,world) {
   }
   scene.add(new THREE.AmbientLight(0xe9edf0,1.65));
   const sun=new THREE.DirectionalLight(0xffe6bc,2.1);sun.position.set(-150,300,-100);scene.add(sun);
-  const sky=new THREE.Mesh(new THREE.SphereGeometry(1100,12,8),new THREE.MeshBasicMaterial({color:0xb6c9d0,side:THREE.BackSide,fog:false}));scene.add(sky);
+  const sky=new THREE.Mesh(new THREE.BoxGeometry(2200,2200,2200),new THREE.MeshBasicMaterial({color:0xb6c9d0,side:THREE.BackSide,fog:false}));scene.add(sky);
   const sunDisk=new THREE.Mesh(sphere,new THREE.MeshBasicMaterial({color:0xf6e6bd,fog:false}));sunDisk.position.set(450,370,450);sunDisk.scale.setScalar(45);scene.add(sunDisk);
   for(const [x,z,w] of [[-150,220,80],[180,430,120],[-380,-180,100]]) box(0xdce2dc,x,100,z,w,8,25);
   // Upper ground has real openings for the sewer and sunken plaza.
@@ -92,7 +92,7 @@ export function createWorldScene(canvas,world) {
   }
   for(const v of world.vents) {box(0x3a5059,v.x,.3,v.z,5,.6,5);for(let i=-2;i<=2;i++)box(0xbbd5d8,v.x+i,1,v.z,.25,.4,4);label('Roof vent',v.x,4,v.z,'#17191b',11);}
   // Staple Tower is an original giant desktop staple with an external rope.
-  box(0x6f797b,-105,15,0,5,30,25);box(0x6f797b,-85,15,0,5,30,25);box(0x6f797b,-95,29,0,25,2,25);
+  for(const b of world.boxes.filter(b=>b.kind==='tower')) box(0x6f797b,(b.minX+b.maxX)/2,(b.minY+b.maxY)/2,(b.minZ+b.maxZ)/2,b.maxX-b.minX,b.maxY-b.minY,b.maxZ-b.minZ);
   rod(0xb69d70,world.rope.x,15,0,.14,30);label('Staple Tower',-95,36,0,'#17191b',32);
   for(const c of world.camps) {rod(0x89995f,c.x,.04,c.z,17,.08);label('Neutral supplies',c.x,7,c.z,'#17191b',22);}
   for(const c of world.crates) {

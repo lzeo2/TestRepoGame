@@ -1341,10 +1341,30 @@
       "kind": "bridge"
     },
     {
-      "id": "staple-tower",
+      "id": "staple-tower-west",
       "minX": -107.5,
+      "maxX": -102.5,
+      "minY": 0,
+      "maxY": 30,
+      "minZ": -12.5,
+      "maxZ": 12.5,
+      "kind": "tower"
+    },
+    {
+      "id": "staple-tower-east",
+      "minX": -87.5,
       "maxX": -82.5,
       "minY": 0,
+      "maxY": 30,
+      "minZ": -12.5,
+      "maxZ": 12.5,
+      "kind": "tower"
+    },
+    {
+      "id": "staple-tower-top",
+      "minX": -107.5,
+      "maxX": -82.5,
+      "minY": 28,
       "maxY": 30,
       "minZ": -12.5,
       "maxZ": 12.5,

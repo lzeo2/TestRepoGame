@@ -53,6 +53,32 @@ for(const r of world.ramps.filter(r=>r.id.endsWith('-ramp')&&r.id.includes('carb
   run(s,3,{forward:1,yaw});close(s.y,3);check(s.grounded,'Guardian ramp elevation');
 }
 const roofRamp=world.ramps.find(r=>r.id==='roof-access-1');
+const sideEntry=at({x:roofRamp.maxX+2,y:0,z:roofRamp.minZ+4});
+for(let n=0;n<25;n++)stepTraveler(world,sideEntry,{side:-1},.025);
+check(sideEntry.x>=roofRamp.maxX,'reviewer side-entry probe stays outside slab');
+check(!capsuleIntersects(sideEntry,roofRamp),'reviewer capsule does not intersect ramp');
+const rampOnly={...world,boxes:[],ramps:[roofRamp]};
+const direct=moveCapsule(at({x:roofRamp.maxX+2,y:0,z:roofRamp.minZ+4}),-5,0,rampOnly);
+check(direct.x>=roofRamp.maxX,'shared moveCapsule blocks ramp side');
+for(const axis of ['x','z']) for(const rise of [6,-6]) {
+  const r={id:'fixture',axis,minX:0,maxX:10,minZ:0,maxZ:10,start:rise>0?4:10,end:rise>0?10:4};
+  const fixture={...world,boxes:[],ramps:[r]};
+  const low=at({x:5,y:4,z:5});let peak=0;
+  check(capsuleIntersects({...low,y:6},r),'capsule detects sloped slab interior');
+  for(let n=0;n<80;n++) {stepTraveler(fixture,low,{jump:true},.025);peak=Math.max(peak,low.y+BODY.height);}
+  check(peak>6&&peak<6.9,'ramp underside blocks jumping for either axis/slope');
+  const lateral=at(axis==='x'?{x:5,y:6,z:12}:{x:12,y:6,z:5});
+  const stopped=moveCapsule(lateral,axis==='x'?0:-5,axis==='x'?-5:0,fixture);
+  check((axis==='x'?stopped.z:stopped.x)>=10,'lateral slab contact for either axis/slope');
+  const below=moveCapsule({...lateral,y:0},axis==='x'?0:-5,axis==='x'?-5:0,fixture);
+  close(axis==='x'?below.z:below.x,7); // Slabs are not solid wedges underneath.
+}
+const towerBoxes=world.boxes.filter(b=>b.kind==='tower');
+check(towerBoxes.length===3,'tower has exactly two legs and top');
+check(!towerBoxes.some(b=>capsuleIntersects({x:-95,y:0,z:0},b)),'visible staple opening is clear');
+const opening=at({x:-95,y:0,z:-16});run(opening,4,{forward:1,yaw:Math.PI});
+check(opening.z>15&&opening.y===0,'walk through staple opening');
+check(towerBoxes.some(b=>capsuleIntersects({x:-105,y:0,z:0},b)),'tower leg stays solid');
 const roofWalker=at({x:(roofRamp.minX+roofRamp.maxX)/2,y:0,z:roofRamp.minZ});
 run(roofWalker,5.85,{forward:1,yaw:Math.PI});close(roofWalker.y,roofRamp.end,.15);
 const p=at(world.portals[0]);interact(world,p);close(p.x,world.portals[1].x);close(p.z,world.portals[1].z);
