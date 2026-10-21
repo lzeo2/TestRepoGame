@@ -62,6 +62,7 @@ export async function mountPortrait(host, { signal, reducedMotion = false } = {}
     release();
     if (scene) disposeTree(scene);
     if (renderer) { renderer.dispose(); renderer.forceContextLoss(); }
+    scene = null; renderer = null; pawn = null; camera = null;
     section.remove();
   }
   function close() {
@@ -77,6 +78,7 @@ export async function mountPortrait(host, { signal, reducedMotion = false } = {}
     observer?.disconnect();
     if (scene) { disposeTree(scene); scene = null; }
     if (renderer) { renderer.dispose(); renderer.forceContextLoss(); renderer = null; }
+    pawn = null; camera = null;
     view.replaceChildren();
     controls.hidden = true;
     instructions.hidden = true;
