@@ -36,8 +36,8 @@ export const HEROES = freeze([
     ],
   },
   {
-    id: 'warden',
-    name: 'Wobble Warden',
+    id: 'postmaster',
+    name: 'Wobble Postmaster',
     description: 'A round padded coat built to hold ground. Absorb incoming damage and knock nearby opponents back.',
     shape: 'round',
     abilities: [

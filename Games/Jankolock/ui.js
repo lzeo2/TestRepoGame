@@ -331,7 +331,7 @@ function drawActor(actor, now, ghost = false) {
   ctx.fillStyle = palette.ink; ctx.fillRect(-12, -8, 8, 9); ctx.fillRect(4, -8, 8, 9);
   ctx.strokeStyle = palette.ink; ctx.lineWidth = 2; ctx.fillStyle = color;
   ctx.beginPath();
-  if (actor.heroId === 'warden') ctx.ellipse(0, -21, 21, 22, -.12, 0, Math.PI * 2);
+  if (actor.heroId === 'postmaster') ctx.ellipse(0, -21, 21, 22, -.12, 0, Math.PI * 2);
   else { ctx.moveTo(-14, -38); ctx.lineTo(14, -34); ctx.lineTo(17, -10); ctx.lineTo(-16, -10); ctx.closePath(); }
   ctx.fill(); ctx.stroke();
   ctx.fillStyle = palette.panel;
@@ -386,13 +386,13 @@ function draw(now, alpha) {
   const center = project(ARENA.zone.x, ARENA.zone.y); ctx.fillStyle = ring; ctx.font = 'bold 14px Atkinson, sans-serif'; ctx.textAlign = 'center'; ctx.fillText(current.capture.contested ? 'CONTESTED' : 'DISPATCH RING', center.x, center.y + 5);
   for (const rect of ARENA.cover) groundRect(rect.x + 13, rect.y + 12, rect.w + 4, rect.h + 6, 0, palette.shadow, null);
   let actors = current.actors;
-  if (current.phase === 'lobby') actors = ARENA.spawns.map((spawn, id) => ({ ...spawn, id, team: id < 2 ? 0 : 1, heroId: id === 0 ? selectedHero : id === 1 ? 'warden' : id === 2 ? 'courier' : 'clerk', hp: 100, maxHp: 100, alive: true, aim: id < 2 ? 0 : Math.PI }));
+  if (current.phase === 'lobby') actors = ARENA.spawns.map((spawn, id) => ({ ...spawn, id, team: id < 2 ? 0 : 1, heroId: id === 0 ? selectedHero : id === 1 ? 'postmaster' : id === 2 ? 'courier' : 'clerk', hp: 100, maxHp: 100, alive: true, aim: id < 2 ? 0 : Math.PI }));
   else actors = actors.map(actor => {
     const old = previous.actors.find(a => a.id === actor.id);
     if (!old || old.alive !== actor.alive || Math.hypot(actor.x - old.x, actor.y - old.y) > 40) return actor;
     return { ...actor, x: old.x + (actor.x - old.x) * alpha, y: old.y + (actor.y - old.y) * alpha };
   });
-  for (const actor of actors) if (actor.alive) groundCircle(actor.x + 5, actor.y + 3, actor.heroId === 'warden' ? 22 : 17, palette.shadow, null);
+  for (const actor of actors) if (actor.alive) groundCircle(actor.x + 5, actor.y + 3, actor.heroId === 'postmaster' ? 22 : 17, palette.shadow, null);
   for (const effect of current.effects) {
     if (effect.type === 'slam') groundCircle(effect.x, effect.y, 70, null, palette.coral, 4);
     if (effect.type === 'rush' || effect.type === 'death') groundCircle(effect.x, effect.y, 24, null, palette.ink, 3);
@@ -485,17 +485,25 @@ async function openHall() {
   releaseInput(); hallOpen = true; hallController = new AbortController();
   const controller = hallController;
   document.querySelector('.workspace').hidden = true; document.querySelector('.scoreboard').hidden = true; $('hallPanel').hidden = false;
+  $('hallPanel').querySelector('.hall-heading').hidden = false;
   $('hallStatus').hidden = false; $('hallStatus').textContent = 'Loading the local trophy hall...'; $('hallBackBtn').focus();
   try {
     portraitModule ||= import('./portrait.js');
     const module = await portraitModule;
     if (controller.signal.aborted) return;
-    const handle = await module.mountPortrait($('portraitHost'), { signal: controller.signal, reducedMotion: reduced.matches || !settings.motion });
+    const pending = module.mountPortrait($('portraitHost'), { signal: controller.signal, reducedMotion: reduced.matches || !settings.motion });
+    // The module owns its heading, status and Back control once mounted.
+    $('hallPanel').querySelector('.hall-heading').hidden = true;
+    $('hallStatus').hidden = true;
+    const handle = await pending;
     if (controller.signal.aborted) { handle?.dispose(); return; }
     hallHandle = handle;
-    $('hallStatus').textContent = handle.status === 'ready' ? 'Trophy hall loaded. Use Back to return to the arena lobby.' : 'Trophy preview is unavailable. Canvas matches are still available.';
   } catch (error) {
-    if (!controller.signal.aborted) $('hallStatus').textContent = 'Trophy hall is unavailable. Return to dispatch to play a Canvas match.';
+    if (!controller.signal.aborted) {
+      $('hallPanel').querySelector('.hall-heading').hidden = false;
+      $('hallStatus').hidden = false;
+      $('hallStatus').textContent = 'Trophy hall is unavailable. Return to dispatch to play a Canvas match.';
+    }
   }
 }
 function closeHall() {

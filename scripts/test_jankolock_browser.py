@@ -188,13 +188,13 @@ def loaded(page, origin):
     }'''), 'Observation diagnostic is not read-only and deeply frozen')
 
 
-def start_warden(page):
-    page.locator('[data-hero="warden"]').click()
-    require(page.locator('[data-hero="warden"]').get_attribute('aria-pressed') == 'true',
-            'Native hero card did not select Warden')
+def start_postmaster(page):
+    page.locator('[data-hero="postmaster"]').click()
+    require(page.locator('[data-hero="postmaster"]').get_attribute('aria-pressed') == 'true',
+            'Native hero card did not select Postmaster')
     page.locator('#startBtn').click()
     page.wait_for_function('jankolockSnapshot().phase === "playing"')
-    require(page.evaluate('jankolockSnapshot().heroId') == 'warden', 'Wrong hero started')
+    require(page.evaluate('jankolockSnapshot().heroId') == 'postmaster', 'Wrong hero started')
 
 
 def clear_native(page, held):
@@ -349,7 +349,7 @@ def touch_checks(browser, evidence, origin):
     try:
         page = context.new_page()
         loaded(page, origin)
-        start_warden(page)
+        start_postmaster(page)
         observer = Observer(page)
         observer.read()
         page.locator('#movePad').scroll_into_view_if_needed()
@@ -462,7 +462,7 @@ def main():
                     page = context.new_page()
                     loaded(page, origin)
                     capture_states(page, evidence, None, 'lobby')
-                    start_warden(page)
+                    start_postmaster(page)
                     observer = Observer(page)
                     if args.layout_only:
                         capture_states(page, evidence, observer, 'gameplay-layout-only')

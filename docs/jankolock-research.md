@@ -7,7 +7,10 @@ ordered an original arena/bots/capture/item-draft translation, not a puzzle.
 The [active design](jankolock-design.md) and [updated provenance](jankolock-provenance.md)
 supersede the recommendation below. Other candidates and mechanics comparisons
 are retained as historical research, not competing current identity claims.
-Implementation remains capacity-held; no game has been added.
+Capacity was subsequently restored and the arena translation implemented.
+See the [current build receipt](jankolock-release.md) for registration, native
+play, portrait and targeted smoke evidence; the initial findings below remain
+historical.
 
 ## Historical phase0 synthesis
 

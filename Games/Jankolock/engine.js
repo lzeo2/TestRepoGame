@@ -96,7 +96,7 @@ export function chooseItem(handle, itemId) {
 
 function resetRound(s) {
   const previous = s.actors;
-  s.actors = [s.heroId, 'warden', 'courier', 'clerk'].map((heroId, id) => {
+  s.actors = [s.heroId, 'postmaster', 'courier', 'clerk'].map((heroId, id) => {
     const items = previous[id] ? [...previous[id].items] : [];
     const stats = statsFor(items);
     return { id, team: id < 2 ? 0 : 1, heroId, ...ARENA.spawns[id], aim: id < 2 ? 0 : Math.PI,
@@ -247,7 +247,7 @@ function botInput(s, a, dt) {
   const rush = a.heroId === 'courier' && distance(a, goal) > 160 && !canFire;
   return { mx, my, aimX: rush ? next.x : b.aimX ?? goal.x, aimY: rush ? next.y : b.aimY ?? goal.y, fire: canFire,
     q: a.heroId === 'courier' ? rush : canFire,
-    e: canFire && distance(a, target) < (a.heroId === 'warden' ? 75 : 380) };
+    e: canFire && distance(a, target) < (a.heroId === 'postmaster' ? 75 : 380) };
 }
 
 function validatedInput(input, actor) {

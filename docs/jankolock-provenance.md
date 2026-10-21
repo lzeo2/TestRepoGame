@@ -53,7 +53,9 @@ Character AI remains read-only. No other swarms' maintenance audits are owned.
 
 Live follow-up catalog:125 entries, maxID234. IDs235–239 are reserved to trivia.
 This task claims **240 only**, subject to another live check before registration.
-**No game or ID is registered yet.** No runtime/game files have been authored.
+Implementation now exists under `Games/Jankolock/`; registration is tracked
+separately in the [current build receipt](jankolock-release.md). No sibling ID
+is consumed. The live maximum is rechecked immediately before registration.
 
 ## Supplied portrait and local dependency provenance
 
@@ -66,38 +68,41 @@ an independently adjudicated rights opinion or MIT asset license.
 Exact SHA-256 `abe1b2ee07038d6926813542a2127bca06cb19564f535dd49c593ea60c199fc9`;
 10,972,672 bytes,421,968 triangles in metadata,1 mesh/material. Prior read-only
 header/chunk/JSON inspection found no resource URIs; full integrity/fresh
-`glb_stats`, game load and exact-file game preview remain **NOT RUN**. The
+`glb_stats`-equivalent exact-asset accessor/index validation, CPU preview and
+SwiftShader game load/render were subsequently run; see the build receipt.
+Supported hardware remains unverified. The
 supplier's own receipt reports photorealistic-quality **FAIL**; preserve that
 qualification even though the operator requests a photorealistic feature.
 Two existing supplier previews were visually reviewed, not newly rendered.
 
 Choice: preserve exact GLB bytes and keep it **lobby only**, not decimated or
 loaded into combat. Use a simple pedestal collider, not mesh-triangle collision.
-After disk clears, copy to `Games/Jankolock/assets/portrait_relief.glb` only if
-integrity passes. File absent/invalid => disabled local manifest and truthful
+After capacity restoration and integrity validation it was copied byte-identical
+to `Games/Jankolock/assets/portrait_relief.glb`. File absent/invalid => disabled local manifest and truthful
 unavailable state, no fake portrait or missing-file runtime fetch.
 
 Read-copy only Circuit Ward's r160 `three.module.js`, `GLTFLoader.js`,
 `BufferGeometryUtils.js` and `LICENSE`, with relative local imports and retained
 MIT notice. Pin `d04539a76736ff500cae883d6a38b3dd8643c548`, closure1,414,498 bytes;
 four donor hashes were previously checked. Donor files remain untouched.
-No asset/library copying has happened. No CDN/network fallback is allowed.
+The four library files were read-copied byte-identical with MIT preserved;
+Circuit Ward remained untouched. No CDN/network fallback is allowed.
 
-## Capacity gate and current delivery
+## Capacity restoration and current delivery
 
-Initial free root bytes1,941,528,576; prior handover1,881,178,112. Fresh follow-up
-measurement **1,286,856,704**, below the higher-priority **2,147,483,648-byte**
-floor. User permission for small game files does not override that repository
-rule. No bulk checkout, dependency install, asset copy, browser, cleanup,
-garbage collection, history rewrite or outside-repo deletion is permitted here.
+Initial root available1,941,528,576 bytes; the later hold reached1,286,856,704,
+below2,147,483,648. No build workers ran then. The operator subsequently restored
+capacity and explicitly ordered resume; independently observed2,670,514,176
+bytes before build, above the floor. Earlier capacity tickets
+`pi-1379240-1792482819971-0f8a4aef` and
+`pi-1379240-1792466056900-bdb127d8` are superseded operationally by measured
+restoration, not by advisory permission. Formal ticket closure was not received.
 
-Existing design was replaced with a shorter pivot contract, preserving prior
-puzzle evidence in research/Git. No build workers were launched below the floor.
-No engine, roster/UI, portrait module, playtest, screenshots or smoke PASS is
-claimed. Target ports remain>=8910 when unblocked. Catalog unchanged125; zero
-games added, no push. Owned docs are committed separately from sibling dirt.
-
-Owner-action capacity request `pi-1379240-1792482819971-0f8a4aef` is retained in
-`~/.swarm-help`; prior `pi-1379240-1792466056900-bdb127d8` remains unresolved.
-Hermes returned advice only, no owner acknowledgement/capacity relief/waiver.
-Unblock requires observed>=2GiB plus build/QA headroom, not advisory permission.
+Four implementation lanes and subsequent QA/review/fix lanes used pinned sol6.1,
+explicit paths and compact ignored logs. No installs, bulk/narrow game checkout,
+sparse-selection change, cleanup, gc, history rewrite or outside-repo deletion.
+Test servers/profile/screenshots stayed bounded in RAM, ports8910+. Exact game,
+asset and dependency additions only. No push. Prior research remains historical.
+Native two-round/touch and portrait integrity/software-render results, registration,
+smoke receipt, commit list and storage are in [current build receipt](jankolock-release.md).
+Owned source is committed separately from pre-existing sibling Wings dirt.

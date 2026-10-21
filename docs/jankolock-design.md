@@ -1,6 +1,8 @@
 # JANKOLOCK arena translation contract
 
-2026-10-20 operator pivot. **DESIGN ONLY / NOT BUILT.** Supersedes the sliding
+2026-10-20 operator pivot; implemented 2026-10-21. See the
+[current build receipt](jankolock-release.md) for actual gates and limits, not
+this specification alone. Supersedes the sliding
 puzzle contract at `21d47aa`; puzzle mechanics research remains a historical
 appendix, not the active specification. Reference identity is now resolved by
 the operator as Valve's Deadlock. No faithful port or third-party asset reuse.
@@ -55,7 +57,7 @@ No Valve hero names, silhouettes, icons, dialogue, character art or marks.
 | Hero | Readable silhouette | Q / touch ability1 | E / touch ability2 |
 | --- | --- | --- | --- |
 | Tin Courier | Square helmet, paper satchel | Receipt Rush:180-unit swept dash,8s cooldown | Stamp Burst:three original cone projectiles,7s cooldown |
-| Wobble Warden | Round padded coat | Filing Shield:absorb40 damage for3s,10s cooldown | Desk Slam:70-radius20 damage/brief knockback,8s cooldown |
+| Wobble Postmaster | Round padded coat | Filing Shield:absorb40 damage for3s,10s cooldown | Desk Slam:70-radius20 damage/brief knockback,8s cooldown |
 | Rattle Clerk | Tall triangular hat | Carbon Copy:stationary decoy draws bot aim for3s,10s cooldown | Staple Fan:five low-damage spread shots,8s cooldown |
 
 Abilities share authoritative collision/damage; knockback remains bounded and
@@ -184,7 +186,7 @@ compatibility is unverified; solo remains usable offline. No online UI claim
 until separately authorized, implemented and tested. Do not copy existing MP
 code or weaken its validation speculatively.
 
-## QA and shipping gates: all runtime checks NOT RUN
+## QA and shipping requirements (results in current build receipt)
 
 1. Small assert-based engine/data regressions: swept bullet/actor collisions,
    cover/LOS, capture contention, death/respawn, scoring/time/tie boundaries,
@@ -209,7 +211,9 @@ code or weaken its validation speculatively.
    and `python3 -B scripts/check_maintenance_docs.py`. Pre-existing dirty Wings
    files block its global guard; never stage/reset them to manufacture a pass.
 
-Current root available 1,286,856,704 bytes, below 2,147,483,648 floor. Capacity
-request `pi-1379240-1792482819971-0f8a4aef` seeks owner action. Small-file user
-permission does not waive the higher-priority repository floor. **No build,
-asset copy, browser test or registration starts until measured headroom exists.**
+The initial 1,286,856,704-byte capacity hold was cleared by operator action.
+Build resumed only after independently measuring 2,670,514,176 bytes free.
+Keep the 2,147,483,648-byte floor. No broad checkout, installs or full-fleet
+browser run; source/tests and exact lobby asset were added narrowly. Current
+storage/registration/native/smoke status is in the build receipt. Optional smash
+prop was not implemented; supported GPU and all-hero native balance remain held.

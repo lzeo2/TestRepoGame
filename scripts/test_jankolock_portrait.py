@@ -508,6 +508,27 @@ def browser_check():
                     'combat requested portrait resources')
             require(not errors, 'integration page errors: ' + repr(errors))
             print('browser actual UI native hero / Start / Canvas combat: zero portrait/vendor requests PASS')
+            # Fresh real-UI captures, with one visible heading/Back owner after mounting.
+            for width, device in [(1280, 'desktop'), (320, 'mobile')]:
+                page.set_viewport_size({'width': width, 'height': 900})
+                page.goto(origin + 'index.html')
+                page.wait_for_function('typeof window.jankolockSnapshot === "function"')
+                page.locator('#hallBtn').click()
+                page.wait_for_function('''document.querySelector('#portraitHost [role=status]')?.textContent.startsWith('Portrait loaded') ||
+                  document.querySelector('#portraitHost [role=status]')?.textContent.includes('unavailable')''', timeout=45000)
+                for theme in ('light', 'dark'):
+                    if page.locator('html').get_attribute('data-theme') != theme:
+                        page.locator('#themeBtn').click()
+                    require(page.locator('h2:visible').count() == 1, 'duplicated hall heading')
+                    require(page.locator('#hallBackBtn').is_hidden(), 'duplicated shell Back control')
+                    require(page.locator('#portraitHost').get_by_role('button', name='Back', exact=True).is_visible(), 'module Back unavailable')
+                    require(page.evaluate('document.documentElement.scrollWidth<=innerWidth'), 'hall overflow')
+                    path = f'/dev/shm/jankolock/portrait/actual-ui-{device}-{theme}.png'
+                    page.screenshot(path=path, full_page=True, timeout=15000)
+                    print('actual UI hall screenshot:', path, '(SwiftShader, not supported hardware)')
+                page.locator('#portraitHost').get_by_role('button', name='Back', exact=True).click()
+                require(page.locator('#hallPanel').is_hidden(), 'normal hall Back failed')
+            page.set_viewport_size({'width': 900, 'height': 780})
             # Exercise the real lazy-hall caller and its settings callback, not only the harness.
             page.goto(origin + 'index.html')
             page.wait_for_function('typeof window.jankolockSnapshot === "function"')

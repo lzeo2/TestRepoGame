@@ -14,7 +14,7 @@ assert.deepEqual(ARENA, {
 assert.deepEqual(RULES, { roundSeconds: 60, winInfluence: 40, captureRate: 2, captureWarmup: 1, killInfluence: 4, respawnSeconds: 3, winsNeeded: 3 });
 assert.deepEqual(HEROES.map(({ id, name, shape, abilities }) => [id, name, shape, abilities.map(({ id, cooldown }) => [id, cooldown])]), [
   ['courier', 'Tin Courier', 'square', [['rush', 8], ['burst', 7]]],
-  ['warden', 'Wobble Warden', 'round', [['shield', 10], ['slam', 8]]],
+  ['postmaster', 'Wobble Postmaster', 'round', [['shield', 10], ['slam', 8]]],
   ['clerk', 'Rattle Clerk', 'triangle', [['decoy', 10], ['fan', 8]]],
 ]);
 assert.deepEqual(ITEMS.map(({ id }) => id), ids);

@@ -81,10 +81,10 @@ function isolated(hero = 'courier') {
 }
 
 // FIXTURE: every hero ability follows the same damage/collision/cooldown clock.
-for (const hero of ['courier', 'warden', 'clerk']) {
+for (const hero of ['courier', 'postmaster', 'clerk']) {
   const { handle, s, player } = isolated(hero);
-  Object.assign(player, hero === 'warden' ? { x: 400, y: 300 } : { x: 200, y: 170 });
-  if (hero === 'warden') Object.assign(s.actors[2], { alive: true, x: 460, y: 300 });
+  Object.assign(player, hero === 'postmaster' ? { x: 400, y: 300 } : { x: 200, y: 170 });
+  if (hero === 'postmaster') Object.assign(s.actors[2], { alive: true, x: 460, y: 300 });
   fixture.step(handle, { aimX: 700, aimY: player.y, q: true, e: true }, 1 / 60);
   const firstBulletCount = s.bullets.length;
   const abilityCount = s.events.filter(e => e.type === 'ability').length;
@@ -94,7 +94,7 @@ for (const hero of ['courier', 'warden', 'clerk']) {
   if (hero === 'courier') {
     assert.ok(player.x <= 235, 'actual rush stops at cover');
     assert.equal(firstBulletCount, 3);
-  } else if (hero === 'warden') {
+  } else if (hero === 'postmaster') {
     assert.equal(s.actors[2].hp, 80);
     assert.ok(s.actors[2].x >= 490, 'slam applies bounded knockback');
     close(player.shield, 40);
@@ -176,7 +176,7 @@ for (const hero of ['courier', 'warden', 'clerk']) {
 }
 
 function playTwoRounds() {
-  const handle = engine.createMatch('warden', 240);
+  const handle = engine.createMatch('postmaster', 240);
   engine.startMatch(handle);
   const history = [], totals = { shot: 0, ability: 0, kill: 0, capture: 0, deaths: 0, respawns: 0 };
   let seen = 0, firstPick, previousRound = 1, previousAlive = [true, true, true, true];
