@@ -247,12 +247,15 @@ export class AbilityFX {
       }
       animate = (_, age) => { group.rotation.y = yaw + age; };
     } else if (id === 'xray') {
-      for (const point of targets.length ? targets : target ? [target] : []) {
-        const p = point.clone().sub(origin);
-        add('box', [0.95, 1.9, 0.75], [p.x, p.y + 0.95, p.z], group, color, true);
-        add('diamond', [0.5, 0.5, 0.5], [p.x, p.y + 1.6, p.z], group, color, true);
-      }
+      const cages = (targets.length ? targets : target ? [target] : []).map(point => ({
+        point, box: add('box', [0.95, 1.9, 0.75], [0, 0, 0], group, color, true),
+        head: add('diamond', [0.5, 0.5, 0.5], [0, 0, 0], group, color, true)
+      }));
       add('ring', [1.5, 1.5, 1], [0, 1.2, -0.8]);
+      animate = () => cages.forEach(({point, box, head}) => {
+        box.position.copy(point).sub(group.position); box.position.y += 0.95;
+        head.position.copy(point).sub(group.position); head.position.y += 1.6;
+      });
     } else if (id === 'puddle' || id === 'aura') {
       add('cylinder', [r * 1.65, 0.08, r * 1.8], [0, 0.045, 0]);
       if (id === 'puddle') {

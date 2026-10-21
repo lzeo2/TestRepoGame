@@ -26,6 +26,15 @@ in this directory/inventory is not world-team source, integration or acceptance
 coverage. Consult their own receipts before maintenance; this manual does not
 certify those modules or their combination with the world.
 
+Hero-team source review separately covers `heroes/player-controller.mjs`,
+`hero-visuals.mjs`, `hero-runtime.mjs`, the four `devhero-N.html` entries,
+`devhero.mjs`/CSS, their three Node regressions and bounded browser runner.
+[HEROES.md](../../../Games/Jankolock3D/heroes/HEROES.md) documents exact APIs,
+original character provenance, kit JSON, mockups and systems/world boundaries.
+The hero ranges demonstrate isolated mechanics, not a complete match. Systems
+must adapt long-range damage, healing/statuses and ammo ownership; the generic
+systems method must not be wired blindly or replaced by direct health writes.
+
 ## Gameplay and controls
 
 This is a first-person/spectator traversal tool, not the intended final
@@ -46,6 +55,13 @@ caller owns traveler state, collected/broken ID sets and animation time.
 The viewer owns one animation loop; hidden/blur clears input and pagehide or
 context loss disposes renderer/listeners/audio. Audio is opt-in, synthesized
 locally. No hero or economy state is owned by the world viewer.
+
+Hero ranges own ephemeral controller, ammunition, cooldown and dummy fixture
+state; `window.heroSnapshot()` is observational only. No storage or network
+backend. Capture mouse enables pointer lock, Escape releases it, RMB aims;
+Ctrl sprints, Shift dashes, Space double-jumps, C slides, Q melees, F parries,
+1-4 cast, and R reloads. Touch has drag-look plus native held/action controls.
+Range counterfire and target respawns are fixtures, not match authority.
 
 ## Dependencies and provenance
 
@@ -106,6 +122,18 @@ runs remain historical failures, not clean passes. No full-fleet gate or push.
 Maintenance inventory validation must be repeated after shared source commits;
 active sibling source changes can correctly block the checker. Do not stage
 or reset them to manufacture a clean result.
+
+Hero checks: `node Games/Jankolock3D/heroes/player-controller-test.mjs` (808
+assertions), `hero-visuals-test.mjs` (four characters, sixteen kit FX and seven
+movement/weapon FX), and `hero-runtime-test.mjs` (sixteen casts, expiry, cover,
+headshots, tether, slide ammo, turret, grenade bounce and healing). These are
+module evidence, not E grading. Run `python3 -B Games/Jankolock3D/heroes/hero-qa.py`
+for current native observations and images. The script uses system Chromium,
+port 8937, four HTTP 200 harness pages and no state grants. Earlier Escape and
+lock-entry input failures were repaired; their history is retained in HEROES.md.
+The generated design PNGs preceded UI source and have labeled runtime twins.
+Mobile is genuinely 390px wide. Independent E grading and world/system assembly,
+rotated ramp collision, hardware/performance and full-fleet gates remain held.
 
 ## Future outlook
 

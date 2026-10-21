@@ -1,0 +1,55 @@
+{
+  "schemaVersion": 1,
+  "units": "metres, seconds, health points; damage/healing are unscaled baseline inputs, not final shop-scaled results",
+  "integration": "HeroRuntime emits onEffect({kind, source, target, ability, baseDamage, baseHeal, damageType, spiritScale, headshot, slow, duration}). Systems owns damage, item scaling, team filtering, armor and health. Effects never mutate system health. Pass already-scaled cooldowns or stats via runtime options if required.",
+  "heroes": [
+    {
+      "id": "stampead", "name": "Stampead", "role": "Dash-hook tank",
+      "lore": "The postroom's stamp inspector. Every dispute receives a heavy receipt.",
+      "health": 700, "weapon": {"name":"Staple driver","baseDamage":24,"damageType":"weapon","range":36,"interval":0.3,"magazine":12,"reload":1.4,"headshotMultiplier":1.5},
+      "melee": {"name":"Heavy receipt","baseDamage":90,"damageType":"melee","range":3.5,"cooldown":1.1,"spiritScale":0},
+      "abilities": [
+        {"slot":1,"id":"hook","name":"Staple Line","description":"Latch onto the first enemy or solid wall and pull yourself to it.","cooldown":6,"range":28,"baseDamage":45,"damageType":"spirit","spiritScale":0.6,"slow":0.7,"duration":1,"fx":{"color":"#c18a38","shape":"segmented staple chain"}},
+        {"slot":2,"id":"volley","name":"Stamp Volley","description":"Fan five stamp blocks across a short cone. Each enemy receives one hit.","cooldown":5,"range":15,"coneRadians":0.65,"baseDamage":65,"damageType":"spirit","spiritScale":0.8,"duration":0.8,"fx":{"color":"#b55043","shape":"five rectangular stamps"}},
+        {"slot":3,"id":"slam","name":"Desk Slam","description":"Stamp the floor and slow nearby enemies, blocked by solid cover.","cooldown":8,"radius":7,"baseDamage":80,"damageType":"spirit","spiritScale":1,"slow":0.45,"duration":3,"fx":{"color":"#8c68a1","shape":"expanding square seals"}},
+        {"slot":4,"id":"overtime","name":"Overtime","description":"Become invulnerable and run faster for three seconds.","cooldown":20,"baseDamage":0,"damageType":"none","spiritScale":0,"duration":3,"speedMultiplier":1.5,"invulnerable":true,"fx":{"color":"#4e80a7","shape":"rotating protective brackets"}}
+      ]
+    },
+    {
+      "id":"turretina","name":"Turretina","role":"Defensive engineer",
+      "lore":"A filing-room mechanic who insists the stapler should do the overtime.",
+      "health":550,"weapon":{"name":"Rivet stapler","baseDamage":20,"damageType":"weapon","range":30,"interval":0.24,"magazine":18,"reload":1.5,"headshotMultiplier":1.5},
+      "melee":{"name":"Wrench memo","baseDamage":55,"damageType":"melee","range":3,"cooldown":0.8,"spiritScale":0},
+      "abilities":[
+        {"slot":1,"id":"turret","name":"Desk Deputy","description":"Place a mini stapler turret. It tracks one visible enemy within range.","cooldown":10,"range":20,"baseDamage":18,"damageType":"spirit","spiritScale":0.3,"interval":0.65,"duration":8,"fx":{"color":"#b55043","shape":"tripod stapler with barrel"}},
+        {"slot":2,"id":"barricade","name":"Filing Wall","description":"Deploy a solid accordion-file barricade ahead for six seconds.","cooldown":10,"range":4,"baseDamage":0,"damageType":"none","spiritScale":0,"duration":6,"fx":{"color":"#4e80a7","shape":"five vertical folder slabs"}},
+        {"slot":3,"id":"grenade","name":"Bounce Notice","description":"Throw a bouncing paperweight that bursts after its fuse.","cooldown":7,"range":18,"radius":5,"baseDamage":90,"damageType":"spirit","spiritScale":0.9,"duration":1.8,"fx":{"color":"#c18a38","shape":"bouncing octahedron and radial rods"}},
+        {"slot":4,"id":"chaingun","name":"Chain Clerk","description":"Spin a six-barrel stapler for four seconds, firing while aimed.","cooldown":22,"range":30,"baseDamage":15,"damageType":"weapon","spiritScale":0,"interval":0.12,"duration":4,"fx":{"color":"#8c68a1","shape":"rotating six-barrel drum and tracers"}}
+      ]
+    },
+    {
+      "id":"snipeoff","name":"Snipeoff","role":"Precision tether",
+      "lore":"A pencil-thin audit clerk who spots a missing decimal across the street.",
+      "health":450,"weapon":{"name":"Long nib","baseDamage":65,"damageType":"weapon","range":90,"interval":0.9,"magazine":6,"reload":1.7,"headshotMultiplier":2},
+      "melee":{"name":"Ruler slap","baseDamage":45,"damageType":"melee","range":3,"cooldown":0.8,"spiritScale":0},
+      "abilities":[
+        {"slot":1,"id":"longshot","name":"Redline","description":"Fire one long-range precision shot. Head hits use the weapon headshot multiplier.","cooldown":5,"range":100,"baseDamage":100,"damageType":"weapon","spiritScale":0,"duration":0.8,"fx":{"color":"#c18a38","shape":"long narrow pencil tracer"}},
+        {"slot":2,"id":"tether","name":"Audit String","description":"Tether the first visible enemy, slowing it until the tether breaks at cover or range.","cooldown":8,"range":28,"baseDamage":30,"damageType":"spirit","spiritScale":0.5,"slow":0.5,"duration":3,"fx":{"color":"#8c68a1","shape":"coiled cylinder tether"}},
+        {"slot":3,"id":"headshot","name":"Fine Print","description":"For five seconds, precision headshots deal a larger bonus.","cooldown":12,"baseDamage":0,"damageType":"none","spiritScale":0,"duration":5,"headshotMultiplier":3,"fx":{"color":"#b55043","shape":"orbiting diamond nibs"}},
+        {"slot":4,"id":"xray","name":"Open Ledger","description":"Reveal enemy wire silhouettes through cover for six seconds. Shots still respect walls.","cooldown":20,"range":100,"baseDamage":0,"damageType":"none","spiritScale":0,"duration":6,"fx":{"color":"#4e80a7","shape":"wireframe enemy cages and scope ring"}}
+      ]
+    },
+    {
+      "id":"gooey","name":"Gooey Sticky","role":"Blob support",
+      "lore":"An escaped glue-pot who keeps the postroom together, sometimes literally.",
+      "health":600,"weapon":{"name":"Glue nib","baseDamage":21,"damageType":"weapon","range":28,"interval":0.28,"magazine":14,"reload":1.4,"headshotMultiplier":1.5},
+      "melee":{"name":"Sticky high five","baseDamage":50,"damageType":"melee","range":3,"cooldown":0.8,"spiritScale":0},
+      "abilities":[
+        {"slot":1,"id":"puddle","name":"Paste Patch","description":"Place a shallow glue pool ahead. It slows enemies and heals allies once per second.","cooldown":8,"range":7,"radius":4,"baseDamage":8,"baseHeal":20,"damageType":"spirit","spiritScale":0.25,"slow":0.35,"interval":1,"duration":5,"fx":{"color":"#4e80a7","shape":"low irregular cylinders"}},
+        {"slot":2,"id":"glue","name":"Glue Burst","description":"Burst glue in a short cone, heavily slowing enemies.","cooldown":6,"range":12,"coneRadians":0.6,"baseDamage":45,"damageType":"spirit","spiritScale":0.6,"slow":0.8,"duration":1.5,"fx":{"color":"#8c68a1","shape":"fan of solid glue globes"}},
+        {"slot":3,"id":"missionbomb","name":"Missionbomb","description":"Lob a sticky memo bomb that splats after a short fuse.","cooldown":8,"range":16,"radius":6,"baseDamage":85,"damageType":"spirit","spiritScale":0.9,"duration":1.3,"fx":{"color":"#c18a38","shape":"paper cube splatting into radial wedges"}},
+        {"slot":4,"id":"aura","name":"Group Adhesion","description":"A giant puddle follows you, healing nearby allies once per second for six seconds.","cooldown":22,"radius":9,"baseDamage":0,"baseHeal":40,"damageType":"spirit","spiritScale":0.5,"interval":1,"duration":6,"fx":{"color":"#70884c","shape":"wide solid pool with rising plus prisms"}}
+      ]
+    }
+  ]
+}
