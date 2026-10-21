@@ -4,6 +4,7 @@ import { RoadGrid } from './roads.mjs';
 import { createBuildingKit } from './buildings.mjs';
 import { createDayNight } from './daynight.mjs';
 import { createRoadPool } from './world.mjs';
+import { createWorldEffects } from './world-effects.mjs';
 
 const grid = new RoadGrid(200);
 assert.equal(grid.worldToCell(-1001, 0), null);
@@ -70,6 +71,12 @@ for (let phase = 0; phase <= .5; phase += .01) {
 assert.equal(daylight.setPhase(1.5), 1);
 assert.equal(daylight.setPhase(-.5), 1);
 assert.throws(() => daylight.setPhase(NaN), RangeError);
-daylight.dispose(); kit.dispose();
+const effects = createWorldEffects(scene, grid);
+assert.throws(() => effects.shot({x: NaN, z: 0}, {x: 0, z: 0}), RangeError);
+for (let i = 0; i < 70; i++) effects.shot({x: 95, z: 100}, {x: 100, z: 105});
+assert.equal(effects.active, 64);
+effects.update(.1); assert.equal(effects.active, 64);
+effects.update(.1); assert.equal(effects.active, 0);
+effects.dispose(); daylight.dispose(); kit.dispose();
 assert.equal(scene.children.length, 0);
-console.log('WORLD CHECK PASS: road edits/routes/lanes/pool, 14 model types, transforms/removal, day/night interpolation');
+console.log('WORLD CHECK PASS: road edits/routes/lanes/pool, 14 model types, transforms/removal, day/night interpolation, bounded shot FX');

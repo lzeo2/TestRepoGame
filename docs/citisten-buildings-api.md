@@ -47,5 +47,25 @@ width of ordinary buildings; simulation/integration must reserve sufficient
 visual space. The kit does not perform occupancy or collision checks.
 `world.roads.center` converts fractional lot-space sim positions to metres.
 
-No weapon/tracer/damage FX are implemented in this lane: systems owns behavior
-and its visual events. Base models are static blockouts, not rigged heroes.
+Base models are static blockouts, not rigged heroes.
+
+## Shot-event visual consumer (coordination addition)
+
+`world.effects.shot(event.from, event.to)` accepts sim **grid-space** `{x,z}`
+poses (fractional positions allowed). Optional `y` is height in metres, default
+1.2. For a watchtower source, integration may supply `{...event.from, y:8}`.
+It displays a solid pale-gold tracer and a small cream square impact for .14s.
+No glow, targeting, hit detection, damage, audio or simulation mutation.
+`world.render(dtSeconds)` renders then expires effects; do not tick them twice.
+A fixed 64-slot ring overwrites the oldest shot under overload; no allocation
+per shot or unbounded scene nodes. `world.effects.active` is diagnostic.
+Invalid/nonfinite/out-of-grid poses throw. `world.dispose()` cleans up the pool.
+
+```js
+for (const event of sim.drainEvents()) {
+  if (event.type === 'shot') world.effects.shot(event.from, event.to);
+}
+```
+
+The event discriminator is `type` in the current sim module. Integration owns
+other consumers and must drain the queue only once, dispatching all event types.

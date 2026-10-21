@@ -3,6 +3,7 @@ import { RoadGrid } from './roads.mjs';
 import { createBuildingKit } from './buildings.mjs';
 import { createFreeCamera } from './camera.mjs';
 import { createDayNight } from './daynight.mjs';
+import { createWorldEffects } from './world-effects.mjs';
 
 export function createRoadPool(scene, grid) {
   const geometry = new THREE.PlaneGeometry(grid.lotSize, grid.lotSize);
@@ -39,7 +40,10 @@ export function createWorld(canvas, { size = 200, lotSize = 10, pixelRatio = Mat
   const dayNight = createDayNight(scene);
   const buildings = createBuildingKit(scene);
   const roadPool = createRoadPool(scene, roads);
-  const groundGeometry = new THREE.PlaneGeometry(extent * 2, extent * 2, size, size);
+  const effects = createWorldEffects(scene, roads);
+  // Lot boundaries are separate grid lines; flat ground needs no per-lot triangles.
+  const terrainSegments = Math.min(size, 64);
+  const groundGeometry = new THREE.PlaneGeometry(extent * 2, extent * 2, terrainSegments, terrainSegments);
   groundGeometry.rotateX(-Math.PI / 2);
   const positions = groundGeometry.attributes.position;
   for (let i = 0; i < positions.count; i++) {
@@ -63,10 +67,10 @@ export function createWorld(canvas, { size = 200, lotSize = 10, pixelRatio = Mat
       width = w; height = h; renderer.setSize(w, h, false);
       camera.aspect = w / h; camera.updateProjectionMatrix();
     }
-    controls.update(dt); roadPool.sync(); renderer.render(scene, camera);
+    controls.update(dt); roadPool.sync(); renderer.render(scene, camera); effects.update(dt);
   }
   return {
-    renderer, scene, camera, controls, dayNight, roads, roadPool, buildings,
+    renderer, scene, camera, controls, dayNight, roads, roadPool, buildings, effects,
     render,
     pickLot(clientX, clientY) {
       const rect = canvas.getBoundingClientRect();
@@ -75,7 +79,7 @@ export function createWorld(canvas, { size = 200, lotSize = 10, pixelRatio = Mat
       return raycaster.ray.intersectPlane(groundPlane, hit) ? roads.worldToCell(hit.x, hit.z) : null;
     },
     dispose() {
-      controls.dispose(); dayNight.dispose(); buildings.dispose(); roadPool.dispose();
+      controls.dispose(); dayNight.dispose(); buildings.dispose(); roadPool.dispose(); effects.dispose();
       groundGeometry.dispose(); groundMaterial.dispose(); gridLines.geometry.dispose(); gridLines.material.dispose(); renderer.dispose();
     },
   };

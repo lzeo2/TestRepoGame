@@ -30,6 +30,8 @@ Vendored SHA-256:
 - `camera.mjs`: eased free camera and input lifecycle.
 - `daynight.mjs`: phase-driven light/sky look, no simulation clock.
 - `buildings.mjs`: 14 flat-color models and instanced transform pool.
+- `world-effects.mjs`: 64-slot render-only shot tracer/impact pool, added at the
+  sim lane's explicit coordination request; no targeting or damage logic.
 - `world-demo.mjs`, `world.html`: standalone specimen, bounded timing samples,
   automatic fly-through stopped by any camera input.
 - `world-check.mjs`: dependency-free Node assertion regression.
@@ -45,7 +47,7 @@ Input focus in form controls is ignored; blur clears held keys. `dispose()`
 removes listeners and GPU resources. No building collision is intended.
 
 `createWorld(canvas,{size=200,lotSize=10,pixelRatio})` exposes scene, renderer,
-camera, controls, roads, roadPool, buildings, dayNight, render(dt), pickLot and
+camera, controls, roads, roadPool, buildings, dayNight, effects, render(dt), pickLot and
 dispose. Caller owns its animation frame lifecycle. `controls.setPose(pose,
 snap=false)` supports scripted fly-throughs; `.target` provides a read-only pose
 snapshot. Render automatically resizes from canvas CSS dimensions.
@@ -82,7 +84,9 @@ staging/registration and is not new-game inventory acceptance.
 ## Known blockers and inspected-source limits
 
 Only this lane's authored modules and local dependency identity were inspected.
-Three.js internals are not audited. No touch camera gestures are implemented;
+Three.js internals are not audited. The untouched upstream `three.core.js`
+contains one pre-existing whitespace warning at line 49957 (space before tab);
+authored diffs are checked separately rather than modifying vendored bytes. No touch camera gestures are implemented;
 integrated UI lane must address touch controls if included in release scope.
 No native GPU or target-device performance claim without the recorded run.
 E traffic behavior and F waves are systems gates, not proven by static models.
