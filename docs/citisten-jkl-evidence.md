@@ -105,11 +105,19 @@ and closes only its resources. A raw `ps` sample initially saw an unrelated
 transient browser, but that process exited before the enforced Python preflight;
 the actual successful guard log must not be misreported as a refused run.
 
-Syntax and `git diff --check` passed. The maintenance checker was attempted and
-refused while sibling `Games/Citisten3D/sim-qa.py` was modified; it was not
-reported as passing and no canonical inventory was changed by UI. Remaining
-world/sim utility/traffic source/log/capture dirt belongs to those lanes.
+Syntax and `git diff --check` passed. The maintenance checker initially refused
+while sibling `Games/Citisten3D/sim-qa.py` was modified. After the source lanes
+committed, the final check returned:
 
-Root free at step start: 5,055,410,176 bytes; inspected after evidence generation:
-5,037,436,928 bytes (shared-host delta -17,973,248). Other lanes were active;
-this is not UI-exclusive consumption. No guard waiver was needed.
+```text
+PASS: 133 game documents cover 127 registered + 6 unregistered games; Git inventory current.
+Coverage only: section presence does not certify documentation accuracy or gameplay.
+```
+
+No canonical inventory was changed by UI. Remaining world D/E utility/traffic
+capture/log dirt belongs to that lane. UI milestone commit: `355fb79`.
+
+Root free at step start: 5,055,410,176 bytes; after the final check:
+5,087,211,520 bytes (shared-host delta +31,801,344). Other lanes were active;
+this is not UI-exclusive consumption. The 20 new PNGs total 2,246,375 bytes.
+No guard waiver was needed.
