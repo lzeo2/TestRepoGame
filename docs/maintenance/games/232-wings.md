@@ -398,6 +398,36 @@ Release/scene-budget/driver/roof/audio acceptance stays HOLD, full fleet remains
 deferred, and operator review plus a separate push order are still required.
 No new game, catalog ID or multinational jet was added by this lane.
 
+## Terrain bootstrap follow-up and corrected CTF order (2026-10-22)
+
+[Startup verification](../audits/wings-boat-publish-20261022/startup-verification.md)
+records the actual worker-ready handshake, separate 30s boot bound and unchanged
+20s first-draw/world-readiness gate. CPU protocol/lifecycle and actual-source
+fake-clock regressions pass, including same-turn failure and once-only world
+cleanup. These are not native timing or generated-world acceptance.
+
+All three native attempt receipts remain HOLD. Manual Chromium/CDP attempt 3
+connected/probed in 17,677.85ms, but its 55s supervisor expired in the menu phase,
+before any new image or product/gameplay sample. This is not a connection failure
+or a measured product-gate failure. Independent postflight resource cleanup did
+not turn collector HOLD into PASS. The prior lobby image remains the only required
+image captured; water/driver/roof/audio/hardware/scene-budget gates stay open.
+Post-connect/menu ticket `pi-829842-1792641745174-2ca752e0` remains unresolved.
+
+Collector-only follow-up persists first errors before API cleanup can stall,
+retains atomic three-attempt history, and checks Linux subreaper-owned descendants
+rather than only leaders/profile tokens. Its no-browser regression terminates a
+markerless new-session child after leader exit. This follow-up is not browser-
+retested. No new dependency, model, game, catalog ID or push in this checkpoint.
+
+The operator separately authorized the next CTF feature work but cancelled the
+proposed patrol rework: **existing patrol modes and defaults must stay unchanged**.
+Speedboat belongs in the existing fleet vehicle picker. New offline two-team CTF
+needs flags, death drops/returns, timer/score limit, a water route, mixed plane/boat
+bots and lobby mode/vehicle selection. It is not yet implemented or claimed in
+catalog 232. Distinct boat-variant handling/loadout scope awaits clarification.
+CTF images must be fresh evidence, not relabelled boat/lobby images.
+
 ## Future outlook
 
 Complete operator and converted-family review, native missile/audio/physical-input

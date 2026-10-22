@@ -1,0 +1,116 @@
+{
+  "status": "HOLD",
+  "route": "manual-chromium-cdp-new-context",
+  "collectorPID": 2219413,
+  "attemptNumber": 3,
+  "attempts": [
+    {
+      "attemptNumber": 1,
+      "route": "playwright-persistent-context",
+      "status": "HOLD",
+      "phase": "browser launch",
+      "evidenceKind": "retained command-output summary; full call log was not retained in this JSON",
+      "failure": "BrowserType.launch_persistent_context: Timeout 10000ms exceeded before app",
+      "productGate": {
+        "status": "NOT_MEASURED"
+      }
+    },
+    {
+      "status": "HOLD",
+      "normalInputOnly": true,
+      "steps": [],
+      "errors": [],
+      "warnings": [],
+      "failedRequests": [],
+      "external": [],
+      "collectorLimitSeconds": 50,
+      "supervisorLimitSeconds": 55,
+      "productLimitsSeconds": {
+        "workerBootWait": 30,
+        "postHandshakeReadiness": 20
+      },
+      "limits": "A collector timeout is HOLD/unknown, not proof that the product deadline failed.",
+      "supervisorExit": 124,
+      "remainingOwnedBrowsers": [],
+      "failure": "Collector did not complete with verified cleanup; product gate outcome unknown",
+      "attemptNumber": 2,
+      "route": "playwright-persistent-context",
+      "evidenceKind": "retained supervisor receipt",
+      "phase": "not retained; lobby-only capture, no completed product/gameplay receipt"
+    },
+    {
+      "status": "HOLD",
+      "route": "manual-chromium-cdp-new-context",
+      "collectorPID": 2219413,
+      "attemptNumber": 3,
+      "phase": "menu",
+      "normalInputOnly": true,
+      "steps": [],
+      "errors": [],
+      "warnings": [],
+      "failedRequests": [],
+      "external": [],
+      "connectProbeLimitSeconds": 20,
+      "collectorLimitSeconds": 50,
+      "supervisorLimitSeconds": 55,
+      "productLimitsSeconds": {
+        "workerBootWait": 30,
+        "postHandshakeReadiness": 20
+      },
+      "productGate": {
+        "status": "NOT_MEASURED"
+      },
+      "limits": "Collector timeout is HOLD/unknown; a separately measured valid product receipt is retained.",
+      "chromiumPID": 2219532,
+      "endpointReady": true,
+      "cdpConnected": true,
+      "connectProbeMs": 17677.845944999717,
+      "supervisorExit": 124,
+      "remainingOwnedBrowsers": [],
+      "collectorTimedOut": true,
+      "failure": "Collector did not complete with verified cleanup; product gate outcome unknown",
+      "postflight": {
+        "collectorProcessAbsent": true,
+        "globalBrowserAndDriverProcesses": [],
+        "ownedProfileExisted": true,
+        "ownedProfileRemoved": true,
+        "serverNote": "HTTP server was an in-process thread of the now-absent collector; no separate server process",
+        "scope": "Independent resource handoff verification; does not convert interrupted collector or missing product/gameplay proof to PASS"
+      }
+    }
+  ],
+  "phase": "menu",
+  "normalInputOnly": true,
+  "steps": [],
+  "errors": [],
+  "warnings": [],
+  "failedRequests": [],
+  "external": [],
+  "connectProbeLimitSeconds": 20,
+  "collectorLimitSeconds": 50,
+  "supervisorLimitSeconds": 55,
+  "productLimitsSeconds": {
+    "workerBootWait": 30,
+    "postHandshakeReadiness": 20
+  },
+  "productGate": {
+    "status": "NOT_MEASURED"
+  },
+  "limits": "Collector timeout is HOLD/unknown; a separately measured valid product receipt is retained.",
+  "chromiumPID": 2219532,
+  "endpointReady": true,
+  "cdpConnected": true,
+  "connectProbeMs": 17677.845944999717,
+  "supervisorExit": 124,
+  "remainingOwnedBrowsers": [],
+  "collectorTimedOut": true,
+  "failure": "Collector did not complete with verified cleanup; product gate outcome unknown",
+  "postflight": {
+    "collectorProcessAbsent": true,
+    "globalBrowserAndDriverProcesses": [],
+    "ownedProfileExisted": true,
+    "ownedProfileRemoved": true,
+    "serverNote": "HTTP server was an in-process thread of the now-absent collector; no separate server process",
+    "scope": "Independent resource handoff verification; does not convert interrupted collector or missing product/gameplay proof to PASS"
+  }
+}

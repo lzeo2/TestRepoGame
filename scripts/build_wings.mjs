@@ -104,7 +104,7 @@ const browser = await build({ ...common, platform: 'browser', splitting: true,
 });
 assert.equal(workerTransforms, 1, 'Worker transform was not used exactly once');
 const checks = await build({ ...common, platform: 'node',
-  entryPoints: ['astra-check.ts', 'solo-check.ts', 'boat-check.ts', 'boat-existing-check.ts'], outdir: resolve(out, 'verification'),
+  entryPoints: ['astra-check.ts', 'solo-check.ts', 'boat-check.ts', 'boat-existing-check.ts', 'worker-startup-check.ts'], outdir: resolve(out, 'verification'),
   outExtension: { '.js': '.mjs' }, plugins: plugins(true),
 });
 const files = new Map([...browser.outputFiles, ...checks.outputFiles].map(f => [f.path, f.contents]));

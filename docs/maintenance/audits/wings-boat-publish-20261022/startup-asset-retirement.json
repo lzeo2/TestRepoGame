@@ -1,0 +1,12 @@
+{
+  "retired": [
+    {
+      "path": "Games/Wings/assets/scene-YPKB3L45.js",
+      "sha256": "db1e36951aa6cdb470eede47c10cb66bd164559ad0f9396a1adc3876f82a97b3"
+    }
+  ],
+  "cachedExternalConsumers": [
+    "docs/maintenance/audits/wings-boat-publish-20261022/checks.json"
+  ],
+  "runtimeClosure": "Regenerated main.js now imports replacement scene; stable entry, CSS and terrain worker names overwritten by the verified build."
+}

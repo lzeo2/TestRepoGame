@@ -29,11 +29,13 @@ driver visibility and closed-roof acceptance remain findings, not claimed fixes.
 - Existing external Three 0.186.0 was found directly in its approved cache root,
   without the stale `/package` suffix. Retained MIT notice matches. No install,
   dependency/version fallback or additional runtime external loads.
-- Actual source builder: **27 files, 4,637,377 bytes**, esbuild 0.28.2 / Three
+- Startup follow-up source builder: **28 files, 4,979,106 bytes**, esbuild 0.28.2 / Three
   0.186.0. Browser entries, CSS, imports and terrain worker resolve. Fonts were
   changed to relative delivery URLs in authored HTML, as in the prior port.
-- Regenerated `port.patch`: 270,748 bytes. Fresh application to the hash-verified
-  upstream pin reproduces the final authored source byte for byte.
+- Regenerated `port.patch` includes the reviewed terrain-worker handshake and
+  lifecycle repair. Fresh application to the hash-verified upstream pin reproduces
+  the authored source byte for byte. [Startup verification](startup-verification.md)
+  separates its CPU contracts from the still-missing native proof.
 - Generated existing-model integration, Astra and solo CPU checks pass. The new
   existing-model check uses actual loader/converter and room inputs for movement,
   no lift, coast, brake, reverse, turn, both seat transitions, cannon ammo/projectile,
@@ -60,20 +62,28 @@ The earlier instrumented first-draw trial submitted real WebGL2 Low draws
 The unchanged 20-second startup deadline failed before GameSession creation.
 It was not a zero-draw result; no gate or simulation state was bypassed.
 
-Shared browser-slot holds interrupted a normal capture. A subsequent dedicated
-profile attempt exceeded its collector budget; no completed gameplay receipt
-was produced. It was abandoned, not retried as a claimed success. The runnable
-collector now has an independent 55-second worker supervisor and exact dedicated
-profile cleanup; its syntax/help path passes, but that revised browser path has
-not been rerun. Parent ps checks eventually found no Chromium/Playwright driver;
-slot release was communicated to `bb600c6`. No unrelated process was stopped.
+[browser.json](browser.json) retains three startup-follow-up attempts, all HOLD.
+Persistent-context launch failed at 10s, then a bounded retry ended exit 124.
+The separately authorized manual-Chromium/CDP route connected and created its
+non-persistent context in **17,677.85ms**, but its 55s supervisor expired in the
+menu phase before a new screenshot or product/gameplay sample. This is not a
+connection failure or proof that the product gate failed. The PNG above is prior
+lobby evidence, not an attempt-3 image. Independent all-zero browser/driver/collector
+postflight and exact leftover-profile removal establish resource handoff only.
+World `b16dd16` received explicit release; no unrelated process was stopped.
 
-Local investigation findings remain under
-`.tmp/wings-boat-order-render-diagnosis/FINDINGS.md`. Native tooling ticket
-`pi-829842-1792629513153-fad15e4a` is pending after advisor timeout.
-A supported, coordinated native run must supply the missing frame and actual
-interaction evidence before a release decision. Operator review and push remain
-separate; no push or live deployment verification occurred.
+Collector-only follow-up now persists phases/first errors before cleanup, retains
+atomic attempt history and verifies subreaper-owned descendants, including children
+whose leader exited or whose argv lacks a profile token. A no-browser escaped-child
+regression passes; this follow-up has not been browser-retested. The one supervisor
+remains 55s, separate from the product's 30s boot / unchanged 20s readiness bounds.
+Valid product proof may survive collector timeout separately, but none was measured
+here. [Startup verification](startup-verification.md) records exact limitations.
+
+Local diagnosis remains under `.tmp/wings-boat-order-render-diagnosis/FINDINGS.md`.
+Fresh **post-connect/menu** ticket `pi-829842-1792641745174-2ca752e0` is unresolved
+following advisor timeout. A coordinated native run must supply the missing frame
+and actual interaction evidence before release. No push or live verification.
 
 ## Remaining gates and scope
 
@@ -84,4 +94,7 @@ unchanged. Root stayed above the 2,178,940,928-byte storage guard. Initial white
 literals to escaped strings, preserving shader values, and by normalizing empty
 patch context lines. Fresh patch application still reproduces identical source.
 Final full staged diff check passes; no minified shader string was hand-edited.
-The lobby capture predates only this serialization change; authored UI is unchanged.
+The lobby image predates the later collector attempts; it does not show CTF.
+The subsequent operator-authorized CTF work is not implemented by this checkpoint.
+Patrol and existing defaults must remain unchanged; catalog claims wait for real
+implementation and CTF lobby/flag-run/boat-route evidence.
