@@ -45,10 +45,15 @@ separately labeled composites; their original full-size captures remain.
 - G is the production Victory dialog after actual enemy P2 death. The symmetric
   run produces the production Defeat dialog. No HP/locks/winner assignment.
 
-D/G and C completed with stable runtime bytes and no recorded errors. The first
-F attempt captured shop/all purchase tiers, then failed because the harness
-used the wrong accessible name for an active button. Its failed JSON is kept;
-the runner now uses the existing `data-active` selectors. E and the F active
-retry are recorded in their own reports when complete. These targeted builder
-checks never replace independent A-I grading, the unchanged full catalog gate,
-supported-hardware/touch verification, or the remaining neutral/boss/pacing work.
+C/D/G, all sixteen E casts and the F retry completed on stable current runtime
+bytes: 29 actual 1280x720 captures, 208 HTTP200 responses, zero recorded errors.
+E additionally retains a labeled sixteen-frame contact sheet; F retains the
+approved-mockup/actual-shop twin. The native ability-key handler creates each
+FX before an appended QA listener freezes its real clock in that same event;
+this avoids aging short effects during a slow screenshot, not a fake cast.
+F verifies 1,365 -> 1,565 max HP, four purchased items, 13,600 souls remaining,
+a collision-resolved 10m dash and a live burst deadline. Its first selector
+failure is retained with exact archived images; no failed report was relabeled.
+These targeted builder checks never replace independent A-I grading, the
+unchanged full catalog gate, supported-hardware/touch verification, or the
+remaining neutral/boss/pacing work. See the integration audit COMPLETION.md.

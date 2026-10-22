@@ -1,5 +1,23 @@
 # Integration evidence checkpoint
 
+## Later targeted letter runs
+
+`letter-C-evidence.json` and `letter-D-evidence.json` now complete C/D/G builder
+checks on stable runtime bytes, with 8 nonblank captures and zero recorded
+errors. C includes native secure, real ground pickup and API deny; D includes
+actual-event timeline overlay plus the plain P2-world view; G includes actual
+Victory and Defeat. `integration-chain.json` retains the logged 600s policy.
+E and F now also complete: sixteen real FX/key captures across all four heroes,
+five shop/tier/active captures, `integration-E-all-heroes.png` contact sheet and
+`comparison-F.png` approved-mockup/runtime twin. The first F active-selector
+attempt failed and its exact screenshots are archived with `-attempt1` names.
+See `COMPLETION.md`: fresh C-G totals 29 captures/208 HTTP200/zero recorded
+errors, with current runtime hash checks. All A-I named files exist; older
+A/B/H/I keep their own qualifications. The interrupted full run below remains
+interrupted, not retroactively passed.
+
+## Historical partial full runs
+
 Integration is playable at `Games/Jankolock3D/index.html`; this checkpoint is
 NOT a full A-I acceptance or release report. No push occurred.
 
@@ -17,7 +35,7 @@ NOT a full A-I acceptance or release report. No push occurred.
   stopped. Historical image files from earlier attempts remain, not substitutes
   for the missing C/D/E/F/G evidence on stable current source.
 
-Current PNGs cover A (aerial/three ride-in-flight views), B (wave setup), H (normal
+At that historical checkpoint, PNGs covered A (aerial/three ride views), B (wave setup), H (normal
 lobby in both themes), I (normal HUD) and native pause. Every captured PNG is
 1280x720 and passed variance >100 at capture. Inspect each receipt for source
 hashes and precise fixture classification. Runtime changed afterward to repair
@@ -27,7 +45,7 @@ source hashes must not be advertised as full current-source acceptance.
 Independent portrait-only review is in `Games/Jankolock3D/PORTRAIT-REVIEW.md`:
 H QUALIFIED on its pinned images. It does not grade all other letters.
 
-Remaining: serialize a stable full run of `integration-qa.py` after CITISTEN UI,
+At that checkpoint, the plan was a stable full `integration-qa.py` run after CITISTEN UI,
 sim and perf release the shared browser slot. It retains native orb shooting,
 four ability keys, movement, shop clicks/active effect, a logged passive-bot
 600-second chain with D at P2 alive and G at actual victory, defeat, mobile and

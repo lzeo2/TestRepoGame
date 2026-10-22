@@ -147,11 +147,14 @@ def main():
                         if selected_hero and kit['id'] != selected_hero:
                             continue
                         load('abilities', kit['id'])
+                        # Registered after the game's handler: freeze the real cast in
+                        # that same native key event, before a slow screenshot ages it.
+                        page.evaluate('document.addEventListener("keydown", e=>{if(/^Digit[1-4]$/.test(e.code))window.jank3dQA.freeze(true);})')
                         page.evaluate('window.jank3dQA.waves(); window.jank3dQA.place({x:0,y:0,z:-200},Math.PI,-.04)')
                         for ability in kit['abilities']:
                             page.evaluate('window.jank3dQA.freeze(false)')
                             page.keyboard.press('Digit' + str(ability['slot']))
-                            page.evaluate('window.jank3dQA.advance(.1); window.jank3dQA.freeze(true)')
+                            page.evaluate('window.jank3dQA.freeze(false); window.jank3dQA.advance(.1); window.jank3dQA.freeze(true)')
                             s = state(); assert s['runtime']['casts'].get(ability['id']) == 1, s['runtime']
                             assert s['runtime']['fx'] > 0
                             capture(f'E-{kit["id"]}-{ability["slot"]}', f'Native {ability["slot"]} key: {kit["name"]} / {ability["name"]}; API clock/position, frozen real FX')
