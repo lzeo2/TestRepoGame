@@ -62,3 +62,17 @@ was inspected as the solid-surface, black-button reference specimen.
 
 Reviewer owns J comparison grading. Collages preserve differences, including
 simplified original icons, actual published input hints and responsive layout.
+
+## Eight-piece J, catalog draft and preview network evidence
+
+[Evidence receipt](../citisten-jkl-evidence.md) indexes all eight originally
+planned pieces in both themes: main menu, builder toolbar, zoning panel,
+budget/power/water, minimap, day HUD, night alert/defense HUD and game over.
+The zoning/stats/map references are explicit crops from the original generated
+composites, not new post-code mockups. `check-jkl.py` reproduces 16 comparisons
+and records source hashes/crops in `J-eight-pieces.json` in the QA directory.
+
+`catalog-241.draft.json` is deliberately not registered; its planned game entry
+does not exist yet. The same documentation harness can capture cold local
+request logs for the actual UI preview with `--browser`, only in a reserved
+slot. That preview log does not establish full-game offline acceptance.

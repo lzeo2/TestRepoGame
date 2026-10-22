@@ -1,0 +1,261 @@
+{
+  "scope": "Eight planned pieces, two themes; no builder-assigned grade",
+  "comparisons": [
+    {
+      "piece": "main-menu",
+      "theme": "dark",
+      "collage": "docs/maintenance/audits/citisten-QA/J-piece-main-menu-dark.png",
+      "reference": "docs/citisten-design/ui-mockup-menu.png",
+      "referenceSha256": "ee31ded9487dd8e650706ed8d5346eb855ead0fb6acce138b1285fdc81cfd603",
+      "referenceCrop": null,
+      "built": "docs/maintenance/audits/citisten-QA/J-I-ui-menu-dark-1440.png",
+      "builtSha256": "a18f0526cbeb7e1885ee71ea8ef9b399c2ab96ebce5f0411ae92d83e39615aa2",
+      "builtCrop": null
+    },
+    {
+      "piece": "main-menu",
+      "theme": "light",
+      "collage": "docs/maintenance/audits/citisten-QA/J-piece-main-menu-light.png",
+      "reference": "docs/citisten-design/ui-mockup-menu.png",
+      "referenceSha256": "ee31ded9487dd8e650706ed8d5346eb855ead0fb6acce138b1285fdc81cfd603",
+      "referenceCrop": null,
+      "built": "docs/maintenance/audits/citisten-QA/J-I-ui-menu-light-1440.png",
+      "builtSha256": "4517ebd883c88e5f4101f3b895645c057b28b9fb8a5979afebf981f7f38a7052",
+      "builtCrop": null
+    },
+    {
+      "piece": "builder-toolbar",
+      "theme": "dark",
+      "collage": "docs/maintenance/audits/citisten-QA/J-piece-builder-toolbar-dark.png",
+      "reference": "docs/citisten-design/ui-mockup-toolbar.png",
+      "referenceSha256": "084776aa028822ad3cc62b90f0adf6aa052474d38181cf64d4176ae53f6208b0",
+      "referenceCrop": [
+        320,
+        855,
+        1265,
+        940
+      ],
+      "built": "docs/maintenance/audits/citisten-QA/J-B-ui-toolbar-dark-1440.png",
+      "builtSha256": "7d5b8fb832edac4053b9b172cddbcd5f8a2642c823818841dfd354c76a4ecc77",
+      "builtCrop": [
+        16,
+        782,
+        1174,
+        854
+      ]
+    },
+    {
+      "piece": "builder-toolbar",
+      "theme": "light",
+      "collage": "docs/maintenance/audits/citisten-QA/J-piece-builder-toolbar-light.png",
+      "reference": "docs/citisten-design/ui-mockup-toolbar.png",
+      "referenceSha256": "084776aa028822ad3cc62b90f0adf6aa052474d38181cf64d4176ae53f6208b0",
+      "referenceCrop": [
+        320,
+        855,
+        1265,
+        940
+      ],
+      "built": "docs/maintenance/audits/citisten-QA/J-B-ui-toolbar-light-1440.png",
+      "builtSha256": "39fe29c51b490abdeac59fe739c91fa216e5ccab1a16048eceb811d62bac5e12",
+      "builtCrop": [
+        16,
+        782,
+        1174,
+        854
+      ]
+    },
+    {
+      "piece": "zoning-panel",
+      "theme": "dark",
+      "collage": "docs/maintenance/audits/citisten-QA/J-piece-zoning-panel-dark.png",
+      "reference": "docs/citisten-design/ui-mockup-toolbar.png",
+      "referenceSha256": "084776aa028822ad3cc62b90f0adf6aa052474d38181cf64d4176ae53f6208b0",
+      "referenceCrop": [
+        520,
+        705,
+        1065,
+        850
+      ],
+      "built": "docs/maintenance/audits/citisten-QA/J-B-ui-toolbar-dark-1440.png",
+      "builtSha256": "7d5b8fb832edac4053b9b172cddbcd5f8a2642c823818841dfd354c76a4ecc77",
+      "builtCrop": [
+        310,
+        624,
+        880,
+        774
+      ]
+    },
+    {
+      "piece": "zoning-panel",
+      "theme": "light",
+      "collage": "docs/maintenance/audits/citisten-QA/J-piece-zoning-panel-light.png",
+      "reference": "docs/citisten-design/ui-mockup-toolbar.png",
+      "referenceSha256": "084776aa028822ad3cc62b90f0adf6aa052474d38181cf64d4176ae53f6208b0",
+      "referenceCrop": [
+        520,
+        705,
+        1065,
+        850
+      ],
+      "built": "docs/maintenance/audits/citisten-QA/J-B-ui-toolbar-light-1440.png",
+      "builtSha256": "39fe29c51b490abdeac59fe739c91fa216e5ccab1a16048eceb811d62bac5e12",
+      "builtCrop": [
+        310,
+        624,
+        880,
+        774
+      ]
+    },
+    {
+      "piece": "budget-power-water",
+      "theme": "dark",
+      "collage": "docs/maintenance/audits/citisten-QA/J-piece-budget-power-water-dark.png",
+      "reference": "docs/citisten-design/ui-mockup-hud.png",
+      "referenceSha256": "903b81eeabce9e4c99643d955003743aa0cb29338255d220af7661551d568874",
+      "referenceCrop": [
+        340,
+        8,
+        1225,
+        89
+      ],
+      "built": "docs/maintenance/audits/citisten-QA/J-C-D-ui-hud-dark-1440.png",
+      "builtSha256": "11b8baa66d906f02d439d8286ca44351cba36572b8a602d9d5200fbc20fc28f1",
+      "builtCrop": [
+        174,
+        10,
+        1060,
+        94
+      ]
+    },
+    {
+      "piece": "budget-power-water",
+      "theme": "light",
+      "collage": "docs/maintenance/audits/citisten-QA/J-piece-budget-power-water-light.png",
+      "reference": "docs/citisten-design/ui-mockup-hud.png",
+      "referenceSha256": "903b81eeabce9e4c99643d955003743aa0cb29338255d220af7661551d568874",
+      "referenceCrop": [
+        340,
+        8,
+        1225,
+        89
+      ],
+      "built": "docs/maintenance/audits/citisten-QA/J-C-D-ui-hud-light-1440.png",
+      "builtSha256": "ed4989ab6e1e82681e1f6726cd2b1604b9e575bc88cb68bb6acbd6c0cdf89826",
+      "builtCrop": [
+        174,
+        10,
+        1060,
+        94
+      ]
+    },
+    {
+      "piece": "minimap",
+      "theme": "dark",
+      "collage": "docs/maintenance/audits/citisten-QA/J-piece-minimap-dark.png",
+      "reference": "docs/citisten-design/ui-mockup-hud.png",
+      "referenceSha256": "903b81eeabce9e4c99643d955003743aa0cb29338255d220af7661551d568874",
+      "referenceCrop": [
+        1145,
+        690,
+        1580,
+        980
+      ],
+      "built": "docs/maintenance/audits/citisten-QA/J-C-D-ui-hud-dark-1440.png",
+      "builtSha256": "11b8baa66d906f02d439d8286ca44351cba36572b8a602d9d5200fbc20fc28f1",
+      "builtCrop": [
+        1185,
+        390,
+        1430,
+        750
+      ]
+    },
+    {
+      "piece": "minimap",
+      "theme": "light",
+      "collage": "docs/maintenance/audits/citisten-QA/J-piece-minimap-light.png",
+      "reference": "docs/citisten-design/ui-mockup-hud.png",
+      "referenceSha256": "903b81eeabce9e4c99643d955003743aa0cb29338255d220af7661551d568874",
+      "referenceCrop": [
+        1145,
+        690,
+        1580,
+        980
+      ],
+      "built": "docs/maintenance/audits/citisten-QA/J-C-D-ui-hud-light-1440.png",
+      "builtSha256": "ed4989ab6e1e82681e1f6726cd2b1604b9e575bc88cb68bb6acbd6c0cdf89826",
+      "builtCrop": [
+        1185,
+        390,
+        1430,
+        750
+      ]
+    },
+    {
+      "piece": "day-hud",
+      "theme": "dark",
+      "collage": "docs/maintenance/audits/citisten-QA/J-piece-day-hud-dark.png",
+      "reference": "docs/citisten-design/ui-mockup-hud.png",
+      "referenceSha256": "903b81eeabce9e4c99643d955003743aa0cb29338255d220af7661551d568874",
+      "referenceCrop": null,
+      "built": "docs/maintenance/audits/citisten-QA/J-C-D-ui-hud-dark-1440.png",
+      "builtSha256": "11b8baa66d906f02d439d8286ca44351cba36572b8a602d9d5200fbc20fc28f1",
+      "builtCrop": null
+    },
+    {
+      "piece": "day-hud",
+      "theme": "light",
+      "collage": "docs/maintenance/audits/citisten-QA/J-piece-day-hud-light.png",
+      "reference": "docs/citisten-design/ui-mockup-hud.png",
+      "referenceSha256": "903b81eeabce9e4c99643d955003743aa0cb29338255d220af7661551d568874",
+      "referenceCrop": null,
+      "built": "docs/maintenance/audits/citisten-QA/J-C-D-ui-hud-light-1440.png",
+      "builtSha256": "ed4989ab6e1e82681e1f6726cd2b1604b9e575bc88cb68bb6acbd6c0cdf89826",
+      "builtCrop": null
+    },
+    {
+      "piece": "night-alert-defense",
+      "theme": "dark",
+      "collage": "docs/maintenance/audits/citisten-QA/J-piece-night-alert-defense-dark.png",
+      "reference": "docs/citisten-design/ui-mockup-nightalert.png",
+      "referenceSha256": "7c07a5774046b768bbf26139a0c12bcf5d999bd599729009514568f0954f54c1",
+      "referenceCrop": null,
+      "built": "docs/maintenance/audits/citisten-QA/J-F-G-ui-nightalert-dark-1440.png",
+      "builtSha256": "ad6ec5fc71ee5838727636d913686a45fdd0ba2ff032a156f386e1ccd427aed1",
+      "builtCrop": null
+    },
+    {
+      "piece": "night-alert-defense",
+      "theme": "light",
+      "collage": "docs/maintenance/audits/citisten-QA/J-piece-night-alert-defense-light.png",
+      "reference": "docs/citisten-design/ui-mockup-nightalert.png",
+      "referenceSha256": "7c07a5774046b768bbf26139a0c12bcf5d999bd599729009514568f0954f54c1",
+      "referenceCrop": null,
+      "built": "docs/maintenance/audits/citisten-QA/J-F-G-ui-nightalert-light-1440.png",
+      "builtSha256": "4aaeb10dc7132e27d84e0f6f06275174c9f6c41caf6c36574851a524b144d337",
+      "builtCrop": null
+    },
+    {
+      "piece": "game-over",
+      "theme": "dark",
+      "collage": "docs/maintenance/audits/citisten-QA/J-piece-game-over-dark.png",
+      "reference": "docs/citisten-design/ui-mockup-gameover.png",
+      "referenceSha256": "015b8649a128f051141b1cc6504845d6a5c8a2e5ef9d1a6c409b0c22dd814b6f",
+      "referenceCrop": null,
+      "built": "docs/maintenance/audits/citisten-QA/J-H-ui-gameover-dark-1440.png",
+      "builtSha256": "3c1c80a6c95dd72fe8c27542602999d461ef3ba2f9817f5a138b48ff3272e4c1",
+      "builtCrop": null
+    },
+    {
+      "piece": "game-over",
+      "theme": "light",
+      "collage": "docs/maintenance/audits/citisten-QA/J-piece-game-over-light.png",
+      "reference": "docs/citisten-design/ui-mockup-gameover.png",
+      "referenceSha256": "015b8649a128f051141b1cc6504845d6a5c8a2e5ef9d1a6c409b0c22dd814b6f",
+      "referenceCrop": null,
+      "built": "docs/maintenance/audits/citisten-QA/J-H-ui-gameover-light-1440.png",
+      "builtSha256": "1ad8f18fd44ff8f03d31b07e3a22cea720cdfac848240225c38a6adafe1176ae",
+      "builtCrop": null
+    }
+  ]
+}

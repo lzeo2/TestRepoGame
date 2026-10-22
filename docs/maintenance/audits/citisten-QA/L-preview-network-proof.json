@@ -1,0 +1,246 @@
+{
+  "scope": "Actual live UI preview, both modes/themes; not an integrated game",
+  "entry": "Games/Citisten3D/ui-preview.html",
+  "entrySha256": "3854aad0572a3f89bcd9e5eddfb6c4db2b8eb9a0dad7c4ecb8de11ae9a7116d3",
+  "integratedEntryPresent": false,
+  "wholeGameProofAvailable": false,
+  "blocker": "No integrated game index.html. Full-game L remains unestablished.",
+  "externalAttempts": [],
+  "webSockets": [],
+  "failedRequests": [],
+  "errors": [],
+  "browserProcessChecks": 7,
+  "assetSha256": {
+    "Games/Citisten3D/roads.mjs": "8bfc07ad9b1c8fd69ba99e875641747c44e8fb8e8281fe54e05a560e83c4c22b",
+    "Games/Citisten3D/sim.mjs": "726d2a7aa67488b1d44a3cefc2e59dde3ceea3639b3c9ecf2f6e67f84a63999c",
+    "Games/Citisten3D/ui-preview.html": "3854aad0572a3f89bcd9e5eddfb6c4db2b8eb9a0dad7c4ecb8de11ae9a7116d3",
+    "Games/Citisten3D/ui-preview.mjs": "8133d9c5c2f07ad64a5307ffdc4800fab08bc42748efb1fe103bc18b702c398c",
+    "Games/Citisten3D/ui.css": "470dd3c0b516b4a12a090474570862dc0e19a3c70cf831723c5ac45685e0f064",
+    "Games/Citisten3D/ui.mjs": "25e0ae8596451c30a9865f724ba4efff9b5c82dffcd0323fccabda3486387f51",
+    "assets/fonts/atkinson-hyperlegible/atkinson-hyperlegible-400-latin.woff2": "d64ba838ef5472bba248620ec4fd8b5aa7cf0db2908e0bb230600caf279ba7bc",
+    "assets/fonts/atkinson-hyperlegible/atkinson-hyperlegible-700-latin.woff2": "140e2bd25a7315c8a062508391426b0d8c3297400c947b8d847be28f73a199f0",
+    "assets/fonts/bungee/bungee-400-latin.woff2": "126eec706b7931682dbcf6c6efc274132c603f181fbf912678e6cfeb341e721b"
+  },
+  "traces": [
+    {
+      "theme": "dark",
+      "freshContext": true,
+      "httpCacheDisabled": true,
+      "serviceWorkersBlocked": true,
+      "nonLoopbackRequestsDenied": true,
+      "attempts": [
+        {
+          "pathOrUrl": "/Games/Citisten3D/ui-preview.html",
+          "method": "GET",
+          "type": "document",
+          "local": true
+        },
+        {
+          "pathOrUrl": "/Games/Citisten3D/ui.css",
+          "method": "GET",
+          "type": "stylesheet",
+          "local": true
+        },
+        {
+          "pathOrUrl": "/Games/Citisten3D/ui-preview.mjs",
+          "method": "GET",
+          "type": "script",
+          "local": true
+        },
+        {
+          "pathOrUrl": "/Games/Citisten3D/ui.mjs",
+          "method": "GET",
+          "type": "script",
+          "local": true
+        },
+        {
+          "pathOrUrl": "/Games/Citisten3D/sim.mjs",
+          "method": "GET",
+          "type": "script",
+          "local": true
+        },
+        {
+          "pathOrUrl": "/Games/Citisten3D/roads.mjs",
+          "method": "GET",
+          "type": "script",
+          "local": true
+        },
+        {
+          "pathOrUrl": "/assets/fonts/atkinson-hyperlegible/atkinson-hyperlegible-400-latin.woff2",
+          "method": "GET",
+          "type": "font",
+          "local": true
+        },
+        {
+          "pathOrUrl": "/assets/fonts/bungee/bungee-400-latin.woff2",
+          "method": "GET",
+          "type": "font",
+          "local": true
+        },
+        {
+          "pathOrUrl": "/assets/fonts/atkinson-hyperlegible/atkinson-hyperlegible-700-latin.woff2",
+          "method": "GET",
+          "type": "font",
+          "local": true
+        }
+      ],
+      "responses": [
+        {
+          "path": "/Games/Citisten3D/ui-preview.html",
+          "status": 200,
+          "fromServiceWorker": false
+        },
+        {
+          "path": "/Games/Citisten3D/ui.css",
+          "status": 200,
+          "fromServiceWorker": false
+        },
+        {
+          "path": "/Games/Citisten3D/ui-preview.mjs",
+          "status": 200,
+          "fromServiceWorker": false
+        },
+        {
+          "path": "/Games/Citisten3D/ui.mjs",
+          "status": 200,
+          "fromServiceWorker": false
+        },
+        {
+          "path": "/Games/Citisten3D/sim.mjs",
+          "status": 200,
+          "fromServiceWorker": false
+        },
+        {
+          "path": "/Games/Citisten3D/roads.mjs",
+          "status": 200,
+          "fromServiceWorker": false
+        },
+        {
+          "path": "/assets/fonts/atkinson-hyperlegible/atkinson-hyperlegible-400-latin.woff2",
+          "status": 200,
+          "fromServiceWorker": false
+        },
+        {
+          "path": "/assets/fonts/atkinson-hyperlegible/atkinson-hyperlegible-700-latin.woff2",
+          "status": 200,
+          "fromServiceWorker": false
+        },
+        {
+          "path": "/assets/fonts/bungee/bungee-400-latin.woff2",
+          "status": 200,
+          "fromServiceWorker": false
+        }
+      ]
+    },
+    {
+      "theme": "light",
+      "freshContext": true,
+      "httpCacheDisabled": true,
+      "serviceWorkersBlocked": true,
+      "nonLoopbackRequestsDenied": true,
+      "attempts": [
+        {
+          "pathOrUrl": "/Games/Citisten3D/ui-preview.html",
+          "method": "GET",
+          "type": "document",
+          "local": true
+        },
+        {
+          "pathOrUrl": "/Games/Citisten3D/ui.css",
+          "method": "GET",
+          "type": "stylesheet",
+          "local": true
+        },
+        {
+          "pathOrUrl": "/Games/Citisten3D/ui-preview.mjs",
+          "method": "GET",
+          "type": "script",
+          "local": true
+        },
+        {
+          "pathOrUrl": "/assets/fonts/atkinson-hyperlegible/atkinson-hyperlegible-400-latin.woff2",
+          "method": "GET",
+          "type": "font",
+          "local": true
+        },
+        {
+          "pathOrUrl": "/Games/Citisten3D/ui.mjs",
+          "method": "GET",
+          "type": "script",
+          "local": true
+        },
+        {
+          "pathOrUrl": "/Games/Citisten3D/sim.mjs",
+          "method": "GET",
+          "type": "script",
+          "local": true
+        },
+        {
+          "pathOrUrl": "/Games/Citisten3D/roads.mjs",
+          "method": "GET",
+          "type": "script",
+          "local": true
+        },
+        {
+          "pathOrUrl": "/assets/fonts/bungee/bungee-400-latin.woff2",
+          "method": "GET",
+          "type": "font",
+          "local": true
+        },
+        {
+          "pathOrUrl": "/assets/fonts/atkinson-hyperlegible/atkinson-hyperlegible-700-latin.woff2",
+          "method": "GET",
+          "type": "font",
+          "local": true
+        }
+      ],
+      "responses": [
+        {
+          "path": "/Games/Citisten3D/ui-preview.html",
+          "status": 200,
+          "fromServiceWorker": false
+        },
+        {
+          "path": "/Games/Citisten3D/ui.css",
+          "status": 200,
+          "fromServiceWorker": false
+        },
+        {
+          "path": "/Games/Citisten3D/ui-preview.mjs",
+          "status": 200,
+          "fromServiceWorker": false
+        },
+        {
+          "path": "/assets/fonts/atkinson-hyperlegible/atkinson-hyperlegible-400-latin.woff2",
+          "status": 200,
+          "fromServiceWorker": false
+        },
+        {
+          "path": "/Games/Citisten3D/ui.mjs",
+          "status": 200,
+          "fromServiceWorker": false
+        },
+        {
+          "path": "/Games/Citisten3D/sim.mjs",
+          "status": 200,
+          "fromServiceWorker": false
+        },
+        {
+          "path": "/Games/Citisten3D/roads.mjs",
+          "status": 200,
+          "fromServiceWorker": false
+        },
+        {
+          "path": "/assets/fonts/bungee/bungee-400-latin.woff2",
+          "status": 200,
+          "fromServiceWorker": false
+        },
+        {
+          "path": "/assets/fonts/atkinson-hyperlegible/atkinson-hyperlegible-700-latin.woff2",
+          "status": 200,
+          "fromServiceWorker": false
+        }
+      ]
+    }
+  ]
+}

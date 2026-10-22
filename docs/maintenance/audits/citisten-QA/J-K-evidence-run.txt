@@ -1,0 +1,2 @@
+J EVIDENCE: 8 pieces x 2 themes = 16 aspect-preserving comparisons
+K DRAFT: schema/ID/count checks OK; games.json unchanged, 127 registered, planned entry missing

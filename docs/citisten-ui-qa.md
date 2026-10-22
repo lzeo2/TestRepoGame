@@ -163,3 +163,15 @@ refresh belongs after their final commits, not an inventory edit by UI.
 
 Step-start root free: 3,860,889,600 bytes. Browser receipt end: 3,846,877,184
 bytes, shared-host delta -14,012,416 bytes. No guard waiver or new dependency.
+
+## J / K draft / L preview follow-up
+
+[Eight-piece evidence receipt](citisten-jkl-evidence.md) adds 16 per-piece
+comparisons from the original pre-code generated composites and actual UI
+fixtures, an unregistered id 241 catalog draft, and cold request logs plus four
+live UI-preview frames. No runtime, CSS, world or simulation logic changed.
+The live preview made 18 local requests/18 HTTP 200 responses, with zero external
+attempts, sockets, failed requests or console/page errors under cache-disabled,
+service-worker-blocked and non-loopback-denied conditions. Full-game K/L remain
+unestablished: the actual catalog stays at 127 and the integrated game entry is
+missing. Reviewer grading and separate registration/push approvals remain.
