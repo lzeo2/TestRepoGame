@@ -9,7 +9,7 @@
   let run = null;
   let selection = null;
   let timer = null;
-  let theme = 'light';
+  let theme = 'dark';
   let audio = null;
   let sonarEnabled = false;
 
@@ -44,8 +44,10 @@
   function setTheme(value) {
     theme = value;
     document.body.classList.toggle('dark', theme === 'dark');
-    $('theme').textContent = theme === 'dark' ? 'Restore glow' : 'Dim glow';
-    $('theme').setAttribute('aria-label', theme === 'dark' ? 'Restore the sonar glow' : 'Reduce the sonar glow');
+    document.body.classList.toggle('light', theme === 'light');
+    document.documentElement.style.colorScheme = theme;
+    $('theme').textContent = theme === 'dark' ? 'Light theme' : 'Dark theme';
+    $('theme').setAttribute('aria-label', 'Switch to ' + (theme === 'dark' ? 'light' : 'dark') + ' theme');
   }
   function stopClock() { clearInterval(timer); timer = null; }
   function screen(id) {
@@ -162,8 +164,9 @@
   }
   $('tiers').replaceChildren(...tiers.map((tier, i) => { const chip = node('div', undefined, 'tier-chip'); chip.append(node('span', tier), node('b', points[i] + ' pts')); return chip; }));
   $('version').textContent = 'Key ' + data.version + '.';
-  setTheme(stored('dive-trivia:theme') === 'dark' ? 'dark' : 'light');
-  $('theme').addEventListener('click', () => { setTheme(theme === 'dark' ? 'light' : 'dark'); save('dive-trivia:theme', theme); });
+  // The old key stored glow intensity, not a light-color preference.
+  setTheme(stored('dive-trivia:color-theme') === 'light' ? 'light' : 'dark');
+  $('theme').addEventListener('click', () => { setTheme(theme === 'dark' ? 'light' : 'dark'); save('dive-trivia:color-theme', theme); });
   $('sonar').addEventListener('click', async () => {
     const button = $('sonar');
     button.disabled = true;

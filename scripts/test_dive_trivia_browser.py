@@ -223,19 +223,19 @@ def main():
                 assert expected == selection(mobile, 'daily', date)
                 assert len({prompt['id'] for prompt in expected}) == 7
                 observed = []
-                for page, label in ((desktop, 'desktop-light'), (mobile, 'mobile-390-light')):
+                for page, label in ((desktop, 'desktop-dark'), (mobile, 'mobile-390-dark')):
                     capture(page, label, 'launch')
                     act(page, '#playBtn')
                     assert page.locator('#run-label').inner_text() == 'DAILY / ' + date
                     observed.append(finish_run(page, expected, label))
-                    assert 'saved on this device only' in page.locator('#save-status').inner_text()
+                    assert page.locator('#save-status').text_content() == ''
                     home(page)
                 assert observed[0] == observed[1]
                 report['daily'] = {'date': date, 'version': data['version'], 'ids': observed[0]}
                 passed('two independent contexts: same seven daily prompt IDs, typed known picks, scores/results')
                 passed('all six rarity tiers, single lock then next, answer-key expansion and focus')
-                for page, width, label in ((desktop, 1366, 'desktop-dark'),
-                                           (mobile, 390, 'mobile-390-dark'),
+                for page, width, label in ((desktop, 1366, 'desktop-light'),
+                                           (mobile, 390, 'mobile-390-light'),
                                            (mobile, 320, 'mobile-320-dark'),
                                            (mobile, 320, 'mobile-320-light')):
                     page.set_viewport_size({'width': width, 'height': 900 if width > 390 else 844})
@@ -249,7 +249,8 @@ def main():
                 passed('24 desktop/390/320 light/dark launch/question/reveal/results screenshots')
 
                 # Reload once to verify persisted theme, result and locally loaded assets.
-                act(desktop, '#theme')  # dark -> light
+                if desktop.locator('body').evaluate("e => e.classList.contains('dark')"):
+                    act(desktop, '#theme')
                 desktop.reload(wait_until='networkidle')
                 desktop.evaluate('document.fonts.ready')
                 assert not desktop.locator('body').evaluate("e => e.classList.contains('dark')")
@@ -347,15 +348,16 @@ def main():
                     watch(page)
                     if fault == 'malformed':
                         page.add_init_script('''localStorage.setItem('dive-trivia:last:v1', '{broken');
-                          localStorage.setItem('dive-trivia:theme', 'not-a-theme');''')
+                          localStorage.setItem('dive-trivia:color-theme', 'not-a-theme');''')
                     else:
                         page.add_init_script('''Object.defineProperty(window, 'localStorage', {
                           get() { throw new DOMException('Blocked by browser regression', 'SecurityError'); }
                         });''')
                     load(page)
                     assert page.locator('#last-result').inner_text() == ''
-                    act(page, '#theme')
                     assert page.locator('body').evaluate("e => e.classList.contains('dark')")
+                    act(page, '#theme')
+                    assert page.locator('body').evaluate("e => e.classList.contains('light')")
                     act(page, '#playBtn')
                     finish_run(page, expected)
                     status = page.locator('#save-status').inner_text()

@@ -12,6 +12,9 @@
   --pale: #13263b;
   --halo: #4de3ff26;
   --title-glow: 0 0 18px #4de3ff80;
+  --workbench: #0a1426ed;
+  --hover: #1b324e;
+  --sonar-on: #173748;
 }
 * { box-sizing: border-box; }
 body {
@@ -22,8 +25,25 @@ body {
   color: var(--ink);
   font: 18px/1.5 ui-monospace, monospace;
 }
-/* The legacy theme key now selects normal or dim glow, both abyss-dark. */
-body.dark { --halo: transparent; --title-glow: none; }
+body.light {
+  color-scheme: light;
+  --abyss: #edf2f8;
+  --panel: #ffffff;
+  --panel-dark: #edf2f8;
+  --ink: #10243c;
+  --muted: #42576f;
+  --accent: #075c75;
+  --edge: #43677f;
+  --line: #a0adbe;
+  --pale: #e3ebf4;
+  --halo: transparent;
+  --title-glow: none;
+  --workbench: #fffffff0;
+  --hover: #d8e5ef;
+  --sonar-on: #d5e7ef;
+}
+body.light .ocean-world { opacity: .06; }
+body.light #guide img { filter: drop-shadow(0 0 1px #10243c); }
 .ocean-world {
   position: fixed;
   inset: 0;
@@ -48,7 +68,7 @@ button {
 @supports (color: color-mix(in srgb, red, blue)) {
   button { border-color: color-mix(in srgb, var(--accent) 50%, #c9d5ea); }
 }
-button:hover { background: #1b324e; border-color: var(--accent); }
+button:hover { background: var(--hover); border-color: var(--accent); }
 button:disabled { cursor: default; opacity: .6; }
 .secondary, #theme { background: var(--panel-dark); box-shadow: none; }
 :focus-visible { outline: 3px solid var(--accent); outline-offset: 4px; }
@@ -85,7 +105,7 @@ header {
 .portal span { margin: 0 9px; color: var(--accent); }
 .instruments { display: flex; gap: 8px; }
 .instruments button { font-size: 13px; }
-#sonar[aria-pressed=true] { background: #173748; color: var(--accent); }
+#sonar[aria-pressed=true] { background: var(--sonar-on); color: var(--accent); }
 .skip { position: absolute; top: -100px; left: 15px; background: var(--panel); padding: 12px; z-index: 3; }
 .skip:focus { top: 10px; }
 .masthead { max-width: 1376px; margin: 5px auto 26px; padding: 0 24px; }
@@ -111,7 +131,7 @@ main {
   padding: 30px;
   min-width: 0;
   overflow-wrap: anywhere;
-  background: #0a1426ed;
+  background: var(--workbench);
   border: 1px solid var(--line);
   border-top-color: var(--edge);
   border-radius: 3px;

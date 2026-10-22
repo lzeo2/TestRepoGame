@@ -99,7 +99,7 @@ def main():
                 assert page.locator('#guide img').evaluate("e => getComputedStyle(e).animationDuration") == '2s'
                 assert page.evaluate("getComputedStyle(document.body).backgroundColor") == 'rgb(5, 9, 20)'
                 assert page.locator('.ocean').evaluate("e => getComputedStyle(e).backgroundColor") == 'rgba(0, 0, 0, 0)'
-                assert page.locator('#theme').text_content() == 'Dim glow'
+                assert page.locator('#theme').text_content() == 'Light theme'
                 if args.mobile_recapture:
                     page.set_viewport_size({'width': 320, 'height': 844})
                     prompts = page.evaluate("DiveCore.selectPrompts(DiveQuestions, {mode:'numbered',key:'1'})")
@@ -156,9 +156,9 @@ def main():
                         shot(page, 'abyss-desktop-midgame-reveal')
                         page.locator('#guide').screenshot(path=str(OUT / 'abyss-mascot.png'))
                         page.locator('#theme').click()
-                        assert page.locator('#theme').text_content() == 'Restore glow'
-                        assert page.evaluate("getComputedStyle(document.body).backgroundColor") == 'rgb(5, 9, 20)'
-                        shot(page, 'abyss-desktop-dim-glow')
+                        assert page.locator('#theme').text_content() == 'Dark theme'
+                        assert page.evaluate("getComputedStyle(document.body).backgroundColor") == 'rgb(237, 242, 248)'
+                        shot(page, 'abyss-desktop-light')
                         page.locator('#theme').click()
                         for width in (390, 320):
                             page.set_viewport_size({'width': width, 'height': 844})
@@ -169,7 +169,7 @@ def main():
                             page.locator('.workbench').evaluate('e => e.scrollIntoView({block:"start"})')
                             page.screenshot(path=str(OUT / f'abyss-mobile-{width}-game-viewport.png'))
                             page.locator('#theme').click()
-                            shot(page, f'abyss-mobile-{width}-dim-glow')
+                            shot(page, f'abyss-mobile-{width}-light')
                             page.locator('#theme').click()
                         page.set_viewport_size({'width': 1366, 'height': 1000})
                     page.locator('#next').click()
