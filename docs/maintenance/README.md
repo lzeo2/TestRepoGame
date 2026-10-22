@@ -281,11 +281,12 @@ reserved by appearing here.
 | 233 | [Server Survival](games/233-serversurvival.md) | `Games/ServerSurvival/index.html` |
 | 234 | [Astray](games/234-astray.md) | `Games/Astray/index.html` |
 | 235 | [Below the Obvious](games/235-dive-trivia.md) | `Games/Dive Trivia/index.html` |
-| 240 | [JANKOLOCK](games/240-jankolock.md) | `Games/Jankolock/index.html` |
+| 240 | [JANKOLOCK](games/240-jankolock3d.md) | `Games/Jankolock3D/index.html` |
+| 241 | [CITISTEN](games/241-citisten3d.md) | `Games/Citisten3D/index.html` |
 | Unregistered | [2048](games/unregistered-2048.md) | `Games/2048/index.html` |
-| Unregistered | [Citisten3D](games/unregistered-citisten3d.md) | No canonical entry established |
 | Unregistered | [Garage Borough](games/unregistered-garage-borough.md) | `Games/Garage Borough/index.html` |
 | Unregistered | [Hextris](games/unregistered-hextris.md) | `Games/Hextris/index.html` |
+| Unregistered | [Jankolock](games/unregistered-jankolock.md) | `Games/Jankolock/index.html` |
 | Unregistered | [QWOP](games/unregistered-qwop.md) | `Games/QWOP/index.html` |
 | Unregistered | [Slope](games/unregistered-slope.md) | `Games/Slope/index.html` |
 <!-- game-index:end -->

@@ -1,4 +1,7 @@
-# CITISTEN 3D: unregistered component project
+# CITISTEN 3D: historical unregistered component receipt
+
+This page describes the earlier component-only milestone. The current registered
+entry, source map and open acceptance gates are in [CITISTEN id 241](241-citisten3d.md).
 
 <!-- maintenance-game: Games/Citisten3D -->
 

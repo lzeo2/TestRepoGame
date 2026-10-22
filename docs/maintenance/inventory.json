@@ -1,5 +1,5 @@
 {
-  "catalog_entries": 127,
+  "catalog_entries": 128,
   "games": [
     {
       "directory": "Games/2048",
@@ -339,15 +339,15 @@
     },
     {
       "directory": "Games/Citisten3D",
-      "id": null,
-      "title": "Citisten3D",
-      "registered": false,
-      "entry": null,
-      "entry_blob": null,
-      "tree": "56aa92a81149e7387d87d119826de391fefe56f5",
-      "files": 30,
-      "bytes": 2358922,
-      "document": "docs/maintenance/games/unregistered-citisten3d.md"
+      "id": 241,
+      "title": "CITISTEN",
+      "registered": true,
+      "entry": "Games/Citisten3D/index.html",
+      "entry_blob": "b9bd66231312a7f58ceaf1c27abdb4640ff0d3b3",
+      "tree": "5ef50e01f82e75109482281cb27420d893c68cd0",
+      "files": 180,
+      "bytes": 34580806,
+      "document": "docs/maintenance/games/241-citisten3d.md"
     },
     {
       "directory": "Games/CookieClicker",
@@ -812,9 +812,9 @@
       "registered": true,
       "entry": "Games/Jankolock3D/index.html",
       "entry_blob": "07bf7025cde8d26765b103bf1bbee0b79cd525b6",
-      "tree": "d5eb009a1045a0b16be07686f9e507cccd404d4b",
+      "tree": "4a6068e6bdbb1e8bd6d5bb1f447f731061b7e37b",
       "files": 127,
-      "bytes": 13648610,
+      "bytes": 13653962,
       "document": "docs/maintenance/games/240-jankolock3d.md"
     },
     {
