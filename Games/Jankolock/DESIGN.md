@@ -3,10 +3,10 @@
 Scope: this directory's shipping-office arena and optional trophy hall, not
 `../Jankolock3D/`. Token names below describe existing values, not a new runtime
 API. Sources: `index.html`, `style.css`, `ui.js`, `data.js`, `engine.js` and
-`portrait.js`. Reviewed Canvas baseline `940cbba` and landed feedback/onboarding
-polish `0bb1fbb`. No `jankolock-v2-realism` or `jankolock-hud-fire` commit was
-present at review. Do not infer a realistic renderer or new shader system from
-those pending worker names.
+`portrait.js`. Reviewed against `7ce3d1e`, including landed feedback/onboarding
+polish `0bb1fbb` and impact-marker correction `1ba63aa`. The existing HUD health
+bar and shot animation are retained; these commits do not introduce a realistic
+arena renderer or new shader system.
 
 ## Art direction and color
 
@@ -101,7 +101,7 @@ Actor-local health bars remain distinct from the HUD: `42 x 7` canvas units,
 | `fire.flash` | Solid panel-colored `8 x 5` rectangle, `65ms` after each shot |
 | `fire.tracer` | Team-colored `4`-unit line from previous to current bullet position; `6 x 6` panel-colored tip at elevation `12`; speed `500` units/s, lifetime `1.15s` |
 | `feedback.hit` | Outgoing text and outlined X at hit location for `220ms`; X half-size `8`, strokes `5` ink then `2` panel |
-| `feedback.kill` | "Rival down / +4 influence", `900ms`; X half-size `12` |
+| `feedback.kill` | "Rival down / +4 influence", `900ms`; X half-size `12`; each kill uses its own event coordinates and takes priority over ordinary hits |
 | `feedback.incoming` | Text with actual health/shield damage, `450ms`; no full-screen flash |
 | `feedback.ability` | Solid ground rings: rush `24` radius / `.25s`, death `24` / `.5s`, slam `70` / `.35s`; decoy opacity `.55` for `3s` |
 | `camera.hall` | Perspective FOV `38`, near/far `.05/40`; front view backs away to fit portrait layouts, no user orbit |
