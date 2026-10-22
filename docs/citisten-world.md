@@ -177,6 +177,43 @@ explicitly released to sim/Wings; UI requested no further browser time.
 Traceback host prefixes are redacted; measured JSON and screenshots are unchanged.
 The render budget remains **HOLD**. No catalog change, full-fleet gate or push.
 
+### E road sequence and D utility matrix extension
+
+The operator requested stronger E/D API evidence without changing runtime
+ownership. `docs/citisten-design/road-utility-fixtures.mjs` consumes the existing
+RoadGrid and simulation APIs. `check-road-utilities.mjs` is the Node assertion
+runner; `capture-road-utilities.py` uses the existing world/UI renderers.
+No simulation, UI, camera or rendering runtime is replaced or modified.
+
+Run `node docs/citisten-design/check-road-utilities.mjs`. The fixture checks a
+real sim-owned car (id 7), its 29-cell L-shaped route and six segment checkpoints
+0/7/14/18/24/27, with road occupancy checked on every simulation step. Movement
+is exclusively `sim.update(.25)`; rendering follows the selected agent's state.
+Only that tracked car is drawn, explicitly labeled in the screenshots.
+
+Nine independent utility cases cover connected supply, power removal, water
+removal, both removed, road cut, road restored, power overload, water overload
+with sufficient power, and isolated sources with spare aggregate capacity.
+Removal is through the bulldoze API, not a claim of zombie-destruction input.
+Every case asserts the expected supply result through real economy updates.
+The single tracked home can remain supplied while another district is shed;
+aggregate unserved demand and the home flags are reported separately.
+
+Run `python3 -B docs/citisten-design/capture-road-utilities.py` only after an
+explicit shared-browser handoff. It reuses the guarded sim QA browser check,
+uses system Chromium and a dedicated temporary profile, checks disk per write,
+and captures six E frames plus nine D cases in both themes. Collages are
+unaltered full-size frame grids; captions are QA annotations, not game UI.
+The Node check passed. Final browser recapture is pending: initial visual review
+caught an overly broad harness canvas rule and a caption covering early car
+positions, now fixed with bounds assertions. A subsequent capture was yielded
+to earlier browser reservations and is not a completed pass.
+
+All five tracked `ui-mockup-{menu,toolbar,hud,nightalert,gameover}.png` plates
+already exist and pass PNG verification. Their combined zoning, utilities,
+minimap and day/night coverage is documented in `docs/citisten-design/README.md`;
+no regeneration or runtime art replacement is needed.
+
 ## Known blockers and inspected-source limits
 
 Only this lane's authored modules and local dependency identity were inspected.

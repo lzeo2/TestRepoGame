@@ -1,0 +1,10 @@
+import assert from 'node:assert/strict';
+import { trafficFixture, utilityFixture, utilityCases } from './road-utility-fixtures.mjs';
+const traffic = trafficFixture();
+const checkpoints = [0,7,14,18,24,27].map(segment=>traffic.checkpoint(segment));
+assert.equal(new Set(checkpoints.map(p=>p.id)).size,1);
+assert.equal(new Set(checkpoints.map(p=>p.segment)).size,6);
+assert.ok(checkpoints.at(-1).time>checkpoints[0].time);
+const matrix = utilityCases.map(name=>utilityFixture(name).summary);
+console.log(JSON.stringify({scope:'API fixtures, not integrated acceptance',route:traffic.route,checkpoints,observations:traffic.observations.length,matrix},null,2));
+console.log('ROAD/UTILITY CHECK PASS: one real car, six segments including corner; nine power/water cases');
