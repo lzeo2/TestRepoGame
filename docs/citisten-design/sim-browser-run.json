@@ -126,45 +126,66 @@
     "citizenShots": 0,
     "activeFX": 1
   },
-  "F-wall": {
-    "time": 250.25,
+  "G-kill": {
+    "time": 243.25,
     "mode": "defense",
     "phase": "night",
     "population": 0,
-    "budget": 38556.43999999952,
+    "budget": 38556.819999999505,
+    "power": {
+      "supply": 0,
+      "demand": 2.2,
+      "served": 0,
+      "unserved": 2.2
+    },
+    "night": 1,
+    "score": 0,
+    "kills": 1,
+    "townHallHp": 600,
+    "zombies": 11,
+    "shotEvents": 2,
+    "citizenShots": 0,
+    "activeFX": 1
+  },
+  "F-wall": {
+    "time": 772,
+    "mode": "defense",
+    "phase": "night",
+    "population": 0,
+    "budget": 38459.439999999304,
     "power": {
       "supply": 0,
       "demand": 1,
       "served": 0,
       "unserved": 1
     },
-    "night": 1,
-    "score": 0,
-    "kills": 0,
+    "night": 3,
+    "score": 2,
+    "kills": 26,
     "townHallHp": 600,
-    "zombies": 12,
-    "shotEvents": 1,
+    "zombies": 16,
+    "shotEvents": 2,
     "citizenShots": 0,
     "activeFX": 0
   },
   "H": {
-    "time": 309.25,
+    "time": 828.25,
     "mode": "defense",
     "phase": "lost",
     "population": 0,
-    "budget": 38550.93499999959,
+    "budget": 38454.234999999375,
     "power": {
       "supply": 0,
       "demand": 1,
       "served": 0,
       "unserved": 1
     },
-    "night": 1,
-    "score": 0,
-    "kills": 0,
+    "night": 3,
+    "score": 2,
+    "kills": 26,
     "townHallHp": 0,
-    "zombies": 12,
-    "shotEvents": 1,
+    "zombies": 16,
+    "shotEvents": 2,
     "citizenShots": 0,
     "activeFX": 0
   },
@@ -185,12 +206,33 @@
     "kills": 0,
     "townHallHp": 600,
     "zombies": 0,
-    "shotEvents": 1,
+    "shotEvents": 0,
     "citizenShots": 0,
     "activeFX": 0
   },
+  "G-citizen": {
+    "time": 855,
+    "mode": "defense",
+    "phase": "night",
+    "population": 1968,
+    "budget": 31695.92046924365,
+    "power": {
+      "supply": 80,
+      "demand": 58.43716363726782,
+      "served": 58.43716363726781,
+      "unserved": 1.4210854715202004e-14
+    },
+    "night": 1,
+    "score": 0,
+    "kills": 0,
+    "townHallHp": 600,
+    "zombies": 12,
+    "shotEvents": 1,
+    "citizenShots": 1,
+    "activeFX": 1
+  },
   "errors": [],
   "externalRequests": [],
-  "diskBefore": 4004241408,
-  "diskAfter": 4002803712
+  "diskBefore": 3871305728,
+  "diskAfter": 3868348416
 }

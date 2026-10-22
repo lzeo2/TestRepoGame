@@ -17,6 +17,8 @@ receipt. Road traffic also supplies the simulation side of E.
 - `Games/Citisten3D/sim-qa.py`: bounded browser API-fixture capture harness.
 - `docs/citisten-sim-api.md`: integration contract, tuning and ownership.
 - `docs/citisten-design/sim-run.txt`: actual fresh Node stdout.
+- `docs/citisten-design/sim-browser-run.json`, `sim-browser-console.txt` and
+  `sim-browser-exit.txt`: final browser state, stdout and exit-code receipts.
 
 Runtime dependency: world-owned `RoadGrid` only, imported locally. No added npm
 packages, remote assets, fetches, sockets or DOM use in the simulation. The QA
@@ -93,16 +95,23 @@ mode and 12-night overflow spawning (352 kills, no unaccounted queued enemies).
 
 `node --check` passes for both authored ES modules. The Python capture harness
 parses without bytecode writes. `git diff --check` passes for owned changes.
-An initial API-fixture capture completed exit 0 with 18 screenshots and zero
-page/console/network errors or external requests. Image inspection found a
-harness-only missing UTF-8 declaration and clipped tracer-target framing;
-both are fixed. A final expanded recapture timed out at 120 seconds while
-unrelated trivia and Wings Chromium gates were active. It is NOT a pass and
-partly overwrote the initial frames; the existing JSON is the initial run, not
-proof that the expanded recapture completed. Final recapture awaits a globally
-exclusive browser slot. The harness now refuses live Chromium processes before
-creating a server/browser; its busy refusal was explicitly assertion-tested.
-API fixtures do not replace integrated normal-input acceptance.
+The final current-source API-fixture capture completed **exit 0**, with **22
+screenshots**, zero page/console/network errors and zero external requests.
+`sim-browser-run.json` matches that final run. It records 1,526 people at 600s,
+blackout and overload, an edge wave, a tower kill, a third-night wall assault,
+2 survived nights / 26 kills / hall HP 0 at loss, citizen fire and no live
+zombies or shot events after switching to free mode. Owned browser/driver/
+server resources closed before handing the shared slot to Wings/Jankolock.
+
+History: the initial 18-frame fixture run completed exit 0. Image inspection
+then caught harness-only missing UTF-8 and clipped-target framing, now fixed.
+An intervening expanded attempt timed out at 120s amid unrelated browser gates;
+that attempt was NOT counted as a pass. The final run replaced its partial
+frames. Exact ps root-PID checks now enforce exclusivity before launch and
+before/after every capture, with a 100s alarm and finally cleanup. The busy
+refusal/root detection was independently assertion-tested (including ignored
+zombies and renderer children). API fixtures do not replace integrated
+normal-input acceptance.
 
 ## Visual evidence and limits
 
@@ -111,7 +120,13 @@ The capture harness targets both themes at 1280x800 and saves C/D/F/G/H/I
 `docs/citisten-design/sim-browser-run.json`. These are explicitly API fixtures
 using real simulation state, not the final game entry and not proof of normal
 input, mobile gameplay, native device performance or release readiness.
-No claim about a rendered result is made before captures are inspected.
+Twenty-two final frames are retained (C initial/grown, D cut/overload, F wave/
+wall, G tracer/kill/citizen, H loss, I free, each in dark/light). Frames were
+inspected in both themes: population/budget and overload values are visible;
+tower and citizen tracers are visible; H shows 2 nights survived and 26 kills;
+free-mode minimap contains no zombie blips. These observations are not
+acceptance grades. No claim about a rendered result is made before captures
+are inspected.
 
 ## Known blockers and inspected-source limits
 
@@ -130,8 +145,11 @@ Operator-delegated lead/Hermes refresh `ce8d2b4` subsequently updated the
 inventory, without this lane editing out-of-scope paths. Subsequent source
 milestones still require a final lead-owned refresh and canonical game manual.
 The initial coordination ticket was `pi-2075977-1792626164639-1ae85e12`.
-Global shared-browser coordination is separately pending under
-`pi-2075977-1792627216164-ef1c474e`. Other worktrees' processes were not stopped.
+Global shared-browser coordination was escalated under
+`pi-2075977-1792627216164-ef1c474e`; an explicit global UI-to-sim handoff allowed
+the final uncontended run. Other worktrees' processes were not stopped.
+World separately reports **1.82 fps SwiftShader**, so its 40fps gate remains
+HOLD. This lane does not convert that into a hardware/rendering pass.
 
 The actual game entry, normal-input acceptance, catalog registration and full
 registered-game smoke/release gate remain integration/reviewer responsibilities.
@@ -145,8 +163,26 @@ No push is requested or performed. No runtime third-party dependency was added.
 - `c5be7f0`: bounded live siege agents while retaining queued wave totals,
   citizen-only kill assertions and shared per-tick threat collection.
 
-The evidence/report milestone commits only this lane's paths.
-Other live world/UI dirty paths belong to sibling lanes and are not staged.
-Initial shared root free space was 4,028,985,344 bytes. Final free bytes and the
-shared-workspace storage delta will be recorded after captures; that delta is
-not attributable solely to simulation files.
+- `5814277`: guarded API capture harness, initial browser JSON and scoped
+  maintenance receipt. Source is frozen pending reviewer/integration work.
+
+The evidence/report milestone commits only this lane's paths. Runtime plus
+Node check plus Python harness are **721 LOC** (354 + 173 + 194).
+Registered catalog stays **127 games**, no entry added or registered by this
+lane; CITISTEN simulation code is original, not ingested. No push.
+
+Gate accounting: Node regression exit 0; two completed API-fixture browser runs
+exit 0 (initial 18 frames and final 22 frames), with one intervening timeout
+explicitly not passed. Browser-busy refusal/root detection, two JS syntax
+checks, Python parse, tracked-catalog static validation and owned diff checks
+completed. Full registered-game browser gate was not run, so no release
+decision is implied.
+
+Other dirty paths belong to sibling lanes and are not staged: canonical
+maintenance README if still dirty. Initial shared root free space was
+4,028,985,344 bytes; the final browser run measured 3,871,305,728 before and
+3,868,348,416 after (2,957,312 bytes less free during capture). Against session
+start this is 160,636,928 bytes less free, shared across all swarms and not
+attributable solely to simulation files. Final command output retains the end
+snapshot. Owned browser/server resources are closed; no further browser runs
+are planned.

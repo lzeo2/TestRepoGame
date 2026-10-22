@@ -8,6 +8,7 @@ import json
 import os
 from pathlib import Path
 import shutil
+import signal
 import subprocess
 import threading
 from playwright.sync_api import sync_playwright
@@ -22,6 +23,14 @@ def disk_guard():
     if free < FLOOR:
         raise RuntimeError(f'Disk guard: {free} bytes free, need {FLOOR}')
     return free
+
+
+def browser_pids():
+    processes = subprocess.run(['ps', '-C', 'chromium,chrome', '-o', 'stat=,pid=,args='], capture_output=True, text=True)
+    if processes.returncode not in (0, 1):
+        raise RuntimeError(f'Cannot verify browser exclusivity: {processes.stderr}')
+    return {int(line.split()[1]) for line in processes.stdout.splitlines()
+            if line.strip() and not line.lstrip().startswith('Z') and '--type=' not in line}
 
 
 class QuietHandler(http.server.SimpleHTTPRequestHandler):
@@ -105,9 +114,9 @@ SETUP = """async () => {
       for(let i=0;i<2000;i++){sim.update(.25);const events=sim.drainEvents();if(sim.state.buildings.some(b=>b.type==='wall'&&b.hp<b.maxHp)){sync(events);break;}}
       world.controls.setPose({x:20,y:40,z:65,yaw:.3,pitch:-.6},true);world.render(0);return summary();},
     loss(){advance(700);return summary();},
-    free(){reset(24,'defense');advance(240);sim.setMode('free');advance(700);return summary();},
+    free(){reset(24,'defense');for(let i=0;i<960;i++)sim.update(.25);sim.drainEvents();sim.setMode('free');advance(700);return summary();},
     citizen(){qa.city();sim.setMode('defense');advance(400,true);focusShot();return summary();},
-    theme(value){if(root.dataset.theme!==value)(root.querySelector('dialog[open] [data-action="theme"]')||root.querySelector('[data-action="theme"]')).click();world.render(0);},
+    theme(value){if(root.dataset.theme!==value)(root.querySelector('dialog[open] [data-action="theme"]')||root.querySelector('[data-action="theme"]')).click();ui.update(sim.state,{roads:world.roads,size:sim.state.size});world.render(0);},
     dispose(){ui.destroy();world.dispose();}
   };
 }"""
@@ -115,12 +124,8 @@ SETUP = """async () => {
 
 def main():
     before = disk_guard()
-    processes = subprocess.run(['ps', '-C', 'chromium,chrome', '-o', 'stat=,pid=,args='], capture_output=True, text=True)
-    if processes.returncode not in (0, 1):
-        raise RuntimeError(f'Cannot verify browser exclusivity: {processes.stderr}')
-    busy = [line for line in processes.stdout.splitlines() if line.strip() and not line.lstrip().startswith('Z')]
-    if busy:
-        raise RuntimeError('Shared Chromium busy; wait for exclusive slot. ' + busy[0])
+    if browser_pids():
+        raise RuntimeError('Shared Chromium busy; wait for exclusive slot.')
     if not (ROOT / 'Games/Citisten3D/ui.mjs').is_file():
         raise RuntimeError('UI API source not available; do not substitute a mock HUD')
     OUT.mkdir(parents=True, exist_ok=True)
@@ -129,11 +134,18 @@ def main():
     thread = threading.Thread(target=server.serve_forever, daemon=True)
     thread.start()
     errors, external, report = [], [], {'evidence': 'API fixture, not integrated game acceptance'}
+    def expired(*_):
+        raise TimeoutError('Sim API fixture gate exceeded 100 seconds')
+    signal.signal(signal.SIGALRM, expired)
+    signal.alarm(100)
     try:
         with sync_playwright() as p:
             browser = p.chromium.launch(executable_path='/usr/bin/chromium', headless=True,
                 args=['--no-sandbox', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'])
             try:
+                owned = browser_pids()
+                if len(owned) != 1:
+                    raise RuntimeError('Browser launch contention; discard this run')
                 page = browser.new_page(viewport={'width': 1280, 'height': 800}, reduced_motion='reduce')
                 page.on('pageerror', lambda e: errors.append(str(e)))
                 page.on('console', lambda m: errors.append(m.text) if m.type == 'error' else None)
@@ -147,11 +159,16 @@ def main():
                 for letter, expression in [('C-initial', 'city(0)'), ('C', 'grow()'), ('D', 'cut()'), ('D-overload', 'overload()'), ('F', 'siege()'), ('G', 'shot()'), ('G-kill', 'kill()'), ('F-wall', 'wall()'), ('H', 'loss()'), ('I', 'free()'), ('G-citizen', 'citizen()')]:
                     report[letter] = page.evaluate(f'qa.{expression}')
                     page.evaluate('document.fonts.ready')
+                    page.wait_for_timeout(300)  # allow the UI's documented minimap throttle to expire
                     for theme in ['dark', 'light']:
                         page.evaluate('(theme)=>qa.theme(theme)', theme)
                         page.wait_for_timeout(80)
                         disk_guard()
+                        if browser_pids() != owned:
+                            raise RuntimeError('Sibling browser appeared; discard this run')
                         page.screenshot(path=str(OUT / f'{letter}-sim-api-fixture-{theme}.png'))
+                        if browser_pids() != owned:
+                            raise RuntimeError('Sibling browser appeared during capture; discard this run')
                 page.evaluate('qa.dispose()')
             finally:
                 browser.close()
@@ -159,6 +176,7 @@ def main():
         server.shutdown()
         server.server_close()
         thread.join(timeout=5)
+        signal.alarm(0)
     report.update(errors=errors, externalRequests=external, diskBefore=before, diskAfter=disk_guard())
     disk_guard()
     (ROOT / 'docs/citisten-design/sim-browser-run.json').write_text(json.dumps(report, indent=2) + '\n')
