@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="1000" viewBox="0 0 1440 1000" preserveAspectRatio="none">
+  <title>Original sonar water column</title>
+  <defs>
+    <pattern id="scan" width="16" height="6" patternUnits="userSpaceOnUse"><path d="M0 1h6m4 0h6" stroke="#4de3ff" stroke-opacity=".065"/></pattern>
+    <pattern id="particles" width="241" height="179" patternUnits="userSpaceOnUse"><circle cx="42" cy="53" r="1" fill="#4de3ff" opacity=".2"/><circle cx="192" cy="130" r="1" fill="#e8f1ff" opacity=".12"/></pattern>
+  </defs>
+  <path fill="#09182a" d="M0 0h1440v235H0z"/>
+  <path fill="#071222" d="M0 235h1440v290H0z"/>
+  <path fill="#050d1c" d="M0 525h1440v250H0z"/>
+  <path fill="#02040a" d="M0 775h1440v225H0z"/>
+  <path d="M0 235h1440M0 525h1440M0 775h1440" stroke="#4de3ff" stroke-opacity=".17" stroke-dasharray="6 9"/>
+  <path fill="url(#scan)" d="M0 0h1440v1000H0z"/>
+  <path fill="url(#particles)" d="M0 0h1440v1000H0z"/>
+  <g fill="none" stroke="#4de3ff" stroke-opacity=".09">
+    <path d="M0 24q190-26 400 0t480 0 560 0M0 42q190-26 400 0t480 0 560 0"/>
+    <path d="M0 70q190-26 400 0t480 0 560 0" stroke-dasharray="6 6"/>
+  </g>
+  <path fill="#030710" d="m0 760 55 19 32-42 53 55 39-10 47 69 45-21 39 61 46 18 37-45 47 32 45-12 39 52 49-14 27 34 50-40 35 15 41-57 42 29 46-19 51 33 37-49 61 25 33-65 39 18 37-39 51 13 40-71 46 20 36-48 48 22 31-56 58 5v313H0z"/>
+  <path d="m0 760 55 19 32-42 53 55 39-10 47 69 45-21 39 61 46 18 37-45 47 32 45-12 39 52 49-14m306-9 37-49 61 25 33-65 39 18 37-39 51 13 40-71 46 20 36-48 48 22 31-56 58 5" fill="none" stroke="#4de3ff" stroke-opacity=".13"/>
+</svg>

@@ -44,8 +44,8 @@
   function setTheme(value) {
     theme = value;
     document.body.classList.toggle('dark', theme === 'dark');
-    $('theme').textContent = theme === 'dark' ? 'Light theme' : 'Dark theme';
-    $('theme').setAttribute('aria-label', 'Switch to ' + (theme === 'dark' ? 'light' : 'dark') + ' theme');
+    $('theme').textContent = theme === 'dark' ? 'Restore glow' : 'Dim glow';
+    $('theme').setAttribute('aria-label', theme === 'dark' ? 'Restore the sonar glow' : 'Reduce the sonar glow');
   }
   function stopClock() { clearInterval(timer); timer = null; }
   function screen(id) {
@@ -54,6 +54,8 @@
   function depth() {
     const total = run ? run.total : 0;
     $('depth').textContent = (total * 10).toLocaleString('en');
+    const metres = total * 10;
+    $('depth-mood').textContent = metres === 0 ? 'signal at the surface' : metres < 1000 ? 'the last ripples travel with us' : metres < 3000 ? 'tiny lights measure the silence' : metres < 7000 ? 'the dark keeps a wider sky' : 'a signal from the floor of the world';
     $('guide').style.top = (total / 700 * 100) + '%';
     $('score').textContent = total + ' / 700 points';
   }

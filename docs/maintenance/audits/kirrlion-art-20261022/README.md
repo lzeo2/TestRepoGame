@@ -1,5 +1,7 @@
 # Below the Obvious: original depth-column artwork
 
+**Historical rejected treatment.** The operator corrected the reference from the paper landing page to the full-dark CRT dive screen. See the [canonical abyss rework](abyss/README.md) and corrected mockup; the cream screenshots below do not represent current source or acceptance.
+
 ## Scope and milestones
 
 Existing catalog 235 only. No new games, registration, publication or push.

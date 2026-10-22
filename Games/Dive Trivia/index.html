@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#102b46">
+  <meta name="theme-color" content="#050914">
   <meta name="description" content="An original offline rare-answer trivia dive. Seven prompts, four themed packs, and editorial rarity scoring.">
   <title>Below the Obvious</title>
   <link rel="icon" href="guide.svg" type="image/svg+xml">
@@ -13,23 +13,24 @@
   <script defer src="script.js"></script>
 </head>
 <body>
+  <div class="ocean-world" aria-hidden="true"></div>
   <a class="skip" href="#main">Skip to game</a>
   <header>
     <a href="../../index.html" class="portal">ARCADE <span>/</span> BELOW THE OBVIOUS</a>
-    <div class="instruments"><button id="sonar" type="button" aria-pressed="false">Sonar off</button><button id="theme" type="button" aria-label="Switch to dark theme">Dark theme</button></div>
+    <div class="instruments"><button id="sonar" type="button" aria-pressed="false">Sonar off</button><button id="theme" type="button" aria-label="Reduce the sonar glow">Dim glow</button></div>
   </header>
-  <div class="masthead"><p>OFFLINE TRIVIA / SEVEN QUESTIONS / ONE DESCENT</p><h1>BELOW THE<br>OBVIOUS</h1></div>
+  <div class="masthead"><p>OFFLINE TRIVIA / SEVEN QUESTIONS / ONE DESCENT</p><h1>BELOW THE OBVIOUS</h1></div>
   <main id="main">
     <aside class="ocean" aria-label="Dive depth">
       <div class="ocean-top"><span>RESEARCH VESSEL / 07</span><span>SOLO</span></div>
-      <div class="depth-readout"><strong id="depth">0</strong><span>metres</span></div>
+      <div class="depth-readout"><div><strong id="depth">0</strong><span> m</span></div><p id="depth-mood">signal at the surface</p></div>
       <div class="depth-column">
         <div class="depth-line" aria-hidden="true"></div>
-        <div class="depth-labels" aria-hidden="true"><span style="--mark:0%">0 m</span><span style="--mark:6.4286%">450 m</span><span style="--mark:14.2857%">1,000 m</span><span style="--mark:34.2857%">2,400 m</span><span style="--mark:42.8571%">3,000 m</span><span style="--mark:100%">7,000 m</span></div>
+        <div class="depth-labels" aria-hidden="true"><span style="--mark:0%">0 m / SURFACE</span><span style="--mark:6.4286%">450 m</span><span style="--mark:14.2857%">1,000 m</span><span style="--mark:34.2857%">2,400 m</span><span style="--mark:42.8571%">3,000 m</span><span style="--mark:100%">7,000 m / TRENCH</span></div>
         <p class="water-note note-one">the surface folds into a whisper</p>
         <p class="water-note note-two">small lights keep their own hours</p>
         <p class="water-note note-three">even the quiet has a seafloor</p>
-        <div id="guide"><img src="guide.svg" width="104" height="104" alt="Glim, an original translucent deep-sea shrimp with a luminous amber eye"><span class="beep" aria-hidden="true">beep</span></div>
+        <div id="guide"><img src="guide.svg" width="104" height="104" alt="Glim, an original translucent deep-sea shrimp with a luminous cyan eye"><span class="beep" aria-hidden="true">beep</span></div>
       </div>
       <div class="ocean-bottom"><strong>Meet Glim.</strong><p id="guide-copy">A small light for the way down. Bring an unexpected answer.</p></div>
     </aside>

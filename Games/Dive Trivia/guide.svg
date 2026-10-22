@@ -1,14 +1,15 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 104 104" role="img" aria-labelledby="title desc">
   <title id="title">Glim, the deep-sea guide</title>
-  <desc id="desc">An original curled translucent shrimp with a fan tail, six delicate legs, long antennae and a single amber light.</desc>
-  <g fill="none" stroke="#a8d4e6" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+  <desc id="desc">An original curled translucent shrimp with a fan tail, six delicate legs, long antennae and a single cyan signal light.</desc>
+  <g fill="none" stroke="#8beaff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
     <path d="M72 40Q86 15 98 25M74 43Q92 28 100 39"/>
-    <path d="M21 65 9 60 12 74 25 73" fill="#83b5d0" fill-opacity=".3"/>
-    <path d="M19 64C24 43 40 33 62 36Q81 37 79 48C76 57 65 60 54 57Q37 53 28 71Z" fill="#83b5d0" fill-opacity=".28"/>
+    <path d="M21 65 9 60 12 74 25 73" fill="#4de3ff" fill-opacity=".14"/>
+    <path d="M19 64C24 43 40 33 62 36Q81 37 79 48C76 57 65 60 54 57Q37 53 28 71Z" fill="#4de3ff" fill-opacity=".12"/>
     <path d="M28 49Q29 60 36 61M38 42Q38 54 46 57M49 38Q47 51 56 57M61 37 64 56" opacity=".7"/>
     <path d="m34 60-3 13 6 4m5-20-2 17 7 4m4-23 1 16 7 3m2-18 3 12 7 1m1-15 4 8 7-2"/>
   </g>
-  <circle cx="72" cy="44" r="8" fill="#f5b943" opacity=".13"/>
-  <circle cx="72" cy="44" r="4" fill="#f5b943"/>
-  <circle cx="73" cy="43" r="1.5" fill="#fff7d7"/>
+  <circle cx="72" cy="44" r="12" fill="#4de3ff" opacity=".06"/>
+  <circle cx="72" cy="44" r="8" fill="#4de3ff" opacity=".16"/>
+  <circle cx="72" cy="44" r="4" fill="#4de3ff"/>
+  <circle cx="73" cy="43" r="1.5" fill="#e8f1ff"/>
 </svg>
