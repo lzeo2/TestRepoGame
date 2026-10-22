@@ -1,0 +1,382 @@
+{
+  "evidenceClass": "native input, software WebGL; no hardware acceptance",
+  "runKind": "ui-only",
+  "storageBefore": 2797260800,
+  "screenshots": [
+    {
+      "path": "docs/maintenance/audits/jankolock-3d-qa/world-environment-functional/world-foldwild-reference.png",
+      "variance": 3377.05,
+      "snapshot": null
+    },
+    {
+      "path": "docs/maintenance/audits/jankolock-3d-qa/world-environment-functional/world-implemented.png",
+      "variance": 4295.79,
+      "snapshot": {
+        "traveler": {
+          "x": -250,
+          "y": 0,
+          "z": -380,
+          "mode": "free",
+          "walk": true,
+          "grounded": true,
+          "stamina": 100,
+          "collected": 0,
+          "broken": 0,
+          "zipT": null
+        },
+        "render": {
+          "calls": 460,
+          "triangles": 453932,
+          "geometries": 43,
+          "textures": 31,
+          "environment": {
+            "buildings": 62,
+            "instances": 66904,
+            "triangles": 926466,
+            "geometries": 41,
+            "staticChunks": 12,
+            "textureCount": 11,
+            "cornerTurnouts": 21,
+            "detailDistance": 155
+          }
+        },
+        "paused": false,
+        "disposed": false,
+        "flythrough": false,
+        "spawns": 42
+      }
+    },
+    {
+      "path": "docs/maintenance/audits/jankolock-3d-qa/world-environment-functional/world-ui-comparison.png",
+      "variance": 5575.35,
+      "kind": "labeled comparison, not a runtime-only capture"
+    },
+    {
+      "path": "docs/maintenance/audits/jankolock-3d-qa/world-environment-functional/world-aerial.png",
+      "variance": 4708.62,
+      "snapshot": {
+        "traveler": {
+          "x": 16.402077993177304,
+          "y": 370.78105133300846,
+          "z": -419.6796061729778,
+          "mode": "free",
+          "walk": true,
+          "grounded": true,
+          "stamina": 100,
+          "collected": 0,
+          "broken": 0,
+          "zipT": null
+        },
+        "render": {
+          "calls": 549,
+          "triangles": 520008,
+          "geometries": 48,
+          "textures": 38,
+          "environment": {
+            "buildings": 62,
+            "instances": 66904,
+            "triangles": 926466,
+            "geometries": 41,
+            "staticChunks": 12,
+            "textureCount": 11,
+            "cornerTurnouts": 21,
+            "detailDistance": 155
+          }
+        },
+        "paused": false,
+        "disposed": false,
+        "flythrough": true,
+        "spawns": 42
+      }
+    },
+    {
+      "path": "docs/maintenance/audits/jankolock-3d-qa/world-environment-functional/world-light.png",
+      "variance": 4295.79,
+      "snapshot": {
+        "traveler": {
+          "x": -250,
+          "y": 0,
+          "z": -380,
+          "mode": "free",
+          "walk": true,
+          "grounded": true,
+          "stamina": 100,
+          "collected": 0,
+          "broken": 0,
+          "zipT": null
+        },
+        "render": {
+          "calls": 460,
+          "triangles": 453932,
+          "geometries": 48,
+          "textures": 38,
+          "environment": {
+            "buildings": 62,
+            "instances": 66904,
+            "triangles": 926466,
+            "geometries": 41,
+            "staticChunks": 12,
+            "textureCount": 11,
+            "cornerTurnouts": 21,
+            "detailDistance": 155
+          }
+        },
+        "paused": false,
+        "disposed": false,
+        "flythrough": false,
+        "spawns": 42
+      }
+    },
+    {
+      "path": "docs/maintenance/audits/jankolock-3d-qa/world-environment-functional/world-mobile-dark.png",
+      "variance": 1873.14,
+      "kind": "actual 390x720 viewport, padded to 1280x720"
+    },
+    {
+      "path": "docs/maintenance/audits/jankolock-3d-qa/world-environment-functional/world-mobile-light.png",
+      "variance": 1873.14,
+      "kind": "actual 390x720 viewport, padded to 1280x720"
+    }
+  ],
+  "errors": [],
+  "requests": [
+    {
+      "url": "/Games/Foldwild/index.html",
+      "status": 200
+    },
+    {
+      "url": "/Games/Foldwild/style.css",
+      "status": 200
+    },
+    {
+      "url": "/Games/Foldwild/script.js",
+      "status": 200
+    },
+    {
+      "url": "/Games/Foldwild/campaign.js",
+      "status": 200
+    },
+    {
+      "url": "/Games/Foldwild/data.js",
+      "status": 200
+    },
+    {
+      "url": "/Games/Foldwild/world.js",
+      "status": 200
+    },
+    {
+      "url": "/Games/Foldwild/battle.js",
+      "status": 200
+    },
+    {
+      "url": "/Games/Foldwild/builds.js",
+      "status": 200
+    },
+    {
+      "url": "/Games/Foldwild/economy.js",
+      "status": 200
+    },
+    {
+      "url": "/Games/Foldwild/view.js",
+      "status": 200
+    },
+    {
+      "url": "/Games/Foldwild/region-data.js",
+      "status": 200
+    },
+    {
+      "url": "/Games/Foldwild/vendor/GLTFLoader.js",
+      "status": 200
+    },
+    {
+      "url": "/Games/Foldwild/vendor/BufferGeometryUtils.js",
+      "status": 200
+    },
+    {
+      "url": "/Games/Foldwild/vendor/three.module.js",
+      "status": 200
+    },
+    {
+      "url": "/assets/fonts/atkinson-hyperlegible/atkinson-hyperlegible-400-latin.woff2",
+      "status": 200
+    },
+    {
+      "url": "/assets/fonts/bungee/bungee-400-latin.woff2",
+      "status": 200
+    },
+    {
+      "url": "/assets/fonts/atkinson-hyperlegible/atkinson-hyperlegible-700-latin.woff2",
+      "status": 200
+    },
+    {
+      "url": "/favicon.svg",
+      "status": 200
+    },
+    {
+      "url": "/Games/Jankolock3D/world.html",
+      "status": 200
+    },
+    {
+      "url": "/Games/Jankolock3D/world.css",
+      "status": 200
+    },
+    {
+      "url": "/Games/Jankolock3D/viewer.mjs",
+      "status": 200
+    },
+    {
+      "url": "/Games/Jankolock3D/world-data.mjs",
+      "status": 200
+    },
+    {
+      "url": "/Games/Jankolock3D/traversal.mjs",
+      "status": 200
+    },
+    {
+      "url": "/Games/Jankolock3D/world-scene.mjs",
+      "status": 200
+    },
+    {
+      "url": "/Games/Jankolock3D/environment.mjs",
+      "status": 200
+    },
+    {
+      "url": "/Games/Jankolock3D/vendor/three.module.js",
+      "status": 200
+    },
+    {
+      "url": "/Games/Jankolock3D/vendor/three.core.js",
+      "status": 200
+    },
+    {
+      "url": "/assets/fonts/atkinson-hyperlegible/atkinson-hyperlegible-400-latin.woff2",
+      "status": 200
+    },
+    {
+      "url": "/assets/fonts/bungee/bungee-400-latin.woff2",
+      "status": 200
+    },
+    {
+      "url": "/Games/Jankolock3D/textures/environment/brick-color.png",
+      "status": 200
+    },
+    {
+      "url": "/assets/fonts/atkinson-hyperlegible/atkinson-hyperlegible-700-latin.woff2",
+      "status": 200
+    },
+    {
+      "url": "/Games/Jankolock3D/textures/environment/brick-ao.png",
+      "status": 200
+    },
+    {
+      "url": "/Games/Jankolock3D/textures/environment/brick-rough.png",
+      "status": 200
+    },
+    {
+      "url": "/Games/Jankolock3D/textures/environment/limestone-rough.png",
+      "status": 200
+    },
+    {
+      "url": "/Games/Jankolock3D/textures/environment/limestone-color.png",
+      "status": 200
+    },
+    {
+      "url": "/Games/Jankolock3D/textures/environment/limestone-ao.png",
+      "status": 200
+    },
+    {
+      "url": "/Games/Jankolock3D/textures/environment/metal-color.png",
+      "status": 200
+    },
+    {
+      "url": "/Games/Jankolock3D/textures/environment/metal-rough.png",
+      "status": 200
+    },
+    {
+      "url": "/Games/Jankolock3D/textures/environment/foliage-color.png",
+      "status": 200
+    },
+    {
+      "url": "/Games/Jankolock3D/textures/environment/metal-ao.png",
+      "status": 200
+    },
+    {
+      "url": "/Games/Jankolock3D/textures/environment/signs-color.png",
+      "status": 200
+    }
+  ],
+  "nativeZipEndpoints": [],
+  "mockupTransform": "Second of exactly two AI attempts; deterministic fixed-palette transform. Originals preserved. Layout comparison, not gameplay proof; reviewer approval separate.",
+  "mobile": {
+    "overflow": false,
+    "buttons": [
+      {
+        "text": "Walk: on",
+        "w": 110.65625,
+        "h": 44
+      },
+      {
+        "text": "Flythrough: off",
+        "w": 110.671875,
+        "h": 60
+      },
+      {
+        "text": "Sound: off",
+        "w": 110.671875,
+        "h": 44
+      },
+      {
+        "text": "Forward",
+        "w": 82.5,
+        "h": 44
+      },
+      {
+        "text": "Left",
+        "w": 82.5,
+        "h": 44
+      },
+      {
+        "text": "Back",
+        "w": 82.5,
+        "h": 44
+      },
+      {
+        "text": "Right",
+        "w": 82.5,
+        "h": 44
+      },
+      {
+        "text": "Look left",
+        "w": 82.5,
+        "h": 52
+      },
+      {
+        "text": "Look right",
+        "w": 82.5,
+        "h": 52
+      },
+      {
+        "text": "Look up",
+        "w": 82.5,
+        "h": 52
+      },
+      {
+        "text": "Look down",
+        "w": 82.5,
+        "h": 52
+      },
+      {
+        "text": "Jump",
+        "w": 69.796875,
+        "h": 44
+      },
+      {
+        "text": "Interact",
+        "w": 88.578125,
+        "h": 44
+      }
+    ]
+  },
+  "completed": true,
+  "storageAfter": 2796351488
+}
