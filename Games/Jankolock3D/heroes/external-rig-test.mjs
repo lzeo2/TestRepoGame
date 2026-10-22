@@ -5,13 +5,14 @@ import { GLTFLoader } from '../vendor/addons/GLTFLoader.js';
 import { Euler, Vector3 } from '../vendor/three.module.js';
 import { bindHeroRig } from './hero-model.mjs';
 
-const base=new URL('../../../external-art/',import.meta.url);
+const base=new URL('../models/',import.meta.url);
 const near=(a,b,label)=>assert.ok(Math.abs(a-b)<1e-7,`${label}: ${a} != ${b}`);
 const transform=node=>[...node.position.toArray(),...node.quaternion.toArray(),...node.scale.toArray()];
 let frames=0;
 for(const [id,count] of [['stampead',17],['turretina',23],['snipeoff',20],['gooey_sticky',10]]) {
-  const rig=JSON.parse(await readFile(new URL(`${id}/rig.json`,base),'utf8'));
-  const originalJSON=JSON.stringify(rig),bytes=await readFile(new URL(`${id}/model.glb`,base));
+  const folder=id==='gooey_sticky'?'gooey':id;
+  const rig=JSON.parse(await readFile(new URL(`${folder}/rig.json`,base),'utf8'));
+  const originalJSON=JSON.stringify(rig),bytes=await readFile(new URL(`${folder}/model.glb`,base));
   const {scene:group}=await new GLTFLoader().parseAsync(bytes.buffer.slice(bytes.byteOffset,bytes.byteOffset+bytes.byteLength),'');
   assert.equal(rig.movable_nodes.length,count);
   const rests=new Map();group.traverse(node=>rests.set(node,{position:node.position.clone(),quaternion:node.quaternion.clone(),transform:transform(node),parent:node.parent}));
