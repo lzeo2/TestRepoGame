@@ -121,9 +121,45 @@ and the C/D/F/G/H/I `*-sim-api-fixture-*.png` captures in the QA directory.
 UI did not stage or alter those paths; sim owns their final commit/refresh.
 
 Runtime is 379 lines across the four UI/preview files. The regression runner
-is 273 lines; documentation is counted separately. UI deliverables including
+is 282 lines after Batch32; documentation is counted separately. UI deliverables including
 mockups and evidence occupy about 3 MiB. Root free bytes at lane start:
 4,026,675,200; final browser receipt: 3,871,924,224 (delta -154,750,976).
 These are shared-host availability samples, not UI-exclusive consumption;
 other lanes were active. No guard waiver was needed. Detailed execution
 samples live in `J-ui-results.json`.
+
+## Batch32 step 1 resume
+
+Only UI harness/receipts changed; UI runtime, CSS, world and sim source were
+not edited. The answered focus-modality ticket
+`pi-2076318-1792626304720-91c57159` was applied to the shared helper:
+
+- Resolve the active dialog/HUD's live eligible tab order, including positive
+  tabindex ordering and disabled/inert/hidden exclusions.
+- Compute Tab presses from current/target indices, rather than a fixed Tab
+  count or programmatic focus. Menu and tool checks use the same helper.
+- Assert the target is `activeElement`, matches `:focus-visible` and has a
+  resolved outline width of at least 2px. Check the solid CSS rule separately.
+- Retain native Enter, pointer activation and theme-change checks.
+
+The first new run stopped at the stylesheet assertion. The existing outline
+shorthand contains `var()`, so the assertion was corrected to inspect the
+shorthand and separately verify resolved width after keyboard focus. This was
+a harness correction, not a runtime style change or removed modality check.
+
+The bounded retry completed exit 0 with the same printed 36-screenshot,
+10-collage success line above, 37 process-ownership checks and no page,
+console, failed-request or external-request errors. Both themes and all three
+viewports ran. Captured PNGs have no changes from the prior committed fixtures.
+Log: `docs/maintenance/audits/citisten-QA/J-ui-batch32-run.txt`.
+Current result: `J-ui-results.json` in the same directory. Neither is a reviewer
+grade or integrated gameplay acceptance.
+
+Owned browser/driver/server closed and end-of-run `ps` was empty. Step 1 and
+browser completion were sent to sim `9347e97` and world `b16dd16`; global slot
+was explicitly released next to world for the approved measurement/probe.
+The canonical maintenance check remains blocked while source lanes are dirty;
+refresh belongs after their final commits, not an inventory edit by UI.
+
+Step-start root free: 3,860,889,600 bytes. Browser receipt end: 3,846,877,184
+bytes, shared-host delta -14,012,416 bytes. No guard waiver or new dependency.

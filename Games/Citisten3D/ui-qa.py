@@ -57,12 +57,20 @@ def shot(page, name):
 
 def keyboard_focus(page, selector):
     target = page.locator(selector)
-    for _ in range(30):
+    presses = target.evaluate('''el => {
+      const scope = el.closest('dialog[open]') || document.querySelector('.city-game');
+      const order = [...scope.querySelectorAll('a[href], button, input, select, textarea, summary, [tabindex]')]
+        .filter(node => node.checkVisibility() && !node.matches(':disabled') && node.tabIndex >= 0 && !node.closest('[inert]'))
+        .sort((a, b) => (a.tabIndex || Infinity) - (b.tabIndex || Infinity));
+      const index = order.indexOf(el), current = order.indexOf(document.activeElement);
+      if (index < 0) throw Error('Target is not in the active tab order');
+      return (index - current + order.length) % order.length || order.length;
+    }''')
+    for _ in range(presses):
         page.keyboard.press('Tab')
-        if target.evaluate('el => el === document.activeElement'):
-            assert target.evaluate("el => el.matches(':focus-visible')")
-            return
-    raise AssertionError(f'Keyboard cannot reach {selector}')
+    assert target.evaluate('el => el === document.activeElement'), f'Keyboard cannot reach {selector}'
+    assert target.evaluate("el => el.matches(':focus-visible')"), f'No keyboard focus indicator for {selector}'
+    assert target.evaluate('el => parseFloat(getComputedStyle(el).outlineWidth) >= 2'), f'Focus indicator too thin for {selector}'
 
 
 def layout(page):
@@ -154,6 +162,9 @@ def main():
                     }''')
                     page.evaluate('document.fonts.ready')
                     assert page.evaluate("document.fonts.check('16px Atkinson') && document.fonts.check('16px Bungee')")
+                    assert page.evaluate('''() => [...document.styleSheets].some(sheet =>
+                      [...sheet.cssRules].some(rule => rule.selectorText === '.citisten-ui :focus-visible'
+                        && rule.style.outline.includes('solid')))''')
                     for theme in ['dark', 'light']:
                         if theme == 'light':
                             page.locator('dialog[open] [data-action="theme"]').click()
@@ -161,7 +172,6 @@ def main():
                         layout(page)
                         # Native focus ring and keyboard start path.
                         keyboard_focus(page, '[data-mode="free"]')
-                        assert page.locator('[data-mode="free"]').evaluate("el => getComputedStyle(el).outlineStyle") == 'solid'
                         captures.append(shot(page, f'J-I-ui-menu-{theme}-{width}'))
                         page.keyboard.press('Enter')
                         assert page.evaluate('calls.at(-1)') == ['start', 'free']
@@ -181,8 +191,7 @@ def main():
                         page.locator('[data-tool="residential"]').click()
                         assert page.evaluate('calls.at(-1)') == ['tool', 'residential']
                         assert page.locator('[data-tool="residential"]').get_attribute('aria-pressed') == 'true'
-                        page.keyboard.press('Tab')
-                        assert page.locator('[data-tool="commercial"]').evaluate('el => el === document.activeElement')
+                        keyboard_focus(page, '[data-tool="commercial"]')
                         assert page.locator('#city-tooltip-commercial').is_visible()
                         layout(page)
                         captures.append(shot(page, f'J-B-ui-toolbar-{theme}-{width}'))
@@ -261,7 +270,7 @@ def main():
         result = {'scope':'UI fixture only, reviewer grades acceptance', 'viewports':[1440,390,320],
                   'themes':['dark','light'], 'screenshots':len(captures), 'collages':10,
                   'errors':errors,'externalRequests':external,'failedRequests':failed,'browserProcessChecks':PROCESS_CHECKS,
-                  'checks':'native keyboard start, both modes, tool callbacks, focus, theme/storage failure, HP, demand, peak population, loss-to-menu, hall marker ordering, toast cap/dedupe/expiry, 44px targets, overflow and button copy, no gradients/shadows, destroy',
+                  'checks':'runtime tab-order focus modality and visible CSS rule, native keyboard start, both modes, tool callbacks, theme/storage failure, HP, demand, peak population, loss-to-menu, hall marker ordering, toast cap/dedupe/expiry, 44px targets, overflow and button copy, no gradients/shadows, destroy',
                   'diskBeforeBytes':before,'diskAfterBytes':shutil.disk_usage('/').free}
         disk(); (OUT / 'J-ui-results.json').write_text(json.dumps(result,indent=2)+'\n')
         print(f'UI CHECK PASS: {len(captures)} fixture screenshots, 10 collages; 3 viewports, 2 themes; zero console/page/network errors')

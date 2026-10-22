@@ -101,6 +101,11 @@ scope limits, evidence mapping and remaining integration/reviewer holds.
 Harness-only corrections during initial QA: native Tab rather than programmatic
 focus for `:focus-visible`, reset HP/budget fixture values between themes, and
 a braced Playwright storage override so the returned function is not invoked
-by the test driver. No UI assertions were removed to obtain a passing run.
+by the test driver. The Batch32 focus helper resolves the current/target
+indices in the active dialog or HUD's live tab order, sends native Tab presses,
+and verifies `activeElement` plus `:focus-visible`. A stylesheet assertion
+separately checks the solid focus rule. Menu and tool checks share this helper;
+no computed-outline-only check or fixed Tab count substitutes for keyboard
+modality. No UI assertions were removed to obtain a passing run.
 Native touch gameplay, screen-reader review and target-device tests remain held.
 Main owns canonical maintenance inventory updates and full fleet/no-push gates.

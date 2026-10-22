@@ -15,7 +15,7 @@
   "externalRequests": [],
   "failedRequests": [],
   "browserProcessChecks": 37,
-  "checks": "native keyboard start, both modes, tool callbacks, focus, theme/storage failure, HP, demand, peak population, loss-to-menu, hall marker ordering, toast cap/dedupe/expiry, 44px targets, overflow and button copy, no gradients/shadows, destroy",
-  "diskBeforeBytes": 3871846400,
-  "diskAfterBytes": 3871924224
+  "checks": "runtime tab-order focus modality and visible CSS rule, native keyboard start, both modes, tool callbacks, theme/storage failure, HP, demand, peak population, loss-to-menu, hall marker ordering, toast cap/dedupe/expiry, 44px targets, overflow and button copy, no gradients/shadows, destroy",
+  "diskBeforeBytes": 3847200768,
+  "diskAfterBytes": 3846877184
 }
