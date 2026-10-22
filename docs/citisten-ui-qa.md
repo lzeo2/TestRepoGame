@@ -112,9 +112,16 @@ registration was performed by UI.
 - `605b2f2`: accessible menu/HUD, preview, regression and published API.
 - `ea3b15d`: loss menu, town hall map ordering and narrow control fixes.
 - `b651f30`: compact notice priority, fresh-session feedback and tooltip bounds.
+- `f2105d3`: final-source evidence, process-ownership guard and reviewer receipt.
+
+UI-owned paths are committed. At receipt time, the remaining shared dirt was
+sim-owned `Games/Citisten3D/sim-qa.py`, `docs/citisten-sim.md`,
+`docs/maintenance/README.md`, `docs/citisten-design/sim-browser-console.txt`,
+and the C/D/F/G/H/I `*-sim-api-fixture-*.png` captures in the QA directory.
+UI did not stage or alter those paths; sim owns their final commit/refresh.
 
 Runtime is 379 lines across the four UI/preview files. The regression runner
-is 274 lines; documentation is counted separately. UI deliverables including
+is 273 lines; documentation is counted separately. UI deliverables including
 mockups and evidence occupy about 3 MiB. Root free bytes at lane start:
 4,026,675,200; final browser receipt: 3,871,924,224 (delta -154,750,976).
 These are shared-host availability samples, not UI-exclusive consumption;
