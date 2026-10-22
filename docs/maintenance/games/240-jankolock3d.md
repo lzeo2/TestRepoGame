@@ -130,6 +130,27 @@ No full-fleet smoke or push ran. The unchanged complete registered-game browser
 gate remains mandatory before any separately authorized future push. Maintenance
 checker must run after inspected source commits and inventory reconciliation.
 
+### Short letter follow-up
+
+The bounded [letter runner](../../../Games/Jankolock3D/LETTER-QA.md) avoids rerunning
+A/B/H/I before every missing-letter capture. C completed with four nonblank shots,
+a native secure, actual ground pickup and API deny (0 -> 120 souls), 26 HTTP200
+responses and zero recorded errors. D/G completed with four shots, 52 HTTP200
+responses and zero errors: actual 19 falls, P2 at570, victory at590, clock600,
+and a symmetric Defeat. D's timeline is a labeled QA overlay of actual systems
+events, not a fabricated game HUD. Both reports pin stable runtime bytes.
+
+E now captures all sixteen native ability keys/real frozen FX across all four
+heroes in the integrated world, plus a labeled contact sheet. F's retry captures
+the shop, purchases at all four tiers, +200 max HP, a collision-resolved 10m dash
+and active burst; its approved-mockup/actual-shop twin is retained. The first
+active-selector failure and its exact images remain archived. Completed C-G
+runs total 29 full-size captures, 208 HTTP200 responses and zero recorded errors,
+with hashes matching current runtime bytes. All A-I named PNGs now exist;
+older A/B/H/I remain their own qualified historical evidence. See the audit's
+COMPLETION.md and per-letter JSON, not the interrupted full-run receipt.
+No full-fleet/hardware/reviewer grade or push is inferred.
+
 ## Future outlook
 
 Independent stable-source A-I review and mockup comparison, human full-match
