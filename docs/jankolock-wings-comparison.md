@@ -33,7 +33,9 @@ fonts, panels or dependencies were copied.
    event in shared `damageActor`, used by both bullets and slam; actual HP damage
    and shield absorption, target coordinates, short hit X/label, separate incoming
    label and stronger kill label. Cover, immunity and decoys cannot fake actor-hit
-   confirmation. Kill display takes priority over subsequent ordinary hits.
+   confirmation. Kill display takes priority over subsequent ordinary hits;
+   each kill owns its coordinates so a rapid second kill cannot reuse the first
+   marker's position.
 2. **Teach the current action in the current state.** Wings' lobby exposes Controls
    as a first-level action; `controlRows` follows the steering scheme, and spawn
    details explain actual roles/loadouts. Jankolock's detailed controls were tucked
@@ -106,9 +108,9 @@ Commands and actual output:
   `PASS deterministic two-round normal-input replay`. Added immunity, shield,
   effective overkill, dead-target, cover and shared slam-feedback assertions.
 - `python3 -B scripts/test_jankolock_browser.py --port 8937 --seconds 300`:
-  `PASS: rounds=2 checks=3 errors=0 wall=83.96s`. Final source tested, desktop
+  `PASS: rounds=2 checks=3 errors=0 wall=84.23s`. Final source tested, desktop
   sound enabled after confirming default-off; mobile retains the muted path.
-  Two real Dispatch wins (kill then capture), item/stat application, deaths and
+  Two real Dispatch wins (both kill-decided), item/stat application, deaths and
   respawns, both visible combat-feedback channels, reset, simultaneous 320px
   touch move/aim/fire, cancel, Q, frozen pause/resume and focused Resume passed.
 - Catalog validation: `PASS catalog: 128 unique IDs, required schema, all entry URLs tracked`.
@@ -131,6 +133,16 @@ Wings browser probe captured `comparison/wings-{1440,390}-{menu,controls}.png`:
 2/2 menu -> Controls -> Escape return sequences, zero page errors/external
 requests. Reviewed desktop menu and mobile Controls; Wings uses its existing dark
 palette rather than a fabricated light theme. No Wings flight was launched.
+
+Implementation milestones: `0bb1fbb` (`feat: bring confirmed combat feedback and
+contextual guidance to Jankolock`) and `1ba63aa` (`fix: keep rapid Jankolock kill
+markers at their own impacts`). Maintenance refresh changed only this game's
+inventory record. `python3 -B scripts/check_maintenance_docs.py` returned:
+`PASS: 134 game documents cover 128 registered + 6 unregistered games; Git inventory current.`
+This is coverage/staleness validation, not native acceptance. Sibling design
+notes `Games/Jankolock/DESIGN.md` landed independently as `a9875f6` during the
+run; inspected read-only and included by the final inventory refresh. No HUD/fire
+milestone landed. No sibling edits were staged or overwritten.
 
 No full 128-game fleet smoke, hardware performance/physical input acceptance or
 audio listening acceptance is claimed. Existing engine fixtures and native proof
