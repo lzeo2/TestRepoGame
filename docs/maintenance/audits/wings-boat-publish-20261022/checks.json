@@ -52,5 +52,11 @@
     "exit": 0,
     "findings": []
   },
-  "generatedBytes": 4637377
+  "generatedBytes": 4637377,
+  "sourceMilestone": "9848cc3b709e03f8751138df8107a7a3c6ffb0ac",
+  "inventoryCheck": "PASS: 132 game documents, 127 registered + 5 unregistered",
+  "freeBytesAtClose": 2511527936,
+  "freeBytesAtStart": 4001660928,
+  "sharedHostFreeDelta": -1490132992,
+  "storageAttribution": "Shared host delta; tracked Wings bytes grew 2328625. No outside-repository deletion by this lane."
 }
