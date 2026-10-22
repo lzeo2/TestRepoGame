@@ -1,0 +1,99 @@
+{
+  "label": "Original candle supply trooper",
+  "url": "models/trooper/model.glb",
+  "bytes": 1592464,
+  "sha256": "e8cd44bc75769081ca7a2bfa6a2d73634c89de5cc20c4de200bde212405fcff4",
+  "triangles": 31730,
+  "vertices": 31477,
+  "meshes": 12,
+  "materials": [
+    {
+      "name": "matte canvas leather rubber",
+      "color": "ffffff",
+      "roughness": 0.91,
+      "metalness": 0
+    },
+    {
+      "name": "aged enamel brass steel",
+      "color": "ffffff",
+      "roughness": 0.52,
+      "metalness": 0.48
+    },
+    {
+      "name": "restrained solid amber flame",
+      "color": "ffffff",
+      "roughness": 0.65,
+      "metalness": 0
+    },
+    {
+      "name": "carved ivory wax",
+      "color": "ffffff",
+      "roughness": 0.73,
+      "metalness": 0
+    }
+  ],
+  "bounds": {
+    "min": [
+      -0.37594085663557053,
+      -2.622604367008563e-8,
+      -0.3222360908985138
+    ],
+    "max": [
+      0.3772895309329033,
+      1.896000039577484,
+      0.28600001335144043
+    ]
+  },
+  "parts": [
+    {
+      "name": "body-cloth",
+      "triangles": 5196
+    },
+    {
+      "name": "body-armor",
+      "triangles": 2100
+    },
+    {
+      "name": "leg-left-cloth",
+      "triangles": 3560
+    },
+    {
+      "name": "leg-left-armor",
+      "triangles": 864
+    },
+    {
+      "name": "leg-right-cloth",
+      "triangles": 3560
+    },
+    {
+      "name": "leg-right-armor",
+      "triangles": 864
+    },
+    {
+      "name": "arm-left-cloth",
+      "triangles": 2082
+    },
+    {
+      "name": "arm-left-armor",
+      "triangles": 1512
+    },
+    {
+      "name": "arm-right-cloth",
+      "triangles": 2174
+    },
+    {
+      "name": "arm-right-armor",
+      "triangles": 2736
+    },
+    {
+      "name": "flame-flame",
+      "triangles": 418
+    },
+    {
+      "name": "candle-wax",
+      "triangles": 6664
+    }
+  ],
+  "provenance": "Original authored procedural mesh; no third-party art or Blender. Concept reference is supplied codex-imagen plate.",
+  "quality": "Procedural interpretation, not a photoreal sculpt or acceptance grade."
+}
