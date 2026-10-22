@@ -55,16 +55,64 @@ There is no duplicate road implementation. Integration must reject road edits
 on occupied building lots before calling world road placement. Zone lots require
 an adjacent road. Use `world.buildings.spawn/transform/remove` to draw sim arrays.
 
-## FX request / integration hold
+## FX request and resolved world contract (Batch32 step 2)
 
-`shot` events already contain exact `from`/`to` grid positions. World/integration
-must convert with `world.roads.center`, raise muzzle/impact height and render a
-brief tracer plus impact. `damaged`, `destroyed` and `kill` can drive world FX.
-World now supplies `world.effects.shot(from,to)` using grid x/z and optional
-world-height y in metres. Forward `shot` events once; `world.render(dt)` expires
-FX. `sim-qa.py` calls this API and the published UI without implementing either.
-C/D/F/G/H/I normal-input integrated gameplay remains a separate reviewer gate,
+The original request was a world-owned tracer plus impact, driven only by sim
+`shot` events. It is now fulfilled by `world.effects.shot(from,to)`; no new
+world method, event framework or renderer is requested.
+
+**Units:** `from.x/z` and `to.x/z` are fractional grid-lot coordinates, NOT
+metres. Forward them unchanged. The world FX API internally calls
+`world.roads.center`; do NOT pre-convert x/z or they will be converted twice.
+Only optional `y` is already a world height in metres. Agent/building mesh
+poses separately use `roads.center`, as documented above.
+
+| Event | Exact useful fields | Visual consumer |
+| --- | --- | --- |
+| `shot` | `time, from:{x,z}, to:{x,z}, source:'tower'|'citizen', target` | One `effects.shot` call; it draws both tracer and impact. |
+| `damaged` | `time, id, amount, hp, attacker` | HP feedback; resolve building pose from prior-frame ID cache or same-batch destruction snapshot. No dedicated world FX method exists. |
+| `destroyed` / `removed` | `time, id, building:{id,type,x,z,hp,maxHp,...}` | Snapshot still gives position after authoritative state removed the building; remove its mesh. No duplicate HP/budget changes. |
+| `kill` | `time, id, x, z` | Dead agent removal; optional downstream visual feedback, no loot/resources. No dedicated world kill-FX method exists. |
+
+Drain events ONCE and share that array with both consumers. Simulation already
+applied all damage/kills; FX must never apply gameplay damage a second time.
+
+```js
+const events = sim.drainEvents();
+ui.events(events);
+for (const event of events) {
+  if (event.type === 'shot') {
+    world.effects.shot(
+      { ...event.from, y: event.source === 'tower' ? 10 : 1.5 },
+      { ...event.to, y: 1.2 }
+    );
+  }
+}
+world.render(realDeltaSeconds); // expires the world's brief tracer/impact pool
+```
+
+The existing `sim-qa.py` uses exactly this interface without implementing UI or
+rendering. C/D/F/G/H/I normal-input integrated gameplay remains a reviewer gate,
 not implied by headless assertions or API-fixture screenshots.
+
+### Deterministic event fixture
+
+- Data: [`citisten-design/sim-fx-replay.json`](citisten-design/sim-fx-replay.json).
+- Regenerate/check: `node docs/citisten-design/replay-fx.mjs` (Node stdlib only,
+  disk guard, real simulation updates, no state grants or browser).
+- Fixture contains initial road/building poses and IDs, SHA-256 of sim/roads
+  sources, absolute simulation-second event timestamps, and expected totals.
+  The producer asserts waves 12/14/16, 104 tower shots, 26 kills, two survived
+  nights, exactly 600 hall damage and loss at 828.25s. Towers are deliberately
+  bulldozed after the second victory; these removals are recorded too.
+- Replay events in timestamp order for an FX viewer; start at a `wave` event to
+  skip the day wait. Feed `shot` to the consumer above. `damaged` poses resolve
+  using initial building IDs or `destroyed.building` snapshots. Segmentation
+  events `wave`, `night-survived`, `lost` carry timeline/stats, not extra damage.
+- This is an FX/event fixture, NOT full moving-agent trajectories, normal-input
+  gameplay evidence, or permission to replay old events into a live city.
+  Citizen firing uses the same `shot` contract and is separately captured in
+  `G-citizen-sim-api-fixture-{dark,light}.png`.
 
 ## Timing and tuning
 

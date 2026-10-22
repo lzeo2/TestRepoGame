@@ -155,6 +155,29 @@ The actual game entry, normal-input acceptance, catalog registration and full
 registered-game smoke/release gate remain integration/reviewer responsibilities.
 No push is requested or performed. No runtime third-party dependency was added.
 
+## Batch32 FX handoff
+
+Step 2 updates only simulation documentation/fixtures, not runtime, world or UI
+source. The API doc now states the exact event fields/units and fixes an
+ambiguous conversion sentence: `effects.shot` takes GRID x/z unchanged;
+conversion to world metres happens inside the world API, while optional y is
+already metres. It maps damage/destruction/kill events without inventing new
+world methods or re-applying gameplay damage.
+
+`docs/citisten-design/replay-fx.mjs` adds a 45-LOC Node-stdlib fixture producer.
+It emits real simulation events into `sim-fx-replay.json`, including initial
+roads/buildings and source hashes. Actual output on both runs:
+
+```text
+FX replay: 351 events, 104 shots, 600 hall damage, score 2, kills 26, loss at 828.25s
+Byte-identical FX replay regeneration verified
+```
+
+Its assertions verify all three waves and exact expected outcome; source syntax
+and diff checks passed. Two regenerations produced byte-identical JSON. No
+browser was needed or launched for this docs/data change; the UI-owned slot
+remained held. Existing 22 API-fixture captures are not newly regraded.
+
 ## Change record and handoff
 
 - `687516b`: initial city, utilities, traffic, waves, defenses and Node check.

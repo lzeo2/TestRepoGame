@@ -1,0 +1,3757 @@
+{
+  "scope": "Deterministic FX event replay, not agent trajectories or gameplay acceptance",
+  "size": 24,
+  "lotSize": 10,
+  "seed": 8,
+  "stepSeconds": 0.25,
+  "sourceSha256": {
+    "sim.mjs": "726d2a7aa67488b1d44a3cefc2e59dde3ceea3639b3c9ecf2f6e67f84a63999c",
+    "roads.mjs": "8bfc07ad9b1c8fd69ba99e875641747c44e8fb8e8281fe54e05a560e83c4c22b"
+  },
+  "roads": [
+    {
+      "x": 0,
+      "z": 11
+    },
+    {
+      "x": 1,
+      "z": 11
+    },
+    {
+      "x": 2,
+      "z": 11
+    },
+    {
+      "x": 3,
+      "z": 11
+    },
+    {
+      "x": 4,
+      "z": 11
+    },
+    {
+      "x": 5,
+      "z": 11
+    },
+    {
+      "x": 6,
+      "z": 11
+    },
+    {
+      "x": 7,
+      "z": 11
+    },
+    {
+      "x": 8,
+      "z": 11
+    },
+    {
+      "x": 9,
+      "z": 11
+    },
+    {
+      "x": 10,
+      "z": 11
+    },
+    {
+      "x": 11,
+      "z": 11
+    },
+    {
+      "x": 13,
+      "z": 11
+    },
+    {
+      "x": 14,
+      "z": 11
+    },
+    {
+      "x": 15,
+      "z": 11
+    },
+    {
+      "x": 16,
+      "z": 11
+    },
+    {
+      "x": 17,
+      "z": 11
+    },
+    {
+      "x": 18,
+      "z": 11
+    },
+    {
+      "x": 19,
+      "z": 11
+    },
+    {
+      "x": 20,
+      "z": 11
+    },
+    {
+      "x": 21,
+      "z": 11
+    },
+    {
+      "x": 22,
+      "z": 11
+    },
+    {
+      "x": 23,
+      "z": 11
+    },
+    {
+      "x": 13,
+      "z": 0
+    },
+    {
+      "x": 13,
+      "z": 1
+    },
+    {
+      "x": 13,
+      "z": 2
+    },
+    {
+      "x": 13,
+      "z": 3
+    },
+    {
+      "x": 13,
+      "z": 4
+    },
+    {
+      "x": 13,
+      "z": 5
+    },
+    {
+      "x": 13,
+      "z": 6
+    },
+    {
+      "x": 13,
+      "z": 7
+    },
+    {
+      "x": 13,
+      "z": 8
+    },
+    {
+      "x": 13,
+      "z": 9
+    },
+    {
+      "x": 13,
+      "z": 10
+    },
+    {
+      "x": 13,
+      "z": 13
+    },
+    {
+      "x": 13,
+      "z": 14
+    },
+    {
+      "x": 13,
+      "z": 15
+    },
+    {
+      "x": 13,
+      "z": 16
+    },
+    {
+      "x": 13,
+      "z": 17
+    },
+    {
+      "x": 13,
+      "z": 18
+    },
+    {
+      "x": 13,
+      "z": 19
+    },
+    {
+      "x": 13,
+      "z": 20
+    },
+    {
+      "x": 13,
+      "z": 21
+    },
+    {
+      "x": 13,
+      "z": 22
+    },
+    {
+      "x": 13,
+      "z": 23
+    }
+  ],
+  "buildings": [
+    {
+      "id": 1,
+      "type": "townhall",
+      "x": 12,
+      "z": 12,
+      "hp": 600,
+      "maxHp": 600
+    },
+    {
+      "id": 2,
+      "type": "watchtower",
+      "x": 9,
+      "z": 9,
+      "hp": 220,
+      "maxHp": 220
+    },
+    {
+      "id": 3,
+      "type": "watchtower",
+      "x": 15,
+      "z": 9,
+      "hp": 220,
+      "maxHp": 220
+    },
+    {
+      "id": 4,
+      "type": "watchtower",
+      "x": 9,
+      "z": 15,
+      "hp": 220,
+      "maxHp": 220
+    },
+    {
+      "id": 5,
+      "type": "watchtower",
+      "x": 15,
+      "z": 15,
+      "hp": 220,
+      "maxHp": 220
+    },
+    {
+      "id": 6,
+      "type": "wall",
+      "x": 12,
+      "z": 11,
+      "hp": 350,
+      "maxHp": 350
+    },
+    {
+      "id": 7,
+      "type": "wall",
+      "x": 13,
+      "z": 12,
+      "hp": 350,
+      "maxHp": 350
+    },
+    {
+      "id": 8,
+      "type": "wall",
+      "x": 12,
+      "z": 13,
+      "hp": 350,
+      "maxHp": 350
+    },
+    {
+      "id": 9,
+      "type": "wall",
+      "x": 11,
+      "z": 12,
+      "hp": 350,
+      "maxHp": 350
+    }
+  ],
+  "events": [
+    {
+      "type": "wave",
+      "time": 240,
+      "night": 1,
+      "count": 12
+    },
+    {
+      "type": "shot",
+      "time": 240.25,
+      "from": {
+        "x": 15,
+        "z": 15
+      },
+      "to": {
+        "x": 15,
+        "z": 23
+      },
+      "target": 19,
+      "source": "tower"
+    },
+    {
+      "type": "shot",
+      "time": 241,
+      "from": {
+        "x": 9,
+        "z": 15
+      },
+      "to": {
+        "x": 11,
+        "z": 22.65
+      },
+      "target": 11,
+      "source": "tower"
+    },
+    {
+      "type": "shot",
+      "time": 241.25,
+      "from": {
+        "x": 15,
+        "z": 15
+      },
+      "to": {
+        "x": 13,
+        "z": 22
+      },
+      "target": 15,
+      "source": "tower"
+    },
+    {
+      "type": "shot",
+      "time": 241.75,
+      "from": {
+        "x": 15,
+        "z": 9
+      },
+      "to": {
+        "x": 13,
+        "z": 1.35
+      },
+      "target": 14,
+      "source": "tower"
+    },
+    {
+      "type": "shot",
+      "time": 242,
+      "from": {
+        "x": 9,
+        "z": 15
+      },
+      "to": {
+        "x": 11,
+        "z": 22
+      },
+      "target": 11,
+      "source": "tower"
+    },
+    {
+      "type": "shot",
+      "time": 242.25,
+      "from": {
+        "x": 15,
+        "z": 15
+      },
+      "to": {
+        "x": 13,
+        "z": 21
+      },
+      "target": 15,
+      "source": "tower"
+    },
+    {
+      "type": "shot",
+      "time": 242.75,
+      "from": {
+        "x": 9,
+        "z": 9
+      },
+      "to": {
+        "x": 13,
+        "z": 2.35
+      },
+      "target": 14,
+      "source": "tower"
+    },
+    {
+      "type": "shot",
+      "time": 242.75,
+      "from": {
+        "x": 15,
+        "z": 9
+      },
+      "to": {
+        "x": 13,
+        "z": 2.35
+      },
+      "target": 14,
+      "source": "tower"
+    },
+    {
+      "type": "shot",
+      "time": 243,
+      "from": {
+        "x": 9,
+        "z": 15
+      },
+      "to": {
+        "x": 13,
+        "z": 20.3
+      },
+      "target": 15,
+      "source": "tower"
+    },
+    {
+      "type": "shot",
+      "time": 243.25,
+      "from": {
+        "x": 15,
+        "z": 15
+      },
+      "to": {
+        "x": 13,
+        "z": 20
+      },
+      "target": 15,
+      "source": "tower"
+    },
+    {
+      "type": "kill",
+      "time": 243.25,
+      "id": 15,
+      "x": 13,
+      "z": 20
+    },
+    {
+      "type": "shot",
+      "time": 243.75,
+      "from": {
+        "x": 9,
+        "z": 9
+      },
+      "to": {
+        "x": 13,
+        "z": 3.35
+      },
+      "target": 14,
+      "source": "tower"
+    },
+    {
+      "type": "kill",
+      "time": 243.75,
+      "id": 14,
+      "x": 13,
+      "z": 3.35
+    },
+    {
+      "type": "shot",
+      "time": 243.75,
+      "from": {
+        "x": 15,
+        "z": 9
+      },
+      "to": {
+        "x": 15,
+        "z": 2
+      },
+      "target": 18,
+      "source": "tower"
+    },
+    {
+      "type": "shot",
+      "time": 244,
+      "from": {
+        "x": 9,
+        "z": 15
+      },
+      "to": {
+        "x": 11,
+        "z": 21
+      },
+      "target": 11,
+      "source": "tower"
+    },
+    {
+      "type": "shot",
+      "time": 244.25,
+      "from": {
+        "x": 15,
+        "z": 15
+      },
+      "to": {
+        "x": 16,
+        "z": 20.825
+      },
+      "target": 21,
+      "source": "tower"
+    },
+    {
+      "type": "shot",
+      "time": 244.75,
+      "from": {
+        "x": 9,
+        "z": 9
+      },
+      "to": {
+        "x": 11,
+        "z": 2.525
+      },
+      "target": 10,
+      "source": "tower"
+    },
+    {
+      "type": "shot",
+      "time": 244.75,
+      "from": {
+        "x": 15,
+        "z": 9
+      },
+      "to": {
+        "x": 16,
+        "z": 2.525
+      },
+      "target": 20,
+      "source": "tower"
+    },
+    {
+      "type": "shot",
+      "time": 245,
+      "from": {
+        "x": 9,
+        "z": 15
+      },
+      "to": {
+        "x": 11,
+        "z": 20.3
+      },
+      "target": 11,
+      "source": "tower"
+    },
+    {
+      "type": "kill",
+      "time": 245,
+      "id": 11,
+      "x": 11,
+      "z": 20.3
+    },
+    {
+      "type": "shot",
+      "time": 245.25,
+      "from": {
+        "x": 15,
+        "z": 15
+      },
+      "to": {
+        "x": 16,
+        "z": 20.125
+      },
+      "target": 21,
+      "source": "tower"
+    },
+    {
+      "type": "shot",
+      "time": 245.75,
+      "from": {
+        "x": 9,
+        "z": 9
+      },
+      "to": {
+        "x": 11,
+        "z": 3
+      },
+      "target": 10,
+      "source": "tower"
+    },
+    {
+      "type": "shot",
+      "time": 245.75,
+      "from": {
+        "x": 15,
+        "z": 9
+      },
+      "to": {
+        "x": 13,
+        "z": 3.7
+      },
+      "target": 16,
+      "source": "tower"
+    },
+    {
+      "type": "shot",
+      "time": 246,
+      "from": {
+        "x": 9,
+        "z": 15
+      },
+      "to": {
+        "x": 13,
+        "z": 19
+      },
+      "target": 17,
+      "source": "tower"
+    },
+    {
+      "type": "shot",
+      "time": 246.25,
+      "from": {
+        "x": 15,
+        "z": 15
+      },
+      "to": {
+        "x": 13,
+        "z": 19
+      },
+      "target": 17,
+      "source": "tower"
+    },
+    {
+      "type": "shot",
+      "time": 246.75,
+      "from": {
+        "x": 9,
+        "z": 9
+      },
+      "to": {
+        "x": 11,
+        "z": 3.7
+      },
+      "target": 10,
+      "source": "tower"
+    },
+    {
+      "type": "shot",
+      "time": 246.75,
+      "from": {
+        "x": 15,
+        "z": 9
+      },
+      "to": {
+        "x": 13,
+        "z": 4.7
+      },
+      "target": 16,
+      "source": "tower"
+    },
+    {
+      "type": "shot",
+      "time": 247,
+      "from": {
+        "x": 9,
+        "z": 15
+      },
+      "to": {
+        "x": 13,
+        "z": 18
+      },
+      "target": 17,
+      "source": "tower"
+    },
+    {
+      "type": "shot",
+      "time": 247.25,
+      "from": {
+        "x": 15,
+        "z": 15
+      },
+      "to": {
+        "x": 13,
+        "z": 18
+      },
+      "target": 17,
+      "source": "tower"
+    },
+    {
+      "type": "kill",
+      "time": 247.25,
+      "id": 17,
+      "x": 13,
+      "z": 18
+    },
+    {
+      "type": "shot",
+      "time": 247.75,
+      "from": {
+        "x": 9,
+        "z": 9
+      },
+      "to": {
+        "x": 13,
+        "z": 5.7
+      },
+      "target": 16,
+      "source": "tower"
+    },
+    {
+      "type": "shot",
+      "time": 247.75,
+      "from": {
+        "x": 15,
+        "z": 9
+      },
+      "to": {
+        "x": 13,
+        "z": 5.7
+      },
+      "target": 16,
+      "source": "tower"
+    },
+    {
+      "type": "kill",
+      "time": 247.75,
+      "id": 16,
+      "x": 13,
+      "z": 5.7
+    },
+    {
+      "type": "shot",
+      "time": 248,
+      "from": {
+        "x": 9,
+        "z": 15
+      },
+      "to": {
+        "x": 12.7,
+        "z": 19
+      },
+      "target": 13,
+      "source": "tower"
+    },
+    {
+      "type": "shot",
+      "time": 248.25,
+      "from": {
+        "x": 15,
+        "z": 15
+      },
+      "to": {
+        "x": 13,
+        "z": 19
+      },
+      "target": 13,
+      "source": "tower"
+    },
+    {
+      "type": "shot",
+      "time": 248.75,
+      "from": {
+        "x": 9,
+        "z": 9
+      },
+      "to": {
+        "x": 11,
+        "z": 4.875
+      },
+      "target": 10,
+      "source": "tower"
+    },
+    {
+      "type": "kill",
+      "time": 248.75,
+      "id": 10,
+      "x": 11,
+      "z": 4.875
+    },
+    {
+      "type": "shot",
+      "time": 248.75,
+      "from": {
+        "x": 15,
+        "z": 9
+      },
+      "to": {
+        "x": 13,
+        "z": 4.35
+      },
+      "target": 12,
+      "source": "tower"
+    },
+    {
+      "type": "shot",
+      "time": 249,
+      "from": {
+        "x": 9,
+        "z": 15
+      },
+      "to": {
+        "x": 13,
+        "z": 18.3
+      },
+      "target": 13,
+      "source": "tower"
+    },
+    {
+      "type": "shot",
+      "time": 249.25,
+      "from": {
+        "x": 15,
+        "z": 15
+      },
+      "to": {
+        "x": 13,
+        "z": 18
+      },
+      "target": 13,
+      "source": "tower"
+    },
+    {
+      "type": "kill",
+      "time": 249.25,
+      "id": 13,
+      "x": 13,
+      "z": 18
+    },
+    {
+      "type": "shot",
+      "time": 249.75,
+      "from": {
+        "x": 9,
+        "z": 9
+      },
+      "to": {
+        "x": 13,
+        "z": 5.35
+      },
+      "target": 12,
+      "source": "tower"
+    },
+    {
+      "type": "shot",
+      "time": 249.75,
+      "from": {
+        "x": 15,
+        "z": 9
+      },
+      "to": {
+        "x": 13,
+        "z": 5.35
+      },
+      "target": 12,
+      "source": "tower"
+    },
+    {
+      "type": "shot",
+      "time": 250,
+      "from": {
+        "x": 9,
+        "z": 15
+      },
+      "to": {
+        "x": 13,
+        "z": 19
+      },
+      "target": 19,
+      "source": "tower"
+    },
+    {
+      "type": "shot",
+      "time": 250.25,
+      "from": {
+        "x": 15,
+        "z": 15
+      },
+      "to": {
+        "x": 14,
+        "z": 19.3
+      },
+      "target": 21,
+      "source": "tower"
+    },
+    {
+      "type": "shot",
+      "time": 250.75,
+      "from": {
+        "x": 9,
+        "z": 9
+      },
+      "to": {
+        "x": 13,
+        "z": 6.35
+      },
+      "target": 12,
+      "source": "tower"
+    },
+    {
+      "type": "kill",
+      "time": 250.75,
+      "id": 12,
+      "x": 13,
+      "z": 6.35
+    },
+    {
+      "type": "shot",
+      "time": 250.75,
+      "from": {
+        "x": 15,
+        "z": 9
+      },
+      "to": {
+        "x": 13,
+        "z": 4.7
+      },
+      "target": 18,
+      "source": "tower"
+    },
+    {
+      "type": "shot",
+      "time": 251,
+      "from": {
+        "x": 9,
+        "z": 15
+      },
+      "to": {
+        "x": 13,
+        "z": 18
+      },
+      "target": 19,
+      "source": "tower"
+    },
+    {
+      "type": "shot",
+      "time": 251.25,
+      "from": {
+        "x": 15,
+        "z": 15
+      },
+      "to": {
+        "x": 13,
+        "z": 18
+      },
+      "target": 19,
+      "source": "tower"
+    },
+    {
+      "type": "kill",
+      "time": 251.25,
+      "id": 19,
+      "x": 13,
+      "z": 18
+    },
+    {
+      "type": "shot",
+      "time": 251.75,
+      "from": {
+        "x": 9,
+        "z": 9
+      },
+      "to": {
+        "x": 13,
+        "z": 5.7
+      },
+      "target": 18,
+      "source": "tower"
+    },
+    {
+      "type": "shot",
+      "time": 251.75,
+      "from": {
+        "x": 15,
+        "z": 9
+      },
+      "to": {
+        "x": 13,
+        "z": 5.7
+      },
+      "target": 18,
+      "source": "tower"
+    },
+    {
+      "type": "kill",
+      "time": 251.75,
+      "id": 18,
+      "x": 13,
+      "z": 5.7
+    },
+    {
+      "type": "shot",
+      "time": 252,
+      "from": {
+        "x": 9,
+        "z": 15
+      },
+      "to": {
+        "x": 13,
+        "z": 19
+      },
+      "target": 21,
+      "source": "tower"
+    },
+    {
+      "type": "kill",
+      "time": 252,
+      "id": 21,
+      "x": 13,
+      "z": 19
+    },
+    {
+      "type": "shot",
+      "time": 252.75,
+      "from": {
+        "x": 9,
+        "z": 9
+      },
+      "to": {
+        "x": 13,
+        "z": 4.7
+      },
+      "target": 20,
+      "source": "tower"
+    },
+    {
+      "type": "shot",
+      "time": 252.75,
+      "from": {
+        "x": 15,
+        "z": 9
+      },
+      "to": {
+        "x": 13,
+        "z": 4.7
+      },
+      "target": 20,
+      "source": "tower"
+    },
+    {
+      "type": "shot",
+      "time": 253.75,
+      "from": {
+        "x": 9,
+        "z": 9
+      },
+      "to": {
+        "x": 13,
+        "z": 5.7
+      },
+      "target": 20,
+      "source": "tower"
+    },
+    {
+      "type": "kill",
+      "time": 253.75,
+      "id": 20,
+      "x": 13,
+      "z": 5.7
+    },
+    {
+      "type": "night-survived",
+      "time": 253.75,
+      "score": 1,
+      "night": 1
+    },
+    {
+      "type": "wave",
+      "time": 493.75,
+      "night": 2,
+      "count": 14
+    },
+    {
+      "type": "shot",
+      "time": 496.25,
+      "from": {
+        "x": 9,
+        "z": 15
+      },
+      "to": {
+        "x": 5.175,
+        "z": 22
+      },
+      "target": 33,
+      "source": "tower"
+    },
+    {
+      "type": "shot",
+      "time": 497.25,
+      "from": {
+        "x": 9,
+        "z": 15
+      },
+      "to": {
+        "x": 5.875,
+        "z": 22
+      },
+      "target": 33,
+      "source": "tower"
+    },
+    {
+      "type": "shot",
+      "time": 498,
+      "from": {
+        "x": 9,
+        "z": 9
+      },
+      "to": {
+        "x": 5,
+        "z": 2.175
+      },
+      "target": 32,
+      "source": "tower"
+    },
+    {
+      "type": "shot",
+      "time": 498.25,
+      "from": {
+        "x": 9,
+        "z": 15
+      },
+      "to": {
+        "x": 6.35,
+        "z": 22
+      },
+      "target": 33,
+      "source": "tower"
+    },
+    {
+      "type": "shot",
+      "time": 499,
+      "from": {
+        "x": 9,
+        "z": 9
+      },
+      "to": {
+        "x": 5,
+        "z": 2.875
+      },
+      "target": 32,
+      "source": "tower"
+    },
+    {
+      "type": "shot",
+      "time": 499.25,
+      "from": {
+        "x": 9,
+        "z": 15
+      },
+      "to": {
+        "x": 5,
+        "z": 21
+      },
+      "target": 31,
+      "source": "tower"
+    },
+    {
+      "type": "shot",
+      "time": 500,
+      "from": {
+        "x": 9,
+        "z": 9
+      },
+      "to": {
+        "x": 5,
+        "z": 3.35
+      },
+      "target": 32,
+      "source": "tower"
+    },
+    {
+      "type": "shot",
+      "time": 500.25,
+      "from": {
+        "x": 9,
+        "z": 15
+      },
+      "to": {
+        "x": 5.525,
+        "z": 21
+      },
+      "target": 31,
+      "source": "tower"
+    },
+    {
+      "type": "shot",
+      "time": 501,
+      "from": {
+        "x": 9,
+        "z": 9
+      },
+      "to": {
+        "x": 5,
+        "z": 4
+      },
+      "target": 32,
+      "source": "tower"
+    },
+    {
+      "type": "kill",
+      "time": 501,
+      "id": 32,
+      "x": 5,
+      "z": 4
+    },
+    {
+      "type": "shot",
+      "time": 501.25,
+      "from": {
+        "x": 9,
+        "z": 15
+      },
+      "to": {
+        "x": 6,
+        "z": 21
+      },
+      "target": 31,
+      "source": "tower"
+    },
+    {
+      "type": "shot",
+      "time": 502,
+      "from": {
+        "x": 9,
+        "z": 9
+      },
+      "to": {
+        "x": 4,
+        "z": 4.525
+      },
+      "target": 30,
+      "source": "tower"
+    },
+    {
+      "type": "shot",
+      "time": 502.25,
+      "from": {
+        "x": 9,
+        "z": 15
+      },
+      "to": {
+        "x": 6.7,
+        "z": 21
+      },
+      "target": 31,
+      "source": "tower"
+    },
+    {
+      "type": "kill",
+      "time": 502.25,
+      "id": 31,
+      "x": 6.7,
+      "z": 21
+    },
+    {
+      "type": "shot",
+      "time": 503,
+      "from": {
+        "x": 9,
+        "z": 9
+      },
+      "to": {
+        "x": 4,
+        "z": 5
+      },
+      "target": 30,
+      "source": "tower"
+    },
+    {
+      "type": "shot",
+      "time": 503.25,
+      "from": {
+        "x": 9,
+        "z": 15
+      },
+      "to": {
+        "x": 3,
+        "z": 17.825
+      },
+      "target": 29,
+      "source": "tower"
+    },
+    {
+      "type": "shot",
+      "time": 504,
+      "from": {
+        "x": 9,
+        "z": 9
+      },
+      "to": {
+        "x": 4,
+        "z": 5.7
+      },
+      "target": 30,
+      "source": "tower"
+    },
+    {
+      "type": "shot",
+      "time": 504.25,
+      "from": {
+        "x": 9,
+        "z": 15
+      },
+      "to": {
+        "x": 3,
+        "z": 17.125
+      },
+      "target": 29,
+      "source": "tower"
+    },
+    {
+      "type": "shot",
+      "time": 505,
+      "from": {
+        "x": 9,
+        "z": 9
+      },
+      "to": {
+        "x": 4,
+        "z": 6.175
+      },
+      "target": 30,
+      "source": "tower"
+    },
+    {
+      "type": "kill",
+      "time": 505,
+      "id": 30,
+      "x": 4,
+      "z": 6.175
+    },
+    {
+      "type": "shot",
+      "time": 505.25,
+      "from": {
+        "x": 9,
+        "z": 15
+      },
+      "to": {
+        "x": 3,
+        "z": 16.65
+      },
+      "target": 29,
+      "source": "tower"
+    },
+    {
+      "type": "shot",
+      "time": 506,
+      "from": {
+        "x": 9,
+        "z": 9
+      },
+      "to": {
+        "x": 3,
+        "z": 6.875
+      },
+      "target": 28,
+      "source": "tower"
+    },
+    {
+      "type": "shot",
+      "time": 506,
+      "from": {
+        "x": 15,
+        "z": 15
+      },
+      "to": {
+        "x": 13,
+        "z": 22.65
+      },
+      "target": 35,
+      "source": "tower"
+    },
+    {
+      "type": "shot",
+      "time": 506.25,
+      "from": {
+        "x": 9,
+        "z": 15
+      },
+      "to": {
+        "x": 3,
+        "z": 16
+      },
+      "target": 29,
+      "source": "tower"
+    },
+    {
+      "type": "kill",
+      "time": 506.25,
+      "id": 29,
+      "x": 3,
+      "z": 16
+    },
+    {
+      "type": "shot",
+      "time": 507,
+      "from": {
+        "x": 9,
+        "z": 9
+      },
+      "to": {
+        "x": 3,
+        "z": 7.35
+      },
+      "target": 28,
+      "source": "tower"
+    },
+    {
+      "type": "shot",
+      "time": 507,
+      "from": {
+        "x": 15,
+        "z": 9
+      },
+      "to": {
+        "x": 13,
+        "z": 1.35
+      },
+      "target": 34,
+      "source": "tower"
+    },
+    {
+      "type": "shot",
+      "time": 507,
+      "from": {
+        "x": 15,
+        "z": 15
+      },
+      "to": {
+        "x": 13,
+        "z": 21.65
+      },
+      "target": 35,
+      "source": "tower"
+    },
+    {
+      "type": "shot",
+      "time": 507.25,
+      "from": {
+        "x": 9,
+        "z": 15
+      },
+      "to": {
+        "x": 2,
+        "z": 15.475
+      },
+      "target": 27,
+      "source": "tower"
+    },
+    {
+      "type": "shot",
+      "time": 508,
+      "from": {
+        "x": 9,
+        "z": 9
+      },
+      "to": {
+        "x": 3,
+        "z": 8
+      },
+      "target": 28,
+      "source": "tower"
+    },
+    {
+      "type": "shot",
+      "time": 508,
+      "from": {
+        "x": 15,
+        "z": 9
+      },
+      "to": {
+        "x": 13,
+        "z": 2.35
+      },
+      "target": 34,
+      "source": "tower"
+    },
+    {
+      "type": "shot",
+      "time": 508,
+      "from": {
+        "x": 15,
+        "z": 15
+      },
+      "to": {
+        "x": 13,
+        "z": 20.65
+      },
+      "target": 35,
+      "source": "tower"
+    },
+    {
+      "type": "shot",
+      "time": 508.25,
+      "from": {
+        "x": 9,
+        "z": 15
+      },
+      "to": {
+        "x": 13,
+        "z": 20.3
+      },
+      "target": 35,
+      "source": "tower"
+    },
+    {
+      "type": "kill",
+      "time": 508.25,
+      "id": 35,
+      "x": 13,
+      "z": 20.3
+    },
+    {
+      "type": "shot",
+      "time": 509,
+      "from": {
+        "x": 9,
+        "z": 9
+      },
+      "to": {
+        "x": 3,
+        "z": 8.525
+      },
+      "target": 28,
+      "source": "tower"
+    },
+    {
+      "type": "kill",
+      "time": 509,
+      "id": 28,
+      "x": 3,
+      "z": 8.525
+    },
+    {
+      "type": "shot",
+      "time": 509,
+      "from": {
+        "x": 15,
+        "z": 9
+      },
+      "to": {
+        "x": 13,
+        "z": 3.35
+      },
+      "target": 34,
+      "source": "tower"
+    },
+    {
+      "type": "shot",
+      "time": 509,
+      "from": {
+        "x": 15,
+        "z": 15
+      },
+      "to": {
+        "x": 13,
+        "z": 22
+      },
+      "target": 33,
+      "source": "tower"
+    },
+    {
+      "type": "kill",
+      "time": 509,
+      "id": 33,
+      "x": 13,
+      "z": 22
+    },
+    {
+      "type": "shot",
+      "time": 509.25,
+      "from": {
+        "x": 9,
+        "z": 15
+      },
+      "to": {
+        "x": 2,
+        "z": 14.3
+      },
+      "target": 27,
+      "source": "tower"
+    },
+    {
+      "type": "shot",
+      "time": 510,
+      "from": {
+        "x": 9,
+        "z": 9
+      },
+      "to": {
+        "x": 13,
+        "z": 4.35
+      },
+      "target": 34,
+      "source": "tower"
+    },
+    {
+      "type": "kill",
+      "time": 510,
+      "id": 34,
+      "x": 13,
+      "z": 4.35
+    },
+    {
+      "type": "shot",
+      "time": 510.25,
+      "from": {
+        "x": 9,
+        "z": 15
+      },
+      "to": {
+        "x": 2,
+        "z": 13.825
+      },
+      "target": 27,
+      "source": "tower"
+    },
+    {
+      "type": "shot",
+      "time": 511,
+      "from": {
+        "x": 9,
+        "z": 9
+      },
+      "to": {
+        "x": 2,
+        "z": 9.7
+      },
+      "target": 26,
+      "source": "tower"
+    },
+    {
+      "type": "shot",
+      "time": 511.25,
+      "from": {
+        "x": 9,
+        "z": 15
+      },
+      "to": {
+        "x": 2,
+        "z": 13.125
+      },
+      "target": 27,
+      "source": "tower"
+    },
+    {
+      "type": "kill",
+      "time": 511.25,
+      "id": 27,
+      "x": 2,
+      "z": 13.125
+    },
+    {
+      "type": "shot",
+      "time": 512,
+      "from": {
+        "x": 9,
+        "z": 9
+      },
+      "to": {
+        "x": 2,
+        "z": 10.35
+      },
+      "target": 26,
+      "source": "tower"
+    },
+    {
+      "type": "shot",
+      "time": 513,
+      "from": {
+        "x": 9,
+        "z": 9
+      },
+      "to": {
+        "x": 2.35,
+        "z": 11
+      },
+      "target": 26,
+      "source": "tower"
+    },
+    {
+      "type": "shot",
+      "time": 513,
+      "from": {
+        "x": 9,
+        "z": 15
+      },
+      "to": {
+        "x": 2.35,
+        "z": 11
+      },
+      "target": 26,
+      "source": "tower"
+    },
+    {
+      "type": "kill",
+      "time": 513,
+      "id": 26,
+      "x": 2.35,
+      "z": 11
+    },
+    {
+      "type": "shot",
+      "time": 514,
+      "from": {
+        "x": 9,
+        "z": 9
+      },
+      "to": {
+        "x": 1.7,
+        "z": 11
+      },
+      "target": 24,
+      "source": "tower"
+    },
+    {
+      "type": "shot",
+      "time": 514.5,
+      "from": {
+        "x": 9,
+        "z": 15
+      },
+      "to": {
+        "x": 1.7,
+        "z": 12
+      },
+      "target": 25,
+      "source": "tower"
+    },
+    {
+      "type": "shot",
+      "time": 515,
+      "from": {
+        "x": 9,
+        "z": 9
+      },
+      "to": {
+        "x": 2.7,
+        "z": 11
+      },
+      "target": 24,
+      "source": "tower"
+    },
+    {
+      "type": "shot",
+      "time": 515.5,
+      "from": {
+        "x": 9,
+        "z": 15
+      },
+      "to": {
+        "x": 3,
+        "z": 11
+      },
+      "target": 24,
+      "source": "tower"
+    },
+    {
+      "type": "shot",
+      "time": 516,
+      "from": {
+        "x": 9,
+        "z": 9
+      },
+      "to": {
+        "x": 3.7,
+        "z": 11
+      },
+      "target": 24,
+      "source": "tower"
+    },
+    {
+      "type": "kill",
+      "time": 516,
+      "id": 24,
+      "x": 3.7,
+      "z": 11
+    },
+    {
+      "type": "shot",
+      "time": 516.75,
+      "from": {
+        "x": 9,
+        "z": 15
+      },
+      "to": {
+        "x": 2.35,
+        "z": 11
+      },
+      "target": 25,
+      "source": "tower"
+    },
+    {
+      "type": "shot",
+      "time": 517,
+      "from": {
+        "x": 9,
+        "z": 9
+      },
+      "to": {
+        "x": 2.7,
+        "z": 11
+      },
+      "target": 25,
+      "source": "tower"
+    },
+    {
+      "type": "shot",
+      "time": 517.75,
+      "from": {
+        "x": 9,
+        "z": 15
+      },
+      "to": {
+        "x": 3.35,
+        "z": 11
+      },
+      "target": 25,
+      "source": "tower"
+    },
+    {
+      "type": "kill",
+      "time": 517.75,
+      "id": 25,
+      "x": 3.35,
+      "z": 11
+    },
+    {
+      "type": "shot",
+      "time": 518,
+      "from": {
+        "x": 9,
+        "z": 9
+      },
+      "to": {
+        "x": 1.7,
+        "z": 11
+      },
+      "target": 22,
+      "source": "tower"
+    },
+    {
+      "type": "shot",
+      "time": 518.75,
+      "from": {
+        "x": 9,
+        "z": 15
+      },
+      "to": {
+        "x": 2.35,
+        "z": 11
+      },
+      "target": 22,
+      "source": "tower"
+    },
+    {
+      "type": "shot",
+      "time": 519,
+      "from": {
+        "x": 9,
+        "z": 9
+      },
+      "to": {
+        "x": 2.7,
+        "z": 11
+      },
+      "target": 22,
+      "source": "tower"
+    },
+    {
+      "type": "shot",
+      "time": 519.75,
+      "from": {
+        "x": 9,
+        "z": 15
+      },
+      "to": {
+        "x": 3.35,
+        "z": 11
+      },
+      "target": 22,
+      "source": "tower"
+    },
+    {
+      "type": "kill",
+      "time": 519.75,
+      "id": 22,
+      "x": 3.35,
+      "z": 11
+    },
+    {
+      "type": "shot",
+      "time": 520,
+      "from": {
+        "x": 9,
+        "z": 9
+      },
+      "to": {
+        "x": 2,
+        "z": 11
+      },
+      "target": 23,
+      "source": "tower"
+    },
+    {
+      "type": "shot",
+      "time": 520.75,
+      "from": {
+        "x": 9,
+        "z": 15
+      },
+      "to": {
+        "x": 2.7,
+        "z": 11
+      },
+      "target": 23,
+      "source": "tower"
+    },
+    {
+      "type": "shot",
+      "time": 521,
+      "from": {
+        "x": 9,
+        "z": 9
+      },
+      "to": {
+        "x": 3,
+        "z": 11
+      },
+      "target": 23,
+      "source": "tower"
+    },
+    {
+      "type": "shot",
+      "time": 521.75,
+      "from": {
+        "x": 9,
+        "z": 15
+      },
+      "to": {
+        "x": 3.7,
+        "z": 11
+      },
+      "target": 23,
+      "source": "tower"
+    },
+    {
+      "type": "kill",
+      "time": 521.75,
+      "id": 23,
+      "x": 3.7,
+      "z": 11
+    },
+    {
+      "type": "night-survived",
+      "time": 521.75,
+      "score": 2,
+      "night": 2
+    },
+    {
+      "type": "removed",
+      "time": 521.75,
+      "id": 2,
+      "building": {
+        "id": 2,
+        "type": "watchtower",
+        "x": 9,
+        "z": 9,
+        "hp": 220,
+        "maxHp": 220,
+        "residents": 0,
+        "powered": false,
+        "watered": false,
+        "serviced": false,
+        "cooldown": 0.050000000000000044
+      }
+    },
+    {
+      "type": "removed",
+      "time": 521.75,
+      "id": 3,
+      "building": {
+        "id": 3,
+        "type": "watchtower",
+        "x": 15,
+        "z": 9,
+        "hp": 220,
+        "maxHp": 220,
+        "residents": 0,
+        "powered": false,
+        "watered": false,
+        "serviced": false,
+        "cooldown": -11.95
+      }
+    },
+    {
+      "type": "removed",
+      "time": 521.75,
+      "id": 4,
+      "building": {
+        "id": 4,
+        "type": "watchtower",
+        "x": 9,
+        "z": 15,
+        "hp": 220,
+        "maxHp": 220,
+        "residents": 0,
+        "powered": false,
+        "watered": false,
+        "serviced": false,
+        "cooldown": 0.8
+      }
+    },
+    {
+      "type": "removed",
+      "time": 521.75,
+      "id": 5,
+      "building": {
+        "id": 5,
+        "type": "watchtower",
+        "x": 15,
+        "z": 15,
+        "hp": 220,
+        "maxHp": 220,
+        "residents": 0,
+        "powered": false,
+        "watered": false,
+        "serviced": false,
+        "cooldown": -11.95
+      }
+    },
+    {
+      "type": "wave",
+      "time": 761.75,
+      "night": 3,
+      "count": 16
+    },
+    {
+      "type": "damaged",
+      "time": 772,
+      "id": 8,
+      "amount": 8,
+      "hp": 342,
+      "attacker": 36
+    },
+    {
+      "type": "damaged",
+      "time": 773,
+      "id": 8,
+      "amount": 8,
+      "hp": 334,
+      "attacker": 36
+    },
+    {
+      "type": "damaged",
+      "time": 774,
+      "id": 8,
+      "amount": 8,
+      "hp": 326,
+      "attacker": 36
+    },
+    {
+      "type": "damaged",
+      "time": 774,
+      "id": 7,
+      "amount": 8,
+      "hp": 342,
+      "attacker": 37
+    },
+    {
+      "type": "damaged",
+      "time": 774.5,
+      "id": 8,
+      "amount": 8,
+      "hp": 318,
+      "attacker": 38
+    },
+    {
+      "type": "damaged",
+      "time": 775,
+      "id": 8,
+      "amount": 8,
+      "hp": 310,
+      "attacker": 36
+    },
+    {
+      "type": "damaged",
+      "time": 775,
+      "id": 7,
+      "amount": 8,
+      "hp": 334,
+      "attacker": 37
+    },
+    {
+      "type": "damaged",
+      "time": 775.5,
+      "id": 8,
+      "amount": 8,
+      "hp": 302,
+      "attacker": 38
+    },
+    {
+      "type": "damaged",
+      "time": 776,
+      "id": 8,
+      "amount": 8,
+      "hp": 294,
+      "attacker": 36
+    },
+    {
+      "type": "damaged",
+      "time": 776,
+      "id": 7,
+      "amount": 8,
+      "hp": 326,
+      "attacker": 37
+    },
+    {
+      "type": "damaged",
+      "time": 776.5,
+      "id": 8,
+      "amount": 8,
+      "hp": 286,
+      "attacker": 38
+    },
+    {
+      "type": "damaged",
+      "time": 777,
+      "id": 8,
+      "amount": 8,
+      "hp": 278,
+      "attacker": 36
+    },
+    {
+      "type": "damaged",
+      "time": 777,
+      "id": 7,
+      "amount": 8,
+      "hp": 318,
+      "attacker": 37
+    },
+    {
+      "type": "damaged",
+      "time": 777.25,
+      "id": 6,
+      "amount": 8,
+      "hp": 342,
+      "attacker": 39
+    },
+    {
+      "type": "damaged",
+      "time": 777.5,
+      "id": 8,
+      "amount": 8,
+      "hp": 270,
+      "attacker": 38
+    },
+    {
+      "type": "damaged",
+      "time": 778,
+      "id": 8,
+      "amount": 8,
+      "hp": 262,
+      "attacker": 36
+    },
+    {
+      "type": "damaged",
+      "time": 778,
+      "id": 7,
+      "amount": 8,
+      "hp": 310,
+      "attacker": 37
+    },
+    {
+      "type": "damaged",
+      "time": 778.25,
+      "id": 6,
+      "amount": 8,
+      "hp": 334,
+      "attacker": 39
+    },
+    {
+      "type": "damaged",
+      "time": 778.5,
+      "id": 8,
+      "amount": 8,
+      "hp": 254,
+      "attacker": 38
+    },
+    {
+      "type": "damaged",
+      "time": 779,
+      "id": 8,
+      "amount": 8,
+      "hp": 246,
+      "attacker": 36
+    },
+    {
+      "type": "damaged",
+      "time": 779,
+      "id": 7,
+      "amount": 8,
+      "hp": 302,
+      "attacker": 37
+    },
+    {
+      "type": "damaged",
+      "time": 779.25,
+      "id": 6,
+      "amount": 8,
+      "hp": 326,
+      "attacker": 39
+    },
+    {
+      "type": "damaged",
+      "time": 779.5,
+      "id": 8,
+      "amount": 8,
+      "hp": 238,
+      "attacker": 38
+    },
+    {
+      "type": "damaged",
+      "time": 780,
+      "id": 8,
+      "amount": 8,
+      "hp": 230,
+      "attacker": 36
+    },
+    {
+      "type": "damaged",
+      "time": 780,
+      "id": 7,
+      "amount": 8,
+      "hp": 294,
+      "attacker": 37
+    },
+    {
+      "type": "damaged",
+      "time": 780.25,
+      "id": 6,
+      "amount": 8,
+      "hp": 318,
+      "attacker": 39
+    },
+    {
+      "type": "damaged",
+      "time": 780.5,
+      "id": 8,
+      "amount": 8,
+      "hp": 222,
+      "attacker": 38
+    },
+    {
+      "type": "damaged",
+      "time": 781,
+      "id": 8,
+      "amount": 8,
+      "hp": 214,
+      "attacker": 36
+    },
+    {
+      "type": "damaged",
+      "time": 781,
+      "id": 7,
+      "amount": 8,
+      "hp": 286,
+      "attacker": 37
+    },
+    {
+      "type": "damaged",
+      "time": 781.25,
+      "id": 6,
+      "amount": 8,
+      "hp": 310,
+      "attacker": 39
+    },
+    {
+      "type": "damaged",
+      "time": 781.5,
+      "id": 8,
+      "amount": 8,
+      "hp": 206,
+      "attacker": 38
+    },
+    {
+      "type": "damaged",
+      "time": 782,
+      "id": 8,
+      "amount": 8,
+      "hp": 198,
+      "attacker": 36
+    },
+    {
+      "type": "damaged",
+      "time": 782,
+      "id": 7,
+      "amount": 8,
+      "hp": 278,
+      "attacker": 37
+    },
+    {
+      "type": "damaged",
+      "time": 782.25,
+      "id": 6,
+      "amount": 8,
+      "hp": 302,
+      "attacker": 39
+    },
+    {
+      "type": "damaged",
+      "time": 782.5,
+      "id": 8,
+      "amount": 8,
+      "hp": 190,
+      "attacker": 38
+    },
+    {
+      "type": "damaged",
+      "time": 783,
+      "id": 8,
+      "amount": 8,
+      "hp": 182,
+      "attacker": 36
+    },
+    {
+      "type": "damaged",
+      "time": 783,
+      "id": 7,
+      "amount": 8,
+      "hp": 270,
+      "attacker": 37
+    },
+    {
+      "type": "damaged",
+      "time": 783.25,
+      "id": 6,
+      "amount": 8,
+      "hp": 294,
+      "attacker": 39
+    },
+    {
+      "type": "damaged",
+      "time": 783.5,
+      "id": 8,
+      "amount": 8,
+      "hp": 174,
+      "attacker": 38
+    },
+    {
+      "type": "damaged",
+      "time": 784,
+      "id": 8,
+      "amount": 8,
+      "hp": 166,
+      "attacker": 36
+    },
+    {
+      "type": "damaged",
+      "time": 784,
+      "id": 7,
+      "amount": 8,
+      "hp": 262,
+      "attacker": 37
+    },
+    {
+      "type": "damaged",
+      "time": 784.25,
+      "id": 6,
+      "amount": 8,
+      "hp": 286,
+      "attacker": 39
+    },
+    {
+      "type": "damaged",
+      "time": 784.5,
+      "id": 8,
+      "amount": 8,
+      "hp": 158,
+      "attacker": 38
+    },
+    {
+      "type": "damaged",
+      "time": 785,
+      "id": 8,
+      "amount": 8,
+      "hp": 150,
+      "attacker": 36
+    },
+    {
+      "type": "damaged",
+      "time": 785,
+      "id": 7,
+      "amount": 8,
+      "hp": 254,
+      "attacker": 37
+    },
+    {
+      "type": "damaged",
+      "time": 785.25,
+      "id": 6,
+      "amount": 8,
+      "hp": 278,
+      "attacker": 39
+    },
+    {
+      "type": "damaged",
+      "time": 785.5,
+      "id": 8,
+      "amount": 8,
+      "hp": 142,
+      "attacker": 38
+    },
+    {
+      "type": "damaged",
+      "time": 786,
+      "id": 7,
+      "amount": 8,
+      "hp": 246,
+      "attacker": 36
+    },
+    {
+      "type": "damaged",
+      "time": 786,
+      "id": 7,
+      "amount": 8,
+      "hp": 238,
+      "attacker": 37
+    },
+    {
+      "type": "damaged",
+      "time": 786.25,
+      "id": 6,
+      "amount": 8,
+      "hp": 270,
+      "attacker": 39
+    },
+    {
+      "type": "damaged",
+      "time": 786.5,
+      "id": 8,
+      "amount": 8,
+      "hp": 134,
+      "attacker": 38
+    },
+    {
+      "type": "damaged",
+      "time": 787,
+      "id": 7,
+      "amount": 8,
+      "hp": 230,
+      "attacker": 36
+    },
+    {
+      "type": "damaged",
+      "time": 787,
+      "id": 7,
+      "amount": 8,
+      "hp": 222,
+      "attacker": 37
+    },
+    {
+      "type": "damaged",
+      "time": 787.25,
+      "id": 6,
+      "amount": 8,
+      "hp": 262,
+      "attacker": 39
+    },
+    {
+      "type": "damaged",
+      "time": 787.25,
+      "id": 7,
+      "amount": 8,
+      "hp": 214,
+      "attacker": 47
+    },
+    {
+      "type": "damaged",
+      "time": 787.5,
+      "id": 8,
+      "amount": 8,
+      "hp": 126,
+      "attacker": 38
+    },
+    {
+      "type": "damaged",
+      "time": 788,
+      "id": 7,
+      "amount": 8,
+      "hp": 206,
+      "attacker": 36
+    },
+    {
+      "type": "damaged",
+      "time": 788,
+      "id": 7,
+      "amount": 8,
+      "hp": 198,
+      "attacker": 37
+    },
+    {
+      "type": "damaged",
+      "time": 788.25,
+      "id": 6,
+      "amount": 8,
+      "hp": 254,
+      "attacker": 39
+    },
+    {
+      "type": "damaged",
+      "time": 788.25,
+      "id": 7,
+      "amount": 8,
+      "hp": 190,
+      "attacker": 47
+    },
+    {
+      "type": "damaged",
+      "time": 788.5,
+      "id": 8,
+      "amount": 8,
+      "hp": 118,
+      "attacker": 38
+    },
+    {
+      "type": "damaged",
+      "time": 789,
+      "id": 7,
+      "amount": 8,
+      "hp": 182,
+      "attacker": 36
+    },
+    {
+      "type": "damaged",
+      "time": 789,
+      "id": 7,
+      "amount": 8,
+      "hp": 174,
+      "attacker": 37
+    },
+    {
+      "type": "damaged",
+      "time": 789.25,
+      "id": 6,
+      "amount": 8,
+      "hp": 246,
+      "attacker": 39
+    },
+    {
+      "type": "damaged",
+      "time": 789.25,
+      "id": 7,
+      "amount": 8,
+      "hp": 166,
+      "attacker": 47
+    },
+    {
+      "type": "damaged",
+      "time": 789.5,
+      "id": 8,
+      "amount": 8,
+      "hp": 110,
+      "attacker": 38
+    },
+    {
+      "type": "damaged",
+      "time": 790,
+      "id": 7,
+      "amount": 8,
+      "hp": 158,
+      "attacker": 36
+    },
+    {
+      "type": "damaged",
+      "time": 790,
+      "id": 7,
+      "amount": 8,
+      "hp": 150,
+      "attacker": 37
+    },
+    {
+      "type": "damaged",
+      "time": 790.25,
+      "id": 6,
+      "amount": 8,
+      "hp": 238,
+      "attacker": 39
+    },
+    {
+      "type": "damaged",
+      "time": 790.25,
+      "id": 7,
+      "amount": 8,
+      "hp": 142,
+      "attacker": 47
+    },
+    {
+      "type": "damaged",
+      "time": 790.5,
+      "id": 8,
+      "amount": 8,
+      "hp": 102,
+      "attacker": 38
+    },
+    {
+      "type": "damaged",
+      "time": 791,
+      "id": 7,
+      "amount": 8,
+      "hp": 134,
+      "attacker": 36
+    },
+    {
+      "type": "damaged",
+      "time": 791,
+      "id": 7,
+      "amount": 8,
+      "hp": 126,
+      "attacker": 37
+    },
+    {
+      "type": "damaged",
+      "time": 791.25,
+      "id": 6,
+      "amount": 8,
+      "hp": 230,
+      "attacker": 39
+    },
+    {
+      "type": "damaged",
+      "time": 791.25,
+      "id": 7,
+      "amount": 8,
+      "hp": 118,
+      "attacker": 47
+    },
+    {
+      "type": "damaged",
+      "time": 791.5,
+      "id": 8,
+      "amount": 8,
+      "hp": 94,
+      "attacker": 38
+    },
+    {
+      "type": "damaged",
+      "time": 792,
+      "id": 7,
+      "amount": 8,
+      "hp": 110,
+      "attacker": 36
+    },
+    {
+      "type": "damaged",
+      "time": 792,
+      "id": 7,
+      "amount": 8,
+      "hp": 102,
+      "attacker": 37
+    },
+    {
+      "type": "damaged",
+      "time": 792.25,
+      "id": 6,
+      "amount": 8,
+      "hp": 222,
+      "attacker": 39
+    },
+    {
+      "type": "damaged",
+      "time": 792.25,
+      "id": 7,
+      "amount": 8,
+      "hp": 94,
+      "attacker": 47
+    },
+    {
+      "type": "damaged",
+      "time": 792.5,
+      "id": 8,
+      "amount": 8,
+      "hp": 86,
+      "attacker": 38
+    },
+    {
+      "type": "damaged",
+      "time": 793,
+      "id": 7,
+      "amount": 8,
+      "hp": 86,
+      "attacker": 36
+    },
+    {
+      "type": "damaged",
+      "time": 793,
+      "id": 7,
+      "amount": 8,
+      "hp": 78,
+      "attacker": 37
+    },
+    {
+      "type": "damaged",
+      "time": 793.25,
+      "id": 6,
+      "amount": 8,
+      "hp": 214,
+      "attacker": 39
+    },
+    {
+      "type": "damaged",
+      "time": 793.25,
+      "id": 7,
+      "amount": 8,
+      "hp": 70,
+      "attacker": 47
+    },
+    {
+      "type": "damaged",
+      "time": 793.5,
+      "id": 8,
+      "amount": 8,
+      "hp": 78,
+      "attacker": 38
+    },
+    {
+      "type": "damaged",
+      "time": 794,
+      "id": 7,
+      "amount": 8,
+      "hp": 62,
+      "attacker": 36
+    },
+    {
+      "type": "damaged",
+      "time": 794,
+      "id": 7,
+      "amount": 8,
+      "hp": 54,
+      "attacker": 37
+    },
+    {
+      "type": "damaged",
+      "time": 794.25,
+      "id": 6,
+      "amount": 8,
+      "hp": 206,
+      "attacker": 39
+    },
+    {
+      "type": "damaged",
+      "time": 794.25,
+      "id": 7,
+      "amount": 8,
+      "hp": 46,
+      "attacker": 47
+    },
+    {
+      "type": "damaged",
+      "time": 794.5,
+      "id": 8,
+      "amount": 8,
+      "hp": 70,
+      "attacker": 38
+    },
+    {
+      "type": "damaged",
+      "time": 795,
+      "id": 7,
+      "amount": 8,
+      "hp": 38,
+      "attacker": 36
+    },
+    {
+      "type": "damaged",
+      "time": 795,
+      "id": 7,
+      "amount": 8,
+      "hp": 30,
+      "attacker": 37
+    },
+    {
+      "type": "damaged",
+      "time": 795.25,
+      "id": 6,
+      "amount": 8,
+      "hp": 198,
+      "attacker": 39
+    },
+    {
+      "type": "damaged",
+      "time": 795.25,
+      "id": 7,
+      "amount": 8,
+      "hp": 22,
+      "attacker": 47
+    },
+    {
+      "type": "damaged",
+      "time": 795.5,
+      "id": 8,
+      "amount": 8,
+      "hp": 62,
+      "attacker": 38
+    },
+    {
+      "type": "damaged",
+      "time": 796,
+      "id": 7,
+      "amount": 8,
+      "hp": 14,
+      "attacker": 36
+    },
+    {
+      "type": "damaged",
+      "time": 796,
+      "id": 7,
+      "amount": 8,
+      "hp": 6,
+      "attacker": 37
+    },
+    {
+      "type": "damaged",
+      "time": 796.25,
+      "id": 6,
+      "amount": 8,
+      "hp": 190,
+      "attacker": 39
+    },
+    {
+      "type": "damaged",
+      "time": 796.25,
+      "id": 7,
+      "amount": 6,
+      "hp": 0,
+      "attacker": 47
+    },
+    {
+      "type": "destroyed",
+      "time": 796.25,
+      "id": 7,
+      "building": {
+        "id": 7,
+        "type": "wall",
+        "x": 13,
+        "z": 12,
+        "hp": 0,
+        "maxHp": 350,
+        "residents": 0,
+        "powered": true,
+        "watered": true,
+        "serviced": false,
+        "cooldown": 0
+      }
+    },
+    {
+      "type": "damaged",
+      "time": 796.5,
+      "id": 8,
+      "amount": 8,
+      "hp": 54,
+      "attacker": 38
+    },
+    {
+      "type": "damaged",
+      "time": 797,
+      "id": 6,
+      "amount": 8,
+      "hp": 182,
+      "attacker": 37
+    },
+    {
+      "type": "damaged",
+      "time": 797.25,
+      "id": 6,
+      "amount": 8,
+      "hp": 174,
+      "attacker": 39
+    },
+    {
+      "type": "damaged",
+      "time": 797.5,
+      "id": 8,
+      "amount": 8,
+      "hp": 46,
+      "attacker": 38
+    },
+    {
+      "type": "damaged",
+      "time": 798,
+      "id": 6,
+      "amount": 8,
+      "hp": 166,
+      "attacker": 37
+    },
+    {
+      "type": "damaged",
+      "time": 798.25,
+      "id": 1,
+      "amount": 8,
+      "hp": 592,
+      "attacker": 36
+    },
+    {
+      "type": "damaged",
+      "time": 798.25,
+      "id": 6,
+      "amount": 8,
+      "hp": 158,
+      "attacker": 39
+    },
+    {
+      "type": "damaged",
+      "time": 798.5,
+      "id": 8,
+      "amount": 8,
+      "hp": 38,
+      "attacker": 38
+    },
+    {
+      "type": "damaged",
+      "time": 799,
+      "id": 6,
+      "amount": 8,
+      "hp": 150,
+      "attacker": 37
+    },
+    {
+      "type": "damaged",
+      "time": 799,
+      "id": 8,
+      "amount": 8,
+      "hp": 30,
+      "attacker": 40
+    },
+    {
+      "type": "damaged",
+      "time": 799.25,
+      "id": 1,
+      "amount": 8,
+      "hp": 584,
+      "attacker": 36
+    },
+    {
+      "type": "damaged",
+      "time": 799.25,
+      "id": 6,
+      "amount": 8,
+      "hp": 142,
+      "attacker": 39
+    },
+    {
+      "type": "damaged",
+      "time": 799.5,
+      "id": 8,
+      "amount": 8,
+      "hp": 22,
+      "attacker": 38
+    },
+    {
+      "type": "damaged",
+      "time": 800,
+      "id": 6,
+      "amount": 8,
+      "hp": 134,
+      "attacker": 37
+    },
+    {
+      "type": "damaged",
+      "time": 800,
+      "id": 8,
+      "amount": 8,
+      "hp": 14,
+      "attacker": 40
+    },
+    {
+      "type": "damaged",
+      "time": 800.25,
+      "id": 1,
+      "amount": 8,
+      "hp": 576,
+      "attacker": 36
+    },
+    {
+      "type": "damaged",
+      "time": 800.25,
+      "id": 6,
+      "amount": 8,
+      "hp": 126,
+      "attacker": 39
+    },
+    {
+      "type": "damaged",
+      "time": 800.5,
+      "id": 8,
+      "amount": 8,
+      "hp": 6,
+      "attacker": 38
+    },
+    {
+      "type": "damaged",
+      "time": 801,
+      "id": 6,
+      "amount": 8,
+      "hp": 118,
+      "attacker": 37
+    },
+    {
+      "type": "damaged",
+      "time": 801,
+      "id": 8,
+      "amount": 6,
+      "hp": 0,
+      "attacker": 40
+    },
+    {
+      "type": "destroyed",
+      "time": 801,
+      "id": 8,
+      "building": {
+        "id": 8,
+        "type": "wall",
+        "x": 12,
+        "z": 13,
+        "hp": 0,
+        "maxHp": 350,
+        "residents": 0,
+        "powered": true,
+        "watered": true,
+        "serviced": false,
+        "cooldown": 0
+      }
+    },
+    {
+      "type": "damaged",
+      "time": 801.25,
+      "id": 1,
+      "amount": 8,
+      "hp": 568,
+      "attacker": 36
+    },
+    {
+      "type": "damaged",
+      "time": 801.25,
+      "id": 6,
+      "amount": 8,
+      "hp": 110,
+      "attacker": 39
+    },
+    {
+      "type": "damaged",
+      "time": 802,
+      "id": 6,
+      "amount": 8,
+      "hp": 102,
+      "attacker": 37
+    },
+    {
+      "type": "damaged",
+      "time": 802.25,
+      "id": 1,
+      "amount": 8,
+      "hp": 560,
+      "attacker": 36
+    },
+    {
+      "type": "damaged",
+      "time": 802.25,
+      "id": 6,
+      "amount": 8,
+      "hp": 94,
+      "attacker": 39
+    },
+    {
+      "type": "damaged",
+      "time": 803,
+      "id": 6,
+      "amount": 8,
+      "hp": 86,
+      "attacker": 37
+    },
+    {
+      "type": "damaged",
+      "time": 803,
+      "id": 1,
+      "amount": 8,
+      "hp": 552,
+      "attacker": 38
+    },
+    {
+      "type": "damaged",
+      "time": 803.25,
+      "id": 1,
+      "amount": 8,
+      "hp": 544,
+      "attacker": 36
+    },
+    {
+      "type": "damaged",
+      "time": 803.25,
+      "id": 6,
+      "amount": 8,
+      "hp": 78,
+      "attacker": 39
+    },
+    {
+      "type": "damaged",
+      "time": 804,
+      "id": 6,
+      "amount": 8,
+      "hp": 70,
+      "attacker": 37
+    },
+    {
+      "type": "damaged",
+      "time": 804,
+      "id": 1,
+      "amount": 8,
+      "hp": 536,
+      "attacker": 38
+    },
+    {
+      "type": "damaged",
+      "time": 804.25,
+      "id": 1,
+      "amount": 8,
+      "hp": 528,
+      "attacker": 36
+    },
+    {
+      "type": "damaged",
+      "time": 804.25,
+      "id": 6,
+      "amount": 8,
+      "hp": 62,
+      "attacker": 39
+    },
+    {
+      "type": "damaged",
+      "time": 805,
+      "id": 6,
+      "amount": 8,
+      "hp": 54,
+      "attacker": 37
+    },
+    {
+      "type": "damaged",
+      "time": 805,
+      "id": 1,
+      "amount": 8,
+      "hp": 520,
+      "attacker": 38
+    },
+    {
+      "type": "damaged",
+      "time": 805.25,
+      "id": 1,
+      "amount": 8,
+      "hp": 512,
+      "attacker": 36
+    },
+    {
+      "type": "damaged",
+      "time": 805.25,
+      "id": 6,
+      "amount": 8,
+      "hp": 46,
+      "attacker": 39
+    },
+    {
+      "type": "damaged",
+      "time": 806,
+      "id": 6,
+      "amount": 8,
+      "hp": 38,
+      "attacker": 37
+    },
+    {
+      "type": "damaged",
+      "time": 806,
+      "id": 1,
+      "amount": 8,
+      "hp": 504,
+      "attacker": 38
+    },
+    {
+      "type": "damaged",
+      "time": 806.25,
+      "id": 1,
+      "amount": 8,
+      "hp": 496,
+      "attacker": 36
+    },
+    {
+      "type": "damaged",
+      "time": 806.25,
+      "id": 6,
+      "amount": 8,
+      "hp": 30,
+      "attacker": 39
+    },
+    {
+      "type": "damaged",
+      "time": 807,
+      "id": 6,
+      "amount": 8,
+      "hp": 22,
+      "attacker": 37
+    },
+    {
+      "type": "damaged",
+      "time": 807,
+      "id": 1,
+      "amount": 8,
+      "hp": 488,
+      "attacker": 38
+    },
+    {
+      "type": "damaged",
+      "time": 807.25,
+      "id": 1,
+      "amount": 8,
+      "hp": 480,
+      "attacker": 36
+    },
+    {
+      "type": "damaged",
+      "time": 807.25,
+      "id": 6,
+      "amount": 8,
+      "hp": 14,
+      "attacker": 39
+    },
+    {
+      "type": "damaged",
+      "time": 808,
+      "id": 6,
+      "amount": 8,
+      "hp": 6,
+      "attacker": 37
+    },
+    {
+      "type": "damaged",
+      "time": 808,
+      "id": 1,
+      "amount": 8,
+      "hp": 472,
+      "attacker": 38
+    },
+    {
+      "type": "damaged",
+      "time": 808.25,
+      "id": 1,
+      "amount": 8,
+      "hp": 464,
+      "attacker": 36
+    },
+    {
+      "type": "damaged",
+      "time": 808.25,
+      "id": 6,
+      "amount": 6,
+      "hp": 0,
+      "attacker": 39
+    },
+    {
+      "type": "destroyed",
+      "time": 808.25,
+      "id": 6,
+      "building": {
+        "id": 6,
+        "type": "wall",
+        "x": 12,
+        "z": 11,
+        "hp": 0,
+        "maxHp": 350,
+        "residents": 0,
+        "powered": true,
+        "watered": true,
+        "serviced": false,
+        "cooldown": 0
+      }
+    },
+    {
+      "type": "damaged",
+      "time": 809,
+      "id": 1,
+      "amount": 8,
+      "hp": 456,
+      "attacker": 38
+    },
+    {
+      "type": "damaged",
+      "time": 809.25,
+      "id": 1,
+      "amount": 8,
+      "hp": 448,
+      "attacker": 36
+    },
+    {
+      "type": "damaged",
+      "time": 810,
+      "id": 1,
+      "amount": 8,
+      "hp": 440,
+      "attacker": 38
+    },
+    {
+      "type": "damaged",
+      "time": 810.25,
+      "id": 1,
+      "amount": 8,
+      "hp": 432,
+      "attacker": 36
+    },
+    {
+      "type": "damaged",
+      "time": 810.25,
+      "id": 1,
+      "amount": 8,
+      "hp": 424,
+      "attacker": 37
+    },
+    {
+      "type": "damaged",
+      "time": 811,
+      "id": 1,
+      "amount": 8,
+      "hp": 416,
+      "attacker": 38
+    },
+    {
+      "type": "damaged",
+      "time": 811.25,
+      "id": 1,
+      "amount": 8,
+      "hp": 408,
+      "attacker": 36
+    },
+    {
+      "type": "damaged",
+      "time": 811.25,
+      "id": 1,
+      "amount": 8,
+      "hp": 400,
+      "attacker": 37
+    },
+    {
+      "type": "damaged",
+      "time": 812,
+      "id": 1,
+      "amount": 8,
+      "hp": 392,
+      "attacker": 38
+    },
+    {
+      "type": "damaged",
+      "time": 812.25,
+      "id": 1,
+      "amount": 8,
+      "hp": 384,
+      "attacker": 36
+    },
+    {
+      "type": "damaged",
+      "time": 812.25,
+      "id": 1,
+      "amount": 8,
+      "hp": 376,
+      "attacker": 37
+    },
+    {
+      "type": "damaged",
+      "time": 813,
+      "id": 1,
+      "amount": 8,
+      "hp": 368,
+      "attacker": 38
+    },
+    {
+      "type": "damaged",
+      "time": 813.25,
+      "id": 1,
+      "amount": 8,
+      "hp": 360,
+      "attacker": 36
+    },
+    {
+      "type": "damaged",
+      "time": 813.25,
+      "id": 1,
+      "amount": 8,
+      "hp": 352,
+      "attacker": 37
+    },
+    {
+      "type": "damaged",
+      "time": 814,
+      "id": 1,
+      "amount": 8,
+      "hp": 344,
+      "attacker": 38
+    },
+    {
+      "type": "damaged",
+      "time": 814.25,
+      "id": 1,
+      "amount": 8,
+      "hp": 336,
+      "attacker": 36
+    },
+    {
+      "type": "damaged",
+      "time": 814.25,
+      "id": 1,
+      "amount": 8,
+      "hp": 328,
+      "attacker": 37
+    },
+    {
+      "type": "damaged",
+      "time": 815,
+      "id": 1,
+      "amount": 8,
+      "hp": 320,
+      "attacker": 38
+    },
+    {
+      "type": "damaged",
+      "time": 815.25,
+      "id": 1,
+      "amount": 8,
+      "hp": 312,
+      "attacker": 36
+    },
+    {
+      "type": "damaged",
+      "time": 815.25,
+      "id": 1,
+      "amount": 8,
+      "hp": 304,
+      "attacker": 37
+    },
+    {
+      "type": "damaged",
+      "time": 816,
+      "id": 1,
+      "amount": 8,
+      "hp": 296,
+      "attacker": 38
+    },
+    {
+      "type": "damaged",
+      "time": 816.25,
+      "id": 1,
+      "amount": 8,
+      "hp": 288,
+      "attacker": 36
+    },
+    {
+      "type": "damaged",
+      "time": 816.25,
+      "id": 1,
+      "amount": 8,
+      "hp": 280,
+      "attacker": 37
+    },
+    {
+      "type": "damaged",
+      "time": 817,
+      "id": 1,
+      "amount": 8,
+      "hp": 272,
+      "attacker": 38
+    },
+    {
+      "type": "damaged",
+      "time": 817.25,
+      "id": 1,
+      "amount": 8,
+      "hp": 264,
+      "attacker": 36
+    },
+    {
+      "type": "damaged",
+      "time": 817.25,
+      "id": 1,
+      "amount": 8,
+      "hp": 256,
+      "attacker": 37
+    },
+    {
+      "type": "damaged",
+      "time": 818,
+      "id": 1,
+      "amount": 8,
+      "hp": 248,
+      "attacker": 38
+    },
+    {
+      "type": "damaged",
+      "time": 818.25,
+      "id": 1,
+      "amount": 8,
+      "hp": 240,
+      "attacker": 36
+    },
+    {
+      "type": "damaged",
+      "time": 818.25,
+      "id": 1,
+      "amount": 8,
+      "hp": 232,
+      "attacker": 37
+    },
+    {
+      "type": "damaged",
+      "time": 819,
+      "id": 1,
+      "amount": 8,
+      "hp": 224,
+      "attacker": 38
+    },
+    {
+      "type": "damaged",
+      "time": 819.25,
+      "id": 1,
+      "amount": 8,
+      "hp": 216,
+      "attacker": 36
+    },
+    {
+      "type": "damaged",
+      "time": 819.25,
+      "id": 1,
+      "amount": 8,
+      "hp": 208,
+      "attacker": 37
+    },
+    {
+      "type": "damaged",
+      "time": 820,
+      "id": 1,
+      "amount": 8,
+      "hp": 200,
+      "attacker": 38
+    },
+    {
+      "type": "damaged",
+      "time": 820.25,
+      "id": 1,
+      "amount": 8,
+      "hp": 192,
+      "attacker": 36
+    },
+    {
+      "type": "damaged",
+      "time": 820.25,
+      "id": 1,
+      "amount": 8,
+      "hp": 184,
+      "attacker": 37
+    },
+    {
+      "type": "damaged",
+      "time": 821,
+      "id": 1,
+      "amount": 8,
+      "hp": 176,
+      "attacker": 38
+    },
+    {
+      "type": "damaged",
+      "time": 821.25,
+      "id": 1,
+      "amount": 8,
+      "hp": 168,
+      "attacker": 36
+    },
+    {
+      "type": "damaged",
+      "time": 821.25,
+      "id": 1,
+      "amount": 8,
+      "hp": 160,
+      "attacker": 37
+    },
+    {
+      "type": "damaged",
+      "time": 822,
+      "id": 1,
+      "amount": 8,
+      "hp": 152,
+      "attacker": 38
+    },
+    {
+      "type": "damaged",
+      "time": 822.25,
+      "id": 1,
+      "amount": 8,
+      "hp": 144,
+      "attacker": 36
+    },
+    {
+      "type": "damaged",
+      "time": 822.25,
+      "id": 1,
+      "amount": 8,
+      "hp": 136,
+      "attacker": 37
+    },
+    {
+      "type": "damaged",
+      "time": 823,
+      "id": 1,
+      "amount": 8,
+      "hp": 128,
+      "attacker": 38
+    },
+    {
+      "type": "damaged",
+      "time": 823.25,
+      "id": 1,
+      "amount": 8,
+      "hp": 120,
+      "attacker": 36
+    },
+    {
+      "type": "damaged",
+      "time": 823.25,
+      "id": 1,
+      "amount": 8,
+      "hp": 112,
+      "attacker": 37
+    },
+    {
+      "type": "damaged",
+      "time": 824,
+      "id": 1,
+      "amount": 8,
+      "hp": 104,
+      "attacker": 38
+    },
+    {
+      "type": "damaged",
+      "time": 824.25,
+      "id": 1,
+      "amount": 8,
+      "hp": 96,
+      "attacker": 36
+    },
+    {
+      "type": "damaged",
+      "time": 824.25,
+      "id": 1,
+      "amount": 8,
+      "hp": 88,
+      "attacker": 37
+    },
+    {
+      "type": "damaged",
+      "time": 825,
+      "id": 1,
+      "amount": 8,
+      "hp": 80,
+      "attacker": 38
+    },
+    {
+      "type": "damaged",
+      "time": 825.25,
+      "id": 1,
+      "amount": 8,
+      "hp": 72,
+      "attacker": 36
+    },
+    {
+      "type": "damaged",
+      "time": 825.25,
+      "id": 1,
+      "amount": 8,
+      "hp": 64,
+      "attacker": 37
+    },
+    {
+      "type": "damaged",
+      "time": 826,
+      "id": 1,
+      "amount": 8,
+      "hp": 56,
+      "attacker": 38
+    },
+    {
+      "type": "damaged",
+      "time": 826.25,
+      "id": 1,
+      "amount": 8,
+      "hp": 48,
+      "attacker": 36
+    },
+    {
+      "type": "damaged",
+      "time": 826.25,
+      "id": 1,
+      "amount": 8,
+      "hp": 40,
+      "attacker": 37
+    },
+    {
+      "type": "damaged",
+      "time": 827,
+      "id": 1,
+      "amount": 8,
+      "hp": 32,
+      "attacker": 38
+    },
+    {
+      "type": "damaged",
+      "time": 827.25,
+      "id": 1,
+      "amount": 8,
+      "hp": 24,
+      "attacker": 36
+    },
+    {
+      "type": "damaged",
+      "time": 827.25,
+      "id": 1,
+      "amount": 8,
+      "hp": 16,
+      "attacker": 37
+    },
+    {
+      "type": "damaged",
+      "time": 828,
+      "id": 1,
+      "amount": 8,
+      "hp": 8,
+      "attacker": 38
+    },
+    {
+      "type": "damaged",
+      "time": 828.25,
+      "id": 1,
+      "amount": 8,
+      "hp": 0,
+      "attacker": 36
+    },
+    {
+      "type": "destroyed",
+      "time": 828.25,
+      "id": 1,
+      "building": {
+        "id": 1,
+        "type": "townhall",
+        "x": 12,
+        "z": 12,
+        "hp": 0,
+        "maxHp": 600,
+        "residents": 0,
+        "powered": false,
+        "watered": false,
+        "serviced": false,
+        "cooldown": 0
+      }
+    },
+    {
+      "type": "lost",
+      "time": 828.25,
+      "score": 2,
+      "peakPopulation": 0,
+      "kills": 26
+    }
+  ],
+  "expected": {
+    "waves": [
+      12,
+      14,
+      16
+    ],
+    "shots": 104,
+    "hallDamage": 600,
+    "score": 2,
+    "kills": 26,
+    "townHallHp": 0,
+    "endTime": 828.25
+  }
+}
