@@ -412,7 +412,8 @@ before any new image or product/gameplay sample. This is not a connection failur
 or a measured product-gate failure. Independent postflight resource cleanup did
 not turn collector HOLD into PASS. The prior lobby image remains the only required
 image captured; water/driver/roof/audio/hardware/scene-budget gates stay open.
-Post-connect/menu ticket `pi-829842-1792641745174-2ca752e0` remains unresolved.
+Post-connect/menu ticket `pi-829842-1792641745174-2ca752e0` is marked answered
+with an empty response; no new diagnosis or browser permission is inferred.
 
 Collector-only follow-up persists first errors before API cleanup can stall,
 retains atomic three-attempt history, and checks Linux subreaper-owned descendants
@@ -459,9 +460,13 @@ preferences. These results are not native timing, layout, controls or pixels.
 **HOLD:** no CTF lobby, carried-flag flight or boat-water-route Chromium image
 has been captured. One subsequently authorized 55s CTF attempt ended HOLD in
 launch/connect after its 20s probe deadline, with no completed page or product
-measurement. Independent owned-resource cleanup and release did not grant PASS;
-launch-only ticket `pi-86463-1792667765599-a1544d84` is pending. No retry. Earlier
-three boat-native attempts also remain HOLD; CDP3 connected but timed out in menu.
+measurement. Independent owned-resource cleanup and release did not grant PASS.
+Launch-only ticket `pi-86463-1792667765599-a1544d84` is marked answered with an
+empty response. Operator resume directs staging-only receipt finalization, no
+new browser permission, no supervisor reruns and no push. Earlier three boat-native
+attempts also remain HOLD; CDP3 connected but timed out in menu. Answered guidance
+confirms the ownership finding is latent, with no active orphan claimed, and the
+already-recorded precise old-behavior CTF control meets the requested scope.
 The existing GLB remains unchanged with its missing driver/older roof. In-place
 roof/driver repair permission and distinct boat loadout versus livery-variant
 scope await clarification. Current roster has one speedboat kind, not invented

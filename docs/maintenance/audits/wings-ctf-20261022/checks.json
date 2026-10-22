@@ -58,7 +58,7 @@
     "mixedCombat": "PASS normal loopback/wire gameplay: death/drop/re-pick/capture, team0 score win43.65simsec, automatic reset",
     "roundTimer": "PASS actual60s simulation; capture scores or draw",
     "parkedCleanup": "PASS isolated controlled-clock boundary, not positive gameplay/native proof",
-    "preFixControl": "Exact6928113engine fails intended abandoned-delay assertion",
+    "preFixControl": "Precise control already implemented: exact6928113 canLeave and atBoatBase; ordinary return passes, intended abandoned-delay assertion fails; fixed fixture passes. Earlier return failure is not a substitute.",
     "startupClock": "PASS actualsource bodies with fakeclock;30s/20s unchanged",
     "collectorOwnership": "PASS no-browser subreaper/pidfd escaped-child selfcheck",
     "strictCandidateGeometry": "FAIL/HOLD: unchanged oldboat roof/absentdriver; test not weakened"
@@ -89,8 +89,23 @@
     "postflight": "Ownedwrapper/group/collector/browser/driver absent; exact ownedtemp/profile/displaydirsremoved; notAPIcleanupPASS"
   },
   "collectorFollowupNative": "NOT RUN: driver/chromium/context/page stage stamps and precise remaining-inner-budget rounding are self-check only",
-  "nativeTicket": "pi-86463-1792667765599-a1544d84 (pending advice timeout20s; no retry approval)",
+  "nativeTicket": "pi-86463-1792667765599-a1544d84 (marked answered; empty response; no new browser permission or supervisor reruns)",
   "freeBytesBeforeCtfNative": 2858020864,
   "freeBytesAfterCtfNativeCleanup": 2857320448,
-  "verificationToolMilestone": "b3ca4d714ea11e7a7fa2985b064dd478d328723c"
+  "verificationToolMilestone": "b3ca4d714ea11e7a7fa2985b064dd478d328723c",
+  "stagingFinalization": {
+    "scope": "Docs/ticket Markdown+JSON only; one commit; NO PUSH",
+    "nativeAttempts": "3 boat + 1 CTF, all HOLD; original browser JSON receipts unchanged",
+    "review51": "Answered: latent ownership finding, potential false PASS; independent retained-attempt postflight all-zero, no active orphan claimed",
+    "negativeControlTicket": "pi-86463-1792665391706-e572a778 answered; precise control already implemented and recorded, not rerun",
+    "postConnectTicket": "pi-829842-1792641745174-2ca752e0 marked answered; empty response, no new technical diagnosis inferred",
+    "diskTicket": "pi-86463-1792669232216-ff22c45c retained",
+    "freeBytesBefore": 2889994240,
+    "standingFloorBytes": 2178940928,
+    "hardStopBytes": 1800000000,
+    "growthBudgetBytes": 262144,
+    "belowFloorWaiverReliedUpon": false,
+    "reruns": "NONE: no browser/supervisor/build/gameplay-suite rerun; read-only receipt and maintenance checks only",
+    "finalStorageFigures": "Reported after the single commit; shared host free-space delta is not attributed solely to this lane"
+  }
 }

@@ -81,9 +81,12 @@ Valid product proof may survive collector timeout separately, but none was measu
 here. [Startup verification](startup-verification.md) records exact limitations.
 
 Local diagnosis remains under `.tmp/wings-boat-order-render-diagnosis/FINDINGS.md`.
-Fresh **post-connect/menu** ticket `pi-829842-1792641745174-2ca752e0` is unresolved
-following advisor timeout. A coordinated native run must supply the missing frame
-and actual interaction evidence before release. No push or live verification.
+The **post-connect/menu** ticket `pi-829842-1792641745174-2ca752e0` is marked
+answered, with an empty response; this supplies no new diagnosis or permission.
+Answered review 51 confirms a latent ownership finding, not an active orphan;
+independent postflight was all-zero. See the startup receipt for exact wording.
+The operator directs staging-only finalization: no new browser permission, no
+supervisor reruns and no push. Missing native evidence remains a release HOLD.
 
 ## Remaining gates and scope
 

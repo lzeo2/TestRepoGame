@@ -31,8 +31,10 @@ separately, without turning interrupted collector HOLD into PASS. World
 `b16dd16` received explicit release. No unrelated process or outside-repository
 file was deleted. Free space after cleanup: **2,857,320,448 bytes**.
 
-Fresh launch/connect-only ticket `pi-86463-1792667765599-a1544d84` remains pending
-after 20s advisor timeout. No retry or further Wings browser claim. Earlier boat
+Launch/connect-only ticket `pi-86463-1792667765599-a1544d84` is marked answered;
+its response is empty. The operator confirms staging-only finalization, no new
+browser permission and no supervisor reruns. No retry or further Wings browser
+claim. Earlier boat
 CDP3's successful 17.68s connection/menu timeout is a different receipt, retained
 intact. All missing CTF images and model/variant decisions remain open.
 

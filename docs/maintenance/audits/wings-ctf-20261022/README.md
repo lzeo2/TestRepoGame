@@ -53,8 +53,13 @@ The fix centralizes both in the mode-aware boat-base predicate. Its isolated CPU
 cleanup-clock regression checks survival beyond the 20s abandoned delay and quiet
 removal at 60s. Exact pre-fix source revision `6928113` fails the intended assertion.
 The earlier one-guard mutation failed at return permission first; it is not
-misreported as the parking-specific control. No runtime source was changed by
-these test-only builds.
+misreported as the parking-specific control. Answered ticket
+`pi-86463-1792665391706-e572a778` requires restoring both the exact pre-fix
+`canLeave` method and original `atBoatBase` behavior in the isolated build.
+That precise control is already implemented: ordinary base return passes before
+the old source fails the intended abandoned-delay assertion. The fixed source
+passes the cleanup-clock fixture. The earlier return failure is not a substitute.
+No runtime source was changed by these test-only builds; no rerun is needed.
 
 All **70** upstream Git blobs still match pin
 `bf5f6277e38ee52e9bfa4ae4a01337b46175c181`. Full `port.patch` clean-applies and
@@ -102,15 +107,18 @@ node Games/Wings/verification/check-startup-clock.mjs PATH_TO_APPLIED/games/wing
 The [one authorized CTF attempt](native-01/README.md) ended HOLD in launch/connect:
 20s probe deadline, 55s supervisor exit 124, no completed page/probe or product
 sample. Fresh independent resource cleanup/release did not grant collector PASS.
-Launch-only ticket `pi-86463-1792667765599-a1544d84` is pending after advisor
-timeout. No retry. Collector-only granular phase follow-up is not browser-retested.
+Launch-only ticket `pi-86463-1792667765599-a1544d84` is marked answered, with
+an empty response; no new diagnosis or permission is inferred. The operator
+confirms no new browser permission or supervisor reruns. Collector-only granular
+phase follow-up is not browser-retested.
 
 No previous image is relabelled as CTF. Earlier boat-native attempts remain all
 HOLD in the [three-attempt receipt](../wings-boat-publish-20261022/browser.json):
 CDP3 connected/probed in 17.68s, then its 55s supervisor expired in the menu phase,
 with no product-gate result. Not connection failure or measured product failure.
 Owned cleanup was independently verified and the slot explicitly released.
-Post-connect/menu ticket `pi-829842-1792641745174-2ca752e0` remains unresolved.
+Post-connect/menu ticket `pi-829842-1792641745174-2ca752e0` is also marked
+answered with an empty response; its retained outcome remains HOLD.
 
 The existing boat GLB remains SHA256
 `1f0eae7f3b962669c2f95f1ce52e3f27cce008595f4875bae41e9274b24da65a`.
@@ -125,3 +133,20 @@ Native layout, physical input, flag/water pixels, roof/driver, audio, hardware,
 whole-scene peak budget and rights acceptance remain open. No FPS pass is inferred
 from CPU tests. Full **127-game** browser loading gate remains deferred, zero visits
 in this lane. Operator review and a separate push order remain mandatory.
+
+## Staging-only finalization
+
+The operator resumed this lane for Markdown/JSON receipt reconciliation only.
+All four retained native attempts stay HOLD. No browser, supervisor, CPU gameplay
+suite or build was rerun; no source, bundle, model, catalog or inventory changed.
+The answered negative-control and latent ownership guidance are reconciled above;
+empty ticket responses are not treated as new technical findings or permissions.
+
+Disk ticket `pi-86463-1792669232216-ff22c45c` is retained. The earlier guard stop
+measured 1,883,205,632 free bytes; unenumerated necessity was not used as a waiver.
+Fresh finalization preflight measures **2,889,994,240 bytes**, above the standing
+2,178,940,928-byte floor, so this finalization does not rely on a below-floor
+waiver. The remaining growth outer bound is **262,144 bytes**, with a hard stop
+below 1,800,000,000 bytes. Final free bytes and consumed-versus-budget figures
+are returned after the single docs-only commit; host-wide deltas are not assumed
+to be lane-only usage. No push or release acceptance.

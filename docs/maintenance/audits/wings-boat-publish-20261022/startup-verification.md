@@ -77,8 +77,11 @@ times out, only that already-measured product result may become
 `PASSED-with-collector-timeout`; overall collector/gameplay acceptance remains HOLD.
 No measurement can be inferred from the supervisor's generic timeout.
 
-Review 51 demonstrated that leader-only polling plus executable/profile selectors
-could miss markerless descendants. The verifier now uses Linux child-subreaper
+Review 51 recorded a **latent** ownership finding: exact-argv selectors can miss
+Chromium utility descendants without the profile marker and driver processes;
+group cleanup can be skipped after leader exit, allowing potential false PASS.
+Independent postflight reports all-zero processes for the retained attempt, so
+**no active orphan is claimed**. The verifier now uses Linux child-subreaper
 ownership before spawning, so even double-forked/new-session children stay owned.
 Cleanup enumerates that owned tree, signals birth-checked process handles, verifies
 no survivors and refuses PASS/profile removal on ownership-cleanup errors. It does
@@ -92,9 +95,12 @@ These collector follow-ups have **not** been revalidated in Chromium. No extra
 browser attempt or longer collector was silently added. The one supervisor stays
 55s; every complete product proof still needs actual 30s/20s deltas and real draws.
 
-Fresh post-connect/menu tooling ticket `pi-829842-1792641745174-2ca752e0` timed out
-waiting for advice. Reviewer's intermittent lightweight-tool timeout ticket
-`pi-2229574-1792642366676-041a8669` is also unresolved. Neither grants a waiver.
+Post-connect/menu ticket `pi-829842-1792641745174-2ca752e0` is marked answered;
+its response is empty, so no new diagnosis or permission is inferred. Answered
+review ticket `pi-2229574-1792642366676-041a8669` attributes intermittent shell
+timeouts to board load, directs latent-finding wording and no further diagnostics
+in that review. The operator's resume confirms staging-only finalization, no new
+browser permission, no supervisor reruns and no push. Native HOLD is unchanged.
 
 ## Remaining scope and gates
 
