@@ -8,6 +8,9 @@ Operator-authorized original city builder, registered as id 241. Entry:
 `Games/Citisten3D/index.html`. Native entry commit `b6db8eb`; world integration
 and registration were committed externally as `ce1c541`. No swarm push.
 Registration does not establish browser/gameplay or performance acceptance.
+[Native integration receipt](../../citisten-native-integration.md) records
+source review, the `93c104e`/`2540b8c` corrections and bounded native runners
+`14a19ab`/`a8d17f5`. Native acceptance is still blocked by recorded timeouts.
 
 ## Implementation map
 
@@ -81,7 +84,17 @@ then interruption with foreign-browser contention. Both receipts are retained
 under `../audits/citisten-external/ship/`; the accepted receipt is
 `smoke-241-batch65.txt`. `--games 241` now selects IDs and rejects unknown
 selectors; error/request filters are unchanged. Later native source fixes need
-fresh acceptance. A targeted pass cannot replace full-fleet
+fresh acceptance. `93c104e` removes simulation time loss from render-delta
+clamping, follows the light theme and registers cleanup before asset loading.
+`2540b8c` puts native controls in normal HUD flow before toasts, replacing the
+positioning observer after a partial screenshot exposed toast occlusion.
+`14a19ab` supplies the actual-entry native/offline runner; `a8d17f5` splits it
+into checkpointed city/shell suites. The combined run timed out (exit 124,
+135.0507s); split CITY failed at a 15s navigation timeout (exit 1, 29.9496s),
+before any gameplay assertion. Sources stayed unchanged; CITY cleanup passed.
+SHELL and natural combat remain unrun. The server-only probe returned the entry
+HTTP 200 in 0.0720s, not a native or offline pass. Results/source hashes are
+retained under `../audits/citisten-QA/native/`; unrun/unreached gates stay separate. A targeted pass cannot replace full-fleet
 `xvfb-run python3 scripts/smoke_test_games.py` before push.
 
 ## Future outlook
