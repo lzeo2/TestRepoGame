@@ -60,6 +60,18 @@ def layout(page):
         }
       }
       if (scope.scrollWidth > innerWidth) errors.push('Horizontal overflow');
+      if (!dialog) {
+        const tools = scope.querySelector('.city-tools').getBoundingClientRect();
+        for (const toast of scope.querySelectorAll('.city-toasts p')) {
+          const r = toast.getBoundingClientRect();
+          if (r.bottom > tools.top && r.top < tools.bottom && r.right > tools.left && r.left < tools.right) errors.push('Toast covers tool options');
+        }
+      }
+      for (const tip of scope.querySelectorAll('.city-tooltip')) {
+        if (!tip.checkVisibility()) continue;
+        const r = tip.getBoundingClientRect();
+        if (r.left < 0 || r.right > innerWidth) errors.push('Clipped tooltip');
+      }
       for (const el of document.querySelectorAll('.citisten-ui *')) {
         const style = getComputedStyle(el);
         if (style.backgroundImage.includes('gradient')) errors.push('Gradient');
@@ -172,7 +184,9 @@ def main():
                           ui.events(Array.from({length:100},()=>({type:'placed'})));
                           ui.events([{type:'blackout',active:true},{type:'milestone',population:100}]);
                         }''')
-                        assert page.locator('.city-toasts > p').count() <= 3
+                        assert page.locator('.city-toasts > p').count() <= (1 if width < 600 else 3)
+                        assert 'Blackout started' in page.locator('.city-toasts').inner_text()
+                        layout(page)
                         assert page.locator('#city-power').get_attribute('aria-valuetext') == '64 demand, 0 supply'
                         captures.append(shot(page, f'D-ui-blackout-{theme}-{width}'))
                         page.evaluate('state.phase="lost";state.townHallHp=0;ui.update(state,map)')
@@ -184,6 +198,8 @@ def main():
                         captures.append(shot(page, f'J-H-ui-gameover-{theme}-{width}'))
                         page.locator('[data-action="restart"]').click()
                         assert page.evaluate('calls.at(-1)') == ['restart', 'defense']
+                        assert page.locator('.city-toasts > p').count() == 0
+                        assert page.locator('[data-group="Road"]').get_attribute('aria-expanded') == 'true'
                         page.evaluate('ui.update(state,map)')
                         page.locator('.city-loss [data-action="menu"]').click()
                         page.evaluate('ui.update(state,map)')

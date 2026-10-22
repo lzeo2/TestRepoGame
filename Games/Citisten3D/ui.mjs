@@ -96,7 +96,12 @@ export function createUI(root, callbacks = {}) {
     selected = type; activeGroup = group; renderTools();
   }
   function run(action, errorTarget) {
-    try { action(); return true; }
+    try {
+      setTool('road'); action();
+      for (const timer of timers) clearTimeout(timer);
+      timers.clear(); recent.clear(); $('.city-toasts').replaceChildren();
+      return true;
+    }
     catch (error) { $(errorTarget).textContent = `Could not open the town. ${error.message || 'Please try again.'}`; return false; }
   }
   root.addEventListener('click', event => {
@@ -178,7 +183,8 @@ export function createUI(root, callbacks = {}) {
     for (const [oldKey, time] of recent) if (now - time >= 8000) recent.delete(oldKey);
     recent.set(key, now);
     const list = $('.city-toasts');
-    while (list.children.length >= 3) list.firstElementChild.remove();
+    const limit = matchMedia('(max-width: 600px)').matches ? 1 : 3;
+    while (list.children.length >= limit) list.firstElementChild.remove();
     const item = document.createElement('p'); item.className = 'panel'; item.textContent = message; list.append(item);
     const timer = setTimeout(() => { item.remove(); timers.delete(timer); }, 6000); timers.add(timer);
   }
@@ -187,7 +193,7 @@ export function createUI(root, callbacks = {}) {
     for (const event of batch) {
       const message = {
         placed: 'Building placed.', removed: 'Building removed.', repaired: 'Building repaired.',
-        blackout: event.active ? 'Blackout started. Check power supply and road connections.' : 'Power restored.',
+        blackout: event.active ? 'Blackout started. Check power and roads.' : 'Power restored.',
         'wave-warning': 'Nightfall in one minute. Prepare your defences.',
         wave: `Wave ${number(event.night)} incoming. Protect the town hall.`,
         milestone: `Population milestone: ${number(event.population)} residents.`,
@@ -195,7 +201,10 @@ export function createUI(root, callbacks = {}) {
       }[event.type];
       if (message) messages.set(event.type, message);
     }
-    for (const [key, message] of messages) toast(`${key}:${message}`, message);
+    // Put urgent notices last so compact phone feedback keeps the useful warning.
+    for (const key of ['placed', 'removed', 'repaired', 'milestone', 'night-survived', 'wave-warning', 'blackout', 'wave']) {
+      if (messages.has(key)) toast(`${key}:${messages.get(key)}`, messages.get(key));
+    }
   }
   applyTheme(); renderTools(); showMenu();
   return { update, events, setTool, showMenu, showGame, destroy() { abort.abort(); for (const timer of timers) clearTimeout(timer); menu.close(); loss.close(); root.replaceChildren(); root.classList.remove('citisten-ui'); } };

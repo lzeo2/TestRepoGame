@@ -44,7 +44,9 @@ Barricade is disabled: the published simulation API does not implement it.
 Town hall is pre-placed and has no placement tool. Keyboard hints are text
 only: `1` road, `2/3/4` residential/commercial/industrial, `5/6` power/water,
 `7/8/9` police/fire/park, `B` wall, `N` watchtower, `X` bulldoze.
-Integration owns actual hotkeys. Tool buttons expose `data-tool` and
+Integration owns actual hotkeys. Initial selected tool is `road`; initialise
+the integration's placement selection to match, or call `setTool` on start.
+Tool buttons expose `data-tool` and
 `aria-pressed`; group buttons expose `data-group` and `aria-expanded`.
 
 `update` reads the published sim state without mutation: budget/population,
@@ -61,8 +63,11 @@ not the surviving population.
 Pass the sim event array to `events`. UI handles placed/removed/blackout,
 wave-warning/wave/milestone/night-survived/repaired. Placement bursts collapse
 by event type; duplicate text is suppressed for eight seconds. At most three
-polite toasts are visible and each expires after six seconds. Shots, damage
-and kills do not create toasts. UI never calls `drainEvents` itself.
+polite toasts are visible on desktop, one prioritised notice on phone widths;
+wave/blackout warnings take precedence over construction and milestones in
+the same batch. Each expires after six seconds. New runs clear old feedback
+and initialise the Road selection before invoking the integration callback.
+Shots, damage and kills do not create toasts. UI never calls `drainEvents` itself.
 
 ## Style, sources and evidence
 
@@ -84,9 +89,13 @@ J comparison collages. These are evidence for reviewer grading, not acceptance.
 C/D/F/G/H/I integrated gameplay gates belong to the integration lane.
 Initial browser regression produced 36 fixture screenshots and 10 collages
 with zero console/page/network errors. Screenshot review then found a narrow
-tool-label fit issue and a toast/banner edge overlap. A loss-to-menu edge and
+tool-label fit issue and a toast/banner edge overlap. Tooltips are positioned
+against the options panel so edge buttons cannot push hints off-screen. A loss-to-menu edge and
 minimap town hall drawing order were also corrected with new regression
-assertions. Final-source evidence is pending the shared browser queue.
+assertions. A subsequent 320px screenshot review also found stacked notices
+touching the tool options; phone feedback now coalesces to one urgent notice.
+New runs clear old-session notices and reset initial tool feedback. Final-source
+evidence is pending the shared browser queue.
 Harness-only corrections during initial QA: native Tab rather than programmatic
 focus for `:focus-visible`, reset HP/budget fixture values between themes, and
 a braced Playwright storage override so the returned function is not invoked
