@@ -1,0 +1,26 @@
+{
+  "GLTFLoader.js": {
+    "upstream": "three.js r186 examples/jsm/loaders/GLTFLoader.js",
+    "originalSha256": "131c0f78c01d19368ae495caa65b3adaa10487810a36a05bb5901b769a35ac16",
+    "localSha256": "ad114074806b6d4ef28b7b3744cb19c30d4be3d2a08b178181572ec22f76ba0b",
+    "modification": "Only local ESM import specifier remapping. MIT license in ../LICENSE."
+  },
+  "GLTFExporter.js": {
+    "upstream": "three.js r186 examples/jsm/exporters/GLTFExporter.js",
+    "originalSha256": "d766b04f233fa8bc72bfaebacaac5ecb832c30ca3695ce8d84bbb7dccccdc842",
+    "localSha256": "275ed896ac9e7991fec724d731133df193294367503ce9a0a62f6247f6357877",
+    "modification": "Only local ESM import specifier remapping. MIT license in ../LICENSE."
+  },
+  "BufferGeometryUtils.js": {
+    "upstream": "three.js r186 examples/jsm/utils/BufferGeometryUtils.js",
+    "originalSha256": "9fb63427ce6641fa14fd0baff9cc4d1b5f9c3d85fd084bf2e90e803c44ec1797",
+    "localSha256": "ce6b8c82f29e4ad7e8e330ce2bccd921de6c36a5c05c8f50f9a8b039596b8551",
+    "modification": "Only local ESM import specifier remapping. MIT license in ../LICENSE."
+  },
+  "SkeletonUtils.js": {
+    "upstream": "three.js r186 examples/jsm/utils/SkeletonUtils.js",
+    "originalSha256": "b1632a703206c3d830de9fcbe515696770d04b71a15ee6b50afa6d2c3298c86f",
+    "localSha256": "6ed06893a413aea61b6031867cb145a2e6f79b92a4f70f5cb24b403c262e9308",
+    "modification": "Only local ESM import specifier remapping. MIT license in ../LICENSE."
+  }
+}

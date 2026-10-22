@@ -84,3 +84,34 @@ run timed out and its recorded source hash differs from subsequent integration
 edits. This closes neither stable-current-source visual acceptance nor hardware,
 full-game or release gates. The asset-generation receipt's unverified visual
 fields describe its original asset-only generation stage and are preserved.
+
+## Procedural visual pass
+
+The four full-body concepts under `docs/jank3d-design/hero-concepts/` were
+created with codex-imagen on the operator's subscription and committed before
+character mesh changes. Exact prompts and normalization are recorded in
+`art/hero-concept-prompts.json`. They are original design references, not
+runtime textures, sculpted models or third-party game assets. Astra workers
+interpret them using original procedural geometry; no Blender is used.
+
+The existing three.js r186 package supplies the MIT GLTFLoader, GLTFExporter,
+BufferGeometryUtils and SkeletonUtils addons now vendored in `vendor/addons/`.
+Only ESM import specifiers were remapped to local modules. Exact upstream/local
+hashes and source-relative paths are in `vendor/addons/provenance.json`; the
+unchanged full MIT notice remains `vendor/LICENSE`. This adds no package install
+or remote runtime dependency. `models/model-build.mjs` is the original shared
+Node export/measurement helper, not an in-game renderer.
+
+Spatial research, viewed online and retained only in temporary research storage:
+https://deadlock.wiki/Map,
+https://cdn.deadlock.wiki/Billboards_green_lane.png and
+https://cdn.deadlock.wiki/Old_map_eclipse.jpg. These depict an older reference map,
+not an independently verified current layout. They informed masonry recesses,
+cornices, rooftop clutter, curved intersections and cable layering only. No
+screenshot pixels, signs, character designs, textures or meshes are imported.
+All new facade maps/geometry and character surface maps are locally authored.
+
+The procedural result is not represented as a photoreal sculpt. The operator's
+external-model queue and remaining quality gaps are recorded in
+`docs/jank3d-design/MODEL-WISHLIST.md`. Runtime integration and fresh visual
+acceptance are separate from the concept or mesh-generation milestone.
