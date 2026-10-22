@@ -1,84 +1,77 @@
-# Native integration QA contract
+# Native integration QA contract and split-run receipt
 
-## Ownership and execution hold
+## Ownership and status
 
-Assigned files only: `Games/Citisten3D/native-qa.py` and this receipt.
-Parent owns `index.html`, `native.mjs`, `native-actions.mjs`, `native-check.mjs`.
-No catalog/inventory/push edits. **Runner source only; no browser launch until
-an explicit shared-slot release.** Current evidence status: NOT RUN.
+Owned paths: `Games/Citisten3D/native-qa.py` and this receipt only. Parent owns
+native entry/controller/CSS and browser reservation; world/parent own shared
+Git/catalog/inventory. No runtime, catalog, sparse, inventory or push edits.
+**Revised split source is READY, statically checked, browser UNRUN by this lane.**
 
-## Expected entry contract (published before runner implementation)
+The parent's original combined run returned exit 124 at 135.05s, leaving
+partial C/D images and no final JSON after alarm cleanup stalled. That is NOT
+a pass. Parent reported no live driver/browser/port and ticketed two old
+shared-memory profile orphans; this lane never deletes outside the repository.
 
-- Actual `Games/Citisten3D/index.html`, not a fixture or preview.
-- UI starts via visible `[data-mode="free"]` / `[data-mode="defense"]` buttons.
-  Tools use existing `[data-group]` and `[data-tool]` UI contracts.
-- `#world` is the native placement/camera canvas. Left-button road drag places
-  an inclusive grid line through the shared `applyTool` occupancy/budget path.
-- `#speed` is a select with values `0`, `1`, `3`, `10`; `#repair` selects repair;
-  `#feedback` exposes placement/error feedback. Existing Menu/Resume/Restart
-  buttons use `[data-action="menu|resume|restart"]`.
-- `window.citisten = { world, get sim(), get tool() }` is diagnostics only.
-  QA may read state, roads and camera matrices, but NEVER mutate simulation,
-  call placement/damage/update/setSpeed methods, change camera poses, inject
-  HP/population/budget, or advance time through evaluate.
-- World mesh creation may be asynchronous: wait for the published `world.ready`
-  promise when present, then use real native controls. Projection of logical
-  lots uses the existing roads/camera API solely to aim actual mouse input.
+## Published native API contract
 
-## Planned normal-input coverage
+Actual `index.html`; normal `[data-mode="free|defense"]` start buttons;
+`[data-group]` / `[data-tool]`; `#world` pointer input; `#speed` select values
+0/1/3/10; `#repair`; `#feedback`; `.city-top` Menu and `.city-menu` Resume.
+Singleton Road/Bulldoze use group buttons because tool options are hidden.
+`window.citisten = {world,get sim(),get tool()}` is read-only diagnostics;
+sim is undefined until Start. No setters, update/render calls, camera poses,
+HP/population/budget grants or forced combat states are used by QA. Two actual
+requestAnimationFrame callbacks precede read-only grid/camera projection.
+Native actions were traced through `applyTool`, `sim.place`, bulldoze/repair
+and stable-handle `syncModels`; no controller implementation is duplicated.
 
-Start Free build; pause; find clear visible lots; native road drag; place
-residential/commercial/industrial, power, water and park through tool buttons
-and canvas clicks; resume/1x/3x/10x; read population/budget/network outcomes;
-bulldoze the actual plant and observe blackout, then rebuild; menu/resume;
-restart via visible menu if offered. Start Defense normally and allow natural
-time at the selected speed. Observe an edge wave, combat/loss/restart only if
-reachable within the bounded run. Unreached F/G/H gates are explicitly HELD,
-not replaced by state grants or layout fixtures. Existing headless logs remain
-separate evidence.
+## Two bounded suites (preserving previous core assertions)
 
-## Offline and lifecycle protocol
-
-System `/usr/bin/chromium` only, `TMPDIR=/dev/shm`, dedicated temporary profile,
-loopback server and exact process guard before launch/captures. Block/log any
-non-loopback request; HTTP/page/console errors fail the run. Revisit the entry
-with external network routes still denied. Browser/server/profile cleanup is
-mandatory even on failure; a hard time bound prevents persistent servers.
-
-Expected command after parent entry and explicit slot release:
+Run only after explicit browser and Git/source-freeze coordination:
 
 ```sh
-TMPDIR=/dev/shm SMOKE_PORT=8751 python3 -B Games/Citisten3D/native-qa.py
+TMPDIR=/dev/shm NATIVE_CASE=city SMOKE_PORT=8751 timeout --signal=KILL 120s python3 -B Games/Citisten3D/native-qa.py
+TMPDIR=/dev/shm NATIVE_CASE=shell SMOKE_PORT=8751 timeout --signal=KILL 120s python3 -B Games/Citisten3D/native-qa.py
 ```
 
-Expected output folder: `docs/maintenance/audits/citisten-QA/native/`, including
-`native-results.json`, screenshots and a machine-readable assertion/hold map.
-This is a plan, not a claim that native C/D/F/G/H/I or offline acceptance passed.
+Each suite has a 100-second action alarm and one 20-second cleanup budget;
+outer 120 seconds is a hard stop, not a timeout increase. Only one suite runs
+per process/slot. System `/usr/bin/chromium`, exact process guards and explicit
+persistent profile under the owned output directory; TMPDIR remains /dev/shm.
+No browser auto-download. Normal close/driver stop is attempted first; a
+cleanup timeout may terminate ONLY root PIDs whose command matches this run's
+unique profile. Unclosed resources fail, never become a successful result.
 
-## Source trace and current status
+- **city:** normal Free start; pause freeze; actual 13-lot mouse drag / $130
+  atomic cost; residential/commercial/industrial/power/water/park placement;
+  1x/3x/10x; population + both networks; native plant bulldoze/blackout/rebuild;
+  Menu pause/Resume clock; repair-tool selection. Exactly two screenshots,
+  C city and D blackout. Visible toast/panel overlap is asserted at C and D.
+- **shell:** normal Free start, deny external routes, then context offline;
+  normal Defense restart with population/roads reset and night 0; normal Free
+  restart with no zombies; viewport 390x844; visible native panel top >= HUD
+  bottom; Light computed background exactly `rgb(250, 247, 238)`; Dark toggle.
+  Visible toast/panel overlap asserted in both themes. Exactly two screenshots,
+  mobile Light and Dark. No combined long city+shell run.
+- **F/G/H remain HELD.** A later separately reserved natural Defense run may
+  exercise waves/combat/hall loss/restart, without grants. Current code does
+  not claim tracer/citizen/loss proof or replace native evidence with fixtures.
 
-Inspected shared `native-actions.mjs`: `applyTool` spends road cost, rejects
-building overlap and delegates zones/services to `sim.place`; bulldoze and
-repair use sim APIs. `syncModels` owns stable model handles, not sim state.
-UI selectors traced in current `ui.mjs`. Native entry/controller source was subsequently published and traced in
-`index.html`, `native.mjs`, `native-actions.mjs`, `native-check.mjs` and
-`native.css`. `window.citisten.sim` is undefined until normal Start. Singleton
-Road/Bulldoze tools use group buttons because their tool options are hidden.
-The runner waits two actual requestAnimationFrame callbacks after free Start
-before read-only lot projection; it never injects update/render or camera poses.
+All non-loopback requests are denied AND recorded as failures. HTTP/page/
+console/request errors fail. Actual input only; current state is read for
+assertions, never changed through diagnostics. Parent moved native panel into
+HUD flow before toasts; QA checks geometry, not how that layout is implemented.
 
-## Delivery status
+## Durable checkpoints and cleanup
 
-**READY SOURCE, STATIC-ONLY / NOT RUN.** `native-qa.py` is 191 lines and bounded
-to 120 seconds. Python AST and embedded JavaScript syntax were checked without
-launching Chromium. Native free/defense Start, 13-lot pointer road drag and
-$130 cost, zones/utilities, pause/1x/3x/10x, blackout/rebuild, Menu/Resume,
-repair-tool selection and loaded offline mode resets are implemented. F/G/H
-remain explicitly HELD; no combat or loss state is granted. Offline requests
-outside the exact loopback origin are denied and recorded; later mode starts
-also execute with context offline. No current browser acceptance is claimed.
-
-Parent owns fixes for frame-delta clamping, early pagehide cleanup and panel
-layout/theme. No native controller/CSS edits were made by this lane. No browser
-was launched. Git staging/commit remains held until world grants the shared
-Git slot; parent reserves the next native browser slot separately.
+Each invocation creates a unique directory:
+`docs/maintenance/audits/citisten-QA/native/<city|shell>/run-*/`.
+It retains atomic `native-results.json` checkpoints plus flushed phase/path
+progress after every action/check, before screenshots and before cleanup.
+Earlier failure evidence is never overwritten. Profiles are under that same
+run directory, so a hard-timeout orphan remains repo-owned for later cleanup.
+The report records statuses, assertion snapshots, errors, held letters and
+browser/driver/server/profile cleanup flags. `complete` and exit 0 require all
+assertions and cleanup; intermediate `running`/`checks-complete` are NOT passes.
+No browser has been launched for the revised source. Parent owns both next
+native reservations; request the shared Git slot before staging these paths.
