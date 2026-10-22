@@ -7,6 +7,12 @@ The game entry is `Games/Citisten3D/index.html`, not either specimen.
 catalog ID 241; the catalog now contains 128 entries. Registration is not
 release acceptance. No push is authorized or performed by this lane.
 
+The operator confirmed that 241 means the ledger/game ID, not 241 model
+records. The separate operator ledger file was not located; the working
+references are `maintenance/games/241-citisten3d.md` and
+`citisten-design/catalog-241.draft.json`. Its absence does not block the
+operator-authorized catalog row; it remains a reported documentation gap.
+
 Native placement uses one shared occupancy/budget boundary, with atomic
 $10-per-new-lot road drags. Simulation IDs retain stable model handles;
 agent poses use `roads.center`, while shot events retain grid coordinates.
@@ -30,8 +36,10 @@ This does not resolve the rendering budget.
 `14a19ab` adds the bounded actual-entry runner and its source-only contract at
 `citisten-design/native-qa-receipt.md`. `a8d17f5` splits it into city/shell runs
 with durable phase checkpoints and profiles inside the owned evidence folder.
-It uses native pointer/tool/menu input and read-only diagnostics, rather than
-grants or a fixture renderer.
+`a108429` adds the operator-approved HTTP readiness/content precondition before
+browser launch. Navigation stays at 15 seconds and the action/cleanup limits
+stay 100+20 seconds. It uses native pointer/tool/menu input and read-only
+diagnostics, rather than grants or a fixture renderer.
 
 ## Verification boundaries
 
@@ -47,39 +55,54 @@ exit 0**, zero retained console errors and failed requests. Its receipt is
 zero-match/interrupted runs remain rejected. Later native fixes need their
 own acceptance; loading does not establish native gameplay or 40fps.
 
-The first complete native command **timed out, exit 124 after 135.0507s**.
-Its 120s alarm did not finish cleanup before the outer hard stop. Source hashes
-were unchanged. Two inspected C-city/D-blackout screenshots are partial
-progress only; no final `native-results.json` was produced. Fresh checks found
-no owned browser/driver process and port 8751 closed. Two orphan temporary
-profiles require operator-only cleanup under ticket `aeec9b65`; this lane does
-not delete outside its repository. The next runner splits the same assertions
-into bounded city and shell suites, rather than raising the time limit.
+## Actual native attempts: all failed, no complete CITY pass
 
-The first split CITY attempt also **failed: exit 1 in 29.9496s**, with
-`Page.goto: Timeout 15000ms exceeded` waiting for DOMContentLoaded. No gameplay
-check or screenshot was reached. The report has empty error/external-request
-arrays, unchanged source hashes and true browser/driver/server/profile cleanup.
-Fresh process and port checks confirmed cleanup. This is not offline or native
-acceptance. SHELL remains unrun.
+| Attempt | Exit / duration | Retained outcome |
+| --- | --- | --- |
+| Combined, before split | 124 / 135.0507s | Partial C/D screenshots; action alarm and cleanup exceeded the reservation. No final runner JSON. |
+| Split CITY, before HTTP guard | 1 / 29.9496s | `Page.goto` 15s DOMContentLoaded timeout before gameplay; cleanup passed. |
+| HTTP-guard CITY | 1 / 23.2221s | Server 200 in 0.05955s; two loopback module requests failed `ERR_NETWORK_CHANGED`, then readiness timed out at 15s. Cleanup passed. |
+| Final approved monitored CITY | -9 / 120.1524s | Entry ready at 12.172s; placement/C/D checkpoints reached, but the 100s action alarm interrupted the D screenshot and the outer stop killed cleanup. Not PASS. |
 
-Hermes consultation `0aad480b` suggested a server-only readiness probe before
-another browser attempt. Reproducing the harness HTTP server returned 200 for
-the entry in **0.0720s**, and native/world/CSS requests in 0.0023..0.0027s;
-`server-readiness-probe.json` retains the measurements and verified shutdown.
-This probe does not support an ongoing server-bind failure, but does not prove
-the cause of the browser navigation timeout. Host/renderer timing remains
-unresolved. There is no third native run or raised navigation threshold.
-World's adapter normalization/AFTER recapture must finish before a shared
-source freeze; full-fleet coordination ticket `751c1d6a` remains pending.
+All source-hash comparisons were unchanged. The final attempt finished six
+placements at 87.106s, asserted population and both networks at 88.575s, saved
+its C screenshot at 95.007s, and asserted blackout/panel bounds at 99.224s.
+It did not finish D capture, power rebuild, Menu/Resume or repair selection.
+Partial checkpoints must not be promoted to a complete CITY pass. SHELL and
+natural combat remain unrun. Operator batch 69 explicitly holds further CITY
+browser attempts this session; there is no budget raise or filter weakening.
+
+### Read-only host evidence and cleanup
+
+The standalone server probe returned HTTP 200 in 0.0720s. The live HTTP guard
+also passed before the module failures, so an ongoing bind failure was not
+reproduced. The failed 23.2221s run spans 08:48:19.620..08:48:42.842 local time;
+NetworkManager recorded virtual-interface carrier events at 08:48:22..24.
+Similar events recur roughly every minute. The approved separate 25s route
+watch saw zero events; that did not establish a quiet 120s window. The final
+monitored run recorded **24 route events and 10 virtual-interface events**,
+but no request/console/page errors. Its immediate failure was the action budget,
+not another recorded transport error. Raw addresses/MACs/hostnames were omitted
+from committed diagnostic summaries. No host configuration was changed.
+
+The disk-action agent removed the two old shared-memory profile orphans in
+batch 67. After the final hard stop, fresh checks found zero browser roots,
+drivers or matching profile processes and port 8751 closed. Only the repo-owned
+`run-kyyw2x0x/profile` was then removed, after proving it untracked and unused:
+**33,619,681 file bytes**. `cleanup-followup.json` records this separately;
+the original failed report and its missing cleanup flags were not rewritten.
+No live profile is evidence to stage. Full-fleet coordination ticket
+`751c1d6a` remains pending; no source/global freeze is inferred.
 
 Command output, exit status, source hashes and screenshots are retained under
 `maintenance/audits/citisten-QA/native/`. Read the command/results JSON for later
 run outcomes. The interrupted pre-launch command has an empty retained log and
 is not a pass.
 
-Natural combat F/G/H, per-model AFTER captures, current 40fps measurement and
-full-fleet remain open until separately recorded. The full fleet needs a clean,
+World reports 34 successful AFTER photos for all 17 models across three
+bounded passes at `be3024f`, separately from native gameplay. Its offline
+comparisons/review/docs are world-owned. Natural combat F/G/H, complete native
+CITY/SHELL acceptance, current 40fps measurement and full-fleet remain open. The full fleet needs a clean,
 stable tree and coordinated no-merge/no-sparse window; a requested window is
 not an acquired reservation. A targeted pass does not replace all-game smoke.
 Native hardware, physical touch devices and independent supplier rights

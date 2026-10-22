@@ -89,10 +89,14 @@ the actual entry importing `./native.mjs`, not a substitute fixture.
 
 A separate server-only probe returned the entry in 0.0720s and other authored
 resources in 0.0023..0.0027s. This does not establish the navigation timeout's
-cause or certify native/offline behavior. The HTTP-guard revision is statically
-checked, but has not had another browser run. Parent owns the next CITY/SHELL
-reservations after world's separately reserved AFTER chunks; no blanket slot
-or full-fleet/source freeze is implied.
+cause or certify native/offline behavior. The HTTP-guard revision then had two
+CITY attempts: exit 1/23.2221s with loopback `ERR_NETWORK_CHANGED`, and the final
+monitored attempt killed at 120.1524s after its 100s action alarm. The latter
+reached partial placement/C/D assertions but did not complete the suite or
+normal cleanup. See [the complete attempt/cleanup receipt](../citisten-native-integration.md).
+No partial subset is a CITY pass. Operator batch 69 holds further CITY browser
+attempts this session. SHELL is still unrun and needs its own explicit slot;
+no blanket reservation, budget raise or full-fleet/source freeze is implied.
 
 The disk-action agent confirmed cleanup of the two old shared-memory profile
 orphans in batch 67. This lane did not delete outside the repository. Request

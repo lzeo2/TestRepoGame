@@ -1,0 +1,10 @@
+{
+  "scope": "post-hard-stop cleanup; original failed report unchanged",
+  "browserRoots": 0,
+  "driverProcesses": 0,
+  "profileProcessMatches": 0,
+  "profileBytesRemoved": 33619681,
+  "profileRemoved": true,
+  "serverPort8751Closed": true,
+  "diskFreeAfter": 3065020416
+}

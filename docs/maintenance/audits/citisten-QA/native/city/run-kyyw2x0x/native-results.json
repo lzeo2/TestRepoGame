@@ -1,0 +1,496 @@
+{
+  "case": "city",
+  "status": "failed",
+  "scope": "Native input; read-only diagnostics; no grants",
+  "directory": "docs/maintenance/audits/citisten-QA/native/city/run-kyyw2x0x",
+  "checks": {
+    "serverReady": {
+      "status": 200,
+      "seconds": 0.04530431799503276
+    },
+    "entryReady": true,
+    "freeStart": {
+      "mode": "free",
+      "phase": "day",
+      "time": 18,
+      "speed": 1,
+      "budget": 39998.55999999997,
+      "population": 0,
+      "power": {
+        "supply": 0,
+        "demand": 1,
+        "served": 0,
+        "unserved": 1
+      },
+      "water": {
+        "supply": 0,
+        "demand": 1,
+        "served": 0,
+        "unserved": 1
+      },
+      "score": 0,
+      "kills": 0,
+      "night": 0,
+      "townHallHp": 600,
+      "zombies": 0,
+      "roads": 0,
+      "buildings": [
+        {
+          "id": 1,
+          "type": "townhall",
+          "x": 100,
+          "z": 100,
+          "powered": false,
+          "watered": false
+        }
+      ]
+    },
+    "pause": {
+      "mode": "free",
+      "phase": "day",
+      "time": 18,
+      "speed": 0,
+      "budget": 39998.55999999997,
+      "population": 0,
+      "power": {
+        "supply": 0,
+        "demand": 1,
+        "served": 0,
+        "unserved": 1
+      },
+      "water": {
+        "supply": 0,
+        "demand": 1,
+        "served": 0,
+        "unserved": 1
+      },
+      "score": 0,
+      "kills": 0,
+      "night": 0,
+      "townHallHp": 600,
+      "zombies": 0,
+      "roads": 0,
+      "buildings": [
+        {
+          "id": 1,
+          "type": "townhall",
+          "x": 100,
+          "z": 100,
+          "powered": false,
+          "watered": false
+        }
+      ]
+    },
+    "roadDrag": {
+      "mode": "free",
+      "phase": "day",
+      "time": 18,
+      "speed": 0,
+      "budget": 39868.55999999997,
+      "population": 0,
+      "power": {
+        "supply": 0,
+        "demand": 1,
+        "served": 0,
+        "unserved": 1
+      },
+      "water": {
+        "supply": 0,
+        "demand": 1,
+        "served": 0,
+        "unserved": 1
+      },
+      "score": 0,
+      "kills": 0,
+      "night": 0,
+      "townHallHp": 600,
+      "zombies": 0,
+      "roads": 13,
+      "buildings": [
+        {
+          "id": 1,
+          "type": "townhall",
+          "x": 100,
+          "z": 100,
+          "powered": false,
+          "watered": false
+        }
+      ]
+    },
+    "placed:residential": true,
+    "placed:commercial": true,
+    "placed:industrial": true,
+    "placed:power": true,
+    "placed:water": true,
+    "placed:park": true,
+    "placement": {
+      "state": {
+        "mode": "free",
+        "phase": "day",
+        "time": 18,
+        "speed": 0,
+        "budget": 36928.55999999997,
+        "population": 0,
+        "power": {
+          "supply": 0,
+          "demand": 1,
+          "served": 0,
+          "unserved": 1
+        },
+        "water": {
+          "supply": 0,
+          "demand": 1,
+          "served": 0,
+          "unserved": 1
+        },
+        "score": 0,
+        "kills": 0,
+        "night": 0,
+        "townHallHp": 600,
+        "zombies": 0,
+        "roads": 13,
+        "buildings": [
+          {
+            "id": 1,
+            "type": "townhall",
+            "x": 100,
+            "z": 100,
+            "powered": false,
+            "watered": false
+          },
+          {
+            "id": 2,
+            "type": "residential",
+            "x": 90,
+            "z": 102,
+            "powered": false,
+            "watered": false
+          },
+          {
+            "id": 3,
+            "type": "commercial",
+            "x": 93,
+            "z": 102,
+            "powered": false,
+            "watered": false
+          },
+          {
+            "id": 4,
+            "type": "industrial",
+            "x": 94,
+            "z": 102,
+            "powered": false,
+            "watered": false
+          },
+          {
+            "id": 5,
+            "type": "power",
+            "x": 91,
+            "z": 104,
+            "powered": false,
+            "watered": false
+          },
+          {
+            "id": 6,
+            "type": "water",
+            "x": 92,
+            "z": 104,
+            "powered": false,
+            "watered": false
+          },
+          {
+            "id": 7,
+            "type": "park",
+            "x": 93,
+            "z": 104,
+            "powered": false,
+            "watered": false
+          }
+        ]
+      },
+      "feedback": "Placed"
+    },
+    "speed:1": true,
+    "speed:3": true,
+    "speed:10": true,
+    "C": {
+      "mode": "free",
+      "phase": "day",
+      "time": 31.75,
+      "speed": 10,
+      "budget": 36924.30805978575,
+      "population": 22.144322224097774,
+      "power": {
+        "supply": 80,
+        "demand": 4.563622816488072,
+        "served": 3.563622816488073,
+        "unserved": 0.9999999999999991
+      },
+      "water": {
+        "supply": 100,
+        "demand": 3.8045285206100914,
+        "served": 2.8045285206100914,
+        "unserved": 1
+      },
+      "score": 0,
+      "kills": 0,
+      "night": 0,
+      "townHallHp": 600,
+      "zombies": 0,
+      "roads": 13,
+      "buildings": [
+        {
+          "id": 1,
+          "type": "townhall",
+          "x": 100,
+          "z": 100,
+          "powered": false,
+          "watered": false
+        },
+        {
+          "id": 2,
+          "type": "residential",
+          "x": 90,
+          "z": 102,
+          "powered": true,
+          "watered": true
+        },
+        {
+          "id": 3,
+          "type": "commercial",
+          "x": 93,
+          "z": 102,
+          "powered": true,
+          "watered": true
+        },
+        {
+          "id": 4,
+          "type": "industrial",
+          "x": 94,
+          "z": 102,
+          "powered": true,
+          "watered": true
+        },
+        {
+          "id": 5,
+          "type": "power",
+          "x": 91,
+          "z": 104,
+          "powered": true,
+          "watered": true
+        },
+        {
+          "id": 6,
+          "type": "water",
+          "x": 92,
+          "z": 104,
+          "powered": true,
+          "watered": true
+        },
+        {
+          "id": 7,
+          "type": "park",
+          "x": 93,
+          "z": 104,
+          "powered": true,
+          "watered": true
+        }
+      ]
+    },
+    "cityPanelBounds": {
+      "visible": true,
+      "top": 101.59375,
+      "hudBottom": 93.59375,
+      "background": "rgb(36, 41, 39)",
+      "toastOverlap": false
+    },
+    "D": {
+      "mode": "free",
+      "phase": "day",
+      "time": 106,
+      "speed": 10,
+      "budget": 36905.55049213997,
+      "population": 42.682890779188845,
+      "power": {
+        "supply": 0,
+        "demand": 4.7502185910087285,
+        "served": 0,
+        "unserved": 4.7502185910087285
+      },
+      "water": {
+        "supply": 100,
+        "demand": 4.037773238760911,
+        "served": 3.037773238760911,
+        "unserved": 1
+      },
+      "score": 0,
+      "kills": 0,
+      "night": 0,
+      "townHallHp": 600,
+      "zombies": 0,
+      "roads": 13,
+      "buildings": [
+        {
+          "id": 1,
+          "type": "townhall",
+          "x": 100,
+          "z": 100,
+          "powered": false,
+          "watered": false
+        },
+        {
+          "id": 2,
+          "type": "residential",
+          "x": 90,
+          "z": 102,
+          "powered": false,
+          "watered": true
+        },
+        {
+          "id": 3,
+          "type": "commercial",
+          "x": 93,
+          "z": 102,
+          "powered": false,
+          "watered": true
+        },
+        {
+          "id": 4,
+          "type": "industrial",
+          "x": 94,
+          "z": 102,
+          "powered": false,
+          "watered": true
+        },
+        {
+          "id": 6,
+          "type": "water",
+          "x": 92,
+          "z": 104,
+          "powered": true,
+          "watered": true
+        },
+        {
+          "id": 7,
+          "type": "park",
+          "x": 93,
+          "z": 104,
+          "powered": false,
+          "watered": true
+        }
+      ]
+    },
+    "blackoutPanelBounds": {
+      "visible": true,
+      "top": 101.59375,
+      "hudBottom": 93.59375,
+      "background": "rgb(36, 41, 39)",
+      "toastOverlap": false
+    }
+  },
+  "phases": [
+    {
+      "phase": "starting",
+      "seconds": 0.005
+    },
+    {
+      "phase": "serverReady",
+      "seconds": 0.051
+    },
+    {
+      "phase": "entryReady",
+      "seconds": 12.172
+    },
+    {
+      "phase": "freeStart",
+      "seconds": 38.251
+    },
+    {
+      "phase": "pause",
+      "seconds": 39.128
+    },
+    {
+      "phase": "roadDrag",
+      "seconds": 54.855
+    },
+    {
+      "phase": "placed:residential",
+      "seconds": 61.368
+    },
+    {
+      "phase": "placed:commercial",
+      "seconds": 65.838
+    },
+    {
+      "phase": "placed:industrial",
+      "seconds": 71.405
+    },
+    {
+      "phase": "placed:power",
+      "seconds": 78.449
+    },
+    {
+      "phase": "placed:water",
+      "seconds": 82.785
+    },
+    {
+      "phase": "placed:park",
+      "seconds": 87.106
+    },
+    {
+      "phase": "placement",
+      "seconds": 87.164
+    },
+    {
+      "phase": "speed:1",
+      "seconds": 87.221
+    },
+    {
+      "phase": "speed:3",
+      "seconds": 87.292
+    },
+    {
+      "phase": "speed:10",
+      "seconds": 87.344
+    },
+    {
+      "phase": "C",
+      "seconds": 88.575
+    },
+    {
+      "phase": "cityPanelBounds",
+      "seconds": 88.605
+    },
+    {
+      "phase": "shot:C-native-city",
+      "seconds": 95.007
+    },
+    {
+      "phase": "D",
+      "seconds": 99.224
+    },
+    {
+      "phase": "blackoutPanelBounds",
+      "seconds": 99.266
+    },
+    {
+      "phase": "failure",
+      "seconds": 100.029
+    },
+    {
+      "phase": "cleanup-start",
+      "seconds": 100.123
+    }
+  ],
+  "held": {
+    "F": "Separate natural-combat slot required; no state grants",
+    "G": "Separate natural-combat slot required; no state grants",
+    "H": "Separate natural-combat slot required; no state grants"
+  },
+  "errors": [],
+  "externalRequests": [],
+  "screenshots": [
+    "C-native-city"
+  ],
+  "failure": "Native action/cleanup time budget exhausted"
+}

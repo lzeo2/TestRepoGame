@@ -1,0 +1,38 @@
+{
+  "scope": "approved read-only host diagnostics; raw addresses/MACs omitted",
+  "failedRunStart": "2026-10-23T08:48:19.619750+11:00",
+  "failedRunEnd": "2026-10-23T08:48:42.841835+11:00",
+  "networkManagerEventsWithinExpandedWindow": [
+    {
+      "time": "Oct 23 08:48:22",
+      "interfaceClass": "virtual ethernet",
+      "event": "carrier change"
+    },
+    {
+      "time": "Oct 23 08:48:24",
+      "interfaceClass": "virtual ethernet",
+      "event": "carrier change"
+    },
+    {
+      "time": "Oct 23 08:48:24",
+      "interfaceClass": "virtual ethernet",
+      "event": "carrier change"
+    },
+    {
+      "time": "Oct 23 08:48:24",
+      "interfaceClass": "virtual ethernet",
+      "event": "carrier change"
+    },
+    {
+      "time": "Oct 23 08:48:24",
+      "interfaceClass": "virtual ethernet",
+      "event": "controller release"
+    }
+  ],
+  "routeWatchStart": "2026-10-23T08:52:57.009984+11:00",
+  "routeWatchSeconds": 25.004283734000637,
+  "routeWatchExit": 124,
+  "routeEventCount": 0,
+  "routeWatchError": "",
+  "interpretation": "Virtual-interface carrier events overlap failed browser run; causality not independently proven. A quiet 25s does not establish a quiet 120s window."
+}
