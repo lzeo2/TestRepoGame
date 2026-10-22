@@ -5,7 +5,7 @@
 Existing catalog 235 only. No new games, registration, publication or push.
 
 1. `bbaba1a` committed the generated [mockup](../../../kirrlion-art/ui-mockup-trivia-krillionized.png) before UI edits. Generated with codex-imagen, original concept only; not shipped as a runtime image.
-2. Visual source: system monospace, cream/navy paper card, oversized spaced title, flat ocean bands, proportional ruler, original Glim SVG and original flavour lines. Sonar is muted by default, synthesized locally, and opt-in. `core.js` and `questions.js` are untouched.
+2. `d787550` committed visual source and partial QA evidence: system monospace, cream/navy paper card, oversized spaced title, flat ocean bands, proportional ruler, original Glim SVG and original flavour lines. Sonar is muted by default, synthesized locally, and opt-in. `core.js` and `questions.js` are untouched.
 3. QA/documentation: this receipt, retained screenshots, source checks and a guarded focused browser regression (`scripts/test_kirrlion_art.py`).
 
 The design follows the operator's supplied Krillion measurements. It is **not an identical rendering**: system monospace is not VT323; the title, creature, wording and trivia controls are original. No Krillion artwork, source, font or audio was imported. The mockup's generated sample question and decorative text were not adopted.
@@ -15,6 +15,11 @@ The design follows the operator's supplied Krillion measurements. It is **not an
 - `node --check 'Games/Dive Trivia/script.js'`: exit 0.
 - `node scripts/test_dive_trivia.mjs`: **8 checks passed**, 28 prompts / 4 packs / version 2026.10.1.
 - `git diff --check`: exit 0.
+- Catalog validation: **127 unique IDs**, required schemas and all Git-backed URLs pass.
+- `core.js` and `questions.js`: byte-identical to pre-rework HEAD.
+- Focused Python checker: AST syntax passes; runtime browser checks remain blocked.
+- `python3 -B scripts/check_maintenance_docs.py --refresh` then checker: **PASS, 132 game documents / 127 registered + 5 unregistered**. Only Dive Trivia's inventory entry changed.
+- External-load/gradient/font scan on the four runtime visual files: only the SVG namespace matched; no runtime URLs, gradients, fetches, sockets or font loads added.
 - Existing `python3 -B scripts/test_dive_trivia_browser.py`: **FAILED**, exit 1, 208.097 seconds. Completed 12 groups and 24 screenshots before `Locator.press_sequentially` exceeded its unchanged 8-second timeout on the 80-character input case. Zero external attempts, browser errors or request failures; no layout findings before the timeout. [Machine report](partial-gameplay-report.json) retains the failure. No filters or timeouts weakened.
 - Focused `python3 -B scripts/test_kirrlion_art.py --reference`: refused launch, `BLOCKED: another Chromium owns the shared browser slot`. This is not a test pass.
 
@@ -39,4 +44,4 @@ Visually reviewed desktop light launch and 320px dark reveal: cream/navy hierarc
 
 ## Storage and sparse hygiene
 
-Initial `df -B1 / --output=avail`: **3,907,674,112 bytes**. The user-supplied earlier disk figure was not treated as current measurement. No guard waiver, browser installs, dependency installs or out-of-repository deletion. Only `Games/Dive Trivia` was added to the narrow sparse selection temporarily; original selection must be restored after source verification. Final bytes and commits are recorded in the final handoff.
+Initial `df -B1 / --output=avail`: **3,907,674,112 bytes**. The user-supplied earlier disk figure was not treated as current measurement. No guard waiver, browser installs, dependency installs or out-of-repository deletion. Only `Games/Dive Trivia` was added to the narrow sparse selection temporarily; the original selection was restored after source verification. Pre-final documentation `df` measurement: **3,874,099,200 bytes**, a shared-host decrease of **33,574,912 bytes** (not attributed solely to this work). Mockup directory is 1.8 MiB; retained audit directory is 944 KiB. Final bytes and commits are recorded in the final handoff.
