@@ -1,0 +1,303 @@
+{
+  "label": "Turretina: original human engineer procedural concept interpretation",
+  "url": "models/turretina/model.glb",
+  "bytes": 4648580,
+  "sha256": "3df07824fe5cce374244d8afb776203906bdb83181eb173e5c3a822030ff7d0d",
+  "triangles": 171818,
+  "vertices": 111408,
+  "meshes": 48,
+  "materials": [
+    {
+      "name": "jacket",
+      "color": "35373a",
+      "roughness": 0.95,
+      "metalness": 0
+    },
+    {
+      "name": "skin",
+      "color": "c69071",
+      "roughness": 0.77,
+      "metalness": 0
+    },
+    {
+      "name": "cream",
+      "color": "d6c6a2",
+      "roughness": 0.67,
+      "metalness": 0.25
+    },
+    {
+      "name": "brass",
+      "color": "a8803d",
+      "roughness": 0.38,
+      "metalness": 0.78
+    },
+    {
+      "name": "leather",
+      "color": "563124",
+      "roughness": 0.9,
+      "metalness": 0
+    },
+    {
+      "name": "stitch",
+      "color": "a48553",
+      "roughness": 0.95,
+      "metalness": 0
+    },
+    {
+      "name": "steel",
+      "color": "30383b",
+      "roughness": 0.43,
+      "metalness": 0.82
+    },
+    {
+      "name": "lips",
+      "color": "925348",
+      "roughness": 0.8,
+      "metalness": 0
+    },
+    {
+      "name": "eye",
+      "color": "d8cbb7",
+      "roughness": 0.36,
+      "metalness": 0
+    },
+    {
+      "name": "glass",
+      "color": "677b7c",
+      "roughness": 0.17,
+      "metalness": 0.48
+    },
+    {
+      "name": "hair",
+      "color": "211b18",
+      "roughness": 0.91,
+      "metalness": 0
+    },
+    {
+      "name": "ochre",
+      "color": "ad762a",
+      "roughness": 0.5,
+      "metalness": 0.48
+    },
+    {
+      "name": "copper",
+      "color": "9f5733",
+      "roughness": 0.4,
+      "metalness": 0.8
+    },
+    {
+      "name": "canvas",
+      "color": "77705a",
+      "roughness": 0.98,
+      "metalness": 0
+    }
+  ],
+  "bounds": {
+    "min": [
+      -0.4720000034570694,
+      -9.536743172944284e-9,
+      -0.3323975205421448
+    ],
+    "max": [
+      0.34900000751018523,
+      1.9666371405124665,
+      0.3284999978542328
+    ]
+  },
+  "parts": [
+    {
+      "name": "torso-jacket",
+      "triangles": 7800
+    },
+    {
+      "name": "torso-skin",
+      "triangles": 1224
+    },
+    {
+      "name": "torso-cream",
+      "triangles": 4932
+    },
+    {
+      "name": "torso-brass",
+      "triangles": 4292
+    },
+    {
+      "name": "torso-leather",
+      "triangles": 10280
+    },
+    {
+      "name": "torso-stitch",
+      "triangles": 2340
+    },
+    {
+      "name": "torso-steel",
+      "triangles": 752
+    },
+    {
+      "name": "head-skin",
+      "triangles": 14940
+    },
+    {
+      "name": "head-lips",
+      "triangles": 2156
+    },
+    {
+      "name": "head-eye",
+      "triangles": 1560
+    },
+    {
+      "name": "head-glass",
+      "triangles": 3216
+    },
+    {
+      "name": "head-hair",
+      "triangles": 16072
+    },
+    {
+      "name": "head-ochre",
+      "triangles": 3466
+    },
+    {
+      "name": "head-brass",
+      "triangles": 2060
+    },
+    {
+      "name": "head-leather",
+      "triangles": 612
+    },
+    {
+      "name": "head-steel",
+      "triangles": 768
+    },
+    {
+      "name": "arm-left-jacket",
+      "triangles": 4228
+    },
+    {
+      "name": "arm-left-stitch",
+      "triangles": 310
+    },
+    {
+      "name": "arm-left-skin",
+      "triangles": 4376
+    },
+    {
+      "name": "arm-left-leather",
+      "triangles": 2264
+    },
+    {
+      "name": "arm-left-cream",
+      "triangles": 780
+    },
+    {
+      "name": "arm-left-brass",
+      "triangles": 200
+    },
+    {
+      "name": "arm-right-jacket",
+      "triangles": 4228
+    },
+    {
+      "name": "arm-right-stitch",
+      "triangles": 310
+    },
+    {
+      "name": "arm-right-skin",
+      "triangles": 4376
+    },
+    {
+      "name": "arm-right-leather",
+      "triangles": 2452
+    },
+    {
+      "name": "arm-right-cream",
+      "triangles": 780
+    },
+    {
+      "name": "arm-right-brass",
+      "triangles": 2700
+    },
+    {
+      "name": "arm-right-steel",
+      "triangles": 1172
+    },
+    {
+      "name": "arm-right-copper",
+      "triangles": 6228
+    },
+    {
+      "name": "leg-left-jacket",
+      "triangles": 4896
+    },
+    {
+      "name": "leg-left-stitch",
+      "triangles": 1628
+    },
+    {
+      "name": "leg-left-cream",
+      "triangles": 1620
+    },
+    {
+      "name": "leg-left-leather",
+      "triangles": 4392
+    },
+    {
+      "name": "leg-left-brass",
+      "triangles": 2936
+    },
+    {
+      "name": "leg-left-steel",
+      "triangles": 2312
+    },
+    {
+      "name": "leg-right-jacket",
+      "triangles": 4896
+    },
+    {
+      "name": "leg-right-stitch",
+      "triangles": 1628
+    },
+    {
+      "name": "leg-right-cream",
+      "triangles": 1620
+    },
+    {
+      "name": "leg-right-leather",
+      "triangles": 4392
+    },
+    {
+      "name": "leg-right-brass",
+      "triangles": 2936
+    },
+    {
+      "name": "leg-right-steel",
+      "triangles": 2312
+    },
+    {
+      "name": "cape-canvas",
+      "triangles": 9324
+    },
+    {
+      "name": "cape-leather",
+      "triangles": 1984
+    },
+    {
+      "name": "cape-stitch",
+      "triangles": 3080
+    },
+    {
+      "name": "cape-brass",
+      "triangles": 4292
+    },
+    {
+      "name": "cape-steel",
+      "triangles": 360
+    },
+    {
+      "name": "cape-copper",
+      "triangles": 6336
+    }
+  ],
+  "provenance": "Original authored procedural mesh; no third-party art or Blender. Concept reference is supplied codex-imagen plate.",
+  "quality": "Procedural interpretation, not a photoreal sculpt or acceptance grade."
+}
