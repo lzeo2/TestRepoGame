@@ -200,6 +200,32 @@ maintenance item, with the independent plain checker passing as quoted above.
 Final Batch32 root-free snapshot was 3,846,430,720 bytes
 (182,554,624 less than session start, shared across swarms).
 
+## Per-letter headless evidence rerun
+
+The operator-requested fresh run of `node Games/Citisten3D/sim-check.mjs`
+completed exit 0 with empty stderr. Seven committed logs under
+`docs/maintenance/audits/citisten-QA/letter-{C,D,E,F,G,H,I}-sim.log` retain the
+full shared-suite timeline, exact command/exit, Node version, UTC time, Git
+provenance and SHA-256 hashes of sim/check/road sources. Each identifies its
+relevant assertions and existing screenshot stems; they are evidence for
+review, not builder-assigned acceptance grades.
+
+| Letter | Fresh headless evidence |
+| --- | --- |
+| C | 1,526 citizens at 600s; budget 30,540 to 31,093.00; income 3.49/s vs upkeep 1.47/s; crime abandonment. |
+| D | Destroyed plant and water cuts cause abandonment; power demand 138.08 exceeds 80 supply; 59.00 shed; isolated-network and road-cut assertions. |
+| E | 382 unique trips, 20,092 movement observations, 188 jam steps, 2,944 parked steps; unique moving-lane occupancy and despawn asserted through world roads APIs. |
+| F | Edge waves 12/14/16, 531 road-motion steps, 132 wall bite ticks; intact walls block and zombies do not overlap. |
+| G | 104 tower shots, 26 kills in defended nights; citizen-only wave repelled with 72 shots / 12 kills; day repair exercised. |
+| H | Two survived nights; exactly 600 hall damage; one loss at 828.25s; lost clock frozen and hall protected. |
+| I | Free-build suppresses waves; mid-assault switch clears live and pending waves; pause/10x and queued-horde clearing asserted. |
+
+No runtime or test source changed for this rerun, so canonical maintenance
+validation still passes. Existing 22 API-fixture images cover C/D/F/G/H/I in
+both themes. Dedicated E movement frames are queued behind the UI-owned
+browser slot; no concurrent browser is launched. Visible/native/integrated and
+hardware acceptance is not established by these Node logs.
+
 ## Change record and handoff
 
 - `687516b`: initial city, utilities, traffic, waves, defenses and Node check.

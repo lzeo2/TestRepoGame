@@ -1,0 +1,39 @@
+CITISTEN letter E: headless simulation evidence, not reviewer acceptance
+UTC: 2026-10-22T02:08:32.760976+00:00
+Git before evidence commit: d02b7a0829b3844b0b5ad2073e05c32b86e8c0d5
+Node: v22.23.1
+Command: node Games/Citisten3D/sim-check.mjs
+Process exit: 0
+Relevant assertions: World road path/lane API, actual car movement, unique directed-lane occupancy, jams, parking and despawn.
+Existing API-fixture shot stems: C (cars present); dedicated E movement captures pending UI slot release
+Shot folder: docs/maintenance/audits/citisten-QA/ (*-sim-api-fixture-{dark,light}.png)
+Limits: scripted API state/logic evidence; not visible HUD, native input, integrated-game or hardware acceptance.
+
+SOURCE PROVENANCE
+Games/Citisten3D/sim.mjs sha256=726d2a7aa67488b1d44a3cefc2e59dde3ceea3639b3c9ecf2f6e67f84a63999c
+Games/Citisten3D/sim-check.mjs sha256=19ad533eecfbc5ae3575079c76fb20930b109c745f60c1d8acf4a802b4af34e1
+Games/Citisten3D/roads.mjs sha256=8bfc07ad9b1c8fd69ba99e875641747c44e8fb8e8281fe54e05a560e83c4c22b
+
+FULL SHARED-SUITE STDOUT
+600s city: population=1526 budget=31093.00 initial=30540 income/s=3.49 upkeep/s=1.47 car-movement-observations=20092
+Traffic: unique trips=382 jam steps=188 parked steps=2944
+Power destroyed: unserved=52.43 population=1185 (was 1526)
+Water destroyed: unserved=42.74 population=920
+Overload: power supply=80 demand=138.08 served=79.08 shed=59.00
+t=240s night 1: 12 zombies spawn at map edges
+t=253.75s night repelled: score=1 kills=12
+t=493.75s night 2: 14 zombies spawn at map edges
+t=521.75s night repelled: score=2 kills=26
+t=521.75s towers removed for loss proof; defenses repaired in day
+t=761.75s night 3: 16 zombies spawn at map edges
+t=798.25s town hall first bite: 8 HP, wall bite ticks=105
+t=828.25s LOSS: score=2 kills=26 peakPop=0 damage=600
+Three-night totals: waves=12/14/16 shots=104 kills=26 wall-bite-ticks=132 road-motion-steps=531
+Citizen shot events=72, kills=12; defense -> free clears waves and keeps simulation ticking
+Police removed: population 1526 -> 1356 during crime wave
+Utility island limits, road cuts, pause/10x, protected hall, frozen loss, invalid input and mid-wave free-mode switch asserted.
+Overflow horde check: 12 nights, 352 kills, staged edge spawns accounted for; free mode clears queue.
+Headless assertions complete. Browser acceptance remains reviewer-owned.
+
+FULL SHARED-SUITE STDERR
+<empty>
