@@ -5,7 +5,10 @@ Node: v22.23.1
 Command: node Games/Citisten3D/sim-check.mjs
 Process exit: 0
 Relevant assertions: World road path/lane API, actual car movement, unique directed-lane occupancy, jams, parking and despawn.
-Existing API-fixture shot stems: C (cars present); dedicated E movement captures pending UI slot release
+Existing API-fixture shot stems: C (cars present); world-owned E-car-sequence-01.png through 06.png plus E-car-sequence.png (e9a5d14; fixture code 9fbec29).
+Separate browser follow-up: real sim car 7, 29-cell L route, segments 0/7/14/18/24/27 at 1.5/6.5/11.75/14.75/19.25/21.5 simulation seconds; 87 on-road observations.
+Follow-up report: docs/maintenance/audits/citisten-QA/DE-api-results.json; Node/browser routes and checkpoints exactly match; zero errors/external, all cleanup true.
+Scope: only the tracked car is drawn, with QA labels and a fixed camera; inspected API fixtures are not native or integrated-game acceptance. The original Node run and timeline below are unchanged.
 Shot folder: docs/maintenance/audits/citisten-QA/ (*-sim-api-fixture-{dark,light}.png)
 Limits: scripted API state/logic evidence; not visible HUD, native input, integrated-game or hardware acceptance.
 

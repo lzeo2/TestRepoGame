@@ -226,13 +226,27 @@ both themes. World separately owns the stronger E/D consumer fixtures in
 `docs/citisten-design/{road-utility-fixtures.mjs,check-road-utilities.mjs,capture-road-utilities.py}`:
 one real sim car across six checkpoints (including a corner), plus nine
 power/water cases. Their source was inspected at the consumer boundary and
-uses real sim updates, not position/state grants. Final browser recapture is
-queued after Dive Trivia mobile and Wings CDP; world owns those images/results.
+uses real sim updates, not position/state grants. World final capture/evidence
+is committed as **`e9a5d14`**, fixture code **`9fbec29`**: exit 0, 24 screenshots
+plus three plates, zero errors/external requests and all cleanup flags true.
+Sim independently compared `DE-api-results.json` with `DE-node-run.txt`: the
+29-cell route, six checkpoints, 87 observations and all nine utility summaries
+match exactly. The E plate and both-theme overload frames were inspected.
+
+- E: `E-car-sequence-01.png` through `06.png` and `E-car-sequence.png` follow
+  real sim car 7 through segments 0/7/14/18/24/27 at 1.5/6.5/11.75/14.75/19.25/
+  21.5 simulated seconds. Only the selected car is drawn; captions are QA labels.
+- D: `D-utilities-matrix-{dark,light}.png` and 18 individual frames cover nine
+  cases. Separate overload fixtures shed 34 power with water fully supplied,
+  or 15 water with power fully supplied; these are not the shared-suite city.
+- D/E letter logs now link that separate browser follow-up without changing
+  their original Node timeline or provenance.
+
 The redundant uncommitted sim traffic-only harness extension was removed,
 leaving `sim-qa.py` unchanged and the canonical inventory current. Sim yielded
-its optional browser slot to world and launched no browser for this rerun.
-Visible/native/integrated and hardware acceptance is not established by the
-Node logs; pending world captures are not claimed as completed.
+its optional slot to world; world explicitly released to Jankolock afterward.
+No browser was launched by sim for this rerun. These completed API fixtures and
+Node logs are not visible/native integrated-game or hardware acceptance grades.
 
 ## Change record and handoff
 

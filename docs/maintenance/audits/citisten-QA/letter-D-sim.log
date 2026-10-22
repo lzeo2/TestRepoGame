@@ -6,6 +6,10 @@ Command: node Games/Citisten3D/sim-check.mjs
 Process exit: 0
 Relevant assertions: Plant destruction, water cut, overload shedding, isolated supply islands and road disconnection.
 Existing API-fixture shot stems: D, D-overload
+Separate world-owned browser follow-up: e9a5d14 (fixture code 9fbec29), D-utilities-matrix-{dark,light}.png plus 18 case frames.
+Follow-up report: docs/maintenance/audits/citisten-QA/DE-api-results.json; nine cases exactly match DE-node-run.txt, zero errors/external, all cleanup true.
+Independent matrix overload cases: power-only unserved=34 with water unserved=0; water-only unserved=15 with power unserved=0. These differ from the shared suite's larger-city overload below.
+Scope: browser API fixtures inspected, not native or integrated-game acceptance; the original Node run and timeline below are unchanged.
 Shot folder: docs/maintenance/audits/citisten-QA/ (*-sim-api-fixture-{dark,light}.png)
 Limits: scripted API state/logic evidence; not visible HUD, native input, integrated-game or hardware acceptance.
 
