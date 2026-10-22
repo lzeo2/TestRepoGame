@@ -1,0 +1,277 @@
+{
+  "label": "Gooey Sticky: original human adhesive specialist",
+  "url": "models/gooey/model.glb",
+  "bytes": 4612808,
+  "sha256": "28af9491202b130ec2853aff3d1090c2bdaa5f166b2e643f80ef5601942a2a5e",
+  "triangles": 179556,
+  "vertices": 109012,
+  "meshes": 43,
+  "materials": [
+    {
+      "name": "ivory-rubberized-coat",
+      "color": "d5c6a3",
+      "roughness": 0.72,
+      "metalness": 0.03
+    },
+    {
+      "name": "ivory-protective-plate",
+      "color": "e3d3af",
+      "roughness": 0.43,
+      "metalness": 0.16
+    },
+    {
+      "name": "machined-brass",
+      "color": "a77b35",
+      "roughness": 0.3,
+      "metalness": 0.78
+    },
+    {
+      "name": "recessed-bronze",
+      "color": "584229",
+      "roughness": 0.48,
+      "metalness": 0.67
+    },
+    {
+      "name": "brown-leather-straps-boots",
+      "color": "35291f",
+      "roughness": 0.69,
+      "metalness": 0.02
+    },
+    {
+      "name": "ochre-enamel",
+      "color": "b48b45",
+      "roughness": 0.44,
+      "metalness": 0.3
+    },
+    {
+      "name": "ribbed-rubber",
+      "color": "24251f",
+      "roughness": 0.82,
+      "metalness": 0
+    },
+    {
+      "name": "weathered-skin-face",
+      "color": "b47c57",
+      "roughness": 0.8,
+      "metalness": 0
+    },
+    {
+      "name": "skin-lip-ear",
+      "color": "87543f",
+      "roughness": 0.81,
+      "metalness": 0
+    },
+    {
+      "name": "eye-sclera",
+      "color": "d1c7ab",
+      "roughness": 0.36,
+      "metalness": 0
+    },
+    {
+      "name": "eye-iris",
+      "color": "494b3b",
+      "roughness": 0.3,
+      "metalness": 0
+    },
+    {
+      "name": "hair-brows-moustache",
+      "color": "403b32",
+      "roughness": 0.94,
+      "metalness": 0
+    },
+    {
+      "name": "visor-clear",
+      "color": "d7dfd9",
+      "roughness": 0.16,
+      "metalness": 0.08
+    }
+  ],
+  "bounds": {
+    "min": [
+      -0.5416845679283142,
+      -7.152557324197062e-9,
+      -0.4469437897205353
+    ],
+    "max": [
+      0.6348158204555512,
+      2.0510001122951507,
+      0.3757522702217102
+    ]
+  },
+  "parts": [
+    {
+      "name": "torso-ivory-rubberized-coat",
+      "triangles": 7680
+    },
+    {
+      "name": "torso-ivory-protective-plate",
+      "triangles": 9056
+    },
+    {
+      "name": "torso-machined-brass",
+      "triangles": 13072
+    },
+    {
+      "name": "torso-recessed-bronze",
+      "triangles": 4224
+    },
+    {
+      "name": "torso-brown-leather-straps-boots",
+      "triangles": 6736
+    },
+    {
+      "name": "torso-ochre-enamel",
+      "triangles": 7680
+    },
+    {
+      "name": "torso-ribbed-rubber",
+      "triangles": 5760
+    },
+    {
+      "name": "head-weathered-skin-face",
+      "triangles": 9968
+    },
+    {
+      "name": "head-skin-lip-ear",
+      "triangles": 3344
+    },
+    {
+      "name": "head-eye-sclera",
+      "triangles": 704
+    },
+    {
+      "name": "head-eye-iris",
+      "triangles": 704
+    },
+    {
+      "name": "head-hair-brows-moustache",
+      "triangles": 4880
+    },
+    {
+      "name": "head-ivory-protective-plate",
+      "triangles": 6864
+    },
+    {
+      "name": "head-recessed-bronze",
+      "triangles": 4928
+    },
+    {
+      "name": "head-machined-brass",
+      "triangles": 6704
+    },
+    {
+      "name": "head-visor-clear",
+      "triangles": 1536
+    },
+    {
+      "name": "head-ochre-enamel",
+      "triangles": 256
+    },
+    {
+      "name": "cape-ivory-rubberized-coat",
+      "triangles": 12288
+    },
+    {
+      "name": "cape-ivory-protective-plate",
+      "triangles": 3648
+    },
+    {
+      "name": "arm-right-ivory-rubberized-coat",
+      "triangles": 5376
+    },
+    {
+      "name": "arm-right-ivory-protective-plate",
+      "triangles": 2992
+    },
+    {
+      "name": "arm-right-machined-brass",
+      "triangles": 2224
+    },
+    {
+      "name": "arm-right-brown-leather-straps-boots",
+      "triangles": 6468
+    },
+    {
+      "name": "arm-right-recessed-bronze",
+      "triangles": 3216
+    },
+    {
+      "name": "arm-right-ribbed-rubber",
+      "triangles": 7264
+    },
+    {
+      "name": "arm-right-ochre-enamel",
+      "triangles": 256
+    },
+    {
+      "name": "arm-left-ivory-rubberized-coat",
+      "triangles": 5376
+    },
+    {
+      "name": "arm-left-ivory-protective-plate",
+      "triangles": 2640
+    },
+    {
+      "name": "arm-left-machined-brass",
+      "triangles": 384
+    },
+    {
+      "name": "arm-left-brown-leather-straps-boots",
+      "triangles": 5880
+    },
+    {
+      "name": "arm-left-recessed-bronze",
+      "triangles": 2304
+    },
+    {
+      "name": "leg-right-ivory-rubberized-coat",
+      "triangles": 3072
+    },
+    {
+      "name": "leg-right-ivory-protective-plate",
+      "triangles": 720
+    },
+    {
+      "name": "leg-right-brown-leather-straps-boots",
+      "triangles": 3344
+    },
+    {
+      "name": "leg-right-ribbed-rubber",
+      "triangles": 3072
+    },
+    {
+      "name": "leg-right-machined-brass",
+      "triangles": 1824
+    },
+    {
+      "name": "leg-right-recessed-bronze",
+      "triangles": 540
+    },
+    {
+      "name": "leg-left-ivory-rubberized-coat",
+      "triangles": 3072
+    },
+    {
+      "name": "leg-left-ivory-protective-plate",
+      "triangles": 720
+    },
+    {
+      "name": "leg-left-brown-leather-straps-boots",
+      "triangles": 3344
+    },
+    {
+      "name": "leg-left-ribbed-rubber",
+      "triangles": 3072
+    },
+    {
+      "name": "leg-left-machined-brass",
+      "triangles": 1824
+    },
+    {
+      "name": "leg-left-recessed-bronze",
+      "triangles": 540
+    }
+  ],
+  "provenance": "Original authored procedural mesh; no third-party art or Blender. Concept reference is supplied codex-imagen plate.",
+  "quality": "Procedural interpretation, not a photoreal sculpt or acceptance grade."
+}
