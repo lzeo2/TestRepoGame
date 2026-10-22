@@ -48,6 +48,23 @@ Catalog ID 240 now points here; no new game or ID was added. No push authorized.
   the Patron effigy. See `CREDITS.md`, `portrait-receipt.json` and independent
   `PORTRAIT-REVIEW.md`; it is a photo-derived relief, not a full scan.
 
+## Procedural model integration
+
+`game.mjs` preloads four real hero GLBs and the candle trooper before mounting
+play. `character-assets.mjs` verifies self-contained bytes/SHA and decoded
+triangle/size budgets, caches assets and supplies original shared 512px surface
+and normal maps. `heroes/hero-model.mjs` preserves the factory lifecycle with
+rigid named-pivot movement; ability FX remain in the existing visual layer.
+Troopers share geometry but retain isolated pose/material/HP-candle state.
+Standalone hero ranges and systems demo use the same preload/cleanup path.
+
+Paused/finished play no longer redraws the GPU scene continuously. Explicit QA
+camera/sync and resize still render; capture checks assert that frozen frames
+stay unchanged. This is idle-work verification, not supported-hardware FPS.
+Six GLBs including the unchanged portrait total 24,715,028 bytes. Original
+code/concept provenance, sizes and remaining rigid/face/cloth/LOD limits are in
+CREDITS.md, each model README and the external-art wishlist. No Blender was used.
+
 ## Controls
 
 WASD moves; mouse/drag or arrows look. LMB fires, RMB aims. Ctrl sprint, Shift
@@ -64,6 +81,8 @@ node Games/Jankolock3D/integration-ui.mjs --self-test
 node Games/Jankolock3D/bots-test.mjs
 node Games/Jankolock3D/systems-test.mjs --no-evidence
 node Games/Jankolock3D/world-test.mjs
+node Games/Jankolock3D/environment-test.mjs
+node Games/Jankolock3D/systems-view-test.mjs
 node Games/Jankolock3D/heroes/player-controller-test.mjs
 node Games/Jankolock3D/heroes/hero-runtime-test.mjs
 node Games/Jankolock3D/heroes/hero-visuals-test.mjs

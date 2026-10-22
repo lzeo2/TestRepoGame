@@ -5,9 +5,32 @@ permission to generate/import them. **No Blender. Keep the existing hero kits,
 abilities, procedural 3D FX and camera working while mesh requests wait.**
 The hero team is not starting a parallel model pipeline.
 
-## Evidence and priority
+## Current procedural fallback status
 
-Reviewed current `createHeroVisual()` in
+The orchestrator has integrated four code-generated Astra GLBs following the
+committed codex-imagen plates. These are **procedural fallbacks**, not fulfillment
+of the operator-run external-art wishlist. No Blender, bpy, sculpt application or
+commercial assets were used. External requests remain pending; no local wishlist
+model build is authorized.
+
+| Fallback | Triangles | GLB bytes | Source / honest limitations |
+| --- | ---: | ---: | --- |
+| Stampead | 179,388 | 5,797,108 | `models/stampead/`; rigid-pivot armor/cape, generic parametric face, no skin rig. |
+| Turretina | 171,818 | 4,648,580 | `models/turretina/`; layered engineer kit, static face/cloth and approximate grip. |
+| Snipeoff | 170,342 | 4,835,696 | `models/snipeoff/`; reused original anatomy, new hood/coat/rifle; generic face and heavy lower legs. |
+| Gooey Sticky | 179,556 | 4,612,808 | `models/gooey/`; human protective suit/visor/tanks, rigid hoses and baked pose. |
+
+Paths above are relative to `Games/Jankolock3D/`. The supplied portrait remains
+unchanged and separate. `createHeroVisual()` now uses real preloaded GLBs with
+local 512px surface maps; kit/FX/controller APIs remain. Fresh renders and source
+hashes are in `docs/maintenance/audits/jankolock-3d-qa/visual-pass/`; source/CPU
+checks alone do not certify likeness, clipping, hardware or visual acceptance.
+Current subjective quality scores belong to `MODEL-WISHLIST.md`; they do not close
+the external art requests.
+
+## Historical evidence and priority
+
+The following records the former primitive placeholders. Reviewed former `createHeroVisual()` in
 [`hero-visuals.mjs`](../../Games/Jankolock3D/heroes/hero-visuals.mjs) against the
 [hero capture sheet](../maintenance/audits/jankolock-3d-qa/heroes-fx-contact-sheet.png)
 and [desktop comparison](../maintenance/audits/jankolock-3d-qa/heroes-mockup-vs-implemented.png).
@@ -74,6 +97,7 @@ optional prop request. The current procedural turret remains usable meanwhile.
 
 ## Immediate action
 
-Documentation only. Leave the current meshes as working placeholders and keep
-all kit/FX code intact. Wait for the world/orchestrator's selected assets and
-handoff rather than making meshes, acquiring tools or changing runtime now.
+External-art requests remain documentation only. Keep the integrated procedural
+fallbacks and working kits/FX intact while the operator runs external generation.
+Do not start local Blender/bpy/sculpt work, a second model pipeline, tool installs
+or speculative runtime changes. Returned files still need parent review/import.

@@ -32,9 +32,12 @@ human review of upstream three.js. Prior isolated harnesses remain available.
 
 `environment.mjs` is now mounted by `world-scene.mjs` for layered district
 architecture and local procedural material maps; see ENVIRONMENT.md. The
-separate `character-assets.mjs` validates and caches local GLBs, but has no
-tracked live renderer caller at this verification point. Delivered character
-models are therefore not automatically part of the playable hero visuals.
+shared `character-assets.mjs` validates/caches local GLBs. `game.mjs`, the hero
+ranges and systems demo preload their real models; `heroes/hero-model.mjs`
+replaces the primitive body factory while preserving existing ability FX.
+`systems-view.mjs` mounts the detailed candle trooper, shares its GPU geometry
+and isolates per-unit pose/material/candle state. Bodies use named rigid pivots,
+not skin/IK/face rigs. Runtime metadata exposes measured model hashes/counts.
 
 ## Gameplay and controls
 
@@ -70,8 +73,16 @@ only on loopback, labeled as scripted fixtures with no HP/lock/winner assignment
 
 Local three.js r186 core/module and intact MIT notice match the staging package
 byte-for-byte. Fonts are existing local Bungee/Atkinson with their OFL notices.
-All geometry/characters are original primitives. Mechanics-only research URLs
-are recorded in WORLD.md/SYSTEMS.md/HEROES.md; no reference-game assets imported.
+Environment and character geometry are original code-generated meshes. Four
+codex-imagen concept plates preceded the Astra-built fallback GLBs. Five new
+self-contained models total 21,486,656 bytes; their source/receipts are beside each
+file. Hero counts are 179,388/171,818/170,342/179,556 triangles; trooper 31,730.
+Local 512px procedural surfaces/normals and 11 environment PNG maps are original.
+Local r186 loader/exporter/geometry/clone addons retain MIT provenance; only
+local import paths were remapped. Inspection covers import closure, receipts,
+actual decoded assets and regression behavior, not exhaustive human sculpt or
+upstream-addon algorithm review. Research URLs are references only; no
+reference-game pixels/meshes ship. See CREDITS.md and ENVIRONMENT.md.
 
 Approved in-house supplied-photo relief derivative: 3,228,372 bytes, 124,512
 triangles, SHA-256 `8463eee8276187cacaba912d9540279ad1bb338aa382e9448632aa9a33892514`.
@@ -123,7 +134,7 @@ configured heroes, fractional start clock, real bridge-height waypoints,
 orb single-accounting and portrait integrity/corruption checks. Catalog parses:
 127 unique IDs, required schema fields; only entry240 differs from pre-integration.
 World regression: 491 assertions. Controller regression after ramp repair: 1,365
-assertions. Bot regression: eight groups. Systems regression: 17 groups plus
+assertions. Bot regression: eight groups. Systems regression: 18 groups plus
 600-second script. Hero runtime/visual and UI self-checks pass. Syntax and authored
 diff checks pass; immutable vendor's historical whitespace note is retained.
 
@@ -156,13 +167,15 @@ the shop, purchases at all four tiers, +200 max HP, a collision-resolved 10m das
 and active burst; its approved-mockup/actual-shop twin is retained. The first
 active-selector failure and its exact images remain archived. Completed C-G
 runs total 29 full-size captures, 208 HTTP200 responses and zero recorded errors,
-with hashes matching current runtime bytes. All A-I named PNGs now exist;
+with hashes matching the then-current, pre-visual-pass runtime. All A-I named PNGs exist;
 older A/B/H/I remain their own qualified historical evidence. See the audit's
 COMPLETION.md and per-letter JSON, not the interrupted full-run receipt.
 No full-fleet/hardware/reviewer grade or push is inferred.
 
-### Stampead delivery and environment follow-up
+### Historical Stampead delivery and environment follow-up
 
+This delivery-only receipt predates live integration and the current visual-pass
+captures below. It is retained as provenance, not the present loader status.
 Committed model `e627cee` is a concept-led original procedural interpretation,
 not a photoreal sculpt or visually accepted character. Actual
 `models/stampead/model.glb` independently verifies at **5,797,108 bytes**,
@@ -194,10 +207,10 @@ at the latest resumed preflight. Work retains the previously read/pasted
 world-only brief; no replacement shared-spec clauses were invented. Disk was
 above the normal guard, so the missing temporary copies are not an idle gate.
 
-Inventory refresh is limited to committed source. Another owner's staged
-Turretina model files correctly block the checker until committed; never stage
-or reset them to manufacture a pass. Aggregate model budgets remain an
-integration-wide check as more deliveries land.
+Inventory refresh was then correctly blocked by another owner's staged
+Turretina files. All five model deliveries are now committed; no foreign file
+was staged/reset to manufacture a pass. Final inventory still requires all
+inspected source changes committed before refresh.
 
 ### Systems brief-authorized resume
 
@@ -214,6 +227,43 @@ both integrated chain directions and8 bot groups. The receipt at
 current source hashes, commands, missing-contract context and remaining gates.
 No new UI, geometry, model, dependency, game, catalog edit or push is included.
 Historical screenshots do not establish acceptance of changed world/model bytes.
+
+## Integrated procedural visual pass
+
+The four committed concept plates preceded mesh work; no Blender/bpy/sculpt tool
+or new dependency was used. All four hero bodies and the trooper now render
+from actual verified GLBs, with local 512px surfaces/normals. New model bytes and
+triangles are recorded above; including the unchanged supplied portrait there
+are six GLBs totaling 24,715,028 bytes. Every file is below 8 MiB. No game/ID was
+added, catalog count stays 127 and no publication/push is authorized.
+
+Fresh `visual-pass/` evidence has ten COMPLETE-builder-checks-only receipts:
+four E cases, four P cases, A and H. It contains 36 actual 1280x720 captures,
+635 recorded HTTP200 responses, zero retained errors and stable runtime hashes.
+E records all 16 native ability keys/real FX. P adds all four clean model views,
+three native movement-input checks with explicit fixture clock advances and
+four labeled concept/model twins. A records three native short walks and full
+770m native-E rides with scripted elapsed time, alive/free-mode arrivals, plus
+a labeled aerial camera. H is the normal lobby without a fixture query, both
+HTML themes, with supplied portrait behind glass and actual selected GLB.
+
+The previous 300s E and 180s P batch timeouts remain in
+`visual-pass-before-idle-fix/` and `visual-pass-before-single-hero/`; they are not
+completed passes. Single-hero bounded retries completed every case. Continuous
+GPU redraw during pause/finished state was removed; each frozen capture asserts
+that the real renderer frame counter stays unchanged. This is an idle-work
+regression, not an FPS benchmark. The dedicated-profile/CDP advisory recipe was
+not exercised. System Chromium, serialized profiles and existing disk guards
+remain; no waiver was used.
+
+The [wishlist](../../jank3d-design/MODEL-WISHLIST.md) remains operator-run external
+art requests only. Current procedural scores are 5/4/4/5, not photoreal or
+reference-quality acceptance. Faces, hands, cloth/hoses, rigid motion and lack
+of character LOD remain weaknesses. City facades/recesses/turnouts are real new
+geometry, but the broad straight primary corridors, sparse park dressing,
+stylized clouds and primitive combat objectives remain visible quality gaps.
+No full native 900m lane walk, final visual review, supported GPU, real handheld,
+full offline/release smoke or match-fun acceptance is inferred from these checks.
 
 ## Future outlook
 

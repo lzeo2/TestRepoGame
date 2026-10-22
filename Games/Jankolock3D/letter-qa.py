@@ -56,7 +56,7 @@ def main():
     global OUT
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('letter', choices=['A', 'C', 'D', 'E', 'F', 'H', 'P'])
-    parser.add_argument('--hero', choices=['stampead', 'turretina', 'snipeoff', 'gooey'], help='One short E hero run')
+    parser.add_argument('--hero', choices=['stampead', 'turretina', 'snipeoff', 'gooey'], help='One short hero/inspection run')
     parser.add_argument('--visual-pass', action='store_true', help='Separate visual-pass evidence and strict whole-pass60MB write guard')
     args = parser.parse_args()
     if args.visual_pass:
@@ -138,6 +138,8 @@ def main():
                 if letter == 'P':
                     kits = json.loads((ROOT / 'docs/jank3d-hero-kits.json').read_text())['heroes']
                     for kit in kits:
+                        if selected_hero and kit['id'] != selected_hero:
+                            continue
                         load('traversal', kit['id'])
                         page.evaluate('window.jank3dQA.waves(); window.jank3dQA.place({x:0,y:0,z:-190},Math.PI,0); window.jank3dQA.inspectHero()')
                         assert state()['runtime']['hero'] == kit['id']
