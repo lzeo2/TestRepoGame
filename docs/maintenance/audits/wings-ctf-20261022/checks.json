@@ -75,5 +75,8 @@
   "fullFleet": "DEFERRED;zero visits",
   "push": "NONE;operatorreviewrequired",
   "freeBytesAtCheck": 2861244416,
-  "storageScope": "Shared host value, not attributed lane-only delta"
+  "storageScope": "Shared host value, not attributed lane-only delta",
+  "sourceMilestone": "580bd7f19f9d78793bc2305bea9b042b9a389aca",
+  "inventoryCheck": "PASS: 132 game documents,127 registered+5unregistered; current Git source inventory",
+  "freeBytesAtClose": 2858745856
 }
