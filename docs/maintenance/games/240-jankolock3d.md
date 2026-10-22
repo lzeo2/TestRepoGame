@@ -30,6 +30,12 @@ provide deeper module receipts in WORLD.md, SYSTEMS.md and heroes/HEROES.md.
 Vendor inspection is byte equality/import closure/license/syntax, not a full
 human review of upstream three.js. Prior isolated harnesses remain available.
 
+`environment.mjs` is now mounted by `world-scene.mjs` for layered district
+architecture and local procedural material maps; see ENVIRONMENT.md. The
+separate `character-assets.mjs` validates and caches local GLBs, but has no
+tracked live renderer caller at this verification point. Delivered character
+models are therefore not automatically part of the playable hero visuals.
+
 ## Gameplay and controls
 
 One human plus two allies versus three enemy bots. Three original lanes,
@@ -150,6 +156,39 @@ with hashes matching current runtime bytes. All A-I named PNGs now exist;
 older A/B/H/I remain their own qualified historical evidence. See the audit's
 COMPLETION.md and per-letter JSON, not the interrupted full-run receipt.
 No full-fleet/hardware/reviewer grade or push is inferred.
+
+### Stampead delivery and environment follow-up
+
+Committed model `e627cee` is a concept-led original procedural interpretation,
+not a photoreal sculpt or visually accepted character. Actual
+`models/stampead/model.glb` independently verifies at **5,797,108 bytes**,
+**179,388 triangles**, **45 drawables**, **13 materials**, with SHA-256
+`f3479144cf4e33eb183b5b8983815740858899463c7a1a749c4420892ef688f3`.
+Receipt, decoded GLB counts, topology/material/UV/pivot/bounds checks and the
+fresh source build agree. Its builder uses existing local three.js/exporter
+only. Source/provenance/rigid-animation limits are in `models/stampead/README.md`.
+No receipt field or hash was fabricated or changed during parent verification.
+
+`node Games/Jankolock3D/models/stampead/build.mjs --check` passed without rewriting
+assets. An independent local-loader check parsed the actual GLB, cloned all45
+meshes with the shared procedural surfaces, and exercised idempotent clone
+cleanup. This proves loader compatibility, not live hero integration or visual
+quality. No screenshot, animation clearance, likeness or hardware pass is
+claimed for this delivery; the model worker needs no further delivery action.
+
+The world architecture already consumes the new environment module. Fresh
+`environment-test.mjs` passed: 66,904 instances, 926,466 assembled full-detail
+triangles, 280 coarse batches, 41 reusable geometries, and11 original PNG maps
+of1,210,564 bytes. It checks dynamic death/Patron retreat, detail cutoff and
+cleanup with renderer I/O mocked. These are CPU construction totals, not frame
+counts or FPS. `world-test.mjs` again passed491 assertions. The new environment
+and ACES/hemisphere lighting need fresh browser/subjective review; earlier A-I
+screenshots do not accept these changed runtime bytes.
+
+Inventory refresh is limited to committed source. Another owner's staged
+Turretina model files correctly block the checker until committed; never stage
+or reset them to manufacture a pass. Aggregate model budgets remain an
+integration-wide check as more deliveries land.
 
 ## Future outlook
 
