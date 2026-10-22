@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 """Bounded native-input evidence. Run from repository root. No state grants."""
+import hashlib
 import json
 import math
 import shutil
+import subprocess
 import threading
 from http.server import ThreadingHTTPServer, SimpleHTTPRequestHandler
 from pathlib import Path
@@ -10,7 +12,15 @@ from PIL import Image, ImageStat, ImageDraw
 from playwright.sync_api import sync_playwright
 
 ROOT = Path(__file__).resolve().parents[3]
-OUT = ROOT / 'docs/maintenance/audits/jankolock-3d-qa'
+OUT = ROOT / 'docs/maintenance/audits/jankolock-3d-qa/heroes-resume'
+
+def source_hashes():
+    paths = [p for p in (ROOT/'Games/Jankolock3D').rglob('*') if p.suffix in {'.mjs','.js','.html','.css','.json','.glb','.png'}]
+    paths += [Path(__file__).resolve(), ROOT/'docs/jank3d-hero-kits.json']
+    paths += list((ROOT/'assets/fonts').rglob('*.woff2'))
+    paths += [ROOT/f'docs/jank3d-design/ui-mockup-heroes{suffix}.png' for suffix in ['', '-mobile']]
+    return {p.relative_to(ROOT).as_posix():hashlib.sha256(p.read_bytes()).hexdigest() for p in sorted(paths)}
+
 class Handler(SimpleHTTPRequestHandler):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, directory=str(ROOT), **kwargs)
@@ -31,7 +41,8 @@ def capture(page, name, full=False):
     page.screenshot(path=str(path), full_page=full)
     variance = sum(ImageStat.Stat(Image.open(path).convert('RGB')).var) / 3
     assert variance > 80, (name, variance)
-    return {'file': path.relative_to(ROOT).as_posix(), 'variance': round(variance, 2), 'snapshot': snapshot(page)}
+    return {'file': path.relative_to(ROOT).as_posix(), 'sha256': hashlib.sha256(path.read_bytes()).hexdigest(),
+            'size': list(Image.open(path).size), 'variance': round(variance, 2), 'snapshot': snapshot(page)}
 
 def twin(mockup, implemented, output, size=(1280, 720)):
     capacity()
@@ -45,21 +56,36 @@ def twin(mockup, implemented, output, size=(1280, 720)):
 
 
 def main():
-    capacity(); OUT.mkdir(parents=True, exist_ok=True)
+    capacity()
+    processes=subprocess.check_output(['ps','-eo','stat=,comm=,args='],text=True)
+    assert not [r for line in processes.splitlines() if len(r:=line.split(None,2))==3 and r[1] in {'chrome','chromium'} and not r[0].startswith('Z') and '--type=' not in r[2]], 'Sibling browser active; serialize QA'
+    OUT.mkdir(parents=True, exist_ok=True)
     server = ThreadingHTTPServer(('127.0.0.1', 8937), Handler)
     threading.Thread(target=server.serve_forever, daemon=True).start()
-    evidence, errors, responses, checks = [], [], [], []
-    report = {'scope': 'Builder evidence for E, reviewer grades separately', 'screenshots': evidence, 'checks': checks, 'errors': errors, 'responses': responses}
+    evidence, errors, responses, checks, requests = [], [], [], [], []
+    report = {'status':'RUNNING', 'scope':'Builder evidence for E, reviewer grades separately; normal inputs, no state grants',
+              'screenshots':evidence, 'checks':checks, 'errors':errors, 'responses':responses, 'requests':requests,
+              'sourceRevision':subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip(),
+              'sourceHashes':source_hashes(), 'storageBefore':shutil.disk_usage(ROOT).free}
+    def watch(context):
+        def page_events(page):
+            page.on('pageerror',lambda error:errors.append(str(error)))
+            page.on('console',lambda message:errors.append(message.text) if message.type=='error' else None)
+            page.on('requestfailed',lambda request:errors.append(f'{request.url}: {request.failure}'))
+            def response_event(response):
+                requests.append({'url':response.url.removeprefix('http://127.0.0.1:8937/'),'status':response.status})
+                if response.status>=400:errors.append(f'HTTP {response.status}: {response.url}')
+            page.on('response',response_event)
+        context.on('page',page_events)
+        context.route('**/*',lambda route:route.continue_() if route.request.url.startswith(('http://127.0.0.1:8937/','blob:http://127.0.0.1:8937/','data:')) else (errors.append('External request: '+route.request.url),route.abort())[-1])
     try:
         with sync_playwright() as p:
             browser = p.chromium.launch(executable_path='/usr/bin/chromium', headless=True,
                 args=['--no-sandbox', '--disable-dev-shm-usage', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'])
             context = browser.new_context(viewport={'width': 1280, 'height': 720}, color_scheme='light')
-            context.on('page', lambda page: page.on('pageerror', lambda error: errors.append(str(error))))
-            context.route('**/*', lambda route: route.continue_() if route.request.url.startswith('http://127.0.0.1:8937/') else (errors.append('External request: ' + route.request.url), route.abort())[-1])
+            watch(context)
             page = context.new_page()
             page.add_init_script('window.keyLog=[];for(const type of ["keydown","keyup","pointerlockchange"]){addEventListener(type,e=>keyLog.push({type,code:e.code,locked:!!document.pointerLockElement}),true)}')
-            page.on('response', lambda response: errors.append(f'HTTP {response.status}: {response.url}') if response.status >= 400 else None)
             for hero in range(1, 5):
                 response = page.goto(f'http://127.0.0.1:8937/Games/Jankolock3D/heroes/devhero-{hero}.html')
                 responses.append({'hero': hero, 'status': response.status}); assert response.status == 200
@@ -74,6 +100,21 @@ def main():
                     data = snapshot(page); assert data['lastAbility'] and sum(data['casts'].values()) == 1, data
                     evidence.append(capture(page, f'{hero}-ability-{slot}'))
                     checks.append(f'hero {hero} ability {slot} normal button input: {data["lastAbility"]}')
+                if hero==3:
+                    page.locator('#reset').click();page.locator('[data-slot="1"]').click()
+                    page.locator('#capture').click();page.wait_for_function('window.heroSnapshot().pointerLocked')
+                    page.mouse.down();page.wait_for_function('window.heroSnapshot().targets.find(t=>t.id==="center").hp<=150')
+                    page.mouse.up();assert snapshot(page)['targets'][1]['alive']
+                    page.keyboard.press('4');page.mouse.down()
+                    page.wait_for_function('!window.heroSnapshot().targets.find(t=>t.id==="center").alive')
+                    page.mouse.up();assert 'xray' in snapshot(page)['buffs']
+                    evidence.append(capture(page,'xray-target-death'))
+                    page.wait_for_function('window.heroSnapshot().targets.find(t=>t.id==="center").alive')
+                    assert 'xray' in snapshot(page)['buffs']
+                    evidence.append(capture(page,'xray-target-respawn'))
+                    page.wait_for_function('!window.heroSnapshot().buffs.includes("xray")')
+                    evidence.append(capture(page,'xray-expired'));page.keyboard.press('Escape')
+                    checks.append('Native Snipeoff reveal across dummy death/respawn and original expiry; membership geometry also has Node regression')
             page.goto('http://127.0.0.1:8937/Games/Jankolock3D/heroes/devhero-1.html')
             page.wait_for_function('window.heroSnapshot && window.heroSnapshot().time > .2')
             page.locator('#capture').click()
@@ -112,7 +153,7 @@ def main():
             checks.append('Rear-wall movement collision observed')
             context.close()
             mobile=browser.new_context(viewport={'width':390,'height':844},is_mobile=True,has_touch=True,color_scheme='light')
-            mp=mobile.new_page();mp.on('pageerror',lambda error:errors.append(str(error)))
+            watch(mobile);mp=mobile.new_page()
             mp.goto('http://127.0.0.1:8937/Games/Jankolock3D/heroes/devhero-1.html');mp.wait_for_function('window.heroSnapshot && window.heroSnapshot().time > .2')
             assert mp.evaluate('document.documentElement.scrollWidth <= innerWidth')
             mp.get_by_role('button', name='Light theme', exact=True).tap()
@@ -138,10 +179,18 @@ def main():
                 x=(slot-1)*320;y=(hero-1)*200;sheet.paste(image,(x,y+20));labels.text((x+8,y+5),f'Hero {hero} / Ability {slot}',fill='#242820')
         sheet.save(OUT/'heroes-fx-contact-sheet.png')
         assert not errors, errors
-        print(f'hero-qa: {len(responses)} hero pages HTTP 200; {len(evidence)} screenshots; {len(checks)} observations; {len(errors)} retained errors. Reviewer acceptance pending.')
+        report['sourceHashesAfter']=source_hashes()
+        report['sourcesUnchanged']=report['sourceHashes']==report['sourceHashesAfter']
+        assert report['sourcesUnchanged'], 'Source/resource bytes changed during capture'
+        report['status']='COMPLETE-builder-checks-only'
+        print(f'hero-qa: {len(responses)} hero pages HTTP 200; {len(evidence)} screenshots; {len(checks)} observations; {len(errors)} retained errors; source hashes stable. Reviewer acceptance pending.')
+    except Exception as error:
+        report['status']='FAILED';report['failure']=f'{type(error).__name__}: {error}'
+        raise
     finally:
-        capacity();(OUT/'heroes-browser-report.json').write_text(json.dumps(report,indent=2)+'\n')
         server.shutdown();server.server_close()
+        report['storageAfter']=shutil.disk_usage(ROOT).free
+        capacity();(OUT/'heroes-browser-report.json').write_text(json.dumps(report,indent=2)+'\n')
 
 if __name__ == '__main__':
     main()

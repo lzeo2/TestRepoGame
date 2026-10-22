@@ -364,6 +364,38 @@ Disk recovery allowed only final docs/index work under a bounded 10 MB waiver,
 or push. Cleanup/evidence commits were not repeated. Model/source checks are
 not art/40FPS/hardware/full-release acceptance; 127 catalog entries remain.
 
+## Heroes restored-contract continuation
+
+The hero lane read the restored repository-root contract and verified MD5
+`aaa75071e498f6ca977db0e06fad2641` before resuming; earlier missing temporary
+spec/brief copies were not replaced with invented clauses. No Blender, new
+mesh, rig-pose change, UI restyle, kit rebalance or dependency was introduced.
+
+The active Snipeoff reveal now tracks current live enemy records and positions,
+including new targets and death/removal/team/range changes. It reuses cage
+geometry/materials and retains the original six-second lifetime, cooldown,
+cover-blocked shots and systems-owned damage. The shared runtime fix serves
+both integrated/bot target replacement and persistent range dummies. The Node
+regression verifies membership, replacement-position behavior, reuse, expiry,
+cleanup and unchanged health; direct-point FX callers remain compatible.
+
+The current hero runner preserves older captures by writing `heroes-resume/`
+under the existing audit directory. Fresh output records four entry HTTP200s,
+37 native screenshots, 24 observations, 270 total HTTP200 responses, zero
+retained errors and 106 stable source/resource hashes. It includes all sixteen
+abilities, pointer lock/aim, dash/double jump/slide/free ammo, wall clamp, mobile
+held/released touch, and native reveal across dummy death/respawn/expiry. Two
+labeled mockup twins and a contact sheet bring the packet to 40 PNGs. Images
+were inspected; mobile retains native 390px layout. Source hashes and native
+image SHA/variance are recorded, with explicit COMPLETE/FAILED status.
+
+This is current isolated E evidence, not builder grading or a replacement for
+independent integrated A-I review. The supplied rigid slide pose still reads
+upright; real hardware, handheld ergonomics, full matches and full-fleet release
+gates remain held. Historical art/letter/model receipts are not overwritten.
+See [hero API/receipt](../../../Games/Jankolock3D/heroes/HEROES.md) and
+[resume packet](../audits/jankolock-3d-qa/heroes-resume/README.md).
+
 ## Future outlook
 
 Independent stable-source A-I review and mockup comparison, human full-match
