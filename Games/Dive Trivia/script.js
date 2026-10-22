@@ -68,11 +68,11 @@
     }
   }
   function refreshDate() {
-    $('daily-date').textContent = core.utcDate() + ' · UTC · same prompts for everyone';
+    $('daily-date').textContent = core.utcDate() + ' UTC';
   }
   function launch() {
     stopClock(); run = null; screen('launch'); depth(); refreshDate(); showLast();
-    $('guide-copy').textContent = 'A small light for the way down. Bring an unexpected answer.';
+    $('guide-copy').textContent = 'Ready to dive.';
     $('playBtn').focus();
   }
   function start(mode, key) {
@@ -110,7 +110,7 @@
     $('reveal').hidden = true;
     $('answer').value = '';
     $('answer-key').open = false;
-    $('guide-copy').textContent = 'No rush to the next prompt. Each reveal is a chance to find something new.';
+    $('guide-copy').textContent = 'What did you find?';
     depth(); tick();
     timer = setInterval(tick, 150);
     $('answer').focus();
@@ -128,15 +128,15 @@
     $('timer').classList.remove('urgent');
     $('time-bar').value = 0;
     $('result-tier').textContent = result.recognized ? tiers[result.tier] + ' / +' + result.points + ' POINTS' : 'THIS ROUND / 0 POINTS';
-    $('result-title').textContent = result.recognized ? result.answer : result.timedOut ? 'The clock ran out.' : result.input ? 'Not in this answer key.' : 'A quiet stretch of water.';
-    $('result-copy').textContent = result.recognized ? '+' + (result.points * 10).toLocaleString('en') + ' metres. Editorial rarity, not a live popularity statistic.' : result.timedOut ? 'No answer was accepted before the 25-second deadline. Explore the key, then keep diving.' : result.input ? 'Your answer: “' + result.input + '”. An unlisted answer may be valid, but this curated key cannot score it.' : 'Passed. No points lost. Explore a few possibilities below.';
+    $('result-title').textContent = result.recognized ? result.answer : result.timedOut ? 'Time up.' : result.input ? 'Unlisted answer.' : 'Passed.';
+    $('result-copy').textContent = result.recognized ? 'Depth: ' + (run.total * 10).toLocaleString('en') + ' m' : result.timedOut ? 'No answer locked.' : result.input ? '“' + result.input + '” · 0 pts' : 'Passed. 0 pts';
     $('key-groups').replaceChildren(...run.prompts[run.index].groups.slice().sort((a, b) => a.tier - b.tier).map(group => {
       const p = node('p');
       p.append(node('b', tiers[group.tier] + ' · ' + points[group.tier] + ' points: '), document.createTextNode(group.answers.map(a => a.text).join(', ')));
       return p;
     }));
-    $('next').textContent = run.index === 6 ? 'See field notes' : 'Next question';
-    $('guide-copy').textContent = result.recognized ? 'A useful find. Your depth is now ' + (run.total * 10).toLocaleString('en') + ' metres.' : 'There is always another question. Take a look at the key before we move on.';
+    $('next').textContent = run.index === 6 ? 'See results' : 'Next question';
+    $('guide-copy').textContent = result.recognized ? 'A little deeper.' : 'Keep looking.';
     depth();
     if (result.points > 0) sonar();
     $('next').focus();
@@ -144,15 +144,11 @@
   function finish() {
     stopClock(); screen('finish');
     $('finish-total').textContent = (run.total * 10).toLocaleString('en') + ' metres';
-    $('finish-caption').textContent = run.total + ' / 700 points · ' + run.records.filter(r => r.recognized).length + ' of 7 answers recognized. Revisit the dive to try a different route.';
-    $('results').replaceChildren(...run.records.map((result, i) => {
-      const li = node('li');
-      li.append(node('div', run.prompts[i].text), node('strong', result.answer || (result.timedOut ? 'Time expired' : result.input || 'Passed')), node('span', result.points + ' points · ' + (result.recognized ? tiers[result.tier] : 'No recognized answer')));
-      return li;
-    }));
+    const best = run.records.reduce((pick, result) => result.recognized && (!pick || result.points > pick.points) ? result : pick, null);
+    $('finish-caption').textContent = best ? 'Best find: ' + best.answer + ' · ' + best.points + ' pts' : 'Best find: none';
     const label = selection.mode === 'daily' ? 'Daily ' + selection.key : selection.mode === 'numbered' ? 'Dive ' + selection.key : data.packs.find(p => p.id === selection.key).title;
-    $('save-status').textContent = save('dive-trivia:last:v1', JSON.stringify({ label, total: run.total })) ? 'Last completed result saved on this device only. Replays are practice.' : 'Storage is unavailable. Your result is shown here but will not be saved.';
-    $('guide-copy').textContent = 'Survey complete. A small collection of unexpected things, brought back to the surface.';
+    $('save-status').textContent = save('dive-trivia:last:v1', JSON.stringify({ label, total: run.total })) ? '' : 'Could not save on this device.';
+    $('guide-copy').textContent = 'Dive complete.';
     $('replay').focus();
   }
 
@@ -164,7 +160,7 @@
   for (const pack of data.packs) {
     const option = node('option', pack.title); option.value = pack.id; $('pack').append(option);
   }
-  $('tiers').replaceChildren(...tiers.map((tier, i) => { const chip = node('div', undefined, 'tier-chip'); chip.append(node('span', tier), node('b', String(points[i]))); return chip; }));
+  $('tiers').replaceChildren(...tiers.map((tier, i) => { const chip = node('div', undefined, 'tier-chip'); chip.append(node('span', tier), node('b', points[i] + ' pts')); return chip; }));
   $('version').textContent = 'Key ' + data.version + '.';
   setTheme(stored('dive-trivia:theme') === 'dark' ? 'dark' : 'light');
   $('theme').addEventListener('click', () => { setTheme(theme === 'dark' ? 'light' : 'dark'); save('dive-trivia:theme', theme); });

@@ -131,8 +131,6 @@ summary { min-height: 44px; display: list-item; padding: 9px 4px; font-size: 14p
 details p { font-size: 15px; color: var(--muted); }
 .tiers { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin: 7px 0 15px; }
 .tier-chip { padding: 7px 10px; background: var(--pale); font-size: 13px; display: flex; justify-content: space-between; gap: 12px; }
-.battle { border-top: 1px dashed var(--line); padding-top: 16px; }
-.battle p { font-size: 13px; color: var(--muted); margin: 8px 0 0; }
 footer { font-size: 11px; color: var(--muted); padding-top: 20px; margin-top: 24px; border-top: 1px dashed var(--line); }
 /* This is a transparent instrument in the full-page water, not an inset ocean card. */
 .ocean { position: sticky; top: 24px; height: calc(100svh - 240px); min-height: 650px; }
@@ -183,10 +181,6 @@ progress::-moz-progress-bar { background: var(--accent); }
 #key-groups b { color: var(--ink); }
 .finish-total { font-size: clamp(28px, 4vw, 42px); margin: 12px 0; color: var(--accent); }
 #finish-caption { color: var(--muted); }
-#results { padding-left: 23px; margin: 25px 0; }
-#results li { padding: 9px 0 9px 6px; border-bottom: 1px dashed var(--line); font-size: 14px; }
-#results strong { display: block; margin-top: 4px; }
-#results span { color: var(--muted); }
 [hidden] { display: none !important; }
 @media (max-width: 1050px) and (min-width: 780px) {
   main { grid-template-columns: minmax(270px, .7fr) minmax(0, 1.3fr); gap: 24px; }
@@ -213,6 +207,7 @@ progress::-moz-progress-bar { background: var(--accent); }
   .daily-box { align-items: flex-start; }
   .daily-box button { max-width: 160px; }
   .other-modes { gap: 16px; }
+  .tiers { grid-template-columns: 1fr; }
   #question { min-height: 0; margin-bottom: 22px; }
   .run-footer { margin-top: 24px; }
 }

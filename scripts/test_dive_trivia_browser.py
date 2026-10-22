@@ -130,7 +130,7 @@ def main():
                              {'mode': mode, 'key': key})
 
     def question(page, prompt, index):
-        assert page.locator('#question').inner_text() == prompt['text']
+        assert page.locator('#question').text_content() == prompt['text']
         assert page.locator('#round-count').inner_text() == f'{index + 1:02d} / 07'
         assert page.locator('#answer').is_visible()
         focused(page, 'answer')
@@ -156,7 +156,7 @@ def main():
             pick = next(group for group in prompt['groups'] if group['tier'] == tier)['answers'][0]
             answer(page, pick['text'])
             total += POINTS[tier]
-            assert page.locator('#result-title').inner_text() == pick['text']
+            assert page.locator('#result-title').text_content() == pick['text']
             assert f'+{POINTS[tier]} POINTS' in page.locator('#result-tier').inner_text()
             assert page.locator('#score').inner_text() == f'{total} / 700 points'
             if index == 0:
@@ -164,24 +164,22 @@ def main():
                 page.keyboard.type('ignored')
                 page.wait_for_timeout(180)
                 assert page.locator('#score').inner_text() == f'{total} / 700 points'
-                assert page.locator('#question').inner_text() == prompt['text']
+                assert page.locator('#question').text_content() == prompt['text']
                 if label:
                     capture(page, label, 'reveal')
                 act(page, '#answer-key summary')
                 assert page.locator('#key-groups p').count() == 6
                 assert pick['text'] in page.locator('#key-groups').inner_text()
                 layout(page, (label or 'run') + '/expanded-key')
-            assert page.locator('#next').inner_text() == ('See field notes' if index == 6 else 'Next question')
+            assert page.locator('#next').text_content() == ('See results' if index == 6 else 'Next question')
             act(page, '#next')
         page.locator('#finish').wait_for(state='visible')
         focused(page, 'replay')
         assert page.locator('#finish-total').inner_text() == f'{total * 10:,} metres'
         assert page.locator('#depth').inner_text() == f'{total * 10:,}'
-        assert '7 of 7 answers recognized' in page.locator('#finish-caption').inner_text()
-        rows = page.locator('#results li')
-        assert rows.count() == 7
-        for index, prompt in enumerate(prompts):
-            assert prompt['text'] in rows.nth(index).inner_text()
+        best = next(group for group in prompts[5]['groups'] if group['tier'] == 5)['answers'][0]['text']
+        assert page.locator('#finish-caption').text_content() == f'Best find: {best} · 100 pts'
+        assert page.locator('#results').count() == 0
         if label:
             capture(page, label, 'results')
         return observed
@@ -283,7 +281,7 @@ def main():
                     question(desktop, prompts[0], 0)
                     assert desktop.locator('#score').inner_text() == '0 / 700 points'
                     quit_dive(desktop, False)
-                    assert desktop.locator('#question').inner_text() == prompts[0]['text']
+                    assert desktop.locator('#question').text_content() == prompts[0]['text']
                     assert desktop.locator('#round-count').inner_text() == '01 / 07'
                     assert desktop.locator('#answer').is_visible()
                     quit_dive(desktop, True)
@@ -306,10 +304,10 @@ def main():
                     act(mobile, '#next')
                     act(mobile, '#pass')
                 act(mobile, '#next')
-                assert mobile.locator('#results strong').first.inner_text() == long_answer
+                assert mobile.locator('#finish-caption').text_content() == 'Best find: none'
                 capture(mobile, 'mobile-320-long-answer', 'results')
                 home(mobile)
-                passed('80-character unbroken answer wraps in 320px reveal and field notes')
+                passed('80-character unbroken answer wraps in 320px reveal; unlisted answer is not a best find')
 
                 act(desktop, '#playBtn')
                 attack = '<script>alert("x")</script>'
@@ -329,7 +327,7 @@ def main():
                 elapsed = time.monotonic() - before
                 assert 24.5 <= elapsed <= 33, f'Timeout observed after {elapsed:.2f}s'
                 assert desktop.locator('#timer').inner_text() == 'Time up'
-                assert desktop.locator('#result-title').inner_text() == 'The clock ran out.'
+                assert desktop.locator('#result-title').text_content() == 'Time up.'
                 assert desktop.locator('#score').inner_text() == '0 / 700 points'
                 focused(desktop, 'next')
                 report['real_timeout_seconds'] = round(elapsed, 3)
@@ -339,11 +337,10 @@ def main():
                     act(desktop, '#pass')
                 act(desktop, '#next')
                 assert desktop.locator('#finish-total').inner_text() == '0 metres'
-                assert attack in desktop.locator('#results').inner_text()
-                assert desktop.locator('#results script').count() == 0
-                assert desktop.locator('#results li').count() == 7
-                assert desktop.locator('#results strong').all_text_contents() == [attack, 'Passed', 'Time expired'] + ['Passed'] * 4
-                passed(f'unknown <script> literal in reveal/results, pass, real timeout {elapsed:.2f}s, zero-score finish')
+                assert desktop.locator('#finish-caption').text_content() == 'Best find: none'
+                assert desktop.locator('#finish script').count() == 0
+                assert desktop.locator('#results').count() == 0
+                passed(f'unknown <script> literal safely revealed, pass, real timeout {elapsed:.2f}s, zero-score summary')
 
                 for fault in ('malformed', 'blocked'):
                     page = touch_context.new_page()
@@ -362,15 +359,15 @@ def main():
                     act(page, '#playBtn')
                     finish_run(page, expected)
                     status = page.locator('#save-status').inner_text()
-                    assert ('Storage is unavailable' if fault == 'blocked' else 'saved on this device only') in status
+                    assert status == ('Could not save on this device.' if fault == 'blocked' else '')
                     home(page)
                     act(page, '#playBtn')
                     question(page, expected[0], 0)
                     quit_dive(page, True)
                     page.close()
                     passed(f'{fault} localStorage: launch, theme, seven typed rounds, save feedback and restart')
-                assert 'Online rooms are not enabled' in mobile.locator('.battle').inner_text()
-                passed('battle phase 2 remains disabled; no online-session proof claimed')
+                assert mobile.get_by_role('button', name='Battle', exact=True).count() == 0
+                passed('solo UI has no Battle launcher; no online-session proof claimed')
                 desktop.wait_for_timeout(200)
             finally:
                 if browser is not None:
