@@ -18,7 +18,7 @@
     "candidateGeometryAgainstExistingAsset": "FAIL: older roof; no driver node",
     "workerStartup": "PASS: real worker module with fake transport/fallback",
     "sourceStartupClock": "PASS: actual source gate/failure bodies with fake clock; 30s / unchanged 20s",
-    "collectorVerdictAndOwnership": "PASS: no-browser escaped new-session child after leader exit; first failure and atomic three-attempt history"
+    "collectorVerdictAndOwnership": "PASS: Linux subreaper/new-session escaped-child cleanup, pidfd ownership; incomplete supervisor receipt cannot pass; atomic history and pre-cleanup failure"
   },
   "nativeGameplay": "HOLD; required water frame not captured",
   "fullFleet": "DEFERRED; zero visits",
@@ -60,8 +60,8 @@
     "findings": []
   },
   "generatedBytes": 4979106,
-  "sourceMilestone": "startup follow-up on b1b25a6; source commit recorded by next inventory milestone",
-  "inventoryCheck": "PASS: 132 game documents, 127 registered + 5 unregistered",
+  "sourceMilestone": "8b4b61542839dbcd43d7b449b4c006559eb7e5ea",
+  "inventoryCheck": "PASS: 132 game documents, 127 registered + 5 unregistered; Wings99files/22099756bytes",
   "freeBytesAtClose": 2511527936,
   "freeBytesAtStart": 4001660928,
   "sharedHostFreeDelta": -1490132992,
@@ -117,5 +117,6 @@
     "pi-2229574-1792642366676-041a8669"
   ],
   "freeBytesBeforeAttempt3": 4057956352,
-  "freeBytesAfterAttempt3Cleanup": 4045205504
+  "freeBytesAfterAttempt3Cleanup": 4045205504,
+  "inspectedStartupTree": "a7fe7ca395a6089c49c543a544fad2f3ab53512e"
 }
