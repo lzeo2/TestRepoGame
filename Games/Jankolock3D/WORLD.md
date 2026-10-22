@@ -4,6 +4,38 @@ Standalone, unregistered world/traversal viewer: `world.html`. This is an
 operator-authorized original rebuild, not an ingested game or a finished MOBA.
 No catalog change, gameplay HUD, hero work, push or publication is included.
 
+## Contract availability after operator recovery
+
+At the latest resumed preflight, both operator temporary files
+`jank3d-spec.md` and `jank3d-brief-world.txt` were unavailable. They are
+operator-missing inputs, not files deleted or recreated by this team. Earlier
+successful reads and the operator's pasted world assignment remain in the
+session record. The retained world-only contract is:
+
+1. A stylized Manhattan-parody three-lane scene (yellow/blue/green), buildings
+   10-30m high with routeable rooftops, skybox, directional/ambient light and fog.
+   The brief requested a gradient skybox; the higher-priority no-gradient rule
+   remains applied to the solid-color skybox implementation.
+2. A roughly900x900m map with Guardian, Walker, two Base Guardians, two Shrines
+   and Patron placements per team/lane.
+3. Station-to-station lane ziplines with hop on/off and3x walking speed, one
+   teleporter pair, two rooftop air vents, and a Staple Tower rope with roof
+   soul-crates that ring an original bell sound on collection.
+4. Two jungle camps with breakable crates and cover, plus a sewer/underpass
+   below the mid bridge for the Mid-Boss.
+5. A sunken fog plaza that drains stamina inside.
+6. Simple player capsule/AABB road/building collision and Guardian-area
+   slope/stair approaches.
+
+The assigned acceptance is A (three walkable3D lanes and rideable ziplines),
+plus geometry for later mechanics, JSON export at `docs/jank3d-spawns.json`,
+and standalone `world.html` with spectator WASD/flythrough. Do not build
+heroes, gameplay or HUD in the world task. Report files, screenshots and
+blockers; independent reviewers grade, not the builder. This is a retained
+scope transcription, not a newly invented or reconstructed shared spec.
+Missing temporary inputs do not suspend the existing disk, ownership, IP,
+mockup, browser-serialization or no-push boundaries.
+
 ## Source and provenance
 
 All district geometry, map coordinates, materials, labels and traversal code are

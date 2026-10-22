@@ -185,6 +185,11 @@ counts or FPS. `world-test.mjs` again passed491 assertions. The new environment
 and ACES/hemisphere lighting need fresh browser/subjective review; earlier A-I
 screenshots do not accept these changed runtime bytes.
 
+WORLD.md records that both operator temporary contract files were unavailable
+at the latest resumed preflight. Work retains the previously read/pasted
+world-only brief; no replacement shared-spec clauses were invented. Disk was
+above the normal guard, so the missing temporary copies are not an idle gate.
+
 Inventory refresh is limited to committed source. Another owner's staged
 Turretina model files correctly block the checker until committed; never stage
 or reset them to manufacture a pass. Aggregate model budgets remain an
