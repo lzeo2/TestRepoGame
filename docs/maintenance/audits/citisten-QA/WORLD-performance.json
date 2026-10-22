@@ -1,0 +1,37 @@
+{
+  "scope": "World API fixtures, not integrated game acceptance",
+  "errors": [],
+  "externalRequests": [],
+  "failedRequests": [],
+  "browserVersion": "149.0.7827.196",
+  "angleRequested": "swiftshader",
+  "pitchBounds": [
+    -1.5507963267948965,
+    1.5507963267948965
+  ],
+  "exclusiveBrowserChecks": 25,
+  "performance": {
+    "size": 128,
+    "lots": 16384,
+    "viewport": [
+      1280,
+      720
+    ],
+    "frames": 29,
+    "sampleSeconds": 15.899399999999998,
+    "fps": 1.823968200057864,
+    "medianMs": 449.90000000000146,
+    "p95Ms": 1233.4000000000015,
+    "calls": 19,
+    "triangles": 248878,
+    "roadLots": 3721,
+    "modelInstances": 3624,
+    "cameraY": 400,
+    "measuredSeconds": 31.681299999952316,
+    "targetFps": 40,
+    "meetsTarget": false
+  },
+  "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (LLVM 16.0.0) (0x0000C0DE)), SwiftShader driver)",
+  "diskBefore": 3873755136,
+  "diskAfter": 3873468416
+}

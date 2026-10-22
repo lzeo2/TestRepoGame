@@ -94,6 +94,38 @@ Initial maintenance checker: `PASS: 132 game documents cover 127 registered
 + 5 unregistered games; Git inventory current.` This predates world source
 staging/registration and is not new-game inventory acceptance.
 
+### Current world evidence (2026-10-22)
+
+All files below are in `docs/maintenance/audits/citisten-QA/`. World evidence
+is an API/specimen gate, not integrated-game acceptance or reviewer grading.
+
+- `A-world-street.png`, `A-world-overhead.png`: native wheel reached 2.0075m
+  and 399.9008m; four native WASD inputs and both right/middle drags exercised.
+  Default spectator movement was observed. Details: `WORLD-results.json`.
+- `E-world-lanes-fixture.png`: one API fixture car traversed 30 rendered
+  positions along a road route including a corner; each position checked against
+  road occupancy. This is not systems-owned traffic behavior acceptance E.
+- `WORLD-kit.png`, `WORLD-agents.png`: all 14 kit types plus closer citizen,
+  hunched zombie and car silhouettes. Kit fronts/town-hall columns inspected.
+- `WORLD-day.png`, `WORLD-night.png`: solid day/night sky and lighting look;
+  overhead road depth flicker and bright night-grid artifacts corrected and
+  recaptured. This is not wave behavior acceptance F.
+- `WORLD-performance.png`, `WORLD-performance.json`, `WORLD-performance-run.txt`:
+  **render budget HOLD, exit 1**. System Chromium 149.0.7827.196 / ANGLE
+  SwiftShader, 1280x720 framebuffer, 128x128 lots, 3,624 model instances,
+  3,721 road lots, 248,878 triangles, 19 calls. Measured **1.823968 FPS** over
+  29 frames / 15.8994 seconds; median 449.9ms, p95 1233.4ms. Target remains
+  40 FPS; no density/framebuffer reduction or acceptance waiver. 25 process
+  checks found no competing browser during warmup/measurement. Page errors,
+  console errors, failed requests and external requests were empty. Camera
+  pitch bounds separately checked at +/-1.5508 radians.
+
+The final numeric benchmark is uncontended software-renderer evidence, not
+proof that hardware rendering would pass. Previous timeout/failed attempt logs
+are retained separately. Traceback host paths were redacted to relative paths.
+A fresh hardware-backed run and/or measured rendering optimization is still
+needed for the 40fps gate. No more browser process/server is left by this lane.
+
 ## Known blockers and inspected-source limits
 
 Only this lane's authored modules and local dependency identity were inspected.
@@ -101,7 +133,10 @@ Three.js internals are not audited. The untouched upstream `three.core.js`
 contains one pre-existing whitespace warning at line 49957 (space before tab);
 authored diffs are checked separately rather than modifying vendored bytes. No touch camera gestures are implemented;
 integrated UI lane must address touch controls if included in release scope.
-No native GPU or target-device performance claim without the recorded run.
+No native GPU or target-device performance claim without a recorded run.
+Performance advice ticket `pi-2075770-1792626920824-a20b4c64` timed out and
+remains unresolved; it grants no gate waiver. Browser contention was resolved
+for the final measured window through explicit cross-team holds.
 E traffic behavior and F waves are systems gates, not proven by static models.
 The first Chromium attempt caught an initial negative rAF delta relative to
 `performance.now()`; clamping the demo's first delta fixes that startup crash.

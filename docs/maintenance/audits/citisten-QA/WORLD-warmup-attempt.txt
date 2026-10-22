@@ -1,0 +1,30 @@
+127.0.0.1 - - [22/Oct/2026 10:50:26] "GET /Games/Citisten3D/world.html HTTP/1.1" 200 -
+127.0.0.1 - - [22/Oct/2026 10:50:27] "GET /Games/Citisten3D/world-demo.mjs HTTP/1.1" 200 -
+127.0.0.1 - - [22/Oct/2026 10:50:27] "GET /Games/Citisten3D/world.mjs HTTP/1.1" 200 -
+127.0.0.1 - - [22/Oct/2026 10:50:27] "GET /Games/Citisten3D/vendor/three.module.js HTTP/1.1" 200 -
+127.0.0.1 - - [22/Oct/2026 10:50:27] "GET /Games/Citisten3D/buildings.mjs HTTP/1.1" 200 -
+127.0.0.1 - - [22/Oct/2026 10:50:27] "GET /Games/Citisten3D/roads.mjs HTTP/1.1" 200 -
+127.0.0.1 - - [22/Oct/2026 10:50:27] "GET /Games/Citisten3D/daynight.mjs HTTP/1.1" 200 -
+127.0.0.1 - - [22/Oct/2026 10:50:27] "GET /Games/Citisten3D/camera.mjs HTTP/1.1" 200 -
+127.0.0.1 - - [22/Oct/2026 10:50:27] "GET /Games/Citisten3D/world-effects.mjs HTTP/1.1" 200 -
+127.0.0.1 - - [22/Oct/2026 10:50:27] "GET /Games/Citisten3D/vendor/three.core.js HTTP/1.1" 200 -
+{
+  "scope": "World API fixtures, not integrated game acceptance",
+  "errors": [],
+  "externalRequests": [],
+  "failedRequests": [],
+  "browserVersion": "149.0.7827.196",
+  "angleRequested": "swiftshader",
+  "diskBefore": 4001755136,
+  "diskAfter": 4001730560
+}
+Traceback (most recent call last):
+  File "Games/Citisten3D/world-qa.py", line 187, in <module>
+    main()
+    ~~~~^^
+  File "Games/Citisten3D/world-qa.py", line 89, in main
+    assert tour_start != tour_end, 'Default spectator must move'
+           ^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Default spectator must move
+
+WORLD_QA_EXIT=1

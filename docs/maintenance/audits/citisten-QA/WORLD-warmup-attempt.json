@@ -1,0 +1,10 @@
+{
+  "scope": "World API fixtures, not integrated game acceptance",
+  "errors": [],
+  "externalRequests": [],
+  "failedRequests": [],
+  "browserVersion": "149.0.7827.196",
+  "angleRequested": "swiftshader",
+  "diskBefore": 4001755136,
+  "diskAfter": 4001730560
+}
