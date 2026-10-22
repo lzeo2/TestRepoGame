@@ -20,17 +20,22 @@
 6. Added a bundled, dependency-free Node simulation regression and its TypeScript source in `verification/`.
 7. The original operator-approved Astra pair was subsequently retired after consumer tracing. Current F-15 and F-35 models use original procedural geometry, with generation by openai-codex/gpt-6-astra and repairs by openai-codex/gpt-6.1-sol. Dark paint, ammo-linked stores, exhaust, recessed F-35 bays, distinct existing-weapon fits and geometry-derived camera/launch points follow the standing quality contract. See `docs/models.md` for hashes, authorship and recipe. This does not establish ownership or resolve the upstream game/model redistribution question.
 
-No catalog registration, multiplayer service, third-party runtime load, or new game engine was added. This port has no fixed world seed override.
+8. Added the existing experimental speedboat to the same vehicle roster/picker and retained a dedicated patrol action. Held drive/steer/brake, cannon, depth charge, seat and water-spawn paths use the existing simulation. The selected hull bytes remain unchanged; its missing driver/older roof are not accepted repairs.
+9. Added local offline two-team Capture the Flag: authoritative pickup/drop/return/capture rules, timer/score limit, mixed plane/boat AI, flag-base spawns and a real natural-water route between Mainland and Isle 2. New flags/route markers are locally authored primitives, not downloaded assets. Existing patrol/Fleet defaults and original vehicle slots remain unchanged. See the [CTF contract](../../docs/wings-ctf-contract.md) and [staging receipt](../../docs/maintenance/audits/wings-ctf-20261022/README.md); CPU simulation does not certify native rendering or rights.
+
+No catalog registration, multiplayer service, third-party runtime load, or new game engine was added. This port has no fixed world seed override; CTF uses the existing map.
 
 ## Play and reset
 
-Serve the site with any static HTTP server and open this directory's `index.html`. Choose Solo flight, then an aircraft (1 selects the fighter). Default controls: W/S throttle, arrow down/up pitch up/down, A/D roll, Q/E full roll, Shift boost, mouse steering, left/right mouse weapons. Controls and Settings contain the full upstream reference. Escape opens the menu; Leave match returns to the lobby for a fresh local session. Keyboard and mouse are required; touch flight has not been implemented or certified. Preferences use upstream `wings.settings` and `wings.autoQuality` localStorage keys.
+Serve the site with any static HTTP server and open this directory's `index.html`. Choose Solo flight, then a vehicle (1 selects the fighter; 8 selects the speedboat), or Capture the flag for its mode/vehicle setup. Existing patrol and fleet options remain available. Default controls: W/S throttle, arrow down/up pitch up/down, A/D roll, Q/E full roll, Shift boost, mouse steering, left/right mouse weapons. Controls and Settings contain the full upstream reference. Escape opens the menu; Leave match returns to the lobby for a fresh local session. Keyboard and mouse are required; touch flight has not been implemented or certified. Preferences use upstream `wings.settings` and `wings.autoQuality` localStorage keys.
 
 ## Build and regression
 
-In a separate checkout of the pinned upstream revision, apply `port.patch` from the upstream root. Copy the current `models/f15.glb` and `models/f35.glb` into `games/wings/public/models/`; the patch does not embed these generated binary assets. Use existing externally staged dependencies. The bounded operator approval covered Vite 7.3.7, Three 0.186.0, Rollup 4.64.5 and esbuild 0.28.2 on the build PC. It does not authorize installing repository or Pi tooling.
+In a separate checkout of the pinned upstream revision, apply `port.patch` from the upstream root. Copy the current `models/f15.glb`, `models/f35.glb` and `models/speedboat.glb` into `games/wings/public/models/`; the patch does not embed these generated binary assets. Use existing externally staged dependencies. The bounded operator approval covered Vite 7.3.7, Three 0.186.0, Rollup 4.64.5 and esbuild 0.28.2 on the build PC. It does not authorize installing repository or Pi tooling.
 
-From the staged `games/wings` directory, run `bun --preserve-symlinks node_modules/vite/bin/vite.js build`. Output is `dist/`, not a nested `dist/arcade/wings/` directory. Deliver rebuilt HTML/chunks after checking their local references and retiring traced old hashes. Preserve models, notices, documentation and verification files when copying output. Never hand-edit generated bundles. No typecheck PASS is claimed.
+The current bounded source builder is `scripts/build_wings.mjs`: pass the applied source, existing external Three/esbuild package roots and an empty output directory. It installs nothing and checks generated imports, HTML/CSS and worker closure. Fonts/models remain local delivery inputs; authored HTML font URLs receive the established relative-URL delivery normalization. Do not substitute dependency versions.
+
+Historical build-PC path: from the staged `games/wings` directory, run `bun --preserve-symlinks node_modules/vite/bin/vite.js build`. Output is `dist/`, not a nested `dist/arcade/wings/` directory. Deliver rebuilt HTML/chunks after checking their local references and retiring traced old hashes. Preserve models, notices, documentation and verification files when copying output. Never hand-edit generated bundles. No typecheck PASS is claimed.
 
 Run from the site root:
 
@@ -41,6 +46,20 @@ node Games/Wings/verification/solo-check.mjs
 The regression is bundled from upstream simulation modules, not a replacement simulation. To rebuild it, copy `verification/solo-check.ts` into the upstream `games/wings` directory and run `bun build solo-check.ts --target=node --outfile=solo-check.mjs`.
 
 ## Current verification
+
+The [CTF staging receipt](../../docs/maintenance/audits/wings-ctf-20261022/README.md)
+records the current source/CPU scope and missing Chromium evidence. Pure rules,
+normal-input plane/boat captures, real mixed-combat loopback capture/end/restart,
+timer and geometry/lifecycle checks pass. They do not grant native layout,
+flag-run/water pixels, roof/driver, audio, hardware, whole-scene budget or rights
+acceptance. Three earlier boat-native attempts remain HOLD; no push or full
+127-game loading gate was performed in this lane.
+
+Additional bundled regressions: `verification/ctf-check.mjs`,
+`ctf-bots-check.mjs`, `ctf-view-check.mjs`, `ctf-integration-check.mjs` and
+`ctf-ui-check.mjs`. The UI/source check needs the applied authored `games/wings`
+directory as its argument; the others run without a browser. Readable TypeScript
+and the pinned patch are retained for rebuilding and review.
 
 The 2026-10-17 repair baseline passed deterministic geometry/CPU/solo checks and the unchanged full catalog loading gate: **125/125, exit 0** at `b52d942`. Both jets also passed bounded Windows WebGPU flight, cannon, exit/restart and respawn checks. Four unavailable-GPU UI cases passed. The [current manual](../../docs/maintenance/games/232-wings.md) and [repair receipt](../../docs/maintenance/audits/wings-repair-20261017.md) distinguish these scopes from subsequent input/toast changes and remaining combat, hardware and rights checks. Later continuation evidence is recorded separately; older results below remain historical.
 

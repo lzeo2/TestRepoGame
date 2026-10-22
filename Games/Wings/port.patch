@@ -1315,6 +1315,779 @@ index 0000000..e35e410
 @@ -0,0 +1,2 @@
 +<!doctype html>
 +<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Wings UI regression</title><meta name="description" content="Renderer-free Wings hangar and HUD layout regression. Not rendered flight."></head><body><script type="module" src="./ui-check.ts"></script></body></html>
+diff --git a/games/wings/ctf-bots-check.ts b/games/wings/ctf-bots-check.ts
+new file mode 100644
+index 0000000..4b5b026
+--- /dev/null
++++ b/games/wings/ctf-bots-check.ts
+@@ -0,0 +1,102 @@
++// CPU fixtures, not native gameplay evidence. Bundle with the existing esbuild, run with Node.
++import assert from "node:assert/strict"
++import { createHash } from "node:crypto"
++import { botInput, ctfBotInput, createBotBrain, chooseBotVehicle } from "./src/sim/bots"
++import { createFlightState, stepFlight, boatNavigable, yawPitchRoll } from "./src/sim/flight"
++import { createWeapons } from "./src/sim/combat"
++import { createCtfState, stepCtf, type CtfEvent } from "./src/sim/ctf"
++import { CTF_HOMES, ctfSpawnPoint } from "./src/sim/ctf-map"
++import { bakeWorld, setFleetState, worldQuery } from "./src/sim/geography"
++import { VEHICLES } from "./src/sim/vehicles"
++import { TICK_DT, type PlayerInfo, type VehicleEntity, type VehicleKind } from "./src/sim/types"
++
++function fixture(team: 0 | 1, kind: VehicleKind) {
++  const bot: PlayerInfo = { id: "bot", name: "bot", bot: true, team, vehicleId: "vehicle", seat: 0, kills: 0, deaths: 0, respawnAt: 0 }
++  const spec = VEHICLES[kind]
++  const vehicle: VehicleEntity = {
++    id: "vehicle", kind, team, flight: createFlightState(kind, ctfSpawnPoint(team, kind === "speedboat", 0)),
++    hp: spec.maxHp, maxHp: spec.maxHp, seats: [bot.id, null], aim: [null, null], weapons: createWeapons(kind),
++    flaresReadyAt: 0, flareCount: 10, abilityReadyAt: 0, spottedUntil: 0, lastDamagedBy: null, alive: true,
++  }
++  return { bot, vehicle, brain: createBotBrain(56, 0.7) }
++}
++setFleetState(0, 2)
++console.log(JSON.stringify({ bakeMs: bakeWorld(), scope: "CPU default geography, actual inputs/physics/flag authority; no respawns or pose corrections" }))
++let failed = false
++for (const kind of (process.argv.includes("--classic-only") ? [] : ["speedboat", "fighter", "f15", "f35"]) as VehicleKind[]) for (const team of [0, 1] as const) {
++  const { bot, vehicle, brain } = fixture(team, kind)
++  const ctf = createCtfState(CTF_HOMES, 1), receipts: (CtfEvent & { tick: number })[] = []
++  let tick = 0, minPickup = Infinity, maxAltitude = 0, minAltitude = Infinity, winner: number | null = null
++  for (; tick < 600 / TICK_DT; tick++) {
++    const now = tick * TICK_DT
++    setFleetState(now, 2)
++    const before = JSON.stringify([vehicle.flight, ctf])
++    const out = ctfBotInput(brain, bot, vehicle, [vehicle], now, ctf)
++    assert.equal(JSON.stringify([vehicle.flight, ctf]), before, "AI must not move hulls or grant flag state")
++    assert(out.flight)
++    for (const value of [out.flight.throttle, out.flight.yaw, out.flight.pitch, out.flight.roll, ...(out.flight.aim ?? [])]) assert(Number.isFinite(value))
++    stepFlight(vehicle.flight, out.flight, TICK_DT, worldQuery)
++    const pos = vehicle.flight.position
++    if (kind === "speedboat" && tick % 60 === 0) assert(boatNavigable(worldQuery, pos[0], pos[2], yawPitchRoll(vehicle.flight.orientation).yaw))
++    minPickup = Math.min(minPickup, Math.hypot(...pos.map((v, i) => v - CTF_HOMES[1 - team][i])))
++    maxAltitude = Math.max(maxAltitude, pos[1]); minAltitude = Math.min(minAltitude, pos[1])
++    winner = stepCtf(ctf, [vehicle], now, worldQuery.groundHeight, event => receipts.push({ ...event, tick }))
++    if (winner !== null || vehicle.flight.crashed) break
++  }
++  const result = { kind, team, winner, tick, seconds: +(tick * TICK_DT).toFixed(2), crash: vehicle.flight.crashed,
++    pos: vehicle.flight.position.map(v => +v.toFixed(2)), minPickup: +minPickup.toFixed(2), minAltitude, maxAltitude, receipts,
++    route: brain.memory.ctfRoute }
++  console.log(JSON.stringify(result))
++  if (winner !== team || vehicle.flight.crashed || !receipts.some(e => e.action === "pickup") || !receipts.some(e => e.action === "capture")) failed = true
++}
++if (!process.argv.includes("--classic-only")) {
++  // Initial authority fixtures test priorities, not awarded pickup/capture evidence.
++  const own = fixture(0, "fighter"), carrier = fixture(1, "f35").vehicle
++  carrier.id = "stealth-carrier"
++  const initial = createCtfState(CTF_HOMES, 1)
++  const stolen = { ...initial, flags: [{ ...initial.flags[0], carrierId: carrier.id, position: [...carrier.flight.position] }, initial.flags[1]] } as typeof initial
++  const out = ctfBotInput(own.brain, own.bot, own.vehicle, [own.vehicle, carrier], 10, stolen)
++  assert.equal(own.brain.state.targetId, carrier.id, "known stealth flag carrier remains an intercept target")
++  assert(out.seat.aim && out.seat.aim[0] > 0)
++  const boat = fixture(0, "speedboat")
++  ctfBotInput(boat.brain, boat.bot, boat.vehicle, [boat.vehicle, carrier], 10, stolen)
++  assert.equal((boat.brain.memory.ctfRoute as { goal: string }).goal, "water-home", "boat must not pursue an airborne flag")
++  const dropped = { ...initial, flags: [{ ...initial.flags[0], droppedAt: 0 }, initial.flags[1]] } as typeof initial
++  ctfBotInput(boat.brain, boat.bot, boat.vehicle, [boat.vehicle], 1, dropped)
++  assert.equal((boat.brain.memory.ctfRoute as { goal: string }).goal, "return:0")
++  const replacement = fixture(0, "speedboat").vehicle
++  replacement.id = "replacement"
++  ctfBotInput(boat.brain, boat.bot, replacement, [replacement], 2, initial)
++  assert.equal((boat.brain.memory.ctfRoute as { vehicleId: string }).vehicleId, replacement.id)
++  console.log("objective priorities/airborne fallback/vehicle-memory reset PASS")
++}
++// Compare this digest against the same fixture bundled with base 2f4e00e's unchanged bots.ts.
++const classic = createHash("sha256")
++setFleetState(0, 2)
++for (const kind of ["fighter", "apache", "warthog", "blackbird", "bomber"] as const) {
++  for (const seat of [0, 1] as const) {
++    const a = fixture(0, kind), b = fixture(0, kind), enemy = fixture(1, "fighter").vehicle
++    enemy.id = "enemy"
++    a.bot.seat = b.bot.seat = seat
++    for (let i = 0; i < 120; i++) {
++      const out = botInput(a.brain, a.bot, a.vehicle, [a.vehicle, enemy], i * TICK_DT)
++      assert.deepEqual(out, botInput(b.brain, b.bot, b.vehicle, [b.vehicle, enemy], i * TICK_DT))
++      classic.update(JSON.stringify(out))
++      if (out.flight) {
++        stepFlight(a.vehicle.flight, out.flight, TICK_DT, worldQuery)
++        stepFlight(b.vehicle.flight, b.brain.out.flight, TICK_DT, worldQuery)
++      }
++    }
++  }
++  const a = fixture(0, kind)
++  for (let i = 0; i < 100; i++) {
++    const choice = chooseBotVehicle(a.bot, [a.bot], [], () => i / 100)
++    assert(!["speedboat", "f15", "f35"].includes(choice))
++    classic.update(choice)
++  }
++}
++const digest = classic.digest("hex")
++assert.equal(digest, "258e3c43c437ccf87c0b34724699005cdfa5f9fc25efbf63612e4fc91313a0f0", "classic outputs differ from base 2f4e00e")
++console.log("classic sha256=" + digest)
++console.log("classic determinism/default weights PASS; capture fixtures " + (process.argv.includes("--classic-only") ? "SKIPPED" : failed ? "FAIL" : "PASS"))
++assert(!failed, "ordinary-input CTF capture failed; see diagnostics above")
+diff --git a/games/wings/ctf-check.ts b/games/wings/ctf-check.ts
+new file mode 100644
+index 0000000..cca9166
+--- /dev/null
++++ b/games/wings/ctf-check.ts
+@@ -0,0 +1,217 @@
++// Synthetic CPU positions only. Not native gameplay, navigation, or integration evidence.
++import assert from "node:assert/strict"
++import { cloneCtfState, createCtfState, stepCtf } from "./src/sim/ctf"
++import type { CtfEvent, CtfState } from "./src/sim/ctf"
++import type { Vec3, VehicleEntity } from "./src/sim/types"
++
++function vehicle(id: string, team: VehicleEntity["team"], position: Vec3, kind: VehicleEntity["kind"] = "fighter"): VehicleEntity {
++  return {
++    id, team, kind, hp: 100, maxHp: 100, alive: true, seats: [id, null], aim: [null, null],
++    weapons: [[], []], flaresReadyAt: 0, flareCount: 0, abilityReadyAt: 0, spottedUntil: 0,
++    lastDamagedBy: null,
++    flight: {
++      kind, position: [...position], velocity: [0, 0, 0], orientation: [0, 0, 0, 1],
++      angularVelocity: [0, 0, 0], throttle: 0, onGround: false, gearDown: false,
++      crashed: null, tick: 0,
++    },
++  }
++}
++const homes: [Vec3, Vec3] = [[0, 1, 0], [1000, 1, 0]]
++const events: CtfEvent[] = []
++const surface = (x: number, z: number) => x / 100 + z / 10
++function tick(state: CtfState, vehicles: readonly VehicleEntity[], now = 0) {
++  events.length = 0
++  const before = JSON.stringify(vehicles)
++  const winner = stepCtf(state, vehicles, now, surface, event => events.push(event))
++  assert.equal(JSON.stringify(vehicles), before, "authority must not mutate vehicles")
++  const changed = new Set<number>()
++  for (const event of events) {
++    assert.equal(event.type, "flag")
++    assert(!changed.has(event.team), "at most one transition per flag per tick")
++    changed.add(event.team)
++  }
++  const carriers = state.flags.flatMap(flag => flag.carrierId === null ? [] : [flag.carrierId])
++  assert.equal(new Set(carriers).size, carriers.length, "one flag per vehicle")
++  return winner
++}
++let checks = 0
++function check(name: string, run: () => void) {
++  run()
++  checks++
++  console.log(`PASS ${name}`)
++}
++
++check("constructor, nested clone and input-home isolation; limits 1..1000", () => {
++  const input: [Vec3, Vec3] = [[1, 2, 3], [4, 5, 6]]
++  const state = createCtfState(input, 3)
++  input[0][0] = 999
++  assert.equal(state.flags[0].home[0], 1)
++  state.flags[0].position[0] = 888
++  assert.equal(state.flags[0].home[0], 1)
++  const clone = cloneCtfState(state)
++  clone.flags[0].home[0] = 7
++  clone.flags[0].position[1] = 7
++  clone.flags[1].home[2] = 7
++  clone.flags[1].position[2] = 7
++  clone.flags[1].carrierId = "different"
++  clone.scores[0] = 7
++  clone.scores[1] = 7
++  assert.equal(state.flags[0].home[0], 1)
++  assert.equal(state.flags[0].position[1], 2)
++  assert.deepEqual(state.flags[1].home, [4, 5, 6])
++  assert.deepEqual(state.flags[1].position, [4, 5, 6])
++  assert.equal(state.flags[1].carrierId, null)
++  assert.deepEqual(state.scores, [0, 0])
++  for (const limit of [0, -1, 1.5, 1001, NaN, Infinity]) assert.throws(() => createCtfState(homes, limit), RangeError)
++  createCtfState(homes, 1)
++  createCtfState(homes, 1000)
++  for (const bad of [NaN, Infinity, -Infinity]) assert.throws(() => createCtfState([[bad, 0, 0], homes[1]], 3), RangeError)
++  const shared: Vec3 = [1, 2, 3]
++  const independent = createCtfState([shared, shared], 3)
++  independent.flags[0].home[0] = 9
++  assert.equal(independent.flags[1].home[0], 1)
++})
++
++check("alive, HP, occupied seats, team isolation and real 3D radius", () => {
++  const state = createCtfState(homes, 3)
++  const dead = vehicle("dead", 0, homes[1]); dead.alive = false
++  const zero = vehicle("zero", 0, homes[1]); zero.hp = 0
++  const negative = vehicle("negative", 0, homes[1]); negative.hp = -1
++  const empty = vehicle("empty", 0, homes[1]); empty.seats = [null, null]
++  const high = vehicle("high", 0, [1000, 41.01, 0])
++  const diagonal = vehicle("diagonal", 0, [1030, 31, 0])
++  tick(state, [dead, zero, negative, empty, high, diagonal, vehicle("two", 2, homes[1]), vehicle("three", 3, homes[1]), vehicle("friendly", 1, homes[1])])
++  assert.equal(events.length, 0)
++  const passenger = vehicle("passenger", 0, [1000, 41, 0], "speedboat")
++  passenger.seats = [null, "crew"]
++  tick(state, [passenger])
++  assert.equal(state.flags[1].carrierId, passenger.id)
++  assert.deepEqual(events, [{ type: "flag", action: "pickup", team: 1, vehicleId: passenger.id }])
++})
++
++check("stable candidate order, carrier following, no own-home/carried steal", () => {
++  const state = createCtfState(homes, 3)
++  const first = vehicle("first", 0, homes[1]), second = vehicle("second", 0, homes[1])
++  tick(state, [first, second])
++  assert.equal(state.flags[1].carrierId, "first")
++  first.flight.position = [750, 200, 40]
++  tick(state, [first, second, vehicle("owner", 1, first.flight.position)])
++  assert.deepEqual(state.flags[1].position, [750, 202, 40])
++  assert.equal(events.length, 0)
++  assert.equal(state.flags[0].carrierId, null)
++})
++
++check("both teams steal; own flag home required before capture", () => {
++  const state = createCtfState(homes, 3)
++  const a = vehicle("a", 0, homes[1]), b = vehicle("b", 1, homes[0], "speedboat")
++  tick(state, [a, b])
++  assert.deepEqual(events.map(event => event.team), [0, 1])
++  a.flight.position = [...homes[0]]; b.flight.position = [...homes[1]]
++  tick(state, [a, b])
++  assert.deepEqual(state.scores, [0, 0])
++  assert.equal(events.length, 0)
++  assert.equal(state.flags[0].carrierId, b.id)
++  assert.equal(state.flags[1].carrierId, a.id)
++})
++
++for (const reason of ["death", "missing", "empty"] as const) {
++  check(`carrier ${reason}: latest XZ, surface+1 drop, no same-tick pickup`, () => {
++    const state = createCtfState(homes, 3), a = vehicle("a", 0, homes[1])
++    tick(state, [a], 0)
++    a.flight.position = [500, 300, 20]
++    tick(state, [a], 1)
++    a.flight.position = [600, 400, 30]
++    if (reason === "death") a.hp = 0
++    if (reason === "empty") a.seats = [null, null]
++    const x = reason === "missing" ? 500 : 600, z = reason === "missing" ? 20 : 30
++    const other = vehicle("other", 0, [x, surface(x, z) + 1, z])
++    tick(state, reason === "missing" ? [other] : [a, other], 2)
++    assert.deepEqual(state.flags[1].position, [x, surface(x, z) + 1, z])
++    assert.equal(state.flags[1].droppedAt, 2)
++    assert.deepEqual(events, [{ type: "flag", action: "drop", team: 1, vehicleId: "a", reason }])
++    tick(state, [other], 3)
++    assert.equal(state.flags[1].carrierId, "other")
++    assert.equal(state.flags[1].droppedAt, null)
++  })
++}
++
++check("friendly touch returns dropped flag once, then home remains untouched", () => {
++  const state = createCtfState(homes, 3), thief = vehicle("thief", 0, homes[1])
++  tick(state, [thief]); thief.flight.position = [400, 200, 0]; thief.alive = false
++  tick(state, [thief], 1)
++  const friend = vehicle("friend", 1, state.flags[1].position)
++  tick(state, [friend], 2)
++  assert.deepEqual(events, [{ type: "flag", action: "return", team: 1, vehicleId: "friend", reason: "touch" }])
++  assert.deepEqual(state.flags[1].position, homes[1])
++  friend.flight.position = [...homes[1]]
++  tick(state, [friend], 3)
++  assert.equal(events.length, 0)
++})
++
++check("auto-return at exactly 30 seconds, no immediate re-steal or repeat", () => {
++  const state = createCtfState(homes, 3), thief = vehicle("thief", 0, homes[1])
++  tick(state, [thief]); tick(state, [], 10)
++  tick(state, [], 39.999)
++  assert.equal(events.length, 0)
++  const waiting = vehicle("waiting", 0, homes[1])
++  tick(state, [waiting], 40)
++  assert.deepEqual(events, [{ type: "flag", action: "return", team: 1, vehicleId: null, reason: "timeout" }])
++  assert.equal(state.flags[1].carrierId, null)
++  tick(state, [], 41)
++  assert.equal(events.length, 0)
++})
++
++for (const team of [0, 1] as const) {
++  check(`capture score limit winner ${team}, event team is flag owner; terminal idempotence`, () => {
++    const state = createCtfState(homes, 2), enemy = team === 0 ? 1 : 0
++    const carrier = vehicle("carrier", team, homes[enemy], team === 0 ? "speedboat" : "f35")
++    for (let score = 1; score <= 2; score++) {
++      carrier.flight.position = [...homes[enemy]]
++      tick(state, [carrier], score * 2)
++      carrier.flight.position = [homes[team][0], homes[team][1] + 40.01, homes[team][2]]
++      assert.equal(tick(state, [carrier], score * 2 + 0.25), null)
++      carrier.flight.position = [...homes[team]]
++      const result = tick(state, [carrier], score * 2 + 1)
++      assert.equal(result, score === 2 ? team : null)
++      assert.equal(state.scores[team], score)
++      assert.deepEqual(events, [{ type: "flag", action: "capture", team: enemy, vehicleId: "carrier" }])
++      assert.deepEqual(state.flags[enemy].position, homes[enemy])
++      assert.equal(state.flags[enemy].carrierId, null)
++    }
++    assert.equal(tick(state, [carrier], 20), team)
++    assert.equal(events.length, 0)
++  })
++}
++
++check("simultaneous return enables deterministic capture; kills alone never score", () => {
++  const state = createCtfState(homes, 3)
++  const a = vehicle("a", 0, homes[1]), b = vehicle("b", 1, homes[0])
++  tick(state, [a, b])
++  b.alive = false
++  a.flight.position = [100, 1, 0]
++  tick(state, [a, b], 1)
++  const friend = vehicle("friend", 0, state.flags[0].position)
++  a.flight.position = [...homes[0]]
++  tick(state, [friend, a], 2)
++  assert.deepEqual(events.map(event => [event.action, event.team]), [["return", 0], ["capture", 1]])
++  assert.deepEqual(state.scores, [1, 0])
++  const unrelated = vehicle("unrelated-dead", 1, homes[0])
++  unrelated.alive = false
++  tick(state, [unrelated], 3)
++  assert.deepEqual(state.scores, [1, 0])
++})
++
++check("overlapping volumes still allow one flag only, one transition per tick", () => {
++  const state = createCtfState([[0, 1, 0], [20, 1, 0]], 3)
++  const a = vehicle("a", 0, [10, 1, 0])
++  tick(state, [a])
++  assert.equal(state.flags[0].carrierId, null)
++  assert.equal(state.flags[1].carrierId, "a")
++  assert.deepEqual(state.scores, [0, 0])
++  assert.deepEqual(events.map(event => event.action), ["pickup"])
++  tick(state, [a], 1)
++  assert.deepEqual(events.map(event => event.action), ["capture"])
++  assert.deepEqual(state.scores, [1, 0])
++})
++
++console.log(`PASS ${checks} CTF synthetic CPU checks; no native/integration evidence`)
+diff --git a/games/wings/ctf-integration-check.ts b/games/wings/ctf-integration-check.ts
+new file mode 100644
+index 0000000..973885c
+--- /dev/null
++++ b/games/wings/ctf-integration-check.ts
+@@ -0,0 +1,117 @@
++// CPU integration only: real loopback/wire, RoomEngine, bots, combat, physics and flag authority.
++// No browser/native acceptance. Only labelled carrier-loss/cleanup-clock boundaries mutate authority fixtures.
++import assert from "node:assert/strict"
++import { createLoopbackRoom } from "./src/sim/loopback"
++import { ABANDONED_DESTROY_DELAY, PARKED_REMOVE_DELAY, RoomEngine, sanitizeConfig } from "./src/sim/room-engine"
++import { CTF_ROOM_CONFIG, DEFAULT_ROOM_CONFIG, type ServerMessage, type Snapshot } from "./src/sim/protocol"
++import { TICK_DT, type GameEvent } from "./src/sim/types"
++import { FLEET } from "./src/sim/fleet"
++import { VEHICLES } from "./src/sim/vehicles"
++
++assert.deepEqual(sanitizeConfig({}), DEFAULT_ROOM_CONFIG)
++const strict = sanitizeConfig({ mode: "ctf", teams: 4, bots: 0, maxPerTeam: 1, botFill: 1 })
++assert.deepEqual([strict.mode, strict.teams, strict.bots, strict.maxPerTeam, strict.scoreLimit, strict.timeLimit], ["ctf", 2, 2, 3, 3, 300])
++assert.equal(strict.botFill, undefined)
++assert.equal(sanitizeConfig({ mode: "ctf", bots: 10 }).maxPerTeam, 11, "solo pilot cannot displace a requested bot")
++assert.equal(sanitizeConfig({ mode: "invalid" }).mode, undefined)
++console.log("PASS config: legacy defaults unchanged; CTF two teams/mixed-bot capacity/capture/timer defaults, no fill override")
++
++// Negative boundary fixture only: carrier loss must not prevent a CTF spawn or end that mode.
++const boundary = new RoomEngine("ctf-carrier-boundary", { ...CTF_ROOM_CONFIG }, { send() {} })
++for (const ship of FLEET) {
++  const live = boundary.combat.ships[ship.id]
++  if (live) { live.hp = 0; live.sunk = true }
++}
++const pilot = boundary.addPlayer("Boundary")
++boundary.handle(pilot, { type: "spawn", kind: "speedboat" })
++assert(boundary.vehicles.some(v => v.seats[0] === pilot && v.kind === "speedboat"))
++boundary.advance(TICK_DT)
++assert.equal(boundary.matchEndedAt, null)
++assert(boundary.snapshotFor(pilot).ctf)
++const fleet = new RoomEngine("fleet-unchanged", { ...DEFAULT_ROOM_CONFIG }, { send() {} })
++assert.equal(fleet.ctf, null)
++assert.equal(fleet.snapshotFor("").ctf, undefined)
++console.log("PASS synthetic carrier-loss boundary: CTF boat base remains available; Fleet has no flag state")
++
++// Isolated cleanup-clock fixture, NOT mixed-match/native evidence. No method is replaced.
++const parked = new RoomEngine("ctf-parked-clock", { ...CTF_ROOM_CONFIG }, { send() {} })
++const owner = parked.addPlayer("Parked")
++parked.handle(owner, { type: "spawn", kind: "speedboat" })
++const hull = parked.vehicles.find(v => v.seats[0] === owner)!
++parked.handle(owner, { type: "leave-vehicle" })
++assert(hull.seats.every(id => id === null), "ordinary CTF base return must relinquish the boat")
++const lifecycle = parked as unknown as { time: number; cleanupVehicles(): void; events: GameEvent[] }
++lifecycle.cleanupVehicles()
++lifecycle.time = ABANDONED_DESTROY_DELAY + TICK_DT
++lifecycle.cleanupVehicles()
++assert(hull.alive && parked.vehicles.includes(hull), "valid CTF parked boat must not crash at the abandoned delay")
++lifecycle.time = PARKED_REMOVE_DELAY + TICK_DT
++lifecycle.cleanupVehicles()
++assert(!parked.vehicles.includes(hull), "parked CTF boat must quietly leave at the normal parked delay")
++assert(!lifecycle.events.some(e => e.type === "kill" && e.victim === hull.id), "parking removal is not a crash kill")
++console.log("PASS isolated cleanup-clock boundary: shared CTF boat-base predicate, no abandoned crash, quiet parked removal; not gameplay evidence")
++
++let latest: Snapshot | null = null
++const flagEvents: (Extract<GameEvent, { type: "flag" }> & { time: number })[] = []
++const endEvents: Extract<GameEvent, { type: "match-end" }>[] = []
++const seen = [new Set<string>(), new Set<string>()]
++let kills = 0
++const room = createLoopbackRoom({ mode: "ctf", scoreLimit: 1, timeLimit: 180, botSkill: 0.5 }, "Observer", {
++  onMessage(message: ServerMessage) {
++    if (message.type === "welcome") {
++      assert.deepEqual([message.config.mode, message.config.teams, message.config.bots], ["ctf", 2, 2])
++      assert.equal(message.config.scoreLimit, 1)
++    }
++    if (message.type === "snapshot") latest = message
++    if (message.type === "events") for (const event of message.events) {
++      if (event.type === "flag") flagEvents.push({ ...event, time: room.engine.time })
++      if (event.type === "match-end") endEvents.push(event)
++      if (event.type === "kill") kills++
++    }
++  },
++}, { manual: true })
++try {
++  room.send({ type: "spawn", kind: "speedboat" })
++  for (let tick = 0; tick < 181 / TICK_DT && room.engine.matchEndedAt === null; tick++) {
++    room.step(TICK_DT)
++    for (const v of room.engine.vehicles) {
++      const owner = room.engine.players.get(v.seats[0] ?? "")
++      if (owner?.info.bot && v.team < 2) seen[v.team].add(VEHICLES[v.kind].flight === "water" ? "boat" : "plane")
++    }
++    if (tick % 120 === 0) await Promise.resolve()
++  }
++  await Promise.resolve()
++  const snap = latest as Snapshot | null
++  assert(snap?.ctf)
++  assert(seen.every(kinds => kinds.has("boat") && kinds.has("plane")), seen)
++  assert(flagEvents.some(e => e.action === "pickup"), "mixed match never stole a flag")
++  assert(flagEvents.some(e => e.action === "capture"), "mixed match never scored a real capture")
++  assert(endEvents.some(e => e.reason === "score"), "capture limit did not end the mixed match")
++  assert.deepEqual(snap.scores, snap.ctf.scores)
++  const authorityScore = room.engine.ctf!.scores[0]
++  snap.ctf.scores[0] = 999
++  snap.ctf.flags[0].home[0] = 999
++  snap.scores[0] = 999
++  assert.equal(room.engine.ctf!.scores[0], authorityScore, "decoded snapshots must not grant authority")
++  assert.notEqual(room.engine.ctf!.flags[0].home[0], 999)
++  assert.notEqual(room.engine.scores[0], 999)
++  const oldStarted = room.engine.matchStartedAt
++  for (let i = 0; i < 16 / TICK_DT; i++) { room.step(TICK_DT); if (i % 120 === 0) await Promise.resolve() }
++  assert(room.engine.matchStartedAt > oldStarted)
++  assert.deepEqual(room.engine.ctf!.scores, [0, 0])
++  assert(room.engine.ctf!.flags.every(f => f.carrierId === null && f.droppedAt === null))
++  console.log(JSON.stringify({ mixedCombat: "PASS", simulatedSeconds: room.engine.time, seen: seen.map(s => [...s]), kills, flagEvents, endEvents }))
++  console.log("PASS real mixed-team offline/wire CTF capture-limit end and clean automatic restart; no pose/flag/score grants in gameplay fixture")
++} finally { room.close() }
++const timerEvents: Extract<GameEvent, { type: "match-end" }>[] = []
++const timed = new RoomEngine("ctf-timer", { ...CTF_ROOM_CONFIG, scoreLimit: 1000, timeLimit: 60 }, {
++  send(_id, message) { if (message.type === "events") for (const e of message.events) if (e.type === "match-end") timerEvents.push(e) },
++})
++timed.addPlayer("Timer observer")
++for (let tick = 0; tick < 61 / TICK_DT && timed.matchEndedAt === null; tick++) timed.advance(TICK_DT)
++assert.equal(timed.matchEndedAt, 60)
++assert.equal(timerEvents[0]?.reason, "time")
++const [a, b] = timed.ctf!.scores
++assert.equal(timed.winner, a === b ? null : a > b ? 0 : 1)
++console.log("PASS real CTF round timer: capture scores choose winner or draw; no ship-damage tiebreak")
++console.log("LIMIT: CPU simulation and synthetic carrier-loss boundary; no browser, pixels, hardware or native gameplay acceptance")
+diff --git a/games/wings/ctf-ui-check.ts b/games/wings/ctf-ui-check.ts
+new file mode 100644
+index 0000000..cb9a405
+--- /dev/null
++++ b/games/wings/ctf-ui-check.ts
+@@ -0,0 +1,148 @@
++// CPU/source regression only. No DOM, browser, spawn authority or native-play proof.
++// Bundle for Node with the existing esbuild, then run from games/wings.
++import assert from "node:assert/strict"
++import { readFileSync } from "node:fs"
++import { resolve } from "node:path"
++import { stripTypeScriptTypes } from "node:module"
++import { DEFAULT_ROOM_CONFIG, CTF_ROOM_CONFIG } from "./src/sim/protocol"
++import { createCtfState } from "./src/sim/ctf"
++import { VEHICLES, VEHICLE_KINDS } from "./src/sim/vehicles"
++
++const source = (path: string) => readFileSync(resolve(process.argv[2] ?? ".", "src", path), "utf8")
++const lobby = source("ui/lobby.ts"), spawn = source("ui/spawn.ts"), hud = source("render/hud.ts")
++const between = (text: string, from: string, to: string) => {
++  const start = text.indexOf(from), end = text.indexOf(to, start + from.length)
++  assert(start >= 0 && end > start, `source boundary ${from}`)
++  return text.slice(start, end)
++}
++// Execute the actual config closures without the surrounding DOM/menu code.
++const initial = between(lobby, "  const fleetCfg =", "  const nameIn =")
++  .replace(": GameMode", "").replace(": VehicleKind", "")
++const readConfig = between(lobby, "  const readConfig =", "  const scoreSteps =").replace("(): RoomConfig", "()")
++const selectMode = between(lobby, "  const selectMode =", "  const createScreen =")
++  .replace("(next: GameMode)", "(next)").replace("    nameIn.value = cfg.name\n", "")
++const configBody = stripTypeScriptTypes(`function setupConfig() {\n${initial}\n${readConfig}\n${selectMode}
++  return { readConfig, selectMode, fleetCfg, ctfCfg, fleetBots, ctfBots,
++    get aircraft() { return aircraft }, choose(kind) { aircraft = kind } }
++}`)
++const setup = new Function("DEFAULT_ROOM_CONFIG", "CTF_ROOM_CONFIG", `${configBody}; return setupConfig()`)(DEFAULT_ROOM_CONFIG, CTF_ROOM_CONFIG)
++const defaultsBefore = JSON.stringify([DEFAULT_ROOM_CONFIG, CTF_ROOM_CONFIG])
++let config = setup.readConfig()
++assert.equal(config.mode, "fleet")
++assert.equal(config.bots, 0)
++assert.equal(config.botSkill, undefined)
++assert.equal(config.scoreLimit, 50)
++assert.equal(config.timeLimit, 600)
++setup.fleetCfg.scoreLimit = 150
++setup.fleetCfg.timeLimit = 20
++setup.fleetCfg.teams = 4
++setup.fleetBots.on = true
++setup.fleetBots.perTeam = 7
++setup.fleetBots.skill = 2
++setup.selectMode("ctf")
++config = setup.readConfig()
++assert.deepEqual([config.mode, config.teams, config.bots, config.scoreLimit, config.timeLimit, config.botSkill], ["ctf", 2, 2, 3, 300, 0.5])
++setup.ctfBots.on = false
++setup.ctfBots.perTeam = 0
++setup.ctfCfg.teams = 4
++config = setup.readConfig()
++assert.equal(config.bots, 2)
++assert.equal(config.teams, 2)
++setup.ctfCfg.scoreLimit = 5
++setup.ctfCfg.timeLimit = 15
++assert.equal(setup.readConfig().timeLimit, 900)
++setup.selectMode("fleet")
++config = setup.readConfig()
++assert.deepEqual([config.teams, config.bots, config.scoreLimit, config.timeLimit, config.botSkill], [4, 7, 150, 1200, 0.85])
++setup.fleetBots.on = false
++assert.equal(setup.readConfig().bots, 0)
++assert.equal(setup.readConfig().botSkill, undefined)
++setup.selectMode("ctf")
++assert.equal(setup.readConfig().scoreLimit, 5)
++assert.equal(setup.readConfig().timeLimit, 900)
++assert.equal(JSON.stringify([DEFAULT_ROOM_CONFIG, CTF_ROOM_CONFIG]), defaultsBefore)
++setup.choose("speedboat")
++setup.selectMode("fleet")
++assert.equal(setup.aircraft, "fighter", "CTF vehicle choice cannot flip the Fleet default")
++setup.choose("f15")
++setup.selectMode("ctf")
++assert.equal(setup.aircraft, "speedboat")
++setup.selectMode("fleet")
++assert.equal(setup.aircraft, "f15")
++console.log("PASS CPU actual config closures: Fleet defaults/Bots Off, separate mode edits, fixed CTF teams/minimum bots, seconds and skill")
++
++assert.match(lobby, /captureSteps = \[1, 3, 5, 10\]/)
++assert.match(lobby, /timeSteps = \[5, 10, 15, 20, 30, 45, 60\]/)
++assert.match(lobby, /label: "Capture the flag", run: \(\) => \{ selectMode\("ctf"\); nav.push\(createScreen\(\)\) \}/)
++assert.match(lobby, /label: "Vehicle"[^\n]+cycle\(VEHICLE_KINDS, aircraft, d\)/)
++assert.match(lobby, /opts.onStart\(\{ mode: "offline", config: readConfig\(\), aircraft \}\)/)
++assert.match(lobby, /setAttribute\("aria-label", `\$\{it.label\}: \$\{it.value\(\)\}`\)/)
++assert.equal(VEHICLE_KINDS.length, 8)
++assert(VEHICLE_KINDS.includes("speedboat"))
++for (const [label, name, bots, suffix] of [
++  ["Solo flight", "Practice", 0, ""], ["Speedboat patrol", "Patrol", 0, ', aircraft: "speedboat"'], ["Play with bots", "Bots", 4, ""],
++] as const) {
++  const skill = bots ? ", botSkill: 0.5" : ""
++  assert(lobby.includes(`label: "${label}", run: () => opts.onStart({ mode: "offline", config: { ...DEFAULT_ROOM_CONFIG, name: "${name}", teams: 2, bots: ${bots}${skill}, listed: false }${suffix} })`))
++}
++console.log("PASS source: same custom CTF entry, eight-kind vehicle/start path, accessible value labels, legacy three actions unchanged")
++
++assert.match(spawn, /ctf = s.config.mode === "ctf"/)
++assert.match(spawn, /if \(ctf && t === "guns"\) t = "air"/)
++assert.match(spawn, /if \(!ctf && \(e.key === "g"/)
++assert.match(spawn, /if \(ctf \|\| !actions.manTurret \|\| !s.ships\)/)
++assert.match(spawn, /canSpawn = !!me && wait <= 0/)
++assert.match(spawn, /ctf && k === "speedboat"/)
++assert.match(spawn, /water flag base, independent of carriers/)
++assert.match(spawn, /beside a surviving friendly carrier/)
++console.log("PASS source: CTF gun entry guards/base copy; no carrier condition on spawn readiness; Fleet carrier copy retained")
++
++const textSource = between(hud, "export function ctfFlagText(", "export function createHud(")
++  .replace(/export function ctfFlagText\([^\n]+\): string/, "function ctfFlagText(flag, vehicles, players)")
++const flagText = new Function("VEHICLES", `${textSource}; return ctfFlagText`)(VEHICLES)
++const flag = createCtfState([[0, 1, 0], [100, 1, 0]], 3).flags[0]
++assert.equal(flagText(flag, [], new Map()), "home")
++flag.droppedAt = 0
++assert.equal(flagText(flag, [], new Map()), "dropped")
++flag.carrierId = "boat-1"
++assert.equal(flagText(flag, [], new Map()), "carried · boat-1")
++const carrier = { id: "boat-1", seats: [null, "p1"], kind: "speedboat" }
++const players = new Map([["p1", { name: "SKIPPER" }]])
++const before = JSON.stringify([flag, carrier, [...players]])
++assert.equal(flagText(flag, [carrier], players), `carried · skipper / ${VEHICLES.speedboat.name.toLowerCase()}`)
++assert.equal(JSON.stringify([flag, carrier, [...players]]), before)
++assert.match(hud, /ctf\?: CtfState/)
++assert.match(hud, /captures \/ target \$\{f.ctf.captureLimit\}/)
++assert.match(hud, /esc\(ctfFlagText\(flag, f.vehicles, f.players\)\)/)
++assert.match(hud, /if \(f.ctf\) \{\n      ctx.strokeStyle/)
++assert.match(hud, /CTF_WATER_ROUTE.forEach/)
++assert.match(hud, /flag.home\[0\]/)
++assert.match(hud, /flag.position\[0\]/)
++assert.match(hud, /else if \(f.ships\?\.length\)/)
++console.log("PASS CPU flag text: home/drop-at-zero/carried/known occupant+vehicle/unknown carrier, no mutation; source guards CTF HUD/map and Fleet objectives")
++const settingsSource = source("ui/settings.ts")
++const loader = stripTypeScriptTypes(between(settingsSource, "function defaults()", "export const settings"))
++const loadSettings = new Function("navigator", "localStorage", `const KEY = "wings.settings"; ${loader}; return load()`)
++const readStored = (raw: string) => loadSettings({ hardwareConcurrency: 8, userAgent: "CPU fixture" }, { getItem: () => raw })
++const malformed = readStored('{"name":42,"sensitivity":"bad","volume":"bad","muted":"false","invertY":"false","controlsV6":true}')
++assert.deepEqual([malformed.name, malformed.sensitivity, malformed.volume, malformed.muted, malformed.invertY], ["", 1, 0.8, false, false])
++assert.doesNotThrow(() => malformed.name.toLowerCase())
++assert.doesNotThrow(() => malformed.sensitivity.toFixed(2))
++const valid = readStored('{"name":"PILOT","sensitivity":1.8,"volume":0.3,"controlScheme":"point","controlStyle":"aim","mouseX":"roll","controlsV6":true}')
++assert.deepEqual([valid.name, valid.sensitivity, valid.volume, valid.controlScheme, valid.controlStyle, valid.mouseX], ["PILOT", 1.8, 0.3, "point", "aim", "roll"])
++const poisoned = readStored('{"__proto__":{"polluted":true},"controlsV6":true}')
++assert.equal(Object.getPrototypeOf(poisoned), Object.prototype)
++assert.equal(poisoned.polluted, undefined)
++assert.equal(readStored('not json').controlScheme, "battlefield")
++console.log("PASS actual settings loader: malformed name/sensitivity/audio cannot reach string/number consumers; valid preferences retained; prototype key rejected")
++
++const main = source("main.ts"), game = source("ui/game.ts"), scene = source("render/scene.ts")
++assert.match(main, /bootScene\(req\)/)
++assert.match(main, /req\.config\.mode === "ctf" \? CTF_HOMES\[0\] : undefined/)
++assert.match(scene, /if \(fn\) initialFocus = undefined/)
++assert.match(game, /this\.ctfView\?\.update\(latest\.ctf, this\.visuals\)/)
++assert.match(game, /f\.ctf = s\.ctf/)
++assert.match(game, /ctf: this\.latest\?\.ctf \? cloneCtfState\(this\.latest\.ctf\) : null/)
++assert.match(game, /this\.ctfView\?\.dispose\(\)/)
++console.log("PASS source wiring: requested CTF play-area boot focus, authoritative HUD/view and copied diagnostics/disposal")
++console.log("LIMIT: source/CPU checks only; no DOM, layout, browser, native play or UI interaction acceptance")
+diff --git a/games/wings/ctf-view-check.ts b/games/wings/ctf-view-check.ts
+new file mode 100644
+index 0000000..18bd7c5
+--- /dev/null
++++ b/games/wings/ctf-view-check.ts
+@@ -0,0 +1,159 @@
++// CPU-only Three object fixture. Bundle for Node using the build_wings.mjs external-cache resolver.
++// No renderer, native visual, typecheck, FPS or scene-budget acceptance is implied.
++import assert from "node:assert/strict"
++import {
++  Color, Group, InstancedMesh, Matrix4, MeshBasicNodeMaterial, Quaternion, Vector3,
++} from "three/webgpu"
++import { createCtfView } from "./src/render/ctf"
++import { createCtfState } from "./src/sim/ctf"
++import type { CtfState } from "./src/sim/ctf"
++import type { Quat, Vec3, VehicleKind } from "./src/sim/types"
++import { WATER_LEVEL } from "./src/sim/geography"
++
++const colors = Object.freeze(["#3c6ea8", "#c98a2e"])
++const route: Vec3[] = Array.from({ length: 12 }, (_, i) => [i * 100, 0, i * 20])
++for (const point of route) Object.freeze(point)
++Object.freeze(route)
++const routeBefore = JSON.stringify(route)
++const view = createCtfView(route, colors)
++assert(view.root instanceof Group)
++assert.equal(view.root.visible, false)
++assert.equal(view.root.children.length, 4)
++const meshes = view.root.children.map(child => {
++  assert(child instanceof InstancedMesh)
++  assert.equal(child.frustumCulled, true)
++  assert(child.material instanceof MeshBasicNodeMaterial)
++  assert.equal(child.material.color.getHexString(), "ffffff")
++  assert.equal(child.material.colorNode, null, "standard instance-color path, not custom override")
++  assert(child.instanceColor)
++  return child
++})
++const [homes, buoys, poles, banners] = meshes
++assert.deepEqual(meshes.map(mesh => mesh.count), [2, 12, 2, 2])
++assert.equal(new Set(meshes.map(mesh => mesh.material)).size, 1)
++const triangles = meshes.reduce((sum, mesh) => sum + mesh.count
++  * (mesh.geometry.index?.count ?? mesh.geometry.getAttribute("position").count) / 3, 0)
++assert(triangles < 1000, `objective triangles ${triangles}`)
++banners.geometry.computeBoundingBox()
++const size = banners.geometry.boundingBox!.getSize(new Vector3())
++assert(Math.abs(size.x - 4) < 1e-5 && Math.abs(size.y - 2.6) < 1e-5 && size.z > 0 && size.z < 0.2)
++poles.geometry.computeBoundingBox()
++assert.equal(poles.geometry.boundingBox!.getSize(new Vector3()).y, 6)
++for (const mesh of meshes) {
++  for (let i = 0; i < mesh.count; i++) {
++    const actual = new Color()
++    mesh.getColorAt(i, actual)
++    const expected = new Color(colors[i % 2])
++    assert(actual.toArray().every((value, j) => Math.abs(value - expected.toArray()[j]) < 1e-6))
++  }
++}
++console.log(`PASS four InstancedMesh batches, counts 2/12/2/2, ${triangles} triangles, white shared node material + team instance colors`)
++
++const matrix = new Matrix4()
++function pose(mesh: InstancedMesh, i: number, expectedPosition: number[], expectedQuat = new Quaternion()) {
++  mesh.getMatrixAt(i, matrix)
++  const p = new Vector3(), q = new Quaternion(), scale = new Vector3()
++  matrix.decompose(p, q, scale)
++  assert(p.distanceTo(new Vector3().fromArray(expectedPosition)) < 0.01, `${mesh.name} position ${p.toArray()}`)
++  assert(Math.abs(q.dot(expectedQuat)) > 0.99999, `${mesh.name} orientation`)
++  assert(scale.distanceTo(new Vector3(1, 1, 1)) < 1e-5)
++}
++function bounds(mesh: InstancedMesh) {
++  assert(mesh.boundingSphere && !mesh.boundingSphere.isEmpty())
++  const vertices = mesh.geometry.getAttribute("position")
++  for (let i = 0; i < mesh.count; i++) {
++    mesh.getMatrixAt(i, matrix)
++    for (let j = 0; j < vertices.count; j++) {
++      const point = new Vector3().fromBufferAttribute(vertices, j).applyMatrix4(matrix)
++      assert(point.distanceTo(mesh.boundingSphere.center) <= mesh.boundingSphere.radius + 0.02,
++        `${mesh.name} bounds miss instance ${i}`)
++    }
++  }
++}
++function freezeState(state: CtfState) {
++  for (const flag of state.flags) {
++    Object.freeze(flag.home)
++    Object.freeze(flag.position)
++    Object.freeze(flag)
++  }
++  Object.freeze(state.flags)
++  Object.freeze(state.scores)
++  return Object.freeze(state)
++}
++const homeState = freezeState(createCtfState([[10, 1, 20], [500, 1, 600]], 3))
++const homeBefore = JSON.stringify(homeState)
++view.update(homeState, new Map())
++assert.equal(view.root.visible, true)
++for (let i = 0; i < 2; i++) {
++  pose(homes, i, [homeState.flags[i].home[0], WATER_LEVEL + 0.2, homeState.flags[i].home[2]])
++  pose(poles, i, homeState.flags[i].position)
++  pose(banners, i, homeState.flags[i].position)
++}
++for (let i = 0; i < route.length; i++) pose(buoys, i, [route[i][0], WATER_LEVEL + 0.2, route[i][2]])
++assert.equal(JSON.stringify(homeState), homeBefore)
++console.log("PASS hidden until first update; actual home flags, near-water rings and all route buoys")
++
++const carried = createCtfState([[10, 1, 20], [500, 1, 600]], 3)
++carried.flags[0].carrierId = "boat"
++carried.flags[1].carrierId = "plane"
++// Deliberately stale authority positions must not determine carried visuals.
++carried.flags[0].position = [-20, 2, -30]
++carried.flags[1].position = [-50, 2, -60]
++freezeState(carried)
++const yaw: Quat = [0, Math.SQRT1_2, 0, Math.SQRT1_2]
++const roll: Quat = [0, 0, Math.SQRT1_2, Math.SQRT1_2]
++const carriers = new Map<string, { pos: Vec3; quat: Quat; kind: VehicleKind }>([
++  ["boat", { pos: [100000, 4, -80000], quat: yaw, kind: "speedboat" }],
++  ["plane", { pos: [-120000, 500, 90000], quat: roll, kind: "f15" }],
++])
++for (const carrier of carriers.values()) {
++  Object.freeze(carrier.pos)
++  Object.freeze(carrier.quat)
++  Object.freeze(carrier)
++}
++const before = JSON.stringify([carried, [...carriers]])
++view.update(carried, carriers)
++for (const mesh of [poles, banners]) {
++  pose(mesh, 0, [100004, 4.8, -80000], new Quaternion().fromArray(yaw))
++  pose(mesh, 1, [-120002, 500, 90004], new Quaternion().fromArray(roll))
++}
++meshes.forEach(bounds)
++assert.equal(JSON.stringify([carried, [...carriers]]), before)
++console.log("PASS interpolated water/air carrier positions + yaw/roll, local rotated anchors, far-world sphere containment, no source mutation")
++
++const dropped = createCtfState([[10, 1, 20], [500, 1, 600]], 3)
++dropped.flags[0].position = [230000, 13, -190000]
++dropped.flags[0].droppedAt = 10
++dropped.flags[1].carrierId = "unknown"
++dropped.flags[1].position = [-210000, 20, 170000]
++freezeState(dropped)
++view.update(dropped, carriers)
++for (const mesh of [poles, banners]) {
++  for (let i = 0; i < 2; i++) pose(mesh, i, dropped.flags[i].position)
++  bounds(mesh)
++}
++assert.equal(JSON.stringify(route), routeBefore)
++console.log("PASS actual dropped positions, unknown-carrier state fallback, orientation reset and recomputed far bounds")
++
++const scene = new Group()
++scene.add(view.root)
++const geometries = new Set(meshes.map(mesh => mesh.geometry))
++const materials = new Set(meshes.map(mesh => {
++  assert(mesh.material instanceof MeshBasicNodeMaterial)
++  return mesh.material
++}))
++const resources = [...geometries, ...materials, ...meshes]
++const disposalCounts = new Map(resources.map(resource => [resource, 0]))
++for (const resource of resources) resource.addEventListener("dispose", () => {
++  disposalCounts.set(resource, disposalCounts.get(resource)! + 1)
++})
++view.dispose()
++view.dispose()
++view.update(homeState, new Map())
++assert.equal(view.root.visible, false)
++assert.equal(view.root.parent, null)
++assert.equal(view.root.children.length, 0)
++assert.equal(scene.children.length, 0)
++for (const count of disposalCounts.values()) assert.equal(count, 1)
++console.log("PASS each of four geometries, one material and four instance buffers disposed once; detached/empty root; post-disposal update inert")
++console.log("PASS CTF view CPU fixture only; native rendering, typecheck, visual review, FPS and whole-scene budget remain unproven")
 diff --git a/games/wings/index.html b/games/wings/index.html
 index bb8d87a..b965387 100644
 --- a/games/wings/index.html
@@ -1741,15 +2514,16 @@ index 9396f7a..bce8070 100644
  }
 
 diff --git a/games/wings/src/main.ts b/games/wings/src/main.ts
-index 2f2f1b9..42b7430 100644
+index 2f2f1b9..ac21629 100644
 --- a/games/wings/src/main.ts
 +++ b/games/wings/src/main.ts
-@@ -1,14 +1,14 @@
+@@ -1,14 +1,15 @@
  // Entry point. Kept tiny: the lobby is plain HTML/CSS in index.html; three.js, the world, aircraft,
 -// audio and the game controller are all dynamically imported after first paint.
 +// audio and the game controller are dynamically imported; the renderer starts only on Play.
  import { initLobby, toast, type StartRequest } from "./ui/lobby"
  import { callsign, settings, onSettings, updateSettings } from "./ui/settings"
++import { CTF_HOMES } from "./sim/ctf-map"
  import type { SceneHost } from "./render/scene"
  import type { GameAudio } from "./audio"
  import type { GameHandle } from "./ui/game"
@@ -1763,7 +2537,7 @@ index 2f2f1b9..42b7430 100644
  ;(window as unknown as { __wings: unknown }).__wings = { perf, get stats() { return hostRef?.stats }, get game() { return game?.debug() } }
 
  let hostRef: SceneHost | null = null
-@@ -17,6 +17,7 @@ let audio: GameAudio | null = null
+@@ -17,6 +18,7 @@ let audio: GameAudio | null = null
  let audioPromise: Promise<GameAudio | null> | null = null
  let game: GameHandle | null = null
  let starting = false
@@ -1771,10 +2545,11 @@ index 2f2f1b9..42b7430 100644
 
  const lobby = initLobby({
    onStart: start,
-@@ -25,21 +26,33 @@ const lobby = initLobby({
+@@ -25,21 +27,33 @@ const lobby = initLobby({
  })
  perf.menuMs = performance.now()
 
+-function bootScene(): Promise<SceneHost> {
 +function renderFailure(error: Error): void {
 +  rendererError = error
 +  game?.leave()
@@ -1786,7 +2561,7 @@ index 2f2f1b9..42b7430 100644
 +document.getElementById("error-menu")!.onclick = () => (document.getElementById("render-error") as HTMLDialogElement).close()
 +document.getElementById("back-menu")!.onclick = () => game?.leave()
 +
- function bootScene(): Promise<SceneHost> {
++function bootScene(req: StartRequest): Promise<SceneHost> {
    return (hostPromise ??= import("./render/scene").then(async m => {
      const canvas = document.getElementById("view") as HTMLCanvasElement
      const host = await m.createSceneHost(canvas, settings.quality, s => {
@@ -1795,7 +2570,7 @@ index 2f2f1b9..42b7430 100644
        if (s === "world") { perf.worldMs = performance.now(); lobby.status("<b>World</b> awake") }
        if (s === "aircraft") { perf.aircraftMs = performance.now(); lobby.status("<b>World</b> awake · <b>Hangar</b> ready") }
 -    })
-+    }, renderFailure)
++    }, renderFailure, req.mode === "offline" && req.config.mode === "ctf" ? CTF_HOMES[0] : undefined)
      perf.sceneMs = performance.now()
      hostRef = host
 -    if (firstLaunch) autoQuality(host)
@@ -1809,7 +2584,7 @@ index 2f2f1b9..42b7430 100644
      throw err
    }))
  }
-@@ -79,9 +92,9 @@ const unlock = () => {
+@@ -79,9 +93,9 @@ const unlock = () => {
  window.addEventListener("pointerdown", unlock, true)
  window.addEventListener("keydown", unlock, true)
 
@@ -1821,7 +2596,7 @@ index 2f2f1b9..42b7430 100644
    bootAudio()
    // Warm the game controller chunk while the player reads the menu.
    const idle = (window as unknown as { requestIdleCallback?: (f: () => void) => void }).requestIdleCallback ?? ((f: () => void) => setTimeout(f, 600))
-@@ -90,8 +103,9 @@ requestAnimationFrame(() => setTimeout(() => {
+@@ -90,16 +104,18 @@ requestAnimationFrame(() => setTimeout(() => {
 
  async function start(req: StartRequest): Promise<void> {
    if (game || starting) return
@@ -1830,9 +2605,11 @@ index 2f2f1b9..42b7430 100644
 -  lobby.busy(req.mode === "offline" ? "Clearing the runway" : "Connecting")
 +  lobby.busy(req.mode === "offline" ? "Loading world" : "Connecting")
    try {
-     const [{ startGame }, host, a] = await Promise.all([import("./ui/game"), bootScene(), bootAudio()])
+-    const [{ startGame }, host, a] = await Promise.all([import("./ui/game"), bootScene(), bootAudio()])
++    const [{ startGame }, host, a] = await Promise.all([import("./ui/game"), bootScene(req), bootAudio()])
      a?.unlock()
-@@ -100,6 +114,7 @@ async function start(req: StartRequest): Promise<void> {
+     game = await startGame({
+       host, audio: a, req, name: callsign(),
        onExit(reason) {
          game = null
          lobby.show()
@@ -1840,7 +2617,7 @@ index 2f2f1b9..42b7430 100644
          if (reason) toast(reason, true)
        },
      })
-@@ -107,7 +122,8 @@ async function start(req: StartRequest): Promise<void> {
+@@ -107,7 +123,8 @@ async function start(req: StartRequest): Promise<void> {
    } catch (err) {
      console.warn(err)
      const msg = err instanceof Error ? err.message : String(err)
@@ -2369,11 +3146,138 @@ index 17739d5..1218524 100644
      this.fov = this.baseFov + 6
    }
 
+diff --git a/games/wings/src/render/ctf.ts b/games/wings/src/render/ctf.ts
+new file mode 100644
+index 0000000..1d38bd0
+--- /dev/null
++++ b/games/wings/src/render/ctf.ts
+@@ -0,0 +1,86 @@
++import {
++  BoxGeometry, Color, CylinderGeometry, DynamicDrawUsage, Group, InstancedMesh,
++  Matrix4, MeshBasicNodeMaterial, Quaternion, RingGeometry, Vector3,
++} from "three/webgpu"
++import type { CtfState } from "../sim/ctf"
++import type { Quat, Vec3, VehicleKind } from "../sim/types"
++import { WATER_LEVEL } from "../sim/geography"
++import { VEHICLES } from "../sim/vehicles"
++
++/** Four primitive batches only; carrier poses come from the interpolated visual map. */
++export function createCtfView(route: readonly Vec3[], teamColors: readonly string[]) {
++  if (route.length > 12) throw new RangeError("CTF route supports at most 12 buoys")
++  if (teamColors.length < 2) throw new RangeError("CTF needs two team colors")
++  const root = new Group()
++  root.name = "CTF objectives"
++  root.visible = false
++  const material = new MeshBasicNodeMaterial({ color: "#ffffff" })
++  const homes = new InstancedMesh(new RingGeometry(18, 20, 32).rotateX(-Math.PI / 2), material, 2)
++  const buoys = new InstancedMesh(new CylinderGeometry(1.2, 2, 3, 6).translate(0, 1.5, 0), material, route.length)
++  const poles = new InstancedMesh(new CylinderGeometry(0.12, 0.12, 6, 6).translate(0, 3, 0), material, 2)
++  const banners = new InstancedMesh(new BoxGeometry(4, 2.6, 0.12).translate(2, 4.7, 0), material, 2)
++  homes.name = "CTF homes"
++  buoys.name = "CTF route buoys"
++  poles.name = "CTF poles"
++  banners.name = "CTF banners"
++  const meshes = [homes, buoys, poles, banners]
++  const colors = teamColors.slice(0, 2).map(value => new Color(value))
++  const matrix = new Matrix4()
++  const position = new Vector3()
++  const carrierPosition = new Vector3()
++  const orientation = new Quaternion()
++  const scale = new Vector3(1, 1, 1)
++  for (const mesh of meshes) {
++    for (let i = 0; i < mesh.count; i++) mesh.setColorAt(i, colors[i % 2])
++    if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true
++    root.add(mesh)
++  }
++  for (const mesh of [homes, poles, banners]) mesh.instanceMatrix.setUsage(DynamicDrawUsage)
++  route.forEach((point, i) => {
++    matrix.makeTranslation(point[0], WATER_LEVEL + 0.2, point[2])
++    buoys.setMatrixAt(i, matrix)
++  })
++  buoys.instanceMatrix.needsUpdate = true
++  buoys.computeBoundingSphere()
++  let disposed = false
++  return {
++    root,
++    update(state: CtfState, carriers: ReadonlyMap<string, { pos: Vec3; quat: Quat; kind: VehicleKind }>): void {
++      if (disposed) return
++      state.flags.forEach((flag, i) => {
++        matrix.makeTranslation(flag.home[0], WATER_LEVEL + 0.2, flag.home[2])
++        homes.setMatrixAt(i, matrix)
++        orientation.identity()
++        const carrier = flag.carrierId === null ? undefined : carriers.get(flag.carrierId)
++        if (carrier) {
++          orientation.fromArray(carrier.quat)
++          position.set(0, VEHICLES[carrier.kind].flight === "water" ? 0.8 : 2, 4)
++            .applyQuaternion(orientation).add(carrierPosition.fromArray(carrier.pos))
++        } else {
++          position.fromArray(flag.position)
++        }
++        matrix.compose(position, orientation, scale)
++        poles.setMatrixAt(i, matrix)
++        banners.setMatrixAt(i, matrix)
++      })
++      for (const mesh of [homes, poles, banners]) {
++        mesh.instanceMatrix.needsUpdate = true
++        // InstancedMesh does not invalidate its aggregate sphere when instances move.
++        mesh.computeBoundingSphere()
++      }
++      root.visible = true
++    },
++    dispose(): void {
++      if (disposed) return
++      disposed = true
++      root.visible = false
++      root.removeFromParent()
++      root.clear()
++      for (const mesh of meshes) {
++        mesh.dispose()
++        mesh.geometry.dispose()
++      }
++      material.dispose()
++    },
++  }
++}
 diff --git a/games/wings/src/render/hud.ts b/games/wings/src/render/hud.ts
-index 3b804bf..55d8b07 100644
+index 3b804bf..38d91a6 100644
 --- a/games/wings/src/render/hud.ts
 +++ b/games/wings/src/render/hud.ts
-@@ -177,7 +177,7 @@ export function createHud(parent: HTMLElement): Hud {
+@@ -3,6 +3,8 @@
+ import { Vector3, type PerspectiveCamera } from "three"
+ import type { PlayerInfo, TeamId, Vec3, VehicleEntity, WeaponId } from "../sim/types"
+ import type { ShipState } from "../sim/protocol"
++import type { CtfFlag, CtfState } from "../sim/ctf"
++import { CTF_WATER_ROUTE } from "../sim/ctf-map"
+ import { VEHICLES, WEAPONS } from "../sim/vehicles"
+ import { WORLD_HALF, segmentHitsGround, terrainHeight } from "../sim/geography"
+ import { AA_RANGE, FLEET, type Ship } from "../sim/fleet"
+@@ -83,6 +85,8 @@ export interface HudFrame {
+   bombCam?: { steering: boolean; cursor: Vec3 | null; impact: Vec3 | null; alt: number; tti: number; ship: string | null; shipHp: number | null; pilot: boolean } | null
+   /** Stealth airframe status for the crew (above/below the fleet AA ceiling). */
+   stealth?: { above: boolean; ceiling: number } | null
++  /** Authoritative two-team flag objectives. Omitted for Fleet Strike. */
++  ctf?: CtfState
+   /** Fleet Strike ship objectives (hp per ship). */
+   ships?: ShipState[]
+   /** Set while the local player mans a ship turret instead of flying. */
+@@ -164,6 +168,16 @@ const TEAM_TINTS = ["#b4d0f0", "#f2c98a", "#b4dcba", "#efb2aa"]
+ const sentence = (t: string) => { const l = t.toLowerCase(); return l.charAt(0).toUpperCase() + l.slice(1) }
+ const glyph = (_t: number) => ""
+
++/** Derive status from authority, without maintaining a second flag state. */
++export function ctfFlagText(flag: CtfFlag, vehicles: VehicleEntity[], players: Map<string, PlayerInfo>): string {
++  if (flag.carrierId === null) return flag.droppedAt === null ? "home" : "dropped"
++  const carrier = vehicles.find(v => v.id === flag.carrierId)
++  if (!carrier) return `carried · ${flag.carrierId}`
++  const occupant = carrier.seats.find(id => id !== null)
++  const name = occupant ? players.get(occupant)?.name : null
++  return `carried · ${name ? `${name.toLowerCase()} / ` : ""}${VEHICLES[carrier.kind].name.toLowerCase()}`
++}
++
+ export function createHud(parent: HTMLElement): Hud {
+   const root = el("div", "hud", parent)
+   root.innerHTML = `
+@@ -177,7 +191,7 @@ export function createHud(parent: HTMLElement): Hud {
      <div class="hud-edges"></div>
      <div class="hud-spot"><b></b></div>
      <div class="hud-ships"></div>
@@ -2382,7 +3286,44 @@ index 3b804bf..55d8b07 100644
      <div class="hud-prot"></div>
      <div class="hud-bimp"><i></i></div>
      <div class="hud-bcur"><i></i></div>
-@@ -750,7 +750,7 @@ export function createHud(parent: HTMLElement): Hud {
+@@ -477,6 +491,27 @@ export function createHud(parent: HTMLElement): Hud {
+       ctx.strokeStyle = "rgba(236,234,228,.85)"
+       ctx.stroke()
+     }
++    if (f.ctf) {
++      ctx.strokeStyle = "rgba(236,234,228,.7)"
++      ctx.lineWidth = 1.5
++      ctx.setLineDash([3, 2])
++      ctx.beginPath()
++      CTF_WATER_ROUTE.forEach((p, i) => {
++        const x = (p[0] + WORLD_HALF) * k, y = (p[2] + WORLD_HALF) * k
++        if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y)
++      })
++      ctx.stroke()
++      ctx.setLineDash([])
++      for (const flag of f.ctf.flags) {
++        const hx = (flag.home[0] + WORLD_HALF) * k, hy = (flag.home[2] + WORLD_HALF) * k
++        const x = (flag.position[0] + WORLD_HALF) * k, y = (flag.position[2] + WORLD_HALF) * k
++        ctx.strokeStyle = TEAM_TINTS[flag.team]
++        ctx.lineWidth = 2
++        ctx.strokeRect(hx - 4, hy - 4, 8, 8)
++        ctx.fillStyle = TEAM_TINTS[flag.team]
++        ctx.beginPath(); ctx.moveTo(x, y + 5); ctx.lineTo(x, y - 7); ctx.lineTo(x + 7, y - 4); ctx.lineTo(x, y - 1); ctx.stroke(); ctx.fill()
++      }
++    }
+     if (ownPos(f)) {
+       const p = ownPos(f)!
+       const x = (p[0] + WORLD_HALF) * k, y = (p[2] + WORLD_HALF) * k
+@@ -544,7 +579,7 @@ export function createHud(parent: HTMLElement): Hud {
+     for (const p of f.players.values()) if (p.team < f.teams) teams[p.team].push(p)
+     board.innerHTML = teams.map((list, t) => {
+       list.sort((a, b) => b.kills - a.kills || a.deaths - b.deaths)
+-      return `<div class="team${t === (f.me?.team ?? -1) ? " mine" : ""}" style="--c:${TEAM_COLORS[t]}"><h3><span>${TEAM_NAMES[t]}</span><b>${f.scores[t] ?? 0}</b></h3>
++      return `<div class="team${t === (f.me?.team ?? -1) ? " mine" : ""}" style="--c:${TEAM_COLORS[t]}"><h3><span>${TEAM_NAMES[t]}</span><b>${(f.ctf?.scores ?? f.scores)[t] ?? 0}</b></h3>
+         <table><tr><th>Pilot</th><th>K</th><th>D</th></tr>${list.map(p =>
+           `<tr class="${p.id === f.myId ? "me" : ""}"><td>${esc(p.name.toLowerCase())}${p.id === f.myId ? '<em>you</em>' : ""}${p.bot ? '<em>bot</em>' : ""}</td><td>${p.kills}</td><td>${p.deaths}</td></tr>`).join("") || `<tr><td class="none" colspan="3">no pilots</td></tr>`}</table></div>`
+     }).join("")
+@@ -750,7 +785,7 @@ export function createHud(parent: HTMLElement): Hud {
          bcam.setClass(bc ? `hud-bcam z on${bc.steering ? " steer" : ""}${bc.ship ? " tgt" : ""}` : "hud-bcam z")
          if (bc) {
            bcamSh.setText(bc.ship ? `${bc.ship}${bc.shipHp !== null ? ` · ${Math.round(bc.shipHp * 100)}%` : ""}` : "")
@@ -2391,7 +3332,7 @@ index 3b804bf..55d8b07 100644
          }
          turHint.setClass(f.turret?.hint ? "hud-turhint z on" : "hud-turhint z")
          if (f.turret?.hint) turHint.setText(f.turret.hint)
-@@ -769,7 +769,7 @@ export function createHud(parent: HTMLElement): Hud {
+@@ -769,7 +804,7 @@ export function createHud(parent: HTMLElement): Hud {
        } else bimp.setTransform(HIDDEN)
        if (frame % 4 === 0) {
          bombEl.setClass(bs ? `hud-bomb z on${bs.overShip ? " go" : ""}` : "hud-bomb z")
@@ -2400,25 +3341,60 @@ index 3b804bf..55d8b07 100644
          const stl = flying ? f.stealth : null
          stealthEl.setClass(stl ? `hud-stealth z on${stl.above ? "" : " low"}` : "hud-stealth z")
          if (stl) stealthEl.setText(stl.above ? `stealth · above aa ceiling` : `stealth · below aa ceiling (${stl.ceiling} m)`)
-@@ -858,7 +858,7 @@ export function createHud(parent: HTMLElement): Hud {
+@@ -857,18 +892,22 @@ export function createHud(parent: HTMLElement): Hud {
+         }
        }
        if (frame % 15 === 0) {
++        scoreEl.classList.toggle("ctf", !!f.ctf)
++        objEl.classList.toggle("ctf", !!f.ctf)
          let teams = ""
 -        for (let t = 0; t < f.teams; t++) teams += `${t ? '<i class="dash">—</i>' : ""}<span class="sc${t === myTeam ? " mine" : ""}" style="--c:${TEAM_TINTS[t]}">${String(f.scores[t] ?? 0).padStart(2, "0")}</span>`
-+        for (let t = 0; t < f.teams; t++) teams += `${t ? '<i class="dash">-</i>' : ""}<span class="sc${t === myTeam ? " mine" : ""}" style="--c:${TEAM_TINTS[t]}">${String(f.scores[t] ?? 0).padStart(2, "0")}</span>`
++        for (let t = 0; t < f.teams; t++) teams += `${t ? '<i class="dash">-</i>' : ""}<span class="sc${t === myTeam ? " mine" : ""}" style="--c:${TEAM_TINTS[t]}">${String((f.ctf?.scores ?? f.scores)[t] ?? 0).padStart(2, "0")}</span>`
          let timer = ""
          if (f.remaining !== null) {
            const r = Math.max(0, Math.ceil(f.remaining))
+           timer = `<span class="timer${f.intermission ? " inter" : ""}${!f.intermission && r <= 60 ? " end" : ""}">${f.intermission ? "<em>next </em>" : ""}${String(Math.floor(r / 60)).padStart(2, "0")}:${String(r % 60).padStart(2, "0")}</span>`
+         }
+-        const html = `<span class="teams">${teams}</span>${timer}`
++        const html = `<span class="teams">${teams}</span>${timer}${f.ctf ? `<span class="timer">captures / target ${f.ctf.captureLimit}</span>` : ""}`
+         if (html !== scoreHtml) { scoreHtml = html; scoreEl.innerHTML = html }
+         // Objective: each team's two carriers as small hull bars (sunk = struck through).
+         let oh = ""
+-        if (f.ships?.length) {
++        if (f.ctf) {
++          oh = f.ctf.flags.map(flag => `<span class="ot${flag.team === myTeam ? " mine" : ""}" style="--c:${TEAM_TINTS[flag.team]}"><em>${flag.team === myTeam ? "own" : myTeam >= 0 ? "enemy" : TEAM_NAMES[flag.team].toLowerCase()} flag</em>${esc(ctfFlagText(flag, f.vehicles, f.players))}</span>`).join("")
++        } else if (f.ships?.length) {
+           const byTeam: string[][] = Array.from({ length: f.teams }, () => [])
+           for (const st of f.ships) {
+             const sh = FLEET.find(x => x.id === st.id)
+@@ -910,7 +949,7 @@ export function createHud(parent: HTMLElement): Hud {
+       endEl.className = `hud-end show ${result}`
+       endEl.querySelector(".r")!.textContent = result === "victory" ? "Victory" : result === "defeat" ? "Defeat" : "Draw"
+       endEl.querySelector(".why")!.textContent = reason
+-      endEl.querySelector(".nx")!.textContent = winner !== null ? `${TEAM_NAMES[winner].toLowerCase()} fleet holds the sea · next match soon` : "next match soon"
++      endEl.querySelector(".nx")!.textContent = winner !== null ? `${TEAM_NAMES[winner].toLowerCase()} ${scoreEl.classList.contains("ctf") ? "wins" : "fleet holds the sea"} · next match soon` : "next match soon"
+       clearTimeout((endEl as unknown as { _t: number })._t)
+       ;(endEl as unknown as { _t: number })._t = window.setTimeout(() => endEl.classList.remove("show"), 9000)
+     },
 diff --git a/games/wings/src/render/scene.ts b/games/wings/src/render/scene.ts
-index 2e3116f..4d6b5cd 100644
+index 2e3116f..40b930f 100644
 --- a/games/wings/src/render/scene.ts
 +++ b/games/wings/src/render/scene.ts
+@@ -14,7 +14,7 @@ import {
+ } from "three/tsl"
+ import { bloom } from "three/addons/tsl/display/BloomNode.js"
+ import { fxaa } from "three/addons/tsl/display/FXAANode.js"
+-import type { Quality, TeamId, VehicleEntity, VehicleKind } from "../sim/types"
++import type { Quality, TeamId, Vec3, VehicleEntity, VehicleKind } from "../sim/types"
+ import { AIRBASES, groundHeight } from "../sim/geography"
+ import { createWorldView, type WorldView } from "./world-view"
+ import { aircraftReady, createAircraftView, preloadAircraft } from "./aircraft"
 @@ -119,7 +119,7 @@ function sanitizeHdr(input: any) {
    })()
  }
 
 -export async function createSceneHost(canvas: HTMLCanvasElement, quality: Quality, onStatus: (s: string) => void): Promise<SceneHost> {
-+export async function createSceneHost(canvas: HTMLCanvasElement, quality: Quality, onStatus: (s: string) => void, onFailure: (error: Error) => void): Promise<SceneHost> {
++export async function createSceneHost(canvas: HTMLCanvasElement, quality: Quality, onStatus: (s: string) => void, onFailure: (error: Error) => void, initialFocus?: Vec3): Promise<SceneHost> {
    const forceWebGL = new URLSearchParams(location.search).has("webgl")
    const renderer = new WebGPURenderer({
      canvas,
@@ -2462,7 +3438,53 @@ index 2e3116f..4d6b5cd 100644
    scene.add(world.root)
    camera.far = world.far
    camera.updateProjectionMatrix()
-@@ -466,6 +492,8 @@ export async function createSceneHost(canvas: HTMLCanvasElement, quality: Qualit
+@@ -277,6 +303,7 @@ export async function createSceneHost(canvas: HTMLCanvasElement, quality: Qualit
+     renderer, scene, camera, world, effects, rig, quality, aircraftLoaded, stats,
+     setFrame(fn) {
+       frameFn = fn
++      if (fn) initialFocus = undefined
+       if (!fn) rig.setMode("menu")
+       applyPixelRatio()
+     },
+@@ -433,18 +460,25 @@ export async function createSceneHost(canvas: HTMLCanvasElement, quality: Qualit
+       // Menu: a slow, low pass over the storm sea toward the brighter horizon.
+       rig.setMode("menu")
+       menuT += dt
+-      _look.set(-SUN_DIR.x, 0, -SUN_DIR.z)
+-      if (_look.lengthSq() < 1e-4) _look.set(0, 0, -1)
+-      _look.normalize()
+-      _side.set(-_look.z, 0, _look.x)
+-      const yaw = 0.35 + Math.sin(menuT * 0.03) * 0.12
+-      _wd.copy(_look).multiplyScalar(Math.cos(yaw)).addScaledVector(_side, Math.sin(yaw))
+-      camera.position.set(0, 0, 0).addScaledVector(_look, -3200).addScaledVector(_side, ((menuT * 14) % 5000) - 2500)
+-      camera.position.y = Math.max(groundHeight(camera.position.x, camera.position.z) + 160, 260 + Math.sin(menuT * 0.1) * 20)
+-      const pitch = -0.06
+-      _target.copy(camera.position).add(_wd.multiplyScalar(Math.cos(pitch)).setY(Math.sin(pitch)))
+-      camera.up.set(0, 1, 0)
+-      camera.lookAt(_target)
++      if (initialFocus) {
++        // The CTF boot gate must stream/draw its real play area, not the distant Fleet backdrop.
++        camera.position.set(initialFocus[0] + 180, initialFocus[1] + 220, initialFocus[2] + 280)
++        camera.up.set(0, 1, 0)
++        camera.lookAt(initialFocus[0], initialFocus[1], initialFocus[2])
++      } else {
++        _look.set(-SUN_DIR.x, 0, -SUN_DIR.z)
++        if (_look.lengthSq() < 1e-4) _look.set(0, 0, -1)
++        _look.normalize()
++        _side.set(-_look.z, 0, _look.x)
++        const yaw = 0.35 + Math.sin(menuT * 0.03) * 0.12
++        _wd.copy(_look).multiplyScalar(Math.cos(yaw)).addScaledVector(_side, Math.sin(yaw))
++        camera.position.set(0, 0, 0).addScaledVector(_look, -3200).addScaledVector(_side, ((menuT * 14) % 5000) - 2500)
++        camera.position.y = Math.max(groundHeight(camera.position.x, camera.position.z) + 160, 260 + Math.sin(menuT * 0.1) * 20)
++        const pitch = -0.06
++        _target.copy(camera.position).add(_wd.multiplyScalar(Math.cos(pitch)).setY(Math.sin(pitch)))
++        camera.up.set(0, 1, 0)
++        camera.lookAt(_target)
++      }
+       if (Math.abs(camera.fov - menuFov) > 0.01) { camera.fov = menuFov; camera.updateProjectionMatrix() }
+     }
+     const speedK = frameFn ? Math.min(1, Math.max(0, (speedKmh - 600) / 300)) : 0
+@@ -466,6 +500,8 @@ export async function createSceneHost(canvas: HTMLCanvasElement, quality: Qualit
      renderer.info.reset()
      if (pipeline) pipeline.render()
      else renderer.render(scene, camera)
@@ -2471,7 +3493,7 @@ index 2e3116f..4d6b5cd 100644
      sampleGpu(now)
      const t1 = performance.now()
      stats.frameMs += (t1 - now - stats.frameMs) * 0.05
-@@ -486,6 +514,7 @@ export async function createSceneHost(canvas: HTMLCanvasElement, quality: Qualit
+@@ -486,6 +522,7 @@ export async function createSceneHost(canvas: HTMLCanvasElement, quality: Qualit
        canvas.classList.add("ready")
        document.getElementById("backdrop")?.classList.add("fade")
        onStatus("world")
@@ -2479,7 +3501,7 @@ index 2e3116f..4d6b5cd 100644
      }
    }
    // ---- adaptive resolution: keep frames under budget by scaling the pixel ratio (hysteresis, slow to rise).
-@@ -535,7 +564,22 @@ export async function createSceneHost(canvas: HTMLCanvasElement, quality: Qualit
+@@ -535,7 +572,22 @@ export async function createSceneHost(canvas: HTMLCanvasElement, quality: Qualit
      } else okSeconds = 0
    }
    applyPixelRatio()
@@ -2592,10 +3614,21 @@ index e6aa68c..ffce1c9 100644
      stats: () => ({ ...streamer.stats, shoreProgress: streamer.shoreProgress }),
      streamer,
 diff --git a/games/wings/src/sim/bots.ts b/games/wings/src/sim/bots.ts
-index 8f021e3..8f847ef 100644
+index 8f021e3..d887be6 100644
 --- a/games/wings/src/sim/bots.ts
 +++ b/games/wings/src/sim/bots.ts
-@@ -217,12 +217,12 @@ export function botRandom(brain: BotBrain): number {
+@@ -3,7 +3,9 @@
+ // Hot path is allocation-free: scratch vectors are module-level and outputs are reused per brain.
+ import type { FlightInput, Missile, PlayerInfo, Projectile, Quat, SeatInput, Vec3, VehicleEntity, VehicleKind, WorldQuery } from "./types"
+ import { LAUNCH_LANE_LENGTH, carrierOf, inSafeZone, posedFleet, worldQuery } from "./geography"
+-import { bombImpactPoint } from "./flight"
++import { boatNavigable, bombImpactPoint, yawPitchRoll } from "./flight"
++import type { CtfState } from "./ctf"
++import { CTF_WATER_ROUTE } from "./ctf-map"
+ import { GUN_FULL_RANGE, GUN_GIMBAL, ROCKET_GRAVITY, SCANNER_FLARE_CLOSE, isSpawnProtected, weaponDirection } from "./combat"
+ import { AA_RANGE, SHIP_SPECS, type Ship } from "./fleet"
+ import { VEHICLES, WEAPONS, type WeaponSpec } from "./vehicles"
+@@ -217,12 +219,12 @@ export function botRandom(brain: BotBrain): number {
  // ---------------------------------------------------------------------------------------------
  // Vehicle choice
 
@@ -2610,6 +3643,153 @@ index 8f021e3..8f847ef 100644
    for (const v of vehicles) if (v.alive && v.team === bot.team) counts[v.kind]++
    let total = 0
    for (const k of KINDS) total += kindWeight(k, counts)
+@@ -859,6 +861,146 @@ export function botInput(
+   return o.gunner
+ }
+
++interface CtfRouteMemory {
++  vehicleId: string
++  goal: string
++  destination: Vec3
++  points: Vec3[]
++  next: number
++}
++
++/** Hull-safe connection to a route or a dropped flag, including shallow water and moving ships. */
++function ctfWaterLeg(a: Vec3, b: Vec3, world: WorldQuery): boolean {
++  const dx = b[0] - a[0], dz = b[2] - a[2]
++  const yaw = Math.atan2(-dx, -dz), steps = Math.max(1, Math.ceil(Math.hypot(dx, dz) / 8))
++  for (let i = 0; i <= steps; i++) {
++    if (!boatNavigable(world, a[0] + dx * i / steps, a[2] + dz * i / steps, yaw)) return false
++  }
++  return true
++}
++
++function ctfBoatRoute(brain: BotBrain, vehicle: VehicleEntity, goal: Vec3, key: string, world: WorldQuery): Vec3 {
++  let route = brain.memory.ctfRoute as CtfRouteMemory | undefined
++  if (!route || route.vehicleId !== vehicle.id || route.goal !== key || dist(route.destination, goal) > 60) {
++    const nearest = (p: Vec3) => {
++      let best = 0
++      for (let i = 1; i < CTF_WATER_ROUTE.length; i++) {
++        if (dist(p, CTF_WATER_ROUTE[i]) < dist(p, CTF_WATER_ROUTE[best])) best = i
++      }
++      return best
++    }
++    const pos = vehicle.flight.position
++    let start = nearest(pos)
++    if (!ctfWaterLeg(pos, CTF_WATER_ROUTE[start], world)) {
++      start = -1
++      for (let i = 0; i < CTF_WATER_ROUTE.length; i++) {
++        if (ctfWaterLeg(pos, CTF_WATER_ROUTE[i], world) && (start < 0 || dist(pos, CTF_WATER_ROUTE[i]) < dist(pos, CTF_WATER_ROUTE[start]))) start = i
++      }
++      // Off-route and isolated: hold in known water rather than steering across an island.
++      if (start < 0) return pos
++    }
++    const end = nearest(goal), points: Vec3[] = []
++    const direction = end >= start ? 1 : -1
++    for (let i = start; ; i += direction) {
++      points.push([...CTF_WATER_ROUTE[i]])
++      if (i === end) break
++    }
++    if (ctfWaterLeg(points[points.length - 1], goal, world)) points.push([...goal])
++    route = { vehicleId: vehicle.id, goal: key, destination: [...goal], points, next: 0 }
++    brain.memory.ctfRoute = route
++  }
++  const pos = vehicle.flight.position
++  while (route.next < route.points.length - 1 && Math.hypot(pos[0] - route.points[route.next][0], pos[2] - route.points[route.next][2]) < 14) route.next++
++  return route.points[route.next]
++}
++
++/** CTF objectives use ordinary controls only. Fleet selection, launch phases and weights stay untouched. */
++export function ctfBotInput(
++  brain: BotBrain, bot: PlayerInfo, vehicle: VehicleEntity, vehicles: VehicleEntity[], now: number, ctf: CtfState,
++  missiles?: readonly Missile[], world: WorldQuery = worldQuery, ships?: Readonly<Record<string, BotShipStatus>>,
++  projectiles?: readonly Projectile[],
++): { flight?: FlightInput; seat: SeatInput } {
++  if (!vehicle.alive || vehicle.flight.crashed || bot.seat !== 0 || (vehicle.team !== 0 && vehicle.team !== 1)) {
++    return botInput(brain, bot, vehicle, vehicles, now, missiles, world, ships, projectiles)
++  }
++  if (brain.state.vehicleId !== vehicle.id) {
++    resetForVehicle(brain, vehicle)
++    delete brain.memory.ctfRoute
++  }
++  const s = brain.state, o = brain.out, fs = vehicle.flight, pos = fs.position, vel = fs.velocity
++  const own = ctf.flags[vehicle.team], enemy = ctf.flags[1 - vehicle.team]
++  const water = VEHICLES[vehicle.kind].flight === "water", heli = VEHICLES[vehicle.kind].flight === "heli"
++  const stolen = findVehicle(vehicles, own.carrierId)
++  const escort = findVehicle(vehicles, enemy.carrierId)
++  let goal = enemy.position, key = `steal:${enemy.droppedAt}`, intercept = false
++  if (enemy.carrierId === vehicle.id) {
++    goal = own.home; key = "home"
++    if (stolen?.alive) { goal = stolen.flight.position; key = `intercept:${stolen.id}`; intercept = true }
++    else if (own.droppedAt !== null) { goal = own.position; key = `return:${own.droppedAt}` }
++  } else if (stolen?.alive) {
++    goal = stolen.flight.position; key = `intercept:${stolen.id}`; intercept = true
++  } else if (own.droppedAt !== null) {
++    goal = own.position; key = `return:${own.droppedAt}`
++  } else if (escort?.alive) {
++    goal = escort.flight.position; key = `escort:${escort.id}`
++  }
++  if (water && (goal[1] > 30 || !boatNavigable(world, goal[0], goal[2], 0))) {
++    goal = own.home; key = "water-home"
++  }
++  updateJitter(brain, now)
++  s.phase = intercept ? "engage" : "transit"
++  s.gunAimSet = false
++  const f = o.flight, seat = resetSeat(o.pilotSeat, o.pilotAim, null)
++  f.roll = 0; f.pitch = 0; f.yaw = 0; f.boost = false; f.brake = false
++  const nose = noseInto(fs.orientation, _nose)
++  const aim = copy3(o.flightAim, nose)
++  // Carrier position is authoritative even for stealth aircraft; protection still prevents firing.
++  const target = stolen?.alive && !stolen.flight.crashed && !isSpawnProtected(stolen, now) ? stolen
++    : selectTarget(vehicle, vehicles, now, 1_500, s.targetId)
++  s.targetId = target?.id ?? null
++  if (target) engage(brain, vehicle, target, now, aim, inSafeZone(vehicle.team, pos))
++  // Combat may aim/fire, but objective travel controls throttle and steering.
++  f.boost = false; f.brake = false
++  const threat = findThreat(vehicle, missiles)
++  if (threat && dist(pos, threat.position) < 1_200 && vehicle.flareCount > 0 && vehicle.flaresReadyAt <= now) seat.flares = true
++  if (water) {
++    const wp = ctfBoatRoute(brain, vehicle, goal, key, world)
++    const dx = wp[0] - pos[0], dz = wp[2] - pos[2], distance = Math.hypot(dx, dz)
++    const yaw = yawPitchRoll(fs.orientation).yaw
++    let err = Math.atan2(-dx, -dz) - yaw
++    err -= Math.round(err / (2 * Math.PI)) * 2 * Math.PI
++    f.yaw = clamp(-err * 2.5, -1, 1)
++    // Slow before corners and reversals, but retain enough propulsion for rudder authority.
++    const desiredSpeed = Math.abs(err) > 0.5 ? 6 : distance < 65 ? 9 : 26
++    const speed = Math.hypot(vel[0], vel[2])
++    f.throttle = clamp(0.25 + (desiredSpeed - speed) * 0.3, 0.15, 1)
++    f.brake = speed > desiredSpeed + 3 || wp === pos
++    headingPitch(dx, dz, 0, aim)
++    f.aim = aim
++    if (!s.gunAimSet) seat.aim = copy3(o.pilotAim, aim)
++    return o.pilot
++  }
++  const dx = goal[0] - pos[0], dz = goal[2] - pos[2], hd = Math.hypot(dx, dz)
++  const ground = world.groundHeight(pos[0], pos[2])
++  const goalGround = world.groundHeight(goal[0], goal[2])
++  const low = !intercept && hd < 950
++  const altitude = intercept ? Math.max(goal[1], goalGround + 22) : goalGround + (low ? 22 : 210)
++  // Damp sink before the pickup pass. A fixed 150m/45m Fleet floor cannot touch a 40m flag volume.
++  const pitch = clamp(Math.atan2(altitude - pos[1] - vel[1] * 1.2, Math.max(hd * 0.45, 120)), -0.25, 0.4)
++  headingPitch(dx, dz, heli ? (hd > 60 ? -0.22 : 0) : pitch, aim)
++  applyAimSafety(aim, pos, vel, world, low ? 12 : 90, low ? 1.2 : 4, null, !low && !heli)
++  const out = finishPilot(brain, vehicle, aim, heli, low ? 0.45 : 0.8, altitude, ground, world, target)
++  if (heli && low) {
++    // finishPilot's Fleet helicopter floor is 45m. Keep its output/reticle, lower only CTF collective.
++    const floor = Math.max(altitude, groundAhead(pos, aim, Math.hypot(vel[0], vel[2]), world, 1.2) + 12,
++      shipClearanceAlt(pos, aim[0], aim[2], 300, 30))
++    f.throttle = clamp((floor - pos[1]) * 0.03 - vel[1] * 0.2, -1, 1)
++    f.brake = hd < 45
++  }
++  if (!vehicle.seats[1]) steerOwnBomb(bot, out.seat, o.pilotAim, projectiles, ships)
++  return out
++}
++
+ // ---------------------------------------------------------------------------------------------
+ // Pilot
+
 diff --git a/games/wings/src/sim/combat.ts b/games/wings/src/sim/combat.ts
 index 77578c3..a5d9e13 100644
 --- a/games/wings/src/sim/combat.ts
@@ -2837,6 +4017,186 @@ index 77578c3..a5d9e13 100644
    const spec = WEAPONS[weapon]
    return spec ? SHIP_DAMAGE_SCALE[spec.kind] ?? 0 : 0
  }
+diff --git a/games/wings/src/sim/ctf-map.ts b/games/wings/src/sim/ctf-map.ts
+new file mode 100644
+index 0000000..cf67afd
+--- /dev/null
++++ b/games/wings/src/sim/ctf-map.ts
+@@ -0,0 +1,25 @@
++import type { SpawnPoint } from "./geography"
++import type { Vec3 } from "./types"
++
++// Current WING seed's real strait between Mainland and Isle 2. No terrain override.
++// C1 planning probes: 1,720m route, 12.45m minimum sampled under-keel clearance.
++// Driven turns and full-mode navigation still require their own regression.
++export const CTF_WATER_ROUTE: readonly Vec3[] = [
++  [-400, 0, 1100], [260, 0, 1100], [260, 0, 840], [800, 0, 840], [800, 0, 1100],
++]
++export const CTF_HOMES: [Vec3, Vec3] = [[-400, 1, 1100], [800, 1, 1100]]
++
++/** Ordinary mode-local spawns. Aircraft air-start; boats retain their waterline/zero-speed factory. */
++export function ctfSpawnPoint(team: 0 | 1, water: boolean, index: number): SpawnPoint {
++  const home = CTF_HOMES[team]
++  const target = water ? CTF_WATER_ROUTE[team === 0 ? 1 : CTF_WATER_ROUTE.length - 2] : CTF_HOMES[1 - team]
++  const length = Math.hypot(target[0] - home[0], target[2] - home[2])
++  const dx = (target[0] - home[0]) / length, dz = (target[2] - home[2]) / length
++  const slot = Math.max(0, Math.floor(index)) % 16
++  const side = (slot % 3 - 1) * 14, back = 20 + Math.floor(slot / 3) * 14
++  return {
++    position: [home[0] - dx * back + dz * side, water ? 0 : 120 + Math.floor(slot / 3) * 15,
++      home[2] - dz * back - dx * side],
++    yaw: Math.atan2(-dx, -dz), onGround: false,
++  }
++}
+diff --git a/games/wings/src/sim/ctf.ts b/games/wings/src/sim/ctf.ts
+new file mode 100644
+index 0000000..ac73c70
+--- /dev/null
++++ b/games/wings/src/sim/ctf.ts
+@@ -0,0 +1,143 @@
++import type { Vec3, VehicleEntity } from "./types"
++
++export interface CtfFlag {
++  team: 0 | 1
++  home: Vec3
++  position: Vec3
++  carrierId: string | null
++  droppedAt: number | null
++}
++
++export interface CtfState {
++  flags: [CtfFlag, CtfFlag]
++  scores: [number, number]
++  captureLimit: number
++}
++
++export interface CtfEvent {
++  type: "flag"
++  action: "pickup" | "drop" | "return" | "capture"
++  /** Flag owner, not the capturing team. */
++  team: 0 | 1
++  vehicleId: string | null
++  reason?: "touch" | "timeout" | "death" | "missing" | "empty"
++}
++
++const PICKUP_RADIUS_SQUARED = 40 * 40
++const RETURN_SECONDS = 30
++const CARRIER_OFFSET = 2
++
++export function createCtfState(homes: [Vec3, Vec3], captureLimit: number): CtfState {
++  if (!Number.isInteger(captureLimit) || captureLimit < 1 || captureLimit > 1000) {
++    throw new RangeError("CTF capture limit must be an integer from 1 to 1000")
++  }
++  if (homes.length !== 2 || homes.some(home => home.length !== 3 || !home.every(Number.isFinite))) {
++    throw new RangeError("CTF requires two finite 3D homes")
++  }
++  const flag = (team: 0 | 1): CtfFlag => ({
++    team, home: [...homes[team]], position: [...homes[team]], carrierId: null, droppedAt: null,
++  })
++  return { flags: [flag(0), flag(1)], scores: [0, 0], captureLimit }
++}
++
++export function cloneCtfState(state: CtfState): CtfState {
++  const flag = (value: CtfFlag): CtfFlag => ({ ...value, home: [...value.home], position: [...value.position] })
++  return {
++    flags: [flag(state.flags[0]), flag(state.flags[1])],
++    scores: [...state.scores], captureLimit: state.captureLimit,
++  }
++}
++
++function eligible(vehicle: VehicleEntity): boolean {
++  return vehicle.alive && vehicle.hp > 0 && (vehicle.team === 0 || vehicle.team === 1)
++    && (vehicle.seats[0] !== null || vehicle.seats[1] !== null)
++}
++
++function near(a: Vec3, b: Vec3): boolean {
++  return (a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2 + (a[2] - b[2]) ** 2 <= PICKUP_RADIUS_SQUARED
++}
++
++function home(flag: CtfFlag): boolean {
++  return flag.carrierId === null && flag.droppedAt === null
++}
++
++function reset(flag: CtfFlag): void {
++  flag.carrierId = null
++  flag.droppedAt = null
++  flag.position = [...flag.home]
++}
++
++function follow(flag: CtfFlag, vehicle: VehicleEntity): void {
++  const p = vehicle.flight.position
++  flag.position[0] = p[0]
++  flag.position[1] = p[1] + CARRIER_OFFSET
++  flag.position[2] = p[2]
++}
++
++/** Room-time seconds. Stable flag order, then input vehicle order breaks touch ties.
++ * Loss/timeout precedes touches; touches precede captures. Each flag transitions at most once per tick.
++ * Vehicles and their movement/combat state are read-only to this authority.
++ */
++export function stepCtf(
++  state: CtfState,
++  vehicles: readonly VehicleEntity[],
++  now: number,
++  surfaceHeight: (x: number, z: number) => number,
++  emit: (event: CtfEvent) => void,
++): 0 | 1 | null {
++  if (state.scores[0] >= state.captureLimit) return 0
++  if (state.scores[1] >= state.captureLimit) return 1
++  let transitioned = 0
++  for (const flag of state.flags) {
++    if (flag.carrierId !== null) {
++      const carrier = vehicles.find(vehicle => vehicle.id === flag.carrierId)
++      if (carrier) follow(flag, carrier)
++      if (!carrier || !eligible(carrier) || carrier.team === flag.team) {
++        const vehicleId = flag.carrierId
++        const reason = !carrier ? "missing" : !carrier.alive || !(carrier.hp > 0) ? "death"
++          : carrier.seats[0] === null && carrier.seats[1] === null ? "empty" : "missing"
++        flag.carrierId = null
++        flag.droppedAt = now
++        flag.position[1] = surfaceHeight(flag.position[0], flag.position[2]) + 1
++        transitioned |= 1 << flag.team
++        emit({ type: "flag", action: "drop", team: flag.team, vehicleId, reason })
++      }
++    } else if (flag.droppedAt !== null && now - flag.droppedAt >= RETURN_SECONDS) {
++      reset(flag)
++      transitioned |= 1 << flag.team
++      emit({ type: "flag", action: "return", team: flag.team, vehicleId: null, reason: "timeout" })
++    }
++  }
++  for (const flag of state.flags) {
++    if (flag.carrierId !== null || (transitioned & (1 << flag.team))) continue
++    for (const vehicle of vehicles) {
++      if (!eligible(vehicle) || !near(vehicle.flight.position, flag.position)) continue
++      if (vehicle.team === flag.team) {
++        if (home(flag)) continue
++        reset(flag)
++        emit({ type: "flag", action: "return", team: flag.team, vehicleId: vehicle.id, reason: "touch" })
++      } else {
++        if (state.flags.some(other => other.carrierId === vehicle.id)) continue
++        flag.carrierId = vehicle.id
++        flag.droppedAt = null
++        follow(flag, vehicle)
++        emit({ type: "flag", action: "pickup", team: flag.team, vehicleId: vehicle.id })
++      }
++      transitioned |= 1 << flag.team
++      break
++    }
++  }
++  for (const flag of state.flags) {
++    if (flag.carrierId === null || (transitioned & (1 << flag.team))) continue
++    const carrier = vehicles.find(vehicle => vehicle.id === flag.carrierId)!
++    const team = carrier.team as 0 | 1
++    const own = state.flags[team]
++    if (!home(own) || !near(carrier.flight.position, own.home)) continue
++    const vehicleId = flag.carrierId
++    reset(flag)
++    state.scores[team]++
++    emit({ type: "flag", action: "capture", team: flag.team, vehicleId })
++    if (state.scores[team] >= state.captureLimit) return team
++  }
++  return null
++}
 diff --git a/games/wings/src/sim/flight.ts b/games/wings/src/sim/flight.ts
 index 85b96d5..57c7dcd 100644
 --- a/games/wings/src/sim/flight.ts
@@ -3012,11 +4372,85 @@ index a4742a9..8edd63c 100644
 
 -export const worldQuery: WorldQuery = { groundHeight, onRunway, isWater, half: WORLD_HALF, ceiling: CEILING }
 +export const worldQuery: WorldQuery = { groundHeight, onRunway, isWater, seabedHeight: terrainHeight, half: WORLD_HALF, ceiling: CEILING }
+diff --git a/games/wings/src/sim/loopback.ts b/games/wings/src/sim/loopback.ts
+index 4e9f972..5041396 100644
+--- a/games/wings/src/sim/loopback.ts
++++ b/games/wings/src/sim/loopback.ts
+@@ -2,7 +2,6 @@
+ // so offline play behaves exactly like a network room (same serialization, async delivery).
+ // Dependency-free (timers + performance only) so it also works in tests and workers.
+ import type { ClientMessage, RoomConfig, ServerMessage } from "./protocol"
+-import { DEFAULT_ROOM_CONFIG } from "./protocol"
+ import { RoomEngine, createSnapshotDecoder, sanitizeConfig } from "./room-engine"
+ import type { EngineConfig } from "./room-engine"
+
+@@ -53,7 +52,7 @@ export function createLoopbackRoom(
+     outbox.push(text)
+     if (!flushing) { flushing = true; queueMicrotask(flush) }
+   }
+-  const engine = new RoomEngine(options.code ?? "local", sanitizeConfig({ ...DEFAULT_ROOM_CONFIG, listed: false, ...config }), {
++  const engine = new RoomEngine(options.code ?? "local", sanitizeConfig({ listed: false, ...config }), {
+     send: (_id, message) => enqueue(JSON.stringify(message)),
+     sendText: (_id, text) => enqueue(text),
+   })
+diff --git a/games/wings/src/sim/protocol.ts b/games/wings/src/sim/protocol.ts
+index 986203a..ae74a52 100644
+--- a/games/wings/src/sim/protocol.ts
++++ b/games/wings/src/sim/protocol.ts
+@@ -1,11 +1,16 @@
+ // Network protocol between browser and Room Durable Object (JSON over WebSocket).
+ // Owned by the orchestrator.
++import type { CtfState } from "./ctf"
+ import type {
+   Flare, FlightInput, GameEvent, Missile, PlayerInfo, Projectile, SeatIndex, SeatInput, TeamId, Vec3, VehicleEntity, VehicleKind,
+ } from "./types"
+
++export type GameMode = "fleet" | "ctf"
++
+ export interface RoomConfig {
+-  /** 2..4 */
++  /** Omitted by legacy callers: Fleet Strike. */
++  mode?: GameMode
++  /** 2..4; CTF always uses two. */
+   teams: number
+   /** Bots per team (0..10). Bots fill seats/vehicles server-side. */
+   bots: number
+@@ -26,6 +31,11 @@ export const DEFAULT_ROOM_CONFIG: RoomConfig = {
+   teams: 2, bots: 0, maxPerTeam: 10, scoreLimit: 50, timeLimit: 10 * 60, listed: true, name: "Open Skies",
+ }
+
++export const CTF_ROOM_CONFIG: RoomConfig = {
++  ...DEFAULT_ROOM_CONFIG, mode: "ctf", teams: 2, bots: 2, scoreLimit: 3,
++  timeLimit: 5 * 60, listed: false, name: "Capture the flag",
++}
++
+ /** Empty rooms (no humans) are destroyed after this many ms. */
+ export const EMPTY_ROOM_TTL_MS = 60_000
+ export const RESPAWN_DELAY = 5
+@@ -74,6 +84,8 @@ export interface Snapshot {
+   missiles: Missile[]
+   flares: Flare[]
+   scores: number[]
++  /** Authoritative two-team objective state, absent in Fleet Strike. */
++  ctf?: CtfState
+   /** Ship objectives (only active teams). */
+   ships?: ShipState[]
+   /** Craters added since the last snapshot (clients accumulate; full list sent on join). */
 diff --git a/games/wings/src/sim/room-engine.ts b/games/wings/src/sim/room-engine.ts
-index 020cfee..0484038 100644
+index 020cfee..c453620 100644
 --- a/games/wings/src/sim/room-engine.ts
 +++ b/games/wings/src/sim/room-engine.ts
-@@ -8,13 +8,14 @@ import type {
+@@ -1,22 +1,25 @@
+ // Authoritative game loop shared by the Room Durable Object and the browser's offline/loopback mode.
+ // Owned by the Server agent. Dependency-free: no DOM, no Date.now/Math.random inside the simulation.
+ import type { ClientMessage, Crater, RoomConfig, RoomSummary, ServerMessage, ShipState, Snapshot } from "./protocol"
+-import { DEFAULT_ROOM_CONFIG, RESPAWN_DELAY } from "./protocol"
++import { CTF_ROOM_CONFIG, DEFAULT_ROOM_CONFIG, RESPAWN_DELAY } from "./protocol"
++import { cloneCtfState, createCtfState, stepCtf, type CtfState } from "./ctf"
++import { CTF_HOMES, ctfSpawnPoint } from "./ctf-map"
+ import type {
+   Flare, FlightInput, FlightState, GameEvent, Missile, PlayerInfo, Projectile, Quat, SeatIndex, SeatInput, TeamId, Vec3,
+   VehicleEntity, VehicleKind, WeaponId, WeaponRuntime, WorldQuery,
  } from "./types"
  import { SNAPSHOT_RATE, TICK_DT, TICK_RATE } from "./types"
  import { VEHICLES, VEHICLE_KINDS } from "./vehicles"
@@ -3028,12 +4462,15 @@ index 020cfee..0484038 100644
  } from "./combat"
  import type { CombatState } from "./combat"
 -import { carrierOf, deckVelocity, posedFleet, posedShip, setFleetState, setShipStates, spawnPoint, worldQuery as baseWorldQuery } from "./geography"
-+import { WATER_LEVEL, carrierOf, deckVelocity, posedFleet, posedShip, setFleetState, setShipStates, spawnPoint, worldQuery as baseWorldQuery } from "./geography"
++import { WATER_LEVEL, carrierOf, deckVelocity, posedFleet, posedShip, setFleetState, setShipStates, spawnPoint, terrainHeight, worldQuery as baseWorldQuery } from "./geography"
 +import type { SpawnPoint } from "./geography"
  import { FLEET, SHIP_SPECS, SPAWN_PROTECTION, shipToWorld, worldToShip } from "./fleet"
- import { botInput, chooseBotVehicle, createBotBrain } from "./bots"
+-import { botInput, chooseBotVehicle, createBotBrain } from "./bots"
++import { botInput, ctfBotInput, chooseBotVehicle, createBotBrain } from "./bots"
  import type { BotBrain } from "./bots"
-@@ -70,6 +71,10 @@ export const STEALTH_VISUAL_RANGE = 800
+
+ export interface RoomEngineHooks {
+@@ -70,6 +73,10 @@ export const STEALTH_VISUAL_RANGE = 800
  /** Cap on client-reported view delay used for lag-compensated hits (seconds). */
  export const MAX_VIEW_DELAY = 0.3
  const SPAWN_SLOTS = 16
@@ -3044,16 +4481,87 @@ index 020cfee..0484038 100644
 
  function newJitterBuffer(): JitterBuffer {
    return {
-@@ -454,7 +459,7 @@ export class RoomEngine {
+@@ -169,15 +176,22 @@ export function sanitizeConfig(input: unknown, base: EngineConfig = DEFAULT_ROOM
+   const int = (v: unknown, min: number, max: number, fallback: number) =>
+     typeof v === "number" && Number.isFinite(v) ? Math.min(max, Math.max(min, Math.round(v))) : fallback
+   const name = typeof c.name === "string" ? cleanText(c.name, 32) : ""
++  const ctf = c.mode === "ctf" || (c.mode !== "fleet" && base.mode === "ctf")
++  const preset = ctf ? (base.mode === "ctf" ? base : CTF_ROOM_CONFIG) : base.mode === "ctf" ? DEFAULT_ROOM_CONFIG : base
++  const extra = extras(c, preset)
++  if (ctf) delete extra.botFill
++  const bots = int(c.bots, ctf ? 2 : 0, 10, preset.bots)
++  const maxPerTeam = int(c.maxPerTeam, ctf ? 3 : 1, 16, preset.maxPerTeam)
+   return {
+-    teams: int(c.teams, 2, 4, base.teams),
+-    bots: int(c.bots, 0, 10, base.bots),
+-    maxPerTeam: int(c.maxPerTeam, 1, 16, base.maxPerTeam),
+-    scoreLimit: int(c.scoreLimit, 1, 1000, base.scoreLimit),
+-    timeLimit: int(c.timeLimit, 60, 7200, base.timeLimit),
+-    listed: typeof c.listed === "boolean" ? c.listed : base.listed,
+-    name: name || base.name,
+-    ...extras(c, base),
++    ...(ctf ? { mode: "ctf" as const } : {}),
++    teams: ctf ? 2 : int(c.teams, 2, 4, preset.teams),
++    bots,
++    maxPerTeam: ctf ? Math.max(bots + 1, maxPerTeam) : maxPerTeam,
++    scoreLimit: int(c.scoreLimit, 1, 1000, preset.scoreLimit),
++    timeLimit: int(c.timeLimit, 60, 7200, preset.timeLimit),
++    listed: typeof c.listed === "boolean" ? c.listed : preset.listed,
++    name: name || preset.name,
++    ...extra,
+   }
+ }
+
+@@ -262,6 +276,7 @@ export class RoomEngine {
+   readonly vehicles: VehicleEntity[] = []
+   readonly players = new Map<string, PlayerState>()
+   scores: number[]
++  ctf: CtfState | null = null
+   combat: CombatState = createCombatState()
+   /** Room time when the current match began. */
+   matchStartedAt = 0
+@@ -289,6 +304,7 @@ export class RoomEngine {
+
+   constructor(public readonly code: string, public config: EngineConfig, private hooks: RoomEngineHooks) {
+     this.config = sanitizeConfig(config)
++    this.ctf = this.config.mode === "ctf" ? createCtfState(CTF_HOMES, this.config.scoreLimit) : null
+     this.scores = new Array(this.config.teams).fill(0)
+     this.teamKills = new Array(this.config.teams).fill(0)
+     this.rng = createRng(hashString(code))
+@@ -391,6 +407,10 @@ export class RoomEngine {
+     const id = `b${this.nextId++}`
+     const p = this.newPlayer(id, `${BOT_NAMES[this.botNames++ % BOT_NAMES.length]} [AI]`, team, true)
+     p.brain = createBotBrain(Math.floor(this.rng() * 4294967296), this.config.botSkill ?? BOT_SKILL_DEFAULT)
++    if (this.ctf) {
++      const count = [...this.players.values()].filter(other => other.info.bot && other.info.team === team).length
++      p.brain.memory.ctfKind = count % 2 ? "speedboat" : ["fighter", "f15", "f35"][Math.floor(count / 2) % 3]
++    }
+     p.info.respawnAt = this.time + 0.5 + this.rng() * 2
+     this.players.set(id, p)
+     return id
+@@ -453,16 +473,17 @@ export class RoomEngine {
+     for (const p of this.players.values()) {
        const bot = p.info
        if (!bot.bot || p.leaving || bot.vehicleId || now < bot.respawnAt) continue
-       const ride = this.vehicles.find(v => {
+-      const ride = this.vehicles.find(v => {
 -        if (!v.alive || v.team !== bot.team || v.seats[1] || !v.seats[0]) return false
++      const ride = this.ctf ? undefined : this.vehicles.find(v => {
 +        if (!v.alive || VEHICLES[v.kind].flight === "water" || v.team !== bot.team || v.seats[1] || !v.seats[0]) return false
          const pilot = this.players.get(v.seats[0])
          return !!pilot && !pilot.info.bot && now - this.meta.get(v.id)!.gunnerEmptySince >= BOT_GUNNER_DELAY
        })
-@@ -644,12 +649,14 @@ export class RoomEngine {
+       if (ride) { this.seatPlayer(bot, ride, 1); continue }
+       const teammates: PlayerInfo[] = []
+       for (const x of this.players.values()) if (x.info.team === bot.team && x.info.id !== bot.id) teammates.push(x.info)
+-      let kind = chooseBotVehicle(bot, teammates, this.vehicles, this.rng)
+-      if (!VEHICLES[kind]) kind = VEHICLE_KINDS[Math.floor(this.rng() * VEHICLE_KINDS.length)]
++      let kind = this.ctf ? p.brain!.memory.ctfKind as VehicleKind : chooseBotVehicle(bot, teammates, this.vehicles, this.rng)
++      if (!VEHICLES[kind]) kind = this.ctf ? "fighter" : VEHICLE_KINDS[Math.floor(this.rng() * VEHICLE_KINDS.length)]
++      if (VEHICLES[kind].flight === "water" && !this.waterSpawn(bot.team)) continue
+       this.spawnVehicle(bot, kind)
+     }
+   }
+@@ -644,12 +665,14 @@ export class RoomEngine {
    }
 
    private onSpawn(p: PlayerState, kind: unknown): void {
@@ -3063,13 +4571,30 @@ index 020cfee..0484038 100644
      if (this.time < p.info.respawnAt) return this.error(p.info.id, "Respawn not ready.")
      const current = this.vehicleOf(p.info)
      if (current && current.alive && !this.canLeave(current)) return this.error(p.info.id, "Return to base to change aircraft.")
-     if (!this.spawnCarrier(p.info.team)) return this.error(p.info.id, "Your carriers have been sunk.")
+-    if (!this.spawnCarrier(p.info.team)) return this.error(p.info.id, "Your carriers have been sunk.")
++    if (!this.ctf && !this.spawnCarrier(p.info.team)) return this.error(p.info.id, "Your carriers have been sunk.")
 +    // Preflight before relinquishing a seat or turret. The synchronous spawn repeats the same query.
 +    if (VEHICLES[kind as VehicleKind].flight === "water" && !this.waterSpawn(p.info.team)) return this.error(p.info.id, BOAT_SPAWN_ERROR)
      this.vacate(p.info)
      this.leaveTurret(p.info)
      this.spawnVehicle(p.info, kind as VehicleKind)
-@@ -705,13 +712,42 @@ export class RoomEngine {
+@@ -657,6 +680,7 @@ export class RoomEngine {
+
+   /** Man one of your fleet's turrets instead of flying (seat input aims and fires it). */
+   private onManTurret(p: PlayerState, shipId: unknown, turretId: unknown): void {
++    if (this.ctf) return this.error(p.info.id, "Choose a plane or boat at your flag base in CTF.")
+     if (typeof shipId !== "string" || typeof turretId !== "string") return
+     const ship = FLEET.find(s => s.id === shipId)
+     const mount = ship ? SHIP_SPECS[ship.kind].turrets.find(t => t.id === turretId) : undefined
+@@ -695,6 +719,7 @@ export class RoomEngine {
+
+   /** Spawn slot on whichever carrier is afloat (geography lays out the primary carrier; mirror onto others). */
+   private spawnAt(team: TeamId, kind: VehicleKind, index: number) {
++    if (this.ctf) return ctfSpawnPoint(team as 0 | 1, false, index)
+     const sp = spawnPoint(team, kind, index)
+     const id = this.spawnCarrier(team)
+     const primary = carrierOf(team)
+@@ -705,13 +730,52 @@ export class RoomEngine {
      return { ...sp, position: shipToWorld(other, local), yaw: sp.yaw + other.heading - primary.heading }
    }
 
@@ -3078,6 +4603,16 @@ index 020cfee..0484038 100644
 +  private waterSpawn(team: TeamId): SpawnPoint | null {
 +    this.syncFleet()
 +    const spec = VEHICLES.speedboat
++    if (this.ctf) {
++      for (let i = 0; i < SPAWN_SLOTS; i++) {
++        const point = ctfSpawnPoint(team as 0 | 1, true, i)
++        if (!boatNavigable(worldQuery, point.position[0], point.position[2], point.yaw)) continue
++        if (this.vehicles.some(v => v.alive && Math.hypot(...v.flight.position.map((p, j) => p - point.position[j]))
++          < spec.radius + VEHICLES[v.kind].radius + BOAT_CLEARANCE)) continue
++        return point
++      }
++      return null
++    }
 +    const hull = SHIP_SPECS.carrier
 +    for (const sh of FLEET) {
 +      if (sh.team !== team || sh.kind !== "carrier" || shipRuntime(this.combat, sh.id)?.sunk !== false) continue
@@ -3114,7 +4649,7 @@ index 020cfee..0484038 100644
        const sp = this.spawnAt(team, kind, i).position
        const blocked = this.vehicles.some(v => v.alive && Math.hypot(v.flight.position[0] - sp[0], v.flight.position[1] - sp[1], v.flight.position[2] - sp[2]) < 25)
        if (!blocked) { index = i; break }
-@@ -720,7 +756,7 @@ export class RoomEngine {
+@@ -720,7 +784,7 @@ export class RoomEngine {
      const spec = VEHICLES[kind]
      const v: VehicleEntity = {
        id: `v${this.nextId++}`, kind, team,
@@ -3123,7 +4658,7 @@ index 020cfee..0484038 100644
        hp: spec.maxHp, maxHp: spec.maxHp,
        seats: [player.id, null], aim: [null, null], weapons: createWeapons(kind),
        flaresReadyAt: 0, flareCount: spec.flares, abilityReadyAt: 0, spottedUntil: 0, lastDamagedBy: null, alive: true,
-@@ -731,7 +767,10 @@ export class RoomEngine {
+@@ -731,7 +795,10 @@ export class RoomEngine {
      player.vehicleId = v.id
      player.seat = 0
      const ps = this.players.get(player.id)
@@ -3135,7 +4670,25 @@ index 020cfee..0484038 100644
      return v
    }
 
-@@ -779,7 +818,10 @@ export class RoomEngine {
+@@ -750,7 +817,7 @@ export class RoomEngine {
+       // Humans push bots out. A displaced bot pilot may stay on as gunner; a bot never pilots a human's aircraft.
+       this.evictBot(occupant)
+       const other = (1 - seat) as SeatIndex
+-      if (seat === 0 && !v.seats[other] && !occupant.leaving) this.seatPlayer(occupant.info, v, other)
++      if (!this.ctf && seat === 0 && !v.seats[other] && !occupant.leaving) this.seatPlayer(occupant.info, v, other)
+     }
+     this.seatPlayer(p.info, v, seat)
+   }
+@@ -768,7 +835,7 @@ export class RoomEngine {
+     if (occupant) {
+       this.evictBot(occupant)
+       // Swap only into the gunner seat; a bot never takes the pilot seat of a human's aircraft.
+-      if (from === 1) this.seatPlayer(occupant.info, v, 1)
++      if (!this.ctf && from === 1) this.seatPlayer(occupant.info, v, 1)
+     }
+     this.seatPlayer(p.info, v, seat)
+   }
+@@ -779,7 +846,10 @@ export class RoomEngine {
      player.seat = seat
      if (seat === 1) { const meta = this.meta.get(v.id); if (meta) meta.gunnerEmptySince = Infinity }
      const ps = this.players.get(player.id)
@@ -3147,7 +4700,7 @@ index 020cfee..0484038 100644
    }
 
    /** Remove a player from whatever seat they hold. */
-@@ -793,18 +835,39 @@ export class RoomEngine {
+@@ -793,18 +863,47 @@ export class RoomEngine {
      player.vehicleId = null
      player.seat = null
      const ps = this.players.get(player.id)
@@ -3166,6 +4719,10 @@ index 020cfee..0484038 100644
 +  /** Boats return in nearby water; aircraft retain deck/protection rules. */
    private canLeave(v: VehicleEntity): boolean {
 +    if (VEHICLES[v.kind].flight === "water") return this.atBoatBase(v)
++    if (this.ctf) {
++      const home = this.ctf.flags[v.team]?.home
++      return !!home && v.alive && !v.flight.crashed && Math.hypot(...v.flight.position.map((p, i) => p - home[i])) <= 180
++    }
      return this.onOwnDeck(v) || this.time - (v.spawnedAt ?? -Infinity) < SPAWN_PROTECTION
    }
 
@@ -3174,6 +4731,10 @@ index 020cfee..0484038 100644
 +    const p = v.flight.position, yaw = yawPitchRoll(v.flight.orientation).yaw
 +    this.syncFleet()
 +    if (Math.abs(p[1] - WATER_LEVEL - VEHICLES.speedboat.water!.waterline) > 2 || !boatNavigable(worldQuery, p[0], p[2], yaw)) return false
++    if (this.ctf) {
++      const home = this.ctf.flags[v.team]?.home
++      return !!home && Math.hypot(...p.map((value, i) => value - home[i])) <= BOAT_RETURN_RANGE
++    }
 +    const hull = SHIP_SPECS.carrier
 +    for (const sh of FLEET) {
 +      if (sh.team !== v.team || sh.kind !== "carrier" || shipRuntime(this.combat, sh.id)?.sunk !== false) continue
@@ -3189,7 +4750,18 @@ index 020cfee..0484038 100644
    /** Landed on its own team's carrier flight deck. */
    onOwnDeck(v: VehicleEntity): boolean {
      if (!v.flight.onGround) return false
-@@ -869,7 +932,8 @@ export class RoomEngine {
+@@ -857,7 +956,9 @@ export class RoomEngine {
+         const id = v.seats[i]
+         const p = id ? this.players.get(id) : undefined
+         if (!p || !p.brain) continue
+-        const out = botInput(p.brain, p.info, v, vehicles, now, this.combat.missiles, worldQuery, this.combat.ships, this.combat.projectiles)
++        const out = this.ctf
++          ? ctfBotInput(p.brain, p.info, v, vehicles, now, this.ctf, this.combat.missiles, worldQuery, this.combat.ships, this.combat.projectiles)
++          : botInput(p.brain, p.info, v, vehicles, now, this.combat.missiles, worldQuery, this.combat.ships, this.combat.projectiles)
+         // botInput reuses its result objects per brain: copy what we keep.
+         p.seat = { ...out.seat, aim: out.seat.aim && [out.seat.aim[0], out.seat.aim[1], out.seat.aim[2]] }
+         if (i === 0) p.flight = out.flight ? { ...out.flight, aim: out.flight.aim && [out.flight.aim[0], out.flight.aim[1], out.flight.aim[2]] } : NEUTRAL_INPUT
+@@ -869,7 +970,8 @@ export class RoomEngine {
      for (const v of vehicles) {
        if (!v.alive) continue
        const pilot = v.seats[0] ? this.players.get(v.seats[0]) : undefined
@@ -3199,7 +4771,17 @@ index 020cfee..0484038 100644
        for (let i = 0; i < 2; i++) {
          const s = i as SeatIndex
          const id = v.seats[s]
-@@ -950,6 +1014,7 @@ export class RoomEngine {
+@@ -929,6 +1031,9 @@ export class RoomEngine {
+       this.onVehicleDestroyed(v, killer, killEvent?.killerTeam)
+     }
+
++    if (this.ctf && this.matchEndedAt === null) {
++      stepCtf(this.ctf, vehicles, now, (x, z) => Math.max(WATER_LEVEL, terrainHeight(x, z)), event => events.push(event))
++    }
+     this.cleanupVehicles()
+     this.updateBots()
+     if (this.matchEndedAt === null) this.updateScores()
+@@ -950,6 +1055,7 @@ export class RoomEngine {
          p.info.vehicleId = null
          p.info.seat = null
          p.info.respawnAt = this.time + RESPAWN_DELAY
@@ -3207,7 +4789,21 @@ index 020cfee..0484038 100644
          p.flight = NEUTRAL_INPUT
          p.seat = NEUTRAL_SEAT
        }
-@@ -1001,7 +1066,7 @@ export class RoomEngine {
+@@ -972,6 +1078,13 @@ export class RoomEngine {
+
+   /** Scores = % of enemy fleet hp destroyed (0–100, 1 decimal); emits `score` on change. */
+   private updateScores(): void {
++    if (this.ctf) {
++      if (this.ctf.scores.some((score, team) => score !== this.scores[team])) {
++        this.scores = [...this.ctf.scores]
++        this.events.push({ type: "score", scores: [...this.scores] })
++      }
++      return
++    }
+     const dealt = this.combat.shipDamageBy ?? []
+     let changed = false
+     for (let t = 0; t < this.config.teams; t++) {
+@@ -1001,7 +1114,7 @@ export class RoomEngine {
        }
        if (meta.emptySince === null) meta.emptySince = now
        const idle = now - meta.emptySince
@@ -3216,7 +4812,22 @@ index 020cfee..0484038 100644
          if (idle >= PARKED_REMOVE_DELAY) { v.alive = false; meta.diedAt = -Infinity; removed = true }
        } else if (idle >= ABANDONED_DESTROY_DELAY) {
          const killer = this.crashCredit(v, meta)
-@@ -1056,6 +1121,8 @@ export class RoomEngine {
+@@ -1028,6 +1141,14 @@ export class RoomEngine {
+       if (now - this.matchEndedAt >= MATCH_RESTART_DELAY) this.resetMatch()
+       return
+     }
++    if (this.ctf) {
++      for (const team of [0, 1] as const) if (this.ctf.scores[team] >= this.ctf.captureLimit) return this.endMatch(team, "score")
++      if (now - this.matchStartedAt >= this.config.timeLimit) {
++        const [a, b] = this.ctf.scores
++        this.endMatch(a === b ? null : a > b ? 0 : 1, "time")
++      }
++      return
++    }
+     // Fleet Strike: a team is out when all its carriers are sunk; last team with a carrier wins.
+     const alive: TeamId[] = []
+     for (let t = 0; t < this.config.teams; t++) if (this.spawnCarrier(t as TeamId)) alive.push(t as TeamId)
+@@ -1056,6 +1177,8 @@ export class RoomEngine {
 
    private resetMatch(): void {
      for (const p of this.players.values()) {
@@ -3225,11 +4836,61 @@ index 020cfee..0484038 100644
        p.info.vehicleId = null
        p.info.seat = null
        p.info.kills = 0
+@@ -1068,6 +1191,7 @@ export class RoomEngine {
+     this.vehicles.length = 0
+     this.meta.clear()
+     this.combat = createCombatState()
++    this.ctf = this.config.mode === "ctf" ? createCtfState(CTF_HOMES, this.config.scoreLimit) : null
+     this.scores = new Array(this.config.teams).fill(0)
+     this.teamKills = new Array(this.config.teams).fill(0)
+     this.cratersSent = 0
+@@ -1127,6 +1251,7 @@ export class RoomEngine {
+    * of one of that team's aircraft or (afloat) ships. Everything else is always visible.
+    */
+   visibleTo(team: number, v: VehicleEntity): boolean {
++    if (this.ctf?.flags.some(flag => flag.carrierId === v.id)) return true
+     if (v.team === team || !isHiddenStealth(v, this.time)) return true
+     const p = v.flight.position, r2 = STEALTH_VISUAL_RANGE * STEALTH_VISUAL_RANGE
+     for (const o of this.vehicles) {
+@@ -1155,7 +1280,8 @@ export class RoomEngine {
+       projectiles: cs.projectiles.map(packProjectile),
+       missiles: cs.missiles.map(packMissile),
+       flares: cs.flares.map(packFlare),
+-      scores: this.scores,
++      scores: [...this.scores],
++      ...(this.ctf ? { ctf: cloneCtfState(this.ctf) } : {}),
+       matchEndsAt: r3(this.matchEndsAt()),
+       matchStartedAt: r3(this.matchStartedAt),
+       intermission: this.matchEndedAt !== null,
+@@ -1311,6 +1437,7 @@ export interface WireSnapshot {
+   missiles: WireMissile[]
+   flares: WireFlare[]
+   scores: number[]
++  ctf?: CtfState
+   matchEndsAt: number
+   /** Room time the current match started; match time = intermission ? 0 : time - matchStartedAt. */
+   matchStartedAt: number
+@@ -1431,7 +1558,8 @@ export function createSnapshotDecoder(): (message: WireServerMessage | ServerMes
+         return out
+       }),
+       flares: m.flares.map(x => ({ id: x.id, vehicle: x.vh, position: x.p, velocity: x.v, age: x.a, ttl: x.l })),
+-      scores: m.scores,
++      scores: [...m.scores],
++      ...(m.ctf ? { ctf: cloneCtfState(m.ctf) } : {}),
+       matchEndsAt: m.matchEndsAt,
+       // Proposed protocol field (Snapshot.matchStartedAt); cast until protocol.ts adds it.
+       matchStartedAt: m.matchStartedAt,
 diff --git a/games/wings/src/sim/types.ts b/games/wings/src/sim/types.ts
-index c915941..7a68534 100644
+index c915941..43e8699 100644
 --- a/games/wings/src/sim/types.ts
 +++ b/games/wings/src/sim/types.ts
-@@ -6,8 +6,8 @@ export type Vec3 = [number, number, number]
+@@ -1,13 +1,14 @@
+ // Shared, dependency-free types used by both the browser client and the Cloudflare Worker.
+ // Owned by the orchestrator. Request changes instead of editing from a module agent.
++import type { CtfEvent } from "./ctf"
+
+ export type Vec3 = [number, number, number]
+ /** Unit quaternion [x, y, z, w]. Body axes: nose = -Z, up = +Y, right = +X. */
  export type Quat = [number, number, number, number]
 
  export type TeamId = 0 | 1 | 2 | 3
@@ -3240,7 +4901,7 @@ index c915941..7a68534 100644
  export type SeatIndex = 0 | 1
  export type WeaponSlot = "primary" | "secondary"
  export type Quality = "low" | "balanced" | "high"
-@@ -65,6 +65,8 @@ export interface WorldQuery {
+@@ -65,6 +66,8 @@ export interface WorldQuery {
    half: number
    /** Hard altitude ceiling in meters. */
    ceiling: number
@@ -3249,7 +4910,7 @@ index c915941..7a68534 100644
    /** Velocity of a moving deck (carrier) under x,z, or null/undefined when the surface is static. */
    deckVelocity?(x: number, z: number): Vec3 | null
  }
-@@ -190,6 +192,8 @@ export interface Flare {
+@@ -190,6 +193,8 @@ export interface Flare {
  }
 
  export type WeaponId =
@@ -3258,6 +4919,14 @@ index c915941..7a68534 100644
    | "bomb"
    | "cannon20"
    | "chaingun30"
+@@ -204,6 +209,7 @@ export type WeaponId =
+
+ /** Ids: `vehicle`, `target`, `victim` are vehicle ids; `by`, `killer`, `player` are player ids. */
+ export type GameEvent =
++  | CtfEvent
+   | { type: "fire"; vehicle: string; seat: SeatIndex; weapon: WeaponId; hardpoint?: number }
+   | { type: "hit"; target: string; by: string; weapon: WeaponId; damage: number; position: Vec3 }
+   | { type: "kill"; victim: string; victimTeam: TeamId; killer: string | null; killerTeam?: TeamId; weapon: WeaponId | "crash" | "aa"; position: Vec3 }
 diff --git a/games/wings/src/sim/vehicles.ts b/games/wings/src/sim/vehicles.ts
 index cee5ec4..f800e33 100644
 --- a/games/wings/src/sim/vehicles.ts
@@ -3350,7 +5019,7 @@ index cee5ec4..f800e33 100644
 +
  export const VEHICLE_KINDS = Object.keys(VEHICLES) as VehicleKind[]
 diff --git a/games/wings/src/style.css b/games/wings/src/style.css
-index 7dbb107..959c635 100644
+index 7dbb107..6eed885 100644
 --- a/games/wings/src/style.css
 +++ b/games/wings/src/style.css
 @@ -164,12 +164,12 @@
@@ -3396,7 +5065,17 @@ index 7dbb107..959c635 100644
  .pause[hidden] { display: none; }
  .game-ui:has(.pause:not([hidden])) .hud { opacity: .25; transition: opacity .2s; }
  .game-ui:has(.spawn:not([hidden])) .hud .hud-feed { top: auto; bottom: 50px; left: auto; right: var(--x); align-items: flex-end; background: none; }
-@@ -356,7 +356,7 @@
+@@ -333,6 +333,9 @@
+ /* ---------------------------------------------------------------- Fleet Strike */
+ .hud-obj { display: flex; gap: 22px; align-items: center; margin-top: 2px; }
+ .hud-obj:empty { display: none; }
++.hud-score.ctf, .hud-obj.ctf { width: min(640px, calc(100vw - 32px)); flex-wrap: wrap; justify-content: center; gap: 6px 16px; }
++.hud-score.ctf > .timer:last-child { font-size: 12px; }
++.hud-obj.ctf .ot { flex-wrap: wrap; justify-content: center; overflow-wrap: anywhere; min-width: 0; max-width: 100%; }
+ .hud-obj .ot { display: inline-flex; align-items: center; gap: 6px; font: 500 12px var(--mono); color: var(--c); }
+ .hud-obj .ot em { font-style: normal; margin-right: 2px; }
+ .hud-obj .ot.mine em { text-decoration: underline; text-underline-offset: 4px; }
+@@ -356,7 +359,7 @@
  .hud-tur.hot .ht { background: none; }
  .hud-tur.dead .tn::after { content: " · knocked out"; color: var(--or); }
  /* Match result */
@@ -3405,7 +5084,7 @@ index 7dbb107..959c635 100644
  .hud-end.show { display: flex; animation: fade .4s ease both; }
  .hud-end .r { font: 700 clamp(84px, 15vh, 150px)/.9 var(--narrow); letter-spacing: -.035em; }
  .hud-end.victory .r { color: var(--fg); }
-@@ -408,3 +408,36 @@
+@@ -408,3 +411,36 @@
  .hud-turhint { left: 50%; bottom: 118px; transform: translateX(-50%); display: none; font: 500 12px var(--mono); color: var(--fg); white-space: nowrap; }
  .hud-turhint.on { display: block; }
  .hud:not(.flying) .hud-bcur, .hud:not(.flying) .hud-bcam, .hud:not(.flying) .hud-turhint { display: none; }
@@ -3465,18 +5144,21 @@ index 0000000..9ccffbc
 +  view.setBoost(seat === 0 && input !== null ? pilotBoost : null)
 +}
 diff --git a/games/wings/src/ui/game.ts b/games/wings/src/ui/game.ts
-index 2a64abd..ac83515 100644
+index 2a64abd..b140e78 100644
 --- a/games/wings/src/ui/game.ts
 +++ b/games/wings/src/ui/game.ts
-@@ -5,6 +5,7 @@ import "../style.css"
+@@ -5,6 +5,10 @@ import "../style.css"
  import type { SceneHost } from "../render/scene"
  import type { GameAudio } from "../audio"
  import { createAircraftView, type AircraftView } from "../render/aircraft"
++import { createCtfView } from "../render/ctf"
++import { cloneCtfState } from "../sim/ctf"
++import { CTF_WATER_ROUTE } from "../sim/ctf-map"
 +import { syncAircraftInput } from "./aircraft-input"
  import { createHud, setScoreboard, TEAM_COLORS, TEAM_NAMES, type HudFrame, type HudWeapon } from "../render/hud"
  import { BOMBSIGHT_CONE, Input, RETICLE_LIMIT } from "../input"
  import { getNet, type Connection } from "./net-adapter"
-@@ -12,12 +13,12 @@ import { createSpawnScreen } from "./spawn"
+@@ -12,12 +16,12 @@ import { createSpawnScreen } from "./spawn"
  import { createPauseMenu } from "./pause"
  import { toast, type StartRequest } from "./lobby"
  import { onSettings, settings } from "./settings"
@@ -3491,7 +5173,15 @@ index 2a64abd..ac83515 100644
  import { TICK_DT } from "../sim/types"
  import type { FlightInput, FlightState, GameEvent, PlayerInfo, Quat, SeatIndex, SeatInput, TeamId, Vec3, VehicleEntity } from "../sim/types"
  import type { RoomConfig, ServerMessage, ShipState, Snapshot } from "../sim/protocol"
-@@ -163,7 +164,6 @@ class GameSession implements GameHandle {
+@@ -137,6 +141,7 @@ class GameSession implements GameHandle {
+   private spawn
+   private pause
+   private hudFrame: HudFrame
++  private ctfView: ReturnType<typeof createCtfView> | null = null
+   private weaponsBuf: HudWeapon[] = [
+     { id: "cannon20", ammo: 0, cap: 0, ready: 1, regen: false, lock: 0, locked: false },
+     { id: "cannon20", ammo: 0, cap: 0, ready: 1, regen: false, lock: 0, locked: false },
+@@ -163,7 +168,6 @@ class GameSession implements GameHandle {
        spawn: kind => { this.input.requestLock(); this.send({ type: "spawn", kind }); deps.audio?.ui("confirm") },
        board: (vehicle, seat) => { this.input.requestLock(); this.send({ type: "board", vehicle, seat }); deps.audio?.ui("confirm") },
        team: team => this.send({ type: "team", team }),
@@ -3499,7 +5189,7 @@ index 2a64abd..ac83515 100644
        leave: () => this.leave(),
        click,
        thumb: (kind, team) => host.thumbnail(kind, team),
-@@ -179,7 +179,6 @@ class GameSession implements GameHandle {
+@@ -179,7 +183,6 @@ class GameSession implements GameHandle {
          this.paused = false
          this.enterSpawn()
        },
@@ -3507,7 +5197,7 @@ index 2a64abd..ac83515 100644
        leave: () => this.leave(),
        quality: q => host.setQuality(q),
        click,
-@@ -221,7 +220,7 @@ class GameSession implements GameHandle {
+@@ -221,7 +224,7 @@ class GameSession implements GameHandle {
          if (this.ended) return
          if (s === "closed") {
            if (this.welcomeReject) this.welcomeReject(new Error("Connection closed"))
@@ -3516,7 +5206,7 @@ index 2a64abd..ac83515 100644
            else this.exit("Practice room closed")
          } else if (s === "open" && this.reconnecting) {
            this.reconnecting = false
-@@ -246,6 +245,10 @@ class GameSession implements GameHandle {
+@@ -246,6 +249,10 @@ class GameSession implements GameHandle {
      this.welcomeResolve = this.welcomeReject = null
      this.deps.host.setFrame((dt, time) => this.frame(dt, time))
      this.enterSpawn()
@@ -3527,16 +5217,28 @@ index 2a64abd..ac83515 100644
      if (!this.offline) this.pingTimer = window.setInterval(() => { if (!this.rtt) this.send({ type: "ping", t: performance.now() }) }, 2000)
      if (!this.offline) history.replaceState(null, "", `${import.meta.env.BASE_URL}?join=${encodeURIComponent(this.room)}`)
    }
-@@ -258,7 +261,7 @@ class GameSession implements GameHandle {
+@@ -258,7 +265,9 @@ class GameSession implements GameHandle {
      const v = this.myVehicle()
      const vis = v ? this.visuals.get(v.id) : undefined
      return {
 -      state: this.state, seat: this.me?.seat ?? null, team: this.me?.team ?? null, vehicles: this.latest?.vehicles.length ?? 0,
 +      state: this.state, kind: v?.kind, seat: this.me?.seat ?? null, team: this.me?.team ?? null, vehicles: this.latest?.vehicles.length ?? 0,
++      mode: this.config?.mode ?? "fleet", vehicleId: v?.id ?? null, modelReady: vis?.view.ready ?? false,
++      ctf: this.latest?.ctf ? cloneCtfState(this.latest.ctf) : null,
        pos: vis?.pos.map(Math.round), speed: v ? Math.round(flightReadout(this.pred?.state ?? v.flight).speed) : 0,
        hp: v?.hp, projectiles: this.latest?.projectiles.length ?? 0, missiles: this.latest?.missiles.length ?? 0,
        predErr: this.pred ? +this.pred.errPos.length().toFixed(2) : null, history: this.pred?.history.length ?? 0,
-@@ -328,9 +331,14 @@ class GameSession implements GameHandle {
+@@ -292,6 +301,9 @@ class GameSession implements GameHandle {
+         this.playerId = m.playerId
+         this.room = m.room
+         this.config = m.config
++        this.ctfView?.dispose()
++        this.ctfView = m.config.mode === "ctf" ? createCtfView(CTF_WATER_ROUTE, TEAM_COLORS) : null
++        if (this.ctfView) this.deps.host.scene.add(this.ctfView.root)
+         this.hudFrame.myId = m.playerId
+         this.hudFrame.teams = m.config.teams
+         ;(this.deps.audio as { setLocalPlayer?(id: string | null): void } | null)?.setLocalPlayer?.(m.playerId)
+@@ -328,9 +340,14 @@ class GameSession implements GameHandle {
      this.latest = s
      this.latestById = byId
 
@@ -3551,7 +5253,7 @@ index 2a64abd..ac83515 100644
      if (s.ships) {
        this.shipStates = s.ships
        const w = this.deps.host.world as unknown as { setShipStates?: (x: ShipState[], t?: number) => void; applyShipStates?: (x: ShipState[], t?: number) => void }
-@@ -418,7 +426,7 @@ class GameSession implements GameHandle {
+@@ -418,7 +435,7 @@ class GameSession implements GameHandle {
          this.deathAt = performance.now() / 1000
          this.deathPos = [...this.lastOwnPos]
          this.hud.setVisible(false)
@@ -3560,7 +5262,7 @@ index 2a64abd..ac83515 100644
          this.input.releaseLock()
          this.pause.hide()
          this.paused = false
-@@ -436,6 +444,7 @@ class GameSession implements GameHandle {
+@@ -436,6 +453,7 @@ class GameSession implements GameHandle {
    private sinkFx: { p: Vec3; until: number; next: number }[] = []
 
    private enterTurret(): void {
@@ -3568,7 +5270,7 @@ index 2a64abd..ac83515 100644
      this.state = "turret"
      this.voluntaryLeave = false
      this.spawn.hide()
-@@ -464,11 +473,25 @@ class GameSession implements GameHandle {
+@@ -464,11 +482,25 @@ class GameSession implements GameHandle {
      return { ship, pos: shipToWorld(ship, spec.offset), kind: spec.kind, id: spec.id }
    }
 
@@ -3596,7 +5298,7 @@ index 2a64abd..ac83515 100644
      this.input.releaseLock()
      this.spawn.show()
      this.deps.host.rig.setMode("orbit")
-@@ -530,18 +553,18 @@ class GameSession implements GameHandle {
+@@ -530,18 +562,18 @@ class GameSession implements GameHandle {
        this.bombPeek = !this.bombPeek
        this.deps.audio?.ui("click")
      }
@@ -3621,7 +5323,7 @@ index 2a64abd..ac83515 100644
    private exit(reason?: string): void {
      if (this.ended) return
      console.info("[wings] leaving match", reason ?? "")
-@@ -557,12 +580,18 @@ class GameSession implements GameHandle {
+@@ -557,12 +589,20 @@ class GameSession implements GameHandle {
      this.offLightning?.()
      window.removeEventListener("keydown", this.onKeyDown)
      this.offSettings()
@@ -3629,6 +5331,8 @@ index 2a64abd..ac83515 100644
      this.input.dispose()
 +    this.spawn.dispose()
 +    this.pause.dispose()
++    this.ctfView?.dispose()
++    this.ctfView = null
      for (const v of this.visuals.values()) this.removeVisual(v)
      this.visuals.clear()
      const fx = this.deps.host.effects
@@ -3640,7 +5344,7 @@ index 2a64abd..ac83515 100644
      this.deps.host.world.setHighlightTeam(null)
      this.deps.host.setFrame(null)
      this.uiRoot.remove()
-@@ -709,7 +738,7 @@ class GameSession implements GameHandle {
+@@ -709,7 +749,7 @@ class GameSession implements GameHandle {
      const v = this.myVehicle()
      if (!v) return
      const id = VEHICLES[v.kind].seatWeapons[me.seat][0]
@@ -3649,7 +5353,7 @@ index 2a64abd..ac83515 100644
      const rt = v.weapons[me.seat]?.[0]
      if (rt && rt.ammo === 0) return
      audio.event({ type: "fire", vehicle: v.id, seat: me.seat, weapon: id }, this.posOfVehicle(v.id), true)
-@@ -736,16 +765,19 @@ class GameSession implements GameHandle {
+@@ -736,16 +776,19 @@ class GameSession implements GameHandle {
          case "fire": {
            pos = this.posOfVehicle(e.vehicle)
            local = e.vehicle === myVeh
@@ -3672,7 +5376,7 @@ index 2a64abd..ac83515 100644
              } else {
                const r = VEHICLES[vis.kind].radius * 0.6
                fx.muzzle([pos[0] + d[0] * r, pos[1] + d[1] * r, pos[2] + d[2] * r], d)
-@@ -787,7 +819,7 @@ class GameSession implements GameHandle {
+@@ -787,7 +830,7 @@ class GameSession implements GameHandle {
              { killer: !!(e.killer && this.players.get(e.killer)?.bot), victim: !!this.players.get(e.victim)?.bot })
            if (e.killer === this.playerId && e.victim !== this.playerId) {
              this.hud.hitmarker(true)
@@ -3681,7 +5385,7 @@ index 2a64abd..ac83515 100644
            }
            if (e.victim === this.playerId || (myVeh && e.victim === myVeh)) {
              const kv = e.killer && e.killer !== this.playerId ? this.players.get(e.killer)?.vehicleId : null
-@@ -804,7 +836,7 @@ class GameSession implements GameHandle {
+@@ -804,7 +847,7 @@ class GameSession implements GameHandle {
            pos = e.position
            // Flak: a burst near a recent 5-inch shell's aim point renders as a gray flak puff.
            const fl = this.flakAims.findIndex(a => now - a.t < 5 && Math.hypot(a.p[0] - e.position[0], a.p[1] - e.position[1], a.p[2] - e.position[2]) < 160)
@@ -3690,7 +5394,7 @@ index 2a64abd..ac83515 100644
            else if (e.surface === "water") fx.splash(e.position, e.size)
            else if (e.surface === "ground") fx.groundHit(e.position, e.size)
            else fx.explosion(e.position, e.size)
-@@ -825,7 +857,7 @@ class GameSession implements GameHandle {
+@@ -825,7 +868,7 @@ class GameSession implements GameHandle {
            local = e.vehicle === myVeh
            if (e.team !== this.me?.team && this.me && myVeh && this.posOfVehicle(myVeh)) {
              const p = this.posOfVehicle(myVeh)!
@@ -3699,16 +5403,32 @@ index 2a64abd..ac83515 100644
            }
            break
          case "spotted": {
-@@ -847,7 +879,7 @@ class GameSession implements GameHandle {
+@@ -842,12 +885,21 @@ class GameSession implements GameHandle {
+         }
+         case "score":
+           break
++        case "flag": {
++          const owner = TEAM_NAMES[e.team].toLowerCase()
++          const action = e.action === "pickup" ? "taken" : e.action === "capture" ? "captured" : e.action === "drop" ? "dropped" : "returned"
++          this.hud.feedLine(null, e.team, `${owner} flag ${action}`, true)
++          if (e.action === "capture") this.deps.audio?.ui("confirm")
++          break
++        }
+         case "match-end": {
+           const myTeam = this.me?.team ?? -1
            const result = e.winner === null ? "draw" : e.winner === myTeam ? "victory" : "defeat"
-           const why = e.reason === "carriers-sunk"
-             ? (e.winner === null ? "every carrier went down" : result === "victory" ? "the enemy carriers are sunk" : "our carriers are sunk")
+-          const why = e.reason === "carriers-sunk"
+-            ? (e.winner === null ? "every carrier went down" : result === "victory" ? "the enemy carriers are sunk" : "our carriers are sunk")
 -            : e.reason === "time" ? "time ran out — most ship damage dealt" : e.winner === null ? "no winner" : `${TEAM_NAMES[e.winner].toLowerCase()} wins on score`
-+            : e.reason === "time" ? "time ran out - most ship damage dealt" : e.winner === null ? "no winner" : `${TEAM_NAMES[e.winner].toLowerCase()} wins on score`
++          const why = this.config.mode === "ctf"
++            ? e.reason === "time" ? "time ran out - most captures wins; ties draw" : "capture limit reached"
++            : e.reason === "carriers-sunk"
++              ? (e.winner === null ? "every carrier went down" : result === "victory" ? "the enemy carriers are sunk" : "our carriers are sunk")
++              : e.reason === "time" ? "time ran out - most ship damage dealt" : e.winner === null ? "no winner" : `${TEAM_NAMES[e.winner].toLowerCase()} wins on score`
            this.hud.endScreen(result, why, e.winner === null ? null : e.winner)
            break
          }
-@@ -908,10 +940,11 @@ class GameSession implements GameHandle {
+@@ -908,10 +960,11 @@ class GameSession implements GameHandle {
      const flying = this.state === "flying" && !!myVehicle && myVehicle.alive && !this.paused
      const seat = me?.seat ?? null
      const heli = myVehicle ? VEHICLES[myVehicle.kind].flight === "heli" : false
@@ -3721,7 +5441,7 @@ index 2a64abd..ac83515 100644
      if (myVehicle && seat === 0) {
        const o = this.pred?.state.orientation ?? myVehicle.flight.orientation
        input.setNose(forward(o))
-@@ -943,11 +976,12 @@ class GameSession implements GameHandle {
+@@ -943,11 +996,12 @@ class GameSession implements GameHandle {
      input.lookDir(this.look)
      this.lookV.set(this.look[0], this.look[1], this.look[2])
      const direct = seat === 0 && mode === "direct"
@@ -3736,7 +5456,7 @@ index 2a64abd..ac83515 100644
      if (wheel && this.state === "turret") this.turretZoom = Math.max(1, Math.min(6, this.turretZoom * Math.pow(1.25, -wheel / 100)))
      if (wheel && seat === 1) this.deps.host.rig.gunZoom = Math.max(1, Math.min(8, this.deps.host.rig.gunZoom * Math.pow(1.25, -wheel / 100)))
 
-@@ -957,7 +991,7 @@ class GameSession implements GameHandle {
+@@ -957,7 +1011,7 @@ class GameSession implements GameHandle {
      this.tickAcc += dt
      if (this.tickAcc > 0.25) this.tickAcc = 0.25
      const p = this.pred
@@ -3745,7 +5465,7 @@ index 2a64abd..ac83515 100644
      while (this.tickAcc >= TICK_DT) {
        this.tickAcc -= TICK_DT
        if (this.state === "turret") {
-@@ -988,11 +1022,16 @@ class GameSession implements GameHandle {
+@@ -988,11 +1042,16 @@ class GameSession implements GameHandle {
            tAxis = Math.max(-1, Math.min(1, this.pendingThrottle / (rate * TICK_DT)))
            this.pendingThrottle -= tAxis * rate * TICK_DT
          }
@@ -3765,7 +5485,7 @@ index 2a64abd..ac83515 100644
        // Lag compensation: remote aircraft are rendered INTERP_DELAY + one-way latency behind the server.
        seatIn.viewDelay = INTERP_DELAY + (this.offline ? 0 : this.rtt / 2000)
        this.lastSeat = seatIn
-@@ -1033,13 +1072,13 @@ class GameSession implements GameHandle {
+@@ -1033,13 +1092,13 @@ class GameSession implements GameHandle {
      for (const v of this.visuals.values()) {
        v.view.root.visible = v.render.alive
        const isLocal = v === ownVis
@@ -3785,7 +5505,7 @@ index 2a64abd..ac83515 100644
        v.view.setSpotted?.(!!me && v.render.team !== me.team && v.render.spottedUntil > (latest?.time ?? 0))
        v.view.update(v.render, players, dt, host.camera)
      }
-@@ -1049,7 +1088,7 @@ class GameSession implements GameHandle {
+@@ -1049,7 +1108,7 @@ class GameSession implements GameHandle {
      if (latest) this.trackBomb(latest, est)
      else this.bombFall = null
      const wasSteering = input.steeringBomb
@@ -3794,7 +5514,15 @@ index 2a64abd..ac83515 100644
      if (wasSteering && !input.steeringBomb) host.rig.resetBombcam()
      // Bomb result: a short line after a steered bomb lands (hit within ~1 s after impact, else miss).
      if (this.bombDropAt && now - this.bombDropAt > 0.9) {
-@@ -1159,9 +1198,9 @@ class GameSession implements GameHandle {
+@@ -1138,6 +1197,7 @@ class GameSession implements GameHandle {
+
+     // HUD + spawn screen
+     if (latest) {
++      if (latest.ctf) this.ctfView?.update(latest.ctf, this.visuals)
+       this.updateHud(latest, ownVis, est)
+       if (this.spawn.visible()) {
+         this.spawn.update({ me, players: this.players, vehicles: latest.vehicles, time: latest.time, config: this.config, room: this.offline ? "OFFLINE" : this.room, dead: this.me ? this.me.deaths > 0 : false, ships: latest.ships })
+@@ -1159,9 +1219,9 @@ class GameSession implements GameHandle {
        case "menu":
          if ((this.state === "flying" || this.state === "turret") && !this.paused && !this.hud.chatOpen()) {
            this.paused = true
@@ -3806,7 +5534,7 @@ index 2a64abd..ac83515 100644
          }
          break
        default: break
-@@ -1266,15 +1305,30 @@ class GameSession implements GameHandle {
+@@ -1266,15 +1326,30 @@ class GameSession implements GameHandle {
      const myVeh = this.me?.vehicleId
      const rtRemote = est - INTERP_DELAY - s.time
      const rtOwn = est + this.rtt / 1000 - s.time
@@ -3843,7 +5571,15 @@ index 2a64abd..ac83515 100644
        m.lookAt(_v2, _v1, UP)
        m.setPosition(_v1)
      })
-@@ -1485,7 +1539,9 @@ class GameSession implements GameHandle {
+@@ -1385,6 +1460,7 @@ class GameSession implements GameHandle {
+     f.vehicle = v
+     f.seat = seat
+     f.scores = s.scores
++    f.ctf = s.ctf
+     f.remaining = typeof s.matchEndsAt === "number" ? Math.max(0, s.matchEndsAt - s.time) : null
+     f.intermission = !!s.intermission
+     f.freeLook = this.input.freeLook
+@@ -1485,7 +1561,9 @@ class GameSession implements GameHandle {
          }
        }
      } else hb.bombImpact = null
@@ -3854,7 +5590,7 @@ index 2a64abd..ac83515 100644
      let boreDist = aimDist
      // Keyboard flight: gimbaled gun reticle (body-relative mouse aim) for the HUD.
      const gunDir: Vec3 | null = seat === 0 && this.input.reticleMode ? this.input.reticleDir([0, 0, 0]) : null
-@@ -1530,7 +1586,7 @@ class GameSession implements GameHandle {
+@@ -1530,7 +1608,7 @@ class GameSession implements GameHandle {
          this.updateScanner(f, s, v, pos, spec)
        }
      }
@@ -3863,7 +5599,7 @@ index 2a64abd..ac83515 100644
      const audio = this.deps.audio
      if (f.lockProgress >= 1) audio?.ui("locked")
      else if (f.lockProgress > 0) audio?.ui("lock-tone")
-@@ -1566,7 +1622,7 @@ class GameSession implements GameHandle {
+@@ -1566,7 +1644,7 @@ class GameSession implements GameHandle {
      for (const m of s.missiles) if (m.target === v.id && m.team !== v.team) { f.missileWarning = true; break }
      if (f.missileWarning) audio?.ui("warning")
 
@@ -3873,7 +5609,7 @@ index 2a64abd..ac83515 100644
      this.hud.update(f)
    }
 diff --git a/games/wings/src/ui/lobby.ts b/games/wings/src/ui/lobby.ts
-index 74ae61d..48145f3 100644
+index 74ae61d..d60e3d8 100644
 --- a/games/wings/src/ui/lobby.ts
 +++ b/games/wings/src/ui/lobby.ts
 @@ -1,25 +1,24 @@
@@ -3881,9 +5617,10 @@ index 74ae61d..48145f3 100644
  // Design: numbered, stacked sentence-case items directly on the world; the selected item gets full opacity
  // and a short orange rule; tiny mono metadata under the selection; ↑↓ Enter Esc (and ←→ for values).
 -import type { RoomConfig, RoomSummary } from "../sim/protocol"
-+import type { RoomConfig } from "../sim/protocol"
- import { DEFAULT_ROOM_CONFIG } from "../sim/protocol"
+-import { DEFAULT_ROOM_CONFIG } from "../sim/protocol"
 -import type { Quality } from "../sim/types"
++import type { GameMode, RoomConfig } from "../sim/protocol"
++import { CTF_ROOM_CONFIG, DEFAULT_ROOM_CONFIG } from "../sim/protocol"
 +import type { Quality, VehicleKind } from "../sim/types"
 +import { VEHICLES, VEHICLE_KINDS } from "../sim/vehicles"
  import { callsign, randomCallsign, settings, updateSettings } from "./settings"
@@ -3960,7 +5697,19 @@ index 74ae61d..48145f3 100644
      `<tr><th colspan="2">${escapeHtml(sec.title)}</th></tr>` + sec.rows.map(([a, b]) => `<tr><td>${a}</td><td>${b}</td></tr>`).join("")).join("")}</table>`
  }
 
-@@ -267,7 +275,7 @@ export class MenuNav {
+@@ -250,7 +258,10 @@ export class MenuNav {
+       if (!el) return
+       el.classList.toggle("off", !!it.disabled?.())
+       const v = el.querySelector<HTMLElement>(".v")
+-      if (v && it.value && !it.input) v.innerHTML = this.valueHtml(it)
++      if (v && it.value && !it.input) {
++        v.innerHTML = this.valueHtml(it)
++        el.setAttribute("aria-label", `${it.label}: ${it.value()}`)
++      }
+     })
+     this.paintMeta()
+   }
+@@ -267,7 +278,7 @@ export class MenuNav {
      this.host.innerHTML = `<div class="crumb">${s.crumb ?? ""}</div>` +
        (items.length ? `<div class="menu ${s.size ?? "big"}">${items.map((it, i) => {
          const label = it.input?.at === "label" ? "" : escapeHtml(it.label)
@@ -3969,7 +5718,7 @@ index 74ae61d..48145f3 100644
        }).join("")}</div>` : "") + (s.html ?? "") + (s.note ? `<div class="note">${s.note}</div>` : "")
      this.els = Array.from(this.host.querySelectorAll<HTMLElement>(".mi"))
      items.forEach((it, i) => {
-@@ -290,7 +298,7 @@ export class MenuNav {
+@@ -290,7 +301,7 @@ export class MenuNav {
      if (i === entry.sel && !force) return
      entry.sel = i
      this.els.forEach((el, k) => el.classList.toggle("sel", k === i))
@@ -3978,7 +5727,7 @@ index 74ae61d..48145f3 100644
      this.paintMeta()
      this.onMove?.(i)
    }
-@@ -381,7 +389,7 @@ export function settingsScreen(nav: MenuNav, onQuality: (q: Quality) => void, cr
+@@ -381,7 +392,7 @@ export function settingsScreen(nav: MenuNav, onQuality: (q: Quality) => void, cr
          meta: () => settings.mouseX === "roll" ? "classic bf4: mouse left/right rolls" : "mouse left/right turns the nose (battlefield steering)" },
        { label: "Mouse sensitivity", value: () => settings.sensitivity.toFixed(2), adjust: d => updateSettings({ sensitivity: Math.round(Math.max(0.2, Math.min(3, settings.sensitivity + d * 0.1)) * 100) / 100 }) },
        { label: "Invert mouse Y", value: () => (settings.invertY ? "on" : "off"), adjust: () => updateSettings({ invertY: !settings.invertY }), meta: "on = mouse away moves the nose down" },
@@ -3987,7 +5736,7 @@ index 74ae61d..48145f3 100644
      ],
    }
  }
-@@ -401,13 +409,10 @@ export function initLobby(opts: { onStart(req: StartRequest): void; onQuality(q:
+@@ -401,13 +412,16 @@ export function initLobby(opts: { onStart(req: StartRequest): void; onQuality(q:
    const nav = new MenuNav($("screen"), () => opts.onClick?.())
    nav.onHints = h => { hints.innerHTML = hintsHtml(h) }
 
@@ -3996,49 +5745,85 @@ index 74ae61d..48145f3 100644
 -  const roomsMeta = () => roomErr ? "server unreachable · practice still works" : rooms === null ? "looking for lobbies…" : `online · ${rooms.length} ${rooms.length === 1 ? "lobby" : "lobbies"} open`
 -
    // Create lobby
-   const cfg = { ...DEFAULT_ROOM_CONFIG, bots: 0, timeLimit: DEFAULT_ROOM_CONFIG.timeLimit / 60 }
-   const botCfg = { on: false, perTeam: 4, skill: 1 }
-+  let aircraft: VehicleKind = "fighter"
+-  const cfg = { ...DEFAULT_ROOM_CONFIG, bots: 0, timeLimit: DEFAULT_ROOM_CONFIG.timeLimit / 60 }
+-  const botCfg = { on: false, perTeam: 4, skill: 1 }
++  const fleetCfg = { ...DEFAULT_ROOM_CONFIG, bots: 0, timeLimit: DEFAULT_ROOM_CONFIG.timeLimit / 60 }
++  const ctfCfg = { ...CTF_ROOM_CONFIG, timeLimit: CTF_ROOM_CONFIG.timeLimit / 60 }
++  const fleetBots = { on: false, perTeam: 4, skill: 1 }
++  const ctfBots = { on: true, perTeam: CTF_ROOM_CONFIG.bots, skill: 1 }
++  let mode: GameMode = "fleet"
++  let cfg = fleetCfg
++  let botCfg = fleetBots
++  const chosenVehicles: Record<GameMode, VehicleKind> = { fleet: "fighter", ctf: "fighter" }
++  let aircraft: VehicleKind = chosenVehicles.fleet
    const SKILLS = [{ name: "easy", v: 0.25 }, { name: "normal", v: 0.5 }, { name: "hard", v: 0.85 }]
    const nameIn = document.createElement("input")
    nameIn.maxLength = 32
-@@ -417,84 +422,44 @@ export function initLobby(opts: { onStart(req: StartRequest): void; onQuality(q:
+@@ -415,86 +429,66 @@ export function initLobby(opts: { onStart(req: StartRequest): void; onQuality(q:
+   nameIn.spellcheck = false
+   nameIn.addEventListener("input", () => { cfg.name = nameIn.value })
    const readConfig = (): RoomConfig => ({
-     ...DEFAULT_ROOM_CONFIG, name: (cfg.name || DEFAULT_ROOM_CONFIG.name).slice(0, 32), teams: cfg.teams, bots: botCfg.on ? botCfg.perTeam : 0,
-     ...(botCfg.on ? { botSkill: SKILLS[botCfg.skill].v } : {}),
+-    ...DEFAULT_ROOM_CONFIG, name: (cfg.name || DEFAULT_ROOM_CONFIG.name).slice(0, 32), teams: cfg.teams, bots: botCfg.on ? botCfg.perTeam : 0,
+-    ...(botCfg.on ? { botSkill: SKILLS[botCfg.skill].v } : {}),
 -    maxPerTeam: cfg.maxPerTeam, scoreLimit: cfg.scoreLimit, timeLimit: cfg.timeLimit * 60, listed: cfg.listed,
++    ...(mode === "ctf" ? CTF_ROOM_CONFIG : DEFAULT_ROOM_CONFIG), mode,
++    name: (cfg.name || (mode === "ctf" ? CTF_ROOM_CONFIG.name : DEFAULT_ROOM_CONFIG.name)).slice(0, 32),
++    teams: mode === "ctf" ? 2 : cfg.teams, bots: mode === "ctf" ? Math.max(2, botCfg.perTeam) : botCfg.on ? botCfg.perTeam : 0,
++    ...(botCfg.on || mode === "ctf" ? { botSkill: SKILLS[botCfg.skill].v } : {}),
 +    maxPerTeam: cfg.maxPerTeam, scoreLimit: cfg.scoreLimit, timeLimit: cfg.timeLimit * 60, listed: false,
    })
-   const scoreSteps = [25, 50, 75, 100, 150, 200, 300], timeSteps = [5, 10, 15, 20, 30, 45, 60]
+-  const scoreSteps = [25, 50, 75, 100, 150, 200, 300], timeSteps = [5, 10, 15, 20, 30, 45, 60]
++  const scoreSteps = [25, 50, 75, 100, 150, 200, 300], captureSteps = [1, 3, 5, 10], timeSteps = [5, 10, 15, 20, 30, 45, 60]
++  const selectMode = (next: GameMode) => {
++    chosenVehicles[mode] = aircraft
++    mode = next
++    aircraft = chosenVehicles[mode]
++    cfg = mode === "ctf" ? ctfCfg : fleetCfg
++    botCfg = mode === "ctf" ? ctfBots : fleetBots
++    nameIn.value = cfg.name
++  }
    const createScreen = (): MenuScreen => ({
 -    crumb: "04 — <b>create a lobby</b>", size: "mid",
 +    crumb: "<b>Offline custom setup</b>", size: "mid",
++    note: mode === "ctf" ? "Two teams with plane and boat bots. Bring the enemy flag home while yours is home. Touch your dropped flag to return it. Vehicle loss drops flags; drops return after 30 s. At timeout, most captures wins; ties draw. Boat: W/S drive, A/D steer, X brake." : undefined,
      hints: [["↑↓", "select"], ["←→", "change"], ["enter", "confirm"], ["esc", "back"]],
      items: [
-       { label: "Bots", value: () => (botCfg.on ? "on" : "off"), adjust: () => { botCfg.on = !botCfg.on; nav.replace(createScreen()) },
+-      { label: "Bots", value: () => (botCfg.on ? "on" : "off"), adjust: () => { botCfg.on = !botCfg.on; nav.replace(createScreen()) },
 -        meta: () => botCfg.on ? "ai pilots fill each team; they make room as people join" : "humans only — turn on to fight ai pilots" },
-+        meta: () => botCfg.on ? "AI pilots fill each team, including your own" : "no AI aircraft - enemy fleet guns remain active" },
-       ...(botCfg.on ? [
-         { label: "Bots per team", value: () => String(botCfg.perTeam), adjust: (d: 1 | -1) => { botCfg.perTeam = Math.max(1, Math.min(10, botCfg.perTeam + d)) },
+-      ...(botCfg.on ? [
+-        { label: "Bots per team", value: () => String(botCfg.perTeam), adjust: (d: 1 | -1) => { botCfg.perTeam = Math.max(1, Math.min(10, botCfg.perTeam + d)) },
 -          meta: "target pilots per team — each human who joins replaces a bot" },
-+          meta: "target pilots per team - your pilot takes one place" },
++      { label: "Mode", value: () => mode === "ctf" ? "Capture the flag" : "Fleet Strike", adjust: () => { selectMode(mode === "ctf" ? "fleet" : "ctf"); nav.replace(createScreen()) } },
++      ...(mode === "ctf" ? [] : [
++        { label: "Bots", value: () => (botCfg.on ? "on" : "off"), adjust: () => { botCfg.on = !botCfg.on; nav.replace(createScreen()) },
++          meta: () => botCfg.on ? "AI pilots fill each team, including your own" : "no AI aircraft - enemy fleet guns remain active" },
++      ]),
++      ...(botCfg.on || mode === "ctf" ? [
++        { label: "Bots per team", value: () => String(botCfg.perTeam), adjust: (d: 1 | -1) => { botCfg.perTeam = Math.max(mode === "ctf" ? 2 : 1, Math.min(10, botCfg.perTeam + d)) },
++          meta: mode === "ctf" ? "real AI vehicles per team, in addition to your vehicle" : "target pilots per team - your pilot takes one place" },
          { label: "Bot skill", value: () => SKILLS[botCfg.skill].name, adjust: (d: 1 | -1) => { botCfg.skill = Math.max(0, Math.min(2, botCfg.skill + d)) } },
        ] as MenuItem[] : []),
 +      { label: "Vehicle", value: () => VEHICLES[aircraft].name, adjust: d => { aircraft = cycle(VEHICLE_KINDS, aircraft, d) },
 +        meta: "initial vehicle - change again in the hangar after returning to base" },
        { label: "Name", input: { el: nameIn, at: "value" } },
-       { label: "Teams", value: () => String(cfg.teams), adjust: d => { cfg.teams = Math.max(2, Math.min(4, cfg.teams + d)) } },
-       { label: "Pilots per team", value: () => String(cfg.maxPerTeam), adjust: d => { cfg.maxPerTeam = Math.max(1, Math.min(10, cfg.maxPerTeam + d)) } },
-       { label: "Score limit", value: () => String(cfg.scoreLimit), adjust: d => { cfg.scoreLimit = cycle(scoreSteps, scoreSteps.includes(cfg.scoreLimit) ? cfg.scoreLimit : 50, d) } },
+-      { label: "Teams", value: () => String(cfg.teams), adjust: d => { cfg.teams = Math.max(2, Math.min(4, cfg.teams + d)) } },
+-      { label: "Pilots per team", value: () => String(cfg.maxPerTeam), adjust: d => { cfg.maxPerTeam = Math.max(1, Math.min(10, cfg.maxPerTeam + d)) } },
+-      { label: "Score limit", value: () => String(cfg.scoreLimit), adjust: d => { cfg.scoreLimit = cycle(scoreSteps, scoreSteps.includes(cfg.scoreLimit) ? cfg.scoreLimit : 50, d) } },
++      ...(mode === "ctf" ? [] : [
++        { label: "Teams", value: () => String(cfg.teams), adjust: (d: 1 | -1) => { cfg.teams = Math.max(2, Math.min(4, cfg.teams + d)) } },
++        { label: "Pilots per team", value: () => String(cfg.maxPerTeam), adjust: (d: 1 | -1) => { cfg.maxPerTeam = Math.max(1, Math.min(10, cfg.maxPerTeam + d)) } },
++      ]),
++      { label: mode === "ctf" ? "Capture limit" : "Score limit", value: () => String(cfg.scoreLimit), adjust: d => {
++        const steps = mode === "ctf" ? captureSteps : scoreSteps
++        cfg.scoreLimit = cycle(steps, steps.includes(cfg.scoreLimit) ? cfg.scoreLimit : mode === "ctf" ? 3 : 50, d)
++      } },
        { label: "Time limit", value: () => `${cfg.timeLimit} min`, adjust: d => { cfg.timeLimit = cycle(timeSteps, timeSteps.includes(cfg.timeLimit) ? cfg.timeLimit : 15, d) } },
 -      { label: "Visibility", value: () => (cfg.listed ? "public" : "invite only"), adjust: () => { cfg.listed = !cfg.listed }, meta: () => cfg.listed ? "listed in browse lobbies" : "only people with the link can join" },
 -      { label: "Create online", run: () => opts.onStart({ mode: "create", config: readConfig() }), meta: "you get an invite link to share" },
 -      { label: "Play offline", small: true, run: () => opts.onStart({ mode: "offline", config: readConfig() }), meta: "same settings, solo, no server" },
-+      { label: "Start offline", run: () => opts.onStart({ mode: "offline", config: readConfig(), aircraft }), meta: "local match only, no server or invitations" },
-+      { label: "Back", small: true, run: () => { nav.pop() } },
-     ],
-   })
-
+-    ],
+-  })
+-
 -  // Join with code
 -  const codeIn = document.createElement("input")
 -  codeIn.maxLength = 8
@@ -4056,9 +5841,11 @@ index 74ae61d..48145f3 100644
 -    items: [
 -      { label: "Code", input: { el: codeIn, at: "label" }, run: join, meta: "type the 4–8 character room code" },
 -      { label: "Join", run: join },
--    ],
--  })
--
++      { label: "Start offline", run: () => opts.onStart({ mode: "offline", config: readConfig(), aircraft }), meta: "local match only, no server or invitations" },
++      { label: "Back", small: true, run: () => { nav.pop() } },
+     ],
+   })
+
 -  // Browse
 -  const browseScreen = (): MenuScreen => {
 -    const items: MenuItem[] = (rooms ?? []).map(r => ({
@@ -4097,13 +5884,14 @@ index 74ae61d..48145f3 100644
 -      { label: "Browse lobbies", run: () => { nav.push(browseScreen()); refreshRooms() }, meta: () => roomsMeta() },
 -      { label: "Settings", run: () => nav.push(settingsScreen(nav, opts.onQuality, "07 — <b>settings</b>")), meta: "graphics · sound · steering · controls" },
 +        meta: "offline · 2 teams · AI pilots · normal skill" },
-+      { label: "Custom setup", run: () => nav.push(createScreen()), meta: "offline bots, skill, teams and match limits" },
++      { label: "Capture the flag", run: () => { selectMode("ctf"); nav.push(createScreen()) }, meta: "offline · 2 teams · plane and boat bots · choose vehicle and limits" },
++      { label: "Custom setup", run: () => { selectMode("fleet"); nav.push(createScreen()) }, meta: "offline bots, skill, teams and match limits" },
 +      { label: "Controls", run: () => nav.push({ crumb: "controls", html: controlsTable(), hints: [["esc", "back"]] }), meta: "keyboard and mouse required" },
 +      { label: "Settings", run: () => nav.push(settingsScreen(nav, opts.onQuality, "<b>settings</b>")), meta: "graphics · sound · steering · controls" },
      ],
    })
    nav.reset(rootScreen())
-@@ -505,39 +470,19 @@ export function initLobby(opts: { onStart(req: StartRequest): void; onQuality(q:
+@@ -505,39 +499,19 @@ export function initLobby(opts: { onStart(req: StartRequest): void; onQuality(q:
      if (nav.handleKey(e)) e.preventDefault()
    })
 
@@ -4348,8 +6136,36 @@ index 2404d00..581b52e 100644
      hide() { root.hidden = true },
      visible: () => !root.hidden,
      dispose() { window.removeEventListener("keydown", onKey); root.remove() },
+diff --git a/games/wings/src/ui/settings.ts b/games/wings/src/ui/settings.ts
+index 586b5c4..cc8a6a4 100644
+--- a/games/wings/src/ui/settings.ts
++++ b/games/wings/src/ui/settings.ts
+@@ -30,8 +30,13 @@ function load(): Settings {
+   const base = defaults()
+   try {
+     const raw = localStorage.getItem(KEY)
+-    if (raw) Object.assign(base, JSON.parse(raw))
++    if (raw) Object.assign(base, JSON.parse(raw, (key, value) => key === "__proto__" ? undefined : value))
+   } catch {}
++  base.name = typeof base.name === "string" ? base.name.slice(0, 16) : ""
++  base.sensitivity = typeof base.sensitivity === "number" && Number.isFinite(base.sensitivity) ? Math.max(0.2, Math.min(3, base.sensitivity)) : 1
++  base.volume = typeof base.volume === "number" && Number.isFinite(base.volume) ? Math.max(0, Math.min(1, base.volume)) : 0.8
++  base.muted = base.muted === true
++  base.invertY = base.invertY === true
+   if (base.controlStyle !== "direct" && base.controlStyle !== "aim") base.controlStyle = "aim"
+   if (base.controlScheme !== "keys" && base.controlScheme !== "point" && base.controlScheme !== "battlefield" && base.controlScheme !== "aim") base.controlScheme = "battlefield"
+   // Controls v3: keyboard flight + mouse aim became the default — move everyone onto it once.
+@@ -39,7 +44,7 @@ function load(): Settings {
+   b.controlsV3 = b.controlsV4 = b.controlsV5 = true
+   if (base.mouseX !== "roll") base.mouseX = "turn"
+   // Controls v6: Battlefield with mouse X = turn became the default — move everyone onto it once.
+-  if (!b.controlsV6) { b.controlsV6 = true; base.controlScheme = "battlefield"; base.controlStyle = "direct"; base.mouseX = "turn" }
++  if (b.controlsV6 !== true) { b.controlsV6 = true; base.controlScheme = "battlefield"; base.controlStyle = "direct"; base.mouseX = "turn" }
+   base.practiceBots = Math.max(0, Math.min(10, Math.round(Number(base.practiceBots ?? 0)) || 0))
+   if (base.quality !== "low" && base.quality !== "balanced" && base.quality !== "high") base.quality = "balanced"
+   return base
 diff --git a/games/wings/src/ui/spawn.ts b/games/wings/src/ui/spawn.ts
-index 328bc3f..6654154 100644
+index 328bc3f..5fe5813 100644
 --- a/games/wings/src/ui/spawn.ts
 +++ b/games/wings/src/ui/spawn.ts
 @@ -1,5 +1,5 @@
@@ -4376,7 +6192,16 @@ index 328bc3f..6654154 100644
  }
  const MAX_SPEED = Math.max(...VEHICLE_KINDS.map(k => VEHICLES[k].boost))
  const MAX_HP = Math.max(...VEHICLE_KINDS.map(k => VEHICLES[k].maxHp))
-@@ -55,10 +58,10 @@ function detailHtml(k: VehicleKind, i: number): string {
+@@ -50,17 +53,20 @@ export interface SpawnScreen {
+
+ const bar = (v: number) => `<i class="bar"><b style="width:${Math.round(Math.max(0.06, Math.min(1, v)) * 100)}%"></b></i>`
+
+-function detailHtml(k: VehicleKind, i: number): string {
++function detailHtml(k: VehicleKind, i: number, ctf = false): string {
+   const v = VEHICLES[k], r = ROLES[k]
++  const blurb = ctf && k === "speedboat"
++    ? "Waterborne hull with a deck cannon and stern depth charges. Launches at your team's water flag base, independent of carriers. The skipper operates both weapons; the passenger has no weapons."
++    : r.blurb
    const seats = [0, 1].map(s => {
      const ws = v.seatWeapons[s]
      const list = ws[0] === null && ws[1] === null ? [] : (ws[0] !== null && ws[0] === ws[1] ? [ws[0]] : ws).filter(Boolean).map(id => WEAPONS[id!].kind === "bomb" ? "bombs" : WEAPONS[id!].name.toLowerCase())
@@ -4388,9 +6213,12 @@ index 328bc3f..6654154 100644
 -  return `<div class="crumb">${String(i + 1).padStart(2, "0")} — ${r.role} · ${v.flight === "heli" ? "vtol" : "jet"}</div>
 +  return `<div class="crumb">${String(i + 1).padStart(2, "0")} - ${r.role} · ${v.flight === "water" ? "hull" : v.flight === "heli" ? "vtol" : "jet"}</div>
      <h3 class="name">${escapeHtml(v.name)}</h3>
-     <p class="blurb">${r.blurb}</p>
+-    <p class="blurb">${r.blurb}</p>
++    <p class="blurb">${blurb}</p>
      <dl class="stats">
-@@ -68,14 +71,14 @@ function detailHtml(k: VehicleKind, i: number): string {
+       <div><dt>speed</dt><dd>${Math.round(v.boost * 3.6)}<small> km/h</small></dd>${bar(v.boost / MAX_SPEED)}</div>
+       <div><dt>hull</dt><dd>${v.maxHp}</dd>${bar(v.maxHp / MAX_HP)}</div>
+@@ -68,14 +74,14 @@ function detailHtml(k: VehicleKind, i: number): string {
        <div><dt>firepower</dt><dd>${Math.round(r.firepower * 10)}<small>/10</small></dd>${bar(r.firepower)}</div>
        <div><dt>flares</dt><dd>${v.flares}</dd></div>
      </dl>
@@ -4407,7 +6235,7 @@ index 328bc3f..6654154 100644
    leave(): void
    click(): void
    /** Optional rendered aircraft thumbnail (team livery). */
-@@ -88,9 +91,9 @@ export function createSpawnScreen(parent: HTMLElement, actions: {
+@@ -88,9 +94,9 @@ export function createSpawnScreen(parent: HTMLElement, actions: {
    root.hidden = true
    root.innerHTML = `
      <div class="sp-head">
@@ -4420,7 +6248,24 @@ index 328bc3f..6654154 100644
        <div class="teams" aria-label="Team"></div>
      </div>
      <nav class="screen sp-list"></nav>
-@@ -165,7 +168,7 @@ export function createSpawnScreen(parent: HTMLElement, actions: {
+@@ -111,6 +117,7 @@ export function createSpawnScreen(parent: HTMLElement, actions: {
+   const nav = new MenuNav($(".sp-list"), actions.click)
+   nav.onHints = h => { hints.innerHTML = hintsHtml(h) }
+
++  let ctf = false
+   let canSpawn = false
+   let wait = 0
+   let lastTeams = ""
+@@ -124,7 +131,7 @@ export function createSpawnScreen(parent: HTMLElement, actions: {
+   const showDetail = (k: VehicleKind) => {
+     if (k === shownKind) return
+     shownKind = k
+-    info.innerHTML = detailHtml(k, VEHICLE_KINDS.indexOf(k))
++    info.innerHTML = detailHtml(k, VEHICLE_KINDS.indexOf(k), ctf)
+     paintThumb()
+   }
+   const paintThumb = () => {
+@@ -165,7 +172,7 @@ export function createSpawnScreen(parent: HTMLElement, actions: {
      const st = shipHp(m.ship)
      const pct = st ? Math.round((st.hp / st.maxHp) * 100) : 100
      const kind = turretName(m.ship, m.turret).split(" · ")[0]
@@ -4429,7 +6274,7 @@ index 328bc3f..6654154 100644
        <h3 class="name">${escapeHtml(turretName(m.ship, m.turret))}</h3>
        <p class="blurb">${kind === "ciws"
          ? "Close-in weapon system: a fast rotary cannon. Hose incoming aircraft and missiles at short range."
-@@ -189,7 +192,7 @@ export function createSpawnScreen(parent: HTMLElement, actions: {
+@@ -189,24 +196,25 @@ export function createSpawnScreen(parent: HTMLElement, actions: {
      items.push({ label: "Leave match", small: true, run: () => actions.leave(), meta: "back to the main menu" })
      const screen = {
        size: "mid" as const, items, sel: keepSel ? nav.index : 0,
@@ -4438,7 +6283,10 @@ index 328bc3f..6654154 100644
      }
      if (nav.depth) nav.replace(screen)
      else nav.push(screen)
-@@ -199,14 +202,14 @@ export function createSpawnScreen(parent: HTMLElement, actions: {
+   }
+   const setTab = (t: "air" | "guns") => {
++    if (ctf && t === "guns") t = "air"
+     if (t === tab) return
      tab = t
      root.querySelectorAll<HTMLElement>("[data-tab]").forEach(b => b.classList.toggle("on", b.dataset.tab === t))
      root.classList.toggle("guns", t === "guns")
@@ -4455,7 +6303,7 @@ index 328bc3f..6654154 100644
        meta: () => (canSpawn ? "" : `respawn in ${Math.ceil(wait)} s`),
        run: () => { if (canSpawn) actions.spawn(k) },
      }))
-@@ -214,7 +217,7 @@ export function createSpawnScreen(parent: HTMLElement, actions: {
+@@ -214,7 +222,7 @@ export function createSpawnScreen(parent: HTMLElement, actions: {
      items.push({ label: "Leave match", small: true, run: () => actions.leave(), meta: "back to the main menu" })
      const screen = {
        size: "big" as const, items, sel: keepSel ? nav.index : 0,
@@ -4464,7 +6312,16 @@ index 328bc3f..6654154 100644
      }
      if (nav.depth) nav.replace(screen)
      else nav.push(screen)
-@@ -244,7 +247,6 @@ export function createSpawnScreen(parent: HTMLElement, actions: {
+@@ -229,7 +237,7 @@ export function createSpawnScreen(parent: HTMLElement, actions: {
+
+   const onKey = (e: KeyboardEvent) => {
+     if (root.hidden || (e.target as HTMLElement)?.tagName === "INPUT") return
+-    if ((e.key === "g" || e.key === "G") && !e.repeat && actions.manTurret) { actions.click(); setTab(tab === "air" ? "guns" : "air"); return }
++    if (!ctf && (e.key === "g" || e.key === "G") && !e.repeat && actions.manTurret) { actions.click(); setTab(tab === "air" ? "guns" : "air"); return }
+     const n = Number(e.key)
+     if (tab === "air" && n >= 1 && n <= VEHICLE_KINDS.length && !e.repeat) {
+       if (canSpawn) { actions.click(); actions.spawn(VEHICLE_KINDS[n - 1]) }
+@@ -244,7 +252,6 @@ export function createSpawnScreen(parent: HTMLElement, actions: {
      const t = e.target as HTMLElement
      const team = t.closest<HTMLElement>("[data-team]")
      if (team) { actions.click(); actions.team(Number(team.dataset.team) as TeamId); return }
@@ -4472,7 +6329,21 @@ index 328bc3f..6654154 100644
      const tb = t.closest<HTMLElement>("[data-tab]")
      if (tb) { actions.click(); setTab(tb.dataset.tab as "air" | "guns") }
    })
-@@ -266,7 +268,7 @@ export function createSpawnScreen(parent: HTMLElement, actions: {
+@@ -257,6 +264,13 @@ export function createSpawnScreen(parent: HTMLElement, actions: {
+     hide() { root.hidden = true },
+     visible: () => !root.hidden,
+     update(s) {
++      if (ctf !== (s.config.mode === "ctf")) {
++        ctf = s.config.mode === "ctf"
++        const selected = shownKind
++        shownKind = null
++        setTab("air")
++        if (selected) showDetail(selected)
++      }
+       code.textContent = s.room.toLowerCase()
+       me = s.me
+       wait = me ? Math.max(0, me.respawnAt - s.time) : 0
+@@ -266,11 +280,11 @@ export function createSpawnScreen(parent: HTMLElement, actions: {
        countdown.classList.toggle("on", !canSpawn)
        const num = String(Math.ceil(wait)).padStart(2, "0")
        if (cdNum.textContent !== num) cdNum.textContent = num
@@ -4481,6 +6352,11 @@ index 328bc3f..6654154 100644
        if (title.textContent !== t) title.textContent = t
        players = s.players
        ships = s.ships ?? []
+-      if (!actions.manTurret || !s.ships) root.querySelector<HTMLElement>(".tabs")!.hidden = true
++      if (ctf || !actions.manTurret || !s.ships) root.querySelector<HTMLElement>(".tabs")!.hidden = true
+       else root.querySelector<HTMLElement>(".tabs")!.hidden = false
+       if (me) {
+         const myT = me.team
 diff --git a/games/wings/ui-check.ts b/games/wings/ui-check.ts
 new file mode 100644
 index 0000000..98e2ac9

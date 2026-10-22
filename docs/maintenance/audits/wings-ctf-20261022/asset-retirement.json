@@ -1,0 +1,46 @@
+{
+  "retired": [
+    {
+      "path": "Games/Wings/assets/GLTFLoader-BX2HFVME.js",
+      "sha256": "86e6dce834c463ab1dfcdce534901eb7bdfc2cd6b2694e74eb69b32d58fd10d7"
+    },
+    {
+      "path": "Games/Wings/assets/chunk-4ES2OORK.js",
+      "sha256": "4a99f96c44b62ae319c9a79f8c1c0b4ae9505006e3151dc6c8bca6755115c881"
+    },
+    {
+      "path": "Games/Wings/assets/chunk-BKLCZ52J.js",
+      "sha256": "ed50a84e1f6625e11e75293c4f53325c61652704c2ee9c24e3aa93272d237c33"
+    },
+    {
+      "path": "Games/Wings/assets/chunk-H2GWTA5B.js",
+      "sha256": "71e6474ccf4cf658d1cb318b67c5e80216a1ba5d5a9f9a21671f57260cedfba5"
+    },
+    {
+      "path": "Games/Wings/assets/chunk-QDTYE6CU.js",
+      "sha256": "4602972d7d7665661c52000780ce981f2765d0652112b89136e014ec4d9589a4"
+    },
+    {
+      "path": "Games/Wings/assets/chunk-SEGKJWGY.js",
+      "sha256": "83b354020be7480dabca938633b6cca8dadef15fd35a6e0b5083b1cf63b6ff4c"
+    },
+    {
+      "path": "Games/Wings/assets/game-6EQ23DUW.css",
+      "sha256": "ce8d7b465a5f9b5bb2a93ba074921ac2a2847efad5bfccdf952339113eddeba8"
+    },
+    {
+      "path": "Games/Wings/assets/game-B3PQZF6A.js",
+      "sha256": "3bee3296fb0c63e220b16a8698b34b91f0c6ceddf7e340d408533627692a9df6"
+    },
+    {
+      "path": "Games/Wings/assets/scene-ELM2E2B6.js",
+      "sha256": "96aa32d478c8d99d1e57cc0fc87eeccec7e6795749e9c51cb6c2139624fa470d"
+    }
+  ],
+  "cachedExternalConsumers": [
+    "docs/maintenance/audits/wings-boat-publish-20261022/checks.json"
+  ],
+  "consumerScope": "Historical startup/integration artifact hashes only; not runtime imports. All tracked sparse content included in cached audit.",
+  "replacementPrivateSource": "bfcafba",
+  "closure": "Pinned esbuild regenerated main/scene/game/worker and every local import; no hand-edited minified module."
+}

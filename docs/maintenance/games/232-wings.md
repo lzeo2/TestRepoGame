@@ -424,9 +424,48 @@ The operator separately authorized the next CTF feature work but cancelled the
 proposed patrol rework: **existing patrol modes and defaults must stay unchanged**.
 Speedboat belongs in the existing fleet vehicle picker. New offline two-team CTF
 needs flags, death drops/returns, timer/score limit, a water route, mixed plane/boat
-bots and lobby mode/vehicle selection. It is not yet implemented or claimed in
-catalog 232. Distinct boat-variant handling/loadout scope awaits clarification.
-CTF images must be fresh evidence, not relabelled boat/lobby images.
+bots and lobby mode/vehicle selection. That startup checkpoint predates CTF;
+the current source staging follows below. Distinct boat-variant handling/loadout
+scope awaits clarification.
+CTF images must be fresh evidence, not relabelled boat/lobby images. That startup
+checkpoint predates the current source staging described next.
+
+## Capture the Flag source staging (2026-10-22)
+
+[CTF staging receipt](../audits/wings-ctf-20261022/README.md) and the corrected
+[operator contract](../../wings-ctf-contract.md) record the current extension.
+Existing patrol/Fleet actions and defaults are preserved. The same fleet/hangar
+picker includes the speedboat; the separate CTF setup has mode/vehicle selectors,
+two teams, mixed plane/boat AI, a capture target and timer. Flag authority handles
+steal, death/removal/empty-crew drop, friendly/30s return, own-flag-home scoring,
+capture-limit/time winner, draw and clean restart. Client flag/position grants
+were not added. Snapshot flag carriers remain visible despite stealth filtering.
+
+The water route is the actual unchanged Mainland/Isle 2 strait, 1,720m by water
+versus 1,200m direct air distance. Boats use ordinary throttle/yaw/brake; aircraft
+use normal flight combat/low flag approaches. Mode-local bases/spawns do not rely
+on surviving carriers. New objective geometry uses four instanced batches and
+owns its cleanup. A reviewed boat-base/parked-cleanup mismatch was fixed in the
+shared predicate, with positive and exact pre-fix negative CPU regression.
+
+Inspected source: the full pinned patch reproduces 88 authored files; pinned
+builder output is 33 files / 5,589,890 bytes. Nine bundled CPU/source checks pass,
+including eight normal-input plane/boat capture fixtures (both teams, zero
+crashes), genuine mixed-combat loopback capture-limit win at 43.65 simulated
+seconds for team 0, timer, restart and snapshot isolation. Shared malformed name/
+sensitivity/audio storage values are now validated without changing valid v6
+preferences. These results are not native timing, layout, controls or pixels.
+
+**HOLD:** no CTF lobby, carried-flag flight or boat-water-route Chromium image
+has been captured. Earlier three boat-native attempts remain HOLD; CDP3 connected
+but timed out in menu before product measurement. No new browser is inferred.
+The existing GLB remains unchanged with its missing driver/older roof. In-place
+roof/driver repair permission and distinct boat loadout versus livery-variant
+scope await clarification. Current roster has one speedboat kind, not invented
+extra loadouts. Catalog 232 describes a CTF preview, not release acceptance.
+Whole-scene peak budget, audio, physical input, hardware/FPS and rights remain
+unverified. Full 127-game gate remains deferred; no new game, ID, dependency,
+backend/proxy change or push.
 
 ## Future outlook
 
