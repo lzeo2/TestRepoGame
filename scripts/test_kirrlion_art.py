@@ -3,6 +3,7 @@
 
 Run: python3 -B scripts/test_kirrlion_art.py
 Optional live comparison: add --reference (network used only by reference tab).
+Two mobile viewport-only captures: add --mobile-recapture (50s work +10s cleanup).
 Refuses to launch while another Chromium is running. Evidence is not runtime art.
 """
 import argparse
@@ -31,9 +32,13 @@ class Handler(SimpleHTTPRequestHandler):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--reference', action='store_true')
+    parser.add_argument('--mobile-recapture', action='store_true',
+                        help='Two 320px viewport-only shots after three real answers; <=60s including cleanup')
     parser.add_argument('--budget-seconds', type=int, choices=(50, 160), default=160,
                         help='Work alarm; allow 10 additional seconds for cleanup')
     args = parser.parse_args()
+    if args.mobile_recapture:
+        args.budget_seconds = 50
     def require_slot():
         processes = subprocess.check_output(['ps', '-eo', 'comm=,args='], text=True)
         if any(line.lstrip().startswith(('chromium ', 'chrome ')) and
@@ -95,6 +100,30 @@ def main():
                 assert page.evaluate("getComputedStyle(document.body).backgroundColor") == 'rgb(5, 9, 20)'
                 assert page.locator('.ocean').evaluate("e => getComputedStyle(e).backgroundColor") == 'rgba(0, 0, 0, 0)'
                 assert page.locator('#theme').text_content() == 'Dim glow'
+                if args.mobile_recapture:
+                    page.set_viewport_size({'width': 320, 'height': 844})
+                    prompts = page.evaluate("DiveCore.selectPrompts(DiveQuestions, {mode:'numbered',key:'1'})")
+                    page.locator('#start-number').click()
+                    total = 0
+                    for i, prompt in enumerate(prompts[:3]):
+                        group = max(prompt['groups'], key=lambda group: group['tier'])
+                        page.locator('#answer').fill(group['answers'][0]['text'])
+                        page.locator('#answer').press('Enter')
+                        total += [10, 15, 30, 60, 85, 100][group['tier']]
+                        if i < 2:
+                            page.locator('#next').click()
+                    assert page.locator('#depth').inner_text() == f'{total * 10:,}'
+                    page.wait_for_timeout(950)
+                    assert page.evaluate('document.documentElement.scrollWidth <= innerWidth')
+                    page.evaluate('window.scrollTo(0, 0)')
+                    page.screenshot(path=str(OUT / 'abyss-mobile-320-column-viewport.png'))
+                    page.locator('.workbench').evaluate('e => e.scrollIntoView({block:"start"})')
+                    page.screenshot(path=str(OUT / 'abyss-mobile-320-game-viewport.png'))
+                    assert not errors, errors
+                    assert not external, external
+                    passed('two 320px viewport-only captures at real three-answer depth; no overflow/errors/external requests')
+                    report['passed'] = True
+                    return
                 shot(page, 'abyss-desktop-launch')
                 page.locator('.ocean-world').screenshot(path=str(OUT / 'abyss-bands-scanlines.png'))
                 page.locator('.masthead').screenshot(path=str(OUT / 'abyss-glow-title.png'))
@@ -194,7 +223,8 @@ def main():
         report['elapsed_seconds_including_cleanup'] = round(time.monotonic() - started, 3)
         report['browser_errors'] = errors
         report['external_runtime_requests'] = external
-        (OUT / 'focused-report.json').write_text(json.dumps(report, indent=2) + '\n')
+        filename = 'mobile-viewport-report.json' if args.mobile_recapture else 'focused-report.json'
+        (OUT / filename).write_text(json.dumps(report, indent=2) + '\n')
 
 
 if __name__ == '__main__':
