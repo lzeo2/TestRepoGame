@@ -1,0 +1,121 @@
+{
+  "evidenceClass": "Systems resume verification; builder evidence, not independent B/C/D/F grades or full-game acceptance",
+  "observedAt": "2026-10-22T04:49:25.756342+00:00",
+  "sourceCommit": "d69c12c22c3e645c595897ca576a9d85c0fb0076",
+  "authority": {
+    "operatorDirectiveSummary": "Disk gate resolved; use the systems brief as contract authority in place of the missing shared spec, record the absence, and invent no ALWAYS/ASK/NEVER clauses.",
+    "temporaryDocuments": [
+      { "fileName": "jank3d-spec.md", "presentAtSuppliedLocation": false },
+      { "fileName": "jank3d-brief-systems.txt", "presentAtSuppliedLocation": false }
+    ],
+    "briefSource": "Earlier verbatim brief read retained in the session, not a restored filesystem document. The original missing-spec pointer is overridden by the operator resume directive. Task-scope excerpt is preserved below.",
+    "briefScopeVerbatim": "YOU BUILD ONLY GAMEPLAY SYSTEMS (no map geometry, no hero models):\n1. Trooper system: squads of 4 per team per lane every 25s, march lane waypoints,\n   fight nearest enemy (troopers > heroes > structures), candle-head burn-down at\n   low HP (emissive scale), respawn wave logic, lane push.\n2. Souls economy: floating orb (projectile-take: shooting splits 50/50 secure/deny),\n   ground orb (claim radius 5m, magnet walk, 18s lifetime), soul counter UI,\n   souls = levels (auto level: +stats per level tier) AND currency for shop.\n   Comeback math: losing-team multiplier up to +26%.\n3. Item shop: 4 tiers (800/1600/3200/6400), shop opens on death + at base +\n   hotkey (B). Items: tier1 (ammo/health/sprint), tier2 (lifesteal/slow rounds/\n   dash charge), tier3 (burst fire/heavy melee charge/shadow cloak), tier4\n   (armor pierce/glass cannon). Max 9 slots, 3 flex unlocks via Walker kills.\n4. Hero death/respawn: death timer scaled by game minute, respawn base; healing\n   retreat zone at own base. Retreat-to-base teleport (hold X at base ring).\n5. Match flow director: pregame 30s, laning (waves spawn), mid-game 10-min juncture\n   (trooper bounty up), win/loss detection wiring to structures/HP.\n6. IN AN AGREED INTERFACE: read world spawn/waypoint data from\n   docs/jank3d-spawns.json (world team exports; if not yet exported, create\n   procedural fallback lanes so your sim runs independent).\n\nACCEPTANCE FOR YOU: B (wave logic), C (orbs), D (10-min scripted headless sim\ndrives: waves push -> structures fall in chain order -> Patron P1 -> P2 -> win),\nF (shop). Run the sim in Node with a stubbed renderer or headless chromium.\nLog a timeline file proving order of objective falls.\nReport files + screenshots (of any visual bits like orb FX and shop UI) + blockers.\nNo self-grading - reviewer grades.",
+    "clausesInferredFromMissingSpec": false,
+    "repositoryAndSeparateUiDirectivesStillApply": true
+  },
+  "change": {
+    "rootCause": "Friendly ring lookup also required the hero's fixed lane assignment, although input callers do not change that assignment when the player visits another base.",
+    "fix": "Remove only the lane-assignment condition from the shared recall-ring lookup. Team ownership, proximity, duration, movement/damage/attack/release cancellation remain.",
+    "regressionBeforeFix": {
+      "command": "node Games/Jankolock3D/systems-test.mjs --no-evidence",
+      "exitCode": 1,
+      "assertion": "AssertionError [ERR_ASSERTION]: carbon/graft: friendly ring must start recall"
+    },
+    "newRegression": "All six friendly rings across both teams channel and return to the central own base without changing the hero's midway assignment. Enemy rings remain rejected.",
+    "runtimeDiff": "One predicate removed; 16-line assert-based regression added. No UI, map geometry, hero model, dependency, catalog or balance changes."
+  },
+  "sourceHashes": {
+    "Games/Jankolock3D/systems.mjs": "79b018abfb1227c4117f8c88243ce9d5eb5a6a7c7d5ac2f1e87f3a14dd09066a",
+    "Games/Jankolock3D/systems-test.mjs": "d7e81bb443bf248e90b5b59030dca62ef2b3896f0b5b5c08d8fb9fcad5b3cb56"
+  },
+  "checks": [
+    {
+      "command": "node Games/Jankolock3D/systems-test.mjs",
+      "exitCode": 0,
+      "stdoutTail": [
+        "scripted match: carbon; 23 waves; 6267 trooper hits; 240 objective hits (2160 damage)",
+        "timeline: docs/maintenance/audits/jankolock-3d-qa/systems-timeline.json",
+        "18 regression groups completed; scripted match completed"
+      ]
+    },
+    {
+      "command": "node Games/Jankolock3D/integration-test.mjs",
+      "exitCode": 0,
+      "selectedStdout": [
+        "integration: six configured heroes; carbon 600s chain, 19 falls and distinct Patron phases passed",
+        "integration: six configured heroes; ivory 600s chain, 19 falls and distinct Patron phases passed",
+        "integration: catalog parses, 127 unique IDs, schema fields present, id240 targets integrated page"
+      ]
+    },
+    {
+      "command": "node Games/Jankolock3D/bots-test.mjs",
+      "exitCode": 0,
+      "stdout": "bots-test: 8 groups passed (5 bots/lanes/waves, shop, retreat, cooldowns, cover/passive, collision/respawn/recall, orbs, host callback/origins; Node scene only)"
+    },
+    { "command": "node --check Games/Jankolock3D/systems.mjs", "exitCode": 0, "stdout": "" },
+    { "command": "node --check Games/Jankolock3D/systems-test.mjs", "exitCode": 0, "stdout": "" },
+    { "command": "git diff --check", "exitCode": 0, "stdout": "" }
+  ],
+  "timeline": {
+    "path": "docs/maintenance/audits/jankolock-3d-qa/systems-timeline.json",
+    "sha256": "efa244a2912e3d4d2f9d6efb29d3d0d84786eff650e0b386f65e4dd0511727e1",
+    "world": "local docs/jank3d-spawns.json, metres",
+    "durationSeconds": 600,
+    "waveCount": 23,
+    "trooperCombatHits": 6267,
+    "trooperObjectiveHits": 240,
+    "trooperObjectiveDamage": 2160,
+    "patronPhase2Seconds": 570,
+    "victorySeconds": 590,
+    "qualification": "Scripted public-API damage/reposition policy; no objective HP, lock or winner assignments. Not native full-match or balance proof."
+  },
+  "browser": {
+    "command": "TMPDIR=/dev/shm timeout --signal=TERM --kill-after=15s 180s python3 -B Games/Jankolock3D/systems-qa.py",
+    "exitCode": 0,
+    "stdoutLastLine": "Browser checks completed: 13 captures, 0 recorded errors; reviewer decides acceptance.",
+    "report": "docs/maintenance/audits/jankolock-3d-qa/systems-browser-evidence.json",
+    "comparison": "docs/maintenance/audits/jankolock-3d-qa/systems-ui-comparison.png",
+    "orbScreenshot": "docs/maintenance/audits/jankolock-3d-qa/systems-orbs.png",
+    "captures": 13,
+    "httpResponses": 109,
+    "allHttp200": true,
+    "recordedErrors": 0,
+    "minimumImageVariance": 689.34,
+    "reportSourceHashesMatchCurrentFiles": true,
+    "qualification": "Serialized system Chromium, software WebGL, isolated actor/shop fixtures with explicit seeds and setup. Cross-lane recall is CPU-regression evidence, not native travel proof. These captures do not accept new integrated world/model assets. No UI source changed; existing codex-imagen mockup and labeled twin retained."
+  },
+  "maintenance": {
+    "command": "python3 -B scripts/check_maintenance_docs.py",
+    "exitCode": 1,
+    "afterSourceCommit": "d69c12c22c3e645c595897ca576a9d85c0fb0076",
+    "error": "AssertionError: Commit inspected source changes before validating its inventory.",
+    "verifiedGuard": "scripts/check_maintenance_docs.py checks git diff --name-only HEAD -- Games games.json. Its remaining paths were exactly the staged model delivery listed below.",
+    "remainingStagedPathsLeftUntouched": [
+      "Games/Jankolock3D/models/turretina/README.md",
+      "Games/Jankolock3D/models/turretina/build.mjs",
+      "Games/Jankolock3D/models/turretina/model.glb",
+      "Games/Jankolock3D/models/turretina/receipt.json"
+    ],
+    "handoff": "Model owner must commit its reviewed delivery before the inventory owner can reconcile committed source. Do not stash, unstage, reset, edit or commit another owner's files to bypass the guard.",
+    "hermesTicket": "pi-12346-1792644501361-ffd1e9c4",
+    "ticketState": "answered; advice and relay, not human approval"
+  },
+  "storage": {
+    "operatorReportedFreeBytes": 2768986112,
+    "observedResumeFreeBytes": 2767106048,
+    "beforeFreshVerificationFreeBytes": 2823172096,
+    "browserBeforeFreeBytes": 2823278592,
+    "browserAfterFreeBytes": 2823208960,
+    "afterSourceCommitFreeBytes": 2823073792,
+    "note": "Shared-root measurements changed during concurrent work; not a per-task allocation/deletion accounting. All observed writes stayed above the developer floor. No disk waiver used."
+  },
+  "release": {
+    "catalogEntries": 127,
+    "newGames": 0,
+    "newRegistrations": 0,
+    "fullFleetSmokeRun": false,
+    "supportedHardwareAcceptance": false,
+    "independentLetterGradesIssued": false,
+    "pushPerformed": false
+  }
+}
