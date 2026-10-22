@@ -43,6 +43,9 @@ export function createExternalBuildingKit(scene, capacity = 10000, { lod = 0 } =
   function prepare(type, p) {
     const gltf = models.get(MODEL_DIRECTORIES[type]);
     const template = gltf.scene.clone(true);
+    // Normalize this explicitly declared facade convention to the kit's -Z front.
+    // Rotate the scene wrapper only: authored node pivots/grounding stay intact.
+    if (gltf.scene.userData.external.rig.coordinates === 'glTF Y-up; architectural facade +Z; source Blender Z-up facade -Y') template.rotateY(Math.PI);
     if (type === 'park') {
       const assembly = gltf.scene.userData.external.assembly;
       if (assembly?.units !== 'metres' || assembly.up_axis !== 'Y') throw new Error('Invalid park assembly');

@@ -52,6 +52,44 @@ await buildings.link(specifier => specifier.endsWith('external-assets.mjs') ? as
 await buildings.evaluate();
 const { loadExternalModel, resourceURL, EXTERNAL_DIRECTORIES, disposeExternalModels } = assets.namespace;
 const { createExternalBuildingKit } = buildings.namespace;
+async function checkOrientation(kit) {
+  const facades = new Set(['townhall', 'residential', 'commercial', 'police', 'fire']);
+  const closeMatrix = (actual, expected, message) => assert.ok(actual.elements.every((n, i) => Math.abs(n - expected.elements[i]) < 1e-6), message);
+  let doors = 0;
+  for (const [type, pool] of kit.pools) {
+    const { directory, rig } = pool.template.userData.external;
+    const filename = kit.lod ? `model_LOD${kit.lod}.glb` : 'model.glb';
+    const bytes = await readFile(new URL(`${directory}/${filename}`, root));
+    const json = JSON.parse(bytes.subarray(20, 20 + bytes.readUInt32LE(12)).toString());
+    const normalization = new THREE.Matrix4().makeRotationY(facades.has(type) ? Math.PI : 0);
+    closeMatrix(pool.template.matrix, normalization, `${type}: only declared facades rotate`);
+    function visit(index, parentWorld) {
+      const def = json.nodes[index], node = pool.template.getObjectByName(THREE.PropertyBinding.sanitizeNodeName(def.name));
+      assert.ok(node, `${type}: retained node ${def.name}`);
+      const local = def.matrix ? new THREE.Matrix4().fromArray(def.matrix) : new THREE.Matrix4().compose(
+        new THREE.Vector3().fromArray(def.translation || [0, 0, 0]),
+        new THREE.Quaternion().fromArray(def.rotation || [0, 0, 0, 1]),
+        new THREE.Vector3().fromArray(def.scale || [1, 1, 1]));
+      closeMatrix(node.matrix, local, `${type}/${def.name}: authored local transform unchanged`);
+      const world = new THREE.Matrix4().multiplyMatrices(parentWorld, local);
+      closeMatrix(node.matrixWorld, normalization.clone().multiply(world), `${type}/${def.name}: world transform/grounding`);
+      assert.ok(Math.abs(node.matrixWorld.elements[13] - world.elements[13]) < 1e-6, 'grounding Y unchanged');
+      for (const child of def.children || []) visit(child, world);
+    }
+    for (const index of json.scenes[json.scene || 0].nodes) visit(index, new THREE.Matrix4());
+    if (facades.has(type)) {
+      const entries = rig.movable_nodes.filter(node => node.name.includes('door'));
+      assert.ok(entries.length, `${type}: actual delivered door required`);
+      for (const entry of entries) {
+        const door = pool.template.getObjectByName(entry.name);
+        assert.ok(door.getWorldPosition(new THREE.Vector3()).z < 0, `${type}/${entry.name}: normalized front is -Z`);
+        doors++;
+      }
+    }
+  }
+  assert.equal(doors, 8, 'five architectural assets retain all eight facade door pivots');
+  console.log(`PASS: LOD${kit.lod} five facades face -Z; all authored local transforms/grounding and other model orientations retained`);
+}
 assert.equal(EXTERNAL_DIRECTORIES.length, 18);
 for (const url of ['https://third-party.invalid/a.png', '//third-party.invalid/a', 'javascript:1', 'file:///a', 'blob:https://third-party.invalid/id']) assert.throws(() => resourceURL(url), /Nonlocal/);
 assert.equal(resourceURL('data:image/png;base64,AA=='), 'data:image/png;base64,AA==');
@@ -76,6 +114,7 @@ assert.equal(kit.pools.get('residential').mesh.count, 1);
 assert.equal(kit.pools.get('residential').mesh.getMatrixAt(0, new THREE.Matrix4()).elements[12], 8);
 assert.equal(requests.filter(path => path.endsWith('.glb')).length, 17);
 assert.ok(requests.filter(path => path.endsWith('.glb')).every(path => path.endsWith('/model.glb')));
+await checkOrientation(kit);
 const batches = [...kit.pools.values()].flatMap(p => p.batches);
 assert.ok(batches.every(mesh => mesh.isInstancedMesh));
 assert.ok(kit.pools.get('residential').batches.length < 22);
@@ -127,13 +166,16 @@ assert.ok(bitmaps.every(bitmap => bitmap.closed), 'owned image bitmaps closed on
 assert.throws(() => kit.spawn('citizen'), /disposed/);
 console.log(`PASS: 17 real LOD0 GLBs, ${batches.length} instanced batches; stable handles, UV/PBR, rig/walk/wheels, night baseline, cleanup`);
 
-for (const lod of [1, 2]) for (const directory of EXTERNAL_DIRECTORIES.filter(dir => dir !== 'terrain_water_materials')) {
-  const start = requests.length;
-  const model = await loadExternalModel(directory, lod);
-  assert.ok(model.scene.isObject3D);
-  if (directory === 'citizen' || directory === 'zombie') assert.equal(model.animations[0].name, `clip_${directory}_walk`);
-  assert.equal(requests.slice(start).filter(path => path.endsWith('.glb')).join(''), `/Games/Citisten3D/models/${directory}/model_LOD${lod}.glb`);
-  disposeExternalModels([model]);
+for (const lod of [1, 2]) {
+  const start = requests.length, lowerKit = createExternalBuildingKit(new THREE.Scene(), 1, { lod });
+  for (const type of lowerKit.types) lowerKit.spawn(type);
+  await lowerKit.ready;
+  const glbs = requests.slice(start).filter(path => path.endsWith('.glb'));
+  assert.equal(glbs.length, 17);
+  for (const directory of EXTERNAL_DIRECTORIES.filter(dir => dir !== 'terrain_water_materials')) assert.ok(glbs.includes(`/Games/Citisten3D/models/${directory}/model_LOD${lod}.glb`));
+  for (const type of ['citizen', 'zombie']) assert.equal(lowerKit.pools.get(type).animations[0].name, `clip_${type}_walk`);
+  await checkOrientation(lowerKit);
+  lowerKit.dispose();
 }
 const sample = await loadExternalModel('terrain_water_materials');
 assert.ok(sample.scene.isObject3D); disposeExternalModels([sample]);
