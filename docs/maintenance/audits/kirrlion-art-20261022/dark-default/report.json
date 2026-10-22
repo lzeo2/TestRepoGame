@@ -1,0 +1,43 @@
+{
+  "passed": true,
+  "checks": [
+    "dark HTML/CSS first paint even with controller disabled and OS light preference",
+    "trimmed launch; seven untouched prompts/tiers; total depth and highest-point best find",
+    "selectable light desktop; equal-point best-find ties retain first answer",
+    "explicit light preference persists; legacy glow-only light value does not opt into light colors",
+    "390px launch/question/receipt and tier names + pts; all-pass receipt has no best find",
+    "zero console errors/external requests; no root/internal overflow in captures"
+  ],
+  "screenshots": [
+    "cache-cold-controller-disabled-dark.png",
+    "desktop-dark-launch.png",
+    "desktop-light-intro.png",
+    "desktop-dark-question.png",
+    "desktop-dark-midgame.png",
+    "desktop-light-midgame.png",
+    "desktop-dark-receipt.png",
+    "desktop-light-results.png",
+    "desktop-light-launch.png",
+    "desktop-light-question.png",
+    "desktop-light-receipt.png",
+    "mobile-390-launch.png",
+    "mobile-390-question.png",
+    "mobile-390-receipt.png",
+    "mobile-390-rules.png"
+  ],
+  "themes": [
+    "abyss-dark-default",
+    "accessibility-light"
+  ],
+  "battle": "BLOCKED: phase 2 is not implemented; no Battle screen fabricated",
+  "source_sha256": {
+    "index.html": "a5a4725216db2459b653469b199511359189f264e260331ad92ba49f40392dcd",
+    "script.js": "38e5a5aaf6dfff903ce84a0b2d0a4f32d4456338f573178ed12c814a4742a8c0",
+    "style.css": "8d02e8344c0cad9da8a16404f3e773ea86d7bd729a891856d329bf7015821bd5",
+    "core.js": "bee2330d3350f5033b16ee486f74456be33f665eccb8f59e1a29dd02ca42d09b",
+    "questions.js": "a104b88c73fb00f7895f7644e613d18cad078a44a8cb28977e6a01a667eed046"
+  },
+  "elapsed_seconds_including_cleanup": 17.938,
+  "browser_errors": [],
+  "external_requests": []
+}
