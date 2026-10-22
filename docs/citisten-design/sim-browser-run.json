@@ -1,0 +1,196 @@
+{
+  "evidence": "API fixture, not integrated game acceptance",
+  "C-initial": {
+    "time": 0,
+    "mode": "free",
+    "phase": "day",
+    "population": 0,
+    "budget": 30540,
+    "power": {
+      "supply": 0,
+      "demand": 0,
+      "served": 0,
+      "unserved": 0
+    },
+    "night": 0,
+    "score": 0,
+    "kills": 0,
+    "townHallHp": 600,
+    "zombies": 0,
+    "shotEvents": 0,
+    "citizenShots": 0,
+    "activeFX": 0
+  },
+  "C": {
+    "time": 600,
+    "mode": "free",
+    "phase": "day",
+    "population": 1526,
+    "budget": 31092.996655759925,
+    "power": {
+      "supply": 80,
+      "demand": 54.89915413435041,
+      "served": 54.89915413435042,
+      "unserved": 0
+    },
+    "night": 0,
+    "score": 0,
+    "kills": 0,
+    "townHallHp": 600,
+    "zombies": 0,
+    "shotEvents": 0,
+    "citizenShots": 0,
+    "activeFX": 0
+  },
+  "D": {
+    "time": 610,
+    "mode": "free",
+    "phase": "day",
+    "population": 1185,
+    "budget": 31100.025699175618,
+    "power": {
+      "supply": 0,
+      "demand": 52.42617050938805,
+      "served": 0,
+      "unserved": 52.42617050938805
+    },
+    "night": 0,
+    "score": 0,
+    "kills": 0,
+    "townHallHp": 600,
+    "zombies": 0,
+    "shotEvents": 0,
+    "citizenShots": 0,
+    "activeFX": 0
+  },
+  "D-overload": {
+    "time": 612,
+    "mode": "free",
+    "phase": "day",
+    "population": 1174,
+    "budget": 23102.256653799494,
+    "power": {
+      "supply": 80,
+      "demand": 140.18844903376794,
+      "served": 79.83017942585712,
+      "unserved": 60.35826960791081
+    },
+    "night": 0,
+    "score": 0,
+    "kills": 0,
+    "townHallHp": 600,
+    "zombies": 0,
+    "shotEvents": 0,
+    "citizenShots": 0,
+    "activeFX": 0
+  },
+  "F": {
+    "time": 241,
+    "mode": "defense",
+    "phase": "night",
+    "population": 0,
+    "budget": 38557.33999999951,
+    "power": {
+      "supply": 0,
+      "demand": 2.2,
+      "served": 0,
+      "unserved": 2.2
+    },
+    "night": 1,
+    "score": 0,
+    "kills": 0,
+    "townHallHp": 600,
+    "zombies": 12,
+    "shotEvents": 0,
+    "citizenShots": 0,
+    "activeFX": 0
+  },
+  "G": {
+    "time": 241.25,
+    "mode": "defense",
+    "phase": "night",
+    "population": 0,
+    "budget": 38557.33999999951,
+    "power": {
+      "supply": 0,
+      "demand": 2.2,
+      "served": 0,
+      "unserved": 2.2
+    },
+    "night": 1,
+    "score": 0,
+    "kills": 0,
+    "townHallHp": 600,
+    "zombies": 12,
+    "shotEvents": 1,
+    "citizenShots": 0,
+    "activeFX": 1
+  },
+  "F-wall": {
+    "time": 250.25,
+    "mode": "defense",
+    "phase": "night",
+    "population": 0,
+    "budget": 38556.43999999952,
+    "power": {
+      "supply": 0,
+      "demand": 1,
+      "served": 0,
+      "unserved": 1
+    },
+    "night": 1,
+    "score": 0,
+    "kills": 0,
+    "townHallHp": 600,
+    "zombies": 12,
+    "shotEvents": 1,
+    "citizenShots": 0,
+    "activeFX": 0
+  },
+  "H": {
+    "time": 309.25,
+    "mode": "defense",
+    "phase": "lost",
+    "population": 0,
+    "budget": 38550.93499999959,
+    "power": {
+      "supply": 0,
+      "demand": 1,
+      "served": 0,
+      "unserved": 1
+    },
+    "night": 1,
+    "score": 0,
+    "kills": 0,
+    "townHallHp": 0,
+    "zombies": 12,
+    "shotEvents": 1,
+    "citizenShots": 0,
+    "activeFX": 0
+  },
+  "I": {
+    "time": 940,
+    "mode": "free",
+    "phase": "day",
+    "population": 0,
+    "budget": 39924.79999999836,
+    "power": {
+      "supply": 0,
+      "demand": 1,
+      "served": 0,
+      "unserved": 1
+    },
+    "night": 1,
+    "score": 0,
+    "kills": 0,
+    "townHallHp": 600,
+    "zombies": 0,
+    "shotEvents": 1,
+    "citizenShots": 0,
+    "activeFX": 0
+  },
+  "errors": [],
+  "externalRequests": [],
+  "diskBefore": 4004241408,
+  "diskAfter": 4002803712
+}
