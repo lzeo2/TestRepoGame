@@ -29,8 +29,8 @@ function random(s) {
   s.rng = (Math.imul(s.rng, 1664525) + 1013904223) >>> 0;
   return s.rng / 4294967296;
 }
-function event(s, type, actorId, team) {
-  s.events.push({ id: s.nextEvent++, type, actorId, team });
+function event(s, type, actorId, team, detail = {}) {
+  s.events.push({ id: s.nextEvent++, type, actorId, team, ...detail });
   if (s.events.length > 64) s.events.shift();
 }
 function effect(s, type, x, y, time, extra = {}) {
@@ -296,7 +296,9 @@ function damageActor(s, target, amount, owner) {
   if (!target.alive || target.invulnerable > 0) return;
   const absorbed = Math.min(target.shield, amount);
   target.shield -= absorbed;
-  target.hp = Math.max(0, target.hp - (amount - absorbed));
+  const damage = Math.min(target.hp, amount - absorbed);
+  target.hp -= damage;
+  event(s, 'hit', owner.id, owner.team, { targetId: target.id, damage, absorbed, x: target.x, y: target.y });
   if (target.hp > 0) return;
   target.alive = false;
   target.respawn = RULES.respawnSeconds;

@@ -16,6 +16,7 @@ let disposed = false, hallOpen = false, hallController = null, hallHandle = null
 let observedPhase = '', observedRound = 0, lastEvent = 0;
 let palette = {}, audio = null, audioNodes = new Set();
 const shotFlashes = new Map();
+let hitFeedback = null, incomingUntil = 0;
 const keys = new Set();
 const input = { aimX: 700, aimY: 300, pointerFire: false, q: false, e: false };
 const moveStick = { id: null, x: 0, y: 0 };
@@ -82,7 +83,7 @@ function enableAudio() {
 }
 function sound(type) {
   if (settings.mute || !audio || audio.state !== 'running') return;
-  const notes = { shot: [240, 100, .035], ability: [160, 330, .09], kill: [90, 45, .1], win: [390, 660, .2], lose: [180, 70, .22] };
+  const notes = { shot: [240, 100, .035], hit: [720, 480, .045], hurt: [110, 60, .07], respawn: [330, 500, .12], capture: [440, 580, .1], captureLost: [260, 160, .1], ability: [160, 330, .09], kill: [90, 45, .1], win: [390, 660, .2], lose: [180, 70, .22] };
   const [from, to, duration] = notes[type] || notes.shot;
   const oscillator = audio.createOscillator(), gain = audio.createGain();
   oscillator.type = type === 'shot' ? 'square' : 'triangle';
@@ -120,7 +121,29 @@ function observation() {
     if (event.type === 'shot') shotFlashes.set(event.actorId, performance.now() + 65);
     if (event.actorId === 0 && ['shot', 'ability', 'kill'].includes(event.type)) sound(event.type);
     if (event.type === 'round') sound(event.team === 0 ? 'win' : 'lose');
+    if (event.type === 'hit') {
+      if (event.actorId === 0) {
+        if (!hitFeedback?.kill || hitFeedback.until < performance.now()) {
+          hitFeedback = { ...event, until: performance.now() + 220 };
+          $('hitFeedback').textContent = event.absorbed ? `Hit / ${event.damage} health / ${event.absorbed} shield` : `Hit / ${event.damage}`;
+        }
+        sound('hit');
+      }
+      if (event.targetId === 0) {
+        incomingUntil = performance.now() + 450;
+        $('damageFeedback').textContent = event.absorbed ? `Incoming / ${event.damage} health / ${event.absorbed} shield` : `Incoming / ${event.damage}`;
+        sound('hurt');
+      }
+    }
+    if (event.type === 'kill' && event.actorId === 0) {
+      hitFeedback = { ...hitFeedback, kill: true, until: performance.now() + 900 };
+      $('hitFeedback').textContent = `Rival down / +${RULES.killInfluence} influence`;
+    }
+    if (event.type === 'capture') sound(event.team === 0 ? 'capture' : 'captureLost');
     lastEvent = Math.max(lastEvent, event.id);
+  }
+  if (current.round === previous.round && current.actors[0]?.alive && previous.actors[0]?.alive === false) {
+    sound('respawn');
   }
 }
 function act(action) {
@@ -230,6 +253,8 @@ function updatePanels() {
   $('playControls').hidden = phase === 'lobby';
   $('pauseBtn').disabled = !['playing', 'paused'].includes(phase);
   $('pauseBtn').textContent = phase === 'paused' ? 'Resume' : 'Pause';
+  if (current.round !== previous.round || phase === 'lobby') { hitFeedback = null; incomingUntil = 0; }
+  if (phase !== 'playing') { $('hitFeedback').hidden = true; $('damageFeedback').hidden = true; }
   if (phase === 'lobby') $('status').textContent = 'Choose a hero, then start. Sound and cosmetic motion are optional.';
   if (phase === 'playing') {
     const hero = heroFor(current.heroId); $('playerName').textContent = hero.name;
@@ -239,7 +264,10 @@ function updatePanels() {
     $('status').textContent = picks ? `Round ${current.round}. Bot draft: ${picks}.` : 'Clocked in. Hold the ring, use cover, watch your health.';
     canvas.focus({ preventScroll: true });
   }
-  if (phase === 'paused') $('status').textContent = 'Paused. Resume when ready.';
+  if (phase === 'paused') {
+    $('status').textContent = 'Paused. Resume when ready.';
+    $('resumeBtn').focus({ preventScroll: true });
+  }
   if (phase === 'roundResult' || phase === 'matchResult') {
     const won = current.result?.winner === 0;
     $('resultTitle').textContent = `${won ? 'Dispatch' : 'Returns'} wins ${phase === 'matchResult' ? 'the match' : 'the round'}.`;
@@ -268,6 +296,9 @@ function updatePanels() {
   }
 }
 function updateHud() {
+  const now = performance.now(), playing = current.phase === 'playing';
+  $('hitFeedback').hidden = !playing || !hitFeedback || hitFeedback.until < now;
+  $('damageFeedback').hidden = !playing || incomingUntil < now;
   $('blueScore').textContent = current.influence[0].toFixed(1);
   $('redScore').textContent = current.influence[1].toFixed(1);
   $('clock').textContent = current.suddenDeath ? 'OT' : String(Math.ceil(current.time));
@@ -279,6 +310,16 @@ function updateHud() {
   $('captureWarm').max = RULES.captureWarmup; $('captureWarm').value = capture.warm;
   const player = current.actors[0];
   if (!player) return;
+  if (playing) {
+    const hint = !player.alive ? `Back on duty in ${Math.ceil(player.respawn)}s. You respawn at Dispatch with 1 second of protection.`
+      : player.invulnerable > 0 ? 'Spawn protection: 1 second. Firing ends it early. Move out from Dispatch.'
+      : current.suddenDeath ? 'Sudden death. The next kill or uncontested capture score wins.'
+      : capture.contested ? 'Ring contested. Clear the rivals to resume capture scoring. Use Q / E abilities.'
+      : capture.team === 0 ? 'Dispatch holds. Keep rivals outside the ring; use cover between shots.'
+      : capture.team === 1 ? 'Returns holds. Step into the ring to stop their capture score.'
+      : 'Move to the center ring. WASD / arrows or left pad move; pointer / IJKL or right pad aim. Q / E abilities.';
+    if ($('status').textContent !== hint) $('status').textContent = hint;
+  }
   $('health').max = player.maxHp; $('health').value = player.hp;
   $('healthText').textContent = `${Math.ceil(player.hp)} / ${player.maxHp}`;
   $('lifeStatus').textContent = !player.alive ? `Respawn ${player.respawn.toFixed(1)}s` : player.shield > 0 ? `Shield ${Math.ceil(player.shield)}` : player.invulnerable > 0 ? 'Spawn protection' : 'On duty';
@@ -406,6 +447,13 @@ function draw(now, alpha) {
     ctx.fillStyle = palette.panel; ctx.fillRect(p.x - 3, p.y - 3, 6, 6); ctx.strokeRect(p.x - 3, p.y - 3, 6, 6);
   } });
   layers.sort((a, b) => a.y - b.y).forEach(layer => layer.paint());
+  if (current.phase === 'playing' && hitFeedback && hitFeedback.until > now && Number.isFinite(hitFeedback.x)) {
+    const p = project(hitFeedback.x, hitFeedback.y, 22), size = hitFeedback.kill ? 12 : 8;
+    ctx.strokeStyle = palette.ink; ctx.lineWidth = 5;
+    ctx.beginPath(); ctx.moveTo(p.x - size, p.y - size); ctx.lineTo(p.x + size, p.y + size);
+    ctx.moveTo(p.x + size, p.y - size); ctx.lineTo(p.x - size, p.y + size); ctx.stroke();
+    ctx.strokeStyle = palette.panel; ctx.lineWidth = 2; ctx.stroke();
+  }
   if (current.phase === 'playing' && actors[0]?.alive) {
     const p = project(Math.max(0, Math.min(ARENA.width, input.aimX)), Math.max(0, Math.min(ARENA.height, input.aimY)));
     ctx.strokeStyle = palette.ink; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(p.x, p.y, 8, 0, Math.PI * 2); ctx.moveTo(p.x - 13, p.y); ctx.lineTo(p.x - 5, p.y); ctx.moveTo(p.x + 5, p.y); ctx.lineTo(p.x + 13, p.y); ctx.moveTo(p.x, p.y - 13); ctx.lineTo(p.x, p.y - 5); ctx.moveTo(p.x, p.y + 5); ctx.lineTo(p.x, p.y + 13); ctx.stroke();
