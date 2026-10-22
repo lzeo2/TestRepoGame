@@ -222,9 +222,17 @@ review, not builder-assigned acceptance grades.
 
 No runtime or test source changed for this rerun, so canonical maintenance
 validation still passes. Existing 22 API-fixture images cover C/D/F/G/H/I in
-both themes. Dedicated E movement frames are queued behind the UI-owned
-browser slot; no concurrent browser is launched. Visible/native/integrated and
-hardware acceptance is not established by these Node logs.
+both themes. World separately owns the stronger E/D consumer fixtures in
+`docs/citisten-design/{road-utility-fixtures.mjs,check-road-utilities.mjs,capture-road-utilities.py}`:
+one real sim car across six checkpoints (including a corner), plus nine
+power/water cases. Their source was inspected at the consumer boundary and
+uses real sim updates, not position/state grants. Final browser recapture is
+queued after Dive Trivia mobile and Wings CDP; world owns those images/results.
+The redundant uncommitted sim traffic-only harness extension was removed,
+leaving `sim-qa.py` unchanged and the canonical inventory current. Sim yielded
+its optional browser slot to world and launched no browser for this rerun.
+Visible/native/integrated and hardware acceptance is not established by the
+Node logs; pending world captures are not claimed as completed.
 
 ## Change record and handoff
 
