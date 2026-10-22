@@ -6,6 +6,7 @@ import os
 from pathlib import Path
 import signal
 import subprocess
+import tempfile
 import threading
 from playwright.sync_api import sync_playwright
 
@@ -35,29 +36,36 @@ def main():
     if browser_pids():
         raise RuntimeError('Sibling Chromium active; sequence QA before retrying')
     before = guard()
+    hardware_probe = os.environ.get('WORLD_HARDWARE_PROBE') == '1'
+    evidence = 'WORLD-hardware-probe' if hardware_probe else 'WORLD-performance-60warmup'
     OUT.mkdir(parents=True, exist_ok=True)
     handler = functools.partial(http.server.SimpleHTTPRequestHandler, directory=ROOT)
     server = http.server.ThreadingHTTPServer(('127.0.0.1', int(os.environ.get('SMOKE_PORT', '0'))), handler)
     threading.Thread(target=server.serve_forever, daemon=True).start()
     base = f'http://127.0.0.1:{server.server_port}'
-    report = {'scope': 'World API fixtures, not integrated game acceptance', 'errors': [], 'externalRequests': [], 'failedRequests': []}
+    report = {'scope': 'Non-canonical hardware probe' if hardware_probe else 'World API fixtures, not integrated game acceptance',
+              'errors': [], 'externalRequests': [], 'failedRequests': [], 'warmupFramesRequired': 60, 'targetFps': 40,
+              'dedicatedProfile': True}
     def timeout(*_):
         raise TimeoutError('World QA exceeded 180 seconds')
     signal.signal(signal.SIGALRM, timeout)
     signal.alarm(180)
     try:
-        with sync_playwright() as p:
-            args = ['--no-sandbox', '--enable-unsafe-swiftshader']
-            if os.environ.get('WORLD_GL'):
-                args.append('--use-angle=' + os.environ['WORLD_GL'])
-            browser = p.chromium.launch(executable_path='/usr/bin/chromium', headless=True, args=args)
+        with sync_playwright() as p, tempfile.TemporaryDirectory(prefix='.world-qa-profile-', dir=ROOT / 'Games/Citisten3D') as profile:
+            angle = 'gl' if hardware_probe else os.environ.get('WORLD_GL', 'swiftshader')
+            args = ['--no-sandbox', '--use-gl=angle', '--use-angle=' + angle]
+            if not hardware_probe:
+                args.append('--enable-unsafe-swiftshader')
+            context = p.chromium.launch_persistent_context(profile, executable_path='/usr/bin/chromium', headless=True,
+                                                           args=args, viewport={'width': 1280, 'height': 720}, device_scale_factor=1)
+            browser = context.browser
             report['browserVersion'] = browser.version
-            report['angleRequested'] = os.environ.get('WORLD_GL', 'system default')
+            report['angleRequested'] = angle
             try:
                 owned_browser = browser_pids()
                 if len(owned_browser) != 1:
                     raise RuntimeError('Browser launch contention; no valid measurement')
-                page = browser.new_page(viewport={'width': 1280, 'height': 720}, device_scale_factor=1)
+                page = context.pages[0] if context.pages else context.new_page()
                 def wait_exclusive(seconds):
                     for _ in range(seconds):
                         if browser_pids() != owned_browser:
@@ -82,7 +90,11 @@ def main():
                     page.evaluate("document.querySelector('#qa-label').remove()")
                 def performance_check():
                     page.goto(base + '/Games/Citisten3D/world.html?size=128&perf&manual', wait_until='networkidle')
-                    page.wait_for_function('window.citistenWorld')
+                    page.wait_for_function('window.citistenWorld || document.querySelector("pre")')
+                    if not page.evaluate('Boolean(window.citistenWorld)'):
+                        report['renderer'] = 'Unavailable: world WebGL renderer could not initialize'
+                        shot(evidence + '.png', report['scope'] + '\n' + report['renderer'] + '\nNo FPS measured; 40 FPS gate not met')
+                        raise RuntimeError(report['renderer'])
                     report['pitchBounds'] = page.evaluate('''() => {
                       const c=citistenWorld.world.controls;
                       c.setPose({x:0,y:2,z:0,pitch:-100},true); const low=c.target.pitch;
@@ -90,9 +102,17 @@ def main():
                     }''')
                     assert report['pitchBounds'][0] < -1.5 and report['pitchBounds'][1] > 1.5
                     page.evaluate('citistenWorld.world.controls.setPose({x:0,y:400,z:250,yaw:0,pitch:-.9},true)')
-                    # Fixed time, not frame count: very slow software GPUs must still yield evidence.
-                    wait_exclusive(10)
-                    page.evaluate('citistenWorld.samples.length = 0')
+                    first = page.evaluate('citistenWorld.frameCount')
+                    for _ in range(100):
+                        wait_exclusive(1)
+                        warmed = page.evaluate('citistenWorld.frameCount') - first
+                        if warmed >= 60:
+                            break
+                    else:
+                        raise RuntimeError('60-frame warmup not completed within bounded wait')
+                    report['warmupFramesObserved'] = warmed
+                    shot(evidence + '-warmup.png', f'{report["scope"]}\nWarmup checkpoint: {warmed} rendered frames, minimum 60')
+                    page.evaluate('async () => { await new Promise(requestAnimationFrame); citistenWorld.samples.length = 0; }')
                     wait_exclusive(15)
                     report['performance'] = page.evaluate('citistenWorld.stats()')
                     assert report['performance']['frames'] > 0, 'No frames in 15-second measurement window'
@@ -103,7 +123,7 @@ def main():
                     perf = report['performance']
                     perf['targetFps'] = 40
                     perf['meetsTarget'] = perf['fps'] >= 40
-                    shot('WORLD-performance.png', f'WORLD PERFORMANCE | 128 x 128 | 1280 x 720\n{perf["fps"]:.2f} fps | target 40 | {perf["modelInstances"]} model instances\n{perf["triangles"]} triangles | {perf["calls"]} calls | {perf["frames"]} measured frames\n{report["renderer"]}')
+                    shot(evidence + '.png', f'{report["scope"]} | 128 x 128 | 1280 x 720\n{perf["fps"]:.2f} fps | target 40 | {perf["modelInstances"]} model instances\n{perf["triangles"]} triangles | {perf["calls"]} calls | {perf["frames"]} measured frames\n{report["renderer"]}')
                     assert not report['errors'] and not report['externalRequests'] and not report['failedRequests'], report
                     if not perf['meetsTarget']:
                         raise RuntimeError(f'Render budget HOLD: {perf["fps"]:.2f} fps < 40 fps')
@@ -203,13 +223,18 @@ def main():
                 (OUT / 'WORLD-results.json').write_text(json.dumps(report, indent=2) + '\n')
                 performance_check()
             finally:
-                browser.close()
+                context.close()
     finally:
         signal.alarm(0)
         server.shutdown(); server.server_close()
+        report['serverClosed'] = True
+        if 'profile' in locals():
+            report['profileRemoved'] = not Path(profile).exists()
+        if 'owned_browser' in locals():
+            report['browserClosed'] = not bool(owned_browser & browser_pids())
         report['diskBefore'] = before
         report['diskAfter'] = guard()
-        name = 'WORLD-performance.json' if os.environ.get('WORLD_PERF_ONLY') else 'WORLD-results.json'
+        name = evidence + '.json' if os.environ.get('WORLD_PERF_ONLY') else 'WORLD-results.json'
         (OUT / name).write_text(json.dumps(report, indent=2) + '\n')
         print(json.dumps(report, indent=2))
 

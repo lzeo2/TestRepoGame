@@ -6,12 +6,13 @@ try {
   const world = createWorld(canvas, { size: params.get('size') === '128' ? 128 : 200, pixelRatio: 1 });
   const fixture = populateWorld(world, { dense: params.has('perf') });
   const samples = [];
-  let last = performance.now(), started = last, elapsed = 0, running = true;
+  let last = performance.now(), started = last, elapsed = 0, running = true, frameCount = 0;
   let tour = !params.has('manual'), lastInput = world.controls.inputVersion;
   world.dayNight.setPhase(params.get('night') === '1' ? 0 : .5);
   world.controls.setPose({ x: 100, y: 160, z: 180, yaw: .45, pitch: -.7 }, true);
   const api = {
     world, fixture, samples,
+    get frameCount() { return frameCount; },
     stopTour() { tour = false; },
     stats() {
       const sorted = [...samples].sort((a, b) => a - b);
@@ -35,8 +36,9 @@ try {
       world.controls.setPose({ x: Math.sin(angle) * 160, y: 75 + 55 * (1 + Math.sin(angle * .7)), z: Math.cos(angle) * 160, yaw: angle, pitch: -.65 });
     }
     world.render(delta / 1000);
-    // Ignore shader warmup, retain bounded rolling measurements, not a benchmark claim.
-    if (now - started > 5000) { samples.push(delta); if (samples.length > 600) samples.shift(); }
+    frameCount++;
+    // Rolling diagnostics; the QA caller clears these after its measured warmup.
+    samples.push(delta); if (samples.length > 4096) samples.shift();
     requestAnimationFrame(frame);
   }
   requestAnimationFrame(frame);

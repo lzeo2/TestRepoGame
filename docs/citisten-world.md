@@ -79,12 +79,23 @@ terminates its server/browser, checks disk before each evidence write, and
 records actual performance without substituting a smaller framebuffer.
 `WORLD_GL=swiftshader` explicitly selects the software backend used for the
 headless evidence; `WORLD_PERF_ONLY=1` requests only the bounded benchmark.
-The benchmark uses 10 seconds warmup, clears samples, then measures a 15-second
-wall-time window. Actual rAF intervals, sample duration and count are reported;
-40fps remains the hard failure threshold. Scene density and resolution are not
-reduced to pass. Process preflight refuses any existing Chromium/Chrome root;
-25 checks during warmup/measurement abort if a sibling browser appears. Global
-browser coordination is still required; a local lane queue alone is insufficient. Demo timing ignores its first five seconds of startup.
+The answered batch-31/32 contract requires **60 completed rendered warmup
+frames**, then a 15-second sample window. `frameCount` is exposed by the demo
+for that assertion; the caller clears its rolling samples after warmup and
+its checkpoint screenshot. Actual rAF intervals, sample duration and count
+are reported; 40fps remains the hard failure threshold. Scene density and
+resolution are unchanged. Process checks before launch and each second abort
+on a competing browser. A dedicated temporary profile is created inside this
+worktree for each run and removed after its browser closes. Global coordination
+is still required; a local lane queue alone is insufficient.
+
+`WORLD_HARDWARE_PROBE=1 WORLD_PERF_ONLY=1` selects the one authorized, explicitly
+non-canonical `--use-gl=angle --use-angle=gl` probe. It uses the same scene,
+resolution, warmup and 40fps threshold. No renderer means no FPS claim and a
+hard failure, with the failure screen retained. Canonical resumed evidence is
+named `WORLD-performance-60warmup*`; probe evidence is `WORLD-hardware-probe*`.
+The earlier `WORLD-performance*` files remain historical 10-second-warmup
+measurements and do not satisfy the subsequently answered 60-frame protocol.
 Full QA checkpoints its input results before the benchmark so interruption
 cannot silently replace a partial run with a complete claim.
 
@@ -134,9 +145,11 @@ contains one pre-existing whitespace warning at line 49957 (space before tab);
 authored diffs are checked separately rather than modifying vendored bytes. No touch camera gestures are implemented;
 integrated UI lane must address touch controls if included in release scope.
 No native GPU or target-device performance claim without a recorded run.
-Performance advice ticket `pi-2075770-1792626920824-a20b4c64` timed out and
-remains unresolved; it grants no gate waiver. Browser contention was resolved
-for the final measured window through explicit cross-team holds.
+Performance advice ticket `pi-2075770-1792626920824-a20b4c64` was answered in
+Hermes batch 31 and resumed in batch 32. It approves the 60-frame warmup +
+15-second canonical measurement and one bounded non-canonical hardware probe;
+it grants no waiver of the 40fps gate. The earlier browser-coordination ticket
+is superseded by that slot clearance, with fresh process guards still required.
 E traffic behavior and F waves are systems gates, not proven by static models.
 The first Chromium attempt caught an initial negative rAF delta relative to
 `performance.now()`; clamping the demo's first delta fixes that startup crash.
