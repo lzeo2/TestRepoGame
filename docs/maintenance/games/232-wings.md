@@ -457,8 +457,11 @@ sensitivity/audio storage values are now validated without changing valid v6
 preferences. These results are not native timing, layout, controls or pixels.
 
 **HOLD:** no CTF lobby, carried-flag flight or boat-water-route Chromium image
-has been captured. Earlier three boat-native attempts remain HOLD; CDP3 connected
-but timed out in menu before product measurement. No new browser is inferred.
+has been captured. One subsequently authorized 55s CTF attempt ended HOLD in
+launch/connect after its 20s probe deadline, with no completed page or product
+measurement. Independent owned-resource cleanup and release did not grant PASS;
+launch-only ticket `pi-86463-1792667765599-a1544d84` is pending. No retry. Earlier
+three boat-native attempts also remain HOLD; CDP3 connected but timed out in menu.
 The existing GLB remains unchanged with its missing driver/older roof. In-place
 roof/driver repair permission and distinct boat loadout versus livery-variant
 scope await clarification. Current roster has one speedboat kind, not invented

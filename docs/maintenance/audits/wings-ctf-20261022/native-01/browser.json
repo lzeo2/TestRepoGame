@@ -1,0 +1,84 @@
+{
+  "attemptNumber": 1,
+  "collectorPID": 185864,
+  "status": "HOLD",
+  "phase": "launch",
+  "route": "repo-sync-launch-new-context",
+  "tempDirectory": ".tmp/wings-ctf-185864-daxthq0v",
+  "normalInputOnly": true,
+  "roleProof": "AI pilot plus player crew; not manual pilot acceptance",
+  "collectorLimitSeconds": 50,
+  "supervisorLimitSeconds": 55,
+  "connectProbeLimitSeconds": 20,
+  "productLimitsSeconds": {
+    "workerBootWait": 30,
+    "postHandshakeReadiness": 20
+  },
+  "productGate": {
+    "status": "NOT_MEASURED"
+  },
+  "steps": [],
+  "screenshots": [],
+  "errors": [],
+  "warnings": [],
+  "failedRequests": [],
+  "external": [],
+  "attempts": [
+    {
+      "attemptNumber": 1,
+      "collectorPID": 185864,
+      "status": "HOLD",
+      "phase": "launch",
+      "route": "repo-sync-launch-new-context",
+      "tempDirectory": ".tmp/wings-ctf-185864-daxthq0v",
+      "normalInputOnly": true,
+      "roleProof": "AI pilot plus player crew; not manual pilot acceptance",
+      "collectorLimitSeconds": 50,
+      "supervisorLimitSeconds": 55,
+      "connectProbeLimitSeconds": 20,
+      "productLimitsSeconds": {
+        "workerBootWait": 30,
+        "postHandshakeReadiness": 20
+      },
+      "productGate": {
+        "status": "NOT_MEASURED"
+      },
+      "steps": [],
+      "screenshots": [],
+      "errors": [],
+      "warnings": [],
+      "failedRequests": [],
+      "external": [],
+      "failure": "CTF collector/connect deadline; product outcome is measured separately",
+      "collectorTimedOut": true,
+      "cleanupPhase": "context-close",
+      "supervisorExit": 124,
+      "remainingOwnedProcesses": [],
+      "ownershipCleanupErrors": [],
+      "postflight": {
+        "browserDriverCollectorAndWrapperAbsent": true,
+        "remainingOwnedWrapperGroup": [],
+        "ownedTempDirectoriesRemoved": [
+          ".tmp/wings-ctf-185864-daxthq0v",
+          ".tmp/wings-ctf-display-0srdgdn9"
+        ],
+        "scope": "Independent handoff verification, not normal collector cleanup PASS"
+      }
+    }
+  ],
+  "failure": "CTF collector/connect deadline; product outcome is measured separately",
+  "collectorTimedOut": true,
+  "cleanupPhase": "context-close",
+  "supervisorExit": 124,
+  "remainingOwnedProcesses": [],
+  "ownershipCleanupErrors": [],
+  "postflight": {
+    "browserDriverCollectorAndWrapperAbsent": true,
+    "remainingOwnedWrapperGroup": [],
+    "ownedTempDirectoriesRemoved": [
+      ".tmp/wings-ctf-185864-daxthq0v",
+      ".tmp/wings-ctf-display-0srdgdn9"
+    ],
+    "scope": "Independent handoff verification, not normal collector cleanup PASS"
+  }
+}

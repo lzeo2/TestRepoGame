@@ -68,7 +68,7 @@
     "airborneFlagCarrier": null,
     "boatWaterRoute": null
   },
-  "nativeAcceptance": "HOLD; no new Chromium capture in CTF lane",
+  "nativeAcceptance": "HOLD: one authorized55sCTFattempt endedlaunch/connect; no completedprobe/page/productreceipt or screenshots",
   "boatSHA256": "1f0eae7f3b962669c2f95f1ce52e3f27cce008595f4875bae41e9274b24da65a",
   "boatVariants": "Existing speedboat kind only; distinct loadout/livery decision pending",
   "roofDriver": "Permission to modify earlier byte-identical asset constraint pending",
@@ -78,5 +78,18 @@
   "storageScope": "Shared host value, not attributed lane-only delta",
   "sourceMilestone": "580bd7f19f9d78793bc2305bea9b042b9a389aca",
   "inventoryCheck": "PASS: 132 game documents,127 registered+5unregistered; current Git source inventory",
-  "freeBytesAtClose": 2858745856
+  "freeBytesAtClose": 2896809984,
+  "nativeCtfAttemptCount": 1,
+  "nativeCtfAttempt1": {
+    "phase": "launch",
+    "connectProbeMs": null,
+    "collector": "HOLD: supervisor124 after20sconnectdeadline",
+    "productGate": "NOT_MEASURED",
+    "newScreenshots": [],
+    "postflight": "Ownedwrapper/group/collector/browser/driver absent; exact ownedtemp/profile/displaydirsremoved; notAPIcleanupPASS"
+  },
+  "collectorFollowupNative": "NOT RUN: driver/chromium/context/page stage stamps and precise remaining-inner-budget rounding are self-check only",
+  "nativeTicket": "pi-86463-1792667765599-a1544d84 (pending advice timeout20s; no retry approval)",
+  "freeBytesBeforeCtfNative": 2858020864,
+  "freeBytesAfterCtfNativeCleanup": 2857320448
 }

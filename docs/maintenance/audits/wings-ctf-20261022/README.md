@@ -99,6 +99,12 @@ node Games/Wings/verification/check-startup-clock.mjs PATH_TO_APPLIED/games/wing
 ## Native evidence and remaining decisions: HOLD
 
 **Not captured:** CTF lobby, actual in-flight carried flag, boat-water-route frame.
+The [one authorized CTF attempt](native-01/README.md) ended HOLD in launch/connect:
+20s probe deadline, 55s supervisor exit 124, no completed page/probe or product
+sample. Fresh independent resource cleanup/release did not grant collector PASS.
+Launch-only ticket `pi-86463-1792667765599-a1544d84` is pending after advisor
+timeout. No retry. Collector-only granular phase follow-up is not browser-retested.
+
 No previous image is relabelled as CTF. Earlier boat-native attempts remain all
 HOLD in the [three-attempt receipt](../wings-boat-publish-20261022/browser.json):
 CDP3 connected/probed in 17.68s, then its 55s supervisor expired in the menu phase,
