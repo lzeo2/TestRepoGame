@@ -55,7 +55,7 @@ class Handler(http.server.SimpleHTTPRequestHandler):
 def main():
     global OUT
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('letter', choices=['A', 'C', 'D', 'E', 'F', 'H'])
+    parser.add_argument('letter', choices=['A', 'C', 'D', 'E', 'F', 'H', 'P'])
     parser.add_argument('--hero', choices=['stampead', 'turretina', 'snipeoff', 'gooey'], help='One short E hero run')
     parser.add_argument('--visual-pass', action='store_true', help='Separate visual-pass evidence and strict whole-pass60MB write guard')
     args = parser.parse_args()
@@ -122,7 +122,11 @@ def main():
                     page.locator('[data-close]').click()
                     page.evaluate('window.jank3dQA.freeze(true)')
                 def capture(name, kind):
+                    snapshot = state(); frozen = snapshot['playing'] and (snapshot['paused'] or snapshot['winner'])
+                    frame_before = snapshot['diagnostics'].get('frames')
                     guard(); raw = page.screenshot()
+                    if args.visual_pass and frozen:
+                        assert frame_before is not None and state()['diagnostics']['frames'] == frame_before, 'Paused frame redrew during capture'
                     image = Image.open(io.BytesIO(raw)).convert('RGB')
                     assert image.size == (1280, 720)
                     variance = sum(ImageStat.Stat(image).var) / 3
@@ -131,7 +135,37 @@ def main():
                     report['screenshots'].append({'file': f'integration-{name}.png', 'kind': kind, 'variance': variance,
                                                   'sha256': hashlib.sha256((OUT / f'integration-{name}.png').read_bytes()).hexdigest()})
                     save_report(); print('capture ' + name, flush=True)
-                if letter == 'A':
+                if letter == 'P':
+                    kits = json.loads((ROOT / 'docs/jank3d-hero-kits.json').read_text())['heroes']
+                    for kit in kits:
+                        load('traversal', kit['id'])
+                        page.evaluate('window.jank3dQA.waves(); window.jank3dQA.place({x:0,y:0,z:-190},Math.PI,0); window.jank3dQA.inspectHero()')
+                        assert state()['runtime']['hero'] == kit['id']
+                        capture(f'E-{kit["id"]}-model', 'Clean actual GLB front inspection; API clock/position/camera, no abilities cast or FX hidden')
+                        report['checks'][kit['id']] = state()['runtime']
+                        concept = Image.open(ROOT / 'docs/jank3d-design/hero-concepts' / (kit['id'] + '.png')).convert('RGB'); concept.thumbnail((720, 720))
+                        pair = Image.new('RGB', (2000, 752), '#eee9d8'); pair.paste(concept, (0, 32)); pair.paste(Image.open(OUT / f'integration-E-{kit["id"]}-model.png'), (720, 32))
+                        draw = ImageDraw.Draw(pair); draw.text((10, 9), 'codex-imagen concept, not a mesh', fill='black'); draw.text((730, 9), 'Actual procedural GLB / labeled QA inspection camera', fill='black')
+                        save_image(OUT / f'concept-vs-model-{kit["id"]}.png', pair)
+                        if kit['id'] == 'stampead':
+                            page.evaluate('window.jank3dQA.clearPreview()'); page.locator('#game').focus()
+                            for _ in range(2):
+                                page.evaluate('window.jank3dQA.freeze(false)'); page.keyboard.press('Space')
+                                page.evaluate('window.jank3dQA.advance(.05); window.jank3dQA.freeze(true)')
+                            assert state()['controller']['jumps'] == 2
+                            capture('E-double-jump', 'Native Space twice through real controller; explicit .05s fixture clock per input')
+                            page.evaluate('window.jank3dQA.freeze(false)'); page.keyboard.press('ShiftLeft')
+                            page.evaluate('window.jank3dQA.advance(.05); window.jank3dQA.freeze(true)')
+                            assert state()['controller']['stamina'] < 100 and state()['controller']['state'] == 'dash'
+                            capture('E-dash', 'Native Shift; real stamina cost/dash pose, explicit fixture elapsed clock')
+                            page.evaluate('window.jank3dQA.place({x:0,y:0,z:-190}); window.jank3dQA.freeze(false)')
+                            page.keyboard.down('KeyW'); page.evaluate('window.jank3dQA.advance(.4)'); page.keyboard.down('KeyC')
+                            page.evaluate('window.jank3dQA.advance(.05); window.jank3dQA.freeze(true)')
+                            assert state()['controller']['state'] == 'slide'
+                            capture('E-slide', 'Native W momentum/C slide; real controller state, fixture clock')
+                            report['checks']['movement'] = state()['controller']
+                            page.keyboard.up('KeyC'); page.keyboard.up('KeyW')
+                elif letter == 'A':
                     report['checks']['lanes'] = []
                     for lane, x in [('graft', -240), ('midway', 0), ('greenhedge', 240)]:
                         load('traversal')

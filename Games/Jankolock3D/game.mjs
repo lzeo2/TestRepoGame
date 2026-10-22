@@ -198,7 +198,7 @@ try {
   listen(window,'blur',clear);listen(document,'visibilitychange',()=>{clear();previous=performance.now();});
   listen(window,'pagehide',()=>{stop();lobbyGeometries.forEach(g=>g.dispose());lobbyMaterials.forEach(m=>m.dispose());});
   listen(canvas,'webglcontextlost',e=>{e.preventDefault();stop();document.getElementById('loading-status').hidden=false;document.getElementById('loading-status').textContent='3D context lost. Reload to restart.';});
-  observer=new ResizeObserver(()=>view.resize());observer.observe(canvas);
+  observer=new ResizeObserver(()=>{view.resize();view.renderCamera();});observer.observe(canvas);
   window.jank3dSnapshot=()=>({time:sim.time,phase:sim.phase,winner:sim.winner,playing,paused,fixture:qa?fixture:null,
     hero:{...hero,position:{...hero.position},items:[...hero.items]},controller:{position:controller.position.toArray(),state:controller.state,jumps:controller.jumps,stamina:controller.stamina,yaw:controller.yaw,pitch:controller.pitch,mode:traveler.mode},
     runtime:runtime.snapshot(),bots:bots?.snapshot()??[],troopers:sim.troopers.map(t=>({...t,position:{...t.position}})),orbs:sim.orbs.map(o=>({...o,position:{...o.position}})),
@@ -210,6 +210,7 @@ try {
   }
   function frame(now) {
     if(stopped)return;raf=requestAnimationFrame(frame);const dt=Math.min(.25,Math.max(0,(now-previous)/1000));previous=now;
+    if(playing&&(paused||sim.winner))return; // Static paused/end frames do not need GPU redraws.
     if(playing) {for(let left=dt;left>1e-7;left-=.05)tick(Math.min(.05,left));if(hero.alive)controller.updateCamera(view.camera,dt);}
     else {view.camera.position.set(-1001,4.3,13);view.camera.lookAt(-1001,4,-2);}
     window.jank3dQA?.renderPreview();view.renderCamera();

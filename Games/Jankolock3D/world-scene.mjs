@@ -125,7 +125,7 @@ export function createWorldScene(canvas,world) {
     render(p,yaw,pitch) {if(disposed)return;camera.position.set(p.x,p.y+1.6,p.z);camera.rotation.set(pitch,yaw,0);environment.update(camera);renderer.render(scene,camera);},
     resize,
     sync(s) {for(const [id,m] of crateMeshes)m.visible=!s.collected.has(id)&&!s.broken.has(id);},
-    diagnostics:()=>Object.freeze({calls:renderer.info.render.calls,triangles:renderer.info.render.triangles,geometries:renderer.info.memory.geometries,textures:renderer.info.memory.textures,environment:environment.diagnostics()}),
+    diagnostics:()=>Object.freeze({frames:renderer.info.render.frame,calls:renderer.info.render.calls,triangles:renderer.info.render.triangles,geometries:renderer.info.memory.geometries,textures:renderer.info.memory.textures,environment:environment.diagnostics()}),
     dispose() {if(disposed)return;disposed=true;environment.dispose();const gs=new Set(),ms=new Set();scene.traverse(o=>{if(o.geometry)gs.add(o.geometry);if(o.material)ms.add(o.material);});gs.forEach(g=>g.dispose());ms.forEach(m=>m.dispose());textures.forEach(t=>t.dispose());renderer.dispose();renderer.forceContextLoss();scene.clear();}
   };
 }
