@@ -62,7 +62,12 @@ def keyboard_focus(page, selector):
       const order = [...scope.querySelectorAll('a[href], button, input, select, textarea, summary, [tabindex]')]
         .filter(node => node.checkVisibility() && !node.matches(':disabled') && node.tabIndex >= 0 && !node.closest('[inert]'))
         .sort((a, b) => (a.tabIndex || Infinity) - (b.tabIndex || Infinity));
-      const index = order.indexOf(el), current = order.indexOf(document.activeElement);
+      const index = order.indexOf(el);
+      let current = order.indexOf(document.activeElement);
+      if (current < 0 && scope.contains(document.activeElement)) {
+        const next = order.findIndex(node => document.activeElement.compareDocumentPosition(node) & Node.DOCUMENT_POSITION_FOLLOWING);
+        current = next < 0 ? order.length - 1 : next - 1;
+      }
       if (index < 0) throw Error('Target is not in the active tab order');
       return (index - current + order.length) % order.length || order.length;
     }''')
@@ -127,8 +132,10 @@ def main():
             browser = p.chromium.launch(executable_path='/usr/bin/chromium', headless=True, args=['--no-sandbox', '--disable-dev-shm-usage'])
             try:
                 for width, height in [(1440, 900), (390, 844), (320, 740)]:
-                    context = browser.new_context(viewport={'width': width, 'height': height}, reduced_motion='reduce', has_touch=width < 600)
+                    context = browser.new_context(viewport={'width': width, 'height': height}, reduced_motion='reduce', has_touch=width < 600, color_scheme='light', service_workers='block')
                     page = context.new_page()
+                    cdp = context.new_cdp_session(page)
+                    cdp.send('Network.enable'); cdp.send('Network.setCacheDisabled', {'cacheDisabled': True})
                     page.on('pageerror', lambda error: errors.append(str(error)))
                     page.on('console', lambda msg: errors.append(msg.text) if msg.type == 'error' else None)
                     page.on('request', lambda req: external.append(req.url) if not req.url.startswith(('http://127.0.0.1:', 'data:')) else None)
@@ -169,6 +176,9 @@ def main():
                     assert page.locator('[data-mode="free"]').inner_text() == 'Free build'
                     assert page.locator('[data-mode="defense"]').inner_text() == 'Zombie defense'
                     assert page.locator('.city-controls').inner_text() == 'WASD move / Right-drag rotate / Scroll zoom'
+                    assert page.evaluate('document.activeElement.id') == 'city-menu-title'
+                    assert page.locator('dialog[open] button:focus-visible').count() == 0
+                    assert page.locator('#city-menu-title').evaluate("el => getComputedStyle(el).outlineStyle") == 'none'
                     for theme in ['dark', 'light']:
                         if theme == 'light':
                             page.locator('dialog[open] [data-action="theme"]').click()

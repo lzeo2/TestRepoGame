@@ -77,7 +77,12 @@ Generated original mockups: `docs/citisten-design/ui-mockup-*.png`.
 Solid surfaces, one ochre interaction accent, black buttons, 4px corners,
 local Bungee/Atkinson with readable fallbacks. Portal-style `data-theme`
 and guarded localStorage, with an isolated `citisten-theme` key and dark
-default. Light toggle does not alter the portal preference.
+default. The preview's HTML canvas/root/native scheme declare dark before
+module execution, including on a light-preference system. Deliberately saved
+light remains an accessibility opt-in. Light toggle does not alter the portal
+preference. Dialogs initially focus a static heading without an outline;
+interactive keyboard focus remains visible. Future integrated HTML must mirror
+that pre-module shell rather than rendering a light page before mounting UI.
 No copied game UI or assets. Local font provenance remains in
 `docs/portal-font-sources.md`. Genre mechanics are references, not art sources.
 
@@ -133,3 +138,13 @@ UI preview / UI fixture. No sim/world/camera logic or runtime imports changed.
 See `docs/citisten-copy-pass.md` for current-source shots and execution receipt.
 The earlier J/K/L receipt and its asset hashes describe the pre-trim revision;
 they have not been silently rewritten to claim current-code proof.
+
+## Dark-first cold proof
+
+`docs/citisten-design/check-dark-default.py` records five cache-cold default-
+dark screens before any theme toggle, then one native light-toggle proof per
+screen. Current source hashes, pre-shot frame palettes and raw captures live in
+`docs/maintenance/audits/citisten-QA/dark-default/`. No forced browser dark flag
+or recoloured light screenshot is used. System light preference is emulated.
+The full copy/a11y regression also passed after the final group-state assertion.
+See `docs/citisten-dark-default-ui.md` for the receipt and resolved Git-lock incident.

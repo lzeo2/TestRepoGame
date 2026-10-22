@@ -16,6 +16,6 @@
   "failedRequests": [],
   "browserProcessChecks": 37,
   "checks": "trimmed copy and nine toast messages, key-only hints, no duplicate tool rows/captions, runtime tab-order focus modality and visible CSS rule, native keyboard start, both modes, tool callbacks, theme/storage failure, HP, demand, peak population, loss-to-menu, hall marker ordering, toast cap/dedupe/expiry, 44px targets, overflow and button copy, no gradients/shadows, destroy",
-  "diskBeforeBytes": 4066361344,
-  "diskAfterBytes": 4063969280
+  "diskBeforeBytes": 2748850176,
+  "diskAfterBytes": 2748796928
 }

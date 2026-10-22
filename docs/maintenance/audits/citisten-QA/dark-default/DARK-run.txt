@@ -1,0 +1,2 @@
+DARK DEFAULT CHECK PASS: 5 cache-cold default-dark screens, 5 native light-toggle proofs; no boot button rings; zero errors/external requests
+UI CHECK PASS: 36 fixture screenshots, 10 collages; 3 viewports, 2 themes; zero console/page/network errors

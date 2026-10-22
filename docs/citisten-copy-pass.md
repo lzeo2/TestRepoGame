@@ -55,9 +55,9 @@ not whole-game acceptance; reviewer assigns grades.
 timeout 120 python3 -B Games/Citisten3D/ui-qa.py
 ```
 
-The initial full copy run passed. Final-source recapture after the group
-`aria-pressed` accessibility fix is pending the reserved browser queue.
-Initial stdout in `COPY-run.txt`:
+The final full copy run passed after the group `aria-pressed` accessibility
+fix, dark-first shell and static-heading initial focus. Current stdout in
+`COPY-run.txt`:
 
 ```text
 UI CHECK PASS: 36 fixture screenshots, 10 collages; 3 viewports, 2 themes; zero console/page/network errors
@@ -85,13 +85,17 @@ Regression: `Games/Citisten3D/ui-qa.py`. Supporting docs:
 `docs/citisten-ui-api.md`, `docs/citisten-ui-qa.md`, this receipt and the
 phase assertion in `docs/citisten-design/check-jkl.py`.
 
-Runtime totals **368 lines**, down 11. Existing runner is **320 lines**,
-including the added copy assertions. No test framework or runtime asset added.
-The 46 PNGs total **1,975,192 bytes**.
+At the copy milestone, runtime totalled **368 lines**, down 11. After the
+subsequent dark-first focus fix it totals 370; the existing runner is 330 lines.
+No test framework or runtime asset added. The current 46 PNGs total
+**1,970,029 bytes**.
 
-Run free-byte samples: 4,066,361,344 before, 4,063,969,280 after; delta
--2,392,064 bytes on the shared root. Step-start availability was 5,072,740,352;
-other lanes account for unrelated host movement. No guard waiver was needed.
+Initial run free-byte samples: 4,066,361,344 before, 4,063,969,280 after;
+delta -2,392,064. Final combined recheck: 2,748,850,176 before, 2,748,796,928
+after; delta -53,248 on the shared root. Step-start availability was
+5,072,740,352; other lanes account for unrelated host movement. No guard waiver
+was needed. See the [dark-default receipt](citisten-dark-default-ui.md) for its
+separate cold-proof images and resolved external Git admin-lock incident.
 
 Remaining holds: reviewer grading, integrated game entry/input and existing
 barricade support, target-device/full-game gates, and canonical source inventory

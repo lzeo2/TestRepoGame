@@ -35,7 +35,7 @@ export function createUI(root, callbacks = {}) {
     </section>
     <dialog class="city-menu" aria-labelledby="city-menu-title">
       <div class="city-dialog-top"><button data-action="theme">Light</button></div>
-      <div class="city-menu-content"><h1 id="city-menu-title">CITISTEN</h1>
+      <div class="city-menu-content"><h1 id="city-menu-title" tabindex="-1" autofocus>CITISTEN</h1>
         <div class="city-mode-cards">
           <article class="panel">${townIcon}<button data-mode="free">Free build</button></article>
           <article class="panel">${shieldIcon}<button data-mode="defense">Zombie defense</button></article>
@@ -45,7 +45,7 @@ export function createUI(root, callbacks = {}) {
     </dialog>
     <dialog class="city-loss" aria-labelledby="city-loss-title">
       <div class="city-dialog-top"><strong class="city-brand">CITISTEN</strong><button data-action="theme">Light</button></div>
-      <section class="city-loss-content panel"><div class="city-hall-mark" aria-hidden="true">H</div><h1 id="city-loss-title">Town hall lost</h1>
+      <section class="city-loss-content panel"><div class="city-hall-mark" aria-hidden="true">H</div><h1 id="city-loss-title" tabindex="-1" autofocus>Town hall lost</h1>
         <dl>${[['score', 'Nights'], ['finalPopulation', 'Peak population'], ['kills', 'Kills']].map(([id,label]) => `<div><dt>${label}</dt><dd data-value="${id}">0</dd></div>`).join('')}</dl>
         <div class="city-loss-actions"><button data-action="restart">Restart</button><button data-action="menu">Menu</button></div><p class="city-loss-error" role="alert"></p>
       </section>

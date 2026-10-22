@@ -62,6 +62,8 @@
 .citisten-ui dialog::backdrop { background: var(--bg); }
 .city-dialog-top { display: flex; justify-content: space-between; align-items: center; gap: 16px; }
 .city-menu-content { max-width: 1040px; margin: 45px auto; text-align: center; }
+/* Static dialog headings take initial focus without a boot ring; controls retain :focus-visible. */
+.city-menu h1:focus, .city-loss h1:focus { outline: none; }
 .city-menu .city-dialog-top { justify-content: flex-end; }
 .city-menu h1 { font-size: clamp(42px, 8vw, 100px); margin-bottom: 32px; }
 .city-mode-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; }
