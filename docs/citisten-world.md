@@ -82,7 +82,9 @@ headless evidence; `WORLD_PERF_ONLY=1` requests only the bounded benchmark.
 The benchmark uses 10 seconds warmup, clears samples, then measures a 15-second
 wall-time window. Actual rAF intervals, sample duration and count are reported;
 40fps remains the hard failure threshold. Scene density and resolution are not
-reduced to pass. Demo timing ignores its first five seconds of startup.
+reduced to pass. Process preflight refuses any existing Chromium/Chrome root;
+25 checks during warmup/measurement abort if a sibling browser appears. Global
+browser coordination is still required; a local lane queue alone is insufficient. Demo timing ignores its first five seconds of startup.
 Full QA checkpoints its input results before the benchmark so interruption
 cannot silently replace a partial run with a complete claim.
 

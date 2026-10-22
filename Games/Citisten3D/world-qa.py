@@ -7,7 +7,6 @@ from pathlib import Path
 import signal
 import subprocess
 import threading
-import time
 from playwright.sync_api import sync_playwright
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -22,10 +21,18 @@ def guard():
     return available
 
 
+def browser_pids():
+    result = set()
+    for row in subprocess.check_output(['ps', '-eo', 'pid=,args='], text=True).splitlines():
+        pid, command = row.strip().split(maxsplit=1)
+        if Path(command.split()[0]).name in ('chromium', 'chrome') and '--type=' not in command:
+            result.add(int(pid))
+    return result
+
+
 def main():
     # Shared board: do not race another team's Chromium. No process is killed here.
-    processes = subprocess.check_output(['ps', '-eo', 'args'], text=True).splitlines()
-    if any((line.startswith('/usr/lib/chromium/chromium ') and '--type=' not in line) or 'chrome-linux/chrome --' in line for line in processes):
+    if browser_pids():
         raise RuntimeError('Sibling Chromium active; sequence QA before retrying')
     before = guard()
     OUT.mkdir(parents=True, exist_ok=True)
@@ -47,7 +54,18 @@ def main():
             report['browserVersion'] = browser.version
             report['angleRequested'] = os.environ.get('WORLD_GL', 'system default')
             try:
+                owned_browser = browser_pids()
+                if len(owned_browser) != 1:
+                    raise RuntimeError('Browser launch contention; no valid measurement')
                 page = browser.new_page(viewport={'width': 1280, 'height': 720}, device_scale_factor=1)
+                def wait_exclusive(seconds):
+                    for _ in range(seconds):
+                        if browser_pids() != owned_browser:
+                            raise RuntimeError('Sibling browser appeared during benchmark; discard measurement')
+                        report['exclusiveBrowserChecks'] = report.get('exclusiveBrowserChecks', 0) + 1
+                        page.wait_for_timeout(1000)
+                    if browser_pids() != owned_browser:
+                        raise RuntimeError('Browser contention at measurement boundary')
                 page.on('pageerror', lambda error: report['errors'].append(str(error)))
                 page.on('console', lambda message: report['errors'].append(message.text) if message.type == 'error' else None)
                 page.on('requestfailed', lambda request: report['failedRequests'].append(request.url.replace(base, 'LOOPBACK')))
@@ -73,9 +91,9 @@ def main():
                     assert report['pitchBounds'][0] < -1.5 and report['pitchBounds'][1] > 1.5
                     page.evaluate('citistenWorld.world.controls.setPose({x:0,y:400,z:250,yaw:0,pitch:-.9},true)')
                     # Fixed time, not frame count: very slow software GPUs must still yield evidence.
-                    page.wait_for_timeout(10000)
+                    wait_exclusive(10)
                     page.evaluate('citistenWorld.samples.length = 0')
-                    page.wait_for_timeout(15000)
+                    wait_exclusive(15)
                     report['performance'] = page.evaluate('citistenWorld.stats()')
                     assert report['performance']['frames'] > 0, 'No frames in 15-second measurement window'
                     report['renderer'] = page.evaluate('''() => {
