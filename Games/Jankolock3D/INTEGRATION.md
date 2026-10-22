@@ -65,6 +65,22 @@ Six GLBs including the unchanged portrait total 24,715,028 bytes. Original
 code/concept provenance, sizes and remaining rigid/face/cloth/LOD limits are in
 CREDITS.md, each model README and the external-art wishlist. No Blender was used.
 
+## Dark default, retained light accessibility mode
+
+The operator changed only the natural UI default to dark. Static HTML declares
+`data-theme="dark"` and a dark native color scheme before CSS/modules; shared
+CSS defaults and unrendered canvas placeholders are dark as well. No OS-light
+preference can briefly initialize the page light. The existing native theme
+button still selects light, including hero cards, HUD, shop and canvas minimap.
+The workshop pages also start dark with their existing light toggle; standalone
+systems/world shells start dark before their modules load. No gameplay, models,
+scene lighting, world contract or saved match state changed.
+
+`theme-qa.py` is the additive cache-cold default/light check. Prior A-I receipts
+remain valid under the operator's presentation-only exception; their original
+capture/source bytes stay pinned at their recorded revisions, not relabeled as
+new captures. Legacy named light comparisons explicitly select light first.
+
 ## Controls
 
 WASD moves; mouse/drag or arrows look. LMB fires, RMB aims. Ctrl sprint, Shift

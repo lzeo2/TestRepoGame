@@ -190,9 +190,9 @@ def main():
                     capture('A', 'Actual three-lane city geometry; API aerial camera, not native full-map walking')
                 elif letter == 'H':
                     load(None, play=False)
-                    capture('H', 'Normal lobby: supplied portrait relief and new actual character model, no fixture query')
-                    page.get_by_role('button', name='Dark theme', exact=True).click()
-                    capture('H-dark', 'Normal lobby dark HTML theme; world lighting unchanged')
+                    capture('H-dark', 'Default-dark normal lobby; supplied portrait and actual model, no fixture query')
+                    page.get_by_role('button', name='Light theme', exact=True).click()
+                    capture('H', 'Native light-toggle lobby; world lighting unchanged')
                     assert len(state()['models']) == 5
                     report['checks'] = {'models': state()['models'], 'portrait': state()['portrait']}
                 elif letter == 'C':

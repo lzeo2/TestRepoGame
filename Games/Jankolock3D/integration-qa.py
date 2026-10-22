@@ -75,6 +75,9 @@ def main():
                     assert response.status == 200
                     page.wait_for_function('typeof window.jank3dSnapshot === "function"')
                     page.wait_for_function('window.jank3dSnapshot().diagnostics.triangles > 0')
+                    # Legacy named light comparisons explicitly select light; theme-qa.py tests the cold default.
+                    if page.locator('html').get_attribute('data-theme') != 'light':
+                        page.get_by_role('button', name='Light theme', exact=True).click()
                 def capture(name, kind, mobile=False):
                     guard(); raw = page.screenshot(); image = Image.open(io.BytesIO(raw)).convert('RGB')
                     if mobile:

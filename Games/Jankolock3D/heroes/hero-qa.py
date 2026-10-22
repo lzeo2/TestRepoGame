@@ -64,6 +64,8 @@ def main():
                 response = page.goto(f'http://127.0.0.1:8937/Games/Jankolock3D/heroes/devhero-{hero}.html')
                 responses.append({'hero': hero, 'status': response.status}); assert response.status == 200
                 page.wait_for_function('window.heroSnapshot && window.heroSnapshot().time > .25')
+                # Explicit accessibility-mode selection; the cold default is checked by theme-qa.py.
+                page.get_by_role('button', name='Light theme', exact=True).click()
                 evidence.append(capture(page, f'{hero}-light'))
                 page.locator('#theme').click(); evidence.append(capture(page, f'{hero}-dark')); page.locator('#theme').click()
                 for slot in range(1, 5):
@@ -113,6 +115,7 @@ def main():
             mp=mobile.new_page();mp.on('pageerror',lambda error:errors.append(str(error)))
             mp.goto('http://127.0.0.1:8937/Games/Jankolock3D/heroes/devhero-1.html');mp.wait_for_function('window.heroSnapshot && window.heroSnapshot().time > .2')
             assert mp.evaluate('document.documentElement.scrollWidth <= innerWidth')
+            mp.get_by_role('button', name='Light theme', exact=True).tap()
             evidence.append(capture(mp,'mobile-light'));evidence.append(capture(mp,'mobile-full-light',full=True))
             mp.locator('#theme').tap();evidence.append(capture(mp,'mobile-dark'));evidence.append(capture(mp,'mobile-full-dark',full=True))
             mp.locator('[data-slot="2"]').tap();assert snapshot(mp)['lastAbility']=='volley'

@@ -271,6 +271,26 @@ still reads upright. No full native 900m lane walk, final subjective art review,
 supported GPU, real handheld, full offline/release smoke or match-fun acceptance
 is inferred from these checks.
 
+## Operator dark-default presentation follow-up
+
+Natural UI default is now dark regardless of OS preference. Every HTML entry
+sets dark mode before modules; CSS defaults and loading/canvas placeholders are
+dark before JavaScript. Existing main/workshop light toggles remain accessible.
+Shared tokens cover hero cards, HUD/shop and minimap; no simulation, hero pose,
+model, world route, geometry or lighting logic is changed. The proposed slide
+pose repair was paused for this order and has not been implemented.
+
+The operator explicitly retains existing A-I receipts across this theme-only
+change. Original images, hashes and capture records remain untouched. The model
+packet verifier now compares source/runner bytes to recorded `bedb052`, not to
+new UI bytes; models/screenshots still verify against actual files. This is
+historical-source verification, not an assertion that current CSS equals old
+CSS. Additive `theme-qa.py` checks script-free dark startup on all seven entries,
+OS-light/cache-cold initial dark hero selection, HUD/shop/minimap and native
+light toggles on desktop/mobile. Fresh results will be recorded separately under
+`docs/maintenance/audits/jankolock-3d-qa/dark-default/` after the source commit.
+No prior failed receipt is relabeled, no full-catalog gate or push is implied.
+
 ## Future outlook
 
 Independent stable-source A-I review and mockup comparison, human full-match

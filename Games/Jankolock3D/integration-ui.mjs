@@ -108,12 +108,12 @@ export function mountIntegrationUI({ sim, heroId, runtime, controller, world, ki
     if (helpPaused && playing && !sim.winner && !disposed) { paused = false; onPause(false); }
     helpPaused = false;
   });
-  const preference = matchMedia('(prefers-color-scheme: dark)');
-  let dark = document.documentElement.dataset.theme ? document.documentElement.dataset.theme === 'dark' : preference.matches;
+  let dark = document.documentElement.dataset.theme !== 'light';
   const applyTheme = () => {
     document.documentElement.dataset.theme = dark ? 'dark' : 'light';
     $('theme').setAttribute('aria-pressed', String(dark));
     $('theme').textContent = dark ? 'Light theme' : 'Dark theme';
+    document.querySelector('meta[name="theme-color"]')?.setAttribute('content', getComputedStyle(document.documentElement).getPropertyValue('--page').trim());
   };
   applyTheme();
   listen($('theme'), 'click', () => { dark = !dark; applyTheme(); drawMap(); });

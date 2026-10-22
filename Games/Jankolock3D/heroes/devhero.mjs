@@ -42,8 +42,8 @@ try {
     const name=document.createElement('span');name.className='name';name.textContent=a.name;
     button.append(svg,timer,name);document.querySelector('.ability-grid').append(button);return button;
   });
-  let dark=matchMedia('(prefers-color-scheme: dark)').matches;
-  const theme=()=>{document.documentElement.dataset.theme=dark?'dark':'light';$('theme').setAttribute('aria-pressed',String(dark));};theme();
+  let dark=document.documentElement.dataset.theme!=='light';
+  const theme=()=>{document.documentElement.dataset.theme=dark?'dark':'light';$('theme').setAttribute('aria-pressed',String(dark));$('theme').textContent=dark?'Light theme':'Dark theme';};theme();
   listen($('theme'),'click',()=>{dark=!dark;theme();});
   const canvas=$('range');renderer=new THREE.WebGLRenderer({canvas,antialias:true,powerPreference:'low-power'});renderer.setPixelRatio(Math.min(devicePixelRatio,1.5));renderer.setClearColor(0xa3b8c5);
   const scene=new THREE.Scene(),camera=new THREE.PerspectiveCamera(65,1,.1,160);

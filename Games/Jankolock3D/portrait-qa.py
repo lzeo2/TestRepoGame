@@ -94,9 +94,9 @@ def main():
                 assert response.status == 200, f'Index HTTP {response.status}'
                 page.wait_for_function('typeof window.jank3dSnapshot === "function"', timeout=20000)
                 page.wait_for_function('window.jank3dSnapshot().diagnostics.triangles > 0', timeout=10000)
-                for theme in ['light', 'dark']:
-                    if theme == 'dark':
-                        page.get_by_role('button', name='Dark theme', exact=True).click()
+                for theme in ['dark', 'light']:
+                    if page.locator('html').get_attribute('data-theme') != theme:
+                        page.locator('#theme').click()
                     assert page.locator('html').get_attribute('data-theme') == theme
                     page.wait_for_timeout(500)
                     snapshot = page.evaluate('window.jank3dSnapshot()')

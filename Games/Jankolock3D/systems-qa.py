@@ -78,6 +78,8 @@ def main():
                 page.on('response', lambda response: report['responses'].append({'path': urlsplit(response.url).path, 'status': response.status}))
                 state = lambda: page.evaluate('window.jank3dSystemsSnapshot()')
                 def capture(name, mobile=False):
+                    # Named historical theme comparisons, not a default-theme claim.
+                    page.evaluate('(theme)=>document.documentElement.dataset.theme=theme', 'dark' if 'dark' in name else 'light')
                     if not mobile:
                         page.evaluate('() => new Promise(resolve => { window.scrollTo(0, 0); requestAnimationFrame(() => requestAnimationFrame(resolve)); })')
                         page.wait_for_function('window.scrollY === 0')

@@ -1,12 +1,19 @@
 """Recheck this source-bound packet, not visual quality or release acceptance."""
 import hashlib
+from functools import cache
 import json
 import struct
+import subprocess
 from pathlib import Path
 
 OUT = Path(__file__).resolve().parent
 ROOT = OUT.parents[4]
 digest = lambda path: hashlib.sha256(path.read_bytes()).hexdigest()
+# The operator retained A-I evidence across the later presentation-only default flip.
+SOURCE_REVISION = 'bedb052'
+@cache
+def source_digest(name):
+    return hashlib.sha256(subprocess.check_output(['git', 'show', f'{SOURCE_REVISION}:{name}'], cwd=ROOT)).hexdigest()
 reports = sorted(OUT.glob('letter-*-evidence.json'))
 seen = set()
 responses = 0
@@ -15,12 +22,12 @@ for path in reports:
     data = json.loads(path.read_text())
     assert data['status'] == 'COMPLETE-builder-checks-only', path
     assert data['sourcesUnchanged'] and not data['errors'], path
-    assert data['runnerSha256'] == digest(ROOT / 'Games/Jankolock3D/letter-qa.py')
+    assert data['runnerSha256'] == source_digest('Games/Jankolock3D/letter-qa.py')
     assert data['sourceHashes'] == data['sourceHashesAfter']
     sources = sources or data['sourceHashes']
     assert sources == data['sourceHashes'], path
     for name, sha in sources.items():
-        assert digest(ROOT / name) == sha, name
+        assert source_digest(name) == sha, name
     for shot in data['screenshots']:
         image = OUT / shot['file']
         assert digest(image) == shot['sha256'], image
@@ -37,5 +44,5 @@ for model in summary['models']:
     assert path.stat().st_size == model['bytes'] < 8388608, path
     assert digest(path) == model['sha256'], path
 print(f'PASS: {len(reports)} receipts, {len(seen)} screenshot hashes, '
-      f'{responses} HTTP200, {len(sources)} identical current runtime sources; '
+      f'{responses} HTTP200, {len(sources)} identical runtime sources at {SOURCE_REVISION}; '
       '6 GLB hashes/sizes. Not a visual, hardware or release grade.')
