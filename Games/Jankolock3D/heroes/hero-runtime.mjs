@@ -12,6 +12,8 @@ const UP = new THREE.Vector3(0,1,0);
  * center for areas, turret muzzle for shots, never the owner's later position.
  * Call update after controller.update; aim(camera) before fire/cast. Owns only
  * its temporary barricade colliders; clear/dispose removes those from boxes.
+ * Active reveals read current targets/positions on every FX update, including
+ * replaced records; membership uses the caster's current team, position and range.
  * setModifiers accepts the systems-derived cooldown/fire/reload multipliers,
  * magazine size and move multiplier. Defaults are the JSON baseline.
  */
@@ -146,7 +148,7 @@ export class HeroRuntime {
       case 'slam':
         this.fx.emit(a.id,{origin:ground,duration:1,radius:a.radius});this.area(a,ground);break;
       case 'overtime':case 'headshot':case 'xray':case 'chaingun':case 'aura': {
-        this.buffs[a.id]={left:a.duration,definition:a,next:0,handle:this.fx.emit(a.id,{origin:a.id==='chaingun'?origin:ground,direction,targets:this.targets.filter(t=>t.team!==this.team&&t.alive!==false&&ground.distanceTo(vec(t.position))<=(a.range??100)).map(t=>t.position),duration:a.duration,radius:a.radius})};
+        this.buffs[a.id]={left:a.duration,definition:a,next:0,handle:this.fx.emit(a.id,{origin:a.id==='chaingun'?origin:ground,direction,targets:a.id==='xray'?()=>this.targets.filter(t=>t.team!==this.team&&t.alive!==false&&c.position.distanceTo(vec(t.position))<=(a.range??100)).map(t=>t.position):[],duration:a.duration,radius:a.radius})};
         this.emit('buff',a,{id:this.source},{invulnerable:!!a.invulnerable,speedMultiplier:a.speedMultiplier??1});break;
       }
       case 'turret': {

@@ -69,6 +69,47 @@ for(const kit of heroes) {
   r.cast(4);r.update(.05);assert.ok(events.some(e=>e.kind==='heal'&&e.target==='player'));
   assert.ok(events.every(e=>Number.isFinite(e.baseDamage)&&Number.isFinite(e.baseHeal)));r.dispose();
 }
+{
+  const {runtime:r,controller:c,scene,events}=fixture(heroes.find(h=>h.id==='snipeoff'));
+  const ability=r.kit.abilities.find(a=>a.id==='xray'),dt=1/32;
+  const record=(id,x,extra={})=>({id,team:'ivory',alive:true,position:{x,y:0,z:8},hp:300,...extra});
+  const keep=record('keep',1),removed=record('removed',2),dying=record('dying',3),convert=record('convert',4),leaving=record('leaving',5);
+  const dead=record('dead',6,{alive:false}),ally=record('ally',7,{team:'carbon'}),far=record('far',ability.range+1);
+  r.targets=[keep,removed,dying,convert,leaving,dead,ally,far];
+  assert.ok(r.cast(ability.slot));
+  const handle=r.buffs.xray.handle,group=handle.group;
+  const cages=()=>group.children.filter(p=>p.isMesh&&p.material.wireframe&&p.geometry.type==='BoxGeometry');
+  const points=()=>cages().filter(p=>p.visible).map(p=>p.position.clone().add(group.position).sub(new THREE.Vector3(0,.95,0)).toArray());
+  const check=expected=>assert.deepEqual(points(),expected.map(t=>[t.position.x,t.position.y,t.position.z]),'reveal contains only current live enemies in range');
+  check([keep,removed,dying,convert,leaving]);
+  const parts=[...group.children],materials=new Set(parts.map(p=>p.material));let disposed=0;
+  for(const material of materials)material.addEventListener('dispose',()=>disposed++);
+  let elapsed=0;
+  const step=()=>{r.update(dt);elapsed+=dt;};
+  // Integrated records and positions are replaced; range dummies mutate in place.
+  keep.position={x:9,y:2,z:7};dying.alive=false;convert.team='carbon';leaving.position={x:ability.range+1,y:0,z:8};
+  dead.alive=true;ally.team='ivory';far.position={x:ability.range,y:0,z:8};
+  const replacement={...keep,position:{x:10,y:3,z:6}},born=record('born',8);
+  r.targets=[replacement,dying,convert,leaving,dead,ally,far,born];step();
+  check([replacement,dead,ally,far,born]);
+  c.position.x=-1;step();check([replacement,dead,ally,born]); // Caster movement changes range too.
+  r.targets=[];step();check([]);
+  for(let frame=0;frame<100;frame++) {
+    r.targets=[record(`new-${frame}`,frame%8)];step();check(r.targets);
+    assert.equal(r.buffs.xray.handle,handle);assert.deepEqual(group.children,parts,'cages are pooled, not accumulated per identity/frame');
+    assert.equal(r.fx.count,1);assert.equal(disposed,0,'no per-frame material disposal');
+    assert.equal(handle.remaining,ability.duration-elapsed,'membership changes do not refresh lifetime');
+  }
+  assert.ok(r.targets.every(t=>t.hp===300),'reveal does not own health');
+  while(elapsed<ability.duration-dt)step();
+  assert.equal(handle.remaining,dt);assert.equal(events.filter(e=>e.kind==='buff-end').length,0);
+  step();assert.equal(r.buffs.xray,undefined);assert.equal(handle.remaining,0);assert.equal(r.fx.count,0);
+  assert.equal(group.parent,null);assert.equal(group.children.length,0);assert.equal(disposed,materials.size);
+  assert.equal(events.filter(e=>e.kind==='buff-end').length,1);
+  assert.ok(r.cast(ability.slot)===false,'original cooldown remains in force');
+  r.reset();r.cast(ability.slot);r.reset();assert.equal(r.fx.count,0,'reset clears active reveal');
+  r.cast(ability.slot);r.dispose();assert.equal(scene.children.length,0,'dispose clears active reveal and hero');
+}
 let remoteChecks=0;
 for(const kit of heroes) for(const ability of kit.abilities.filter(a=>['turret','puddle','grenade','missionbomb'].includes(a.id))) {
   const {runtime:r,controller:c,targets,events}=fixture(kit);
@@ -107,4 +148,4 @@ for(const kit of heroes) for(const ability of kit.abilities.filter(a=>['turret',
   assert.ok(targets.every(t=>t.hp===300),'runtime leaves health authority to systems');
   r.dispose();
 }
-console.log(`hero-runtime-test: ${remoteChecks} remote-origin events accepted by systems; ${casts} kit casts, cooldown/expiry/cleanup, cover, headshots, tether break, slide ammo, turret, grenade bounce and healing checked (not native acceptance)`);
+console.log(`hero-runtime-test: ${remoteChecks} remote-origin events accepted by systems; ${casts} kit casts, cooldown/expiry/cleanup, cover, headshots, tether break, slide ammo, turret, grenade bounce, healing and live xray membership/pooling/lifetime checked (not native acceptance)`);

@@ -141,6 +141,28 @@ const early = handles.get('volley'), materialDisposed = countDisposals(new Set(m
 early.dispose(); early.dispose(); assert.equal(early.group.parent, null); assert.equal(early.remaining, 0); materialDisposed(1);
 geometryDisposed(0); fx.update(0.75); assert.equal(fx.count, 0); assert.equal(scene.children.length, 0); geometryDisposed(0);
 
+{
+  let live = [];
+  const reveal = fx.emit('xray', {origin, targets: () => live, duration: .25});
+  const boxes = () => meshes(reveal.group).filter(p => p.material.wireframe && p.geometry.type === 'BoxGeometry');
+  assert.equal(boxes().length, 0, 'casting without enemies still admits later entrants');
+  live = [vector(1, 2, 3)]; fx.update(0);
+  checkSolid(reveal.group, false);
+  live = []; fx.update(.0625); assert.ok(boxes().every(p => !p.visible));
+  live = [vector(4, 5, 6), vector(7, 8, 9)]; fx.update(.0625);
+  const pooled = [...reveal.group.children], materials = new Set(meshes(reveal.group).map(p => p.material));
+  const disposed = countDisposals(materials);
+  for (let i = 0; i < 40; i++) {
+    live = [vector(i, 0, -i)]; reveal.position.set(i / 2, 1, 2); fx.update(0);
+    assert.deepEqual(reveal.group.children, pooled); assert.equal(boxes().filter(p => p.visible).length, 1);
+    near(boxes()[0].getWorldPosition(vector()), live[0].clone().add(vector(0, .95, 0)));
+    disposed(0); assert.equal(reveal.remaining, .125);
+  }
+  fx.update(.125); disposed(1); assert.equal(fx.count, 0); assert.equal(reveal.group.children.length, 0);
+  const direct = fx.emit('xray', {target, duration: .25});
+  near(meshes(direct.group).find(p => p.geometry.type === 'BoxGeometry').getWorldPosition(vector()), target.clone().add(vector(0, .95, 0)));
+  direct.dispose(); assert.equal(fx.count, 0);
+}
 const oldest = fx.emit('shot');
 for (let i = 0; i < 100; i++) fx.emit('shot');
 assert.equal(fx.count, 100); assert.equal(oldest.remaining, 0); assert.equal(oldest.group.parent, null);
@@ -158,4 +180,4 @@ fx.dispose(); fx.dispose(); fx.clear(); fx.update(1); finalMaterials(1);
 geometryDisposed(1); assert.equal(fx.count, 0); assert.equal(scene.children.length, 0);
 assert.throws(() => fx.emit('shot'), /disposed/);
 turretGeometryDisposed(0);disposeCharacterAssets();turretGeometryDisposed(1);
-console.log('PASS: 4 manifest-pinned external GLB heroes/linear palettes/PBR512/real rigid nodes; deployed stapler bearing/pitch;16 unique kit FX+7 generic FX; lifecycle/links/expiry/cap');
+console.log('PASS: 4 manifest-pinned external GLB heroes/linear palettes/PBR512/real rigid nodes; deployed stapler bearing/pitch;16 unique kit FX+7 generic FX; lifecycle/links/expiry/cap; live xray pooling and direct-point compatibility');

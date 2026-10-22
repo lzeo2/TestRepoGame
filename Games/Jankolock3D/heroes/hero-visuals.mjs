@@ -51,7 +51,10 @@ function disposeGeometry(kit) { for (const geo of Object.values(kit)) geo.dispos
 /** Feet at Y=0, face -Z. Preload the real GLBs before constructing a runtime. */
 export { createHeroVisual } from './hero-model.mjs';
 
-/** Pure visual effects. Root positions stay caller-owned, including projectiles. */
+/** Pure visual effects. Root positions stay caller-owned, including projectiles.
+ * Xray targets accepts points or a live point supplier. Cage pairs are reused
+ * up to peak simultaneous membership for this handle, then cleared on disposal.
+ */
 export class AbilityFX {
   constructor(scene) {
     this.scene = scene; this.kit = geometryKit(); this.handles = new Map(); this.disposed = false;
@@ -174,15 +177,22 @@ export class AbilityFX {
       }
       animate = (_, age) => { group.rotation.y = yaw + age; };
     } else if (id === 'xray') {
-      const cages = (targets.length ? targets : target ? [target] : []).map(point => ({
-        point, box: add('box', [0.95, 1.9, 0.75], [0, 0, 0], group, color, true),
-        head: add('diamond', [0.5, 0.5, 0.5], [0, 0, 0], group, color, true)
-      }));
+      const cages = [];
       add('ring', [1.5, 1.5, 1], [0, 1.2, -0.8]);
-      animate = () => cages.forEach(({point, box, head}) => {
-        box.position.copy(point).sub(group.position); box.position.y += 0.95;
-        head.position.copy(point).sub(group.position); head.position.y += 1.6;
-      });
+      animate = () => {
+        const points = typeof targets === 'function' ? targets() : targets.length ? targets : target ? [target] : [];
+        for (let i = 0; i < Math.max(cages.length, points.length); i++) {
+          const point = points[i];
+          const cage = cages[i] ?? (cages[i] = {
+            box: add('box', [0.95, 1.9, 0.75], [0, 0, 0], group, color, true),
+            head: add('diamond', [0.5, 0.5, 0.5], [0, 0, 0], group, color, true)
+          });
+          cage.box.visible = cage.head.visible = !!point;
+          if (!point) continue;
+          cage.box.position.copy(point).sub(group.position); cage.box.position.y += 0.95;
+          cage.head.position.copy(point).sub(group.position); cage.head.position.y += 1.6;
+        }
+      };
     } else if (id === 'puddle' || id === 'aura') {
       add('cylinder', [r * 1.65, 0.08, r * 1.8], [0, 0.045, 0]);
       if (id === 'puddle') {
