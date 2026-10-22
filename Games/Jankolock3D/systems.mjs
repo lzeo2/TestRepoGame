@@ -473,7 +473,7 @@ export function createSystems(world) {
       if (distance(h.position, bases[h.team]) <= 20) h.hp = Math.min(h.maxHp, h.hp + h.maxHp * 0.1 * H);
       if (h.recall && distance(h.position, h.recall.position) > 0.1) { cancelRecall(h, 'moved'); h.recallBlocked = h.retreatHeld; }
       if (h.retreatHeld && !h.recall && !h.recallBlocked) {
-        const ring = retreatRings.find(r => r.team === h.team && r.lane === h.lane && distance(r.position, h.position) <= r.radius);
+        const ring = retreatRings.find(r => r.team === h.team && distance(r.position, h.position) <= r.radius);
         if (ring) { h.recall = { position: copy(h.position), started: sim.time }; emit('recall_start', { heroId: h.id }); }
       }
       if (h.recall && sim.time - h.recall.started >= 3 - 1e-9) {

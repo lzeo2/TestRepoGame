@@ -88,6 +88,10 @@ glass in the shared-scene room. No absolute machine path is part of runtime data
   collision and five-bot boundaries. Runtime ammo/Overtime are not double-applied.
 - Recall/respawn events reconcile valid teleports immediately; active-item dash
   requests remain collision-resolved. Ctrl-held movement registers normally.
+- Systems resume fixes recall from a friendly base ring outside the hero's fixed
+  lane assignment. All six friendly rings now channel; enemy ownership, radius,
+  duration and cancellation checks remain. The regression failed before the
+  shared-check fix, then passed for both teams without rewriting lane assignment.
 - World camps/Mid-Boss/rejuvenator and crate economy rewards remain incomplete;
   markers/traversal do not establish those mechanics. Structures have combat
   hit bounds, not full movement colliders. Bot navigation is lane-only.
@@ -194,6 +198,22 @@ Inventory refresh is limited to committed source. Another owner's staged
 Turretina model files correctly block the checker until committed; never stage
 or reset them to manufacture a pass. Aggregate model budgets remain an
 integration-wide check as more deliveries land.
+
+### Systems brief-authorized resume
+
+The operator substituted the systems brief for the missing shared spec. Both
+`jank3d-spec.md` and `jank3d-brief-systems.txt` were absent from their supplied
+temporary locations; the earlier verbatim systems brief is retained in the
+session. No missing ALWAYS/ASK/NEVER clauses were invented. Scope remains the
+six requested gameplay systems, with B/C/D/F evidence for independent review.
+
+The one-condition recall fix and regression are documented in SYSTEMS.md.
+Fresh checks complete18 systems groups, the600-second scripted lane chain,
+both integrated chain directions and8 bot groups. The receipt at
+`docs/maintenance/audits/jankolock-3d-qa/systems-resume-evidence.json` records the
+current source hashes, commands, missing-contract context and remaining gates.
+No new UI, geometry, model, dependency, game, catalog edit or push is included.
+Historical screenshots do not establish acceptance of changed world/model bytes.
 
 ## Future outlook
 

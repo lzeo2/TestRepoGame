@@ -213,8 +213,9 @@ Never write HP/status/objective fields in the integrator.
   one flex slot, capped3; future heroes inherit it. Maximum9 distinct items.
 - Death: `5 + 2*floor(activeSeconds/60)` seconds. Respawn at own central base,
   full HP/ammo. Within20m of base, heal10% max HP per second while alive.
-- UI owns B/shop display. Hold X by calling setRetreat(true). At own lane ring
-  (lane Patron spawn z plus15m toward own base, radius6) a safe3s stationary channel
+- UI owns B/shop display. Hold X by calling setRetreat(true). At any friendly base
+  ring (lane Patron spawn z plus15m toward own base, radius6), regardless of the
+  hero's assigned lane, a safe3s stationary channel
   teleports to own base. Movement >0.1m, attack, damage, release or death cancels.
   Movement/damage/attack block automatic restart while held: release then press
   again to rearm. No channel from enemy rings or arbitrary lane positions.
@@ -410,3 +411,26 @@ No source logic or assertions were changed for this rerun. Browser/server exited
 root free bytes during the test were4,175,536,128 ->4,175,527,936. This remains
 native input on explicit systems fixtures, not integrated game acceptance.
 Global maintenance reconciliation remains integration/operator-owned.
+
+### Systems resume under brief authority
+
+The operator explicitly substituted the systems brief for the missing shared
+spec. At resume, both `jank3d-spec.md` and `jank3d-brief-systems.txt` were absent
+from their supplied temporary locations. The earlier verbatim brief remains in
+the session and defines the six gameplay-system tasks and B/C/D/F evidence;
+no ALWAYS/ASK/NEVER clauses were reconstructed from the unavailable spec.
+Repository instructions and the separate UI/mockup directives still apply.
+
+Caller tracing found that neither the human input path nor the standalone
+controls change the hero's assigned lane when visiting another base. Recall
+incorrectly required the friendly ring to match that fixed assignment. Removing
+that extra restriction in the shared systems check lets all callers use any
+friendly base ring; ownership, radius, channel time and cancellation remain.
+The new regression failed on Carbon/Graft before the fix, then verified all six
+friendly rings across both teams without changing lane assignment, plus enemy
+ring rejection. Existing damage/movement/release cancellation checks remain.
+
+Fresh Node checks complete18 systems groups and the600-second script, both
+integrated victory directions and8 bot groups. No map, hero model, UI, dependency,
+catalog or balance changes. Fresh run details and missing-contract evidence
+are recorded in `docs/maintenance/audits/jankolock-3d-qa/systems-resume-evidence.json`.

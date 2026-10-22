@@ -225,6 +225,22 @@ test('minute-scaled respawn, own-base healing, held recall damage/move/release c
   assert.equal(s.setRetreat(h.id, 1).ok, false);
 });
 
+test('recall accepts any friendly base ring regardless of lane assignment, never enemy rings', () => {
+  for (const team of ['carbon', 'ivory']) {
+    const s = createSystems(), h = hero(s, 'traveler', team);
+    s.step(30);
+    for (const ring of s.retreatRings.filter(r => r.team === team)) {
+      s.setRetreat(h.id, false); s.moveHero(h.id, ring.position); s.setRetreat(h.id, true);
+      s.step(0.05); assert.ok(h.recall, `${team}/${ring.lane}: friendly ring must start recall`);
+      s.step(3.05); assert.deepEqual(h.position, s.bases[team]);
+      assert.equal(h.lane, 'midway', 'using another ring does not rewrite lane assignment');
+    }
+    const enemyRing = s.retreatRings.find(r => r.team !== team);
+    s.setRetreat(h.id, false); s.moveHero(h.id, enemyRing.position); s.setRetreat(h.id, true);
+    s.step(3.1); assert.equal(h.recall, null); assert.deepEqual(h.position, enemyRing.position);
+  }
+});
+
 test('600 active seconds changes phase and trooper bounty, not 600 wall seconds', () => {
   const s = createSystems(); s.step(600); assert.equal(s.phase, 'laning');
   s.step(29.95); assert.equal(s.phase, 'laning'); s.step(0.05); assert.equal(s.phase, 'midgame');
