@@ -68,6 +68,8 @@ function isolated(hero = 'courier') {
   assert.equal(s.events.at(-2).type, 'hit');
   assert.equal(s.events.at(-2).damage, 3, 'overkill reports only health actually removed');
   assert.equal(s.events.at(-1).type, 'kill', 'fatal hit precedes the stronger kill cue');
+  assert.deepEqual([s.events.at(-1).targetId, s.events.at(-1).x, s.events.at(-1).y],
+    [target.id, target.x, target.y], 'each kill owns its marker position, including rapid successive kills');
   const count = s.events.length;
   fixture.damageActor(s, target, 14, player);
   assert.equal(s.events.length, count, 'dead targets must not repeat feedback');

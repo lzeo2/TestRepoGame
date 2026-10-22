@@ -306,7 +306,7 @@ function damageActor(s, target, amount, owner) {
   target.shotCooldown = 0;
   target.shield = 0;
   owner.kills++;
-  event(s, 'kill', owner.id, owner.team);
+  event(s, 'kill', owner.id, owner.team, { targetId: target.id, x: target.x, y: target.y });
   effect(s, 'death', target.x, target.y, 0.5);
   award(s, owner.team, RULES.killInfluence, 'kill');
 }

@@ -34,7 +34,9 @@ Data exports frozen ARENA/HEROES/ITEMS/RULES, validated statsFor/draftOffers/bot
 UI owns one fixed-step RAF, keyboard/pointer/touch intent, Canvas projection,
 HUD/native panels, original WebAudio and settings. Confirmed `hit` events originate
 in shared damageActor (bullets and slam), include target/position, actual HP loss
-and shield absorption, and use the existing 64-event tail. Immunity, cover and
+and shield absorption, and use the existing 64-event tail. Kill events also own
+their target/position so rapid successive kills cannot reuse an older marker.
+Immunity, cover and
 decoys do not produce actor-hit confirmation. Projection is
 `x=40+x+(y-300)*.07`, `y=80+y*.9`; pointer aiming inverts it. Actors, bullets,
 cover, abilities and bots use engine collision, not sprite outlines. Sweep/LOS

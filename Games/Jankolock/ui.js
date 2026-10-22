@@ -136,7 +136,7 @@ function observation() {
       }
     }
     if (event.type === 'kill' && event.actorId === 0) {
-      hitFeedback = { ...hitFeedback, kill: true, until: performance.now() + 900 };
+      hitFeedback = { ...event, kill: true, until: performance.now() + 900 };
       $('hitFeedback').textContent = `Rival down / +${RULES.killInfluence} influence`;
     }
     if (event.type === 'capture') sound(event.team === 0 ? 'capture' : 'captureLost');
