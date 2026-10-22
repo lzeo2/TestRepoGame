@@ -2,6 +2,8 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import * as THREE from '../vendor/three.module.js';
 import { AbilityFX, createHeroVisual } from './hero-visuals.mjs';
+import { preloadHeroes, disposeCharacterAssets } from '../character-assets.mjs';
+await preloadHeroes();
 
 const kits = JSON.parse(readFileSync(new URL('../../../docs/jank3d-hero-kits.json', import.meta.url)));
 const abilities = kits.heroes.flatMap(hero => hero.abilities);
@@ -32,15 +34,22 @@ function countDisposals(resources) {
 const silhouettes = new Set();
 for (const { id } of kits.heroes) {
   const hero = createHeroVisual(id), parts = meshes(hero.group);
-  checkSolid(hero.group); silhouettes.add(signature(hero.group));
+  silhouettes.add(hero.metadata.sha256);
+  assert.ok(hero.metadata.triangles>=120000&&hero.metadata.triangles<=250000);
+  assert.ok(hero.metadata.bytes<8388608&&parts.length<=64);
+  let triangles=0;
+  for(const part of parts) {
+    triangles+=(part.geometry.index?.count??part.geometry.attributes.position.count)/3;
+    assert.ok(part.material.isMeshStandardMaterial);
+    assert.equal(part.material.map.image.width,512);assert.equal(part.material.normalMap.image.height,512);
+    assert.ok(part.geometry.attributes.normal&&part.geometry.attributes.uv);
+    assert.ok(part.material.roughness>=0&&part.material.roughness<=1&&part.material.metalness>=0&&part.material.metalness<=1);
+  }
+  assert.equal(triangles,hero.metadata.triangles);
   const bounds = new THREE.Box3().setFromObject(hero.group);
   assert.ok(Math.abs(bounds.min.y) < 1e-6, `${id}: feet at zero`);
   assert.ok(bounds.max.y > 1.5 && bounds.max.y < 2.2, `${id}: body height`);
-  assert.equal(parts.filter(p => p.name === 'eye').length, 2);
-  for (const eye of parts.filter(p => p.name === 'eye')) {
-    assert.equal(eye.material.color.getHexString(), '20201f'); assert.ok(eye.position.z < 0);
-    assert.equal(eye.scale.x, eye.scale.y);
-  }
+  for(const name of ['head','torso','arm-left','arm-right','leg-left','leg-right','cape'])assert.ok(hero.group.getObjectByName(name),`${id}/${name}`);
   const geometryDisposed = countDisposals(new Set(parts.map(p => p.geometry)));
   const materialDisposed = countDisposals(new Set(parts.map(p => p.material)));
   hero.group.position.set(12, 3, 7);
@@ -49,8 +58,9 @@ for (const { id } of kits.heroes) {
     near(hero.group.position, vector(12, 3, 7)); assert.equal(hero.group.rotation.y, 0.7);
   }
   assert.equal(hero.group.children[0].scale.y, 1);
-  hero.update(0.1, { state: 'slide' }); assert.ok(hero.group.children[0].scale.y < 1);
-  hero.update(0); assert.equal(hero.group.children[0].scale.y, 1);
+  hero.update(0.1, { state: 'slide' }); assert.ok(hero.group.children[0].rotation.x<0);
+  assert.equal(hero.group.children[0].userData.pose,'slide');
+  hero.update(0); assert.equal(hero.group.children[0].scale.y, 1);assert.equal(hero.group.children[0].rotation.x,0);
   hero.dispose(); hero.dispose(); hero.update(1);
   geometryDisposed(1); materialDisposed(1); assert.equal(hero.group.children.length, 0);
 }
@@ -120,4 +130,5 @@ const finalMaterials = countDisposals(new Set(meshes(finalHandle.group).map(p =>
 fx.dispose(); fx.dispose(); fx.clear(); fx.update(1); finalMaterials(1);
 geometryDisposed(1); assert.equal(fx.count, 0); assert.equal(scene.children.length, 0);
 assert.throws(() => fx.emit('shot'), /disposed/);
-console.log('PASS: 4 heroes, 16 unique kit FX + 7 generic FX; positions, depth, links, expiry, cap, disposal');
+disposeCharacterAssets();
+console.log('PASS: 4 real120k-250k GLB heroes/PBR512 surfaces/pivots/disposal,16 unique kit FX+7 generic FX; positions/depth/links/expiry/cap');

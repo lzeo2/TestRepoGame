@@ -50,6 +50,12 @@ export function mountFixtures(host) {
     overview(){view.camera.position.set(0,480,0);view.camera.lookAt(0,0,.1);preview={position:view.camera.position.clone(),quaternion:view.camera.quaternion.clone()};view.renderCamera();},
     renderPreview(){if(preview){view.camera.position.copy(preview.position);view.camera.quaternion.copy(preview.quaternion);}},
     clearPreview(){preview=null;},
+    inspectHero(){
+      const p=controller.position,yaw=controller.yaw;
+      view.camera.position.set(p.x-Math.sin(yaw)*2.8+Math.cos(yaw)*1.15,p.y+1.15,p.z-Math.cos(yaw)*2.8-Math.sin(yaw)*1.15);
+      view.camera.lookAt(p.x,p.y+1.05,p.z);
+      preview={position:view.camera.position.clone(),quaternion:view.camera.quaternion.clone()};view.renderCamera();
+    },
     waves(){host.setPaused(true);sim.step(Math.max(0,75-sim.time));sync();return sim.troopers.length;},
     orbs(killerTeam='carbon') {
       host.setPaused(true);sim.step(Math.max(0,75-sim.time));

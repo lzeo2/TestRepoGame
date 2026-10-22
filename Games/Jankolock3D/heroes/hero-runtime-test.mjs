@@ -4,6 +4,8 @@ import * as THREE from '../vendor/three.module.js';
 import {PlayerController} from './player-controller.mjs';
 import {HeroRuntime} from './hero-runtime.mjs';
 import {createSystems} from '../systems.mjs';
+import {preloadHeroes} from '../character-assets.mjs';
+await preloadHeroes();
 const {heroes}=JSON.parse(readFileSync(new URL('../../../docs/jank3d-hero-kits.json',import.meta.url)));
 function fixture(kit) {
   const scene=new THREE.Scene(),boxes=[],events=[];

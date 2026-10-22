@@ -1,6 +1,7 @@
 import * as THREE from '../vendor/three.module.js';
 import { PlayerController } from './player-controller.mjs';
 import { HeroRuntime } from './hero-runtime.mjs';
+import { preloadHeroes, disposeCharacterAssets } from '../character-assets.mjs';
 
 const icons={hook:'M5 18l-2 2m2-6L14 5a4 4 0 015 5l-9 9a4 4 0 01-5-5zm4-4l5 5',volley:'M3 18h3v3H3zm7-9h3v3h-3zm9 9h3v3h-3zM6 10l3-4m6 0l3 4',slam:'M12 2v12m-5-5l5 5 5-5M3 20h18',overtime:'M12 4a8 8 0 110 16 8 8 0 010-16zm0 3v6l4 2',turret:'M4 8h13v6H4zm13 2h5M10 14v4m0 0l-6 4m6-4l6 4',barricade:'M3 20V6h6v14m0 0V3h6v17m0 0V6h6v14',grenade:'M12 5l8 8-8 8-8-8zm0 0V2m0 2h5',chaingun:'M4 6h16v12H4zm0 4h16m-16 4h16m-8-8v12',longshot:'M3 20L20 3m-7 2h6v6M3 16l5 5',tether:'M3 4c14-5 4 11 13 8s7 9 2 9',headshot:'M12 2l5 10-5 10-5-10zm-9 8h3m12 0h3',xray:'M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12zm10-3a3 3 0 100 6 3 3 0 000-6',puddle:'M3 15c0-4 4-2 5-6s5-3 6 0 7 1 7 6-18 6-18 0z',glue:'M12 2S5 11 5 15a7 7 0 0014 0c0-4-7-13-7-13z',missionbomb:'M5 5h14v14H5zm0 4h14m-9-4v14',aura:'M10 3h4v7h7v4h-7v7h-4v-7H3v-4h7z'};
 const $=id=>document.getElementById(id);
@@ -8,6 +9,7 @@ const abort=new AbortController(),listen=(node,type,fn,options={})=>node.addEven
 let renderer,runtime,raf=0,stopped=false;
 
 try {
+  await preloadHeroes();
   const response=await fetch('../../../docs/jank3d-hero-kits.json');
   if(!response.ok)throw new Error(`Hero definitions unavailable (${response.status})`);
   const {heroes}=await response.json(),kit=heroes.find(h=>h.id===document.body.dataset.hero);
@@ -152,10 +154,10 @@ try {
   }
   window.heroSnapshot=()=>Object.freeze({...runtime.snapshot(),position:controller.position.toArray(),camera:camera.position.toArray(),fov:camera.fov,yaw:controller.yaw,pitch:controller.pitch,held:[...held],state:controller.state,stamina:controller.stamina,jumps:controller.jumps,grounded:controller.grounded,infiniteAmmo:controller.infiniteAmmo,pointerLocked:document.pointerLockElement===canvas,health,damage,healing,targets:targets.map(t=>({id:t.id,hp:t.hp,alive:t.alive,slow:t.slowUntil>runtime.time})),time:runtime.time});
   listen(canvas,'webglcontextlost',e=>{e.preventDefault();stopped=true;cancelAnimationFrame(raf);release();$('message').textContent='3D context lost. Reload this page to restart the range.';});
-  listen(window,'pagehide',()=>{stopped=true;cancelAnimationFrame(raf);observer.disconnect();runtime.dispose();renderer.dispose();geometries.forEach(g=>g.dispose());materials.forEach(m=>m.dispose());abort.abort();});
+  listen(window,'pagehide',()=>{stopped=true;cancelAnimationFrame(raf);observer.disconnect();runtime.dispose();disposeCharacterAssets();renderer.dispose();geometries.forEach(g=>g.dispose());materials.forEach(m=>m.dispose());abort.abort();});
   ui();raf=requestAnimationFrame(frame);
 } catch(error) {
-  stopped=true;cancelAnimationFrame(raf);runtime?.dispose();renderer?.dispose();
+  stopped=true;cancelAnimationFrame(raf);runtime?.dispose();disposeCharacterAssets();renderer?.dispose();
   const message=document.createElement('p');message.className='failure';message.textContent=`Hero workshop could not start: ${error.message}. Reload to retry. WebGL2 and a local HTTP server are required.`;
   const back=document.createElement('a');back.href='../../../index.html';back.textContent='Back to Arcade';document.body.replaceChildren(message,back);console.error(error);
 }

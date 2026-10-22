@@ -22,6 +22,7 @@ export function createWorldScene(canvas,world) {
   }
   scene.add(new THREE.HemisphereLight(0xe1e8ed,0x77715f,1.55));
   const sun=new THREE.DirectionalLight(0xffe6bc,2.1);sun.position.set(-150,300,-100);scene.add(sun);
+  const rim=new THREE.DirectionalLight(0xa5c3dc,1.3);rim.position.set(90,120,200);scene.add(rim);
   const sky=new THREE.Mesh(new THREE.BoxGeometry(2200,2200,2200),new THREE.MeshBasicMaterial({color:0xb6c9d0,side:THREE.BackSide,fog:false}));scene.add(sky);
   const sunDisk=new THREE.Mesh(sphere,new THREE.MeshBasicMaterial({color:0xf6e6bd,fog:false}));sunDisk.position.set(450,370,450);sunDisk.scale.setScalar(45);scene.add(sunDisk);
   for(const [x,z,w] of [[-150,220,80],[180,430,120],[-380,-180,100]]) mesh(sphere,0xdce2dc,x,100,z,w,8,25);

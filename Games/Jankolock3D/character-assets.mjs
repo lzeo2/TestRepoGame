@@ -58,13 +58,15 @@ function surface(family) {
   map.colorSpace=THREE.SRGBColorSpace;
   const result={map,normalMap};surfaces.set(family,result);return result;
 }
-export function cloneCharacter(id) {
+export function cloneCharacter(id,{shareGeometry=false}={}) {
   const asset=cache.get(id);if(!asset)throw new Error(`Character not preloaded: ${id}`);
   const group=asset.root.clone(true),geometryCopies=new Map(),materialCopies=new Map();
   group.traverse(o=>{
     if(!o.isMesh)return;
-    if(!geometryCopies.has(o.geometry))geometryCopies.set(o.geometry,o.geometry.clone());
-    o.geometry=geometryCopies.get(o.geometry);
+    if(!shareGeometry){
+      if(!geometryCopies.has(o.geometry))geometryCopies.set(o.geometry,o.geometry.clone());
+      o.geometry=geometryCopies.get(o.geometry);
+    }
     const copy=material=>{
       if(!materialCopies.has(material)) {
         const m=material.clone(),name=m.name.toLowerCase();

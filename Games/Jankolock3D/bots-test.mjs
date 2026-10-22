@@ -4,6 +4,8 @@ import * as THREE from './vendor/three.module.js';
 import { createSystems } from './systems.mjs';
 import { createWorldData } from './world-data.mjs';
 import { createBots } from './bots.mjs';
+import { preloadHeroes } from './character-assets.mjs';
+await preloadHeroes();
 
 const {heroes:kits}=JSON.parse(readFileSync(new URL('../../docs/jank3d-hero-kits.json',import.meta.url)));
 let groups=0;

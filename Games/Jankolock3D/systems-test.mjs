@@ -6,6 +6,8 @@ import { createSystems, ITEMS } from './systems.mjs';
 import * as THREE from './vendor/three.module.js';
 import { PlayerController } from './heroes/player-controller.mjs';
 import { HeroRuntime } from './heroes/hero-runtime.mjs';
+import { preloadHeroes } from './character-assets.mjs';
+await preloadHeroes();
 
 const { heroes: kits } = JSON.parse(readFileSync(new URL('../../docs/jank3d-hero-kits.json', import.meta.url), 'utf8'));
 const intent = (source, definition, kind, target = null, extra = {}) => ({

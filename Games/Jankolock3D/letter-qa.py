@@ -32,16 +32,35 @@ def hashes():
             for p in sorted(GAME.rglob('*')) if p.suffix in {'.mjs', '.js', '.html', '.css', '.glb'}}
 
 
+@functools.cache
+def visual_baseline_bytes():
+    scopes = ['Games/Jankolock3D', 'docs/jank3d-design', 'docs/maintenance/audits/jankolock-3d-qa',
+              'docs/maintenance/games/240-jankolock3d.md', 'docs/maintenance/inventory.json', 'docs/maintenance/README.md']
+    rows = subprocess.check_output(['git', 'ls-tree', '-rlz', 'db70557437d12582f651a88369f148fb5d7a7e20', '--', *scopes], cwd=ROOT).decode().split('\0')
+    return scopes, sum(int(row.split('\t')[0].split()[-1]) for row in rows if row)
+
+
+def visual_growth():
+    scopes, baseline = visual_baseline_bytes()
+    paths = [p for scope in scopes for p in ((ROOT / scope).rglob('*') if (ROOT / scope).is_dir() else [ROOT / scope]) if p.is_file()]
+    total = sum(p.stat().st_size for p in paths if p.name != 'ui-mockup-world-controls.png')
+    return total - baseline
+
+
 class Handler(http.server.SimpleHTTPRequestHandler):
     def log_message(self, *_):
         pass
 
 
 def main():
+    global OUT
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('letter', choices=['C', 'D', 'E', 'F'])
+    parser.add_argument('letter', choices=['A', 'C', 'D', 'E', 'F', 'H'])
     parser.add_argument('--hero', choices=['stampead', 'turretina', 'snipeoff', 'gooey'], help='One short E hero run')
+    parser.add_argument('--visual-pass', action='store_true', help='Separate visual-pass evidence and strict whole-pass60MB write guard')
     args = parser.parse_args()
+    if args.visual_pass:
+        OUT = OUT.parent / 'visual-pass'
     letter, selected_hero = args.letter, args.hero
     tag = letter + ('-' + selected_hero if selected_hero else '')
     before = guard()
@@ -53,8 +72,16 @@ def main():
     report = {'letter': letter, 'hero': selected_hero, 'runnerSha256': hashlib.sha256(Path(__file__).read_bytes()).hexdigest(), 'status': 'RUNNING', 'kind': 'Integrated software-WebGL builder evidence, not reviewer acceptance',
               'setup': 'Explicit loopback API clock/position/seed fixtures; native keys/buttons where stated. D timeline is a labeled DOM overlay of actual systems events.',
               'storageBefore': before, 'sourceHashes': hashes(), 'screenshots': [], 'responses': [], 'errors': [], 'checks': {}}
+    def write_blob(path, data):
+        guard()
+        if args.visual_pass:
+            replaced = path.stat().st_size if path.exists() else 0
+            assert visual_growth() - replaced + len(data) <= 60000000, 'Whole visual pass60MB growth cap'
+        path.write_bytes(data)
+    def save_image(path, image):
+        buffer = io.BytesIO(); image.save(buffer, format='PNG'); write_blob(path, buffer.getvalue())
     def save_report():
-        guard(); (OUT / f'letter-{tag}-evidence.json').write_text(json.dumps(report, indent=2) + '\n')
+        write_blob(OUT / f'letter-{tag}-evidence.json', (json.dumps(report, indent=2) + '\n').encode())
     save_report()
     server = http.server.ThreadingHTTPServer(('127.0.0.1', int(os.environ.get('SMOKE_PORT', '8948'))), functools.partial(Handler, directory=str(ROOT)))
     thread = threading.Thread(target=server.serve_forever, daemon=True); thread.start()
@@ -77,12 +104,19 @@ def main():
                 page.on('requestfailed', lambda r: report['errors'].append(f'{urlsplit(r.url).path}: {r.failure}'))
                 page.on('response', lambda r: report['responses'].append({'path': urlsplit(r.url).path, 'status': r.status}))
                 state = lambda: page.evaluate('window.jank3dSnapshot()')
-                def load(fixture, hero=None):
-                    response = page.goto(origin + '/Games/Jankolock3D/index.html?qa=' + fixture, wait_until='networkidle')
+                def load(fixture, hero=None, play=True):
+                    query = '?qa=' + fixture if fixture else ''
+                    response = page.goto(origin + '/Games/Jankolock3D/index.html' + query, wait_until='networkidle')
                     assert response.status == 200
-                    page.wait_for_function('typeof window.jank3dQA === "object" && window.jank3dSnapshot().diagnostics.triangles > 0')
+                    page.wait_for_function('window.jank3dSnapshot?.().diagnostics.triangles > 0')
+                    if fixture:
+                        page.wait_for_function('typeof window.jank3dQA === "object"')
+                    report['models'] = state().get('models', [])
+                    report['portrait'] = state()['portrait']
                     if hero:
                         page.locator(f'[data-hero="{hero}"]').click()
+                    if not play:
+                        return
                     page.get_by_role('button', name='Start match', exact=True).click()
                     page.wait_for_function('window.jank3dSnapshot().playing')
                     page.locator('[data-close]').click()
@@ -93,11 +127,39 @@ def main():
                     assert image.size == (1280, 720)
                     variance = sum(ImageStat.Stat(image).var) / 3
                     assert variance > 100, (name, variance)
-                    guard(); image.save(OUT / f'integration-{name}.png')
+                    save_image(OUT / f'integration-{name}.png', image)
                     report['screenshots'].append({'file': f'integration-{name}.png', 'kind': kind, 'variance': variance,
                                                   'sha256': hashlib.sha256((OUT / f'integration-{name}.png').read_bytes()).hexdigest()})
                     save_report(); print('capture ' + name, flush=True)
-                if letter == 'C':
+                if letter == 'A':
+                    report['checks']['lanes'] = []
+                    for lane, x in [('graft', -240), ('midway', 0), ('greenhedge', 240)]:
+                        load('traversal')
+                        page.evaluate('(x)=>window.jank3dQA.place({x,y:0,z:-190},Math.PI,-.03)', x)
+                        before_position = state()['controller']['position']
+                        page.evaluate('window.jank3dQA.freeze(false)'); page.keyboard.down('KeyW')
+                        page.wait_for_function('(z)=>window.jank3dSnapshot().controller.position[2]>z+1.5', arg=before_position[2])
+                        page.keyboard.up('KeyW'); page.evaluate('window.jank3dQA.freeze(true)')
+                        capture('A-' + lane, 'New textured district; native grounded walk after labeled API lane placement')
+                        walked = state()['controller']['position']
+                        page.evaluate('(lane)=>window.jank3dQA.zip(lane)', lane)
+                        page.evaluate('window.jank3dQA.freeze(false)'); page.keyboard.press('KeyE')
+                        page.wait_for_function('window.jank3dSnapshot().controller.mode==="zip"')
+                        page.evaluate('window.jank3dQA.advance(33); window.jank3dQA.freeze(true)')
+                        arrived = state()
+                        assert arrived['hero']['alive'] and arrived['controller']['mode'] == 'free' and arrived['controller']['position'][2] > 380
+                        capture('A-' + lane + '-arrival', 'Native E attachment; actual770m zip via scripted elapsed clock, alive grounded arrival')
+                        report['checks']['lanes'].append({'lane': lane, 'walkBefore': before_position, 'walkAfter': walked, 'arrival': arrived['controller'], 'hp': arrived['hero']['hp']})
+                    page.evaluate('window.jank3dQA.overview()')
+                    capture('A', 'Actual three-lane city geometry; API aerial camera, not native full-map walking')
+                elif letter == 'H':
+                    load(None, play=False)
+                    capture('H', 'Normal lobby: supplied portrait relief and new actual character model, no fixture query')
+                    page.get_by_role('button', name='Dark theme', exact=True).click()
+                    capture('H-dark', 'Normal lobby dark HTML theme; world lighting unchanged')
+                    assert len(state()['models']) == 5
+                    report['checks'] = {'models': state()['models'], 'portrait': state()['portrait']}
+                elif letter == 'C':
                     load('orbs')
                     orb = page.evaluate('window.jank3dQA.orbs()')
                     capture('C-orbs', 'Actual floating and ground drops after API damage/position setup')
@@ -159,8 +221,12 @@ def main():
                             assert s['runtime']['fx'] > 0
                             capture(f'E-{kit["id"]}-{ability["slot"]}', f'Native {ability["slot"]} key: {kit["name"]} / {ability["name"]}; API clock/position, frozen real FX')
                         report['checks'][kit['id']] = state()['runtime']; save_report()
+                        if args.visual_pass:
+                            page.evaluate('window.jank3dQA.inspectHero()')
+                            capture(f'E-{kit["id"]}-front', 'Real GLB front/three-quarter inspection camera; no material/model state grants')
+                            page.evaluate('window.jank3dQA.clearPreview()')
                     if not selected_hero or selected_hero == kits[0]['id']:
-                        guard(); (OUT / 'integration-E.png').write_bytes((OUT / f'integration-E-{kits[0]["id"]}-3.png').read_bytes())
+                        write_blob(OUT / 'integration-E.png', (OUT / f'integration-E-{kits[0]["id"]}-3.png').read_bytes())
                     if all((OUT / f'integration-E-{kit["id"]}-{a["slot"]}.png').exists() for kit in kits for a in kit['abilities']):
                         sheet = Image.new('RGB', (2560, 1536), '#eee9d8'); draw = ImageDraw.Draw(sheet)
                         for row, kit in enumerate(kits):
@@ -168,7 +234,7 @@ def main():
                                 image = Image.open(OUT / f'integration-E-{kit["id"]}-{ability["slot"]}.png').convert('RGB'); image.thumbnail((640, 360))
                                 x, y = col * 640, row * 384; sheet.paste(image, (x, y + 24))
                                 draw.text((x + 8, y + 5), kit['name'] + ' / ' + ability['name'], fill='black')
-                        guard(); sheet.save(OUT / 'integration-E-all-heroes.png')
+                        save_image(OUT / 'integration-E-all-heroes.png', sheet)
                 elif letter == 'F':
                     load('shop'); page.evaluate('window.jank3dQA.waves()')
                     page.locator('[data-open]').click()
@@ -191,7 +257,7 @@ def main():
                     mock = Image.open(ROOT / 'docs/jank3d-design/ui-mockup-systems-normalized.png').convert('RGB'); mock.thumbnail((1280, 720))
                     pair = Image.new('RGB', (2560, 752), '#eee9d8'); pair.paste(mock, (0, 32)); pair.paste(Image.open(OUT / 'integration-F.png'), (1280, 32))
                     draw = ImageDraw.Draw(pair); draw.text((12, 9), 'Approved flat shop mockup', fill='black'); draw.text((1292, 9), 'Actual integrated shop / seeded QA fixture', fill='black')
-                    guard(); pair.save(OUT / 'comparison-F.png')
+                    save_image(OUT / 'comparison-F.png', pair)
                 assert not report['errors'], report['errors']
                 assert all(r['status'] == 200 for r in report['responses']), report['responses']
                 report['status'] = 'COMPLETE-builder-checks-only'
@@ -205,7 +271,10 @@ def main():
         report['sourceHashesAfter'] = hashes(); report['sourcesUnchanged'] = report['sourceHashes'] == report['sourceHashesAfter']
         if not report['sourcesUnchanged']:
             report['status'] = 'FAIL-source-change'
-        report['storageAfter'] = guard(); save_report()
+        report['storageAfter'] = guard()
+        if args.visual_pass:
+            report['visualPassGrowthBytes'] = visual_growth()
+        save_report()
     assert report['status'] == 'COMPLETE-builder-checks-only', report['status']
     print(f'letter-{tag}: {len(report["screenshots"])} nonblank captures; {len(report["responses"])} HTTP200 responses; no recorded errors; source stable', flush=True)
 

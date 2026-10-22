@@ -2,7 +2,7 @@ import * as THREE from '../vendor/three.module.js';
 
 const UP = new THREE.Vector3(0, 1, 0), FRONT = new THREE.Vector3(0, 0, -1);
 const PAPER = '#eee5cd', INK = '#20201f', GRAPHITE = '#494a46';
-const RED = '#b55043', ORANGE = '#bd743e', WOOD = '#c1a16a', GLUE = '#dedfc8';
+const RED = '#b55043', WOOD = '#c1a16a';
 const COLORS = {
   hook: '#c18a38', volley: RED, slam: '#8c68a1', overtime: '#4e80a7',
   turret: RED, barricade: '#4e80a7', grenade: '#c18a38', chaingun: '#8c68a1',
@@ -47,96 +47,8 @@ function beam(parent, geo, material, a, b, width = 0.06) {
 }
 function disposeGeometry(kit) { for (const geo of Object.values(kit)) geo.dispose(); }
 
-/** Feet at Y=0, face -Z. The caller owns group.position and scene membership. */
-export function createHeroVisual(id) {
-  if (!['stampead', 'turretina', 'snipeoff', 'gooey'].includes(id)) throw new RangeError(`Unknown hero: ${id}`);
-  const group = new THREE.Group(), body = new THREE.Group(), kit = geometryKit(), paint = paints();
-  group.name = id; body.name = 'bob'; group.add(body);
-  const add = (shape, color, size, at, parent = body) => mesh(parent, kit[shape], paint.get(color), size, at);
-  const feet = [], arms = [];
-  const foot = (x, size, color) => {
-    const pivot = new THREE.Group(); pivot.position.x = x; body.add(pivot); feet.push(pivot);
-    add('box', color, size, [0, size[1] / 2, 0], pivot); return pivot;
-  };
-  const hand = (x, shape, color, size, y = 0.95) => {
-    const pivot = new THREE.Group(); pivot.position.set(x, y, 0); body.add(pivot); arms.push(pivot);
-    add(shape, color, size, [0, -0.12, -0.12], pivot); return pivot;
-  };
-  let eyeY, eyeZ, eyeGap;
-  if (id === 'stampead') {
-    for (const x of [-0.28, 0.28]) {
-      const boot = foot(x, [0.39, 0.28, 0.72], GRAPHITE);
-      for (let i = 0; i < 4; i++) add('box', INK, [0.4, 0.035, 0.06], [0, 0.25, -0.27 + i * 0.18], boot);
-    }
-    for (const x of [-0.28, 0.28]) add('box', GRAPHITE, [0.22, 0.28, 0.25], [x, 0.39, 0]);
-    add('box', PAPER, [0.88, 0.83, 0.57], [0, 0.91, 0]);
-    add('box', PAPER, [1.16, 0.22, 0.64], [0, 1.25, 0]);
-    add('cylinder', GRAPHITE, [0.25, 0.22, 0.25], [0, 1.43, 0]);
-    add('ball', INK, [0.92, 0.42, 0.68], [0, 1.65, 0]);
-    add('box', PAPER, [0.48, 0.17, 0.04], [0, 1.59, -0.335]);
-    hand(-0.57, 'box', PAPER, [0.26, 0.48, 0.32]);
-    const fist = hand(0.65, 'box', RED, [0.53, 0.52, 0.63]);
-    add('box', INK, [0.48, 0.1, 0.6], [0, -0.39, -0.12], fist);
-    eyeY = 1.61; eyeZ = -0.362; eyeGap = 0.12;
-  } else if (id === 'turretina') {
-    for (const x of [-0.19, 0.19]) foot(x, [0.25, 0.35, 0.38], GRAPHITE);
-    add('box', PAPER, [0.67, 0.82, 0.44], [0, 0.87, 0]);
-    for (const x of [-0.17, 0.17]) add('box', WOOD, [0.26, 0.43, 0.035], [x, 1.02, -0.25]).rotation.z = x;
-    add('ball', PAPER, [0.47, 0.44, 0.43], [0, 1.47, 0]);
-    add('cylinder', ORANGE, [0.28, 0.18, 0.28], [0, 1.74, 0.07]);
-    for (const y of [1.65, 1.83]) add('cylinder', GRAPHITE, [0.43, 0.055, 0.4], [0, y, 0.07]);
-    hand(-0.4, 'box', PAPER, [0.19, 0.5, 0.23]);
-    const gun = hand(0.41, 'box', GRAPHITE, [0.25, 0.23, 0.65], 1.12);
-    add('box', RED, [0.28, 0.11, 0.5], [0, 0.05, -0.18], gun);
-    add('box', INK, [0.13, 0.19, 0.28], [0, -0.15, -0.51], gun);
-    add('box', WOOD, [0.34, 0.4, 0.32], [-0.46, 0.73, 0.02]);
-    add('box', INK, [0.1, 0.12, 0.04], [-0.46, 0.8, -0.16]);
-    eyeY = 1.48; eyeZ = -0.214; eyeGap = 0.085;
-  } else if (id === 'snipeoff') {
-    for (const x of [-0.12, 0.12]) foot(x, [0.16, 0.57, 0.3], GRAPHITE);
-    add('box', PAPER, [0.39, 0.73, 0.32], [0, 0.99, 0]);
-    for (const x of [-0.12, 0.12]) add('box', PAPER, [0.18, 0.53, 0.08], [x, 0.57, 0.22]).rotation.x = 0.2;
-    add('box', WOOD, [0.27, 0.31, 0.29], [0, 1.49, 0]);
-    add('nib', WOOD, [0.51, 0.39, 0.46], [0, 1.82, 0]);
-    add('nib', INK, [0.18, 0.16, 0.16], [0, 1.99, 0]);
-    hand(-0.29, 'box', PAPER, [0.14, 0.51, 0.18], 1.16);
-    const rifle = hand(0.29, 'box', WOOD, [0.14, 0.13, 1.48], 1.2);
-    for (let i = 0; i < 8; i++) add('box', INK, [0.095, 0.017, 0.022], [0.02, -0.047, -0.74 + i * 0.15], rifle);
-    eyeY = 1.52; eyeZ = -0.154; eyeGap = 0.06;
-  } else {
-    for (const x of [-0.24, 0.24]) foot(x, [0.4, 0.14, 0.48], GLUE);
-    add('ball', GLUE, [1.12, 1.1, 0.91], [0, 0.57, 0]);
-    add('ball', GLUE, [0.77, 0.8, 0.73], [0, 1.09, 0]);
-    const lid = new THREE.Group(); lid.position.set(0.03, 1.52, 0); lid.rotation.set(0.12, 0, -0.22); body.add(lid);
-    add('cylinder', ORANGE, [0.9, 0.13, 0.78], [0, 0, 0], lid);
-    add('cylinder', PAPER, [0.64, 0.045, 0.55], [0, 0.08, 0], lid);
-    for (const x of [-0.65, 0.65]) hand(x, 'ball', GLUE, [0.49, 0.49, 0.5], 0.82);
-    beam(body, kit.cylinder, paint.get(GRAPHITE), new THREE.Vector3(0, 1.25, -0.35), new THREE.Vector3(0, 0.78, -0.49), 0.025);
-    add('box', PAPER, [0.4, 0.33, 0.035], [0, 0.68, -0.49]).rotation.z = -0.1;
-    eyeY = 1.2; eyeZ = -0.355; eyeGap = 0.12;
-  }
-  for (const x of [-eyeGap, eyeGap]) {
-    add('box', INK, [0.048, 0.048, 0.025], [x, eyeY, eyeZ]).name = 'eye';
-  }
-  let clock = 0, disposed = false;
-  return {
-    group,
-    update(dt, { state = 'idle', speed = 0, yaw = 0, aiming = false } = {}) {
-      if (disposed) return;
-      clock += Math.max(0, finite(dt)); group.rotation.y = finite(yaw);
-      const moving = Math.min(1, Math.abs(finite(speed)) / 8), step = Math.sin(clock * 11) * moving;
-      body.position.y = Math.abs(step) * 0.045;
-      body.scale.y = state === 'slide' ? 0.58 : 1;
-      body.rotation.x = state === 'slide' ? -0.24 : state === 'jump' ? -0.12 : state === 'fall' ? 0.1 : state === 'dash' ? -0.2 : 0;
-      feet.forEach((part, i) => { part.rotation.x = state === 'slide' ? 0 : step * (i ? -0.3 : 0.3); });
-      arms.forEach((part, i) => { part.rotation.x = aiming ? -0.18 : step * (i ? 0.12 : -0.12); });
-    },
-    dispose() {
-      if (disposed) return;
-      disposed = true; group.removeFromParent(); group.clear(); paint.dispose(); disposeGeometry(kit);
-    }
-  };
-}
+/** Feet at Y=0, face -Z. Preload the real GLBs before constructing a runtime. */
+export { createHeroVisual } from './hero-model.mjs';
 
 /** Pure visual effects. Root positions stay caller-owned, including projectiles. */
 export class AbilityFX {

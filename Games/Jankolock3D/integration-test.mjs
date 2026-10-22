@@ -7,6 +7,8 @@ import { matchWorld } from './match-world.mjs';
 import { createBots } from './bots.mjs';
 import { mountFixtures, runChain } from './integration-fixtures.mjs';
 import { selfCheckPortrait } from './portrait.js';
+import { preloadHeroes } from './character-assets.mjs';
+await preloadHeroes();
 const world=createWorldData(),kits=JSON.parse(readFileSync(new URL('../../docs/jank3d-hero-kits.json',import.meta.url))).heroes;
 const routed=matchWorld(world);
 assert.deepEqual(routed.lanes.find(l=>l.id==='midway').waypoints.map(p=>[p.z,p.y]),[[-390,0],[-55,0],[-35,3],[35,3],[55,0],[390,0]]);

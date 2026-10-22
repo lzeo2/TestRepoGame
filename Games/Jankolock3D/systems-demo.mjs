@@ -2,6 +2,7 @@ import * as THREE from './vendor/three.module.js';
 import { createSystems } from './systems.mjs';
 import { mountSystemsUI } from './systems-ui.mjs';
 import { createSystemsLayer } from './systems-view.mjs';
+import { loadCharacter, disposeCharacterAssets } from './character-assets.mjs';
 
 // Only a same-origin descriptor load. Missing export uses procedural lanes; invalid exports fail visibly.
 export async function loadSystemsWorld(url = new URL('../../docs/jank3d-spawns.json', import.meta.url)) {
@@ -14,6 +15,7 @@ export async function loadSystemsWorld(url = new URL('../../docs/jank3d-spawns.j
 }
 
 async function start() {
+  await loadCharacter('trooper');
   const { world, source } = await loadSystemsWorld(), sim = createSystems(world);
   const fixture = new URL(location.href).searchParams.get('fixture') ?? 'base';
   const hero = sim.addHero({ id: 'preview-player', team: fixture === 'deny' ? 'ivory' : 'carbon', lane: 'midway', souls: 4800 });
@@ -38,6 +40,8 @@ async function start() {
   const canvas = document.querySelector('#systems-canvas'), renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'low-power' });
   renderer.setPixelRatio(Math.min(devicePixelRatio, 1.5)); renderer.setClearColor(0x8b8c8e);
   const scene = new THREE.Scene(), camera = new THREE.PerspectiveCamera(60, 1, 0.1, 1000), layer = createSystemsLayer(scene), ray = new THREE.Raycaster();
+  scene.add(new THREE.HemisphereLight(0xe1e8ed,0x77715f,2));
+  const keyLight=new THREE.DirectionalLight(0xffe6bc,2);keyLight.position.set(-10,20,-10);scene.add(keyLight);
   const keys = new Set(), bindings = new AbortController(), options = { signal: bindings.signal };
   let paused = false, stopped = false, frame = 0, last = performance.now(), notice = '', lastPosition = { ...hero.position };
   const pause = document.querySelector('#pause');
@@ -100,7 +104,7 @@ async function start() {
     orbs: sim.orbs.map(o => ({ id: o.id, type: o.type, team: o.team, souls: o.souls, expiresAt: o.expiresAt, position: { ...o.position } })), projections: layer.projections(camera),
     calls: renderer.info.render.calls, triangles: renderer.info.render.triangles });
   function stop() {
-    if (stopped) return; stopped = true; cancelAnimationFrame(frame); bindings.abort(); observer.disconnect(); ui.dispose(); layer.dispose(); renderer.dispose();
+    if (stopped) return; stopped = true; cancelAnimationFrame(frame); bindings.abort(); observer.disconnect(); ui.dispose(); layer.dispose(); disposeCharacterAssets(); renderer.dispose();
     delete window.jank3dSystemsSnapshot;
   }
   window.addEventListener('pagehide', stop, { once: true });
@@ -108,6 +112,7 @@ async function start() {
   frame = requestAnimationFrame(draw);
 }
 start().catch(error => {
+  disposeCharacterAssets();
   const output = document.querySelector('#error'); output.hidden = false;
   output.textContent = `Systems preview could not start: ${error.message}`;
 });

@@ -10,6 +10,7 @@ import { HeroRuntime } from './heroes/hero-runtime.mjs';
 import { createBots } from './bots.mjs';
 import { mountIntegrationUI } from './integration-ui.mjs';
 import { mountPortrait } from './portrait.js';
+import { preloadHeroes, loadCharacter, characterMetadata, disposeCharacterAssets } from './character-assets.mjs';
 
 const canvas=document.getElementById('game'), abort=new AbortController();
 const listen=(node,type,fn,options={})=>node.addEventListener(type,fn,{...options,signal:abort.signal});
@@ -113,9 +114,10 @@ function tick(dt) {
 }
 function stop() {
   if(stopped)return;stopped=true;cancelAnimationFrame(raf);clear();observer?.disconnect();
-  ui?.dispose();bots?.dispose();runtime?.dispose();actors?.dispose();portrait?.dispose();view?.dispose();abort.abort();
+  ui?.dispose();bots?.dispose();runtime?.dispose();actors?.dispose();portrait?.dispose();disposeCharacterAssets();view?.dispose();abort.abort();
 }
 try {
+  await Promise.all([preloadHeroes(),loadCharacter('trooper')]);
   const response=await fetch('../../docs/jank3d-hero-kits.json');
   if(!response.ok)throw new Error(`Hero definitions HTTP ${response.status}`);
   const {heroes:kits}=await response.json();
@@ -200,7 +202,7 @@ try {
   window.jank3dSnapshot=()=>({time:sim.time,phase:sim.phase,winner:sim.winner,playing,paused,fixture:qa?fixture:null,
     hero:{...hero,position:{...hero.position},items:[...hero.items]},controller:{position:controller.position.toArray(),state:controller.state,jumps:controller.jumps,stamina:controller.stamina,yaw:controller.yaw,pitch:controller.pitch,mode:traveler.mode},
     runtime:runtime.snapshot(),bots:bots?.snapshot()??[],troopers:sim.troopers.map(t=>({...t,position:{...t.position}})),orbs:sim.orbs.map(o=>({...o,position:{...o.position}})),
-    structures:sim.structures.map(s=>({...s,position:{...s.position}})),history:history.slice(-100),portrait:portrait.metadata,diagnostics:view.diagnostics()});
+    structures:sim.structures.map(s=>({...s,position:{...s.position}})),history:history.slice(-100),portrait:portrait.metadata,models:characterMetadata(),diagnostics:view.diagnostics()});
   if(qa) {
     const {mountFixtures}=await import('./integration-fixtures.mjs');
     window.jank3dQA=mountFixtures({sim,world,hero,get runtime(){return runtime;},controller,traveler,view,actors,get bots(){return bots;},start:()=>{start(selected);caption.hidden=true;},tick,ui,history,setPaused:v=>{paused=v;},fixture});
