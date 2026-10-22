@@ -283,7 +283,8 @@ pose repair was paused for this order and has not been implemented.
 The operator explicitly retains existing A-I receipts across this theme-only
 change. Original images, hashes and capture records remain untouched. The model
 packet verifier now compares source/runner bytes to recorded `bedb052`, not to
-new UI bytes; models/screenshots still verify against actual files. This is
+new UI bytes; original model bytes verify through Git and screenshots against
+actual files. This is
 historical-source verification, not an assertion that current CSS equals old
 CSS. Additive `theme-qa.py` checks script-free dark startup on all seven entries,
 OS-light/cache-cold initial dark hero selection, HUD/shop/minimap and native
@@ -341,9 +342,27 @@ poses. New `external-model-qa.py` serves the actual fallback devhero files from
 Git `bf215f0` and current files under separate loopback path prefixes, then
 captures real before/after views with native walks and Turretina deployment.
 No screenshot substitution, fake camera or gameplay state grant is used.
-Browser results/cleanup and raw-input deletion will be recorded only after
-that bounded gate completes. Model/source acceptance remains separate from
-art/40FPS/hardware/full-release/push gates; 127 catalog entries remain.
+The first bounded gate completed: four before/after pairs, 11 native screenshots,
+361 HTTP200 responses, zero retained errors and 100 stable source/resource hashes.
+The before namespace executed actual Git fallback files, not substituted images.
+New views exercised native walks for all four heroes, the real deployed stapler,
+and normal integrated lobby/HUD with five bots. Actual pairs/prop/lobby/HUD were
+inspected. Source integration is `f73a500` (`jank3d: external-hero-models`);
+evidence and the six-line inventory update are committed in `40ba135`.
+
+Input custody records 25 exact-copy files totaling 4,433,562 bytes, including
+five rig aliases equal to their retained canonical rig files. Cached-content
+and constructed-runtime-path audits found no required raw-drop consumer;
+optional offline `--ingest` is distinct from normal runtime/check paths.
+The explicitly authorized `external-art/` deletion completed after render/copy
+verification. Both canonical audit and 2,540-pose tests passed without the raw
+directory. Fallback GLBs/source stay recoverable in Git `bf215f0`; trooper and
+portrait are unchanged. See the [external integration report](../audits/jankolock-3d-qa/external-models/README.md).
+
+Disk recovery allowed only final docs/index work under a bounded 10 MB waiver,
+`TMPDIR=/dev/shm`, stop below 1,800,000,000 free bytes, no assets/browser retries
+or push. Cleanup/evidence commits were not repeated. Model/source checks are
+not art/40FPS/hardware/full-release acceptance; 127 catalog entries remain.
 
 ## Future outlook
 
