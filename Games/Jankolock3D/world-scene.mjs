@@ -1,9 +1,11 @@
 import * as THREE from './vendor/three.module.js';
 import { LANES, TEAM_COLORS, terrainHeight } from './world-data.mjs';
+import { createEnvironment } from './environment.mjs';
 export function createWorldScene(canvas,world) {
   const renderer=new THREE.WebGLRenderer({canvas,antialias:false,powerPreference:'low-power'});
   renderer.setPixelRatio(1);
   renderer.setClearColor(0xb6c9d0);
+  renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.05;
   const scene=new THREE.Scene();scene.fog=new THREE.Fog(0xb6c9d0,180,950);
   const camera=new THREE.PerspectiveCamera(70,1,.1,1400);camera.rotation.order='YXZ';
   const materials=new Map(),textures=[],crateMeshes=new Map(),structureMeshes=new Map();
@@ -18,11 +20,11 @@ export function createWorldScene(canvas,world) {
     const t=new THREE.CanvasTexture(c);t.colorSpace=THREE.SRGBColorSpace;textures.push(t);
     const m=new THREE.SpriteMaterial({map:t});const s=new THREE.Sprite(m);s.position.set(x,y,z);s.scale.set(width,width*96/512,1);scene.add(s);return s;
   }
-  scene.add(new THREE.AmbientLight(0xe9edf0,1.65));
+  scene.add(new THREE.HemisphereLight(0xe1e8ed,0x77715f,1.55));
   const sun=new THREE.DirectionalLight(0xffe6bc,2.1);sun.position.set(-150,300,-100);scene.add(sun);
   const sky=new THREE.Mesh(new THREE.BoxGeometry(2200,2200,2200),new THREE.MeshBasicMaterial({color:0xb6c9d0,side:THREE.BackSide,fog:false}));scene.add(sky);
   const sunDisk=new THREE.Mesh(sphere,new THREE.MeshBasicMaterial({color:0xf6e6bd,fog:false}));sunDisk.position.set(450,370,450);sunDisk.scale.setScalar(45);scene.add(sunDisk);
-  for(const [x,z,w] of [[-150,220,80],[180,430,120],[-380,-180,100]]) box(0xdce2dc,x,100,z,w,8,25);
+  for(const [x,z,w] of [[-150,220,80],[180,430,120],[-380,-180,100]]) mesh(sphere,0xdce2dc,x,100,z,w,8,25);
   // Upper ground has real openings for the sewer and sunken plaza.
   const xs=[-450,-65,40,65,90,170,205,450],zs=[-450,-28,-9,9,28,60,75,100,140,450];
   for(let i=0;i<xs.length-1;i++) for(let j=0;j<zs.length-1;j++) {
@@ -44,16 +46,7 @@ export function createWorldScene(canvas,world) {
     label(lane.name,lane.x,12,-350,'#17191b',25);
   }
   for(const z of [-280,-140,140,280]) box(0x737676,0,.02,z,900,.04,18);
-  const windows=[];
-  for(const b of world.buildings) {
-    box(b.color,b.x,b.height/2,b.z,36,b.height,42);
-    box(0x514e48,b.x,b.height+.2,b.z,37,.4,43);
-    box(0x83837b,b.x+8,b.height+1,b.z+6,6,2,8);
-    for(let y=4;y<b.height-1;y+=5) for(let dx=-12;dx<=12;dx+=8) for(const sign of [-1,1]) windows.push([b.x+dx,y,b.z+sign*21.03]);
-    box(0x484b48,b.x,2,b.z-21.05,4,4,.1);
-  }
-  const wm=new THREE.InstancedMesh(cube,material(0xefdfb4),windows.length),matrix=new THREE.Matrix4();
-  windows.forEach(([x,y,z],i)=>{matrix.makeScale(3,2.2,.12);matrix.setPosition(x,y,z);wm.setMatrixAt(i,matrix);});scene.add(wm);
+  const environment=createEnvironment(scene,world);
   for(const b of world.boxes.filter(b=>!['building','crate','tower'].includes(b.kind))) {
     box(b.kind==='bridge'?0x666e71:b.kind==='cover'?0x756e59:0xaaa28c,(b.minX+b.maxX)/2,(b.minY+b.maxY)/2,(b.minZ+b.maxZ)/2,b.maxX-b.minX,b.maxY-b.minY,b.maxZ-b.minZ);
   }
@@ -63,7 +56,7 @@ export function createWorldScene(canvas,world) {
     if(r.axis==='z')m.rotation.x=-Math.atan2(dy,dz);else m.rotation.z=Math.atan2(dy,dx);
   }
   for(const s of world.spawns) {
-    const {x,y,z}=s.position,c=TEAM_COLORS[s.team],g=new THREE.Group();g.position.set(x,y,z);scene.add(g);structureMeshes.set(s.id,g);
+    const {x,y,z}=s.position,c=TEAM_COLORS[s.team],g=new THREE.Group();g.name=s.id;g.position.set(x,y,z);scene.add(g);structureMeshes.set(s.id,g);
     if(s.type==='guardian'||s.type==='base-guardian') {
       rod(0x575752,0,1,0,3,2,g);box(c,0,5,0,4,7,4,g);box(0x303535,0,9,0,6,2,5,g);
       box(0xf5dda1,0,9,-2.6,3,.6,.2,g);rod(0x535652,0,12,0,.4,4,g);
@@ -120,7 +113,7 @@ export function createWorldScene(canvas,world) {
   resize();
   return {
     scene,camera,
-    renderCamera(view=camera) {if(!disposed)renderer.render(scene,view);},
+    renderCamera(view=camera) {if(!disposed){environment.update(view);renderer.render(scene,view);}},
     syncStructures(structures) {
       const live=new Map(structures.map(s=>[s.id,s]));
       for(const [id,group] of structureMeshes) {
@@ -128,10 +121,10 @@ export function createWorldScene(canvas,world) {
         if(s) {group.position.set(s.position.x,s.position.y,s.position.z);group.scale.y=s.type==='patron'&&s.patronPhase===2?.7:1;}
       }
     },
-    render(p,yaw,pitch) {if(disposed)return;camera.position.set(p.x,p.y+1.6,p.z);camera.rotation.set(pitch,yaw,0);renderer.render(scene,camera);},
+    render(p,yaw,pitch) {if(disposed)return;camera.position.set(p.x,p.y+1.6,p.z);camera.rotation.set(pitch,yaw,0);environment.update(camera);renderer.render(scene,camera);},
     resize,
     sync(s) {for(const [id,m] of crateMeshes)m.visible=!s.collected.has(id)&&!s.broken.has(id);},
-    diagnostics:()=>Object.freeze({calls:renderer.info.render.calls,triangles:renderer.info.render.triangles,geometries:renderer.info.memory.geometries,textures:renderer.info.memory.textures}),
-    dispose() {if(disposed)return;disposed=true;const gs=new Set(),ms=new Set();scene.traverse(o=>{if(o.geometry)gs.add(o.geometry);if(o.material)ms.add(o.material);});gs.forEach(g=>g.dispose());ms.forEach(m=>m.dispose());textures.forEach(t=>t.dispose());renderer.dispose();renderer.forceContextLoss();scene.clear();}
+    diagnostics:()=>Object.freeze({calls:renderer.info.render.calls,triangles:renderer.info.render.triangles,geometries:renderer.info.memory.geometries,textures:renderer.info.memory.textures,environment:environment.diagnostics()}),
+    dispose() {if(disposed)return;disposed=true;environment.dispose();const gs=new Set(),ms=new Set();scene.traverse(o=>{if(o.geometry)gs.add(o.geometry);if(o.material)ms.add(o.material);});gs.forEach(g=>g.dispose());ms.forEach(m=>m.dispose());textures.forEach(t=>t.dispose());renderer.dispose();renderer.forceContextLoss();scene.clear();}
   };
 }
