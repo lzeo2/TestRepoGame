@@ -1,0 +1,2614 @@
+{
+  "scope": "Builder evidence for E, reviewer grades separately",
+  "screenshots": [
+    {
+      "file": "docs/maintenance/audits/jankolock-3d-qa/heroes-1-light.png",
+      "variance": 4785.32,
+      "snapshot": {
+        "hero": "stampead",
+        "ammo": 12,
+        "shots": 0,
+        "reload": 0,
+        "cooldowns": {},
+        "casts": {},
+        "lastAbility": null,
+        "fx": 0,
+        "deployments": 0,
+        "projectiles": 0,
+        "buffs": [],
+        "position": [
+          0,
+          0,
+          8
+        ],
+        "camera": [
+          1.1,
+          1.5899895836588493,
+          11.998750065102811
+        ],
+        "fov": 65,
+        "yaw": 0,
+        "pitch": -0.025,
+        "held": [],
+        "state": "idle",
+        "stamina": 100,
+        "jumps": 0,
+        "grounded": true,
+        "infiniteAmmo": false,
+        "pointerLocked": false,
+        "health": 700,
+        "damage": 0,
+        "healing": 0,
+        "targets": [
+          {
+            "id": "left",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "center",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "right",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "covered",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "ally",
+            "hp": 140,
+            "alive": true,
+            "slow": false
+          }
+        ],
+        "time": 0.5997000000000007
+      }
+    },
+    {
+      "file": "docs/maintenance/audits/jankolock-3d-qa/heroes-1-dark.png",
+      "variance": 4433.06,
+      "snapshot": {
+        "hero": "stampead",
+        "ammo": 12,
+        "shots": 0,
+        "reload": 0,
+        "cooldowns": {},
+        "casts": {},
+        "lastAbility": null,
+        "fx": 0,
+        "deployments": 0,
+        "projectiles": 0,
+        "buffs": [],
+        "position": [
+          0,
+          0,
+          8
+        ],
+        "camera": [
+          1.1,
+          1.5899895836588493,
+          11.998750065102811
+        ],
+        "fov": 65,
+        "yaw": 0,
+        "pitch": -0.025,
+        "held": [],
+        "state": "idle",
+        "stamina": 100,
+        "jumps": 0,
+        "grounded": true,
+        "infiniteAmmo": false,
+        "pointerLocked": false,
+        "health": 700,
+        "damage": 0,
+        "healing": 0,
+        "targets": [
+          {
+            "id": "left",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "center",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "right",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "covered",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "ally",
+            "hp": 140,
+            "alive": true,
+            "slow": false
+          }
+        ],
+        "time": 1.0330000000000004
+      }
+    },
+    {
+      "file": "docs/maintenance/audits/jankolock-3d-qa/heroes-1-ability-1.png",
+      "variance": 4522.99,
+      "snapshot": {
+        "hero": "stampead",
+        "ammo": 12,
+        "shots": 0,
+        "reload": 0,
+        "cooldowns": {
+          "1": 5.733200000000002
+        },
+        "casts": {
+          "hook": 1
+        },
+        "lastAbility": "hook",
+        "fx": 2,
+        "deployments": 0,
+        "projectiles": 0,
+        "buffs": [],
+        "position": [
+          0.37620615423459336,
+          0,
+          0.004846159734273922
+        ],
+        "camera": [
+          1.4072962887251768,
+          1.5899895836588493,
+          5.4680724692003055
+        ],
+        "fov": 65,
+        "yaw": 0,
+        "pitch": -0.025,
+        "held": [],
+        "state": "dash",
+        "stamina": 100,
+        "jumps": 0,
+        "grounded": true,
+        "infiniteAmmo": false,
+        "pointerLocked": false,
+        "health": 700,
+        "damage": 45,
+        "healing": 0,
+        "targets": [
+          {
+            "id": "left",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "center",
+            "hp": 355,
+            "alive": true,
+            "slow": true
+          },
+          {
+            "id": "right",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "covered",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "ally",
+            "hp": 140,
+            "alive": true,
+            "slow": false
+          }
+        ],
+        "time": 0.4167999999999992
+      }
+    },
+    {
+      "file": "docs/maintenance/audits/jankolock-3d-qa/heroes-1-ability-2.png",
+      "variance": 4598.14,
+      "snapshot": {
+        "hero": "stampead",
+        "ammo": 12,
+        "shots": 0,
+        "reload": 0,
+        "cooldowns": {
+          "2": 4.700000000000001
+        },
+        "casts": {
+          "volley": 1
+        },
+        "lastAbility": "volley",
+        "fx": 1,
+        "deployments": 0,
+        "projectiles": 0,
+        "buffs": [],
+        "position": [
+          0,
+          0,
+          8
+        ],
+        "camera": [
+          1.1,
+          1.5899895836588493,
+          11.998750065102811
+        ],
+        "fov": 65,
+        "yaw": 0,
+        "pitch": -0.025,
+        "held": [],
+        "state": "idle",
+        "stamina": 100,
+        "jumps": 0,
+        "grounded": true,
+        "infiniteAmmo": false,
+        "pointerLocked": false,
+        "health": 700,
+        "damage": 195,
+        "healing": 0,
+        "targets": [
+          {
+            "id": "left",
+            "hp": 335,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "center",
+            "hp": 335,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "right",
+            "hp": 335,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "covered",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "ally",
+            "hp": 140,
+            "alive": true,
+            "slow": false
+          }
+        ],
+        "time": 0.44999999999999996
+      }
+    },
+    {
+      "file": "docs/maintenance/audits/jankolock-3d-qa/heroes-1-ability-3.png",
+      "variance": 4574.18,
+      "snapshot": {
+        "hero": "stampead",
+        "ammo": 12,
+        "shots": 0,
+        "reload": 0,
+        "cooldowns": {
+          "3": 7.683400000000001
+        },
+        "casts": {
+          "slam": 1
+        },
+        "lastAbility": "slam",
+        "fx": 1,
+        "deployments": 0,
+        "projectiles": 0,
+        "buffs": [],
+        "position": [
+          0,
+          0,
+          8
+        ],
+        "camera": [
+          1.1,
+          1.5899895836588493,
+          11.998750065102811
+        ],
+        "fov": 65,
+        "yaw": 0,
+        "pitch": -0.025,
+        "held": [],
+        "state": "idle",
+        "stamina": 100,
+        "jumps": 0,
+        "grounded": true,
+        "infiniteAmmo": false,
+        "pointerLocked": false,
+        "health": 700,
+        "damage": 0,
+        "healing": 0,
+        "targets": [
+          {
+            "id": "left",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "center",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "right",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "covered",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "ally",
+            "hp": 140,
+            "alive": true,
+            "slow": false
+          }
+        ],
+        "time": 0.41660000000000036
+      }
+    },
+    {
+      "file": "docs/maintenance/audits/jankolock-3d-qa/heroes-1-ability-4.png",
+      "variance": 4567.09,
+      "snapshot": {
+        "hero": "stampead",
+        "ammo": 12,
+        "shots": 0,
+        "reload": 0,
+        "cooldowns": {
+          "4": 19.649999999999995
+        },
+        "casts": {
+          "overtime": 1
+        },
+        "lastAbility": "overtime",
+        "fx": 1,
+        "deployments": 0,
+        "projectiles": 0,
+        "buffs": [
+          "overtime"
+        ],
+        "position": [
+          0,
+          0,
+          8
+        ],
+        "camera": [
+          1.1,
+          1.5899895836588493,
+          11.998750065102811
+        ],
+        "fov": 65,
+        "yaw": 0,
+        "pitch": -0.025,
+        "held": [],
+        "state": "idle",
+        "stamina": 100,
+        "jumps": 0,
+        "grounded": true,
+        "infiniteAmmo": false,
+        "pointerLocked": false,
+        "health": 700,
+        "damage": 0,
+        "healing": 0,
+        "targets": [
+          {
+            "id": "left",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "center",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "right",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "covered",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "ally",
+            "hp": 140,
+            "alive": true,
+            "slow": false
+          }
+        ],
+        "time": 0.44999999999999996
+      }
+    },
+    {
+      "file": "docs/maintenance/audits/jankolock-3d-qa/heroes-2-light.png",
+      "variance": 4674.02,
+      "snapshot": {
+        "hero": "turretina",
+        "ammo": 18,
+        "shots": 0,
+        "reload": 0,
+        "cooldowns": {},
+        "casts": {},
+        "lastAbility": null,
+        "fx": 0,
+        "deployments": 0,
+        "projectiles": 0,
+        "buffs": [],
+        "position": [
+          0,
+          0,
+          8
+        ],
+        "camera": [
+          1.1,
+          1.5899895836588493,
+          11.998750065102811
+        ],
+        "fov": 65,
+        "yaw": 0,
+        "pitch": -0.025,
+        "held": [],
+        "state": "idle",
+        "stamina": 100,
+        "jumps": 0,
+        "grounded": true,
+        "infiniteAmmo": false,
+        "pointerLocked": false,
+        "health": 550,
+        "damage": 0,
+        "healing": 0,
+        "targets": [
+          {
+            "id": "left",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "center",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "right",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "covered",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "ally",
+            "hp": 140,
+            "alive": true,
+            "slow": false
+          }
+        ],
+        "time": 0.5666999999999999
+      }
+    },
+    {
+      "file": "docs/maintenance/audits/jankolock-3d-qa/heroes-2-dark.png",
+      "variance": 4398.27,
+      "snapshot": {
+        "hero": "turretina",
+        "ammo": 18,
+        "shots": 0,
+        "reload": 0,
+        "cooldowns": {},
+        "casts": {},
+        "lastAbility": null,
+        "fx": 0,
+        "deployments": 0,
+        "projectiles": 0,
+        "buffs": [],
+        "position": [
+          0,
+          0,
+          8
+        ],
+        "camera": [
+          1.1,
+          1.5899895836588493,
+          11.998750065102811
+        ],
+        "fov": 65,
+        "yaw": 0,
+        "pitch": -0.025,
+        "held": [],
+        "state": "idle",
+        "stamina": 100,
+        "jumps": 0,
+        "grounded": true,
+        "infiniteAmmo": false,
+        "pointerLocked": false,
+        "health": 550,
+        "damage": 0,
+        "healing": 0,
+        "targets": [
+          {
+            "id": "left",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "center",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "right",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "covered",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "ally",
+            "hp": 140,
+            "alive": true,
+            "slow": false
+          }
+        ],
+        "time": 1.0334000000000005
+      }
+    },
+    {
+      "file": "docs/maintenance/audits/jankolock-3d-qa/heroes-2-ability-1.png",
+      "variance": 4473.78,
+      "snapshot": {
+        "hero": "turretina",
+        "ammo": 18,
+        "shots": 0,
+        "reload": 0,
+        "cooldowns": {
+          "1": 9.716699999999996
+        },
+        "casts": {
+          "turret": 1
+        },
+        "lastAbility": "turret",
+        "fx": 1,
+        "deployments": 1,
+        "projectiles": 0,
+        "buffs": [],
+        "position": [
+          0,
+          0,
+          8
+        ],
+        "camera": [
+          1.1,
+          1.5899895836588493,
+          11.998750065102811
+        ],
+        "fov": 65,
+        "yaw": 0,
+        "pitch": -0.025,
+        "held": [],
+        "state": "idle",
+        "stamina": 100,
+        "jumps": 0,
+        "grounded": true,
+        "infiniteAmmo": false,
+        "pointerLocked": false,
+        "health": 550,
+        "damage": 18,
+        "healing": 0,
+        "targets": [
+          {
+            "id": "left",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "center",
+            "hp": 382,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "right",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "covered",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "ally",
+            "hp": 140,
+            "alive": true,
+            "slow": false
+          }
+        ],
+        "time": 0.3833000000000002
+      }
+    },
+    {
+      "file": "docs/maintenance/audits/jankolock-3d-qa/heroes-2-ability-2.png",
+      "variance": 4488.57,
+      "snapshot": {
+        "hero": "turretina",
+        "ammo": 18,
+        "shots": 0,
+        "reload": 0,
+        "cooldowns": {
+          "2": 9.633399999999995
+        },
+        "casts": {
+          "barricade": 1
+        },
+        "lastAbility": "barricade",
+        "fx": 1,
+        "deployments": 1,
+        "projectiles": 0,
+        "buffs": [],
+        "position": [
+          0,
+          0,
+          8
+        ],
+        "camera": [
+          1.1,
+          1.5899895836588493,
+          11.998750065102811
+        ],
+        "fov": 65,
+        "yaw": 0,
+        "pitch": -0.025,
+        "held": [],
+        "state": "idle",
+        "stamina": 100,
+        "jumps": 0,
+        "grounded": true,
+        "infiniteAmmo": false,
+        "pointerLocked": false,
+        "health": 550,
+        "damage": 0,
+        "healing": 0,
+        "targets": [
+          {
+            "id": "left",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "center",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "right",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "covered",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "ally",
+            "hp": 140,
+            "alive": true,
+            "slow": false
+          }
+        ],
+        "time": 0.46660000000000035
+      }
+    },
+    {
+      "file": "docs/maintenance/audits/jankolock-3d-qa/heroes-2-ability-3.png",
+      "variance": 4467.45,
+      "snapshot": {
+        "hero": "turretina",
+        "ammo": 18,
+        "shots": 0,
+        "reload": 0,
+        "cooldowns": {
+          "3": 6.7333
+        },
+        "casts": {
+          "grenade": 1
+        },
+        "lastAbility": "grenade",
+        "fx": 1,
+        "deployments": 0,
+        "projectiles": 1,
+        "buffs": [],
+        "position": [
+          0,
+          0,
+          8
+        ],
+        "camera": [
+          1.1,
+          1.5899895836588493,
+          11.998750065102811
+        ],
+        "fov": 65,
+        "yaw": 0,
+        "pitch": -0.025,
+        "held": [],
+        "state": "idle",
+        "stamina": 100,
+        "jumps": 0,
+        "grounded": true,
+        "infiniteAmmo": false,
+        "pointerLocked": false,
+        "health": 550,
+        "damage": 0,
+        "healing": 0,
+        "targets": [
+          {
+            "id": "left",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "center",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "right",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "covered",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "ally",
+            "hp": 140,
+            "alive": true,
+            "slow": false
+          }
+        ],
+        "time": 0.4167000000000007
+      }
+    },
+    {
+      "file": "docs/maintenance/audits/jankolock-3d-qa/heroes-2-ability-4.png",
+      "variance": 4483.45,
+      "snapshot": {
+        "hero": "turretina",
+        "ammo": 18,
+        "shots": 0,
+        "reload": 0,
+        "cooldowns": {
+          "4": 21.666599999999995
+        },
+        "casts": {
+          "chaingun": 1
+        },
+        "lastAbility": "chaingun",
+        "fx": 1,
+        "deployments": 0,
+        "projectiles": 0,
+        "buffs": [
+          "chaingun"
+        ],
+        "position": [
+          0,
+          0,
+          8
+        ],
+        "camera": [
+          1.1,
+          1.5899895836588493,
+          11.998750065102811
+        ],
+        "fov": 65,
+        "yaw": 0,
+        "pitch": -0.025,
+        "held": [],
+        "state": "idle",
+        "stamina": 100,
+        "jumps": 0,
+        "grounded": true,
+        "infiniteAmmo": false,
+        "pointerLocked": false,
+        "health": 550,
+        "damage": 45,
+        "healing": 0,
+        "targets": [
+          {
+            "id": "left",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "center",
+            "hp": 355,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "right",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "covered",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "ally",
+            "hp": 140,
+            "alive": true,
+            "slow": false
+          }
+        ],
+        "time": 0.4334000000000005
+      }
+    },
+    {
+      "file": "docs/maintenance/audits/jankolock-3d-qa/heroes-3-light.png",
+      "variance": 4645.99,
+      "snapshot": {
+        "hero": "snipeoff",
+        "ammo": 6,
+        "shots": 0,
+        "reload": 0,
+        "cooldowns": {},
+        "casts": {},
+        "lastAbility": null,
+        "fx": 0,
+        "deployments": 0,
+        "projectiles": 0,
+        "buffs": [],
+        "position": [
+          0,
+          0,
+          8
+        ],
+        "camera": [
+          1.1,
+          1.5899895836588493,
+          11.998750065102811
+        ],
+        "fov": 65,
+        "yaw": 0,
+        "pitch": -0.025,
+        "held": [],
+        "state": "idle",
+        "stamina": 100,
+        "jumps": 0,
+        "grounded": true,
+        "infiniteAmmo": false,
+        "pointerLocked": false,
+        "health": 450,
+        "damage": 0,
+        "healing": 0,
+        "targets": [
+          {
+            "id": "left",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "center",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "right",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "covered",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "ally",
+            "hp": 140,
+            "alive": true,
+            "slow": false
+          }
+        ],
+        "time": 0.5665
+      }
+    },
+    {
+      "file": "docs/maintenance/audits/jankolock-3d-qa/heroes-3-dark.png",
+      "variance": 4353.82,
+      "snapshot": {
+        "hero": "snipeoff",
+        "ammo": 6,
+        "shots": 0,
+        "reload": 0,
+        "cooldowns": {},
+        "casts": {},
+        "lastAbility": null,
+        "fx": 0,
+        "deployments": 0,
+        "projectiles": 0,
+        "buffs": [],
+        "position": [
+          0,
+          0,
+          8
+        ],
+        "camera": [
+          1.1,
+          1.5899895836588493,
+          11.998750065102811
+        ],
+        "fov": 65,
+        "yaw": 0,
+        "pitch": -0.025,
+        "held": [],
+        "state": "idle",
+        "stamina": 100,
+        "jumps": 0,
+        "grounded": true,
+        "infiniteAmmo": false,
+        "pointerLocked": false,
+        "health": 450,
+        "damage": 0,
+        "healing": 0,
+        "targets": [
+          {
+            "id": "left",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "center",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "right",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "covered",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "ally",
+            "hp": 140,
+            "alive": true,
+            "slow": false
+          }
+        ],
+        "time": 1.0665000000000004
+      }
+    },
+    {
+      "file": "docs/maintenance/audits/jankolock-3d-qa/heroes-3-ability-1.png",
+      "variance": 4424.79,
+      "snapshot": {
+        "hero": "snipeoff",
+        "ammo": 6,
+        "shots": 0,
+        "reload": 0,
+        "cooldowns": {
+          "1": 4.733400000000001
+        },
+        "casts": {
+          "longshot": 1
+        },
+        "lastAbility": "longshot",
+        "fx": 1,
+        "deployments": 0,
+        "projectiles": 0,
+        "buffs": [],
+        "position": [
+          0,
+          0,
+          8
+        ],
+        "camera": [
+          1.1,
+          1.5899895836588493,
+          11.998750065102811
+        ],
+        "fov": 65,
+        "yaw": 0,
+        "pitch": -0.025,
+        "held": [],
+        "state": "idle",
+        "stamina": 100,
+        "jumps": 0,
+        "grounded": true,
+        "infiniteAmmo": false,
+        "pointerLocked": false,
+        "health": 450,
+        "damage": 100,
+        "healing": 0,
+        "targets": [
+          {
+            "id": "left",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "center",
+            "hp": 300,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "right",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "covered",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "ally",
+            "hp": 140,
+            "alive": true,
+            "slow": false
+          }
+        ],
+        "time": 0.3665999999999994
+      }
+    },
+    {
+      "file": "docs/maintenance/audits/jankolock-3d-qa/heroes-3-ability-2.png",
+      "variance": 4428.85,
+      "snapshot": {
+        "hero": "snipeoff",
+        "ammo": 6,
+        "shots": 0,
+        "reload": 0,
+        "cooldowns": {
+          "2": 7.700000000000001
+        },
+        "casts": {
+          "tether": 1
+        },
+        "lastAbility": "tether",
+        "fx": 1,
+        "deployments": 0,
+        "projectiles": 0,
+        "buffs": [],
+        "position": [
+          0,
+          0,
+          8
+        ],
+        "camera": [
+          1.1,
+          1.5899895836588493,
+          11.998750065102811
+        ],
+        "fov": 65,
+        "yaw": 0,
+        "pitch": -0.025,
+        "held": [],
+        "state": "idle",
+        "stamina": 100,
+        "jumps": 0,
+        "grounded": true,
+        "infiniteAmmo": false,
+        "pointerLocked": false,
+        "health": 450,
+        "damage": 30,
+        "healing": 0,
+        "targets": [
+          {
+            "id": "left",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "center",
+            "hp": 370,
+            "alive": true,
+            "slow": true
+          },
+          {
+            "id": "right",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "covered",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "ally",
+            "hp": 140,
+            "alive": true,
+            "slow": false
+          }
+        ],
+        "time": 0.44999999999999996
+      }
+    },
+    {
+      "file": "docs/maintenance/audits/jankolock-3d-qa/heroes-3-ability-3.png",
+      "variance": 4439.29,
+      "snapshot": {
+        "hero": "snipeoff",
+        "ammo": 6,
+        "shots": 0,
+        "reload": 0,
+        "cooldowns": {
+          "3": 11.733399999999996
+        },
+        "casts": {
+          "headshot": 1
+        },
+        "lastAbility": "headshot",
+        "fx": 1,
+        "deployments": 0,
+        "projectiles": 0,
+        "buffs": [
+          "headshot"
+        ],
+        "position": [
+          0,
+          0,
+          8
+        ],
+        "camera": [
+          1.1,
+          1.5899895836588493,
+          11.998750065102811
+        ],
+        "fov": 65,
+        "yaw": 0,
+        "pitch": -0.025,
+        "held": [],
+        "state": "idle",
+        "stamina": 100,
+        "jumps": 0,
+        "grounded": true,
+        "infiniteAmmo": false,
+        "pointerLocked": false,
+        "health": 450,
+        "damage": 0,
+        "healing": 0,
+        "targets": [
+          {
+            "id": "left",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "center",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "right",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "covered",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "ally",
+            "hp": 140,
+            "alive": true,
+            "slow": false
+          }
+        ],
+        "time": 0.41660000000000036
+      }
+    },
+    {
+      "file": "docs/maintenance/audits/jankolock-3d-qa/heroes-3-ability-4.png",
+      "variance": 4444.77,
+      "snapshot": {
+        "hero": "snipeoff",
+        "ammo": 6,
+        "shots": 0,
+        "reload": 0,
+        "cooldowns": {
+          "4": 19.766699999999997
+        },
+        "casts": {
+          "xray": 1
+        },
+        "lastAbility": "xray",
+        "fx": 1,
+        "deployments": 0,
+        "projectiles": 0,
+        "buffs": [
+          "xray"
+        ],
+        "position": [
+          0,
+          0,
+          8
+        ],
+        "camera": [
+          1.1,
+          1.5899895836588493,
+          11.998750065102811
+        ],
+        "fov": 65,
+        "yaw": 0,
+        "pitch": -0.025,
+        "held": [],
+        "state": "idle",
+        "stamina": 100,
+        "jumps": 0,
+        "grounded": true,
+        "infiniteAmmo": false,
+        "pointerLocked": false,
+        "health": 450,
+        "damage": 0,
+        "healing": 0,
+        "targets": [
+          {
+            "id": "left",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "center",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "right",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "covered",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "ally",
+            "hp": 140,
+            "alive": true,
+            "slow": false
+          }
+        ],
+        "time": 0.38329999999999925
+      }
+    },
+    {
+      "file": "docs/maintenance/audits/jankolock-3d-qa/heroes-4-light.png",
+      "variance": 4643.45,
+      "snapshot": {
+        "hero": "gooey",
+        "ammo": 14,
+        "shots": 0,
+        "reload": 0,
+        "cooldowns": {},
+        "casts": {},
+        "lastAbility": null,
+        "fx": 0,
+        "deployments": 0,
+        "projectiles": 0,
+        "buffs": [],
+        "position": [
+          0,
+          0,
+          8
+        ],
+        "camera": [
+          1.1,
+          1.5899895836588493,
+          11.998750065102811
+        ],
+        "fov": 65,
+        "yaw": 0,
+        "pitch": -0.025,
+        "held": [],
+        "state": "idle",
+        "stamina": 100,
+        "jumps": 0,
+        "grounded": true,
+        "infiniteAmmo": false,
+        "pointerLocked": false,
+        "health": 600,
+        "damage": 0,
+        "healing": 0,
+        "targets": [
+          {
+            "id": "left",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "center",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "right",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "covered",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "ally",
+            "hp": 140,
+            "alive": true,
+            "slow": false
+          }
+        ],
+        "time": 0.5666000000000001
+      }
+    },
+    {
+      "file": "docs/maintenance/audits/jankolock-3d-qa/heroes-4-dark.png",
+      "variance": 4473.55,
+      "snapshot": {
+        "hero": "gooey",
+        "ammo": 14,
+        "shots": 0,
+        "reload": 0,
+        "cooldowns": {},
+        "casts": {},
+        "lastAbility": null,
+        "fx": 0,
+        "deployments": 0,
+        "projectiles": 0,
+        "buffs": [],
+        "position": [
+          0,
+          0,
+          8
+        ],
+        "camera": [
+          1.1,
+          1.5899895836588493,
+          11.998750065102811
+        ],
+        "fov": 65,
+        "yaw": 0,
+        "pitch": -0.025,
+        "held": [],
+        "state": "idle",
+        "stamina": 100,
+        "jumps": 0,
+        "grounded": true,
+        "infiniteAmmo": false,
+        "pointerLocked": false,
+        "health": 600,
+        "damage": 0,
+        "healing": 0,
+        "targets": [
+          {
+            "id": "left",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "center",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "right",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "covered",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "ally",
+            "hp": 140,
+            "alive": true,
+            "slow": false
+          }
+        ],
+        "time": 1.0666000000000004
+      }
+    },
+    {
+      "file": "docs/maintenance/audits/jankolock-3d-qa/heroes-4-ability-1.png",
+      "variance": 4442.05,
+      "snapshot": {
+        "hero": "gooey",
+        "ammo": 14,
+        "shots": 0,
+        "reload": 0,
+        "cooldowns": {
+          "1": 7.700000000000001
+        },
+        "casts": {
+          "puddle": 1
+        },
+        "lastAbility": "puddle",
+        "fx": 1,
+        "deployments": 1,
+        "projectiles": 0,
+        "buffs": [],
+        "position": [
+          0,
+          0,
+          8
+        ],
+        "camera": [
+          1.1,
+          1.5899895836588493,
+          11.998750065102811
+        ],
+        "fov": 65,
+        "yaw": 0,
+        "pitch": -0.025,
+        "held": [],
+        "state": "idle",
+        "stamina": 100,
+        "jumps": 0,
+        "grounded": true,
+        "infiniteAmmo": false,
+        "pointerLocked": false,
+        "health": 600,
+        "damage": 8,
+        "healing": 0,
+        "targets": [
+          {
+            "id": "left",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "center",
+            "hp": 392,
+            "alive": true,
+            "slow": true
+          },
+          {
+            "id": "right",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "covered",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "ally",
+            "hp": 140,
+            "alive": true,
+            "slow": false
+          }
+        ],
+        "time": 0.44999999999999996
+      }
+    },
+    {
+      "file": "docs/maintenance/audits/jankolock-3d-qa/heroes-4-ability-2.png",
+      "variance": 4427.01,
+      "snapshot": {
+        "hero": "gooey",
+        "ammo": 14,
+        "shots": 0,
+        "reload": 0,
+        "cooldowns": {
+          "2": 5.7833
+        },
+        "casts": {
+          "glue": 1
+        },
+        "lastAbility": "glue",
+        "fx": 1,
+        "deployments": 0,
+        "projectiles": 0,
+        "buffs": [],
+        "position": [
+          0,
+          0,
+          8
+        ],
+        "camera": [
+          1.1,
+          1.5899895836588493,
+          11.998750065102811
+        ],
+        "fov": 65,
+        "yaw": 0,
+        "pitch": -0.025,
+        "held": [],
+        "state": "idle",
+        "stamina": 100,
+        "jumps": 0,
+        "grounded": true,
+        "infiniteAmmo": false,
+        "pointerLocked": false,
+        "health": 600,
+        "damage": 135,
+        "healing": 0,
+        "targets": [
+          {
+            "id": "left",
+            "hp": 355,
+            "alive": true,
+            "slow": true
+          },
+          {
+            "id": "center",
+            "hp": 355,
+            "alive": true,
+            "slow": true
+          },
+          {
+            "id": "right",
+            "hp": 355,
+            "alive": true,
+            "slow": true
+          },
+          {
+            "id": "covered",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "ally",
+            "hp": 140,
+            "alive": true,
+            "slow": false
+          }
+        ],
+        "time": 0.3667000000000007
+      }
+    },
+    {
+      "file": "docs/maintenance/audits/jankolock-3d-qa/heroes-4-ability-3.png",
+      "variance": 4428.4,
+      "snapshot": {
+        "hero": "gooey",
+        "ammo": 14,
+        "shots": 0,
+        "reload": 0,
+        "cooldowns": {
+          "3": 7.750000000000001
+        },
+        "casts": {
+          "missionbomb": 1
+        },
+        "lastAbility": "missionbomb",
+        "fx": 1,
+        "deployments": 0,
+        "projectiles": 1,
+        "buffs": [],
+        "position": [
+          0,
+          0,
+          8
+        ],
+        "camera": [
+          1.1,
+          1.5899895836588493,
+          11.998750065102811
+        ],
+        "fov": 65,
+        "yaw": 0,
+        "pitch": -0.025,
+        "held": [],
+        "state": "idle",
+        "stamina": 100,
+        "jumps": 0,
+        "grounded": true,
+        "infiniteAmmo": false,
+        "pointerLocked": false,
+        "health": 600,
+        "damage": 0,
+        "healing": 0,
+        "targets": [
+          {
+            "id": "left",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "center",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "right",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "covered",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "ally",
+            "hp": 140,
+            "alive": true,
+            "slow": false
+          }
+        ],
+        "time": 0.39999999999999997
+      }
+    },
+    {
+      "file": "docs/maintenance/audits/jankolock-3d-qa/heroes-4-ability-4.png",
+      "variance": 4947.69,
+      "snapshot": {
+        "hero": "gooey",
+        "ammo": 14,
+        "shots": 0,
+        "reload": 0,
+        "cooldowns": {
+          "4": 21.749999999999996
+        },
+        "casts": {
+          "aura": 1
+        },
+        "lastAbility": "aura",
+        "fx": 1,
+        "deployments": 0,
+        "projectiles": 0,
+        "buffs": [
+          "aura"
+        ],
+        "position": [
+          0,
+          0,
+          8
+        ],
+        "camera": [
+          1.1,
+          1.5899895836588493,
+          11.998750065102811
+        ],
+        "fov": 65,
+        "yaw": 0,
+        "pitch": -0.025,
+        "held": [],
+        "state": "idle",
+        "stamina": 100,
+        "jumps": 0,
+        "grounded": true,
+        "infiniteAmmo": false,
+        "pointerLocked": false,
+        "health": 600,
+        "damage": 0,
+        "healing": 40,
+        "targets": [
+          {
+            "id": "left",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "center",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "right",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "covered",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "ally",
+            "hp": 180,
+            "alive": true,
+            "slow": false
+          }
+        ],
+        "time": 0.35
+      }
+    },
+    {
+      "file": "docs/maintenance/audits/jankolock-3d-qa/heroes-pointerlook.png",
+      "variance": 5187.87,
+      "snapshot": {
+        "hero": "stampead",
+        "ammo": 12,
+        "shots": 0,
+        "reload": 0,
+        "cooldowns": {},
+        "casts": {},
+        "lastAbility": null,
+        "fx": 0,
+        "deployments": 0,
+        "projectiles": 0,
+        "buffs": [],
+        "position": [
+          0,
+          0,
+          8
+        ],
+        "camera": [
+          1.325047810777465,
+          0.3121393854455061,
+          6.47150990542041
+        ],
+        "fov": 65,
+        "yaw": 1.8800000000000003,
+        "pitch": 0.5974999999999999,
+        "held": [],
+        "state": "idle",
+        "stamina": 100,
+        "jumps": 0,
+        "grounded": true,
+        "infiniteAmmo": false,
+        "pointerLocked": true,
+        "health": 700,
+        "damage": 0,
+        "healing": 0,
+        "targets": [
+          {
+            "id": "left",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "center",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "right",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "covered",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "ally",
+            "hp": 140,
+            "alive": true,
+            "slow": false
+          }
+        ],
+        "time": 0.816700000000001
+      }
+    },
+    {
+      "file": "docs/maintenance/audits/jankolock-3d-qa/heroes-aim.png",
+      "variance": 5219.62,
+      "snapshot": {
+        "hero": "stampead",
+        "ammo": 12,
+        "shots": 0,
+        "reload": 0,
+        "cooldowns": {},
+        "casts": {},
+        "lastAbility": null,
+        "fx": 0,
+        "deployments": 0,
+        "projectiles": 0,
+        "buffs": [],
+        "position": [
+          0,
+          0,
+          8
+        ],
+        "camera": [
+          1.1,
+          1.5601328494817581,
+          10.804729514504851
+        ],
+        "fov": 48.17895427606434,
+        "yaw": 0,
+        "pitch": -0.025,
+        "held": [
+          "aim"
+        ],
+        "state": "idle",
+        "stamina": 100,
+        "jumps": 0,
+        "grounded": true,
+        "infiniteAmmo": false,
+        "pointerLocked": true,
+        "health": 700,
+        "damage": 0,
+        "healing": 0,
+        "targets": [
+          {
+            "id": "left",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "center",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "right",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "covered",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "ally",
+            "hp": 140,
+            "alive": true,
+            "slow": false
+          }
+        ],
+        "time": 0.48329999999999923
+      }
+    },
+    {
+      "file": "docs/maintenance/audits/jankolock-3d-qa/heroes-double-jump.png",
+      "variance": 4887.91,
+      "snapshot": {
+        "hero": "stampead",
+        "ammo": 12,
+        "shots": 0,
+        "reload": 0,
+        "cooldowns": {},
+        "casts": {},
+        "lastAbility": null,
+        "fx": 1,
+        "deployments": 0,
+        "projectiles": 0,
+        "buffs": [],
+        "position": [
+          0,
+          1.9348398933333348,
+          8
+        ],
+        "camera": [
+          1.1,
+          3.3172643561332817,
+          11.984558021394317
+        ],
+        "fov": 64.80006624172665,
+        "yaw": 0,
+        "pitch": -0.025,
+        "held": [],
+        "state": "jump",
+        "stamina": 100,
+        "jumps": 2,
+        "grounded": false,
+        "infiniteAmmo": false,
+        "pointerLocked": true,
+        "health": 700,
+        "damage": 0,
+        "healing": 0,
+        "targets": [
+          {
+            "id": "left",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "center",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "right",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "covered",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "ally",
+            "hp": 140,
+            "alive": true,
+            "slow": false
+          }
+        ],
+        "time": 0.7998999999999998
+      }
+    },
+    {
+      "file": "docs/maintenance/audits/jankolock-3d-qa/heroes-dash.png",
+      "variance": 4783.82,
+      "snapshot": {
+        "hero": "stampead",
+        "ammo": 12,
+        "shots": 0,
+        "reload": 0,
+        "cooldowns": {},
+        "casts": {},
+        "lastAbility": null,
+        "fx": 1,
+        "deployments": 0,
+        "projectiles": 0,
+        "buffs": [],
+        "position": [
+          0,
+          0,
+          -0.5172305555555284
+        ],
+        "camera": [
+          1.1,
+          1.5933311817814493,
+          4.7057118569889695
+        ],
+        "fov": 64.99999892390217,
+        "yaw": 0,
+        "pitch": -0.025,
+        "held": [
+          "KeyW"
+        ],
+        "state": "walk",
+        "stamina": 70,
+        "jumps": 0,
+        "grounded": true,
+        "infiniteAmmo": false,
+        "pointerLocked": true,
+        "health": 700,
+        "damage": 0,
+        "healing": 0,
+        "targets": [
+          {
+            "id": "left",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "center",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "right",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "covered",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "ally",
+            "hp": 140,
+            "alive": true,
+            "slow": false
+          }
+        ],
+        "time": 1.6665
+      }
+    },
+    {
+      "file": "docs/maintenance/audits/jankolock-3d-qa/heroes-slide.png",
+      "variance": 4742.82,
+      "snapshot": {
+        "hero": "stampead",
+        "ammo": 12,
+        "shots": 1,
+        "reload": 0,
+        "cooldowns": {},
+        "casts": {},
+        "lastAbility": null,
+        "fx": 1,
+        "deployments": 0,
+        "projectiles": 0,
+        "buffs": [],
+        "position": [
+          0,
+          0,
+          1.7544559831235327
+        ],
+        "camera": [
+          1.1,
+          0.7449995858351315,
+          6.2184077151649015
+        ],
+        "fov": 64.99999999999713,
+        "yaw": 0,
+        "pitch": -0.025,
+        "held": [
+          "KeyW",
+          "ControlLeft",
+          "KeyC",
+          "fire"
+        ],
+        "state": "slide",
+        "stamina": 100,
+        "jumps": 0,
+        "grounded": true,
+        "infiniteAmmo": true,
+        "pointerLocked": true,
+        "health": 700,
+        "damage": 24,
+        "healing": 0,
+        "targets": [
+          {
+            "id": "left",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "center",
+            "hp": 376,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "right",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "covered",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "ally",
+            "hp": 140,
+            "alive": true,
+            "slow": false
+          }
+        ],
+        "time": 0.7667000000000008
+      }
+    },
+    {
+      "file": "docs/maintenance/audits/jankolock-3d-qa/heroes-camera-wall-clamp.png",
+      "variance": 4949.84,
+      "snapshot": {
+        "hero": "stampead",
+        "ammo": 12,
+        "shots": 0,
+        "reload": 0,
+        "cooldowns": {},
+        "casts": {},
+        "lastAbility": null,
+        "fx": 0,
+        "deployments": 0,
+        "projectiles": 0,
+        "buffs": [],
+        "position": [
+          0,
+          0,
+          13.599999999999985
+        ],
+        "camera": [
+          1.1,
+          1.5675883495666967,
+          16.698185670425424
+        ],
+        "fov": 65,
+        "yaw": 0,
+        "pitch": -0.025,
+        "held": [],
+        "state": "idle",
+        "stamina": 100,
+        "jumps": 0,
+        "grounded": true,
+        "infiniteAmmo": false,
+        "pointerLocked": false,
+        "health": 700,
+        "damage": 0,
+        "healing": 0,
+        "targets": [
+          {
+            "id": "left",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "center",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "right",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "covered",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "ally",
+            "hp": 140,
+            "alive": true,
+            "slow": false
+          }
+        ],
+        "time": 1.1000000000000003
+      }
+    },
+    {
+      "file": "docs/maintenance/audits/jankolock-3d-qa/heroes-mobile-light.png",
+      "variance": 9543.15,
+      "snapshot": {
+        "hero": "stampead",
+        "ammo": 12,
+        "shots": 0,
+        "reload": 0,
+        "cooldowns": {},
+        "casts": {},
+        "lastAbility": null,
+        "fx": 0,
+        "deployments": 0,
+        "projectiles": 0,
+        "buffs": [],
+        "position": [
+          0,
+          0,
+          8
+        ],
+        "camera": [
+          1.1,
+          1.5899895836588493,
+          11.998750065102811
+        ],
+        "fov": 65,
+        "yaw": 0,
+        "pitch": -0.025,
+        "held": [],
+        "state": "idle",
+        "stamina": 100,
+        "jumps": 0,
+        "grounded": true,
+        "infiniteAmmo": false,
+        "pointerLocked": false,
+        "health": 700,
+        "damage": 0,
+        "healing": 0,
+        "targets": [
+          {
+            "id": "left",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "center",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "right",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "covered",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "ally",
+            "hp": 140,
+            "alive": true,
+            "slow": false
+          }
+        ],
+        "time": 0.5351839999642367
+      }
+    },
+    {
+      "file": "docs/maintenance/audits/jankolock-3d-qa/heroes-mobile-full-light.png",
+      "variance": 9802.02,
+      "snapshot": {
+        "hero": "stampead",
+        "ammo": 12,
+        "shots": 0,
+        "reload": 0,
+        "cooldowns": {},
+        "casts": {},
+        "lastAbility": null,
+        "fx": 0,
+        "deployments": 0,
+        "projectiles": 0,
+        "buffs": [],
+        "position": [
+          0,
+          0,
+          8
+        ],
+        "camera": [
+          1.1,
+          1.5899895836588493,
+          11.998750065102811
+        ],
+        "fov": 65,
+        "yaw": 0,
+        "pitch": -0.025,
+        "held": [],
+        "state": "idle",
+        "stamina": 100,
+        "jumps": 0,
+        "grounded": true,
+        "infiniteAmmo": false,
+        "pointerLocked": false,
+        "health": 700,
+        "damage": 0,
+        "healing": 0,
+        "targets": [
+          {
+            "id": "left",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "center",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "right",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "covered",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "ally",
+            "hp": 140,
+            "alive": true,
+            "slow": false
+          }
+        ],
+        "time": 0.918483999964237
+      }
+    },
+    {
+      "file": "docs/maintenance/audits/jankolock-3d-qa/heroes-mobile-dark.png",
+      "variance": 5137.41,
+      "snapshot": {
+        "hero": "stampead",
+        "ammo": 12,
+        "shots": 0,
+        "reload": 0,
+        "cooldowns": {},
+        "casts": {},
+        "lastAbility": null,
+        "fx": 0,
+        "deployments": 0,
+        "projectiles": 0,
+        "buffs": [],
+        "position": [
+          0,
+          0,
+          8
+        ],
+        "camera": [
+          1.1,
+          1.5899895836588493,
+          11.998750065102811
+        ],
+        "fov": 65,
+        "yaw": 0,
+        "pitch": -0.025,
+        "held": [],
+        "state": "idle",
+        "stamina": 100,
+        "jumps": 0,
+        "grounded": true,
+        "infiniteAmmo": false,
+        "pointerLocked": false,
+        "health": 700,
+        "damage": 0,
+        "healing": 0,
+        "targets": [
+          {
+            "id": "left",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "center",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "right",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "covered",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "ally",
+            "hp": 140,
+            "alive": true,
+            "slow": false
+          }
+        ],
+        "time": 1.5182839999642372
+      }
+    },
+    {
+      "file": "docs/maintenance/audits/jankolock-3d-qa/heroes-mobile-full-dark.png",
+      "variance": 4627.21,
+      "snapshot": {
+        "hero": "stampead",
+        "ammo": 12,
+        "shots": 0,
+        "reload": 0,
+        "cooldowns": {},
+        "casts": {},
+        "lastAbility": null,
+        "fx": 0,
+        "deployments": 0,
+        "projectiles": 0,
+        "buffs": [],
+        "position": [
+          0,
+          0,
+          8
+        ],
+        "camera": [
+          1.1,
+          1.5899895836588493,
+          11.998750065102811
+        ],
+        "fov": 65,
+        "yaw": 0,
+        "pitch": -0.025,
+        "held": [],
+        "state": "idle",
+        "stamina": 100,
+        "jumps": 0,
+        "grounded": true,
+        "infiniteAmmo": false,
+        "pointerLocked": false,
+        "health": 700,
+        "damage": 0,
+        "healing": 0,
+        "targets": [
+          {
+            "id": "left",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "center",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "right",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "covered",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "ally",
+            "hp": 140,
+            "alive": true,
+            "slow": false
+          }
+        ],
+        "time": 1.9181839999642374
+      }
+    }
+  ],
+  "checks": [
+    "hero 1 ability 1 normal button input: hook",
+    "hero 1 ability 2 normal button input: volley",
+    "hero 1 ability 3 normal button input: slam",
+    "hero 1 ability 4 normal button input: overtime",
+    "hero 2 ability 1 normal button input: turret",
+    "hero 2 ability 2 normal button input: barricade",
+    "hero 2 ability 3 normal button input: grenade",
+    "hero 2 ability 4 normal button input: chaingun",
+    "hero 3 ability 1 normal button input: longshot",
+    "hero 3 ability 2 normal button input: tether",
+    "hero 3 ability 3 normal button input: headshot",
+    "hero 3 ability 4 normal button input: xray",
+    "hero 4 ability 1 normal button input: puddle",
+    "hero 4 ability 2 normal button input: glue",
+    "hero 4 ability 3 normal button input: missionbomb",
+    "hero 4 ability 4 normal button input: aura",
+    "Pointer lock and RMB FOV zoom observed",
+    "Two airborne jumps, third jump rejected, grounded reset",
+    "Shift dash stamina debit observed",
+    "Sprint, slide, real slide shot without ammunition debit, exit clears infinite ammunition",
+    "Native backward walk: camera distance 3.62m at rear wall",
+    "Rear-wall movement collision observed",
+    "390px touch ability/jump/held movement/release, both themes, no horizontal overflow"
+  ],
+  "errors": [],
+  "responses": [
+    {
+      "hero": 1,
+      "status": 200
+    },
+    {
+      "hero": 2,
+      "status": 200
+    },
+    {
+      "hero": 3,
+      "status": 200
+    },
+    {
+      "hero": 4,
+      "status": 200
+    }
+  ]
+}

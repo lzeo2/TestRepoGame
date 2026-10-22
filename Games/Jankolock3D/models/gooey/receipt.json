@@ -1,0 +1,585 @@
+{
+  "label": "Gooey Sticky",
+  "url": "models/gooey/model.glb",
+  "bytes": 1242716,
+  "sha256": "56d029d66b5aeaa31e07b1bedcaf70b96537e56cf0b9e66d48bd17d22623ab12",
+  "triangles": 48760,
+  "vertices": 32296,
+  "meshes": 30,
+  "materials": [
+    {
+      "name": "gooey_sticky__adhesive_plum",
+      "color": "865786",
+      "roughness": 0.47999998927116394,
+      "metalness": 0
+    },
+    {
+      "name": "gooey_sticky__ink_charcoal",
+      "color": "2f3c40",
+      "roughness": 0.5799999833106995,
+      "metalness": 0
+    },
+    {
+      "name": "gooey_sticky__warm_adhesive",
+      "color": "e8dd9e",
+      "roughness": 0.3199999928474426,
+      "metalness": 0
+    },
+    {
+      "name": "gooey_sticky__paper_warm_ivory",
+      "color": "e6dec4",
+      "roughness": 0.7200000286102295,
+      "metalness": 0
+    },
+    {
+      "name": "gooey_sticky__eye_white",
+      "color": "f8faf1",
+      "roughness": 0.30000001192092896,
+      "metalness": 0
+    },
+    {
+      "name": "gooey_sticky__aged_brass",
+      "color": "c49e61",
+      "roughness": 0.33000001311302185,
+      "metalness": 0.6800000071525574
+    }
+  ],
+  "parts": [
+    {
+      "name": "adhesive_label",
+      "triangles": 6024,
+      "vertices": 4427,
+      "materials": [
+        "gooey_sticky__adhesive_plum"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "adhesive_label_small",
+      "triangles": 9140,
+      "vertices": 6859,
+      "materials": [
+        "gooey_sticky__ink_charcoal"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "adhesive_torso_surface",
+      "triangles": 7044,
+      "vertices": 3934,
+      "materials": [
+        "gooey_sticky__warm_adhesive"
+      ],
+      "hasUV": false
+    },
+    {
+      "name": "attached_curved_label",
+      "triangles": 396,
+      "vertices": 200,
+      "materials": [
+        "gooey_sticky__paper_warm_ivory"
+      ],
+      "hasUV": false
+    },
+    {
+      "name": "back_paper_patch_0",
+      "triangles": 188,
+      "vertices": 230,
+      "materials": [
+        "gooey_sticky__paper_warm_ivory"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "back_paper_patch_1",
+      "triangles": 188,
+      "vertices": 230,
+      "materials": [
+        "gooey_sticky__paper_warm_ivory"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "back_paper_patch_2",
+      "triangles": 188,
+      "vertices": 230,
+      "materials": [
+        "gooey_sticky__paper_warm_ivory"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "adhesive_foot_l",
+      "triangles": 2816,
+      "vertices": 1514,
+      "materials": [
+        "gooey_sticky__warm_adhesive"
+      ],
+      "hasUV": false
+    },
+    {
+      "name": "adhesive_foot_r",
+      "triangles": 2816,
+      "vertices": 1514,
+      "materials": [
+        "gooey_sticky__warm_adhesive"
+      ],
+      "hasUV": false
+    },
+    {
+      "name": "adhesive_head_surface",
+      "triangles": 4820,
+      "vertices": 2552,
+      "materials": [
+        "gooey_sticky__warm_adhesive"
+      ],
+      "hasUV": false
+    },
+    {
+      "name": "eye_1",
+      "triangles": 720,
+      "vertices": 423,
+      "materials": [
+        "gooey_sticky__eye_white"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "eye_1001",
+      "triangles": 720,
+      "vertices": 423,
+      "materials": [
+        "gooey_sticky__eye_white"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "lid_pull",
+      "triangles": 188,
+      "vertices": 384,
+      "materials": [
+        "gooey_sticky__aged_brass"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "rolled_lid_rim",
+      "triangles": 512,
+      "vertices": 1024,
+      "materials": [
+        "gooey_sticky__aged_brass"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "tilted_lid",
+      "triangles": 764,
+      "vertices": 786,
+      "materials": [
+        "gooey_sticky__adhesive_plum"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "pupil_1",
+      "triangles": 720,
+      "vertices": 423,
+      "materials": [
+        "gooey_sticky__ink_charcoal"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "pupil_1001",
+      "triangles": 720,
+      "vertices": 423,
+      "materials": [
+        "gooey_sticky__ink_charcoal"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "seated_lid_neck",
+      "triangles": 572,
+      "vertices": 634,
+      "materials": [
+        "gooey_sticky__adhesive_plum"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "adhesive_arm_l",
+      "triangles": 2060,
+      "vertices": 1240,
+      "materials": [
+        "gooey_sticky__warm_adhesive"
+      ],
+      "hasUV": false
+    },
+    {
+      "name": "adhesive_wrist_l",
+      "triangles": 1276,
+      "vertices": 723,
+      "materials": [
+        "gooey_sticky__warm_adhesive"
+      ],
+      "hasUV": false
+    },
+    {
+      "name": "palm_001",
+      "triangles": 720,
+      "vertices": 423,
+      "materials": [
+        "gooey_sticky__warm_adhesive"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "soft_finger_003",
+      "triangles": 352,
+      "vertices": 219,
+      "materials": [
+        "gooey_sticky__warm_adhesive"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "soft_finger_004",
+      "triangles": 352,
+      "vertices": 219,
+      "materials": [
+        "gooey_sticky__warm_adhesive"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "soft_finger_005",
+      "triangles": 352,
+      "vertices": 219,
+      "materials": [
+        "gooey_sticky__warm_adhesive"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "adhesive_arm_r",
+      "triangles": 2060,
+      "vertices": 1240,
+      "materials": [
+        "gooey_sticky__warm_adhesive"
+      ],
+      "hasUV": false
+    },
+    {
+      "name": "adhesive_wrist_r",
+      "triangles": 1276,
+      "vertices": 723,
+      "materials": [
+        "gooey_sticky__warm_adhesive"
+      ],
+      "hasUV": false
+    },
+    {
+      "name": "palm",
+      "triangles": 720,
+      "vertices": 423,
+      "materials": [
+        "gooey_sticky__warm_adhesive"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "soft_finger",
+      "triangles": 352,
+      "vertices": 219,
+      "materials": [
+        "gooey_sticky__warm_adhesive"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "soft_finger_001",
+      "triangles": 352,
+      "vertices": 219,
+      "materials": [
+        "gooey_sticky__warm_adhesive"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "soft_finger_002",
+      "triangles": 352,
+      "vertices": 219,
+      "materials": [
+        "gooey_sticky__warm_adhesive"
+      ],
+      "hasUV": true
+    }
+  ],
+  "bounds": {
+    "min": [
+      -0.7210000082850456,
+      0,
+      -0.3443683683872223
+    ],
+    "max": [
+      0.7210000058412551,
+      1.4394433069974184,
+      0.3559024922254894
+    ]
+  },
+  "dimensions": [
+    1.4420000141263007,
+    1.4394433069974184,
+    0.7002708606127117
+  ],
+  "materialSlots": [
+    "gooey_sticky__adhesive_plum",
+    "gooey_sticky__ink_charcoal",
+    "gooey_sticky__warm_adhesive",
+    "gooey_sticky__paper_warm_ivory",
+    "gooey_sticky__eye_white",
+    "gooey_sticky__aged_brass"
+  ],
+  "provenance": "EXTERNAL ORIGINAL by operator dot. Supplied manifest identifies externally Blender-authored original artwork; not locally procedural.",
+  "source": "external-art/gooey_sticky/model.glb",
+  "qualification": "No model.blend source was supplied despite manifest.files.source. Authorship/originality are operator declarations, not independently verified creation history. No re-export, subdivision or padding.",
+  "metadataSHA256": {
+    "manifest.json": "a26fb54b96dc2697bfe9212bbeb565ee614b4fd37fa7f749af29dc1ac7f4d02e",
+    "palette.json": "ef4e7776832a8c859dfa73568185bc68babbb651ae05b86eef33e10193a266b9",
+    "rig.json": "b5fd28bf9e68fa17481a474870253093112131856d7680e8182a80b46b7d92d5"
+  },
+  "rigAlias": "manifest.rig.json was byte-identical to rig.json in the delivery; documentation alias only, canonical file is rig.json.",
+  "audit": {
+    "glbVersion": 2,
+    "selfContained": true,
+    "uriCount": 0,
+    "images": 0,
+    "textures": 0,
+    "finiteGeometry": true,
+    "normalCountsMatch": true,
+    "presentUVCountsMatch": true,
+    "missingUVMeshes": [
+      "adhesive_torso_surface",
+      "attached_curved_label",
+      "adhesive_foot_l",
+      "adhesive_foot_r",
+      "adhesive_head_surface",
+      "adhesive_arm_l",
+      "adhesive_wrist_l",
+      "adhesive_arm_r",
+      "adhesive_wrist_r"
+    ],
+    "indicesInRange": true,
+    "decodedSceneTriangles": 48760,
+    "sceneNodes": 41,
+    "movableNodes": 10,
+    "staticNodes": 31,
+    "anchors": 1,
+    "rigParentPivotAxesMatch": true,
+    "toleranceMetres": 0.00001
+  },
+  "rigParts": [
+    {
+      "name": "root",
+      "parent": null,
+      "localPivot": [
+        0,
+        0,
+        0
+      ],
+      "modelPivot": [
+        0,
+        0,
+        0
+      ],
+      "localQuaternion": [
+        0,
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "name": "torso",
+      "parent": "root",
+      "localPivot": [
+        0,
+        0.7469433546066284,
+        0
+      ],
+      "modelPivot": [
+        0,
+        0.7469433546066284,
+        0
+      ],
+      "localQuaternion": [
+        0,
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "name": "head",
+      "parent": "torso",
+      "localPivot": [
+        0,
+        0.25,
+        0
+      ],
+      "modelPivot": [
+        0,
+        0.9969433546066284,
+        0
+      ],
+      "localQuaternion": [
+        0,
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "name": "upper_arm_r",
+      "parent": "torso",
+      "localPivot": [
+        0.36000001430511475,
+        0.009999990463256836,
+        -0.014999999664723873
+      ],
+      "modelPivot": [
+        0.36000001430511475,
+        0.7569433450698853,
+        -0.014999999664723873
+      ],
+      "localQuaternion": [
+        0,
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "name": "hand_r",
+      "parent": "upper_arm_r",
+      "localPivot": [
+        0.15999996662139893,
+        -0.15000003576278687,
+        -0.08500000089406967
+      ],
+      "modelPivot": [
+        0.5199999809265137,
+        0.6069433093070984,
+        -0.10000000055879354
+      ],
+      "localQuaternion": [
+        0,
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "name": "foot_r",
+      "parent": "torso",
+      "localPivot": [
+        0.2199999988079071,
+        -0.45000001788139343,
+        -0.03999999910593033
+      ],
+      "modelPivot": [
+        0.2199999988079071,
+        0.296943336725235,
+        -0.03999999910593033
+      ],
+      "localQuaternion": [
+        0,
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "name": "upper_arm_l",
+      "parent": "torso",
+      "localPivot": [
+        -0.36000001430511475,
+        0.009999990463256836,
+        -0.014999999664723873
+      ],
+      "modelPivot": [
+        -0.36000001430511475,
+        0.7569433450698853,
+        -0.014999999664723873
+      ],
+      "localQuaternion": [
+        0,
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "name": "hand_l",
+      "parent": "upper_arm_l",
+      "localPivot": [
+        -0.15999996662139893,
+        -0.15000003576278687,
+        -0.08500000089406967
+      ],
+      "modelPivot": [
+        -0.5199999809265137,
+        0.6069433093070984,
+        -0.10000000055879354
+      ],
+      "localQuaternion": [
+        0,
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "name": "foot_l",
+      "parent": "torso",
+      "localPivot": [
+        -0.2199999988079071,
+        -0.45000001788139343,
+        -0.03999999910593033
+      ],
+      "modelPivot": [
+        -0.2199999988079071,
+        0.296943336725235,
+        -0.03999999910593033
+      ],
+      "localQuaternion": [
+        0,
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "name": "lid",
+      "parent": "head",
+      "localPivot": [
+        0,
+        0.2999999523162842,
+        0.2750000059604645
+      ],
+      "modelPivot": [
+        0,
+        1.2969433069229126,
+        0.2750000059604645
+      ],
+      "localQuaternion": [
+        0,
+        0,
+        0,
+        1
+      ]
+    }
+  ],
+  "quality": "Node-only structural audit. Scene triangle count is not visible-pixel count, FPS, pose clearance, visual, gameplay or hardware acceptance."
+}

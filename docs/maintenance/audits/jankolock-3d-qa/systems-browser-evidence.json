@@ -1,0 +1,627 @@
+{
+  "evidenceClass": "Native input against explicit actor/shop fixtures; software WebGL; not integrated or hardware acceptance",
+  "storageBefore": 2823278592,
+  "screenshots": [
+    {
+      "path": "docs/maintenance/audits/jankolock-3d-qa/systems-foldwild-reference.png",
+      "variance": 3377.05,
+      "kind": "native1280x720"
+    },
+    {
+      "path": "docs/maintenance/audits/jankolock-3d-qa/systems-shop-implemented.png",
+      "variance": 3881.2,
+      "kind": "native1280x720"
+    },
+    {
+      "path": "docs/maintenance/audits/jankolock-3d-qa/systems-shop-purchased.png",
+      "variance": 3900.17,
+      "kind": "native1280x720"
+    },
+    {
+      "path": "docs/maintenance/audits/jankolock-3d-qa/systems-shop-tier4.png",
+      "variance": 3654.1,
+      "kind": "native1280x720"
+    },
+    {
+      "path": "docs/maintenance/audits/jankolock-3d-qa/systems-shop-dark.png",
+      "variance": 2832.75,
+      "kind": "native1280x720"
+    },
+    {
+      "path": "docs/maintenance/audits/jankolock-3d-qa/systems-wave.png",
+      "variance": 1834.03,
+      "kind": "native1280x720"
+    },
+    {
+      "path": "docs/maintenance/audits/jankolock-3d-qa/systems-orbs.png",
+      "variance": 1808.48,
+      "kind": "native1280x720"
+    },
+    {
+      "path": "docs/maintenance/audits/jankolock-3d-qa/systems-orbs-claimed.png",
+      "variance": 1724.88,
+      "kind": "native1280x720"
+    },
+    {
+      "path": "docs/maintenance/audits/jankolock-3d-qa/systems-trooper-burn.png",
+      "variance": 1703.73,
+      "kind": "native1280x720"
+    },
+    {
+      "path": "docs/maintenance/audits/jankolock-3d-qa/systems-orb-denied.png",
+      "variance": 1809.23,
+      "kind": "native1280x720"
+    },
+    {
+      "path": "docs/maintenance/audits/jankolock-3d-qa/systems-respawn-shop.png",
+      "variance": 3822.02,
+      "kind": "native1280x720"
+    },
+    {
+      "path": "docs/maintenance/audits/jankolock-3d-qa/systems-mobile-dark.png",
+      "variance": 689.34,
+      "kind": "390x720 native viewport padded to1280x720"
+    },
+    {
+      "path": "docs/maintenance/audits/jankolock-3d-qa/systems-mobile-light.png",
+      "variance": 7367.08,
+      "kind": "390x720 native viewport padded to1280x720"
+    }
+  ],
+  "errors": [],
+  "responses": [
+    {
+      "path": "/Games/Foldwild/index.html",
+      "status": 200
+    },
+    {
+      "path": "/Games/Foldwild/style.css",
+      "status": 200
+    },
+    {
+      "path": "/Games/Foldwild/script.js",
+      "status": 200
+    },
+    {
+      "path": "/Games/Foldwild/world.js",
+      "status": 200
+    },
+    {
+      "path": "/Games/Foldwild/data.js",
+      "status": 200
+    },
+    {
+      "path": "/Games/Foldwild/battle.js",
+      "status": 200
+    },
+    {
+      "path": "/Games/Foldwild/campaign.js",
+      "status": 200
+    },
+    {
+      "path": "/Games/Foldwild/economy.js",
+      "status": 200
+    },
+    {
+      "path": "/Games/Foldwild/builds.js",
+      "status": 200
+    },
+    {
+      "path": "/Games/Foldwild/view.js",
+      "status": 200
+    },
+    {
+      "path": "/Games/Foldwild/region-data.js",
+      "status": 200
+    },
+    {
+      "path": "/Games/Foldwild/vendor/GLTFLoader.js",
+      "status": 200
+    },
+    {
+      "path": "/Games/Foldwild/vendor/BufferGeometryUtils.js",
+      "status": 200
+    },
+    {
+      "path": "/Games/Foldwild/vendor/three.module.js",
+      "status": 200
+    },
+    {
+      "path": "/assets/fonts/atkinson-hyperlegible/atkinson-hyperlegible-400-latin.woff2",
+      "status": 200
+    },
+    {
+      "path": "/assets/fonts/bungee/bungee-400-latin.woff2",
+      "status": 200
+    },
+    {
+      "path": "/assets/fonts/atkinson-hyperlegible/atkinson-hyperlegible-700-latin.woff2",
+      "status": 200
+    },
+    {
+      "path": "/favicon.svg",
+      "status": 200
+    },
+    {
+      "path": "/Games/Jankolock3D/systems.html",
+      "status": 200
+    },
+    {
+      "path": "/Games/Jankolock3D/systems.css",
+      "status": 200
+    },
+    {
+      "path": "/Games/Jankolock3D/systems-demo.mjs",
+      "status": 200
+    },
+    {
+      "path": "/Games/Jankolock3D/systems-ui.mjs",
+      "status": 200
+    },
+    {
+      "path": "/Games/Jankolock3D/systems.mjs",
+      "status": 200
+    },
+    {
+      "path": "/Games/Jankolock3D/systems-view.mjs",
+      "status": 200
+    },
+    {
+      "path": "/assets/fonts/bungee/bungee-400-latin.woff2",
+      "status": 200
+    },
+    {
+      "path": "/assets/fonts/atkinson-hyperlegible/atkinson-hyperlegible-700-latin.woff2",
+      "status": 200
+    },
+    {
+      "path": "/assets/fonts/atkinson-hyperlegible/atkinson-hyperlegible-400-latin.woff2",
+      "status": 200
+    },
+    {
+      "path": "/Games/Jankolock3D/vendor/three.module.js",
+      "status": 200
+    },
+    {
+      "path": "/Games/Jankolock3D/vendor/three.core.js",
+      "status": 200
+    },
+    {
+      "path": "/docs/jank3d-spawns.json",
+      "status": 200
+    },
+    {
+      "path": "/favicon.svg",
+      "status": 200
+    },
+    {
+      "path": "/Games/Jankolock3D/systems.html",
+      "status": 200
+    },
+    {
+      "path": "/Games/Jankolock3D/systems.css",
+      "status": 200
+    },
+    {
+      "path": "/Games/Jankolock3D/systems-demo.mjs",
+      "status": 200
+    },
+    {
+      "path": "/assets/fonts/atkinson-hyperlegible/atkinson-hyperlegible-700-latin.woff2",
+      "status": 200
+    },
+    {
+      "path": "/assets/fonts/atkinson-hyperlegible/atkinson-hyperlegible-400-latin.woff2",
+      "status": 200
+    },
+    {
+      "path": "/assets/fonts/bungee/bungee-400-latin.woff2",
+      "status": 200
+    },
+    {
+      "path": "/Games/Jankolock3D/systems.mjs",
+      "status": 200
+    },
+    {
+      "path": "/Games/Jankolock3D/systems-view.mjs",
+      "status": 200
+    },
+    {
+      "path": "/Games/Jankolock3D/systems-ui.mjs",
+      "status": 200
+    },
+    {
+      "path": "/Games/Jankolock3D/vendor/three.module.js",
+      "status": 200
+    },
+    {
+      "path": "/Games/Jankolock3D/vendor/three.core.js",
+      "status": 200
+    },
+    {
+      "path": "/docs/jank3d-spawns.json",
+      "status": 200
+    },
+    {
+      "path": "/favicon.svg",
+      "status": 200
+    },
+    {
+      "path": "/Games/Jankolock3D/systems.html",
+      "status": 200
+    },
+    {
+      "path": "/Games/Jankolock3D/systems.css",
+      "status": 200
+    },
+    {
+      "path": "/Games/Jankolock3D/systems-demo.mjs",
+      "status": 200
+    },
+    {
+      "path": "/assets/fonts/atkinson-hyperlegible/atkinson-hyperlegible-700-latin.woff2",
+      "status": 200
+    },
+    {
+      "path": "/assets/fonts/atkinson-hyperlegible/atkinson-hyperlegible-400-latin.woff2",
+      "status": 200
+    },
+    {
+      "path": "/assets/fonts/bungee/bungee-400-latin.woff2",
+      "status": 200
+    },
+    {
+      "path": "/Games/Jankolock3D/systems-ui.mjs",
+      "status": 200
+    },
+    {
+      "path": "/Games/Jankolock3D/systems.mjs",
+      "status": 200
+    },
+    {
+      "path": "/Games/Jankolock3D/systems-view.mjs",
+      "status": 200
+    },
+    {
+      "path": "/Games/Jankolock3D/vendor/three.module.js",
+      "status": 200
+    },
+    {
+      "path": "/Games/Jankolock3D/vendor/three.core.js",
+      "status": 200
+    },
+    {
+      "path": "/docs/jank3d-spawns.json",
+      "status": 200
+    },
+    {
+      "path": "/favicon.svg",
+      "status": 200
+    },
+    {
+      "path": "/Games/Jankolock3D/systems.html",
+      "status": 200
+    },
+    {
+      "path": "/Games/Jankolock3D/systems.css",
+      "status": 200
+    },
+    {
+      "path": "/Games/Jankolock3D/systems-demo.mjs",
+      "status": 200
+    },
+    {
+      "path": "/assets/fonts/atkinson-hyperlegible/atkinson-hyperlegible-700-latin.woff2",
+      "status": 200
+    },
+    {
+      "path": "/assets/fonts/atkinson-hyperlegible/atkinson-hyperlegible-400-latin.woff2",
+      "status": 200
+    },
+    {
+      "path": "/assets/fonts/bungee/bungee-400-latin.woff2",
+      "status": 200
+    },
+    {
+      "path": "/Games/Jankolock3D/systems.mjs",
+      "status": 200
+    },
+    {
+      "path": "/Games/Jankolock3D/systems-ui.mjs",
+      "status": 200
+    },
+    {
+      "path": "/Games/Jankolock3D/systems-view.mjs",
+      "status": 200
+    },
+    {
+      "path": "/Games/Jankolock3D/vendor/three.module.js",
+      "status": 200
+    },
+    {
+      "path": "/Games/Jankolock3D/vendor/three.core.js",
+      "status": 200
+    },
+    {
+      "path": "/docs/jank3d-spawns.json",
+      "status": 200
+    },
+    {
+      "path": "/favicon.svg",
+      "status": 200
+    },
+    {
+      "path": "/Games/Jankolock3D/systems.html",
+      "status": 200
+    },
+    {
+      "path": "/Games/Jankolock3D/systems.css",
+      "status": 200
+    },
+    {
+      "path": "/Games/Jankolock3D/systems-demo.mjs",
+      "status": 200
+    },
+    {
+      "path": "/Games/Jankolock3D/systems-ui.mjs",
+      "status": 200
+    },
+    {
+      "path": "/Games/Jankolock3D/systems.mjs",
+      "status": 200
+    },
+    {
+      "path": "/Games/Jankolock3D/systems-view.mjs",
+      "status": 200
+    },
+    {
+      "path": "/Games/Jankolock3D/vendor/three.module.js",
+      "status": 200
+    },
+    {
+      "path": "/assets/fonts/atkinson-hyperlegible/atkinson-hyperlegible-700-latin.woff2",
+      "status": 200
+    },
+    {
+      "path": "/assets/fonts/atkinson-hyperlegible/atkinson-hyperlegible-400-latin.woff2",
+      "status": 200
+    },
+    {
+      "path": "/assets/fonts/bungee/bungee-400-latin.woff2",
+      "status": 200
+    },
+    {
+      "path": "/Games/Jankolock3D/vendor/three.core.js",
+      "status": 200
+    },
+    {
+      "path": "/docs/jank3d-spawns.json",
+      "status": 200
+    },
+    {
+      "path": "/favicon.svg",
+      "status": 200
+    },
+    {
+      "path": "/Games/Jankolock3D/systems.html",
+      "status": 200
+    },
+    {
+      "path": "/Games/Jankolock3D/systems.css",
+      "status": 200
+    },
+    {
+      "path": "/Games/Jankolock3D/systems-demo.mjs",
+      "status": 200
+    },
+    {
+      "path": "/assets/fonts/atkinson-hyperlegible/atkinson-hyperlegible-700-latin.woff2",
+      "status": 200
+    },
+    {
+      "path": "/assets/fonts/atkinson-hyperlegible/atkinson-hyperlegible-400-latin.woff2",
+      "status": 200
+    },
+    {
+      "path": "/assets/fonts/bungee/bungee-400-latin.woff2",
+      "status": 200
+    },
+    {
+      "path": "/Games/Jankolock3D/systems-ui.mjs",
+      "status": 200
+    },
+    {
+      "path": "/Games/Jankolock3D/systems-view.mjs",
+      "status": 200
+    },
+    {
+      "path": "/Games/Jankolock3D/systems.mjs",
+      "status": 200
+    },
+    {
+      "path": "/Games/Jankolock3D/vendor/three.module.js",
+      "status": 200
+    },
+    {
+      "path": "/Games/Jankolock3D/vendor/three.core.js",
+      "status": 200
+    },
+    {
+      "path": "/docs/jank3d-spawns.json",
+      "status": 200
+    },
+    {
+      "path": "/favicon.svg",
+      "status": 200
+    },
+    {
+      "path": "/Games/Jankolock3D/systems.html",
+      "status": 200
+    },
+    {
+      "path": "/Games/Jankolock3D/systems.css",
+      "status": 200
+    },
+    {
+      "path": "/Games/Jankolock3D/systems-demo.mjs",
+      "status": 200
+    },
+    {
+      "path": "/assets/fonts/atkinson-hyperlegible/atkinson-hyperlegible-700-latin.woff2",
+      "status": 200
+    },
+    {
+      "path": "/assets/fonts/atkinson-hyperlegible/atkinson-hyperlegible-400-latin.woff2",
+      "status": 200
+    },
+    {
+      "path": "/assets/fonts/bungee/bungee-400-latin.woff2",
+      "status": 200
+    },
+    {
+      "path": "/Games/Jankolock3D/systems-view.mjs",
+      "status": 200
+    },
+    {
+      "path": "/Games/Jankolock3D/systems.mjs",
+      "status": 200
+    },
+    {
+      "path": "/Games/Jankolock3D/systems-ui.mjs",
+      "status": 200
+    },
+    {
+      "path": "/Games/Jankolock3D/vendor/three.module.js",
+      "status": 200
+    },
+    {
+      "path": "/Games/Jankolock3D/vendor/three.core.js",
+      "status": 200
+    },
+    {
+      "path": "/docs/jank3d-spawns.json",
+      "status": 200
+    },
+    {
+      "path": "/favicon.svg",
+      "status": 200
+    }
+  ],
+  "observations": {
+    "purchasesAndDash": {
+      "before": {
+        "id": "preview-player",
+        "souls": 4800,
+        "level": 13,
+        "position": {
+          "x": 0,
+          "y": 0,
+          "z": -430
+        },
+        "hp": 920,
+        "alive": true,
+        "items": [],
+        "flexSlots": 0
+      },
+      "after": {
+        "id": "preview-player",
+        "souls": 0,
+        "level": 13,
+        "position": {
+          "x": 0,
+          "y": 0,
+          "z": -430
+        },
+        "hp": 920,
+        "alive": true,
+        "items": [
+          "lifesteal",
+          "slow-rounds",
+          "dash-charge"
+        ],
+        "flexSlots": 0
+      },
+      "dashDistance": 10
+    },
+    "wave": {
+      "count": 24,
+      "time": 30.85,
+      "phase": "laning"
+    },
+    "secure": {
+      "before": 4800,
+      "after": 4840
+    },
+    "groundPickup": {
+      "id": "preview-player",
+      "souls": 4880,
+      "level": 13,
+      "position": {
+        "x": -0.33359999999999856,
+        "y": 0,
+        "z": 29.60000000000501
+      },
+      "hp": 822.8000000000004,
+      "alive": true,
+      "items": [],
+      "flexSlots": 0
+    },
+    "candleBurn": {
+      "id": "trooper-18",
+      "team": "ivory",
+      "lane": "midway",
+      "hp": 64.79999999999998,
+      "position": {
+        "x": -1,
+        "y": 0,
+        "z": 29.60000000000501
+      },
+      "candleScale": 0.35999999999999993
+    },
+    "deny": {
+      "id": "preview-player",
+      "souls": 4840,
+      "level": 13,
+      "position": {
+        "x": 3,
+        "y": 0,
+        "z": 29.60000000000501
+      },
+      "hp": 920,
+      "alive": true,
+      "items": [],
+      "flexSlots": 0
+    },
+    "respawn": {
+      "id": "preview-player",
+      "souls": 4000,
+      "level": 13,
+      "position": {
+        "x": 0,
+        "y": 0,
+        "z": -430
+      },
+      "hp": 1120,
+      "alive": true,
+      "items": [
+        "health"
+      ],
+      "flexSlots": 0
+    },
+    "recallAtBaseRing": {
+      "x": 0,
+      "y": 0,
+      "z": -430
+    }
+  },
+  "sourceHashes": {
+    "systems.mjs": "79b018abfb1227c4117f8c88243ce9d5eb5a6a7c7d5ac2f1e87f3a14dd09066a",
+    "systems-demo.mjs": "6e6b9b9b10f159e6835e93b99ecfa46d663d3438ea1a8af67c323165086b4a6e",
+    "systems-ui.mjs": "2cb52dac2b879b3023a31312b17c941f2010682f8ca154a8ba36fb7e2432044c",
+    "systems-view.mjs": "d0dedf2ea1ae4d83b05be7d0144ac8db4cc3f6c52cdb9f553e4e679f7dee338c",
+    "systems.css": "7eef7e7d329198586fed9b77ced81aea6cedf609fc2c4fe7f4aa8b5106026974",
+    "systems.html": "b54f80a055f07d7015d093898454437e465873a1d90149333053774df2868b92"
+  },
+  "comparison": "docs/maintenance/audits/jankolock-3d-qa/systems-ui-comparison.png",
+  "storageAfter": 2823208960
+}

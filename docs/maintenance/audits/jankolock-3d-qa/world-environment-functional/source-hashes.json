@@ -1,0 +1,21 @@
+{
+  "before": {
+    "world-scene.mjs": "db83ce0ab2b5bb417e09119d0c27f6957e29e5936ffa68e193492f983fce380c",
+    "environment.mjs": "1547b0b1ad329810a8e9f839166e8db03e1a19a110066053a868154a3c121e3c",
+    "world-data.mjs": "d3e5da4edbddf8a2cbd93584fb5c1aade756eaba453012f4634ba58b8841353f",
+    "traversal.mjs": "4a3f684e959760a01b29aacefe3397d5888dcfc7a51291cd4e4dc47ece41bb00",
+    "viewer.mjs": "aa6cac7a1d39d402ee07ea025ce2ea3890d997c97608142bd2eacbe3608ac86c",
+    "world.html": "08d07697507a50f58624132722f24db3896f93042ec73b823871ef2626e8733f",
+    "world.css": "5e89a3740730d16890cdb5ca1d1433af13b79ba4674a33efe4f8f731b9935908"
+  },
+  "after": {
+    "world-scene.mjs": "db83ce0ab2b5bb417e09119d0c27f6957e29e5936ffa68e193492f983fce380c",
+    "environment.mjs": "1547b0b1ad329810a8e9f839166e8db03e1a19a110066053a868154a3c121e3c",
+    "world-data.mjs": "d3e5da4edbddf8a2cbd93584fb5c1aade756eaba453012f4634ba58b8841353f",
+    "traversal.mjs": "4a3f684e959760a01b29aacefe3397d5888dcfc7a51291cd4e4dc47ece41bb00",
+    "viewer.mjs": "aa6cac7a1d39d402ee07ea025ce2ea3890d997c97608142bd2eacbe3608ac86c",
+    "world.html": "08d07697507a50f58624132722f24db3896f93042ec73b823871ef2626e8733f",
+    "world.css": "5e89a3740730d16890cdb5ca1d1433af13b79ba4674a33efe4f8f731b9935908"
+  },
+  "unchanged": true
+}

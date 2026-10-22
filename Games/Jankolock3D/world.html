@@ -1,0 +1,11 @@
+<!doctype html>
+<html lang="en" data-theme="dark"><head><meta charset="utf-8"><meta name="color-scheme" content="dark"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#25292b"><link rel="icon" href="data:,"><title>JANKOLOCK / World traversal</title><link rel="stylesheet" href="world.css"></head>
+<body>
+<a class="skip" href="#controls">Skip to traversal controls</a>
+<canvas id="world" tabindex="0" aria-label="3D office district. WASD moves, arrow keys or pointer drag looks around. Space jumps. E interacts."></canvas>
+<header><div><nav class="breadcrumb" aria-label="Breadcrumb"><a href="../../index.html">Arcade</a><span>/ World traversal</span></nav><h1>Jankolock</h1><small>900 m district · traversal study</small></div><nav aria-label="Viewer settings"><button id="walk" aria-pressed="true">Walk: on</button><button id="fly" aria-pressed="false">Flythrough: off</button><button id="sound" aria-pressed="false">Sound: off</button></nav></header>
+<div class="cross" aria-hidden="true">+</div>
+<div class="note" role="status" aria-live="polite"><span id="prompt">Loading local world…</span><br>Walk 8 m/s · Zipline 24 m/s</div>
+<footer id="controls"><div class="help"><b>WASD</b> move · <b>Arrows / drag</b> look · <b>Space</b> jump · <b>E</b> interact<br>Ground mode collides. Walk off enables WASD spectator; Space / Shift changes height.</div><div class="touch" role="group" aria-label="Touch movement"><button data-hold="KeyW">Forward</button><button data-hold="KeyA">Left</button><button data-hold="KeyS">Back</button><button data-hold="KeyD">Right</button><button data-hold="ArrowLeft">Look left</button><button data-hold="ArrowRight">Look right</button><button data-hold="ArrowUp">Look up</button><button data-hold="ArrowDown">Look down</button></div><nav aria-label="Traversal actions"><button id="jump">Jump</button><button id="interact">Interact</button></nav></footer>
+<noscript><p class="note">JavaScript is required for this offline 3D viewer.</p></noscript>
+<script type="module" src="viewer.mjs"></script></body></html>

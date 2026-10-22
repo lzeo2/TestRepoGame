@@ -1,0 +1,3861 @@
+{
+  "version": 1,
+  "units": "metres",
+  "footprint": {
+    "width": 900,
+    "depth": 900
+  },
+  "lanes": [
+    {
+      "id": "graft",
+      "name": "Graft",
+      "x": -240,
+      "color": 14465081
+    },
+    {
+      "id": "midway",
+      "name": "Midway",
+      "x": 0,
+      "color": 5340350
+    },
+    {
+      "id": "greenhedge",
+      "name": "Greenhedge",
+      "x": 240,
+      "color": 6656844
+    }
+  ],
+  "teams": [
+    "carbon",
+    "ivory"
+  ],
+  "boxes": [
+    {
+      "id": "carbon-graft-approach",
+      "minX": -237,
+      "maxX": -219,
+      "minY": 0,
+      "maxY": 3,
+      "minZ": -116,
+      "maxZ": -94,
+      "kind": "platform"
+    },
+    {
+      "id": "ivory-graft-approach",
+      "minX": -237,
+      "maxX": -219,
+      "minY": 0,
+      "maxY": 3,
+      "minZ": 94,
+      "maxZ": 116,
+      "kind": "platform"
+    },
+    {
+      "id": "carbon-midway-approach",
+      "minX": 3,
+      "maxX": 21,
+      "minY": 0,
+      "maxY": 3,
+      "minZ": -116,
+      "maxZ": -94,
+      "kind": "platform"
+    },
+    {
+      "id": "ivory-midway-approach",
+      "minX": 3,
+      "maxX": 21,
+      "minY": 0,
+      "maxY": 3,
+      "minZ": 94,
+      "maxZ": 116,
+      "kind": "platform"
+    },
+    {
+      "id": "carbon-greenhedge-approach",
+      "minX": 243,
+      "maxX": 261,
+      "minY": 0,
+      "maxY": 3,
+      "minZ": -116,
+      "maxZ": -94,
+      "kind": "platform"
+    },
+    {
+      "id": "ivory-greenhedge-approach",
+      "minX": 243,
+      "maxX": 261,
+      "minY": 0,
+      "maxY": 3,
+      "minZ": 94,
+      "maxZ": 116,
+      "kind": "platform"
+    },
+    {
+      "id": "office-1",
+      "minX": -426,
+      "maxX": -390,
+      "minY": 0,
+      "maxY": 12,
+      "minZ": -363,
+      "maxZ": -321,
+      "kind": "building"
+    },
+    {
+      "id": "roof-landing-1",
+      "minX": -390,
+      "maxX": -384,
+      "minY": 11.5,
+      "maxY": 12,
+      "minZ": -325,
+      "maxZ": -321,
+      "kind": "landing"
+    },
+    {
+      "id": "office-2",
+      "minX": -426,
+      "maxX": -390,
+      "minY": 0,
+      "maxY": 16,
+      "minZ": -273,
+      "maxZ": -231,
+      "kind": "building"
+    },
+    {
+      "id": "roof-landing-2",
+      "minX": -390,
+      "maxX": -384,
+      "minY": 15.5,
+      "maxY": 16,
+      "minZ": -235,
+      "maxZ": -231,
+      "kind": "landing"
+    },
+    {
+      "id": "office-3",
+      "minX": -426,
+      "maxX": -390,
+      "minY": 0,
+      "maxY": 20,
+      "minZ": -183,
+      "maxZ": -141,
+      "kind": "building"
+    },
+    {
+      "id": "roof-landing-3",
+      "minX": -390,
+      "maxX": -384,
+      "minY": 19.5,
+      "maxY": 20,
+      "minZ": -145,
+      "maxZ": -141,
+      "kind": "landing"
+    },
+    {
+      "id": "office-4",
+      "minX": -426,
+      "maxX": -390,
+      "minY": 0,
+      "maxY": 24,
+      "minZ": -93,
+      "maxZ": -51,
+      "kind": "building"
+    },
+    {
+      "id": "roof-landing-4",
+      "minX": -390,
+      "maxX": -384,
+      "minY": 23.5,
+      "maxY": 24,
+      "minZ": -55,
+      "maxZ": -51,
+      "kind": "landing"
+    },
+    {
+      "id": "office-5",
+      "minX": -426,
+      "maxX": -390,
+      "minY": 0,
+      "maxY": 28,
+      "minZ": 51,
+      "maxZ": 93,
+      "kind": "building"
+    },
+    {
+      "id": "roof-landing-5",
+      "minX": -390,
+      "maxX": -384,
+      "minY": 27.5,
+      "maxY": 28,
+      "minZ": 89,
+      "maxZ": 93,
+      "kind": "landing"
+    },
+    {
+      "id": "office-6",
+      "minX": -426,
+      "maxX": -390,
+      "minY": 0,
+      "maxY": 12,
+      "minZ": 141,
+      "maxZ": 183,
+      "kind": "building"
+    },
+    {
+      "id": "roof-landing-6",
+      "minX": -390,
+      "maxX": -384,
+      "minY": 11.5,
+      "maxY": 12,
+      "minZ": 179,
+      "maxZ": 183,
+      "kind": "landing"
+    },
+    {
+      "id": "office-7",
+      "minX": -426,
+      "maxX": -390,
+      "minY": 0,
+      "maxY": 16,
+      "minZ": 231,
+      "maxZ": 273,
+      "kind": "building"
+    },
+    {
+      "id": "roof-landing-7",
+      "minX": -390,
+      "maxX": -384,
+      "minY": 15.5,
+      "maxY": 16,
+      "minZ": 269,
+      "maxZ": 273,
+      "kind": "landing"
+    },
+    {
+      "id": "office-8",
+      "minX": -426,
+      "maxX": -390,
+      "minY": 0,
+      "maxY": 20,
+      "minZ": 321,
+      "maxZ": 363,
+      "kind": "building"
+    },
+    {
+      "id": "roof-landing-8",
+      "minX": -390,
+      "maxX": -384,
+      "minY": 19.5,
+      "maxY": 20,
+      "minZ": 359,
+      "maxZ": 363,
+      "kind": "landing"
+    },
+    {
+      "id": "office-9",
+      "minX": -366,
+      "maxX": -330,
+      "minY": 0,
+      "maxY": 24,
+      "minZ": -363,
+      "maxZ": -321,
+      "kind": "building"
+    },
+    {
+      "id": "roof-landing-9",
+      "minX": -330,
+      "maxX": -324,
+      "minY": 23.5,
+      "maxY": 24,
+      "minZ": -325,
+      "maxZ": -321,
+      "kind": "landing"
+    },
+    {
+      "id": "office-10",
+      "minX": -366,
+      "maxX": -330,
+      "minY": 0,
+      "maxY": 28,
+      "minZ": -273,
+      "maxZ": -231,
+      "kind": "building"
+    },
+    {
+      "id": "roof-landing-10",
+      "minX": -330,
+      "maxX": -324,
+      "minY": 27.5,
+      "maxY": 28,
+      "minZ": -235,
+      "maxZ": -231,
+      "kind": "landing"
+    },
+    {
+      "id": "office-11",
+      "minX": -366,
+      "maxX": -330,
+      "minY": 0,
+      "maxY": 12,
+      "minZ": -183,
+      "maxZ": -141,
+      "kind": "building"
+    },
+    {
+      "id": "roof-landing-11",
+      "minX": -330,
+      "maxX": -324,
+      "minY": 11.5,
+      "maxY": 12,
+      "minZ": -145,
+      "maxZ": -141,
+      "kind": "landing"
+    },
+    {
+      "id": "office-12",
+      "minX": -366,
+      "maxX": -330,
+      "minY": 0,
+      "maxY": 16,
+      "minZ": -93,
+      "maxZ": -51,
+      "kind": "building"
+    },
+    {
+      "id": "roof-landing-12",
+      "minX": -330,
+      "maxX": -324,
+      "minY": 15.5,
+      "maxY": 16,
+      "minZ": -55,
+      "maxZ": -51,
+      "kind": "landing"
+    },
+    {
+      "id": "office-13",
+      "minX": -366,
+      "maxX": -330,
+      "minY": 0,
+      "maxY": 20,
+      "minZ": 51,
+      "maxZ": 93,
+      "kind": "building"
+    },
+    {
+      "id": "roof-landing-13",
+      "minX": -330,
+      "maxX": -324,
+      "minY": 19.5,
+      "maxY": 20,
+      "minZ": 89,
+      "maxZ": 93,
+      "kind": "landing"
+    },
+    {
+      "id": "office-14",
+      "minX": -366,
+      "maxX": -330,
+      "minY": 0,
+      "maxY": 24,
+      "minZ": 141,
+      "maxZ": 183,
+      "kind": "building"
+    },
+    {
+      "id": "roof-landing-14",
+      "minX": -330,
+      "maxX": -324,
+      "minY": 23.5,
+      "maxY": 24,
+      "minZ": 179,
+      "maxZ": 183,
+      "kind": "landing"
+    },
+    {
+      "id": "office-15",
+      "minX": -366,
+      "maxX": -330,
+      "minY": 0,
+      "maxY": 28,
+      "minZ": 231,
+      "maxZ": 273,
+      "kind": "building"
+    },
+    {
+      "id": "roof-landing-15",
+      "minX": -330,
+      "maxX": -324,
+      "minY": 27.5,
+      "maxY": 28,
+      "minZ": 269,
+      "maxZ": 273,
+      "kind": "landing"
+    },
+    {
+      "id": "office-16",
+      "minX": -366,
+      "maxX": -330,
+      "minY": 0,
+      "maxY": 12,
+      "minZ": 321,
+      "maxZ": 363,
+      "kind": "building"
+    },
+    {
+      "id": "roof-landing-16",
+      "minX": -330,
+      "maxX": -324,
+      "minY": 11.5,
+      "maxY": 12,
+      "minZ": 359,
+      "maxZ": 363,
+      "kind": "landing"
+    },
+    {
+      "id": "office-17",
+      "minX": -186,
+      "maxX": -150,
+      "minY": 0,
+      "maxY": 16,
+      "minZ": -363,
+      "maxZ": -321,
+      "kind": "building"
+    },
+    {
+      "id": "roof-landing-17",
+      "minX": -150,
+      "maxX": -144,
+      "minY": 15.5,
+      "maxY": 16,
+      "minZ": -325,
+      "maxZ": -321,
+      "kind": "landing"
+    },
+    {
+      "id": "office-18",
+      "minX": -186,
+      "maxX": -150,
+      "minY": 0,
+      "maxY": 20,
+      "minZ": -273,
+      "maxZ": -231,
+      "kind": "building"
+    },
+    {
+      "id": "roof-landing-18",
+      "minX": -150,
+      "maxX": -144,
+      "minY": 19.5,
+      "maxY": 20,
+      "minZ": -235,
+      "maxZ": -231,
+      "kind": "landing"
+    },
+    {
+      "id": "office-19",
+      "minX": -186,
+      "maxX": -150,
+      "minY": 0,
+      "maxY": 24,
+      "minZ": -183,
+      "maxZ": -141,
+      "kind": "building"
+    },
+    {
+      "id": "roof-landing-19",
+      "minX": -150,
+      "maxX": -144,
+      "minY": 23.5,
+      "maxY": 24,
+      "minZ": -145,
+      "maxZ": -141,
+      "kind": "landing"
+    },
+    {
+      "id": "office-20",
+      "minX": -186,
+      "maxX": -150,
+      "minY": 0,
+      "maxY": 28,
+      "minZ": -93,
+      "maxZ": -51,
+      "kind": "building"
+    },
+    {
+      "id": "roof-landing-20",
+      "minX": -150,
+      "maxX": -144,
+      "minY": 27.5,
+      "maxY": 28,
+      "minZ": -55,
+      "maxZ": -51,
+      "kind": "landing"
+    },
+    {
+      "id": "office-21",
+      "minX": -186,
+      "maxX": -150,
+      "minY": 0,
+      "maxY": 12,
+      "minZ": 51,
+      "maxZ": 93,
+      "kind": "building"
+    },
+    {
+      "id": "roof-landing-21",
+      "minX": -150,
+      "maxX": -144,
+      "minY": 11.5,
+      "maxY": 12,
+      "minZ": 89,
+      "maxZ": 93,
+      "kind": "landing"
+    },
+    {
+      "id": "office-22",
+      "minX": -186,
+      "maxX": -150,
+      "minY": 0,
+      "maxY": 16,
+      "minZ": 141,
+      "maxZ": 183,
+      "kind": "building"
+    },
+    {
+      "id": "roof-landing-22",
+      "minX": -150,
+      "maxX": -144,
+      "minY": 15.5,
+      "maxY": 16,
+      "minZ": 179,
+      "maxZ": 183,
+      "kind": "landing"
+    },
+    {
+      "id": "office-23",
+      "minX": -186,
+      "maxX": -150,
+      "minY": 0,
+      "maxY": 20,
+      "minZ": 231,
+      "maxZ": 273,
+      "kind": "building"
+    },
+    {
+      "id": "roof-landing-23",
+      "minX": -150,
+      "maxX": -144,
+      "minY": 19.5,
+      "maxY": 20,
+      "minZ": 269,
+      "maxZ": 273,
+      "kind": "landing"
+    },
+    {
+      "id": "office-24",
+      "minX": -186,
+      "maxX": -150,
+      "minY": 0,
+      "maxY": 24,
+      "minZ": 321,
+      "maxZ": 363,
+      "kind": "building"
+    },
+    {
+      "id": "roof-landing-24",
+      "minX": -150,
+      "maxX": -144,
+      "minY": 23.5,
+      "maxY": 24,
+      "minZ": 359,
+      "maxZ": 363,
+      "kind": "landing"
+    },
+    {
+      "id": "office-25",
+      "minX": -126,
+      "maxX": -90,
+      "minY": 0,
+      "maxY": 28,
+      "minZ": -363,
+      "maxZ": -321,
+      "kind": "building"
+    },
+    {
+      "id": "roof-landing-25",
+      "minX": -90,
+      "maxX": -84,
+      "minY": 27.5,
+      "maxY": 28,
+      "minZ": -325,
+      "maxZ": -321,
+      "kind": "landing"
+    },
+    {
+      "id": "office-26",
+      "minX": -126,
+      "maxX": -90,
+      "minY": 0,
+      "maxY": 12,
+      "minZ": -273,
+      "maxZ": -231,
+      "kind": "building"
+    },
+    {
+      "id": "roof-landing-26",
+      "minX": -90,
+      "maxX": -84,
+      "minY": 11.5,
+      "maxY": 12,
+      "minZ": -235,
+      "maxZ": -231,
+      "kind": "landing"
+    },
+    {
+      "id": "office-27",
+      "minX": -126,
+      "maxX": -90,
+      "minY": 0,
+      "maxY": 16,
+      "minZ": -183,
+      "maxZ": -141,
+      "kind": "building"
+    },
+    {
+      "id": "roof-landing-27",
+      "minX": -90,
+      "maxX": -84,
+      "minY": 15.5,
+      "maxY": 16,
+      "minZ": -145,
+      "maxZ": -141,
+      "kind": "landing"
+    },
+    {
+      "id": "office-28",
+      "minX": -126,
+      "maxX": -90,
+      "minY": 0,
+      "maxY": 20,
+      "minZ": -93,
+      "maxZ": -51,
+      "kind": "building"
+    },
+    {
+      "id": "roof-landing-28",
+      "minX": -90,
+      "maxX": -84,
+      "minY": 19.5,
+      "maxY": 20,
+      "minZ": -55,
+      "maxZ": -51,
+      "kind": "landing"
+    },
+    {
+      "id": "office-29",
+      "minX": -126,
+      "maxX": -90,
+      "minY": 0,
+      "maxY": 24,
+      "minZ": 51,
+      "maxZ": 93,
+      "kind": "building"
+    },
+    {
+      "id": "roof-landing-29",
+      "minX": -90,
+      "maxX": -84,
+      "minY": 23.5,
+      "maxY": 24,
+      "minZ": 89,
+      "maxZ": 93,
+      "kind": "landing"
+    },
+    {
+      "id": "office-30",
+      "minX": -126,
+      "maxX": -90,
+      "minY": 0,
+      "maxY": 28,
+      "minZ": 141,
+      "maxZ": 183,
+      "kind": "building"
+    },
+    {
+      "id": "roof-landing-30",
+      "minX": -90,
+      "maxX": -84,
+      "minY": 27.5,
+      "maxY": 28,
+      "minZ": 179,
+      "maxZ": 183,
+      "kind": "landing"
+    },
+    {
+      "id": "office-31",
+      "minX": -126,
+      "maxX": -90,
+      "minY": 0,
+      "maxY": 12,
+      "minZ": 231,
+      "maxZ": 273,
+      "kind": "building"
+    },
+    {
+      "id": "roof-landing-31",
+      "minX": -90,
+      "maxX": -84,
+      "minY": 11.5,
+      "maxY": 12,
+      "minZ": 269,
+      "maxZ": 273,
+      "kind": "landing"
+    },
+    {
+      "id": "office-32",
+      "minX": -126,
+      "maxX": -90,
+      "minY": 0,
+      "maxY": 16,
+      "minZ": 321,
+      "maxZ": 363,
+      "kind": "building"
+    },
+    {
+      "id": "roof-landing-32",
+      "minX": -90,
+      "maxX": -84,
+      "minY": 15.5,
+      "maxY": 16,
+      "minZ": 359,
+      "maxZ": 363,
+      "kind": "landing"
+    },
+    {
+      "id": "office-33",
+      "minX": 90,
+      "maxX": 126,
+      "minY": 0,
+      "maxY": 20,
+      "minZ": -363,
+      "maxZ": -321,
+      "kind": "building"
+    },
+    {
+      "id": "roof-landing-33",
+      "minX": 126,
+      "maxX": 132,
+      "minY": 19.5,
+      "maxY": 20,
+      "minZ": -325,
+      "maxZ": -321,
+      "kind": "landing"
+    },
+    {
+      "id": "office-34",
+      "minX": 90,
+      "maxX": 126,
+      "minY": 0,
+      "maxY": 24,
+      "minZ": -273,
+      "maxZ": -231,
+      "kind": "building"
+    },
+    {
+      "id": "roof-landing-34",
+      "minX": 126,
+      "maxX": 132,
+      "minY": 23.5,
+      "maxY": 24,
+      "minZ": -235,
+      "maxZ": -231,
+      "kind": "landing"
+    },
+    {
+      "id": "office-35",
+      "minX": 90,
+      "maxX": 126,
+      "minY": 0,
+      "maxY": 28,
+      "minZ": -183,
+      "maxZ": -141,
+      "kind": "building"
+    },
+    {
+      "id": "roof-landing-35",
+      "minX": 126,
+      "maxX": 132,
+      "minY": 27.5,
+      "maxY": 28,
+      "minZ": -145,
+      "maxZ": -141,
+      "kind": "landing"
+    },
+    {
+      "id": "office-36",
+      "minX": 90,
+      "maxX": 126,
+      "minY": 0,
+      "maxY": 12,
+      "minZ": -93,
+      "maxZ": -51,
+      "kind": "building"
+    },
+    {
+      "id": "roof-landing-36",
+      "minX": 126,
+      "maxX": 132,
+      "minY": 11.5,
+      "maxY": 12,
+      "minZ": -55,
+      "maxZ": -51,
+      "kind": "landing"
+    },
+    {
+      "id": "office-37",
+      "minX": 90,
+      "maxX": 126,
+      "minY": 0,
+      "maxY": 16,
+      "minZ": 141,
+      "maxZ": 183,
+      "kind": "building"
+    },
+    {
+      "id": "roof-landing-37",
+      "minX": 126,
+      "maxX": 132,
+      "minY": 15.5,
+      "maxY": 16,
+      "minZ": 179,
+      "maxZ": 183,
+      "kind": "landing"
+    },
+    {
+      "id": "office-38",
+      "minX": 90,
+      "maxX": 126,
+      "minY": 0,
+      "maxY": 20,
+      "minZ": 231,
+      "maxZ": 273,
+      "kind": "building"
+    },
+    {
+      "id": "roof-landing-38",
+      "minX": 126,
+      "maxX": 132,
+      "minY": 19.5,
+      "maxY": 20,
+      "minZ": 269,
+      "maxZ": 273,
+      "kind": "landing"
+    },
+    {
+      "id": "office-39",
+      "minX": 90,
+      "maxX": 126,
+      "minY": 0,
+      "maxY": 24,
+      "minZ": 321,
+      "maxZ": 363,
+      "kind": "building"
+    },
+    {
+      "id": "roof-landing-39",
+      "minX": 126,
+      "maxX": 132,
+      "minY": 23.5,
+      "maxY": 24,
+      "minZ": 359,
+      "maxZ": 363,
+      "kind": "landing"
+    },
+    {
+      "id": "office-40",
+      "minX": 150,
+      "maxX": 186,
+      "minY": 0,
+      "maxY": 28,
+      "minZ": -363,
+      "maxZ": -321,
+      "kind": "building"
+    },
+    {
+      "id": "roof-landing-40",
+      "minX": 186,
+      "maxX": 192,
+      "minY": 27.5,
+      "maxY": 28,
+      "minZ": -325,
+      "maxZ": -321,
+      "kind": "landing"
+    },
+    {
+      "id": "office-41",
+      "minX": 150,
+      "maxX": 186,
+      "minY": 0,
+      "maxY": 12,
+      "minZ": -273,
+      "maxZ": -231,
+      "kind": "building"
+    },
+    {
+      "id": "roof-landing-41",
+      "minX": 186,
+      "maxX": 192,
+      "minY": 11.5,
+      "maxY": 12,
+      "minZ": -235,
+      "maxZ": -231,
+      "kind": "landing"
+    },
+    {
+      "id": "office-42",
+      "minX": 150,
+      "maxX": 186,
+      "minY": 0,
+      "maxY": 16,
+      "minZ": -183,
+      "maxZ": -141,
+      "kind": "building"
+    },
+    {
+      "id": "roof-landing-42",
+      "minX": 186,
+      "maxX": 192,
+      "minY": 15.5,
+      "maxY": 16,
+      "minZ": -145,
+      "maxZ": -141,
+      "kind": "landing"
+    },
+    {
+      "id": "office-43",
+      "minX": 150,
+      "maxX": 186,
+      "minY": 0,
+      "maxY": 20,
+      "minZ": -93,
+      "maxZ": -51,
+      "kind": "building"
+    },
+    {
+      "id": "roof-landing-43",
+      "minX": 186,
+      "maxX": 192,
+      "minY": 19.5,
+      "maxY": 20,
+      "minZ": -55,
+      "maxZ": -51,
+      "kind": "landing"
+    },
+    {
+      "id": "office-44",
+      "minX": 150,
+      "maxX": 186,
+      "minY": 0,
+      "maxY": 24,
+      "minZ": 141,
+      "maxZ": 183,
+      "kind": "building"
+    },
+    {
+      "id": "roof-landing-44",
+      "minX": 186,
+      "maxX": 192,
+      "minY": 23.5,
+      "maxY": 24,
+      "minZ": 179,
+      "maxZ": 183,
+      "kind": "landing"
+    },
+    {
+      "id": "office-45",
+      "minX": 150,
+      "maxX": 186,
+      "minY": 0,
+      "maxY": 28,
+      "minZ": 231,
+      "maxZ": 273,
+      "kind": "building"
+    },
+    {
+      "id": "roof-landing-45",
+      "minX": 186,
+      "maxX": 192,
+      "minY": 27.5,
+      "maxY": 28,
+      "minZ": 269,
+      "maxZ": 273,
+      "kind": "landing"
+    },
+    {
+      "id": "office-46",
+      "minX": 150,
+      "maxX": 186,
+      "minY": 0,
+      "maxY": 12,
+      "minZ": 321,
+      "maxZ": 363,
+      "kind": "building"
+    },
+    {
+      "id": "roof-landing-46",
+      "minX": 186,
+      "maxX": 192,
+      "minY": 11.5,
+      "maxY": 12,
+      "minZ": 359,
+      "maxZ": 363,
+      "kind": "landing"
+    },
+    {
+      "id": "office-47",
+      "minX": 330,
+      "maxX": 366,
+      "minY": 0,
+      "maxY": 16,
+      "minZ": -363,
+      "maxZ": -321,
+      "kind": "building"
+    },
+    {
+      "id": "roof-landing-47",
+      "minX": 366,
+      "maxX": 372,
+      "minY": 15.5,
+      "maxY": 16,
+      "minZ": -325,
+      "maxZ": -321,
+      "kind": "landing"
+    },
+    {
+      "id": "office-48",
+      "minX": 330,
+      "maxX": 366,
+      "minY": 0,
+      "maxY": 20,
+      "minZ": -273,
+      "maxZ": -231,
+      "kind": "building"
+    },
+    {
+      "id": "roof-landing-48",
+      "minX": 366,
+      "maxX": 372,
+      "minY": 19.5,
+      "maxY": 20,
+      "minZ": -235,
+      "maxZ": -231,
+      "kind": "landing"
+    },
+    {
+      "id": "office-49",
+      "minX": 330,
+      "maxX": 366,
+      "minY": 0,
+      "maxY": 24,
+      "minZ": -183,
+      "maxZ": -141,
+      "kind": "building"
+    },
+    {
+      "id": "roof-landing-49",
+      "minX": 366,
+      "maxX": 372,
+      "minY": 23.5,
+      "maxY": 24,
+      "minZ": -145,
+      "maxZ": -141,
+      "kind": "landing"
+    },
+    {
+      "id": "office-50",
+      "minX": 330,
+      "maxX": 366,
+      "minY": 0,
+      "maxY": 28,
+      "minZ": -93,
+      "maxZ": -51,
+      "kind": "building"
+    },
+    {
+      "id": "roof-landing-50",
+      "minX": 366,
+      "maxX": 372,
+      "minY": 27.5,
+      "maxY": 28,
+      "minZ": -55,
+      "maxZ": -51,
+      "kind": "landing"
+    },
+    {
+      "id": "office-51",
+      "minX": 330,
+      "maxX": 366,
+      "minY": 0,
+      "maxY": 12,
+      "minZ": 51,
+      "maxZ": 93,
+      "kind": "building"
+    },
+    {
+      "id": "roof-landing-51",
+      "minX": 366,
+      "maxX": 372,
+      "minY": 11.5,
+      "maxY": 12,
+      "minZ": 89,
+      "maxZ": 93,
+      "kind": "landing"
+    },
+    {
+      "id": "office-52",
+      "minX": 330,
+      "maxX": 366,
+      "minY": 0,
+      "maxY": 16,
+      "minZ": 141,
+      "maxZ": 183,
+      "kind": "building"
+    },
+    {
+      "id": "roof-landing-52",
+      "minX": 366,
+      "maxX": 372,
+      "minY": 15.5,
+      "maxY": 16,
+      "minZ": 179,
+      "maxZ": 183,
+      "kind": "landing"
+    },
+    {
+      "id": "office-53",
+      "minX": 330,
+      "maxX": 366,
+      "minY": 0,
+      "maxY": 20,
+      "minZ": 231,
+      "maxZ": 273,
+      "kind": "building"
+    },
+    {
+      "id": "roof-landing-53",
+      "minX": 366,
+      "maxX": 372,
+      "minY": 19.5,
+      "maxY": 20,
+      "minZ": 269,
+      "maxZ": 273,
+      "kind": "landing"
+    },
+    {
+      "id": "office-54",
+      "minX": 330,
+      "maxX": 366,
+      "minY": 0,
+      "maxY": 24,
+      "minZ": 321,
+      "maxZ": 363,
+      "kind": "building"
+    },
+    {
+      "id": "roof-landing-54",
+      "minX": 366,
+      "maxX": 372,
+      "minY": 23.5,
+      "maxY": 24,
+      "minZ": 359,
+      "maxZ": 363,
+      "kind": "landing"
+    },
+    {
+      "id": "office-55",
+      "minX": 390,
+      "maxX": 426,
+      "minY": 0,
+      "maxY": 28,
+      "minZ": -363,
+      "maxZ": -321,
+      "kind": "building"
+    },
+    {
+      "id": "roof-landing-55",
+      "minX": 426,
+      "maxX": 432,
+      "minY": 27.5,
+      "maxY": 28,
+      "minZ": -325,
+      "maxZ": -321,
+      "kind": "landing"
+    },
+    {
+      "id": "office-56",
+      "minX": 390,
+      "maxX": 426,
+      "minY": 0,
+      "maxY": 12,
+      "minZ": -273,
+      "maxZ": -231,
+      "kind": "building"
+    },
+    {
+      "id": "roof-landing-56",
+      "minX": 426,
+      "maxX": 432,
+      "minY": 11.5,
+      "maxY": 12,
+      "minZ": -235,
+      "maxZ": -231,
+      "kind": "landing"
+    },
+    {
+      "id": "office-57",
+      "minX": 390,
+      "maxX": 426,
+      "minY": 0,
+      "maxY": 16,
+      "minZ": -183,
+      "maxZ": -141,
+      "kind": "building"
+    },
+    {
+      "id": "roof-landing-57",
+      "minX": 426,
+      "maxX": 432,
+      "minY": 15.5,
+      "maxY": 16,
+      "minZ": -145,
+      "maxZ": -141,
+      "kind": "landing"
+    },
+    {
+      "id": "office-58",
+      "minX": 390,
+      "maxX": 426,
+      "minY": 0,
+      "maxY": 20,
+      "minZ": -93,
+      "maxZ": -51,
+      "kind": "building"
+    },
+    {
+      "id": "roof-landing-58",
+      "minX": 426,
+      "maxX": 432,
+      "minY": 19.5,
+      "maxY": 20,
+      "minZ": -55,
+      "maxZ": -51,
+      "kind": "landing"
+    },
+    {
+      "id": "office-59",
+      "minX": 390,
+      "maxX": 426,
+      "minY": 0,
+      "maxY": 24,
+      "minZ": 51,
+      "maxZ": 93,
+      "kind": "building"
+    },
+    {
+      "id": "roof-landing-59",
+      "minX": 426,
+      "maxX": 432,
+      "minY": 23.5,
+      "maxY": 24,
+      "minZ": 89,
+      "maxZ": 93,
+      "kind": "landing"
+    },
+    {
+      "id": "office-60",
+      "minX": 390,
+      "maxX": 426,
+      "minY": 0,
+      "maxY": 28,
+      "minZ": 141,
+      "maxZ": 183,
+      "kind": "building"
+    },
+    {
+      "id": "roof-landing-60",
+      "minX": 426,
+      "maxX": 432,
+      "minY": 27.5,
+      "maxY": 28,
+      "minZ": 179,
+      "maxZ": 183,
+      "kind": "landing"
+    },
+    {
+      "id": "office-61",
+      "minX": 390,
+      "maxX": 426,
+      "minY": 0,
+      "maxY": 12,
+      "minZ": 231,
+      "maxZ": 273,
+      "kind": "building"
+    },
+    {
+      "id": "roof-landing-61",
+      "minX": 426,
+      "maxX": 432,
+      "minY": 11.5,
+      "maxY": 12,
+      "minZ": 269,
+      "maxZ": 273,
+      "kind": "landing"
+    },
+    {
+      "id": "office-62",
+      "minX": 390,
+      "maxX": 426,
+      "minY": 0,
+      "maxY": 16,
+      "minZ": 321,
+      "maxZ": 363,
+      "kind": "building"
+    },
+    {
+      "id": "roof-landing-62",
+      "minX": 426,
+      "maxX": 432,
+      "minY": 15.5,
+      "maxY": 16,
+      "minZ": 359,
+      "maxZ": 363,
+      "kind": "landing"
+    },
+    {
+      "id": "mid-bridge",
+      "minX": -21,
+      "maxX": 21,
+      "minY": 2,
+      "maxY": 3,
+      "minZ": -35,
+      "maxZ": 35,
+      "kind": "bridge"
+    },
+    {
+      "id": "staple-tower-west",
+      "minX": -107.5,
+      "maxX": -102.5,
+      "minY": 0,
+      "maxY": 30,
+      "minZ": -12.5,
+      "maxZ": 12.5,
+      "kind": "tower"
+    },
+    {
+      "id": "staple-tower-east",
+      "minX": -87.5,
+      "maxX": -82.5,
+      "minY": 0,
+      "maxY": 30,
+      "minZ": -12.5,
+      "maxZ": 12.5,
+      "kind": "tower"
+    },
+    {
+      "id": "staple-tower-top",
+      "minX": -107.5,
+      "maxX": -82.5,
+      "minY": 28,
+      "maxY": 30,
+      "minZ": -12.5,
+      "maxZ": 12.5,
+      "kind": "tower"
+    },
+    {
+      "id": "paper-jungle-crate--7",
+      "minX": -128.5,
+      "maxX": -125.5,
+      "minY": 0,
+      "maxY": 3,
+      "minZ": 108.5,
+      "maxZ": 111.5,
+      "kind": "crate"
+    },
+    {
+      "id": "paper-jungle-crate-0",
+      "minX": -121.5,
+      "maxX": -118.5,
+      "minY": 0,
+      "maxY": 3,
+      "minZ": 108.5,
+      "maxZ": 111.5,
+      "kind": "crate"
+    },
+    {
+      "id": "paper-jungle-crate-7",
+      "minX": -114.5,
+      "maxX": -111.5,
+      "minY": 0,
+      "maxY": 3,
+      "minZ": 108.5,
+      "maxZ": 111.5,
+      "kind": "crate"
+    },
+    {
+      "id": "paper-jungle-cover",
+      "minX": -130,
+      "maxX": -110,
+      "minY": 0,
+      "maxY": 2,
+      "minZ": 118.5,
+      "maxZ": 121.5,
+      "kind": "cover"
+    },
+    {
+      "id": "binder-jungle-crate--7",
+      "minX": 116.5,
+      "maxX": 119.5,
+      "minY": 0,
+      "maxY": 3,
+      "minZ": -111.5,
+      "maxZ": -108.5,
+      "kind": "crate"
+    },
+    {
+      "id": "binder-jungle-crate-0",
+      "minX": 123.5,
+      "maxX": 126.5,
+      "minY": 0,
+      "maxY": 3,
+      "minZ": -111.5,
+      "maxZ": -108.5,
+      "kind": "crate"
+    },
+    {
+      "id": "binder-jungle-crate-7",
+      "minX": 130.5,
+      "maxX": 133.5,
+      "minY": 0,
+      "maxY": 3,
+      "minZ": -111.5,
+      "maxZ": -108.5,
+      "kind": "crate"
+    },
+    {
+      "id": "binder-jungle-cover",
+      "minX": 115,
+      "maxX": 135,
+      "minY": 0,
+      "maxY": 2,
+      "minZ": -101.5,
+      "maxZ": -98.5,
+      "kind": "cover"
+    }
+  ],
+  "ramps": [
+    {
+      "id": "carbon-graft-ramp",
+      "minX": -237,
+      "maxX": -219,
+      "minZ": -94,
+      "maxZ": -76,
+      "axis": "z",
+      "start": 3,
+      "end": 0
+    },
+    {
+      "id": "ivory-graft-ramp",
+      "minX": -237,
+      "maxX": -219,
+      "minZ": 76,
+      "maxZ": 94,
+      "axis": "z",
+      "start": 0,
+      "end": 3
+    },
+    {
+      "id": "carbon-midway-ramp",
+      "minX": 3,
+      "maxX": 21,
+      "minZ": -94,
+      "maxZ": -76,
+      "axis": "z",
+      "start": 3,
+      "end": 0
+    },
+    {
+      "id": "ivory-midway-ramp",
+      "minX": 3,
+      "maxX": 21,
+      "minZ": 76,
+      "maxZ": 94,
+      "axis": "z",
+      "start": 0,
+      "end": 3
+    },
+    {
+      "id": "carbon-greenhedge-ramp",
+      "minX": 243,
+      "maxX": 261,
+      "minZ": -94,
+      "maxZ": -76,
+      "axis": "z",
+      "start": 3,
+      "end": 0
+    },
+    {
+      "id": "ivory-greenhedge-ramp",
+      "minX": 243,
+      "maxX": 261,
+      "minZ": 76,
+      "maxZ": 94,
+      "axis": "z",
+      "start": 0,
+      "end": 3
+    },
+    {
+      "id": "roof-access-1",
+      "minX": -390,
+      "maxX": -384,
+      "minZ": -368,
+      "maxZ": -325,
+      "axis": "z",
+      "start": 0,
+      "end": 12
+    },
+    {
+      "id": "roof-access-2",
+      "minX": -390,
+      "maxX": -384,
+      "minZ": -278,
+      "maxZ": -235,
+      "axis": "z",
+      "start": 0,
+      "end": 16
+    },
+    {
+      "id": "roof-access-3",
+      "minX": -390,
+      "maxX": -384,
+      "minZ": -188,
+      "maxZ": -145,
+      "axis": "z",
+      "start": 0,
+      "end": 20
+    },
+    {
+      "id": "roof-access-4",
+      "minX": -390,
+      "maxX": -384,
+      "minZ": -98,
+      "maxZ": -55,
+      "axis": "z",
+      "start": 0,
+      "end": 24
+    },
+    {
+      "id": "roof-access-5",
+      "minX": -390,
+      "maxX": -384,
+      "minZ": 46,
+      "maxZ": 89,
+      "axis": "z",
+      "start": 0,
+      "end": 28
+    },
+    {
+      "id": "roof-access-6",
+      "minX": -390,
+      "maxX": -384,
+      "minZ": 136,
+      "maxZ": 179,
+      "axis": "z",
+      "start": 0,
+      "end": 12
+    },
+    {
+      "id": "roof-access-7",
+      "minX": -390,
+      "maxX": -384,
+      "minZ": 226,
+      "maxZ": 269,
+      "axis": "z",
+      "start": 0,
+      "end": 16
+    },
+    {
+      "id": "roof-access-8",
+      "minX": -390,
+      "maxX": -384,
+      "minZ": 316,
+      "maxZ": 359,
+      "axis": "z",
+      "start": 0,
+      "end": 20
+    },
+    {
+      "id": "roof-access-9",
+      "minX": -330,
+      "maxX": -324,
+      "minZ": -368,
+      "maxZ": -325,
+      "axis": "z",
+      "start": 0,
+      "end": 24
+    },
+    {
+      "id": "roof-access-10",
+      "minX": -330,
+      "maxX": -324,
+      "minZ": -278,
+      "maxZ": -235,
+      "axis": "z",
+      "start": 0,
+      "end": 28
+    },
+    {
+      "id": "roof-access-11",
+      "minX": -330,
+      "maxX": -324,
+      "minZ": -188,
+      "maxZ": -145,
+      "axis": "z",
+      "start": 0,
+      "end": 12
+    },
+    {
+      "id": "roof-access-12",
+      "minX": -330,
+      "maxX": -324,
+      "minZ": -98,
+      "maxZ": -55,
+      "axis": "z",
+      "start": 0,
+      "end": 16
+    },
+    {
+      "id": "roof-access-13",
+      "minX": -330,
+      "maxX": -324,
+      "minZ": 46,
+      "maxZ": 89,
+      "axis": "z",
+      "start": 0,
+      "end": 20
+    },
+    {
+      "id": "roof-access-14",
+      "minX": -330,
+      "maxX": -324,
+      "minZ": 136,
+      "maxZ": 179,
+      "axis": "z",
+      "start": 0,
+      "end": 24
+    },
+    {
+      "id": "roof-access-15",
+      "minX": -330,
+      "maxX": -324,
+      "minZ": 226,
+      "maxZ": 269,
+      "axis": "z",
+      "start": 0,
+      "end": 28
+    },
+    {
+      "id": "roof-access-16",
+      "minX": -330,
+      "maxX": -324,
+      "minZ": 316,
+      "maxZ": 359,
+      "axis": "z",
+      "start": 0,
+      "end": 12
+    },
+    {
+      "id": "roof-access-17",
+      "minX": -150,
+      "maxX": -144,
+      "minZ": -368,
+      "maxZ": -325,
+      "axis": "z",
+      "start": 0,
+      "end": 16
+    },
+    {
+      "id": "roof-access-18",
+      "minX": -150,
+      "maxX": -144,
+      "minZ": -278,
+      "maxZ": -235,
+      "axis": "z",
+      "start": 0,
+      "end": 20
+    },
+    {
+      "id": "roof-access-19",
+      "minX": -150,
+      "maxX": -144,
+      "minZ": -188,
+      "maxZ": -145,
+      "axis": "z",
+      "start": 0,
+      "end": 24
+    },
+    {
+      "id": "roof-access-20",
+      "minX": -150,
+      "maxX": -144,
+      "minZ": -98,
+      "maxZ": -55,
+      "axis": "z",
+      "start": 0,
+      "end": 28
+    },
+    {
+      "id": "roof-access-21",
+      "minX": -150,
+      "maxX": -144,
+      "minZ": 46,
+      "maxZ": 89,
+      "axis": "z",
+      "start": 0,
+      "end": 12
+    },
+    {
+      "id": "roof-access-22",
+      "minX": -150,
+      "maxX": -144,
+      "minZ": 136,
+      "maxZ": 179,
+      "axis": "z",
+      "start": 0,
+      "end": 16
+    },
+    {
+      "id": "roof-access-23",
+      "minX": -150,
+      "maxX": -144,
+      "minZ": 226,
+      "maxZ": 269,
+      "axis": "z",
+      "start": 0,
+      "end": 20
+    },
+    {
+      "id": "roof-access-24",
+      "minX": -150,
+      "maxX": -144,
+      "minZ": 316,
+      "maxZ": 359,
+      "axis": "z",
+      "start": 0,
+      "end": 24
+    },
+    {
+      "id": "roof-access-25",
+      "minX": -90,
+      "maxX": -84,
+      "minZ": -368,
+      "maxZ": -325,
+      "axis": "z",
+      "start": 0,
+      "end": 28
+    },
+    {
+      "id": "roof-access-26",
+      "minX": -90,
+      "maxX": -84,
+      "minZ": -278,
+      "maxZ": -235,
+      "axis": "z",
+      "start": 0,
+      "end": 12
+    },
+    {
+      "id": "roof-access-27",
+      "minX": -90,
+      "maxX": -84,
+      "minZ": -188,
+      "maxZ": -145,
+      "axis": "z",
+      "start": 0,
+      "end": 16
+    },
+    {
+      "id": "roof-access-28",
+      "minX": -90,
+      "maxX": -84,
+      "minZ": -98,
+      "maxZ": -55,
+      "axis": "z",
+      "start": 0,
+      "end": 20
+    },
+    {
+      "id": "roof-access-29",
+      "minX": -90,
+      "maxX": -84,
+      "minZ": 46,
+      "maxZ": 89,
+      "axis": "z",
+      "start": 0,
+      "end": 24
+    },
+    {
+      "id": "roof-access-30",
+      "minX": -90,
+      "maxX": -84,
+      "minZ": 136,
+      "maxZ": 179,
+      "axis": "z",
+      "start": 0,
+      "end": 28
+    },
+    {
+      "id": "roof-access-31",
+      "minX": -90,
+      "maxX": -84,
+      "minZ": 226,
+      "maxZ": 269,
+      "axis": "z",
+      "start": 0,
+      "end": 12
+    },
+    {
+      "id": "roof-access-32",
+      "minX": -90,
+      "maxX": -84,
+      "minZ": 316,
+      "maxZ": 359,
+      "axis": "z",
+      "start": 0,
+      "end": 16
+    },
+    {
+      "id": "roof-access-33",
+      "minX": 126,
+      "maxX": 132,
+      "minZ": -368,
+      "maxZ": -325,
+      "axis": "z",
+      "start": 0,
+      "end": 20
+    },
+    {
+      "id": "roof-access-34",
+      "minX": 126,
+      "maxX": 132,
+      "minZ": -278,
+      "maxZ": -235,
+      "axis": "z",
+      "start": 0,
+      "end": 24
+    },
+    {
+      "id": "roof-access-35",
+      "minX": 126,
+      "maxX": 132,
+      "minZ": -188,
+      "maxZ": -145,
+      "axis": "z",
+      "start": 0,
+      "end": 28
+    },
+    {
+      "id": "roof-access-36",
+      "minX": 126,
+      "maxX": 132,
+      "minZ": -98,
+      "maxZ": -55,
+      "axis": "z",
+      "start": 0,
+      "end": 12
+    },
+    {
+      "id": "roof-access-37",
+      "minX": 126,
+      "maxX": 132,
+      "minZ": 136,
+      "maxZ": 179,
+      "axis": "z",
+      "start": 0,
+      "end": 16
+    },
+    {
+      "id": "roof-access-38",
+      "minX": 126,
+      "maxX": 132,
+      "minZ": 226,
+      "maxZ": 269,
+      "axis": "z",
+      "start": 0,
+      "end": 20
+    },
+    {
+      "id": "roof-access-39",
+      "minX": 126,
+      "maxX": 132,
+      "minZ": 316,
+      "maxZ": 359,
+      "axis": "z",
+      "start": 0,
+      "end": 24
+    },
+    {
+      "id": "roof-access-40",
+      "minX": 186,
+      "maxX": 192,
+      "minZ": -368,
+      "maxZ": -325,
+      "axis": "z",
+      "start": 0,
+      "end": 28
+    },
+    {
+      "id": "roof-access-41",
+      "minX": 186,
+      "maxX": 192,
+      "minZ": -278,
+      "maxZ": -235,
+      "axis": "z",
+      "start": 0,
+      "end": 12
+    },
+    {
+      "id": "roof-access-42",
+      "minX": 186,
+      "maxX": 192,
+      "minZ": -188,
+      "maxZ": -145,
+      "axis": "z",
+      "start": 0,
+      "end": 16
+    },
+    {
+      "id": "roof-access-43",
+      "minX": 186,
+      "maxX": 192,
+      "minZ": -98,
+      "maxZ": -55,
+      "axis": "z",
+      "start": 0,
+      "end": 20
+    },
+    {
+      "id": "roof-access-44",
+      "minX": 186,
+      "maxX": 192,
+      "minZ": 136,
+      "maxZ": 179,
+      "axis": "z",
+      "start": 0,
+      "end": 24
+    },
+    {
+      "id": "roof-access-45",
+      "minX": 186,
+      "maxX": 192,
+      "minZ": 226,
+      "maxZ": 269,
+      "axis": "z",
+      "start": 0,
+      "end": 28
+    },
+    {
+      "id": "roof-access-46",
+      "minX": 186,
+      "maxX": 192,
+      "minZ": 316,
+      "maxZ": 359,
+      "axis": "z",
+      "start": 0,
+      "end": 12
+    },
+    {
+      "id": "roof-access-47",
+      "minX": 366,
+      "maxX": 372,
+      "minZ": -368,
+      "maxZ": -325,
+      "axis": "z",
+      "start": 0,
+      "end": 16
+    },
+    {
+      "id": "roof-access-48",
+      "minX": 366,
+      "maxX": 372,
+      "minZ": -278,
+      "maxZ": -235,
+      "axis": "z",
+      "start": 0,
+      "end": 20
+    },
+    {
+      "id": "roof-access-49",
+      "minX": 366,
+      "maxX": 372,
+      "minZ": -188,
+      "maxZ": -145,
+      "axis": "z",
+      "start": 0,
+      "end": 24
+    },
+    {
+      "id": "roof-access-50",
+      "minX": 366,
+      "maxX": 372,
+      "minZ": -98,
+      "maxZ": -55,
+      "axis": "z",
+      "start": 0,
+      "end": 28
+    },
+    {
+      "id": "roof-access-51",
+      "minX": 366,
+      "maxX": 372,
+      "minZ": 46,
+      "maxZ": 89,
+      "axis": "z",
+      "start": 0,
+      "end": 12
+    },
+    {
+      "id": "roof-access-52",
+      "minX": 366,
+      "maxX": 372,
+      "minZ": 136,
+      "maxZ": 179,
+      "axis": "z",
+      "start": 0,
+      "end": 16
+    },
+    {
+      "id": "roof-access-53",
+      "minX": 366,
+      "maxX": 372,
+      "minZ": 226,
+      "maxZ": 269,
+      "axis": "z",
+      "start": 0,
+      "end": 20
+    },
+    {
+      "id": "roof-access-54",
+      "minX": 366,
+      "maxX": 372,
+      "minZ": 316,
+      "maxZ": 359,
+      "axis": "z",
+      "start": 0,
+      "end": 24
+    },
+    {
+      "id": "roof-access-55",
+      "minX": 426,
+      "maxX": 432,
+      "minZ": -368,
+      "maxZ": -325,
+      "axis": "z",
+      "start": 0,
+      "end": 28
+    },
+    {
+      "id": "roof-access-56",
+      "minX": 426,
+      "maxX": 432,
+      "minZ": -278,
+      "maxZ": -235,
+      "axis": "z",
+      "start": 0,
+      "end": 12
+    },
+    {
+      "id": "roof-access-57",
+      "minX": 426,
+      "maxX": 432,
+      "minZ": -188,
+      "maxZ": -145,
+      "axis": "z",
+      "start": 0,
+      "end": 16
+    },
+    {
+      "id": "roof-access-58",
+      "minX": 426,
+      "maxX": 432,
+      "minZ": -98,
+      "maxZ": -55,
+      "axis": "z",
+      "start": 0,
+      "end": 20
+    },
+    {
+      "id": "roof-access-59",
+      "minX": 426,
+      "maxX": 432,
+      "minZ": 46,
+      "maxZ": 89,
+      "axis": "z",
+      "start": 0,
+      "end": 24
+    },
+    {
+      "id": "roof-access-60",
+      "minX": 426,
+      "maxX": 432,
+      "minZ": 136,
+      "maxZ": 179,
+      "axis": "z",
+      "start": 0,
+      "end": 28
+    },
+    {
+      "id": "roof-access-61",
+      "minX": 426,
+      "maxX": 432,
+      "minZ": 226,
+      "maxZ": 269,
+      "axis": "z",
+      "start": 0,
+      "end": 12
+    },
+    {
+      "id": "roof-access-62",
+      "minX": 426,
+      "maxX": 432,
+      "minZ": 316,
+      "maxZ": 359,
+      "axis": "z",
+      "start": 0,
+      "end": 16
+    },
+    {
+      "id": "roof-link--408--252",
+      "minX": -391,
+      "maxX": -365,
+      "minZ": -255,
+      "maxZ": -249,
+      "axis": "x",
+      "start": 16,
+      "end": 28
+    },
+    {
+      "id": "roof-link--408-162",
+      "minX": -391,
+      "maxX": -365,
+      "minZ": 159,
+      "maxZ": 165,
+      "axis": "x",
+      "start": 12,
+      "end": 24
+    },
+    {
+      "id": "roof-link--168--252",
+      "minX": -151,
+      "maxX": -125,
+      "minZ": -255,
+      "maxZ": -249,
+      "axis": "x",
+      "start": 20,
+      "end": 12
+    },
+    {
+      "id": "roof-link--168-162",
+      "minX": -151,
+      "maxX": -125,
+      "minZ": 159,
+      "maxZ": 165,
+      "axis": "x",
+      "start": 16,
+      "end": 28
+    },
+    {
+      "id": "roof-link-108--252",
+      "minX": 125,
+      "maxX": 151,
+      "minZ": -255,
+      "maxZ": -249,
+      "axis": "x",
+      "start": 24,
+      "end": 12
+    },
+    {
+      "id": "roof-link-108-162",
+      "minX": 125,
+      "maxX": 151,
+      "minZ": 159,
+      "maxZ": 165,
+      "axis": "x",
+      "start": 16,
+      "end": 24
+    },
+    {
+      "id": "roof-link-348--252",
+      "minX": 365,
+      "maxX": 391,
+      "minZ": -255,
+      "maxZ": -249,
+      "axis": "x",
+      "start": 20,
+      "end": 12
+    },
+    {
+      "id": "roof-link-348-162",
+      "minX": 365,
+      "maxX": 391,
+      "minZ": 159,
+      "maxZ": 165,
+      "axis": "x",
+      "start": 16,
+      "end": 28
+    },
+    {
+      "id": "mid-south-ramp",
+      "minX": -21,
+      "maxX": 21,
+      "minZ": -55,
+      "maxZ": -35,
+      "axis": "z",
+      "start": 0,
+      "end": 3
+    },
+    {
+      "id": "mid-north-ramp",
+      "minX": -21,
+      "maxX": 21,
+      "minZ": 35,
+      "maxZ": 55,
+      "axis": "z",
+      "start": 3,
+      "end": 0
+    },
+    {
+      "id": "sewer-access",
+      "minX": 40,
+      "maxX": 90,
+      "minZ": -9,
+      "maxZ": 9,
+      "axis": "x",
+      "start": -10,
+      "end": 0
+    },
+    {
+      "id": "plaza-access",
+      "minX": 170,
+      "maxX": 205,
+      "minZ": 75,
+      "maxZ": 100,
+      "axis": "x",
+      "start": -6,
+      "end": 0
+    }
+  ],
+  "buildings": [
+    {
+      "id": "office-1",
+      "minX": -426,
+      "maxX": -390,
+      "minY": 0,
+      "maxY": 12,
+      "minZ": -363,
+      "maxZ": -321,
+      "kind": "building",
+      "x": -408,
+      "z": -342,
+      "height": 12,
+      "color": 10398894
+    },
+    {
+      "id": "office-2",
+      "minX": -426,
+      "maxX": -390,
+      "minY": 0,
+      "maxY": 16,
+      "minZ": -273,
+      "maxZ": -231,
+      "kind": "building",
+      "x": -408,
+      "z": -252,
+      "height": 16,
+      "color": 12037529
+    },
+    {
+      "id": "office-3",
+      "minX": -426,
+      "maxX": -390,
+      "minY": 0,
+      "maxY": 20,
+      "minZ": -183,
+      "maxZ": -141,
+      "kind": "building",
+      "x": -408,
+      "z": -162,
+      "height": 20,
+      "color": 10588029
+    },
+    {
+      "id": "office-4",
+      "minX": -426,
+      "maxX": -390,
+      "minY": 0,
+      "maxY": 24,
+      "minZ": -93,
+      "maxZ": -51,
+      "kind": "building",
+      "x": -408,
+      "z": -72,
+      "height": 24,
+      "color": 11773070
+    },
+    {
+      "id": "office-5",
+      "minX": -426,
+      "maxX": -390,
+      "minY": 0,
+      "maxY": 28,
+      "minZ": 51,
+      "maxZ": 93,
+      "kind": "building",
+      "x": -408,
+      "z": 72,
+      "height": 28,
+      "color": 10398894
+    },
+    {
+      "id": "office-6",
+      "minX": -426,
+      "maxX": -390,
+      "minY": 0,
+      "maxY": 12,
+      "minZ": 141,
+      "maxZ": 183,
+      "kind": "building",
+      "x": -408,
+      "z": 162,
+      "height": 12,
+      "color": 12037529
+    },
+    {
+      "id": "office-7",
+      "minX": -426,
+      "maxX": -390,
+      "minY": 0,
+      "maxY": 16,
+      "minZ": 231,
+      "maxZ": 273,
+      "kind": "building",
+      "x": -408,
+      "z": 252,
+      "height": 16,
+      "color": 10588029
+    },
+    {
+      "id": "office-8",
+      "minX": -426,
+      "maxX": -390,
+      "minY": 0,
+      "maxY": 20,
+      "minZ": 321,
+      "maxZ": 363,
+      "kind": "building",
+      "x": -408,
+      "z": 342,
+      "height": 20,
+      "color": 11773070
+    },
+    {
+      "id": "office-9",
+      "minX": -366,
+      "maxX": -330,
+      "minY": 0,
+      "maxY": 24,
+      "minZ": -363,
+      "maxZ": -321,
+      "kind": "building",
+      "x": -348,
+      "z": -342,
+      "height": 24,
+      "color": 10398894
+    },
+    {
+      "id": "office-10",
+      "minX": -366,
+      "maxX": -330,
+      "minY": 0,
+      "maxY": 28,
+      "minZ": -273,
+      "maxZ": -231,
+      "kind": "building",
+      "x": -348,
+      "z": -252,
+      "height": 28,
+      "color": 12037529
+    },
+    {
+      "id": "office-11",
+      "minX": -366,
+      "maxX": -330,
+      "minY": 0,
+      "maxY": 12,
+      "minZ": -183,
+      "maxZ": -141,
+      "kind": "building",
+      "x": -348,
+      "z": -162,
+      "height": 12,
+      "color": 10588029
+    },
+    {
+      "id": "office-12",
+      "minX": -366,
+      "maxX": -330,
+      "minY": 0,
+      "maxY": 16,
+      "minZ": -93,
+      "maxZ": -51,
+      "kind": "building",
+      "x": -348,
+      "z": -72,
+      "height": 16,
+      "color": 11773070
+    },
+    {
+      "id": "office-13",
+      "minX": -366,
+      "maxX": -330,
+      "minY": 0,
+      "maxY": 20,
+      "minZ": 51,
+      "maxZ": 93,
+      "kind": "building",
+      "x": -348,
+      "z": 72,
+      "height": 20,
+      "color": 10398894
+    },
+    {
+      "id": "office-14",
+      "minX": -366,
+      "maxX": -330,
+      "minY": 0,
+      "maxY": 24,
+      "minZ": 141,
+      "maxZ": 183,
+      "kind": "building",
+      "x": -348,
+      "z": 162,
+      "height": 24,
+      "color": 12037529
+    },
+    {
+      "id": "office-15",
+      "minX": -366,
+      "maxX": -330,
+      "minY": 0,
+      "maxY": 28,
+      "minZ": 231,
+      "maxZ": 273,
+      "kind": "building",
+      "x": -348,
+      "z": 252,
+      "height": 28,
+      "color": 10588029
+    },
+    {
+      "id": "office-16",
+      "minX": -366,
+      "maxX": -330,
+      "minY": 0,
+      "maxY": 12,
+      "minZ": 321,
+      "maxZ": 363,
+      "kind": "building",
+      "x": -348,
+      "z": 342,
+      "height": 12,
+      "color": 11773070
+    },
+    {
+      "id": "office-17",
+      "minX": -186,
+      "maxX": -150,
+      "minY": 0,
+      "maxY": 16,
+      "minZ": -363,
+      "maxZ": -321,
+      "kind": "building",
+      "x": -168,
+      "z": -342,
+      "height": 16,
+      "color": 10398894
+    },
+    {
+      "id": "office-18",
+      "minX": -186,
+      "maxX": -150,
+      "minY": 0,
+      "maxY": 20,
+      "minZ": -273,
+      "maxZ": -231,
+      "kind": "building",
+      "x": -168,
+      "z": -252,
+      "height": 20,
+      "color": 12037529
+    },
+    {
+      "id": "office-19",
+      "minX": -186,
+      "maxX": -150,
+      "minY": 0,
+      "maxY": 24,
+      "minZ": -183,
+      "maxZ": -141,
+      "kind": "building",
+      "x": -168,
+      "z": -162,
+      "height": 24,
+      "color": 10588029
+    },
+    {
+      "id": "office-20",
+      "minX": -186,
+      "maxX": -150,
+      "minY": 0,
+      "maxY": 28,
+      "minZ": -93,
+      "maxZ": -51,
+      "kind": "building",
+      "x": -168,
+      "z": -72,
+      "height": 28,
+      "color": 11773070
+    },
+    {
+      "id": "office-21",
+      "minX": -186,
+      "maxX": -150,
+      "minY": 0,
+      "maxY": 12,
+      "minZ": 51,
+      "maxZ": 93,
+      "kind": "building",
+      "x": -168,
+      "z": 72,
+      "height": 12,
+      "color": 10398894
+    },
+    {
+      "id": "office-22",
+      "minX": -186,
+      "maxX": -150,
+      "minY": 0,
+      "maxY": 16,
+      "minZ": 141,
+      "maxZ": 183,
+      "kind": "building",
+      "x": -168,
+      "z": 162,
+      "height": 16,
+      "color": 12037529
+    },
+    {
+      "id": "office-23",
+      "minX": -186,
+      "maxX": -150,
+      "minY": 0,
+      "maxY": 20,
+      "minZ": 231,
+      "maxZ": 273,
+      "kind": "building",
+      "x": -168,
+      "z": 252,
+      "height": 20,
+      "color": 10588029
+    },
+    {
+      "id": "office-24",
+      "minX": -186,
+      "maxX": -150,
+      "minY": 0,
+      "maxY": 24,
+      "minZ": 321,
+      "maxZ": 363,
+      "kind": "building",
+      "x": -168,
+      "z": 342,
+      "height": 24,
+      "color": 11773070
+    },
+    {
+      "id": "office-25",
+      "minX": -126,
+      "maxX": -90,
+      "minY": 0,
+      "maxY": 28,
+      "minZ": -363,
+      "maxZ": -321,
+      "kind": "building",
+      "x": -108,
+      "z": -342,
+      "height": 28,
+      "color": 10398894
+    },
+    {
+      "id": "office-26",
+      "minX": -126,
+      "maxX": -90,
+      "minY": 0,
+      "maxY": 12,
+      "minZ": -273,
+      "maxZ": -231,
+      "kind": "building",
+      "x": -108,
+      "z": -252,
+      "height": 12,
+      "color": 12037529
+    },
+    {
+      "id": "office-27",
+      "minX": -126,
+      "maxX": -90,
+      "minY": 0,
+      "maxY": 16,
+      "minZ": -183,
+      "maxZ": -141,
+      "kind": "building",
+      "x": -108,
+      "z": -162,
+      "height": 16,
+      "color": 10588029
+    },
+    {
+      "id": "office-28",
+      "minX": -126,
+      "maxX": -90,
+      "minY": 0,
+      "maxY": 20,
+      "minZ": -93,
+      "maxZ": -51,
+      "kind": "building",
+      "x": -108,
+      "z": -72,
+      "height": 20,
+      "color": 11773070
+    },
+    {
+      "id": "office-29",
+      "minX": -126,
+      "maxX": -90,
+      "minY": 0,
+      "maxY": 24,
+      "minZ": 51,
+      "maxZ": 93,
+      "kind": "building",
+      "x": -108,
+      "z": 72,
+      "height": 24,
+      "color": 10398894
+    },
+    {
+      "id": "office-30",
+      "minX": -126,
+      "maxX": -90,
+      "minY": 0,
+      "maxY": 28,
+      "minZ": 141,
+      "maxZ": 183,
+      "kind": "building",
+      "x": -108,
+      "z": 162,
+      "height": 28,
+      "color": 12037529
+    },
+    {
+      "id": "office-31",
+      "minX": -126,
+      "maxX": -90,
+      "minY": 0,
+      "maxY": 12,
+      "minZ": 231,
+      "maxZ": 273,
+      "kind": "building",
+      "x": -108,
+      "z": 252,
+      "height": 12,
+      "color": 10588029
+    },
+    {
+      "id": "office-32",
+      "minX": -126,
+      "maxX": -90,
+      "minY": 0,
+      "maxY": 16,
+      "minZ": 321,
+      "maxZ": 363,
+      "kind": "building",
+      "x": -108,
+      "z": 342,
+      "height": 16,
+      "color": 11773070
+    },
+    {
+      "id": "office-33",
+      "minX": 90,
+      "maxX": 126,
+      "minY": 0,
+      "maxY": 20,
+      "minZ": -363,
+      "maxZ": -321,
+      "kind": "building",
+      "x": 108,
+      "z": -342,
+      "height": 20,
+      "color": 10398894
+    },
+    {
+      "id": "office-34",
+      "minX": 90,
+      "maxX": 126,
+      "minY": 0,
+      "maxY": 24,
+      "minZ": -273,
+      "maxZ": -231,
+      "kind": "building",
+      "x": 108,
+      "z": -252,
+      "height": 24,
+      "color": 12037529
+    },
+    {
+      "id": "office-35",
+      "minX": 90,
+      "maxX": 126,
+      "minY": 0,
+      "maxY": 28,
+      "minZ": -183,
+      "maxZ": -141,
+      "kind": "building",
+      "x": 108,
+      "z": -162,
+      "height": 28,
+      "color": 10588029
+    },
+    {
+      "id": "office-36",
+      "minX": 90,
+      "maxX": 126,
+      "minY": 0,
+      "maxY": 12,
+      "minZ": -93,
+      "maxZ": -51,
+      "kind": "building",
+      "x": 108,
+      "z": -72,
+      "height": 12,
+      "color": 11773070
+    },
+    {
+      "id": "office-37",
+      "minX": 90,
+      "maxX": 126,
+      "minY": 0,
+      "maxY": 16,
+      "minZ": 141,
+      "maxZ": 183,
+      "kind": "building",
+      "x": 108,
+      "z": 162,
+      "height": 16,
+      "color": 10398894
+    },
+    {
+      "id": "office-38",
+      "minX": 90,
+      "maxX": 126,
+      "minY": 0,
+      "maxY": 20,
+      "minZ": 231,
+      "maxZ": 273,
+      "kind": "building",
+      "x": 108,
+      "z": 252,
+      "height": 20,
+      "color": 12037529
+    },
+    {
+      "id": "office-39",
+      "minX": 90,
+      "maxX": 126,
+      "minY": 0,
+      "maxY": 24,
+      "minZ": 321,
+      "maxZ": 363,
+      "kind": "building",
+      "x": 108,
+      "z": 342,
+      "height": 24,
+      "color": 10588029
+    },
+    {
+      "id": "office-40",
+      "minX": 150,
+      "maxX": 186,
+      "minY": 0,
+      "maxY": 28,
+      "minZ": -363,
+      "maxZ": -321,
+      "kind": "building",
+      "x": 168,
+      "z": -342,
+      "height": 28,
+      "color": 11773070
+    },
+    {
+      "id": "office-41",
+      "minX": 150,
+      "maxX": 186,
+      "minY": 0,
+      "maxY": 12,
+      "minZ": -273,
+      "maxZ": -231,
+      "kind": "building",
+      "x": 168,
+      "z": -252,
+      "height": 12,
+      "color": 10398894
+    },
+    {
+      "id": "office-42",
+      "minX": 150,
+      "maxX": 186,
+      "minY": 0,
+      "maxY": 16,
+      "minZ": -183,
+      "maxZ": -141,
+      "kind": "building",
+      "x": 168,
+      "z": -162,
+      "height": 16,
+      "color": 12037529
+    },
+    {
+      "id": "office-43",
+      "minX": 150,
+      "maxX": 186,
+      "minY": 0,
+      "maxY": 20,
+      "minZ": -93,
+      "maxZ": -51,
+      "kind": "building",
+      "x": 168,
+      "z": -72,
+      "height": 20,
+      "color": 10588029
+    },
+    {
+      "id": "office-44",
+      "minX": 150,
+      "maxX": 186,
+      "minY": 0,
+      "maxY": 24,
+      "minZ": 141,
+      "maxZ": 183,
+      "kind": "building",
+      "x": 168,
+      "z": 162,
+      "height": 24,
+      "color": 11773070
+    },
+    {
+      "id": "office-45",
+      "minX": 150,
+      "maxX": 186,
+      "minY": 0,
+      "maxY": 28,
+      "minZ": 231,
+      "maxZ": 273,
+      "kind": "building",
+      "x": 168,
+      "z": 252,
+      "height": 28,
+      "color": 10398894
+    },
+    {
+      "id": "office-46",
+      "minX": 150,
+      "maxX": 186,
+      "minY": 0,
+      "maxY": 12,
+      "minZ": 321,
+      "maxZ": 363,
+      "kind": "building",
+      "x": 168,
+      "z": 342,
+      "height": 12,
+      "color": 12037529
+    },
+    {
+      "id": "office-47",
+      "minX": 330,
+      "maxX": 366,
+      "minY": 0,
+      "maxY": 16,
+      "minZ": -363,
+      "maxZ": -321,
+      "kind": "building",
+      "x": 348,
+      "z": -342,
+      "height": 16,
+      "color": 10588029
+    },
+    {
+      "id": "office-48",
+      "minX": 330,
+      "maxX": 366,
+      "minY": 0,
+      "maxY": 20,
+      "minZ": -273,
+      "maxZ": -231,
+      "kind": "building",
+      "x": 348,
+      "z": -252,
+      "height": 20,
+      "color": 11773070
+    },
+    {
+      "id": "office-49",
+      "minX": 330,
+      "maxX": 366,
+      "minY": 0,
+      "maxY": 24,
+      "minZ": -183,
+      "maxZ": -141,
+      "kind": "building",
+      "x": 348,
+      "z": -162,
+      "height": 24,
+      "color": 10398894
+    },
+    {
+      "id": "office-50",
+      "minX": 330,
+      "maxX": 366,
+      "minY": 0,
+      "maxY": 28,
+      "minZ": -93,
+      "maxZ": -51,
+      "kind": "building",
+      "x": 348,
+      "z": -72,
+      "height": 28,
+      "color": 12037529
+    },
+    {
+      "id": "office-51",
+      "minX": 330,
+      "maxX": 366,
+      "minY": 0,
+      "maxY": 12,
+      "minZ": 51,
+      "maxZ": 93,
+      "kind": "building",
+      "x": 348,
+      "z": 72,
+      "height": 12,
+      "color": 10588029
+    },
+    {
+      "id": "office-52",
+      "minX": 330,
+      "maxX": 366,
+      "minY": 0,
+      "maxY": 16,
+      "minZ": 141,
+      "maxZ": 183,
+      "kind": "building",
+      "x": 348,
+      "z": 162,
+      "height": 16,
+      "color": 11773070
+    },
+    {
+      "id": "office-53",
+      "minX": 330,
+      "maxX": 366,
+      "minY": 0,
+      "maxY": 20,
+      "minZ": 231,
+      "maxZ": 273,
+      "kind": "building",
+      "x": 348,
+      "z": 252,
+      "height": 20,
+      "color": 10398894
+    },
+    {
+      "id": "office-54",
+      "minX": 330,
+      "maxX": 366,
+      "minY": 0,
+      "maxY": 24,
+      "minZ": 321,
+      "maxZ": 363,
+      "kind": "building",
+      "x": 348,
+      "z": 342,
+      "height": 24,
+      "color": 12037529
+    },
+    {
+      "id": "office-55",
+      "minX": 390,
+      "maxX": 426,
+      "minY": 0,
+      "maxY": 28,
+      "minZ": -363,
+      "maxZ": -321,
+      "kind": "building",
+      "x": 408,
+      "z": -342,
+      "height": 28,
+      "color": 10588029
+    },
+    {
+      "id": "office-56",
+      "minX": 390,
+      "maxX": 426,
+      "minY": 0,
+      "maxY": 12,
+      "minZ": -273,
+      "maxZ": -231,
+      "kind": "building",
+      "x": 408,
+      "z": -252,
+      "height": 12,
+      "color": 11773070
+    },
+    {
+      "id": "office-57",
+      "minX": 390,
+      "maxX": 426,
+      "minY": 0,
+      "maxY": 16,
+      "minZ": -183,
+      "maxZ": -141,
+      "kind": "building",
+      "x": 408,
+      "z": -162,
+      "height": 16,
+      "color": 10398894
+    },
+    {
+      "id": "office-58",
+      "minX": 390,
+      "maxX": 426,
+      "minY": 0,
+      "maxY": 20,
+      "minZ": -93,
+      "maxZ": -51,
+      "kind": "building",
+      "x": 408,
+      "z": -72,
+      "height": 20,
+      "color": 12037529
+    },
+    {
+      "id": "office-59",
+      "minX": 390,
+      "maxX": 426,
+      "minY": 0,
+      "maxY": 24,
+      "minZ": 51,
+      "maxZ": 93,
+      "kind": "building",
+      "x": 408,
+      "z": 72,
+      "height": 24,
+      "color": 10588029
+    },
+    {
+      "id": "office-60",
+      "minX": 390,
+      "maxX": 426,
+      "minY": 0,
+      "maxY": 28,
+      "minZ": 141,
+      "maxZ": 183,
+      "kind": "building",
+      "x": 408,
+      "z": 162,
+      "height": 28,
+      "color": 11773070
+    },
+    {
+      "id": "office-61",
+      "minX": 390,
+      "maxX": 426,
+      "minY": 0,
+      "maxY": 12,
+      "minZ": 231,
+      "maxZ": 273,
+      "kind": "building",
+      "x": 408,
+      "z": 252,
+      "height": 12,
+      "color": 10398894
+    },
+    {
+      "id": "office-62",
+      "minX": 390,
+      "maxX": 426,
+      "minY": 0,
+      "maxY": 16,
+      "minZ": 321,
+      "maxZ": 363,
+      "kind": "building",
+      "x": 408,
+      "z": 342,
+      "height": 16,
+      "color": 12037529
+    }
+  ],
+  "bridges": [
+    {
+      "id": "roof-link--408--252",
+      "minX": -391,
+      "maxX": -365,
+      "minZ": -255,
+      "maxZ": -249,
+      "axis": "x",
+      "start": 16,
+      "end": 28
+    },
+    {
+      "id": "roof-link--408-162",
+      "minX": -391,
+      "maxX": -365,
+      "minZ": 159,
+      "maxZ": 165,
+      "axis": "x",
+      "start": 12,
+      "end": 24
+    },
+    {
+      "id": "roof-link--168--252",
+      "minX": -151,
+      "maxX": -125,
+      "minZ": -255,
+      "maxZ": -249,
+      "axis": "x",
+      "start": 20,
+      "end": 12
+    },
+    {
+      "id": "roof-link--168-162",
+      "minX": -151,
+      "maxX": -125,
+      "minZ": 159,
+      "maxZ": 165,
+      "axis": "x",
+      "start": 16,
+      "end": 28
+    },
+    {
+      "id": "roof-link-108--252",
+      "minX": 125,
+      "maxX": 151,
+      "minZ": -255,
+      "maxZ": -249,
+      "axis": "x",
+      "start": 24,
+      "end": 12
+    },
+    {
+      "id": "roof-link-108-162",
+      "minX": 125,
+      "maxX": 151,
+      "minZ": 159,
+      "maxZ": 165,
+      "axis": "x",
+      "start": 16,
+      "end": 24
+    },
+    {
+      "id": "roof-link-348--252",
+      "minX": 365,
+      "maxX": 391,
+      "minZ": -255,
+      "maxZ": -249,
+      "axis": "x",
+      "start": 20,
+      "end": 12
+    },
+    {
+      "id": "roof-link-348-162",
+      "minX": 365,
+      "maxX": 391,
+      "minZ": 159,
+      "maxZ": 165,
+      "axis": "x",
+      "start": 16,
+      "end": 28
+    }
+  ],
+  "spawns": [
+    {
+      "id": "carbon-graft-guardian-1",
+      "team": "carbon",
+      "lane": "graft",
+      "type": "guardian",
+      "position": {
+        "x": -228,
+        "y": 3,
+        "z": -105
+      }
+    },
+    {
+      "id": "carbon-graft-walker-1",
+      "team": "carbon",
+      "lane": "graft",
+      "type": "walker",
+      "position": {
+        "x": -228,
+        "y": 0,
+        "z": -220
+      }
+    },
+    {
+      "id": "carbon-graft-base-guardian-1",
+      "team": "carbon",
+      "lane": "graft",
+      "type": "base-guardian",
+      "position": {
+        "x": -253,
+        "y": 0,
+        "z": -315
+      }
+    },
+    {
+      "id": "carbon-graft-shrine-1",
+      "team": "carbon",
+      "lane": "graft",
+      "type": "shrine",
+      "position": {
+        "x": -253,
+        "y": 0,
+        "z": -360
+      }
+    },
+    {
+      "id": "carbon-graft-base-guardian-2",
+      "team": "carbon",
+      "lane": "graft",
+      "type": "base-guardian",
+      "position": {
+        "x": -227,
+        "y": 0,
+        "z": -315
+      }
+    },
+    {
+      "id": "carbon-graft-shrine-2",
+      "team": "carbon",
+      "lane": "graft",
+      "type": "shrine",
+      "position": {
+        "x": -227,
+        "y": 0,
+        "z": -360
+      }
+    },
+    {
+      "id": "carbon-graft-patron-1",
+      "team": "carbon",
+      "lane": "graft",
+      "type": "patron",
+      "position": {
+        "x": -240,
+        "y": 0,
+        "z": -415
+      }
+    },
+    {
+      "id": "ivory-graft-guardian-1",
+      "team": "ivory",
+      "lane": "graft",
+      "type": "guardian",
+      "position": {
+        "x": -228,
+        "y": 3,
+        "z": 105
+      }
+    },
+    {
+      "id": "ivory-graft-walker-1",
+      "team": "ivory",
+      "lane": "graft",
+      "type": "walker",
+      "position": {
+        "x": -228,
+        "y": 0,
+        "z": 220
+      }
+    },
+    {
+      "id": "ivory-graft-base-guardian-1",
+      "team": "ivory",
+      "lane": "graft",
+      "type": "base-guardian",
+      "position": {
+        "x": -253,
+        "y": 0,
+        "z": 315
+      }
+    },
+    {
+      "id": "ivory-graft-shrine-1",
+      "team": "ivory",
+      "lane": "graft",
+      "type": "shrine",
+      "position": {
+        "x": -253,
+        "y": 0,
+        "z": 360
+      }
+    },
+    {
+      "id": "ivory-graft-base-guardian-2",
+      "team": "ivory",
+      "lane": "graft",
+      "type": "base-guardian",
+      "position": {
+        "x": -227,
+        "y": 0,
+        "z": 315
+      }
+    },
+    {
+      "id": "ivory-graft-shrine-2",
+      "team": "ivory",
+      "lane": "graft",
+      "type": "shrine",
+      "position": {
+        "x": -227,
+        "y": 0,
+        "z": 360
+      }
+    },
+    {
+      "id": "ivory-graft-patron-1",
+      "team": "ivory",
+      "lane": "graft",
+      "type": "patron",
+      "position": {
+        "x": -240,
+        "y": 0,
+        "z": 415
+      }
+    },
+    {
+      "id": "carbon-midway-guardian-1",
+      "team": "carbon",
+      "lane": "midway",
+      "type": "guardian",
+      "position": {
+        "x": 12,
+        "y": 3,
+        "z": -105
+      }
+    },
+    {
+      "id": "carbon-midway-walker-1",
+      "team": "carbon",
+      "lane": "midway",
+      "type": "walker",
+      "position": {
+        "x": 12,
+        "y": 0,
+        "z": -220
+      }
+    },
+    {
+      "id": "carbon-midway-base-guardian-1",
+      "team": "carbon",
+      "lane": "midway",
+      "type": "base-guardian",
+      "position": {
+        "x": -13,
+        "y": 0,
+        "z": -315
+      }
+    },
+    {
+      "id": "carbon-midway-shrine-1",
+      "team": "carbon",
+      "lane": "midway",
+      "type": "shrine",
+      "position": {
+        "x": -13,
+        "y": 0,
+        "z": -360
+      }
+    },
+    {
+      "id": "carbon-midway-base-guardian-2",
+      "team": "carbon",
+      "lane": "midway",
+      "type": "base-guardian",
+      "position": {
+        "x": 13,
+        "y": 0,
+        "z": -315
+      }
+    },
+    {
+      "id": "carbon-midway-shrine-2",
+      "team": "carbon",
+      "lane": "midway",
+      "type": "shrine",
+      "position": {
+        "x": 13,
+        "y": 0,
+        "z": -360
+      }
+    },
+    {
+      "id": "carbon-midway-patron-1",
+      "team": "carbon",
+      "lane": "midway",
+      "type": "patron",
+      "position": {
+        "x": 0,
+        "y": 0,
+        "z": -415
+      }
+    },
+    {
+      "id": "ivory-midway-guardian-1",
+      "team": "ivory",
+      "lane": "midway",
+      "type": "guardian",
+      "position": {
+        "x": 12,
+        "y": 3,
+        "z": 105
+      }
+    },
+    {
+      "id": "ivory-midway-walker-1",
+      "team": "ivory",
+      "lane": "midway",
+      "type": "walker",
+      "position": {
+        "x": 12,
+        "y": 0,
+        "z": 220
+      }
+    },
+    {
+      "id": "ivory-midway-base-guardian-1",
+      "team": "ivory",
+      "lane": "midway",
+      "type": "base-guardian",
+      "position": {
+        "x": -13,
+        "y": 0,
+        "z": 315
+      }
+    },
+    {
+      "id": "ivory-midway-shrine-1",
+      "team": "ivory",
+      "lane": "midway",
+      "type": "shrine",
+      "position": {
+        "x": -13,
+        "y": 0,
+        "z": 360
+      }
+    },
+    {
+      "id": "ivory-midway-base-guardian-2",
+      "team": "ivory",
+      "lane": "midway",
+      "type": "base-guardian",
+      "position": {
+        "x": 13,
+        "y": 0,
+        "z": 315
+      }
+    },
+    {
+      "id": "ivory-midway-shrine-2",
+      "team": "ivory",
+      "lane": "midway",
+      "type": "shrine",
+      "position": {
+        "x": 13,
+        "y": 0,
+        "z": 360
+      }
+    },
+    {
+      "id": "ivory-midway-patron-1",
+      "team": "ivory",
+      "lane": "midway",
+      "type": "patron",
+      "position": {
+        "x": 0,
+        "y": 0,
+        "z": 415
+      }
+    },
+    {
+      "id": "carbon-greenhedge-guardian-1",
+      "team": "carbon",
+      "lane": "greenhedge",
+      "type": "guardian",
+      "position": {
+        "x": 252,
+        "y": 3,
+        "z": -105
+      }
+    },
+    {
+      "id": "carbon-greenhedge-walker-1",
+      "team": "carbon",
+      "lane": "greenhedge",
+      "type": "walker",
+      "position": {
+        "x": 252,
+        "y": 0,
+        "z": -220
+      }
+    },
+    {
+      "id": "carbon-greenhedge-base-guardian-1",
+      "team": "carbon",
+      "lane": "greenhedge",
+      "type": "base-guardian",
+      "position": {
+        "x": 227,
+        "y": 0,
+        "z": -315
+      }
+    },
+    {
+      "id": "carbon-greenhedge-shrine-1",
+      "team": "carbon",
+      "lane": "greenhedge",
+      "type": "shrine",
+      "position": {
+        "x": 227,
+        "y": 0,
+        "z": -360
+      }
+    },
+    {
+      "id": "carbon-greenhedge-base-guardian-2",
+      "team": "carbon",
+      "lane": "greenhedge",
+      "type": "base-guardian",
+      "position": {
+        "x": 253,
+        "y": 0,
+        "z": -315
+      }
+    },
+    {
+      "id": "carbon-greenhedge-shrine-2",
+      "team": "carbon",
+      "lane": "greenhedge",
+      "type": "shrine",
+      "position": {
+        "x": 253,
+        "y": 0,
+        "z": -360
+      }
+    },
+    {
+      "id": "carbon-greenhedge-patron-1",
+      "team": "carbon",
+      "lane": "greenhedge",
+      "type": "patron",
+      "position": {
+        "x": 240,
+        "y": 0,
+        "z": -415
+      }
+    },
+    {
+      "id": "ivory-greenhedge-guardian-1",
+      "team": "ivory",
+      "lane": "greenhedge",
+      "type": "guardian",
+      "position": {
+        "x": 252,
+        "y": 3,
+        "z": 105
+      }
+    },
+    {
+      "id": "ivory-greenhedge-walker-1",
+      "team": "ivory",
+      "lane": "greenhedge",
+      "type": "walker",
+      "position": {
+        "x": 252,
+        "y": 0,
+        "z": 220
+      }
+    },
+    {
+      "id": "ivory-greenhedge-base-guardian-1",
+      "team": "ivory",
+      "lane": "greenhedge",
+      "type": "base-guardian",
+      "position": {
+        "x": 227,
+        "y": 0,
+        "z": 315
+      }
+    },
+    {
+      "id": "ivory-greenhedge-shrine-1",
+      "team": "ivory",
+      "lane": "greenhedge",
+      "type": "shrine",
+      "position": {
+        "x": 227,
+        "y": 0,
+        "z": 360
+      }
+    },
+    {
+      "id": "ivory-greenhedge-base-guardian-2",
+      "team": "ivory",
+      "lane": "greenhedge",
+      "type": "base-guardian",
+      "position": {
+        "x": 253,
+        "y": 0,
+        "z": 315
+      }
+    },
+    {
+      "id": "ivory-greenhedge-shrine-2",
+      "team": "ivory",
+      "lane": "greenhedge",
+      "type": "shrine",
+      "position": {
+        "x": 253,
+        "y": 0,
+        "z": 360
+      }
+    },
+    {
+      "id": "ivory-greenhedge-patron-1",
+      "team": "ivory",
+      "lane": "greenhedge",
+      "type": "patron",
+      "position": {
+        "x": 240,
+        "y": 0,
+        "z": 415
+      }
+    }
+  ],
+  "stations": [
+    {
+      "id": "graft",
+      "lane": "graft",
+      "a": {
+        "x": -250,
+        "y": 0,
+        "z": -385
+      },
+      "b": {
+        "x": -250,
+        "y": 0,
+        "z": 385
+      }
+    },
+    {
+      "id": "midway",
+      "lane": "midway",
+      "a": {
+        "x": -10,
+        "y": 0,
+        "z": -385
+      },
+      "b": {
+        "x": -10,
+        "y": 0,
+        "z": 385
+      }
+    },
+    {
+      "id": "greenhedge",
+      "lane": "greenhedge",
+      "a": {
+        "x": 230,
+        "y": 0,
+        "z": -385
+      },
+      "b": {
+        "x": 230,
+        "y": 0,
+        "z": 385
+      }
+    }
+  ],
+  "rope": {
+    "id": "staple-rope",
+    "x": -79,
+    "z": 0,
+    "bottom": 0,
+    "top": 30,
+    "landing": {
+      "x": -84,
+      "y": 30,
+      "z": 0
+    }
+  },
+  "portals": [
+    {
+      "id": "carbon-stamp",
+      "x": -290,
+      "y": 0,
+      "z": -300
+    },
+    {
+      "id": "ivory-stamp",
+      "x": 290,
+      "y": 0,
+      "z": 300
+    }
+  ],
+  "vents": [
+    {
+      "id": "west-vent",
+      "x": -384,
+      "y": 0,
+      "z": -72,
+      "target": {
+        "x": -408,
+        "y": 24,
+        "z": -72
+      }
+    },
+    {
+      "id": "east-vent",
+      "x": 372,
+      "y": 0,
+      "z": 72,
+      "target": {
+        "x": 348,
+        "y": 12,
+        "z": 72
+      }
+    }
+  ],
+  "camps": [
+    {
+      "id": "paper-jungle",
+      "x": -120,
+      "z": 110
+    },
+    {
+      "id": "binder-jungle",
+      "x": 125,
+      "z": -110
+    }
+  ],
+  "crates": [
+    {
+      "id": "paper-jungle-crate--7",
+      "x": -127,
+      "y": 0,
+      "z": 110,
+      "kind": "breakable"
+    },
+    {
+      "id": "paper-jungle-crate-0",
+      "x": -120,
+      "y": 0,
+      "z": 110,
+      "kind": "breakable"
+    },
+    {
+      "id": "paper-jungle-crate-7",
+      "x": -113,
+      "y": 0,
+      "z": 110,
+      "kind": "breakable"
+    },
+    {
+      "id": "binder-jungle-crate--7",
+      "x": 118,
+      "y": 0,
+      "z": -110,
+      "kind": "breakable"
+    },
+    {
+      "id": "binder-jungle-crate-0",
+      "x": 125,
+      "y": 0,
+      "z": -110,
+      "kind": "breakable"
+    },
+    {
+      "id": "binder-jungle-crate-7",
+      "x": 132,
+      "y": 0,
+      "z": -110,
+      "kind": "breakable"
+    },
+    {
+      "id": "tower-soul",
+      "x": -95,
+      "y": 30,
+      "z": 0,
+      "kind": "soul"
+    },
+    {
+      "id": "graft-soul",
+      "x": -234,
+      "y": 0,
+      "z": -370,
+      "kind": "soul"
+    },
+    {
+      "id": "plaza-soul",
+      "x": 125,
+      "y": -6,
+      "z": 110,
+      "kind": "soul"
+    }
+  ],
+  "midBoss": {
+    "id": "sewer-mid-boss",
+    "x": -35,
+    "y": -10,
+    "z": 0
+  },
+  "pit": {
+    "minX": 90,
+    "maxX": 170,
+    "minZ": 60,
+    "maxZ": 140,
+    "y": -6
+  },
+  "start": {
+    "x": -250,
+    "y": 0,
+    "z": -380
+  }
+}

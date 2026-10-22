@@ -1,0 +1,51 @@
+{
+  "acceptance": {
+    "lobby_integration": "unverified; host owns placement and scale",
+    "source_unchanged": true,
+    "visual_recognizability": "unverified; no browser or visual review"
+  },
+  "derived": {
+    "bounds_m": {
+      "max": [
+        0.09290726482868195,
+        0.142348513007164,
+        0.05358899012207985
+      ],
+      "min": [
+        -0.10999999940395355,
+        -0.16530795395374298,
+        -0.060998521745204926
+      ]
+    },
+    "bytes": 3228372,
+    "enabled": true,
+    "sha256": "8463eee8276187cacaba912d9540279ad1bb338aa382e9448632aa9a33892514",
+    "triangles": 124512,
+    "url": "models/portrait_relief.glb",
+    "vertices": 61893
+  },
+  "measurements": {
+    "collapsed_triangles_removed": 296738,
+    "duplicate_triangles_removed": 718,
+    "error_metric": {
+      "max": 0.0013116357022862767,
+      "name": "source vertex to assigned float32 cluster centroid displacement",
+      "rms": 0.0005512417390551742,
+      "scope": "All source vertices before unused-cluster pruning; not surface Hausdorff error.",
+      "units": "m"
+    },
+    "zero_area_triangles_removed": 0
+  },
+  "method": {
+    "details": "Floor grid anchored at source minimum; mean positions, normalized mean normals, rounded mean RGBA; remove collapsed, duplicate and zero-area faces; compact indices.",
+    "grid_m": 0.0015,
+    "name": "deterministic vertex clustering v1"
+  },
+  "source": {
+    "bytes": 10972672,
+    "label": "operator-supplied photo-derived portrait relief",
+    "sha256": "abe1b2ee07038d6926813542a2127bca06cb19564f535dd49c593ea60c199fc9",
+    "triangles": 421968,
+    "vertices": 210986
+  }
+}

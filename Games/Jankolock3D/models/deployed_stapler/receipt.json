@@ -1,0 +1,349 @@
+{
+  "label": "Deployed Stapler",
+  "url": "models/deployed_stapler/model.glb",
+  "bytes": 161804,
+  "sha256": "82eea211eaa556258adaec5e9daf88dfd931931932d983a08c31efa060039fd0",
+  "triangles": 3248,
+  "vertices": 4110,
+  "meshes": 16,
+  "materials": [
+    {
+      "name": "deployed_stapler__rubber",
+      "color": "242927",
+      "roughness": 0.8600000143051147,
+      "metalness": 0
+    },
+    {
+      "name": "deployed_stapler__aged_brass",
+      "color": "c49e61",
+      "roughness": 0.33000001311302185,
+      "metalness": 0.6800000071525574
+    },
+    {
+      "name": "deployed_stapler__stapler_brushed_steel",
+      "color": "9baaac",
+      "roughness": 0.2800000011920929,
+      "metalness": 0.699999988079071
+    },
+    {
+      "name": "deployed_stapler__stamp_vermilion",
+      "color": "d3593d",
+      "roughness": 0.4000000059604645,
+      "metalness": 0
+    },
+    {
+      "name": "deployed_stapler__ink_charcoal",
+      "color": "2f3c40",
+      "roughness": 0.5799999833106995,
+      "metalness": 0
+    },
+    {
+      "name": "deployed_stapler__engineer_teal",
+      "color": "358989",
+      "roughness": 0.6200000047683716,
+      "metalness": 0
+    }
+  ],
+  "parts": [
+    {
+      "name": "foot_pad",
+      "triangles": 188,
+      "vertices": 252,
+      "materials": [
+        "deployed_stapler__rubber"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "foot_pad_001",
+      "triangles": 188,
+      "vertices": 252,
+      "materials": [
+        "deployed_stapler__rubber"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "foot_pad_002",
+      "triangles": 188,
+      "vertices": 252,
+      "materials": [
+        "deployed_stapler__rubber"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "leg_brace",
+      "triangles": 140,
+      "vertices": 153,
+      "materials": [
+        "deployed_stapler__aged_brass"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "leg_brace_001",
+      "triangles": 140,
+      "vertices": 153,
+      "materials": [
+        "deployed_stapler__aged_brass"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "leg_brace_002",
+      "triangles": 140,
+      "vertices": 153,
+      "materials": [
+        "deployed_stapler__aged_brass"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "tripod_leg",
+      "triangles": 188,
+      "vertices": 217,
+      "materials": [
+        "deployed_stapler__stapler_brushed_steel"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "tripod_leg_001",
+      "triangles": 188,
+      "vertices": 217,
+      "materials": [
+        "deployed_stapler__stapler_brushed_steel"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "tripod_leg_002",
+      "triangles": 188,
+      "vertices": 217,
+      "materials": [
+        "deployed_stapler__stapler_brushed_steel"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "yaw_bearing",
+      "triangles": 380,
+      "vertices": 410,
+      "materials": [
+        "deployed_stapler__aged_brass"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "head_hinge",
+      "triangles": 380,
+      "vertices": 407,
+      "materials": [
+        "deployed_stapler__aged_brass"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "muzzle_housing",
+      "triangles": 188,
+      "vertices": 274,
+      "materials": [
+        "deployed_stapler__stamp_vermilion"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "staple_slot",
+      "triangles": 188,
+      "vertices": 280,
+      "materials": [
+        "deployed_stapler__ink_charcoal"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "staple_magazine",
+      "triangles": 188,
+      "vertices": 271,
+      "materials": [
+        "deployed_stapler__ink_charcoal"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "stapler_head",
+      "triangles": 188,
+      "vertices": 287,
+      "materials": [
+        "deployed_stapler__engineer_teal"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "turret_lower_rail",
+      "triangles": 188,
+      "vertices": 315,
+      "materials": [
+        "deployed_stapler__stapler_brushed_steel"
+      ],
+      "hasUV": true
+    }
+  ],
+  "bounds": {
+    "min": [
+      -0.4064101539552212,
+      -1.255448891512856e-7,
+      -0.4925000141374767
+    ],
+    "max": [
+      0.4064101539552212,
+      0.7135809040838575,
+      0.2800000086426735
+    ]
+  },
+  "dimensions": [
+    0.8128203079104424,
+    0.7135810296287467,
+    0.7725000227801502
+  ],
+  "materialSlots": [
+    "deployed_stapler__rubber",
+    "deployed_stapler__aged_brass",
+    "deployed_stapler__stapler_brushed_steel",
+    "deployed_stapler__stamp_vermilion",
+    "deployed_stapler__ink_charcoal",
+    "deployed_stapler__engineer_teal"
+  ],
+  "provenance": "EXTERNAL ORIGINAL by operator dot. Supplied manifest identifies externally Blender-authored original artwork; not locally procedural.",
+  "source": "external-art/deployed_stapler/model.glb",
+  "qualification": "No model.blend source was supplied despite manifest.files.source. Authorship/originality are operator declarations, not independently verified creation history. No re-export, subdivision or padding.",
+  "metadataSHA256": {
+    "manifest.json": "8fe4ad6311c3dce2b39881f1e3f3b16f2327df402d7f7cc53149adf2a1fdfc1a",
+    "palette.json": "73718787862fba2df4b6ffa11cbaba02107afca93bebcb15f7cf0088fbeffdf1",
+    "rig.json": "c6c6d0028d81996b52b52eccc58bc9ed46daa8fcddc16a1439afa99f1245f635"
+  },
+  "rigAlias": "manifest.rig.json was byte-identical to rig.json in the delivery; documentation alias only, canonical file is rig.json.",
+  "audit": {
+    "glbVersion": 2,
+    "selfContained": true,
+    "uriCount": 0,
+    "images": 0,
+    "textures": 0,
+    "finiteGeometry": true,
+    "normalCountsMatch": true,
+    "presentUVCountsMatch": true,
+    "missingUVMeshes": [],
+    "indicesInRange": true,
+    "decodedSceneTriangles": 3248,
+    "sceneNodes": 23,
+    "movableNodes": 5,
+    "staticNodes": 18,
+    "anchors": 1,
+    "rigParentPivotAxesMatch": true,
+    "toleranceMetres": 0.00001
+  },
+  "rigParts": [
+    {
+      "name": "root",
+      "parent": null,
+      "localPivot": [
+        0,
+        0,
+        0
+      ],
+      "modelPivot": [
+        0,
+        0,
+        0
+      ],
+      "localQuaternion": [
+        0,
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "name": "yaw_head",
+      "parent": "base",
+      "localPivot": [
+        0,
+        0.10999998450279236,
+        0
+      ],
+      "modelPivot": [
+        0,
+        0.3749421238899231,
+        0
+      ],
+      "localQuaternion": [
+        0,
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "name": "head_pitch",
+      "parent": "yaw_head",
+      "localPivot": [
+        0,
+        0.17000001668930054,
+        0.18000000715255737
+      ],
+      "modelPivot": [
+        0,
+        0.5449421405792236,
+        0.18000000715255737
+      ],
+      "localQuaternion": [
+        0,
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "name": "stapler_press",
+      "parent": "head_pitch",
+      "localPivot": [
+        0,
+        0,
+        0
+      ],
+      "modelPivot": [
+        0,
+        0.5449421405792236,
+        0.18000000715255737
+      ],
+      "localQuaternion": [
+        0,
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "name": "barrel_recoil",
+      "parent": "head_pitch",
+      "localPivot": [
+        0,
+        -0.019999980926513672,
+        -0.46000000834465027
+      ],
+      "modelPivot": [
+        0,
+        0.52494215965271,
+        -0.2800000011920929
+      ],
+      "localQuaternion": [
+        0,
+        0,
+        0,
+        1
+      ]
+    }
+  ],
+  "quality": "Node-only structural audit. Scene triangle count is not visible-pixel count, FPS, pose clearance, visual, gameplay or hardware acceptance."
+}

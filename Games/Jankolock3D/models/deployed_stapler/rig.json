@@ -1,0 +1,325 @@
+{
+  "schema": "rigid_parts_v2",
+  "version": 2,
+  "model": "deployed_stapler",
+  "coordinate_system": "glTF: metres, +Y up, -Z forward, anatomical right +X",
+  "pivot_space": "pivot_position is parent-local glTF translation; pivot_model_position is rest-pose model-space origin. Rotations in degrees about local axes; X is every bend/pitch hinge, Y is yaw. Translation ranges are deltas from rest in local metres.",
+  "range_semantics": "[min,max] inclusive; free means no cap; [0,0] locked. Ranges are artistic guides, not collision guarantees.",
+  "movable_nodes": [
+    {
+      "name": "root",
+      "pivot_position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "pivot_model_position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "parent": null,
+      "rotation_deg": {
+        "x": [
+          0,
+          0
+        ],
+        "y": "free",
+        "z": [
+          0,
+          0
+        ]
+      },
+      "translation_m": {
+        "x": "free",
+        "y": "free",
+        "z": "free"
+      },
+      "note": "Caller-owned whole-assembly placement; never derive gameplay collision from decorative geometry."
+    },
+    {
+      "name": "yaw_head",
+      "pivot_position": [
+        0.0,
+        0.11,
+        0.0
+      ],
+      "pivot_model_position": [
+        0.0,
+        0.3749421,
+        0.0
+      ],
+      "parent": "base",
+      "rotation_deg": {
+        "x": [
+          0,
+          0
+        ],
+        "y": "free",
+        "z": [
+          0,
+          0
+        ]
+      },
+      "translation_m": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "note": "Vertical Y-axis bearing; unlimited yaw."
+    },
+    {
+      "name": "head_pitch",
+      "pivot_position": [
+        0.0,
+        0.17,
+        0.18
+      ],
+      "pivot_model_position": [
+        0.0,
+        0.5449421,
+        0.18
+      ],
+      "parent": "yaw_head",
+      "rotation_deg": {
+        "x": [
+          -30,
+          45
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "translation_m": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "note": "Whole head pitches at the visible rear axle, local X."
+    },
+    {
+      "name": "stapler_press",
+      "pivot_position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "pivot_model_position": [
+        0.0,
+        0.5449421,
+        0.18
+      ],
+      "parent": "head_pitch",
+      "rotation_deg": {
+        "x": [
+          -12,
+          4
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "translation_m": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "note": ""
+    },
+    {
+      "name": "barrel_recoil",
+      "pivot_position": [
+        0.0,
+        -0.02,
+        -0.46
+      ],
+      "pivot_model_position": [
+        0.0,
+        0.5249422,
+        -0.28
+      ],
+      "parent": "head_pitch",
+      "rotation_deg": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "translation_m": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          -0.03,
+          0
+        ]
+      },
+      "note": "Separate rigid muzzle; local -Z recoil travel, inherited head pitch and yaw."
+    }
+  ],
+  "static_nodes": [
+    {
+      "name": "foot_pad",
+      "parent": "base",
+      "reason": "Rigid geometry fixed to parent; follows parent chain, no independent motion."
+    },
+    {
+      "name": "foot_pad_001",
+      "parent": "base",
+      "reason": "Rigid geometry fixed to parent; follows parent chain, no independent motion."
+    },
+    {
+      "name": "foot_pad_002",
+      "parent": "base",
+      "reason": "Rigid geometry fixed to parent; follows parent chain, no independent motion."
+    },
+    {
+      "name": "leg_brace",
+      "parent": "base",
+      "reason": "Rigid geometry fixed to parent; follows parent chain, no independent motion."
+    },
+    {
+      "name": "leg_brace_001",
+      "parent": "base",
+      "reason": "Rigid geometry fixed to parent; follows parent chain, no independent motion."
+    },
+    {
+      "name": "leg_brace_002",
+      "parent": "base",
+      "reason": "Rigid geometry fixed to parent; follows parent chain, no independent motion."
+    },
+    {
+      "name": "tripod_leg",
+      "parent": "base",
+      "reason": "Rigid geometry fixed to parent; follows parent chain, no independent motion."
+    },
+    {
+      "name": "tripod_leg_001",
+      "parent": "base",
+      "reason": "Rigid geometry fixed to parent; follows parent chain, no independent motion."
+    },
+    {
+      "name": "tripod_leg_002",
+      "parent": "base",
+      "reason": "Rigid geometry fixed to parent; follows parent chain, no independent motion."
+    },
+    {
+      "name": "yaw_bearing",
+      "parent": "base",
+      "reason": "Rigid geometry fixed to parent; follows parent chain, no independent motion."
+    },
+    {
+      "name": "head_hinge",
+      "parent": "yaw_head",
+      "reason": "Rigid geometry fixed to parent; follows parent chain, no independent motion."
+    },
+    {
+      "name": "muzzle",
+      "parent": "barrel_recoil",
+      "reason": "Fixed mount or attachment reference."
+    },
+    {
+      "name": "muzzle_housing",
+      "parent": "barrel_recoil",
+      "reason": "Rigid geometry fixed to parent; follows parent chain, no independent motion."
+    },
+    {
+      "name": "staple_slot",
+      "parent": "barrel_recoil",
+      "reason": "Rigid geometry fixed to parent; follows parent chain, no independent motion."
+    },
+    {
+      "name": "staple_magazine",
+      "parent": "head_pitch",
+      "reason": "Rigid geometry fixed to parent; follows parent chain, no independent motion."
+    },
+    {
+      "name": "stapler_head",
+      "parent": "stapler_press",
+      "reason": "Rigid geometry fixed to parent; follows parent chain, no independent motion."
+    },
+    {
+      "name": "turret_lower_rail",
+      "parent": "head_pitch",
+      "reason": "Rigid geometry fixed to parent; follows parent chain, no independent motion."
+    },
+    {
+      "name": "base",
+      "parent": "root",
+      "reason": "Fixed mount or attachment reference."
+    }
+  ],
+  "anchors": [
+    {
+      "name": "muzzle",
+      "parent": "barrel_recoil",
+      "pivot_position": [
+        0,
+        0,
+        -0.2199999988079071
+      ],
+      "pivot_model_position": [
+        0.0,
+        0.5249422,
+        -0.5
+      ]
+    }
+  ],
+  "animation_clips": [],
+  "skinning": "none; all movable parts are rigid separate named nodes",
+  "source_axis_mapping": {
+    "Blender_X": "glTF_X",
+    "Blender_Z": "glTF_Y",
+    "Blender_Y": "glTF_-Z"
+  }
+}

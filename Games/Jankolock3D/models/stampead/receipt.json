@@ -1,0 +1,1089 @@
+{
+  "label": "Stampead",
+  "url": "models/stampead/model.glb",
+  "bytes": 948632,
+  "sha256": "6c679456b2ce7adce25515f5eb5e4947960a4541904edb65f290a5f9978926f0",
+  "triangles": 25596,
+  "vertices": 23960,
+  "meshes": 69,
+  "materials": [
+    {
+      "name": "stampead__postroom_oxblood",
+      "color": "903530",
+      "roughness": 0.4000000059604645,
+      "metalness": 0
+    },
+    {
+      "name": "stampead__rubber",
+      "color": "242927",
+      "roughness": 0.8600000143051147,
+      "metalness": 0
+    },
+    {
+      "name": "stampead__aged_brass",
+      "color": "c49e61",
+      "roughness": 0.33000001311302185,
+      "metalness": 0.6800000071525574
+    },
+    {
+      "name": "stampead__ink_charcoal",
+      "color": "2f3c40",
+      "roughness": 0.5799999833106995,
+      "metalness": 0
+    },
+    {
+      "name": "stampead__stapler_brushed_steel",
+      "color": "9baaac",
+      "roughness": 0.2800000011920929,
+      "metalness": 0.699999988079071
+    },
+    {
+      "name": "stampead__paper_warm_ivory",
+      "color": "e6dec4",
+      "roughness": 0.7200000286102295,
+      "metalness": 0
+    },
+    {
+      "name": "stampead__tool_leather",
+      "color": "815f42",
+      "roughness": 0.800000011920929,
+      "metalness": 0
+    },
+    {
+      "name": "stampead__paper_edges",
+      "color": "f8f3db",
+      "roughness": 0.7300000190734863,
+      "metalness": 0
+    },
+    {
+      "name": "stampead__stamp_vermilion",
+      "color": "d3593d",
+      "roughness": 0.4000000059604645,
+      "metalness": 0
+    }
+  ],
+  "parts": [
+    {
+      "name": "foot_l_ankle",
+      "triangles": 188,
+      "vertices": 264,
+      "materials": [
+        "stampead__postroom_oxblood"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "foot_l_sole",
+      "triangles": 188,
+      "vertices": 273,
+      "materials": [
+        "stampead__rubber"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "foot_l_strap",
+      "triangles": 188,
+      "vertices": 248,
+      "materials": [
+        "stampead__aged_brass"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "foot_l_strap_001",
+      "triangles": 188,
+      "vertices": 248,
+      "materials": [
+        "stampead__aged_brass"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "foot_l_tread",
+      "triangles": 188,
+      "vertices": 259,
+      "materials": [
+        "stampead__ink_charcoal"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "foot_l_tread_001",
+      "triangles": 188,
+      "vertices": 259,
+      "materials": [
+        "stampead__ink_charcoal"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "foot_l_tread_002",
+      "triangles": 188,
+      "vertices": 259,
+      "materials": [
+        "stampead__ink_charcoal"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "foot_l_tread_003",
+      "triangles": 188,
+      "vertices": 259,
+      "materials": [
+        "stampead__ink_charcoal"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "foot_l_vamp",
+      "triangles": 188,
+      "vertices": 314,
+      "materials": [
+        "stampead__postroom_oxblood"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "knee_joint_001",
+      "triangles": 720,
+      "vertices": 423,
+      "materials": [
+        "stampead__stapler_brushed_steel"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "paper_kneepad_001",
+      "triangles": 188,
+      "vertices": 242,
+      "materials": [
+        "stampead__paper_warm_ivory"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "tapered_shin_001",
+      "triangles": 188,
+      "vertices": 209,
+      "materials": [
+        "stampead__postroom_oxblood"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "upper_leg_001",
+      "triangles": 188,
+      "vertices": 205,
+      "materials": [
+        "stampead__ink_charcoal"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "foot_r_ankle",
+      "triangles": 188,
+      "vertices": 264,
+      "materials": [
+        "stampead__postroom_oxblood"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "foot_r_sole",
+      "triangles": 188,
+      "vertices": 273,
+      "materials": [
+        "stampead__rubber"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "foot_r_strap",
+      "triangles": 188,
+      "vertices": 248,
+      "materials": [
+        "stampead__aged_brass"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "foot_r_strap_001",
+      "triangles": 188,
+      "vertices": 248,
+      "materials": [
+        "stampead__aged_brass"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "foot_r_tread",
+      "triangles": 188,
+      "vertices": 259,
+      "materials": [
+        "stampead__ink_charcoal"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "foot_r_tread_001",
+      "triangles": 188,
+      "vertices": 259,
+      "materials": [
+        "stampead__ink_charcoal"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "foot_r_tread_002",
+      "triangles": 188,
+      "vertices": 259,
+      "materials": [
+        "stampead__ink_charcoal"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "foot_r_tread_003",
+      "triangles": 188,
+      "vertices": 259,
+      "materials": [
+        "stampead__ink_charcoal"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "foot_r_vamp",
+      "triangles": 188,
+      "vertices": 314,
+      "materials": [
+        "stampead__postroom_oxblood"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "knee_joint",
+      "triangles": 720,
+      "vertices": 423,
+      "materials": [
+        "stampead__stapler_brushed_steel"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "paper_kneepad",
+      "triangles": 188,
+      "vertices": 242,
+      "materials": [
+        "stampead__paper_warm_ivory"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "tapered_shin",
+      "triangles": 188,
+      "vertices": 209,
+      "materials": [
+        "stampead__postroom_oxblood"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "upper_leg",
+      "triangles": 188,
+      "vertices": 205,
+      "materials": [
+        "stampead__ink_charcoal"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "armored_postroom_body",
+      "triangles": 576,
+      "vertices": 290,
+      "materials": [
+        "stampead__postroom_oxblood"
+      ],
+      "hasUV": false
+    },
+    {
+      "name": "back_case_strap",
+      "triangles": 188,
+      "vertices": 266,
+      "materials": [
+        "stampead__aged_brass"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "back_case_strap_001",
+      "triangles": 188,
+      "vertices": 266,
+      "materials": [
+        "stampead__aged_brass"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "case_label",
+      "triangles": 188,
+      "vertices": 376,
+      "materials": [
+        "stampead__paper_warm_ivory"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "dispatch_back_case",
+      "triangles": 188,
+      "vertices": 290,
+      "materials": [
+        "stampead__tool_leather"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "postal_mark",
+      "triangles": 6760,
+      "vertices": 4024,
+      "materials": [
+        "stampead__ink_charcoal"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "helmet_cap",
+      "triangles": 188,
+      "vertices": 290,
+      "materials": [
+        "stampead__postroom_oxblood"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "helmet_ridge",
+      "triangles": 188,
+      "vertices": 243,
+      "materials": [
+        "stampead__aged_brass"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "helmet_ridge_001",
+      "triangles": 188,
+      "vertices": 243,
+      "materials": [
+        "stampead__aged_brass"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "helmet_ridge_002",
+      "triangles": 188,
+      "vertices": 243,
+      "materials": [
+        "stampead__aged_brass"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "neck",
+      "triangles": 380,
+      "vertices": 419,
+      "materials": [
+        "stampead__ink_charcoal"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "stamp_head",
+      "triangles": 188,
+      "vertices": 230,
+      "materials": [
+        "stampead__paper_warm_ivory"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "visor",
+      "triangles": 188,
+      "vertices": 247,
+      "materials": [
+        "stampead__ink_charcoal"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "visor_eye",
+      "triangles": 188,
+      "vertices": 252,
+      "materials": [
+        "stampead__paper_edges"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "visor_eye_001",
+      "triangles": 188,
+      "vertices": 252,
+      "materials": [
+        "stampead__paper_edges"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "layered_paper_cuirass",
+      "triangles": 188,
+      "vertices": 316,
+      "materials": [
+        "stampead__paper_warm_ivory"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "layered_paper_cuirass_001",
+      "triangles": 188,
+      "vertices": 316,
+      "materials": [
+        "stampead__paper_warm_ivory"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "layered_paper_cuirass_002",
+      "triangles": 188,
+      "vertices": 316,
+      "materials": [
+        "stampead__paper_warm_ivory"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "postal_back_lamella",
+      "triangles": 188,
+      "vertices": 239,
+      "materials": [
+        "stampead__paper_edges"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "postal_back_lamella_001",
+      "triangles": 188,
+      "vertices": 239,
+      "materials": [
+        "stampead__paper_edges"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "postal_back_lamella_002",
+      "triangles": 188,
+      "vertices": 239,
+      "materials": [
+        "stampead__paper_edges"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "elbow_001",
+      "triangles": 720,
+      "vertices": 423,
+      "materials": [
+        "stampead__ink_charcoal"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "glove_finger",
+      "triangles": 188,
+      "vertices": 257,
+      "materials": [
+        "stampead__ink_charcoal"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "glove_finger_001",
+      "triangles": 188,
+      "vertices": 257,
+      "materials": [
+        "stampead__ink_charcoal"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "glove_finger_002",
+      "triangles": 188,
+      "vertices": 257,
+      "materials": [
+        "stampead__ink_charcoal"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "glove_palm",
+      "triangles": 188,
+      "vertices": 306,
+      "materials": [
+        "stampead__postroom_oxblood"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "layered_forearm_001",
+      "triangles": 188,
+      "vertices": 209,
+      "materials": [
+        "stampead__paper_warm_ivory"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "pauldron_001",
+      "triangles": 188,
+      "vertices": 281,
+      "materials": [
+        "stampead__postroom_oxblood"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "shoulder_bearing_001",
+      "triangles": 720,
+      "vertices": 423,
+      "materials": [
+        "stampead__stapler_brushed_steel"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "upper_arm_001",
+      "triangles": 188,
+      "vertices": 211,
+      "materials": [
+        "stampead__postroom_oxblood"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "elbow",
+      "triangles": 720,
+      "vertices": 423,
+      "materials": [
+        "stampead__ink_charcoal"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "rubber_striking_plate",
+      "triangles": 188,
+      "vertices": 380,
+      "materials": [
+        "stampead__rubber"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "stamp_face_relief",
+      "triangles": 2564,
+      "vertices": 1534,
+      "materials": [
+        "stampead__postroom_oxblood"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "stamp_handle",
+      "triangles": 188,
+      "vertices": 212,
+      "materials": [
+        "stampead__tool_leather"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "stamp_housing",
+      "triangles": 188,
+      "vertices": 264,
+      "materials": [
+        "stampead__stamp_vermilion"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "stamp_housing_fastener",
+      "triangles": 140,
+      "vertices": 162,
+      "materials": [
+        "stampead__aged_brass"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "stamp_housing_fastener_001",
+      "triangles": 140,
+      "vertices": 162,
+      "materials": [
+        "stampead__aged_brass"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "stamp_neck",
+      "triangles": 188,
+      "vertices": 276,
+      "materials": [
+        "stampead__aged_brass"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "stamp_plate_frame",
+      "triangles": 188,
+      "vertices": 279,
+      "materials": [
+        "stampead__stapler_brushed_steel"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "layered_forearm",
+      "triangles": 188,
+      "vertices": 209,
+      "materials": [
+        "stampead__paper_warm_ivory"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "pauldron",
+      "triangles": 188,
+      "vertices": 281,
+      "materials": [
+        "stampead__postroom_oxblood"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "shoulder_bearing",
+      "triangles": 720,
+      "vertices": 423,
+      "materials": [
+        "stampead__stapler_brushed_steel"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "upper_arm",
+      "triangles": 188,
+      "vertices": 211,
+      "materials": [
+        "stampead__postroom_oxblood"
+      ],
+      "hasUV": true
+    }
+  ],
+  "bounds": {
+    "min": [
+      -0.6366443652615512,
+      7.450580596923828e-9,
+      -0.5989999876974862
+    ],
+    "max": [
+      0.689999982714653,
+      1.8254999639466405,
+      0.3274999978020787
+    ]
+  },
+  "dimensions": [
+    1.3266443479762042,
+    1.82549995649606,
+    0.9264999854995649
+  ],
+  "materialSlots": [
+    "stampead__postroom_oxblood",
+    "stampead__rubber",
+    "stampead__aged_brass",
+    "stampead__ink_charcoal",
+    "stampead__stapler_brushed_steel",
+    "stampead__paper_warm_ivory",
+    "stampead__tool_leather",
+    "stampead__paper_edges",
+    "stampead__stamp_vermilion"
+  ],
+  "provenance": "EXTERNAL ORIGINAL by operator dot. Supplied manifest identifies externally Blender-authored original artwork; not locally procedural.",
+  "source": "external-art/stampead/model.glb",
+  "qualification": "No model.blend source was supplied despite manifest.files.source. Authorship/originality are operator declarations, not independently verified creation history. No re-export, subdivision or padding.",
+  "metadataSHA256": {
+    "manifest.json": "430326a25c48fc6cf1599e5a314f0ecb9554b27cec73b8988603d2129cd0c6de",
+    "palette.json": "96416120bd6fecace7ee9d1b00446b1084f6d36fdb3b82b4a4fe20df4ad7006e",
+    "rig.json": "60d064bc33ed0b7b1f582b449be59392005166d3953af8913d0a9534f35a5511"
+  },
+  "rigAlias": "manifest.rig.json was byte-identical to rig.json in the delivery; documentation alias only, canonical file is rig.json.",
+  "audit": {
+    "glbVersion": 2,
+    "selfContained": true,
+    "uriCount": 0,
+    "images": 0,
+    "textures": 0,
+    "finiteGeometry": true,
+    "normalCountsMatch": true,
+    "presentUVCountsMatch": true,
+    "missingUVMeshes": [
+      "armored_postroom_body"
+    ],
+    "indicesInRange": true,
+    "decodedSceneTriangles": 25596,
+    "sceneNodes": 89,
+    "movableNodes": 17,
+    "staticNodes": 72,
+    "anchors": 3,
+    "rigParentPivotAxesMatch": true,
+    "toleranceMetres": 0.00001
+  },
+  "rigParts": [
+    {
+      "name": "root",
+      "parent": null,
+      "localPivot": [
+        0,
+        0,
+        0
+      ],
+      "modelPivot": [
+        0,
+        0,
+        0
+      ],
+      "localQuaternion": [
+        0,
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "name": "pelvis",
+      "parent": "root",
+      "localPivot": [
+        0,
+        0.8600000143051147,
+        0
+      ],
+      "modelPivot": [
+        0,
+        0.8600000143051147,
+        0
+      ],
+      "localQuaternion": [
+        0,
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "name": "torso",
+      "parent": "pelvis",
+      "localPivot": [
+        0,
+        0,
+        0
+      ],
+      "modelPivot": [
+        0,
+        0.8600000143051147,
+        0
+      ],
+      "localQuaternion": [
+        0,
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "name": "head",
+      "parent": "torso",
+      "localPivot": [
+        0,
+        0.6399999856948853,
+        0
+      ],
+      "modelPivot": [
+        0,
+        1.5,
+        0
+      ],
+      "localQuaternion": [
+        0,
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "name": "thigh_r",
+      "parent": "pelvis",
+      "localPivot": [
+        0.23000000417232513,
+        0,
+        0
+      ],
+      "modelPivot": [
+        0.23000000417232513,
+        0.8600000143051147,
+        0
+      ],
+      "localQuaternion": [
+        0,
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "name": "shin_r",
+      "parent": "thigh_r",
+      "localPivot": [
+        0,
+        -0.25,
+        0
+      ],
+      "modelPivot": [
+        0.23000000417232513,
+        0.6100000143051147,
+        0
+      ],
+      "localQuaternion": [
+        0,
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "name": "foot_r",
+      "parent": "shin_r",
+      "localPivot": [
+        0,
+        -0.36000001430511475,
+        0
+      ],
+      "modelPivot": [
+        0.23000000417232513,
+        0.25,
+        0
+      ],
+      "localQuaternion": [
+        0,
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "name": "upper_arm_r",
+      "parent": "torso",
+      "localPivot": [
+        0.3700000047683716,
+        0.48000001907348633,
+        0
+      ],
+      "modelPivot": [
+        0.3700000047683716,
+        1.340000033378601,
+        0
+      ],
+      "localQuaternion": [
+        0,
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "name": "forearm_r",
+      "parent": "upper_arm_r",
+      "localPivot": [
+        0.12000000476837158,
+        -0.24000000953674316,
+        -0.029999999329447746
+      ],
+      "modelPivot": [
+        0.49000000953674316,
+        1.100000023841858,
+        -0.029999999329447746
+      ],
+      "localQuaternion": [
+        0,
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "name": "hand_r",
+      "parent": "forearm_r",
+      "localPivot": [
+        0.029999971389770508,
+        -0.1899999976158142,
+        -0.07999999821186066
+      ],
+      "modelPivot": [
+        0.5199999809265137,
+        0.9100000262260437,
+        -0.1099999975413084
+      ],
+      "localQuaternion": [
+        0,
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "name": "thigh_l",
+      "parent": "pelvis",
+      "localPivot": [
+        -0.23000000417232513,
+        0,
+        0
+      ],
+      "modelPivot": [
+        -0.23000000417232513,
+        0.8600000143051147,
+        0
+      ],
+      "localQuaternion": [
+        0,
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "name": "shin_l",
+      "parent": "thigh_l",
+      "localPivot": [
+        0,
+        -0.25,
+        0
+      ],
+      "modelPivot": [
+        -0.23000000417232513,
+        0.6100000143051147,
+        0
+      ],
+      "localQuaternion": [
+        0,
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "name": "foot_l",
+      "parent": "shin_l",
+      "localPivot": [
+        0,
+        -0.36000001430511475,
+        0
+      ],
+      "modelPivot": [
+        -0.23000000417232513,
+        0.25,
+        0
+      ],
+      "localQuaternion": [
+        0,
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "name": "upper_arm_l",
+      "parent": "torso",
+      "localPivot": [
+        -0.3700000047683716,
+        0.48000001907348633,
+        0
+      ],
+      "modelPivot": [
+        -0.3700000047683716,
+        1.340000033378601,
+        0
+      ],
+      "localQuaternion": [
+        0,
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "name": "forearm_l",
+      "parent": "upper_arm_l",
+      "localPivot": [
+        -0.12000000476837158,
+        -0.24000000953674316,
+        -0.029999999329447746
+      ],
+      "modelPivot": [
+        -0.49000000953674316,
+        1.100000023841858,
+        -0.029999999329447746
+      ],
+      "localQuaternion": [
+        0,
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "name": "hand_l",
+      "parent": "forearm_l",
+      "localPivot": [
+        -0.029999971389770508,
+        -0.1899999976158142,
+        -0.07000000029802322
+      ],
+      "modelPivot": [
+        -0.5199999809265137,
+        0.9100000262260437,
+        -0.09999999962747097
+      ],
+      "localQuaternion": [
+        0,
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "name": "dispatch_satchel",
+      "parent": "torso",
+      "localPivot": [
+        0,
+        0.5699999332427979,
+        0.20499999821186066
+      ],
+      "modelPivot": [
+        0,
+        1.4299999475479126,
+        0.20499999821186066
+      ],
+      "localQuaternion": [
+        0,
+        0,
+        0,
+        1
+      ]
+    }
+  ],
+  "quality": "Node-only structural audit. Scene triangle count is not visible-pixel count, FPS, pose clearance, visual, gameplay or hardware acceptance."
+}
