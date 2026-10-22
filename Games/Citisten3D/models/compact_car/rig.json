@@ -1,0 +1,466 @@
+{
+  "model": "compact_car",
+  "units": "metres",
+  "coordinate_system": "+Y up, forward -Z, right +X",
+  "pivot_position_space": "local exported glTF node translation relative to named parent; pivot_model_position is bind/rest model space",
+  "rotation_convention": "local Euler rotations in degrees; all limb flexion and wheel roll use local X; heading/steering/door yaw local Y; limits are deltas from rest",
+  "rig_type": "rigid_parts_no_skin",
+  "movable_nodes": [
+    {
+      "name": "compact_car_rear_left_wheel",
+      "pivot_position": [
+        -0.6548587679862976,
+        0.339285671710968,
+        1.0629773139953613
+      ],
+      "pivot_model_position": [
+        -0.6548588,
+        0.3392857,
+        1.0629773
+      ],
+      "parent": "compact_car_body",
+      "role": "wheel rolling around local X axle",
+      "rotation_deg": {
+        "x": "free",
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "translation_m": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "name": "compact_car_front_left_steer",
+      "pivot_position": [
+        -0.6548587679862976,
+        0.339285671710968,
+        -1.0528537034988403
+      ],
+      "pivot_model_position": [
+        -0.6548588,
+        0.3392857,
+        -1.0528537
+      ],
+      "parent": "compact_car_body",
+      "role": "front steering kingpin local Y",
+      "rotation_deg": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          -32,
+          32
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "translation_m": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "name": "compact_car_front_left_wheel",
+      "pivot_position": [
+        0,
+        0,
+        0
+      ],
+      "pivot_model_position": [
+        -0.6548588,
+        0.3392857,
+        -1.0528537
+      ],
+      "parent": "compact_car_front_left_steer",
+      "role": "wheel rolling around local X axle",
+      "rotation_deg": {
+        "x": "free",
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "translation_m": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "name": "compact_car_rear_right_wheel",
+      "pivot_position": [
+        0.6548587679862976,
+        0.339285671710968,
+        1.0629773139953613
+      ],
+      "pivot_model_position": [
+        0.6548588,
+        0.3392857,
+        1.0629773
+      ],
+      "parent": "compact_car_body",
+      "role": "wheel rolling around local X axle",
+      "rotation_deg": {
+        "x": "free",
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "translation_m": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "name": "compact_car_front_right_steer",
+      "pivot_position": [
+        0.6548587679862976,
+        0.339285671710968,
+        -1.0528537034988403
+      ],
+      "pivot_model_position": [
+        0.6548588,
+        0.3392857,
+        -1.0528537
+      ],
+      "parent": "compact_car_body",
+      "role": "front steering kingpin local Y",
+      "rotation_deg": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          -32,
+          32
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "translation_m": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "name": "compact_car_front_right_wheel",
+      "pivot_position": [
+        0,
+        0,
+        0
+      ],
+      "pivot_model_position": [
+        0.6548588,
+        0.3392857,
+        -1.0528537
+      ],
+      "parent": "compact_car_front_right_steer",
+      "role": "wheel rolling around local X axle",
+      "rotation_deg": {
+        "x": "free",
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "translation_m": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "name": "compact_car_rear_left_door",
+      "pivot_position": [
+        -0.7699999809265137,
+        0.6399999856948853,
+        -0.020210009068250656
+      ],
+      "pivot_model_position": [
+        -0.77,
+        0.64,
+        -0.02021
+      ],
+      "parent": "compact_car_body",
+      "role": "front-edge hinge local Y; cosmetic exterior door with window and handle",
+      "rotation_deg": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          -75,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "translation_m": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "name": "compact_car_front_left_door",
+      "pivot_position": [
+        -0.7699999809265137,
+        0.6399999856948853,
+        -0.7693776488304138
+      ],
+      "pivot_model_position": [
+        -0.77,
+        0.64,
+        -0.7693776
+      ],
+      "parent": "compact_car_body",
+      "role": "front-edge hinge local Y; cosmetic exterior door with window and handle",
+      "rotation_deg": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          -75,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "translation_m": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "name": "compact_car_rear_right_door",
+      "pivot_position": [
+        0.7699999809265137,
+        0.6399999856948853,
+        -0.020210009068250656
+      ],
+      "pivot_model_position": [
+        0.77,
+        0.64,
+        -0.02021
+      ],
+      "parent": "compact_car_body",
+      "role": "front-edge hinge local Y; cosmetic exterior door with window and handle",
+      "rotation_deg": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          75
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "translation_m": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "name": "compact_car_front_right_door",
+      "pivot_position": [
+        0.7699999809265137,
+        0.6399999856948853,
+        -0.7693776488304138
+      ],
+      "pivot_model_position": [
+        0.77,
+        0.64,
+        -0.7693776
+      ],
+      "parent": "compact_car_body",
+      "role": "front-edge hinge local Y; cosmetic exterior door with window and handle",
+      "rotation_deg": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          75
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "translation_m": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      }
+    }
+  ],
+  "static_nodes": [
+    {
+      "name": "compact_car_root",
+      "pivot_position": [
+        0,
+        0,
+        0
+      ],
+      "pivot_model_position": [
+        0.0,
+        0.0,
+        -0.0
+      ],
+      "parent": null,
+      "role": "caller-owned model placement"
+    },
+    {
+      "name": "compact_car_body",
+      "pivot_position": [
+        0,
+        0,
+        0
+      ],
+      "pivot_model_position": [
+        0.0,
+        0.0,
+        -0.0
+      ],
+      "parent": "compact_car_root",
+      "role": "static body, glass, trim and cosmetic roof equipment"
+    }
+  ],
+  "clips": [],
+  "notes": [
+    "Parent chains and mesh origins are real exported nodes, not metadata-only attachments.",
+    "Finger geometry, face features, garment pockets and stationary trim move rigidly with their named parent part; no finger or cloth simulation implied.",
+    "Car doors are cosmetic exterior shells retaining original artwork; no cabin interior or gameplay door behavior is supplied."
+  ]
+}

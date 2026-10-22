@@ -1,0 +1,153 @@
+{
+  "model": "fire_station",
+  "color_space": "linear RGBA baseColorFactor; texture channels remain original sRGB/non-color maps",
+  "material_slots": [
+    {
+      "name": "fire_station__warm_glazing",
+      "gltf_material_index": 0,
+      "default_rgba": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "control": "baseColorFactor multiplies embedded atlas without replacing normal, roughness, AO or emissive maps",
+      "regions": "fire_station__apparatus_door_01__door_vision_glass; fire_station__apparatus_door_01__door_vision_glass_001; fire_station__apparatus_door_01__door_vision_glass_002; fire_station__apparatus_door_02__door_vision_glass_003; fire_station__apparatus_door_02__door_vision_glass_004; fire_station__apparatus_door_02__door_vision_glass_005; fire_station__static_warm_glazing"
+    },
+    {
+      "name": "fire_station__firehouse_oxide_red",
+      "gltf_material_index": 1,
+      "default_rgba": [
+        0.3799999952316284,
+        0.06499999761581421,
+        0.03500000014901161,
+        1
+      ],
+      "control": "baseColorFactor multiplies embedded atlas without replacing normal, roughness, AO or emissive maps",
+      "regions": "fire_station__apparatus_door_01__pressed_door_panel; fire_station__apparatus_door_01__pressed_door_panel_001; fire_station__apparatus_door_01__pressed_door_panel_002; fire_station__apparatus_door_01__pressed_door_panel_003; fire_station__apparatus_door_01__pressed_door_panel_004; fire_station__apparatus_door_01__pressed_door_panel_005; fire_station__apparatus_door_01__pressed_door_panel_006; fire_station__apparatus_door_01__pressed_door_panel_007; fire_station__apparatus_door_01__pressed_door_panel_008; fire_station__apparatus_door_01__pressed_door_panel_009; fire_station__apparatus_door_01__pressed_door_panel_010; fire_station__apparatus_door_01__pressed_door_panel_011; fire_station__apparatus_door_01__pressed_door_panel_012; fire_station__apparatus_door_01__pressed_door_panel_013; fire_station__apparatus_door_01__pressed_door_panel_014; fire_station__apparatus_door_01__pressed_door_panel_015; fire_station__apparatus_door_01__pressed_door_panel_016; fire_station__apparatus_door_01__pressed_door_panel_017; fire_station__apparatus_door_01__pressed_door_panel_018; fire_station__apparatus_door_01__pressed_door_panel_019; fire_station__apparatus_door_01__pressed_door_panel_020; fire_station__apparatus_door_01__pressed_door_panel_021; fire_station__apparatus_door_01__pressed_door_panel_022; fire_station__apparatus_door_01__pressed_door_panel_023; fire_station__apparatus_door_01__segmented_apparatus_door; fire_station__apparatus_door_01__segmented_apparatus_door_001; fire_station__apparatus_door_01__segmented_apparatus_door_002; fire_station__apparatus_door_01__segmented_apparatus_door_003; fire_station__apparatus_door_01__segmented_apparatus_door_004; fire_station__apparatus_door_01__segmented_apparatus_door_005; fire_station__apparatus_door_01__segmented_apparatus_door_006; fire_station__apparatus_door_01__segmented_apparatus_door_007; fire_station__apparatus_door_02__pressed_door_panel_024; fire_station__apparatus_door_02__pressed_door_panel_025; fire_station__apparatus_door_02__pressed_door_panel_026; fire_station__apparatus_door_02__pressed_door_panel_027; fire_station__apparatus_door_02__pressed_door_panel_028; fire_station__apparatus_door_02__pressed_door_panel_029; fire_station__apparatus_door_02__pressed_door_panel_030; fire_station__apparatus_door_02__pressed_door_panel_031; fire_station__apparatus_door_02__pressed_door_panel_032; fire_station__apparatus_door_02__pressed_door_panel_033; fire_station__apparatus_door_02__pressed_door_panel_034; fire_station__apparatus_door_02__pressed_door_panel_035; fire_station__apparatus_door_02__pressed_door_panel_036; fire_station__apparatus_door_02__pressed_door_panel_037; fire_station__apparatus_door_02__pressed_door_panel_038; fire_station__apparatus_door_02__pressed_door_panel_039; fire_station__apparatus_door_02__pressed_door_panel_040; fire_station__apparatus_door_02__pressed_door_panel_041; fire_station__apparatus_door_02__pressed_door_panel_042; fire_station__apparatus_door_02__pressed_door_panel_043; fire_station__apparatus_door_02__pressed_door_panel_044; fire_station__apparatus_door_02__pressed_door_panel_045; fire_station__apparatus_door_02__pressed_door_panel_046; fire_station__apparatus_door_02__pressed_door_panel_047; fire_station__apparatus_door_02__segmented_apparatus_door_008; fire_station__apparatus_door_02__segmented_apparatus_door_009; fire_station__apparatus_door_02__segmented_apparatus_door_010; fire_station__apparatus_door_02__segmented_apparatus_door_011; fire_station__apparatus_door_02__segmented_apparatus_door_012; fire_station__apparatus_door_02__segmented_apparatus_door_013; fire_station__apparatus_door_02__segmented_apparatus_door_014; fire_station__apparatus_door_02__segmented_apparatus_door_015"
+    },
+    {
+      "name": "fire_station__civic_pale_painted_trim",
+      "gltf_material_index": 2,
+      "default_rgba": [
+        0.6700000166893005,
+        0.7200000286102295,
+        0.6899999976158142,
+        1
+      ],
+      "control": "baseColorFactor multiplies embedded atlas without replacing normal, roughness, AO or emissive maps",
+      "regions": "fire_station__static_civic_pale_painted_trim"
+    },
+    {
+      "name": "fire_station__limestone",
+      "gltf_material_index": 3,
+      "default_rgba": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "control": "baseColorFactor multiplies embedded atlas without replacing normal, roughness, AO or emissive maps",
+      "regions": "fire_station__static_limestone"
+    },
+    {
+      "name": "fire_station__patinated_metal",
+      "gltf_material_index": 4,
+      "default_rgba": [
+        0.1899999976158142,
+        0.25,
+        0.25,
+        1
+      ],
+      "control": "baseColorFactor multiplies embedded atlas without replacing normal, roughness, AO or emissive maps",
+      "regions": "fire_station__static_patinated_metal"
+    },
+    {
+      "name": "fire_station__recess_shadow_joints",
+      "gltf_material_index": 5,
+      "default_rgba": [
+        0.02500000037252903,
+        0.032999999821186066,
+        0.035999998450279236,
+        1
+      ],
+      "control": "baseColorFactor multiplies embedded atlas without replacing normal, roughness, AO or emissive maps",
+      "regions": "fire_station__static_recess_/_shadow_joints"
+    },
+    {
+      "name": "fire_station__slate",
+      "gltf_material_index": 6,
+      "default_rgba": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "control": "baseColorFactor multiplies embedded atlas without replacing normal, roughness, AO or emissive maps",
+      "regions": "fire_station__static_slate"
+    },
+    {
+      "name": "fire_station__warm_brick",
+      "gltf_material_index": 7,
+      "default_rgba": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "control": "baseColorFactor multiplies embedded atlas without replacing normal, roughness, AO or emissive maps",
+      "regions": "fire_station__static_warm_brick"
+    }
+  ],
+  "palette_default": {
+    "fire_station__warm_glazing": [
+      1,
+      1,
+      1,
+      1
+    ],
+    "fire_station__firehouse_oxide_red": [
+      0.3799999952316284,
+      0.06499999761581421,
+      0.03500000014901161,
+      1
+    ],
+    "fire_station__civic_pale_painted_trim": [
+      0.6700000166893005,
+      0.7200000286102295,
+      0.6899999976158142,
+      1
+    ],
+    "fire_station__limestone": [
+      1,
+      1,
+      1,
+      1
+    ],
+    "fire_station__patinated_metal": [
+      0.1899999976158142,
+      0.25,
+      0.25,
+      1
+    ],
+    "fire_station__recess_shadow_joints": [
+      0.02500000037252903,
+      0.032999999821186066,
+      0.035999998450279236,
+      1
+    ],
+    "fire_station__slate": [
+      1,
+      1,
+      1,
+      1
+    ],
+    "fire_station__warm_brick": [
+      1,
+      1,
+      1,
+      1
+    ]
+  },
+  "instance_isolation": "Every model uses model-prefixed independent semantic material slots. A GLB cannot enforce runtime material-instance ownership: clone each editable material for each spawned instance before changing its baseColorFactor. Keep immutable texture images shared; do not mutate a loader cache material globally. No engine integration code is included."
+}

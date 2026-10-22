@@ -1,0 +1,271 @@
+{
+  "model": "park_lot",
+  "material_scope": "Unique material names per model; materials within a spawned instance may be intentionally shared by matching semantic region. Runtime must clone material objects per instance before tint changes.",
+  "color_space": "linear RGB",
+  "tint_semantics": "baseColorFactor multiplies preserved base-color textures; untextured material factors directly set surface color.",
+  "palette_default": {
+    "park_lot__park_painted_iron": [
+      0.054999999701976776,
+      0.09000000357627869,
+      0.08500000089406967,
+      1
+    ],
+    "park_lot__benchwood": [
+      1,
+      1,
+      1,
+      1
+    ],
+    "park_lot__asphalt": [
+      1,
+      1,
+      1,
+      1
+    ],
+    "park_lot__pale_granite_edging": [
+      0.4300000071525574,
+      0.44999998807907104,
+      0.4000000059604645,
+      1
+    ],
+    "park_lot__grass": [
+      1,
+      1,
+      1,
+      1
+    ]
+  },
+  "slots": [
+    {
+      "name": "park_lot__park_painted_iron",
+      "base_color_factor": [
+        0.054999999701976776,
+        0.09000000357627869,
+        0.08500000089406967,
+        1
+      ],
+      "editing": "GLB pbrMetallicRoughness.baseColorFactor; Blender PALETTE_TINT multiplier when textured, Principled Base Color when untextured"
+    },
+    {
+      "name": "park_lot__benchwood",
+      "base_color_factor": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "editing": "GLB pbrMetallicRoughness.baseColorFactor; Blender PALETTE_TINT multiplier when textured, Principled Base Color when untextured"
+    },
+    {
+      "name": "park_lot__asphalt",
+      "base_color_factor": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "editing": "GLB pbrMetallicRoughness.baseColorFactor; Blender PALETTE_TINT multiplier when textured, Principled Base Color when untextured"
+    },
+    {
+      "name": "park_lot__pale_granite_edging",
+      "base_color_factor": [
+        0.4300000071525574,
+        0.44999998807907104,
+        0.4000000059604645,
+        1
+      ],
+      "editing": "GLB pbrMetallicRoughness.baseColorFactor; Blender PALETTE_TINT multiplier when textured, Principled Base Color when untextured"
+    },
+    {
+      "name": "park_lot__grass",
+      "base_color_factor": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "editing": "GLB pbrMetallicRoughness.baseColorFactor; Blender PALETTE_TINT multiplier when textured, Principled Base Color when untextured"
+    }
+  ],
+  "reset": "Restore palette_default factors.",
+  "map_policy": "Original basecolor, roughness, normal, AO and glazing emission channels retained where originally supplied.",
+  "material_slots_by_lod": {
+    "0": [
+      "park_lot__park_painted_iron",
+      "park_lot__benchwood",
+      "park_lot__asphalt",
+      "park_lot__pale_granite_edging",
+      "park_lot__grass"
+    ],
+    "1": [
+      "park_lot__park_painted_iron",
+      "park_lot__benchwood",
+      "park_lot__asphalt",
+      "park_lot__pale_granite_edging",
+      "park_lot__grass"
+    ],
+    "2": [
+      "park_lot__park_painted_iron",
+      "park_lot__benchwood",
+      "park_lot__asphalt",
+      "park_lot__pale_granite_edging",
+      "park_lot__grass"
+    ]
+  },
+  "palette_default_by_lod": {
+    "0": {
+      "park_lot__park_painted_iron": [
+        0.054999999701976776,
+        0.09000000357627869,
+        0.08500000089406967,
+        1
+      ],
+      "park_lot__benchwood": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "park_lot__asphalt": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "park_lot__pale_granite_edging": [
+        0.4300000071525574,
+        0.44999998807907104,
+        0.4000000059604645,
+        1
+      ],
+      "park_lot__grass": [
+        1,
+        1,
+        1,
+        1
+      ]
+    },
+    "1": {
+      "park_lot__park_painted_iron": [
+        0.054999999701976776,
+        0.09000000357627869,
+        0.08500000089406967,
+        1
+      ],
+      "park_lot__benchwood": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "park_lot__asphalt": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "park_lot__pale_granite_edging": [
+        0.4300000071525574,
+        0.44999998807907104,
+        0.4000000059604645,
+        1
+      ],
+      "park_lot__grass": [
+        1,
+        1,
+        1,
+        1
+      ]
+    },
+    "2": {
+      "park_lot__park_painted_iron": [
+        0.054999999701976776,
+        0.09000000357627869,
+        0.08500000089406967,
+        1
+      ],
+      "park_lot__benchwood": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "park_lot__asphalt": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "park_lot__pale_granite_edging": [
+        0.4300000071525574,
+        0.44999998807907104,
+        0.4000000059604645,
+        1
+      ],
+      "park_lot__grass": [
+        1,
+        1,
+        1,
+        1
+      ]
+    }
+  },
+  "lod_tint_transfer": "Carry a semantic tint multiplier across LODs, not a raw factor. For each mapped slot, RGB = that LOD slot default RGB \u00d7 chosen semantic tint RGB; keep original alpha. This preserves different authored base defaults.",
+  "semantic_lod_aliases": {
+    "park_painted_iron": {
+      "0": [
+        "park_lot__park_painted_iron"
+      ],
+      "1": [
+        "park_lot__park_painted_iron"
+      ],
+      "2": [
+        "park_lot__park_painted_iron"
+      ]
+    },
+    "benchwood": {
+      "0": [
+        "park_lot__benchwood"
+      ],
+      "1": [
+        "park_lot__benchwood"
+      ],
+      "2": [
+        "park_lot__benchwood"
+      ]
+    },
+    "asphalt": {
+      "0": [
+        "park_lot__asphalt"
+      ],
+      "1": [
+        "park_lot__asphalt"
+      ],
+      "2": [
+        "park_lot__asphalt"
+      ]
+    },
+    "pale_granite_edging": {
+      "0": [
+        "park_lot__pale_granite_edging"
+      ],
+      "1": [
+        "park_lot__pale_granite_edging"
+      ],
+      "2": [
+        "park_lot__pale_granite_edging"
+      ]
+    },
+    "grass": {
+      "0": [
+        "park_lot__grass"
+      ],
+      "1": [
+        "park_lot__grass"
+      ],
+      "2": [
+        "park_lot__grass"
+      ]
+    }
+  }
+}

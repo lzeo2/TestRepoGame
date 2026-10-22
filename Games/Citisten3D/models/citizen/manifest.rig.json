@@ -1,0 +1,686 @@
+{
+  "model": "citizen",
+  "units": "metres",
+  "coordinate_system": "+Y up, forward -Z, right +X",
+  "pivot_position_space": "local exported glTF node translation relative to named parent; pivot_model_position is bind/rest model space",
+  "rotation_convention": "local Euler rotations in degrees; all limb flexion and wheel roll use local X; heading/steering/door yaw local Y; limits are deltas from rest",
+  "rig_type": "rigid_parts_no_skin",
+  "movable_nodes": [
+    {
+      "name": "citizen_pelvis",
+      "pivot_position": [
+        -0.005589671432971954,
+        0.964349091053009,
+        0.05000000074505806
+      ],
+      "pivot_model_position": [
+        -0.0055897,
+        0.9643491,
+        0.05
+      ],
+      "parent": "citizen_root",
+      "role": "hip center / whole torso sway",
+      "rotation_deg": {
+        "x": [
+          -12,
+          12
+        ],
+        "y": [
+          -20,
+          20
+        ],
+        "z": [
+          -12,
+          12
+        ]
+      },
+      "translation_m": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "name": "citizen_torso",
+      "pivot_position": [
+        0,
+        0.050000011920928955,
+        0
+      ],
+      "pivot_model_position": [
+        -0.0055897,
+        1.0143491,
+        0.05
+      ],
+      "parent": "citizen_pelvis",
+      "role": "spine bend rigid jacket and attached pockets",
+      "rotation_deg": {
+        "x": [
+          -15,
+          15
+        ],
+        "y": [
+          -25,
+          25
+        ],
+        "z": [
+          -15,
+          15
+        ]
+      },
+      "translation_m": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "name": "citizen_head",
+      "pivot_position": [
+        -0.0013843472115695477,
+        0.5035431385040283,
+        -0.0045602768659591675
+      ],
+      "pivot_model_position": [
+        -0.006974,
+        1.5178922,
+        0.0454397
+      ],
+      "parent": "citizen_torso",
+      "role": "neck pivot; face/hair fixed to head",
+      "rotation_deg": {
+        "x": [
+          -30,
+          30
+        ],
+        "y": [
+          -60,
+          60
+        ],
+        "z": [
+          -20,
+          20
+        ]
+      },
+      "translation_m": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "name": "citizen_left_upper_leg",
+      "pivot_position": [
+        -0.10713508725166321,
+        0.0005006790161132812,
+        0.03572570160031319
+      ],
+      "pivot_model_position": [
+        -0.1127248,
+        0.9648498,
+        0.0857257
+      ],
+      "parent": "citizen_pelvis",
+      "role": "hip flexion local X",
+      "rotation_deg": {
+        "x": [
+          -45,
+          55
+        ],
+        "y": [
+          -15,
+          15
+        ],
+        "z": [
+          -20,
+          20
+        ]
+      },
+      "translation_m": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "name": "citizen_left_lower_leg",
+      "pivot_position": [
+        -0.010071508586406708,
+        -0.40286004543304443,
+        -0.04733603820204735
+      ],
+      "pivot_model_position": [
+        -0.1227963,
+        0.5619897,
+        0.0383897
+      ],
+      "parent": "citizen_left_upper_leg",
+      "role": "knee flexion local X",
+      "rotation_deg": {
+        "x": [
+          -105,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "translation_m": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "name": "citizen_left_foot",
+      "pivot_position": [
+        0.010071516036987305,
+        -0.39278852939605713,
+        0.01208580657839775
+      ],
+      "pivot_model_position": [
+        -0.1127248,
+        0.1692012,
+        0.0504755
+      ],
+      "parent": "citizen_left_lower_leg",
+      "role": "ankle; shoe, sole and laces",
+      "rotation_deg": {
+        "x": [
+          -30,
+          30
+        ],
+        "y": [
+          -15,
+          15
+        ],
+        "z": [
+          -10,
+          10
+        ]
+      },
+      "translation_m": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "name": "citizen_left_upper_arm",
+      "pivot_position": [
+        -0.20785009860992432,
+        0.4681755304336548,
+        0.00047547370195388794
+      ],
+      "pivot_model_position": [
+        -0.2134398,
+        1.4825246,
+        0.0504755
+      ],
+      "parent": "citizen_torso",
+      "role": "shoulder; sleeve cap carried with upper arm",
+      "rotation_deg": {
+        "x": [
+          -65,
+          80
+        ],
+        "y": [
+          -25,
+          25
+        ],
+        "z": [
+          -45,
+          45
+        ]
+      },
+      "translation_m": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "name": "citizen_left_forearm",
+      "pivot_position": [
+        -0.0735219419002533,
+        -0.21552979946136475,
+        -0.01812869682908058
+      ],
+      "pivot_model_position": [
+        -0.2869617,
+        1.2669948,
+        0.0323468
+      ],
+      "parent": "citizen_left_upper_arm",
+      "role": "elbow flexion local X",
+      "rotation_deg": {
+        "x": [
+          -10,
+          110
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "translation_m": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "name": "citizen_left_hand",
+      "pivot_position": [
+        -0.0020143091678619385,
+        -0.22157323360443115,
+        -0.017121557146310806
+      ],
+      "pivot_model_position": [
+        -0.288976,
+        1.0454216,
+        0.0152252
+      ],
+      "parent": "citizen_left_forearm",
+      "role": "wrist; fingers rigidly attached to palm",
+      "rotation_deg": {
+        "x": [
+          -35,
+          35
+        ],
+        "y": [
+          -45,
+          45
+        ],
+        "z": [
+          -20,
+          20
+        ]
+      },
+      "translation_m": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "name": "citizen_right_upper_leg",
+      "pivot_position": [
+        0.10436640679836273,
+        0.0005005598068237305,
+        0.03572570160031319
+      ],
+      "pivot_model_position": [
+        0.0987767,
+        0.9648497,
+        0.0857257
+      ],
+      "parent": "citizen_pelvis",
+      "role": "hip flexion local X",
+      "rotation_deg": {
+        "x": [
+          -45,
+          55
+        ],
+        "y": [
+          -15,
+          15
+        ],
+        "z": [
+          -20,
+          20
+        ]
+      },
+      "translation_m": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "name": "citizen_right_lower_leg",
+      "pivot_position": [
+        0.010071493685245514,
+        -0.4028599262237549,
+        -0.04733603820204735
+      ],
+      "pivot_model_position": [
+        0.1088482,
+        0.5619897,
+        0.0383897
+      ],
+      "parent": "citizen_right_upper_leg",
+      "role": "knee flexion local X",
+      "rotation_deg": {
+        "x": [
+          -105,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "translation_m": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "name": "citizen_right_foot",
+      "pivot_position": [
+        -0.010071493685245514,
+        -0.39278852939605713,
+        0.01208580657839775
+      ],
+      "pivot_model_position": [
+        0.0987767,
+        0.1692012,
+        0.0504755
+      ],
+      "parent": "citizen_right_lower_leg",
+      "role": "ankle; shoe, sole and laces",
+      "rotation_deg": {
+        "x": [
+          -30,
+          30
+        ],
+        "y": [
+          -15,
+          15
+        ],
+        "z": [
+          -10,
+          10
+        ]
+      },
+      "translation_m": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "name": "citizen_right_upper_arm",
+      "pivot_position": [
+        0.20508137345314026,
+        0.4681755304336548,
+        0.00047547370195388794
+      ],
+      "pivot_model_position": [
+        0.1994917,
+        1.4825246,
+        0.0504755
+      ],
+      "parent": "citizen_torso",
+      "role": "shoulder; sleeve cap carried with upper arm",
+      "rotation_deg": {
+        "x": [
+          -65,
+          80
+        ],
+        "y": [
+          -25,
+          25
+        ],
+        "z": [
+          -45,
+          45
+        ]
+      },
+      "translation_m": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "name": "citizen_right_forearm",
+      "pivot_position": [
+        0.07352200150489807,
+        -0.2155299186706543,
+        -0.01812869682908058
+      ],
+      "pivot_model_position": [
+        0.2730137,
+        1.2669947,
+        0.0323468
+      ],
+      "parent": "citizen_right_upper_arm",
+      "role": "elbow flexion local X",
+      "rotation_deg": {
+        "x": [
+          -10,
+          110
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "translation_m": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "name": "citizen_right_hand",
+      "pivot_position": [
+        0.0020142793655395508,
+        -0.2215731143951416,
+        -0.017121557146310806
+      ],
+      "pivot_model_position": [
+        0.275028,
+        1.0454216,
+        0.0152252
+      ],
+      "parent": "citizen_right_forearm",
+      "role": "wrist; fingers rigidly attached to palm",
+      "rotation_deg": {
+        "x": [
+          -35,
+          35
+        ],
+        "y": [
+          -45,
+          45
+        ],
+        "z": [
+          -20,
+          20
+        ]
+      },
+      "translation_m": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      }
+    }
+  ],
+  "static_nodes": [
+    {
+      "name": "citizen_root",
+      "pivot_position": [
+        0,
+        0,
+        0
+      ],
+      "pivot_model_position": [
+        0.0,
+        0.0,
+        -0.0
+      ],
+      "parent": null,
+      "role": "caller-owned model placement"
+    }
+  ],
+  "clips": [
+    {
+      "name": "clip_citizen_walk",
+      "duration_seconds": 2,
+      "loop": true,
+      "type": "in_place_rigid_walk",
+      "root_motion": false
+    }
+  ],
+  "notes": [
+    "Parent chains and mesh origins are real exported nodes, not metadata-only attachments.",
+    "Finger geometry, face features, garment pockets and stationary trim move rigidly with their named parent part; no finger or cloth simulation implied.",
+    "Car doors are cosmetic exterior shells retaining original artwork; no cabin interior or gameplay door behavior is supplied."
+  ]
+}

@@ -1,0 +1,183 @@
+{
+  "model": "residential_row",
+  "schema_version": "1.0",
+  "units": "metres",
+  "coordinates": "glTF Y-up; architectural facade +Z; source Blender Z-up facade -Y",
+  "pivot_space": "parent-local; neutral offsets from exported glTF node transforms",
+  "rotation_ranges": "degrees relative to bind pose; capless = free",
+  "translation_ranges": "metres relative to bind translation; [0,0] locks axis",
+  "movable_nodes": [
+    {
+      "name": "residential_row__door_01",
+      "parent": "residential_row",
+      "pivot_position": [
+        -2.3450000286102295,
+        0.18000000715255737,
+        2.380000114440918
+      ],
+      "pivot_space": "parent-local glTF metres",
+      "local_frame_quaternion_xyzw": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "rotation_deg": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          -100,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "translation_m": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "operation": "rigid rotation",
+      "motion_axis_local": "Y",
+      "geometry_children": [
+        "residential_row__door_01__brass_door_pull",
+        "residential_row__door_01__brass_door_pull_001",
+        "residential_row__door_01__door_inset_panel",
+        "residential_row__door_01__door_inset_panel_001",
+        "residential_row__door_01__recessed_entrance_leaf"
+      ]
+    },
+    {
+      "name": "residential_row__door_02",
+      "parent": "residential_row",
+      "pivot_position": [
+        0.23499999940395355,
+        0.18000000715255737,
+        2.380000114440918
+      ],
+      "pivot_space": "parent-local glTF metres",
+      "local_frame_quaternion_xyzw": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "rotation_deg": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          -100,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "translation_m": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "operation": "rigid rotation",
+      "motion_axis_local": "Y",
+      "geometry_children": [
+        "residential_row__door_02__brass_door_pull_002",
+        "residential_row__door_02__brass_door_pull_003",
+        "residential_row__door_02__door_inset_panel_002",
+        "residential_row__door_02__door_inset_panel_003",
+        "residential_row__door_02__recessed_entrance_leaf_001"
+      ]
+    },
+    {
+      "name": "residential_row__door_03",
+      "parent": "residential_row",
+      "pivot_position": [
+        2.815000057220459,
+        0.18000000715255737,
+        2.380000114440918
+      ],
+      "pivot_space": "parent-local glTF metres",
+      "local_frame_quaternion_xyzw": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "rotation_deg": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          -100,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "translation_m": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "operation": "rigid rotation",
+      "motion_axis_local": "Y",
+      "geometry_children": [
+        "residential_row__door_03__brass_door_pull_004",
+        "residential_row__door_03__brass_door_pull_005",
+        "residential_row__door_03__door_inset_panel_004",
+        "residential_row__door_03__door_inset_panel_005",
+        "residential_row__door_03__recessed_entrance_leaf_002"
+      ]
+    }
+  ],
+  "static_nodes": [
+    "residential_row__static_civic_pale_painted_trim",
+    "residential_row__static_limestone",
+    "residential_row__static_patinated_metal",
+    "residential_row__static_recess_/_shadow_joints",
+    "residential_row__static_slate",
+    "residential_row__static_warm_brick",
+    "residential_row__static_warm_glazing",
+    "residential_row__static_structure"
+  ],
+  "static_note": "Masonry, floors, walls, columns, fixed trim, glazing frames, tracks, roof shells and other structural pieces are intentionally static. No whole-building articulation.",
+  "animation_clips": [],
+  "door_note": "Entrance leaves and handles move together; shallow dark recesses prevent sealed masonry immediately behind the leaf."
+}

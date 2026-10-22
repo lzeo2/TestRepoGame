@@ -1,0 +1,25 @@
+{
+  "schema": "rigid-parts-v2",
+  "model": "terrain_water_materials",
+  "coordinate_system": "glTF local coordinates: metres, Y-up. Blender editable source: Z-up. Pivot_position is local translation relative to named parent.",
+  "rotation_convention": "Right-handed local Euler degrees; limb/hatch bends X, vertical-door yaw Y. Translation ranges are offsets from rest position.",
+  "root": "root",
+  "movable_nodes": [],
+  "static_nodes": [
+    "static_terrain_asphalt",
+    "static_terrain_grass",
+    "static_terrain_shoreline_transition",
+    "static_terrain_soil",
+    "static_water_plane",
+    "root"
+  ],
+  "clips": [],
+  "notes": [
+    "No skeletal rig, skin weights or baked clips; static nodes are intentional.",
+    "Palette factors are linear-RGB multiplicative tint, not arbitrary exact RGB replacement of colored texture pixels.",
+    "For independently tinted spawned instances, clone the instance material objects before editing factors; never mutate a shared loader-cache material. Maps remain immutable and may be shared.",
+    "Reduced LODs preserve original geometry/texture resolutions; each LOD is a standalone alternative, not loaded simultaneously.",
+    "Water is one 2-triangle static plane; moving-specular UV flow remains optional application work. No invented geometry bob or game integration."
+  ],
+  "rigid_geometry_nodes": []
+}

@@ -1,0 +1,686 @@
+{
+  "model": "zombie",
+  "units": "metres",
+  "coordinate_system": "+Y up, forward -Z, right +X",
+  "pivot_position_space": "local exported glTF node translation relative to named parent; pivot_model_position is bind/rest model space",
+  "rotation_convention": "local Euler rotations in degrees; all limb flexion and wheel roll use local X; heading/steering/door yaw local Y; limits are deltas from rest",
+  "rig_type": "rigid_parts_no_skin",
+  "movable_nodes": [
+    {
+      "name": "zombie_pelvis",
+      "pivot_position": [
+        -0.007311530411243439,
+        0.8515384197235107,
+        0.23000000417232513
+      ],
+      "pivot_model_position": [
+        -0.0073115,
+        0.8515384,
+        0.23
+      ],
+      "parent": "zombie_root",
+      "role": "hip center / whole torso sway",
+      "rotation_deg": {
+        "x": [
+          -12,
+          12
+        ],
+        "y": [
+          -20,
+          20
+        ],
+        "z": [
+          -12,
+          12
+        ]
+      },
+      "translation_m": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "name": "zombie_torso",
+      "pivot_position": [
+        0,
+        0.050000011920928955,
+        0
+      ],
+      "pivot_model_position": [
+        -0.0073115,
+        0.9015384,
+        0.23
+      ],
+      "parent": "zombie_pelvis",
+      "role": "spine bend rigid jacket and attached pockets",
+      "rotation_deg": {
+        "x": [
+          -15,
+          15
+        ],
+        "y": [
+          -25,
+          25
+        ],
+        "z": [
+          -15,
+          15
+        ]
+      },
+      "translation_m": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "name": "zombie_head",
+      "pivot_position": [
+        -0.001380770467221737,
+        0.41163915395736694,
+        -0.20764878392219543
+      ],
+      "pivot_model_position": [
+        -0.0086923,
+        1.3131776,
+        0.0223512
+      ],
+      "parent": "zombie_torso",
+      "role": "neck pivot; face/hair fixed to head",
+      "rotation_deg": {
+        "x": [
+          -30,
+          30
+        ],
+        "y": [
+          -60,
+          60
+        ],
+        "z": [
+          -20,
+          20
+        ]
+      },
+      "translation_m": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "name": "zombie_left_upper_leg",
+      "pivot_position": [
+        -0.10685830563306808,
+        0.0003184676170349121,
+        0.04348821938037872
+      ],
+      "pivot_model_position": [
+        -0.1141698,
+        0.8518569,
+        0.2734882
+      ],
+      "parent": "zombie_pelvis",
+      "role": "hip flexion local X",
+      "rotation_deg": {
+        "x": [
+          -45,
+          55
+        ],
+        "y": [
+          -15,
+          15
+        ],
+        "z": [
+          -20,
+          20
+        ]
+      },
+      "translation_m": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "name": "zombie_left_lower_leg",
+      "pivot_position": [
+        -0.010045506060123444,
+        -0.37168288230895996,
+        -0.10045479238033295
+      ],
+      "pivot_model_position": [
+        -0.1242153,
+        0.480174,
+        0.1730334
+      ],
+      "parent": "zombie_left_upper_leg",
+      "role": "knee flexion local X",
+      "rotation_deg": {
+        "x": [
+          -105,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "translation_m": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "name": "zombie_left_foot",
+      "pivot_position": [
+        0.010045483708381653,
+        -0.31140992045402527,
+        0.030136466026306152
+      ],
+      "pivot_model_position": [
+        -0.1141699,
+        0.1687641,
+        0.2031699
+      ],
+      "parent": "zombie_left_lower_leg",
+      "role": "ankle; shoe, sole and laces",
+      "rotation_deg": {
+        "x": [
+          -30,
+          30
+        ],
+        "y": [
+          -15,
+          15
+        ],
+        "z": [
+          -10,
+          10
+        ]
+      },
+      "translation_m": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "name": "zombie_left_upper_arm",
+      "pivot_position": [
+        -0.2073131501674652,
+        0.3762468695640564,
+        -0.18605099618434906
+      ],
+      "pivot_model_position": [
+        -0.2146247,
+        1.2777853,
+        0.043949
+      ],
+      "parent": "zombie_torso",
+      "role": "shoulder; sleeve cap carried with upper arm",
+      "rotation_deg": {
+        "x": [
+          -65,
+          80
+        ],
+        "y": [
+          -25,
+          25
+        ],
+        "z": [
+          -45,
+          45
+        ]
+      },
+      "translation_m": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "name": "zombie_left_forearm",
+      "pivot_position": [
+        -0.07333201169967651,
+        -0.21497344970703125,
+        -0.006529580801725388
+      ],
+      "pivot_model_position": [
+        -0.2879567,
+        1.0628119,
+        0.0374194
+      ],
+      "parent": "zombie_left_upper_arm",
+      "role": "elbow flexion local X",
+      "rotation_deg": {
+        "x": [
+          -10,
+          110
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "translation_m": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "name": "zombie_left_hand",
+      "pivot_position": [
+        -0.007031828165054321,
+        -0.0301363468170166,
+        -0.27122798562049866
+      ],
+      "pivot_model_position": [
+        -0.2949885,
+        1.0326755,
+        -0.2338085
+      ],
+      "parent": "zombie_left_forearm",
+      "role": "wrist; fingers rigidly attached to palm",
+      "rotation_deg": {
+        "x": [
+          -35,
+          35
+        ],
+        "y": [
+          -45,
+          45
+        ],
+        "z": [
+          -20,
+          20
+        ]
+      },
+      "translation_m": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "name": "zombie_right_upper_leg",
+      "pivot_position": [
+        0.10409679263830185,
+        0.00031834840774536133,
+        0.04348821938037872
+      ],
+      "pivot_model_position": [
+        0.0967853,
+        0.8518568,
+        0.2734882
+      ],
+      "parent": "zombie_pelvis",
+      "role": "hip flexion local X",
+      "rotation_deg": {
+        "x": [
+          -45,
+          55
+        ],
+        "y": [
+          -15,
+          15
+        ],
+        "z": [
+          -20,
+          20
+        ]
+      },
+      "translation_m": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "name": "zombie_right_lower_leg",
+      "pivot_position": [
+        0.010045468807220459,
+        -0.3716828525066376,
+        -0.10045477747917175
+      ],
+      "pivot_model_position": [
+        0.1068307,
+        0.4801739,
+        0.1730334
+      ],
+      "parent": "zombie_right_upper_leg",
+      "role": "knee flexion local X",
+      "rotation_deg": {
+        "x": [
+          -105,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "translation_m": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "name": "zombie_right_foot",
+      "pivot_position": [
+        -0.010045498609542847,
+        -0.3114098310470581,
+        0.06529560685157776
+      ],
+      "pivot_model_position": [
+        0.0967852,
+        0.1687641,
+        0.2383291
+      ],
+      "parent": "zombie_right_lower_leg",
+      "role": "ankle; shoe, sole and laces",
+      "rotation_deg": {
+        "x": [
+          -30,
+          30
+        ],
+        "y": [
+          -15,
+          15
+        ],
+        "z": [
+          -10,
+          10
+        ]
+      },
+      "translation_m": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "name": "zombie_right_upper_arm",
+      "pivot_position": [
+        0.2045515775680542,
+        0.3762468695640564,
+        -0.18605099618434906
+      ],
+      "pivot_model_position": [
+        0.1972401,
+        1.2777853,
+        0.043949
+      ],
+      "parent": "zombie_torso",
+      "role": "shoulder; sleeve cap carried with upper arm",
+      "rotation_deg": {
+        "x": [
+          -65,
+          80
+        ],
+        "y": [
+          -25,
+          25
+        ],
+        "z": [
+          -45,
+          45
+        ]
+      },
+      "translation_m": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "name": "zombie_right_forearm",
+      "pivot_position": [
+        0.07333207130432129,
+        -0.2149735689163208,
+        -0.006529580801725388
+      ],
+      "pivot_model_position": [
+        0.2705721,
+        1.0628117,
+        0.0374194
+      ],
+      "parent": "zombie_right_upper_arm",
+      "role": "elbow flexion local X",
+      "rotation_deg": {
+        "x": [
+          -10,
+          110
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "translation_m": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "name": "zombie_right_hand",
+      "pivot_position": [
+        0.007031828165054321,
+        -0.03013622760772705,
+        -0.27122798562049866
+      ],
+      "pivot_model_position": [
+        0.277604,
+        1.0326755,
+        -0.2338085
+      ],
+      "parent": "zombie_right_forearm",
+      "role": "wrist; fingers rigidly attached to palm",
+      "rotation_deg": {
+        "x": [
+          -35,
+          35
+        ],
+        "y": [
+          -45,
+          45
+        ],
+        "z": [
+          -20,
+          20
+        ]
+      },
+      "translation_m": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      }
+    }
+  ],
+  "static_nodes": [
+    {
+      "name": "zombie_root",
+      "pivot_position": [
+        0,
+        0,
+        0
+      ],
+      "pivot_model_position": [
+        0.0,
+        0.0,
+        -0.0
+      ],
+      "parent": null,
+      "role": "caller-owned model placement"
+    }
+  ],
+  "clips": [
+    {
+      "name": "clip_zombie_walk",
+      "duration_seconds": 2,
+      "loop": true,
+      "type": "in_place_rigid_walk",
+      "root_motion": false
+    }
+  ],
+  "notes": [
+    "Parent chains and mesh origins are real exported nodes, not metadata-only attachments.",
+    "Finger geometry, face features, garment pockets and stationary trim move rigidly with their named parent part; no finger or cloth simulation implied.",
+    "Car doors are cosmetic exterior shells retaining original artwork; no cabin interior or gameplay door behavior is supplied."
+  ]
+}
