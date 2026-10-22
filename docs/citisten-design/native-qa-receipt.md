@@ -73,5 +73,27 @@ run directory, so a hard-timeout orphan remains repo-owned for later cleanup.
 The report records statuses, assertion snapshots, errors, held letters and
 browser/driver/server/profile cleanup flags. `complete` and exit 0 require all
 assertions and cleanup; intermediate `running`/`checks-complete` are NOT passes.
-No browser has been launched for the revised source. Parent owns both next
-native reservations; request the shared Git slot before staging these paths.
+The split CITY run at `a8d17f5` failed before gameplay: exit 1 in 29.9496s,
+`Page.goto: Timeout 15000ms exceeded` waiting for DOMContentLoaded. It recorded
+no gameplay checks/screenshots, empty error/external arrays and all four cleanup
+flags true. Its source hashes were unchanged. SHELL remains unrun.
+
+## Batch 67 HTTP readiness precondition
+
+Operator-approved follow-up adds a bounded HTTP 200/content check before browser
+launch and `page.goto`, with a durable `serverReady` checkpoint. It retries
+connection errors for at most five seconds, inside the existing 100-second
+action budget. Navigation remains 15 seconds; the 120-second total limit and
+all native-input assertions/error filters are unchanged. The probe must serve
+the actual entry importing `./native.mjs`, not a substitute fixture.
+
+A separate server-only probe returned the entry in 0.0720s and other authored
+resources in 0.0023..0.0027s. This does not establish the navigation timeout's
+cause or certify native/offline behavior. The HTTP-guard revision is statically
+checked, but has not had another browser run. Parent owns the next CITY/SHELL
+reservations after world's separately reserved AFTER chunks; no blanket slot
+or full-fleet/source freeze is implied.
+
+The disk-action agent confirmed cleanup of the two old shared-memory profile
+orphans in batch 67. This lane did not delete outside the repository. Request
+the shared Git slot before staging these paths.

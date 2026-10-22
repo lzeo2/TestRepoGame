@@ -13,6 +13,7 @@ import subprocess
 import tempfile
 import threading
 import time
+from urllib.request import urlopen
 from playwright.sync_api import sync_playwright
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -107,6 +108,18 @@ def main():
     owned, context, driver = set(), None, None
     checkpoint('starting')
     try:
+        probe_started = time.monotonic()
+        deadline = probe_started + 5
+        while True:
+            try:
+                with urlopen(base + '/Games/Citisten3D/index.html', timeout=1) as response:
+                    assert response.status == 200 and b'./native.mjs' in response.read(), 'Wrong native entry response'
+                break
+            except OSError:
+                if time.monotonic() >= deadline:
+                    raise RuntimeError('Native HTTP server did not become ready within 5s')
+                time.sleep(.1)
+        checked('serverReady', {'status': 200, 'seconds': time.monotonic()-probe_started})
         driver = sync_playwright().start()
         context = driver.chromium.launch_persistent_context(str(profile), executable_path='/usr/bin/chromium',
             headless=True, viewport={'width': 1280, 'height': 800}, service_workers='block',
