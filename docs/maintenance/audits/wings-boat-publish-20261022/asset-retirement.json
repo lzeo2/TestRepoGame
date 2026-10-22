@@ -1,0 +1,60 @@
+{
+  "cachedExternalConsumers": [
+    "Games/Wings/check-ui.html",
+    "Games/Wings/index.html",
+    "docs/maintenance/audits/wings-continuation-20261017.md",
+    "docs/maintenance/audits/wings-continuation-diagnostics-20261017.json",
+    "docs/maintenance/audits/wings-continuation-static-20261017.json",
+    "docs/maintenance/audits/wings-v2-phase3.md",
+    "docs/maintenance/audits/wings-v2-phase4.md",
+    "docs/maintenance/audits/wings-v2-resume.md",
+    "docs/wings-speedboat-study.md"
+  ],
+  "runtimeConsumers": "Both HTML entries now reference generated replacement closure. Other matches are historical evidence, preserved.",
+  "retired": [
+    {
+      "path": "Games/Wings/assets/aircraft-BIwDLCoz.js",
+      "sha256": "080f08e2de670e79fd15947d616fb97179ed07f5030c67fe47b83c9111f2ac27"
+    },
+    {
+      "path": "Games/Wings/assets/audio-DtkOubcZ.js",
+      "sha256": "fd44d6eb680967512bda20745af88b3ab7cac4ec2764215c2c08a37120986fae"
+    },
+    {
+      "path": "Games/Wings/assets/check-BmnK9C_q.js",
+      "sha256": "04fdab8ff56631c04c1ac22a15a87d5125d2e57e7f12cca1650aeb4dcef4aaeb"
+    },
+    {
+      "path": "Games/Wings/assets/game-BzRoviGw.js",
+      "sha256": "d93750e514e82d2755346f5cc1ee6cbcdee6c896f5c4994e6a3ef72e42326aa6"
+    },
+    {
+      "path": "Games/Wings/assets/geography-DSfv9zZq.js",
+      "sha256": "c63f2531e225a17d9d4dfa43759a8a6d7eeda46e8f779b9af58d3cf9924ac8b1"
+    },
+    {
+      "path": "Games/Wings/assets/lobby-2P4upZgt.js",
+      "sha256": "9cee868d5128dbf26b8558d2b663e915d7f4de978be70ebfd0bd0491bdbad778"
+    },
+    {
+      "path": "Games/Wings/assets/loopback-Bnp9pbB9.js",
+      "sha256": "97fad2fbff246af18233cd92d1f528c18ca889284690e6524116af561e4d6420"
+    },
+    {
+      "path": "Games/Wings/assets/loopback-CQjOfYB7.css",
+      "sha256": "e867bb8b11a4614c188b8f1cce4e1f73f4f84e72bc1c55b1343e3c93700ed5a7"
+    },
+    {
+      "path": "Games/Wings/assets/main-COOpTvC4.js",
+      "sha256": "15121f7fcba2a38dd7dd2cdcb897c7b0bfc8a637b9cf92e6ea3df904919b02cb"
+    },
+    {
+      "path": "Games/Wings/assets/scene-DYkrNFhj.js",
+      "sha256": "d1a3e3863ba3b8a9a801451aeb465d8a61d36b04034c536d9da329014722a442"
+    },
+    {
+      "path": "Games/Wings/assets/terrain-worker-CX1_8pAM.js",
+      "sha256": "8d2bc1c8a7d3aebd577f0006b52c4c1060e65d6f43c48a20d439c0771cb9e412"
+    }
+  ]
+}

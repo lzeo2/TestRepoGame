@@ -1,6 +1,6 @@
 diff --git a/games/wings/astra-check.ts b/games/wings/astra-check.ts
 new file mode 100644
-index 0000000..af30ba6
+index 0000000..7b531f0
 --- /dev/null
 +++ b/games/wings/astra-check.ts
 @@ -0,0 +1,477 @@
@@ -22,7 +22,7 @@ index 0000000..af30ba6
 +import { DEFAULT_ROOM_CONFIG, type ServerMessage } from './src/sim/protocol'
 +
 +const models = resolve(process.argv[2] ?? 'Games/Wings/models')
-+assert.deepEqual(VEHICLE_KINDS, ['fighter', 'apache', 'warthog', 'blackbird', 'bomber', 'f15', 'f35'])
++assert.deepEqual(VEHICLE_KINDS, ['fighter', 'apache', 'warthog', 'blackbird', 'bomber', 'f15', 'f35', 'speedboat'])
 +assert.deepEqual(VEHICLE_KINDS.slice(0, 5).map(k => [VEHICLES[k].cruise, VEHICLES[k].boost]), [[135,185],[75,98],[105,135],[190,260],[150,180]])
 +assert.deepEqual(VEHICLE_KINDS.slice(0, 5).map(k => VEHICLES[k].seatWeapons), [
 +  [['cannon20','aim9'],['tvmissile',null]], [['rockets',null],['chaingun30','hellfire']],
@@ -481,6 +481,665 @@ index 0000000..af30ba6
 +console.log(JSON.stringify({ converted }))
 +console.log('CPU COMBAT FIXTURES (not native acceptance): ' + JSON.stringify(combatFixtures))
 +console.log('PASS: F-15/F-35 distinct loadouts/stealth, model-derived gun/missile positions in identity and rotated poses, one-store-per-round depletion/regeneration, offline spawn/snapshot, invalid-kind rejection, ordinary-input takeoff/turn, hashes/budgets/material assignments, cockpit/anchor math and real CPU loader/template/view. Original five cruise/boost/loadouts and generic hardpoints unchanged. Timings include local I/O + GLTF parse + conversion + view setup; single samples, no GPU/rendered-flight/thumbnail acceptance.')
+diff --git a/games/wings/boat-check.ts b/games/wings/boat-check.ts
+new file mode 100644
+index 0000000..cf8c41a
+--- /dev/null
++++ b/games/wings/boat-check.ts
+@@ -0,0 +1,567 @@
++// CPU only: node boat-check.mjs MODEL_DIRECTORY [EXPECTED_SHA256]
++// Compare printed hashes across independent model generations; rereading one file is not generator proof.
++import assert from 'node:assert/strict'
++import { readFileSync } from 'node:fs'
++import { resolve } from 'node:path'
++import { createHash } from 'node:crypto'
++import { setTimeout as delay } from 'node:timers/promises'
++import { Matrix4, Quaternion, Vector3, PerspectiveCamera, Color } from 'three'
++import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js'
++import { CameraRig } from './src/render/camera'
++import { CONFIG, createAircraftView, aircraftReady, aircraftStats } from './src/render/aircraft'
++import { VEHICLES, VEHICLE_KINDS, WEAPONS } from './src/sim/vehicles'
++import { createFlightState, NEUTRAL_INPUT, boatNavigable, yawPitchRoll, forward, cloneFlight, stepFlight } from './src/sim/flight'
++import { worldQuery, isWater, setFleetState, posedFleet, posedShip, shipAt, segmentHitsGround } from './src/sim/geography'
++import { SHIP_SPECS, shipToWorld } from './src/sim/fleet'
++import { RoomEngine } from './src/sim/room-engine'
++import { applySeatInput, createCombatState, createWeapons, stepCombat, muzzlePosition, weaponDirection, deckCannonAngles, markSpawned } from './src/sim/combat'
++import { createLoopbackRoom } from './src/sim/loopback'
++import { DEFAULT_ROOM_CONFIG, type ServerMessage } from './src/sim/protocol'
++import { TICK_DT, type Vec3, type Quat, type FlightInput, type VehicleEntity, type GameEvent, type SeatInput } from './src/sim/types'
++
++assert(process.argv[2], 'Usage: node boat-check.mjs MODEL_DIRECTORY [EXPECTED_SHA256]')
++const models = resolve(process.argv[2])
++const bytes = readFileSync(resolve(models, 'speedboat.glb'))
++const hash = createHash('sha256').update(bytes).digest('hex')
++if (process.argv[3]) assert.equal(hash, process.argv[3], 'model differs from independently supplied generation hash')
++assert.equal(bytes.readUInt32LE(0), 0x46546c67)
++assert.equal(bytes.readUInt32LE(4), 2)
++assert.equal(bytes.readUInt32LE(8), bytes.length)
++assert(bytes.length < 1200000, `byte budget: ${bytes.length}`)
++assert.equal(bytes.readUInt32LE(16), 0x4e4f534a)
++const jsonEnd = 20 + bytes.readUInt32LE(12)
++const gltf = JSON.parse(bytes.subarray(20, jsonEnd).toString())
++assert.equal(bytes.readUInt32LE(jsonEnd + 4), 0x004e4942)
++const bin = bytes.subarray(jsonEnd + 8)
++assert.equal(bin.length, bytes.readUInt32LE(jsonEnd))
++for (const field of ['images', 'textures', 'skins', 'animations']) assert.equal(gltf[field]?.length ?? 0, 0)
++assert(gltf.buffers.every((b: any) => !b.uri && b.byteLength <= bin.length))
++const node = (name: string) => { const i = gltf.nodes.findIndex((n: any) => n.name === name); assert(i >= 0, name); return i }
++function matrix(index: number): Matrix4 {
++  const result = new Matrix4(), seen = new Set<number>()
++  while (index >= 0) {
++    assert(!seen.has(index), 'cyclic ancestry'); seen.add(index)
++    const n = gltf.nodes[index]
++    result.premultiply(n.matrix ? new Matrix4().fromArray(n.matrix) : new Matrix4().compose(new Vector3(...(n.translation ?? [0,0,0])), new Quaternion(...(n.rotation ?? [0,0,0,1])), new Vector3(...(n.scale ?? [1,1,1]))))
++    const parents = gltf.nodes.flatMap((p: any, i: number) => p.children?.includes(index) ? [i] : [])
++    assert(parents.length <= 1, 'multiple parents'); index = parents[0] ?? -1
++  }
++  assert(result.elements.every(Number.isFinite)); return result
++}
++const position = (name: string) => new Vector3().setFromMatrixPosition(matrix(node(name)))
++const near = (a: number, b: number, why = '', epsilon = 1e-6) => assert(Math.abs(a - b) < epsilon, `${why}: ${a} != ${b}`)
++const near3 = (a: number[], b: number[], why = '') => a.forEach((x, i) => near(x, b[i], why))
++function accessor(index: number): number[][] {
++  const a = gltf.accessors[index]; assert(a && !a.sparse && Number.isInteger(a.count) && a.count > 0)
++  const v = gltf.bufferViews[a.bufferView]; assert(v && v.buffer === 0)
++  const widths: Record<number, number> = {5126:4, 5125:4, 5123:2, 5121:1}
++  const count: Record<string, number> = {SCALAR:1, VEC2:2, VEC3:3, VEC4:4}
++  const w = widths[a.componentType], n = count[a.type]; assert(w && n)
++  const stride = v.byteStride ?? w * n, start = (v.byteOffset ?? 0) + (a.byteOffset ?? 0)
++  assert(start >= 0 && stride >= w*n && start + (a.count-1)*stride + w*n <= (v.byteOffset ?? 0)+v.byteLength)
++  assert((v.byteOffset ?? 0) + v.byteLength <= bin.length)
++  return Array.from({length:a.count}, (_, i) => Array.from({length:n}, (_, j) => {
++    const p = start+i*stride+j*w
++    const value = a.componentType === 5126 ? bin.readFloatLE(p) : w === 4 ? bin.readUInt32LE(p) : w === 2 ? bin.readUInt16LE(p) : bin.readUInt8(p)
++    assert(Number.isFinite(value), 'nonfinite attribute'); return value
++  }))
++}
++for (const i of gltf.scenes[gltf.scene ?? 0].nodes) assert.deepEqual(matrix(i).elements, new Matrix4().elements, 'identity GLB root')
++const primitives = gltf.meshes.flatMap((m: any) => m.primitives)
++let triangles = 0
++for (const p of primitives) {
++  assert.equal(p.mode ?? 4, 4)
++  const vertices = accessor(p.attributes.POSITION), normals = accessor(p.attributes.NORMAL)
++  assert.equal(normals.length, vertices.length)
++  assert(normals.every(n => Math.abs(Math.hypot(...n) - 1) < 1e-5), 'unit source normals')
++  for (const i of Object.values(p.attributes)) assert.equal(accessor(i as number).length, vertices.length)
++  const ao = accessor(p.attributes.COLOR_0)
++  assert(ao.every(c => c.length === 3 && c[0] === c[1] && c[1] === c[2] && c[0] >= .55 - 1e-7 && c[0] <= 1), 'neutral source AO, not paint')
++  const indices = accessor(p.indices).flat(); assert.equal(indices.length % 3, 0)
++  assert(indices.every(i => Number.isInteger(i) && i >= 0 && i < vertices.length))
++  triangles += indices.length / 3
++}
++assert(triangles >= 12000 && triangles <= 18000, `triangle budget: ${triangles}`)
++assert(primitives.length >= 40)
++assert(gltf.materials.length >= 40, 'meaningful authored surface materials')
++assert.equal(new Set(gltf.materials.map(({name, ...surface}: any) => JSON.stringify(surface))).size,gltf.materials.length,'distinct PBR definitions, not renamed duplicates')
++assert.equal(new Set(primitives.map((p: any) => p.material)).size, gltf.materials.length)
++assert(primitives.every((p: any) => gltf.materials[p.material]))
++assert(gltf.materials.some((m: any) => m.alphaMode === 'BLEND' && m.pbrMetallicRoughness.baseColorFactor[3] > 0 && m.pbrMetallicRoughness.baseColorFactor[3] < 1))
++const water = VEHICLES.speedboat.water!
++near3(position('cannon_pitch').toArray(), water.gunPivot, 'composed gun pivot')
++near3(position('gun_muzzle').applyMatrix4(matrix(node('cannon_pitch')).invert()).toArray(), water.gunTip, 'pitch-local muzzle')
++near3(position('helm_eye').toArray(), water.eye, 'helm eye')
++near3(position('stern_exit').toArray(), water.stern, 'stern exit')
++assert(water.stern[2] > water.halfLength)
++// Weld position seams, not hard-normal vertices. Closed volumes need opposite directed edges.
++const meshPoints = (name: string) => {
++  const n = gltf.nodes[node(name)]; assert(Number.isInteger(n.mesh), `${name}: real mesh`)
++  const transform = matrix(node(name))
++  return gltf.meshes[n.mesh].primitives.flatMap((p: any) => accessor(p.attributes.POSITION).map(v => new Vector3(...v).applyMatrix4(transform))) as Vector3[]
++}
++function closedVolume(names: string[], convex = false): number {
++  const edges = new Map<string, number>(); let volume = 0, count = 0
++  for (const name of names) {
++    const n = gltf.nodes[node(name)]; assert(Number.isInteger(n.mesh), name)
++    const transform = matrix(node(name))
++    for (const p of gltf.meshes[n.mesh].primitives) {
++      const points = accessor(p.attributes.POSITION).map(v => new Vector3(...v).applyMatrix4(transform))
++      const center = points.reduce((sum, p) => sum.add(p), new Vector3()).multiplyScalar(1 / points.length)
++      const indices = accessor(p.indices).flat()
++      for (let i = 0; i < indices.length; i += 3) {
++        const [a,b,c] = indices.slice(i,i+3).map(j => points[j])
++        const normal = new Vector3().subVectors(b,a).cross(new Vector3().subVectors(c,a))
++        assert(normal.lengthSq() > 1e-18, `${name}: degenerate triangle`)
++        if (convex) assert(normal.dot(new Vector3().subVectors(a,center)) > 0, `${name}: outward convex face`)
++        volume += a.dot(normal) / 6; count++
++        const keys = [a,b,c].map(v => v.toArray().map(x => Math.round(x * 1e6)).join(','))
++        for (let k = 0; k < 3; k++) {
++          const edge = `${keys[k]}>${keys[(k+1)%3]}`
++          assert.notEqual(keys[k],keys[(k+1)%3]); edges.set(edge,(edges.get(edge) ?? 0)+1)
++        }
++      }
++    }
++  }
++  for (const [edge,n] of edges) assert(n === 1 && edges.get(edge.split('>').reverse().join('>')) === 1, `${names}: open/nonmanifold/inconsistent edge ${edge}`)
++  assert(volume > 0, `${names}: inward or empty volume`)
++  return count
++}
++const roofNames = gltf.nodes.filter((n: any) => n.name.startsWith('cabin_roof')).map((n: any) => n.name).sort()
++assert.deepEqual(roofNames, ['cabin_roof','cabin_roof_end_0','cabin_roof_end_1','cabin_roof_side_0','cabin_roof_side_1','cabin_roof_under'])
++assert.equal(closedVolume(roofNames),164)
++for (const name of roofNames) for (const p of gltf.meshes[gltf.nodes[node(name)].mesh].primitives) {
++  const material = gltf.materials[p.material]
++  assert(!material.doubleSided && (material.alphaMode ?? 'OPAQUE') === 'OPAQUE', 'roof is an opaque closed shell, not double-sided shading')
++  if (name === 'cabin_roof' || name === 'cabin_roof_under') {
++    const top = name === 'cabin_roof'
++    assert(accessor(p.attributes.NORMAL).every(n => n[1] * (top ? 1 : -1) > .95), 'outward roof normals')
++    for (const [x,y,z] of accessor(p.attributes.POSITION)) {
++      near(y,1.94 + .15 * Math.sin(Math.PI * (x / .83 + 1) / 2) - (top ? 0 : .045),'unchanged roof contour')
++      assert(Math.min(Math.abs(z + .32),Math.abs(z - 1.98)) < 1e-6)
++    }
++  }
++}
++for (const name of ['windscreen','cabin_window_L','cabin_window_R']) {
++  assert.equal(closedVolume([name],true),12)
++  const material = gltf.materials[gltf.meshes[gltf.nodes[node(name)].mesh].primitives[0].material]
++  assert.equal(material.alphaMode,'BLEND'); near(material.pbrMetallicRoughness.baseColorFactor[3],.48)
++  assert(!material.doubleSided, 'glass must have real front/back geometry')
++}
++const pilotNode = gltf.nodes[node('pilot_1')], pilotParts = pilotNode.children.map((i: number) => gltf.nodes[i].name).sort()
++assert.deepEqual(pilotParts, ['pilot_1_torso','pilot_1_hips','pilot_1_neck','pilot_1_helmet','pilot_1_face','pilot_1_visor',
++  ...['L','R'].flatMap(side => ['arm_'+side+'_upper','arm_'+side+'_fore','hand_'+side,'leg_'+side+'_thigh','leg_'+side+'_shin','boot_'+side].map(part => 'pilot_1_'+part))].sort())
++let driverTriangles = 0
++for (const name of pilotParts) {
++  driverTriangles += closedVolume([name],true)
++  assert(meshPoints(name).every(p => Math.abs(p.x) < .4 && p.y > .83 && p.y < 1.94 && p.z > .25 && p.z < 1.30), `${name}: seated inside cabin`)
++}
++assert(driverTriangles >= 200 && driverTriangles <= 600, `real seated driver: ${driverTriangles}`)
++assert.equal(closedVolume(['helm_wheel']),144)
++const hullPoints = gltf.nodes.filter((n: any) => n.name.startsWith('hull_')).flatMap((n: any) => meshPoints(n.name)) as Vector3[]
++near(Math.max(...hullPoints.map(p => Math.abs(p.x))),water.halfBeam,'geometry beam')
++near(Math.max(...hullPoints.map(p => Math.abs(p.z))),water.halfLength,'geometry length')
++near(-Math.min(...hullPoints.map(p => p.y)),water.draft,'geometry draft')
++near(gltf.extras.waterline,water.waterline,'model waterline')
++// The bore and rim must carry geometry at the actual muzzle, not just empty anchor nodes.
++for (const name of ['cannon_bore_wall', 'cannon_muzzle_rim']) {
++  const points = meshPoints(name)
++  assert(points.length > 8)
++  assert(Math.min(...points.map((v: Vector3) => v.distanceTo(position('gun_muzzle')))) < .2, 'muzzle aperture detached')
++}
++const rim = meshPoints('cannon_muzzle_rim').map(p => p.applyMatrix4(matrix(node('cannon_pitch')).invert()))
++for (const p of rim) near(p.z,water.gunTip[2],'real muzzle plane')
++near((Math.min(...rim.map(p => p.x)) + Math.max(...rim.map(p => p.x))) / 2,water.gunTip[0],'muzzle aperture center X')
++near((Math.min(...rim.map(p => p.y)) + Math.max(...rim.map(p => p.y))) / 2,water.gunTip[1],'muzzle aperture center Y')
++console.log(JSON.stringify({stage:'model', sha256:hash, bytes:bytes.length, triangles, driverTriangles, assignments:primitives.length, materials:gltf.materials.length, generatorDeterminism:process.argv[3] ? 'matches supplied hash' : 'unproven without independent generation hash'}))
++
++// Real CameraRig math only. No claim about cockpit pixels or native visibility.
++setFleetState(0,2)
++assert(isWater(4000,4000), 'camera fixture must be actual map water')
++for (const q of [[0,0,0,1], [0,Math.sin(.6),0,Math.cos(.6)]] as Quat[]) {
++  const at: Vec3 = [4000,water.waterline,4000], orientation = new Quaternion(...q)
++  const eye = position('helm_eye').applyQuaternion(orientation).add(new Vector3(...at))
++  const look = new Vector3(0,0,-1).applyQuaternion(orientation)
++  assert(isWater(eye.x,eye.z), 'composed camera eye stays over actual map water')
++  for (const mode of ['cockpit','cockpitBody','gunner'] as const) {
++    const camera = new PerspectiveCamera(), rig = new CameraRig(camera)
++    if (mode === 'cockpitBody') rig.cockpitBody(TICK_DT,'speedboat',at,q,0,0)
++    else rig[mode](TICK_DT,'speedboat',at,q,look)
++    rig.apply(1); near3(camera.position.toArray(),eye.toArray(),`${mode}: composed helm eye`)
++    near3(camera.getWorldDirection(new Vector3()).toArray(),look.toArray(),`${mode}: yaw direction`)
++  }
++  for (const body of [false,true]) {
++    const camera = new PerspectiveCamera(62), rig = new CameraRig(camera), speed = 100
++    if (body) rig.chaseBody(TICK_DT,'speedboat',at,[0,0,-speed],q,0,0,worldQuery.groundHeight)
++    else rig.chase(TICK_DT,'speedboat',at,[0,0,-speed],look,worldQuery.groundHeight)
++    rig.apply(1)
++    assert(isWater(camera.position.x,camera.position.z), 'chase fixture stays over actual map water')
++    near3(camera.position.toArray(),new Vector3(0,water.halfBeam*3,water.halfLength*2.6*(1+speed/900)).applyQuaternion(orientation).add(new Vector3(...at)).toArray(),'geometry-derived chase framing')
++    near(camera.fov,rig.baseFov,'no aircraft boost FOV')
++  }
++}
++// Compare the actual smooth transition from Three's default 50 degrees at rest and above boost speed.
++for (const body of [false,true]) {
++  const traces = [0,100].map(speed => {
++    const camera = new PerspectiveCamera(), rig = new CameraRig(camera), trace: number[] = []
++    for (let i=0;i<12;i++) {
++      const previous = camera.fov
++      if (body) rig.chaseBody(TICK_DT,'speedboat',[4000,0,4000],[0,0,-speed],[0,0,0,1],0,0,worldQuery.groundHeight)
++      else rig.chase(TICK_DT,'speedboat',[4000,0,4000],[0,0,-speed],new Vector3(0,0,-1),worldQuery.groundHeight)
++      rig.apply(TICK_DT)
++      near(camera.fov,previous+(rig.baseFov-previous)*(1-Math.exp(-TICK_DT*8)),'actual FOV interpolation')
++      assert(camera.fov>previous && camera.fov<rig.baseFov,'FOV approaches base without snapping')
++      trace.push(camera.fov)
++    }
++    return trace
++  })
++  assert.deepEqual(traces[0],traces[1],'boat speed must add no FOV at any transition frame')
++}
++console.log('PASS CameraRig identity/yaw helm and passenger eye, cockpit direction, geometry-derived chase framing and identical rest/boost-speed FOV transitions (CPU only)')
++
++// Isolated combat fixtures deliberately position actors. Not normal-input gameplay proof.
++let serial = 0
++function actor(team: 0 | 1 = 0, at: Vec3 = [4000,0,4000]): VehicleEntity {
++  const id = `boat-check-${serial++}`
++  return {id,kind:'speedboat',team,flight:createFlightState('speedboat',{position:[...at],yaw:0,onGround:false}),hp:650,maxHp:650,seats:[id,null],aim:[null,null],weapons:createWeapons('speedboat'),flaresReadyAt:0,flareCount:0,abilityReadyAt:0,spottedUntil:0,lastDamagedBy:null,alive:true}
++}
++function combat() { const cs = createCombatState(); cs.ships = {}; cs.turrets = []; return cs }
++const seat: SeatInput = {aim:null,firePrimary:false,fireSecondary:true,flares:false,ability:false}
++setFleetState(0,2)
++const shooter = actor(), state = combat(), events: GameEvent[] = []
++assert(isWater(4000,4000))
++for (const q of [[0,0,0,1], [0,Math.sin(.6),0,Math.cos(.6)]] as Quat[]) {
++  shooter.flight.orientation = q
++  for (const [yaw, elevation, wantYaw, wantEl] of [[2,.8,100*Math.PI/180,35*Math.PI/180],[-2,-.5,-100*Math.PI/180,-5*Math.PI/180],[.3,.2,.3,.2]]) {
++    const aim = new Vector3(Math.sin(yaw)*Math.cos(elevation),Math.sin(elevation),-Math.cos(yaw)*Math.cos(elevation)).applyQuaternion(new Quaternion(...q)).toArray() as Vec3
++    const angles = deckCannonAngles(q,aim,[0,0]); near(angles[0],wantYaw); near(angles[1],wantEl)
++    const tip = new Vector3(...water.gunTip).applyAxisAngle(new Vector3(1,0,0),wantEl).applyAxisAngle(new Vector3(0,1,0),-wantYaw).add(position('cannon_pitch')).applyQuaternion(new Quaternion(...q)).add(new Vector3(...shooter.flight.position))
++    near3(muzzlePosition(shooter,0,'deckcannon',[0,0,0],0,aim),tip.toArray(),'explicit aimed muzzle')
++    shooter.aim[0] = aim
++    near3(muzzlePosition(shooter,0,'deckcannon',[0,0,0]),tip.toArray(),'default seat aim')
++  }
++}
++shooter.flight.orientation = [0,0,0,1]; shooter.aim[0] = [1,0,0]
++applySeatInput(state,shooter,0,{...seat,aim:shooter.aim[0],firePrimary:true,fireSecondary:false},[shooter],10,events)
++assert.equal(shooter.weapons[0][0].ammo,119); assert.equal(state.projectiles.length,1)
++const round = state.projectiles[0], muzzle = muzzlePosition(shooter,0,'deckcannon',[0,0,0])
++near3(round.velocity,[350,0,0]); near3(round.position,muzzle,'actual launch muzzle'); assert.equal(round.age,0)
++assert.equal(round.owner,shooter.seats[0]); assert.equal(round.weapon,'deckcannon')
++const charges = combat(), blasts: GameEvent[] = []
++applySeatInput(charges,shooter,0,seat,[shooter],10,blasts)
++assert.equal(shooter.weapons[0][1].ammo,3); assert.equal(charges.projectiles.length,1); assert.equal(charges.missiles.length,0)
++near3(charges.projectiles[0].position,new Vector3(...water.stern).add(new Vector3(...shooter.flight.position)).toArray())
++assert(isWater(charges.projectiles[0].position[0],charges.projectiles[0].position[2]))
++applySeatInput(charges,shooter,0,seat,[shooter],10.5,blasts); assert.equal(shooter.weapons[0][1].ammo,3)
++const enemy = actor(1,[4000,0,4007]), friend = actor(0,[4000,0,4007]), protectedEnemy = actor(1,[4000,0,4007])
++markSpawned(protectedEnemy,10)
++for (let i=1;i<=119;i++) stepCombat(charges,[enemy,friend,protectedEnemy],TICK_DT,10+i*TICK_DT,blasts)
++assert(!blasts.some(e => e.type === 'explosion')); assert.equal(enemy.hp,650)
++assert(charges.projectiles[0].position[1] < 0, 'charge must sink, not explode on water entry')
++const restored = JSON.parse(JSON.stringify(charges)), restoredEvents: GameEvent[] = []
++stepCombat(restored,[],TICK_DT,12,restoredEvents)
++stepCombat(charges,[enemy,friend,protectedEnemy],TICK_DT,12,blasts)
++assert.deepEqual(blasts.filter(e=>e.type==='explosion'),restoredEvents.filter(e=>e.type==='explosion'),'JSON projectile-state continuation')
++assert.equal(charges.projectiles.length,0); assert.equal(blasts.filter(e=>e.type==='explosion' && e.surface==='water').length,1)
++assert(enemy.hp < 650); assert.equal(enemy.lastDamagedBy,shooter.seats[0]); assert.equal(friend.hp,650); assert.equal(protectedEnemy.hp,650)
++for(let i=1;i<=180;i++) stepCombat(charges,[],TICK_DT,12+i*TICK_DT,blasts)
++assert.equal(blasts.filter(e=>e.type==='explosion').length,1); assert(!blasts.some(e=>e.type==='crater')); assert.equal(charges.missiles.length,0)
++const deck = actor(0,shipToWorld(posedFleet()[0],[0,0,0])), rejected = combat()
++applySeatInput(rejected,deck,0,seat,[deck],10,[])
++assert.equal(deck.weapons[0][1].ammo,4); assert.equal(rejected.projectiles.length,0)
++console.log('PASS isolated combat: articulated arcs/muzzle, cannon, charge cadence/sink/2s single water blast, JSON continuation, hostile/friendly/protection, deck rejection, no homing/crater')
++
++// Permanent counterexamples from the carrier/combat fix receipts. These are positioned CPU fixtures.
++function fleetCombat() {
++  const cs = createCombatState()
++  for (const ship of Object.values(cs.ships)) for (const turret of Object.values(ship.turrets)) turret.manned = 'fixture'
++  return cs
++}
++for (const phase of [10.1,10.123,10.249,10.5]) {
++  const v=actor(), cs=combat(), ev: GameEvent[]=[]
++  for(let i=0;i<180;i++) applySeatInput(cs,v,0,{...seat,firePrimary:true,fireSecondary:false},[v],phase+i*TICK_DT,ev)
++  assert.equal(120-v.weapons[0][0].ammo,12,'actual cannon rounds')
++  assert.equal(cs.projectiles.length,12); assert.equal(ev.filter(e=>e.type==='fire' && e.weapon==='deckcannon').length,12,'one event per round at arbitrary trigger phase')
++}
++setFleetState(0,2)
++const carrier=posedShip('t0-carrier')!, outward: Vec3=[Math.cos(carrier.heading),0,-Math.sin(carrier.heading)]
++const nearCarrier=actor(0,shipToWorld(carrier,[40,0,0]))
++nearCarrier.flight=createFlightState('speedboat',{position:nearCarrier.flight.position,yaw:carrier.heading,onGround:false})
++const clearMuzzle=muzzlePosition(nearCarrier,0,'deckcannon',[0,0,0],0,outward)
++assert(isWater(nearCarrier.flight.position[0],nearCarrier.flight.position[2]))
++assert.equal(segmentHitsGround(clearMuzzle,clearMuzzle.map((x,i)=>x+outward[i]*20) as Vec3),null)
++const clearShot=fleetCombat(), clearEvents: GameEvent[]=[]
++applySeatInput(clearShot,nearCarrier,0,{...seat,aim:outward,firePrimary:true,fireSecondary:false},[nearCarrier],10.1,clearEvents)
++const clearRound=clearShot.projectiles[0]; assert(clearRound); near3(clearRound.position,clearMuzzle); assert.equal(clearRound.age,0)
++stepCombat(clearShot,[nearCarrier],TICK_DT,10.1,clearEvents)
++assert.equal(clearShot.projectiles.length,1,'carrier behind actual muzzle must not consume outward shot')
++near(clearRound.age,TICK_DT); near3(clearRound.position,clearMuzzle.map((x,i)=>x+clearRound.velocity[i]*TICK_DT),'first tick starts at actual muzzle')
++const target=actor(1,clearMuzzle.map((x,i)=>x+outward[i]*20) as Vec3)
++for(let i=1;i<=10;i++) stepCombat(clearShot,[nearCarrier,target],TICK_DT,10.1+i*TICK_DT,clearEvents)
++assert(target.hp<target.maxHp,'legitimate target ahead still takes damage')
++assert(clearEvents.some(e=>e.type==='hit' && e.target===target.id && e.by===nearCarrier.seats[0]))
++for(const team of [0,1] as const) {
++  setFleetState(0,2)
++  const ship=posedShip(`t${team}-carrier`)!, at=shipToWorld(ship,[0,-1,-SHIP_SPECS.carrier.halfLength-1]), cs=fleetCombat(), ev: GameEvent[]=[]
++  cs.projectiles.push({id:1,weapon:'depthcharge',owner:'skipper',vehicle:'released-boat',team:0,position:[...at],velocity:[0,0,0],age:0,ttl:WEAPONS.depthcharge.ttl})
++  const hostile=actor(1,at), friendly=actor(0,at), protectedBoat=actor(1,at), owner=actor(1,at)
++  owner.id='released-boat'; markSpawned(protectedBoat,0)
++  const hp=cs.ships[ship.id].hp; let covered=false
++  for(let i=1;i<=120;i++) {
++    setFleetState(i*TICK_DT,2); covered ||= shipAt(at[0],at[2])?.id===ship.id
++    stepCombat(cs,[hostile,friendly,protectedBoat,owner],TICK_DT,i*TICK_DT,ev)
++    if(i<120) { assert.equal(cs.projectiles.length,1,'submerged charge survives crossing hull until fuse'); assert(!ev.some(e=>e.type==='explosion' || e.type==='hit' || e.type==='ship-hit')) }
++  }
++  assert(covered,'moving carrier must actually cross submerged release point'); assert.equal(cs.projectiles.length,0)
++  assert.equal(ev.filter(e=>e.type==='explosion' && e.surface==='water').length,1)
++  assert(hostile.hp<hostile.maxHp); assert.equal(hostile.lastDamagedBy,'skipper')
++  for(const v of [friendly,protectedBoat,owner]) assert.equal(v.hp,v.maxHp)
++  const hits=ev.filter(e=>e.type==='ship-hit'); assert.equal(hits.length,team===1?1:0)
++  if(team===1) { assert.equal(hits[0].by,'skipper'); assert(hp>cs.ships[ship.id].hp); near(hp-cs.ships[ship.id].hp,cs.shipDamageBy![0]) }
++  else assert.equal(cs.ships[ship.id].hp,hp)
++  for(let i=121;i<=180;i++) stepCombat(cs,[],TICK_DT,i*TICK_DT,ev)
++  assert.equal(ev.filter(e=>e.type==='explosion').length,1); assert(!ev.some(e=>e.type==='crater')); assert.equal(cs.missiles.length,0)
++}
++let intrusionCases=0
++for(const id of ['t0-carrier','t1-carrier','t0-dd1']) for(const phase of [0,137,700]) for(const throttle of [-1,0,1]) {
++  setFleetState(phase,2)
++  const ship=posedShip(id)!, s=createFlightState('speedboat',{position:shipToWorld(ship,[0,0,-SHIP_SPECS[ship.kind].halfLength-6]),yaw:ship.heading,onGround:false})
++  const navigable=()=>boatNavigable(worldQuery,s.position[0],s.position[2],yawPitchRoll(s.orientation).yaw)
++  assert(navigable()); stepFlight(s,NEUTRAL_INPUT,TICK_DT,worldQuery); assert(navigable())
++  const predicted=cloneFlight(s), restored=JSON.parse(JSON.stringify(s)); let firstCrash=0
++  for(let i=1;i<=180;i++) {
++    setFleetState(phase+i*TICK_DT,2)
++    const previous=cloneFlight(s), input={...NEUTRAL_INPUT,throttle,yaw:1}
++    for(const state of [s,predicted,restored]) stepFlight(state,input,TICK_DT,worldQuery)
++    assert.deepEqual(s,predicted); assert.deepEqual(s,restored)
++    assert(s.crashed || navigable(),'no live overlap when moving ship intrudes')
++    if(s.crashed && !firstCrash) { firstCrash=i; assert.deepEqual(s.position,previous.position); assert.deepEqual(s.orientation,previous.orientation) }
++  }
++  assert.equal(s.crashed,'terrain'); assert(firstCrash>0 && firstCrash<=6); intrusionCases++
++}
++// Verify the actual room turns intrusion into one crew death/credit, not a live crashed boat.
++const collisionEvents: GameEvent[]=[], collisionRoom=new RoomEngine('boat-intrusion',{...DEFAULT_ROOM_CONFIG,bots:0},{send:(_id,m)=>{if(m.type==='events')collisionEvents.push(...m.events)}})
++const pilot=collisionRoom.addPlayer('pilot'), attacker=collisionRoom.addPlayer('attacker'), passenger=collisionRoom.addPlayer('passenger')
++collisionRoom.handle(pilot,{type:'spawn',kind:'speedboat'})
++const intruded=collisionRoom.vehicles.find(v=>v.seats[0]===pilot)!; assert(intruded)
++collisionRoom.handle(passenger,{type:'board',vehicle:intruded.id,seat:1}); assert.equal(intruded.seats[1],passenger)
++setFleetState(0,2)
++const bowShip=posedShip('t0-carrier')!
++intruded.flight=createFlightState('speedboat',{position:shipToWorld(bowShip,[0,0,-SHIP_SPECS.carrier.halfLength-6]),yaw:bowShip.heading,onGround:false})
++intruded.hp--; intruded.lastDamagedBy=attacker
++for(let i=0;i<30;i++) collisionRoom.advance(TICK_DT)
++assert.equal(intruded.alive,false); assert.equal(intruded.hp,0); assert.equal(intruded.flight.crashed,'terrain')
++assert.equal(collisionRoom.players.get(attacker)!.info.kills,1)
++for(const id of [pilot,passenger]) { const p=collisionRoom.players.get(id)!.info; assert.equal(p.deaths,1); assert.equal(p.vehicleId,null); assert(p.respawnAt>collisionRoom.time) }
++const kills=collisionEvents.filter(e=>e.type==='kill'); assert.equal(kills.length,3,'one broadcast per human, not repeated kills'); assert(kills.every(e=>e.victim===intruded.id && e.killer===attacker && e.weapon==='crash'))
++for(const id of [pilot,attacker,passenger]) collisionRoom.removePlayer(id)
++assert.equal(collisionRoom.players.size,0)
++setFleetState(0,2)
++console.log(`PASS fixed roots: four arbitrary-phase 12-round/12-event bursts, outward carrier muzzle first tick/target, two submerged carrier-crossing charge fuses, ${intrusionCases} moving-ship intrusions with clone/JSON parity and real room crew death/credit`)
++
++// Reuse pilot.test.ts's lightweight event fixture. This checks Input callbacks, not DOM propagation or pointer lock.
++const savedGlobals=['window','document'].map(key=>[key,Object.getOwnPropertyDescriptor(globalThis,key)] as const)
++const win=new EventTarget(), doc=new EventTarget(), canvas={requestPointerLock(){throw new Error('fixture has no pointer lock')}}
++Object.assign(doc,{pointerLockElement:null,activeElement:canvas,exitPointerLock(){}})
++Object.defineProperty(globalThis,'window',{value:win,configurable:true})
++Object.defineProperty(globalThis,'document',{value:doc,configurable:true})
++try {
++  const { Input }=await import('./src/input')
++  const key=(code:string,down=true,target:any=canvas)=>{ const e=new Event(down?'keydown':'keyup',{cancelable:true}); Object.defineProperties(e,{code:{value:code},target:{value:target}}); win.dispatchEvent(e) }
++  const mouse=(down:boolean,target:any=canvas)=>{ const e=new Event(down?'mousedown':'mouseup'); Object.defineProperties(e,{button:{value:0},target:{value:target}}); win.dispatchEvent(e) }
++  const editing={closest:()=>({})}, aim: Vec3=[0,0,-1]
++  for(const reset of ['release','focus','blur','disable','dispose']) {
++    const input=new Input(canvas as unknown as HTMLCanvasElement); input.setEnabled(true); input.requestLock()
++    key('KeyW'); mouse(true); assert.equal(input.flightInput(aim,false,null,{},true).throttle,1); assert.equal(input.seatInput(aim,{},true).firePrimary,true)
++    if(reset==='release') { key('KeyW',false,editing); mouse(false,editing) }
++    if(reset==='focus') { Object.assign(doc,{activeElement:editing}); const e=new Event('focusin'); Object.defineProperty(e,'target',{value:editing}); win.dispatchEvent(e) }
++    if(reset==='blur') win.dispatchEvent(new Event('blur'))
++    if(reset==='disable') input.setEnabled(false)
++    if(reset==='dispose') input.dispose()
++    assert.equal(input.flightInput(aim,false,null,{},true).throttle,0); assert.equal(input.seatInput(aim,{},true).firePrimary,false); assert.deepEqual(input.takeActions(),[])
++    Object.assign(doc,{activeElement:canvas}); if(reset!=='dispose') input.dispose()
++  }
++  const input=new Input(canvas as unknown as HTMLCanvasElement); input.setEnabled(true); input.requestLock()
++  key('KeyV'); key('KeyV',false); assert.equal(input.seatInput(aim,{},true).fireSecondary,true); assert.equal(input.seatInput(aim,{},true).fireSecondary,false)
++  input.dispose()
++} finally {
++  for(const [key,descriptor] of savedGlobals) { if(descriptor) Object.defineProperty(globalThis,key,descriptor); else Reflect.deleteProperty(globalThis,key) }
++}
++console.log('PASS Input lightweight event fixture: editing release/focus, blur/disable/dispose clear held state, short weapon tap retains exactly one tick; no DOM propagation claim')
++
++// Real loopback, RoomEngine spawn and held input. No assigned position, velocity or health.
++const messages: ServerMessage[] = []
++const room = createLoopbackRoom({...DEFAULT_ROOM_CONFIG,bots:0,listed:false},'Boat CPU check',{onMessage:m=>messages.push(m)},{manual:true})
++let boat: VehicleEntity
++try {
++  await Promise.resolve(); room.send({type:'spawn',kind:'speedboat'})
++  boat = room.engine.vehicles.find(v=>v.seats[0]===room.playerId)!
++  assert(boat, 'normal boat spawn failed')
++  const start = [...boat.flight.position]
++  assert(boatNavigable(worldQuery,start[0],start[2],yawPitchRoll(boat.flight.orientation).yaw),'spawn hull must be open navigable water, not a carrier deck')
++  near(start[1],water.waterline); near3(boat.flight.velocity,[0,0,0])
++  let seq=0
++  const drive = (ticks:number, input:Partial<FlightInput>={}) => {
++    for(let i=0;i<ticks;i++) {
++      room.send({type:'input',seq:++seq,flight:{...NEUTRAL_INPUT,...input}}); room.step(TICK_DT)
++      assert(boat.alive && !boat.flight.crashed,`normal-input boat failed: ${JSON.stringify({seq,time:room.engine.time,input,position:boat.flight.position,start,crashed:boat.flight.crashed,hp:boat.hp})}`); near(boat.flight.position[1],water.waterline,'no lift')
++      assert(boat.flight.position.every(Number.isFinite)); assert(boat.flight.orientation.every(Number.isFinite))
++    }
++  }
++  drive(180,{throttle:1,pitch:1,roll:1,boost:true,aim:[0,1,0]})
++  assert(new Vector3(...boat.flight.position).distanceTo(new Vector3(...start))>10,'normal input did not propel boat')
++  const speed = Math.hypot(...boat.flight.velocity), coastStart = [...boat.flight.position]
++  drive(30); assert(Math.hypot(...boat.flight.velocity)>0 && Math.hypot(...boat.flight.velocity)<speed)
++  assert(new Vector3(...boat.flight.position).distanceTo(new Vector3(...coastStart))>1)
++  // Reverse along the proven outward path before turning toward nearby carrier traffic.
++  drive(180,{brake:true}); drive(60,{throttle:-1})
++  assert(new Vector3(...boat.flight.velocity).dot(new Vector3(...forward(boat.flight.orientation))) < -1,`reverse must move aft: ${JSON.stringify({position:boat.flight.position,velocity:boat.flight.velocity,throttle:boat.flight.throttle,start})}`)
++  drive(120,{throttle:1})
++  const beforeTurn = new Quaternion(...boat.flight.orientation)
++  // Turn outboard. The opposite arc crosses the advancing carrier and correctly crashes.
++  drive(45,{throttle:1,yaw:-.5}); assert(beforeTurn.angleTo(new Quaternion(...boat.flight.orientation))>.1)
++  assert.equal(boat.seats[1],null,'no automatic boat gunner')
++  const a=cloneFlight(boat.flight), b=cloneFlight(boat.flight)
++  for(let i=0;i<120;i++){ const input={...NEUTRAL_INPUT,throttle:1,yaw:.2}; stepFlight(a,input,TICK_DT,worldQuery); stepFlight(b,input,TICK_DT,worldQuery) }
++  assert.deepEqual(a,b,'fixed-input replay')
++  await Promise.resolve()
++  assert(messages.some(m=>m.type==='snapshot' && m.vehicles.some(v=>v.kind==='speedboat')),'real wire snapshot')
++} finally { room.close() }
++assert.equal(room.engine.players.size,0,'loopback close removes player')
++console.log('PASS real room spawn/input: water hull, propulsion/yaw/coast/reverse/no lift, replay, decoded snapshots and close')
++
++// Actual Three/GLTFLoader/template/view through the existing Node local-file adapter pattern.
++const NativeRequest=globalThis.Request, nativeFetch=globalThis.fetch, nativeProgress=globalThis.ProgressEvent
++class LocalRequest extends NativeRequest { constructor(input:any,init?:any){super(typeof input==='string'?new URL(input,'http://wings.invalid').href:input,init)} }
++globalThis.Request=LocalRequest
++globalThis.ProgressEvent=class extends Event {constructor(type:string,init:any){super(type);Object.assign(this,init)}} as any
++globalThis.fetch=async(input:any)=>{
++  const url=new URL(typeof input==='string'?input:input.url)
++  assert.equal(url.origin,'http://wings.invalid'); assert.equal(url.pathname,'/models/speedboat.glb')
++  return new Response(bytes,{headers:{'Content-Length':String(bytes.length)}})
++}
++let view: ReturnType<typeof createAircraftView> | undefined
++try {
++  const sourceScene = (await new GLTFLoader().parseAsync(bytes.buffer.slice(bytes.byteOffset,bytes.byteOffset+bytes.byteLength), '')).scene
++  sourceScene.updateMatrixWorld(true)
++  assert(CONFIG.speedboat,'boat render descriptor must be integrated')
++  view=createAircraftView('speedboat',0,'low')
++  const deadline=performance.now()+20000
++  while(!view.ready && performance.now()<deadline) await delay(1)
++  assert(view.ready && aircraftReady('speedboat'),'real converted template did not load')
++  const model=view.root.getObjectByName('model')!, stats=aircraftStats('speedboat')!
++  assert(model); assert.equal(stats.sourceMeshes,primitives.length)
++  const mesh=model.children.find((o:any)=>o.isSkinnedMesh) as any; assert(mesh)
++  const bone=(name:string)=>{
++    const index=mesh.skeleton.bones.findIndex((b:any)=>b.name===name);assert(index>=0,name)
++    assert(model.children.some((m:any)=>{const a=m.geometry?.getAttribute('skinIndex');if(!a)return false;for(let i=0;i<a.count;i++)if(a.getX(i)===index)return true;return false}),`${name}: pivot needs actual geometry`)
++    return mesh.skeleton.bones[index]
++  }
++  const cfg=CONFIG.speedboat
++  assert.deepEqual(cfg.stores.map(g=>[g.weapons,g.order]),[[[[0,1]],['charge_1','charge_2','charge_3','charge_4']]])
++  assert.equal(cfg.afterburners.length,0)
++  const camera=new PerspectiveCamera(), fixture=actor()
++  camera.position.fromArray(fixture.flight.position); camera.updateMatrixWorld(true); view.setLocal(true)
++  const update=(n=1)=>{for(let i=0;i<n;i++) view!.update(fixture,[],TICK_DT,camera);view!.root.updateMatrixWorld(true)}
++  view.update(shooter,[],TICK_DT,camera)
++  assert.equal(cfg.stores[0].order.filter(name=>bone(name).scale.x>.9).length,shooter.weapons[0][1].ammo,'real charge release drives stores')
++  update()
++  for(let ammo=4;ammo>=0;ammo--){fixture.weapons[0][1].ammo=ammo;update();assert.equal(cfg.stores[0].order.filter(name=>bone(name).scale.x>.9).length,ammo)}
++  assert(cfg.pivots.includes('pilot_1'),'driver must use the standard seat-occupancy pivot')
++  const pilot = bone('pilot_1'), pilotIndex = mesh.skeleton.bones.indexOf(pilot)
++  const dark = new Color('#232628'); let darkVertices = 0, checkedVertices = 0, checkedSurfaces = 0, shadedVertices = 0, driverVertices = 0
++  // The converter expands indexed triangles before creasing/merging. Check every vertex in that order.
++  for (const batch of model.children as any[]) {
++    if (batch.name !== 'toon' && batch.name !== 'glass') continue
++    const material = batch.material, geometry = batch.geometry, colors = geometry.getAttribute('color')
++    assert(colors && geometry.userData.sourceMeshes?.length, 'source-to-batch mapping')
++    assert.equal(material.vertexColors,true); assert.equal(material.color.getHex(),0xffffff)
++    assert.equal(material.colorNode,null); assert.equal(material.roughnessNode,null,'no weathering replacement of authored roughness')
++    let offset = 0
++    for (const name of geometry.userData.sourceMeshes) {
++      const source = sourceScene.getObjectByName(name) as any; assert(source?.isMesh,name)
++      const src = source.material
++      for (const key of ['roughness','metalness','opacity','transparent','side','alphaTest']) assert.equal(material[key],src[key],`${name}: PBR ${key}`)
++      assert.equal(material.clearcoat,src.clearcoat ?? 0,`${name}: clearcoat`)
++      assert.equal(material.clearcoatRoughness,src.clearcoatRoughness ?? 0,`${name}: clearcoat roughness`)
++      assert.equal(material.depthWrite,batch.name === 'glass' ? false : src.depthWrite,`${name}: depth write`)
++      const expanded = source.geometry.index ? source.geometry.toNonIndexed() : source.geometry
++      const ao = expanded.getAttribute('color'); assert(ao,`${name}: source AO`)
++      const count = expanded.getAttribute('position').count
++      let ancestor = source, isPilot = false
++      while (ancestor) { if (ancestor.name === 'pilot_1') isPilot = true; ancestor = ancestor.parent }
++      for (let i = 0; i < count; i++) {
++        const expected = new Float32Array([src.color.r*ao.getX(i),src.color.g*ao.getY(i),src.color.b*ao.getZ(i)])
++        assert.deepEqual([colors.getX(offset+i),colors.getY(offset+i),colors.getZ(offset+i)],Array.from(expected),`${name}: source base*AO vertex ${i}`)
++        const expectedPoint = new Vector3().fromBufferAttribute(expanded.getAttribute('position'),i).applyMatrix4(source.matrixWorld)
++        near3(new Vector3().fromBufferAttribute(geometry.getAttribute('position'),offset+i).toArray(),expectedPoint.toArray(),`${name}: baked vertex`)
++        if (ao.getX(i) < .98) shadedVertices++
++        if (Math.max(Math.abs(src.color.r-dark.r),Math.abs(src.color.g-dark.g),Math.abs(src.color.b-dark.b)) < 1e-6) darkVertices++
++        if (isPilot) {
++          assert.equal(geometry.getAttribute('skinIndex').getX(offset+i),pilotIndex,`${name}: bound to authoritative skipper pivot`)
++          near(geometry.getAttribute('skinWeight').getX(offset+i),1,`${name}: rigid driver weight`); driverVertices++
++        } else if (name.startsWith('helm_wheel')) assert.equal(geometry.getAttribute('skinIndex').getX(offset+i),0,'wheel is fixed, not hidden with driver')
++      }
++      offset += count; checkedVertices += count; checkedSurfaces++
++      if (expanded !== source.geometry) expanded.dispose()
++    }
++    assert.equal(offset,colors.count,'all batch vertices checked, including material-zone splits')
++  }
++  assert(darkVertices>100,'actual dark wet-gelcoat source must survive base*AO conversion')
++  assert(shadedVertices>100,'nontrivial AO must survive conversion')
++  assert.equal(driverVertices,driverTriangles*3,'every expanded driver triangle must bind to pilot_1')
++  // Use real spawn/switch-seat messages, not a static decoration or assigned occupancy fixture.
++  const crewRoom = createLoopbackRoom({...DEFAULT_ROOM_CONFIG,bots:0,listed:false},'Boat crew CPU check',{onMessage(){}},{manual:true})
++  try {
++    await Promise.resolve(); crewRoom.send({type:'spawn',kind:'speedboat'})
++    const crewBoat = crewRoom.engine.vehicles.find(v => v.seats[0] === crewRoom.playerId)!
++    assert(crewBoat,'real occupied boat spawn'); assert.equal(VEHICLES.speedboat.seatNames[0],'Skipper')
++    const crewUpdate = () => { view!.update(crewBoat,[],TICK_DT,camera); view!.root.updateMatrixWorld(true) }
++    crewUpdate(); near3(pilot.scale.toArray(),[1,1,1],'occupied skipper shown')
++    crewRoom.send({type:'switch-seat',seat:1}); crewRoom.step(TICK_DT)
++    assert.deepEqual(crewBoat.seats,[null,crewRoom.playerId]); crewUpdate()
++    assert(pilot.scale.toArray().every((v: number) => v > 0 && v < 1e-3),'vacant skipper hidden despite occupied passenger')
++    crewRoom.send({type:'switch-seat',seat:0}); crewRoom.step(TICK_DT)
++    assert.deepEqual(crewBoat.seats,[crewRoom.playerId,null]); crewUpdate()
++    near3(pilot.scale.toArray(),[1,1,1],'skipper shown again after authoritative seat transition')
++  } finally { crewRoom.close() }
++  assert.equal(crewRoom.engine.players.size,0,'crew room cleanup')
++  update()
++  sourceScene.traverse((o: any) => { if(o.isMesh) {o.geometry.dispose(); for(const m of Array.isArray(o.material)?o.material:[o.material]) m.dispose()} })
++  console.log(JSON.stringify({stage:'source-surfaces-and-crew',checkedSurfaces,checkedVertices,shadedVertices,driverVertices}))
++  for(const aim of [[1,1,1],[-1,-1,1],[0,0,-1]] as Vec3[]){
++    fixture.aim[0]=aim; update(180)
++    const gun=view.anchors.get('gun');assert(gun)
++    near3(gun.getWorldPosition(new Vector3()).toArray(),muzzlePosition(fixture,0,'deckcannon',[0,0,0]),'render/combat muzzle')
++    const direction=new Vector3(0,0,-1).applyQuaternion(bone('cannon_pitch').getWorldQuaternion(new Quaternion()))
++    near3(direction.toArray(),weaponDirection(fixture,'deckcannon',aim,[0,0,0]),'render/combat turret direction')
++  }
++  const props=['prop_L','prop_R'].map(bone), idle=props.map(p=>p.quaternion.clone())
++  const wakes=['wake_L_foam','wake_R_foam'].map(name=>{const o=view!.root.getObjectByName(name);assert(o,name);return o})
++  update(60);props.forEach((p,i)=>near(p.quaternion.angleTo(idle[i]),0,'idle prop'))
++  assert(wakes.every(w=>!w.visible),'idle wake must be hidden')
++  fixture.flight.throttle=1; fixture.flight.velocity=[0,0,-12]; update(60)
++  assert(props.every((p,i)=>p.quaternion.angleTo(idle[i])>.01),'moving props')
++  assert(wakes.every(w=>w.visible),'moving water wake')
++  for(const w of wakes) near(w.getWorldPosition(new Vector3()).y,.04,'wake at sea level')
++  fixture.flight.throttle=0;fixture.flight.velocity=[0,0,0];update(60)
++  assert(wakes.every(w=>!w.visible),'stopped wake cleanup')
++  fixture.flight.velocity=[0,0,-12];fixture.flight.position[1]=5;update()
++  assert(wakes.every(w=>!w.visible),'airborne wake must be hidden')
++  fixture.flight.position[1]=0;update();assert(wakes.every(w=>w.visible))
++  fixture.alive=false;update();assert.equal(view.root.visible,false);assert(wakes.every(w=>!w.visible),'death wake cleanup')
++  console.log(JSON.stringify({stage:'converted',stats,darkVertices}))
++} finally {
++  view?.dispose(); if(view)assert.equal(view.root.children.length,0,'view disposal')
++  globalThis.Request=NativeRequest;globalThis.fetch=nativeFetch;globalThis.ProgressEvent=nativeProgress
++}
++// Keep the existing hangar slots and original weapon fits intact.
++assert.deepEqual(VEHICLE_KINDS.slice(0,7),['fighter','apache','warthog','blackbird','bomber','f15','f35'])
++assert.deepEqual(VEHICLE_KINDS.slice(0,7).map(k=>[VEHICLES[k].cruise,VEHICLES[k].boost]),[[135,185],[75,98],[105,135],[190,260],[150,180],[155,215],[130,180]])
++assert.deepEqual(VEHICLE_KINDS.slice(0,7).map(k=>VEHICLES[k].seatWeapons),[
++  [['cannon20','aim9'],['tvmissile',null]],[['rockets',null],['chaingun30','hellfire']],
++  [['gau8','rockets'],['maverick',null]],[[null,null],['aim47','radarpulse']],[['bomb',null],['bomb',null]],
++  [['cannon20','aim9'],['maverick',null]],[['cannon20','tvmissile'],['tvmissile',null]],
++])
++assert(VEHICLE_KINDS.slice(0,5).every(k=>VEHICLES[k].hardpoints===undefined && VEHICLES[k].water===undefined))
++console.log('PASS boat CPU check. Native interactive play, rendered pixels, GPU budgets and full original-seven flight equivalence are NOT claimed. Wake checks cover CPU visibility and cleanup only.')
+diff --git a/games/wings/boat-existing-check.ts b/games/wings/boat-existing-check.ts
+new file mode 100644
+index 0000000..747ba67
+--- /dev/null
++++ b/games/wings/boat-existing-check.ts
+@@ -0,0 +1,80 @@
++// CPU integration of the existing committed asset, not candidate geometry or native acceptance.
++import assert from 'node:assert/strict'
++import { readFileSync } from 'node:fs'
++import { createHash } from 'node:crypto'
++import { setTimeout as delay } from 'node:timers/promises'
++import { PerspectiveCamera, Vector3 } from 'three'
++import { CONFIG, createAircraftView, aircraftStats } from './src/render/aircraft'
++import { createLoopbackRoom } from './src/sim/loopback'
++import { DEFAULT_ROOM_CONFIG } from './src/sim/protocol'
++import { VEHICLES, VEHICLE_KINDS } from './src/sim/vehicles'
++import { NEUTRAL_INPUT, boatNavigable, yawPitchRoll } from './src/sim/flight'
++import { worldQuery } from './src/sim/geography'
++import { TICK_DT, type GameEvent } from './src/sim/types'
++const bytes=readFileSync(process.argv[2] ?? 'Games/Wings/models/speedboat.glb')
++assert.equal(bytes.length,1069292)
++assert.equal(createHash('sha256').update(bytes).digest('hex'),'1f0eae7f3b962669c2f95f1ce52e3f27cce008595f4875bae41e9274b24da65a')
++const gltf=JSON.parse(bytes.subarray(20,20+bytes.readUInt32LE(12)).toString())
++assert(!gltf.nodes.some((n:any)=>n.name==='pilot_1'),'existing old model must not be silently replaced')
++assert.equal(VEHICLES.speedboat.model,'models/speedboat.glb')
++assert.deepEqual(VEHICLE_KINDS,['fighter','apache','warthog','blackbird','bomber','f15','f35','speedboat'])
++const native={Request:globalThis.Request,fetch:globalThis.fetch,ProgressEvent:globalThis.ProgressEvent}
++globalThis.Request=class extends native.Request { constructor(input:any,init?:any){super(typeof input==='string'?new URL(input,'http://wings.invalid').href:input,init)} }
++globalThis.ProgressEvent=class extends Event {constructor(type:string,init:any){super(type);Object.assign(this,init)}} as any
++globalThis.fetch=async(input:any)=>{
++ const url=new URL(typeof input==='string'?input:input.url)
++ assert.equal(url.origin,'http://wings.invalid');assert.equal(url.pathname,'/models/speedboat.glb')
++ return new Response(bytes,{headers:{'Content-Length':String(bytes.length)}})
++}
++const view=createAircraftView('speedboat',0,'low'), camera=new PerspectiveCamera()
++const events: GameEvent[]=[]
++const room=createLoopbackRoom({...DEFAULT_ROOM_CONFIG,bots:0,listed:false},'Existing boat CPU',{onMessage(m){if(m.type==='events')events.push(...m.events)}},{manual:true})
++try {
++ const until=performance.now()+20000
++ while(!view.ready && performance.now()<until)await delay(1)
++ assert(view.ready,'existing GLB converter must become ready')
++ const model=view.root.getObjectByName('model')!
++ assert(model)
++ const mesh=model.children.find((o:any)=>o.isSkinnedMesh) as any
++ assert(mesh && !mesh.skeleton.bones.some((b:any)=>b.name==='pilot_1'),'converter must not fabricate absent driver bone')
++ await Promise.resolve();room.send({type:'spawn',kind:'speedboat'})
++ const boat=room.engine.vehicles.find(v=>v.seats[0]===room.playerId)!
++ assert(boat)
++ const start=[...boat.flight.position], waterline=VEHICLES.speedboat.water!.waterline
++ assert(boatNavigable(worldQuery,start[0],start[2],yawPitchRoll(boat.flight.orientation).yaw))
++ const update=()=>{camera.position.fromArray(boat.flight.position);camera.updateMatrixWorld(true);view.update(boat,[],TICK_DT,camera);view.root.updateMatrixWorld(true)}
++ let seq=0
++ const drive=(n:number,flight:any={})=>{for(let i=0;i<n;i++){
++  room.send({type:'input',seq:++seq,flight:{...NEUTRAL_INPUT,...flight}});room.step(TICK_DT);update()
++  assert(boat.alive && !boat.flight.crashed);assert.equal(boat.flight.position[1],waterline)
++ }}
++ drive(180,{throttle:1,pitch:1,roll:1,boost:true,aim:[0,1,0]})
++ assert(new Vector3(...boat.flight.position).distanceTo(new Vector3(...start))>10)
++ const speed=Math.hypot(...boat.flight.velocity)
++ drive(30);assert(Math.hypot(...boat.flight.velocity)>0 && Math.hypot(...boat.flight.velocity)<speed)
++ drive(180,{brake:true});drive(60,{throttle:-1});drive(120,{throttle:1});drive(45,{throttle:1,yaw:-.5})
++ const fire=(primary:boolean,secondary:boolean)=>{room.send({type:'input',seq:++seq,flight:NEUTRAL_INPUT,seat:{aim:null,firePrimary:primary,fireSecondary:secondary,flares:false,ability:false}});room.step(TICK_DT);update()}
++ assert.equal(boat.weapons[0][0].ammo,120);fire(true,false);assert.equal(boat.weapons[0][0].ammo,119)
++ assert(room.engine.combat.projectiles.some(p=>p.weapon==='deckcannon' && p.owner===room.playerId))
++ fire(false,false);assert.equal(boat.weapons[0][1].ammo,4);fire(false,true);assert.equal(boat.weapons[0][1].ammo,3)
++ assert(room.engine.combat.projectiles.some(p=>p.weapon==='depthcharge' && p.owner===room.playerId))
++ fire(false,false)
++ for(let i=0;i<120;i++) {room.step(TICK_DT);update()}
++ assert(!room.engine.combat.projectiles.some(p=>p.weapon==='depthcharge'))
++ await Promise.resolve() // Loopback delivers its queued protocol messages in a microtask.
++ assert(events.some(e=>e.type==='fire' && e.weapon==='deckcannon'))
++ assert(events.some(e=>e.type==='fire' && e.weapon==='depthcharge'))
++ assert(events.some(e=>e.type==='explosion' && e.surface==='water'))
++ assert.equal(boat.seats[1],null)
++ room.send({type:'switch-seat',seat:1});room.step(TICK_DT);update()
++ assert.deepEqual(boat.seats,[null,room.playerId])
++ room.send({type:'switch-seat',seat:0});room.step(TICK_DT);update()
++ assert.deepEqual(boat.seats,[room.playerId,null])
++ const gun=view.anchors.get('gun')!;assert(gun)
++ assert(gun.getWorldPosition(new Vector3()).toArray().every(Number.isFinite))
++ console.log(JSON.stringify({stage:'existing-asset',sha256:createHash('sha256').update(bytes).digest('hex'),bytes:bytes.length,driverNode:false,driverBone:false,stats:aircraftStats('speedboat'),anchors:[...view.anchors.keys()]}))
++ console.log('PASS existing-model CPU loader/converter and real room held-input propulsion/coast/brake/reverse/turn/no-lift; both authoritative seat transitions update without absent-pilot crash; no roof/driver/candidate/native/render acceptance')
++} finally {
++ room.close();view.dispose();Object.assign(globalThis,native)
++ assert.equal(room.engine.players.size,0);assert.equal(view.root.children.length,0)
++}
 diff --git a/games/wings/check-browser.py b/games/wings/check-browser.py
 new file mode 100644
 index 0000000..2de1864
@@ -837,30 +1496,250 @@ index 0000000..a9f027a
 +console.log(JSON.stringify({freshTime:0, crashAt, respawnAt:fresh.engine.time, respawnAlive:respawn.alive}))
 +fresh.close()
 +console.log('PASS: offline takeoff, fresh session, ordinary-input crash and respawn; rendering not tested')
+diff --git a/games/wings/src/audio/engine.ts b/games/wings/src/audio/engine.ts
+index e476301..0043eac 100644
+--- a/games/wings/src/audio/engine.ts
++++ b/games/wings/src/audio/engine.ts
+@@ -237,7 +237,8 @@ export function createAudio(): GameAudioEngine {
+         } else {
+           const d = c.distanceTo(v.flight.position)
+           const ref = ENGINE_REF[v.kind]
+-          score = ENGINE_LOUDNESS[v.kind] * (0.5 + 0.5 * v.flight.throttle) * (ref / (ref + Math.max(0, d - ref)))
++          const throttle = v.kind === "speedboat" ? Math.abs(v.flight.throttle) : v.flight.throttle
++          score = ENGINE_LOUDNESS[v.kind] * (0.5 + 0.5 * throttle) * (ref / (ref + Math.max(0, d - ref)))
+           if (score < 0.004) continue
+           if (voices.has(v.id)) score *= 1.4
+         }
+@@ -291,6 +292,16 @@ export function createAudio(): GameAudioEngine {
+             case "gau8":
+               sfx.rotaryGun(c, e.vehicle, e.weapon, at, own)
+               break
++            case "deckcannon":
++              // Authoritative 4 Hz shots, not a locally sustained rotary loop.
++              sfx.chaingun(c, at, own)
++              break
++            case "depthcharge": {
++              if (!c.allow(`depth:${e.vehicle}`, 0.3)) break
++              const s = c.shot("depthcharge", own ? null : at, { ref: 30, limit: 3 })
++              if (s) s.osc("sine", 90, s.t, s.t + 0.14).connect(s.env(s.t, 0.004, 0.18, 0.1))
++              break
++            }
+             case "chaingun30":
+               if (c.allow(`cg:${e.vehicle}`, 0.05)) sfx.chaingun(c, at, own)
+               break
+@@ -333,7 +344,7 @@ export function createAudio(): GameAudioEngine {
+         }
+         case "explosion": {
+           const at = position ?? e.position
+-          if ((e as { kind?: string }).kind === "flak" || takeFlakAim(at, c.now)) sfx.flakBurst(c, at)
++          if (e.kind === "flak" || (!e.surface && takeFlakAim(at, c.now))) sfx.flakBurst(c, at)
+           else sfx.explosion(c, at, e.size)
+           break
+         }
 diff --git a/games/wings/src/audio/engines.ts b/games/wings/src/audio/engines.ts
-index 9131e51..976ddb2 100644
+index 9131e51..9361596 100644
 --- a/games/wings/src/audio/engines.ts
 +++ b/games/wings/src/audio/engines.ts
-@@ -4,8 +4,8 @@ import { VEHICLES } from "../sim/vehicles"
+@@ -1,11 +1,11 @@
+-// Continuous per-vehicle engine voices: jet turbines and the Apache rotor.
++// Continuous per-vehicle engine voices: turbines, rotor and boat motor/water.
+ import type { VehicleEntity, VehicleKind } from "../sim/types"
+ import { VEHICLES } from "../sim/vehicles"
  import { clamp, type Core, Spatial } from "./core"
 
- /** Relative loudness per airframe, used for voice selection and distance culling. */
+-/** Relative loudness per airframe, used for voice selection and distance culling. */
 -export const ENGINE_LOUDNESS: Record<VehicleKind, number> = { fighter: 1, apache: 0.4, warthog: 0.8, blackbird: 1.3, bomber: 0.45 }
 -export const ENGINE_REF: Record<VehicleKind, number> = { fighter: 40, apache: 22, warthog: 35, blackbird: 50, bomber: 30 }
-+export const ENGINE_LOUDNESS: Record<VehicleKind, number> = { fighter: 1, apache: 0.4, warthog: 0.8, blackbird: 1.3, bomber: 0.45, f15: 1, f35: 0.8 }
-+export const ENGINE_REF: Record<VehicleKind, number> = { fighter: 40, apache: 22, warthog: 35, blackbird: 50, bomber: 30, f15: 40, f35: 35 }
++/** Relative loudness per vehicle, used for voice selection and distance culling. */
++export const ENGINE_LOUDNESS: Record<VehicleKind, number> = { fighter: 1, apache: 0.4, warthog: 0.8, blackbird: 1.3, bomber: 0.45, f15: 1, f35: 0.8, speedboat: 0.55 }
++export const ENGINE_REF: Record<VehicleKind, number> = { fighter: 40, apache: 22, warthog: 35, blackbird: 50, bomber: 30, f15: 40, f35: 35, speedboat: 24 }
 
  const TC = 0.06
 
-@@ -158,6 +158,8 @@ export class EngineVoice {
+@@ -43,7 +43,13 @@ export class EngineVoice {
+     this.mix.connect(this.spatial.input)
+     const bank = core.bank
+     // Smooth, natural engines: noise roar does the work, tones are quiet sines kept under ~2.5 kHz.
+-    if (kind === "apache") {
++    if (kind === "speedboat") {
++      // Low combustion harmonics, muffled mechanical rattle and a separate hull wash.
++      this.sub = this.tone("triangle", 48)
++      this.tail = this.tone("sine", 96)
++      this.roar = this.noise(bank.brown, "bandpass", 240, 0.8)
++      this.roar2 = this.noise(bank.pink, "highpass", 450, 0.5)
++    } else if (kind === "apache") {
+       this.chop = this.noise(bank.rotor, "lowpass", 900, 0.5)
+       this.whineA = this.tone("sine", 1150)
+       this.tailFilter = ctx.createBiquadFilter()
+@@ -158,6 +164,25 @@ export class EngineVoice {
      }
 
      switch (this.kind) {
++      case "speedboat": {
++        // Reverse loads the motor too; wash follows actual planar travel, not throttle or bob.
++        const load = clamp(Math.abs(f.throttle), 0, 1)
++        const water = clamp(Math.hypot(vel[0], vel[2]) / spec.cruise, 0, 1.3)
++        const rpm = (48 + 112 * load) * d * wob
++        set(this.sub!.osc.frequency, rpm)
++        set(this.sub!.gain.gain, (0.055 + 0.09 * load) * near)
++        set(this.tail!.osc.frequency, rpm * 2)
++        set(this.tail!.gain.gain, (0.018 + 0.035 * load) * near)
++        set(this.roar!.src.playbackRate, (0.7 + 0.6 * load) * d)
++        set(this.roar!.filter.frequency, (240 + 480 * load) * d)
++        set(this.roar!.gain.gain, 0.025 + 0.1 * load)
++        set(this.roar2!.src.playbackRate, (0.75 + 0.35 * water) * d)
++        set(this.roar2!.filter.frequency, (450 + 650 * water) * d)
++        set(this.roar2!.gain.gain, 0.17 * water)
++        break
++      }
 +      case "f15":
 +      case "f35": // Reuses the arcade fighter voice, not aircraft-specific recordings.
        case "fighter":
          // Twin F404s: a smooth roar that opens up with throttle, faint turbine hum, afterburner rumble.
          roar(350, 1400, 0.2, 0.3, 1)
+diff --git a/games/wings/src/input.ts b/games/wings/src/input.ts
+index 9396f7a..bce8070 100644
+--- a/games/wings/src/input.ts
++++ b/games/wings/src/input.ts
+@@ -182,14 +182,15 @@ export class Input {
+       this.disposers.push(() => document.removeEventListener(t, f))
+     }
+     on("keydown", e => this.onKey(e, true))
+-    on("keyup", e => this.onKey(e, false))
++    on("keyup", e => this.onKey(e, false), { capture: true })
+     on("blur", () => this.clear())
++    on("focusin", e => { if (this.editing(e.target)) this.clear() }, { capture: true })
+     on("mousemove", e => this.onMove(e))
+     on("mousedown", e => this.onButton(e, true))
+-    on("mouseup", e => this.onButton(e, false))
+-    on("contextmenu", e => { if (this.enabled) e.preventDefault() })
++    on("mouseup", e => this.onButton(e, false), { capture: true })
++    on("contextmenu", e => { if (this.enabled && !this.editing(e.target) && !this.editing(document.activeElement)) e.preventDefault() })
+     on("wheel", e => {
+-      if (!this.enabled || !(this.locked || this.lockFailed)) return
++      if (!this.enabled || this.editing(e.target) || this.editing(document.activeElement) || !(this.locked || this.lockFailed)) return
+       const px = e.deltaY * (e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? 400 : 1)
+       this.wheel += clamp(px, -160, 160)
+     }, { passive: true })
+@@ -435,9 +436,18 @@ export class Input {
+
+   /**
+    * Piloting input for one tick. `aim` is only used in mouse-aim mode. `throttleAxis` overrides W/S
+-   * (e.g. wheel fine-throttle pulses) when non-null.
++   * (e.g. wheel fine-throttle pulses) when non-null. Water uses held W/S and A/D or left/right only.
+    */
+-  flightInput(aim: Vec3 | null, heli: boolean, throttleAxis: number | null, out: FlightInput): FlightInput {
++  flightInput(aim: Vec3 | null, heli: boolean, throttleAxis: number | null, out: FlightInput, water = false): FlightInput {
++    if (water) {
++      out.throttle = this.axis(["KeyS"], ["KeyW"])
++      out.yaw = this.axis(["KeyA", "ArrowLeft"], ["KeyD", "ArrowRight"])
++      out.pitch = out.roll = 0
++      out.aim = null
++      out.boost = false
++      out.brake = this.down("KeyX")
++      return out
++    }
+     if (this.steeringBomb && !this.bombardier) {
+       // Pilot steering a bomb: hands off — the instructor holds wings level on the entry heading, throttle kept.
+       out.throttle = 0; out.boost = false; out.brake = false
+@@ -460,7 +470,16 @@ export class Input {
+     return out
+   }
+
+-  seatInput(aim: Vec3 | null, out: SeatInput): SeatInput {
++  seatInput(aim: Vec3 | null, out: SeatInput, water = false): SeatInput {
++    if (water) {
++      out.aim = aim
++      out.firePrimary = this.mouseL || this.down("Mouse0", "Space")
++      out.fireSecondary = this.mouseR || this.down("KeyV", "Mouse2")
++      out.flares = out.ability = false
++      ;(out as SeatInput & { steerBomb?: boolean }).steerBomb = false
++      this.latched.clear()
++      return out
++    }
+     out.aim = aim
+     // Space is the heli's collective in keyboard flight, so it doesn't fire there.
+     out.firePrimary = this.mouseL || this.down("Mouse0") || (!(this.reticleActive && this.heliPilot) && this.down("Space"))
+@@ -480,6 +499,7 @@ export class Input {
+
+   dispose(): void {
+     this.attached = false
++    this.clear()
+     this.disposers.forEach(d => d())
+     this.releaseLock()
+   }
+@@ -488,17 +508,26 @@ export class Input {
+     this.keys.clear()
+     this.latched.clear()
+     this.mouseL = this.mouseR = false
+-    this.zoomHeld = false
++    this.zoomHeld = this.scoreboard = false
++    this.actions = []
++    this.wheel = 0
++    this.bombToggle = this.wasSteering = false
++    this.skipMove = true
+     this.steerYaw = this.steerPitch = this.steerRoll = 0
+     for (const st of [this.mouseXStick, this.mouseYStick, this.rollKeys, this.pitchKeys, this.yawKeys]) st.reset()
+     this.freeLook = false
+     this.lookYaw = this.lookPitch = 0
+   }
+
++  private editing(target: EventTarget | null): boolean {
++    return !!(target as HTMLElement | null)?.closest?.('input, textarea, select, [contenteditable]:not([contenteditable="false"])')
++  }
++
+   private onKey(e: KeyboardEvent, down: boolean): void {
+-    const t = e.target as HTMLElement | null
+-    if (t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA")) return
+     const code = e.code
++    // Releases must reach held state even when a text control owns the event.
++    if (!down) this.keys.delete(code)
++    if (this.editing(e.target) || this.editing(document.activeElement)) { this.clear(); return }
+     // The scoreboard works in every in-match state (dead, spawning, paused).
+     if (code === "Tab" && this.attached) { e.preventDefault(); this.scoreboard = down; return }
+     if (!this.enabled) return
+@@ -527,13 +556,11 @@ export class Input {
+         case "Enter": e.preventDefault(); this.actions.push("chat"); break
+         case "Escape": if (!this.locked) this.actions.push("menu"); break
+       }
+-    } else {
+-      this.keys.delete(code)
+     }
+   }
+
+   private onMove(e: MouseEvent): void {
+-    if (!this.enabled || !(this.locked || this.lockFailed)) return
++    if (!this.enabled || this.editing(e.target) || this.editing(document.activeElement) || !(this.locked || this.lockFailed)) return
+     if (this.skipMove) { this.skipMove = false; return }
+     const dx = clamp(e.movementX, -300, 300)
+     const dy = clamp(e.movementY, -300, 300)
+@@ -574,15 +601,20 @@ export class Input {
+   }
+
+   private onButton(e: MouseEvent, down: boolean): void {
+-    if (!this.enabled) return
++    if (!down) {
++      if (e.button === 0) this.mouseL = false
++      else if (e.button === 2) this.mouseR = false
++    }
++    if (this.editing(e.target) || this.editing(document.activeElement)) { this.clear(); return }
++    if (!down || !this.enabled) return
+     if (!this.locked && !this.lockFailed) {
+-      if (down && e.target === this.canvas) this.requestLock()
++      if (e.target === this.canvas) this.requestLock()
+       return
+     }
+-    if (!this.locked && e.target !== this.canvas && down) return
+-    if (e.button === 0) this.mouseL = down
+-    else if (e.button === 2) this.mouseR = down
+-    if (down) this.latched.add(`Mouse${e.button}`)
++    if (!this.locked && e.target !== this.canvas) return
++    if (e.button === 0) this.mouseL = true
++    else if (e.button === 2) this.mouseR = true
++    this.latched.add(`Mouse${e.button}`)
+   }
+ }
+
 diff --git a/games/wings/src/main.ts b/games/wings/src/main.ts
 index 2f2f1b9..0665775 100644
 --- a/games/wings/src/main.ts
@@ -965,7 +1844,7 @@ index 2f2f1b9..0665775 100644
      starting = false
      lobby.busy(null)
 diff --git a/games/wings/src/render/aircraft-preview/main.ts b/games/wings/src/render/aircraft-preview/main.ts
-index 7346de6..617b639 100644
+index 7346de6..a9a0961 100644
 --- a/games/wings/src/render/aircraft-preview/main.ts
 +++ b/games/wings/src/render/aircraft-preview/main.ts
 @@ -107,8 +107,8 @@ if (params.has("occluder")) {
@@ -975,7 +1854,7 @@ index 7346de6..617b639 100644
 -const KINDS: VehicleKind[] = ["fighter", "apache", "warthog", "blackbird", "bomber"]
 -const X: Record<VehicleKind, number> = { fighter: -34, apache: -12, warthog: 10, blackbird: 38, bomber: 80 }
 +const KINDS: VehicleKind[] = ["fighter", "apache", "warthog", "blackbird", "bomber", "f15", "f35"]
-+const X: Record<VehicleKind, number> = { fighter: -34, apache: -12, warthog: 10, blackbird: 38, bomber: 80, f15: 110, f35: 135 }
++const X: Record<VehicleKind, number> = { fighter: -34, apache: -12, warthog: 10, blackbird: 38, bomber: 80, f15: 110, f35: 135, speedboat: 160 }
  const only = params.get("only") as VehicleKind | null
 
  function makeEntity(kind: VehicleKind, team: TeamId): VehicleEntity {
@@ -989,10 +1868,28 @@ index 7346de6..617b639 100644
      const view = createAircraftView(kind, team, qInput.value as Quality)
      scene.add(view.root)
 diff --git a/games/wings/src/render/aircraft.ts b/games/wings/src/render/aircraft.ts
-index 8919800..fe5a1a3 100644
+index 8919800..f82097e 100644
 --- a/games/wings/src/render/aircraft.ts
 +++ b/games/wings/src/render/aircraft.ts
-@@ -58,8 +58,8 @@ export interface AircraftView {
+@@ -33,14 +33,15 @@ import {
+   Vector3,
+   type Camera,
+   type Material,
+-  type MeshStandardMaterial,
++  type MeshPhysicalMaterial,
+ } from "three/webgpu"
+ import { abs, dot, float, mix, modelViewMatrix, normalLocal, normalView, normalize, positionLocal, positionViewDirection, smoothstep, uniform, vec4, max as tslMax, modelScale } from "three/tsl"
+ import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js"
+ import { mergeGeometries, toCreasedNormals } from "three/addons/utils/BufferGeometryUtils.js"
+ import type { PlayerInfo, Quality, SeatIndex, TeamId, VehicleEntity, VehicleKind } from "../sim/types"
+ import { VEHICLES, WEAPONS } from "../sim/vehicles"
+-import { groundHeight } from "../sim/geography"
++import { groundHeight, isWater, WATER_LEVEL } from "../sim/geography"
++import { deckCannonAngles, TURRET_ARCS } from "../sim/combat"
+ import { SUN_DIRECTION } from "./world/settings"
+ import { createBlobShadow } from "./aircraft-shadow"
+ import { createGlassMaterial, createGlowMaterial, createPaintMaterial, paintColor } from "./toon"
+@@ -58,8 +59,8 @@ export interface AircraftView {
    dispose(): void
    /** Firing hint from the client (e.g. spins the GAU-8 barrels while held). */
    setFiring(seat: SeatIndex, slot: number, on: boolean): void
@@ -1003,7 +1900,16 @@ index 8919800..fe5a1a3 100644
    /**
     * Named attachment points that follow the model (world transforms valid after update()).
     * Always present: "gun" (primary gun muzzle). Others per kind, e.g. "afterburner_L", "exhaust_L",
-@@ -149,15 +149,52 @@ interface KindConfig {
+@@ -119,7 +120,7 @@ interface Spinner {
+   axis: Axis
+   /** rad/s at full speed (sign = direction). */
+   speed: number
+-  driver: "rotor" | "engine" | "gun"
++  driver: "rotor" | "engine" | "gun" | "prop"
+ }
+
+ interface Afterburner {
+@@ -149,15 +150,70 @@ interface KindConfig {
    ballPod?: { name: string; seat: SeatIndex; maxUp: number }
    rollPod?: { name: string; seat: SeatIndex }
    rudders?: { names: string[]; gain: number; max: number }
@@ -1019,6 +1925,24 @@ index 8919800..fe5a1a3 100644
 
 -const CONFIG: Record<VehicleKind, KindConfig> = {
 +export const CONFIG: Record<VehicleKind, KindConfig> = {
++  speedboat: {
++    file: "speedboat",
++    pivots: ["pilot_1", "cannon_yaw", "cannon_pitch", "prop_L", "prop_R", "charge_1", "charge_2", "charge_3", "charge_4"],
++    stores: [{ weapons: [[0, 1]], order: ["charge_1", "charge_2", "charge_3", "charge_4"] }],
++    spinners: [
++      { name: "prop_L", axis: "z", speed: 45, driver: "prop" },
++      { name: "prop_R", axis: "z", speed: -45, driver: "prop" },
++    ],
++    afterburners: [],
++    turret: { yaw: "cannon_yaw", pitch: "cannon_pitch", seat: 0,
++      yawMax: TURRET_ARCS.deckcannon!.yaw, pitchMin: TURRET_ARCS.deckcannon!.minEl, pitchMax: TURRET_ARCS.deckcannon!.maxEl },
++    anchors: [
++      { key: "gun", node: "gun_muzzle" },
++      ...["helm_eye", "stern_exit", "wake_L", "wake_R", "prop_L", "prop_R"].map(node => ({ key: node, node })),
++    ],
++    placeholder: { length: 10, span: 3.2, heli: false },
++    shadow: [3.2, 10],
++  },
 +  f15: {
 +    file: "f15",
 +    pivots: ["missile_L1", "missile_R1", "missile_L2", "missile_R2", "afterburner_L", "afterburner_R"],
@@ -1059,7 +1983,101 @@ index 8919800..fe5a1a3 100644
    fighter: {
      file: "fa18",
      pivots: [
-@@ -610,7 +647,10 @@ function buildTemplate(kind: VehicleKind, scene: Object3D): Template {
+@@ -392,7 +448,7 @@ function nameChain(o: Object3D, stop: Object3D): string[] {
+ }
+
+ /** Copies position/normal into fresh non-interleaved arrays, bakes the matrix and adds rigid skin weights. */
+-function prepGeometry(source: BufferGeometry, m: Matrix4, bone: number, smooth = false): BufferGeometry {
++function prepGeometry(source: BufferGeometry, m: Matrix4, bone: number, smooth = false, preserveColor = false): BufferGeometry {
+   // Smooth curved primitives (lathes, capsules) while keeping hard edges on boxes/wing edges.
+   const src = smooth ? toCreasedNormals(source.index ? source.toNonIndexed() : source, CREASE_ANGLE) : source
+   const pos = src.getAttribute("position")
+@@ -426,6 +482,13 @@ function prepGeometry(source: BufferGeometry, m: Matrix4, bone: number, smooth =
+   } else {
+     g.computeVertexNormals()
+   }
++  // Read colors from the creased geometry: indexed expansion also reorders COLOR_0.
++  if (preserveColor && src.hasAttribute("color")) {
++    const color = src.getAttribute("color")
++    const values = new Float32Array(n * 3)
++    for (let i = 0; i < n; i++) values.set([color.getX(i), color.getY(i), color.getZ(i)], i * 3)
++    g.setAttribute("color", new Float32BufferAttribute(values, 3))
++  }
+   g.applyMatrix4(m)
+   if (m.determinant() < 0) {
+     const index = g.index!
+@@ -553,7 +616,7 @@ function buildTemplate(kind: VehicleKind, scene: Object3D): Template {
+     let bone = nearestPivot(mesh)
+     const override = attach[mesh.name]
+     if (override && boneIndex.has(override)) bone = boneIndex.get(override)!
+-    const src = (Array.isArray(mesh.material) ? mesh.material[0] : mesh.material) as MeshStandardMaterial
++    const src = (Array.isArray(mesh.material) ? mesh.material[0] : mesh.material) as MeshPhysicalMaterial
+     // Team markings on fins/wingtips/nose only; rotor tips are painted like the airframe.
+     const isLivery = chain.some((n) => n.startsWith("livery_")) && !/rotor_tip/.test(mesh.name)
+     const emissive = src.emissive ? src.emissive.clone() : new Color(0)
+@@ -573,20 +636,52 @@ function buildTemplate(kind: VehicleKind, scene: Object3D): Template {
+     const color = src.color ? src.color : new Color(1, 1, 1)
+     const rough = src.roughness ?? 0.55
+     const metal = src.metalness ?? 0
+-    const key =
+-      role === "toon" || role === "glass"
++    const boatSurface = kind === "speedboat" && (role === "toon" || role === "glass")
++    // No rounding or metal threshold: rubber, paint, stripe and hardware keep authored PBR.
++    const key = boatSurface
++      ? JSON.stringify(["boat", role, color.toArray(), rough, metal, src.clearcoat ?? 0,
++        src.clearcoatRoughness ?? 0, src.opacity, src.transparent, src.side, src.alphaTest, src.depthWrite])
++      : role === "toon" || role === "glass"
+         ? `${role}:${hex(color)}:${rough.toFixed(2)}:${metal.toFixed(2)}:${src.opacity.toFixed(2)}`
+         : role === "livery" || role === "nav"
+           ? role
+           : `${role}:${hex(emissive)}`
+     let bucket = buckets.get(key)
+     if (!bucket) {
+-      const shared: Material | null = null
++      let shared: Material | null = null
++      if (boatSurface) {
++        shared = paintCache.get(key) ?? null
++        if (!shared) {
++          const material = createPaintMaterial({ color: "#ffffff", vertexColors: true,
++            roughness: rough, metalness: metal, wet: src.clearcoat ?? 0, weathering: false })
++          material.clearcoatRoughness = src.clearcoatRoughness ?? 0
++          material.opacity = src.opacity
++          material.transparent = src.transparent
++          material.side = src.side
++          material.alphaTest = src.alphaTest
++          material.depthWrite = role === "glass" ? false : src.depthWrite
++          material.name = src.name
++          shared = material
++          paintCache.set(key, shared)
++        }
++      }
+       const glowColor = isGlow ? softGlow(role, emissive.clone().lerp(color, 0.25)) : color.clone()
+       bucket = { role, shared, glowColor, geoms: [], names: [], srcColor: color.clone(), key, metal: metal >= 0.4 }
+       buckets.set(key, bucket)
+     }
+-    const g = prepGeometry(mesh.geometry, toRoot(mesh), bone, role === "toon" || role === "livery" || role === "glass")
++    const g = prepGeometry(mesh.geometry, toRoot(mesh), bone, role === "toon" || role === "livery" || role === "glass", boatSurface)
++    if (boatSurface) {
++      // Authored linear base color times vertex AO, with white AO for older GLBs.
++      const n = g.getAttribute("position").count
++      const ao = g.getAttribute("color")
++      const col = new Float32Array(n * 3)
++      for (let i = 0; i < n; i++) {
++        col[i * 3] = color.r * (ao ? ao.getX(i) : 1)
++        col[i * 3 + 1] = color.g * (ao ? ao.getY(i) : 1)
++        col[i * 3 + 2] = color.b * (ao ? ao.getZ(i) : 1)
++      }
++      g.setAttribute("color", new Float32BufferAttribute(col, 3))
++    }
+     if (role === "nav") {
+       // Red and green nav lights share one mesh: their color lives in vertex colors.
+       const c = softGlow(role, emissive.clone().lerp(color, 0.25))
+@@ -606,11 +701,14 @@ function buildTemplate(kind: VehicleKind, scene: Object3D): Template {
+   const metal: Bucket = { role: "toon", shared: bodyMaterial(true), glowColor: new Color(1, 1, 1), geoms: [], names: [], srcColor: new Color(1, 1, 1), key: "metal", metal: true }
+   const kindMatch = (kinds?: VehicleKind[]) => !kinds || kinds.includes(kind)
+   for (const [key, b] of [...buckets]) {
+-    if (b.role !== "toon") continue
++    if (b.role !== "toon" || kind === "speedboat") continue
      const override = COLOR_OVERRIDES.find(([re, , kinds]) => kindMatch(kinds) && b.names.some((n) => re.test(n)))?.[1]
      const isTop = b.names.some((n) => TOP_PAINT.test(n))
      const target = b.metal && !isTop ? metal : paint
@@ -1071,7 +2089,69 @@ index 8919800..fe5a1a3 100644
      b.geoms.forEach((g, i) => {
        const name = b.names[i]
        const partHex = PART_COLORS.find(([re, , kinds]) => kindMatch(kinds) && re.test(name))?.[1]
-@@ -1265,6 +1305,10 @@ export function createAircraftView(kind: VehicleKind, team: TeamId, quality: Qua
+@@ -634,7 +732,7 @@ function buildTemplate(kind: VehicleKind, scene: Object3D): Template {
+   if (metal.geoms.length) buckets.set("metal", metal)
+
+   for (const b of buckets.values()) {
+-    if (b.role !== "glass") continue
++    if (b.role !== "glass" || kind === "speedboat") continue
+     let shared = paintCache.get("glass") ?? null
+     if (!shared) {
+       shared = createGlassMaterial()
+@@ -700,6 +798,7 @@ function buildTemplate(kind: VehicleKind, scene: Object3D): Template {
+   for (const b of sorted) {
+     const merged = b.geoms.length === 1 ? b.geoms[0] : mergeGeometries(b.geoms, false)
+     if (!merged) continue
++    if (kind === "speedboat") merged.userData.sourceMeshes = [...b.names]
+     merged.computeBoundingSphere()
+     if (sphere.isEmpty()) sphere.copy(merged.boundingSphere!)
+     else sphere.union(merged.boundingSphere!)
+@@ -826,6 +925,16 @@ function placeholderGeometry(kind: VehicleKind): BufferGeometry {
+   if (g) return g
+   const { length: L, span: S, heli } = CONFIG[kind].placeholder
+   const parts: BufferGeometry[] = []
++  if (kind === "speedboat") {
++    const hull = new BoxGeometry(S, 0.8, L)
++    const cabin = new BoxGeometry(S * 0.65, 1.2, L * 0.28)
++    cabin.translate(0, 1, 0.8)
++    g = mergeGeometries([hull, cabin], false)!
++    hull.dispose()
++    cabin.dispose()
++    placeholderGeoms.set(kind, g)
++    return g
++  }
+   const r = heli ? 0.9 : L * 0.055
+   const body = new CylinderGeometry(r, r * 0.7, L * 0.62, 12, 1)
+   body.rotateX(Math.PI / 2)
+@@ -1017,6 +1126,27 @@ export function createAircraftView(kind: VehicleKind, team: TeamId, quality: Qua
+   const shadowSize = CONFIG[kind].shadow
+   let isLocal = false
+
++  // Two fixed, flat foam wedges. No trail history, textures or per-frame geometry allocation.
++  const wakes: Mesh<BufferGeometry, MeshBasicNodeMaterial>[] = []
++  if (kind === "speedboat") {
++    const geometry = new BufferGeometry()
++    geometry.setAttribute("position", new Float32BufferAttribute([
++      -0.12, 0, 0, -0.8, 0, 1, 0.8, 0, 1, 0.12, 0, 0,
++    ], 3))
++    geometry.setIndex([0, 1, 2, 0, 2, 3])
++    geometry.computeVertexNormals()
++    const material = new MeshBasicNodeMaterial({ color: "#ffffff", depthWrite: false })
++    for (const side of ["L", "R"]) {
++      const wake = new Mesh(geometry, material)
++      wake.name = `wake_${side}_foam`
++      wake.visible = false
++      wake.matrixAutoUpdate = false
++      wakes.push(wake)
++      root.add(wake)
++    }
++  }
++  const cannonAngles: [number, number] = [0, 0]
++
+   let rig: Rig | null = null
+   let disposed = false
+   const firing = [
+@@ -1265,6 +1395,10 @@ export function createAircraftView(kind: VehicleKind, team: TeamId, quality: Qua
      },
      setLocal(local) {
        isLocal = local
@@ -1082,7 +2162,73 @@ index 8919800..fe5a1a3 100644
      },
      setSpotted(on) {
        spottedTarget = on
-@@ -1391,9 +1435,10 @@ export function createAircraftView(kind: VehicleKind, team: TeamId, quality: Qua
+@@ -1274,12 +1408,13 @@ export function createAircraftView(kind: VehicleKind, team: TeamId, quality: Qua
+       root.position.set(f.position[0], f.position[1], f.position[2])
+       root.quaternion.set(f.orientation[0], f.orientation[1], f.orientation[2], f.orientation[3])
+       root.visible = vehicle.alive
++      for (const wake of wakes) wake.visible = false
+       if (!vehicle.alive) return
+       _v.setFromMatrixPosition(camera.matrixWorld)
+       const dist = _v.distanceTo(root.position)
+       // Remote aircraft grow up to 1.6x between 500 m and 1.5 km so they stay readable at gun range.
+       const k = clamp((dist - 500) / 1000, 0, 1)
+-      root.scale.setScalar(isLocal ? 1 : 1 + 0.6 * k * k * (3 - 2 * k))
++      root.scale.setScalar(isLocal || kind === "speedboat" ? 1 : 1 + 0.6 * k * k * (3 - 2 * k))
+       updateShadow()
+       if (!rig) return
+       updateSpotted(rig, dt)
+@@ -1287,7 +1422,17 @@ export function createAircraftView(kind: VehicleKind, team: TeamId, quality: Qua
+       const t = r.t
+       time += dt
+
+-      const far = dist > FAR_DISTANCE
++      const far = dist > FAR_DISTANCE && kind !== "speedboat"
++      const water = VEHICLES[kind].water
++      const wet = !!water && Math.abs(f.position[1] - WATER_LEVEL - water.waterline) < 0.35
++        && isWater(f.position[0], f.position[2])
++      const planarSpeed = water ? Math.hypot(f.velocity[0], f.velocity[2]) : 0
++      let propDrive = 0
++      if (wet && planarSpeed > 0.05) {
++        _v.copy(_fwd).applyQuaternion(root.quaternion)
++        const along = f.velocity[0] * _v.x + f.velocity[2] * _v.z
++        propDrive = clamp(along / VEHICLES[kind].cruise, -1, 1)
++      }
+
+       const boost = boostHint ?? f.throttle > 0.95
+       const heli = VEHICLES[vehicle.kind].flight === "heli"
+@@ -1312,7 +1457,7 @@ export function createAircraftView(kind: VehicleKind, team: TeamId, quality: Qua
+         for (const sp of cfg.spinners) {
+           const bi = boneAt(r, sp.name)
+           if (bi < 0) continue
+-          const k = sp.driver === "gun" ? gunSpin : spool
++          const k = sp.driver === "prop" ? propDrive : sp.driver === "gun" ? gunSpin : spool
+           r.spinAngles[bi] = (r.spinAngles[bi] + sp.speed * k * dt) % (Math.PI * 2)
+           setBoneAxis(r, bi, sp.axis, r.spinAngles[bi])
+         }
+@@ -1346,14 +1491,19 @@ export function createAircraftView(kind: VehicleKind, team: TeamId, quality: Qua
+           const pi = boneAt(r, cfg.turret.pitch)
+           let yaw = 0
+           let pitch = 0
+-          if (aimTurret && yi >= 0) {
++          if (kind === "speedboat") {
++            deckCannonAngles(f.orientation, aimTurret, cannonAngles)
++            yaw = -cannonAngles[0]
++            pitch = cannonAngles[1]
++          } else if (aimTurret && yi >= 0) {
+             _q.copy(_rootQ).multiply(t.bones[yi].restToRootQ).invert()
+             _aimBody.set(aimTurret[0], aimTurret[1], aimTurret[2]).applyQuaternion(_q)
+             yaw = clamp(Math.atan2(-_aimBody.x, -_aimBody.z), -cfg.turret.yawMax, cfg.turret.yawMax)
+             pitch = clamp(Math.atan2(_aimBody.y, Math.hypot(_aimBody.x, _aimBody.z)), cfg.turret.pitchMin, cfg.turret.pitchMax)
+           }
+-          r.turretYaw = approach(r.turretYaw, yaw, 10, dt)
+-          r.turretPitch = approach(r.turretPitch, pitch, 10, dt)
++          // The boat muzzle must match combat immediately, not lag behind its authoritative aim.
++          r.turretYaw = kind === "speedboat" ? yaw : approach(r.turretYaw, yaw, 10, dt)
++          r.turretPitch = kind === "speedboat" ? pitch : approach(r.turretPitch, pitch, 10, dt)
+           if (yi >= 0) setBoneAxis(r, yi, "y", r.turretYaw)
+           if (pi >= 0) setBoneAxis(r, pi, "x", r.turretPitch)
+         }
+@@ -1391,9 +1541,10 @@ export function createAircraftView(kind: VehicleKind, team: TeamId, quality: Qua
            }
          }
          if (cfg.doors) {
@@ -1095,25 +2241,65 @@ index 8919800..fe5a1a3 100644
            r.doors = approach(r.doors, want, want ? 2.2 : 1.2, dt)
            for (const [n, ang] of d.names) {
              const bi = boneAt(r, n)
+@@ -1419,6 +1570,24 @@ export function createAircraftView(kind: VehicleKind, team: TeamId, quality: Qua
+
+       r.rootBone.updateMatrixWorld(true)
+       updateAnchors(r)
++      if (wet && planarSpeed > 0.3) {
++        const strength = clamp(planarSpeed / VEHICLES[kind].cruise, 0, 1)
++        _rootM.compose(root.position, root.quaternion, root.scale)
++        // Foam stays horizontal at sea level even if the interpolated hull has a small heel.
++        _sb.set(0, 0, 1).applyQuaternion(root.quaternion).setY(0).normalize()
++        _sn.set(0, 1, 0)
++        _sr.crossVectors(_sn, _sb)
++        for (let i = 0; i < wakes.length; i++) {
++          const anchor = anchors.get(i === 0 ? "wake_L" : "wake_R")!
++          _v2.setFromMatrixPosition(anchor.matrix).applyMatrix4(_rootM)
++          _shadowM.makeBasis(_sr, _sn, _sb)
++          _shadowM.scale(_v.set(0.4 + strength, 1, 1 + strength * 9))
++          _shadowM.setPosition(_v2.x, WATER_LEVEL + 0.04, _v2.z)
++          wakes[i].matrix.copy(_rootM).invert().multiply(_shadowM)
++          wakes[i].matrixWorldNeedsUpdate = true
++          wakes[i].visible = true
++        }
++      }
+     },
+     dispose() {
+       disposed = true
+@@ -1431,6 +1600,10 @@ export function createAircraftView(kind: VehicleKind, team: TeamId, quality: Qua
+         rig = null
+       }
+       placeholder = null
++      if (wakes.length) {
++        wakes[0].geometry.dispose()
++        wakes[0].material.dispose()
++      }
+       ;(shadow.material as MeshBasicNodeMaterial).dispose()
+       root.clear()
+     },
 diff --git a/games/wings/src/render/camera.ts b/games/wings/src/render/camera.ts
-index 17739d5..ea5f818 100644
+index 17739d5..1218524 100644
 --- a/games/wings/src/render/camera.ts
 +++ b/games/wings/src/render/camera.ts
-@@ -12,6 +12,8 @@ const COCKPIT: Record<VehicleKind, Vec3> = {
+@@ -12,21 +12,27 @@ const COCKPIT: Record<VehicleKind, Vec3> = {
    warthog: [0, 1.7, -4.4],
    blackbird: [0, 1.6, -9],
    bomber: [0, 2.2, -9],
 +  f15: [0, 1.05, -5.148972972972974],
 +  f35: [0, 1.08, -4.291333333333333],
++  speedboat: VEHICLES.speedboat.water!.eye,
  }
- /** Gunner camera: targeting pod / chin turret position. */
+-/** Gunner camera: targeting pod / chin turret position. */
++/** Gunner camera: targeting pod / chin turret, or the boat passenger's helm eye. */
  const GUNNER: Record<VehicleKind, Vec3> = {
-@@ -20,13 +22,15 @@ const GUNNER: Record<VehicleKind, Vec3> = {
+   fighter: [0, -1.4, -3],
+   apache: [0, -1.3, -4.2],
    warthog: [0, -1.5, -2],
    blackbird: [0, -2.4, -15],
    bomber: [0, -3, -4],
 +  f15: [0, -1.4, -5.148972972972974],
 +  f35: [0, -1.4, -4.291333333333333],
++  speedboat: VEHICLES.speedboat.water!.eye,
  }
  /**
   * Gunner eye placement relative to the optic: metres along the line of sight (clears the own nose/belly)
@@ -1121,17 +2307,19 @@ index 17739d5..ea5f818 100644
   */
 -const GUNNER_LEAD: Record<VehicleKind, number> = { fighter: 9, apache: 2.5, warthog: 8, blackbird: 4, bomber: 3 }
 -const GUNNER_DROP: Record<VehicleKind, number> = { fighter: 1.5, apache: 0.6, warthog: 1.5, blackbird: 1.5, bomber: 2 }
-+const GUNNER_LEAD: Record<VehicleKind, number> = { fighter: 9, apache: 2.5, warthog: 8, blackbird: 4, bomber: 3, f15: 9, f35: 6 }
-+const GUNNER_DROP: Record<VehicleKind, number> = { fighter: 1.5, apache: 0.6, warthog: 1.5, blackbird: 1.5, bomber: 2, f15: 1.5, f35: 1.5 }
++const GUNNER_LEAD: Record<VehicleKind, number> = { fighter: 9, apache: 2.5, warthog: 8, blackbird: 4, bomber: 3, f15: 9, f35: 6, speedboat: 0 }
++const GUNNER_DROP: Record<VehicleKind, number> = { fighter: 1.5, apache: 0.6, warthog: 1.5, blackbird: 1.5, bomber: 2, f15: 1.5, f35: 1.5, speedboat: 0 }
  /** Bomb-sight optical zoom range. */
  export const BOMBSIGHT_MIN_ZOOM = 2
  export const BOMBSIGHT_MAX_ZOOM = 8
-@@ -38,6 +42,12 @@ const CHASE: Record<VehicleKind, { dist: number; height: number }> = {
+@@ -38,6 +44,14 @@ const CHASE: Record<VehicleKind, { dist: number; height: number }> = {
    warthog: { dist: 28, height: 7 },
    blackbird: { dist: 40, height: 9 },
    bomber: { dist: 60, height: 13 },
 +  f15: { dist: 28, height: 6 },
 +  f35: { dist: 25, height: 6 },
++  // Frame the 10 m hull and 3.2 m beam from above the stern.
++  speedboat: { dist: VEHICLES.speedboat.water!.halfLength * 2.6, height: VEHICLES.speedboat.water!.halfBeam * 3 },
 +}
 +// Provisional sight offsets; native cockpit visibility acceptance remains held.
 +const COCKPIT_PITCH: Partial<Record<VehicleKind, number>> = {
@@ -1139,7 +2327,25 @@ index 17739d5..ea5f818 100644
  }
 
  const UP = new Vector3(0, 1, 0)
-@@ -237,7 +247,7 @@ export class CameraRig {
+@@ -196,7 +210,7 @@ export class CameraRig {
+     if (this.pos.y < floor) this.pos.y = floor
+     _v.set(position[0], position[1], position[2]).addScaledVector(lk, 400).addScaledVector(UP, height * 0.6)
+     this.lookAt(this.pos, _v, UP)
+-    this.fov = this.baseFov + Math.min(14, Math.max(0, speed - 80) * 0.06) + boostFov(kind, speed)
++    this.fov = VEHICLES[kind].flight === "water" ? this.baseFov : this.baseFov + Math.min(14, Math.max(0, speed - 80) * 0.06) + boostFov(kind, speed)
+   }
+
+   /**
+@@ -229,7 +243,7 @@ export class CameraRig {
+     _v2.set(0, height * 0.55, -80).applyQuaternion(_q2).add(_v)
+     _up.set(0, 1, 0).applyQuaternion(_q2)
+     this.lookAt(this.pos, _v2, _up)
+-    this.fov = this.baseFov + Math.min(14, Math.max(0, speed - 80) * 0.06) + boostFov(kind, speed)
++    this.fov = VEHICLES[kind].flight === "water" ? this.baseFov : this.baseFov + Math.min(14, Math.max(0, speed - 80) * 0.06) + boostFov(kind, speed)
+   }
+
+   /** Cockpit view locked to the airframe (direct controls), with free-look offsets. */
+@@ -237,7 +251,7 @@ export class CameraRig {
      _q.set(orientation[0], orientation[1], orientation[2], orientation[3])
      const o = COCKPIT[kind]
      this.pos.set(o[0], o[1], o[2]).applyQuaternion(_q).add(_v.set(position[0], position[1], position[2]))
@@ -1148,7 +2354,7 @@ index 17739d5..ea5f818 100644
      this.quat.copy(_q2)
      this.fov = this.baseFov + 6
    }
-@@ -255,6 +265,7 @@ export class CameraRig {
+@@ -255,6 +269,7 @@ export class CameraRig {
      _v2.set(0, 1, 0).applyQuaternion(_q).lerp(UP, 0.35).normalize()
      _v.copy(this.pos).add(look)
      this.lookAt(this.pos, _v, _v2)
@@ -1265,7 +2471,7 @@ index 2e3116f..8f681ce 100644
      const w = window as unknown as Record<string, unknown>
      w.__wingsHost = host
 diff --git a/games/wings/src/sim/bots.ts b/games/wings/src/sim/bots.ts
-index 8f021e3..9e80452 100644
+index 8f021e3..8f847ef 100644
 --- a/games/wings/src/sim/bots.ts
 +++ b/games/wings/src/sim/bots.ts
 @@ -217,12 +217,12 @@ export function botRandom(brain: BotBrain): number {
@@ -1273,30 +2479,96 @@ index 8f021e3..9e80452 100644
  // Vehicle choice
 
 -const KIND_WEIGHT: Record<VehicleKind, number> = { fighter: 3, apache: 2, warthog: 2, blackbird: 1.2, bomber: 0.9 }
-+const KIND_WEIGHT: Record<VehicleKind, number> = { fighter: 3, apache: 2, warthog: 2, blackbird: 1.2, bomber: 0.9, f15: 0, f35: 0 }
++const KIND_WEIGHT: Record<VehicleKind, number> = { fighter: 3, apache: 2, warthog: 2, blackbird: 1.2, bomber: 0.9, f15: 0, f35: 0, speedboat: 0 }
  const KINDS = Object.keys(KIND_WEIGHT) as VehicleKind[]
 
  /** Vehicle kind a bot picks when spawning: weighted random, discouraging kinds the team already flies. */
  export function chooseBotVehicle(bot: PlayerInfo, teammates: PlayerInfo[], vehicles: VehicleEntity[], rng: () => number): VehicleKind {
 -  const counts: Record<VehicleKind, number> = { fighter: 0, apache: 0, warthog: 0, blackbird: 0, bomber: 0 }
-+  const counts: Record<VehicleKind, number> = { fighter: 0, apache: 0, warthog: 0, blackbird: 0, bomber: 0, f15: 0, f35: 0 }
++  const counts: Record<VehicleKind, number> = { fighter: 0, apache: 0, warthog: 0, blackbird: 0, bomber: 0, f15: 0, f35: 0, speedboat: 0 }
    for (const v of vehicles) if (v.alive && v.team === bot.team) counts[v.kind]++
    let total = 0
    for (const k of KINDS) total += kindWeight(k, counts)
 diff --git a/games/wings/src/sim/combat.ts b/games/wings/src/sim/combat.ts
-index 77578c3..2b8f2e7 100644
+index 77578c3..a5d9e13 100644
 --- a/games/wings/src/sim/combat.ts
 +++ b/games/wings/src/sim/combat.ts
-@@ -39,7 +39,7 @@ export const MAX_FLARES = 256
+@@ -22,7 +22,7 @@ import { TICK_DT } from "./types"
+ import { STEALTH_AA_CEILING, STEALTH_LOCK_SPOT, STEALTH_LOCK_TIME, VEHICLES, WEAPONS, type WeaponSpec } from "./vehicles"
+ export { STEALTH_AA_CEILING, STEALTH_LOCK_SPOT, STEALTH_LOCK_TIME }
+ import { BOMB_STEP, bombImpactPoint, stepBomb } from "./flight"
+-import { deckVelocity, fleetState, groundHeight, isWater, posedFleet, posedShip, segmentHitsGround, shipAt, worldQuery } from "./geography"
++import { deckVelocity, fleetState, groundHeight, isWater, posedFleet, posedShip, segmentHitsGround, shipAt, terrainHeight, WATER_LEVEL, worldQuery } from "./geography"
+ import {
+   AA_RANGE, FLEET, SHIP_DAMAGE_SCALE, SHIP_SPECS, SPAWN_PROTECTION, TURRET_HP, shipToWorld, worldToShip, type Ship, type TurretKind,
+ } from "./fleet"
+@@ -39,11 +39,11 @@ export const MAX_FLARES = 256
  /** Damage multiplier while radar-spotted. */
  export const SPOTTED_DAMAGE_MULT = 1.2
  /** Damage taken multiplier per airframe (A-10 titanium bathtub). */
 -export const ARMOR: Record<VehicleKind, number> = { fighter: 1, apache: 1, warthog: 0.8, blackbird: 1, bomber: 1 }
-+export const ARMOR: Record<VehicleKind, number> = { fighter: 1, apache: 1, warthog: 0.8, blackbird: 1, bomber: 1, f15: 1, f35: 1 }
++export const ARMOR: Record<VehicleKind, number> = { fighter: 1, apache: 1, warthog: 0.8, blackbird: 1, bomber: 1, f15: 1, f35: 1, speedboat: 1 }
  /** Per-weapon damage multiplier applied on top of WEAPONS[w].damage. */
  export const WEAPON_DAMAGE_MULT: Record<WeaponId, number> = {
    cannon20: 1.35, chaingun30: 1.1, gau8: 0.8, rockets: 1, aim9: 1, tvmissile: 1, hellfire: 1, maverick: 1,
-@@ -444,7 +444,12 @@ export function muzzlePosition(vehicle: VehicleEntity, seat: SeatIndex, weapon:
+-  aim47: 1, radarpulse: 0, bomb: 1,
++  aim47: 1, radarpulse: 0, bomb: 1, deckcannon: 1, depthcharge: 1,
+ }
+
+ /** Bomb fins: max lateral acceleration (m/s²) and total steering delta-v budget per bomb (m/s). */
+@@ -92,6 +92,7 @@ export const MISSILE_TUNING: Partial<Record<WeaponId, MissileTuning>> = {
+
+ /** Turret arcs in the vehicle body frame (rad). Yaw 0 = nose, elevation 0 = horizon. */
+ export const TURRET_ARCS: Partial<Record<WeaponId, { yaw: number; minEl: number; maxEl: number }>> = {
++  deckcannon: { yaw: (100 * Math.PI) / 180, minEl: (-5 * Math.PI) / 180, maxEl: (35 * Math.PI) / 180 },
+   chaingun30: { yaw: (110 * Math.PI) / 180, minEl: (-85 * Math.PI) / 180, maxEl: (12 * Math.PI) / 180 },
+ }
+
+@@ -407,6 +408,23 @@ export function damageFor(weapon: WeaponId, target: VehicleEntity, now: number):
+ }
+
+ const _gim: Vec3 = [0, 0, 0]
++const _deckAim: Vec3 = [0, 0, 0]
++const _deckAngles: [number, number] = [0, 0]
++
++/** Body-relative [yaw-right, elevation-up] in radians, clamped to the deck cannon arc.
++ * Renderer: local yaw-node rotation.y = -out[0], pitch-node rotation.x = out[1].
++ * World aim is optional (null/zero means forward); writes and returns caller-owned out.
++ */
++export function deckCannonAngles(q: Quat, aim: Vec3 | null, out: [number, number]): [number, number] {
++  out[0] = 0; out[1] = 0
++  if (!aim) return out
++  rotateInv(q, aim[0], aim[1], aim[2], _deckAim)
++  if (!normalizeInto(_deckAim, _deckAim)) return out
++  const arc = TURRET_ARCS.deckcannon!
++  out[0] = Math.max(-arc.yaw, Math.min(arc.yaw, Math.atan2(_deckAim[0], -_deckAim[2])))
++  out[1] = Math.max(arc.minEl, Math.min(arc.maxEl, Math.asin(Math.max(-1, Math.min(1, _deckAim[1])))))
++  return out
++}
+
+ /**
+  * Firing direction for a weapon. Turret guns: seat aim clamped to the turret arc. Pilot guns and rockets
+@@ -416,6 +434,10 @@ const _gim: Vec3 = [0, 0, 0]
+ export function weaponDirection(vehicle: VehicleEntity, weapon: WeaponId, aim: Vec3 | null, out: Vec3): Vec3 {
+   const q = vehicle.flight.orientation
+   const spec = WEAPONS[weapon]
++  if (weapon === "deckcannon") {
++    const [yaw, el] = deckCannonAngles(q, aim, _deckAngles)
++    return rotate(q, Math.sin(yaw) * Math.cos(el), Math.sin(el), -Math.cos(yaw) * Math.cos(el), out)
++  }
+   if (!spec.turret && aim && (spec.kind === "gun" || spec.kind === "rockets")) {
+     rotate(q, 0, 0, -1, out)
+     if (!normalizeInto(aim, _gim)) return out
+@@ -439,12 +461,30 @@ export function weaponDirection(vehicle: VehicleEntity, weapon: WeaponId, aim: V
+   return rotate(q, out[0], out[1], out[2], out)
+ }
+
+-/** World-space muzzle / launch position. `hardpoint` alternates missile/rocket rails (0/1). */
+-export function muzzlePosition(vehicle: VehicleEntity, seat: SeatIndex, weapon: WeaponId, out: Vec3, hardpoint = 0): Vec3 {
++/** World-space muzzle / launch position. `hardpoint` alternates missile/rocket rails (0/1).
++ * Deck cannon uses `aim` (defaults to stored seat aim); null points forward in the hull frame.
++ */
++export function muzzlePosition(vehicle: VehicleEntity, seat: SeatIndex, weapon: WeaponId, out: Vec3, hardpoint = 0, aim = vehicle.aim[seat]): Vec3 {
    const r = VEHICLES[vehicle.kind].radius
    const spec = WEAPONS[weapon]
    const p = vehicle.flight.position
@@ -1304,14 +2576,148 @@ index 77578c3..2b8f2e7 100644
 +  const hardpoints = VEHICLES[vehicle.kind].hardpoints
 +  const point = hardpoints && (spec.kind === "gun" ? hardpoints.gun
 +    : spec.kind === "missile_lock" || spec.kind === "missile_scanner" ? hardpoints.missiles[seat][hardpoint % 2 === 0 ? 0 : 1] : undefined)
-+  if (point) {
++  const water = VEHICLES[vehicle.kind].water
++  if (water && weapon === "deckcannon") {
++    const [yaw, el] = deckCannonAngles(vehicle.flight.orientation, aim, _deckAngles)
++    const tip = water.gunTip, pivot = water.gunPivot
++    // Pitch about +X, then yaw about -Y, then the complete hull pose.
++    const y = tip[1] * Math.cos(el) - tip[2] * Math.sin(el)
++    const z = tip[1] * Math.sin(el) + tip[2] * Math.cos(el)
++    rotate(vehicle.flight.orientation, pivot[0] + tip[0] * Math.cos(yaw) - z * Math.sin(yaw),
++      pivot[1] + y, pivot[2] + tip[0] * Math.sin(yaw) + z * Math.cos(yaw), out)
++  } else if (water && weapon === "depthcharge") {
++    rotate(vehicle.flight.orientation, water.stern[0], water.stern[1], water.stern[2], out)
++  } else if (point) {
 +    rotate(vehicle.flight.orientation, point[0], point[1], point[2], out)
 +  } else if (spec.kind === "gun") {
      if (spec.turret) rotate(vehicle.flight.orientation, 0, -1.6, -r * 0.55, out)
      else rotate(vehicle.flight.orientation, 0, 0, -r * 0.8, out)
    } else {
+@@ -663,6 +703,7 @@ export function applySeatInput(
+     if (protectedNow) continue
+     if (spec.kind === "gun" || spec.kind === "rockets") fireBallistic(cs, vehicle, seat, spec, rt, aim, now, events, viewDelayOf(input))
+     else if (spec.kind === "bomb") fireBomb(cs, vehicle, seat, spec, rt, now, events)
++    else if (spec.kind === "depthcharge") fireDepthCharge(cs, vehicle, seat, spec, rt, now, events)
+     else fireMissile(cs, vehicle, seat, spec, rt, now, events)
+   }
+ }
+@@ -786,11 +827,11 @@ function fireBallistic(
+     weaponDirection(vehicle, spec.id, aim, _dir)
+     applySpread(_dir, spec.spread ?? 0, id)
+     const hp = spec.kind === "rockets" ? launchedHardpoint(spec.id, rt.ammo - 1) : 0
+-    muzzlePosition(vehicle, seat, spec.id, _muz, hp)
++    muzzlePosition(vehicle, seat, spec.id, _muz, hp, aim)
+     const vx = sv[0] + _dir[0] * spec.speed, vy = sv[1] + _dir[1] * spec.speed, vz = sv[2] + _dir[2] * spec.speed
+-    // Spawned one tick "behind" so this tick's stepCombat sweeps it from (muzzle - v·dt) to the muzzle in
+-    // lockstep with vehicles that already moved; `back` also staggers rounds fired earlier within the tick.
+-    const back = now - rt.readyAt - TICK_DT
++    // Deck rounds start at the actual muzzle, never across an obstruction behind it.
++    // Other ballistics retain their one-tick backdating and within-tick staggering.
++    const back = spec.id === "deckcannon" ? 0 : now - rt.readyAt - TICK_DT
+     const proj: ProjectileExt = {
+       id, weapon: spec.id, owner: ownerOf(vehicle, seat), vehicle: vehicle.id, team: vehicle.team,
+       position: [_muz[0] + vx * back, _muz[1] + vy * back, _muz[2] + vz * back],
+@@ -802,9 +843,10 @@ function fireBallistic(
+     rt.readyAt += interval
+     fired++
+     if (spec.kind === "rockets") events.push({ type: "fire", vehicle: vehicle.id, seat, weapon: spec.id, hardpoint: hp })
++    else if (spec.id === "deckcannon") events.push({ type: "fire", vehicle: vehicle.id, seat, weapon: spec.id })
+   }
+-  // Guns: one `fire` event at burst start and every 0.25 s while firing (clients loop audio ~0.3 s).
+-  if (fired > 0 && spec.kind === "gun" && (burstStart || Math.floor(now * 4) !== Math.floor((now - TICK_DT) * 4))) {
++  // Rotary guns: one `fire` event at burst start and every 0.25 s (clients loop audio ~0.3 s).
++  if (fired > 0 && spec.kind === "gun" && spec.id !== "deckcannon" && (burstStart || Math.floor(now * 4) !== Math.floor((now - TICK_DT) * 4))) {
+     events.push({ type: "fire", vehicle: vehicle.id, seat, weapon: spec.id })
+   }
+ }
+@@ -830,6 +872,66 @@ function fireBomb(cs: CombatState, vehicle: VehicleEntity, seat: SeatIndex, spec
+   events.push({ type: "fire", vehicle: vehicle.id, seat, weapon: spec.id })
+ }
+
++/** Releases need open water; submerged charges ignore passing hulls, never land or seabed. */
++function chargeWater(p: Vec3, submerged = false): boolean {
++  return Math.abs(p[0]) < worldQuery.half && Math.abs(p[2]) < worldQuery.half
++    && (submerged || isWater(p[0], p[2])) && terrainHeight(p[0], p[2]) < Math.min(WATER_LEVEL, p[1])
++}
++
++function fireDepthCharge(cs: CombatState, vehicle: VehicleEntity, seat: SeatIndex, spec: WeaponSpec, rt: WeaponRuntime, now: number, events: GameEvent[]): void {
++  if (rt.readyAt > now || (rt.ammo >= 0 && rt.ammo < 1) || cs.projectiles.length >= MAX_PROJECTILES) return
++  const hull = VEHICLES[vehicle.kind].water
++  if (!hull || hull.stern[2] <= hull.halfLength || !chargeWater(vehicle.flight.position)) return
++  muzzlePosition(vehicle, seat, spec.id, _muz)
++  if (!chargeWater(_muz)) return
++  const s = hull.stern, a = vehicle.flight.angularVelocity, v = vehicle.flight.velocity
++  // Tangential stern velocity (body angular velocity cross local anchor), plus aft ejection.
++  rotate(vehicle.flight.orientation, a[1] * s[2] - a[2] * s[1],
++    a[2] * s[0] - a[0] * s[2], a[0] * s[1] - a[1] * s[0] + spec.speed, _dir)
++  cs.projectiles.push({
++    id: cs.nextId++, weapon: spec.id, owner: ownerOf(vehicle, seat), vehicle: vehicle.id, team: vehicle.team,
++    position: [..._muz], velocity: [v[0] + _dir[0], _dir[1], v[2] + _dir[2]], age: 0, ttl: spec.ttl,
++  })
++  consumeAmmo(rt, now)
++  rt.readyAt = now + 1 / spec.rate
++  events.push({ type: "fire", vehicle: vehicle.id, seat, weapon: spec.id })
++}
++
++/** Returns false when spent or stranded. Wet state is entirely position-derived for snapshots. */
++function stepDepthCharge(cs: CombatState, p: Projectile, vehicles: VehicleEntity[], dt: number, now: number, events: GameEvent[]): boolean {
++  const pos = p.position, vel = p.velocity
++  let left = dt
++  while (left > 1e-9) {
++    if (!chargeWater(pos, pos[1] <= WATER_LEVEL)) return false
++    const h = Math.min(TICK_DT, left)
++    if (pos[1] <= WATER_LEVEL) {
++      const drag = Math.exp(-2 * h)
++      vel[0] *= drag; vel[2] *= drag
++      vel[1] = -2 + (vel[1] + 2) * drag
++    } else vel[1] -= ROCKET_GRAVITY * h
++    pos[0] += vel[0] * h; pos[1] += vel[1] * h; pos[2] += vel[2] * h
++    left -= h
++  }
++  if (!chargeWater(pos, pos[1] <= WATER_LEVEL)) return false
++  if (p.age < 2 - 1e-9) return true
++  // A fuse that expires above the water is inert, not an airborne bomb.
++  if (pos[1] > WATER_LEVEL) return false
++  const spec = WEAPONS[p.weapon]
++  splash(pos, p.weapon, p.owner, p.team, p.vehicle, null, vehicles, now, events)
++  for (const sh of posedFleet()) {
++    if (sh.team === p.team || sh.team >= fleetState().teams) continue
++    const sp = SHIP_SPECS[sh.kind]
++    toShipLocal(sh, pos, _sl0)
++    const dx = Math.max(0, Math.abs(_sl0[0]) - sp.halfWidth)
++    const dz = Math.max(0, Math.abs(_sl0[2]) - sp.halfLength)
++    const dy = Math.max(0, -15 - _sl0[1], _sl0[1] - sp.deckHeight)
++    const d = Math.hypot(dx, dy, dz)
++    if (d < spec.splash) damageShip(cs, sh.id, shipDamageFor(p.weapon) * (1 - d / spec.splash), p.owner, p.team, pos, now, events)
++  }
++  pushExplosion(events, pos, spec.splash, "water")
++  return false
++}
++
+ /** Bomb impact: ships take direct (or near-miss) damage, aircraft splash, craters on land, splash in water. */
+ function bombImpact(cs: CombatState, p: Projectile, pos: Vec3, directShip: Ship | null, vehicles: VehicleEntity[], now: number, events: GameEvent[]): void {
+   const spec = WEAPONS[p.weapon]
+@@ -1074,6 +1176,10 @@ function stepProjectiles(cs: CombatState, vehicles: VehicleEntity[], dt: number,
+     p.age += dt
+     if (p.age > p.ttl) continue
+     const spec = WEAPONS[p.weapon]
++    if (spec.kind === "depthcharge") {
++      if (p.age < p.ttl && stepDepthCharge(cs, p, vehicles, dt, now, events)) list[w++] = p
++      continue
++    }
+     if (spec.kind === "bomb") {
+       stepBombProjectile(cs, p, vehicles, dt, now, events)
+       if (p.age >= 0) list[w++] = p
+@@ -1621,6 +1727,7 @@ export function shipRuntime(cs: CombatState, id: string): ShipRuntime | null {
+
+ /** Ship damage for a weapon (base damage × SHIP_DAMAGE_SCALE[kind]). */
+ export function shipScale(weapon: WeaponId): number {
++  if (weapon === "depthcharge") return 1
+   const spec = WEAPONS[weapon]
+   return spec ? SHIP_DAMAGE_SCALE[spec.kind] ?? 0 : 0
+ }
 diff --git a/games/wings/src/sim/flight.ts b/games/wings/src/sim/flight.ts
-index 85b96d5..4922fc4 100644
+index 85b96d5..57c7dcd 100644
 --- a/games/wings/src/sim/flight.ts
 +++ b/games/wings/src/sim/flight.ts
 @@ -143,7 +143,7 @@ interface HeliHandling {
@@ -1319,7 +2725,7 @@ index 85b96d5..4922fc4 100644
  // bleed, softened gravity along the path), and the turn rate peaks at the sweet spot ("corner") speed
  // — throttle back to turn tighter.
 -const JET: Record<Exclude<VehicleKind, "apache">, JetHandling> = {
-+const ORIGINAL_JET: Record<Exclude<VehicleKind, "apache" | "f15" | "f35">, JetHandling> = {
++const ORIGINAL_JET: Record<Exclude<VehicleKind, "apache" | "f15" | "f35" | "speedboat">, JetHandling> = {
    fighter: {
      thrust: 20, throttleRate: 0.7,
      cornerSpeed: 92, cornerRate: 1.1, minRateFrac: 0.35, pushFrac: 0.6, rollRate: 4.0, yawRate: 0.44, rollRef: 70, yawTurnRate: 0.96, yawBank: 30 * DEG,
@@ -1328,7 +2734,7 @@ index 85b96d5..4922fc4 100644
  }
 
 +// Same fixed-wing model and stall/collision rules; modest silhouette-based arcade tuning.
-+const JET: Record<Exclude<VehicleKind, "apache">, JetHandling> = {
++const JET: Record<Exclude<VehicleKind, "apache" | "speedboat">, JetHandling> = {
 +  ...ORIGINAL_JET,
 +  f15: {
 +    ...ORIGINAL_JET.fighter,
@@ -1345,11 +2751,188 @@ index 85b96d5..4922fc4 100644
  const HELI: Record<"apache", HeliHandling> = {
    apache: {
      collectiveRate: 0.8, collectiveReturn: 1.5, altitudeHold: 1.5, cushion: 3, cushionHeight: 10,
+@@ -325,6 +340,11 @@ function basis(q: Quat): void {
+ // ---------------------------------------------------------------------------------------------
+
+ export function createFlightState(kind: VehicleKind, spawn: SpawnPoint): FlightState {
++  if (VEHICLES[kind].flight === "water") return {
++    kind, position: [spawn.position[0], WATER_LEVEL + VEHICLES[kind].water!.waterline, spawn.position[2]],
++    velocity: [0, 0, 0], orientation: quatFromYaw(spawn.yaw), angularVelocity: [0, 0, 0],
++    throttle: 0, onGround: false, gearDown: false, crashed: null, tick: 0,
++  }
+   const heli = VEHICLES[kind].flight === "heli"
+   const orientation: Quat = [0, 0, 0, 1]
+   setYawPitchRoll(orientation, spawn.yaw, 0, 0)
+@@ -348,6 +368,10 @@ export function stepFlight(state: FlightState, input: FlightInput, dt: number, w
+   if (state.crashed) return
+   state.tick++
+   const spec = VEHICLES[state.kind]
++  if (spec.flight === "water") {
++    stepBoat(state, input, dt, world)
++    return
++  }
+
+   // Sanitize aim into AIM (unit), or mark absent.
+   let hasAim = false
+@@ -364,7 +388,96 @@ export function stepFlight(state: FlightState, input: FlightInput, dt: number, w
+     if (hasAim) stepHeliAim(state, input, dt, world, HELI[state.kind as "apache"])
+     else stepHeliDirect(state, input, dt, world, HELI_DIRECT[state.kind as "apache"])
+   }
+-  else stepJet(state, input, hasAim, dt, world, spec, JET[state.kind as Exclude<VehicleKind, "apache">])
++  else stepJet(state, input, hasAim, dt, world, spec, JET[state.kind as Exclude<VehicleKind, "apache" | "speedboat">])
++}
++
++/** Hull test for spawn and motion. World x/z in meters; yaw in radians, 0 = -Z, positive = left.
++ * For a FlightState use position[0], position[2], yawPitchRoll(orientation).yaw.
++ * Samples the whole footprint including corners; optional seabedHeight adds draft clearance.
++ */
++export function boatNavigable(world: WorldQuery, x: number, z: number, yaw: number): boolean {
++  return boatHullClear(world, x, z, yaw, false)
++}
++
++/** The same footprint stencil checks navigation or raised solids over otherwise deep water. */
++function boatHullClear(world: WorldQuery, x: number, z: number, yaw: number, raisedOnly: boolean): boolean {
++  if (raisedOnly && !world.seabedHeight) return true // Without raw terrain, ships and shores are indistinguishable.
++  if (!Number.isFinite(x) || !Number.isFinite(z) || !Number.isFinite(yaw)) return false
++  const hull = VEHICLES.speedboat.water!
++  const stride = Math.min(hull.draft, hull.halfBeam)
++  const nx = 2 * Math.ceil(hull.halfBeam / stride), nz = 2 * Math.ceil(hull.halfLength / stride)
++  const c = Math.cos(yaw), s = Math.sin(yaw)
++  for (let ix = 0; ix <= nx; ix++) {
++    const lx = -hull.halfBeam + 2 * hull.halfBeam * ix / nx
++    for (let iz = 0; iz <= nz; iz++) {
++      const lz = -hull.halfLength + 2 * hull.halfLength * iz / nz
++      const px = x + c * lx + s * lz, pz = z - s * lx + c * lz
++      if (raisedOnly) {
++        if (world.groundHeight(px, pz) > WATER_LEVEL && WATER_LEVEL - world.seabedHeight!(px, pz) >= hull.draft) return false
++        continue
++      }
++      if (!(Math.abs(px) < world.half && Math.abs(pz) < world.half)) return false
++      if (!(world.isWater ? world.isWater(px, pz) : world.groundHeight(px, pz) <= WATER_LEVEL)) return false
++      if (world.seabedHeight && !(WATER_LEVEL - world.seabedHeight(px, pz) >= hull.draft)) return false
++    }
++  }
++  return true
++}
++
++function stepBoat(s: FlightState, inp: FlightInput, dt: number, world: WorldQuery): void {
++  const p = s.position, v = s.velocity, q = s.orientation, w = s.angularVelocity
++  const spec = VEHICLES.speedboat, hull = spec.water!
++  basis(q)
++  let yaw = Math.atan2(-F[0], -F[2])
++  // Spawn and accepted motion are navigable. A raised solid over deep seabed at this unchanged
++  // pose means the world intruded since then. Crash before steering can escape through its hull;
++  // shallow draft/shore blocking still uses the reversible slide below.
++  if (!boatHullClear(world, p[0], p[2], yaw, true)) {
++    s.crashed = "terrain"
++    return
++  }
++  const fx = -Math.sin(yaw), fz = -Math.cos(yaw), rx = Math.cos(yaw), rz = -Math.sin(yaw)
++  let along = v[0] * fx + v[2] * fz
++  let lateral = v[0] * rx + v[2] * rz
++  // Signed propulsion is held, not latched. Boost, pitch, roll and aim never supply lift or thrust.
++  s.throttle = inp.brake ? 0 : axis(inp.throttle)
++  along += (s.throttle * 6 - along * (0.08 + 0.12 * Math.abs(along) / spec.cruise)) * dt
++  along = clamp(along, -7, spec.cruise)
++  lateral *= Math.exp(-2.5 * dt)
++  if (inp.brake) {
++    const dec = 10 * dt
++    along = Math.sign(along) * Math.max(0, Math.abs(along) - dec)
++    lateral = Math.sign(lateral) * Math.max(0, Math.abs(lateral) - dec)
++  }
++  v[0] = fx * along + rx * lateral
++  v[2] = fz * along + rz * lateral
++  const speed = Math.hypot(v[0], v[2]), limit = along < 0 ? 7 : spec.cruise
++  if (speed > limit) { v[0] *= limit / speed; v[2] *= limit / speed }
++  w[0] = w[2] = 0
++  w[1] = -axis(inp.yaw) * 0.8 * clamp(along / 7, -1, 1)
++  // Sweep translation and the rotating hull tips, not just the center's destination.
++  const stride = Math.min(hull.draft, hull.halfBeam) * 0.5
++  const steps = Math.max(1, Math.ceil((Math.hypot(v[0], v[2]) + Math.abs(w[1]) * Math.hypot(hull.halfLength, hull.halfBeam)) * dt / stride))
++  const h = dt / steps
++  for (let i = 0; i < steps; i++) {
++    const nextYaw = yaw + w[1] * h
++    if (boatNavigable(world, p[0], p[2], nextYaw)) yaw = nextYaw
++    else w[1] = 0
++    // Axis sliding removes blocked inward velocity, but a later reverse input can escape.
++    const x = p[0] + v[0] * h
++    if (boatNavigable(world, x, p[2], yaw)) p[0] = x
++    else v[0] = 0
++    const z = p[2] + v[2] * h
++    if (boatNavigable(world, p[0], z, yaw)) p[2] = z
++    else v[2] = 0
++  }
++  setYawPitchRoll(q, yaw, 0, 0)
++  // Overdamped buoyancy: converge without overshoot, terrain climbing or deck velocity.
++  const error = WATER_LEVEL + hull.waterline - p[1]
++  v[1] = dt > 0 ? clamp(error * (1 - Math.exp(-4 * dt)) / dt, -2, 2) : 0
++  p[1] += v[1] * dt
++  s.onGround = false
++  s.gearDown = false
+ }
+
+ /** Thin-air factor: 1 below ceiling-400 m, 0 at the ceiling. */
+@@ -984,7 +1097,7 @@ export function flightReadout(state: FlightState, world?: WorldQuery) {
+   const { yaw, pitch, roll } = yawPitchRoll(state.orientation)
+   let heading = (-yaw / DEG) % 360
+   if (heading < 0) heading += 360
+-  const gearHeight = VEHICLES[state.kind].flight === "heli" ? HELI.apache.gearHeight : JET[state.kind as Exclude<VehicleKind, "apache">].gearHeight
++  const gearHeight = VEHICLES[state.kind].flight === "water" ? 0 : VEHICLES[state.kind].flight === "heli" ? HELI.apache.gearHeight : JET[state.kind as Exclude<VehicleKind, "apache" | "speedboat">].gearHeight
+   return {
+     speed: Math.hypot(v[0], v[1], v[2]),
+     altitude: p[1],
+diff --git a/games/wings/src/sim/geography.ts b/games/wings/src/sim/geography.ts
+index a4742a9..8edd63c 100644
+--- a/games/wings/src/sim/geography.ts
++++ b/games/wings/src/sim/geography.ts
+@@ -866,4 +866,4 @@ function segmentHitsTerrain(a: Vec3, b: Vec3): number | null {
+   return null
+ }
+
+-export const worldQuery: WorldQuery = { groundHeight, onRunway, isWater, half: WORLD_HALF, ceiling: CEILING }
++export const worldQuery: WorldQuery = { groundHeight, onRunway, isWater, seabedHeight: terrainHeight, half: WORLD_HALF, ceiling: CEILING }
 diff --git a/games/wings/src/sim/room-engine.ts b/games/wings/src/sim/room-engine.ts
-index 020cfee..40c6241 100644
+index 020cfee..0484038 100644
 --- a/games/wings/src/sim/room-engine.ts
 +++ b/games/wings/src/sim/room-engine.ts
-@@ -644,7 +644,7 @@ export class RoomEngine {
+@@ -8,13 +8,14 @@ import type {
+ } from "./types"
+ import { SNAPSHOT_RATE, TICK_DT, TICK_RATE } from "./types"
+ import { VEHICLES, VEHICLE_KINDS } from "./vehicles"
+-import { NEUTRAL_INPUT, createFlightState, stepFlight } from "./flight"
++import { NEUTRAL_INPUT, boatNavigable, createFlightState, stepFlight, yawPitchRoll } from "./flight"
+ import {
+   applySeatInput, applyTurretInput, createCombatState, createWeapons, isHiddenStealth, killVehicle, markSpawned, shipRuntime, stepCombat,
+   turretOperational,
+ } from "./combat"
+ import type { CombatState } from "./combat"
+-import { carrierOf, deckVelocity, posedFleet, posedShip, setFleetState, setShipStates, spawnPoint, worldQuery as baseWorldQuery } from "./geography"
++import { WATER_LEVEL, carrierOf, deckVelocity, posedFleet, posedShip, setFleetState, setShipStates, spawnPoint, worldQuery as baseWorldQuery } from "./geography"
++import type { SpawnPoint } from "./geography"
+ import { FLEET, SHIP_SPECS, SPAWN_PROTECTION, shipToWorld, worldToShip } from "./fleet"
+ import { botInput, chooseBotVehicle, createBotBrain } from "./bots"
+ import type { BotBrain } from "./bots"
+@@ -70,6 +71,10 @@ export const STEALTH_VISUAL_RANGE = 800
+ /** Cap on client-reported view delay used for lag-compensated hits (seconds). */
+ export const MAX_VIEW_DELAY = 0.3
+ const SPAWN_SLOTS = 16
++const BOAT_CLEARANCE = 4
++const BOAT_RETURN_RANGE = 100
++const BOAT_RETURN_SPEED = 3
++const BOAT_SPAWN_ERROR = "No clear water launch beside your surviving carriers."
+
+ function newJitterBuffer(): JitterBuffer {
+   return {
+@@ -454,7 +459,7 @@ export class RoomEngine {
+       const bot = p.info
+       if (!bot.bot || p.leaving || bot.vehicleId || now < bot.respawnAt) continue
+       const ride = this.vehicles.find(v => {
+-        if (!v.alive || v.team !== bot.team || v.seats[1] || !v.seats[0]) return false
++        if (!v.alive || VEHICLES[v.kind].flight === "water" || v.team !== bot.team || v.seats[1] || !v.seats[0]) return false
+         const pilot = this.players.get(v.seats[0])
+         return !!pilot && !pilot.info.bot && now - this.meta.get(v.id)!.gunnerEmptySince >= BOT_GUNNER_DELAY
+       })
+@@ -644,12 +649,14 @@ export class RoomEngine {
    }
 
    private onSpawn(p: PlayerState, kind: unknown): void {
@@ -1358,21 +2941,204 @@ index 020cfee..40c6241 100644
      if (this.matchEndedAt !== null) return this.error(p.info.id, "Match over — next round starting soon.")
      if (this.time < p.info.respawnAt) return this.error(p.info.id, "Respawn not ready.")
      const current = this.vehicleOf(p.info)
+     if (current && current.alive && !this.canLeave(current)) return this.error(p.info.id, "Return to base to change aircraft.")
+     if (!this.spawnCarrier(p.info.team)) return this.error(p.info.id, "Your carriers have been sunk.")
++    // Preflight before relinquishing a seat or turret. The synchronous spawn repeats the same query.
++    if (VEHICLES[kind as VehicleKind].flight === "water" && !this.waterSpawn(p.info.team)) return this.error(p.info.id, BOAT_SPAWN_ERROR)
+     this.vacate(p.info)
+     this.leaveTurret(p.info)
+     this.spawnVehicle(p.info, kind as VehicleKind)
+@@ -705,13 +712,42 @@ export class RoomEngine {
+     return { ...sp, position: shipToWorld(other, local), yaw: sp.yaw + other.heading - primary.heading }
+   }
+
+-  /** Create a vehicle at the team's base with `player` in the pilot seat. */
++  /** Bounded water launches on both sides of every surviving friendly carrier. */
++  private waterSpawn(team: TeamId): SpawnPoint | null {
++    this.syncFleet()
++    const spec = VEHICLES.speedboat
++    const hull = SHIP_SPECS.carrier
++    for (const sh of FLEET) {
++      if (sh.team !== team || sh.kind !== "carrier" || shipRuntime(this.combat, sh.id)?.sunk !== false) continue
++      const carrier = posedShip(sh.id)
++      if (!carrier) continue
++      for (let i = 0; i < SPAWN_SLOTS; i++) {
++        const side = i % 2 === 0 ? -1 : 1
++        const z = -hull.halfLength + spec.radius + BOAT_CLEARANCE
++          + Math.floor(i / 2) * (2 * (hull.halfLength - spec.radius - BOAT_CLEARANCE) / (SPAWN_SLOTS / 2 - 1))
++        const position = shipToWorld(carrier, [side * (hull.halfWidth + spec.radius + BOAT_CLEARANCE), 0, z])
++        position[1] = WATER_LEVEL + spec.water!.waterline
++        // shipToWorld and flight yaw both rotate -Z toward -X for positive yaw.
++        if (!boatNavigable(worldQuery, position[0], position[2], carrier.heading)) continue
++        if (this.vehicles.some(v => v.alive && Math.hypot(
++          v.flight.position[0] - position[0], v.flight.position[1] - position[1], v.flight.position[2] - position[2],
++        ) < spec.radius + VEHICLES[v.kind].radius + BOAT_CLEARANCE)) continue
++        return { position, yaw: carrier.heading, onGround: false }
++      }
++    }
++    return null
++  }
++
++  /** Create a vehicle at the team's base with `player` in the pilot seat. Water failure leaves it untouched. */
+   spawnVehicle(player: PlayerInfo, kind: VehicleKind): VehicleEntity {
+     // Spawns (and respawns) always use the carrier's current pose.
+     this.syncFleet()
+     const team = player.team
++    const water = VEHICLES[kind].flight === "water"
++    const waterSpawn = water ? this.waterSpawn(team) : null
++    if (water && !waterSpawn) throw new Error(BOAT_SPAWN_ERROR)
+     let index = 0
+-    for (let i = 0; i < SPAWN_SLOTS; i++) {
++    for (let i = 0; !water && i < SPAWN_SLOTS; i++) {
+       const sp = this.spawnAt(team, kind, i).position
+       const blocked = this.vehicles.some(v => v.alive && Math.hypot(v.flight.position[0] - sp[0], v.flight.position[1] - sp[1], v.flight.position[2] - sp[2]) < 25)
+       if (!blocked) { index = i; break }
+@@ -720,7 +756,7 @@ export class RoomEngine {
+     const spec = VEHICLES[kind]
+     const v: VehicleEntity = {
+       id: `v${this.nextId++}`, kind, team,
+-      flight: createFlightState(kind, this.spawnAt(team, kind, index % SPAWN_SLOTS)),
++      flight: createFlightState(kind, waterSpawn ?? this.spawnAt(team, kind, index % SPAWN_SLOTS)),
+       hp: spec.maxHp, maxHp: spec.maxHp,
+       seats: [player.id, null], aim: [null, null], weapons: createWeapons(kind),
+       flaresReadyAt: 0, flareCount: spec.flares, abilityReadyAt: 0, spottedUntil: 0, lastDamagedBy: null, alive: true,
+@@ -731,7 +767,10 @@ export class RoomEngine {
+     player.vehicleId = v.id
+     player.seat = 0
+     const ps = this.players.get(player.id)
+-    if (ps) { ps.flight = NEUTRAL_INPUT; ps.seat = NEUTRAL_SEAT }
++    if (ps) {
++      ps.flight = NEUTRAL_INPUT; ps.seat = NEUTRAL_SEAT
++      if (water) ps.queue.length = 0
++    }
+     return v
+   }
+
+@@ -779,7 +818,10 @@ export class RoomEngine {
+     player.seat = seat
+     if (seat === 1) { const meta = this.meta.get(v.id); if (meta) meta.gunnerEmptySince = Infinity }
+     const ps = this.players.get(player.id)
+-    if (ps) { ps.flight = NEUTRAL_INPUT; ps.seat = NEUTRAL_SEAT }
++    if (ps) {
++      ps.flight = NEUTRAL_INPUT; ps.seat = NEUTRAL_SEAT
++      if (VEHICLES[v.kind].flight === "water") ps.queue.length = 0
++    }
+   }
+
+   /** Remove a player from whatever seat they hold. */
+@@ -793,18 +835,39 @@ export class RoomEngine {
+     player.vehicleId = null
+     player.seat = null
+     const ps = this.players.get(player.id)
+-    if (ps) { ps.flight = NEUTRAL_INPUT; ps.seat = NEUTRAL_SEAT }
++    if (ps) {
++      ps.flight = NEUTRAL_INPUT; ps.seat = NEUTRAL_SEAT
++      if (v && VEHICLES[v.kind].flight === "water") ps.queue.length = 0
++    }
+   }
+
+   private vehicleOf(player: PlayerInfo): VehicleEntity | undefined {
+     return player.vehicleId ? this.vehicles.find(v => v.id === player.vehicleId) : undefined
+   }
+
+-  /** Crew may leave/swap aircraft only on their carrier deck or during spawn protection. */
++  /** Boats return in nearby water; aircraft retain deck/protection rules. */
+   private canLeave(v: VehicleEntity): boolean {
++    if (VEHICLES[v.kind].flight === "water") return this.atBoatBase(v)
+     return this.onOwnDeck(v) || this.time - (v.spawnedAt ?? -Infinity) < SPAWN_PROTECTION
+   }
+
++  private atBoatBase(v: VehicleEntity): boolean {
++    if (!v.alive || v.flight.crashed || Math.hypot(...v.flight.velocity) > BOAT_RETURN_SPEED) return false
++    const p = v.flight.position, yaw = yawPitchRoll(v.flight.orientation).yaw
++    this.syncFleet()
++    if (Math.abs(p[1] - WATER_LEVEL - VEHICLES.speedboat.water!.waterline) > 2 || !boatNavigable(worldQuery, p[0], p[2], yaw)) return false
++    const hull = SHIP_SPECS.carrier
++    for (const sh of FLEET) {
++      if (sh.team !== v.team || sh.kind !== "carrier" || shipRuntime(this.combat, sh.id)?.sunk !== false) continue
++      const carrier = posedShip(sh.id)
++      if (!carrier) continue
++      const local = worldToShip(carrier, p)
++      const distance = Math.hypot(Math.max(0, Math.abs(local[0]) - hull.halfWidth), Math.max(0, Math.abs(local[2]) - hull.halfLength))
++      if (distance <= BOAT_RETURN_RANGE) return true
++    }
++    return false
++  }
++
+   /** Landed on its own team's carrier flight deck. */
+   onOwnDeck(v: VehicleEntity): boolean {
+     if (!v.flight.onGround) return false
+@@ -869,7 +932,8 @@ export class RoomEngine {
+     for (const v of vehicles) {
+       if (!v.alive) continue
+       const pilot = v.seats[0] ? this.players.get(v.seats[0]) : undefined
+-      stepFlight(v.flight, pilot ? pilot.flight : NEUTRAL_INPUT, TICK_DT, worldQuery)
++      const staleBoat = VEHICLES[v.kind].flight === "water" && pilot && now - pilot.lastInputAt > STALE_INPUT
++      stepFlight(v.flight, pilot && !staleBoat ? pilot.flight : NEUTRAL_INPUT, TICK_DT, worldQuery)
+       for (let i = 0; i < 2; i++) {
+         const s = i as SeatIndex
+         const id = v.seats[s]
+@@ -950,6 +1014,7 @@ export class RoomEngine {
+         p.info.vehicleId = null
+         p.info.seat = null
+         p.info.respawnAt = this.time + RESPAWN_DELAY
++        if (VEHICLES[v.kind].flight === "water") p.queue.length = 0
+         p.flight = NEUTRAL_INPUT
+         p.seat = NEUTRAL_SEAT
+       }
+@@ -1001,7 +1066,7 @@ export class RoomEngine {
+       }
+       if (meta.emptySince === null) meta.emptySince = now
+       const idle = now - meta.emptySince
+-      if (this.onOwnDeck(v)) {
++      if (VEHICLES[v.kind].flight === "water" ? this.atBoatBase(v) : this.onOwnDeck(v)) {
+         if (idle >= PARKED_REMOVE_DELAY) { v.alive = false; meta.diedAt = -Infinity; removed = true }
+       } else if (idle >= ABANDONED_DESTROY_DELAY) {
+         const killer = this.crashCredit(v, meta)
+@@ -1056,6 +1121,8 @@ export class RoomEngine {
+
+   private resetMatch(): void {
+     for (const p of this.players.values()) {
++      const v = this.vehicleOf(p.info)
++      if (v && VEHICLES[v.kind].flight === "water") p.queue.length = 0
+       p.info.vehicleId = null
+       p.info.seat = null
+       p.info.kills = 0
 diff --git a/games/wings/src/sim/types.ts b/games/wings/src/sim/types.ts
-index c915941..04839d0 100644
+index c915941..7a68534 100644
 --- a/games/wings/src/sim/types.ts
 +++ b/games/wings/src/sim/types.ts
-@@ -6,7 +6,7 @@ export type Vec3 = [number, number, number]
+@@ -6,8 +6,8 @@ export type Vec3 = [number, number, number]
  export type Quat = [number, number, number, number]
 
  export type TeamId = 0 | 1 | 2 | 3
 -export type VehicleKind = "fighter" | "apache" | "warthog" | "blackbird" | "bomber"
-+export type VehicleKind = "fighter" | "apache" | "warthog" | "blackbird" | "bomber" | "f15" | "f35"
- export type FlightModel = "jet" | "heli"
+-export type FlightModel = "jet" | "heli"
++export type VehicleKind = "fighter" | "apache" | "warthog" | "blackbird" | "bomber" | "f15" | "f35" | "speedboat"
++export type FlightModel = "jet" | "heli" | "water"
  export type SeatIndex = 0 | 1
  export type WeaponSlot = "primary" | "secondary"
+ export type Quality = "low" | "balanced" | "high"
+@@ -65,6 +65,8 @@ export interface WorldQuery {
+   half: number
+   /** Hard altitude ceiling in meters. */
+   ceiling: number
++  /** Seabed height for watercraft draft checks, without sea-level clamping. */
++  seabedHeight?(x: number, z: number): number
+   /** Velocity of a moving deck (carrier) under x,z, or null/undefined when the surface is static. */
+   deckVelocity?(x: number, z: number): Vec3 | null
+ }
+@@ -190,6 +192,8 @@ export interface Flare {
+ }
+
+ export type WeaponId =
++  | "deckcannon"
++  | "depthcharge"
+   | "bomb"
+   | "cannon20"
+   | "chaingun30"
 diff --git a/games/wings/src/sim/vehicles.ts b/games/wings/src/sim/vehicles.ts
-index cee5ec4..0972428 100644
+index cee5ec4..f800e33 100644
 --- a/games/wings/src/sim/vehicles.ts
 +++ b/games/wings/src/sim/vehicles.ts
 @@ -1,5 +1,5 @@
@@ -1382,25 +3148,42 @@ index cee5ec4..0972428 100644
 
  /**
   * gun / rockets: fire while held.
-@@ -60,6 +60,8 @@ export interface VehicleSpec {
+@@ -8,7 +8,7 @@ import type { FlightModel, VehicleKind, WeaponId } from "./types"
+  *   missile only homes while the scanner stays within `lockCone` of its target (semi-active guidance). Long range, slow to deliver.
+  * pulse: radar pulse ability (spots enemies).
+  */
+-export type WeaponKind = "gun" | "rockets" | "missile_lock" | "missile_scanner" | "pulse" | "bomb"
++export type WeaponKind = "gun" | "rockets" | "missile_lock" | "missile_scanner" | "pulse" | "bomb" | "depthcharge"
+
+ export interface WeaponSpec {
+   id: WeaponId
+@@ -60,9 +60,16 @@ export interface VehicleSpec {
    seatNames: [string, string]
    /** Stealth airframe (see STEALTH_* rules). */
    stealth?: boolean
 +  /** Model-derived local launch points; original aircraft retain their existing rails. */
 +  hardpoints?: { gun: Vec3; missiles: [[Vec3, Vec3], [Vec3, Vec3]] }
++  /** Model-derived hull dimensions and articulated boat launch/camera coordinates. */
++  water?: { halfLength: number; halfBeam: number; draft: number; waterline: number;
++    gunPivot: Vec3; gunTip: Vec3; stern: Vec3; eye: Vec3 }
  }
 
  export const WEAPONS: Record<WeaponId, WeaponSpec> = {
-@@ -87,7 +89,7 @@ export const STEALTH_AA_CEILING = 600
++  deckcannon: { id: "deckcannon", name: "Deck Cannon", kind: "gun", damage: 35, splash: 0, rate: 4, speed: 350, ttl: 3, ammo: 120, refill: 30, refillDelay: 2, spread: 0, turret: true },
++  depthcharge: { id: "depthcharge", name: "Depth Charges", kind: "depthcharge", damage: 180, splash: 18, rate: 1, speed: 2, ttl: 5, ammo: 4, refill: 40, refillDelay: 4 },
+   cannon20: { id: "cannon20", name: "20mm Vulcan", kind: "gun", damage: 9, splash: 0, rate: 16, speed: 1150, ttl: 1.15, ammo: 600, refill: 15, refillDelay: 2, spread: 0.0025 },
+   chaingun30: { id: "chaingun30", name: "30mm Chain Gun", kind: "gun", damage: 16, splash: 4, rate: 10, speed: 900, ttl: 1.5, ammo: 300, refill: 15, refillDelay: 2, spread: 0.004, turret: true },
+   gau8: { id: "gau8", name: "GAU-8 Avenger", kind: "gun", damage: 14, splash: 2, rate: 30, speed: 1100, ttl: 1.2, ammo: 1100, refill: 15, refillDelay: 2, spread: 0.005 },
+@@ -87,7 +94,7 @@ export const STEALTH_AA_CEILING = 600
  export const STEALTH_LOCK_TIME = 4
  export const STEALTH_LOCK_SPOT = 8
 
 -export const VEHICLES: Record<VehicleKind, VehicleSpec> = {
-+const ORIGINAL_VEHICLES: Record<Exclude<VehicleKind, "f15" | "f35">, VehicleSpec> = {
++const ORIGINAL_VEHICLES: Record<Exclude<VehicleKind, "f15" | "f35" | "speedboat">, VehicleSpec> = {
    fighter: {
      kind: "fighter", name: "F/A-18F Super Hornet", model: "models/fa18.glb", flight: "jet",
      maxHp: 450, radius: 8, cruise: 135, boost: 185, stall: 55,
-@@ -120,4 +122,35 @@ export const VEHICLES: Record<VehicleKind, VehicleSpec> = {
+@@ -120,4 +127,44 @@ export const VEHICLES: Record<VehicleKind, VehicleSpec> = {
    },
  }
 
@@ -1432,6 +3215,15 @@ index cee5ec4..0972428 100644
 +        [[-.535, -.15, -.1256], [.535, -.15, -.1256]],
 +      ],
 +    },
++  },
++  speedboat: {
++    kind: "speedboat", name: "Patrol Speedboat", model: "models/speedboat.glb", flight: "water",
++    maxHp: 650, radius: 5, cruise: 28, boost: 28, stall: 0,
++    seatWeapons: [["deckcannon", "depthcharge"], [null, null]], flares: 0,
++    seatNames: ["Skipper", "Passenger"],
++    water: { halfLength: 5, halfBeam: 1.6, draft: .7, waterline: 0,
++      gunPivot: [0, 1.15, -2.6], gunTip: [0, 0, -1.3],
++      stern: [0, .45, 5.2], eye: [0, 1.9, .9] },
 +  },
 +}
 +
@@ -1552,7 +3344,7 @@ index 0000000..9ccffbc
 +  view.setBoost(seat === 0 && input !== null ? pilotBoost : null)
 +}
 diff --git a/games/wings/src/ui/game.ts b/games/wings/src/ui/game.ts
-index 2a64abd..ab105ca 100644
+index 2a64abd..ac83515 100644
 --- a/games/wings/src/ui/game.ts
 +++ b/games/wings/src/ui/game.ts
 @@ -5,6 +5,7 @@ import "../style.css"
@@ -1563,6 +3355,21 @@ index 2a64abd..ab105ca 100644
  import { createHud, setScoreboard, TEAM_COLORS, TEAM_NAMES, type HudFrame, type HudWeapon } from "../render/hud"
  import { BOMBSIGHT_CONE, Input, RETICLE_LIMIT } from "../input"
  import { getNet, type Connection } from "./net-adapter"
+@@ -12,12 +13,12 @@ import { createSpawnScreen } from "./spawn"
+ import { createPauseMenu } from "./pause"
+ import { toast, type StartRequest } from "./lobby"
+ import { onSettings, settings } from "./settings"
+-import { bombImpactPoint, cloneFlight, flightReadout, forward, stepFlight } from "../sim/flight"
++import { bombImpactPoint, cloneFlight, flightReadout, forward, NEUTRAL_INPUT, stepFlight } from "../sim/flight"
+ import { AIRBASES, deckVelocity, groundHeight, posedFleet, posedShip, setFleetState, worldQuery as baseWorldQuery } from "../sim/geography"
+ import { AA_RANGE, SHIP_SPECS, SPAWN_PROTECTION, shipToWorld, worldToShip, type Ship } from "../sim/fleet"
+ import type { WorldQuery } from "../sim/types"
+ import { VEHICLES, WEAPONS } from "../sim/vehicles"
+-import { leadPoint } from "../sim/combat"
++import { leadPoint, muzzlePosition, weaponDirection } from "../sim/combat"
+ import { TICK_DT } from "../sim/types"
+ import type { FlightInput, FlightState, GameEvent, PlayerInfo, Quat, SeatIndex, SeatInput, TeamId, Vec3, VehicleEntity } from "../sim/types"
+ import type { RoomConfig, ServerMessage, ShipState, Snapshot } from "../sim/protocol"
 @@ -163,7 +164,6 @@ class GameSession implements GameHandle {
        spawn: kind => { this.input.requestLock(); this.send({ type: "spawn", kind }); deps.audio?.ui("confirm") },
        board: (vehicle, seat) => { this.input.requestLock(); this.send({ type: "board", vehicle, seat }); deps.audio?.ui("confirm") },
@@ -1599,7 +3406,76 @@ index 2a64abd..ab105ca 100644
      if (!this.offline) this.pingTimer = window.setInterval(() => { if (!this.rtt) this.send({ type: "ping", t: performance.now() }) }, 2000)
      if (!this.offline) history.replaceState(null, "", `${import.meta.env.BASE_URL}?join=${encodeURIComponent(this.room)}`)
    }
-@@ -530,18 +533,18 @@ class GameSession implements GameHandle {
+@@ -258,7 +261,7 @@ class GameSession implements GameHandle {
+     const v = this.myVehicle()
+     const vis = v ? this.visuals.get(v.id) : undefined
+     return {
+-      state: this.state, seat: this.me?.seat ?? null, team: this.me?.team ?? null, vehicles: this.latest?.vehicles.length ?? 0,
++      state: this.state, kind: v?.kind, seat: this.me?.seat ?? null, team: this.me?.team ?? null, vehicles: this.latest?.vehicles.length ?? 0,
+       pos: vis?.pos.map(Math.round), speed: v ? Math.round(flightReadout(this.pred?.state ?? v.flight).speed) : 0,
+       hp: v?.hp, projectiles: this.latest?.projectiles.length ?? 0, missiles: this.latest?.missiles.length ?? 0,
+       predErr: this.pred ? +this.pred.errPos.length().toFixed(2) : null, history: this.pred?.history.length ?? 0,
+@@ -328,9 +331,14 @@ class GameSession implements GameHandle {
+     this.latest = s
+     this.latestById = byId
+
++    const previousMe = this.me
+     this.players.clear()
+     for (const p of s.players) this.players.set(p.id, p)
+     this.me = this.players.get(this.playerId) ?? null
++    if (previousMe?.vehicleId !== this.me?.vehicleId || previousMe?.seat !== this.me?.seat) {
++      this.clearControls()
++      if (this.state === "flying" && !this.paused && this.myVehicle()?.alive) this.input.setEnabled(true)
++    }
+     if (s.ships) {
+       this.shipStates = s.ships
+       const w = this.deps.host.world as unknown as { setShipStates?: (x: ShipState[], t?: number) => void; applyShipStates?: (x: ShipState[], t?: number) => void }
+@@ -418,7 +426,7 @@ class GameSession implements GameHandle {
+         this.deathAt = performance.now() / 1000
+         this.deathPos = [...this.lastOwnPos]
+         this.hud.setVisible(false)
+-        this.input.setEnabled(false)
++        this.clearControls()
+         this.input.releaseLock()
+         this.pause.hide()
+         this.paused = false
+@@ -436,6 +444,7 @@ class GameSession implements GameHandle {
+   private sinkFx: { p: Vec3; until: number; next: number }[] = []
+
+   private enterTurret(): void {
++    this.clearControls()
+     this.state = "turret"
+     this.voluntaryLeave = false
+     this.spawn.hide()
+@@ -464,11 +473,25 @@ class GameSession implements GameHandle {
+     return { ship, pos: shipToWorld(ship, spec.offset), kind: spec.kind, id: spec.id }
+   }
+
+-  private enterSpawn(): void {
++  private clearControls(): void {
++    this.input.setEnabled(false)
++    this.input.takeWheel()
++    this.pendingThrottle = 0
++    this.lastSeat = null
++    this.sentFlight = { ...NEUTRAL_INPUT }
+     this.bombPeek = false
++    this.bombFall = null
++    this.bombAimDir = null
++    this.steeredBomb = null
++    this.bombDropAt = 0
++    this.input.setFallingBomb(false, false)
++    this.deps.host.rig.resetBombcam()
++  }
++
++  private enterSpawn(): void {
++    this.clearControls()
+     this.state = "spawn"
+     this.hud.setVisible(false)
+-    this.input.setEnabled(false)
+     this.input.releaseLock()
+     this.spawn.show()
+     this.deps.host.rig.setMode("orbit")
+@@ -530,18 +553,18 @@ class GameSession implements GameHandle {
        this.bombPeek = !this.bombPeek
        this.deps.audio?.ui("click")
      }
@@ -1624,16 +3500,58 @@ index 2a64abd..ab105ca 100644
    private exit(reason?: string): void {
      if (this.ended) return
      console.info("[wings] leaving match", reason ?? "")
-@@ -558,6 +561,8 @@ class GameSession implements GameHandle {
+@@ -557,12 +580,18 @@ class GameSession implements GameHandle {
+     this.offLightning?.()
      window.removeEventListener("keydown", this.onKeyDown)
      this.offSettings()
++    this.clearControls()
      this.input.dispose()
 +    this.spawn.dispose()
 +    this.pause.dispose()
      for (const v of this.visuals.values()) this.removeVisual(v)
      this.visuals.clear()
      const fx = this.deps.host.effects
-@@ -787,7 +792,7 @@ class GameSession implements GameHandle {
+     fx.setTracers(0, () => {})
+     fx.setMissiles(0, () => {})
++    fx.setBombs(0, () => {})
++    this.projLast.clear()
++    this.lastProjSnap = null
+     this.deps.host.world.setHighlightTeam(null)
+     this.deps.host.setFrame(null)
+     this.uiRoot.remove()
+@@ -709,7 +738,7 @@ class GameSession implements GameHandle {
+     const v = this.myVehicle()
+     if (!v) return
+     const id = VEHICLES[v.kind].seatWeapons[me.seat][0]
+-    if (!id || WEAPONS[id].kind !== "gun") return
++    if (!id || id === "deckcannon" || WEAPONS[id].kind !== "gun") return
+     const rt = v.weapons[me.seat]?.[0]
+     if (rt && rt.ammo === 0) return
+     audio.event({ type: "fire", vehicle: v.id, seat: me.seat, weapon: id }, this.posOfVehicle(v.id), true)
+@@ -736,16 +765,19 @@ class GameSession implements GameHandle {
+         case "fire": {
+           pos = this.posOfVehicle(e.vehicle)
+           local = e.vehicle === myVeh
+-          // Own gun audio is driven locally every frame from the trigger (see sustainGunAudio); skip the echo.
+-          if (local && e.seat === this.me?.seat && WEAPONS[e.weapon].kind === "gun") skipAudio = true
++          // Aircraft gun audio is sustained locally; the deck cannon plays only authoritative shots.
++          if (local && e.seat === this.me?.seat && e.weapon !== "deckcannon" && WEAPONS[e.weapon].kind === "gun") skipAudio = true
+           const vis = this.visuals.get(e.vehicle)
+           if (vis && pos && WEAPONS[e.weapon].kind === "gun") {
+             const a = vis.render.aim[e.seat]
+-            const d = e.seat === 0 || !a ? forward(vis.quat) : a
++            const d = e.weapon === "deckcannon" ? weaponDirection(vis.render, e.weapon, a, [0, 0, 0])
++              : e.seat === 0 || !a ? forward(vis.quat) : a
+             const anchor = vis.view.anchors?.get(e.seat === 0 ? "gun" : "turret_chin_barrel") ?? vis.view.anchors?.get("gun")
+             if (anchor) {
+               anchor.getWorldPosition(_v1)
+               fx.muzzle([_v1.x, _v1.y, _v1.z], d)
++            } else if (e.weapon === "deckcannon") {
++              fx.muzzle(muzzlePosition(vis.render, e.seat, e.weapon, [0, 0, 0]), d)
+             } else {
+               const r = VEHICLES[vis.kind].radius * 0.6
+               fx.muzzle([pos[0] + d[0] * r, pos[1] + d[1] * r, pos[2] + d[2] * r], d)
+@@ -787,7 +819,7 @@ class GameSession implements GameHandle {
              { killer: !!(e.killer && this.players.get(e.killer)?.bot), victim: !!this.players.get(e.victim)?.bot })
            if (e.killer === this.playerId && e.victim !== this.playerId) {
              this.hud.hitmarker(true)
@@ -1642,7 +3560,16 @@ index 2a64abd..ab105ca 100644
            }
            if (e.victim === this.playerId || (myVeh && e.victim === myVeh)) {
              const kv = e.killer && e.killer !== this.playerId ? this.players.get(e.killer)?.vehicleId : null
-@@ -825,7 +830,7 @@ class GameSession implements GameHandle {
+@@ -804,7 +836,7 @@ class GameSession implements GameHandle {
+           pos = e.position
+           // Flak: a burst near a recent 5-inch shell's aim point renders as a gray flak puff.
+           const fl = this.flakAims.findIndex(a => now - a.t < 5 && Math.hypot(a.p[0] - e.position[0], a.p[1] - e.position[1], a.p[2] - e.position[2]) < 160)
+-          if (e.kind === "flak" || fl >= 0) { if (fl >= 0) this.flakAims.splice(fl, 1); fx.flak(e.position) }
++          if (e.kind === "flak" || (!e.surface && fl >= 0)) { if (fl >= 0) this.flakAims.splice(fl, 1); fx.flak(e.position) }
+           else if (e.surface === "water") fx.splash(e.position, e.size)
+           else if (e.surface === "ground") fx.groundHit(e.position, e.size)
+           else fx.explosion(e.position, e.size)
+@@ -825,7 +857,7 @@ class GameSession implements GameHandle {
            local = e.vehicle === myVeh
            if (e.team !== this.me?.team && this.me && myVeh && this.posOfVehicle(myVeh)) {
              const p = this.posOfVehicle(myVeh)!
@@ -1651,7 +3578,7 @@ index 2a64abd..ab105ca 100644
            }
            break
          case "spotted": {
-@@ -847,7 +852,7 @@ class GameSession implements GameHandle {
+@@ -847,7 +879,7 @@ class GameSession implements GameHandle {
            const result = e.winner === null ? "draw" : e.winner === myTeam ? "victory" : "defeat"
            const why = e.reason === "carriers-sunk"
              ? (e.winner === null ? "every carrier went down" : result === "victory" ? "the enemy carriers are sunk" : "our carriers are sunk")
@@ -1660,22 +3587,172 @@ index 2a64abd..ab105ca 100644
            this.hud.endScreen(result, why, e.winner === null ? null : e.winner)
            break
          }
-@@ -1034,12 +1039,8 @@ class GameSession implements GameHandle {
+@@ -908,10 +940,11 @@ class GameSession implements GameHandle {
+     const flying = this.state === "flying" && !!myVehicle && myVehicle.alive && !this.paused
+     const seat = me?.seat ?? null
+     const heli = myVehicle ? VEHICLES[myVehicle.kind].flight === "heli" : false
++    const water = myVehicle ? VEHICLES[myVehicle.kind].flight === "water" : false
+
+     // Mouse role: gunners always aim the turret; pilots use the chosen scheme (mouse-aim by default,
+     // direct while the manual key is held or with the Battlefield scheme).
+-    const mode = this.state === "turret" ? "aim" : input.pilotMouseMode(seat === 0)
++    const mode = this.state === "turret" ? "aim" : input.pilotMouseMode(seat === 0 && !water)
+     if (myVehicle && seat === 0) {
+       const o = this.pred?.state.orientation ?? myVehicle.flight.orientation
+       input.setNose(forward(o))
+@@ -943,11 +976,12 @@ class GameSession implements GameHandle {
+     input.lookDir(this.look)
+     this.lookV.set(this.look[0], this.look[1], this.look[2])
+     const direct = seat === 0 && mode === "direct"
+-    if (flying && seat === 0) input.sampleSteering(dt, heli)
++    if (flying && seat === 0 && !water) input.sampleSteering(dt, heli)
+
+     // Wheel: gunner zoom, pilot fine throttle (jets).
+     const wheel = input.takeWheel()
+-    if (wheel && seat === 0 && !heli) this.pendingThrottle = Math.max(-1, Math.min(1, this.pendingThrottle - wheel * 0.0005))
++    if (water) this.pendingThrottle = 0
++    if (wheel && seat === 0 && !heli && !water) this.pendingThrottle = Math.max(-1, Math.min(1, this.pendingThrottle - wheel * 0.0005))
+     if (wheel && this.state === "turret") this.turretZoom = Math.max(1, Math.min(6, this.turretZoom * Math.pow(1.25, -wheel / 100)))
+     if (wheel && seat === 1) this.deps.host.rig.gunZoom = Math.max(1, Math.min(8, this.deps.host.rig.gunZoom * Math.pow(1.25, -wheel / 100)))
+
+@@ -957,7 +991,7 @@ class GameSession implements GameHandle {
+     this.tickAcc += dt
+     if (this.tickAcc > 0.25) this.tickAcc = 0.25
+     const p = this.pred
+-    const rate = myVehicle && !heli ? THROTTLE_RATE[myVehicle.kind] ?? 0.5 : 0
++    const rate = myVehicle && !heli && !water ? THROTTLE_RATE[myVehicle.kind] ?? 0.5 : 0
+     while (this.tickAcc >= TICK_DT) {
+       this.tickAcc -= TICK_DT
+       if (this.state === "turret") {
+@@ -988,11 +1022,16 @@ class GameSession implements GameHandle {
+           tAxis = Math.max(-1, Math.min(1, this.pendingThrottle / (rate * TICK_DT)))
+           this.pendingThrottle -= tAxis * rate * TICK_DT
+         }
+-        fi = flying ? { ...input.flightInput(aim, heli, tAxis, this.flightBuf) }
+-          : { aim: direct ? null : aim, throttle: 0, roll: 0, yaw: 0, pitch: 0, boost: false, brake: false }
++        fi = { ...input.flightInput(aim, heli, tAxis, this.flightBuf, water) }
++        if (!flying) fi = { ...NEUTRAL_INPUT, aim: water || direct ? null : aim }
+         this.sentFlight = fi
+       }
+-      const seatIn: SeatInput = flying ? { ...input.seatInput(seatAim, this.seatBuf) } : { aim: seatAim, firePrimary: false, fireSecondary: false, flares: false, ability: false }
++      const seatIn: SeatInput = { ...input.seatInput(seatAim, this.seatBuf, water) }
++      if (!flying) {
++        seatIn.aim = seatAim
++        seatIn.firePrimary = seatIn.fireSecondary = seatIn.flares = seatIn.ability = false
++        seatIn.steerBomb = false
++      }
+       // Lag compensation: remote aircraft are rendered INTERP_DELAY + one-way latency behind the server.
+       seatIn.viewDelay = INTERP_DELAY + (this.offline ? 0 : this.rtt / 2000)
+       this.lastSeat = seatIn
+@@ -1033,13 +1072,13 @@ class GameSession implements GameHandle {
+     for (const v of this.visuals.values()) {
        v.view.root.visible = v.render.alive
        const isLocal = v === ownVis
-       if (v.local !== isLocal) { v.local = isLocal; v.view.setLocal?.(isLocal) }
-+      if (v === ownVis) syncAircraftInput(v.view, seat, firing, this.sentFlight.boost)
-       if (!v.render.alive) continue
+-      if (v.local !== isLocal) { v.local = isLocal; v.view.setLocal?.(isLocal) }
+-      if (!v.render.alive) continue
 -      if (v === ownVis && seat !== null) {
 -        v.view.setFiring?.(seat, 0, !!firing?.firePrimary)
 -        v.view.setFiring?.(seat, 1, !!firing?.fireSecondary)
 -        if (seat === 0) v.view.setBoost?.(this.sentFlight.boost)
--      }
++      if (v.local !== isLocal) {
++        if (v.local) syncAircraftInput(v.view, null, null, false)
++        v.local = isLocal
++        v.view.setLocal?.(isLocal)
+       }
++      if (v === ownVis) syncAircraftInput(v.view, seat, firing, this.sentFlight.boost)
++      if (!v.render.alive) continue
        v.view.setSpotted?.(!!me && v.render.team !== me.team && v.render.spottedUntil > (latest?.time ?? 0))
        v.view.update(v.render, players, dt, host.camera)
      }
+@@ -1049,7 +1088,7 @@ class GameSession implements GameHandle {
+     if (latest) this.trackBomb(latest, est)
+     else this.bombFall = null
+     const wasSteering = input.steeringBomb
+-    input.setFallingBomb(!!this.bombFall && this.state === "flying", seat === 1)
++    input.setFallingBomb(!water && !!this.bombFall && flying, seat === 1)
+     if (wasSteering && !input.steeringBomb) host.rig.resetBombcam()
+     // Bomb result: a short line after a steered bomb lands (hit within ~1 s after impact, else miss).
+     if (this.bombDropAt && now - this.bombDropAt > 0.9) {
+@@ -1159,9 +1198,9 @@ class GameSession implements GameHandle {
+       case "menu":
+         if ((this.state === "flying" || this.state === "turret") && !this.paused && !this.hud.chatOpen()) {
+           this.paused = true
+-          this.input.setEnabled(false)
++          this.clearControls()
+           const mv = this.myVehicle()
+-          this.pause.show(!!mv && VEHICLES[mv.kind].flight === "heli")
++          this.pause.show(!!mv && VEHICLES[mv.kind].flight === "heli", !!mv && VEHICLES[mv.kind].flight === "water")
+         }
+         break
+       default: break
+@@ -1266,15 +1305,30 @@ class GameSession implements GameHandle {
+     const myVeh = this.me?.vehicleId
+     const rtRemote = est - INTERP_DELAY - s.time
+     const rtOwn = est + this.rtt / 1000 - s.time
+-    // Bombs are projectiles too, but render as falling bodies (not tracers).
+-    const proj = s.projectiles.some(p => p.weapon === "bomb") ? s.projectiles.filter(p => p.weapon !== "bomb") : s.projectiles
+-    const bombs = proj === s.projectiles ? [] : s.projectiles.filter(p => p.weapon === "bomb")
++    // Charges share the existing physical-body pool, never the tracer/vanished-bullet impact path.
++    const bombs = s.projectiles.filter(p => p.weapon === "bomb" || WEAPONS[p.weapon].kind === "depthcharge")
++    const proj = bombs.length ? s.projectiles.filter(p => p.weapon !== "bomb" && WEAPONS[p.weapon].kind !== "depthcharge") : s.projectiles
+     const colors = this.tracerColors
+     fx.setBombs(bombs.length, (i, m) => {
+       const b = bombs[i]
+-      const t = Math.max(-0.2, b.vehicle === myVeh ? rtOwn : rtRemote)
+-      _v1.set(b.position[0] + b.velocity[0] * t, b.position[1] + b.velocity[1] * t - 4.9 * t * t, b.position[2] + b.velocity[2] * t)
+-      _v2.set(_v1.x - b.velocity[0], _v1.y - b.velocity[1], _v1.z - b.velocity[2])
++      let t = Math.max(-0.2, b.vehicle === myVeh ? rtOwn : rtRemote)
++      let velocity = b.velocity
++      if (WEAPONS[b.weapon].kind === "depthcharge") {
++        // Snapshot velocity already includes water drag and sinking. Never apply bomb gravity or guidance.
++        t = Math.max(-Math.min(0.1, b.age), Math.min(0.1, b.ttl - b.age, 2 - b.age, t))
++        _v1.set(b.position[0] + velocity[0] * t, b.position[1] + velocity[1] * t, b.position[2] + velocity[2] * t)
++        for (let j = this.snaps.length - 2; t < 0 && j >= 0; j--) {
++          const a = this.snaps[j].snap, next = this.snaps[j + 1].snap
++          if (a.time > s.time + t || next.time < s.time + t) continue
++          const pa = a.projectiles.find(p => p.id === b.id), pb = next.projectiles.find(p => p.id === b.id)
++          if (!pa || !pb) break
++          const alpha = (s.time + t - a.time) / Math.max(1e-6, next.time - a.time)
++          _v1.set(lerp(pa.position[0], pb.position[0], alpha), lerp(pa.position[1], pb.position[1], alpha), lerp(pa.position[2], pb.position[2], alpha))
++          velocity = [lerp(pa.velocity[0], pb.velocity[0], alpha), lerp(pa.velocity[1], pb.velocity[1], alpha), lerp(pa.velocity[2], pb.velocity[2], alpha)]
++          break
++        }
++      } else _v1.set(b.position[0] + velocity[0] * t, b.position[1] + velocity[1] * t - 4.9 * t * t, b.position[2] + velocity[2] * t)
++      _v2.set(_v1.x - velocity[0], _v1.y - velocity[1], _v1.z - velocity[2])
+       m.lookAt(_v2, _v1, UP)
+       m.setPosition(_v1)
+     })
+@@ -1485,7 +1539,9 @@ class GameSession implements GameHandle {
+         }
+       }
+     } else hb.bombImpact = null
+-    const boreDir = seat === 0 ? fwd : (v.aim[1] ?? this.aim)
++    const water = VEHICLES[v.kind].flight === "water"
++    const boreDir = water && seat === 0 ? weaponDirection(v, "deckcannon", v.aim[0], [0, 0, 0])
++      : seat === 0 ? fwd : (v.aim[1] ?? this.aim)
+     let boreDist = aimDist
+     // Keyboard flight: gimbaled gun reticle (body-relative mouse aim) for the HUD.
+     const gunDir: Vec3 | null = seat === 0 && this.input.reticleMode ? this.input.reticleDir([0, 0, 0]) : null
+@@ -1530,7 +1586,7 @@ class GameSession implements GameHandle {
+         this.updateScanner(f, s, v, pos, spec)
+       }
+     }
+-    if (n === 0) f.hint = "look at enemies to spot them for your team"
++    if (n === 0) f.hint = water ? "passenger · no weapons · 1/2 switch seat" : "look at enemies to spot them for your team"
+     const audio = this.deps.audio
+     if (f.lockProgress >= 1) audio?.ui("locked")
+     else if (f.lockProgress > 0) audio?.ui("lock-tone")
+@@ -1566,7 +1622,7 @@ class GameSession implements GameHandle {
+     for (const m of s.missiles) if (m.target === v.id && m.team !== v.team) { f.missileWarning = true; break }
+     if (f.missileWarning) audio?.ui("warning")
+
+-    this.deps.host.setSpeedFx(seat === 0 ? f.speed * 3.6 : 0, seat === 0 && f.boost)
++    this.deps.host.setSpeedFx(seat === 0 && !water ? f.speed * 3.6 : 0, seat === 0 && !water && f.boost)
+     this.deps.host.setFocus(pos)
+     this.hud.update(f)
+   }
 diff --git a/games/wings/src/ui/lobby.ts b/games/wings/src/ui/lobby.ts
-index 74ae61d..ffc192e 100644
+index 74ae61d..48145f3 100644
 --- a/games/wings/src/ui/lobby.ts
 +++ b/games/wings/src/ui/lobby.ts
 @@ -1,25 +1,24 @@
@@ -1742,7 +3819,27 @@ index 74ae61d..ffc192e 100644
      ] },
      { title: "view & comms", rows: [
        ["Free-look · camera", `hold ${kb("c")} · ${kb("t")}`], ["Chat · scores · menu", `${kb("enter")} · ${kb("tab")} · ${kb("esc")}`],
-@@ -267,7 +266,7 @@ export class MenuNav {
+@@ -159,8 +158,17 @@ export function controlRows(scheme: ControlScheme = controlScheme()): { title: s
+ }
+
+ /** Controls reference table for the current scheme. */
+-export function controlsTable(): string {
+-  return `<table class="keys">${controlRows().map(sec =>
++export function controlsTable(water = false): string {
++  const boat = [{ title: "patrol speedboat · all steering schemes", rows: [
++    ["Forward / reverse · steer", `${kb("w", "s")} · ${kb("a", "d")} or ${kb("←", "→")}`],
++    ["Aim · deck cannon", `mouse · ${kb("lmb")} or ${kb("space")}`],
++    ["Depth charge · brake", `${kb("rmb")} or ${kb("v")} · ${kb("x")}`],
++    ["Camera · switch seat", `${kb("t")} · ${kb("1", "2")}`],
++    ["Passenger", "look around; no weapons"],
++    ["Chat · scores · menu", `${kb("enter")} · ${kb("tab")} · ${kb("esc")}`],
++  ] }]
++  const sections = water ? boat : [...controlRows(), ...boat]
++  return `<table class="keys">${sections.map(sec =>
+     `<tr><th colspan="2">${escapeHtml(sec.title)}</th></tr>` + sec.rows.map(([a, b]) => `<tr><td>${a}</td><td>${b}</td></tr>`).join("")).join("")}</table>`
+ }
+
+@@ -267,7 +275,7 @@ export class MenuNav {
      this.host.innerHTML = `<div class="crumb">${s.crumb ?? ""}</div>` +
        (items.length ? `<div class="menu ${s.size ?? "big"}">${items.map((it, i) => {
          const label = it.input?.at === "label" ? "" : escapeHtml(it.label)
@@ -1751,7 +3848,7 @@ index 74ae61d..ffc192e 100644
        }).join("")}</div>` : "") + (s.html ?? "") + (s.note ? `<div class="note">${s.note}</div>` : "")
      this.els = Array.from(this.host.querySelectorAll<HTMLElement>(".mi"))
      items.forEach((it, i) => {
-@@ -290,7 +289,7 @@ export class MenuNav {
+@@ -290,7 +298,7 @@ export class MenuNav {
      if (i === entry.sel && !force) return
      entry.sel = i
      this.els.forEach((el, k) => el.classList.toggle("sel", k === i))
@@ -1760,7 +3857,7 @@ index 74ae61d..ffc192e 100644
      this.paintMeta()
      this.onMove?.(i)
    }
-@@ -381,7 +380,7 @@ export function settingsScreen(nav: MenuNav, onQuality: (q: Quality) => void, cr
+@@ -381,7 +389,7 @@ export function settingsScreen(nav: MenuNav, onQuality: (q: Quality) => void, cr
          meta: () => settings.mouseX === "roll" ? "classic bf4: mouse left/right rolls" : "mouse left/right turns the nose (battlefield steering)" },
        { label: "Mouse sensitivity", value: () => settings.sensitivity.toFixed(2), adjust: d => updateSettings({ sensitivity: Math.round(Math.max(0.2, Math.min(3, settings.sensitivity + d * 0.1)) * 100) / 100 }) },
        { label: "Invert mouse Y", value: () => (settings.invertY ? "on" : "off"), adjust: () => updateSettings({ invertY: !settings.invertY }), meta: "on = mouse away moves the nose down" },
@@ -1769,7 +3866,7 @@ index 74ae61d..ffc192e 100644
      ],
    }
  }
-@@ -401,13 +400,10 @@ export function initLobby(opts: { onStart(req: StartRequest): void; onQuality(q:
+@@ -401,13 +409,10 @@ export function initLobby(opts: { onStart(req: StartRequest): void; onQuality(q:
    const nav = new MenuNav($("screen"), () => opts.onClick?.())
    nav.onHints = h => { hints.innerHTML = hintsHtml(h) }
 
@@ -1784,7 +3881,7 @@ index 74ae61d..ffc192e 100644
    const SKILLS = [{ name: "easy", v: 0.25 }, { name: "normal", v: 0.5 }, { name: "hard", v: 0.85 }]
    const nameIn = document.createElement("input")
    nameIn.maxLength = 32
-@@ -417,84 +413,42 @@ export function initLobby(opts: { onStart(req: StartRequest): void; onQuality(q:
+@@ -417,84 +422,44 @@ export function initLobby(opts: { onStart(req: StartRequest): void; onQuality(q:
    const readConfig = (): RoomConfig => ({
      ...DEFAULT_ROOM_CONFIG, name: (cfg.name || DEFAULT_ROOM_CONFIG.name).slice(0, 32), teams: cfg.teams, bots: botCfg.on ? botCfg.perTeam : 0,
      ...(botCfg.on ? { botSkill: SKILLS[botCfg.skill].v } : {}),
@@ -1806,8 +3903,8 @@ index 74ae61d..ffc192e 100644
 +          meta: "target pilots per team - your pilot takes one place" },
          { label: "Bot skill", value: () => SKILLS[botCfg.skill].name, adjust: (d: 1 | -1) => { botCfg.skill = Math.max(0, Math.min(2, botCfg.skill + d)) } },
        ] as MenuItem[] : []),
-+      { label: "Aircraft", value: () => VEHICLES[aircraft].name, adjust: d => { aircraft = cycle(VEHICLE_KINDS, aircraft, d) },
-+        meta: "initial aircraft - change again in the hangar after returning to base" },
++      { label: "Vehicle", value: () => VEHICLES[aircraft].name, adjust: d => { aircraft = cycle(VEHICLE_KINDS, aircraft, d) },
++        meta: "initial vehicle - change again in the hangar after returning to base" },
        { label: "Name", input: { el: nameIn, at: "value" } },
        { label: "Teams", value: () => String(cfg.teams), adjust: d => { cfg.teams = Math.max(2, Math.min(4, cfg.teams + d)) } },
        { label: "Pilots per team", value: () => String(cfg.maxPerTeam), adjust: d => { cfg.maxPerTeam = Math.max(1, Math.min(10, cfg.maxPerTeam + d)) } },
@@ -1868,6 +3965,8 @@ index 74ae61d..ffc192e 100644
 -      { label: "Quick play", run: () => opts.onStart({ mode: "quick" }), meta: () => `join the fullest open lobby · ${roomsMeta()}` },
 +      { label: "Solo flight", run: () => opts.onStart({ mode: "offline", config: { ...DEFAULT_ROOM_CONFIG, name: "Practice", teams: 2, bots: 0, listed: false } }),
 +        meta: "offline · no AI aircraft · enemy fleet guns remain active" },
++      { label: "Speedboat patrol", run: () => opts.onStart({ mode: "offline", config: { ...DEFAULT_ROOM_CONFIG, name: "Patrol", teams: 2, bots: 0, listed: false }, aircraft: "speedboat" }),
++        meta: "W/S drive · A/D steer · mouse aim · LMB cannon · RMB or V depth charges · X brake" },
        { label: "Play with bots", run: () => opts.onStart({ mode: "offline", config: { ...DEFAULT_ROOM_CONFIG, name: "Bots", teams: 2, bots: 4, botSkill: 0.5, listed: false } }),
 -        meta: "offline · 2 teams · 4 ai pilots per team · normal skill" },
 -      { label: "Practice", run: () => opts.onStart({ mode: "offline", config: { ...DEFAULT_ROOM_CONFIG, name: "Practice", teams: 2, bots: 0, listed: false } }),
@@ -1883,7 +3982,7 @@ index 74ae61d..ffc192e 100644
      ],
    })
    nav.reset(rootScreen())
-@@ -505,39 +459,19 @@ export function initLobby(opts: { onStart(req: StartRequest): void; onQuality(q:
+@@ -505,39 +470,19 @@ export function initLobby(opts: { onStart(req: StartRequest): void; onQuality(q:
      if (nav.handleKey(e)) e.preventDefault()
    })
 
@@ -2079,9 +4178,18 @@ index 97b291c..c057ccb 100644
 +}
 +export async function getNet() { return local }
 diff --git a/games/wings/src/ui/pause.ts b/games/wings/src/ui/pause.ts
-index 2404d00..e39b5e6 100644
+index 2404d00..581b52e 100644
 --- a/games/wings/src/ui/pause.ts
 +++ b/games/wings/src/ui/pause.ts
+@@ -3,7 +3,7 @@ import type { Quality } from "../sim/types"
+ import { MenuNav, controlsTable, hintsHtml, settingsScreen, type MenuScreen } from "./lobby"
+
+ export interface PauseMenu {
+-  show(heli?: boolean): void
++  show(heli?: boolean, water?: boolean): void
+   hide(): void
+   visible(): boolean
+   dispose(): void
 @@ -12,7 +12,6 @@ export interface PauseMenu {
  export function createPauseMenu(parent: HTMLElement, actions: {
    resume(): void
@@ -2090,26 +4198,52 @@ index 2404d00..e39b5e6 100644
    leave(): void
    quality(q: Quality): void
    click(): void
-@@ -32,9 +31,8 @@ export function createPauseMenu(parent: HTMLElement, actions: {
+@@ -26,15 +25,15 @@ export function createPauseMenu(parent: HTMLElement, actions: {
+   const nav = new MenuNav(root.querySelector<HTMLElement>(".screen")!, actions.click)
+   nav.onHints = h => { hints.innerHTML = hintsHtml(h) }
+   nav.onEscape = () => actions.resume()
++  let water = false
+   const rootScreen = (): MenuScreen => ({
+     size: "big",
+     hints: [["↑↓", "select"], ["enter", "confirm"], ["esc", "resume"]],
      items: [
        { label: "Resume", run: () => actions.resume() },
-       { label: "Switch role", run: () => actions.changeVehicle(), meta: "another aircraft or seat, or man your fleet's guns" },
+-      { label: "Switch role", run: () => actions.changeVehicle(), meta: "another aircraft or seat, or man your fleet's guns" },
 -      { label: "Invite friends", run: () => actions.invite(), meta: "copies the room link" },
 -      { label: "Settings", run: () => nav.push(settingsScreen(nav, actions.quality, "04 — <b>settings</b>")), meta: "graphics · sound · steering" },
 -      { label: "Controls", run: () => nav.push({ crumb: "05 — <b>controls</b>", html: controlsTable(), hints: [["esc", "back"]] }) },
++      { label: "Switch role", run: () => actions.changeVehicle(), meta: "another vehicle or seat, or man your fleet's guns" },
 +      { label: "Settings", run: () => nav.push(settingsScreen(nav, actions.quality, "<b>settings</b>")), meta: "graphics · sound · steering" },
-+      { label: "Controls", run: () => nav.push({ crumb: "<b>controls</b>", html: controlsTable(), hints: [["esc", "back"]] }) },
++      { label: "Controls", run: () => nav.push({ crumb: "<b>controls</b>", html: controlsTable(water), hints: [["esc", "back"]] }) },
        { label: "Leave match", small: true, run: () => actions.leave(), meta: "back to the main menu" },
      ],
    })
+@@ -46,7 +45,7 @@ export function createPauseMenu(parent: HTMLElement, actions: {
+   window.addEventListener("keydown", onKey)
+   root.addEventListener("click", e => { if (e.target === root) actions.resume() })
+   return {
+-    show() { nav.reset(rootScreen()); root.hidden = false },
++    show(_heli = false, boat = false) { water = boat; nav.reset(rootScreen()); root.hidden = false },
+     hide() { root.hidden = true },
+     visible: () => !root.hidden,
+     dispose() { window.removeEventListener("keydown", onKey); root.remove() },
 diff --git a/games/wings/src/ui/spawn.ts b/games/wings/src/ui/spawn.ts
-index 328bc3f..39458c0 100644
+index 328bc3f..6654154 100644
 --- a/games/wings/src/ui/spawn.ts
 +++ b/games/wings/src/ui/spawn.ts
-@@ -9,11 +9,13 @@ import { MenuNav, TEAM_COLORS, TEAM_NAMES, controlsTable, escapeHtml, hintsHtml,
+@@ -1,5 +1,5 @@
+-// Spawn / respawn screen: a numbered aircraft list (same menu language as the main menu) with the selected
+-// aircraft's detail on the right, team switch, open seats on teammates' aircraft and the respawn timer.
++// Spawn / respawn screen: a numbered vehicle list (same menu language as the main menu) with the selected
++// vehicle's detail on the right, team switch, open seats on teammates' vehicles and the respawn timer.
+ import type { RoomConfig, ShipState } from "../sim/protocol"
+ import { activeFleet, SHIP_SPECS } from "../sim/fleet"
+ import { shipName, turretName } from "./fleet-names"
+@@ -9,11 +9,14 @@ import { MenuNav, TEAM_COLORS, TEAM_NAMES, controlsTable, escapeHtml, hintsHtml,
 
  interface RoleInfo { role: string; blurb: string; agility: number; firepower: number }
  const ROLES: Record<VehicleKind, RoleInfo> = {
++  speedboat: { role: "patrol boat", agility: 0.5, firepower: 0.6, blurb: "Waterborne hull with a deck cannon and stern depth charges. Launches in clear water beside a surviving friendly carrier. The skipper operates both weapons; the passenger has no weapons." },
 +  f15: { role: "twin-engine fighter", agility: 0.9, firepower: 0.7, blurb: "Fast flight and high roll rate. Uses the arcade fighter loadout; gear-up airframe has no animated stores." },
 +  f35: { role: "single-engine fighter", agility: 0.95, firepower: 0.7, blurb: "Lower speed, tighter turns. Uses the arcade fighter loadout; gear-up airframe has no animated stores." },
    fighter: { role: "strike fighter", agility: 0.85, firepower: 0.7, blurb: "Fast, agile all-rounder. Guns and heat-seekers up front, lock-on radar missiles in the back." },
@@ -2121,16 +4255,30 @@ index 328bc3f..39458c0 100644
  }
  const MAX_SPEED = Math.max(...VEHICLE_KINDS.map(k => VEHICLES[k].boost))
  const MAX_HP = Math.max(...VEHICLE_KINDS.map(k => VEHICLES[k].maxHp))
-@@ -58,7 +60,7 @@ function detailHtml(k: VehicleKind, i: number): string {
-     if (s === 0) list.push("flares")
-     return `<li><span class="n">${s + 1}</span><span class="s">${escapeHtml(v.seatNames[s])}</span><span class="w">${list.length ? list.join(" · ") : "flies only"}</span></li>`
+@@ -55,10 +58,10 @@ function detailHtml(k: VehicleKind, i: number): string {
+   const seats = [0, 1].map(s => {
+     const ws = v.seatWeapons[s]
+     const list = ws[0] === null && ws[1] === null ? [] : (ws[0] !== null && ws[0] === ws[1] ? [ws[0]] : ws).filter(Boolean).map(id => WEAPONS[id!].kind === "bomb" ? "bombs" : WEAPONS[id!].name.toLowerCase())
+-    if (s === 0) list.push("flares")
+-    return `<li><span class="n">${s + 1}</span><span class="s">${escapeHtml(v.seatNames[s])}</span><span class="w">${list.length ? list.join(" · ") : "flies only"}</span></li>`
++    if (s === 0 && v.flares > 0) list.push("flares")
++    return `<li><span class="n">${s + 1}</span><span class="s">${escapeHtml(v.seatNames[s])}</span><span class="w">${list.length ? list.join(" · ") : v.flight === "water" ? "no weapons" : "flies only"}</span></li>`
    }).join("")
 -  return `<div class="crumb">${String(i + 1).padStart(2, "0")} — ${r.role} · ${v.flight === "heli" ? "vtol" : "jet"}</div>
-+  return `<div class="crumb">${String(i + 1).padStart(2, "0")} - ${r.role} · ${v.flight === "heli" ? "vtol" : "jet"}</div>
++  return `<div class="crumb">${String(i + 1).padStart(2, "0")} - ${r.role} · ${v.flight === "water" ? "hull" : v.flight === "heli" ? "vtol" : "jet"}</div>
      <h3 class="name">${escapeHtml(v.name)}</h3>
      <p class="blurb">${r.blurb}</p>
      <dl class="stats">
-@@ -75,7 +77,6 @@ export function createSpawnScreen(parent: HTMLElement, actions: {
+@@ -68,14 +71,14 @@ function detailHtml(k: VehicleKind, i: number): string {
+       <div><dt>firepower</dt><dd>${Math.round(r.firepower * 10)}<small>/10</small></dd>${bar(r.firepower)}</div>
+       <div><dt>flares</dt><dd>${v.flares}</dd></div>
+     </dl>
+-    <ol class="seats">${seats}</ol>`
++    <ol class="seats">${seats}</ol>${v.flight === "water" ? `
++    <p class="blurb">Skipper controls: W/S forward/reverse · A/D steer · mouse aim · LMB deck cannon · RMB or V depth charge · X brake · T view · 1/2 seat. Passenger: T view · 1/2 seat; no weapons.</p>` : ""}`
+ }
+
+ export function createSpawnScreen(parent: HTMLElement, actions: {
    spawn(kind: VehicleKind): void
    board(vehicle: string, seat: SeatIndex): void
    team(team: TeamId): void
@@ -2138,16 +4286,20 @@ index 328bc3f..39458c0 100644
    leave(): void
    click(): void
    /** Optional rendered aircraft thumbnail (team livery). */
-@@ -88,7 +89,7 @@ export function createSpawnScreen(parent: HTMLElement, actions: {
+@@ -88,9 +91,9 @@ export function createSpawnScreen(parent: HTMLElement, actions: {
    root.hidden = true
    root.innerHTML = `
      <div class="sp-head">
 -      <div class="crumb">room <b class="code"></b> · <button class="link invite">copy invite link</button></div>
+-      <h2 class="title">Choose aircraft</h2>
+-      <div class="tabs" role="tablist"><button data-tab="air" class="on">aircraft</button><button data-tab="guns">man the guns</button><kbd>g</kbd></div>
 +      <div class="crumb">offline room <b class="code"></b></div>
-       <h2 class="title">Choose aircraft</h2>
-       <div class="tabs" role="tablist"><button data-tab="air" class="on">aircraft</button><button data-tab="guns">man the guns</button><kbd>g</kbd></div>
++      <h2 class="title">Choose vehicle</h2>
++      <div class="tabs" role="tablist"><button data-tab="air" class="on">vehicles</button><button data-tab="guns">man the guns</button><kbd>g</kbd></div>
        <div class="teams" aria-label="Team"></div>
-@@ -165,7 +166,7 @@ export function createSpawnScreen(parent: HTMLElement, actions: {
+     </div>
+     <nav class="screen sp-list"></nav>
+@@ -165,7 +168,7 @@ export function createSpawnScreen(parent: HTMLElement, actions: {
      const st = shipHp(m.ship)
      const pct = st ? Math.round((st.hp / st.maxHp) * 100) : 100
      const kind = turretName(m.ship, m.turret).split(" · ")[0]
@@ -2156,16 +4308,42 @@ index 328bc3f..39458c0 100644
        <h3 class="name">${escapeHtml(turretName(m.ship, m.turret))}</h3>
        <p class="blurb">${kind === "ciws"
          ? "Close-in weapon system: a fast rotary cannon. Hose incoming aircraft and missiles at short range."
-@@ -214,7 +215,7 @@ export function createSpawnScreen(parent: HTMLElement, actions: {
+@@ -189,7 +192,7 @@ export function createSpawnScreen(parent: HTMLElement, actions: {
+     items.push({ label: "Leave match", small: true, run: () => actions.leave(), meta: "back to the main menu" })
+     const screen = {
+       size: "mid" as const, items, sel: keepSel ? nav.index : 0,
+-      hints: [["↑↓", "select"], ["enter", "man gun"], ["g", "aircraft"], ["←→", "team"]] as [string, string][],
++      hints: [["↑↓", "select"], ["enter", "man gun"], ["g", "vehicles"], ["←→", "team"]] as [string, string][],
+     }
+     if (nav.depth) nav.replace(screen)
+     else nav.push(screen)
+@@ -199,14 +202,14 @@ export function createSpawnScreen(parent: HTMLElement, actions: {
+     tab = t
+     root.querySelectorAll<HTMLElement>("[data-tab]").forEach(b => b.classList.toggle("on", b.dataset.tab === t))
+     root.classList.toggle("guns", t === "guns")
+-    title.textContent = t === "guns" ? "Man the guns" : "Choose aircraft"
++    title.textContent = t === "guns" ? "Man the guns" : "Choose vehicle"
+     if (t === "guns") { buildGuns(false); if (mounts[0]) showMount(mounts[0]) } else { build(false); shownKind = null; showDetail(VEHICLE_KINDS[0]) }
+   }
+   const build = (keepSel = true) => {
+     if (tab === "guns") { buildGuns(keepSel); return }
+     const items: MenuItem[] = VEHICLE_KINDS.map(k => ({
+       label: VEHICLES[k].name,
+-      value: () => (VEHICLES[k].flight === "heli" ? "vtol" : "jet"),
++      value: () => (VEHICLES[k].flight === "water" ? "hull" : VEHICLES[k].flight === "heli" ? "vtol" : "jet"),
+       meta: () => (canSpawn ? "" : `respawn in ${Math.ceil(wait)} s`),
+       run: () => { if (canSpawn) actions.spawn(k) },
+     }))
+@@ -214,7 +217,7 @@ export function createSpawnScreen(parent: HTMLElement, actions: {
      items.push({ label: "Leave match", small: true, run: () => actions.leave(), meta: "back to the main menu" })
      const screen = {
        size: "big" as const, items, sel: keepSel ? nav.index : 0,
 -      hints: [["↑↓", "select"], ["enter", "launch"], ["←→", "team"], ["1–5", "quick launch"]] as [string, string][],
-+      hints: [["↑↓", "select"], ["enter", "launch"], ["←→", "team"], ["1–7", "quick launch"]] as [string, string][],
++      hints: [["↑↓", "select"], ["enter", "launch"], ["←→", "team"], ["1–8", "quick launch"]] as [string, string][],
      }
      if (nav.depth) nav.replace(screen)
      else nav.push(screen)
-@@ -244,7 +245,6 @@ export function createSpawnScreen(parent: HTMLElement, actions: {
+@@ -244,7 +247,6 @@ export function createSpawnScreen(parent: HTMLElement, actions: {
      const t = e.target as HTMLElement
      const team = t.closest<HTMLElement>("[data-team]")
      if (team) { actions.click(); actions.team(Number(team.dataset.team) as TeamId); return }
@@ -2173,6 +4351,15 @@ index 328bc3f..39458c0 100644
      const tb = t.closest<HTMLElement>("[data-tab]")
      if (tb) { actions.click(); setTab(tb.dataset.tab as "air" | "guns") }
    })
+@@ -266,7 +268,7 @@ export function createSpawnScreen(parent: HTMLElement, actions: {
+       countdown.classList.toggle("on", !canSpawn)
+       const num = String(Math.ceil(wait)).padStart(2, "0")
+       if (cdNum.textContent !== num) cdNum.textContent = num
+-      const t = tab === "guns" ? "Man the guns" : s.dead ? "Shot down" : "Choose aircraft"
++      const t = tab === "guns" ? "Man the guns" : s.dead ? "Respawn" : "Choose vehicle"
+       if (title.textContent !== t) title.textContent = t
+       players = s.players
+       ships = s.ships ?? []
 diff --git a/games/wings/ui-check.ts b/games/wings/ui-check.ts
 new file mode 100644
 index 0000000..98e2ac9

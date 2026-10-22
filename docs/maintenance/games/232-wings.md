@@ -5,7 +5,7 @@
 ## Identity and status
 
 Registered catalog **232**, entry `Games/Wings/index.html`; catalog currently has
-126 games. Static offline adaptation of anomalyco/arcade Wings at source pin
+127 games. Static offline adaptation of anomalyco/arcade Wings at source pin
 `bf5f6277e38ee52e9bfa4ae4a01337b46175c181`, ingested by owner order despite
 missing upstream LICENSE. **Integrated repair, not released.**
 
@@ -47,9 +47,10 @@ Inspected boundaries do not constitute a complete engine, shader or rights audit
 ## Gameplay and controls
 
 Solo starts offline with no AI aircraft; enemy fleet guns remain active. Bots
-and Custom retain existing match rules/configuration. Hangar keys 1-7 include
-**6 F-15, 7 F-35**; Custom Aircraft selects the actual initial spawn after the
-renderer gate. Original five aircraft and bot weights are preserved; both jets
+and Custom retain existing match rules/configuration. The boat integration branch
+adds a direct Speedboat patrol action and hangar key **8 Patrol Speedboat**;
+**6 F-15, 7 F-35** keep their positions. Custom Vehicle selects the actual initial
+spawn after the renderer gate. Original five aircraft and bot weights are preserved; both jets
 have bot weight zero.
 
 F-15 pilot uses cannon20/aim9; officer uses maverick. F-35 pilot uses
@@ -57,7 +58,7 @@ cannon20/tvmissile; officer uses tvmissile, with existing stealth rules enabled.
 These are distinct arcade fits, not operational loadout claims. Each missile
 slot has two stores following actual round depletion/regeneration. F-35 covers
 respond to both missile slots and exclude cannon fire. No weapon ID/type or
-landing-gear feature was added.
+landing-gear feature was added by those jet fits.
 
 Controls depend on the selected upstream steering scheme; use the in-game
 Controls page. Default keyboard flight uses W/S throttle, arrows pitch/turn,
@@ -371,6 +372,31 @@ Restore tooling and a supported browser route before paired delivery. Earlier
 tracked WIP is no longer present; saved reviewed diffs and private source survive.
 Current maintenance coverage passes for 126 registered and five unregistered
 games. Full fleet remains deferred; no new game or multinational jet in this lane.
+
+## Operator path-2 boat staging (2026-10-22)
+
+[Branch delivery and screenshot receipt](../audits/wings-boat-publish-20261022/README.md)
+records the recovered `c04b506` integration on `feat/wings-boat-integration`, based
+on `origin/main` at `5739372`. No rebase or push. The branch now delivers authored
+source patch, matching generated runtime and direct Speedboat patrol lobby entry.
+Existing `models/speedboat.glb` bytes are unchanged; no model was duplicated.
+
+Boat UI describes held W/S drive, A/D steer, mouse aim, LMB cannon, RMB/V timed
+depth charge and X brake; T changes view and 1/2 changes seat. Passenger has no
+weapons. Actual existing-model CPU checks pass propulsion, coast/brake/reverse,
+turning, no lift, both seats, cannon ammo/projectile and timed-charge water event.
+Astra and solo CPU checks also pass. The stricter candidate geometry check remains
+held against this older operator-selected asset; absent driver and older roof are
+not accepted fixes. No native gameplay or hardware performance is inferred.
+
+**Native screenshot requirement remains incomplete:** the real headless lobby
+capture shows the new entry, but the requested water/gameplay frame was not
+captured. Instrumented first-draw investigation submitted real draws but failed
+near-field world readiness at the unchanged startup deadline; the later dedicated
+capture exceeded its collector budget. Browser slot released after cleanup.
+Release/scene-budget/driver/roof/audio acceptance stays HOLD, full fleet remains
+deferred, and operator review plus a separate push order are still required.
+No new game, catalog ID or multinational jet was added by this lane.
 
 ## Future outlook
 

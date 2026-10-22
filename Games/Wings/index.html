@@ -5,15 +5,15 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <meta name="theme-color" content="#1e2a28" />
 <title>wings</title>
-<meta name="description" content="Wings - offline solo flight and aerial combat against AI pilots. Keyboard and mouse required." />
+<meta name="description" content="Wings - offline flight, aerial combat and speedboat patrol. Keyboard and mouse required." />
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%2322262a'/%3E%3Crect x='7' y='21' width='18' height='2' fill='%23ff7a2e'/%3E%3C/svg%3E" />
 <link rel="preload" href="./fonts/archivo-narrow-latin.woff2" as="font" type="font/woff2" crossorigin />
 <link rel="preload" href="./fonts/plex-mono-400-latin.woff2" as="font" type="font/woff2" crossorigin />
 <style>
 /* Self-hosted, latin subset, OFL (licenses next to the files). Archivo Narrow is variable: one file, 500 + 700. */
-@font-face { font-family: "Archivo Narrow"; src: url(fonts/archivo-narrow-latin.woff2) format("woff2"); font-weight: 400 700; font-display: swap; }
-@font-face { font-family: "IBM Plex Mono"; src: url(fonts/plex-mono-400-latin.woff2) format("woff2"); font-weight: 400; font-display: swap; }
-@font-face { font-family: "IBM Plex Mono"; src: url(fonts/plex-mono-500-latin.woff2) format("woff2"); font-weight: 500; font-display: swap; }
+@font-face { font-family: "Archivo Narrow"; src: url(./fonts/archivo-narrow-latin.woff2) format("woff2"); font-weight: 400 700; font-display: swap; }
+@font-face { font-family: "IBM Plex Mono"; src: url(./fonts/plex-mono-400-latin.woff2) format("woff2"); font-weight: 400; font-display: swap; }
+@font-face { font-family: "IBM Plex Mono"; src: url(./fonts/plex-mono-500-latin.woff2) format("woff2"); font-weight: 500; font-display: swap; }
 /* Metric-matched fallbacks so the swap doesn't move the layout. */
 @font-face { font-family: "Narrow Fallback"; src: local("Arial Narrow"), local("ArialNarrow"), local("Helvetica Neue Condensed"), local("Arial"); size-adjust: 86%; ascent-override: 101%; descent-override: 25%; line-gap-override: 0%; }
 @font-face { font-family: "Mono Fallback"; src: local("Menlo"), local("Consolas"), local("Courier New"); size-adjust: 99.6%; ascent-override: 103%; descent-override: 27.5%; line-gap-override: 0%; }
@@ -140,8 +140,8 @@ button { min-height: 44px; padding: 8px 12px; }
   #toast { bottom: calc(96px + env(safe-area-inset-bottom, 0px)); }
 }
 </style>
-  <script type="module" crossorigin src="./assets/main-COOpTvC4.js"></script>
-  <link rel="modulepreload" crossorigin href="./assets/lobby-2P4upZgt.js">
+<script type="module" src="./assets/main.js"></script>
+<link rel="stylesheet" href="./assets/main.css">
 </head>
 <body class="in-lobby">
 <canvas id="view"></canvas>

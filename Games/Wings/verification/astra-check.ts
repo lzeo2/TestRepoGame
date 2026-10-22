@@ -16,7 +16,7 @@ import { VEHICLES, VEHICLE_KINDS, WEAPONS } from './src/sim/vehicles'
 import { DEFAULT_ROOM_CONFIG, type ServerMessage } from './src/sim/protocol'
 
 const models = resolve(process.argv[2] ?? 'Games/Wings/models')
-assert.deepEqual(VEHICLE_KINDS, ['fighter', 'apache', 'warthog', 'blackbird', 'bomber', 'f15', 'f35'])
+assert.deepEqual(VEHICLE_KINDS, ['fighter', 'apache', 'warthog', 'blackbird', 'bomber', 'f15', 'f35', 'speedboat'])
 assert.deepEqual(VEHICLE_KINDS.slice(0, 5).map(k => [VEHICLES[k].cruise, VEHICLES[k].boost]), [[135,185],[75,98],[105,135],[190,260],[150,180]])
 assert.deepEqual(VEHICLE_KINDS.slice(0, 5).map(k => VEHICLES[k].seatWeapons), [
   [['cannon20','aim9'],['tvmissile',null]], [['rockets',null],['chaingun30','hellfire']],
