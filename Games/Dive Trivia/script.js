@@ -10,6 +10,24 @@
   let selection = null;
   let timer = null;
   let theme = 'light';
+  let audio = null;
+  let sonarEnabled = false;
+
+  function sonar() {
+    if (!sonarEnabled || !audio || audio.state !== 'running') return;
+    const oscillator = audio.createOscillator();
+    const gain = audio.createGain();
+    const now = audio.currentTime;
+    oscillator.type = 'sine';
+    oscillator.frequency.setValueAtTime(660, now);
+    oscillator.frequency.exponentialRampToValueAtTime(440, now + 0.18);
+    gain.gain.setValueAtTime(0, now);
+    gain.gain.linearRampToValueAtTime(0.035, now + 0.015);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.22);
+    oscillator.connect(gain); gain.connect(audio.destination);
+    oscillator.start(now); oscillator.stop(now + 0.24);
+    oscillator.onended = () => { oscillator.disconnect(); gain.disconnect(); };
+  }
 
   function node(tag, text, className) {
     const element = document.createElement(tag);
@@ -36,8 +54,7 @@
   function depth() {
     const total = run ? run.total : 0;
     $('depth').textContent = (total * 10).toLocaleString('en');
-    const height = document.querySelector('.ocean').clientHeight;
-    $('guide').style.top = (185 + total / 700 * Math.max(0, height - 330)) + 'px';
+    $('guide').style.top = (total / 700 * 100) + '%';
     $('score').textContent = total + ' / 700 points';
   }
   function showLast() {
@@ -53,7 +70,7 @@
   }
   function launch() {
     stopClock(); run = null; screen('launch'); depth(); refreshDate(); showLast();
-    $('guide-copy').textContent = 'Your little survey drone. Bring an unexpected answer. We will take it deeper.';
+    $('guide-copy').textContent = 'A small light for the way down. Bring an unexpected answer.';
     $('playBtn').focus();
   }
   function start(mode, key) {
@@ -118,7 +135,9 @@
     }));
     $('next').textContent = run.index === 6 ? 'See field notes' : 'Next question';
     $('guide-copy').textContent = result.recognized ? 'A useful find. Your depth is now ' + (run.total * 10).toLocaleString('en') + ' metres.' : 'There is always another question. Take a look at the key before we move on.';
-    depth(); $('next').focus();
+    depth();
+    if (result.points > 0) sonar();
+    $('next').focus();
   }
   function finish() {
     stopClock(); screen('finish');
@@ -147,6 +166,29 @@
   $('version').textContent = 'Key ' + data.version + '.';
   setTheme(stored('dive-trivia:theme') === 'dark' ? 'dark' : 'light');
   $('theme').addEventListener('click', () => { setTheme(theme === 'dark' ? 'light' : 'dark'); save('dive-trivia:theme', theme); });
+  $('sonar').addEventListener('click', async () => {
+    const button = $('sonar');
+    button.disabled = true;
+    try {
+      if (sonarEnabled) {
+        if (audio) await audio.suspend();
+        sonarEnabled = false;
+      } else {
+        const Audio = window.AudioContext || window.webkitAudioContext;
+        if (!Audio) throw new Error('Audio unavailable');
+        if (!audio) audio = new Audio();
+        await audio.resume();
+        sonarEnabled = true;
+        sonar();
+      }
+      button.textContent = sonarEnabled ? 'Sonar on' : 'Sonar off';
+      button.setAttribute('aria-pressed', String(sonarEnabled));
+    } catch {
+      sonarEnabled = false;
+      button.textContent = 'Sonar unavailable';
+      button.setAttribute('aria-pressed', 'false');
+    } finally { button.disabled = false; }
+  });
   $('playBtn').addEventListener('click', () => start('daily', core.utcDate()));
   $('start-pack').addEventListener('click', () => start('pack', $('pack').value));
   $('start-number').addEventListener('click', () => {
