@@ -177,6 +177,18 @@ Its assertions verify all three waves and exact expected outcome; source syntax
 and diff checks passed. Two regenerations produced byte-identical JSON. No
 browser was needed or launched for this docs/data change; the UI-owned slot
 remained held. Existing 22 API-fixture captures are not newly regraded.
+Step 2 landed as `93c9a80` and world was notified that it has no sim browser
+hold. Runtime/check/harness remain 721 LOC; the docs-only producer adds 45.
+
+The post-step checker correctly refused uncommitted sibling source:
+`AssertionError: Commit inspected source changes before validating its inventory.`
+At that check the only dirty paths were sibling-owned `ui-qa.py`, `world-qa.py`,
+`docs/citisten-ui-api.md`, `docs/maintenance/README.md`,
+`docs/maintenance/audits/citisten-QA/J-ui-results.json` and
+`docs/maintenance/audits/citisten-QA/J-ui-batch32-run.txt`. No sim-owned paths
+were dirty or staged. Canonical final refresh remains lead-owned after those
+source commits. Final Batch32 root-free snapshot was 3,846,430,720 bytes
+(182,554,624 less than session start, shared across swarms).
 
 ## Change record and handoff
 
