@@ -102,8 +102,9 @@ No live profile is evidence to stage. Full-fleet coordination ticket
 
 Command output, exit status, source hashes and screenshots are retained under
 `maintenance/audits/citisten-QA/native/`. Read the command/results JSON for later
-run outcomes. The interrupted pre-launch command has an empty retained log and
-is not a pass.
+run outcomes. An earlier interrupted command has an empty retained log and no
+exit/result. Its historical `native-interrupted-before-launch.txt` filename
+is not proof that no browser started; no accepted run is credited to it.
 
 World reports 34 successful AFTER photos for all 17 models across three
 bounded passes at `be3024f`, separately from native gameplay. Its 34 BEFORE
