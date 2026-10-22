@@ -42,7 +42,7 @@ Vendored SHA-256:
 WASD pans on the horizontal plane relative to yaw. Right/middle drag rotates
 pitch/yaw. Wheel changes camera altitude smoothly with hard target limits
 2..400m; pitch remains independently controlled. Pitch spans near-vertical
-downward through slightly upward. Position stays within the world boundary.
+downward through near-vertical upward, so towers can be inspected from street level. Position stays within the world boundary.
 Input focus in form controls is ignored; blur clears held keys. `dispose()`
 removes listeners and GPU resources. No building collision is intended.
 

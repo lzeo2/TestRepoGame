@@ -2,6 +2,7 @@ import * as THREE from './vendor/three.module.js';
 
 // Render-only feedback. Simulation decides whether a shot happens and applies damage.
 export function createWorldEffects(scene, roads) {
+  // ponytail: 64 simultaneous visual shots; enlarge the ring if important feedback is dropped.
   const capacity = 64, ends = new Float32Array(capacity * 6), hits = new Float32Array(capacity * 3);
   const remaining = new Float32Array(capacity);
   const lineGeometry = new THREE.BufferGeometry(), hitGeometry = new THREE.BufferGeometry();

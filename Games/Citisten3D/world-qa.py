@@ -49,6 +49,7 @@ def main():
             try:
                 page = browser.new_page(viewport={'width': 1280, 'height': 720}, device_scale_factor=1)
                 page.on('pageerror', lambda error: report['errors'].append(str(error)))
+                page.on('console', lambda message: report['errors'].append(message.text) if message.type == 'error' else None)
                 page.on('requestfailed', lambda request: report['failedRequests'].append(request.url.replace(base, 'LOOPBACK')))
                 page.on('request', lambda request: report['externalRequests'].append(request.url) if not request.url.startswith(base) and not request.url.startswith('data:') else None)
                 def shot(name, text):
@@ -64,6 +65,12 @@ def main():
                 def performance_check():
                     page.goto(base + '/Games/Citisten3D/world.html?size=128&perf&manual', wait_until='networkidle')
                     page.wait_for_function('window.citistenWorld')
+                    report['pitchBounds'] = page.evaluate('''() => {
+                      const c=citistenWorld.world.controls;
+                      c.setPose({x:0,y:2,z:0,pitch:-100},true); const low=c.target.pitch;
+                      c.setPose({x:0,y:2,z:0,pitch:100},true); return [low,c.target.pitch];
+                    }''')
+                    assert report['pitchBounds'][0] < -1.5 and report['pitchBounds'][1] > 1.5
                     page.evaluate('citistenWorld.world.controls.setPose({x:0,y:400,z:250,yaw:0,pitch:-.9},true)')
                     # Fixed time, not frame count: very slow software GPUs must still yield evidence.
                     page.wait_for_timeout(10000)

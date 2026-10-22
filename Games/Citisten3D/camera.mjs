@@ -29,7 +29,7 @@ export function createFreeCamera(camera, canvas, extent = 1000) {
   on(canvas, 'pointermove', event => {
     if (!pointer || event.pointerId !== pointer.id) return;
     targetYaw -= (event.clientX - pointer.x) * .004;
-    targetPitch = THREE.MathUtils.clamp(targetPitch - (event.clientY - pointer.y) * .004, -Math.PI / 2 + .02, .35);
+    targetPitch = THREE.MathUtils.clamp(targetPitch - (event.clientY - pointer.y) * .004, -Math.PI / 2 + .02, Math.PI / 2 - .02);
     pointer.x = event.clientX; pointer.y = event.clientY; inputVersion++;
   });
   const release = event => { if (event.pointerId === pointer?.id) pointer = null; };
@@ -48,7 +48,7 @@ export function createFreeCamera(camera, canvas, extent = 1000) {
       if (![x, y, z, newYaw, newPitch].every(Number.isFinite)) throw new RangeError('Invalid camera pose');
       target.set(THREE.MathUtils.clamp(x, -extent, extent), THREE.MathUtils.clamp(y, 2, 400), THREE.MathUtils.clamp(z, -extent, extent));
       targetYaw = newYaw;
-      targetPitch = THREE.MathUtils.clamp(newPitch, -Math.PI / 2 + .02, .35);
+      targetPitch = THREE.MathUtils.clamp(newPitch, -Math.PI / 2 + .02, Math.PI / 2 - .02);
       if (snap) { camera.position.copy(target); yaw = targetYaw; pitch = targetPitch; camera.rotation.set(pitch, yaw, 0); }
     },
     update(dt) {
