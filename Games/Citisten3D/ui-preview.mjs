@@ -11,7 +11,7 @@ const ui = createUI(document.querySelector('#ui'), {
   onResume() { sim?.setSpeed(savedSpeed); }
 });
 window.citistenPreview = { ui }; // Preview-only QA handle, never gameplay state.
-if (fixture) document.querySelector('.city-preview-label').textContent = 'UI fixture. Not gameplay evidence.';
+if (fixture) document.querySelector('.city-preview-label').textContent = 'UI fixture';
 function frame(now) {
   if (sim) { sim.update(Math.min((now - last) / 1000, 0.1)); ui.update(sim.state); ui.events(sim.drainEvents()); }
   last = now; requestAnimationFrame(frame);

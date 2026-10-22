@@ -148,7 +148,7 @@ def preview_network():
                         page.wait_for_function("document.querySelector('[data-value=budget]').textContent !== '$0'")
                         page.wait_for_timeout(600)
                         assert page.locator('.city-game').is_visible()
-                        assert ('Free build' if mode == 'free' else 'Defense') in page.locator('[data-value="phase"]').inner_text()
+                        assert page.locator('[data-value="phase"]').inner_text().startswith('Day ')
                         qa.browser_slot(); qa.disk()
                         page.screenshot(path=str(OUT / f'L-ui-preview-{mode}-{theme}.png'))
                         page.locator('.city-top [data-action="menu"]').click()

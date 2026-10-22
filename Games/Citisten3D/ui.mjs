@@ -17,39 +17,37 @@ export function createUI(root, callbacks = {}) {
     <section class="city-game" hidden aria-label="Town management">
       <header class="city-top panel">
         <strong class="city-brand">CITISTEN</strong>
-        <div class="city-stat"><span>Budget</span><strong data-value="budget">$0</strong></div>
+        <div class="city-stat" role="group" aria-label="Budget"><strong data-value="budget">$0</strong></div>
         <div class="city-stat"><span>Population</span><strong data-value="population">0</strong></div>
         ${['power', 'water'].map(name => `<div class="city-stat utility"><label for="city-${name}">${name === 'power' ? 'Power' : 'Water'}</label><strong data-value="${name}">0 / 0</strong><meter id="city-${name}" min="0" max="1" value="0" aria-label="${name} demand against supply"></meter></div>`).join('')}
-        <span data-value="phase">Day / Free build</span><button data-action="menu">Menu</button><button data-action="theme">Light theme</button>
+        <span data-value="phase">Day 1</span><button data-action="menu">Menu</button><button data-action="theme">Light</button>
       </header>
       <aside class="city-night panel" hidden aria-label="Night watch">
-        <div><h2>Night watch</h2><p>Protect the town hall.</p></div>
-        <div class="city-hall"><svg viewBox="0 0 48 48" role="img" aria-label="Town hall health"><circle class="ring-track" cx="24" cy="24" r="19"/><circle class="ring-value" cx="24" cy="24" r="19" pathLength="100"/><text x="24" y="29" text-anchor="middle">H</text></svg><div>Town hall<strong data-value="hp">0 / 0</strong></div></div>
+        <div class="city-hall"><svg viewBox="0 0 48 48" role="img" aria-label="Town hall health"><circle class="ring-track" cx="24" cy="24" r="19"/><circle class="ring-value" cx="24" cy="24" r="19" pathLength="100"/><text x="24" y="29" text-anchor="middle">H</text></svg><strong data-value="hp">0 / 0</strong></div>
         <div class="city-wave">Wave<strong data-value="wave">0</strong></div>
       </aside>
       <div class="city-toasts" role="status" aria-live="polite" aria-atomic="true"></div>
-      <details class="city-map panel" open><summary>Town map</summary><canvas width="200" height="200" role="img" aria-label="Top-down town grid. H marks the town hall; circles mark zombies at night."></canvas><div class="city-legend"><span class="residential">Residential</span><span class="commercial">Commercial</span><span class="industrial">Industrial</span><span class="road">Road</span><span class="hall">H Town hall</span><span class="enemy">Night horde</span></div></details>
+      <details class="city-map panel" open><summary>Map</summary><canvas width="200" height="200" role="img" aria-label="Town map. H: town hall. Dots: zombies."></canvas><div class="city-legend"><span class="residential">Residential</span><span class="commercial">Commercial</span><span class="industrial">Industrial</span><span class="road">Road</span><span class="hall">H Town hall</span><span class="enemy" hidden>Zombies</span></div></details>
       <footer class="city-builder">
         <section class="city-tools panel" aria-label="Tool options"></section>
-        <nav class="city-groups panel" aria-label="Builder tools">${Object.keys(GROUPS).map(name => `<button data-group="${name}" aria-expanded="false">${name}</button>`).join('')}</nav>
-        <p class="city-tool-help" aria-live="polite"></p>
+        <nav class="city-groups panel" aria-label="Builder tools">${Object.keys(GROUPS).map(name => `<button data-group="${name}" aria-expanded="false" title="${GROUPS[name].length === 1 ? GROUPS[name][0][2] : ''}">${name}</button>`).join('')}</nav>
       </footer>
     </section>
     <dialog class="city-menu" aria-labelledby="city-menu-title">
-      <div class="city-dialog-top"><strong class="city-brand">CITISTEN</strong><button data-action="theme">Light theme</button></div>
-      <div class="city-menu-content"><h1 id="city-menu-title">CITISTEN</h1><p class="city-subtitle">A town of your own.</p>
+      <div class="city-dialog-top"><button data-action="theme">Light</button></div>
+      <div class="city-menu-content"><h1 id="city-menu-title">CITISTEN</h1>
         <div class="city-mode-cards">
-          <article class="panel">${townIcon}<h2>FREE BUILD</h2><p>Build at your own pace.</p><button data-mode="free">Start building</button></article>
-          <article class="panel">${shieldIcon}<h2>ZOMBIE DEFENSE</h2><p>Build by day. Hold the town by night.</p><button data-mode="defense">Defend the town</button></article>
-        </div><button class="city-resume" data-action="resume" hidden>Return to town</button>
+          <article class="panel">${townIcon}<button data-mode="free">Free build</button></article>
+          <article class="panel">${shieldIcon}<button data-mode="defense">Zombie defense</button></article>
+        </div><button class="city-resume" data-action="resume" hidden>Resume</button>
         <p class="city-menu-error" role="alert"></p>
-      </div><p class="city-controls">Move: WASD / Rotate: right or middle mouse drag / Zoom: scroll</p>
+      </div><p class="city-controls">WASD move / Right-drag rotate / Scroll zoom</p>
     </dialog>
     <dialog class="city-loss" aria-labelledby="city-loss-title">
-      <div class="city-dialog-top"><strong class="city-brand">CITISTEN</strong><button data-action="theme">Light theme</button></div>
-      <section class="city-loss-content panel"><div class="city-hall-mark" aria-hidden="true">H</div><h1 id="city-loss-title">The town hall has fallen</h1><p>Your town held on. Start again with a new plan.</p>
-        <dl>${[['score', 'Nights survived'], ['finalPopulation', 'Peak population'], ['kills', 'Zombies stopped']].map(([id,label]) => `<div><dt>${label}</dt><dd data-value="${id}">0</dd></div>`).join('')}</dl>
-        <div class="city-loss-actions"><button data-action="restart">Try again</button><button data-action="menu">Main menu</button></div><p class="city-loss-error" role="alert"></p>
+      <div class="city-dialog-top"><strong class="city-brand">CITISTEN</strong><button data-action="theme">Light</button></div>
+      <section class="city-loss-content panel"><div class="city-hall-mark" aria-hidden="true">H</div><h1 id="city-loss-title">Town hall lost</h1>
+        <dl>${[['score', 'Nights'], ['finalPopulation', 'Peak population'], ['kills', 'Kills']].map(([id,label]) => `<div><dt>${label}</dt><dd data-value="${id}">0</dd></div>`).join('')}</dl>
+        <div class="city-loss-actions"><button data-action="restart">Restart</button><button data-action="menu">Menu</button></div><p class="city-loss-error" role="alert"></p>
       </section>
     </dialog>`;
   const $ = selector => root.querySelector(selector);
@@ -65,7 +63,7 @@ export function createUI(root, callbacks = {}) {
     const theme = root.dataset.theme;
     for (const dialog of [menu, loss]) dialog.dataset.theme = theme;
     root.querySelectorAll('[data-action="theme"]').forEach(button => {
-      button.textContent = theme === 'dark' ? 'Light theme' : 'Dark theme';
+      button.textContent = theme === 'dark' ? 'Light' : 'Dark';
       button.setAttribute('aria-label', `Switch to ${theme === 'dark' ? 'light' : 'dark'} theme`);
     });
     for (const dialog of [menu, loss]) dialog.style.colorScheme = theme;
@@ -79,16 +77,13 @@ export function createUI(root, callbacks = {}) {
     if (!menu.open) menu.showModal();
   }
   function renderTools() {
-    $('.city-tools').innerHTML = GROUPS[activeGroup].map(([id, label, key]) => `<button data-tool="${id}" aria-pressed="${selected === id}" aria-describedby="city-tooltip-${id}" ${id === 'barricade' ? 'disabled' : ''}>${label}<span class="city-tooltip" id="city-tooltip-${id}" role="tooltip">${label} / ${key === 'Not available' ? 'Not available in the simulation' : `Shortcut ${key}`}</span></button>`).join('');
-    if (activeGroup === 'Zone') {
-      const hint = document.createElement('p'); hint.textContent = 'Zones grow beside roads.'; $('.city-tools').append(hint);
-    }
+    $('.city-tools').hidden = GROUPS[activeGroup].length === 1;
+    $('.city-tools').innerHTML = GROUPS[activeGroup].map(([id, label, key]) => `<button data-tool="${id}" aria-label="${label}" aria-pressed="${selected === id}" aria-describedby="city-tooltip-${id}" ${id === 'barricade' ? 'disabled' : ''}>${label}<span class="city-tooltip" id="city-tooltip-${id}" role="tooltip">${key === 'Not available' ? 'Unavailable' : key}</span></button>`).join('');
     root.querySelectorAll('[data-group]').forEach(button => {
-      button.setAttribute('aria-expanded', String(button.dataset.group === activeGroup));
+      button.setAttribute('aria-expanded', String(button.dataset.group === activeGroup && GROUPS[activeGroup].length > 1));
       button.classList.toggle('is-selected', GROUPS[button.dataset.group].some(([id]) => id === selected));
+      button.setAttribute('aria-pressed', String(button.classList.contains('is-selected')));
     });
-    const tool = Object.values(GROUPS).flat().find(([id]) => id === selected);
-    $('.city-tool-help').textContent = `${tool[1]} / Shortcut ${tool[2]}`;
   }
   function setTool(type) {
     const group = Object.keys(GROUPS).find(name => GROUPS[name].some(([id]) => id === type));
@@ -102,7 +97,7 @@ export function createUI(root, callbacks = {}) {
       timers.clear(); recent.clear(); $('.city-toasts').replaceChildren();
       return true;
     }
-    catch (error) { $(errorTarget).textContent = `Could not open the town. ${error.message || 'Please try again.'}`; return false; }
+    catch (error) { $(errorTarget).textContent = `Start failed: ${error.message || 'unknown error'}`; return false; }
   }
   root.addEventListener('click', event => {
     const button = event.target.closest('button');
@@ -165,8 +160,10 @@ export function createUI(root, callbacks = {}) {
       meter.setAttribute('aria-valuetext', `${number(utility.demand)} demand, ${number(utility.supply)} supply`);
       meter.classList.toggle('is-overloaded', utility.demand > utility.supply);
     }
-    text('phase', `${state.phase === 'night' ? 'Night' : 'Day'} ${number(state.night + (state.phase === 'night' ? 0 : 1))} / ${mode === 'free' ? 'Free build' : 'Defense'}`);
-    $('.city-night').hidden = !(mode === 'defense' && state.phase === 'night');
+    text('phase', state.phase === 'night' ? 'Night' : `Day ${number(state.night + 1)}`);
+    const night = mode === 'defense' && state.phase === 'night';
+    $('.city-night').hidden = !night;
+    $('.city-legend .enemy').hidden = !night;
     text('hp', `${number(state.townHallHp)} / ${number(state.townHallMaxHp)}`); text('wave', number(state.night));
     const hp = Math.max(0, Math.min(100, 100 * state.townHallHp / (state.townHallMaxHp || 1)));
     $('.ring-value').style.strokeDasharray = `${hp} 100`;
@@ -192,12 +189,12 @@ export function createUI(root, callbacks = {}) {
     const messages = new Map();
     for (const event of batch) {
       const message = {
-        placed: 'Building placed.', removed: 'Building removed.', repaired: 'Building repaired.',
-        blackout: event.active ? 'Blackout started. Check power and roads.' : 'Power restored.',
-        'wave-warning': 'Nightfall in one minute. Prepare your defences.',
-        wave: `Wave ${number(event.night)} incoming. Protect the town hall.`,
-        milestone: `Population milestone: ${number(event.population)} residents.`,
-        'night-survived': `Night survived. ${number(event.score)} nights held.`
+        placed: 'Placed', removed: 'Removed', repaired: 'Repaired',
+        blackout: event.active ? 'Blackout' : 'Power restored',
+        'wave-warning': 'Nightfall: 1 min',
+        wave: `Wave ${number(event.night)} incoming`,
+        milestone: `${number(event.population)} residents`,
+        'night-survived': 'Night survived'
       }[event.type];
       if (message) messages.set(event.type, message);
     }

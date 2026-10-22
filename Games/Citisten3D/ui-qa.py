@@ -12,7 +12,7 @@ from PIL import Image, ImageDraw
 from playwright.sync_api import sync_playwright
 
 ROOT = Path(__file__).resolve().parents[2]
-OUT = ROOT / 'docs/maintenance/audits/citisten-QA'
+OUT = ROOT / 'docs/maintenance/audits/citisten-QA/copy-pass'
 FLOOR = 2178940928
 PROCESS_CHECKS = 0
 
@@ -165,10 +165,15 @@ def main():
                     assert page.evaluate('''() => [...document.styleSheets].some(sheet =>
                       [...sheet.cssRules].some(rule => rule.selectorText === '.citisten-ui :focus-visible'
                         && rule.style.outline.includes('solid')))''')
+                    assert page.locator('.city-subtitle, .city-tool-help, .city-mode-cards h2, .city-mode-cards p').count() == 0
+                    assert page.locator('[data-mode="free"]').inner_text() == 'Free build'
+                    assert page.locator('[data-mode="defense"]').inner_text() == 'Zombie defense'
+                    assert page.locator('.city-controls').inner_text() == 'WASD move / Right-drag rotate / Scroll zoom'
                     for theme in ['dark', 'light']:
                         if theme == 'light':
                             page.locator('dialog[open] [data-action="theme"]').click()
                         assert page.locator('#ui').get_attribute('data-theme') == theme
+                        assert page.locator('dialog[open] [data-action="theme"]').inner_text() == ('Light' if theme == 'dark' else 'Dark')
                         layout(page)
                         # Native focus ring and keyboard start path.
                         keyboard_focus(page, '[data-mode="free"]')
@@ -177,6 +182,10 @@ def main():
                         assert page.evaluate('calls.at(-1)') == ['start', 'free']
                         page.evaluate('state.mode="free"; state.phase="day"; state.budget=24500; state.population=128; state.night=2; state.townHallHp=720; state.power={demand:64,supply:100}; ui.update(state,map)')
                         assert not page.locator('.city-night').is_visible()
+                        assert not page.locator('.city-tools').is_visible()
+                        assert page.locator('[data-group="Road"]').get_attribute('aria-pressed') == 'true'
+                        assert page.locator('.city-legend .enemy').get_attribute('hidden') is not None
+                        assert page.locator('[data-value="phase"]').inner_text() == 'Day 3'
                         assert page.locator('[data-value="budget"]').inner_text() == '$24,500'
                         layout(page)
                         captures.append(shot(page, f'J-C-D-ui-hud-{theme}-{width}'))
@@ -191,8 +200,12 @@ def main():
                         page.locator('[data-tool="residential"]').click()
                         assert page.evaluate('calls.at(-1)') == ['tool', 'residential']
                         assert page.locator('[data-tool="residential"]').get_attribute('aria-pressed') == 'true'
+                        assert page.locator('[data-group="Zone"]').get_attribute('aria-pressed') == 'true'
                         keyboard_focus(page, '[data-tool="commercial"]')
                         assert page.locator('#city-tooltip-commercial').is_visible()
+                        assert page.locator('#city-tooltip-commercial').inner_text() == '3'
+                        assert page.locator('[data-tool="commercial"]').get_attribute('aria-label') == 'Commercial'
+                        assert page.locator('.city-tools p').count() == 0
                         layout(page)
                         captures.append(shot(page, f'J-B-ui-toolbar-{theme}-{width}'))
                         page.evaluate('''() => {
@@ -204,7 +217,12 @@ def main():
                         page.locator('[data-group="Defense"]').click()
                         page.locator('[data-tool="watchtower"]').click()
                         assert page.locator('[data-tool="barricade"]').is_disabled()
+                        assert page.locator('[data-group="Defense"]').get_attribute('aria-pressed') == 'true'
                         assert page.locator('.city-night').is_visible()
+                        assert page.locator('.city-night h2, .city-night p').count() == 0
+                        assert page.locator('.city-legend .enemy').get_attribute('hidden') is None
+                        assert page.locator('[data-value="phase"]').inner_text() == 'Night'
+                        assert page.locator('.city-toasts > p').last.inner_text() == 'Wave 3 incoming'
                         assert page.locator('.city-hall svg').get_attribute('aria-label') == 'Town hall health 72 percent'
                         layout(page)
                         captures.append(shot(page, f'J-F-G-ui-nightalert-{theme}-{width}'))
@@ -215,13 +233,16 @@ def main():
                           ui.events([{type:'blackout',active:true},{type:'milestone',population:100}]);
                         }''')
                         assert page.locator('.city-toasts > p').count() <= (1 if width < 600 else 3)
-                        assert 'Blackout started' in page.locator('.city-toasts').inner_text()
+                        assert page.locator('.city-toasts > p').last.inner_text() == 'Blackout'
                         layout(page)
                         assert page.locator('#city-power').get_attribute('aria-valuetext') == '64 demand, 0 supply'
                         captures.append(shot(page, f'D-ui-blackout-{theme}-{width}'))
                         page.evaluate('state.phase="lost";state.townHallHp=0;ui.update(state,map)')
                         assert page.locator('.city-loss').is_visible()
                         assert page.locator('[data-value="finalPopulation"]').inner_text() == '240'
+                        assert page.locator('#city-loss-title').inner_text() == 'Town hall lost'
+                        assert page.locator('.city-loss dt').all_text_contents() == ['Nights', 'Peak population', 'Kills']
+                        assert page.locator('.city-loss-content > p:not(.city-loss-error)').count() == 0
                         page.keyboard.press('Escape')
                         assert page.locator('.city-loss').is_visible()
                         layout(page)
@@ -229,7 +250,8 @@ def main():
                         page.locator('[data-action="restart"]').click()
                         assert page.evaluate('calls.at(-1)') == ['restart', 'defense']
                         assert page.locator('.city-toasts > p').count() == 0
-                        assert page.locator('[data-group="Road"]').get_attribute('aria-expanded') == 'true'
+                        assert page.locator('[data-group="Road"]').get_attribute('aria-expanded') == 'false'
+                        assert not page.locator('.city-tools').is_visible()
                         page.evaluate('ui.update(state,map)')
                         page.locator('.city-loss [data-action="menu"]').click()
                         page.evaluate('ui.update(state,map)')
@@ -244,8 +266,24 @@ def main():
                     page.evaluate("() => { Storage.prototype.setItem = () => { throw Error('Storage denied') }; }")
                     page.locator('dialog[open] [data-action="theme"]').click()
                     assert page.locator('#ui').get_attribute('data-theme') == 'dark'
+                    page.evaluate('''() => {
+                      const copy = [
+                        [{type:'placed'}, 'Placed'], [{type:'removed'}, 'Removed'],
+                        [{type:'repaired'}, 'Repaired'], [{type:'blackout',active:true}, 'Blackout'],
+                        [{type:'blackout',active:false}, 'Power restored'],
+                        [{type:'wave-warning'}, 'Nightfall: 1 min'],
+                        [{type:'wave',night:4}, 'Wave 4 incoming'],
+                        [{type:'milestone',population:1000}, '1,000 residents'],
+                        [{type:'night-survived',score:4}, 'Night survived']
+                      ];
+                      for (const [event, expected] of copy) {
+                        ui.events([event]);
+                        if (document.querySelector('.city-toasts').lastElementChild.textContent !== expected) throw Error('Toast copy: '+expected);
+                      }
+                    }''')
+                    count = page.locator('.city-toasts > p').count()
                     page.evaluate('ui.events([{type:"placed"},{type:"placed"}]);ui.events([{type:"placed"}])')
-                    assert page.locator('.city-toasts > p').count() <= 3
+                    assert page.locator('.city-toasts > p').count() == count <= (1 if width < 600 else 3)
                     page.wait_for_timeout(6200)
                     assert page.locator('.city-toasts > p').count() == 0
                     page.evaluate('ui.destroy()')
@@ -270,7 +308,7 @@ def main():
         result = {'scope':'UI fixture only, reviewer grades acceptance', 'viewports':[1440,390,320],
                   'themes':['dark','light'], 'screenshots':len(captures), 'collages':10,
                   'errors':errors,'externalRequests':external,'failedRequests':failed,'browserProcessChecks':PROCESS_CHECKS,
-                  'checks':'runtime tab-order focus modality and visible CSS rule, native keyboard start, both modes, tool callbacks, theme/storage failure, HP, demand, peak population, loss-to-menu, hall marker ordering, toast cap/dedupe/expiry, 44px targets, overflow and button copy, no gradients/shadows, destroy',
+                  'checks':'trimmed copy and nine toast messages, key-only hints, no duplicate tool rows/captions, runtime tab-order focus modality and visible CSS rule, native keyboard start, both modes, tool callbacks, theme/storage failure, HP, demand, peak population, loss-to-menu, hall marker ordering, toast cap/dedupe/expiry, 44px targets, overflow and button copy, no gradients/shadows, destroy',
                   'diskBeforeBytes':before,'diskAfterBytes':shutil.disk_usage('/').free}
         disk(); (OUT / 'J-ui-results.json').write_text(json.dumps(result,indent=2)+'\n')
         print(f'UI CHECK PASS: {len(captures)} fixture screenshots, 10 collages; 3 viewports, 2 themes; zero console/page/network errors')

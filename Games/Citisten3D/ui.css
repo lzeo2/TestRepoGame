@@ -5,8 +5,8 @@
 .citisten-ui[data-theme='light'] { --bg: #eeeadd; --panel: #faf7ee; --text: #20251f; --muted: #4c554c; --border: #747a70; --accent: #805d16; color-scheme: light; }
 .citisten-ui *, .citisten-ui *::before, .citisten-ui *::after { box-sizing: border-box; }
 .citisten-ui [hidden] { display: none !important; }
-.citisten-ui h1, .citisten-ui h2, .city-brand { font-family: Bungee, system-ui, sans-serif; font-weight: 400; line-height: 1.2; }
-.citisten-ui h1, .citisten-ui h2, .citisten-ui p { margin: 0; }
+.citisten-ui h1, .city-brand { font-family: Bungee, system-ui, sans-serif; font-weight: 400; line-height: 1.2; }
+.citisten-ui h1, .citisten-ui p { margin: 0; }
 .citisten-ui button, .citisten-ui summary { min-height: 44px; min-width: 44px; font: inherit; font-weight: 700; cursor: pointer; touch-action: manipulation; }
 .citisten-ui button { background: #000; color: #fff; border: 2px solid #000; border-radius: 4px; padding: 10px 16px; position: relative; }
 .citisten-ui button:hover { border-color: var(--muted); }
@@ -28,7 +28,6 @@
 .city-stat meter.is-overloaded { outline: 2px solid var(--text); outline-offset: 2px; }
 .city-top [data-value='phase'] { font-size: 14px; max-width: 130px; }
 .city-night { margin: 16px auto; padding: 16px 22px; width: min(950px, calc(100% - 32px)); display: flex; justify-content: space-between; align-items: center; gap: 20px; border: 2px solid var(--accent) !important; }
-.city-night h2 { font-size: 27px; margin-bottom: 6px; }
 .city-hall { display: flex; align-items: center; gap: 12px; }
 .city-hall strong, .city-wave strong { display: block; font-size: 23px; }
 .city-hall svg { width: 64px; height: 64px; }
@@ -55,8 +54,6 @@
 .city-groups button { flex: 1; }
 .city-tools { position: relative; display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; padding: 12px; max-width: 100%; }
 .city-tools button { min-width: max-content; position: static; }
-.city-tools p { width: 100%; font-size: 14px; color: var(--muted); }
-.city-tool-help { font-size: 14px; background: var(--bg); padding: 2px 8px; border-radius: 4px; }
 .city-tooltip { display: none; position: absolute; bottom: calc(100% + 10px); left: 50%; transform: translateX(-50%); width: max-content; max-width: min(220px, 80vw); padding: 8px; background: var(--panel); color: var(--text); border: 1px solid var(--border); border-radius: 4px; pointer-events: none; font-size: 14px; font-weight: 400; z-index: 2; }
 .city-tools button:hover .city-tooltip, .city-tools button:focus-visible .city-tooltip { display: block; }
 .city-toasts { margin: 16px; max-width: min(390px, calc(100% - 32px)); display: grid; gap: 8px; }
@@ -65,14 +62,12 @@
 .citisten-ui dialog::backdrop { background: var(--bg); }
 .city-dialog-top { display: flex; justify-content: space-between; align-items: center; gap: 16px; }
 .city-menu-content { max-width: 1040px; margin: 45px auto; text-align: center; }
-.city-menu h1 { font-size: clamp(42px, 8vw, 100px); }
-.city-subtitle { font-size: clamp(21px, 3vw, 30px); margin: 14px 0 44px !important; }
+.city-menu .city-dialog-top { justify-content: flex-end; }
+.city-menu h1 { font-size: clamp(42px, 8vw, 100px); margin-bottom: 32px; }
 .city-mode-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; }
 .city-mode-cards article { padding: 32px; display: flex; flex-direction: column; align-items: center; gap: 22px; border-color: var(--accent) !important; }
 .city-mode-cards svg { width: 180px; height: 95px; fill: none; stroke: var(--accent); stroke-width: 3px; stroke-linejoin: round; }
-.city-mode-cards h2 { font-size: clamp(20px, 2.4vw, 30px); }
-.city-mode-cards p { flex: 1; }
-.city-mode-cards button { width: 100%; }
+.city-mode-cards button { width: 100%; font-family: Bungee, system-ui, sans-serif; font-weight: 400; font-size: clamp(20px, 2.4vw, 24px); }
 .city-controls { text-align: center; color: var(--muted); margin: 20px 0 !important; }
 .city-resume { margin-top: 20px; }
 .city-menu-error, .city-loss-error { margin-top: 12px !important; }
@@ -109,8 +104,6 @@
   .city-map { right: 8px; bottom: 265px; width: 160px; padding: 8px; }
   .city-legend { grid-template-columns: 1fr; }
   .city-night { margin-top: 8px; padding: 10px; width: calc(100% - 16px); gap: 10px; flex-wrap: wrap; }
-  .city-night h2 { font-size: 20px; }
-  .city-night > div:first-child { width: 100%; }
   .city-hall svg { width: 46px; height: 46px; }
   .city-hall strong, .city-wave strong { font-size: 18px; }
   .city-toasts { margin: 8px; max-width: calc(100% - 184px); font-size: 14px; }
@@ -118,7 +111,6 @@
   .citisten-ui dialog { padding: 16px; }
   .city-dialog-top .city-brand { font-size: 21px; }
   .city-menu-content { margin: 24px auto; }
-  .city-subtitle { margin: 8px 0 24px !important; }
   .city-mode-cards { grid-template-columns: 1fr; gap: 16px; }
   .city-mode-cards article { padding: 20px; gap: 14px; }
   .city-mode-cards svg { width: 100px; height: 52px; }

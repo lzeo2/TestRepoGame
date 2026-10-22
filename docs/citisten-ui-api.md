@@ -46,8 +46,10 @@ only: `1` road, `2/3/4` residential/commercial/industrial, `5/6` power/water,
 `7/8/9` police/fire/park, `B` wall, `N` watchtower, `X` bulldoze.
 Integration owns actual hotkeys. Initial selected tool is `road`; initialise
 the integration's placement selection to match, or call `setTool` on start.
-Tool buttons expose `data-tool` and
-`aria-pressed`; group buttons expose `data-group` and `aria-expanded`.
+Tool buttons expose `data-tool` and `aria-pressed`; group buttons expose
+`data-group`, `aria-pressed` for the selected category and `aria-expanded`. Road/Bulldoze select directly without a
+duplicate options row, so their `aria-expanded` remains false. Their key hints
+use native titles; other tooltips show only the key, not the repeated label.
 
 `update` reads the published sim state without mutation: budget/population,
 power/water demand and supply, demand by zone, mode, phase, night, score,
@@ -84,8 +86,10 @@ No copied game UI or assets. Local font provenance remains in
 Run `python3 -B Games/Citisten3D/ui-qa.py` with no other Chromium gate active.
 It pins system Chromium, uses an isolated loopback server, and terminates both.
 It exercises documented APIs against labelled fixture state, not gameplay.
-Screenshot output: `docs/maintenance/audits/citisten-QA/J-ui-*.png` and
-J comparison collages. These are evidence for reviewer grading, not acceptance.
+Current screenshot output: `docs/maintenance/audits/citisten-QA/copy-pass/`.
+It contains one capture per menu/HUD/zoning/night/blackout/loss state, theme and
+viewport, plus J comparison collages. Earlier captures outside this subfolder
+are preserved historical evidence. These are evidence for reviewer grading, not acceptance.
 C/D/F/G/H/I integrated gameplay gates belong to the integration lane.
 Initial browser regression produced 36 fixture screenshots and 10 collages
 with zero console/page/network errors. Screenshot review then found a narrow
@@ -109,3 +113,23 @@ no computed-outline-only check or fixed Tab count substitutes for keyboard
 modality. No UI assertions were removed to obtain a passing run.
 Native touch gameplay, screen-reader review and target-device tests remain held.
 Main owns canonical maintenance inventory updates and full fleet/no-push gates.
+
+## Operator copy pass
+
+The copy-only order supersedes the original mockups' narrative text, not their
+flat visual law or component APIs. Menu cards are mode buttons without repeated
+headings/descriptions; loss has its condition, three labelled stats and actions.
+Duplicate branding, selected-tool footer, zoning caption and night instructions
+are removed. Budget uses its currency sign; population/power/water keep labels
+because their numbers would otherwise be ambiguous. HP uses its H icon and
+numbers; Wave stays labelled. One compact input line and accessible labels/error
+diagnostics remain. The minimap zombie legend is visible only at night.
+
+Toast copy is limited to Placed, Removed, Repaired, Blackout, Power restored,
+Nightfall: 1 min, Wave N incoming, N residents, and Night survived. Existing
+limits, priorities, expiry and callbacks are unchanged. Preview watermarks are
+UI preview / UI fixture. No sim/world/camera logic or runtime imports changed.
+
+See `docs/citisten-copy-pass.md` for current-source shots and execution receipt.
+The earlier J/K/L receipt and its asset hashes describe the pre-trim revision;
+they have not been silently rewritten to claim current-code proof.

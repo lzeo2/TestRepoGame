@@ -175,3 +175,23 @@ attempts, sockets, failed requests or console/page errors under cache-disabled,
 service-worker-blocked and non-loopback-denied conditions. Full-game K/L remain
 unestablished: the actual catalog stays at 127 and the integrated game entry is
 missing. Reviewer grading and separate registration/push approvals remain.
+
+## Operator copy pass (current UI)
+
+[Copy-pass receipt](citisten-copy-pass.md) supersedes the earlier narrative UI
+copy and captures. The runtime/preview text is trimmed to labels, numbers,
+key hints, status and essential controls/errors. No sim/world/camera logic or
+runtime import changed. Old J/K/L images and exact asset hashes remain frozen
+as historical evidence, not current-code proof.
+
+Current screenshots and results are in
+`docs/maintenance/audits/citisten-QA/copy-pass/`: 36 frames covering all six
+screen states in both themes at 1440/390/320 widths, plus 10 comparisons.
+Initial bounded copy regression exit 0: 37 ownership checks, zero console/page/
+network errors; exact copy, focus, callbacks, touch targets and toast lifecycle
+checks retained. A final accessibility review then added selected-state
+`aria-pressed` to the group buttons, preserving announcements after duplicate
+single-tool rows were removed. Final-source recapture for that attribute is
+pending the reserved queue; no competing browser was launched. Owned resources
+closed; next browser slot explicitly released. Reviewer grades, whole-game
+integration and canonical inventory refresh remain separate gates.
