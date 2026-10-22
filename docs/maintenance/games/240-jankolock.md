@@ -1,16 +1,31 @@
 <!-- maintenance-game: Games/Jankolock -->
-# JANKOLOCK maintenance manual
+# JANKOLOCK maintenance manual (historical path)
+
+The registration-derived canonical guides are now
+[ID240 Jankolock3D](240-jankolock3d.md) and
+[retained unregistered Jankolock](unregistered-jankolock.md).
+This historical page is preserved as evidence, not the current catalog guide.
 
 ## Identity and status
 
 Operator-authorized original browser genre translation, not an ingested or
-Valve-affiliated port. Registered as catalog ID240, title JANKOLOCK, action category,
-entry `Games/Jankolock/index.html`. Solo player plus ally bot versus two rival
+Valve-affiliated port. Historically registered as catalog ID240, title JANKOLOCK,
+action category, entry `Games/Jankolock/index.html`. Integration commit `d9088a2`
+moves that existing ID to `Games/Jankolock3D/index.html`; this legacy tree is now
+unregistered and retained, not deleted. This page describes the old game.
+Solo player plus ally bot versus two rival
 bots. Canvas2.5D core, separate optional three.js trophy lobby. No multiplayer.
 Research/design history is preserved; the old sliding-puzzle recommendation is
 superseded by the operator's Valve-reference resolution. See
 [provenance](../../jankolock-provenance.md) and [build receipt](../../jankolock-release.md).
 Registration and targeted smoke do not grant push/publication approval.
+
+The operator rejected this 2D implementation for the subsequent 3D rebuild.
+The replacement's development history is documented in
+[Jankolock3D](unregistered-jankolock3d.md), whose historical filename awaits
+registration-aware manual reconciliation. Its checks do not accept this old
+game or certify the complete rebuilt game. The older full-size portrait below
+remains untouched; the replacement uses a separately approved optimized relief.
 
 ## Implementation map
 

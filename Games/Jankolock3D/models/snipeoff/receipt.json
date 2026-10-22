@@ -1,0 +1,1212 @@
+{
+  "label": "Snipeoff",
+  "url": "models/snipeoff/model.glb",
+  "bytes": 818532,
+  "sha256": "a4a0faa196232bf7a40d28491b8f66f056ab0ba3da614c10946ecd8aab13b0bc",
+  "triangles": 19160,
+  "vertices": 21214,
+  "meshes": 75,
+  "materials": [
+    {
+      "name": "snipeoff__audit_navy",
+      "color": "35526c",
+      "roughness": 0.6299999952316284,
+      "metalness": 0
+    },
+    {
+      "name": "snipeoff__rubber",
+      "color": "242927",
+      "roughness": 0.8600000143051147,
+      "metalness": 0
+    },
+    {
+      "name": "snipeoff__aged_brass",
+      "color": "c49e61",
+      "roughness": 0.33000001311302185,
+      "metalness": 0.6800000071525574
+    },
+    {
+      "name": "snipeoff__ink_charcoal",
+      "color": "2f3c40",
+      "roughness": 0.5799999833106995,
+      "metalness": 0
+    },
+    {
+      "name": "snipeoff__tool_leather",
+      "color": "815f42",
+      "roughness": 0.800000011920929,
+      "metalness": 0
+    },
+    {
+      "name": "snipeoff__paper_edges",
+      "color": "f8f3db",
+      "roughness": 0.7300000190734863,
+      "metalness": 0
+    },
+    {
+      "name": "snipeoff__paper_warm_ivory",
+      "color": "e6dec4",
+      "roughness": 0.7200000286102295,
+      "metalness": 0
+    },
+    {
+      "name": "snipeoff__postroom_oxblood",
+      "color": "903530",
+      "roughness": 0.4000000059604645,
+      "metalness": 0
+    },
+    {
+      "name": "snipeoff__audit_ochre",
+      "color": "eabf55",
+      "roughness": 0.5400000214576721,
+      "metalness": 0
+    },
+    {
+      "name": "snipeoff__stapler_brushed_steel",
+      "color": "9baaac",
+      "roughness": 0.2800000011920929,
+      "metalness": 0.699999988079071
+    }
+  ],
+  "parts": [
+    {
+      "name": "foot_l_ankle_001",
+      "triangles": 188,
+      "vertices": 245,
+      "materials": [
+        "snipeoff__audit_navy"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "foot_l_sole_001",
+      "triangles": 188,
+      "vertices": 289,
+      "materials": [
+        "snipeoff__rubber"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "foot_l_strap_002",
+      "triangles": 188,
+      "vertices": 277,
+      "materials": [
+        "snipeoff__aged_brass"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "foot_l_strap_003",
+      "triangles": 188,
+      "vertices": 277,
+      "materials": [
+        "snipeoff__aged_brass"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "foot_l_tread_004",
+      "triangles": 188,
+      "vertices": 270,
+      "materials": [
+        "snipeoff__ink_charcoal"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "foot_l_tread_005",
+      "triangles": 188,
+      "vertices": 270,
+      "materials": [
+        "snipeoff__ink_charcoal"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "foot_l_tread_006",
+      "triangles": 188,
+      "vertices": 270,
+      "materials": [
+        "snipeoff__ink_charcoal"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "foot_l_tread_007",
+      "triangles": 188,
+      "vertices": 270,
+      "materials": [
+        "snipeoff__ink_charcoal"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "foot_l_vamp_001",
+      "triangles": 188,
+      "vertices": 296,
+      "materials": [
+        "snipeoff__audit_navy"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "knee_001",
+      "triangles": 720,
+      "vertices": 423,
+      "materials": [
+        "snipeoff__tool_leather"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "shin_001",
+      "triangles": 188,
+      "vertices": 211,
+      "materials": [
+        "snipeoff__audit_navy"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "tapered_thigh_001",
+      "triangles": 188,
+      "vertices": 210,
+      "materials": [
+        "snipeoff__audit_navy"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "foot_r_ankle_001",
+      "triangles": 188,
+      "vertices": 245,
+      "materials": [
+        "snipeoff__audit_navy"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "foot_r_sole_001",
+      "triangles": 188,
+      "vertices": 289,
+      "materials": [
+        "snipeoff__rubber"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "foot_r_strap_002",
+      "triangles": 188,
+      "vertices": 277,
+      "materials": [
+        "snipeoff__aged_brass"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "foot_r_strap_003",
+      "triangles": 188,
+      "vertices": 277,
+      "materials": [
+        "snipeoff__aged_brass"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "foot_r_tread_004",
+      "triangles": 188,
+      "vertices": 270,
+      "materials": [
+        "snipeoff__ink_charcoal"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "foot_r_tread_005",
+      "triangles": 188,
+      "vertices": 270,
+      "materials": [
+        "snipeoff__ink_charcoal"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "foot_r_tread_006",
+      "triangles": 188,
+      "vertices": 270,
+      "materials": [
+        "snipeoff__ink_charcoal"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "foot_r_tread_007",
+      "triangles": 188,
+      "vertices": 270,
+      "materials": [
+        "snipeoff__ink_charcoal"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "foot_r_vamp_001",
+      "triangles": 188,
+      "vertices": 296,
+      "materials": [
+        "snipeoff__audit_navy"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "knee",
+      "triangles": 720,
+      "vertices": 423,
+      "materials": [
+        "snipeoff__tool_leather"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "shin",
+      "triangles": 188,
+      "vertices": 211,
+      "materials": [
+        "snipeoff__audit_navy"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "tapered_thigh",
+      "triangles": 188,
+      "vertices": 210,
+      "materials": [
+        "snipeoff__audit_navy"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "back_audit_folio",
+      "triangles": 188,
+      "vertices": 265,
+      "materials": [
+        "snipeoff__tool_leather"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "folio_clasp",
+      "triangles": 188,
+      "vertices": 308,
+      "materials": [
+        "snipeoff__aged_brass"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "folio_paper_edge",
+      "triangles": 188,
+      "vertices": 255,
+      "materials": [
+        "snipeoff__paper_edges"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "folio_rules",
+      "triangles": 188,
+      "vertices": 300,
+      "materials": [
+        "snipeoff__ink_charcoal"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "folio_rules_001",
+      "triangles": 188,
+      "vertices": 300,
+      "materials": [
+        "snipeoff__ink_charcoal"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "folio_rules_002",
+      "triangles": 188,
+      "vertices": 300,
+      "materials": [
+        "snipeoff__ink_charcoal"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "folio_rules_003",
+      "triangles": 188,
+      "vertices": 300,
+      "materials": [
+        "snipeoff__ink_charcoal"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "folded_split_tail_001",
+      "triangles": 168,
+      "vertices": 202,
+      "materials": [
+        "snipeoff__audit_navy"
+      ],
+      "hasUV": false
+    },
+    {
+      "name": "folded_split_tail",
+      "triangles": 168,
+      "vertices": 194,
+      "materials": [
+        "snipeoff__audit_navy"
+      ],
+      "hasUV": false
+    },
+    {
+      "name": "folded_lapel",
+      "triangles": 188,
+      "vertices": 258,
+      "materials": [
+        "snipeoff__paper_warm_ivory"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "folded_lapel_001",
+      "triangles": 188,
+      "vertices": 258,
+      "materials": [
+        "snipeoff__paper_warm_ivory"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "audit_visor",
+      "triangles": 188,
+      "vertices": 296,
+      "materials": [
+        "snipeoff__ink_charcoal"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "eraser_cap",
+      "triangles": 140,
+      "vertices": 168,
+      "materials": [
+        "snipeoff__postroom_oxblood"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "neck_001",
+      "triangles": 188,
+      "vertices": 224,
+      "materials": [
+        "snipeoff__ink_charcoal"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "pencil_ferrule",
+      "triangles": 140,
+      "vertices": 160,
+      "materials": [
+        "snipeoff__aged_brass"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "pencil_head",
+      "triangles": 164,
+      "vertices": 134,
+      "materials": [
+        "snipeoff__audit_ochre"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "scope_lens",
+      "triangles": 284,
+      "vertices": 321,
+      "materials": [
+        "snipeoff__aged_brass"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "scope_lens_001",
+      "triangles": 284,
+      "vertices": 321,
+      "materials": [
+        "snipeoff__aged_brass"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "tailored_auditor_coat",
+      "triangles": 576,
+      "vertices": 290,
+      "materials": [
+        "snipeoff__audit_navy"
+      ],
+      "hasUV": false
+    },
+    {
+      "name": "elbow_003",
+      "triangles": 720,
+      "vertices": 423,
+      "materials": [
+        "snipeoff__tool_leather"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "forearm_001",
+      "triangles": 188,
+      "vertices": 196,
+      "materials": [
+        "snipeoff__audit_navy"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "glove_001",
+      "triangles": 720,
+      "vertices": 423,
+      "materials": [
+        "snipeoff__tool_leather"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "shoulder_001",
+      "triangles": 720,
+      "vertices": 423,
+      "materials": [
+        "snipeoff__audit_navy"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "upper_sleeve_001",
+      "triangles": 188,
+      "vertices": 204,
+      "materials": [
+        "snipeoff__audit_navy"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "elbow_002",
+      "triangles": 720,
+      "vertices": 423,
+      "materials": [
+        "snipeoff__tool_leather"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "forearm",
+      "triangles": 188,
+      "vertices": 207,
+      "materials": [
+        "snipeoff__audit_navy"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "glove",
+      "triangles": 720,
+      "vertices": 423,
+      "materials": [
+        "snipeoff__tool_leather"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "muzzle",
+      "triangles": 284,
+      "vertices": 317,
+      "materials": [
+        "snipeoff__ink_charcoal"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "optic_body",
+      "triangles": 284,
+      "vertices": 317,
+      "materials": [
+        "snipeoff__ink_charcoal"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "pistol_grip",
+      "triangles": 188,
+      "vertices": 268,
+      "materials": [
+        "snipeoff__tool_leather"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "precision_receiver",
+      "triangles": 188,
+      "vertices": 296,
+      "materials": [
+        "snipeoff__stapler_brushed_steel"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "rifle_stock",
+      "triangles": 188,
+      "vertices": 276,
+      "materials": [
+        "snipeoff__tool_leather"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "ruler_barrel",
+      "triangles": 188,
+      "vertices": 294,
+      "materials": [
+        "snipeoff__audit_ochre"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "ruler_tick",
+      "triangles": 188,
+      "vertices": 273,
+      "materials": [
+        "snipeoff__ink_charcoal"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "ruler_tick_001",
+      "triangles": 188,
+      "vertices": 283,
+      "materials": [
+        "snipeoff__ink_charcoal"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "ruler_tick_002",
+      "triangles": 188,
+      "vertices": 283,
+      "materials": [
+        "snipeoff__ink_charcoal"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "ruler_tick_003",
+      "triangles": 188,
+      "vertices": 283,
+      "materials": [
+        "snipeoff__ink_charcoal"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "ruler_tick_004",
+      "triangles": 188,
+      "vertices": 283,
+      "materials": [
+        "snipeoff__ink_charcoal"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "ruler_tick_005",
+      "triangles": 188,
+      "vertices": 273,
+      "materials": [
+        "snipeoff__ink_charcoal"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "ruler_tick_006",
+      "triangles": 188,
+      "vertices": 283,
+      "materials": [
+        "snipeoff__ink_charcoal"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "ruler_tick_007",
+      "triangles": 188,
+      "vertices": 283,
+      "materials": [
+        "snipeoff__ink_charcoal"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "ruler_tick_008",
+      "triangles": 188,
+      "vertices": 283,
+      "materials": [
+        "snipeoff__ink_charcoal"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "ruler_tick_009",
+      "triangles": 188,
+      "vertices": 283,
+      "materials": [
+        "snipeoff__ink_charcoal"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "ruler_tick_010",
+      "triangles": 188,
+      "vertices": 273,
+      "materials": [
+        "snipeoff__ink_charcoal"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "ruler_tick_011",
+      "triangles": 188,
+      "vertices": 283,
+      "materials": [
+        "snipeoff__ink_charcoal"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "ruler_tick_012",
+      "triangles": 188,
+      "vertices": 283,
+      "materials": [
+        "snipeoff__ink_charcoal"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "ruler_tick_013",
+      "triangles": 188,
+      "vertices": 283,
+      "materials": [
+        "snipeoff__ink_charcoal"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "ruler_tick_014",
+      "triangles": 188,
+      "vertices": 283,
+      "materials": [
+        "snipeoff__ink_charcoal"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "scope_front",
+      "triangles": 380,
+      "vertices": 412,
+      "materials": [
+        "snipeoff__aged_brass"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "shoulder",
+      "triangles": 720,
+      "vertices": 423,
+      "materials": [
+        "snipeoff__audit_navy"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "upper_sleeve",
+      "triangles": 188,
+      "vertices": 204,
+      "materials": [
+        "snipeoff__audit_navy"
+      ],
+      "hasUV": true
+    }
+  ],
+  "bounds": {
+    "min": [
+      -0.35544065748465065,
+      7.450580596923828e-9,
+      -1.2999999601319363
+    ],
+    "max": [
+      0.35544065748465065,
+      1.9850000590085983,
+      0.2464878261089325
+    ]
+  },
+  "dimensions": [
+    0.7108813149693013,
+    1.9850000515580177,
+    1.5464877862408688
+  ],
+  "materialSlots": [
+    "snipeoff__audit_navy",
+    "snipeoff__rubber",
+    "snipeoff__aged_brass",
+    "snipeoff__ink_charcoal",
+    "snipeoff__tool_leather",
+    "snipeoff__paper_edges",
+    "snipeoff__paper_warm_ivory",
+    "snipeoff__postroom_oxblood",
+    "snipeoff__audit_ochre",
+    "snipeoff__stapler_brushed_steel"
+  ],
+  "provenance": "EXTERNAL ORIGINAL by operator dot. Supplied manifest identifies externally Blender-authored original artwork; not locally procedural.",
+  "source": "external-art/snipeoff/model.glb",
+  "qualification": "No model.blend source was supplied despite manifest.files.source. Authorship/originality are operator declarations, not independently verified creation history. No re-export, subdivision or padding.",
+  "metadataSHA256": {
+    "manifest.json": "551ea5350a52dd4191c3497d6a08cfaa811a90a1f8ed35e8ad9fb9daa65f78d9",
+    "palette.json": "93b16bf89e8c2d4efe9b792666ddb1c6912bbdd1a8ac308c6506b311107113ad",
+    "rig.json": "9402b53b996482a9898b5cbe8a1ddb28682dcc11ef43e235181587f7c331df34"
+  },
+  "rigAlias": "manifest.rig.json was byte-identical to rig.json in the delivery; documentation alias only, canonical file is rig.json.",
+  "audit": {
+    "glbVersion": 2,
+    "selfContained": true,
+    "uriCount": 0,
+    "images": 0,
+    "textures": 0,
+    "finiteGeometry": true,
+    "normalCountsMatch": true,
+    "presentUVCountsMatch": true,
+    "missingUVMeshes": [
+      "folded_split_tail_001",
+      "folded_split_tail",
+      "tailored_auditor_coat"
+    ],
+    "indicesInRange": true,
+    "decodedSceneTriangles": 19160,
+    "sceneNodes": 97,
+    "movableNodes": 20,
+    "staticNodes": 77,
+    "anchors": 2,
+    "rigParentPivotAxesMatch": true,
+    "toleranceMetres": 0.00001
+  },
+  "rigParts": [
+    {
+      "name": "root",
+      "parent": null,
+      "localPivot": [
+        0,
+        0,
+        0
+      ],
+      "modelPivot": [
+        0,
+        0,
+        0
+      ],
+      "localQuaternion": [
+        0,
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "name": "pelvis",
+      "parent": "root",
+      "localPivot": [
+        0,
+        0.9599999785423279,
+        0
+      ],
+      "modelPivot": [
+        0,
+        0.9599999785423279,
+        0
+      ],
+      "localQuaternion": [
+        0,
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "name": "torso",
+      "parent": "pelvis",
+      "localPivot": [
+        0,
+        0,
+        0
+      ],
+      "modelPivot": [
+        0,
+        0.9599999785423279,
+        0
+      ],
+      "localQuaternion": [
+        0,
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "name": "head",
+      "parent": "torso",
+      "localPivot": [
+        0,
+        0.6200000643730164,
+        0
+      ],
+      "modelPivot": [
+        0,
+        1.5800000429153442,
+        0
+      ],
+      "localQuaternion": [
+        0,
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "name": "thigh_r",
+      "parent": "pelvis",
+      "localPivot": [
+        0.125,
+        0,
+        0
+      ],
+      "modelPivot": [
+        0.125,
+        0.9599999785423279,
+        0
+      ],
+      "localQuaternion": [
+        0,
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "name": "shin_r",
+      "parent": "thigh_r",
+      "localPivot": [
+        0,
+        -0.3399999737739563,
+        0
+      ],
+      "modelPivot": [
+        0.125,
+        0.6200000047683716,
+        0
+      ],
+      "localQuaternion": [
+        0,
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "name": "foot_r",
+      "parent": "shin_r",
+      "localPivot": [
+        0,
+        -0.3700000047683716,
+        0
+      ],
+      "modelPivot": [
+        0.125,
+        0.25,
+        0
+      ],
+      "localQuaternion": [
+        0,
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "name": "upper_arm_r",
+      "parent": "torso",
+      "localPivot": [
+        0.23499999940395355,
+        0.49000006914138794,
+        0
+      ],
+      "modelPivot": [
+        0.23499999940395355,
+        1.4500000476837158,
+        0
+      ],
+      "localQuaternion": [
+        0,
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "name": "forearm_r",
+      "parent": "upper_arm_r",
+      "localPivot": [
+        0.04500000178813934,
+        -0.28000009059906006,
+        -0.05999999865889549
+      ],
+      "modelPivot": [
+        0.2800000011920929,
+        1.1699999570846558,
+        -0.05999999865889549
+      ],
+      "localQuaternion": [
+        0,
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "name": "hand_r",
+      "parent": "forearm_r",
+      "localPivot": [
+        0,
+        0.020000100135803223,
+        -0.24000000953674316
+      ],
+      "modelPivot": [
+        0.2800000011920929,
+        1.190000057220459,
+        -0.30000000819563866
+      ],
+      "localQuaternion": [
+        0,
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "name": "thigh_l",
+      "parent": "pelvis",
+      "localPivot": [
+        -0.125,
+        0,
+        0
+      ],
+      "modelPivot": [
+        -0.125,
+        0.9599999785423279,
+        0
+      ],
+      "localQuaternion": [
+        0,
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "name": "shin_l",
+      "parent": "thigh_l",
+      "localPivot": [
+        0,
+        -0.3399999737739563,
+        0
+      ],
+      "modelPivot": [
+        -0.125,
+        0.6200000047683716,
+        0
+      ],
+      "localQuaternion": [
+        0,
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "name": "foot_l",
+      "parent": "shin_l",
+      "localPivot": [
+        0,
+        -0.3700000047683716,
+        0
+      ],
+      "modelPivot": [
+        -0.125,
+        0.25,
+        0
+      ],
+      "localQuaternion": [
+        0,
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "name": "upper_arm_l",
+      "parent": "torso",
+      "localPivot": [
+        -0.23499999940395355,
+        0.49000006914138794,
+        0
+      ],
+      "modelPivot": [
+        -0.23499999940395355,
+        1.4500000476837158,
+        0
+      ],
+      "localQuaternion": [
+        0,
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "name": "forearm_l",
+      "parent": "upper_arm_l",
+      "localPivot": [
+        -0.04500000178813934,
+        -0.28000009059906006,
+        -0.05999999865889549
+      ],
+      "modelPivot": [
+        -0.2800000011920929,
+        1.1699999570846558,
+        -0.05999999865889549
+      ],
+      "localQuaternion": [
+        0,
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "name": "hand_l",
+      "parent": "forearm_l",
+      "localPivot": [
+        0.46000000834465027,
+        0.03000009059906006,
+        -0.49000000953674316
+      ],
+      "modelPivot": [
+        0.18000000715255737,
+        1.2000000476837158,
+        -0.5500000081956387
+      ],
+      "localQuaternion": [
+        0,
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "name": "coat_tail_r",
+      "parent": "torso",
+      "localPivot": [
+        0.07999999821186066,
+        0.06999999284744263,
+        0.07999999821186066
+      ],
+      "modelPivot": [
+        0.07999999821186066,
+        1.0299999713897705,
+        0.07999999821186066
+      ],
+      "localQuaternion": [
+        0,
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "name": "coat_tail_l",
+      "parent": "torso",
+      "localPivot": [
+        -0.07999999821186066,
+        0.06999999284744263,
+        0.07999999821186066
+      ],
+      "modelPivot": [
+        -0.07999999821186066,
+        1.0299999713897705,
+        0.07999999821186066
+      ],
+      "localQuaternion": [
+        0,
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "name": "audit_folio",
+      "parent": "torso",
+      "localPivot": [
+        0,
+        0.49000006914138794,
+        0.11999999731779099
+      ],
+      "modelPivot": [
+        0,
+        1.4500000476837158,
+        0.11999999731779099
+      ],
+      "localQuaternion": [
+        0,
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "name": "ruler_rifle",
+      "parent": "hand_r",
+      "localPivot": [
+        0,
+        0,
+        -0.009999990463256836
+      ],
+      "modelPivot": [
+        0.2800000011920929,
+        1.190000057220459,
+        -0.3099999986588955
+      ],
+      "localQuaternion": [
+        0,
+        0,
+        0,
+        1
+      ]
+    }
+  ],
+  "quality": "Node-only structural audit. Scene triangle count is not visible-pixel count, FPS, pose clearance, visual, gameplay or hardware acceptance."
+}

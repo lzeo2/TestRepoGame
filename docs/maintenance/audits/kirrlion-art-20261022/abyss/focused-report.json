@@ -1,0 +1,21 @@
+{
+  "checks": [
+    "abyss is default; transparent full-page column; sonar muted/toggles; 2-second bob",
+    "seven real-input answers: 10 metres per point and proportional eased mascot at every score",
+    "home resets depth; reduced motion disables bob and descent easing",
+    "no console errors or external runtime requests"
+  ],
+  "reference": "not requested",
+  "passed": true,
+  "source_sha256": {
+    "index.html": "623ad58e51486aa5caf5653d0961a8c649d1a749a46630a80c715d8ce00850b6",
+    "style.css": "ae85e68000b2c54b10f9d67d20f1379a6f1db3e02bdf396e7d9df9c7ac01aef7",
+    "script.js": "e5cd0fb0c06875c200eae6f51d44ae1d0e94228f40c614f3e848347c9a96bd41",
+    "guide.svg": "12f19bf68ff14737d85cd83d202227360c82ec747a514d12569948fa3eb742fa",
+    "ocean.svg": "658f12542a3f63309fcbc9297db66bc0f957df37e2883e0999fcba63ab94945c",
+    "core.js": "bee2330d3350f5033b16ee486f74456be33f665eccb8f59e1a29dd02ca42d09b",
+    "questions.js": "a104b88c73fb00f7895f7644e613d18cad078a44a8cb28977e6a01a667eed046"
+  },
+  "browser_errors": [],
+  "external_runtime_requests": []
+}

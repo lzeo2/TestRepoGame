@@ -3,7 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#102b46">
+  <meta name="theme-color" content="#050914">
+  <style>html{background:#050914;color:#e8f1ff;color-scheme:dark}</style>
   <meta name="description" content="An original offline rare-answer trivia dive. Seven prompts, four themed packs, and editorial rarity scoring.">
   <title>Below the Obvious</title>
   <link rel="icon" href="guide.svg" type="image/svg+xml">
@@ -12,27 +13,34 @@
   <script defer src="core.js"></script>
   <script defer src="script.js"></script>
 </head>
-<body>
+<body class="dark">
+  <div class="ocean-world" aria-hidden="true"></div>
   <a class="skip" href="#main">Skip to game</a>
   <header>
     <a href="../../index.html" class="portal">ARCADE <span>/</span> BELOW THE OBVIOUS</a>
-    <button id="theme" type="button" aria-label="Switch to dark theme">Dark theme</button>
+    <div class="instruments"><button id="sonar" type="button" aria-pressed="false">Sonar off</button><button id="theme" type="button" aria-label="Switch to light theme">Light theme</button></div>
   </header>
+  <div class="masthead"><p>OFFLINE TRIVIA / SEVEN QUESTIONS / ONE DESCENT</p><h1>BELOW THE OBVIOUS</h1></div>
   <main id="main">
     <aside class="ocean" aria-label="Dive depth">
       <div class="ocean-top"><span>RESEARCH VESSEL / 07</span><span>SOLO</span></div>
-      <div class="depth-readout"><strong id="depth">0</strong><span>metres</span></div>
-      <div class="depth-line" aria-hidden="true"></div>
-      <div class="depth-labels" aria-hidden="true"><span>0 / SURFACE</span><span>1,000</span><span>2,000</span><span>3,000</span><span>4,000</span><span>5,000</span><span>6,000</span><span>7,000 / TRENCH</span></div>
-      <img id="guide" src="guide.svg" width="104" height="104" alt="An original yellow survey drone with a round glass eye and three landing feet">
-      <div class="ocean-bottom"><strong>Meet Buoy.</strong><p id="guide-copy">Your little survey drone. Bring an unexpected answer. We will take it deeper.</p></div>
+      <div class="depth-readout"><div><strong id="depth">0</strong><span> m</span></div><p id="depth-mood">signal at the surface</p></div>
+      <div class="depth-column">
+        <div class="depth-line" aria-hidden="true"></div>
+        <div class="depth-labels" aria-hidden="true"><span style="--mark:0%">0 m / SURFACE</span><span style="--mark:6.4286%">450 m</span><span style="--mark:14.2857%">1,000 m</span><span style="--mark:34.2857%">2,400 m</span><span style="--mark:42.8571%">3,000 m</span><span style="--mark:100%">7,000 m / TRENCH</span></div>
+        <p class="water-note note-one">the surface folds into a whisper</p>
+        <p class="water-note note-two">small lights keep their own hours</p>
+        <p class="water-note note-three">even the quiet has a seafloor</p>
+        <div id="guide"><img src="guide.svg" width="104" height="104" alt="Glim, an original translucent deep-sea shrimp with a luminous cyan eye"><span class="beep" aria-hidden="true">beep</span></div>
+      </div>
+      <div class="ocean-bottom"><strong>Meet Glim.</strong><p id="guide-copy">Ready to dive.</p></div>
     </aside>
     <div class="workbench">
       <section id="launch" aria-labelledby="launch-title">
         <p class="eyebrow">SEVEN QUESTIONS. ONE DESCENT.</p>
         <h1 id="launch-title">The less obvious<br>way down.</h1>
-        <p class="intro">Type an answer that fits. An overlooked answer can take you further than an obvious one.</p>
-        <div class="rules-summary"><span><b>25</b> seconds each</span><span><b>7,000</b> metres possible</span></div>
+        <p class="intro">Find a rarer answer.</p>
+        <div class="rules-summary" aria-label="25 seconds per question; maximum depth 7,000 metres"><span><b>25 s</b></span><span><b>7,000 m</b></span></div>
         <div class="daily-box"><div><h2>Daily dive</h2><p id="daily-date"></p></div><button id="playBtn" type="button">Start daily dive</button></div>
         <p id="last-result" class="muted"></p>
         <div class="other-modes">
@@ -40,8 +48,7 @@
           <div><h2>Revisit a dive</h2><label for="number">Dive number</label><input id="number" type="number" min="1" max="999999" step="1" value="1" inputmode="numeric"><button id="start-number" type="button">Start numbered dive</button></div>
         </div>
         <p id="launch-error" role="alert"></p>
-        <details class="how"><summary>How rarity and answers work</summary><p>Rarity is editor-assigned, not measured from players. Every point takes you 10 metres deeper. Capitalization, accents and listed spelling variants are accepted. There is no spelling guesser.</p><div id="tiers" class="tiers"></div><p>The answer key is curated and finite. An unlisted answer may still be valid, but scores zero here. One submission per prompt, with a review before the next question. Replays are practice, not a global competition.</p><p>Daily prompts use the UTC date and dataset version. The same version and date give everyone the same seven prompts. Packs and numbered dives can repeat daily questions.</p></details>
-        <div class="battle"><span class="eyebrow">BATTLE / PHASE 2</span><p>Online rooms are not enabled. No account or network service is needed for solo play.</p></div>
+        <details class="how"><summary>How to play</summary><p>One answer per prompt. Enter to lock, or Pass. Each point adds 10 m. Rarity is editor-assigned, not measured from players.</p><div id="tiers" class="tiers"></div><p>Case, accents and listed spellings are accepted. No spelling guesses. Unlisted answers score zero, even if valid. Daily prompts use UTC. Replays are practice.</p></details>
       </section>
       <section id="game" hidden aria-labelledby="question">
         <div class="round-top"><span id="run-label" class="eyebrow"></span><span id="round-count"></span></div>
@@ -52,22 +59,22 @@
         <form id="answer-form">
           <label for="answer">Your answer</label>
           <input id="answer" name="answer" maxlength="80" autocomplete="off" autocapitalize="none" spellcheck="false" enterkeyhint="send" aria-describedby="answer-help">
-          <p id="answer-help" class="muted">One answer. 25 seconds. Listed spellings only; unlisted valid answers may score zero.</p>
+          <p id="answer-help" class="muted">Enter to lock. Unlisted answers score zero.</p>
           <div class="actions"><button id="submit-answer" type="submit">Lock answer</button><button id="pass" class="secondary" type="button">Pass</button></div>
         </form>
         <div id="reveal" hidden>
           <div class="receipt" role="status"><span id="result-tier" class="eyebrow"></span><h2 id="result-title"></h2><p id="result-copy"></p></div>
-          <details id="answer-key"><summary>Explore this question's answer key</summary><div id="key-groups"></div></details>
+          <details id="answer-key"><summary>Answer key</summary><div id="key-groups"></div></details>
           <button id="next" type="button">Next question</button>
         </div>
         <div class="run-footer"><span id="score">0 / 700 points</span><button id="quit" class="secondary" type="button">Leave dive</button></div>
       </section>
       <section id="finish" hidden aria-labelledby="finish-title">
-        <p class="eyebrow">DESCENT COMPLETE</p><h1 id="finish-title">Your field notes.</h1><p id="finish-total" class="finish-total"></p><p id="finish-caption"></p>
-        <ol id="results"></ol><div class="actions"><button id="replay" type="button">Replay as practice</button><button id="home" class="secondary" type="button">Back to launch</button></div>
+        <h1 id="finish-title">Dive complete.</h1><p id="finish-total" class="finish-total"></p><p id="finish-caption"></p>
+        <div class="actions"><button id="replay" type="button">Replay as practice</button><button id="home" class="secondary" type="button">Back to launch</button></div>
         <p id="save-status" class="muted" role="status"></p>
       </section>
-      <footer>Original questions and artwork. Offline solo. <span id="version"></span></footer>
+      <footer>Offline solo. <span id="version"></span></footer>
     </div>
   </main>
   <noscript>This game needs JavaScript, but no internet connection once its local files are available.</noscript>

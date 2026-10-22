@@ -1,0 +1,71 @@
+{
+  "checks": [
+    "two independent contexts: same seven daily prompt IDs, typed known picks, scores/results",
+    "all six rarity tiers, single lock then next, answer-key expansion and focus",
+    "24 desktop/390/320 light/dark launch/question/reveal/results screenshots",
+    "theme and last result survive reload",
+    "full seven-round solo works offline AFTER local asset load; no cold-install claim",
+    "pack start/seven rounds/end: nature",
+    "pack start/seven rounds/end: world",
+    "pack start/seven rounds/end: science",
+    "pack start/seven rounds/end: words",
+    "numbered 1 start/end/restart and quit cancel/confirm",
+    "numbered 999999 start/end/restart and quit cancel/confirm",
+    "numbered bounds reject 0, 1000000, fractional values"
+  ],
+  "findings": [
+    "TimeoutError: Locator.press_sequentially: Timeout 8000ms exceeded.\nCall log:\n  - waiting for locator(\"#answer\")\n    - locator resolved to <input id=\"answer\" name=\"answer\" maxlength=\"80\" autocomplete=\"off\" spellcheck=\"false\" enterkeyhint=\"send\" autocapitalize=\"none\" aria-describedby=\"answer-help\"/>\n  - elementHandle.type(\"WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW\")\n"
+  ],
+  "external_requests": [],
+  "browser_errors": [],
+  "request_failures": [],
+  "screenshots": [
+    ".swarmforge-logs/dive-trivia/desktop-light-launch.png",
+    ".swarmforge-logs/dive-trivia/desktop-light-question.png",
+    ".swarmforge-logs/dive-trivia/desktop-light-reveal.png",
+    ".swarmforge-logs/dive-trivia/desktop-light-results.png",
+    ".swarmforge-logs/dive-trivia/mobile-390-light-launch.png",
+    ".swarmforge-logs/dive-trivia/mobile-390-light-question.png",
+    ".swarmforge-logs/dive-trivia/mobile-390-light-reveal.png",
+    ".swarmforge-logs/dive-trivia/mobile-390-light-results.png",
+    ".swarmforge-logs/dive-trivia/desktop-dark-launch.png",
+    ".swarmforge-logs/dive-trivia/desktop-dark-question.png",
+    ".swarmforge-logs/dive-trivia/desktop-dark-reveal.png",
+    ".swarmforge-logs/dive-trivia/desktop-dark-results.png",
+    ".swarmforge-logs/dive-trivia/mobile-390-dark-launch.png",
+    ".swarmforge-logs/dive-trivia/mobile-390-dark-question.png",
+    ".swarmforge-logs/dive-trivia/mobile-390-dark-reveal.png",
+    ".swarmforge-logs/dive-trivia/mobile-390-dark-results.png",
+    ".swarmforge-logs/dive-trivia/mobile-320-dark-launch.png",
+    ".swarmforge-logs/dive-trivia/mobile-320-dark-question.png",
+    ".swarmforge-logs/dive-trivia/mobile-320-dark-reveal.png",
+    ".swarmforge-logs/dive-trivia/mobile-320-dark-results.png",
+    ".swarmforge-logs/dive-trivia/mobile-320-light-launch.png",
+    ".swarmforge-logs/dive-trivia/mobile-320-light-question.png",
+    ".swarmforge-logs/dive-trivia/mobile-320-light-reveal.png",
+    ".swarmforge-logs/dive-trivia/mobile-320-light-results.png"
+  ],
+  "daily": {
+    "date": "2026-10-21",
+    "version": "2026.10.1",
+    "ids": [
+      "science-one-letter-elements",
+      "nature-botanical-berries",
+      "words-three-letter-animals",
+      "nature-cats",
+      "science-standard-amino-acids",
+      "science-large-si-prefixes",
+      "nature-mint-family"
+    ]
+  },
+  "elapsed_seconds": 208.097,
+  "source_sha256": {
+    "index.html": "cc5c947c981f767ea0a0c3f0a3169bbf473b4c9be4bd0d5c2e4d0310a600f04e",
+    "script.js": "1dabdbf18bd5973749c62caa0eaf5b55c3524712de548138a08a043b8421e65a",
+    "core.js": "bee2330d3350f5033b16ee486f74456be33f665eccb8f59e1a29dd02ca42d09b",
+    "questions.js": "a104b88c73fb00f7895f7644e613d18cad078a44a8cb28977e6a01a667eed046",
+    "style.css": "e7d66798b6bf3b35ee91487f08a9757931ec5e807e0aaf19035334407530f64d",
+    "guide.svg": "bc843412a9164899960d12e27f13159fa8c663911f0001b5b5b8299a3e1abf54"
+  },
+  "passed": false
+}

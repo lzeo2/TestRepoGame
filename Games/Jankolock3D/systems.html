@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="color-scheme" content="dark">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="description" content="Renderer-independent Jankolock 3D gameplay systems preview and shop fixture. Not a complete game.">
+  <title>Jankolock 3D systems | Arcade</title>
+  <link rel="icon" href="../../favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="./systems.css">
+</head>
+<body>
+  <header class="sys-page-header"><a href="../../index.html">Arcade</a><span aria-hidden="true">/</span><h1>Jankolock 3D</h1><button type="button" id="pause">Pause</button></header>
+  <main>
+    <div class="sys-stage">
+      <canvas id="systems-canvas" tabindex="0" aria-label="Systems actor preview. Click a floating blue orb to secure or deny; click a trooper to shoot." aria-describedby="preview-help"></canvas>
+      <div id="systems-ui"></div>
+      <span id="orb-hint" class="sys-orb-hint" hidden>Shoot to secure or deny</span>
+      <p id="error" class="sys-error" role="alert" hidden></p>
+    </div>
+    <details class="sys-fixture-note">
+      <summary>Systems preview fixtures and controls</summary>
+      <p id="preview-help">This is an isolated actor/shop preview, not the integrated game. Starts at the first wave with 4,800 fixture souls, no purchased items and no hero models or map. WASD moves; B opens the shop at base or while dead. Hold X in your own retreat ring. Click an owned active item to use it. Click the actor preview to shoot. Escape closes the shop.</p>
+      <p id="world-source" role="status"></p>
+      <nav aria-label="Repeatable preview fixtures"><a href="./systems.html">Base and shop</a><a href="./systems.html?fixture=waves">Wave drill</a><a href="./systems.html?fixture=orbs">Soul orb drill</a><a href="./systems.html?fixture=deny">Deny drill</a><a href="./systems.html?fixture=respawn">Respawn drill</a></nav>
+      <div class="sys-touch" role="group" aria-label="Movement"><button type="button" data-move="forward">Forward</button><button type="button" data-move="back">Back</button><button type="button" data-move="left">Left</button><button type="button" data-move="right">Right</button><button type="button" id="retreat">Hold to return</button></div>
+    </details>
+  </main>
+  <script type="module" src="./systems-demo.mjs"></script>
+</body>
+</html>

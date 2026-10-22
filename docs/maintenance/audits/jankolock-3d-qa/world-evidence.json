@@ -1,0 +1,565 @@
+{
+  "evidenceClass": "native input, software WebGL; no hardware acceptance",
+  "runKind": "native-traversal",
+  "storageBefore": 4197560320,
+  "screenshots": [
+    {
+      "path": "docs/maintenance/audits/jankolock-3d-qa/world-foldwild-reference.png",
+      "variance": 3377.05,
+      "snapshot": null
+    },
+    {
+      "path": "docs/maintenance/audits/jankolock-3d-qa/world-implemented.png",
+      "variance": 3986.7,
+      "snapshot": {
+        "traveler": {
+          "x": -250,
+          "y": 0,
+          "z": -380,
+          "mode": "free",
+          "walk": true,
+          "grounded": true,
+          "stamina": 100,
+          "collected": 0,
+          "broken": 0,
+          "zipT": null
+        },
+        "render": {
+          "calls": 93,
+          "triangles": 33528,
+          "geometries": 8,
+          "textures": 20
+        },
+        "paused": false,
+        "disposed": false,
+        "flythrough": false,
+        "spawns": 42
+      }
+    },
+    {
+      "path": "docs/maintenance/audits/jankolock-3d-qa/world-ui-comparison.png",
+      "variance": 5301.89,
+      "kind": "labeled comparison, not a runtime-only capture"
+    },
+    {
+      "path": "docs/maintenance/audits/jankolock-3d-qa/world-graft-zip-ride.png",
+      "variance": 4169.55,
+      "snapshot": {
+        "traveler": {
+          "x": -250,
+          "y": 7.7414141536541505,
+          "z": -274.59999999999985,
+          "mode": "zip",
+          "walk": true,
+          "grounded": true,
+          "stamina": 100,
+          "collected": 0,
+          "broken": 0,
+          "zipT": 0.14337662337662355
+        },
+        "render": {
+          "calls": 87,
+          "triangles": 33496,
+          "geometries": 8,
+          "textures": 20
+        },
+        "paused": false,
+        "disposed": false,
+        "flythrough": false,
+        "spawns": 42
+      }
+    },
+    {
+      "path": "docs/maintenance/audits/jankolock-3d-qa/world-graft-arrival.png",
+      "variance": 4340.92,
+      "snapshot": {
+        "traveler": {
+          "x": -250,
+          "y": 0,
+          "z": 385,
+          "mode": "free",
+          "walk": true,
+          "grounded": true,
+          "stamina": 100,
+          "collected": 0,
+          "broken": 0,
+          "zipT": null
+        },
+        "render": {
+          "calls": 32,
+          "triangles": 31422,
+          "geometries": 8,
+          "textures": 20
+        },
+        "paused": false,
+        "disposed": false,
+        "flythrough": false,
+        "spawns": 42
+      }
+    },
+    {
+      "path": "docs/maintenance/audits/jankolock-3d-qa/world-midway-zip-ride.png",
+      "variance": 4583.11,
+      "snapshot": {
+        "traveler": {
+          "x": -10,
+          "y": 7.764825822705412,
+          "z": 273.0040000000007,
+          "mode": "zip",
+          "walk": true,
+          "grounded": true,
+          "stamina": 100,
+          "collected": 0,
+          "broken": 0,
+          "zipT": 0.8545506493506503
+        },
+        "render": {
+          "calls": 44,
+          "triangles": 32190,
+          "geometries": 8,
+          "textures": 20
+        },
+        "paused": false,
+        "disposed": false,
+        "flythrough": false,
+        "spawns": 42
+      }
+    },
+    {
+      "path": "docs/maintenance/audits/jankolock-3d-qa/world-midway-arrival.png",
+      "variance": 4016.35,
+      "snapshot": {
+        "traveler": {
+          "x": -10,
+          "y": 0,
+          "z": -385,
+          "mode": "free",
+          "walk": true,
+          "grounded": true,
+          "stamina": 100,
+          "collected": 0,
+          "broken": 0,
+          "zipT": null
+        },
+        "render": {
+          "calls": 103,
+          "triangles": 33618,
+          "geometries": 8,
+          "textures": 25
+        },
+        "paused": false,
+        "disposed": false,
+        "flythrough": false,
+        "spawns": 42
+      }
+    },
+    {
+      "path": "docs/maintenance/audits/jankolock-3d-qa/world-greenhedge-zip-ride.png",
+      "variance": 4052.39,
+      "snapshot": {
+        "traveler": {
+          "x": 230,
+          "y": 7.898313799594772,
+          "z": -263.8023999999995,
+          "mode": "zip",
+          "walk": true,
+          "grounded": true,
+          "stamina": 100,
+          "collected": 0,
+          "broken": 0,
+          "zipT": 0.15739948051948116
+        },
+        "render": {
+          "calls": 98,
+          "triangles": 33608,
+          "geometries": 8,
+          "textures": 27
+        },
+        "paused": false,
+        "disposed": false,
+        "flythrough": false,
+        "spawns": 42
+      }
+    },
+    {
+      "path": "docs/maintenance/audits/jankolock-3d-qa/world-greenhedge-arrival.png",
+      "variance": 4334.54,
+      "snapshot": {
+        "traveler": {
+          "x": 230,
+          "y": 0,
+          "z": 385,
+          "mode": "free",
+          "walk": true,
+          "grounded": true,
+          "stamina": 100,
+          "collected": 0,
+          "broken": 0,
+          "zipT": null
+        },
+        "render": {
+          "calls": 28,
+          "triangles": 29094,
+          "geometries": 8,
+          "textures": 27
+        },
+        "paused": false,
+        "disposed": false,
+        "flythrough": false,
+        "spawns": 42
+      }
+    },
+    {
+      "path": "docs/maintenance/audits/jankolock-3d-qa/world-aerial.png",
+      "variance": 4327.42,
+      "snapshot": {
+        "traveler": {
+          "x": 19.461341606646748,
+          "y": 370.92673055269745,
+          "z": -419.5488722221398,
+          "mode": "free",
+          "walk": true,
+          "grounded": true,
+          "stamina": 100,
+          "collected": 0,
+          "broken": 0,
+          "zipT": null
+        },
+        "render": {
+          "calls": 105,
+          "triangles": 33544,
+          "geometries": 8,
+          "textures": 27
+        },
+        "paused": false,
+        "disposed": false,
+        "flythrough": true,
+        "spawns": 42
+      }
+    },
+    {
+      "path": "docs/maintenance/audits/jankolock-3d-qa/world-light.png",
+      "variance": 4334.49,
+      "snapshot": {
+        "traveler": {
+          "x": 230,
+          "y": 0,
+          "z": 385.0007999999998,
+          "mode": "free",
+          "walk": true,
+          "grounded": true,
+          "stamina": 100,
+          "collected": 0,
+          "broken": 0,
+          "zipT": null
+        },
+        "render": {
+          "calls": 28,
+          "triangles": 29094,
+          "geometries": 8,
+          "textures": 27
+        },
+        "paused": false,
+        "disposed": false,
+        "flythrough": false,
+        "spawns": 42
+      }
+    },
+    {
+      "path": "docs/maintenance/audits/jankolock-3d-qa/world-mobile-dark.png",
+      "variance": 1987.93,
+      "kind": "actual 390x720 viewport, padded to 1280x720"
+    },
+    {
+      "path": "docs/maintenance/audits/jankolock-3d-qa/world-mobile-light.png",
+      "variance": 1987.93,
+      "kind": "actual 390x720 viewport, padded to 1280x720"
+    }
+  ],
+  "errors": [],
+  "requests": [
+    {
+      "url": "/Games/Foldwild/index.html",
+      "status": 200
+    },
+    {
+      "url": "/Games/Foldwild/style.css",
+      "status": 200
+    },
+    {
+      "url": "/Games/Foldwild/script.js",
+      "status": 200
+    },
+    {
+      "url": "/Games/Foldwild/data.js",
+      "status": 200
+    },
+    {
+      "url": "/Games/Foldwild/battle.js",
+      "status": 200
+    },
+    {
+      "url": "/Games/Foldwild/campaign.js",
+      "status": 200
+    },
+    {
+      "url": "/Games/Foldwild/builds.js",
+      "status": 200
+    },
+    {
+      "url": "/Games/Foldwild/economy.js",
+      "status": 200
+    },
+    {
+      "url": "/Games/Foldwild/world.js",
+      "status": 200
+    },
+    {
+      "url": "/Games/Foldwild/view.js",
+      "status": 200
+    },
+    {
+      "url": "/assets/fonts/atkinson-hyperlegible/atkinson-hyperlegible-400-latin.woff2",
+      "status": 200
+    },
+    {
+      "url": "/assets/fonts/atkinson-hyperlegible/atkinson-hyperlegible-700-latin.woff2",
+      "status": 200
+    },
+    {
+      "url": "/assets/fonts/bungee/bungee-400-latin.woff2",
+      "status": 200
+    },
+    {
+      "url": "/Games/Foldwild/region-data.js",
+      "status": 200
+    },
+    {
+      "url": "/Games/Foldwild/vendor/GLTFLoader.js",
+      "status": 200
+    },
+    {
+      "url": "/Games/Foldwild/vendor/BufferGeometryUtils.js",
+      "status": 200
+    },
+    {
+      "url": "/Games/Foldwild/vendor/three.module.js",
+      "status": 200
+    },
+    {
+      "url": "/favicon.svg",
+      "status": 200
+    },
+    {
+      "url": "/Games/Jankolock3D/world.html",
+      "status": 200
+    },
+    {
+      "url": "/Games/Jankolock3D/world.css",
+      "status": 200
+    },
+    {
+      "url": "/Games/Jankolock3D/viewer.mjs",
+      "status": 200
+    },
+    {
+      "url": "/Games/Jankolock3D/traversal.mjs",
+      "status": 200
+    },
+    {
+      "url": "/Games/Jankolock3D/world-data.mjs",
+      "status": 200
+    },
+    {
+      "url": "/Games/Jankolock3D/world-scene.mjs",
+      "status": 200
+    },
+    {
+      "url": "/assets/fonts/atkinson-hyperlegible/atkinson-hyperlegible-400-latin.woff2",
+      "status": 200
+    },
+    {
+      "url": "/assets/fonts/bungee/bungee-400-latin.woff2",
+      "status": 200
+    },
+    {
+      "url": "/assets/fonts/atkinson-hyperlegible/atkinson-hyperlegible-700-latin.woff2",
+      "status": 200
+    },
+    {
+      "url": "/Games/Jankolock3D/vendor/three.module.js",
+      "status": 200
+    },
+    {
+      "url": "/Games/Jankolock3D/vendor/three.core.js",
+      "status": 200
+    }
+  ],
+  "nativeZipEndpoints": [
+    {
+      "lane": "graft",
+      "state": {
+        "x": -250,
+        "y": 0,
+        "z": 385,
+        "mode": "free",
+        "walk": true,
+        "grounded": true,
+        "stamina": 100,
+        "collected": 0,
+        "broken": 0,
+        "zipT": null
+      }
+    },
+    {
+      "lane": "midway",
+      "state": {
+        "x": -10,
+        "y": 0,
+        "z": -385,
+        "mode": "free",
+        "walk": true,
+        "grounded": true,
+        "stamina": 100,
+        "collected": 0,
+        "broken": 0,
+        "zipT": null
+      }
+    },
+    {
+      "lane": "greenhedge",
+      "state": {
+        "x": 230,
+        "y": 0,
+        "z": 385,
+        "mode": "free",
+        "walk": true,
+        "grounded": true,
+        "stamina": 100,
+        "collected": 0,
+        "broken": 0,
+        "zipT": null
+      }
+    }
+  ],
+  "mockupTransform": "Second of exactly two AI attempts; deterministic fixed-palette transform. Originals preserved. Layout comparison, not gameplay proof; reviewer approval separate.",
+  "nativeArrivalWalks": [
+    {
+      "lane": "graft",
+      "state": {
+        "x": -250,
+        "y": 0,
+        "z": 380.60000000000025,
+        "mode": "free",
+        "walk": true,
+        "grounded": true,
+        "stamina": 100,
+        "collected": 0,
+        "broken": 0,
+        "zipT": null
+      }
+    },
+    {
+      "lane": "midway",
+      "state": {
+        "x": -10,
+        "y": 0,
+        "z": -379.7992000000002,
+        "mode": "free",
+        "walk": true,
+        "grounded": true,
+        "stamina": 100,
+        "collected": 0,
+        "broken": 0,
+        "zipT": null
+      }
+    },
+    {
+      "lane": "greenhedge",
+      "state": {
+        "x": 230,
+        "y": 0,
+        "z": 380.2008000000001,
+        "mode": "free",
+        "walk": true,
+        "grounded": true,
+        "stamina": 100,
+        "collected": 0,
+        "broken": 0,
+        "zipT": null
+      }
+    }
+  ],
+  "mobile": {
+    "overflow": false,
+    "buttons": [
+      {
+        "text": "Walk: on",
+        "w": 110.65625,
+        "h": 44
+      },
+      {
+        "text": "Flythrough: off",
+        "w": 110.671875,
+        "h": 60
+      },
+      {
+        "text": "Sound: off",
+        "w": 110.671875,
+        "h": 44
+      },
+      {
+        "text": "Forward",
+        "w": 82.5,
+        "h": 44
+      },
+      {
+        "text": "Left",
+        "w": 82.5,
+        "h": 44
+      },
+      {
+        "text": "Back",
+        "w": 82.5,
+        "h": 44
+      },
+      {
+        "text": "Right",
+        "w": 82.5,
+        "h": 44
+      },
+      {
+        "text": "Look left",
+        "w": 82.5,
+        "h": 52
+      },
+      {
+        "text": "Look right",
+        "w": 82.5,
+        "h": 52
+      },
+      {
+        "text": "Look up",
+        "w": 82.5,
+        "h": 52
+      },
+      {
+        "text": "Look down",
+        "w": 82.5,
+        "h": 52
+      },
+      {
+        "text": "Jump",
+        "w": 69.796875,
+        "h": 44
+      },
+      {
+        "text": "Interact",
+        "w": 88.578125,
+        "h": 44
+      }
+    ]
+  },
+  "completed": true,
+  "storageAfter": 4195115008
+}

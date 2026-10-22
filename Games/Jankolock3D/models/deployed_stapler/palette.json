@@ -1,0 +1,120 @@
+{
+  "schema": "palette_v2",
+  "model": "deployed_stapler",
+  "color_space": "linear RGBA; change baseColorFactor only for palette tinting",
+  "palette_default": {
+    "deployed_stapler__rubber": [
+      0.017999999225139618,
+      0.02199999988079071,
+      0.019999999552965164,
+      1
+    ],
+    "deployed_stapler__aged_brass": [
+      0.550000011920929,
+      0.3400000035762787,
+      0.11999999731779099,
+      1
+    ],
+    "deployed_stapler__stapler_brushed_steel": [
+      0.33000001311302185,
+      0.4000000059604645,
+      0.4099999964237213,
+      1
+    ],
+    "deployed_stapler__stamp_vermilion": [
+      0.6499999761581421,
+      0.10000000149011612,
+      0.04699999839067459,
+      1
+    ],
+    "deployed_stapler__ink_charcoal": [
+      0.02800000086426735,
+      0.04500000178813934,
+      0.052000001072883606,
+      1
+    ],
+    "deployed_stapler__engineer_teal": [
+      0.03500000014901161,
+      0.25,
+      0.25,
+      1
+    ]
+  },
+  "material_slots": [
+    {
+      "name": "deployed_stapler__rubber",
+      "gltf_material_index": 0,
+      "base_color_linear_rgba": [
+        0.017999999225139618,
+        0.02199999988079071,
+        0.019999999552965164,
+        1
+      ],
+      "metallic": 0,
+      "roughness": 0.8600000143051147
+    },
+    {
+      "name": "deployed_stapler__aged_brass",
+      "gltf_material_index": 1,
+      "base_color_linear_rgba": [
+        0.550000011920929,
+        0.3400000035762787,
+        0.11999999731779099,
+        1
+      ],
+      "metallic": 0.6800000071525574,
+      "roughness": 0.33000001311302185
+    },
+    {
+      "name": "deployed_stapler__stapler_brushed_steel",
+      "gltf_material_index": 2,
+      "base_color_linear_rgba": [
+        0.33000001311302185,
+        0.4000000059604645,
+        0.4099999964237213,
+        1
+      ],
+      "metallic": 0.699999988079071,
+      "roughness": 0.2800000011920929
+    },
+    {
+      "name": "deployed_stapler__stamp_vermilion",
+      "gltf_material_index": 3,
+      "base_color_linear_rgba": [
+        0.6499999761581421,
+        0.10000000149011612,
+        0.04699999839067459,
+        1
+      ],
+      "metallic": 0,
+      "roughness": 0.4000000059604645
+    },
+    {
+      "name": "deployed_stapler__ink_charcoal",
+      "gltf_material_index": 4,
+      "base_color_linear_rgba": [
+        0.02800000086426735,
+        0.04500000178813934,
+        0.052000001072883606,
+        1
+      ],
+      "metallic": 0,
+      "roughness": 0.5799999833106995
+    },
+    {
+      "name": "deployed_stapler__engineer_teal",
+      "gltf_material_index": 5,
+      "base_color_linear_rgba": [
+        0.03500000014901161,
+        0.25,
+        0.25,
+        1
+      ],
+      "metallic": 0,
+      "roughness": 0.6200000047683716
+    }
+  ],
+  "instance_isolation": "Material names are model-namespaced. A newly loaded GLB is self-contained. If a loader clones/reuses a loaded scene, clone its materials once PER INSTANCE, retaining intentional same-slot sharing only within that instance, before applying a tint. This is a consumer lifecycle requirement; GLB cannot control engine clone semantics.",
+  "editable_source_isolation_test": "evidence/palette_instance_test.json",
+  "textures": []
+}

@@ -1,0 +1,713 @@
+{
+  "letter": "E",
+  "hero": null,
+  "runnerSha256": "81afbdec74ff7a1a887f8a7684a3cd3d6a3d24d9dc1feb70fd603e5c4776bf38",
+  "status": "COMPLETE-builder-checks-only",
+  "kind": "Integrated software-WebGL builder evidence, not reviewer acceptance",
+  "setup": "Explicit loopback API clock/position/seed fixtures; native keys/buttons where stated. D timeline is a labeled DOM overlay of actual systems events.",
+  "storageBefore": 5092773888,
+  "sourceHashes": {
+    "Games/Jankolock3D/bots-test.mjs": "7bb0a909b81d714272dd57e5d03b05e23241810e2b89dbbe4b116d67a60b2815",
+    "Games/Jankolock3D/bots.mjs": "c879c3cfa3b6528e52dc0fab0b879114725063555f60a49d9698326b2f5a2f61",
+    "Games/Jankolock3D/game.mjs": "379b1b1d6687ea8dc91d90044c00895f8e6e3f6beaddc9b8920dee2937c9bc7d",
+    "Games/Jankolock3D/heroes/devhero-1.html": "b458fd8979da4f29f7946a02c5009e247b0d12c67db0ed48f56894bb74ee9cc0",
+    "Games/Jankolock3D/heroes/devhero-2.html": "8b3c626dd18cc65ffe68cc34ea7266b827a331553f6c5fb0bb250e86bdb5853c",
+    "Games/Jankolock3D/heroes/devhero-3.html": "fe9e4780409c7932b68aacc4979ba8bdfb26b4fb65574b406517346ec2a1c29b",
+    "Games/Jankolock3D/heroes/devhero-4.html": "e76fcec8893ee1bc27b82feaa2a9e527cc53b59843093844b6c39b85cb68fb7f",
+    "Games/Jankolock3D/heroes/devhero.css": "079bd1e832ccaa53c23a24e469b15a55cfa1b6bc7abd3bfd1880b723f7bbc9cb",
+    "Games/Jankolock3D/heroes/devhero.mjs": "2c760723821b1632f218d3956324d68affb9f898f1ca2fe8eba92b6fa2e4ed07",
+    "Games/Jankolock3D/heroes/hero-runtime-test.mjs": "8974f0670d65157d29b6635ccf5885baf1969a2eb52f449a12b8700f4ce5144b",
+    "Games/Jankolock3D/heroes/hero-runtime.mjs": "4554b6ef47b6c1fe0460f63e8ec57899ee376bb5eed7f52442255de26d1c0c13",
+    "Games/Jankolock3D/heroes/hero-visuals-test.mjs": "bbdef5376298dc9dd4d588b613a5210e9b8f26bdbc5255ca34691c235153a280",
+    "Games/Jankolock3D/heroes/hero-visuals.mjs": "7ac63b11aa7321868d0b9ac1d2a7dbd71c84e8e5cb43aa7d456fb72826abafbf",
+    "Games/Jankolock3D/heroes/player-controller-test.mjs": "0fff1053b19e4518af7451951cc59e7ef274359ac7e9f5bcbc17a0c1f9a4f361",
+    "Games/Jankolock3D/heroes/player-controller.mjs": "309226a62633bef188942b8f67905d0cc9740bb23d30c2d2e936e79b47754f99",
+    "Games/Jankolock3D/index.html": "304da41d8b7064e17f265f3a54ac1d8f63f45b23fb83a73ff7018b213e25a50e",
+    "Games/Jankolock3D/integration-fixtures.mjs": "39aff82dd5e16fa1a411425a8a114e18b748a29024718a3dc1fd7d925f866645",
+    "Games/Jankolock3D/integration-test.mjs": "f7e7874ad48d64bde4b2dc164b54fe2aa84892382c13d318c6a4635eeae54481",
+    "Games/Jankolock3D/integration-ui.mjs": "db3c481e558f6a8da3f04bf7bd0c16c7ea2b7307738886fd51462df52cc049cd",
+    "Games/Jankolock3D/integration.css": "bd6e604600bed9edf52dd21d52fc64367082e73437a39378d6eac55371e408a8",
+    "Games/Jankolock3D/match-world.mjs": "fe9b9e7a632ca95c8bd014008c03a135672986964faac522e6dcd02c36038f44",
+    "Games/Jankolock3D/models/portrait_relief.glb": "8463eee8276187cacaba912d9540279ad1bb338aa382e9448632aa9a33892514",
+    "Games/Jankolock3D/portrait.js": "3bc6f7d4cc8032898d4313414176eb9e5d744ec626e37318b7642a874e84d4fd",
+    "Games/Jankolock3D/systems-demo.mjs": "6e6b9b9b10f159e6835e93b99ecfa46d663d3438ea1a8af67c323165086b4a6e",
+    "Games/Jankolock3D/systems-test.mjs": "ceb77d17d28e35286639e1a3e023573e4fb3bfcd142221332977f25eba91ec9c",
+    "Games/Jankolock3D/systems-ui.mjs": "2cb52dac2b879b3023a31312b17c941f2010682f8ca154a8ba36fb7e2432044c",
+    "Games/Jankolock3D/systems-view.mjs": "d0dedf2ea1ae4d83b05be7d0144ac8db4cc3f6c52cdb9f553e4e679f7dee338c",
+    "Games/Jankolock3D/systems.css": "7eef7e7d329198586fed9b77ced81aea6cedf609fc2c4fe7f4aa8b5106026974",
+    "Games/Jankolock3D/systems.html": "b54f80a055f07d7015d093898454437e465873a1d90149333053774df2868b92",
+    "Games/Jankolock3D/systems.mjs": "5dfa892d31980fdd02682ce97475646fda07d9ec43e050f6e7407c76e3ed08b2",
+    "Games/Jankolock3D/traversal.mjs": "4a3f684e959760a01b29aacefe3397d5888dcfc7a51291cd4e4dc47ece41bb00",
+    "Games/Jankolock3D/vendor/three.core.js": "9edde002b066a9a05676a6127f67735b62baf399bdea529f2f7e31657da769e6",
+    "Games/Jankolock3D/vendor/three.module.js": "9052042d676cb0fdc1ddfefe193053f34b7ac0513a616fdac4535d49987812ea",
+    "Games/Jankolock3D/viewer.mjs": "aa6cac7a1d39d402ee07ea025ce2ea3890d997c97608142bd2eacbe3608ac86c",
+    "Games/Jankolock3D/world-data.mjs": "d3e5da4edbddf8a2cbd93584fb5c1aade756eaba453012f4634ba58b8841353f",
+    "Games/Jankolock3D/world-scene.mjs": "c8e5328c31fd091a9d3d1151e668ad35c8ff513a8c6e67ecc5f81371727fa169",
+    "Games/Jankolock3D/world-test.mjs": "6ad086e167e1af6cb20edcc7290458966755143995f0e8436732fb22bddd3b29",
+    "Games/Jankolock3D/world.css": "5e89a3740730d16890cdb5ca1d1433af13b79ba4674a33efe4f8f731b9935908",
+    "Games/Jankolock3D/world.html": "08d07697507a50f58624132722f24db3896f93042ec73b823871ef2626e8733f"
+  },
+  "screenshots": [
+    {
+      "file": "integration-E-stampead-1.png",
+      "kind": "Native 1 key: Stampead / Staple Line; API clock/position, frozen real FX",
+      "variance": 5350.651807472303,
+      "sha256": "8b8d4ee8b6163cc7cbd5ba4b9c25e2c997f9edd6d2fa5fb2b1530c63f53493ae"
+    },
+    {
+      "file": "integration-E-stampead-2.png",
+      "kind": "Native 2 key: Stampead / Stamp Volley; API clock/position, frozen real FX",
+      "variance": 5343.009176807376,
+      "sha256": "10450efc6bfca8b4c87ff60c07c877e3657241bc7a996052869c4f5cc119bc43"
+    },
+    {
+      "file": "integration-E-stampead-3.png",
+      "kind": "Native 3 key: Stampead / Desk Slam; API clock/position, frozen real FX",
+      "variance": 5321.017215845813,
+      "sha256": "0711e47aec718e392506a78ae60f9be75429fb79899c6bce94f751c056b3d4f0"
+    },
+    {
+      "file": "integration-E-stampead-4.png",
+      "kind": "Native 4 key: Stampead / Overtime; API clock/position, frozen real FX",
+      "variance": 5265.6478973263065,
+      "sha256": "fed7b0f115902fcd6e6fdc9947a174ce29d694c249ccb1731bf978c09956ccea"
+    },
+    {
+      "file": "integration-E-turretina-1.png",
+      "kind": "Native 1 key: Turretina / Desk Deputy; API clock/position, frozen real FX",
+      "variance": 5274.13876952984,
+      "sha256": "4165cc588a140205670dfd12ac0108ba8442fea634133c51309240e2fa5f844e"
+    },
+    {
+      "file": "integration-E-turretina-2.png",
+      "kind": "Native 2 key: Turretina / Filing Wall; API clock/position, frozen real FX",
+      "variance": 5271.713974880905,
+      "sha256": "e9ea599c63a68859fd6f5cad91edb322f40cf6184af444092e14341c0fea20cc"
+    },
+    {
+      "file": "integration-E-turretina-3.png",
+      "kind": "Native 3 key: Turretina / Bounce Notice; API clock/position, frozen real FX",
+      "variance": 5263.46549493112,
+      "sha256": "312d6674798c94fd85ad7138209a7d1f7a0835c18d4ee514229006e48fc3e29e"
+    },
+    {
+      "file": "integration-E-turretina-4.png",
+      "kind": "Native 4 key: Turretina / Chain Clerk; API clock/position, frozen real FX",
+      "variance": 5264.41500145878,
+      "sha256": "6f699cc77cbc0fb793241900d04238a57f12d71405f96d9b35f44523c77e8663"
+    },
+    {
+      "file": "integration-E-snipeoff-1.png",
+      "kind": "Native 1 key: Snipeoff / Redline; API clock/position, frozen real FX",
+      "variance": 5257.959646574133,
+      "sha256": "0f84ae4e19ccaf913c2c479ac26afee86b4d89eeb937c180abf33bc1ff5a120f"
+    },
+    {
+      "file": "integration-E-snipeoff-2.png",
+      "kind": "Native 2 key: Snipeoff / Audit String; API clock/position, frozen real FX",
+      "variance": 5237.498752652934,
+      "sha256": "eb4078db7e740ade7c2653dd61c550c869b2da75ad5ee1e73abdfd56e4d41d72"
+    },
+    {
+      "file": "integration-E-snipeoff-3.png",
+      "kind": "Native 3 key: Snipeoff / Fine Print; API clock/position, frozen real FX",
+      "variance": 5237.226901032786,
+      "sha256": "9ea27ccc3eef403a6fbf35b2fddf2f14dc78c816a46a80d583a333be6649dbeb"
+    },
+    {
+      "file": "integration-E-snipeoff-4.png",
+      "kind": "Native 4 key: Snipeoff / Open Ledger; API clock/position, frozen real FX",
+      "variance": 5223.474541101588,
+      "sha256": "1ed6994bf102c8eb98d92fb44a7a82a89dbd399ddaae9fd5053ce74d58b2ef1a"
+    },
+    {
+      "file": "integration-E-gooey-1.png",
+      "kind": "Native 1 key: Gooey Sticky / Paste Patch; API clock/position, frozen real FX",
+      "variance": 5204.02226215549,
+      "sha256": "0f0b5c80b11180134685e91754d3ea0fcce008d31a48c86af982c115041bb909"
+    },
+    {
+      "file": "integration-E-gooey-2.png",
+      "kind": "Native 2 key: Gooey Sticky / Glue Burst; API clock/position, frozen real FX",
+      "variance": 5184.5858117228445,
+      "sha256": "5f9bef2aa38e8f4ea5b512e4c14f35461e5261aa4f9726e3b1c6574ed3dfdb39"
+    },
+    {
+      "file": "integration-E-gooey-3.png",
+      "kind": "Native 3 key: Gooey Sticky / Missionbomb; API clock/position, frozen real FX",
+      "variance": 5155.463256500389,
+      "sha256": "59ce65ae1b4baae716c0dfa645a2aabae9aac253b9a4e1e7e58ea3ef4407a619"
+    },
+    {
+      "file": "integration-E-gooey-4.png",
+      "kind": "Native 4 key: Gooey Sticky / Group Adhesion; API clock/position, frozen real FX",
+      "variance": 5075.5214189242515,
+      "sha256": "571f4ab78c5ed37070bb5497b5f227143fab6a2aee00f634b228da96acc38d87"
+    }
+  ],
+  "responses": [
+    {
+      "path": "/Games/Jankolock3D/index.html",
+      "status": 200
+    },
+    {
+      "path": "/Games/Jankolock3D/systems.css",
+      "status": 200
+    },
+    {
+      "path": "/Games/Jankolock3D/integration.css",
+      "status": 200
+    },
+    {
+      "path": "/Games/Jankolock3D/game.mjs",
+      "status": 200
+    },
+    {
+      "path": "/Games/Jankolock3D/world-data.mjs",
+      "status": 200
+    },
+    {
+      "path": "/Games/Jankolock3D/traversal.mjs",
+      "status": 200
+    },
+    {
+      "path": "/Games/Jankolock3D/world-scene.mjs",
+      "status": 200
+    },
+    {
+      "path": "/Games/Jankolock3D/match-world.mjs",
+      "status": 200
+    },
+    {
+      "path": "/Games/Jankolock3D/systems.mjs",
+      "status": 200
+    },
+    {
+      "path": "/Games/Jankolock3D/systems-view.mjs",
+      "status": 200
+    },
+    {
+      "path": "/Games/Jankolock3D/heroes/player-controller.mjs",
+      "status": 200
+    },
+    {
+      "path": "/Games/Jankolock3D/heroes/hero-runtime.mjs",
+      "status": 200
+    },
+    {
+      "path": "/Games/Jankolock3D/bots.mjs",
+      "status": 200
+    },
+    {
+      "path": "/Games/Jankolock3D/integration-ui.mjs",
+      "status": 200
+    },
+    {
+      "path": "/Games/Jankolock3D/portrait.js",
+      "status": 200
+    },
+    {
+      "path": "/Games/Jankolock3D/vendor/three.module.js",
+      "status": 200
+    },
+    {
+      "path": "/assets/fonts/atkinson-hyperlegible/atkinson-hyperlegible-400-latin.woff2",
+      "status": 200
+    },
+    {
+      "path": "/assets/fonts/atkinson-hyperlegible/atkinson-hyperlegible-700-latin.woff2",
+      "status": 200
+    },
+    {
+      "path": "/assets/fonts/bungee/bungee-400-latin.woff2",
+      "status": 200
+    },
+    {
+      "path": "/Games/Jankolock3D/systems-ui.mjs",
+      "status": 200
+    },
+    {
+      "path": "/Games/Jankolock3D/heroes/hero-visuals.mjs",
+      "status": 200
+    },
+    {
+      "path": "/Games/Jankolock3D/vendor/three.core.js",
+      "status": 200
+    },
+    {
+      "path": "/docs/jank3d-hero-kits.json",
+      "status": 200
+    },
+    {
+      "path": "/Games/Jankolock3D/portrait-config.json",
+      "status": 200
+    },
+    {
+      "path": "/Games/Jankolock3D/models/portrait_relief.glb",
+      "status": 200
+    },
+    {
+      "path": "/Games/Jankolock3D/integration-fixtures.mjs",
+      "status": 200
+    },
+    {
+      "path": "/Games/Jankolock3D/index.html",
+      "status": 200
+    },
+    {
+      "path": "/Games/Jankolock3D/systems.css",
+      "status": 200
+    },
+    {
+      "path": "/Games/Jankolock3D/integration.css",
+      "status": 200
+    },
+    {
+      "path": "/Games/Jankolock3D/game.mjs",
+      "status": 200
+    },
+    {
+      "path": "/assets/fonts/atkinson-hyperlegible/atkinson-hyperlegible-400-latin.woff2",
+      "status": 200
+    },
+    {
+      "path": "/assets/fonts/atkinson-hyperlegible/atkinson-hyperlegible-700-latin.woff2",
+      "status": 200
+    },
+    {
+      "path": "/assets/fonts/bungee/bungee-400-latin.woff2",
+      "status": 200
+    },
+    {
+      "path": "/Games/Jankolock3D/world-data.mjs",
+      "status": 200
+    },
+    {
+      "path": "/Games/Jankolock3D/world-scene.mjs",
+      "status": 200
+    },
+    {
+      "path": "/Games/Jankolock3D/match-world.mjs",
+      "status": 200
+    },
+    {
+      "path": "/Games/Jankolock3D/traversal.mjs",
+      "status": 200
+    },
+    {
+      "path": "/Games/Jankolock3D/systems-view.mjs",
+      "status": 200
+    },
+    {
+      "path": "/Games/Jankolock3D/systems.mjs",
+      "status": 200
+    },
+    {
+      "path": "/Games/Jankolock3D/heroes/player-controller.mjs",
+      "status": 200
+    },
+    {
+      "path": "/Games/Jankolock3D/heroes/hero-runtime.mjs",
+      "status": 200
+    },
+    {
+      "path": "/Games/Jankolock3D/vendor/three.module.js",
+      "status": 200
+    },
+    {
+      "path": "/Games/Jankolock3D/bots.mjs",
+      "status": 200
+    },
+    {
+      "path": "/Games/Jankolock3D/portrait.js",
+      "status": 200
+    },
+    {
+      "path": "/Games/Jankolock3D/integration-ui.mjs",
+      "status": 200
+    },
+    {
+      "path": "/Games/Jankolock3D/heroes/hero-visuals.mjs",
+      "status": 200
+    },
+    {
+      "path": "/Games/Jankolock3D/systems-ui.mjs",
+      "status": 200
+    },
+    {
+      "path": "/Games/Jankolock3D/vendor/three.core.js",
+      "status": 200
+    },
+    {
+      "path": "/docs/jank3d-hero-kits.json",
+      "status": 200
+    },
+    {
+      "path": "/Games/Jankolock3D/portrait-config.json",
+      "status": 200
+    },
+    {
+      "path": "/Games/Jankolock3D/models/portrait_relief.glb",
+      "status": 200
+    },
+    {
+      "path": "/Games/Jankolock3D/integration-fixtures.mjs",
+      "status": 200
+    },
+    {
+      "path": "/Games/Jankolock3D/index.html",
+      "status": 200
+    },
+    {
+      "path": "/Games/Jankolock3D/systems.css",
+      "status": 200
+    },
+    {
+      "path": "/Games/Jankolock3D/integration.css",
+      "status": 200
+    },
+    {
+      "path": "/Games/Jankolock3D/game.mjs",
+      "status": 200
+    },
+    {
+      "path": "/assets/fonts/atkinson-hyperlegible/atkinson-hyperlegible-400-latin.woff2",
+      "status": 200
+    },
+    {
+      "path": "/assets/fonts/atkinson-hyperlegible/atkinson-hyperlegible-700-latin.woff2",
+      "status": 200
+    },
+    {
+      "path": "/assets/fonts/bungee/bungee-400-latin.woff2",
+      "status": 200
+    },
+    {
+      "path": "/Games/Jankolock3D/world-data.mjs",
+      "status": 200
+    },
+    {
+      "path": "/Games/Jankolock3D/systems.mjs",
+      "status": 200
+    },
+    {
+      "path": "/Games/Jankolock3D/world-scene.mjs",
+      "status": 200
+    },
+    {
+      "path": "/Games/Jankolock3D/match-world.mjs",
+      "status": 200
+    },
+    {
+      "path": "/Games/Jankolock3D/systems-view.mjs",
+      "status": 200
+    },
+    {
+      "path": "/Games/Jankolock3D/traversal.mjs",
+      "status": 200
+    },
+    {
+      "path": "/Games/Jankolock3D/vendor/three.module.js",
+      "status": 200
+    },
+    {
+      "path": "/Games/Jankolock3D/heroes/player-controller.mjs",
+      "status": 200
+    },
+    {
+      "path": "/Games/Jankolock3D/heroes/hero-runtime.mjs",
+      "status": 200
+    },
+    {
+      "path": "/Games/Jankolock3D/bots.mjs",
+      "status": 200
+    },
+    {
+      "path": "/Games/Jankolock3D/integration-ui.mjs",
+      "status": 200
+    },
+    {
+      "path": "/Games/Jankolock3D/portrait.js",
+      "status": 200
+    },
+    {
+      "path": "/Games/Jankolock3D/heroes/hero-visuals.mjs",
+      "status": 200
+    },
+    {
+      "path": "/Games/Jankolock3D/systems-ui.mjs",
+      "status": 200
+    },
+    {
+      "path": "/Games/Jankolock3D/vendor/three.core.js",
+      "status": 200
+    },
+    {
+      "path": "/docs/jank3d-hero-kits.json",
+      "status": 200
+    },
+    {
+      "path": "/Games/Jankolock3D/portrait-config.json",
+      "status": 200
+    },
+    {
+      "path": "/Games/Jankolock3D/models/portrait_relief.glb",
+      "status": 200
+    },
+    {
+      "path": "/Games/Jankolock3D/integration-fixtures.mjs",
+      "status": 200
+    },
+    {
+      "path": "/Games/Jankolock3D/index.html",
+      "status": 200
+    },
+    {
+      "path": "/Games/Jankolock3D/systems.css",
+      "status": 200
+    },
+    {
+      "path": "/Games/Jankolock3D/integration.css",
+      "status": 200
+    },
+    {
+      "path": "/Games/Jankolock3D/game.mjs",
+      "status": 200
+    },
+    {
+      "path": "/assets/fonts/bungee/bungee-400-latin.woff2",
+      "status": 200
+    },
+    {
+      "path": "/assets/fonts/atkinson-hyperlegible/atkinson-hyperlegible-700-latin.woff2",
+      "status": 200
+    },
+    {
+      "path": "/assets/fonts/atkinson-hyperlegible/atkinson-hyperlegible-400-latin.woff2",
+      "status": 200
+    },
+    {
+      "path": "/Games/Jankolock3D/world-data.mjs",
+      "status": 200
+    },
+    {
+      "path": "/Games/Jankolock3D/world-scene.mjs",
+      "status": 200
+    },
+    {
+      "path": "/Games/Jankolock3D/match-world.mjs",
+      "status": 200
+    },
+    {
+      "path": "/Games/Jankolock3D/systems.mjs",
+      "status": 200
+    },
+    {
+      "path": "/Games/Jankolock3D/systems-view.mjs",
+      "status": 200
+    },
+    {
+      "path": "/Games/Jankolock3D/traversal.mjs",
+      "status": 200
+    },
+    {
+      "path": "/Games/Jankolock3D/vendor/three.module.js",
+      "status": 200
+    },
+    {
+      "path": "/Games/Jankolock3D/heroes/hero-runtime.mjs",
+      "status": 200
+    },
+    {
+      "path": "/Games/Jankolock3D/integration-ui.mjs",
+      "status": 200
+    },
+    {
+      "path": "/Games/Jankolock3D/bots.mjs",
+      "status": 200
+    },
+    {
+      "path": "/Games/Jankolock3D/heroes/player-controller.mjs",
+      "status": 200
+    },
+    {
+      "path": "/Games/Jankolock3D/portrait.js",
+      "status": 200
+    },
+    {
+      "path": "/Games/Jankolock3D/heroes/hero-visuals.mjs",
+      "status": 200
+    },
+    {
+      "path": "/Games/Jankolock3D/systems-ui.mjs",
+      "status": 200
+    },
+    {
+      "path": "/Games/Jankolock3D/vendor/three.core.js",
+      "status": 200
+    },
+    {
+      "path": "/docs/jank3d-hero-kits.json",
+      "status": 200
+    },
+    {
+      "path": "/Games/Jankolock3D/portrait-config.json",
+      "status": 200
+    },
+    {
+      "path": "/Games/Jankolock3D/models/portrait_relief.glb",
+      "status": 200
+    },
+    {
+      "path": "/Games/Jankolock3D/integration-fixtures.mjs",
+      "status": 200
+    }
+  ],
+  "errors": [],
+  "checks": {
+    "stampead": {
+      "hero": "stampead",
+      "ammo": 12,
+      "shots": 0,
+      "reload": 0,
+      "cooldowns": {
+        "1": 5.600000000000001,
+        "2": 4.700000000000001,
+        "3": 7.800000000000001,
+        "4": 19.9
+      },
+      "casts": {
+        "hook": 1,
+        "volley": 1,
+        "slam": 1,
+        "overtime": 1
+      },
+      "lastAbility": "overtime",
+      "fx": 4,
+      "deployments": 0,
+      "projectiles": 0,
+      "buffs": [
+        "overtime"
+      ]
+    },
+    "turretina": {
+      "hero": "turretina",
+      "ammo": 18,
+      "shots": 0,
+      "reload": 0,
+      "cooldowns": {
+        "1": 9.599999999999994,
+        "2": 9.699999999999996,
+        "3": 6.800000000000001,
+        "4": 21.9
+      },
+      "casts": {
+        "turret": 1,
+        "barricade": 1,
+        "grenade": 1,
+        "chaingun": 1
+      },
+      "lastAbility": "chaingun",
+      "fx": 4,
+      "deployments": 2,
+      "projectiles": 1,
+      "buffs": [
+        "chaingun"
+      ]
+    },
+    "snipeoff": {
+      "hero": "snipeoff",
+      "ammo": 6,
+      "shots": 0,
+      "reload": 0,
+      "cooldowns": {
+        "1": 4.600000000000001,
+        "2": 7.700000000000001,
+        "3": 11.799999999999997,
+        "4": 19.9
+      },
+      "casts": {
+        "longshot": 1,
+        "tether": 1,
+        "headshot": 1,
+        "xray": 1
+      },
+      "lastAbility": "xray",
+      "fx": 4,
+      "deployments": 0,
+      "projectiles": 0,
+      "buffs": [
+        "headshot",
+        "xray"
+      ]
+    },
+    "gooey": {
+      "hero": "gooey",
+      "ammo": 14,
+      "shots": 0,
+      "reload": 0,
+      "cooldowns": {
+        "1": 7.600000000000001,
+        "2": 5.700000000000001,
+        "3": 7.800000000000001,
+        "4": 21.9
+      },
+      "casts": {
+        "puddle": 1,
+        "glue": 1,
+        "missionbomb": 1,
+        "aura": 1
+      },
+      "lastAbility": "aura",
+      "fx": 4,
+      "deployments": 1,
+      "projectiles": 1,
+      "buffs": [
+        "aura"
+      ]
+    }
+  },
+  "sourceHashesAfter": {
+    "Games/Jankolock3D/bots-test.mjs": "7bb0a909b81d714272dd57e5d03b05e23241810e2b89dbbe4b116d67a60b2815",
+    "Games/Jankolock3D/bots.mjs": "c879c3cfa3b6528e52dc0fab0b879114725063555f60a49d9698326b2f5a2f61",
+    "Games/Jankolock3D/game.mjs": "379b1b1d6687ea8dc91d90044c00895f8e6e3f6beaddc9b8920dee2937c9bc7d",
+    "Games/Jankolock3D/heroes/devhero-1.html": "b458fd8979da4f29f7946a02c5009e247b0d12c67db0ed48f56894bb74ee9cc0",
+    "Games/Jankolock3D/heroes/devhero-2.html": "8b3c626dd18cc65ffe68cc34ea7266b827a331553f6c5fb0bb250e86bdb5853c",
+    "Games/Jankolock3D/heroes/devhero-3.html": "fe9e4780409c7932b68aacc4979ba8bdfb26b4fb65574b406517346ec2a1c29b",
+    "Games/Jankolock3D/heroes/devhero-4.html": "e76fcec8893ee1bc27b82feaa2a9e527cc53b59843093844b6c39b85cb68fb7f",
+    "Games/Jankolock3D/heroes/devhero.css": "079bd1e832ccaa53c23a24e469b15a55cfa1b6bc7abd3bfd1880b723f7bbc9cb",
+    "Games/Jankolock3D/heroes/devhero.mjs": "2c760723821b1632f218d3956324d68affb9f898f1ca2fe8eba92b6fa2e4ed07",
+    "Games/Jankolock3D/heroes/hero-runtime-test.mjs": "8974f0670d65157d29b6635ccf5885baf1969a2eb52f449a12b8700f4ce5144b",
+    "Games/Jankolock3D/heroes/hero-runtime.mjs": "4554b6ef47b6c1fe0460f63e8ec57899ee376bb5eed7f52442255de26d1c0c13",
+    "Games/Jankolock3D/heroes/hero-visuals-test.mjs": "bbdef5376298dc9dd4d588b613a5210e9b8f26bdbc5255ca34691c235153a280",
+    "Games/Jankolock3D/heroes/hero-visuals.mjs": "7ac63b11aa7321868d0b9ac1d2a7dbd71c84e8e5cb43aa7d456fb72826abafbf",
+    "Games/Jankolock3D/heroes/player-controller-test.mjs": "0fff1053b19e4518af7451951cc59e7ef274359ac7e9f5bcbc17a0c1f9a4f361",
+    "Games/Jankolock3D/heroes/player-controller.mjs": "309226a62633bef188942b8f67905d0cc9740bb23d30c2d2e936e79b47754f99",
+    "Games/Jankolock3D/index.html": "304da41d8b7064e17f265f3a54ac1d8f63f45b23fb83a73ff7018b213e25a50e",
+    "Games/Jankolock3D/integration-fixtures.mjs": "39aff82dd5e16fa1a411425a8a114e18b748a29024718a3dc1fd7d925f866645",
+    "Games/Jankolock3D/integration-test.mjs": "f7e7874ad48d64bde4b2dc164b54fe2aa84892382c13d318c6a4635eeae54481",
+    "Games/Jankolock3D/integration-ui.mjs": "db3c481e558f6a8da3f04bf7bd0c16c7ea2b7307738886fd51462df52cc049cd",
+    "Games/Jankolock3D/integration.css": "bd6e604600bed9edf52dd21d52fc64367082e73437a39378d6eac55371e408a8",
+    "Games/Jankolock3D/match-world.mjs": "fe9b9e7a632ca95c8bd014008c03a135672986964faac522e6dcd02c36038f44",
+    "Games/Jankolock3D/models/portrait_relief.glb": "8463eee8276187cacaba912d9540279ad1bb338aa382e9448632aa9a33892514",
+    "Games/Jankolock3D/portrait.js": "3bc6f7d4cc8032898d4313414176eb9e5d744ec626e37318b7642a874e84d4fd",
+    "Games/Jankolock3D/systems-demo.mjs": "6e6b9b9b10f159e6835e93b99ecfa46d663d3438ea1a8af67c323165086b4a6e",
+    "Games/Jankolock3D/systems-test.mjs": "ceb77d17d28e35286639e1a3e023573e4fb3bfcd142221332977f25eba91ec9c",
+    "Games/Jankolock3D/systems-ui.mjs": "2cb52dac2b879b3023a31312b17c941f2010682f8ca154a8ba36fb7e2432044c",
+    "Games/Jankolock3D/systems-view.mjs": "d0dedf2ea1ae4d83b05be7d0144ac8db4cc3f6c52cdb9f553e4e679f7dee338c",
+    "Games/Jankolock3D/systems.css": "7eef7e7d329198586fed9b77ced81aea6cedf609fc2c4fe7f4aa8b5106026974",
+    "Games/Jankolock3D/systems.html": "b54f80a055f07d7015d093898454437e465873a1d90149333053774df2868b92",
+    "Games/Jankolock3D/systems.mjs": "5dfa892d31980fdd02682ce97475646fda07d9ec43e050f6e7407c76e3ed08b2",
+    "Games/Jankolock3D/traversal.mjs": "4a3f684e959760a01b29aacefe3397d5888dcfc7a51291cd4e4dc47ece41bb00",
+    "Games/Jankolock3D/vendor/three.core.js": "9edde002b066a9a05676a6127f67735b62baf399bdea529f2f7e31657da769e6",
+    "Games/Jankolock3D/vendor/three.module.js": "9052042d676cb0fdc1ddfefe193053f34b7ac0513a616fdac4535d49987812ea",
+    "Games/Jankolock3D/viewer.mjs": "aa6cac7a1d39d402ee07ea025ce2ea3890d997c97608142bd2eacbe3608ac86c",
+    "Games/Jankolock3D/world-data.mjs": "d3e5da4edbddf8a2cbd93584fb5c1aade756eaba453012f4634ba58b8841353f",
+    "Games/Jankolock3D/world-scene.mjs": "c8e5328c31fd091a9d3d1151e668ad35c8ff513a8c6e67ecc5f81371727fa169",
+    "Games/Jankolock3D/world-test.mjs": "6ad086e167e1af6cb20edcc7290458966755143995f0e8436732fb22bddd3b29",
+    "Games/Jankolock3D/world.css": "5e89a3740730d16890cdb5ca1d1433af13b79ba4674a33efe4f8f731b9935908",
+    "Games/Jankolock3D/world.html": "08d07697507a50f58624132722f24db3896f93042ec73b823871ef2626e8733f"
+  },
+  "sourcesUnchanged": true,
+  "storageAfter": 5087010816
+}

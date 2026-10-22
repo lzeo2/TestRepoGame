@@ -439,10 +439,10 @@
       "title": "Below the Obvious",
       "registered": true,
       "entry": "Games/Dive Trivia/index.html",
-      "entry_blob": "c499bf611047e8ec21471e310ddf09b552fbca0e",
-      "tree": "faeeeab1eb4c34a203a5c252ce1e5e348175eaa4",
-      "files": 7,
-      "bytes": 61353,
+      "entry_blob": "e6323baa2df3812f752b23d6a9e4010812425072",
+      "tree": "e48575e3d79195605177d80c0bf98676a6c1af8b",
+      "files": 8,
+      "bytes": 67871,
       "document": "docs/maintenance/games/235-dive-trivia.md"
     },
     {
@@ -795,15 +795,27 @@
     },
     {
       "directory": "Games/Jankolock",
-      "id": 240,
-      "title": "JANKOLOCK",
-      "registered": true,
+      "id": null,
+      "title": "Jankolock",
+      "registered": false,
       "entry": "Games/Jankolock/index.html",
       "entry_blob": "37c5d1256358597403bb54faabb070b12865dd64",
       "tree": "b15cff44b576881444a20faf39f054621ee2ccdf",
       "files": 15,
       "bytes": 12476881,
-      "document": "docs/maintenance/games/240-jankolock.md"
+      "document": "docs/maintenance/games/unregistered-jankolock.md"
+    },
+    {
+      "directory": "Games/Jankolock3D",
+      "id": 240,
+      "title": "JANKOLOCK",
+      "registered": true,
+      "entry": "Games/Jankolock3D/index.html",
+      "entry_blob": "07bf7025cde8d26765b103bf1bbee0b79cd525b6",
+      "tree": "d5eb009a1045a0b16be07686f9e507cccd404d4b",
+      "files": 127,
+      "bytes": 13648610,
+      "document": "docs/maintenance/games/240-jankolock3d.md"
     },
     {
       "directory": "Games/JavaScriptRacer",
