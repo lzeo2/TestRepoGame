@@ -1,0 +1,157 @@
+{
+  "status": "COPIED-VERIFIED-RAW-DROP-REMOVED",
+  "originalFileCount": 25,
+  "aliases": "manifest.rig.json equals retained canonical rig.json; all5 copies verified",
+  "files": [
+    {
+      "input": "external-art/deployed_stapler/manifest.json",
+      "retained": "Games/Jankolock3D/models/deployed_stapler/manifest.json",
+      "bytes": 3277,
+      "sha256": "8fe4ad6311c3dce2b39881f1e3f3b16f2327df402d7f7cc53149adf2a1fdfc1a"
+    },
+    {
+      "input": "external-art/deployed_stapler/manifest.rig.json",
+      "retained": "Games/Jankolock3D/models/deployed_stapler/rig.json",
+      "bytes": 7138,
+      "sha256": "c6c6d0028d81996b52b52eccc58bc9ed46daa8fcddc16a1439afa99f1245f635"
+    },
+    {
+      "input": "external-art/deployed_stapler/model.glb",
+      "retained": "Games/Jankolock3D/models/deployed_stapler/model.glb",
+      "bytes": 161804,
+      "sha256": "82eea211eaa556258adaec5e9daf88dfd931931932d983a08c31efa060039fd0"
+    },
+    {
+      "input": "external-art/deployed_stapler/palette.json",
+      "retained": "Games/Jankolock3D/models/deployed_stapler/palette.json",
+      "bytes": 3191,
+      "sha256": "73718787862fba2df4b6ffa11cbaba02107afca93bebcb15f7cf0088fbeffdf1"
+    },
+    {
+      "input": "external-art/deployed_stapler/rig.json",
+      "retained": "Games/Jankolock3D/models/deployed_stapler/rig.json",
+      "bytes": 7138,
+      "sha256": "c6c6d0028d81996b52b52eccc58bc9ed46daa8fcddc16a1439afa99f1245f635"
+    },
+    {
+      "input": "external-art/gooey_sticky/manifest.json",
+      "retained": "Games/Jankolock3D/models/gooey/manifest.json",
+      "bytes": 3275,
+      "sha256": "a26fb54b96dc2697bfe9212bbeb565ee614b4fd37fa7f749af29dc1ac7f4d02e"
+    },
+    {
+      "input": "external-art/gooey_sticky/manifest.rig.json",
+      "retained": "Games/Jankolock3D/models/gooey/rig.json",
+      "bytes": 12749,
+      "sha256": "b5fd28bf9e68fa17481a474870253093112131856d7680e8182a80b46b7d92d5"
+    },
+    {
+      "input": "external-art/gooey_sticky/model.glb",
+      "retained": "Games/Jankolock3D/models/gooey/model.glb",
+      "bytes": 1242716,
+      "sha256": "56d029d66b5aeaa31e07b1bedcaf70b96537e56cf0b9e66d48bd17d22623ab12"
+    },
+    {
+      "input": "external-art/gooey_sticky/palette.json",
+      "retained": "Games/Jankolock3D/models/gooey/palette.json",
+      "bytes": 3157,
+      "sha256": "ef4e7776832a8c859dfa73568185bc68babbb651ae05b86eef33e10193a266b9"
+    },
+    {
+      "input": "external-art/gooey_sticky/rig.json",
+      "retained": "Games/Jankolock3D/models/gooey/rig.json",
+      "bytes": 12749,
+      "sha256": "b5fd28bf9e68fa17481a474870253093112131856d7680e8182a80b46b7d92d5"
+    },
+    {
+      "input": "external-art/snipeoff/manifest.json",
+      "retained": "Games/Jankolock3D/models/snipeoff/manifest.json",
+      "bytes": 4047,
+      "sha256": "551ea5350a52dd4191c3497d6a08cfaa811a90a1f8ed35e8ad9fb9daa65f78d9"
+    },
+    {
+      "input": "external-art/snipeoff/manifest.rig.json",
+      "retained": "Games/Jankolock3D/models/snipeoff/rig.json",
+      "bytes": 26739,
+      "sha256": "9402b53b996482a9898b5cbe8a1ddb28682dcc11ef43e235181587f7c331df34"
+    },
+    {
+      "input": "external-art/snipeoff/model.glb",
+      "retained": "Games/Jankolock3D/models/snipeoff/model.glb",
+      "bytes": 818532,
+      "sha256": "a4a0faa196232bf7a40d28491b8f66f056ab0ba3da614c10946ecd8aab13b0bc"
+    },
+    {
+      "input": "external-art/snipeoff/palette.json",
+      "retained": "Games/Jankolock3D/models/snipeoff/palette.json",
+      "bytes": 4780,
+      "sha256": "93b16bf89e8c2d4efe9b792666ddb1c6912bbdd1a8ac308c6506b311107113ad"
+    },
+    {
+      "input": "external-art/snipeoff/rig.json",
+      "retained": "Games/Jankolock3D/models/snipeoff/rig.json",
+      "bytes": 26739,
+      "sha256": "9402b53b996482a9898b5cbe8a1ddb28682dcc11ef43e235181587f7c331df34"
+    },
+    {
+      "input": "external-art/stampead/manifest.json",
+      "retained": "Games/Jankolock3D/models/stampead/manifest.json",
+      "bytes": 3850,
+      "sha256": "430326a25c48fc6cf1599e5a314f0ecb9554b27cec73b8988603d2129cd0c6de"
+    },
+    {
+      "input": "external-art/stampead/manifest.rig.json",
+      "retained": "Games/Jankolock3D/models/stampead/rig.json",
+      "bytes": 24121,
+      "sha256": "60d064bc33ed0b7b1f582b449be59392005166d3953af8913d0a9534f35a5511"
+    },
+    {
+      "input": "external-art/stampead/model.glb",
+      "retained": "Games/Jankolock3D/models/stampead/model.glb",
+      "bytes": 948632,
+      "sha256": "6c679456b2ce7adce25515f5eb5e4947960a4541904edb65f290a5f9978926f0"
+    },
+    {
+      "input": "external-art/stampead/palette.json",
+      "retained": "Games/Jankolock3D/models/stampead/palette.json",
+      "bytes": 4382,
+      "sha256": "96416120bd6fecace7ee9d1b00446b1084f6d36fdb3b82b4a4fe20df4ad7006e"
+    },
+    {
+      "input": "external-art/stampead/rig.json",
+      "retained": "Games/Jankolock3D/models/stampead/rig.json",
+      "bytes": 24121,
+      "sha256": "60d064bc33ed0b7b1f582b449be59392005166d3953af8913d0a9534f35a5511"
+    },
+    {
+      "input": "external-art/turretina/manifest.json",
+      "retained": "Games/Jankolock3D/models/turretina/manifest.json",
+      "bytes": 3970,
+      "sha256": "39fbf5bb41bec12988ee49780e83400f0715a4c2f7de9c09c8877431c335510c"
+    },
+    {
+      "input": "external-art/turretina/manifest.rig.json",
+      "retained": "Games/Jankolock3D/models/turretina/rig.json",
+      "bytes": 29994,
+      "sha256": "043159cdfc4e245feca8930bd4d306b72c869cd253e61cb277f808fd73e9b28e"
+    },
+    {
+      "input": "external-art/turretina/model.glb",
+      "retained": "Games/Jankolock3D/models/turretina/model.glb",
+      "bytes": 1022124,
+      "sha256": "e5a3dffe77d0487c30197759367e6851ad650a9d9358670e198fe927a8f763a7"
+    },
+    {
+      "input": "external-art/turretina/palette.json",
+      "retained": "Games/Jankolock3D/models/turretina/palette.json",
+      "bytes": 4343,
+      "sha256": "279f1258632e4716b886b941e881818aba53161f711a0bd45339b77c958d609e"
+    },
+    {
+      "input": "external-art/turretina/rig.json",
+      "retained": "Games/Jankolock3D/models/turretina/rig.json",
+      "bytes": 29994,
+      "sha256": "043159cdfc4e245feca8930bd4d306b72c869cd253e61cb277f808fd73e9b28e"
+    }
+  ]
+}
