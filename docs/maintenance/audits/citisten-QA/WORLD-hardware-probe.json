@@ -1,0 +1,44 @@
+{
+  "scope": "Non-canonical hardware probe",
+  "errors": [],
+  "externalRequests": [],
+  "failedRequests": [],
+  "warmupFramesRequired": 60,
+  "targetFps": 40,
+  "dedicatedProfile": true,
+  "browserVersion": "149.0.7827.196",
+  "angleRequested": "gl",
+  "renderer": null,
+  "pitchBounds": [
+    -1.5507963267948965,
+    1.5507963267948965
+  ],
+  "exclusiveBrowserChecks": 41,
+  "warmupFramesObserved": 60,
+  "performance": {
+    "size": 128,
+    "lots": 16384,
+    "viewport": [
+      1280,
+      720
+    ],
+    "frames": 33,
+    "sampleSeconds": 15.882699999999996,
+    "fps": 2.0777323754777215,
+    "medianMs": 449.90000000000146,
+    "p95Ms": 616.6999999999971,
+    "calls": 19,
+    "triangles": 248878,
+    "roadLots": 3721,
+    "modelInstances": 3624,
+    "cameraY": 400,
+    "measuredSeconds": 65.5245,
+    "targetFps": 40,
+    "meetsTarget": false
+  },
+  "serverClosed": true,
+  "profileRemoved": true,
+  "browserClosed": true,
+  "diskBefore": 3851882496,
+  "diskAfter": 3851390976
+}

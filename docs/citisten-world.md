@@ -131,11 +131,51 @@ is an API/specimen gate, not integrated-game acceptance or reviewer grading.
   console errors, failed requests and external requests were empty. Camera
   pitch bounds separately checked at +/-1.5508 radians.
 
-The final numeric benchmark is uncontended software-renderer evidence, not
-proof that hardware rendering would pass. Previous timeout/failed attempt logs
+The initial numeric benchmark above used a 10-second warmup. It is
+software-renderer evidence, not the later approved 60-frame protocol or proof
+that hardware rendering would pass. Previous timeout/failed attempt logs
 are retained separately. Traceback host paths were redacted to relative paths.
 A fresh hardware-backed run and/or measured rendering optimization is still
 needed for the 40fps gate. No more browser process/server is left by this lane.
+
+### Batch 32 approved rerun
+
+Source protocol milestone: `346aebb`. UI confirmed step 1 complete, and sim
+confirmed step 2 at `93c9a80`, before world took the slot. The first pair of
+commands refused at process preflight, before any world browser launch; both
+refusal logs are preserved. After a fresh clear check, the canonical run and
+exactly one non-canonical GL probe ran serially with dedicated temporary
+profiles. Both returned **exit 1**, retaining the **40fps hard failure**.
+
+| Run | Warmup frames | Sample frames / actual duration | FPS | Process checks |
+| --- | ---: | --- | ---: | ---: |
+| Canonical SwiftShader | 61 | 36 / 15.9495s | **2.257124** | 43 |
+| Non-canonical GL probe | 60 | 33 / 15.8827s | **2.077732** | 41 |
+
+Both used the unchanged 128x128 grid, 1280x720 framebuffer, 3,624 model
+instances, 3,721 road lots, 248,878 triangles and 19 draw calls. Canonical
+renderer: `ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (LLVM 16.0.0)
+(0x0000C0DE)), SwiftShader driver)`. Its median/p95 frame intervals were
+416.6/816.7ms. The GL probe used `--use-gl=angle --use-angle=gl`; its renderer
+query returned **null**, not a hardware identity. Its screenshot contains a
+large dark blank region, so hardware acceleration is **inconclusive**, not
+established. Do not interpret its rAF timing as a valid native-GPU result.
+No second hardware probe was attempted.
+
+Evidence in `docs/maintenance/audits/citisten-QA/`:
+
+- `WORLD-performance-60warmup.json`, `WORLD-performance-60warmup.png`,
+  `WORLD-performance-60warmup-warmup.png`, `WORLD-batch32-canonical-run.txt`.
+- `WORLD-hardware-probe.json`, `WORLD-hardware-probe.png`,
+  `WORLD-hardware-probe-warmup.png`, `WORLD-batch32-hardware-run.txt`.
+- `WORLD-batch32-canonical-refused.txt`, `WORLD-batch32-hardware-refused.txt`.
+
+Both reports have empty error/failed-request/external-request arrays and true
+`browserClosed`, `serverClosed`, `profileRemoved`. A fresh process and worktree
+profile-directory check also found no world resources left. The slot was
+explicitly released to sim/Wings; UI requested no further browser time.
+Traceback host prefixes are redacted; measured JSON and screenshots are unchanged.
+The render budget remains **HOLD**. No catalog change, full-fleet gate or push.
 
 ## Known blockers and inspected-source limits
 

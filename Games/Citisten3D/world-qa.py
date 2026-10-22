@@ -95,6 +95,10 @@ def main():
                         report['renderer'] = 'Unavailable: world WebGL renderer could not initialize'
                         shot(evidence + '.png', report['scope'] + '\n' + report['renderer'] + '\nNo FPS measured; 40 FPS gate not met')
                         raise RuntimeError(report['renderer'])
+                    report['renderer'] = page.evaluate('''() => {
+                      const gl=citistenWorld.world.renderer.getContext(), ext=gl.getExtension('WEBGL_debug_renderer_info');
+                      return ext ? gl.getParameter(ext.UNMASKED_RENDERER_WEBGL) : gl.getParameter(gl.RENDERER);
+                    }''')
                     report['pitchBounds'] = page.evaluate('''() => {
                       const c=citistenWorld.world.controls;
                       c.setPose({x:0,y:2,z:0,pitch:-100},true); const low=c.target.pitch;
@@ -116,10 +120,6 @@ def main():
                     wait_exclusive(15)
                     report['performance'] = page.evaluate('citistenWorld.stats()')
                     assert report['performance']['frames'] > 0, 'No frames in 15-second measurement window'
-                    report['renderer'] = page.evaluate('''() => {
-                      const gl=citistenWorld.world.renderer.getContext(), ext=gl.getExtension('WEBGL_debug_renderer_info');
-                      return ext ? gl.getParameter(ext.UNMASKED_RENDERER_WEBGL) : gl.getParameter(gl.RENDERER);
-                    }''')
                     perf = report['performance']
                     perf['targetFps'] = 40
                     perf['meetsTarget'] = perf['fps'] >= 40

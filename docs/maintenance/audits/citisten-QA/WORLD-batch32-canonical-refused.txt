@@ -1,0 +1,9 @@
+Traceback (most recent call last):
+  File "Games/Citisten3D/world-qa.py", line 243, in <module>
+    main()
+    ~~~~^^
+  File "Games/Citisten3D/world-qa.py", line 37, in main
+    raise RuntimeError('Sibling Chromium active; sequence QA before retrying')
+RuntimeError: Sibling Chromium active; sequence QA before retrying
+
+WORLD_QA_EXIT=1
