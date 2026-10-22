@@ -262,8 +262,14 @@ reference-quality acceptance. Faces, hands, cloth/hoses, rigid motion and lack
 of character LOD remain weaknesses. City facades/recesses/turnouts are real new
 geometry, but the broad straight primary corridors, sparse park dressing,
 stylized clouds and primitive combat objectives remain visible quality gaps.
-No full native 900m lane walk, final visual review, supported GPU, real handheld,
-full offline/release smoke or match-fun acceptance is inferred from these checks.
+Independent review `b91a600` gives A/E/H a QUALIFIED mechanical evidence pass,
+not final art/hardware/release acceptance. It verifies all 36 raw PNG hashes,
+59 selected source hashes, actual GLB budgets and CPU behavior. JSON configs/kit
+receipts and environment PNGs are outside the capture hash selector; that gap
+is not retroactively filled. Midway arrival is visually occluded and slide pose
+still reads upright. No full native 900m lane walk, final subjective art review,
+supported GPU, real handheld, full offline/release smoke or match-fun acceptance
+is inferred from these checks.
 
 ## Future outlook
 

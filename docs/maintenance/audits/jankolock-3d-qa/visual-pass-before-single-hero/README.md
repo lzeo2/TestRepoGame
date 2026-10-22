@@ -2,7 +2,7 @@
 
 This post-idle-fix P invocation reached six captures, including native jump,
 dash and slide inputs with explicit fixture clock advancement and three clean
-body views. The external180-second bound ended it before Gooey; its receipt
+body views. The external 180-second bound ended it before Gooey; its receipt
 is explicitly TIMEOUT, not a complete four-hero inspection gate.
 
 Final single-hero E/P retries all completed separately in `../visual-pass/`.

@@ -1,0 +1,80 @@
+{
+  "kind": "Actual artifact arithmetic and hash recheck; builder checks, not visual/hardware/release acceptance",
+  "status": "COMPLETE",
+  "cases": [
+    "letter-A-evidence.json",
+    "letter-E-gooey-evidence.json",
+    "letter-E-snipeoff-evidence.json",
+    "letter-E-stampead-evidence.json",
+    "letter-E-turretina-evidence.json",
+    "letter-H-evidence.json",
+    "letter-P-gooey-evidence.json",
+    "letter-P-snipeoff-evidence.json",
+    "letter-P-stampead-evidence.json",
+    "letter-P-turretina-evidence.json"
+  ],
+  "receipts": 10,
+  "actual_full_size_captures": 36,
+  "recorded_http200_responses": 635,
+  "errors": 0,
+  "runtime_source_files_per_case": 59,
+  "all_runtime_sets_identical_and_match_current": true,
+  "all_screenshot_and_runner_hashes_match": true,
+  "png_files_including_labeled_composites_and_duplicate": 42,
+  "new_model_count": 5,
+  "new_model_bytes": 21486656,
+  "new_model_triangles": 732834,
+  "all_model_count": 6,
+  "all_model_bytes": 24715028,
+  "models": [
+    {
+      "path": "Games/Jankolock3D/models/gooey/model.glb",
+      "bytes": 4612808,
+      "triangles": 179556,
+      "sha256": "28af9491202b130ec2853aff3d1090c2bdaa5f166b2e643f80ef5601942a2a5e"
+    },
+    {
+      "path": "Games/Jankolock3D/models/portrait_relief.glb",
+      "bytes": 3228372,
+      "triangles": 124512,
+      "sha256": "8463eee8276187cacaba912d9540279ad1bb338aa382e9448632aa9a33892514"
+    },
+    {
+      "path": "Games/Jankolock3D/models/snipeoff/model.glb",
+      "bytes": 4835696,
+      "triangles": 170342,
+      "sha256": "700f216bc643bf8fde432e91978193c36efce3ade4f62a8fb1471a2d391491ec"
+    },
+    {
+      "path": "Games/Jankolock3D/models/stampead/model.glb",
+      "bytes": 5797108,
+      "triangles": 179388,
+      "sha256": "f3479144cf4e33eb183b5b8983815740858899463c7a1a749c4420892ef688f3"
+    },
+    {
+      "path": "Games/Jankolock3D/models/trooper/model.glb",
+      "bytes": 1592464,
+      "triangles": 31730,
+      "sha256": "e8cd44bc75769081ca7a2bfa6a2d73634c89de5cc20c4de200bde212405fcff4"
+    },
+    {
+      "path": "Games/Jankolock3D/models/turretina/model.glb",
+      "bytes": 4648580,
+      "triangles": 171818,
+      "sha256": "3df07824fe5cce374244d8afb776203906bdb83181eb173e5c3a822030ff7d0d"
+    }
+  ],
+  "growth_baseline": "db70557437d12582f651a88369f148fb5d7a7e20",
+  "growth_limit_bytes": 60000000,
+  "whole_visual_pass_net_growth_bytes": 46122733,
+  "growth_accounting": "Raw working-tree byte delta from baseline across all changed tracked paths plus owned final QA; includes all models, concepts, code, textures and retained partials; excludes unrelated pre-existing mockup and Git object storage.",
+  "qualified_mechanical_review_commit": "b91a600",
+  "capture_hash_exclusions": [
+    "JSON configs, model receipts and hero kit JSON",
+    "environment PNG textures"
+  ],
+  "visual_hardware_release_acceptance": "HOLD; see MODEL-REVIEW.md and README.md",
+  "blender_used": false,
+  "profile_cdp_recipe_newly_exercised": false,
+  "no_push": true
+}
