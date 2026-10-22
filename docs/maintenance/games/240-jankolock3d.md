@@ -287,9 +287,17 @@ new UI bytes; models/screenshots still verify against actual files. This is
 historical-source verification, not an assertion that current CSS equals old
 CSS. Additive `theme-qa.py` checks script-free dark startup on all seven entries,
 OS-light/cache-cold initial dark hero selection, HUD/shop/minimap and native
-light toggles on desktop/mobile. Fresh results will be recorded separately under
-`docs/maintenance/audits/jankolock-3d-qa/dark-default/` after the source commit.
-No prior failed receipt is relabeled, no full-catalog gate or push is implied.
+light toggles on desktop/mobile. Source commit `e235109` is exactly
+`jank3d: dark-default-ui`. Fresh results under
+`docs/maintenance/audits/jankolock-3d-qa/dark-default/`: 12 original screenshots,
+241 HTTP200 responses, zero retained errors, 81 current source/resource hashes
+stable, seven script-free dark entries and four live cold first-paint checks.
+Each context forces OS light preference with empty storage/disabled HTTP cache;
+no QA query or gameplay grants. Actual minimap fills switch between dark and
+light. Desktop/mobile images were inspected in both modes. UI eight checks,
+both integrated 600s chains and the current inventory checker pass. Browser and
+loopback server closed. No prior failed receipt is relabeled; no full-catalog
+release gate, new game, Blender work or push is implied.
 
 ## Future outlook
 
