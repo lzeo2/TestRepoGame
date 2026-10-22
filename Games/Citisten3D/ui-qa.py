@@ -14,6 +14,27 @@ from playwright.sync_api import sync_playwright
 ROOT = Path(__file__).resolve().parents[2]
 OUT = ROOT / 'docs/maintenance/audits/citisten-QA'
 FLOOR = 2178940928
+PROCESS_CHECKS = 0
+
+
+def browser_slot():
+    global PROCESS_CHECKS
+    rows = subprocess.check_output(['ps', '-eo', 'pid=,ppid=,args='], text=True).splitlines()
+    processes = {}
+    for row in rows:
+        pid, parent, command = row.strip().split(None, 2)
+        processes[int(pid)] = (int(parent), command)
+    foreign = []
+    for pid, (_, command) in processes.items():
+        if Path(command.split()[0]).name not in {'chromium', 'chromium-browser', 'chrome', 'chrome-headless-shell'}:
+            continue
+        ancestor = pid
+        while ancestor in processes and ancestor != os.getpid():
+            ancestor = processes[ancestor][0]
+        if ancestor != os.getpid():
+            foreign.append(pid)
+    PROCESS_CHECKS += 1
+    assert not foreign, f'Another Chromium gate owns the browser slot: PIDs {foreign}'
 
 
 def disk():
@@ -27,6 +48,7 @@ class QuietHandler(SimpleHTTPRequestHandler):
 
 
 def shot(page, name):
+    browser_slot()
     disk()
     path = OUT / f'{name}.png'
     page.screenshot(path=str(path))
@@ -84,8 +106,7 @@ def layout(page):
 
 def main():
     # Cooperative browser queue is still required; never kill another lane's browser.
-    active = subprocess.run(['pgrep', '-f', '^/usr/(lib/chromium/chromium|bin/chromium)|chrome-linux/chrome'], capture_output=True).returncode
-    assert active != 0, 'Another Chromium gate owns the browser slot'
+    browser_slot()
     disk()
     OUT.mkdir(parents=True, exist_ok=True)
     server = ThreadingHTTPServer(('127.0.0.1', int(os.environ.get('SMOKE_PORT', '0'))), partial(QuietHandler, directory=str(ROOT)))
@@ -239,7 +260,7 @@ def main():
                 disk(); collage.save(OUT / f'J-comparison-{name}-{theme}.png')
         result = {'scope':'UI fixture only, reviewer grades acceptance', 'viewports':[1440,390,320],
                   'themes':['dark','light'], 'screenshots':len(captures), 'collages':10,
-                  'errors':errors,'externalRequests':external,'failedRequests':failed,
+                  'errors':errors,'externalRequests':external,'failedRequests':failed,'browserProcessChecks':PROCESS_CHECKS,
                   'checks':'native keyboard start, both modes, tool callbacks, focus, theme/storage failure, HP, demand, peak population, loss-to-menu, hall marker ordering, toast cap/dedupe/expiry, 44px targets, overflow and button copy, no gradients/shadows, destroy',
                   'diskBeforeBytes':before,'diskAfterBytes':shutil.disk_usage('/').free}
         disk(); (OUT / 'J-ui-results.json').write_text(json.dumps(result,indent=2)+'\n')

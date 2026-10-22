@@ -95,7 +95,9 @@ minimap town hall drawing order were also corrected with new regression
 assertions. A subsequent 320px screenshot review also found stacked notices
 touching the tool options; phone feedback now coalesces to one urgent notice.
 New runs clear old-session notices and reset initial tool feedback. Final-source
-evidence is pending the shared browser queue.
+regression completed: 36 fixture screenshots, 10 collages, 37 process-ancestry
+checks, zero console/page/network errors. See `docs/citisten-ui-qa.md` for
+scope limits, evidence mapping and remaining integration/reviewer holds.
 Harness-only corrections during initial QA: native Tab rather than programmatic
 focus for `:focus-visible`, reset HP/budget fixture values between themes, and
 a braced Playwright storage override so the returned function is not invoked
