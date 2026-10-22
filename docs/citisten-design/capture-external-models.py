@@ -49,10 +49,13 @@ try {
 </script>'''
 
 
-def main(phase):
+def main(phase, models=None):
+    selected=[item for item in MODELS if models is None or item[0] in models]
+    if not selected: raise ValueError('No models selected')
     before=shared.guard()
     if shared.browser_pids(): raise RuntimeError('Shared Chromium busy; no browser launched')
-    out=ROOT/'docs/maintenance/audits/citisten-external'/phase;out.mkdir(parents=True,exist_ok=True)
+    suffix='-'+'-'.join(item[0] for item in selected) if models else ''
+    out=ROOT/'docs/maintenance/audits/citisten-external'/(phase+suffix);out.mkdir(parents=True,exist_ok=True)
     names=['world','buildings','materials','camera','roads','daynight','world-effects']
     names += ['model-geometry','model-city','model-services','model-agents'] if phase=='before' else ['external-assets','external-buildings','external-materials']
     def hashes():
@@ -60,6 +63,7 @@ def main(phase):
     if phase=='before':
         assert hashes()['Games/Citisten3D/buildings.mjs']=='028b63d1efd8a37e07cb8909c84ac13fb8254c1449982483997c2d6305eaaa63', 'BEFORE requires the historical procedural kit; do not relabel the external renderer'
     report={'phase':phase,'scope':'Model/placement API fixtures, not gameplay or performance acceptance',
+            'selectedModels':[item[0] for item in selected],
             'sourceHashes':hashes(),'shots':[],'errors':[],'external':[],'failed':[]}
     class Handler(http.server.SimpleHTTPRequestHandler):
         def log_message(self,*_): pass
@@ -84,7 +88,7 @@ def main(phase):
                 page.goto(base+'/Games/Citisten3D/external-qa.html',wait_until='networkidle')
                 page.wait_for_function('window.fixture || window.fixtureError')
                 assert not page.evaluate('window.fixtureError || null'),report
-                for name,key,dimension in MODELS:
+                for name,key,dimension in selected:
                     rendered=PROXIES.get(key,key) if phase=='before' else key
                     proxy=f' | BEFORE proxy: {rendered}; no standalone {key} existed' if rendered!=key else ''
                     for placement in [False,True]:
@@ -110,9 +114,11 @@ def main(phase):
         (out/'results.json').write_text(json.dumps(report,indent=2)+'\n')
         print(json.dumps(report,indent=2))
     assert report['browserClosed'] and report['profileRemoved'] and report['serverClosed']
-    print(f'EXTERNAL {phase.upper()} API CAPTURE PASS: 17 model/scene pairs, 34 JPEGs, no errors/external requests, owned resources closed')
+    assert len(report['shots'])==len(selected)*2
+    print(f'EXTERNAL {phase.upper()} API CAPTURE PASS: {len(selected)} model/scene pairs, {len(report["shots"])} JPEGs, no errors/external requests, owned resources closed')
 
 
 if __name__=='__main__':
     parser=argparse.ArgumentParser();parser.add_argument('phase',choices=['before','after'])
-    main(parser.parse_args().phase)
+    parser.add_argument('--models',nargs='+',choices=[item[0] for item in MODELS])
+    args=parser.parse_args();main(args.phase,args.models)

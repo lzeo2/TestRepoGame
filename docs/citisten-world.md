@@ -1,5 +1,39 @@
 # CITISTEN world maintenance and handover
 
+## Current external-model renderer (2026-10-23)
+
+The current renderer uses 17 supplied GLB models and the supplied terrain set,
+not the procedural runtime described in the archived sections below. See the
+[external integration receipt](citisten-external-models.md), current
+[mesh API](citisten-buildings-api.md) and
+[registered 241 manual](maintenance/games/241-citisten3d.md).
+
+`createWorld(canvas,{size,lotSize,pixelRatio,modelLOD:0})` returns synchronously;
+await `world.ready`. `world.render(dtSeconds)` includes movement-driven rigid
+walk/wheel animation. LOD is explicit for the session (0/1/2), with no hidden
+procedural far model. Failed asset loading rejects readiness. Ground, asphalt
+and water use supplied GLB channels; absent terrain AO retains the existing
+analytic map. Five documented +Z architectural facades are normalized at the
+scene root to -Z without changing delivered GLBs or local rig pivots.
+
+Current model QA: 34 BEFORE photos plus 34 current AFTER photos in three
+successful bounded batches, and 17 four-view comparison plates. The first
+29-shot AFTER attempt timed out and is retained as partial/rejected history.
+Run `python3 -B docs/citisten-design/check-external-photos.py`,
+`node --experimental-vm-modules Games/Citisten3D/external-model-check.mjs`,
+`node Games/Citisten3D/external-materials-check.mjs` and the world check.
+These prove their documented scopes, not native acceptance or 40 FPS.
+
+The 40 FPS gate remains HOLD with no new canonical measurement. Native/offline
+QA and full-fleet release are separate, owned by the integration lane. No push.
+
+## Archived pre-external component record
+
+Everything below records earlier procedural milestones. Their model counts,
+material/LOD descriptions, inventory counts and browser commands are historical;
+in particular, do not run the old procedural material harness against the new
+renderer or treat its seven screenshots/FPS figures as current acceptance.
+
 ## Identity and scope
 
 Original terrain/rendering/camera lane for the operator-authorized CITISTEN

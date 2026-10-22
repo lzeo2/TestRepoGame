@@ -1,5 +1,21 @@
 # CITISTEN external model wishlist
 
+## Received delivery (2026-10-23)
+
+The operator's 17-model plus terrain-set delivery is now preserved locally and
+wired into the renderer. See [integration receipt](../citisten-external-models.md)
+for canonical hashes, three successful AFTER batches, explicit LOD/rig behavior
+and remaining gaps. The separately named door AddOn and terrain AO maps were
+not delivered. No Blender/bpy was run in this lane.
+
+The table below is the **original commission brief and pre-delivery procedural
+scorecard**, not a current inventory: patrol/utility cars now exist. Current
+photos show recognizable but stylized assets, plainer rear facades and visibly
+repeating terrain. No new photorealism score or release acceptance is assigned
+merely because the files arrived or triangle checks passed.
+
+## Original commission brief
+
 Operator handoff, 2026-10-22. **Blender is OFF in this repository.** External
 sculpting is operator-run. This document requests art; it does not fetch,
 register or accept an external asset. No push is authorized.

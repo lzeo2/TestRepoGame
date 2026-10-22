@@ -1,88 +1,107 @@
 # CITISTEN building and agent mesh API
 
-`Games/Citisten3D/buildings.mjs`: original procedural geometry, local generated
-PBR textures, no borrowed art, remote assets, animation state or simulation logic.
-`model-city.mjs`, `model-services.mjs`, `model-agents.mjs` supply detailed meshes;
-`model-geometry.mjs` merges indexed parts, vertex contact/directional shading,
-subtle UV-edge wear and deterministic window-light variation. Each facade atlas
-tile is 512px within a 1024px atlas. Shared Standard material uses color, bump,
-roughness and emissive maps. No per-building scene nodes or lights.
+`Games/Citisten3D/buildings.mjs` exports `createExternalBuildingKit` from
+`external-buildings.mjs`. Supplied local GLBs replace the procedural runtime
+kit; the original factories and their old checks are historical, not loaded by
+this entry. No remote assets, simulation mutation or invented gameplay actions.
 
 ```js
+const world = createWorld(canvas, { modelLOD: 0 });
+await world.ready;
 const kit = world.buildings;
 const p = world.roads.center(building.x, building.z);
 const handle = kit.spawn(building.type, p);
-kit.transform(handle, {x: p.x, y: 0, z: p.z, rotation: Math.PI / 2, scale: 1});
+kit.transform(handle, { x: p.x, y: 0, z: p.z, rotation: Math.PI / 2, scale: 1 });
 kit.remove(handle);
 ```
 
-`createBuildingKit(scene, capacity=10000)` can also be used independently.
-Capacity is per type; overflow throws rather than losing instances. Handles
-remain stable after swap-removal. Do not retain their mutable `index` value.
-`transform` replaces the whole pose, with omitted x/y/z/rotation defaulting to
-0 and scale to 1. Invalid/nonfinite transforms and removed handles throw.
-`remove` returns false for already removed/foreign handles. `dispose()` frees
-GPU buffers and invalidates handles. `types` enumerates supported keys;
-`pools` exposes read-only diagnostic meshes/handles, not a mutation interface.
-`mesh.count` remains the logical instance count. `detail` is a lazily allocated
-high-detail InstancedMesh, not another simulation object. `update(camera,night)`
-is called by `world.render`: at most the nearest 16 high-detail instances per
-type, within 120m for buildings, 450m for town hall, 35m for agents. Remaining
-instances use the retained textured blockout LOD; high-detail instances' low
-matrices are hidden. These hard transitions can visibly pop and are not an
-asset-quality or frame-rate pass. A camera move of .5m or any pose edit refreshes
-LOD; emission updates each render. `version` changes only for static model edits
-and invalidates world block AO. `handle.pose`/`matrix` are read-only internals.
-Both LODs, generated textures and material are disposed by the kit.
+`createBuildingKit(scene, capacity=10000, {lod=0}={})` works independently;
+await `kit.ready`. Spawning/transforming handles before readiness is supported,
+but no model is rendered until its resources exist. Failed loading rejects
+readiness, rather than substituting a procedural asset. Capacity is per type;
+overflow and invalid/nonfinite transforms throw. `transform` replaces the
+whole pose: omitted x/y/z/rotation are 0, scale is 1 and must be positive.
+Handles remain stable after swap-removal; never retain their mutable index.
+`remove` returns false for already removed or foreign handles.
 
-## Complete kit
+`types` enumerates 17 keys. `pools` is diagnostic, not a mutation API:
+`p.mesh.count` counts logical instances and `p.mesh.getMatrixAt` copies their
+root matrices. **p.mesh is not a render mesh.** `p.batches` contains actual
+InstancedMeshes. Static geometry is merged by material/attribute layout;
+rigid animated primitives are instanced without per-handle geometry/texture
+copies. There is no `kit.material` singleton or old `p.detail` blockout LOD.
 
-| Key | Silhouette / nominal footprint |
-| --- | --- |
-| residential | 23,320 triangles; pitched tiled roofs, windows/doors/gutters; 7.74 x 6.50m, 4.93m high |
-| commercial | 23,264; dimensional glazing/sunshades/HVAC; 8.05 x 8.38m, 11.92m high |
-| industrial | 16,000; corrugation, shutter bays/sawtooth roof; 9.08 x 8.22m, 6.28m high |
-| power | 16,504; stacks, busbars, insulators and pipes; 8 x 7.45m, 13m high |
-| water | 10,160; curved tank, braces, valve/railings; 6.24 x 6.07m, 10m high |
-| police | 14,388; masonry, glazing, roof dish/vents; 7.22 x 7.64m, 5.19m high |
-| fire | 17,788; roller bays, masonry, louvred tower; 8.22 x 7.65m, 7.5m high |
-| park | 13,544; two 6,076-triangle branching trees, path and bench; 8m square |
-| townhall | 130,904; 16 fluted columns, pediments, four fixed ornamental clocks; 17.6 x 16.08m, 17.06m high |
-| wall | 5,556; bevelled masonry, buttresses/crenellations; 10m local X, 1.49m deep |
-| watchtower | 10,560; braced frame, stairs/lookout, curved tiles; about 4.07m square, 10.28m high |
-| citizen | 28,680; curved clothing, hands, shoes and facial relief; 1.9m high |
-| zombie | 29,604; forward hunch/arms, teeth and curved clothing; 1.65m high |
-| car | 9,936; wheel arches, curved cabin, tires/rims, mirrors/wipers; 1.7 x 3.51m |
+LOD is explicit for the session: 0, 1 or 2. Only that GLB alternative is loaded,
+not three copies of its embedded maps. LOD0 is the default, including distant
+instances; no camera-dependent hidden downgrade or 40 FPS claim. `update(camera,
+night, dtSeconds)` scales emission from its original baseline and advances
+motion; `world.render` calls it once. Actual changed agent poses drive supplied
+citizen/zombie walk loops; stationary poses stop advancing the clip. Car wheel
+roll follows signed distance and authored wheel radius. Doors, steering and
+other unsupported sim actions remain in their authored rest poses.
 
-Y=0 is the model base; rotation is radians around +Y, scalar scale must be
-positive. Agents face local -Z. Town hall is intentionally about twice the
-width of ordinary buildings; simulation/integration must reserve sufficient
-visual space. The kit does not perform occupancy or collision checks.
-`world.roads.center` converts fractional lot-space sim positions to metres.
+`version` invalidates static block AO on static edits only. `handle.pose` and
+`matrix` are read-only diagnostics. `dispose()` invalidates handles, releases
+batches/mixers/geometries/materials/maps/bitmaps and is idempotent. Independent
+kit instances do not share an unsafe process-global resource lifetime.
 
-Detailed models are static sectional procedural meshes, not scanned/sculpted,
-watertight or rigged heroes. The distant LOD remains a blockout. Model-only
-Node checks count nondegenerate geometry and finite attributes/bounds; they do
-not certify realism or whole-scene rendering performance. See the external
-[model wishlist](citisten-design/MODEL-WISHLIST.md).
+## Supplied kit
 
-## Shot-event visual consumer (coordination addition)
+Counts are actual LOD0 triangles, not the old procedural numbers or render
+passes (shadow draws can count the same geometry again).
 
-`world.effects.shot(event.from, event.to)` accepts sim **grid-space** `{x,z}`
-poses (fractional positions allowed). Optional `y` is height in metres, default
-1.2. For a watchtower source, integration may supply `{...event.from, y:8}`.
-It displays a solid pale-gold tracer and a small cream square impact for .14s.
-No glow, targeting, hit detection, damage, audio or simulation mutation.
-`world.render(dtSeconds)` renders then expires effects; do not tick them twice.
-A fixed 64-slot ring overwrites the oldest shot under overload; no allocation
-per shot or unbounded scene nodes. `world.effects.active` is diagnostic.
-Invalid/nonfinite/out-of-grid poses throw. `world.dispose()` cleans up the pool.
+| Runtime key | Delivery directory | LOD0 triangles |
+| --- | --- | ---: |
+| residential | residential_row | 21,046 |
+| commercial | commercial | 45,388 |
+| industrial | industrial_shed | 11,702 |
+| power | power_plant | 28,576 |
+| water | water_tower | 24,500 |
+| police | police_station | 21,614 |
+| fire | fire_station | 28,550 |
+| park | park_lot + shared tree assembly | 3,356 + 7,350 |
+| townhall | town_hall | 111,163 |
+| wall | wall_segment | 9,228 |
+| watchtower | watchtower | 8,988 |
+| citizen | citizen | 20,455 |
+| zombie | zombie | 20,553 |
+| car | compact_car | 9,608 |
+| tree | tree_deciduous | 7,350 |
+| patrol_car | patrol_car | 9,980 |
+| utility_car | utility_car | 9,980 |
 
-```js
-for (const event of sim.drainEvents()) {
-  if (event.type === 'shot') world.effects.shot(event.from, event.to);
-}
+Coordinates are metres, Y-up, with base grounding retained. Rotation is radians
+around +Y. Agent forward is -Z. Five rigs explicitly declare architectural
+facades +Z; the adapter normalizes only those scene wrappers to the kit's -Z
+front, preserving every authored node-local pivot and all LOD ground offsets.
+The 18 x 15m town hall exceeds one 10m lot; integration must leave visual space.
+The kit does not own occupancy/collisions. `roads.center` converts fractional
+sim lot positions into metres. Car variants are optional appearances, not new
+simulation services. Park uses the supplied shared-tree assembly recipe.
+
+See `docs/maintenance/audits/citisten-external/intake.json` for source hashes,
+LOD payloads, channel dimensions and metadata discrepancies. Supplier originality
+is a provenance claim, not independent authorship/photorealism verification.
+Missing standalone door AddOn and absent terrain AO remain recorded findings.
+
+## Shot-event visual consumer
+
+`world.effects.shot(event.from,event.to)` accepts sim **grid-space** x/z and
+optional metre y (default 1.2). It draws a short tracer/impact, not damage,
+targeting, audio or simulation state. `world.render(dt)` expires effects; do not
+tick twice. A fixed 64-slot ring bounds allocation. Invalid poses throw and
+`world.dispose()` frees the pool. Integration drains `sim.drainEvents()` only
+once and dispatches all event types, including `type === 'shot'`.
+
+## Runnable checks
+
+```sh
+node --experimental-vm-modules Games/Citisten3D/external-model-check.mjs
+node Games/Citisten3D/external-materials-check.mjs
+node Games/Citisten3D/world-check.mjs
+python3 -B docs/citisten-design/check-external-assets.py --canonical-only
 ```
 
-The event discriminator is `type` in the current sim module. Integration owns
-other consumers and must drain the queue only once, dispatching all event types.
+Model checks use real GLB data with stubbed HTTP/image decoding. They do not
+certify GPU rendering, native gameplay or performance; fresh browser evidence
+and the unchanged 40 FPS gate are separate.
