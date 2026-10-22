@@ -138,18 +138,27 @@ individual casualty simulation. Traffic is segment-occupancy based, not
 physical intersection collision. These limits are explicit, not hidden behind
 the fixture captures.
 
-Canonical maintenance validation last failed:
-`AssertionError: Inventory stale: inspect changes, then run --refresh.`
-An earlier attempt correctly refused concurrent uncommitted world changes.
-Operator-delegated lead/Hermes refresh `ce8d2b4` subsequently updated the
-inventory, without this lane editing out-of-scope paths. Subsequent source
-milestones still require a final lead-owned refresh and canonical game manual.
+**Canonical maintenance blocker closed in Batch34.** World-owned approved
+handover `56b45fc` supersedes the earlier `ce8d2b4` refresh and includes the
+[canonical unregistered manual](maintenance/games/unregistered-citisten3d.md),
+README and current Git inventory. Sim independently reran the plain checker:
+
+```text
+PASS: 133 game documents cover 127 registered + 6 unregistered games; Git inventory current.
+Coverage only: section presence does not certify documentation accuracy or gameplay.
+```
+
+Earlier stale-inventory and concurrent-dirty-source refusals remain historical,
+not open blockers. No out-of-scope canonical paths were edited by this lane.
 The initial coordination ticket was `pi-2075977-1792626164639-1ae85e12`.
 Global shared-browser coordination was escalated under
 `pi-2075977-1792627216164-ef1c474e`; an explicit global UI-to-sim handoff allowed
 the final uncontended run. Other worktrees' processes were not stopped.
-World separately reports **1.82 fps SwiftShader**, so its 40fps gate remains
-HOLD. This lane does not convert that into a hardware/rendering pass.
+World's final Batch32 canonical sample reports **2.257124 fps SwiftShader**,
+so its 40fps gate remains FAIL/HOLD. Its one GL probe reports **2.077732 fps**,
+with null renderer/artifact and hardware inconclusive. Historical 1.82 fps is
+superseded as the final measurement, not erased. This lane does not convert
+these results into a hardware/rendering pass.
 
 The actual game entry, normal-input acceptance, catalog registration and full
 registered-game smoke/release gate remain integration/reviewer responsibilities.
@@ -186,8 +195,9 @@ At that check the only dirty paths were sibling-owned `ui-qa.py`, `world-qa.py`,
 `docs/citisten-ui-api.md`, `docs/maintenance/README.md`,
 `docs/maintenance/audits/citisten-QA/J-ui-results.json` and
 `docs/maintenance/audits/citisten-QA/J-ui-batch32-run.txt`. No sim-owned paths
-were dirty or staged. Canonical final refresh remains lead-owned after those
-source commits. Final Batch32 root-free snapshot was 3,846,430,720 bytes
+were dirty or staged. Batch34 handover `56b45fc` has since closed that
+maintenance item, with the independent plain checker passing as quoted above.
+Final Batch32 root-free snapshot was 3,846,430,720 bytes
 (182,554,624 less than session start, shared across swarms).
 
 ## Change record and handoff
@@ -213,8 +223,10 @@ checks, Python parse, tracked-catalog static validation and owned diff checks
 completed. Full registered-game browser gate was not run, so no release
 decision is implied.
 
-Other dirty paths belong to sibling lanes and are not staged: canonical
-maintenance README if still dirty. Initial shared root free space was
+At Batch34 closure the shared working tree was clean; no sibling dirty paths
+remain. The pre-edit root-free snapshot was 2,655,043,584 bytes. Earlier storage
+snapshots below are historical and shared across swarms, not a sim-only cost.
+Initial shared root free space was
 4,028,985,344 bytes; the final browser run measured 3,871,305,728 before and
 3,868,348,416 after (2,957,312 bytes less free during capture). Against session
 start this is 160,636,928 bytes less free, shared across all swarms and not
