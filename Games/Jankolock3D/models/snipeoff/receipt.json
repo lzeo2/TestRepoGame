@@ -1,0 +1,273 @@
+{
+  "label": "Snipeoff: original procedural audit marksman, authored human-base reuse",
+  "url": "models/snipeoff/model.glb",
+  "bytes": 4835696,
+  "sha256": "700f216bc643bf8fde432e91978193c36efce3ade4f62a8fb1471a2d391491ec",
+  "triangles": 170342,
+  "vertices": 117798,
+  "meshes": 39,
+  "materials": [
+    {
+      "name": "charcoal wool",
+      "color": "30302d",
+      "roughness": 0.97,
+      "metalness": 0
+    },
+    {
+      "name": "cream woven coat",
+      "color": "beb299",
+      "roughness": 0.96,
+      "metalness": 0
+    },
+    {
+      "name": "linen stitching",
+      "color": "aa9773",
+      "roughness": 0.94,
+      "metalness": 0
+    },
+    {
+      "name": "aged ruler brass",
+      "color": "a08145",
+      "roughness": 0.38,
+      "metalness": 0.78
+    },
+    {
+      "name": "worn brown leather",
+      "color": "443024",
+      "roughness": 0.82,
+      "metalness": 0
+    },
+    {
+      "name": "ochre hood canvas",
+      "color": "87632e",
+      "roughness": 0.97,
+      "metalness": 0
+    },
+    {
+      "name": "walnut rifle stock",
+      "color": "69452f",
+      "roughness": 0.67,
+      "metalness": 0
+    },
+    {
+      "name": "blued rifle steel",
+      "color": "353b3b",
+      "roughness": 0.31,
+      "metalness": 0.85
+    },
+    {
+      "name": "glove leather",
+      "color": "252323",
+      "roughness": 0.77,
+      "metalness": 0
+    },
+    {
+      "name": "human skin",
+      "color": "ac8063",
+      "roughness": 0.88,
+      "metalness": 0
+    },
+    {
+      "name": "human shadow",
+      "color": "735044",
+      "roughness": 0.94,
+      "metalness": 0
+    },
+    {
+      "name": "human eye",
+      "color": "bcb7a2",
+      "roughness": 0.35,
+      "metalness": 0
+    },
+    {
+      "name": "human iris",
+      "color": "383a2d",
+      "roughness": 0.31,
+      "metalness": 0
+    },
+    {
+      "name": "dark brown hair",
+      "color": "29221d",
+      "roughness": 0.93,
+      "metalness": 0
+    },
+    {
+      "name": "oxblood coat lining",
+      "color": "54262a",
+      "roughness": 0.94,
+      "metalness": 0
+    }
+  ],
+  "bounds": {
+    "min": [
+      -0.41054293513298035,
+      -9.536743172944284e-9,
+      -0.40986719727516174
+    ],
+    "max": [
+      0.9786404967308044,
+      1.9790332341194152,
+      0.3681406557559967
+    ]
+  },
+  "parts": [
+    {
+      "name": "torso-cloth",
+      "triangles": 2790
+    },
+    {
+      "name": "torso-cream",
+      "triangles": 2076
+    },
+    {
+      "name": "torso-thread",
+      "triangles": 3904
+    },
+    {
+      "name": "torso-brass",
+      "triangles": 15680
+    },
+    {
+      "name": "torso-leather",
+      "triangles": 3144
+    },
+    {
+      "name": "torso-ochre",
+      "triangles": 6896
+    },
+    {
+      "name": "torso-wood",
+      "triangles": 2264
+    },
+    {
+      "name": "torso-steel",
+      "triangles": 1840
+    },
+    {
+      "name": "torso-black",
+      "triangles": 96
+    },
+    {
+      "name": "head-skin",
+      "triangles": 15096
+    },
+    {
+      "name": "head-shadow",
+      "triangles": 2416
+    },
+    {
+      "name": "head-eye",
+      "triangles": 1560
+    },
+    {
+      "name": "head-iris",
+      "triangles": 912
+    },
+    {
+      "name": "head-black",
+      "triangles": 876
+    },
+    {
+      "name": "head-hair",
+      "triangles": 8456
+    },
+    {
+      "name": "arm-left-black",
+      "triangles": 2744
+    },
+    {
+      "name": "arm-left-cloth",
+      "triangles": 2800
+    },
+    {
+      "name": "arm-left-steel",
+      "triangles": 1200
+    },
+    {
+      "name": "arm-left-brass",
+      "triangles": 320
+    },
+    {
+      "name": "arm-right-black",
+      "triangles": 2744
+    },
+    {
+      "name": "arm-right-cream",
+      "triangles": 2800
+    },
+    {
+      "name": "arm-right-steel",
+      "triangles": 1200
+    },
+    {
+      "name": "arm-right-brass",
+      "triangles": 320
+    },
+    {
+      "name": "leg-left-cloth",
+      "triangles": 3956
+    },
+    {
+      "name": "leg-left-leather",
+      "triangles": 6012
+    },
+    {
+      "name": "leg-left-brass",
+      "triangles": 9760
+    },
+    {
+      "name": "leg-left-steel",
+      "triangles": 1972
+    },
+    {
+      "name": "leg-left-black",
+      "triangles": 3828
+    },
+    {
+      "name": "leg-left-thread",
+      "triangles": 1908
+    },
+    {
+      "name": "leg-right-cloth",
+      "triangles": 3956
+    },
+    {
+      "name": "leg-right-leather",
+      "triangles": 6012
+    },
+    {
+      "name": "leg-right-brass",
+      "triangles": 9760
+    },
+    {
+      "name": "leg-right-steel",
+      "triangles": 1972
+    },
+    {
+      "name": "leg-right-black",
+      "triangles": 3828
+    },
+    {
+      "name": "leg-right-thread",
+      "triangles": 1908
+    },
+    {
+      "name": "cape-cream",
+      "triangles": 12354
+    },
+    {
+      "name": "cape-red",
+      "triangles": 12420
+    },
+    {
+      "name": "cape-brass",
+      "triangles": 2352
+    },
+    {
+      "name": "cape-cloth",
+      "triangles": 6210
+    }
+  ],
+  "provenance": "Original authored procedural mesh; no third-party art or Blender. Concept reference is supplied codex-imagen plate.",
+  "quality": "Procedural interpretation, not a photoreal sculpt or acceptance grade."
+}
