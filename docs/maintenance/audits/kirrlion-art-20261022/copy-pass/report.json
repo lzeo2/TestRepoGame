@@ -1,7 +1,23 @@
 {
-  "passed": false,
-  "checks": [],
-  "screenshots": [],
+  "passed": true,
+  "checks": [
+    "trimmed launch; seven untouched prompts/tiers; total depth and highest-point best find",
+    "dim desktop remains abyss; equal-point best-find ties retain first answer",
+    "390px launch/question/receipt and tier names + pts; all-pass receipt has no best find",
+    "zero console errors/external requests; no root/internal overflow in captures"
+  ],
+  "screenshots": [
+    "desktop-dark-launch.png",
+    "desktop-dark-question.png",
+    "desktop-dark-receipt.png",
+    "desktop-dim-launch.png",
+    "desktop-dim-question.png",
+    "desktop-dim-receipt.png",
+    "mobile-390-launch.png",
+    "mobile-390-question.png",
+    "mobile-390-receipt.png",
+    "mobile-390-rules.png"
+  ],
   "themes": [
     "abyss-normal-glow",
     "abyss-dim-glow"
@@ -14,7 +30,7 @@
     "core.js": "bee2330d3350f5033b16ee486f74456be33f665eccb8f59e1a29dd02ca42d09b",
     "questions.js": "a104b88c73fb00f7895f7644e613d18cad078a44a8cb28977e6a01a667eed046"
   },
-  "elapsed_seconds_including_cleanup": 54.828,
+  "elapsed_seconds_including_cleanup": 32.756,
   "browser_errors": [],
   "external_requests": []
 }
