@@ -31,7 +31,8 @@ world.render(dtSeconds); // syncs pooled mesh only after occupancy changes
   Read only: mutation must use set/place so version and mesh stay coherent.
 - `world.pickLot(clientX,clientY)` casts onto Y=0; returns lot or null.
 - `createRoadPool(scene,grid)` owns one InstancedMesh, capacity `size*size`, flat
-  dark-gray 10m squares forming continuous strips. `sync()` rebuilds active
+  dark-gray 10m squares forming continuous strips, now with locally generated
+  512px asphalt detail, rough PBR shading and shadow reception. `sync()` rebuilds active
   transforms only on version changes; `dispose()` releases resources. Systems
   may add markings later, but should not duplicate the asphalt mesh pool.
 

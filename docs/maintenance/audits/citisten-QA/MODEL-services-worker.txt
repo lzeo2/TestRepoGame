@@ -1,0 +1,25 @@
+Committed **`377acd5`** — `feat: citisten: add detailed service and defense geometry`.
+
+Only the two assigned files changed; **25,649 bytes**, no push.
+
+| Model | Triangles | Dimensions X/Y/Z (m) | Detail |
+|---|---:|---|---|
+| power | 16,504 | 8 / 13 / 7.445 | Hollow stacks, pipes, insulators, radiator fins |
+| water | 10,160 | 6.235 / 10 / 6.070 | Dished tank, cross-bracing, railings, valve |
+| police | 14,388 | 7.220 / 5.186 / 7.644 | Masonry, recessed glazing, vents, dish |
+| fire | 17,788 | 8.220 / 7.500 / 7.653 | Shutter bays, roof equipment, louvred tower |
+| park | 13,544 | 8 / 4.925 / 8 | Two branching trees, stepping stones, slatted bench |
+| wall | 5,556 | 10 / 4.260 / 1.490 | Bevelled masonry, buttresses, crenellations |
+| watchtower | 10,560 | 4.064 / 10.277 / 4.069 | Cross-bracing, stairs, observation openings, curved tiles |
+
+Trees: **6,076 triangles each**; remaining park geometry: **1,392**.
+
+```text
+SERVICE MODEL CHECK PASS: 7 models, 88500 actual nondegenerate triangles, 2 trees; finite attributes/bounds, independent deterministic factories, atlas UVs, KIT scale.
+```
+
+Bounds are printed by the check. All bases are Y=0 within Float32 tolerance; footprints remain inside ±5m; wall X is exactly 10m. Syntax and diff checks passed.
+
+**Limits:** procedural intersecting parts, not watertight sculpt meshes; crowns use organic lobes rather than individual leaves. No Blender, browser, visual acceptance or performance claim. Main retains materials, LOD, integration and maintenance; maintenance validation was blocked by concurrent dirty source.
+
+Disk free: **4,200,812,544 → 4,058,591,232 bytes**, including concurrent-lane activity. Owned paths are clean; other lanes’ changes remain untouched.

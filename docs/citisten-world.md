@@ -9,7 +9,7 @@ AI, traffic simulation or wave implementation belongs to this lane.
 
 ## Sources and provenance
 
-All terrain, road math, camera, box-model kit and lighting authored for this
+All terrain, road math, camera, procedural mesh kit and lighting authored for this
 project. Generic city-building conventions are mechanics references only; no
 borrowed art, maps, saves or game UI. Three.js 0.186.0 is copied unchanged from
 the operator-supplied cache, with MIT notice at `vendor/THREE-LICENSE.txt`.
@@ -29,13 +29,17 @@ Vendored SHA-256:
 - `roads.mjs`: occupancy, placement, shortest paths, lane waypoints.
 - `camera.mjs`: eased free camera and input lifecycle.
 - `daynight.mjs`: phase-driven light/sky look, no simulation clock.
-- `buildings.mjs`: 14 flat-color models and instanced transform pool.
+- `buildings.mjs`: stable-handle instance pool, textured distant LOD and bounded nearby detailed LOD.
+- `model-{city,services,agents}.mjs`: 14 original detailed Astra-built procedural models; corresponding Node checks enforce geometry budgets.
+- `model-geometry.mjs`: indexed part assembly, vertex shading/wear and window-emission variation.
+- `materials.mjs`: locally generated facade/ground/asphalt maps, water normals and city-block contact AO.
 - `world-effects.mjs`: 64-slot render-only shot tracer/impact pool, added at the
   sim lane's explicit coordination request; no targeting or damage logic.
 - `world-demo.mjs`, `world.html`: standalone specimen, bounded timing samples,
   automatic fly-through stopped by any camera input.
 - `world-check.mjs`: dependency-free Node assertion regression.
 - `world-qa.py`: bounded Chromium QA and screenshots, no browser downloads.
+- `material-qa.py`: bounded one-frame-at-a-time material/model visual fixtures; not a performance measurement.
 
 ## Controls and rendering
 
@@ -47,17 +51,25 @@ Input focus in form controls is ignored; blur clears held keys. `dispose()`
 removes listeners and GPU resources. No building collision is intended.
 
 `createWorld(canvas,{size=200,lotSize=10,pixelRatio})` exposes scene, renderer,
-camera, controls, roads, roadPool, buildings, dayNight, effects, render(dt), pickLot and
+camera, controls, roads, roadPool, buildings, dayNight, effects, water, blockAO, render(dt), pickLot and
 dispose. Caller owns its animation frame lifecycle. `controls.setPose(pose,
 snap=false)` supports scripted fly-throughs; `.target` provides a read-only pose
 snapshot. Render automatically resizes from canvas CSS dimensions.
 
-Default map is 200x200 lots with flat green base and depression noise only at
-outer four lots. Grid lines and asphalt are flat; building colors are vertex
-colors. No textures, dynamic shadows, postprocessing or runtime remote loads. A 64x64
-terrain tessellation is independent of the 200x200 logical lot grid. Ground and
-asphalt polygon offsets plus a .5m near plane prevent depth fighting overhead;
-grid opacity follows daylight so unlit line colors do not overpower night.
+Default map remains 200x200 lots, flat buildable ground with depression noise
+only at the outer four lots. Generated 512px grass/asphalt textures add detail;
+buildings use a 1024px atlas containing four 512px tiles, roughness/bump maps,
+vertex AO/shading and variable window emission. Standard/Physical materials,
+ACES tone mapping, sun/moon PCF shadows and an analytic sky SH probe replace the
+flat Lambert look. No external assets, downloads, bloom or postprocessing.
+A 256px analytic AO texture uses actual static-model poses and 8x8-lot block
+density, refreshed only on static changes. This is not ray-baked GI or SSAO.
+Water sits at Y=-.4 around the buildable terrain perimeter; scrolling normal and
+clearcoat-normal maps animate directional specular without altering roads or
+simulation occupancy. It is not a river through buildable lots.
+A 64x64 terrain tessellation remains independent of the 200x200 logical grid.
+Ground/asphalt polygon offsets and a .5m near plane prevent depth fighting;
+grid opacity follows daylight.
 Demo pixel ratio is exactly 1 for reproducible 1280x720 measurements. Integrated
 world default caps device pixel ratio at 1.5.
 
@@ -105,7 +117,12 @@ Initial maintenance checker: `PASS: 132 game documents cover 127 registered
 + 5 unregistered games; Git inventory current.` This predates world source
 staging/registration and is not new-game inventory acceptance.
 
-### Current world evidence (2026-10-22)
+### Pre-material-pass world evidence (2026-10-22)
+
+The original A street/overhead and WORLD-night images below belong to the
+pre-PBR source at `e2d2df2`; their original bytes remain in Git. The material
+pass reuses those requested filenames, not their old native-input acceptance.
+Earlier frame timings below do not measure the new renderer.
 
 All files below are in `docs/maintenance/audits/citisten-QA/`. World evidence
 is an API/specimen gate, not integrated-game acceptance or reviewer grading.
@@ -241,6 +258,60 @@ All five tracked `ui-mockup-{menu,toolbar,hud,nightalert,gameover}.png` plates
 already exist and pass PNG verification. Their combined zoning, utilities,
 minimap and day/night coverage is documented in `docs/citisten-design/README.md`;
 no regeneration or runtime art replacement is needed.
+
+### Procedural material/mesh upgrade (operator order, 2026-10-22)
+
+Blender/bpy is not used. The external [model wishlist](citisten-design/MODEL-WISHLIST.md)
+was published immediately at `f515977` as a pure operator art request. Astra
+workers delivered original source-only geometry at `f909e39` (city), `377acd5`
+(services), `970ba71` (agents); their receipts are `MODEL-*-worker.txt` in the QA
+directory. Three zero-argument factory maps preserve the existing 14 type keys.
+Geometry/UV/bounds/nondegeneracy checks pass. Detailed counts and dimensions are
+in the [mesh API](citisten-buildings-api.md); town hall is 130,904 triangles,
+citizen 28,680, zombie 29,604, car 9,936, and each park tree 6,076.
+
+World checks cover stable handles, LOD restoration, PBR atlas dimensions,
+contact/block AO invalidation, water-normal motion, finite sky SH coefficients,
+shadow settings and disposal. Up to 16 nearest instances/type use high detail;
+other instances retain textured blockouts. Visible LOD pops and the limited
+shadow region remain known compromises. Triangle counts do not certify realism
+or performance. There is no new 40fps result; the old failure remains a hold.
+
+Final material QA completed **exit 0**, with **seven screenshots** at 1280x720
+using system Chromium/SwiftShader. The requested `A-world-overhead.png` (400m),
+`A-world-street.png` (2m) and `WORLD-night.png` are freshly re-shot. These poses
+are API-set, not a new native-wheel/input acceptance. `WORLD-material-kit.png`
+and `WORLD-material-agents.png` expose the architecture and detailed static
+people/car. `WORLD-water-detail.png` / `WORLD-water-motion.png` show the same
+shore framing before/after a .5-second normal-map advance: **456,403 changed
+pixels**. The night frame has **7,885 warm window pixels**, with moon shadows.
+All seven images were visually inspected. `WORLD-material-results.json` and
+`WORLD-material-run.txt` retain the actual checks; errors, failed and external
+requests are empty. Owned browser/server/profile cleanup is confirmed and the
+shared slot explicitly released. `WORLD-material-node.txt` records four passing
+Node checks. These are material/model fixtures, not integrated gameplay or FPS.
+
+The first attempt left an empty log and no completion status;
+`WORLD-material-interrupted-run.txt` is not a pass. The next attempt failed the
+water pixel-motion assertion. Inspection found black PBR materials: copying a
+Color into a Vector3 produced nonfinite sky SH coefficients. Explicit RGB
+assignment and a finite-SH regression fixed the source; rejected images/report/
+log remain as `WORLD-material-rejected-*`. A subsequent successful API capture
+still had regular grass patterning; `WORLD-material-pregrass-*` retains it.
+Periodic clumps were replaced by seamless irregular value noise before the final
+run. The harness rejects black overhead renders and unlit night windows, not
+merely console errors. Traceback host prefixes are redacted.
+
+Subjective result: visibly richer original procedural assets, **not photorealistic
+final art**. Repeated forms, abrupt distant blockout LOD, sparse surroundings,
+limited shadow coverage, lobed tree crowns and stylized anatomy remain. The
+wishlist's current scores are 3..5/10 for present assets; absent car variants
+stay at 1. External authored art is still requested; no Blender/bpy was used.
+
+The stale shared-worktree index lock was removed by the operator after
+verification, resolving ticket `pi-31413-1792656684902-540247cf` for this commit.
+No agent removed that external admin file or bypassed the index. Inventory
+refresh must follow the inspected world and concurrent UI source commits.
 
 ## Known blockers and inspected-source limits
 

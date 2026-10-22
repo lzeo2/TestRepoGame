@@ -12,8 +12,11 @@ standalone specimens. The catalog remains at 127 registered games.
 ## Implementation map
 
 - [Simulation receipt](../../citisten-sim.md): `sim.mjs`, assertions and API-fixture captures.
-- [World receipt](../../citisten-world.md): terrain, roads, camera, lighting,
-  instanced models, render-only FX and measured rendering holds.
+- [World receipt](../../citisten-world.md): terrain, roads, camera, PBR materials,
+  directional shadows, analytic sky probe/block AO, original high-detail
+  procedural models with bounded LOD, animated water, render-only FX and holds.
+- [External model wishlist](../../citisten-design/MODEL-WISHLIST.md): operator
+  art request only. Blender/bpy is not used; Astra-built geometry is procedural.
 - [UI QA receipt](../../citisten-ui-qa.md): UI/preview ownership, generated
   mockups, native focus checks and themed fixture captures.
 
@@ -42,8 +45,9 @@ introduced by this documentation refresh.
 
 ## Audit findings
 
-The approved canonical world measurement is **2.257124 FPS**, below the 40 FPS
-gate. The non-canonical GL probe measured 2.077732 FPS but returned a null
+The approved **pre-PBR** canonical world measurement was **2.257124 FPS**, below
+the 40 FPS gate. The new materials/geometry change frame cost and have not had a
+new canonical performance measurement; the hold remains. The non-canonical GL probe measured 2.077732 FPS but returned a null
 renderer identity and a visual artifact; hardware acceleration is unproven.
 Sim/UI/browser fixtures are not integrated gameplay acceptance. Registration,
 reviewer grading, touch-world controls and the full-fleet release gate remain held.
@@ -53,8 +57,16 @@ reviewer grading, touch-world controls and the full-fleet release gate remain he
 Read the relevant lane receipt and API before changing its source. Preserve
 coordinate units, road version invalidation, model handles and single event
 consumption. Commit inspected source before refreshing the Git-backed inventory.
-Coordinate browser ownership and preserve disk guards; no browser run is needed
-for this canonical documentation-only repair.
+Coordinate browser ownership and preserve disk guards. The historical canonical
+repair was documentation-only; current world changes require fresh rendered QA.
+Run the world check and all three `model-*-check.mjs` checks before visual QA.
+The first material capture exposed nonfinite probe coefficients/black surfaces;
+its rejected evidence is retained. Fixed-source material QA passed seven fresh
+captures with visible lit windows and animated water; see the world receipt.
+Model visual quality remains procedural, not photorealistic art acceptance.
+The operator removed the verified stale Git index lock; agents did not remove
+that admin file or bypass it. Refresh inventory after both world and UI source
+commits; earlier maintenance PASS output is not acceptance of these changes.
 
 ## Verification
 

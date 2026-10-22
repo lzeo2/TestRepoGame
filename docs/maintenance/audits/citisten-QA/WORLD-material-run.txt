@@ -1,0 +1,278 @@
+Games/Citisten3D/material-qa.py:84: DeprecationWarning: Image.Image.getdata is deprecated and will be removed in Pillow 14 (2027-10-15). Use get_flattened_data instead.
+  warm = sum(r > 80 and r > g * 1.1 and g > b * 1.15 for r, g, b in region.convert('RGB').getdata())
+{
+  "scope": "PBR/procedural mesh API specimens; not gameplay, photorealism certification or FPS acceptance",
+  "errors": [],
+  "external": [],
+  "failed": [],
+  "shots": {
+    "A-world-overhead.png": {
+      "draws": 36,
+      "triangles": 336852,
+      "high": {
+        "townhall": {
+          "instances": 1,
+          "triangles": 130904
+        }
+      },
+      "emission": 0.025,
+      "sunShadow": true,
+      "moonShadow": false,
+      "finiteProbe": true,
+      "shadowBias": -0.00015,
+      "normalBias": 0.045,
+      "facadePixels": 1024,
+      "waterOffset": [
+        0.000384,
+        0.000224
+      ],
+      "aoMinimum": 133
+    },
+    "A-world-street.png": {
+      "draws": 54,
+      "triangles": 2524052,
+      "high": {
+        "commercial": {
+          "instances": 16,
+          "triangles": 23264
+        },
+        "industrial": {
+          "instances": 16,
+          "triangles": 16000
+        },
+        "residential": {
+          "instances": 16,
+          "triangles": 23320
+        },
+        "townhall": {
+          "instances": 1,
+          "triangles": 130904
+        },
+        "power": {
+          "instances": 1,
+          "triangles": 16504
+        },
+        "water": {
+          "instances": 1,
+          "triangles": 10160
+        },
+        "police": {
+          "instances": 1,
+          "triangles": 14388
+        },
+        "fire": {
+          "instances": 1,
+          "triangles": 17788
+        },
+        "park": {
+          "instances": 1,
+          "triangles": 13544
+        },
+        "car": {
+          "instances": 2,
+          "triangles": 9936
+        }
+      },
+      "emission": 0.025,
+      "sunShadow": true,
+      "moonShadow": false,
+      "finiteProbe": true,
+      "shadowBias": -0.00015,
+      "normalBias": 0.045,
+      "facadePixels": 1024,
+      "waterOffset": [
+        0.000576,
+        0.000336
+      ],
+      "aoMinimum": 133
+    },
+    "WORLD-night.png": {
+      "draws": 54,
+      "triangles": 2524052,
+      "high": {
+        "commercial": {
+          "instances": 16,
+          "triangles": 23264
+        },
+        "industrial": {
+          "instances": 16,
+          "triangles": 16000
+        },
+        "residential": {
+          "instances": 16,
+          "triangles": 23320
+        },
+        "townhall": {
+          "instances": 1,
+          "triangles": 130904
+        },
+        "power": {
+          "instances": 1,
+          "triangles": 16504
+        },
+        "water": {
+          "instances": 1,
+          "triangles": 10160
+        },
+        "police": {
+          "instances": 1,
+          "triangles": 14388
+        },
+        "fire": {
+          "instances": 1,
+          "triangles": 17788
+        },
+        "park": {
+          "instances": 1,
+          "triangles": 13544
+        },
+        "car": {
+          "instances": 2,
+          "triangles": 9936
+        }
+      },
+      "emission": 1.7249999999999999,
+      "sunShadow": false,
+      "moonShadow": true,
+      "finiteProbe": true,
+      "shadowBias": -0.00015,
+      "normalBias": 0.045,
+      "facadePixels": 1024,
+      "waterOffset": [
+        0.000768,
+        0.000448
+      ],
+      "aoMinimum": 133,
+      "warmWindowPixels": 7885
+    },
+    "WORLD-water-detail.png": {
+      "draws": 34,
+      "triangles": 75044,
+      "high": {},
+      "emission": 0.025,
+      "sunShadow": true,
+      "moonShadow": false,
+      "finiteProbe": true,
+      "shadowBias": -0.00015,
+      "normalBias": 0.045,
+      "facadePixels": 1024,
+      "waterOffset": [
+        0.00096,
+        0.00056
+      ],
+      "aoMinimum": 133
+    },
+    "WORLD-material-kit.png": {
+      "draws": 56,
+      "triangles": 575644,
+      "high": {
+        "commercial": {
+          "instances": 1,
+          "triangles": 23264
+        },
+        "industrial": {
+          "instances": 1,
+          "triangles": 16000
+        },
+        "residential": {
+          "instances": 1,
+          "triangles": 23320
+        },
+        "townhall": {
+          "instances": 1,
+          "triangles": 130904
+        },
+        "power": {
+          "instances": 1,
+          "triangles": 16504
+        },
+        "water": {
+          "instances": 1,
+          "triangles": 10160
+        },
+        "police": {
+          "instances": 1,
+          "triangles": 14388
+        },
+        "fire": {
+          "instances": 1,
+          "triangles": 17788
+        },
+        "park": {
+          "instances": 1,
+          "triangles": 13544
+        },
+        "wall": {
+          "instances": 1,
+          "triangles": 5556
+        },
+        "watchtower": {
+          "instances": 1,
+          "triangles": 10560
+        }
+      },
+      "emission": 0.025,
+      "sunShadow": true,
+      "moonShadow": false,
+      "finiteProbe": true,
+      "shadowBias": -0.00015,
+      "normalBias": 0.045,
+      "facadePixels": 1024,
+      "waterOffset": [
+        0.007152,
+        0.004172
+      ],
+      "aoMinimum": 145
+    },
+    "WORLD-material-agents.png": {
+      "draws": 18,
+      "triangles": 145868,
+      "high": {
+        "citizen": {
+          "instances": 1,
+          "triangles": 28680
+        },
+        "zombie": {
+          "instances": 1,
+          "triangles": 29604
+        },
+        "car": {
+          "instances": 1,
+          "triangles": 9936
+        }
+      },
+      "emission": 0.025,
+      "sunShadow": true,
+      "moonShadow": false,
+      "finiteProbe": true,
+      "shadowBias": -0.00015,
+      "normalBias": 0.045,
+      "facadePixels": 1024,
+      "waterOffset": [
+        0.007344000000000001,
+        0.0042840000000000005
+      ],
+      "aoMinimum": 255
+    }
+  },
+  "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (LLVM 16.0.0) (0x0000C0DE)), SwiftShader driver)",
+  "waterAnimation": {
+    "before": [
+      0.00096,
+      0.00056
+    ],
+    "after": [
+      0.00696,
+      0.00406
+    ],
+    "changedPixels": 456403
+  },
+  "serverClosed": true,
+  "profileRemoved": true,
+  "browserClosed": true,
+  "diskBefore": 2730172416,
+  "diskAfter": 2728620032
+}
+MATERIAL QA PASS: seven captures, animated water, shadow/emission/AO checks; no errors/external requests; owned resources closed
+
+QA_EXIT=0

@@ -19,11 +19,17 @@ caller phase jump intentionally applies immediately; systems must provide
 continuous phase values for a timed transition. `setPhase` returns daylight
 blend 0..1, and `.phase` reads the wrapped input.
 
-Day uses warm directional sun, soft ambient and hemisphere. Night keeps dark
-blue ambient, subdued hemisphere and cool directional moon so silhouettes stay
-visible. No gradients, environment downloads, shadows, bloom or postprocessing.
-`lights` exposes `{ambient,hemisphere,sun,moon}` for diagnostics. `dispose()`
-removes lights. One world owns its scene background.
+Day uses warm directional sun, ambient/hemisphere fill and an analytic sky SH
+LightProbe. Night uses cool moonlight and warm, variably lit facade emission.
+The probe is an analytic approximation, not captured reflection data or baked GI.
+`lights` exposes `{ambient,hemisphere,sun,moon,probe}`. Sun/moon shadow casting
+switches with their intensity; 2048px PCF maps use bias -.00015 and normal bias
+.045m. `follow(camera)`, called by `world.render`, centres shadow coverage around
+the camera with a 75..360m half-width. Far shadows are therefore bounded, not
+whole-map cascades. World block/contact AO supplements this local coverage.
+No downloaded environment, bloom or postprocessing. ACES tone mapping is in
+world composition. Window emission does not cast point-light pools onto roads.
+`dispose()` removes lights/targets and frees shadow maps. One world owns its sky.
 
 Regression checks cover noon/midnight, wrapping, invalid phase and gradual
 color/intensity changes. QA night/day frames are visual look evidence only,

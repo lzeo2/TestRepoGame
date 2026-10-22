@@ -1,0 +1,16 @@
+Committed **`970ba71`** — only the two assigned files. No push.
+
+Actual `node Games/Citisten3D/model-agents-check.mjs` output:
+```text
+citizen: 28680 triangles; 17034 vertices; bounds 0.718 x 1.900 x 0.361 m; base Y=0.000000; PASS
+zombie: 29604 triangles; 17683 vertices; bounds 0.917 x 1.650 x 1.099 m; base Y=0.000000; PASS
+car: 9936 triangles; 9701 vertices; bounds 1.700 x 1.428 x 3.508 m; base Y=0.000000; PASS
+AGENT MODELS CHECK PASS: counts, finite attributes, indices, nonzero/unique triangles, paint UVs, bounds, ownership
+```
+
+- **People:** curved clothing/anatomical forms, separated fingers, nails, shoe laces, facial relief, ears and shaped scalp. Zombie has forward hunch, extended arms and exposed teeth.
+- **Car:** beveled body with wheel openings, curved cabin panels, tires, rims/spokes, pillars, mirrors, lights, trim and wipers.
+- **Contract:** fresh zero-argument geometry factories, local Three/`assemble`, neutral surface 3, fronts at −Z. Source totals **22,845 bytes**.
+- **Limits:** static sectional meshes, not watertight anatomical models; visual realism unreviewed. No browser/server, rig, simulation changes or 40-FPS claim.
+- Syntax/diff checks passed. Maintenance check blocked by concurrent uncommitted source: `AssertionError: Commit inspected source changes before validating its inventory.` Main owns remaining integration/docs changes.
+- Disk: **4,089,331,712 → 4,054,777,856 bytes available**, including concurrent workspace activity.

@@ -1,6 +1,14 @@
 import * as THREE from './vendor/three.module.js';
+import { assemble } from './model-geometry.mjs';
+import { CITY_MODELS } from './model-city.mjs';
+import { SERVICE_MODELS } from './model-services.mjs';
+import { AGENT_MODELS } from './model-agents.mjs';
+import { createFacadeMaterial } from './materials.mjs';
 
-// Every part is an original box [x,y,z,width,height,depth,color]. Bases sit at Y=0.
+const DETAIL_MODELS = { ...CITY_MODELS, ...SERVICE_MODELS, ...AGENT_MODELS };
+const mobile = type => ['car', 'citizen', 'zombie'].includes(type);
+
+// Retained distant LOD: original boxes [x,y,z,width,height,depth,color], bases at Y=0.
 const box = (x, y, z, w, h, d, color) => [x, y, z, w, h, d, color];
 const tree = (x, z) => [box(x, 1.2, z, .5, 2.4, .5, 0x795843), box(x, 3.3, z, 2.5, 2.8, 2.5, 0x436238)];
 export const KIT = {
@@ -20,37 +28,41 @@ export const KIT = {
   car: [box(0, .65, 0, 1.7, .65, 3.5, 0xc6913c), box(0, 1.2, .1, 1.5, .65, 1.7, 0x556d7a), ...[-.9, .9].flatMap(x => [-1.1, 1.1].map(z => box(x, .35, z, .25, .6, .6, 0x292e33))), ...[-.55, .55].map(x => box(x, .7, -1.78, .35, .2, .1, 0xe7dfb9))],
 };
 
-function geometry(parts) {
-  const positions = [], normals = [], colors = [], color = new THREE.Color();
-  for (const [x, y, z, w, h, d, hex] of parts) {
-    const g = new THREE.BoxGeometry(w, h, d).toNonIndexed();
-    g.translate(x, y, z);
-    color.setHex(hex);
-    positions.push(...g.attributes.position.array);
-    normals.push(...g.attributes.normal.array);
-    for (let i = 0; i < g.attributes.position.count; i++) colors.push(color.r, color.g, color.b);
-    g.dispose();
+function geometry(parts, type) {
+  const pieces = [];
+  for (const [x, y, z, w, h, d, color] of parts) {
+    const facade = !mobile(type) && !['park', 'wall', 'watchtower', 'water'].includes(type) && h > 2 && w > 2 && d > 2;
+    pieces.push({ geometry: new THREE.BoxGeometry(w, h, d).translate(x, y, z), color, surface: facade ? 0 : 3 });
+    if (facade) for (let side = 0; side < 4; side++) {
+      const width = side % 2 ? d : w, depth = side % 2 ? w : d;
+      const columns = Math.max(1, Math.floor(width / 2)), rows = Math.max(1, Math.floor(h / 2.8));
+      for (let row = 0; row < rows; row++) for (let col = 0; col < columns; col++) {
+        const pane = new THREE.PlaneGeometry(width / columns * .5, Math.min(1.2, h / rows * .55));
+        pane.translate((col + .5) * width / columns - width / 2, (row + .55) * h / rows - h / 2, depth / 2 + .015);
+        pane.rotateY(side * Math.PI / 2).translate(x, y, z);
+        pieces.push({ geometry: pane, color: 0xb9cad1, surface: 1 });
+      }
+    }
   }
-  const g = new THREE.BufferGeometry();
-  g.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
-  g.setAttribute('normal', new THREE.Float32BufferAttribute(normals, 3));
-  g.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
-  return g;
+  return assemble(pieces);
 }
 
 export function createBuildingKit(scene, capacity = 10000) {
   if (!Number.isInteger(capacity) || capacity < 1 || capacity > 40000) throw new RangeError('Invalid capacity');
-  const material = new THREE.MeshLambertMaterial({ vertexColors: true });
-  const pools = new Map(), dummy = new THREE.Object3D();
+  const appearance = createFacadeMaterial(), material = appearance.material;
+  const pools = new Map(), dummy = new THREE.Object3D(), hidden = new THREE.Matrix4().makeScale(0, 0, 0);
+  const lastCamera = new THREE.Vector3(Infinity, Infinity, Infinity);
+  let version = 0, revision = 0, renderedRevision = -1;
   function pool(type) {
-    if (!KIT[type]) throw new RangeError(`Unknown model: ${type}`);
+    if (!Object.hasOwn(KIT, type)) throw new RangeError(`Unknown model: ${type}`);
     if (!pools.has(type)) {
-      const mesh = new THREE.InstancedMesh(geometry(KIT[type]), material, capacity);
+      const mesh = new THREE.InstancedMesh(geometry(KIT[type], type), material, capacity);
+      mesh.castShadow = mesh.receiveShadow = true;
       mesh.count = 0;
       mesh.frustumCulled = false;
       mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
       scene.add(mesh);
-      pools.set(type, { mesh, handles: [] });
+      pools.set(type, { mesh, detail: null, handles: [] });
     }
     return pools.get(type);
   }
@@ -62,11 +74,38 @@ export function createBuildingKit(scene, capacity = 10000) {
     dummy.scale.setScalar(scale);
     dummy.updateMatrix();
     const { mesh } = pools.get(handle.type);
+    handle.matrix = dummy.matrix.clone(); handle.pose = { x, y, z, rotation, scale };
     mesh.setMatrixAt(handle.index, dummy.matrix);
     mesh.instanceMatrix.needsUpdate = true;
+    revision++; if (!mobile(handle.type)) version++;
   }
   return {
-    types: Object.keys(KIT), pools,
+    types: Object.keys(KIT), pools, material,
+    get version() { return version; },
+    update(camera, night = 0) {
+      material.emissiveIntensity = .025 + night * 1.7;
+      if (revision === renderedRevision && lastCamera.distanceToSquared(camera.position) < .25) return;
+      // ponytail: 16 nearby high-detail instances/type; chunked LOD if dense close-up cities need more.
+      for (const [type, p] of pools) {
+        const radius = mobile(type) ? 35 : type === 'townhall' ? 450 : 120;
+        const selected = p.handles.map(h => ({ h, distance: camera.position.distanceToSquared(h.pose) }))
+          .filter(v => v.distance < radius * radius).sort((a, b) => a.distance - b.distance).slice(0, 16).map(v => v.h);
+        if (selected.length && !p.detail) {
+          p.detail = new THREE.InstancedMesh(DETAIL_MODELS[type](), material, Math.min(16, capacity));
+          p.detail.castShadow = p.detail.receiveShadow = true; p.detail.frustumCulled = false;
+          p.detail.instanceMatrix.setUsage(THREE.DynamicDrawUsage); scene.add(p.detail);
+        }
+        const near = new Set(selected);
+        for (const h of p.handles) p.mesh.setMatrixAt(h.index, near.has(h) ? hidden : h.matrix);
+        p.mesh.instanceMatrix.needsUpdate = true;
+        if (p.detail) {
+          p.detail.count = selected.length;
+          selected.forEach((h, i) => p.detail.setMatrixAt(i, h.matrix));
+          p.detail.instanceMatrix.needsUpdate = true;
+        }
+      }
+      lastCamera.copy(camera.position); renderedRevision = revision;
+    },
     spawn(type, pose = {}) {
       const p = pool(type);
       if (p.mesh.count >= capacity) throw new RangeError('Model pool full');
@@ -82,21 +121,21 @@ export function createBuildingKit(scene, capacity = 10000) {
       const last = p.handles.pop();
       p.mesh.count--;
       if (last !== handle) {
-        p.mesh.getMatrixAt(last.index, dummy.matrix);
-        p.mesh.setMatrixAt(handle.index, dummy.matrix);
+        p.mesh.setMatrixAt(handle.index, last.matrix);
         last.index = handle.index;
         p.handles[last.index] = last;
       }
       handle.alive = false;
       p.mesh.instanceMatrix.needsUpdate = true;
+      revision++; if (!mobile(handle.type)) version++;
       return true;
     },
     dispose() {
-      for (const { mesh, handles } of pools.values()) {
+      for (const { mesh, detail, handles } of pools.values()) {
         for (const handle of handles) handle.alive = false;
-        scene.remove(mesh); mesh.geometry.dispose(); mesh.dispose();
+        for (const draw of [mesh, detail]) if (draw) { scene.remove(draw); draw.geometry.dispose(); draw.dispose(); }
       }
-      material.dispose(); pools.clear();
+      appearance.dispose(); pools.clear();
     },
   };
 }

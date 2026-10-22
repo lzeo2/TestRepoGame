@@ -4,13 +4,14 @@ import { createBuildingKit } from './buildings.mjs';
 import { createFreeCamera } from './camera.mjs';
 import { createDayNight } from './daynight.mjs';
 import { createWorldEffects } from './world-effects.mjs';
+import { createAsphaltMaterial, createGroundMaterial, createWater, createBlockAO } from './materials.mjs';
 
 export function createRoadPool(scene, grid) {
   const geometry = new THREE.PlaneGeometry(grid.lotSize, grid.lotSize);
   geometry.rotateX(-Math.PI / 2);
-  const material = new THREE.MeshLambertMaterial({ color: 0x373c40, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -2 });
+  const appearance = createAsphaltMaterial(), material = appearance.material;
   const mesh = new THREE.InstancedMesh(geometry, material, grid.size ** 2);
-  mesh.count = 0; mesh.frustumCulled = false;
+  mesh.count = 0; mesh.frustumCulled = false; mesh.receiveShadow = true;
   mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
   scene.add(mesh);
   let version = -1;
@@ -26,7 +27,7 @@ export function createRoadPool(scene, grid) {
       }
       mesh.count = i; mesh.instanceMatrix.needsUpdate = true; version = grid.version;
     },
-    dispose() { scene.remove(mesh); geometry.dispose(); material.dispose(); mesh.dispose(); },
+    dispose() { scene.remove(mesh); geometry.dispose(); appearance.dispose(); mesh.dispose(); },
   };
 }
 
@@ -34,10 +35,13 @@ export function createWorld(canvas, { size = 200, lotSize = 10, pixelRatio = Mat
   const roads = new RoadGrid(size, lotSize), extent = size * lotSize / 2;
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: false, alpha: false, powerPreference: 'high-performance' });
   renderer.setPixelRatio(pixelRatio);
+  renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFShadowMap;
+  renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.15;
   const scene = new THREE.Scene();
   const camera = new THREE.PerspectiveCamera(60, 1, .5, extent * 5);
   const controls = createFreeCamera(camera, canvas, extent);
   const dayNight = createDayNight(scene);
+  scene.fog = new THREE.Fog(scene.background, extent * .7, extent * 3);
   const buildings = createBuildingKit(scene);
   const roadPool = createRoadPool(scene, roads);
   const effects = createWorldEffects(scene, roads);
@@ -53,9 +57,11 @@ export function createWorld(canvas, { size = 200, lotSize = 10, pixelRatio = Mat
     positions.setY(i, -edge * (.3 + .25 * Math.sin(x * .09) * Math.cos(z * .12)));
   }
   groundGeometry.computeVertexNormals();
-  const groundMaterial = new THREE.MeshLambertMaterial({ color: 0x7b9656, polygonOffset: true, polygonOffsetFactor: 1, polygonOffsetUnits: 4 });
+  const groundAppearance = createGroundMaterial(extent), groundMaterial = groundAppearance.material;
   const ground = new THREE.Mesh(groundGeometry, groundMaterial);
+  ground.receiveShadow = true;
   scene.add(ground);
+  const water = createWater(scene, extent), blockAO = createBlockAO(ground, buildings, extent, lotSize);
   const gridLines = new THREE.GridHelper(extent * 2, size, 0x718a50, 0x718a50);
   gridLines.position.y = .012;
   gridLines.material.transparent = true;
@@ -72,10 +78,14 @@ export function createWorld(canvas, { size = 200, lotSize = 10, pixelRatio = Mat
     }
     gridLines.material.color.copy(dayNight.lights.ambient.color);
     gridLines.material.opacity = .06 + .2 * dayNight.lights.sun.intensity / 2;
-    controls.update(dt); roadPool.sync(); renderer.render(scene, camera); effects.update(dt);
+    controls.update(dt); roadPool.sync();
+    dayNight.follow(camera); buildings.update(camera, 1 - dayNight.lights.sun.intensity / 3);
+    blockAO.update(); water.update(Math.max(0, Math.min(1, dt)));
+    scene.fog.color.copy(scene.background);
+    renderer.render(scene, camera); effects.update(dt);
   }
   return {
-    renderer, scene, camera, controls, dayNight, roads, roadPool, buildings, effects,
+    renderer, scene, camera, controls, dayNight, roads, roadPool, buildings, effects, water, blockAO,
     render,
     pickLot(clientX, clientY) {
       const rect = canvas.getBoundingClientRect();
@@ -85,7 +95,8 @@ export function createWorld(canvas, { size = 200, lotSize = 10, pixelRatio = Mat
     },
     dispose() {
       controls.dispose(); dayNight.dispose(); buildings.dispose(); roadPool.dispose(); effects.dispose();
-      groundGeometry.dispose(); groundMaterial.dispose(); gridLines.geometry.dispose(); gridLines.material.dispose(); renderer.dispose();
+      water.dispose(); blockAO.dispose(); scene.remove(ground, gridLines);
+      groundGeometry.dispose(); groundAppearance.dispose(); gridLines.geometry.dispose(); gridLines.material.dispose(); renderer.dispose();
     },
   };
 }

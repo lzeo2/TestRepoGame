@@ -1,0 +1,175 @@
+{
+  "scope": "PBR/procedural mesh API specimens; not gameplay, photorealism certification or FPS acceptance",
+  "errors": [],
+  "external": [],
+  "failed": [],
+  "shots": {
+    "A-world-overhead.png": {
+      "draws": 36,
+      "triangles": 336852,
+      "high": {
+        "townhall": {
+          "instances": 1,
+          "triangles": 130904
+        }
+      },
+      "emission": 0.025,
+      "sunShadow": true,
+      "moonShadow": false,
+      "shadowBias": -0.00015,
+      "normalBias": 0.045,
+      "facadePixels": 1024,
+      "waterOffset": [
+        0.000384,
+        0.000224
+      ],
+      "aoMinimum": 133
+    },
+    "A-world-street.png": {
+      "draws": 54,
+      "triangles": 2524052,
+      "high": {
+        "commercial": {
+          "instances": 16,
+          "triangles": 23264
+        },
+        "industrial": {
+          "instances": 16,
+          "triangles": 16000
+        },
+        "residential": {
+          "instances": 16,
+          "triangles": 23320
+        },
+        "townhall": {
+          "instances": 1,
+          "triangles": 130904
+        },
+        "power": {
+          "instances": 1,
+          "triangles": 16504
+        },
+        "water": {
+          "instances": 1,
+          "triangles": 10160
+        },
+        "police": {
+          "instances": 1,
+          "triangles": 14388
+        },
+        "fire": {
+          "instances": 1,
+          "triangles": 17788
+        },
+        "park": {
+          "instances": 1,
+          "triangles": 13544
+        },
+        "car": {
+          "instances": 2,
+          "triangles": 9936
+        }
+      },
+      "emission": 0.025,
+      "sunShadow": true,
+      "moonShadow": false,
+      "shadowBias": -0.00015,
+      "normalBias": 0.045,
+      "facadePixels": 1024,
+      "waterOffset": [
+        0.000576,
+        0.000336
+      ],
+      "aoMinimum": 133
+    },
+    "WORLD-night.png": {
+      "draws": 54,
+      "triangles": 2524052,
+      "high": {
+        "commercial": {
+          "instances": 16,
+          "triangles": 23264
+        },
+        "industrial": {
+          "instances": 16,
+          "triangles": 16000
+        },
+        "residential": {
+          "instances": 16,
+          "triangles": 23320
+        },
+        "townhall": {
+          "instances": 1,
+          "triangles": 130904
+        },
+        "power": {
+          "instances": 1,
+          "triangles": 16504
+        },
+        "water": {
+          "instances": 1,
+          "triangles": 10160
+        },
+        "police": {
+          "instances": 1,
+          "triangles": 14388
+        },
+        "fire": {
+          "instances": 1,
+          "triangles": 17788
+        },
+        "park": {
+          "instances": 1,
+          "triangles": 13544
+        },
+        "car": {
+          "instances": 2,
+          "triangles": 9936
+        }
+      },
+      "emission": 1.7249999999999999,
+      "sunShadow": false,
+      "moonShadow": true,
+      "shadowBias": -0.00015,
+      "normalBias": 0.045,
+      "facadePixels": 1024,
+      "waterOffset": [
+        0.000768,
+        0.000448
+      ],
+      "aoMinimum": 133
+    },
+    "WORLD-water-detail.png": {
+      "draws": 34,
+      "triangles": 75044,
+      "high": {},
+      "emission": 0.025,
+      "sunShadow": true,
+      "moonShadow": false,
+      "shadowBias": -0.00015,
+      "normalBias": 0.045,
+      "facadePixels": 1024,
+      "waterOffset": [
+        0.00096,
+        0.00056
+      ],
+      "aoMinimum": 133
+    }
+  },
+  "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (LLVM 16.0.0) (0x0000C0DE)), SwiftShader driver)",
+  "serverClosed": true,
+  "profileRemoved": true,
+  "browserClosed": true,
+  "diskBefore": 2749546496,
+  "diskAfter": 2749579264
+}
+Traceback (most recent call last):
+  File "Games/Citisten3D/material-qa.py", line 124, in <module>
+    main()
+    ~~~~^^
+  File "Games/Citisten3D/material-qa.py", line 94, in main
+    assert changed > 100, 'Water shading did not visibly change'
+           ^^^^^^^^^^^^^
+AssertionError: Water shading did not visibly change
+
+QA_EXIT=1
