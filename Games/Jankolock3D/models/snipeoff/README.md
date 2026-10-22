@@ -1,73 +1,49 @@
-# Snipeoff: bounded procedural marksman
+# Snipeoff: current external original
 
-Original project-authored geometry interpreted from the actual supplied plate at
-`docs/jank3d-design/hero-concepts/snipeoff.png` (concept commit `79dc4c8`).
-No downloaded art, copied commercial assets, Blender, image maps or new dependencies.
-The shortened follow-up explicitly authorized reuse of the authored Stampead human
-base. `build.mjs` imports `../stampead/build.mjs` for its shaped face/ears/nose,
-neck, gloves/fingers and boot/leg geometry; it removes the cap, heavy torso,
-original cape and hammer, narrows the legs, and authors Snipeoff's clothing,
-hair and rifle. The exported GLB is standalone; regeneration depends on that
-source base and the existing three.js r186/helper files.
+**Current `model.glb` is unchanged external Blender-authored art, not output from
+retained procedural `build.mjs`.** EXTERNAL ORIGINAL by operator dot, supplied
+2026-10-22. Originality/authorship are operator declarations. `manifest.json`
+declares `model.blend`, but no Blender source was provided. No local Blender,
+re-export, subdivision or triangle padding was used.
 
-## Geometry and materials
+## Current measured artifact
 
-- Human facial planes, socket/eyelid details, nose, lips, ears and swept hair locks.
-- Ochre lowered hood; fitted charcoal waistcoat and cream lapels.
-- Two long swept split-tail panels, longitudinal folds, separate red lining,
-  curved hems, edge seams and fasteners. Neither subdivided cubes nor hidden
-  padding were added to reach the triangle budget.
-- Diagonal leather harness, belt, ammunition pouches, satchel and document rolls.
-- Bent sleeves, curved metal bracers, separated glove fingers, knee plates,
-  fitted boots, lace crossings, eyelets, seams and sole tread.
-- Original diagonal walnut/brass rifle: pencil-section fore-end, graduated ruler
-  strip, barrel, scope/saddles, adjustment turret, bolt, trigger guard and ferrule.
-- 15 MeshStandardMaterial PBR materials with distinct metalness/roughness. No
-  embedded textures. Integrator may attach the shared original surface maps.
-- Sweeps have longitudinal UVs; standard primitives retain native UVs. No unique
-  packed atlas, authored tangent-space detail or texture-paint work is claimed.
+- URL: `models/snipeoff/model.glb`; bytes: **818532**.
+- SHA-256: `a4a0faa196232bf7a40d28491b8f66f056ab0ba3da614c10946ecd8aab13b0bc`.
+- **19160** scene triangles; **75** mesh drawables; **21214** vertices;
+  **10** materials; **20** movable rigid nodes.
+- Dimensions (X/Y/Z metres): **0.710881315 / 1.985000052 / 1.546487786**.
+- Three meshes lack UVs. All present normals/UVs are finite with matching counts;
+  indices are in range. No missing attributes were synthesized.
+- Exact bounds/dimensions, per-part counts/materials, metadata hashes and verified
+  rig parents, local/model pivots and local axes are in `receipt.json`.
 
-## Coordinates and animation
-
-Metres; front is -Z. Ground minimum is approximately zero (floating-point error
-below 0.000001 m), maximum Y 1.979033 m. Named joint-origin groups: `torso`, `head`,
-`arm-left`, `arm-right`, `leg-left`, `leg-right`, `cape`. These are rigid pivots,
-not a skin rig. The rifle is torso-mounted in the static carrying pose.
-
-## Reproduce and check
+## Safe reproduction
 
 From repository root:
 
 ```sh
-node --check Games/Jankolock3D/models/snipeoff/build.mjs
-node Games/Jankolock3D/models/snipeoff/build.mjs
-node Games/Jankolock3D/models/snipeoff/build.mjs --check
+node Games/Jankolock3D/models/import-external.mjs --check
+node Games/Jankolock3D/models/import-external.mjs --self-test
 ```
 
-Importing `buildModel()` does not export files. Direct execution uses the shared
-storage-guarded exporter. `--check` reads actual GLB bytes/accessors/transforms,
-checks hash, triangle/material/drawable counts, finite positions, UVs, bounds,
-absence of maps, fresh-source metrics and the strict 6,000,000-byte folder budget.
-`receipt.json` records measured geometry, not visual acceptance.
+Default/check is read-only, requiring no external drop. Explicit `--ingest`
+audits all five deliveries then copies pinned unchanged bytes, including
+`external-art/snipeoff/`, and writes measured receipts. Manifest/palette/rig bytes
+are preserved. `rig.json` is canonical; supplied `manifest.rig.json` was identical
+and is retained as a documentation alias only. The manifest's source/alias
+entries do not imply those absent files are delivered here.
 
-Current export: **170,342 triangles, 39 drawables, 117,798 vertices, 15 materials,
-4,835,696 bytes**. SHA-256:
-`700f216bc643bf8fde432e91978193c36efce3ade4f62a8fb1471a2d391491ec`.
+## Historical fallback only
 
-## Honest limitations and integration handoff
+`build.mjs` and its Stampead fallback dependency remain verbatim. **Do not run the
+legacy builder against the current directory:** it replaces the external
+GLB/receipt; legacy checks describe only the procedural fallback. Shared
+`../model-build.mjs` is unchanged. Historical README/receipt and concept reference
+`docs/jank3d-design/hero-concepts/snipeoff.png` are preserved in Git at `bf215f0`
+(`git show bf215f0:<path>`), not asserted as source for this external delivery.
 
-This is a procedural approximation, not a realistic sculpt or photoreal asset.
-The borrowed face is generic rather than the plate's likeness; facial anatomy,
-hair and material wear need an artist pass. Coat folds are mathematical sweeps,
-not cloth simulation; panel intersections and doubled lining require visual
-review. The bent sleeves and glove-to-rifle contact are approximate. The base's
-knee/boot fittings remain more armored than the lean concept. No skin weights,
-IK, facial rig, animated cloth or validated animation clearance. Some narrow
-metal/seam details are dense relative to their on-screen value; no LOD supplied.
-
-No browser, renderer, screenshot, gameplay acceptance letter, hardware gate or
-push was run or claimed. Parent must inspect the silhouette from front/back,
-hand contact, surface normals, clipping and both-theme material readability,
-then own runtime integration and maintenance inventory/manual reconciliation.
-Only the four assigned files in this folder were changed by this worker; no
-catalog entry, game addition, runtime or UI change is part of this artifact.
+Node-only GLBv2, URI/image closure, geometry/count/material and rig audit does
+not prove visual quality, animated clearance, runtime palette/pose integration,
+FPS, supported hardware or gameplay. Parent owns runtime and shared maintenance
+reconciliation. No browser, screenshots, game addition, installs or push.

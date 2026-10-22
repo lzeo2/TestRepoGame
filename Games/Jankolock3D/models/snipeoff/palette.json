@@ -1,0 +1,192 @@
+{
+  "schema": "palette_v2",
+  "model": "snipeoff",
+  "color_space": "linear RGBA; change baseColorFactor only for palette tinting",
+  "palette_default": {
+    "snipeoff__audit_navy": [
+      0.03500000014901161,
+      0.08500000089406967,
+      0.15000000596046448,
+      1
+    ],
+    "snipeoff__rubber": [
+      0.017999999225139618,
+      0.02199999988079071,
+      0.019999999552965164,
+      1
+    ],
+    "snipeoff__aged_brass": [
+      0.550000011920929,
+      0.3400000035762787,
+      0.11999999731779099,
+      1
+    ],
+    "snipeoff__ink_charcoal": [
+      0.02800000086426735,
+      0.04500000178813934,
+      0.052000001072883606,
+      1
+    ],
+    "snipeoff__tool_leather": [
+      0.2199999988079071,
+      0.11500000208616257,
+      0.054999999701976776,
+      1
+    ],
+    "snipeoff__paper_edges": [
+      0.9399999976158142,
+      0.8999999761581421,
+      0.7099999785423279,
+      1
+    ],
+    "snipeoff__paper_warm_ivory": [
+      0.7900000214576721,
+      0.7300000190734863,
+      0.550000011920929,
+      1
+    ],
+    "snipeoff__postroom_oxblood": [
+      0.2800000011920929,
+      0.035999998450279236,
+      0.028999999165534973,
+      1
+    ],
+    "snipeoff__audit_ochre": [
+      0.8199999928474426,
+      0.5199999809265137,
+      0.09000000357627869,
+      1
+    ],
+    "snipeoff__stapler_brushed_steel": [
+      0.33000001311302185,
+      0.4000000059604645,
+      0.4099999964237213,
+      1
+    ]
+  },
+  "material_slots": [
+    {
+      "name": "snipeoff__audit_navy",
+      "gltf_material_index": 0,
+      "base_color_linear_rgba": [
+        0.03500000014901161,
+        0.08500000089406967,
+        0.15000000596046448,
+        1
+      ],
+      "metallic": 0,
+      "roughness": 0.6299999952316284
+    },
+    {
+      "name": "snipeoff__rubber",
+      "gltf_material_index": 1,
+      "base_color_linear_rgba": [
+        0.017999999225139618,
+        0.02199999988079071,
+        0.019999999552965164,
+        1
+      ],
+      "metallic": 0,
+      "roughness": 0.8600000143051147
+    },
+    {
+      "name": "snipeoff__aged_brass",
+      "gltf_material_index": 2,
+      "base_color_linear_rgba": [
+        0.550000011920929,
+        0.3400000035762787,
+        0.11999999731779099,
+        1
+      ],
+      "metallic": 0.6800000071525574,
+      "roughness": 0.33000001311302185
+    },
+    {
+      "name": "snipeoff__ink_charcoal",
+      "gltf_material_index": 3,
+      "base_color_linear_rgba": [
+        0.02800000086426735,
+        0.04500000178813934,
+        0.052000001072883606,
+        1
+      ],
+      "metallic": 0,
+      "roughness": 0.5799999833106995
+    },
+    {
+      "name": "snipeoff__tool_leather",
+      "gltf_material_index": 4,
+      "base_color_linear_rgba": [
+        0.2199999988079071,
+        0.11500000208616257,
+        0.054999999701976776,
+        1
+      ],
+      "metallic": 0,
+      "roughness": 0.800000011920929
+    },
+    {
+      "name": "snipeoff__paper_edges",
+      "gltf_material_index": 5,
+      "base_color_linear_rgba": [
+        0.9399999976158142,
+        0.8999999761581421,
+        0.7099999785423279,
+        1
+      ],
+      "metallic": 0,
+      "roughness": 0.7300000190734863
+    },
+    {
+      "name": "snipeoff__paper_warm_ivory",
+      "gltf_material_index": 6,
+      "base_color_linear_rgba": [
+        0.7900000214576721,
+        0.7300000190734863,
+        0.550000011920929,
+        1
+      ],
+      "metallic": 0,
+      "roughness": 0.7200000286102295
+    },
+    {
+      "name": "snipeoff__postroom_oxblood",
+      "gltf_material_index": 7,
+      "base_color_linear_rgba": [
+        0.2800000011920929,
+        0.035999998450279236,
+        0.028999999165534973,
+        1
+      ],
+      "metallic": 0,
+      "roughness": 0.4000000059604645
+    },
+    {
+      "name": "snipeoff__audit_ochre",
+      "gltf_material_index": 8,
+      "base_color_linear_rgba": [
+        0.8199999928474426,
+        0.5199999809265137,
+        0.09000000357627869,
+        1
+      ],
+      "metallic": 0,
+      "roughness": 0.5400000214576721
+    },
+    {
+      "name": "snipeoff__stapler_brushed_steel",
+      "gltf_material_index": 9,
+      "base_color_linear_rgba": [
+        0.33000001311302185,
+        0.4000000059604645,
+        0.4099999964237213,
+        1
+      ],
+      "metallic": 0.699999988079071,
+      "roughness": 0.2800000011920929
+    }
+  ],
+  "instance_isolation": "Material names are model-namespaced. A newly loaded GLB is self-contained. If a loader clones/reuses a loaded scene, clone its materials once PER INSTANCE, retaining intentional same-slot sharing only within that instance, before applying a tint. This is a consumer lifecycle requirement; GLB cannot control engine clone semantics.",
+  "editable_source_isolation_test": "evidence/palette_instance_test.json",
+  "textures": []
+}

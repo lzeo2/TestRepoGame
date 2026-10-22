@@ -1,0 +1,608 @@
+{
+  "schema": "rigid_parts_v2",
+  "version": 2,
+  "model": "gooey_sticky",
+  "coordinate_system": "glTF: metres, +Y up, -Z forward, anatomical right +X",
+  "pivot_space": "pivot_position is parent-local glTF translation; pivot_model_position is rest-pose model-space origin. Rotations in degrees about local axes; X is every bend/pitch hinge, Y is yaw. Translation ranges are deltas from rest in local metres.",
+  "range_semantics": "[min,max] inclusive; free means no cap; [0,0] locked. Ranges are artistic guides, not collision guarantees.",
+  "movable_nodes": [
+    {
+      "name": "root",
+      "pivot_position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "pivot_model_position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "parent": null,
+      "rotation_deg": {
+        "x": [
+          0,
+          0
+        ],
+        "y": "free",
+        "z": [
+          0,
+          0
+        ]
+      },
+      "translation_m": {
+        "x": "free",
+        "y": "free",
+        "z": "free"
+      },
+      "note": "Caller-owned whole-assembly placement; never derive gameplay collision from decorative geometry."
+    },
+    {
+      "name": "torso",
+      "pivot_position": [
+        0.0,
+        0.7469434,
+        0.0
+      ],
+      "pivot_model_position": [
+        0.0,
+        0.7469434,
+        0.0
+      ],
+      "parent": "root",
+      "rotation_deg": {
+        "x": [
+          -12,
+          12
+        ],
+        "y": [
+          -20,
+          20
+        ],
+        "z": [
+          -10,
+          10
+        ]
+      },
+      "translation_m": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "note": "Rigid blob body; no soft-skin requirement."
+    },
+    {
+      "name": "head",
+      "pivot_position": [
+        0.0,
+        0.25,
+        0.0
+      ],
+      "pivot_model_position": [
+        0.0,
+        0.9969434,
+        0.0
+      ],
+      "parent": "torso",
+      "rotation_deg": {
+        "x": [
+          -15,
+          15
+        ],
+        "y": [
+          -25,
+          25
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "translation_m": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "note": "Closed neck cut through original adhesive sculpt."
+    },
+    {
+      "name": "upper_arm_r",
+      "pivot_position": [
+        0.36,
+        0.01,
+        -0.015
+      ],
+      "pivot_model_position": [
+        0.36,
+        0.7569433,
+        -0.015
+      ],
+      "parent": "torso",
+      "rotation_deg": {
+        "x": [
+          -35,
+          35
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          -25,
+          25
+        ]
+      },
+      "translation_m": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "note": "Short rounded adhesive arm stub, closed at joint."
+    },
+    {
+      "name": "hand_r",
+      "pivot_position": [
+        0.16,
+        -0.15,
+        -0.085
+      ],
+      "pivot_model_position": [
+        0.52,
+        0.6069433,
+        -0.1
+      ],
+      "parent": "upper_arm_r",
+      "rotation_deg": {
+        "x": [
+          -35,
+          35
+        ],
+        "y": [
+          -20,
+          20
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "translation_m": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "note": ""
+    },
+    {
+      "name": "foot_r",
+      "pivot_position": [
+        0.22,
+        -0.45,
+        -0.04
+      ],
+      "pivot_model_position": [
+        0.22,
+        0.2969433,
+        -0.04
+      ],
+      "parent": "torso",
+      "rotation_deg": {
+        "x": [
+          -25,
+          25
+        ],
+        "y": [
+          -10,
+          10
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "translation_m": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "note": "Separate closed foot lobe; rounded body has no artificial knee."
+    },
+    {
+      "name": "upper_arm_l",
+      "pivot_position": [
+        -0.36,
+        0.01,
+        -0.015
+      ],
+      "pivot_model_position": [
+        -0.36,
+        0.7569433,
+        -0.015
+      ],
+      "parent": "torso",
+      "rotation_deg": {
+        "x": [
+          -35,
+          35
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          -25,
+          25
+        ]
+      },
+      "translation_m": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "note": "Short rounded adhesive arm stub, closed at joint."
+    },
+    {
+      "name": "hand_l",
+      "pivot_position": [
+        -0.16,
+        -0.15,
+        -0.085
+      ],
+      "pivot_model_position": [
+        -0.52,
+        0.6069433,
+        -0.1
+      ],
+      "parent": "upper_arm_l",
+      "rotation_deg": {
+        "x": [
+          -35,
+          35
+        ],
+        "y": [
+          -20,
+          20
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "translation_m": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "note": ""
+    },
+    {
+      "name": "foot_l",
+      "pivot_position": [
+        -0.22,
+        -0.45,
+        -0.04
+      ],
+      "pivot_model_position": [
+        -0.22,
+        0.2969433,
+        -0.04
+      ],
+      "parent": "torso",
+      "rotation_deg": {
+        "x": [
+          -25,
+          25
+        ],
+        "y": [
+          -10,
+          10
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "translation_m": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "note": "Separate closed foot lobe; rounded body has no artificial knee."
+    },
+    {
+      "name": "lid",
+      "pivot_position": [
+        0.0,
+        0.3,
+        0.275
+      ],
+      "pivot_model_position": [
+        0.0,
+        1.2969433,
+        0.275
+      ],
+      "parent": "head",
+      "rotation_deg": {
+        "x": [
+          -100,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "translation_m": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "note": "Back rim hinge lets seated lid open without orbiting its center."
+    }
+  ],
+  "static_nodes": [
+    {
+      "name": "adhesive_label",
+      "parent": "torso",
+      "reason": "Rigid geometry fixed to parent; follows parent chain, no independent motion."
+    },
+    {
+      "name": "adhesive_label_small",
+      "parent": "torso",
+      "reason": "Rigid geometry fixed to parent; follows parent chain, no independent motion."
+    },
+    {
+      "name": "adhesive_torso_surface",
+      "parent": "torso",
+      "reason": "Rigid geometry fixed to parent; follows parent chain, no independent motion."
+    },
+    {
+      "name": "attached_curved_label",
+      "parent": "torso",
+      "reason": "Rigid geometry fixed to parent; follows parent chain, no independent motion."
+    },
+    {
+      "name": "back_paper_patch_0",
+      "parent": "torso",
+      "reason": "Rigid geometry fixed to parent; follows parent chain, no independent motion."
+    },
+    {
+      "name": "back_paper_patch_1",
+      "parent": "torso",
+      "reason": "Rigid geometry fixed to parent; follows parent chain, no independent motion."
+    },
+    {
+      "name": "back_paper_patch_2",
+      "parent": "torso",
+      "reason": "Rigid geometry fixed to parent; follows parent chain, no independent motion."
+    },
+    {
+      "name": "adhesive_foot_l",
+      "parent": "foot_l",
+      "reason": "Rigid geometry fixed to parent; follows parent chain, no independent motion."
+    },
+    {
+      "name": "adhesive_foot_r",
+      "parent": "foot_r",
+      "reason": "Rigid geometry fixed to parent; follows parent chain, no independent motion."
+    },
+    {
+      "name": "adhesive_head_surface",
+      "parent": "head",
+      "reason": "Rigid geometry fixed to parent; follows parent chain, no independent motion."
+    },
+    {
+      "name": "eye_1",
+      "parent": "head",
+      "reason": "Rigid geometry fixed to parent; follows parent chain, no independent motion."
+    },
+    {
+      "name": "eye_1.001",
+      "parent": "head",
+      "reason": "Rigid geometry fixed to parent; follows parent chain, no independent motion."
+    },
+    {
+      "name": "lid_pull",
+      "parent": "lid",
+      "reason": "Rigid geometry fixed to parent; follows parent chain, no independent motion."
+    },
+    {
+      "name": "rolled_lid_rim",
+      "parent": "lid",
+      "reason": "Rigid geometry fixed to parent; follows parent chain, no independent motion."
+    },
+    {
+      "name": "tilted_lid",
+      "parent": "lid",
+      "reason": "Rigid geometry fixed to parent; follows parent chain, no independent motion."
+    },
+    {
+      "name": "pupil_1",
+      "parent": "head",
+      "reason": "Rigid geometry fixed to parent; follows parent chain, no independent motion."
+    },
+    {
+      "name": "pupil_1.001",
+      "parent": "head",
+      "reason": "Rigid geometry fixed to parent; follows parent chain, no independent motion."
+    },
+    {
+      "name": "seated_lid_neck",
+      "parent": "head",
+      "reason": "Rigid geometry fixed to parent; follows parent chain, no independent motion."
+    },
+    {
+      "name": "adhesive_arm_l",
+      "parent": "upper_arm_l",
+      "reason": "Rigid geometry fixed to parent; follows parent chain, no independent motion."
+    },
+    {
+      "name": "adhesive_wrist_l",
+      "parent": "hand_l",
+      "reason": "Rigid geometry fixed to parent; follows parent chain, no independent motion."
+    },
+    {
+      "name": "palm_001",
+      "parent": "hand_l",
+      "reason": "Rigid geometry fixed to parent; follows parent chain, no independent motion."
+    },
+    {
+      "name": "soft_finger_003",
+      "parent": "hand_l",
+      "reason": "Rigid geometry fixed to parent; follows parent chain, no independent motion."
+    },
+    {
+      "name": "soft_finger_004",
+      "parent": "hand_l",
+      "reason": "Rigid geometry fixed to parent; follows parent chain, no independent motion."
+    },
+    {
+      "name": "soft_finger_005",
+      "parent": "hand_l",
+      "reason": "Rigid geometry fixed to parent; follows parent chain, no independent motion."
+    },
+    {
+      "name": "adhesive_arm_r",
+      "parent": "upper_arm_r",
+      "reason": "Rigid geometry fixed to parent; follows parent chain, no independent motion."
+    },
+    {
+      "name": "adhesive_wrist_r",
+      "parent": "hand_r",
+      "reason": "Rigid geometry fixed to parent; follows parent chain, no independent motion."
+    },
+    {
+      "name": "palm",
+      "parent": "hand_r",
+      "reason": "Rigid geometry fixed to parent; follows parent chain, no independent motion."
+    },
+    {
+      "name": "soft_finger",
+      "parent": "hand_r",
+      "reason": "Rigid geometry fixed to parent; follows parent chain, no independent motion."
+    },
+    {
+      "name": "soft_finger_001",
+      "parent": "hand_r",
+      "reason": "Rigid geometry fixed to parent; follows parent chain, no independent motion."
+    },
+    {
+      "name": "soft_finger_002",
+      "parent": "hand_r",
+      "reason": "Rigid geometry fixed to parent; follows parent chain, no independent motion."
+    },
+    {
+      "name": "support_origin",
+      "parent": "hand_r",
+      "reason": "Fixed mount or attachment reference."
+    }
+  ],
+  "anchors": [
+    {
+      "name": "support_origin",
+      "parent": "hand_r",
+      "pivot_position": [
+        0.04000002145767212,
+        0.030000030994415283,
+        -0.13999998569488525
+      ],
+      "pivot_model_position": [
+        0.56,
+        0.6369433,
+        -0.24
+      ]
+    }
+  ],
+  "animation_clips": [],
+  "skinning": "none; all movable parts are rigid separate named nodes",
+  "source_axis_mapping": {
+    "Blender_X": "glTF_X",
+    "Blender_Z": "glTF_Y",
+    "Blender_Y": "glTF_-Z"
+  }
+}

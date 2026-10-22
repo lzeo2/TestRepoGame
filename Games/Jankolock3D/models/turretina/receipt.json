@@ -1,303 +1,1317 @@
 {
-  "label": "Turretina: original human engineer procedural concept interpretation",
+  "label": "Turretina",
   "url": "models/turretina/model.glb",
-  "bytes": 4648580,
-  "sha256": "3df07824fe5cce374244d8afb776203906bdb83181eb173e5c3a822030ff7d0d",
-  "triangles": 171818,
-  "vertices": 111408,
-  "meshes": 48,
+  "bytes": 1022124,
+  "sha256": "e5a3dffe77d0487c30197759367e6851ad650a9d9358670e198fe927a8f763a7",
+  "triangles": 22416,
+  "vertices": 27117,
+  "meshes": 81,
   "materials": [
     {
-      "name": "jacket",
-      "color": "35373a",
-      "roughness": 0.95,
+      "name": "turretina__engineer_teal",
+      "color": "358989",
+      "roughness": 0.6200000047683716,
       "metalness": 0
     },
     {
-      "name": "skin",
-      "color": "c69071",
-      "roughness": 0.77,
+      "name": "turretina__rubber",
+      "color": "242927",
+      "roughness": 0.8600000143051147,
       "metalness": 0
     },
     {
-      "name": "cream",
-      "color": "d6c6a2",
-      "roughness": 0.67,
-      "metalness": 0.25
+      "name": "turretina__aged_brass",
+      "color": "c49e61",
+      "roughness": 0.33000001311302185,
+      "metalness": 0.6800000071525574
     },
     {
-      "name": "brass",
-      "color": "a8803d",
-      "roughness": 0.38,
-      "metalness": 0.78
-    },
-    {
-      "name": "leather",
-      "color": "563124",
-      "roughness": 0.9,
+      "name": "turretina__ink_charcoal",
+      "color": "2f3c40",
+      "roughness": 0.5799999833106995,
       "metalness": 0
     },
     {
-      "name": "stitch",
-      "color": "a48553",
-      "roughness": 0.95,
+      "name": "turretina__tool_leather",
+      "color": "815f42",
+      "roughness": 0.800000011920929,
       "metalness": 0
     },
     {
-      "name": "steel",
-      "color": "30383b",
-      "roughness": 0.43,
-      "metalness": 0.82
+      "name": "turretina__stapler_brushed_steel",
+      "color": "9baaac",
+      "roughness": 0.2800000011920929,
+      "metalness": 0.699999988079071
     },
     {
-      "name": "lips",
-      "color": "925348",
-      "roughness": 0.8,
+      "name": "turretina__folder_seafoam",
+      "color": "7eb5ac",
+      "roughness": 0.5799999833106995,
       "metalness": 0
     },
     {
-      "name": "eye",
-      "color": "d8cbb7",
-      "roughness": 0.36,
+      "name": "turretina__paper_warm_ivory",
+      "color": "e6dec4",
+      "roughness": 0.7200000286102295,
       "metalness": 0
     },
     {
-      "name": "glass",
-      "color": "677b7c",
-      "roughness": 0.17,
-      "metalness": 0.48
-    },
-    {
-      "name": "hair",
-      "color": "211b18",
-      "roughness": 0.91,
+      "name": "turretina__stamp_vermilion",
+      "color": "d3593d",
+      "roughness": 0.4000000059604645,
       "metalness": 0
+    }
+  ],
+  "parts": [
+    {
+      "name": "foot_l_ankle_002",
+      "triangles": 188,
+      "vertices": 288,
+      "materials": [
+        "turretina__engineer_teal"
+      ],
+      "hasUV": true
     },
     {
-      "name": "ochre",
-      "color": "ad762a",
-      "roughness": 0.5,
-      "metalness": 0.48
+      "name": "foot_l_sole_002",
+      "triangles": 188,
+      "vertices": 284,
+      "materials": [
+        "turretina__rubber"
+      ],
+      "hasUV": true
     },
     {
-      "name": "copper",
-      "color": "9f5733",
-      "roughness": 0.4,
-      "metalness": 0.8
+      "name": "foot_l_strap_004",
+      "triangles": 188,
+      "vertices": 264,
+      "materials": [
+        "turretina__aged_brass"
+      ],
+      "hasUV": true
     },
     {
-      "name": "canvas",
-      "color": "77705a",
-      "roughness": 0.98,
-      "metalness": 0
+      "name": "foot_l_strap_005",
+      "triangles": 188,
+      "vertices": 264,
+      "materials": [
+        "turretina__aged_brass"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "foot_l_tread_008",
+      "triangles": 188,
+      "vertices": 264,
+      "materials": [
+        "turretina__ink_charcoal"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "foot_l_tread_009",
+      "triangles": 188,
+      "vertices": 264,
+      "materials": [
+        "turretina__ink_charcoal"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "foot_l_tread_010",
+      "triangles": 188,
+      "vertices": 264,
+      "materials": [
+        "turretina__ink_charcoal"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "foot_l_tread_011",
+      "triangles": 188,
+      "vertices": 264,
+      "materials": [
+        "turretina__ink_charcoal"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "foot_l_vamp_002",
+      "triangles": 188,
+      "vertices": 281,
+      "materials": [
+        "turretina__engineer_teal"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "knee_pad_001",
+      "triangles": 188,
+      "vertices": 240,
+      "materials": [
+        "turretina__engineer_teal"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "lower_work_trouser_l",
+      "triangles": 124,
+      "vertices": 154,
+      "materials": [
+        "turretina__tool_leather"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "upper_work_trouser_l",
+      "triangles": 124,
+      "vertices": 154,
+      "materials": [
+        "turretina__tool_leather"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "foot_r_ankle_002",
+      "triangles": 188,
+      "vertices": 288,
+      "materials": [
+        "turretina__engineer_teal"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "foot_r_sole_002",
+      "triangles": 188,
+      "vertices": 284,
+      "materials": [
+        "turretina__rubber"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "foot_r_strap_004",
+      "triangles": 188,
+      "vertices": 264,
+      "materials": [
+        "turretina__aged_brass"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "foot_r_strap_005",
+      "triangles": 188,
+      "vertices": 264,
+      "materials": [
+        "turretina__aged_brass"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "foot_r_tread_008",
+      "triangles": 188,
+      "vertices": 264,
+      "materials": [
+        "turretina__ink_charcoal"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "foot_r_tread_009",
+      "triangles": 188,
+      "vertices": 264,
+      "materials": [
+        "turretina__ink_charcoal"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "foot_r_tread_010",
+      "triangles": 188,
+      "vertices": 264,
+      "materials": [
+        "turretina__ink_charcoal"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "foot_r_tread_011",
+      "triangles": 188,
+      "vertices": 264,
+      "materials": [
+        "turretina__ink_charcoal"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "foot_r_vamp_002",
+      "triangles": 188,
+      "vertices": 281,
+      "materials": [
+        "turretina__engineer_teal"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "knee_pad",
+      "triangles": 188,
+      "vertices": 240,
+      "materials": [
+        "turretina__engineer_teal"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "lower_work_trouser_r",
+      "triangles": 124,
+      "vertices": 154,
+      "materials": [
+        "turretina__tool_leather"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "upper_work_trouser_r",
+      "triangles": 124,
+      "vertices": 154,
+      "materials": [
+        "turretina__tool_leather"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "folded_tripod_tool",
+      "triangles": 140,
+      "vertices": 148,
+      "materials": [
+        "turretina__stapler_brushed_steel"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "folded_tripod_tool_001",
+      "triangles": 140,
+      "vertices": 148,
+      "materials": [
+        "turretina__stapler_brushed_steel"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "folded_tripod_tool_002",
+      "triangles": 140,
+      "vertices": 148,
+      "materials": [
+        "turretina__stapler_brushed_steel"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "apron_patch_pocket_001",
+      "triangles": 188,
+      "vertices": 256,
+      "materials": [
+        "turretina__tool_leather"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "folder_front_panel_001",
+      "triangles": 188,
+      "vertices": 294,
+      "materials": [
+        "turretina__folder_seafoam"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "folder_tab_001",
+      "triangles": 188,
+      "vertices": 269,
+      "materials": [
+        "turretina__paper_warm_ivory"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "pocket_stitch_003",
+      "triangles": 188,
+      "vertices": 283,
+      "materials": [
+        "turretina__paper_warm_ivory"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "pocket_stitch_004",
+      "triangles": 188,
+      "vertices": 283,
+      "materials": [
+        "turretina__paper_warm_ivory"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "pocket_stitch_005",
+      "triangles": 188,
+      "vertices": 283,
+      "materials": [
+        "turretina__paper_warm_ivory"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "apron_patch_pocket",
+      "triangles": 188,
+      "vertices": 256,
+      "materials": [
+        "turretina__tool_leather"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "folder_front_panel",
+      "triangles": 188,
+      "vertices": 294,
+      "materials": [
+        "turretina__folder_seafoam"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "folder_tab",
+      "triangles": 188,
+      "vertices": 269,
+      "materials": [
+        "turretina__paper_warm_ivory"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "pocket_stitch",
+      "triangles": 188,
+      "vertices": 283,
+      "materials": [
+        "turretina__paper_warm_ivory"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "pocket_stitch_001",
+      "triangles": 188,
+      "vertices": 283,
+      "materials": [
+        "turretina__paper_warm_ivory"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "pocket_stitch_002",
+      "triangles": 188,
+      "vertices": 283,
+      "materials": [
+        "turretina__paper_warm_ivory"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "folder_workcoat",
+      "triangles": 704,
+      "vertices": 354,
+      "materials": [
+        "turretina__engineer_teal"
+      ],
+      "hasUV": false
+    },
+    {
+      "name": "goggle_glass",
+      "triangles": 380,
+      "vertices": 386,
+      "materials": [
+        "turretina__ink_charcoal"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "goggle_glass_001",
+      "triangles": 380,
+      "vertices": 386,
+      "materials": [
+        "turretina__ink_charcoal"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "goggle_rim",
+      "triangles": 380,
+      "vertices": 392,
+      "materials": [
+        "turretina__aged_brass"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "goggle_rim_001",
+      "triangles": 380,
+      "vertices": 392,
+      "materials": [
+        "turretina__aged_brass"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "neck_002",
+      "triangles": 380,
+      "vertices": 419,
+      "materials": [
+        "turretina__ink_charcoal"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "spool_core",
+      "triangles": 380,
+      "vertices": 417,
+      "materials": [
+        "turretina__tool_leather"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "spool_flange",
+      "triangles": 380,
+      "vertices": 448,
+      "materials": [
+        "turretina__engineer_teal"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "spool_flange_001",
+      "triangles": 380,
+      "vertices": 448,
+      "materials": [
+        "turretina__engineer_teal"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "spool_head",
+      "triangles": 720,
+      "vertices": 423,
+      "materials": [
+        "turretina__paper_warm_ivory"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "thread_winding",
+      "triangles": 512,
+      "vertices": 1024,
+      "materials": [
+        "turretina__paper_warm_ivory"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "thread_winding_001",
+      "triangles": 512,
+      "vertices": 1024,
+      "materials": [
+        "turretina__paper_warm_ivory"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "thread_winding_002",
+      "triangles": 512,
+      "vertices": 1024,
+      "materials": [
+        "turretina__paper_warm_ivory"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "thread_winding_003",
+      "triangles": 512,
+      "vertices": 1024,
+      "materials": [
+        "turretina__paper_warm_ivory"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "thread_winding_004",
+      "triangles": 512,
+      "vertices": 1024,
+      "materials": [
+        "turretina__paper_warm_ivory"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "work_goggles",
+      "triangles": 188,
+      "vertices": 287,
+      "materials": [
+        "turretina__tool_leather"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "tool_buckle",
+      "triangles": 188,
+      "vertices": 292,
+      "materials": [
+        "turretina__aged_brass"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "pouch_strap",
+      "triangles": 188,
+      "vertices": 275,
+      "materials": [
+        "turretina__paper_warm_ivory"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "pouch_strap_001",
+      "triangles": 188,
+      "vertices": 275,
+      "materials": [
+        "turretina__paper_warm_ivory"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "rear_tool_pouch",
+      "triangles": 188,
+      "vertices": 300,
+      "materials": [
+        "turretina__tool_leather"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "pouch_flap",
+      "triangles": 188,
+      "vertices": 266,
+      "materials": [
+        "turretina__folder_seafoam"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "elbow_005",
+      "triangles": 720,
+      "vertices": 423,
+      "materials": [
+        "turretina__tool_leather"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "leather_hand_001",
+      "triangles": 720,
+      "vertices": 423,
+      "materials": [
+        "turretina__tool_leather"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "work_sleeve_001",
+      "triangles": 188,
+      "vertices": 217,
+      "materials": [
+        "turretina__folder_seafoam"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "sleeve_001",
+      "triangles": 188,
+      "vertices": 213,
+      "materials": [
+        "turretina__engineer_teal"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "sleeve_shoulder_001",
+      "triangles": 720,
+      "vertices": 423,
+      "materials": [
+        "turretina__engineer_teal"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "elbow_004",
+      "triangles": 720,
+      "vertices": 423,
+      "materials": [
+        "turretina__tool_leather"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "leather_hand",
+      "triangles": 720,
+      "vertices": 423,
+      "materials": [
+        "turretina__tool_leather"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "staple_exit",
+      "triangles": 188,
+      "vertices": 278,
+      "materials": [
+        "turretina__ink_charcoal"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "staple_indicator",
+      "triangles": 188,
+      "vertices": 274,
+      "materials": [
+        "turretina__paper_warm_ivory"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "staple_indicator_001",
+      "triangles": 188,
+      "vertices": 274,
+      "materials": [
+        "turretina__paper_warm_ivory"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "staple_indicator_002",
+      "triangles": 188,
+      "vertices": 274,
+      "materials": [
+        "turretina__paper_warm_ivory"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "staple_indicator_003",
+      "triangles": 188,
+      "vertices": 274,
+      "materials": [
+        "turretina__paper_warm_ivory"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "stapler_upper_press",
+      "triangles": 188,
+      "vertices": 240,
+      "materials": [
+        "turretina__stamp_vermilion"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "magazine",
+      "triangles": 188,
+      "vertices": 252,
+      "materials": [
+        "turretina__ink_charcoal"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "stapler_lower_rail",
+      "triangles": 188,
+      "vertices": 287,
+      "materials": [
+        "turretina__stapler_brushed_steel"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "stapler_rear_hinge",
+      "triangles": 380,
+      "vertices": 418,
+      "materials": [
+        "turretina__aged_brass"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "trigger_grip",
+      "triangles": 188,
+      "vertices": 261,
+      "materials": [
+        "turretina__tool_leather"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "work_sleeve",
+      "triangles": 188,
+      "vertices": 217,
+      "materials": [
+        "turretina__folder_seafoam"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "sleeve",
+      "triangles": 188,
+      "vertices": 213,
+      "materials": [
+        "turretina__engineer_teal"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "sleeve_shoulder",
+      "triangles": 720,
+      "vertices": 423,
+      "materials": [
+        "turretina__engineer_teal"
+      ],
+      "hasUV": true
+    },
+    {
+      "name": "work_belt",
+      "triangles": 188,
+      "vertices": 257,
+      "materials": [
+        "turretina__tool_leather"
+      ],
+      "hasUV": true
     }
   ],
   "bounds": {
     "min": [
-      -0.4720000034570694,
-      -9.536743172944284e-9,
-      -0.3323975205421448
+      -0.4466763891319623,
+      7.450580596923828e-9,
+      -0.7550000175833702
     ],
     "max": [
-      0.34900000751018523,
-      1.9666371405124665,
-      0.3284999978542328
+      0.46500003305781024,
+      1.9499999637309542,
+      0.334499997086823
     ]
   },
-  "parts": [
+  "dimensions": [
+    0.9116764221897725,
+    1.9499999562803736,
+    1.0895000146701932
+  ],
+  "materialSlots": [
+    "turretina__engineer_teal",
+    "turretina__rubber",
+    "turretina__aged_brass",
+    "turretina__ink_charcoal",
+    "turretina__tool_leather",
+    "turretina__stapler_brushed_steel",
+    "turretina__folder_seafoam",
+    "turretina__paper_warm_ivory",
+    "turretina__stamp_vermilion"
+  ],
+  "provenance": "EXTERNAL ORIGINAL by operator dot. Supplied manifest identifies externally Blender-authored original artwork; not locally procedural.",
+  "source": "external-art/turretina/model.glb",
+  "qualification": "No model.blend source was supplied despite manifest.files.source. Authorship/originality are operator declarations, not independently verified creation history. No re-export, subdivision or padding.",
+  "metadataSHA256": {
+    "manifest.json": "39fbf5bb41bec12988ee49780e83400f0715a4c2f7de9c09c8877431c335510c",
+    "palette.json": "279f1258632e4716b886b941e881818aba53161f711a0bd45339b77c958d609e",
+    "rig.json": "043159cdfc4e245feca8930bd4d306b72c869cd253e61cb277f808fd73e9b28e"
+  },
+  "rigAlias": "manifest.rig.json was byte-identical to rig.json in the delivery; documentation alias only, canonical file is rig.json.",
+  "audit": {
+    "glbVersion": 2,
+    "selfContained": true,
+    "uriCount": 0,
+    "images": 0,
+    "textures": 0,
+    "finiteGeometry": true,
+    "normalCountsMatch": true,
+    "presentUVCountsMatch": true,
+    "missingUVMeshes": [
+      "folder_workcoat"
+    ],
+    "indicesInRange": true,
+    "decodedSceneTriangles": 22416,
+    "sceneNodes": 106,
+    "movableNodes": 23,
+    "staticNodes": 83,
+    "anchors": 2,
+    "rigParentPivotAxesMatch": true,
+    "toleranceMetres": 0.00001
+  },
+  "rigParts": [
     {
-      "name": "torso-jacket",
-      "triangles": 7800
+      "name": "root",
+      "parent": null,
+      "localPivot": [
+        0,
+        0,
+        0
+      ],
+      "modelPivot": [
+        0,
+        0,
+        0
+      ],
+      "localQuaternion": [
+        0,
+        0,
+        0,
+        1
+      ]
     },
     {
-      "name": "torso-skin",
-      "triangles": 1224
+      "name": "pelvis",
+      "parent": "root",
+      "localPivot": [
+        0,
+        0.7900000214576721,
+        0
+      ],
+      "modelPivot": [
+        0,
+        0.7900000214576721,
+        0
+      ],
+      "localQuaternion": [
+        0,
+        0,
+        0,
+        1
+      ]
     },
     {
-      "name": "torso-cream",
-      "triangles": 4932
+      "name": "torso",
+      "parent": "pelvis",
+      "localPivot": [
+        0,
+        0,
+        0
+      ],
+      "modelPivot": [
+        0,
+        0.7900000214576721,
+        0
+      ],
+      "localQuaternion": [
+        0,
+        0,
+        0,
+        1
+      ]
     },
     {
-      "name": "torso-brass",
-      "triangles": 4292
+      "name": "head",
+      "parent": "torso",
+      "localPivot": [
+        0,
+        0.699999988079071,
+        0
+      ],
+      "modelPivot": [
+        0,
+        1.4900000095367432,
+        0
+      ],
+      "localQuaternion": [
+        0,
+        0,
+        0,
+        1
+      ]
     },
     {
-      "name": "torso-leather",
-      "triangles": 10280
+      "name": "thigh_r",
+      "parent": "pelvis",
+      "localPivot": [
+        0.18000000715255737,
+        0,
+        0
+      ],
+      "modelPivot": [
+        0.18000000715255737,
+        0.7900000214576721,
+        0
+      ],
+      "localQuaternion": [
+        0,
+        0,
+        0,
+        1
+      ]
     },
     {
-      "name": "torso-stitch",
-      "triangles": 2340
+      "name": "shin_r",
+      "parent": "thigh_r",
+      "localPivot": [
+        0,
+        -0.27000004053115845,
+        0
+      ],
+      "modelPivot": [
+        0.18000000715255737,
+        0.5199999809265137,
+        0
+      ],
+      "localQuaternion": [
+        0,
+        0,
+        0,
+        1
+      ]
     },
     {
-      "name": "torso-steel",
-      "triangles": 752
+      "name": "foot_r",
+      "parent": "shin_r",
+      "localPivot": [
+        0,
+        -0.26999998092651367,
+        0
+      ],
+      "modelPivot": [
+        0.18000000715255737,
+        0.25,
+        0
+      ],
+      "localQuaternion": [
+        0,
+        0,
+        0,
+        1
+      ]
     },
     {
-      "name": "head-skin",
-      "triangles": 14940
+      "name": "upper_arm_r",
+      "parent": "torso",
+      "localPivot": [
+        0.28999999165534973,
+        0.5599998831748962,
+        0
+      ],
+      "modelPivot": [
+        0.28999999165534973,
+        1.3499999046325684,
+        0
+      ],
+      "localQuaternion": [
+        0,
+        0,
+        0,
+        1
+      ]
     },
     {
-      "name": "head-lips",
-      "triangles": 2156
+      "name": "forearm_r",
+      "parent": "upper_arm_r",
+      "localPivot": [
+        0.07000002264976501,
+        -0.2200000286102295,
+        -0.05000000074505806
+      ],
+      "modelPivot": [
+        0.36000001430511475,
+        1.1299998760223389,
+        -0.05000000074505806
+      ],
+      "localQuaternion": [
+        0,
+        0,
+        0,
+        1
+      ]
     },
     {
-      "name": "head-eye",
-      "triangles": 1560
+      "name": "hand_r",
+      "parent": "forearm_r",
+      "localPivot": [
+        0,
+        -0.04999995231628418,
+        -0.26999998092651367
+      ],
+      "modelPivot": [
+        0.36000001430511475,
+        1.0799999237060547,
+        -0.31999998167157173
+      ],
+      "localQuaternion": [
+        0,
+        0,
+        0,
+        1
+      ]
     },
     {
-      "name": "head-glass",
-      "triangles": 3216
+      "name": "thigh_l",
+      "parent": "pelvis",
+      "localPivot": [
+        -0.18000000715255737,
+        0,
+        0
+      ],
+      "modelPivot": [
+        -0.18000000715255737,
+        0.7900000214576721,
+        0
+      ],
+      "localQuaternion": [
+        0,
+        0,
+        0,
+        1
+      ]
     },
     {
-      "name": "head-hair",
-      "triangles": 16072
+      "name": "shin_l",
+      "parent": "thigh_l",
+      "localPivot": [
+        0,
+        -0.27000004053115845,
+        0
+      ],
+      "modelPivot": [
+        -0.18000000715255737,
+        0.5199999809265137,
+        0
+      ],
+      "localQuaternion": [
+        0,
+        0,
+        0,
+        1
+      ]
     },
     {
-      "name": "head-ochre",
-      "triangles": 3466
+      "name": "foot_l",
+      "parent": "shin_l",
+      "localPivot": [
+        0,
+        -0.26999998092651367,
+        0
+      ],
+      "modelPivot": [
+        -0.18000000715255737,
+        0.25,
+        0
+      ],
+      "localQuaternion": [
+        0,
+        0,
+        0,
+        1
+      ]
     },
     {
-      "name": "head-brass",
-      "triangles": 2060
+      "name": "upper_arm_l",
+      "parent": "torso",
+      "localPivot": [
+        -0.28999999165534973,
+        0.5599998831748962,
+        0
+      ],
+      "modelPivot": [
+        -0.28999999165534973,
+        1.3499999046325684,
+        0
+      ],
+      "localQuaternion": [
+        0,
+        0,
+        0,
+        1
+      ]
     },
     {
-      "name": "head-leather",
-      "triangles": 612
+      "name": "forearm_l",
+      "parent": "upper_arm_l",
+      "localPivot": [
+        -0.07000002264976501,
+        -0.2200000286102295,
+        -0.05000000074505806
+      ],
+      "modelPivot": [
+        -0.36000001430511475,
+        1.1299998760223389,
+        -0.05000000074505806
+      ],
+      "localQuaternion": [
+        0,
+        0,
+        0,
+        1
+      ]
     },
     {
-      "name": "head-steel",
-      "triangles": 768
+      "name": "hand_l",
+      "parent": "forearm_l",
+      "localPivot": [
+        0.6100000143051147,
+        -0.029999971389770508,
+        -0.4399999976158142
+      ],
+      "modelPivot": [
+        0.25,
+        1.0999999046325684,
+        -0.48999999836087227
+      ],
+      "localQuaternion": [
+        0,
+        0,
+        0,
+        1
+      ]
     },
     {
-      "name": "arm-left-jacket",
-      "triangles": 4228
+      "name": "tool_satchel",
+      "parent": "torso",
+      "localPivot": [
+        0,
+        0.4999999403953552,
+        0.20000000298023224
+      ],
+      "modelPivot": [
+        0,
+        1.2899999618530273,
+        0.20000000298023224
+      ],
+      "localQuaternion": [
+        0,
+        0,
+        0,
+        1
+      ]
     },
     {
-      "name": "arm-left-stitch",
-      "triangles": 310
+      "name": "satchel_flap",
+      "parent": "tool_satchel",
+      "localPivot": [
+        0,
+        -0.004999995231628418,
+        0.08999998867511749
+      ],
+      "modelPivot": [
+        0,
+        1.284999966621399,
+        0.28999999165534973
+      ],
+      "localQuaternion": [
+        0,
+        0,
+        0,
+        1
+      ]
     },
     {
-      "name": "arm-left-skin",
-      "triangles": 4376
+      "name": "folder_panel_r",
+      "parent": "torso",
+      "localPivot": [
+        0.12999999523162842,
+        0.5600000023841858,
+        -0.18000000715255737
+      ],
+      "modelPivot": [
+        0.12999999523162842,
+        1.350000023841858,
+        -0.18000000715255737
+      ],
+      "localQuaternion": [
+        0,
+        0,
+        0,
+        1
+      ]
     },
     {
-      "name": "arm-left-leather",
-      "triangles": 2264
+      "name": "folder_panel_l",
+      "parent": "torso",
+      "localPivot": [
+        -0.12999999523162842,
+        0.5600000023841858,
+        -0.18000000715255737
+      ],
+      "modelPivot": [
+        -0.12999999523162842,
+        1.350000023841858,
+        -0.18000000715255737
+      ],
+      "localQuaternion": [
+        0,
+        0,
+        0,
+        1
+      ]
     },
     {
-      "name": "arm-left-cream",
-      "triangles": 780
+      "name": "stapler_carbine",
+      "parent": "hand_r",
+      "localPivot": [
+        0,
+        0,
+        0.009999990463256836
+      ],
+      "modelPivot": [
+        0.36000001430511475,
+        1.0799999237060547,
+        -0.3099999912083149
+      ],
+      "localQuaternion": [
+        0,
+        0,
+        0,
+        1
+      ]
     },
     {
-      "name": "arm-left-brass",
-      "triangles": 200
+      "name": "carbine_press",
+      "parent": "stapler_carbine",
+      "localPivot": [
+        0,
+        0.11000001430511475,
+        0.03999999165534973
+      ],
+      "modelPivot": [
+        0.36000001430511475,
+        1.1899999380111694,
+        -0.26999999955296516
+      ],
+      "localQuaternion": [
+        0,
+        0,
+        0,
+        1
+      ]
     },
     {
-      "name": "arm-right-jacket",
-      "triangles": 4228
-    },
-    {
-      "name": "arm-right-stitch",
-      "triangles": 310
-    },
-    {
-      "name": "arm-right-skin",
-      "triangles": 4376
-    },
-    {
-      "name": "arm-right-leather",
-      "triangles": 2452
-    },
-    {
-      "name": "arm-right-cream",
-      "triangles": 780
-    },
-    {
-      "name": "arm-right-brass",
-      "triangles": 2700
-    },
-    {
-      "name": "arm-right-steel",
-      "triangles": 1172
-    },
-    {
-      "name": "arm-right-copper",
-      "triangles": 6228
-    },
-    {
-      "name": "leg-left-jacket",
-      "triangles": 4896
-    },
-    {
-      "name": "leg-left-stitch",
-      "triangles": 1628
-    },
-    {
-      "name": "leg-left-cream",
-      "triangles": 1620
-    },
-    {
-      "name": "leg-left-leather",
-      "triangles": 4392
-    },
-    {
-      "name": "leg-left-brass",
-      "triangles": 2936
-    },
-    {
-      "name": "leg-left-steel",
-      "triangles": 2312
-    },
-    {
-      "name": "leg-right-jacket",
-      "triangles": 4896
-    },
-    {
-      "name": "leg-right-stitch",
-      "triangles": 1628
-    },
-    {
-      "name": "leg-right-cream",
-      "triangles": 1620
-    },
-    {
-      "name": "leg-right-leather",
-      "triangles": 4392
-    },
-    {
-      "name": "leg-right-brass",
-      "triangles": 2936
-    },
-    {
-      "name": "leg-right-steel",
-      "triangles": 2312
-    },
-    {
-      "name": "cape-canvas",
-      "triangles": 9324
-    },
-    {
-      "name": "cape-leather",
-      "triangles": 1984
-    },
-    {
-      "name": "cape-stitch",
-      "triangles": 3080
-    },
-    {
-      "name": "cape-brass",
-      "triangles": 4292
-    },
-    {
-      "name": "cape-steel",
-      "triangles": 360
-    },
-    {
-      "name": "cape-copper",
-      "triangles": 6336
+      "name": "carbine_muzzle",
+      "parent": "stapler_carbine",
+      "localPivot": [
+        0,
+        0.07999992370605469,
+        -0.3799999952316284
+      ],
+      "modelPivot": [
+        0.36000001430511475,
+        1.1599998474121094,
+        -0.6899999864399433
+      ],
+      "localQuaternion": [
+        0,
+        0,
+        0,
+        1
+      ]
     }
   ],
-  "provenance": "Original authored procedural mesh; no third-party art or Blender. Concept reference is supplied codex-imagen plate.",
-  "quality": "Procedural interpretation, not a photoreal sculpt or acceptance grade."
+  "quality": "Node-only structural audit. Scene triangle count is not visible-pixel count, FPS, pose clearance, visual, gameplay or hardware acceptance."
 }

@@ -1,0 +1,1441 @@
+{
+  "schema": "rigid_parts_v2",
+  "version": 2,
+  "model": "turretina",
+  "coordinate_system": "glTF: metres, +Y up, -Z forward, anatomical right +X",
+  "pivot_space": "pivot_position is parent-local glTF translation; pivot_model_position is rest-pose model-space origin. Rotations in degrees about local axes; X is every bend/pitch hinge, Y is yaw. Translation ranges are deltas from rest in local metres.",
+  "range_semantics": "[min,max] inclusive; free means no cap; [0,0] locked. Ranges are artistic guides, not collision guarantees.",
+  "movable_nodes": [
+    {
+      "name": "root",
+      "pivot_position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "pivot_model_position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "parent": null,
+      "rotation_deg": {
+        "x": [
+          0,
+          0
+        ],
+        "y": "free",
+        "z": [
+          0,
+          0
+        ]
+      },
+      "translation_m": {
+        "x": "free",
+        "y": "free",
+        "z": "free"
+      },
+      "note": "Caller-owned whole-assembly placement; never derive gameplay collision from decorative geometry."
+    },
+    {
+      "name": "pelvis",
+      "pivot_position": [
+        0.0,
+        0.79,
+        0.0
+      ],
+      "pivot_model_position": [
+        0.0,
+        0.79,
+        0.0
+      ],
+      "parent": "root",
+      "rotation_deg": {
+        "x": [
+          -12,
+          12
+        ],
+        "y": [
+          -15,
+          15
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "translation_m": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "note": "Hip carrier; both leg chains and torso follow this node."
+    },
+    {
+      "name": "torso",
+      "pivot_position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "pivot_model_position": [
+        0.0,
+        0.79,
+        0.0
+      ],
+      "parent": "pelvis",
+      "rotation_deg": {
+        "x": [
+          -20,
+          20
+        ],
+        "y": [
+          -25,
+          25
+        ],
+        "z": [
+          -10,
+          10
+        ]
+      },
+      "translation_m": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "note": ""
+    },
+    {
+      "name": "head",
+      "pivot_position": [
+        0.0,
+        0.7,
+        0.0
+      ],
+      "pivot_model_position": [
+        0.0,
+        1.49,
+        0.0
+      ],
+      "parent": "torso",
+      "rotation_deg": {
+        "x": [
+          -25,
+          25
+        ],
+        "y": [
+          -60,
+          60
+        ],
+        "z": [
+          -15,
+          15
+        ]
+      },
+      "translation_m": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "note": ""
+    },
+    {
+      "name": "thigh_r",
+      "pivot_position": [
+        0.18,
+        0.0,
+        0.0
+      ],
+      "pivot_model_position": [
+        0.18,
+        0.79,
+        0.0
+      ],
+      "parent": "pelvis",
+      "rotation_deg": {
+        "x": [
+          -55,
+          55
+        ],
+        "y": [
+          -10,
+          10
+        ],
+        "z": [
+          -15,
+          15
+        ]
+      },
+      "translation_m": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "note": ""
+    },
+    {
+      "name": "shin_r",
+      "pivot_position": [
+        0.0,
+        -0.27,
+        0.0
+      ],
+      "pivot_model_position": [
+        0.18,
+        0.52,
+        0.0
+      ],
+      "parent": "thigh_r",
+      "rotation_deg": {
+        "x": [
+          0,
+          100
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "translation_m": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "note": "Knee hinge: local X; feet inherit this joint."
+    },
+    {
+      "name": "foot_r",
+      "pivot_position": [
+        0.0,
+        -0.27,
+        0.0
+      ],
+      "pivot_model_position": [
+        0.18,
+        0.25,
+        0.0
+      ],
+      "parent": "shin_r",
+      "rotation_deg": {
+        "x": [
+          -25,
+          30
+        ],
+        "y": [
+          -15,
+          15
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "translation_m": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "note": ""
+    },
+    {
+      "name": "upper_arm_r",
+      "pivot_position": [
+        0.29,
+        0.5599999,
+        0.0
+      ],
+      "pivot_model_position": [
+        0.29,
+        1.3499999,
+        0.0
+      ],
+      "parent": "torso",
+      "rotation_deg": {
+        "x": [
+          -110,
+          110
+        ],
+        "y": [
+          -25,
+          25
+        ],
+        "z": [
+          -65,
+          65
+        ]
+      },
+      "translation_m": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "note": ""
+    },
+    {
+      "name": "forearm_r",
+      "pivot_position": [
+        0.07,
+        -0.22,
+        -0.05
+      ],
+      "pivot_model_position": [
+        0.36,
+        1.1299999,
+        -0.05
+      ],
+      "parent": "upper_arm_r",
+      "rotation_deg": {
+        "x": [
+          -110,
+          30
+        ],
+        "y": [
+          -20,
+          20
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "translation_m": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "note": ""
+    },
+    {
+      "name": "hand_r",
+      "pivot_position": [
+        0.0,
+        -0.05,
+        -0.27
+      ],
+      "pivot_model_position": [
+        0.36,
+        1.0799999,
+        -0.32
+      ],
+      "parent": "forearm_r",
+      "rotation_deg": {
+        "x": [
+          -35,
+          35
+        ],
+        "y": [
+          -30,
+          30
+        ],
+        "z": [
+          -20,
+          20
+        ]
+      },
+      "translation_m": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "note": ""
+    },
+    {
+      "name": "thigh_l",
+      "pivot_position": [
+        -0.18,
+        0.0,
+        0.0
+      ],
+      "pivot_model_position": [
+        -0.18,
+        0.79,
+        0.0
+      ],
+      "parent": "pelvis",
+      "rotation_deg": {
+        "x": [
+          -55,
+          55
+        ],
+        "y": [
+          -10,
+          10
+        ],
+        "z": [
+          -15,
+          15
+        ]
+      },
+      "translation_m": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "note": ""
+    },
+    {
+      "name": "shin_l",
+      "pivot_position": [
+        0.0,
+        -0.27,
+        0.0
+      ],
+      "pivot_model_position": [
+        -0.18,
+        0.52,
+        0.0
+      ],
+      "parent": "thigh_l",
+      "rotation_deg": {
+        "x": [
+          0,
+          100
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "translation_m": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "note": "Knee hinge: local X; feet inherit this joint."
+    },
+    {
+      "name": "foot_l",
+      "pivot_position": [
+        0.0,
+        -0.27,
+        0.0
+      ],
+      "pivot_model_position": [
+        -0.18,
+        0.25,
+        0.0
+      ],
+      "parent": "shin_l",
+      "rotation_deg": {
+        "x": [
+          -25,
+          30
+        ],
+        "y": [
+          -15,
+          15
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "translation_m": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "note": ""
+    },
+    {
+      "name": "upper_arm_l",
+      "pivot_position": [
+        -0.29,
+        0.5599999,
+        0.0
+      ],
+      "pivot_model_position": [
+        -0.29,
+        1.3499999,
+        0.0
+      ],
+      "parent": "torso",
+      "rotation_deg": {
+        "x": [
+          -110,
+          110
+        ],
+        "y": [
+          -25,
+          25
+        ],
+        "z": [
+          -65,
+          65
+        ]
+      },
+      "translation_m": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "note": ""
+    },
+    {
+      "name": "forearm_l",
+      "pivot_position": [
+        -0.07,
+        -0.22,
+        -0.05
+      ],
+      "pivot_model_position": [
+        -0.36,
+        1.1299999,
+        -0.05
+      ],
+      "parent": "upper_arm_l",
+      "rotation_deg": {
+        "x": [
+          -110,
+          30
+        ],
+        "y": [
+          -20,
+          20
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "translation_m": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "note": ""
+    },
+    {
+      "name": "hand_l",
+      "pivot_position": [
+        0.61,
+        -0.03,
+        -0.44
+      ],
+      "pivot_model_position": [
+        0.25,
+        1.0999999,
+        -0.49
+      ],
+      "parent": "forearm_l",
+      "rotation_deg": {
+        "x": [
+          -35,
+          35
+        ],
+        "y": [
+          -30,
+          30
+        ],
+        "z": [
+          -20,
+          20
+        ]
+      },
+      "translation_m": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "note": ""
+    },
+    {
+      "name": "tool_satchel",
+      "pivot_position": [
+        0.0,
+        0.4999999,
+        0.2
+      ],
+      "pivot_model_position": [
+        0.0,
+        1.29,
+        0.2
+      ],
+      "parent": "torso",
+      "rotation_deg": {
+        "x": [
+          -15,
+          15
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "translation_m": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "note": ""
+    },
+    {
+      "name": "satchel_flap",
+      "pivot_position": [
+        0.0,
+        -0.005,
+        0.09
+      ],
+      "pivot_model_position": [
+        0.0,
+        1.285,
+        0.29
+      ],
+      "parent": "tool_satchel",
+      "rotation_deg": {
+        "x": [
+          -90,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "translation_m": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "note": "Top rear flap hinge."
+    },
+    {
+      "name": "folder_panel_r",
+      "pivot_position": [
+        0.13,
+        0.56,
+        -0.18
+      ],
+      "pivot_model_position": [
+        0.13,
+        1.35,
+        -0.18
+      ],
+      "parent": "torso",
+      "rotation_deg": {
+        "x": [
+          -12,
+          12
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "translation_m": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "note": "Rigid folder/workwear panel; modest swing only, no cloth deformation."
+    },
+    {
+      "name": "folder_panel_l",
+      "pivot_position": [
+        -0.13,
+        0.56,
+        -0.18
+      ],
+      "pivot_model_position": [
+        -0.13,
+        1.35,
+        -0.18
+      ],
+      "parent": "torso",
+      "rotation_deg": {
+        "x": [
+          -12,
+          12
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "translation_m": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "note": "Rigid folder/workwear panel; modest swing only, no cloth deformation."
+    },
+    {
+      "name": "stapler_carbine",
+      "pivot_position": [
+        0.0,
+        0.0,
+        0.01
+      ],
+      "pivot_model_position": [
+        0.36,
+        1.0799999,
+        -0.31
+      ],
+      "parent": "hand_r",
+      "rotation_deg": {
+        "x": [
+          -20,
+          20
+        ],
+        "y": [
+          -10,
+          10
+        ],
+        "z": [
+          -10,
+          10
+        ]
+      },
+      "translation_m": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "note": "Held weapon grip pivot; left support hand can be posed independently."
+    },
+    {
+      "name": "carbine_press",
+      "pivot_position": [
+        0.0,
+        0.11,
+        0.04
+      ],
+      "pivot_model_position": [
+        0.36,
+        1.1899999,
+        -0.27
+      ],
+      "parent": "stapler_carbine",
+      "rotation_deg": {
+        "x": [
+          -12,
+          6
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "translation_m": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "note": "Rear stapler hinge, local X."
+    },
+    {
+      "name": "carbine_muzzle",
+      "pivot_position": [
+        0.0,
+        0.0799999,
+        -0.38
+      ],
+      "pivot_model_position": [
+        0.36,
+        1.1599998,
+        -0.69
+      ],
+      "parent": "stapler_carbine",
+      "rotation_deg": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "translation_m": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          -0.025,
+          0
+        ]
+      },
+      "note": "Short local -Z recoil travel only."
+    }
+  ],
+  "static_nodes": [
+    {
+      "name": "foot_l_ankle_002",
+      "parent": "foot_l",
+      "reason": "Rigid geometry fixed to parent; follows parent chain, no independent motion."
+    },
+    {
+      "name": "foot_l_sole_002",
+      "parent": "foot_l",
+      "reason": "Rigid geometry fixed to parent; follows parent chain, no independent motion."
+    },
+    {
+      "name": "foot_l_strap_004",
+      "parent": "foot_l",
+      "reason": "Rigid geometry fixed to parent; follows parent chain, no independent motion."
+    },
+    {
+      "name": "foot_l_strap_005",
+      "parent": "foot_l",
+      "reason": "Rigid geometry fixed to parent; follows parent chain, no independent motion."
+    },
+    {
+      "name": "foot_l_tread_008",
+      "parent": "foot_l",
+      "reason": "Rigid geometry fixed to parent; follows parent chain, no independent motion."
+    },
+    {
+      "name": "foot_l_tread_009",
+      "parent": "foot_l",
+      "reason": "Rigid geometry fixed to parent; follows parent chain, no independent motion."
+    },
+    {
+      "name": "foot_l_tread_010",
+      "parent": "foot_l",
+      "reason": "Rigid geometry fixed to parent; follows parent chain, no independent motion."
+    },
+    {
+      "name": "foot_l_tread_011",
+      "parent": "foot_l",
+      "reason": "Rigid geometry fixed to parent; follows parent chain, no independent motion."
+    },
+    {
+      "name": "foot_l_vamp_002",
+      "parent": "foot_l",
+      "reason": "Rigid geometry fixed to parent; follows parent chain, no independent motion."
+    },
+    {
+      "name": "knee_pad_001",
+      "parent": "shin_l",
+      "reason": "Rigid geometry fixed to parent; follows parent chain, no independent motion."
+    },
+    {
+      "name": "lower_work_trouser_l",
+      "parent": "shin_l",
+      "reason": "Rigid geometry fixed to parent; follows parent chain, no independent motion."
+    },
+    {
+      "name": "upper_work_trouser_l",
+      "parent": "thigh_l",
+      "reason": "Rigid geometry fixed to parent; follows parent chain, no independent motion."
+    },
+    {
+      "name": "foot_r_ankle_002",
+      "parent": "foot_r",
+      "reason": "Rigid geometry fixed to parent; follows parent chain, no independent motion."
+    },
+    {
+      "name": "foot_r_sole_002",
+      "parent": "foot_r",
+      "reason": "Rigid geometry fixed to parent; follows parent chain, no independent motion."
+    },
+    {
+      "name": "foot_r_strap_004",
+      "parent": "foot_r",
+      "reason": "Rigid geometry fixed to parent; follows parent chain, no independent motion."
+    },
+    {
+      "name": "foot_r_strap_005",
+      "parent": "foot_r",
+      "reason": "Rigid geometry fixed to parent; follows parent chain, no independent motion."
+    },
+    {
+      "name": "foot_r_tread_008",
+      "parent": "foot_r",
+      "reason": "Rigid geometry fixed to parent; follows parent chain, no independent motion."
+    },
+    {
+      "name": "foot_r_tread_009",
+      "parent": "foot_r",
+      "reason": "Rigid geometry fixed to parent; follows parent chain, no independent motion."
+    },
+    {
+      "name": "foot_r_tread_010",
+      "parent": "foot_r",
+      "reason": "Rigid geometry fixed to parent; follows parent chain, no independent motion."
+    },
+    {
+      "name": "foot_r_tread_011",
+      "parent": "foot_r",
+      "reason": "Rigid geometry fixed to parent; follows parent chain, no independent motion."
+    },
+    {
+      "name": "foot_r_vamp_002",
+      "parent": "foot_r",
+      "reason": "Rigid geometry fixed to parent; follows parent chain, no independent motion."
+    },
+    {
+      "name": "knee_pad",
+      "parent": "shin_r",
+      "reason": "Rigid geometry fixed to parent; follows parent chain, no independent motion."
+    },
+    {
+      "name": "lower_work_trouser_r",
+      "parent": "shin_r",
+      "reason": "Rigid geometry fixed to parent; follows parent chain, no independent motion."
+    },
+    {
+      "name": "upper_work_trouser_r",
+      "parent": "thigh_r",
+      "reason": "Rigid geometry fixed to parent; follows parent chain, no independent motion."
+    },
+    {
+      "name": "folded_tripod_tool",
+      "parent": "torso",
+      "reason": "Rigid geometry fixed to parent; follows parent chain, no independent motion."
+    },
+    {
+      "name": "folded_tripod_tool_001",
+      "parent": "torso",
+      "reason": "Rigid geometry fixed to parent; follows parent chain, no independent motion."
+    },
+    {
+      "name": "folded_tripod_tool_002",
+      "parent": "torso",
+      "reason": "Rigid geometry fixed to parent; follows parent chain, no independent motion."
+    },
+    {
+      "name": "apron_patch_pocket_001",
+      "parent": "folder_panel_l",
+      "reason": "Rigid geometry fixed to parent; follows parent chain, no independent motion."
+    },
+    {
+      "name": "folder_front_panel_001",
+      "parent": "folder_panel_l",
+      "reason": "Rigid geometry fixed to parent; follows parent chain, no independent motion."
+    },
+    {
+      "name": "folder_tab_001",
+      "parent": "folder_panel_l",
+      "reason": "Rigid geometry fixed to parent; follows parent chain, no independent motion."
+    },
+    {
+      "name": "pocket_stitch_003",
+      "parent": "folder_panel_l",
+      "reason": "Rigid geometry fixed to parent; follows parent chain, no independent motion."
+    },
+    {
+      "name": "pocket_stitch_004",
+      "parent": "folder_panel_l",
+      "reason": "Rigid geometry fixed to parent; follows parent chain, no independent motion."
+    },
+    {
+      "name": "pocket_stitch_005",
+      "parent": "folder_panel_l",
+      "reason": "Rigid geometry fixed to parent; follows parent chain, no independent motion."
+    },
+    {
+      "name": "apron_patch_pocket",
+      "parent": "folder_panel_r",
+      "reason": "Rigid geometry fixed to parent; follows parent chain, no independent motion."
+    },
+    {
+      "name": "folder_front_panel",
+      "parent": "folder_panel_r",
+      "reason": "Rigid geometry fixed to parent; follows parent chain, no independent motion."
+    },
+    {
+      "name": "folder_tab",
+      "parent": "folder_panel_r",
+      "reason": "Rigid geometry fixed to parent; follows parent chain, no independent motion."
+    },
+    {
+      "name": "pocket_stitch",
+      "parent": "folder_panel_r",
+      "reason": "Rigid geometry fixed to parent; follows parent chain, no independent motion."
+    },
+    {
+      "name": "pocket_stitch_001",
+      "parent": "folder_panel_r",
+      "reason": "Rigid geometry fixed to parent; follows parent chain, no independent motion."
+    },
+    {
+      "name": "pocket_stitch_002",
+      "parent": "folder_panel_r",
+      "reason": "Rigid geometry fixed to parent; follows parent chain, no independent motion."
+    },
+    {
+      "name": "folder_workcoat",
+      "parent": "torso",
+      "reason": "Rigid geometry fixed to parent; follows parent chain, no independent motion."
+    },
+    {
+      "name": "goggle_glass",
+      "parent": "head",
+      "reason": "Rigid geometry fixed to parent; follows parent chain, no independent motion."
+    },
+    {
+      "name": "goggle_glass_001",
+      "parent": "head",
+      "reason": "Rigid geometry fixed to parent; follows parent chain, no independent motion."
+    },
+    {
+      "name": "goggle_rim",
+      "parent": "head",
+      "reason": "Rigid geometry fixed to parent; follows parent chain, no independent motion."
+    },
+    {
+      "name": "goggle_rim_001",
+      "parent": "head",
+      "reason": "Rigid geometry fixed to parent; follows parent chain, no independent motion."
+    },
+    {
+      "name": "neck_002",
+      "parent": "head",
+      "reason": "Rigid geometry fixed to parent; follows parent chain, no independent motion."
+    },
+    {
+      "name": "spool_core",
+      "parent": "head",
+      "reason": "Rigid geometry fixed to parent; follows parent chain, no independent motion."
+    },
+    {
+      "name": "spool_flange",
+      "parent": "head",
+      "reason": "Rigid geometry fixed to parent; follows parent chain, no independent motion."
+    },
+    {
+      "name": "spool_flange_001",
+      "parent": "head",
+      "reason": "Rigid geometry fixed to parent; follows parent chain, no independent motion."
+    },
+    {
+      "name": "spool_head",
+      "parent": "head",
+      "reason": "Rigid geometry fixed to parent; follows parent chain, no independent motion."
+    },
+    {
+      "name": "thread_winding",
+      "parent": "head",
+      "reason": "Rigid geometry fixed to parent; follows parent chain, no independent motion."
+    },
+    {
+      "name": "thread_winding_001",
+      "parent": "head",
+      "reason": "Rigid geometry fixed to parent; follows parent chain, no independent motion."
+    },
+    {
+      "name": "thread_winding_002",
+      "parent": "head",
+      "reason": "Rigid geometry fixed to parent; follows parent chain, no independent motion."
+    },
+    {
+      "name": "thread_winding_003",
+      "parent": "head",
+      "reason": "Rigid geometry fixed to parent; follows parent chain, no independent motion."
+    },
+    {
+      "name": "thread_winding_004",
+      "parent": "head",
+      "reason": "Rigid geometry fixed to parent; follows parent chain, no independent motion."
+    },
+    {
+      "name": "work_goggles",
+      "parent": "head",
+      "reason": "Rigid geometry fixed to parent; follows parent chain, no independent motion."
+    },
+    {
+      "name": "tool_buckle",
+      "parent": "torso",
+      "reason": "Rigid geometry fixed to parent; follows parent chain, no independent motion."
+    },
+    {
+      "name": "pouch_strap",
+      "parent": "tool_satchel",
+      "reason": "Rigid geometry fixed to parent; follows parent chain, no independent motion."
+    },
+    {
+      "name": "pouch_strap_001",
+      "parent": "tool_satchel",
+      "reason": "Rigid geometry fixed to parent; follows parent chain, no independent motion."
+    },
+    {
+      "name": "rear_tool_pouch",
+      "parent": "tool_satchel",
+      "reason": "Rigid geometry fixed to parent; follows parent chain, no independent motion."
+    },
+    {
+      "name": "pouch_flap",
+      "parent": "satchel_flap",
+      "reason": "Rigid geometry fixed to parent; follows parent chain, no independent motion."
+    },
+    {
+      "name": "elbow_005",
+      "parent": "forearm_l",
+      "reason": "Rigid geometry fixed to parent; follows parent chain, no independent motion."
+    },
+    {
+      "name": "leather_hand_001",
+      "parent": "hand_l",
+      "reason": "Rigid geometry fixed to parent; follows parent chain, no independent motion."
+    },
+    {
+      "name": "work_sleeve_001",
+      "parent": "forearm_l",
+      "reason": "Rigid geometry fixed to parent; follows parent chain, no independent motion."
+    },
+    {
+      "name": "sleeve_001",
+      "parent": "upper_arm_l",
+      "reason": "Rigid geometry fixed to parent; follows parent chain, no independent motion."
+    },
+    {
+      "name": "sleeve_shoulder_001",
+      "parent": "upper_arm_l",
+      "reason": "Rigid geometry fixed to parent; follows parent chain, no independent motion."
+    },
+    {
+      "name": "elbow_004",
+      "parent": "forearm_r",
+      "reason": "Rigid geometry fixed to parent; follows parent chain, no independent motion."
+    },
+    {
+      "name": "leather_hand",
+      "parent": "hand_r",
+      "reason": "Rigid geometry fixed to parent; follows parent chain, no independent motion."
+    },
+    {
+      "name": "muzzle",
+      "parent": "carbine_muzzle",
+      "reason": "Fixed mount or attachment reference."
+    },
+    {
+      "name": "staple_exit",
+      "parent": "carbine_muzzle",
+      "reason": "Rigid geometry fixed to parent; follows parent chain, no independent motion."
+    },
+    {
+      "name": "staple_indicator",
+      "parent": "carbine_press",
+      "reason": "Rigid geometry fixed to parent; follows parent chain, no independent motion."
+    },
+    {
+      "name": "staple_indicator_001",
+      "parent": "carbine_press",
+      "reason": "Rigid geometry fixed to parent; follows parent chain, no independent motion."
+    },
+    {
+      "name": "staple_indicator_002",
+      "parent": "carbine_press",
+      "reason": "Rigid geometry fixed to parent; follows parent chain, no independent motion."
+    },
+    {
+      "name": "staple_indicator_003",
+      "parent": "carbine_press",
+      "reason": "Rigid geometry fixed to parent; follows parent chain, no independent motion."
+    },
+    {
+      "name": "stapler_upper_press",
+      "parent": "carbine_press",
+      "reason": "Rigid geometry fixed to parent; follows parent chain, no independent motion."
+    },
+    {
+      "name": "magazine",
+      "parent": "stapler_carbine",
+      "reason": "Rigid geometry fixed to parent; follows parent chain, no independent motion."
+    },
+    {
+      "name": "right_hand_grip",
+      "parent": "stapler_carbine",
+      "reason": "Fixed mount or attachment reference."
+    },
+    {
+      "name": "stapler_lower_rail",
+      "parent": "stapler_carbine",
+      "reason": "Rigid geometry fixed to parent; follows parent chain, no independent motion."
+    },
+    {
+      "name": "stapler_rear_hinge",
+      "parent": "stapler_carbine",
+      "reason": "Rigid geometry fixed to parent; follows parent chain, no independent motion."
+    },
+    {
+      "name": "trigger_grip",
+      "parent": "stapler_carbine",
+      "reason": "Rigid geometry fixed to parent; follows parent chain, no independent motion."
+    },
+    {
+      "name": "work_sleeve",
+      "parent": "forearm_r",
+      "reason": "Rigid geometry fixed to parent; follows parent chain, no independent motion."
+    },
+    {
+      "name": "sleeve",
+      "parent": "upper_arm_r",
+      "reason": "Rigid geometry fixed to parent; follows parent chain, no independent motion."
+    },
+    {
+      "name": "sleeve_shoulder",
+      "parent": "upper_arm_r",
+      "reason": "Rigid geometry fixed to parent; follows parent chain, no independent motion."
+    },
+    {
+      "name": "work_belt",
+      "parent": "torso",
+      "reason": "Rigid geometry fixed to parent; follows parent chain, no independent motion."
+    }
+  ],
+  "anchors": [
+    {
+      "name": "muzzle",
+      "parent": "carbine_muzzle",
+      "pivot_position": [
+        0,
+        0,
+        -0.07999998331069946
+      ],
+      "pivot_model_position": [
+        0.36,
+        1.1599998,
+        -0.77
+      ]
+    },
+    {
+      "name": "right_hand_grip",
+      "parent": "stapler_carbine",
+      "pivot_position": [
+        0,
+        0,
+        0
+      ],
+      "pivot_model_position": [
+        0.36,
+        1.0799999,
+        -0.31
+      ]
+    }
+  ],
+  "animation_clips": [],
+  "skinning": "none; all movable parts are rigid separate named nodes",
+  "source_axis_mapping": {
+    "Blender_X": "glTF_X",
+    "Blender_Z": "glTF_Y",
+    "Blender_Y": "glTF_-Z"
+  }
+}
