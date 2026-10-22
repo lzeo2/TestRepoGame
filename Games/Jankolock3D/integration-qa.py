@@ -1,4 +1,5 @@
 """Bounded integration evidence. Explicit API fixtures are labeled, never native claims."""
+import argparse
 import functools
 import hashlib
 import http.server
@@ -28,16 +29,26 @@ class Handler(http.server.SimpleHTTPRequestHandler):
 
 
 def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--traversal-only', action='store_true', help='Only A, isolated API placement/clock with native E; no combat acceptance')
+    traversal_only = parser.parse_args().traversal_only
     before = guard()
     active = subprocess.run(['pgrep', '-f', '[c]hrome-linux/chrome|[c]hromium.*--remote-debugging-pipe'], capture_output=True)
     assert active.returncode != 0, 'Sibling browser active; sequence, do not overlap'
     guard(); OUT.mkdir(parents=True, exist_ok=True)
-    report = {'kind': 'Integrated software-WebGL builder evidence; reviewer grades acceptance. QA API fixtures are not native gameplay.',
+    def source_hashes():
+        return {str(p.relative_to(ROOT)): hashlib.sha256(p.read_bytes()).hexdigest()
+                for p in sorted((ROOT / 'Games/Jankolock3D').rglob('*')) if p.is_file() and p.suffix in {'.mjs', '.js', '.html', '.css', '.glb', '.py'}}
+    report_file = OUT / ('integration-traversal-evidence.json' if traversal_only else 'integration-evidence.json')
+    report = {'scope': 'traversal-only' if traversal_only else 'full',
+              'traversalPolicy': 'Fresh page/simulation per lane; fixture API station placement/cooldown reset and scripted clock; native E. Per-instance passive hero bots only; structures defense unchanged. No HP edits/progress grants; no combat or ride-invariant acceptance.',
+              'designObservation': 'Attempt 2 observed a live-combat midflight hero death/respawn. Design risk, not recreated by this isolated check.',
+              'kind': 'Integrated software-WebGL builder evidence; reviewer grades acceptance. QA API fixtures are not native gameplay.',
               'storageBefore': before, 'screenshots': [], 'checks': {}, 'responses': [], 'errors': [], 'status': 'RUNNING',
-              'sourceHashes': {str(p.relative_to(ROOT)): hashlib.sha256(p.read_bytes()).hexdigest()
-                               for p in sorted((ROOT / 'Games/Jankolock3D').rglob('*')) if p.is_file() and p.suffix in {'.mjs', '.js', '.html', '.css', '.glb'}}}
+              'sourceHashes': source_hashes()}
     def checkpoint():
-        guard(); (OUT / 'integration-evidence.json').write_text(json.dumps(report, indent=2) + '\n')
+        guard(); report_file.write_text(json.dumps(report, indent=2) + '\n')
+    checkpoint()
     server = http.server.ThreadingHTTPServer(('127.0.0.1', int(os.environ.get('SMOKE_PORT', '8947'))), functools.partial(Handler, directory=str(ROOT)))
     thread = threading.Thread(target=server.serve_forever, daemon=True); thread.start()
     origin = f'http://127.0.0.1:{server.server_port}'
@@ -71,45 +82,74 @@ def main():
                     assert image.size == (1280, 720), image.size
                     variance = sum(ImageStat.Stat(image).var) / 3
                     assert variance > 100, (name, variance)
-                    guard(); image.save(OUT / f'integration-{name}.png')
-                    report['screenshots'].append({'file': f'integration-{name}.png', 'variance': round(variance, 2), 'kind': kind,
+                    guard(); image.save(OUT / f'{"integration-traversal" if traversal_only else "integration"}-{name}.png')
+                    report['screenshots'].append({'file': f'{"integration-traversal" if traversal_only else "integration"}-{name}.png', 'variance': round(variance, 2), 'kind': kind,
                                                   'viewport': '390x720 padded, not stretched' if mobile else '1280x720'})
                     checkpoint(); print(f'capture {name}: {kind}', flush=True)
                 def start():
                     page.get_by_role('button', name='Start match', exact=True).click()
                     page.wait_for_function('window.jank3dSnapshot().playing')
                     page.locator('[data-close]').click()
-                load()
-                s = state(); assert s['portrait']['bytes'] == 3228372
-                assert s['portrait']['triangles'] == 124512
-                assert len(page.locator('[data-hero-index]').all()) == 4
-                capture('H', 'Normal lobby, verified in-repo photo-derived relief; no fixture')
-                page.get_by_role('button', name='Dark theme', exact=True).click()
-                capture('H-dark', 'Normal lobby, dark theme')
-                page.get_by_role('button', name='Light theme', exact=True).click()
-                start(); assert len(state()['bots']) == 5
-                page.get_by_role('button', name='Pause', exact=True).click()
-                assert state()['paused']
-                capture('pause', 'Native pause dialog')
-                page.get_by_role('button', name='Resume', exact=True).click()
-                assert not state()['paused']
-                capture('I', 'HTTP200 normal integrated HUD, five bots, no fixture')
-                # A: native E attaches at an explicitly repositioned station; clock advance is scripted.
-                load('?qa=traversal'); start(); page.evaluate('window.jank3dQA.freeze(true)')
-                rides = []
+                if not traversal_only:
+                    load()
+                    s = state(); assert s['portrait']['bytes'] == 3228372
+                    assert s['portrait']['triangles'] == 124512
+                    assert len(page.locator('[data-hero-index]').all()) == 4
+                    capture('H', 'Normal lobby, verified in-repo photo-derived relief; no fixture')
+                    page.get_by_role('button', name='Dark theme', exact=True).click()
+                    capture('H-dark', 'Normal lobby, dark theme')
+                    page.get_by_role('button', name='Light theme', exact=True).click()
+                    start(); assert len(state()['bots']) == 5
+                    page.get_by_role('button', name='Pause', exact=True).click()
+                    assert state()['paused']
+                    capture('pause', 'Native pause dialog')
+                    page.get_by_role('button', name='Resume', exact=True).click()
+                    assert not state()['paused']
+                    capture('I', 'HTTP200 normal integrated HUD, five bots, no fixture')
+                # A: each navigation constructs a new sim/bot closure, never reused for combat.
+                rides = report['checks']['zipRides'] = []
                 for lane in ['graft', 'midway', 'greenhedge']:
-                    load('?qa=traversal'); start(); page.evaluate('window.jank3dQA.freeze(true)')
-                    page.evaluate('(lane)=>window.jank3dQA.zip(lane)', lane)
-                    page.evaluate('window.jank3dQA.freeze(false)'); page.keyboard.press('KeyE')
-                    page.wait_for_function('window.jank3dSnapshot().controller.mode === "zip"')
-                    page.evaluate('window.jank3dQA.advance(10)'); page.evaluate('window.jank3dQA.freeze(true)')
-                    capture('A-' + lane, 'Native E attachment, API station placement and 10s clock advance')
+                    load('?qa=traversal'); start()
+                    page.wait_for_function('window.jank3dSnapshot().time > 0 && window.jank3dSnapshot().bots.length === 5 && window.jank3dSnapshot().bots.every(b=>b.mode === "passive")')
+                    page.evaluate('window.jank3dQA.freeze(true)')
+                    ride = {'lane': lane, 'freshNavigation': True, 'snapshots': []}
+                    rides.append(ride); checkpoint()
+                    setup = page.evaluate('(lane)=>window.jank3dQA.zip(lane)', lane)
+                    ride['setup'] = setup
+                    def observe(stage):
+                        s = state(); previous = ride['snapshots'][-1] if ride['snapshots'] else None
+                        p = s['controller']['position']; origin_position = [setup['position'][k] for k in ['x', 'y', 'z']]
+                        sample = {'stage': stage, 'time': s['time'], 'elapsedSinceSetup': s['time'] - setup['time'],
+                                  'deltaTime': s['time'] - previous['time'] if previous else 0,
+                                  'heroHP': s['hero']['hp'], 'heroAlive': s['hero']['alive'],
+                                  'deltaHP': s['hero']['hp'] - previous['heroHP'] if previous else 0,
+                                  'controller': s['controller'], 'botModes': [b['mode'] for b in s['bots']],
+                                  'displacementFromSetup': sum((a-b)**2 for a,b in zip(p, origin_position))**.5}
+                        ride['snapshots'].append(sample); checkpoint()
+                        return s
+                    observe('beforeAttach')
+                    assert setup['cooldown'] == 0, setup
+                    try:
+                        page.evaluate('window.jank3dQA.freeze(false)'); page.keyboard.down('KeyE')
+                        page.wait_for_function('window.jank3dSnapshot().controller.mode === "zip"')
+                        page.evaluate('window.jank3dQA.freeze(true)'); observe('attachment')
+                    finally:
+                        page.keyboard.up('KeyE')
+                    page.evaluate('window.jank3dQA.freeze(false); window.jank3dQA.advance(10); window.jank3dQA.freeze(true)')
+                    observe('ride-requested-10s')
+                    capture('A-' + lane, 'Native E; API station placement and requested 10s clock, measured times in snapshots')
                     page.evaluate('window.jank3dQA.freeze(false); window.jank3dQA.advance(23); window.jank3dQA.freeze(true)')
-                    end = state()['controller']; assert end['mode'] == 'free' and end['position'][2] > 380, end
-                    rides.append({'lane': lane, 'arrival': end})
-                report['checks']['zipRides'] = rides
+                    end = observe('arrival-requested-33s')['controller']
+                    assert end['mode'] == 'free' and end['position'][2] > 380, end
+                    ride['arrival'] = end; checkpoint()
                 page.evaluate('window.jank3dQA.overview()')
-                capture('A', 'API aerial camera of the actual three-lane scene; walking checked separately by module/native world evidence')
+                capture('A', 'API aerial camera; not native full-lane walking or combat evidence')
+                if traversal_only:
+                    assert not report['errors'], report['errors']
+                    assert all(r['status'] == 200 for r in report['responses']), report['responses']
+                    report['status'] = 'COMPLETE-traversal-builder-checks-only'
+                    print('integration-qa: traversal builder checks complete; reviewer grading separate.', flush=True)
+                    return
                 # B: exact wave clock is stepped through the production simulation, not actors injected.
                 load('?qa=waves'); start()
                 page.evaluate('window.jank3dQA.waves(); window.jank3dQA.place({x:-246,y:0,z:-48},Math.PI,-.05)')
@@ -196,13 +236,25 @@ def main():
                 assert all(r['status'] == 200 for r in report['responses']), report['responses']
                 report['status'] = 'PASS-builder-checks-only'
             finally:
+                if 'page' in locals() and not page.is_closed():
+                    try:
+                        page.keyboard.press('Escape'); page.mouse.up(); page.mouse.up(button='right')
+                        for key in ['KeyE', 'KeyW', 'KeyC', 'Space', 'ShiftLeft']:
+                            page.keyboard.up(key)
+                    except Exception as error:
+                        report['errors'].append(f'Input cleanup: {error}')
                 browser.close()
     except Exception as error:
         report['status'] = 'FAIL'; report['failure'] = f'{type(error).__name__}: {error}'
         raise
     finally:
         server.shutdown(); server.server_close(); thread.join(timeout=5)
+        report['sourceHashesAfter'] = source_hashes()
+        report['sourcesUnchanged'] = report['sourceHashes'] == report['sourceHashesAfter']
+        if not report['sourcesUnchanged']:
+            report['status'] = 'FAIL'; report['failure'] = 'Source hashes changed during capture'
         report['storageAfter'] = guard(); checkpoint()
+        assert report['sourcesUnchanged'], report['failure']
     # Labeled mockup/runtime twins, not pixel-identity claims.
     for mock, actual, label in [
         ('ui-mockup-heroes.png', 'H', 'Lobby / hero selection'),

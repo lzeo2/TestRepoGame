@@ -92,6 +92,58 @@ arrivals and B before user interruption; another attempt was interrupted at H.
 Partial reports are not clean passes. The final browser result is recorded in
 `integration-evidence.json`; independent full-game grading remains separate.
 
+## Bounded traversal-only QA follow-up
+
+Run, only after the shared browser slot is free:
+
+```sh
+TMPDIR=/dev/shm SMOKE_PORT=8947 timeout --signal=TERM --kill-after=15s 420s python3 -B Games/Jankolock3D/integration-qa.py --traversal-only
+```
+
+This mode runs A only, then returns before combat, chain, mobile and comparison
+images. It writes `integration-traversal-evidence.json` and
+`integration-traversal-A*.png` in the existing integration audit directory,
+without replacing the full report or its captures. Each lane reloads the page
+and constructs a fresh simulation/bot closure. After observing the first tick's
+five passive modes, `zip()` places at the real station, resets travel cooldown
+to zero and returns a frozen, detached time/cooldown/position setup receipt.
+The cooldown assertion precedes native E. Checkpointed snapshots cover before
+attach, attachment, requested 10s ride and requested 33s arrival, recording actual
+simulation times/deltas, HP/alive, controller position/state/mode, displacement
+and bot modes. RAF can add elapsed time; requested seconds are not measured time.
+Arrival still requires free mode and z > 380. No HP edits or progress grants.
+Structures defense stays native and unchanged. This is placement/clock fixture
+evidence, not combat or ride-invariant acceptance, and not a self-grade of A.
+
+Grep/caller audit (tracked sources, relative line references):
+
+- `game.mjs:17-18`: query plus loopback allowlist gates `qa`; a normal host
+  outside localhost/127.0.0.1/[::1] cannot enable it, even with a query. A normal
+  loopback visit without the query is also disabled.
+- `game.mjs:95`: the only integrated `bots.update` passes passive only for
+  `qa && ['chain','traversal'].includes(fixture)`. The literal flag exists in
+  runtime; it is gated, not absent or universally unreachable.
+- `game.mjs:204-206`: `if(qa)` gates fixture import/mount. Full QA separately
+  reloads waves/orbs/abilities/shop queries, which do not select passive bots.
+- `bots.mjs:61,70,157,166-171`: passive is closure-local to each `createBots`
+  instance and assigned from each update's options; it suppresses decisions and
+  bot effects, not systems structure defense. Other explicit passive calls are
+  in `bots-test.mjs`; `integration-test.mjs` runs a separately labeled scripted
+  chain fixture. No ungated production call enabling passive was found.
+- `integration-fixtures.mjs` has only the runtime mount and integration-test
+  import as callers. Existing chain policy remains separately approved scripted
+  damage/reposition/passive evidence, never combat acceptance.
+
+Attempt 2's live-combat midflight death/respawn remains a design risk for solo
+play. This follow-up does not recreate it or suppress its historical finding.
+Prior independent world A remains qualified; no new browser grade is issued.
+No browser or image generation ran in this follow-up because another gate owns
+the browser slot. The new browser path remains unproven until the command above
+runs. Only the four owned integration QA/guide files change; global manual and
+inventory reconciliation are deferred to their owner.
+
+Verification results for this follow-up are recorded below.
+
 ## Known limits and release holds
 
 - World camps, Mid-Boss and crates are still largely world/traversal markers,

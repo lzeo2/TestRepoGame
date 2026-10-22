@@ -5,7 +5,7 @@ import { createWorldData } from './world-data.mjs';
 import { createSystems } from './systems.mjs';
 import { matchWorld } from './match-world.mjs';
 import { createBots } from './bots.mjs';
-import { runChain } from './integration-fixtures.mjs';
+import { mountFixtures, runChain } from './integration-fixtures.mjs';
 import { selfCheckPortrait } from './portrait.js';
 const world=createWorldData(),kits=JSON.parse(readFileSync(new URL('../../docs/jank3d-hero-kits.json',import.meta.url))).heroes;
 const routed=matchWorld(world);
@@ -13,6 +13,24 @@ assert.deepEqual(routed.lanes.find(l=>l.id==='midway').waypoints.map(p=>[p.z,p.y
 assert.ok(routed.lanes.filter(l=>l.id!=='midway').every(l=>l.waypoints.every(p=>p.y===0)));
 assert.equal(world.lanes[1].waypoints,undefined); // World export stays immutable/byte-identical.
 console.log('integration: lane heights follow real Midway bridge/ramp edges; no below-deck squads');
+{
+  const noop=()=>{};
+  for(const lane of world.lanes) {
+    const sim=createSystems(matchWorld(world)),hero=sim.addHero({id:'player',team:'carbon'});
+    const controller={position:new THREE.Vector3(),warp(p){this.position.copy(p);},updateCamera:noop};
+    const traveler={mode:'zip',cooldown:.8,ride:{stale:true}},station=world.stations.find(s=>s.lane===lane.id);
+    const api=mountFixtures({sim,hero,controller,traveler,world,runtime:{update:noop,aim:noop},view:{camera:{},syncStructures:noop,renderCamera:noop},actors:{sync:noop},ui:{update:noop},history:[]});
+    const receipt=api.zip(lane.id);
+    assert.deepEqual(receipt,{time:0,cooldown:0,position:station.a});
+    assert.equal(traveler.mode,'free');assert.equal(traveler.ride,null);
+    assert.deepEqual(controller.position.toArray(),[station.a.x,station.a.y,station.a.z]);
+    assert.deepEqual(hero.position,station.a);
+    assert.ok(Object.isFrozen(receipt)&&Object.isFrozen(receipt.position));
+    const x=receipt.position.x;traveler.x+=7;controller.position.x+=9;hero.position.x+=11;
+    assert.equal(receipt.position.x,x);assert.equal(station.a.x,x);
+  }
+  console.log('integration: fresh zip placement resets stale cooldown/ride; detached frozen setup receipts, all three lanes passed (mock host, real systems)');
+}
 for(const team of ['carbon','ivory']) {
   const sim=createSystems(matchWorld(world)),player=sim.addHero({id:'player',team:'carbon'});
   assert.equal(sim.configureHeroKit(player.id,kits[0]).ok,true);

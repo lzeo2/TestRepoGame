@@ -73,7 +73,7 @@ export function mountFixtures(host) {
     },
     secure(id){const result=sim.shootOrb(hero.id,id,{kitShot:true});history.push({fixture:'API soul shot',id,result});sync();return result;},
     ground(){const orb=sim.orbs.find(o=>o.type==='ground'&&o.team===hero.team&&!o.claimed);if(!orb)throw new Error('No ground soul');place({...orb.position,x:orb.position.x+3});sim.step(.5);sync();return hero.souls;},
-    zip(lane){const station=world.stations.find(s=>s.lane===lane);if(!station)throw new Error('Unknown lane');place(station.a);},
+    zip(lane){const station=world.stations.find(s=>s.lane===lane);if(!station)throw new Error('Unknown lane');place(station.a);return Object.freeze({time:sim.time,cooldown:traveler.cooldown,position:Object.freeze({x:traveler.x,y:traveler.y,z:traveler.z})});},
     chain(team='carbon',until=600){host.setPaused(true);const receipt=runChain(sim,team,until);history.push(...receipt.events);controller.warp(hero.position);sync();return receipt;},
     sync
   };
