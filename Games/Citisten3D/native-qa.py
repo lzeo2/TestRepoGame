@@ -168,6 +168,8 @@ def main():
         page.wait_for_function('window.citisten?.world')
         checked('entryReady')
         page.locator('[data-mode="free"]').click()
+        if page.locator('.city-tutorial').is_visible():
+            page.locator('[data-action="tutorial-close"]').click()
         page.wait_for_function('window.citisten.sim?.state.mode === "free"')
         frames(); checked('freeStart', state())
         if case == 'city':

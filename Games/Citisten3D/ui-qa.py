@@ -190,6 +190,16 @@ def main():
                         captures.append(shot(page, f'J-I-ui-menu-{theme}-{width}'))
                         page.keyboard.press('Enter')
                         assert page.evaluate('calls.at(-1)') == ['start', 'free']
+                        if theme == 'dark':
+                            assert page.locator('.city-tutorial').is_visible()
+                            for step in range(1, 6):
+                                assert page.locator('.city-tutorial-step').inner_text() == f'Step {step} of 5'
+                                next_button = page.locator('[data-action="tutorial-next"]')
+                                (next_button.tap if width < 600 else next_button.click)()
+                            assert not page.locator('.city-tutorial').is_visible()
+                            assert page.evaluate('localStorage.getItem("citisten-tutorial-seen")') == '1'
+                        else:
+                            assert not page.locator('.city-tutorial').is_visible()
                         page.evaluate('state.mode="free"; state.phase="day"; state.budget=24500; state.population=128; state.night=2; state.townHallHp=720; state.power={demand:64,supply:100}; ui.update(state,map)')
                         assert not page.locator('.city-night').is_visible()
                         assert not page.locator('.city-tools').is_visible()
@@ -272,6 +282,12 @@ def main():
                         page.locator('[data-mode="defense"]').click()
                         assert page.evaluate('calls.at(-1)') == ['start', 'defense']
                         page.locator('.city-top [data-action="menu"]').click()
+                    # Manual replay returns to the menu and Escape dismisses the overlay.
+                    page.locator('[data-action="tutorial"]').click()
+                    assert page.locator('.city-tutorial').is_visible()
+                    page.keyboard.press('Escape')
+                    assert not page.locator('.city-tutorial').is_visible()
+                    assert page.locator('.city-menu').is_visible()
                     # Throwing storage must not break theme controls.
                     page.evaluate("() => { Storage.prototype.setItem = () => { throw Error('Storage denied') }; }")
                     page.locator('dialog[open] [data-action="theme"]').click()
@@ -294,10 +310,27 @@ def main():
                     count = page.locator('.city-toasts > p').count()
                     page.evaluate('ui.events([{type:"placed"},{type:"placed"}]);ui.events([{type:"placed"}])')
                     assert page.locator('.city-toasts > p').count() == count <= (1 if width < 600 else 3)
+                    page.evaluate('state.speed=0; ui.update(state,map); ui.events([])')
                     page.wait_for_timeout(6200)
-                    assert page.locator('.city-toasts > p').count() == 0
+                    assert page.locator('.city-toasts > p').count() == count
                     page.evaluate('ui.destroy()')
                     assert page.locator('#ui').inner_html() == ''
+                    # Denied reads/writes: first-play help still opens, and dismissal lasts this session.
+                    page.evaluate('''async () => {
+                      Storage.prototype.getItem = () => { throw Error('Storage denied') };
+                      const { createUI } = await import('./ui.mjs');
+                      window.ui = createUI(document.querySelector('#ui'));
+                    }''')
+                    page.locator('[data-mode="free"]').click()
+                    assert page.locator('.city-tutorial').is_visible()
+                    page.locator('[data-action="tutorial-close"]').click()
+                    assert not page.locator('.city-tutorial').is_visible()
+                    page.locator('.city-top [data-action="menu"]').click()
+                    page.locator('[data-mode="free"]').click()
+                    assert not page.locator('.city-tutorial').is_visible()
+                    page.locator('[data-group="Zone"]').click()
+                    assert page.locator('[data-tool="residential"]').is_visible()
+                    page.evaluate('ui.destroy()')
                     context.close()
                 assert not errors, errors
                 assert not external, external

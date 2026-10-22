@@ -31,6 +31,55 @@ select tools, repair by day, pause/resume, restart and change simulation speed.
 WASD pans; right drag looks; wheel changes height. Native controls include
 camera buttons. Normal-input browser acceptance remains pending.
 
+### Events and first-play help
+
+The native loop drains events even at speed 0; speed never hid the HUD. The
+apparent missing board was transient feedback expiring after six wall-clock
+seconds. Events now retain the latest notices (one on phones, three on desktop)
+until replaced or a new game starts, with a labelled empty state. No simulation
+exists before choosing a mode; the initial menu is not a paused running city.
+Speed 0 still freezes simulation time, while placement feedback remains usable.
+
+A dismissible five-step tutorial opens on first play; Menu's How to play button
+reopens it. Automatic help pauses and restores the current speed; menu replay
+returns to the still-paused menu. `citisten-tutorial-seen` stores dismissal when
+localStorage works, otherwise dismissal lasts only for this UI session. Node
+syntax and simulation/native checks pass. A bounded focused UI-fixture run passed
+2/2 (1440px mouse, 390px touch): all five steps, dismissal/input recovery,
+first-play flag, menu replay/Escape, denied storage and notices retained beyond
+six seconds. Zero page errors; browser/server released. Eight screenshots are
+local-only under `.tmp/citisten-onboarding/`; desktop/mobile views in both themes
+were reviewed. The expanded `ui-qa.py` suite remains unrun, as does fresh native
+gameplay/FPS acceptance. No full-fleet gate or push was attempted.
+
+### Population growth
+
+`sim.mjs` recalculates the economy once per simulated second. Only powered **and**
+watered commercial lots (32 jobs each) and industrial lots (96 each) contribute
+jobs. Residential demand is `clamp(0.55 + (jobs - population * 0.65) / 1500 -
+max(0, taxRate - 0.1) * 4, 0, 1)`. Jobs raise demand, but are not a strict
+prerequisite: there is baseline demand even with zero jobs. Commercial and
+industrial demand values do not gate manual placement or directly add residents.
+
+Total growth before sharing is `2.7 * residentialDemand *
+clamp(1.5 - taxRate * 5, 0, 1)`, divided by the number of **all** residential lots
+(minimum divisor 1). Taxes at or below 0.1 avoid the demand penalty and give the
+full growth multiplier; going below 0.1 adds no further growth bonus. Each safe
+home receives that share, capped at 64 residents. Residents are fractional;
+the HUD floors their sum. Capped or unsafe homes do not redistribute their share.
+
+A home grows only if powered, watered, within 16 lots (straight-line distance)
+of an active town hall, park, police or fire station, and either crime is below
+0.65 or active police are within 16 lots. Crime is
+`clamp((population - activePoliceCount * 600 - 200) / 1800, 0, 1)`. Otherwise
+the home loses `max(0.2, residents * 0.025)` residents per economy tick, down to 0.
+Zones require an orthogonally adjacent road to place. Power/water propagate via
+connected roads and matching utility sources to adjacent buildings; disconnected
+supply cannot serve homes, and insufficient capacity sheds whole 8x8 districts.
+There is no separate commute or road-to-town-hall test for growth; roads matter
+through utility connectivity.
+No growth formulas were changed.
+
 ## State and persistence
 
 Simulation owns authoritative state. Native integration keeps stable model
