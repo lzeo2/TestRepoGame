@@ -125,6 +125,7 @@ def main():
                 context.route('**/*', route)
                 page = context.new_page()
                 page.set_default_timeout(8000)
+                page.set_default_navigation_timeout(20000)
                 page.on('pageerror', lambda error: errors.append(str(error)))
                 page.on('console', lambda msg: errors.append(msg.text) if msg.type == 'error' else None)
                 page.goto(origin + '/Games/Dive%20Trivia/index.html')
@@ -158,6 +159,9 @@ def main():
                 report['passed'] = True
             finally:
                 context.close()
+    except Exception as error:
+        report['failure'] = type(error).__name__
+        raise
     finally:
         signal.alarm(0)
         server.shutdown()

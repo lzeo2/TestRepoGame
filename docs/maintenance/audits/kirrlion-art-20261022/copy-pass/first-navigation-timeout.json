@@ -1,0 +1,20 @@
+{
+  "passed": false,
+  "checks": [],
+  "screenshots": [],
+  "themes": [
+    "abyss-normal-glow",
+    "abyss-dim-glow"
+  ],
+  "light_theme": "absent; canonical full-dark design preserved",
+  "source_sha256": {
+    "index.html": "95682ebf3f5dfe59ef7d6fbd412bc9f61087b604854d8b43b0bd68c77df0a004",
+    "script.js": "c6c77d1a4292c0f6996ed19c2d31e01ad072e779025cb421977ad87cfd9d34f2",
+    "style.css": "b796adb71b1b982d64a5584fbe1be6d7a52fe7667839c1652cf54ab10e62b21c",
+    "core.js": "bee2330d3350f5033b16ee486f74456be33f665eccb8f59e1a29dd02ca42d09b",
+    "questions.js": "a104b88c73fb00f7895f7644e613d18cad078a44a8cb28977e6a01a667eed046"
+  },
+  "elapsed_seconds_including_cleanup": 54.828,
+  "browser_errors": [],
+  "external_requests": []
+}

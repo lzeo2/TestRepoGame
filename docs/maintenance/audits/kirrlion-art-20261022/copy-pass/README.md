@@ -21,7 +21,8 @@ Core, questions, scoring, clock, selection and storage schema are unchanged. The
 - Core regression: **8 checks passed**, 28 prompts / 4 packs / version 2026.10.1.
 - Core/questions byte-identical to pre-copy HEAD.
 - `git diff --check`: pass.
-- Fresh guarded browser QA pending exclusive slot. Runner: `python3 -B scripts/test_dive_trivia_copy.py`, 90s work +10s cleanup bound, dedicated fresh profile, explicit `/usr/bin/chromium`, process/disk guards, bounded local server. It checks receipt best-find selection and ties, all-pass/zero result, closed rules, tier text, untouched question text and captured root/internal overflow. No game-state/time grants.
+- First guarded browser attempt **FAILED** before screenshots: `Page.goto: Timeout 8000ms exceeded`, waiting for local page `load`; total **54.828s including cleanup**, zero recorded console errors/external requests. [Retained failed report](first-navigation-timeout.json). Root cause is not proven. Browser/context/server closed and process check was clear; slot released to UI. One retry is requested after UI with an explicit 20s navigation bound (previously inherited the 8s action timeout), still inside the unchanged 90s work alarm; no runtime workaround or error filtering.
+- Fresh guarded browser QA pending that retry slot. Runner: `python3 -B scripts/test_dive_trivia_copy.py`, 90s work +10s cleanup bound, dedicated fresh profile, explicit `/usr/bin/chromium`, process/disk guards, bounded local server. It checks receipt best-find selection and ties, all-pass/zero result, closed rules, tier text, untouched question text and captured root/internal overflow. No game-state/time grants.
 - Legacy `scripts/test_dive_trivia_browser.py` was adapted to the compact receipt and copy, including CSS-uppercase-safe text checks. It was **not rerun**; no full gameplay or full-fleet acceptance claimed.
 
 ## Theme clarification
