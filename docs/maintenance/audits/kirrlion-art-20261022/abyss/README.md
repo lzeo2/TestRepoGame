@@ -8,6 +8,8 @@ The corrected [abyss mockup](../../../../kirrlion-art/ui-mockup-trivia-abyss.png
 
 ## Current implementation
 
+Source and first corrected screenshots committed as `977cf56`.
+
 - `style.css`: abyss `#050914` / deep `#02040a`, dark panels `#101d33` / `#0a1426`, foam text `#e8f1ff`, 18px system monospace, huge spaced uppercase headings and a single cyan accent `#4de3ff`.
 - `ocean.svg`: original full-page depth bands, six-pixel sonar pattern with dashed strokes, suspended particles and angular seafloor. No gradients or third-party assets. Local SVG patterns plus translucent fills/shadows provide the requested texture and halos while preserving the repository's no-gradient constraint.
 - `index.html`: edge-to-edge scene behind a transparent depth instrument and dark question panel; no cream paper or inset ocean card. Original depth annotations and guide slot.
@@ -19,7 +21,7 @@ The corrected [abyss mockup](../../../../kirrlion-art/ui-mockup-trivia-abyss.png
 
 `node --check 'Games/Dive Trivia/script.js'`: exit 0.
 
-`node scripts/test_dive_trivia.mjs`: **8 checks passed**, 28 prompts / 4 packs / version 2026.10.1. Core and questions byte-identical to pre-rework HEAD. Python AST / SVG XML syntax and `git diff --check` passed.
+`node scripts/test_dive_trivia.mjs`: **8 checks passed**, 28 prompts / 4 packs / version 2026.10.1. Core and questions byte-identical to pre-rework HEAD. Python AST / SVG XML syntax and `git diff --check` passed. Catalog validation passes 127 unique IDs, required schema and Git-backed URLs. `python3 -B scripts/check_maintenance_docs.py --refresh` followed by the checker passes 132 game documents / 127 registered + 5 unregistered; only Dive Trivia's inventory record changes.
 
 `python3 -B scripts/test_kirrlion_art.py`: final run **exit 0**, [machine report](focused-report.json) with source SHA-256 hashes. Four groups:
 
