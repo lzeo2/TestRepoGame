@@ -77,7 +77,7 @@
   "freeBytesAtCheck": 2861244416,
   "storageScope": "Shared host value, not attributed lane-only delta",
   "sourceMilestone": "580bd7f19f9d78793bc2305bea9b042b9a389aca",
-  "inventoryCheck": "PASS: 132 game documents,127 registered+5unregistered; current Git source inventory",
+  "inventoryCheck": "PASS:132documents/127registered+5unregistered;currentGitinventoryafterCTFcollectorreceipt",
   "freeBytesAtClose": 2896809984,
   "nativeCtfAttemptCount": 1,
   "nativeCtfAttempt1": {
@@ -91,5 +91,6 @@
   "collectorFollowupNative": "NOT RUN: driver/chromium/context/page stage stamps and precise remaining-inner-budget rounding are self-check only",
   "nativeTicket": "pi-86463-1792667765599-a1544d84 (pending advice timeout20s; no retry approval)",
   "freeBytesBeforeCtfNative": 2858020864,
-  "freeBytesAfterCtfNativeCleanup": 2857320448
+  "freeBytesAfterCtfNativeCleanup": 2857320448,
+  "verificationToolMilestone": "b3ca4d714ea11e7a7fa2985b064dd478d328723c"
 }
