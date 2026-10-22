@@ -193,7 +193,7 @@ def main():
                     capture('H-dark', 'Default-dark normal lobby; supplied portrait and actual model, no fixture query')
                     page.get_by_role('button', name='Light theme', exact=True).click()
                     capture('H', 'Native light-toggle lobby; world lighting unchanged')
-                    assert len(state()['models']) == 5
+                    assert {m['id'] for m in state()['models']} == {'stampead','turretina','snipeoff','gooey','trooper','deployed_stapler'}
                     report['checks'] = {'models': state()['models'], 'portrait': state()['portrait']}
                 elif letter == 'C':
                     load('orbs')

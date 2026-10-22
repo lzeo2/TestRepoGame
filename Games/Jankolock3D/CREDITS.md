@@ -85,7 +85,7 @@ edits. This closes neither stable-current-source visual acceptance nor hardware,
 full-game or release gates. The asset-generation receipt's unverified visual
 fields describe its original asset-only generation stage and are preserved.
 
-## Procedural visual pass
+## Historical procedural visual pass
 
 The four full-body concepts under `docs/jank3d-design/hero-concepts/` were
 created with codex-imagen on the operator's subscription and committed before
@@ -132,3 +132,40 @@ local loader verifies receipt byte count/SHA and actual triangle budgets before
 mounting. Whole match health/abilities/collision stay in existing modules.
 Fresh model/FX/movement/lobby evidence is separate from asset-generation checks;
 software renders do not close reference-quality, hardware or full-release gates.
+
+## Operator external-assembly integration
+
+The operator subsequently delivered original dot-authored `rigid_v2` assemblies.
+Their unmodified manifests identify external Blender authoring. No repository
+agent launched Blender/bpy or generated replacements. Artist originality and
+rights are operator declarations; no commercial meshes/textures are declared.
+No `.blend` file accompanied the delivery despite manifest.files.source; local
+source reproduction of these external meshes is not claimed. Each current
+model directory preserves its manifest, palette, rigid-node guide, actual
+receipt hashes and audit. `manifest.rig.json` was byte-identical to `rig.json`;
+the canonical rig is retained with that alias qualification.
+
+| Current replacement | Triangles | Bytes | Movable nodes |
+| --- | ---: | ---: | ---: |
+| Stampead | 25,596 | 948,632 | 17 |
+| Turretina | 22,416 | 1,022,124 | 23 |
+| Snipeoff | 19,160 | 818,532 | 20 |
+| Gooey Sticky (`models/gooey`) | 48,760 | 1,242,716 | 10 |
+| Deployed stapler | 3,248 | 161,804 | 5 |
+
+Four hero files total 4,032,004 bytes. With the prop, five delivered files total
+4,193,808 bytes / 119,180 triangles. With unchanged trooper and portrait, seven
+live GLBs total 9,014,644 bytes. Lower supplied counts supersede the earlier
+procedural minimum for this explicit import, without padding/re-export. The
+original four fallback results and source are preserved in Git at `bf215f0`;
+existing build.mjs scripts are historical fallback generators, not these meshes.
+
+Supplied linear palette slots retain color/roughness/metalness, with isolated
+materials per instance and closest existing procedural surface families. No
+embedded texture is claimed. Fourteen missing-UV mesh geometries receive only
+runtime planar UV attributes; delivered positions, normals, indices and file
+SHA remain unchanged. Rigid local-X limits and two-handed grips are respected;
+no skinning, IK, full aim or planted-foot guarantee is claimed. The new turret
+uses its supplied yaw/pitch/press/recoil nodes and cosmetic muzzle; authoritative
+attack origin/ranges/damage remain unchanged. Verify actual files with
+`node Games/Jankolock3D/models/import-external.mjs --check`.

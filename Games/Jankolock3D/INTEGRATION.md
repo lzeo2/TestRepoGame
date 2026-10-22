@@ -48,22 +48,42 @@ Catalog ID 240 now points here; no new game or ID was added. No push authorized.
   the Patron effigy. See `CREDITS.md`, `portrait-receipt.json` and independent
   `PORTRAIT-REVIEW.md`; it is a photo-derived relief, not a full scan.
 
-## Procedural model integration
+## Verified model integration
 
-`game.mjs` preloads four real hero GLBs and the candle trooper before mounting
-play. `character-assets.mjs` verifies self-contained bytes/SHA and decoded
-triangle/size budgets, caches assets and supplies original shared 512px surface
-and normal maps. `heroes/hero-model.mjs` preserves the factory lifecycle with
-rigid named-pivot movement; ability FX remain in the existing visual layer.
-Troopers share geometry but retain isolated pose/material/HP-candle state.
-Standalone hero ranges and systems demo use the same preload/cleanup path.
+`game.mjs` preloads four operator-delivered hero assemblies, the deployed
+stapler and unchanged candle trooper before mounting play. The four former
+procedural bodies remain exactly recoverable at `bf215f0`; their unchanged
+`build.mjs` files describe those fallbacks, not the current external geometry.
+Run `node Games/Jankolock3D/models/import-external.mjs --check` for current art.
 
-Paused/finished play no longer redraws the GPU scene continuously. Explicit QA
-camera/sync and resize still render; capture checks assert that frozen frames
-stay unchanged. This is idle-work verification, not supported-hardware FPS.
-Six GLBs including the unchanged portrait total 24,715,028 bytes. Original
-code/concept provenance, sizes and remaining rigid/face/cloth/LOD limits are in
-CREDITS.md, each model README and the external-art wishlist. No Blender was used.
+`character-assets.mjs` verifies self-contained bytes/SHA, actual triangle counts,
+external manifest, palette slots, rig hierarchy and parent/model-space pivots.
+Supplied lower counts are imported unchanged under the operator's new order,
+not padded to the prior procedural minimum. The new five GLBs total 4,193,808
+bytes; seven live files including unchanged trooper/portrait total 9,014,644.
+Their author is the operator's external dot; manifests identify external Blender
+authoring. No Blender/bpy was launched locally. No `.blend` source accompanied
+the delivery despite its declared filename; originality is operator-declared.
+
+Palette RGBA is linear, applied without an extra sRGB conversion. Exact named
+slots retain supplied roughness/metalness and per-instance material isolation;
+closest surface families supply existing original shared 512px color/normal
+maps. Fourteen missing-UV mesh geometries receive runtime-only dominant-plane
+UVs. Delivered GLB bytes/positions/normals/indices are never re-exported.
+
+`heroes/hero-model.mjs` binds real rigid node names and clamps local-X hinges to
+their supplied rest-relative limits. Stampead/Turretina/Snipeoff/Gooey have
+17/23/20/10 movable nodes, not a fabricated uniform count. Two-handed grips stay
+at author rest relative to the torso. No skin/IK/face rig or planted-foot solver
+is claimed; slide/jump poses are conservative. Placement/collision stay caller
+owned. Turret FX clones the supplied tripod; yaw/pitch/recoil animate supplied
+nodes, tracer starts at its cosmetic muzzle, but targeting/ranges/damage origins
+remain the original authority. Other ability FX and gameplay stay intact.
+
+Troopers still share geometry with isolated pose/material/HP-candle state.
+Paused/finished GPU redraw suppression and native dark/light UI are unchanged.
+Node tests and fresh before/after browser evidence are separate from art,
+clearance, supported-hardware/FPS and full-game release acceptance.
 
 ## Dark default, retained light accessibility mode
 
@@ -102,6 +122,8 @@ node Games/Jankolock3D/systems-view-test.mjs
 node Games/Jankolock3D/heroes/player-controller-test.mjs
 node Games/Jankolock3D/heroes/hero-runtime-test.mjs
 node Games/Jankolock3D/heroes/hero-visuals-test.mjs
+node Games/Jankolock3D/heroes/external-rig-test.mjs
+node Games/Jankolock3D/models/import-external.mjs --check
 TMPDIR=/dev/shm SMOKE_PORT=8947 timeout --signal=TERM --kill-after=15s 420s python3 -B Games/Jankolock3D/integration-qa.py
 ```
 

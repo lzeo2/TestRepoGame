@@ -40,9 +40,10 @@ for path in reports:
 assert (len(reports), len(seen), responses) == (10, 36, 635)
 summary = json.loads((OUT / 'evidence-summary.json').read_text())
 for model in summary['models']:
-    path = ROOT / model['path']
-    assert path.stat().st_size == model['bytes'] < 8388608, path
-    assert digest(path) == model['sha256'], path
+    name = model['path']
+    size = int(subprocess.check_output(['git', 'cat-file', '-s', f'{SOURCE_REVISION}:{name}'], cwd=ROOT))
+    assert size == model['bytes'] < 8388608, name
+    assert source_digest(name) == model['sha256'], name
 print(f'PASS: {len(reports)} receipts, {len(seen)} screenshot hashes, '
       f'{responses} HTTP200, {len(sources)} identical runtime sources at {SOURCE_REVISION}; '
-      '6 GLB hashes/sizes. Not a visual, hardware or release grade.')
+      '6 historical GLB hashes/sizes. Not a current visual, hardware or release grade.')

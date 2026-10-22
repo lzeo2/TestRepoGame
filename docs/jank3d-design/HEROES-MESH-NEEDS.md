@@ -5,7 +5,18 @@ permission to generate/import them. **No Blender. Keep the existing hero kits,
 abilities, procedural 3D FX and camera working while mesh requests wait.**
 The hero team is not starting a parallel model pipeline.
 
-## Current procedural fallback status
+## Current operator external delivery
+
+Four dot-authored rigid assemblies now replace these fallbacks unchanged; the
+optional deployed stapler is also supplied. Current manifests/palettes/rigs and
+actual receipts live in each model directory. The operator's manifests declare
+external Blender authoring; no Blender/bpy was run locally, and the declared
+`.blend` source was absent. Original fallback results remain in Git `bf215f0`.
+See the main wishlist's delivery note and `Games/Jankolock3D/INTEGRATION.md`.
+This is an asset integration, not new local wishlist-model construction or an
+automatic likeness/hardware approval.
+
+## Historical procedural fallback status
 
 The orchestrator has integrated four code-generated Astra GLBs following the
 committed codex-imagen plates. These are **procedural fallbacks**, not fulfillment

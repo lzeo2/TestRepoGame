@@ -213,7 +213,7 @@ export class HeroRuntime {
       if(a.id==='turret') {
         const origin=deploy.position.clone().addScaledVector(UP,.9);
         const target=this.targets.filter(t=>t.team!==this.team&&t.alive!==false&&origin.distanceTo(vec(t.position))<=a.range&&this.visible(origin,t)).sort((a,b)=>origin.distanceToSquared(vec(a.position))-origin.distanceToSquared(vec(b.position)))[0];
-        if(target){const end=vec(target.position).addScaledVector(UP,.8);deploy.handle.group.rotation.y=Math.atan2(origin.x-end.x,origin.z-end.z);this.fx.emit('longshot',{origin,target:end,duration:.16,color:'#b55043'});this.hit(a,target,{origin:{x:origin.x,y:origin.y,z:origin.z}});}
+        if(target){const end=vec(target.position).addScaledVector(UP,.8);deploy.handle.aimAt(end);this.fx.emit('longshot',{origin:deploy.handle.muzzle.getWorldPosition(new THREE.Vector3()),target:end,duration:.16,color:'#b55043'});this.hit(a,target,{origin:{x:origin.x,y:origin.y,z:origin.z}});}
       }
     }
     for(const projectile of [...this.projectiles]) {

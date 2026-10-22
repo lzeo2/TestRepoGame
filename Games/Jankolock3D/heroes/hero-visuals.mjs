@@ -1,4 +1,5 @@
 import * as THREE from '../vendor/three.module.js';
+import { cloneCharacter } from '../character-assets.mjs';
 
 const UP = new THREE.Vector3(0, 1, 0), FRONT = new THREE.Vector3(0, 0, -1);
 const PAPER = '#eee5cd', INK = '#20201f', GRAPHITE = '#494a46';
@@ -73,7 +74,7 @@ export class AbilityFX {
     const rod = (a, b, width = 0.06, parent = group, tint = color) => beam(parent, kit.cylinder, paint.get(tint), new THREE.Vector3(...a), new THREE.Vector3(...b), width);
     const child = () => { const part = new THREE.Group(); group.add(part); return part; };
     const r = Math.max(0.1, finite(radius, id === 'aura' ? 9 : id === 'slam' ? 7 : 4));
-    let animate = () => {};
+    let animate = () => {}, externalAsset = null, aimAt = null;
     if (id === 'hook') {
       const count = Math.max(1, Math.min(48, Math.ceil(length / 0.6))), step = length / count;
       for (let i = 0; i < count; i++) {
@@ -111,13 +112,27 @@ export class AbilityFX {
       }
       animate = (_, age) => { group.rotation.y = yaw + age * 1.4; };
     } else if (id === 'turret') {
-      for (let i = 0; i < 3; i++) {
-        const a = i * Math.PI * 2 / 3;
-        rod([0, 0.65, 0], [Math.cos(a) * 0.52, 0.04, Math.sin(a) * 0.52], 0.11, group, GRAPHITE);
-      }
-      add('box', [0.65, 0.28, 0.75], [0, 0.84, 0]);
-      add('box', [0.45, 0.08, 0.6], [0, 1.04, 0], group, PAPER);
-      rod([0, 0.85, -0.35], [0, 0.85, -1.1], 0.18, group, INK);
+      externalAsset = cloneCharacter('deployed_stapler', { shareGeometry: true });
+      group.add(externalAsset.group);
+      group.userData.model = externalAsset.metadata;
+      const yawHead=externalAsset.group.getObjectByName('yaw_head'),pitchHead=externalAsset.group.getObjectByName('head_pitch');
+      const press=externalAsset.group.getObjectByName('stapler_press'),recoil=externalAsset.group.getObjectByName('barrel_recoil');
+      const yawRest=yawHead.rotation.y,pitchRest=pitchHead.rotation.x,pressRest=press.rotation.x,recoilRest=recoil.position.z;
+      let lastShot=-1;
+      aimAt = point => {
+        const delta=point.clone().sub(yawHead.getWorldPosition(new THREE.Vector3()));
+        yawHead.rotation.y=yawRest+Math.atan2(-delta.x,-delta.z)-group.rotation.y;
+        delta.copy(point).sub(pitchHead.getWorldPosition(new THREE.Vector3()));
+        pitchHead.rotation.x=pitchRest+THREE.MathUtils.clamp(Math.atan2(delta.y,Math.hypot(delta.x,delta.z)),-Math.PI/6,Math.PI/4);
+        lastShot=age;
+      };
+      animate=(_,age)=>{
+        // Shot-driven recoil only; the tripod stays fixed while the supplied bearing aims.
+        const amount=Math.max(0,1-(age-lastShot)/.12);
+        press.rotation.x=pressRest-THREE.MathUtils.degToRad(12)*amount;
+        recoil.position.z=recoilRest-.03*amount;
+      };
+
     } else if (id === 'barricade') {
       for (let i = 0; i < 5; i++) {
         const slab = child(); slab.position.set((i - 2) * 0.72, 0, i % 2 * 0.12); slab.rotation.y = i % 2 ? -0.12 : 0.12;
@@ -222,10 +237,10 @@ export class AbilityFX {
     }
     const lifetime = Math.max(0.001, finite(duration, 1)); let age = 0, removed = false;
     const handle = {
-      group, remaining: lifetime, position: group.position,
+      group, remaining: lifetime, position: group.position, aimAt, muzzle:externalAsset?.group.getObjectByName('muzzle'),
       dispose: () => {
         if (removed) return;
-        removed = true; handle.remaining = 0; group.removeFromParent(); group.clear();
+        removed = true; handle.remaining = 0; externalAsset?.dispose(); group.removeFromParent(); group.clear();
         paint.dispose(); this.handles.delete(handle);
       }
     };

@@ -11,8 +11,10 @@ responses** and **zero retained errors**. All 59 runtime source hashes are
 identical across cases and match recorded revision `bedb052`. The later
 operator-authorized dark-default UI flip retains A-I acceptance; it does not
 rewrite these original receipts or pretend unchanged UI bytes. The verifier now
-checks those source/runner bytes through Git at `bedb052`, while still checking
-actual screenshot and current unchanged model bytes. The selector covers
+checks source/runner and original model bytes through Git at `bedb052`, while
+still checking actual screenshot files. Later operator external replacements
+are tested separately in the external-model integration packet; these original
+fallback results are not discarded or relabeled. The selector covers
 JS/MJS/HTML/CSS/GLB, not JSON configs/kit data/receipts or environment PNGs;
 capture-time coverage cannot be retroactively expanded. All screenshot and
 runner hashes reverify. There are 42 PNG files: the 36 captures, one deliberate duplicate,

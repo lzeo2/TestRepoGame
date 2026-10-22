@@ -228,7 +228,7 @@ current source hashes, commands, missing-contract context and remaining gates.
 No new UI, geometry, model, dependency, game, catalog edit or push is included.
 Historical screenshots do not establish acceptance of changed world/model bytes.
 
-## Integrated procedural visual pass
+## Historical integrated procedural visual pass
 
 The four committed concept plates preceded mesh work; no Blender/bpy/sculpt tool
 or new dependency was used. All four hero bodies and the trooper now render
@@ -298,6 +298,52 @@ light. Desktop/mobile images were inspected in both modes. UI eight checks,
 both integrated 600s chains and the current inventory checker pass. Browser and
 loopback server closed. No prior failed receipt is relabeled; no full-catalog
 release gate, new game, Blender work or push is implied.
+
+## Separate operator external-assembly integration
+
+The operator supplied five original dot `rigid_v2` GLBs. Four bodies now replace
+the procedural files exactly; the new deployed stapler replaces the existing
+ability's primitive tripod. Their manifests, linear palettes, real rigid-node
+guides and regenerated actual byte/SHA/count receipts are retained per model.
+Gooey's delivered folder name maps to `models/gooey`; its ten-node blob rig is
+intentional. The other movable counts are 17/23/20; no dummy joints or extra
+triangles were invented to meet the earlier procedural targets.
+
+Actual hero triangles/bytes: Stampead 25,596/948,632; Turretina 22,416/1,022,124;
+Snipeoff 19,160/818,532; Gooey 48,760/1,242,716. Prop 3,248/161,804. Four heroes total
+4,032,004 bytes; five delivery GLBs total 4,193,808. With unchanged trooper/portrait,
+seven live GLBs total 9,014,644 bytes. Model drawables are 69/81/75/30/16; smaller
+files do not prove better FPS. Current source is inspected through actual
+GLB decoding, finite/index/normal/bounds/axis/pivot checks and authored adapter
+review, not independent creation-history or `.blend` source inspection.
+
+`character-assets.mjs` verifies GLB and sidecar hashes, manifests, actual counts,
+units, palette indices/names and rig hierarchy/pivots. Linear colors retain
+supplied roughness/metalness with per-instance material copies. Existing 512px
+surfaces/normals use closest families; fourteen missing UVs are supplied at
+runtime without touching the delivered bytes. `hero-model.mjs` maps real node
+names with rest-relative limits, preserving two-handed grips and root placement.
+The deployed prop aims its own yaw/pitch bearing and recoils; tracer origin is
+its cosmetic muzzle while authority/ranges/damage origins remain unchanged.
+Gameplay, hitboxes, world export, dark-default/light toggle and portrait are
+unchanged. Slides/jumps remain conservative, with no skin, IK or planted feet.
+
+External provenance says Blender-authored by the operator's dot, original art;
+no repository agent launched Blender/bpy. No `.blend` file was delivered despite
+its declared path. Originality is operator-declared, not independently proven.
+Old generators/results remain at `bf215f0` in Git, not discarded or overwritten
+in history. Current reproducible integrity command is
+`node Games/Jankolock3D/models/import-external.mjs --check`; old build.mjs files
+still describe the original procedural fallbacks.
+
+Fresh structural/rig/material/ability/lifecycle checks pass, including 2,540
+poses. New `external-model-qa.py` serves the actual fallback devhero files from
+Git `bf215f0` and current files under separate loopback path prefixes, then
+captures real before/after views with native walks and Turretina deployment.
+No screenshot substitution, fake camera or gameplay state grant is used.
+Browser results/cleanup and raw-input deletion will be recorded only after
+that bounded gate completes. Model/source acceptance remains separate from
+art/40FPS/hardware/full-release/push gates; 127 catalog entries remain.
 
 ## Future outlook
 

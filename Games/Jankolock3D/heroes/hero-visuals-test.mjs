@@ -35,8 +35,13 @@ const silhouettes = new Set();
 for (const { id } of kits.heroes) {
   const hero = createHeroVisual(id), parts = meshes(hero.group);
   silhouettes.add(hero.metadata.sha256);
-  assert.ok(hero.metadata.triangles>=120000&&hero.metadata.triangles<=250000);
-  assert.ok(hero.metadata.bytes<8388608&&parts.length<=64);
+  const manifest=JSON.parse(readFileSync(new URL(`../models/${id}/manifest.json`,import.meta.url)));
+  const rig=JSON.parse(readFileSync(new URL(`../models/${id}/rig.json`,import.meta.url)));
+  const palette=JSON.parse(readFileSync(new URL(`../models/${id}/palette.json`,import.meta.url)));
+  assert.equal(hero.metadata.origin,'operator-external');assert.equal(hero.metadata.triangles,manifest.tri_count_LOD0);
+  assert.ok(hero.metadata.triangles>0&&hero.metadata.triangles<=250000);
+  assert.equal(hero.metadata.bytes,manifest.size_bytes);assert.ok(hero.metadata.bytes<8388608);
+  assert.equal(parts.length,hero.metadata.meshes);assert.deepEqual(hero.metadata.unmatchedPaletteSlots,[]);
   let triangles=0;
   for(const part of parts) {
     triangles+=(part.geometry.index?.count??part.geometry.attributes.position.count)/3;
@@ -44,12 +49,16 @@ for (const { id } of kits.heroes) {
     assert.equal(part.material.map.image.width,512);assert.equal(part.material.normalMap.image.height,512);
     assert.ok(part.geometry.attributes.normal&&part.geometry.attributes.uv);
     assert.ok(part.material.roughness>=0&&part.material.roughness<=1&&part.material.metalness>=0&&part.material.metalness<=1);
+    const slot=palette.material_slots.find(s=>s.name===part.material.name);assert.ok(slot,part.material.name);
+    for(const [i,key]of ['r','g','b'].entries())assert.ok(Math.abs(part.material.color[key]-slot.base_color_linear_rgba[i])<1e-6,`${id}/${slot.name}: linear palette`);
+    assert.equal(part.material.userData.paletteSlot,slot.name);
   }
   assert.equal(triangles,hero.metadata.triangles);
-  const bounds = new THREE.Box3().setFromObject(hero.group);
+  const bounds = new THREE.Box3().setFromObject(hero.group,true);
   assert.ok(Math.abs(bounds.min.y) < 1e-6, `${id}: feet at zero`);
-  assert.ok(bounds.max.y > 1.5 && bounds.max.y < 2.2, `${id}: body height`);
-  for(const name of ['head','torso','arm-left','arm-right','leg-left','leg-right','cape'])assert.ok(hero.group.getObjectByName(name),`${id}/${name}`);
+  assert.ok(Math.abs(bounds.max.y-manifest.bounds_gltf_m.max[1])<1e-4,`${id}: delivered height, no fabricated scaling`);
+  for(const node of rig.movable_nodes)assert.ok(hero.group.getObjectByName(node.name),`${id}/${node.name}`);
+  assert.equal(hero.metadata.movableNodes,rig.movable_nodes.length);
   const geometryDisposed = countDisposals(new Set(parts.map(p => p.geometry)));
   const materialDisposed = countDisposals(new Set(parts.map(p => p.material)));
   hero.group.position.set(12, 3, 7);
@@ -58,9 +67,10 @@ for (const { id } of kits.heroes) {
     near(hero.group.position, vector(12, 3, 7)); assert.equal(hero.group.rotation.y, 0.7);
   }
   assert.equal(hero.group.children[0].scale.y, 1);
-  hero.update(0.1, { state: 'slide' }); assert.ok(hero.group.children[0].rotation.x<0);
-  assert.equal(hero.group.children[0].userData.pose,'slide');
-  hero.update(0); assert.equal(hero.group.children[0].scale.y, 1);assert.equal(hero.group.children[0].rotation.x,0);
+  hero.update(0.1, { state: 'slide' });
+  hero.group.updateMatrixWorld(true);
+  for(const part of meshes(hero.group))assert.ok(part.matrixWorld.elements.every(Number.isFinite));
+  hero.update(0); assert.equal(hero.group.children[0].scale.y, 1);
   hero.dispose(); hero.dispose(); hero.update(1);
   geometryDisposed(1); materialDisposed(1); assert.equal(hero.group.children.length, 0);
 }
@@ -73,13 +83,27 @@ const unchanged = [origin, target, direction, ...targets].map(v => v.clone());
 const geometryDisposed = countDisposals(Object.values(fx.kit));
 for (const ability of abilities) {
   const handle = fx.emit(ability.id, { origin, target, direction, targets, color: ability.fx.color, duration: 1 });
-  checkSolid(handle.group, ability.id !== 'xray'); shapes.add(signature(handle.group));
+  if(ability.id==='turret') {
+    assert.equal(handle.group.userData.model.id,'deployed_stapler');assert.equal(handle.group.userData.model.triangles,3248);
+    const base=handle.group.getObjectByName('base'),yawHead=handle.group.getObjectByName('yaw_head'),pitchHead=handle.group.getObjectByName('head_pitch');
+    const baseRest=base.quaternion.clone(),rootYaw=handle.group.rotation.y;
+    handle.aimAt(new THREE.Vector3(1,10,-1));assert.equal(handle.group.rotation.y,rootYaw);assert.ok(base.quaternion.equals(baseRest));
+    assert.ok(Math.abs(yawHead.rotation.y)>0);assert.ok(pitchHead.rotation.x<=Math.PI/4+1e-6);
+    assert.ok(meshes(handle.group).every(m=>m.material.isMeshStandardMaterial&&m.material.map.image.width===512));
+  } else checkSolid(handle.group, ability.id !== 'xray');
+  shapes.add(signature(handle.group));
   assert.equal(handle.position, handle.group.position); assert.equal(handle.remaining, 1);
   near(handle.position, origin); handles.set(ability.id, handle);
 }
 assert.equal(shapes.size, 16, 'distinct geometry/scale signatures for every kit effect');
 assert.equal(fx.count, 16); assert.equal(scene.children.length, 16);
-assert.ok(new Set(meshes(scene).map(p => p.geometry)).size <= 6, 'shared geometry kit');
+assert.ok(new Set(scene.children.filter(g=>g.name!=='turret').flatMap(meshes).map(p=>p.geometry)).size<=6,'non-model FX share the geometry kit');
+const turretParts=meshes(handles.get('turret').group),turretGeometryDisposed=countDisposals(new Set(turretParts.map(p=>p.geometry)));
+const duplicateTurret=fx.emit('turret'),duplicateParts=meshes(duplicateTurret.group);
+assert.equal(duplicateParts.length,turretParts.length);
+for(let i=0;i<turretParts.length;i++){assert.equal(duplicateParts[i].geometry,turretParts[i].geometry);assert.notEqual(duplicateParts[i].material,turretParts[i].material);}
+const duplicateMaterialsDisposed=countDisposals(new Set(duplicateParts.map(p=>p.material)));
+duplicateTurret.dispose();duplicateMaterialsDisposed(1);turretGeometryDisposed(0);
 assert.equal(handles.get('xray').group.renderOrder, 1000);
 [origin, target, direction, ...targets].forEach((v, i) => near(v, unchanged[i]));
 for (const id of ['hook', 'tether']) {
@@ -123,12 +147,15 @@ assert.equal(fx.count, 100); assert.equal(oldest.remaining, 0); assert.equal(old
 assert.throws(() => fx.emit('missing'), RangeError); assert.equal(fx.count, 100);
 const clearedMaterials = countDisposals(new Set(meshes(scene).map(p => p.material)));
 fx.clear(); fx.clear(); clearedMaterials(1); assert.equal(fx.count, 0); assert.equal(scene.children.length, 0);
-for (const { id } of abilities) checkSolid(fx.emit(id, { origin: vector(), target: vector(), duration: NaN }).group, id !== 'xray');
+for (const { id } of abilities) {
+  const handle=fx.emit(id,{origin:vector(),target:vector(),duration:NaN});
+  if(id==='turret')assert.equal(handle.group.userData.model.id,'deployed_stapler');else checkSolid(handle.group,id!=='xray');
+}
 fx.update(2); assert.equal(fx.count, 0);
 const finalHandle = fx.emit('aura');
 const finalMaterials = countDisposals(new Set(meshes(finalHandle.group).map(p => p.material)));
 fx.dispose(); fx.dispose(); fx.clear(); fx.update(1); finalMaterials(1);
 geometryDisposed(1); assert.equal(fx.count, 0); assert.equal(scene.children.length, 0);
 assert.throws(() => fx.emit('shot'), /disposed/);
-disposeCharacterAssets();
-console.log('PASS: 4 real120k-250k GLB heroes/PBR512 surfaces/pivots/disposal,16 unique kit FX+7 generic FX; positions/depth/links/expiry/cap');
+turretGeometryDisposed(0);disposeCharacterAssets();turretGeometryDisposed(1);
+console.log('PASS: 4 manifest-pinned external GLB heroes/linear palettes/PBR512/real rigid nodes; deployed stapler bearing/pitch;16 unique kit FX+7 generic FX; lifecycle/links/expiry/cap');

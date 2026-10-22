@@ -2,7 +2,10 @@ import * as THREE from './vendor/three.module.js';
 import { GLTFLoader } from './vendor/addons/GLTFLoader.js';
 
 const cache=new Map(),pending=new Map(),surfaces=new Map();
-const entries={stampead:[120000,250000],turretina:[120000,250000],snipeoff:[120000,250000],gooey:[120000,250000],trooper:[15000,40000]};
+// Operator-delivered rigid assemblies supersede the larger procedural fallback budgets.
+// Exact external counts/SHA/palette/rig also have to agree with their delivery manifest.
+const entries={stampead:[1,250000],turretina:[1,250000],snipeoff:[1,250000],gooey:[1,250000],deployed_stapler:[1,80000],trooper:[15000,40000]};
+const externalName=id=>id==='gooey'?'gooey_sticky':id;
 const base=new URL('./models/',import.meta.url),isNode=typeof window==='undefined';
 async function bytesAt(url) {
   if(isNode){const {readFile}=await import('node:fs/promises');const b=await readFile(url);return b.buffer.slice(b.byteOffset,b.byteOffset+b.byteLength);}
@@ -17,25 +20,58 @@ export async function loadCharacter(id) {
   if(cache.has(id))return cache.get(id);
   if(pending.has(id))return pending.get(id);
   const promise=(async()=>{
-    const [bytes,receiptBytes]=await Promise.all([bytesAt(new URL(`${id}/model.glb`,base)),bytesAt(new URL(`${id}/receipt.json`,base))]);
-    const receipt=JSON.parse(new TextDecoder().decode(receiptBytes));
+    const jsonHashes=new Map();
+    const jsonAt=async name=>{const bytes=await bytesAt(new URL(`${id}/${name}.json`,base));jsonHashes.set(name,await digest(bytes));return JSON.parse(new TextDecoder().decode(bytes));};
+    const [bytes,receipt,manifest,palette,rig]=await Promise.all([
+      bytesAt(new URL(`${id}/model.glb`,base)),jsonAt('receipt'),
+      ...(id==='trooper'?[null,null,null]:['manifest','palette','rig'].map(jsonAt))
+    ]);
     if(bytes.byteLength>=8388608||bytes.byteLength!==receipt.bytes||receipt.url!==`models/${id}/model.glb`||await digest(bytes)!==receipt.sha256)throw new Error(`Character integrity mismatch: ${id}`);
+    if(bytes.byteLength<20)throw new Error('Truncated character GLB');
     const header=new DataView(bytes),length=header.getUint32(12,true);
-    if(header.getUint32(0,true)!==0x46546c67||header.getUint32(8,true)!==bytes.byteLength||length>bytes.byteLength-20)throw new Error('Invalid character GLB');
+    if(header.getUint32(0,true)!==0x46546c67||header.getUint32(4,true)!==2||header.getUint32(8,true)!==bytes.byteLength||header.getUint32(16,true)!==0x4e4f534a||length>bytes.byteLength-20)throw new Error('Invalid character GLB');
     const document=JSON.parse(new TextDecoder().decode(new Uint8Array(bytes,20,length)));
     if(document.buffers?.length!==1||document.buffers.some(b=>b.uri)||document.images?.length)throw new Error('Character GLB must be self-contained geometry/PBR; external resources forbidden');
+    if(manifest) {
+      for(const name of ['manifest','palette','rig'])if(receipt.metadataSHA256?.[`${name}.json`]!==jsonHashes.get(name))throw new Error(`External sidecar integrity mismatch: ${id}/${name}`);
+      if(manifest.model!==externalName(id)||manifest.sha256!==receipt.sha256||manifest.size_bytes!==bytes.byteLength||manifest.tri_count_LOD0!==receipt.triangles||!Number.isInteger(manifest.constraints?.GLB_cap_bytes)||manifest.constraints.GLB_cap_bytes<=0||manifest.constraints.units!=='metres'||manifest.constraints.glb_up!=='Y'||manifest.constraints.forward_glb!=='-Z'||bytes.byteLength>=Math.min(8388608,manifest.constraints.GLB_cap_bytes))throw new Error(`External manifest mismatch: ${id}`);
+      if(palette.schema!=='palette_v2'||rig.schema!=='rigid_parts_v2'||rig.version!==2||palette.model!==manifest.model||rig.model!==manifest.model)throw new Error(`External sidecar mismatch: ${id}`);
+      for(const slot of palette.material_slots) {
+        const color=slot.base_color_linear_rgba;
+        if(document.materials[slot.gltf_material_index]?.name!==slot.name||!Array.isArray(color)||color.length!==4||!color.every(n=>Number.isFinite(n)&&n>=0&&n<=1)||![slot.metallic,slot.roughness].every(n=>Number.isFinite(n)&&n>=0&&n<=1))throw new Error(`Invalid palette slot: ${id}/${slot.name}`);
+      }
+    }
     const gltf=await new GLTFLoader().parseAsync(bytes,'');
-    let triangles=0;const names=[];
-    gltf.scene.traverse(o=>{if(o.isMesh){triangles+=(o.geometry.index?.count??o.geometry.attributes.position.count)/3;names.push(o.name);}});
+    let triangles=0;const names=[],materialNames=new Set(),generatedUV=[];
+    gltf.scene.traverse(o=>{
+      if(!o.isMesh)return;
+      const geometry=o.geometry,position=geometry.attributes.position;
+      if(!geometry.getAttribute('uv')) {
+        geometry.computeBoundingBox();const box=geometry.boundingBox,size=box.getSize(new THREE.Vector3());
+        const axes=[0,1,2].sort((a,b)=>size.getComponent(b)-size.getComponent(a)),uv=new Float32Array(position.count*2);
+        for(let i=0;i<position.count;i++)for(let j=0;j<2;j++)uv[i*2+j]=(position.getComponent(i,axes[j])-box.min.getComponent(axes[j]))/Math.max(.001,size.getComponent(axes[j]));
+        geometry.setAttribute('uv',new THREE.BufferAttribute(uv,2));generatedUV.push(o.name);
+      }
+      triangles+=(geometry.index?.count??position.count)/3;names.push(o.name);
+      for(const m of Array.isArray(o.material)?o.material:[o.material])materialNames.add(m.name);
+    });
     const [minimum,maximum]=entries[id];
     if(triangles<minimum||triangles>maximum||triangles!==receipt.triangles)throw new Error(`Character triangle mismatch: ${id}/${triangles}`);
-    const asset={root:gltf.scene,metadata:Object.freeze({id,bytes:receipt.bytes,sha256:receipt.sha256,triangles,meshes:names.length})};
+    if(rig) {
+      if(new Set(rig.movable_nodes.map(n=>n.name)).size!==rig.movable_nodes.length||JSON.stringify(rig.movable_nodes.map(n=>n.name))!==JSON.stringify(manifest.rig_nodes))throw new Error(`External rig list mismatch: ${id}`);
+      gltf.scene.updateMatrixWorld(true);
+      for(const node of rig.movable_nodes) {
+        const part=gltf.scene.getObjectByName(node.name),vector=a=>Array.isArray(a)&&a.length===3&&a.every(Number.isFinite);
+        if(!vector(node.pivot_position)||!vector(node.pivot_model_position)||!part||(node.parent!==null&&part.parent?.name!==node.parent)||part.position.distanceTo(new THREE.Vector3(...node.pivot_position))>1e-4||part.getWorldPosition(new THREE.Vector3()).distanceTo(new THREE.Vector3(...node.pivot_model_position))>1e-4)throw new Error(`External rig pivot mismatch: ${id}/${node.name}`);
+      }
+    }
+    const asset={root:gltf.scene,rig,palette,metadata:Object.freeze({id,bytes:receipt.bytes,sha256:receipt.sha256,triangles,meshes:names.length,origin:manifest?'operator-external':'procedural',movableNodes:rig?.movable_nodes.length??0,paletteSlots:palette?.material_slots.length??0,generatedUV,unmatchedPaletteSlots:palette?[...materialNames].filter(n=>!palette.material_slots.some(s=>s.name===n)):[]})};
     cache.set(id,asset);return asset;
   })();
   pending.set(id,promise);
   try{return await promise;}catch(error){pending.delete(id);throw error;}
 }
-export async function preloadHeroes(){return Promise.all(['stampead','turretina','snipeoff','gooey'].map(loadCharacter));}
+export async function preloadHeroes(){return Promise.all(['stampead','turretina','snipeoff','gooey','deployed_stapler'].map(loadCharacter));}
 export function characterMetadata(){return [...cache.values()].map(a=>a.metadata);}
 
 // Original shared 512px weave/scuff/normal surfaces, not copied concept pixels.
@@ -69,8 +105,10 @@ export function cloneCharacter(id,{shareGeometry=false}={}) {
     }
     const copy=material=>{
       if(!materialCopies.has(material)) {
-        const m=material.clone(),name=m.name.toLowerCase();
-        const family=/skin|face|ear|lip/.test(name)?'skin':/cloth|coat|cape|canvas|fabric|trouser/.test(name)?'cloth':/leather|strap|boot|pouch/.test(name)?'leather':m.metalness>.3?'metal':'rubber';
+        const m=material.clone(),name=m.name.toLowerCase(),slot=asset.palette?.material_slots.find(s=>s.name===m.name);
+        if(slot){m.color.setRGB(...slot.base_color_linear_rgba.slice(0,3),THREE.LinearSRGBColorSpace);m.opacity=slot.base_color_linear_rgba[3];m.transparent=m.transparent||m.opacity<1;m.metalness=slot.metallic;m.roughness=slot.roughness;}
+        const family=/skin|face|ear|lip|eye_white/.test(name)?'skin':/paper|folder/.test(name)?'paper':/cloth|coat|cape|canvas|fabric|trouser|audit_navy|postroom_oxblood|engineer_teal/.test(name)?'cloth':/leather|strap|boot|pouch/.test(name)?'leather':m.metalness>.3?'metal':'rubber';
+        m.userData.paletteSlot=slot?.name??null;m.userData.surfaceFamily=family;
         const textures=surface(family);m.map=textures.map;m.normalMap=textures.normalMap;m.normalScale.setScalar(family==='skin'?.015:.06);m.needsUpdate=true;
         materialCopies.set(material,m);
       }
@@ -81,7 +119,7 @@ export function cloneCharacter(id,{shareGeometry=false}={}) {
   });
   group.userData.model=asset.metadata;
   let disposed=false;
-  return {group,metadata:asset.metadata,dispose(){if(disposed)return;disposed=true;group.removeFromParent();geometryCopies.forEach(g=>g.dispose());materialCopies.forEach(m=>m.dispose());group.clear();}};
+  return {group,metadata:asset.metadata,rig:asset.rig,dispose(){if(disposed)return;disposed=true;group.removeFromParent();geometryCopies.forEach(g=>g.dispose());materialCopies.forEach(m=>m.dispose());group.clear();}};
 }
 export function disposeCharacterAssets() {
   for(const asset of cache.values()) {

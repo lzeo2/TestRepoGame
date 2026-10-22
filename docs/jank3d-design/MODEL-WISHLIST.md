@@ -4,7 +4,19 @@ World/orchestrator owns the model queue, approved concepts, generation and
 asset import. **No Blender.** This index currently records the hero team's
 contribution only; it is not a complete world-model plan or asset approval.
 
-## Current procedural fallback quality
+## Operator delivery received
+
+The operator's external dot delivered the four requested body assemblies and the
+optional deployed stapler. Current integration preserves exact GLBs, palette,
+rig guide and manifest in `Games/Jankolock3D/models/<id>/`; `gooey_sticky` maps
+to `gooey`. These were externally authored, not local wishlist builds. No local
+Blender/bpy was launched. The declared `.blend` source was not included; retain
+that provenance limit. Current byte/count/pivot checks do not close art or
+hardware acceptance. Fresh before/after views compare to Git fallback `bf215f0`.
+The original request descriptions remain below/in the appendix, not permission
+to start a new local model pipeline.
+
+## Historical procedural fallback quality (before external delivery)
 
 Requests and their external/operator-run ownership are unchanged. No wishlist
 models are commissioned or built locally here, and no Blender/bpy/sculpt work is
