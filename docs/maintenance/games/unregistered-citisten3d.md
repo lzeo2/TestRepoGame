@@ -1,0 +1,75 @@
+# CITISTEN 3D: unregistered component project
+
+<!-- maintenance-game: Games/Citisten3D -->
+
+## Identity and status
+
+Operator-authorized original CITISTEN components, not an integrated game entry.
+There is no `Games/Citisten3D/index.html`, no catalog entry or registration yet,
+and no publication or push implied. `world.html` and `ui-preview.html` are
+standalone specimens. The catalog remains at 127 registered games.
+
+## Implementation map
+
+- [Simulation receipt](../../citisten-sim.md): `sim.mjs`, assertions and API-fixture captures.
+- [World receipt](../../citisten-world.md): terrain, roads, camera, lighting,
+  instanced models, render-only FX and measured rendering holds.
+- [UI QA receipt](../../citisten-ui-qa.md): UI/preview ownership, generated
+  mockups, native focus checks and themed fixture captures.
+
+These lane receipts retain their inspected-source limits. This canonical page
+indexes them; it does not claim a new whole-game review.
+
+## Gameplay and controls
+
+World specimen: WASD pan, right/middle drag to look, wheel height 2–400m,
+with a default spectator tour. Simulation supports free/defense modes through
+its API. The UI preview does not wire world placement or full gameplay input.
+Integrated normal-input acceptance remains outstanding.
+
+## State and persistence
+
+Simulation owns in-memory city state and its fixed-step clock. Integration
+must consume its events once, dispatch visuals and own restart/save lifecycle.
+No integrated save/load contract is established by these separate specimens.
+
+## Dependencies and provenance
+
+Original authored components; Three.js 0.186.0 is vendored locally with
+`Games/Citisten3D/vendor/THREE-LICENSE.txt`. See the world receipt for hashes
+and provenance limits. No new runtime dependency or copied game assets are
+introduced by this documentation refresh.
+
+## Audit findings
+
+The approved canonical world measurement is **2.257124 FPS**, below the 40 FPS
+gate. The non-canonical GL probe measured 2.077732 FPS but returned a null
+renderer identity and a visual artifact; hardware acceleration is unproven.
+Sim/UI/browser fixtures are not integrated gameplay acceptance. Registration,
+reviewer grading, touch-world controls and the full-fleet release gate remain held.
+
+## Safe iteration
+
+Read the relevant lane receipt and API before changing its source. Preserve
+coordinate units, road version invalidation, model handles and single event
+consumption. Commit inspected source before refreshing the Git-backed inventory.
+Coordinate browser ownership and preserve disk guards; no browser run is needed
+for this canonical documentation-only repair.
+
+## Verification
+
+Batch 34 canonical repair supersedes the incomplete `ce8d2b4` inventory refresh.
+Older lane receipts' inventory-blocker statements are historical; this page,
+the index and refreshed inventory are the canonical coverage handover.
+
+Run `python3 -B scripts/check_maintenance_docs.py` after the canonical commit.
+This checks document coverage and source hashes, not gameplay or performance.
+The sim receipt records its final 22 API-fixture screenshots at exit 0; the UI
+receipt records its fixture checks. Neither overrides the world render-budget
+failure or substitutes for the mandatory full registered-game smoke before push.
+
+## Future outlook
+
+Integration must supply the actual game entry and finish normal-input/reviewer
+gates. Registration, publication and push remain separate approvals. Do not
+create an entry or catalog row merely to make maintenance documentation pass.
