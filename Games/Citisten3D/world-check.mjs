@@ -1,7 +1,6 @@
 import assert from 'node:assert/strict';
 import * as THREE from './vendor/three.module.js';
 import { RoadGrid } from './roads.mjs';
-import { createBuildingKit } from './buildings.mjs';
 import { createDayNight } from './daynight.mjs';
 import { createRoadPool } from './world.mjs';
 import { createWorldEffects } from './world-effects.mjs';
@@ -43,48 +42,28 @@ assert.deepEqual(grid.path(route[0], route.at(-1)), []);
 assert.throws(() => grid.lanePoints(route), RangeError);
 pool.dispose();
 
-const kit = createBuildingKit(scene, 2);
-assert.equal(kit.types.length, 14);
-for (const type of kit.types) {
-  const a = kit.spawn(type), b = kit.spawn(type, { x: 10 });
-  assert.throws(() => kit.spawn(type), RangeError);
-  assert.equal(kit.remove(a), true);
-  assert.equal(b.index, 0);
-  kit.transform(b, { x: 20, rotation: 1 });
-  const m = new THREE.Matrix4(); kit.pools.get(type).mesh.getMatrixAt(0, m);
-  assert.equal(m.elements[12], 20);
-  assert.throws(() => kit.transform(a), Error);
-  assert.equal(kit.remove(a), false);
-  assert.throws(() => kit.spawn(type, { x: NaN }), RangeError);
-  assert.equal(kit.pools.get(type).mesh.count, 1);
-}
-assert.throws(() => kit.spawn('missing'), RangeError);
-assert.throws(() => kit.spawn('toString'), RangeError);
-const camera = { position: new THREE.Vector3(20, 2, 5) };
-kit.update(camera, 1);
-assert.ok(kit.material.isMeshStandardMaterial);
-assert.equal(kit.material.map.image.width, 1024);
-assert.ok(kit.material.emissiveIntensity > 1);
-for (const p of kit.pools.values()) {
-  assert.equal(p.detail.count, 1);
-  assert.ok(p.detail.castShadow && p.detail.receiveShadow);
-  assert.ok(p.detail.geometry.attributes.lightLevel.array.every(v => v >= 0 && v <= 1));
-}
-camera.position.set(10000, 400, 10000); kit.update(camera, 0);
-for (const p of kit.pools.values()) {
-  assert.equal(p.detail.count, 0);
-  const matrix = new THREE.Matrix4(); p.mesh.getMatrixAt(0, matrix); assert.equal(matrix.elements[12], 20);
-}
+// Real GLB/handle/motion coverage is in external-model-check.mjs. This fixture
+// isolates the AO invalidation policy without browser image decoding.
+const pose = { x: 20, z: 0 }, mobilePose = { x: -50, z: 0 };
+const kit = { version: 0, pools: new Map([
+  ['commercial', { handles: [{ pose }] }],
+  ...['citizen', 'zombie', 'car', 'patrol_car', 'utility_car'].map(type => [type, { handles: [{ pose: mobilePose }] }]),
+]) };
+const camera = { position: new THREE.Vector3(10000, 400, 10000) };
 const groundAppearance = createGroundMaterial(100), groundGeometry = new THREE.PlaneGeometry(200, 200);
 const ground = new THREE.Mesh(groundGeometry, groundAppearance.material);
 const ao = createBlockAO(ground, kit, 100, 10); ao.update();
 assert.ok(ao.map.image.data.some(v => v < 255));
-const staticVersion = kit.version;
-kit.transform(kit.pools.get('citizen').handles[0], {x:30}); assert.equal(kit.version, staticVersion);
-kit.transform(kit.pools.get('commercial').handles[0], {x:40}); assert.ok(kit.version > staticVersion);
-ao.update(); assert.equal(ground.geometry.attributes.uv1.count, ground.geometry.attributes.uv.count);
-const water = createWater(scene, 100), offset = water.mesh.material.normalMap.offset.clone();
-water.update(.5); assert.ok(!offset.equals(water.mesh.material.normalMap.offset));
+const previousAO = ao.map.image.data.slice();
+mobilePose.x = 50; kit.version++; ao.update();
+assert.deepEqual(ao.map.image.data, previousAO, 'All mobile types excluded from static AO');
+pose.x = 40; ao.update();
+assert.deepEqual(ao.map.image.data, previousAO, 'Unchanged static version skips bake');
+kit.version++; ao.update();
+assert.notDeepEqual(ao.map.image.data, previousAO);
+assert.equal(ground.geometry.attributes.uv1.count, ground.geometry.attributes.uv.count);
+const water = createWater(scene, 100);
+assert.equal(water.mesh.position.y, -.4);
 water.dispose(); ao.dispose(); groundAppearance.dispose(); groundGeometry.dispose();
 const daylight = createDayNight(scene);
 assert.equal(daylight.setPhase(.5), 1);
@@ -110,6 +89,6 @@ for (let i = 0; i < 70; i++) effects.shot({x: 95, z: 100}, {x: 100, z: 105});
 assert.equal(effects.active, 64);
 effects.update(.1); assert.equal(effects.active, 64);
 effects.update(.1); assert.equal(effects.active, 0);
-effects.dispose(); daylight.dispose(); kit.dispose();
+effects.dispose(); daylight.dispose();
 assert.equal(scene.children.length, 0);
-console.log('WORLD CHECK PASS: roads/lanes, 14 model types, stable handles, high/low LOD, PBR atlas, block AO, animated water, sky probe/shadows, day/night, bounded FX');
+console.log('WORLD CHECK PASS: roads/lanes, static/mobile block AO invalidation, water height, sky probe/shadows, day/night, bounded FX; GLB/animation/material tests run separately');

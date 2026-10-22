@@ -50,16 +50,28 @@ def benign(text: str) -> bool:
     t = text.lower()
     return any(b in t for b in BENIGN)
 
+def select_games(games, selection):
+    if selection is None:
+        return games
+    wanted = {value.strip().lower() for value in selection.split(',')}
+    selected = [g for g in games if g['title'].lower() in wanted or str(g['id']) in wanted]
+    matched = {value for g in selected for value in (g['title'].lower(), str(g['id']))}
+    if wanted - matched:
+        raise ValueError('Unknown game selectors: ' + ', '.join(sorted(wanted - matched)))
+    return selected
+
+
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--games", help="comma-separated titles to test (default: all)")
+    ap.add_argument("--games", help="comma-separated titles or IDs to test (default: all)")
     ap.add_argument("--wait-ms", type=int, default=WAIT_MS)
     args = ap.parse_args()
 
     games = json.load(open(os.path.join(ROOT, "games.json")))
-    if args.games:
-        wanted = {g.strip().lower() for g in args.games.split(",")}
-        games = [g for g in games if g["title"].lower() in wanted]
+    try:
+        games = select_games(games, args.games)
+    except ValueError as error:
+        ap.error(str(error))
 
     os.chdir(ROOT)
     srv = http.server.ThreadingHTTPServer(("127.0.0.1", PORT),

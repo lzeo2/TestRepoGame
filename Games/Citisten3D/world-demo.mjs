@@ -3,7 +3,11 @@ import { createWorld, populateWorld } from './world.mjs';
 const canvas = document.querySelector('#world');
 try {
   const params = new URLSearchParams(location.search);
-  const world = createWorld(canvas, { size: params.get('size') === '128' ? 128 : 200, pixelRatio: 1 });
+  const world = createWorld(canvas, { size: params.get('size') === '128' ? 128 : 200, pixelRatio: 1, modelLOD: Number(params.get('lod') || 0) });
+  canvas.setAttribute('aria-busy', 'true');
+  addEventListener('pagehide', () => world.dispose(), { once: true });
+  await world.ready;
+  canvas.removeAttribute('aria-busy');
   const fixture = populateWorld(world, { dense: params.has('perf') });
   const samples = [];
   let last = performance.now(), started = last, elapsed = 0, running = true, frameCount = 0;
@@ -20,7 +24,7 @@ try {
       return { size: world.roads.size, lots: world.roads.size ** 2, viewport: [canvas.width, canvas.height],
         frames: samples.length, sampleSeconds: total / 1000, fps: samples.length ? samples.length * 1000 / total : 0,
         medianMs: sorted[Math.floor(sorted.length / 2)] || 0, p95Ms: sorted[Math.floor(sorted.length * .95)] || 0,
-        calls: world.renderer.info.render.calls, triangles: world.renderer.info.render.triangles,
+        calls: world.renderer.info.render.calls, triangles: world.renderer.info.render.triangles, modelLOD: world.buildings.lod,
         roadLots: world.roads.cells.size, modelInstances: [...world.buildings.pools.values()].reduce((n, p) => n + p.mesh.count, 0),
         cameraY: world.camera.position.y, measuredSeconds: (performance.now() - started) / 1000 };
     },

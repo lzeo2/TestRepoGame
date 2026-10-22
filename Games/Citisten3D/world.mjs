@@ -4,7 +4,8 @@ import { createBuildingKit } from './buildings.mjs';
 import { createFreeCamera } from './camera.mjs';
 import { createDayNight } from './daynight.mjs';
 import { createWorldEffects } from './world-effects.mjs';
-import { createAsphaltMaterial, createGroundMaterial, createWater, createBlockAO } from './materials.mjs';
+import { createAsphaltMaterial, createGroundMaterial, createWater, createBlockAO, applyExternalTerrain } from './materials.mjs';
+import { loadExternalModel, disposeExternalModels } from './external-assets.mjs';
 
 export function createRoadPool(scene, grid) {
   const geometry = new THREE.PlaneGeometry(grid.lotSize, grid.lotSize);
@@ -31,7 +32,8 @@ export function createRoadPool(scene, grid) {
   };
 }
 
-export function createWorld(canvas, { size = 200, lotSize = 10, pixelRatio = Math.min(devicePixelRatio, 1.5) } = {}) {
+export function createWorld(canvas, { size = 200, lotSize = 10, pixelRatio = Math.min(devicePixelRatio, 1.5), modelLOD = 0 } = {}) {
+  if (![0, 1, 2].includes(modelLOD)) throw new RangeError('LOD must be 0, 1 or 2');
   const roads = new RoadGrid(size, lotSize), extent = size * lotSize / 2;
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: false, alpha: false, powerPreference: 'high-performance' });
   renderer.setPixelRatio(pixelRatio);
@@ -42,7 +44,7 @@ export function createWorld(canvas, { size = 200, lotSize = 10, pixelRatio = Mat
   const controls = createFreeCamera(camera, canvas, extent);
   const dayNight = createDayNight(scene);
   scene.fog = new THREE.Fog(scene.background, extent * .7, extent * 3);
-  const buildings = createBuildingKit(scene);
+  const buildings = createBuildingKit(scene, 10000, { lod: modelLOD });
   const roadPool = createRoadPool(scene, roads);
   const effects = createWorldEffects(scene, roads);
   // Lot boundaries are separate grid lines; flat ground needs no per-lot triangles.
@@ -69,8 +71,30 @@ export function createWorld(canvas, { size = 200, lotSize = 10, pixelRatio = Mat
   scene.add(gridLines);
   const raycaster = new THREE.Raycaster(), groundPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
   const hit = new THREE.Vector3();
-  let width = 0, height = 0;
+  let width = 0, height = 0, loaded = false, disposed = false, terrain = null, terrainModel = null;
+  function dispose() {
+    if (disposed) return;
+    disposed = true; loaded = false;
+    terrain?.dispose();
+    if (terrainModel) { disposeExternalModels([terrainModel]); terrainModel = null; }
+    controls.dispose(); dayNight.dispose(); buildings.dispose(); roadPool.dispose(); effects.dispose();
+    water.dispose(); blockAO.dispose(); scene.remove(ground, gridLines);
+    groundGeometry.dispose(); groundAppearance.dispose(); gridLines.geometry.dispose(); gridLines.material.dispose(); renderer.dispose();
+  }
+  const ready = Promise.allSettled([buildings.ready, loadExternalModel('terrain_water_materials')]).then(results => {
+    if (results[1].status === 'fulfilled') terrainModel = results[1].value;
+    if (disposed) {
+      if (terrainModel) { disposeExternalModels([terrainModel]); terrainModel = null; }
+      throw new Error('World disposed before assets were ready');
+    }
+    const failed = results.find(result => result.status === 'rejected');
+    if (failed) throw failed.reason;
+    terrain = applyExternalTerrain({ ground, road: roadPool.mesh, water: water.mesh, extent, lotSize }, terrainModel);
+    water.update = terrain.update;
+    loaded = true;
+  }).catch(error => { dispose(); throw error; });
   function render(dt = 0) {
+    if (!loaded || disposed) return;
     const w = Math.max(1, canvas.clientWidth), h = Math.max(1, canvas.clientHeight);
     if (w !== width || h !== height) {
       width = w; height = h; renderer.setSize(w, h, false);
@@ -79,24 +103,21 @@ export function createWorld(canvas, { size = 200, lotSize = 10, pixelRatio = Mat
     gridLines.material.color.copy(dayNight.lights.ambient.color);
     gridLines.material.opacity = .06 + .2 * dayNight.lights.sun.intensity / 2;
     controls.update(dt); roadPool.sync();
-    dayNight.follow(camera); buildings.update(camera, 1 - dayNight.lights.sun.intensity / 3);
-    blockAO.update(); water.update(Math.max(0, Math.min(1, dt)));
+    dayNight.follow(camera); buildings.update(camera, 1 - dayNight.lights.sun.intensity / 3, dt);
+    blockAO.update(); terrain.update(Math.max(0, Math.min(1, dt)));
     scene.fog.color.copy(scene.background);
     renderer.render(scene, camera); effects.update(dt);
   }
   return {
     renderer, scene, camera, controls, dayNight, roads, roadPool, buildings, effects, water, blockAO,
-    render,
+    ready, render, dispose,
+    get loaded() { return loaded; },
+    get terrainDiagnostics() { return terrain?.diagnostics; },
     pickLot(clientX, clientY) {
       const rect = canvas.getBoundingClientRect();
       camera.updateMatrixWorld();
       raycaster.setFromCamera(new THREE.Vector2((clientX - rect.left) / rect.width * 2 - 1, 1 - (clientY - rect.top) / rect.height * 2), camera);
       return raycaster.ray.intersectPlane(groundPlane, hit) ? roads.worldToCell(hit.x, hit.z) : null;
-    },
-    dispose() {
-      controls.dispose(); dayNight.dispose(); buildings.dispose(); roadPool.dispose(); effects.dispose();
-      water.dispose(); blockAO.dispose(); scene.remove(ground, gridLines);
-      groundGeometry.dispose(); groundAppearance.dispose(); gridLines.geometry.dispose(); gridLines.material.dispose(); renderer.dispose();
     },
   };
 }

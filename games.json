@@ -1355,5 +1355,15 @@
     "featured": false,
     "controls": "WASD move; mouse or arrows look; left/right mouse fire/aim; 1-4 abilities; Shift dash; Space double jump; Ctrl sprint; C slide; Q melee; F parry; R reload; E interact; hold X retreat; B shop. Pause button and touch controls.",
     "tags": ["shooter", "solo"]
+  },
+  {
+    "id": 241,
+    "title": "CITISTEN",
+    "cat": "strategy",
+    "icon": "",
+    "desc": "Original offline 3D city-builder sandbox with zombie night defense.",
+    "url": "Games/Citisten3D/index.html",
+    "featured": false,
+    "tags": ["build", "sandbox", "3d", "defense"]
   }
 ]
