@@ -6,7 +6,7 @@ import { applyTool, syncModels } from './native-actions.mjs';
 const canvas = document.querySelector('#world'), root = document.querySelector('#ui');
 const panel = document.querySelector('#native-controls'), feedback = document.querySelector('#feedback');
 const speed = document.querySelector('#speed'), loading = document.querySelector('#loading');
-let world, sim, ui, tool = 'road', paused = true, resumeSpeed = 1, frame = 0, last = 0, drag = null, closed = false;
+let world, sim, ui, layout, tool = 'road', paused = true, resumeSpeed = 1, frame = 0, last = 0, drag = null, closed = false;
 const models = new Map(), abort = new AbortController();
 const listen = (node, name, fn, options = {}) => node.addEventListener(name, fn, { ...options, signal: abort.signal });
 const message = text => { feedback.textContent = text; };
@@ -27,13 +27,15 @@ function pause() { if (!sim) return; resumeSpeed = sim.state.speed; sim.setSpeed
 function resume() { if (!sim) return; sim.setSpeed(resumeSpeed); paused = false; canvas.focus(); }
 function stop() {
   if (closed) return;
-  closed = true; cancelAnimationFrame(frame); abort.abort(); ui?.destroy(); world?.dispose();
+  closed = true; cancelAnimationFrame(frame); abort.abort(); layout?.disconnect(); ui?.destroy(); world?.dispose();
 }
+// Register before asset loading so navigating away also releases pending loads.
+window.addEventListener('pagehide', stop, { once: true });
 function tick(now) {
   if (closed) return;
-  const dt = last ? Math.max(0, Math.min(.25, (now - last) / 1000)) : 0; last = now;
+  const dt = last ? Math.max(0, (now - last) / 1000) : 0; last = now;
   if (sim) {
-    if (!paused) sim.update(dt);
+    if (!paused && !document.hidden) sim.update(dt);
     const events = sim.drainEvents();
     ui.events(events);
     for (const event of events) if (event.type === 'shot') world.effects.shot({ ...event.from, y: event.source === 'tower' ? 10 : 1.5 }, { ...event.to, y: 1.2 });
@@ -41,7 +43,7 @@ function tick(now) {
     world.dayNight.setPhase(sim.state.phase === 'day' ? .5 : 0);
     ui.update(sim.state, { roads: world.roads, size: world.roads.size });
   }
-  world.render(dt); frame = requestAnimationFrame(tick);
+  world.render(Math.min(.25, dt)); frame = requestAnimationFrame(tick);
 }
 try {
   world = createWorld(canvas, { size: 200 });
@@ -49,6 +51,12 @@ try {
   if (!closed) {
     ui = createUI(root, { onStart: start, onRestart: start, onTool: choose, onMenu: pause, onResume: resume });
     loading.hidden = true;
+    layout = new ResizeObserver(() => {
+      const bottom = Math.max(...[...root.querySelectorAll('.city-top,.city-night')].map(node => node.getBoundingClientRect().bottom));
+      panel.style.top = `${bottom + 8}px`;
+    });
+    for (const node of root.querySelectorAll('.city-top,.city-night')) layout.observe(node);
+    listen(document, 'visibilitychange', () => { last = 0; drag = null; });
     // Read-only diagnostics for native QA; gameplay never depends on this object.
     window.citisten = Object.freeze({ world, get sim() { return sim; }, get tool() { return tool; } });
     listen(canvas, 'pointerdown', event => {
@@ -90,4 +98,3 @@ try {
   stop(); loading.hidden = false; loading.textContent = `Town could not start: ${error.message}. Reload to retry.`;
   console.error(error);
 }
-window.addEventListener('pagehide', stop, { once: true });
