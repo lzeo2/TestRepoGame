@@ -19,6 +19,8 @@ standalone specimens. The catalog remains at 127 registered games.
   art request only. Blender/bpy is not used; Astra-built geometry is procedural.
 - [UI QA receipt](../../citisten-ui-qa.md): UI/preview ownership, generated
   mockups, native focus checks and themed fixture captures.
+- [Dark-default UI receipt](../../citisten-dark-default-ui.md): five cold
+  default-dark/native-light pairs, startup focus and copy/accessibility checks.
 
 These lane receipts retain their inspected-source limits. This canonical page
 indexes them; it does not claim a new whole-game review.
@@ -65,8 +67,9 @@ its rejected evidence is retained. Fixed-source material QA passed seven fresh
 captures with visible lit windows and animated water; see the world receipt.
 Model visual quality remains procedural, not photorealistic art acceptance.
 The operator removed the verified stale Git index lock; agents did not remove
-that admin file or bypass it. Refresh inventory after both world and UI source
-commits; earlier maintenance PASS output is not acceptance of these changes.
+that admin file or bypass it. The inventory now includes both world `37db2ac`
+and UI `cda7970`; earlier maintenance PASS output is not acceptance of these
+runtime changes.
 
 ## Verification
 
@@ -74,8 +77,17 @@ Batch 34 canonical repair supersedes the incomplete `ce8d2b4` inventory refresh.
 Older lane receipts' inventory-blocker statements are historical; this page,
 the index and refreshed inventory are the canonical coverage handover.
 
+The post-world/UI refresh records 30 CITISTEN source files, 2,358,922 bytes,
+and source tree `56aa92a81149e7387d87d119826de391fefe56f5`. Only this project's
+inventory entry changed; catalog remains 127 registered plus six unregistered
+projects. No canonical game entry or registration was added.
+
 Run `python3 -B scripts/check_maintenance_docs.py` after the canonical commit.
 This checks document coverage and source hashes, not gameplay or performance.
+World records four passing Node checks and seven material/model captures. UI
+records five cold dark/light screen pairs plus 36 copy/accessibility screenshots
+and ten collages. Existing UI evidence hashes were replayed offline; this
+maintenance refresh launches no browser and claims no new first-paint proof.
 The sim receipt records its final 22 API-fixture screenshots at exit 0; the UI
 receipt records its fixture checks. Neither overrides the world render-budget
 failure or substitutes for the mandatory full registered-game smoke before push.

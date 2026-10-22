@@ -310,8 +310,11 @@ stay at 1. External authored art is still requested; no Blender/bpy was used.
 
 The stale shared-worktree index lock was removed by the operator after
 verification, resolving ticket `pi-31413-1792656684902-540247cf` for this commit.
-No agent removed that external admin file or bypassed the index. Inventory
-refresh must follow the inspected world and concurrent UI source commits.
+No agent removed that external admin file or bypassed the index. World source
+and evidence landed in `37db2ac`, followed by UI `cda7970`. The canonical
+inventory/manual refresh now records both: 30 CITISTEN source files,
+2,358,922 bytes, tree `56aa92a81149e7387d87d119826de391fefe56f5`.
+This closes the inventory blocker, not the performance or release holds.
 
 ## Known blockers and inspected-source limits
 
