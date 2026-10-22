@@ -5,7 +5,8 @@
 Owned paths: `Games/Citisten3D/native-qa.py` and this receipt only. Parent owns
 native entry/controller/CSS and browser reservation; world/parent own shared
 Git/catalog/inventory. No runtime, catalog, sparse, inventory or push edits.
-**Revised split source is READY, statically checked, browser UNRUN by this lane.**
+**Runner source is committed; native acceptance is HOLD. Parent-run failures
+are recorded below; no complete CITY or SHELL pass is claimed.**
 
 The parent's original combined run returned exit 124 at 135.05s, leaving
 partial C/D images and no final JSON after alarm cleanup stalled. That is NOT
@@ -95,8 +96,12 @@ monitored attempt killed at 120.1524s after its 100s action alarm. The latter
 reached partial placement/C/D assertions but did not complete the suite or
 normal cleanup. See [the complete attempt/cleanup receipt](../citisten-native-integration.md).
 No partial subset is a CITY pass. Operator batch 69 holds further CITY browser
-attempts this session. SHELL is still unrun and needs its own explicit slot;
-no blanket reservation, budget raise or full-fleet/source freeze is implied.
+attempts this session. The separately yielded first SHELL run then failed at
+15s DOMContentLoaded navigation timeout: exit 1/20.9700s, server 200 in 0.06270s,
+no gameplay/mobile/offline checks reached, zero errors/external requests/route
+events, unchanged source hashes and all normal cleanup flags true. It is not a
+recorded network-error case or an offline pass. No further native attempt,
+blanket reservation, budget raise or full-fleet/source freeze is implied.
 
 The disk-action agent confirmed cleanup of the two old shared-memory profile
 orphans in batch 67. This lane did not delete outside the repository. Request

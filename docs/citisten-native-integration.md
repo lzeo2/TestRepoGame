@@ -55,7 +55,7 @@ exit 0**, zero retained console errors and failed requests. Its receipt is
 zero-match/interrupted runs remain rejected. Later native fixes need their
 own acceptance; loading does not establish native gameplay or 40fps.
 
-## Actual native attempts: all failed, no complete CITY pass
+## Actual native attempts: all failed, no complete CITY or SHELL pass
 
 | Attempt | Exit / duration | Retained outcome |
 | --- | --- | --- |
@@ -63,14 +63,17 @@ own acceptance; loading does not establish native gameplay or 40fps.
 | Split CITY, before HTTP guard | 1 / 29.9496s | `Page.goto` 15s DOMContentLoaded timeout before gameplay; cleanup passed. |
 | HTTP-guard CITY | 1 / 23.2221s | Server 200 in 0.05955s; two loopback module requests failed `ERR_NETWORK_CHANGED`, then readiness timed out at 15s. Cleanup passed. |
 | Final approved monitored CITY | -9 / 120.1524s | Entry ready at 12.172s; placement/C/D checkpoints reached, but the 100s action alarm interrupted the D screenshot and the outer stop killed cleanup. Not PASS. |
+| Distinct first SHELL | 1 / 20.9700s | HTTP 200 in 0.06270s, then 15s DOMContentLoaded navigation timeout before gameplay. No screenshots; all normal cleanup flags passed. |
 
 All source-hash comparisons were unchanged. The final attempt finished six
 placements at 87.106s, asserted population and both networks at 88.575s, saved
 its C screenshot at 95.007s, and asserted blackout/panel bounds at 99.224s.
 It did not finish D capture, power rebuild, Menu/Resume or repair selection.
-Partial checkpoints must not be promoted to a complete CITY pass. SHELL and
-natural combat remain unrun. Operator batch 69 explicitly holds further CITY
-browser attempts this session; there is no budget raise or filter weakening.
+Partial checkpoints must not be promoted to a complete CITY pass. The distinct
+first SHELL attempt reached no mode/mobile/offline assertions. Natural combat
+remains unrun. Operator batch 69 explicitly holds further CITY browser attempts
+this session; there is no budget raise or filter weakening. No further native
+browser run is planned without operator direction.
 
 ### Read-only host evidence and cleanup
 
@@ -83,7 +86,10 @@ watch saw zero events; that did not establish a quiet 120s window. The final
 monitored run recorded **24 route events and 10 virtual-interface events**,
 but no request/console/page errors. Its immediate failure was the action budget,
 not another recorded transport error. Raw addresses/MACs/hostnames were omitted
-from committed diagnostic summaries. No host configuration was changed.
+from committed diagnostic summaries. The separate first SHELL run saw zero
+route events and empty error/external-request arrays, but still hit navigation
+timeout. That is not another recorded `ERR_NETWORK_CHANGED` case, nor proof
+of a stable 120s host window. No host configuration was changed.
 
 The disk-action agent removed the two old shared-memory profile orphans in
 batch 67. After the final hard stop, fresh checks found zero browser roots,
@@ -100,8 +106,10 @@ run outcomes. The interrupted pre-launch command has an empty retained log and
 is not a pass.
 
 World reports 34 successful AFTER photos for all 17 models across three
-bounded passes at `be3024f`, separately from native gameplay. Its offline
-comparisons/review/docs are world-owned. Natural combat F/G/H, complete native
+bounded passes at `be3024f`, separately from native gameplay. Its 34 BEFORE
+photos, 17 comparison plates, reviewed source/API/provenance and refreshed
+inventory are committed in world receipt `37119d2`; these are not native-game
+acceptance. Natural combat F/G/H, complete native
 CITY/SHELL acceptance, current 40fps measurement and full-fleet remain open. The full fleet needs a clean,
 stable tree and coordinated no-merge/no-sparse window; a requested window is
 not an acquired reservation. A targeted pass does not replace all-game smoke.

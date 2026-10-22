@@ -1,0 +1,13 @@
+{
+  "case": "shell",
+  "revision": "a108429 + be3024f",
+  "exit": 1,
+  "seconds": 20.970036104001338,
+  "wallStart": "2026-10-23T09:14:27.506335+11:00",
+  "wallEnd": "2026-10-23T09:14:48.476382+11:00",
+  "sourceUnchanged": true,
+  "routeEventCount": 0,
+  "routeEvents": [],
+  "routeMonitorError": "",
+  "privacy": "raw addresses/MACs/hostnames omitted"
+}
