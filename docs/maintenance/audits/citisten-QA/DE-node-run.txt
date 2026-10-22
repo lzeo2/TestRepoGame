@@ -1,0 +1,421 @@
+{
+  "scope": "API fixtures, not integrated acceptance",
+  "route": [
+    {
+      "x": 4,
+      "z": 8
+    },
+    {
+      "x": 5,
+      "z": 8
+    },
+    {
+      "x": 6,
+      "z": 8
+    },
+    {
+      "x": 7,
+      "z": 8
+    },
+    {
+      "x": 8,
+      "z": 8
+    },
+    {
+      "x": 9,
+      "z": 8
+    },
+    {
+      "x": 10,
+      "z": 8
+    },
+    {
+      "x": 11,
+      "z": 8
+    },
+    {
+      "x": 12,
+      "z": 8
+    },
+    {
+      "x": 13,
+      "z": 8
+    },
+    {
+      "x": 14,
+      "z": 8
+    },
+    {
+      "x": 15,
+      "z": 8
+    },
+    {
+      "x": 16,
+      "z": 8
+    },
+    {
+      "x": 17,
+      "z": 8
+    },
+    {
+      "x": 18,
+      "z": 8
+    },
+    {
+      "x": 19,
+      "z": 8
+    },
+    {
+      "x": 20,
+      "z": 8
+    },
+    {
+      "x": 20,
+      "z": 9
+    },
+    {
+      "x": 20,
+      "z": 10
+    },
+    {
+      "x": 20,
+      "z": 11
+    },
+    {
+      "x": 20,
+      "z": 12
+    },
+    {
+      "x": 20,
+      "z": 13
+    },
+    {
+      "x": 20,
+      "z": 14
+    },
+    {
+      "x": 20,
+      "z": 15
+    },
+    {
+      "x": 20,
+      "z": 16
+    },
+    {
+      "x": 20,
+      "z": 17
+    },
+    {
+      "x": 20,
+      "z": 18
+    },
+    {
+      "x": 20,
+      "z": 19
+    },
+    {
+      "x": 20,
+      "z": 20
+    }
+  ],
+  "checkpoints": [
+    {
+      "id": 7,
+      "time": 1.5,
+      "segment": 0,
+      "x": 4.35,
+      "z": 8.18,
+      "heading": -1.5707963267948966,
+      "parked": false,
+      "roadCell": {
+        "x": 4,
+        "z": 8
+      }
+    },
+    {
+      "id": 7,
+      "time": 6.5,
+      "segment": 7,
+      "x": 11,
+      "z": 8.18,
+      "heading": -1.5707963267948966,
+      "parked": false,
+      "roadCell": {
+        "x": 11,
+        "z": 8
+      }
+    },
+    {
+      "id": 7,
+      "time": 11.75,
+      "segment": 14,
+      "x": 18,
+      "z": 8.18,
+      "heading": -1.5707963267948966,
+      "parked": false,
+      "roadCell": {
+        "x": 18,
+        "z": 8
+      }
+    },
+    {
+      "id": 7,
+      "time": 14.75,
+      "segment": 18,
+      "x": 19.82,
+      "z": 10,
+      "heading": 3.141592653589793,
+      "parked": false,
+      "roadCell": {
+        "x": 20,
+        "z": 10
+      }
+    },
+    {
+      "id": 7,
+      "time": 19.25,
+      "segment": 24,
+      "x": 19.82,
+      "z": 16,
+      "heading": 3.141592653589793,
+      "parked": false,
+      "roadCell": {
+        "x": 20,
+        "z": 16
+      }
+    },
+    {
+      "id": 7,
+      "time": 21.5,
+      "segment": 27,
+      "x": 19.82,
+      "z": 19,
+      "heading": 3.141592653589793,
+      "parked": false,
+      "roadCell": {
+        "x": 20,
+        "z": 19
+      }
+    }
+  ],
+  "observations": 87,
+  "matrix": [
+    {
+      "case": "connected",
+      "time": 4,
+      "power": {
+        "supply": 80,
+        "demand": 1.435598317462532,
+        "served": 1.435598317462532,
+        "unserved": 0
+      },
+      "water": {
+        "supply": 100,
+        "demand": 1.944497896828165,
+        "served": 1.944497896828165,
+        "unserved": 0
+      },
+      "target": {
+        "id": 4,
+        "x": 24,
+        "z": 12,
+        "powered": true,
+        "watered": true
+      },
+      "buildings": 5
+    },
+    {
+      "case": "power-removed",
+      "time": 4,
+      "power": {
+        "supply": 0,
+        "demand": 1.4221461004,
+        "served": 0,
+        "unserved": 1.4221461004
+      },
+      "water": {
+        "supply": 100,
+        "demand": 1.9276826255000001,
+        "served": 1.9276826255000001,
+        "unserved": 0
+      },
+      "target": {
+        "id": 4,
+        "x": 24,
+        "z": 12,
+        "powered": false,
+        "watered": true
+      },
+      "buildings": 4
+    },
+    {
+      "case": "water-removed",
+      "time": 4,
+      "power": {
+        "supply": 80,
+        "demand": 1.4221461004,
+        "served": 1.4221461004,
+        "unserved": 0
+      },
+      "water": {
+        "supply": 0,
+        "demand": 1.9276826255000001,
+        "served": 0,
+        "unserved": 1.9276826255000001
+      },
+      "target": {
+        "id": 4,
+        "x": 24,
+        "z": 12,
+        "powered": true,
+        "watered": false
+      },
+      "buildings": 4
+    },
+    {
+      "case": "both-removed",
+      "time": 4,
+      "power": {
+        "supply": 0,
+        "demand": 1.4221461004,
+        "served": 0,
+        "unserved": 1.4221461004
+      },
+      "water": {
+        "supply": 0,
+        "demand": 1.9276826255000001,
+        "served": 0,
+        "unserved": 1.9276826255000001
+      },
+      "target": {
+        "id": 4,
+        "x": 24,
+        "z": 12,
+        "powered": false,
+        "watered": false
+      },
+      "buildings": 3
+    },
+    {
+      "case": "road-cut",
+      "time": 6,
+      "power": {
+        "supply": 80,
+        "demand": 1.4189461004000001,
+        "served": 0,
+        "unserved": 1.4189461004000001
+      },
+      "water": {
+        "supply": 100,
+        "demand": 1.9236826255000001,
+        "served": 0,
+        "unserved": 1.9236826255000001
+      },
+      "target": {
+        "id": 4,
+        "x": 24,
+        "z": 12,
+        "powered": false,
+        "watered": false
+      },
+      "buildings": 5
+    },
+    {
+      "case": "road-restored",
+      "time": 6,
+      "power": {
+        "supply": 80,
+        "demand": 1.4324020614625321,
+        "served": 1.4324020614625321,
+        "unserved": 0
+      },
+      "water": {
+        "supply": 100,
+        "demand": 1.940502576828165,
+        "served": 1.940502576828165,
+        "unserved": 0
+      },
+      "target": {
+        "id": 4,
+        "x": 24,
+        "z": 12,
+        "powered": true,
+        "watered": true
+      },
+      "buildings": 5
+    },
+    {
+      "case": "power-overload",
+      "time": 4,
+      "power": {
+        "supply": 80,
+        "demand": 101.4453461004,
+        "served": 67.4453461004,
+        "unserved": 34
+      },
+      "water": {
+        "supply": 100,
+        "demand": 51.9566826255,
+        "served": 51.9566826255,
+        "unserved": 0
+      },
+      "target": {
+        "id": 4,
+        "x": 24,
+        "z": 12,
+        "powered": true,
+        "watered": true
+      },
+      "buildings": 55
+    },
+    {
+      "case": "water-overload",
+      "time": 4,
+      "power": {
+        "supply": 320,
+        "demand": 221.4453461004,
+        "served": 221.4453461004,
+        "unserved": 0
+      },
+      "water": {
+        "supply": 100,
+        "demand": 111.95668262550001,
+        "served": 96.95668262550001,
+        "unserved": 15
+      },
+      "target": {
+        "id": 4,
+        "x": 24,
+        "z": 12,
+        "powered": true,
+        "watered": true
+      },
+      "buildings": 118
+    },
+    {
+      "case": "isolated-sources",
+      "time": 4,
+      "power": {
+        "supply": 80,
+        "demand": 1.4221461004,
+        "served": 0,
+        "unserved": 1.4221461004
+      },
+      "water": {
+        "supply": 100,
+        "demand": 1.9276826255000001,
+        "served": 0,
+        "unserved": 1.9276826255000001
+      },
+      "target": {
+        "id": 4,
+        "x": 24,
+        "z": 12,
+        "powered": false,
+        "watered": false
+      },
+      "buildings": 5
+    }
+  ]
+}
+ROAD/UTILITY CHECK PASS: one real car, six segments including corner; nine power/water cases

@@ -204,10 +204,38 @@ explicit shared-browser handoff. It reuses the guarded sim QA browser check,
 uses system Chromium and a dedicated temporary profile, checks disk per write,
 and captures six E frames plus nine D cases in both themes. Collages are
 unaltered full-size frame grids; captions are QA annotations, not game UI.
-The Node check passed. Final browser recapture is pending: initial visual review
-caught an overly broad harness canvas rule and a caption covering early car
-positions, now fixed with bounds assertions. A subsequent capture was yielded
-to earlier browser reservations and is not a completed pass.
+The Node check passed. Final guarded recapture with `CAPTURE_SECONDS=60`
+completed **exit 0**: **24 screenshots + 3 plates**, no page/console/request
+errors or external requests, and verified browser/server/profile cleanup.
+Wings explicitly handed off the slot; world explicitly released it to Jankolock
+integration afterward. The screenshots and all three plates were inspected.
+
+Evidence in `docs/maintenance/audits/citisten-QA/`:
+
+- `E-car-sequence-01.png` through `06.png`, plus `E-car-sequence.png`: the same
+  car id 7 at simulation times 1.5, 6.5, 11.75, 14.75, 19.25 and 21.5 seconds.
+  The fixed camera and uncovered tracking label show the turn and distinct
+  road segments. `DE-api-results.json` retains the route and 87 on-road
+  observations, including the intermediate simulation steps.
+- `D-utilities-<case>-<dark|light>.png` and `D-utilities-matrix-dark.png` /
+  `D-utilities-matrix-light.png`: nine cases, same ordering in each theme.
+  Power overload sheds 34 units while water remains supplied; water overload
+  sheds 15 units while power remains supplied. Road restoration recovers both
+  home flags. Isolated sources retain 80 power / 100 water capacity but serve
+  none of the disconnected demand. Exact values are in `DE-api-results.json`.
+- `DE-node-run.txt`, `DE-capture-run.txt`: actual assertion/capture output.
+
+Initial visual review caught an overly broad harness canvas rule and a caption
+covering early car positions, fixed with minimap/annotation bounds assertions.
+`DE-first-review-*`, `E-car-first-review.png`, `D-utilities-first-review.png`
+retain that non-accepted first capture. A later attempt was interrupted to
+honor earlier reservations; `DE-queue-yield-run.txt` is not a pass. Its SIGINT
+reached Python but Playwright close stalled; the owned alarm handler released
+that wait and process/profile absence was verified. `DE-capture-refused.txt`
+records an earlier busy preflight. Traceback host paths are redacted.
+
+This is stronger E/D API evidence, not a new integrated-game acceptance grade,
+not combat-driven plant destruction, and not a resolution of the 40fps hold.
 
 All five tracked `ui-mockup-{menu,toolbar,hud,nightalert,gameover}.png` plates
 already exist and pass PNG verification. Their combined zoning, utilities,

@@ -72,6 +72,9 @@ SETUP = """async () => {
 
 def main():
     before = disk_guard()
+    budget = int(os.environ.get('CAPTURE_SECONDS','150'))
+    if not 1 <= budget <= 150:
+        raise ValueError('CAPTURE_SECONDS must be 1..150')
     if shared.browser_pids():
         raise RuntimeError('Shared Chromium busy; no browser launched')
     OUT.mkdir(parents=True, exist_ok=True)
@@ -80,9 +83,9 @@ def main():
     thread.start()
     report = {'scope':'E/D published-API fixtures, not integrated normal-input acceptance','errors':[],'externalRequests':[]}
     def expired(*_):
-        raise TimeoutError('E/D capture exceeded 150 seconds')
+        raise TimeoutError(f'E/D capture exceeded {budget} seconds')
     signal.signal(signal.SIGALRM, expired)
-    signal.alarm(150)
+    signal.alarm(budget)
     try:
         with sync_playwright() as p, tempfile.TemporaryDirectory(prefix='.ed-qa-profile-',dir=ROOT/'Games/Citisten3D') as profile:
             context = p.chromium.launch_persistent_context(profile, executable_path='/usr/bin/chromium', headless=True,
@@ -130,6 +133,7 @@ def main():
     disk_guard()
     (OUT/'DE-api-results.json').write_text(json.dumps(report,indent=2)+'\n')
     assert not report['errors'] and not report['externalRequests'], report
+    assert report['browserClosed'] and report['profileRemoved'] and report['serverClosed'], 'Owned resources remain'
     groups=[('E-car-sequence.png',[f'E-car-sequence-{i:02}.png' for i in range(1,7)])]
     groups += [(f'D-utilities-matrix-{theme}.png',[f'D-utilities-{name}-{theme}.png' for name in cases]) for theme in ['dark','light']]
     for name,files in groups:

@@ -1,0 +1,59 @@
+Traceback (most recent call last):
+  File "docs/citisten-design/capture-road-utilities.py", line 120, in main
+    page.wait_for_timeout(300)
+    ~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "site-packages/playwright/sync_api/_generated.py", line 12696, in wait_for_timeout
+    self._sync(
+    ~~~~~~~~~~^
+        self._impl_obj.wait_for_timeout(timeout=to_milliseconds(timeout))
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "site-packages/playwright/_impl/_sync_base.py", line 113, in _sync
+    self._dispatcher_fiber.switch()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "site-packages/playwright/sync_api/_context_manager.py", line 56, in greenlet_main
+    self._loop.run_until_complete(self._connection.run_as_sync())
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "stdlib/asyncio/base_events.py", line 712, in run_until_complete
+    self.run_forever()
+    ~~~~~~~~~~~~~~~^^
+  File "stdlib/asyncio/base_events.py", line 683, in run_forever
+    self._run_once()
+    ~~~~~~~~~~~~~~^^
+  File "stdlib/asyncio/base_events.py", line 2004, in _run_once
+    event_list = self._selector.select(timeout)
+  File "stdlib/selectors.py", line 452, in select
+    fd_event_list = self._selector.poll(timeout, max_ev)
+KeyboardInterrupt
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "docs/citisten-design/capture-road-utilities.py", line 146, in <module>
+    main()
+    ~~~~^^
+  File "docs/citisten-design/capture-road-utilities.py", line 126, in main
+    context.close()
+    ~~~~~~~~~~~~~^^
+  File "site-packages/playwright/sync_api/_generated.py", line 15386, in close
+    return mapping.from_maybe_impl(self._sync(self._impl_obj.close(reason=reason)))
+                                   ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "site-packages/playwright/_impl/_sync_base.py", line 113, in _sync
+    self._dispatcher_fiber.switch()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "docs/citisten-design/capture-road-utilities.py", line 83, in expired
+    raise TimeoutError('E/D capture exceeded 150 seconds')
+TimeoutError: E/D capture exceeded 150 seconds
+Future exception was never retrieved
+future: <Future finished exception=TargetClosedError('Target page, context or browser has been closed')>
+playwright._impl._errors.TargetClosedError: Target page, context or browser has been closed
+Task was destroyed but it is pending!
+task: <Task cancelling name='Task-63' coro=<BrowserContext.close() done, defined at site-packages/playwright/_impl/_browser_context.py:575> wait_for=<Future finished result=None> cb=[SyncBase._sync.<locals>.<lambda>() at site-packages/playwright/_impl/_sync_base.py:111]>
+Future exception was never retrieved
+future: <Future finished exception=TargetClosedError('Target page, context or browser has been closed')>
+playwright._impl._errors.TargetClosedError: Target page, context or browser has been closed
+Task was destroyed but it is pending!
+task: <Task cancelling name='Task-62' coro=<Page.wait_for_timeout() running at site-packages/playwright/_impl/_page.py:1142> wait_for=<Future finished result=None> cb=[SyncBase._sync.<locals>.<lambda>() at site-packages/playwright/_impl/_sync_base.py:111]>
+
+CAPTURE_EXIT=1

@@ -1,0 +1,9 @@
+Traceback (most recent call last):
+  File "docs/citisten-design/capture-road-utilities.py", line 134, in <module>
+    main()
+    ~~~~^^
+  File "docs/citisten-design/capture-road-utilities.py", line 64, in main
+    raise RuntimeError('Shared Chromium busy; no browser launched')
+RuntimeError: Shared Chromium busy; no browser launched
+
+CAPTURE_EXIT=1
