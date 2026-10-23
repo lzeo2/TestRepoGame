@@ -1,0 +1,4368 @@
+{
+  "completed_utc": "2026-10-23T05:09:00.781839+00:00",
+  "baseline": "5739372876bcfc07090f8aeb299e40094af60156",
+  "catalog_sha256": "ac110f4da07660041fa28a76ae3a0f70da19eaeaecdcf1b230dfd26bc38f74e8",
+  "catalog_count": 127,
+  "captured": 75,
+  "needs_manual": 52,
+  "fresh_output_bytes": 3817333,
+  "viewport": {
+    "width": 1280,
+    "height": 720
+  },
+  "format": "progressive JPEG quality 75",
+  "min_free_bytes": 2147483648,
+  "max_game_automation_seconds": 106.51,
+  "missing_images": [
+    "Asteroids",
+    "Duck Hunt",
+    "Balatro",
+    "Wings"
+  ],
+  "portal_checks": [
+    {
+      "device": "desktop",
+      "theme": "light",
+      "viewport": {
+        "width": 1280,
+        "height": 720
+      },
+      "cards": 127,
+      "loaded": 123,
+      "broken": 0,
+      "svgFallbacks": 4,
+      "overflow": false,
+      "screenshot": "docs/thumb-sweep-v3/portal-desktop-light.jpg",
+      "sha256": "e48bc3052b56d59802f09f38d1d98ff421841ce635fd9920887e4a2ffa6550eb",
+      "pageerrors": [],
+      "http_errors": [
+        "404 /assets/thumbs/asteroids.jpg",
+        "404 /assets/thumbs/duckhunt.jpg",
+        "404 /assets/thumbs/balatro.jpg",
+        "404 /assets/thumbs/wings.jpg"
+      ],
+      "external": []
+    },
+    {
+      "device": "desktop",
+      "theme": "dark",
+      "viewport": {
+        "width": 1280,
+        "height": 720
+      },
+      "cards": 127,
+      "loaded": 123,
+      "broken": 0,
+      "svgFallbacks": 4,
+      "overflow": false,
+      "screenshot": "docs/thumb-sweep-v3/portal-desktop-dark.jpg",
+      "sha256": "a4f61bb1c58696f49ed477160e9b910db360569b1c93483966e24dfba319bfcd",
+      "pageerrors": [],
+      "http_errors": [
+        "404 /assets/thumbs/asteroids.jpg",
+        "404 /assets/thumbs/duckhunt.jpg",
+        "404 /assets/thumbs/balatro.jpg",
+        "404 /assets/thumbs/wings.jpg"
+      ],
+      "external": []
+    },
+    {
+      "device": "mobile",
+      "theme": "light",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "cards": 127,
+      "loaded": 123,
+      "broken": 0,
+      "svgFallbacks": 4,
+      "overflow": false,
+      "screenshot": "docs/thumb-sweep-v3/portal-mobile-light.jpg",
+      "sha256": "6c250ac273c0aa0ff5e3421387f656aa5c388e9a2d7acb83f726147038314314",
+      "pageerrors": [],
+      "http_errors": [
+        "404 /assets/thumbs/asteroids.jpg",
+        "404 /assets/thumbs/duckhunt.jpg",
+        "404 /assets/thumbs/balatro.jpg",
+        "404 /assets/thumbs/wings.jpg"
+      ],
+      "external": []
+    },
+    {
+      "device": "mobile",
+      "theme": "dark",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "cards": 127,
+      "loaded": 123,
+      "broken": 0,
+      "svgFallbacks": 4,
+      "overflow": false,
+      "screenshot": "docs/thumb-sweep-v3/portal-mobile-dark.jpg",
+      "sha256": "3e0d1828a59684174f917121e0ab154716940568ba8e85ae0b14f92245e5092c",
+      "pageerrors": [],
+      "http_errors": [
+        "404 /assets/thumbs/asteroids.jpg",
+        "404 /assets/thumbs/duckhunt.jpg",
+        "404 /assets/thumbs/balatro.jpg",
+        "404 /assets/thumbs/wings.jpg"
+      ],
+      "external": []
+    }
+  ],
+  "games": [
+    {
+      "index": 1,
+      "batch": 1,
+      "id": 4,
+      "title": "Soccer Random",
+      "url": "Games/SoccerRandom/index.html",
+      "source_tree": "b00005521705672b93fe395a19497a348681f8c3",
+      "entry_blob": "a1494c89e3ebf20fa6d862eb46099b6888a550ab",
+      "capture_commit": "84381e6d1b2f955deb9bd692b2f95826b55cce70",
+      "navigation_status": 200,
+      "status": "captured",
+      "note": "Native gameplay/board visually reviewed.",
+      "output": "assets/thumbs/soccerrandom.jpg",
+      "bytes": 90028,
+      "output_sha256": "080a92c3d7b9a51c0492158197997751ba3c8546104dcc8e1338703cea5d4771",
+      "old_image_retained": false,
+      "seconds_total": 87.0,
+      "actions": [
+        [
+          "click",
+          640,
+          360
+        ],
+        [
+          "wait",
+          12000
+        ],
+        [
+          "click",
+          400,
+          420
+        ],
+        [
+          "wait",
+          1500
+        ],
+        [
+          "key",
+          "ArrowUp"
+        ],
+        [
+          "wait",
+          500
+        ]
+      ],
+      "pageerrors": [],
+      "http_errors": [],
+      "blocked_external_hosts": {},
+      "candidate_sha256": "3c9f2c1db95430441d4cbbab2d05f25cec1f2ddf376bfb99e123f6e36aec2776",
+      "automation_error": null
+    },
+    {
+      "index": 2,
+      "batch": 1,
+      "id": 5,
+      "title": "Basket Random",
+      "url": "Games/BasketRandom/index.html",
+      "source_tree": "e83d1b6466f22f1aaa8cfda179a62b62523beefc",
+      "entry_blob": "1f3e28caf168d8c44bf158aa7f9ace751b42640c",
+      "capture_commit": "84381e6d1b2f955deb9bd692b2f95826b55cce70",
+      "navigation_status": 200,
+      "status": "captured",
+      "note": "Native gameplay/board visually reviewed.",
+      "output": "assets/thumbs/basketrandom.jpg",
+      "bytes": 72970,
+      "output_sha256": "c5c3c4da7feb465351c2e9187633e93fa5667440dcfdfd67770c35c966c3319d",
+      "old_image_retained": false,
+      "seconds_total": 60.24,
+      "actions": [
+        [
+          "click",
+          640,
+          360
+        ],
+        [
+          "wait",
+          12000
+        ],
+        [
+          "click",
+          400,
+          420
+        ],
+        [
+          "wait",
+          1500
+        ],
+        [
+          "key",
+          "ArrowUp"
+        ],
+        [
+          "wait",
+          500
+        ]
+      ],
+      "pageerrors": [
+        "Cannot set properties of undefined (setting 'src')",
+        "Cannot set properties of undefined (setting 'src')"
+      ],
+      "http_errors": [],
+      "blocked_external_hosts": {},
+      "candidate_sha256": "67a879358dd164f72036431ef3b4a065c7f0cb8aad947e4e374c5dd93527d814",
+      "automation_error": null
+    },
+    {
+      "index": 3,
+      "batch": 1,
+      "id": 6,
+      "title": "Volley Random",
+      "url": "Games/VolleyRandom/index.html",
+      "source_tree": "1b2a39915173f89c1e3e475e7417d65eb9b71eb2",
+      "entry_blob": "3e78ab3518ef3fbe7345aa79ec0ffb0eba13bff1",
+      "capture_commit": "84381e6d1b2f955deb9bd692b2f95826b55cce70",
+      "navigation_status": 200,
+      "status": "captured",
+      "note": "Native gameplay/board visually reviewed.",
+      "output": "assets/thumbs/volleyrandom.jpg",
+      "bytes": 76731,
+      "output_sha256": "6f0fee6801460c79689060dd094298338a70351b8962a7fc1bc2b5332e89345c",
+      "old_image_retained": false,
+      "seconds_total": 60.95,
+      "actions": [
+        [
+          "click",
+          640,
+          360
+        ],
+        [
+          "wait",
+          12000
+        ],
+        [
+          "click",
+          400,
+          420
+        ],
+        [
+          "wait",
+          1500
+        ],
+        [
+          "key",
+          "ArrowUp"
+        ],
+        [
+          "wait",
+          500
+        ]
+      ],
+      "pageerrors": [],
+      "http_errors": [],
+      "blocked_external_hosts": {},
+      "candidate_sha256": "84535af3841e68c4b99a2b97df0b410e741c84c36ef0e3eb6b6024bd3b794737",
+      "automation_error": null
+    },
+    {
+      "index": 4,
+      "batch": 1,
+      "id": 7,
+      "title": "Ovo",
+      "url": "Games/Ovo/1.4.5/index.html",
+      "source_tree": "7537015dec8f9de72493860ce3ade0678322bb7d",
+      "entry_blob": "9c95396d14b6bbe582a8272b0d7fb0d0993cbfda",
+      "capture_commit": "18aced7af8fb3cb497d07044a3be8ec2b4ca6697",
+      "navigation_status": 200,
+      "status": "needs-manual",
+      "note": "Black frame after native Play; no reviewed gameplay.",
+      "output": "assets/thumbs/ovo.jpg",
+      "bytes": 6396,
+      "output_sha256": "c798f684dfdb34a523ee964d5e141908e17fe6fde72a272086d3a1e301f8c89e",
+      "old_image_retained": true,
+      "seconds_total": 71.2,
+      "actions": [
+        [
+          "wait",
+          13000
+        ],
+        [
+          "click",
+          640,
+          350
+        ],
+        [
+          "wait",
+          700
+        ],
+        [
+          "hold",
+          "ArrowRight",
+          650
+        ]
+      ],
+      "pageerrors": [
+        "cr_createRuntime is not defined",
+        "cr_getC2Runtime is not defined",
+        "cr_setSuspended is not defined",
+        "cr_setSuspended is not defined"
+      ],
+      "http_errors": [],
+      "blocked_external_hosts": {},
+      "candidate_sha256": "4e5d61d317e091460ad4f16a6a6344dc3f3d7607d0b2e5468f397fea0dee4a46",
+      "automation_error": null
+    },
+    {
+      "index": 5,
+      "batch": 1,
+      "id": 8,
+      "title": "Run 3",
+      "url": "Games/Run3/tn6pS9dCf37xAhkJv/index.html",
+      "source_tree": "c638de581d899015f8dc994d048480ffc620d0cb",
+      "entry_blob": "d462a93efd3a8d168daa5b40e4046f0667c51c41",
+      "capture_commit": "84381e6d1b2f955deb9bd692b2f95826b55cce70",
+      "navigation_status": 200,
+      "status": "needs-manual",
+      "note": "Warning triangle/black canvas after starfield.",
+      "output": "assets/thumbs/run3.jpg",
+      "bytes": 9401,
+      "output_sha256": "9ba592a471f2a6a439ab7c9c64a474bfcf592b01923bd0f099b3ad4a5b1795bf",
+      "old_image_retained": true,
+      "seconds_total": 40.53,
+      "actions": [
+        [
+          "wait",
+          4000
+        ],
+        [
+          "click",
+          640,
+          360
+        ],
+        [
+          "wait",
+          1000
+        ]
+      ],
+      "pageerrors": [
+        "Unexpected non-whitespace character after JSON at position 152 (line 2 column 1)"
+      ],
+      "http_errors": [],
+      "blocked_external_hosts": {},
+      "candidate_sha256": "f0644cdff8088ca4128e94613f9a638ca7b4cba3ba01097122b140b7e359c498",
+      "automation_error": null
+    },
+    {
+      "index": 6,
+      "batch": 2,
+      "id": 9,
+      "title": "Snake",
+      "url": "Games/Snake/index.html",
+      "source_tree": "e6255960e969a21c68aed5e2011818f368186bdc",
+      "entry_blob": "b8d6f3edc2822a54d13e05da52d22f5b3f0425f6",
+      "capture_commit": "84381e6d1b2f955deb9bd692b2f95826b55cce70",
+      "navigation_status": 200,
+      "status": "captured",
+      "note": "Native gameplay/board visually reviewed.",
+      "output": "assets/thumbs/snake.jpg",
+      "bytes": 34584,
+      "output_sha256": "dd87e338694c1d16fcfed1e1eee17d96e80189da9a8af4c5e00a0c483e0baad0",
+      "old_image_retained": false,
+      "seconds_total": 30.53,
+      "actions": [
+        [
+          "selector",
+          "#start-btn"
+        ],
+        [
+          "wait",
+          250
+        ],
+        [
+          "key",
+          "ArrowUp"
+        ],
+        [
+          "wait",
+          250
+        ]
+      ],
+      "pageerrors": [],
+      "http_errors": [],
+      "blocked_external_hosts": {},
+      "candidate_sha256": "184129f0e03978ebdb64d1b9ada65a2144bf4b85f9960c445a879be5dfcb8672",
+      "automation_error": null
+    },
+    {
+      "index": 7,
+      "batch": 2,
+      "id": 10,
+      "title": "Chrome Dino",
+      "url": "Games/ChromeDino/dino.html",
+      "source_tree": "3c4821a4f53bc3ff86d519e1cbabe8408a54dd04",
+      "entry_blob": "1bd253181af09798b5fb0eeaafc67a03c960cbe0",
+      "capture_commit": "84381e6d1b2f955deb9bd692b2f95826b55cce70",
+      "navigation_status": 200,
+      "status": "captured",
+      "note": "Native gameplay/board visually reviewed.",
+      "output": "assets/thumbs/chromedino.jpg",
+      "bytes": 11263,
+      "output_sha256": "26df1add81701393d0cd1077e63e4817812f50c23107ec369d8988c36309b934",
+      "old_image_retained": false,
+      "seconds_total": 19.06,
+      "actions": [
+        [
+          "key",
+          "Space"
+        ],
+        [
+          "wait",
+          1700
+        ],
+        [
+          "key",
+          "Space"
+        ],
+        [
+          "wait",
+          250
+        ]
+      ],
+      "pageerrors": [],
+      "http_errors": [],
+      "blocked_external_hosts": {},
+      "candidate_sha256": "3b2fa1e78f916ad89838d303fa0d23aea40b48fc5a1c0f460db937ccf241656d",
+      "automation_error": null
+    },
+    {
+      "index": 8,
+      "batch": 2,
+      "id": 11,
+      "title": "Breakout",
+      "url": "Games/BreakoutClassic/index.html",
+      "source_tree": "d92938a06aca4948510315a27bc9e6a7c351660c",
+      "entry_blob": "d5717661bc6e9e95e365b0167bde48bf7244a0a0",
+      "capture_commit": "84381e6d1b2f955deb9bd692b2f95826b55cce70",
+      "navigation_status": 200,
+      "status": "captured",
+      "note": "Native gameplay/board visually reviewed.",
+      "output": "assets/thumbs/breakout.jpg",
+      "bytes": 19614,
+      "output_sha256": "d3f770ce9c74f9bf59944e4232d92aded91c0c2b966074d9ac76e51c0330ac19",
+      "old_image_retained": false,
+      "seconds_total": 20.44,
+      "actions": [
+        "Space; ArrowRight 450ms"
+      ],
+      "pageerrors": [],
+      "http_errors": [],
+      "blocked_external_hosts": {},
+      "candidate_sha256": "d5ecbed6e96cbea927e1dc3580996d19aa1f9ea533f72d2937dce9bddc281fa9",
+      "automation_error": null
+    },
+    {
+      "index": 9,
+      "batch": 2,
+      "id": 14,
+      "title": "Character Alsen",
+      "url": "Games/Character AI/Alsen.html",
+      "source_tree": "b7b7e60e98c11b6ccdebbf8f480a072b8b6f2017",
+      "entry_blob": "349577453e744921726009fdc047e7925a8cfbbf",
+      "capture_commit": "84381e6d1b2f955deb9bd692b2f95826b55cce70",
+      "navigation_status": 200,
+      "status": "captured",
+      "note": "Actual Character Alsen chat interface; protected source unchanged.",
+      "output": "assets/thumbs/characteralsen.jpg",
+      "bytes": 22122,
+      "output_sha256": "a9c2c51eb872ca99a7d93362cad15db8e668c67838da92634d1d79d376dacc11",
+      "old_image_retained": false,
+      "seconds_total": 23.06,
+      "actions": [
+        [
+          "selector",
+          "button"
+        ],
+        [
+          "wait",
+          300
+        ]
+      ],
+      "pageerrors": [],
+      "http_errors": [
+        "404 /Games/Character%20AI/image/svg+xml,%3Csvg%20width='60'%20height='60'%20viewBox='0%200%2060%2060'%20xmlns='http://www.w3.org/2000/svg'%3E%3Cg%20fill='none'%20fill-rule='evenodd'%3E%3Cg%20fill='%23d4c8b5'%20fill-opaci"
+      ],
+      "blocked_external_hosts": {},
+      "candidate_sha256": "aa60afe1643bd74044c234cbf2a68c52ee2e410e868b8ec2c35ae5a9e8722845",
+      "automation_error": null
+    },
+    {
+      "index": 10,
+      "batch": 2,
+      "id": 47,
+      "title": "Gladihoppers",
+      "url": "Games/Gladihoppers/index.html",
+      "source_tree": "79d02b868f2f8c674218bf3bb80ff4a4c6416cd2",
+      "entry_blob": "582f437746eaa91d469da980360a070de8ea65d9",
+      "capture_commit": "84381e6d1b2f955deb9bd692b2f95826b55cce70",
+      "navigation_status": 200,
+      "status": "needs-manual",
+      "note": "Screenshot timeout; no reviewed gameplay.",
+      "output": "assets/thumbs/gladihoppers.jpg",
+      "bytes": 8940,
+      "output_sha256": "1883649b07d538c6593ef8db1424c5032a2a1092f2c01d527f466ec19273673a",
+      "old_image_retained": true,
+      "seconds_total": 65.29,
+      "actions": [
+        [
+          "wait",
+          17000
+        ],
+        [
+          "click",
+          640,
+          360
+        ],
+        [
+          "wait",
+          1500
+        ]
+      ],
+      "pageerrors": [],
+      "http_errors": [],
+      "blocked_external_hosts": {},
+      "candidate_sha256": null,
+      "automation_error": "TimeoutError: Page.screenshot: Timeout 15000ms exceeded.\nCall log:\n  - taking page screenshot\n  - waiting for fonts to load...\n  - fonts loaded\n"
+    },
+    {
+      "index": 11,
+      "batch": 3,
+      "id": 48,
+      "title": "Burrito Bison",
+      "url": "Games/BurritoBison/index.html",
+      "source_tree": "40104c6a47a5fe3357895acf0ff01e815c8758af",
+      "entry_blob": "8fe55124f84646ed9e3ff0eec6b6512e4327a189",
+      "capture_commit": "18aced7af8fb3cb497d07044a3be8ec2b4ca6697",
+      "navigation_status": 200,
+      "status": "needs-manual",
+      "note": "Kongregate splash after loader/click attempts.",
+      "output": "assets/thumbs/burritobison.jpg",
+      "bytes": 11710,
+      "output_sha256": "eef72a25a7bae2fae525a9583f75b2876a52804adaeff6e4769172d61224b5a5",
+      "old_image_retained": true,
+      "seconds_total": 63.45,
+      "actions": [
+        [
+          "wait",
+          15000
+        ],
+        [
+          "click",
+          640,
+          530
+        ],
+        [
+          "wait",
+          2500
+        ],
+        [
+          "click",
+          640,
+          530
+        ],
+        [
+          "wait",
+          1200
+        ]
+      ],
+      "pageerrors": [],
+      "http_errors": [
+        "501 /Games/BurritoBison/json/null.json",
+        "501 /Games/BurritoBison/json/null.json"
+      ],
+      "blocked_external_hosts": {},
+      "candidate_sha256": "17e0b3d010a493190a68cf94b1e36b1102f2dd719d536dcf82bacf4f658eb309",
+      "automation_error": null
+    },
+    {
+      "index": 12,
+      "batch": 3,
+      "id": 49,
+      "title": "BitLife",
+      "url": "Games/BitLife/index.html",
+      "source_tree": "384f98c2a9ea30e2b344442a66ddbc66558c4f4f",
+      "entry_blob": "bc434ca4df65ee17312d2ba8a98a53bff5da7f06",
+      "capture_commit": "5739372876bcfc07090f8aeb299e40094af60156",
+      "navigation_status": 200,
+      "status": "needs-manual",
+      "note": "Unity splash and text-capture timeout.",
+      "output": "assets/thumbs/bitlife.jpg",
+      "bytes": 9645,
+      "output_sha256": "8189d4aa3b7658ee280dab41cf5457ec5ab0aa7463380384cb75879fbf55b46c",
+      "old_image_retained": true,
+      "seconds_total": 17.45,
+      "actions": [],
+      "pageerrors": [],
+      "http_errors": [],
+      "blocked_external_hosts": {},
+      "candidate_sha256": "500f79cd1d1b6a430c7c91e0d4bb7be67c90a206931accce527539cc416971fd",
+      "automation_error": "TimeoutError: Locator.inner_text: Timeout 2500ms exceeded.\nCall log:\n  - waiting for locator(\"body\")\n"
+    },
+    {
+      "index": 13,
+      "batch": 3,
+      "id": 50,
+      "title": "Subway Surfers",
+      "url": "Games/SubwaySurfers/index.html",
+      "source_tree": "bbaac3f3fd9a32b4bfa13652d533caff66197463",
+      "entry_blob": "1f79b901089e6588a5d6cec7acd0d5931ce815f3",
+      "capture_commit": "18aced7af8fb3cb497d07044a3be8ec2b4ca6697",
+      "navigation_status": 200,
+      "status": "needs-manual",
+      "note": "Loading-tip screen after wait/start attempt.",
+      "output": "assets/thumbs/subwaysurfers.jpg",
+      "bytes": 6871,
+      "output_sha256": "449ee2a6ea737763959ac79da49802497bce78d3a8eb08fa74295aefb9e7a239",
+      "old_image_retained": true,
+      "seconds_total": 60.95,
+      "actions": [
+        [
+          "wait",
+          22000
+        ],
+        [
+          "click",
+          640,
+          600
+        ],
+        [
+          "wait",
+          1500
+        ],
+        [
+          "key",
+          "ArrowUp"
+        ],
+        [
+          "wait",
+          500
+        ]
+      ],
+      "pageerrors": [],
+      "http_errors": [],
+      "blocked_external_hosts": {},
+      "candidate_sha256": "20d3e613e9853e3cd17ef61153c4180e6b1f3e836cca2e5c5f7530bca754be13",
+      "automation_error": null
+    },
+    {
+      "index": 14,
+      "batch": 3,
+      "id": 51,
+      "title": "A Dark Room",
+      "url": "Games/ADarkRoom/index.html",
+      "source_tree": "786f193f75080abf09f0cccfe29989a8b8c903e0",
+      "entry_blob": "d425fb85f827f8863549d18dd032dea564d76c6e",
+      "capture_commit": "18aced7af8fb3cb497d07044a3be8ec2b4ca6697",
+      "navigation_status": 200,
+      "status": "captured",
+      "note": "Real text gameplay after lighting the fire.",
+      "output": "assets/thumbs/adarkroom.jpg",
+      "bytes": 16851,
+      "output_sha256": "d62f8b80774b03397626e5cca15a6fa96b9e5edb14647624ed85d5436036365a",
+      "old_image_retained": false,
+      "seconds_total": 51.73,
+      "actions": [
+        [
+          "selector",
+          "text=disable audio"
+        ],
+        [
+          "selector",
+          "#lightButton"
+        ],
+        [
+          "wait",
+          700
+        ]
+      ],
+      "pageerrors": [],
+      "http_errors": [],
+      "blocked_external_hosts": {},
+      "candidate_sha256": "0523d67ff5d74f466d81672eddf9ded29416069a5145e652e33804382b4ac0c9",
+      "automation_error": null
+    },
+    {
+      "index": 15,
+      "batch": 3,
+      "id": 52,
+      "title": "Stranded In Isekai",
+      "url": "Games/StrandedInIsekai/index.html",
+      "source_tree": "974a4526694e905b8d46cdd689ce5abad10b0f88",
+      "entry_blob": "6b448a1ee82c0ad13fcb1b86cfde007d72b68fd5",
+      "capture_commit": "84381e6d1b2f955deb9bd692b2f95826b55cce70",
+      "navigation_status": 200,
+      "status": "needs-manual",
+      "note": "Title screen remained after Space.",
+      "output": "assets/thumbs/strandedinisekai.jpg",
+      "bytes": 18261,
+      "output_sha256": "72167ece58c276e2f920dc36a5a88409795b7fa998cb54826aa761f83a6ee23b",
+      "old_image_retained": true,
+      "seconds_total": 25.27,
+      "actions": [
+        [
+          "key",
+          "Space"
+        ],
+        [
+          "wait",
+          4500
+        ],
+        [
+          "key",
+          "ArrowRight"
+        ],
+        [
+          "wait",
+          400
+        ]
+      ],
+      "pageerrors": [
+        "Cannot use import statement outside a module"
+      ],
+      "http_errors": [],
+      "blocked_external_hosts": {},
+      "candidate_sha256": "fcc93fb6979890c3a55578be7fc2e4ca9b2e275fa2253fd621e70f1fbb0a35de",
+      "automation_error": null
+    },
+    {
+      "index": 16,
+      "batch": 4,
+      "id": 53,
+      "title": "Papa's Pizzeria",
+      "url": "Games/PapasPizzeria/index.html",
+      "source_tree": "14163f7e2c7d4127d239a245f6a70d599546a0f3",
+      "entry_blob": "8bb299075eaaeaa6d643e9aba77897966779c9cf",
+      "capture_commit": "5739372876bcfc07090f8aeb299e40094af60156",
+      "navigation_status": 200,
+      "status": "needs-manual",
+      "note": "Ruffle loader/ad frame, not gameplay.",
+      "output": "assets/thumbs/papaspizzeria.jpg",
+      "bytes": 11627,
+      "output_sha256": "129e8e43b6aa03b026aae206092b3c6207b8b157ec9dd1f58e145d81a5b5b3ad",
+      "old_image_retained": true,
+      "seconds_total": 15.62,
+      "actions": [],
+      "pageerrors": [],
+      "http_errors": [],
+      "blocked_external_hosts": {},
+      "candidate_sha256": "ba116d06bf74cd8be3343aaa7421c762ea822ead39f087f578393ed145f440a5",
+      "automation_error": null
+    },
+    {
+      "index": 17,
+      "batch": 4,
+      "id": 54,
+      "title": "Retro Bowl",
+      "url": "Games/RetroBowl/index.html",
+      "source_tree": "795337be7c34d74e43321ed81675656cfbd7102a",
+      "entry_blob": "3db687832ae2d62bfcdba77476b5f7aaccb9a906",
+      "capture_commit": "5739372876bcfc07090f8aeb299e40094af60156",
+      "navigation_status": 200,
+      "status": "needs-manual",
+      "note": "Welcome/Continue screen, not on-field play.",
+      "output": "assets/thumbs/retrobowl.jpg",
+      "bytes": 14481,
+      "output_sha256": "a8b0ea49ef625922b5ceb67cd46347e7e9895b55769842b6698a93ee00424572",
+      "old_image_retained": true,
+      "seconds_total": 10.36,
+      "actions": [],
+      "pageerrors": [],
+      "http_errors": [
+        "404 /Games/RetroBowl/html5game/optiondata.dat",
+        "404 /Games/RetroBowl/html5game/savedata.ini"
+      ],
+      "blocked_external_hosts": {},
+      "candidate_sha256": "a1641ddc4ceeb67714f0abe16a61277ba950aee11c1a93dcad34ab1787a7b9ad",
+      "automation_error": null
+    },
+    {
+      "index": 18,
+      "batch": 4,
+      "id": 55,
+      "title": "Super Hot",
+      "url": "Games/Superhot/index.html",
+      "source_tree": "a9f18481f280b347030e8334e1e1db17308bdffe",
+      "entry_blob": "7393c9f577db156afab13656fa363d5c16efa841",
+      "capture_commit": "5739372876bcfc07090f8aeb299e40094af60156",
+      "navigation_status": 200,
+      "status": "needs-manual",
+      "note": "Blank blue/gray canvas.",
+      "output": "assets/thumbs/superhot.jpg",
+      "bytes": 11927,
+      "output_sha256": "b5e122fe32e0bb89d033f49a08548f85cfdac4075145a9084fa22cd5da04be75",
+      "old_image_retained": true,
+      "seconds_total": 7.95,
+      "actions": [],
+      "pageerrors": [],
+      "http_errors": [],
+      "blocked_external_hosts": {},
+      "candidate_sha256": "a9fe859e4437d23637414cc0f886034f7744385c1e80faccafba56ba3fdb140b",
+      "automation_error": null
+    },
+    {
+      "index": 19,
+      "batch": 4,
+      "id": 56,
+      "title": "10 Minutes Till Dawn",
+      "url": "Games/TenMinutesTillDawn/index.html",
+      "source_tree": "97d5765581456deb9016318fb6e39d3bde23eb59",
+      "entry_blob": "2d097146030075545f13df9ac10d79b7ae8adf18",
+      "capture_commit": "18aced7af8fb3cb497d07044a3be8ec2b4ca6697",
+      "navigation_status": 200,
+      "status": "needs-manual",
+      "note": "Character/weapon selection, not gameplay; automation stopped at 106.51s.",
+      "output": "assets/thumbs/10minutestilldawn.jpg",
+      "bytes": 7250,
+      "output_sha256": "3ca77a903086fec1e412f6d2a1755d9645fdfe0f64d6aa90c38aaec9d4b79bb5",
+      "old_image_retained": true,
+      "seconds_total": 106.51,
+      "actions": [
+        [
+          "wait",
+          10000
+        ],
+        [
+          "click",
+          640,
+          390
+        ],
+        [
+          "wait",
+          600
+        ],
+        [
+          "click",
+          980,
+          655
+        ],
+        [
+          "wait",
+          900
+        ],
+        [
+          "hold",
+          "w",
+          300
+        ]
+      ],
+      "pageerrors": [],
+      "http_errors": [],
+      "blocked_external_hosts": {},
+      "candidate_sha256": "3747d7082d8789b8e7a30cc80fc4911fd8fe38d4b20882daa498bf68188bb532",
+      "automation_error": null
+    },
+    {
+      "index": 20,
+      "batch": 4,
+      "id": 57,
+      "title": "Fleeing the Complex",
+      "url": "Games/FleeingTheComplex/index.html",
+      "source_tree": "a3e1197af988071408383e9bc29822fe335d181b",
+      "entry_blob": "a3e623094003000f6c3419f4a6fa2d0a4ce9ada4",
+      "capture_commit": "5739372876bcfc07090f8aeb299e40094af60156",
+      "navigation_status": 200,
+      "status": "needs-manual",
+      "note": "Ruffle loading/blank stage.",
+      "output": "assets/thumbs/fleeingthecomplex.jpg",
+      "bytes": 12566,
+      "output_sha256": "0abbbca0464a28b3861fbcbdab853efd3d90b6464e67f1d84c1082447cf423d5",
+      "old_image_retained": true,
+      "seconds_total": 11.11,
+      "actions": [],
+      "pageerrors": [],
+      "http_errors": [],
+      "blocked_external_hosts": {
+        "www.ngads.com": 1
+      },
+      "candidate_sha256": "2a37ab1e47863ea99df09314f6fc65f3b2062b5e7c3607c379490c38d8ac5623",
+      "automation_error": null
+    },
+    {
+      "index": 21,
+      "batch": 5,
+      "id": 58,
+      "title": "Infiltrating the Airship",
+      "url": "Games/InfiltratingTheAirship/index.html",
+      "source_tree": "e2ddb6653374297d379f04c2d9691e37d5445499",
+      "entry_blob": "012cf0087130ae8a5834d96415c2df5cd48941a3",
+      "capture_commit": "5739372876bcfc07090f8aeb299e40094af60156",
+      "navigation_status": 200,
+      "status": "needs-manual",
+      "note": "Ruffle screenshot timeout.",
+      "output": "assets/thumbs/infiltratingtheairship.jpg",
+      "bytes": 8763,
+      "output_sha256": "90561150381068d3231b58d302f81ea057a251e60b75313cc03d0f636e527225",
+      "old_image_retained": true,
+      "seconds_total": 13.9,
+      "actions": [],
+      "pageerrors": [],
+      "http_errors": [],
+      "blocked_external_hosts": {},
+      "candidate_sha256": null,
+      "automation_error": "TimeoutError: Page.screenshot: Timeout 8000ms exceeded.\nCall log:\n  - taking page screenshot\n  - waiting for fonts to load...\n  - fonts loaded\n"
+    },
+    {
+      "index": 22,
+      "batch": 5,
+      "id": 59,
+      "title": "Baldi's Basics",
+      "url": "Games/BaldisBasics/index.html",
+      "source_tree": "dc5ef4aec8afc4b63eb5a3dfbac5ea9b3df4e592",
+      "entry_blob": "1c8959e3204bf4da442ad7151a4c420be137e076",
+      "capture_commit": "5739372876bcfc07090f8aeb299e40094af60156",
+      "navigation_status": 200,
+      "status": "needs-manual",
+      "note": "Unity splash, not gameplay.",
+      "output": "assets/thumbs/baldisbasics.jpg",
+      "bytes": 13170,
+      "output_sha256": "9c7017e316425bfb177a02479de748dd17e5f4827338d30b07492a17a5137dc1",
+      "old_image_retained": true,
+      "seconds_total": 16.25,
+      "actions": [],
+      "pageerrors": [],
+      "http_errors": [],
+      "blocked_external_hosts": {},
+      "candidate_sha256": "68bc8d5bae6b7e0e1d5dcf3cc53ad7a121a9ef3f883fbdc7e0ba28fb0fae5121",
+      "automation_error": null
+    },
+    {
+      "index": 23,
+      "batch": 5,
+      "id": 60,
+      "title": "Temple Run 2",
+      "url": "Games/TempleRun2/index.html",
+      "source_tree": "6b268ecb866a2abd8699512d0d2dcc612bb2d16b",
+      "entry_blob": "b2a9a9d78e217474e974f6f7caf04be99cc95f03",
+      "capture_commit": "5739372876bcfc07090f8aeb299e40094af60156",
+      "navigation_status": 200,
+      "status": "needs-manual",
+      "note": "Intro fly-through, no reviewed running gameplay.",
+      "output": "assets/thumbs/templerun2.jpg",
+      "bytes": 20305,
+      "output_sha256": "0d75a6ac8d55b0f6724f8907aa77ff34b6f3d914d07e2fe32ea99117ee9a609c",
+      "old_image_retained": true,
+      "seconds_total": 13.95,
+      "actions": [],
+      "pageerrors": [],
+      "http_errors": [],
+      "blocked_external_hosts": {},
+      "candidate_sha256": "3e4c129fcfe77d6c6e0fec07319bf49131249bd41034b6510f183bebc11e85dd",
+      "automation_error": null
+    },
+    {
+      "index": 24,
+      "batch": 5,
+      "id": 62,
+      "title": "Cut the Rope",
+      "url": "Games/CutTheRope/index.html",
+      "source_tree": "268f2e93f6dbdd7376419fffed0f2db38f43ec9c",
+      "entry_blob": "2bf5b41b3c8f924e35612ed75098e143dc8e1ca3",
+      "capture_commit": "5739372876bcfc07090f8aeb299e40094af60156",
+      "navigation_status": 200,
+      "status": "needs-manual",
+      "note": "Screenshot timeout.",
+      "output": "assets/thumbs/cuttherope.jpg",
+      "bytes": 8081,
+      "output_sha256": "0e99dd5ed993cd0d2f0b84309a4353673c966080ce0920e3871b021f827b1f9f",
+      "old_image_retained": true,
+      "seconds_total": 14.17,
+      "actions": [],
+      "pageerrors": [],
+      "http_errors": [],
+      "blocked_external_hosts": {},
+      "candidate_sha256": null,
+      "automation_error": "TimeoutError: Page.screenshot: Timeout 8000ms exceeded.\nCall log:\n  - taking page screenshot\n  - waiting for fonts to load...\n  - fonts loaded\n"
+    },
+    {
+      "index": 25,
+      "batch": 5,
+      "id": 63,
+      "title": "Fancy Pants Adventure 3",
+      "url": "Games/FancyPantsAdventure3/index.html",
+      "source_tree": "bb348cbf61cd50b7ae272f5e18810431f6c212fe",
+      "entry_blob": "d1f1bc2e76b669aefc6f870d4c0fa058950ee195",
+      "capture_commit": "5739372876bcfc07090f8aeb299e40094af60156",
+      "navigation_status": 200,
+      "status": "needs-manual",
+      "note": "Screenshot timeout.",
+      "output": "assets/thumbs/fancypantsadventure3.jpg",
+      "bytes": 6092,
+      "output_sha256": "d6c485e361be912889ee07594eac442199848e034ec67df442efb15642257b36",
+      "old_image_retained": true,
+      "seconds_total": 15.66,
+      "actions": [],
+      "pageerrors": [],
+      "http_errors": [],
+      "blocked_external_hosts": {},
+      "candidate_sha256": null,
+      "automation_error": "TimeoutError: Page.screenshot: Timeout 8000ms exceeded.\nCall log:\n  - taking page screenshot\n"
+    },
+    {
+      "index": 26,
+      "batch": 6,
+      "id": 64,
+      "title": "Vex 7",
+      "url": "Games/Vex7/index.html",
+      "source_tree": "e2c09b22a2bf16498d43309c801dab277b7f9873",
+      "entry_blob": "a2f54a7960ece3a5c482acd3ec1c545e4425231f",
+      "capture_commit": "84381e6d1b2f955deb9bd692b2f95826b55cce70",
+      "navigation_status": 200,
+      "status": "needs-manual",
+      "note": "Kizi branding/loading wrapper.",
+      "output": "assets/thumbs/vex7.jpg",
+      "bytes": 8080,
+      "output_sha256": "ab2f77030c0afc07d80ae1ccb99bf118b602dbd3edd416dd99851f758e36479a",
+      "old_image_retained": true,
+      "seconds_total": 29.5,
+      "actions": [],
+      "pageerrors": [],
+      "http_errors": [],
+      "blocked_external_hosts": {},
+      "candidate_sha256": "9e0b26cd791b6037e8bef7d30dc9629f8596a91572fb6d50bee54d9f95bf1653",
+      "automation_error": null
+    },
+    {
+      "index": 27,
+      "batch": 6,
+      "id": 66,
+      "title": "Geometry Dash Lite",
+      "url": "Games/GeometryDashLite/index.html",
+      "source_tree": "6f81c65619ca390d6fc0413c219ffea4d81cbd7f",
+      "entry_blob": "06582aedb020d47fe43c23bddd3612d835843708",
+      "capture_commit": "84381e6d1b2f955deb9bd692b2f95826b55cce70",
+      "navigation_status": 200,
+      "status": "needs-manual",
+      "note": "Black canvas after level selection.",
+      "output": "assets/thumbs/geometrydashlite.jpg",
+      "bytes": 9235,
+      "output_sha256": "33828e6c6d85e0cce6ecfdd9045adf2bfa84982a58738e6b468dc070b09136b8",
+      "old_image_retained": true,
+      "seconds_total": 84.61,
+      "actions": [
+        [
+          "wait",
+          11000
+        ],
+        [
+          "click",
+          640,
+          330
+        ],
+        [
+          "wait",
+          1000
+        ],
+        [
+          "click",
+          640,
+          220
+        ],
+        [
+          "wait",
+          300
+        ],
+        [
+          "hold",
+          "Space",
+          250
+        ]
+      ],
+      "pageerrors": [],
+      "http_errors": [],
+      "blocked_external_hosts": {},
+      "candidate_sha256": "4e5d61d317e091460ad4f16a6a6344dc3f3d7607d0b2e5468f397fea0dee4a46",
+      "automation_error": null
+    },
+    {
+      "index": 28,
+      "batch": 6,
+      "id": 79,
+      "title": "Cookie Clicker",
+      "url": "Games/CookieClicker/index.html",
+      "source_tree": "f1c5ddab8563ad6d0f397d8dcb97f5115be736ab",
+      "entry_blob": "47b3d6cd7d4be4847eca2daf6681d9591c7ada56",
+      "capture_commit": "18aced7af8fb3cb497d07044a3be8ec2b4ca6697",
+      "navigation_status": 200,
+      "status": "captured",
+      "note": "Native gameplay/board visually reviewed.",
+      "output": "assets/thumbs/cookieclicker.jpg",
+      "bytes": 122884,
+      "output_sha256": "7b03378fac350d04abc38ccc1ca9cd9c29d0a4824bba46390f4f0f82459d77f5",
+      "old_image_retained": false,
+      "seconds_total": 41.39,
+      "actions": [
+        [
+          "wait",
+          6000
+        ],
+        [
+          "click",
+          640,
+          235
+        ],
+        [
+          "wait",
+          1000
+        ],
+        [
+          "click",
+          230,
+          330
+        ],
+        [
+          "wait",
+          500
+        ]
+      ],
+      "pageerrors": [],
+      "http_errors": [],
+      "blocked_external_hosts": {},
+      "candidate_sha256": "a47b33aa7a76634065b626453b0d1a3c962307b98bd0ae82d372dbec7782ce55",
+      "automation_error": null
+    },
+    {
+      "index": 29,
+      "batch": 6,
+      "id": 80,
+      "title": "Bloons TD",
+      "url": "Games/BloonsTD/index.html",
+      "source_tree": "cb803cd16c4bd542e64699192fffef5363f7a51b",
+      "entry_blob": "c35bbf9cb6cedb3ab11062f0d000e009621defd8",
+      "capture_commit": "84381e6d1b2f955deb9bd692b2f95826b55cce70",
+      "navigation_status": 200,
+      "status": "needs-manual",
+      "note": "Bloons 1-4 launcher, not a game round.",
+      "output": "assets/thumbs/bloonstd.jpg",
+      "bytes": 17353,
+      "output_sha256": "ac39e81fb7c7f5f164a67682aef2f02ff0439616074bbf7e65c3dc448bc99651",
+      "old_image_retained": true,
+      "seconds_total": 8.54,
+      "actions": [],
+      "pageerrors": [],
+      "http_errors": [],
+      "blocked_external_hosts": {},
+      "candidate_sha256": "e010516facfba00614b4b79e1d4eb261d9dafd25916fd4a38cd641f23b1c4844",
+      "automation_error": null
+    },
+    {
+      "index": 30,
+      "batch": 6,
+      "id": 81,
+      "title": "Drift Boss",
+      "url": "Games/DriftBoss/index.html",
+      "source_tree": "f637b2fb141ed65613ab4008a5921202830df82f",
+      "entry_blob": "8c1563ffbeecef8c83ff0856ee5340cebbd59890",
+      "capture_commit": "84381e6d1b2f955deb9bd692b2f95826b55cce70",
+      "navigation_status": 200,
+      "status": "needs-manual",
+      "note": "Blank Drift Boss frame.",
+      "output": "assets/thumbs/driftboss.jpg",
+      "bytes": 12561,
+      "output_sha256": "e45782c83e2fb95b43be2fbc0cc003f5ef24b4020533ef426121dec326602242",
+      "old_image_retained": true,
+      "seconds_total": 15.31,
+      "actions": [],
+      "pageerrors": [],
+      "http_errors": [],
+      "blocked_external_hosts": {},
+      "candidate_sha256": "dc1b589652f5fd497b9f41341a2175c9a12d5a50488ae78567ef3fa72f280bcc",
+      "automation_error": null
+    },
+    {
+      "index": 31,
+      "batch": 7,
+      "id": 83,
+      "title": "Doodle Jump",
+      "url": "Games/DoodleJump/index.html",
+      "source_tree": "1f3fd8163b03155224ae7c11ef3cb24e33762909",
+      "entry_blob": "b5c1f4b3f16f044d5fb7a66e3716b98211fe1de6",
+      "capture_commit": "84381e6d1b2f955deb9bd692b2f95826b55cce70",
+      "navigation_status": 200,
+      "status": "captured",
+      "note": "Native gameplay/board visually reviewed.",
+      "output": "assets/thumbs/doodlejump.jpg",
+      "bytes": 66149,
+      "output_sha256": "8d6a35e0150cd3bbdf52a47a3385c9bef970b84e4f8c9f0f18a28a64f1f92890",
+      "old_image_retained": false,
+      "seconds_total": 34.4,
+      "actions": [
+        [
+          "click",
+          565,
+          275
+        ],
+        [
+          "wait",
+          1700
+        ]
+      ],
+      "pageerrors": [],
+      "http_errors": [],
+      "blocked_external_hosts": {},
+      "candidate_sha256": "d611ee6ec438230e8213750fc16610cbc34c9b6dabc74ebb518ff9168a5e4749",
+      "automation_error": null
+    },
+    {
+      "index": 32,
+      "batch": 7,
+      "id": 84,
+      "title": "Chess",
+      "url": "Games/Chess/index.html",
+      "source_tree": "51d9d0b76913dffa4b20c3e876976c74151ecd03",
+      "entry_blob": "4ac3130c57cf1d0b409afb703e251da723a8af6b",
+      "capture_commit": "84381e6d1b2f955deb9bd692b2f95826b55cce70",
+      "navigation_status": 200,
+      "status": "captured",
+      "note": "Native gameplay/board visually reviewed.",
+      "output": "assets/thumbs/chess.jpg",
+      "bytes": 65304,
+      "output_sha256": "33b77c2cf7618ce7a222d8969ed2f2031a0734827a5278e2a2a61bcf2b9ab701",
+      "old_image_retained": false,
+      "seconds_total": 11.08,
+      "actions": [
+        "click button:text-is(\"New Game\")",
+        "click button:text-is(\"New Game\")",
+        "click button:text-is(\"New Game\")"
+      ],
+      "pageerrors": [],
+      "http_errors": [],
+      "blocked_external_hosts": {},
+      "candidate_sha256": "0db96385f6366a3c8b1e7c49cf64f8d3e205c31c707b8f648feb00f405608b47",
+      "automation_error": null
+    },
+    {
+      "index": 33,
+      "batch": 7,
+      "id": 86,
+      "title": "Jetpack Joyride",
+      "url": "Games/JetpackJoyride/index.html",
+      "source_tree": "43a828ea99eceb6e068a036496a7a6bc2e6b0c40",
+      "entry_blob": "6defbbec6352b8a47c7d343d9658d0342d365fa1",
+      "capture_commit": "18aced7af8fb3cb497d07044a3be8ec2b4ca6697",
+      "navigation_status": 200,
+      "status": "needs-manual",
+      "note": "Jetpack loading splash remained.",
+      "output": "assets/thumbs/jetpackjoyride.jpg",
+      "bytes": 11247,
+      "output_sha256": "cae6f6791a8c44cee395843c396fc8fad54ced01f242897806ca767785e21d25",
+      "old_image_retained": true,
+      "seconds_total": 53.03,
+      "actions": [
+        [
+          "wait",
+          13000
+        ],
+        [
+          "click",
+          640,
+          500
+        ],
+        [
+          "wait",
+          2000
+        ],
+        [
+          "hold",
+          "Space",
+          600
+        ],
+        [
+          "wait",
+          500
+        ]
+      ],
+      "pageerrors": [
+        "Unexpected token '<'"
+      ],
+      "http_errors": [],
+      "blocked_external_hosts": {},
+      "candidate_sha256": "7a385b5fb9237527b9dc62deb848a9ea73a74c9c45c613814c6bb986a81e2179",
+      "automation_error": null
+    },
+    {
+      "index": 34,
+      "batch": 7,
+      "id": 107,
+      "title": "Jetpack Joyride Hacked",
+      "url": "Games/JetpackJoyrideHacked/index.html",
+      "source_tree": "c2060fe57873c07d5b5662e642e9b254fcfd7c39",
+      "entry_blob": "a92ec2998b0b8e1ed8a6c8991358f2df9397a1db",
+      "capture_commit": "84381e6d1b2f955deb9bd692b2f95826b55cce70",
+      "navigation_status": 200,
+      "status": "needs-manual",
+      "note": "Hacked Jetpack loading splash.",
+      "output": "assets/thumbs/jetpackjoyride.jpg",
+      "bytes": 11247,
+      "output_sha256": "cae6f6791a8c44cee395843c396fc8fad54ced01f242897806ca767785e21d25",
+      "old_image_retained": true,
+      "seconds_total": 13.56,
+      "actions": [],
+      "pageerrors": [
+        "Unexpected token '<'"
+      ],
+      "http_errors": [],
+      "blocked_external_hosts": {},
+      "candidate_sha256": "bd35a14dd0a5723cde7d3bb37906021765ee270ecdc97fb77decd57a974c5bc9",
+      "automation_error": null
+    },
+    {
+      "index": 35,
+      "batch": 7,
+      "id": 87,
+      "title": "Doge Miner",
+      "url": "Games/DogeMiner/index.html",
+      "source_tree": "76cfddcf17d7ae17d38bf04bd41797a946ea5c8e",
+      "entry_blob": "a5467cc2f5f360ee6652a38c4d48136447d561e6",
+      "capture_commit": "84381e6d1b2f955deb9bd692b2f95826b55cce70",
+      "navigation_status": 200,
+      "status": "needs-manual",
+      "note": "Doge Miner loading modal.",
+      "output": "assets/thumbs/dogeminer.jpg",
+      "bytes": 12708,
+      "output_sha256": "d96baacd3c0db785f53b048d71955d8bd81fff0f55ba5a8712b7d8f3997ba0f8",
+      "old_image_retained": true,
+      "seconds_total": 11.53,
+      "actions": [],
+      "pageerrors": [
+        "Invalid or unexpected token"
+      ],
+      "http_errors": [],
+      "blocked_external_hosts": {},
+      "candidate_sha256": "8666947700a5d05edd89d7a3dc7ab8da38a8a0a06ecaf4ac79427a47a5ec0dfc",
+      "automation_error": null
+    },
+    {
+      "index": 36,
+      "batch": 8,
+      "id": 89,
+      "title": "Retro Bowl Hacked",
+      "url": "Games/RetroBowlHacked/index.html",
+      "source_tree": "b6c70229b7f6d03fc5cb2e39f45b0097f9483726",
+      "entry_blob": "7b13fdcf40c8cfc551978f24aa3a8603e2c2b4b2",
+      "capture_commit": "84381e6d1b2f955deb9bd692b2f95826b55cce70",
+      "navigation_status": 200,
+      "status": "needs-manual",
+      "note": "Welcome/Continue screen, not on-field play.",
+      "output": "assets/thumbs/retrobowl.jpg",
+      "bytes": 14481,
+      "output_sha256": "a8b0ea49ef625922b5ceb67cd46347e7e9895b55769842b6698a93ee00424572",
+      "old_image_retained": true,
+      "seconds_total": 15.19,
+      "actions": [],
+      "pageerrors": [],
+      "http_errors": [
+        "404 /Games/RetroBowlHacked/html5game/optiondata.dat",
+        "404 /Games/RetroBowlHacked/html5game/savedata.ini"
+      ],
+      "blocked_external_hosts": {},
+      "candidate_sha256": "1e70c39acc25a3b6af01a51d699a21366a844612ddfe737381cc5a622efd47d6",
+      "automation_error": null
+    },
+    {
+      "index": 37,
+      "batch": 8,
+      "id": 90,
+      "title": "Cookie Clicker Hacked",
+      "url": "Games/CookieClickerHacked/index.html",
+      "source_tree": "afd7ea33352143af7e774198ad5805e8c6528a81",
+      "entry_blob": "2137ad290b82a83a03151f0999a0babae615585b",
+      "capture_commit": "84381e6d1b2f955deb9bd692b2f95826b55cce70",
+      "navigation_status": 200,
+      "status": "needs-manual",
+      "note": "Cookie interaction timed out; no accepted frame.",
+      "output": "assets/thumbs/cookieclickerhacked.jpg",
+      "bytes": 26596,
+      "output_sha256": "3fe841f4cb5fc772e107d30301256864c1b0cbbc9f8fdcf7d6b99c73df18b7ea",
+      "old_image_retained": true,
+      "seconds_total": 16.24,
+      "actions": [],
+      "pageerrors": [],
+      "http_errors": [],
+      "blocked_external_hosts": {},
+      "candidate_sha256": null,
+      "automation_error": "TimeoutError: Locator.click: Timeout 1800ms exceeded.\nCall log:\n  - waiting for locator(\"#bigCookie\").first\n    - locator resolved to <div id=\"bigCookie\" alt=\"Big clickable cookie\"></div>\n  - at"
+    },
+    {
+      "index": 38,
+      "batch": 8,
+      "id": 94,
+      "title": "Breakout Hacked",
+      "url": "Games/BreakoutHacked/index.html",
+      "source_tree": "9af0b4d09951eeaedbfd559799bdb3184aa7ac47",
+      "entry_blob": "137569fec985c7f5ddd3b0d116ad607c123a166a",
+      "capture_commit": "84381e6d1b2f955deb9bd692b2f95826b55cce70",
+      "navigation_status": 200,
+      "status": "captured",
+      "note": "Native gameplay/board visually reviewed.",
+      "output": "assets/thumbs/breakouthacked.jpg",
+      "bytes": 21763,
+      "output_sha256": "45ad3697638c437a7b51c90dd05462d4b0008c0db9dd96e22938e3c52d37e46d",
+      "old_image_retained": false,
+      "seconds_total": 9.8,
+      "actions": [
+        "Space; ArrowRight 450ms"
+      ],
+      "pageerrors": [],
+      "http_errors": [],
+      "blocked_external_hosts": {},
+      "candidate_sha256": "4dfb8144ee13f5199baf05a70357d090ecbbbe40ffe7161588e2d26c033568b2",
+      "automation_error": null
+    },
+    {
+      "index": 39,
+      "batch": 8,
+      "id": 95,
+      "title": "Snake Hacked",
+      "url": "Games/SnakeHacked/index.html",
+      "source_tree": "1f4c0b5060fc34369c88f745510cebccffd626dc",
+      "entry_blob": "931d3a8ae4f9052e44fd7bb1cb4f409abbeb4497",
+      "capture_commit": "84381e6d1b2f955deb9bd692b2f95826b55cce70",
+      "navigation_status": 200,
+      "status": "captured",
+      "note": "Native gameplay/board visually reviewed.",
+      "output": "assets/thumbs/snakehacked.jpg",
+      "bytes": 36843,
+      "output_sha256": "a8e4f342d9db8c33d2172897ab9ec8636258110bfd318cd42817c187a6c9f029",
+      "old_image_retained": false,
+      "seconds_total": 9.69,
+      "actions": [
+        "click button:has-text(\"Start game\")",
+        "Space; ArrowRight 450ms"
+      ],
+      "pageerrors": [],
+      "http_errors": [],
+      "blocked_external_hosts": {},
+      "candidate_sha256": "8283162b912f980fb417f390ee56a898ef1894116ff60eb665d810bc7af75e65",
+      "automation_error": null
+    },
+    {
+      "index": 40,
+      "batch": 8,
+      "id": 111,
+      "title": "Subway Surfers Hacked",
+      "url": "Games/SubwaySurfersHacked/index.html",
+      "source_tree": "103206d71b6f880a020631c9e94287073d31cf54",
+      "entry_blob": "28822b7c5c85aeef7797b3ae97a08bd7fb67d593",
+      "capture_commit": "84381e6d1b2f955deb9bd692b2f95826b55cce70",
+      "navigation_status": 200,
+      "status": "needs-manual",
+      "note": "Subway loading-tip screen.",
+      "output": "assets/thumbs/subwaysurfers.jpg",
+      "bytes": 6871,
+      "output_sha256": "449ee2a6ea737763959ac79da49802497bce78d3a8eb08fa74295aefb9e7a239",
+      "old_image_retained": true,
+      "seconds_total": 23.27,
+      "actions": [],
+      "pageerrors": [],
+      "http_errors": [],
+      "blocked_external_hosts": {},
+      "candidate_sha256": "3902ffa9724a33e6e40e01f4811377b1e393114724d025802b603998d37bf034",
+      "automation_error": null
+    },
+    {
+      "index": 41,
+      "batch": 9,
+      "id": 109,
+      "title": "Doodle Jump Hacked",
+      "url": "Games/DoodleJumpHacked/index.html",
+      "source_tree": "b0c33933be00b64722b92cb7e1bd2dae20621e3e",
+      "entry_blob": "5b55a507a4d40afe2bd11f0e26fb674f30234eec",
+      "capture_commit": "84381e6d1b2f955deb9bd692b2f95826b55cce70",
+      "navigation_status": 200,
+      "status": "captured",
+      "note": "Native gameplay/board visually reviewed.",
+      "output": "assets/thumbs/doodlejumphacked.jpg",
+      "bytes": 67242,
+      "output_sha256": "30324d962882191d11e7134bee6de1450ed10f5d4acce22d8216e7e53f387795",
+      "old_image_retained": false,
+      "seconds_total": 46.47,
+      "actions": [
+        [
+          "click",
+          565,
+          275
+        ],
+        [
+          "wait",
+          1700
+        ]
+      ],
+      "pageerrors": [],
+      "http_errors": [],
+      "blocked_external_hosts": {},
+      "candidate_sha256": "1baee7c564e25cadaeb7cf62bd7e3b1e7f28a4a25163f35614ee65ddd65daa7e",
+      "automation_error": null
+    },
+    {
+      "index": 42,
+      "batch": 9,
+      "id": 114,
+      "title": "Dr. Mario",
+      "url": "Games/DrMario/index.html",
+      "source_tree": "565580456ccfa823b7d6552b2134280244c0b301",
+      "entry_blob": "fac113179352daf0222f57868a9ada7636f3a519",
+      "capture_commit": "18aced7af8fb3cb497d07044a3be8ec2b4ca6697",
+      "navigation_status": 200,
+      "status": "captured",
+      "note": "Native gameplay/board visually reviewed.",
+      "output": "assets/thumbs/drmario.jpg",
+      "bytes": 116397,
+      "output_sha256": "08ff34c73401726df8fa974b3a8ee9dfbd66810143676a8986c2cdcca858e380",
+      "old_image_retained": false,
+      "seconds_total": 30.87,
+      "actions": [
+        [
+          "wait",
+          6000
+        ],
+        [
+          "key",
+          "Enter"
+        ],
+        [
+          "wait",
+          500
+        ],
+        [
+          "key",
+          "Enter"
+        ],
+        [
+          "wait",
+          500
+        ],
+        [
+          "key",
+          "x"
+        ],
+        [
+          "wait",
+          1500
+        ]
+      ],
+      "pageerrors": [
+        "Failed to fetch"
+      ],
+      "http_errors": [],
+      "blocked_external_hosts": {
+        "raw.githack.com": 1
+      },
+      "candidate_sha256": "2011722dc604db1801344baffc8783216a48dd8ca7cac367093ad32d73cd0bf5",
+      "automation_error": null
+    },
+    {
+      "index": 43,
+      "batch": 9,
+      "id": 115,
+      "title": "Street Fighter II",
+      "url": "Games/StreetFighter2/index.html",
+      "source_tree": "0d9d78034ffa2bf9edd649b74db5819c57b1364b",
+      "entry_blob": "948aea5622a03290bb8d944889e6a8d66824a1ea",
+      "capture_commit": "84381e6d1b2f955deb9bd692b2f95826b55cce70",
+      "navigation_status": 200,
+      "status": "needs-manual",
+      "note": "Emulator title/intro, no bout.",
+      "output": "assets/thumbs/streetfighter2.jpg",
+      "bytes": 15246,
+      "output_sha256": "8cde6fc81175ca56a957837e414ebfb68e09eea1f90a58ad6c3ed0c98d594da0",
+      "old_image_retained": true,
+      "seconds_total": 10.94,
+      "actions": [],
+      "pageerrors": [
+        "Failed to fetch"
+      ],
+      "http_errors": [],
+      "blocked_external_hosts": {
+        "raw.githack.com": 1
+      },
+      "candidate_sha256": "7ced79b5ae9d08d571f989423a063b51f1dc30056fa6c98868a3475c91a3b833",
+      "automation_error": null
+    },
+    {
+      "index": 44,
+      "batch": 9,
+      "id": 116,
+      "title": "Advance Wars",
+      "url": "Games/AdvanceWars/index.html",
+      "source_tree": "dc9a072f593cdfbed3e9060368f725c5d8984e49",
+      "entry_blob": "df4b4c19ae2d5861583fcf38e92168aaa51bc82a",
+      "capture_commit": "84381e6d1b2f955deb9bd692b2f95826b55cce70",
+      "navigation_status": 200,
+      "status": "needs-manual",
+      "note": "Emulator intro map, not gameplay.",
+      "output": "assets/thumbs/advancewars.jpg",
+      "bytes": 14851,
+      "output_sha256": "8879febf9855da304a9ca191409abd6e8d4d9821afa2a2394b0d88074566aa26",
+      "old_image_retained": true,
+      "seconds_total": 12.59,
+      "actions": [],
+      "pageerrors": [
+        "Failed to fetch"
+      ],
+      "http_errors": [],
+      "blocked_external_hosts": {
+        "raw.githack.com": 1
+      },
+      "candidate_sha256": "a914b21d369dd73ede7c9e3fa09dbf59d0755937a32db8ca6af9dc85454b4eca",
+      "automation_error": null
+    },
+    {
+      "index": 45,
+      "batch": 9,
+      "id": 117,
+      "title": "Mario Kart Super Circuit",
+      "url": "Games/MarioKartSuperCircuit/index.html",
+      "source_tree": "f03642879ffe8348d10d6fcbb5f8746b21f058fd",
+      "entry_blob": "d23371db849679d01d0a1a444e66be0fbabd2920",
+      "capture_commit": "18aced7af8fb3cb497d07044a3be8ec2b4ca6697",
+      "navigation_status": 200,
+      "status": "needs-manual",
+      "note": "Emulator game/class selection, no race.",
+      "output": "assets/thumbs/mariokartsupercircuit.jpg",
+      "bytes": 8150,
+      "output_sha256": "fadfcffb54604b2a68b5ae3ef9d2efd7ac04186453583f1a6294eadb2abd1077",
+      "old_image_retained": true,
+      "seconds_total": 87.7,
+      "actions": [
+        [
+          "wait",
+          10000
+        ],
+        [
+          "key",
+          "Enter"
+        ],
+        [
+          "wait",
+          700
+        ],
+        [
+          "key",
+          "z"
+        ],
+        [
+          "wait",
+          700
+        ],
+        [
+          "key",
+          "z"
+        ],
+        [
+          "wait",
+          700
+        ],
+        [
+          "key",
+          "z"
+        ],
+        [
+          "wait",
+          700
+        ],
+        [
+          "key",
+          "z"
+        ],
+        [
+          "wait",
+          700
+        ],
+        [
+          "key",
+          "z"
+        ],
+        [
+          "wait",
+          700
+        ],
+        [
+          "key",
+          "z"
+        ],
+        [
+          "wait",
+          2500
+        ]
+      ],
+      "pageerrors": [
+        "Failed to fetch"
+      ],
+      "http_errors": [],
+      "blocked_external_hosts": {
+        "raw.githack.com": 1
+      },
+      "candidate_sha256": "c0e24e0da1df0c3fec1c12c6126d2204bc8533ed6007225204c0e2c9c409d439",
+      "automation_error": null
+    },
+    {
+      "index": 46,
+      "batch": 10,
+      "id": 118,
+      "title": "Metroid Fusion",
+      "url": "Games/MetroidFusion/index.html",
+      "source_tree": "94eb95065484723e6770979e01e119c2a3e97206",
+      "entry_blob": "047a3cf58ab3b4517e6284fa458cb033a3d95a1e",
+      "capture_commit": "84381e6d1b2f955deb9bd692b2f95826b55cce70",
+      "navigation_status": 200,
+      "status": "needs-manual",
+      "note": "Emulator loading/decompression.",
+      "output": "assets/thumbs/metroidfusion.jpg",
+      "bytes": 13032,
+      "output_sha256": "8186d355a135d237fc604e4f1addacfdf8275b3e1d848f732a82626672cd924c",
+      "old_image_retained": true,
+      "seconds_total": 10.64,
+      "actions": [],
+      "pageerrors": [
+        "Failed to fetch"
+      ],
+      "http_errors": [],
+      "blocked_external_hosts": {
+        "raw.githack.com": 1
+      },
+      "candidate_sha256": "7cf7a115a6d0fb0cd8bf41bc8da52307be5b661e78b4f61b9dc4e4ae3beca7c6",
+      "automation_error": null
+    },
+    {
+      "index": 47,
+      "batch": 10,
+      "id": 119,
+      "title": "Mega Man Zero",
+      "url": "Games/MegaManZero/index.html",
+      "source_tree": "9d77bde88f229da6646fe2e545417970e41f9016",
+      "entry_blob": "6956dfbbccca567184868efb2b3a9b002b48a05f",
+      "capture_commit": "84381e6d1b2f955deb9bd692b2f95826b55cce70",
+      "navigation_status": 200,
+      "status": "needs-manual",
+      "note": "Emulator publisher intro.",
+      "output": "assets/thumbs/megamanzero.jpg",
+      "bytes": 12905,
+      "output_sha256": "f7c1a13f9de779ddbb4b6de61d385fde1fe91cf3b7f901b17669c36309d3d92b",
+      "old_image_retained": true,
+      "seconds_total": 13.25,
+      "actions": [],
+      "pageerrors": [
+        "Failed to fetch"
+      ],
+      "http_errors": [],
+      "blocked_external_hosts": {
+        "raw.githack.com": 1
+      },
+      "candidate_sha256": "c80e1b2a9b674d5cb1c86091f5caf2c54023cc387d1f8fdcaf6a8c5844094a57",
+      "automation_error": null
+    },
+    {
+      "index": 48,
+      "batch": 10,
+      "id": 120,
+      "title": "Kirby Amazing Mirror",
+      "url": "Games/KirbyAmazingMirror/index.html",
+      "source_tree": "bc8bd736c48ea4a72a4f7ca9412f0e7ca1ea6147",
+      "entry_blob": "359c3e89498152c2f46d3499c8a00365f32249d3",
+      "capture_commit": "18aced7af8fb3cb497d07044a3be8ec2b4ca6697",
+      "navigation_status": 200,
+      "status": "needs-manual",
+      "note": "Emulator title/Game Start screen.",
+      "output": "assets/thumbs/kirbyamazingmirror.jpg",
+      "bytes": 17867,
+      "output_sha256": "583852f4e9318e1903d15adcb620870834fe18904249cd856f29a59a350ca53a",
+      "old_image_retained": true,
+      "seconds_total": 38.29,
+      "actions": [
+        [
+          "wait",
+          14000
+        ],
+        [
+          "key",
+          "Enter"
+        ],
+        [
+          "wait",
+          800
+        ],
+        [
+          "key",
+          "z"
+        ],
+        [
+          "wait",
+          800
+        ],
+        [
+          "key",
+          "z"
+        ],
+        [
+          "wait",
+          1800
+        ]
+      ],
+      "pageerrors": [
+        "Failed to fetch"
+      ],
+      "http_errors": [],
+      "blocked_external_hosts": {
+        "raw.githack.com": 1
+      },
+      "candidate_sha256": "e730c57a13c72aba4cb89a8bb14c2f82106ff9a9cd5cd5b3abe851329888b091",
+      "automation_error": null
+    },
+    {
+      "index": 49,
+      "batch": 10,
+      "id": 121,
+      "title": "Sonic Advance",
+      "url": "Games/SonicAdvance/index.html",
+      "source_tree": "a0a64bcb0a651dfeb14fed5555351a3f088acf5f",
+      "entry_blob": "8f20e5cbc141215e45f9f19cabd820baad645c13",
+      "capture_commit": "18aced7af8fb3cb497d07044a3be8ec2b4ca6697",
+      "navigation_status": 200,
+      "status": "needs-manual",
+      "note": "Emulator SEGA intro.",
+      "output": "assets/thumbs/sonicadvance.jpg",
+      "bytes": 18689,
+      "output_sha256": "e08d405b5668705e5d4c93bb9456205130e42989bf8eaee4dc4ce2340945ee06",
+      "old_image_retained": true,
+      "seconds_total": 62.67,
+      "actions": [
+        [
+          "wait",
+          14000
+        ],
+        [
+          "key",
+          "Enter"
+        ],
+        [
+          "wait",
+          800
+        ],
+        [
+          "key",
+          "z"
+        ],
+        [
+          "wait",
+          800
+        ],
+        [
+          "key",
+          "z"
+        ],
+        [
+          "wait",
+          800
+        ],
+        [
+          "key",
+          "z"
+        ],
+        [
+          "wait",
+          1800
+        ]
+      ],
+      "pageerrors": [
+        "Failed to fetch"
+      ],
+      "http_errors": [],
+      "blocked_external_hosts": {
+        "raw.githack.com": 1
+      },
+      "candidate_sha256": "67a84a48e88241f03116e650be87ff457f101aada351e632a45bde1af07f23c7",
+      "automation_error": null
+    },
+    {
+      "index": 50,
+      "batch": 10,
+      "id": 123,
+      "title": "Crush the Castle",
+      "url": "Games/CrushTheCastle/index.html",
+      "source_tree": "1dc3561e1947c1d97842affd4c5c53cd53e450b3",
+      "entry_blob": "9e383061bf56afaa7887ff7e917d5e6b3eff88a8",
+      "capture_commit": "84381e6d1b2f955deb9bd692b2f95826b55cce70",
+      "navigation_status": 200,
+      "status": "needs-manual",
+      "note": "Ruffle unsupported-content warning; no game round.",
+      "output": "assets/thumbs/crushthecastle.jpg",
+      "bytes": 14318,
+      "output_sha256": "60a821ff9fd2dbe56c8c52adf510f958d6601962f0a2738a373cce180e79dba6",
+      "old_image_retained": true,
+      "seconds_total": 8.41,
+      "actions": [],
+      "pageerrors": [],
+      "http_errors": [],
+      "blocked_external_hosts": {},
+      "candidate_sha256": "ef1520c54681341014e65a4131ac8053886877fe01d2a85b8e3aafb004c0c1e3",
+      "automation_error": null
+    },
+    {
+      "index": 51,
+      "batch": 11,
+      "id": 127,
+      "title": "Fireboy and Watergirl",
+      "url": "Games/FireboyAndWatergirl/index.html",
+      "source_tree": "9fd3ac244615e2da3968dcb07714bde0f23dd88a",
+      "entry_blob": "b0e92858eafb2abe1ed1f84681ba56a452cc22ab",
+      "capture_commit": "18aced7af8fb3cb497d07044a3be8ec2b4ca6697",
+      "navigation_status": 200,
+      "status": "captured",
+      "note": "Native gameplay/board visually reviewed.",
+      "output": "assets/thumbs/fireboyandwatergirl.jpg",
+      "bytes": 93369,
+      "output_sha256": "798944736e3b75702df77be5c4f51a6370b4ae0dae18bc02826c5367a1406d32",
+      "old_image_retained": false,
+      "seconds_total": 86.89,
+      "actions": [
+        [
+          "wait",
+          11000
+        ],
+        [
+          "selector",
+          "#h5branding-button"
+        ],
+        [
+          "wait",
+          2000
+        ],
+        [
+          "click",
+          640,
+          390
+        ],
+        [
+          "wait",
+          1000
+        ],
+        [
+          "click",
+          640,
+          600
+        ],
+        [
+          "wait",
+          500
+        ]
+      ],
+      "pageerrors": [],
+      "http_errors": [],
+      "blocked_external_hosts": {},
+      "candidate_sha256": "bc254e3a83ed2e6ba1af8baaf39fb2e1e7de0d540e6c18de6275476dea16bc98",
+      "automation_error": null
+    },
+    {
+      "index": 52,
+      "batch": 11,
+      "id": 128,
+      "title": "Fireboy & Watergirl 4: Crystal Temple",
+      "url": "Games/FireboyAndWatergirlCrystalTemple/index.html",
+      "source_tree": "ec2ec37d83ae2433c3736f40e846c67c2c667e5e",
+      "entry_blob": "4095d7cedd4448ce8f0c82489faf620747de8300",
+      "capture_commit": "18aced7af8fb3cb497d07044a3be8ec2b4ca6697",
+      "navigation_status": 200,
+      "status": "captured",
+      "note": "Native gameplay/board visually reviewed.",
+      "output": "assets/thumbs/fireboywatergirl4crystaltemple.jpg",
+      "bytes": 74370,
+      "output_sha256": "04b721aecad9ed2a127684c93283362dc47e4fc95675b509c6ea454bf3a45462",
+      "old_image_retained": false,
+      "seconds_total": 37.46,
+      "actions": [
+        [
+          "wait",
+          3000
+        ],
+        [
+          "click",
+          640,
+          490
+        ],
+        [
+          "wait",
+          2500
+        ],
+        [
+          "click",
+          640,
+          390
+        ],
+        [
+          "wait",
+          1500
+        ],
+        [
+          "click",
+          640,
+          600
+        ],
+        [
+          "wait",
+          500
+        ]
+      ],
+      "pageerrors": [],
+      "http_errors": [],
+      "blocked_external_hosts": {},
+      "candidate_sha256": "cf1c7bba393635c6a06bebe7d65fc43937ff30c410b34836aa55ed4f56b0879e",
+      "automation_error": null
+    },
+    {
+      "index": 53,
+      "batch": 11,
+      "id": 129,
+      "title": "Fireboy & Watergirl: Forest Temple",
+      "url": "Games/FireboyAndWatergirlForestTemple/index.html",
+      "source_tree": "8feaa5e64a1ad714c41b34ece87b7881b127ebb9",
+      "entry_blob": "7ba0abf6c0b4032bcec7fe6c7f0b2214007587b9",
+      "capture_commit": "18aced7af8fb3cb497d07044a3be8ec2b4ca6697",
+      "navigation_status": 200,
+      "status": "captured",
+      "note": "Native gameplay/board visually reviewed.",
+      "output": "assets/thumbs/fireboywatergirlforesttemple.jpg",
+      "bytes": 77793,
+      "output_sha256": "3f859d43e34002420bb9f77c318447642db8433f9ba1d983a61b911b8771642b",
+      "old_image_retained": false,
+      "seconds_total": 61.83,
+      "actions": [
+        [
+          "wait",
+          11000
+        ],
+        [
+          "selector",
+          "#h5branding-button"
+        ],
+        [
+          "wait",
+          2000
+        ],
+        [
+          "click",
+          640,
+          390
+        ],
+        [
+          "wait",
+          1000
+        ],
+        [
+          "click",
+          640,
+          600
+        ],
+        [
+          "wait",
+          500
+        ]
+      ],
+      "pageerrors": [],
+      "http_errors": [],
+      "blocked_external_hosts": {},
+      "candidate_sha256": "46ee55aded5d12e5cece79cedd94fcf0678c27d2f74dcbe0b6eef909de3c692e",
+      "automation_error": null
+    },
+    {
+      "index": 54,
+      "batch": 11,
+      "id": 131,
+      "title": "Fireboy and Watergirl Hacked (Light Temple)",
+      "url": "Games/FireboyAndWatergirlHacked/index.html",
+      "source_tree": "68e32fc83ede60bc267bda51b0e007c4de7ba57b",
+      "entry_blob": "f73249e9848eaf0b1efd218b632b4d8e33e86e9b",
+      "capture_commit": "18aced7af8fb3cb497d07044a3be8ec2b4ca6697",
+      "navigation_status": 200,
+      "status": "captured",
+      "note": "Native gameplay/board visually reviewed.",
+      "output": "assets/thumbs/fireboyandwatergirlhackedlighttemple.jpg",
+      "bytes": 95242,
+      "output_sha256": "a1e60a3abf3f5ead8cf97b50dee4750f3175b567d8e7917ce0bf06aa25e7f2cd",
+      "old_image_retained": false,
+      "seconds_total": 36.23,
+      "actions": [
+        [
+          "wait",
+          3000
+        ],
+        [
+          "click",
+          640,
+          490
+        ],
+        [
+          "wait",
+          2500
+        ],
+        [
+          "click",
+          640,
+          390
+        ],
+        [
+          "wait",
+          1500
+        ],
+        [
+          "click",
+          640,
+          600
+        ],
+        [
+          "wait",
+          500
+        ]
+      ],
+      "pageerrors": [],
+      "http_errors": [],
+      "blocked_external_hosts": {},
+      "candidate_sha256": "56e42d6b914e519c161e3cf44ece81045e94838dabf64e019dc44c4881c10672",
+      "automation_error": null
+    },
+    {
+      "index": 55,
+      "batch": 11,
+      "id": 132,
+      "title": "Fireboy and Watergirl Forest Temple Hacked",
+      "url": "Games/FireboyAndWatergirlForestTempleHacked/index.html",
+      "source_tree": "8700380d0c7fd787ab5a0eddda34eb1816e64818",
+      "entry_blob": "7c75baee29546604ea9d0f52b41d4b6d6e1c2ada",
+      "capture_commit": "18aced7af8fb3cb497d07044a3be8ec2b4ca6697",
+      "navigation_status": 200,
+      "status": "captured",
+      "note": "Native gameplay/board visually reviewed.",
+      "output": "assets/thumbs/fireboyandwatergirlforesttemplehacked.jpg",
+      "bytes": 79705,
+      "output_sha256": "a6cfcc5287ab6a16e74c663fb4885da2f02471d4e58d4d168660e093e3ede3e1",
+      "old_image_retained": false,
+      "seconds_total": 62.09,
+      "actions": [
+        [
+          "wait",
+          11000
+        ],
+        [
+          "selector",
+          "#h5branding-button"
+        ],
+        [
+          "wait",
+          2000
+        ],
+        [
+          "click",
+          640,
+          390
+        ],
+        [
+          "wait",
+          1000
+        ],
+        [
+          "click",
+          640,
+          600
+        ],
+        [
+          "wait",
+          500
+        ]
+      ],
+      "pageerrors": [],
+      "http_errors": [],
+      "blocked_external_hosts": {},
+      "candidate_sha256": "8da11d7175f698c5880b00d866e36448e3f5713b7c2b5aae3996b9e53875efdd",
+      "automation_error": null
+    },
+    {
+      "index": 56,
+      "batch": 12,
+      "id": 133,
+      "title": "Fireboy and Watergirl Crystal Temple Hacked",
+      "url": "Games/FireboyAndWatergirlCrystalTempleHacked/index.html",
+      "source_tree": "934260698477af011e1cfc5ac0eebbb9bb8c69d5",
+      "entry_blob": "e0a5708a1dec27c9c8973c48062e3ce2691e46cf",
+      "capture_commit": "18aced7af8fb3cb497d07044a3be8ec2b4ca6697",
+      "navigation_status": 200,
+      "status": "captured",
+      "note": "Native gameplay/board visually reviewed.",
+      "output": "assets/thumbs/fireboyandwatergirlcrystaltemplehacked.jpg",
+      "bytes": 76301,
+      "output_sha256": "71854eec5ae80099200d54bbbb8f055c9a6af47ce22b062f7109e20c7b3264e4",
+      "old_image_retained": false,
+      "seconds_total": 46.86,
+      "actions": [
+        [
+          "wait",
+          3000
+        ],
+        [
+          "click",
+          640,
+          490
+        ],
+        [
+          "wait",
+          2500
+        ],
+        [
+          "click",
+          640,
+          390
+        ],
+        [
+          "wait",
+          1500
+        ],
+        [
+          "click",
+          640,
+          600
+        ],
+        [
+          "wait",
+          500
+        ]
+      ],
+      "pageerrors": [],
+      "http_errors": [],
+      "blocked_external_hosts": {},
+      "candidate_sha256": "3a386ae9d70cb256315178d62c1dd5d8ce70fb71b057c447aa3d36812a0d5c8c",
+      "automation_error": null
+    },
+    {
+      "index": 57,
+      "batch": 12,
+      "id": 136,
+      "title": "Merge Cats Defender",
+      "url": "Games/MergeCatsDefender/index.html",
+      "source_tree": "526b3d1f65cfc05058f08c44012ab5d31adaa1cb",
+      "entry_blob": "6cb88bcf53478fa8ee087f9fa940035f60c01a4f",
+      "capture_commit": "18aced7af8fb3cb497d07044a3be8ec2b4ca6697",
+      "navigation_status": 200,
+      "status": "needs-manual",
+      "note": "Loader remained at 100%.",
+      "output": "assets/thumbs/mergecatsdefender.jpg",
+      "bytes": 5403,
+      "output_sha256": "c90b0cf3727d80898f0bee98ad784bd6c0ae3aaa7a57d13650a68914795c856e",
+      "old_image_retained": true,
+      "seconds_total": 43.44,
+      "actions": [
+        [
+          "wait",
+          12000
+        ],
+        [
+          "click",
+          640,
+          500
+        ],
+        [
+          "wait",
+          1200
+        ]
+      ],
+      "pageerrors": [],
+      "http_errors": [],
+      "blocked_external_hosts": {},
+      "candidate_sha256": "ac78e02f6691d268bc644444dd092e3c3f2c76f343df74cdd543ed1ffc015ea4",
+      "automation_error": null
+    },
+    {
+      "index": 58,
+      "batch": 12,
+      "id": 137,
+      "title": "Merge Cats Defender Hacked",
+      "url": "Games/MergeCatsDefenderHacked/index.html",
+      "source_tree": "ca6ce240bd29396fc02a7716ff7cee8711070179",
+      "entry_blob": "9450fc38a52d0ec83067091b4b789ba3277b2f57",
+      "capture_commit": "84381e6d1b2f955deb9bd692b2f95826b55cce70",
+      "navigation_status": 200,
+      "status": "needs-manual",
+      "note": "Hacked loader remained at 100%.",
+      "output": "assets/thumbs/mergecatsdefender.jpg",
+      "bytes": 5403,
+      "output_sha256": "c90b0cf3727d80898f0bee98ad784bd6c0ae3aaa7a57d13650a68914795c856e",
+      "old_image_retained": true,
+      "seconds_total": 14.53,
+      "actions": [],
+      "pageerrors": [],
+      "http_errors": [],
+      "blocked_external_hosts": {},
+      "candidate_sha256": "07fbd86ccec82086f5329e9561338a1146b41fd99229942463011b73d789b85a",
+      "automation_error": null
+    },
+    {
+      "index": 59,
+      "batch": 12,
+      "id": 149,
+      "title": "Archery",
+      "url": "Games/Archery/index.html",
+      "source_tree": "337adf0cf988802bb965c9baece20ca52cba76f7",
+      "entry_blob": "35c2a10785f8ed4cba3a5a85c64aaed7b87ba441",
+      "capture_commit": "84381e6d1b2f955deb9bd692b2f95826b55cce70",
+      "navigation_status": 200,
+      "status": "captured",
+      "note": "Native gameplay/board visually reviewed.",
+      "output": "assets/thumbs/archery.jpg",
+      "bytes": 35758,
+      "output_sha256": "3d903e820cc5b55ea536d61009d2d5958d675ab8c837f42cf2c02ad7777c9bca",
+      "old_image_retained": false,
+      "seconds_total": 8.63,
+      "actions": [],
+      "pageerrors": [],
+      "http_errors": [],
+      "blocked_external_hosts": {},
+      "candidate_sha256": "48d529a9227431019e89ec7173453e4b0bb943c1337c7c05fa4c16cd21e61d44",
+      "automation_error": null
+    },
+    {
+      "index": 60,
+      "batch": 12,
+      "id": 152,
+      "title": "Free Throw",
+      "url": "Games/FreeThrow/index.html",
+      "source_tree": "2526d0748627bb383396392e554963fe7a6424f3",
+      "entry_blob": "53a52b54afe9c77704394d3f7da84df7e0f2ef7a",
+      "capture_commit": "84381e6d1b2f955deb9bd692b2f95826b55cce70",
+      "navigation_status": 200,
+      "status": "captured",
+      "note": "Native gameplay/board visually reviewed.",
+      "output": "assets/thumbs/freethrow.jpg",
+      "bytes": 25305,
+      "output_sha256": "c0cfefb4f0f1d222ebcfd49d1f9f8b8a9345925f1dd2c265a08d763e17bde397",
+      "old_image_retained": false,
+      "seconds_total": 8.44,
+      "actions": [
+        "click #playBtn"
+      ],
+      "pageerrors": [],
+      "http_errors": [],
+      "blocked_external_hosts": {},
+      "candidate_sha256": "987564346f208427a661a9abd79d08ba8d777152136d86bd160d1b234b4cf878",
+      "automation_error": null
+    },
+    {
+      "index": 61,
+      "batch": 13,
+      "id": 154,
+      "title": "Backgammon",
+      "url": "Games/Backgammon/index.html",
+      "source_tree": "f460abdf972600bb28009793ae329aeccfc8bb36",
+      "entry_blob": "99b061a00ea8fb744b356c7e5c30285155602660",
+      "capture_commit": "84381e6d1b2f955deb9bd692b2f95826b55cce70",
+      "navigation_status": 200,
+      "status": "captured",
+      "note": "Native gameplay/board visually reviewed.",
+      "output": "assets/thumbs/backgammon.jpg",
+      "bytes": 47116,
+      "output_sha256": "c640bf3022336cd331a7009a06049296c1adeb4ccdeb04190fca4d8dcef64bb9",
+      "old_image_retained": false,
+      "seconds_total": 10.81,
+      "actions": [
+        "click #playBtn"
+      ],
+      "pageerrors": [],
+      "http_errors": [],
+      "blocked_external_hosts": {},
+      "candidate_sha256": "bedfe73ccb49bceff3ae96fee63eff31c01a3bc5b977fc4ad310033df474c3cd",
+      "automation_error": null
+    },
+    {
+      "index": 62,
+      "batch": 13,
+      "id": 160,
+      "title": "Pacman",
+      "url": "Games/Pacman/index.html",
+      "source_tree": "67a6bb3ef44c819e426a0175a5beb25377c3c1b1",
+      "entry_blob": "97d4be34d1e34b369d3c38615955f7fc7514c188",
+      "capture_commit": "18aced7af8fb3cb497d07044a3be8ec2b4ca6697",
+      "navigation_status": 200,
+      "status": "needs-manual",
+      "note": "Waiting/countdown overlay, not active maze play.",
+      "output": "assets/thumbs/pacman.jpg",
+      "bytes": 8266,
+      "output_sha256": "ce2ce92a32aa4ef4e70306e1d59d6422db59a55e681b05e2c29b191853c23bab",
+      "old_image_retained": true,
+      "seconds_total": 25.41,
+      "actions": [
+        [
+          "key",
+          "n"
+        ],
+        [
+          "wait",
+          3200
+        ],
+        [
+          "hold",
+          "ArrowLeft",
+          400
+        ]
+      ],
+      "pageerrors": [],
+      "http_errors": [],
+      "blocked_external_hosts": {},
+      "candidate_sha256": "8944bf8543a8431e25e821c7cdd5fe6d14cc14d340e6b044bbd33ecc17f76bf8",
+      "automation_error": null
+    },
+    {
+      "index": 63,
+      "batch": 13,
+      "id": 161,
+      "title": "Qix",
+      "url": "Games/Qix/index.html",
+      "source_tree": "784859f4e394846342ddf3c61b55741c191057f9",
+      "entry_blob": "31c970a8045b6c0932b9d416eb34be5def0be2db",
+      "capture_commit": "84381e6d1b2f955deb9bd692b2f95826b55cce70",
+      "navigation_status": 200,
+      "status": "needs-manual",
+      "note": "JIX prototype: mostly empty field, player clipped at bottom.",
+      "output": "assets/thumbs/qix.jpg",
+      "bytes": 6672,
+      "output_sha256": "94452f04b5beb568599373d12da5eaf39883309b6eab0b5387c6d1ac316eaa85",
+      "old_image_retained": true,
+      "seconds_total": 15.75,
+      "actions": [
+        "Space; ArrowRight 450ms"
+      ],
+      "pageerrors": [],
+      "http_errors": [],
+      "blocked_external_hosts": {},
+      "candidate_sha256": "e62cc9e04033cbbdd96e4b2c6268a96fe1151c45a5b52bcfd056ba5f5eeb1594",
+      "automation_error": null
+    },
+    {
+      "index": 64,
+      "batch": 13,
+      "id": 162,
+      "title": "Joust",
+      "url": "Games/Joust/index.html",
+      "source_tree": "6a246c3aa4d9cddf1188d885741fe8306dfb888f",
+      "entry_blob": "b73149a7ab75da6beda1e1522ac90d1097287b4f",
+      "capture_commit": "84381e6d1b2f955deb9bd692b2f95826b55cce70",
+      "navigation_status": 200,
+      "status": "captured",
+      "note": "Native gameplay/board visually reviewed.",
+      "output": "assets/thumbs/joust.jpg",
+      "bytes": 24974,
+      "output_sha256": "1e8fd3a4605eda98ffe844410e2119ac7fc151209b8a59ce12ccce89c8e575c1",
+      "old_image_retained": false,
+      "seconds_total": 9.88,
+      "actions": [
+        "Space; ArrowRight 450ms"
+      ],
+      "pageerrors": [],
+      "http_errors": [],
+      "blocked_external_hosts": {},
+      "candidate_sha256": "270b2edb767663802603fc3014b28d0371259c89818c8691b52993ef9ee5d502",
+      "automation_error": null
+    },
+    {
+      "index": 65,
+      "batch": 13,
+      "id": 163,
+      "title": "Tron Light Cycles",
+      "url": "Games/TronLightCycles/index.html",
+      "source_tree": "c6fc42e4c69d2f08ccb3dd4efbf5f837d502dfb5",
+      "entry_blob": "ab52446d4c4c80ea664b79b6f914d4e36d59e6d5",
+      "capture_commit": "18aced7af8fb3cb497d07044a3be8ec2b4ca6697",
+      "navigation_status": 200,
+      "status": "captured",
+      "note": "Native gameplay/board visually reviewed.",
+      "output": "assets/thumbs/tronlightcycles.jpg",
+      "bytes": 23064,
+      "output_sha256": "0714f3edbdcc37dbd8ce61d4df941af610c06347363bc65a2822dc82bfb95eb4",
+      "old_image_retained": false,
+      "seconds_total": 18.12,
+      "actions": [
+        [
+          "key",
+          "Space"
+        ],
+        [
+          "wait",
+          150
+        ]
+      ],
+      "pageerrors": [],
+      "http_errors": [],
+      "blocked_external_hosts": {},
+      "candidate_sha256": "6be40337a989d338374955dea3fb321f2167446c9692330cbda698f6acf9b5da",
+      "automation_error": null
+    },
+    {
+      "index": 66,
+      "batch": 14,
+      "id": 169,
+      "title": "Puzzle 15",
+      "url": "Games/Puzzle15/index.html",
+      "source_tree": "f8fde128da13b37da272434a260f605c05d15392",
+      "entry_blob": "e7e4a97a7b20e4f8b5c3a2f4471b23a9b8a09670",
+      "capture_commit": "84381e6d1b2f955deb9bd692b2f95826b55cce70",
+      "navigation_status": 200,
+      "status": "captured",
+      "note": "Native gameplay/board visually reviewed.",
+      "output": "assets/thumbs/puzzle15.jpg",
+      "bytes": 37971,
+      "output_sha256": "ffba227302927e3522f67fe1e8dba48cfa6fdf3c7066fa7b7b4d59a7cd2d1528",
+      "old_image_retained": false,
+      "seconds_total": 11.6,
+      "actions": [],
+      "pageerrors": [],
+      "http_errors": [],
+      "blocked_external_hosts": {},
+      "candidate_sha256": "d92a78b7205d80c7a0fa14c690fbfb2a06ab52eb94234eba0139348fe05ee512",
+      "automation_error": null
+    },
+    {
+      "index": 67,
+      "batch": 14,
+      "id": 170,
+      "title": "Peg Solitaire",
+      "url": "Games/PegSolitaire/index.html",
+      "source_tree": "cd0d0227aaff4755394b2c5fcd7b2d427411b5e3",
+      "entry_blob": "754637f3652ae829d7d14672f151866bff577d5b",
+      "capture_commit": "84381e6d1b2f955deb9bd692b2f95826b55cce70",
+      "navigation_status": 200,
+      "status": "captured",
+      "note": "Native gameplay/board visually reviewed.",
+      "output": "assets/thumbs/pegsolitaire.jpg",
+      "bytes": 46481,
+      "output_sha256": "8d5dfff565dc94c37d163cc2f62110e5c5115e4a15f40f28792b81062c116305",
+      "old_image_retained": false,
+      "seconds_total": 7.91,
+      "actions": [],
+      "pageerrors": [],
+      "http_errors": [],
+      "blocked_external_hosts": {},
+      "candidate_sha256": "b3bfea06e32fc06b4dee1edebf817033e9c2824a85829a37bcf9e9179ded37da",
+      "automation_error": null
+    },
+    {
+      "index": 68,
+      "batch": 14,
+      "id": 171,
+      "title": "Checkers",
+      "url": "Games/Checkers/index.html",
+      "source_tree": "d60f09dc70012d9d37f531dfc9c10eb5b19b9bdf",
+      "entry_blob": "ee42d97b2ed4a4a42c49e8543c846d9b8315da9d",
+      "capture_commit": "84381e6d1b2f955deb9bd692b2f95826b55cce70",
+      "navigation_status": 200,
+      "status": "captured",
+      "note": "Native gameplay/board visually reviewed.",
+      "output": "assets/thumbs/checkers.jpg",
+      "bytes": 50671,
+      "output_sha256": "3134139b74541f489b9dbfe8a920560d28d1e0ab3b2d65d3793c07a535d2e4ae",
+      "old_image_retained": false,
+      "seconds_total": 7.82,
+      "actions": [],
+      "pageerrors": [],
+      "http_errors": [],
+      "blocked_external_hosts": {},
+      "candidate_sha256": "97f971f255c644a4a28460ccf9fbf030c27e47583d7eeab7c94c89b9e23f2e77",
+      "automation_error": null
+    },
+    {
+      "index": 69,
+      "batch": 14,
+      "id": 172,
+      "title": "Reversi",
+      "url": "Games/Reversi/index.html",
+      "source_tree": "51130a9f1e19f2ef4537e84c9d2fd5d7f38f8d04",
+      "entry_blob": "c492a61920fe863c4f03c31d2e05768c285f6c44",
+      "capture_commit": "84381e6d1b2f955deb9bd692b2f95826b55cce70",
+      "navigation_status": 200,
+      "status": "captured",
+      "note": "Native gameplay/board visually reviewed.",
+      "output": "assets/thumbs/reversi.jpg",
+      "bytes": 39846,
+      "output_sha256": "f3cea0d4d7e2d87a317e23ae57b6f56d6ad4d54cc260afec2f4879e089f11f84",
+      "old_image_retained": false,
+      "seconds_total": 7.75,
+      "actions": [],
+      "pageerrors": [],
+      "http_errors": [],
+      "blocked_external_hosts": {},
+      "candidate_sha256": "52f337c02590d9930389c4acde71394f0affe1900da068662ed3cd4e07199607",
+      "automation_error": null
+    },
+    {
+      "index": 70,
+      "batch": 14,
+      "id": 174,
+      "title": "Mastermind",
+      "url": "Games/Mastermind/index.html",
+      "source_tree": "098359f6f11a3797feadfe132449331f1cb97531",
+      "entry_blob": "63a4b5d73fb2464193cb58da23a5932d763f21e6",
+      "capture_commit": "84381e6d1b2f955deb9bd692b2f95826b55cce70",
+      "navigation_status": 200,
+      "status": "captured",
+      "note": "Native gameplay/board visually reviewed.",
+      "output": "assets/thumbs/mastermind.jpg",
+      "bytes": 24428,
+      "output_sha256": "4528819aefb9a982560074e099868c7293e8aa6bd840ba3e05b833fb4acfddd5",
+      "old_image_retained": false,
+      "seconds_total": 9.8,
+      "actions": [
+        "click #playBtn"
+      ],
+      "pageerrors": [],
+      "http_errors": [],
+      "blocked_external_hosts": {},
+      "candidate_sha256": "d2b563bf39ee369addd1349311ec6ba2cb3575b905de240b3bfab362d55e3522",
+      "automation_error": null
+    },
+    {
+      "index": 71,
+      "batch": 15,
+      "id": 175,
+      "title": "Nim",
+      "url": "Games/Nim/index.html",
+      "source_tree": "639b664b392cd5a96944083314fe033852b14e91",
+      "entry_blob": "bcf0f2ff640ffe7d1af7ff7355d01cb0aa7f3b6b",
+      "capture_commit": "84381e6d1b2f955deb9bd692b2f95826b55cce70",
+      "navigation_status": 200,
+      "status": "captured",
+      "note": "Native gameplay/board visually reviewed.",
+      "output": "assets/thumbs/nim.jpg",
+      "bytes": 24600,
+      "output_sha256": "c9551a39555babdc22645796d170c1b42263717e43fc9f5a54820d91ff1ab4d5",
+      "old_image_retained": false,
+      "seconds_total": 10.02,
+      "actions": [
+        "click #playBtn"
+      ],
+      "pageerrors": [],
+      "http_errors": [],
+      "blocked_external_hosts": {},
+      "candidate_sha256": "93f3ed6938606855c679d9d8b7d5f9788a6a16f93d1327adc05a30c729a09dbe",
+      "automation_error": null
+    },
+    {
+      "index": 72,
+      "batch": 15,
+      "id": 176,
+      "title": "Dots and Boxes",
+      "url": "Games/DotsAndBoxes/index.html",
+      "source_tree": "1660c96b049939a4f74239f364a01132730faa9d",
+      "entry_blob": "91d7faf2de125af2443d7649fde03a3344d318bc",
+      "capture_commit": "84381e6d1b2f955deb9bd692b2f95826b55cce70",
+      "navigation_status": 200,
+      "status": "captured",
+      "note": "Native gameplay/board visually reviewed.",
+      "output": "assets/thumbs/dotsandboxes.jpg",
+      "bytes": 29012,
+      "output_sha256": "cf6a46a710f2aac5c02eb6f752d601be0d245d2866e79bf076937121b48027bd",
+      "old_image_retained": false,
+      "seconds_total": 8.46,
+      "actions": [
+        "click #playBtn"
+      ],
+      "pageerrors": [],
+      "http_errors": [],
+      "blocked_external_hosts": {},
+      "candidate_sha256": "be2352b9c2a6fe098eaead46211c81df52415e01dbde7f5828d355df8e9b2ffa",
+      "automation_error": null
+    },
+    {
+      "index": 73,
+      "batch": 15,
+      "id": 177,
+      "title": "Ultimate Tic-Tac-Toe",
+      "url": "Games/UltimateTicTacToe/index.html",
+      "source_tree": "a18914606aa3674a19ddf1007c5650e7258ebd55",
+      "entry_blob": "e67b7a33db4849120c873045e7dd9031678220cb",
+      "capture_commit": "18aced7af8fb3cb497d07044a3be8ec2b4ca6697",
+      "navigation_status": 200,
+      "status": "captured",
+      "note": "Native gameplay/board visually reviewed.",
+      "output": "assets/thumbs/ultimatetictactoe.jpg",
+      "bytes": 38671,
+      "output_sha256": "eaafe596b4d3bcd10f0ec52db82394fcf534d6112fcfaaa378d96e01e5e4d71c",
+      "old_image_retained": false,
+      "seconds_total": 28.58,
+      "actions": [
+        [
+          "selector",
+          "#playBtn"
+        ],
+        [
+          "selector",
+          "#ultimate-board"
+        ],
+        [
+          "key",
+          "Enter"
+        ],
+        [
+          "wait",
+          500
+        ]
+      ],
+      "pageerrors": [],
+      "http_errors": [],
+      "blocked_external_hosts": {},
+      "candidate_sha256": "de7395c455c1bea1fad860f1ad1279dcef5d98edfdb105f6ec5dd3cee9aac2c1",
+      "automation_error": null
+    },
+    {
+      "index": 74,
+      "batch": 15,
+      "id": 178,
+      "title": "Klondike Solitaire",
+      "url": "Games/KlondikeSolitaire/index.html",
+      "source_tree": "c530d22ef1580459ce6451c31f89174cadb8560b",
+      "entry_blob": "f24153bd0e54af1de469d5365f88c23e9921002a",
+      "capture_commit": "18aced7af8fb3cb497d07044a3be8ec2b4ca6697",
+      "navigation_status": 200,
+      "status": "captured",
+      "note": "Native gameplay/board visually reviewed.",
+      "output": "assets/thumbs/klondikesolitaire.jpg",
+      "bytes": 50925,
+      "output_sha256": "a48fa1a890aaf0ba989a6fb372e7645a15c72e0181d716708a4db43a967e15d3",
+      "old_image_retained": false,
+      "seconds_total": 25.18,
+      "actions": [
+        [
+          "scroll",
+          500
+        ],
+        [
+          "key",
+          "s"
+        ],
+        [
+          "wait",
+          300
+        ]
+      ],
+      "pageerrors": [],
+      "http_errors": [],
+      "blocked_external_hosts": {},
+      "candidate_sha256": "5a8243638c148c85f0b8750d1e8e19db0c07b1cc2d3b0516adc43f2546f6ead0",
+      "automation_error": null
+    },
+    {
+      "index": 75,
+      "batch": 15,
+      "id": 179,
+      "title": "FreeCell",
+      "url": "Games/FreeCell/index.html",
+      "source_tree": "a2a8ac0943a24db6aa7aab1bc0afb5e16e3b8e66",
+      "entry_blob": "9207c060ec35f7dac76329aa188891bdad1f8226",
+      "capture_commit": "84381e6d1b2f955deb9bd692b2f95826b55cce70",
+      "navigation_status": 200,
+      "status": "captured",
+      "note": "Native gameplay/board visually reviewed.",
+      "output": "assets/thumbs/freecell.jpg",
+      "bytes": 72466,
+      "output_sha256": "84922a8fade58055c5e7f33fd50ed1efb87abf2f7b3195849ddc0f606d2be957",
+      "old_image_retained": false,
+      "seconds_total": 7.87,
+      "actions": [],
+      "pageerrors": [],
+      "http_errors": [],
+      "blocked_external_hosts": {},
+      "candidate_sha256": "0f0123360b8494dcb846ff3f15e8d0124272fa3f39aafe34f8e03028c4b9d813",
+      "automation_error": null
+    },
+    {
+      "index": 76,
+      "batch": 16,
+      "id": 180,
+      "title": "Blackjack",
+      "url": "Games/Blackjack/index.html",
+      "source_tree": "acb26ef0848bb4b1e61116fda02145b755cdc12d",
+      "entry_blob": "9f8e34479020742dd2f611c6e0763716b58e4a82",
+      "capture_commit": "84381e6d1b2f955deb9bd692b2f95826b55cce70",
+      "navigation_status": 200,
+      "status": "captured",
+      "note": "Native gameplay/board visually reviewed.",
+      "output": "assets/thumbs/blackjack.jpg",
+      "bytes": 43468,
+      "output_sha256": "f4be3059b96f10d0dce0189a8f2b1b431fbdcf77260fb78cd2744c4f974c07fd",
+      "old_image_retained": false,
+      "seconds_total": 18.28,
+      "actions": [
+        "click [onclick=\"startGame()\"]"
+      ],
+      "pageerrors": [],
+      "http_errors": [],
+      "blocked_external_hosts": {},
+      "candidate_sha256": "f8508ddd782193cf537fb67bd7112474cb84e58a9f240d199d477474f7a45f25",
+      "automation_error": null
+    },
+    {
+      "index": 77,
+      "batch": 16,
+      "id": 181,
+      "title": "Video Poker",
+      "url": "Games/VideoPoker/index.html",
+      "source_tree": "071206edc4e390b86736464e91cf233649ff2082",
+      "entry_blob": "67310461f6a3d3f68b363ff9796a43d0358bd0cf",
+      "capture_commit": "18aced7af8fb3cb497d07044a3be8ec2b4ca6697",
+      "navigation_status": 200,
+      "status": "captured",
+      "note": "Native gameplay/board visually reviewed.",
+      "output": "assets/thumbs/videopoker.jpg",
+      "bytes": 31991,
+      "output_sha256": "c9a947a984833e9f579f5d22c6769c2febe2fe6f10a3ddce1aa4e5f12a227eeb",
+      "old_image_retained": false,
+      "seconds_total": 19.91,
+      "actions": [
+        [
+          "key",
+          "Enter"
+        ],
+        [
+          "wait",
+          350
+        ],
+        [
+          "scroll",
+          200
+        ]
+      ],
+      "pageerrors": [],
+      "http_errors": [],
+      "blocked_external_hosts": {},
+      "candidate_sha256": "6bb9c0008911ee1549fb9a4952e6c4cb70f5c5e05680755f887c681a34aa6eab",
+      "automation_error": null
+    },
+    {
+      "index": 78,
+      "batch": 16,
+      "id": 182,
+      "title": "Yahtzee",
+      "url": "Games/Yahtzee/index.html",
+      "source_tree": "b0e74fe8c751fd0e398f2bc552614be4b01f01c9",
+      "entry_blob": "5884c7c3455f418205df34b33d45c07ae378419f",
+      "capture_commit": "18aced7af8fb3cb497d07044a3be8ec2b4ca6697",
+      "navigation_status": 200,
+      "status": "captured",
+      "note": "Native gameplay/board visually reviewed.",
+      "output": "assets/thumbs/yahtzee.jpg",
+      "bytes": 52161,
+      "output_sha256": "6b37470608dec7d2118e135557a338f9b7cf7b48377e9fc90db3cf45375b0cc0",
+      "old_image_retained": false,
+      "seconds_total": 17.37,
+      "actions": [
+        [
+          "selector",
+          "button:has-text(\"Roll\")"
+        ],
+        [
+          "wait",
+          600
+        ]
+      ],
+      "pageerrors": [],
+      "http_errors": [],
+      "blocked_external_hosts": {},
+      "candidate_sha256": "22f84fbebec28a99c5c098bcb0bcb1d28603b4bb821f0887d5b5d18bda996d95",
+      "automation_error": null
+    },
+    {
+      "index": 79,
+      "batch": 16,
+      "id": 184,
+      "title": "Go Fish",
+      "url": "Games/GoFish/index.html",
+      "source_tree": "21e7929e494a1b33a373af6bfefebc3d7c7ef83d",
+      "entry_blob": "0f19efcdeb5a6a4469ad2973239d731699297bf0",
+      "capture_commit": "84381e6d1b2f955deb9bd692b2f95826b55cce70",
+      "navigation_status": 200,
+      "status": "captured",
+      "note": "Native gameplay/board visually reviewed.",
+      "output": "assets/thumbs/gofish.jpg",
+      "bytes": 35289,
+      "output_sha256": "84177eb5391ee0bbf998103c5e31d461c9c714c340ae6f76f76de43307c3cd5b",
+      "old_image_retained": false,
+      "seconds_total": 8.01,
+      "actions": [],
+      "pageerrors": [],
+      "http_errors": [],
+      "blocked_external_hosts": {},
+      "candidate_sha256": "b01b3ccbe2ae397575a247d515a12b2182cb387f2c8865e68413c905d71b8a71",
+      "automation_error": null
+    },
+    {
+      "index": 80,
+      "batch": 16,
+      "id": 185,
+      "title": "War",
+      "url": "Games/War/index.html",
+      "source_tree": "790a59724e2b6a1564e22515d47f501f00cb4803",
+      "entry_blob": "703c427998e25df7c3850809cc52f482077c060d",
+      "capture_commit": "18aced7af8fb3cb497d07044a3be8ec2b4ca6697",
+      "navigation_status": 200,
+      "status": "captured",
+      "note": "Native gameplay/board visually reviewed.",
+      "output": "assets/thumbs/war.jpg",
+      "bytes": 21485,
+      "output_sha256": "bbe3277430597dea08ea8398e0d8e157d0a05a682b29b6774e7c5f96109e8f61",
+      "old_image_retained": false,
+      "seconds_total": 25.86,
+      "actions": [
+        [
+          "selector",
+          "#startBtn"
+        ],
+        [
+          "selector",
+          "#actionBtn"
+        ],
+        [
+          "wait",
+          500
+        ]
+      ],
+      "pageerrors": [],
+      "http_errors": [],
+      "blocked_external_hosts": {},
+      "candidate_sha256": "7b8ec5be70aa28e40aebb0e0a2cd6cd2313766cdd3215d80eebababd0a5acaf6",
+      "automation_error": null
+    },
+    {
+      "index": 81,
+      "batch": 17,
+      "id": 186,
+      "title": "Word Search",
+      "url": "Games/WordSearch/index.html",
+      "source_tree": "09bb2a5e936f9afec38d5f5a4d6e38226cf97d44",
+      "entry_blob": "99cc190c256edf7eae8e461b5ede096350554bdc",
+      "capture_commit": "18aced7af8fb3cb497d07044a3be8ec2b4ca6697",
+      "navigation_status": 200,
+      "status": "captured",
+      "note": "Native gameplay/board visually reviewed.",
+      "output": "assets/thumbs/wordsearch.jpg",
+      "bytes": 40373,
+      "output_sha256": "9b99e2439cb6691c893f3e753ae013edd3aea47afae6a0203e4ac52a866137f3",
+      "old_image_retained": false,
+      "seconds_total": 16.93,
+      "actions": [
+        [
+          "selector",
+          "button[data-theme=space]"
+        ],
+        [
+          "wait",
+          300
+        ]
+      ],
+      "pageerrors": [],
+      "http_errors": [],
+      "blocked_external_hosts": {},
+      "candidate_sha256": "5cc67953ff247abd2b61d27f1ddd448a4b087200b703888424a1e22c2be85415",
+      "automation_error": null
+    },
+    {
+      "index": 82,
+      "batch": 17,
+      "id": 188,
+      "title": "Word Ladder",
+      "url": "Games/WordLadder/index.html",
+      "source_tree": "daf15181f4cf21bc1c2938b17ecc1ca6a59681f5",
+      "entry_blob": "5ec498291441e408970f458dc82b41185ca03070",
+      "capture_commit": "84381e6d1b2f955deb9bd692b2f95826b55cce70",
+      "navigation_status": 200,
+      "status": "captured",
+      "note": "Native gameplay/board visually reviewed.",
+      "output": "assets/thumbs/wordladder.jpg",
+      "bytes": 16986,
+      "output_sha256": "62f2633abc6ba21505165b4b772e764a7368ae912d4893a3a7e1797d1784d067",
+      "old_image_retained": false,
+      "seconds_total": 8.45,
+      "actions": [
+        "click button:has-text(\"Start game\")"
+      ],
+      "pageerrors": [],
+      "http_errors": [],
+      "blocked_external_hosts": {},
+      "candidate_sha256": "b9f3c40aa969864897d8aff97f9ea1b01e09cfa205da9175d939eca8d614506a",
+      "automation_error": null
+    },
+    {
+      "index": 83,
+      "batch": 17,
+      "id": 190,
+      "title": "Word Scramble",
+      "url": "Games/WordScramble/index.html",
+      "source_tree": "984233d9881fee517f6c4f229de1f7669004a975",
+      "entry_blob": "43f68cc1393875e1ea48bbdbdf37ab5161c1cb14",
+      "capture_commit": "84381e6d1b2f955deb9bd692b2f95826b55cce70",
+      "navigation_status": 200,
+      "status": "captured",
+      "note": "Native gameplay/board visually reviewed.",
+      "output": "assets/thumbs/wordscramble.jpg",
+      "bytes": 37753,
+      "output_sha256": "29a02c394da335c3f56e053c4efb193624715c7469f5a32d406dc583d330c6e1",
+      "old_image_retained": false,
+      "seconds_total": 7.93,
+      "actions": [],
+      "pageerrors": [],
+      "http_errors": [],
+      "blocked_external_hosts": {},
+      "candidate_sha256": "16927b4d9c0635c49b0baaefaeb490dfcc8c3fa80594bb0c4af0937985bf5590",
+      "automation_error": null
+    },
+    {
+      "index": 84,
+      "batch": 17,
+      "id": 191,
+      "title": "Darts 501",
+      "url": "Games/Darts501/index.html",
+      "source_tree": "c2ad1634e9008386ce729649d78dc4adf49a18bf",
+      "entry_blob": "d5c6d790aa888c76cdb4727ac0e87a7b1f5de556",
+      "capture_commit": "84381e6d1b2f955deb9bd692b2f95826b55cce70",
+      "navigation_status": 200,
+      "status": "captured",
+      "note": "Native gameplay/board visually reviewed.",
+      "output": "assets/thumbs/darts501.jpg",
+      "bytes": 72797,
+      "output_sha256": "a362e7c8ce7204bb67c917512c74487c25fda27432e0bf5a1f7fc2c987590d5c",
+      "old_image_retained": false,
+      "seconds_total": 8.01,
+      "actions": [],
+      "pageerrors": [],
+      "http_errors": [],
+      "blocked_external_hosts": {},
+      "candidate_sha256": "6bfa70c325286f4dd66a05a106744b085987f620223e2316d01768c921ebf6e8",
+      "automation_error": null
+    },
+    {
+      "index": 85,
+      "batch": 17,
+      "id": 193,
+      "title": "Mahjong Lite",
+      "url": "Games/MahjongLite/index.html",
+      "source_tree": "a55d5a23626ef1cd4382201b9a2a933c532ec0a9",
+      "entry_blob": "69b1756ed67ba4cfb3ba17afbbd73475ac414e00",
+      "capture_commit": "84381e6d1b2f955deb9bd692b2f95826b55cce70",
+      "navigation_status": 200,
+      "status": "captured",
+      "note": "Native gameplay/board visually reviewed.",
+      "output": "assets/thumbs/mahjonglite.jpg",
+      "bytes": 72239,
+      "output_sha256": "3ed383cfa2f796da878a96b5b2e8d3b3d9aba2876c43105a8a91141559210686",
+      "old_image_retained": false,
+      "seconds_total": 8.18,
+      "actions": [],
+      "pageerrors": [],
+      "http_errors": [],
+      "blocked_external_hosts": {},
+      "candidate_sha256": "59472cefaed6f8f170bf1e878ce1b4d00b2a4fc2ae1e2a82609a9c94f375fe9f",
+      "automation_error": null
+    },
+    {
+      "index": 86,
+      "batch": 18,
+      "id": 195,
+      "title": "Sokoban",
+      "url": "Games/Sokoban/index.html",
+      "source_tree": "0c53a92cca82d0699f72dfd62866c265e5c64558",
+      "entry_blob": "a4a8a6806c96484e7b89d4477e19b177dfcf06d2",
+      "capture_commit": "84381e6d1b2f955deb9bd692b2f95826b55cce70",
+      "navigation_status": 200,
+      "status": "captured",
+      "note": "Native gameplay/board visually reviewed.",
+      "output": "assets/thumbs/sokoban.jpg",
+      "bytes": 65542,
+      "output_sha256": "42e2e20216ec0c1ad5e76c43da23ac3639708050391e9c9679eb6fc78c5375cb",
+      "old_image_retained": false,
+      "seconds_total": 10.0,
+      "actions": [],
+      "pageerrors": [],
+      "http_errors": [],
+      "blocked_external_hosts": {},
+      "candidate_sha256": "bdc1d415b729800c2e7e083822297fcdd42bcb250bcb3663c461bdafbe87fbfe",
+      "automation_error": null
+    },
+    {
+      "index": 87,
+      "batch": 18,
+      "id": 196,
+      "title": "Tower of Hanoi",
+      "url": "Games/TowerOfHanoi/index.html",
+      "source_tree": "896353c14df82a0f083020b0b3f9d1b7afe6b173",
+      "entry_blob": "204493b7feab61e2e30c9c8cdb9acbeb0bda4d43",
+      "capture_commit": "84381e6d1b2f955deb9bd692b2f95826b55cce70",
+      "navigation_status": 200,
+      "status": "captured",
+      "note": "Native gameplay/board visually reviewed.",
+      "output": "assets/thumbs/towerofhanoi.jpg",
+      "bytes": 35289,
+      "output_sha256": "080a7265a0912996fe52bceb7610b5ec975c6fee8780221d547ed368d171f52f",
+      "old_image_retained": false,
+      "seconds_total": 11.38,
+      "actions": [],
+      "pageerrors": [],
+      "http_errors": [],
+      "blocked_external_hosts": {},
+      "candidate_sha256": "8f59a9c58ea398f3fe12373692e3b50f95bd687f543899de670a3f9f4c747dd7",
+      "automation_error": null
+    },
+    {
+      "index": 88,
+      "batch": 18,
+      "id": 197,
+      "title": "Nonogram",
+      "url": "Games/Nonogram/index.html",
+      "source_tree": "0dfd87eea4b13a47d9e07022eaca424b3f93a912",
+      "entry_blob": "f26022149b86fd371f104d04a86278bc6b23f44e",
+      "capture_commit": "84381e6d1b2f955deb9bd692b2f95826b55cce70",
+      "navigation_status": 200,
+      "status": "captured",
+      "note": "Native gameplay/board visually reviewed.",
+      "output": "assets/thumbs/nonogram.jpg",
+      "bytes": 52899,
+      "output_sha256": "352dd372281bef348ca199ca1c5ac6190bd8fb34a93d9cf9b365510497908cfc",
+      "old_image_retained": false,
+      "seconds_total": 7.93,
+      "actions": [],
+      "pageerrors": [],
+      "http_errors": [],
+      "blocked_external_hosts": {},
+      "candidate_sha256": "226f86944df5c71340e89a8021617de0456c7709dcc5087e5eb8a1353a744623",
+      "automation_error": null
+    },
+    {
+      "index": 89,
+      "batch": 18,
+      "id": 198,
+      "title": "Battleship",
+      "url": "Games/Battleship/index.html",
+      "source_tree": "fbf6ed8957bd858c0dc945c7b33dca5d66d3e7b2",
+      "entry_blob": "ae5f509fec581627ecd8ccfde350824bb19da217",
+      "capture_commit": "84381e6d1b2f955deb9bd692b2f95826b55cce70",
+      "navigation_status": 200,
+      "status": "captured",
+      "note": "Native gameplay/board visually reviewed.",
+      "output": "assets/thumbs/battleship.jpg",
+      "bytes": 61025,
+      "output_sha256": "7046557e5403bcbdacd838d4e91a15ea95c06b4e1915aae8416bbcc605d36c33",
+      "old_image_retained": false,
+      "seconds_total": 9.86,
+      "actions": [
+        "click button:has-text(\"Start game\")",
+        "click button:has-text(\"Start game\")",
+        "click button:has-text(\"Start game\")"
+      ],
+      "pageerrors": [],
+      "http_errors": [],
+      "blocked_external_hosts": {},
+      "candidate_sha256": "c4a5118f4a12b2459782b084cdf2486995191b9d30a63e7d6da3d62f261c84ca",
+      "automation_error": null
+    },
+    {
+      "index": 90,
+      "batch": 18,
+      "id": 199,
+      "title": "Boggle",
+      "url": "Games/Boggle/index.html",
+      "source_tree": "fc594a30136bb7b9869a90e32c2c6ab76239dff9",
+      "entry_blob": "e437395b7c0b1b128f008bbe76f2ab31c00c1fdd",
+      "capture_commit": "84381e6d1b2f955deb9bd692b2f95826b55cce70",
+      "navigation_status": 200,
+      "status": "captured",
+      "note": "Native gameplay/board visually reviewed.",
+      "output": "assets/thumbs/boggle.jpg",
+      "bytes": 28155,
+      "output_sha256": "e0798542743956de464d3a27b0950e0a95e91fce6a3e96d8fc32e8e4c51fd479",
+      "old_image_retained": false,
+      "seconds_total": 7.73,
+      "actions": [],
+      "pageerrors": [],
+      "http_errors": [],
+      "blocked_external_hosts": {},
+      "candidate_sha256": "11f01e324627c59293eead63ade587052cca006a8d46762fde293e9211822f3b",
+      "automation_error": null
+    },
+    {
+      "index": 91,
+      "batch": 19,
+      "id": 200,
+      "title": "Achtung die Kurve",
+      "url": "Games/AchtungDieKurve/index.html",
+      "source_tree": "09034393b86e572ca8a026edea0da38bf395a1af",
+      "entry_blob": "bf90c7f1aad910a6a43dba4ace602d735879c82c",
+      "capture_commit": "84381e6d1b2f955deb9bd692b2f95826b55cce70",
+      "navigation_status": 200,
+      "status": "needs-manual",
+      "note": "Player-setup form, no round.",
+      "output": "assets/thumbs/achtungdiekurve.jpg",
+      "bytes": 15829,
+      "output_sha256": "a160009b3f77c3ad51c4870c9537b5fe1e4c4673d6647e17a05eeef3efac5875",
+      "old_image_retained": true,
+      "seconds_total": 9.57,
+      "actions": [],
+      "pageerrors": [],
+      "http_errors": [],
+      "blocked_external_hosts": {},
+      "candidate_sha256": "da26f1f9a9a3df6a20a9a71e152047ae1abf4e642e8ae1ac0d707d9e4a3380f8",
+      "automation_error": null
+    },
+    {
+      "index": 92,
+      "batch": 19,
+      "id": 201,
+      "title": "Dominoes",
+      "url": "Games/Dominoes/index.html",
+      "source_tree": "1b77394a86d79b164e0c88070daee242383f0800",
+      "entry_blob": "ac8e5176d19e91e230b823f5113db806f04e40cc",
+      "capture_commit": "84381e6d1b2f955deb9bd692b2f95826b55cce70",
+      "navigation_status": 200,
+      "status": "captured",
+      "note": "Native gameplay/board visually reviewed.",
+      "output": "assets/thumbs/dominoes.jpg",
+      "bytes": 75414,
+      "output_sha256": "ea3f44a572f44dca78bbb53db1ac932b17fc6c10edfc7b43359e01466183f6b5",
+      "old_image_retained": false,
+      "seconds_total": 8.38,
+      "actions": [],
+      "pageerrors": [],
+      "http_errors": [],
+      "blocked_external_hosts": {},
+      "candidate_sha256": "d9bdd35b3749cd76f539ae7d91be9f74ee13b6a090089865c57ce56f4fc19473",
+      "automation_error": null
+    },
+    {
+      "index": 93,
+      "batch": 19,
+      "id": 202,
+      "title": "Mini Golf",
+      "url": "Games/MiniGolf/index.html",
+      "source_tree": "46522acc07c2552597e4cbf18fa8f588611e6aa0",
+      "entry_blob": "e6e0b1ab954020aa90488d23146ed24ba14889e8",
+      "capture_commit": "84381e6d1b2f955deb9bd692b2f95826b55cce70",
+      "navigation_status": 200,
+      "status": "captured",
+      "note": "Native gameplay/board visually reviewed.",
+      "output": "assets/thumbs/minigolf.jpg",
+      "bytes": 24453,
+      "output_sha256": "059420c8b2f910c13da546a5785519f0742d387ec701e5867af3cefe24c0eca3",
+      "old_image_retained": false,
+      "seconds_total": 20.44,
+      "actions": [],
+      "pageerrors": [],
+      "http_errors": [],
+      "blocked_external_hosts": {},
+      "candidate_sha256": "63e9ddb4cfab771d889b5b16e452e73aba300ce87180c7fb2f5d9e2007345a12",
+      "automation_error": null
+    },
+    {
+      "index": 94,
+      "batch": 19,
+      "id": 203,
+      "title": "Bowling",
+      "url": "Games/Bowling/index.html",
+      "source_tree": "632ff0ee3f4d7f56121178b10beb6a2101c2bdd9",
+      "entry_blob": "d2ae75c8d7691e364fd384239b59618c96a8380e",
+      "capture_commit": "84381e6d1b2f955deb9bd692b2f95826b55cce70",
+      "navigation_status": 200,
+      "status": "captured",
+      "note": "Native gameplay/board visually reviewed.",
+      "output": "assets/thumbs/bowling.jpg",
+      "bytes": 38910,
+      "output_sha256": "392e767652f1f1c689dd933ca6626f9484b73e37fdb2dd8fd1fd68b7f9542b71",
+      "old_image_retained": false,
+      "seconds_total": 10.24,
+      "actions": [],
+      "pageerrors": [],
+      "http_errors": [],
+      "blocked_external_hosts": {},
+      "candidate_sha256": "0ec4a156bd627ad16a19a9222229391b54d757914f146405255d3d9c75108570",
+      "automation_error": null
+    },
+    {
+      "index": 95,
+      "batch": 19,
+      "id": 204,
+      "title": "Hearts Classic",
+      "url": "Games/HeartsClassic/index.html",
+      "source_tree": "7a88aac85017a94e4dcff90249a67f49a61a66a8",
+      "entry_blob": "f0450627361bd3861cff9ef0305633ba3102574f",
+      "capture_commit": "84381e6d1b2f955deb9bd692b2f95826b55cce70",
+      "navigation_status": 200,
+      "status": "needs-manual",
+      "note": "Cards/styles did not render coherently.",
+      "output": "assets/thumbs/heartsclassic.jpg",
+      "bytes": 4837,
+      "output_sha256": "42c2ab4610374fabf816291fb7b41c9602136031dd1cbd53ed9e1da1f9a7ca5c",
+      "old_image_retained": true,
+      "seconds_total": 10.18,
+      "actions": [],
+      "pageerrors": [],
+      "http_errors": [],
+      "blocked_external_hosts": {},
+      "candidate_sha256": "7117faa75b9d6585f8ac86aec99d3bcc935e5c64afce43d2c1239de31e8754c5",
+      "automation_error": null
+    },
+    {
+      "index": 96,
+      "batch": 20,
+      "id": 205,
+      "title": "Spider Solitaire",
+      "url": "Games/SpiderSolitaire/index.html",
+      "source_tree": "bd00db346e97c8607c702cc04d7c6f81845154dd",
+      "entry_blob": "a202cdf1608047f8ccb7a46a9b84764aad10c312",
+      "capture_commit": "84381e6d1b2f955deb9bd692b2f95826b55cce70",
+      "navigation_status": 200,
+      "status": "captured",
+      "note": "Native gameplay/board visually reviewed.",
+      "output": "assets/thumbs/spidersolitaire.jpg",
+      "bytes": 87140,
+      "output_sha256": "dee3d27ee9f95350b42f2b4c9703de91c1943ee5dc94394016c179e3f1c0f678",
+      "old_image_retained": false,
+      "seconds_total": 15.33,
+      "actions": [],
+      "pageerrors": [],
+      "http_errors": [],
+      "blocked_external_hosts": {},
+      "candidate_sha256": "fd373a3fa95d26e9b643a3c5cdc7c0d046d3f498a7aafc1d524664f0788817fd",
+      "automation_error": null
+    },
+    {
+      "index": 97,
+      "batch": 20,
+      "id": 206,
+      "title": "SameGame",
+      "url": "Games/SameGame/index.html",
+      "source_tree": "56e7f282878ee93ecd7b18dce3908115e5f4586a",
+      "entry_blob": "ec5ff27af749f3738b31aca711adda65ee1def09",
+      "capture_commit": "84381e6d1b2f955deb9bd692b2f95826b55cce70",
+      "navigation_status": 200,
+      "status": "captured",
+      "note": "Native gameplay/board visually reviewed.",
+      "output": "assets/thumbs/samegame.jpg",
+      "bytes": 44166,
+      "output_sha256": "1a1bab109e312a929923dff35f4bbb4e3289bc225777e1f2dfed378ea3f64feb",
+      "old_image_retained": false,
+      "seconds_total": 10.46,
+      "actions": [],
+      "pageerrors": [],
+      "http_errors": [],
+      "blocked_external_hosts": {},
+      "candidate_sha256": "e945aa13fef795b9d79f614481b45a8bbc6cb09b6b9f9ae95b224d6da0c04616",
+      "automation_error": null
+    },
+    {
+      "index": 98,
+      "batch": 20,
+      "id": 207,
+      "title": "Tower Defense",
+      "url": "Games/TowerDefense/index.html",
+      "source_tree": "f1718201f7b0a1b53a5ec6b531d3795ce843a4af",
+      "entry_blob": "8f62e4079ed742672546711a5d474024546277f5",
+      "capture_commit": "18aced7af8fb3cb497d07044a3be8ec2b4ca6697",
+      "navigation_status": 200,
+      "status": "captured",
+      "note": "Native gameplay/board visually reviewed.",
+      "output": "assets/thumbs/towerdefense.jpg",
+      "bytes": 42566,
+      "output_sha256": "b7cb5cb35352b131d4a749e9287e5bcd8cdeb81455782bb0f27f4b72a0349702",
+      "old_image_retained": false,
+      "seconds_total": 25.03,
+      "actions": [
+        [
+          "click",
+          570,
+          238
+        ],
+        [
+          "click",
+          250,
+          300
+        ],
+        [
+          "wait",
+          1800
+        ]
+      ],
+      "pageerrors": [],
+      "http_errors": [],
+      "blocked_external_hosts": {},
+      "candidate_sha256": "d80e850ef30047e11ef6a5c3c8b313df142db3770552cc25b68fb4ae18349210",
+      "automation_error": null
+    },
+    {
+      "index": 99,
+      "batch": 20,
+      "id": 208,
+      "title": "JavaScript Racer",
+      "url": "Games/JavaScriptRacer/index.html",
+      "source_tree": "95876b276b9d852769d749eeafd8eb25fa000758",
+      "entry_blob": "ab5ef0c460b64d8c1125fce5e55480791a4b951d",
+      "capture_commit": "84381e6d1b2f955deb9bd692b2f95826b55cce70",
+      "navigation_status": 200,
+      "status": "captured",
+      "note": "Native gameplay/board visually reviewed.",
+      "output": "assets/thumbs/javascriptracer.jpg",
+      "bytes": 90735,
+      "output_sha256": "a5a2ccc0c6380887b61a7087ec071196ebe36cd8253141304b04b90f451218cb",
+      "old_image_retained": false,
+      "seconds_total": 17.02,
+      "actions": [],
+      "pageerrors": [],
+      "http_errors": [],
+      "blocked_external_hosts": {},
+      "candidate_sha256": "daa5396448b3eecd6e4cd9bc3d933b93fcfdeb877fef419466c0826c5930b2cd",
+      "automation_error": null
+    },
+    {
+      "index": 100,
+      "batch": 20,
+      "id": 209,
+      "title": "Rhythm",
+      "url": "Games/Rhythm/index.html",
+      "source_tree": "50fa69aecfe8359bce1f634e4d35fd7cc7f0cc51",
+      "entry_blob": "3aaae16d8c51c3dd8bb8a392a1f5761b3bfc1161",
+      "capture_commit": "18aced7af8fb3cb497d07044a3be8ec2b4ca6697",
+      "navigation_status": 200,
+      "status": "captured",
+      "note": "Native gameplay/board visually reviewed.",
+      "output": "assets/thumbs/rhythm.jpg",
+      "bytes": 25880,
+      "output_sha256": "ddace971539082060c0720e54294a9b80742c238421d0274572463911def9176",
+      "old_image_retained": false,
+      "seconds_total": 19.35,
+      "actions": [
+        [
+          "selector",
+          ".btn--start"
+        ],
+        [
+          "wait",
+          1600
+        ],
+        [
+          "key",
+          "d"
+        ],
+        [
+          "key",
+          "f"
+        ],
+        [
+          "key",
+          "j"
+        ],
+        [
+          "key",
+          "k"
+        ],
+        [
+          "wait",
+          300
+        ]
+      ],
+      "pageerrors": [],
+      "http_errors": [],
+      "blocked_external_hosts": {},
+      "candidate_sha256": "d308f0126de66326474ccedb904864dcdab4957dbc180e5075d3446abb1cb10b",
+      "automation_error": null
+    },
+    {
+      "index": 101,
+      "batch": 21,
+      "id": 210,
+      "title": "Bullet Hell",
+      "url": "Games/BulletHell/index.html",
+      "source_tree": "d5893fbdbfedccc7ad8555102a79c53ea950ef1e",
+      "entry_blob": "d9c313d3f5dbce74025da1fb644ac81a64114d7c",
+      "capture_commit": "84381e6d1b2f955deb9bd692b2f95826b55cce70",
+      "navigation_status": 200,
+      "status": "captured",
+      "note": "Native gameplay/board visually reviewed.",
+      "output": "assets/thumbs/bullethell.jpg",
+      "bytes": 36510,
+      "output_sha256": "873ba7d0e9de03275a85817ef07020d9b4843a12133da45c66941a475682fb15",
+      "old_image_retained": false,
+      "seconds_total": 14.57,
+      "actions": [
+        "Space; ArrowRight 450ms"
+      ],
+      "pageerrors": [],
+      "http_errors": [],
+      "blocked_external_hosts": {},
+      "candidate_sha256": "7e3a3ba06fd683db195bd77fca187e0cc83a2820d34cbd6ea4fd417074f85d75",
+      "automation_error": null
+    },
+    {
+      "index": 102,
+      "batch": 21,
+      "id": 211,
+      "title": "Cribbage",
+      "url": "Games/CribbageClassic/index.html",
+      "source_tree": "37fa459dae3a2c15e262fee14658f60331d1a099",
+      "entry_blob": "e334a78fffbbffc878fc35c865ea864fce03bb73",
+      "capture_commit": "18aced7af8fb3cb497d07044a3be8ec2b4ca6697",
+      "navigation_status": 200,
+      "status": "needs-manual",
+      "note": "Lowest-card selection remained, not a hand.",
+      "output": "assets/thumbs/cribbage.jpg",
+      "bytes": 18203,
+      "output_sha256": "a53f4736e4974ffa17b1c9eb26e5d7f5a12be6f50276161c2a51f7dc99fc37f2",
+      "old_image_retained": true,
+      "seconds_total": 22.94,
+      "actions": [
+        [
+          "click",
+          650,
+          300
+        ],
+        [
+          "wait",
+          1800
+        ]
+      ],
+      "pageerrors": [],
+      "http_errors": [],
+      "blocked_external_hosts": {},
+      "candidate_sha256": "88feac2dd31166f7a549b224a9b1f1e409745beadc621a7d87322dd2cdb054a6",
+      "automation_error": null
+    },
+    {
+      "index": 103,
+      "batch": 21,
+      "id": 212,
+      "title": "Crossword",
+      "url": "Games/Crossword/index.html",
+      "source_tree": "9dcb87b1001a7e3df3060679e63852ac3583692e",
+      "entry_blob": "1b02d0ab5977220bc72394eed021cc8a422c875f",
+      "capture_commit": "84381e6d1b2f955deb9bd692b2f95826b55cce70",
+      "navigation_status": 200,
+      "status": "captured",
+      "note": "Native gameplay/board visually reviewed.",
+      "output": "assets/thumbs/crossword.jpg",
+      "bytes": 40184,
+      "output_sha256": "4fdae634e551a819d9f7ebd49274d070c8f90f8b8c1d8ec0f0e4c5c56727d75d",
+      "old_image_retained": false,
+      "seconds_total": 8.01,
+      "actions": [],
+      "pageerrors": [],
+      "http_errors": [],
+      "blocked_external_hosts": {},
+      "candidate_sha256": "453eba725235700fac9a57fe005b8705cf0e2782bedbd5ec097257c0b10217fa",
+      "automation_error": null
+    },
+    {
+      "index": 104,
+      "batch": 21,
+      "id": 213,
+      "title": "Gomoku",
+      "url": "Games/Gomoku/index.html",
+      "source_tree": "3efa208764af1085b1077c8ea22f14b63fe36349",
+      "entry_blob": "07d7c805ca6e7c093d7ddb3eb59eeccd821c86f4",
+      "capture_commit": "84381e6d1b2f955deb9bd692b2f95826b55cce70",
+      "navigation_status": 200,
+      "status": "needs-manual",
+      "note": "Setup panel/empty board, no reviewed match.",
+      "output": "assets/thumbs/gomoku.jpg",
+      "bytes": 10447,
+      "output_sha256": "69d2c40259d5deb999104b04adba3959915681f51a9007ad6504ccdc5b1a01b0",
+      "old_image_retained": true,
+      "seconds_total": 25.78,
+      "actions": [],
+      "pageerrors": [],
+      "http_errors": [],
+      "blocked_external_hosts": {},
+      "candidate_sha256": "cb69091a697661adb5f2b067812e461d95fe542fa925fd7703f628414cb013ff",
+      "automation_error": null
+    },
+    {
+      "index": 105,
+      "batch": 21,
+      "id": 214,
+      "title": "Mancala",
+      "url": "Games/Mancala/index.html",
+      "source_tree": "5261d028095e461b5688ad355dc1b5e4faf8402e",
+      "entry_blob": "083d1f0b9b252ad63edd389d3632e5ff254adf1b",
+      "capture_commit": "84381e6d1b2f955deb9bd692b2f95826b55cce70",
+      "navigation_status": 200,
+      "status": "captured",
+      "note": "Native gameplay/board visually reviewed.",
+      "output": "assets/thumbs/mancala.jpg",
+      "bytes": 58282,
+      "output_sha256": "0030c952699669176aeedc06a8b776d9ece765cd6507afc77c7eae4188dc9750",
+      "old_image_retained": false,
+      "seconds_total": 16.15,
+      "actions": [],
+      "pageerrors": [],
+      "http_errors": [],
+      "blocked_external_hosts": {},
+      "candidate_sha256": "a7be8166cbcad864b203272732a30bacb64880bb363ccbfc87438cc259ea4833",
+      "automation_error": null
+    },
+    {
+      "index": 106,
+      "batch": 22,
+      "id": 215,
+      "title": "Asteroids",
+      "url": "Games/Asteroids/index.html",
+      "source_tree": "a4d0f3152372e758bf0c2ebb9d4d0921d72c7915",
+      "entry_blob": "b690355b69daf26a1394ff9fb56f035010879e2b",
+      "capture_commit": "84381e6d1b2f955deb9bd692b2f95826b55cce70",
+      "navigation_status": 200,
+      "status": "needs-manual",
+      "note": "Nearly black line art; rejected unreadable capture, no cosmetic source change.",
+      "output": "assets/thumbs/asteroids.jpg",
+      "bytes": 0,
+      "output_sha256": null,
+      "old_image_retained": false,
+      "seconds_total": 11.62,
+      "actions": [
+        "Space; ArrowRight 450ms"
+      ],
+      "pageerrors": [],
+      "http_errors": [],
+      "blocked_external_hosts": {},
+      "candidate_sha256": "b4f1e6aa60458f2e80cb604ebdf133f7d907b2ee91f18892cabb837c0a25c0f3",
+      "automation_error": null
+    },
+    {
+      "index": 107,
+      "batch": 22,
+      "id": 216,
+      "title": "Frogger",
+      "url": "Games/Frogger/index.html",
+      "source_tree": "5a3dcd59f3586948d8996a28d087a36d56db3bfb",
+      "entry_blob": "1566505caf81d02d9ae6416e5d298a2f868ae00e",
+      "capture_commit": "84381e6d1b2f955deb9bd692b2f95826b55cce70",
+      "navigation_status": 200,
+      "status": "captured",
+      "note": "Native gameplay/board visually reviewed.",
+      "output": "assets/thumbs/frogger.jpg",
+      "bytes": 27392,
+      "output_sha256": "3f82d3018b1904cf9faeed5e80baaab3fbabf88b64c5881d3c56672a5a0044a1",
+      "old_image_retained": false,
+      "seconds_total": 9.28,
+      "actions": [
+        "Space; ArrowRight 450ms"
+      ],
+      "pageerrors": [],
+      "http_errors": [],
+      "blocked_external_hosts": {},
+      "candidate_sha256": "bae3a571eb76735424981292dde915cf62f25c08937e6e712a18eff878f44112",
+      "automation_error": null
+    },
+    {
+      "index": 108,
+      "batch": 22,
+      "id": 217,
+      "title": "Missile Command",
+      "url": "Games/MissileCommand/index.html",
+      "source_tree": "279682cb53d3fefa5bacd50c1cc90df3ee226c95",
+      "entry_blob": "538afc70630b182aea54250a45285d3479203bd2",
+      "capture_commit": "84381e6d1b2f955deb9bd692b2f95826b55cce70",
+      "navigation_status": 200,
+      "status": "captured",
+      "note": "Native gameplay/board visually reviewed.",
+      "output": "assets/thumbs/missilecommand.jpg",
+      "bytes": 19478,
+      "output_sha256": "342ce60f7e957d10c2e939330203bd86e06feec5180e26c1654e86f87a532480",
+      "old_image_retained": false,
+      "seconds_total": 9.59,
+      "actions": [
+        "Space; ArrowRight 450ms"
+      ],
+      "pageerrors": [],
+      "http_errors": [],
+      "blocked_external_hosts": {},
+      "candidate_sha256": "27186c2ebc8eb5f6e9d707e14baaf77df4d30027c668c28572fa5d410403e9f8",
+      "automation_error": null
+    },
+    {
+      "index": 109,
+      "batch": 22,
+      "id": 218,
+      "title": "Lunar Lander",
+      "url": "Games/LunarLander/index.html",
+      "source_tree": "b253bc45208780f9850c89ef7399c6c6e5b2ef04",
+      "entry_blob": "c5936ca8d50b45b79706b94a869386e42c147bdb",
+      "capture_commit": "84381e6d1b2f955deb9bd692b2f95826b55cce70",
+      "navigation_status": 200,
+      "status": "captured",
+      "note": "Native gameplay/board visually reviewed.",
+      "output": "assets/thumbs/lunarlander.jpg",
+      "bytes": 9645,
+      "output_sha256": "a4331327401fc3b4d4ba3499dc34884caa6cc842c90457573d67913b6cdd2d92",
+      "old_image_retained": false,
+      "seconds_total": 8.75,
+      "actions": [
+        "Space; ArrowRight 450ms"
+      ],
+      "pageerrors": [],
+      "http_errors": [],
+      "blocked_external_hosts": {},
+      "candidate_sha256": "edd90c8ea1cd513b7fb9d349ec2ac94cd454c34bbe49515ffa02530f4fb19710",
+      "automation_error": null
+    },
+    {
+      "index": 110,
+      "batch": 22,
+      "id": 219,
+      "title": "Space Invaders",
+      "url": "Games/SpaceInvaders/index.html",
+      "source_tree": "da59e72186970c1623b2af498314c4f0cca45f8e",
+      "entry_blob": "58bd1be8b4b29bf9b133ede55060c0e1779520da",
+      "capture_commit": "84381e6d1b2f955deb9bd692b2f95826b55cce70",
+      "navigation_status": 200,
+      "status": "captured",
+      "note": "Native gameplay/board visually reviewed.",
+      "output": "assets/thumbs/spaceinvaders.jpg",
+      "bytes": 102905,
+      "output_sha256": "b0707b6387c9b288f78d6939643e73fec08033a112c0887ef6a7694874b30874",
+      "old_image_retained": false,
+      "seconds_total": 9.16,
+      "actions": [
+        "Space; ArrowRight 450ms"
+      ],
+      "pageerrors": [],
+      "http_errors": [],
+      "blocked_external_hosts": {},
+      "candidate_sha256": "8fc116bfd150c00ce9d48dcaf28c8dcc9c28333d4e63c8a19c7e8fca85564890",
+      "automation_error": null
+    },
+    {
+      "index": 111,
+      "batch": 23,
+      "id": 220,
+      "title": "Duck Hunt",
+      "url": "Games/DuckHunt/index.html",
+      "source_tree": "8b74fe11c695bf41e705ac469c7c57bd38adbf24",
+      "entry_blob": "fd97e223172b75c9e3bf33016d6267b28f73c745",
+      "capture_commit": "84381e6d1b2f955deb9bd692b2f95826b55cce70",
+      "navigation_status": 200,
+      "status": "needs-manual",
+      "note": "Blank black frame.",
+      "output": "assets/thumbs/duckhunt.jpg",
+      "bytes": 0,
+      "output_sha256": null,
+      "old_image_retained": false,
+      "seconds_total": 14.51,
+      "actions": [],
+      "pageerrors": [
+        "Loading chunk 369 failed.\n(missing: http://127.0.0.1:46771/Games/DuckHunt/369.js)"
+      ],
+      "http_errors": [],
+      "blocked_external_hosts": {},
+      "candidate_sha256": "4e5d61d317e091460ad4f16a6a6344dc3f3d7607d0b2e5468f397fea0dee4a46",
+      "automation_error": null
+    },
+    {
+      "index": 112,
+      "batch": 23,
+      "id": 221,
+      "title": "Balatro",
+      "url": "Games/Balatro/index.html",
+      "source_tree": "fa914c914e512cf5ed8057d903657675b7bdb5e0",
+      "entry_blob": "02e42bf1fddf1d1932e1b578e797dcc763c075c0",
+      "capture_commit": "18aced7af8fb3cb497d07044a3be8ec2b4ca6697",
+      "navigation_status": 200,
+      "status": "needs-manual",
+      "note": "GBA deck selection reached, not active hand; stopped at 105.04s.",
+      "output": "assets/thumbs/balatro.jpg",
+      "bytes": 0,
+      "output_sha256": null,
+      "old_image_retained": false,
+      "seconds_total": 105.04,
+      "actions": [
+        [
+          "wait",
+          11000
+        ],
+        [
+          "key",
+          "z"
+        ],
+        [
+          "wait",
+          500
+        ],
+        [
+          "key",
+          "z"
+        ],
+        [
+          "wait",
+          500
+        ],
+        [
+          "key",
+          "z"
+        ],
+        [
+          "wait",
+          500
+        ],
+        [
+          "key",
+          "z"
+        ],
+        [
+          "wait",
+          500
+        ],
+        [
+          "key",
+          "z"
+        ],
+        [
+          "wait",
+          500
+        ],
+        [
+          "key",
+          "z"
+        ],
+        [
+          "wait",
+          500
+        ]
+      ],
+      "pageerrors": [
+        "Failed to fetch"
+      ],
+      "http_errors": [],
+      "blocked_external_hosts": {
+        "raw.githack.com": 1
+      },
+      "candidate_sha256": "bc51bcada851cc714c953b2f0a6fc6faaa69ebae8ae1389b916a78b5fccb2228",
+      "automation_error": null
+    },
+    {
+      "index": 113,
+      "batch": 23,
+      "id": 222,
+      "title": "Circuit Ward",
+      "url": "Games/Circuit Ward/index.html",
+      "source_tree": "1c97386eb7e3def3f7e22b8cd44bfd9bff506acc",
+      "entry_blob": "33f72b489df277542ea9e0aa688c2888d9dce07b",
+      "capture_commit": "84381e6d1b2f955deb9bd692b2f95826b55cce70",
+      "navigation_status": 200,
+      "status": "captured",
+      "note": "Native gameplay/board visually reviewed.",
+      "output": "assets/thumbs/circuitward.jpg",
+      "bytes": 56544,
+      "output_sha256": "320637d6ead4369616d070bcf2e9621c41306eff9833dd3bf259b47232ad8db3",
+      "old_image_retained": false,
+      "seconds_total": 26.84,
+      "actions": [
+        [
+          "selector",
+          "button:has-text(\"Start solo\")"
+        ],
+        [
+          "wait",
+          500
+        ],
+        [
+          "hold",
+          "w",
+          600
+        ],
+        [
+          "key",
+          "Space"
+        ],
+        [
+          "wait",
+          300
+        ]
+      ],
+      "pageerrors": [],
+      "http_errors": [],
+      "blocked_external_hosts": {},
+      "candidate_sha256": "99413e63f9ca342ae4dfa6e557500e3214c06f6aff1d5d22c5dcce99ab2a1649",
+      "automation_error": null
+    },
+    {
+      "index": 114,
+      "batch": 23,
+      "id": 223,
+      "title": "Tag Relay",
+      "url": "Games/Tag Relay/index.html",
+      "source_tree": "3914f47817c56afce779f7035489c3a3b72027b3",
+      "entry_blob": "74fd881f08bb858c22f587b62f4a3eb3c2428855",
+      "capture_commit": "18aced7af8fb3cb497d07044a3be8ec2b4ca6697",
+      "navigation_status": 200,
+      "status": "captured",
+      "note": "Native gameplay/board visually reviewed.",
+      "output": "assets/thumbs/tagrelay.jpg",
+      "bytes": 27121,
+      "output_sha256": "af44d8cfbbbdcd93bbe94599d6927eb333a521bb97ccefbeaeea3e17e0b553a8",
+      "old_image_retained": false,
+      "seconds_total": 28.06,
+      "actions": [
+        [
+          "selector",
+          "#start"
+        ],
+        [
+          "scroll",
+          -1000
+        ],
+        [
+          "key",
+          "d"
+        ],
+        [
+          "key",
+          "s"
+        ],
+        [
+          "wait",
+          250
+        ]
+      ],
+      "pageerrors": [],
+      "http_errors": [],
+      "blocked_external_hosts": {},
+      "candidate_sha256": "8be52d77e2d3cccaa72bb9165a464361b694388093148ce92754af5002f24220",
+      "automation_error": null
+    },
+    {
+      "index": 115,
+      "batch": 23,
+      "id": 224,
+      "title": "Spline Ride",
+      "url": "Games/Spline Ride/index.html",
+      "source_tree": "9447a675ebc437197e0b4369bb587662cde62461",
+      "entry_blob": "f59fec5decdd09dffb992ccbc6d560b0e0a2e8ac",
+      "capture_commit": "18aced7af8fb3cb497d07044a3be8ec2b4ca6697",
+      "navigation_status": 200,
+      "status": "captured",
+      "note": "Running existing spline demo in native Orbit view.",
+      "output": "assets/thumbs/splineride.jpg",
+      "bytes": 40149,
+      "output_sha256": "b2d5cc5192df50220f310b63d93696bafd1165db8f5c989b13328a31c579abbb",
+      "old_image_retained": false,
+      "seconds_total": 41.4,
+      "actions": [
+        [
+          "selector",
+          "#play"
+        ],
+        [
+          "wait",
+          250
+        ],
+        [
+          "selector",
+          "#view"
+        ],
+        [
+          "wait",
+          250
+        ]
+      ],
+      "pageerrors": [],
+      "http_errors": [],
+      "blocked_external_hosts": {},
+      "candidate_sha256": "94c9c350e453f3185e39e13aeffcf78c0d2ba9c09428c299b1ccf029a4490d83",
+      "automation_error": null
+    },
+    {
+      "index": 116,
+      "batch": 24,
+      "id": 225,
+      "title": "Slipstream Borough: Police Chase (Preview)",
+      "url": "Games/Slipstream Borough/index.html",
+      "source_tree": "794a8ca9eba92af4876c4091eebd4ef585181074",
+      "entry_blob": "80d0e859dcff8fad4abefc6a884c9db727dd5f11",
+      "capture_commit": "84381e6d1b2f955deb9bd692b2f95826b55cce70",
+      "navigation_status": 200,
+      "status": "needs-manual",
+      "note": "Help/paused dialog blocked native drive capture.",
+      "output": "assets/thumbs/slipstreamboroughpolicechasepreview.jpg",
+      "bytes": 14976,
+      "output_sha256": "a2e5e0343d72782f963d7fb08e99bc5a5f2448eb254aedcdda7b0572f8b1600f",
+      "old_image_retained": true,
+      "seconds_total": 59.02,
+      "actions": [
+        [
+          "selector",
+          "#start"
+        ],
+        [
+          "wait",
+          400
+        ],
+        [
+          "selector",
+          "#closeHelp"
+        ]
+      ],
+      "pageerrors": [],
+      "http_errors": [],
+      "blocked_external_hosts": {},
+      "candidate_sha256": null,
+      "automation_error": "TimeoutError: Locator.click: Timeout 2000ms exceeded.\nCall log:\n  - waiting for locator(\"#closeHelp\").first\n"
+    },
+    {
+      "index": 117,
+      "batch": 24,
+      "id": 226,
+      "title": "Foldwild: Open-World RPG (Preview)",
+      "url": "Games/Foldwild/index.html",
+      "source_tree": "d11a1e3a026c7a49119eebfb68ce2e8986410e18",
+      "entry_blob": "90c57cd6bbd81ca7828aac4a99a1d06ccb4f64a8",
+      "capture_commit": "84381e6d1b2f955deb9bd692b2f95826b55cce70",
+      "navigation_status": 200,
+      "status": "captured",
+      "note": "Native gameplay/board visually reviewed.",
+      "output": "assets/thumbs/foldwildopenworldrpgpreview.jpg",
+      "bytes": 68379,
+      "output_sha256": "820d806b4d5206fa1eaf2f78b5c15a35eb17c2ca40e351e1203783eef450dbe6",
+      "old_image_retained": false,
+      "seconds_total": 12.1,
+      "actions": [
+        "click #start"
+      ],
+      "pageerrors": [],
+      "http_errors": [],
+      "blocked_external_hosts": {},
+      "candidate_sha256": "bef30cc51131b65531e576fd6df491498ad1a34bcf6d880920f20a28dad0104f",
+      "automation_error": null
+    },
+    {
+      "index": 118,
+      "batch": 24,
+      "id": 227,
+      "title": "Steal a Footballer for Your Team",
+      "url": "Games/StealFootballer/index.html",
+      "source_tree": "96a7a23ef4534fa300f4b147581b6943aa17924e",
+      "entry_blob": "8f94e387ceef2350f534f65b9bb984b679ea34ab",
+      "capture_commit": "84381e6d1b2f955deb9bd692b2f95826b55cce70",
+      "navigation_status": 200,
+      "status": "captured",
+      "note": "Native gameplay/board visually reviewed.",
+      "output": "assets/thumbs/stealafootballerforyourteam.jpg",
+      "bytes": 86479,
+      "output_sha256": "3e945829cd4b2b824ef78eef906f54387c3f66c5337504c155dc821a424d3b10",
+      "old_image_retained": false,
+      "seconds_total": 18.76,
+      "actions": [],
+      "pageerrors": [],
+      "http_errors": [],
+      "blocked_external_hosts": {},
+      "candidate_sha256": "bf9c857ad226fd6078a25a19da3e8b4f3b6cd65db82a444026cc360e2d09cb89",
+      "automation_error": null
+    },
+    {
+      "index": 119,
+      "batch": 24,
+      "id": 229,
+      "title": "Night Shift",
+      "url": "Games/Night Shift/index.html",
+      "source_tree": "1f2875b3021e14b25763af988e257744e413d1e8",
+      "entry_blob": "ee06f9925dbfdce7fc94c9d16c73df09c9e64dea",
+      "capture_commit": "84381e6d1b2f955deb9bd692b2f95826b55cce70",
+      "navigation_status": 200,
+      "status": "captured",
+      "note": "Native gameplay/board visually reviewed.",
+      "output": "assets/thumbs/nightshift.jpg",
+      "bytes": 32063,
+      "output_sha256": "a251b6b1e8871440ce9c0effd9bce6c342d2661594a1ed0ff207c8d3e7a0916f",
+      "old_image_retained": false,
+      "seconds_total": 39.67,
+      "actions": [
+        [
+          "selector",
+          "#play"
+        ],
+        [
+          "wait",
+          200
+        ],
+        [
+          "selector",
+          "#play"
+        ],
+        [
+          "hold",
+          "w",
+          900
+        ],
+        [
+          "wait",
+          300
+        ]
+      ],
+      "pageerrors": [],
+      "http_errors": [],
+      "blocked_external_hosts": {},
+      "candidate_sha256": "ced6115c8692fd6b6e2d0196e1fe135795d2bdda5b688ed1956a95689777d46f",
+      "automation_error": null
+    },
+    {
+      "index": 120,
+      "batch": 24,
+      "id": 228,
+      "title": "Borough Run",
+      "url": "Games/Borough Run/index.html",
+      "source_tree": "15fb5633a873ec57bfd2828e89abf8e5031920e0",
+      "entry_blob": "64788541512529d8e7303810684dc9bb7c5fb529",
+      "capture_commit": "18aced7af8fb3cb497d07044a3be8ec2b4ca6697",
+      "navigation_status": 200,
+      "status": "needs-manual",
+      "note": "Start/busted overlay; no reviewed unobstructed play.",
+      "output": "assets/thumbs/boroughrun.jpg",
+      "bytes": 8724,
+      "output_sha256": "0f319525d0d7a7a7f5f19c87655cf7a942d54b6b6ccc7b257b26acf62a4afe67",
+      "old_image_retained": true,
+      "seconds_total": 64.57,
+      "actions": [
+        [
+          "selector",
+          "#play"
+        ],
+        [
+          "wait",
+          200
+        ],
+        [
+          "selector",
+          "#play"
+        ],
+        [
+          "wait",
+          200
+        ],
+        [
+          "selector",
+          "#play"
+        ],
+        [
+          "wait",
+          100
+        ]
+      ],
+      "pageerrors": [],
+      "http_errors": [],
+      "blocked_external_hosts": {},
+      "candidate_sha256": "347e3d4386a82b5e096c042c0551b7a787d8c1f1f9b1254dd8991dae29f8fddd",
+      "automation_error": null
+    },
+    {
+      "index": 121,
+      "batch": 25,
+      "id": 230,
+      "title": "Blackout",
+      "url": "Games/Blackout/index.html",
+      "source_tree": "1d3e8212bdb6f3bd2a0ac25249df7340e2120d32",
+      "entry_blob": "f7e03fb5d75a21588aa90c407d1e1493e46e78e7",
+      "capture_commit": "84381e6d1b2f955deb9bd692b2f95826b55cce70",
+      "navigation_status": 200,
+      "status": "needs-manual",
+      "note": "No WebGPU adapter available after Start bot match.",
+      "output": "assets/thumbs/blackout.jpg",
+      "bytes": 8561,
+      "output_sha256": "dae48cc0830b0d6f5b0966f433a774c5e88e0f83d8db3559f1ed81d59bef426a",
+      "old_image_retained": true,
+      "seconds_total": 19.74,
+      "actions": [
+        [
+          "selector",
+          "button:has-text(\"Start bot match\")"
+        ],
+        [
+          "wait",
+          2500
+        ]
+      ],
+      "pageerrors": [],
+      "http_errors": [],
+      "blocked_external_hosts": {},
+      "candidate_sha256": "13138802d9a4fe9e7c21ca2c25e194e843067f75d3a3634cda15d4bdf5da32e0",
+      "automation_error": null
+    },
+    {
+      "index": 122,
+      "batch": 25,
+      "id": 231,
+      "title": "Getaway",
+      "url": "Games/Getaway/index.html",
+      "source_tree": "0ce7d8a50b6be7ac71c479ff74c7f5586bfcb7df",
+      "entry_blob": "0ae824c85f2e96612bce9043be626dcd499042b0",
+      "capture_commit": "84381e6d1b2f955deb9bd692b2f95826b55cce70",
+      "navigation_status": 200,
+      "status": "needs-manual",
+      "note": "No WebGPU adapter available.",
+      "output": "assets/thumbs/getaway.jpg",
+      "bytes": 4905,
+      "output_sha256": "ebd53b594e85622f4af1dcc4d3dccb20339e383ace5f43626b57c5b7a69ca9f3",
+      "old_image_retained": true,
+      "seconds_total": 9.53,
+      "actions": [],
+      "pageerrors": [],
+      "http_errors": [],
+      "blocked_external_hosts": {},
+      "candidate_sha256": "18dc3b5ee1dcbecaae8345355de2a6fb70332c9b24e43766209123baa2b95dcb",
+      "automation_error": null
+    },
+    {
+      "index": 123,
+      "batch": 25,
+      "id": 232,
+      "title": "Wings",
+      "url": "Games/Wings/index.html",
+      "source_tree": "f8b4f06e6dd62100e6d24ccbbdda7fb431a4d297",
+      "entry_blob": "2d7f08aa3ca94c87da2921c7916bec48d28e13aa",
+      "capture_commit": "84381e6d1b2f955deb9bd692b2f95826b55cce70",
+      "navigation_status": 200,
+      "status": "needs-manual",
+      "note": "Flight menu then screenshot timeout; no reviewed flight.",
+      "output": "assets/thumbs/wings.jpg",
+      "bytes": 0,
+      "output_sha256": null,
+      "old_image_retained": false,
+      "seconds_total": 43.41,
+      "actions": [
+        [
+          "key",
+          "Enter"
+        ],
+        [
+          "wait",
+          8000
+        ],
+        [
+          "key",
+          "Enter"
+        ],
+        [
+          "wait",
+          2000
+        ]
+      ],
+      "pageerrors": [],
+      "http_errors": [],
+      "blocked_external_hosts": {},
+      "candidate_sha256": null,
+      "automation_error": "TimeoutError: Page.screenshot: Timeout 15000ms exceeded.\nCall log:\n  - taking page screenshot\n  - waiting for fonts to load...\n  - fonts loaded\n"
+    },
+    {
+      "index": 124,
+      "batch": 25,
+      "id": 233,
+      "title": "Server Survival",
+      "url": "Games/ServerSurvival/index.html",
+      "source_tree": "12480ad53c9f869388cc3585affc0cd8e0eb317f",
+      "entry_blob": "737c4673d73f2979cb6ca9560f57f7d24ad7aee6",
+      "capture_commit": "84381e6d1b2f955deb9bd692b2f95826b55cce70",
+      "navigation_status": 200,
+      "status": "needs-manual",
+      "note": "Native start/tutorial/tool interaction timed out.",
+      "output": "assets/thumbs/serversurvival.jpg",
+      "bytes": 16198,
+      "output_sha256": "c2668828e0c5b9ec5834d8bcbb697d3cdf63662b21504c02dfa6f3c83e78cfd4",
+      "old_image_retained": true,
+      "seconds_total": 87.07,
+      "actions": [
+        [
+          "selector",
+          "[onclick=\"startGame()\"]"
+        ]
+      ],
+      "pageerrors": [],
+      "http_errors": [],
+      "blocked_external_hosts": {},
+      "candidate_sha256": null,
+      "automation_error": "TimeoutError: Locator.click: Timeout 2000ms exceeded.\nCall log:\n  - waiting for locator(\"[onclick=\\\"startGame()\\\"]\").first\n    - locator resolved to <button onclick=\"startGame()\" data-i18n=\"star"
+    },
+    {
+      "index": 125,
+      "batch": 25,
+      "id": 234,
+      "title": "Astray",
+      "url": "Games/Astray/index.html",
+      "source_tree": "cace297ecb1a6a24ec81ad155cde3acf01edbe3e",
+      "entry_blob": "24d38ce33e725e91d5cb37b1bbee7bfc799f686d",
+      "capture_commit": "84381e6d1b2f955deb9bd692b2f95826b55cce70",
+      "navigation_status": 200,
+      "status": "captured",
+      "note": "Native gameplay/board visually reviewed.",
+      "output": "assets/thumbs/astray.jpg",
+      "bytes": 63467,
+      "output_sha256": "ca7a7373e2f56c476ca247843625443a9689f3d2d1df53059e777b78b32e0eb8",
+      "old_image_retained": false,
+      "seconds_total": 10.33,
+      "actions": [],
+      "pageerrors": [],
+      "http_errors": [],
+      "blocked_external_hosts": {},
+      "candidate_sha256": "de68b7fe2716d29de52eda5fa0ab4322a2ddff5b25dd70e01228dfbb4de0a703",
+      "automation_error": null
+    },
+    {
+      "index": 126,
+      "batch": 26,
+      "id": 235,
+      "title": "Below the Obvious",
+      "url": "Games/Dive Trivia/index.html",
+      "source_tree": "faeeeab1eb4c34a203a5c252ce1e5e348175eaa4",
+      "entry_blob": "c499bf611047e8ec21471e310ddf09b552fbca0e",
+      "capture_commit": "84381e6d1b2f955deb9bd692b2f95826b55cce70",
+      "navigation_status": 200,
+      "status": "captured",
+      "note": "Native gameplay/board visually reviewed.",
+      "output": "assets/thumbs/belowtheobvious.jpg",
+      "bytes": 62586,
+      "output_sha256": "8e27f380f58a3a09ca2df385294593b917c614b56ed69f1c98d0557d794feb62",
+      "old_image_retained": false,
+      "seconds_total": 11.95,
+      "actions": [
+        "click #playBtn"
+      ],
+      "pageerrors": [],
+      "http_errors": [],
+      "blocked_external_hosts": {},
+      "candidate_sha256": "30563e743f455763b5385a3b81cb087259fa0837206f9e9a6a3c9f63a80d8216",
+      "automation_error": null
+    },
+    {
+      "index": 127,
+      "batch": 26,
+      "id": 240,
+      "title": "JANKOLOCK",
+      "url": "Games/Jankolock/index.html",
+      "source_tree": "b15cff44b576881444a20faf39f054621ee2ccdf",
+      "entry_blob": "37c5d1256358597403bb54faabb070b12865dd64",
+      "capture_commit": "84381e6d1b2f955deb9bd692b2f95826b55cce70",
+      "navigation_status": 200,
+      "status": "captured",
+      "note": "Native gameplay/board visually reviewed.",
+      "output": "assets/thumbs/jankolock.jpg",
+      "bytes": 80620,
+      "output_sha256": "584f4aff8e067caa49d11a10d763d481bb26d341b6e66859296cb3a8356bd40b",
+      "old_image_retained": false,
+      "seconds_total": 14.89,
+      "actions": [
+        "click #startBtn"
+      ],
+      "pageerrors": [],
+      "http_errors": [],
+      "blocked_external_hosts": {},
+      "candidate_sha256": "c7121b6b484a8932d278ed439f46108d5de7776dda8de2c3eecccd983f4178e1",
+      "automation_error": null
+    }
+  ]
+}
