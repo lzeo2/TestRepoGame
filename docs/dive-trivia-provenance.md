@@ -1,6 +1,14 @@
 # Dive Trivia: original project provenance and controls
 
-Date: 2026-10-19. Catalog **235**, directory `Games/Dive Trivia/`. **Dive Trivia (Working Title)** is a deliberately provisional label, not an operator-approved final name. No registration/publication/push permission beyond this branch is inferred.
+Catalog **235**, directory `Games/Dive Trivia/`. The operator selected **Below the Obvious** on 2026-10-21. No additional registration, publication or push permission is inferred.
+
+## V2 local-only update (2026-10-23)
+
+The current operator order adds deterministic typo tolerance, persistent canonical-answer reuse checks, a local dive log and fixed reef-median comparisons. No LLM APIs, backend, network opponents or runtime services are used. See the [current maintenance contract](maintenance/games/235-dive-trivia.md) for exact spelling bounds, one-tier penalty/floor, seed/day uniqueness, storage schema, best-depth/streak/tier semantics and verification. Each prompt now includes `medianLampreyScore`: the median canonical-answer tier score, ignoring aliases and averaging the middle pair for even counts. All constants are 45 except amino acids (30). The data version remains unchanged because answer membership and seeded selection did not change.
+
+Current fonts are existing local Atkinson Hyperlegible regular/bold with SIL OFL 1.1 notices and [pinned provenance](portal-font-sources.md). The original Glim/ocean SVG art remains; text uses proper case, flat panels and black primary buttons. Six real normal-input previews are committed in [the preview directory](../Games/Dive%20Trivia/previews/README.md). Reproduce with `python3 -B scripts/test_dive_trivia_v2.py` when the shared system-Chromium slot is free. `node scripts/test_dive_trivia.mjs` covers scoring/history determinism without browser/network dependencies.
+
+The original 2026-10-19 sections below are historical: their working name, Buoy/system appearance, exact-only spelling, one-summary storage and older UI labels are superseded by the current maintenance contract. Originality and offline/no-publication boundaries remain.
 
 ## Authority and originality
 

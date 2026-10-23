@@ -427,10 +427,10 @@
       "title": "Below the Obvious",
       "registered": true,
       "entry": "Games/Dive Trivia/index.html",
-      "entry_blob": "e6323baa2df3812f752b23d6a9e4010812425072",
-      "tree": "e48575e3d79195605177d80c0bf98676a6c1af8b",
-      "files": 8,
-      "bytes": 67871,
+      "entry_blob": "de72ba9510920289491a812175aee3e3b4e2e6d1",
+      "tree": "c44a456711130118e588eacb451953ac31b5c9a4",
+      "files": 15,
+      "bytes": 694897,
       "document": "docs/maintenance/games/235-dive-trivia.md"
     },
     {
@@ -800,9 +800,9 @@
       "registered": true,
       "entry": "Games/Jankolock3D/index.html",
       "entry_blob": "07bf7025cde8d26765b103bf1bbee0b79cd525b6",
-      "tree": "d5eb009a1045a0b16be07686f9e507cccd404d4b",
+      "tree": "4a6068e6bdbb1e8bd6d5bb1f447f731061b7e37b",
       "files": 127,
-      "bytes": 13648610,
+      "bytes": 13653962,
       "document": "docs/maintenance/games/240-jankolock3d.md"
     },
     {
