@@ -1,5 +1,6 @@
 import * as THREE from './vendor/three.module.js';
 import { mergeGeometries } from './vendor/BufferGeometryUtils.js';
+import { createBuildingSurface } from './building-surfaces.mjs';
 import { MODEL_DIRECTORIES, loadExternalModel, disposeExternalModels } from './external-assets.mjs';
 export { MODEL_DIRECTORIES } from './external-assets.mjs';
 
@@ -22,7 +23,7 @@ export function createExternalBuildingKit(scene, capacity = 10000, { lod = 0 } =
     if (failure) throw failure;
   }
   function materialFor(original) {
-    if (!materials.has(original)) materials.set(original, { material: original.clone(), emission: original.emissiveIntensity });
+    if (!materials.has(original)) materials.set(original, { material: createBuildingSurface(original), emission: original.emissiveIntensity });
     return materials.get(original).material;
   }
   function pool(type) {

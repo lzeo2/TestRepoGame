@@ -6,6 +6,7 @@ import vm from 'node:vm';
 import * as THREE from './vendor/three.module.js';
 import { GLTFLoader } from './vendor/GLTFLoader.js';
 import * as geometryUtils from './vendor/BufferGeometryUtils.js';
+import * as buildingSurfaces from './building-surfaces.mjs';
 
 if (!vm.SourceTextModule) throw new Error('Run this check with node --experimental-vm-modules');
 const root = new URL('./models/', import.meta.url), requests = [], bitmaps = [];
@@ -42,13 +43,14 @@ const synthetic = exports => new vm.SyntheticModule(Object.keys(exports), functi
   for (const [name, value] of Object.entries(exports)) this.setExport(name, value);
 }, { context });
 const three = synthetic(THREE), loader = synthetic({ GLTFLoader }), utils = synthetic(geometryUtils);
+const surfaces = synthetic(buildingSurfaces);
 const assets = new vm.SourceTextModule(await readFile(new URL('./external-assets.mjs', import.meta.url), 'utf8'), {
   context, initializeImportMeta(meta) { meta.url = `${origin}/Games/Citisten3D/external-assets.mjs`; },
 });
 await assets.link(specifier => specifier.endsWith('GLTFLoader.js') ? loader : three);
 await assets.evaluate();
 const buildings = new vm.SourceTextModule(await readFile(new URL('./external-buildings.mjs', import.meta.url), 'utf8'), { context });
-await buildings.link(specifier => specifier.endsWith('external-assets.mjs') ? assets : specifier.endsWith('BufferGeometryUtils.js') ? utils : three);
+await buildings.link(specifier => specifier.endsWith('external-assets.mjs') ? assets : specifier.endsWith('building-surfaces.mjs') ? surfaces : specifier.endsWith('BufferGeometryUtils.js') ? utils : three);
 await buildings.evaluate();
 const { loadExternalModel, resourceURL, EXTERNAL_DIRECTORIES, disposeExternalModels } = assets.namespace;
 const { createExternalBuildingKit } = buildings.namespace;
@@ -58,6 +60,22 @@ async function checkOrientation(kit) {
   let doors = 0;
   for (const [type, pool] of kit.pools) {
     const { directory, rig } = pool.template.userData.external;
+    const triangles = geometry => (geometry.index?.count ?? geometry.attributes.position.count) / 3;
+    let authoredTriangles = 0;
+    const originals = new Set();
+    pool.template.traverse(node => {
+      if (!node.isMesh) return;
+      authoredTriangles += triangles(node.geometry); originals.add(node.material);
+    });
+    assert.equal(pool.parts.reduce((sum, part) => sum + triangles(part.geometry), 0), authoredTriangles, `${type}: material treatment cannot change triangles`);
+    assert.equal(new Set(pool.parts.map(part => part.material)).size, originals.size, `${type}: no new material splits`);
+    for (const part of pool.parts) {
+      const original = [...originals].find(material => material.name === part.material.name);
+      assert.ok(original); assert.notEqual(part.material, original);
+      for (const key of Object.keys(original).filter(key => original[key]?.isTexture)) assert.equal(part.material[key], original[key], `${type}: borrowed ${key}`);
+      assert.ok(part.material.normalScale.equals(original.normalScale));
+      assert.ok(part.material.emissive.equals(original.emissive));
+    }
     const filename = kit.lod ? `model_LOD${kit.lod}.glb` : 'model.glb';
     const bytes = await readFile(new URL(`${directory}/${filename}`, root));
     const json = JSON.parse(bytes.subarray(20, 20 + bytes.readUInt32LE(12)).toString());
@@ -127,6 +145,9 @@ assert.ok(requests.filter(path => path.endsWith('.glb')).every(path => path.ends
 await checkOrientation(kit);
 const batches = [...kit.pools.values()].flatMap(p => p.batches);
 assert.ok(batches.every(mesh => mesh.isInstancedMesh));
+assert.equal(batches.length, 240, 'material-only pass retains baseline LOD0 batching');
+const cloneDisposals = new Map([...new Set(batches.map(batch => batch.material))].map(material => [material, 0]));
+for (const material of cloneDisposals.keys()) material.addEventListener('dispose', () => cloneDisposals.set(material, cloneDisposals.get(material) + 1));
 assert.ok(kit.pools.get('residential').batches.length < 22);
 assert.ok(kit.pools.get('park').template.getObjectByName('root'));
 assert.equal(kit.pools.get('park').template.children.at(-1).position.x, -2.5);
@@ -176,6 +197,7 @@ assert.equal(kit.pools.get('residential').handles[0].index, 0);
 assert.equal(kit.pools.get('residential').mesh.count, 3);
 assert.ok(kit.pools.get('residential').batches.every(mesh => mesh.count === 3));
 kit.dispose(); kit.dispose();
+assert.ok([...cloneDisposals.values()].every(count => count === 1), 'each shared surface material disposed exactly once');
 assert.equal(scene.children.length, 0);
 assert.equal(citizen.alive, false);
 assert.ok(bitmaps.every(bitmap => bitmap.closed), 'owned image bitmaps closed once');
