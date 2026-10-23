@@ -1,8 +1,9 @@
 # Jankolock design tokens
 
-Scope: this directory's shipping-office arena and optional trophy hall, not
-`../Jankolock3D/`. Token names below describe existing values, not a new runtime
-API. Sources: `index.html`, `style.css`, `ui.js`, `data.js`, `engine.js` and
+Scope: the original sections describe this directory's retained Canvas2D arena
+and trophy hall. [Registered 3D polish](#registered-3d-polish) records the latest
+changes in the separate `../Jankolock3D/` runtime, not additions to this Canvas
+game. Token names describe existing values, not a new runtime API. Sources: `index.html`, `style.css`, `ui.js`, `data.js`, `engine.js` and
 `portrait.js`. Reviewed against `7ce3d1e`, including landed feedback/onboarding
 polish `0bb1fbb` and impact-marker correction `1ba63aa`. The existing HUD health
 bar and shot animation are retained; these commits do not introduce a realistic
@@ -158,6 +159,105 @@ This is not a WCAG certification: small canvas labels shrink on phones, combat
 text is not live-announced, the whole arena has no screen-reader equivalent,
 and the `430px` horizontal padding override does not retain side safe-area
 insets. Real handheld ergonomics and supported GPU performance remain unverified.
+
+## Registered 3D polish
+
+Source review: `101eaff`, including `6c58203`/`9223938` terrain safety,
+`ef5cd06` UI trim, `696f2d3` HUD/fire, `62f2fcf` scenery and `ac7276a` phone HUD.
+Paths below are relative to `../Jankolock3D/`. Authority is `systems.mjs` for
+health, `heroes/hero-runtime.mjs` for firing and `heroes/player-controller.mjs`
+with `traversal.mjs` for movement. None of these changes modifies Canvas2D.
+
+### Palette and scenery
+
+`systems.css` supplies the theme tokens; `integration.css` keeps action buttons
+black (`#000`), labels white (`#fff`), borders `2px`, radius `4px`, targets at
+least `44 x 44px`. Body is local Atkinson `16px` / `1.35`; H1/H2 use local
+Bungee, weight `400`. Focus is `3px --accent`, offset `3px`. Dark is the default.
+No gradients, emojis or em-dashes; the scene does not recolor with the UI theme.
+
+| Token | Dark | Light |
+| --- | --- | --- |
+| `--page` | `#25292b` | `#eee9d8` |
+| `--paper` | `#303638` | `#f7f3e8` |
+| `--text` | `#f1eee5` | `#242820` |
+| `--line` | `#929591` | `#827762` |
+| `--accent` | `#a9c4d4` | `#365a74` |
+
+| Scene token | Current value |
+| --- | --- |
+| `scene.sky` / `scene.fog` | `#b6c9d0`; fog near/far `180/950m` |
+| `scene.asphalt` / `scene.concrete` / `scene.earth` | `#565956` / `#b6b1a5` / `#858477`; standard materials, roughness `1` |
+| `scene.trim` / `scene.recess` / `scene.glass` | `#c2b49a` / `#343c3b` / `#344b51`; roughness `.86/.74/.31`, metalness `0/.25/.28` |
+| `scene.roof` / `scene.wood` | `#696963` / `#75563c`; roughness `.98/.9` |
+| `light.hemisphere` | Sky `#e1e8ed`, ground `#77715f`, intensity `1.1` |
+| `light.sun` | `#ffefd7`, intensity `2.7`, position `(-150,300,-100)` |
+| `light.rim` | `#b8ccdc`, intensity `.35`, position `(90,120,200)` |
+| `scene.output` | ACES filmic tone mapping, exposure `1.05`, pixel ratio `1` |
+
+The direction is grounded masonry, inset glazing, metal trim and worn aggregate,
+not photorealistic acceptance. Brick/limestone retain local color, roughness and
+AO maps; three `128 x 128` in-memory aggregate maps use world-scaled UVs and
+three merged surface draws. Dark footings/roof fascias, retaining walls and an
+outer curb define depth. Plaza paving rests on its `-6m` floor; the sun follows
+the key light and the three faceted cloud props are gone. No new shadow map,
+SSAO, reflected environment or runtime asset download. Decorative props remain
+uncollidable. See [environment details](../Jankolock3D/ENVIRONMENT.md).
+
+### Promoted health HUD and UI trim
+
+| Token | Current value |
+| --- | --- |
+| `hud.health.surface` | Background `#111`, text/border `#fff`, border `2px`, z-index `5`; identical in both themes |
+| `hud.health.state` | `--health-color`: `#55d879` above `50%`, `#ffc247` above `25%` through `50%`, `#ff6961` at or below `25%` |
+| `hud.health.desktop` | Viewport-fixed; top measured header height + `78px`; left `max(12px,safe-area-inset-left)`; width `min(270px,100% - 24px)`; padding `10px 12px` |
+| `hud.health.phone` | At width at most `800px`: top measured header + `74px`, left `max(8px,safe-area-inset-left)`, width `calc(100% - 166px)`, padding `8px`; remains visible when scrolling to Fire |
+| `hud.health.type` | Label/numeric output `16px` bold / `1.3`, `15px` on phone; tabular numerals; native progress height `18px`, margin-top `8px`, border `1px #fff` |
+| `hud.status` | Below health at stage top `166px`; minimap stays right, `216px` panel / `198px` canvas, `142px/128px` at most `800px` |
+
+The existing progress element is moved, not duplicated. HP/max are finite and
+clamped, numbers round upward, and `aria-valuetext` includes numbers/state;
+output has live announcements off. Keep numbers as well as threshold colors.
+One disposable ResizeObserver measures the header. The repeated resource-row
+health readout, empty inventory slots/panel and visible map legend are hidden;
+the legend remains in Controls. Lobby copy and ability cards are shorter.
+Objectives, minimap, cooldowns, equipped items, input controls and errors remain.
+
+### Firing and motion
+
+| Token | Current behavior |
+| --- | --- |
+| `fire.press` | Mouse primary and touch Fire attempt synchronously on pointerdown; refresh aim, targets and item modifiers before the attempt; no queued tap |
+| `fire.authority` | Reject lobby, pause, hidden page, death, victory, pregame, shop/modal, reload and cooldown; runtime owns ammo/cadence; held retry follows timer advancement |
+| `shot.color` | Gooey `#b7df73`; other basic shots `#ffe6a3`; emissive tint equals color |
+| `shot.muzzle` | Cosmetic origin from delivered weapon/hand node; damage ray and hit authority unchanged |
+| `shot.flash` | Shared octahedron, scale `(.3,.3,.65)`, local z `-.15`; shrinks and hides halfway through `120ms` effect (`60ms`) |
+| `shot.tracer` | Shared cylinder, width `.035m`, muzzle to resolved endpoint; hides at `80%` (`96ms`) |
+| `shot.impact` | Three `.045m` spark rods only on target/wall contact; at most five meshes per basic shot; shared geometry, no light/new texture/model |
+| `shot.recoil` | Rest-relative torso kick up to `6` degrees; recoil weight decays linearly from `1` to `0` over `120ms`; both grips move together within rig limits |
+| `camera.shoulder` | Offset `1.1m`; boom `4m` or `2.8m` aiming; base FOV `70`, aim factor `.74`; smoothing `1-exp(-14*dt)`; no camera shake |
+
+Effects use the existing update loop; no additional RAF or audio cue was added.
+CSS reduced-motion rules disable CSS animation/transitions, not Three.js muzzle,
+tracer or torso recoil. There is no reduced-flash/recoil toggle. Releasing Aim
+or another touch does not cancel held Fire. Damage confirmation remains the
+systems-confirmed Hit/Headshot text, not a hit inferred from a cosmetic spark.
+
+### Fall-through recovery
+
+Movement and warp clamp x/z to `[-448,448]m`. Higher solid terrain blocks lateral
+entry; body radius `.45m` and camera radius `.3m` reserve clearance at steep
+edges while preserving normal ramp stepping. The camera sweeps terrain and
+ramps even above eye height, then reclamps after smoothing to avoid void views.
+Nonfinite motion or feet below `-32m` recover to the last clear grounded pose.
+Before a safe pose exists, controller fallback is `(0,0,8)` and traveler fallback
+is `world.start`; controller warp clears velocity/action timers, resets stamina
+to `100` and preserves view angles. This is recovery, not a kill or HP heal.
+The valid `-10m` sewer and `-6m` plaza remain open, not filled by an invisible floor.
+
+These are source specs, not fresh hardware acceptance. Existing reviewed scene
+and terrain-edge captures and their fixture/native limits are in the
+[maintenance follow-up](../../docs/maintenance/games/240-jankolock3d.md#terrain-safety-and-sceneui-maintenance-follow-up).
 
 ## Contributor rules
 
