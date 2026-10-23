@@ -6,7 +6,14 @@
 **UI rework (2026-10-24):** this bounded maintenance order simplifies the existing
 preview shell only. The play frame now precedes local save/recovery tools;
 progress, team and travel share Field record, and settings include control help.
-The start screen drops its decorative panel and repeated introduction. All 112
+The start screen drops its decorative panel and repeated introduction. The ledger
+now lists discoveries rather than 79 initial unknown-species placeholders; one
+remaining count preserves collection progress without revealing unknown names.
+Owned ally cards lead with identity/resources, group actions in two columns and
+keep full modifiers, XP and trait information in native Stats and trait details.
+Battle buttons distinguish ability names from their complete cost/effect text.
+Services no longer repeat the Field record objective or a generic introduction.
+All 112
 controller IDs, native dialogs and the original canvas parent are retained.
 The catalog already contains preview226 despite the older unregistered contract;
 this order neither changes registration nor clears any held acceptance below.
@@ -98,7 +105,11 @@ Keep one renderer/canvas; inspection should reparent, resize, await its generati
 UI rework source gate: `python3 -B scripts/test_foldwild_m2_shell.py` prints one
 test and `OK` (exit 0), retaining the shell ABI, single canvas, native controls and
 inspector sizing. [Baseline receipt](../../foldwild-ui-rework-checks.md) records
-13/13 existing pure suites passing before edits. The maintenance checker already
+13/13 existing pure suites passing before edits. Main reran all 13 after the UI
+controller changes: 13/13 pass, including exact continuity/RNG, release/save guards,
+168 legacy replay snapshots, and original 80 model hashes. Controller ESM syntax,
+128-entry sparse-aware catalog schema/unique IDs/tracked URLs and scoped diff
+whitespace checks pass. The maintenance checker already
 failed with stale global inventory before this work; Foldwild matched its entry
 and tree record then. Fresh visual/native rework evidence is pending the focused
 QA pass, not inferred from these parser checks. Existing original/async M2 tests
