@@ -503,6 +503,24 @@ Owned browser/server/profile cleanup and independent slot release passed.
 Collector-only argument propagation/default checks pass. No runtime/model change,
 retry or push; inventory refresh remains the coordinator's final docs-only task.
 
+### Synced capture closeout
+
+The [aggregate closeout](../audits/wings-synced-capture-20261023/README.md)
+records both exhausted attempts: native full capture **ABANDONED**, product
+`NOT_MEASURED`, with no proven root cause. The orchestrator reviewed the sole
+fresh CTF lobby image; its bottom explanatory paragraph is clipped inside the
+scroll region. No gameplay or polished mobile acceptance follows. Inventory is
+now reconciled after collector commits `5f410dc` and `3005be7`; runtime/models
+remain unchanged since `be0de0b`. Historical HOLDs and all existing gates retain
+their states; the October 17 125/125 result is not a current 127-game pass.
+
+Orchestrator diagnostic ticket `pi-197482-1792750271892-16c1c1c0`, referencing
+`pi-829842-1792632763581-ba60545e`, remains pending after a 60s Hermes timeout.
+It asks for evidence distinguishing post-start unresponsive CDP from product-gate
+failure and explaining headless actionability without force clicks/state grants.
+No automatic third attempt, repeat request or polling is authorized. Tooling
+referral is not acceptance; full 127-game gate remains deferred.
+
 ## Future outlook
 
 Complete operator and converted-family review, native missile/audio/physical-input
