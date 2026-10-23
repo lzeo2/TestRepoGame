@@ -1,0 +1,162 @@
+{
+  "source_commit": "dabde48291ec736cc63612c51580a7b132fe2d54",
+  "scope": "Portal aliases only; no game visits, game captures or Three.js renderer/version acceptance.",
+  "operator_request_label": "three.js 0.186.0 final portal sanity proof",
+  "waiver": {
+    "max_root_growth_bytes": 20000000,
+    "hard_stop_free_bytes": 1400000000
+  },
+  "start_free_bytes": 1818935296,
+  "cases": [
+    {
+      "device": "desktop",
+      "theme": "light",
+      "cards": 127,
+      "loaded_images": 123,
+      "fallbacks": 4,
+      "broken_images": 0,
+      "overflow": false,
+      "pageerrors": [],
+      "external": [],
+      "game_requests": [],
+      "scripts": [
+        "/assets/index-CRWHmtoy.js",
+        "/assets/portal-seo.js",
+        "/assets/portal-ux.js"
+      ],
+      "http_errors": [
+        "404 /assets/thumbs/asteroids.jpg",
+        "404 /assets/thumbs/duckhunt.jpg",
+        "404 /assets/thumbs/balatro.jpg",
+        "404 /assets/thumbs/wings.jpg"
+      ],
+      "aliases": {
+        "Merge Cats Defender Hacked": "./assets/thumbs/mergecatsdefenderhacked.jpg",
+        "Jetpack Joyride Hacked": "./assets/thumbs/jetpackjoyridehacked.jpg"
+      },
+      "screenshots": [
+        {
+          "file": "desktop-light-jetpack.jpg",
+          "sha256": "04e2f2a2610520ad94ceab7f3e6cc751e825dca44e82289b456b98dfbbe01c42"
+        },
+        {
+          "file": "desktop-light-cats.jpg",
+          "sha256": "219f6552bb12c59183e2f416addabb576b2d42bc9c747509a5b157900bb81061"
+        }
+      ]
+    },
+    {
+      "device": "desktop",
+      "theme": "dark",
+      "cards": 127,
+      "loaded_images": 123,
+      "fallbacks": 4,
+      "broken_images": 0,
+      "overflow": false,
+      "pageerrors": [],
+      "external": [],
+      "game_requests": [],
+      "scripts": [
+        "/assets/index-CRWHmtoy.js",
+        "/assets/portal-seo.js",
+        "/assets/portal-ux.js"
+      ],
+      "http_errors": [
+        "404 /assets/thumbs/asteroids.jpg",
+        "404 /assets/thumbs/balatro.jpg",
+        "404 /assets/thumbs/duckhunt.jpg",
+        "404 /assets/thumbs/wings.jpg"
+      ],
+      "aliases": {
+        "Merge Cats Defender Hacked": "./assets/thumbs/mergecatsdefenderhacked.jpg",
+        "Jetpack Joyride Hacked": "./assets/thumbs/jetpackjoyridehacked.jpg"
+      },
+      "screenshots": [
+        {
+          "file": "desktop-dark-jetpack.jpg",
+          "sha256": "ccb2313d5685180538f79af9ea149c80ac18b270269e241f26b0ffe59352b684"
+        },
+        {
+          "file": "desktop-dark-cats.jpg",
+          "sha256": "6f95a4db5ab5e12dae8d5cb26d999b9f186e240fd2ede81dd3f5b878f6d535a1"
+        }
+      ]
+    },
+    {
+      "device": "mobile",
+      "theme": "light",
+      "cards": 127,
+      "loaded_images": 123,
+      "fallbacks": 4,
+      "broken_images": 0,
+      "overflow": false,
+      "pageerrors": [],
+      "external": [],
+      "game_requests": [],
+      "scripts": [
+        "/assets/index-CRWHmtoy.js",
+        "/assets/portal-seo.js",
+        "/assets/portal-ux.js"
+      ],
+      "http_errors": [
+        "404 /assets/thumbs/asteroids.jpg",
+        "404 /assets/thumbs/duckhunt.jpg",
+        "404 /assets/thumbs/balatro.jpg",
+        "404 /assets/thumbs/wings.jpg"
+      ],
+      "aliases": {
+        "Merge Cats Defender Hacked": "./assets/thumbs/mergecatsdefenderhacked.jpg",
+        "Jetpack Joyride Hacked": "./assets/thumbs/jetpackjoyridehacked.jpg"
+      },
+      "screenshots": [
+        {
+          "file": "mobile-light-jetpack.jpg",
+          "sha256": "680ed6b149cf664664446036231d80f7abc674684cb9ef0e881340e77b5fa037"
+        },
+        {
+          "file": "mobile-light-cats.jpg",
+          "sha256": "a85a451c964b76a6fbeb02d3a5702b215a4208d99216eb8c68e3366936df69b3"
+        }
+      ]
+    },
+    {
+      "device": "mobile",
+      "theme": "dark",
+      "cards": 127,
+      "loaded_images": 123,
+      "fallbacks": 4,
+      "broken_images": 0,
+      "overflow": false,
+      "pageerrors": [],
+      "external": [],
+      "game_requests": [],
+      "scripts": [
+        "/assets/index-CRWHmtoy.js",
+        "/assets/portal-seo.js",
+        "/assets/portal-ux.js"
+      ],
+      "http_errors": [
+        "404 /assets/thumbs/asteroids.jpg",
+        "404 /assets/thumbs/duckhunt.jpg",
+        "404 /assets/thumbs/balatro.jpg",
+        "404 /assets/thumbs/wings.jpg"
+      ],
+      "aliases": {
+        "Merge Cats Defender Hacked": "./assets/thumbs/mergecatsdefenderhacked.jpg",
+        "Jetpack Joyride Hacked": "./assets/thumbs/jetpackjoyridehacked.jpg"
+      },
+      "screenshots": [
+        {
+          "file": "mobile-dark-jetpack.jpg",
+          "sha256": "54d1c73194f888e57ae98760c57231df4ac7373434c520d48edcc729f9b41099"
+        },
+        {
+          "file": "mobile-dark-cats.jpg",
+          "sha256": "2d4438bb785d22108770ab7791f48a1ea636e2d398889b5a9693900d2fe83da3"
+        }
+      ]
+    }
+  ],
+  "status": "PASS",
+  "end_free_bytes": 1818796032
+}

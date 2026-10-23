@@ -132,6 +132,17 @@ external requests. Both cats variants are visible and visually reviewed in each
 case. [Current receipt and four screenshots](../../thumb-sweep-v3.1/retry-portal/results.json)
 pin the new base image hash; the earlier eight-shot alias proof is retained.
 
+The operator's final portal-only proof at `dabde482` again passed **4/4**
+desktop/mobile light/dark cases, with all eight base/hacked cats and Jetpack
+screenshots visually reviewed. [Final receipt and screenshots](../../thumb-sweep-v3.1/final-portal-20261024/results.json)
+record 127 cards, 123 images, four expected fallbacks, correct dedicated aliases,
+and no page errors, external/game requests or document overflow. It ran once
+under the explicit <=20MB/1.4GB storage waiver, entirely RAM-backed browser scratch,
+without tracked guard/runtime edits. Despite the operator's "three.js 0.186.0"
+order label, no Three.js game/runtime was loaded or version-attested by this
+portal-only proof. The 26 remaining needs-manual outcomes are now operator-final;
+no source repair, new game or recapture was authorized. No push.
+
 ## Safe refurbishment and verification
 
 Smallest fixes belong in authored UX shared helpers: search routing, recent validation, catalog retry/status and DOM reconciliation. Keep bundle DOM class contracts and preserve title/ID identity separately. Do not hand-edit compiled React or replace working game menus. Density controls, copy-link/share actions, deep-link query state, custom scroll-spy and account features were **not found** in the audited authored portal/application tail. `portal-share.png` is metadata imagery, not a share widget. Motion-library IntersectionObserver code is not proof of an active portal scroll feature.

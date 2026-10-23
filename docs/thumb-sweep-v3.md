@@ -988,3 +988,55 @@ Counts below cover only the storage-resume openings in `retry-04.json` and
 remain spent, not reset. Documentation/check bookkeeping only; no new captures,
 runtime changes, backups, games, publication or push. The disposition's operator
 decision request is relayed verbatim in handoff; work stops pending that decision.
+
+### Final operator disposition and waived portal-only proof (2026-10-24)
+
+The operator subsequently confirmed **needs-manual as FINAL** for the five
+deterministic blockers and all exhausted/no-WebGPU holds. This answers the scope
+question above: best-effort game capture is closed, with **26 refreshed / 26 held,
+101/127 fresh overall**. No held game was reopened for this final proof.
+
+A separate explicit waiver authorized one portal sanity proof and documentation
+receipts, with **at most 20,000,000 bytes root growth**, a **1,400,000,000-byte hard
+stop**, all browser/profile/cache scratch in RAM and pinned `/usr/bin/chromium`.
+Measured `df -B1` free space before work: **1,818,935,296 bytes**. The RAM-only
+runner temporarily set the imported storage guard floor to the authorized hard
+stop, enforced the growth ceiling at view boundaries, and restored the normal
+floor on exit; no tracked guard or runtime source was changed. No backup,
+installation, game visit, past-budget recapture or push.
+
+Tested source **`dabde48291ec736cc63612c51580a7b132fe2d54`**. The operator called
+this the "three.js 0.186.0 final portal sanity proof"; the executed scope was
+strictly portal UI and alias images. Only the portal bundle, UX and SEO scripts
+were requested, not a game document or Three.js runtime. **This is not Three.js
+version verification, renderer/hardware acceptance or a full-fleet gameplay gate.**
+No source upgrade or edit was made to force a version match.
+
+[Final receipt](thumb-sweep-v3.1/final-portal-20261024/results.json): **4/4 PASS**,
+each with 127 cards, 123 loaded images, four known fallbacks, both dedicated hacked
+aliases resolving to their own 1280x720 images, no broken image elements, page
+errors, external/game requests or document overflow. Expected 404s remain
+asteroids, duckhunt, balatro and wings. All **eight** screenshots were visually
+reviewed: base/hacked images remain distinct, titles/actions are legible, and
+mobile cards fit without document overflow.
+
+| View | Jetpack pair | Cats pair |
+| --- | --- | --- |
+| Desktop light, 1280x720 | [Screenshot](thumb-sweep-v3.1/final-portal-20261024/desktop-light-jetpack.jpg) | [Screenshot](thumb-sweep-v3.1/final-portal-20261024/desktop-light-cats.jpg) |
+| Desktop dark, 1280x720 | [Screenshot](thumb-sweep-v3.1/final-portal-20261024/desktop-dark-jetpack.jpg) | [Screenshot](thumb-sweep-v3.1/final-portal-20261024/desktop-dark-cats.jpg) |
+| Mobile light, 390x844 | [Screenshot](thumb-sweep-v3.1/final-portal-20261024/mobile-light-jetpack.jpg) | [Screenshot](thumb-sweep-v3.1/final-portal-20261024/mobile-light-cats.jpg) |
+| Mobile dark, 390x844 | [Screenshot](thumb-sweep-v3.1/final-portal-20261024/mobile-dark-jetpack.jpg) | [Screenshot](thumb-sweep-v3.1/final-portal-20261024/mobile-dark-cats.jpg) |
+
+Actual proof output, for each desktop/mobile light/dark case:
+
+```text
+PASS 127 cards / 123 images / 4 fallbacks; aliases correct; no overflow/errors/external/game requests
+PASS: 4 cases / 8 reviewed screenshot hashes and dimensions; 367901 evidence bytes; zero game requests.
+```
+
+Browser/server closed normally, exit 0. End-of-browser free space:
+**1,818,796,032 bytes**, an observed decrease of **139,264 bytes**, within the
+waiver; final post-receipt-commit `df` is reported in handoff. Documentation-only
+receipts total 367,901 bytes before Git storage. Catalog, game sources, runtime
+images and scripts are unchanged. No games added or registered, full-fleet smoke,
+publication or push; needs-manual remains final.
