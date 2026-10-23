@@ -1,5 +1,5 @@
 // Save data is untrusted. Validate completely before touching a caller's RoadGrid.
-export function readSnapshot(input, BUILDINGS, CITY_EVENTS) {
+export function readSnapshot(input, BUILDINGS, CITY_EVENTS, MILESTONES) {
   const require = condition => { if (!condition) throw new RangeError('Invalid city snapshot'); };
   const integer = (n, min = 0, max = Number.MAX_SAFE_INTEGER) => Number.isSafeInteger(n) && n >= min && n <= max;
   const number = (n, min = -Infinity, max = Infinity) => Number.isFinite(n) && n >= min && n <= max;
@@ -30,6 +30,12 @@ export function readSnapshot(input, BUILDINGS, CITY_EVENTS) {
   for (const key of ['seed', 'eventSeed']) require(integer(r[key], 0, 4294967295));
   for (const key of ['nextId', 'revision', 'milestone', 'roadVersion']) require(integer(r[key]));
   require(r.nextId > 1 && typeof r.warned === 'boolean' && typeof r.wasBlackout === 'boolean');
+  require(integer(r.milestone, 0, MILESTONES.length));
+  const nextMilestone = MILESTONES[r.milestone] || null;
+  require(nextMilestone === null ? s.nextMilestone === null : s.nextMilestone &&
+    ['population', 'name', 'grant'].every(key => s.nextMilestone[key] === nextMilestone[key]));
+  require(number(s.rebuildRemaining, 0, 120) && number(s.growthSamplePopulation, 0) && typeof s.growthDiagnosis === 'string');
+  if (s.rebuildRemaining > 0) require(s.mode === 'defense' && s.phase === 'day' && s.dayRemaining === s.rebuildRemaining && s.townHallHp === 0 && !s.zombies.length && !s.pendingZombies && !s.defenders.length);
   require(number(r.accumulator, 0, 0.25) && r.accumulator < 0.25 && number(r.economyClock, 0, 1) && r.economyClock < 1 && number(r.trafficClock, 0, 1.5) && r.trafficClock < 1.5);
   const cellKey = n => integer(n, 0, size * size - 1);
   const lot = p => p && integer(p.x, 0, size - 1) && integer(p.z, 0, size - 1);
@@ -46,6 +52,7 @@ export function readSnapshot(input, BUILDINGS, CITY_EVENTS) {
         const k = a.z * size + a.x;
         require(!lots.has(k) && !roads.has(k)); lots.add(k);
         require(a.maxHp === BUILDINGS[a.type].hp && number(a.hp, 0, a.maxHp) && number(a.residents, 0, 64) && number(a.happiness, 0, 1) && number(a.cooldown));
+        if (a.hp === 0) require(a.type === 'townhall' && (s.rebuildRemaining > 0 || s.phase === 'lost'));
         for (const key of ['powered', 'watered', 'serviced']) require(typeof a[key] === 'boolean');
       } else if (kind === 'cars') {
         require(Array.isArray(a.path) && a.path.length >= 2 && a.path.length <= size * size && a.path.every(lot));
@@ -59,7 +66,8 @@ export function readSnapshot(input, BUILDINGS, CITY_EVENTS) {
     }
   }
   const halls = s.buildings.filter(b => b.type === 'townhall');
-  require(s.phase === 'lost' ? halls.length === 0 && s.townHallHp === 0 : halls.length === 1 && halls[0].hp === s.townHallHp);
+  require(halls.length === 1 && halls[0].hp === s.townHallHp);
+  if (s.phase === 'lost') require(s.townHallHp === 0 && s.rebuildRemaining === 0);
   require(Array.isArray(s.cityEvents) && s.cityEvents.length <= size * size);
   const events = new Set();
   for (const e of s.cityEvents) {
