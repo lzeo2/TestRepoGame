@@ -447,6 +447,18 @@ both scripted chains and portrait checks, then fails its pre-existing hardcoded
 catalog assertion: actual 128 entries, expected 127. No catalog edit or test
 weakening is included. Full-fleet smoke, push and publication remain held.
 
+Desktop/mobile health HUD images in both themes from the scenery worker were
+reviewed: readable numbers, bar and map separation. A follow-up makes the health
+HUD viewport-fixed, measuring the header with one disposable ResizeObserver so
+it stays visible while scrolling down to phone Fire controls. The sole added
+390x844 screenshot (`jankolock-hud-scroll.png`, RAM-only) confirms HP 700/700 and
+unchanged HUD rectangle x8/y187/224x65.5 after scrolling 344px, with zero recorded
+console/page errors. This successful layout probe uses an explicitly frozen
+loopback fixture, not live-frame/input performance evidence. The preceding live
+touch Close probe timed out before any screenshot; browser/server closed on both
+attempts. No phone FPS or live-touch acceptance is inferred. The focused input
+check also pins the viewport-fixed CSS against regression.
+
 ## Future outlook
 
 Independent stable-source A-I review and mockup comparison, human full-match

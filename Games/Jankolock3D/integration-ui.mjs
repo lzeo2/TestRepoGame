@@ -49,6 +49,9 @@ export function mountIntegrationUI({ sim, heroId, runtime, controller, world, ki
   const healthValue = document.createElement('output'); healthValue.id = 'health-value'; healthValue.setAttribute('aria-live', 'off');
   healthTrack.querySelector('label').append(' ', healthValue);
   healthHud.append(healthTrack); $('hud').append(healthHud);
+  const header = document.querySelector('.page-header');
+  const placeHealth = () => healthHud.style.setProperty('--header-height', `${header.offsetHeight}px`);
+  const healthResize = new ResizeObserver(placeHealth); healthResize.observe(header); placeHealth();
   const inventory = document.createElement('section');
   inventory.className = 'integration-inventory panel';
   inventory.setAttribute('aria-label', 'Equipped items');
@@ -234,7 +237,7 @@ export function mountIntegrationUI({ sim, heroId, runtime, controller, world, ki
     dispose() {
       if (disposed) return;
       disposed = true; listeners.abort(); closeDialog(pauseDialog); closeDialog(help);
-      systems.dispose(); capture.remove(); healthHud.remove(); $('hud').hidden = true; $('touch-controls').hidden = true; $('pause').hidden = true;
+      systems.dispose(); capture.remove(); healthResize.disconnect(); healthHud.remove(); $('hud').hidden = true; $('touch-controls').hidden = true; $('pause').hidden = true;
     }
   };
 }

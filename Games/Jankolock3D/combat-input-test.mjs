@@ -4,6 +4,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import vm from 'node:vm';
 const source=readFileSync(new URL('./game.mjs',import.meta.url),'utf8');
+assert.match(readFileSync(new URL('./integration.css',import.meta.url),'utf8'), /\.health-hud\{position:fixed;/, 'health must stay visible when scrolling to phone Fire controls');
 const handlers=new Map(),held=new Set(),canvas={focus(){},setPointerCapture(){}};
 const button={dataset:{hold:'fire'},setPointerCapture(){}};
 const document={hidden:false,pointerLockElement:canvas,querySelector:selector=>selector==='.sys-shop'?shop:null,querySelectorAll:()=>[button]};
