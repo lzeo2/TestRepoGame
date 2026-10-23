@@ -143,6 +143,27 @@ collection only; never silently absorb worker tasks.
 - Ask the operator when tooling, source legitimacy, or policy blocks progress.
   Never replace a failed port with a self-made game to satisfy a count.
 
+## Speed and efficiency (2026-10-24, operator)
+
+Land fast, verify cheap:
+
+1. Node/browser-free checks gate commits: `node --check` on touched JS,
+   targeted node regression suites, catalog validation, `git diff --check`.
+   Land on these. No waiting on browser slots for ordinary changes.
+2. Full-fleet `scripts/smoke_test_games.py` is NOT a default gate anymore.
+   It runs only when the operator asks for a push/release.
+3. Screenshots and previews are for BIG things only: new games, visual
+   overhauls, whole-portal work, or when the operator asks. Ordinary fixes,
+   features, copy edits, and balance changes need no captures. When a
+   capture IS warranted, batch it (one QA pass, released slot).
+4. Parallelize: run 2-3 workers per repo on disjoint paths when disk
+   allows (above 2 GiB free).
+5. Match model cost to task: cheap models for mechanical tasks (test
+   plumbing, bulk edits, scans); heavy models only for integration,
+   orchestration, and subjective review.
+6. Never weaken a check to get green. Speed comes from skipping unplanned
+   ceremony, not from skipping planned verification.
+
 ## Verification and shipping
 
 Commit small milestones with `feat:`, `fix:`, `chore:`, or `docs:` prefixes.
@@ -153,11 +174,11 @@ Quote actual command output; never infer or fabricate success.
    `git diff --check`. Audit added external loads and disk usage.
 2. Leave one small runnable regression check for non-trivial authored logic.
    No new test framework or speculative scaffolding.
-3. MANDATORY before any push: `xvfb-run python3 scripts/smoke_test_games.py`.
-   It must exercise every registered game in a real browser. A targeted run,
-   static checks, or prior-run report cannot substitute for the full gate.
-   `SMOKE_PORT` can isolate parallel runs. Never weaken failure filtering to
-   get a green result. Report known exclusions separately from clean loading.
+3. Full-fleet gate `xvfb-run python3 scripts/smoke_test_games.py` runs ONLY
+   when the operator has explicitly ordered a push or release. Targeted
+   runs (`--games ...`) are always allowed for the files you changed.
+   Never weaken failure filtering to get a green result. Report known
+   exclusions separately from clean loading.
 4. Fix failures or explicitly report them before any release decision. A
    blocked gate means no push. User/operator decides any exception.
 5. Finish with clean `git status` or explain every dirty path. Report each
