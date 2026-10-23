@@ -58,10 +58,15 @@ function action(name) {
   else if(/^Digit[1-4]$/.test(name)&&sim.phase!=='pregame')runtime.cast(Number(name.at(-1)));
 }
 function fire() {
-  // Orbs participate in the same covered reticle/muzzle ray as every shot.
+  if(!playing||paused||document.hidden||!hero.alive||sim.winner||sim.phase==='pregame'||!document.querySelector('.sys-shop').hidden||document.querySelector('dialog[open]'))return false;
+  if(runtime.fireWait>0||runtime.reload>0)return false;
+  // Refresh aim/targets on press, not on the next simulation frame.
+  controller.updateCamera(view.camera,0);runtime.aim(view.camera);
+  const stats=sim.stats(hero.id);
+  runtime.setModifiers({magazine:stats.maxAmmo,fire:stats.fireInterval/runtime.kit.weapon.interval});
   const original=runtime.targets;
-  runtime.targets=[...original,...sim.orbs.filter(o=>o.type==='floating'&&!o.claimed).map(o=>({id:o.id,team:'ivory',alive:true,position:{...o.position,y:o.position.y-.65},height:1.3,radius:.65}))];
-  runtime.fire();runtime.targets=original;
+  runtime.targets=[...targets(),...sim.orbs.filter(o=>o.type==='floating'&&!o.claimed).map(o=>({id:o.id,team:'ivory',alive:true,position:{...o.position,y:o.position.y-.65},height:1.3,radius:.65}))];
+  try {return runtime.fire();} finally {runtime.targets=original;}
 }
 function tick(dt) {
   if(!playing||paused||document.hidden||sim.winner)return;
@@ -89,8 +94,8 @@ function tick(dt) {
     sim.moveHero(hero.id,controller.position);
     sim.setRetreat(hero.id,held.has('KeyX'));
     controller.updateCamera(view.camera,dt);runtime.aim(view.camera);
-    if(held.has('fire')&&sim.phase!=='pregame'&&document.querySelector('.sys-shop').hidden)fire();
     runtime.update(dt);
+    if(held.has('fire'))fire();
   }
   edges.clear();runtime.visual.group.visible=hero.alive;
   bots.update(dt,{passive:qa&&['chain','traversal'].includes(fixture)});
@@ -178,7 +183,10 @@ try {
   listen(canvas,'contextmenu',e=>e.preventDefault());
   listen(canvas,'pointerdown',e=>{
     if(!playing||paused)return;canvas.focus();
-    if(e.pointerType==='mouse'){held.add(e.button===2?'aim':'fire');if(document.pointerLockElement!==canvas)action('capture');}
+    if(e.pointerType==='mouse'){
+      if(e.button===0){held.add('fire');fire();}else if(e.button===2)held.add('aim');else return;
+      if(document.pointerLockElement!==canvas)action('capture');
+    }
     else {pointer={id:e.pointerId,x:e.clientX,y:e.clientY};canvas.setPointerCapture(e.pointerId);}
   });
   listen(document,'pointermove',e=>{
@@ -186,11 +194,16 @@ try {
     else if(pointer?.id===e.pointerId){dx=e.clientX-pointer.x;dy=e.clientY-pointer.y;pointer.x=e.clientX;pointer.y=e.clientY;}
     controller.yaw-=dx*.0025;controller.pitch=THREE.MathUtils.clamp(controller.pitch-dy*.0025,-1.2,1.2);
   });
-  listen(document,'pointerup',()=>{held.delete('fire');held.delete('aim');pointer=null;});
+  listen(document,'pointerup',e=>{
+    if(e.pointerType==='mouse'){if(e.button===0)held.delete('fire');if(e.button===2)held.delete('aim');}
+    if(pointer?.id===e.pointerId)pointer=null;
+  });
+  listen(canvas,'pointercancel',clear);
+  listen(canvas,'lostpointercapture',()=>{pointer=null;});
   listen(document,'pointerlockchange',()=>{if(document.pointerLockElement!==canvas)clear();});
   listen(document,'pointerlockerror',()=>ui.message('Mouse capture unavailable. Drag to look or use the arrow keys.'));
   for(const button of document.querySelectorAll('[data-hold]')) {
-    const key=button.dataset.hold;listen(button,'pointerdown',e=>{e.preventDefault();button.setPointerCapture(e.pointerId);held.add(key);});
+    const key=button.dataset.hold;listen(button,'pointerdown',e=>{e.preventDefault();button.setPointerCapture(e.pointerId);held.add(key);if(key==='fire')fire();});
     for(const type of ['pointerup','pointercancel','lostpointercapture'])listen(button,type,()=>held.delete(key));
   }
   for(const button of document.querySelectorAll('[data-edge]'))listen(button,'click',()=>{const name=button.dataset.edge;if(name.startsWith('Digit'))action(name);else edges.add(name);});

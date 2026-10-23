@@ -55,7 +55,7 @@ for(const [id,count] of [['stampead',17],['turretina',23],['snipeoff',20],['gooe
   }
   for(const state of ['idle','walk','aim','dash','slide','jump','fall']) {
     for(let frame=0;frame<90;frame++) {
-      const options={state,speed:state==='idle'||state==='aim'?0:8,aiming:state==='aim'};
+      const options={state,speed:state==='idle'||state==='aim'?0:8,aiming:state==='aim',recoil:frame%3===0?1:0};
       pose.update(1/60,options);check();
       if(state!=='idle') {
         const animated=group.getObjectByName(state==='walk'?'foot_l':'torso');

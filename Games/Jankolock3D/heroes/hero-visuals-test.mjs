@@ -18,7 +18,7 @@ function checkSolid(group, depthTest = true) {
     assert.ok(p.geometry.getAttribute('position').count > 0);
     assert.equal(p.material.depthTest, depthTest, group.name);
     assert.equal(p.material.depthWrite, depthTest, group.name);
-    assert.equal(p.material.emissive.getHex(), 0);
+    assert.equal(p.material.emissive.getHex(), group.name === 'shot' ? p.material.color.getHex() : 0);
     assert.equal(p.material.flatShading, true);
     assert.equal(p.material.transparent, false);
     assert.equal(p.material.map, null);
@@ -162,6 +162,22 @@ geometryDisposed(0); fx.update(0.75); assert.equal(fx.count, 0); assert.equal(sc
   const direct = fx.emit('xray', {target, duration: .25});
   near(meshes(direct.group).find(p => p.geometry.type === 'BoxGeometry').getWorldPosition(vector()), target.clone().add(vector(0, .95, 0)));
   direct.dispose(); assert.equal(fx.count, 0);
+}
+{
+  const miss=fx.emit('shot',{origin,target,duration:.12});
+  assert.equal(meshes(miss.group).length,2,'miss has flash/tracer only');
+  miss.dispose();
+  const shot=fx.emit('shot',{origin,target,impact:true,duration:.12});
+  assert.equal(meshes(shot.group).length,5,'bounded flash/tracer/three sparks');
+  const [tracer,flash,...sparks]=shot.group.children;
+  shot.group.updateMatrixWorld(true);
+  near(vector(0,-.5,0).applyMatrix4(tracer.matrixWorld),origin);
+  near(vector(0,.5,0).applyMatrix4(tracer.matrixWorld),target);
+  const start=sparks[0].position.clone();
+  fx.update(.065);assert.equal(flash.visible,false);assert.equal(tracer.visible,true);
+  assert.ok(sparks[0].position.distanceTo(start)>0,'sparks move without new meshes');
+  fx.update(.04);assert.equal(tracer.visible,false);
+  fx.update(.02);assert.equal(fx.count,0);assert.equal(shot.group.parent,null);
 }
 const oldest = fx.emit('shot');
 for (let i = 0; i < 100; i++) fx.emit('shot');

@@ -382,6 +382,42 @@ labels remain. The parallel HUD/input follow-up owns numeric health presentation
 its source and verification will be recorded separately. Current scene/capture
 verification is pending below; historical captures do not accept this pass.
 
+## Operator health, input and shot-feedback follow-up
+
+Built on realism worker milestones `6c58203` (fall-through) and `ef5cd06` (UI
+trim), without editing their terrain, scenery, structures or catalog. The existing
+health progress element is moved to a dedicated high-contrast top-left HUD with
+numeric current/max HP and green (>50%), amber (>25%) and red states. It remains
+visible during active play in both themes; mobile width leaves the minimap clear.
+The match status moves below it. Values are finite/clamped and the native progress
+label exposes the numbers/state without a live announcement every update.
+
+Mouse primary press and the touch Fire button now attempt the shot synchronously,
+not on click/release or the next frame. The shared firing boundary refreshes
+camera aim, targets and item modifiers and rejects lobby/pause/hidden/dead/winner,
+pregame, shop and modal states. Runtime ammo/reload/cooldown remain authoritative;
+there is no pending-shot queue. Held-fire timers advance before retrying in the
+update loop. Releasing aim or a different touch no longer cancels held Fire.
+Keyboard action edges already ignore key repeats and are unchanged.
+
+Accepted basic shots use the existing Three.js FX manager: at most five meshes
+sharing low-poly geometry (flash, tracer, three contact sparks), 120ms lifetime, no light,
+new texture, model or network load. Cosmetic emitters follow each delivered
+weapon/hand node; covered damage rays and HP authority are unchanged. A six-degree
+rest-relative torso kick decays over 120ms, respecting rig limits, root placement
+and two-handed grips. No camera shake or new animation loop is introduced.
+
+Checks: `node Games/Jankolock3D/combat-input-test.mjs` exercises the actual host
+callbacks in a VM with no RAF, including synchronous mouse/touch fire, cooldown,
+no queued tap, cancellation and state guards. UI self-test now has 14 checks,
+including HP thresholds and invalid values. Hero runtime/visual checks pass;
+external-rig regression passes 2,540 poses with shot recoil included. Bot eight
+groups and systems 18 groups plus the scripted match pass. These are CPU/VM
+checks, not phone FPS or native hardware acceptance. Integration regression runs
+both scripted chains and portrait checks, then fails its pre-existing hardcoded
+catalog assertion: actual 128 entries, expected 127. No catalog edit or test
+weakening is included. Full-fleet smoke, push and publication remain held.
+
 ## Future outlook
 
 Independent stable-source A-I review and mockup comparison, human full-match

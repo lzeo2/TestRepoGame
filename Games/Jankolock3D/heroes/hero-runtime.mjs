@@ -100,7 +100,12 @@ export class HeroRuntime {
     if(!this.controller.infiniteAmmo) this.ammo--;
     this.shots++;
     this.fireWait=ability.interval*this.modifiers.fire;
-    this.fx.emit('longshot',{origin:this.origin,target:hit.point,color:this.kit.id==='gooey'?'#70884c':'#c1a16a',duration:.12});
+    const c=this.controller;
+    this.recoil=1;this.visual.group.position.copy(c.position);
+    this.visual.update(0,{state:c.state,speed:c.velocity.length(),yaw:c.yaw,aiming:c.aiming,recoil:this.recoil});
+    // Cosmetic emitter follows the real held assembly; covered damage ray stays unchanged.
+    const muzzle=this.visual.muzzle.getWorldPosition(new THREE.Vector3());
+    this.fx.emit('shot',{origin:muzzle,target:hit.point,impact:!!(hit.target||hit.wall),color:this.kit.id==='gooey'?'#b7df73':'#ffe6a3',duration:.12});
     this.hit(ability,hit.target,{headshot:!!hit.headshot,headshotMultiplier:hit.headshot?(this.buffs.headshot?.definition.headshotMultiplier??ability.headshotMultiplier):1});
     if(this.ammo===0&&!this.controller.infiniteAmmo) this.startReload();
     return true;
@@ -243,12 +248,13 @@ export class HeroRuntime {
       if(['dash','jump','slide'].includes(c.state))this.fx.emit(c.state,{origin:c.position.clone(),direction:this.direction,duration:.55});
       this.lastState=c.state;
     }
-    this.visual.group.position.copy(c.position);this.visual.update(dt,{state:c.state,speed:c.velocity.length(),yaw:c.yaw,aiming:c.aiming});this.fx.update(dt);
+    this.recoil=Math.max(0,this.recoil-dt/.12);
+    this.visual.group.position.copy(c.position);this.visual.update(dt,{state:c.state,speed:c.velocity.length(),yaw:c.yaw,aiming:c.aiming,recoil:this.recoil});this.fx.update(dt);
   }
   reset() {
     if(this.deployments)for(const deploy of [...this.deployments])this.removeDeployment(deploy);
     this.fx.clear();this.cooldowns={};this.buffs={};this.projectiles=[];this.deployments=[];this.tether=null;
-    this.ammo=this.modifiers.magazine;this.reload=0;this.fireWait=0;this.meleeWait=0;this.parryWait=0;
+    this.ammo=this.modifiers.magazine;this.reload=0;this.fireWait=0;this.meleeWait=0;this.parryWait=0;this.recoil=0;
     this.castCount={};this.shots=0;this.lastAbility=null;this.lastState='idle';this.time=0;this.controller.speedMultiplier=this.modifiers.move;
   }
   snapshot() { return {hero:this.kit.id,ammo:this.ammo,shots:this.shots,reload:this.reload,cooldowns:{...this.cooldowns},casts:{...this.castCount},lastAbility:this.lastAbility,fx:this.fx.count,deployments:this.deployments.length,projectiles:this.projectiles.length,buffs:Object.keys(this.buffs)}; }
