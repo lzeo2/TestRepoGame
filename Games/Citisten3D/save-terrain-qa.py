@@ -64,8 +64,10 @@ def main():
             page.screenshot(path=str(OUT / f'{name}.png'))
             report['screenshots'].append(f'.tmp/citisten-save-terrain/{name}.png'); checkpoint(name)
         url = base + '/Games/Citisten3D/index.html'
-        page.goto(url, wait_until='domcontentloaded', timeout=20000)
-        page.wait_for_function('window.citisten?.world.loaded', timeout=25000)
+        page.goto(url, wait_until='commit', timeout=20000)
+        checkpoint('initial document committed')
+        page.wait_for_function('window.citisten?.world.loaded', timeout=45000)
+        checkpoint('initial models ready')
         page.locator('[data-mode="defense"]').click()
         if page.locator('.city-tutorial').is_visible(): page.locator('[data-action="tutorial-close"]').click()
         layout = page.evaluate(runpy.run_path(str(ROOT / 'Games/Citisten3D/native-qa.py'))['LAYOUT'])
@@ -84,8 +86,10 @@ def main():
         page.locator('[data-action="menu"]').first.click(); page.locator('#save-town').click()
         expected = page.evaluate('JSON.parse(localStorage.getItem("citisten-save-v1")).state')
         assert page.locator('#save-status').inner_text() == 'Town saved on this device.'
-        page.reload(wait_until='domcontentloaded', timeout=20000)
-        page.wait_for_function('window.citisten?.world.loaded', timeout=25000)
+        page.reload(wait_until='commit', timeout=20000)
+        checkpoint('saved town document committed')
+        page.wait_for_function('window.citisten?.world.loaded', timeout=45000)
+        checkpoint('saved town models ready')
         assert page.locator('#continue-town').is_visible(); shot('01-menu-continue-dark')
         page.locator('#continue-town').click()
         assert page.evaluate('citisten.sim.state') == expected, 'Loaded authoritative state differs'
