@@ -105,9 +105,11 @@ The tool regression covers safe paths, exact Git blob delivery and real 404s.
 The v3.1 continuation gives Merge Cats Defender Hacked its own image-path alias,
 `mergecatsdefenderhacked.jpg`, after native stage-one deployment reached a real
 wave. Its original HACKED badge must not overwrite the base game's shared art.
-The base `mergecatsdefender.jpg` bytes remain unchanged. This is only an image
-mapping change, not a catalog/gameplay or rights change; capture/alias guards
-cover the dedicated name. Other v3.1 results and holds are in the linked receipt.
+The base `mergecatsdefender.jpg` bytes remain unchanged. Jetpack Joyride Hacked
+likewise maps to `jetpackjoyridehacked.jpg` after a real scrolling-run capture,
+so its badge cannot overwrite the newly captured normal variant. These are only
+image mapping changes, not catalog/gameplay or rights changes; capture/alias
+guards cover both dedicated names. Other v3.1 results and holds are in the linked receipt.
 
 ## Safe refurbishment and verification
 

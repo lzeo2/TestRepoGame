@@ -1,0 +1,392 @@
+[
+  {
+    "id": 50,
+    "title": "Subway Surfers",
+    "head": "40ffd1f298c768f4d00dc90e8857cdeeb25d8888",
+    "entry_blob": "1f79b901089e6588a5d6cec7acd0d5931ce815f3",
+    "source_tree": "bbaac3f3fd9a32b4bfa13652d533caff66197463",
+    "actions": [
+      [
+        "wait",
+        40000
+      ],
+      [
+        "click",
+        640,
+        520
+      ],
+      [
+        "snap"
+      ],
+      [
+        "wait",
+        10000
+      ],
+      [
+        "click",
+        640,
+        560
+      ],
+      [
+        "snap"
+      ],
+      [
+        "click",
+        488,
+        490
+      ],
+      [
+        "click",
+        623,
+        490
+      ],
+      [
+        "click",
+        640,
+        630
+      ],
+      [
+        "wait",
+        500
+      ],
+      [
+        "click",
+        640,
+        570
+      ],
+      [
+        "key",
+        "ArrowUp"
+      ],
+      [
+        "snap"
+      ]
+    ],
+    "errors": [],
+    "external": [],
+    "http_errors": [],
+    "candidates": [
+      {
+        "file": "50-0.jpg",
+        "sha256": "fef07f548d81df16887fe7718b77422c4590cb42be80baeeac068399e7540c80"
+      },
+      {
+        "file": "50-1.jpg",
+        "sha256": "abf4317e231ffd3cd3743682341f6888390a7aabedbb65b8c57b0403b971b8ff"
+      },
+      {
+        "file": "50-2.jpg",
+        "sha256": "9a3233cda737d4587538f709370ebd97f7ce570501580d4a6091d6a8af184871"
+      }
+    ],
+    "seconds": 180.0,
+    "reason": "180s game deadline",
+    "output": "assets/thumbs/subwaysurfers.jpg",
+    "previous_sha256": "449ee2a6ea737763959ac79da49802497bce78d3a8eb08fa74295aefb9e7a239",
+    "status": "needs-manual",
+    "output_sha256": "449ee2a6ea737763959ac79da49802497bce78d3a8eb08fa74295aefb9e7a239",
+    "output_bytes": 6871
+  },
+  {
+    "id": 111,
+    "title": "Subway Surfers Hacked",
+    "head": "40ffd1f298c768f4d00dc90e8857cdeeb25d8888",
+    "entry_blob": "28822b7c5c85aeef7797b3ae97a08bd7fb67d593",
+    "source_tree": "103206d71b6f880a020631c9e94287073d31cf54",
+    "actions": [
+      [
+        "wait",
+        55000
+      ],
+      [
+        "click",
+        640,
+        520
+      ],
+      [
+        "snap"
+      ],
+      [
+        "click",
+        488,
+        490
+      ],
+      [
+        "click",
+        623,
+        490
+      ],
+      [
+        "click",
+        640,
+        630
+      ],
+      [
+        "wait",
+        600
+      ],
+      [
+        "click",
+        640,
+        515
+      ],
+      [
+        "wait",
+        800
+      ],
+      [
+        "snap"
+      ],
+      [
+        "click",
+        640,
+        516
+      ],
+      [
+        "wait",
+        1200
+      ],
+      [
+        "click",
+        640,
+        610
+      ],
+      [
+        "key",
+        "ArrowUp"
+      ],
+      [
+        "snap"
+      ]
+    ],
+    "errors": [],
+    "external": [],
+    "http_errors": [],
+    "candidates": [
+      {
+        "file": "111-0.jpg",
+        "sha256": "018ec52e6ee98b8aecaf33f4b3d4ad0c9f7d90ce5b8d4e0d522f51901eaf2500"
+      },
+      {
+        "file": "111-1.jpg",
+        "sha256": "4e012b812deea6be048a0bd909a02d3aa7ebbf52ac13f481561ae196936d9682"
+      },
+      {
+        "file": "111-2.jpg",
+        "sha256": "4e012b812deea6be048a0bd909a02d3aa7ebbf52ac13f481561ae196936d9682"
+      }
+    ],
+    "seconds": 180.0,
+    "reason": "180s game deadline",
+    "output": "assets/thumbs/subwaysurfers.jpg",
+    "previous_sha256": "449ee2a6ea737763959ac79da49802497bce78d3a8eb08fa74295aefb9e7a239",
+    "status": "needs-manual",
+    "output_sha256": "449ee2a6ea737763959ac79da49802497bce78d3a8eb08fa74295aefb9e7a239",
+    "output_bytes": 6871
+  },
+  {
+    "id": 86,
+    "title": "Jetpack Joyride",
+    "head": "40ffd1f298c768f4d00dc90e8857cdeeb25d8888",
+    "entry_blob": "6defbbec6352b8a47c7d343d9658d0342d365fa1",
+    "source_tree": "43a828ea99eceb6e068a036496a7a6bc2e6b0c40",
+    "actions": [
+      [
+        "wait",
+        85000
+      ],
+      [
+        "click",
+        640,
+        360
+      ],
+      [
+        "snap"
+      ],
+      [
+        "click",
+        640,
+        360
+      ],
+      [
+        "wait",
+        1500
+      ],
+      [
+        "hold",
+        "Space",
+        600
+      ],
+      [
+        "snap"
+      ]
+    ],
+    "errors": [
+      "Unexpected token '<'"
+    ],
+    "external": [],
+    "http_errors": [],
+    "candidates": [
+      {
+        "file": "86-0.jpg",
+        "sha256": "0a1c76f16f7feeafc04d9a34535ef42bed133dfdc9a98bc55c09bac1644569e4"
+      },
+      {
+        "file": "86-1.jpg",
+        "sha256": "1054e567570d16d7d60065d865b13ae2e803a873cb1148a767b9c574eb470429"
+      }
+    ],
+    "seconds": 174.36,
+    "reason": "captured: native center start then Space; real scrolling runner, player, hazards, coins and266m HUD.",
+    "output": "assets/thumbs/jetpackjoyride.jpg",
+    "previous_sha256": "cae6f6791a8c44cee395843c396fc8fad54ced01f242897806ca767785e21d25",
+    "status": "captured",
+    "accepted_candidate": "86-1.jpg",
+    "output_sha256": "5e6b1f50e48b184ef7a6b88d925bd8703a786dc911e9a608b6a8b6a7d1d4fd3e",
+    "output_bytes": 89556
+  },
+  {
+    "id": 107,
+    "title": "Jetpack Joyride Hacked",
+    "head": "40ffd1f298c768f4d00dc90e8857cdeeb25d8888",
+    "entry_blob": "a92ec2998b0b8e1ed8a6c8991358f2df9397a1db",
+    "source_tree": "c2060fe57873c07d5b5662e642e9b254fcfd7c39",
+    "actions": [
+      [
+        "wait",
+        85000
+      ],
+      [
+        "click",
+        640,
+        360
+      ],
+      [
+        "wait",
+        1500
+      ],
+      [
+        "click",
+        640,
+        360
+      ],
+      [
+        "snap"
+      ],
+      [
+        "wait",
+        1500
+      ],
+      [
+        "hold",
+        "Space",
+        600
+      ],
+      [
+        "snap"
+      ]
+    ],
+    "errors": [
+      "Unexpected token '<'"
+    ],
+    "external": [],
+    "http_errors": [],
+    "candidates": [
+      {
+        "file": "107-0.jpg",
+        "sha256": "9fc26442d78255f7dcee58f673e701741d2621b3662e15d46c6322e4640767c0"
+      },
+      {
+        "file": "107-1.jpg",
+        "sha256": "03511ea312bb78723dc37accab85d00fff204dfebe1e76a31d7421ae27f0deed"
+      }
+    ],
+    "seconds": 177.15,
+    "reason": "captured: native center start and Space; running scene315m with original HACKED badge, no cheat effectiveness claim.",
+    "output": "assets/thumbs/jetpackjoyridehacked.jpg",
+    "previous_sha256": null,
+    "status": "captured",
+    "accepted_candidate": "107-1.jpg",
+    "output_sha256": "fa5a404dee0ccb7f88f8c8ca3049e984464998abc27dd320d12ea945f53605a3",
+    "output_bytes": 86635
+  },
+  {
+    "id": 55,
+    "title": "Super Hot",
+    "head": "40ffd1f298c768f4d00dc90e8857cdeeb25d8888",
+    "entry_blob": "7393c9f577db156afab13656fa363d5c16efa841",
+    "source_tree": "a9f18481f280b347030e8334e1e1db17308bdffe",
+    "actions": [
+      [
+        "wait",
+        25000
+      ],
+      [
+        "click",
+        640,
+        360
+      ],
+      [
+        "key",
+        "Enter"
+      ],
+      [
+        "key",
+        "Space"
+      ],
+      [
+        "hold",
+        "w",
+        1000
+      ],
+      [
+        "snap"
+      ],
+      [
+        "info"
+      ],
+      [
+        "click",
+        640,
+        360
+      ],
+      [
+        "hold",
+        "w",
+        1200
+      ],
+      [
+        "key",
+        "Space"
+      ],
+      [
+        "snap"
+      ]
+    ],
+    "errors": [
+      "Permissions check failed"
+    ],
+    "external": [
+      "stats.unity3d.com"
+    ],
+    "http_errors": [],
+    "candidates": [
+      {
+        "file": "55-0.jpg",
+        "sha256": "880acaf66e4fe7932bf8c642e99ea7c08fe55f3f28cefb6484bbacfdbc98d022"
+      },
+      {
+        "file": "55-1.jpg",
+        "sha256": "65985e17b28313e16a9fa056dcb8a6e06738307cff2ec47632ff452c877c7135"
+      }
+    ],
+    "seconds": 175.6,
+    "reason": "captured: native click/W/Space progressed first encounter, red enemy shattering against cubes, no title text.",
+    "output": "assets/thumbs/superhot.jpg",
+    "previous_sha256": "b5e122fe32e0bb89d033f49a08548f85cfdac4075145a9084fa22cd5da04be75",
+    "status": "captured",
+    "accepted_candidate": "55-1.jpg",
+    "output_sha256": "c9c69352a1184c46e9d9a63c682c8b109d9e5af82c1ffbcfe77b75252762e575",
+    "output_bytes": 37014
+  }
+]

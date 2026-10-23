@@ -179,7 +179,7 @@
   "Gladihoppers": "gladihoppers",
   "Infiltrating the Airship": "infiltratingtheairship",
   "Jetpack Joyride": "jetpackjoyride",
-  "Jetpack Joyride Hacked": "jetpackjoyride",
+  "Jetpack Joyride Hacked": "jetpackjoyridehacked",
   "Kirby Amazing Mirror": "kirbyamazingmirror",
   "Mario Kart Super Circuit": "mariokartsupercircuit",
   "Mega Man Zero": "megamanzero",

@@ -574,3 +574,24 @@ not a claim to a completed fight/career.
 | 47 | Gladihoppers | captured | Trainer check/Enter/Space and WASD attempt; active movement-training arena with gladiator, trainer modal closed. |
 | 48 | Burrito Bison | needs-manual, old art retained | Reached ring launch tutorial through native Start/intro clicks, but did not perform the required pull/release gesture before budget ran out. No launch/distance capture accepted. |
 | 59 | Baldi's Basics | needs-manual, old art retained | Warning/Start reached mode panel, but upper game content clipped above viewport and bottom half empty; no visually sane play capture. |
+
+### Batch 9: runner gameplay and first Super Hot encounter
+
+**3 accepted / 5 attempted.** Running continuation: **25 captured, 20 needs-manual,
+7 not yet attempted.** [Actions/source/output receipt](thumb-sweep-v3.1/batch-09.json).
+Manuals read; same 180s hard deadline/native-only input/single pinned Chromium.
+Browser/server closed after five. Free space **2,829,807,616 bytes** before
+promotion. Subway's delay exhausted its deadline; no retry extends that budget.
+No advertising consent was granted, backend enabled or game state injected.
+
+| ID | Game | v3.1 status | Native route / reason |
+| --- | --- | --- | --- |
+| 50 | Subway Surfers | needs-manual, old art retained | Loaded to birth selector and advertising-consent prompt, not a run, before the 180s deadline. |
+| 111 | Subway Surfers Hacked | needs-manual, old art retained | Birth selector then blocking advertising-consent prompt; unchecked OK did not continue. No ad consent enabled. |
+| 86 | Jetpack Joyride | captured | Wait for local decoding, center-click start, Space; real player, scrolling hazards/coins and 266m HUD. |
+| 107 | Jetpack Joyride Hacked | captured | Same native route; live 315m scene with original HACKED badge. No claim that unlimited coins/invincibility work. |
+| 55 | Super Hot | captured | Native click/W/Space progressed encounter; red enemy shattering against cubes, crosshair, no title text. |
+
+The hacked Jetpack image gets its own `jetpackjoyridehacked.jpg` image-path alias,
+not the normal variant's new capture. Alias regression and JS syntax passed;
+portal manual updated. `games.json`, game sources and safety policies unchanged.
