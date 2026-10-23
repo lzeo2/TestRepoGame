@@ -435,7 +435,7 @@ or used; awaiting sustained operator recovery rather than polling disk.
 `--refresh` printed `Inventory: 132 games, 127 registered; shared runtime separate.`
 and left the inventory/index byte-identical; the combined refresh/check command
 then timed out at 30s, so that command is not claimed as a completed checker pass.
-The pre-continuation checker had passed all 132 documents. The manual-session
-self-test previously passed its 180s monotonic deadline check. No full-fleet smoke,
-publication or push; no game added or removed.
-
+A subsequent standalone checker completed with
+`PASS: 132 game documents cover 127 registered + 5 unregistered games; Git inventory current.`
+The manual-session self-test also passed its 180s monotonic deadline check.
+No full-fleet smoke, publication or push; no game added or removed.
