@@ -6,6 +6,7 @@ import { createDayNight } from './daynight.mjs';
 import { createWorldEffects } from './world-effects.mjs';
 import { createAsphaltMaterial, createGroundMaterial, createWater, createBlockAO, applyExternalTerrain } from './materials.mjs';
 import { loadExternalModel, disposeExternalModels } from './external-assets.mjs';
+import { createLandscape } from './terrain.mjs';
 
 export function createRoadPool(scene, grid) {
   const geometry = new THREE.PlaneGeometry(grid.lotSize, grid.lotSize);
@@ -19,8 +20,8 @@ export function createRoadPool(scene, grid) {
   const matrix = new THREE.Matrix4();
   return {
     mesh,
-    sync() {
-      if (version === grid.version) return;
+    sync(force = false) {
+      if (!force && version === grid.version) return;
       let i = 0;
       for (const key of grid.cells) {
         const { x, z } = grid.cell(key), p = grid.center(x, z);
@@ -41,23 +42,19 @@ export function createWorld(canvas, { size = 200, lotSize = 10, pixelRatio = Mat
   renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.15;
   const scene = new THREE.Scene();
   const camera = new THREE.PerspectiveCamera(60, 1, .5, extent * 5);
-  const controls = createFreeCamera(camera, canvas, extent);
+  const landscape = createLandscape(scene, extent);
+  const controls = createFreeCamera(camera, canvas, landscape.edge - 2, landscape.floorHeight);
   const dayNight = createDayNight(scene);
   scene.fog = new THREE.Fog(scene.background, extent * .7, extent * 3);
   const buildings = createBuildingKit(scene, 10000, { lod: modelLOD });
   const roadPool = createRoadPool(scene, roads);
   const effects = createWorldEffects(scene, roads);
-  // Lot boundaries are separate grid lines; flat ground needs no per-lot triangles.
-  const terrainSegments = Math.min(size, 64);
+  // All playable foundations stay flat. The surrounding solid slab field owns hills/waterfront.
+  const terrainSegments = 1;
   const groundGeometry = new THREE.PlaneGeometry(extent * 2, extent * 2, terrainSegments, terrainSegments);
   groundGeometry.rotateX(-Math.PI / 2);
   const positions = groundGeometry.attributes.position;
-  for (let i = 0; i < positions.count; i++) {
-    const x = positions.getX(i), z = positions.getZ(i);
-    const edge = THREE.MathUtils.smoothstep(Math.max(Math.abs(x), Math.abs(z)), extent - lotSize * 4, extent);
-    // Depression only at perimeter, so roads/building foundations never float below hills.
-    positions.setY(i, -edge * (.3 + .25 * Math.sin(x * .09) * Math.cos(z * .12)));
-  }
+  for (let i = 0; i < positions.count; i++) positions.setY(i, 0);
   groundGeometry.computeVertexNormals();
   const groundAppearance = createGroundMaterial(extent), groundMaterial = groundAppearance.material;
   const ground = new THREE.Mesh(groundGeometry, groundMaterial);
@@ -77,7 +74,7 @@ export function createWorld(canvas, { size = 200, lotSize = 10, pixelRatio = Mat
     disposed = true; loaded = false;
     terrain?.dispose();
     if (terrainModel) { disposeExternalModels([terrainModel]); terrainModel = null; }
-    controls.dispose(); dayNight.dispose(); buildings.dispose(); roadPool.dispose(); effects.dispose();
+    landscape.dispose(); controls.dispose(); dayNight.dispose(); buildings.dispose(); roadPool.dispose(); effects.dispose();
     water.dispose(); blockAO.dispose(); scene.remove(ground, gridLines);
     groundGeometry.dispose(); groundAppearance.dispose(); gridLines.geometry.dispose(); gridLines.material.dispose(); renderer.dispose();
   }
@@ -109,7 +106,8 @@ export function createWorld(canvas, { size = 200, lotSize = 10, pixelRatio = Mat
     renderer.render(scene, camera); effects.update(dt);
   }
   return {
-    renderer, scene, camera, controls, dayNight, roads, roadPool, buildings, effects, water, blockAO,
+    renderer, scene, camera, controls, dayNight, roads, roadPool, buildings, effects, water, blockAO, landscape,
+    floorHeight: landscape.floorHeight,
     ready, render, dispose,
     get loaded() { return loaded; },
     get terrainDiagnostics() { return terrain?.diagnostics; },

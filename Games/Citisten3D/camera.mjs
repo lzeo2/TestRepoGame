@@ -1,12 +1,22 @@
 import * as THREE from './vendor/three.module.js';
 
-export function createFreeCamera(camera, canvas, extent = 1000) {
+export function createFreeCamera(camera, canvas, extent = 1000, floorHeight = () => 0) {
   const target = new THREE.Vector3(0, 140, 160);
   let yaw = 0, pitch = -.65, targetYaw = yaw, targetPitch = pitch, pointer = null;
   const keys = new Set(), listeners = [];
   let inputVersion = 0;
   camera.rotation.order = 'YXZ';
   camera.position.copy(target);
+  // Sweep at sub-trunk intervals, including the radius, so narrow boxes cannot be crossed between frames.
+  function clearance(from, to) {
+    const steps = Math.max(1, Math.ceil(Math.hypot(to.x - from.x, to.z - from.z)));
+    let floor = 2;
+    for (let i = 0; i <= steps; i++) {
+      const t = i / steps;
+      floor = Math.max(floor, floorHeight(from.x + (to.x - from.x) * t, from.z + (to.z - from.z) * t, 1) + 2);
+    }
+    to.y = Math.max(to.y, floor);
+  }
   function on(node, name, listener, options) {
     node.addEventListener(name, listener, options);
     listeners.push(() => node.removeEventListener(name, listener, options));
@@ -47,12 +57,14 @@ export function createFreeCamera(camera, canvas, extent = 1000) {
     setPose({ x, y, z, yaw: newYaw = targetYaw, pitch: newPitch = targetPitch }, snap = false) {
       if (![x, y, z, newYaw, newPitch].every(Number.isFinite)) throw new RangeError('Invalid camera pose');
       target.set(THREE.MathUtils.clamp(x, -extent, extent), THREE.MathUtils.clamp(y, 2, 400), THREE.MathUtils.clamp(z, -extent, extent));
+      clearance(camera.position, target);
       targetYaw = newYaw;
       targetPitch = THREE.MathUtils.clamp(newPitch, -Math.PI / 2 + .02, Math.PI / 2 - .02);
       if (snap) { camera.position.copy(target); yaw = targetYaw; pitch = targetPitch; camera.rotation.set(pitch, yaw, 0); }
     },
     update(dt) {
       dt = THREE.MathUtils.clamp(dt, 0, .1);
+      const previous = target.clone();
       const forward = Number(keys.has('KeyW')) - Number(keys.has('KeyS'));
       const right = Number(keys.has('KeyD')) - Number(keys.has('KeyA'));
       const speed = Math.max(8, target.y * .85) * dt / (forward && right ? Math.SQRT2 : 1);
@@ -60,8 +72,10 @@ export function createFreeCamera(camera, canvas, extent = 1000) {
       target.z += (-Math.cos(targetYaw) * forward - Math.sin(targetYaw) * right) * speed;
       target.x = THREE.MathUtils.clamp(target.x, -extent, extent);
       target.z = THREE.MathUtils.clamp(target.z, -extent, extent);
+      clearance(previous, target);
       const ease = 1 - Math.exp(-10 * dt);
-      camera.position.lerp(target, ease);
+      const next = camera.position.clone().lerp(target, ease);
+      clearance(camera.position, next); camera.position.copy(next);
       yaw += (targetYaw - yaw) * ease;
       pitch += (targetPitch - pitch) * ease;
       camera.rotation.set(pitch, yaw, 0);

@@ -38,6 +38,11 @@ const scene = new THREE.Scene(), pool = createRoadPool(scene, grid);
 pool.sync(); assert.equal(pool.mesh.count, 11);
 grid.set(100, 100, false); pool.sync();
 assert.equal(pool.mesh.count, 10);
+// A restored save can have the same version as the previously rendered city.
+const savedVersion = grid.version;
+grid.set(100, 100); grid.version = savedVersion;
+pool.sync(true); assert.equal(pool.mesh.count, 11);
+grid.set(100, 100, false); pool.sync();
 assert.deepEqual(grid.path(route[0], route.at(-1)), []);
 assert.throws(() => grid.lanePoints(route), RangeError);
 pool.dispose();
