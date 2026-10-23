@@ -78,7 +78,31 @@ connected roads and matching utility sources to adjacent buildings; disconnected
 supply cannot serve homes, and insufficient capacity sheds whole 8x8 districts.
 There is no separate commute or road-to-town-hall test for growth; roads matter
 through utility connectivity.
-No growth formulas were changed.
+These are the baseline formulas; active civic events can temporarily modify
+safe-home growth, income, utility demand and crime. The diagnosis UI does not
+invent a separate growth mechanic.
+
+### Civic events, milestones and rebuilding
+
+The [events receipt](../../citisten-events.md) describes six deterministic civic
+happenings, beginning at tick 240 and repeating every 960 ticks, with active
+records in `state.cityEvents`. The native Repair water main button resolves the
+active incident's district and uses the existing repair tool ($120, daytime).
+The event lane's earlier four fixture shots changed source mid-capture and are
+provisional, not a stable native pass.
+
+The [Skylines study](../../citisten-skylines-study.md) owns research and the
+bounded diagnosis/milestone/recovery contract, implemented in `579d089` with
+regressions in `b7ee9ab`. Named population milestones grant
+$750/$1,000/$1,250/$1,500/$2,000 at 500/1,000/1,500/2,000/2,500 residents, once
+each; their high-water index survives save/load. Growth diagnosis is simulation
+state displayed by the UI, not a new eligibility formula.
+
+When defense loses the hall, its zero-HP object remains selectable. Enemies and
+defenders clear without victory credit; a 120-simulation-second daytime grace
+allows Repair on the hall for $240. Repair restores the hall and a fresh day;
+expiry loses the game. Mode switching and Skip to Night cannot bypass recovery.
+The countdown, diagnosis and next milestone are included in snapshots.
 
 ### Solid outskirts and camera clearance
 
@@ -97,7 +121,7 @@ over obstructions rather than providing a walking/physics character controller.
 sweeps and deterministic generation; `world-check.mjs` retains existing checks.
 
 624 slabs plus 108 natural boxes are batched in one landscape draw. With the
-flat city's two triangles the terrain budget is 7,322 triangles, below the old
+flat city's two triangles the terrain budget is 7,538 triangles, below the old
 8,192-triangle plane. The supplied city ground is retained as one material group
 (previous ground used up to three), so ground plus landscape needs two draws.
 No per-feature draw calls, animated foliage, extra assets or remote loads. This
@@ -107,7 +131,31 @@ is a geometry/draw bound, not a measured FPS acceptance; that gate remains held.
 
 Simulation owns authoritative state. Native integration keeps stable model
 handles, converts grid positions with `roads.center`, drains events once and
-recreates simulation state on restart. No save/load persistence is claimed.
+recreates simulation state on restart and Continue. `persistence.mjs` stores a
+version-1 JSON snapshot at `citisten-save-v1` in localStorage: complete published
+state (buildings, budget, population-derived values, mode, speed, waves, civic
+and recovery state), ordered road cells, RNG seeds, IDs, fixed-step/economy/
+traffic clocks, notice queue and milestone/warning high-water flags. No images
+or rendered models are saved. The saved menu/tutorial speed is the player's
+selected speed, not the temporary pause.
+
+Autosave runs after about 60 simulation seconds, not wall-clock seconds. Menu
+contains Save, Continue from the last valid save, Restart and existing Resume.
+On startup a valid saved town offers Continue; it is not silently loaded.
+Unavailable/quota-blocked storage or corrupt/unsupported data produces a status
+message without preventing a new town. `sim-snapshot.mjs` validates untrusted
+JSON before touching renderer roads; loading reconstructs cells/hall references
+and invalidates the road renderer even if the saved version matches its cache.
+The native entry accepts only its own grid size. Saving again replaces the
+single local slot; there is no cloud sync/export/history.
+
+Defense's Skip to Night button beside Speed, or S while the action is enabled,
+runs the normal deterministic fixed steps through the nightfall-warning point
+(60 seconds before combat), including economy, traffic and civic events. It is
+disabled at the warning, at night and while rebuilding. S otherwise remains
+camera-back; the touch camera pad always provides Back. It does not skip
+straight into combat. [Save/terrain verification](../../citisten-save-terrain.md)
+separates headless continuity checks, staged landscape photos and native inputs.
 
 ## Dependencies and provenance
 
@@ -180,6 +228,19 @@ SHELL and natural combat remain unrun. The server-only probe returned the entry
 HTTP 200 in 0.0720s, not a native or offline pass. Results/source hashes are
 retained under `../audits/citisten-QA/native/`; unrun/unreached gates stay separate. A targeted pass cannot replace full-fleet
 `xvfb-run python3 scripts/smoke_test_games.py` before push.
+
+### Current save/terrain native attempt
+
+The [save/terrain receipt](../../citisten-save-terrain.md) records the combined
+headless checks and the fresh exclusive native browser attempt. Save, terrain,
+world, native-actions, external-material and full sim checks pass, including
+warning-skip equivalence and recovery/milestone continuity. The browser runner
+exited 1 after 46.415 seconds: navigation exceeded 20 seconds waiting for
+`domcontentloaded`, before any native assertion or photo. **All four requested
+native photos remain unproduced and unreviewed; native acceptance stays HOLD.**
+Browser/server cleanup passed and the slot was explicitly released. A second-slot
+request is unresolved; no retry or push is claimed. Stable UI fixture evidence
+from sibling lanes is separate from this native-world gate.
 
 ## Future outlook
 
