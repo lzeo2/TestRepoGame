@@ -14,6 +14,13 @@ export const BUILDINGS = Object.freeze({
   wall: { cost: 45, hp: 350, upkeep: 0.005, power: 0, water: 0 },
   watchtower: { cost: 300, hp: 220, upkeep: 0.04, power: 0.3, water: 0.1, range: 8, damage: 18 }
 });
+export const MILESTONES = Object.freeze([
+  { population: 500, name: 'First neighborhood', grant: 750 },
+  { population: 1000, name: 'Town center', grant: 1000 },
+  { population: 1500, name: 'Borough', grant: 1250 },
+  { population: 2000, name: 'Small city', grant: 1500 },
+  { population: 2500, name: 'City hub', grant: 2000 }
+].map(milestone => Object.freeze(milestone)));
 // One tick is the existing 0.25-second fixed step; a civic day is 960 ticks.
 export const CITY_EVENTS = Object.freeze([
   { type: 'street-festival', title: 'Street Festival', description: 'Happiness +20 points, growth and local income +25% for one day.', durationTicks: 960 },
@@ -50,7 +57,7 @@ function pop(heap) {
 }
 
 export function createSimulation({ size = 200, mode = 'free', seed = 1, roads, snapshot } = {}) {
-  const saved = snapshot === undefined ? null : readSnapshot(snapshot, BUILDINGS, CITY_EVENTS);
+  const saved = snapshot === undefined ? null : readSnapshot(snapshot, BUILDINGS, CITY_EVENTS, MILESTONES);
   if (saved) { size = saved.state.size; mode = saved.state.mode; seed = saved.runtime.seed; }
   roads ??= new RoadGrid(size);
   seed >>>= 0;
@@ -60,6 +67,7 @@ export function createSimulation({ size = 200, mode = 'free', seed = 1, roads, s
     size, mode, speed: 1, time: 0, tick: 0, cityEvents: [], phase: 'day', dayRemaining: 240, night: 0,
     score: 0, kills: 0, pendingZombies: 0, population: 0, peakPopulation: 0, budget: 40000,
     income: 0, upkeep: 0, netIncome: 0, taxRate: 0.1, crime: 0,
+    nextMilestone: MILESTONES[0], rebuildRemaining: 0, growthSamplePopulation: 0, growthDiagnosis: '',
     demand: { residential: 1, commercial: 0.5, industrial: 0.5 },
     power: { supply: 0, demand: 0, served: 0, unserved: 0 },
     water: { supply: 0, demand: 0, served: 0, unserved: 0 },
@@ -117,7 +125,7 @@ export function createSimulation({ size = 200, mode = 'free', seed = 1, roads, s
     if (state.phase !== 'day') return { ok: false, reason: 'Repair during the day' };
     const target = lot && valid(lot.x, lot.z) ? lot : b;
     const burst = target && state.cityEvents.find(e => e.type === 'water-main-burst' && e.district === districtOf(target));
-    if (burst) {
+    if (burst && !(b === hall && b.hp === 0)) {
       if (!spend(120)) return { ok: false, reason: 'Insufficient budget' };
       finishCityEvent(burst, 'repaired'); utilities('water');
       return { ok: true, cost: 120, reason: 'Water main repaired: $120' };
@@ -125,7 +133,12 @@ export function createSimulation({ size = 200, mode = 'free', seed = 1, roads, s
     if (!b || b.hp >= b.maxHp) return { ok: false, reason: 'No damage to repair' };
     const cost = Math.ceil((b.maxHp - b.hp) * 0.4);
     if (!spend(cost)) return { ok: false, reason: 'Insufficient budget' };
+    const rebuilding = b === hall && b.hp === 0;
     b.hp = b.maxHp; state.townHallHp = hall.hp; emit('repaired', { id, cost });
+    if (rebuilding) {
+      state.rebuildRemaining = 0; state.dayRemaining = 240; warned = false;
+      emit('hall-rebuilt', { cost });
+    }
     return { ok: true, cost };
   }
   function damage(b, amount, attacker) {
@@ -133,11 +146,12 @@ export function createSimulation({ size = 200, mode = 'free', seed = 1, roads, s
     emit('damaged', { id: b.id, amount: actual, hp: b.hp, attacker });
     if (b === hall) state.townHallHp = b.hp;
     if (b.hp > 0) return;
-    remove(b, 'destroyed');
-    if (b === hall) {
-      state.phase = 'lost';
-      emit('lost', { score: state.score, peakPopulation: state.peakPopulation, kills: state.kills });
-    }
+    if (b !== hall) { remove(b, 'destroyed'); return; }
+    // Keep the ruined hall selectable by the existing Repair tool; no wave victory or kills.
+    b.powered = false; b.watered = false;
+    state.phase = 'day'; state.rebuildRemaining = 120; state.dayRemaining = 120;
+    state.zombies = []; state.pendingZombies = 0; state.defenders = []; warned = false;
+    emit('hall-fallen', { remaining: 120, cost: Math.ceil(b.maxHp * 0.4) });
   }
 
   function finishCityEvent(event, reason) {
@@ -183,6 +197,7 @@ export function createSimulation({ size = 200, mode = 'free', seed = 1, roads, s
     const prop = kind === 'power' ? 'powered' : 'watered';
     let demand = 0, served = 0;
     for (const b of state.buildings) {
+      if (b.hp <= 0) { b[prop] = false; continue; }
       const load = (BUILDINGS[b.type][kind] + b.residents * (kind === 'power' ? 0.008 : 0.01)) * (kind === 'power' ? coldDemand() : waterDemand(b));
       b[prop] = load === 0; demand += load;
       if (!load) continue;
@@ -219,22 +234,42 @@ export function createSimulation({ size = 200, mode = 'free', seed = 1, roads, s
     const services = active.filter(b => ['townhall', 'park', 'police', 'fire'].includes(b.type));
     const homes = state.buildings.filter(b => b.type === 'residential');
     const growth = 2.7 * state.demand.residential * clamp(1.5 - state.taxRate * 5, 0, 1);
+    const blockers = new Map();
     for (const b of homes) {
       b.serviced = services.some(s => distance(b, s) <= 16);
-      const safe = b.powered && b.watered && b.serviced && (state.crime < 0.65 || police.some(p => distance(b, p) <= 16));
+      const reason = !b.powered ? 'Homes lack power: connect roads to a plant with spare capacity.'
+        : !b.watered ? 'Homes lack water: check road connections, capacity and water-main leaks.'
+        : !b.serviced ? 'Homes lack services: add a supplied park, police or fire station within 16 lots.'
+        : state.crime >= 0.65 && !police.some(p => distance(b, p) <= 16) ? 'Crime is driving residents away: add supplied police within 16 lots.' : '';
+      const safe = !reason;
+      if (reason) blockers.set(reason, (blockers.get(reason) || 0) + 1);
       b.happiness = clamp((safe ? 0.5 : 0.2) + (happening('street-festival', b) ? 0.2 : 0), 0, 1);
       b.residents = safe ? Math.min(64, b.residents + growth * festivalBoost(b) / Math.max(1, homes.length)) : Math.max(0, b.residents - Math.max(0.2, b.residents * 0.025));
     }
     state.population = homes.reduce((n, b) => n + b.residents, 0);
     state.peakPopulation = Math.max(state.peakPopulation, state.population);
+    if (state.tick % 20 === 0) {
+      // Sample the same whole residents shown by the HUD; fractional growth is not a hard stall.
+      const stalled = Math.floor(state.population) <= Math.floor(state.growthSamplePopulation);
+      const dominant = [...blockers].sort((a, b) => b[1] - a[1])[0]?.[0];
+      state.growthDiagnosis = !stalled ? '' : !homes.length ? 'No homes yet: zone residential beside a road.'
+        : dominant || (homes.every(b => b.residents >= BUILDINGS.residential.capacity) ? 'Homes are full: zone more residential beside a road.'
+        : state.taxRate > 0.1 ? 'Growth is slow or stopped: lower taxes toward 10%.'
+        : state.demand.residential < 0.55 ? 'Residential demand is low: add powered and watered jobs.'
+        : 'Growth is slow: only some homes have room to grow.');
+      state.growthSamplePopulation = state.population;
+    }
     const parks = active.filter(b => b.type === 'park');
     state.income = taxEffectiveness() * (state.taxRate / 0.1) * (
       homes.reduce((n, b) => n + b.residents * 0.0015 * festivalBoost(b), 0) +
       active.reduce((n, b) => n + (['commercial', 'industrial'].includes(b.type) ? 0.06 * festivalBoost(b) * marketBoost(b, parks) : 0), 0));
     state.upkeep = state.buildings.reduce((n, b) => n + BUILDINGS[b.type].upkeep, 0);
     state.netIncome = state.income - state.upkeep; state.budget += state.netIncome;
-    const next = Math.floor(state.population / 500);
-    if (next > milestone) { milestone = next; emit('milestone', { population: Math.floor(state.population) }); }
+    while (milestone < MILESTONES.length && state.population >= MILESTONES[milestone].population) {
+      const reward = MILESTONES[milestone++];
+      state.budget += reward.grant; emit('milestone', { ...reward });
+    }
+    state.nextMilestone = MILESTONES[milestone] || null;
   }
 
   function roadAtBuilding(b) { return neighbors(b).find(p => roads.has(p.x, p.z)); }
@@ -364,7 +399,7 @@ export function createSimulation({ size = 200, mode = 'free', seed = 1, roads, s
       const target = here || (q && cells.get(key(q.x, q.z)));
       if (target) {
         if (z.cooldown <= 0) { damage(target, 8, z.id); z.cooldown = 1; }
-        if (state.phase === 'lost') return;
+        if (state.phase !== 'night') return;
       } else if (q && !occupied.has(key(q.x, q.z))) {
         occupied.add(key(q.x, q.z)); z.move = { ...q, key: key(q.x, q.z), progress: 0 };
       }
@@ -381,6 +416,15 @@ export function createSimulation({ size = 200, mode = 'free', seed = 1, roads, s
     if (economyClock >= 1) { economyClock -= 1; economy(); }
     if (trafficClock >= 1.5) { trafficClock -= 1.5; spawnCar(); }
     traffic(dt);
+    if (state.rebuildRemaining > 0) {
+      state.rebuildRemaining = Math.max(0, state.rebuildRemaining - dt);
+      state.dayRemaining = state.rebuildRemaining;
+      if (!state.rebuildRemaining) {
+        state.phase = 'lost';
+        emit('lost', { score: state.score, peakPopulation: state.peakPopulation, kills: state.kills });
+      }
+      return;
+    }
     if (state.mode === 'free') return;
     if (state.phase === 'day') {
       state.dayRemaining = Math.max(0, state.dayRemaining - dt);
@@ -412,7 +456,7 @@ export function createSimulation({ size = 200, mode = 'free', seed = 1, roads, s
       } }));
     },
     skipToNight() {
-      if (state.mode !== 'defense' || state.phase !== 'day' || state.dayRemaining <= 60) return false;
+      if (state.mode !== 'defense' || state.phase !== 'day' || state.rebuildRemaining > 0 || state.dayRemaining <= 60) return false;
       // Deliberately simulate, never jump the clock: economy, traffic and civic notices all run.
       advanceTime(state.dayRemaining - 60);
       return true;
@@ -421,7 +465,7 @@ export function createSimulation({ size = 200, mode = 'free', seed = 1, roads, s
     setSpeed(speed) { if (![0, 1, 3, 10].includes(speed)) throw new RangeError('Speed must be 0, 1, 3 or 10'); state.speed = speed; },
     setMode(value) {
       if (!['free', 'defense'].includes(value)) throw new RangeError('Unknown mode');
-      if (state.phase === 'lost') return false;
+      if (state.phase === 'lost' || state.rebuildRemaining > 0) return false;
       state.mode = value; state.phase = 'day'; state.dayRemaining = 240; state.zombies = []; state.pendingZombies = 0; state.defenders = []; warned = false;
       return true;
     },

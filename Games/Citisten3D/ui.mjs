@@ -9,7 +9,7 @@ const TUTORIAL = [
   ['Place a road', 'Choose Road, then drag across empty lots. Roads cost $10 per lot. Mouse and touch both work.'],
   ['Zone residential', 'Choose Zone, then Residential. Click or tap an empty lot beside a road. Homes also need a town hall, park, police or fire station within 16 lots.'],
   ['Add power and water', 'Choose Service, then place a Power plant and a Water tower beside roads connected to your homes. Powered and watered commercial and industrial zones provide jobs.'],
-  ['Survive the night', 'In Zombie defense, protect the town hall with walls and watchtowers before nightfall. Repair damaged lots during the day. Free build has no zombie waves.'],
+  ['Survive the night', 'In Zombie defense, protect the town hall with walls and watchtowers. If it falls, choose Repair and tap the hall within two simulated minutes ($240). The city keeps running during rebuilding. Free build has no zombie waves.'],
   ['Control the speed', 'Choose 1x, 3x or 10x to run time. Paused stops simulation time, not events display or building tools. Menu also pauses. Open How to play from Menu to read this again.']
 ];
 const number = value => Math.floor(Number(value) || 0).toLocaleString('en-AU');
@@ -25,10 +25,11 @@ export function createUI(root, callbacks = {}) {
       <header class="city-top panel">
         <strong class="city-brand">CITISTEN</strong>
         <div class="city-stat" role="group" aria-label="Budget"><strong data-value="budget">$0</strong></div>
-        <div class="city-stat"><span>Population</span><strong data-value="population">0</strong></div>
+        <div class="city-stat"><span>Population</span><strong data-value="population">0</strong><span data-value="milestone" hidden></span></div>
         ${['power', 'water'].map(name => `<div class="city-stat utility"><label for="city-${name}">${name === 'power' ? 'Power' : 'Water'}</label><strong data-value="${name}">0 / 0</strong><meter id="city-${name}" min="0" max="1" value="0" aria-label="${name} demand against supply"></meter></div>`).join('')}
         <span data-value="phase">Day 1</span><button data-action="menu">Menu</button><button data-action="theme">Light</button>
       </header>
+      <aside class="city-top panel" data-value="growthDiagnosis" hidden aria-label="City diagnosis"></aside>
       <aside class="city-night panel" hidden aria-label="Night watch">
         <div class="city-hall"><svg viewBox="0 0 48 48" role="img" aria-label="Town hall health"><circle class="ring-track" cx="24" cy="24" r="19"/><circle class="ring-value" cx="24" cy="24" r="19" pathLength="100"/><text x="24" y="29" text-anchor="middle">H</text></svg><strong data-value="hp">0 / 0</strong></div>
         <div class="city-wave">Wave<strong data-value="wave">0</strong></div>
@@ -196,6 +197,14 @@ export function createUI(root, callbacks = {}) {
       button.disabled = state.phase !== 'day' || !state.cityEvents?.some(event => event.id === button.dataset.cityEvent);
     }
     text('budget', `$${number(state.budget)}`); text('population', number(state.population));
+    const next = state.nextMilestone;
+    text('milestone', next ? `Next: ${number(next.population)} (+$${number(next.grant)})` : '');
+    $('[data-value="milestone"]').hidden = !next;
+    $('[data-value="milestone"]').title = next?.name || '';
+    const diagnosis = state.rebuildRemaining > 0
+      ? `Rebuild: ${Math.ceil(state.rebuildRemaining)}s left. Choose Repair, then tap the town hall ($240).`
+      : state.growthDiagnosis || '';
+    text('growthDiagnosis', diagnosis); $('[data-value="growthDiagnosis"]').hidden = !diagnosis;
     for (const name of ['power', 'water']) {
       const utility = state[name] || { demand: 0, supply: 0 };
       text(name, `${number(utility.demand)} / ${number(utility.supply)}`);
@@ -240,10 +249,12 @@ export function createUI(root, callbacks = {}) {
         blackout: event.active ? 'Blackout' : 'Power restored',
         'wave-warning': 'Nightfall: 1 min',
         wave: `Wave ${number(event.night)} incoming`,
-        milestone: `${number(event.population)} residents`,
-        'night-survived': 'Night survived'
+        milestone: event.name ? `${event.name}: ${number(event.population)} residents. Grant +$${number(event.grant)}.` : `${number(event.population)} residents`,
+        'night-survived': 'Night survived',
+        'hall-fallen': `Town hall fell. City saved for rebuilding: ${number(event.remaining)}s to repair ($${number(event.cost)}). No night victory.`,
+        'hall-rebuilt': `Town hall rebuilt ($${number(event.cost)}). Prepare for the next night.`
       }[event.type];
-      if (message) messages.set(event.type, message);
+      if (message) messages.set(event.type === 'milestone' ? `milestone:${event.population}` : event.type, message);
       if (event.type === 'city-event-start' || event.type === 'city-event-end') {
         const civic = event.event;
         const location = ['street-festival', 'water-main-burst'].includes(civic.type) ? ` (district ${civic.district})` : '';
@@ -254,7 +265,7 @@ export function createUI(root, callbacks = {}) {
       }
     }
     // Put urgent notices last so compact phone feedback keeps the useful warning.
-    for (const key of ['placed', 'removed', 'repaired', 'milestone', 'night-survived', ...[...messages.keys()].filter(key => key.startsWith('civic:')), 'wave-warning', 'blackout', 'wave']) {
+    for (const key of ['placed', 'removed', 'repaired', ...[...messages.keys()].filter(key => key.startsWith('milestone:')), 'night-survived', ...[...messages.keys()].filter(key => key.startsWith('civic:')), 'wave-warning', 'blackout', 'wave', 'hall-rebuilt', 'hall-fallen']) {
       if (messages.has(key)) toast(`${key}:${messages.get(key)}`, messages.get(key), reactions.get(key));
     }
   }
