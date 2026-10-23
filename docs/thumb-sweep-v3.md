@@ -900,3 +900,27 @@ above; storage stayed above the normal 2,147,483,648-byte floor without a waiver
 Proof-copy free space was **2,992,181,248 bytes**; final Git state/storage follows
 in handoff. Earlier historical reports and rejected art remain intact except for
 the one accepted normal-cats replacement.
+
+### Storage-recovered resume: retry batch 4
+
+Operator requested capture resumption after disk recovery. Measured free space
+**3,281,108,992 bytes** before work and **3,280,850,944 bytes** after the batch.
+No backup tarballs/bundles, installs or source changes. The existing RAM ledger
+matched all committed latest cumulative times before use. Headed system Chromium
+under Xvfb retained software-GL flags and raw CDP screenshot settings. Five games,
+browser/server closed; **no accepted replacements**. [Receipt](thumb-sweep-v3.1/retry-04.json).
+
+| ID | Game | Prior / retry / cumulative seconds | Visual review |
+| --- | --- | --- | --- |
+| 215 | Asteroids | 20.79 / 11.33 / 32.12 | black vectors remain unreadable on near-black background; no recoloring |
+| 204 | Hearts Classic | 25.45 / 19.84 / 45.29 | New Game intercepted by settings layer; native Back succeeds, but scattered bare ranks on white remain unusable |
+| 220 | Duck Hunt | 18.74 / 6.54 / 25.28 | black canvas; `Loading chunk 369 failed` |
+| 87 | Doge Miner | 50.86 / 14.88 / 65.74 | `Invalid or unexpected token`; intro loader, no mining |
+| 8 | Run 3 | 24.22 / 15.28 / 39.50 | starfield/bootstrap, not runner/tunnel gameplay; no page error yet, bounded follow-up warranted |
+
+All five images were visually reviewed and rejected. Totals remain **26 refreshed,
+26 held, 101/127 accepted fresh overall**. Receipt regression passes **52 games,
+72 attempts**, preserving original output hashes for every held game. Remaining
+budgets were not reset by the storage-resume order. The earlier portal proof
+still applies to unchanged runtime images; this batch does not establish another
+portal or full-fleet gameplay pass.

@@ -1,0 +1,262 @@
+[
+  {
+    "id": 215,
+    "title": "Asteroids",
+    "head": "819c16d073aa29e9cf66e95fcf0051f6cf59541c",
+    "entry_blob": "b690355b69daf26a1394ff9fb56f035010879e2b",
+    "source_tree": "a4d0f3152372e758bf0c2ebb9d4d0921d72c7915",
+    "actions": [
+      [
+        "wait",
+        1500
+      ],
+      [
+        "hold",
+        "ArrowUp",
+        600
+      ],
+      [
+        "hold",
+        "ArrowLeft",
+        600
+      ],
+      [
+        "hold",
+        "Space",
+        1600
+      ],
+      [
+        "snap"
+      ]
+    ],
+    "errors": [],
+    "external": [],
+    "http_errors": [],
+    "candidates": [
+      {
+        "file": "215-0.jpg",
+        "sha256": "ed8d486d48074b4143d90fab75ffeef6faebcc84ec128bff20917e662a662ccd"
+      }
+    ],
+    "headed": true,
+    "attempt_seconds": 11.33,
+    "prior_seconds": 20.79,
+    "seconds": 32.12,
+    "reason": "Review pending: headed/raw CDP capture after native thrust, rotation and continuous fire; no recoloring.",
+    "status": "needs-manual",
+    "review_reason": "Headed native thrust/rotate/fire still yields black vectors on near-black background; no recoloring.",
+    "output": "assets/thumbs/asteroids.jpg",
+    "output_sha256": null,
+    "output_bytes": 0
+  },
+  {
+    "id": 204,
+    "title": "Hearts Classic",
+    "head": "819c16d073aa29e9cf66e95fcf0051f6cf59541c",
+    "entry_blob": "f0450627361bd3861cff9ef0305633ba3102574f",
+    "source_tree": "7a88aac85017a94e4dcff90249a67f49a61a66a8",
+    "actions": [
+      [
+        "wait",
+        2000
+      ],
+      [
+        "selector",
+        ".newgame-but"
+      ],
+      [
+        "info"
+      ],
+      [
+        "snap"
+      ],
+      [
+        "selector",
+        ".back-but"
+      ],
+      [
+        "wait",
+        500
+      ],
+      [
+        "snap"
+      ]
+    ],
+    "errors": [],
+    "external": [],
+    "http_errors": [],
+    "candidates": [
+      {
+        "file": "204-0.jpg",
+        "sha256": "5dc542ead61ac5fa460fe8d240689092000d09a2b803d138a022162aac4c974d"
+      },
+      {
+        "file": "204-1.jpg",
+        "sha256": "1b7e07730965d80e116853ca831bf3d9c9977e8e3035fdbd694fb60e1a3afe12"
+      }
+    ],
+    "headed": true,
+    "attempt_seconds": 19.84,
+    "prior_seconds": 25.45,
+    "seconds": 45.29,
+    "reason": "Review pending: New Game blocked by settings overlay; native Back attempted, without CSS/state edits.",
+    "status": "needs-manual",
+    "review_reason": "New Game intercepted by control-region overlay. Native Back succeeds but cards remain scattered bare ranks on white, not a legible hand.",
+    "output": "assets/thumbs/heartsclassic.jpg",
+    "output_sha256": "42c2ab4610374fabf816291fb7b41c9602136031dd1cbd53ed9e1da1f9a7ca5c",
+    "output_bytes": 4837
+  },
+  {
+    "id": 220,
+    "title": "Duck Hunt",
+    "head": "819c16d073aa29e9cf66e95fcf0051f6cf59541c",
+    "entry_blob": "fd97e223172b75c9e3bf33016d6267b28f73c745",
+    "source_tree": "8b74fe11c695bf41e705ac469c7c57bd38adbf24",
+    "actions": [
+      [
+        "wait",
+        4000
+      ],
+      [
+        "click",
+        640,
+        360
+      ],
+      [
+        "key",
+        "p"
+      ],
+      [
+        "wait",
+        500
+      ],
+      [
+        "snap"
+      ]
+    ],
+    "errors": [
+      "Loading chunk 369 failed.\n(missing: http://127.0.0.1:38193/Games/DuckHunt/369.js)"
+    ],
+    "external": [],
+    "http_errors": [],
+    "candidates": [
+      {
+        "file": "220-0.jpg",
+        "sha256": "0c3ec58b758057306a42ce9c09feb66ac17b0ff9c0ac18f88312d3b146c3ab23"
+      }
+    ],
+    "headed": true,
+    "attempt_seconds": 6.54,
+    "prior_seconds": 18.74,
+    "seconds": 25.28,
+    "reason": "Review pending: headed/raw capture after click and lowercase p; no replacement renderer chunks.",
+    "status": "needs-manual",
+    "review_reason": "Black canvas; Loading chunk 369 failed (missing local module registration).",
+    "output": "assets/thumbs/duckhunt.jpg",
+    "output_sha256": null,
+    "output_bytes": 0
+  },
+  {
+    "id": 87,
+    "title": "Doge Miner",
+    "head": "819c16d073aa29e9cf66e95fcf0051f6cf59541c",
+    "entry_blob": "a5467cc2f5f360ee6652a38c4d48136447d561e6",
+    "source_tree": "76cfddcf17d7ae17d38bf04bd41797a946ea5c8e",
+    "actions": [
+      [
+        "wait",
+        12000
+      ],
+      [
+        "click",
+        640,
+        570
+      ],
+      [
+        "key",
+        "Enter"
+      ],
+      [
+        "wait",
+        500
+      ],
+      [
+        "snap"
+      ]
+    ],
+    "errors": [
+      "Invalid or unexpected token"
+    ],
+    "external": [],
+    "http_errors": [],
+    "candidates": [
+      {
+        "file": "87-0.jpg",
+        "sha256": "e7543ed94f6f96be806fca6f7445fe3c95e70e81938f0ab00aa814510df12941"
+      }
+    ],
+    "headed": true,
+    "attempt_seconds": 14.88,
+    "prior_seconds": 50.86,
+    "seconds": 65.74,
+    "reason": "Review pending: headed/raw loader and native Start-area input; no main-script repair.",
+    "status": "needs-manual",
+    "review_reason": "Invalid or unexpected token; loader persists, no mining gameplay.",
+    "output": "assets/thumbs/dogeminer.jpg",
+    "output_sha256": "d96baacd3c0db785f53b048d71955d8bd81fff0f55ba5a8712b7d8f3997ba0f8",
+    "output_bytes": 12708
+  },
+  {
+    "id": 8,
+    "title": "Run 3",
+    "head": "819c16d073aa29e9cf66e95fcf0051f6cf59541c",
+    "entry_blob": "d462a93efd3a8d168daa5b40e4046f0667c51c41",
+    "source_tree": "c638de581d899015f8dc994d048480ffc620d0cb",
+    "actions": [
+      [
+        "wait",
+        5000
+      ],
+      [
+        "click",
+        640,
+        360
+      ],
+      [
+        "key",
+        "Enter"
+      ],
+      [
+        "key",
+        "Space"
+      ],
+      [
+        "hold",
+        "ArrowRight",
+        700
+      ],
+      [
+        "snap"
+      ]
+    ],
+    "errors": [],
+    "external": [],
+    "http_errors": [],
+    "candidates": [
+      {
+        "file": "8-0.jpg",
+        "sha256": "6bb996139c5847577605c61463c6155ee243170d602c3ba346a79fe50e300cb6"
+      }
+    ],
+    "headed": true,
+    "attempt_seconds": 15.28,
+    "prior_seconds": 24.22,
+    "seconds": 39.5,
+    "reason": "Review pending: headed/raw capture after native start/jump/rotation keys; no JSON or engine changes.",
+    "status": "needs-manual",
+    "review_reason": "Starfield/bootstrap frame, no playable runner or tunnel; no page error yet, merits a bounded follow-up.",
+    "output": "assets/thumbs/run3.jpg",
+    "output_sha256": "9ba592a471f2a6a439ab7c9c64a474bfcf592b01923bd0f099b3ad4a5b1795bf",
+    "output_bytes": 9401
+  }
+]
