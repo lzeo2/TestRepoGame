@@ -1,0 +1,154 @@
+{
+  "attemptNumber": 2,
+  "collectorPID": 202647,
+  "status": "HOLD",
+  "phase": "ctf-menu",
+  "route": "repo-sync-launch-headless-swiftshader-new-context",
+  "tempDirectory": ".tmp/wings-ctf-202647-s4hdk9al",
+  "normalInputOnly": true,
+  "roleProof": "AI pilot plus player crew; not manual pilot acceptance",
+  "collectorLimitSeconds": 50,
+  "supervisorLimitSeconds": 50,
+  "launchLimitSeconds": 30,
+  "navigationLimitSeconds": 15,
+  "phases": [
+    {
+      "phase": "launch",
+      "unixSeconds": 1792750122.462876,
+      "elapsedMs": 4.477047998079797
+    },
+    {
+      "phase": "driver-start",
+      "unixSeconds": 1792750122.4878955,
+      "elapsedMs": 29.495262999262195
+    },
+    {
+      "phase": "chromium-launch",
+      "unixSeconds": 1792750123.7866974,
+      "elapsedMs": 1328.29742100148
+    },
+    {
+      "phase": "context-create",
+      "unixSeconds": 1792750124.3531044,
+      "elapsedMs": 1894.7036380013742
+    },
+    {
+      "phase": "page-create",
+      "unixSeconds": 1792750124.4025884,
+      "elapsedMs": 1944.188032000966
+    },
+    {
+      "phase": "navigation",
+      "unixSeconds": 1792750124.8754208,
+      "elapsedMs": 2417.0206369999505
+    },
+    {
+      "phase": "ctf-menu",
+      "unixSeconds": 1792750125.2244723,
+      "elapsedMs": 2766.07214699834
+    }
+  ],
+  "productLimitsSeconds": {
+    "workerBootWait": 30,
+    "postHandshakeReadiness": 20
+  },
+  "productGate": {
+    "status": "NOT_MEASURED"
+  },
+  "steps": [],
+  "screenshots": [],
+  "errors": [],
+  "warnings": [],
+  "failedRequests": [],
+  "external": [],
+  "serverPort": 39739,
+  "attempts": [
+    {
+      "attemptNumber": 2,
+      "collectorPID": 202647,
+      "status": "HOLD",
+      "phase": "ctf-menu",
+      "route": "repo-sync-launch-headless-swiftshader-new-context",
+      "tempDirectory": ".tmp/wings-ctf-202647-s4hdk9al",
+      "normalInputOnly": true,
+      "roleProof": "AI pilot plus player crew; not manual pilot acceptance",
+      "collectorLimitSeconds": 50,
+      "supervisorLimitSeconds": 50,
+      "launchLimitSeconds": 30,
+      "navigationLimitSeconds": 15,
+      "phases": [
+        {
+          "phase": "launch",
+          "unixSeconds": 1792750122.462876,
+          "elapsedMs": 4.477047998079797
+        },
+        {
+          "phase": "driver-start",
+          "unixSeconds": 1792750122.4878955,
+          "elapsedMs": 29.495262999262195
+        },
+        {
+          "phase": "chromium-launch",
+          "unixSeconds": 1792750123.7866974,
+          "elapsedMs": 1328.29742100148
+        },
+        {
+          "phase": "context-create",
+          "unixSeconds": 1792750124.3531044,
+          "elapsedMs": 1894.7036380013742
+        },
+        {
+          "phase": "page-create",
+          "unixSeconds": 1792750124.4025884,
+          "elapsedMs": 1944.188032000966
+        },
+        {
+          "phase": "navigation",
+          "unixSeconds": 1792750124.8754208,
+          "elapsedMs": 2417.0206369999505
+        },
+        {
+          "phase": "ctf-menu",
+          "unixSeconds": 1792750125.2244723,
+          "elapsedMs": 2766.07214699834
+        }
+      ],
+      "productLimitsSeconds": {
+        "workerBootWait": 30,
+        "postHandshakeReadiness": 20
+      },
+      "productGate": {
+        "status": "NOT_MEASURED"
+      },
+      "steps": [],
+      "screenshots": [],
+      "errors": [],
+      "warnings": [],
+      "failedRequests": [],
+      "external": [],
+      "serverPort": 39739,
+      "connectProbeMs": 2371.8235320011445,
+      "failure": "Locator.click: Timeout 5000ms exceeded.\nCall log:\n  - waiting for locator(\"#screen .mi .t\").get_by_text(\"Capture the flag\", exact=True).locator(\"..\")\n    - locator resolved to <div class=\"mi\" data-i=\"3\" tabindex=\"0\" role=\"button\">\u2026</div>\n  - attempting click action\n    - waiting for element to be visible, enabled and stable\n",
+      "collectorTimedOut": true,
+      "cleanupPhase": "owned-descendants",
+      "remainingOwnedProcesses": [],
+      "ownershipCleanupErrors": [],
+      "browserClosed": true,
+      "serverClosed": true,
+      "profileRemoved": true,
+      "supervisorExit": 1,
+      "supervisorCleanup": "finished"
+    }
+  ],
+  "connectProbeMs": 2371.8235320011445,
+  "failure": "Locator.click: Timeout 5000ms exceeded.\nCall log:\n  - waiting for locator(\"#screen .mi .t\").get_by_text(\"Capture the flag\", exact=True).locator(\"..\")\n    - locator resolved to <div class=\"mi\" data-i=\"3\" tabindex=\"0\" role=\"button\">\u2026</div>\n  - attempting click action\n    - waiting for element to be visible, enabled and stable\n",
+  "collectorTimedOut": true,
+  "cleanupPhase": "owned-descendants",
+  "remainingOwnedProcesses": [],
+  "ownershipCleanupErrors": [],
+  "browserClosed": true,
+  "serverClosed": true,
+  "profileRemoved": true,
+  "supervisorExit": 1,
+  "supervisorCleanup": "finished"
+}

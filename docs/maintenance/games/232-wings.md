@@ -493,6 +493,16 @@ atomic receipt and descendant-ownership checks pass; they do not prove gameplay.
 Runtime, models, catalog and source patch are unchanged. Inventory refresh is
 reserved for the coordinator; all release/hardware/rights holds remain.
 
+Final authorized [attempt 2](../audits/wings-synced-capture-20261023/attempt-02/README.md)
+used the optional headless SwiftShader launcher: **EXITED capture incomplete,
+exit 1; native attempts ABANDONED** under the two-attempt bound. The first CTF
+menu click resolved its button but timed out after 5s waiting for actionability;
+no completed clicks, samples or screenshots. Phase `ctf-menu`, product outcome
+UNKNOWN / NOT_MEASURED, not a supervisor expiry or measured product failure.
+Owned browser/server/profile cleanup and independent slot release passed.
+Collector-only argument propagation/default checks pass. No runtime/model change,
+retry or push; inventory refresh remains the coordinator's final docs-only task.
+
 ## Future outlook
 
 Complete operator and converted-family review, native missile/audio/physical-input

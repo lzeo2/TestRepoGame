@@ -40,7 +40,7 @@ def product_result(perf):
             'workerBootWaitMs': boot, 'postHandshakeReadinessMs': draw}
 
 
-def worker(out):
+def worker(out, headless=False, attempt_number=1):
     assert shutil.disk_usage(ROOT).free >= 2178940928
     base.assert_slot_clear()
     base.enable_subreaper()
@@ -49,8 +49,8 @@ def worker(out):
     temp = Path(tempfile.mkdtemp(prefix=f'wings-ctf-{os.getpid()}-', dir=ROOT / '.tmp'))
     os.environ['TMPDIR'] = str(temp)  # Driver-created fresh profiles stay inside the owned repository temp.
     started = time.monotonic()
-    receipt = {'attemptNumber': 1, 'collectorPID': os.getpid(), 'status': 'HOLD', 'phase': 'initializing',
-               'route': 'repo-sync-launch-new-context', 'tempDirectory': str(temp.relative_to(ROOT)),
+    receipt = {'attemptNumber': attempt_number, 'collectorPID': os.getpid(), 'status': 'HOLD', 'phase': 'initializing',
+               'route': 'repo-sync-launch-headless-swiftshader-new-context' if headless else 'repo-sync-launch-headed-new-context', 'tempDirectory': str(temp.relative_to(ROOT)),
                'normalInputOnly': True, 'roleProof': 'AI pilot plus player crew; not manual pilot acceptance',
                'collectorLimitSeconds': COLLECTOR_SECONDS, 'supervisorLimitSeconds': COLLECTOR_SECONDS,
                'launchLimitSeconds': 30, 'navigationLimitSeconds': 15, 'phases': [],
@@ -89,9 +89,12 @@ def worker(out):
         phase('driver-start')
         with sync_playwright() as p:
             phase('chromium-launch')
-            browser = p.chromium.launch(executable_path='/usr/bin/chromium', headless=False, timeout=30000,
-                args=['--no-sandbox', '--disable-gpu', '--disable-dev-shm-usage',
-                      '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'])
+            if headless:
+                browser = p.chromium.launch(executable_path='/usr/bin/chromium',headless=True,args=['--no-sandbox','--use-angle=swiftshader','--enable-unsafe-swiftshader'],timeout=30000)
+            else:
+                browser = p.chromium.launch(executable_path='/usr/bin/chromium', headless=False, timeout=30000,
+                    args=['--no-sandbox', '--disable-gpu', '--disable-dev-shm-usage',
+                          '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'])
             phase('context-create')
             context = browser.new_context(viewport={'width': 1280, 'height': 800}, color_scheme='dark')
             try:
@@ -149,6 +152,7 @@ def worker(out):
                 sample('CTF menu with speedboat selected')
                 phase('product-gate')
                 choose('#screen', 'Start offline')
+                sample('immediate post-start observation; not readiness proof')
                 page.wait_for_function("document.querySelector('#render-error[open]') || (window.__wings?.perf?.sceneMs > 0 && window.__wings?.stats?.drawCalls > 0)", timeout=remaining_ms(end, 50000))
                 state = sample('product readiness observed')
                 if state['gate']:
@@ -226,9 +230,14 @@ def worker(out):
     return 0 if base.collector_completed(receipt) else 1
 
 
-def supervised(out):
+def worker_command(out, headless, attempt_number):
+    return [sys.executable, '-B', __file__, '--out', str(out), '--worker',
+            '--attempt-number', str(attempt_number)] + (['--headless'] if headless else [])
+
+
+def supervised(out, headless=False, attempt_number=1):
     base.enable_subreaper()
-    child = subprocess.Popen([sys.executable, '-B', __file__, '--out', str(out), '--worker'], start_new_session=True)
+    child = subprocess.Popen(worker_command(out, headless, attempt_number), start_new_session=True)
     code = 124
     try:
         code = child.wait(timeout=COLLECTOR_SECONDS)
@@ -281,8 +290,14 @@ if __name__ == '__main__':
     parser.add_argument('--out', type=Path)
     parser.add_argument('--worker', action='store_true', help=argparse.SUPPRESS)
     parser.add_argument('--self-check', action='store_true')
+    parser.add_argument('--headless', action='store_true', help='Use the authorized system-Chromium SwiftShader launcher')
+    parser.add_argument('--attempt-number', type=int, default=1)
     args = parser.parse_args()
+    assert args.attempt_number > 0
     if args.self_check:
+        command = worker_command(Path('fixture'), True, 2)
+        assert command[-3:] == ['--attempt-number', '2', '--headless']
+        assert '--headless' not in worker_command(Path('fixture'), False, 1)
         assert COLLECTOR_SECONDS == 50
         assert remaining_ms(time.monotonic() + 60, 30000) == 30000
         assert 0 < remaining_ms(time.monotonic() + 1, 50000) <= 1000
@@ -306,4 +321,5 @@ if __name__ == '__main__':
         assert args.out is not None
         out = args.out.resolve()
         assert out.is_relative_to(ROOT)
-        raise SystemExit(worker(out) if args.worker else supervised(out))
+        raise SystemExit(worker(out, args.headless, args.attempt_number) if args.worker
+                         else supervised(out, args.headless, args.attempt_number))
