@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { createSimulation, CITY_EVENTS } from './sim.mjs';
+import { createSimulation, CITY_EVENTS, MILESTONES } from './sim.mjs';
 import { applyTool } from './native-actions.mjs';
 
 const log = text => console.log(text);
@@ -25,7 +25,9 @@ function city() {
 const { sim, power, water } = city();
 const initialBudget = sim.state.budget;
 let movedCars = 0, jams = 0, parking = 0, carIds = new Set();
-advance(sim, 600, () => {
+const naturalMilestones = [];
+advance(sim, 600, events => {
+  naturalMilestones.push(...events.filter(e => e.type === 'milestone'));
   for (const c of sim.state.cars) {
     if (carIds.has(c.id) && c.progress > 0) movedCars++;
     if (c.progress === 0.8) jams++;
@@ -37,6 +39,8 @@ advance(sim, 600, () => {
 });
 log(`600s city: population=${Math.floor(sim.state.population)} budget=${sim.state.budget.toFixed(2)} initial=${initialBudget} income/s=${sim.state.income.toFixed(2)} upkeep/s=${sim.state.upkeep.toFixed(2)} car-movement-observations=${movedCars}`);
 assert(sim.state.population >= 1400 && sim.state.population <= 1800, '600s growth balance');
+assert.deepEqual(naturalMilestones.map(({ population, name, grant }) => ({ population, name, grant })), MILESTONES.slice(0, 3));
+assert.deepEqual(sim.state.nextMilestone, MILESTONES[3]);
 assert(sim.state.budget !== initialBudget && sim.state.income > sim.state.upkeep, 'taxes and upkeep');
 assert(movedCars > 100 && carIds.size > sim.state.cars.length, 'road traffic moves and despawns');
 assert(jams > 0 && parking > 0, 'occupancy jams and destination parking');
@@ -74,7 +78,7 @@ const towers = [[9, 9], [15, 9], [9, 15], [15, 15]].map(([x, z]) => build(siege,
 const walls = [[12, 11], [13, 12], [12, 13], [11, 12]];
 const wallIds = new Set(walls.map(([x, z]) => { siege.roads.set(x, z, false); return build(siege, 'wall', x, z).id; }));
 let waveCounts = [], shots = 0, wallBites = 0, hallDamage = 0, lossEvents = 0, roadMoves = 0;
-let survived = 0, hallFirstDamaged = false;
+let survived = 0, hallFirstDamaged = false, fallenSnapshot;
 function observe(events) {
   for (const e of events) {
     if (e.type === 'wave') {
@@ -92,6 +96,13 @@ function observe(events) {
       }
     }
     if (e.type === 'night-survived') { survived++; log(`t=${e.time}s night repelled: score=${e.score} kills=${siege.state.kills}`); }
+    if (e.type === 'hall-fallen') {
+      assert.equal(siege.state.phase, 'day'); assert.equal(siege.state.rebuildRemaining, 120);
+      assert.equal(siege.state.zombies.length, 0); assert.equal(siege.state.pendingZombies, 0);
+      assert.equal(siege.state.score, 2); assert.equal(siege.state.kills, 26);
+      assert(siege.state.buildings.some(b => b.type === 'townhall' && b.hp === 0), 'ruined hall remains selectable');
+      fallenSnapshot = siege.snapshot();
+    }
     if (e.type === 'lost') { lossEvents++; log(`t=${e.time}s LOSS: score=${e.score} kills=${e.kills} peakPop=${e.peakPopulation} damage=${hallDamage}`); }
   }
   for (const z of siege.state.zombies) {
@@ -116,6 +127,8 @@ assert(shots > 0 && siege.state.kills >= 26, 'tower kills');
 assert(wallBites > 0 && roadMoves > 0, 'walls block and roads carry waves');
 assert.equal(siege.state.phase, 'lost'); assert.equal(siege.state.townHallHp, 0);
 assert.equal(hallDamage, 600); assert.equal(lossEvents, 1);
+assert(fallenSnapshot); assert.equal(siege.state.time - fallenSnapshot.state.time, 120, 'full recovery grace before loss');
+assert.deepEqual(createSimulation({ snapshot: siege.snapshot() }).snapshot(), siege.snapshot(), 'lost city also round-trips');
 assert(!siege.repair(1).ok && !siege.bulldoze(12, 12).ok, 'loss frozen and hall protected');
 const frozenTime = siege.state.time; advance(siege, 2); assert.equal(siege.state.time, frozenTime);
 log(`Three-night totals: waves=${waveCounts.join('/')} shots=${shots} kills=${siege.state.kills} wall-bite-ticks=${wallBites} road-motion-steps=${roadMoves}`);
@@ -277,3 +290,96 @@ for (const corrupt of [
 }
 const attached = createSimulation({ snapshot: saved, roads: supplied }); assert.equal(attached.roads, supplied); assert.deepEqual(attached.snapshot(), saved);
 log('SNAPSHOT CHECK PASS: detached round trip, fractional-clock replay and corrupt-input rejection before road mutation');
+
+// Population fixtures isolate thresholds; natural growth above also earned the first three.
+const rewards = city().sim;
+for (const z of [12, 14, 18, 22]) for (let x = 15; x <= 17; x++) build(rewards, 'residential', x, z);
+const rewardHomes = rewards.state.buildings.filter(b => b.type === 'residential');
+for (const b of rewardHomes) b.residents = 64;
+rewards.drainEvents(); const beforeRewards = rewards.state.budget;
+rewards.update(1);
+const earned = rewards.drainEvents().filter(e => e.type === 'milestone');
+assert.deepEqual(earned.map(({ population, name, grant }) => ({ population, name, grant })), MILESTONES);
+near(rewards.state.budget, beforeRewards + rewards.state.netIncome + MILESTONES.reduce((n, m) => n + m.grant, 0));
+assert.equal(rewards.state.nextMilestone, null);
+const paidCity = createSimulation({ snapshot: rewards.snapshot() });
+for (const b of paidCity.state.buildings) if (b.type === 'residential') b.residents = 0;
+paidCity.update(1);
+for (const b of paidCity.state.buildings) if (b.type === 'residential') b.residents = 64;
+paidCity.update(1);
+assert.equal(paidCity.drainEvents().filter(e => e.type === 'milestone').length, 0, 'regrowth/reload never repeats a grant');
+const pausedReward = createSimulation(); pausedReward.setSpeed(0); pausedReward.update(1000);
+assert.equal(pausedReward.state.budget, 40000); assert.equal(pausedReward.snapshot().runtime.milestone, 0);
+log('MILESTONE CHECK PASS: natural first three, all five named grants, exact budget, multi-crossing, pause and no regrowth/reload farming');
+
+const diagnosis = createSimulation({ size: 40 });
+advance(diagnosis, 5); assert.match(diagnosis.state.growthDiagnosis, /No homes yet/);
+diagnosis.roads.place({ x: 2, z: 19 }, { x: 30, z: 19 });
+build(diagnosis, 'power', 2, 18); const diagnosticWater = build(diagnosis, 'water', 3, 18);
+const diagnosticHome = build(diagnosis, 'residential', 18, 18);
+advance(diagnosis, 5); assert(diagnosis.state.population > 0); assert.equal(diagnosis.state.growthDiagnosis, '', 'baseline demand grows without jobs');
+diagnosis.roads.set(10, 19, false); advance(diagnosis, 5);
+assert(diagnosis.state.power.supply > 0); assert.match(diagnosis.state.growthDiagnosis, /Homes lack power/);
+diagnosis.roads.set(10, 19); advance(diagnosis, 5); assert.equal(diagnosis.state.growthDiagnosis, '');
+diagnosis.bulldoze(diagnosticWater.x, diagnosticWater.z); advance(diagnosis, 5);
+assert.match(diagnosis.state.growthDiagnosis, /Homes lack water/);
+build(diagnosis, 'water', diagnosticWater.x, diagnosticWater.z); advance(diagnosis, 5);
+diagnosis.setTaxRate(0.3); advance(diagnosis, 5); assert.match(diagnosis.state.growthDiagnosis, /lower taxes/);
+diagnosis.setTaxRate(0.1); advance(diagnosis, 5); assert.equal(diagnosis.state.growthDiagnosis, '');
+diagnosticHome.residents = 64; advance(diagnosis, 10); assert.match(diagnosis.state.growthDiagnosis, /Homes are full/);
+const distant = createSimulation({ size: 40 });
+distant.roads.place({ x: 1, z: 3 }, { x: 5, z: 3 });
+build(distant, 'power', 1, 2); build(distant, 'water', 3, 2); build(distant, 'residential', 2, 2);
+advance(distant, 5); assert.match(distant.state.growthDiagnosis, /Homes lack services/);
+build(distant, 'park', 4, 2); advance(distant, 5); assert.equal(distant.state.growthDiagnosis, '');
+const lowDemand = city().sim;
+for (const b of [...lowDemand.state.buildings]) {
+  if (['commercial', 'industrial'].includes(b.type)) lowDemand.bulldoze(b.x, b.z);
+  if (b.type === 'residential') b.residents = 50;
+}
+lowDemand.state.population = 1600; advance(lowDemand, 10);
+assert.equal(lowDemand.state.demand.residential, 0); assert.match(lowDemand.state.growthDiagnosis, /demand is low/);
+const unsupervised = city().sim;
+for (const b of [...unsupervised.state.buildings]) {
+  if (b.type === 'police') unsupervised.bulldoze(b.x, b.z);
+  if (b.type === 'residential') b.residents = 64;
+}
+unsupervised.state.population = 2048; advance(unsupervised, 10);
+assert.match(unsupervised.state.growthDiagnosis, /Crime is driving residents away/);
+const diagnosisSave = createSimulation({ snapshot: diagnosis.snapshot() });
+diagnosis.update(7.1); diagnosisSave.update(7.1); assert.deepEqual(diagnosisSave.snapshot(), diagnosis.snapshot());
+log('DIAGNOSIS CHECK PASS: five-second cadence, power/network cut, water, services, crime, capacity, taxes, low demand, baseline jobs and reload');
+
+// Replay a naturally fallen hall, then use the same Repair action as native input.
+const rescue = createSimulation({ snapshot: fallenSnapshot });
+assert.equal(rescue.setMode('free'), false); assert.equal(rescue.skipToNight(), false);
+assert.equal(rescue.bulldoze(12, 12).ok, false); assert.equal(rescue.place('park', 12, 12).ok, false);
+rescue.setSpeed(0); rescue.update(1000); assert.equal(rescue.state.rebuildRemaining, 120);
+rescue.setSpeed(1); rescue.update(0.1);
+const rescueCopy = createSimulation({ snapshot: rescue.snapshot() });
+rescue.update(10); rescueCopy.update(10); assert.deepEqual(rescueCopy.snapshot(), rescue.snapshot());
+assert.equal(rescue.state.rebuildRemaining, 110);
+const recoveryHome = build(rescue, 'residential', 1, 10);
+const survivors = rescue.state.buildings.map(b => b.id), savedBudget = rescue.state.budget;
+rescue.state.budget = 239; assert.equal(applyTool(rescue, 'repair', { x: 12, z: 12 }).ok, false);
+assert.equal(rescue.state.townHallHp, 0); assert.equal(rescue.state.budget, 239);
+rescue.state.budget = savedBudget;
+const rebuilt = applyTool(rescue, 'repair', { x: 12, z: 12 });
+assert.equal(rebuilt.ok, true); assert.equal(rebuilt.cost, 240); near(rescue.state.budget, savedBudget - 240);
+assert.equal(rescue.state.townHallHp, 600); assert.equal(rescue.state.rebuildRemaining, 0);
+assert.equal(rescue.state.dayRemaining, 240); assert.equal(rescue.state.phase, 'day');
+assert.deepEqual(rescue.state.buildings.map(b => b.id), survivors); assert(rescue.state.buildings.includes(recoveryHome));
+assert.equal(rescue.state.score, 2); assert.equal(rescue.state.kills, 26);
+assert.equal(rescue.drainEvents().filter(e => e.type === 'hall-rebuilt').length, 1);
+const hallBurst = rescue.state.cityEvents.some(e => e.type === 'water-main-burst' && e.district === '1,1');
+const followupRepair = applyTool(rescue, 'repair', { x: 12, z: 12 });
+assert.equal(followupRepair.ok, hallBurst, 'rebuild takes priority, but any water-main leak still needs repair');
+if (hallBurst) assert.equal(followupRepair.cost, 120);
+advance(rescue, 239); assert.equal(rescue.state.night, 3);
+advance(rescue, 1); assert.equal(rescue.state.night, 4); assert.equal(rescue.state.phase, 'night');
+const expiry = createSimulation({ snapshot: fallenSnapshot }); expiry.setSpeed(10); expiry.update(11.975);
+assert.equal(expiry.state.rebuildRemaining, 0.25); assert.equal(expiry.state.phase, 'day');
+expiry.update(0.025); assert.equal(expiry.state.phase, 'lost');
+assert.equal(expiry.drainEvents().filter(e => e.type === 'lost').length, 1);
+const expiredTime = expiry.state.time; expiry.update(100); assert.equal(expiry.state.time, expiredTime);
+log('RECOVERY CHECK PASS: natural fall, retained city, pause/10x, exact 120s expiry, paid native-tool rebuild, next wave, mode/skip guards and save replay');
