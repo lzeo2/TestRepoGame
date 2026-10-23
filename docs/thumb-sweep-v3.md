@@ -3,7 +3,8 @@
 ## Result and scope
 
 **Update: [v3.1 manual continuation](#v31-manual-capture-continuation) attempted
-all 52 holds: 25 refreshed, 27 still needs-manual. Combined fresh total: 100/127.
+all 52 holds, now including bounded retries: 26 refreshed, 26 still needs-manual.
+Combined fresh total: 101/127. Latest retry results are appended below.
 Final portal visual verification passed 4/4 desktop/mobile theme views; no push.**
 The original v3 result below remains historical.
 
@@ -773,3 +774,37 @@ check passed again. Screenshot validation printed
 `PASS: four portal cases and eight screenshot dimensions/hashes`.
 The inventory remains source-current and byte-identical; final storage and clean
 Git status are reported at handoff.
+
+### Operator-resumed bounded retries: batch 1
+
+The operator supplied raw CDP screenshot guidance and a headed Xvfb fallback.
+Retries preserve the **same cumulative 180s/game budget**, not a new allowance.
+The tool now loads and updates a RAM budget ledger, sets a fractional remaining
+`ITIMER_REAL` deadline, and captures via native `Page.captureScreenshot` with
+`format: jpeg`, `quality: 80`, `captureBeyondViewport: false`. This batch used
+headed `/usr/bin/chromium` under Xvfb, retaining the existing software-GL flags.
+No game state, save, renderer or source was patched. Browser/server released at
+five games. Fresh resume free space **2,980,159,488 bytes**; batch-close free
+space **2,979,667,968 bytes**. No waiver or outside-repo deletion.
+
+**1 accepted / 5 retried; latest total 26 refreshed, 26 needs-manual.**
+[Chained timing/source/image receipt](thumb-sweep-v3.1/retry-01.json).
+
+| ID | Game | Prior / retry / cumulative seconds | Latest status |
+| --- | --- | --- | --- |
+| 54 | Retro Bowl | 121.56 / 58.44 / 180.00 | needs-manual: Welcome still did not reach field before deadline |
+| 89 | Retro Bowl Hacked | 108.04 / 9.35 / 117.39 | needs-manual: New Career setup reached, no field |
+| 136 | Merge Cats Defender | 138.04 / 32.28 / 170.32 | captured: native Play, Stage 1, Start and Boxing deployment; Wave 1 HUD, deployed unit and enemy entering |
+| 66 | Geometry Dash Lite | 95.00 / 32.63 / 127.63 | needs-manual: level scenery but absent player again |
+| 232 | Wings | 98.83 / 49.11 / 147.94 | needs-manual: headed Low WebGL2 still fails first scene draw |
+
+Only `assets/thumbs/mergecatsdefender.jpg` was replaced after visual/image-guard
+acceptance; hacked cats keeps its dedicated image. The earlier portal proof at
+`8500ea7` remains a dated proof of the prior base image, not evidence that this
+new capture was already browser-reviewed there. The read-only receipt checker
+now validates retry timing chains and the latest output for each of the same 52
+games. Actual output:
+
+```text
+PASS: 52 games, 57 attempts, 26 accepted 1280x720 JPEGs, 26 retained images/fallbacks; cumulative budgets, current source hashes and all 127 catalog URLs unchanged.
+```

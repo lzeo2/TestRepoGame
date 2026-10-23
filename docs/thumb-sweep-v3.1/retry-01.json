@@ -1,0 +1,286 @@
+[
+  {
+    "id": 54,
+    "title": "Retro Bowl",
+    "head": "00b51d110bc4449f87fcf76daba6f7d027bf4a40",
+    "entry_blob": "3db687832ae2d62bfcdba77476b5f7aaccb9a906",
+    "source_tree": "795337be7c34d74e43321ed81675656cfbd7102a",
+    "actions": [
+      [
+        "wait",
+        5000
+      ],
+      [
+        "click",
+        1060,
+        640
+      ],
+      [
+        "wait",
+        1000
+      ],
+      [
+        "snap"
+      ]
+    ],
+    "errors": [],
+    "external": [],
+    "http_errors": [
+      "404 /Games/RetroBowl/html5game/optiondata.dat",
+      "404 /Games/RetroBowl/html5game/savedata.ini"
+    ],
+    "candidates": [
+      {
+        "file": "54-0.jpg",
+        "sha256": "f24355dcaddc84b433cb79d84c45085f6a769f56c3042ed2ad718bda4ec50f52"
+      }
+    ],
+    "attempt_seconds": 58.44,
+    "prior_seconds": 121.56,
+    "seconds": 180.0,
+    "reason": "180s game deadline",
+    "headed": true,
+    "status": "needs-manual",
+    "review_reason": "Welcome did not reach on-field play before cumulative deadline.",
+    "output": "assets/thumbs/retrobowl.jpg",
+    "previous_sha256": "a8b0ea49ef625922b5ceb67cd46347e7e9895b55769842b6698a93ee00424572",
+    "output_sha256": "a8b0ea49ef625922b5ceb67cd46347e7e9895b55769842b6698a93ee00424572",
+    "output_bytes": 14481
+  },
+  {
+    "id": 89,
+    "title": "Retro Bowl Hacked",
+    "head": "00b51d110bc4449f87fcf76daba6f7d027bf4a40",
+    "entry_blob": "7b13fdcf40c8cfc551978f24aa3a8603e2c2b4b2",
+    "source_tree": "b6c70229b7f6d03fc5cb2e39f45b0097f9483726",
+    "actions": [
+      [
+        "wait",
+        5000
+      ],
+      [
+        "click",
+        1060,
+        640
+      ],
+      [
+        "wait",
+        1000
+      ],
+      [
+        "key",
+        "Enter"
+      ],
+      [
+        "snap"
+      ]
+    ],
+    "errors": [],
+    "external": [],
+    "http_errors": [
+      "404 /Games/RetroBowlHacked/html5game/optiondata.dat",
+      "404 /Games/RetroBowlHacked/html5game/savedata.ini"
+    ],
+    "candidates": [
+      {
+        "file": "89-0.jpg",
+        "sha256": "1d406a0823ba6502819b2cb12f0c81a25032fe91cc6f65b4fd7de337850a224f"
+      }
+    ],
+    "attempt_seconds": 9.35,
+    "prior_seconds": 108.04,
+    "seconds": 117.39,
+    "reason": "needs-manual: headed Xvfb/raw capture/native Continue input still did not reach field; frame retained for review.",
+    "headed": true,
+    "status": "needs-manual",
+    "review_reason": "New Career setup reached, not on-field play.",
+    "output": "assets/thumbs/retrobowl.jpg",
+    "previous_sha256": "a8b0ea49ef625922b5ceb67cd46347e7e9895b55769842b6698a93ee00424572",
+    "output_sha256": "a8b0ea49ef625922b5ceb67cd46347e7e9895b55769842b6698a93ee00424572",
+    "output_bytes": 14481
+  },
+  {
+    "id": 136,
+    "title": "Merge Cats Defender",
+    "head": "00b51d110bc4449f87fcf76daba6f7d027bf4a40",
+    "entry_blob": "6cb88bcf53478fa8ee087f9fa940035f60c01a4f",
+    "source_tree": "526b3d1f65cfc05058f08c44012ab5d31adaa1cb",
+    "actions": [
+      [
+        "wait",
+        23000
+      ],
+      [
+        "click",
+        640,
+        448
+      ],
+      [
+        "wait",
+        500
+      ],
+      [
+        "click",
+        150,
+        398
+      ],
+      [
+        "wait",
+        500
+      ],
+      [
+        "click",
+        780,
+        672
+      ],
+      [
+        "wait",
+        500
+      ],
+      [
+        "click",
+        770,
+        665
+      ],
+      [
+        "click",
+        430,
+        440
+      ],
+      [
+        "wait",
+        1000
+      ],
+      [
+        "snap"
+      ]
+    ],
+    "errors": [],
+    "external": [],
+    "http_errors": [],
+    "candidates": [
+      {
+        "file": "136-0.jpg",
+        "sha256": "07d806157e707816b48950c17b8aa7a2205f78e11df35977dddba06886dc31b4"
+      }
+    ],
+    "attempt_seconds": 32.28,
+    "prior_seconds": 138.04,
+    "seconds": 170.32,
+    "reason": "Review pending: headed/native Play-stage1-Start-deploy recipe; cumulative180s budget enforced.",
+    "headed": true,
+    "status": "captured",
+    "review_reason": "Actual stage1 with deployed Boxing cat, Wave1 HUD and enemy entering at right; no loading/menu.",
+    "output": "assets/thumbs/mergecatsdefender.jpg",
+    "previous_sha256": "c90b0cf3727d80898f0bee98ad784bd6c0ae3aaa7a57d13650a68914795c856e",
+    "accepted_candidate": "136-0.jpg",
+    "output_sha256": "381419c335d2f77d74197be527c75db6759b1e5bb62a31a300ebc98d4a5fdaf5",
+    "output_bytes": 68048
+  },
+  {
+    "id": 66,
+    "title": "Geometry Dash Lite",
+    "head": "00b51d110bc4449f87fcf76daba6f7d027bf4a40",
+    "entry_blob": "06582aedb020d47fe43c23bddd3612d835843708",
+    "source_tree": "6f81c65619ca390d6fc0413c219ffea4d81cbd7f",
+    "actions": [
+      [
+        "wait",
+        22000
+      ],
+      [
+        "click",
+        640,
+        360
+      ],
+      [
+        "wait",
+        1000
+      ],
+      [
+        "click",
+        640,
+        220
+      ],
+      [
+        "wait",
+        2000
+      ],
+      [
+        "key",
+        "Space"
+      ],
+      [
+        "wait",
+        800
+      ],
+      [
+        "snap"
+      ]
+    ],
+    "errors": [],
+    "external": [],
+    "http_errors": [],
+    "candidates": [
+      {
+        "file": "66-0.jpg",
+        "sha256": "bdd56f7d5ddea7b06be9adac42297267af1b6830afa33f447a2979716ecd21c5"
+      }
+    ],
+    "attempt_seconds": 32.63,
+    "prior_seconds": 95.0,
+    "seconds": 127.63,
+    "reason": "Review pending: headed/raw CDP Play-level-native Space recipe, no game state changes.",
+    "headed": true,
+    "status": "needs-manual",
+    "review_reason": "Attempt1 scenery rendered but player remains absent; rejected.",
+    "output": "assets/thumbs/geometrydashlite.jpg",
+    "previous_sha256": "33828e6c6d85e0cce6ecfdd9045adf2bfa84982a58738e6b468dc070b09136b8",
+    "output_sha256": "33828e6c6d85e0cce6ecfdd9045adf2bfa84982a58738e6b468dc070b09136b8",
+    "output_bytes": 9235
+  },
+  {
+    "id": 232,
+    "title": "Wings",
+    "head": "00b51d110bc4449f87fcf76daba6f7d027bf4a40",
+    "entry_blob": "2d7f08aa3ca94c87da2921c7916bec48d28e13aa",
+    "source_tree": "f8b4f06e6dd62100e6d24ccbbdda7fb431a4d297",
+    "actions": [
+      [
+        "wait",
+        3000
+      ],
+      [
+        "key",
+        "Enter"
+      ],
+      [
+        "wait",
+        15000
+      ],
+      [
+        "snap"
+      ]
+    ],
+    "errors": [],
+    "external": [],
+    "http_errors": [],
+    "candidates": [
+      {
+        "file": "232-0.jpg",
+        "sha256": "0bdd26833984c56fe9f07c429060761605bc65e31d08fda8b0d1225986e01ee9"
+      }
+    ],
+    "attempt_seconds": 49.11,
+    "prior_seconds": 98.83,
+    "seconds": 147.94,
+    "reason": "Review pending: headed Solo flight with raw CDP, no renderer substitution.",
+    "headed": true,
+    "status": "needs-manual",
+    "review_reason": "Low WebGL2 first-scene draw still times out under headed Xvfb.",
+    "output": "assets/thumbs/wings.jpg",
+    "previous_sha256": null,
+    "output_sha256": null,
+    "output_bytes": 0
+  }
+]

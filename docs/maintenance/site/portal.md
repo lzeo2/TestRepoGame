@@ -105,7 +105,9 @@ The tool regression covers safe paths, exact Git blob delivery and real 404s.
 The v3.1 continuation gives Merge Cats Defender Hacked its own image-path alias,
 `mergecatsdefenderhacked.jpg`, after native stage-one deployment reached a real
 wave. Its original HACKED badge must not overwrite the base game's shared art.
-The base `mergecatsdefender.jpg` bytes remain unchanged. Jetpack Joyride Hacked
+The initial alias split preserved base `mergecatsdefender.jpg`. A later bounded
+headed retry captured normal Stage 1 deployment and replaced that base file;
+the two variants still resolve independently. Jetpack Joyride Hacked
 likewise maps to `jetpackjoyridehacked.jpg` after a real scrolling-run capture,
 so its badge cannot overwrite the newly captured normal variant. These are only
 image mapping changes, not catalog/gameplay or rights changes; capture/alias
@@ -118,8 +120,10 @@ no broken image elements, page errors, external requests or document overflow.
 Both dedicated aliases resolved to their own 1280x720 captures. The four missing
 JPG 404s remain known exclusions, and normal Merge Cats retains old loader art.
 [Proof, screenshots and limitations](../../thumb-sweep-v3.md#final-portal-sanity-proof-after-storage-recovery).
-This closes the portal image-mapping hold only, not the 27 game-capture holds or
-full-fleet release gate; no runtime source changed in this follow-up.
+That dated proof closed the image-mapping hold only, not game-capture or full-fleet
+release gates; no runtime source changed in that proof follow-up. The subsequent
+normal-cats capture reduces the current game-capture holds to 26; the latest
+retry receipt distinguishes it from the older portal proof.
 
 ## Safe refurbishment and verification
 

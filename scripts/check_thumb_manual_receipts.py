@@ -18,6 +18,16 @@ def main():
     expected = {r['id'] for r in original['games'] if r['status'] == 'needs-manual'}
     assert len(rows) == len(expected) == 52
     assert {r['id'] for r in rows} == expected
+    attempts = len(rows)
+    latest = {r['id']: r for r in rows}
+    for path in sorted((ROOT / 'docs/thumb-sweep-v3.1').glob('retry-*.json')):
+        for r in json.loads(path.read_text()):
+            assert r['id'] in latest
+            assert r['prior_seconds'] == latest[r['id']]['seconds']
+            assert abs(r['seconds'] - r['prior_seconds'] - r['attempt_seconds']) < .02
+            latest[r['id']] = r
+            attempts += 1
+    rows = list(latest.values())
     catalog_bytes = (ROOT / 'games.json').read_bytes()
     assert hashlib.sha256(catalog_bytes).hexdigest() == original['catalog_sha256']
     games = json.loads(catalog_bytes)
@@ -49,9 +59,8 @@ def main():
             assert r['status'] == 'needs-manual'
             prior = next(g for g in original['games'] if g['id'] == r['id'])
             assert digest == prior['output_sha256'], r['id']
-    assert accepted == 25
     assert all(g['url'] in files for g in games)
-    print('PASS: 52 attempts, 25 accepted 1280x720 JPEGs, 27 retained images/fallbacks; current source hashes and all 127 catalog URLs unchanged.')
+    print(f'PASS: 52 games, {attempts} attempts, {accepted} accepted 1280x720 JPEGs, {52-accepted} retained images/fallbacks; cumulative budgets, current source hashes and all 127 catalog URLs unchanged.')
     print(f'Max recorded duration: {max(r["seconds"] for r in rows):.2f}s (180s input deadline plus receipt bookkeeping).')
 
 

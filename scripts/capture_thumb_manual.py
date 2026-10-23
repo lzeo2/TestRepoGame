@@ -5,6 +5,9 @@ TMPDIR=/dev/shm python3 -B scripts/capture_thumb_manual.py
 Send JSON arrays to /dev/shm/thumb-manual/command.json; read reply.json.
 Commands: open ID, click X Y, key KEY, hold KEY MS, wait MS, selector CSS,
 snap, info, finish REASON, quit. Candidates require separate visual acceptance.
+For retries set THUMB_PRIOR_BUDGETS to a JSON {game_id: seconds_used} file;
+finished attempts update that file. THUMB_HEADED=1 uses an existing X display.
+THUMB_OUT may select another RAM-backed candidate directory.
 """
 import base64
 import hashlib
@@ -19,18 +22,22 @@ from urllib.parse import quote, urlsplit
 from capture_game_thumbs import CHROME, ROOT, VIEWPORT, require_space, require_response
 from capture_thumb_sweep_v3 import CaptureBudgetExceeded, git, serve, tracked
 
-OUT = Path('/dev/shm/thumb-manual')
+OUT = Path(os.environ.get('THUMB_OUT', '/dev/shm/thumb-manual'))
 
 
-def remaining(start):
-    return max(0, 180 - (time.monotonic() - start))
+def remaining(start, prior=0):
+    return max(0, 180 - prior - (time.monotonic() - start))
 
 
 def main():
     require_space()
     assert os.environ.get('TMPDIR') == '/dev/shm'
     assert subprocess.run(['pgrep', '-f', 'chrome-linux/chrome'], capture_output=True).returncode == 1, 'Sibling browser active'
+    assert OUT.resolve().is_relative_to('/dev/shm'), 'Candidates must stay in RAM'
     OUT.mkdir(exist_ok=True)
+    budget_path = Path(os.environ['THUMB_PRIOR_BUDGETS']) if os.environ.get('THUMB_PRIOR_BUDGETS') else None
+    assert budget_path is None or budget_path.resolve().is_relative_to('/dev/shm'), 'Budget ledger must stay in RAM'
+    used = json.loads(budget_path.read_text()) if budget_path else {}
     command = OUT / 'command.json'
     reply = OUT / 'reply.json'
     command.unlink(missing_ok=True)
@@ -48,11 +55,16 @@ def main():
 
     def finish(reason):
         nonlocal record, context, page
-        signal.alarm(0)
+        signal.setitimer(signal.ITIMER_REAL, 0)
         if record:
-            record['seconds'] = round(time.monotonic() - started, 2)
+            record['attempt_seconds'] = round(time.monotonic() - started, 2)
+            record['prior_seconds'] = prior
+            record['seconds'] = round(prior + record['attempt_seconds'], 2)
             record['reason'] = reason
             (OUT / f'{record["id"]}.json').write_text(json.dumps(record, indent=2) + '\n')
+            used[str(record['id'])] = record['seconds']
+            if budget_path:
+                budget_path.write_text(json.dumps(used) + '\n')
         if context:
             context.close()
         record = context = page = None
@@ -61,7 +73,7 @@ def main():
     from playwright.sync_api import sync_playwright
     try:
         with sync_playwright() as pw:
-            browser = pw.chromium.launch(executable_path=CHROME, headless=True,
+            browser = pw.chromium.launch(executable_path=CHROME, headless=os.environ.get('THUMB_HEADED') != '1',
                 args=['--no-sandbox', '--use-gl=angle', '--use-angle=swiftshader',
                       '--enable-unsafe-swiftshader', '--autoplay-policy=no-user-gesture-required'])
             try:
@@ -85,11 +97,14 @@ def main():
                                 require_space()
                                 count += 1
                                 game = games[int(args[0])]
+                                prior = float(used.get(str(game['id']), 0))
+                                assert 0 <= prior < 179, 'Game budget exhausted; no fresh 180s allowance'
                                 started = time.monotonic()
                                 record = dict(id=game['id'], title=game['title'], head=head,
                                     entry_blob=files[game['url']], source_tree=git('rev-parse', head+':'+ '/'.join(game['url'].split('/')[:2])).decode().strip(),
-                                    actions=[], errors=[], external=[], http_errors=[], candidates=[])
-                                signal.alarm(180)
+                                    actions=[], errors=[], external=[], http_errors=[], candidates=[],
+                                    headed=os.environ.get('THUMB_HEADED') == '1')
+                                signal.setitimer(signal.ITIMER_REAL, remaining(started, prior))
                                 context = browser.new_context(viewport=VIEWPORT, device_scale_factor=1)
                                 def route(r):
                                     if urlsplit(r.request.url).scheme in ('data', 'blob', 'about') or r.request.url.startswith(origin+'/'):
@@ -128,7 +143,7 @@ def main():
                                     cdp = context.new_cdp_session(page)
                                     try:
                                         data = base64.b64decode(cdp.send('Page.captureScreenshot',
-                                            {'format': 'jpeg', 'quality': 80, 'fromSurface': True})['data'])
+                                            {'format': 'jpeg', 'quality': 80, 'captureBeyondViewport': False})['data'])
                                     finally:
                                         cdp.detach()
                                     (OUT / name).write_bytes(data)
@@ -140,7 +155,7 @@ def main():
                                 else:
                                     raise ValueError(op)
                         if record:
-                            result['remaining'] = round(remaining(started), 1)
+                            result['remaining'] = round(remaining(started, prior), 1)
                         reply.write_text(json.dumps(result))
                     except CaptureBudgetExceeded as exc:
                         finish(str(exc))
@@ -159,6 +174,8 @@ if __name__ == '__main__':
     if '--self-test' in __import__('sys').argv:
         assert 179 <= remaining(time.monotonic()) <= 180
         assert remaining(time.monotonic()-181) == 0
+        assert 58 <= remaining(time.monotonic(), 121) <= 59
+        assert remaining(time.monotonic(), 180) == 0
         assert not isinstance(CaptureBudgetExceeded(), Exception)
         print('PASS: monotonic 180s deadline and uncaught budget exception')
     else:
