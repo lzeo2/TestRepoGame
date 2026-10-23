@@ -143,6 +143,15 @@ order label, no Three.js game/runtime was loaded or version-attested by this
 portal-only proof. The 26 remaining needs-manual outcomes are now operator-final;
 no source repair, new game or recapture was authorized. No push.
 
+A later explicit all-clear order requested a fresh proof at `de8d3d91`, using a
+new RAM scratch directory and the **unmodified 2,147,483,648-byte storage floor**,
+no waiver. [Revalidation receipt/eight screenshots](../../thumb-sweep-v3.1/portal-revalidation-20261024/results.json)
+again passed all four desktop/mobile light/dark cases with the same card/image
+counts, expected fallbacks and correct aliases; no errors, overflow or external/game
+requests. The operator's assumption that the existing alias is already at Three.js
+0.186.0 is recorded as an assumption, not independently verified engine/version
+acceptance. No runtime edits, game visits or past-budget recaptures; no push.
+
 ## Safe refurbishment and verification
 
 Smallest fixes belong in authored UX shared helpers: search routing, recent validation, catalog retry/status and DOM reconciliation. Keep bundle DOM class contracts and preserve title/ID identity separately. Do not hand-edit compiled React or replace working game menus. Density controls, copy-link/share actions, deep-link query state, custom scroll-spy and account features were **not found** in the audited authored portal/application tail. `portal-share.png` is metadata imagery, not a share widget. Motion-library IntersectionObserver code is not proof of an active portal scroll feature.

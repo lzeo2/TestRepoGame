@@ -1040,3 +1040,47 @@ waiver; final post-receipt-commit `df` is reported in handoff. Documentation-onl
 receipts total 367,901 bytes before Git storage. Catalog, game sources, runtime
 images and scripts are unchanged. No games added or registered, full-fleet smoke,
 publication or push; needs-manual remains final.
+
+### Fresh all-clear revalidation with normal guard (2026-10-24)
+
+The operator explicitly requested a new proof after storage recovery, not reuse
+of the prior waiver receipt. Tested source **`de8d3d91e3775970b90f38af6fbc1071876165e9`**.
+Fresh browser/profile/cache scratch and portal screenshots used a new RAM directory;
+Chromium remained pinned to `/usr/bin/chromium`. The standard `require_space`
+floor **2,147,483,648 bytes** was asserted and used **unmodified**, without a waiver.
+No repeated `df` polling, installs, runtime/source edits or push.
+
+**Operator-supplied assumption:** treat the branch's existing portal alias as
+already at **Three.js 0.186.0**, and revalidate current state without changing it.
+This assumption is recorded explicitly in the receipt; the portal UI proof does
+not independently attest a Three.js version or game renderer/hardware acceptance.
+No game requests or past-budget recaptures were made.
+
+[Fresh receipt](thumb-sweep-v3.1/portal-revalidation-20261024/results.json):
+**4/4 PASS**, all eight screenshots visually reviewed. Each case rendered 127
+cards, 123 loaded images, four known fallbacks, correct dedicated hacked aliases,
+and zero broken image elements, page errors, external/game requests or document
+overflow. Base/hacked imagery remains distinct; labels and actions are readable
+in both themes and mobile layouts. The four expected thumbnail 404s are unchanged.
+
+| View | Jetpack pair | Cats pair |
+| --- | --- | --- |
+| Desktop light, 1280x720 | [Screenshot](thumb-sweep-v3.1/portal-revalidation-20261024/desktop-light-jetpack.jpg) | [Screenshot](thumb-sweep-v3.1/portal-revalidation-20261024/desktop-light-cats.jpg) |
+| Desktop dark, 1280x720 | [Screenshot](thumb-sweep-v3.1/portal-revalidation-20261024/desktop-dark-jetpack.jpg) | [Screenshot](thumb-sweep-v3.1/portal-revalidation-20261024/desktop-dark-cats.jpg) |
+| Mobile light, 390x844 | [Screenshot](thumb-sweep-v3.1/portal-revalidation-20261024/mobile-light-jetpack.jpg) | [Screenshot](thumb-sweep-v3.1/portal-revalidation-20261024/mobile-light-cats.jpg) |
+| Mobile dark, 390x844 | [Screenshot](thumb-sweep-v3.1/portal-revalidation-20261024/mobile-dark-jetpack.jpg) | [Screenshot](thumb-sweep-v3.1/portal-revalidation-20261024/mobile-dark-cats.jpg) |
+
+Actual verification output:
+
+```text
+PASS: 4 fresh portal cases, 8 reviewed screenshot hashes/dimensions; normal floor unchanged, no waiver.
+```
+
+An initial RAM-only setup assertion falsely matched `==` as assignment and stopped
+before browser launch; correcting that setup assertion preceded the single actual
+browser proof, which exited 0 and closed browser/server normally. No tracked code
+was edited. Measured free root bytes: **2,796,838,912 before work**,
+**2,796,773,376 at browser close** (65,536-byte observed decrease). Final post-receipt
+commit storage is reported in handoff. Needs-manual stays operator-final at 26;
+26 refreshed / 26 held, 101/127 fresh overall, no games added, new registrations,
+full-fleet smoke, publication or push. Earlier evidence is preserved.
