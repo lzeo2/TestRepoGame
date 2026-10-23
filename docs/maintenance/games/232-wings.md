@@ -515,11 +515,20 @@ remain unchanged since `be0de0b`. Historical HOLDs and all existing gates retain
 their states; the October 17 125/125 result is not a current 127-game pass.
 
 Orchestrator diagnostic ticket `pi-197482-1792750271892-16c1c1c0`, referencing
-`pi-829842-1792632763581-ba60545e`, remains pending after a 60s Hermes timeout.
-It asks for evidence distinguishing post-start unresponsive CDP from product-gate
-failure and explaining headless actionability without force clicks/state grants.
-No automatic third attempt, repeat request or polling is authorized. Tooling
-referral is not acceptance; full 127-game gate remains deferred.
+`pi-829842-1792632763581-ba60545e`, is answered with an operator decision.
+Attempt-01 exhausted its 50s overall budget after launch/navigation and menu work,
+not a measured product failure; the full subsequent 30s+20s windows cannot be
+guaranteed. Attempt-02 is classified as a headless first-paint/actionability
+environment limitation, not proof of a shader root cause or CDP/product failure.
+Both product outcomes stay `NOT_MEASURED`; native full capture stays ABANDONED.
+
+The aggregate receipt's diagnostic inventory lists a pre-launch CDP listener
+(curl polling of loopback `/json/version` plus Page observations) and one single
+`Performance.getMetrics` read after the menu click as **PROPOSED, not scheduled**.
+This diagnostic-only route needs separate, specific operator authorization and
+slot coordination; it was not implemented or run. Current scope is docs/inventory
+closeout only: no runtime change, third capture, polling, retry or push. The full
+127-game gate remains deferred; no new game or release acceptance.
 
 ## Future outlook
 
