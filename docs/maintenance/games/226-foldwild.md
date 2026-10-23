@@ -3,6 +3,14 @@
 
 ## Identity and status
 
+**UI rework (2026-10-24):** this bounded maintenance order simplifies the existing
+preview shell only. The play frame now precedes local save/recovery tools;
+progress, team and travel share Field record, and settings include control help.
+The start screen drops its decorative panel and repeated introduction. All 112
+controller IDs, native dialogs and the original canvas parent are retained.
+The catalog already contains preview226 despite the older unregistered contract;
+this order neither changes registration nor clears any held acceptance below.
+
 **October HUD/text maintenance:** the existing preview now has one bounded game frame, with canvas-adjacent semantic HTML controls inside that frame rather than a second page below it. Main's fresh 1280x800/390x844 windowed and native portal-fullscreen checks pass. This scoped layout/text change does not clear the original/async M2, natural campaign, rights or device holds. See [the fix report](../../fix-swarm-2026-10.md).
 
 Foldwild is **registered preview226**, title **Foldwild: Open-World RPG (Preview)**, category **story**, after the owner explicitly asked to add the existing game. No new game/model build. [Registration scope and fresh evidence](../../foldwild-catalog-registration.md). Original/async M2, inspection-close, natural campaign/acquisition/evolution, rights and physical-device holds remain; listing is not completed-campaign acceptance. Entry is `Games/Foldwild/index.html`. Historical runtime checkpoint at `2e5f068`: entry blob `690ba0a57c2b5fdef68373c09a47c4a84c40ae14`, tree `0920ddc5055f4735e73c60f56dee4efe5c5c31e4`, with 95 files and 8,965,655 logical bytes. Main finalized the [implementation order](../../foldwild-polish/implementation-order.md), reviewed the new campaign/rank/save/controller diffs, and independently verified the pure modules. Runtime implementation is not natural campaign acceptance. The original authored-module documentation review was at `8c8a055`; Main subsequently reviewed the controller/save/render repair reports and current controller/entry/CSS. Binary/vendor full-review limits remain unchanged. Eighty GLBs are supplied original roster deliveries, not independently licensed franchise replacements. This existing authorized original now implements ending/ranks/rematches, but remains held rather than a naturally accepted complete campaign; the owner now explicitly authorized preview registration, not blanket acceptance.
@@ -21,7 +29,17 @@ The latest [M2 finish report](../../foldwild-m2-finish.md) is **HELD**: uninstru
 
 `createView(canvas,{onCheckpoint,reducedMotion,onDiagnostic})` returns `showWorld`, `setPlayerPosition`, `showBattle`, `showInspection`, `animateAction`, `render`, `resize`, `setReducedMotion`, `setAppearance`, `setQuality`, `orbitCamera`, `recenterCamera`, `getCameraYaw`, `inspect`, `dispose`. It owns presentation only, not battle RNG, saves or another RAF. Generation tokens stop stale async model loads attaching to replaced scenes; ref-counted cache entries retire on eviction. `acquire`, `release`, `reset`, `disposeModel` are the resource patch points.
 
-The October layout keeps the same canvas and state/controller owners. `.play-layout` fills the remaining window height; `.trail-controls` contains primary tools, movement, battle commands and result presentation. Desktop uses adjacent scene/HUD columns. Phone stacks the scene above an internally scrollable HUD; Pause stays sticky and later battle actions remain reachable without scrolling the whole document. Save/render status remains visible above the frame, with coordination disclosure inside native save details. Extra settings/travel/help use native details, keeping 44px controls, visible focus and reduced-motion handling. `control-help` now owns help text; `world-help` remains the generated held-movement host. Inspector reparenting still uses the original `.viewport` and native dialog, not another renderer.
+The 2026-10-24 shell tightens the desktop sidebar to 320px, removes redundant
+panel borders and message decoration, and uses Atkinson for content headings
+with Bungee reserved for the game title. The mobile world view receives 48% of
+the play frame; battle retains a 32% scene and scrollable commands. Save and
+renderer status remain visible in a wrapping footer, with native recovery details
+available even at the start screen. The region HUD no longer carries an expanding
+record over the scene. Team/resources/progression/travel remain accessible in the
+sidebar Field record; settings and keyboard help share one disclosure. This is a
+fixed light shell under both OS color preferences, not a new theme toggle.
+
+The earlier October layout keeps the same canvas and state/controller owners. `.play-layout` fills the remaining window height; `.trail-controls` contains primary tools, movement, battle commands and result presentation. Desktop uses adjacent scene/HUD columns. Phone stacks the scene above an internally scrollable HUD; Pause stays sticky and later battle actions remain reachable without scrolling the whole document. Save/render status remains visible above the frame, with coordination disclosure inside native save details. Extra settings/travel/help use native details, keeping 44px controls, visible focus and reduced-motion handling. `control-help` now owns help text; `world-help` remains the generated held-movement host. Inspector reparenting still uses the original `.viewport` and native dialog, not another renderer.
 
 The wording sweep covers entry/controller prompts, ability/status explanations, ledger/help, economy notices and battle log sentences. `Intl.ListFormat` joins names/effects into prose. Complete `data.js` inspection found identity/action names and mechanical tables, not narrative descriptions; those constants remain byte-identical. Battle/economy changes are string-only: stats, RNG, turns, prices, caps, IDs and save schemas are unchanged. Tests update exact expected copy; the legacy replay test translates only four changed log sentences and retains its historical digest for all168 snapshots. Models, vendor code, region data and campaign rules are untouched. The entry now uses the existing local SVG favicon to prevent the browser's implicit missing-icon404.
 
@@ -76,6 +94,15 @@ Fix UI lifecycle in controller shared clear/close/focus helpers, retaining exact
 Keep one renderer/canvas; inspection should reparent, resize, await its generation and restore world/result presentation without mutating expedition state. Maintain loaded-model/ref-count/cache limits and source model immutability. Main alone owns runtime lease, subjective screenshots, creature/concept judgments and any later registration. The current finale follows Main's explicit bounded order. No game replacement, hidden encounter stats, frontier or extra finale should be invented to satisfy broader completeness.
 
 ## Verification
+
+UI rework source gate: `python3 -B scripts/test_foldwild_m2_shell.py` prints one
+test and `OK` (exit 0), retaining the shell ABI, single canvas, native controls and
+inspector sizing. [Baseline receipt](../../foldwild-ui-rework-checks.md) records
+13/13 existing pure suites passing before edits. The maintenance checker already
+failed with stale global inventory before this work; Foldwild matched its entry
+and tree record then. Fresh visual/native rework evidence is pending the focused
+QA pass, not inferred from these parser checks. Existing original/async M2 tests
+remain unchanged and held. No full-fleet smoke, push, asset or catalog change.
 
 Latest Main run: `python3 -B scripts/test_fix_swarm_ui.py` exits zero and prints `PASS: Slipstream reset gap/both themes/input/restart; Foldwild bounded HUD at 1280/390, windowed/fullscreen, keyboard/touch10s, ledger, wild turn, restart`. Four fresh Foldwild contexts use ordinary starter/seed input, keyboard or genuine held touch for10seconds, pause/resume, ledger inspection and one Close, native walking to a wild marker, a real ability advancing the round, Flee/Continue and confirmed new-run restart. No grants, state setters, error exclusions or server were added. Geometry keeps canvas/HUD inside the same frame, with no horizontal overflow and all visible targets at least44px. Reduced-motion preference and keyboard focus pass. Page/console/request/HTTP/external errors are empty in the final run.
 

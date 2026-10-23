@@ -13,44 +13,30 @@
   <a class="skip-link" href="#controls">Skip to game controls</a>
   <header class="site-header"><h1>Foldwild</h1><a href="../../index.html">Arcade</a></header>
   <main id="controls" tabindex="-1">
-    <section id="save-tools" aria-label="Local saves">
-      <p id="save-state" role="status">Not saved</p>
-      <p id="render-state" role="status"></p>
-      <details><summary>Save files and recovery</summary>
-        <p id="save-coordination" class="help"></p>
-        <div class="actions"><button type="button" id="save-export">Export this tab</button><button type="button" id="save-backup">Preview backup</button><button type="button" id="save-replace">Preview replacing stored run</button><button type="button" id="save-reload">Reload stored run</button></div>
-        <label for="save-file">Import local save (JSON, up to 256 KiB)</label><input id="save-file" type="file" accept=".json,application/json">
-      </details>
-    </section>
     <section id="menu" class="panel" aria-labelledby="menu-title">
       <h2 id="menu-title">Choose your first ally</h2>
-      <p>Meet wild allies and train with the trailkeepers.</p>
       <div class="starter-choices" role="group" aria-label="First ally">
         <button type="button" data-starter="cindupp" aria-pressed="true" aria-describedby="starter-description">Cindupp</button>
         <button type="button" data-starter="dewgob" aria-pressed="false" aria-describedby="starter-description">Dewgob</button>
         <button type="button" data-starter="pithnip" aria-pressed="false" aria-describedby="starter-description">Pithnip</button>
       </div>
       <p id="starter-description">Cindupp is a sturdy Cindrel ally. Bank energy and shield before striking.</p>
-      <label class="seed-setting" for="seed-input">Expedition seed <span class="help">Optional</span></label>
-      <input id="seed-input" type="number" min="0" max="4294967295" step="1" placeholder="Random" inputmode="numeric">
+      <label class="seed-setting" for="seed-input">Seed (optional)<input id="seed-input" type="number" min="0" max="4294967295" step="1" placeholder="Random" inputmode="numeric"></label>
       <div class="actions"><button type="button" id="start">Start trail</button><button type="button" id="continue" hidden>Continue trail</button></div>
       <p id="saved-summary" class="help"></p>
-      <p class="help">Move with WASD or arrows, or tap a trail marker. Press E to interact. Rest safely at camp.</p>
-      <p class="help">In battle, press 1–4 to use an ability, C to throw a Latch Kite, or Space to wait.</p>
+      <p class="help">WASD or arrows to move. Tap a marker to walk there, then E to interact. In battle: 1-4 for abilities, C for a kite, Space to wait.</p>
     </section>
     <div class="play-layout">
       <section class="viewport" aria-label="3D trail and battle view">
         <canvas id="game-canvas" tabindex="0" aria-label="Foldwild 3D view. Tap trail markers or use nearby action buttons." aria-describedby="control-help"></canvas>
         <section id="world-hud" hidden aria-label="Trail information">
           <h2 id="zone-name">Rootfold Meadow</h2>
-          <div class="field-state"><span>Marks <strong id="marks">0</strong></span><span>Kites <strong id="kites">0</strong></span><span>Class <strong id="class-name">Pathfinder</strong></span></div>
-          <details class="field-record"><summary>Field record</summary><p>Progress <strong id="score">0</strong></p><p>Collection <strong id="dex-count">0</strong></p><p id="campaign-objective"></p><p id="class-progress"></p><p>Synergy <span id="synergy-name">None</span></p></details>
+          <div class="field-state"><span>Marks <strong id="marks">0</strong></span><span>Kites <strong id="kites">0</strong></span></div>
         </section>
       </section>
       <aside class="trail-controls" aria-label="Game controls">
-        <div class="toolbar" aria-label="Expedition tools"><button type="button" id="collection-btn">Field ledger</button><button type="button" id="services-btn">Services</button><button type="button" id="pause">Pause</button></div>
+        <div class="toolbar" aria-label="Expedition tools"><button type="button" id="collection-btn">Ledger</button><button type="button" id="services-btn">Field kit</button><button type="button" id="pause">Pause</button></div>
         <p id="message" role="status" aria-live="polite">Choose an ally to begin.</p>
-        <div id="team-list" aria-label="Expedition team"></div>
         <div class="field-actions"><div id="nearby-actions" class="actions" aria-label="Nearby trail markers"></div><div class="actions interaction-actions"><button type="button" id="interact">Interact</button><button type="button" id="rest">Rest at camp</button></div></div>
         <div id="world-help" aria-label="Movement controls"></div>
       <section id="battle-panel" hidden aria-label="Battle controls">
@@ -64,14 +50,29 @@
         <details class="battle-history"><summary>Battle log</summary><ol id="battle-log" aria-label="Battle log" aria-live="polite"></ol></details>
       </section>
         <section id="result" class="panel" hidden aria-labelledby="result-title"><h2 id="result-title" tabindex="-1">Trail result</h2><p id="result-description"></p><p id="evolution-summary" hidden></p><button type="button" id="result-continue">Continue</button></section>
-        <details class="travel"><summary>Travel</summary><nav class="region-choices" aria-label="Regions"><button type="button" data-region="0">Rootfold Meadow</button><button type="button" data-region="1">Stillwater Reach</button><button type="button" data-region="2">Emberstep Quarry</button><button type="button" data-region="3">Stonefold Ridge</button><button type="button" data-region="4">Quietfold Hollow</button></nav></details>
-        <details class="expedition-options"><summary>Expedition settings</summary><div class="actions"><button type="button" id="save-now">Save progress</button><button type="button" id="camera-reset">Reset camera</button><button type="button" id="new-run">New run</button></div>
+        <details class="field-record"><summary>Field record</summary>
+          <p id="campaign-objective"></p>
+          <div id="team-list" aria-label="Expedition team"></div>
+          <p>Progress <strong id="score">0</strong> · Collection <strong id="dex-count">0</strong></p>
+          <p>Class <strong id="class-name">Pathfinder</strong></p><p id="class-progress"></p><p>Synergy <span id="synergy-name">None</span></p>
+          <nav class="region-choices" aria-label="Travel to region"><button type="button" data-region="0">Rootfold Meadow</button><button type="button" data-region="1">Stillwater Reach</button><button type="button" data-region="2">Emberstep Quarry</button><button type="button" data-region="3">Stonefold Ridge</button><button type="button" data-region="4">Quietfold Hollow</button></nav>
+        </details>
+        <details class="expedition-options"><summary>Settings and controls</summary><div class="actions"><button type="button" id="save-now">Save progress</button><button type="button" id="camera-reset">Reset camera</button><button type="button" id="new-run">New run</button></div>
           <label for="quality">Quality <select id="quality"><option value="low" selected>Low</option><option value="standard">Standard</option></select></label>
           <label class="motion-setting"><input id="reduce-motion" type="checkbox"> Reduce motion</label>
+          <p id="control-help" class="help">Move with WASD or arrows. Press E to interact.</p>
         </details>
-        <details class="control-help"><summary>Controls</summary><p id="control-help" class="help">Move with WASD or arrows. Press E to interact.</p></details>
       </aside>
     </div>
+    <section id="save-tools" class="save-status" aria-label="Local saves">
+      <p id="save-state" role="status">Not saved</p>
+      <p id="render-state" role="status"></p>
+      <details><summary>Save files and recovery</summary>
+        <p id="save-coordination" class="help"></p>
+        <div class="actions"><button type="button" id="save-export">Export this tab</button><button type="button" id="save-backup">Preview backup</button><button type="button" id="save-replace">Preview replacing stored run</button><button type="button" id="save-reload">Reload stored run</button></div>
+        <label for="save-file">Import local save (JSON, up to 256 KiB)</label><input id="save-file" type="file" accept=".json,application/json">
+      </details>
+    </section>
   </main>
   <dialog id="dialogue-dialog" aria-labelledby="dialogue-title"><h2 id="dialogue-title">Trailkeeper</h2><p id="dialogue-text"></p><div class="actions"><button type="button" id="dialogue-start">Begin battle</button><button type="button" id="dialogue-cancel">Back to trail</button></div></dialog>
   <dialog id="collection-dialog" aria-labelledby="collection-title"><div class="dialog-heading"><h2 id="collection-title">Field ledger</h2><button type="button" id="collection-close">Close ledger</button></div><div class="ledger-filters"><label for="ledger-search">Search discoveries<input id="ledger-search" type="search" placeholder="Name or family"></label><label for="ledger-filter">Element<select id="ledger-filter"><option value="all">All elements</option><option value="Loamveil">Loamveil</option><option value="Rillune">Rillune</option><option value="Cindrel">Cindrel</option><option value="Gleamric">Gleamric</option><option value="Hushmere">Hushmere</option></select></label></div>
