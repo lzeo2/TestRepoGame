@@ -6,6 +6,7 @@ Send JSON arrays to /dev/shm/thumb-manual/command.json; read reply.json.
 Commands: open ID, click X Y, key KEY, hold KEY MS, wait MS, selector CSS,
 snap, info, finish REASON, quit. Candidates require separate visual acceptance.
 """
+import base64
 import hashlib
 import json
 import os
@@ -121,7 +122,12 @@ def main():
                                     page.locator(args[0]).first.click(timeout=1800)
                                 elif op == 'snap':
                                     name = f'{record["id"]}-{len(record["candidates"])}.jpg'
-                                    data = page.screenshot(type='jpeg', quality=80, timeout=6000)
+                                    cdp = context.new_cdp_session(page)
+                                    try:
+                                        data = base64.b64decode(cdp.send('Page.captureScreenshot',
+                                            {'format': 'jpeg', 'quality': 80, 'fromSurface': True})['data'])
+                                    finally:
+                                        cdp.detach()
                                     (OUT / name).write_bytes(data)
                                     record['candidates'].append(dict(file=name, sha256=hashlib.sha256(data).hexdigest()))
                                     result['screenshot'] = name
