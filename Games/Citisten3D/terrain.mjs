@@ -42,7 +42,7 @@ export function createLandscape(scene, extent) {
   for (const b of boxes) {
     color.setHex(b.color);
     for (const group of cube.groups) {
-      if (group.materialIndex === 3) continue; // Buried undersides cannot be seen; floor probes treat slabs as filled.
+      if (group.materialIndex === 3 && b.kind === 'slab') continue; // Only buried slab undersides are omitted; canopy/rock boxes stay closed.
       for (let j = group.start; j < group.start + group.count; j++) {
         const k = index.getX(j);
         positions.push(b.x + p.getX(k) * b.w, b.y + p.getY(k) * b.h, b.z + p.getZ(k) * b.d);
