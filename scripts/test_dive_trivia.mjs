@@ -31,6 +31,7 @@ const fixture = {
     id: 'prompt-' + String(i).padStart(2, '0'),
     pack: i < 7 ? 'nature' : 'science',
     text: 'Internal engine fixture ' + i,
+    medianLampreyScore: 45,
     groups: Array.from({ length: 6 }, (_, tier) => ({
       tier,
       answers: [{ text: 'Answer ' + tier, aliases: ['Alias ' + tier] }]
@@ -50,7 +51,7 @@ test('normalization keeps word boundaries and meaningful symbols', () => {
   assert.notEqual(core.normalize('C'), core.normalize('C++'));
 });
 
-test('all six curated tiers and exact aliases; no fuzzy matches', () => {
+test('all six curated tiers and exact aliases; numeric and prefix guesses rejected', () => {
   for (const [tier, points] of [10, 15, 30, 60, 85, 100].entries()) {
     for (const input of ['Answer ' + tier, '  ALIAS ' + tier + '!!  ']) {
       assert.deepEqual(plain(core.score(prompt, input)), { recognized: true, points, tier, answer: 'Answer ' + tier });
@@ -75,6 +76,8 @@ test('data validation accepts fixture and rejects malformed content', () => {
     d => { d.prompts[0].text = '!!!'; },
     d => { d.prompts[0].pack = 'missing'; },
     d => { d.prompts[0].groups.pop(); },
+    d => { delete d.prompts[0].medianLampreyScore; },
+    d => { d.prompts[0].medianLampreyScore = 100; },
     d => { d.prompts[0].groups[0].tier = 1; },
     d => { d.prompts[0].groups[0].tier = -1; },
     d => { d.prompts[0].groups[0].tier = 6; },
@@ -197,9 +200,11 @@ test('expiry, unknown, seven-round finish and maximum depth', () => {
   assert.equal(core.submit(run, 'Answer 5', 220001), false);
   assert.equal(core.expire(run, 999999), false);
   assert.equal(core.next(run, 220001), false);
-  const perfect = core.createRun(seven, 0);
+  const distinct = structuredClone(seven);
+  distinct.forEach((prompt, index) => { prompt.groups[5].answers[0].text = 'Best ' + index; });
+  const perfect = core.createRun(distinct, 0);
   for (let index = 0; index < 7; index++) {
-    assert.equal(core.submit(perfect, 'Answer 5', index * 30000), true);
+    assert.equal(core.submit(perfect, 'Best ' + index, index * 30000), true);
     assert.equal(core.next(perfect, (index + 1) * 30000), true);
   }
   assert.equal(perfect.phase, 'finished');
@@ -228,5 +233,149 @@ test('real question data validation, every canonical answer and alias', () => {
   assert.equal(core.selectPrompts(data, selection).length, 7);
   for (const pack of data.packs) assert.equal(core.selectPrompts(data, { mode: 'pack', key: pack.id }).length, 7);
   console.log(`Real data: ${data.prompts.length} prompts / ${data.packs.length} packs / version ${data.version}`);
+});
+test('local typo edits, aliases, NFKD and one-tier penalty with Shallows floor', () => {
+  const penguins = data.prompts.find(p => p.id === 'nature-penguins');
+  for (const input of ['galapgaos', 'galapgos', 'galapxgos', 'galapxgxs']) {
+    const result = core.score(penguins, input);
+    assert.equal(result.answer, 'Galapagos penguin', input);
+    assert.equal(result.tier, 4);
+    assert.equal(result.points, 85);
+    assert.equal(result.closeSpelling, true);
+  }
+  assert.equal(core.score(penguins, 'Ａｄéｌｉｅ ｐｅｎｇｉｕｎ').tier, 0);
+  assert.equal(core.score(penguins, 'Ａｄéｌｉｅ ｐｅｎｇｉｕｎ').closeSpelling, true);
+  assert.equal(core.score(penguins, 'Ａｄéｌｉｅ').tier, 1);
+  assert.equal(core.score(penguins, 'Ａｄéｌｉｅ').closeSpelling, undefined);
+  assert.equal(core.score(penguins, 'empeorr').tier, 0);
+  assert.equal(core.score(penguins, 'empeorr').points, 10);
+  const cats = data.prompts.find(p => p.id === 'nature-cats');
+  assert.equal(core.score(cats, 'loin').answer, 'Lion');
+  // Full DL allows insertion between a pair that is also transposed.
+  assert.equal(core.score({ groups: [{ tier: 5, answers: [{ text: 'xxabcxx', aliases: [] }] }] }, 'xxcaxx').points, 85);
+});
+
+test('garbage, prefixes, short inputs and out-of-prompt answers stay unrecognized', () => {
+  const penguins = data.prompts.find(p => p.id === 'nature-penguins');
+  for (const input of ['galap', 'galapago', 'galapagoszzz', 'galxxxgos', 'pen', 'penguin', 'kng', 'x',
+    'zzzzzzzz', 'cat', 'galapago5', 'galapago+', 'galapago🦉', 'x'.repeat(81)]) {
+    assert.equal(core.score(penguins, input).recognized, false, input);
+  }
+  const elements = data.prompts.find(p => p.id === 'science-one-letter-elements');
+  assert.equal(core.score(elements, 'W').answer, 'Tungsten');
+  assert.equal(core.score(elements, 'X').recognized, false);
+  assert.equal(core.score(elements, 'WW').recognized, false);
+});
+
+test('cross-answer fuzzy collisions rejected; exact takes priority; aliases do not vote', () => {
+  const collision = { groups: [
+    { tier: 5, answers: [{ text: 'Mole', aliases: ['móle', 'molle'] }] },
+    { tier: 1, answers: [{ text: 'Male', aliases: ['mále'] }] }
+  ] };
+  assert.equal(core.score(collision, 'mile').recognized, false);
+  collision.groups.reverse();
+  assert.equal(core.score(collision, 'mile').recognized, false);
+  assert.equal(core.score(collision, 'male').tier, 1);
+  assert.equal(core.score(collision, 'moll').answer, 'Mole');
+  assert.equal(core.score(collision, 'moll').tier, 4);
+  assert.equal(core.score(collision, 'male').closeSpelling, undefined);
+  assert.equal(core.score({ groups: [{ tier: 2, answers: [{ text: 'Adelie', aliases: ['adélie', 'adelie'] }] }] }, 'adleie').tier, 1);
+  // Distance two is rejected at exactly half the input length.
+  assert.equal(core.score({ groups: [{ tier: 5, answers: [{ text: 'Abcd', aliases: [] }] }] }, 'axyd').recognized, false);
+});
+
+test('repeat canonical/alias/typo rejection keeps round and timer; timeout still ends it', () => {
+  const run = core.createRun(seven, 0);
+  assert.equal(core.submit(run, 'Alias 5', 1), true);
+  assert.equal(core.next(run, 100), true);
+  assert.equal(core.submit(run, 'Answer 5', 101), false);
+  assert.equal(run.hint, 'Already answered. Try another answer.');
+  assert.equal(run.phase, 'question');
+  assert.equal(run.records.length, 1);
+  assert.equal(run.deadline, 25100);
+  assert.equal(run.total, 100);
+  assert.equal(core.submit(run, 'Alias 4', 102), true);
+  const penguins = data.prompts.find(p => p.id === 'nature-penguins');
+  const real = core.selectPrompts(data, { mode: 'pack', key: 'nature' });
+  const ordered = [penguins, ...real.filter(p => p.id !== penguins.id)];
+  const prior = ['galapagos penguin'];
+  const replay = core.createRun(ordered, 0, prior);
+  assert.equal(core.submit(replay, 'galapgaos', 1), false);
+  assert.equal(core.submit(replay, 'galápagos', 2), false);
+  assert.equal(core.submit(replay, 'galapagos penguin', 25000), true);
+  assert.equal(replay.records[0].timedOut, true);
+  assert.equal(replay.total, 0);
+  assert.deepEqual(prior, ['galapagos penguin']);
+});
+
+test('seeded persistent history survives parsing, separates days/modes and uses canonical identity', () => {
+  const history = core.parseHistory(null);
+  const selected = { mode: 'daily', key: '2026-10-19', date: '2026-10-19' };
+  const id = core.historySeed(data.version, selected);
+  history.seeds.push({ id, answers: ['Answer 5'] });
+  const restored = core.parseHistory(JSON.stringify(history));
+  const replay = core.createRun(seven, 0, restored.seeds.find(seed => seed.id === id).answers);
+  assert.equal(core.submit(replay, 'Alias 5', 1), false);
+  assert.notEqual(id, core.historySeed(data.version, { mode: 'daily', key: '2026-10-20', date: '2026-10-20' }));
+  assert.notEqual(id, core.historySeed(data.version, { ...selected, mode: 'numbered' }));
+  assert.notEqual(id, core.historySeed('new version', selected));
+  assert.equal(core.submit(core.createRun(seven, 0), 'Alias 5', 1), true);
+  const element = data.prompts.find(p => p.id === 'science-one-letter-elements');
+  const unit = data.prompts.find(p => p.id === 'science-derived-units');
+  const cross = [element, unit, ...data.prompts.filter(p => p.id !== element.id && p.id !== unit.id).slice(0, 5)];
+  const run = core.createRun(cross, 0);
+  assert.equal(core.submit(run, 'W', 1), true);
+  assert.equal(core.next(run, 100), true);
+  assert.equal(core.submit(run, 'W', 101), true); // Tungsten and Watt are different answers.
+  assert.deepEqual(Array.from(run.usedAnswers), ['tungsten', 'watt']);
+});
+
+test('history guards corrupt storage; finished-only results, best depth, UTC streak and tier totals', () => {
+  for (const raw of [null, '{', 'null', '[]', '{}', '{"seeds":{},"results":[]}']) {
+    assert.deepEqual(plain(core.parseHistory(raw)), { seeds: [], results: [] });
+  }
+  const history = core.parseHistory(null);
+  const run = core.createRun(seven, 0);
+  const selected = { mode: 'daily', key: '2026-10-19', date: '2026-10-19' };
+  assert.equal(core.logResult(history, selected, run), false);
+  for (let index = 0; index < 7; index++) {
+    assert.equal(core.submit(run, index === 0 ? 'Answer 5' : '', index * 30000), true);
+    assert.equal(core.next(run, (index + 1) * 30000), true);
+  }
+  assert.equal(core.logResult(history, selected, run), true);
+  history.results.push({ ...history.results[0], date: '2026-10-20', key: '2026-10-20' });
+  history.results.push({ ...history.results[0], total: 0, tiers: [0, 0, 0, 0, 0, 0] });
+  history.results.push({ ...history.results[0], total: 700 }); // Corrupt inconsistent score.
+  history.results.push({ ...history.results[0], date: '2026-02-30', key: '2026-02-30' });
+  history.seeds.push({ id: 'invalid', answers: [null] });
+  const restored = core.parseHistory(JSON.stringify(history));
+  assert.equal(restored.results.length, 3);
+  assert.equal(restored.seeds.length, 0);
+  const stats = core.historyStats(restored, '2026-10-20');
+  assert.equal(stats.best, 100);
+  assert.equal(stats.completed, 3);
+  assert.equal(stats.days.length, 2);
+  assert.equal(stats.days[1].total, 100); // Best of multiple completions on one day.
+  assert.equal(stats.streak, 2);
+  assert.deepEqual(Array.from(stats.tiers), [0, 0, 0, 0, 0, 2]);
+  assert.equal(core.historyStats(restored, '2026-10-21').streak, 2);
+  assert.equal(core.historyStats(restored, '2026-10-22').streak, 0);
+  assert.equal(core.historyStats(core.parseHistory(null), '2026-10-20').best, 0);
+  const year = { seeds: [], results: ['2023-12-31', '2024-01-01'].map(date => ({ ...restored.results[0], date, key: date })) };
+  assert.equal(core.historyStats(year, '2024-01-01').streak, 2);
+  const leap = { seeds: [], results: ['2024-02-28', '2024-02-29', '2024-03-01'].map(date => ({ ...restored.results[0], date, key: date })) };
+  assert.equal(core.historyStats(leap, '2024-03-01').streak, 3);
+});
+
+test('fixed reef medians derive only from canonical tier counts, never aliases or ambient randomness', () => {
+  for (const prompt of data.prompts) {
+    assert.equal(prompt.medianLampreyScore, core.medianScore(prompt));
+    assert.equal(prompt.medianLampreyScore, prompt.id === 'science-standard-amino-acids' ? 30 : 45);
+  }
+  const unequal = { groups: [{ tier: 0, answers: [{}, {}, {}] }, { tier: 5, answers: [{}] }] };
+  assert.equal(core.medianScore(unequal), 10);
+  assert.equal(core.medianScore({ groups: [{ tier: 4, answers: [{ aliases: ['many', 'aliases'] }] }] }), 85);
+  const selected = core.selectPrompts(data, selection);
+  assert.ok(selected.reduce((sum, prompt) => sum + prompt.medianLampreyScore, 0) <= 315);
 });
 console.log(`Dive Trivia: ${checks} checks passed (TZ=${process.env.TZ || 'system'}).`);
