@@ -34,6 +34,10 @@ Sources actually fetched and read:
   [Cities: Skyline is out to satisfy where SimCity couldn't](https://www.eurogamer.net/articles/2014-09-04-cities-skyline-is-out-to-satisfy-where-simcity-couldnt).
   Pre-release interviews with Hallikainen and Korppoo; intentions are not
   treated as proof of shipped behavior without the later sources above.
+- **[S7] Alex Calvin, GamesIndustry.biz, 13 July 2022:**
+  [12m sales and counting: What's behind Cities: Skylines' building success?](https://www.gamesindustry.biz/12m-sales-and-counting-whats-behind-cities-skylines-building-success).
+  Hallikainen revisits player freedom, continued support, community marketing
+  and the limits of explaining the game's sustained sales growth.
 
 Access limits: the direct [GDC Vault case-study player](https://www.gdcvault.com/play/1022809/Cities-Skylines-a-Case)
 returned HTTP 200 but only a maintenance page, not a playable talk. The
@@ -156,8 +160,10 @@ Streaming discoverability itself cannot be guaranteed by code.
 long sales tail/community visibility it enabled. S4 distinguishes approachable
 map editing, asset creation and deeper code mods; S2 describes players making
 and sharing buildings. This supplies variety and lets the community express
-preferences the core team could not anticipate. The relevant pattern is a
-supported creative workflow, not merely exposing mutable internal objects.
+preferences the core team could not anticipate. In S7, Hallikainen again calls
+community self-expression central to the game's lasting appeal. The relevant
+pattern is a supported creative workflow, not merely exposing mutable internal
+objects.
 
 **Transfer: no for this implementation; partial long-term.** Local ES modules
 make authored changes possible, but Citisten has no stable mod API, import
@@ -183,6 +189,22 @@ the existing game, and keep rendering/performance acceptance separate from
 feature claims. A browser city builder cannot inherit a 2015 PC-market opening
 or a publisher's audience by adding a milestone button.
 
+### 9. Continued support and a durable community
+
+**In Skylines:** In S7, Hallikainen attributes longevity partly to expansions,
+community work, marketing on new platforms and players returning during the
+pandemic. The interview reports six million sales in 2015–2019 and another six
+million in the following three years. Crucially, she explicitly says the team
+cannot fully explain why this game's sales kept growing. Ongoing support keeps
+a personal city and its community relevant, but the sales pattern does not
+prove any single update or feature caused retention.
+
+**Transfer: partial.** Small compatible improvements, tested saves and honest
+maintenance notes can protect investment in a Citisten city. The concurrent
+save/terrain lane owns persistence; this study must not duplicate it or promise
+compatibility it has not tested. Paid expansions, a workshop ecosystem and
+platform marketing are not tasks for this compact static game.
+
 ## Integration contract
 
 The three selected transfers are **diagnosis, milestone grants and bounded
@@ -191,7 +213,111 @@ Skylines features. `sim.mjs` remains authoritative; `ui.mjs` displays state and
 events only. No new random draws, network dependencies or rendering assets.
 Existing seeded traffic and sieges are not replaced or reseeded.
 
-Implementation details and fresh verification are recorded below after the
-coordinated events-system source commit. The canonical maintenance manual and
-inventory are owned by the concurrent save/terrain lane; this study is not a
-replacement for its runtime handover or the full pre-push fleet gate.
+### Landed behavior
+
+1. **Milestones:** five finite thresholds, with no essential tools locked:
+
+   | Residents | Name | Once-only grant |
+   | ---: | --- | ---: |
+   | 500 | First neighborhood | $750 |
+   | 1,000 | Town center | $1,000 |
+   | 1,500 | Borough | $1,250 |
+   | 2,000 | Small city | $1,500 |
+   | 2,500 | City hub | $2,000 |
+
+   The existing economy tick awards every newly crossed threshold, adds each
+   grant to budget and emits its name/threshold/grant. The HUD shows the next
+   population target and reward; the events board announces earned milestones.
+   Multiple awards in one batch have distinct keys. The saved high-water index
+   prevents repeated grants after abandonment, regrowth or reloading. There are
+   no recurring grants after City hub, no cross-city rewards and no new tech tree.
+
+2. **Diagnosis:** every five simulated seconds, compare the whole population
+   against the previous sample. If it did not increase, report the most common
+   failing home gate using the **same** reason that decides whether that home
+   grows: power, water, service radius or crime. Ties follow home iteration order.
+   With no such blocker, explain absent homes, full capacity, high taxes, low
+   residential demand or slow remaining capacity. A growing city hides the
+   panel at the next sample. This is one actionable current constraint, not an
+   exhaustive forecast or a new growth formula. A transient problem between
+   samples may never be shown, and fractional growth can produce a slow-growth
+   message without being a literal zero-growth state. Civic events from the
+   concurrent lane still affect the underlying economy normally.
+
+3. **Defense recovery:** a zero-HP hall stays in the building list and occupied
+   cell, so the existing Repair tool can select it. It consumes no utilities
+   and provides no service while ruined. The attacking wave and defenders
+   withdraw without kills or a night-survived score; other surviving buildings,
+   roads, population and treasury remain. A daytime **120 simulated-second**
+   rebuild window starts, with economy and civic events still running. The HUD
+   gives persistent remaining-time and Repair instructions. Paying the existing
+   full-damage repair price, **$240**, restores the hall and a fresh 240-second
+   preparation day; future waves still escalate. Hall reconstruction takes
+   priority over a coexisting water-main leak, which remains separately
+   repairable. Expiry emits one normal loss and freezes play. Pause freezes
+   grace; faster speeds consume it faster. Mode switching and night skipping
+   cannot bypass it. No neighborhood resurrection or bailout money was added.
+
+New published state is `nextMilestone`, `growthSamplePopulation`,
+`growthDiagnosis` and `rebuildRemaining`; the existing saved `runtime.milestone`
+now indexes the finite list. The save lane reused exported `MILESTONES` in
+snapshot validation and tested grace, paid repair, loss and earned rewards.
+No new randomness, clocks outside simulation time or UI-owned decisions.
+
+### Coordination and verification
+
+Research commit: `e24a620`. Shared implementation waited for events/snapshot
+commit `799e1ab` and regression commit `aceaeb6`, then landed directly on their
+shared branch descendants: **`579d089`** (simulation/HUD) and **`b7ee9ab`**
+(regressions). There was no divergent branch to rebase and no replacement of
+the other lane's files. The save lane separately owns `sim-snapshot.mjs`,
+native/persistence/terrain changes and canonical manual/inventory updates.
+
+Fresh commands and actual output against the combined source:
+
+- `node --check Games/Citisten3D/sim.mjs`, `ui.mjs`, `sim-check.mjs`:
+  exit 0, no syntax output (each path checked individually).
+- `node Games/Citisten3D/sim-check.mjs`: exit 0. Existing civic, snapshot and
+  skip groups passed, followed by:
+
+  ```text
+  MILESTONE CHECK PASS: natural first three, all five named grants, exact budget, multi-crossing, pause and no regrowth/reload farming
+  DIAGNOSIS CHECK PASS: five-second cadence, power/network cut, water, services, crime, capacity, taxes, low demand, baseline jobs and reload
+  RECOVERY CHECK PASS: natural fall, retained city, pause/10x, exact 120s expiry, paid native-tool rebuild, next wave, mode/skip guards and save replay
+  ```
+
+  The natural three-night siege now loses at `t=948.25s`, exactly 120 seconds
+  after the hall fell; total hall damage remains 600 HP. Some additional
+  threshold/growth cases deliberately set residents in headless fixtures to
+  isolate rules; they are not claims of native-input play.
+- `node Games/Citisten3D/save-check.mjs`: exit 0, `SAVE CHECK PASS`, including
+  deterministic continuation, naturally earned milestone continuity and
+  naturally reached hall recovery followed by loaded repair/loss.
+- `node Games/Citisten3D/native-check.mjs`: exit 0, `NATIVE CHECK PASS` for
+  shared tool validation and stable model synchronization, not browser play.
+- `git diff --check`: exit 0. Own runtime changes add no URLs, imports,
+  third-party loads, assets or portal changes.
+- Catalog JSON/schema/unique-ID/tracked-URL audit:
+  `CATALOG PASS: 128 unique IDs, required schema, URLs tracked by Git`.
+
+A serialized system-Chromium UI-fixture slot passed in **58.58 seconds**, with
+zero page errors/external requests, unchanged sim/UI/CSS hashes and explicit
+browser/server cleanup and slot release. Eight local-only images under
+`.tmp/citisten-skylines-ui/` cover `diagnosis` and `recovery`, `dark` and `light`,
+and widths `1440` and `390`. All eight were visually reviewed: next-target
+copy wraps without overflow, diagnosis/countdown and event text are readable,
+and management controls remain separate. The empty world is visibly labelled
+**UI fixture**: this proves display/layout only, not native placement, combat,
+GPU performance or offline asset closure. An earlier attempt stopped on the
+fixture script forgetting to reset its diagnosis between themes; no production
+fault or pass was claimed, and cleanup ran before the corrected run.
+
+The [canonical manual](maintenance/games/241-citisten3d.md) and inventory are
+updated by the concurrent save/terrain lane. The first coverage-check attempt
+reported `Inventory stale: inspect changes, then run --refresh.` after source
+commits; the lane was notified to refresh its owned inventory. Its subsequent
+native capture also timed out at navigation before any assertions or photos
+(46.415 seconds including cleanup); this is **not** native acceptance. Full
+registered-game smoke, native recovery interaction and hardware/FPS acceptance
+are not established by these headless/UI checks. No game was added or registered
+and no push was attempted.
