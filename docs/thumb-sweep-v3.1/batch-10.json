@@ -1,0 +1,737 @@
+[
+  {
+    "id": 54,
+    "title": "Retro Bowl",
+    "head": "30057c41cc6dc918b9f168c8c5f2af37a9f4a8ad",
+    "entry_blob": "3db687832ae2d62bfcdba77476b5f7aaccb9a906",
+    "source_tree": "795337be7c34d74e43321ed81675656cfbd7102a",
+    "actions": [
+      [
+        "wait",
+        8000
+      ],
+      [
+        "click",
+        640,
+        600
+      ],
+      [
+        "snap"
+      ],
+      [
+        "click",
+        1060,
+        640
+      ],
+      [
+        "wait",
+        600
+      ],
+      [
+        "snap"
+      ],
+      [
+        "key",
+        "Enter"
+      ],
+      [
+        "snap"
+      ]
+    ],
+    "errors": [],
+    "external": [],
+    "http_errors": [
+      "404 /Games/RetroBowl/html5game/optiondata.dat",
+      "404 /Games/RetroBowl/html5game/savedata.ini"
+    ],
+    "candidates": [
+      {
+        "file": "54-0.jpg",
+        "sha256": "f24355dcaddc84b433cb79d84c45085f6a769f56c3042ed2ad718bda4ec50f52"
+      },
+      {
+        "file": "54-1.jpg",
+        "sha256": "f24355dcaddc84b433cb79d84c45085f6a769f56c3042ed2ad718bda4ec50f52"
+      },
+      {
+        "file": "54-2.jpg",
+        "sha256": "f24355dcaddc84b433cb79d84c45085f6a769f56c3042ed2ad718bda4ec50f52"
+      }
+    ],
+    "seconds": 121.56,
+    "reason": "needs-manual: Welcome/Continue did not advance with short native clicks/Enter. Polling input may miss zero-duration clicks; no field capture within budget.",
+    "output": "assets/thumbs/retrobowl.jpg",
+    "previous_sha256": "a8b0ea49ef625922b5ceb67cd46347e7e9895b55769842b6698a93ee00424572",
+    "status": "needs-manual",
+    "output_sha256": "a8b0ea49ef625922b5ceb67cd46347e7e9895b55769842b6698a93ee00424572",
+    "output_bytes": 14481
+  },
+  {
+    "id": 89,
+    "title": "Retro Bowl Hacked",
+    "head": "30057c41cc6dc918b9f168c8c5f2af37a9f4a8ad",
+    "entry_blob": "7b13fdcf40c8cfc551978f24aa3a8603e2c2b4b2",
+    "source_tree": "b6c70229b7f6d03fc5cb2e39f45b0097f9483726",
+    "actions": [
+      [
+        "wait",
+        8000
+      ],
+      [
+        "click",
+        1060,
+        640
+      ],
+      [
+        "wait",
+        1000
+      ],
+      [
+        "snap"
+      ],
+      [
+        "click",
+        710,
+        428
+      ],
+      [
+        "wait",
+        500
+      ],
+      [
+        "snap"
+      ],
+      [
+        "click",
+        1060,
+        640
+      ],
+      [
+        "key",
+        "Space"
+      ],
+      [
+        "key",
+        "Enter"
+      ],
+      [
+        "snap"
+      ]
+    ],
+    "errors": [],
+    "external": [],
+    "http_errors": [
+      "404 /Games/RetroBowlHacked/html5game/optiondata.dat",
+      "404 /Games/RetroBowlHacked/html5game/savedata.ini"
+    ],
+    "candidates": [
+      {
+        "file": "89-0.jpg",
+        "sha256": "8f6a927c4983616e5afb6bd2c52b5b61c7af2cc23e063824f39caee4ef9a89b6"
+      },
+      {
+        "file": "89-1.jpg",
+        "sha256": "8f6a927c4983616e5afb6bd2c52b5b61c7af2cc23e063824f39caee4ef9a89b6"
+      },
+      {
+        "file": "89-2.jpg",
+        "sha256": "1d406a0823ba6502819b2cb12f0c81a25032fe91cc6f65b4fd7de337850a224f"
+      }
+    ],
+    "seconds": 108.04,
+    "reason": "needs-manual: Welcome/Continue remained after250ms native clicks and keys; no on-field play, cause not established.",
+    "output": "assets/thumbs/retrobowl.jpg",
+    "previous_sha256": "a8b0ea49ef625922b5ceb67cd46347e7e9895b55769842b6698a93ee00424572",
+    "status": "needs-manual",
+    "output_sha256": "a8b0ea49ef625922b5ceb67cd46347e7e9895b55769842b6698a93ee00424572",
+    "output_bytes": 14481
+  },
+  {
+    "id": 119,
+    "title": "Mega Man Zero",
+    "head": "30057c41cc6dc918b9f168c8c5f2af37a9f4a8ad",
+    "entry_blob": "6956dfbbccca567184868efb2b3a9b002b48a05f",
+    "source_tree": "9d77bde88f229da6646fe2e545417970e41f9016",
+    "actions": [
+      [
+        "wait",
+        22000
+      ],
+      [
+        "key",
+        "Enter"
+      ],
+      [
+        "wait",
+        1500
+      ],
+      [
+        "key",
+        "z"
+      ],
+      [
+        "wait",
+        1500
+      ],
+      [
+        "snap"
+      ],
+      [
+        "key",
+        "Enter"
+      ],
+      [
+        "wait",
+        1000
+      ],
+      [
+        "key",
+        "z"
+      ],
+      [
+        "wait",
+        500
+      ],
+      [
+        "key",
+        "z"
+      ],
+      [
+        "wait",
+        500
+      ],
+      [
+        "key",
+        "z"
+      ],
+      [
+        "wait",
+        500
+      ],
+      [
+        "snap"
+      ],
+      [
+        "key",
+        "z"
+      ],
+      [
+        "wait",
+        300
+      ],
+      [
+        "key",
+        "z"
+      ],
+      [
+        "wait",
+        300
+      ],
+      [
+        "key",
+        "z"
+      ],
+      [
+        "wait",
+        300
+      ],
+      [
+        "key",
+        "z"
+      ],
+      [
+        "wait",
+        300
+      ],
+      [
+        "key",
+        "z"
+      ],
+      [
+        "wait",
+        300
+      ],
+      [
+        "key",
+        "z"
+      ],
+      [
+        "wait",
+        300
+      ],
+      [
+        "key",
+        "z"
+      ],
+      [
+        "wait",
+        300
+      ],
+      [
+        "key",
+        "z"
+      ],
+      [
+        "wait",
+        300
+      ],
+      [
+        "key",
+        "z"
+      ],
+      [
+        "wait",
+        300
+      ],
+      [
+        "key",
+        "z"
+      ],
+      [
+        "wait",
+        300
+      ],
+      [
+        "key",
+        "z"
+      ],
+      [
+        "wait",
+        300
+      ],
+      [
+        "key",
+        "z"
+      ],
+      [
+        "wait",
+        300
+      ],
+      [
+        "key",
+        "z"
+      ],
+      [
+        "wait",
+        300
+      ],
+      [
+        "key",
+        "z"
+      ],
+      [
+        "wait",
+        300
+      ],
+      [
+        "key",
+        "z"
+      ],
+      [
+        "wait",
+        300
+      ],
+      [
+        "key",
+        "z"
+      ],
+      [
+        "wait",
+        300
+      ],
+      [
+        "key",
+        "z"
+      ],
+      [
+        "wait",
+        300
+      ],
+      [
+        "key",
+        "z"
+      ],
+      [
+        "wait",
+        300
+      ],
+      [
+        "key",
+        "z"
+      ],
+      [
+        "wait",
+        300
+      ],
+      [
+        "key",
+        "z"
+      ],
+      [
+        "wait",
+        300
+      ],
+      [
+        "key",
+        "Enter"
+      ],
+      [
+        "snap"
+      ],
+      [
+        "key",
+        "z"
+      ],
+      [
+        "wait",
+        300
+      ],
+      [
+        "key",
+        "z"
+      ],
+      [
+        "wait",
+        300
+      ],
+      [
+        "key",
+        "z"
+      ],
+      [
+        "wait",
+        300
+      ],
+      [
+        "key",
+        "z"
+      ],
+      [
+        "wait",
+        300
+      ],
+      [
+        "key",
+        "z"
+      ],
+      [
+        "wait",
+        300
+      ],
+      [
+        "key",
+        "z"
+      ],
+      [
+        "wait",
+        300
+      ],
+      [
+        "key",
+        "z"
+      ],
+      [
+        "wait",
+        300
+      ],
+      [
+        "key",
+        "z"
+      ],
+      [
+        "wait",
+        300
+      ],
+      [
+        "key",
+        "z"
+      ],
+      [
+        "wait",
+        300
+      ],
+      [
+        "key",
+        "z"
+      ],
+      [
+        "wait",
+        300
+      ],
+      [
+        "key",
+        "z"
+      ],
+      [
+        "wait",
+        300
+      ],
+      [
+        "key",
+        "z"
+      ],
+      [
+        "wait",
+        300
+      ],
+      [
+        "key",
+        "z"
+      ],
+      [
+        "wait",
+        300
+      ],
+      [
+        "key",
+        "z"
+      ],
+      [
+        "wait",
+        300
+      ],
+      [
+        "key",
+        "z"
+      ],
+      [
+        "wait",
+        300
+      ],
+      [
+        "key",
+        "z"
+      ],
+      [
+        "wait",
+        300
+      ],
+      [
+        "hold",
+        "ArrowRight",
+        800
+      ],
+      [
+        "snap"
+      ]
+    ],
+    "errors": [
+      "Failed to fetch"
+    ],
+    "external": [
+      "raw.githack.com"
+    ],
+    "http_errors": [],
+    "candidates": [
+      {
+        "file": "119-0.jpg",
+        "sha256": "7769f4f468dd60230708b8eb03170c14237608c42d31cebf294f015be574753b"
+      },
+      {
+        "file": "119-1.jpg",
+        "sha256": "e4a64ba694f207dffe9fb22f8d14425d75da0cdaf094e31ea86e5e80037cc7b3"
+      },
+      {
+        "file": "119-2.jpg",
+        "sha256": "b260e1695b3b0259e42fff1afc43f691ca0b3fe409be04e4243962591488e6d3"
+      },
+      {
+        "file": "119-3.jpg",
+        "sha256": "14a8dace90ce6ee545f507a1ab6eece0f0089f74b66635f84ab70bc8fcf9702a"
+      }
+    ],
+    "seconds": 180.02,
+    "reason": "180s game deadline",
+    "output": "assets/thumbs/megamanzero.jpg",
+    "previous_sha256": "f7c1a13f9de779ddbb4b6de61d385fde1fe91cf3b7f901b17669c36309d3d92b",
+    "status": "needs-manual",
+    "output_sha256": "f7c1a13f9de779ddbb4b6de61d385fde1fe91cf3b7f901b17669c36309d3d92b",
+    "output_bytes": 12905
+  },
+  {
+    "id": 118,
+    "title": "Metroid Fusion",
+    "head": "30057c41cc6dc918b9f168c8c5f2af37a9f4a8ad",
+    "entry_blob": "047a3cf58ab3b4517e6284fa458cb033a3d95a1e",
+    "source_tree": "94eb95065484723e6770979e01e119c2a3e97206",
+    "actions": [
+      [
+        "wait",
+        22000
+      ],
+      [
+        "key",
+        "Enter"
+      ],
+      [
+        "wait",
+        1000
+      ],
+      [
+        "key",
+        "z"
+      ],
+      [
+        "wait",
+        1000
+      ],
+      [
+        "snap"
+      ],
+      [
+        "key",
+        "Enter"
+      ],
+      [
+        "wait",
+        1000
+      ],
+      [
+        "key",
+        "z"
+      ],
+      [
+        "wait",
+        1000
+      ],
+      [
+        "key",
+        "z"
+      ],
+      [
+        "wait",
+        1000
+      ],
+      [
+        "snap"
+      ],
+      [
+        "key",
+        "z"
+      ],
+      [
+        "wait",
+        800
+      ],
+      [
+        "key",
+        "z"
+      ],
+      [
+        "wait",
+        800
+      ],
+      [
+        "key",
+        "Enter"
+      ],
+      [
+        "wait",
+        800
+      ],
+      [
+        "snap"
+      ],
+      [
+        "key",
+        "Enter"
+      ],
+      [
+        "key",
+        "z"
+      ],
+      [
+        "wait",
+        2000
+      ],
+      [
+        "snap"
+      ]
+    ],
+    "errors": [
+      "Failed to fetch"
+    ],
+    "external": [
+      "raw.githack.com"
+    ],
+    "http_errors": [],
+    "candidates": [
+      {
+        "file": "118-0.jpg",
+        "sha256": "d182c5a60834f9db9c0e91dd79d4c27dc999ff4f66fe1ad9760bed34d66da23a"
+      },
+      {
+        "file": "118-1.jpg",
+        "sha256": "861e20a82bb6b9b79443f98a2c4ee1abe40532cd8c1b16a08f03a36f65de8130"
+      },
+      {
+        "file": "118-2.jpg",
+        "sha256": "0c3ec58b758057306a42ce9c09feb66ac17b0ff9c0ac18f88312d3b146c3ab23"
+      },
+      {
+        "file": "118-3.jpg",
+        "sha256": "f3ce57780eb88cfa3b345d4551f10e43feb28b91358ed8e2f471cb230ecfeca7"
+      }
+    ],
+    "seconds": 156.15,
+    "reason": "needs-manual: native title/file/start keys reached introduction, no controllable Samus gameplay before180s cap.",
+    "output": "assets/thumbs/metroidfusion.jpg",
+    "previous_sha256": "8186d355a135d237fc604e4f1addacfdf8275b3e1d848f732a82626672cd924c",
+    "status": "needs-manual",
+    "output_sha256": "8186d355a135d237fc604e4f1addacfdf8275b3e1d848f732a82626672cd924c",
+    "output_bytes": 13032
+  },
+  {
+    "id": 230,
+    "title": "Blackout",
+    "head": "30057c41cc6dc918b9f168c8c5f2af37a9f4a8ad",
+    "entry_blob": "f7e03fb5d75a21588aa90c407d1e1493e46e78e7",
+    "source_tree": "1d3e8212bdb6f3bd2a0ac25249df7340e2120d32",
+    "actions": [
+      [
+        "wait",
+        5000
+      ],
+      [
+        "info"
+      ],
+      [
+        "snap"
+      ],
+      [
+        "selector",
+        "button:text-is(\"Start bot match\")"
+      ],
+      [
+        "wait",
+        1500
+      ],
+      [
+        "info"
+      ],
+      [
+        "snap"
+      ]
+    ],
+    "errors": [],
+    "external": [],
+    "http_errors": [],
+    "candidates": [
+      {
+        "file": "230-0.jpg",
+        "sha256": "3d318cc9b1ac3cf205083741ac5f52888c4ed2330a441dc48e62383f3e6d8af4"
+      },
+      {
+        "file": "230-1.jpg",
+        "sha256": "ee7d033af5b75a21d87da6e7f2c6fa950cc719b32c31925e725a0746a9fef0c2"
+      }
+    ],
+    "seconds": 30.11,
+    "reason": "needs-manual: Start bot match reports no WebGPU adapter; real gameplay unavailable on this host.",
+    "output": "assets/thumbs/blackout.jpg",
+    "previous_sha256": "dae48cc0830b0d6f5b0966f433a774c5e88e0f83d8db3559f1ed81d59bef426a",
+    "status": "needs-manual",
+    "output_sha256": "dae48cc0830b0d6f5b0966f433a774c5e88e0f83d8db3559f1ed81d59bef426a",
+    "output_bytes": 8561
+  }
+]

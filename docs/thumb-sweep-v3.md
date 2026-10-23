@@ -595,3 +595,23 @@ No advertising consent was granted, backend enabled or game state injected.
 The hacked Jetpack image gets its own `jetpackjoyridehacked.jpg` image-path alias,
 not the normal variant's new capture. Alias regression and JS syntax passed;
 portal manual updated. `games.json`, game sources and safety policies unchanged.
+
+### Batch 10: remaining football/GBA/Blackout holds
+
+**0 accepted / 5 attempted.** Running continuation: **25 captured, 25 needs-manual,
+2 not yet attempted.** [Actions/source/output receipt](thumb-sweep-v3.1/batch-10.json).
+Read all manuals; native-only input, no movie/save-state skips or renderer mocks.
+Browser/server closed, including an early session release after normal Retro Bowl.
+Future native mouse clicks now hold down for 250ms, rather than a zero-duration
+press that polling canvas engines may miss. Hacked Retro Bowl still resisted,
+so missing click duration is not asserted as its proven root cause. Completed
+games were not retried past their 180s budget. Free space **2,828,009,472 bytes**
+at batch close; no art changed.
+
+| ID | Game | v3.1 status | Reason |
+| --- | --- | --- | --- |
+| 54 | Retro Bowl | needs-manual, old art retained | Welcome/Continue did not advance with native clicks/Enter; polling-input limitation possible, cause unproven. |
+| 89 | Retro Bowl Hacked | needs-manual, old art retained | Same Welcome/Continue hold after longer clicks and keys; no on-field play. |
+| 119 | Mega Man Zero | needs-manual, old art retained | Native Enter/Z progressed long opening dialogue to Zero's awakening cutscene, but no controllable gameplay before hard deadline. |
+| 118 | Metroid Fusion | needs-manual, old art retained | Native title/file/start keys reached narrated space introduction, not controllable Samus play. |
+| 230 | Blackout | needs-manual, old art retained | Native Start bot match reports `No WebGPU adapter is available on this device.` |

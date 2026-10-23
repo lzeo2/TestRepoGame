@@ -109,7 +109,8 @@ def main():
                                 assert page is not None, 'open a game first'
                                 record['actions'].append(action)
                                 if op == 'click':
-                                    page.mouse.click(*args)
+                                    # Canvas engines poll button state between frames.
+                                    page.mouse.click(*args, delay=250)
                                 elif op == 'key':
                                     page.keyboard.press(args[0], delay=100)
                                 elif op == 'type':
