@@ -112,6 +112,16 @@ await kit.ready;
 assert.equal(stable.alive, true);
 assert.equal(kit.pools.get('residential').mesh.count, 1);
 assert.equal(kit.pools.get('residential').mesh.getMatrixAt(0, new THREE.Matrix4()).elements[12], 8);
+const staticBuffers = kit.pools.get('residential').batches.map(batch => batch.instanceMatrix);
+const staticVersions = staticBuffers.map(buffer => buffer.version), staticVersion = kit.version;
+kit.transform(stable, { ...stable.pose });
+assert.deepEqual(staticBuffers.map(buffer => buffer.version), staticVersions, 'unchanged pose never uploads matrices');
+assert.equal(kit.version, staticVersion, 'unchanged pose never invalidates static AO');
+for (const [i, key] of ['x', 'y', 'z', 'rotation', 'scale'].entries()) {
+  kit.transform(stable, { ...stable.pose, [key]: stable.pose[key] + 1 });
+  assert.deepEqual(staticBuffers.map(buffer => buffer.version), staticVersions.map(v => v + i + 1), `${key} change uploads matrices`);
+  assert.equal(kit.version, staticVersion + i + 1, `${key} change invalidates static AO`);
+}
 assert.equal(requests.filter(path => path.endsWith('.glb')).length, 17);
 assert.ok(requests.filter(path => path.endsWith('.glb')).every(path => path.endsWith('/model.glb')));
 await checkOrientation(kit);
@@ -132,6 +142,12 @@ kit.update(null, 1, .25);
 assert.equal(citizen.action.time, 0, 'spawn does not walk');
 const originalVersion = kit.version;
 kit.transform(citizen, { x: 2, z: 3 }); kit.transform(car, { x: 2, z: 3 });
+const mobileBuffers = ['citizen', 'car'].flatMap(type => kit.pools.get(type).batches.map(batch => batch.instanceMatrix));
+const mobileVersions = mobileBuffers.map(buffer => buffer.version), pendingTravel = car.travel;
+kit.transform(citizen, { ...citizen.pose }); kit.transform(car, { ...car.pose });
+assert.deepEqual(mobileBuffers.map(buffer => buffer.version), mobileVersions, 'unchanged mobile pose never uploads matrices');
+assert.equal(citizen.moved, true); assert.equal(car.moved, true);
+assert.equal(car.travel, pendingTravel, 'unchanged pose preserves pending travel');
 kit.update(null, 1, .25);
 assert.ok(citizen.action.time > 0);
 assert.ok(car.wheels.every(wheel => Math.abs(wheel.angle + 1 / wheel.radius) < 1e-6));
@@ -178,6 +194,8 @@ for (const lod of [1, 2]) {
   lowerKit.dispose();
 }
 const sample = await loadExternalModel('terrain_water_materials');
+assert.equal(Object.hasOwn(sample, 'parser'), false, 'real GLTF output releases completed parser caches');
+assert.equal(sample.scene.userData.external.directory, 'terrain_water_materials');
 assert.ok(sample.scene.isObject3D); disposeExternalModels([sample]);
 failDirectory = 'citizen';
 const failed = createExternalBuildingKit(new THREE.Scene(), 1);

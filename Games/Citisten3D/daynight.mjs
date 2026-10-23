@@ -36,7 +36,14 @@ export function createDayNight(scene) {
     probe.sh.coefficients[1].set(r, g, b).multiplyScalar(.08 + .12 * t);
     sun.intensity = 3 * t;
     moon.intensity = .8 * (1 - t);
-    sun.castShadow = t > .02; moon.castShadow = t < .98;
+    for (const light of [sun, moon]) {
+      const castShadow = light === sun ? t > .02 : t < .98;
+      if (light.castShadow && !castShadow) {
+        light.shadow.dispose();
+        light.shadow.map = null; light.shadow.mapPass = null;
+      }
+      light.castShadow = castShadow;
+    }
     return t;
   }
   setPhase(phase);

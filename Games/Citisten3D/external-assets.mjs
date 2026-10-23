@@ -89,6 +89,8 @@ export async function loadExternalModel(directory, lod = 0) {
     gltf = await new GLTFLoader(manager).parseAsync(bytes, folder.href);
     if (failures.length) throw new Error(`Model texture load failed (${failures.length})`);
     gltf.scene.userData.external = { directory, lod, rig, assembly };
+    // Scene resources own disposal; completed parser caches are no longer needed.
+    delete gltf.parser;
     return gltf;
   } catch (error) {
     if (gltf) disposeExternalModels([gltf]);

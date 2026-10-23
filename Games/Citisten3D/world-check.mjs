@@ -88,6 +88,41 @@ for (let phase = 0; phase <= .5; phase += .01) {
 assert.equal(daylight.setPhase(1.5), 1);
 assert.equal(daylight.setPhase(-.5), 1);
 assert.throws(() => daylight.setPhase(NaN), RangeError);
+const { sun, moon } = daylight.lights;
+const shadowDisposals = [];
+function allocateShadow(light, withPass = false) {
+  assert.equal(light.shadow.map, null, 'renderer recreation requires a null map');
+  assert.equal(light.shadow.mapPass, null);
+  assert.deepEqual(light.shadow.mapSize.toArray(), [2048, 2048]);
+  for (const key of withPass ? ['map', 'mapPass'] : ['map']) {
+    const target = new THREE.WebGLRenderTarget(2048, 2048), disposal = { count: 0 };
+    target.addEventListener('dispose', () => { disposal.count++; });
+    shadowDisposals.push(disposal); light.shadow[key] = target;
+  }
+}
+allocateShadow(sun);
+for (const phase of [.25, .75]) {
+  daylight.setPhase(phase);
+  assert.ok(sun.castShadow && moon.castShadow, 'mixed dawn/dusk retain both shadows');
+  assert.ok(sun.shadow.map);
+}
+allocateShadow(moon, true);
+const moonMap = moon.shadow.map, moonPass = moon.shadow.mapPass;
+daylight.setPhase(0); daylight.setPhase(0);
+assert.equal(sun.shadow.map, null);
+assert.equal(sun.shadow.mapPass, null);
+assert.equal(moon.shadow.map, moonMap); assert.equal(moon.shadow.mapPass, moonPass);
+assert.deepEqual(shadowDisposals.map(d => d.count), [1, 0, 0]);
+daylight.setPhase(.25);
+allocateShadow(sun, true);
+daylight.setPhase(.75);
+assert.ok(sun.shadow.map && moon.shadow.map && sun.castShadow && moon.castShadow);
+daylight.setPhase(.5); daylight.setPhase(.5);
+assert.equal(moon.shadow.map, null); assert.equal(moon.shadow.mapPass, null);
+assert.deepEqual(shadowDisposals.map(d => d.count), [1, 1, 1, 0, 0]);
+daylight.setPhase(0); daylight.setPhase(0);
+assert.equal(sun.shadow.map, null); assert.equal(sun.shadow.mapPass, null);
+assert.ok(shadowDisposals.every(d => d.count === 1), 'inactive targets disposed exactly once');
 const effects = createWorldEffects(scene, grid);
 assert.throws(() => effects.shot({x: NaN, z: 0}, {x: 0, z: 0}), RangeError);
 for (let i = 0; i < 70; i++) effects.shot({x: 95, z: 100}, {x: 100, z: 105});
@@ -95,5 +130,6 @@ assert.equal(effects.active, 64);
 effects.update(.1); assert.equal(effects.active, 64);
 effects.update(.1); assert.equal(effects.active, 0);
 effects.dispose(); daylight.dispose();
+assert.ok(shadowDisposals.every(d => d.count === 1), 'cleanup never re-disposes released shadows');
 assert.equal(scene.children.length, 0);
 console.log('WORLD CHECK PASS: roads/lanes, static/mobile block AO invalidation, water height, sky probe/shadows, day/night, bounded FX; GLB/animation/material tests run separately');

@@ -139,6 +139,7 @@ export function createExternalBuildingKit(scene, capacity = 10000, { lod = 0 } =
     if (!valid(handle)) throw new Error('Invalid or removed model');
     if (![x, y, z, rotation, scale].every(Number.isFinite) || scale <= 0) throw new RangeError('Invalid transform');
     const previous = handle.pose;
+    if (previous && previous.x === x && previous.y === y && previous.z === z && previous.rotation === rotation && previous.scale === scale) return;
     if (previous && mobile(handle.type)) {
       const dx = x - previous.x, dy = y - previous.y, dz = z - previous.z;
       handle.moved ||= Math.hypot(dx, dy, dz) > 1e-7;
