@@ -1,19 +1,19 @@
-# Wings: Modern Aircraft and Naval Wishlist
+# Wings: Modern Aircraft Wishlist
 
 ## Scope and balance conventions
 
-Exactly 20 candidates: 12 aircraft and 8 naval vessels, covering late Cold War designs still used in modern forces and newer platforms. "Foreign" means a multinational roster, not exclusion of any country. This is a planning document only, not authorization to build, register, publish or push anything.
+Exactly 20 aircraft candidates, covering late Cold War designs still used in modern forces and newer platforms: fighters, interceptors, bombers, attack aircraft, trainers and helicopters. No naval vessels are included. "Foreign" means a multinational roster, not exclusion of any country. This is the standard aircraft wishlist; the [separate Factions mode wishlist](wings-factions-wishlist.md) has its own mixed air-and-sea roster. Neither document authorizes building, registering, publishing or pushing anything.
 
-Wings already has an F-35, so its entry is a variant-specific refinement rather than a claim that the type is missing. Existing generic carrier and destroyer assets are precedents for named-class alternatives, not evidence that these classes are implemented. The experimental speedboat is not an accepted playable naval roster. See the [Wings maintenance manual](maintenance/games/232-wings.md) for current implementation and outstanding rights, tooling and native-play holds.
+Wings already has an F-35 and an Apache, so their entries are variant-specific refinements rather than claims that these aircraft families are missing. See the [Wings maintenance manual](maintenance/games/232-wings.md) for current implementation and outstanding rights, tooling and native-play holds.
 
 - **Facts versus proposals:** Names, roles, origins and service-era descriptions are real-world identifiers. Every speed, weapon fit and handling rating below is a proposed arcade balance value, not a real performance figure, operational loadout or capability ranking.
-- **Speed:** Aircraft list cruise/boost in game metres per second, anchored to the current F-15 at 155/215 and F-35 at 130/180. Ships list proposed maximum game metres per second without boost. Ship movement and playable-class support would need separate implementation and testing.
-- **Armament:** Generic game abstractions only. Aircraft missile counts are ready rounds, with replenishment subject to Wings' existing rules. "Guided strike" can reuse the existing TV-missile or Maverick mechanics; it does not promise a new radar, missile seeker or real weapon simulation. Proposed naval missile and defensive-gun systems are future work, not claims about existing weapons.
-- **Handling:** A proposed 1-5 rating, with 5 the most responsive. Aircraft ratings describe turn/roll response within the jet roster; naval ratings describe rudder response and turning circle within the vessel roster. The two scales are not comparable. Named behavior gives each rating context.
-- **Era:** Broad service-entry period of the named variant or class, not first flight, design date or a promise that every hull remains active.
+- **Speed:** Fixed-wing aircraft list cruise/boost in game metres per second, anchored to the current F-15 at 155/215 and F-35 at 130/180. Helicopters list maximum forward speed without boost; their hover and handling proposals require separate testing.
+- **Armament:** Generic game abstractions only. Missile and bomb counts are ready rounds, with replenishment subject to Wings' existing rules. "Guided strike" can reuse the existing TV-missile or Maverick mechanics; it does not promise a new radar, missile seeker or real weapon simulation. Bomber payloads and helicopter fits are proposals, not claims about implemented weapon support.
+- **Handling:** A proposed 1-5 rating, with 5 the most responsive. Fixed-wing ratings describe turn/roll response; helicopter ratings describe hover/yaw and low-speed response within their own class, not jet-like maneuverability. Named behavior gives each rating context.
+- **Era:** Broad service-entry period of the named variant, not first flight, design date or a promise that every example remains active.
 - **NATO names:** Western product names such as Fighting Falcon and Gripen are not NATO reporting names. None is asserted unless identified explicitly. J-20's reported "Fagin" designation is qualified below rather than presented as independently confirmed NATO terminology.
 
-## Aircraft (12)
+## Aircraft (20)
 
 ### 1. General Dynamics F-16C Fighting Falcon
 
@@ -47,11 +47,11 @@ The current cannon20/TV-missile fit is a game abstraction, not the F-35A's real 
 - **Suggested stats:** Speed 155/215 m/s; armament: cannon and 4 air-to-air missiles; handling 5/5, rapid roll and strong high-speed turns with a wider low-speed recovery arc.
 - **Gameplay fit:** Provides a fast interception specialist that trades strike ammunition for air-combat responsiveness.
 
-### 6. Dassault Rafale M
+### 6. Dassault Rafale C
 
-- **NATO reporting name:** Not applicable. **Role:** Carrier-capable multirole fighter. **Era:** 2000s service entry. **Origin country:** France.
+- **NATO reporting name:** Not applicable. **Role:** Land-based multirole fighter. **Era:** 2000s service entry. **Origin country:** France.
 - **Suggested stats:** Speed 145/200 m/s; armament: cannon, 2 air-to-air missiles and 2 guided-strike rounds; handling 4/5, predictable low-speed control with moderate boost acceleration.
-- **Gameplay fit:** Bridges fighter combat and anti-fleet strikes with a distinct naval-aircraft silhouette, without requiring carrier landings.
+- **Gameplay fit:** Bridges fighter combat and precision ground attack with a recognizable canard-delta silhouette.
 
 ### 7. Saab JAS 39C Gripen
 
@@ -91,59 +91,53 @@ Do not invent radar ranges or classified performance. Any use of Wings' existing
 - **Suggested stats:** Speed 125/175 m/s; armament: cannon, 2 short-range air-to-air missiles and 2 guided-strike rounds; handling 4/5, smooth roll and predictable turns but limited pursuit speed.
 - **Gameplay fit:** Provides a forgiving entry-level combat jet whose speed ceiling leaves room to progress to faster aircraft.
 
-## Naval vessels (8)
+### 13. Sukhoi Su-34
 
-For large vessels, begin as AI fleet units or objectives rather than promising player control. Patrol boats are candidates for a later water-handling class. Flight-deck operations, radar networks, torpedoes and antisubmarine warfare are not assumed to exist.
+- **NATO reporting name:** Fullback. **Role:** Tactical bomber and strike aircraft. **Era:** 2010s formal service entry. **Origin country:** Russia.
+- **Suggested stats:** Speed 140/195 m/s; armament: cannon, 2 air-to-air missiles and 6 guided-strike rounds; handling 2/5, stable attack runs with slow roll and wide recovery turns.
+- **Gameplay fit:** Adds a heavy tactical strike choice that needs escort or careful approach timing.
 
-### 13. Charles de Gaulle (R91)
+### 14. Tupolev Tu-160
 
-- **NATO reporting name:** Not applicable. **Role:** Nuclear-powered aircraft carrier. **Era:** 2000s service entry. **Origin country:** France.
-- **Suggested stats:** Maximum speed 14 m/s; armament: 2 abstract defensive missile channels and short-range defensive guns; handling 1/5, slow rudder response and a very wide turning circle.
-- **Gameplay fit:** Adds a compact carrier-class fleet objective with clear escort and strike priorities, without simulating an air wing.
+- **NATO reporting name:** Blackjack. **Role:** Supersonic strategic bomber. **Era:** Late-1980s service entry; modernized examples remain in service. **Origin country:** Soviet Union.
+- **Suggested stats:** Speed 160/225 m/s; armament: 8 guided-strike rounds, no cannon; handling 1/5, very wide turns and slow acceleration despite a high boost ceiling.
+- **Gameplay fit:** Creates a large, vulnerable payload specialist whose escape speed cannot replace fighter protection.
 
-### 14. Queen Elizabeth-class aircraft carrier
+### 15. Fairchild Republic A-10C Thunderbolt II
 
-- **NATO reporting name:** Not applicable. **Role:** Aircraft carrier designed for short-takeoff/vertical-landing aircraft. **Era:** 2010s service entry. **Origin country:** United Kingdom.
-- **Suggested stats:** Maximum speed 13 m/s; armament: 3 abstract close-in defensive gun mounts, no offensive missile battery; handling 1/5, slow acceleration and broad turns.
-- **Gameplay fit:** Adds a visually distinct twin-island carrier that depends on escorts rather than excessive offensive firepower.
+- **NATO reporting name:** Not applicable. **Role:** Close-air-support attack aircraft. **Era:** 2000s C upgrade of a 1970s-service aircraft. **Origin country:** United States.
+- **Suggested stats:** Speed 90/120 m/s; armament: heavy cannon and 6 guided-strike rounds; handling 3/5, controlled low-speed turns with limited climb and escape speed.
+- **Gameplay fit:** Trades interception ability for sustained ground attack and deliberate terrain use.
 
-### 15. Type 45 Daring-class destroyer
+### 16. Sukhoi Su-25SM
 
-- **NATO reporting name:** Not applicable; Daring is the class name. **Role:** Area-air-defense guided-missile destroyer. **Era:** 2000s service entry. **Origin country:** United Kingdom.
-- **Suggested stats:** Maximum speed 16 m/s; armament: main gun, 4 ready anti-air missiles and 2 close-in defensive mounts; handling 2/5, deliberate turns with better acceleration than a carrier.
-- **Gameplay fit:** Makes escort suppression valuable before a player attacks the fleet's main objective.
+- **NATO reporting name:** Frogfoot, for the Su-25 family. **Role:** Close-air-support attack aircraft. **Era:** 2000s SM upgrade of a 1980s-service aircraft. **Origin country:** Russia for the upgrade; Soviet Union for the original Su-25.
+- **Suggested stats:** Speed 100/135 m/s; armament: cannon, 4 guided-strike rounds and 2 rocket salvos; handling 3/5, steady low-level control with wider turns when fast.
+- **Gameplay fit:** Offers a faster attack alternative to the A-10C with a smaller guided payload.
 
-### 16. Kongō-class destroyer
+### 17. BAE Systems Hawk T2 (Hawk 128)
 
-- **NATO reporting name:** Not applicable. **Role:** Guided-missile air-defense destroyer. **Era:** 1990s service entry. **Origin country:** Japan, using United States-derived Aegis technology.
-- **Suggested stats:** Maximum speed 16 m/s; armament: main gun, 4 ready anti-air missiles and 2 ready anti-ship missiles; handling 2/5, steady course keeping and a large turning circle.
-- **Gameplay fit:** Provides a mixed air-and-surface threat that rewards approach planning instead of repeated straight attack runs.
+- **NATO reporting name:** Not applicable. **Role:** Advanced jet trainer. **Era:** Late-2000s service entry. **Origin country:** United Kingdom.
+- **Suggested stats:** Speed 110/150 m/s; armament: none in the proposed trainer fit; handling 5/5, forgiving roll and predictable medium-speed turns.
+- **Gameplay fit:** Provides an unarmed flight-training and checkpoint-race option rather than pretending every aircraft must be combat competitive.
 
-### 17. Aquitaine-class FREMM frigate
+### 18. Yakovlev Yak-130
 
-- **NATO reporting name:** Not applicable. **Role:** Multimission frigate, with the Aquitaine antisubmarine variant as the reference. **Era:** 2010s service entry. **Origin country:** France, within the joint French-Italian FREMM program.
-- **Suggested stats:** Maximum speed 14 m/s; armament: main gun, 2 ready anti-air missiles and 2 ready anti-ship missiles; handling 3/5, moderate rudder response and a smaller turning circle than the destroyers.
-- **Gameplay fit:** Fills the middle escort tier between missile-heavy destroyers and lightly armed patrol boats.
+- **NATO reporting name:** Mitten. **Role:** Advanced jet trainer and light attack aircraft. **Era:** 2010s service entry. **Origin country:** Russia, with early Italian development collaboration before the programs separated.
+- **Suggested stats:** Speed 110/150 m/s; armament: optional gun pod and 2 guided-strike rounds in the proposed combat fit; handling 5/5, gentle low-speed response with modest climb performance.
+- **Gameplay fit:** Bridges training and light strike without matching frontline fighter speed or payload.
 
-### 18. Shivalik-class frigate
+### 19. Boeing AH-64D Apache Longbow
 
-- **NATO reporting name:** Not applicable. **Role:** Multirole guided-missile frigate with reduced-signature design features. **Era:** 2010s service entry. **Origin country:** India.
-- **Suggested stats:** Maximum speed 16 m/s; armament: main gun, 2 ready anti-air missiles, 2 ready anti-ship missiles and short-range defensive guns; handling 2/5, slower rudder response than the Aquitaine proposal.
-- **Gameplay fit:** Adds a heavier frigate option for mixed fleets without introducing a new naval combat system.
+- **NATO reporting name:** Not applicable; Apache is a United States service name. **Role:** Attack helicopter. **Era:** Late-1990s service entry for the D variant. **Origin country:** United States.
+- **Suggested stats:** Maximum forward speed 75 m/s, no boost; armament: chain gun, 4 guided-strike rounds and 2 rocket salvos; handling 4/5, stable hover and responsive yaw with slow forward acceleration.
+- **Gameplay fit:** Refines the existing Apache into a named variant focused on low-altitude cover and precision attack, without promising radar simulation.
 
-Reduced-signature design does not mean invisibility; no automatic stealth bonus is proposed.
+### 20. Mil Mi-28N
 
-### 19. Super Dvora Mk III patrol boat
-
-- **NATO reporting name:** Not applicable. **Role:** Fast coastal patrol and interdiction boat. **Era:** 2000s service entry. **Origin country:** Israel.
-- **Suggested stats:** Maximum speed 24 m/s; armament: 1 forward light autocannon and 2 machine-gun positions, no guided missiles; handling 5/5, quick acceleration and tight powered turns with a speed penalty while turning.
-- **Gameplay fit:** Creates a mobile coastal skirmisher whose agility is balanced by short weapon reach and a light fit.
-
-### 20. Dockstavarvet Combat Boat 90 H (CB90 H)
-
-- **NATO reporting name:** Not applicable; CB90 is a product designation. **Role:** Fast assault and troop-transport boat. **Era:** 1990s service entry. **Origin country:** Sweden.
-- **Suggested stats:** Maximum speed 22 m/s; armament: 3 machine-gun positions, no missiles; handling 5/5, responsive waterjet-style steering but slower acceleration than the Super Dvora proposal.
-- **Gameplay fit:** Supports a lightly armed coastal objective or patrol role without requiring a troop simulation.
+- **NATO reporting name:** Havoc, for the Mi-28 family. **Role:** Attack helicopter. **Era:** Late-2000s service entry. **Origin country:** Russia, from a Soviet-origin design.
+- **Suggested stats:** Maximum forward speed 80 m/s, no boost; armament: autocannon, 4 guided-strike rounds and 2 rocket salvos; handling 3/5, steady hover with slower yaw than the Apache proposal.
+- **Gameplay fit:** Adds a faster but less nimble helicopter alternative using the same abstract weapon budget.
 
 ## Factual references and rights boundaries
 
@@ -153,7 +147,6 @@ These are public reference starting points for verifying identities, variant dat
 - [United Aircraft Corporation](https://www.uacrussia.ru/en/) for MiG and Sukhoi families; corroborate reporting names separately rather than treating manufacturer names as NATO terminology.
 - [Eurofighter](https://www.eurofighter.com/), [Dassault Aviation](https://www.dassault-aviation.com/en/), [Saab](https://www.saab.com/), [Pakistan Aeronautical Complex](https://www.pac.org.pk/) and [Korea Aerospace Industries](https://www.koreaaero.com/EN/) for their aircraft families.
 - The United States Department of Defense [China military power reports](https://www.defense.gov/Spotlights/China-Military-Power-Report/) for public J-20 context; retain the reporting-name qualification until a citable official designation is established.
-- [Marine nationale](https://www.defense.gouv.fr/marine), [Royal Navy](https://www.royalnavy.mod.uk/), [Japan Maritime Self-Defense Force](https://www.mod.go.jp/msdf/en/) and [Indian Navy](https://www.indiannavy.nic.in/) for carrier, destroyer and frigate classes.
-- [Israel Aerospace Industries](https://www.iai.co.il/) and [Dockstavarvet](https://www.dockstavarvet.se/) for the patrol/assault boat families.
+- [Royal Air Force](https://www.raf.mod.uk/aircraft/hawk-t2/) for Hawk T2; [Boeing](https://www.boeing.com/defense/ah-64-apache) and [Russian Helicopters](https://www.rhc.aero/en) for the helicopter families.
 
 Use public facts and independently authored descriptions. Do not copy another game's meshes, textures, UI, stats, sounds or vehicle descriptions. Reference links do not grant permission to redistribute photographs, drawings, logos, liveries or models. Any future assets need original creation or documented compatible licensing; do not imply manufacturer endorsement. No assets are ingested and no runtime network requests are introduced by this document. Wings' existing upstream-license uncertainty remains unresolved.
