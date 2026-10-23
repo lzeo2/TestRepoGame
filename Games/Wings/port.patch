@@ -1,6 +1,6 @@
 diff --git a/games/wings/astra-check.ts b/games/wings/astra-check.ts
 new file mode 100644
-index 0000000..af30ba6
+index 00000000..af30ba60
 --- /dev/null
 +++ b/games/wings/astra-check.ts
 @@ -0,0 +1,477 @@
@@ -483,7 +483,7 @@ index 0000000..af30ba6
 +console.log('PASS: F-15/F-35 distinct loadouts/stealth, model-derived gun/missile positions in identity and rotated poses, one-store-per-round depletion/regeneration, offline spawn/snapshot, invalid-kind rejection, ordinary-input takeoff/turn, hashes/budgets/material assignments, cockpit/anchor math and real CPU loader/template/view. Original five cruise/boost/loadouts and generic hardpoints unchanged. Timings include local I/O + GLTF parse + conversion + view setup; single samples, no GPU/rendered-flight/thumbnail acceptance.')
 diff --git a/games/wings/check-browser.py b/games/wings/check-browser.py
 new file mode 100644
-index 0000000..2de1864
+index 00000000..2de1864c
 --- /dev/null
 +++ b/games/wings/check-browser.py
 @@ -0,0 +1,119 @@
@@ -608,7 +608,7 @@ index 0000000..2de1864
 +print('PASS: 4 viewport/theme failure screens, Low retry/reload, all 3 launch paths fail closed, Controls/Settings return, offline custom controls, spawn cleanup/layout and HUD fixture separation. No rendered flight.')
 diff --git a/games/wings/check-context-sequence.py b/games/wings/check-context-sequence.py
 new file mode 100644
-index 0000000..b1c8f5a
+index 00000000..b1c8f5a5
 --- /dev/null
 +++ b/games/wings/check-context-sequence.py
 @@ -0,0 +1,36 @@
@@ -650,26 +650,36 @@ index 0000000..b1c8f5a
 +sys.exit(code)
 diff --git a/games/wings/check-ui.html b/games/wings/check-ui.html
 new file mode 100644
-index 0000000..e35e410
+index 00000000..e35e4102
 --- /dev/null
 +++ b/games/wings/check-ui.html
 @@ -0,0 +1,2 @@
 +<!doctype html>
 +<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Wings UI regression</title><meta name="description" content="Renderer-free Wings hangar and HUD layout regression. Not rendered flight."></head><body><script type="module" src="./ui-check.ts"></script></body></html>
 diff --git a/games/wings/index.html b/games/wings/index.html
-index bb8d87a..b965387 100644
+index bb8d87a0..ca69e44d 100644
 --- a/games/wings/index.html
 +++ b/games/wings/index.html
-@@ -5,7 +5,7 @@
+@@ -5,20 +5,20 @@
  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
  <meta name="theme-color" content="#1e2a28" />
  <title>wings</title>
 -<meta name="description" content="wings — browser multiplayer aerial combat. Jets, helicopters, up to four teams." />
 +<meta name="description" content="Wings - offline solo flight and aerial combat against AI pilots. Keyboard and mouse required." />
  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%2322262a'/%3E%3Crect x='7' y='21' width='18' height='2' fill='%23ff7a2e'/%3E%3C/svg%3E" />
- <link rel="preload" href="/fonts/archivo-narrow-latin.woff2" as="font" type="font/woff2" crossorigin />
- <link rel="preload" href="/fonts/plex-mono-400-latin.woff2" as="font" type="font/woff2" crossorigin />
-@@ -18,7 +18,7 @@
+-<link rel="preload" href="/fonts/archivo-narrow-latin.woff2" as="font" type="font/woff2" crossorigin />
+-<link rel="preload" href="/fonts/plex-mono-400-latin.woff2" as="font" type="font/woff2" crossorigin />
++<link rel="preload" href="fonts/archivo-narrow-latin.woff2" as="font" type="font/woff2" crossorigin />
++<link rel="preload" href="fonts/plex-mono-400-latin.woff2" as="font" type="font/woff2" crossorigin />
+ <style>
+ /* Self-hosted, latin subset, OFL (licenses next to the files). Archivo Narrow is variable: one file, 500 + 700. */
+-@font-face { font-family: "Archivo Narrow"; src: url(/fonts/archivo-narrow-latin.woff2) format("woff2"); font-weight: 400 700; font-display: swap; }
+-@font-face { font-family: "IBM Plex Mono"; src: url(/fonts/plex-mono-400-latin.woff2) format("woff2"); font-weight: 400; font-display: swap; }
+-@font-face { font-family: "IBM Plex Mono"; src: url(/fonts/plex-mono-500-latin.woff2) format("woff2"); font-weight: 500; font-display: swap; }
++@font-face { font-family: "Archivo Narrow"; src: url(fonts/archivo-narrow-latin.woff2) format("woff2"); font-weight: 400 700; font-display: swap; }
++@font-face { font-family: "IBM Plex Mono"; src: url(fonts/plex-mono-400-latin.woff2) format("woff2"); font-weight: 400; font-display: swap; }
++@font-face { font-family: "IBM Plex Mono"; src: url(fonts/plex-mono-500-latin.woff2) format("woff2"); font-weight: 500; font-display: swap; }
+ /* Metric-matched fallbacks so the swap doesn't move the layout. */
  @font-face { font-family: "Narrow Fallback"; src: local("Arial Narrow"), local("ArialNarrow"), local("Helvetica Neue Condensed"), local("Arial"); size-adjust: 86%; ascent-override: 101%; descent-override: 25%; line-gap-override: 0%; }
  @font-face { font-family: "Mono Fallback"; src: local("Menlo"), local("Consolas"), local("Courier New"); size-adjust: 99.6%; ascent-override: 103%; descent-override: 27.5%; line-gap-override: 0%; }
  :root {
@@ -764,8 +774,172 @@ index bb8d87a..b965387 100644
  <div id="busy" hidden><span>Connecting</span></div>
  <div id="toast"></div>
  </body>
+diff --git a/games/wings/lighting-check.ts b/games/wings/lighting-check.ts
+new file mode 100644
+index 00000000..8a45776d
+--- /dev/null
++++ b/games/wings/lighting-check.ts
+@@ -0,0 +1,158 @@
++// CPU/render-state regression of the actual lighting code. No GPU or network.
++import './time-of-day-check'
++import assert from 'node:assert/strict'
++import { readFileSync } from 'node:fs'
++import { resolve } from 'node:path'
++import { Color, PerspectiveCamera, Scene, SpotLight, Vector3 } from 'three'
++import { createDaylight } from './src/render/world/daylight'
++import { STORM } from './src/render/world/atmosphere'
++import { SUN_DIRECTION } from './src/render/world/settings'
++import { createLightning, createSky, createCloudLayers } from './src/render/world/sky'
++import { createAircraftView, preloadAircraft, setAircraftGroundQuery } from './src/render/aircraft'
++import { createPaintMaterial, createGlassMaterial } from './src/render/toon'
++import { createFlightState } from './src/sim/flight'
++import { createWeapons } from './src/sim/combat'
++import { type VehicleEntity } from './src/sim/types'
++
++const scene = new Scene()
++scene.background = new Color()
++const lighting = createDaylight(scene, 'balanced')
++scene.add(lighting.root)
++const sky = createSky(), clouds = createCloudLayers(1)
++assert(sky.mesh.material.colorNode && clouds.group.children.length === 1)
++const paint = createPaintMaterial({ color: '#556677' }), glass = createGlassMaterial()
++const focus = new Vector3(1000, 80, -500)
++lighting.setFocus(focus)
++const atHour = (hour: number) => (hour - 9) / 24 * 600
++const close = (a: number, b: number, epsilon = 1e-8) => assert(Math.abs(a - b) < epsilon, `${a} != ${b}`)
++const snapshot = () => ({
++  sun: SUN_DIRECTION.toArray(), key: lighting.key.position.toArray(), intensity: lighting.key.intensity,
++  ambient: lighting.hemi.intensity, zenith: STORM.zenith.value.toArray(), fog: STORM.fogColor.value.toArray(),
++  fogBase: STORM.fogBase.value, fogSea: STORM.fogSea.value, env: paint.envMapIntensity,
++})
++lighting.setTime(atHour(12))
++const noon = snapshot()
++assert(lighting.key.castShadow)
++assert(lighting.key.shadow.camera.left < 0 && lighting.key.shadow.camera.far >= 4800)
++assert(lighting.key.target.position.equals(focus))
++assert(new Vector3().subVectors(lighting.key.position, focus).normalize().distanceTo(SUN_DIRECTION) < 1e-8)
++close(paint.envMapIntensity, 0.9)
++close(glass.envMapIntensity, 1.6)
++lighting.setTime(atHour(0))
++const midnight = snapshot()
++assert.equal(midnight.intensity, 0)
++assert(midnight.ambient < noon.ambient / 10)
++assert(midnight.env < noon.env / 10)
++assert.notDeepEqual(midnight.zenith, noon.zenith)
++assert.notDeepEqual(midnight.fog, noon.fog)
++// At 1 km, even above sea mist the night transmittance is far lower, on Low too.
++assert(Math.exp(-midnight.fogBase * 1000) < Math.exp(-noon.fogBase * 1000) * 0.6)
++lighting.setQuality('low')
++assert(!lighting.key.castShadow)
++assert.equal(STORM.fogBase.value, midnight.fogBase)
++lighting.setQuality('high')
++assert(lighting.key.castShadow)
++lighting.setTime(atHour(8))
++assert(lighting.key.position.x > focus.x)
++lighting.setTime(atHour(16))
++assert(lighting.key.position.x < focus.x)
++lighting.setTime(atHour(12) + 600)
++assert.deepEqual(snapshot(), noon)
++lighting.flash(1)
++close(lighting.hemi.intensity, noon.ambient * 1.5)
++lighting.flash(0)
++close(lighting.hemi.intensity, noon.ambient)
++
++const cameraPosition = new Vector3(20, 100, 30)
++const stormA = createLightning(), stormB = createLightning()
++let notifications = 0
++stormA.onStrike(() => notifications++)
++for (const time of [0, 8, 8, 8.1, 8.4, 27.2, 27.2, 600, 8.1, 0]) {
++  const fresh = createLightning()
++  const direct = fresh.update(time, cameraPosition)
++  close(stormA.update(time, cameraPosition), direct)
++  close(stormB.update(time, cameraPosition), direct)
++  if (fresh.mesh.visible) assert.deepEqual(
++    Array.from(stormA.mesh.geometry.attributes.position.array),
++    Array.from(fresh.mesh.geometry.attributes.position.array),
++  )
++  fresh.dispose()
++}
++assert.equal(notifications, 2, 'no duplicated strikes on repeated sample or rewind')
++stormA.dispose(); stormB.dispose()
++
++// Same local-only file adapter as astra-check; no model/network stand-ins.
++const native = { Request: globalThis.Request, fetch: globalThis.fetch, ProgressEvent: globalThis.ProgressEvent }
++globalThis.Request = class extends native.Request {
++  constructor(input: any, init?: any) { super(typeof input === 'string' ? new URL(input, 'http://wings.invalid').href : input, init) }
++}
++globalThis.ProgressEvent = class extends Event {
++  constructor(type: string, init: any) { super(type); Object.assign(this, init) }
++} as any
++globalThis.fetch = async (input: any) => {
++  const url = new URL(typeof input === 'string' ? input : input.url)
++  assert.equal(url.origin, 'http://wings.invalid')
++  assert(/^\/models\/[a-z0-9-]+\.glb$/.test(url.pathname))
++  const bytes = readFileSync(resolve(process.argv[2] ?? 'Games/Wings/models', url.pathname.split('/').pop()!))
++  return new Response(bytes, { headers: { 'Content-Length': String(bytes.length) } })
++}
++try {
++  await preloadAircraft('http://wings.invalid/')
++  setAircraftGroundQuery(() => 0)
++  const camera = new PerspectiveCamera()
++  camera.position.set(0, 50, 60); camera.updateMatrixWorld()
++  for (const kind of ['f15', 'apache'] as const) {
++    const view = createAircraftView(kind, 0, 'low')
++    assert(view.ready)
++    const vehicle = {
++      id: 'lighting-test', kind, team: 0, alive: true, hp: 450, maxHp: 450,
++      seats: ['pilot', null], aim: [null, null], weapons: createWeapons(kind),
++      flight: createFlightState(kind, { position: [20, 30, 40], yaw: 0, onGround: false }),
++      flaresReadyAt: 0, flareCount: 0, abilityReadyAt: 0, spottedUntil: 0, lastDamagedBy: null,
++    } as VehicleEntity
++    lighting.setTime(atHour(0))
++    view.update(vehicle, [], 1 / 60, camera)
++    assert(!view.root.getObjectByName('landing_light'), 'remote/thumbnail has no light')
++    view.setLocal(true)
++    view.update(vehicle, [], 1 / 60, camera)
++    const lamp = view.root.getObjectByName('landing_light') as SpotLight
++    assert(lamp?.isSpotLight && lamp.visible && lamp.intensity > 100000)
++    assert.equal(lamp.castShadow, false)
++    assert(lamp.distance >= 400 && lamp.angle > 0 && lamp.decay === 2)
++    view.root.updateMatrixWorld(true)
++    const a = lamp.getWorldPosition(new Vector3()), b = lamp.target.getWorldPosition(new Vector3())
++    assert(b.y < a.y && b.z < a.z, 'beam points ahead and down')
++    const direction = b.clone().sub(a).normalize()
++    vehicle.flight.orientation = [0, Math.sin(Math.PI / 4), 0, Math.cos(Math.PI / 4)]
++    view.update(vehicle, [], 1 / 60, camera); view.root.updateMatrixWorld(true)
++    const rotated = lamp.target.getWorldPosition(new Vector3()).sub(lamp.getWorldPosition(new Vector3())).normalize()
++    assert(Math.abs(rotated.x - direction.z) < 1e-8 && Math.abs(rotated.z) < 1e-8, 'beam follows aircraft yaw')
++    assert(!view.root.getObjectByName('ground_shadow')!.visible)
++    lighting.setTime(atHour(8))
++    view.update(vehicle, [], 1 / 60, camera)
++    const shadow = view.root.getObjectByName('ground_shadow')!
++    assert(shadow.visible)
++    view.root.updateMatrixWorld(true)
++    assert(shadow.getWorldPosition(new Vector3()).x < view.root.position.x)
++    lighting.setTime(atHour(16)); view.update(vehicle, [], 1 / 60, camera); view.root.updateMatrixWorld(true)
++    assert(shadow.getWorldPosition(new Vector3()).x > view.root.position.x)
++    lighting.setTime(atHour(12)); view.update(vehicle, [], 1 / 60, camera)
++    assert(!lamp.parent && !lamp.visible && lamp.intensity === 0, 'day removes night light')
++    lighting.setTime(atHour(0)); view.update(vehicle, [], 1 / 60, camera)
++    assert(lamp.parent)
++    vehicle.alive = false; view.update(vehicle, [], 1 / 60, camera)
++    assert(!lamp.parent && lamp.intensity === 0, 'death removes light')
++    vehicle.alive = true; view.update(vehicle, [], 1 / 60, camera)
++    view.setLocal(false)
++    assert(!lamp.parent && lamp.intensity === 0, 'seat leave removes light')
++    view.setLocal(true); view.update(vehicle, [], 1 / 60, camera)
++    view.dispose()
++    assert(!lamp.parent && !lamp.target.parent && !lamp.visible, 'dispose removes light and target')
++  }
++} finally {
++  Object.assign(globalThis, native)
++  setAircraftGroundQuery(() => 0)
++  lighting.setTime(0)
++  lighting.dispose(); sky.dispose(); clouds.dispose(); paint.dispose(); glass.dispose()
++}
++console.log('PASS: real solar/ambient lights, sky/fog/environment uniforms, all-quality visibility, focused shadow direction, deterministic storm, converted F-15/Apache landing/search lights and lifecycle. CPU/render-state only; no GPU acceptance.')
 diff --git a/games/wings/package.json b/games/wings/package.json
-index 3d6da9f..0865bf0 100644
+index 3d6da9f1..0865bf03 100644
 --- a/games/wings/package.json
 +++ b/games/wings/package.json
 @@ -7,7 +7,7 @@
@@ -786,7 +960,7 @@ index 3d6da9f..0865bf0 100644
 \ No newline at end of file
 diff --git a/games/wings/solo-check.ts b/games/wings/solo-check.ts
 new file mode 100644
-index 0000000..a9f027a
+index 00000000..a9f027a9
 --- /dev/null
 +++ b/games/wings/solo-check.ts
 @@ -0,0 +1,47 @@
@@ -838,7 +1012,7 @@ index 0000000..a9f027a
 +fresh.close()
 +console.log('PASS: offline takeoff, fresh session, ordinary-input crash and respawn; rendering not tested')
 diff --git a/games/wings/src/audio/engines.ts b/games/wings/src/audio/engines.ts
-index 9131e51..976ddb2 100644
+index 9131e519..976ddb2e 100644
 --- a/games/wings/src/audio/engines.ts
 +++ b/games/wings/src/audio/engines.ts
 @@ -4,8 +4,8 @@ import { VEHICLES } from "../sim/vehicles"
@@ -862,7 +1036,7 @@ index 9131e51..976ddb2 100644
          // Twin F404s: a smooth roar that opens up with throttle, faint turbine hum, afterburner rumble.
          roar(350, 1400, 0.2, 0.3, 1)
 diff --git a/games/wings/src/main.ts b/games/wings/src/main.ts
-index 2f2f1b9..0665775 100644
+index 2f2f1b96..06657750 100644
 --- a/games/wings/src/main.ts
 +++ b/games/wings/src/main.ts
 @@ -1,13 +1,13 @@
@@ -965,7 +1139,7 @@ index 2f2f1b9..0665775 100644
      starting = false
      lobby.busy(null)
 diff --git a/games/wings/src/render/aircraft-preview/main.ts b/games/wings/src/render/aircraft-preview/main.ts
-index 7346de6..617b639 100644
+index 7346de66..617b639a 100644
 --- a/games/wings/src/render/aircraft-preview/main.ts
 +++ b/games/wings/src/render/aircraft-preview/main.ts
 @@ -107,8 +107,8 @@ if (params.has("occluder")) {
@@ -989,10 +1163,26 @@ index 7346de6..617b639 100644
      const view = createAircraftView(kind, team, qInput.value as Quality)
      scene.add(view.root)
 diff --git a/games/wings/src/render/aircraft.ts b/games/wings/src/render/aircraft.ts
-index 8919800..fe5a1a3 100644
+index 89198008..29dd73fa 100644
 --- a/games/wings/src/render/aircraft.ts
 +++ b/games/wings/src/render/aircraft.ts
-@@ -58,8 +58,8 @@ export interface AircraftView {
+@@ -29,6 +29,7 @@ import {
+   Skeleton,
+   SkinnedMesh,
+   Sphere,
++  SpotLight,
+   Uint16BufferAttribute,
+   Vector3,
+   type Camera,
+@@ -42,6 +43,7 @@ import type { PlayerInfo, Quality, SeatIndex, TeamId, VehicleEntity, VehicleKind
+ import { VEHICLES, WEAPONS } from "../sim/vehicles"
+ import { groundHeight } from "../sim/geography"
+ import { SUN_DIRECTION } from "./world/settings"
++import { STORM } from "./world/atmosphere"
+ import { createBlobShadow } from "./aircraft-shadow"
+ import { createGlassMaterial, createGlowMaterial, createPaintMaterial, paintColor } from "./toon"
+ export { setAircraftEnvironment } from "./toon"
+@@ -58,8 +60,8 @@ export interface AircraftView {
    dispose(): void
    /** Firing hint from the client (e.g. spins the GAU-8 barrels while held). */
    setFiring(seat: SeatIndex, slot: number, on: boolean): void
@@ -1003,7 +1193,7 @@ index 8919800..fe5a1a3 100644
    /**
     * Named attachment points that follow the model (world transforms valid after update()).
     * Always present: "gun" (primary gun muzzle). Others per kind, e.g. "afterburner_L", "exhaust_L",
-@@ -149,15 +149,52 @@ interface KindConfig {
+@@ -149,15 +151,52 @@ interface KindConfig {
    ballPod?: { name: string; seat: SeatIndex; maxUp: number }
    rollPod?: { name: string; seat: SeatIndex }
    rudders?: { names: string[]; gain: number; max: number }
@@ -1059,7 +1249,7 @@ index 8919800..fe5a1a3 100644
    fighter: {
      file: "fa18",
      pivots: [
-@@ -610,7 +647,10 @@ function buildTemplate(kind: VehicleKind, scene: Object3D): Template {
+@@ -610,7 +649,10 @@ function buildTemplate(kind: VehicleKind, scene: Object3D): Template {
      const override = COLOR_OVERRIDES.find(([re, , kinds]) => kindMatch(kinds) && b.names.some((n) => re.test(n)))?.[1]
      const isTop = b.names.some((n) => TOP_PAINT.test(n))
      const target = b.metal && !isTop ? metal : paint
@@ -1071,18 +1261,121 @@ index 8919800..fe5a1a3 100644
      b.geoms.forEach((g, i) => {
        const name = b.names[i]
        const partHex = PART_COLORS.find(([re, , kinds]) => kindMatch(kinds) && re.test(name))?.[1]
-@@ -1265,6 +1305,10 @@ export function createAircraftView(kind: VehicleKind, team: TeamId, quality: Qua
+@@ -1010,6 +1052,7 @@ export function createAircraftView(kind: VehicleKind, team: TeamId, quality: Qua
+
+   let placeholder: Mesh | null = new Mesh(placeholderGeometry(kind), liveryMaterial(team))
+   placeholder.name = "placeholder"
++  placeholder.receiveShadow = true
+   root.add(placeholder)
+   const shadow = createBlobShadow()
+   shadow.visible = false
+@@ -1017,6 +1060,33 @@ export function createAircraftView(kind: VehicleKind, team: TeamId, quality: Qua
+   const shadowSize = CONFIG[kind].shadow
+   let isLocal = false
+
++  // Candela with inverse-square falloff: a landing/search light, not an emissive beam mesh.
++  const landingLight = new SpotLight("#fff1d6", 0, 500, 0.28, 0.5, 2)
++  landingLight.name = "landing_light"
++  landingLight.position.set(0, -0.5, -cfg.placeholder.length * 0.4)
++  landingLight.visible = false
++  landingLight.castShadow = false
++  const landingTarget = new Object3D()
++  landingTarget.name = "landing_light_target"
++  landingTarget.position.set(0, cfg.placeholder.heli ? -160 : -70, -220)
++  landingLight.target = landingTarget
++  const disableLandingLight = () => {
++    landingLight.visible = false
++    landingLight.intensity = 0
++    landingLight.removeFromParent()
++    landingTarget.removeFromParent()
++  }
++  const updateLandingLight = (alive: boolean) => {
++    const night = isLocal && alive && !disposed ? smooth01(1 - STORM.daylight.value) : 0
++    if (night <= 0.001) {
++      disableLandingLight()
++      return
++    }
++    if (!landingLight.parent) root.add(landingLight, landingTarget)
++    landingLight.intensity = 250000 * night
++    landingLight.visible = true
++  }
++
+   let rig: Rig | null = null
+   let disposed = false
+   const firing = [
+@@ -1028,8 +1098,8 @@ export function createAircraftView(kind: VehicleKind, team: TeamId, quality: Qua
+   let gunSpin = 0
+   let throttleVis = 0
+   let boostVis = 0
+-  let time = Math.random() * 10
+-  const blinkPhase = Math.random()
++  let time = 0
++  const blinkPhase = 0
+   // Real shadow-map shadows come from the world; the blob is only a Low-quality fallback height cue.
+   const blobShadow = quality === "low"
+
+@@ -1104,6 +1174,7 @@ export function createAircraftView(kind: VehicleKind, team: TeamId, quality: Qua
+       mesh.renderOrder = tm.role === "glass" || tm.role === "flame" ? 10 + renderOrder++ : 2
+       mesh.name = tm.role
+       mesh.castShadow = tm.role === "toon" || tm.role === "livery"
++      mesh.receiveShadow = mesh.castShadow
+       model.add(mesh)
+       meshes.push(mesh)
+     }
+@@ -1159,6 +1230,12 @@ export function createAircraftView(kind: VehicleKind, team: TeamId, quality: Qua
+
+   const updateShadow = () => {
+     if (!blobShadow) return
++    const daylight = clamp(STORM.daylight.value, 0, 1) * smooth01(clamp(SUN_DIRECTION.y / 0.1, 0, 1))
++    if (daylight <= 0 || SUN_DIRECTION.y <= 0) {
++      shadow.visible = false
++      ;(shadow.material as MeshBasicNodeMaterial).opacity = 0
++      return
++    }
+     // Cast along the world sun direction so the blob sits where the real shadow would.
+     const agl0 = root.position.y - groundQuery(root.position.x, root.position.z)
+     // Cap the cast offset to ~1.2x AGL so the blob stays a useful height cue under a low sun.
+@@ -1173,7 +1250,7 @@ export function createAircraftView(kind: VehicleKind, team: TeamId, quality: Qua
+     }
+     shadow.visible = true
+     const fade = 1 - clamp(agl / SHADOW_MAX_AGL, 0, 1)
+-    ;(shadow.material as MeshBasicNodeMaterial).opacity = 0.38 * fade * (0.6 + 0.4 * fade)
++    ;(shadow.material as MeshBasicNodeMaterial).opacity = 0.38 * fade * (0.6 + 0.4 * fade) * daylight
+     // Surface normal from a small height stencil so the blob lies on slopes.
+     const d = 4
+     _sn.set(groundQuery(x - d, z) - groundQuery(x + d, z), 2 * d, groundQuery(x, z - d) - groundQuery(x, z + d)).normalize()
+@@ -1265,6 +1342,12 @@ export function createAircraftView(kind: VehicleKind, team: TeamId, quality: Qua
      },
      setLocal(local) {
        isLocal = local
-+      if (!local) {
++      if (local) root.scale.setScalar(1)
++      else {
++        disableLandingLight()
 +        firing[0][0] = firing[0][1] = firing[1][0] = firing[1][1] = false
 +        boostHint = null
 +      }
      },
      setSpotted(on) {
        spottedTarget = on
-@@ -1391,9 +1435,10 @@ export function createAircraftView(kind: VehicleKind, team: TeamId, quality: Qua
+@@ -1274,12 +1357,16 @@ export function createAircraftView(kind: VehicleKind, team: TeamId, quality: Qua
+       root.position.set(f.position[0], f.position[1], f.position[2])
+       root.quaternion.set(f.orientation[0], f.orientation[1], f.orientation[2], f.orientation[3])
+       root.visible = vehicle.alive
+-      if (!vehicle.alive) return
++      if (!vehicle.alive) {
++        disableLandingLight()
++        return
++      }
+       _v.setFromMatrixPosition(camera.matrixWorld)
+       const dist = _v.distanceTo(root.position)
+       // Remote aircraft grow up to 1.6x between 500 m and 1.5 km so they stay readable at gun range.
+       const k = clamp((dist - 500) / 1000, 0, 1)
+       root.scale.setScalar(isLocal ? 1 : 1 + 0.6 * k * k * (3 - 2 * k))
++      updateLandingLight(vehicle.alive)
+       updateShadow()
+       if (!rig) return
+       updateSpotted(rig, dt)
+@@ -1391,9 +1478,10 @@ export function createAircraftView(kind: VehicleKind, team: TeamId, quality: Qua
            }
          }
          if (cfg.doors) {
@@ -1095,8 +1388,17 @@ index 8919800..fe5a1a3 100644
            r.doors = approach(r.doors, want, want ? 2.2 : 1.2, dt)
            for (const [n, ang] of d.names) {
              const bi = boneAt(r, n)
+@@ -1422,6 +1510,8 @@ export function createAircraftView(kind: VehicleKind, team: TeamId, quality: Qua
+     },
+     dispose() {
+       disposed = true
++      disableLandingLight()
++      landingLight.dispose()
+       readyListeners.get(kind)?.delete(build)
+       root.removeFromParent()
+       if (rig) {
 diff --git a/games/wings/src/render/camera.ts b/games/wings/src/render/camera.ts
-index 17739d5..ea5f818 100644
+index 17739d5f..ea5f8187 100644
 --- a/games/wings/src/render/camera.ts
 +++ b/games/wings/src/render/camera.ts
 @@ -12,6 +12,8 @@ const COCKPIT: Record<VehicleKind, Vec3> = {
@@ -1157,7 +1459,7 @@ index 17739d5..ea5f818 100644
    }
 
 diff --git a/games/wings/src/render/hud.ts b/games/wings/src/render/hud.ts
-index 3b804bf..55d8b07 100644
+index 3b804bfa..55d8b07f 100644
 --- a/games/wings/src/render/hud.ts
 +++ b/games/wings/src/render/hud.ts
 @@ -177,7 +177,7 @@ export function createHud(parent: HTMLElement): Hud {
@@ -1197,7 +1499,7 @@ index 3b804bf..55d8b07 100644
          if (f.remaining !== null) {
            const r = Math.max(0, Math.ceil(f.remaining))
 diff --git a/games/wings/src/render/scene.ts b/games/wings/src/render/scene.ts
-index 2e3116f..8f681ce 100644
+index 2e3116ff..381390dd 100644
 --- a/games/wings/src/render/scene.ts
 +++ b/games/wings/src/render/scene.ts
 @@ -119,7 +119,7 @@ function sanitizeHdr(input: any) {
@@ -1236,7 +1538,27 @@ index 2e3116f..8f681ce 100644
    renderer.setPixelRatio(pixelRatio(quality) * MENU_SCALE)
    renderer.setSize(window.innerWidth, window.innerHeight, false)
    renderer.info.autoReset = false
-@@ -466,6 +486,8 @@ export async function createSceneHost(canvas: HTMLCanvasElement, quality: Qualit
+@@ -277,7 +297,7 @@ export async function createSceneHost(canvas: HTMLCanvasElement, quality: Qualit
+     renderer, scene, camera, world, effects, rig, quality, aircraftLoaded, stats,
+     setFrame(fn) {
+       frameFn = fn
+-      if (!fn) rig.setMode("menu")
++      if (!fn) { rig.setMode("menu"); world.setTimeOfDay(0) }
+       applyPixelRatio()
+     },
+     setQuality(q) {
+@@ -459,13 +479,16 @@ export async function createSceneHost(canvas: HTMLCanvasElement, quality: Qualit
+     // Lightning: the world may expose a 0..1 value; pulse exposure and bloom with it.
+     const wl = (world as unknown as { lightning?: number | (() => number) }).lightning
+     const worldFlash = typeof wl === "function" ? wl() : typeof wl === "number" ? wl : 0
+-    flash = Math.max(flash * Math.exp(-dt * 9), worldFlash)
+-    uExposure.value = 1 + flash * 0.9
+-    uBloom.value = 0.6 + flash * 1.9
++    flash *= Math.exp(-dt * 9)
++    const exposureFlash = Math.max(flash, worldFlash)
++    uExposure.value = 1 + exposureFlash * 0.9
++    uBloom.value = 0.6 + exposureFlash * 1.9
+
      renderer.info.reset()
      if (pipeline) pipeline.render()
      else renderer.render(scene, camera)
@@ -1245,7 +1567,7 @@ index 2e3116f..8f681ce 100644
      sampleGpu(now)
      const t1 = performance.now()
      stats.frameMs += (t1 - now - stats.frameMs) * 0.05
-@@ -486,6 +508,7 @@ export async function createSceneHost(canvas: HTMLCanvasElement, quality: Qualit
+@@ -486,6 +509,7 @@ export async function createSceneHost(canvas: HTMLCanvasElement, quality: Qualit
        canvas.classList.add("ready")
        document.getElementById("backdrop")?.classList.add("fade")
        onStatus("world")
@@ -1253,7 +1575,7 @@ index 2e3116f..8f681ce 100644
      }
    }
    // ---- adaptive resolution: keep frames under budget by scaling the pixel ratio (hysteresis, slow to rise).
-@@ -535,7 +558,9 @@ export async function createSceneHost(canvas: HTMLCanvasElement, quality: Qualit
+@@ -535,7 +559,9 @@ export async function createSceneHost(canvas: HTMLCanvasElement, quality: Qualit
      } else okSeconds = 0
    }
    applyPixelRatio()
@@ -1264,8 +1586,464 @@ index 2e3116f..8f681ce 100644
    if (import.meta.env.DEV) {
      const w = window as unknown as Record<string, unknown>
      w.__wingsHost = host
+diff --git a/games/wings/src/render/toon.ts b/games/wings/src/render/toon.ts
+index 0d4cb8a0..6dfe97ac 100644
+--- a/games/wings/src/render/toon.ts
++++ b/games/wings/src/render/toon.ts
+@@ -56,6 +56,13 @@ export function paintColor(src: Color, kind: PaintKind = "hull"): Color {
+ let envTex: Texture | null = null
+ let envOverride: Texture | null = null
+ const envUsers = new Set<MeshPhysicalNodeMaterial>()
++let aircraftDaylight = 1
++
++/** Explicit env maps otherwise ignore scene.environmentIntensity and glow at night. */
++export function setAircraftDaylight(daylight: number): void {
++  aircraftDaylight = daylight
++  for (const m of envUsers) m.envMapIntensity = m.userData.dayEnvIntensity * (0.03 + daylight * 0.97)
++}
+
+ /**
+  * Small procedural equirect of a dark storm sky (dark slate clouds, brighter break band at the horizon,
+@@ -160,7 +167,8 @@ export function createPaintMaterial(opts: PaintOptions): MeshPhysicalNodeMateria
+     vertexColors: opts.vertexColors ?? false,
+   })
+   mat.envMap = currentEnv()
+-  mat.envMapIntensity = opts.envIntensity ?? 0.9
++  mat.userData.dayEnvIntensity = opts.envIntensity ?? 0.9
++  mat.envMapIntensity = mat.userData.dayEnvIntensity * (0.03 + aircraftDaylight * 0.97)
+   envUsers.add(mat)
+   if (opts.weathering !== false) {
+     const w = weatherNode()
+@@ -184,7 +192,8 @@ export function createGlassMaterial(): MeshPhysicalNodeMaterial {
+     depthWrite: false,
+   })
+   mat.envMap = currentEnv()
+-  mat.envMapIntensity = 1.6
++  mat.userData.dayEnvIntensity = 1.6
++  mat.envMapIntensity = 1.6 * (0.03 + aircraftDaylight * 0.97)
+   envUsers.add(mat)
+   return mat
+ }
+diff --git a/games/wings/src/render/world/atmosphere.ts b/games/wings/src/render/world/atmosphere.ts
+index 1f4adb1b..53bd161b 100644
+--- a/games/wings/src/render/world/atmosphere.ts
++++ b/games/wings/src/render/world/atmosphere.ts
+@@ -34,6 +34,11 @@ export type N = any
+ // Shared uniforms
+
+ export const STORM = {
++  /** Solar inputs shared by sky, ocean, fog and aircraft. */
++  daylight: uniform(1),
++  sunDirection: uniform(new Vector3(0, 1, 0)),
++  sunLight: uniform(new Color('#ffffff')),
++  ambient: uniform(0.77),
+   /** Lightning flash intensity 0..1 (set every frame). */
+   flash: uniform(0),
+   /** World-space unit direction from the camera toward the current strike. */
+@@ -156,7 +161,12 @@ export function stormSky(d: N, octaves = 5): N {
+       // Melt into the horizon mist.
+       out.assign(mix(out, clouds, smoothstep(0.0, 0.22, y)))
+     })
+-    return out
++    // A visible solar disc and broad halo follow the same direction as the real key light.
++    const sunDot = dot(d, STORM.sunDirection)
++    const disc = smoothstep(0.9996, 0.99985, sunDot)
++    const halo = pow(max(sunDot, 0), 96).mul(0.18)
++    const aboveHorizon = smoothstep(-0.02, 0.02, d.y)
++    return out.add(STORM.sunLight.mul(disc.mul(8).add(halo)).mul(aboveHorizon))
+   })()
+ }
+
+diff --git a/games/wings/src/render/world/daylight.ts b/games/wings/src/render/world/daylight.ts
+new file mode 100644
+index 00000000..bd4c0bc8
+--- /dev/null
++++ b/games/wings/src/render/world/daylight.ts
+@@ -0,0 +1,76 @@
++// One absolute room clock drives world lighting on every quality preset.
++import { Color, DirectionalLight, Group, HemisphereLight, Vector3, type Scene } from 'three'
++import type { Quality } from '../../sim/types'
++import { sampleTimeOfDay } from '../../sim/time-of-day'
++import { STORM } from './atmosphere'
++import { SUN_DIRECTION } from './settings'
++import { setAircraftDaylight } from '../toon'
++
++export function createDaylight(scene: Scene, quality: Quality) {
++  const root = new Group()
++  root.name = 'World · time of day'
++  const key = new DirectionalLight('#ffffff', 0)
++  key.name = 'sun'
++  key.castShadow = quality !== 'low'
++  key.shadow.mapSize.set(1024, 1024)
++  Object.assign(key.shadow.camera, { left: -700, right: 700, top: 700, bottom: -700, near: 1, far: 5000 })
++  key.shadow.camera.updateProjectionMatrix()
++  key.shadow.bias = -0.0002
++  key.shadow.normalBias = 1.5
++  const hemi = new HemisphereLight('#ffffff', '#ffffff', 1)
++  hemi.name = 'daylight ambient'
++  root.add(key, key.target, hemi)
++  const focus = new Vector3()
++  const night = {
++    zenith: new Color('#020511'), fog: new Color('#070c18'), horizon: new Color('#101a2c'),
++    cloudDark: new Color('#030610'), cloudLight: new Color('#10182a'), ground: new Color('#090c15'),
++  }
++  const day = {
++    zenith: new Color('#457bb4'), fog: new Color('#8eabba'), horizon: new Color('#d0d8cd'),
++    cloudDark: new Color('#566875'), cloudLight: new Color('#c0cbd0'), ground: new Color('#414537'),
++  }
++  const sunset = new Color('#cf7846'), sunColor = new Color('#fff4d8'), warmSun = new Color('#ff9e58')
++  let state = sampleTimeOfDay(0)
++  const positionSun = () => {
++    key.target.position.copy(focus)
++    key.position.copy(focus).addScaledVector(SUN_DIRECTION, 2400)
++    key.target.updateMatrixWorld()
++    key.updateMatrixWorld()
++  }
++  const setTime = (seconds: number) => {
++    state = sampleTimeOfDay(seconds)
++    const { daylight, twilight } = state
++    SUN_DIRECTION.set(...state.sun)
++    STORM.sunDirection.value.copy(SUN_DIRECTION)
++    STORM.daylight.value = daylight
++    STORM.ambient.value = state.ambientIntensity * 0.55
++    key.color.copy(sunColor).lerp(warmSun, twilight)
++    key.intensity = state.sunIntensity
++    STORM.sunLight.value.copy(key.color).multiplyScalar(key.intensity * 0.35)
++    hemi.color.copy(night.horizon).lerp(day.horizon, daylight).lerp(sunset, twilight * 0.3)
++    hemi.groundColor.copy(night.ground).lerp(day.ground, daylight)
++    hemi.intensity = state.ambientIntensity
++    STORM.zenith.value.copy(night.zenith).lerp(day.zenith, daylight)
++    STORM.fogColor.value.copy(night.fog).lerp(day.fog, daylight)
++    STORM.fogBreak.value.copy(night.horizon).lerp(day.horizon, daylight).lerp(sunset, twilight * 0.65)
++    STORM.cloudDark.value.copy(night.cloudDark).lerp(day.cloudDark, daylight)
++    STORM.cloudLight.value.copy(night.cloudLight).lerp(day.cloudLight, daylight).lerp(sunset, twilight * 0.25)
++    // Rotate the bright horizon with the sun. Its XZ projection is never zero on this inclined arc.
++    STORM.breakDir.value.set(SUN_DIRECTION.x, SUN_DIRECTION.z).normalize()
++    STORM.fogBase.value = state.fogBase
++    STORM.fogSea.value = state.fogSea
++    scene.environmentIntensity = 0.03 + daylight * 0.97
++    if (scene.background instanceof Color) scene.background.copy(STORM.fogColor.value)
++    setAircraftDaylight(daylight)
++    positionSun()
++  }
++  setTime(0)
++  return {
++    root, key, hemi,
++    setTime,
++    setFocus(position: Vector3) { focus.copy(position); positionSun() },
++    setQuality(q: Quality) { key.castShadow = q !== 'low' },
++    flash(intensity: number) { hemi.intensity = state.ambientIntensity * (1 + intensity * 0.5) },
++    dispose() { key.dispose(); root.removeFromParent() },
++  }
++}
+diff --git a/games/wings/src/render/world/sky.ts b/games/wings/src/render/world/sky.ts
+index a87ef69d..5a9df992 100644
+--- a/games/wings/src/render/world/sky.ts
++++ b/games/wings/src/render/world/sky.ts
+@@ -10,7 +10,7 @@ import {
+   vec2, vec3,
+ } from "three/tsl"
+ import { STORM, fbm, stormSky, type N } from "./atmosphere"
+-import { CLOUD_DARK, CLOUD_LIGHT, LIGHTNING_COLOR } from "./palette"
++import { LIGHTNING_COLOR } from "./palette"
+ import { linear } from "./atmosphere"
+
+ export function createSky() {
+@@ -47,9 +47,8 @@ export function createCloudLayers(count: number, octaves = 5) {
+     const d2: N = fbm(p.add(drift.mul(1.3)).mul(0.0019).add(vec2(3.1, i * 9.7)), 3)
+     const dens: N = smoothstep(0.42, 0.75, d1.mul(0.8).add(d2.mul(0.25)))
+     const below: N = smoothstep(alt + 30, alt - 30, cameraPosition.y)
+-    const dark = linear(CLOUD_DARK).multiplyScalar(0.85), light = linear(CLOUD_LIGHT).multiplyScalar(1.25)
+     // Bellies (seen from below) are dark; tops (from above) pick up the diffuse light.
+-    let col: N = mix(vec3(light.r, light.g, light.b), vec3(dark.r, dark.g, dark.b), below.mul(0.8).add(d2.mul(0.2)))
++    let col: N = mix(STORM.cloudLight.mul(1.25), STORM.cloudDark.mul(0.85), below.mul(0.8).add(d2.mul(0.2)))
+     const toP: N = positionWorld.sub(cameraPosition)
+     const dist: N = length(toP)
+     const fl: N = max(dot(normalize(toP), STORM.flashDir), 0)
+@@ -78,7 +77,7 @@ export function createCloudLayers(count: number, octaves = 5) {
+   }
+ }
+
+-/** Lightning: random strikes every 8–25 s; a jagged bolt mesh and a flash envelope (0..1). */
++/** Lightning: first strike at 8 s, then every 19 s of absolute simulation time. */
+ export function createLightning() {
+   const boltIntensity = uniform(0)
+   const material = new MeshBasicNodeMaterial({ transparent: true, depthWrite: false, blending: AdditiveBlending, fog: false, side: DoubleSide })
+@@ -93,28 +92,37 @@ export function createLightning() {
+   mesh.visible = false
+   mesh.renderOrder = 6
+
+-  let next = 3 + Math.random() * 4
+-  let clock = 0, strikeAt = -100
++  let clock = 0, strikeAt = -Infinity
+   let flash = 0
++  let currentIndex = -1, builtIndex = -1, latestIndex = -1
++  let pendingStrike = false, debugIndex = -1
++  let override: { at: number; index: number } | null = null
+   const strikeDir = new Vector3()
+   const strikePos = new Vector3()
+   const listeners = new Set<(intensity: number, direction: Vector3) => void>()
+
+-  function buildBolt(camera: Vector3) {
+-    const ang = Math.random() * Math.PI * 2, dist = 2200 + Math.random() * 5000
++  function buildBolt(camera: Vector3, index: number, visible: boolean) {
++    let sample = 0
++    // Local arithmetic samples reset for each strike, independent of update/seek history.
++    const sampleBolt = () => {
++      const n = Math.sin((index + 1) * 127.1 + ++sample * 311.7) * 43758.5453123
++      return n - Math.floor(n)
++    }
++    const ang = sampleBolt() * Math.PI * 2, dist = 2200 + sampleBolt() * 5000
+     const x0 = camera.x + Math.cos(ang) * dist, z0 = camera.z + Math.sin(ang) * dist
+-    const top = 1100 + Math.random() * 500
++    const top = 1100 + sampleBolt() * 500
+     strikeDir.set(x0 - camera.x, top * 0.7 - camera.y, z0 - camera.z).normalize()
+     strikePos.set(x0, top * 0.5, z0)
++    if (!visible) return
+     const segs: [Vector3, Vector3, number][] = []
+     const walk = (start: Vector3, endY: number, steps: number, width: number, branchChance: number) => {
+       let p = start.clone()
+       const stepY = (start.y - endY) / steps
+       for (let i = 0; i < steps; i++) {
+-        const q = new Vector3(p.x + (Math.random() - 0.5) * stepY * 0.9, p.y - stepY * (0.7 + Math.random() * 0.6), p.z + (Math.random() - 0.5) * stepY * 0.9)
++        const q = new Vector3(p.x + (sampleBolt() - 0.5) * stepY * 0.9, p.y - stepY * (0.7 + sampleBolt() * 0.6), p.z + (sampleBolt() - 0.5) * stepY * 0.9)
+         if (i === steps - 1) q.y = endY
+         segs.push([p, q, width])
+-        if (Math.random() < branchChance) walk(q, Math.max(endY, q.y - stepY * (3 + Math.random() * 5)), 4 + Math.floor(Math.random() * 4), width * 0.55, 0)
++        if (sampleBolt() < branchChance) walk(q, Math.max(endY, q.y - stepY * (3 + sampleBolt() * 5)), 4 + Math.floor(sampleBolt() * 4), width * 0.55, 0)
+         p = q
+       }
+     }
+@@ -154,19 +162,31 @@ export function createLightning() {
+     get position() { return strikePos },
+     get age() { return clock - strikeAt },
+     onStrike(cb: (intensity: number, direction: Vector3) => void) { listeners.add(cb); return () => listeners.delete(cb) },
+-    /** Force a strike now (debug / preview). */
+-    strike(camera: Vector3) { next = clock; void camera },
+-    update(dt: number, camera: Vector3) {
+-      clock += dt
+-      if (clock >= next) {
+-        strikeAt = clock
+-        next = clock + 8 + Math.random() * 17
+-        buildBolt(camera)
+-        for (const l of listeners) l(1, strikeDir)
++    /** Force a deterministic strike on the next update (debug / preview). */
++    strike(camera: Vector3) { pendingStrike = true; void camera },
++    update(simulationTime: number, camera: Vector3) {
++      clock = simulationTime
++      const scheduledIndex = clock < 8 ? -1 : Math.floor((clock - 8) / 19)
++      const scheduledAt = scheduledIndex < 0 ? -Infinity : 8 + scheduledIndex * 19
++      if (override && (clock < override.at || scheduledAt > override.at)) override = null
++      if (pendingStrike) {
++        override = { at: clock, index: --debugIndex }
++        pendingStrike = false
+       }
++      const index = override?.index ?? scheduledIndex
++      strikeAt = override?.at ?? scheduledAt
+       const t = clock - strikeAt
+       flash = envelope(t)
+-      mesh.visible = t < 0.34
++      mesh.visible = t >= 0 && t < 0.34
++      if (index !== -1 && (index !== currentIndex || (mesh.visible && index !== builtIndex))) {
++        buildBolt(camera, index, mesh.visible)
++        if (mesh.visible) builtIndex = index
++      }
++      // A high-water mark prevents repeated audio/events after resampling or rewinding.
++      const notify = mesh.visible && (override ? index !== currentIndex : scheduledIndex > latestIndex)
++      currentIndex = index
++      latestIndex = Math.max(latestIndex, scheduledIndex)
++      if (notify) for (const l of listeners) l(1, strikeDir)
+       boltIntensity.value = mesh.visible ? Math.max(0.15, flash) : 0
+       STORM.flash.value = flash
+       STORM.flashDir.value.copy(strikeDir)
+diff --git a/games/wings/src/render/world/streamer.ts b/games/wings/src/render/world/streamer.ts
+index b38589da..95fdf90e 100644
+--- a/games/wings/src/render/world/streamer.ts
++++ b/games/wings/src/render/world/streamer.ts
+@@ -253,6 +253,7 @@ export class TerrainStreamer {
+       } else {
+         c.mesh = new Mesh(geometry, this.material)
+         c.mesh.name = `cluster ${c.cx},${c.cz}`
++        c.mesh.receiveShadow = true
+         c.mesh.matrixAutoUpdate = false
+         c.mesh.updateMatrix()
+         this.terrainRoot.add(c.mesh)
+@@ -268,6 +269,8 @@ export class TerrainStreamer {
+       c.treeSets = []
+       const make = (geometry: BufferGeometry, count: number, src: Float32Array, copy: boolean) => {
+         const mesh = new InstancedMesh(geometry, this.treeRes.material, count)
++        mesh.castShadow = true
++        mesh.receiveShadow = true
+         mesh.instanceMatrix = new InstancedBufferAttribute(src, 16)
+         mesh.position.set(x0, 0, z0)
+         mesh.matrixAutoUpdate = false
+diff --git a/games/wings/src/render/world/water.ts b/games/wings/src/render/world/water.ts
+index a51724df..597be70e 100644
+--- a/games/wings/src/render/world/water.ts
++++ b/games/wings/src/render/world/water.ts
+@@ -12,7 +12,7 @@ import {
+ import { FLEET, SHIP_SPECS } from "../../sim/fleet"
+ import { WORLD_HALF, WORLD_SIZE, deckVelocity, fleetState, posedShip } from "../../sim/geography"
+ import { STORM, fbm, horizonColor, linear, stormSky, vnoise, type N } from "./atmosphere"
+-import { BREAK_DIRECTION, HEMI_INTENSITY, PALETTE, SUN_COLOR, SUN_DIRECTION, SUN_INTENSITY } from "./palette"
++import { PALETTE } from "./palette"
+ import type { WorldQualitySettings } from "./settings"
+ import { SHORE_MAX, SHORE_MIN, SHORE_SIZE } from "./tile-gen"
+
+@@ -78,10 +78,10 @@ export function createWater(settings: WorldQualitySettings) {
+   const origin = uniform(new Vector2())
+   const shipsA = uniformArray(Array.from({ length: MAX_SHIPS }, () => new Vector4(1e7, 1e7, 1, 1)), "vec4")
+   const shipsB = uniformArray(Array.from({ length: MAX_SHIPS }, () => new Vector4(0, -1, 0, 0)), "vec4")
+-  const keyDir = uniform(new Vector3(...SUN_DIRECTION).normalize())
+-  const keyCol = uniform(linear(SUN_COLOR).multiplyScalar(SUN_INTENSITY * 0.35))
+-  const ambient = uniform(HEMI_INTENSITY * 0.55)
+-  const breakDir3 = uniform(new Vector3(BREAK_DIRECTION[0], 0.12, BREAK_DIRECTION[1]).normalize())
++  const keyDir = STORM.sunDirection
++  const keyCol = STORM.sunLight
++  const ambient = STORM.ambient
++  const breakDir3 = normalize(vec3(STORM.breakDir.x, 0.12, STORM.breakDir.y))
+   const cDeep = uniform(linear(PALETTE.deep)), cWater = uniform(linear(PALETTE.water)), cShallow = uniform(linear(PALETTE.shallow))
+   const cFoam = uniform(linear(PALETTE.foam))
+   const shoreTex = texture(shore)
+diff --git a/games/wings/src/render/world-view.ts b/games/wings/src/render/world-view.ts
+index e6aa68c9..86cf8add 100644
+--- a/games/wings/src/render/world-view.ts
++++ b/games/wings/src/render/world-view.ts
+@@ -3,18 +3,18 @@
+ // layered storm sky with lightning, height fog, rain/spray particles, and the carrier strike groups.
+ // Installs the scene's dim key + hemisphere lights, the storm fog node and a storm environment map.
+ import {
+-  Color, DataTexture, DirectionalLight, EquirectangularReflectionMapping, FloatType, Group, HemisphereLight, LinearFilter, RGBAFormat,
++  Color, DataTexture, DirectionalLight, EquirectangularReflectionMapping, FloatType, Group, LinearFilter, RGBAFormat,
+   Vector3, type Object3D, type Scene, type Texture,
+ } from "three"
+ import { MeshStandardNodeMaterial } from "three/webgpu"
+ import type { Quality } from "../sim/types"
+ import { STORM, stormFogNode } from "./world/atmosphere"
+ import {
+-  BREAK_DIRECTION, FOG_BREAK_COLOR, FOG_COLOR, HEMI_GROUND_COLOR, HEMI_INTENSITY, HEMI_SKY_COLOR, LIGHTNING_COLOR, SKY_ZENITH,
+-  SUN_COLOR, SUN_INTENSITY,
++  BREAK_DIRECTION, FOG_BREAK_COLOR, FOG_COLOR, LIGHTNING_COLOR, SKY_ZENITH,
+ } from "./world/palette"
+ import { createParticles } from "./world/rain"
+-import { SUN_DIRECTION, WORLD_QUALITY, type WorldQualitySettings } from "./world/settings"
++import { WORLD_QUALITY, type WorldQualitySettings } from "./world/settings"
++import { createDaylight } from "./world/daylight"
+ import { createFleet, type TurretHandle } from "./world/ships"
+ import { createCloudLayers, createLightning, createSky } from "./world/sky"
+ import { TerrainStreamer, type StreamerStats } from "./world/streamer"
+@@ -31,6 +31,8 @@ export interface WorldView {
+   /** Stream LODs around the camera, animate the storm. Budgeted (≤ ~2 ms CPU). time in seconds. */
+   update(cameraPosition: Vector3, dt: number, time: number): void
+   setQuality(quality: Quality): void
++  /** Absolute room simulation seconds, shared with interpolated gameplay. Zero = 09:00. */
++  setTimeOfDay(seconds: number): void
+   /** Kept for compatibility (safe-zone domes were removed). */
+   setHighlightTeam(team: number | null): void
+   /** True once terrain near the last camera position is generated. */
+@@ -48,7 +50,7 @@ export interface WorldView {
+   lightningSource(): { intensity: number; position: Vector3; age: number } | null
+   /** Storm environment map (equirect, HDR) for wet reflections on other materials. */
+   readonly environment: Texture
+-  /** Kept for compatibility: the storm has no sun shadows. */
++  /** Centre the bounded solar shadow map on the player's current position. */
+   setShadowFocus(position: Vector3): void
+   /** Aimable pivots of a ship turret (ids from fleet.ts): set yaw.rotation.y / pitch.rotation.x. */
+   getShipTurret(shipId: string, turretId: string): TurretHandle | null
+@@ -74,7 +76,7 @@ export interface WorldViewDebug extends WorldView {
+
+ let activeView: WorldView | null = null
+
+-/** Module-level convenience: kept for compatibility (no-op in the storm). */
++/** Module-level convenience: focus the active world's solar shadow map. */
+ export function setShadowFocus(position: Vector3) {
+   activeView?.setShadowFocus(position)
+ }
+@@ -135,21 +137,18 @@ export function createWorldView(renderer: unknown, scene: Scene, quality: Qualit
+   const root = new Group()
+   root.name = "World"
+
+-  // Dim, cool, diffuse key + low ambient. Aircraft and ships share these.
+-  const hemi = new HemisphereLight(HEMI_SKY_COLOR, HEMI_GROUND_COLOR, HEMI_INTENSITY)
+-  const key = new DirectionalLight(SUN_COLOR, SUN_INTENSITY)
+-  key.position.copy(SUN_DIRECTION).multiplyScalar(1000)
+-  key.target.position.set(0, 0, 0)
++  const sceneNodes = scene as Scene & { fogNode?: unknown }
++  const previous = { fog: scene.fog, fogNode: sceneNodes.fogNode, background: scene.background, environment: scene.environment, environmentIntensity: scene.environmentIntensity }
++  const daylight = createDaylight(scene, quality)
++  let roomTime = 0
+   // Lightning: a cold light from the strike direction, driven by the flash envelope.
+   const flashLight = new DirectionalLight(LIGHTNING_COLOR, 0)
+-  root.add(hemi, key, key.target, flashLight, flashLight.target)
++  root.add(daylight.root, flashLight, flashLight.target)
+
+   // Storm fog for every node material, and a storm environment for wet reflections.
+-  const sceneNodes = scene as Scene & { fogNode?: unknown }
+-  const previous = { fog: scene.fog, fogNode: sceneNodes.fogNode, background: scene.background, environment: scene.environment }
+   scene.fog = null
+   sceneNodes.fogNode = stormFogNode()
+-  scene.background = new Color(FOG_COLOR)
++  scene.background = STORM.fogColor.value.clone()
+   const environment = stormEnvironment()
+   scene.environment = environment
+   // Let the aircraft pick up the same wet storm reflections (if the aircraft module supports it).
+@@ -172,6 +171,7 @@ export function createWorldView(renderer: unknown, scene: Scene, quality: Qualit
+
+   root.add(sky.mesh, water.mesh, streamer.terrainRoot, streamer.treeRoot, fleet.root, clouds.group, lightning.mesh, rain.mesh, spray.mesh)
+
++  let shadowFocused = false
+   const lastCam = new Vector3(Number.NaN, 0, 0)
+   const camVel = new Vector3(), tmpVel = new Vector3()
+
+@@ -196,12 +196,15 @@ export function createWorldView(renderer: unknown, scene: Scene, quality: Qualit
+       spray.setCameraVelocity(camVel)
+       if (settings.spray > 0) spray.setVisibility(Math.max(0, Math.min(1, (220 - cameraPosition.y) / 160)))
+
+-      const flash = lightning.update(step, cameraPosition)
++      const flash = lightning.update(roomTime, cameraPosition)
+       flashLight.intensity = flash * 2.2
+       flashLight.position.copy(cameraPosition).addScaledVector(lightning.direction, 1000)
+       flashLight.target.position.copy(cameraPosition)
+       flashLight.target.updateMatrixWorld()
+-      hemi.intensity = HEMI_INTENSITY * (1 + flash * 0.5)
++      daylight.flash(flash)
++      // Spawn/menu/death cameras also need a nearby shadow volume.
++      if (!shadowFocused) daylight.setFocus(cameraPosition)
++      shadowFocused = false
+
+       sky.update(cameraPosition, time)
+       clouds.update(cameraPosition)
+@@ -209,8 +212,10 @@ export function createWorldView(renderer: unknown, scene: Scene, quality: Qualit
+       fleet.update(cameraPosition, step)
+       streamer.update(cameraPosition, step)
+     },
+-    setShadowFocus(_position) {},
++    setTimeOfDay(seconds) { roomTime = seconds; daylight.setTime(seconds) },
++    setShadowFocus(position) { daylight.setFocus(position); shadowFocused = true },
+     setQuality(q) {
++      daylight.setQuality(q)
+       if (WORLD_QUALITY[q] === settings) return
+       settings = WORLD_QUALITY[q]
+       view.far = settings.far
+@@ -238,7 +243,7 @@ export function createWorldView(renderer: unknown, scene: Scene, quality: Qualit
+     dispose() {
+       if (activeView === view) activeView = null
+       streamer.dispose()
+-      water.dispose(); sky.dispose(); clouds.dispose(); lightning.dispose(); rain.dispose(); spray.dispose(); fleet.dispose()
++      water.dispose(); sky.dispose(); clouds.dispose(); lightning.dispose(); rain.dispose(); spray.dispose(); fleet.dispose(); daylight.dispose()
+       trees.dispose(); terrainMaterial.dispose(); environment.dispose()
+       STORM.flash.value = 0
+       root.removeFromParent()
+@@ -246,6 +251,7 @@ export function createWorldView(renderer: unknown, scene: Scene, quality: Qualit
+       sceneNodes.fogNode = previous.fogNode
+       scene.background = previous.background
+       scene.environment = previous.environment
++      scene.environmentIntensity = previous.environmentIntensity
+     },
+   }
+   activeView = view
 diff --git a/games/wings/src/sim/bots.ts b/games/wings/src/sim/bots.ts
-index 8f021e3..9e80452 100644
+index 8f021e36..9e804521 100644
 --- a/games/wings/src/sim/bots.ts
 +++ b/games/wings/src/sim/bots.ts
 @@ -217,12 +217,12 @@ export function botRandom(brain: BotBrain): number {
@@ -1284,7 +2062,7 @@ index 8f021e3..9e80452 100644
    let total = 0
    for (const k of KINDS) total += kindWeight(k, counts)
 diff --git a/games/wings/src/sim/combat.ts b/games/wings/src/sim/combat.ts
-index 77578c3..2b8f2e7 100644
+index 77578c3d..2b8f2e7e 100644
 --- a/games/wings/src/sim/combat.ts
 +++ b/games/wings/src/sim/combat.ts
 @@ -39,7 +39,7 @@ export const MAX_FLARES = 256
@@ -1311,7 +2089,7 @@ index 77578c3..2b8f2e7 100644
      else rotate(vehicle.flight.orientation, 0, 0, -r * 0.8, out)
    } else {
 diff --git a/games/wings/src/sim/flight.ts b/games/wings/src/sim/flight.ts
-index 85b96d5..4922fc4 100644
+index 85b96d51..4922fc48 100644
 --- a/games/wings/src/sim/flight.ts
 +++ b/games/wings/src/sim/flight.ts
 @@ -143,7 +143,7 @@ interface HeliHandling {
@@ -1346,7 +2124,7 @@ index 85b96d5..4922fc4 100644
    apache: {
      collectiveRate: 0.8, collectiveReturn: 1.5, altitudeHold: 1.5, cushion: 3, cushionHeight: 10,
 diff --git a/games/wings/src/sim/room-engine.ts b/games/wings/src/sim/room-engine.ts
-index 020cfee..40c6241 100644
+index 020cfee8..40c62419 100644
 --- a/games/wings/src/sim/room-engine.ts
 +++ b/games/wings/src/sim/room-engine.ts
 @@ -644,7 +644,7 @@ export class RoomEngine {
@@ -1358,8 +2136,49 @@ index 020cfee..40c6241 100644
      if (this.matchEndedAt !== null) return this.error(p.info.id, "Match over — next round starting soon.")
      if (this.time < p.info.respawnAt) return this.error(p.info.id, "Respawn not ready.")
      const current = this.vehicleOf(p.info)
+diff --git a/games/wings/src/sim/time-of-day.ts b/games/wings/src/sim/time-of-day.ts
+new file mode 100644
+index 00000000..4a0187b6
+--- /dev/null
++++ b/games/wings/src/sim/time-of-day.ts
+@@ -0,0 +1,35 @@
++export const DAY_LENGTH_SECONDS = 600
++export const START_HOUR = 9
++
++const smoothstep = (a: number, b: number, x: number) => {
++  const t = Math.max(0, Math.min(1, (x - a) / (b - a)))
++  return t * t * (3 - 2 * t)
++}
++
++// Absolute simulation seconds, not wall time or accumulated render dt.
++// Zero starts at 09:00; every 600 seconds repeats, including negative times.
++export function sampleTimeOfDay(seconds: number) {
++  if (!Number.isFinite(seconds)) throw new RangeError('Time of day requires finite seconds')
++  // Reduce before scaling so even the largest finite input cannot overflow.
++  const phase = ((seconds % DAY_LENGTH_SECONDS) + DAY_LENGTH_SECONDS) % DAY_LENGTH_SECONDS
++  const hour = (START_HOUR + phase / DAY_LENGTH_SECONDS * 24) % 24
++  const angle = (hour - 6) / 24 * Math.PI * 2
++  const tilt = 0.35
++  // Unit direction toward the sun: +X east at 06:00, -X west at 18:00, +Y up.
++  const sun: [number, number, number] = [
++    Math.cos(angle),
++    Math.sin(angle) * Math.cos(tilt),
++    Math.sin(angle) * Math.sin(tilt),
++  ]
++  const daylight = smoothstep(-0.12, 0.25, sun[1])
++  const night = 1 - daylight
++  // Keep horizon warmth through sunset and just below it, without a clock seam.
++  const twilight = 1 - smoothstep(0, 0.28, Math.abs(sun[1]))
++  return {
++    hour, sun, daylight, twilight, night,
++    sunIntensity: 2.4 * smoothstep(0, 0.25, sun[1]),
++    ambientIntensity: 0.06 + 1.34 * daylight,
++    fogBase: 0.00005 + 0.0007 * night,
++    fogSea: 0.0003 + 0.0008 * night,
++  }
++}
 diff --git a/games/wings/src/sim/types.ts b/games/wings/src/sim/types.ts
-index c915941..04839d0 100644
+index c915941e..04839d08 100644
 --- a/games/wings/src/sim/types.ts
 +++ b/games/wings/src/sim/types.ts
 @@ -6,7 +6,7 @@ export type Vec3 = [number, number, number]
@@ -1372,7 +2191,7 @@ index c915941..04839d0 100644
  export type SeatIndex = 0 | 1
  export type WeaponSlot = "primary" | "secondary"
 diff --git a/games/wings/src/sim/vehicles.ts b/games/wings/src/sim/vehicles.ts
-index cee5ec4..0972428 100644
+index cee5ec4e..09724285 100644
 --- a/games/wings/src/sim/vehicles.ts
 +++ b/games/wings/src/sim/vehicles.ts
 @@ -1,5 +1,5 @@
@@ -1437,7 +2256,7 @@ index cee5ec4..0972428 100644
 +
  export const VEHICLE_KINDS = Object.keys(VEHICLES) as VehicleKind[]
 diff --git a/games/wings/src/style.css b/games/wings/src/style.css
-index 7dbb107..959c635 100644
+index 7dbb1075..959c6354 100644
 --- a/games/wings/src/style.css
 +++ b/games/wings/src/style.css
 @@ -164,12 +164,12 @@
@@ -1531,7 +2350,7 @@ index 7dbb107..959c635 100644
 +}
 diff --git a/games/wings/src/ui/aircraft-input.ts b/games/wings/src/ui/aircraft-input.ts
 new file mode 100644
-index 0000000..9ccffbc
+index 00000000..9ccffbcf
 --- /dev/null
 +++ b/games/wings/src/ui/aircraft-input.ts
 @@ -0,0 +1,16 @@
@@ -1552,7 +2371,7 @@ index 0000000..9ccffbc
 +  view.setBoost(seat === 0 && input !== null ? pilotBoost : null)
 +}
 diff --git a/games/wings/src/ui/game.ts b/games/wings/src/ui/game.ts
-index 2a64abd..ab105ca 100644
+index 2a64abd1..bd475dca 100644
 --- a/games/wings/src/ui/game.ts
 +++ b/games/wings/src/ui/game.ts
 @@ -5,6 +5,7 @@ import "../style.css"
@@ -1660,7 +2479,16 @@ index 2a64abd..ab105ca 100644
            this.hud.endScreen(result, why, e.winner === null ? null : e.winner)
            break
          }
-@@ -1034,12 +1039,8 @@ class GameSession implements GameHandle {
+@@ -1024,6 +1029,8 @@ class GameSession implements GameHandle {
+     // Interpolated entities
+     const est = now + this.timeOffset
+     const rt = est - INTERP_DELAY
++    // Sample the same bounded room timeline as gameplay, never the machine's date or world seed.
++    host.world.setTimeOfDay(Math.max(0, Math.min(latest?.time ?? 0, rt)))
+     this.buildRenderList(rt, dt)
+
+     // Aircraft views (before the camera so attachment anchors are current)
+@@ -1034,12 +1041,8 @@ class GameSession implements GameHandle {
        v.view.root.visible = v.render.alive
        const isLocal = v === ownVis
        if (v.local !== isLocal) { v.local = isLocal; v.view.setLocal?.(isLocal) }
@@ -1675,7 +2503,7 @@ index 2a64abd..ab105ca 100644
        v.view.update(v.render, players, dt, host.camera)
      }
 diff --git a/games/wings/src/ui/lobby.ts b/games/wings/src/ui/lobby.ts
-index 74ae61d..ffc192e 100644
+index 74ae61d9..1321962c 100644
 --- a/games/wings/src/ui/lobby.ts
 +++ b/games/wings/src/ui/lobby.ts
 @@ -1,25 +1,24 @@
@@ -1742,6 +2570,15 @@ index 74ae61d..ffc192e 100644
      ] },
      { title: "view & comms", rows: [
        ["Free-look · camera", `hold ${kb("c")} · ${kb("t")}`], ["Chat · scores · menu", `${kb("enter")} · ${kb("tab")} · ${kb("esc")}`],
+@@ -160,7 +159,7 @@ export function controlRows(scheme: ControlScheme = controlScheme()): { title: s
+
+ /** Controls reference table for the current scheme. */
+ export function controlsTable(): string {
+-  return `<table class="keys">${controlRows().map(sec =>
++  return `<p class="note">Day and night cycle every 10 minutes of room time, starting at 09:00. Night reduces visibility. Your aircraft's landing or search light turns on automatically.</p><table class="keys">${controlRows().map(sec =>
+     `<tr><th colspan="2">${escapeHtml(sec.title)}</th></tr>` + sec.rows.map(([a, b]) => `<tr><td>${a}</td><td>${b}</td></tr>`).join("")).join("")}</table>`
+ }
+
 @@ -267,7 +266,7 @@ export class MenuNav {
      this.host.innerHTML = `<div class="crumb">${s.crumb ?? ""}</div>` +
        (items.length ? `<div class="menu ${s.size ?? "big"}">${items.map((it, i) => {
@@ -1926,7 +2763,7 @@ index 74ae61d..ffc192e 100644
  }
 
 diff --git a/games/wings/src/ui/net-adapter.ts b/games/wings/src/ui/net-adapter.ts
-index 97b291c..c057ccb 100644
+index 97b291c5..c057ccb5 100644
 --- a/games/wings/src/ui/net-adapter.ts
 +++ b/games/wings/src/ui/net-adapter.ts
 @@ -1,133 +1,15 @@
@@ -2079,7 +2916,7 @@ index 97b291c..c057ccb 100644
 +}
 +export async function getNet() { return local }
 diff --git a/games/wings/src/ui/pause.ts b/games/wings/src/ui/pause.ts
-index 2404d00..e39b5e6 100644
+index 2404d00d..e39b5e6c 100644
 --- a/games/wings/src/ui/pause.ts
 +++ b/games/wings/src/ui/pause.ts
 @@ -12,7 +12,6 @@ export interface PauseMenu {
@@ -2103,7 +2940,7 @@ index 2404d00..e39b5e6 100644
      ],
    })
 diff --git a/games/wings/src/ui/spawn.ts b/games/wings/src/ui/spawn.ts
-index 328bc3f..39458c0 100644
+index 328bc3f3..39458c0c 100644
 --- a/games/wings/src/ui/spawn.ts
 +++ b/games/wings/src/ui/spawn.ts
 @@ -9,11 +9,13 @@ import { MenuNav, TEAM_COLORS, TEAM_NAMES, controlsTable, escapeHtml, hintsHtml,
@@ -2173,9 +3010,105 @@ index 328bc3f..39458c0 100644
      const tb = t.closest<HTMLElement>("[data-tab]")
      if (tb) { actions.click(); setTab(tb.dataset.tab as "air" | "guns") }
    })
+diff --git a/games/wings/time-of-day-check.ts b/games/wings/time-of-day-check.ts
+new file mode 100644
+index 00000000..2b08bebb
+--- /dev/null
++++ b/games/wings/time-of-day-check.ts
+@@ -0,0 +1,90 @@
++import assert from 'node:assert/strict'
++import { DAY_LENGTH_SECONDS, START_HOUR, sampleTimeOfDay } from './src/sim/time-of-day'
++
++const close = (actual: number, expected: number, epsilon = 1e-10) =>
++  assert(Math.abs(actual - expected) <= epsilon, `${actual} != ${expected}`)
++const atHour = (hour: number) => (hour - START_HOUR) / 24 * DAY_LENGTH_SECONDS
++const values = (seconds: number) => {
++  const { hour, sun, ...lighting } = sampleTimeOfDay(seconds)
++  return [hour, ...sun, ...Object.values(lighting)]
++}
++
++assert.equal(DAY_LENGTH_SECONDS, 600)
++assert.equal(START_HOUR, 9)
++assert.equal(sampleTimeOfDay(0).hour, 9)
++assert.equal(sampleTimeOfDay(-DAY_LENGTH_SECONDS).hour, 9)
++close(sampleTimeOfDay(-1).hour, 9 - 24 / 600)
++for (let seconds = -1200; seconds <= 1200; seconds += 12.5) {
++  const a = values(seconds), b = values(seconds + DAY_LENGTH_SECONDS)
++  a.forEach((v, i) => close(v, b[i]))
++}
++
++const bounded = (value: number, min: number, max: number) => {
++  assert(Number.isFinite(value))
++  assert(value >= min - 1e-12 && value <= max + 1e-12, `${value} outside [${min}, ${max}]`)
++}
++const checkBounds = (seconds: number) => {
++  const s = sampleTimeOfDay(seconds)
++  assert(Number.isFinite(s.hour) && s.hour >= 0 && s.hour < 24)
++  close(Math.hypot(...s.sun), 1)
++  s.sun.forEach(v => bounded(v, -1, 1))
++  for (const v of [s.daylight, s.twilight, s.night]) bounded(v, 0, 1)
++  close(s.daylight + s.night, 1)
++  bounded(s.sunIntensity, 0, 2.4)
++  bounded(s.ambientIntensity, 0.06, 1.4)
++  bounded(s.fogBase, 0.00005, 0.00075)
++  bounded(s.fogSea, 0.0003, 0.0011)
++  if (s.sun[1] <= 0) assert.equal(s.sunIntensity, 0)
++}
++for (let seconds = -1200; seconds <= 1200; seconds += 0.5) checkBounds(seconds)
++for (const seconds of [Number.MAX_VALUE, -Number.MAX_VALUE, Number.MIN_VALUE, -Number.MIN_VALUE]) checkBounds(seconds)
++
++const sunrise = sampleTimeOfDay(atHour(6))
++const sunset = sampleTimeOfDay(atHour(18))
++const noon = sampleTimeOfDay(atHour(12))
++const midnight = sampleTimeOfDay(atHour(0))
++assert(sunrise.sun[0] > 0.99 && sunset.sun[0] < -0.99)
++assert(-sunrise.sun[0] < 0 && -sunset.sun[0] > 0, 'ground shadows point west at sunrise, east at sunset')
++close(sunrise.sun[1], 0)
++close(sunset.sun[1], 0)
++close(noon.sun[1], Math.cos(0.35))
++assert(noon.sun[1] > sampleTimeOfDay(atHour(11)).sun[1])
++assert(noon.sun[1] > sampleTimeOfDay(atHour(13)).sun[1])
++close(sunrise.twilight, 1)
++close(sunset.twilight, 1)
++assert(sampleTimeOfDay(atHour(18.1)).twilight > 0.9, 'retain warmth after sunset')
++assert.equal(noon.twilight, 0)
++assert.equal(midnight.twilight, 0)
++close(noon.sunIntensity, 2.4)
++close(midnight.sunIntensity, 0)
++close(noon.ambientIntensity, 1.4)
++close(midnight.ambientIntensity, 0.06)
++close(noon.fogBase, 0.00005)
++close(midnight.fogBase, 0.00075)
++close(noon.fogSea, 0.0003)
++close(midnight.fogSea, 0.0011)
++assert(midnight.sunIntensity < noon.sunIntensity && midnight.ambientIntensity < noon.ambientIntensity)
++assert(midnight.fogBase > noon.fogBase && midnight.fogSea > noon.fogSea)
++
++// Compare the circular hour separately at midnight; all physical outputs stay continuous.
++for (const seconds of [atHour(6), atHour(18), atHour(24), 0, DAY_LENGTH_SECONDS]) {
++  const a = values(seconds - 0.001), b = values(seconds + 0.001)
++  const hourDistance = Math.abs(a[0] - b[0])
++  assert(Math.min(hourDistance, 24 - hourDistance) < 0.001)
++  a.slice(1).forEach((v, i) => close(v, b[i + 1], 0.001))
++}
++
++// Different exact-binary tick partitions and unrelated calls cannot change a sample.
++for (const step of [0.25, 0.5, 1, 2]) {
++  let seconds = 0
++  for (let i = 0; i < 800 / step; i++) {
++    seconds += step
++    sampleTimeOfDay(seconds)
++  }
++  assert.deepEqual(sampleTimeOfDay(seconds), sampleTimeOfDay(800))
++}
++const snapshot = sampleTimeOfDay(123)
++snapshot.sun[0] = 42
++assert.notDeepEqual(sampleTimeOfDay(123), snapshot, 'samples do not share mutable direction arrays')
++for (const seconds of [NaN, Infinity, -Infinity]) assert.throws(() => sampleTimeOfDay(seconds), RangeError)
++console.log('PASS: time-of-day cycle/start/negative wrap; 4801 sweep samples; unit sun/bounds; shadows; night lights/fog; continuity; partition independence; nonfinite rejection')
 diff --git a/games/wings/ui-check.ts b/games/wings/ui-check.ts
 new file mode 100644
-index 0000000..98e2ac9
+index 00000000..98e2ac98
 --- /dev/null
 +++ b/games/wings/ui-check.ts
 @@ -0,0 +1,64 @@
@@ -2244,7 +3177,7 @@ index 0000000..98e2ac9
 +  document.title = 'PASS: Wings UI fixture'
 +})
 diff --git a/games/wings/vite.config.ts b/games/wings/vite.config.ts
-index ca413c3..e4a0a54 100644
+index ca413c3c..e4a0a540 100644
 --- a/games/wings/vite.config.ts
 +++ b/games/wings/vite.config.ts
 @@ -1,7 +1,7 @@

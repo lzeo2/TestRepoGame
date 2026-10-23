@@ -372,6 +372,35 @@ tracked WIP is no longer present; saved reviewed diffs and private source surviv
 Current maintenance coverage passes for 126 registered and five unregistered
 games. Full fleet remains deferred; no new game or multinational jet in this lane.
 
+## Deterministic time-of-day lighting (2026-10-24)
+
+The [lighting implementation and Node receipt](../audits/wings-time-of-day.md)
+records the source-built runtime replacing the fixed storm lighting. A pure
+absolute-room-time sampler starts at 09:00 and repeats a full day/night/day every
+600 simulation seconds. The existing interpolated gameplay timeline drives the
+moving solar light, procedural skybox/disc, cloud and ocean colors/reflections,
+shadow direction, hemisphere ambient and height fog with smooth interpolation.
+There is no theme toggle, date dependency or random lighting seed.
+
+Night reduces actual visibility on every quality preset and automatically enables
+one real local-aircraft landing light, or a steeper Apache searchlight. Light and
+target follow the aircraft and are removed on daylight, death, seat leave and
+disposal. Balanced/High use a focused solar shadow map; Low's existing contact
+shadow now follows the sun and fades at the horizon. Reflection intensity also
+falls at night. Bot sensing, weapon targeting and flight physics are unchanged.
+Existing storm flashes now follow a fixed room-time schedule rather than random
+frame-time strikes. Controls explain the cycle and automatic lights.
+
+Fresh delivered lighting, solo and converted-jet Node regressions all pass,
+including 4,801 sampler sweep values and real converted F-15/Apache light
+transforms/lifecycle. All 18 delivered JS/MJS files and the builder parse; catalog
+128 IDs/schema/tracked URLs, local references, clean retained-pin patch recovery
+and owned diff whitespace checks pass. The builder preserves shader text while
+escaping template newlines, rather than suppressing whitespace failures.
+No new game, aircraft, registration, dependency, external load, browser capture,
+full-fleet smoke or push. These are CPU/render-state results, not native/pixel
+acceptance; historical hardware, supported-renderer and rights limits remain.
+
 ## Future outlook
 
 Complete operator and converted-family review, native missile/audio/physical-input

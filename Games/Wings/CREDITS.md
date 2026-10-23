@@ -20,6 +20,8 @@
 6. Added a bundled, dependency-free Node simulation regression and its TypeScript source in `verification/`.
 7. The original operator-approved Astra pair was subsequently retired after consumer tracing. Current F-15 and F-35 models use original procedural geometry, with generation by openai-codex/gpt-6-astra and repairs by openai-codex/gpt-6.1-sol. Dark paint, ammo-linked stores, exhaust, recessed F-35 bays, distinct existing-weapon fits and geometry-derived camera/launch points follow the standing quality contract. See `docs/models.md` for hashes, authorship and recipe. This does not establish ownership or resolve the upstream game/model redistribution question.
 
+8. Added deterministic world time-of-day lighting driven by the interpolated room clock: moving sun/sky/shadows, ambient/fog/reflection interpolation, reduced night visibility and a real local-aircraft landing/search light. A full cycle takes 600 room seconds, starting at 09:00. Storm flashes also follow room time. See the [lighting receipt](../../docs/maintenance/audits/wings-time-of-day.md) for source recovery, Node checks and native-rendering limits.
+
 No catalog registration, multiplayer service, third-party runtime load, or new game engine was added. This port has no fixed world seed override.
 
 ## Play and reset
@@ -36,6 +38,7 @@ Run from the site root:
 
 ```sh
 node Games/Wings/verification/solo-check.mjs
+node Games/Wings/verification/lighting-check.mjs
 ```
 
 The regression is bundled from upstream simulation modules, not a replacement simulation. To rebuild it, copy `verification/solo-check.ts` into the upstream `games/wings` directory and run `bun build solo-check.ts --target=node --outfile=solo-check.mjs`.
