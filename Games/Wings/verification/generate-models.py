@@ -6,6 +6,7 @@ import json
 import math
 from pathlib import Path
 import struct
+import zlib
 
 OUT = Path(__file__).resolve().parents[1] / 'models'
 
@@ -660,7 +661,7 @@ def speedboat():
     Second finish reroll: approved skin/anchors retained, shared-sample panel
     finishes, edge fittings and local neutral contact AO. Raw and converted
     visual gates remain with the parent; counts do not establish photorealism.
-    No images or foam.
+    Embedded procedural PBR maps reuse the approved UVs; no fetched images or foam.
     """
     def linear(c):
         c /= 255
@@ -1013,6 +1014,7 @@ def speedboat():
             mesh['primitives'].append({**p,'indices':m.accessor(indices,1,True),
                                        'material':material})
     bake_boat_occlusion(m)
+    speedboat_pbr(m)
     return m
 
 
@@ -1075,6 +1077,157 @@ def bake_boat_occlusion(m):
         p['attributes']['COLOR_0'] = m.accessor(colors,3)
 
 
+def boat_hull_y(m, mesh_name, u, v):
+    """Bilinear interpolation of the existing hull's 48x12 UV grid, in meters."""
+    mesh = next(mesh for mesh in m.doc['meshes'] if mesh['name'] == mesh_name)
+    a = m.doc['accessors'][mesh['primitives'][0]['attributes']['POSITION']]
+    offset = m.doc['bufferViews'][a['bufferView']]['byteOffset']
+    row, column = min(47, int(u*48)), min(11, int(v*12))
+    s, t = u*48-row, v*12-column
+    def y(i, j):
+        return struct.unpack_from('<f', m.data, offset+((i*13+j)*3+1)*4)[0]
+    return ((1-s)*((1-t)*y(row,column)+t*y(row,column+1)) +
+            s*((1-t)*y(row+1,column)+t*y(row+1,column+1)))
+
+
+def boat_weather(u, v, y, grain):
+    """Section V is vertical, U runs bow to stern. Wetness follows actual Y=0."""
+    wet = max(0., min(1., (.025-y)/.07))
+    salt = math.exp(-((y-.065)/.065)**2) * (1-wet)
+    streak = max(0., math.sin(math.tau*(u*47+.035*math.sin(v*9))))**18
+    streak *= (.25+.75*v) * (1-wet)
+    # Sparse paint rub, not orange corrosion or a regular panel checkerboard.
+    wear = max(0., grain-.88)*2.5 * (1-wet)
+    return wet, salt, streak, wear
+
+
+def speedboat_pbr(m):
+    """Append only images: geometry, accessors, material routing and rigs stay exact.
+
+    Base-color RGB is an sRGB weather mask over the existing linear paint color.
+    Packed RGB = unused white / roughness / metallic. Normals are tangent-space
+    +Y glTF maps; the loader derives tangents from existing UVs, not new accessors.
+    """
+    m.doc['images'], m.doc['textures'] = [], []
+    m.doc['samplers'] = [{'magFilter': 9729, 'minFilter': 9987,
+                          'wrapS': 33071, 'wrapT': 33071}]
+
+    def image(name, width, height, pixels):
+        def chunk(kind, payload):
+            return (struct.pack('>I',len(payload))+kind+payload+
+                    struct.pack('>I',zlib.crc32(kind+payload)&0xffffffff))
+        scanlines = b''.join(b'\0'+pixels[y*width*3:(y+1)*width*3]
+                             for y in range(height))
+        png = (b'\x89PNG\r\n\x1a\n'+chunk(b'IHDR',struct.pack('>IIBBBBB',width,height,8,2,0,0,0))+
+               chunk(b'IDAT',zlib.compress(scanlines,9))+chunk(b'IEND',b''))
+        while len(m.data)%4:
+            m.data.append(0)
+        view = len(m.doc['bufferViews'])
+        m.doc['bufferViews'].append({'buffer':0,'byteOffset':len(m.data),'byteLength':len(png)})
+        m.data.extend(png)
+        index = len(m.doc['images'])
+        m.doc['images'].append({'name':name,'mimeType':'image/png','bufferView':view})
+        m.doc['textures'].append({'sampler':0,'source':index})
+        return {'index':index,'texCoord':0}
+
+    families = {}
+    for mat in m.doc['materials']:
+        name, pbr = mat['name'], mat['pbrMetallicRoughness']
+        if name.startswith(('dry_gelcoat_port','hull_L_topsides')):
+            family = 'hull_port'
+        elif name.startswith(('dry_gelcoat_starboard','hull_R_topsides')):
+            family = 'hull_starboard'
+        elif name == 'wet_gelcoat':
+            family = 'hull_bottom'
+        elif 'nonskid' in name or name.startswith(('foredeck_','aftdeck_','step_grip')):
+            family = 'nonskid'
+        elif 'epdm' in name or 'rubber' in name or name == 'bore_carbon':
+            family = 'rubber'
+        elif 'vinyl' in name or 'polyester' in name:
+            family = 'vinyl'
+        elif 'glass' in name or 'lens' in name:
+            family = 'glass'
+        elif 'bronze' in name or 'brass' in name or 'copper' in name:
+            family = 'alloy'
+        elif 'enamel' in name or 'powdercoat' in name or 'phosphate' in name:
+            family = 'paint'
+        elif pbr['metallicFactor'] >= .25 or 'anodized' in name:
+            family = 'steel'
+        else:
+            family = 'paint'
+        if family in ('hull_port','hull_starboard','hull_bottom','nonskid','rubber','vinyl','glass','paint'):
+            pbr['metallicFactor'] = 0
+        else:
+            pbr['metallicFactor'] = max(.8,pbr['metallicFactor'])
+        if family.startswith('hull_'):
+            pbr['roughnessFactor'] = .72 if family != 'hull_bottom' else .48
+        # Neutral working-boat trim, not yellow racing stripes or orange rust.
+        if name in ('chine_ochre_enamel','waterline_enamel','identification_plate'):
+            rgb = {'chine_ochre_enamel':(86,89,86), 'waterline_enamel':(64,70,69),
+                   'identification_plate':(97,99,91)}[name]
+            pbr['baseColorFactor'][:3] = [((c/255+.055)/1.055)**2.4 for c in rgb]
+        families.setdefault(family,[]).append(mat)
+
+    for seed, (family, materials) in enumerate(families.items(), 1):
+        hull = family.startswith('hull_')
+        width, height = (256,128) if hull else (96,96)
+        mesh = {'hull_port':'hull_L_topsides','hull_starboard':'hull_R_topsides',
+                'hull_bottom':'hull_L_deadrise'}.get(family)
+        colors, packed, heights = bytearray(), bytearray(), []
+        for j in range(height):
+            v = j/(height-1)
+            for i in range(width):
+                u = i/(width-1)
+                # Fixed integer hash: no RNG state, time, network or image inputs.
+                bits = ((i*73856093) ^ (j*19349663) ^ (seed*83492791)) & 0xffffffff
+                bits = ((bits ^ (bits >> 13))*1274126177) & 0xffffffff
+                grain = (bits & 65535)/65535
+                wet, salt, streak, wear = boat_weather(u,v,boat_hull_y(m,mesh,u,v),grain) if hull else (0,0,0,0)
+                shade = .965 + (grain-.5)*.025 - .14*wet - .065*streak + .06*salt + .03*wear
+                rough = .91 + (grain-.5)*.09
+                if hull:
+                    rough = .87-.43*wet+.10*salt+.035*streak-.04*wear
+                    h = .025*math.sin(u*math.tau*41)+.018*streak+.012*(grain-.5)
+                elif family == 'nonskid':
+                    shade -= .04*grain
+                    h = .38*(grain-.5)  # Coarse aggregate, not shiny hammered metal.
+                elif family == 'steel' or family == 'alloy':
+                    brush = math.sin(v*math.tau*38)
+                    shade += .016*brush
+                    rough = .78+.10*brush+.06*grain
+                    h = .055*brush+.012*(grain-.5)
+                elif family == 'rubber' or family == 'vinyl':
+                    h = .13*(grain-.5)
+                elif family == 'glass':
+                    h = .001*math.sin(u*math.tau*2)*math.sin(v*math.tau*2)
+                    rough = .8+.04*grain
+                else:
+                    h = .035*(grain-.5)
+                rgb = [round(max(0,min(1,shade))*255)]*3
+                colors.extend(rgb)
+                packed.extend((255,round(max(0,min(1,rough))*255),
+                               round(255*(.96+.04*grain)) if family in ('steel','alloy') else 0))
+                heights.append(h)
+        normals = bytearray()
+        for j in range(height):
+            for i in range(width):
+                dx = heights[j*width+min(width-1,i+1)]-heights[j*width+max(0,i-1)]
+                dy = heights[min(height-1,j+1)*width+i]-heights[max(0,j-1)*width+i]
+                length = math.sqrt(dx*dx+dy*dy+1)
+                normals.extend(round((n/length*.5+.5)*255) for n in (-dx,-dy,1))
+        base = image(family+'_weather_basecolor',width,height,colors)
+        mr = image(family+'_metallic_roughness',width,height,packed)
+        normal = image(family+'_tangent_normal',width,height,normals)
+        for mat in materials:
+            pbr = mat['pbrMetallicRoughness']
+            pbr['baseColorTexture'], pbr['metallicRoughnessTexture'] = base, mr
+            mat['normalTexture'] = {**normal,'scale':.25 if family == 'glass' else .65}
+            if 'extensions' in mat:
+                coat = mat['extensions']['KHR_materials_clearcoat']
+                coat.update(clearcoatFactor=.45 if family == 'hull_bottom' else .28,
+                            clearcoatRoughnessFactor=.65,clearcoatRoughnessTexture=mr)
+
+
 def check_model(data):
     """Validate serialized geometry, including bounds, winding and hard budgets."""
     assert struct.unpack_from('<4sII', data) == (b'glTF', 2, len(data))
@@ -1089,9 +1242,12 @@ def check_model(data):
     assert 'uri' not in doc['buffers'][0]
     assert not doc.get('extensionsRequired')
 
+    name = doc['nodes'][0]['name']
+
     def local_only(value):
         if isinstance(value, dict):
-            assert not any(k == 'uri' or k.endswith('Texture') for k in value)
+            assert 'uri' not in value
+            assert name == 'speedboat' or not any(k.endswith('Texture') for k in value)
             for item in value.values():
                 local_only(item)
         elif isinstance(value, list):
@@ -1193,7 +1349,8 @@ def check_model(data):
         assert 12_000 <= triangles <= 18_000, triangles
     else:
         assert (40_000 <= triangles <= 55_000 if name == 'f15' else 35_000 <= triangles <= 50_000), triangles
-    assert len(data) < 1_200_000, len(data)
+    # Embedded PBR is boat-only. Original jets retain their strict 1.2 MB ceiling.
+    assert len(data) < (2*1024*1024 if name == 'speedboat' else 1_200_000), len(data)
     assert not any(k in doc['nodes'][0] for k in ('matrix', 'translation', 'rotation', 'scale'))
     if name == 'speedboat':
         required = {'cannon_yaw', 'cannon_pitch', 'gun_muzzle', 'helm_eye', 'stern_exit',
@@ -1245,7 +1402,19 @@ def check_model(data):
         assert abs(min(p[2] for p in values(barrel['attributes']['POSITION']))+1.3) < 1e-5
     else:
         assert {'cockpit', 'gun_muzzle', 'wing_L', 'wing_R', 'stabilizer_L', 'stabilizer_R'} <= {n['name'] for n in doc['nodes']}
-    assert not any(doc.get(k) for k in ('textures', 'images', 'skins', 'animations'))
+    assert not any(doc.get(k) for k in ('skins', 'animations'))
+    if name == 'speedboat':
+        assert len(doc['images']) == len(doc['textures']) > 0
+        for image in doc['images']:
+            assert image['mimeType'] == 'image/png' and 'uri' not in image
+            view = doc['bufferViews'][image['bufferView']]
+            assert binary[view['byteOffset']:view['byteOffset']+8] == b'\x89PNG\r\n\x1a\n'
+        for mat in doc['materials']:
+            for texture in (mat['pbrMetallicRoughness']['baseColorTexture'],
+                            mat['pbrMetallicRoughness']['metallicRoughnessTexture'], mat['normalTexture']):
+                assert 0 <= texture['index'] < len(doc['textures']) and texture['texCoord'] == 0
+    else:
+        assert not any(doc.get(k) for k in ('textures', 'images'))
     assignments = [p['material'] for mesh in doc['meshes'] for p in mesh['primitives']]
     assert len(assignments) >= 40 and set(assignments) == set(range(len(doc['materials'])))
     glass = [m for m in doc['materials'] if m.get('alphaMode') == 'BLEND']
