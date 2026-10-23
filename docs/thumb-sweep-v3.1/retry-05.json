@@ -1,0 +1,60 @@
+[
+  {
+    "id": 8,
+    "title": "Run 3",
+    "head": "ded57d1031b905c6ab95bddd86b14415c27079b4",
+    "entry_blob": "d462a93efd3a8d168daa5b40e4046f0667c51c41",
+    "source_tree": "c638de581d899015f8dc994d048480ffc620d0cb",
+    "actions": [
+      [
+        "wait",
+        35000
+      ],
+      [
+        "key",
+        "Enter"
+      ],
+      [
+        "click",
+        640,
+        360
+      ],
+      [
+        "key",
+        "Space"
+      ],
+      [
+        "snap"
+      ],
+      [
+        "click",
+        640,
+        32
+      ],
+      [
+        "info"
+      ]
+    ],
+    "errors": [
+      "Unexpected non-whitespace character after JSON at position 152 (line 2 column 1)"
+    ],
+    "external": [],
+    "http_errors": [],
+    "candidates": [
+      {
+        "file": "8-0.jpg",
+        "sha256": "359261a475b61ecd9dbea2830a4eb2f0d7a46209ce8c5aaa8ebe549dd96af9c3"
+      }
+    ],
+    "headed": true,
+    "attempt_seconds": 85.75,
+    "prior_seconds": 39.5,
+    "seconds": 125.25,
+    "reason": "needs-manual: bootstrap starfield becomes warning triangle/black canvas; warning click leaves no inspectable body; no tunnel gameplay or source/state bypass.",
+    "status": "needs-manual",
+    "review_reason": "Starfield bootstrap transitions to warning triangle/black canvas with JSON parse error at position 152. Native warning click followed by body inspection timed out; no tunnel gameplay.",
+    "output": "assets/thumbs/run3.jpg",
+    "output_sha256": "9ba592a471f2a6a439ab7c9c64a474bfcf592b01923bd0f099b3ad4a5b1795bf",
+    "output_bytes": 9401
+  }
+]

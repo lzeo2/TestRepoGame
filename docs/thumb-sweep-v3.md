@@ -924,3 +924,38 @@ All five images were visually reviewed and rejected. Totals remain **26 refreshe
 budgets were not reset by the storage-resume order. The earlier portal proof
 still applies to unchanged runtime images; this batch does not establish another
 portal or full-fleet gameplay pass.
+
+### Run 3 bounded follow-up and capture-only closure
+
+[Retry batch 5](thumb-sweep-v3.1/retry-05.json) contains **one opening**, not a
+fresh time allowance: **39.50 prior + 85.75 retry = 125.25 cumulative seconds**.
+The initially promising starfield becomes a warning triangle on black. Current
+browser error confirms the historical startup failure:
+
+```text
+Unexpected non-whitespace character after JSON at position 152 (line 2 column 1)
+```
+
+Native Enter/click/Space did not reach a tunnel or runner. Clicking the warning
+then inspecting the body returned `Locator.inner_text: Timeout 2000ms exceeded`
+while waiting for `body`. This is an inspection timeout, not proof of a repaired
+engine or a second gameplay state. The warning frame was visually reviewed and
+rejected; old image unchanged. Browser/server closed normally. No JSON, CSS,
+script, renderer or save mutation was used.
+
+Hermes advice ticket **`pi-215950-1792775198907-6d2ed920`** recommends closing the
+best-effort capture scope and preserving needs-manual. Advice is not operator
+approval for source repair, hardware provisioning, replacement art or resetting
+per-game budgets. Repeated disk-only recovery orders do not resolve the now
+reproduced source/layout/contrast failures, absent adapter or spent cold-boot
+allowances. Further work needs an explicit operator scope decision, not another
+blind capture loop.
+
+This storage-resume order added **six openings, zero accepted replacements**.
+Latest receipt check: **52 games, 73 attempts, 26 accepted, 26 retained**;
+combined fresh total remains **101/127**. All runtime images/catalog/game sources
+are unchanged by these six attempts, so the existing four-case portal proof
+remains dated evidence for those same bytes, not a newly executed gate. No games
+added, source repair, backups, full-fleet smoke, publication or push. Free space
+before closing bookkeeping: **3,280,424,960 bytes**, above the normal floor; no
+waiver used. Final checks/commit/storage are reported in handoff.
