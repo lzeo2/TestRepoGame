@@ -2,28 +2,54 @@ import { createWorld } from './world.mjs';
 import { createSimulation } from './sim.mjs';
 import { createUI } from './ui.mjs';
 import { applyTool, syncModels } from './native-actions.mjs';
+import { readSave, saveTown } from './persistence.mjs';
 
 const canvas = document.querySelector('#world'), root = document.querySelector('#ui');
 const panel = document.querySelector('#native-controls'), feedback = document.querySelector('#feedback');
 const speed = document.querySelector('#speed'), loading = document.querySelector('#loading');
 let world, sim, ui, tool = 'road', paused = true, resumeSpeed = 1, frame = 0, last = 0, drag = null, closed = false;
+let lastSaveTime = 0, savedTown = null, requestedSave;
+const skip = document.querySelector('#skip-night');
+let saveButton, continueButton, restartButton, saveStatus;
 const models = new Map(), abort = new AbortController();
 const listen = (node, name, fn, options = {}) => node.addEventListener(name, fn, { ...options, signal: abort.signal });
 const message = text => { feedback.textContent = text; };
 const active = () => sim && !paused && sim.state.phase !== 'lost';
 function choose(type) { tool = type; ui.setTool(type); message(type === 'road' ? 'Drag a road: $10/lot' : type); }
-function start(mode) {
+function validateSave(snapshot) {
+  if (snapshot.state.size !== world.roads.size) throw new RangeError('Save uses a different town size');
+  createSimulation({ snapshot });
+}
+function start(mode, snapshot) {
   if (!world.loaded) throw new Error('Models are not ready');
+  // Restore/validate before removing the current city's models or roads.
+  if (snapshot) validateSave(snapshot);
   for (const handle of models.values()) world.buildings.remove(handle);
   models.clear();
   for (const key of [...world.roads.cells]) { const { x, z } = world.roads.cell(key); world.roads.set(x, z, false); }
-  sim = createSimulation({ size: world.roads.size, mode, roads: world.roads });
-  paused = false; resumeSpeed = 1; speed.value = '1'; drag = null;
+  sim = createSimulation({ size: world.roads.size, mode, roads: world.roads, snapshot });
+  world.roadPool.sync(true);
+  paused = false; resumeSpeed = sim.state.speed; speed.value = String(resumeSpeed); drag = null;
+  lastSaveTime = sim.state.time;
+  if (saveButton) { saveButton.disabled = false; restartButton.hidden = false; }
   panel.hidden = false; choose('road');
   world.controls.setPose({ x: 5, y: 170, z: 200, yaw: 0, pitch: -.72 }, true);
   syncModels(world, sim.state, models); ui.update(sim.state, { roads: world.roads, size: world.roads.size });
 }
-function pause() { if (!sim) return; resumeSpeed = sim.state.speed; sim.setSpeed(0); paused = true; drag = null; }
+function pause() { if (!sim || paused) return; resumeSpeed = sim.state.speed; sim.setSpeed(0); paused = true; drag = null; }
+function save() {
+  if (!sim) return;
+  const result = saveTown(sim, { speed: paused ? resumeSpeed : sim.state.speed });
+  lastSaveTime = sim.state.time;
+  saveStatus.textContent = result.ok ? 'Town saved on this device.' : result.error;
+  if (result.ok) { savedTown = readSave().snapshot; continueButton.hidden = !savedTown; continueButton.dataset.mode = savedTown?.state.mode || 'free'; }
+  message(saveStatus.textContent);
+}
+function skipNight() {
+  if (!active() || skip.disabled) return;
+  sim.skipToNight();
+  message('Day advanced to the nightfall warning.');
+}
 function resume() { if (!sim) return; sim.setSpeed(resumeSpeed); paused = false; canvas.focus(); }
 function stop() {
   if (closed) return;
@@ -36,6 +62,9 @@ function tick(now) {
   const dt = last ? Math.max(0, (now - last) / 1000) : 0; last = now;
   if (sim) {
     if (!paused && !document.hidden) sim.update(dt);
+    skip.hidden = sim.state.mode !== 'defense';
+    skip.disabled = paused || sim.state.phase !== 'day' || sim.state.dayRemaining <= 60 || sim.state.rebuildRemaining > 0;
+    if (sim.state.time - lastSaveTime >= 60) save();
     const events = sim.drainEvents();
     ui.events(events);
     for (const event of events) if (event.type === 'shot') world.effects.shot({ ...event.from, y: event.source === 'tower' ? 10 : 1.5 }, { ...event.to, y: 1.2 });
@@ -49,8 +78,31 @@ try {
   world = createWorld(canvas, { size: 200 });
   await world.ready;
   if (!closed) {
-    ui = createUI(root, { onStart: start, onRestart: start, onTool: choose, onMenu: pause, onResume: resume });
+    ui = createUI(root, { onStart(mode) { const snapshot = requestedSave; requestedSave = undefined; start(mode, snapshot); }, onRestart: start, onTool: choose, onMenu: pause, onResume: resume });
     loading.hidden = true;
+    const menu = root.querySelector('.city-menu-content');
+    saveButton = document.createElement('button'); saveButton.textContent = 'Save'; saveButton.disabled = true; saveButton.id = 'save-town';
+    continueButton = document.createElement('button'); continueButton.textContent = 'Continue'; continueButton.id = 'continue-town';
+    restartButton = document.createElement('button'); restartButton.textContent = 'Restart'; restartButton.dataset.action = 'restart'; restartButton.hidden = true;
+    saveStatus = document.createElement('p'); saveStatus.setAttribute('role', 'status'); saveStatus.id = 'save-status';
+    const saveActions = document.createElement('div'); saveActions.className = 'city-save-actions';
+    saveActions.append(continueButton, saveButton, restartButton); menu.append(saveActions, saveStatus);
+    const stored = readSave(); savedTown = stored.snapshot;
+    // Full simulation validation catches invalid state before offering Continue.
+    if (savedTown) {
+      try { validateSave(savedTown); }
+      catch (error) { savedTown = null; stored.error = `Saved town unavailable: ${error.message}`; }
+    }
+    continueButton.hidden = !savedTown; continueButton.dataset.mode = savedTown?.state.mode || 'free'; saveStatus.textContent = stored.error;
+    listen(saveButton, 'click', save);
+    // Reuse UI's normal recreated-game route, including notice/loss reset and errors.
+    listen(continueButton, 'click', () => { requestedSave = savedTown; });
+    listen(skip, 'click', skipNight);
+    // S overrides camera-back only when this defense action is available.
+    listen(window, 'keydown', event => {
+      if (event.code !== 'KeyS' || event.repeat || event.ctrlKey || event.metaKey || event.altKey || !active() || skip.disabled || skip.hidden || event.target.closest?.('input,select,button,dialog')) return;
+      event.preventDefault(); event.stopImmediatePropagation(); skipNight();
+    }, { capture: true });
     root.querySelector('.city-toasts').before(panel);
     listen(document, 'visibilitychange', () => { last = 0; drag = null; });
     // Read-only diagnostics for native QA; gameplay never depends on this object.
