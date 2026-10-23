@@ -808,3 +808,25 @@ games. Actual output:
 ```text
 PASS: 52 games, 57 attempts, 26 accepted 1280x720 JPEGs, 26 retained images/fallbacks; cumulative budgets, current source hashes and all 127 catalog URLs unchanged.
 ```
+
+### Operator-resumed bounded retries: batch 2
+
+Five bounded openings (three for hacked Retro Bowl, one per Henry movie) used the
+same headed/raw-CDP setup. Browser/server released after five; **no images
+promoted**. [Complete timing chain](thumb-sweep-v3.1/retry-02.json).
+Hacked Retro Bowl reached New Career and home management, then Get Ready/Kick Off,
+but never a reviewed active-player match. Its final short opening stopped at
+uniform selection. Countdown/setup frames were rejected, not called gameplay.
+The two Henry movies remained in their animated preloaders, not branching choices.
+
+| ID | Attempt seconds | Cumulative seconds | Latest status |
+| --- | ---: | ---: | --- |
+| 89 | 25.12 | 142.51 | needs-manual, management/tutorial only |
+| 89 | 17.67 | 160.18 | needs-manual, Get Ready/Kick Off only |
+| 89 | 15.55 | 175.73 | needs-manual, uniform selection only |
+| 58 | 92.25 | 172.88 | needs-manual, operation setup loader |
+| 57 | 27.57 | 149.28 | needs-manual, preloader |
+
+Total remains **26 refreshed / 26 needs-manual**. Checker passes **52 games,
+62 attempts**, chained cumulative budgets and current source/output hashes.
+Free space at batch close: **2,978,430,976 bytes**. No game/catalog edits or push.

@@ -1,0 +1,503 @@
+[
+  {
+    "id": 89,
+    "title": "Retro Bowl Hacked",
+    "head": "3b5d2ac5b0b2d6a7739cac64df98ff895aaf48b0",
+    "entry_blob": "7b13fdcf40c8cfc551978f24aa3a8603e2c2b4b2",
+    "source_tree": "b6c70229b7f6d03fc5cb2e39f45b0097f9483726",
+    "actions": [
+      [
+        "wait",
+        5000
+      ],
+      [
+        "click",
+        1060,
+        640
+      ],
+      [
+        "key",
+        "Enter"
+      ],
+      [
+        "wait",
+        700
+      ],
+      [
+        "click",
+        750,
+        192
+      ],
+      [
+        "type",
+        "Alex"
+      ],
+      [
+        "click",
+        750,
+        256
+      ],
+      [
+        "type",
+        "Coach"
+      ],
+      [
+        "click",
+        1150,
+        664
+      ],
+      [
+        "wait",
+        900
+      ],
+      [
+        "snap"
+      ],
+      [
+        "click",
+        1150,
+        664
+      ],
+      [
+        "wait",
+        900
+      ],
+      [
+        "click",
+        1060,
+        640
+      ],
+      [
+        "wait",
+        900
+      ],
+      [
+        "click",
+        1060,
+        640
+      ],
+      [
+        "wait",
+        900
+      ],
+      [
+        "click",
+        1060,
+        640
+      ],
+      [
+        "wait",
+        900
+      ],
+      [
+        "click",
+        640,
+        450
+      ],
+      [
+        "wait",
+        1000
+      ],
+      [
+        "snap"
+      ]
+    ],
+    "errors": [],
+    "external": [],
+    "http_errors": [
+      "404 /Games/RetroBowlHacked/html5game/optiondata.dat",
+      "404 /Games/RetroBowlHacked/html5game/savedata.ini",
+      "404 /Games/RetroBowlHacked/html5game/savedata.ini"
+    ],
+    "candidates": [
+      {
+        "file": "89-0.jpg",
+        "sha256": "1d406a0823ba6502819b2cb12f0c81a25032fe91cc6f65b4fd7de337850a224f"
+      },
+      {
+        "file": "89-1.jpg",
+        "sha256": "715c194dca8684212eb8002ee4eab433380bccebbbfb0265f71bdcf9d42096b8"
+      }
+    ],
+    "headed": true,
+    "attempt_seconds": 25.12,
+    "prior_seconds": 117.39,
+    "seconds": 142.51,
+    "reason": "Review pending: headed native name/team/Continue recipe, no grants or game-state injection.",
+    "status": "needs-manual",
+    "review_reason": "Home management/tutorial only.",
+    "output": "assets/thumbs/retrobowl.jpg",
+    "output_sha256": "a8b0ea49ef625922b5ceb67cd46347e7e9895b55769842b6698a93ee00424572",
+    "output_bytes": 14481
+  },
+  {
+    "id": 89,
+    "title": "Retro Bowl Hacked",
+    "head": "3b5d2ac5b0b2d6a7739cac64df98ff895aaf48b0",
+    "entry_blob": "7b13fdcf40c8cfc551978f24aa3a8603e2c2b4b2",
+    "source_tree": "b6c70229b7f6d03fc5cb2e39f45b0097f9483726",
+    "actions": [
+      [
+        "wait",
+        5000
+      ],
+      [
+        "click",
+        1060,
+        640
+      ],
+      [
+        "key",
+        "Enter"
+      ],
+      [
+        "wait",
+        600
+      ],
+      [
+        "click",
+        1150,
+        664
+      ],
+      [
+        "wait",
+        700
+      ],
+      [
+        "click",
+        1060,
+        640
+      ],
+      [
+        "wait",
+        700
+      ],
+      [
+        "click",
+        1060,
+        640
+      ],
+      [
+        "wait",
+        700
+      ],
+      [
+        "click",
+        1060,
+        640
+      ],
+      [
+        "wait",
+        700
+      ],
+      [
+        "click",
+        640,
+        450
+      ],
+      [
+        "wait",
+        700
+      ],
+      [
+        "click",
+        435,
+        640
+      ],
+      [
+        "wait",
+        700
+      ],
+      [
+        "click",
+        1150,
+        640
+      ],
+      [
+        "wait",
+        700
+      ],
+      [
+        "click",
+        1150,
+        640
+      ],
+      [
+        "wait",
+        700
+      ],
+      [
+        "snap"
+      ]
+    ],
+    "errors": [],
+    "external": [],
+    "http_errors": [
+      "404 /Games/RetroBowlHacked/html5game/optiondata.dat",
+      "404 /Games/RetroBowlHacked/html5game/savedata.ini",
+      "404 /Games/RetroBowlHacked/html5game/savedata.ini"
+    ],
+    "candidates": [
+      {
+        "file": "89-0.jpg",
+        "sha256": "eae7ee2e80f2195643d8356ec91c1ccb0c29c1b2f5d943c96e14ceee01a49e93"
+      }
+    ],
+    "headed": true,
+    "attempt_seconds": 17.67,
+    "prior_seconds": 142.51,
+    "seconds": 160.18,
+    "reason": "Review pending: native setup/Skip Tutorial/Continue route; no field-state injection.",
+    "status": "needs-manual",
+    "review_reason": "Reached Get Ready/Kick Off field without active players; not accepted as gameplay.",
+    "output": "assets/thumbs/retrobowl.jpg",
+    "output_sha256": "a8b0ea49ef625922b5ceb67cd46347e7e9895b55769842b6698a93ee00424572",
+    "output_bytes": 14481
+  },
+  {
+    "id": 89,
+    "title": "Retro Bowl Hacked",
+    "head": "3b5d2ac5b0b2d6a7739cac64df98ff895aaf48b0",
+    "entry_blob": "7b13fdcf40c8cfc551978f24aa3a8603e2c2b4b2",
+    "source_tree": "b6c70229b7f6d03fc5cb2e39f45b0097f9483726",
+    "actions": [
+      [
+        "wait",
+        2000
+      ],
+      [
+        "click",
+        1060,
+        640
+      ],
+      [
+        "key",
+        "Enter"
+      ],
+      [
+        "wait",
+        400
+      ],
+      [
+        "click",
+        1150,
+        664
+      ],
+      [
+        "wait",
+        400
+      ],
+      [
+        "click",
+        1060,
+        640
+      ],
+      [
+        "wait",
+        400
+      ],
+      [
+        "click",
+        1060,
+        640
+      ],
+      [
+        "wait",
+        400
+      ],
+      [
+        "click",
+        1060,
+        640
+      ],
+      [
+        "wait",
+        400
+      ],
+      [
+        "click",
+        640,
+        450
+      ],
+      [
+        "wait",
+        400
+      ],
+      [
+        "click",
+        435,
+        640
+      ],
+      [
+        "wait",
+        400
+      ],
+      [
+        "click",
+        1150,
+        640
+      ],
+      [
+        "wait",
+        400
+      ],
+      [
+        "click",
+        1150,
+        640
+      ],
+      [
+        "wait",
+        400
+      ],
+      [
+        "click",
+        640,
+        530
+      ],
+      [
+        "wait",
+        800
+      ],
+      [
+        "click",
+        640,
+        360
+      ],
+      [
+        "wait",
+        800
+      ],
+      [
+        "snap"
+      ]
+    ],
+    "errors": [],
+    "external": [],
+    "http_errors": [
+      "404 /Games/RetroBowlHacked/html5game/optiondata.dat",
+      "404 /Games/RetroBowlHacked/html5game/savedata.ini",
+      "404 /Games/RetroBowlHacked/html5game/savedata.ini"
+    ],
+    "candidates": [
+      {
+        "file": "89-0.jpg",
+        "sha256": "fb4088ea7f85807c1c5978491359d77f523b10503c1bc1666c7aebf041fc8f50"
+      }
+    ],
+    "headed": true,
+    "attempt_seconds": 15.55,
+    "prior_seconds": 160.18,
+    "seconds": 175.73,
+    "reason": "Review pending: native kickoff and field inputs attempted within final remaining budget.",
+    "status": "needs-manual",
+    "review_reason": "Uniform selection only; no active match.",
+    "output": "assets/thumbs/retrobowl.jpg",
+    "output_sha256": "a8b0ea49ef625922b5ceb67cd46347e7e9895b55769842b6698a93ee00424572",
+    "output_bytes": 14481
+  },
+  {
+    "id": 58,
+    "title": "Infiltrating the Airship",
+    "head": "3b5d2ac5b0b2d6a7739cac64df98ff895aaf48b0",
+    "entry_blob": "012cf0087130ae8a5834d96415c2df5cd48941a3",
+    "source_tree": "e2ddb6653374297d379f04c2d9691e37d5445499",
+    "actions": [
+      [
+        "wait",
+        35000
+      ],
+      [
+        "click",
+        640,
+        600
+      ],
+      [
+        "snap"
+      ],
+      [
+        "key",
+        "Enter"
+      ],
+      [
+        "click",
+        1180,
+        610
+      ],
+      [
+        "snap"
+      ]
+    ],
+    "errors": [],
+    "external": [
+      "www.ngads.com"
+    ],
+    "http_errors": [],
+    "candidates": [
+      {
+        "file": "58-0.jpg",
+        "sha256": "c54abe332e31ad6327d0956636b80fb82e471ac9a7ce7200bd84c7ffd7fbc130"
+      },
+      {
+        "file": "58-1.jpg",
+        "sha256": "f443479e26f80e9ccdbe0d82a4f1079c6788494dba2d58fba7c4304ac97a2ffe"
+      }
+    ],
+    "headed": true,
+    "attempt_seconds": 92.25,
+    "prior_seconds": 80.63,
+    "seconds": 172.88,
+    "reason": "needs-manual: headed/raw capture still shows operation-setup loader, not an infiltration choice; stopped within cumulative budget.",
+    "status": "needs-manual",
+    "review_reason": "Operation setup loading screen persists.",
+    "output": "assets/thumbs/infiltratingtheairship.jpg",
+    "output_sha256": "90561150381068d3231b58d302f81ea057a251e60b75313cc03d0f636e527225",
+    "output_bytes": 8763
+  },
+  {
+    "id": 57,
+    "title": "Fleeing the Complex",
+    "head": "3b5d2ac5b0b2d6a7739cac64df98ff895aaf48b0",
+    "entry_blob": "a3e623094003000f6c3419f4a6fa2d0a4ce9ada4",
+    "source_tree": "a3e1197af988071408383e9bc29822fe335d181b",
+    "actions": [
+      [
+        "wait",
+        25000
+      ],
+      [
+        "click",
+        640,
+        600
+      ],
+      [
+        "key",
+        "Enter"
+      ],
+      [
+        "snap"
+      ]
+    ],
+    "errors": [],
+    "external": [
+      "www.ngads.com"
+    ],
+    "http_errors": [],
+    "candidates": [
+      {
+        "file": "57-0.jpg",
+        "sha256": "9525fc4e0984bb825bc02a610a806893c719d552a9ded100a88ed270667e9e24"
+      }
+    ],
+    "headed": true,
+    "attempt_seconds": 27.57,
+    "prior_seconds": 121.71,
+    "seconds": 149.28,
+    "reason": "needs-manual: headed/raw capture still in loader; no branching choice reached within remaining budget.",
+    "status": "needs-manual",
+    "review_reason": "Preloader persists; no interactive escape choice.",
+    "output": "assets/thumbs/fleeingthecomplex.jpg",
+    "output_sha256": "0abbbca0464a28b3861fbcbdab853efd3d90b6464e67f1d84c1082447cf423d5",
+    "output_bytes": 12566
+  }
+]
