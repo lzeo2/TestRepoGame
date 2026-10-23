@@ -112,6 +112,8 @@ def main():
                                     page.mouse.click(*args)
                                 elif op == 'key':
                                     page.keyboard.press(args[0], delay=100)
+                                elif op == 'type':
+                                    page.keyboard.type(args[0], delay=50)
                                 elif op == 'hold':
                                     page.keyboard.down(args[0])
                                     page.wait_for_timeout(args[1])

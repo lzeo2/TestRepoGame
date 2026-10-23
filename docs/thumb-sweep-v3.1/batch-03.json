@@ -1,0 +1,471 @@
+[
+  {
+    "id": 52,
+    "title": "Stranded In Isekai",
+    "head": "743424124258ffab91c3f4ef706fedd29597b0ad",
+    "entry_blob": "6b448a1ee82c0ad13fcb1b86cfde007d72b68fd5",
+    "source_tree": "974a4526694e905b8d46cdd689ce5abad10b0f88",
+    "actions": [
+      [
+        "wait",
+        8000
+      ],
+      [
+        "hold",
+        "Space",
+        800
+      ],
+      [
+        "wait",
+        1000
+      ],
+      [
+        "hold",
+        "ArrowRight",
+        1000
+      ],
+      [
+        "snap"
+      ],
+      [
+        "wait",
+        1500
+      ],
+      [
+        "key",
+        "Space"
+      ],
+      [
+        "wait",
+        800
+      ],
+      [
+        "key",
+        "Space"
+      ],
+      [
+        "hold",
+        "ArrowRight",
+        800
+      ],
+      [
+        "snap"
+      ]
+    ],
+    "errors": [
+      "Cannot use import statement outside a module"
+    ],
+    "external": [],
+    "http_errors": [],
+    "candidates": [
+      {
+        "file": "52-0.jpg",
+        "sha256": "e280dc01c7aa6eabc39bd66801cd587d68eb9a6de7f6fd58ab9d195d4853a54a"
+      },
+      {
+        "file": "52-1.jpg",
+        "sha256": "856870f3b1a124204c09ca9450cbe71dd18c560aea43ac4d3dfe45540f5aed50"
+      }
+    ],
+    "seconds": 34.88,
+    "reason": "captured: held Space started RPG, arrows advanced into real village/dialogue with HUD.",
+    "output": "assets/thumbs/strandedinisekai.jpg",
+    "previous_sha256": "72167ece58c276e2f920dc36a5a88409795b7fa998cb54826aa761f83a6ee23b",
+    "status": "captured",
+    "accepted_candidate": "52-1.jpg",
+    "output_sha256": "3c598b094f44349f0df005aa14432949e432db8d041ba31cecaa704af6dc4630",
+    "output_bytes": 185054
+  },
+  {
+    "id": 90,
+    "title": "Cookie Clicker Hacked",
+    "head": "743424124258ffab91c3f4ef706fedd29597b0ad",
+    "entry_blob": "2137ad290b82a83a03151f0999a0babae615585b",
+    "source_tree": "afd7ea33352143af7e774198ad5805e8c6528a81",
+    "actions": [
+      [
+        "wait",
+        7000
+      ],
+      [
+        "click",
+        220,
+        380
+      ],
+      [
+        "click",
+        220,
+        380
+      ],
+      [
+        "click",
+        220,
+        380
+      ],
+      [
+        "snap"
+      ],
+      [
+        "info"
+      ],
+      [
+        "click",
+        1120,
+        325
+      ],
+      [
+        "click",
+        1120,
+        260
+      ],
+      [
+        "click",
+        1120,
+        194
+      ],
+      [
+        "click",
+        1120,
+        395
+      ],
+      [
+        "wait",
+        1000
+      ],
+      [
+        "snap"
+      ]
+    ],
+    "errors": [],
+    "external": [],
+    "http_errors": [],
+    "candidates": [
+      {
+        "file": "90-0.jpg",
+        "sha256": "8247491102663316e7f1fb6dc883b159e298bf531e9484acec0c0d318e4ff5fc"
+      },
+      {
+        "file": "90-1.jpg",
+        "sha256": "810e67cfcaf4c4a2e6e48c7600373863e5502c28e41ab75ce6b0e0adad3e03d8"
+      }
+    ],
+    "seconds": 59.78,
+    "reason": "captured: clicked cookie and bought native buildings; existing source top-up retained, no grants injected.",
+    "output": "assets/thumbs/cookieclickerhacked.jpg",
+    "previous_sha256": "3fe841f4cb5fc772e107d30301256864c1b0cbbc9f8fdcf7d6b99c73df18b7ea",
+    "status": "captured",
+    "accepted_candidate": "90-1.jpg",
+    "output_sha256": "91fc6659a76a92ad4f0cb96901eae81fd927cb4c7b4b27a9a89f9d8d08eacf8e",
+    "output_bytes": 201428
+  },
+  {
+    "id": 211,
+    "title": "Cribbage",
+    "head": "743424124258ffab91c3f4ef706fedd29597b0ad",
+    "entry_blob": "e334a78fffbbffc878fc35c865ea864fce03bb73",
+    "source_tree": "37fa459dae3a2c15e262fee14658f60331d1a099",
+    "actions": [
+      [
+        "wait",
+        4000
+      ],
+      [
+        "snap"
+      ],
+      [
+        "info"
+      ],
+      [
+        "click",
+        650,
+        314
+      ],
+      [
+        "wait",
+        1600
+      ],
+      [
+        "snap"
+      ],
+      [
+        "wait",
+        2000
+      ],
+      [
+        "selector",
+        "#low_card_selected_accept_button"
+      ],
+      [
+        "wait",
+        1800
+      ],
+      [
+        "snap"
+      ],
+      [
+        "wait",
+        3000
+      ],
+      [
+        "snap"
+      ],
+      [
+        "click",
+        800,
+        535
+      ],
+      [
+        "click",
+        927,
+        535
+      ],
+      [
+        "wait",
+        1200
+      ],
+      [
+        "snap"
+      ]
+    ],
+    "errors": [],
+    "external": [],
+    "http_errors": [],
+    "candidates": [
+      {
+        "file": "211-0.jpg",
+        "sha256": "0435a76f50b069024230eeebd88ad258a90393b19ac87ae0afc891a4f62e6ea6"
+      },
+      {
+        "file": "211-1.jpg",
+        "sha256": "4cd334ea4ebde27e7bb6fb5004f6b222208698b7458b3dc44bd4ff2751af3e52"
+      },
+      {
+        "file": "211-2.jpg",
+        "sha256": "cb33b60c057fd27856c29b2611a59f3c99ced7215d4f32fb9d76d5f2a428e9c4"
+      },
+      {
+        "file": "211-3.jpg",
+        "sha256": "89680b7e25a462c1b821ce196ab8f9142549c0653413f89e4be8d588a0db9415"
+      },
+      {
+        "file": "211-4.jpg",
+        "sha256": "4d4f45182e43d78e272bfbc6fa4b3048c7b58926580c580f1f710747e8b0e7d8"
+      }
+    ],
+    "seconds": 62.58,
+    "reason": "captured: low-card pick, native accept, completed deal to six-card crib discard stage.",
+    "output": "assets/thumbs/cribbage.jpg",
+    "previous_sha256": "a53f4736e4974ffa17b1c9eb26e5d7f5a12be6f50276161c2a51f7dc99fc37f2",
+    "status": "captured",
+    "accepted_candidate": "211-4.jpg",
+    "output_sha256": "c956736955543ebc88f3e46a86713f7c0d16d12e784aad4f31e24af54bfcc67e",
+    "output_bytes": 127026
+  },
+  {
+    "id": 200,
+    "title": "Achtung die Kurve",
+    "head": "743424124258ffab91c3f4ef706fedd29597b0ad",
+    "entry_blob": "bf90c7f1aad910a6a43dba4ace602d735879c82c",
+    "source_tree": "09034393b86e572ca8a026edea0da38bf395a1af",
+    "actions": [
+      [
+        "wait",
+        1000
+      ],
+      [
+        "snap"
+      ],
+      [
+        "info"
+      ],
+      [
+        "click",
+        1020,
+        451
+      ],
+      [
+        "type",
+        "Player One"
+      ],
+      [
+        "click",
+        1100,
+        620
+      ],
+      [
+        "click",
+        1020,
+        451
+      ],
+      [
+        "type",
+        "Player Two"
+      ],
+      [
+        "click",
+        1192,
+        451
+      ],
+      [
+        "key",
+        "ArrowDown"
+      ],
+      [
+        "key",
+        "Enter"
+      ],
+      [
+        "click",
+        1100,
+        620
+      ],
+      [
+        "snap"
+      ],
+      [
+        "info"
+      ],
+      [
+        "selector",
+        "#playerNameInput"
+      ],
+      [
+        "type",
+        "Player Two"
+      ],
+      [
+        "selector",
+        "#addPlayerButton"
+      ],
+      [
+        "selector",
+        "#startGame"
+      ],
+      [
+        "wait",
+        500
+      ],
+      [
+        "hold",
+        "ArrowLeft",
+        700
+      ],
+      [
+        "hold",
+        "a",
+        700
+      ],
+      [
+        "snap"
+      ],
+      [
+        "hold",
+        "ArrowRight",
+        600
+      ],
+      [
+        "hold",
+        "s",
+        600
+      ],
+      [
+        "snap"
+      ]
+    ],
+    "errors": [],
+    "external": [],
+    "http_errors": [],
+    "candidates": [
+      {
+        "file": "200-0.jpg",
+        "sha256": "d6ae9d6b27a8b91250f11f7b353c8dee2118dced6de121007523417cedf439f6"
+      },
+      {
+        "file": "200-1.jpg",
+        "sha256": "493baf4e7841af9d17254ec51af36bee906a1292dd1c08ca9526455323c5e2b3"
+      },
+      {
+        "file": "200-2.jpg",
+        "sha256": "abb55845466394c4a6ce6ce579c5cb31afae47de18f1beda466e7ba9a4ff6f7a"
+      },
+      {
+        "file": "200-3.jpg",
+        "sha256": "74c4e99a4af90a9ee62f2732cc7d976370c758777bf8da38ec9141b729667626"
+      }
+    ],
+    "seconds": 36.33,
+    "reason": "captured: two named players, native key-pair selection/start; both colored curves visible after steering.",
+    "output": "assets/thumbs/achtungdiekurve.jpg",
+    "previous_sha256": "a160009b3f77c3ad51c4870c9537b5fe1e4c4673d6647e17a05eeef3efac5875",
+    "status": "captured",
+    "accepted_candidate": "200-2.jpg",
+    "output_sha256": "d69538918a30714ddabf4af24d735dd5d116193962ae2f811ee83f156a8f84b5",
+    "output_bytes": 52207
+  },
+  {
+    "id": 161,
+    "title": "Qix",
+    "head": "743424124258ffab91c3f4ef706fedd29597b0ad",
+    "entry_blob": "31c970a8045b6c0932b9d416eb34be5def0be2db",
+    "source_tree": "784859f4e394846342ddf3c61b55741c191057f9",
+    "actions": [
+      [
+        "hold",
+        "ArrowUp",
+        800
+      ],
+      [
+        "hold",
+        "ArrowRight",
+        1000
+      ],
+      [
+        "hold",
+        "ArrowDown",
+        800
+      ],
+      [
+        "snap"
+      ],
+      [
+        "hold",
+        "ArrowRight",
+        1500
+      ],
+      [
+        "hold",
+        "ArrowUp",
+        1800
+      ],
+      [
+        "hold",
+        "ArrowLeft",
+        1000
+      ],
+      [
+        "snap"
+      ]
+    ],
+    "errors": [],
+    "external": [],
+    "http_errors": [],
+    "candidates": [
+      {
+        "file": "161-0.jpg",
+        "sha256": "3caa06e0df81d4022298cf21b321753bd5e29d6655ef6eee286d2bee3d9d2a00"
+      },
+      {
+        "file": "161-1.jpg",
+        "sha256": "9a912c234163a6eba4e7762293d8f713d2f6e1f94aa887278cd83af6382dd345"
+      }
+    ],
+    "seconds": 28.28,
+    "reason": "captured: real JIX drawing prototype after arrow path; visible trail and player inside field, no invented enemy/area fill.",
+    "output": "assets/thumbs/qix.jpg",
+    "previous_sha256": "94452f04b5beb568599373d12da5eaf39883309b6eab0b5387c6d1ac316eaa85",
+    "status": "captured",
+    "accepted_candidate": "161-1.jpg",
+    "output_sha256": "78b2bf65fdb3bd27522453dd447371c745f779f14b489ad6d83b8852230ba380",
+    "output_bytes": 24577
+  }
+]

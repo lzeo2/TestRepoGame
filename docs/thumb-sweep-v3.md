@@ -459,3 +459,22 @@ close: **3,084,365,824 bytes**. No catalog or game-source edits.
 | 7 | Ovo | captured | Play, right arrow, Up jump. Visible level-one player/platforms and running timer; original monochrome art. |
 | 233 | Server Survival | captured | Start Survival, Skip Tutorial, place firewall, Play. Real grid/service and reduced budget, no overlay. |
 | 66 | Geometry Dash Lite | needs-manual, old art retained | Stereo Madness scenery/progress rendered but player absent between death explosions after native Space/click. No representative player frame accepted. |
+
+### Batch 3: native controls recovered from manuals
+
+**5 accepted / 5 attempted.** Running continuation: **9 captured, 6 needs-manual,
+37 not yet attempted.** [Actions/source/output receipt](thumb-sweep-v3.1/batch-03.json).
+Fresh manual-first native play, same pinned browser and 180s limit. Browser/server
+closed after five. Free space **3,037,093,888 bytes** before promotion. No game or
+catalog changes. Qix remains the real incomplete JIX prototype, not the catalog's
+claimed territory game; showing its actual visible trail does not fix those
+mechanics or close its maintenance hold. Cookie currency/HACKED label are native
+source behavior, not injected progress.
+
+| ID | Game | v3.1 status | Native route |
+| --- | --- | --- | --- |
+| 52 | Stranded In Isekai | captured | Held Space, arrows, dialogue advances; village player, scene and HUD. |
+| 90 | Cookie Clicker Hacked | captured | Cookie clicks and native building purchases; real running cookie/building scene. |
+| 211 | Cribbage | captured | Pick low card, accept, wait for full deal, select two crib discards; real hand and peg board. |
+| 200 | Achtung die Kurve | captured | Type two player names, native key-pair selection, Start, steer both colored curves. |
+| 161 | Qix | captured | Native arrows trace a visible path with the player inside the field; original JIX prototype. |
