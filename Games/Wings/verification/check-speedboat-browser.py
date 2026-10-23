@@ -12,6 +12,7 @@ Optional --require-pbr requires embedded normal, packed MR and base-color maps;
 """
 import argparse
 import hashlib
+from http.client import HTTPConnection
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import json
 import math
@@ -342,14 +343,22 @@ def main():
     out.mkdir(parents=True, exist_ok=True)
     receipt = {'model':args.model.name, 'modelSHA256':hashlib.sha256(raw).hexdigest(),
                'modelBytes':len(raw), 'materialDefinitions':len(document.get('materials', [])),
-               'cases':[], 'errors':[], 'external':[], 'failedRequests':[],
+               'cases':[], 'errors':[], 'external':[], 'failedRequests':[], 'timingEvents':[],
                'requirePBR':args.require_pbr,
                'environment':{'python':platform.python_version(), 'system':platform.system(),
                               'machine':platform.machine(), 'chromiumBinary':'/usr/bin/chromium',
                               'launchArgs':['--no-sandbox','--use-angle=swiftshader','--enable-unsafe-swiftshader']},
-               'timingScope':'renderWallMs: browser render plus GL finish; caseWallMs: viewport/render/readback/hash/screenshot/save; totalDurationSeconds: worker including cleanup, excluding receipt write',
+               'timingScope':'timingEvents.secondsSinceStart: worker-relative monotonic seconds; renderWallMs: browser render plus GL finish; caseWallMs: viewport/render/readback/hash/screenshot/save; totalDurationSeconds: worker including cleanup, excluding receipt write',
                'status':'FAIL', 'visualReview':'NOT PERFORMED: parent must inspect two angles plus belly'}
     used_bytes = 0
+
+    def breadcrumb(event, **details):
+        receipt['timingEvents'].append({'event':event,
+            'secondsSinceStart':round(time.perf_counter()-started, 3), **details})
+
+    def browser_issue(bucket, event, message, **details):
+        receipt[bucket].append(message)
+        breadcrumb(event, message=message, **details)
 
     def save(name, data):
         nonlocal used_bytes
@@ -393,6 +402,15 @@ def main():
     thread.start()
     origin = f'http://127.0.0.1:{server.server_port}'
     try:
+        breadcrumb('httpPreflightStarted')
+        connection = HTTPConnection('127.0.0.1', server.server_port, timeout=3)
+        try:
+            connection.request('GET', '/')
+            response = connection.getresponse()
+            assert response.status == 200 and response.read() == HTML.encode(), 'HTTP preflight failed'
+            breadcrumb('httpPreflightComplete', status=response.status)
+        finally:
+            connection.close()
         with sync_playwright() as p:
             chromium = '/usr/bin/chromium'
             assert Path(chromium).is_file(), 'Existing /usr/bin/chromium required; do not install'
@@ -410,13 +428,19 @@ def main():
                         route.continue_()
 
                 page.route('**/*', guard)
-                page.on('pageerror', lambda e: receipt['errors'].append(str(e)))
-                page.on('console', lambda m: receipt['errors'].append(m.text) if m.type=='error' else None)
-                page.on('requestfailed', lambda r: receipt['failedRequests'].append(r.url))
-                page.on('response', lambda r: receipt['failedRequests'].append(f'{r.status}: {r.url}') if r.status>=400 else None)
-                page.goto(origin, wait_until='load')
+                page.on('pageerror', lambda e: browser_issue('errors', 'pageerror', str(e)))
+                page.on('console', lambda m: browser_issue('errors', 'consoleError', m.text) if m.type=='error' else None)
+                page.on('requestfailed', lambda r: browser_issue('failedRequests', 'requestfailed', r.url, failure=r.failure))
+                page.on('response', lambda r: browser_issue('failedRequests', 'httpError', f'{r.status}: {r.url}') if r.status>=400 else None)
+                breadcrumb('navigationStarted')
+                # Synchronous WebGL/PMREM bootstrap can block load; readiness has its own budget.
+                page.goto(origin, wait_until='commit', timeout=20000)
+                breadcrumb('navigationCommitted')
+                breadcrumb('appReadinessStarted')
                 page.wait_for_function('window.ready || window.bootError', timeout=60000)
-                assert page.evaluate('window.ready'), page.evaluate('window.bootError')
+                ready = page.evaluate('window.ready')
+                breadcrumb('appReady' if ready else 'bootError')
+                assert ready, page.evaluate('window.bootError')
                 asset = page.evaluate('window.asset')
                 receipt['asset'] = asset
                 receipt['renderSetup'] = page.evaluate('window.renderSetup')
@@ -468,6 +492,7 @@ def main():
                 browser.close()
     except Exception as error:
         receipt['failure'] = str(error)
+        breadcrumb('failure', message=str(error))
         raise
     finally:
         server.shutdown()
