@@ -315,8 +315,15 @@ fault or pass was claimed, and cleanup ran before the corrected run.
 The [canonical manual](maintenance/games/241-citisten3d.md) and inventory are
 updated by the concurrent save/terrain lane. The first coverage-check attempt
 reported `Inventory stale: inspect changes, then run --refresh.` after source
-commits; the lane was notified to refresh its owned inventory. Its subsequent
-native capture also timed out at navigation before any assertions or photos
+commits; the lane then refreshed its owned inventory in `fbe733b`. A fresh
+`python3 -B scripts/check_maintenance_docs.py` returned:
+
+```text
+PASS: 134 game documents cover 128 registered + 6 unregistered games; Git inventory current.
+Coverage only: section presence does not certify documentation accuracy or gameplay.
+```
+
+Its subsequent native capture timed out at navigation before any assertions or photos
 (46.415 seconds including cleanup); this is **not** native acceptance. Full
 registered-game smoke, native recovery interaction and hardware/FPS acceptance
 are not established by these headless/UI checks. No game was added or registered
