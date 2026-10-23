@@ -238,8 +238,14 @@ warning-skip equivalence and recovery/milestone continuity. The browser runner
 exited 1 after 46.415 seconds: navigation exceeded 20 seconds waiting for
 `domcontentloaded`, before any native assertion or photo. **All four requested
 native photos remain unproduced and unreviewed; native acceptance stays HOLD.**
-Browser/server cleanup passed and the slot was explicitly released. A second-slot
-request is unresolved; no retry or push is claimed. Stable UI fixture evidence
+Browser/server cleanup passed and the slot was explicitly released. Operator
+subsequently authorized one retry using document `commit` plus an explicit
+loaded wait up to 45 seconds; harness commit `a3ba48d` applies that guidance.
+After operator disk recovery, the retry runner exited 1 at `Browser slot busy`
+before creating any browser/server: foreign Chromium appeared between initial
+preflight and launch. No foreign process was touched and no further retry was
+attempted. Native photos remain unproduced; slot-coordination ticket
+`pi-30350-1792754595538-286388b3` is pending. No push. Stable UI fixture evidence
 from sibling lanes is separate from this native-world gate.
 
 ## Future outlook

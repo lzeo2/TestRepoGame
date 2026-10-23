@@ -21,6 +21,8 @@ Save/terrain milestones:
 - `3b5e057`: save round trips and bounded native-entry photo runner.
 - `661b649`: active civic repair callback through the existing repair tool.
 - `f84b1c3`: inconsistent-state rejection and stable-source capture checks.
+- `a3ba48d`: operator-directed document-commit navigation and explicit loaded
+  signal waits bounded at 45 seconds, retaining the 120-second outer limit.
 
 ## Runtime boundaries
 
@@ -97,8 +99,29 @@ All four photos remain unproduced/unreviewed, not silently replaced by UI fixtur
 Local failure evidence: `.tmp/citisten-save-terrain/result.json` and
 `.tmp/citisten-save-terrain-qa.txt`. `browserReleased: true` and
 `serverReleased: true`; a fresh process check confirmed no Chromium remained.
-The slot was explicitly released. Second-slot advice/approval request ticket
-`pi-513647-1792721062741-b0b3ded3` is unresolved; no second browser was launched.
+The slot was explicitly released. Ticket
+`pi-513647-1792721062741-b0b3ded3` was subsequently answered by operator relay:
+use document `commit`, then the explicit loaded signal with a 45-second bound,
+one retry maximum within 120 seconds. `a3ba48d` applies that guidance to initial
+navigation and reload; error checks and gameplay assertions are unchanged.
+
+The retry was initially deferred without edits/launch because free disk had
+fallen to 605,491,200 bytes. Recovery ticket `pi-30350-1792751964945-f5825149`
+was resolved by operator-directed recovery; preflight then found 3,295,723,520
+bytes free and no Chromium. After the harness commit, the single retry runner
+invocation exited 1 at its safety preflight: `AssertionError: Browser slot busy`.
+A foreign Chromium using a shared-memory profile had appeared in the meantime.
+**No retry browser, server, game assertion or photo was started.** The foreign
+process was neither attached to nor terminated. No further retry was launched,
+respecting the one-retry/stop direction. Native acceptance remains HOLD.
+
+First-attempt evidence is also preserved as
+`.tmp/citisten-save-terrain/attempt-1-result.json` and `attempt-1-log.txt`;
+`.tmp/citisten-save-terrain-retry.txt` contains the preflight failure. The main
+`result.json` still describes the first attempt, not the blocked retry. Coordination
+ticket `pi-30350-1792754595538-286388b3` remains pending for future slot sequencing,
+not authorization for another attempt. Four requested photos remain unproduced.
+
 The earlier coordination ticket `pi-513647-1792719577800-efd62909` was resolved by
 the operator's ownership/slot answer. One terrain delegation was aborted before
 work; all delivered terrain changes were retained by this lane.
@@ -107,4 +130,7 @@ Native visual acceptance, the existing 40 FPS/hardware gate and the unchanged
 full-catalog pre-push gate remain HOLD/unrun. No push. Storage was 3,025,162,240
 bytes free at lane start and 3,014,234,112 after the browser attempt, a
 10,928,128-byte reduction across concurrent lanes, not solely this change.
-No disk waiver, browser download, external deletion or history rewrite.
+At retry closeout preflight, free space was 2,895,728,640 bytes, down
+399,994,880 bytes from retry preflight across concurrent host work; no browser
+profile was created by the blocked retry. No disk waiver, browser download,
+external deletion or history rewrite.
