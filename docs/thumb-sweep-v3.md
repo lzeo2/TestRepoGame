@@ -830,3 +830,37 @@ The two Henry movies remained in their animated preloaders, not branching choice
 Total remains **26 refreshed / 26 needs-manual**. Checker passes **52 games,
 62 attempts**, chained cumulative budgets and current source/output hashes.
 Free space at batch close: **2,978,430,976 bytes**. No game/catalog edits or push.
+
+### Operator-resumed bounded retries: batch 3 and disposition
+
+[Five final headed attempts](thumb-sweep-v3.1/retry-03.json), browser/server
+released after five; **no replacements**. Rejected frames were visually reviewed.
+
+| ID | Game | Retry / cumulative seconds | Latest hold |
+| --- | --- | --- | --- |
+| 60 | Temple Run 2 | 48.46 / 171.98 | title/Take the Idol loader at 99%, not running |
+| 80 | Bloons TD | 22.45 / 175.50 | BTD2 Ninja Kiwi boot logo, not an active round |
+| 123 | Crush the Castle | 17.63 / 57.80 | black canvas after native Ruffle start controls |
+| 59 | Baldi's Basics | 18.69 / 169.66 | vertically clipped Unity splash, not classroom gameplay |
+| 228 | Borough Run | 14.96 / 40.54 | Start overlay still covers the dimmed playfield; missing guessed `#play` selector was not retried, visible Start/Equip inputs did not clear overlay |
+
+Free space at batch close: **2,982,760,448 bytes**. Remaining original holds
+were not pointlessly rebooted for a screenshot-method change:
+
+- **Budget/intro limits:** 221, 50, 111 and 119 exhausted their original 180s
+  allowance; 116 and 53 have about 4s and 6s left; 48 and 118 have about 18s and
+  24s, shorter than their observed cold boot plus launch/introduction path.
+- **Existing source/content failures:** 220 missing renderer chunks, 204 absent
+  cards/incoherent stylesheet, 87 main-script parse blocker, 8 boot failure;
+  215 retains unreadable black-on-near-black original art, with recoloring banned.
+- **Host capability:** 230 and 231 report no WebGPU adapter. A different screenshot
+  transport cannot supply a renderer. No flags, sources or renderer checks were
+  weakened to manufacture gameplay.
+
+This resume made **15 bounded openings across 12 previously held games**, not a
+fresh 180s allowance per opening. One new capture (136), 11 retried games still
+held, and the other 15 original holds preserved for the reasons above. Latest
+outcome: **26/52 refreshed, 26/52 held; combined v3/v3.1 101/127 fresh accepted
+captures**. No games added, registered or source-patched. The later checker also
+rejects negative retry time, reopening an exhausted budget and any intermediate
+retry above 180.15s including receipt bookkeeping.

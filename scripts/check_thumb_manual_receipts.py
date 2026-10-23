@@ -24,6 +24,8 @@ def main():
         for r in json.loads(path.read_text()):
             assert r['id'] in latest
             assert r['prior_seconds'] == latest[r['id']]['seconds']
+            assert 0 <= r['prior_seconds'] < 179 and r['attempt_seconds'] >= 0
+            assert r['seconds'] <= 180.15 and r['status'] in {'captured', 'needs-manual'}
             assert abs(r['seconds'] - r['prior_seconds'] - r['attempt_seconds']) < .02
             latest[r['id']] = r
             attempts += 1

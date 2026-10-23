@@ -1,0 +1,338 @@
+[
+  {
+    "id": 60,
+    "title": "Temple Run 2",
+    "head": "907d6f649fa6092186f946eb9af50538c041169e",
+    "entry_blob": "b2a9a9d78e217474e974f6f7caf04be99cc95f03",
+    "source_tree": "6b268ecb866a2abd8699512d0d2dcc612bb2d16b",
+    "actions": [
+      [
+        "wait",
+        30000
+      ],
+      [
+        "snap"
+      ],
+      [
+        "click",
+        640,
+        520
+      ],
+      [
+        "wait",
+        1000
+      ],
+      [
+        "click",
+        640,
+        360
+      ],
+      [
+        "wait",
+        500
+      ],
+      [
+        "key",
+        "Space"
+      ],
+      [
+        "hold",
+        "ArrowRight",
+        500
+      ],
+      [
+        "key",
+        "ArrowUp"
+      ],
+      [
+        "wait",
+        1500
+      ],
+      [
+        "snap"
+      ]
+    ],
+    "errors": [],
+    "external": [],
+    "http_errors": [],
+    "candidates": [
+      {
+        "file": "60-0.jpg",
+        "sha256": "5714cc72cbd42cb577d0325ae025b717e843c2969938f4d94f5de9bb6f80bb81"
+      },
+      {
+        "file": "60-1.jpg",
+        "sha256": "d3acf9aa7177b0065f13d2802da865498ca7dcd9745fc311589b4a5c72643d42"
+      }
+    ],
+    "headed": true,
+    "attempt_seconds": 48.46,
+    "prior_seconds": 123.52,
+    "seconds": 171.98,
+    "reason": "Review pending: headed/raw native Play and runner keys, cumulative budget preserved.",
+    "status": "needs-manual",
+    "review_reason": "Take the idol/title loader at 99%; not gameplay.",
+    "output": "assets/thumbs/templerun2.jpg",
+    "output_sha256": "0d75a6ac8d55b0f6724f8907aa77ff34b6f3d914d07e2fe32ea99117ee9a609c",
+    "output_bytes": 20305
+  },
+  {
+    "id": 80,
+    "title": "Bloons TD",
+    "head": "907d6f649fa6092186f946eb9af50538c041169e",
+    "entry_blob": "c35bbf9cb6cedb3ab11062f0d000e009621defd8",
+    "source_tree": "cb803cd16c4bd542e64699192fffef5363f7a51b",
+    "actions": [
+      [
+        "selector",
+        "a[href=\"btd2/index.html\"]"
+      ],
+      [
+        "wait",
+        10000
+      ],
+      [
+        "click",
+        640,
+        460
+      ],
+      [
+        "wait",
+        400
+      ],
+      [
+        "click",
+        640,
+        360
+      ],
+      [
+        "wait",
+        400
+      ],
+      [
+        "click",
+        912,
+        110
+      ],
+      [
+        "click",
+        535,
+        160
+      ],
+      [
+        "click",
+        942,
+        566
+      ],
+      [
+        "click",
+        960,
+        685
+      ],
+      [
+        "wait",
+        500
+      ],
+      [
+        "snap"
+      ]
+    ],
+    "errors": [],
+    "external": [
+      "mochibot.com",
+      "www.ninjakiwi.com",
+      "www.ninjakiwi.com",
+      "www.ninjakiwi.com",
+      "www.ninjakiwi.com"
+    ],
+    "http_errors": [],
+    "candidates": [
+      {
+        "file": "80-0.jpg",
+        "sha256": "f955c53b8ef97e02be4381ad1d89d43e48b6115992ee805189daf836626fcf51"
+      }
+    ],
+    "headed": true,
+    "attempt_seconds": 22.45,
+    "prior_seconds": 153.05,
+    "seconds": 175.5,
+    "reason": "Review pending: native BTD2 link, Play/tower/round input within cumulative budget.",
+    "status": "needs-manual",
+    "review_reason": "BTD2 Ninja Kiwi boot logo, not a tower-defense round.",
+    "output": "assets/thumbs/bloonstd.jpg",
+    "output_sha256": "ac39e81fb7c7f5f164a67682aef2f02ff0439616074bbf7e65c3dc448bc99651",
+    "output_bytes": 17353
+  },
+  {
+    "id": 123,
+    "title": "Crush the Castle",
+    "head": "907d6f649fa6092186f946eb9af50538c041169e",
+    "entry_blob": "9e383061bf56afaa7887ff7e917d5e6b3eff88a8",
+    "source_tree": "1dc3561e1947c1d97842affd4c5c53cd53e450b3",
+    "actions": [
+      [
+        "wait",
+        10000
+      ],
+      [
+        "click",
+        700,
+        389
+      ],
+      [
+        "wait",
+        5000
+      ],
+      [
+        "click",
+        640,
+        360
+      ],
+      [
+        "key",
+        "Space"
+      ],
+      [
+        "wait",
+        1000
+      ],
+      [
+        "snap"
+      ]
+    ],
+    "errors": [],
+    "external": [],
+    "http_errors": [],
+    "candidates": [
+      {
+        "file": "123-0.jpg",
+        "sha256": "0c3ec58b758057306a42ce9c09feb66ac17b0ff9c0ac18f88312d3b146c3ab23"
+      }
+    ],
+    "headed": true,
+    "attempt_seconds": 17.63,
+    "prior_seconds": 40.17,
+    "seconds": 57.8,
+    "reason": "Review pending: headed/raw capture after native Ruffle start controls.",
+    "status": "needs-manual",
+    "review_reason": "Black canvas after native Ruffle play input.",
+    "output": "assets/thumbs/crushthecastle.jpg",
+    "output_sha256": "60a821ff9fd2dbe56c8c52adf510f958d6601962f0a2738a373cce180e79dba6",
+    "output_bytes": 14318
+  },
+  {
+    "id": 59,
+    "title": "Baldi's Basics",
+    "head": "907d6f649fa6092186f946eb9af50538c041169e",
+    "entry_blob": "1c8959e3204bf4da442ad7151a4c420be137e076",
+    "source_tree": "dc5ef4aec8afc4b63eb5a3dfbac5ea9b3df4e592",
+    "actions": [
+      [
+        "wait",
+        14000
+      ],
+      [
+        "key",
+        "Enter"
+      ],
+      [
+        "wait",
+        300
+      ],
+      [
+        "click",
+        1120,
+        256
+      ],
+      [
+        "wait",
+        300
+      ],
+      [
+        "snap"
+      ]
+    ],
+    "errors": [],
+    "external": [],
+    "http_errors": [],
+    "candidates": [
+      {
+        "file": "59-0.jpg",
+        "sha256": "8061417d28c2c29e57063bde1527a9ab1c7e30735f21aa17ae0c519a6be1ac60"
+      }
+    ],
+    "headed": true,
+    "attempt_seconds": 18.69,
+    "prior_seconds": 150.97,
+    "seconds": 169.66,
+    "reason": "Review pending: headed/raw capture with native menu input; no layout changes.",
+    "status": "needs-manual",
+    "review_reason": "Unity splash still vertically clipped; no classroom gameplay.",
+    "output": "assets/thumbs/baldisbasics.jpg",
+    "output_sha256": "9c7017e316425bfb177a02479de748dd17e5f4827338d30b07492a17a5137dc1",
+    "output_bytes": 13170
+  },
+  {
+    "id": 228,
+    "title": "Borough Run",
+    "head": "907d6f649fa6092186f946eb9af50538c041169e",
+    "entry_blob": "64788541512529d8e7303810684dc9bb7c5fb529",
+    "source_tree": "15fb5633a873ec57bfd2828e89abf8e5031920e0",
+    "actions": [
+      [
+        "wait",
+        1000
+      ],
+      [
+        "selector",
+        "#play"
+      ],
+      [
+        "info"
+      ],
+      [
+        "snap"
+      ],
+      [
+        "click",
+        519,
+        402
+      ],
+      [
+        "key",
+        "e"
+      ],
+      [
+        "hold",
+        "ArrowUp",
+        500
+      ],
+      [
+        "snap"
+      ]
+    ],
+    "errors": [],
+    "external": [],
+    "http_errors": [],
+    "candidates": [
+      {
+        "file": "228-0.jpg",
+        "sha256": "106f70ce8b4ad57934de9b3dfbfe67d1cc85869f1c6c1bd3b5fb35cca48f4664"
+      },
+      {
+        "file": "228-1.jpg",
+        "sha256": "a98199599f6319dece2044c6a273178070a62baacf3130933a18dc6f79c855b6"
+      }
+    ],
+    "headed": true,
+    "attempt_seconds": 14.96,
+    "prior_seconds": 25.58,
+    "seconds": 40.54,
+    "reason": "needs-manual: Start selector absent; native visible Run/Equip attempt still covered by modal, no CSS/state bypass.",
+    "status": "needs-manual",
+    "review_reason": "Start overlay remains over dimmed playfield after native Start/Equip input; no CSS/state bypass permitted.",
+    "output": "assets/thumbs/boroughrun.jpg",
+    "output_sha256": "0f319525d0d7a7a7f5f19c87655cf7a942d54b6b6ccc7b257b26acf62a4afe67",
+    "output_bytes": 8724
+  }
+]
