@@ -7,17 +7,28 @@ import { WORLD } from './world.js';
 // All raised detail stays inside the collision rectangle; sidewalks are drivable.
 export function createCityArchitecture(unitBox, makeMaterial, paneGeometry) {
   const group = new THREE.Group(), parts = new Map();
-  const colors = ['#aa8c71', '#a9a69a', '#b8a68c', '#87786d'];
+  const colors = ['#a65e45', '#b57d58', '#c29a6d', '#8b6654'];
+  const storefronts = ['#9b343b', '#315577', '#cc983d', '#526649'];
   function part(kind, x, y, z, w, h, d, color) {
     if (!parts.has(kind)) parts.set(kind, []);
     parts.get(kind).push({ x, y, z, w, h, d, color });
   }
   WORLD.blocks.forEach((b, i) => {
     const { x, z, width: w, depth: d, height: h } = b;
-    part('plinth', x, .3, z, w, .6, d);
-    part('masonry', x, h / 2 + .3, z, w - .8, h - .6, d - .8, colors[i % colors.length]);
+    part('plinth', x, .07, z, w, .14, d);
+    part('masonry', x, h / 2 + .07, z, w - .8, h - .14, d - .8, colors[i % colors.length]);
     // A flush paving apron has no new raised street obstacle or collision.
     part('paving', x, -.025, z, w + 3, .03, d + 3);
+    for (const side of [-1, 1]) {
+      part('curb', x, .1, z + side * (d / 2 - .12), w, .2, .24);
+      part('curb', x + side * (w / 2 - .12), .1, z, .24, .2, d - .48);
+      // Twenty-four corner lamps, wholly inside the already solid footprints.
+      if (i % 3 === 0) {
+        const lx = x + side * (w / 2 - .23), lz = z + side * (d / 2 - .23);
+        part('lamp', lx, 2.3, lz, .12, 4.4, .12, '#383e43');
+        part('lamp', lx, 4.55, lz, .42, .18, .42, '#f2d59a');
+      }
+    }
     const floors = Math.floor((h - 4) / 3.2);
     for (let face = 0; face < 4; face++) {
       const alongX = face < 2, sign = face % 2 ? 1 : -1;
@@ -30,7 +41,9 @@ export function createCityArchitecture(unitBox, makeMaterial, paneGeometry) {
       // Ground-floor shop bays sit behind piers and a deep lintel, not decals.
       facade('glazing', 0, 1.9, .37, span - 2.4, 2.5, .04);
       facade('trim', 0, 3.4, .18, span - .4, .35, .36);
-      facade('awning', 0, 3.05, .24, span - 2, .16, .48, ['#745b46', '#56636a', '#77624e'][i % 3]);
+      const shopColor = storefronts[(i + face) % storefronts.length];
+      facade('awning', 0, 3.05, .24, span - 2, .16, .48, shopColor);
+      facade('storefront', 0, 2.72, .32, span - 4, .42, .02, shopColor);
       for (const u of [-10, -5, 0, 5, 10]) {
         facade('trim', u, 1.75, .2, .22, 2.9, .4);
         // Tall masonry piers create genuine window reveals on all four sides.
@@ -62,11 +75,11 @@ export function createCityArchitecture(unitBox, makeMaterial, paneGeometry) {
       part('glazing', x, h + .94, z, 8.5, .08, 5.5);
     }
   });
-  const shades = { plinth: '#756e63', masonry: '#ffffff', paving: '#b1aa99', glazing: '#405661', transom: '#b9b3a3', trim: '#cec3ae', awning: '#ffffff', roof: '#626762' };
+  const shades = { plinth: '#766d60', masonry: '#ffffff', paving: '#b9b2a0', curb: '#dfd1b8', lamp: '#ffffff', storefront: '#ffffff', glazing: '#354b59', transom: '#b9b3a3', trim: '#cec3ae', awning: '#ffffff', roof: '#626762' };
   const dummy = new THREE.Object3D();
   let instances = 0, triangles = 0;
   for (const [kind, entries] of parts) {
-    const planar = kind === 'glazing' || kind === 'transom';
+    const planar = kind === 'glazing' || kind === 'transom' || kind === 'storefront';
     const mat = makeMaterial(shades[kind]);
     if (planar) mat.side = THREE.DoubleSide;
     const geometry = planar ? paneGeometry : unitBox;
@@ -160,7 +173,8 @@ export function createView(host) {
   // Static city transforms come from the same rectangles as simulation collision.
   const city = new THREE.Group(); scene.add(city);
   const extent = WORLD.limit * 2;
-  const architecture = createCityArchitecture(unitBox, material, own(new THREE.PlaneGeometry(1, 1))); city.add(architecture);
+  const cityPane = own(new THREE.PlaneGeometry(1, 1));
+  const architecture = createCityArchitecture(unitBox, material, cityPane); city.add(architecture);
   // Hidden full-footprint proxy retains the existing camera obstruction ABI.
   const cityBuildings = new THREE.InstancedMesh(unitBox, material('#9b8875'), WORLD.blocks.length);
   cityBuildings.visible = false;
@@ -170,11 +184,27 @@ export function createView(host) {
   cityBuildings.instanceMatrix.needsUpdate = true; city.add(cityBuildings);
   const streetEdge = Math.floor(WORLD.limit / WORLD.grid) * WORLD.grid;
   const streets = streetEdge * 2 / WORLD.grid + 1;
-  const cityLines = new THREE.InstancedMesh(unitBox, material('#e6ddc4'), streets * (streets - 1) * 6);
+  const cityLines = new THREE.InstancedMesh(unitBox, material('#e7bd66'), streets * (streets - 1) * 6);
+  // Flat markings never add an uncollidable raised road obstacle.
+  const crossings = new THREE.InstancedMesh(cityPane, material('#eee4cf'), streets * streets * 4 * 7);
+  crossings.name = 'city-crosswalks'; city.add(crossings);
+  let crossingIndex = 0;
+  for (let x = -streetEdge; x <= streetEdge; x += WORLD.grid) for (let z = -streetEdge; z <= streetEdge; z += WORLD.grid) {
+    for (const side of [-1, 1]) for (let stripe = -3; stripe <= 3; stripe++) {
+      for (const alongX of [true, false]) {
+        const arm = side * (WORLD.streetHalfWidth + 2.2), across = stripe * 2.8;
+        dummy.position.set(x + (alongX ? across : arm), -.012, z + (alongX ? arm : across));
+        dummy.rotation.set(-Math.PI / 2, 0, 0);
+        dummy.scale.set(alongX ? 1.35 : 2.7, alongX ? 2.7 : 1.35, 1);
+        dummy.updateMatrix(); crossings.setMatrixAt(crossingIndex++, dummy.matrix);
+      }
+    }
+  }
+  crossings.instanceMatrix.needsUpdate = true; crossings.computeBoundingBox(); crossings.computeBoundingSphere();
   let lineIndex = 0;
   for (let p = -streetEdge; p <= streetEdge; p += WORLD.grid) {
-    box(WORLD.streetHalfWidth * 2, .1, extent, '#45474b', p, -.09, 0, city);
-    box(extent, .1, WORLD.streetHalfWidth * 2, '#45474b', 0, -.085, p, city);
+    box(WORLD.streetHalfWidth * 2, .1, extent, '#343b42', p, -.09, 0, city);
+    box(extent, .1, WORLD.streetHalfWidth * 2, '#343b42', 0, -.085, p, city);
     for (let q = -streetEdge; q < streetEdge; q += WORLD.grid) {
       // Leave each intersection open, including its crossing center lines.
       for (const offset of [18, 26, 34]) {
@@ -232,6 +262,10 @@ export function createView(host) {
   const cameraAnchor = new THREE.Vector3(), desiredEye = new THREE.Vector3(), desiredTarget = new THREE.Vector3();
   const observedEye = new THREE.Vector3(), carScreen = new THREE.Vector3();
   const reducedMotion = globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches || false;
+  // View-owned covers on the cached Wardline bar, not shared-material mutations or lights.
+  const policeSignals = new THREE.InstancedMesh(unitBox, own(new THREE.MeshBasicMaterial({ color: '#ffffff' })), 4);
+  policeSignals.name = 'police-signals'; policeSignals.frustumCulled = false; policeSignals.count = 0; scene.add(policeSignals);
+  const signalColors = ['#ff3948', '#3d83ff', '#6b2630', '#233b6b'].map(color => new THREE.Color(color));
   let cameraMode = 'chase', renderedCameraMode = 'garage', cameraRun = null, cameraYaw = 0;
   let player = null, orbit = .65, frames = 0, wheelAngle = 0, lastDistance = 0, lastRun = null, renderedSteer = 0;
   let lastMode = null, lastX = 0, lastZ = 0, renderAlpha = 1, renderElapsed = 0;
@@ -377,6 +411,23 @@ export function createView(host) {
       for (const wheel of model.userData.wheels) wheel.rotation.x = state.angle;
     }
     for (const [key, state] of npc) if (!active.has(key)) { state.model.removeFromParent(); npc.delete(key); }
+    let signalIndex = 0;
+    if (run?.status === 'running' && run.pursuit === 'chased' && (run.mode === 'roam' || run.mode === 'cutup')) {
+      const phase = Math.floor(renderElapsed * 2) % 2;
+      for (const { type, model } of npc.values()) if (type === 'police') {
+        const yaw = model.rotation.y, sin = Math.sin(yaw), cos = Math.cos(yaw);
+        for (let half = 0; half < 2 && signalIndex < 4; half++) {
+          const x = half ? .28 : -.28;
+          dummy.position.set(model.position.x + x * cos + .09 * sin, 1.625, model.position.z - x * sin + .09 * cos);
+          dummy.rotation.set(0, yaw, 0); dummy.scale.set(.494, .084, .184); dummy.updateMatrix();
+          policeSignals.setMatrixAt(signalIndex, dummy.matrix);
+          policeSignals.setColorAt(signalIndex++, signalColors[half + (reducedMotion || phase === half ? 0 : 2)]);
+        }
+      }
+    }
+    policeSignals.count = signalIndex; policeSignals.visible = signalIndex > 0;
+    policeSignals.instanceMatrix.needsUpdate = true;
+    if (signalIndex) policeSignals.instanceColor.needsUpdate = true;
     let shadowIndex = 0;
     for (const model of [player, ...[...npc.values()].map(state => state.model)]) for (const scale of [.65,.85,1]) {
       if (shadowIndex >= 48) break;
@@ -471,6 +522,8 @@ export function createView(host) {
       contactShadows: contactShadows.count,
       cityBlocks: city.visible ? cityBuildings.count : 0,
       cityArchitecture: Object.freeze({ ...architecture.userData, visible: city.visible }),
+      cityCrosswalks: Object.freeze({ batches: 1, instances: crossings.count, triangles: crossings.count * 2, visible: city.visible }),
+      policeSignals: Object.freeze({ instances: policeSignals.count, triangles: policeSignals.count * 12, batches: policeSignals.visible ? 1 : 0, reducedMotion }),
       pose: player ? Object.freeze({ x: player.position.x, z: player.position.z, heading: player.rotation.y }) : null,
       customization, effects: Object.freeze({ smokePuffs: smoke.visible ? smoke.count : 0, empVisible: pulse.visible, decoyVisible: decoyEffect.visible, boostVisible: flames.visible, repairVisible: repairEffect.visible }), dpr: 1 });
   }

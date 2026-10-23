@@ -55,6 +55,18 @@ assert(batches['city-glazing'].count > 1000, 'windows on all elevations plus sto
 assert(batches['city-transom'].count > 1000, 'window frame detail');
 assert(batches['city-roof'].count > 36, 'roof silhouette detail');
 assert.equal(batches['city-awning'].count, 36 * 4);
+assert.equal(batches['city-curb'].count, 36 * 4);
+assert.equal(batches['city-lamp'].count, 24 * 2, '24 footprint-contained poles and caps, no new lights');
+assert.equal(batches['city-storefront'].count, 36 * 4);
+for (const name of ['masonry', 'awning', 'storefront']) {
+  const colors = batches[`city-${name}`].instanceColor;
+  const palette = new Set(Array.from({length:colors.count}, (_, i) => [colors.getX(i), colors.getY(i), colors.getZ(i)].join(',')));
+  assert.equal(palette.size, 4, `${name} has four distinct flat finishes`);
+}
+for (let i = 0; i < batches['city-curb'].count; i++) {
+  const b = instanceBounds(batches['city-curb'], i);
+  assert(Math.abs(b.min.y) < 1e-6 && Math.abs(b.max.y - .2) < 1e-6, 'low curb ledge, not a wall');
+}
 // Window panes are physically recessed behind the piers, with no hidden street solids.
 for (let i = 0; i < batches['city-glazing'].count; i++) {
   const b = instanceBounds(batches['city-glazing'], i);
@@ -124,6 +136,25 @@ view.draw(profile, run);
 assert.deepEqual(architecture.children.map(m => Array.from(m.instanceMatrix.array)), frozen);
 assert.equal(view.inspect().cityBlocks, 36);
 assert.equal(view.inspect().cityArchitecture.triangles, triangles);
+const crossings = renderedScene.getObjectByName('city-crosswalks');
+const crossingStats = view.inspect().cityCrosswalks;
+assert.equal(crossingStats.batches, 1);
+assert.equal(crossings.count, 49 * 4 * 7, 'seven stripes on each of four approaches at all 49 junctions');
+assert.equal(crossingStats.triangles, crossings.count * 2);
+assert(triangles + crossingStats.triangles <= 50000, 'architecture plus crosswalks stay within 50k triangles');
+assert(architecture.children.length + crossingStats.batches <= 12, 'at most twelve new static city draws');
+assert.equal(crossings.geometry.type, 'PlaneGeometry');
+assert(!crossings.material.transparent);
+assert(crossings.boundingBox && crossings.boundingSphere);
+for (let i = 0; i < crossings.count; i++) {
+  const b = instanceBounds(crossings, i), c = b.getCenter(new THREE.Vector3());
+  assert(b.min.x >= -WORLD.limit && b.max.x <= WORLD.limit && b.min.z >= -WORLD.limit && b.max.z <= WORLD.limit);
+  assert(b.max.y < 0 && b.min.y > -.025, 'flat paint above asphalt, below the driving plane');
+  assert(Math.min(Math.abs(c.x - Math.round(c.x / WORLD.grid) * WORLD.grid), Math.abs(c.z - Math.round(c.z / WORLD.grid) * WORLD.grid)) < WORLD.streetHalfWidth);
+  assert(!WORLD.blocks.some(w => b.max.x > w.x - w.width / 2 && b.min.x < w.x + w.width / 2 && b.max.z > w.z - w.depth / 2 && b.min.z < w.z + w.depth / 2), 'crosswalk paint remains on road, not in buildings');
+}
+const frozenCrossings = Array.from(crossings.instanceMatrix.array);
+assert.equal(renderedScene.children.filter(o => o.isLight).length, 2, 'lamps and patrol bars add no dynamic lights');
 // Synthetic camera fixtures: real transforms/raycast, only GPU drawing stubbed.
 assert.throws(() => view.setCamera('free'), RangeError);
 const initialCamera = view.inspect().camera;
@@ -232,9 +263,62 @@ view.draw(profile,highwayAfter,0,1/120,{...highwayBefore,traffic:[{id:1,carId:'p
 assert.equal(view.inspect().renderDistance,20.05); assert.equal(view.inspect().pose.x,.05);
 assert.equal(view.inspect().trafficModels[0].pose.x,.5);
 assert(Math.abs(view.inspect().trafficModels[0].pose.z+10.05)<1e-10);
-view.draw(profile,null); assert.equal(view.inspect().camera.mode,'garage');
+// Actual chase state and interpolated simulation time drive one bounded signal batch.
+const chased = {...base, id:250, mode:'roam', pursuit:'chased', elapsed:24.1,
+  police:[{...civilian(1,-5),carId:'lantern',world:{x:1,z:-5,heading:.7}}, {...civilian(2,-10),carId:'lantern'}]};
+view.draw(profile, chased);
+const signals = renderedScene.getObjectByName('police-signals');
+const signalColors = () => Array.from(signals.instanceColor.array);
+assert.equal(signals.count, 4); assert.equal(view.inspect().policeSignals.triangles, 48);
+assert.equal(view.inspect().policeSignals.batches, 1);
+const equipment = renderedScene.getObjectByName('patrol-equipment');
+const sharedColor = equipment.material.color.getHexString();
+const sharedGeometryColors = Array.from(equipment.geometry.attributes.color.array);
+renderedScene.updateMatrixWorld(true);
+for (let half = 0; half < 2; half++) {
+  signals.getMatrixAt(half, matrix);
+  const local = new THREE.Vector3().setFromMatrixPosition(matrix).applyMatrix4(equipment.parent.matrixWorld.clone().invert());
+  const expected = [half ? .28 : -.28, 1.625, .09];
+  local.toArray().forEach((v, i) => assert(Math.abs(v - expected[i]) < 1e-6, 'bar covers follow the actual patrol pose'));
+}
+const firstSignalColors = signalColors(), firstSignalMatrices = Array.from(signals.instanceMatrix.array);
+view.draw(profile, chased, 0, 0);
+assert.deepEqual(signalColors(), firstSignalColors, 'pause freezes signal phase');
+assert.deepEqual(Array.from(signals.instanceMatrix.array), firstSignalMatrices);
+view.draw(profile, chased, 0, .25);
+assert.deepEqual(signalColors(), firstSignalColors, 'wall/frame time cannot advance police indication');
+const laterChase = {...chased, elapsed:24.9};
+view.draw(profile, laterChase, 0, 1/120, chased, .5);
+assert.equal(view.inspect().renderElapsed, 24.5);
+assert.notDeepEqual(signalColors(), firstSignalColors, 'alternate red/blue emphasis at a slow simulation-time cadence');
+assert.equal(equipment.material.color.getHexString(), sharedColor);
+assert.deepEqual(Array.from(equipment.geometry.attributes.color.array), sharedGeometryColors, 'cached patrol equipment is never recolored');
+for (const change of [{pursuit:'roaming'}, {status:'escaped'}, {mode:'sandbox'}, {mode:'race'}, {police:[]}]) {
+  view.draw(profile, {...chased, ...change});
+  assert.equal(signals.count, 0); assert(!signals.visible, 'no flashing outside an actual active chase');
+}
+const cutupChase = {...highwayBefore, id:251, mode:'cutup', pursuit:'chased', elapsed:24.1,
+  police:[{id:1,carId:'lantern',x:1,distance:10}]};
+view.draw(profile, cutupChase);
+assert.equal(signals.count, 2, 'highway pursuit uses the same bounded signal batch');
+assert.deepEqual(architecture.children.map(m => Array.from(m.instanceMatrix.array)), frozen, 'all new architecture stays static across modes');
+assert.deepEqual(Array.from(crossings.instanceMatrix.array), frozenCrossings, 'crosswalk batch never rebuilds or scrolls');
+view.draw(profile,null); assert.equal(view.inspect().camera.mode,'garage'); assert.equal(signals.count, 0);
 view.dispose(); view.dispose();
+// A second complete lifecycle verifies steady reduced-motion signals and cache recreation.
+const priorMatchMedia = globalThis.matchMedia;
+globalThis.matchMedia = () => ({matches:true});
+const quietView = createView(host);
+quietView.draw(profile, chased);
+const quietSignals = renderedScene.getObjectByName('police-signals');
+const steadyColors = Array.from(quietSignals.instanceColor.array);
+assert.equal(quietView.inspect().policeSignals.reducedMotion, true);
+assert.equal(quietSignals.count, 4);
+quietView.draw(profile, laterChase);
+assert.deepEqual(Array.from(quietSignals.instanceColor.array), steadyColors, 'reduced motion keeps both colors steady');
+quietView.dispose(); quietView.dispose();
+if (priorMatchMedia === undefined) delete globalThis.matchMedia; else globalThis.matchMedia = priorMatchMedia;
 for (const [resource, count] of tracked) assert.equal(count, 1, `resource disposed once: ${resource.type || resource.name}`);
 assert(firstInstances.length >= 12);
 delete globalThis.__cityTrack; delete globalThis.__CityRenderer; delete globalThis.document;
-console.log(`PASS: 36 collision-aligned bases; ${city.userData.batches} static architecture batches, ${instances} instances, ${triangles} triangles; glazing/recess/roof/bounds/resize/disposal; chase lag/wrap/pause/cover and all16 physical cockpit transforms. 60/120Hz interpolation, guard/pause/NPC/reverse/highway checks. Synthetic drawing, not native visual acceptance or owner-device FPS/choppiness proof.`);
+console.log(`PASS: 36 collision-aligned bases; ${city.userData.batches} static architecture batches, ${instances} instances, ${triangles} triangles; glazing/recess/roof/bounds/resize/disposal; chase lag/wrap/pause/cover and all16 physical cockpit transforms. 60/120Hz interpolation, guard/pause/NPC/reverse/highway checks. ${crossingStats.instances} flat crosswalk stripes/${crossingStats.triangles} triangles in one batch; 24 footprint-contained lamps, curb/storefront palettes; police chase/time/pause/reduced-motion/48-triangle cap; exact-once disposal across two lifecycles. Synthetic drawing, not native visual acceptance or owner-device FPS/choppiness proof.`);
