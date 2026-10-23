@@ -3,7 +3,7 @@
 import assert from 'node:assert/strict';
 import * as THREE from '../vendor/three.module.js';
 import { PlayerController } from './player-controller.mjs';
-import { createWorldData, rampHeight } from '../world-data.mjs';
+import { createWorldData, rampHeight, LIMIT } from '../world-data.mjs';
 import { capsuleIntersects, surfaceHeight } from '../traversal.mjs';
 
 let checks = 0;
@@ -194,6 +194,42 @@ check(rampHero.position.y > 1 && rampHero.grounded, 'optional callback permits a
 const world = createWorldData();
 const worldOptions = { boxes: world.boxes, ramps: world.ramps,
   floorHeight: (x, z, maxY) => surfaceHeight(world, x, z, maxY) };
+for (const position of [{ x: 64, y: -10, z: 20 }, { x: 169, y: -6, z: 120 }]) {
+  for (const input of [{ side: 1 }, { side: 1, dash: true }]) {
+    const edge = create({ ...worldOptions, position });
+    run(edge, 3, input);
+    check(edge.position.x <= position.x + 1.01 && edge.grounded, 'lowered terrain cannot cross into solid ground');
+    close(edge.position.y, position.y);
+  }
+}
+const recovery = create({ ...worldOptions, position: { x: 120, y: -6, z: 120 } });
+for (const bad of [{ x: 120, y: -100, z: 120 }, { x: NaN, y: 0, z: 0 }]) {
+  recovery.position.copy(bad); recovery.velocity.set(1, -100, 1); recovery.update(1 / 60);
+  close(recovery.position.x, 120); close(recovery.position.y, -6);
+  check(recovery.grounded && recovery.velocity.length() === 0, 'invalid/below-map controller recovers to safe plaza pose');
+}
+recovery.position.set(10, -20, 100); run(recovery, 3);
+check(recovery.grounded && recovery.position.y >= -6, 'already-buried controller cannot fall forever');
+const boundary = create({ ...worldOptions, position: { x: LIMIT - 1, y: 0, z: 0 } });
+run(boundary, 1, { side: 1, dash: true });
+check(boundary.position.x <= LIMIT && boundary.position.x >= LIMIT - 1, 'shared controller uses world LIMIT');
+boundary.warp({ x: -LIMIT - 100, y: 0, z: LIMIT + 100 });
+check(boundary.position.x === -LIMIT && boundary.position.z === LIMIT, 'warp clamps world bounds');
+for (const [position, seconds, bottom] of [[{ x: 90, y: 0, z: 0 }, 7, -10], [{ x: 205, y: 0, z: 85 }, 6, -6]]) {
+  const loweredRamp = create({ ...worldOptions, position });
+  run(loweredRamp, seconds, { side: -1 });
+  close(loweredRamp.position.y, bottom, 0.15);
+  check(loweredRamp.grounded, 'lowered ramp descends without triggering recovery');
+  run(loweredRamp, seconds + 1, { side: 1 });
+  close(loweredRamp.position.y, 0, 0.2);
+  check(loweredRamp.grounded, 'lowered ramp ascends back to street');
+}
+const airborneEdge = create({ ...worldOptions, position: { x: 64, y: -8, z: 20 } });
+run(airborneEdge, 1, { side: 1, dash: true });
+check(airborneEdge.position.x <= 65 && airborneEdge.position.y >= -10, 'airborne dash cannot enter terrain wall');
+const sewerUnder = create({ ...worldOptions, position: { x: 0, y: -10, z: 0 } });
+run(sewerUnder, 2, { jump: true });
+check(sewerUnder.position.y + sewerUnder.height < 2, 'bridge underside does not promote sewer player to deck');
 const roofRamp = world.ramps.find(r => r.id === 'roof-access-1');
 const sideEntry = create({ ...worldOptions,
   position: { x: roofRamp.maxX + 2, y: 0, z: roofRamp.minZ + 4 } });

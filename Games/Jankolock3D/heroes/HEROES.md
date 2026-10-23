@@ -77,7 +77,21 @@ The floor callback owns top support, including ascent and descent. Slab sides,
 jump/hook undersides and crouch clearance reuse traversal's `capsuleIntersects`;
 the camera sphere tests the same rendered slab transform along its boom and
 reclamps after smoothing. Omitted/empty ramps retain AABB-only behavior and its
-regressions. This module evidence does not establish assembled native traversal.
+regressions. Solid terrain returned above `maxY` blocks horizontal entry rather
+than disappearing from collision. Movement/warps use the existing world `LIMIT`
+(448m), including standalone ranges, not an invented range-sized arena. Invalid
+position/velocity or feet below -32m reset to the last clear grounded pose,
+clearing motion/actions; before one exists the controller uses `{x:0,y:0,z:8}`.
+Traveler recovery uses its last grounded pose or `world.start`, preserving crate
+state. Sewer -10m, plaza -6m, roof/ramp support and bridge undersides remain valid.
+Controller/world regressions cover terrain-edge walk/dash, recovery and bounds.
+This module evidence does not establish assembled native traversal.
+
+Fall-through follow-up: controller 1,392 assertions, world 505 assertions, bots
+8 groups and hero-runtime checks pass in Node. Integration passes both 600s
+chains and portrait integrity, then fails its stale 127-entry assertion against
+the current 128-entry catalog. No assertion was weakened. Syntax/diff checks
+pass. No browser/native acceptance is claimed; parent owns manual/inventory.
 
 ## Design and provenance
 

@@ -1,7 +1,7 @@
 // Deterministic module fixtures, not native-browser evidence. No production setters.
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { createWorldData, LANES, WALK_SPEED, ZIP_SPEED, terrainHeight, rampHeight } from './world-data.mjs';
+import { createWorldData, LANES, WALK_SPEED, ZIP_SPEED, LIMIT, terrainHeight, rampHeight } from './world-data.mjs';
 import { BODY, createTraveler, capsuleIntersects, moveCapsule, surfaceHeight, interact, stepTraveler, travelerSnapshot } from './traversal.mjs';
 const world=createWorldData();
 let assertions=0;
@@ -95,6 +95,21 @@ const sewer=at({x:90,y:0,z:0});run(sewer,6.2,{side:-1});check(sewer.x<41&&sewer.
 close(terrainHeight(65,0),-5);close(terrainHeight(170,85),-6);
 const plaza=at({x:205,y:0,z:85});run(plaza,6,{side:-1});check(plaza.y<=-5.9&&plaza.stamina<99,'plaza ramp and stamina drain');
 const under=at({x:0,y:-10,z:0});run(under,2,{jump:true});check(under.y+BODY.height<2,'bridge underside remains closed');
+for(const position of [{x:64,y:-10,z:20},{x:169,y:-6,z:120}]) {
+  const edge=at(position);run(edge,3,{side:1});
+  check(edge.x<=position.x+1.01&&edge.grounded,'traveler cannot cross lowered terrain into solid ground');close(edge.y,position.y);
+  const direct=moveCapsule({...position,grounded:true},20,0,world);
+  check(direct.x<=position.x+1.01,'direct shared capsule blocks terrain wall');
+}
+const recover=at({x:120,y:-6,z:120});run(recover,.1);
+for(const bad of [{x:120,y:-100,z:120},{x:NaN,y:0,z:0}]) {
+  Object.assign(recover,bad,{vy:-100});stepTraveler(world,recover,{},.025);
+  close(recover.x,120);close(recover.y,-6);
+  check(recover.grounded&&recover.vy===0&&recover.mode==='free','traveler recovers safe plaza pose');
+}
+const boundary=at({x:LIMIT-1,y:0,z:0});run(boundary,1,{side:1});close(boundary.x,LIMIT);
+const escaped=moveCapsule({x:LIMIT+100,y:0,z:-LIMIT-100},0,0,world);
+check(escaped.x===LIMIT&&escaped.z===-LIMIT,'stationary shared capsule corrects escaped bounds');
 check(Object.isFrozen(travelerSnapshot(plaza)),'read-only observation');
 if(process.argv.includes('--json'))console.log(JSON.stringify(world,null,2));
 else {
