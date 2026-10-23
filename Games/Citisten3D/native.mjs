@@ -3,17 +3,19 @@ import { createSimulation } from './sim.mjs';
 import { createUI } from './ui.mjs';
 import { applyTool, syncModels } from './native-actions.mjs';
 import { readSave, saveTown } from './persistence.mjs';
+import { createNativeLoop } from './native-loop.mjs';
 
 const canvas = document.querySelector('#world'), root = document.querySelector('#ui');
 const panel = document.querySelector('#native-controls'), feedback = document.querySelector('#feedback');
 const speed = document.querySelector('#speed'), loading = document.querySelector('#loading');
-let world, sim, ui, tool = 'road', paused = true, resumeSpeed = 1, frame = 0, last = 0, drag = null, closed = false;
+let world, sim, ui, loop, tool = 'road', paused = true, resumeSpeed = 1, drag = null, closed = false;
 let lastSaveTime = 0, savedTown = null, requestedSave;
 const skip = document.querySelector('#skip-night');
 let saveButton, continueButton, restartButton, saveStatus;
 const models = new Map(), abort = new AbortController();
 const listen = (node, name, fn, options = {}) => node.addEventListener(name, fn, { ...options, signal: abort.signal });
-const message = text => { feedback.textContent = text; };
+const wake = () => loop?.wake();
+const message = text => { feedback.textContent = text; wake(); };
 const active = () => sim && !paused && sim.state.phase !== 'lost';
 function choose(type) { tool = type; ui.setTool(type); message(type === 'road' ? 'Drag a road: $10/lot' : type); }
 function validateSave(snapshot) {
@@ -36,7 +38,7 @@ function start(mode, snapshot) {
   world.controls.setPose({ x: 5, y: 170, z: 200, yaw: 0, pitch: -.72 }, true);
   syncModels(world, sim.state, models); ui.update(sim.state, { roads: world.roads, size: world.roads.size });
 }
-function pause() { if (!sim || paused) return; resumeSpeed = sim.state.speed; sim.setSpeed(0); paused = true; drag = null; }
+function pause() { if (!sim || paused) return; resumeSpeed = sim.state.speed; sim.setSpeed(0); paused = true; drag = null; wake(); }
 function save() {
   if (!sim) return;
   const result = saveTown(sim, { speed: paused ? resumeSpeed : sim.state.speed });
@@ -56,18 +58,16 @@ function repairEvent(id) {
   const result = applyTool(sim, 'repair', { x: x * 8, z: z * 8 });
   message(result.reason || (result.ok ? 'Water main repaired' : 'Cannot repair now'));
 }
-function resume() { if (!sim) return; sim.setSpeed(resumeSpeed); paused = false; canvas.focus(); }
+function resume() { if (!sim) return; sim.setSpeed(resumeSpeed); paused = false; canvas.focus(); wake(); }
 function stop() {
   if (closed) return;
-  closed = true; cancelAnimationFrame(frame); abort.abort(); ui?.destroy(); world?.dispose();
+  closed = true; loop?.stop(); abort.abort(); ui?.destroy(); world?.dispose();
 }
 // Register before asset loading so navigating away also releases pending loads.
 window.addEventListener('pagehide', stop, { once: true });
-function tick(now) {
-  if (closed) return;
-  const dt = last ? Math.max(0, (now - last) / 1000) : 0; last = now;
+function tick(dt) {
   if (sim) {
-    if (!paused && !document.hidden) sim.update(dt);
+    if (!paused) sim.update(dt);
     skip.hidden = sim.state.mode !== 'defense';
     skip.disabled = paused || sim.state.phase !== 'day' || sim.state.dayRemaining <= 60 || sim.state.rebuildRemaining > 0;
     if (sim.state.time - lastSaveTime >= 60) save();
@@ -78,7 +78,14 @@ function tick(now) {
     world.dayNight.setPhase(sim.state.phase === 'day' ? .5 : 0);
     ui.update(sim.state, { roads: world.roads, size: world.roads.size });
   }
-  world.render(Math.min(.25, dt)); frame = requestAnimationFrame(tick);
+  const { position, rotation } = world.camera;
+  const before = [position.x, position.y, position.z, rotation.x, rotation.y];
+  const shots = world.effects.active;
+  world.render(Math.min(.25, dt));
+  const after = [position.x, position.y, position.z, rotation.x, rotation.y];
+  // Ignore the asymptotic tail of camera easing, not held-key movement.
+  const moving = after.some((value, i) => Math.abs(value - before[i]) > (i < 3 ? .001 : .00001));
+  return Boolean((sim && !paused && sim.state.speed > 0 && sim.state.phase !== 'lost') || shots || moving);
 }
 try {
   world = createWorld(canvas, { size: 200 });
@@ -110,7 +117,13 @@ try {
       event.preventDefault(); event.stopImmediatePropagation(); skipNight();
     }, { capture: true });
     root.querySelector('.city-toasts').before(panel);
-    listen(document, 'visibilitychange', () => { last = 0; drag = null; });
+    loop = createNativeLoop({ update: tick, isHidden: () => document.hidden });
+    const setPose = world.controls.setPose;
+    world.controls.setPose = (...args) => { setPose(...args); wake(); };
+    listen(document, 'visibilitychange', () => { loop.suspend(); drag = null; wake(); });
+    // Capture UI events too: panels deliberately stop their propagation.
+    for (const event of ['click', 'input', 'change', 'keydown', 'keyup', 'pointerdown', 'pointerup', 'pointercancel', 'wheel', 'resize', 'blur']) listen(window, event, wake, { capture: true, passive: true });
+    listen(canvas, 'pointermove', event => { if (event.buttons) wake(); }, { passive: true });
     // Read-only diagnostics for native QA; gameplay never depends on this object.
     window.citisten = Object.freeze({ world, get sim() { return sim; }, get tool() { return tool; } });
     listen(canvas, 'pointerdown', event => {
@@ -146,7 +159,7 @@ try {
     // Do not let controls issue camera hotkeys or wheel changes behind panels.
     for (const event of ['keydown', 'keyup', 'pointerdown', 'pointerup', 'wheel']) listen(panel, event, e => e.stopPropagation());
     listen(window, 'blur', () => { drag = null; });
-    frame = requestAnimationFrame(tick);
+    wake();
   }
 } catch (error) {
   stop(); loading.hidden = false; loading.textContent = `Town could not start: ${error.message}. Reload to retry.`;
