@@ -864,3 +864,39 @@ outcome: **26/52 refreshed, 26/52 held; combined v3/v3.1 101/127 fresh accepted
 captures**. No games added, registered or source-patched. The later checker also
 rejects negative retry time, reopening an exhausted budget and any intermediate
 retry above 180.15s including receipt bookkeeping.
+
+### Fresh portal proof after normal-cats capture
+
+Tested source **`67fdec7`**, pinned `/usr/bin/chromium`, bounded server/browser
+closed normally. [Receipt](thumb-sweep-v3.1/retry-portal/results.json) records the
+new base image SHA-256 and all four cases. All four screenshots were visually
+reviewed: normal and hacked variants are distinct, the new deployed cat remains
+visible at card scale, text/buttons remain legible, and mobile layout does not
+overflow. No new dependencies, remote loads, source or catalog changes.
+
+| View | Current cats pair |
+| --- | --- |
+| Desktop light, 1280x720 | [Screenshot](thumb-sweep-v3.1/retry-portal/desktop-light-cats.jpg) |
+| Desktop dark, 1280x720 | [Screenshot](thumb-sweep-v3.1/retry-portal/desktop-dark-cats.jpg) |
+| Mobile light, 390x844 | [Screenshot](thumb-sweep-v3.1/retry-portal/mobile-light-cats.jpg) |
+| Mobile dark, 390x844 | [Screenshot](thumb-sweep-v3.1/retry-portal/mobile-dark-cats.jpg) |
+
+**4/4 PASS:** 127 catalog cards, 123 loaded images, four known image fallbacks,
+zero broken image elements, overflow, page errors or external requests. Dedicated
+hacked aliases still resolve to 1280x720 images. Expected four thumbnail 404s
+remain asteroids, duckhunt, balatro and wings. Validation printed:
+
+```text
+PASS: four current portal cases and screenshot hashes/dimensions; new base image hash matches.
+```
+
+The receipt regression passes **52 games, 67 attempts, 26 accepted, 26 retained**;
+maintenance refresh/check passes **132 documents, 127 registered + 5 unregistered**,
+with inventory/index unchanged. Capture-helper self-tests, JS syntax and whitespace
+checks pass. These are thumbnail/portal checks, not full-fleet gameplay or release
+acceptance. No games added (ingested or self-made), registration, full-fleet smoke,
+publication or push. All 15 additional openings and remaining holds are documented
+above; storage stayed above the normal 2,147,483,648-byte floor without a waiver.
+Proof-copy free space was **2,992,181,248 bytes**; final Git state/storage follows
+in handoff. Earlier historical reports and rejected art remain intact except for
+the one accepted normal-cats replacement.

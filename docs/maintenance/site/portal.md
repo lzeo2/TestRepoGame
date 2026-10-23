@@ -125,6 +125,13 @@ release gates; no runtime source changed in that proof follow-up. The subsequent
 normal-cats capture reduces the current game-capture holds to 26; the latest
 retry receipt distinguishes it from the older portal proof.
 
+The new normal-cats image subsequently passed a fresh **4/4** desktop/mobile,
+light/dark proof at source `67fdec7`, with the same 127 cards, 123 loaded images,
+four known fallbacks and no broken image elements, overflow, page errors or
+external requests. Both cats variants are visible and visually reviewed in each
+case. [Current receipt and four screenshots](../../thumb-sweep-v3.1/retry-portal/results.json)
+pin the new base image hash; the earlier eight-shot alias proof is retained.
+
 ## Safe refurbishment and verification
 
 Smallest fixes belong in authored UX shared helpers: search routing, recent validation, catalog retry/status and DOM reconciliation. Keep bundle DOM class contracts and preserve title/ID identity separately. Do not hand-edit compiled React or replace working game menus. Density controls, copy-link/share actions, deep-link query state, custom scroll-spy and account features were **not found** in the audited authored portal/application tail. `portal-share.png` is metadata imagery, not a share widget. Motion-library IntersectionObserver code is not proof of an active portal scroll feature.

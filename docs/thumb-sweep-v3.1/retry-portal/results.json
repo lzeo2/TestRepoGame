@@ -1,0 +1,98 @@
+{
+  "source_commit": "67fdec73931f403c116f347821259b4b3dd5c924",
+  "image_sha256": "381419c335d2f77d74197be527c75db6759b1e5bb62a31a300ebc98d4a5fdaf5",
+  "cases": [
+    {
+      "device": "desktop",
+      "theme": "light",
+      "cards": 127,
+      "loaded_images": 123,
+      "broken_images": 0,
+      "fallbacks": 4,
+      "overflow": false,
+      "pageerrors": [],
+      "external": [],
+      "http_errors": [
+        "404 /assets/thumbs/asteroids.jpg",
+        "404 /assets/thumbs/balatro.jpg",
+        "404 /assets/thumbs/duckhunt.jpg",
+        "404 /assets/thumbs/wings.jpg"
+      ],
+      "screenshots": [
+        {
+          "file": "desktop-light-cats.jpg",
+          "sha256": "6ff43d4a2103f504b2b76af0b81eae2e000ea37f56c8eaa71867b65e0c55000a"
+        }
+      ]
+    },
+    {
+      "device": "desktop",
+      "theme": "dark",
+      "cards": 127,
+      "loaded_images": 123,
+      "broken_images": 0,
+      "fallbacks": 4,
+      "overflow": false,
+      "pageerrors": [],
+      "external": [],
+      "http_errors": [
+        "404 /assets/thumbs/asteroids.jpg",
+        "404 /assets/thumbs/duckhunt.jpg",
+        "404 /assets/thumbs/balatro.jpg",
+        "404 /assets/thumbs/wings.jpg"
+      ],
+      "screenshots": [
+        {
+          "file": "desktop-dark-cats.jpg",
+          "sha256": "da5c10e5cda55d1bba4915744c1b9497b671a950a33c10efc0fea5bfe310852b"
+        }
+      ]
+    },
+    {
+      "device": "mobile",
+      "theme": "light",
+      "cards": 127,
+      "loaded_images": 123,
+      "broken_images": 0,
+      "fallbacks": 4,
+      "overflow": false,
+      "pageerrors": [],
+      "external": [],
+      "http_errors": [
+        "404 /assets/thumbs/asteroids.jpg",
+        "404 /assets/thumbs/duckhunt.jpg",
+        "404 /assets/thumbs/balatro.jpg",
+        "404 /assets/thumbs/wings.jpg"
+      ],
+      "screenshots": [
+        {
+          "file": "mobile-light-cats.jpg",
+          "sha256": "d64b97d272615a4debf684ccb13987b592e77cc30a9bc84c52b0d3d4c68a54fa"
+        }
+      ]
+    },
+    {
+      "device": "mobile",
+      "theme": "dark",
+      "cards": 127,
+      "loaded_images": 123,
+      "broken_images": 0,
+      "fallbacks": 4,
+      "overflow": false,
+      "pageerrors": [],
+      "external": [],
+      "http_errors": [
+        "404 /assets/thumbs/asteroids.jpg",
+        "404 /assets/thumbs/duckhunt.jpg",
+        "404 /assets/thumbs/balatro.jpg",
+        "404 /assets/thumbs/wings.jpg"
+      ],
+      "screenshots": [
+        {
+          "file": "mobile-dark-cats.jpg",
+          "sha256": "dfcdc963f06c9c6ba006538159a9388fa7bea0d446bd960581782810b2e1b5c3"
+        }
+      ]
+    }
+  ]
+}
