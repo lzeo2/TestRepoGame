@@ -80,6 +80,29 @@ There is no separate commute or road-to-town-hall test for growth; roads matter
 through utility connectivity.
 No growth formulas were changed.
 
+### Solid outskirts and camera clearance
+
+`terrain.mjs` adds a deterministic solid-slab landscape outside the buildable
+square: gentle edge shelves, taller distant hills, an eastern waterfront basin
+using the existing water, clustered box trees and slope boulders. Grass/rock
+colors are discrete solid bands. Playable lots remain level, preserving existing
+road/building foundations; natural structures occupy edges, not player lots.
+
+Reality check: this game's prior ground was a shallow plane and its free camera
+had no floor callback or fall-through suite. The new shared slab/feature data
+owns both rendering and `floorHeight`; the camera sweeps radius-aware probes and
+clamps snapped, target and smoothed poses above the same solid boxes. It flies
+over obstructions rather than providing a walking/physics character controller.
+`terrain-check.mjs` covers solid tree/boulder edges, snap, smoothing, narrow-box
+sweeps and deterministic generation; `world-check.mjs` retains existing checks.
+
+624 slabs plus 108 natural boxes are batched in one landscape draw. With the
+flat city's two triangles the terrain budget is 7,322 triangles, below the old
+8,192-triangle plane. The supplied city ground is retained as one material group
+(previous ground used up to three), so ground plus landscape needs two draws.
+No per-feature draw calls, animated foliage, extra assets or remote loads. This
+is a geometry/draw bound, not a measured FPS acceptance; that gate remains held.
+
 ## State and persistence
 
 Simulation owns authoritative state. Native integration keeps stable model
