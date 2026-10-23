@@ -439,3 +439,23 @@ A subsequent standalone checker completed with
 `PASS: 132 game documents cover 127 registered + 5 unregistered games; Git inventory current.`
 The manual-session self-test also passed its 180s monotonic deadline check.
 No full-fleet smoke, publication or push; no game added or removed.
+
+### Batch 2: resumed after operator storage recovery
+
+**4 accepted / 5 attempted.** Running continuation: **4 captured, 6 needs-manual,
+42 not yet attempted.** [Native actions, source hashes and image receipt](thumb-sweep-v3.1/batch-02.json).
+CDP `Page.captureScreenshot` now uses the same browser session, no extra slot.
+Read each manual before play; immutable HEAD source and 180s deadline unchanged.
+All accepted frames visually reviewed at 1280x720 before replacing mapped JPGs.
+Ovo's original monochrome game was not recolored; the other accepted frames have
+real colored boards/scene content. Geometry Dash's missing player/death-only
+frames were rejected. Browser/server released after five games. Free space at
+close: **3,084,365,824 bytes**. No catalog or game-source edits.
+
+| ID | Game | v3.1 status | Native route / reason |
+| --- | --- | --- | --- |
+| 160 | Pacman | captured | Wait for audio readiness, N, arrows. Active maze, ghosts, score 20, no countdown. |
+| 213 | Gomoku | captured | Select native two-player mode; seven alternating moves visible on board. |
+| 7 | Ovo | captured | Play, right arrow, Up jump. Visible level-one player/platforms and running timer; original monochrome art. |
+| 233 | Server Survival | captured | Start Survival, Skip Tutorial, place firewall, Play. Real grid/service and reduced budget, no overlay. |
+| 66 | Geometry Dash Lite | needs-manual, old art retained | Stereo Madness scenery/progress rendered but player absent between death explosions after native Space/click. No representative player frame accepted. |

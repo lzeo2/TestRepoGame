@@ -1,0 +1,390 @@
+[
+  {
+    "id": 160,
+    "title": "Pacman",
+    "head": "3d6901a6e3342a9a74413c29d826ef14a85aa64c",
+    "entry_blob": "97d4be34d1e34b369d3c38615955f7fc7514c188",
+    "source_tree": "67a6bb3ef44c819e426a0175a5beb25377c3c1b1",
+    "actions": [
+      [
+        "wait",
+        4500
+      ],
+      [
+        "key",
+        "n"
+      ],
+      [
+        "wait",
+        4200
+      ],
+      [
+        "hold",
+        "ArrowRight",
+        600
+      ],
+      [
+        "snap"
+      ],
+      [
+        "info"
+      ]
+    ],
+    "errors": [],
+    "external": [],
+    "http_errors": [],
+    "candidates": [
+      {
+        "file": "160-0.jpg",
+        "sha256": "7fdca5d99b93d499c4c619bc60dd4c9abdd4c539dfb0e9c4eeb1708170a564f8"
+      }
+    ],
+    "seconds": 26.71,
+    "reason": "captured: N after audio readiness, right arrow; active maze, ghosts, score20.",
+    "output": "assets/thumbs/pacman.jpg",
+    "previous_sha256": "ce2ce92a32aa4ef4e70306e1d59d6422db59a55e681b05e2c29b191853c23bab",
+    "status": "captured",
+    "accepted_candidate": "160-0.jpg",
+    "output_sha256": "1ba0acd70c1c16f82af1644e85e6a686915e02a6e25bcf28040a8672f940955c",
+    "output_bytes": 35851
+  },
+  {
+    "id": 213,
+    "title": "Gomoku",
+    "head": "3d6901a6e3342a9a74413c29d826ef14a85aa64c",
+    "entry_blob": "07d7c805ca6e7c093d7ddb3eb59eeccd821c86f4",
+    "source_tree": "3efa208764af1085b1077c8ea22f14b63fe36349",
+    "actions": [
+      [
+        "wait",
+        1000
+      ],
+      [
+        "info"
+      ],
+      [
+        "wait",
+        1000
+      ],
+      [
+        "snap"
+      ],
+      [
+        "info"
+      ],
+      [
+        "selector",
+        "#pvpMode"
+      ],
+      [
+        "click",
+        397,
+        519
+      ],
+      [
+        "click",
+        427,
+        519
+      ],
+      [
+        "click",
+        397,
+        549
+      ],
+      [
+        "click",
+        427,
+        549
+      ],
+      [
+        "click",
+        367,
+        519
+      ],
+      [
+        "click",
+        457,
+        549
+      ],
+      [
+        "click",
+        397,
+        489
+      ],
+      [
+        "snap"
+      ]
+    ],
+    "errors": [],
+    "external": [],
+    "http_errors": [],
+    "candidates": [
+      {
+        "file": "213-0.jpg",
+        "sha256": "ede1efc7c6065fd977a804bfd4ddf2c077dff7b3d90348f76b14cedc35afc25d"
+      },
+      {
+        "file": "213-1.jpg",
+        "sha256": "4eabf3cb310c645305a639455bf51197adf33e2f006fcf4c11ec83bbf73ca930"
+      }
+    ],
+    "seconds": 40.05,
+    "reason": "captured: native local two-player selection and seven alternating board moves.",
+    "output": "assets/thumbs/gomoku.jpg",
+    "previous_sha256": "69d2c40259d5deb999104b04adba3959915681f51a9007ad6504ccdc5b1a01b0",
+    "status": "captured",
+    "accepted_candidate": "213-1.jpg",
+    "output_sha256": "91ad68cd664f4844f3551f78c45efccdd1521fb82c592aed0108968983bbb19e",
+    "output_bytes": 78618
+  },
+  {
+    "id": 7,
+    "title": "Ovo",
+    "head": "3d6901a6e3342a9a74413c29d826ef14a85aa64c",
+    "entry_blob": "9c95396d14b6bbe582a8272b0d7fb0d0993cbfda",
+    "source_tree": "7537015dec8f9de72493860ce3ade0678322bb7d",
+    "actions": [
+      [
+        "wait",
+        27000
+      ],
+      [
+        "snap"
+      ],
+      [
+        "click",
+        640,
+        350
+      ],
+      [
+        "wait",
+        500
+      ],
+      [
+        "hold",
+        "ArrowRight",
+        2000
+      ],
+      [
+        "key",
+        "ArrowUp"
+      ],
+      [
+        "snap"
+      ]
+    ],
+    "errors": [
+      "Failed to fetch",
+      "Failed to fetch"
+    ],
+    "external": [
+      "api.gameanalytics.com",
+      "docs.google.com"
+    ],
+    "http_errors": [],
+    "candidates": [
+      {
+        "file": "7-0.jpg",
+        "sha256": "c828b22f46e4753d2a42c98e58eba7670679649591f3ad34857d0c310bf1e334"
+      },
+      {
+        "file": "7-1.jpg",
+        "sha256": "efb3d1b8838bf9dbb6cec0f07328d71000d6a8175d9815579e784ca153a04c9b"
+      }
+    ],
+    "seconds": 42.54,
+    "reason": "captured: Play, arrow movement and jump in level1; original monochrome art, visible player/platforms/timer.",
+    "output": "assets/thumbs/ovo.jpg",
+    "previous_sha256": "c798f684dfdb34a523ee964d5e141908e17fe6fde72a272086d3a1e301f8c89e",
+    "status": "captured",
+    "accepted_candidate": "7-1.jpg",
+    "output_sha256": "e700727c16881a635708bc73702f978968f8c2e2badd6b59756b97921ce93507",
+    "output_bytes": 30005
+  },
+  {
+    "id": 233,
+    "title": "Server Survival",
+    "head": "3d6901a6e3342a9a74413c29d826ef14a85aa64c",
+    "entry_blob": "737c4673d73f2979cb6ca9560f57f7d24ad7aee6",
+    "source_tree": "12480ad53c9f869388cc3585affc0cd8e0eb317f",
+    "actions": [
+      [
+        "wait",
+        5000
+      ],
+      [
+        "snap"
+      ],
+      [
+        "info"
+      ],
+      [
+        "click",
+        640,
+        196
+      ],
+      [
+        "wait",
+        1000
+      ],
+      [
+        "info"
+      ],
+      [
+        "snap"
+      ],
+      [
+        "selector",
+        "#tutorial-skip"
+      ],
+      [
+        "selector",
+        "#tool-waf"
+      ],
+      [
+        "click",
+        720,
+        450
+      ],
+      [
+        "selector",
+        "#btn-play"
+      ],
+      [
+        "wait",
+        2000
+      ],
+      [
+        "snap"
+      ]
+    ],
+    "errors": [],
+    "external": [],
+    "http_errors": [],
+    "candidates": [
+      {
+        "file": "233-0.jpg",
+        "sha256": "5edcce5ab1102f99ae0dc3e853617acb0cc66ed07f2ff719e9f48a1fee2edd88"
+      },
+      {
+        "file": "233-1.jpg",
+        "sha256": "37b38483e516c6fab9763615888cb7bd6cedfe49edf1acf188a9a02765b13f69"
+      },
+      {
+        "file": "233-2.jpg",
+        "sha256": "4b70fd4fca00518f266d75ebd15ca32ee16cb8edf7febbc04a5819eab8900067"
+      }
+    ],
+    "seconds": 90.99,
+    "reason": "captured: Survival, Skip Tutorial, firewall placement and Play; real simulation.",
+    "output": "assets/thumbs/serversurvival.jpg",
+    "previous_sha256": "c2668828e0c5b9ec5834d8bcbb697d3cdf63662b21504c02dfa6f3c83e78cfd4",
+    "status": "captured",
+    "accepted_candidate": "233-2.jpg",
+    "output_sha256": "208dfb2a585d8837cdb9769fe78deb3b41463ac66ca8ac985a3c920df7b5cb72",
+    "output_bytes": 91251
+  },
+  {
+    "id": 66,
+    "title": "Geometry Dash Lite",
+    "head": "3d6901a6e3342a9a74413c29d826ef14a85aa64c",
+    "entry_blob": "06582aedb020d47fe43c23bddd3612d835843708",
+    "source_tree": "6f81c65619ca390d6fc0413c219ffea4d81cbd7f",
+    "actions": [
+      [
+        "wait",
+        18000
+      ],
+      [
+        "snap"
+      ],
+      [
+        "wait",
+        10000
+      ],
+      [
+        "click",
+        640,
+        360
+      ],
+      [
+        "wait",
+        1000
+      ],
+      [
+        "snap"
+      ],
+      [
+        "click",
+        640,
+        220
+      ],
+      [
+        "wait",
+        1500
+      ],
+      [
+        "key",
+        "Space"
+      ],
+      [
+        "snap"
+      ],
+      [
+        "wait",
+        1500
+      ],
+      [
+        "key",
+        "Space"
+      ],
+      [
+        "snap"
+      ],
+      [
+        "click",
+        320,
+        420
+      ],
+      [
+        "wait",
+        2000
+      ],
+      [
+        "snap"
+      ]
+    ],
+    "errors": [],
+    "external": [],
+    "http_errors": [],
+    "candidates": [
+      {
+        "file": "66-0.jpg",
+        "sha256": "c6b867392ecbb2850d9671085419df6c51cdadfde07b8c10379111ae9f998599"
+      },
+      {
+        "file": "66-1.jpg",
+        "sha256": "47acffbd0a3ccf71d5ce37419e4455c0b226c1f19cc8397145f23c03d61480b7"
+      },
+      {
+        "file": "66-2.jpg",
+        "sha256": "bdd56f7d5ddea7b06be9adac42297267af1b6830afa33f447a2979716ecd21c5"
+      },
+      {
+        "file": "66-3.jpg",
+        "sha256": "5a375702b514644268bf693b244cb4804cc09eb3dde6d11e35e20f7d39bb95df"
+      },
+      {
+        "file": "66-4.jpg",
+        "sha256": "f9c5df957006ba764e88d21222b5b6aeed398dcaf3fb0f6a1437dc4bd43a30a8"
+      }
+    ],
+    "seconds": 95.0,
+    "reason": "needs-manual: Stereo Madness runs scenery/progress but player is invisible after Space/click; no representative reviewed player frame.",
+    "output": "assets/thumbs/geometrydashlite.jpg",
+    "previous_sha256": "33828e6c6d85e0cce6ecfdd9045adf2bfa84982a58738e6b468dc070b09136b8",
+    "status": "needs-manual",
+    "output_sha256": "33828e6c6d85e0cce6ecfdd9045adf2bfa84982a58738e6b468dc070b09136b8",
+    "output_bytes": 9235
+  }
+]
