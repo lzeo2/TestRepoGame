@@ -1090,14 +1090,18 @@ def boat_hull_y(m, mesh_name, u, v):
             s*((1-t)*y(row+1,column)+t*y(row+1,column+1)))
 
 
-def boat_weather(u, v, y, grain):
+def boat_weather(u, v, y, grain, topside=True):
     """Section V is vertical, U runs bow to stern. Wetness follows actual Y=0."""
     wet = max(0., min(1., (.025-y)/.07))
     salt = math.exp(-((y-.065)/.065)**2) * (1-wet)
-    streak = max(0., math.sin(math.tau*(u*47+.035*math.sin(v*9))))**18
-    streak *= (.25+.75*v) * (1-wet)
-    # Sparse paint rub, not orange corrosion or a regular panel checkerboard.
-    wear = max(0., grain-.88)*2.5 * (1-wet)
+    streak = max(0., math.sin(math.tau*(u*31+.035*math.sin(v*9))))**12
+    streak *= (.3+.7*max(0., math.sin(math.tau*(u*7+.17)))) * (.25+.75*v) * (1-wet)
+    # Scuff only the three existing finish boundaries, broken along the section.
+    # No new seams, grooves or exposed metal in the painted hull.
+    edge = max(0., 1-min(abs(u-seam) for seam in (.25,.5,.75))/.006) if topside else 0
+    edge *= max(0., min(1., (y-.12)/.08))  # Keep the salt/wet transition intact.
+    scuff = max(0., math.sin(v*37+1.7*math.sin(v*13))) * (.55+.45*grain)
+    wear = (max(0., grain-.88)*1.4 + .85*edge*scuff) * (1-wet)
     return wet, salt, streak, wear
 
 
@@ -1160,7 +1164,8 @@ def speedboat_pbr(m):
         else:
             pbr['metallicFactor'] = max(.8,pbr['metallicFactor'])
         if family.startswith('hull_'):
-            pbr['roughnessFactor'] = .72 if family != 'hull_bottom' else .48
+            pbr['roughnessFactor'] = (.55+pbr['roughnessFactor']-.32
+                                      if family != 'hull_bottom' else .48)
         # Neutral working-boat trim, not yellow racing stripes or orange rust.
         if name in ('chine_ochre_enamel','waterline_enamel','identification_plate'):
             rgb = {'chine_ochre_enamel':(86,89,86), 'waterline_enamel':(64,70,69),
@@ -1182,15 +1187,16 @@ def speedboat_pbr(m):
                 bits = ((i*73856093) ^ (j*19349663) ^ (seed*83492791)) & 0xffffffff
                 bits = ((bits ^ (bits >> 13))*1274126177) & 0xffffffff
                 grain = (bits & 65535)/65535
-                wet, salt, streak, wear = boat_weather(u,v,boat_hull_y(m,mesh,u,v),grain) if hull else (0,0,0,0)
-                shade = .965 + (grain-.5)*.025 - .14*wet - .065*streak + .06*salt + .03*wear
+                wet, salt, streak, wear = boat_weather(u,v,boat_hull_y(m,mesh,u,v),grain,
+                    topside=family != 'hull_bottom') if hull else (0,0,0,0)
+                shade = .965 + (grain-.5)*.025 - .14*wet - .11*streak + .10*salt + .07*wear
                 rough = .91 + (grain-.5)*.09
                 if hull:
-                    rough = .87-.43*wet+.10*salt+.035*streak-.04*wear
+                    rough = .87-.43*wet+.10*salt+.035*streak-.07*wear
                     h = .025*math.sin(u*math.tau*41)+.018*streak+.012*(grain-.5)
                 elif family == 'nonskid':
                     shade -= .04*grain
-                    h = .38*(grain-.5)  # Coarse aggregate, not shiny hammered metal.
+                    h = .16*(grain-.5)  # Fine aggregate, not coarse scratches.
                 elif family == 'steel' or family == 'alloy':
                     brush = math.sin(v*math.tau*38)
                     shade += .016*brush

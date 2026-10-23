@@ -95,6 +95,8 @@ def main():
         width,height,pixels = png_rgb(binary[view['byteOffset']:view['byteOffset']+view['byteLength']])
         decoded[image['name']] = (width,height,pixels)
         if image['name'].endswith('tangent_normal'):
+            if image['name'] == 'nonskid_tangent_normal':
+                assert max(abs(c-128) for k,c in enumerate(pixels) if k%3 != 2) <= 20, 'coarse nonskid grain'
             assert min(pixels[2::3]) >= 240, 'normal points away from surface'
             for i in range(0,len(pixels),3):
                 n = [(c/255)*2-1 for c in pixels[i:i+3]]
@@ -119,6 +121,15 @@ def main():
         assert pbr['metallicFactor'] == 0 if family not in ('steel','alloy') else pbr['metallicFactor'] >= .8
         assert doc['images'][pbr['metallicRoughnessTexture']['index']]['name'] == family+'_metallic_roughness'
         assert doc['images'][mat['normalTexture']['index']]['name'] == family+'_tangent_normal'
+    for mesh in old['meshes']:
+        if mesh['name'] not in ('hull_L_topsides','hull_R_topsides'):
+            continue
+        source = [old['materials'][p['material']]['pbrMetallicRoughness']['roughnessFactor']
+                  for p in mesh['primitives']]
+        finish = [doc['materials'][p['material']]['pbrMetallicRoughness']['roughnessFactor']
+                  for p in mesh['primitives']]
+        assert len(set(finish)) == 4 and all(.5 <= r <= .61 for r in finish)
+        assert all(abs((b-a)-.23) < 1e-12 for a,b in zip(source,finish)), 'finish variation lost'
     # Independent interpolation from baseline positions. No duplicated hull formula.
     waterline_samples = 0
     for family,mesh_name in [('hull_port','hull_L_topsides'),('hull_starboard','hull_R_topsides'),('hull_bottom','hull_L_deadrise')]:
@@ -145,7 +156,8 @@ def main():
                     assert 105 <= sample[0] <= 115, (family,y,sample)
                 elif y > .17:
                     dry.append(sample)
-                    assert 218 <= sample[0] <= 237, (family,y,sample)
+                    edge = family != 'hull_bottom' and min(abs(i/(width-1)-s) for s in (.25,.5,.75)) < .006
+                    assert (203 if edge else 218) <= sample[0] <= 237, (family,y,sample)
                 elif .05 < y < .08:
                     salt.append(sample)
                     assert sample[0] >= 240, 'missing salt roughness band'
@@ -166,6 +178,23 @@ def main():
     vertical = [generator.boat_weather(.24,j/255,.4,.5)[2] for j in range(256)]
     variation = lambda a:sum(abs(b-c) for b,c in zip(a,a[1:]))
     assert variation(across) > 10*variation(vertical)
+    # Broken scuffs follow only existing finish boundaries, never bottom plating.
+    for seam in (.25,.5,.75):
+        wear = [generator.boat_weather(seam,j/127,.4,.5)[3] for j in range(128)]
+        assert max(wear) > .6 and wear.count(0) > 30, 'missing irregular panel-edge wear'
+        assert all(generator.boat_weather(seam+.02,j/127,.4,.5)[3] == 0 for j in range(128))
+        assert all(generator.boat_weather(seam,j/127,.4,.5,topside=False)[3] == 0 for j in range(128))
+        assert generator.boat_weather(seam,.7,-.1,1)[3] == 0, 'underwater edge scuff'
+    # Serialized highlights must coincide with the authored finish boundaries.
+    edge_samples = 0
+    for family in ('hull_port','hull_starboard'):
+        width,height,packed = decoded[family+'_metallic_roughness']
+        for seam in (.25,.5,.75):
+            i = round(seam*(width-1))
+            for j in range(round(height*.65),height):
+                if packed[(j*width+i)*3+1] < 215:
+                    edge_samples += 1
+    assert edge_samples > 20, 'panel-edge highlights absent from GLB'
     started = time.perf_counter()
     one = generator.speedboat().finish()
     elapsed = time.perf_counter()-started
@@ -178,7 +207,7 @@ def main():
     assert result['triangles'] == 17_252 and len(data) < 2*1024*1024
     print('PASS '+json.dumps({**result,'geometry_sha256':accessor_hash.hexdigest(),
           'baseline_bytes':len(baseline),'delta_bytes':len(data)-len(baseline),
-          'images':len(decoded),'waterline_samples':waterline_samples,
+          'images':len(decoded),'waterline_samples':waterline_samples,'panel_edge_samples':edge_samples,
           'generation_seconds':round(elapsed,3),'jets':'exact baseline bytes'},sort_keys=True))
 
 
