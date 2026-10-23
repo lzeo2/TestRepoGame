@@ -16,7 +16,7 @@ export function applyTool(sim, tool, from, to = from) {
   }
   if (tool === 'repair') {
     const building = sim.state.buildings.find(b => b.x === to.x && b.z === to.z);
-    return sim.repair(building?.id);
+    return sim.repair(building?.id, to);
   }
   return tool === 'bulldoze' ? sim.bulldoze(to.x, to.z) : sim.place(tool, to.x, to.z);
 }

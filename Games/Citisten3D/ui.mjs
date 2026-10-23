@@ -145,7 +145,8 @@ export function createUI(root, callbacks = {}) {
     else if (button.dataset.action === 'tutorial-next') {
       if (tutorialStep === TUTORIAL.length - 1) tutorial.close();
       else { tutorialStep++; renderTutorial(); }
-    } else if (button.dataset.mode) {
+    } else if (button.dataset.cityEvent) { callbacks.onEventAction?.(button.dataset.cityEvent); }
+    else if (button.dataset.mode) {
       mode = button.dataset.mode;
       if (run(() => callbacks.onStart?.(mode), '.city-menu-error')) { lost = false; showGame(); if (!tutorialSeen) showTutorial(); }
     } else if (button.dataset.action === 'restart') {
@@ -191,6 +192,9 @@ export function createUI(root, callbacks = {}) {
   }
   function update(state, map = {}) {
     mode = state.mode === 'defense' ? 'defense' : 'free';
+    for (const button of root.querySelectorAll('[data-city-event]')) {
+      button.disabled = state.phase !== 'day' || !state.cityEvents?.some(event => event.id === button.dataset.cityEvent);
+    }
     text('budget', `$${number(state.budget)}`); text('population', number(state.population));
     for (const name of ['power', 'water']) {
       const utility = state[name] || { demand: 0, supply: 0 };
@@ -213,7 +217,7 @@ export function createUI(root, callbacks = {}) {
       lost = true; menu.close(); text('score', number(state.score)); text('finalPopulation', number(state.peakPopulation)); text('kills', number(state.kills)); loss.showModal();
     }
   }
-  function toast(key, message) {
+  function toast(key, message, eventId) {
     const now = Date.now();
     if (now - (recent.get(key) || 0) < 8000) return;
     for (const [oldKey, time] of recent) if (now - time >= 8000) recent.delete(oldKey);
@@ -221,10 +225,15 @@ export function createUI(root, callbacks = {}) {
     const list = $('.city-toasts');
     const limit = matchMedia('(max-width: 600px)').matches ? 1 : 3;
     while (list.querySelectorAll('p').length >= limit) list.querySelector('p').remove();
-    const item = document.createElement('p'); item.className = 'panel'; item.textContent = message; list.append(item);
+    const item = document.createElement('p'); item.className = 'panel'; item.textContent = message;
+    if (eventId) {
+      const button = document.createElement('button'); button.dataset.cityEvent = eventId;
+      button.textContent = 'Repair water main: $120'; item.append(document.createElement('br'), button);
+    }
+    list.append(item);
   }
   function events(batch) {
-    const messages = new Map();
+    const messages = new Map(), reactions = new Map();
     for (const event of batch) {
       const message = {
         placed: 'Placed', removed: 'Removed', repaired: 'Repaired',
@@ -235,10 +244,18 @@ export function createUI(root, callbacks = {}) {
         'night-survived': 'Night survived'
       }[event.type];
       if (message) messages.set(event.type, message);
+      if (event.type === 'city-event-start' || event.type === 'city-event-end') {
+        const civic = event.event;
+        const location = ['street-festival', 'water-main-burst'].includes(civic.type) ? ` (district ${civic.district})` : '';
+        const detail = event.type === 'city-event-start' ? civic.description : event.reason === 'repaired' ? 'Water service restored.' : 'Ended.';
+        const key = `civic:${civic.id}:${event.type}`;
+        messages.set(key, `${civic.title}${location}: ${detail}`);
+        if (event.type === 'city-event-start' && civic.type === 'water-main-burst') reactions.set(key, civic.id);
+      }
     }
     // Put urgent notices last so compact phone feedback keeps the useful warning.
-    for (const key of ['placed', 'removed', 'repaired', 'milestone', 'night-survived', 'wave-warning', 'blackout', 'wave']) {
-      if (messages.has(key)) toast(`${key}:${messages.get(key)}`, messages.get(key));
+    for (const key of ['placed', 'removed', 'repaired', 'milestone', 'night-survived', ...[...messages.keys()].filter(key => key.startsWith('civic:')), 'wave-warning', 'blackout', 'wave']) {
+      if (messages.has(key)) toast(`${key}:${messages.get(key)}`, messages.get(key), reactions.get(key));
     }
   }
   applyTheme(); renderTools(); showMenu();

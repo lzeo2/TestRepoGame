@@ -1,4 +1,5 @@
 import { RoadGrid } from './roads.mjs';
+import { readSnapshot } from './sim-snapshot.mjs';
 
 export const BUILDINGS = Object.freeze({
   residential: { cost: 90, hp: 100, upkeep: 0.015, power: 0.3, water: 0.4, capacity: 64 },
@@ -13,6 +14,15 @@ export const BUILDINGS = Object.freeze({
   wall: { cost: 45, hp: 350, upkeep: 0.005, power: 0, water: 0 },
   watchtower: { cost: 300, hp: 220, upkeep: 0.04, power: 0.3, water: 0.1, range: 8, damage: 18 }
 });
+// One tick is the existing 0.25-second fixed step; a civic day is 960 ticks.
+export const CITY_EVENTS = Object.freeze([
+  { type: 'street-festival', title: 'Street Festival', description: 'Happiness +20 points, growth and local income +25% for one day.', durationTicks: 960 },
+  { type: 'water-main-burst', title: 'Water Main Burst', description: 'Leaks double district water demand until repaired. Choose Repair, then any lot in this district ($120, daytime).', durationTicks: 0 },
+  { type: 'power-surcharge', title: 'Power Surcharge Day', description: 'Tax income falls 25% for one day. Keep a budget reserve.', durationTicks: 960 },
+  { type: 'farmers-market', title: 'Farmers Market', description: 'Commercial income +50% within eight lots of a supplied park for one day.', durationTicks: 960 },
+  { type: 'inspection-day', title: 'Inspection Day', description: 'Crime falls by 0.3 for one day. Add police before inspections end.', durationTicks: 960 },
+  { type: 'cold-snap', title: 'Cold Snap', description: 'Night-time power demand +50% for one day. Add capacity before nightfall.', durationTicks: 960 }
+].map(event => Object.freeze(event)));
 const clamp = (n, a, b) => Math.max(a, Math.min(b, n));
 const distance = (a, b) => Math.hypot(a.x - b.x, a.z - b.z);
 const directions = [[1, 0], [0, 1], [-1, 0], [0, -1]];
@@ -39,11 +49,15 @@ function pop(heap) {
   return first;
 }
 
-export function createSimulation({ size = 200, mode = 'free', seed = 1, roads = new RoadGrid(size) } = {}) {
+export function createSimulation({ size = 200, mode = 'free', seed = 1, roads, snapshot } = {}) {
+  const saved = snapshot === undefined ? null : readSnapshot(snapshot, BUILDINGS, CITY_EVENTS);
+  if (saved) { size = saved.state.size; mode = saved.state.mode; seed = saved.runtime.seed; }
+  roads ??= new RoadGrid(size);
+  seed >>>= 0;
   if (!Number.isInteger(size) || size < 12 || size > 200 || roads.size !== size) throw new RangeError('Grid size must be 12..200 and match roads');
   if (!['free', 'defense'].includes(mode)) throw new RangeError('Unknown mode');
   const state = {
-    size, mode, speed: 1, time: 0, phase: 'day', dayRemaining: 240, night: 0,
+    size, mode, speed: 1, time: 0, tick: 0, cityEvents: [], phase: 'day', dayRemaining: 240, night: 0,
     score: 0, kills: 0, pendingZombies: 0, population: 0, peakPopulation: 0, budget: 40000,
     income: 0, upkeep: 0, netIncome: 0, taxRate: 0.1, crime: 0,
     demand: { residential: 1, commercial: 0.5, industrial: 0.5 },
@@ -54,6 +68,15 @@ export function createSimulation({ size = 200, mode = 'free', seed = 1, roads = 
   let nextId = 1, accumulator = 0, economyClock = 0, trafficClock = 0;
   let revision = 0, fieldRevision = '', field = null, warned = false, milestone = 0;
   const cells = new Map(), events = [];
+  const eventSeed = saved ? saved.runtime.eventSeed : seed;
+  const districtOf = b => `${Math.floor(b.x / 8)},${Math.floor(b.z / 8)}`;
+  const happening = (type, b) => state.cityEvents.some(e => e.type === type && (!b || e.district === districtOf(b)));
+  const festivalBoost = b => happening('street-festival', b) ? 1.25 : 1;
+  const marketBoost = (b, parks) => b.type === 'commercial' && happening('farmers-market') && parks.some(p => distance(b, p) <= 8) ? 1.5 : 1;
+  const taxEffectiveness = () => happening('power-surcharge') ? 0.75 : 1;
+  const inspectionCrime = crime => Math.max(0, crime - (happening('inspection-day') ? 0.3 : 0));
+  const coldDemand = () => state.phase === 'night' && happening('cold-snap') ? 1.5 : 1;
+  const waterDemand = b => happening('water-main-burst', b) ? 2 : 1;
   const key = (x, z) => z * size + x;
   const cell = k => ({ x: k % size, z: Math.floor(k / size) });
   const valid = (x, z) => Number.isInteger(x) && Number.isInteger(z) && x >= 0 && z >= 0 && x < size && z < size;
@@ -62,12 +85,12 @@ export function createSimulation({ size = 200, mode = 'free', seed = 1, roads = 
   const random = () => { seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0; return seed / 4294967296; };
   function insert(type, x, z) {
     const def = BUILDINGS[type];
-    const b = { id: nextId++, type, x, z, hp: def.hp, maxHp: def.hp, residents: 0, powered: false, watered: false, serviced: false, cooldown: 0 };
+    const b = { id: nextId++, type, x, z, hp: def.hp, maxHp: def.hp, residents: 0, happiness: 0.5, powered: false, watered: false, serviced: false, cooldown: 0 };
     cells.set(key(x, z), b); state.buildings.push(b); revision++;
     emit('placed', { building: { ...b } });
     return b;
   }
-  const hall = insert('townhall', Math.floor(size / 2), Math.floor(size / 2));
+  let hall = insert('townhall', Math.floor(size / 2), Math.floor(size / 2));
   function spend(amount) {
     if (!Number.isFinite(amount) || amount < 0 || state.budget < amount || state.phase === 'lost') return false;
     state.budget -= amount; return true;
@@ -89,9 +112,16 @@ export function createSimulation({ size = 200, mode = 'free', seed = 1, roads = 
     if (!b || b === hall || state.phase === 'lost') return { ok: false, reason: 'Cannot remove this lot' };
     remove(b, 'removed'); return { ok: true };
   }
-  function repair(id) {
+  function repair(id, lot) {
     const b = state.buildings.find(b => b.id === id);
     if (state.phase !== 'day') return { ok: false, reason: 'Repair during the day' };
+    const target = lot && valid(lot.x, lot.z) ? lot : b;
+    const burst = target && state.cityEvents.find(e => e.type === 'water-main-burst' && e.district === districtOf(target));
+    if (burst) {
+      if (!spend(120)) return { ok: false, reason: 'Insufficient budget' };
+      finishCityEvent(burst, 'repaired'); utilities('water');
+      return { ok: true, cost: 120, reason: 'Water main repaired: $120' };
+    }
     if (!b || b.hp >= b.maxHp) return { ok: false, reason: 'No damage to repair' };
     const cost = Math.ceil((b.maxHp - b.hp) * 0.4);
     if (!spend(cost)) return { ok: false, reason: 'Insufficient budget' };
@@ -108,6 +138,27 @@ export function createSimulation({ size = 200, mode = 'free', seed = 1, roads = 
       state.phase = 'lost';
       emit('lost', { score: state.score, peakPopulation: state.peakPopulation, kills: state.kills });
     }
+  }
+
+  function finishCityEvent(event, reason) {
+    state.cityEvents.splice(state.cityEvents.indexOf(event), 1);
+    emit('city-event-end', { event: { ...event }, reason });
+  }
+  function cityHappenings() {
+    for (const event of [...state.cityEvents]) {
+      // Zero duration denotes a repair-only incident, not a timed buff.
+      if (event.durationTicks > 0 && state.tick >= event.startTick + event.durationTicks) finishCityEvent(event, 'expired');
+    }
+    if (state.tick < 240 || (state.tick - 240) % 960 !== 0) return;
+    const ordinal = (state.tick - 240) / 960;
+    const definition = CITY_EVENTS[ordinal % CITY_EVENTS.length];
+    const candidates = state.buildings.filter(b => definition.type !== 'street-festival' || b.type === 'residential');
+    const districts = [...new Set((candidates.length ? candidates : [hall]).map(districtOf))].sort();
+    const district = districts[((eventSeed + Math.imul(ordinal, 2654435761)) >>> 0) % districts.length];
+    if (state.cityEvents.some(e => e.type === definition.type && e.district === district)) return;
+    const event = { ...definition, id: `civic-${ordinal}`, district, startTick: state.tick };
+    state.cityEvents.push(event);
+    emit('city-event-start', { event: { ...event } });
   }
 
   function utilities(kind) {
@@ -132,12 +183,12 @@ export function createSimulation({ size = 200, mode = 'free', seed = 1, roads = 
     const prop = kind === 'power' ? 'powered' : 'watered';
     let demand = 0, served = 0;
     for (const b of state.buildings) {
-      const load = BUILDINGS[b.type][kind] + b.residents * (kind === 'power' ? 0.008 : 0.01);
+      const load = (BUILDINGS[b.type][kind] + b.residents * (kind === 'power' ? 0.008 : 0.01)) * (kind === 'power' ? coldDemand() : waterDemand(b));
       b[prop] = load === 0; demand += load;
       if (!load) continue;
       const network = neighbors(b).map(p => reached.get(key(p.x, p.z))).find(Boolean);
       if (!network) continue;
-      const district = `${Math.floor(b.x / 8)},${Math.floor(b.z / 8)}`;
+      const district = districtOf(b);
       if (!network.districts.has(district)) network.districts.set(district, { buildings: [], load: 0, priority: distance(b, hall) });
       const d = network.districts.get(district); d.buildings.push(b); d.load += load;
       if (b === hall) d.priority = -1;
@@ -159,7 +210,7 @@ export function createSimulation({ size = 200, mode = 'free', seed = 1, roads = 
     const active = state.buildings.filter(b => b.powered && b.watered);
     const jobs = active.reduce((n, b) => n + (BUILDINGS[b.type].jobs || 0), 0);
     const police = active.filter(b => b.type === 'police');
-    state.crime = clamp((state.population - police.length * 600 - 200) / 1800, 0, 1);
+    state.crime = inspectionCrime(clamp((state.population - police.length * 600 - 200) / 1800, 0, 1));
     state.demand = {
       residential: clamp(0.55 + (jobs - state.population * 0.65) / 1500 - Math.max(0, state.taxRate - 0.1) * 4, 0, 1),
       commercial: clamp(0.3 + (state.population * 0.3 - jobs * 0.25) / 600, 0, 1),
@@ -171,11 +222,15 @@ export function createSimulation({ size = 200, mode = 'free', seed = 1, roads = 
     for (const b of homes) {
       b.serviced = services.some(s => distance(b, s) <= 16);
       const safe = b.powered && b.watered && b.serviced && (state.crime < 0.65 || police.some(p => distance(b, p) <= 16));
-      b.residents = safe ? Math.min(64, b.residents + growth / Math.max(1, homes.length)) : Math.max(0, b.residents - Math.max(0.2, b.residents * 0.025));
+      b.happiness = clamp((safe ? 0.5 : 0.2) + (happening('street-festival', b) ? 0.2 : 0), 0, 1);
+      b.residents = safe ? Math.min(64, b.residents + growth * festivalBoost(b) / Math.max(1, homes.length)) : Math.max(0, b.residents - Math.max(0.2, b.residents * 0.025));
     }
     state.population = homes.reduce((n, b) => n + b.residents, 0);
     state.peakPopulation = Math.max(state.peakPopulation, state.population);
-    state.income = state.population * 0.0015 * (state.taxRate / 0.1) + active.reduce((n, b) => n + (['commercial', 'industrial'].includes(b.type) ? 0.06 * state.taxRate / 0.1 : 0), 0);
+    const parks = active.filter(b => b.type === 'park');
+    state.income = taxEffectiveness() * (state.taxRate / 0.1) * (
+      homes.reduce((n, b) => n + b.residents * 0.0015 * festivalBoost(b), 0) +
+      active.reduce((n, b) => n + (['commercial', 'industrial'].includes(b.type) ? 0.06 * festivalBoost(b) * marketBoost(b, parks) : 0), 0));
     state.upkeep = state.buildings.reduce((n, b) => n + BUILDINGS[b.type].upkeep, 0);
     state.netIncome = state.income - state.upkeep; state.budget += state.netIncome;
     const next = Math.floor(state.population / 500);
@@ -321,7 +376,8 @@ export function createSimulation({ size = 200, mode = 'free', seed = 1, roads = 
   }
   function step(dt) {
     if (state.phase === 'lost') return;
-    state.time += dt; economyClock += dt; trafficClock += dt;
+    state.time += dt; state.tick++; economyClock += dt; trafficClock += dt;
+    cityHappenings();
     if (economyClock >= 1) { economyClock -= 1; economy(); }
     if (trafficClock >= 1.5) { trafficClock -= 1.5; spawnCar(); }
     traffic(dt);
@@ -332,8 +388,35 @@ export function createSimulation({ size = 200, mode = 'free', seed = 1, roads = 
       if (state.dayRemaining <= 0) startNight();
     } else combat(dt);
   }
+  function advanceTime(seconds) {
+    accumulator += seconds;
+    while (accumulator >= 0.25 && state.phase !== 'lost') { accumulator -= 0.25; step(0.25); }
+    if (state.phase === 'lost') accumulator = 0;
+  }
+  if (saved) {
+    Object.assign(state, saved.state);
+    ({ nextId, accumulator, economyClock, trafficClock, revision, warned, milestone, wasBlackout } = saved.runtime);
+    cells.clear();
+    for (const b of state.buildings) cells.set(key(b.x, b.z), b);
+    hall = state.buildings.find(b => b.type === 'townhall') || { ...hall, hp: 0 };
+    roads.cells.clear();
+    for (const k of saved.roads) roads.cells.add(k);
+    roads.version = saved.runtime.roadVersion;
+    events.splice(0, events.length, ...saved.runtime.events);
+  }
   return {
     state, roads, place, bulldoze, repair, spend,
+    snapshot() {
+      return JSON.parse(JSON.stringify({ version: 1, state, roads: [...roads.cells], runtime: {
+        seed, eventSeed, nextId, accumulator, economyClock, trafficClock, revision, warned, milestone, wasBlackout, roadVersion: roads.version, events
+      } }));
+    },
+    skipToNight() {
+      if (state.mode !== 'defense' || state.phase !== 'day' || state.dayRemaining <= 60) return false;
+      // Deliberately simulate, never jump the clock: economy, traffic and civic notices all run.
+      advanceTime(state.dayRemaining - 60);
+      return true;
+    },
     setTaxRate(rate) { if (!Number.isFinite(rate) || rate < 0 || rate > 0.3) throw new RangeError('Tax rate must be 0..0.3'); state.taxRate = rate; },
     setSpeed(speed) { if (![0, 1, 3, 10].includes(speed)) throw new RangeError('Speed must be 0, 1, 3 or 10'); state.speed = speed; },
     setMode(value) {
@@ -345,9 +428,7 @@ export function createSimulation({ size = 200, mode = 'free', seed = 1, roads = 
     update(seconds) {
       if (!Number.isFinite(seconds) || seconds < 0) throw new RangeError('Delta must be nonnegative seconds');
       // Fixed steps preserve bite math and occupancy at 10x. Call repeatedly for headless long runs.
-      accumulator += seconds * state.speed;
-      while (accumulator >= 0.25 && state.phase !== 'lost') { accumulator -= 0.25; step(0.25); }
-      if (state.phase === 'lost') accumulator = 0;
+      advanceTime(seconds * state.speed);
     },
     drainEvents() { return events.splice(0); }
   };
