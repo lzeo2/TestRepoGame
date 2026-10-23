@@ -1,0 +1,551 @@
+[
+  {
+    "id": 56,
+    "title": "10 Minutes Till Dawn",
+    "head": "43c56002aa9505d78d2292caa2f5e077da9daf41",
+    "entry_blob": "2d097146030075545f13df9ac10d79b7ae8adf18",
+    "source_tree": "97d5765581456deb9016318fb6e39d3bde23eb59",
+    "actions": [
+      [
+        "wait",
+        25000
+      ],
+      [
+        "click",
+        640,
+        360
+      ],
+      [
+        "snap"
+      ],
+      [
+        "click",
+        640,
+        390
+      ],
+      [
+        "wait",
+        1200
+      ],
+      [
+        "snap"
+      ],
+      [
+        "click",
+        970,
+        660
+      ],
+      [
+        "wait",
+        1800
+      ],
+      [
+        "click",
+        800,
+        380
+      ],
+      [
+        "hold",
+        "d",
+        1000
+      ],
+      [
+        "snap"
+      ],
+      [
+        "wait",
+        3000
+      ],
+      [
+        "click",
+        850,
+        350
+      ],
+      [
+        "hold",
+        "d",
+        1000
+      ],
+      [
+        "snap"
+      ]
+    ],
+    "errors": [],
+    "external": [],
+    "http_errors": [],
+    "candidates": [
+      {
+        "file": "56-0.jpg",
+        "sha256": "89df4025461e45bb4ed079bf236c610ac3a2cf2488e4868dc33a2c0a9e59b1e3"
+      },
+      {
+        "file": "56-1.jpg",
+        "sha256": "f0146d078cf9516295956630585066fd1515b797f17068cc745bb74010179226"
+      },
+      {
+        "file": "56-2.jpg",
+        "sha256": "cd9b2c611605417dc1d8bde5eb262048f2879ab46415343320ec84bd95b999f7"
+      },
+      {
+        "file": "56-3.jpg",
+        "sha256": "1b0bf824b297baf88805681ff6ae97effb9df0bffa11d8c51dd76fa621f444c2"
+      }
+    ],
+    "seconds": 96.47,
+    "reason": "captured: Play, starter Shana/Revolver, Play, WASD/click; active survival enemies/player/timer, original dark palette.",
+    "output": "assets/thumbs/10minutestilldawn.jpg",
+    "previous_sha256": "3ca77a903086fec1e412f6d2a1755d9645fdfe0f64d6aa90c38aaec9d4b79bb5",
+    "status": "captured",
+    "accepted_candidate": "56-3.jpg",
+    "output_sha256": "69c81a1f475481a1bf8f9b4b00cda50098b5417f6a710d699cb646fadec78a5c",
+    "output_bytes": 27665
+  },
+  {
+    "id": 49,
+    "title": "BitLife",
+    "head": "43c56002aa9505d78d2292caa2f5e077da9daf41",
+    "entry_blob": "bc434ca4df65ee17312d2ba8a98a53bff5da7f06",
+    "source_tree": "384f98c2a9ea30e2b344442a66ddbc66558c4f4f",
+    "actions": [
+      [
+        "wait",
+        25000
+      ],
+      [
+        "click",
+        640,
+        360
+      ],
+      [
+        "snap"
+      ],
+      [
+        "wait",
+        6000
+      ],
+      [
+        "click",
+        640,
+        570
+      ],
+      [
+        "snap"
+      ],
+      [
+        "click",
+        640,
+        490
+      ],
+      [
+        "wait",
+        1200
+      ],
+      [
+        "snap"
+      ],
+      [
+        "click",
+        640,
+        490
+      ],
+      [
+        "wait",
+        800
+      ],
+      [
+        "click",
+        640,
+        490
+      ],
+      [
+        "wait",
+        800
+      ],
+      [
+        "snap"
+      ]
+    ],
+    "errors": [],
+    "external": [],
+    "http_errors": [],
+    "candidates": [
+      {
+        "file": "49-0.jpg",
+        "sha256": "977e4ad2b22f9d10d883e06461382495de30fd54863874e4045e62c1056a2e4c"
+      },
+      {
+        "file": "49-1.jpg",
+        "sha256": "092ee56561e5844c33ddde538be9bdf665e1c18d0a76a2c7106e9f3a01b03aa2"
+      },
+      {
+        "file": "49-2.jpg",
+        "sha256": "7f4b771d577ae9070dc02c05fd5d19436f2fda16720a01b991c8a8354fee0e0e"
+      },
+      {
+        "file": "49-3.jpg",
+        "sha256": "2cc658ecbe934fddf7548cef9b5ffa11a605ed91106b134277303b650f40e9f6"
+      }
+    ],
+    "seconds": 77.63,
+    "reason": "captured: native New Life, Age; running life simulation with events/stats (fictional generated character).",
+    "output": "assets/thumbs/bitlife.jpg",
+    "previous_sha256": "8189d4aa3b7658ee280dab41cf5457ec5ab0aa7463380384cb75879fbf55b46c",
+    "status": "captured",
+    "accepted_candidate": "49-3.jpg",
+    "output_sha256": "1ea6ea8c10bdd2fa9d073a6048ee315bee670c51ab23436022c5a1be694634eb",
+    "output_bytes": 41027
+  },
+  {
+    "id": 47,
+    "title": "Gladihoppers",
+    "head": "43c56002aa9505d78d2292caa2f5e077da9daf41",
+    "entry_blob": "582f437746eaa91d469da980360a070de8ea65d9",
+    "source_tree": "79d02b868f2f8c674218bf3bb80ff4a4c6416cd2",
+    "actions": [
+      [
+        "wait",
+        25000
+      ],
+      [
+        "snap"
+      ],
+      [
+        "click",
+        872,
+        452
+      ],
+      [
+        "wait",
+        500
+      ],
+      [
+        "click",
+        872,
+        452
+      ],
+      [
+        "wait",
+        500
+      ],
+      [
+        "click",
+        872,
+        452
+      ],
+      [
+        "wait",
+        500
+      ],
+      [
+        "click",
+        640,
+        630
+      ],
+      [
+        "click",
+        640,
+        350
+      ],
+      [
+        "hold",
+        "d",
+        1000
+      ],
+      [
+        "snap"
+      ],
+      [
+        "click",
+        639,
+        630
+      ],
+      [
+        "key",
+        "Enter"
+      ],
+      [
+        "key",
+        "Space"
+      ],
+      [
+        "wait",
+        1000
+      ],
+      [
+        "snap"
+      ]
+    ],
+    "errors": [],
+    "external": [],
+    "http_errors": [],
+    "candidates": [
+      {
+        "file": "47-0.jpg",
+        "sha256": "7c5760bfbe79cb3bf74875959393106785133baf7d85e3a39dcedda32f119378"
+      },
+      {
+        "file": "47-1.jpg",
+        "sha256": "e77bdca7a951b41f3bab51d2c9d7dae8af5c3f16724a35037d0e7566526a14c9"
+      },
+      {
+        "file": "47-2.jpg",
+        "sha256": "5ab748df76cc81d7c7e47b4d2752168a80a6309b7c11d0e718c3a9099c5a96c7"
+      }
+    ],
+    "seconds": 172.45,
+    "reason": "captured: native trainer check/Enter/Space and WASD attempt reached active movement-training arena with gladiator, no modal.",
+    "output": "assets/thumbs/gladihoppers.jpg",
+    "previous_sha256": "1883649b07d538c6593ef8db1424c5032a2a1092f2c01d527f466ec19273673a",
+    "status": "captured",
+    "accepted_candidate": "47-2.jpg",
+    "output_sha256": "1e34003a9719b27725ccb618e6bcce147911dc8d43176f0e7b9e5dc9f68b516b",
+    "output_bytes": 110781
+  },
+  {
+    "id": 48,
+    "title": "Burrito Bison",
+    "head": "43c56002aa9505d78d2292caa2f5e077da9daf41",
+    "entry_blob": "8fe55124f84646ed9e3ff0eec6b6512e4327a189",
+    "source_tree": "40104c6a47a5fe3357895acf0ff01e815c8758af",
+    "actions": [
+      [
+        "wait",
+        25000
+      ],
+      [
+        "click",
+        640,
+        360
+      ],
+      [
+        "snap"
+      ],
+      [
+        "wait",
+        10000
+      ],
+      [
+        "click",
+        640,
+        480
+      ],
+      [
+        "key",
+        "Space"
+      ],
+      [
+        "snap"
+      ],
+      [
+        "wait",
+        4000
+      ],
+      [
+        "click",
+        640,
+        540
+      ],
+      [
+        "snap"
+      ],
+      [
+        "click",
+        640,
+        656
+      ],
+      [
+        "wait",
+        1200
+      ],
+      [
+        "snap"
+      ],
+      [
+        "click",
+        640,
+        360
+      ],
+      [
+        "wait",
+        1000
+      ],
+      [
+        "click",
+        640,
+        360
+      ],
+      [
+        "wait",
+        1000
+      ],
+      [
+        "snap"
+      ],
+      [
+        "wait",
+        2000
+      ],
+      [
+        "click",
+        640,
+        360
+      ],
+      [
+        "snap"
+      ],
+      [
+        "click",
+        287,
+        506
+      ],
+      [
+        "wait",
+        1000
+      ],
+      [
+        "snap"
+      ]
+    ],
+    "errors": [],
+    "external": [],
+    "http_errors": [
+      "501 /Games/BurritoBison/json/null.json",
+      "501 /Games/BurritoBison/json/null.json",
+      "501 /Games/BurritoBison/json/null.json"
+    ],
+    "candidates": [
+      {
+        "file": "48-0.jpg",
+        "sha256": "2f75f53a5392d89604f5d712fd5c8cd861ba2049d80e1595dfb944ec48b234a9"
+      },
+      {
+        "file": "48-1.jpg",
+        "sha256": "2fec41a0f47dc3eb98d8557d25ff89f9c8dd31f0652e194044c4d0632f5b6a29"
+      },
+      {
+        "file": "48-2.jpg",
+        "sha256": "a4bdcd463804b7d2d88926085ba22c4dd9ae842f089ab064e57f02b02f64199e"
+      },
+      {
+        "file": "48-3.jpg",
+        "sha256": "1f3cc2e4cf6f0c06dc9f1440f6eca81058354efb9c2fb16475213adc97df1232"
+      },
+      {
+        "file": "48-4.jpg",
+        "sha256": "c37d44508540be0b6a36578a12c80fdc299f7fa8f7885c1b478a8954e063b62e"
+      },
+      {
+        "file": "48-5.jpg",
+        "sha256": "b53e0a0cadfb2808ca34fbae5d7a750018280107399529ae424a1f35d0259f67"
+      },
+      {
+        "file": "48-6.jpg",
+        "sha256": "3178c47c590da0a03bec8082879f7f30b82b30c6a54a09d77777b3f886e098aa"
+      }
+    ],
+    "seconds": 162.35,
+    "reason": "capture review pending: Click to Start and native intro advances reached Bison ring/launch scene; no injected launch.",
+    "output": "assets/thumbs/burritobison.jpg",
+    "previous_sha256": "eef72a25a7bae2fae525a9583f75b2876a52804adaeff6e4769172d61224b5a5",
+    "status": "needs-manual",
+    "output_sha256": "eef72a25a7bae2fae525a9583f75b2876a52804adaeff6e4769172d61224b5a5",
+    "output_bytes": 11710
+  },
+  {
+    "id": 59,
+    "title": "Baldi's Basics",
+    "head": "43c56002aa9505d78d2292caa2f5e077da9daf41",
+    "entry_blob": "1c8959e3204bf4da442ad7151a4c420be137e076",
+    "source_tree": "dc5ef4aec8afc4b63eb5a3dfbac5ea9b3df4e592",
+    "actions": [
+      [
+        "wait",
+        25000
+      ],
+      [
+        "click",
+        640,
+        360
+      ],
+      [
+        "snap"
+      ],
+      [
+        "key",
+        "Enter"
+      ],
+      [
+        "wait",
+        1500
+      ],
+      [
+        "snap"
+      ],
+      [
+        "click",
+        1120,
+        256
+      ],
+      [
+        "wait",
+        1000
+      ],
+      [
+        "snap"
+      ],
+      [
+        "click",
+        250,
+        180
+      ],
+      [
+        "click",
+        850,
+        130
+      ],
+      [
+        "key",
+        "Enter"
+      ],
+      [
+        "hold",
+        "w",
+        1000
+      ],
+      [
+        "snap"
+      ]
+    ],
+    "errors": [],
+    "external": [
+      "cdp.cloud.unity3d.com",
+      "config.uca.cloud.unity3d.com"
+    ],
+    "http_errors": [],
+    "candidates": [
+      {
+        "file": "59-0.jpg",
+        "sha256": "752712a23cf7c9910d7ad91208c9ed4f6b7df2f597b461a37f4557bdc455b51f"
+      },
+      {
+        "file": "59-1.jpg",
+        "sha256": "ad267f87053aea991392d516cb9bd2707286c9879f73c1bda48a93642e3cf05d"
+      },
+      {
+        "file": "59-2.jpg",
+        "sha256": "2e4becf643a681834ac356e3c91ec9949eb6c8ec6bc80c31c56db4f31e9a91df"
+      },
+      {
+        "file": "59-3.jpg",
+        "sha256": "2e4becf643a681834ac356e3c91ec9949eb6c8ec6bc80c31c56db4f31e9a91df"
+      }
+    ],
+    "seconds": 150.97,
+    "reason": "needs-manual: native warning/Start reached cropped mode panel; game is clipped above viewport with lower half empty, no sane gameplay frame.",
+    "output": "assets/thumbs/baldisbasics.jpg",
+    "previous_sha256": "9c7017e316425bfb177a02479de748dd17e5f4827338d30b07492a17a5137dc1",
+    "status": "needs-manual",
+    "output_sha256": "9c7017e316425bfb177a02479de748dd17e5f4827338d30b07492a17a5137dc1",
+    "output_bytes": 13170
+  }
+]

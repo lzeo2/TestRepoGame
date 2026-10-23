@@ -555,3 +555,22 @@ to `assets/thumbs/mergecatsdefenderhacked.jpg`, avoiding mislabeling the base ga
 with the native HACKED badge. Base cats art remains untouched. `games.json`
 unchanged. Alias regression and `node --check assets/portal-ux.js` pass; portal
 maintenance guide updated. No game source or rendered game state changed.
+
+### Batch 8: Unity gameplay via CDP
+
+**3 accepted / 5 attempted.** Running continuation: **22 captured, 18 needs-manual,
+12 not yet attempted.** [Actions/source/output receipt](thumb-sweep-v3.1/batch-08.json).
+Five manuals read; same pinned single Chromium/real viewport/native controls,
+180s hard cap. CDP succeeded where older Playwright screenshots had timed out.
+Browser/server closed after five. Free space **2,831,757,312 bytes** before promotion.
+Original dark palette in Dawn and portrait pillarboxing in BitLife were retained,
+not brightened, cropped or stretched. Gladihoppers is active movement training,
+not a claim to a completed fight/career.
+
+| ID | Game | v3.1 status | Native route / reason |
+| --- | --- | --- | --- |
+| 56 | 10 Minutes Till Dawn | captured | Play, default Shana/Revolver, Play, movement/click; real survival player/enemies/HUD and countdown. |
+| 49 | BitLife | captured | New Life, Age; generated character's life events and changing stats, no splash/menu. |
+| 47 | Gladihoppers | captured | Trainer check/Enter/Space and WASD attempt; active movement-training arena with gladiator, trainer modal closed. |
+| 48 | Burrito Bison | needs-manual, old art retained | Reached ring launch tutorial through native Start/intro clicks, but did not perform the required pull/release gesture before budget ran out. No launch/distance capture accepted. |
+| 59 | Baldi's Basics | needs-manual, old art retained | Warning/Start reached mode panel, but upper game content clipped above viewport and bottom half empty; no visually sane play capture. |
