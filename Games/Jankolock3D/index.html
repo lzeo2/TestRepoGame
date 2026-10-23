@@ -24,9 +24,8 @@
   <main id="stage" class="stage" aria-label="Jankolock match">
     <canvas id="game" tabindex="0" aria-label="Third-person city view. Click to capture the mouse, or drag to look on touch screens." aria-describedby="control-help"></canvas>
     <section id="lobby" class="lobby panel" aria-labelledby="lobby-title">
-      <p class="eyebrow">The postroom</p>
       <h2 id="lobby-title">Choose your hero</h2>
-      <p>Push three lanes with your team. Collect souls, equip items, and bring down the enemy Patron twice.</p>
+      <p>Push the lanes, collect souls and defeat the enemy Patron in both phases.</p>
       <div id="hero-select" class="hero-select" role="group" aria-label="Choose a hero">
         <button type="button" data-hero-index="0" disabled><strong>Hero 1</strong><span>Loading hero definitions</span></button>
         <button type="button" data-hero-index="1" disabled><strong>Hero 2</strong><span>Loading hero definitions</span></button>
@@ -35,19 +34,18 @@
       </div>
       <p id="hero-description"></p>
       <button id="start" type="button" disabled>Start match</button>
-      <p class="lobby-help">WASD to move. Mouse or drag to look. Use 1–4 for abilities. Full controls are available above.</p>
+      <p class="lobby-help">WASD: move. Mouse or drag: look. 1–4: abilities.</p>
     </section>
     <div id="hud" hidden>
       <div id="systems-root"></div>
       <section class="match-status panel" aria-label="Match status">
         <span id="match-clock">0:00</span>
-        <span>Kills / deaths <strong id="kd">0 / 0</strong></span>
+        <span>K / D <strong id="kd">0 / 0</strong></span>
         <p id="objective" role="status">Protect your Patron. Push the enemy lanes.</p>
       </section>
       <figure class="minimap-panel panel">
         <figcaption id="minimap-title">District map</figcaption>
         <canvas id="minimap" width="200" height="200" role="img" aria-labelledby="minimap-title" aria-describedby="minimap-key"></canvas>
-        <p id="minimap-key">● Ally · ◇ Enemy · □ Structure<br>Large ring: you. North: enemy base.</p>
       </figure>
       <section class="vitals panel" aria-label="Hero status">
         <strong id="playing-hero"></strong>
@@ -98,6 +96,7 @@
         <dt>B</dt><dd>Shop at your base or while respawning.</dd>
       </dl>
       <p>Touch: drag the view to look; use the movement, action, and numbered ability buttons.</p>
+      <p id="minimap-key">Map: ● ally, ◇ enemy, □ structure. Large ring: you. North: enemy base.</p>
       <p>Claim ground souls by walking nearby. Shoot floating souls to secure or deny them. Destroy Guardians, Walkers, base guards, and shrines before attacking the Patron.</p>
     </div>
   </dialog>

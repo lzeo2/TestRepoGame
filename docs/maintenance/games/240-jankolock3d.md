@@ -364,6 +364,24 @@ Disk recovery allowed only final docs/index work under a bounded 10 MB waiver,
 or push. Cleanup/evidence commits were not repeated. Model/source checks are
 not art/40FPS/hardware/full-release acceptance; 127 catalog entries remain.
 
+## Terrain safety and scene/UI maintenance follow-up
+
+Shared collision milestone `6c58203` blocks lateral entry from the sewer/plaza
+into higher solid terrain; the floor callback no longer silently loses that
+boundary. Controller and traveler clamp to the existing 448m limit. Invalid
+motion or feet below -32m recover to the last safe grounded position (initial
+controller fallback or world start before one exists), without filling the
+legitimate -10m sewer or -6m plaza. Controller 1,392 assertions and world 505
+assertions pass in a fresh Node rerun. This is fixture evidence, not native play.
+
+The match shell removes the repeated top resource-health readout in favor of
+the existing health bar, hides unused inventory cells/panel, shortens lobby copy,
+compacts ability buttons and moves the repeated map legend into Controls. Map,
+objectives, cooldowns, input buttons, loading/error states and accessible canvas
+labels remain. The parallel HUD/input follow-up owns numeric health presentation;
+its source and verification will be recorded separately. Current scene/capture
+verification is pending below; historical captures do not accept this pass.
+
 ## Future outlook
 
 Independent stable-source A-I review and mockup comparison, human full-match
