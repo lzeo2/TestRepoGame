@@ -169,6 +169,7 @@ def self_test():
     from types import SimpleNamespace
     assert slug("Snake Hacked") == "snakehacked"
     assert aliases()["Snake Hacked"] == "snakehacked"
+    assert aliases()["Merge Cats Defender Hacked"] == "mergecatsdefenderhacked"
     assert entry_path("index.html") == ROOT / "index.html"
     for url in ("__missing_thumb_entry__.html", "../outside.html", "https://example.invalid/game"):
         try:

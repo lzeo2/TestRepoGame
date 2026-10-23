@@ -102,6 +102,13 @@ Snake, Doodle Jump and three Fireboy captures use their own files, not aliases
 of the base game.
 The tool regression covers safe paths, exact Git blob delivery and real 404s.
 
+The v3.1 continuation gives Merge Cats Defender Hacked its own image-path alias,
+`mergecatsdefenderhacked.jpg`, after native stage-one deployment reached a real
+wave. Its original HACKED badge must not overwrite the base game's shared art.
+The base `mergecatsdefender.jpg` bytes remain unchanged. This is only an image
+mapping change, not a catalog/gameplay or rights change; capture/alias guards
+cover the dedicated name. Other v3.1 results and holds are in the linked receipt.
+
 ## Safe refurbishment and verification
 
 Smallest fixes belong in authored UX shared helpers: search routing, recent validation, catalog retry/status and DOM reconciliation. Keep bundle DOM class contracts and preserve title/ID identity separately. Do not hand-edit compiled React or replace working game menus. Density controls, copy-link/share actions, deep-link query state, custom scroll-spy and account features were **not found** in the audited authored portal/application tail. `portal-share.png` is metadata imagery, not a share widget. Motion-library IntersectionObserver code is not proof of an active portal scroll feature.

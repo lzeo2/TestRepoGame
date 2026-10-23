@@ -531,3 +531,27 @@ frame passed the image guard and visual review, unlike the rejected loaders.
 | 58 | Infiltrating the Airship | needs-manual, old art retained | Operation setup preloader advanced slowly; no actual infiltration choice reached after waits/click/Enter. |
 | 63 | Fancy Pants Adventure 3 | captured | Click/keys past loader, Up advances intro dialogue, arrows/S move/jump in the actual starting room. |
 | 123 | Crush the Castle | needs-manual, old art retained | Native Run anyway acknowledged compatibility warning; subsequent click/Space produced black frame, not siege gameplay. |
+
+### Batch 7: puzzle/platformer and hacked cats
+
+**3 accepted / 5 attempted.** Running continuation: **19 captured, 16 needs-manual,
+17 not yet attempted.** [Actions/source/output receipt](thumb-sweep-v3.1/batch-07.json).
+Manual-first native play and 180s cap unchanged. Browser/server closed after five;
+free space **2,834,513,920 bytes** before promotion. Vex's preliminary finish text
+said it had not reached play; final visual review corrected that because the
+last candidate really shows the player, hub platforms, coin and running HUD.
+The receipt preserves the preliminary note and explicit review correction.
+
+| ID | Game | v3.1 status | Native route / reason |
+| --- | --- | --- | --- |
+| 8 | Run 3 | needs-manual, old art retained | Click/Enter/Space left warning triangle on black canvas; boot still fails. |
+| 62 | Cut the Rope | captured | Native Play/intro skip; actual level-one candy, rope, stars and Om Nom board. Click attempted, no solved-level claim. |
+| 60 | Temple Run 2 | needs-manual, old art retained | Imangi/dots loader remained after waits/click/Space; no running scene. |
+| 64 | Vex 7 | captured | Wrapper Play, game Play, native right/jump. Final frame reached real playable hub with player/platforms/HUD. |
+| 137 | Merge Cats Defender Hacked | captured | Stage 1, squad Start, deploy Boxing cat. Wave-one enemies and cat visible. Source cheat badge/currency preserved. |
+
+Only an image-path alias changed in `assets/portal-ux.js`: hacked cats now maps
+to `assets/thumbs/mergecatsdefenderhacked.jpg`, avoiding mislabeling the base game
+with the native HACKED badge. Base cats art remains untouched. `games.json`
+unchanged. Alias regression and `node --check assets/portal-ux.js` pass; portal
+maintenance guide updated. No game source or rendered game state changed.

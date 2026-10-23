@@ -1,0 +1,531 @@
+[
+  {
+    "id": 8,
+    "title": "Run 3",
+    "head": "1ec8f7a30d6c5216b8d132fa623ccd3ee2f0028a",
+    "entry_blob": "d462a93efd3a8d168daa5b40e4046f0667c51c41",
+    "source_tree": "c638de581d899015f8dc994d048480ffc620d0cb",
+    "actions": [
+      [
+        "wait",
+        12000
+      ],
+      [
+        "click",
+        640,
+        360
+      ],
+      [
+        "key",
+        "Enter"
+      ],
+      [
+        "key",
+        "Space"
+      ],
+      [
+        "snap"
+      ]
+    ],
+    "errors": [
+      "Unexpected non-whitespace character after JSON at position 152 (line 2 column 1)"
+    ],
+    "external": [],
+    "http_errors": [],
+    "candidates": [
+      {
+        "file": "8-0.jpg",
+        "sha256": "359261a475b61ecd9dbea2830a4eb2f0d7a46209ce8c5aaa8ebe549dd96af9c3"
+      }
+    ],
+    "seconds": 24.22,
+    "reason": "needs-manual: warning triangle/black canvas after native click Enter Space; existing boot failure, not gameplay.",
+    "output": "assets/thumbs/run3.jpg",
+    "previous_sha256": "9ba592a471f2a6a439ab7c9c64a474bfcf592b01923bd0f099b3ad4a5b1795bf",
+    "status": "needs-manual",
+    "output_sha256": "9ba592a471f2a6a439ab7c9c64a474bfcf592b01923bd0f099b3ad4a5b1795bf",
+    "output_bytes": 9401
+  },
+  {
+    "id": 62,
+    "title": "Cut the Rope",
+    "head": "1ec8f7a30d6c5216b8d132fa623ccd3ee2f0028a",
+    "entry_blob": "2bf5b41b3c8f924e35612ed75098e143dc8e1ca3",
+    "source_tree": "268f2e93f6dbdd7376419fffed0f2db38f43ec9c",
+    "actions": [
+      [
+        "wait",
+        12000
+      ],
+      [
+        "snap"
+      ],
+      [
+        "snap"
+      ],
+      [
+        "info"
+      ],
+      [
+        "click",
+        639,
+        426
+      ],
+      [
+        "wait",
+        1200
+      ],
+      [
+        "snap"
+      ],
+      [
+        "click",
+        1100,
+        580
+      ],
+      [
+        "key",
+        "Space"
+      ],
+      [
+        "wait",
+        2000
+      ],
+      [
+        "snap"
+      ],
+      [
+        "info"
+      ],
+      [
+        "wait",
+        1000
+      ],
+      [
+        "snap"
+      ],
+      [
+        "click",
+        640,
+        177
+      ],
+      [
+        "snap"
+      ]
+    ],
+    "errors": [],
+    "external": [],
+    "http_errors": [],
+    "candidates": [
+      {
+        "file": "62-0.jpg",
+        "sha256": "d42e5948adde2d3148851ca4feee0d653ec44c53e63341b1ac31d1a0440b53a1"
+      },
+      {
+        "file": "62-1.jpg",
+        "sha256": "3c7b5b72d9086fb06273b2a59f50e18b3ab96d11518ec24bd953426dc5e6a20d"
+      },
+      {
+        "file": "62-2.jpg",
+        "sha256": "ba4c9e2260488771c45b2861b5b1994e355a8c733b29a5e350c818c45ea1c95e"
+      },
+      {
+        "file": "62-3.jpg",
+        "sha256": "9414251fc1a03daf7ecada6a99a6ff5f54f4f5c0f487d979cc6fa94bca1d301c"
+      },
+      {
+        "file": "62-4.jpg",
+        "sha256": "4bb5e85415f322040689b8836c47fa46e0d9a265433f057d9dca5a3f3b620ee7"
+      }
+    ],
+    "seconds": 103.41,
+    "reason": "captured: native Play then skipped intro, real level1 candy/rope/Om Nom puzzle board; click attempted, no solved-level claim.",
+    "output": "assets/thumbs/cuttherope.jpg",
+    "previous_sha256": "0e99dd5ed993cd0d2f0b84309a4353673c966080ce0920e3871b021f827b1f9f",
+    "status": "captured",
+    "accepted_candidate": "62-4.jpg",
+    "output_sha256": "b5d6c2e7db8c8b6edd80190749a9084cdd982cc8b522edda44b0f40333bc7601",
+    "output_bytes": 67452
+  },
+  {
+    "id": 60,
+    "title": "Temple Run 2",
+    "head": "1ec8f7a30d6c5216b8d132fa623ccd3ee2f0028a",
+    "entry_blob": "b2a9a9d78e217474e974f6f7caf04be99cc95f03",
+    "source_tree": "6b268ecb866a2abd8699512d0d2dcc612bb2d16b",
+    "actions": [
+      [
+        "wait",
+        22000
+      ],
+      [
+        "snap"
+      ],
+      [
+        "info"
+      ],
+      [
+        "wait",
+        15000
+      ],
+      [
+        "click",
+        640,
+        540
+      ],
+      [
+        "wait",
+        2000
+      ],
+      [
+        "snap"
+      ],
+      [
+        "wait",
+        12000
+      ],
+      [
+        "click",
+        640,
+        500
+      ],
+      [
+        "key",
+        "Space"
+      ],
+      [
+        "snap"
+      ],
+      [
+        "info"
+      ],
+      [
+        "wait",
+        18000
+      ],
+      [
+        "snap"
+      ]
+    ],
+    "errors": [
+      "WebGL not supported"
+    ],
+    "external": [],
+    "http_errors": [],
+    "candidates": [
+      {
+        "file": "60-0.jpg",
+        "sha256": "c04684b49b95fa5f8fd000459f9a4d2e669b73cd5194044646ebc2326123dadb"
+      },
+      {
+        "file": "60-1.jpg",
+        "sha256": "2a6a8e5f9c8ac3a400af761f46b7c1fdb46e61416dcf83e26ce7ab7abaa05135"
+      },
+      {
+        "file": "60-2.jpg",
+        "sha256": "5cfd7d2e1c39c26cab6f56a338a3fe39e3c80ac5498060b4addaa6ef4ca320e2"
+      },
+      {
+        "file": "60-3.jpg",
+        "sha256": "c04684b49b95fa5f8fd000459f9a4d2e669b73cd5194044646ebc2326123dadb"
+      }
+    ],
+    "seconds": 123.52,
+    "reason": "needs-manual: Imangi/dots loader remained after ~110s and native click/Space; no running scene in bounded attempt.",
+    "output": "assets/thumbs/templerun2.jpg",
+    "previous_sha256": "0d75a6ac8d55b0f6724f8907aa77ff34b6f3d914d07e2fe32ea99117ee9a609c",
+    "status": "needs-manual",
+    "output_sha256": "0d75a6ac8d55b0f6724f8907aa77ff34b6f3d914d07e2fe32ea99117ee9a609c",
+    "output_bytes": 20305
+  },
+  {
+    "id": 64,
+    "title": "Vex 7",
+    "head": "1ec8f7a30d6c5216b8d132fa623ccd3ee2f0028a",
+    "entry_blob": "a2f54a7960ece3a5c482acd3ec1c545e4425231f",
+    "source_tree": "e2c09b22a2bf16498d43309c801dab277b7f9873",
+    "actions": [
+      [
+        "wait",
+        16000
+      ],
+      [
+        "click",
+        640,
+        360
+      ],
+      [
+        "snap"
+      ],
+      [
+        "info"
+      ],
+      [
+        "wait",
+        20000
+      ],
+      [
+        "click",
+        640,
+        460
+      ],
+      [
+        "snap"
+      ],
+      [
+        "click",
+        640,
+        497
+      ],
+      [
+        "wait",
+        2000
+      ],
+      [
+        "snap"
+      ],
+      [
+        "click",
+        640,
+        577
+      ],
+      [
+        "wait",
+        1200
+      ],
+      [
+        "hold",
+        "ArrowRight",
+        1500
+      ],
+      [
+        "key",
+        "ArrowUp"
+      ],
+      [
+        "snap"
+      ],
+      [
+        "click",
+        640,
+        570
+      ],
+      [
+        "wait",
+        2000
+      ],
+      [
+        "hold",
+        "ArrowRight",
+        1200
+      ],
+      [
+        "snap"
+      ],
+      [
+        "wait",
+        3000
+      ],
+      [
+        "hold",
+        "ArrowRight",
+        1000
+      ],
+      [
+        "key",
+        "ArrowUp"
+      ],
+      [
+        "snap"
+      ],
+      [
+        "wait",
+        8000
+      ],
+      [
+        "click",
+        640,
+        360
+      ],
+      [
+        "hold",
+        "ArrowRight",
+        1000
+      ],
+      [
+        "snap"
+      ]
+    ],
+    "errors": [],
+    "external": [],
+    "http_errors": [],
+    "candidates": [
+      {
+        "file": "64-0.jpg",
+        "sha256": "d78a4051c02fcba53166cddab0975c175936bfbb6259813db5de38b97a77124b"
+      },
+      {
+        "file": "64-1.jpg",
+        "sha256": "6286c721fe095db638ad58577b4e5bc5f44d6d79c30d6c2a2f2ff819a097b717"
+      },
+      {
+        "file": "64-2.jpg",
+        "sha256": "86994bba2b5ad041ec2c8ecc687e473e512087592bbb4ae51755cae20beeb697"
+      },
+      {
+        "file": "64-3.jpg",
+        "sha256": "9ae0ecd9ad8649217513d59af0c4c6cf867942eceefd9a21e6a846011523a397"
+      },
+      {
+        "file": "64-4.jpg",
+        "sha256": "e0c4704b2cd91dd2c4108b2a1c0e7903029d96dcf7352dd95a405c5a865573c9"
+      },
+      {
+        "file": "64-5.jpg",
+        "sha256": "9b450035723af297805ac3202022786d214c9ca087fe83a42be4399f8f0c89b1"
+      },
+      {
+        "file": "64-6.jpg",
+        "sha256": "318f3280ee0cdff8e71f495978c40bf276cf3ce221146c3c0deb06cad7468eca"
+      }
+    ],
+    "seconds": 166.66,
+    "reason": "needs-manual: wrapper Play and game Play entered transition/Vex logo, but no act platforming frame before180s budget.",
+    "output": "assets/thumbs/vex7.jpg",
+    "previous_sha256": "ab2f77030c0afc07d80ae1ccb99bf118b602dbd3edd416dd99851f758e36479a",
+    "status": "captured",
+    "accepted_candidate": "64-6.jpg",
+    "output_sha256": "5b8fd8b18494694684153752f36b6f02ed91c34981533631d618ca50fffe6701",
+    "output_bytes": 43749,
+    "review_reason": "Final candidate actually reached playable hub with player/platforms/coin/HUD; preliminary finish note rejected as stale after visual review."
+  },
+  {
+    "id": 137,
+    "title": "Merge Cats Defender Hacked",
+    "head": "1ec8f7a30d6c5216b8d132fa623ccd3ee2f0028a",
+    "entry_blob": "9450fc38a52d0ec83067091b4b789ba3277b2f57",
+    "source_tree": "ca6ce240bd29396fc02a7716ff7cee8711070179",
+    "actions": [
+      [
+        "wait",
+        25000
+      ],
+      [
+        "snap"
+      ],
+      [
+        "click",
+        150,
+        398
+      ],
+      [
+        "wait",
+        800
+      ],
+      [
+        "snap"
+      ],
+      [
+        "click",
+        780,
+        672
+      ],
+      [
+        "wait",
+        1000
+      ],
+      [
+        "snap"
+      ],
+      [
+        "click",
+        380,
+        665
+      ],
+      [
+        "click",
+        480,
+        210
+      ],
+      [
+        "click",
+        510,
+        665
+      ],
+      [
+        "click",
+        640,
+        280
+      ],
+      [
+        "click",
+        642,
+        665
+      ],
+      [
+        "click",
+        480,
+        370
+      ],
+      [
+        "click",
+        770,
+        665
+      ],
+      [
+        "click",
+        430,
+        440
+      ],
+      [
+        "wait",
+        2500
+      ],
+      [
+        "snap"
+      ],
+      [
+        "click",
+        380,
+        665
+      ],
+      [
+        "snap"
+      ]
+    ],
+    "errors": [],
+    "external": [],
+    "http_errors": [],
+    "candidates": [
+      {
+        "file": "137-0.jpg",
+        "sha256": "64026334ea76aaa2f8f3f62327c9208f38acfb1d0b6676f2a9d2dab3b3ede00d"
+      },
+      {
+        "file": "137-1.jpg",
+        "sha256": "54fe2cfb08f1abeab4b95bf89d55a20bc1e67f56bd89c850690903b84c3672fb"
+      },
+      {
+        "file": "137-2.jpg",
+        "sha256": "9484259d25995b3a5708d30e0b76d95f3789dee5bff6c397084faff9d4340e73"
+      },
+      {
+        "file": "137-3.jpg",
+        "sha256": "d294487bdabc1c7306dbbe525da2650e58c40451c8697a022654267d7fbea374"
+      },
+      {
+        "file": "137-4.jpg",
+        "sha256": "ef473bb34ebf5f8f5968790271aedd11da47c77878dcbfc10368c917f01a048e"
+      }
+    ],
+    "seconds": 142.83,
+    "reason": "capture review pending: native stage1, squad Start, deploy Boxing; wave1 enemies/unit captured. Shared output alias would mislabel base with HACKED art.",
+    "output": "assets/thumbs/mergecatsdefenderhacked.jpg",
+    "previous_sha256": null,
+    "status": "captured",
+    "accepted_candidate": "137-3.jpg",
+    "output_sha256": "496c42d1d6141826f765ce06df2a2ecde082779ae05cc466a4841292525e3796",
+    "output_bytes": 75969,
+    "review_reason": "Stage1 wave with deployed Boxing cat and enemies accepted; dedicated image alias preserves base art."
+  }
+]

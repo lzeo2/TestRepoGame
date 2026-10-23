@@ -174,7 +174,7 @@
   "Fireboy and Watergirl Hacked (Light Temple)": "fireboyandwatergirlhackedlighttemple",
   "Fireboy and Watergirl Forest Temple Hacked": "fireboyandwatergirlforesttemplehacked",
   "Fireboy and Watergirl Crystal Temple Hacked": "fireboyandwatergirlcrystaltemplehacked",
-  "Merge Cats Defender Hacked": "mergecatsdefender",
+  "Merge Cats Defender Hacked": "mergecatsdefenderhacked",
   "Geometry Dash Lite": "geometrydashlite",
   "Gladihoppers": "gladihoppers",
   "Infiltrating the Airship": "infiltratingtheairship",
