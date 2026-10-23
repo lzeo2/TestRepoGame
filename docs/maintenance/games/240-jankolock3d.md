@@ -373,7 +373,9 @@ motion or feet below -32m recover to the last safe grounded position (initial
 controller fallback or world start before one exists), without filling the
 legitimate -10m sewer or -6m plaza. A subsequent screenshot exposed the same
 above-eye terrain being ignored by the shoulder-camera sweep; the camera now
-rejects it rather than exposing the void. Controller 1,396 assertions and world
+rejects it rather than exposing the void. Both body and camera reserve radius
+clearance at steep terrain edges while retaining normal ramp stepping.
+Controller 1,396 assertions and world
 505 assertions pass in fresh Node reruns. These are fixtures, not native play.
 
 The match shell removes the repeated top resource-health readout in favor of
@@ -401,8 +403,15 @@ nine captures, both native keyboard terrain-edge probes, 70 responses and zero
 recorded errors. Desktop/mobile-width HUDs were inspected in dark/light themes;
 scene placements are explicitly loopback API fixtures, not native route proof.
 That nine-capture result predates the last camera sweep/retaining alignment and
-parallel fixed-mobile-HUD repair. A separate two-edge capture is required for
-those final camera bytes. Historical images are not silently relabeled.
+parallel fixed-mobile-HUD repair. Two later centre-only captures passed the
+mechanical assertions but still showed a void sliver; subjective review rejected
+those images. The final radius-aware retry passes two native-keyboard edge
+probes, two captures, 70 responses and zero errors, with browser/server closed.
+Both images were inspected: terrain walls now occlude the void. See the
+[pinned receipts and final captures](../audits/jankolock-3d-qa/scenery-maintenance/README.md).
+The broader nine-shot review remains historical for its exact source hashes;
+images are not silently relabeled. A separate mobile-HUD scroll capture is
+recorded in the HUD owner's follow-up below.
 
 The block grid, broad roads, primitive combat objectives, rigid vegetation,
 uncollidable dressing and lack of scene contact shadows remain visual limits.

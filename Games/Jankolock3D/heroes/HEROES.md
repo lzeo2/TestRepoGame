@@ -85,9 +85,14 @@ clearing motion/actions; before one exists the controller uses `{x:0,y:0,z:8}`.
 Traveler recovery uses its last grounded pose or `world.start`, preserving crate
 state. Sewer -10m, plaza -6m, roof/ramp support and bridge undersides remain valid.
 Controller/world regressions cover terrain-edge walk/dash, recovery and bounds.
-This module evidence does not establish assembled native traversal.
+Leading capsule clearance also checks steep solid terrain across the body radius,
+while the step allowance preserves ramps. The shoulder-camera sweep rejects
+higher solid terrain across its radius rather than exposing the terrain's back
+side; it still respects legitimate bridge/roof headroom. Two API-positioned,
+native-keyboard edge probes and final camera captures supplement the fixtures,
+not full native lane traversal. See the canonical manual for pinned receipts.
 
-Fall-through follow-up: controller 1,392 assertions, world 505 assertions, bots
+Fall-through follow-up: controller 1,396 assertions, world 505 assertions, bots
 8 groups and hero-runtime checks pass in Node. Integration passes both 600s
 chains and portrait integrity, then fails its stale 127-entry assertion against
 the current 128-entry catalog. No assertion was weakened. Syntax/diff checks

@@ -48,6 +48,8 @@ export function moveCapsule(p,dx,dz,world,broken=new Set()) {
   for(let n=0;n<count;n++) for(const [axis,delta] of [['x',dx/count],['z',dz/count]]) {
     const previous=result[axis];
     result[axis]=clamp(previous+delta,-LIMIT,LIMIT);
+    const edge={...result,[axis]:result[axis]+Math.sign(delta)*BODY.radius};
+    if(terrainHeight(edge.x,edge.z)>result.y+.55) {result[axis]=previous;continue;}
     const terrain=terrainHeight(result.x,result.z);
     if(terrain>result.y+.02) {
       const raised={...result,y:terrain};

@@ -198,7 +198,7 @@ for (const position of [{ x: 64, y: -10, z: 20 }, { x: 169, y: -6, z: 120 }]) {
   for (const input of [{ side: 1 }, { side: 1, dash: true }]) {
     const edge = create({ ...worldOptions, position });
     run(edge, 3, input);
-    check(edge.position.x <= position.x + 1.01 && edge.grounded, 'lowered terrain cannot cross into solid ground');
+    check(edge.position.x <= position.x + 1 - edge.radius + .01 && edge.grounded, 'body radius stays outside higher solid terrain');
     close(edge.position.y, position.y);
   }
 }
@@ -326,10 +326,10 @@ check(floorCamera.position.y >= 0.3, 'upward aim keeps camera sphere above callb
 const undergroundCameraHero = create({ position: { x: 0, y: -10, z: 0 }, floorHeight: () => -10 });
 undergroundCameraHero.pitch = 1.2; undergroundCameraHero.updateCamera(floorCamera, 1 / 60);
 check(floorCamera.position.y >= -9.7 && floorCamera.position.y < -8, 'camera floor clamp respects underground height');
-for (const position of [{ x: 64.9, y: -10, z: 20 }, { x: 169.9, y: -6, z: 120 }]) {
+for (const position of [{ x: 64.5, y: -10, z: 20 }, { x: 169.5, y: -6, z: 120 }]) {
   const terrainCameraHero = create({ ...worldOptions, position });
   terrainCameraHero.updateCamera(floorCamera, 0);
-  check(floorCamera.position.x < position.x + .11, 'shoulder camera cannot enter higher solid terrain');
+  check(floorCamera.position.x < position.x + .21, 'shoulder camera radius cannot enter higher solid terrain');
   check(floorCamera.position.y >= position.y + .3, 'terrain-edge camera stays above lowered floor');
 }
 const ceilingCameraHero = create({ boxes: [box(-10, 10, 3, 3.01, -10, 10)] });

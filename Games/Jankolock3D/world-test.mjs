@@ -97,9 +97,9 @@ const plaza=at({x:205,y:0,z:85});run(plaza,6,{side:-1});check(plaza.y<=-5.9&&pla
 const under=at({x:0,y:-10,z:0});run(under,2,{jump:true});check(under.y+BODY.height<2,'bridge underside remains closed');
 for(const position of [{x:64,y:-10,z:20},{x:169,y:-6,z:120}]) {
   const edge=at(position);run(edge,3,{side:1});
-  check(edge.x<=position.x+1.01&&edge.grounded,'traveler cannot cross lowered terrain into solid ground');close(edge.y,position.y);
+  check(edge.x<=position.x+1-BODY.radius+.01&&edge.grounded,'traveler radius cannot enter higher solid ground');close(edge.y,position.y);
   const direct=moveCapsule({...position,grounded:true},20,0,world);
-  check(direct.x<=position.x+1.01,'direct shared capsule blocks terrain wall');
+  check(direct.x<=position.x+1-BODY.radius+.01,'direct shared capsule radius blocks terrain wall');
 }
 const recover=at({x:120,y:-6,z:120});run(recover,.1);
 for(const bad of [{x:120,y:-100,z:120},{x:NaN,y:0,z:0}]) {

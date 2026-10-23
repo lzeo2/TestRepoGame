@@ -210,7 +210,9 @@ export class PlayerController {
         // surfaceHeight deliberately returns solid terrain even above maxY.
         // Reject its vertical edge, rather than discarding it as overhead support.
         const buried = this.floorHeight(this.position.x, this.position.z, this.position.y + 0.035) > this.position.y + 0.035;
-        if (buried || hit || this._rampHit(this.position)) {
+        const edge = this.position.clone(); edge[axis] += Math.sign(delta) * RADIUS;
+        const edgeBuried = this.floorHeight(edge.x, edge.z, edge.y + STEP) > edge.y + STEP;
+        if (buried || edgeBuried || hit || this._rampHit(this.position)) {
           this.position[axis] = old;
           this.position.y = oldY;
           if (hit && mantle && !this._mantle) this._tryMantle(bounds(hit), axis, delta);
@@ -394,9 +396,11 @@ export class PlayerController {
     const p = new THREE.Vector3();
     const aboveFloor = t => {
       p.lerpVectors(from, to, t);
-      const floor = this.floorHeight(p.x, p.z, from.y + CAMERA_RADIUS);
       return !this.ramps.some(r => cameraHitsRamp(p, r)) &&
-        (!Number.isFinite(floor) || p.y - CAMERA_RADIUS >= floor);
+        [[0, 0], [CAMERA_RADIUS, 0], [-CAMERA_RADIUS, 0], [0, CAMERA_RADIUS], [0, -CAMERA_RADIUS]].every(([x, z]) => {
+          const floor = this.floorHeight(p.x + x, p.z + z, from.y + CAMERA_RADIUS);
+          return !Number.isFinite(floor) || p.y - CAMERA_RADIUS >= floor;
+        });
     };
     for (let i = 1; i <= count; i++) {
       const t = fraction * i / count;
