@@ -1,0 +1,282 @@
+{
+  "attemptNumber": 1,
+  "collectorPID": 199938,
+  "status": "HOLD",
+  "phase": "product-gate",
+  "route": "repo-sync-launch-new-context",
+  "tempDirectory": ".tmp/wings-ctf-199938-g9msbbcq",
+  "normalInputOnly": true,
+  "roleProof": "AI pilot plus player crew; not manual pilot acceptance",
+  "collectorLimitSeconds": 50,
+  "supervisorLimitSeconds": 50,
+  "launchLimitSeconds": 30,
+  "navigationLimitSeconds": 15,
+  "phases": [
+    {
+      "phase": "launch",
+      "unixSeconds": 1792749817.5818796,
+      "elapsedMs": 4.57119700149633
+    },
+    {
+      "phase": "driver-start",
+      "unixSeconds": 1792749817.6072104,
+      "elapsedMs": 29.900489000283414
+    },
+    {
+      "phase": "chromium-launch",
+      "unixSeconds": 1792749818.8360445,
+      "elapsedMs": 1258.7354950010194
+    },
+    {
+      "phase": "context-create",
+      "unixSeconds": 1792749819.8987522,
+      "elapsedMs": 2321.442600001319
+    },
+    {
+      "phase": "page-create",
+      "unixSeconds": 1792749819.9881632,
+      "elapsedMs": 2410.8538270011195
+    },
+    {
+      "phase": "navigation",
+      "unixSeconds": 1792749820.4997904,
+      "elapsedMs": 2922.4803920005797
+    },
+    {
+      "phase": "ctf-menu",
+      "unixSeconds": 1792749820.8703184,
+      "elapsedMs": 3293.0095000010624
+    },
+    {
+      "phase": "ctf-menu-screenshot",
+      "unixSeconds": 1792749823.6026468,
+      "elapsedMs": 6025.336784001411
+    },
+    {
+      "phase": "product-gate",
+      "unixSeconds": 1792749823.8459876,
+      "elapsedMs": 6268.678262000321
+    }
+  ],
+  "productLimitsSeconds": {
+    "workerBootWait": 30,
+    "postHandshakeReadiness": 20
+  },
+  "productGate": {
+    "status": "NOT_MEASURED"
+  },
+  "steps": [
+    {
+      "label": "clicked Capture the flag",
+      "elapsedMs": 4965.3758989989
+    },
+    {
+      "label": "cycled vehicle",
+      "elapsedMs": 5264.015306998772
+    },
+    {
+      "label": "cycled vehicle",
+      "elapsedMs": 5492.734420000488
+    },
+    {
+      "label": "cycled vehicle",
+      "elapsedMs": 5628.213478998077
+    },
+    {
+      "label": "cycled vehicle",
+      "elapsedMs": 5710.561069001415
+    },
+    {
+      "label": "cycled vehicle",
+      "elapsedMs": 5808.7684659985825
+    },
+    {
+      "label": "cycled vehicle",
+      "elapsedMs": 5896.213268999418
+    },
+    {
+      "label": "cycled vehicle",
+      "elapsedMs": 6007.627718998265
+    },
+    {
+      "label": "CTF menu with speedboat selected",
+      "elapsedMs": 6267.392855999788,
+      "game": null,
+      "stats": null,
+      "perf": {
+        "start": 1792749820523.8,
+        "menuMs": 338.5999999977648,
+        "sceneMs": 0,
+        "worldMs": 0,
+        "aircraftMs": 0,
+        "workerStartMs": 0,
+        "workerReadyMs": 0
+      },
+      "gate": null
+    },
+    {
+      "label": "clicked Start offline",
+      "elapsedMs": 6539.877454000816
+    }
+  ],
+  "screenshots": [
+    "01-ctf-lobby.png"
+  ],
+  "errors": [],
+  "warnings": [],
+  "failedRequests": [],
+  "external": [],
+  "serverPort": 41563,
+  "attempts": [
+    {
+      "attemptNumber": 1,
+      "collectorPID": 199938,
+      "status": "HOLD",
+      "phase": "product-gate",
+      "route": "repo-sync-launch-new-context",
+      "tempDirectory": ".tmp/wings-ctf-199938-g9msbbcq",
+      "normalInputOnly": true,
+      "roleProof": "AI pilot plus player crew; not manual pilot acceptance",
+      "collectorLimitSeconds": 50,
+      "supervisorLimitSeconds": 50,
+      "launchLimitSeconds": 30,
+      "navigationLimitSeconds": 15,
+      "phases": [
+        {
+          "phase": "launch",
+          "unixSeconds": 1792749817.5818796,
+          "elapsedMs": 4.57119700149633
+        },
+        {
+          "phase": "driver-start",
+          "unixSeconds": 1792749817.6072104,
+          "elapsedMs": 29.900489000283414
+        },
+        {
+          "phase": "chromium-launch",
+          "unixSeconds": 1792749818.8360445,
+          "elapsedMs": 1258.7354950010194
+        },
+        {
+          "phase": "context-create",
+          "unixSeconds": 1792749819.8987522,
+          "elapsedMs": 2321.442600001319
+        },
+        {
+          "phase": "page-create",
+          "unixSeconds": 1792749819.9881632,
+          "elapsedMs": 2410.8538270011195
+        },
+        {
+          "phase": "navigation",
+          "unixSeconds": 1792749820.4997904,
+          "elapsedMs": 2922.4803920005797
+        },
+        {
+          "phase": "ctf-menu",
+          "unixSeconds": 1792749820.8703184,
+          "elapsedMs": 3293.0095000010624
+        },
+        {
+          "phase": "ctf-menu-screenshot",
+          "unixSeconds": 1792749823.6026468,
+          "elapsedMs": 6025.336784001411
+        },
+        {
+          "phase": "product-gate",
+          "unixSeconds": 1792749823.8459876,
+          "elapsedMs": 6268.678262000321
+        }
+      ],
+      "productLimitsSeconds": {
+        "workerBootWait": 30,
+        "postHandshakeReadiness": 20
+      },
+      "productGate": {
+        "status": "NOT_MEASURED"
+      },
+      "steps": [
+        {
+          "label": "clicked Capture the flag",
+          "elapsedMs": 4965.3758989989
+        },
+        {
+          "label": "cycled vehicle",
+          "elapsedMs": 5264.015306998772
+        },
+        {
+          "label": "cycled vehicle",
+          "elapsedMs": 5492.734420000488
+        },
+        {
+          "label": "cycled vehicle",
+          "elapsedMs": 5628.213478998077
+        },
+        {
+          "label": "cycled vehicle",
+          "elapsedMs": 5710.561069001415
+        },
+        {
+          "label": "cycled vehicle",
+          "elapsedMs": 5808.7684659985825
+        },
+        {
+          "label": "cycled vehicle",
+          "elapsedMs": 5896.213268999418
+        },
+        {
+          "label": "cycled vehicle",
+          "elapsedMs": 6007.627718998265
+        },
+        {
+          "label": "CTF menu with speedboat selected",
+          "elapsedMs": 6267.392855999788,
+          "game": null,
+          "stats": null,
+          "perf": {
+            "start": 1792749820523.8,
+            "menuMs": 338.5999999977648,
+            "sceneMs": 0,
+            "worldMs": 0,
+            "aircraftMs": 0,
+            "workerStartMs": 0,
+            "workerReadyMs": 0
+          },
+          "gate": null
+        },
+        {
+          "label": "clicked Start offline",
+          "elapsedMs": 6539.877454000816
+        }
+      ],
+      "screenshots": [
+        "01-ctf-lobby.png"
+      ],
+      "errors": [],
+      "warnings": [],
+      "failedRequests": [],
+      "external": [],
+      "serverPort": 41563,
+      "connectProbeMs": 2874.028451002232,
+      "supervisorExit": 124,
+      "supervisorCleanup": "finished",
+      "collectorTimedOut": true,
+      "failure": "50s supervisor expired; product outcome unknown unless measured",
+      "remainingOwnedProcesses": [],
+      "ownershipCleanupErrors": [],
+      "browserClosed": true,
+      "serverClosed": true,
+      "profileRemoved": true
+    }
+  ],
+  "connectProbeMs": 2874.028451002232,
+  "supervisorExit": 124,
+  "supervisorCleanup": "finished",
+  "collectorTimedOut": true,
+  "failure": "50s supervisor expired; product outcome unknown unless measured",
+  "remainingOwnedProcesses": [],
+  "ownershipCleanupErrors": [],
+  "browserClosed": true,
+  "serverClosed": true,
+  "profileRemoved": true
+}

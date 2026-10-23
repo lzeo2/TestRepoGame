@@ -4,7 +4,7 @@ import argparse
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 import importlib.util
 import json
-import math
+import socket
 import os
 from pathlib import Path
 import shutil
@@ -21,6 +21,14 @@ spec = importlib.util.spec_from_file_location('wings_verifier', Path(__file__).w
 base = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(base)
 ROOT = base.ROOT
+COLLECTOR_SECONDS = 50
+
+
+def remaining_ms(end, ceiling):
+    remaining = (end - time.monotonic()) * 1000
+    if remaining <= 0:
+        raise TimeoutError('50s collector deadline; product outcome unknown unless measured')
+    return min(ceiling, remaining)
 
 
 def product_result(perf):
@@ -40,16 +48,20 @@ def worker(out):
     assert not (out / 'browser.json').exists(), 'Never overwrite/retry a completed native attempt'
     temp = Path(tempfile.mkdtemp(prefix=f'wings-ctf-{os.getpid()}-', dir=ROOT / '.tmp'))
     os.environ['TMPDIR'] = str(temp)  # Driver-created fresh profiles stay inside the owned repository temp.
+    started = time.monotonic()
     receipt = {'attemptNumber': 1, 'collectorPID': os.getpid(), 'status': 'HOLD', 'phase': 'initializing',
                'route': 'repo-sync-launch-new-context', 'tempDirectory': str(temp.relative_to(ROOT)),
                'normalInputOnly': True, 'roleProof': 'AI pilot plus player crew; not manual pilot acceptance',
-               'collectorLimitSeconds': 50, 'supervisorLimitSeconds': 55, 'connectProbeLimitSeconds': 20,
+               'collectorLimitSeconds': COLLECTOR_SECONDS, 'supervisorLimitSeconds': COLLECTOR_SECONDS,
+               'launchLimitSeconds': 30, 'navigationLimitSeconds': 15, 'phases': [],
                'productLimitsSeconds': {'workerBootWait': 30, 'postHandshakeReadiness': 20},
                'productGate': {'status': 'NOT_MEASURED'}, 'steps': [], 'screenshots': [],
                'errors': [], 'warnings': [], 'failedRequests': [], 'external': []}
 
     def phase(name):
         receipt['phase'] = name
+        receipt['phases'].append({'phase': name, 'unixSeconds': time.time(),
+                                  'elapsedMs': (time.monotonic() - started) * 1000})
         base.save_receipt(out, receipt)
 
     def deadline(*unused):
@@ -66,18 +78,18 @@ def worker(out):
     thread.start()
     origin = f'http://127.0.0.1:{server.server_port}'
     signal.signal(signal.SIGALRM, deadline)
-    signal.alarm(50)
-    end = time.monotonic() + 50
+    receipt['serverPort'] = server.server_port
+    signal.alarm(COLLECTOR_SECONDS)
+    end = started + COLLECTOR_SECONDS
     phase('launch')
     try:
         # Guard immediately before starting the driver/browser, not merely when reserving the slot.
         base.assert_slot_clear()
         connected_at = time.monotonic()
-        signal.alarm(20)
         phase('driver-start')
         with sync_playwright() as p:
             phase('chromium-launch')
-            browser = p.chromium.launch(executable_path='/usr/bin/chromium', headless=False, timeout=20000,
+            browser = p.chromium.launch(executable_path='/usr/bin/chromium', headless=False, timeout=30000,
                 args=['--no-sandbox', '--disable-gpu', '--disable-dev-shm-usage',
                       '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'])
             phase('context-create')
@@ -86,8 +98,6 @@ def worker(out):
                 phase('page-create')
                 page = context.new_page()
                 receipt['connectProbeMs'] = (time.monotonic() - connected_at) * 1000
-                assert receipt['connectProbeMs'] <= 20000, 'Connect/context probe exceeded 20 seconds'
-                signal.alarm(max(1, math.ceil(end - time.monotonic())))
                 page.on('pageerror', lambda error: receipt['errors'].append(str(error)))
                 page.on('console', lambda m: receipt['errors' if m.type == 'error' else 'warnings'].append(m.text)
                         if m.type in ('error', 'warning') else None)
@@ -105,7 +115,7 @@ def worker(out):
                     data = page.evaluate('''() => ({game: window.__wings?.game ?? null,
                       stats: window.__wings?.stats ?? null, perf: window.__wings?.perf ?? null,
                       gate: document.querySelector('#render-error[open] pre')?.textContent ?? null})''')
-                    receipt['steps'].append({'label': label, **data})
+                    receipt['steps'].append({'label': label, 'elapsedMs': (time.monotonic() - started) * 1000, **data})
                     base.save_receipt(out, receipt)
                     return data
 
@@ -117,6 +127,9 @@ def worker(out):
 
                 def choose(host, text):
                     page.locator(host + ' .mi .t').get_by_text(text, exact=True).locator('..').click(timeout=5000)
+                    receipt['steps'].append({'label': 'clicked ' + text,
+                                             'elapsedMs': (time.monotonic() - started) * 1000})
+                    base.save_receipt(out, receipt)
 
                 phase('navigation')
                 page.goto(origin + '/Games/Wings/?webgl', wait_until='domcontentloaded', timeout=15000)
@@ -127,11 +140,16 @@ def worker(out):
                     if 'speedboat' in vehicle.inner_text().lower():
                         break
                     vehicle.click(timeout=3000)
+                    receipt['steps'].append({'label': 'cycled vehicle',
+                                             'elapsedMs': (time.monotonic() - started) * 1000})
+                    base.save_receipt(out, receipt)
                 assert 'speedboat' in vehicle.inner_text().lower()
+                phase('ctf-menu-screenshot')
                 shot('01-ctf-lobby.png')
+                sample('CTF menu with speedboat selected')
                 phase('product-gate')
                 choose('#screen', 'Start offline')
-                page.wait_for_function("document.querySelector('#render-error[open]') || (window.__wings?.perf?.sceneMs > 0 && window.__wings?.stats?.drawCalls > 0)", timeout=50000)
+                page.wait_for_function("document.querySelector('#render-error[open]') || (window.__wings?.perf?.sceneMs > 0 && window.__wings?.stats?.drawCalls > 0)", timeout=remaining_ms(end, 50000))
                 state = sample('product readiness observed')
                 if state['gate']:
                     receipt['productGate'] = {'status': 'FAILED', 'reason': state['gate']}
@@ -187,6 +205,8 @@ def worker(out):
     except (Exception, KeyboardInterrupt) as error:
         base.record_failure(out, receipt, error)
     finally:
+        receipt['cleanupPhase'] = 'owned-descendants'
+        base.save_receipt(out, receipt)
         remaining, errors = base.stop_owned_descendants()
         receipt['remainingOwnedProcesses'] = remaining
         receipt['ownershipCleanupErrors'] = errors
@@ -211,25 +231,47 @@ def supervised(out):
     child = subprocess.Popen([sys.executable, '-B', __file__, '--out', str(out), '--worker'], start_new_session=True)
     code = 124
     try:
-        code = child.wait(timeout=55)
+        code = child.wait(timeout=COLLECTOR_SECONDS)
     except (subprocess.TimeoutExpired, KeyboardInterrupt):
-        print('HOLD collector reached 55s/interrupted; stopping owned descendants only', flush=True)
+        print('EXITED capture incomplete: 50s supervisor/interruption; product result separate', flush=True)
     finally:
-        remaining, errors = base.stop_owned_descendants()
-        child.wait(timeout=1)
-        base.reap_children()
+        receipt = None
         if (out / 'browser.json').exists():
             receipt = json.loads((out / 'browser.json').read_text())
             assert receipt.get('collectorPID') == child.pid, 'Do not overwrite a prior attempt'
             receipt['supervisorExit'] = code
-            receipt['remainingOwnedProcesses'] = remaining
-            receipt['ownershipCleanupErrors'] = errors
+            receipt['supervisorCleanup'] = 'started'
             if code == 124:
                 base.mark_collector_timeout(receipt)
-            if not base.receipt_passes(receipt) or remaining or errors:
+                receipt['status'] = 'HOLD'
+                receipt.setdefault('failure', '50s supervisor expired; product outcome unknown unless measured')
+            base.save_receipt(out, receipt)  # Persist before any cleanup can stall.
+        remaining, errors = base.stop_owned_descendants()
+        try:
+            child.wait(timeout=1)
+        except subprocess.TimeoutExpired:
+            errors.append('Collector leader did not exit after owned cleanup')
+        base.reap_children()
+        if receipt is not None:
+            receipt['remainingOwnedProcesses'] = remaining
+            receipt['ownershipCleanupErrors'] = receipt.get('ownershipCleanupErrors', []) + errors
+            receipt['browserClosed'] = not remaining and not receipt['ownershipCleanupErrors']
+            with socket.socket() as sock:
+                receipt['serverClosed'] = sock.connect_ex(('127.0.0.1', receipt['serverPort'])) != 0
+            temp = ROOT / receipt['tempDirectory']
+            assert temp.parent == ROOT / '.tmp' and temp.name.startswith(f'wings-ctf-{child.pid}-')
+            if receipt['browserClosed'] and temp.exists():
+                try:
+                    shutil.rmtree(temp)
+                except OSError as error:
+                    receipt['ownershipCleanupErrors'].append(str(error))
+            receipt['profileRemoved'] = not temp.exists()
+            receipt['supervisorCleanup'] = 'finished'
+            if not base.receipt_passes(receipt):
                 receipt['status'] = 'HOLD'
                 receipt.setdefault('failure', 'Incomplete collector/cleanup; product result remains separate')
                 code = code or 1
+            receipt['supervisorExit'] = code
             base.save_receipt(out, receipt)
     return code
 
@@ -241,6 +283,14 @@ if __name__ == '__main__':
     parser.add_argument('--self-check', action='store_true')
     args = parser.parse_args()
     if args.self_check:
+        assert COLLECTOR_SECONDS == 50
+        assert remaining_ms(time.monotonic() + 60, 30000) == 30000
+        assert 0 < remaining_ms(time.monotonic() + 1, 50000) <= 1000
+        try:
+            remaining_ms(time.monotonic() - 1, 50000)
+            raise AssertionError('expired collector deadline accepted')
+        except TimeoutError:
+            pass
         assert product_result({'workerStartMs':1,'workerReadyMs':27001,'worldMs':46001})['status'] == 'PASSED'
         assert product_result({'workerStartMs':1,'workerReadyMs':30002,'worldMs':30003})['status'] == 'FAILED'
         assert product_result({'workerStartMs':1,'workerReadyMs':2,'worldMs':20003})['status'] == 'FAILED'

@@ -475,6 +475,24 @@ Whole-scene peak budget, audio, physical input, hardware/FPS and rights remain
 unverified. Full 127-game gate remains deferred; no new game, ID, dependency,
 backend/proxy change or push.
 
+## Synced capture resume (2026-10-23)
+
+Operator ticket `pi-829842-1792632763581-ba60545e` overrides the earlier capture
+hold only. [Attempt 1 receipt](../audits/wings-synced-capture-20261023/attempt-01/README.md)
+records one Xvfb synchronous system-Chromium launch: **EXITED capture incomplete,
+exit 124**. Fresh CTF menu pixels show Patrol Speedboat selected; Start offline
+was clicked at 6.54s. The 50s supervisor expired in the product-gate phase, with
+readiness NOT_MEASURED, not a measured product failure. No water movement or
+carried-flag frame was captured. Owned browser/server/profile cleanup and shared
+slot release passed. No retry or push.
+
+Collector-only changes remove the old 20s probe override and 55s supervisor,
+retain launch30/navigation15 and actual product boot30/readiness20 limits, and
+persist timed steps plus parent cleanup receipts. Nonbrowser deadline/verdict,
+atomic receipt and descendant-ownership checks pass; they do not prove gameplay.
+Runtime, models, catalog and source patch are unchanged. Inventory refresh is
+reserved for the coordinator; all release/hardware/rights holds remain.
+
 ## Future outlook
 
 Complete operator and converted-family review, native missile/audio/physical-input
