@@ -959,3 +959,32 @@ remains dated evidence for those same bytes, not a newly executed gate. No games
 added, source repair, backups, full-fleet smoke, publication or push. Free space
 before closing bookkeeping: **3,280,424,960 bytes**, above the normal floor; no
 waiver used. Final checks/commit/storage are reported in handoff.
+
+### Answered disposition: closed, no capture restart
+
+The operator confirmed the answered disposition (`reply_ts: 1792775259310`)
+and explicitly prohibited further captures. Best-effort capture scope is closed;
+all 26 remaining `needs-manual` outcomes are preserved. Source/hardware repair,
+replacement art and fresh time allowances remain separate operator decisions.
+
+The original headless attempts and resumed headed/raw-CDP attempts both failed
+to produce acceptable gameplay for these five games. Their two-mode failure
+notes are retained above and in the original/retry receipts, including the headed
+Run 3 warning triangle, JSON error and `Locator.inner_text` timeout waiting for
+`body`. No further browser run was made to complete this disposition.
+
+Counts below cover only the storage-resume openings in `retry-04.json` and
+`retry-05.json`; cumulative seconds include each game's earlier attempts.
+
+| ID | Game | Resume open count | Resume consumed seconds | Cumulative seconds |
+| --- | --- | ---: | ---: | ---: |
+| 215 | Asteroids | 1 | 11.33 | 32.12 |
+| 204 | Hearts Classic | 1 | 19.84 | 45.29 |
+| 220 | Duck Hunt | 1 | 6.54 | 25.28 |
+| 87 | Doge Miner | 1 | 14.88 | 65.74 |
+| 8 | Run 3 | 2 | 101.03 | 125.25 |
+
+**Total: six opens, 153.62 consumed seconds, zero replacements.** These times
+remain spent, not reset. Documentation/check bookkeeping only; no new captures,
+runtime changes, backups, games, publication or push. The disposition's operator
+decision request is relayed verbatim in handoff; work stops pending that decision.
