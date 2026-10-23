@@ -1,6 +1,9 @@
 /* Original editor-written prompts and answer organization. No reference-game text.
  * Tiers 0..5 are subjective editorial rarity, not population-survey results.
  * This finite answer key is not exhaustive: an unlisted answer may be valid.
+ * medianLampreyScore is a fixed pseudo-score, not an observed player score:
+ * median of POINTS[tier] for each canonical answer (aliases have no weight).
+ * For an even count, average the two middle scores: 45 here, except amino acids (30).
  * No live analytics, external data, or runtime requests are used.
  */
 (function () {
@@ -16,7 +19,7 @@
     ],
     prompts: [
       {
-        id: 'nature-penguins', pack: 'nature',
+        id: 'nature-penguins', pack: 'nature', medianLampreyScore: 45,
         text: 'Name a living penguin species. Use its common English name, not just "penguin".',
         groups: [
           { tier: 0, answers: [{ text: 'Emperor penguin', aliases: ['emperor'] }, { text: 'King penguin', aliases: ['king'] }] },
@@ -28,7 +31,7 @@
         ]
       },
       {
-        id: 'nature-cats', pack: 'nature',
+        id: 'nature-cats', pack: 'nature', medianLampreyScore: 45,
         text: 'Name a living wild cat species in the family Felidae. Use a species name, not a domestic breed.',
         groups: [
           { tier: 0, answers: [{ text: 'Lion', aliases: ['Panthera leo'] }, { text: 'Tiger', aliases: ['Panthera tigris'] }] },
@@ -40,7 +43,7 @@
         ]
       },
       {
-        id: 'nature-corvids', pack: 'nature',
+        id: 'nature-corvids', pack: 'nature', medianLampreyScore: 45,
         text: 'Name a living bird species in the crow family, Corvidae. Give a species name rather than just "crow" or "jay".',
         groups: [
           { tier: 0, answers: [{ text: 'Common raven', aliases: ['Corvus corax'] }, { text: 'American crow', aliases: ['Corvus brachyrhynchos'] }] },
@@ -52,7 +55,7 @@
         ]
       },
       {
-        id: 'nature-tree-genera', pack: 'nature',
+        id: 'nature-tree-genera', pack: 'nature', medianLampreyScore: 45,
         text: 'Name a genus of trees. A scientific genus name or its usual English group name is accepted.',
         groups: [
           { tier: 0, answers: [{ text: 'Quercus', aliases: ['oak', 'oaks'] }, { text: 'Pinus', aliases: ['pine', 'pines'] }] },
@@ -64,7 +67,7 @@
         ]
       },
       {
-        id: 'nature-insect-orders', pack: 'nature',
+        id: 'nature-insect-orders', pack: 'nature', medianLampreyScore: 45,
         text: 'Give the scientific name of an order of living insects, such as the order containing beetles.',
         groups: [
           { tier: 0, answers: [{ text: 'Coleoptera', aliases: [] }, { text: 'Lepidoptera', aliases: [] }] },
@@ -76,7 +79,7 @@
         ]
       },
       {
-        id: 'nature-botanical-berries', pack: 'nature',
+        id: 'nature-botanical-berries', pack: 'nature', medianLampreyScore: 45,
         text: 'Name an edible fruit botanically classed as a berry. Pepos and hesperidia, the berry types of gourds and citrus, count.',
         groups: [
           { tier: 0, answers: [{ text: 'Grape', aliases: ['grapes'] }, { text: 'Tomato', aliases: ['tomatoes'] }] },
@@ -88,7 +91,7 @@
         ]
       },
       {
-        id: 'nature-mint-family', pack: 'nature',
+        id: 'nature-mint-family', pack: 'nature', medianLampreyScore: 45,
         text: 'Name a culinary or aromatic plant in the mint family, Lamiaceae. A familiar herb name is enough.',
         groups: [
           { tier: 0, answers: [{ text: 'Sweet basil', aliases: ['basil', 'Ocimum basilicum'] }, { text: 'Peppermint', aliases: ['Mentha piperita', 'Mentha x piperita'] }] },
@@ -100,7 +103,7 @@
         ]
       },
       {
-        id: 'world-long-rivers', pack: 'world',
+        id: 'world-long-rivers', pack: 'world', medianLampreyScore: 45,
         text: 'Name a river on Earth with a main stem more than 1,000 kilometres long. Name the river, not its drainage basin.',
         groups: [
           { tier: 0, answers: [{ text: 'Nile', aliases: ['River Nile', 'Nile River'] }, { text: 'Amazon', aliases: ['Amazon River'] }] },
@@ -112,7 +115,7 @@
         ]
       },
       {
-        id: 'world-summer-hosts', pack: 'world',
+        id: 'world-summer-hosts', pack: 'world', medianLampreyScore: 45,
         text: 'Name a city that hosted the Summer Olympic Games at least once before 2025. Cancelled editions do not count.',
         groups: [
           { tier: 0, answers: [{ text: 'London', aliases: [] }, { text: 'Paris', aliases: [] }] },
@@ -124,7 +127,7 @@
         ]
       },
       {
-        id: 'world-large-islands', pack: 'world',
+        id: 'world-large-islands', pack: 'world', medianLampreyScore: 45,
         text: 'Name an island with an area over 100,000 square kilometres. Exclude continental landmasses such as Australia.',
         groups: [
           { tier: 0, answers: [{ text: 'Greenland', aliases: ['Kalaallit Nunaat'] }, { text: 'Madagascar', aliases: [] }] },
@@ -136,7 +139,7 @@
         ]
       },
       {
-        id: 'world-eight-thousanders', pack: 'world',
+        id: 'world-eight-thousanders', pack: 'world', medianLampreyScore: 45,
         text: 'Name a mountain summit higher than 8,000 metres above sea level. Use the main summit name where numbered.',
         groups: [
           { tier: 0, answers: [{ text: 'Everest', aliases: ['Mount Everest', 'Sagarmatha', 'Chomolungma', 'Qomolangma'] }, { text: 'K2', aliases: ['K 2', 'K-2', 'Mount Godwin-Austen', 'Godwin Austen'] }] },
@@ -148,7 +151,7 @@
         ]
       },
       {
-        id: 'world-danube-cities', pack: 'world',
+        id: 'world-danube-cities', pack: 'world', medianLampreyScore: 45,
         text: 'Name a European city through which the River Danube flows. A city on either bank counts.',
         groups: [
           { tier: 0, answers: [{ text: 'Vienna', aliases: ['Wien'] }, { text: 'Budapest', aliases: [] }] },
@@ -160,7 +163,7 @@
         ]
       },
       {
-        id: 'world-deserts', pack: 'world',
+        id: 'world-deserts', pack: 'world', medianLampreyScore: 45,
         text: 'Name a hot or cold desert on Earth, excluding polar ice-sheet deserts. Give the desert name, not a country.',
         groups: [
           { tier: 0, answers: [{ text: 'Sahara', aliases: ['Sahara Desert'] }, { text: 'Gobi', aliases: ['Gobi Desert'] }] },
@@ -172,7 +175,7 @@
         ]
       },
       {
-        id: 'world-european-seas', pack: 'world',
+        id: 'world-european-seas', pack: 'world', medianLampreyScore: 45,
         text: 'Name a sea whose waters touch the coast of Europe. Named smaller seas within larger seas count.',
         groups: [
           { tier: 0, answers: [{ text: 'Mediterranean Sea', aliases: ['Mediterranean'] }, { text: 'Baltic Sea', aliases: ['Baltic'] }] },
@@ -184,7 +187,7 @@
         ]
       },
       {
-        id: 'science-one-letter-elements', pack: 'science',
+        id: 'science-one-letter-elements', pack: 'science', medianLampreyScore: 45,
         text: 'Name a chemical element whose official symbol is a single letter. Its name or symbol is accepted.',
         groups: [
           { tier: 0, answers: [{ text: 'Hydrogen', aliases: ['H'] }, { text: 'Oxygen', aliases: ['O'] }] },
@@ -196,7 +199,7 @@
         ]
       },
       {
-        id: 'science-derived-units', pack: 'science',
+        id: 'science-derived-units', pack: 'science', medianLampreyScore: 45,
         text: 'Name an SI derived unit with its own special name, rather than an SI base unit. Unit names or symbols are accepted.',
         groups: [
           { tier: 0, answers: [{ text: 'Newton', aliases: ['N', 'newtons'] }, { text: 'Joule', aliases: ['J', 'joules'] }] },
@@ -208,7 +211,7 @@
         ]
       },
       {
-        id: 'science-natural-satellites', pack: 'science',
+        id: 'science-natural-satellites', pack: 'science', medianLampreyScore: 45,
         text: 'Name a natural satellite in our Solar System. Earth\'s Moon counts; artificial spacecraft do not.',
         groups: [
           { tier: 0, answers: [{ text: 'Moon', aliases: ['the Moon', 'Earth Moon', "Earth's Moon", 'Luna'] }, { text: 'Titan', aliases: [] }] },
@@ -220,7 +223,7 @@
         ]
       },
       {
-        id: 'science-constellations', pack: 'science',
+        id: 'science-constellations', pack: 'science', medianLampreyScore: 45,
         text: 'Name one of the 88 constellations recognized by the International Astronomical Union. Asterisms alone do not count.',
         groups: [
           { tier: 0, answers: [{ text: 'Orion', aliases: ['Ori'] }, { text: 'Ursa Major', aliases: ['UMa', 'Great Bear'] }] },
@@ -232,7 +235,7 @@
         ]
       },
       {
-        id: 'science-human-bones', pack: 'science',
+        id: 'science-human-bones', pack: 'science', medianLampreyScore: 45,
         text: 'Name an individual bone in a typical adult human skeleton, not a joint or a group such as "the skull".',
         groups: [
           { tier: 0, answers: [{ text: 'Femur', aliases: ['thighbone', 'thigh bone'] }, { text: 'Tibia', aliases: ['shinbone', 'shin bone'] }] },
@@ -244,7 +247,7 @@
         ]
       },
       {
-        id: 'science-large-si-prefixes', pack: 'science',
+        id: 'science-large-si-prefixes', pack: 'science', medianLampreyScore: 45,
         text: 'Give the full name of an SI decimal prefix representing a factor greater than one. Do not give its symbol.',
         groups: [
           { tier: 0, answers: [{ text: 'Kilo', aliases: [] }, { text: 'Mega', aliases: [] }] },
@@ -256,7 +259,7 @@
         ]
       },
       {
-        id: 'science-standard-amino-acids', pack: 'science',
+        id: 'science-standard-amino-acids', pack: 'science', medianLampreyScore: 30,
         text: 'Name one of the 20 standard amino acids of the usual genetic code. Full names or three-letter abbreviations count.',
         groups: [
           { tier: 0, answers: [{ text: 'Glycine', aliases: ['Gly'] }, { text: 'Alanine', aliases: ['Ala'] }, { text: 'Leucine', aliases: ['Leu'] }, { text: 'Valine', aliases: ['Val'] }] },
@@ -268,7 +271,7 @@
         ]
       },
       {
-        id: 'words-three-letter-animals', pack: 'words',
+        id: 'words-three-letter-animals', pack: 'words', medianLampreyScore: 45,
         text: 'Give a common English name for an animal, spelled with exactly three letters. Use the singular form.',
         groups: [
           { tier: 0, answers: [{ text: 'Cat', aliases: [] }, { text: 'Dog', aliases: [] }] },
@@ -280,7 +283,7 @@
         ]
       },
       {
-        id: 'words-palindromes', pack: 'words',
+        id: 'words-palindromes', pack: 'words', medianLampreyScore: 45,
         text: 'Give a single English word of at least three letters that reads the same forward and backward. No proper names or acronyms.',
         groups: [
           { tier: 0, answers: [{ text: 'Level', aliases: [] }, { text: 'Rotator', aliases: [] }] },
@@ -292,7 +295,7 @@
         ]
       },
       {
-        id: 'words-ending-ear', pack: 'words',
+        id: 'words-ending-ear', pack: 'words', medianLampreyScore: 45,
         text: 'Give a four-letter English word ending in the letters EAR. No proper names or abbreviations.',
         groups: [
           { tier: 0, answers: [{ text: 'Hear', aliases: [] }, { text: 'Year', aliases: [] }] },
@@ -304,7 +307,7 @@
         ]
       },
       {
-        id: 'words-silent-k', pack: 'words',
+        id: 'words-silent-k', pack: 'words', medianLampreyScore: 45,
         text: 'Give an English word beginning with a silent K immediately followed by N. No proper names.',
         groups: [
           { tier: 0, answers: [{ text: 'Knee', aliases: [] }, { text: 'Knife', aliases: [] }] },
@@ -316,7 +319,7 @@
         ]
       },
       {
-        id: 'words-numbers-without-e', pack: 'words',
+        id: 'words-numbers-without-e', pack: 'words', medianLampreyScore: 45,
         text: 'Name a whole number from 0 through 100 whose English name contains no E. Digits are accepted; ignore spaces and hyphens.',
         groups: [
           { tier: 0, answers: [{ text: 'Two', aliases: ['2'] }, { text: 'Four', aliases: ['4'] }] },
@@ -328,7 +331,7 @@
         ]
       },
       {
-        id: 'words-double-o', pack: 'words',
+        id: 'words-double-o', pack: 'words', medianLampreyScore: 45,
         text: 'Give a single English word containing two adjacent letter Os, as in the spelling pattern OO. No proper names.',
         groups: [
           { tier: 0, answers: [{ text: 'Book', aliases: [] }, { text: 'Moon', aliases: [] }] },
@@ -340,7 +343,7 @@
         ]
       },
       {
-        id: 'words-short-instruments', pack: 'words',
+        id: 'words-short-instruments', pack: 'words', medianLampreyScore: 45,
         text: 'Give a single-word English name for a musical instrument, using at most five letters. Use the singular form.',
         groups: [
           { tier: 0, answers: [{ text: 'Piano', aliases: [] }, { text: 'Drum', aliases: [] }] },

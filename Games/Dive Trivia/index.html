@@ -17,38 +17,38 @@
   <div class="ocean-world" aria-hidden="true"></div>
   <a class="skip" href="#main">Skip to game</a>
   <header>
-    <a href="../../index.html" class="portal">ARCADE <span>/</span> BELOW THE OBVIOUS</a>
+    <a href="../../index.html" class="portal">Arcade <span>/</span> Below the Obvious</a>
     <div class="instruments"><button id="sonar" type="button" aria-pressed="false">Sonar off</button><button id="theme" type="button" aria-label="Switch to light theme">Light theme</button></div>
   </header>
-  <div class="masthead"><p>OFFLINE TRIVIA / SEVEN QUESTIONS / ONE DESCENT</p><h1>BELOW THE OBVIOUS</h1></div>
+  <div class="masthead"><h1>Below the Obvious</h1></div>
   <main id="main">
     <aside class="ocean" aria-label="Dive depth">
-      <div class="ocean-top"><span>RESEARCH VESSEL / 07</span><span>SOLO</span></div>
-      <div class="depth-readout"><div><strong id="depth">0</strong><span> m</span></div><p id="depth-mood">signal at the surface</p></div>
+      <div class="ocean-top"><span>Research vessel / 07</span><span>Solo</span></div>
+      <div class="depth-readout"><div><strong id="depth">0</strong><span> m</span></div><p id="depth-mood">Signal at the surface</p></div>
       <div class="depth-column">
         <div class="depth-line" aria-hidden="true"></div>
-        <div class="depth-labels" aria-hidden="true"><span style="--mark:0%">0 m / SURFACE</span><span style="--mark:6.4286%">450 m</span><span style="--mark:14.2857%">1,000 m</span><span style="--mark:34.2857%">2,400 m</span><span style="--mark:42.8571%">3,000 m</span><span style="--mark:100%">7,000 m / TRENCH</span></div>
-        <p class="water-note note-one">the surface folds into a whisper</p>
-        <p class="water-note note-two">small lights keep their own hours</p>
-        <p class="water-note note-three">even the quiet has a seafloor</p>
-        <div id="guide"><img src="guide.svg" width="104" height="104" alt="Glim, an original translucent deep-sea shrimp with a luminous cyan eye"><span class="beep" aria-hidden="true">beep</span></div>
+        <div class="depth-labels" aria-hidden="true"><span style="--mark:0%">0 m / Surface</span><span style="--mark:6.4286%">450 m</span><span style="--mark:14.2857%">1,000 m</span><span style="--mark:34.2857%">2,400 m</span><span style="--mark:42.8571%">3,000 m</span><span style="--mark:100%">7,000 m / Trench</span></div>
+        <p class="water-note note-one">The surface folds into a whisper</p>
+        <p class="water-note note-two">Small lights keep their own hours</p>
+        <p class="water-note note-three">Even the quiet has a seafloor</p>
+        <div id="guide"><img src="guide.svg" width="104" height="104" alt="Glim, an original translucent deep-sea shrimp with a luminous cyan eye"><span class="beep" aria-hidden="true">Beep</span></div>
       </div>
       <div class="ocean-bottom"><strong>Meet Glim.</strong><p id="guide-copy">Ready to dive.</p></div>
     </aside>
     <div class="workbench">
       <section id="launch" aria-labelledby="launch-title">
-        <p class="eyebrow">SEVEN QUESTIONS. ONE DESCENT.</p>
         <h1 id="launch-title">The less obvious<br>way down.</h1>
         <p class="intro">Find a rarer answer.</p>
         <div class="rules-summary" aria-label="25 seconds per question; maximum depth 7,000 metres"><span><b>25 s</b></span><span><b>7,000 m</b></span></div>
         <div class="daily-box"><div><h2>Daily dive</h2><p id="daily-date"></p></div><button id="playBtn" type="button">Start daily dive</button></div>
         <p id="last-result" class="muted"></p>
+        <button type="button" class="secondary" data-open-log>Dive log</button>
         <div class="other-modes">
           <div><h2>Pick a field trip</h2><label for="pack">Themed pack</label><select id="pack"></select><button id="start-pack" type="button">Start pack</button></div>
           <div><h2>Revisit a dive</h2><label for="number">Dive number</label><input id="number" type="number" min="1" max="999999" step="1" value="1" inputmode="numeric"><button id="start-number" type="button">Start numbered dive</button></div>
         </div>
         <p id="launch-error" role="alert"></p>
-        <details class="how"><summary>How to play</summary><p>One answer per prompt. Enter to lock, or Pass. Each point adds 10 m. Rarity is editor-assigned, not measured from players.</p><div id="tiers" class="tiers"></div><p>Case, accents and listed spellings are accepted. No spelling guesses. Unlisted answers score zero, even if valid. Daily prompts use UTC. Replays are practice.</p></details>
+        <details class="how"><summary>How to play</summary><p>One answer per prompt. Enter to lock, or Pass. Each point adds 10 m. Rarity is editor-assigned, not measured from players.</p><div id="tiers" class="tiers"></div><p>Case, accents and listed spellings are accepted. Close, unambiguous spellings earn one tier lower, with Shallows as the minimum. Short inputs and prefixes need an exact match. Unlisted answers score zero, even if valid. Accepted answers stay used across this seed's prompts and replays today. Daily prompts use UTC. The reef median is a fixed local benchmark from the answer tiers, not player data.</p></details>
       </section>
       <section id="game" hidden aria-labelledby="question">
         <div class="round-top"><span id="run-label" class="eyebrow"></span><span id="round-count"></span></div>
@@ -58,22 +58,35 @@
         <h1 id="question"></h1>
         <form id="answer-form">
           <label for="answer">Your answer</label>
-          <input id="answer" name="answer" maxlength="80" autocomplete="off" autocapitalize="none" spellcheck="false" enterkeyhint="send" aria-describedby="answer-help">
+          <input id="answer" name="answer" maxlength="80" autocomplete="off" autocapitalize="none" spellcheck="false" enterkeyhint="send" aria-describedby="answer-help answer-hint">
           <p id="answer-help" class="muted">Enter to lock. Unlisted answers score zero.</p>
+          <p id="answer-hint" role="status"></p>
           <div class="actions"><button id="submit-answer" type="submit">Lock answer</button><button id="pass" class="secondary" type="button">Pass</button></div>
         </form>
         <div id="reveal" hidden>
-          <div class="receipt" role="status"><span id="result-tier" class="eyebrow"></span><h2 id="result-title"></h2><p id="result-copy"></p></div>
+          <div class="receipt" role="status"><span id="result-tier" class="eyebrow"></span><h2 id="result-title"></h2><p id="result-copy"></p><p id="spelling-note" hidden></p><p id="round-median"></p></div>
           <details id="answer-key"><summary>Answer key</summary><div id="key-groups"></div></details>
           <button id="next" type="button">Next question</button>
         </div>
         <div class="run-footer"><span id="score">0 / 700 points</span><button id="quit" class="secondary" type="button">Leave dive</button></div>
       </section>
       <section id="finish" hidden aria-labelledby="finish-title">
-        <h1 id="finish-title">Dive complete.</h1><p id="finish-total" class="finish-total"></p><p id="finish-caption"></p>
-        <div class="actions"><button id="replay" type="button">Replay as practice</button><button id="home" class="secondary" type="button">Back to launch</button></div>
+        <h1 id="finish-title">Dive complete.</h1><p id="finish-total" class="finish-total"></p><p id="finish-caption"></p><p id="finish-median"></p>
+        <div class="actions"><button id="replay" type="button">Replay as practice</button><button id="home" class="secondary" type="button">Back to launch</button><button class="secondary" type="button" data-open-log>Dive log</button></div>
         <p id="save-status" class="muted" role="status"></p>
       </section>
+      <section id="dive-log" hidden aria-labelledby="log-title">
+        <h1 id="log-title" tabindex="-1">Dive log</h1>
+        <dl class="log-summary"><div><dt>Best depth</dt><dd id="log-best"></dd></div><div><dt>Daily streak</dt><dd id="log-streak"></dd></div><div><dt>Completed dives</dt><dd id="log-completed"></dd></div></dl>
+        <h2>Answer tiers</h2>
+        <ul id="log-tiers" class="log-tiers"></ul>
+        <h2>Dailies</h2>
+        <p id="log-empty" class="muted">No completed dailies yet.</p>
+        <table id="log-table"><caption>Best result per UTC day</caption><thead><tr><th scope="col">Day</th><th scope="col">Depth</th></tr></thead><tbody id="log-days"></tbody></table>
+        <p class="muted">Stored on this device. Tier totals include every completed dive. A daily counts toward your streak when all seven rounds are finished.</p>
+        <button id="log-home" type="button">Back to launch</button>
+      </section>
+      <p id="history-status" class="muted" role="status"></p>
       <footer>Offline solo. <span id="version"></span></footer>
     </div>
   </main>

@@ -12,6 +12,10 @@
   let theme = 'dark';
   let audio = null;
   let sonarEnabled = false;
+  const historyKey = 'dive-trivia:history:v2';
+  const history = core.parseHistory(stored(historyKey));
+  let seed = null;
+  let storageFailed = false;
 
   function sonar() {
     if (!sonarEnabled || !audio || audio.state !== 'running') return;
@@ -51,13 +55,13 @@
   }
   function stopClock() { clearInterval(timer); timer = null; }
   function screen(id) {
-    for (const name of ['launch', 'game', 'finish']) $(name).hidden = name !== id;
+    for (const name of ['launch', 'game', 'finish', 'dive-log']) $(name).hidden = name !== id;
   }
   function depth() {
     const total = run ? run.total : 0;
     $('depth').textContent = (total * 10).toLocaleString('en');
     const metres = total * 10;
-    $('depth-mood').textContent = metres === 0 ? 'signal at the surface' : metres < 1000 ? 'the last ripples travel with us' : metres < 3000 ? 'tiny lights measure the silence' : metres < 7000 ? 'the dark keeps a wider sky' : 'a signal from the floor of the world';
+    $('depth-mood').textContent = metres === 0 ? 'Signal at the surface' : metres < 1000 ? 'The last ripples travel with us' : metres < 3000 ? 'Tiny lights measure the silence' : metres < 7000 ? 'The dark keeps a wider sky' : 'A signal from the floor of the world';
     $('guide').style.top = (total / 700 * 100) + '%';
     $('score').textContent = total + ' / 700 points';
   }
@@ -80,12 +84,16 @@
   function start(mode, key) {
     try {
       const prompts = core.selectPrompts(data, { mode, key });
-      selection = { mode, key };
+      selection = { mode, key, date: mode === 'daily' ? key : core.utcDate() };
+      const id = core.historySeed(data.version, selection);
+      seed = history.seeds.find(item => item.id === id);
+      if (!seed) { seed = { id, answers: [] }; history.seeds.push(seed); }
       stopClock();
-      run = core.createRun(prompts, performance.now());
+      storageFailed = false;
+      run = core.createRun(prompts, performance.now(), seed.answers);
       $('launch-error').textContent = '';
       screen('game');
-      $('run-label').textContent = mode === 'daily' ? 'DAILY / ' + key : mode === 'numbered' ? 'DIVE / ' + key : 'PACK / ' + data.packs.find(p => p.id === key).title;
+      $('run-label').textContent = mode === 'daily' ? 'Daily / ' + key : mode === 'numbered' ? 'Dive / ' + key : 'Pack / ' + data.packs.find(p => p.id === key).title;
       showQuestion();
     } catch (error) {
       $('launch-error').textContent = 'Cannot start this dive: ' + error.message;
@@ -111,6 +119,7 @@
     $('answer-form').hidden = false;
     $('reveal').hidden = true;
     $('answer').value = '';
+    $('answer-hint').textContent = '';
     $('answer-key').open = false;
     $('guide-copy').textContent = 'What did you find?';
     depth(); tick();
@@ -119,7 +128,24 @@
   }
   function lock(input) {
     if (!run || run.phase !== 'question') return;
-    if (core.submit(run, input, performance.now())) showReveal();
+    if (core.submit(run, input, performance.now())) {
+      const result = run.records[run.index];
+      if (result.recognized) {
+        seed.answers = [...run.usedAnswers];
+        persistHistory();
+      }
+      showReveal();
+    } else {
+      $('answer-hint').textContent = run.hint;
+      $('answer').focus();
+    }
+  }
+  function persistHistory() {
+    storageFailed = !save(historyKey, JSON.stringify(history));
+    $('history-status').textContent = storageFailed ? 'Could not save on this device. History lasts only until this page closes.' : '';
+  }
+  function medianCopy(score, median) {
+    return 'Reef median: ' + median + ' pts. ' + (score > median ? 'You beat it.' : score === median ? 'You matched it.' : 'You finished below it.');
   }
   function showReveal() {
     stopClock();
@@ -129,9 +155,12 @@
     $('timer').textContent = result.timedOut ? 'Time up' : 'Locked';
     $('timer').classList.remove('urgent');
     $('time-bar').value = 0;
-    $('result-tier').textContent = result.recognized ? tiers[result.tier] + ' / +' + result.points + ' POINTS' : 'THIS ROUND / 0 POINTS';
+    $('result-tier').textContent = result.recognized ? tiers[result.tier] + ' / +' + result.points + ' points' : 'This round / 0 points';
     $('result-title').textContent = result.recognized ? result.answer : result.timedOut ? 'Time up.' : result.input ? 'Unlisted answer.' : 'Passed.';
     $('result-copy').textContent = result.recognized ? 'Depth: ' + (run.total * 10).toLocaleString('en') + ' m' : result.timedOut ? 'No answer locked.' : result.input ? '“' + result.input + '” · 0 pts' : 'Passed. 0 pts';
+    $('spelling-note').textContent = result.closeSpelling ? 'Accepted close spelling of ' + result.answer + '.' : '';
+    $('spelling-note').hidden = !result.closeSpelling;
+    $('round-median').textContent = medianCopy(result.points, run.prompts[run.index].medianLampreyScore);
     $('key-groups').replaceChildren(...run.prompts[run.index].groups.slice().sort((a, b) => a.tier - b.tier).map(group => {
       const p = node('p');
       p.append(node('b', tiers[group.tier] + ' · ' + points[group.tier] + ' points: '), document.createTextNode(group.answers.map(a => a.text).join(', ')));
@@ -149,9 +178,38 @@
     const best = run.records.reduce((pick, result) => result.recognized && (!pick || result.points > pick.points) ? result : pick, null);
     $('finish-caption').textContent = best ? 'Best find: ' + best.answer + ' · ' + best.points + ' pts' : 'Best find: none';
     const label = selection.mode === 'daily' ? 'Daily ' + selection.key : selection.mode === 'numbered' ? 'Dive ' + selection.key : data.packs.find(p => p.id === selection.key).title;
-    $('save-status').textContent = save('dive-trivia:last:v1', JSON.stringify({ label, total: run.total })) ? '' : 'Could not save on this device.';
+    core.logResult(history, selection, run);
+    persistHistory();
+    const savedLast = save('dive-trivia:last:v1', JSON.stringify({ label, total: run.total }));
+    $('save-status').textContent = savedLast && !storageFailed ? '' : 'Could not save on this device.';
+    $('finish-median').textContent = medianCopy(run.total, run.prompts.reduce((sum, prompt) => sum + prompt.medianLampreyScore, 0));
     $('guide-copy').textContent = 'Dive complete.';
     $('replay').focus();
+  }
+
+  function showLog() {
+    const stats = core.historyStats(history, core.utcDate());
+    screen('dive-log');
+    $('log-best').textContent = (stats.best * 10).toLocaleString('en') + ' m';
+    $('log-streak').textContent = stats.streak + (stats.streak === 1 ? ' day' : ' days');
+    $('log-completed').textContent = String(stats.completed);
+    $('log-tiers').replaceChildren(...stats.tiers.map((count, tier) => {
+      const row = node('li');
+      const meter = node('meter');
+      meter.min = 0; meter.max = Math.max(1, ...stats.tiers); meter.value = count;
+      meter.setAttribute('aria-label', tiers[tier] + ': ' + count + ' answers');
+      row.append(node('span', tiers[tier]), meter, node('b', String(count)));
+      return row;
+    }));
+    $('log-days').replaceChildren(...stats.days.map(result => {
+      const row = node('tr');
+      row.append(node('th', result.date), node('td', (result.total * 10).toLocaleString('en') + ' m'));
+      row.firstChild.scope = 'row';
+      return row;
+    }));
+    $('log-empty').hidden = stats.days.length > 0;
+    $('log-table').hidden = stats.days.length === 0;
+    $('log-title').focus();
   }
 
   try { core.validateData(data); } catch {
@@ -200,8 +258,10 @@
   $('answer-form').addEventListener('submit', event => { event.preventDefault(); lock($('answer').value); });
   $('pass').addEventListener('click', () => lock(''));
   $('next').addEventListener('click', () => { if (core.next(run, performance.now())) { if (run.phase === 'finished') finish(); else showQuestion(); } });
-  $('quit').addEventListener('click', () => { if (confirm('Leave this dive? This unfinished result will not be saved.')) launch(); });
+  $('quit').addEventListener('click', () => { if (confirm('Leave this dive? Answers stay used today, but unfinished scores are not saved.')) launch(); });
   $('home').addEventListener('click', launch);
+  $('log-home').addEventListener('click', launch);
+  document.querySelectorAll('[data-open-log]').forEach(button => button.addEventListener('click', showLog));
   $('replay').addEventListener('click', () => start(selection.mode, selection.key));
   window.addEventListener('resize', depth);
   window.addEventListener('pagehide', stopClock);

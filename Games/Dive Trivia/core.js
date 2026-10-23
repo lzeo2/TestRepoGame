@@ -28,7 +28,63 @@
         }
       }
     }
-    return unknown();
+    // Only whole-word spelling errors, never short symbols, digits or prefixes.
+    if (Array.from(value).length < 4 || Array.from(value).length > 80 || !/^[\p{L} ]+$/u.test(value)) return unknown();
+    let best = null;
+    let nearest = 3;
+    let ambiguous = false;
+    for (const group of prompt.groups) {
+      for (const answer of group.answers) {
+        for (const label of [answer.text, ...answer.aliases]) {
+          const candidate = normalize(label);
+          if (Array.from(candidate).length < 4 || !/^[\p{L} ]+$/u.test(candidate) ||
+              candidate.startsWith(value) || value.startsWith(candidate)) continue;
+          const distance = spellingDistance(value, candidate);
+          if (distance > 2 || distance >= Array.from(value).length / 2) continue;
+          if (distance < nearest) {
+            nearest = distance;
+            best = { answer: answer.text, tier: Math.max(0, group.tier - 1) };
+            ambiguous = false;
+          } else if (distance === nearest && best.answer !== answer.text) {
+            ambiguous = true;
+          }
+        }
+      }
+    }
+    if (!best || ambiguous) return unknown();
+    return { recognized: true, points: POINTS[best.tier], ...best, closeSpelling: true };
+  }
+
+  function spellingDistance(left, right) {
+    const a = Array.from(left), b = Array.from(right);
+    if (Math.abs(a.length - b.length) > 2) return 3;
+    // Full Damerau-Levenshtein, including edits around transposed letters.
+    // Inputs are capped at 80 code points by score/submit; keys are local data.
+    const limit = a.length + b.length;
+    const rows = Array.from({ length: a.length + 2 }, () => Array(b.length + 2).fill(0));
+    rows[0][0] = limit;
+    for (let i = 0; i <= a.length; i++) { rows[i + 1][0] = limit; rows[i + 1][1] = i; }
+    for (let j = 0; j <= b.length; j++) { rows[0][j + 1] = limit; rows[1][j + 1] = j; }
+    const seen = new Map();
+    for (let i = 1; i <= a.length; i++) {
+      let matched = 0;
+      for (let j = 1; j <= b.length; j++) {
+        const previous = seen.get(b[j - 1]) || 0;
+        const column = matched;
+        const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+        if (!cost) matched = j;
+        rows[i + 1][j + 1] = Math.min(rows[i][j] + cost, rows[i + 1][j] + 1,
+          rows[i][j + 1] + 1, rows[previous][column] + i - previous - 1 + 1 + j - column - 1);
+      }
+      seen.set(a[i - 1], i);
+    }
+    return rows[a.length + 1][b.length + 1];
+  }
+
+  function medianScore(prompt) {
+    const scores = prompt.groups.flatMap(group => group.answers.map(() => POINTS[group.tier])).sort((a, b) => a - b);
+    const middle = Math.floor(scores.length / 2);
+    return scores.length % 2 ? scores[middle] : (scores[middle - 1] + scores[middle]) / 2;
   }
 
   function requireData(condition, message) {
@@ -76,6 +132,7 @@
           }
         }
       }
+      requireData(prompt.medianLampreyScore === medianScore(prompt), 'Invalid reef median: ' + prompt.id);
     }
     for (const [id, count] of packs) requireData(count >= ROUND_COUNT, 'Pack needs seven prompts: ' + id);
     return true;
@@ -122,16 +179,27 @@
     return Number.isFinite(now) && Number.isFinite(now + ROUND_MS);
   }
 
-  function createRun(prompts, now) {
+  function createRun(prompts, now, usedAnswers = []) {
     requireData(Array.isArray(prompts) && prompts.length === ROUND_COUNT &&
       prompts.every(prompt => prompt && label(prompt.id) && Array.isArray(prompt.groups)) &&
       new Set(prompts.map(prompt => prompt.id)).size === ROUND_COUNT, 'Run needs seven distinct prompts');
     requireData(validNow(now), 'Supply a finite monotonic millisecond clock');
-    return { phase: 'question', index: 0, deadline: now + ROUND_MS, records: [], total: 0, prompts: prompts.slice() };
+    requireData(Array.isArray(usedAnswers) && usedAnswers.every(label), 'Invalid answer history');
+    return { phase: 'question', index: 0, deadline: now + ROUND_MS, records: [], total: 0,
+      prompts: prompts.slice(), usedAnswers: new Set(usedAnswers.map(normalize)), hint: '' };
   }
 
   function record(run, input, timedOut) {
     const result = timedOut ? unknown() : score(run.prompts[run.index], input);
+    run.hint = '';
+    if (result.recognized) {
+      const key = normalize(result.answer);
+      if (run.usedAnswers.has(key)) {
+        run.hint = 'Already answered. Try another answer.';
+        return false;
+      }
+      run.usedAnswers.add(key);
+    }
     run.records.push(Object.freeze({ promptId: run.prompts[run.index].id, input, ...result, timedOut }));
     run.total += result.points;
     run.phase = 'reveal';
@@ -163,5 +231,60 @@
     return true;
   }
 
-  globalThis.DiveCore = Object.freeze({ normalize, score, validateData, selectPrompts, utcDate, createRun, submit, expire, next });
+  function parseHistory(raw) {
+    const empty = { seeds: [], results: [] };
+    let value;
+    try { value = JSON.parse(raw); } catch { return empty; }
+    if (!value || !Array.isArray(value.seeds) || !Array.isArray(value.results)) return empty;
+    const seeds = value.seeds.filter(item => item && typeof item.id === 'string' && item.id.length <= 200 &&
+      Array.isArray(item.answers) && item.answers.every(answer => label(answer) && Array.from(answer).length <= 80))
+      .map(item => ({ id: item.id, answers: [...new Set(item.answers.map(normalize))] }));
+    const results = value.results.filter(item => item && ['daily', 'numbered', 'pack'].includes(item.mode) &&
+      typeof item.key === 'string' && item.key.length <= 80 && validDate(item.date) &&
+      (item.mode !== 'daily' || item.key === item.date) &&
+      Array.isArray(item.tiers) && item.tiers.length === POINTS.length &&
+      item.tiers.every(n => Number.isInteger(n) && n >= 0 && n <= ROUND_COUNT) &&
+      item.tiers.reduce((sum, n) => sum + n, 0) <= ROUND_COUNT &&
+      item.total === item.tiers.reduce((sum, n, tier) => sum + n * POINTS[tier], 0))
+      .map(item => ({ mode: item.mode, key: item.key, date: item.date, total: item.total, tiers: item.tiers.slice() }));
+    return { seeds, results };
+  }
+
+  function validDate(value) {
+    if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+    const date = new Date(value + 'T00:00:00.000Z');
+    return Number.isFinite(date.getTime()) && utcDate(date) === value;
+  }
+
+  function historySeed(version, selection) {
+    return JSON.stringify([version, selection.mode, selection.key, selection.date]);
+  }
+
+  function logResult(history, selection, run) {
+    if (run.phase !== 'finished') return false;
+    const tiers = POINTS.map((_, tier) => run.records.filter(record => record.recognized && record.tier === tier).length);
+    history.results.push({ ...selection, total: run.total, tiers });
+    return true;
+  }
+
+  function historyStats(history, today) {
+    const days = new Map();
+    const tiers = POINTS.map(() => 0);
+    let best = 0;
+    for (const result of history.results) {
+      best = Math.max(best, result.total);
+      result.tiers.forEach((count, tier) => { tiers[tier] += count; });
+      if (result.mode === 'daily' && (!days.has(result.date) || days.get(result.date).total < result.total)) days.set(result.date, result);
+    }
+    // A streak stays live until today's UTC daily has been missed.
+    let day = new Date(today + 'T00:00:00.000Z');
+    if (!days.has(utcDate(day))) day.setUTCDate(day.getUTCDate() - 1);
+    let streak = 0;
+    while (days.has(utcDate(day))) { streak++; day.setUTCDate(day.getUTCDate() - 1); }
+    return { best, streak, tiers, completed: history.results.length,
+      days: [...days.values()].sort((a, b) => b.date.localeCompare(a.date)) };
+  }
+
+  globalThis.DiveCore = Object.freeze({ normalize, score, medianScore, validateData, selectPrompts, utcDate,
+    createRun, submit, expire, next, parseHistory, historySeed, logResult, historyStats });
 }());
