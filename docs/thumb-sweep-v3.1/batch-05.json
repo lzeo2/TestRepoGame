@@ -1,0 +1,621 @@
+[
+  {
+    "id": 225,
+    "title": "Slipstream Borough: Police Chase (Preview)",
+    "head": "043bdaadba3aa54f1a602b17c5258fead35574fe",
+    "entry_blob": "80d0e859dcff8fad4abefc6a884c9db727dd5f11",
+    "source_tree": "794a8ca9eba92af4876c4091eebd4ef585181074",
+    "actions": [
+      [
+        "wait",
+        5000
+      ],
+      [
+        "selector",
+        "#start"
+      ],
+      [
+        "info"
+      ],
+      [
+        "snap"
+      ],
+      [
+        "info"
+      ],
+      [
+        "selector",
+        "#closeHelp"
+      ],
+      [
+        "hold",
+        "w",
+        5000
+      ],
+      [
+        "snap"
+      ],
+      [
+        "info"
+      ],
+      [
+        "click",
+        640,
+        450
+      ],
+      [
+        "hold",
+        "ArrowUp",
+        4000
+      ],
+      [
+        "snap"
+      ],
+      [
+        "info"
+      ]
+    ],
+    "errors": [],
+    "external": [],
+    "http_errors": [],
+    "candidates": [
+      {
+        "file": "225-0.jpg",
+        "sha256": "0e0e6d8eb37555f942dab15182d698d59b445fa50fc0354352faf1fe457747eb"
+      },
+      {
+        "file": "225-1.jpg",
+        "sha256": "ea4c4a89342940480d7ae1841d70e709ea5a1f3f49b7ef101a29e8a28f5bd66b"
+      },
+      {
+        "file": "225-2.jpg",
+        "sha256": "d9ad9eedf811a25f6daab560aefc6d8dc205fc603f4b4730f46e2178c9b256fd"
+      }
+    ],
+    "seconds": 73.23,
+    "reason": "captured: native Start, Got it closes Help, canvas focus, held Up; unobstructed city drive with moving HUD.",
+    "output": "assets/thumbs/slipstreamboroughpolicechasepreview.jpg",
+    "previous_sha256": "a2e5e0343d72782f963d7fb08e99bc5a5f2448eb254aedcdda7b0572f8b1600f",
+    "status": "captured",
+    "accepted_candidate": "225-2.jpg",
+    "output_sha256": "3fc018b9f1db20bdfdf052fb8c1c17cb10637384693c9cbab9120aefc9a85b8b",
+    "output_bytes": 84855
+  },
+  {
+    "id": 228,
+    "title": "Borough Run",
+    "head": "043bdaadba3aa54f1a602b17c5258fead35574fe",
+    "entry_blob": "64788541512529d8e7303810684dc9bb7c5fb529",
+    "source_tree": "15fb5633a873ec57bfd2828e89abf8e5031920e0",
+    "actions": [
+      [
+        "wait",
+        1000
+      ],
+      [
+        "snap"
+      ],
+      [
+        "info"
+      ],
+      [
+        "selector",
+        "#play"
+      ],
+      [
+        "key",
+        "e"
+      ],
+      [
+        "hold",
+        "ArrowUp",
+        1500
+      ],
+      [
+        "key",
+        "Escape"
+      ],
+      [
+        "snap"
+      ],
+      [
+        "click",
+        519,
+        402
+      ],
+      [
+        "click",
+        720,
+        470
+      ],
+      [
+        "key",
+        "e"
+      ],
+      [
+        "hold",
+        "ArrowUp",
+        2000
+      ],
+      [
+        "snap"
+      ]
+    ],
+    "errors": [],
+    "external": [],
+    "http_errors": [],
+    "candidates": [
+      {
+        "file": "228-0.jpg",
+        "sha256": "106f70ce8b4ad57934de9b3dfbfe67d1cc85869f1c6c1bd3b5fb35cca48f4664"
+      },
+      {
+        "file": "228-1.jpg",
+        "sha256": "a98199599f6319dece2044c6a273178070a62baacf3130933a18dc6f79c855b6"
+      },
+      {
+        "file": "228-2.jpg",
+        "sha256": "60b535bf019d2634c539f1a2c704168cd69a7c4363ca0c60c06bfc31473f86c6"
+      }
+    ],
+    "seconds": 25.58,
+    "reason": "needs-manual: native Play/Start and driving leave persistent start overlay covering scene; missing hidden CSS rule not patched.",
+    "output": "assets/thumbs/boroughrun.jpg",
+    "previous_sha256": "0f319525d0d7a7a7f5f19c87655cf7a942d54b6b6ccc7b257b26acf62a4afe67",
+    "status": "needs-manual",
+    "output_sha256": "0f319525d0d7a7a7f5f19c87655cf7a942d54b6b6ccc7b257b26acf62a4afe67",
+    "output_bytes": 8724
+  },
+  {
+    "id": 87,
+    "title": "Doge Miner",
+    "head": "043bdaadba3aa54f1a602b17c5258fead35574fe",
+    "entry_blob": "a5467cc2f5f360ee6652a38c4d48136447d561e6",
+    "source_tree": "76cfddcf17d7ae17d38bf04bd41797a946ea5c8e",
+    "actions": [
+      [
+        "wait",
+        12000
+      ],
+      [
+        "snap"
+      ],
+      [
+        "info"
+      ],
+      [
+        "selector",
+        "#start-playing"
+      ],
+      [
+        "wait",
+        10000
+      ],
+      [
+        "click",
+        640,
+        390
+      ],
+      [
+        "key",
+        "Enter"
+      ],
+      [
+        "snap"
+      ]
+    ],
+    "errors": [
+      "Invalid or unexpected token"
+    ],
+    "external": [],
+    "http_errors": [],
+    "candidates": [
+      {
+        "file": "87-0.jpg",
+        "sha256": "7796df69985091d7d668910799fdf9e2d3c90135ca0e319d69bb61bd59d72a38"
+      },
+      {
+        "file": "87-1.jpg",
+        "sha256": "59234ef65f50c76a049df233033cd416fe48567a887e941a1639c78749b1943b"
+      }
+    ],
+    "seconds": 50.86,
+    "reason": "needs-manual: Dogeminer loading modal never exposed working Start; known main.js parse blocker, no mining handlers.",
+    "output": "assets/thumbs/dogeminer.jpg",
+    "previous_sha256": "d96baacd3c0db785f53b048d71955d8bd81fff0f55ba5a8712b7d8f3997ba0f8",
+    "status": "needs-manual",
+    "output_sha256": "d96baacd3c0db785f53b048d71955d8bd81fff0f55ba5a8712b7d8f3997ba0f8",
+    "output_bytes": 12708
+  },
+  {
+    "id": 81,
+    "title": "Drift Boss",
+    "head": "043bdaadba3aa54f1a602b17c5258fead35574fe",
+    "entry_blob": "8c1563ffbeecef8c83ff0856ee5340cebbd59890",
+    "source_tree": "f637b2fb141ed65613ab4008a5921202830df82f",
+    "actions": [
+      [
+        "wait",
+        14000
+      ],
+      [
+        "key",
+        "Space"
+      ],
+      [
+        "snap"
+      ],
+      [
+        "info"
+      ],
+      [
+        "wait",
+        3000
+      ],
+      [
+        "click",
+        640,
+        530
+      ],
+      [
+        "hold",
+        "Space",
+        600
+      ],
+      [
+        "snap"
+      ],
+      [
+        "wait",
+        2000
+      ],
+      [
+        "click",
+        640,
+        570
+      ],
+      [
+        "wait",
+        1500
+      ],
+      [
+        "snap"
+      ],
+      [
+        "click",
+        640,
+        630
+      ],
+      [
+        "wait",
+        1500
+      ],
+      [
+        "snap"
+      ],
+      [
+        "wait",
+        1500
+      ],
+      [
+        "click",
+        640,
+        590
+      ],
+      [
+        "wait",
+        1000
+      ],
+      [
+        "snap"
+      ],
+      [
+        "click",
+        640,
+        525
+      ],
+      [
+        "wait",
+        1500
+      ],
+      [
+        "snap"
+      ],
+      [
+        "hold",
+        "Space",
+        1300
+      ],
+      [
+        "wait",
+        1200
+      ],
+      [
+        "hold",
+        "Space",
+        1500
+      ],
+      [
+        "wait",
+        1000
+      ],
+      [
+        "snap"
+      ],
+      [
+        "hold",
+        "Space",
+        3500
+      ],
+      [
+        "wait",
+        1500
+      ],
+      [
+        "hold",
+        "Space",
+        2000
+      ],
+      [
+        "wait",
+        1000
+      ],
+      [
+        "snap"
+      ],
+      [
+        "click",
+        640,
+        500
+      ],
+      [
+        "hold",
+        "Space",
+        1800
+      ],
+      [
+        "snap"
+      ]
+    ],
+    "errors": [],
+    "external": [],
+    "http_errors": [],
+    "candidates": [
+      {
+        "file": "81-0.jpg",
+        "sha256": "54812fdcc95f30c5fd38b7b8d4d75f23840a8741f923ee846a31fb9aa10bdc53"
+      },
+      {
+        "file": "81-1.jpg",
+        "sha256": "0c94d2e8e54fed8e36801d53bc663d6a62858ee0499dda012d1f6c106f60a0e9"
+      },
+      {
+        "file": "81-2.jpg",
+        "sha256": "3cf132e2dd4273cce0764c4d4dd7eb9d0bb43f574bd8b167d06d8b47532ed75f"
+      },
+      {
+        "file": "81-3.jpg",
+        "sha256": "0867b4a12fcda5982eeb35e3322612bb4ef6bdd01251e1bd51e34f6b7355688c"
+      },
+      {
+        "file": "81-4.jpg",
+        "sha256": "825c729c9f569552abc1c3ea9f84f6123b919b7164d0c395390280cef56f0a3e"
+      },
+      {
+        "file": "81-5.jpg",
+        "sha256": "56baa9216ecccebe543ab9539c459816887cab168d74446c26853794b6b7c37a"
+      },
+      {
+        "file": "81-6.jpg",
+        "sha256": "1ed0fe786d80e6c15814b217d69c1b8f9f543f6386e29878a43d71e349913e91"
+      },
+      {
+        "file": "81-7.jpg",
+        "sha256": "4ee8d3f2b39fba423ba4d5bee53381a8b0216e98f765b26d693d1a4d3a908671"
+      },
+      {
+        "file": "81-8.jpg",
+        "sha256": "d17cbe9199d1519c4ba9d12a56e7b344d07a86c9918eec311373e49cca24b4c7"
+      }
+    ],
+    "seconds": 164.77,
+    "reason": "captured: native Play, booster tutorial continue, Start Drift; actively steering original playable driving tutorial, not endless run.",
+    "output": "assets/thumbs/driftboss.jpg",
+    "previous_sha256": "e45782c83e2fb95b43be2fbc0cc003f5ef24b4020533ef426121dec326602242",
+    "status": "captured",
+    "accepted_candidate": "81-8.jpg",
+    "output_sha256": "3a796532c274440c629ed861c4f2b5f94615354ab5b67278db77aacb6ff1ed6f",
+    "output_bytes": 68064
+  },
+  {
+    "id": 80,
+    "title": "Bloons TD",
+    "head": "043bdaadba3aa54f1a602b17c5258fead35574fe",
+    "entry_blob": "c35bbf9cb6cedb3ab11062f0d000e009621defd8",
+    "source_tree": "cb803cd16c4bd542e64699192fffef5363f7a51b",
+    "actions": [
+      [
+        "selector",
+        "a[href=\"btd4/index.html\"]"
+      ],
+      [
+        "wait",
+        12000
+      ],
+      [
+        "snap"
+      ],
+      [
+        "wait",
+        15000
+      ],
+      [
+        "click",
+        640,
+        400
+      ],
+      [
+        "snap"
+      ],
+      [
+        "click",
+        980,
+        703
+      ],
+      [
+        "wait",
+        2000
+      ],
+      [
+        "snap"
+      ],
+      [
+        "click",
+        630,
+        110
+      ],
+      [
+        "wait",
+        1000
+      ],
+      [
+        "snap"
+      ],
+      [
+        "click",
+        430,
+        235
+      ],
+      [
+        "wait",
+        700
+      ],
+      [
+        "snap"
+      ],
+      [
+        "click",
+        422,
+        283
+      ],
+      [
+        "wait",
+        800
+      ],
+      [
+        "click",
+        640,
+        540
+      ],
+      [
+        "snap"
+      ],
+      [
+        "click",
+        970,
+        445
+      ],
+      [
+        "click",
+        912,
+        113
+      ],
+      [
+        "click",
+        535,
+        160
+      ],
+      [
+        "click",
+        942,
+        566
+      ],
+      [
+        "wait",
+        1000
+      ],
+      [
+        "snap"
+      ],
+      [
+        "click",
+        585,
+        446
+      ],
+      [
+        "wait",
+        500
+      ],
+      [
+        "click",
+        912,
+        113
+      ],
+      [
+        "click",
+        535,
+        160
+      ],
+      [
+        "click",
+        942,
+        566
+      ],
+      [
+        "wait",
+        1000
+      ],
+      [
+        "snap"
+      ]
+    ],
+    "errors": [],
+    "external": [
+      "core.mochibot.com",
+      "www.google-analytics.com",
+      "www.kongregate.com"
+    ],
+    "http_errors": [],
+    "candidates": [
+      {
+        "file": "80-0.jpg",
+        "sha256": "4b3816a0507b9c1dd2caaa6d1c8ef15ae9f88d2901178fadf2158a0928e6af59"
+      },
+      {
+        "file": "80-1.jpg",
+        "sha256": "227bf6976b7c647dba346c950b176390cb82b411464f440ca471985e701727a3"
+      },
+      {
+        "file": "80-2.jpg",
+        "sha256": "4fa997f96acb63e62e0e25e507dddda686ae71d1e417376565f6584cb43ea518"
+      },
+      {
+        "file": "80-3.jpg",
+        "sha256": "531e58f5bf986078800594cace54ee84ba9e01dfc141d821e1018f1e64f52696"
+      },
+      {
+        "file": "80-4.jpg",
+        "sha256": "f2dcac0aba96580e0828aa57854874448e70e6b311bfd5f56fc4011472afaeeb"
+      },
+      {
+        "file": "80-5.jpg",
+        "sha256": "0e9e4c80910280194333407845d8c48c3ea53a2c13be299a9f89dee78af9e916"
+      },
+      {
+        "file": "80-6.jpg",
+        "sha256": "338edeff94220f75ba278b6556f83d4d2d22ae0186e90726200e19d1f2c0f5f1"
+      },
+      {
+        "file": "80-7.jpg",
+        "sha256": "dd5a939adc20f26946fab26d66bfd71655bdcb83d70f92ccba83216c6b0df080"
+      }
+    ],
+    "seconds": 153.05,
+    "reason": "capture review pending: native BTD4 beginner/Easy, dismiss tower popup, place dart and start round attempted.",
+    "output": "assets/thumbs/bloonstd.jpg",
+    "previous_sha256": "ac39e81fb7c7f5f164a67682aef2f02ff0439616074bbf7e65c3dc448bc99651",
+    "status": "needs-manual",
+    "output_sha256": "ac39e81fb7c7f5f164a67682aef2f02ff0439616074bbf7e65c3dc448bc99651",
+    "output_bytes": 17353
+  }
+]

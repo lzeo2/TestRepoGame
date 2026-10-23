@@ -495,3 +495,21 @@ free space **3,031,678,976 bytes** before promotion.
 | 117 | Mario Kart Super Circuit | captured | 50cc/Mushroom Cup via Z; held Z accelerates during live lap-one Peach Circuit race. |
 | 115 | Street Fighter II | captured | Arcade/Normal/Ryu via native keys; moving/attacking in live Ryu versus T.Hawk bout. |
 | 116 | Advance Wars | needs-manual, old art retained | Name confirmed and Field Training reached, but lengthy intro dialogue did not reach a playable turn within the 180s allowance. |
+
+### Batch 5: driving cards and source-blocked loaders
+
+**2 accepted / 5 attempted.** Running continuation: **15 captured, 10 needs-manual,
+27 not yet attempted.** [Actions/source/output receipt](thumb-sweep-v3.1/batch-05.json).
+Manuals read, native clicks/keys only, same real viewport and deadline; five-game
+browser/server released. Free space **3,028,369,408 bytes** before promotion.
+Drift Boss is actual interactive driving training, not a main-menu/promotional
+car frame or evidence of an endless-run completion. The snapshot shows a live
+steered car with the game's original tutorial instructions. No text was hidden.
+
+| ID | Game | v3.1 status | Native route / reason |
+| --- | --- | --- | --- |
+| 225 | Slipstream Borough preview | captured | Start, Got it, click scene for focus, hold Up. Unobstructed city driving and changing distance/speed HUD. |
+| 228 | Borough Run | needs-manual, old art retained | Play/Start, E and Up reached start/busted overlays, not reviewed unobstructed driving; known overlay stylesheet hold remains. |
+| 87 | Doge Miner | needs-manual, old art retained | Loading modal persists; Start remains hidden after waits/click/Enter. Known main.js parser blocker unchanged. |
+| 81 | Drift Boss | captured | Click Play, continue booster guidance, Start Drift, held/released Space; live steering tutorial car on original track. |
+| 80 | Bloons TD | needs-manual, old art retained | Native hub link to BTD4, skip intro, New Game, beginner/Easy. New-tower popup persisted during placement/start attempts, no active-wave capture. Other three hub children not claimed playable. |
