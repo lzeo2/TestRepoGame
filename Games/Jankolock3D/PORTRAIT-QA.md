@@ -1,10 +1,37 @@
-# Portrait lobby verification: dedicated run skipped
+# Portrait lobby verification
+
+## Approved-directory follow-up
+
+The operator approved the maintenance audit directory. A fresh dedicated run
+now passes with exactly one browser attempt: two native 1280x720 normal-lobby
+captures (dark/light) and one explicitly labeled unscaled crop, 69 HTTP200
+responses, zero retained errors, and 64 stable runtime/config/model hashes.
+Evidence: `docs/maintenance/audits/jankolock-3d-qa/portrait-resume/`.
+The original SKIP receipt and historical account below remain unchanged.
+
+A new zero-attempt preflight SKIP is retained in `portrait-resume-preflight-skip/`.
+The broad process search could match shell arguments containing a cleanup search
+for Chrome. The runner now tests actual process names and Playwright driver
+commands, excluding zombies, rather than arbitrary shell text. Run
+`python3 -B Games/Jankolock3D/portrait-qa-test.py` for the no-browser regression.
+Output now goes exclusively to the approved audit directory; an existing output
+directory must be archived before another run rather than overwritten.
+
+Saved-image review shows the supplied face relief inside its display frame in
+both themes, unobscured by hero selection. The surface remains soft and shallow;
+framing does not prove scan quality, likeness clearance, glass realism, or a
+360-degree model. The crop is not a third camera view. Lobby/no-fixture state,
+exact portrait metadata and local asset pins passed. Browser/server cleanup was
+verified and the parent received explicit release. No gameplay/model/catalog
+change, full-fleet gate, supported-hardware or independent H grade is claimed.
+
+## Historical dedicated-run account
 
 This is builder evidence, not acceptance H, full-game QA or an escape-room game
 claim. No asset or integration code was changed. Asset commit `a6b273a` and its
 original receipt remain untouched. CREDITS was not updated with a visual claim.
 
-## Actual run
+### Original skipped run
 
 `TMPDIR=/dev/shm timeout --signal=TERM --kill-after=5s 100s python3 -B
 Games/Jankolock3D/portrait-qa.py` exited 1. Its preflight reported:
