@@ -7,7 +7,6 @@ Serves tracked HEAD game blobs directly, including sparse-excluded dependencies.
 No checkout, downloads, state injection, or automatic thumbnail acceptance.
 """
 import argparse
-import functools
 import hashlib
 import http.server
 import io
@@ -27,13 +26,17 @@ from capture_game_thumbs import ROOT, VIEWPORT, CHROME, require_space, require_r
 OUT = Path('/dev/shm/thumb-sweep-v3')
 
 
+class CaptureBudgetExceeded(BaseException):
+    """Bypass best-effort UI catches so the hard game deadline cannot be swallowed."""
+
+
 def git(*args):
     return subprocess.check_output(['git', *args], cwd=ROOT)
 
 
-def tracked():
+def tracked(ref='HEAD'):
     files = {}
-    for row in git('ls-tree', '-rz', 'HEAD').split(b'\0'):
+    for row in git('ls-tree', '-rz', ref).split(b'\0'):
         if row:
             meta, path = row.split(b'\t', 1)
             mode, kind, oid = meta.split()
@@ -156,6 +159,12 @@ def sheet(batch, records):
     image.save(OUT / f'batch-{batch:02d}.jpg', quality=85)
 
 
+def merge_records(previous, records):
+    merged = dict(previous)
+    merged.update((r['index'], r) for r in records)
+    return [merged[index] for index in sorted(merged)]
+
+
 def capture(batch, only=None, steps=None):
     require_space()
     assert os.environ.get('TMPDIR') == '/dev/shm', 'Use RAM browser scratch: TMPDIR=/dev/shm'
@@ -164,9 +173,9 @@ def capture(batch, only=None, steps=None):
     assert siblings.returncode == 1, 'Sibling Chromium active; sequence captures instead'
     OUT.mkdir(exist_ok=True)
     games = json.loads((ROOT / 'games.json').read_text())
-    files = tracked()
-    assert all(g['url'] in files for g in games)
     head = git('rev-parse', 'HEAD').decode().strip()
+    files = tracked(head)
+    assert all(g['url'] in files for g in games)
     report_path = OUT / f'batch-{batch:02d}.json'
     previous_records = {r['index']: r for r in json.loads(report_path.read_text())} if report_path.exists() else {}
     records = []
@@ -187,7 +196,7 @@ def capture(batch, only=None, steps=None):
                     require_space()
                     game = games[index]
                     record = dict(index=index+1, id=game['id'], title=game['title'], head=head,
-                        entry_blob=files[game['url']], source_tree=git('rev-parse', 'HEAD:' + '/'.join(game['url'].split('/')[:2])).decode().strip(),
+                        entry_blob=files[game['url']], source_tree=git('rev-parse', head + ':' + '/'.join(game['url'].split('/')[:2])).decode().strip(),
                         status='unreviewed', actions=[], errors=[], external=[], http_errors=[])
                     start = time.monotonic()
                     context = browser.new_context(viewport=VIEWPORT, device_scale_factor=1)
@@ -204,10 +213,11 @@ def capture(batch, only=None, steps=None):
                     page.on('pageerror', lambda error: record['errors'].append(str(error)[:300]))
                     page.on('response', lambda r: record['http_errors'].append(str(r.status)+' '+urlsplit(r.url).path) if r.status >= 400 else None)
                     def expired(*_):
-                        raise TimeoutError('120 second automation budget exhausted')
+                        raise CaptureBudgetExceeded('120 second automation budget exhausted')
                     previous = signal.signal(signal.SIGALRM, expired)
                     prior_seconds = previous_records.get(index+1, {}).get('seconds', 0)
                     if prior_seconds >= 110:
+                        signal.signal(signal.SIGALRM, previous)
                         context.close()
                         records.append(previous_records[index+1])
                         continue
@@ -227,11 +237,11 @@ def capture(batch, only=None, steps=None):
                             for action in steps:
                                 record['actions'].append(action)
                                 if action[0] == 'click':
-                                    page.mouse.click(*action[1:])
+                                    page.mouse.click(*action[1:], delay=120)
                                 elif action[0] == 'wait':
                                     page.wait_for_timeout(action[1])
                                 elif action[0] == 'key':
-                                    page.keyboard.press(action[1])
+                                    page.keyboard.press(action[1], delay=120)
                                 elif action[0] == 'hold':
                                     page.keyboard.down(action[1])
                                     page.wait_for_timeout(action[2])
@@ -240,6 +250,9 @@ def capture(batch, only=None, steps=None):
                                     page.locator(action[1]).first.click(timeout=2000)
                                 elif action[0] == 'fill':
                                     page.locator(action[1]).fill(action[2])
+                                elif action[0] == 'scroll':
+                                    page.mouse.wheel(0, action[1])
+                                    page.wait_for_timeout(250)
                                 else:
                                     raise ValueError('Unknown native action: '+str(action))
                         data = page.screenshot(type='jpeg', quality=78, timeout=15000)
@@ -252,7 +265,7 @@ def capture(batch, only=None, steps=None):
                         record['candidate_sha256'] = hashlib.sha256(data).hexdigest()
                         record['text'] = page.locator('body').inner_text(timeout=2500)[:2000]
                         record['buttons'] = page.locator('button,input[type=button],a').evaluate_all('(els)=>els.filter(e=>e.getClientRects().length).map(e=>({tag:e.tagName,id:e.id,text:e.innerText||e.value})).slice(0,40)')
-                    except Exception as exc:
+                    except (Exception, CaptureBudgetExceeded) as exc:
                         record['status'] = 'needs-manual'
                         record['reason'] = f'{type(exc).__name__}: {str(exc)[:180]}'
                     finally:
@@ -261,18 +274,22 @@ def capture(batch, only=None, steps=None):
                         context.close()
                     record['seconds'] = round(prior_seconds+time.monotonic()-start, 2)
                     records.append(record)
-                    (OUT / f'batch-{batch:02d}.json').write_text(json.dumps(records, indent=2)+'\n')
+                    report_path.write_text(json.dumps(merge_records(previous_records, records), indent=2)+'\n')
                     print(f'{index+1:03d} {game["title"]}: {record["status"]} {record["seconds"]}s', flush=True)
             finally:
                 browser.close()
     finally:
         server.shutdown()
         server.server_close()
+    report_path.write_text(json.dumps(merge_records(previous_records, records), indent=2)+'\n')
     sheet(batch, records)
     print(f'Batch {batch} closed browser/server; review {OUT.name}/batch-{batch:02d}.jpg', flush=True)
 
 
 def self_test():
+    assert not isinstance(CaptureBudgetExceeded(), Exception)
+    assert merge_records({1: {'index': 1, 'old': True}, 2: {'index': 2}},
+                         [{'index': 1, 'new': True}]) == [{'index': 1, 'new': True}, {'index': 2}]
     assert request_path('/Games/Character%20AI/Alsen.html?v=1') == 'Games/Character AI/Alsen.html'
     assert request_path('/') == 'index.html'
     for bad in ('/Games/../a', '/Games/%2e%2e/a', '/Games/A%5cB', '/a%00'):
@@ -301,7 +318,7 @@ def self_test():
     finally:
         server.shutdown()
         server.server_close()
-    print('PASS: URL guards, sparse HEAD blob identity, genuine missing-file HTTP 404')
+    print('PASS: retry record preservation, URL guards, sparse HEAD blob identity, genuine missing-file HTTP 404')
 
 
 if __name__ == '__main__':

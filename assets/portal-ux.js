@@ -144,9 +144,8 @@
     'House of Hazards': '<svg viewBox="0 0 80 80" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M16 40 L40 18 L64 40"/><rect x="22" y="40" width="36" height="28" rx="2" fill="#fff" fill-opacity="0.08"/><rect x="34" y="52" width="12" height="16" rx="1"/><path d="M14 52 L10 58 M14 48 L8 42" stroke-width="2"/><path d="M66 52 L70 58 M66 48 L72 42" stroke-width="2"/></svg>',
   };
 
-  /* Real game thumbnails (480x100 seraph banner strips center-cropped to
-     16:9, vendored in assets/thumbs/). 53 games have real art; the rest
-     keep the SVG icon system. */
+  /* Local game captures in assets/thumbs/. Explicit names override title slugs;
+     unavailable images retain the SVG fallback. See docs/thumb-sweep-v3.md. */
   var THUMBS = {
   "10 Minutes Till Dawn": "10minutestilldawn",
   "A Dark Room": "adarkroom",
@@ -167,14 +166,14 @@
   "Cut the Rope": "cuttherope",
   "Doge Miner": "dogeminer",
   "Doodle Jump": "doodlejump",
-  "Doodle Jump Hacked": "doodlejump",
+  "Doodle Jump Hacked": "doodlejumphacked",
   "Dr. Mario": "drmario",
   "Drift Boss": "driftboss",
   "Fancy Pants Adventure 3": "fancypantsadventure3",
   "Fleeing the Complex": "fleeingthecomplex",
-  "Fireboy and Watergirl Hacked (Light Temple)": "fireboyandwatergirl",
-  "Fireboy and Watergirl Forest Temple Hacked": "fireboywatergirlforesttemple",
-  "Fireboy and Watergirl Crystal Temple Hacked": "fireboywatergirl4crystaltemple",
+  "Fireboy and Watergirl Hacked (Light Temple)": "fireboyandwatergirlhackedlighttemple",
+  "Fireboy and Watergirl Forest Temple Hacked": "fireboyandwatergirlforesttemplehacked",
+  "Fireboy and Watergirl Crystal Temple Hacked": "fireboyandwatergirlcrystaltemplehacked",
   "Merge Cats Defender Hacked": "mergecatsdefender",
   "Geometry Dash Lite": "geometrydashlite",
   "Gladihoppers": "gladihoppers",
@@ -191,7 +190,7 @@
   "Retro Bowl Hacked": "retrobowl",
   "Run 3": "run3",
   "Snake": "snake",
-  "Snake Hacked": "snake",
+  "Snake Hacked": "snakehacked",
   "Soccer Random": "soccerrandom",
   "Sonic Advance": "sonicadvance",
   "Stranded In Isekai": "strandedinisekai",

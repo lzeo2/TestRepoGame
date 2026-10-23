@@ -89,6 +89,19 @@ its resolved URL permits a later attempt. Thumbnail loading does not establish
 that the underlying game loads or plays. See the [thumbnail sweep](../audits/thumbs-sweep-20261021.md)
 for capture guards, final counts and known local-source gaps. The [shipping receipt](../audits/thumbs-ship-20261021.md) records the merged 127-game catalog, four fresh portal theme/viewport checks, 110 loaded card images, 17 SVG fallbacks and the operator's full-gate exception for this push.
 
+## Fresh thumbnail sweep v3
+
+The [v3 receipt](../../thumb-sweep-v3.md) records a new registered-catalog sweep,
+not reuse of the earlier loader/shell captures. The batch tool serves immutable
+HEAD game blobs directly from Git, including sparse-excluded dependencies; it
+requires HTTP 200 and leaves acceptance to visual review. Accepted images retain
+the 1280x720 viewport and use optimized progressive JPEG. Rejected loaders,
+menus, unavailable renderers and timed-out automation retain the old image (or
+existing SVG fallback); no game source is repaired by this sweep. Fresh hacked
+Snake, Doodle Jump and three Fireboy captures use their own files, not aliases
+of the base game.
+The tool regression covers safe paths, exact Git blob delivery and real 404s.
+
 ## Safe refurbishment and verification
 
 Smallest fixes belong in authored UX shared helpers: search routing, recent validation, catalog retry/status and DOM reconciliation. Keep bundle DOM class contracts and preserve title/ID identity separately. Do not hand-edit compiled React or replace working game menus. Density controls, copy-link/share actions, deep-link query state, custom scroll-spy and account features were **not found** in the audited authored portal/application tail. `portal-share.png` is metadata imagery, not a share widget. Motion-library IntersectionObserver code is not proof of an active portal scroll feature.
