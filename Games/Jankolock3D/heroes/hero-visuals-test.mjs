@@ -151,10 +151,13 @@ geometryDisposed(0); fx.update(0.75); assert.equal(fx.count, 0); assert.equal(sc
   live = []; fx.update(.0625); assert.ok(boxes().every(p => !p.visible));
   live = [vector(4, 5, 6), vector(7, 8, 9)]; fx.update(.0625);
   const pooled = [...reveal.group.children], materials = new Set(meshes(reveal.group).map(p => p.material));
-  const disposed = countDisposals(materials);
+  const disposed = countDisposals(materials), resources = pooled.map(p => [p.geometry, p.material]);
   for (let i = 0; i < 40; i++) {
     live = [vector(i, 0, -i)]; reveal.position.set(i / 2, 1, 2); fx.update(0);
     assert.deepEqual(reveal.group.children, pooled); assert.equal(boxes().filter(p => p.visible).length, 1);
+    pooled.forEach((part, index) => {
+      assert.equal(part.geometry, resources[index][0]); assert.equal(part.material, resources[index][1]);
+    });
     near(boxes()[0].getWorldPosition(vector()), live[0].clone().add(vector(0, .95, 0)));
     disposed(0); assert.equal(reveal.remaining, .125);
   }

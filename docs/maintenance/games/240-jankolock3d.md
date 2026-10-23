@@ -364,109 +364,57 @@ Disk recovery allowed only final docs/index work under a bounded 10 MB waiver,
 or push. Cleanup/evidence commits were not repeated. Model/source checks are
 not art/40FPS/hardware/full-release acceptance; 127 catalog entries remain.
 
-## Terrain safety and scene/UI maintenance follow-up
+## Heroes restored-contract continuation
 
-Shared collision milestone `6c58203` blocks lateral entry from the sewer/plaza
-into higher solid terrain; the floor callback no longer silently loses that
-boundary. Controller and traveler clamp to the existing 448m limit. Invalid
-motion or feet below -32m recover to the last safe grounded position (initial
-controller fallback or world start before one exists), without filling the
-legitimate -10m sewer or -6m plaza. A subsequent screenshot exposed the same
-above-eye terrain being ignored by the shoulder-camera sweep; the camera now
-rejects it rather than exposing the void. Both body and camera reserve radius
-clearance at steep terrain edges while retaining normal ramp stepping.
-Controller 1,396 assertions and world
-505 assertions pass in fresh Node reruns. These are fixtures, not native play.
+The hero lane read the restored repository-root contract and verified MD5
+`aaa75071e498f6ca977db0e06fad2641` before resuming; earlier missing temporary
+spec/brief copies were not replaced with invented clauses. No Blender, new
+mesh, rig-pose change, UI restyle, kit rebalance or dependency was introduced.
 
-The match shell removes the repeated top resource-health readout in favor of
-the existing health bar, hides unused inventory cells/panel, shortens lobby copy,
-compacts ability buttons and moves the repeated map legend into Controls. Map,
-objectives, cooldowns, input buttons, loading/error states and accessible canvas
-labels remain. The parallel HUD/input follow-up owns numeric health presentation
-and has its own source/verification section below.
+The active Snipeoff reveal now tracks current live enemy records and positions,
+including new targets and death/removal/team/range changes. It reuses cage
+geometry/materials and retains the original six-second lifetime, cooldown,
+cover-blocked shots and systems-owned damage. The shared runtime fix serves
+both integrated/bot target replacement and persistent range dummies. The Node
+regression verifies membership, replacement-position behavior, reuse, expiry,
+cleanup and unchanged health; direct-point FX callers remain compatible.
 
-Scenery uses the existing local architectural maps, plus three original 128px
-in-memory aggregate textures for asphalt, concrete and earth. World-scaled UVs,
-three merged static surface draws, less opposing light fill, terrain retaining
-faces, a visible outer curb and building base/roof recesses improve definition.
-The old three faceted cloud props are removed and the sun matches the key light.
-Plaza paving previously floated at -3m; it now rests on its -6m floor. Existing
-model/texture file bytes, immutable map data and routes are untouched. See
-[environment details](../../../Games/Jankolock3D/ENVIRONMENT.md). CPU environment
-checks pass at 67,028 instances / 927,954 assembled triangles / 280 coarse batches;
-these are construction totals, not per-frame FPS or hardware acceptance.
+The current hero runner preserves older captures by writing `heroes-resume/`
+under the existing audit directory. Fresh output records four entry HTTP200s,
+37 native screenshots, 24 observations, 270 total HTTP200 responses, zero
+retained errors and 106 stable source/resource hashes. It includes all sixteen
+abilities, pointer lock/aim, dash/double jump/slide/free ammo, wall clamp, mobile
+held/released touch, and native reveal across dummy death/respawn/expiry. Two
+labeled mockup twins and a contact sheet bring the packet to 40 PNGs. Images
+were inspected; mobile retains native 390px layout. Source hashes and native
+image SHA/variance are recorded, with explicit COMPLETE/FAILED status.
 
-`scenery-qa.py` is a bounded system-Chromium check with no external requests. The
-first fixed-900ms native probe failed without observed movement; its receipt and
-five captures are retained. The retry waits for measured simulation advancement:
-nine captures, both native keyboard terrain-edge probes, 70 responses and zero
-recorded errors. Desktop/mobile-width HUDs were inspected in dark/light themes;
-scene placements are explicitly loopback API fixtures, not native route proof.
-That nine-capture result predates the last camera sweep/retaining alignment and
-parallel fixed-mobile-HUD repair. Two later centre-only captures passed the
-mechanical assertions but still showed a void sliver; subjective review rejected
-those images. The final radius-aware retry passes two native-keyboard edge
-probes, two captures, 70 responses and zero errors, with browser/server closed.
-Both images were inspected: terrain walls now occlude the void. See the
-[pinned receipts and final captures](../audits/jankolock-3d-qa/scenery-maintenance/README.md).
-The broader nine-shot review remains historical for its exact source hashes;
-images are not silently relabeled. A separate mobile-HUD scroll capture is
-recorded in the HUD owner's follow-up below.
+This is current isolated E evidence, not builder grading or a replacement for
+independent integrated A-I review. The supplied rigid slide pose still reads
+upright; real hardware, handheld ergonomics, full matches and full-fleet release
+gates remain held. Historical art/letter/model receipts are not overwritten.
+See [hero API/receipt](../../../Games/Jankolock3D/heroes/HEROES.md) and
+[resume packet](../audits/jankolock-3d-qa/heroes-resume/README.md).
 
-The block grid, broad roads, primitive combat objectives, rigid vegetation,
-uncollidable dressing and lack of scene contact shadows remain visual limits.
-This pass is a lightweight material/lighting/definition improvement, not a
-photorealistic or supported-hardware acceptance claim. Integration still fails
-only its stale catalog-count assertion after the previously listed chain checks;
-no assertion/filter was weakened. No full-fleet gate, new game or push occurred.
+## Approved portrait audit-directory follow-up
 
-## Operator health, input and shot-feedback follow-up
+The dedicated portrait runner now writes only to the approved maintenance audit
+path, preserving its historical game-path SKIP receipt. A broad process-search
+false-positive risk was removed: actual Chromium processes and Playwright driver
+commands block the gate; shell argument text and zombie processes do not. The
+small `portrait-qa-test.py` regression passes without launching a browser.
 
-Built on realism worker milestones `6c58203` (fall-through) and `ef5cd06` (UI
-trim), without editing their terrain, scenery, structures or catalog. The existing
-health progress element is moved to a dedicated high-contrast top-left HUD with
-numeric current/max HP and green (>50%), amber (>25%) and red states. It remains
-visible during active play in both themes; mobile width leaves the minimap clear.
-The match status moves below it. Values are finite/clamped and the native progress
-label exposes the numbers/state without a live announcement every update.
-
-Mouse primary press and the touch Fire button now attempt the shot synchronously,
-not on click/release or the next frame. The shared firing boundary refreshes
-camera aim, targets and item modifiers and rejects lobby/pause/hidden/dead/winner,
-pregame, shop and modal states. Runtime ammo/reload/cooldown remain authoritative;
-there is no pending-shot queue. Held-fire timers advance before retrying in the
-update loop. Releasing aim or a different touch no longer cancels held Fire.
-Keyboard action edges already ignore key repeats and are unchanged.
-
-Accepted basic shots use the existing Three.js FX manager: at most five meshes
-sharing low-poly geometry (flash, tracer, three contact sparks), 120ms lifetime, no light,
-new texture, model or network load. Cosmetic emitters follow each delivered
-weapon/hand node; covered damage rays and HP authority are unchanged. A six-degree
-rest-relative torso kick decays over 120ms, respecting rig limits, root placement
-and two-handed grips. No camera shake or new animation loop is introduced.
-
-Checks: `node Games/Jankolock3D/combat-input-test.mjs` exercises the actual host
-callbacks in a VM with no RAF, including synchronous mouse/touch fire, cooldown,
-no queued tap, cancellation and state guards. UI self-test now has 14 checks,
-including HP thresholds and invalid values. Hero runtime/visual checks pass;
-external-rig regression passes 2,540 poses with shot recoil included. Bot eight
-groups and systems 18 groups plus the scripted match pass. These are CPU/VM
-checks, not phone FPS or native hardware acceptance. Integration regression runs
-both scripted chains and portrait checks, then fails its pre-existing hardcoded
-catalog assertion: actual 128 entries, expected 127. No catalog edit or test
-weakening is included. Full-fleet smoke, push and publication remain held.
-
-Desktop/mobile health HUD images in both themes from the scenery worker were
-reviewed: readable numbers, bar and map separation. A follow-up makes the health
-HUD viewport-fixed, measuring the header with one disposable ResizeObserver so
-it stays visible while scrolling down to phone Fire controls. The sole added
-390x844 screenshot (`jankolock-hud-scroll.png`, RAM-only) confirms HP 700/700 and
-unchanged HUD rectangle x8/y187/224x65.5 after scrolling 344px, with zero recorded
-console/page errors. This successful layout probe uses an explicitly frozen
-loopback fixture, not live-frame/input performance evidence. The preceding live
-touch Close probe timed out before any screenshot; browser/server closed on both
-attempts. No phone FPS or live-touch acceptance is inferred. The focused input
-check also pins the viewport-fixed CSS against regression.
+Fresh `portrait-resume/` evidence records one browser attempt, two normal-lobby
+1280x720 images in actual dark/light themes, one labeled unscaled crop, 69 HTTP200
+responses, zero retained errors and 64 stable runtime/config/model hashes.
+The earlier zero-attempt preflight SKIP remains in
+`portrait-resume-preflight-skip/`. Saved images show the relief visibly inside
+its display frame without menu occlusion. It remains a soft, shallow supplied
+photo relief, not scan/likeness/glass-realism acceptance. Lobby/no-fixture state,
+portrait metadata and byte/SHA pins passed; browser/server cleanup was verified.
+This is fresh builder H evidence, not a new independent grade, whole-resource
+hash audit, hardware/full-game/release pass or push. Runtime/models/catalog are
+unchanged. See [portrait receipt](../../../Games/Jankolock3D/PORTRAIT-QA.md).
 
 ## Future outlook
 

@@ -20,9 +20,11 @@ balance. Reset range clears abilities, targets, ammo, movement and health.
   RMB aim. Slide requires forward momentum and lasts at most 0.9 seconds;
   firing consumes no ammunition only while `infiniteAmmo` is true. Low mantle
   and a hook use the same collision path. Input edges belong to the caller.
-- `hero-visuals.mjs`: four original primitive character meshes and an expiring,
-  bounded geometry FX manager. No sprites substitute for ability geometry.
-  Only the reveal effect ignores depth. All resources have disposal paths.
+- `hero-visuals.mjs`: an expiring geometry FX manager and a re-export of the
+  existing `hero-model.mjs` factory for the four verified external GLBs. The
+  model/prop integration is separately documented; this resume does not alter
+  meshes or rig poses. No sprites substitute for ability geometry. Only the
+  reveal effect ignores depth. All resources have disposal paths.
 - `hero-runtime.mjs`: cooldowns, range/cover queries, deployed geometry, turret
   acquisition, bouncing projectiles, buffs, weapon/ability intents and FX.
   It does not own match health or shop scaling.
@@ -33,11 +35,14 @@ balance. Reset range clears abilities, targets, ammo, movement and health.
 ## Systems boundary
 
 Construct `HeroRuntime({scene,controller,kit,targets,boxes,team,source,onEffect})`.
-Use persistent targets with `{id,team,position,alive,radius?,height?}`. Positions
-are feet, metres, Y-up, forward -Z. Update position fields in place; the active
-reveal geometry follows those positions. Replace `runtime.targets` when the
-entity set changes; targets captured by an existing reveal remain visible for
-that reveal's lifetime. This is a known corpse/new-spawn reveal limitation.
+Targets have `{id,team,position,alive,radius?,height?}`. Positions are feet,
+metres, Y-up, forward -Z. Replace `runtime.targets` when the entity set changes;
+records and position objects may also be replaced. Active reveal reads the
+current live enemy set in kit range every FX update, including the caster's
+current position/team. Deaths, removal, team changes and range exits hide cages;
+new entrants appear without extending the original cast lifetime. Cage meshes
+and materials are reused up to peak simultaneous membership, not accumulated
+per identity or frame. Reset/expiry/disposal clears the whole effect.
 
 Per frame: feed normal input to `controller.update`, then
 `controller.updateCamera(camera,dt)`, `runtime.aim(camera)`, `runtime.fire()` or
@@ -140,10 +145,13 @@ keyboard/mouse/touch input, no simulation grants, and read-only observations.
 Assets are checked against the disk guard before every screenshot/comparison.
 Desktop images are 1280x720; mobile captures preserve genuine 390x844 layout
 and optional full-page height. Labeled side-by-side images are wider/taller.
-All are under `docs/maintenance/audits/jankolock-3d-qa/heroes-*` with a JSON
-observation report. No browser instances/servers are left running by the test.
+Historical captures remain under `docs/maintenance/audits/jankolock-3d-qa/heroes-*`.
+The current runner writes a separate `heroes-resume/` directory there, retaining
+native-image hashes, source/resource hashes before/after, HTTP/console/request
+errors and explicit COMPLETE/FAILED status. It refuses a sibling browser and
+checks both desktop/mobile contexts. No browser/server is left running.
 
-Latest completed native run after camera/muzzle tuning reported:
+Historical pre-model native run after camera/muzzle tuning reported:
 `hero-qa: 4 hero pages HTTP 200; 34 screenshots; 23 observations; 0 retained errors. Reviewer acceptance pending.`
 Those 34 captures include each ability, every hero in both desktop themes,
 pointer look, aim, double jump, dash, slide, camera-wall clamp and both mobile
@@ -160,9 +168,9 @@ reports 16 kit casts and five remote-origin damage/heal events accepted by the
 real systems API while the caster is 100m away; origins remain snapshots after
 deployment movement. Frozen target records reject direct health writes.
 `hero-visuals-test` retains four heroes, 16 kit FX and seven generic FX checks.
-These changes require a fresh native run; no browser or screenshots were used
-for this bounded continuation. The outer maintenance manual/inventory refresh
-belongs to the integration owner, outside this worker's five-file scope.
+No browser or screenshots were used for that bounded continuation. The resumed
+hero-range run below is fresh native evidence for current hero modules, but
+still does not establish exhaustive native movement on the integrated map.
 
 Two earlier native attempts failed: synthetic Escape did not release pointer
 lock, then movement keys could be cleared by a late lock-entry event. The real
@@ -170,8 +178,36 @@ Escape handler now explicitly exits lock, and entering lock no longer clears
 held keys (losing lock still does). Hermes advice informed read-only diagnosis;
 it did not waive native gates. A fresh full run is required after changes.
 
+## Restored-contract hero resume
+
+The repository-root `jank3d-spec.md` was read first and matched the relayed MD5
+`aaa75071e498f6ca977db0e06fad2641`. Earlier temporary spec/hero-brief reads had
+returned ENOENT; no missing clauses were invented. A later filesystem probe no
+longer found that root copy, but this work uses the already-read verified text,
+not a reconstructed contract. The no-Blender order remains in effect.
+
+The shared reveal bug is fixed in `15f31e9`/`825533b`: current targets are read
+through a live point supplier and existing cage pairs are reused. Regression
+coverage includes replacement records/positions, empty initial sets, new
+entrants, death/removal/team/range transitions, caster movement, exact original
+expiry, cooldown, unchanged health and geometry/material identity reuse. Direct
+point-array FX callers remain compatible. No kit values, damage rules, models,
+UI styling, camera framing or other abilities changed.
+
+Fresh current-model runner output:
+`hero-qa: 4 hero pages HTTP 200; 37 screenshots; 24 observations; 0 retained errors; source hashes stable. Reviewer acceptance pending.`
+The packet includes 270 HTTP200 responses, 106 stable source/resource hashes,
+all sixteen ability captures, movement/camera/native touch checks, and native
+Snipeoff dummy death/respawn during one reveal followed by expiry. The two mockup
+twins and contact sheet bring the packet to 40 PNGs. The death/respawn sequence
+uses ordinary damage inputs and the existing range respawn rule, not QA grants.
+The new images retain the current externally supplied models and dark default;
+light-theme captures use the normal toggle. Historical imagery is untouched.
+
 Limitations: software WebGL is not supported-GPU performance acceptance. Real
-handheld ergonomics and full-match balance are unverified. AABB movement and
-range fixtures do not establish world traversal/zipline integration. There is
-no full-fleet smoke or push in this hero-only task. Maintain these holds until
-systems/integration and the independent reviewer verify the assembled game.
+handheld ergonomics and full-match balance are unverified. The current rigid
+slide pose still looks comparatively upright despite the controller's observed
+slide/free-ammo state; this resume does not change supplied art or rig posing.
+Range fixtures do not establish exhaustive integrated world traversal. There
+is no full-fleet smoke or push in this hero-only task. Maintain these holds until
+the independent reviewer verifies the assembled game.
