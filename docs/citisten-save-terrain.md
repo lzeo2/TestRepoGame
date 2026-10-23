@@ -96,8 +96,8 @@ photos: Continue menu, loaded mid-game, day landscape overview and mobile/light
 Continue menu. Only the landscape camera is staged; no gameplay-state grants.
 All four photos remain unproduced/unreviewed, not silently replaced by UI fixtures.
 
-Local failure evidence: `.tmp/citisten-save-terrain/result.json` and
-`.tmp/citisten-save-terrain-qa.txt`. `browserReleased: true` and
+First-attempt failure evidence: `.tmp/citisten-save-terrain/attempt-1-result.json`
+and `.tmp/citisten-save-terrain-qa.txt`. `browserReleased: true` and
 `serverReleased: true`; a fresh process check confirmed no Chromium remained.
 The slot was explicitly released. Ticket
 `pi-513647-1792721062741-b0b3ded3` was subsequently answered by operator relay:
@@ -112,15 +112,42 @@ bytes free and no Chromium. After the harness commit, the single retry runner
 invocation exited 1 at its safety preflight: `AssertionError: Browser slot busy`.
 A foreign Chromium using a shared-memory profile had appeared in the meantime.
 **No retry browser, server, game assertion or photo was started.** The foreign
-process was neither attached to nor terminated. No further retry was launched,
-respecting the one-retry/stop direction. Native acceptance remains HOLD.
+process was neither attached to nor terminated. At that closeout no further
+retry had been launched; the operator subsequently explicitly authorized resuming
+once disk and the browser slot were clear.
 
-First-attempt evidence is also preserved as
-`.tmp/citisten-save-terrain/attempt-1-result.json` and `attempt-1-log.txt`;
-`.tmp/citisten-save-terrain-retry.txt` contains the preflight failure. The main
-`result.json` still describes the first attempt, not the blocked retry. Coordination
-ticket `pi-30350-1792754595538-286388b3` remains pending for future slot sequencing,
-not authorization for another attempt. Four requested photos remain unproduced.
+### Resumed authorized retry
+
+Fresh preflight found **2,739,212,288 bytes free**, a clean tree and no Chromium
+roots. The one actual resumed browser retry used system Chromium, a fresh
+repo-local profile, document `commit`, explicit `world.loaded` waits bounded at
+45 seconds and the unchanged 120-second outer limit. It exited 1 after
+**33.314 seconds**, including cleanup. Both `initial document committed` and
+`initial models ready` checkpoints passed. The next native action failed:
+`Locator.click: Timeout 12000ms exceeded` for `[data-mode="defense"]`. Playwright
+reported the button visible, enabled and stable and reached `performing click
+action`. No production root cause is proven; this is not evidence that the
+button's simulation callback completed successfully.
+
+**Zero requested screenshots and no town-placement/save/load/skip assertions
+were reached.** Error/external-request arrays were empty up to the failure,
+not a complete gameplay/offline pass. Browser and server cleanup both passed;
+a fresh process check found no Chromium roots. The browser slot was explicitly
+released. The actual retry is now consumed: no additional launch or speculative
+runtime fix was made, and native acceptance remains HOLD.
+
+Current retry evidence: `.tmp/citisten-save-terrain/result.json` and
+`.tmp/citisten-save-terrain-authorized-retry.txt`. The main result now describes
+this actual browser retry, not the first attempt or preflight refusal.
+First-attempt copies remain `attempt-1-result.json` and `attempt-1-log.txt` in
+that artifact directory; `.tmp/citisten-save-terrain/preflight-busy-retry.txt`
+and `.tmp/citisten-save-terrain-retry.txt` retain the earlier slot refusal.
+Coordination ticket `pi-30350-1792754595538-286388b3` remains pending for future
+slot sequencing; the operator's later direct resume order supplied the authority
+for this actual retry. Diagnostic advice ticket
+`pi-30350-1792762692130-60d17177` is pending for the new post-readiness click
+timeout; it does not authorize another run. Four requested photos remain
+unproduced/unreviewed.
 
 The earlier coordination ticket `pi-513647-1792719577800-efd62909` was resolved by
 the operator's ownership/slot answer. One terrain delegation was aborted before
@@ -132,5 +159,7 @@ bytes free at lane start and 3,014,234,112 after the browser attempt, a
 10,928,128-byte reduction across concurrent lanes, not solely this change.
 At retry closeout preflight, free space was 2,895,728,640 bytes, down
 399,994,880 bytes from retry preflight across concurrent host work; no browser
-profile was created by the blocked retry. No disk waiver, browser download,
-external deletion or history rewrite.
+profile was created by the blocked retry. For the resumed actual retry, free
+space changed from 2,739,212,288 to 2,715,541,504 bytes, a 23,670,784-byte reduction
+across concurrent host work, not solely this run. No disk waiver, browser
+download, external deletion or history rewrite.

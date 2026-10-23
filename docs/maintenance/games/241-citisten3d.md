@@ -243,10 +243,17 @@ subsequently authorized one retry using document `commit` plus an explicit
 loaded wait up to 45 seconds; harness commit `a3ba48d` applies that guidance.
 After operator disk recovery, the retry runner exited 1 at `Browser slot busy`
 before creating any browser/server: foreign Chromium appeared between initial
-preflight and launch. No foreign process was touched and no further retry was
-attempted. Native photos remain unproduced; slot-coordination ticket
-`pi-30350-1792754595538-286388b3` is pending. No push. Stable UI fixture evidence
-from sibling lanes is separate from this native-world gate.
+preflight and launch. No foreign process was touched. A subsequent explicit
+operator resume order allowed the actual retry after disk and slot preflight
+were clear. That browser run exited 1 after 33.314 seconds: initial document
+commit and `world.loaded` both passed, but the Zombie defense button click
+timed out after 12 seconds while performing the action. No requested photo or
+town-placement/save/load/skip assertion was reached; root cause is unproven.
+Browser/server cleanup passed and a fresh process check found no Chromium.
+The slot was released and the one actual retry is consumed; no further launch.
+Native photos remain unproduced and acceptance stays HOLD; slot-coordination
+ticket `pi-30350-1792754595538-286388b3` is pending. No push. Stable UI fixture
+evidence from sibling lanes is separate from this native-world gate.
 
 ## Future outlook
 
