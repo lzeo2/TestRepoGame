@@ -15,7 +15,8 @@ source review, the `93c104e`/`2540b8c` corrections and bounded native runners
 ## Implementation map
 
 `index.html`, `native.mjs`, `native-actions.mjs` and `native.css` connect
-`ui.mjs`, `sim.mjs` and `world.mjs`. `buildings.mjs` now exports the external
+`ui.mjs`, `sim.mjs` and `world.mjs`. `native-loop.mjs` owns the wake/sleep
+scheduler; `native-check.mjs` checks its static/hidden paths without a browser. `buildings.mjs` now exports the external
 GLB kit, not procedural models. Await `world.ready` before rendering or play.
 `external-assets.mjs`, `external-buildings.mjs`, `external-materials.mjs` and
 `models/` own supplied rendering assets. See the
@@ -176,9 +177,11 @@ analytic ground AO is retained, not represented as supplied baked AO. See
 Session LOD defaults to 0, with explicit 1/2 choices; no hidden procedural LOD.
 Actual movement drives humanoid walk clips and car wheel roll.
 
-The 40 FPS gate is HOLD: no new external-model performance measurement exists.
-The old 2.257124 FPS measurement predates these assets. Static per-model AFTER
-QA is complete; native acceptance and the full-fleet pre-push gate remain held.
+The 40 FPS gate is HOLD: no fresh external-model FPS acceptance exists.
+The old 2.257124 FPS measurement predates these assets. The current memory
+fixture below is not an FPS measurement. Static per-model AFTER QA is historical
+and predates the new renderer hashes; native acceptance and the full-fleet
+pre-push gate remain held.
 
 ## Safe iteration
 
@@ -254,6 +257,44 @@ The slot was released and the one actual retry is consumed; no further launch.
 Native photos remain unproduced and acceptance stays HOLD; slot-coordination
 ticket `pi-30350-1792754595538-286388b3` is pending. No push. Stable UI fixture
 evidence from sibling lanes is separate from this native-world gate.
+
+### Memory, stacking and render sleep (2026-10-24)
+
+The [bounded receipt](../../citisten-budget.md) and retained JSON/JPEG evidence
+record the current fixes and measurements. A deterministic 520-simulation-second
+cycle rendered all 17 supplied model types, 128 additional homes and the real
+simulation's first wave. Whole-browser observed peak summed RSS was
+**1,556,541,440 -> 1,533,505,536 bytes**; proportional resident memory was
+**1,132,929,024 -> 1,111,052,288 bytes**. Both samples were already below 2 GB;
+these numbers do not establish every late-wave/dense-town case or a 4 GB hardware
+pass. Heap is measured separately, not treated as total graphics/process memory.
+
+Inactive sun/moon shadow targets are disposed and cleared at phase transitions,
+retaining active 2048px shadows and mixed dawn/dusk. Night allocations now remain
+at 68 textures instead of 70; geometry remains 247 throughout the fixture.
+Completed GLTF parser references are released; unchanged instance poses no longer
+rewrite upload buffers. Building geometry/material sharing and the 64-shot FX
+pool already existed and are preserved. No texture compression, art edits or
+new animation cap was justified by this first-cycle measurement. Native's existing
+24 defenders plus 796 perimeter zombies bound walk actions to 820 at size 200;
+the fixture observed 20, including its two extra walkers. The worst case is not
+memory-certified by that observation.
+
+The events board now explicitly paints above diagnosis, which paints above other
+HUD/native controls. Existing urgent-last ordering is unchanged. Four reviewed
+390x844/1440x900 light/dark JPEGs use actual native HTML/CSS with a labelled UI
+state fixture, not native gameplay. Hit-testing, notice order and native modal
+priority passed. Browser/server/profile were released after every capture run.
+
+`native-loop.mjs` suspends all scheduled render/simulation callbacks while hidden,
+wakes immediately without hidden-time catch-up, and sleeps after two unchanged
+seconds at menu/pause/speed 0. Input, camera pose changes, resize and visibility
+wake it; pending FX and camera easing settle first. Active simulation and active
+pixel ratio are unchanged. Native assertions cover static skip, hidden startup,
+visibility resume, pending shots and one-frame scheduling. Sim, native, world,
+terrain, save and external model/material suites pass. The receipt records the
+initial fixture hit-test correction separately from the accepted 4/4 run. No
+native gameplay/FPS or full-fleet acceptance is claimed; no push.
 
 ## Future outlook
 

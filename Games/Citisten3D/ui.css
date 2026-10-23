@@ -14,7 +14,10 @@
 .citisten-ui button[aria-pressed='true'], .citisten-ui button.is-selected { border-color: var(--accent); }
 .citisten-ui button:disabled { color: #aaa; border-color: var(--border); cursor: not-allowed; }
 .citisten-ui .panel { background: var(--panel); border: 1px solid var(--border); border-radius: 4px; }
-.city-top, .city-night, .city-map, .city-builder { pointer-events: auto; }
+/* HUD layers stay below the events board. Modal dialogs use the native top layer. */
+.city-top, .city-night, .city-map, .city-builder { pointer-events: auto; z-index: 1; }
+.city-top, .city-night { position: relative; }
+.city-top[data-value='growthDiagnosis'] { z-index: 2; }
 .city-top { display: flex; align-items: center; gap: 18px; padding: 12px 16px; margin: max(8px, env(safe-area-inset-top)) max(8px, env(safe-area-inset-right)) 0 max(8px, env(safe-area-inset-left)); }
 .city-brand { font-size: 25px; }
 .city-stat { display: grid; gap: 2px; border-left: 1px solid var(--border); padding-left: 18px; min-width: 100px; }
@@ -56,7 +59,7 @@
 .city-tools button { min-width: max-content; position: static; }
 .city-tooltip { display: none; position: absolute; bottom: calc(100% + 10px); left: 50%; transform: translateX(-50%); width: max-content; max-width: min(220px, 80vw); padding: 8px; background: var(--panel); color: var(--text); border: 1px solid var(--border); border-radius: 4px; pointer-events: none; font-size: 14px; font-weight: 400; z-index: 2; }
 .city-tools button:hover .city-tooltip, .city-tools button:focus-visible .city-tooltip { display: block; }
-.city-toasts { margin: 16px; max-width: min(390px, calc(100% - 32px)); display: grid; gap: 8px; }
+.city-toasts { position: relative; z-index: 3; margin: 16px; max-width: min(390px, calc(100% - 32px)); display: grid; gap: 8px; }
 .city-toasts p { padding: 12px 16px; border-left: 4px solid var(--accent) !important; pointer-events: auto; }
 .city-toasts button { margin-top: 8px; max-width: 100%; }
 .city-toasts > strong, .city-event-empty { background: var(--panel); padding: 4px 8px; }
