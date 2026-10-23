@@ -5,8 +5,6 @@ python3 -B scripts/check_thumb_manual_receipts.py
 """
 import hashlib
 import json
-from pathlib import Path
-
 from PIL import Image
 from capture_game_thumbs import ROOT, aliases, slug, validate_jpg
 from capture_thumb_sweep_v3 import git, tracked
@@ -33,7 +31,7 @@ def main():
         assert files[game['url']] == r['entry_blob']
         root = '/'.join(game['url'].split('/')[:2])
         assert git('rev-parse', 'HEAD:'+root).decode().strip() == r['source_tree']
-        # SIGALRM stops input at 180s; exception/receipt bookkeeping took <=20ms.
+        # SIGALRM stops input at 180s; receipt bookkeeping may follow slightly.
         assert 0 < r['seconds'] <= 180.1, r
         name = mapping.get(game['title'], slug(game['title']))
         assert r['output'] == f'assets/thumbs/{name}.jpg'

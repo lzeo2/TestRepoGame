@@ -2,6 +2,11 @@
 
 ## Result and scope
 
+**Update: [v3.1 manual continuation](#v31-manual-capture-continuation) attempted
+all 52 holds: 25 refreshed, 27 still needs-manual. Combined fresh total: 100/127.
+Fresh portal visual verification is storage-blocked; no push.**
+The original v3 result below remains historical.
+
 **Partial image refresh, complete catalog traversal: 75 fresh captures accepted,
 52 need manual capture.** The actual catalog contains **127**, not 128, registered
 games. All 127 tracked entry URLs were visited in 26 catalog-order batches of at
@@ -644,3 +649,75 @@ runtime output hashes; rejected rows preserve old bytes/fallbacks. The original
 v3 JSON/table remains historical. Two variant image aliases alone changed in
 the authored portal layer; no `games.json` or game-source edits, push or full
 fleet smoke. Final verification/storage/commit summary follows below.
+
+### Final verification and remaining storage gate
+
+Actual completed commands:
+
+```text
+python3 -B scripts/check_thumb_manual_receipts.py
+PASS: 52 attempts, 25 accepted 1280x720 JPEGs, 27 retained images/fallbacks; current source hashes and all 127 catalog URLs unchanged.
+Max recorded duration: 180.02s (180s input deadline plus receipt bookkeeping).
+python3 -B scripts/capture_thumb_manual.py --self-test
+PASS: monotonic 180s deadline and uncaught budget exception
+python3 -B scripts/capture_thumb_sweep_v3.py --self-test
+PASS: retry record preservation, URL guards, sparse HEAD blob identity, genuine missing-file HTTP 404
+python3 -B scripts/capture_game_thumbs.py --self-test
+thumbnail guard self-test: PASS (local path, HTTP 200, aliases, duplicate, blank)
+python3 -B scripts/check_maintenance_docs.py --refresh
+Inventory: 132 games, 127 registered; shared runtime separate.
+python3 -B scripts/check_maintenance_docs.py
+PASS: 132 game documents cover 127 registered + 5 unregistered games; Git inventory current.
+Coverage only: section presence does not certify documentation accuracy or gameplay.
+```
+
+JS syntax and final owned whitespace checks passed. Refreshed inventory/index
+remain byte-identical because no game source/catalog changed. Direct Git diff
+confirms `games.json` and **all `Games/` source bytes unchanged**. Sparse selection
+remains `assets`, `docs`, `scripts`; no checkout expansion/install/download.
+The 25 accepted runtime JPGs total **2,174,174 bytes**, including two dedicated
+variant files. They are the retained reviewed screenshots; no extra artwork or
+old-image transformation was substituted. Rejected art/fallback hashes match v3.
+
+Fresh portal-only desktop/mobile light/dark alias proof was attempted after the
+capture/receipt checks. It stopped at the initial disk guard **before launching
+Chromium or its server**:
+
+```text
+RuntimeError: storage STOP: 1858351104 bytes free, below 2147483648
+```
+
+Thus fresh portal visual/alias browser verification is **HELD**, not passed.
+Earlier v3 portal screenshots remain historical; no new portal screenshots exist.
+The runtime aliases/files passed static resolution, source syntax and image/hash
+guards, but those checks do not replace the held browser proof. All owned capture
+browsers/servers were confirmed closed. No full-fleet smoke/release gate or push.
+
+Latest-resume free space: **3,278,110,720 bytes**; final pre-proof reading:
+**1,858,351,104 bytes**; shared-filesystem decrease **1,419,759,616 bytes**.
+This is not exclusive capture disk accounting. No waiver used; no outside-repo
+deletion. Stopped captures/growth and filed ticket
+`pi-215950-1792769692209-5a601105` for sustained recovery. Only safe final
+receipt/docs/checker cleanup committed after the guard. No capacity polling.
+
+Continuation milestones (all local, no push):
+
+| Commit | Scope |
+| --- | --- |
+| `21c97b0` | Bounded native manual capture helper |
+| `19b7087`, `3d6901a` | Batch 1 failures/storage receipt and completed maintenance check |
+| `b3260be` | Same-session CDP screenshots |
+| `7434241` | Batch 2: four images |
+| `1f32748` | Batch 3: five images |
+| `043bdaa` | Batch 4: four images |
+| `19757eb` | Batch 5: two images |
+| `1ec8f7a` | Batch 6: one image |
+| `43c5600` | Batch 7: three images, dedicated hacked-cats alias |
+| `40ffd1f` | Batch 8: three images |
+| `30057c4` | Batch 9: three images, dedicated hacked-Jetpack alias |
+| `c2b570d` | Batch 10: native click duration and five holds |
+| `38765cf` | Batch 11: final two renderer holds |
+| `3377abf` | Read-only 52-row receipt/source/image regression |
+
+Final docs/cleanup commit follows this table; see Git history. No games added,
+registered or removed, and no ingestion or self-made build commits in this run.
