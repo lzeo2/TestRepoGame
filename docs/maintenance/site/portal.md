@@ -111,6 +111,16 @@ so its badge cannot overwrite the newly captured normal variant. These are only
 image mapping changes, not catalog/gameplay or rights changes; capture/alias
 guards cover both dedicated names. Other v3.1 results and holds are in the linked receipt.
 
+The final v3.1 portal sanity proof passed all four 1280x720/390x844 light/dark
+views at `8500ea7`; all eight search-pair screenshots were visually reviewed.
+Each visit rendered 127 cards with 123 loaded images, four retained fallbacks,
+no broken image elements, page errors, external requests or document overflow.
+Both dedicated aliases resolved to their own 1280x720 captures. The four missing
+JPG 404s remain known exclusions, and normal Merge Cats retains old loader art.
+[Proof, screenshots and limitations](../../thumb-sweep-v3.md#final-portal-sanity-proof-after-storage-recovery).
+This closes the portal image-mapping hold only, not the 27 game-capture holds or
+full-fleet release gate; no runtime source changed in this follow-up.
+
 ## Safe refurbishment and verification
 
 Smallest fixes belong in authored UX shared helpers: search routing, recent validation, catalog retry/status and DOM reconciliation. Keep bundle DOM class contracts and preserve title/ID identity separately. Do not hand-edit compiled React or replace working game menus. Density controls, copy-link/share actions, deep-link query state, custom scroll-spy and account features were **not found** in the audited authored portal/application tail. `portal-share.png` is metadata imagery, not a share widget. Motion-library IntersectionObserver code is not proof of an active portal scroll feature.

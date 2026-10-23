@@ -1,0 +1,130 @@
+{
+  "source_commit": "8500ea79683a6cc220d75091eca4a48cabb409f4",
+  "method": "Pinned system Chromium, fresh contexts, native theme/search controls; image eager-loading only for portal asset coverage. No game recaptures or game-state changes.",
+  "cases": [
+    {
+      "device": "desktop",
+      "theme": "light",
+      "cards": 127,
+      "loaded_images": 123,
+      "broken_images": 0,
+      "fallbacks": 4,
+      "overflow": false,
+      "pageerrors": [],
+      "external": [],
+      "http_errors": [
+        "404 /assets/thumbs/asteroids.jpg",
+        "404 /assets/thumbs/duckhunt.jpg",
+        "404 /assets/thumbs/balatro.jpg",
+        "404 /assets/thumbs/wings.jpg"
+      ],
+      "screenshots": [
+        {
+          "file": "desktop-light-jetpack.jpg",
+          "sha256": "e8c31caa5b241c82a5b3baaa0b1cc08ecac9a51260cf85b4b40b1bd70f3eeaaa"
+        },
+        {
+          "file": "desktop-light-cats.jpg",
+          "sha256": "64460ea745f8c77d37e3acd95250bbae9a52c29b95b997098578ea4ba790fab7"
+        }
+      ],
+      "viewport": {
+        "width": 1280,
+        "height": 720
+      }
+    },
+    {
+      "device": "desktop",
+      "theme": "dark",
+      "cards": 127,
+      "loaded_images": 123,
+      "broken_images": 0,
+      "fallbacks": 4,
+      "overflow": false,
+      "pageerrors": [],
+      "external": [],
+      "http_errors": [
+        "404 /assets/thumbs/asteroids.jpg",
+        "404 /assets/thumbs/duckhunt.jpg",
+        "404 /assets/thumbs/balatro.jpg",
+        "404 /assets/thumbs/wings.jpg"
+      ],
+      "screenshots": [
+        {
+          "file": "desktop-dark-jetpack.jpg",
+          "sha256": "88c03003e147480afcb44b87a9381fbd4f9f84c27db56515d5904969f45d8a1f"
+        },
+        {
+          "file": "desktop-dark-cats.jpg",
+          "sha256": "4cff4ac88f2c422a6532057e3729e26389c1277b1358cdd4917166848b01df26"
+        }
+      ],
+      "viewport": {
+        "width": 1280,
+        "height": 720
+      }
+    },
+    {
+      "device": "mobile",
+      "theme": "light",
+      "cards": 127,
+      "loaded_images": 123,
+      "broken_images": 0,
+      "fallbacks": 4,
+      "overflow": false,
+      "pageerrors": [],
+      "external": [],
+      "http_errors": [
+        "404 /assets/thumbs/asteroids.jpg",
+        "404 /assets/thumbs/duckhunt.jpg",
+        "404 /assets/thumbs/balatro.jpg",
+        "404 /assets/thumbs/wings.jpg"
+      ],
+      "screenshots": [
+        {
+          "file": "mobile-light-jetpack.jpg",
+          "sha256": "82b5f0bebbf28a63bd2cd44a749e0b6a53acbf6fbe697b92961d4ac29d346701"
+        },
+        {
+          "file": "mobile-light-cats.jpg",
+          "sha256": "f6b1ee4eb3496baf36f0f985fee755ec30ef4f169f00882bb37d7338fafd24ce"
+        }
+      ],
+      "viewport": {
+        "width": 390,
+        "height": 844
+      }
+    },
+    {
+      "device": "mobile",
+      "theme": "dark",
+      "cards": 127,
+      "loaded_images": 123,
+      "broken_images": 0,
+      "fallbacks": 4,
+      "overflow": false,
+      "pageerrors": [],
+      "external": [],
+      "http_errors": [
+        "404 /assets/thumbs/asteroids.jpg",
+        "404 /assets/thumbs/duckhunt.jpg",
+        "404 /assets/thumbs/balatro.jpg",
+        "404 /assets/thumbs/wings.jpg"
+      ],
+      "screenshots": [
+        {
+          "file": "mobile-dark-jetpack.jpg",
+          "sha256": "be963d3cf25b8509412c3add02249b735f400e5228b4a42a1f656ee10da6d877"
+        },
+        {
+          "file": "mobile-dark-cats.jpg",
+          "sha256": "a6da1a9804a0098c7c067d95a72ddb87f58f0ef75f848d14eb2a5f667e926d9a"
+        }
+      ],
+      "viewport": {
+        "width": 390,
+        "height": 844
+      }
+    }
+  ]
+}

@@ -4,7 +4,7 @@
 
 **Update: [v3.1 manual continuation](#v31-manual-capture-continuation) attempted
 all 52 holds: 25 refreshed, 27 still needs-manual. Combined fresh total: 100/127.
-Fresh portal visual verification is storage-blocked; no push.**
+Final portal visual verification passed 4/4 desktop/mobile theme views; no push.**
 The original v3 result below remains historical.
 
 **Partial image refresh, complete catalog traversal: 75 fresh captures accepted,
@@ -650,7 +650,7 @@ v3 JSON/table remains historical. Two variant image aliases alone changed in
 the authored portal layer; no `games.json` or game-source edits, push or full
 fleet smoke. Final verification/storage/commit summary follows below.
 
-### Final verification and remaining storage gate
+### Final verification and initial storage interruption
 
 Actual completed commands:
 
@@ -687,13 +687,13 @@ Chromium or its server**:
 RuntimeError: storage STOP: 1858351104 bytes free, below 2147483648
 ```
 
-Thus fresh portal visual/alias browser verification is **HELD**, not passed.
-Earlier v3 portal screenshots remain historical; no new portal screenshots exist.
-The runtime aliases/files passed static resolution, source syntax and image/hash
-guards, but those checks do not replace the held browser proof. All owned capture
-browsers/servers were confirmed closed. No full-fleet smoke/release gate or push.
+At that checkpoint portal visual/alias browser verification was **HELD**, not
+passed; no new portal screenshots existed. The completed recovery proof below
+supersedes only this portal hold, not the 27 per-game capture holds. Earlier v3
+screenshots remain historical. All owned capture browsers/servers were confirmed
+closed. No full-fleet smoke/release gate or push.
 
-Latest-resume free space: **3,278,110,720 bytes**; final pre-proof reading:
+Earlier capture-resume free space: **3,278,110,720 bytes**; blocked pre-proof reading:
 **1,858,351,104 bytes**; shared-filesystem decrease **1,419,759,616 bytes**.
 This is not exclusive capture disk accounting. No waiver used; no outside-repo
 deletion. Stopped captures/growth and filed ticket
@@ -719,5 +719,57 @@ Continuation milestones (all local, no push):
 | `38765cf` | Batch 11: final two renderer holds |
 | `3377abf` | Read-only 52-row receipt/source/image regression |
 
-Final docs/cleanup commit follows this table; see Git history. No games added,
-registered or removed, and no ingestion or self-made build commits in this run.
+Final docs/cleanup commit `8500ea7` follows this table. No games added, registered
+or removed, and no ingestion or self-made build commits in this run.
+
+### Final portal sanity proof after storage recovery
+
+Operator escalation batch 77 restored storage. Fresh entry reading:
+**2,417,848,320 bytes free**, above the normal 2 GiB guard. No below-floor waiver
+was used. The focused portal probe tested source `8500ea7` with the existing
+Git-backed server, pinned `/usr/bin/chromium`, fresh contexts and RAM-backed
+browser/screenshot scratch. Native theme/search controls showed both pairs of
+normal/hacked cards; eager image loading was used only to check portal asset
+coverage. No game was relaunched, recaptured or changed. Browser and server closed
+in `finally`; no owned Chromium remained afterward.
+
+Actual output:
+
+```text
+desktop light PASS 127 cards,123 images,4 fallbacks; both aliases200/1280x720; no overflow/pageerrors/external
+desktop dark PASS 127 cards,123 images,4 fallbacks; both aliases200/1280x720; no overflow/pageerrors/external
+mobile light PASS 127 cards,123 images,4 fallbacks; both aliases200/1280x720; no overflow/pageerrors/external
+mobile dark PASS 127 cards,123 images,4 fallbacks; both aliases200/1280x720; no overflow/pageerrors/external
+```
+
+**4/4 cases passed; all eight fresh screenshots visually reviewed.** The two
+new aliases resolve to their own 1280x720 JPGs, not the base game's image. Normal
+Merge Cats still shows its deliberately retained old loader art: that game remains
+needs-manual, not a newly accepted capture. Both themes have readable titles and
+controls; mobile crops are the existing shelf treatment, with no page overflow.
+No recoloring, replacement art or layout changes were introduced by this proof.
+
+All cases had zero broken image elements, zero page errors and zero external
+requests. Each recorded the four expected missing-JPG 404s for Asteroids, Duck
+Hunt, Balatro and Wings, then retained their fallbacks. This is not a claim of
+zero console/resource errors or full-fleet gameplay/release acceptance.
+
+[Machine receipt and screenshot hashes](thumb-sweep-v3.1/portal/results.json).
+
+| View | Jetpack pair | Merge Cats pair |
+| --- | --- | --- |
+| Desktop light, 1280x720 | [Screenshot](thumb-sweep-v3.1/portal/desktop-light-jetpack.jpg) | [Screenshot](thumb-sweep-v3.1/portal/desktop-light-cats.jpg) |
+| Desktop dark, 1280x720 | [Screenshot](thumb-sweep-v3.1/portal/desktop-dark-jetpack.jpg) | [Screenshot](thumb-sweep-v3.1/portal/desktop-dark-cats.jpg) |
+| Mobile light, 390x844 | [Screenshot](thumb-sweep-v3.1/portal/mobile-light-jetpack.jpg) | [Screenshot](thumb-sweep-v3.1/portal/mobile-light-cats.jpg) |
+| Mobile dark, 390x844 | [Screenshot](thumb-sweep-v3.1/portal/mobile-dark-jetpack.jpg) | [Screenshot](thumb-sweep-v3.1/portal/mobile-dark-cats.jpg) |
+
+The 52-game outcome remains **25 refreshed / 27 needs-manual**, combined with v3
+**100/127 fresh accepted captures**. This follow-up changes documentation/evidence
+only. No game/catalog/runtime changes, dependency installation, outside-repo
+deletion, full-fleet smoke or push. Previous storage ticket
+`pi-215950-1792769692209-5a601105` is superseded by the operator recovery and this
+completed proof. The 52-row receipt check, maintenance refresh/check and JS syntax
+check passed again. Screenshot validation printed
+`PASS: four portal cases and eight screenshot dimensions/hashes`.
+The inventory remains source-current and byte-identical; final storage and clean
+Git status are reported at handoff.
