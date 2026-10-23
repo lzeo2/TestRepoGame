@@ -1,0 +1,403 @@
+{
+  "viewport": {
+    "width": 1280,
+    "height": 720
+  },
+  "game_budget_seconds": 180,
+  "batch1": [
+    {
+      "id": 221,
+      "title": "Balatro",
+      "head": "21c97b071a4944597ef5ac58a6c42bc7ac268f8a",
+      "entry_blob": "02e42bf1fddf1d1932e1b578e797dcc763c075c0",
+      "source_tree": "fa914c914e512cf5ed8057d903657675b7bdb5e0",
+      "actions": [
+        [
+          "wait",
+          15000
+        ],
+        [
+          "snap"
+        ],
+        [
+          "info"
+        ],
+        [
+          "key",
+          "x"
+        ],
+        [
+          "wait",
+          1000
+        ],
+        [
+          "key",
+          "Enter"
+        ],
+        [
+          "wait",
+          1000
+        ],
+        [
+          "snap"
+        ],
+        [
+          "key",
+          "x"
+        ],
+        [
+          "wait",
+          800
+        ],
+        [
+          "snap"
+        ],
+        [
+          "key",
+          "z"
+        ],
+        [
+          "wait",
+          500
+        ],
+        [
+          "snap"
+        ],
+        [
+          "key",
+          "ArrowDown"
+        ],
+        [
+          "key",
+          "z"
+        ],
+        [
+          "wait",
+          1000
+        ],
+        [
+          "snap"
+        ],
+        [
+          "key",
+          "z"
+        ],
+        [
+          "wait",
+          700
+        ],
+        [
+          "snap"
+        ],
+        [
+          "wait",
+          2000
+        ],
+        [
+          "key",
+          "ArrowRight"
+        ],
+        [
+          "key",
+          "ArrowUp"
+        ],
+        [
+          "snap"
+        ],
+        [
+          "info"
+        ],
+        [
+          "snap"
+        ]
+      ],
+      "errors": [
+        "Failed to fetch"
+      ],
+      "external": [
+        "raw.githack.com"
+      ],
+      "http_errors": [],
+      "candidates": [
+        {
+          "file": "221-0.jpg",
+          "sha256": "7b6b87a1e80f9044e4b3aa37017ce978c3e66a24a33d5e012bb62a431488c706"
+        },
+        {
+          "file": "221-1.jpg",
+          "sha256": "7185b0cea52c7579262238e77114bb9b5649e7a97fdd863260ffc026a00e6c5a"
+        },
+        {
+          "file": "221-2.jpg",
+          "sha256": "6e79cb671e403a37a397c8d71c090ed0dddd2319f29235f319da155de52e5e36"
+        },
+        {
+          "file": "221-3.jpg",
+          "sha256": "1eb4b0c521d980f39c4febee7f511e567c5bb9a7ce06c65873d63f05bd6cfa2a"
+        },
+        {
+          "file": "221-4.jpg",
+          "sha256": "a7c82751d5eb0f5b210db2f9f2954edef04c0c61cb1e090a080bec3bd933a4ba"
+        },
+        {
+          "file": "221-5.jpg",
+          "sha256": "3fe79cbbbdb7e0c5d13188decc77c7ad7a59fec08abd3a5d0282199d7a4aaf5d"
+        }
+      ],
+      "seconds": 180.0,
+      "reason": "180s game deadline",
+      "status": "needs-manual",
+      "review_reason": "Small Blind reached with one dealt card, but complete-hand screenshots repeatedly timed out; 180s deadline reached.",
+      "output": "assets/thumbs/balatro.jpg",
+      "retained_sha256": null,
+      "retained_bytes": 0
+    },
+    {
+      "id": 220,
+      "title": "Duck Hunt",
+      "head": "21c97b071a4944597ef5ac58a6c42bc7ac268f8a",
+      "entry_blob": "fd97e223172b75c9e3bf33016d6267b28f73c745",
+      "source_tree": "8b74fe11c695bf41e705ac469c7c57bd38adbf24",
+      "actions": [
+        [
+          "wait",
+          6000
+        ],
+        [
+          "click",
+          640,
+          360
+        ],
+        [
+          "key",
+          "p"
+        ],
+        [
+          "snap"
+        ],
+        [
+          "info"
+        ]
+      ],
+      "errors": [
+        "Loading chunk 369 failed.\n(missing: http://127.0.0.1:42201/Games/DuckHunt/369.js)"
+      ],
+      "external": [],
+      "http_errors": [],
+      "candidates": [
+        {
+          "file": "220-0.jpg",
+          "sha256": "0c3ec58b758057306a42ce9c09feb66ac17b0ff9c0ac18f88312d3b146c3ab23"
+        }
+      ],
+      "seconds": 18.74,
+      "reason": "needs-manual: blank black canvas after native click/P; known missing renderer chunks.",
+      "status": "needs-manual",
+      "review_reason": "Blank black canvas after click and P; no playable stage. Known missing renderer chunk closure.",
+      "output": "assets/thumbs/duckhunt.jpg",
+      "retained_sha256": null,
+      "retained_bytes": 0
+    },
+    {
+      "id": 215,
+      "title": "Asteroids",
+      "head": "21c97b071a4944597ef5ac58a6c42bc7ac268f8a",
+      "entry_blob": "b690355b69daf26a1394ff9fb56f035010879e2b",
+      "source_tree": "a4d0f3152372e758bf0c2ebb9d4d0921d72c7915",
+      "actions": [
+        [
+          "hold",
+          "ArrowUp",
+          700
+        ],
+        [
+          "hold",
+          "Space",
+          1300
+        ],
+        [
+          "key",
+          "p"
+        ],
+        [
+          "snap"
+        ],
+        [
+          "key",
+          "p"
+        ],
+        [
+          "key",
+          "Space"
+        ],
+        [
+          "snap"
+        ]
+      ],
+      "errors": [],
+      "external": [],
+      "http_errors": [],
+      "candidates": [
+        {
+          "file": "215-0.jpg",
+          "sha256": "fb4af5cda1a659dcb331a8f8da7d552fc85995b6a0c784d48fd630681c96a90d"
+        },
+        {
+          "file": "215-1.jpg",
+          "sha256": "90cfff5ec5bf4108a0f123592076676fe478bec09e6233d69ae56ecdc228d61a"
+        }
+      ],
+      "seconds": 20.79,
+      "reason": "needs-manual: native thrust/fire works but original black-on-near-black vector art remains unreadable; no brightening/source edits.",
+      "status": "needs-manual",
+      "review_reason": "Native thrust/fire then pause/resume attempted; original black-on-near-black vector scene unreadable. No cosmetic brightening.",
+      "output": "assets/thumbs/asteroids.jpg",
+      "retained_sha256": null,
+      "retained_bytes": 0
+    },
+    {
+      "id": 204,
+      "title": "Hearts Classic",
+      "head": "21c97b071a4944597ef5ac58a6c42bc7ac268f8a",
+      "entry_blob": "f0450627361bd3861cff9ef0305633ba3102574f",
+      "source_tree": "7a88aac85017a94e4dcff90249a67f49a61a66a8",
+      "actions": [
+        [
+          "wait",
+          5000
+        ],
+        [
+          "snap"
+        ],
+        [
+          "info"
+        ],
+        [
+          "selector",
+          "button:text-is(\"New Game\")"
+        ],
+        [
+          "click",
+          40,
+          10
+        ],
+        [
+          "wait",
+          1000
+        ],
+        [
+          "snap"
+        ]
+      ],
+      "errors": [],
+      "external": [],
+      "http_errors": [],
+      "candidates": [
+        {
+          "file": "204-0.jpg",
+          "sha256": "73a19a6ec877009f8ed73f7705d1426b983ccbdb722efc6edef3ac221b184e75"
+        },
+        {
+          "file": "204-1.jpg",
+          "sha256": "c6b74ae0a6a7fa8915d20c17bb020f0d343763579374b89aaee34579562fae95"
+        }
+      ],
+      "seconds": 25.45,
+      "reason": "needs-manual: cards and stylesheet still absent after native New Game; incoherent white page retained old art.",
+      "status": "needs-manual",
+      "review_reason": "Cards and stylesheet absent/incoherent after New Game; white page, not a legible hand.",
+      "output": "assets/thumbs/heartsclassic.jpg",
+      "retained_sha256": "42c2ab4610374fabf816291fb7b41c9602136031dd1cbd53ed9e1da1f9a7ca5c",
+      "retained_bytes": 4837
+    },
+    {
+      "id": 136,
+      "title": "Merge Cats Defender",
+      "head": "21c97b071a4944597ef5ac58a6c42bc7ac268f8a",
+      "entry_blob": "6cb88bcf53478fa8ee087f9fa940035f60c01a4f",
+      "source_tree": "526b3d1f65cfc05058f08c44012ab5d31adaa1cb",
+      "actions": [
+        [
+          "wait",
+          12000
+        ],
+        [
+          "snap"
+        ],
+        [
+          "info"
+        ],
+        [
+          "wait",
+          18000
+        ],
+        [
+          "snap"
+        ],
+        [
+          "wait",
+          10000
+        ],
+        [
+          "click",
+          640,
+          500
+        ],
+        [
+          "snap"
+        ],
+        [
+          "wait",
+          15000
+        ],
+        [
+          "snap"
+        ],
+        [
+          "key",
+          "Enter"
+        ],
+        [
+          "click",
+          640,
+          580
+        ],
+        [
+          "snap"
+        ]
+      ],
+      "errors": [],
+      "external": [],
+      "http_errors": [],
+      "candidates": [
+        {
+          "file": "136-0.jpg",
+          "sha256": "8c73d1ef61a3f10366853eb1b2eb228664750da7a65fd8095ca8c8eff0a13973"
+        },
+        {
+          "file": "136-1.jpg",
+          "sha256": "543bb0185486afe42236b31e264afa6092973b31e6d2181f23ad8b2337122aac"
+        },
+        {
+          "file": "136-2.jpg",
+          "sha256": "543bb0185486afe42236b31e264afa6092973b31e6d2181f23ad8b2337122aac"
+        },
+        {
+          "file": "136-3.jpg",
+          "sha256": "543bb0185486afe42236b31e264afa6092973b31e6d2181f23ad8b2337122aac"
+        },
+        {
+          "file": "136-4.jpg",
+          "sha256": "ff13e652dc9d39cd9abccfc279f18cde6376d6d5cf7c0648426373c3b25d4d70"
+        }
+      ],
+      "seconds": 138.04,
+      "reason": "needs-manual: loader stuck at 98% after waits/click/Enter; no battlefield.",
+      "status": "needs-manual",
+      "review_reason": "Loader stayed at 98% after waits, click and Enter; no battlefield.",
+      "output": "assets/thumbs/mergecatsdefender.jpg",
+      "retained_sha256": "c90b0cf3727d80898f0bee98ad784bd6c0ae3aaa7a57d13650a68914795c856e",
+      "retained_bytes": 5403
+    }
+  ]
+}

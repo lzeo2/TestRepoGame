@@ -387,3 +387,55 @@ reviewed real content; `needs-manual` is an explicit failed capture, not a pass.
 
 The receipt commit follows these milestones; see Git history.
 Initial root free space: **3,028,447,232 bytes**. At receipt generation: **3,004,395,520 bytes**. Browser scratch/contact sheets were RAM-backed; no sparse changes or deletions outside the repository. No guard waiver was needed. Filesystem-wide delta is not exclusive per-process accounting. Final exact storage and clean-status checks are reported at handoff.
+
+## v3.1 manual-capture continuation
+
+### Batch 1: weakest/fallback cards
+
+**0 accepted, 5 still needs-manual; 47 of the original 52 await this continuation.**
+The v3 table above is historical and unchanged. This section records new attempts,
+not automatic acceptance or a replacement full-game gate. Receipt:
+[thumb-sweep-v3.1.json](thumb-sweep-v3.1.json).
+
+Read all five current maintenance pages before attempting them and confirmed the
+Git inventory was current before this continuation. Used
+`scripts/capture_thumb_manual.py`, the existing immutable-HEAD blob server and
+pinned `/usr/bin/chromium`. One browser, sequential fresh contexts, full
+1280x720 viewport; only native mouse/keyboard input. No game code/state/clock
+changes, remote assets, sparse expansion, browser download or catalog edits.
+Browser and server closed after these five. Each game had a hard 180s deadline
+including review/idle time; Balatro exhausted it, others stopped earlier.
+Candidates were visually inspected; no rejected bytes replaced old art/fallbacks.
+
+| ID | Game | v3.1 status | Reason |
+| --- | --- | --- | --- |
+| 221 | Balatro | needs-manual, fallback retained | Z selects A: Play, Down, Z starts deck, Z selects Small Blind. Reached one dealt card, but subsequent complete-hand screenshots repeatedly timed out; 180s deadline reached. |
+| 220 | Duck Hunt | needs-manual, fallback retained | Black blank canvas after click/P; known missing renderer chunks remain a source blocker. |
+| 215 | Asteroids | needs-manual, fallback retained | Native thrust/fire and pause/resume attempted. Black-on-near-black source vector art remains unreadable; no fabricated brightening. |
+| 204 | Hearts Classic | needs-manual, old art retained | Incoherent white page with missing cards/styles, unchanged after native New Game. |
+| 136 | Merge Cats Defender | needs-manual, old art retained | Loader stuck at 98% after waits, click and Enter; never reached battlefield. |
+
+The earlier interrupted continuation reached Ovo gameplay but its unpromoted RAM
+candidate was gone after recovery; no permanent image change or new acceptance
+is claimed for that attempt. Its frame must be recaptured. The earlier Run 3
+and Gladihoppers failures remain holds. Wings remains unattempted here; coordinate
+with the separate flight-capture worker before using another browser slot.
+
+### Storage interruption and verification
+
+Latest operator recovery was followed by a fresh **3,295,723,520 bytes free**
+reading. At batch close this had fallen to **2,156,474,368 bytes**, only
+**8,990,720 bytes above the 2 GiB floor** (filesystem-wide decrease
+**1,139,249,152 bytes**, not exclusive capture accounting). All browser/candidate
+scratch was RAM-backed; there were zero thumbnail writes. Active backup staging
+`rsync` was observed. Stopped before another batch, saved only this small safe
+receipt, and filed ticket `pi-215950-1792754988896-e6f7da46`. No waiver granted
+or used; awaiting sustained operator recovery rather than polling disk.
+
+`--refresh` printed `Inventory: 132 games, 127 registered; shared runtime separate.`
+and left the inventory/index byte-identical; the combined refresh/check command
+then timed out at 30s, so that command is not claimed as a completed checker pass.
+The pre-continuation checker had passed all 132 documents. The manual-session
+self-test previously passed its 180s monotonic deadline check. No full-fleet smoke,
+publication or push; no game added or removed.
+
