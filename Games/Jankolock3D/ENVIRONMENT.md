@@ -98,6 +98,36 @@ fan parts, scaffold braces, fine foliage and lamp/tree groups are distance gated
 Frustum culling remains enabled on every instance batch. Hard detail transitions
 may pop. Frame time, upload cost and target-device memory are not measured here.
 
+## Bounded scenery maintenance follow-up
+
+The existing local masonry/metal/foliage maps and delivered model bytes remain
+unchanged. Street, sidewalk and earth surfaces now use three original 128px
+aggregate DataTextures generated once in memory (196,608 RGBA source bytes total).
+World-metre UVs avoid stretching a tile over a 900m road. Surface geometry is
+merged into three static material draws using the already-vendored geometry util;
+no new texture file, download, postprocessing or shadow map is introduced.
+
+Warm directional daylight now has less opposing fill, and the visible sun follows
+that light's direction. The three oversized faceted cloud props are removed;
+the solid atmospheric sky/fog remains. Asphalt, narrow dashed lane markings,
+concrete sidewalks/retaining faces and the visible outer curb define the street
+and lowered playable areas. Retaining faces sit on the solid side of terrain
+edges, leaving existing sewer/plaza access ramps open. Previously floating plaza
+pavers at -3m now rest at the -6m floor. Building footings/roof fascias add dark
+recesses without a real-time shadow pass; tree crowns vary their existing scales.
+No immutable footprint, spawn, traversal route, collision descriptor or hero art
+was moved/recolored. The shared collision/camera repair is documented in HEROES.md.
+
+Current CPU totals: 67,028 instances, 927,954 assembled environment triangles,
+41 reusable environment geometries and 280 coarse batches. The 124 added footing/
+fascia instances add 1,488 triangles, not extra environment material draws. These
+are construction totals, not FPS or per-frame counts. The regression additionally
+checks aggregate texture sizes, world-scaled UVs, merged retaining depth and exact
+once-only disposal. Final native scene/HUD and edge reports are maintained in the
+canonical game manual. The broad block grid, simplified objectives, rigid trees,
+uncollidable decorative props and lack of scene contact shadows remain limits;
+this is a bounded material/definition improvement, not photorealistic acceptance.
+
 ## Verification and remaining gate
 
 Commands:

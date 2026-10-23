@@ -326,6 +326,12 @@ check(floorCamera.position.y >= 0.3, 'upward aim keeps camera sphere above callb
 const undergroundCameraHero = create({ position: { x: 0, y: -10, z: 0 }, floorHeight: () => -10 });
 undergroundCameraHero.pitch = 1.2; undergroundCameraHero.updateCamera(floorCamera, 1 / 60);
 check(floorCamera.position.y >= -9.7 && floorCamera.position.y < -8, 'camera floor clamp respects underground height');
+for (const position of [{ x: 64.9, y: -10, z: 20 }, { x: 169.9, y: -6, z: 120 }]) {
+  const terrainCameraHero = create({ ...worldOptions, position });
+  terrainCameraHero.updateCamera(floorCamera, 0);
+  check(floorCamera.position.x < position.x + .11, 'shoulder camera cannot enter higher solid terrain');
+  check(floorCamera.position.y >= position.y + .3, 'terrain-edge camera stays above lowered floor');
+}
 const ceilingCameraHero = create({ boxes: [box(-10, 10, 3, 3.01, -10, 10)] });
 ceilingCameraHero.pitch = -1; ceilingCameraHero.updateCamera(floorCamera, 1 / 60);
 check(floorCamera.position.y < 2.701, 'downward aim keeps camera sphere below ceiling');

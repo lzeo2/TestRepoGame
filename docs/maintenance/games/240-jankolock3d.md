@@ -371,16 +371,45 @@ into higher solid terrain; the floor callback no longer silently loses that
 boundary. Controller and traveler clamp to the existing 448m limit. Invalid
 motion or feet below -32m recover to the last safe grounded position (initial
 controller fallback or world start before one exists), without filling the
-legitimate -10m sewer or -6m plaza. Controller 1,392 assertions and world 505
-assertions pass in a fresh Node rerun. This is fixture evidence, not native play.
+legitimate -10m sewer or -6m plaza. A subsequent screenshot exposed the same
+above-eye terrain being ignored by the shoulder-camera sweep; the camera now
+rejects it rather than exposing the void. Controller 1,396 assertions and world
+505 assertions pass in fresh Node reruns. These are fixtures, not native play.
 
 The match shell removes the repeated top resource-health readout in favor of
 the existing health bar, hides unused inventory cells/panel, shortens lobby copy,
 compacts ability buttons and moves the repeated map legend into Controls. Map,
 objectives, cooldowns, input buttons, loading/error states and accessible canvas
-labels remain. The parallel HUD/input follow-up owns numeric health presentation;
-its source and verification will be recorded separately. Current scene/capture
-verification is pending below; historical captures do not accept this pass.
+labels remain. The parallel HUD/input follow-up owns numeric health presentation
+and has its own source/verification section below.
+
+Scenery uses the existing local architectural maps, plus three original 128px
+in-memory aggregate textures for asphalt, concrete and earth. World-scaled UVs,
+three merged static surface draws, less opposing light fill, terrain retaining
+faces, a visible outer curb and building base/roof recesses improve definition.
+The old three faceted cloud props are removed and the sun matches the key light.
+Plaza paving previously floated at -3m; it now rests on its -6m floor. Existing
+model/texture file bytes, immutable map data and routes are untouched. See
+[environment details](../../../Games/Jankolock3D/ENVIRONMENT.md). CPU environment
+checks pass at 67,028 instances / 927,954 assembled triangles / 280 coarse batches;
+these are construction totals, not per-frame FPS or hardware acceptance.
+
+`scenery-qa.py` is a bounded system-Chromium check with no external requests. The
+first fixed-900ms native probe failed without observed movement; its receipt and
+five captures are retained. The retry waits for measured simulation advancement:
+nine captures, both native keyboard terrain-edge probes, 70 responses and zero
+recorded errors. Desktop/mobile-width HUDs were inspected in dark/light themes;
+scene placements are explicitly loopback API fixtures, not native route proof.
+That nine-capture result predates the last camera sweep/retaining alignment and
+parallel fixed-mobile-HUD repair. A separate two-edge capture is required for
+those final camera bytes. Historical images are not silently relabeled.
+
+The block grid, broad roads, primitive combat objectives, rigid vegetation,
+uncollidable dressing and lack of scene contact shadows remain visual limits.
+This pass is a lightweight material/lighting/definition improvement, not a
+photorealistic or supported-hardware acceptance claim. Integration still fails
+only its stale catalog-count assertion after the previously listed chain checks;
+no assertion/filter was weakened. No full-fleet gate, new game or push occurred.
 
 ## Operator health, input and shot-feedback follow-up
 

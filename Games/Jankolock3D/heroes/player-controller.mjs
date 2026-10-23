@@ -396,7 +396,7 @@ export class PlayerController {
       p.lerpVectors(from, to, t);
       const floor = this.floorHeight(p.x, p.z, from.y + CAMERA_RADIUS);
       return !this.ramps.some(r => cameraHitsRamp(p, r)) &&
-        (!Number.isFinite(floor) || floor > from.y + CAMERA_RADIUS || p.y - CAMERA_RADIUS >= floor);
+        (!Number.isFinite(floor) || p.y - CAMERA_RADIUS >= floor);
     };
     for (let i = 1; i <= count; i++) {
       const t = fraction * i / count;

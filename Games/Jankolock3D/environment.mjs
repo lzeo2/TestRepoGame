@@ -87,6 +87,10 @@ export function createEnvironment(scene, world, loadTexture = url => new THREE.T
     // The core is behind the openings, not a full cube painted with window decals.
     box(wall,b.x,b.height/2,b.z,34.4,b.height,40.4,0,group);
     box(roof,b.x,b.height-.08,b.z,36,.16,42,0,group);
+    // Recessed dark footings and a narrow roof fascia anchor the shell without
+    // a shadow map or screen-space pass. They stay inside the collision footprint.
+    box(dark,b.x,.08,b.z,35.8,.16,41.8,0,group);
+    box(dark,b.x,b.height-.26,b.z,35.8,.18,41.8,0,group);
     for(const [angle,width,depth] of [[0,36,21],[Math.PI,36,21],[Math.PI/2,42,18],[-Math.PI/2,42,18]]) {
       const sin=Math.sin(angle),cos=Math.cos(angle);
       const point=(u,y,v)=>new THREE.Vector3(b.x+u*cos+v*sin,y,b.z-u*sin+v*cos);
@@ -211,7 +215,8 @@ export function createEnvironment(scene, world, loadTexture = url => new THREE.T
       rod(wood,tx,2.8,z,.36,5.6,group);
       for(const [dx,dy,dz,r] of [[0,6,0,3.3],[-1.8,5.6,1,2.4],[1.4,7,-1,2.6]]) {
         beam(wood,new THREE.Vector3(tx,3,z),new THREE.Vector3(tx+dx,dy,z+dz),.15,group);
-        add(canopy,leaves,tx+dx,dy,z+dz,r,r*.86,r,0,group);
+        const spread=1+Math.sin(z*.31+side*2+dy)*.16;
+        add(canopy,leaves,tx+dx,dy,z+dz,r*spread,r*.78,r/spread,z*.03,group);
       }
     }
   }
