@@ -47,8 +47,14 @@ function save() {
 }
 function skipNight() {
   if (!active() || skip.disabled) return;
-  sim.skipToNight();
-  message('Day advanced to the nightfall warning.');
+  if (sim.skipToNight()) message('Day advanced to the nightfall warning.');
+}
+function repairEvent(id) {
+  const event = sim?.state.cityEvents.find(event => event.id === id && event.type === 'water-main-burst');
+  if (!active() || !event) return;
+  const [x, z] = event.district.split(',').map(Number);
+  const result = applyTool(sim, 'repair', { x: x * 8, z: z * 8 });
+  message(result.reason || (result.ok ? 'Water main repaired' : 'Cannot repair now'));
 }
 function resume() { if (!sim) return; sim.setSpeed(resumeSpeed); paused = false; canvas.focus(); }
 function stop() {
@@ -78,7 +84,7 @@ try {
   world = createWorld(canvas, { size: 200 });
   await world.ready;
   if (!closed) {
-    ui = createUI(root, { onStart(mode) { const snapshot = requestedSave; requestedSave = undefined; start(mode, snapshot); }, onRestart: start, onTool: choose, onMenu: pause, onResume: resume });
+    ui = createUI(root, { onStart(mode) { const snapshot = requestedSave; requestedSave = undefined; start(mode, snapshot); }, onRestart: start, onTool: choose, onMenu: pause, onResume: resume, onEventAction: repairEvent });
     loading.hidden = true;
     const menu = root.querySelector('.city-menu-content');
     saveButton = document.createElement('button'); saveButton.textContent = 'Save'; saveButton.disabled = true; saveButton.id = 'save-town';
