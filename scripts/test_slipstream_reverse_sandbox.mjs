@@ -69,7 +69,7 @@ for(const mode of ['roam','sandbox']) {
   assert(!blocked(hit.world.x,hit.world.z));assert(hit.speed<0);assert.equal(step(hit,reverse).hp,hit.hp);
   assert.equal(hit.earnings,0);
 }
-const city=core.startRun(real,'roam').run;city.world={x:-50,z:46.1,heading:0};city.speed=-6;
+const city=core.startRun(real,'roam').run;city.world={x:city.traffic[0].world.x,z:city.traffic[0].world.z-3.9,heading:0};city.speed=-6;
 const hit=step(city,reverse);assert(hit.traffic[0].hit);assert.equal(hit.collisions,1);assert.equal(hit.distance,0);
 const chased=core.startRun(real,'roam').run;Object.assign(chased,{elapsed:20,distance:30,score:60});
 const cops=step(chased);cops.speed=-6;cops.police[0].world={x:0,z:-8,heading:0};cops.police[0].speed=0;
