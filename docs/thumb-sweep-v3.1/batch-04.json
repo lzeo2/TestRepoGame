@@ -1,0 +1,1001 @@
+[
+  {
+    "id": 121,
+    "title": "Sonic Advance",
+    "head": "1f3274885576a3bd59042e3199097b71c4a62706",
+    "entry_blob": "8f20e5cbc141215e45f9f19cabd820baad645c13",
+    "source_tree": "a0a64bcb0a651dfeb14fed5555351a3f088acf5f",
+    "actions": [
+      [
+        "wait",
+        12000
+      ],
+      [
+        "key",
+        "Enter"
+      ],
+      [
+        "wait",
+        2000
+      ],
+      [
+        "key",
+        "Enter"
+      ],
+      [
+        "wait",
+        1000
+      ],
+      [
+        "key",
+        "z"
+      ],
+      [
+        "wait",
+        1000
+      ],
+      [
+        "snap"
+      ],
+      [
+        "wait",
+        12000
+      ],
+      [
+        "key",
+        "Enter"
+      ],
+      [
+        "wait",
+        3000
+      ],
+      [
+        "key",
+        "z"
+      ],
+      [
+        "wait",
+        1000
+      ],
+      [
+        "snap"
+      ],
+      [
+        "key",
+        "Enter"
+      ],
+      [
+        "wait",
+        1500
+      ],
+      [
+        "key",
+        "z"
+      ],
+      [
+        "wait",
+        1500
+      ],
+      [
+        "key",
+        "z"
+      ],
+      [
+        "wait",
+        1800
+      ],
+      [
+        "snap"
+      ],
+      [
+        "key",
+        "z"
+      ],
+      [
+        "wait",
+        5000
+      ],
+      [
+        "hold",
+        "ArrowRight",
+        1800
+      ],
+      [
+        "key",
+        "z"
+      ],
+      [
+        "snap"
+      ]
+    ],
+    "errors": [
+      "Failed to fetch"
+    ],
+    "external": [
+      "raw.githack.com"
+    ],
+    "http_errors": [],
+    "candidates": [
+      {
+        "file": "121-0.jpg",
+        "sha256": "a035b15b274b04d157a69f837cf813bc90fb53addbb64a550dbde35114a4722e"
+      },
+      {
+        "file": "121-1.jpg",
+        "sha256": "c539c1ae47303b4218b2f7386ff2fc896c095a76dba15c83af76506dd113c57c"
+      },
+      {
+        "file": "121-2.jpg",
+        "sha256": "98cf924e5fb2d3c2437bfd4d4b767897cdd1a9c0b97c37028a3fcab6cd35d283"
+      },
+      {
+        "file": "121-3.jpg",
+        "sha256": "75c6051428a1f1353c7e1946255e74f4134119a7ae3f985c2fafec9dfac68af7"
+      }
+    ],
+    "seconds": 92.25,
+    "reason": "captured: Enter/Z through title and character; right+jump in Neo Green Hill, live HUD.",
+    "output": "assets/thumbs/sonicadvance.jpg",
+    "previous_sha256": "e08d405b5668705e5d4c93bb9456205130e42989bf8eaee4dc4ce2340945ee06",
+    "status": "captured",
+    "accepted_candidate": "121-3.jpg",
+    "output_sha256": "94999dd92f38c964125a8cb5435f73e2e7b51987107ace8867cae4dba7c90b18",
+    "output_bytes": 157466
+  },
+  {
+    "id": 120,
+    "title": "Kirby Amazing Mirror",
+    "head": "1f3274885576a3bd59042e3199097b71c4a62706",
+    "entry_blob": "359c3e89498152c2f46d3499c8a00365f32249d3",
+    "source_tree": "bc8bd736c48ea4a72a4f7ca9412f0e7ca1ea6147",
+    "actions": [
+      [
+        "wait",
+        22000
+      ],
+      [
+        "key",
+        "Enter"
+      ],
+      [
+        "wait",
+        2000
+      ],
+      [
+        "key",
+        "z"
+      ],
+      [
+        "wait",
+        1500
+      ],
+      [
+        "snap"
+      ],
+      [
+        "key",
+        "z"
+      ],
+      [
+        "wait",
+        1800
+      ],
+      [
+        "key",
+        "z"
+      ],
+      [
+        "wait",
+        4500
+      ],
+      [
+        "key",
+        "Enter"
+      ],
+      [
+        "wait",
+        2000
+      ],
+      [
+        "hold",
+        "ArrowRight",
+        1200
+      ],
+      [
+        "snap"
+      ],
+      [
+        "wait",
+        6000
+      ],
+      [
+        "key",
+        "Enter"
+      ],
+      [
+        "key",
+        "z"
+      ],
+      [
+        "wait",
+        2000
+      ],
+      [
+        "hold",
+        "ArrowRight",
+        1200
+      ],
+      [
+        "snap"
+      ],
+      [
+        "key",
+        "x"
+      ],
+      [
+        "wait",
+        3000
+      ],
+      [
+        "hold",
+        "ArrowRight",
+        1000
+      ],
+      [
+        "key",
+        "z"
+      ],
+      [
+        "snap"
+      ]
+    ],
+    "errors": [
+      "Failed to fetch"
+    ],
+    "external": [
+      "raw.githack.com"
+    ],
+    "http_errors": [],
+    "candidates": [
+      {
+        "file": "120-0.jpg",
+        "sha256": "5ec2e18701b911f796a20df124498dc9da6f782ceb1379812473da83476fe142"
+      },
+      {
+        "file": "120-1.jpg",
+        "sha256": "711ee45366b56edf0d7254d96d6b69b16050ee25b1435fb9fa515852c4e7b519"
+      },
+      {
+        "file": "120-2.jpg",
+        "sha256": "e233213444fdb76edba94d33a9e24cced31e47aed49e68992acfd9d3db654056"
+      },
+      {
+        "file": "120-3.jpg",
+        "sha256": "05248cfbe32cca532d78193dca88690ba0ab4dc44e45c6c08a6b7fcbd8455085"
+      }
+    ],
+    "seconds": 95.17,
+    "reason": "captured: file1/start, B exits copy tutorial, native movement/jump; visible Kirby team and gameplay HUD.",
+    "output": "assets/thumbs/kirbyamazingmirror.jpg",
+    "previous_sha256": "583852f4e9318e1903d15adcb620870834fe18904249cd856f29a59a350ca53a",
+    "status": "captured",
+    "accepted_candidate": "120-3.jpg",
+    "output_sha256": "3bb6f858b5f8133903b07fd9ec83556eeafe188e097d5eddb13535b348b91b83",
+    "output_bytes": 120033
+  },
+  {
+    "id": 117,
+    "title": "Mario Kart Super Circuit",
+    "head": "1f3274885576a3bd59042e3199097b71c4a62706",
+    "entry_blob": "d23371db849679d01d0a1a444e66be0fbabd2920",
+    "source_tree": "f03642879ffe8348d10d6fcbb5f8746b21f058fd",
+    "actions": [
+      [
+        "wait",
+        20000
+      ],
+      [
+        "key",
+        "Enter"
+      ],
+      [
+        "wait",
+        2000
+      ],
+      [
+        "key",
+        "z"
+      ],
+      [
+        "wait",
+        1000
+      ],
+      [
+        "key",
+        "z"
+      ],
+      [
+        "wait",
+        1000
+      ],
+      [
+        "snap"
+      ],
+      [
+        "key",
+        "z"
+      ],
+      [
+        "wait",
+        1000
+      ],
+      [
+        "key",
+        "z"
+      ],
+      [
+        "wait",
+        1000
+      ],
+      [
+        "key",
+        "z"
+      ],
+      [
+        "wait",
+        1000
+      ],
+      [
+        "key",
+        "z"
+      ],
+      [
+        "wait",
+        5000
+      ],
+      [
+        "snap"
+      ],
+      [
+        "key",
+        "z"
+      ],
+      [
+        "wait",
+        8000
+      ],
+      [
+        "hold",
+        "z",
+        2000
+      ],
+      [
+        "snap"
+      ],
+      [
+        "wait",
+        5000
+      ],
+      [
+        "hold",
+        "z",
+        4000
+      ],
+      [
+        "snap"
+      ]
+    ],
+    "errors": [
+      "Failed to fetch"
+    ],
+    "external": [
+      "raw.githack.com"
+    ],
+    "http_errors": [],
+    "candidates": [
+      {
+        "file": "117-0.jpg",
+        "sha256": "d6c8e0dcd4f94ea114aad0aee33f886f8495432dad8f6c5c7c41f79065dd994d"
+      },
+      {
+        "file": "117-1.jpg",
+        "sha256": "b14a0af8d1253cc2f11a0ed4e4a80244ba90e306b5633a94b33b9b36040aafa0"
+      },
+      {
+        "file": "117-2.jpg",
+        "sha256": "0c3ec58b758057306a42ce9c09feb66ac17b0ff9c0ac18f88312d3b146c3ab23"
+      },
+      {
+        "file": "117-3.jpg",
+        "sha256": "f6872587aa276995802f924aece06f1c83fd04a185a6a69c8057488c4424802b"
+      }
+    ],
+    "seconds": 102.67,
+    "reason": "captured: Enter/Z menu path to Mushroom Cup, held Z acceleration; lap1 live racing with kart and map.",
+    "output": "assets/thumbs/mariokartsupercircuit.jpg",
+    "previous_sha256": "fadfcffb54604b2a68b5ae3ef9d2efd7ac04186453583f1a6294eadb2abd1077",
+    "status": "captured",
+    "accepted_candidate": "117-3.jpg",
+    "output_sha256": "d62bd54d78eb5821495231ea3beb4df94fd2ba34c9f0daab351061b59de5e2ef",
+    "output_bytes": 129814
+  },
+  {
+    "id": 115,
+    "title": "Street Fighter II",
+    "head": "1f3274885576a3bd59042e3199097b71c4a62706",
+    "entry_blob": "948aea5622a03290bb8d944889e6a8d66824a1ea",
+    "source_tree": "0d9d78034ffa2bf9edd649b74db5819c57b1364b",
+    "actions": [
+      [
+        "wait",
+        20000
+      ],
+      [
+        "key",
+        "Enter"
+      ],
+      [
+        "wait",
+        3000
+      ],
+      [
+        "key",
+        "Enter"
+      ],
+      [
+        "wait",
+        1000
+      ],
+      [
+        "key",
+        "z"
+      ],
+      [
+        "wait",
+        1500
+      ],
+      [
+        "snap"
+      ],
+      [
+        "key",
+        "z"
+      ],
+      [
+        "wait",
+        1500
+      ],
+      [
+        "key",
+        "z"
+      ],
+      [
+        "wait",
+        2000
+      ],
+      [
+        "key",
+        "z"
+      ],
+      [
+        "wait",
+        6000
+      ],
+      [
+        "snap"
+      ],
+      [
+        "key",
+        "z"
+      ],
+      [
+        "wait",
+        2000
+      ],
+      [
+        "key",
+        "z"
+      ],
+      [
+        "wait",
+        1000
+      ],
+      [
+        "key",
+        "z"
+      ],
+      [
+        "wait",
+        7000
+      ],
+      [
+        "snap"
+      ],
+      [
+        "hold",
+        "ArrowRight",
+        450
+      ],
+      [
+        "key",
+        "x"
+      ],
+      [
+        "key",
+        "z"
+      ],
+      [
+        "snap"
+      ]
+    ],
+    "errors": [
+      "Failed to fetch"
+    ],
+    "external": [
+      "raw.githack.com"
+    ],
+    "http_errors": [],
+    "candidates": [
+      {
+        "file": "115-0.jpg",
+        "sha256": "0c11d1158bfef87d89bf2982ad14a7bcee236323d9c771cbd4580cf386897a5b"
+      },
+      {
+        "file": "115-1.jpg",
+        "sha256": "2fa12765080bb80bacae163c14c666d7c36c95d74eee9f648b4bfda17c6fda3d"
+      },
+      {
+        "file": "115-2.jpg",
+        "sha256": "3698f1c5e81bd1798ecb8936ad72742aad4baf4dad8785c52d19e5c9ea8faf5d"
+      },
+      {
+        "file": "115-3.jpg",
+        "sha256": "dcd183051698c501032d868e3a362d0afe1564eb8dc68776f2ee2d30e06999c0"
+      }
+    ],
+    "seconds": 85.38,
+    "reason": "captured: native Arcade/Normal selections, Ryu vs T.Hawk live bout and attack keys.",
+    "output": "assets/thumbs/streetfighter2.jpg",
+    "previous_sha256": "8cde6fc81175ca56a957837e414ebfb68e09eea1f90a58ad6c3ed0c98d594da0",
+    "status": "captured",
+    "accepted_candidate": "115-3.jpg",
+    "output_sha256": "bb349eb06f7b8be849c9dd41c8e4a56442bbc47aad6ecb1801eef3bf28fdfe43",
+    "output_bytes": 191515
+  },
+  {
+    "id": 116,
+    "title": "Advance Wars",
+    "head": "1f3274885576a3bd59042e3199097b71c4a62706",
+    "entry_blob": "df4b4c19ae2d5861583fcf38e92168aaa51bc82a",
+    "source_tree": "dc9a072f593cdfbed3e9060368f725c5d8984e49",
+    "actions": [
+      [
+        "wait",
+        20000
+      ],
+      [
+        "key",
+        "Enter"
+      ],
+      [
+        "wait",
+        1500
+      ],
+      [
+        "key",
+        "z"
+      ],
+      [
+        "wait",
+        1500
+      ],
+      [
+        "snap"
+      ],
+      [
+        "key",
+        "Enter"
+      ],
+      [
+        "wait",
+        1500
+      ],
+      [
+        "key",
+        "z"
+      ],
+      [
+        "wait",
+        2000
+      ],
+      [
+        "key",
+        "z"
+      ],
+      [
+        "wait",
+        2000
+      ],
+      [
+        "snap"
+      ],
+      [
+        "key",
+        "z"
+      ],
+      [
+        "key",
+        "Enter"
+      ],
+      [
+        "wait",
+        1500
+      ],
+      [
+        "key",
+        "z"
+      ],
+      [
+        "wait",
+        1500
+      ],
+      [
+        "key",
+        "z"
+      ],
+      [
+        "wait",
+        2000
+      ],
+      [
+        "snap"
+      ],
+      [
+        "key",
+        "Enter"
+      ],
+      [
+        "wait",
+        500
+      ],
+      [
+        "key",
+        "z"
+      ],
+      [
+        "wait",
+        1500
+      ],
+      [
+        "snap"
+      ],
+      [
+        "key",
+        "z"
+      ],
+      [
+        "wait",
+        1200
+      ],
+      [
+        "key",
+        "z"
+      ],
+      [
+        "wait",
+        1200
+      ],
+      [
+        "key",
+        "z"
+      ],
+      [
+        "wait",
+        1200
+      ],
+      [
+        "key",
+        "z"
+      ],
+      [
+        "wait",
+        1200
+      ],
+      [
+        "key",
+        "Enter"
+      ],
+      [
+        "snap"
+      ],
+      [
+        "key",
+        "z"
+      ],
+      [
+        "key",
+        "z"
+      ],
+      [
+        "key",
+        "z"
+      ],
+      [
+        "key",
+        "z"
+      ],
+      [
+        "key",
+        "z"
+      ],
+      [
+        "key",
+        "z"
+      ],
+      [
+        "key",
+        "z"
+      ],
+      [
+        "key",
+        "z"
+      ],
+      [
+        "key",
+        "z"
+      ],
+      [
+        "key",
+        "z"
+      ],
+      [
+        "wait",
+        800
+      ],
+      [
+        "snap"
+      ],
+      [
+        "type",
+        "zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz"
+      ],
+      [
+        "wait",
+        1000
+      ],
+      [
+        "key",
+        "Enter"
+      ],
+      [
+        "snap"
+      ],
+      [
+        "key",
+        "z"
+      ],
+      [
+        "wait",
+        400
+      ],
+      [
+        "key",
+        "z"
+      ],
+      [
+        "wait",
+        400
+      ],
+      [
+        "key",
+        "z"
+      ],
+      [
+        "wait",
+        400
+      ],
+      [
+        "key",
+        "z"
+      ],
+      [
+        "wait",
+        400
+      ],
+      [
+        "key",
+        "z"
+      ],
+      [
+        "wait",
+        400
+      ],
+      [
+        "key",
+        "z"
+      ],
+      [
+        "wait",
+        400
+      ],
+      [
+        "key",
+        "z"
+      ],
+      [
+        "wait",
+        400
+      ],
+      [
+        "key",
+        "z"
+      ],
+      [
+        "wait",
+        400
+      ],
+      [
+        "key",
+        "z"
+      ],
+      [
+        "wait",
+        400
+      ],
+      [
+        "key",
+        "z"
+      ],
+      [
+        "wait",
+        400
+      ],
+      [
+        "key",
+        "z"
+      ],
+      [
+        "wait",
+        400
+      ],
+      [
+        "key",
+        "z"
+      ],
+      [
+        "wait",
+        400
+      ],
+      [
+        "key",
+        "z"
+      ],
+      [
+        "wait",
+        400
+      ],
+      [
+        "key",
+        "z"
+      ],
+      [
+        "wait",
+        400
+      ],
+      [
+        "key",
+        "z"
+      ],
+      [
+        "wait",
+        400
+      ],
+      [
+        "key",
+        "z"
+      ],
+      [
+        "wait",
+        400
+      ],
+      [
+        "key",
+        "z"
+      ],
+      [
+        "wait",
+        400
+      ],
+      [
+        "key",
+        "z"
+      ],
+      [
+        "wait",
+        400
+      ],
+      [
+        "key",
+        "z"
+      ],
+      [
+        "wait",
+        400
+      ],
+      [
+        "key",
+        "z"
+      ],
+      [
+        "wait",
+        400
+      ],
+      [
+        "snap"
+      ],
+      [
+        "key",
+        "Enter"
+      ],
+      [
+        "key",
+        "z"
+      ],
+      [
+        "snap"
+      ]
+    ],
+    "errors": [
+      "Failed to fetch"
+    ],
+    "external": [
+      "raw.githack.com"
+    ],
+    "http_errors": [],
+    "candidates": [
+      {
+        "file": "116-0.jpg",
+        "sha256": "09a011f725910fbc617a5052d0cff422592b190987bbe9810684ce43e26cce1b"
+      },
+      {
+        "file": "116-1.jpg",
+        "sha256": "2138a87dc5b4afec37e7da7d88fca378a6f95278522dcc4c8193c7a0ffe747b0"
+      },
+      {
+        "file": "116-2.jpg",
+        "sha256": "ba6369d20eca9480d188671f7f438267082f8732801ae721643f58a819193a3d"
+      },
+      {
+        "file": "116-3.jpg",
+        "sha256": "e30d8673e6f875e0433d48704486a3b5e77d3cd00c34ee8d76edf84fc862608d"
+      },
+      {
+        "file": "116-4.jpg",
+        "sha256": "c292be0a2d94acd161a65618bcb13aefc3713fcbb39060abb9832a7638974cdc"
+      },
+      {
+        "file": "116-5.jpg",
+        "sha256": "175021a57c9e07289fabc66c125d5f70cdd4040d96ae2a8477ec58eddf3c0c8c"
+      },
+      {
+        "file": "116-6.jpg",
+        "sha256": "af0c47e6c306890e8f7b39065a82341b7417439aa80ef5ee479a0f2f68962b56"
+      },
+      {
+        "file": "116-7.jpg",
+        "sha256": "e7123f9c2b9d195eb0039777799ce828d8ead062246929b48a7d932d16cf389d"
+      },
+      {
+        "file": "116-8.jpg",
+        "sha256": "aca631b14d1b380f82125c0222aca5a0a03dd76821ce6daa715bd360306e0358"
+      }
+    ],
+    "seconds": 175.78,
+    "reason": "needs-manual: native name confirmation and lengthy Field Training dialogue not past intro before remaining180s budget exhausted; no playable turn.",
+    "output": "assets/thumbs/advancewars.jpg",
+    "previous_sha256": "8879febf9855da304a9ca191409abd6e8d4d9821afa2a2394b0d88074566aa26",
+    "status": "needs-manual",
+    "output_sha256": "8879febf9855da304a9ca191409abd6e8d4d9821afa2a2394b0d88074566aa26",
+    "output_bytes": 14851
+  }
+]

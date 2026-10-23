@@ -478,3 +478,20 @@ source behavior, not injected progress.
 | 211 | Cribbage | captured | Pick low card, accept, wait for full deal, select two crib discards; real hand and peg board. |
 | 200 | Achtung die Kurve | captured | Type two player names, native key-pair selection, Start, steer both colored curves. |
 | 161 | Qix | captured | Native arrows trace a visible path with the player inside the field; original JIX prototype. |
+
+### Batch 4: emulator gameplay, not title art
+
+**4 accepted / 5 attempted.** Running continuation: **13 captured, 7 needs-manual,
+32 not yet attempted.** [Actions/source/output receipt](thumb-sweep-v3.1/batch-04.json).
+Read all five manuals; native Enter/Z/X/arrows only. No ROM, emulator settings,
+save-state, timing or progress injection. CDP captured the real full viewport.
+Game/ROM rights holds remain unchanged. Browser/server released after five;
+free space **3,031,678,976 bytes** before promotion.
+
+| ID | Game | v3.1 status | Native route / reason |
+| --- | --- | --- | --- |
+| 121 | Sonic Advance | captured | Enter/Z through title/character menus; move/jump in Neo Green Hill with live HUD. |
+| 120 | Kirby Amazing Mirror | captured | File 1/start, X exits copy tutorial, move/jump; Kirby team and gameplay HUD visible. |
+| 117 | Mario Kart Super Circuit | captured | 50cc/Mushroom Cup via Z; held Z accelerates during live lap-one Peach Circuit race. |
+| 115 | Street Fighter II | captured | Arcade/Normal/Ryu via native keys; moving/attacking in live Ryu versus T.Hawk bout. |
+| 116 | Advance Wars | needs-manual, old art retained | Name confirmed and Field Training reached, but lengthy intro dialogue did not reach a playable turn within the 180s allowance. |
