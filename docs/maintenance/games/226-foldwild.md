@@ -111,9 +111,22 @@ controller changes: 13/13 pass, including exact continuity/RNG, release/save gua
 128-entry sparse-aware catalog schema/unique IDs/tracked URLs and scoped diff
 whitespace checks pass. The maintenance checker already
 failed with stale global inventory before this work; Foldwild matched its entry
-and tree record then. Fresh visual/native rework evidence is pending the focused
-QA pass, not inferred from these parser checks. Existing original/async M2 tests
-remain unchanged and held. No full-fleet smoke, push, asset or catalog change.
+and tree record then. Fresh visual/native rework verification is **BLOCKED**, not
+passed: [the focused QA receipt](../../foldwild-ui-polish-qa.md) records one failed
+launch with a masked primary exception, followed by an occupied-slot admission
+failure. Both completed zero cases and produced zero usable captures; all 11
+runtime source hashes stayed unchanged. Browser overlap was observed, not proven
+the root cause. No visual approval is inferred from parser checks or historical
+screenshots. The new runnable check is `scripts/test_foldwild_ui_polish.py`; its
+intended four desktop/mobile OS-scheme cases remain uncompleted. Stop after these
+two attempts; obtain a reserved serial browser slot before a later rerun. Existing
+original/async M2 tests remain unchanged and held. No full-fleet smoke, push,
+asset or catalog change. Main's browser-slot ticket
+`pi-533772-1792799287696-d156ee21` and shared Git-lock ticket
+`pi-533772-1792799473194-ea2903b2` were pending at this checkpoint; the Git lock
+subsequently cleared naturally, without deleting it or stopping another process.
+Only Foldwild's inventory record was refreshed against committed runtime `c89a18ff`; concurrent
+Citisten, Slipstream and Wings source changes still block the global checker.
 
 Latest Main run: `python3 -B scripts/test_fix_swarm_ui.py` exits zero and prints `PASS: Slipstream reset gap/both themes/input/restart; Foldwild bounded HUD at 1280/390, windowed/fullscreen, keyboard/touch10s, ledger, wild turn, restart`. Four fresh Foldwild contexts use ordinary starter/seed input, keyboard or genuine held touch for10seconds, pause/resume, ledger inspection and one Close, native walking to a wild marker, a real ability advancing the round, Flee/Continue and confirmed new-run restart. No grants, state setters, error exclusions or server were added. Geometry keeps canvas/HUD inside the same frame, with no horizontal overflow and all visible targets at least44px. Reduced-motion preference and keyboard focus pass. Page/console/request/HTTP/external errors are empty in the final run.
 
