@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
-import { createSimulation } from './sim.mjs';
+import { createSimulation, CITY_EVENTS } from './sim.mjs';
+import { applyTool } from './native-actions.mjs';
 
 const log = text => console.log(text);
 function build(sim, type, x, z) {
@@ -171,3 +172,108 @@ advance(overflow, 240); assert(overflow.state.pendingZombies > 0);
 overflow.setMode('free'); assert.equal(overflow.state.pendingZombies, 0);
 log(`Overflow horde check: 12 nights, ${expectedKills} kills, staged edge spawns accounted for; free mode clears queue.`);
 log('Headless assertions complete. Browser acceptance remains reviewer-owned.');
+
+// Civic fixtures grant occupancy/phase only to isolate effect arithmetic, not browser play.
+function eventCity(seed = 19) {
+  const s = createSimulation({ size: 24, seed });
+  s.roads.place({ x: 8, z: 11 }, { x: 15, z: 11 });
+  build(s, 'power', 8, 10); build(s, 'water', 9, 10);
+  const park = build(s, 'park', 10, 10), shop = build(s, 'commercial', 11, 10);
+  const home = build(s, 'residential', 13, 10); build(s, 'industrial', 14, 10);
+  home.residents = 64; s.update(1); s.drainEvents();
+  return { s, home, shop, park };
+}
+const near = (actual, expected) => assert(Math.abs(actual - expected) < 1e-9, `${actual} != ${expected}`);
+const civic = eventCity(), c = civic.s, starts = [], ends = [];
+function until(seconds) {
+  advance(c, seconds - c.state.time, batch => {
+    starts.push(...batch.filter(e => e.type === 'city-event-start'));
+    ends.push(...batch.filter(e => e.type === 'city-event-end'));
+  });
+}
+const baseIncome = c.state.income, baseWater = c.state.water.demand, basePower = c.state.power.demand;
+until(59.75); assert.equal(starts.length, 0);
+until(60); assert.equal(starts.length, 1);
+assert.equal(starts[0].event.startTick, 240); assert.equal(starts[0].event.durationTicks, 960);
+assert(starts[0].event.title && starts[0].event.description);
+near(civic.home.happiness, 0.7); near(c.state.income, baseIncome * 1.25);
+c.roads.set(16, 11);
+const outside = build(c, 'residential', 16, 10); outside.residents = 0;
+until(61); assert(outside.happiness < civic.home.happiness, 'festival is district-local');
+c.bulldoze(outside.x, outside.z);
+c.update(0); c.update(0.1); c.update(0.15); assert.equal(c.drainEvents().filter(e => e.type === 'city-event-start').length, 0);
+c.setSpeed(0); c.update(500); assert.equal(c.state.tick, 245); c.setSpeed(1);
+until(299.75); assert.equal(ends.length, 0);
+until(300); assert.equal(ends[0].event.type, 'street-festival'); near(civic.home.happiness, 0.5);
+assert.equal(starts[1].event.type, 'water-main-burst'); near(c.state.water.demand, baseWater * 2);
+near(c.state.income, baseIncome);
+until(540); near(c.state.income, baseIncome * 0.75);
+assert(c.state.cityEvents.some(e => e.type === 'water-main-burst'), 'burst persists beyond a civic day');
+const burst = c.state.cityEvents.find(e => e.type === 'water-main-burst');
+const roadLot = { x: 8, z: 11 }, budget = c.state.budget;
+c.state.phase = 'night'; assert.equal(applyTool(c, 'repair', roadLot).ok, false); c.state.phase = 'day';
+c.state.budget = 119; assert.equal(applyTool(c, 'repair', roadLot).ok, false); assert(c.state.cityEvents.includes(burst));
+c.state.budget = budget;
+const fixed = applyTool(c, 'repair', roadLot); assert.equal(fixed.ok, true); assert.equal(fixed.cost, 120);
+near(c.state.budget, budget - 120); near(c.state.water.demand, baseWater);
+assert.equal(applyTool(c, 'repair', roadLot).ok, false); near(c.state.budget, budget - 120);
+assert(c.drainEvents().some(e => e.type === 'city-event-end' && e.reason === 'repaired'));
+until(780); near(c.state.income, baseIncome + 0.03);
+c.bulldoze(civic.park.x, civic.park.z); until(781); near(c.state.income, baseIncome);
+const farPark = build(c, 'park', 23, 23); until(782); near(c.state.income, baseIncome);
+c.bulldoze(farPark.x, farPark.z);
+until(1019.75); c.state.population = 1000; until(1020);
+near(c.state.crime, 800 / 1800 - 0.3); near(c.state.income, baseIncome);
+until(1259.75); c.state.population = 1000; until(1260); near(c.state.crime, 800 / 1800);
+near(c.state.power.demand, basePower - 0.1); // market fixture removed its park
+c.state.phase = 'night'; until(1261); near(c.state.power.demand, (basePower - 0.1) * 1.5);
+until(1500); near(c.state.power.demand, basePower - 0.1);
+assert.deepEqual(starts.slice(0, 6).map(e => e.event.type), CITY_EVENTS.map(e => e.type));
+assert.equal(ends.filter(e => e.reason === 'expired').length, 5);
+assert.equal(c.state.cityEvents.length, 1, 'next cycle starts a new festival at cold expiry');
+
+// An unrepaired incident cannot duplicate even on a later rotation.
+const persistent = createSimulation({ size: 12 }); let burstStarts = 0;
+advance(persistent, 1740, batch => { burstStarts += batch.filter(e => e.type === 'city-event-start' && e.event.type === 'water-main-burst').length; });
+assert.equal(burstStarts, 1); assert.equal(persistent.state.cityEvents.filter(e => e.type === 'water-main-burst').length, 1);
+const replayA = city().sim, replayB = city().sim;
+replayA.update(600);
+for (let i = 0; i < 2400; i++) replayB.update(0.25);
+assert.deepEqual(replayA.state, replayB.state); assert.deepEqual(replayA.drainEvents(), replayB.drainEvents());
+const targets = [];
+for (const seed of [19, 20]) { const s = eventCity(seed).s; build(s, 'park', 1, 1); advance(s, 300); targets.push(s.state.cityEvents.find(e => e.type === 'water-main-burst').district); }
+assert.notEqual(targets[0], targets[1], 'original seed selects districts without consuming traffic/combat RNG');
+log('CIVIC CHECK PASS: six scheduled effects, district/park/night limits, expiry, paid repair, no duplicates, pause and seeded replay');
+
+// Skip runs the same fixed steps and emits exactly the normal play notices.
+const skipped = createSimulation({ size: 24, mode: 'defense', seed: 8 });
+const normal = createSimulation({ size: 24, mode: 'defense', seed: 8 });
+skipped.update(0.1); normal.update(0.1);
+assert.equal(skipped.skipToNight(), true); normal.update(180);
+assert.deepEqual(skipped.snapshot(), normal.snapshot());
+assert.equal(skipped.state.dayRemaining, 60); assert.equal(skipped.skipToNight(), false);
+assert.equal(skipped.drainEvents().filter(e => e.type === 'wave-warning').length, 1);
+assert.equal(createSimulation().skipToNight(), false);
+skipped.update(60); assert.equal(skipped.skipToNight(), false);
+log('SKIP CHECK PASS: fixed-step state/events equivalence, warning stop and mode/phase guards');
+
+// The snapshot is detached, includes undrained events, and resumes fractional clocks/RNG.
+const source = city().sim; source.update(321.1);
+const saved = source.snapshot(), restored = createSimulation({ snapshot: saved });
+assert.deepEqual(restored.snapshot(), saved);
+restored.state.budget--; assert.equal(source.state.budget, saved.state.budget); restored.state.budget++;
+source.update(100); restored.update(100); assert.deepEqual(restored.snapshot(), source.snapshot());
+const supplied = createSimulation({ size: 40 }).roads; supplied.set(0, 0); const roadBefore = [...supplied.cells], versionBefore = supplied.version;
+for (const corrupt of [
+  x => { x.version = 2; }, x => { x.runtime.seed = -1; }, x => { x.runtime.nextId = 1; },
+  x => { x.state.taxRate = 9; }, x => { x.state.time = NaN; }, x => { x.state.tick++; },
+  x => { x.roads.push(x.roads[0]); }, x => { x.state.buildings[0].type = '__proto__'; },
+  x => { x.state.buildings[0].hp = -1; }, x => { x.state.cityEvents[0].durationTicks = 5; },
+  x => { x.state.cars[0].segment = 999; }, x => { x.runtime.events = null; }
+]) {
+  const bad = JSON.parse(JSON.stringify(saved)); corrupt(bad);
+  assert.throws(() => createSimulation({ snapshot: bad, roads: supplied }));
+  assert.deepEqual([...supplied.cells], roadBefore); assert.equal(supplied.version, versionBefore);
+}
+const attached = createSimulation({ snapshot: saved, roads: supplied }); assert.equal(attached.roads, supplied); assert.deepEqual(attached.snapshot(), saved);
+log('SNAPSHOT CHECK PASS: detached round trip, fractional-clock replay and corrupt-input rejection before road mutation');
