@@ -615,3 +615,32 @@ at batch close; no art changed.
 | 119 | Mega Man Zero | needs-manual, old art retained | Native Enter/Z progressed long opening dialogue to Zero's awakening cutscene, but no controllable gameplay before hard deadline. |
 | 118 | Metroid Fusion | needs-manual, old art retained | Native title/file/start keys reached narrated space introduction, not controllable Samus play. |
 | 230 | Blackout | needs-manual, old art retained | Native Start bot match reports `No WebGPU adapter is available on this device.` |
+
+### Batch 11: remaining renderer-dependent cards
+
+**0 accepted / 2 attempted. Final continuation: 25 captured, 27 needs-manual;
+all original 52 attempted.** [Actions/source/output receipt](thumb-sweep-v3.1/batch-11.json).
+Both manuals read. No sibling downloaded/system Chromium was active before the
+session; one browser and one heavy game at a time. Browser/server closed after
+two. Free space **2,827,595,776 bytes** at close. Old art/fallbacks unchanged.
+
+| ID | Game | v3.1 status | Reason |
+| --- | --- | --- | --- |
+| 231 | Getaway | needs-manual, old art retained | Boot reports no WebGPU adapter. Native disclosure/restart attempt did not produce driving; restart click timed out. |
+| 232 | Wings | needs-manual, SVG fallback retained | Native Solo flight failed closed: `Unsupported renderer (webgl2, low): First scene draw timed out`. No visible flight or mocked renderer frame accepted. |
+
+### v3.1 final outcome
+
+Across v3 plus this continuation, **100 of 127 games now have accepted fresh
+captures; 27 still need manual capture**. The four original SVG fallbacks remain:
+Asteroids, Duck Hunt, Balatro and Wings. No title/menu/loader/error image was
+promoted to fill those gaps. Accepted training frames are playable scene input,
+not a claim of full-game acceptance. Existing source, offline, rights, hardware
+and release holds remain; no game was added, ingested or self-made in this work.
+
+Each of the 52 rows has its source-tree hash, native actions, timing, errors and
+candidate hashes in the receipts linked above. Accepted rows include final
+runtime output hashes; rejected rows preserve old bytes/fallbacks. The original
+v3 JSON/table remains historical. Two variant image aliases alone changed in
+the authored portal layer; no `games.json` or game-source edits, push or full
+fleet smoke. Final verification/storage/commit summary follows below.

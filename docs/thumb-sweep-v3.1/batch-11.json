@@ -1,0 +1,108 @@
+[
+  {
+    "id": 231,
+    "title": "Getaway",
+    "head": "c2b570d1182bd45e3b37abe4186160489b2a56f8",
+    "entry_blob": "0ae824c85f2e96612bce9043be626dcd499042b0",
+    "source_tree": "0ce7d8a50b6be7ac71c479ff74c7f5586bfcb7df",
+    "actions": [
+      [
+        "wait",
+        5000
+      ],
+      [
+        "info"
+      ],
+      [
+        "snap"
+      ],
+      [
+        "selector",
+        "summary"
+      ],
+      [
+        "selector",
+        "#solo-reset"
+      ],
+      [
+        "snap"
+      ]
+    ],
+    "errors": [],
+    "external": [],
+    "http_errors": [],
+    "candidates": [
+      {
+        "file": "231-0.jpg",
+        "sha256": "b97368c28c8deb843c9b18235418477d897498b5fcddf207beda4d3946adc66a"
+      },
+      {
+        "file": "231-1.jpg",
+        "sha256": "3e6e76f99f0c962f187e4440c417a9204428c29d6c94dc567f32196913809c8e"
+      }
+    ],
+    "seconds": 49.27,
+    "reason": "needs-manual: boot reports no WebGPU adapter. Native disclosure/restart attempt did not produce driving; restart click timed out.",
+    "output": "assets/thumbs/getaway.jpg",
+    "previous_sha256": "ebd53b594e85622f4af1dcc4d3dccb20339e383ace5f43626b57c5b7a69ca9f3",
+    "status": "needs-manual",
+    "output_sha256": "ebd53b594e85622f4af1dcc4d3dccb20339e383ace5f43626b57c5b7a69ca9f3",
+    "output_bytes": 4905
+  },
+  {
+    "id": 232,
+    "title": "Wings",
+    "head": "c2b570d1182bd45e3b37abe4186160489b2a56f8",
+    "entry_blob": "2d7f08aa3ca94c87da2921c7916bec48d28e13aa",
+    "source_tree": "f8b4f06e6dd62100e6d24ccbbdda7fb431a4d297",
+    "actions": [
+      [
+        "wait",
+        5000
+      ],
+      [
+        "info"
+      ],
+      [
+        "snap"
+      ],
+      [
+        "key",
+        "Enter"
+      ],
+      [
+        "wait",
+        3000
+      ],
+      [
+        "info"
+      ],
+      [
+        "snap"
+      ],
+      [
+        "info"
+      ]
+    ],
+    "errors": [],
+    "external": [],
+    "http_errors": [],
+    "candidates": [
+      {
+        "file": "232-0.jpg",
+        "sha256": "b57d968182524b1b725da4ff4fdb66fd407ce67998f919cab03b33e029ff4dc7"
+      },
+      {
+        "file": "232-1.jpg",
+        "sha256": "44969471ab8956182128a0132a9f2eed341231b201295c767f17e4cd5394a88e"
+      }
+    ],
+    "seconds": 98.83,
+    "reason": "needs-manual: Solo flight failed closed, Unsupported renderer (webgl2, low): First scene draw timed out; no visible flight, no hardware substitution.",
+    "output": "assets/thumbs/wings.jpg",
+    "previous_sha256": null,
+    "status": "needs-manual",
+    "output_sha256": null,
+    "output_bytes": 0
+  }
+]
