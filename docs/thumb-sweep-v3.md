@@ -513,3 +513,21 @@ steered car with the game's original tutorial instructions. No text was hidden.
 | 87 | Doge Miner | needs-manual, old art retained | Loading modal persists; Start remains hidden after waits/click/Enter. Known main.js parser blocker unchanged. |
 | 81 | Drift Boss | captured | Click Play, continue booster guidance, Start Drift, held/released Space; live steering tutorial car on original track. |
 | 80 | Bloons TD | needs-manual, old art retained | Native hub link to BTD4, skip intro, New Game, beginner/Easy. New-tower popup persisted during placement/start attempts, no active-wave capture. Other three hub children not claimed playable. |
+
+### Batch 6: Flash movies
+
+**1 accepted / 5 attempted.** Running continuation: **16 captured, 14 needs-manual,
+22 not yet attempted.** [Actions/source/output receipt](thumb-sweep-v3.1/batch-06.json).
+Manuals read; native input only. Heavy movies remained serial. Five-game
+browser/server closed; free space **2,836,684,800 bytes** before promotion.
+Fancy Pants preserves its original mostly grey hand-drawn room, blue bed and
+orange pants; no recoloring or compositing. Its active player movement/jump
+frame passed the image guard and visual review, unlike the rejected loaders.
+
+| ID | Game | v3.1 status | Native route / reason |
+| --- | --- | --- | --- |
+| 53 | Papa's Pizzeria | needs-manual, old art retained | Continue, Start, save slot/name and station guidance reached restaurant opening, but no order or pizza-making moment before remaining budget ran out. |
+| 57 | Fleeing the Complex | needs-manual, old art retained | Loader only about quarter-full after waits/click/Enter; no branching choice reached in bounded attempt. |
+| 58 | Infiltrating the Airship | needs-manual, old art retained | Operation setup preloader advanced slowly; no actual infiltration choice reached after waits/click/Enter. |
+| 63 | Fancy Pants Adventure 3 | captured | Click/keys past loader, Up advances intro dialogue, arrows/S move/jump in the actual starting room. |
+| 123 | Crush the Castle | needs-manual, old art retained | Native Run anyway acknowledged compatibility warning; subsequent click/Space produced black frame, not siege gameplay. |

@@ -1,0 +1,599 @@
+[
+  {
+    "id": 53,
+    "title": "Papa's Pizzeria",
+    "head": "19757ebb1c1f22b2288ba73ce769863b384457b1",
+    "entry_blob": "8bb299075eaaeaa6d643e9aba77897966779c9cf",
+    "source_tree": "14163f7e2c7d4127d239a245f6a70d599546a0f3",
+    "actions": [
+      [
+        "wait",
+        20000
+      ],
+      [
+        "snap"
+      ],
+      [
+        "info"
+      ],
+      [
+        "click",
+        1000,
+        695
+      ],
+      [
+        "wait",
+        1500
+      ],
+      [
+        "snap"
+      ],
+      [
+        "wait",
+        3000
+      ],
+      [
+        "snap"
+      ],
+      [
+        "click",
+        635,
+        482
+      ],
+      [
+        "wait",
+        1000
+      ],
+      [
+        "snap"
+      ],
+      [
+        "click",
+        330,
+        599
+      ],
+      [
+        "type",
+        "Chef"
+      ],
+      [
+        "key",
+        "Enter"
+      ],
+      [
+        "wait",
+        800
+      ],
+      [
+        "snap"
+      ],
+      [
+        "click",
+        610,
+        550
+      ],
+      [
+        "type",
+        "Chef"
+      ],
+      [
+        "click",
+        780,
+        651
+      ],
+      [
+        "wait",
+        1000
+      ],
+      [
+        "click",
+        1040,
+        680
+      ],
+      [
+        "wait",
+        1200
+      ],
+      [
+        "snap"
+      ],
+      [
+        "wait",
+        1500
+      ],
+      [
+        "click",
+        1045,
+        680
+      ],
+      [
+        "key",
+        "Space"
+      ],
+      [
+        "wait",
+        1000
+      ],
+      [
+        "snap"
+      ],
+      [
+        "click",
+        839,
+        45
+      ],
+      [
+        "wait",
+        300
+      ],
+      [
+        "click",
+        918,
+        45
+      ],
+      [
+        "wait",
+        300
+      ],
+      [
+        "click",
+        999,
+        45
+      ],
+      [
+        "wait",
+        300
+      ],
+      [
+        "click",
+        1073,
+        45
+      ],
+      [
+        "wait",
+        300
+      ],
+      [
+        "click",
+        839,
+        45
+      ],
+      [
+        "wait",
+        1000
+      ],
+      [
+        "snap"
+      ],
+      [
+        "click",
+        999,
+        45
+      ],
+      [
+        "wait",
+        1200
+      ],
+      [
+        "click",
+        1073,
+        45
+      ],
+      [
+        "wait",
+        1200
+      ],
+      [
+        "click",
+        839,
+        45
+      ],
+      [
+        "wait",
+        1200
+      ],
+      [
+        "snap"
+      ]
+    ],
+    "errors": [],
+    "external": [],
+    "http_errors": [],
+    "candidates": [
+      {
+        "file": "53-0.jpg",
+        "sha256": "d1bfaf28a6b058e926ad3b263654234688cb98b9a3fc5be30fc69b113eca5e7e"
+      },
+      {
+        "file": "53-1.jpg",
+        "sha256": "e0b7867bfdc02dcaf2c2b42099919730339e54160939a5841c019c4f0ccd35e9"
+      },
+      {
+        "file": "53-2.jpg",
+        "sha256": "3853b8aefa5f60757b2830bbbb1fc16635968a2699e82c09c09b384f5ef1fdb5"
+      },
+      {
+        "file": "53-3.jpg",
+        "sha256": "3b60190a4cd30170a293cde1b53ff2f89a0ce0b644da7c2724b63c03c6f3b353"
+      },
+      {
+        "file": "53-4.jpg",
+        "sha256": "d1e30489f987acde96e37d536e52b47367383cf6305a46b87776c8b29e5b71bf"
+      },
+      {
+        "file": "53-5.jpg",
+        "sha256": "40e9200917dfdccae0132736fbd598415e36fe7df7d546d460374f47c008e818"
+      },
+      {
+        "file": "53-6.jpg",
+        "sha256": "6e745b1fb4c83367a663f8e61aba532171929850f67d98f043de402cb75cf0e1"
+      },
+      {
+        "file": "53-7.jpg",
+        "sha256": "4cab1792d3671d9b88a424572d96557eb8f245ca93b94a2aea273d28c371723a"
+      },
+      {
+        "file": "53-8.jpg",
+        "sha256": "df22703665a63372c5deaccbbfa2f804565caa0d709bbd91beda056304059cfa"
+      }
+    ],
+    "seconds": 174.33,
+    "reason": "needs-manual: native Continue/Start/save slot/name reached station tutorial, but no order/pizza production frame before180s cap.",
+    "output": "assets/thumbs/papaspizzeria.jpg",
+    "previous_sha256": "129e8e43b6aa03b026aae206092b3c6207b8b157ec9dd1f58e145d81a5b5b3ad",
+    "status": "needs-manual",
+    "output_sha256": "129e8e43b6aa03b026aae206092b3c6207b8b157ec9dd1f58e145d81a5b5b3ad",
+    "output_bytes": 11627
+  },
+  {
+    "id": 57,
+    "title": "Fleeing the Complex",
+    "head": "19757ebb1c1f22b2288ba73ce769863b384457b1",
+    "entry_blob": "a3e623094003000f6c3419f4a6fa2d0a4ce9ada4",
+    "source_tree": "a3e1197af988071408383e9bc29822fe335d181b",
+    "actions": [
+      [
+        "wait",
+        20000
+      ],
+      [
+        "click",
+        640,
+        360
+      ],
+      [
+        "snap"
+      ],
+      [
+        "info"
+      ],
+      [
+        "wait",
+        6000
+      ],
+      [
+        "snap"
+      ],
+      [
+        "wait",
+        12000
+      ],
+      [
+        "key",
+        "Enter"
+      ],
+      [
+        "snap"
+      ],
+      [
+        "wait",
+        16000
+      ],
+      [
+        "click",
+        640,
+        600
+      ],
+      [
+        "snap"
+      ]
+    ],
+    "errors": [],
+    "external": [
+      "www.ngads.com"
+    ],
+    "http_errors": [],
+    "candidates": [
+      {
+        "file": "57-0.jpg",
+        "sha256": "a6ced6604b8be0f5748b17bfcc5285c10f7720ccba82b2b19d6e971a5a14d9ee"
+      },
+      {
+        "file": "57-1.jpg",
+        "sha256": "4c5ea96f2fb7ae5ef568f02b34191627fb7a53ac2b4c84a0b77ff70249a7947f"
+      },
+      {
+        "file": "57-2.jpg",
+        "sha256": "c70674a110f5e6e6f36d5971500ea582fdb74a2ac59d76ad8487ec5babb751b6"
+      },
+      {
+        "file": "57-3.jpg",
+        "sha256": "0892e9bf1a6e0bc6456180dff4d3148f26173e6819969ec13039516c27637c1f"
+      }
+    ],
+    "seconds": 121.71,
+    "reason": "needs-manual: Fleeing SWF preloader progressed only about quarter-full after native click/Enter and ~100s; no choice gameplay before180s cap.",
+    "output": "assets/thumbs/fleeingthecomplex.jpg",
+    "previous_sha256": "0abbbca0464a28b3861fbcbdab853efd3d90b6464e67f1d84c1082447cf423d5",
+    "status": "needs-manual",
+    "output_sha256": "0abbbca0464a28b3861fbcbdab853efd3d90b6464e67f1d84c1082447cf423d5",
+    "output_bytes": 12566
+  },
+  {
+    "id": 58,
+    "title": "Infiltrating the Airship",
+    "head": "19757ebb1c1f22b2288ba73ce769863b384457b1",
+    "entry_blob": "012cf0087130ae8a5834d96415c2df5cd48941a3",
+    "source_tree": "e2ddb6653374297d379f04c2d9691e37d5445499",
+    "actions": [
+      [
+        "wait",
+        20000
+      ],
+      [
+        "click",
+        640,
+        360
+      ],
+      [
+        "snap"
+      ],
+      [
+        "info"
+      ],
+      [
+        "wait",
+        25000
+      ],
+      [
+        "key",
+        "Enter"
+      ],
+      [
+        "click",
+        640,
+        600
+      ],
+      [
+        "snap"
+      ]
+    ],
+    "errors": [],
+    "external": [
+      "www.ngads.com"
+    ],
+    "http_errors": [],
+    "candidates": [
+      {
+        "file": "58-0.jpg",
+        "sha256": "891139c0cf5f0c6279ccaf1e12430abf50ecb976abf1a2240ffe38831cde5e3e"
+      },
+      {
+        "file": "58-1.jpg",
+        "sha256": "d75ce6b3affd7c61608bd88a0f55b3cea14ee7a6956dff6d97bc3b2ff7b5e591"
+      }
+    ],
+    "seconds": 80.63,
+    "reason": "needs-manual: Airship operation setup preloader only about one-sixth after waits/click/Enter; no interactive choice reached within bounded attempt.",
+    "output": "assets/thumbs/infiltratingtheairship.jpg",
+    "previous_sha256": "90561150381068d3231b58d302f81ea057a251e60b75313cc03d0f636e527225",
+    "status": "needs-manual",
+    "output_sha256": "90561150381068d3231b58d302f81ea057a251e60b75313cc03d0f636e527225",
+    "output_bytes": 8763
+  },
+  {
+    "id": 63,
+    "title": "Fancy Pants Adventure 3",
+    "head": "19757ebb1c1f22b2288ba73ce769863b384457b1",
+    "entry_blob": "d1f1bc2e76b669aefc6f870d4c0fa058950ee195",
+    "source_tree": "bb348cbf61cd50b7ae272f5e18810431f6c212fe",
+    "actions": [
+      [
+        "wait",
+        16000
+      ],
+      [
+        "click",
+        640,
+        360
+      ],
+      [
+        "snap"
+      ],
+      [
+        "info"
+      ],
+      [
+        "wait",
+        22000
+      ],
+      [
+        "click",
+        640,
+        665
+      ],
+      [
+        "key",
+        "Enter"
+      ],
+      [
+        "key",
+        "s"
+      ],
+      [
+        "snap"
+      ],
+      [
+        "wait",
+        12000
+      ],
+      [
+        "click",
+        640,
+        450
+      ],
+      [
+        "snap"
+      ],
+      [
+        "key",
+        "ArrowUp"
+      ],
+      [
+        "wait",
+        500
+      ],
+      [
+        "key",
+        "ArrowUp"
+      ],
+      [
+        "wait",
+        500
+      ],
+      [
+        "key",
+        "ArrowUp"
+      ],
+      [
+        "wait",
+        500
+      ],
+      [
+        "key",
+        "ArrowUp"
+      ],
+      [
+        "hold",
+        "ArrowRight",
+        1300
+      ],
+      [
+        "key",
+        "s"
+      ],
+      [
+        "snap"
+      ],
+      [
+        "hold",
+        "ArrowLeft",
+        2200
+      ],
+      [
+        "key",
+        "ArrowUp"
+      ],
+      [
+        "wait",
+        1500
+      ],
+      [
+        "snap"
+      ]
+    ],
+    "errors": [],
+    "external": [],
+    "http_errors": [],
+    "candidates": [
+      {
+        "file": "63-0.jpg",
+        "sha256": "f8569ba55d3bb14f0b6f34654c9d6e231b774178908484f1e5c8e8c70ad1d80e"
+      },
+      {
+        "file": "63-1.jpg",
+        "sha256": "d664156f18e3395d842c463972f9a7688c1e31392d6574b27666f9b8b27a4915"
+      },
+      {
+        "file": "63-2.jpg",
+        "sha256": "234253c258f968e48d657f41635d89ff102c808a981451a24d087d62afba6a89"
+      },
+      {
+        "file": "63-3.jpg",
+        "sha256": "dae6559d245eefbc61bdbc9858c074771fb2f9ad6ccc356389a7d9767620d4f8"
+      },
+      {
+        "file": "63-4.jpg",
+        "sha256": "e0739fed1d178dccb8763c52113aabaddb1fa62036e5141e170efdc26e6a7a43"
+      }
+    ],
+    "seconds": 156.99,
+    "reason": "captured: native intro Up advances, arrows/S move and jump; actual Fancy Pants room/platforming, no invented art.",
+    "output": "assets/thumbs/fancypantsadventure3.jpg",
+    "previous_sha256": "d6c485e361be912889ee07594eac442199848e034ec67df442efb15642257b36",
+    "status": "captured",
+    "accepted_candidate": "63-3.jpg",
+    "output_sha256": "0ef4217724c077c785ec322d21a43856a5ee1f10591a924943c8e1e2312de5f9",
+    "output_bytes": 16562
+  },
+  {
+    "id": 123,
+    "title": "Crush the Castle",
+    "head": "19757ebb1c1f22b2288ba73ce769863b384457b1",
+    "entry_blob": "9e383061bf56afaa7887ff7e917d5e6b3eff88a8",
+    "source_tree": "1dc3561e1947c1d97842affd4c5c53cd53e450b3",
+    "actions": [
+      [
+        "wait",
+        12000
+      ],
+      [
+        "snap"
+      ],
+      [
+        "info"
+      ],
+      [
+        "click",
+        700,
+        389
+      ],
+      [
+        "wait",
+        6000
+      ],
+      [
+        "click",
+        640,
+        360
+      ],
+      [
+        "key",
+        "Space"
+      ],
+      [
+        "snap"
+      ]
+    ],
+    "errors": [],
+    "external": [],
+    "http_errors": [],
+    "candidates": [
+      {
+        "file": "123-0.jpg",
+        "sha256": "7e170d160901152d865fcab27091775abdbc22611a69d153dcdb2e11e8110ee3"
+      },
+      {
+        "file": "123-1.jpg",
+        "sha256": "0c3ec58b758057306a42ce9c09feb66ac17b0ff9c0ac18f88312d3b146c3ab23"
+      }
+    ],
+    "seconds": 40.17,
+    "reason": "needs-manual: native Run anyway acknowledged unsupported Ruffle content; no reviewed siege gameplay after click/Space.",
+    "output": "assets/thumbs/crushthecastle.jpg",
+    "previous_sha256": "60a821ff9fd2dbe56c8c52adf510f958d6601962f0a2738a373cce180e79dba6",
+    "status": "needs-manual",
+    "output_sha256": "60a821ff9fd2dbe56c8c52adf510f958d6601962f0a2738a373cce180e79dba6",
+    "output_bytes": 14318
+  }
+]
