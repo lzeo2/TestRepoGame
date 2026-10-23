@@ -4,6 +4,7 @@ Camera staging is used ONLY for the landscape photo, not gameplay acceptance.
 """
 import functools
 import http.server
+import hashlib
 import json
 import runpy
 import shutil
@@ -27,7 +28,10 @@ def main():
     assert not browsers(), 'Browser slot busy'
     OUT.mkdir(parents=True, exist_ok=True)
     profile = OUT / f'profile-{time.time_ns()}'
-    report = {'screenshots': [], 'errors': [], 'externalRequests': [], 'checks': [], 'cameraStaged': 'terrain overview only'}
+    def source_hashes():
+        return {p.relative_to(ROOT).as_posix(): hashlib.sha256(p.read_bytes()).hexdigest()
+                for p in (ROOT / 'Games/Citisten3D').iterdir() if p.suffix in ('.mjs', '.html', '.css', '.py')}
+    report = {'screenshots': [], 'errors': [], 'externalRequests': [], 'checks': [], 'cameraStaged': 'terrain overview only', 'sources': source_hashes()}
     class Handler(http.server.SimpleHTTPRequestHandler):
         def log_message(self, *_): pass
     server = http.server.ThreadingHTTPServer(('127.0.0.1', 0), functools.partial(Handler, directory=str(ROOT)))
@@ -92,13 +96,14 @@ def main():
         checkpoint('S advances to warning and disables repeated skip')
         # Read-only collider checks plus explicitly staged landscape camera.
         assert page.evaluate('citisten.world.landscape.features.every(b => citisten.world.floorHeight(b.x,b.z)>=b.y+b.h/2)')
-        page.evaluate('citisten.world.controls.setPose({x:1250,y:380,z:1450,yaw:.15,pitch:-.7},true)')
+        page.evaluate('citisten.world.controls.setPose({x:1250,y:400,z:1450,yaw:.7,pitch:-.4},true)')
         page.wait_for_timeout(300); shot('03-terrain-overview-day-dark')
         page.locator('[data-action="menu"]').first.click()
         page.locator('.city-menu [data-action="theme"]').click()
         page.set_viewport_size({'width': 390, 'height': 844})
         page.locator('#continue-town').scroll_into_view_if_needed(); shot('04-menu-continue-mobile-light')
         assert page.evaluate('document.documentElement.scrollWidth <= innerWidth')
+        assert source_hashes() == report['sources'], 'Source changed during capture'
         assert not report['errors'], report['errors']
         assert not report['externalRequests'], report['externalRequests']
         checkpoint('PASS: four photos, save/load/autosave/skip/solid feature checks, zero errors/external requests')

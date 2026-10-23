@@ -61,6 +61,16 @@ assert(growing.snapshot().runtime.milestone > 0, 'naturally earned milestone bef
 const milestoneCity = createSimulation({ snapshot: JSON.parse(JSON.stringify(growing.snapshot())) });
 growing.update(20); milestoneCity.update(20);
 assert.deepEqual(milestoneCity.snapshot(), growing.snapshot(), 'milestone high-water persists without duplicate rewards');
+for (const tamper of [
+  s => { s.state.rebuildRemaining = -1; },
+  s => { s.runtime.milestone = 99; },
+  s => { s.state.nextMilestone.grant++; },
+  s => { s.state.growthDiagnosis = {}; },
+  s => { s.state.buildings.find(b => b.type === 'townhall').hp = 0; s.state.townHallHp = 0; }
+]) {
+  const invalid = growing.snapshot(); tamper(invalid);
+  assert.throws(() => createSimulation({ snapshot: invalid }), 'reject inconsistent milestone/recovery state');
+}
 
 for (const json of ['{', '{}', '{"version":2}', 'x'.repeat(8_000_001)]) {
   memory.set(SAVE_KEY, json); const result = readSave(storage);
