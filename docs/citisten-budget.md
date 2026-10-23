@@ -79,7 +79,7 @@ CSS was irrelevant to the memory-only canvas fixture.
   transitions. Active shadows remain 2048px, with both retained during mixed
   dawn/dusk. Completed GLTF parser references no longer retain loader caches.
   Equal poses skip buffer writes while preserving pending walk/wheel motion.
-- `ui.css`/`native.css`: explicit HUD layers: events 3, diagnosis 2, other
+- `64c9f31e`, `ui.css`/`native.css`: explicit HUD layers: events 3, diagnosis 2, other
   HUD/native controls 1. Existing urgent-last append order and phone's one-notice
   limit are preserved. Native `showModal()` top-layer dialogs remain above all
   HUD layers, without extreme z-index values or a new positioning system.
@@ -140,7 +140,14 @@ reported in the handover after commits. The operator's total-growth cap is
 20,000,000 bytes, hard halt below 1,500,000,000 free bytes; temporary profile usage
 is included, not silently excluded because it is in RAM-backed storage.
 
-Maintenance inventory must be refreshed after source commits, then
-`python3 -B scripts/check_maintenance_docs.py` rerun. Earlier stale/dirty-source
+After source commit `64c9f31e`, inventory refresh and the final checker passed:
+
+```text
+Inventory: 134 games, 128 registered; shared runtime separate.
+PASS: 134 game documents cover 128 registered + 6 unregistered games; Git inventory current.
+Coverage only: section presence does not certify documentation accuracy or gameplay.
+```
+
+Only Citisten's inventory tree/count/byte fields changed. Earlier stale/dirty-source
 checker output is not a passing gate. Full registered-catalog smoke was not run;
 no release/native-input acceptance or push is authorized by these targeted checks.
