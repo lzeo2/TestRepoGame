@@ -99,6 +99,11 @@ Fresh results:
 - Authored changes and generated delivery: `git diff --check` **PASS**.
 
 These are CPU/render-state checks, not pixel, native flight or hardware shader
-acceptance. No captures were requested or taken. Maintenance coverage is a
-separate Git-backed inventory check and may be blocked by concurrent lanes'
-uncommitted game changes; do not infer a whole-repository PASS from these checks.
+acceptance. No captures were requested or taken. After source commit `cad81ac0`,
+the unchanged maintenance checker exited **1** with `Commit inspected source
+changes before validating its inventory.` Remaining dirty game paths belonged
+to concurrent Citisten atmosphere and Wings PBR documentation work, not this
+lighting delivery. Their manual edits were preserved; only this lane's lighting
+section was staged. No inventory refresh was attempted over those changes and
+no whole-repository maintenance PASS is claimed. The earlier shared-index lock
+did not block this commit; no lock was removed by this lane.
