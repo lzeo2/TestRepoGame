@@ -1,4 +1,6 @@
 import { WALK_SPEED, ZIP_SPEED, LIMIT, rampHeight, terrainHeight } from './world-data.mjs';
+// Below the sewer (-10m), not a floor that fills legitimate lowered terrain.
+export const FALL_LIMIT = -32;
 export const BODY = Object.freeze({ radius:0.45, height:1.8, eye:1.6 });
 const clamp = (n,a,b) => Math.max(a,Math.min(b,n));
 const near = (p,q,r=5) => Math.hypot(p.x-q.x,p.y-q.y,p.z-q.z)<=r+1e-8;
@@ -42,10 +44,20 @@ export function capsuleIntersects(p,b) {
 export function moveCapsule(p,dx,dz,world,broken=new Set()) {
   // Substeps keep fast integration callers from tunnelling through narrow cover.
   const count=Math.max(1,Math.ceil(Math.hypot(dx,dz)/0.25));
-  const result={...p};
+  const result={...p,x:clamp(p.x,-LIMIT,LIMIT),z:clamp(p.z,-LIMIT,LIMIT)};
   for(let n=0;n<count;n++) for(const [axis,delta] of [['x',dx/count],['z',dz/count]]) {
     const previous=result[axis];
     result[axis]=clamp(previous+delta,-LIMIT,LIMIT);
+    const edge={...result,[axis]:result[axis]+Math.sign(delta)*BODY.radius};
+    if(terrainHeight(edge.x,edge.z)>result.y+.55) {result[axis]=previous;continue;}
+    const terrain=terrainHeight(result.x,result.z);
+    if(terrain>result.y+.02) {
+      const raised={...result,y:terrain};
+      if(result.grounded && terrain-result.y<=.55 &&
+        !world.boxes.some(b=>!broken.has(b.id)&&capsuleIntersects(raised,b)) &&
+        !world.ramps.some(r=>terrain<rampHeight(r,raised.x,raised.z)-.02&&capsuleIntersects(raised,r))) result.y=terrain;
+      else {result[axis]=previous;continue;}
+    }
     for(const b of world.boxes) {
       if(broken.has(b.id) || result.y>=b.maxY-0.02 || result.y+BODY.height<=b.minY) continue;
       if(capsuleIntersects(result,b)) {
@@ -104,6 +116,10 @@ export function interact(world,s) {
   } else { s.mode='rope';s.ride=null;s.cooldown=.3; }
 }
 export function stepTraveler(world,s,input,dt) {
+  if(![s.x,s.y,s.z,s.vy].every(Number.isFinite) || s.y<FALL_LIMIT) {
+    Object.assign(s,s.safe??world.start,{vy:0,grounded:true,mode:'free',ride:null});
+  }
+  s.x=clamp(s.x,-LIMIT,LIMIT);s.z=clamp(s.z,-LIMIT,LIMIT);
   dt=clamp(Number.isFinite(dt)?dt:0,0,.05);s.cooldown=Math.max(0,s.cooldown-dt);s.event='';
   if(input.interact) interact(world,s);
   if(input.jump && s.mode!=='free') {s.mode='free';s.ride=null;s.vy=7;s.grounded=false;s.cooldown=.4;}
@@ -155,6 +171,7 @@ export function stepTraveler(world,s,input,dt) {
   if(s.y<=floor && s.vy<=0) {s.y=floor;s.vy=0;s.grounded=true;} else s.grounded=false;
   const pit=world.pit,inside=s.x>pit.minX&&s.x<pit.maxX&&s.z>pit.minZ&&s.z<pit.maxZ&&s.y<0;
   s.stamina=clamp(s.stamina+(inside?-18:12)*dt,0,100);
+  if(s.grounded && !world.boxes.some(b=>!s.broken.has(b.id)&&capsuleIntersects(s,b))) s.safe={x:s.x,y:s.y,z:s.z};
 }
 export function travelerSnapshot(s) {
   return Object.freeze({x:s.x,y:s.y,z:s.z,mode:s.mode,walk:s.walk,grounded:s.grounded,stamina:s.stamina,collected:s.collected.size,broken:s.broken.size,zipT:s.ride?.t??null});

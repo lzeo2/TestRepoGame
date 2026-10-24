@@ -1,0 +1,138 @@
+{
+  "model": "compact_car",
+  "color_space": "linear RGBA, glTF metallic-roughness baseColorFactor",
+  "palette_default": {
+    "compact_car__compact_teal_paint": [
+      0.02500000037252903,
+      0.23999999463558197,
+      0.25,
+      1
+    ],
+    "compact_car__black_trim": [
+      0.02500000037252903,
+      0.03099999949336052,
+      0.03700000047683716,
+      1
+    ],
+    "compact_car__brushed_alloy": [
+      0.3700000047683716,
+      0.41999998688697815,
+      0.44999998807907104,
+      1
+    ],
+    "compact_car__smoky_cabin_glass": [
+      0.02800000086426735,
+      0.07500000298023224,
+      0.0949999988079071,
+      1
+    ],
+    "compact_car__rubber": [
+      0.017999999225139618,
+      0.023000000044703484,
+      0.02500000037252903,
+      1
+    ],
+    "compact_car__ivory_fleet_paint": [
+      0.7599999904632568,
+      0.7599999904632568,
+      0.6700000166893005,
+      1
+    ],
+    "compact_car__clear_headlamp": [
+      0.7400000095367432,
+      0.8199999928474426,
+      0.800000011920929,
+      1
+    ],
+    "compact_car__red_tail_lens": [
+      0.44999998807907104,
+      0.02500000037252903,
+      0.014999999664723873,
+      1
+    ]
+  },
+  "material_slots": [
+    {
+      "name": "compact_car__compact_teal_paint",
+      "baseColorFactor": [
+        0.02500000037252903,
+        0.23999999463558197,
+        0.25,
+        1
+      ],
+      "scope": "this model semantic material"
+    },
+    {
+      "name": "compact_car__black_trim",
+      "baseColorFactor": [
+        0.02500000037252903,
+        0.03099999949336052,
+        0.03700000047683716,
+        1
+      ],
+      "scope": "this model semantic material"
+    },
+    {
+      "name": "compact_car__brushed_alloy",
+      "baseColorFactor": [
+        0.3700000047683716,
+        0.41999998688697815,
+        0.44999998807907104,
+        1
+      ],
+      "scope": "this model semantic material"
+    },
+    {
+      "name": "compact_car__smoky_cabin_glass",
+      "baseColorFactor": [
+        0.02800000086426735,
+        0.07500000298023224,
+        0.0949999988079071,
+        1
+      ],
+      "scope": "this model semantic material"
+    },
+    {
+      "name": "compact_car__rubber",
+      "baseColorFactor": [
+        0.017999999225139618,
+        0.023000000044703484,
+        0.02500000037252903,
+        1
+      ],
+      "scope": "this model semantic material"
+    },
+    {
+      "name": "compact_car__ivory_fleet_paint",
+      "baseColorFactor": [
+        0.7599999904632568,
+        0.7599999904632568,
+        0.6700000166893005,
+        1
+      ],
+      "scope": "this model semantic material"
+    },
+    {
+      "name": "compact_car__clear_headlamp",
+      "baseColorFactor": [
+        0.7400000095367432,
+        0.8199999928474426,
+        0.800000011920929,
+        1
+      ],
+      "scope": "this model semantic material"
+    },
+    {
+      "name": "compact_car__red_tail_lens",
+      "baseColorFactor": [
+        0.44999998807907104,
+        0.02500000037252903,
+        0.014999999664723873,
+        1
+      ],
+      "scope": "this model semantic material"
+    }
+  ],
+  "instance_isolation": "Materials are namespaced per model. Duplicate/clone each semantic material once per spawned instance before changing tint; share that clone only among parts of that same instance. Immutable textures may stay shared. No runtime integration code included.",
+  "texture_tint_note": "Constant color PBR palette retained. Character woven roughness and tangent normal maps are embedded and unaffected by base color tint."
+}

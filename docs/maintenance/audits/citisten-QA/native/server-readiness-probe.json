@@ -1,0 +1,32 @@
+{
+  "scope": "server-only probe; no browser/native acceptance",
+  "first200Seconds": 0.0720276640058728,
+  "results": [
+    {
+      "path": "Games/Citisten3D/index.html",
+      "status": 200,
+      "bytes": 2137,
+      "seconds": 0.0720276640058728
+    },
+    {
+      "path": "Games/Citisten3D/native.mjs",
+      "status": 200,
+      "bytes": 6219,
+      "seconds": 0.002645328000653535
+    },
+    {
+      "path": "Games/Citisten3D/world.mjs",
+      "status": 200,
+      "bytes": 8225,
+      "seconds": 0.002301551001437474
+    },
+    {
+      "path": "Games/Citisten3D/ui.css",
+      "status": 200,
+      "bytes": 10755,
+      "seconds": 0.0022626060017501004
+    }
+  ],
+  "serverClosed": true,
+  "seconds": 0.5797203759939293
+}

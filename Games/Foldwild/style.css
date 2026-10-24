@@ -4,11 +4,11 @@
 :root{font-family:Atkinson,system-ui,sans-serif;font-size:16px;line-height:1.4;color:#242820;background:#eee9d8;color-scheme:light;--paper:#f7f3e8;--line:#827762;--blue:#365a74;--scene-height:100%}
 *{box-sizing:border-box}
 [hidden]{display:none!important}
-body{margin:0;height:100dvh;display:flex;flex-direction:column;overflow:hidden;padding:0 max(12px,env(safe-area-inset-right)) max(12px,env(safe-area-inset-bottom)) max(12px,env(safe-area-inset-left))}
+body{margin:0;height:100dvh;display:flex;flex-direction:column;overflow:hidden;padding:0 max(12px,env(safe-area-inset-right)) max(4px,env(safe-area-inset-bottom)) max(12px,env(safe-area-inset-left))}
 a{color:var(--blue);text-underline-offset:3px;display:inline-flex;align-items:center;min-height:44px;min-width:44px}
 button,input,select{font:inherit}
 button{min-height:44px;min-width:44px;padding:9px 12px;border:2px solid #000;border-radius:4px;background:#000;color:#fff;font-weight:700;cursor:pointer;overflow-wrap:anywhere;line-height:1.3}
-button:hover:not(:disabled){background:var(--blue);border-color:var(--blue)}
+button:hover:not(:disabled){background:#242820;border-color:#242820}
 button:disabled{background:#5b605b;border-color:#5b605b;color:#fff;cursor:default}
 button[aria-pressed=true]{outline:3px solid var(--blue);outline-offset:2px}
 input:not([type=checkbox]),select{min-height:44px;max-width:100%;min-width:0;padding:8px;border:1px solid var(--line);border-radius:4px;background:var(--paper);color:#242820}
@@ -17,70 +17,69 @@ label{display:flex;gap:8px;align-items:center;min-height:44px}
 .skip-link{position:absolute;left:12px;top:-100px;padding:10px 16px;background:var(--paper);z-index:10}
 .skip-link:focus{top:12px}
 .site-header{width:100%;max-width:1440px;margin:0 auto;flex-shrink:0;padding:max(4px,env(safe-area-inset-top)) 0 4px;display:flex;align-items:center;gap:16px}
-h1{font-family:Bungee,system-ui,sans-serif;font-size:24px;line-height:1.2;margin:0;flex:1}
+h1{font-family:Bungee,system-ui,sans-serif;font-size:22px;line-height:1.2;margin:0;flex:1}
 h2{font-size:19px;line-height:1.25;margin:0 0 12px}
 p{margin:0 0 12px;overflow-wrap:anywhere}
 main{width:100%;max-width:1440px;margin:0 auto;flex:1;min-height:0;display:flex;flex-direction:column}
-.panel{padding:20px;border:1px solid var(--line);border-radius:6px;background:var(--paper);margin-bottom:16px}
-#menu{width:100%;max-width:680px;min-height:0;overflow:auto;margin:12px auto}
-#menu h2{font-family:Bungee,system-ui,sans-serif}
-.seed-setting{justify-content:space-between}
-#seed-input{width:100%}
+#menu{width:100%;max-width:560px;flex:1;min-height:0;overflow:auto;margin:0 auto;padding:clamp(16px,5vh,48px) 4px 16px}
+#menu h2{font-size:clamp(24px,4vw,32px);letter-spacing:-.02em}
+#starter-description{margin:16px 0}
+.seed-setting{justify-content:space-between;gap:16px;margin-bottom:16px}
+#seed-input{width:160px}
 .actions,.starter-choices,.region-choices,.toolbar,.battle-actions{display:flex;flex-wrap:wrap;gap:8px}
 .actions,.starter-choices{margin:8px 0}
 .starter-choices button{flex:1 1 130px}
 .actions button{flex:1 1 110px}
 .help{font-size:15px;color:#41483e}
-.play-layout{position:relative;flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1fr) 360px;border:1px solid var(--line);border-radius:6px;overflow:hidden;background:#cbd2bd}
+.play-layout{position:relative;flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1fr) 320px;overflow:hidden;background:#cbd2bd}
 .viewport{position:relative;min-width:0;min-height:0;overflow:hidden}
 #game-canvas{display:block;width:100%;height:var(--scene-height);touch-action:none}
 #game-canvas:focus-visible{outline-offset:-6px}
-#world-hud{position:absolute;top:12px;left:12px;max-width:min(500px,calc(100% - 24px));padding:8px 12px;background:var(--paper);border-radius:6px;font-size:15px}
+#world-hud{position:absolute;top:12px;left:12px;max-width:calc(100% - 24px);padding:8px 12px;background:var(--paper);border-radius:4px;font-size:15px;pointer-events:none}
 #world-hud h2{font-size:17px;margin:0 0 4px;overflow-wrap:anywhere}
-.field-state{display:flex;flex-wrap:wrap;gap:4px 16px}
-.field-record{margin-top:2px}
-.field-record p{margin:4px 0}
-summary{min-height:44px;padding:10px 0;cursor:pointer;font-weight:700;overflow-wrap:anywhere}
-#save-state{color:var(--blue)}
-#save-tools{display:flex;flex-wrap:wrap;align-items:center;gap:4px 16px;flex-shrink:0;max-height:30dvh;overflow:auto;padding:0 0 4px}
-#save-tools p:empty{display:none}
-#save-tools p{margin:0}
-#save-tools details{flex:1;min-width:min(260px,100%)}
-#save-tools summary{padding:10px 0}
-#save-tools details[open]{flex-basis:100%}
+.field-state{display:flex;flex-wrap:wrap;gap:4px 16px;font-variant-numeric:tabular-nums}
+summary{min-height:44px;padding:11px 0;cursor:pointer;font-weight:700;overflow-wrap:anywhere}
+.save-status{display:flex;flex-wrap:wrap;align-items:center;gap:0 16px;flex-shrink:0;max-height:30dvh;overflow:auto;font-size:14px}
+.save-status>p{flex:1 1 200px;margin:4px 0}
+.save-status>p:empty{display:none}
+#render-state{flex-basis:100%;font-weight:700}
+#save-tools details{margin-left:auto;max-width:100%}
+#save-tools details[open]{flex-basis:100%;margin-left:0}
+#save-tools p{margin:0 0 8px}
+#save-tools summary{font-size:14px}
 #save-tools input{width:100%}
 #save-primary-bytes,#reset-primary-bytes{width:100%;min-height:100px;resize:vertical;font:inherit}
-.trail-controls{min-width:0;min-height:0;overflow:auto;overscroll-behavior:contain;padding:12px;background:var(--paper);border-left:1px solid var(--line)}
-#message{margin:8px 0;padding:8px 10px;border-left:4px solid #a46c3a;font-size:15px}
-#team-list{display:block;margin:8px 0}
-#team-list>*{margin:0;padding:8px 10px;border-bottom:2px solid #899776;font-size:15px;overflow-wrap:anywhere}
-#team-list button{width:100%}
-.field-actions{display:block}
+.trail-controls{min-width:0;min-height:0;overflow:auto;overscroll-behavior:contain;padding:0 12px 8px;background:var(--paper)}
+.toolbar{position:sticky;top:0;z-index:1;align-items:center;padding:8px 0;background:var(--paper)}
+.toolbar button{flex:1;font-size:15px;padding-inline:8px}
+#message{margin:4px 0 12px;font-size:15px}
+#team-list{margin:12px 0}
+#team-list>*{margin:0 0 6px;font-size:15px;overflow-wrap:anywhere}
+.field-record,.expedition-options{border-top:1px solid var(--line)}
+.field-record p{font-size:15px;margin-bottom:8px}
 #nearby-actions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr))}
 #nearby-actions button{padding:8px 5px;font-size:14px}
-.interaction-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}
-.toolbar{position:sticky;top:-12px;z-index:1;align-items:center;padding:8px 0;background:var(--paper);border-bottom:1px solid var(--line)}
-.toolbar button{flex:1;font-size:14px;padding-inline:8px}
-.expedition-options,.control-help{border-top:1px solid var(--line)}
-.toolbar label{font-size:15px}
+.interaction-actions{display:grid;grid-template-columns:minmax(0,1fr) auto}
+.interaction-actions button{padding:8px;font-size:14px}
 .motion-setting{cursor:pointer}
 .motion-setting input{width:44px;height:44px;margin:0 2px;accent-color:var(--blue)}
-.travel{border-bottom:1px solid var(--line);margin-bottom:8px}
 .region-choices{padding:4px 0 12px}
 .region-choices button{flex:1 1 160px}
-#world-help{margin:8px 0}
+#world-help{margin:8px 0 12px}
 #world-help .actions{display:grid;grid-template-columns:repeat(4,minmax(0,1fr))}
 #world-help button{padding:8px 4px;font-size:14px}
 #battle-panel{min-width:0;font-size:15px;line-height:1.3}
-.combatants{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-bottom:8px}
-.combatants>section{padding:8px;background:var(--paper);border:1px solid var(--line);border-radius:6px;min-width:0}
-.combatants h2{font-size:15px;margin:0 0 6px;overflow-wrap:anywhere}
-.resource p{font-size:14px;display:flex;justify-content:space-between;gap:4px;margin:0 0 2px}
-progress{display:block;width:100%;height:8px;accent-color:var(--blue);margin-bottom:4px}
+.combatants{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:8px 0}
+.combatants>section{min-width:0}
+.combatants h2{font-size:15px;margin:0 0 8px;overflow-wrap:anywhere}
+.resource p{font-size:14px;display:flex;justify-content:space-between;gap:4px;margin:0 0 2px;font-variant-numeric:tabular-nums}
+progress{display:block;width:100%;height:6px;accent-color:var(--blue);margin-bottom:6px}
 .combatants summary{font-size:14px;padding:10px 0}
 .combatants details p{font-size:14px;margin:0}
 .ability-choices{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:8px 0}
 .ability-choices button{text-align:left;font-size:15px;padding:8px}
+.ability-choices strong{display:block;margin-bottom:4px}
+.ability-choices p{font-size:14px;font-weight:400;margin:0}
 .battle-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}
 #capture{grid-column:1/-1}
 #switch-list{display:grid;grid-template-columns:repeat(3,minmax(0,1fr))}
@@ -88,12 +87,13 @@ progress{display:block;width:100%;height:8px;accent-color:var(--blue);margin-bot
 .battle-history{border-top:1px solid var(--line)}
 #battle-log{max-height:160px;overflow:auto;padding-left:24px;margin:0 0 8px;font-size:15px}
 #battle-log li{margin-bottom:6px}
-.play-layout:has(#battle-panel:not([hidden])) #world-hud,.play-layout:has(#battle-panel:not([hidden])) #team-list,.play-layout:has(#battle-panel:not([hidden])) .field-actions,.play-layout:has(#battle-panel:not([hidden])) .travel,.play-layout:has(#battle-panel:not([hidden])) #collection-btn,.play-layout:has(#battle-panel:not([hidden])) #services-btn{display:none}
-dialog{width:min(760px,calc(100% - 24px));max-height:80dvh;overflow:auto;border:2px solid var(--blue);border-radius:6px;padding:20px;background:#eee9d8;color:#242820}
+#result{padding:12px 0}
+.play-layout:has(#battle-panel:not([hidden])) #world-hud,.play-layout:has(#battle-panel:not([hidden])) .field-record,.play-layout:has(#battle-panel:not([hidden])) .field-actions,.play-layout:has(#battle-panel:not([hidden])) #collection-btn,.play-layout:has(#battle-panel:not([hidden])) #services-btn{display:none}
+dialog{width:min(760px,calc(100% - 24px));max-height:80dvh;overflow:auto;border:1px solid var(--line);border-radius:4px;padding:20px;background:var(--paper);color:#242820}
 dialog::backdrop{background:#292d30b3}
-dialog h2{font-size:20px}
+dialog h2{font-size:22px}
 dialog button{max-width:100%}
-.dialog-heading{position:sticky;top:-20px;display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between;background:#eee9d8;padding:8px 0;margin-bottom:8px;z-index:1}
+.dialog-heading{position:sticky;top:-20px;display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between;background:var(--paper);padding:8px 0;margin-bottom:8px;z-index:1}
 .dialog-heading h2{margin:0;flex:1 1 180px;min-width:0;overflow-wrap:anywhere}
 #collection-dialog .dialog-heading h2{flex-basis:100px}
 .ledger-filters{display:grid;grid-template-columns:2fr 1fr;gap:12px;margin-bottom:16px}
@@ -101,40 +101,38 @@ dialog button{max-width:100%}
 #ledger-inspector{min-width:0;scroll-margin-top:72px;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid var(--line)}
 .ledger-inspector-heading{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px}
 #ledger-model-name{flex:1 1 180px;min-width:0;margin:0;font-size:18px;overflow-wrap:anywhere}
-#ledger-model-host{--scene-height:260px;position:relative;min-width:0;width:100%;height:var(--scene-height);overflow:hidden;border:1px solid var(--line);border-radius:6px;background:#cbd2bd}
+#ledger-model-host{--scene-height:260px;position:relative;min-width:0;width:100%;height:var(--scene-height);overflow:hidden;border-radius:4px;background:#cbd2bd}
 #ledger-model-status{min-height:22px;margin:8px 0;font-size:15px}
 #evolution-summary{font-size:16px}
-#collection-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(220px,100%),1fr));gap:12px;margin-bottom:16px}
+#collection-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(220px,100%),1fr));gap:16px;margin-bottom:16px}
 #collection-list>*{border-bottom:1px solid var(--line);padding:8px 0;min-width:0;overflow-wrap:anywhere}
 #collection-list>p{grid-column:1/-1}
-#collection-list button{width:100%}
+#collection-list button{width:100%;margin-bottom:4px}
 #collection-list label{display:grid;gap:4px}
+#collection-list details{margin-bottom:8px}
+#collection-list summary{font-size:15px}
+#collection-list h3{font-size:18px;margin:0 0 4px}
+#collection-list .actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}
 #collection-list select{width:100%;max-width:100%}
 #service-content{display:grid;gap:12px;margin-bottom:16px;min-width:0;overflow-wrap:anywhere}
 #service-content label{flex-wrap:wrap}
 #service-content select,#service-content input{max-width:100%}
 @media(max-width:899px){
-  .play-layout{grid-template-columns:1fr;grid-template-rows:minmax(180px,42%) minmax(0,1fr)}
+  .play-layout{grid-template-columns:1fr;grid-template-rows:minmax(180px,48%) minmax(0,1fr)}
   .play-layout:has(#battle-panel:not([hidden])){grid-template-rows:minmax(180px,32%) minmax(0,1fr)}
-  .trail-controls{border-left:0;border-top:1px solid var(--line);padding:8px}
-  .toolbar{top:-8px}
+  .trail-controls{padding:0 8px 8px}
   .combatants{gap:8px}
-  .combatants>section{padding:6px}
 }
-@media(max-height:500px) and (min-width:600px){.play-layout{grid-template-columns:minmax(0,1fr) 340px;grid-template-rows:1fr}}
+@media(max-height:500px) and (min-width:600px){.play-layout{grid-template-columns:minmax(0,1fr) 320px;grid-template-rows:1fr}}
 @media(max-width:420px){
   body{padding-left:max(8px,env(safe-area-inset-left));padding-right:max(8px,env(safe-area-inset-right))}
-  h1{font-size:22px}
   #world-hud{top:8px;left:8px;max-width:calc(100% - 16px);padding:6px 8px}
   #world-hud h2{font-size:16px}
   .field-state{gap:4px 10px;font-size:14px}
-  #team-list{gap:6px}
-  #team-list>*{padding:6px 2px;font-size:14px}
   #nearby-actions{gap:6px}
-  #nearby-actions button{padding:8px 5px;font-size:14px}
-  .panel,dialog{padding:12px}
+  dialog{padding:12px}
   .dialog-heading{top:-12px}
-  .starter-choices button{flex-basis:90px}
+  .starter-choices button{flex-basis:80px;padding-inline:8px}
   .ledger-filters{grid-template-columns:1fr}
   #switch-list{gap:6px}
   #switch-list button{padding:6px 4px}

@@ -1,0 +1,21 @@
+{
+  "scope": "UI fixture only, reviewer grades acceptance",
+  "viewports": [
+    1440,
+    390,
+    320
+  ],
+  "themes": [
+    "dark",
+    "light"
+  ],
+  "screenshots": 36,
+  "collages": 10,
+  "errors": [],
+  "externalRequests": [],
+  "failedRequests": [],
+  "browserProcessChecks": 37,
+  "checks": "runtime tab-order focus modality and visible CSS rule, native keyboard start, both modes, tool callbacks, theme/storage failure, HP, demand, peak population, loss-to-menu, hall marker ordering, toast cap/dedupe/expiry, 44px targets, overflow and button copy, no gradients/shadows, destroy",
+  "diskBeforeBytes": 3847200768,
+  "diskAfterBytes": 3846877184
+}

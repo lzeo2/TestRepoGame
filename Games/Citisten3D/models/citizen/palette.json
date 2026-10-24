@@ -1,0 +1,202 @@
+{
+  "model": "citizen",
+  "color_space": "linear RGBA, glTF metallic-roughness baseColorFactor",
+  "palette_default": {
+    "citizen__ochre_leather": [
+      0.20999999344348907,
+      0.10499999672174454,
+      0.03500000014901161,
+      1
+    ],
+    "citizen__rubber": [
+      0.017999999225139618,
+      0.023000000044703484,
+      0.02500000037252903,
+      1
+    ],
+    "citizen__cream_shirt": [
+      0.6499999761581421,
+      0.5799999833106995,
+      0.4300000071525574,
+      1
+    ],
+    "citizen__slate_denim": [
+      0.09000000357627869,
+      0.14000000059604645,
+      0.1899999976158142,
+      1
+    ],
+    "citizen__warm_skin": [
+      0.47999998927116394,
+      0.27000001072883606,
+      0.1599999964237213,
+      1
+    ],
+    "citizen__eye_white": [
+      0.8299999833106995,
+      0.8100000023841858,
+      0.7300000190734863,
+      1
+    ],
+    "citizen__dark_iris": [
+      0.03500000014901161,
+      0.07000000029802322,
+      0.05999999865889549,
+      1
+    ],
+    "citizen__dark_brown_hair": [
+      0.054999999701976776,
+      0.028999999165534973,
+      0.017999999225139618,
+      1
+    ],
+    "citizen__lip": [
+      0.27000001072883606,
+      0.10000000149011612,
+      0.07000000029802322,
+      1
+    ],
+    "citizen__indigo_cotton": [
+      0.03500000014901161,
+      0.08500000089406967,
+      0.14000000059604645,
+      1
+    ],
+    "citizen__brushed_alloy": [
+      0.3700000047683716,
+      0.41999998688697815,
+      0.44999998807907104,
+      1
+    ],
+    "citizen__black_trim": [
+      0.02500000037252903,
+      0.03099999949336052,
+      0.03700000047683716,
+      1
+    ]
+  },
+  "material_slots": [
+    {
+      "name": "citizen__ochre_leather",
+      "baseColorFactor": [
+        0.20999999344348907,
+        0.10499999672174454,
+        0.03500000014901161,
+        1
+      ],
+      "scope": "this model semantic material"
+    },
+    {
+      "name": "citizen__rubber",
+      "baseColorFactor": [
+        0.017999999225139618,
+        0.023000000044703484,
+        0.02500000037252903,
+        1
+      ],
+      "scope": "this model semantic material"
+    },
+    {
+      "name": "citizen__cream_shirt",
+      "baseColorFactor": [
+        0.6499999761581421,
+        0.5799999833106995,
+        0.4300000071525574,
+        1
+      ],
+      "scope": "this model semantic material"
+    },
+    {
+      "name": "citizen__slate_denim",
+      "baseColorFactor": [
+        0.09000000357627869,
+        0.14000000059604645,
+        0.1899999976158142,
+        1
+      ],
+      "scope": "this model semantic material"
+    },
+    {
+      "name": "citizen__warm_skin",
+      "baseColorFactor": [
+        0.47999998927116394,
+        0.27000001072883606,
+        0.1599999964237213,
+        1
+      ],
+      "scope": "this model semantic material"
+    },
+    {
+      "name": "citizen__eye_white",
+      "baseColorFactor": [
+        0.8299999833106995,
+        0.8100000023841858,
+        0.7300000190734863,
+        1
+      ],
+      "scope": "this model semantic material"
+    },
+    {
+      "name": "citizen__dark_iris",
+      "baseColorFactor": [
+        0.03500000014901161,
+        0.07000000029802322,
+        0.05999999865889549,
+        1
+      ],
+      "scope": "this model semantic material"
+    },
+    {
+      "name": "citizen__dark_brown_hair",
+      "baseColorFactor": [
+        0.054999999701976776,
+        0.028999999165534973,
+        0.017999999225139618,
+        1
+      ],
+      "scope": "this model semantic material"
+    },
+    {
+      "name": "citizen__lip",
+      "baseColorFactor": [
+        0.27000001072883606,
+        0.10000000149011612,
+        0.07000000029802322,
+        1
+      ],
+      "scope": "this model semantic material"
+    },
+    {
+      "name": "citizen__indigo_cotton",
+      "baseColorFactor": [
+        0.03500000014901161,
+        0.08500000089406967,
+        0.14000000059604645,
+        1
+      ],
+      "scope": "this model semantic material"
+    },
+    {
+      "name": "citizen__brushed_alloy",
+      "baseColorFactor": [
+        0.3700000047683716,
+        0.41999998688697815,
+        0.44999998807907104,
+        1
+      ],
+      "scope": "this model semantic material"
+    },
+    {
+      "name": "citizen__black_trim",
+      "baseColorFactor": [
+        0.02500000037252903,
+        0.03099999949336052,
+        0.03700000047683716,
+        1
+      ],
+      "scope": "this model semantic material"
+    }
+  ],
+  "instance_isolation": "Materials are namespaced per model. Duplicate/clone each semantic material once per spawned instance before changing tint; share that clone only among parts of that same instance. Immutable textures may stay shared. No runtime integration code included.",
+  "texture_tint_note": "Constant color PBR palette retained. Character woven roughness and tangent normal maps are embedded and unaffected by base color tint."
+}

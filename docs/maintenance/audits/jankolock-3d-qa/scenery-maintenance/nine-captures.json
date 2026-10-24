@@ -1,0 +1,262 @@
+{
+  "status": "PASS-targeted-only",
+  "errors": [],
+  "responses": 70,
+  "captures": [
+    {
+      "file": "desktop-dark-street.png",
+      "layout": {
+        "overflow": false,
+        "small": []
+      },
+      "diagnostics": {
+        "frames": 7,
+        "calls": 804,
+        "triangles": 614744,
+        "geometries": 368,
+        "textures": 52,
+        "environment": {
+          "buildings": 62,
+          "instances": 67028,
+          "triangles": 927954,
+          "geometries": 41,
+          "staticChunks": 12,
+          "textureCount": 11,
+          "cornerTurnouts": 21,
+          "detailDistance": 155
+        }
+      }
+    },
+    {
+      "file": "desktop-light-street.png",
+      "layout": {
+        "overflow": false,
+        "small": []
+      },
+      "diagnostics": {
+        "frames": 7,
+        "calls": 804,
+        "triangles": 614744,
+        "geometries": 368,
+        "textures": 52,
+        "environment": {
+          "buildings": 62,
+          "instances": 67028,
+          "triangles": 927954,
+          "geometries": 41,
+          "staticChunks": 12,
+          "textureCount": 11,
+          "cornerTurnouts": 21,
+          "detailDistance": 155
+        }
+      }
+    },
+    {
+      "file": "mobile-dark-street.png",
+      "layout": {
+        "overflow": false,
+        "small": []
+      },
+      "diagnostics": {
+        "frames": 8,
+        "calls": 642,
+        "triangles": 411022,
+        "geometries": 368,
+        "textures": 52,
+        "environment": {
+          "buildings": 62,
+          "instances": 67028,
+          "triangles": 927954,
+          "geometries": 41,
+          "staticChunks": 12,
+          "textureCount": 11,
+          "cornerTurnouts": 21,
+          "detailDistance": 155
+        }
+      }
+    },
+    {
+      "file": "mobile-light-street.png",
+      "layout": {
+        "overflow": false,
+        "small": []
+      },
+      "diagnostics": {
+        "frames": 8,
+        "calls": 642,
+        "triangles": 411022,
+        "geometries": 368,
+        "textures": 52,
+        "environment": {
+          "buildings": 62,
+          "instances": 67028,
+          "triangles": 927954,
+          "geometries": 41,
+          "staticChunks": 12,
+          "textureCount": 11,
+          "cornerTurnouts": 21,
+          "detailDistance": 155
+        }
+      }
+    },
+    {
+      "file": "scene-fixture-graft.png",
+      "layout": {
+        "overflow": false,
+        "small": []
+      },
+      "diagnostics": {
+        "frames": 10,
+        "calls": 670,
+        "triangles": 487482,
+        "geometries": 368,
+        "textures": 52,
+        "environment": {
+          "buildings": 62,
+          "instances": 67028,
+          "triangles": 927954,
+          "geometries": 41,
+          "staticChunks": 12,
+          "textureCount": 11,
+          "cornerTurnouts": 21,
+          "detailDistance": 155
+        }
+      }
+    },
+    {
+      "file": "scene-fixture-greenhedge.png",
+      "layout": {
+        "overflow": false,
+        "small": []
+      },
+      "diagnostics": {
+        "frames": 11,
+        "calls": 692,
+        "triangles": 483382,
+        "geometries": 369,
+        "textures": 53,
+        "environment": {
+          "buildings": 62,
+          "instances": 67028,
+          "triangles": 927954,
+          "geometries": 41,
+          "staticChunks": 12,
+          "textureCount": 11,
+          "cornerTurnouts": 21,
+          "detailDistance": 155
+        }
+      }
+    },
+    {
+      "file": "scene-fixture-plaza.png",
+      "layout": {
+        "overflow": false,
+        "small": []
+      },
+      "diagnostics": {
+        "frames": 12,
+        "calls": 473,
+        "triangles": 270906,
+        "geometries": 369,
+        "textures": 53,
+        "environment": {
+          "buildings": 62,
+          "instances": 67028,
+          "triangles": 927954,
+          "geometries": 41,
+          "staticChunks": 12,
+          "textureCount": 11,
+          "cornerTurnouts": 21,
+          "detailDistance": 155
+        }
+      }
+    },
+    {
+      "file": "native-edge-sewer.png",
+      "layout": {
+        "overflow": false,
+        "small": []
+      },
+      "diagnostics": {
+        "frames": 17,
+        "calls": 455,
+        "triangles": 351902,
+        "geometries": 468,
+        "textures": 55,
+        "environment": {
+          "buildings": 62,
+          "instances": 67028,
+          "triangles": 927954,
+          "geometries": 41,
+          "staticChunks": 12,
+          "textureCount": 11,
+          "cornerTurnouts": 21,
+          "detailDistance": 155
+        }
+      }
+    },
+    {
+      "file": "native-edge-plaza.png",
+      "layout": {
+        "overflow": false,
+        "small": []
+      },
+      "diagnostics": {
+        "frames": 23,
+        "calls": 490,
+        "triangles": 415720,
+        "geometries": 468,
+        "textures": 55,
+        "environment": {
+          "buildings": 62,
+          "instances": 67028,
+          "triangles": 927954,
+          "geometries": 41,
+          "staticChunks": 12,
+          "textureCount": 11,
+          "cornerTurnouts": 21,
+          "detailDistance": 155
+        }
+      }
+    }
+  ],
+  "checks": [
+    {
+      "nativeEdge": "sewer",
+      "position": [
+        64.99965277777777,
+        -10,
+        20
+      ],
+      "setup": {
+        "x": 64,
+        "y": -10,
+        "z": 20
+      }
+    },
+    {
+      "nativeEdge": "plaza",
+      "position": [
+        169.99965277777778,
+        -6,
+        120
+      ],
+      "setup": {
+        "x": 169,
+        "y": -6,
+        "z": 120
+      }
+    }
+  ],
+  "kind": "Loopback API scene placements plus native keyboard edge probes; no native full-lane claim",
+  "sources": {
+    "world-scene.mjs": "55e39546a6fcd60566385a7f18e716f6c46a0c01528611af64300d0c3d13edf8",
+    "environment.mjs": "9cf472e7cebd6294604864aefe9bef6e145290b6b4072e81e94ba65bfdfd3382",
+    "game.mjs": "fa78eb15dfad5a698b3e80ace9a10de10ab88145859dffced89ad61695e5df59",
+    "integration-ui.mjs": "e1222fc1601fc5ac64e3d85c28a6964b8bc335fc96acc644b51a31149c6796e3",
+    "integration.css": "18b03b14c596f4f62852d8de61ff94487b285cfbdb313c8e8441091d306d5c39",
+    "index.html": "c3dc46de85082c21fc7d2a9a6620b76e116b23cc6240a30cf600acd197195756",
+    "traversal.mjs": "e46ca984bc605cc151ed3aeb6324a74f1a2bb52d0396ec4336cbcce3e88caead",
+    "heroes/player-controller.mjs": "3417f02140d926bfc7cbb557ea067bc9b9ae4c3547140e6502dcec7e027c7ab7"
+  }
+}

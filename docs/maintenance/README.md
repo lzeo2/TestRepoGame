@@ -7,15 +7,10 @@ game meets today's standards. Some engines are compiled, some rights are
 unverified, and some native interactions remain held.
 
 The catalog contains **127 registered games**. The latest Git inventory records **133 game projects**
-plus the shared `Games/_emulatorjs` runtime. Below the Obvious (235), operator-named on 2026-10-21, is the original offline solo rare-answer trivia game with Battle gated for phase 2; see the [branch handover](../dive-trivia-handover.md). Its targeted smoke does not replace the full fleet gate. JANKOLOCK (240) is the operator-authorized original 3D office-parody MOBA-shooter rebuild. The older [targeted build receipt](../jankolock-release.md) describes the rejected legacy 2D tree, not acceptance of this replacement. Steal a Footballer is the owner-authorized solo adaptation registered as 227; the owner stopped game testing and explicitly requested this source release without a completed smoke gate. The six unregistered projects are
-2048, Garage Borough, Hextris, legacy Jankolock, QWOP and Slope after integration
-commit `d9088a2` repointed existing ID240 to Jankolock3D. This is the authorized
-rebuild, not a new ID. The operator approved the registration-derived manual paths; the
-[current 3D manual](./games/240-jankolock3d.md) distinguishes normal input/lobby
-proof from scripted fixtures and outstanding full-game/release gates. The
-index/inventory are reconciled after inspected integration commits. Portrait H has qualified independent
-visual evidence; neither that nor world-only evidence certifies the complete
-integrated game or authorizes publication. Existing Slipstream Borough is catalog225, explicitly labeled a police-chase preview with an unbanked handling sandbox. Existing Foldwild is owner-authorized Story preview226; its M2/inspection/campaign/device/rights holds remain. Both are registrations of existing projects, not new builds. Sparse exclusion is intentional: a missing
+plus the shared `Games/_emulatorjs` runtime. Below the Obvious (235), operator-named on 2026-10-21, is the original offline solo rare-answer trivia game with Battle gated for phase 2; see the [branch handover](../dive-trivia-handover.md). Its targeted smoke does not replace the full fleet gate. JANKOLOCK (240) is the operator-authorized original arena translation; its indexed manual and [targeted build receipt](../jankolock-release.md) record native play, software-only portrait rendering and remaining full-fleet/hardware holds. Steal a Footballer is the owner-authorized solo adaptation registered as 227; the owner stopped game testing and explicitly requested this source release without a completed smoke gate. The six unregistered projects are
+2048, Citisten3D, Garage Borough, Hextris, QWOP and Slope. Citisten3D contains
+separate world, simulation and UI specimens, with no integrated game entry or
+catalog registration yet; its canonical manual links the lane receipts. Existing Slipstream Borough is catalog225, explicitly labeled a police-chase preview with an unbanked handling sandbox. Existing Foldwild is owner-authorized Story preview226; its M2/inspection/campaign/device/rights holds remain. Both are registrations of existing projects, not new builds. Sparse exclusion is intentional: a missing
 local Games folder does not mean a broken deployment. See [inventory](inventory.json)
 for exact tracked counts, entry hashes, source-tree hashes and manual paths.
 
@@ -287,6 +282,7 @@ reserved by appearing here.
 | 234 | [Astray](games/234-astray.md) | `Games/Astray/index.html` |
 | 235 | [Below the Obvious](games/235-dive-trivia.md) | `Games/Dive Trivia/index.html` |
 | 240 | [JANKOLOCK](games/240-jankolock3d.md) | `Games/Jankolock3D/index.html` |
+| 241 | [CITISTEN](games/241-citisten3d.md) | `Games/Citisten3D/index.html` |
 | Unregistered | [2048](games/unregistered-2048.md) | `Games/2048/index.html` |
 | Unregistered | [Garage Borough](games/unregistered-garage-borough.md) | `Games/Garage Borough/index.html` |
 | Unregistered | [Hextris](games/unregistered-hextris.md) | `Games/Hextris/index.html` |

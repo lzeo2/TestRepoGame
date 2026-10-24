@@ -1,0 +1,94 @@
+{
+  "status": "PASS-targeted-only",
+  "errors": [],
+  "responses": 70,
+  "captures": [
+    {
+      "file": "native-edge-sewer.png",
+      "layout": {
+        "overflow": false,
+        "small": []
+      },
+      "diagnostics": {
+        "frames": 12,
+        "calls": 452,
+        "triangles": 350992,
+        "geometries": 468,
+        "textures": 55,
+        "environment": {
+          "buildings": 62,
+          "instances": 67028,
+          "triangles": 927954,
+          "geometries": 41,
+          "staticChunks": 12,
+          "textureCount": 11,
+          "cornerTurnouts": 21,
+          "detailDistance": 155
+        }
+      }
+    },
+    {
+      "file": "native-edge-plaza.png",
+      "layout": {
+        "overflow": false,
+        "small": []
+      },
+      "diagnostics": {
+        "frames": 17,
+        "calls": 489,
+        "triangles": 415774,
+        "geometries": 468,
+        "textures": 55,
+        "environment": {
+          "buildings": 62,
+          "instances": 67028,
+          "triangles": 927954,
+          "geometries": 41,
+          "staticChunks": 12,
+          "textureCount": 11,
+          "cornerTurnouts": 21,
+          "detailDistance": 155
+        }
+      }
+    }
+  ],
+  "checks": [
+    {
+      "nativeEdge": "sewer",
+      "position": [
+        64.99965277777777,
+        -10,
+        20
+      ],
+      "setup": {
+        "x": 64,
+        "y": -10,
+        "z": 20
+      }
+    },
+    {
+      "nativeEdge": "plaza",
+      "position": [
+        169.99965277777778,
+        -6,
+        120
+      ],
+      "setup": {
+        "x": 169,
+        "y": -6,
+        "z": 120
+      }
+    }
+  ],
+  "kind": "Loopback API scene placements plus native keyboard edge probes; no native full-lane claim",
+  "sources": {
+    "world-scene.mjs": "5faa5439a39484fdd5ba0374af7d5e47bf20276516e06ac4db4a27d49fa3ed83",
+    "environment.mjs": "9cf472e7cebd6294604864aefe9bef6e145290b6b4072e81e94ba65bfdfd3382",
+    "game.mjs": "fa78eb15dfad5a698b3e80ace9a10de10ab88145859dffced89ad61695e5df59",
+    "integration-ui.mjs": "4b35dd97ad1ce6225227209706186e1d7cdb07bb4bb108d9cf1b5e66df5e6964",
+    "integration.css": "c4e72722391839d30566fab62b131aff9a1908d5fbc3e38464cfb2ec42753e56",
+    "index.html": "c3dc46de85082c21fc7d2a9a6620b76e116b23cc6240a30cf600acd197195756",
+    "traversal.mjs": "e46ca984bc605cc151ed3aeb6324a74f1a2bb52d0396ec4336cbcce3e88caead",
+    "heroes/player-controller.mjs": "9395f685bd5d1f8f5304fef0fe7a3bbca77ab05375a6b478247bc9b2d63c23c9"
+  }
+}

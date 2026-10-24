@@ -1,0 +1,6 @@
+{
+  "case": "city",
+  "exit": 1,
+  "seconds": 29.949602145003155,
+  "sourceUnchanged": true
+}

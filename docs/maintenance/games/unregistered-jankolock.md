@@ -32,7 +32,12 @@ snapshot. Snapshot is detached; UI's only global diagnostic,
 Data exports frozen ARENA/HEROES/ITEMS/RULES, validated statsFor/draftOffers/botItem.
 
 UI owns one fixed-step RAF, keyboard/pointer/touch intent, Canvas projection,
-HUD/native panels, original WebAudio and settings. Projection is
+HUD/native panels, original WebAudio and settings. Confirmed `hit` events originate
+in shared damageActor (bullets and slam), include target/position, actual HP loss
+and shield absorption, and use the existing 64-event tail. Kill events also own
+their target/position so rapid successive kills cannot reuse an older marker.
+Immunity, cover and
+decoys do not produce actor-hit confirmation. Projection is
 `x=40+x+(y-300)*.07`, `y=80+y*.9`; pointer aiming inverts it. Actors, bullets,
 cover, abilities and bots use engine collision, not sprite outlines. Sweep/LOS
 share rectHit; moveActor handles body/dash/knockback contacts; tickBullets handles
@@ -64,7 +69,14 @@ maximum2 stacks. Each bot also gets one item. Reset clears the match to hero lob
 WASD/arrows move; pointer aims/primary button fires; IJKL/Space keyboard aim/fire;
 Q/E abilities; P/Escape pauses. Touch has separate movement and aim/fire pads
 plus native ability buttons. Cancel/lost capture clears input. Blur/hidden page
-pauses. Trophy hall has native Back, WASD/arrows and touch movement buttons;
+pauses. The lobby exposes a short control primer before Start. During play the
+existing status line explains empty/held/contested rings, overtime, death and
+spawn protection. Pause focuses Resume. Short house-styled labels distinguish
+outgoing hits, incoming damage and a stronger kill confirmation; a two-tone X
+marks the confirmed impact location, not the current aim or a guessed hit.
+Optional synthesized hit/hurt/capture/respawn cues reuse the existing audio owner;
+sound remains off by default. No camera shake, aiming lag, firing cadence,
+health-bar or shot-animation change. Trophy hall has native Back, WASD/arrows and touch movement buttons;
 pawn bumps a cylinder, never collides with the dense GLB. Optional smash gag
 was not implemented; no such feature is claimed.
 
@@ -134,10 +146,16 @@ races, CPU full-triangle preview and SwiftShader GLTF load/scene/bump/Back tests
 Actual outputs, screenshot review, targeted smoke and outstanding maintenance
 checker guard are recorded in the [current build receipt](../../jankolock-release.md).
 
+The [Wings comparison and integration receipt](../../jankolock-wings-comparison.md)
+records the current bounded follow-up, exact path distinction from Jankolock3D,
+worker coordination, native feedback assertions, reviewed screenshots and remaining
+hardware/audio-listening/full-fleet limits. No acceptance of the 3D replacement is
+implied. The feedback regression extends the existing engine/browser checks above.
+
 Coverage checker requires all source committed and global Games tree clean.
-Pre-existing sibling Wings changes block that guard; never reset/stage them or
-weaken the checker. Inventory refresh may add only this game's record/index row;
-confirm other records unchanged. No full fleet smoke is run in this task.
+Refresh inventory only after the inspected source commit; confirm other records
+unchanged. Do not reset/stage sibling work or weaken the checker. No full fleet
+smoke is run in this task.
 
 ## Future outlook
 

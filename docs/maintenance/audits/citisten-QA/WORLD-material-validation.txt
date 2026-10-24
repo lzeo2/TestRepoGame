@@ -1,0 +1,44 @@
+CITISTEN procedural material/model pass, 2026-10-22
+No Blender/bpy, downloads, catalog changes or push.
+
+Completed local commits:
+f909e39 feat: citisten: add detailed original procedural city meshes
+377acd5 feat: citisten: add detailed service and defense geometry
+970ba71 feat: citisten: add detailed original citizen zombie and car meshes
+f515977 docs: citisten: publish external model wishlist and budgets
+
+Current working-tree checks:
+node Games/Citisten3D/world-check.mjs
+node Games/Citisten3D/model-city-check.mjs
+node Games/Citisten3D/model-services-check.mjs
+node Games/Citisten3D/model-agents-check.mjs
+NODE_EXIT=0 (full output in WORLD-material-node.txt)
+Touched .mjs syntax checks: exit 0
+material-qa.py AST parse: exit 0
+Post-capture QA-only Pillow deprecation fix (get_flattened_data): saved-image regression retained exactly 7885 warm-window pixels; no renderer change. Historical warning prefixes redacted.
+git diff --check: exit 0
+
+python3 -B Games/Citisten3D/material-qa.py
+MATERIAL QA PASS: seven captures, animated water, shadow/emission/AO checks; no errors/external requests; owned resources closed
+QA_EXIT=0
+System Chromium, SwiftShader, 1280x720. One-frame API fixture, not FPS measurement.
+Night warm-window pixels: 7885
+Water before/after changed pixels: 456403
+browserClosed=true; serverClosed=true; profileRemoved=true
+All seven final images visually reviewed; no claim of photorealistic final art.
+
+Owned-path growth checkpoint against e2d2df2, excluding other lanes:
+OWNED GROWTH PASS: 43 paths, baseline=190088, current=5798782, delta=5608694 bytes / 60000000
+This checkpoint predates this small receipt and final prose-only edits; rounded growth is 5.61 MB, well below 60 MB.
+CATALOG PASS: 127 unchanged entries, unique IDs/schema and tracked URLs; zero games added
+
+Historical commit blocker, now resolved:
+git add and git commit initially failed because shared-worktree index.lock existed.
+Read-only inspection found a zero-byte old lock, no active Git process; UI confirmed no live commit/staging operation. The Git admin directory is outside this checkout, so no agent removed the lock or bypassed the index.
+Operator/Hermes ticket: pi-31413-1792656684902-540247cf (automated advice cancelled; operator subsequently verified and removed the stale lock).
+Resume preflight confirmed the lock absent and index empty. This milestone stages only owned world paths with git add --sparse; no UI source is included.
+Before source commits, python3 -B scripts/check_maintenance_docs.py refused:
+AssertionError: Commit inspected source changes before validating its inventory.
+Refresh only after inspected world and UI source commits. Previous coverage PASS is not current acceptance.
+
+40 FPS remains HOLD. The 2.257124 FPS canonical result is pre-PBR and does not measure this renderer. No new benchmark or full-fleet gate was run; no release/push is authorized.

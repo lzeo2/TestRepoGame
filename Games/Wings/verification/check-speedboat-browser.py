@@ -6,12 +6,18 @@ python3 -B Games/Wings/verification/check-speedboat-browser.py \
     --three-root ../three-0.186.0/package --out .tmp/boat-reroll-browser
 Parent vision review must inspect two angles plus belly before operator previews.
 No installation, dependency copying, runtime integration or material recoloring.
+Optional --require-pbr requires embedded normal, packed MR and base-color maps;
+--baseline-receipt compares all 16 camera/light setups, not changed material pixels.
+--self-check exercises receipt parity without Playwright or a browser.
 """
 import argparse
 import hashlib
+from http.client import HTTPConnection
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import json
+import math
 import os
+import platform
 from pathlib import Path
 import shutil
 import signal
@@ -19,9 +25,73 @@ import struct
 import subprocess
 import sys
 import threading
+import time
 from urllib.parse import unquote, urlsplit
 
-from playwright.sync_api import sync_playwright
+ANGLES = ('front', 'side', 'top', 'rear', 'belly', 'bow-quarter', 'stern-quarter')
+CASES = [(t, a, 1000, 800) for t in ('light', 'dark') for a in ANGLES]
+CASES += [('light', 'bow-quarter', 390, 844), ('dark', 'stern-quarter', 390, 844)]
+
+
+def receipt_parity(current, baseline):
+    """Compare baseline setup fields, allowing additive receipt metadata."""
+    differences = []
+
+    def compare(actual, expected, path):
+        if isinstance(expected, dict):
+            for key, value in expected.items():
+                compare(actual.get(key) if isinstance(actual, dict) else None, value, f'{path}.{key}')
+        elif isinstance(expected, list):
+            if not isinstance(actual, list) or len(actual) != len(expected):
+                differences.append(path)
+            else:
+                for i, value in enumerate(expected):
+                    compare(actual[i], value, f'{path}[{i}]')
+        elif type(expected) in (int, float) and type(actual) in (int, float):
+            if not math.isclose(actual, expected, rel_tol=1e-9, abs_tol=1e-7):
+                differences.append(path)
+        elif actual != expected:
+            differences.append(path)
+
+    def identities(receipt):
+        return [tuple(r.get(k) for k in ('theme', 'angle', 'width', 'height'))
+                for r in receipt.get('cases', [])]
+
+    for name, receipt in (('current', current), ('baseline', baseline)):
+        if identities(receipt) != CASES:
+            differences.append(f'{name}.caseIdentities')
+    for i, (actual, expected) in enumerate(zip(current.get('cases', []), baseline.get('cases', []))):
+        for field in ('camera', 'lighting'):
+            if not isinstance(expected.get(field), dict) or not expected[field]:
+                differences.append(f'cases[{i}].{field}.missingBaseline')
+            else:
+                compare(actual.get(field), expected[field], f'cases[{i}].{field}')
+    if 'renderSetup' in baseline:
+        compare(current.get('renderSetup'), baseline['renderSetup'], 'renderSetup')
+    return {'status':'FAIL' if differences else 'PASS', 'differences':differences,
+            'caseCount':len(current.get('cases', [])), 'absoluteTolerance':1e-7,
+            'relativeTolerance':1e-9,
+            'scope':'ordered case identities, camera/projection, baseline lighting and available renderSetup; not pixels/maps'}
+
+
+def self_check():
+    fixture = {'cases':[dict(zip(('theme', 'angle', 'width', 'height'), case),
+                            camera={'projection':[1., 0.], 'position':[0., 1., 2.]},
+                            lighting={'key':3., 'exposure':1.}) for case in CASES]}
+    clone = lambda: json.loads(json.dumps(fixture))
+    assert receipt_parity(clone(), fixture)['status'] == 'PASS'
+    for field, key in (('camera', 'projection'), ('lighting', 'key')):
+        changed = clone()
+        changed['cases'][0][field][key] = [2., 0.] if field == 'camera' else 4.
+        assert receipt_parity(changed, fixture)['status'] == 'FAIL'
+    changed = clone()
+    changed['cases'][-1]['angle'] = 'front'
+    assert receipt_parity(changed, fixture)['status'] == 'FAIL'
+    assert receipt_parity(fixture, changed)['status'] == 'FAIL'
+    changed = clone()
+    changed['cases'].pop()
+    assert receipt_parity(changed, fixture)['status'] == 'FAIL'
+    print('PASS: parity accepts identical setup; rejects camera, lighting, identity and count changes')
 
 
 HTML = r'''<!doctype html>
@@ -66,6 +136,57 @@ try {
   key.shadow.normalBias = .015;
   scene.add(hemi, key, fill, key.target, fill.target);
   const gltf = await new GLTFLoader().loadAsync('/__model__.glb');
+  // GLTFLoader awaits image dependencies; explicitly decode/check every embedded texture too.
+  const textures = await gltf.parser.getDependencies('texture');
+  await Promise.all(textures.map(async texture => {
+    const image = texture.image;
+    if (image?.decode) await image.decode();
+    if (!(image?.width > 0 && image?.height > 0)) throw Error('PBR image not loaded');
+    renderer.initTexture(texture);
+  }));
+  const mapSlots = ['normalMap','roughnessMap','metalnessMap','map'];
+  const snapshot = m => {
+    const index = gltf.parser.associations.get(m)?.materials;
+    const definition = gltf.parser.json.materials[index];
+    if (!definition) throw Error('Material has no GLB definition');
+    const pbr = definition.pbrMetallicRoughness ?? {};
+    const expected = {normalMap:definition.normalTexture?.index,
+      roughnessMap:pbr.metallicRoughnessTexture?.index,
+      metalnessMap:pbr.metallicRoughnessTexture?.index, map:pbr.baseColorTexture?.index};
+    const maps = Object.fromEntries(mapSlots.map(slot => {
+      const texture = m[slot], sourceIndex = expected[slot];
+      if (!!texture !== (sourceIndex !== undefined)) throw Error(`Unexpected/missing ${slot}: ${m.name}`);
+      if (!texture) return [slot,null];
+      const textureIndex = gltf.parser.associations.get(texture)?.textures;
+      const colorSpace = slot === 'map' ? T.SRGBColorSpace : T.NoColorSpace;
+      if (textureIndex !== sourceIndex || texture.colorSpace !== colorSpace)
+        throw Error(`Wrong ${slot} source/color space: ${m.name}`);
+      const image = texture.image;
+      if (!(image?.width > 0 && image?.height > 0)) throw Error(`Unloaded ${slot}`);
+      const source = gltf.parser.json.textures[textureIndex].source;
+      if (!Number.isInteger(gltf.parser.json.images[source]?.bufferView))
+        throw Error(`Non-embedded ${slot}`);
+      return [slot,{textureIndex,imageIndex:source,colorSpace:texture.colorSpace,
+        width:image.width,height:image.height,channel:texture.channel,loaded:true}];
+    }));
+    // GLTF factors are linear. Reject fake runtime color/factor overrides rather than correcting them.
+    const base = pbr.baseColorFactor ?? [1,1,1,1];
+    if (m.color.toArray().some((v,i)=>Math.abs(v-base[i])>1e-7) ||
+        Math.abs(m.opacity-base[3])>1e-7 ||
+        Math.abs(m.metalness-(pbr.metallicFactor ?? 1))>1e-7 ||
+        Math.abs(m.roughness-(pbr.roughnessFactor ?? 1))>1e-7)
+      throw Error(`Runtime material factors differ from GLB: ${m.name}`);
+    if (m.roughnessMap !== m.metalnessMap) throw Error(`MR maps must share a packed texture: ${m.name}`);
+    return {definition:index, name:m.name, type:m.type,
+      color:m.color.toArray(), metalness:m.metalness, roughness:m.roughness,
+      opacity:m.opacity, transparent:m.transparent, alphaTest:m.alphaTest,
+      side:m.side, depthWrite:m.depthWrite, emissive:m.emissive.toArray(),
+      emissiveIntensity:m.emissiveIntensity, transmission:m.transmission ?? 0,
+      thickness:m.thickness ?? 0, ior:m.ior ?? 1.5,
+      clearcoat:m.clearcoat ?? 0, clearcoatRoughness:m.clearcoatRoughness ?? 0,
+      envMapIntensity:m.envMapIntensity, maps, sourceFactorsMatch:true,
+      normalScale:m.normalScale.toArray(), packedMR:m.roughnessMap ? m.roughnessMap===m.metalnessMap : false};
+  };
   const model = gltf.scene;
   scene.add(model); model.updateMatrixWorld(true);
   const box = new T.Box3().setFromObject(model);
@@ -82,23 +203,32 @@ try {
     const slots = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
     assignments += slots.length;
     for (const m of slots) {
-      const index = gltf.parser.associations.get(m)?.materials;
-      materials.set(m.uuid, {definition:index, name:m.name, type:m.type,
-        color:m.color.toArray(), metalness:m.metalness, roughness:m.roughness,
-        opacity:m.opacity, transparent:m.transparent, alphaTest:m.alphaTest,
-        side:m.side, depthWrite:m.depthWrite, emissive:m.emissive.toArray(),
-        emissiveIntensity:m.emissiveIntensity, transmission:m.transmission ?? 0,
-        thickness:m.thickness ?? 0, ior:m.ior ?? 1.5,
-        clearcoat:m.clearcoat ?? 0, clearcoatRoughness:m.clearcoatRoughness ?? 0,
-        envMapIntensity:m.envMapIntensity});
+      materials.set(m.uuid, m);
     }
     const positions = mesh.geometry.attributes.position;
     for (let i=0; i<positions.count; i++)
       points.push(new T.Vector3().fromBufferAttribute(positions,i).applyMatrix4(mesh.matrixWorld));
   });
+  const materialSnapshots = () => [...materials.values()].map(snapshot);
+  const originalMaterials = JSON.stringify(materialSnapshots());
   window.asset = {three:T.REVISION, triangles, assignments,
-    materials:[...materials.values()], bounds:{min:box.min.toArray(),max:box.max.toArray()},
-    modelMatrix:model.matrixWorld.toArray(), radius};
+    materials:materialSnapshots(), bounds:{min:box.min.toArray(),max:box.max.toArray()},
+    modelMatrix:model.matrixWorld.toArray(), radius,
+    texturesLoaded:textures.length, mapsReadyBeforeRender:true, materialOverrides:false};
+  window.renderSetup = {outputColorSpace:renderer.outputColorSpace,
+    toneMapping:'ACESFilmic',exposure:renderer.toneMappingExposure,pixelRatio:renderer.getPixelRatio(),
+    environment:{source:'procedural RoomEnvironment PMREM',sigma:.04,intensity:scene.environmentIntensity,
+      mapping:scene.environment.mapping,colorSpace:scene.environment.colorSpace,
+      width:scene.environment.image.width,height:scene.environment.image.height},
+    lights:{hemisphere:{sky:hemi.color.toArray(),ground:hemi.groundColor.toArray(),intensity:hemi.intensity},
+      key:{color:key.color.toArray(),intensity:key.intensity},
+      fill:{color:fill.color.toArray(),intensity:fill.intensity}},
+    shadows:{enabled:renderer.shadowMap.enabled,type:renderer.shadowMap.type,
+      bias:key.shadow.bias,normalBias:key.shadow.normalBias,mapSize:key.shadow.mapSize.toArray()}};
+  const context = renderer.getContext(), debug = context.getExtension('WEBGL_debug_renderer_info');
+  window.runtimeEnvironment = {userAgent:navigator.userAgent,webGLVersion:context.getParameter(context.VERSION),
+    vendor:context.getParameter(debug ? debug.UNMASKED_VENDOR_WEBGL : context.VENDOR),
+    renderer:context.getParameter(debug ? debug.UNMASKED_RENDERER_WEBGL : context.RENDERER)};
   const poses = {
     front:[[0,0,-1],[0,1,0]], side:[[1,0,0],[0,1,0]],
     top:[[0,1,0],[0,0,-1]], rear:[[0,0,1],[0,1,0]],
@@ -109,6 +239,7 @@ try {
   // Fit the actual projected geometry in each orthographic view; model scale stays identity.
   const camera = new T.OrthographicCamera();
   window.renderCase = async ({theme,angle,width,height}) => {
+    if (JSON.stringify(materialSnapshots()) !== originalMaterials) throw Error('Material mutated between cases');
     document.body.className = theme;
     document.querySelector('#label').textContent = `${theme} / ${angle} / -Z bow, +Y up` +
       (angle === 'belly' ? ' / BELOW-LIT DIAGNOSTIC, not game lighting' : ' / raw materials');
@@ -130,7 +261,11 @@ try {
     key.shadow.camera.updateProjectionMatrix();
     scene.background = new T.Color(theme==='dark' ? 0x303741 : 0xcbd0d1);
     renderer.setSize(width,h);
+    const renderStarted = performance.now();
     renderer.render(scene,camera);
+    renderer.getContext().finish(); // Complete GPU work before recording wall time, not a GPU timer query.
+    const renderWallMs = performance.now()-renderStarted;
+    if (JSON.stringify(materialSnapshots()) !== originalMaterials) throw Error('Render-time material override');
     const projected = points.map(p=>p.clone().project(camera));
     const clipping = projected.some(p=> !Number.isFinite(p.x+p.y+p.z) ||
       Math.abs(p.x)>=.98 || Math.abs(p.y)>=.98 || Math.abs(p.z)>=1);
@@ -148,7 +283,7 @@ try {
     }
     const digest = async bytes => Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',bytes)))
       .map(n=>n.toString(16).padStart(2,'0')).join('');
-    return {theme,angle,width,height,camera:{type:camera.type,position:camera.position.toArray(),
+    return {theme,angle,width,height,renderWallMs,camera:{type:camera.type,position:camera.position.toArray(),
       up:camera.up.toArray(),target:center.toArray(),projection:camera.projectionMatrix.toArray(),
       view:camera.matrixWorldInverse.toArray(),near:camera.near,far:camera.far},
       lighting:{environment:'procedural RoomEnvironment PMREM',environmentIntensity:scene.environmentIntensity,
@@ -168,10 +303,23 @@ try {
 
 
 def main():
+    started = time.perf_counter()
     parser = argparse.ArgumentParser(description=__doc__)
     for name in ('model', 'three-root', 'out'):
-        parser.add_argument('--' + name, type=Path, required=True)
+        parser.add_argument('--' + name, type=Path)
+    parser.add_argument('--baseline-receipt', type=Path, help='Compare 16 case identities and camera/light setup')
+    parser.add_argument('--require-pbr', action='store_true', help='Require normal, packed MR and sRGB color maps')
+    parser.add_argument('--self-check', action='store_true', help='Test receipt parity without launching a browser')
     args = parser.parse_args()
+    if args.self_check:
+        self_check()
+        return
+    if not all((args.model, args.three_root, args.out)):
+        parser.error('--model, --three-root and --out are required unless --self-check')
+    from playwright.sync_api import sync_playwright
+    baseline = json.loads(args.baseline_receipt.read_text()) if args.baseline_receipt else None
+    if baseline is not None:
+        assert receipt_parity(baseline, baseline)['status'] == 'PASS', 'Baseline needs the exact 16 ordered cases and camera/light data'
     model, three, out = args.model.resolve(), args.three_root.resolve(), args.out.resolve()
     repo = Path(__file__).resolve().parents[3]
     assert not three.is_relative_to(repo), 'Three must remain external to the repository'
@@ -195,9 +343,22 @@ def main():
     out.mkdir(parents=True, exist_ok=True)
     receipt = {'model':args.model.name, 'modelSHA256':hashlib.sha256(raw).hexdigest(),
                'modelBytes':len(raw), 'materialDefinitions':len(document.get('materials', [])),
-               'cases':[], 'errors':[], 'external':[], 'failedRequests':[],
+               'cases':[], 'errors':[], 'external':[], 'failedRequests':[], 'timingEvents':[],
+               'requirePBR':args.require_pbr,
+               'environment':{'python':platform.python_version(), 'system':platform.system(),
+                              'machine':platform.machine(), 'chromiumBinary':'/usr/bin/chromium',
+                              'launchArgs':['--no-sandbox','--use-angle=swiftshader','--enable-unsafe-swiftshader']},
+               'timingScope':'timingEvents.secondsSinceStart: worker-relative monotonic seconds; renderWallMs: browser render plus GL finish; caseWallMs: viewport/render/readback/hash/screenshot/save; totalDurationSeconds: worker including cleanup, excluding receipt write',
                'status':'FAIL', 'visualReview':'NOT PERFORMED: parent must inspect two angles plus belly'}
     used_bytes = 0
+
+    def breadcrumb(event, **details):
+        receipt['timingEvents'].append({'event':event,
+            'secondsSinceStart':round(time.perf_counter()-started, 3), **details})
+
+    def browser_issue(bucket, event, message, **details):
+        receipt[bucket].append(message)
+        breadcrumb(event, message=message, **details)
 
     def save(name, data):
         nonlocal used_bytes
@@ -241,9 +402,18 @@ def main():
     thread.start()
     origin = f'http://127.0.0.1:{server.server_port}'
     try:
+        breadcrumb('httpPreflightStarted')
+        connection = HTTPConnection('127.0.0.1', server.server_port, timeout=3)
+        try:
+            connection.request('GET', '/')
+            response = connection.getresponse()
+            assert response.status == 200 and response.read() == HTML.encode(), 'HTTP preflight failed'
+            breadcrumb('httpPreflightComplete', status=response.status)
+        finally:
+            connection.close()
         with sync_playwright() as p:
-            chromium = shutil.which('chromium')
-            assert chromium, 'Existing Chromium required; do not install'
+            chromium = '/usr/bin/chromium'
+            assert Path(chromium).is_file(), 'Existing /usr/bin/chromium required; do not install'
             browser = p.chromium.launch(executable_path=chromium, headless=True, timeout=20000,
                 args=['--no-sandbox','--use-angle=swiftshader','--enable-unsafe-swiftshader'])
             try:
@@ -258,26 +428,44 @@ def main():
                         route.continue_()
 
                 page.route('**/*', guard)
-                page.on('pageerror', lambda e: receipt['errors'].append(str(e)))
-                page.on('console', lambda m: receipt['errors'].append(m.text) if m.type=='error' else None)
-                page.on('requestfailed', lambda r: receipt['failedRequests'].append(r.url))
-                page.on('response', lambda r: receipt['failedRequests'].append(f'{r.status}: {r.url}') if r.status>=400 else None)
-                page.goto(origin, wait_until='load')
+                page.on('pageerror', lambda e: browser_issue('errors', 'pageerror', str(e)))
+                page.on('console', lambda m: browser_issue('errors', 'consoleError', m.text) if m.type=='error' else None)
+                page.on('requestfailed', lambda r: browser_issue('failedRequests', 'requestfailed', r.url, failure=r.failure))
+                page.on('response', lambda r: browser_issue('failedRequests', 'httpError', f'{r.status}: {r.url}') if r.status>=400 else None)
+                breadcrumb('navigationStarted')
+                # Synchronous WebGL/PMREM bootstrap can block load; readiness has its own budget.
+                page.goto(origin, wait_until='commit', timeout=20000)
+                breadcrumb('navigationCommitted')
+                breadcrumb('appReadinessStarted')
                 page.wait_for_function('window.ready || window.bootError', timeout=60000)
-                assert page.evaluate('window.ready'), page.evaluate('window.bootError')
+                ready = page.evaluate('window.ready')
+                breadcrumb('appReady' if ready else 'bootError')
+                assert ready, page.evaluate('window.bootError')
                 asset = page.evaluate('window.asset')
                 receipt['asset'] = asset
-                angles = ['front','side','top','rear','belly','bow-quarter','stern-quarter']
-                cases = [(t,a,1000,800) for t in ('light','dark') for a in angles]
-                cases += [('light','bow-quarter',390,844),('dark','stern-quarter',390,844)]
-                for theme, angle, width, height in cases:
+                receipt['renderSetup'] = page.evaluate('window.renderSetup')
+                receipt['environment'].update(page.evaluate('window.runtimeEnvironment'), chromiumVersion=browser.version)
+                map_counts = {slot:sum(m['maps'][slot] is not None for m in asset['materials'])
+                              for slot in ('normalMap','roughnessMap','metalnessMap','map')}
+                receipt['pbrVerification'] = {'mapMaterialCounts':map_counts,
+                    'mapsReadyBeforeRender':asset['mapsReadyBeforeRender'],
+                    'sourceFactorsMatch':all(m['sourceFactorsMatch'] for m in asset['materials']),
+                    'materialOverrides':asset['materialOverrides'],
+                    'baselineMapsCompared':False,
+                    'note':'Original receipt has no maps; map/pixel parity is intentionally not required'}
+                if args.require_pbr:
+                    assert all(map_counts.values()), 'PBR requires normal, packed MR and base-color maps'
+                    assert any(m['packedMR'] for m in asset['materials']), 'No packed MR texture'
+                for theme, angle, width, height in CASES:
+                    case_started = time.perf_counter()
                     page.set_viewport_size({'width':width,'height':height})
                     result = page.evaluate('c => window.renderCase(c)',
                         dict(theme=theme,angle=angle,width=width,height=height))
                     shot = page.screenshot(timeout=15000)
                     name = f'boat-reroll-{theme}-{angle}-{width}.png'
                     save(name, shot)
-                    result.update(screenshot=name, screenshotSHA256=hashlib.sha256(shot).hexdigest())
+                    result.update(screenshot=name, screenshotSHA256=hashlib.sha256(shot).hexdigest(),
+                                  caseWallMs=(time.perf_counter()-case_started)*1000)
                     receipt['cases'].append(result)
                     assert not result['clipping'] and not result['borderPixels'] and not result['overflow'], result
                     assert result['foregroundPixels']>width*(height-80)*.005 and result['foregroundColors']>20, 'Blank/flat render'
@@ -295,11 +483,16 @@ def main():
                 assert asset['assignments']>=40, 'Need >=40 material assignments'
                 assert used==set(range(definitions)), 'Every material definition must be drawn'
                 assert all(m['type'] in ('MeshStandardMaterial','MeshPhysicalMaterial') for m in asset['materials'])
+                if baseline is not None:
+                    receipt['baselineParity'] = receipt_parity(receipt, baseline)
+                    receipt['baselineParity']['baselineSHA256'] = hashlib.sha256(args.baseline_receipt.read_bytes()).hexdigest()
+                    assert receipt['baselineParity']['status'] == 'PASS', receipt['baselineParity']
                 receipt['status'] = 'STRUCTURAL AND CAPTURE CHECKS PASS; VISUAL REVIEW REQUIRED'
             finally:
                 browser.close()
     except Exception as error:
         receipt['failure'] = str(error)
+        breadcrumb('failure', message=str(error))
         raise
     finally:
         server.shutdown()
@@ -307,6 +500,8 @@ def main():
         thread.join(timeout=3)
         signal.alarm(0)
         receipt['evidenceBytesBeforeReceipt'] = used_bytes
+        receipt['totalDurationSeconds'] = time.perf_counter()-started
+        receipt['caseWallTotalMs'] = sum(r['caseWallMs'] for r in receipt['cases'])
         save('browser.json', json.dumps(receipt, indent=2).encode())
         print(receipt['status'], flush=True)
     print('16 captures. No visual, photorealism, native renderer or gameplay PASS claimed.')

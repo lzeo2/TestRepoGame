@@ -490,7 +490,9 @@ function renderBattle() {
   const blocked = phase !== 'battle' || !playable() || Boolean(battle.result);
   BY_ID[player.speciesId].abilities.forEach((name, slot) => {
     const cost = ABILITIES[name].cost + (player.status?.name === 'Hush' ? 2 : 0);
-    text(`ability-${slot}`, `${slot + 1}. ${abilityDescription(name, player.status?.name === 'Hush')}`);
+    const title = document.createElement('strong');
+    title.textContent = `${slot + 1}. ${name}`;
+    byId(`ability-${slot}`).replaceChildren(title, paragraph(abilityDescription(name, player.status?.name === 'Hush').replace(`${name} costs `, '')));
     byId(`ability-${slot}`).disabled = blocked || player.energy < cost;
   });
   const reason = captureReason();
@@ -681,12 +683,12 @@ function useItem(next, uid, id) {
 function renderServices() {
   const point = servicePoint(), content = byId('service-content'), nodes = [];
   text('service-title', point?.label ?? 'Field Kit');
-  text('service-description', `${point?.dialogue ? `${point.dialogue}\n\n` : ''}You have ${state.marks} Marks. Use recovery supplies here, trade with merchants and tailors, or change your class and outfit at an outpost.`);
+  text('service-description', `${point?.dialogue ? `${point.dialogue}\n\n` : ''}${state.marks} Marks.`);
   const tabs = document.createElement('div'); tabs.className = 'actions';
   for (const [id, label] of [['kit', 'Inventory'], ['classes', 'Classes'], ['appearance', 'Archivist']]) tabs.append(button(label, () => { serviceMenu = id; renderServices(); }));
   if (point?.shopId) for (const [id, label] of [['shop', 'Buy and sell'], ['cosmetics', 'Accessories']]) tabs.append(button(label, () => { serviceMenu = id; renderServices(); }));
   if (point?.contractId) tabs.append(button('Supply contract', () => { serviceMenu = 'contract'; renderServices(); }));
-  nodes.push(paragraph(objective(state)), tabs);
+  nodes.push(tabs);
   if (point?.type === 'camp') {
     nodes.push(button('Rest free: heal team and refill to four kites', () => {
       if (!servicePoint() || phase !== 'world' || paused || busy) return;
@@ -852,12 +854,16 @@ function collection() {
   if (!state || !['world', 'result'].includes(phase) || busy) return;
   const search = byId('ledger-search').value.trim().toLowerCase(), filter = byId('ledger-filter').value;
   const matches = species => (!search || `${species.name} ${species.family}`.toLowerCase().includes(search)) && (filter === 'all' || species.element === filter);
-  const items = [paragraph(`You have ${state.roster.length}/${MAX_ROSTER} allies and ${state.team.length}/3 on your team. You have seen ${state.seen.length}/80 species and caught ${state.caught.length}/80. Your team's synergy is ${synergyFor(party()).name}.`)];
+  const items = [paragraph(`Allies ${state.roster.length}/${MAX_ROSTER} · Team ${state.team.length}/3 · Seen ${state.seen.length}/80 · Caught ${state.caught.length}/80`)];
   for (const c of state.roster.filter(c => matches(BY_ID[c.speciesId]))) {
     const card = document.createElement('section'), max = statsFor(c), species = BY_ID[c.speciesId];
     card.dataset.uid = c.uid;
-    card.append(paragraph(`${nameOf(c)} · ${species.element} · ${species.family} · HP ${c.hp}/${max.maxHP} · energy ${c.energy}/${max.maxEnergy} · XP ${c.xp}`));
-    card.append(paragraph(`${BY_ID[c.speciesId].name} has ${max.attack} attack, ${max.defense} defense and ${max.speed} speed. Its individual stat modifiers are ${words.format(Object.entries(c.profile ?? {}).map(([key, value]) => `${key} ${value > 0 ? '+' : ''}${value}%`))}. Its trait is ${TRAITS[c.traitId ?? 'neutral'].name}. ${TRAITS[c.traitId ?? 'neutral'].description}`));
+    const heading = document.createElement('h3'); heading.textContent = nameOf(c);
+    card.append(heading, paragraph(`${species.element} · ${species.family} · HP ${c.hp}/${max.maxHP} · energy ${c.energy}/${max.maxEnergy}`));
+    const stats = document.createElement('details'), summary = document.createElement('summary');
+    summary.textContent = 'Stats and trait';
+    stats.append(summary, paragraph(`XP ${c.xp}. Attack ${max.attack}, defense ${max.defense}, speed ${max.speed}. Individual modifiers: ${words.format(Object.entries(c.profile ?? {}).map(([key, value]) => `${key} ${value > 0 ? '+' : ''}${value}%`))}. ${TRAITS[c.traitId ?? 'neutral'].name}: ${TRAITS[c.traitId ?? 'neutral'].description}`));
+    card.append(stats);
     const onTeam = state.team.includes(c.uid);
     const control = button(onTeam ? 'Remove from team' : 'Add to team', () => ledgerAction(next => {
       if (next.team.includes(c.uid)) { if (next.team.length <= 1) throw new Error('Keep at least one ally on the team.'); next.team = next.team.filter(uid => uid !== c.uid); }
@@ -871,7 +877,8 @@ function collection() {
     const inspect = button('Inspect', () => inspectCreature(null, c.uid, inspect)); inspect.dataset.inspect = c.uid;
     const release = button('Release', () => askRelease(c.uid)); release.dataset.release = c.uid;
     const reason = releaseReason(c); release.disabled = Boolean(reason); release.title = reason || 'Release this individual with confirmation';
-    card.append(inspect, control, favorite, release);
+    const actions = document.createElement('div'); actions.className = 'actions';
+    actions.append(inspect, control, favorite, release); card.append(actions);
     if (reason) card.append(paragraph(reason));
     card.append(selectControl('Accessory', state.cosmetics.map(id => [id, COSMETICS[id].name]), c.cosmeticId ?? 'none', value => ledgerAction(next => {
       if (!next.cosmetics.includes(value)) throw new Error('Accessory not owned.');
@@ -882,19 +889,17 @@ function collection() {
   items.push(paragraph(`${Object.entries(ELEMENT_WHEEL).map(([a, b]) => `${a} beats ${b}`).join('. ')}. A strong matchup deals 1.5 times the damage. The reverse deals 0.75 times the damage.`));
   for (const species of SPECIES) {
     const discovered = state.seen.includes(species.id);
-    if (!discovered && (search || filter !== 'all')) continue;
-    if (discovered && !matches(species)) continue;
+    if (!discovered || !matches(species)) continue;
     const card = document.createElement('section');
-    if (!discovered) card.append(paragraph(`#${species.number} Undiscovered`));
-    else {
-      card.append(paragraph(`#${species.number} ${species.name} · ${species.element} · ${species.family} · ${species.tier} · ${state.caught.includes(species.id) ? 'Caught' : 'Seen'}`));
-      const inspect = button('Inspect species', () => inspectCreature(species.id, null, inspect));
-      inspect.dataset.species = species.id; card.append(inspect);
-      card.append(paragraph(species.abilities.map(name => abilityDescription(name)).join(' ')));
-      if (species.evolvesTo) card.append(paragraph(`${species.name} evolves at level ${species.evolveLevel}${state.seen.includes(species.evolvesTo) ? ` into ${BY_ID[species.evolvesTo].name}` : '. You have not seen its next form yet'}.`));
-    }
+    const heading = document.createElement('h3'); heading.textContent = `#${species.number} ${species.name}`;
+    card.append(heading, paragraph(`${species.element} · ${species.family} · ${species.tier} · ${state.caught.includes(species.id) ? 'Caught' : 'Seen'}`));
+    const inspect = button('Inspect species', () => inspectCreature(species.id, null, inspect));
+    inspect.dataset.species = species.id; card.append(inspect);
+    card.append(paragraph(species.abilities.map(name => abilityDescription(name)).join(' ')));
+    if (species.evolvesTo) card.append(paragraph(`${species.name} evolves at level ${species.evolveLevel}${state.seen.includes(species.evolvesTo) ? ` into ${BY_ID[species.evolvesTo].name}` : '. You have not seen its next form yet'}.`));
     items.push(card);
   }
+  if (!search && filter === 'all') items.push(paragraph(`${SPECIES.length - state.seen.length} species still undiscovered.`));
   byId('collection-list').replaceChildren(...items);
   clearInput();
   if (!byId('collection-dialog').open) { route = []; byId('collection-dialog').showModal(); }

@@ -60,7 +60,7 @@ export class AbilityFX {
     this.scene = scene; this.kit = geometryKit(); this.handles = new Map(); this.disposed = false;
   }
   get count() { return this.handles.size; }
-  emit(id, { origin = new THREE.Vector3(), target, direction = FRONT, color = COLORS[id] ?? WOOD, duration = 1, targets = [], radius } = {}) {
+  emit(id, { origin = new THREE.Vector3(), target, direction = FRONT, color = COLORS[id] ?? WOOD, duration = 1, targets = [], radius, impact = false } = {}) {
     if (this.disposed) throw new Error('AbilityFX is disposed');
     if (!Object.hasOwn(COLORS, id) && !GENERIC.includes(id)) throw new RangeError(`Unknown effect: ${id}`);
     if (this.count >= 100) this.handles.keys().next().value.dispose();
@@ -160,9 +160,26 @@ export class AbilityFX {
         rod([x, y, -1.15 - i % 2 * 0.3], [x, y, -1.65 - i % 2 * 0.3], 0.035, drum, PAPER);
       }
       animate = (_, age) => { drum.rotation.z = age * 13; };
-    } else if (id === 'longshot' || id === 'shot') {
-      const l = id === 'shot' ? Math.min(2, Math.max(0.3, length)) : Math.max(0.1, length);
-      rod([0, 0, 0], [0, 0, -l], id === 'shot' ? 0.055 : 0.09);
+    } else if (id === 'shot') {
+      // At most five meshes sharing low-poly geometry; no lights or asset loads.
+      const material=paint.get(color);material.emissive.copy(material.color);
+      const tracer=rod([0,0,0],[0,0,-Math.max(.001,length)],.035);
+      const flash=add('diamond',[.3,.3,.65],[0,0,-.15]);
+      const sparks=[];
+      if(impact)for(let i=0;i<3;i++) {
+        const angle=i*Math.PI*2/3;
+        const spark=rod([0,0,-length],[Math.cos(angle)*.3,Math.sin(angle)*.3,-length+.15],.045);
+        sparks.push(spark);
+      }
+      animate=t=>{
+        const size=Math.max(.01,1-t*2);
+        flash.visible=t<.5;flash.scale.set(.3*size,.3*size,.65*size);
+        tracer.visible=t<.8;
+        sparks.forEach((spark,i)=>{const a=i*Math.PI*2/3;spark.position.x=Math.cos(a)*(.15+t*.35);spark.position.y=Math.sin(a)*(.15+t*.35);});
+      };
+    } else if (id === 'longshot') {
+      const l = Math.max(0.1, length);
+      rod([0, 0, 0], [0, 0, -l], 0.09);
       add('nib', [0.12, 0.4, 0.12], [0, 0, -l]).rotation.x = -Math.PI / 2;
     } else if (id === 'tether') {
       const n = Math.max(8, Math.min(128, Math.ceil(length * 6))); let last = [0, 0, 0];

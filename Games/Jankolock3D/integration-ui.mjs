@@ -2,6 +2,10 @@ import { mountSystemsUI } from './systems-ui.mjs';
 
 const finite = (value, fallback = 0) => Number.isFinite(value) ? value : fallback;
 const count = value => Math.max(0, Math.ceil(finite(value)));
+const healthReadout = hero => {
+  const max = Math.max(1, finite(hero.maxHp, 1)), hp = Math.max(0, Math.min(max, finite(hero.hp)));
+  return { hp, max, text: `${count(hp)} / ${count(max)}`, state: hp / max > .5 ? 'healthy' : hp / max > .25 ? 'warning' : 'critical' };
+};
 const pointOnMap = (position, size, team = 'carbon') => ({
   x: Math.max(8, Math.min(size - 8, (finite(position.x) + 450) / 900 * size)),
   y: Math.max(16, Math.min(size - 8, (450 - finite(position.z) * (team === 'ivory' ? -1 : 1)) / 900 * size))
@@ -39,6 +43,15 @@ export function mountIntegrationUI({ sim, heroId, runtime, controller, world, ki
   const listen = (node, type, fn) => node.addEventListener(type, fn, { signal: listeners.signal });
   const systemsRoot = $('systems-root');
   const systems = mountSystemsUI(systemsRoot, sim, heroId);
+  const healthHud = document.createElement('section');
+  healthHud.className = 'health-hud'; healthHud.setAttribute('aria-label', 'Player health');
+  const healthTrack = document.querySelector('.health-track'), healthBar = $('health-bar');
+  const healthValue = document.createElement('output'); healthValue.id = 'health-value'; healthValue.setAttribute('aria-live', 'off');
+  healthTrack.querySelector('label').append(' ', healthValue);
+  healthHud.append(healthTrack); $('hud').append(healthHud);
+  const header = document.querySelector('.page-header');
+  const placeHealth = () => healthHud.style.setProperty('--header-height', `${header.offsetHeight}px`);
+  const healthResize = new ResizeObserver(placeHealth); healthResize.observe(header); placeHealth();
   const inventory = document.createElement('section');
   inventory.className = 'integration-inventory panel';
   inventory.setAttribute('aria-label', 'Equipped items');
@@ -172,7 +185,10 @@ export function mountIntegrationUI({ sim, heroId, runtime, controller, world, ki
     const h = hero(), kit = currentKit(); if (!h) return;
     systems.update();
     $('playing-hero').textContent = kit.name;
-    $('health-bar').max = Math.max(1, finite(h.maxHp, 1)); $('health-bar').value = Math.max(0, finite(h.hp));
+    const health = healthReadout(h);
+    healthBar.max = health.max; healthBar.value = health.hp;
+    healthValue.textContent = health.text; healthHud.dataset.state = health.state;
+    healthBar.setAttribute('aria-valuetext', `${health.text} health, ${health.state}`);
     const stamina = Math.max(0, Math.min(100, finite(currentController?.stamina)));
     $('stamina-bar').value = stamina; $('stamina-value').textContent = `${count(stamina)} / 100`;
     const magazine = currentRuntime?.modifiers?.magazine ?? kit.weapon.magazine;
@@ -221,7 +237,7 @@ export function mountIntegrationUI({ sim, heroId, runtime, controller, world, ki
     dispose() {
       if (disposed) return;
       disposed = true; listeners.abort(); closeDialog(pauseDialog); closeDialog(help);
-      systems.dispose(); capture.remove(); $('hud').hidden = true; $('touch-controls').hidden = true; $('pause').hidden = true;
+      systems.dispose(); capture.remove(); healthResize.disconnect(); healthHud.remove(); $('hud').hidden = true; $('touch-controls').hidden = true; $('pause').hidden = true;
     }
   };
 }
@@ -240,5 +256,11 @@ if (typeof document === 'undefined' && globalThis.process?.argv.includes('--self
   assert.equal(objectiveText({ winner: 'carbon' }, 'carbon').startsWith('Victory'), true);
   assert.equal(objectiveText({ winner: 'ivory' }, 'carbon').startsWith('Defeat'), true);
   assert.equal(objectiveText({ structures: [{ team: 'ivory', alive: true, type: 'patron', vulnerable: true, patronPhase: 2 }] }, 'carbon'), '1 enemy objective remains. Patron phase 2: attack.');
-  console.log('integration-ui: 8 checks passed (map projection, orientation, event deduplication, objective states).');
+  assert.deepEqual(healthReadout({ hp: 75.2, maxHp: 100 }), { hp: 75.2, max: 100, text: '76 / 100', state: 'healthy' });
+  assert.equal(healthReadout({ hp: 50, maxHp: 100 }).state, 'warning');
+  assert.equal(healthReadout({ hp: 25, maxHp: 100 }).state, 'critical');
+  assert.equal(healthReadout({ hp: 0, maxHp: 100 }).text, '0 / 100');
+  assert.equal(healthReadout({ hp: 200, maxHp: 100 }).hp, 100);
+  assert.deepEqual(healthReadout({ hp: NaN, maxHp: Infinity }), { hp: 0, max: 1, text: '0 / 1', state: 'critical' });
+  console.log('integration-ui: 14 checks passed (map, event deduplication, objectives, health values/color thresholds/clamping).');
 }

@@ -1,0 +1,52 @@
+{
+  "case": "city",
+  "status": "failed",
+  "scope": "Native input; read-only diagnostics; no grants",
+  "directory": "docs/maintenance/audits/citisten-QA/native/city/run-mvt_lnz3",
+  "checks": {
+    "serverReady": {
+      "status": 200,
+      "seconds": 0.05954925100377295
+    }
+  },
+  "phases": [
+    {
+      "phase": "starting",
+      "seconds": 0.005
+    },
+    {
+      "phase": "serverReady",
+      "seconds": 0.065
+    },
+    {
+      "phase": "failure",
+      "seconds": 18.672
+    },
+    {
+      "phase": "cleanup-start",
+      "seconds": 18.707
+    },
+    {
+      "phase": "finished",
+      "seconds": 21.62
+    }
+  ],
+  "held": {
+    "F": "Separate natural-combat slot required; no state grants",
+    "G": "Separate natural-combat slot required; no state grants",
+    "H": "Separate natural-combat slot required; no state grants"
+  },
+  "errors": [
+    "http://127.0.0.1:8751/Games/Citisten3D/materials.mjs: net::ERR_NETWORK_CHANGED",
+    "Failed to load resource: net::ERR_NETWORK_CHANGED",
+    "http://127.0.0.1:8751/Games/Citisten3D/external-assets.mjs: net::ERR_NETWORK_CHANGED",
+    "Failed to load resource: net::ERR_NETWORK_CHANGED"
+  ],
+  "externalRequests": [],
+  "screenshots": [],
+  "failure": "Page.wait_for_function: Timeout 15000ms exceeded.",
+  "driverClosed": true,
+  "serverClosed": true,
+  "browserClosed": true,
+  "profileRemoved": true
+}

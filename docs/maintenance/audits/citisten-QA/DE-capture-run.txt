@@ -1,0 +1,4 @@
+E/D API CHECK PASS: same real car across 6 checkpoints; 9 utility cases in 2 themes; 24 screenshots + 3 plates; no errors/external requests
+{"browserClosed": true, "profileRemoved": true, "serverClosed": true, "diskBefore": 5093920768, "diskAfter": 5093597184}
+
+CAPTURE_EXIT=0

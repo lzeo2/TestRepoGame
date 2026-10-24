@@ -1,0 +1,190 @@
+{
+  "model": "fire_station",
+  "schema_version": "1.0",
+  "units": "metres",
+  "coordinates": "glTF Y-up; architectural facade +Z; source Blender Z-up facade -Y",
+  "pivot_space": "parent-local; neutral offsets from exported glTF node transforms",
+  "rotation_ranges": "degrees relative to bind pose; capless = free",
+  "translation_ranges": "metres relative to bind translation; [0,0] locks axis",
+  "movable_nodes": [
+    {
+      "name": "fire_station__apparatus_door_01",
+      "parent": "fire_station",
+      "pivot_position": [
+        -1.899999976158142,
+        3.2950000762939453,
+        3.359999895095825
+      ],
+      "pivot_space": "parent-local glTF metres",
+      "local_frame_quaternion_xyzw": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "rotation_deg": {
+        "x": [
+          -95,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "translation_m": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "operation": "rigid rotation",
+      "motion_axis_local": "X",
+      "geometry_children": [
+        "fire_station__apparatus_door_01__door_vision_glass",
+        "fire_station__apparatus_door_01__door_vision_glass_001",
+        "fire_station__apparatus_door_01__door_vision_glass_002",
+        "fire_station__apparatus_door_01__pressed_door_panel",
+        "fire_station__apparatus_door_01__pressed_door_panel_001",
+        "fire_station__apparatus_door_01__pressed_door_panel_002",
+        "fire_station__apparatus_door_01__pressed_door_panel_003",
+        "fire_station__apparatus_door_01__pressed_door_panel_004",
+        "fire_station__apparatus_door_01__pressed_door_panel_005",
+        "fire_station__apparatus_door_01__pressed_door_panel_006",
+        "fire_station__apparatus_door_01__pressed_door_panel_007",
+        "fire_station__apparatus_door_01__pressed_door_panel_008",
+        "fire_station__apparatus_door_01__pressed_door_panel_009",
+        "fire_station__apparatus_door_01__pressed_door_panel_010",
+        "fire_station__apparatus_door_01__pressed_door_panel_011",
+        "fire_station__apparatus_door_01__pressed_door_panel_012",
+        "fire_station__apparatus_door_01__pressed_door_panel_013",
+        "fire_station__apparatus_door_01__pressed_door_panel_014",
+        "fire_station__apparatus_door_01__pressed_door_panel_015",
+        "fire_station__apparatus_door_01__pressed_door_panel_016",
+        "fire_station__apparatus_door_01__pressed_door_panel_017",
+        "fire_station__apparatus_door_01__pressed_door_panel_018",
+        "fire_station__apparatus_door_01__pressed_door_panel_019",
+        "fire_station__apparatus_door_01__pressed_door_panel_020",
+        "fire_station__apparatus_door_01__pressed_door_panel_021",
+        "fire_station__apparatus_door_01__pressed_door_panel_022",
+        "fire_station__apparatus_door_01__pressed_door_panel_023",
+        "fire_station__apparatus_door_01__segmented_apparatus_door",
+        "fire_station__apparatus_door_01__segmented_apparatus_door_001",
+        "fire_station__apparatus_door_01__segmented_apparatus_door_002",
+        "fire_station__apparatus_door_01__segmented_apparatus_door_003",
+        "fire_station__apparatus_door_01__segmented_apparatus_door_004",
+        "fire_station__apparatus_door_01__segmented_apparatus_door_005",
+        "fire_station__apparatus_door_01__segmented_apparatus_door_006",
+        "fire_station__apparatus_door_01__segmented_apparatus_door_007"
+      ]
+    },
+    {
+      "name": "fire_station__apparatus_door_02",
+      "parent": "fire_station",
+      "pivot_position": [
+        1.2000000476837158,
+        3.2950000762939453,
+        3.359999895095825
+      ],
+      "pivot_space": "parent-local glTF metres",
+      "local_frame_quaternion_xyzw": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "rotation_deg": {
+        "x": [
+          -95,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "translation_m": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "operation": "rigid rotation",
+      "motion_axis_local": "X",
+      "geometry_children": [
+        "fire_station__apparatus_door_02__door_vision_glass_003",
+        "fire_station__apparatus_door_02__door_vision_glass_004",
+        "fire_station__apparatus_door_02__door_vision_glass_005",
+        "fire_station__apparatus_door_02__pressed_door_panel_024",
+        "fire_station__apparatus_door_02__pressed_door_panel_025",
+        "fire_station__apparatus_door_02__pressed_door_panel_026",
+        "fire_station__apparatus_door_02__pressed_door_panel_027",
+        "fire_station__apparatus_door_02__pressed_door_panel_028",
+        "fire_station__apparatus_door_02__pressed_door_panel_029",
+        "fire_station__apparatus_door_02__pressed_door_panel_030",
+        "fire_station__apparatus_door_02__pressed_door_panel_031",
+        "fire_station__apparatus_door_02__pressed_door_panel_032",
+        "fire_station__apparatus_door_02__pressed_door_panel_033",
+        "fire_station__apparatus_door_02__pressed_door_panel_034",
+        "fire_station__apparatus_door_02__pressed_door_panel_035",
+        "fire_station__apparatus_door_02__pressed_door_panel_036",
+        "fire_station__apparatus_door_02__pressed_door_panel_037",
+        "fire_station__apparatus_door_02__pressed_door_panel_038",
+        "fire_station__apparatus_door_02__pressed_door_panel_039",
+        "fire_station__apparatus_door_02__pressed_door_panel_040",
+        "fire_station__apparatus_door_02__pressed_door_panel_041",
+        "fire_station__apparatus_door_02__pressed_door_panel_042",
+        "fire_station__apparatus_door_02__pressed_door_panel_043",
+        "fire_station__apparatus_door_02__pressed_door_panel_044",
+        "fire_station__apparatus_door_02__pressed_door_panel_045",
+        "fire_station__apparatus_door_02__pressed_door_panel_046",
+        "fire_station__apparatus_door_02__pressed_door_panel_047",
+        "fire_station__apparatus_door_02__segmented_apparatus_door_008",
+        "fire_station__apparatus_door_02__segmented_apparatus_door_009",
+        "fire_station__apparatus_door_02__segmented_apparatus_door_010",
+        "fire_station__apparatus_door_02__segmented_apparatus_door_011",
+        "fire_station__apparatus_door_02__segmented_apparatus_door_012",
+        "fire_station__apparatus_door_02__segmented_apparatus_door_013",
+        "fire_station__apparatus_door_02__segmented_apparatus_door_014",
+        "fire_station__apparatus_door_02__segmented_apparatus_door_015"
+      ]
+    }
+  ],
+  "static_nodes": [
+    "fire_station__static_civic_pale_painted_trim",
+    "fire_station__static_limestone",
+    "fire_station__static_patinated_metal",
+    "fire_station__static_recess_/_shadow_joints",
+    "fire_station__static_slate",
+    "fire_station__static_warm_brick",
+    "fire_station__static_warm_glazing",
+    "fire_station__static_structure"
+  ],
+  "static_note": "Masonry, floors, walls, columns, fixed trim, glazing frames, tracks, roof shells and other structural pieces are intentionally static. No whole-building articulation.",
+  "animation_clips": [],
+  "door_note": "Apparatus doors are top-hinged rigid tilt-up assemblies; pressed panel seams are retained as visible geometry, not separately simulated roll-up slats. Rotate local X from 0 to -95 degrees, away from the facade."
+}

@@ -1,0 +1,11 @@
+{
+  "draft": "docs/citisten-design/catalog-241.draft.json",
+  "draftSchemaValid": true,
+  "runtimeCatalogSha256": "ac110f4da07660041fa28a76ae3a0f70da19eaeaecdcf1b230dfd26bc38f74e8",
+  "runtimeCatalogUnchanged": true,
+  "runtimeCount": 127,
+  "registered241": false,
+  "proposedCountOnly": 128,
+  "plannedEntryExists": false,
+  "blocker": "Draft only. Planned index.html is missing. Runtime catalog still has 127 entries; K is not established."
+}

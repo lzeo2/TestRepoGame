@@ -28,6 +28,18 @@ for(const kit of heroes) {
     assert.equal(r.projectiles.length,0);assert.equal(r.deployments.length,0);assert.equal(Object.keys(r.buffs).length,0);assert.equal(f.boxes.length,0,'temporary colliders expire');
   }
   r.reset();assert.equal(r.fx.count,0);assert.equal(r.ammo,kit.weapon.magazine);
+  const torso=r.visual.group.getObjectByName('torso'),rest=torso.quaternion.clone();
+  assert.equal(r.fire(),true);assert.equal(r.shots,1);assert.equal(r.recoil,1);
+  assert.ok(torso.quaternion.angleTo(rest)>0,'accepted shot kicks model immediately');
+  const shot=[...r.fx.handles.keys()].find(h=>h.group.name==='shot');
+  assert.ok(shot.position.distanceTo(r.visual.muzzle.getWorldPosition(new THREE.Vector3()))<1e-6,'flash starts at supplied weapon/hand node');
+  assert.equal(r.fire(),false);assert.equal(r.shots,1,'cooldown drops repeated input without queueing');
+  for(let i=0;i<3;i++)r.update(.05);
+  assert.equal(r.recoil,0);assert.equal(r.fx.count,0);
+  assert.ok(torso.quaternion.angleTo(rest)<1e-7,'kick returns to author rest');
+  while(r.fireWait>0)r.update(.05);
+  assert.equal(r.fire(),true);assert.equal(r.shots,2,'cooldown permits next shot');
+  r.reset();assert.equal(r.recoil,0);
   assert.throws(()=>r.setModifiers({unknown:1}),RangeError);
   assert.throws(()=>r.setModifiers({magazine:2.5}),RangeError);
   r.setModifiers({magazine:24,move:1.25});assert.equal(r.modifiers.magazine,24);

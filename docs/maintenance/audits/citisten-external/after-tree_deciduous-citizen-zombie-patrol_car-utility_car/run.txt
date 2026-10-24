@@ -1,0 +1,195 @@
+{
+  "phase": "after",
+  "scope": "Model/placement API fixtures, not gameplay or performance acceptance",
+  "selectedModels": [
+    "tree_deciduous",
+    "citizen",
+    "zombie",
+    "patrol_car",
+    "utility_car"
+  ],
+  "sourceHashes": {
+    "Games/Citisten3D/world.mjs": "313c956dde251f4c8d1a6847377e5f44942ecc6ce524872b6809131d3d20f4b4",
+    "Games/Citisten3D/buildings.mjs": "f54d6e4b5199eca5fce711fba2108c14a35c23290cfafd337bf06ceebb2b2339",
+    "Games/Citisten3D/materials.mjs": "a69cb7976d8cc19a0086c6c2a032fbefd4b9221be984de57a50fb5d1ada3668a",
+    "Games/Citisten3D/camera.mjs": "e9d84e99358d165cd14bc3eaa09bea206d5d434f3d89b8a088f4f5dc908b393a",
+    "Games/Citisten3D/roads.mjs": "8bfc07ad9b1c8fd69ba99e875641747c44e8fb8e8281fe54e05a560e83c4c22b",
+    "Games/Citisten3D/daynight.mjs": "a4fb8059778f2eb8029bef8c0e5e095b5bc5bb414278ea04d316c9dced5982c0",
+    "Games/Citisten3D/world-effects.mjs": "f17e60e72fba9331acbc1909ec60a1614f4905bdf7c1d98ac0201fa21a1d82f8",
+    "Games/Citisten3D/external-assets.mjs": "f9df0b33e019fcba6d0e2682356d6f493b368e69e62f60cee809dc54fc072c87",
+    "Games/Citisten3D/external-buildings.mjs": "8866e4b9d2eaa29afeb91584360791690eb7d9b1ef721d76f42e787010e1491c",
+    "Games/Citisten3D/external-materials.mjs": "8cad6e8cbdfffb81eb7174c9745c9acab86c2afc283d261838a505a4e526947f"
+  },
+  "shots": [
+    {
+      "model": "tree_deciduous",
+      "view": "model",
+      "file": "tree_deciduous-model.jpg",
+      "proxy": false,
+      "type": "tree",
+      "pose": {
+        "x": 0,
+        "y": 0,
+        "z": 0,
+        "rotation": 3.141592653589793,
+        "scale": 1
+      },
+      "triangles": 16750,
+      "calls": 17
+    },
+    {
+      "model": "tree_deciduous",
+      "view": "scene",
+      "file": "tree_deciduous-scene.jpg",
+      "proxy": false,
+      "type": "tree",
+      "pose": {
+        "x": 0,
+        "y": 0,
+        "z": 0,
+        "rotation": 3.141592653589793,
+        "scale": 1
+      },
+      "triangles": 149652,
+      "calls": 52
+    },
+    {
+      "model": "citizen",
+      "view": "model",
+      "file": "citizen-model.jpg",
+      "proxy": false,
+      "type": "citizen",
+      "pose": {
+        "x": 0,
+        "y": 0,
+        "z": 0,
+        "rotation": 3.141592653589793,
+        "scale": 1
+      },
+      "triangles": 42960,
+      "calls": 61
+    },
+    {
+      "model": "citizen",
+      "view": "scene",
+      "file": "citizen-scene.jpg",
+      "proxy": false,
+      "type": "citizen",
+      "pose": {
+        "x": 0,
+        "y": 0,
+        "z": 0,
+        "rotation": 3.141592653589793,
+        "scale": 1
+      },
+      "triangles": 175862,
+      "calls": 96
+    },
+    {
+      "model": "zombie",
+      "view": "model",
+      "file": "zombie-model.jpg",
+      "proxy": false,
+      "type": "zombie",
+      "pose": {
+        "x": 0,
+        "y": 0,
+        "z": 0,
+        "rotation": 3.141592653589793,
+        "scale": 1
+      },
+      "triangles": 43156,
+      "calls": 65
+    },
+    {
+      "model": "zombie",
+      "view": "scene",
+      "file": "zombie-scene.jpg",
+      "proxy": false,
+      "type": "zombie",
+      "pose": {
+        "x": 0,
+        "y": 0,
+        "z": 0,
+        "rotation": 3.141592653589793,
+        "scale": 1
+      },
+      "triangles": 176058,
+      "calls": 100
+    },
+    {
+      "model": "patrol_car",
+      "view": "model",
+      "file": "patrol_car-model.jpg",
+      "proxy": false,
+      "type": "patrol_car",
+      "pose": {
+        "x": 0,
+        "y": 0,
+        "z": 0,
+        "rotation": 3.141592653589793,
+        "scale": 1
+      },
+      "triangles": 22010,
+      "calls": 81
+    },
+    {
+      "model": "patrol_car",
+      "view": "scene",
+      "file": "patrol_car-scene.jpg",
+      "proxy": false,
+      "type": "patrol_car",
+      "pose": {
+        "x": 0,
+        "y": 0,
+        "z": 0,
+        "rotation": 3.141592653589793,
+        "scale": 1
+      },
+      "triangles": 154912,
+      "calls": 116
+    },
+    {
+      "model": "utility_car",
+      "view": "model",
+      "file": "utility_car-model.jpg",
+      "proxy": false,
+      "type": "utility_car",
+      "pose": {
+        "x": 0,
+        "y": 0,
+        "z": 0,
+        "rotation": 3.141592653589793,
+        "scale": 1
+      },
+      "triangles": 22010,
+      "calls": 69
+    },
+    {
+      "model": "utility_car",
+      "view": "scene",
+      "file": "utility_car-scene.jpg",
+      "proxy": false,
+      "type": "utility_car",
+      "pose": {
+        "x": 0,
+        "y": 0,
+        "z": 0,
+        "rotation": 3.141592653589793,
+        "scale": 1
+      },
+      "triangles": 154912,
+      "calls": 104
+    }
+  ],
+  "errors": [],
+  "external": [],
+  "failed": [],
+  "complete": true,
+  "serverClosed": true,
+  "profileRemoved": true,
+  "browserClosed": true,
+  "diskBefore": 3069599744,
+  "diskAfter": 3068952576
+}
+EXTERNAL AFTER API CAPTURE PASS: 5 model/scene pairs, 10 JPEGs, no errors/external requests, owned resources closed

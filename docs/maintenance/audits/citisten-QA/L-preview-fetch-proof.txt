@@ -1,0 +1,5 @@
+Preview only: 2 fresh theme contexts, both free/defense modes.
+External attempts: 0; sockets: 0; failed requests: 0; errors: 0.
+All non-loopback requests denied; HTTP cache disabled; service workers blocked.
+Every recorded response: 200, not from a service worker. Loaded asset hashes in JSON.
+Full-game L is NOT established: integrated Games/Citisten3D/index.html is missing.

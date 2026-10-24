@@ -364,6 +364,58 @@ Disk recovery allowed only final docs/index work under a bounded 10 MB waiver,
 or push. Cleanup/evidence commits were not repeated. Model/source checks are
 not art/40FPS/hardware/full-release acceptance; 127 catalog entries remain.
 
+## Heroes restored-contract continuation
+
+The hero lane read the restored repository-root contract and verified MD5
+`aaa75071e498f6ca977db0e06fad2641` before resuming; earlier missing temporary
+spec/brief copies were not replaced with invented clauses. No Blender, new
+mesh, rig-pose change, UI restyle, kit rebalance or dependency was introduced.
+
+The active Snipeoff reveal now tracks current live enemy records and positions,
+including new targets and death/removal/team/range changes. It reuses cage
+geometry/materials and retains the original six-second lifetime, cooldown,
+cover-blocked shots and systems-owned damage. The shared runtime fix serves
+both integrated/bot target replacement and persistent range dummies. The Node
+regression verifies membership, replacement-position behavior, reuse, expiry,
+cleanup and unchanged health; direct-point FX callers remain compatible.
+
+The current hero runner preserves older captures by writing `heroes-resume/`
+under the existing audit directory. Fresh output records four entry HTTP200s,
+37 native screenshots, 24 observations, 270 total HTTP200 responses, zero
+retained errors and 106 stable source/resource hashes. It includes all sixteen
+abilities, pointer lock/aim, dash/double jump/slide/free ammo, wall clamp, mobile
+held/released touch, and native reveal across dummy death/respawn/expiry. Two
+labeled mockup twins and a contact sheet bring the packet to 40 PNGs. Images
+were inspected; mobile retains native 390px layout. Source hashes and native
+image SHA/variance are recorded, with explicit COMPLETE/FAILED status.
+
+This is current isolated E evidence, not builder grading or a replacement for
+independent integrated A-I review. The supplied rigid slide pose still reads
+upright; real hardware, handheld ergonomics, full matches and full-fleet release
+gates remain held. Historical art/letter/model receipts are not overwritten.
+See [hero API/receipt](../../../Games/Jankolock3D/heroes/HEROES.md) and
+[resume packet](../audits/jankolock-3d-qa/heroes-resume/README.md).
+
+## Approved portrait audit-directory follow-up
+
+The dedicated portrait runner now writes only to the approved maintenance audit
+path, preserving its historical game-path SKIP receipt. A broad process-search
+false-positive risk was removed: actual Chromium processes and Playwright driver
+commands block the gate; shell argument text and zombie processes do not. The
+small `portrait-qa-test.py` regression passes without launching a browser.
+
+Fresh `portrait-resume/` evidence records one browser attempt, two normal-lobby
+1280x720 images in actual dark/light themes, one labeled unscaled crop, 69 HTTP200
+responses, zero retained errors and 64 stable runtime/config/model hashes.
+The earlier zero-attempt preflight SKIP remains in
+`portrait-resume-preflight-skip/`. Saved images show the relief visibly inside
+its display frame without menu occlusion. It remains a soft, shallow supplied
+photo relief, not scan/likeness/glass-realism acceptance. Lobby/no-fixture state,
+portrait metadata and byte/SHA pins passed; browser/server cleanup was verified.
+This is fresh builder H evidence, not a new independent grade, whole-resource
+hash audit, hardware/full-game/release pass or push. Runtime/models/catalog are
+unchanged. See [portrait receipt](../../../Games/Jankolock3D/PORTRAIT-QA.md).
+
 ## Future outlook
 
 Independent stable-source A-I review and mockup comparison, human full-match

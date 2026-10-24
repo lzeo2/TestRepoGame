@@ -1,0 +1,38 @@
+{
+  "case": "city",
+  "status": "failed",
+  "scope": "Native input; read-only diagnostics; no grants",
+  "directory": "docs/maintenance/audits/citisten-QA/native/city/run-kycfe9n8",
+  "checks": {},
+  "phases": [
+    {
+      "phase": "starting",
+      "seconds": 0.007
+    },
+    {
+      "phase": "failure",
+      "seconds": 20.465
+    },
+    {
+      "phase": "cleanup-start",
+      "seconds": 21.712
+    },
+    {
+      "phase": "finished",
+      "seconds": 28.891
+    }
+  ],
+  "held": {
+    "F": "Separate natural-combat slot required; no state grants",
+    "G": "Separate natural-combat slot required; no state grants",
+    "H": "Separate natural-combat slot required; no state grants"
+  },
+  "errors": [],
+  "externalRequests": [],
+  "screenshots": [],
+  "failure": "Page.goto: Timeout 15000ms exceeded.\nCall log:\n  - navigating to \"http://127.0.0.1:8751/Games/Citisten3D/index.html\", waiting until \"domcontentloaded\"\n",
+  "driverClosed": true,
+  "serverClosed": true,
+  "browserClosed": true,
+  "profileRemoved": true
+}

@@ -1,6 +1,7 @@
 import * as THREE from './vendor/three.module.js';
 import { LANES, TEAM_COLORS, terrainHeight } from './world-data.mjs';
 import { createEnvironment } from './environment.mjs';
+import { mergeGeometries } from './vendor/addons/BufferGeometryUtils.js';
 export function createWorldScene(canvas,world) {
   const renderer=new THREE.WebGLRenderer({canvas,antialias:false,powerPreference:'low-power'});
   renderer.setPixelRatio(1);
@@ -11,6 +12,30 @@ export function createWorldScene(canvas,world) {
   const materials=new Map(),textures=[],crateMeshes=new Map(),structureMeshes=new Map();
   const cube=new THREE.BoxGeometry(1,1,1),cylinder=new THREE.CylinderGeometry(1,1,1,8),sphere=new THREE.IcosahedronGeometry(1,1);
   const material=color=>{if(!materials.has(color))materials.set(color,new THREE.MeshLambertMaterial({color}));return materials.get(color);};
+  // Tiny original aggregate maps, generated once. World-scaled UVs avoid stretched
+  // road texture; each surface material is merged into one static draw.
+  const surfaces=new Map();
+  function surface(color,seed,grain) {
+    const data=new Uint8Array(128*128*4);
+    for(let i=0;i<data.length;i+=4) {
+      seed=(Math.imul(seed,1664525)+1013904223)>>>0;
+      const value=225+(seed>>>24)%31;
+      data[i]=data[i+1]=data[i+2]=value-((seed&31)===0?grain:0);data[i+3]=255;
+    }
+    const map=new THREE.DataTexture(data,128,128);map.colorSpace=THREE.SRGBColorSpace;
+    map.wrapS=map.wrapT=THREE.RepeatWrapping;map.magFilter=THREE.LinearFilter;
+    map.minFilter=THREE.LinearMipmapLinearFilter;map.generateMipmaps=true;map.needsUpdate=true;textures.push(map);
+    const m=new THREE.MeshStandardMaterial({color,map,roughness:1});materials.set(m.uuid,m);surfaces.set(m,[]);return m;
+  }
+  const asphalt=surface(0x565956,17,65),concrete=surface(0xb6b1a5,91,30),earth=surface(0x858477,42,45);
+  function surfaceBox(m,x,y,z,w,h,d) {
+    const g=new THREE.BoxGeometry(w,h,d),p=g.attributes.position,n=g.attributes.normal,uv=g.attributes.uv;
+    for(let i=0;i<uv.count;i++) {
+      const nx=Math.abs(n.getX(i)),ny=Math.abs(n.getY(i));
+      uv.setXY(i,(nx>.5?p.getZ(i)+z:p.getX(i)+x)/4,(ny>.5?p.getZ(i)+z:p.getY(i)+y)/4);
+    }
+    g.translate(x,y,z);surfaces.get(m).push(g);
+  }
   function mesh(geometry,color,x,y,z,sx,sy,sz,parent=scene) {const m=new THREE.Mesh(geometry,material(color));m.position.set(x,y,z);m.scale.set(sx,sy,sz);parent.add(m);return m;}
   const box=(c,x,y,z,w,h,d,parent)=>mesh(cube,c,x,y,z,w,h,d,parent);
   const rod=(c,x,y,z,r,h,parent)=>mesh(cylinder,c,x,y,z,r,h,r,parent);
@@ -20,12 +45,11 @@ export function createWorldScene(canvas,world) {
     const t=new THREE.CanvasTexture(c);t.colorSpace=THREE.SRGBColorSpace;textures.push(t);
     const m=new THREE.SpriteMaterial({map:t});const s=new THREE.Sprite(m);s.position.set(x,y,z);s.scale.set(width,width*96/512,1);scene.add(s);return s;
   }
-  scene.add(new THREE.HemisphereLight(0xe1e8ed,0x77715f,1.55));
-  const sun=new THREE.DirectionalLight(0xffe6bc,2.1);sun.position.set(-150,300,-100);scene.add(sun);
-  const rim=new THREE.DirectionalLight(0xa5c3dc,1.3);rim.position.set(90,120,200);scene.add(rim);
+  scene.add(new THREE.HemisphereLight(0xe1e8ed,0x77715f,1.1));
+  const sun=new THREE.DirectionalLight(0xffefd7,2.7);sun.position.set(-150,300,-100);scene.add(sun);
+  const rim=new THREE.DirectionalLight(0xb8ccdc,.35);rim.position.set(90,120,200);scene.add(rim);
   const sky=new THREE.Mesh(new THREE.BoxGeometry(2200,2200,2200),new THREE.MeshBasicMaterial({color:0xb6c9d0,side:THREE.BackSide,fog:false}));scene.add(sky);
-  const sunDisk=new THREE.Mesh(sphere,new THREE.MeshBasicMaterial({color:0xf6e6bd,fog:false}));sunDisk.position.set(450,370,450);sunDisk.scale.setScalar(45);scene.add(sunDisk);
-  for(const [x,z,w] of [[-150,220,80],[180,430,120],[-380,-180,100]]) mesh(sphere,0xdce2dc,x,100,z,w,8,25);
+  const sunDisk=new THREE.Mesh(sphere,new THREE.MeshBasicMaterial({color:0xf6eddb,fog:false}));sunDisk.position.copy(sun.position).normalize().multiplyScalar(850);sunDisk.scale.setScalar(12);scene.add(sunDisk);
   // Upper ground has real openings for the sewer and sunken plaza.
   const xs=[-450,-65,40,65,90,170,205,450],zs=[-450,-28,-9,9,28,60,75,100,140,450];
   for(let i=0;i<xs.length-1;i++) for(let j=0;j<zs.length-1;j++) {
@@ -33,20 +57,36 @@ export function createWorldScene(canvas,world) {
     let y=terrainHeight(x,z);
     if(x>=40&&x<=90&&Math.abs(z)<=9)y=-10;
     if(x>=170&&x<=205&&z>=75&&z<=100)y=-6;
-    box(y<0?0x797a6d:0x999b88,x,y-.5,z,xs[i+1]-xs[i],1,zs[j+1]-zs[j]);
+    surfaceBox(earth,x,y-.5,z,xs[i+1]-xs[i],1,zs[j+1]-zs[j]);
   }
   for(const lane of LANES) {
     for(const [z,length] of lane.id==='midway'?[[-252,396],[252,396]]:[[0,900]]) {
-      box(0x626669,lane.x,.025,z,42,.05,length);
-      box(lane.color,lane.x,.065,z,1.3,.04,length);
-      box(0xc5bcaa,lane.x-24,.13,z,6,.26,length);box(0xc5bcaa,lane.x+24,.13,z,6,.26,length);
+      surfaceBox(asphalt,lane.x,.025,z,42,.05,length);
+      surfaceBox(concrete,lane.x-24,.13,z,6,.26,length);surfaceBox(concrete,lane.x+24,.13,z,6,.26,length);
     }
     for(let z=-420;z<=420;z+=45) if(!(lane.id==='midway'&&Math.abs(z)<55)) {
-      box(0xf0dfb4,lane.x-8,.08,z,.35,.03,12);box(0xf0dfb4,lane.x+8,.08,z,.35,.03,12);
+      box(0xd5ccaa,lane.x-8,.08,z,.22,.03,12);box(0xd5ccaa,lane.x+8,.08,z,.22,.03,12);
+      box(lane.color,lane.x,.08,z,.28,.03,4);
     }
     label(lane.name,lane.x,12,-350,'#17191b',25);
   }
-  for(const z of [-280,-140,140,280]) box(0x737676,0,.02,z,900,.04,18);
+  for(const z of [-280,-140,140,280]) surfaceBox(asphalt,0,.03,z,900,.04,18);
+  // Retaining faces make the same lowered terrain used by collision legible.
+  for(const z of [-28.175,28.175])surfaceBox(concrete,0,-5,z,130,10,.35);
+  surfaceBox(concrete,-65.175,-5,0,.35,10,56);
+  for(const z of [-18.5,18.5])surfaceBox(concrete,65.175,-5,z,.35,10,19);
+  for(const z of [59.825,140.175])surfaceBox(concrete,130,-3,z,80,6,.35);
+  surfaceBox(concrete,89.825,-3,100,.35,6,80);
+  for(const [z,d] of [[67.5,15],[120,40]])surfaceBox(concrete,170.175,-3,z,.35,6,d);
+  // Visible perimeter corresponds to the controller's 448m playable limit.
+  for(const side of [-1,1]) {
+    surfaceBox(concrete,side*449.5,.2,0,1,.4,900);
+    surfaceBox(concrete,0,.2,side*449.5,900,.4,1);
+  }
+  for(const [m,parts] of surfaces) {
+    const g=mergeGeometries(parts);parts.forEach(p=>p.dispose());
+    const terrain=new THREE.Mesh(g,m);terrain.name=m===asphalt?'asphalt':m===concrete?'concrete':'ground';scene.add(terrain);
+  }
   const environment=createEnvironment(scene,world);
   for(const b of world.boxes.filter(b=>!['building','crate','tower'].includes(b.kind))) {
     box(b.kind==='bridge'?0x666e71:b.kind==='cover'?0x756e59:0xaaa28c,(b.minX+b.maxX)/2,(b.minY+b.maxY)/2,(b.minZ+b.maxZ)/2,b.maxX-b.minX,b.maxY-b.minY,b.maxZ-b.minZ);
@@ -94,7 +134,7 @@ export function createWorldScene(canvas,world) {
     box(c.kind==='soul'?0xe3bd4d:0xa47c4d,0,1.5,0,3,3,3,g);box(0x49463d,0,1.5,-1.55,3,.3,.1,g);box(0x49463d,0,1.5,1.55,3,.3,.1,g);
   }
   const boss=world.midBoss;rod(0x484b50,boss.x,boss.y+2,boss.z,8,4);box(0xa0784f,boss.x,boss.y+6,boss.z,10,5,8);box(0xe4bc51,boss.x,boss.y+9,boss.z,12,1,10);label('Sewer / Mid-Boss',boss.x,boss.y+13,boss.z,'#17191b',23);
-  for(let x=98;x<170;x+=18)for(let z=68;z<140;z+=18)box(0x9b9f91,x,-3,z,13,.3,13);
+  for(let x=98;x<170;x+=18)for(let z=68;z<140;z+=18)box(0x9b9b8d,x,-5.94,z,13,.08,13);
   label('Sunken Plaza / drain',130,3,110,'#17191b',28);
   // Static primitives share a few instance buffers. Crates stay separate so
   // collecting/breaking them can hide their geometry without rebuilding city data.

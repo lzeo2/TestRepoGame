@@ -1,0 +1,186 @@
+{
+  "case": "city",
+  "revision": "a108429 + be3024f",
+  "exit": -9,
+  "seconds": 120.15239690399903,
+  "wallStart": "2026-10-23T08:55:33.014172+11:00",
+  "wallEnd": "2026-10-23T08:57:33.037814+11:00",
+  "sourceUnchanged": true,
+  "routeEventCount": 24,
+  "routeEvents": [
+    {
+      "timestamp": "[2026-10-23T08:55:37.630010]",
+      "kind": "route change",
+      "interfaceClass": "virtual ethernet"
+    },
+    {
+      "timestamp": "[2026-10-23T08:55:37.631752]",
+      "kind": "route change",
+      "interfaceClass": "virtual ethernet"
+    },
+    {
+      "timestamp": "[2026-10-23T08:55:39.036523]",
+      "kind": "route change",
+      "interfaceClass": "virtual ethernet"
+    },
+    {
+      "timestamp": "[2026-10-23T08:55:39.050551]",
+      "kind": "deleted route",
+      "interfaceClass": "virtual ethernet"
+    },
+    {
+      "timestamp": "[2026-10-23T08:55:39.050648]",
+      "kind": "route change",
+      "interfaceClass": "virtual ethernet"
+    },
+    {
+      "timestamp": "[2026-10-23T08:55:39.056962]",
+      "kind": "deleted route",
+      "interfaceClass": "virtual ethernet"
+    },
+    {
+      "timestamp": "[2026-10-23T08:55:39.057998]",
+      "kind": "route change",
+      "interfaceClass": "virtual ethernet"
+    },
+    {
+      "timestamp": "[2026-10-23T08:55:39.061054]",
+      "kind": "route change",
+      "interfaceClass": "virtual ethernet"
+    },
+    {
+      "timestamp": "[2026-10-23T08:55:39.064416]",
+      "kind": "deleted route",
+      "interfaceClass": "virtual ethernet"
+    },
+    {
+      "timestamp": "[2026-10-23T08:55:39.065454]",
+      "kind": "deleted route",
+      "interfaceClass": "virtual ethernet"
+    },
+    {
+      "timestamp": "[2026-10-23T08:55:39.067966]",
+      "kind": "deleted route",
+      "interfaceClass": "virtual ethernet"
+    },
+    {
+      "timestamp": "[2026-10-23T08:55:39.070997]",
+      "kind": "deleted route",
+      "interfaceClass": "virtual ethernet"
+    },
+    {
+      "timestamp": "[2026-10-23T08:56:39.239376]",
+      "kind": "route change",
+      "interfaceClass": "virtual ethernet"
+    },
+    {
+      "timestamp": "[2026-10-23T08:56:39.240482]",
+      "kind": "route change",
+      "interfaceClass": "virtual ethernet"
+    },
+    {
+      "timestamp": "[2026-10-23T08:56:40.827291]",
+      "kind": "route change",
+      "interfaceClass": "virtual ethernet"
+    },
+    {
+      "timestamp": "[2026-10-23T08:56:40.827466]",
+      "kind": "deleted route",
+      "interfaceClass": "virtual ethernet"
+    },
+    {
+      "timestamp": "[2026-10-23T08:56:40.827489]",
+      "kind": "route change",
+      "interfaceClass": "virtual ethernet"
+    },
+    {
+      "timestamp": "[2026-10-23T08:56:40.827505]",
+      "kind": "deleted route",
+      "interfaceClass": "virtual ethernet"
+    },
+    {
+      "timestamp": "[2026-10-23T08:56:40.827520]",
+      "kind": "route change",
+      "interfaceClass": "virtual ethernet"
+    },
+    {
+      "timestamp": "[2026-10-23T08:56:40.830539]",
+      "kind": "route change",
+      "interfaceClass": "virtual ethernet"
+    },
+    {
+      "timestamp": "[2026-10-23T08:56:40.842966]",
+      "kind": "deleted route",
+      "interfaceClass": "virtual ethernet"
+    },
+    {
+      "timestamp": "[2026-10-23T08:56:40.843360]",
+      "kind": "deleted route",
+      "interfaceClass": "virtual ethernet"
+    },
+    {
+      "timestamp": "[2026-10-23T08:56:40.845150]",
+      "kind": "deleted route",
+      "interfaceClass": "virtual ethernet"
+    },
+    {
+      "timestamp": "[2026-10-23T08:56:40.846254]",
+      "kind": "deleted route",
+      "interfaceClass": "virtual ethernet"
+    }
+  ],
+  "routeMonitorError": "",
+  "networkManagerEvents": [
+    {
+      "time": "Oct 23 08:55:37",
+      "interfaceClass": "virtual ethernet",
+      "event": "carrier change"
+    },
+    {
+      "time": "Oct 23 08:55:39",
+      "interfaceClass": "virtual ethernet",
+      "event": "carrier change"
+    },
+    {
+      "time": "Oct 23 08:55:39",
+      "interfaceClass": "virtual ethernet",
+      "event": "carrier change"
+    },
+    {
+      "time": "Oct 23 08:55:39",
+      "interfaceClass": "virtual ethernet",
+      "event": "carrier change"
+    },
+    {
+      "time": "Oct 23 08:55:39",
+      "interfaceClass": "virtual ethernet",
+      "event": "controller release"
+    },
+    {
+      "time": "Oct 23 08:56:39",
+      "interfaceClass": "virtual ethernet",
+      "event": "carrier change"
+    },
+    {
+      "time": "Oct 23 08:56:40",
+      "interfaceClass": "virtual ethernet",
+      "event": "carrier change"
+    },
+    {
+      "time": "Oct 23 08:56:40",
+      "interfaceClass": "virtual ethernet",
+      "event": "carrier change"
+    },
+    {
+      "time": "Oct 23 08:56:40",
+      "interfaceClass": "virtual ethernet",
+      "event": "carrier change"
+    },
+    {
+      "time": "Oct 23 08:56:40",
+      "interfaceClass": "virtual ethernet",
+      "event": "controller release"
+    }
+  ],
+  "privacy": "raw addresses/MACs/hostnames omitted"
+}

@@ -1,0 +1,26 @@
+{
+  "schema": "rigid-parts-v2",
+  "model": "power_plant",
+  "coordinate_system": "glTF local coordinates: metres, Y-up. Blender editable source: Z-up. Pivot_position is local translation relative to named parent.",
+  "rotation_convention": "Right-handed local Euler degrees; limb/hatch bends X, vertical-door yaw Y. Translation ranges are offsets from rest position.",
+  "root": "root",
+  "movable_nodes": [],
+  "static_nodes": [
+    "static_assembly_bolt",
+    "static_assembly_concrete",
+    "static_assembly_dark",
+    "static_assembly_glass",
+    "static_assembly_ivory",
+    "static_assembly_rust",
+    "static_assembly_steel",
+    "root"
+  ],
+  "clips": [],
+  "notes": [
+    "No skeletal rig, skin weights or baked clips; static nodes are intentional.",
+    "Palette factors are linear-RGB multiplicative tint, not arbitrary exact RGB replacement of colored texture pixels.",
+    "For independently tinted spawned instances, clone the instance material objects before editing factors; never mutate a shared loader-cache material. Maps remain immutable and may be shared.",
+    "Reduced LODs preserve original geometry/texture resolutions; each LOD is a standalone alternative, not loaded simultaneously."
+  ],
+  "rigid_geometry_nodes": []
+}

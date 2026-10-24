@@ -1,0 +1,11 @@
+{
+  "scope": "World API fixtures, not integrated game acceptance",
+  "errors": [
+    "Invalid effect delta"
+  ],
+  "externalRequests": [],
+  "failedRequests": [],
+  "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (LLVM 16.0.0) (0x0000C0DE)), SwiftShader driver)",
+  "diskBefore": 4010020864,
+  "diskAfter": 4009967616
+}

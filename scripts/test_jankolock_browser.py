@@ -93,9 +93,14 @@ class Observer:
         self.respawns = Counter()
         self.previous = None
         self.samples = []
+        self.feedback = set()
 
     def read(self):
         s = self.page.evaluate('window.jankolockSnapshot()')
+        for ident in ('hitFeedback', 'damageFeedback'):
+            label = self.page.locator('#' + ident)
+            if label.is_visible():
+                self.feedback.add(ident)
         events = s['events']
         require(len(events) <= 64 and len(s['bullets']) <= 128 and len(s['effects']) <= 48,
                 'Engine observation exceeded bounded collection sizes')
@@ -135,7 +140,7 @@ class Observer:
         raise AssertionError('Timed out waiting for real game observation')
 
     def report(self):
-        return {'events': self.events, 'counts': dict(self.counts),
+        return {'events': self.events, 'feedback': sorted(self.feedback), 'counts': dict(self.counts),
                 'deaths': dict(self.deaths), 'respawns': dict(self.respawns),
                 'samples': self.samples, 'final': self.previous}
 
@@ -316,6 +321,8 @@ def two_rounds(page, evidence, observer, deadline):
                 'Did not observe both actual player abilities on cooldown')
         require(all(observer.counts[f'shot:{i}'] > 0 for i in (1, 2, 3)), 'Bots did not fight')
         require(any(e['type'] == 'kill' for e in observer.events), 'No real combat death event')
+        require(observer.feedback == {'hitFeedback', 'damageFeedback'},
+                'Native combat did not show both confirmed-hit and incoming-damage labels')
         require(any(e['type'] == 'capture' for e in observer.events), 'No real capture event')
         require(sum(observer.deaths.values()) > 0 and sum(observer.respawns.values()) > 0,
                 'No observed death followed by completed respawn')
@@ -397,6 +404,10 @@ def touch_checks(browser, evidence, origin):
         page.locator('#pauseBtn').tap()
         paused = observer.read()
         require(paused['phase'] == 'paused', 'Native pause failed')
+        require(page.locator('#resumeBtn').evaluate('el => el === document.activeElement'),
+                'Pause did not focus the next action')
+        require(not page.locator('#hitFeedback').is_visible() and
+                not page.locator('#damageFeedback').is_visible(), 'Pause retained combat cues')
         for _ in range(4):
             page.wait_for_timeout(160)
             require(observer.read() == paused, 'Paused simulation/clock advanced')
@@ -462,6 +473,8 @@ def main():
                     page = context.new_page()
                     loaded(page, origin)
                     capture_states(page, evidence, None, 'lobby')
+                    require(page.locator('#muteBtn').inner_text() == 'Sound: off', 'Sound must default off')
+                    page.locator('#muteBtn').click()
                     start_postmaster(page)
                     observer = Observer(page)
                     if args.layout_only:

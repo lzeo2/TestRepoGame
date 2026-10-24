@@ -1,0 +1,22 @@
+Committed **`f909e39`**: only `model-city.mjs` and `model-city-check.mjs`. Source: **20,746 bytes**. No push.
+
+Features:
+- Residential: staggered rooflines, curved clay tiles, chimneys, shutters, frames, doors and drains.
+- Commercial: dimensional glazing frames, sunshades, entrance canopy, parapets and rooftop fans.
+- Industrial: corrugated walls, loading shutters, sawtooth glazing and turbine vents.
+- Townhall: 16 entasis columns with 24 flutes each, moulded capitals/bases, pediments, steps and four clocks.
+
+**Check stdout** (bounds are X × Y × Z):
+```text
+residential: 23320 indexed triangles; bounds 7.740 x 4.930 x 6.500m; base -0.000m; buffers 1703328 bytes
+commercial: 23264 indexed triangles; bounds 8.047 x 11.915 x 8.383m; base -0.000m; buffers 2748184 bytes
+industrial: 16000 indexed triangles; bounds 9.075 x 6.280 x 8.222m; base 0.000m; buffers 1200920 bytes
+townhall: 130904 indexed triangles; bounds 17.600 x 17.060 x 16.075m; base -0.000m; buffers 5857416 bytes
+CITY MODEL CHECK PASS: counts, indexed topology, finite attributes, UV/color ranges, nondegenerate triangles, lot bounds, Y=0 bases
+```
+
+Limits: repeated procedural modules, no interiors or sculpted relief; clocks fixed at 10:10. Visual quality remains unreviewed. No Blender/browser/server/benchmarks; **40 FPS HOLD unchanged**. Geometry buffers total **11,509,848 bytes** before integration/LOD.
+
+Syntax and staged diff checks passed. Maintenance check blocked by concurrent source edits; Main owns maintenance and the currently untracked shared helper. Other dirty paths untouched. No games added.
+
+Disk: **4,301,680,640 → 4,066,271,232 bytes free**, including concurrent worktree activity.

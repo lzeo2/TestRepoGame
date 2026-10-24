@@ -1,0 +1,263 @@
+{
+  "model": "town_hall",
+  "schema_version": "1.0",
+  "units": "metres",
+  "coordinates": "glTF Y-up; architectural facade +Z; source Blender Z-up facade -Y",
+  "pivot_space": "parent-local; neutral offsets from exported glTF node transforms",
+  "rotation_ranges": "degrees relative to bind pose; capless = free",
+  "translation_ranges": "metres relative to bind translation; [0,0] locks axis",
+  "movable_nodes": [
+    {
+      "name": "town_hall__door_01",
+      "parent": "town_hall",
+      "pivot_position": [
+        -1.0499999523162842,
+        0.699999988079071,
+        4.670000076293945
+      ],
+      "pivot_space": "parent-local glTF metres",
+      "local_frame_quaternion_xyzw": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "rotation_deg": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          -1,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "translation_m": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "operation": "rigid rotation",
+      "motion_axis_local": "Y",
+      "geometry_children": [
+        "town_hall__door_01__brass_door_pull",
+        "town_hall__door_01__brass_door_pull_001",
+        "town_hall__door_01__door_inset_panel",
+        "town_hall__door_01__door_inset_panel_001",
+        "town_hall__door_01__recessed_entrance_leaf"
+      ]
+    },
+    {
+      "name": "town_hall__clock_front_minute",
+      "parent": "town_hall",
+      "pivot_position": [
+        0,
+        12.300000190734863,
+        0.9800000190734863
+      ],
+      "pivot_space": "parent-local glTF metres",
+      "local_frame_quaternion_xyzw": [
+        0,
+        0.7071068286895752,
+        0,
+        0.7071068286895752
+      ],
+      "rotation_deg": {
+        "x": "free",
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "translation_m": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "operation": "rigid rotation",
+      "motion_axis_local": "X",
+      "geometry_children": [
+        "town_hall__clock_front_minute__clock_minute_hand"
+      ]
+    },
+    {
+      "name": "town_hall__clock_front_hour",
+      "parent": "town_hall",
+      "pivot_position": [
+        0,
+        12.300000190734863,
+        0.9900000095367432
+      ],
+      "pivot_space": "parent-local glTF metres",
+      "local_frame_quaternion_xyzw": [
+        0,
+        0.7071068286895752,
+        0,
+        0.7071068286895752
+      ],
+      "rotation_deg": {
+        "x": "free",
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "translation_m": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "operation": "rigid rotation",
+      "motion_axis_local": "X",
+      "geometry_children": [
+        "town_hall__clock_front_hour__clock_hour_hand"
+      ]
+    },
+    {
+      "name": "town_hall__clock_rear_minute",
+      "parent": "town_hall",
+      "pivot_position": [
+        0,
+        12.300000190734863,
+        -2.759999990463257
+      ],
+      "pivot_space": "parent-local glTF metres",
+      "local_frame_quaternion_xyzw": [
+        0,
+        0.7071068286895752,
+        0,
+        0.7071068286895752
+      ],
+      "rotation_deg": {
+        "x": "free",
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "translation_m": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "operation": "rigid rotation",
+      "motion_axis_local": "X",
+      "geometry_children": [
+        "town_hall__clock_rear_minute__clock_minute_hand_001"
+      ]
+    },
+    {
+      "name": "town_hall__clock_rear_hour",
+      "parent": "town_hall",
+      "pivot_position": [
+        0,
+        12.300000190734863,
+        -2.75
+      ],
+      "pivot_space": "parent-local glTF metres",
+      "local_frame_quaternion_xyzw": [
+        0,
+        0.7071068286895752,
+        0,
+        0.7071068286895752
+      ],
+      "rotation_deg": {
+        "x": "free",
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "translation_m": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "operation": "rigid rotation",
+      "motion_axis_local": "X",
+      "geometry_children": [
+        "town_hall__clock_rear_hour__clock_hour_hand_001"
+      ]
+    }
+  ],
+  "static_nodes": [
+    "town_hall__static_civic_pale_painted_trim",
+    "town_hall__static_clock_ivory",
+    "town_hall__static_limestone",
+    "town_hall__static_patinated_metal",
+    "town_hall__static_recess_/_shadow_joints",
+    "town_hall__static_slate",
+    "town_hall__static_warm_brick",
+    "town_hall__static_warm_glazing",
+    "town_hall__static_structure"
+  ],
+  "static_note": "Masonry, floors, walls, columns, fixed trim, glazing frames, tracks, roof shells and other structural pieces are intentionally static. No whole-building articulation.",
+  "animation_clips": [],
+  "door_note": "Entrance leaves and handles move together; shallow dark recesses prevent sealed masonry immediately behind the leaf.",
+  "door_clearance_note": "Original portico columns limit this wide entrance leaf to a conservative cosmetic local-Y swing of -1 to 0 degrees. Verified against actual exported portico triangle subset; no column or interior remodeling. This is not game collision acceptance."
+}

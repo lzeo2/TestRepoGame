@@ -18,7 +18,7 @@ function checkSolid(group, depthTest = true) {
     assert.ok(p.geometry.getAttribute('position').count > 0);
     assert.equal(p.material.depthTest, depthTest, group.name);
     assert.equal(p.material.depthWrite, depthTest, group.name);
-    assert.equal(p.material.emissive.getHex(), 0);
+    assert.equal(p.material.emissive.getHex(), group.name === 'shot' ? p.material.color.getHex() : 0);
     assert.equal(p.material.flatShading, true);
     assert.equal(p.material.transparent, false);
     assert.equal(p.material.map, null);
@@ -151,10 +151,13 @@ geometryDisposed(0); fx.update(0.75); assert.equal(fx.count, 0); assert.equal(sc
   live = []; fx.update(.0625); assert.ok(boxes().every(p => !p.visible));
   live = [vector(4, 5, 6), vector(7, 8, 9)]; fx.update(.0625);
   const pooled = [...reveal.group.children], materials = new Set(meshes(reveal.group).map(p => p.material));
-  const disposed = countDisposals(materials);
+  const disposed = countDisposals(materials), resources = pooled.map(p => [p.geometry, p.material]);
   for (let i = 0; i < 40; i++) {
     live = [vector(i, 0, -i)]; reveal.position.set(i / 2, 1, 2); fx.update(0);
     assert.deepEqual(reveal.group.children, pooled); assert.equal(boxes().filter(p => p.visible).length, 1);
+    pooled.forEach((part, index) => {
+      assert.equal(part.geometry, resources[index][0]); assert.equal(part.material, resources[index][1]);
+    });
     near(boxes()[0].getWorldPosition(vector()), live[0].clone().add(vector(0, .95, 0)));
     disposed(0); assert.equal(reveal.remaining, .125);
   }
@@ -162,6 +165,22 @@ geometryDisposed(0); fx.update(0.75); assert.equal(fx.count, 0); assert.equal(sc
   const direct = fx.emit('xray', {target, duration: .25});
   near(meshes(direct.group).find(p => p.geometry.type === 'BoxGeometry').getWorldPosition(vector()), target.clone().add(vector(0, .95, 0)));
   direct.dispose(); assert.equal(fx.count, 0);
+}
+{
+  const miss=fx.emit('shot',{origin,target,duration:.12});
+  assert.equal(meshes(miss.group).length,2,'miss has flash/tracer only');
+  miss.dispose();
+  const shot=fx.emit('shot',{origin,target,impact:true,duration:.12});
+  assert.equal(meshes(shot.group).length,5,'bounded flash/tracer/three sparks');
+  const [tracer,flash,...sparks]=shot.group.children;
+  shot.group.updateMatrixWorld(true);
+  near(vector(0,-.5,0).applyMatrix4(tracer.matrixWorld),origin);
+  near(vector(0,.5,0).applyMatrix4(tracer.matrixWorld),target);
+  const start=sparks[0].position.clone();
+  fx.update(.065);assert.equal(flash.visible,false);assert.equal(tracer.visible,true);
+  assert.ok(sparks[0].position.distanceTo(start)>0,'sparks move without new meshes');
+  fx.update(.04);assert.equal(tracer.visible,false);
+  fx.update(.02);assert.equal(fx.count,0);assert.equal(shot.group.parent,null);
 }
 const oldest = fx.emit('shot');
 for (let i = 0; i < 100; i++) fx.emit('shot');

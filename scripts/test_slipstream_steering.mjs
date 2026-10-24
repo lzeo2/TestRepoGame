@@ -58,7 +58,7 @@ for(let i=0;i<200&&Math.abs(turn.world.heading)<Math.PI/2;i++)turn=core.stepRun(
 assert(Math.abs(turn.world.heading)>=Math.PI/2);assert.equal(turn.hp,100);
 assert(Math.abs(turn.world.x)<WORLD.streetHalfWidth-2&&Math.abs(turn.world.z)<WORLD.streetHalfWidth-2);
 const started=core.startRun(core.freshProfile(),'roam'),contact=structuredClone(started.run);
-contact.world={x:-50,z:55,heading:0};contact.speed=25;
+contact.world={x:contact.traffic[0].world.x,z:contact.traffic[0].world.z+5,heading:0};contact.speed=25;
 const saved=structuredClone(contact),hit=step(contact,1);
 assert.deepEqual(contact,saved);assert.equal(hit.collisions,1);assert.equal(hit.distance,0);
 assert.equal(hit.nearMisses,0);assert.equal(hit.earnings,0);assert.equal(step(hit,1).hp,hit.hp);

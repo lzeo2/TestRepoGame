@@ -1197,14 +1197,14 @@
     "title": "Circuit Ward",
     "cat": "action",
     "icon": "",
-    "desc": "Original arena shooter. Clear six bot waves solo, or pair 2–4 players for shared-score LAN co-op.",
+    "desc": "Original arena shooter. Clear six bot waves solo, or pair 2\u20134 players for shared-score LAN co-op.",
     "url": "Games/Circuit Ward/index.html",
     "featured": false,
     "tags": [
       "2p",
       "coop"
     ],
-    "players": "1–4",
+    "players": "1\u20134",
     "howto": "WASD/arrows move; mouse or IJKL aims; click/Space fires. Touch: move left, aim right, hold Fire. P/Esc pauses. Co-op uses manual WebRTC offer/answer pairing; local Wi-Fi may block it."
   },
   {
@@ -1324,7 +1324,9 @@
     "desc": "Build and connect cloud infrastructure to handle traffic in a 3D simulation by Kostyantyn Pshenychnyy. Includes survival, campaign and sandbox modes.",
     "url": "Games/ServerSurvival/index.html",
     "featured": false,
-    "tags": ["3d"]
+    "tags": [
+      "3d"
+    ]
   },
   {
     "id": 234,
@@ -1334,7 +1336,9 @@
     "desc": "Guide a ball through increasingly large 3D mazes. Original WebGL game by wwwtyro, with arrow-key and direction-button controls.",
     "url": "Games/Astray/index.html",
     "featured": false,
-    "tags": ["3d"]
+    "tags": [
+      "3d"
+    ]
   },
   {
     "id": 235,
@@ -1354,6 +1358,33 @@
     "url": "Games/Jankolock3D/index.html",
     "featured": false,
     "controls": "WASD move; mouse or arrows look; left/right mouse fire/aim; 1-4 abilities; Shift dash; Space double jump; Ctrl sprint; C slide; Q melee; F parry; R reload; E interact; hold X retreat; B shop. Pause button and touch controls.",
-    "tags": ["shooter", "solo"]
+    "tags": [
+      "shooter",
+      "solo"
+    ]
+  },
+  {
+    "id": 241,
+    "title": "CITISTEN",
+    "cat": "strategy",
+    "icon": "",
+    "desc": "Original offline 3D city-builder sandbox with zombie night defense.",
+    "url": "Games/Citisten3D/index.html",
+    "featured": false,
+    "tags": [
+      "build",
+      "sandbox",
+      "3d",
+      "defense"
+    ]
+  },
+  {
+    "id": 1,
+    "title": "Brainrot Boulevard: After Dark",
+    "cat": "arcade",
+    "icon": "Games/BrainrotBoulevard/favicon.svg",
+    "desc": "Single-player collect-and-raid game with three AI rivals. PBR-textured creatures, hidden GLB collectible. Offline, no accounts.",
+    "url": "Games/BrainrotBoulevard/index.html",
+    "featured": false
   }
 ]

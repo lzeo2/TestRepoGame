@@ -1,0 +1,1014 @@
+{
+  "label": "after",
+  "scope": "Accelerated full simulation cycle; 128 repeated homes + all 17 model types; SwiftShader, 960x600 DPR1.5; not native-input/hardware acceptance",
+  "samples": [
+    {
+      "time": 0,
+      "phase": "day",
+      "night": 0,
+      "zombies": 0,
+      "defenders": 0,
+      "fxActive": 0,
+      "renderer": {
+        "memory": {
+          "geometries": 247,
+          "textures": 68
+        },
+        "render": {
+          "frame": 1,
+          "calls": 487,
+          "triangles": 7155350,
+          "points": 64,
+          "lines": 466
+        },
+        "programs": 13
+      },
+      "geometryArrayBytes": 17509990,
+      "textureObjects": 71,
+      "textureSources": 71,
+      "activeClips": 2,
+      "name": "day-start",
+      "heapUsedBytes": 15827456,
+      "heapTotalBytes": 27508736,
+      "rssBytes": 1375178752,
+      "pssBytes": 953742336
+    },
+    {
+      "time": 120,
+      "phase": "day",
+      "night": 0,
+      "zombies": 0,
+      "defenders": 0,
+      "fxActive": 0,
+      "renderer": {
+        "memory": {
+          "geometries": 247,
+          "textures": 68
+        },
+        "render": {
+          "frame": 2,
+          "calls": 487,
+          "triangles": 7270646,
+          "points": 64,
+          "lines": 466
+        },
+        "programs": 13
+      },
+      "geometryArrayBytes": 17509990,
+      "textureObjects": 71,
+      "textureSources": 71,
+      "activeClips": 2,
+      "name": "mid-day",
+      "heapUsedBytes": 11522584,
+      "heapTotalBytes": 30654464,
+      "rssBytes": 1371262976,
+      "pssBytes": 949826560
+    },
+    {
+      "time": 239,
+      "phase": "day",
+      "night": 0,
+      "zombies": 0,
+      "defenders": 0,
+      "fxActive": 0,
+      "renderer": {
+        "memory": {
+          "geometries": 247,
+          "textures": 68
+        },
+        "render": {
+          "frame": 3,
+          "calls": 487,
+          "triangles": 7251430,
+          "points": 64,
+          "lines": 466
+        },
+        "programs": 13
+      },
+      "geometryArrayBytes": 17509990,
+      "textureObjects": 71,
+      "textureSources": 71,
+      "activeClips": 2,
+      "name": "day-end",
+      "heapUsedBytes": 24252632,
+      "heapTotalBytes": 34848768,
+      "rssBytes": 1387106304,
+      "pssBytes": 965669888
+    },
+    {
+      "time": 240,
+      "phase": "night",
+      "night": 1,
+      "zombies": 12,
+      "defenders": 6,
+      "fxActive": 0,
+      "renderer": {
+        "memory": {
+          "geometries": 247,
+          "textures": 68
+        },
+        "render": {
+          "frame": 4,
+          "calls": 487,
+          "triangles": 7990162,
+          "points": 64,
+          "lines": 466
+        },
+        "programs": 13
+      },
+      "geometryArrayBytes": 17509990,
+      "textureObjects": 71,
+      "textureSources": 71,
+      "activeClips": 20,
+      "name": "night-start",
+      "heapUsedBytes": 14258168,
+      "heapTotalBytes": 38518784,
+      "rssBytes": 1394688000,
+      "pssBytes": 973251584
+    },
+    {
+      "time": 250,
+      "phase": "night",
+      "night": 1,
+      "zombies": 12,
+      "defenders": 6,
+      "fxActive": 0,
+      "renderer": {
+        "memory": {
+          "geometries": 247,
+          "textures": 68
+        },
+        "render": {
+          "frame": 5,
+          "calls": 487,
+          "triangles": 7990162,
+          "points": 64,
+          "lines": 466
+        },
+        "programs": 13
+      },
+      "geometryArrayBytes": 17509990,
+      "textureObjects": 71,
+      "textureSources": 71,
+      "activeClips": 20,
+      "name": "night+10",
+      "heapUsedBytes": 15060928,
+      "heapTotalBytes": 49266688,
+      "rssBytes": 1406763008,
+      "pssBytes": 985325568
+    },
+    {
+      "time": 260,
+      "phase": "night",
+      "night": 1,
+      "zombies": 12,
+      "defenders": 6,
+      "fxActive": 0,
+      "renderer": {
+        "memory": {
+          "geometries": 247,
+          "textures": 68
+        },
+        "render": {
+          "frame": 6,
+          "calls": 487,
+          "triangles": 8009378,
+          "points": 64,
+          "lines": 466
+        },
+        "programs": 13
+      },
+      "geometryArrayBytes": 17509990,
+      "textureObjects": 71,
+      "textureSources": 71,
+      "activeClips": 20,
+      "name": "night+20",
+      "heapUsedBytes": 18933724,
+      "heapTotalBytes": 49266688,
+      "rssBytes": 1407963136,
+      "pssBytes": 986540032
+    },
+    {
+      "time": 270,
+      "phase": "night",
+      "night": 1,
+      "zombies": 12,
+      "defenders": 6,
+      "fxActive": 0,
+      "renderer": {
+        "memory": {
+          "geometries": 247,
+          "textures": 68
+        },
+        "render": {
+          "frame": 7,
+          "calls": 487,
+          "triangles": 7990162,
+          "points": 64,
+          "lines": 466
+        },
+        "programs": 13
+      },
+      "geometryArrayBytes": 17509990,
+      "textureObjects": 71,
+      "textureSources": 71,
+      "activeClips": 20,
+      "name": "night+30",
+      "heapUsedBytes": 22434548,
+      "heapTotalBytes": 49266688,
+      "rssBytes": 1408233472,
+      "pssBytes": 986810368
+    },
+    {
+      "time": 280,
+      "phase": "night",
+      "night": 1,
+      "zombies": 12,
+      "defenders": 6,
+      "fxActive": 0,
+      "renderer": {
+        "memory": {
+          "geometries": 247,
+          "textures": 68
+        },
+        "render": {
+          "frame": 8,
+          "calls": 487,
+          "triangles": 8028594,
+          "points": 64,
+          "lines": 466
+        },
+        "programs": 13
+      },
+      "geometryArrayBytes": 17509990,
+      "textureObjects": 71,
+      "textureSources": 71,
+      "activeClips": 20,
+      "name": "night+40",
+      "heapUsedBytes": 25969076,
+      "heapTotalBytes": 49266688,
+      "rssBytes": 1408303104,
+      "pssBytes": 986880000
+    },
+    {
+      "time": 290,
+      "phase": "night",
+      "night": 1,
+      "zombies": 12,
+      "defenders": 6,
+      "fxActive": 0,
+      "renderer": {
+        "memory": {
+          "geometries": 247,
+          "textures": 68
+        },
+        "render": {
+          "frame": 9,
+          "calls": 487,
+          "triangles": 8009378,
+          "points": 64,
+          "lines": 466
+        },
+        "programs": 13
+      },
+      "geometryArrayBytes": 17509990,
+      "textureObjects": 71,
+      "textureSources": 71,
+      "activeClips": 20,
+      "name": "night+50",
+      "heapUsedBytes": 15257800,
+      "heapTotalBytes": 49266688,
+      "rssBytes": 1408520192,
+      "pssBytes": 987097088
+    },
+    {
+      "time": 300,
+      "phase": "night",
+      "night": 1,
+      "zombies": 12,
+      "defenders": 6,
+      "fxActive": 0,
+      "renderer": {
+        "memory": {
+          "geometries": 247,
+          "textures": 68
+        },
+        "render": {
+          "frame": 10,
+          "calls": 487,
+          "triangles": 8028594,
+          "points": 64,
+          "lines": 466
+        },
+        "programs": 13
+      },
+      "geometryArrayBytes": 17509990,
+      "textureObjects": 71,
+      "textureSources": 71,
+      "activeClips": 20,
+      "name": "night+60",
+      "heapUsedBytes": 18646892,
+      "heapTotalBytes": 49266688,
+      "rssBytes": 1408704512,
+      "pssBytes": 987281408
+    },
+    {
+      "time": 310,
+      "phase": "night",
+      "night": 1,
+      "zombies": 12,
+      "defenders": 6,
+      "fxActive": 0,
+      "renderer": {
+        "memory": {
+          "geometries": 247,
+          "textures": 68
+        },
+        "render": {
+          "frame": 11,
+          "calls": 487,
+          "triangles": 7970946,
+          "points": 64,
+          "lines": 466
+        },
+        "programs": 13
+      },
+      "geometryArrayBytes": 17509990,
+      "textureObjects": 71,
+      "textureSources": 71,
+      "activeClips": 20,
+      "name": "night+70",
+      "heapUsedBytes": 21180344,
+      "heapTotalBytes": 49266688,
+      "rssBytes": 1408737280,
+      "pssBytes": 987314176
+    },
+    {
+      "time": 320,
+      "phase": "night",
+      "night": 1,
+      "zombies": 12,
+      "defenders": 6,
+      "fxActive": 0,
+      "renderer": {
+        "memory": {
+          "geometries": 247,
+          "textures": 68
+        },
+        "render": {
+          "frame": 12,
+          "calls": 487,
+          "triangles": 7990162,
+          "points": 64,
+          "lines": 466
+        },
+        "programs": 13
+      },
+      "geometryArrayBytes": 17509990,
+      "textureObjects": 71,
+      "textureSources": 71,
+      "activeClips": 20,
+      "name": "night+80",
+      "heapUsedBytes": 23860956,
+      "heapTotalBytes": 49266688,
+      "rssBytes": 1409232896,
+      "pssBytes": 987809792
+    },
+    {
+      "time": 330,
+      "phase": "night",
+      "night": 1,
+      "zombies": 12,
+      "defenders": 6,
+      "fxActive": 0,
+      "renderer": {
+        "memory": {
+          "geometries": 247,
+          "textures": 68
+        },
+        "render": {
+          "frame": 13,
+          "calls": 487,
+          "triangles": 8009378,
+          "points": 64,
+          "lines": 466
+        },
+        "programs": 13
+      },
+      "geometryArrayBytes": 17509990,
+      "textureObjects": 71,
+      "textureSources": 71,
+      "activeClips": 20,
+      "name": "night+90",
+      "heapUsedBytes": 26757056,
+      "heapTotalBytes": 49266688,
+      "rssBytes": 1408864256,
+      "pssBytes": 987441152
+    },
+    {
+      "time": 340,
+      "phase": "night",
+      "night": 1,
+      "zombies": 12,
+      "defenders": 6,
+      "fxActive": 0,
+      "renderer": {
+        "memory": {
+          "geometries": 247,
+          "textures": 68
+        },
+        "render": {
+          "frame": 14,
+          "calls": 487,
+          "triangles": 7970946,
+          "points": 64,
+          "lines": 466
+        },
+        "programs": 13
+      },
+      "geometryArrayBytes": 17509990,
+      "textureObjects": 71,
+      "textureSources": 71,
+      "activeClips": 20,
+      "name": "night+100",
+      "heapUsedBytes": 14798132,
+      "heapTotalBytes": 49266688,
+      "rssBytes": 1408954368,
+      "pssBytes": 987531264
+    },
+    {
+      "time": 350,
+      "phase": "night",
+      "night": 1,
+      "zombies": 12,
+      "defenders": 6,
+      "fxActive": 0,
+      "renderer": {
+        "memory": {
+          "geometries": 247,
+          "textures": 68
+        },
+        "render": {
+          "frame": 15,
+          "calls": 487,
+          "triangles": 8028594,
+          "points": 64,
+          "lines": 466
+        },
+        "programs": 13
+      },
+      "geometryArrayBytes": 17509990,
+      "textureObjects": 71,
+      "textureSources": 71,
+      "activeClips": 20,
+      "name": "night+110",
+      "heapUsedBytes": 17828096,
+      "heapTotalBytes": 49266688,
+      "rssBytes": 1409011712,
+      "pssBytes": 987588608
+    },
+    {
+      "time": 360,
+      "phase": "night",
+      "night": 1,
+      "zombies": 12,
+      "defenders": 6,
+      "fxActive": 0,
+      "renderer": {
+        "memory": {
+          "geometries": 247,
+          "textures": 68
+        },
+        "render": {
+          "frame": 16,
+          "calls": 487,
+          "triangles": 8028594,
+          "points": 64,
+          "lines": 466
+        },
+        "programs": 13
+      },
+      "geometryArrayBytes": 17509990,
+      "textureObjects": 71,
+      "textureSources": 71,
+      "activeClips": 20,
+      "name": "night+120",
+      "heapUsedBytes": 20700504,
+      "heapTotalBytes": 49266688,
+      "rssBytes": 1409097728,
+      "pssBytes": 987674624
+    },
+    {
+      "time": 370,
+      "phase": "night",
+      "night": 1,
+      "zombies": 12,
+      "defenders": 6,
+      "fxActive": 0,
+      "renderer": {
+        "memory": {
+          "geometries": 247,
+          "textures": 68
+        },
+        "render": {
+          "frame": 17,
+          "calls": 487,
+          "triangles": 8009378,
+          "points": 64,
+          "lines": 466
+        },
+        "programs": 13
+      },
+      "geometryArrayBytes": 17509990,
+      "textureObjects": 71,
+      "textureSources": 71,
+      "activeClips": 20,
+      "name": "night+130",
+      "heapUsedBytes": 23560716,
+      "heapTotalBytes": 49266688,
+      "rssBytes": 1409163264,
+      "pssBytes": 987740160
+    },
+    {
+      "time": 380,
+      "phase": "night",
+      "night": 1,
+      "zombies": 12,
+      "defenders": 6,
+      "fxActive": 0,
+      "renderer": {
+        "memory": {
+          "geometries": 247,
+          "textures": 68
+        },
+        "render": {
+          "frame": 18,
+          "calls": 487,
+          "triangles": 8009378,
+          "points": 64,
+          "lines": 466
+        },
+        "programs": 13
+      },
+      "geometryArrayBytes": 17509990,
+      "textureObjects": 71,
+      "textureSources": 71,
+      "activeClips": 20,
+      "name": "night+140",
+      "heapUsedBytes": 26323452,
+      "heapTotalBytes": 49266688,
+      "rssBytes": 1409069056,
+      "pssBytes": 987645952
+    },
+    {
+      "time": 390,
+      "phase": "night",
+      "night": 1,
+      "zombies": 12,
+      "defenders": 6,
+      "fxActive": 0,
+      "renderer": {
+        "memory": {
+          "geometries": 247,
+          "textures": 68
+        },
+        "render": {
+          "frame": 19,
+          "calls": 487,
+          "triangles": 8009378,
+          "points": 64,
+          "lines": 466
+        },
+        "programs": 13
+      },
+      "geometryArrayBytes": 17509990,
+      "textureObjects": 71,
+      "textureSources": 71,
+      "activeClips": 20,
+      "name": "night+150",
+      "heapUsedBytes": 15055312,
+      "heapTotalBytes": 49528832,
+      "rssBytes": 1409138688,
+      "pssBytes": 987715584
+    },
+    {
+      "time": 400,
+      "phase": "night",
+      "night": 1,
+      "zombies": 12,
+      "defenders": 6,
+      "fxActive": 0,
+      "renderer": {
+        "memory": {
+          "geometries": 247,
+          "textures": 68
+        },
+        "render": {
+          "frame": 20,
+          "calls": 487,
+          "triangles": 8009378,
+          "points": 64,
+          "lines": 466
+        },
+        "programs": 13
+      },
+      "geometryArrayBytes": 17509990,
+      "textureObjects": 71,
+      "textureSources": 71,
+      "activeClips": 20,
+      "name": "night+160",
+      "heapUsedBytes": 17627372,
+      "heapTotalBytes": 49528832,
+      "rssBytes": 1409105920,
+      "pssBytes": 987682816
+    },
+    {
+      "time": 410,
+      "phase": "night",
+      "night": 1,
+      "zombies": 12,
+      "defenders": 6,
+      "fxActive": 0,
+      "renderer": {
+        "memory": {
+          "geometries": 247,
+          "textures": 68
+        },
+        "render": {
+          "frame": 21,
+          "calls": 487,
+          "triangles": 8028594,
+          "points": 64,
+          "lines": 466
+        },
+        "programs": 13
+      },
+      "geometryArrayBytes": 17509990,
+      "textureObjects": 71,
+      "textureSources": 71,
+      "activeClips": 20,
+      "name": "night+170",
+      "heapUsedBytes": 20403276,
+      "heapTotalBytes": 49528832,
+      "rssBytes": 1408876544,
+      "pssBytes": 987453440
+    },
+    {
+      "time": 420,
+      "phase": "night",
+      "night": 1,
+      "zombies": 12,
+      "defenders": 6,
+      "fxActive": 0,
+      "renderer": {
+        "memory": {
+          "geometries": 247,
+          "textures": 68
+        },
+        "render": {
+          "frame": 22,
+          "calls": 487,
+          "triangles": 8028594,
+          "points": 64,
+          "lines": 466
+        },
+        "programs": 13
+      },
+      "geometryArrayBytes": 17509990,
+      "textureObjects": 71,
+      "textureSources": 71,
+      "activeClips": 20,
+      "name": "night+180",
+      "heapUsedBytes": 23354408,
+      "heapTotalBytes": 49528832,
+      "rssBytes": 1408978944,
+      "pssBytes": 987555840
+    },
+    {
+      "time": 430,
+      "phase": "night",
+      "night": 1,
+      "zombies": 12,
+      "defenders": 6,
+      "fxActive": 0,
+      "renderer": {
+        "memory": {
+          "geometries": 247,
+          "textures": 68
+        },
+        "render": {
+          "frame": 23,
+          "calls": 487,
+          "triangles": 7970946,
+          "points": 64,
+          "lines": 466
+        },
+        "programs": 13
+      },
+      "geometryArrayBytes": 17509990,
+      "textureObjects": 71,
+      "textureSources": 71,
+      "activeClips": 20,
+      "name": "night+190",
+      "heapUsedBytes": 25816532,
+      "heapTotalBytes": 49528832,
+      "rssBytes": 1409048576,
+      "pssBytes": 987625472
+    },
+    {
+      "time": 440,
+      "phase": "night",
+      "night": 1,
+      "zombies": 12,
+      "defenders": 6,
+      "fxActive": 0,
+      "renderer": {
+        "memory": {
+          "geometries": 247,
+          "textures": 68
+        },
+        "render": {
+          "frame": 24,
+          "calls": 487,
+          "triangles": 8028594,
+          "points": 64,
+          "lines": 466
+        },
+        "programs": 13
+      },
+      "geometryArrayBytes": 17509990,
+      "textureObjects": 71,
+      "textureSources": 71,
+      "activeClips": 20,
+      "name": "night+200",
+      "heapUsedBytes": 15244564,
+      "heapTotalBytes": 49528832,
+      "rssBytes": 1409105920,
+      "pssBytes": 987682816
+    },
+    {
+      "time": 450,
+      "phase": "night",
+      "night": 1,
+      "zombies": 12,
+      "defenders": 6,
+      "fxActive": 0,
+      "renderer": {
+        "memory": {
+          "geometries": 247,
+          "textures": 68
+        },
+        "render": {
+          "frame": 25,
+          "calls": 487,
+          "triangles": 8009378,
+          "points": 64,
+          "lines": 466
+        },
+        "programs": 13
+      },
+      "geometryArrayBytes": 17509990,
+      "textureObjects": 71,
+      "textureSources": 71,
+      "activeClips": 20,
+      "name": "night+210",
+      "heapUsedBytes": 17959244,
+      "heapTotalBytes": 49528832,
+      "rssBytes": 1409155072,
+      "pssBytes": 987731968
+    },
+    {
+      "time": 460,
+      "phase": "night",
+      "night": 1,
+      "zombies": 12,
+      "defenders": 6,
+      "fxActive": 0,
+      "renderer": {
+        "memory": {
+          "geometries": 247,
+          "textures": 68
+        },
+        "render": {
+          "frame": 26,
+          "calls": 487,
+          "triangles": 7990162,
+          "points": 64,
+          "lines": 466
+        },
+        "programs": 13
+      },
+      "geometryArrayBytes": 17509990,
+      "textureObjects": 71,
+      "textureSources": 71,
+      "activeClips": 20,
+      "name": "night+220",
+      "heapUsedBytes": 13103300,
+      "heapTotalBytes": 15974400,
+      "rssBytes": 1378054144,
+      "pssBytes": 956385280
+    },
+    {
+      "time": 470,
+      "phase": "night",
+      "night": 1,
+      "zombies": 12,
+      "defenders": 6,
+      "fxActive": 0,
+      "renderer": {
+        "memory": {
+          "geometries": 247,
+          "textures": 68
+        },
+        "render": {
+          "frame": 27,
+          "calls": 487,
+          "triangles": 8009378,
+          "points": 64,
+          "lines": 466
+        },
+        "programs": 13
+      },
+      "geometryArrayBytes": 17509990,
+      "textureObjects": 71,
+      "textureSources": 71,
+      "activeClips": 20,
+      "name": "night+230",
+      "heapUsedBytes": 13180384,
+      "heapTotalBytes": 15450112,
+      "rssBytes": 1415462912,
+      "pssBytes": 993599488
+    },
+    {
+      "time": 480,
+      "phase": "night",
+      "night": 1,
+      "zombies": 12,
+      "defenders": 6,
+      "fxActive": 0,
+      "renderer": {
+        "memory": {
+          "geometries": 247,
+          "textures": 68
+        },
+        "render": {
+          "frame": 28,
+          "calls": 487,
+          "triangles": 8028594,
+          "points": 64,
+          "lines": 466
+        },
+        "programs": 13
+      },
+      "geometryArrayBytes": 17509990,
+      "textureObjects": 71,
+      "textureSources": 71,
+      "activeClips": 20,
+      "name": "night+240",
+      "heapUsedBytes": 14295060,
+      "heapTotalBytes": 16498688,
+      "rssBytes": 1466646528,
+      "pssBytes": 1044586496
+    },
+    {
+      "time": 490,
+      "phase": "night",
+      "night": 1,
+      "zombies": 11,
+      "defenders": 6,
+      "fxActive": 0,
+      "renderer": {
+        "memory": {
+          "geometries": 247,
+          "textures": 68
+        },
+        "render": {
+          "frame": 29,
+          "calls": 487,
+          "triangles": 7968272,
+          "points": 64,
+          "lines": 466
+        },
+        "programs": 13
+      },
+      "geometryArrayBytes": 17509990,
+      "textureObjects": 71,
+      "textureSources": 71,
+      "activeClips": 19,
+      "name": "night+250",
+      "heapUsedBytes": 14183100,
+      "heapTotalBytes": 18595840,
+      "rssBytes": 1486696448,
+      "pssBytes": 1064373248
+    },
+    {
+      "time": 500,
+      "phase": "night",
+      "night": 1,
+      "zombies": 5,
+      "defenders": 6,
+      "fxActive": 0,
+      "renderer": {
+        "memory": {
+          "geometries": 247,
+          "textures": 68
+        },
+        "render": {
+          "frame": 30,
+          "calls": 487,
+          "triangles": 7683204,
+          "points": 64,
+          "lines": 466
+        },
+        "programs": 13
+      },
+      "geometryArrayBytes": 17509990,
+      "textureObjects": 71,
+      "textureSources": 71,
+      "activeClips": 13,
+      "name": "night+260",
+      "heapUsedBytes": 15695488,
+      "heapTotalBytes": 19644416,
+      "rssBytes": 1512890368,
+      "pssBytes": 1090437120
+    },
+    {
+      "time": 510,
+      "phase": "night",
+      "night": 1,
+      "zombies": 1,
+      "defenders": 6,
+      "fxActive": 0,
+      "renderer": {
+        "memory": {
+          "geometries": 247,
+          "textures": 68
+        },
+        "render": {
+          "frame": 31,
+          "calls": 487,
+          "triangles": 7576428,
+          "points": 64,
+          "lines": 466
+        },
+        "programs": 13
+      },
+      "geometryArrayBytes": 17509990,
+      "textureObjects": 71,
+      "textureSources": 71,
+      "activeClips": 9,
+      "name": "night+270",
+      "heapUsedBytes": 15459824,
+      "heapTotalBytes": 19906560,
+      "rssBytes": 1531564032,
+      "pssBytes": 1109110784
+    },
+    {
+      "time": 520,
+      "phase": "day",
+      "night": 1,
+      "zombies": 0,
+      "defenders": 0,
+      "fxActive": 0,
+      "renderer": {
+        "memory": {
+          "geometries": 247,
+          "textures": 68
+        },
+        "render": {
+          "frame": 32,
+          "calls": 487,
+          "triangles": 7251430,
+          "points": 64,
+          "lines": 466
+        },
+        "programs": 13
+      },
+      "geometryArrayBytes": 17509990,
+      "textureObjects": 71,
+      "textureSources": 71,
+      "activeClips": 2,
+      "name": "night+280",
+      "heapUsedBytes": 16458564,
+      "heapTotalBytes": 19906560,
+      "rssBytes": 1533501440,
+      "pssBytes": 1111048192
+    }
+  ],
+  "errors": [],
+  "peakPssBytes": 1111052288,
+  "peakRssBytes": 1533505536,
+  "profilePeakBytes": 2891493,
+  "sourceRevision": "1706c5c8005473f600e11bb918f0518121844ea3",
+  "sourceHashes": {
+    "world.mjs": "9f3e18202886e8c5905885e631ccb59dce5281096a103da8bee8053324036b80",
+    "daynight.mjs": "ba6ab88048f9a53dff707ba11772333bbe5a36eecaab3be1487c31c0fc8278e4",
+    "external-assets.mjs": "cf7a3d2d906e8d80c864109592784382787ed768f4596c4e18950d0e5a575ffd",
+    "external-buildings.mjs": "c3db32ff771d9e5b04b684e0f3b3346ccbeaa4bb74eba622363b2b7d2be89159",
+    "world-effects.mjs": "f17e60e72fba9331acbc1909ec60a1614f4905bdf7c1d98ac0201fa21a1d82f8",
+    "native-actions.mjs": "fa974ac9eb574bcaa760fc6a9482a26018ee9dc5c5769b720c93392ba093593c",
+    "terrain.mjs": "16c5cb47fd81f7f0265a6e9d9c006ff6a0044a8b6b160e00b6c970bf675f34c9"
+  },
+  "seconds": 85.335,
+  "released": true
+}

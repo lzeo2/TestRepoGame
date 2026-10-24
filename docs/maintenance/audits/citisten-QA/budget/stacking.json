@@ -1,0 +1,73 @@
+{
+  "scope": "Actual native HTML/CSS + createUI state fixture, no world/gameplay grants accepted",
+  "checks": [
+    {
+      "width": 1440,
+      "eventsZ": 3,
+      "diagnosisZ": 2,
+      "nativeZ": 1,
+      "messages": [
+        "Placed",
+        "Nightfall: 1 min",
+        "Blackout"
+      ],
+      "eventsBottom": 523.234375,
+      "controlsTop": 815.609375,
+      "theme": "dark"
+    },
+    {
+      "width": 1440,
+      "eventsZ": 3,
+      "diagnosisZ": 2,
+      "nativeZ": 1,
+      "messages": [
+        "Placed",
+        "Nightfall: 1 min",
+        "Blackout"
+      ],
+      "eventsBottom": 522.734375,
+      "controlsTop": 815.609375,
+      "theme": "light"
+    },
+    {
+      "width": 390,
+      "eventsZ": 3,
+      "diagnosisZ": 2,
+      "nativeZ": 1,
+      "messages": [
+        "Blackout"
+      ],
+      "eventsBottom": 503.140625,
+      "controlsTop": 730,
+      "theme": "dark"
+    },
+    {
+      "width": 390,
+      "eventsZ": 3,
+      "diagnosisZ": 2,
+      "nativeZ": 1,
+      "messages": [
+        "Blackout"
+      ],
+      "eventsBottom": 503.140625,
+      "controlsTop": 730,
+      "theme": "light"
+    }
+  ],
+  "errors": [],
+  "screenshots": [
+    "stacking-1440-dark.jpg",
+    "stacking-1440-light.jpg",
+    "stacking-390-dark.jpg",
+    "stacking-390-light.jpg"
+  ],
+  "profilePeakBytes": 818824,
+  "released": true,
+  "sourceHashes": {
+    "index.html": "1c6d136b9fd0d6ca86dad254cdc8f62ddadad7f244c6ed92079cb8201609c52e",
+    "ui.mjs": "2139606ad6a61602d39d07f4c10fc861fb13a297ac57ca470787087b7fcc95c1",
+    "ui.css": "35d14444e5140228029bb26fad830de303259e5dc0b84980a762d725ae2d59c8",
+    "native.css": "c61b38f2e5de75af8227776da782df37ff2ea52db7b812366e34964e848f684e"
+  },
+  "identityNote": "Hashes recorded after capture; these sources stayed unchanged across all four accepted captures."
+}

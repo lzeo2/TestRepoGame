@@ -4,6 +4,7 @@ import { readFileSync } from 'node:fs';
 import { runInNewContext } from 'node:vm';
 import * as THREE from './vendor/three.module.js';
 import { createEnvironment } from './environment.mjs';
+import { mergeGeometries } from './vendor/addons/BufferGeometryUtils.js';
 import { createWorldData, LANES, TEAM_COLORS, terrainHeight } from './world-data.mjs';
 
 const world=createWorldData(),before=JSON.stringify(world),loaded=[];
@@ -27,13 +28,27 @@ class Renderer {
 const canvas={clientWidth:1280,clientHeight:720};
 const source=readFileSync(new URL('./world-scene.mjs',import.meta.url),'utf8');
 const factory=runInNewContext(source.replace(/^import .*$/gm,'').replace('export function','function')+'\ncreateWorldScene;',{
-  THREE:{...THREE,WebGLRenderer:Renderer},LANES,TEAM_COLORS,terrainHeight,
+  THREE:{...THREE,WebGLRenderer:Renderer},LANES,TEAM_COLORS,terrainHeight,mergeGeometries,
   createEnvironment:(scene,w)=>createEnvironment(scene,w,loader),
   document:{createElement:()=>({getContext:()=>({fillRect(){},fillText(){}})})}
 });
 const view=factory(canvas,world);
 assert.deepEqual(Object.keys(view).sort(),['scene','camera','renderCamera','render','sync','syncStructures','resize','diagnostics','dispose'].sort());
 const env=view.scene.getObjectByName('original-city');assert.ok(env);
+let surfaceDisposals=0;
+for(const name of ['asphalt','concrete','ground']) {
+  const surface=view.scene.getObjectByName(name);assert.ok(surface?.isMesh);
+  assert.equal(surface.material.type,'MeshStandardMaterial');
+  const map=surface.material.map;assert.ok(map.isDataTexture);
+  assert.equal(map.image.width,128);assert.equal(map.image.height,128);
+  assert.equal(map.wrapS,THREE.RepeatWrapping);assert.equal(map.colorSpace,THREE.SRGBColorSpace);
+  map.addEventListener('dispose',()=>surfaceDisposals++);
+  const p=surface.geometry.attributes.position,uv=surface.geometry.attributes.uv;
+  assert.ok([...p.array,...uv.array].every(Number.isFinite),'finite merged surfaces');
+  assert.ok(Math.max(...uv.array)>100,'metre-scaled UVs, not a stretched one-tile road');
+}
+const retaining=view.scene.getObjectByName('concrete').geometry.attributes.position;
+assert.ok([...retaining.array].some((n,i)=>i%3===1&&n===-10),'sewer retaining faces reach its floor');
 assert.equal(loaded.length,11);assert.ok(loaded.reduce((n,t)=>n+t.bytes,0)<8*1024*1024);
 let aoMeshes=0,instances=0,triangles=0,turnouts=0;
 const uniqueGeometry=new Set();
@@ -76,7 +91,7 @@ assert.equal(crates.length,world.crates.length);assert.ok(crates.every(o=>!o.vis
 view.render(world.start,0,0);view.resize();assert.equal(renderCount,3);
 assert.equal(JSON.stringify(world),before,'rendering did not mutate world/collision data');
 view.dispose();view.dispose();view.renderCamera();assert.equal(renderCount,3);
-assert.equal(textureDisposals,11,'environment textures disposed once');assert.equal(view.scene.children.length,0);
+assert.equal(textureDisposals,11,'environment textures disposed once');assert.equal(surfaceDisposals,3,'aggregate maps disposed once');assert.equal(view.scene.children.length,0);
 const reusableTriangles=[...uniqueGeometry].reduce((n,g)=>n+(g.index?.count||g.attributes.position.count)/3,0);
 const bufferBytes=[...uniqueGeometry].reduce((n,g)=>n+(g.index?.array.byteLength||0)+Object.values(g.attributes).reduce((s,a)=>s+a.array.byteLength,0),0);
 console.log(`environment-test: PASS; ${instances} instances, ${triangles} full-detail triangles, ${draws} coarse batches; ${uniqueGeometry.size} reusable geometries / ${reusableTriangles} triangles / ${bufferBytes} buffer bytes; 11 PNG maps ${loaded.reduce((n,t)=>n+t.bytes,0)} bytes; dynamic death/Patron retreat/LOD/disposal checked (CPU only)`);

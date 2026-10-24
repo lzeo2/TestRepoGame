@@ -1,0 +1,4928 @@
+{
+  "status": "COMPLETE-builder-checks-only",
+  "scope": "Builder evidence for E, reviewer grades separately; normal inputs, no state grants",
+  "screenshots": [
+    {
+      "file": "docs/maintenance/audits/jankolock-3d-qa/heroes-resume/heroes-1-light.png",
+      "sha256": "f6a99435cf5f7d3af861ac16bc63dcc1799b77f23fb200ce0231cdfa9014ba80",
+      "size": [
+        1280,
+        720
+      ],
+      "variance": 4765.4,
+      "snapshot": {
+        "hero": "stampead",
+        "ammo": 12,
+        "shots": 0,
+        "reload": 0,
+        "cooldowns": {},
+        "casts": {},
+        "lastAbility": null,
+        "fx": 0,
+        "deployments": 0,
+        "projectiles": 0,
+        "buffs": [],
+        "model": {
+          "id": "stampead",
+          "bytes": 948632,
+          "sha256": "6c679456b2ce7adce25515f5eb5e4947960a4541904edb65f290a5f9978926f0",
+          "triangles": 25596,
+          "meshes": 69,
+          "origin": "operator-external",
+          "movableNodes": 17,
+          "paletteSlots": 9,
+          "generatedUV": [
+            "armored_postroom_body"
+          ],
+          "unmatchedPaletteSlots": []
+        },
+        "position": [
+          0,
+          0,
+          8
+        ],
+        "camera": [
+          1.1,
+          1.5899895836588493,
+          11.998750065102811
+        ],
+        "fov": 65,
+        "yaw": 0,
+        "pitch": -0.025,
+        "held": [],
+        "state": "idle",
+        "stamina": 100,
+        "jumps": 0,
+        "grounded": true,
+        "infiniteAmmo": false,
+        "pointerLocked": false,
+        "health": 700,
+        "damage": 0,
+        "healing": 0,
+        "targets": [
+          {
+            "id": "left",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "center",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "right",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "covered",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "ally",
+            "hp": 140,
+            "alive": true,
+            "slow": false
+          }
+        ],
+        "time": 0.6167000000000008
+      }
+    },
+    {
+      "file": "docs/maintenance/audits/jankolock-3d-qa/heroes-resume/heroes-1-dark.png",
+      "sha256": "aa6ff18f7a4ada7371eda00b66518c4d88e1d638fd13c62bff6a65190cbed5c8",
+      "size": [
+        1280,
+        720
+      ],
+      "variance": 4338.45,
+      "snapshot": {
+        "hero": "stampead",
+        "ammo": 12,
+        "shots": 0,
+        "reload": 0,
+        "cooldowns": {},
+        "casts": {},
+        "lastAbility": null,
+        "fx": 0,
+        "deployments": 0,
+        "projectiles": 0,
+        "buffs": [],
+        "model": {
+          "id": "stampead",
+          "bytes": 948632,
+          "sha256": "6c679456b2ce7adce25515f5eb5e4947960a4541904edb65f290a5f9978926f0",
+          "triangles": 25596,
+          "meshes": 69,
+          "origin": "operator-external",
+          "movableNodes": 17,
+          "paletteSlots": 9,
+          "generatedUV": [
+            "armored_postroom_body"
+          ],
+          "unmatchedPaletteSlots": []
+        },
+        "position": [
+          0,
+          0,
+          8
+        ],
+        "camera": [
+          1.1,
+          1.5899895836588493,
+          11.998750065102811
+        ],
+        "fov": 65,
+        "yaw": 0,
+        "pitch": -0.025,
+        "held": [],
+        "state": "idle",
+        "stamina": 100,
+        "jumps": 0,
+        "grounded": true,
+        "infiniteAmmo": false,
+        "pointerLocked": false,
+        "health": 700,
+        "damage": 0,
+        "healing": 0,
+        "targets": [
+          {
+            "id": "left",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "center",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "right",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "covered",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "ally",
+            "hp": 140,
+            "alive": true,
+            "slow": false
+          }
+        ],
+        "time": 0.9335000000000003
+      }
+    },
+    {
+      "file": "docs/maintenance/audits/jankolock-3d-qa/heroes-resume/heroes-1-ability-1.png",
+      "sha256": "a6c7ae1aa21cb747fe00e2a9bae96bf07369f2a141b223d5b2649f141ae19ad4",
+      "size": [
+        1280,
+        720
+      ],
+      "variance": 4511.54,
+      "snapshot": {
+        "hero": "stampead",
+        "ammo": 12,
+        "shots": 0,
+        "reload": 0,
+        "cooldowns": {
+          "1": 5.800000000000001
+        },
+        "casts": {
+          "hook": 1
+        },
+        "lastAbility": "hook",
+        "fx": 2,
+        "deployments": 0,
+        "projectiles": 0,
+        "buffs": [],
+        "model": {
+          "id": "stampead",
+          "bytes": 948632,
+          "sha256": "6c679456b2ce7adce25515f5eb5e4947960a4541904edb65f290a5f9978926f0",
+          "triangles": 25596,
+          "meshes": 69,
+          "origin": "operator-external",
+          "movableNodes": 17,
+          "paletteSlots": 9,
+          "generatedUV": [
+            "armored_postroom_body"
+          ],
+          "unmatchedPaletteSlots": []
+        },
+        "position": [
+          0.28201360887151006,
+          0,
+          2.0066313041486126
+        ],
+        "camera": [
+          1.3166958194088907,
+          1.5899895836588493,
+          7.393518616294132
+        ],
+        "fov": 65,
+        "yaw": 0,
+        "pitch": -0.025,
+        "held": [],
+        "state": "dash",
+        "stamina": 100,
+        "jumps": 0,
+        "grounded": true,
+        "infiniteAmmo": false,
+        "pointerLocked": false,
+        "health": 700,
+        "damage": 45,
+        "healing": 0,
+        "targets": [
+          {
+            "id": "left",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "center",
+            "hp": 355,
+            "alive": true,
+            "slow": true
+          },
+          {
+            "id": "right",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "covered",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "ally",
+            "hp": 140,
+            "alive": true,
+            "slow": false
+          }
+        ],
+        "time": 0.3
+      }
+    },
+    {
+      "file": "docs/maintenance/audits/jankolock-3d-qa/heroes-resume/heroes-1-ability-2.png",
+      "sha256": "16204c942dd697796e4d9183d13af15cb5d76bbed6ae8a9fe10a94b198285096",
+      "size": [
+        1280,
+        720
+      ],
+      "variance": 4583.72,
+      "snapshot": {
+        "hero": "stampead",
+        "ammo": 12,
+        "shots": 0,
+        "reload": 0,
+        "cooldowns": {
+          "2": 4.833399999999998
+        },
+        "casts": {
+          "volley": 1
+        },
+        "lastAbility": "volley",
+        "fx": 1,
+        "deployments": 0,
+        "projectiles": 0,
+        "buffs": [],
+        "model": {
+          "id": "stampead",
+          "bytes": 948632,
+          "sha256": "6c679456b2ce7adce25515f5eb5e4947960a4541904edb65f290a5f9978926f0",
+          "triangles": 25596,
+          "meshes": 69,
+          "origin": "operator-external",
+          "movableNodes": 17,
+          "paletteSlots": 9,
+          "generatedUV": [
+            "armored_postroom_body"
+          ],
+          "unmatchedPaletteSlots": []
+        },
+        "position": [
+          0,
+          0,
+          8
+        ],
+        "camera": [
+          1.1,
+          1.5899895836588493,
+          11.998750065102811
+        ],
+        "fov": 65,
+        "yaw": 0,
+        "pitch": -0.025,
+        "held": [],
+        "state": "idle",
+        "stamina": 100,
+        "jumps": 0,
+        "grounded": true,
+        "infiniteAmmo": false,
+        "pointerLocked": false,
+        "health": 700,
+        "damage": 195,
+        "healing": 0,
+        "targets": [
+          {
+            "id": "left",
+            "hp": 335,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "center",
+            "hp": 335,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "right",
+            "hp": 335,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "covered",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "ally",
+            "hp": 140,
+            "alive": true,
+            "slow": false
+          }
+        ],
+        "time": 0.26660000000000217
+      }
+    },
+    {
+      "file": "docs/maintenance/audits/jankolock-3d-qa/heroes-resume/heroes-1-ability-3.png",
+      "sha256": "e95be582fe6411a704b34aa7dc95040b6d1fd261e192085859e6920e6f18a062",
+      "size": [
+        1280,
+        720
+      ],
+      "variance": 4552.12,
+      "snapshot": {
+        "hero": "stampead",
+        "ammo": 12,
+        "shots": 0,
+        "reload": 0,
+        "cooldowns": {
+          "3": 7.800000000000001
+        },
+        "casts": {
+          "slam": 1
+        },
+        "lastAbility": "slam",
+        "fx": 1,
+        "deployments": 0,
+        "projectiles": 0,
+        "buffs": [],
+        "model": {
+          "id": "stampead",
+          "bytes": 948632,
+          "sha256": "6c679456b2ce7adce25515f5eb5e4947960a4541904edb65f290a5f9978926f0",
+          "triangles": 25596,
+          "meshes": 69,
+          "origin": "operator-external",
+          "movableNodes": 17,
+          "paletteSlots": 9,
+          "generatedUV": [
+            "armored_postroom_body"
+          ],
+          "unmatchedPaletteSlots": []
+        },
+        "position": [
+          0,
+          0,
+          8
+        ],
+        "camera": [
+          1.1,
+          1.5899895836588493,
+          11.998750065102811
+        ],
+        "fov": 65,
+        "yaw": 0,
+        "pitch": -0.025,
+        "held": [],
+        "state": "idle",
+        "stamina": 100,
+        "jumps": 0,
+        "grounded": true,
+        "infiniteAmmo": false,
+        "pointerLocked": false,
+        "health": 700,
+        "damage": 0,
+        "healing": 0,
+        "targets": [
+          {
+            "id": "left",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "center",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "right",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "covered",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "ally",
+            "hp": 140,
+            "alive": true,
+            "slow": false
+          }
+        ],
+        "time": 0.3
+      }
+    },
+    {
+      "file": "docs/maintenance/audits/jankolock-3d-qa/heroes-resume/heroes-1-ability-4.png",
+      "sha256": "dcc7b25eeff5d122879bab6c41e629fad63167484fa92fe44281e8bb3c61018b",
+      "size": [
+        1280,
+        720
+      ],
+      "variance": 4554.46,
+      "snapshot": {
+        "hero": "stampead",
+        "ammo": 12,
+        "shots": 0,
+        "reload": 0,
+        "cooldowns": {
+          "4": 19.799999999999997
+        },
+        "casts": {
+          "overtime": 1
+        },
+        "lastAbility": "overtime",
+        "fx": 1,
+        "deployments": 0,
+        "projectiles": 0,
+        "buffs": [
+          "overtime"
+        ],
+        "model": {
+          "id": "stampead",
+          "bytes": 948632,
+          "sha256": "6c679456b2ce7adce25515f5eb5e4947960a4541904edb65f290a5f9978926f0",
+          "triangles": 25596,
+          "meshes": 69,
+          "origin": "operator-external",
+          "movableNodes": 17,
+          "paletteSlots": 9,
+          "generatedUV": [
+            "armored_postroom_body"
+          ],
+          "unmatchedPaletteSlots": []
+        },
+        "position": [
+          0,
+          0,
+          8
+        ],
+        "camera": [
+          1.1,
+          1.5899895836588493,
+          11.998750065102811
+        ],
+        "fov": 65,
+        "yaw": 0,
+        "pitch": -0.025,
+        "held": [],
+        "state": "idle",
+        "stamina": 100,
+        "jumps": 0,
+        "grounded": true,
+        "infiniteAmmo": false,
+        "pointerLocked": false,
+        "health": 700,
+        "damage": 0,
+        "healing": 0,
+        "targets": [
+          {
+            "id": "left",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "center",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "right",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "covered",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "ally",
+            "hp": 140,
+            "alive": true,
+            "slow": false
+          }
+        ],
+        "time": 0.3
+      }
+    },
+    {
+      "file": "docs/maintenance/audits/jankolock-3d-qa/heroes-resume/heroes-2-light.png",
+      "sha256": "c7f5882e9e8cded3be6d3ad2bd898f3e2fddd6cbb316442c764b5b8d33ac4b7b",
+      "size": [
+        1280,
+        720
+      ],
+      "variance": 4707.04,
+      "snapshot": {
+        "hero": "turretina",
+        "ammo": 18,
+        "shots": 0,
+        "reload": 0,
+        "cooldowns": {},
+        "casts": {},
+        "lastAbility": null,
+        "fx": 0,
+        "deployments": 0,
+        "projectiles": 0,
+        "buffs": [],
+        "model": {
+          "id": "turretina",
+          "bytes": 1022124,
+          "sha256": "e5a3dffe77d0487c30197759367e6851ad650a9d9358670e198fe927a8f763a7",
+          "triangles": 22416,
+          "meshes": 81,
+          "origin": "operator-external",
+          "movableNodes": 23,
+          "paletteSlots": 9,
+          "generatedUV": [
+            "folder_workcoat"
+          ],
+          "unmatchedPaletteSlots": []
+        },
+        "position": [
+          0,
+          0,
+          8
+        ],
+        "camera": [
+          1.1,
+          1.5899895836588493,
+          11.998750065102811
+        ],
+        "fov": 65,
+        "yaw": 0,
+        "pitch": -0.025,
+        "held": [],
+        "state": "idle",
+        "stamina": 100,
+        "jumps": 0,
+        "grounded": true,
+        "infiniteAmmo": false,
+        "pointerLocked": false,
+        "health": 550,
+        "damage": 0,
+        "healing": 0,
+        "targets": [
+          {
+            "id": "left",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "center",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "right",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "covered",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "ally",
+            "hp": 140,
+            "alive": true,
+            "slow": false
+          }
+        ],
+        "time": 0.6166000000000004
+      }
+    },
+    {
+      "file": "docs/maintenance/audits/jankolock-3d-qa/heroes-resume/heroes-2-dark.png",
+      "sha256": "fc92968f9abba8f38cf9b822cf6b531c66abb4ddd26c0919253a1719c10519b7",
+      "size": [
+        1280,
+        720
+      ],
+      "variance": 4317.85,
+      "snapshot": {
+        "hero": "turretina",
+        "ammo": 18,
+        "shots": 0,
+        "reload": 0,
+        "cooldowns": {},
+        "casts": {},
+        "lastAbility": null,
+        "fx": 0,
+        "deployments": 0,
+        "projectiles": 0,
+        "buffs": [],
+        "model": {
+          "id": "turretina",
+          "bytes": 1022124,
+          "sha256": "e5a3dffe77d0487c30197759367e6851ad650a9d9358670e198fe927a8f763a7",
+          "triangles": 22416,
+          "meshes": 81,
+          "origin": "operator-external",
+          "movableNodes": 23,
+          "paletteSlots": 9,
+          "generatedUV": [
+            "folder_workcoat"
+          ],
+          "unmatchedPaletteSlots": []
+        },
+        "position": [
+          0,
+          0,
+          8
+        ],
+        "camera": [
+          1.1,
+          1.5899895836588493,
+          11.998750065102811
+        ],
+        "fov": 65,
+        "yaw": 0,
+        "pitch": -0.025,
+        "held": [],
+        "state": "idle",
+        "stamina": 100,
+        "jumps": 0,
+        "grounded": true,
+        "infiniteAmmo": false,
+        "pointerLocked": false,
+        "health": 550,
+        "damage": 0,
+        "healing": 0,
+        "targets": [
+          {
+            "id": "left",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "center",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "right",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "covered",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "ally",
+            "hp": 140,
+            "alive": true,
+            "slow": false
+          }
+        ],
+        "time": 0.9666000000000007
+      }
+    },
+    {
+      "file": "docs/maintenance/audits/jankolock-3d-qa/heroes-resume/heroes-2-ability-1.png",
+      "sha256": "a4c6dc7ced061cbf6799646df094b2b5eaf9f602ec54fce33da4a4bceef6c441",
+      "size": [
+        1280,
+        720
+      ],
+      "variance": 4499.56,
+      "snapshot": {
+        "hero": "turretina",
+        "ammo": 18,
+        "shots": 0,
+        "reload": 0,
+        "cooldowns": {
+          "1": 9.749999999999996
+        },
+        "casts": {
+          "turret": 1
+        },
+        "lastAbility": "turret",
+        "fx": 1,
+        "deployments": 1,
+        "projectiles": 0,
+        "buffs": [],
+        "model": {
+          "id": "turretina",
+          "bytes": 1022124,
+          "sha256": "e5a3dffe77d0487c30197759367e6851ad650a9d9358670e198fe927a8f763a7",
+          "triangles": 22416,
+          "meshes": 81,
+          "origin": "operator-external",
+          "movableNodes": 23,
+          "paletteSlots": 9,
+          "generatedUV": [
+            "folder_workcoat"
+          ],
+          "unmatchedPaletteSlots": []
+        },
+        "position": [
+          0,
+          0,
+          8
+        ],
+        "camera": [
+          1.1,
+          1.5899895836588493,
+          11.998750065102811
+        ],
+        "fov": 65,
+        "yaw": 0,
+        "pitch": -0.025,
+        "held": [],
+        "state": "idle",
+        "stamina": 100,
+        "jumps": 0,
+        "grounded": true,
+        "infiniteAmmo": false,
+        "pointerLocked": false,
+        "health": 550,
+        "damage": 18,
+        "healing": 0,
+        "targets": [
+          {
+            "id": "left",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "center",
+            "hp": 382,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "right",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "covered",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "ally",
+            "hp": 140,
+            "alive": true,
+            "slow": false
+          }
+        ],
+        "time": 0.35
+      }
+    },
+    {
+      "file": "docs/maintenance/audits/jankolock-3d-qa/heroes-resume/heroes-2-ability-2.png",
+      "sha256": "d46b576471938dbfccaa3ac579260aa131602d8d72ac77715e1a1b3b28821ee8",
+      "size": [
+        1280,
+        720
+      ],
+      "variance": 4524.32,
+      "snapshot": {
+        "hero": "turretina",
+        "ammo": 18,
+        "shots": 0,
+        "reload": 0,
+        "cooldowns": {
+          "2": 9.749999999999996
+        },
+        "casts": {
+          "barricade": 1
+        },
+        "lastAbility": "barricade",
+        "fx": 1,
+        "deployments": 1,
+        "projectiles": 0,
+        "buffs": [],
+        "model": {
+          "id": "turretina",
+          "bytes": 1022124,
+          "sha256": "e5a3dffe77d0487c30197759367e6851ad650a9d9358670e198fe927a8f763a7",
+          "triangles": 22416,
+          "meshes": 81,
+          "origin": "operator-external",
+          "movableNodes": 23,
+          "paletteSlots": 9,
+          "generatedUV": [
+            "folder_workcoat"
+          ],
+          "unmatchedPaletteSlots": []
+        },
+        "position": [
+          0,
+          0,
+          8
+        ],
+        "camera": [
+          1.1,
+          1.5899895836588493,
+          11.998750065102811
+        ],
+        "fov": 65,
+        "yaw": 0,
+        "pitch": -0.025,
+        "held": [],
+        "state": "idle",
+        "stamina": 100,
+        "jumps": 0,
+        "grounded": true,
+        "infiniteAmmo": false,
+        "pointerLocked": false,
+        "health": 550,
+        "damage": 0,
+        "healing": 0,
+        "targets": [
+          {
+            "id": "left",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "center",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "right",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "covered",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "ally",
+            "hp": 140,
+            "alive": true,
+            "slow": false
+          }
+        ],
+        "time": 0.35
+      }
+    },
+    {
+      "file": "docs/maintenance/audits/jankolock-3d-qa/heroes-resume/heroes-2-ability-3.png",
+      "sha256": "86d8e33e4d1917827602f784badeb333501fffac051a2371184e3c4c8b5023e1",
+      "size": [
+        1280,
+        720
+      ],
+      "variance": 4503.41,
+      "snapshot": {
+        "hero": "turretina",
+        "ammo": 18,
+        "shots": 0,
+        "reload": 0,
+        "cooldowns": {
+          "3": 6.750000000000001
+        },
+        "casts": {
+          "grenade": 1
+        },
+        "lastAbility": "grenade",
+        "fx": 1,
+        "deployments": 0,
+        "projectiles": 1,
+        "buffs": [],
+        "model": {
+          "id": "turretina",
+          "bytes": 1022124,
+          "sha256": "e5a3dffe77d0487c30197759367e6851ad650a9d9358670e198fe927a8f763a7",
+          "triangles": 22416,
+          "meshes": 81,
+          "origin": "operator-external",
+          "movableNodes": 23,
+          "paletteSlots": 9,
+          "generatedUV": [
+            "folder_workcoat"
+          ],
+          "unmatchedPaletteSlots": []
+        },
+        "position": [
+          0,
+          0,
+          8
+        ],
+        "camera": [
+          1.1,
+          1.5899895836588493,
+          11.998750065102811
+        ],
+        "fov": 65,
+        "yaw": 0,
+        "pitch": -0.025,
+        "held": [],
+        "state": "idle",
+        "stamina": 100,
+        "jumps": 0,
+        "grounded": true,
+        "infiniteAmmo": false,
+        "pointerLocked": false,
+        "health": 550,
+        "damage": 0,
+        "healing": 0,
+        "targets": [
+          {
+            "id": "left",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "center",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "right",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "covered",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "ally",
+            "hp": 140,
+            "alive": true,
+            "slow": false
+          }
+        ],
+        "time": 0.35
+      }
+    },
+    {
+      "file": "docs/maintenance/audits/jankolock-3d-qa/heroes-resume/heroes-2-ability-4.png",
+      "sha256": "e34a276d909b8e08e9269d887b4d3e55bcb34eb4b4f7b02328c1ca704a5541d4",
+      "size": [
+        1280,
+        720
+      ],
+      "variance": 4520.69,
+      "snapshot": {
+        "hero": "turretina",
+        "ammo": 18,
+        "shots": 0,
+        "reload": 0,
+        "cooldowns": {
+          "4": 21.799999999999997
+        },
+        "casts": {
+          "chaingun": 1
+        },
+        "lastAbility": "chaingun",
+        "fx": 1,
+        "deployments": 0,
+        "projectiles": 0,
+        "buffs": [
+          "chaingun"
+        ],
+        "model": {
+          "id": "turretina",
+          "bytes": 1022124,
+          "sha256": "e5a3dffe77d0487c30197759367e6851ad650a9d9358670e198fe927a8f763a7",
+          "triangles": 22416,
+          "meshes": 81,
+          "origin": "operator-external",
+          "movableNodes": 23,
+          "paletteSlots": 9,
+          "generatedUV": [
+            "folder_workcoat"
+          ],
+          "unmatchedPaletteSlots": []
+        },
+        "position": [
+          0,
+          0,
+          8
+        ],
+        "camera": [
+          1.1,
+          1.5899895836588493,
+          11.998750065102811
+        ],
+        "fov": 65,
+        "yaw": 0,
+        "pitch": -0.025,
+        "held": [],
+        "state": "idle",
+        "stamina": 100,
+        "jumps": 0,
+        "grounded": true,
+        "infiniteAmmo": false,
+        "pointerLocked": false,
+        "health": 550,
+        "damage": 30,
+        "healing": 0,
+        "targets": [
+          {
+            "id": "left",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "center",
+            "hp": 370,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "right",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "covered",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "ally",
+            "hp": 140,
+            "alive": true,
+            "slow": false
+          }
+        ],
+        "time": 0.3
+      }
+    },
+    {
+      "file": "docs/maintenance/audits/jankolock-3d-qa/heroes-resume/heroes-3-light.png",
+      "sha256": "3be1f25dfc852da178c07f4702fddbc9df29f91919dd932cc76f6e8cf328af57",
+      "size": [
+        1280,
+        720
+      ],
+      "variance": 4724.47,
+      "snapshot": {
+        "hero": "snipeoff",
+        "ammo": 6,
+        "shots": 0,
+        "reload": 0,
+        "cooldowns": {},
+        "casts": {},
+        "lastAbility": null,
+        "fx": 0,
+        "deployments": 0,
+        "projectiles": 0,
+        "buffs": [],
+        "model": {
+          "id": "snipeoff",
+          "bytes": 818532,
+          "sha256": "a4a0faa196232bf7a40d28491b8f66f056ab0ba3da614c10946ecd8aab13b0bc",
+          "triangles": 19160,
+          "meshes": 75,
+          "origin": "operator-external",
+          "movableNodes": 20,
+          "paletteSlots": 10,
+          "generatedUV": [
+            "folded_split_tail_001",
+            "folded_split_tail",
+            "tailored_auditor_coat"
+          ],
+          "unmatchedPaletteSlots": []
+        },
+        "position": [
+          0,
+          0,
+          8
+        ],
+        "camera": [
+          1.1,
+          1.5899895836588493,
+          11.998750065102811
+        ],
+        "fov": 65,
+        "yaw": 0,
+        "pitch": -0.025,
+        "held": [],
+        "state": "idle",
+        "stamina": 100,
+        "jumps": 0,
+        "grounded": true,
+        "infiniteAmmo": false,
+        "pointerLocked": false,
+        "health": 450,
+        "damage": 0,
+        "healing": 0,
+        "targets": [
+          {
+            "id": "left",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "center",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "right",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "covered",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "ally",
+            "hp": 140,
+            "alive": true,
+            "slow": false
+          }
+        ],
+        "time": 0.6501000000000005
+      }
+    },
+    {
+      "file": "docs/maintenance/audits/jankolock-3d-qa/heroes-resume/heroes-3-dark.png",
+      "sha256": "5ce2ba2adc50d9b5a669c29a5487710c5376f745eb0971a37ffdea95990e8051",
+      "size": [
+        1280,
+        720
+      ],
+      "variance": 4312.78,
+      "snapshot": {
+        "hero": "snipeoff",
+        "ammo": 6,
+        "shots": 0,
+        "reload": 0,
+        "cooldowns": {},
+        "casts": {},
+        "lastAbility": null,
+        "fx": 0,
+        "deployments": 0,
+        "projectiles": 0,
+        "buffs": [],
+        "model": {
+          "id": "snipeoff",
+          "bytes": 818532,
+          "sha256": "a4a0faa196232bf7a40d28491b8f66f056ab0ba3da614c10946ecd8aab13b0bc",
+          "triangles": 19160,
+          "meshes": 75,
+          "origin": "operator-external",
+          "movableNodes": 20,
+          "paletteSlots": 10,
+          "generatedUV": [
+            "folded_split_tail_001",
+            "folded_split_tail",
+            "tailored_auditor_coat"
+          ],
+          "unmatchedPaletteSlots": []
+        },
+        "position": [
+          0,
+          0,
+          8
+        ],
+        "camera": [
+          1.1,
+          1.5899895836588493,
+          11.998750065102811
+        ],
+        "fov": 65,
+        "yaw": 0,
+        "pitch": -0.025,
+        "held": [],
+        "state": "idle",
+        "stamina": 100,
+        "jumps": 0,
+        "grounded": true,
+        "infiniteAmmo": false,
+        "pointerLocked": false,
+        "health": 450,
+        "damage": 0,
+        "healing": 0,
+        "targets": [
+          {
+            "id": "left",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "center",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "right",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "covered",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "ally",
+            "hp": 140,
+            "alive": true,
+            "slow": false
+          }
+        ],
+        "time": 0.9168000000000005
+      }
+    },
+    {
+      "file": "docs/maintenance/audits/jankolock-3d-qa/heroes-resume/heroes-3-ability-1.png",
+      "sha256": "d2d6de946758941ab7d166627763669165b44fe1a721fdf73d0f6fa52a38b6fe",
+      "size": [
+        1280,
+        720
+      ],
+      "variance": 4504.94,
+      "snapshot": {
+        "hero": "snipeoff",
+        "ammo": 6,
+        "shots": 0,
+        "reload": 0,
+        "cooldowns": {
+          "1": 4.783300000000001
+        },
+        "casts": {
+          "longshot": 1
+        },
+        "lastAbility": "longshot",
+        "fx": 1,
+        "deployments": 0,
+        "projectiles": 0,
+        "buffs": [],
+        "model": {
+          "id": "snipeoff",
+          "bytes": 818532,
+          "sha256": "a4a0faa196232bf7a40d28491b8f66f056ab0ba3da614c10946ecd8aab13b0bc",
+          "triangles": 19160,
+          "meshes": 75,
+          "origin": "operator-external",
+          "movableNodes": 20,
+          "paletteSlots": 10,
+          "generatedUV": [
+            "folded_split_tail_001",
+            "folded_split_tail",
+            "tailored_auditor_coat"
+          ],
+          "unmatchedPaletteSlots": []
+        },
+        "position": [
+          0,
+          0,
+          8
+        ],
+        "camera": [
+          1.1,
+          1.5899895836588493,
+          11.998750065102811
+        ],
+        "fov": 65,
+        "yaw": 0,
+        "pitch": -0.025,
+        "held": [],
+        "state": "idle",
+        "stamina": 100,
+        "jumps": 0,
+        "grounded": true,
+        "infiniteAmmo": false,
+        "pointerLocked": false,
+        "health": 450,
+        "damage": 100,
+        "healing": 0,
+        "targets": [
+          {
+            "id": "left",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "center",
+            "hp": 300,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "right",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "covered",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "ally",
+            "hp": 140,
+            "alive": true,
+            "slow": false
+          }
+        ],
+        "time": 0.3166999999999989
+      }
+    },
+    {
+      "file": "docs/maintenance/audits/jankolock-3d-qa/heroes-resume/heroes-3-ability-2.png",
+      "sha256": "f8f8e80a09916ee040f82d921d71e00bb5f259d558dc37e3ad33395d618237cc",
+      "size": [
+        1280,
+        720
+      ],
+      "variance": 4508.66,
+      "snapshot": {
+        "hero": "snipeoff",
+        "ammo": 6,
+        "shots": 0,
+        "reload": 0,
+        "cooldowns": {
+          "2": 7.750000000000001
+        },
+        "casts": {
+          "tether": 1
+        },
+        "lastAbility": "tether",
+        "fx": 1,
+        "deployments": 0,
+        "projectiles": 0,
+        "buffs": [],
+        "model": {
+          "id": "snipeoff",
+          "bytes": 818532,
+          "sha256": "a4a0faa196232bf7a40d28491b8f66f056ab0ba3da614c10946ecd8aab13b0bc",
+          "triangles": 19160,
+          "meshes": 75,
+          "origin": "operator-external",
+          "movableNodes": 20,
+          "paletteSlots": 10,
+          "generatedUV": [
+            "folded_split_tail_001",
+            "folded_split_tail",
+            "tailored_auditor_coat"
+          ],
+          "unmatchedPaletteSlots": []
+        },
+        "position": [
+          0,
+          0,
+          8
+        ],
+        "camera": [
+          1.1,
+          1.5899895836588493,
+          11.998750065102811
+        ],
+        "fov": 65,
+        "yaw": 0,
+        "pitch": -0.025,
+        "held": [],
+        "state": "idle",
+        "stamina": 100,
+        "jumps": 0,
+        "grounded": true,
+        "infiniteAmmo": false,
+        "pointerLocked": false,
+        "health": 450,
+        "damage": 30,
+        "healing": 0,
+        "targets": [
+          {
+            "id": "left",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "center",
+            "hp": 370,
+            "alive": true,
+            "slow": true
+          },
+          {
+            "id": "right",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "covered",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "ally",
+            "hp": 140,
+            "alive": true,
+            "slow": false
+          }
+        ],
+        "time": 0.35
+      }
+    },
+    {
+      "file": "docs/maintenance/audits/jankolock-3d-qa/heroes-resume/heroes-3-ability-3.png",
+      "sha256": "5019c2f7da36b352cfcca5d80819f2279eb85e352d7cf76f24785d9c52964f73",
+      "size": [
+        1280,
+        720
+      ],
+      "variance": 4519.06,
+      "snapshot": {
+        "hero": "snipeoff",
+        "ammo": 6,
+        "shots": 0,
+        "reload": 0,
+        "cooldowns": {
+          "3": 11.816599999999998
+        },
+        "casts": {
+          "headshot": 1
+        },
+        "lastAbility": "headshot",
+        "fx": 1,
+        "deployments": 0,
+        "projectiles": 0,
+        "buffs": [
+          "headshot"
+        ],
+        "model": {
+          "id": "snipeoff",
+          "bytes": 818532,
+          "sha256": "a4a0faa196232bf7a40d28491b8f66f056ab0ba3da614c10946ecd8aab13b0bc",
+          "triangles": 19160,
+          "meshes": 75,
+          "origin": "operator-external",
+          "movableNodes": 20,
+          "paletteSlots": 10,
+          "generatedUV": [
+            "folded_split_tail_001",
+            "folded_split_tail",
+            "tailored_auditor_coat"
+          ],
+          "unmatchedPaletteSlots": []
+        },
+        "position": [
+          0,
+          0,
+          8
+        ],
+        "camera": [
+          1.1,
+          1.5899895836588493,
+          11.998750065102811
+        ],
+        "fov": 65,
+        "yaw": 0,
+        "pitch": -0.025,
+        "held": [],
+        "state": "idle",
+        "stamina": 100,
+        "jumps": 0,
+        "grounded": true,
+        "infiniteAmmo": false,
+        "pointerLocked": false,
+        "health": 450,
+        "damage": 0,
+        "healing": 0,
+        "targets": [
+          {
+            "id": "left",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "center",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "right",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "covered",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "ally",
+            "hp": 140,
+            "alive": true,
+            "slow": false
+          }
+        ],
+        "time": 0.28339999999999965
+      }
+    },
+    {
+      "file": "docs/maintenance/audits/jankolock-3d-qa/heroes-resume/heroes-3-ability-4.png",
+      "sha256": "841667ccaa32f925d6d18a606d87877de503d4078281bd2954bf298ffd43c953",
+      "size": [
+        1280,
+        720
+      ],
+      "variance": 4519.98,
+      "snapshot": {
+        "hero": "snipeoff",
+        "ammo": 6,
+        "shots": 0,
+        "reload": 0,
+        "cooldowns": {
+          "4": 19.816599999999998
+        },
+        "casts": {
+          "xray": 1
+        },
+        "lastAbility": "xray",
+        "fx": 1,
+        "deployments": 0,
+        "projectiles": 0,
+        "buffs": [
+          "xray"
+        ],
+        "model": {
+          "id": "snipeoff",
+          "bytes": 818532,
+          "sha256": "a4a0faa196232bf7a40d28491b8f66f056ab0ba3da614c10946ecd8aab13b0bc",
+          "triangles": 19160,
+          "meshes": 75,
+          "origin": "operator-external",
+          "movableNodes": 20,
+          "paletteSlots": 10,
+          "generatedUV": [
+            "folded_split_tail_001",
+            "folded_split_tail",
+            "tailored_auditor_coat"
+          ],
+          "unmatchedPaletteSlots": []
+        },
+        "position": [
+          0,
+          0,
+          8
+        ],
+        "camera": [
+          1.1,
+          1.5899895836588493,
+          11.998750065102811
+        ],
+        "fov": 65,
+        "yaw": 0,
+        "pitch": -0.025,
+        "held": [],
+        "state": "idle",
+        "stamina": 100,
+        "jumps": 0,
+        "grounded": true,
+        "infiniteAmmo": false,
+        "pointerLocked": false,
+        "health": 450,
+        "damage": 0,
+        "healing": 0,
+        "targets": [
+          {
+            "id": "left",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "center",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "right",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "covered",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "ally",
+            "hp": 140,
+            "alive": true,
+            "slow": false
+          }
+        ],
+        "time": 0.28339999999999965
+      }
+    },
+    {
+      "file": "docs/maintenance/audits/jankolock-3d-qa/heroes-resume/heroes-xray-target-death.png",
+      "sha256": "52e496b9b562805066ffc392fa06be476c52da770c9a0b3ed9c4a46af892b9bd",
+      "size": [
+        1280,
+        720
+      ],
+      "variance": 4352.87,
+      "snapshot": {
+        "hero": "snipeoff",
+        "ammo": 1,
+        "shots": 5,
+        "reload": 0,
+        "cooldowns": {
+          "1": 1.0166000000000117,
+          "4": 17.966599999999975
+        },
+        "casts": {
+          "longshot": 1,
+          "xray": 1
+        },
+        "lastAbility": "xray",
+        "fx": 1,
+        "deployments": 0,
+        "projectiles": 0,
+        "buffs": [
+          "xray"
+        ],
+        "model": {
+          "id": "snipeoff",
+          "bytes": 818532,
+          "sha256": "a4a0faa196232bf7a40d28491b8f66f056ab0ba3da614c10946ecd8aab13b0bc",
+          "triangles": 19160,
+          "meshes": 75,
+          "origin": "operator-external",
+          "movableNodes": 20,
+          "paletteSlots": 10,
+          "generatedUV": [
+            "folded_split_tail_001",
+            "folded_split_tail",
+            "tailored_auditor_coat"
+          ],
+          "unmatchedPaletteSlots": []
+        },
+        "position": [
+          0,
+          0,
+          8
+        ],
+        "camera": [
+          1.1,
+          1.5899895836588493,
+          11.998750065102811
+        ],
+        "fov": 65,
+        "yaw": 0,
+        "pitch": -0.025,
+        "held": [],
+        "state": "idle",
+        "stamina": 100,
+        "jumps": 0,
+        "grounded": true,
+        "infiniteAmmo": false,
+        "pointerLocked": true,
+        "health": 414,
+        "damage": 425,
+        "healing": 0,
+        "targets": [
+          {
+            "id": "left",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "center",
+            "hp": 0,
+            "alive": false,
+            "slow": false
+          },
+          {
+            "id": "right",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "covered",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "ally",
+            "hp": 140,
+            "alive": true,
+            "slow": false
+          }
+        ],
+        "time": 4.083399999999991
+      }
+    },
+    {
+      "file": "docs/maintenance/audits/jankolock-3d-qa/heroes-resume/heroes-xray-target-respawn.png",
+      "sha256": "725137b3975c075e2b2ad5566804fb1023ba3d13e2c7b8340a292966c4d66d79",
+      "size": [
+        1280,
+        720
+      ],
+      "variance": 4573.68,
+      "snapshot": {
+        "hero": "snipeoff",
+        "ammo": 1,
+        "shots": 5,
+        "reload": 0,
+        "cooldowns": {
+          "1": 0,
+          "4": 14.949999999999934
+        },
+        "casts": {
+          "longshot": 1,
+          "xray": 1
+        },
+        "lastAbility": "xray",
+        "fx": 1,
+        "deployments": 0,
+        "projectiles": 0,
+        "buffs": [
+          "xray"
+        ],
+        "model": {
+          "id": "snipeoff",
+          "bytes": 818532,
+          "sha256": "a4a0faa196232bf7a40d28491b8f66f056ab0ba3da614c10946ecd8aab13b0bc",
+          "triangles": 19160,
+          "meshes": 75,
+          "origin": "operator-external",
+          "movableNodes": 20,
+          "paletteSlots": 10,
+          "generatedUV": [
+            "folded_split_tail_001",
+            "folded_split_tail",
+            "tailored_auditor_coat"
+          ],
+          "unmatchedPaletteSlots": []
+        },
+        "position": [
+          0,
+          0,
+          8
+        ],
+        "camera": [
+          1.1,
+          1.5899895836588493,
+          11.998750065102811
+        ],
+        "fov": 65,
+        "yaw": 0,
+        "pitch": -0.025,
+        "held": [],
+        "state": "idle",
+        "stamina": 100,
+        "jumps": 0,
+        "grounded": true,
+        "infiniteAmmo": false,
+        "pointerLocked": true,
+        "health": 396,
+        "damage": 425,
+        "healing": 0,
+        "targets": [
+          {
+            "id": "left",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "center",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "right",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "covered",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "ally",
+            "hp": 140,
+            "alive": true,
+            "slow": false
+          }
+        ],
+        "time": 7.099999999999979
+      }
+    },
+    {
+      "file": "docs/maintenance/audits/jankolock-3d-qa/heroes-resume/heroes-xray-expired.png",
+      "sha256": "b99236c4b41b3ba193634730854491618d5a60cb6efb13364fb61137bd121218",
+      "size": [
+        1280,
+        720
+      ],
+      "variance": 4563.89,
+      "snapshot": {
+        "hero": "snipeoff",
+        "ammo": 1,
+        "shots": 5,
+        "reload": 0,
+        "cooldowns": {
+          "1": 0,
+          "4": 13.649999999999915
+        },
+        "casts": {
+          "longshot": 1,
+          "xray": 1
+        },
+        "lastAbility": "xray",
+        "fx": 0,
+        "deployments": 0,
+        "projectiles": 0,
+        "buffs": [],
+        "model": {
+          "id": "snipeoff",
+          "bytes": 818532,
+          "sha256": "a4a0faa196232bf7a40d28491b8f66f056ab0ba3da614c10946ecd8aab13b0bc",
+          "triangles": 19160,
+          "meshes": 75,
+          "origin": "operator-external",
+          "movableNodes": 20,
+          "paletteSlots": 10,
+          "generatedUV": [
+            "folded_split_tail_001",
+            "folded_split_tail",
+            "tailored_auditor_coat"
+          ],
+          "unmatchedPaletteSlots": []
+        },
+        "position": [
+          0,
+          0,
+          8
+        ],
+        "camera": [
+          1.1,
+          1.5899895836588493,
+          11.998750065102811
+        ],
+        "fov": 65,
+        "yaw": 0,
+        "pitch": -0.025,
+        "held": [],
+        "state": "idle",
+        "stamina": 100,
+        "jumps": 0,
+        "grounded": true,
+        "infiniteAmmo": false,
+        "pointerLocked": true,
+        "health": 378,
+        "damage": 425,
+        "healing": 0,
+        "targets": [
+          {
+            "id": "left",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "center",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "right",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "covered",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "ally",
+            "hp": 140,
+            "alive": true,
+            "slow": false
+          }
+        ],
+        "time": 8.39999999999998
+      }
+    },
+    {
+      "file": "docs/maintenance/audits/jankolock-3d-qa/heroes-resume/heroes-4-light.png",
+      "sha256": "49d87f34ddf3f961636330778d4218f7dc9c707e86391568aa6b5e0936d4bd3f",
+      "size": [
+        1280,
+        720
+      ],
+      "variance": 4662.48,
+      "snapshot": {
+        "hero": "gooey",
+        "ammo": 14,
+        "shots": 0,
+        "reload": 0,
+        "cooldowns": {},
+        "casts": {},
+        "lastAbility": null,
+        "fx": 0,
+        "deployments": 0,
+        "projectiles": 0,
+        "buffs": [],
+        "model": {
+          "id": "gooey",
+          "bytes": 1242716,
+          "sha256": "56d029d66b5aeaa31e07b1bedcaf70b96537e56cf0b9e66d48bd17d22623ab12",
+          "triangles": 48760,
+          "meshes": 30,
+          "origin": "operator-external",
+          "movableNodes": 10,
+          "paletteSlots": 6,
+          "generatedUV": [
+            "adhesive_torso_surface",
+            "attached_curved_label",
+            "adhesive_foot_l",
+            "adhesive_foot_r",
+            "adhesive_head_surface",
+            "adhesive_arm_l",
+            "adhesive_wrist_l",
+            "adhesive_arm_r",
+            "adhesive_wrist_r"
+          ],
+          "unmatchedPaletteSlots": []
+        },
+        "position": [
+          0,
+          0,
+          8
+        ],
+        "camera": [
+          1.1,
+          1.5899895836588493,
+          11.998750065102811
+        ],
+        "fov": 65,
+        "yaw": 0,
+        "pitch": -0.025,
+        "held": [],
+        "state": "idle",
+        "stamina": 100,
+        "jumps": 0,
+        "grounded": true,
+        "infiniteAmmo": false,
+        "pointerLocked": false,
+        "health": 600,
+        "damage": 0,
+        "healing": 0,
+        "targets": [
+          {
+            "id": "left",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "center",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "right",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "covered",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "ally",
+            "hp": 140,
+            "alive": true,
+            "slow": false
+          }
+        ],
+        "time": 0.5833999999999997
+      }
+    },
+    {
+      "file": "docs/maintenance/audits/jankolock-3d-qa/heroes-resume/heroes-4-dark.png",
+      "sha256": "5a096cf36baf29843f228dc9b103fa95f54de8599897a707c3d750d1f0b8644c",
+      "size": [
+        1280,
+        720
+      ],
+      "variance": 4374.38,
+      "snapshot": {
+        "hero": "gooey",
+        "ammo": 14,
+        "shots": 0,
+        "reload": 0,
+        "cooldowns": {},
+        "casts": {},
+        "lastAbility": null,
+        "fx": 0,
+        "deployments": 0,
+        "projectiles": 0,
+        "buffs": [],
+        "model": {
+          "id": "gooey",
+          "bytes": 1242716,
+          "sha256": "56d029d66b5aeaa31e07b1bedcaf70b96537e56cf0b9e66d48bd17d22623ab12",
+          "triangles": 48760,
+          "meshes": 30,
+          "origin": "operator-external",
+          "movableNodes": 10,
+          "paletteSlots": 6,
+          "generatedUV": [
+            "adhesive_torso_surface",
+            "attached_curved_label",
+            "adhesive_foot_l",
+            "adhesive_foot_r",
+            "adhesive_head_surface",
+            "adhesive_arm_l",
+            "adhesive_wrist_l",
+            "adhesive_arm_r",
+            "adhesive_wrist_r"
+          ],
+          "unmatchedPaletteSlots": []
+        },
+        "position": [
+          0,
+          0,
+          8
+        ],
+        "camera": [
+          1.1,
+          1.5899895836588493,
+          11.998750065102811
+        ],
+        "fov": 65,
+        "yaw": 0,
+        "pitch": -0.025,
+        "held": [],
+        "state": "idle",
+        "stamina": 100,
+        "jumps": 0,
+        "grounded": true,
+        "infiniteAmmo": false,
+        "pointerLocked": false,
+        "health": 600,
+        "damage": 0,
+        "healing": 0,
+        "targets": [
+          {
+            "id": "left",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "center",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "right",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "covered",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "ally",
+            "hp": 140,
+            "alive": true,
+            "slow": false
+          }
+        ],
+        "time": 0.8501999999999992
+      }
+    },
+    {
+      "file": "docs/maintenance/audits/jankolock-3d-qa/heroes-resume/heroes-4-ability-1.png",
+      "sha256": "3212fa93ad66bd5fb17c49b358b99de237b0ee327c95703c533c36694a3020b6",
+      "size": [
+        1280,
+        720
+      ],
+      "variance": 4464.53,
+      "snapshot": {
+        "hero": "gooey",
+        "ammo": 14,
+        "shots": 0,
+        "reload": 0,
+        "cooldowns": {
+          "1": 7.800000000000001
+        },
+        "casts": {
+          "puddle": 1
+        },
+        "lastAbility": "puddle",
+        "fx": 1,
+        "deployments": 1,
+        "projectiles": 0,
+        "buffs": [],
+        "model": {
+          "id": "gooey",
+          "bytes": 1242716,
+          "sha256": "56d029d66b5aeaa31e07b1bedcaf70b96537e56cf0b9e66d48bd17d22623ab12",
+          "triangles": 48760,
+          "meshes": 30,
+          "origin": "operator-external",
+          "movableNodes": 10,
+          "paletteSlots": 6,
+          "generatedUV": [
+            "adhesive_torso_surface",
+            "attached_curved_label",
+            "adhesive_foot_l",
+            "adhesive_foot_r",
+            "adhesive_head_surface",
+            "adhesive_arm_l",
+            "adhesive_wrist_l",
+            "adhesive_arm_r",
+            "adhesive_wrist_r"
+          ],
+          "unmatchedPaletteSlots": []
+        },
+        "position": [
+          0,
+          0,
+          8
+        ],
+        "camera": [
+          1.1,
+          1.5899895836588493,
+          11.998750065102811
+        ],
+        "fov": 65,
+        "yaw": 0,
+        "pitch": -0.025,
+        "held": [],
+        "state": "idle",
+        "stamina": 100,
+        "jumps": 0,
+        "grounded": true,
+        "infiniteAmmo": false,
+        "pointerLocked": false,
+        "health": 600,
+        "damage": 8,
+        "healing": 0,
+        "targets": [
+          {
+            "id": "left",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "center",
+            "hp": 392,
+            "alive": true,
+            "slow": true
+          },
+          {
+            "id": "right",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "covered",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "ally",
+            "hp": 140,
+            "alive": true,
+            "slow": false
+          }
+        ],
+        "time": 0.3
+      }
+    },
+    {
+      "file": "docs/maintenance/audits/jankolock-3d-qa/heroes-resume/heroes-4-ability-2.png",
+      "sha256": "58b7cdd8ef20770ef03ed64b8d96b09f781411463c76fcc4c98c33f669c721bb",
+      "size": [
+        1280,
+        720
+      ],
+      "variance": 4448.16,
+      "snapshot": {
+        "hero": "gooey",
+        "ammo": 14,
+        "shots": 0,
+        "reload": 0,
+        "cooldowns": {
+          "2": 5.800000000000001
+        },
+        "casts": {
+          "glue": 1
+        },
+        "lastAbility": "glue",
+        "fx": 1,
+        "deployments": 0,
+        "projectiles": 0,
+        "buffs": [],
+        "model": {
+          "id": "gooey",
+          "bytes": 1242716,
+          "sha256": "56d029d66b5aeaa31e07b1bedcaf70b96537e56cf0b9e66d48bd17d22623ab12",
+          "triangles": 48760,
+          "meshes": 30,
+          "origin": "operator-external",
+          "movableNodes": 10,
+          "paletteSlots": 6,
+          "generatedUV": [
+            "adhesive_torso_surface",
+            "attached_curved_label",
+            "adhesive_foot_l",
+            "adhesive_foot_r",
+            "adhesive_head_surface",
+            "adhesive_arm_l",
+            "adhesive_wrist_l",
+            "adhesive_arm_r",
+            "adhesive_wrist_r"
+          ],
+          "unmatchedPaletteSlots": []
+        },
+        "position": [
+          0,
+          0,
+          8
+        ],
+        "camera": [
+          1.1,
+          1.5899895836588493,
+          11.998750065102811
+        ],
+        "fov": 65,
+        "yaw": 0,
+        "pitch": -0.025,
+        "held": [],
+        "state": "idle",
+        "stamina": 100,
+        "jumps": 0,
+        "grounded": true,
+        "infiniteAmmo": false,
+        "pointerLocked": false,
+        "health": 600,
+        "damage": 135,
+        "healing": 0,
+        "targets": [
+          {
+            "id": "left",
+            "hp": 355,
+            "alive": true,
+            "slow": true
+          },
+          {
+            "id": "center",
+            "hp": 355,
+            "alive": true,
+            "slow": true
+          },
+          {
+            "id": "right",
+            "hp": 355,
+            "alive": true,
+            "slow": true
+          },
+          {
+            "id": "covered",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "ally",
+            "hp": 140,
+            "alive": true,
+            "slow": false
+          }
+        ],
+        "time": 0.3
+      }
+    },
+    {
+      "file": "docs/maintenance/audits/jankolock-3d-qa/heroes-resume/heroes-4-ability-3.png",
+      "sha256": "4343adf170dbe528e5cc4fa9d6ee24b9e462a47419e399a5291c913bce198839",
+      "size": [
+        1280,
+        720
+      ],
+      "variance": 4449.82,
+      "snapshot": {
+        "hero": "gooey",
+        "ammo": 14,
+        "shots": 0,
+        "reload": 0,
+        "cooldowns": {
+          "3": 7.7833
+        },
+        "casts": {
+          "missionbomb": 1
+        },
+        "lastAbility": "missionbomb",
+        "fx": 1,
+        "deployments": 0,
+        "projectiles": 1,
+        "buffs": [],
+        "model": {
+          "id": "gooey",
+          "bytes": 1242716,
+          "sha256": "56d029d66b5aeaa31e07b1bedcaf70b96537e56cf0b9e66d48bd17d22623ab12",
+          "triangles": 48760,
+          "meshes": 30,
+          "origin": "operator-external",
+          "movableNodes": 10,
+          "paletteSlots": 6,
+          "generatedUV": [
+            "adhesive_torso_surface",
+            "attached_curved_label",
+            "adhesive_foot_l",
+            "adhesive_foot_r",
+            "adhesive_head_surface",
+            "adhesive_arm_l",
+            "adhesive_wrist_l",
+            "adhesive_arm_r",
+            "adhesive_wrist_r"
+          ],
+          "unmatchedPaletteSlots": []
+        },
+        "position": [
+          0,
+          0,
+          8
+        ],
+        "camera": [
+          1.1,
+          1.5899895836588493,
+          11.998750065102811
+        ],
+        "fov": 65,
+        "yaw": 0,
+        "pitch": -0.025,
+        "held": [],
+        "state": "idle",
+        "stamina": 100,
+        "jumps": 0,
+        "grounded": true,
+        "infiniteAmmo": false,
+        "pointerLocked": false,
+        "health": 600,
+        "damage": 0,
+        "healing": 0,
+        "targets": [
+          {
+            "id": "left",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "center",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "right",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "covered",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "ally",
+            "hp": 140,
+            "alive": true,
+            "slow": false
+          }
+        ],
+        "time": 0.3167000000000007
+      }
+    },
+    {
+      "file": "docs/maintenance/audits/jankolock-3d-qa/heroes-resume/heroes-4-ability-4.png",
+      "sha256": "5f57ed36684da9e844882e5ff8d254392f7705a395c6ef22a457f2b3e35899be",
+      "size": [
+        1280,
+        720
+      ],
+      "variance": 4960.96,
+      "snapshot": {
+        "hero": "gooey",
+        "ammo": 14,
+        "shots": 0,
+        "reload": 0,
+        "cooldowns": {
+          "4": 21.799999999999997
+        },
+        "casts": {
+          "aura": 1
+        },
+        "lastAbility": "aura",
+        "fx": 1,
+        "deployments": 0,
+        "projectiles": 0,
+        "buffs": [
+          "aura"
+        ],
+        "model": {
+          "id": "gooey",
+          "bytes": 1242716,
+          "sha256": "56d029d66b5aeaa31e07b1bedcaf70b96537e56cf0b9e66d48bd17d22623ab12",
+          "triangles": 48760,
+          "meshes": 30,
+          "origin": "operator-external",
+          "movableNodes": 10,
+          "paletteSlots": 6,
+          "generatedUV": [
+            "adhesive_torso_surface",
+            "attached_curved_label",
+            "adhesive_foot_l",
+            "adhesive_foot_r",
+            "adhesive_head_surface",
+            "adhesive_arm_l",
+            "adhesive_wrist_l",
+            "adhesive_arm_r",
+            "adhesive_wrist_r"
+          ],
+          "unmatchedPaletteSlots": []
+        },
+        "position": [
+          0,
+          0,
+          8
+        ],
+        "camera": [
+          1.1,
+          1.5899895836588493,
+          11.998750065102811
+        ],
+        "fov": 65,
+        "yaw": 0,
+        "pitch": -0.025,
+        "held": [],
+        "state": "idle",
+        "stamina": 100,
+        "jumps": 0,
+        "grounded": true,
+        "infiniteAmmo": false,
+        "pointerLocked": false,
+        "health": 600,
+        "damage": 0,
+        "healing": 40,
+        "targets": [
+          {
+            "id": "left",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "center",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "right",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "covered",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "ally",
+            "hp": 180,
+            "alive": true,
+            "slow": false
+          }
+        ],
+        "time": 0.3
+      }
+    },
+    {
+      "file": "docs/maintenance/audits/jankolock-3d-qa/heroes-resume/heroes-pointerlook.png",
+      "sha256": "8089cd8572dc36a228a24c8714e8f9b0034443e038c8ae029fcf8a8dd83610e9",
+      "size": [
+        1280,
+        720
+      ],
+      "variance": 4964.47,
+      "snapshot": {
+        "hero": "stampead",
+        "ammo": 12,
+        "shots": 0,
+        "reload": 0,
+        "cooldowns": {},
+        "casts": {},
+        "lastAbility": null,
+        "fx": 0,
+        "deployments": 0,
+        "projectiles": 0,
+        "buffs": [],
+        "model": {
+          "id": "stampead",
+          "bytes": 948632,
+          "sha256": "6c679456b2ce7adce25515f5eb5e4947960a4541904edb65f290a5f9978926f0",
+          "triangles": 25596,
+          "meshes": 69,
+          "origin": "operator-external",
+          "movableNodes": 17,
+          "paletteSlots": 9,
+          "generatedUV": [
+            "armored_postroom_body"
+          ],
+          "unmatchedPaletteSlots": []
+        },
+        "position": [
+          0,
+          0,
+          8
+        ],
+        "camera": [
+          1.3234497814978587,
+          0.31533593877064847,
+          6.485073904956938
+        ],
+        "fov": 65,
+        "yaw": 1.8800000000000003,
+        "pitch": 0.5974999999999999,
+        "held": [],
+        "state": "idle",
+        "stamina": 100,
+        "jumps": 0,
+        "grounded": true,
+        "infiniteAmmo": false,
+        "pointerLocked": true,
+        "health": 700,
+        "damage": 0,
+        "healing": 0,
+        "targets": [
+          {
+            "id": "left",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "center",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "right",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "covered",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "ally",
+            "hp": 140,
+            "alive": true,
+            "slow": false
+          }
+        ],
+        "time": 0.6833999999999998
+      }
+    },
+    {
+      "file": "docs/maintenance/audits/jankolock-3d-qa/heroes-resume/heroes-aim.png",
+      "sha256": "dd6d4b1be13babf2678ec12b9bf49a9e0ff6f11da5145d9800ce676196ac78b5",
+      "size": [
+        1280,
+        720
+      ],
+      "variance": 4180.39,
+      "snapshot": {
+        "hero": "stampead",
+        "ammo": 12,
+        "shots": 0,
+        "reload": 0,
+        "cooldowns": {},
+        "casts": {},
+        "lastAbility": null,
+        "fx": 0,
+        "deployments": 0,
+        "projectiles": 0,
+        "buffs": [],
+        "model": {
+          "id": "stampead",
+          "bytes": 948632,
+          "sha256": "6c679456b2ce7adce25515f5eb5e4947960a4541904edb65f290a5f9978926f0",
+          "triangles": 25596,
+          "meshes": 69,
+          "origin": "operator-external",
+          "movableNodes": 17,
+          "paletteSlots": 9,
+          "generatedUV": [
+            "armored_postroom_body"
+          ],
+          "unmatchedPaletteSlots": []
+        },
+        "position": [
+          0,
+          0,
+          8
+        ],
+        "camera": [
+          1.1,
+          1.5601700094971152,
+          10.806215605439434
+        ],
+        "fov": 48.199889932111496,
+        "yaw": 0,
+        "pitch": -0.025,
+        "held": [
+          "aim"
+        ],
+        "state": "idle",
+        "stamina": 100,
+        "jumps": 0,
+        "grounded": true,
+        "infiniteAmmo": false,
+        "pointerLocked": true,
+        "health": 700,
+        "damage": 0,
+        "healing": 0,
+        "targets": [
+          {
+            "id": "left",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "center",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "right",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "covered",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "ally",
+            "hp": 140,
+            "alive": true,
+            "slow": false
+          }
+        ],
+        "time": 0.46649999999999997
+      }
+    },
+    {
+      "file": "docs/maintenance/audits/jankolock-3d-qa/heroes-resume/heroes-double-jump.png",
+      "sha256": "b423b1708f8135e71ecab2ffc54aff6787581703606a22ae26de5ef9f037a190",
+      "size": [
+        1280,
+        720
+      ],
+      "variance": 4421.68,
+      "snapshot": {
+        "hero": "stampead",
+        "ammo": 12,
+        "shots": 0,
+        "reload": 0,
+        "cooldowns": {},
+        "casts": {},
+        "lastAbility": null,
+        "fx": 1,
+        "deployments": 0,
+        "projectiles": 0,
+        "buffs": [],
+        "model": {
+          "id": "stampead",
+          "bytes": 948632,
+          "sha256": "6c679456b2ce7adce25515f5eb5e4947960a4541904edb65f290a5f9978926f0",
+          "triangles": 25596,
+          "meshes": 69,
+          "origin": "operator-external",
+          "movableNodes": 17,
+          "paletteSlots": 9,
+          "generatedUV": [
+            "armored_postroom_body"
+          ],
+          "unmatchedPaletteSlots": []
+        },
+        "position": [
+          0,
+          2.005000000000001,
+          8
+        ],
+        "camera": [
+          1.1,
+          3.427755954513177,
+          11.989869758183987
+        ],
+        "fov": 64.8748965847788,
+        "yaw": 0,
+        "pitch": -0.025,
+        "held": [],
+        "state": "jump",
+        "stamina": 100,
+        "jumps": 2,
+        "grounded": false,
+        "infiniteAmmo": false,
+        "pointerLocked": true,
+        "health": 700,
+        "damage": 0,
+        "healing": 0,
+        "targets": [
+          {
+            "id": "left",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "center",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "right",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "covered",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "ally",
+            "hp": 140,
+            "alive": true,
+            "slow": false
+          }
+        ],
+        "time": 0.8165000000000002
+      }
+    },
+    {
+      "file": "docs/maintenance/audits/jankolock-3d-qa/heroes-resume/heroes-dash.png",
+      "sha256": "630f10cd312afff850b3d27f344b83a09257e6a8e07b4ccc12dddbb93dd5f46e",
+      "size": [
+        1280,
+        720
+      ],
+      "variance": 4347.78,
+      "snapshot": {
+        "hero": "stampead",
+        "ammo": 12,
+        "shots": 0,
+        "reload": 0,
+        "cooldowns": {},
+        "casts": {},
+        "lastAbility": null,
+        "fx": 1,
+        "deployments": 0,
+        "projectiles": 0,
+        "buffs": [],
+        "model": {
+          "id": "stampead",
+          "bytes": 948632,
+          "sha256": "6c679456b2ce7adce25515f5eb5e4947960a4541904edb65f290a5f9978926f0",
+          "triangles": 25596,
+          "meshes": 69,
+          "origin": "operator-external",
+          "movableNodes": 17,
+          "paletteSlots": 9,
+          "generatedUV": [
+            "armored_postroom_body"
+          ],
+          "unmatchedPaletteSlots": []
+        },
+        "position": [
+          0,
+          0,
+          1.0802083333333474
+        ],
+        "camera": [
+          1.1,
+          1.6004993793328581,
+          6.378432473176047
+        ],
+        "fov": 64.99999655509615,
+        "yaw": 0,
+        "pitch": -0.025,
+        "held": [
+          "KeyW"
+        ],
+        "state": "walk",
+        "stamina": 70,
+        "jumps": 0,
+        "grounded": true,
+        "infiniteAmmo": false,
+        "pointerLocked": true,
+        "health": 700,
+        "damage": 0,
+        "healing": 0,
+        "targets": [
+          {
+            "id": "left",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "center",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "right",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "covered",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "ally",
+            "hp": 140,
+            "alive": true,
+            "slow": false
+          }
+        ],
+        "time": 1.566500000000001
+      }
+    },
+    {
+      "file": "docs/maintenance/audits/jankolock-3d-qa/heroes-resume/heroes-slide.png",
+      "sha256": "4aabb9b18522e6a6850339211430a4de46875b146955dbd27a955b7ea0a291de",
+      "size": [
+        1280,
+        720
+      ],
+      "variance": 4290.8,
+      "snapshot": {
+        "hero": "stampead",
+        "ammo": 12,
+        "shots": 1,
+        "reload": 0,
+        "cooldowns": {},
+        "casts": {},
+        "lastAbility": null,
+        "fx": 1,
+        "deployments": 0,
+        "projectiles": 0,
+        "buffs": [],
+        "model": {
+          "id": "stampead",
+          "bytes": 948632,
+          "sha256": "6c679456b2ce7adce25515f5eb5e4947960a4541904edb65f290a5f9978926f0",
+          "triangles": 25596,
+          "meshes": 69,
+          "origin": "operator-external",
+          "movableNodes": 17,
+          "paletteSlots": 9,
+          "generatedUV": [
+            "armored_postroom_body"
+          ],
+          "unmatchedPaletteSlots": []
+        },
+        "position": [
+          0,
+          0,
+          2.3527662810321095
+        ],
+        "camera": [
+          1.1,
+          0.7527358239562553,
+          6.848675957831301
+        ],
+        "fov": 64.99999999997661,
+        "yaw": 0,
+        "pitch": -0.025,
+        "held": [
+          "KeyW",
+          "ControlLeft",
+          "KeyC",
+          "fire"
+        ],
+        "state": "slide",
+        "stamina": 100,
+        "jumps": 0,
+        "grounded": true,
+        "infiniteAmmo": true,
+        "pointerLocked": true,
+        "health": 700,
+        "damage": 24,
+        "healing": 0,
+        "targets": [
+          {
+            "id": "left",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "center",
+            "hp": 376,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "right",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "covered",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "ally",
+            "hp": 140,
+            "alive": true,
+            "slow": false
+          }
+        ],
+        "time": 0.7000000000000001
+      }
+    },
+    {
+      "file": "docs/maintenance/audits/jankolock-3d-qa/heroes-resume/heroes-camera-wall-clamp.png",
+      "sha256": "52d6d03f9053e80d9a02eca7c936876544d09a7d68106134701949ccdfe2f019",
+      "size": [
+        1280,
+        720
+      ],
+      "variance": 4432.64,
+      "snapshot": {
+        "hero": "stampead",
+        "ammo": 12,
+        "shots": 0,
+        "reload": 0,
+        "cooldowns": {},
+        "casts": {},
+        "lastAbility": null,
+        "fx": 0,
+        "deployments": 0,
+        "projectiles": 0,
+        "buffs": [],
+        "model": {
+          "id": "stampead",
+          "bytes": 948632,
+          "sha256": "6c679456b2ce7adce25515f5eb5e4947960a4541904edb65f290a5f9978926f0",
+          "triangles": 25596,
+          "meshes": 69,
+          "origin": "operator-external",
+          "movableNodes": 17,
+          "paletteSlots": 9,
+          "generatedUV": [
+            "armored_postroom_body"
+          ],
+          "unmatchedPaletteSlots": []
+        },
+        "position": [
+          0,
+          0,
+          13.599999999999985
+        ],
+        "camera": [
+          1.1,
+          1.568284880441529,
+          16.692347807017725
+        ],
+        "fov": 65,
+        "yaw": 0,
+        "pitch": -0.025,
+        "held": [],
+        "state": "idle",
+        "stamina": 100,
+        "jumps": 0,
+        "grounded": true,
+        "infiniteAmmo": false,
+        "pointerLocked": false,
+        "health": 700,
+        "damage": 0,
+        "healing": 0,
+        "targets": [
+          {
+            "id": "left",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "center",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "right",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "covered",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "ally",
+            "hp": 140,
+            "alive": true,
+            "slow": false
+          }
+        ],
+        "time": 0.9500000000000003
+      }
+    },
+    {
+      "file": "docs/maintenance/audits/jankolock-3d-qa/heroes-resume/heroes-mobile-light.png",
+      "sha256": "4c14a2fa66bfacc1d85c7d2cd52749380996ac0aa9ff0fba2b0a6cbc0f6bef4f",
+      "size": [
+        390,
+        844
+      ],
+      "variance": 9361.95,
+      "snapshot": {
+        "hero": "stampead",
+        "ammo": 12,
+        "shots": 0,
+        "reload": 0,
+        "cooldowns": {},
+        "casts": {},
+        "lastAbility": null,
+        "fx": 0,
+        "deployments": 0,
+        "projectiles": 0,
+        "buffs": [],
+        "model": {
+          "id": "stampead",
+          "bytes": 948632,
+          "sha256": "6c679456b2ce7adce25515f5eb5e4947960a4541904edb65f290a5f9978926f0",
+          "triangles": 25596,
+          "meshes": 69,
+          "origin": "operator-external",
+          "movableNodes": 17,
+          "paletteSlots": 9,
+          "generatedUV": [
+            "armored_postroom_body"
+          ],
+          "unmatchedPaletteSlots": []
+        },
+        "position": [
+          0,
+          0,
+          8
+        ],
+        "camera": [
+          1.1,
+          1.5899895836588493,
+          11.998750065102811
+        ],
+        "fov": 65,
+        "yaw": 0,
+        "pitch": -0.025,
+        "held": [],
+        "state": "idle",
+        "stamina": 100,
+        "jumps": 0,
+        "grounded": true,
+        "infiniteAmmo": false,
+        "pointerLocked": false,
+        "health": 700,
+        "damage": 0,
+        "healing": 0,
+        "targets": [
+          {
+            "id": "left",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "center",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "right",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "covered",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "ally",
+            "hp": 140,
+            "alive": true,
+            "slow": false
+          }
+        ],
+        "time": 0.7833999999999999
+      }
+    },
+    {
+      "file": "docs/maintenance/audits/jankolock-3d-qa/heroes-resume/heroes-mobile-full-light.png",
+      "sha256": "6e4b3c7de1ff0e4b24673017f52bd60e2a96509abfe47d7b1d63815e26d77b36",
+      "size": [
+        390,
+        1031
+      ],
+      "variance": 9811.48,
+      "snapshot": {
+        "hero": "stampead",
+        "ammo": 12,
+        "shots": 0,
+        "reload": 0,
+        "cooldowns": {},
+        "casts": {},
+        "lastAbility": null,
+        "fx": 0,
+        "deployments": 0,
+        "projectiles": 0,
+        "buffs": [],
+        "model": {
+          "id": "stampead",
+          "bytes": 948632,
+          "sha256": "6c679456b2ce7adce25515f5eb5e4947960a4541904edb65f290a5f9978926f0",
+          "triangles": 25596,
+          "meshes": 69,
+          "origin": "operator-external",
+          "movableNodes": 17,
+          "paletteSlots": 9,
+          "generatedUV": [
+            "armored_postroom_body"
+          ],
+          "unmatchedPaletteSlots": []
+        },
+        "position": [
+          0,
+          0,
+          8
+        ],
+        "camera": [
+          1.1,
+          1.5899895836588493,
+          11.998750065102811
+        ],
+        "fov": 65,
+        "yaw": 0,
+        "pitch": -0.025,
+        "held": [],
+        "state": "idle",
+        "stamina": 100,
+        "jumps": 0,
+        "grounded": true,
+        "infiniteAmmo": false,
+        "pointerLocked": false,
+        "health": 700,
+        "damage": 0,
+        "healing": 0,
+        "targets": [
+          {
+            "id": "left",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "center",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "right",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "covered",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "ally",
+            "hp": 140,
+            "alive": true,
+            "slow": false
+          }
+        ],
+        "time": 1.1501
+      }
+    },
+    {
+      "file": "docs/maintenance/audits/jankolock-3d-qa/heroes-resume/heroes-mobile-dark.png",
+      "sha256": "26f150856e17ed043b3d70d117b753de5402bd0b25386fe94640452b758c6d60",
+      "size": [
+        390,
+        844
+      ],
+      "variance": 5019.61,
+      "snapshot": {
+        "hero": "stampead",
+        "ammo": 12,
+        "shots": 0,
+        "reload": 0,
+        "cooldowns": {},
+        "casts": {},
+        "lastAbility": null,
+        "fx": 0,
+        "deployments": 0,
+        "projectiles": 0,
+        "buffs": [],
+        "model": {
+          "id": "stampead",
+          "bytes": 948632,
+          "sha256": "6c679456b2ce7adce25515f5eb5e4947960a4541904edb65f290a5f9978926f0",
+          "triangles": 25596,
+          "meshes": 69,
+          "origin": "operator-external",
+          "movableNodes": 17,
+          "paletteSlots": 9,
+          "generatedUV": [
+            "armored_postroom_body"
+          ],
+          "unmatchedPaletteSlots": []
+        },
+        "position": [
+          0,
+          0,
+          8
+        ],
+        "camera": [
+          1.1,
+          1.5899895836588493,
+          11.998750065102811
+        ],
+        "fov": 65,
+        "yaw": 0,
+        "pitch": -0.025,
+        "held": [],
+        "state": "idle",
+        "stamina": 100,
+        "jumps": 0,
+        "grounded": true,
+        "infiniteAmmo": false,
+        "pointerLocked": false,
+        "health": 700,
+        "damage": 0,
+        "healing": 0,
+        "targets": [
+          {
+            "id": "left",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "center",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "right",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "covered",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "ally",
+            "hp": 140,
+            "alive": true,
+            "slow": false
+          }
+        ],
+        "time": 1.5501000000000003
+      }
+    },
+    {
+      "file": "docs/maintenance/audits/jankolock-3d-qa/heroes-resume/heroes-mobile-full-dark.png",
+      "sha256": "b9cc7eb072e8e732b7fdfb4f808e18ccd13b7db0095c68964d09fe4470eaea94",
+      "size": [
+        390,
+        1031
+      ],
+      "variance": 4586.58,
+      "snapshot": {
+        "hero": "stampead",
+        "ammo": 12,
+        "shots": 0,
+        "reload": 0,
+        "cooldowns": {},
+        "casts": {},
+        "lastAbility": null,
+        "fx": 0,
+        "deployments": 0,
+        "projectiles": 0,
+        "buffs": [],
+        "model": {
+          "id": "stampead",
+          "bytes": 948632,
+          "sha256": "6c679456b2ce7adce25515f5eb5e4947960a4541904edb65f290a5f9978926f0",
+          "triangles": 25596,
+          "meshes": 69,
+          "origin": "operator-external",
+          "movableNodes": 17,
+          "paletteSlots": 9,
+          "generatedUV": [
+            "armored_postroom_body"
+          ],
+          "unmatchedPaletteSlots": []
+        },
+        "position": [
+          0,
+          0,
+          8
+        ],
+        "camera": [
+          1.1,
+          1.5899895836588493,
+          11.998750065102811
+        ],
+        "fov": 65,
+        "yaw": 0,
+        "pitch": -0.025,
+        "held": [],
+        "state": "idle",
+        "stamina": 100,
+        "jumps": 0,
+        "grounded": true,
+        "infiniteAmmo": false,
+        "pointerLocked": false,
+        "health": 700,
+        "damage": 0,
+        "healing": 0,
+        "targets": [
+          {
+            "id": "left",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "center",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "right",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "covered",
+            "hp": 400,
+            "alive": true,
+            "slow": false
+          },
+          {
+            "id": "ally",
+            "hp": 140,
+            "alive": true,
+            "slow": false
+          }
+        ],
+        "time": 1.9666999999999992
+      }
+    }
+  ],
+  "checks": [
+    "hero 1 ability 1 normal button input: hook",
+    "hero 1 ability 2 normal button input: volley",
+    "hero 1 ability 3 normal button input: slam",
+    "hero 1 ability 4 normal button input: overtime",
+    "hero 2 ability 1 normal button input: turret",
+    "hero 2 ability 2 normal button input: barricade",
+    "hero 2 ability 3 normal button input: grenade",
+    "hero 2 ability 4 normal button input: chaingun",
+    "hero 3 ability 1 normal button input: longshot",
+    "hero 3 ability 2 normal button input: tether",
+    "hero 3 ability 3 normal button input: headshot",
+    "hero 3 ability 4 normal button input: xray",
+    "Native Snipeoff reveal across dummy death/respawn and original expiry; membership geometry also has Node regression",
+    "hero 4 ability 1 normal button input: puddle",
+    "hero 4 ability 2 normal button input: glue",
+    "hero 4 ability 3 normal button input: missionbomb",
+    "hero 4 ability 4 normal button input: aura",
+    "Pointer lock and RMB FOV zoom observed",
+    "Two airborne jumps, third jump rejected, grounded reset",
+    "Shift dash stamina debit observed",
+    "Sprint, slide, real slide shot without ammunition debit, exit clears infinite ammunition",
+    "Native backward walk: camera distance 3.75m at rear wall",
+    "Rear-wall movement collision observed",
+    "390px touch ability/jump/held movement/release, both themes, no horizontal overflow"
+  ],
+  "errors": [],
+  "responses": [
+    {
+      "hero": 1,
+      "status": 200
+    },
+    {
+      "hero": 2,
+      "status": 200
+    },
+    {
+      "hero": 3,
+      "status": 200
+    },
+    {
+      "hero": 4,
+      "status": 200
+    }
+  ],
+  "requests": [
+    {
+      "url": "Games/Jankolock3D/heroes/devhero-1.html",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/heroes/devhero.css",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/heroes/devhero.mjs",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/heroes/player-controller.mjs",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/heroes/hero-runtime.mjs",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/character-assets.mjs",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/vendor/three.module.js",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/traversal.mjs",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/world-data.mjs",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/heroes/hero-visuals.mjs",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/vendor/addons/GLTFLoader.js",
+      "status": 200
+    },
+    {
+      "url": "assets/fonts/atkinson-hyperlegible/atkinson-hyperlegible-400-latin.woff2",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/heroes/hero-model.mjs",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/vendor/addons/BufferGeometryUtils.js",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/vendor/addons/SkeletonUtils.js",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/vendor/three.core.js",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/models/stampead/model.glb",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/models/stampead/receipt.json",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/models/stampead/manifest.json",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/models/stampead/palette.json",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/models/stampead/rig.json",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/models/turretina/model.glb",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/models/turretina/receipt.json",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/models/turretina/palette.json",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/models/turretina/manifest.json",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/models/turretina/rig.json",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/models/snipeoff/model.glb",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/models/snipeoff/receipt.json",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/models/snipeoff/palette.json",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/models/snipeoff/manifest.json",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/models/snipeoff/rig.json",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/models/gooey/model.glb",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/models/gooey/receipt.json",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/models/gooey/manifest.json",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/models/gooey/palette.json",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/models/gooey/rig.json",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/models/deployed_stapler/model.glb",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/models/deployed_stapler/receipt.json",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/models/deployed_stapler/manifest.json",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/models/deployed_stapler/palette.json",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/models/deployed_stapler/rig.json",
+      "status": 200
+    },
+    {
+      "url": "favicon.svg",
+      "status": 200
+    },
+    {
+      "url": "docs/jank3d-hero-kits.json",
+      "status": 200
+    },
+    {
+      "url": "assets/fonts/atkinson-hyperlegible/atkinson-hyperlegible-700-latin.woff2",
+      "status": 200
+    },
+    {
+      "url": "assets/fonts/bungee/bungee-400-latin.woff2",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/heroes/devhero-2.html",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/heroes/devhero.css",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/heroes/devhero.mjs",
+      "status": 200
+    },
+    {
+      "url": "assets/fonts/atkinson-hyperlegible/atkinson-hyperlegible-400-latin.woff2",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/character-assets.mjs",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/heroes/hero-runtime.mjs",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/heroes/player-controller.mjs",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/vendor/three.module.js",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/vendor/addons/GLTFLoader.js",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/heroes/hero-visuals.mjs",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/world-data.mjs",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/traversal.mjs",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/vendor/addons/BufferGeometryUtils.js",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/heroes/hero-model.mjs",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/vendor/addons/SkeletonUtils.js",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/vendor/three.core.js",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/models/stampead/model.glb",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/models/stampead/receipt.json",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/models/turretina/model.glb",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/models/stampead/rig.json",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/models/stampead/palette.json",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/models/stampead/manifest.json",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/models/turretina/receipt.json",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/models/turretina/manifest.json",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/models/turretina/palette.json",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/models/turretina/rig.json",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/models/snipeoff/model.glb",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/models/snipeoff/receipt.json",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/models/snipeoff/manifest.json",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/models/snipeoff/rig.json",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/models/snipeoff/palette.json",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/models/gooey/model.glb",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/models/gooey/receipt.json",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/models/gooey/manifest.json",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/models/gooey/palette.json",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/models/gooey/rig.json",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/models/deployed_stapler/model.glb",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/models/deployed_stapler/receipt.json",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/models/deployed_stapler/manifest.json",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/models/deployed_stapler/palette.json",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/models/deployed_stapler/rig.json",
+      "status": 200
+    },
+    {
+      "url": "favicon.svg",
+      "status": 200
+    },
+    {
+      "url": "docs/jank3d-hero-kits.json",
+      "status": 200
+    },
+    {
+      "url": "assets/fonts/bungee/bungee-400-latin.woff2",
+      "status": 200
+    },
+    {
+      "url": "assets/fonts/atkinson-hyperlegible/atkinson-hyperlegible-700-latin.woff2",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/heroes/devhero-3.html",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/heroes/devhero.css",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/heroes/devhero.mjs",
+      "status": 200
+    },
+    {
+      "url": "assets/fonts/atkinson-hyperlegible/atkinson-hyperlegible-400-latin.woff2",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/heroes/hero-runtime.mjs",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/heroes/player-controller.mjs",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/character-assets.mjs",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/vendor/three.module.js",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/world-data.mjs",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/heroes/hero-visuals.mjs",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/traversal.mjs",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/vendor/addons/GLTFLoader.js",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/heroes/hero-model.mjs",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/vendor/addons/BufferGeometryUtils.js",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/vendor/addons/SkeletonUtils.js",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/vendor/three.core.js",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/models/stampead/model.glb",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/models/stampead/manifest.json",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/models/stampead/palette.json",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/models/stampead/receipt.json",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/models/stampead/rig.json",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/models/turretina/model.glb",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/models/turretina/palette.json",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/models/turretina/manifest.json",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/models/turretina/receipt.json",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/models/turretina/rig.json",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/models/snipeoff/receipt.json",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/models/snipeoff/model.glb",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/models/snipeoff/palette.json",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/models/snipeoff/manifest.json",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/models/snipeoff/rig.json",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/models/gooey/model.glb",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/models/gooey/receipt.json",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/models/gooey/manifest.json",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/models/gooey/palette.json",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/models/gooey/rig.json",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/models/deployed_stapler/model.glb",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/models/deployed_stapler/receipt.json",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/models/deployed_stapler/manifest.json",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/models/deployed_stapler/palette.json",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/models/deployed_stapler/rig.json",
+      "status": 200
+    },
+    {
+      "url": "favicon.svg",
+      "status": 200
+    },
+    {
+      "url": "docs/jank3d-hero-kits.json",
+      "status": 200
+    },
+    {
+      "url": "assets/fonts/bungee/bungee-400-latin.woff2",
+      "status": 200
+    },
+    {
+      "url": "assets/fonts/atkinson-hyperlegible/atkinson-hyperlegible-700-latin.woff2",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/heroes/devhero-4.html",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/heroes/devhero.css",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/heroes/devhero.mjs",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/heroes/player-controller.mjs",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/character-assets.mjs",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/heroes/hero-runtime.mjs",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/vendor/three.module.js",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/traversal.mjs",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/world-data.mjs",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/heroes/hero-visuals.mjs",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/vendor/addons/GLTFLoader.js",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/heroes/hero-model.mjs",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/vendor/addons/SkeletonUtils.js",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/vendor/addons/BufferGeometryUtils.js",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/vendor/three.core.js",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/models/stampead/model.glb",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/models/stampead/receipt.json",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/models/stampead/manifest.json",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/models/stampead/rig.json",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/models/stampead/palette.json",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/models/turretina/model.glb",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/models/turretina/receipt.json",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/models/turretina/manifest.json",
+      "status": 200
+    },
+    {
+      "url": "assets/fonts/atkinson-hyperlegible/atkinson-hyperlegible-400-latin.woff2",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/models/turretina/palette.json",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/models/turretina/rig.json",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/models/snipeoff/model.glb",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/models/snipeoff/manifest.json",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/models/snipeoff/receipt.json",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/models/snipeoff/palette.json",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/models/snipeoff/rig.json",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/models/gooey/model.glb",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/models/gooey/receipt.json",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/models/gooey/manifest.json",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/models/gooey/palette.json",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/models/gooey/rig.json",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/models/deployed_stapler/model.glb",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/models/deployed_stapler/receipt.json",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/models/deployed_stapler/manifest.json",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/models/deployed_stapler/palette.json",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/models/deployed_stapler/rig.json",
+      "status": 200
+    },
+    {
+      "url": "favicon.svg",
+      "status": 200
+    },
+    {
+      "url": "docs/jank3d-hero-kits.json",
+      "status": 200
+    },
+    {
+      "url": "assets/fonts/atkinson-hyperlegible/atkinson-hyperlegible-700-latin.woff2",
+      "status": 200
+    },
+    {
+      "url": "assets/fonts/bungee/bungee-400-latin.woff2",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/heroes/devhero-1.html",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/heroes/devhero.css",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/heroes/devhero.mjs",
+      "status": 200
+    },
+    {
+      "url": "assets/fonts/atkinson-hyperlegible/atkinson-hyperlegible-400-latin.woff2",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/character-assets.mjs",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/heroes/player-controller.mjs",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/heroes/hero-runtime.mjs",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/vendor/three.module.js",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/vendor/addons/GLTFLoader.js",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/traversal.mjs",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/world-data.mjs",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/heroes/hero-visuals.mjs",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/vendor/addons/BufferGeometryUtils.js",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/heroes/hero-model.mjs",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/vendor/addons/SkeletonUtils.js",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/vendor/three.core.js",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/models/stampead/model.glb",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/models/stampead/receipt.json",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/models/stampead/manifest.json",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/models/stampead/palette.json",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/models/turretina/model.glb",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/models/stampead/rig.json",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/models/turretina/receipt.json",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/models/turretina/manifest.json",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/models/turretina/rig.json",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/models/turretina/palette.json",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/models/snipeoff/model.glb",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/models/snipeoff/receipt.json",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/models/snipeoff/manifest.json",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/models/snipeoff/palette.json",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/models/snipeoff/rig.json",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/models/gooey/model.glb",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/models/gooey/receipt.json",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/models/gooey/manifest.json",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/models/gooey/palette.json",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/models/gooey/rig.json",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/models/deployed_stapler/model.glb",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/models/deployed_stapler/receipt.json",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/models/deployed_stapler/manifest.json",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/models/deployed_stapler/palette.json",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/models/deployed_stapler/rig.json",
+      "status": 200
+    },
+    {
+      "url": "favicon.svg",
+      "status": 200
+    },
+    {
+      "url": "docs/jank3d-hero-kits.json",
+      "status": 200
+    },
+    {
+      "url": "assets/fonts/bungee/bungee-400-latin.woff2",
+      "status": 200
+    },
+    {
+      "url": "assets/fonts/atkinson-hyperlegible/atkinson-hyperlegible-700-latin.woff2",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/heroes/devhero-1.html",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/heroes/devhero.css",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/heroes/devhero.mjs",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/character-assets.mjs",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/heroes/player-controller.mjs",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/heroes/hero-runtime.mjs",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/vendor/three.module.js",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/vendor/addons/GLTFLoader.js",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/traversal.mjs",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/heroes/hero-visuals.mjs",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/world-data.mjs",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/vendor/addons/BufferGeometryUtils.js",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/vendor/addons/SkeletonUtils.js",
+      "status": 200
+    },
+    {
+      "url": "assets/fonts/atkinson-hyperlegible/atkinson-hyperlegible-400-latin.woff2",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/heroes/hero-model.mjs",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/vendor/three.core.js",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/models/stampead/model.glb",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/models/stampead/manifest.json",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/models/stampead/receipt.json",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/models/stampead/palette.json",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/models/stampead/rig.json",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/models/turretina/model.glb",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/models/turretina/receipt.json",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/models/turretina/manifest.json",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/models/turretina/palette.json",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/models/turretina/rig.json",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/models/snipeoff/model.glb",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/models/snipeoff/receipt.json",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/models/snipeoff/palette.json",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/models/snipeoff/manifest.json",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/models/snipeoff/rig.json",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/models/gooey/model.glb",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/models/gooey/receipt.json",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/models/gooey/manifest.json",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/models/gooey/palette.json",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/models/gooey/rig.json",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/models/deployed_stapler/model.glb",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/models/deployed_stapler/receipt.json",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/models/deployed_stapler/manifest.json",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/models/deployed_stapler/palette.json",
+      "status": 200
+    },
+    {
+      "url": "Games/Jankolock3D/models/deployed_stapler/rig.json",
+      "status": 200
+    },
+    {
+      "url": "favicon.svg",
+      "status": 200
+    },
+    {
+      "url": "docs/jank3d-hero-kits.json",
+      "status": 200
+    },
+    {
+      "url": "assets/fonts/atkinson-hyperlegible/atkinson-hyperlegible-700-latin.woff2",
+      "status": 200
+    },
+    {
+      "url": "assets/fonts/bungee/bungee-400-latin.woff2",
+      "status": 200
+    }
+  ],
+  "sourceRevision": "24cc2ad9448972c4e58da11ea3d18d532eb0c3df",
+  "sourceHashes": {
+    "Games/Jankolock3D/art/hero-concept-prompts.json": "9aef4455404f0b3e846391aba9e031df90facc32f5f2952f5256f9f7a0c0739b",
+    "Games/Jankolock3D/bots-test.mjs": "deba7019a62a2d5d17e06142b38b64db637a1cfe032bdd2e1e90a6bc0960c954",
+    "Games/Jankolock3D/bots.mjs": "c879c3cfa3b6528e52dc0fab0b879114725063555f60a49d9698326b2f5a2f61",
+    "Games/Jankolock3D/character-assets.mjs": "15a64b9aa6c978617ac5fa7e24c0384e7c8c04cb901d36f83f2921332d9a0a7e",
+    "Games/Jankolock3D/environment-test.mjs": "c6de2d6f27888afb4e8a29b9a1002dcfa6beb39970597b5d3366eb58babb12a8",
+    "Games/Jankolock3D/environment.mjs": "1547b0b1ad329810a8e9f839166e8db03e1a19a110066053a868154a3c121e3c",
+    "Games/Jankolock3D/game.mjs": "f7dd7f8f742e8dc6e8dcc0b026d3cc1b7a1071f76378ac56694175a4d0a0acfc",
+    "Games/Jankolock3D/heroes/devhero-1.html": "9dc92a3721574cd18101e58039ab9415158be354481db430187a4bca0b7b63e2",
+    "Games/Jankolock3D/heroes/devhero-2.html": "bea0906529419720506f385f28ed2c180e9698fb5f6566db9dda0c12fa7187ac",
+    "Games/Jankolock3D/heroes/devhero-3.html": "70205c76970f94f1c694643e0b074c5a267aa9cc4158baeedced63d7ace020d9",
+    "Games/Jankolock3D/heroes/devhero-4.html": "3782772e1bead1ec3ef70bc2b06da9b5852699da6458a2627795c560f3d7e3bf",
+    "Games/Jankolock3D/heroes/devhero.css": "b1ff37343b110f30cd4f03bb2e20b1242eb1ba14d1cb92327a281d87b7b3d6c2",
+    "Games/Jankolock3D/heroes/devhero.mjs": "7832c5f4f47387293d3552bc242b20b68dae700db8e0d80cfe2e843b14ed61ff",
+    "Games/Jankolock3D/heroes/external-rig-test.mjs": "75ac790dabc2fa9c1654fa92be8540f4a6f4f99c40c8622f2846fd1a62fb73f2",
+    "Games/Jankolock3D/heroes/hero-model.mjs": "b22032ab6e9afc41ad4c9cd52a61e49022daf36daf2b940842a09663399f2852",
+    "Games/Jankolock3D/heroes/hero-qa.py": "25c8fa3300996eaa7ed29ea99150b94a4e114a3815fd8bec151ca3af0f61dcc5",
+    "Games/Jankolock3D/heroes/hero-runtime-test.mjs": "e28660b122f7d5f456535e713c0c54dde40d6644870612b84741d1bbef479a5b",
+    "Games/Jankolock3D/heroes/hero-runtime.mjs": "61bde70cb50000df6d16661caad216833a77132716b1f84814ddb15561ff38bf",
+    "Games/Jankolock3D/heroes/hero-visuals-test.mjs": "41f42f4b8f9bf284b330178bb61ff3285082faca3644f1d5caa5e7f11c408fe2",
+    "Games/Jankolock3D/heroes/hero-visuals.mjs": "c4d826a44160bd928cd04c4b97f28190ffcda461617255b5ea22e3a4cd383307",
+    "Games/Jankolock3D/heroes/player-controller-test.mjs": "0fff1053b19e4518af7451951cc59e7ef274359ac7e9f5bcbc17a0c1f9a4f361",
+    "Games/Jankolock3D/heroes/player-controller.mjs": "309226a62633bef188942b8f67905d0cc9740bb23d30c2d2e936e79b47754f99",
+    "Games/Jankolock3D/index.html": "e8c97fb9a68800bb0db67a7db92414c4655ff0f88287cf55879cca5ef33af9d3",
+    "Games/Jankolock3D/integration-fixtures.mjs": "a14998210a81a0b3e09c78cefaa33ae34815bf7b890a93d93c298ed827ce241e",
+    "Games/Jankolock3D/integration-test.mjs": "b0d26fa52faf14d2b05a1d1dcfcbf6aea61564fb252e6276f4aa79a614da90ad",
+    "Games/Jankolock3D/integration-ui.mjs": "530bc63c301c35fa2d758346753012a572318bbdc6c6f7c10752537423d4a5fc",
+    "Games/Jankolock3D/integration.css": "63e7dae2bad41b5b1853ca32514772a126d18c8f190044591526e096e8b4b00d",
+    "Games/Jankolock3D/match-world.mjs": "fe9b9e7a632ca95c8bd014008c03a135672986964faac522e6dcd02c36038f44",
+    "Games/Jankolock3D/models/deployed_stapler/manifest.json": "8fe4ad6311c3dce2b39881f1e3f3b16f2327df402d7f7cc53149adf2a1fdfc1a",
+    "Games/Jankolock3D/models/deployed_stapler/model.glb": "82eea211eaa556258adaec5e9daf88dfd931931932d983a08c31efa060039fd0",
+    "Games/Jankolock3D/models/deployed_stapler/palette.json": "73718787862fba2df4b6ffa11cbaba02107afca93bebcb15f7cf0088fbeffdf1",
+    "Games/Jankolock3D/models/deployed_stapler/receipt.json": "96a87327d606ece24e8c1b3431635d4c23a58bb83124b05c9106697353038d65",
+    "Games/Jankolock3D/models/deployed_stapler/rig.json": "c6c6d0028d81996b52b52eccc58bc9ed46daa8fcddc16a1439afa99f1245f635",
+    "Games/Jankolock3D/models/gooey/build.mjs": "7afa707150f1cc6311f38303bd33f241bead00fbecd6dd404ecd69c0159423f0",
+    "Games/Jankolock3D/models/gooey/manifest.json": "a26fb54b96dc2697bfe9212bbeb565ee614b4fd37fa7f749af29dc1ac7f4d02e",
+    "Games/Jankolock3D/models/gooey/model.glb": "56d029d66b5aeaa31e07b1bedcaf70b96537e56cf0b9e66d48bd17d22623ab12",
+    "Games/Jankolock3D/models/gooey/palette.json": "ef4e7776832a8c859dfa73568185bc68babbb651ae05b86eef33e10193a266b9",
+    "Games/Jankolock3D/models/gooey/receipt.json": "1b4d1c280bf67389b0c1b94869013155c8470222ce1ef57cb756e900b5cac79f",
+    "Games/Jankolock3D/models/gooey/rig.json": "b5fd28bf9e68fa17481a474870253093112131856d7680e8182a80b46b7d92d5",
+    "Games/Jankolock3D/models/import-external.mjs": "1b5d9171cc90fb8f18f405c3f0361908ec1faa8a51c985d34ccb7a35a763ad5b",
+    "Games/Jankolock3D/models/model-build.mjs": "19cd1af2e49696320a8178b7491a91dbd50e1255e19431fc645f7563ecfc4f14",
+    "Games/Jankolock3D/models/portrait_relief.glb": "8463eee8276187cacaba912d9540279ad1bb338aa382e9448632aa9a33892514",
+    "Games/Jankolock3D/models/snipeoff/build.mjs": "7f6f8c75f7d683188ced914dcfb9c165a591186e6cabb7b56a98def93ddd3b72",
+    "Games/Jankolock3D/models/snipeoff/manifest.json": "551ea5350a52dd4191c3497d6a08cfaa811a90a1f8ed35e8ad9fb9daa65f78d9",
+    "Games/Jankolock3D/models/snipeoff/model.glb": "a4a0faa196232bf7a40d28491b8f66f056ab0ba3da614c10946ecd8aab13b0bc",
+    "Games/Jankolock3D/models/snipeoff/palette.json": "93b16bf89e8c2d4efe9b792666ddb1c6912bbdd1a8ac308c6506b311107113ad",
+    "Games/Jankolock3D/models/snipeoff/receipt.json": "762054e60d056bfcaf340557bd6b275a200ca361f4cb857d6be98c785569ef3d",
+    "Games/Jankolock3D/models/snipeoff/rig.json": "9402b53b996482a9898b5cbe8a1ddb28682dcc11ef43e235181587f7c331df34",
+    "Games/Jankolock3D/models/stampead/build.mjs": "cec8147a3c19b90e1801f127753a4382ad469e01e97d151057d0c6327a538776",
+    "Games/Jankolock3D/models/stampead/manifest.json": "430326a25c48fc6cf1599e5a314f0ecb9554b27cec73b8988603d2129cd0c6de",
+    "Games/Jankolock3D/models/stampead/model.glb": "6c679456b2ce7adce25515f5eb5e4947960a4541904edb65f290a5f9978926f0",
+    "Games/Jankolock3D/models/stampead/palette.json": "96416120bd6fecace7ee9d1b00446b1084f6d36fdb3b82b4a4fe20df4ad7006e",
+    "Games/Jankolock3D/models/stampead/receipt.json": "9aa9791daca6885a6846f30d462b1bace7eaf8dad1f9f4d410d617f693cc88ae",
+    "Games/Jankolock3D/models/stampead/rig.json": "60d064bc33ed0b7b1f582b449be59392005166d3953af8913d0a9534f35a5511",
+    "Games/Jankolock3D/models/trooper/build.mjs": "1981f0793b32b774222c5baf7ac6a81a957313959cdcc7254356e12b74073ed9",
+    "Games/Jankolock3D/models/trooper/model.glb": "e8cd44bc75769081ca7a2bfa6a2d73634c89de5cc20c4de200bde212405fcff4",
+    "Games/Jankolock3D/models/trooper/receipt.json": "61cf4de8c5efa6d6530e51155fc2f144a5a478cf4620b0b83b4262c6065b3cff",
+    "Games/Jankolock3D/models/turretina/build.mjs": "e023793dfd8ae506c7bee84146695782261b0e13e0abffbb5c041d925c6c5327",
+    "Games/Jankolock3D/models/turretina/manifest.json": "39fbf5bb41bec12988ee49780e83400f0715a4c2f7de9c09c8877431c335510c",
+    "Games/Jankolock3D/models/turretina/model.glb": "e5a3dffe77d0487c30197759367e6851ad650a9d9358670e198fe927a8f763a7",
+    "Games/Jankolock3D/models/turretina/palette.json": "279f1258632e4716b886b941e881818aba53161f711a0bd45339b77c958d609e",
+    "Games/Jankolock3D/models/turretina/receipt.json": "534b59fc133f1d2061b506b04bd322b014bf653da44087e037bc0705a6c02579",
+    "Games/Jankolock3D/models/turretina/rig.json": "043159cdfc4e245feca8930bd4d306b72c869cd253e61cb277f808fd73e9b28e",
+    "Games/Jankolock3D/portrait-config.json": "9683c42fc7b31840421ee67df1761ec9ebea91cc6293aec920c54f793f5e1365",
+    "Games/Jankolock3D/portrait-qa.json": "96af21a180402ac0495decdf6afbd4dc28f45fc4f025a9d94d65f87df5df929f",
+    "Games/Jankolock3D/portrait-receipt.json": "c266b9b6c38f93a212c03cf77d8499c3934f8878725d832791a3bdd1e5d36ed5",
+    "Games/Jankolock3D/portrait.js": "3bc6f7d4cc8032898d4313414176eb9e5d744ec626e37318b7642a874e84d4fd",
+    "Games/Jankolock3D/systems-demo.mjs": "7268b1b59face7ee16accd150c5a6e5700a5d7fbd1a057dad4321537d3453516",
+    "Games/Jankolock3D/systems-test.mjs": "12d3b0b2f0bd28d299922f40fe35d1c9b212041d81030f4a2dc35b4984f26dea",
+    "Games/Jankolock3D/systems-ui.mjs": "2cb52dac2b879b3023a31312b17c941f2010682f8ca154a8ba36fb7e2432044c",
+    "Games/Jankolock3D/systems-view-test.mjs": "e7d6186f9c6258240442e051b090fcf8a6bb6c73bce963fce3d0af11cfd92c66",
+    "Games/Jankolock3D/systems-view.mjs": "4fc1ff2cdead475eac5e9d227856b266375966933cd48281103adb71346eccdf",
+    "Games/Jankolock3D/systems.css": "ef0d5e289f4b83e2b47ecf87934d766f77273defee53d2336b2acdb87887a081",
+    "Games/Jankolock3D/systems.html": "be7b726fb27813c770b9fbb7e54ed7aec7ab1df08707430e437fb08485c7f313",
+    "Games/Jankolock3D/systems.mjs": "79b018abfb1227c4117f8c88243ce9d5eb5a6a7c7d5ac2f1e87f3a14dd09066a",
+    "Games/Jankolock3D/textures/environment/brick-ao.png": "f79f4dc4ba8c983bff04d22e224d3c95a887cef3f9eb252cae3ec67cac0fe0c7",
+    "Games/Jankolock3D/textures/environment/brick-color.png": "435f067ee49303aa33380f37bff2791f20449023f47efe3d36967fc97fbbadd9",
+    "Games/Jankolock3D/textures/environment/brick-rough.png": "c84006d2199ffe6710df7a3b47ddc0abd83041dfffd828002ce22a75ff4a5f5b",
+    "Games/Jankolock3D/textures/environment/foliage-color.png": "c8e78f79230f74967d23e4844fcff0d46fa8e6cf2ab9d8d5f31b67ac6c0bd22c",
+    "Games/Jankolock3D/textures/environment/limestone-ao.png": "5f2f85d3834c7c02dd65805284c3b0919486541daf6af6e2b5baee39bb2b4043",
+    "Games/Jankolock3D/textures/environment/limestone-color.png": "0898f4377ed6a91cf3dd213c2111902cf12458d1f0fac7bd69f324912612052a",
+    "Games/Jankolock3D/textures/environment/limestone-rough.png": "daeff5865b4cde0f70550e7596a383ddf342eba6bd0c4d4b96d5991c2e32245f",
+    "Games/Jankolock3D/textures/environment/metal-ao.png": "3cdfd3138c71aed4fc1e2156f4efbd85c25b6bb560ad067f5573dac7cfe6d03f",
+    "Games/Jankolock3D/textures/environment/metal-color.png": "e4b3a2d0f4c8378426e45fbf61f898288f5d6c5ff0f342d98c4bb82c634cd7c6",
+    "Games/Jankolock3D/textures/environment/metal-rough.png": "c4d6610dd6512cf504891c88dd1052ad0915d161cf634d535a015dd9f0e9ba10",
+    "Games/Jankolock3D/textures/environment/signs-color.png": "24bd25b211d461b3c88f07a96979a456e7b489d470be00dfc7c626b59c69a665",
+    "Games/Jankolock3D/traversal.mjs": "4a3f684e959760a01b29aacefe3397d5888dcfc7a51291cd4e4dc47ece41bb00",
+    "Games/Jankolock3D/vendor/addons/BufferGeometryUtils.js": "ce6b8c82f29e4ad7e8e330ce2bccd921de6c36a5c05c8f50f9a8b039596b8551",
+    "Games/Jankolock3D/vendor/addons/GLTFExporter.js": "275ed896ac9e7991fec724d731133df193294367503ce9a0a62f6247f6357877",
+    "Games/Jankolock3D/vendor/addons/GLTFLoader.js": "ad114074806b6d4ef28b7b3744cb19c30d4be3d2a08b178181572ec22f76ba0b",
+    "Games/Jankolock3D/vendor/addons/SkeletonUtils.js": "6ed06893a413aea61b6031867cb145a2e6f79b92a4f70f5cb24b403c262e9308",
+    "Games/Jankolock3D/vendor/addons/provenance.json": "44a86080a285cdcdb9647a58e2fee341d56cb25b3ad674da6a0387677ff718b4",
+    "Games/Jankolock3D/vendor/three.core.js": "9edde002b066a9a05676a6127f67735b62baf399bdea529f2f7e31657da769e6",
+    "Games/Jankolock3D/vendor/three.module.js": "9052042d676cb0fdc1ddfefe193053f34b7ac0513a616fdac4535d49987812ea",
+    "Games/Jankolock3D/viewer.mjs": "aa6cac7a1d39d402ee07ea025ce2ea3890d997c97608142bd2eacbe3608ac86c",
+    "Games/Jankolock3D/world-data.mjs": "d3e5da4edbddf8a2cbd93584fb5c1aade756eaba453012f4634ba58b8841353f",
+    "Games/Jankolock3D/world-scene.mjs": "6c4d363bdef734cd97ae229e2cac800d9bdda7afc57ad1737c0626d036ad3c33",
+    "Games/Jankolock3D/world-test.mjs": "6ad086e167e1af6cb20edcc7290458966755143995f0e8436732fb22bddd3b29",
+    "Games/Jankolock3D/world.css": "e84ef23c43c67a6354c21d549322c1e03b9de33b4eb8e5f437464fea635d06cf",
+    "Games/Jankolock3D/world.html": "e34157c518e9ca6ad21059cee724f5c2597fdb4655be43b2ac15e6d3875de9e6",
+    "assets/fonts/atkinson-hyperlegible/atkinson-hyperlegible-400-latin.woff2": "d64ba838ef5472bba248620ec4fd8b5aa7cf0db2908e0bb230600caf279ba7bc",
+    "assets/fonts/atkinson-hyperlegible/atkinson-hyperlegible-700-latin.woff2": "140e2bd25a7315c8a062508391426b0d8c3297400c947b8d847be28f73a199f0",
+    "assets/fonts/bungee/bungee-400-latin.woff2": "126eec706b7931682dbcf6c6efc274132c603f181fbf912678e6cfeb341e721b",
+    "docs/jank3d-design/ui-mockup-heroes-mobile.png": "ccc858c14d9ac586fbdaa7879f275cff9905446cc46279e5cf6b57da26a8f9fe",
+    "docs/jank3d-design/ui-mockup-heroes.png": "e127ccd1ab5313e3df0d381557064b49076f8657216fefe290073906a4312ff2",
+    "docs/jank3d-hero-kits.json": "a8f73679f02a7361d3657b033d04b0584bedc01f1265b3639c0e63fcbd8dbf14"
+  },
+  "storageBefore": 3292479488,
+  "sourceHashesAfter": {
+    "Games/Jankolock3D/art/hero-concept-prompts.json": "9aef4455404f0b3e846391aba9e031df90facc32f5f2952f5256f9f7a0c0739b",
+    "Games/Jankolock3D/bots-test.mjs": "deba7019a62a2d5d17e06142b38b64db637a1cfe032bdd2e1e90a6bc0960c954",
+    "Games/Jankolock3D/bots.mjs": "c879c3cfa3b6528e52dc0fab0b879114725063555f60a49d9698326b2f5a2f61",
+    "Games/Jankolock3D/character-assets.mjs": "15a64b9aa6c978617ac5fa7e24c0384e7c8c04cb901d36f83f2921332d9a0a7e",
+    "Games/Jankolock3D/environment-test.mjs": "c6de2d6f27888afb4e8a29b9a1002dcfa6beb39970597b5d3366eb58babb12a8",
+    "Games/Jankolock3D/environment.mjs": "1547b0b1ad329810a8e9f839166e8db03e1a19a110066053a868154a3c121e3c",
+    "Games/Jankolock3D/game.mjs": "f7dd7f8f742e8dc6e8dcc0b026d3cc1b7a1071f76378ac56694175a4d0a0acfc",
+    "Games/Jankolock3D/heroes/devhero-1.html": "9dc92a3721574cd18101e58039ab9415158be354481db430187a4bca0b7b63e2",
+    "Games/Jankolock3D/heroes/devhero-2.html": "bea0906529419720506f385f28ed2c180e9698fb5f6566db9dda0c12fa7187ac",
+    "Games/Jankolock3D/heroes/devhero-3.html": "70205c76970f94f1c694643e0b074c5a267aa9cc4158baeedced63d7ace020d9",
+    "Games/Jankolock3D/heroes/devhero-4.html": "3782772e1bead1ec3ef70bc2b06da9b5852699da6458a2627795c560f3d7e3bf",
+    "Games/Jankolock3D/heroes/devhero.css": "b1ff37343b110f30cd4f03bb2e20b1242eb1ba14d1cb92327a281d87b7b3d6c2",
+    "Games/Jankolock3D/heroes/devhero.mjs": "7832c5f4f47387293d3552bc242b20b68dae700db8e0d80cfe2e843b14ed61ff",
+    "Games/Jankolock3D/heroes/external-rig-test.mjs": "75ac790dabc2fa9c1654fa92be8540f4a6f4f99c40c8622f2846fd1a62fb73f2",
+    "Games/Jankolock3D/heroes/hero-model.mjs": "b22032ab6e9afc41ad4c9cd52a61e49022daf36daf2b940842a09663399f2852",
+    "Games/Jankolock3D/heroes/hero-qa.py": "25c8fa3300996eaa7ed29ea99150b94a4e114a3815fd8bec151ca3af0f61dcc5",
+    "Games/Jankolock3D/heroes/hero-runtime-test.mjs": "e28660b122f7d5f456535e713c0c54dde40d6644870612b84741d1bbef479a5b",
+    "Games/Jankolock3D/heroes/hero-runtime.mjs": "61bde70cb50000df6d16661caad216833a77132716b1f84814ddb15561ff38bf",
+    "Games/Jankolock3D/heroes/hero-visuals-test.mjs": "41f42f4b8f9bf284b330178bb61ff3285082faca3644f1d5caa5e7f11c408fe2",
+    "Games/Jankolock3D/heroes/hero-visuals.mjs": "c4d826a44160bd928cd04c4b97f28190ffcda461617255b5ea22e3a4cd383307",
+    "Games/Jankolock3D/heroes/player-controller-test.mjs": "0fff1053b19e4518af7451951cc59e7ef274359ac7e9f5bcbc17a0c1f9a4f361",
+    "Games/Jankolock3D/heroes/player-controller.mjs": "309226a62633bef188942b8f67905d0cc9740bb23d30c2d2e936e79b47754f99",
+    "Games/Jankolock3D/index.html": "e8c97fb9a68800bb0db67a7db92414c4655ff0f88287cf55879cca5ef33af9d3",
+    "Games/Jankolock3D/integration-fixtures.mjs": "a14998210a81a0b3e09c78cefaa33ae34815bf7b890a93d93c298ed827ce241e",
+    "Games/Jankolock3D/integration-test.mjs": "b0d26fa52faf14d2b05a1d1dcfcbf6aea61564fb252e6276f4aa79a614da90ad",
+    "Games/Jankolock3D/integration-ui.mjs": "530bc63c301c35fa2d758346753012a572318bbdc6c6f7c10752537423d4a5fc",
+    "Games/Jankolock3D/integration.css": "63e7dae2bad41b5b1853ca32514772a126d18c8f190044591526e096e8b4b00d",
+    "Games/Jankolock3D/match-world.mjs": "fe9b9e7a632ca95c8bd014008c03a135672986964faac522e6dcd02c36038f44",
+    "Games/Jankolock3D/models/deployed_stapler/manifest.json": "8fe4ad6311c3dce2b39881f1e3f3b16f2327df402d7f7cc53149adf2a1fdfc1a",
+    "Games/Jankolock3D/models/deployed_stapler/model.glb": "82eea211eaa556258adaec5e9daf88dfd931931932d983a08c31efa060039fd0",
+    "Games/Jankolock3D/models/deployed_stapler/palette.json": "73718787862fba2df4b6ffa11cbaba02107afca93bebcb15f7cf0088fbeffdf1",
+    "Games/Jankolock3D/models/deployed_stapler/receipt.json": "96a87327d606ece24e8c1b3431635d4c23a58bb83124b05c9106697353038d65",
+    "Games/Jankolock3D/models/deployed_stapler/rig.json": "c6c6d0028d81996b52b52eccc58bc9ed46daa8fcddc16a1439afa99f1245f635",
+    "Games/Jankolock3D/models/gooey/build.mjs": "7afa707150f1cc6311f38303bd33f241bead00fbecd6dd404ecd69c0159423f0",
+    "Games/Jankolock3D/models/gooey/manifest.json": "a26fb54b96dc2697bfe9212bbeb565ee614b4fd37fa7f749af29dc1ac7f4d02e",
+    "Games/Jankolock3D/models/gooey/model.glb": "56d029d66b5aeaa31e07b1bedcaf70b96537e56cf0b9e66d48bd17d22623ab12",
+    "Games/Jankolock3D/models/gooey/palette.json": "ef4e7776832a8c859dfa73568185bc68babbb651ae05b86eef33e10193a266b9",
+    "Games/Jankolock3D/models/gooey/receipt.json": "1b4d1c280bf67389b0c1b94869013155c8470222ce1ef57cb756e900b5cac79f",
+    "Games/Jankolock3D/models/gooey/rig.json": "b5fd28bf9e68fa17481a474870253093112131856d7680e8182a80b46b7d92d5",
+    "Games/Jankolock3D/models/import-external.mjs": "1b5d9171cc90fb8f18f405c3f0361908ec1faa8a51c985d34ccb7a35a763ad5b",
+    "Games/Jankolock3D/models/model-build.mjs": "19cd1af2e49696320a8178b7491a91dbd50e1255e19431fc645f7563ecfc4f14",
+    "Games/Jankolock3D/models/portrait_relief.glb": "8463eee8276187cacaba912d9540279ad1bb338aa382e9448632aa9a33892514",
+    "Games/Jankolock3D/models/snipeoff/build.mjs": "7f6f8c75f7d683188ced914dcfb9c165a591186e6cabb7b56a98def93ddd3b72",
+    "Games/Jankolock3D/models/snipeoff/manifest.json": "551ea5350a52dd4191c3497d6a08cfaa811a90a1f8ed35e8ad9fb9daa65f78d9",
+    "Games/Jankolock3D/models/snipeoff/model.glb": "a4a0faa196232bf7a40d28491b8f66f056ab0ba3da614c10946ecd8aab13b0bc",
+    "Games/Jankolock3D/models/snipeoff/palette.json": "93b16bf89e8c2d4efe9b792666ddb1c6912bbdd1a8ac308c6506b311107113ad",
+    "Games/Jankolock3D/models/snipeoff/receipt.json": "762054e60d056bfcaf340557bd6b275a200ca361f4cb857d6be98c785569ef3d",
+    "Games/Jankolock3D/models/snipeoff/rig.json": "9402b53b996482a9898b5cbe8a1ddb28682dcc11ef43e235181587f7c331df34",
+    "Games/Jankolock3D/models/stampead/build.mjs": "cec8147a3c19b90e1801f127753a4382ad469e01e97d151057d0c6327a538776",
+    "Games/Jankolock3D/models/stampead/manifest.json": "430326a25c48fc6cf1599e5a314f0ecb9554b27cec73b8988603d2129cd0c6de",
+    "Games/Jankolock3D/models/stampead/model.glb": "6c679456b2ce7adce25515f5eb5e4947960a4541904edb65f290a5f9978926f0",
+    "Games/Jankolock3D/models/stampead/palette.json": "96416120bd6fecace7ee9d1b00446b1084f6d36fdb3b82b4a4fe20df4ad7006e",
+    "Games/Jankolock3D/models/stampead/receipt.json": "9aa9791daca6885a6846f30d462b1bace7eaf8dad1f9f4d410d617f693cc88ae",
+    "Games/Jankolock3D/models/stampead/rig.json": "60d064bc33ed0b7b1f582b449be59392005166d3953af8913d0a9534f35a5511",
+    "Games/Jankolock3D/models/trooper/build.mjs": "1981f0793b32b774222c5baf7ac6a81a957313959cdcc7254356e12b74073ed9",
+    "Games/Jankolock3D/models/trooper/model.glb": "e8cd44bc75769081ca7a2bfa6a2d73634c89de5cc20c4de200bde212405fcff4",
+    "Games/Jankolock3D/models/trooper/receipt.json": "61cf4de8c5efa6d6530e51155fc2f144a5a478cf4620b0b83b4262c6065b3cff",
+    "Games/Jankolock3D/models/turretina/build.mjs": "e023793dfd8ae506c7bee84146695782261b0e13e0abffbb5c041d925c6c5327",
+    "Games/Jankolock3D/models/turretina/manifest.json": "39fbf5bb41bec12988ee49780e83400f0715a4c2f7de9c09c8877431c335510c",
+    "Games/Jankolock3D/models/turretina/model.glb": "e5a3dffe77d0487c30197759367e6851ad650a9d9358670e198fe927a8f763a7",
+    "Games/Jankolock3D/models/turretina/palette.json": "279f1258632e4716b886b941e881818aba53161f711a0bd45339b77c958d609e",
+    "Games/Jankolock3D/models/turretina/receipt.json": "534b59fc133f1d2061b506b04bd322b014bf653da44087e037bc0705a6c02579",
+    "Games/Jankolock3D/models/turretina/rig.json": "043159cdfc4e245feca8930bd4d306b72c869cd253e61cb277f808fd73e9b28e",
+    "Games/Jankolock3D/portrait-config.json": "9683c42fc7b31840421ee67df1761ec9ebea91cc6293aec920c54f793f5e1365",
+    "Games/Jankolock3D/portrait-qa.json": "96af21a180402ac0495decdf6afbd4dc28f45fc4f025a9d94d65f87df5df929f",
+    "Games/Jankolock3D/portrait-receipt.json": "c266b9b6c38f93a212c03cf77d8499c3934f8878725d832791a3bdd1e5d36ed5",
+    "Games/Jankolock3D/portrait.js": "3bc6f7d4cc8032898d4313414176eb9e5d744ec626e37318b7642a874e84d4fd",
+    "Games/Jankolock3D/systems-demo.mjs": "7268b1b59face7ee16accd150c5a6e5700a5d7fbd1a057dad4321537d3453516",
+    "Games/Jankolock3D/systems-test.mjs": "12d3b0b2f0bd28d299922f40fe35d1c9b212041d81030f4a2dc35b4984f26dea",
+    "Games/Jankolock3D/systems-ui.mjs": "2cb52dac2b879b3023a31312b17c941f2010682f8ca154a8ba36fb7e2432044c",
+    "Games/Jankolock3D/systems-view-test.mjs": "e7d6186f9c6258240442e051b090fcf8a6bb6c73bce963fce3d0af11cfd92c66",
+    "Games/Jankolock3D/systems-view.mjs": "4fc1ff2cdead475eac5e9d227856b266375966933cd48281103adb71346eccdf",
+    "Games/Jankolock3D/systems.css": "ef0d5e289f4b83e2b47ecf87934d766f77273defee53d2336b2acdb87887a081",
+    "Games/Jankolock3D/systems.html": "be7b726fb27813c770b9fbb7e54ed7aec7ab1df08707430e437fb08485c7f313",
+    "Games/Jankolock3D/systems.mjs": "79b018abfb1227c4117f8c88243ce9d5eb5a6a7c7d5ac2f1e87f3a14dd09066a",
+    "Games/Jankolock3D/textures/environment/brick-ao.png": "f79f4dc4ba8c983bff04d22e224d3c95a887cef3f9eb252cae3ec67cac0fe0c7",
+    "Games/Jankolock3D/textures/environment/brick-color.png": "435f067ee49303aa33380f37bff2791f20449023f47efe3d36967fc97fbbadd9",
+    "Games/Jankolock3D/textures/environment/brick-rough.png": "c84006d2199ffe6710df7a3b47ddc0abd83041dfffd828002ce22a75ff4a5f5b",
+    "Games/Jankolock3D/textures/environment/foliage-color.png": "c8e78f79230f74967d23e4844fcff0d46fa8e6cf2ab9d8d5f31b67ac6c0bd22c",
+    "Games/Jankolock3D/textures/environment/limestone-ao.png": "5f2f85d3834c7c02dd65805284c3b0919486541daf6af6e2b5baee39bb2b4043",
+    "Games/Jankolock3D/textures/environment/limestone-color.png": "0898f4377ed6a91cf3dd213c2111902cf12458d1f0fac7bd69f324912612052a",
+    "Games/Jankolock3D/textures/environment/limestone-rough.png": "daeff5865b4cde0f70550e7596a383ddf342eba6bd0c4d4b96d5991c2e32245f",
+    "Games/Jankolock3D/textures/environment/metal-ao.png": "3cdfd3138c71aed4fc1e2156f4efbd85c25b6bb560ad067f5573dac7cfe6d03f",
+    "Games/Jankolock3D/textures/environment/metal-color.png": "e4b3a2d0f4c8378426e45fbf61f898288f5d6c5ff0f342d98c4bb82c634cd7c6",
+    "Games/Jankolock3D/textures/environment/metal-rough.png": "c4d6610dd6512cf504891c88dd1052ad0915d161cf634d535a015dd9f0e9ba10",
+    "Games/Jankolock3D/textures/environment/signs-color.png": "24bd25b211d461b3c88f07a96979a456e7b489d470be00dfc7c626b59c69a665",
+    "Games/Jankolock3D/traversal.mjs": "4a3f684e959760a01b29aacefe3397d5888dcfc7a51291cd4e4dc47ece41bb00",
+    "Games/Jankolock3D/vendor/addons/BufferGeometryUtils.js": "ce6b8c82f29e4ad7e8e330ce2bccd921de6c36a5c05c8f50f9a8b039596b8551",
+    "Games/Jankolock3D/vendor/addons/GLTFExporter.js": "275ed896ac9e7991fec724d731133df193294367503ce9a0a62f6247f6357877",
+    "Games/Jankolock3D/vendor/addons/GLTFLoader.js": "ad114074806b6d4ef28b7b3744cb19c30d4be3d2a08b178181572ec22f76ba0b",
+    "Games/Jankolock3D/vendor/addons/SkeletonUtils.js": "6ed06893a413aea61b6031867cb145a2e6f79b92a4f70f5cb24b403c262e9308",
+    "Games/Jankolock3D/vendor/addons/provenance.json": "44a86080a285cdcdb9647a58e2fee341d56cb25b3ad674da6a0387677ff718b4",
+    "Games/Jankolock3D/vendor/three.core.js": "9edde002b066a9a05676a6127f67735b62baf399bdea529f2f7e31657da769e6",
+    "Games/Jankolock3D/vendor/three.module.js": "9052042d676cb0fdc1ddfefe193053f34b7ac0513a616fdac4535d49987812ea",
+    "Games/Jankolock3D/viewer.mjs": "aa6cac7a1d39d402ee07ea025ce2ea3890d997c97608142bd2eacbe3608ac86c",
+    "Games/Jankolock3D/world-data.mjs": "d3e5da4edbddf8a2cbd93584fb5c1aade756eaba453012f4634ba58b8841353f",
+    "Games/Jankolock3D/world-scene.mjs": "6c4d363bdef734cd97ae229e2cac800d9bdda7afc57ad1737c0626d036ad3c33",
+    "Games/Jankolock3D/world-test.mjs": "6ad086e167e1af6cb20edcc7290458966755143995f0e8436732fb22bddd3b29",
+    "Games/Jankolock3D/world.css": "e84ef23c43c67a6354c21d549322c1e03b9de33b4eb8e5f437464fea635d06cf",
+    "Games/Jankolock3D/world.html": "e34157c518e9ca6ad21059cee724f5c2597fdb4655be43b2ac15e6d3875de9e6",
+    "assets/fonts/atkinson-hyperlegible/atkinson-hyperlegible-400-latin.woff2": "d64ba838ef5472bba248620ec4fd8b5aa7cf0db2908e0bb230600caf279ba7bc",
+    "assets/fonts/atkinson-hyperlegible/atkinson-hyperlegible-700-latin.woff2": "140e2bd25a7315c8a062508391426b0d8c3297400c947b8d847be28f73a199f0",
+    "assets/fonts/bungee/bungee-400-latin.woff2": "126eec706b7931682dbcf6c6efc274132c603f181fbf912678e6cfeb341e721b",
+    "docs/jank3d-design/ui-mockup-heroes-mobile.png": "ccc858c14d9ac586fbdaa7879f275cff9905446cc46279e5cf6b57da26a8f9fe",
+    "docs/jank3d-design/ui-mockup-heroes.png": "e127ccd1ab5313e3df0d381557064b49076f8657216fefe290073906a4312ff2",
+    "docs/jank3d-hero-kits.json": "a8f73679f02a7361d3657b033d04b0584bedc01f1265b3639c0e63fcbd8dbf14"
+  },
+  "sourcesUnchanged": true,
+  "storageAfter": 3293155328
+}

@@ -1,0 +1,28 @@
+{
+  "units": "metres",
+  "up_axis": "Y",
+  "nodes": [
+    {
+      "asset": "model.glb",
+      "translation": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "asset": "../tree_deciduous/model.glb",
+      "translation": [
+        -2.5,
+        0.05,
+        -2.3
+      ],
+      "scale": [
+        0.85,
+        0.85,
+        0.85
+      ]
+    }
+  ],
+  "note": "Optional local assembly recipe; base GLB is fully self-contained. Shared tree is a separate delivered self-contained asset, not an external GLB dependency."
+}

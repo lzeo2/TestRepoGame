@@ -1,0 +1,180 @@
+{
+  "model": "commercial",
+  "schema_version": "1.0",
+  "units": "metres",
+  "coordinates": "glTF Y-up; architectural facade +Z; source Blender Z-up facade -Y",
+  "pivot_space": "parent-local; neutral offsets from exported glTF node transforms",
+  "rotation_ranges": "degrees relative to bind pose; capless = free",
+  "translation_ranges": "metres relative to bind translation; [0,0] locks axis",
+  "movable_nodes": [
+    {
+      "name": "commercial__door_01",
+      "parent": "commercial",
+      "pivot_position": [
+        -0.550000011920929,
+        0.1899999976158142,
+        3.759999990463257
+      ],
+      "pivot_space": "parent-local glTF metres",
+      "local_frame_quaternion_xyzw": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "rotation_deg": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          -100,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "translation_m": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "operation": "rigid rotation",
+      "motion_axis_local": "Y",
+      "geometry_children": [
+        "commercial__door_01__brass_door_pull",
+        "commercial__door_01__brass_door_pull_001",
+        "commercial__door_01__door_inset_panel",
+        "commercial__door_01__door_inset_panel_001",
+        "commercial__door_01__recessed_entrance_leaf"
+      ]
+    },
+    {
+      "name": "commercial__hvac_fan_01",
+      "parent": "commercial",
+      "pivot_position": [
+        -1.7999999523162842,
+        11.010000228881836,
+        -1
+      ],
+      "pivot_space": "parent-local glTF metres",
+      "local_frame_quaternion_xyzw": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "rotation_deg": {
+        "x": [
+          0,
+          0
+        ],
+        "y": "free",
+        "z": [
+          0,
+          0
+        ]
+      },
+      "translation_m": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "operation": "rigid rotation",
+      "motion_axis_local": "Y",
+      "geometry_children": [
+        "commercial__hvac_fan_01__hvac_fan_vane",
+        "commercial__hvac_fan_01__hvac_fan_vane_001",
+        "commercial__hvac_fan_01__hvac_fan_vane_002",
+        "commercial__hvac_fan_01__hvac_fan_vane_003",
+        "commercial__hvac_fan_01__hvac_fan_vane_004",
+        "commercial__hvac_fan_01__hvac_fan_vane_005"
+      ]
+    },
+    {
+      "name": "commercial__hvac_fan_02",
+      "parent": "commercial",
+      "pivot_position": [
+        1.600000023841858,
+        11.010000228881836,
+        -1
+      ],
+      "pivot_space": "parent-local glTF metres",
+      "local_frame_quaternion_xyzw": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "rotation_deg": {
+        "x": [
+          0,
+          0
+        ],
+        "y": "free",
+        "z": [
+          0,
+          0
+        ]
+      },
+      "translation_m": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "operation": "rigid rotation",
+      "motion_axis_local": "Y",
+      "geometry_children": [
+        "commercial__hvac_fan_02__hvac_fan_vane_006",
+        "commercial__hvac_fan_02__hvac_fan_vane_007",
+        "commercial__hvac_fan_02__hvac_fan_vane_008",
+        "commercial__hvac_fan_02__hvac_fan_vane_009",
+        "commercial__hvac_fan_02__hvac_fan_vane_010",
+        "commercial__hvac_fan_02__hvac_fan_vane_011"
+      ]
+    }
+  ],
+  "static_nodes": [
+    "commercial__static_civic_pale_painted_trim",
+    "commercial__static_clock_ivory",
+    "commercial__static_limestone",
+    "commercial__static_patinated_metal",
+    "commercial__static_recess_/_shadow_joints",
+    "commercial__static_slate",
+    "commercial__static_warm_brick",
+    "commercial__static_warm_glazing",
+    "commercial__static_structure"
+  ],
+  "static_note": "Masonry, floors, walls, columns, fixed trim, glazing frames, tracks, roof shells and other structural pieces are intentionally static. No whole-building articulation.",
+  "animation_clips": [],
+  "door_note": "Entrance leaves and handles move together; shallow dark recesses prevent sealed masonry immediately behind the leaf."
+}

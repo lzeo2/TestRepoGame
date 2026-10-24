@@ -1,0 +1,363 @@
+"""Bounded UI regression and labelled fixture captures, not gameplay acceptance."""
+from functools import partial
+from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
+from pathlib import Path
+from threading import Thread
+import json
+import os
+import shutil
+import subprocess
+
+from PIL import Image, ImageDraw
+from playwright.sync_api import sync_playwright
+
+ROOT = Path(__file__).resolve().parents[2]
+OUT = ROOT / 'docs/maintenance/audits/citisten-QA/copy-pass'
+FLOOR = 2178940928
+PROCESS_CHECKS = 0
+
+
+def browser_slot():
+    global PROCESS_CHECKS
+    rows = subprocess.check_output(['ps', '-eo', 'pid=,ppid=,args='], text=True).splitlines()
+    processes = {}
+    for row in rows:
+        pid, parent, command = row.strip().split(None, 2)
+        processes[int(pid)] = (int(parent), command)
+    foreign = []
+    for pid, (_, command) in processes.items():
+        if Path(command.split()[0]).name not in {'chromium', 'chromium-browser', 'chrome', 'chrome-headless-shell'}:
+            continue
+        ancestor = pid
+        while ancestor in processes and ancestor != os.getpid():
+            ancestor = processes[ancestor][0]
+        if ancestor != os.getpid():
+            foreign.append(pid)
+    PROCESS_CHECKS += 1
+    assert not foreign, f'Another Chromium gate owns the browser slot: PIDs {foreign}'
+
+
+def disk():
+    free = int(subprocess.check_output(['df', '-B1', '--output=avail', '/'], text=True).splitlines()[-1])
+    assert free >= FLOOR, 'Disk floor: stop evidence writes'
+
+
+class QuietHandler(SimpleHTTPRequestHandler):
+    def log_message(self, *_):
+        pass
+
+
+def shot(page, name):
+    browser_slot()
+    disk()
+    path = OUT / f'{name}.png'
+    page.screenshot(path=str(path))
+    return path
+
+
+def keyboard_focus(page, selector):
+    target = page.locator(selector)
+    presses = target.evaluate('''el => {
+      const scope = el.closest('dialog[open]') || document.querySelector('.city-game');
+      const order = [...scope.querySelectorAll('a[href], button, input, select, textarea, summary, [tabindex]')]
+        .filter(node => node.checkVisibility() && !node.matches(':disabled') && node.tabIndex >= 0 && !node.closest('[inert]'))
+        .sort((a, b) => (a.tabIndex || Infinity) - (b.tabIndex || Infinity));
+      const index = order.indexOf(el);
+      let current = order.indexOf(document.activeElement);
+      if (current < 0 && scope.contains(document.activeElement)) {
+        const next = order.findIndex(node => document.activeElement.compareDocumentPosition(node) & Node.DOCUMENT_POSITION_FOLLOWING);
+        current = next < 0 ? order.length - 1 : next - 1;
+      }
+      if (index < 0) throw Error('Target is not in the active tab order');
+      return (index - current + order.length) % order.length || order.length;
+    }''')
+    for _ in range(presses):
+        page.keyboard.press('Tab')
+    assert target.evaluate('el => el === document.activeElement'), f'Keyboard cannot reach {selector}'
+    assert target.evaluate("el => el.matches(':focus-visible')"), f'No keyboard focus indicator for {selector}'
+    assert target.evaluate('el => parseFloat(getComputedStyle(el).outlineWidth) >= 2'), f'Focus indicator too thin for {selector}'
+
+
+def layout(page):
+    problems = page.evaluate('''() => {
+      const errors = [];
+      const dialog = document.querySelector('dialog[open]');
+      const scope = dialog || document.querySelector('.city-game');
+      for (const el of scope.querySelectorAll('button, summary')) {
+        if (!el.checkVisibility()) continue;
+        const r = el.getBoundingClientRect();
+        if (r.width < 44 || r.height < 44) errors.push('Small target: ' + el.textContent);
+        if (r.left < -1 || r.right > innerWidth + 1) errors.push('Clipped target: ' + el.textContent);
+        if (el.tagName === 'BUTTON' && el.firstChild?.nodeType === Node.TEXT_NODE) {
+          const range = document.createRange(); range.selectNodeContents(el.firstChild);
+          const text = range.getBoundingClientRect();
+          if (text.left < r.left || text.right > r.right) errors.push('Clipped button copy: ' + el.firstChild.textContent);
+        }
+      }
+      if (scope.scrollWidth > innerWidth) errors.push('Horizontal overflow');
+      if (!dialog) {
+        const tools = scope.querySelector('.city-tools').getBoundingClientRect();
+        for (const toast of scope.querySelectorAll('.city-toasts p')) {
+          const r = toast.getBoundingClientRect();
+          if (r.bottom > tools.top && r.top < tools.bottom && r.right > tools.left && r.left < tools.right) errors.push('Toast covers tool options');
+        }
+      }
+      for (const tip of scope.querySelectorAll('.city-tooltip')) {
+        if (!tip.checkVisibility()) continue;
+        const r = tip.getBoundingClientRect();
+        if (r.left < 0 || r.right > innerWidth) errors.push('Clipped tooltip');
+      }
+      for (const el of document.querySelectorAll('.citisten-ui *')) {
+        const style = getComputedStyle(el);
+        if (style.backgroundImage.includes('gradient')) errors.push('Gradient');
+        if (style.boxShadow !== 'none' || style.textShadow !== 'none') errors.push('Shadow');
+      }
+      return errors;
+    }''')
+    assert not problems, problems
+
+
+def main():
+    # Cooperative browser queue is still required; never kill another lane's browser.
+    browser_slot()
+    disk()
+    OUT.mkdir(parents=True, exist_ok=True)
+    server = ThreadingHTTPServer(('127.0.0.1', int(os.environ.get('SMOKE_PORT', '0'))), partial(QuietHandler, directory=str(ROOT)))
+    thread = Thread(target=server.serve_forever, daemon=True)
+    thread.start()
+    errors, external, failed, captures = [], [], [], []
+    before = shutil.disk_usage('/').free
+    try:
+        with sync_playwright() as p:
+            browser = p.chromium.launch(executable_path='/usr/bin/chromium', headless=True, args=['--no-sandbox', '--disable-dev-shm-usage'])
+            try:
+                for width, height in [(1440, 900), (390, 844), (320, 740)]:
+                    context = browser.new_context(viewport={'width': width, 'height': height}, reduced_motion='reduce', has_touch=width < 600, color_scheme='light', service_workers='block')
+                    page = context.new_page()
+                    cdp = context.new_cdp_session(page)
+                    cdp.send('Network.enable'); cdp.send('Network.setCacheDisabled', {'cacheDisabled': True})
+                    page.on('pageerror', lambda error: errors.append(str(error)))
+                    page.on('console', lambda msg: errors.append(msg.text) if msg.type == 'error' else None)
+                    page.on('request', lambda req: external.append(req.url) if not req.url.startswith(('http://127.0.0.1:', 'data:')) else None)
+                    page.on('requestfailed', lambda req: failed.append(req.url))
+                    page.goto(f'http://127.0.0.1:{server.server_port}/Games/Citisten3D/ui-preview.html?fixture')
+                    page.wait_for_function('window.citistenPreview')
+                    page.evaluate('''async () => {
+                      const { createUI } = await import('./ui.mjs');
+                      window.citistenPreview.ui.destroy();
+                      window.calls = [];
+                      window.ui = createUI(document.querySelector('#ui'), {
+                        onStart: mode => calls.push(['start', mode]),
+                        onTool: tool => calls.push(['tool', tool]),
+                        onRestart: mode => calls.push(['restart', mode])
+                      });
+                      // Deliberately labelled state/roads fixture, not a parallel simulation.
+                      window.state = { budget:24500, population:128, peakPopulation:240,
+                        power:{demand:64,supply:100}, water:{demand:48,supply:100},
+                        mode:'free', phase:'day', night:2, score:3, kills:46,
+                        townHallHp:720, townHallMaxHp:1000, buildings:[], zombies:[] };
+                      for (let z=1; z<23; z++) for (let x=1; x<23; x++) {
+                        if (x === 12 || z === 12) continue;
+                        state.buildings.push({type:x<9?'residential':x<16?'commercial':'industrial',x,z});
+                      }
+                      state.buildings.unshift({type:'townhall',x:12,z:12});
+                      window.map = {size:24, roads:{cells:new Set(),cell(key){return {x:key%24,z:Math.floor(key/24)}}}};
+                      for(let i=0;i<24;i++){map.roads.cells.add(12*24+i);map.roads.cells.add(i*24+12)}
+                      ui.update(state,map);
+                      const pixel=document.querySelector('.city-map canvas').getContext('2d').getImageData(94,94,1,1).data;
+                      if (pixel[0]!==245 || pixel[1]!==242 || pixel[2]!==233) throw Error('Town hall marker covered by later zones');
+                    }''')
+                    page.evaluate('document.fonts.ready')
+                    assert page.evaluate("document.fonts.check('16px Atkinson') && document.fonts.check('16px Bungee')")
+                    assert page.evaluate('''() => [...document.styleSheets].some(sheet =>
+                      [...sheet.cssRules].some(rule => rule.selectorText === '.citisten-ui :focus-visible'
+                        && rule.style.outline.includes('solid')))''')
+                    assert page.locator('.city-subtitle, .city-tool-help, .city-mode-cards h2, .city-mode-cards p').count() == 0
+                    assert page.locator('[data-mode="free"]').inner_text() == 'Free build'
+                    assert page.locator('[data-mode="defense"]').inner_text() == 'Zombie defense'
+                    assert page.locator('.city-controls').inner_text() == 'WASD move / Right-drag rotate / Scroll zoom'
+                    assert page.evaluate('document.activeElement.id') == 'city-menu-title'
+                    assert page.locator('dialog[open] button:focus-visible').count() == 0
+                    assert page.locator('#city-menu-title').evaluate("el => getComputedStyle(el).outlineStyle") == 'none'
+                    for theme in ['dark', 'light']:
+                        if theme == 'light':
+                            page.locator('dialog[open] [data-action="theme"]').click()
+                        assert page.locator('#ui').get_attribute('data-theme') == theme
+                        assert page.locator('dialog[open] [data-action="theme"]').inner_text() == ('Light' if theme == 'dark' else 'Dark')
+                        layout(page)
+                        # Native focus ring and keyboard start path.
+                        keyboard_focus(page, '[data-mode="free"]')
+                        captures.append(shot(page, f'J-I-ui-menu-{theme}-{width}'))
+                        page.keyboard.press('Enter')
+                        assert page.evaluate('calls.at(-1)') == ['start', 'free']
+                        if theme == 'dark':
+                            assert page.locator('.city-tutorial').is_visible()
+                            for step in range(1, 6):
+                                assert page.locator('.city-tutorial-step').inner_text() == f'Step {step} of 5'
+                                next_button = page.locator('[data-action="tutorial-next"]')
+                                (next_button.tap if width < 600 else next_button.click)()
+                            assert not page.locator('.city-tutorial').is_visible()
+                            assert page.evaluate('localStorage.getItem("citisten-tutorial-seen")') == '1'
+                        else:
+                            assert not page.locator('.city-tutorial').is_visible()
+                        page.evaluate('state.mode="free"; state.phase="day"; state.budget=24500; state.population=128; state.night=2; state.townHallHp=720; state.power={demand:64,supply:100}; ui.update(state,map)')
+                        assert not page.locator('.city-night').is_visible()
+                        assert not page.locator('.city-tools').is_visible()
+                        assert page.locator('[data-group="Road"]').get_attribute('aria-pressed') == 'true'
+                        assert page.locator('.city-legend .enemy').get_attribute('hidden') is not None
+                        assert page.locator('[data-value="phase"]').inner_text() == 'Day 3'
+                        assert page.locator('[data-value="budget"]').inner_text() == '$24,500'
+                        layout(page)
+                        captures.append(shot(page, f'J-C-D-ui-hud-{theme}-{width}'))
+                        for group, tool in [('Bulldoze', 'bulldoze'), ('Road', 'road')]:
+                            page.locator(f'[data-group="{group}"]').click()
+                            assert page.evaluate('calls.at(-1)') == ['tool', tool]
+                        page.locator('[data-group="Service"]').click()
+                        for tool in ['power', 'water', 'police', 'fire', 'park']:
+                            page.locator(f'[data-tool="{tool}"]').click()
+                            assert page.evaluate('calls.at(-1)') == ['tool', tool]
+                        page.locator('[data-group="Zone"]').click()
+                        page.locator('[data-tool="residential"]').click()
+                        assert page.evaluate('calls.at(-1)') == ['tool', 'residential']
+                        assert page.locator('[data-tool="residential"]').get_attribute('aria-pressed') == 'true'
+                        assert page.locator('[data-group="Zone"]').get_attribute('aria-pressed') == 'true'
+                        keyboard_focus(page, '[data-tool="commercial"]')
+                        assert page.locator('#city-tooltip-commercial').is_visible()
+                        assert page.locator('#city-tooltip-commercial').inner_text() == '3'
+                        assert page.locator('[data-tool="commercial"]').get_attribute('aria-label') == 'Commercial'
+                        assert page.locator('.city-tools p').count() == 0
+                        layout(page)
+                        captures.append(shot(page, f'J-B-ui-toolbar-{theme}-{width}'))
+                        page.evaluate('''() => {
+                          state.mode='defense'; state.phase='night'; state.night=3;
+                          state.zombies=[{x:23,z:2},{x:23,z:5},{x:22,z:7}];
+                          ui.update(state,map);
+                          ui.events([{type:'wave-warning'},{type:'wave',night:3}]);
+                        }''')
+                        page.locator('[data-group="Defense"]').click()
+                        page.locator('[data-tool="watchtower"]').click()
+                        assert page.locator('[data-tool="barricade"]').is_disabled()
+                        assert page.locator('[data-group="Defense"]').get_attribute('aria-pressed') == 'true'
+                        assert page.locator('.city-night').is_visible()
+                        assert page.locator('.city-night h2, .city-night p').count() == 0
+                        assert page.locator('.city-legend .enemy').get_attribute('hidden') is None
+                        assert page.locator('[data-value="phase"]').inner_text() == 'Night'
+                        assert page.locator('.city-toasts > p').last.inner_text() == 'Wave 3 incoming'
+                        assert page.locator('.city-hall svg').get_attribute('aria-label') == 'Town hall health 72 percent'
+                        layout(page)
+                        captures.append(shot(page, f'J-F-G-ui-nightalert-{theme}-{width}'))
+                        page.evaluate('''() => {
+                          state.budget=23400; state.population=140;
+                          state.power={demand:64,supply:0}; ui.update(state,map);
+                          ui.events(Array.from({length:100},()=>({type:'placed'})));
+                          ui.events([{type:'blackout',active:true},{type:'milestone',population:100}]);
+                        }''')
+                        assert page.locator('.city-toasts > p').count() <= (1 if width < 600 else 3)
+                        assert page.locator('.city-toasts > p').last.inner_text() == 'Blackout'
+                        layout(page)
+                        assert page.locator('#city-power').get_attribute('aria-valuetext') == '64 demand, 0 supply'
+                        captures.append(shot(page, f'D-ui-blackout-{theme}-{width}'))
+                        page.evaluate('state.phase="lost";state.townHallHp=0;ui.update(state,map)')
+                        assert page.locator('.city-loss').is_visible()
+                        assert page.locator('[data-value="finalPopulation"]').inner_text() == '240'
+                        assert page.locator('#city-loss-title').inner_text() == 'Town hall lost'
+                        assert page.locator('.city-loss dt').all_text_contents() == ['Nights', 'Peak population', 'Kills']
+                        assert page.locator('.city-loss-content > p:not(.city-loss-error)').count() == 0
+                        page.keyboard.press('Escape')
+                        assert page.locator('.city-loss').is_visible()
+                        layout(page)
+                        captures.append(shot(page, f'J-H-ui-gameover-{theme}-{width}'))
+                        page.locator('[data-action="restart"]').click()
+                        assert page.evaluate('calls.at(-1)') == ['restart', 'defense']
+                        assert page.locator('.city-toasts > p').count() == 0
+                        assert page.locator('[data-group="Road"]').get_attribute('aria-expanded') == 'false'
+                        assert not page.locator('.city-tools').is_visible()
+                        page.evaluate('ui.update(state,map)')
+                        page.locator('.city-loss [data-action="menu"]').click()
+                        page.evaluate('ui.update(state,map)')
+                        assert page.locator('.city-menu').is_visible()
+                        assert not page.locator('.city-resume').is_visible()
+                        page.keyboard.press('Escape')
+                        assert page.locator('.city-menu').is_visible()
+                        page.locator('[data-mode="defense"]').click()
+                        assert page.evaluate('calls.at(-1)') == ['start', 'defense']
+                        page.locator('.city-top [data-action="menu"]').click()
+                    # Manual replay returns to the menu and Escape dismisses the overlay.
+                    page.locator('[data-action="tutorial"]').click()
+                    assert page.locator('.city-tutorial').is_visible()
+                    page.keyboard.press('Escape')
+                    assert not page.locator('.city-tutorial').is_visible()
+                    assert page.locator('.city-menu').is_visible()
+                    # Throwing storage must not break theme controls.
+                    page.evaluate("() => { Storage.prototype.setItem = () => { throw Error('Storage denied') }; }")
+                    page.locator('dialog[open] [data-action="theme"]').click()
+                    assert page.locator('#ui').get_attribute('data-theme') == 'dark'
+                    page.evaluate('''() => {
+                      const copy = [
+                        [{type:'placed'}, 'Placed'], [{type:'removed'}, 'Removed'],
+                        [{type:'repaired'}, 'Repaired'], [{type:'blackout',active:true}, 'Blackout'],
+                        [{type:'blackout',active:false}, 'Power restored'],
+                        [{type:'wave-warning'}, 'Nightfall: 1 min'],
+                        [{type:'wave',night:4}, 'Wave 4 incoming'],
+                        [{type:'milestone',population:1000}, '1,000 residents'],
+                        [{type:'night-survived',score:4}, 'Night survived']
+                      ];
+                      for (const [event, expected] of copy) {
+                        ui.events([event]);
+                        if (document.querySelector('.city-toasts').lastElementChild.textContent !== expected) throw Error('Toast copy: '+expected);
+                      }
+                    }''')
+                    count = page.locator('.city-toasts > p').count()
+                    page.evaluate('ui.events([{type:"placed"},{type:"placed"}]);ui.events([{type:"placed"}])')
+                    assert page.locator('.city-toasts > p').count() == count <= (1 if width < 600 else 3)
+                    page.evaluate('state.speed=0; ui.update(state,map); ui.events([])')
+                    page.wait_for_timeout(6200)
+                    assert page.locator('.city-toasts > p').count() == count
+                    page.evaluate('ui.destroy()')
+                    assert page.locator('#ui').inner_html() == ''
+                    # Denied reads/writes: first-play help still opens, and dismissal lasts this session.
+                    page.evaluate('''async () => {
+                      Storage.prototype.getItem = () => { throw Error('Storage denied') };
+                      const { createUI } = await import('./ui.mjs');
+                      window.ui = createUI(document.querySelector('#ui'));
+                    }''')
+                    page.locator('[data-mode="free"]').click()
+                    assert page.locator('.city-tutorial').is_visible()
+                    page.locator('[data-action="tutorial-close"]').click()
+                    assert not page.locator('.city-tutorial').is_visible()
+                    page.locator('.city-top [data-action="menu"]').click()
+                    page.locator('[data-mode="free"]').click()
+                    assert not page.locator('.city-tutorial').is_visible()
+                    page.locator('[data-group="Zone"]').click()
+                    assert page.locator('[data-tool="residential"]').is_visible()
+                    page.evaluate('ui.destroy()')
+                    context.close()
+                assert not errors, errors
+                assert not external, external
+                assert not failed, failed
+            finally:
+                browser.close()
+        pairs = [('menu','J-I'),('toolbar','J-B'),('hud','J-C-D'),('nightalert','J-F-G'),('gameover','J-H')]
+        for name, letters in pairs:
+            mockup = Image.open(ROOT / f'docs/citisten-design/ui-mockup-{name}.png').convert('RGB').resize((720,450))
+            for theme in ['dark','light']:
+                runtime = Image.open(OUT / f'{letters}-ui-{name}-{theme}-1440.png').convert('RGB').resize((720,450))
+                collage = Image.new('RGB',(1440,480),'#181c1b')
+                collage.paste(mockup,(0,30)); collage.paste(runtime,(720,30))
+                draw = ImageDraw.Draw(collage)
+                draw.text((12,8),'Generated mockup, solid-palette postprocessing',fill='white')
+                draw.text((732,8),f'Chromium UI fixture / {theme} / not gameplay',fill='white')
+                disk(); collage.save(OUT / f'J-comparison-{name}-{theme}.png')
+        result = {'scope':'UI fixture only, reviewer grades acceptance', 'viewports':[1440,390,320],
+                  'themes':['dark','light'], 'screenshots':len(captures), 'collages':10,
+                  'errors':errors,'externalRequests':external,'failedRequests':failed,'browserProcessChecks':PROCESS_CHECKS,
+                  'checks':'trimmed copy and nine toast messages, key-only hints, no duplicate tool rows/captions, runtime tab-order focus modality and visible CSS rule, native keyboard start, both modes, tool callbacks, theme/storage failure, HP, demand, peak population, loss-to-menu, hall marker ordering, toast cap/dedupe/expiry, 44px targets, overflow and button copy, no gradients/shadows, destroy',
+                  'diskBeforeBytes':before,'diskAfterBytes':shutil.disk_usage('/').free}
+        disk(); (OUT / 'J-ui-results.json').write_text(json.dumps(result,indent=2)+'\n')
+        print(f'UI CHECK PASS: {len(captures)} fixture screenshots, 10 collages; 3 viewports, 2 themes; zero console/page/network errors')
+    finally:
+        server.shutdown(); server.server_close(); thread.join(timeout=5)
+
+
+if __name__ == '__main__':
+    main()

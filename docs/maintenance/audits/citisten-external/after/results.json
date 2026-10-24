@@ -1,0 +1,490 @@
+{
+  "phase": "after",
+  "scope": "Model/placement API fixtures, not gameplay or performance acceptance",
+  "sourceHashes": {
+    "Games/Citisten3D/world.mjs": "313c956dde251f4c8d1a6847377e5f44942ecc6ce524872b6809131d3d20f4b4",
+    "Games/Citisten3D/buildings.mjs": "f54d6e4b5199eca5fce711fba2108c14a35c23290cfafd337bf06ceebb2b2339",
+    "Games/Citisten3D/materials.mjs": "a69cb7976d8cc19a0086c6c2a032fbefd4b9221be984de57a50fb5d1ada3668a",
+    "Games/Citisten3D/camera.mjs": "e9d84e99358d165cd14bc3eaa09bea206d5d434f3d89b8a088f4f5dc908b393a",
+    "Games/Citisten3D/roads.mjs": "8bfc07ad9b1c8fd69ba99e875641747c44e8fb8e8281fe54e05a560e83c4c22b",
+    "Games/Citisten3D/daynight.mjs": "a4fb8059778f2eb8029bef8c0e5e095b5bc5bb414278ea04d316c9dced5982c0",
+    "Games/Citisten3D/world-effects.mjs": "f17e60e72fba9331acbc1909ec60a1614f4905bdf7c1d98ac0201fa21a1d82f8",
+    "Games/Citisten3D/external-assets.mjs": "f9df0b33e019fcba6d0e2682356d6f493b368e69e62f60cee809dc54fc072c87",
+    "Games/Citisten3D/external-buildings.mjs": "9a0e70c65ad4fd215cb1bde28ecba2e8ef80c4b3b97afa2919ff78d12ddd42b0",
+    "Games/Citisten3D/external-materials.mjs": "8cad6e8cbdfffb81eb7174c9745c9acab86c2afc283d261838a505a4e526947f"
+  },
+  "shots": [
+    {
+      "model": "town_hall",
+      "view": "model",
+      "file": "town_hall-model.jpg",
+      "proxy": false,
+      "type": "townhall",
+      "pose": {
+        "x": 0,
+        "y": 0,
+        "z": 0,
+        "rotation": 3.141592653589793,
+        "scale": 1
+      },
+      "triangles": 224376,
+      "calls": 25
+    },
+    {
+      "model": "town_hall",
+      "view": "scene",
+      "file": "town_hall-scene.jpg",
+      "proxy": false,
+      "type": "townhall",
+      "pose": {
+        "x": 0,
+        "y": 0,
+        "z": 0,
+        "rotation": 3.141592653589793,
+        "scale": 1
+      },
+      "triangles": 357278,
+      "calls": 60
+    },
+    {
+      "model": "residential_row",
+      "view": "model",
+      "file": "residential_row-model.jpg",
+      "proxy": false,
+      "type": "residential",
+      "pose": {
+        "x": 0,
+        "y": 0,
+        "z": 0,
+        "rotation": 3.141592653589793,
+        "scale": 1
+      },
+      "triangles": 44142,
+      "calls": 23
+    },
+    {
+      "model": "residential_row",
+      "view": "scene",
+      "file": "residential_row-scene.jpg",
+      "proxy": false,
+      "type": "residential",
+      "pose": {
+        "x": 0,
+        "y": 0,
+        "z": 0,
+        "rotation": 3.141592653589793,
+        "scale": 1
+      },
+      "triangles": 177044,
+      "calls": 42
+    },
+    {
+      "model": "commercial",
+      "view": "model",
+      "file": "commercial-model.jpg",
+      "proxy": false,
+      "type": "commercial",
+      "pose": {
+        "x": 0,
+        "y": 0,
+        "z": 0,
+        "rotation": 3.141592653589793,
+        "scale": 1
+      },
+      "triangles": 92826,
+      "calls": 25
+    },
+    {
+      "model": "commercial",
+      "view": "scene",
+      "file": "commercial-scene.jpg",
+      "proxy": false,
+      "type": "commercial",
+      "pose": {
+        "x": 0,
+        "y": 0,
+        "z": 0,
+        "rotation": 3.141592653589793,
+        "scale": 1
+      },
+      "triangles": 225728,
+      "calls": 42
+    },
+    {
+      "model": "industrial_shed",
+      "view": "model",
+      "file": "industrial_shed-model.jpg",
+      "proxy": false,
+      "type": "industrial",
+      "pose": {
+        "x": 0,
+        "y": 0,
+        "z": 0,
+        "rotation": 3.141592653589793,
+        "scale": 1
+      },
+      "triangles": 25454,
+      "calls": 23
+    },
+    {
+      "model": "industrial_shed",
+      "view": "scene",
+      "file": "industrial_shed-scene.jpg",
+      "proxy": false,
+      "type": "industrial",
+      "pose": {
+        "x": 0,
+        "y": 0,
+        "z": 0,
+        "rotation": 3.141592653589793,
+        "scale": 1
+      },
+      "triangles": 158356,
+      "calls": 58
+    },
+    {
+      "model": "power_plant",
+      "view": "model",
+      "file": "power_plant-model.jpg",
+      "proxy": false,
+      "type": "power",
+      "pose": {
+        "x": 0,
+        "y": 0,
+        "z": 0,
+        "rotation": 3.141592653589793,
+        "scale": 1
+      },
+      "triangles": 59202,
+      "calls": 21
+    },
+    {
+      "model": "power_plant",
+      "view": "scene",
+      "file": "power_plant-scene.jpg",
+      "proxy": false,
+      "type": "power",
+      "pose": {
+        "x": 0,
+        "y": 0,
+        "z": 0,
+        "rotation": 3.141592653589793,
+        "scale": 1
+      },
+      "triangles": 192104,
+      "calls": 56
+    },
+    {
+      "model": "water_tower",
+      "view": "model",
+      "file": "water_tower-model.jpg",
+      "proxy": false,
+      "type": "water",
+      "pose": {
+        "x": 0,
+        "y": 0,
+        "z": 0,
+        "rotation": 3.141592653589793,
+        "scale": 1
+      },
+      "triangles": 51050,
+      "calls": 19
+    },
+    {
+      "model": "water_tower",
+      "view": "scene",
+      "file": "water_tower-scene.jpg",
+      "proxy": false,
+      "type": "water",
+      "pose": {
+        "x": 0,
+        "y": 0,
+        "z": 0,
+        "rotation": 3.141592653589793,
+        "scale": 1
+      },
+      "triangles": 183952,
+      "calls": 54
+    },
+    {
+      "model": "police_station",
+      "view": "model",
+      "file": "police_station-model.jpg",
+      "proxy": false,
+      "type": "police",
+      "pose": {
+        "x": 0,
+        "y": 0,
+        "z": 0,
+        "rotation": 3.141592653589793,
+        "scale": 1
+      },
+      "triangles": 45278,
+      "calls": 23
+    },
+    {
+      "model": "police_station",
+      "view": "scene",
+      "file": "police_station-scene.jpg",
+      "proxy": false,
+      "type": "police",
+      "pose": {
+        "x": 0,
+        "y": 0,
+        "z": 0,
+        "rotation": 3.141592653589793,
+        "scale": 1
+      },
+      "triangles": 178180,
+      "calls": 58
+    },
+    {
+      "model": "fire_station",
+      "view": "model",
+      "file": "fire_station-model.jpg",
+      "proxy": false,
+      "type": "fire",
+      "pose": {
+        "x": 0,
+        "y": 0,
+        "z": 0,
+        "rotation": 3.141592653589793,
+        "scale": 1
+      },
+      "triangles": 59150,
+      "calls": 23
+    },
+    {
+      "model": "fire_station",
+      "view": "scene",
+      "file": "fire_station-scene.jpg",
+      "proxy": false,
+      "type": "fire",
+      "pose": {
+        "x": 0,
+        "y": 0,
+        "z": 0,
+        "rotation": 3.141592653589793,
+        "scale": 1
+      },
+      "triangles": 192052,
+      "calls": 58
+    },
+    {
+      "model": "watchtower",
+      "view": "model",
+      "file": "watchtower-model.jpg",
+      "proxy": false,
+      "type": "watchtower",
+      "pose": {
+        "x": 0,
+        "y": 0,
+        "z": 0,
+        "rotation": 3.141592653589793,
+        "scale": 1
+      },
+      "triangles": 20026,
+      "calls": 17
+    },
+    {
+      "model": "watchtower",
+      "view": "scene",
+      "file": "watchtower-scene.jpg",
+      "proxy": false,
+      "type": "watchtower",
+      "pose": {
+        "x": 0,
+        "y": 0,
+        "z": 0,
+        "rotation": 3.141592653589793,
+        "scale": 1
+      },
+      "triangles": 152928,
+      "calls": 52
+    },
+    {
+      "model": "wall_segment",
+      "view": "model",
+      "file": "wall_segment-model.jpg",
+      "proxy": false,
+      "type": "wall",
+      "pose": {
+        "x": 0,
+        "y": 0,
+        "z": 0,
+        "rotation": 3.141592653589793,
+        "scale": 1
+      },
+      "triangles": 20506,
+      "calls": 11
+    },
+    {
+      "model": "wall_segment",
+      "view": "scene",
+      "file": "wall_segment-scene.jpg",
+      "proxy": false,
+      "type": "wall",
+      "pose": {
+        "x": 0,
+        "y": 0,
+        "z": 0,
+        "rotation": 3.141592653589793,
+        "scale": 1
+      },
+      "triangles": 153408,
+      "calls": 46
+    },
+    {
+      "model": "park_lot",
+      "view": "model",
+      "file": "park_lot-model.jpg",
+      "proxy": false,
+      "type": "park",
+      "pose": {
+        "x": 0,
+        "y": 0,
+        "z": 0,
+        "rotation": 3.141592653589793,
+        "scale": 1
+      },
+      "triangles": 23462,
+      "calls": 27
+    },
+    {
+      "model": "park_lot",
+      "view": "scene",
+      "file": "park_lot-scene.jpg",
+      "proxy": false,
+      "type": "park",
+      "pose": {
+        "x": 0,
+        "y": 0,
+        "z": 0,
+        "rotation": 3.141592653589793,
+        "scale": 1
+      },
+      "triangles": 156364,
+      "calls": 62
+    },
+    {
+      "model": "tree_deciduous",
+      "view": "model",
+      "file": "tree_deciduous-model.jpg",
+      "proxy": false,
+      "type": "tree",
+      "pose": {
+        "x": 0,
+        "y": 0,
+        "z": 0,
+        "rotation": 3.141592653589793,
+        "scale": 1
+      },
+      "triangles": 16750,
+      "calls": 17
+    },
+    {
+      "model": "tree_deciduous",
+      "view": "scene",
+      "file": "tree_deciduous-scene.jpg",
+      "proxy": false,
+      "type": "tree",
+      "pose": {
+        "x": 0,
+        "y": 0,
+        "z": 0,
+        "rotation": 3.141592653589793,
+        "scale": 1
+      },
+      "triangles": 149652,
+      "calls": 52
+    },
+    {
+      "model": "citizen",
+      "view": "model",
+      "file": "citizen-model.jpg",
+      "proxy": false,
+      "type": "citizen",
+      "pose": {
+        "x": 0,
+        "y": 0,
+        "z": 0,
+        "rotation": 3.141592653589793,
+        "scale": 1
+      },
+      "triangles": 42960,
+      "calls": 61
+    },
+    {
+      "model": "citizen",
+      "view": "scene",
+      "file": "citizen-scene.jpg",
+      "proxy": false,
+      "type": "citizen",
+      "pose": {
+        "x": 0,
+        "y": 0,
+        "z": 0,
+        "rotation": 3.141592653589793,
+        "scale": 1
+      },
+      "triangles": 175862,
+      "calls": 96
+    },
+    {
+      "model": "zombie",
+      "view": "model",
+      "file": "zombie-model.jpg",
+      "proxy": false,
+      "type": "zombie",
+      "pose": {
+        "x": 0,
+        "y": 0,
+        "z": 0,
+        "rotation": 3.141592653589793,
+        "scale": 1
+      },
+      "triangles": 43156,
+      "calls": 65
+    },
+    {
+      "model": "zombie",
+      "view": "scene",
+      "file": "zombie-scene.jpg",
+      "proxy": false,
+      "type": "zombie",
+      "pose": {
+        "x": 0,
+        "y": 0,
+        "z": 0,
+        "rotation": 3.141592653589793,
+        "scale": 1
+      },
+      "triangles": 176058,
+      "calls": 100
+    },
+    {
+      "model": "compact_car",
+      "view": "model",
+      "file": "compact_car-model.jpg",
+      "proxy": false,
+      "type": "car",
+      "pose": {
+        "x": 0,
+        "y": 0,
+        "z": 0,
+        "rotation": 3.141592653589793,
+        "scale": 1
+      },
+      "triangles": 21266,
+      "calls": 69
+    }
+  ],
+  "errors": [],
+  "external": [],
+  "failed": [],
+  "serverClosed": true,
+  "profileRemoved": true,
+  "browserClosed": true,
+  "diskBefore": 3143507968,
+  "diskAfter": 3140136960
+}

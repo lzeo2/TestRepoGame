@@ -338,6 +338,18 @@
       "document": "docs/maintenance/games/222-circuit-ward.md"
     },
     {
+      "directory": "Games/Citisten3D",
+      "id": null,
+      "title": "Citisten3D",
+      "registered": false,
+      "entry": null,
+      "entry_blob": null,
+      "tree": "56aa92a81149e7387d87d119826de391fefe56f5",
+      "files": 30,
+      "bytes": 2358922,
+      "document": "docs/maintenance/games/unregistered-citisten3d.md"
+    },
+    {
       "directory": "Games/CookieClicker",
       "id": 79,
       "title": "Cookie Clicker",
@@ -427,10 +439,10 @@
       "title": "Below the Obvious",
       "registered": true,
       "entry": "Games/Dive Trivia/index.html",
-      "entry_blob": "de72ba9510920289491a812175aee3e3b4e2e6d1",
-      "tree": "c44a456711130118e588eacb451953ac31b5c9a4",
-      "files": 15,
-      "bytes": 694897,
+      "entry_blob": "e6323baa2df3812f752b23d6a9e4010812425072",
+      "tree": "e48575e3d79195605177d80c0bf98676a6c1af8b",
+      "files": 8,
+      "bytes": 67871,
       "document": "docs/maintenance/games/235-dive-trivia.md"
     },
     {
@@ -631,10 +643,10 @@
       "title": "Foldwild: Open-World RPG (Preview)",
       "registered": true,
       "entry": "Games/Foldwild/index.html",
-      "entry_blob": "90c57cd6bbd81ca7828aac4a99a1d06ccb4f64a8",
-      "tree": "d11a1e3a026c7a49119eebfb68ce2e8986410e18",
+      "entry_blob": "af2e6750fc2fa91d2c52d7a2385b6f5255eb4783",
+      "tree": "c935f92b7c41a90697fec764e084adf46f0e86ad",
       "files": 95,
-      "bytes": 8966626,
+      "bytes": 8966462,
       "document": "docs/maintenance/games/226-foldwild.md"
     },
     {
@@ -800,9 +812,9 @@
       "registered": true,
       "entry": "Games/Jankolock3D/index.html",
       "entry_blob": "07bf7025cde8d26765b103bf1bbee0b79cd525b6",
-      "tree": "4a6068e6bdbb1e8bd6d5bb1f447f731061b7e37b",
-      "files": 127,
-      "bytes": 13653962,
+      "tree": "38a0df10fb2a71646f9abc959311ade6b7ed46b6",
+      "files": 128,
+      "bytes": 13662965,
       "document": "docs/maintenance/games/240-jankolock3d.md"
     },
     {
@@ -1219,10 +1231,10 @@
       "title": "Slipstream Borough: Police Chase (Preview)",
       "registered": true,
       "entry": "Games/Slipstream Borough/index.html",
-      "entry_blob": "80d0e859dcff8fad4abefc6a884c9db727dd5f11",
-      "tree": "794a8ca9eba92af4876c4091eebd4ef585181074",
+      "entry_blob": "20be2b2f38da3871a5893ae92efa8d4033431f04",
+      "tree": "fbe1da71e35fbb5917924494fe2acc9da5c0891d",
       "files": 9,
-      "bytes": 111877,
+      "bytes": 120513,
       "document": "docs/maintenance/games/225-slipstream-borough.md"
     },
     {

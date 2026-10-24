@@ -34,7 +34,7 @@ export function bindHeroRig(group, rig) {
     joint.node.quaternion.copy(joint.quaternion).multiply(delta.setFromAxisAngle(axis,angle*Math.PI/180));
   }
   return {
-    update(dt,{state='idle',speed=0,aiming=false}={}) {
+    update(dt,{state='idle',speed=0,aiming=false,recoil=0}={}) {
       clock=(clock+Math.max(0,Number.isFinite(dt)?dt:0)%(Math.PI*2))%(Math.PI*2);
       // Never animate the caller-owned root. All joint deltas start at author rest.
       for(const [name,joint] of nodes)if(name!=='root') {
@@ -44,7 +44,9 @@ export function bindHeroRig(group, rig) {
       const stride=Math.sin(clock*9)*moving;
       const sliding=state==='slide',air=state==='jump'||state==='fall';
       const lean=sliding?-10:state==='dash'?-7:state==='jump'?-4:state==='fall'?3:aiming||state==='aim'?-3:0;
-      hinge('pelvis',sliding?-2:0);hinge('torso',lean);hinge('head',-lean*.35);
+      const kick=Number.isFinite(recoil)?Math.max(0,Math.min(1,recoil))*6:0;
+      // Torso kick moves both grips together and stays inside the authored hinge limits.
+      hinge('pelvis',sliding?-2:0);hinge('torso',lean-kick);hinge('head',-lean*.35);
       for(const side of ['l','r']) {
         const step=sliding||air?0:stride*(side==='l'?1:-1);
         const thigh=sliding?-12:state==='jump'?-8:state==='fall'?3:step*12;
@@ -75,7 +77,8 @@ export function createHeroVisual(id) {
   let pose;
   try {pose=bindHeroRig(group,asset.rig);}catch(error){asset.dispose();throw error;}
   let disposed=false;
-  return {group,metadata:asset.metadata,
+  const muzzle=group.getObjectByName({stampead:'stamp_face_relief',turretina:'muzzle',snipeoff:'muzzle001',gooey:'hand_r'}[id]);
+  return {group,metadata:asset.metadata,muzzle,
     update(dt,options={}) {
       if(disposed)return;
       // HeroRuntime supplies absolute controller yaw; omitted/invalid yaw leaves placement alone.

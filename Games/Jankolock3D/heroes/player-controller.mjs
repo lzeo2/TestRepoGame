@@ -1,6 +1,6 @@
 import * as THREE from '../vendor/three.module.js';
-import { capsuleIntersects } from '../traversal.mjs';
-import { rampHeight } from '../world-data.mjs';
+import { capsuleIntersects, FALL_LIMIT } from '../traversal.mjs';
+import { rampHeight, LIMIT } from '../world-data.mjs';
 
 const RADIUS = 0.45, HEIGHT = 1.8, CROUCH_HEIGHT = 0.95;
 const WALK = 8, SPRINT = 12, GRAVITY = 24, JUMP = 9;
@@ -72,7 +72,11 @@ function cameraHitsRamp(p, r) {
  * ramps optionally accepts world rotated-slab descriptors. Supply surfaceHeight
  * through floorHeight for their walkable tops; empty ramps preserves AABB-only behavior.
  * floorHeight returns the highest accessible surface <= maxY, or -Infinity
- * for a void. This module also handles box tops/undersides. Spawn/warp into
+ * for a void. Solid terrain may return above maxY to block lateral entry;
+ * accessible overhead box/ramp tops must still respect maxY. World LIMIT bounds
+ * apply to movement/warp, including ranges. Invalid motion or feet below -32m
+ * reset to the last clear grounded pose (initial fallback: {x:0,y:0,z:8}).
+ * This module also handles box tops/undersides. Spawn/warp into
  * non-overlapping space; warp clears movement, action timers, stamina and jumps
  * but preserves view angles and speedMultiplier (default 1, supported 0.1..4).
  *
@@ -94,6 +98,7 @@ export class PlayerController {
     this.pitch = 0;
     this.speedMultiplier = 1;
     this.radius = RADIUS;
+    this._safe = new THREE.Vector3(0, 0, 8);
     this.warp(position);
   }
 
@@ -101,7 +106,10 @@ export class PlayerController {
   get infiniteAmmo() { return this.state === 'slide' && this._slideTime > 0; }
 
   warp(position) {
-    this.position.set(finite(position.x), finite(position.y), finite(position.z));
+    const valid = [position.x, position.y, position.z].every(Number.isFinite) && position.y >= FALL_LIMIT;
+    this.position.copy(valid ? position : this._safe);
+    this.position.x = clamp(this.position.x, -LIMIT, LIMIT);
+    this.position.z = clamp(this.position.z, -LIMIT, LIMIT);
     this.velocity.set(0, 0, 0);
     this.stamina = 100;
     this.jumps = 0;
@@ -151,6 +159,7 @@ export class PlayerController {
       this.position.y = floor;
       this.velocity.y = 0;
       this.jumps = 0;
+      if (this._clear(this.position)) this._safe.copy(this.position);
     }
   }
 
@@ -181,7 +190,7 @@ export class PlayerController {
       for (const [axis, delta] of [['x', dx / count], ['z', dz / count]]) {
         if (delta === 0) continue;
         const old = this.position[axis], oldY = this.position.y;
-        this.position[axis] += delta;
+        this.position[axis] = clamp(old + delta, -LIMIT, LIMIT);
         if (this.grounded && dy <= 0) {
           const floor = this._surface(oldY + STEP);
           const rampTop = this.ramps.some(r => this.position.x >= r.minX && this.position.x <= r.maxX &&
@@ -198,7 +207,12 @@ export class PlayerController {
           return horizontalOverlap(this.position, b) && this.position.y < b.maxY - EPS &&
             this.position.y + this.height > b.minY + EPS;
         });
-        if (hit || this._rampHit(this.position)) {
+        // surfaceHeight deliberately returns solid terrain even above maxY.
+        // Reject its vertical edge, rather than discarding it as overhead support.
+        const buried = this.floorHeight(this.position.x, this.position.z, this.position.y + 0.035) > this.position.y + 0.035;
+        const edge = this.position.clone(); edge[axis] += Math.sign(delta) * RADIUS;
+        const edgeBuried = this.floorHeight(edge.x, edge.z, edge.y + STEP) > edge.y + STEP;
+        if (buried || edgeBuried || hit || this._rampHit(this.position)) {
           this.position[axis] = old;
           this.position.y = oldY;
           if (hit && mantle && !this._mantle) this._tryMantle(bounds(hit), axis, delta);
@@ -258,6 +272,9 @@ export class PlayerController {
   }
 
   update(dt, input = {}) {
+    if (![this.position.x, this.position.y, this.position.z, this.velocity.x, this.velocity.y, this.velocity.z].every(Number.isFinite) || this.position.y < FALL_LIMIT) this.warp(this._safe);
+    this.position.x = clamp(this.position.x, -LIMIT, LIMIT);
+    this.position.z = clamp(this.position.z, -LIMIT, LIMIT);
     this.yaw = finite(input.yaw, this.yaw);
     this.pitch = clamp(finite(input.pitch, this.pitch), -1.2, 1.2);
     this.aiming = Boolean(input.aim);
@@ -379,9 +396,11 @@ export class PlayerController {
     const p = new THREE.Vector3();
     const aboveFloor = t => {
       p.lerpVectors(from, to, t);
-      const floor = this.floorHeight(p.x, p.z, from.y + CAMERA_RADIUS);
       return !this.ramps.some(r => cameraHitsRamp(p, r)) &&
-        (!Number.isFinite(floor) || floor > from.y + CAMERA_RADIUS || p.y - CAMERA_RADIUS >= floor);
+        [[0, 0], [CAMERA_RADIUS, 0], [-CAMERA_RADIUS, 0], [0, CAMERA_RADIUS], [0, -CAMERA_RADIUS]].every(([x, z]) => {
+          const floor = this.floorHeight(p.x + x, p.z + z, from.y + CAMERA_RADIUS);
+          return !Number.isFinite(floor) || p.y - CAMERA_RADIUS >= floor;
+        });
     };
     for (let i = 1; i <= count; i++) {
       const t = fraction * i / count;

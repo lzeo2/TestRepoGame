@@ -1,0 +1,5 @@
+NATIVE shell: starting; docs/maintenance/audits/citisten-QA/native/shell/run-zt377fop/native-results.json
+NATIVE shell: serverReady; docs/maintenance/audits/citisten-QA/native/shell/run-zt377fop/native-results.json
+NATIVE shell: failure; docs/maintenance/audits/citisten-QA/native/shell/run-zt377fop/native-results.json
+NATIVE shell: cleanup-start; docs/maintenance/audits/citisten-QA/native/shell/run-zt377fop/native-results.json
+NATIVE shell: finished; docs/maintenance/audits/citisten-QA/native/shell/run-zt377fop/native-results.json

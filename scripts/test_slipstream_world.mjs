@@ -19,6 +19,15 @@ check('immutable original city / radius / finite boundaries / routes',()=>{
   const from={x:0,z:-25},target={x:50,z:-25};const waypoint=chaseTarget(from,target);
   assert(clearPath(from,waypoint));assert.notDeepEqual(waypoint,target);
 });
+check('exact swept collision catches grazing corners without widening roads',()=>{
+  // Inflated block at (25,25) starts at (9,9). This segment touches only that corner.
+  assert(!clearPath({x:0,z:18},{x:18,z:0}));
+  assert(!clearPath({x:18,z:0},{x:0,z:18}));
+  assert(clearPath({x:0,z:17.999},{x:17.999,z:0}));
+  assert(clearPath({x:0,z:-163},{x:0,z:163}));
+  assert(!clearPath({x:0,z:-163},{x:0,z:164}));
+  assert(!clearPath({x:-150,z:-150},{x:150,z:150}));
+});
 check('profile3 v2 migration preserves purchased kits / cosmetic copies / mileage gates',()=>{
   const p=core.freshProfile();assert.equal(p.version,3);assert.equal(p.careerDistance,0);assert.equal(p.escapes,0);
   assert.deepEqual(Object.keys(core.CAR_UNLOCKS).sort(),CARS.map(c=>c.id).sort());assert(Object.isFrozen(core.CAR_UNLOCKS));

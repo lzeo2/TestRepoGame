@@ -41,6 +41,7 @@ function isolated(hero = 'courier') {
   fixture.tickBullets(s, 0.05);
   assert.equal(target.hp, 100, 'cover blocks even a deliberately overspeed fixture bullet');
   assert.equal(s.bullets.length, 0);
+  assert.equal(s.events.filter(e => e.type === 'hit').length, 0, 'cover is not a confirmed actor hit');
   Object.assign(player, { x: 200, y: 300 });
   Object.assign(target, { x: 300, y: 300 });
   s.bullets = [{ x: 200, y: 300, px: 200, py: 300, vx: 10000, vy: 0, life: 1, team: 0, ownerId: 0, damage: 14 }];
@@ -49,6 +50,29 @@ function isolated(hero = 'courier') {
   s.bullets = [{ x: 260, y: 300, px: 260, py: 300, vx: 500, vy: 0, life: 0.05, team: 0, ownerId: 0, damage: 14 }];
   fixture.tickBullets(s, 0.05);
   assert.equal(target.hp, 72, 'exact endpoint hit still counts on the last lifetime slice');
+}
+
+// FIXTURE: feedback reports actual shield/health loss, never immunity or overkill.
+{
+  const { s, player } = isolated();
+  const target = s.actors[2];
+  Object.assign(target, { alive: true, invulnerable: 1, shield: 10 });
+  fixture.damageActor(s, target, 14, player);
+  assert.equal(s.events.length, 0, 'protected targets must not confirm a hit');
+  target.invulnerable = 0;
+  fixture.damageActor(s, target, 14, player);
+  assert.deepEqual(s.events.at(-1), { id: 1, type: 'hit', actorId: 0, team: 0,
+    targetId: 2, damage: 4, absorbed: 10, x: target.x, y: target.y });
+  target.hp = 3;
+  fixture.damageActor(s, target, 14, player);
+  assert.equal(s.events.at(-2).type, 'hit');
+  assert.equal(s.events.at(-2).damage, 3, 'overkill reports only health actually removed');
+  assert.equal(s.events.at(-1).type, 'kill', 'fatal hit precedes the stronger kill cue');
+  assert.deepEqual([s.events.at(-1).targetId, s.events.at(-1).x, s.events.at(-1).y],
+    [target.id, target.x, target.y], 'each kill owns its marker position, including rapid successive kills');
+  const count = s.events.length;
+  fixture.damageActor(s, target, 14, player);
+  assert.equal(s.events.length, count, 'dead targets must not repeat feedback');
 }
 
 // FIXTURE: warm-up, contested reset, exactly-once capture event, death and real respawn clock.
@@ -96,6 +120,7 @@ for (const hero of ['courier', 'postmaster', 'clerk']) {
     assert.equal(firstBulletCount, 3);
   } else if (hero === 'postmaster') {
     assert.equal(s.actors[2].hp, 80);
+    assert.equal(s.events.find(e => e.type === 'hit').damage, 20, 'slam uses the same confirmed-hit path');
     assert.ok(s.actors[2].x >= 490, 'slam applies bounded knockback');
     close(player.shield, 40);
     fixture.damageActor(s, player, 54, s.actors[2]);

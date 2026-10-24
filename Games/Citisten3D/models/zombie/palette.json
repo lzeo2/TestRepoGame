@@ -1,0 +1,170 @@
+{
+  "model": "zombie",
+  "color_space": "linear RGBA, glTF metallic-roughness baseColorFactor",
+  "palette_default": {
+    "zombie__black_trim": [
+      0.02500000037252903,
+      0.03099999949336052,
+      0.03700000047683716,
+      1
+    ],
+    "zombie__rubber": [
+      0.017999999225139618,
+      0.023000000044703484,
+      0.02500000037252903,
+      1
+    ],
+    "zombie__cream_shirt": [
+      0.6499999761581421,
+      0.5799999833106995,
+      0.4300000071525574,
+      1
+    ],
+    "zombie__weathered_olive": [
+      0.18000000715255737,
+      0.20999999344348907,
+      0.11999999731779099,
+      1
+    ],
+    "zombie__muted_ashen_skin": [
+      0.25999999046325684,
+      0.3199999928474426,
+      0.23999999463558197,
+      1
+    ],
+    "zombie__eye_white": [
+      0.8299999833106995,
+      0.8100000023841858,
+      0.7300000190734863,
+      1
+    ],
+    "zombie__dark_iris": [
+      0.03500000014901161,
+      0.07000000029802322,
+      0.05999999865889549,
+      1
+    ],
+    "zombie__dark_brown_hair": [
+      0.054999999701976776,
+      0.028999999165534973,
+      0.017999999225139618,
+      1
+    ],
+    "zombie__lip": [
+      0.27000001072883606,
+      0.10000000149011612,
+      0.07000000029802322,
+      1
+    ],
+    "zombie__brushed_alloy": [
+      0.3700000047683716,
+      0.41999998688697815,
+      0.44999998807907104,
+      1
+    ]
+  },
+  "material_slots": [
+    {
+      "name": "zombie__black_trim",
+      "baseColorFactor": [
+        0.02500000037252903,
+        0.03099999949336052,
+        0.03700000047683716,
+        1
+      ],
+      "scope": "this model semantic material"
+    },
+    {
+      "name": "zombie__rubber",
+      "baseColorFactor": [
+        0.017999999225139618,
+        0.023000000044703484,
+        0.02500000037252903,
+        1
+      ],
+      "scope": "this model semantic material"
+    },
+    {
+      "name": "zombie__cream_shirt",
+      "baseColorFactor": [
+        0.6499999761581421,
+        0.5799999833106995,
+        0.4300000071525574,
+        1
+      ],
+      "scope": "this model semantic material"
+    },
+    {
+      "name": "zombie__weathered_olive",
+      "baseColorFactor": [
+        0.18000000715255737,
+        0.20999999344348907,
+        0.11999999731779099,
+        1
+      ],
+      "scope": "this model semantic material"
+    },
+    {
+      "name": "zombie__muted_ashen_skin",
+      "baseColorFactor": [
+        0.25999999046325684,
+        0.3199999928474426,
+        0.23999999463558197,
+        1
+      ],
+      "scope": "this model semantic material"
+    },
+    {
+      "name": "zombie__eye_white",
+      "baseColorFactor": [
+        0.8299999833106995,
+        0.8100000023841858,
+        0.7300000190734863,
+        1
+      ],
+      "scope": "this model semantic material"
+    },
+    {
+      "name": "zombie__dark_iris",
+      "baseColorFactor": [
+        0.03500000014901161,
+        0.07000000029802322,
+        0.05999999865889549,
+        1
+      ],
+      "scope": "this model semantic material"
+    },
+    {
+      "name": "zombie__dark_brown_hair",
+      "baseColorFactor": [
+        0.054999999701976776,
+        0.028999999165534973,
+        0.017999999225139618,
+        1
+      ],
+      "scope": "this model semantic material"
+    },
+    {
+      "name": "zombie__lip",
+      "baseColorFactor": [
+        0.27000001072883606,
+        0.10000000149011612,
+        0.07000000029802322,
+        1
+      ],
+      "scope": "this model semantic material"
+    },
+    {
+      "name": "zombie__brushed_alloy",
+      "baseColorFactor": [
+        0.3700000047683716,
+        0.41999998688697815,
+        0.44999998807907104,
+        1
+      ],
+      "scope": "this model semantic material"
+    }
+  ],
+  "instance_isolation": "Materials are namespaced per model. Duplicate/clone each semantic material once per spawned instance before changing tint; share that clone only among parts of that same instance. Immutable textures may stay shared. No runtime integration code included.",
+  "texture_tint_note": "Constant color PBR palette retained. Character woven roughness and tangent normal maps are embedded and unaffected by base color tint."
+}

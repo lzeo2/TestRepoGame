@@ -1,0 +1,240 @@
+127.0.0.1 - - [22/Oct/2026 10:51:38] "GET /Games/Citisten3D/world.html HTTP/1.1" 200 -
+127.0.0.1 - - [22/Oct/2026 10:51:38] "GET /Games/Citisten3D/world-demo.mjs HTTP/1.1" 200 -
+127.0.0.1 - - [22/Oct/2026 10:51:38] "GET /Games/Citisten3D/world.mjs HTTP/1.1" 200 -
+127.0.0.1 - - [22/Oct/2026 10:51:38] "GET /Games/Citisten3D/vendor/three.module.js HTTP/1.1" 200 -
+127.0.0.1 - - [22/Oct/2026 10:51:38] "GET /Games/Citisten3D/buildings.mjs HTTP/1.1" 200 -
+127.0.0.1 - - [22/Oct/2026 10:51:38] "GET /Games/Citisten3D/roads.mjs HTTP/1.1" 200 -
+127.0.0.1 - - [22/Oct/2026 10:51:38] "GET /Games/Citisten3D/daynight.mjs HTTP/1.1" 200 -
+127.0.0.1 - - [22/Oct/2026 10:51:38] "GET /Games/Citisten3D/camera.mjs HTTP/1.1" 200 -
+127.0.0.1 - - [22/Oct/2026 10:51:38] "GET /Games/Citisten3D/world-effects.mjs HTTP/1.1" 200 -
+127.0.0.1 - - [22/Oct/2026 10:51:38] "GET /Games/Citisten3D/vendor/three.core.js HTTP/1.1" 200 -
+127.0.0.1 - - [22/Oct/2026 10:52:34] "GET /Games/Citisten3D/world.html?size=128&perf&manual HTTP/1.1" 200 -
+127.0.0.1 - - [22/Oct/2026 10:52:35] "GET /Games/Citisten3D/world-demo.mjs HTTP/1.1" 304 -
+127.0.0.1 - - [22/Oct/2026 10:52:35] "GET /Games/Citisten3D/world.mjs HTTP/1.1" 304 -
+{
+  "scope": "World API fixtures, not integrated game acceptance",
+  "errors": [],
+  "externalRequests": [],
+  "failedRequests": [],
+  "browserVersion": "149.0.7827.196",
+  "angleRequested": "swiftshader",
+  "spectatorMoved": true,
+  "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (LLVM 16.0.0) (0x0000C0DE)), SwiftShader driver)",
+  "nativePan": {
+    "w": {
+      "before": {
+        "x": 5,
+        "y": 35,
+        "z": 25,
+        "yaw": 0,
+        "pitch": -0.04
+      },
+      "after": {
+        "x": 5,
+        "y": 35,
+        "z": 23.5125,
+        "yaw": 0,
+        "pitch": -0.04
+      }
+    },
+    "a": {
+      "before": {
+        "x": 5,
+        "y": 35,
+        "z": 23.5125,
+        "yaw": 0,
+        "pitch": -0.04
+      },
+      "after": {
+        "x": 2.025,
+        "y": 35,
+        "z": 23.5125,
+        "yaw": 0,
+        "pitch": -0.04
+      }
+    },
+    "s": {
+      "before": {
+        "x": 2.025,
+        "y": 35,
+        "z": 23.5125,
+        "yaw": 0,
+        "pitch": -0.04
+      },
+      "after": {
+        "x": 2.025,
+        "y": 35,
+        "z": 26.4875,
+        "yaw": 0,
+        "pitch": -0.04
+      }
+    },
+    "d": {
+      "before": {
+        "x": 2.025,
+        "y": 35,
+        "z": 26.4875,
+        "yaw": 0,
+        "pitch": -0.04
+      },
+      "after": {
+        "x": 5,
+        "y": 35,
+        "z": 26.4875,
+        "yaw": 0,
+        "pitch": -0.04
+      }
+    }
+  },
+  "nativeRotate": [
+    "right",
+    "middle"
+  ],
+  "streetY": 2.0075317911136694,
+  "overheadY": 399.90084860070743,
+  "laneFixture": {
+    "route": [
+      {
+        "x": 97,
+        "z": 100
+      },
+      {
+        "x": 98,
+        "z": 100
+      },
+      {
+        "x": 99,
+        "z": 100
+      },
+      {
+        "x": 100,
+        "z": 100
+      },
+      {
+        "x": 101,
+        "z": 100
+      },
+      {
+        "x": 102,
+        "z": 100
+      },
+      {
+        "x": 103,
+        "z": 100
+      },
+      {
+        "x": 103,
+        "z": 101
+      },
+      {
+        "x": 103,
+        "z": 102
+      },
+      {
+        "x": 103,
+        "z": 103
+      },
+      {
+        "x": 103,
+        "z": 104
+      }
+    ],
+    "waypoints": [
+      {
+        "x": -25,
+        "y": 0.08,
+        "z": 6.8
+      },
+      {
+        "x": -15,
+        "y": 0.08,
+        "z": 6.8
+      },
+      {
+        "x": -5,
+        "y": 0.08,
+        "z": 6.8
+      },
+      {
+        "x": 5,
+        "y": 0.08,
+        "z": 6.8
+      },
+      {
+        "x": 15,
+        "y": 0.08,
+        "z": 6.8
+      },
+      {
+        "x": 25,
+        "y": 0.08,
+        "z": 6.8
+      },
+      {
+        "x": 33.2,
+        "y": 0.08,
+        "z": 6.8
+      },
+      {
+        "x": 33.2,
+        "y": 0.08,
+        "z": 15
+      },
+      {
+        "x": 33.2,
+        "y": 0.08,
+        "z": 25
+      },
+      {
+        "x": 33.2,
+        "y": 0.08,
+        "z": 35
+      },
+      {
+        "x": 33.2,
+        "y": 0.08,
+        "z": 45
+      }
+    ],
+    "renderedPositions": 30
+  },
+  "diskBefore": 4000301056,
+  "diskAfter": 3893088256
+}
+Traceback (most recent call last):
+  File "Games/Citisten3D/world-qa.py", line 189, in <module>
+  File "Games/Citisten3D/world-qa.py", line 175, in main
+    shot('WORLD-agents.png', 'WORLD BASE MODELS | citizen / hunched zombie / car\nStatic primitive silhouettes, no AI')
+    ^^^^^^^^^^^^^^^^^^^
+  File "Games/Citisten3D/world-qa.py", line 68, in performance_check
+    page.wait_for_function('citistenWorld.samples.length > 0', timeout=90000)
+    ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "site-packages/playwright/sync_api/_generated.py", line 12761, in wait_for_function
+    self._sync(
+    ~~~~~~~~~~^
+        self._impl_obj.wait_for_function(
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<4 lines>...
+        )
+        ^
+    )
+    ^
+  File "site-packages/playwright/_impl/_sync_base.py", line 115, in _sync
+    return task.result()
+           ~~~~~~~~~~~^^
+  File "site-packages/playwright/_impl/_page.py", line 1151, in wait_for_function
+    return await self._main_frame.wait_for_function(**locals_to_params(locals()))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "site-packages/playwright/_impl/_frame.py", line 940, in wait_for_function
+    await self._channel.send("waitForFunction", self._timeout, params)
+  File "site-packages/playwright/_impl/_connection.py", line 76, in send
+    return await self._connection.wrap_api_call(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<3 lines>...
+    )
+    ^
+  File "site-packages/playwright/_impl/_connection.py", line 632, in wrap_api_call
+    raise rewrite_error(error, f"{parsed_st['apiName']}: {error}") from None
+playwright._impl._errors.TimeoutError: Page.wait_for_function: Timeout 90000ms exceeded.
+
+WORLD_QA_EXIT=1

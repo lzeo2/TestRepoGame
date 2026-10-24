@@ -19,6 +19,7 @@ from playwright.sync_api import sync_playwright
 
 GAME = Path(__file__).resolve().parent
 ROOT = GAME.parents[1]
+OUT = ROOT / 'docs/maintenance/audits/jankolock-3d-qa/portrait-resume'
 FLOOR = 2178940928
 
 
@@ -39,22 +40,30 @@ def hashes():
             for p in sorted(paths)}
 
 
+def active_browser_processes(output):
+    rows = [line.split(None, 3) for line in output.splitlines()]
+    return [row for row in rows if len(row) == 4 and not row[1].startswith('Z') and
+            (row[2] in {'chrome', 'chromium'} or
+             (row[2] == 'node' and row[3].endswith(' run-driver')))]
+
+
 class Handler(http.server.SimpleHTTPRequestHandler):
     def log_message(self, *_):
         pass
 
 
 def main():
+    guard()
+    OUT.mkdir(parents=True, exist_ok=False)  # Archive an earlier attempt before rerunning.
     report = {'kind': 'portrait lobby builder checks, not H acceptance or full-game QA',
               'utc': datetime.now(timezone.utc).isoformat(), 'status': 'FAIL',
-              'qa_directory_approval': 'pending; evidence restricted to game paths',
+              'qa_directory_approval': 'operator-approved maintenance audit directory',
               'browser_attempts': 0, 'errors': [], 'requests': [], 'screenshots': [],
               'checks': {}, 'source_before': hashes(), 'storage_before': guard()}
     server = thread = None
     try:
-        active = subprocess.run(['pgrep', '-af', '[c]hrom(e|ium)|[p]laywright'],
-                                capture_output=True, text=True)
-        busy = [line for line in active.stdout.splitlines() if '<defunct>' not in line]
+        processes = subprocess.check_output(['ps', '-eo', 'pid=,stat=,comm=,args='], text=True)
+        busy = active_browser_processes(processes)
         if busy:
             report['status'] = 'SKIP'
             # No process command lines in committed evidence: they may contain host paths.
@@ -107,7 +116,7 @@ def main():
                         'vertices': 61893, 'triangles': 124512, 'units': 'm',
                         'source': 'in-house supplied photo-derived relief, not a scan'}
                     assert snapshot['diagnostics']['triangles'] >= 124512
-                    path = GAME / f'portrait-lobby-{theme}.png'
+                    path = OUT / f'portrait-lobby-{theme}.png'
                     guard()
                     page.screenshot(path=str(path), full_page=False)
                     with Image.open(path) as image:
@@ -120,16 +129,16 @@ def main():
                         'kind': 'unaltered native viewport', 'theme': theme,
                         'variance': variance, 'scene_variance': scene_variance,
                         'sha256': hashlib.sha256(path.read_bytes()).hexdigest(), 'snapshot': snapshot})
-                with Image.open(GAME / 'portrait-lobby-light.png') as image:
+                with Image.open(OUT / 'portrait-lobby-light.png') as image:
                     box = (430, 130, 720, 570)
                     crop = image.crop(box)
                     info = PngInfo()
                     info.add_text('Description', 'CROP of portrait-lobby-light.png at (430,130,720,570), original pixels; not a separate view')
                     guard()
-                    crop.save(GAME / 'portrait-detail.png', pnginfo=info)
-                    report['screenshots'].append({'path': 'Games/Jankolock3D/portrait-detail.png',
+                    crop.save(OUT / 'portrait-detail.png', pnginfo=info)
+                    report['screenshots'].append({'path': (OUT / 'portrait-detail.png').relative_to(ROOT).as_posix(),
                         'kind': 'crop, not a separate view; no resizing',
-                        'source': 'Games/Jankolock3D/portrait-lobby-light.png', 'box': box})
+                        'source': (OUT / 'portrait-lobby-light.png').relative_to(ROOT).as_posix(), 'box': box})
                 config = json.loads((GAME / 'portrait-config.json').read_text())
                 receipt = json.loads((GAME / 'portrait-receipt.json').read_text())
                 asset = (GAME / config['url']).read_bytes()
@@ -163,7 +172,7 @@ def main():
         report['source_concurrency_limit'] = 'Before/after hashes cannot exclude edit-and-revert or changes between resource reads.'
         report['storage_after'] = guard()
         guard()
-        (GAME / 'portrait-qa.json').write_text(json.dumps(report, indent=2) + '\n')
+        (OUT / 'portrait-qa.json').write_text(json.dumps(report, indent=2) + '\n')
         print(json.dumps({k: report[k] for k in ['status', 'browser_attempts', 'checks', 'errors',
               'concurrent_source_changes', 'server_shutdown', 'storage_before', 'storage_after']}), flush=True)
     return 0 if report['status'] == 'PASS' else 1

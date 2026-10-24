@@ -1,0 +1,170 @@
+{
+  "model": "patrol_car",
+  "color_space": "linear RGBA, glTF metallic-roughness baseColorFactor",
+  "palette_default": {
+    "patrol_car__ivory_fleet_paint": [
+      0.7599999904632568,
+      0.7599999904632568,
+      0.6700000166893005,
+      1
+    ],
+    "patrol_car__black_trim": [
+      0.02500000037252903,
+      0.03099999949336052,
+      0.03700000047683716,
+      1
+    ],
+    "patrol_car__brushed_alloy": [
+      0.3700000047683716,
+      0.41999998688697815,
+      0.44999998807907104,
+      1
+    ],
+    "patrol_car__indigo_cotton": [
+      0.03500000014901161,
+      0.08500000089406967,
+      0.14000000059604645,
+      1
+    ],
+    "patrol_car__smoky_cabin_glass": [
+      0.02800000086426735,
+      0.07500000298023224,
+      0.0949999988079071,
+      1
+    ],
+    "patrol_car__rubber": [
+      0.017999999225139618,
+      0.023000000044703484,
+      0.02500000037252903,
+      1
+    ],
+    "patrol_car__clear_headlamp": [
+      0.7400000095367432,
+      0.8199999928474426,
+      0.800000011920929,
+      1
+    ],
+    "patrol_car__red_tail_lens": [
+      0.44999998807907104,
+      0.02500000037252903,
+      0.014999999664723873,
+      1
+    ],
+    "patrol_car__blue_lightbar_lens": [
+      0.014999999664723873,
+      0.10999999940395355,
+      0.44999998807907104,
+      1
+    ],
+    "patrol_car__red_lightbar_lens": [
+      0.5,
+      0.02199999988079071,
+      0.014999999664723873,
+      1
+    ]
+  },
+  "material_slots": [
+    {
+      "name": "patrol_car__ivory_fleet_paint",
+      "baseColorFactor": [
+        0.7599999904632568,
+        0.7599999904632568,
+        0.6700000166893005,
+        1
+      ],
+      "scope": "this model semantic material"
+    },
+    {
+      "name": "patrol_car__black_trim",
+      "baseColorFactor": [
+        0.02500000037252903,
+        0.03099999949336052,
+        0.03700000047683716,
+        1
+      ],
+      "scope": "this model semantic material"
+    },
+    {
+      "name": "patrol_car__brushed_alloy",
+      "baseColorFactor": [
+        0.3700000047683716,
+        0.41999998688697815,
+        0.44999998807907104,
+        1
+      ],
+      "scope": "this model semantic material"
+    },
+    {
+      "name": "patrol_car__indigo_cotton",
+      "baseColorFactor": [
+        0.03500000014901161,
+        0.08500000089406967,
+        0.14000000059604645,
+        1
+      ],
+      "scope": "this model semantic material"
+    },
+    {
+      "name": "patrol_car__smoky_cabin_glass",
+      "baseColorFactor": [
+        0.02800000086426735,
+        0.07500000298023224,
+        0.0949999988079071,
+        1
+      ],
+      "scope": "this model semantic material"
+    },
+    {
+      "name": "patrol_car__rubber",
+      "baseColorFactor": [
+        0.017999999225139618,
+        0.023000000044703484,
+        0.02500000037252903,
+        1
+      ],
+      "scope": "this model semantic material"
+    },
+    {
+      "name": "patrol_car__clear_headlamp",
+      "baseColorFactor": [
+        0.7400000095367432,
+        0.8199999928474426,
+        0.800000011920929,
+        1
+      ],
+      "scope": "this model semantic material"
+    },
+    {
+      "name": "patrol_car__red_tail_lens",
+      "baseColorFactor": [
+        0.44999998807907104,
+        0.02500000037252903,
+        0.014999999664723873,
+        1
+      ],
+      "scope": "this model semantic material"
+    },
+    {
+      "name": "patrol_car__blue_lightbar_lens",
+      "baseColorFactor": [
+        0.014999999664723873,
+        0.10999999940395355,
+        0.44999998807907104,
+        1
+      ],
+      "scope": "this model semantic material"
+    },
+    {
+      "name": "patrol_car__red_lightbar_lens",
+      "baseColorFactor": [
+        0.5,
+        0.02199999988079071,
+        0.014999999664723873,
+        1
+      ],
+      "scope": "this model semantic material"
+    }
+  ],
+  "instance_isolation": "Materials are namespaced per model. Duplicate/clone each semantic material once per spawned instance before changing tint; share that clone only among parts of that same instance. Immutable textures may stay shared. No runtime integration code included.",
+  "texture_tint_note": "Constant color PBR palette retained. Character woven roughness and tangent normal maps are embedded and unaffected by base color tint."
+}

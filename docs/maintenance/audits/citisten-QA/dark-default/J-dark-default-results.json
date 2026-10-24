@@ -1,0 +1,3135 @@
+{
+  "complete": true,
+  "scope": "UI fixtures only; reviewer grades; no integrated game entry",
+  "systemPreference": "light",
+  "cacheDisabled": true,
+  "serviceWorkersBlocked": true,
+  "screens": [
+    {
+      "screen": "menu",
+      "order": [
+        "cold default dark",
+        "native light toggle"
+      ],
+      "defaultFrames": [
+        {
+          "time": 758.4000000003725,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 801,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 804.8000000007451,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 811,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 850.2000000011176,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 866.5999999996275,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 874.5,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 891.3000000007451,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 908.0999999996275,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 924.9000000003725,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 941.2000000011176,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 957.9000000003725,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 974.8000000007451,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 994.5999999996275,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 1037,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 1041.800000000745,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 1043.0999999996275,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 1057.5999999996275,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 1074.2000000011176,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 1091.2000000011176,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 1110.5999999996275,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 1152.5,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 1153.300000000745,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 1157.800000000745,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 1185.800000000745,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 1191,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 1209.800000000745,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 1225.5,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 1245.0999999996275,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 1258,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 1275.5,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 1291.4000000003725,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 1307.7000000011176,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 1325,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 1379.0999999996275,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 1391.7000000011176,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 1407.9000000003725,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 1424.7000000011176,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 1441.9000000003725,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 1460.2000000011176,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        }
+      ],
+      "dark": {
+        "theme": "dark",
+        "panel": "#242927",
+        "ink": "#f5f2e9",
+        "accent": "#d8ae55",
+        "base": "rgb(24, 28, 27)",
+        "initialFocus": "city-menu-title",
+        "focusOutline": "none",
+        "focusedButtons": [],
+        "panels": [
+          {
+            "background": "rgb(36, 41, 39)",
+            "ink": "rgb(245, 242, 233)",
+            "radius": "4px",
+            "shadow": "none"
+          },
+          {
+            "background": "rgb(36, 41, 39)",
+            "ink": "rgb(245, 242, 233)",
+            "radius": "4px",
+            "shadow": "none"
+          }
+        ]
+      },
+      "light": {
+        "theme": "light",
+        "panel": "#faf7ee",
+        "ink": "#20251f",
+        "accent": "#805d16",
+        "base": "rgb(24, 28, 27)",
+        "initialFocus": "BUTTON",
+        "focusOutline": "none",
+        "focusedButtons": [],
+        "panels": [
+          {
+            "background": "rgb(250, 247, 238)",
+            "ink": "rgb(32, 37, 31)",
+            "radius": "4px",
+            "shadow": "none"
+          },
+          {
+            "background": "rgb(250, 247, 238)",
+            "ink": "rgb(32, 37, 31)",
+            "radius": "4px",
+            "shadow": "none"
+          }
+        ]
+      },
+      "responses": [
+        {
+          "path": "/Games/Citisten3D/ui-preview.html?fixture",
+          "status": 200,
+          "serviceWorker": false
+        },
+        {
+          "path": "/Games/Citisten3D/ui.css",
+          "status": 200,
+          "serviceWorker": false
+        },
+        {
+          "path": "/Games/Citisten3D/ui-preview.mjs",
+          "status": 200,
+          "serviceWorker": false
+        },
+        {
+          "path": "/Games/Citisten3D/ui.mjs",
+          "status": 200,
+          "serviceWorker": false
+        },
+        {
+          "path": "/Games/Citisten3D/sim.mjs",
+          "status": 200,
+          "serviceWorker": false
+        },
+        {
+          "path": "/Games/Citisten3D/roads.mjs",
+          "status": 200,
+          "serviceWorker": false
+        },
+        {
+          "path": "/assets/fonts/atkinson-hyperlegible/atkinson-hyperlegible-400-latin.woff2",
+          "status": 200,
+          "serviceWorker": false
+        },
+        {
+          "path": "/assets/fonts/bungee/bungee-400-latin.woff2",
+          "status": 200,
+          "serviceWorker": false
+        },
+        {
+          "path": "/assets/fonts/atkinson-hyperlegible/atkinson-hyperlegible-700-latin.woff2",
+          "status": 200,
+          "serviceWorker": false
+        }
+      ]
+    },
+    {
+      "screen": "toolbar",
+      "order": [
+        "cold default dark",
+        "native light toggle"
+      ],
+      "defaultFrames": [
+        {
+          "time": 125.30000000074506,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 221.09999999962747,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 227.2000000011176,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 259.59999999962747,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 266.30000000074506,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 374.2000000011176,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 393.2000000011176,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 408.30000000074506,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 447.7000000011176,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 451.59999999962747,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 467.80000000074506,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 483.09999999962747,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 499.7000000011176,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 517.7000000011176,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 533.3000000007451,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 554.0999999996275,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 569.9000000003725,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 585.5,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 608.5,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 623.7000000011176,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 638.5,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 653,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 668.3000000007451,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 685.0999999996275,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 706.0999999996275,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 716.3000000007451,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 732.3000000007451,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 751.4000000003725,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 765.9000000003725,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 782.7000000011176,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 799.7000000011176,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 815.8000000007451,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 836.8000000007451,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 849.3000000007451,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 865.9000000003725,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 882.5999999996275,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 899.2000000011176,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 915.8000000007451,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 932.3000000007451,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 986.2000000011176,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 988.4000000003725,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 999.3000000007451,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 1017.3000000007451,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 1033.5,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 1049.5,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 1068,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 1115.5999999996275,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 1116.7000000011176,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 1152,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 1153.2000000011176,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 1166.9000000003725,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 1182.7000000011176,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 1199.5999999996275,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 1217.0999999996275,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 1232.5,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 1251.300000000745,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 1266.300000000745,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 1314.7000000011176,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 1336.4000000003725,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 1348,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 1352,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 1380.0999999996275,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 1383.7000000011176,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 1503.5999999996275,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 1522,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 1532.7000000011176,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 1549.0999999996275,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 1565.5999999996275,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 1582.4000000003725,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 1599.7000000011176,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 1618.300000000745,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 1639.300000000745,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 1649.5,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 1673.5,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 1683.300000000745,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 1699.4000000003725,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 1716.0999999996275,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 1733.800000000745,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 1761.4000000003725,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 1768.7000000011176,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 1782.4000000003725,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 1799.5999999996275,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 1816,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 1832.7000000011176,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 1855.2000000011176,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 1866.4000000003725,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 1916.2000000011176,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 1920.300000000745,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 1932.5999999996275,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 1949.300000000745,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 1966,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 1982.5,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 1999.5,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        }
+      ],
+      "dark": {
+        "theme": "dark",
+        "panel": "#242927",
+        "ink": "#f5f2e9",
+        "accent": "#d8ae55",
+        "base": "rgb(24, 28, 27)",
+        "initialFocus": "BUTTON",
+        "focusOutline": "none",
+        "focusedButtons": [],
+        "panels": [
+          {
+            "background": "rgb(36, 41, 39)",
+            "ink": "rgb(245, 242, 233)",
+            "radius": "4px",
+            "shadow": "none"
+          },
+          {
+            "background": "rgb(36, 41, 39)",
+            "ink": "rgb(245, 242, 233)",
+            "radius": "4px",
+            "shadow": "none"
+          },
+          {
+            "background": "rgb(36, 41, 39)",
+            "ink": "rgb(245, 242, 233)",
+            "radius": "4px",
+            "shadow": "none"
+          },
+          {
+            "background": "rgb(36, 41, 39)",
+            "ink": "rgb(245, 242, 233)",
+            "radius": "4px",
+            "shadow": "none"
+          }
+        ]
+      },
+      "light": {
+        "theme": "light",
+        "panel": "#faf7ee",
+        "ink": "#20251f",
+        "accent": "#805d16",
+        "base": "rgb(24, 28, 27)",
+        "initialFocus": "BUTTON",
+        "focusOutline": "none",
+        "focusedButtons": [],
+        "panels": [
+          {
+            "background": "rgb(250, 247, 238)",
+            "ink": "rgb(32, 37, 31)",
+            "radius": "4px",
+            "shadow": "none"
+          },
+          {
+            "background": "rgb(250, 247, 238)",
+            "ink": "rgb(32, 37, 31)",
+            "radius": "4px",
+            "shadow": "none"
+          },
+          {
+            "background": "rgb(250, 247, 238)",
+            "ink": "rgb(32, 37, 31)",
+            "radius": "4px",
+            "shadow": "none"
+          },
+          {
+            "background": "rgb(250, 247, 238)",
+            "ink": "rgb(32, 37, 31)",
+            "radius": "4px",
+            "shadow": "none"
+          }
+        ]
+      },
+      "responses": [
+        {
+          "path": "/Games/Citisten3D/ui-preview.html?fixture",
+          "status": 200,
+          "serviceWorker": false
+        },
+        {
+          "path": "/Games/Citisten3D/ui.css",
+          "status": 200,
+          "serviceWorker": false
+        },
+        {
+          "path": "/Games/Citisten3D/ui-preview.mjs",
+          "status": 200,
+          "serviceWorker": false
+        },
+        {
+          "path": "/Games/Citisten3D/ui.mjs",
+          "status": 200,
+          "serviceWorker": false
+        },
+        {
+          "path": "/Games/Citisten3D/sim.mjs",
+          "status": 200,
+          "serviceWorker": false
+        },
+        {
+          "path": "/assets/fonts/atkinson-hyperlegible/atkinson-hyperlegible-400-latin.woff2",
+          "status": 200,
+          "serviceWorker": false
+        },
+        {
+          "path": "/Games/Citisten3D/roads.mjs",
+          "status": 200,
+          "serviceWorker": false
+        },
+        {
+          "path": "/assets/fonts/atkinson-hyperlegible/atkinson-hyperlegible-700-latin.woff2",
+          "status": 200,
+          "serviceWorker": false
+        },
+        {
+          "path": "/assets/fonts/bungee/bungee-400-latin.woff2",
+          "status": 200,
+          "serviceWorker": false
+        }
+      ]
+    },
+    {
+      "screen": "hud",
+      "order": [
+        "cold default dark",
+        "native light toggle"
+      ],
+      "defaultFrames": [
+        {
+          "time": 112.39999999850988,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 170.69999999925494,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 182.89999999850988,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 190.59999999962747,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 197,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 280.7999999988824,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 303.7999999988824,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 318.5,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 334.09999999962747,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 346.7999999988824,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 363.2999999988824,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 380.09999999962747,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 396.69999999925494,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 413.09999999962747,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 429.8999999985099,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 447.69999999925494,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 463.19999999925494,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 480.09999999962747,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 496.59999999962747,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 513.0999999996275,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 530.0999999996275,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 546.5999999996275,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 563.6999999992549,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 597.7999999988824,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 614,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 636.7999999988824,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 647.3999999985099,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 668.2999999988824,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 680.6999999992549,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 700.7999999988824,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 716.3999999985099,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 729.8999999985099,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 747.5,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 763.2999999988824,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 780.0999999996275,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 800.5,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 813.2999999988824,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 869.0999999996275,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 870.8999999985099,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 880.0999999996275,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 898.6999999992549,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 917.8999999985099,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 932.5,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 1008.8999999985099,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 1012.3999999985099,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 1013.5999999996275,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 1041.5999999996275,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 1046.3999999985099,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 1067.0999999996275,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 1085.8999999985099,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 1096.7999999988824,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 1113.0999999996275,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 1129.7999999988824,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 1175.3999999985099,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 1188.5999999996275,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 1196.3999999985099,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 1197.8999999985099,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 1289.699999999255,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 1299.5,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 1301,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 1318.5999999996275,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 1336.8999999985099,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 1347.3999999985099,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 1364.199999999255,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 1380.5999999996275,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 1424.7999999988824,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 1430.0999999996275,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 1447.2999999988824,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 1463.3999999985099,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 1480.3999999985099,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 1506.699999999255,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 1513.3999999985099,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        }
+      ],
+      "dark": {
+        "theme": "dark",
+        "panel": "#242927",
+        "ink": "#f5f2e9",
+        "accent": "#d8ae55",
+        "base": "rgb(24, 28, 27)",
+        "initialFocus": "BODY",
+        "focusOutline": "none",
+        "focusedButtons": [],
+        "panels": [
+          {
+            "background": "rgb(36, 41, 39)",
+            "ink": "rgb(245, 242, 233)",
+            "radius": "4px",
+            "shadow": "none"
+          },
+          {
+            "background": "rgb(36, 41, 39)",
+            "ink": "rgb(245, 242, 233)",
+            "radius": "4px",
+            "shadow": "none"
+          },
+          {
+            "background": "rgb(36, 41, 39)",
+            "ink": "rgb(245, 242, 233)",
+            "radius": "4px",
+            "shadow": "none"
+          },
+          {
+            "background": "rgb(36, 41, 39)",
+            "ink": "rgb(245, 242, 233)",
+            "radius": "4px",
+            "shadow": "none"
+          }
+        ]
+      },
+      "light": {
+        "theme": "light",
+        "panel": "#faf7ee",
+        "ink": "#20251f",
+        "accent": "#805d16",
+        "base": "rgb(24, 28, 27)",
+        "initialFocus": "BUTTON",
+        "focusOutline": "none",
+        "focusedButtons": [],
+        "panels": [
+          {
+            "background": "rgb(250, 247, 238)",
+            "ink": "rgb(32, 37, 31)",
+            "radius": "4px",
+            "shadow": "none"
+          },
+          {
+            "background": "rgb(250, 247, 238)",
+            "ink": "rgb(32, 37, 31)",
+            "radius": "4px",
+            "shadow": "none"
+          },
+          {
+            "background": "rgb(250, 247, 238)",
+            "ink": "rgb(32, 37, 31)",
+            "radius": "4px",
+            "shadow": "none"
+          },
+          {
+            "background": "rgb(250, 247, 238)",
+            "ink": "rgb(32, 37, 31)",
+            "radius": "4px",
+            "shadow": "none"
+          }
+        ]
+      },
+      "responses": [
+        {
+          "path": "/Games/Citisten3D/ui-preview.html?fixture",
+          "status": 200,
+          "serviceWorker": false
+        },
+        {
+          "path": "/Games/Citisten3D/ui.css",
+          "status": 200,
+          "serviceWorker": false
+        },
+        {
+          "path": "/Games/Citisten3D/ui-preview.mjs",
+          "status": 200,
+          "serviceWorker": false
+        },
+        {
+          "path": "/assets/fonts/atkinson-hyperlegible/atkinson-hyperlegible-400-latin.woff2",
+          "status": 200,
+          "serviceWorker": false
+        },
+        {
+          "path": "/Games/Citisten3D/ui.mjs",
+          "status": 200,
+          "serviceWorker": false
+        },
+        {
+          "path": "/Games/Citisten3D/sim.mjs",
+          "status": 200,
+          "serviceWorker": false
+        },
+        {
+          "path": "/Games/Citisten3D/roads.mjs",
+          "status": 200,
+          "serviceWorker": false
+        },
+        {
+          "path": "/assets/fonts/atkinson-hyperlegible/atkinson-hyperlegible-700-latin.woff2",
+          "status": 200,
+          "serviceWorker": false
+        },
+        {
+          "path": "/assets/fonts/bungee/bungee-400-latin.woff2",
+          "status": 200,
+          "serviceWorker": false
+        }
+      ]
+    },
+    {
+      "screen": "night-alert",
+      "order": [
+        "cold default dark",
+        "native light toggle"
+      ],
+      "defaultFrames": [
+        {
+          "time": 112.79999999888241,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 149.09999999962747,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 163.2999999988824,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 176.39999999850988,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 191.59999999962747,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 209,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 288.19999999925494,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 308,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 327.8999999985099,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 345.59999999962747,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 358.2999999988824,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 374.59999999962747,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 391.3999999985099,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 408,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 424.59999999962747,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 441.3999999985099,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 457.8999999985099,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 474.59999999962747,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 491.2999999988824,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 507.8999999985099,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 524.6999999992549,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 541.5999999996275,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 570,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 574.8999999985099,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 591.5999999996275,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 613.0999999996275,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 625.3999999985099,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 641.7999999988824,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 662.5999999996275,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 676.7999999988824,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 691.5999999996275,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 708.0999999996275,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 724.7999999988824,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 741.3999999985099,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 758.0999999996275,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 774.6999999992549,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 791.2999999988824,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 808,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 824.8999999985099,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 863.0999999996275,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 865,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 877.0999999996275,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 891.3999999985099,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 908,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 950.7999999988824,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 951.7999999988824,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 970,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 974.5,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 991.3999999985099,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 1008.2999999988824,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 1024.8999999985099,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 1042.5999999996275,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 1058,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 1091.699999999255,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 1113.699999999255,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 1117.2999999988824,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 1216,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 1234.7999999988824,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 1242.5999999996275,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 1257.8999999985099,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 1274.5,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 1301.5999999996275,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 1316,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 1324.5999999996275,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 1342.2999999988824,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 1358,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 1374.5,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 1406.2999999988824,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 1415.5,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 1427.699999999255,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 1443.199999999255,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 1462.5999999996275,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 1475.199999999255,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 1494.199999999255,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 1508.2999999988824,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 1526.2999999988824,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 1544.8999999985099,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 1559.5999999996275,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 1637.5999999996275,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 1662.2999999988824,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 1663.5999999996275,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 1676.7999999988824,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 1694.0999999996275,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 1709.199999999255,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 1730.5,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 1742.5,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 1761.199999999255,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        }
+      ],
+      "dark": {
+        "theme": "dark",
+        "panel": "#242927",
+        "ink": "#f5f2e9",
+        "accent": "#d8ae55",
+        "base": "rgb(24, 28, 27)",
+        "initialFocus": "BUTTON",
+        "focusOutline": "none",
+        "focusedButtons": [],
+        "panels": [
+          {
+            "background": "rgb(36, 41, 39)",
+            "ink": "rgb(245, 242, 233)",
+            "radius": "4px",
+            "shadow": "none"
+          },
+          {
+            "background": "rgb(36, 41, 39)",
+            "ink": "rgb(245, 242, 233)",
+            "radius": "4px",
+            "shadow": "none"
+          },
+          {
+            "background": "rgb(36, 41, 39)",
+            "ink": "rgb(245, 242, 233)",
+            "radius": "4px",
+            "shadow": "none"
+          },
+          {
+            "background": "rgb(36, 41, 39)",
+            "ink": "rgb(245, 242, 233)",
+            "radius": "4px",
+            "shadow": "none"
+          },
+          {
+            "background": "rgb(36, 41, 39)",
+            "ink": "rgb(245, 242, 233)",
+            "radius": "4px",
+            "shadow": "none"
+          },
+          {
+            "background": "rgb(36, 41, 39)",
+            "ink": "rgb(245, 242, 233)",
+            "radius": "4px",
+            "shadow": "none"
+          }
+        ]
+      },
+      "light": {
+        "theme": "light",
+        "panel": "#faf7ee",
+        "ink": "#20251f",
+        "accent": "#805d16",
+        "base": "rgb(24, 28, 27)",
+        "initialFocus": "BUTTON",
+        "focusOutline": "none",
+        "focusedButtons": [],
+        "panels": [
+          {
+            "background": "rgb(250, 247, 238)",
+            "ink": "rgb(32, 37, 31)",
+            "radius": "4px",
+            "shadow": "none"
+          },
+          {
+            "background": "rgb(250, 247, 238)",
+            "ink": "rgb(32, 37, 31)",
+            "radius": "4px",
+            "shadow": "none"
+          },
+          {
+            "background": "rgb(250, 247, 238)",
+            "ink": "rgb(32, 37, 31)",
+            "radius": "4px",
+            "shadow": "none"
+          },
+          {
+            "background": "rgb(250, 247, 238)",
+            "ink": "rgb(32, 37, 31)",
+            "radius": "4px",
+            "shadow": "none"
+          },
+          {
+            "background": "rgb(250, 247, 238)",
+            "ink": "rgb(32, 37, 31)",
+            "radius": "4px",
+            "shadow": "none"
+          },
+          {
+            "background": "rgb(250, 247, 238)",
+            "ink": "rgb(32, 37, 31)",
+            "radius": "4px",
+            "shadow": "none"
+          }
+        ]
+      },
+      "responses": [
+        {
+          "path": "/Games/Citisten3D/ui-preview.html?fixture",
+          "status": 200,
+          "serviceWorker": false
+        },
+        {
+          "path": "/Games/Citisten3D/ui.css",
+          "status": 200,
+          "serviceWorker": false
+        },
+        {
+          "path": "/Games/Citisten3D/ui-preview.mjs",
+          "status": 200,
+          "serviceWorker": false
+        },
+        {
+          "path": "/assets/fonts/atkinson-hyperlegible/atkinson-hyperlegible-400-latin.woff2",
+          "status": 200,
+          "serviceWorker": false
+        },
+        {
+          "path": "/Games/Citisten3D/ui.mjs",
+          "status": 200,
+          "serviceWorker": false
+        },
+        {
+          "path": "/Games/Citisten3D/sim.mjs",
+          "status": 200,
+          "serviceWorker": false
+        },
+        {
+          "path": "/Games/Citisten3D/roads.mjs",
+          "status": 200,
+          "serviceWorker": false
+        },
+        {
+          "path": "/assets/fonts/bungee/bungee-400-latin.woff2",
+          "status": 200,
+          "serviceWorker": false
+        },
+        {
+          "path": "/assets/fonts/atkinson-hyperlegible/atkinson-hyperlegible-700-latin.woff2",
+          "status": 200,
+          "serviceWorker": false
+        }
+      ]
+    },
+    {
+      "screen": "gameover",
+      "order": [
+        "cold default dark",
+        "native light toggle"
+      ],
+      "defaultFrames": [
+        {
+          "time": 87,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 116.19999999925494,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 126.40000000037253,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 136.80000000074506,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 154.90000000037253,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 170,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 225.90000000037253,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 237.5,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 253.90000000037253,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 270.90000000037253,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 286.30000000074506,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 302.90000000037253,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 319.59999999962747,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 336.30000000074506,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 353,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 369.69999999925494,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 386.30000000074506,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 403,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 419.59999999962747,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 436.30000000074506,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 453,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 469.69999999925494,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 486.30000000074506,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 503,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 519.6999999992549,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 536.1999999992549,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 553.0999999996275,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 569.5999999996275,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 586.0999999996275,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 602.9000000003725,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 619.5999999996275,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 636.1999999992549,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 653,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 669.6999999992549,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 687,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 704.1999999992549,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 719.9000000003725,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 737,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 755,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 817.3000000007451,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 825.8000000007451,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 838.3000000007451,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 853.8000000007451,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 870.0999999996275,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 911.1999999992549,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 912,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 927.6999999992549,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 936.3000000007451,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 953,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 969.9000000003725,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 986.0999999996275,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 1025.699999999255,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 1040.300000000745,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 1043.699999999255,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 1134.300000000745,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 1150.699999999255,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 1153.199999999255,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 1173.300000000745,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 1186.5999999996275,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 1203.0999999996275,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 1219.699999999255,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 1236.800000000745,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 1279.800000000745,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 1286.9000000003725,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 1303,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 1319.699999999255,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        },
+        {
+          "time": 1336.4000000003725,
+          "theme": "dark",
+          "base": "rgb(24, 28, 27)",
+          "panel": "#242927",
+          "buttonRings": 0
+        }
+      ],
+      "dark": {
+        "theme": "dark",
+        "panel": "#242927",
+        "ink": "#f5f2e9",
+        "accent": "#d8ae55",
+        "base": "rgb(24, 28, 27)",
+        "initialFocus": "city-loss-title",
+        "focusOutline": "none",
+        "focusedButtons": [],
+        "panels": [
+          {
+            "background": "rgb(36, 41, 39)",
+            "ink": "rgb(245, 242, 233)",
+            "radius": "4px",
+            "shadow": "none"
+          }
+        ]
+      },
+      "light": {
+        "theme": "light",
+        "panel": "#faf7ee",
+        "ink": "#20251f",
+        "accent": "#805d16",
+        "base": "rgb(24, 28, 27)",
+        "initialFocus": "BUTTON",
+        "focusOutline": "none",
+        "focusedButtons": [],
+        "panels": [
+          {
+            "background": "rgb(250, 247, 238)",
+            "ink": "rgb(32, 37, 31)",
+            "radius": "4px",
+            "shadow": "none"
+          }
+        ]
+      },
+      "responses": [
+        {
+          "path": "/Games/Citisten3D/ui-preview.html?fixture",
+          "status": 200,
+          "serviceWorker": false
+        },
+        {
+          "path": "/Games/Citisten3D/ui.css",
+          "status": 200,
+          "serviceWorker": false
+        },
+        {
+          "path": "/assets/fonts/atkinson-hyperlegible/atkinson-hyperlegible-400-latin.woff2",
+          "status": 200,
+          "serviceWorker": false
+        },
+        {
+          "path": "/Games/Citisten3D/ui-preview.mjs",
+          "status": 200,
+          "serviceWorker": false
+        },
+        {
+          "path": "/Games/Citisten3D/ui.mjs",
+          "status": 200,
+          "serviceWorker": false
+        },
+        {
+          "path": "/Games/Citisten3D/sim.mjs",
+          "status": 200,
+          "serviceWorker": false
+        },
+        {
+          "path": "/Games/Citisten3D/roads.mjs",
+          "status": 200,
+          "serviceWorker": false
+        },
+        {
+          "path": "/assets/fonts/atkinson-hyperlegible/atkinson-hyperlegible-700-latin.woff2",
+          "status": 200,
+          "serviceWorker": false
+        },
+        {
+          "path": "/assets/fonts/bungee/bungee-400-latin.woff2",
+          "status": 200,
+          "serviceWorker": false
+        }
+      ]
+    }
+  ],
+  "external": [],
+  "errors": [],
+  "failedRequests": [],
+  "sourceSha256": {
+    "Games/Citisten3D/ui-preview.html": "7cd97f72c4a41fa3477cf54d13ea61da8dfdbf46a69597f88e4c3fbebf479509",
+    "Games/Citisten3D/ui.mjs": "72ddca595557e641cb2aa1c5b0bed0e0f47b6506b0bc08cc27267cd9012b8f18",
+    "Games/Citisten3D/ui.css": "9a70d7d28023b11cec26ca15fccca582aaf67c66106a2f2d09da18ae4689a4fd"
+  },
+  "browserProcessChecks": 16
+}

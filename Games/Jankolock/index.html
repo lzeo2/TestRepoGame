@@ -28,6 +28,10 @@
       <section class="play-column" aria-label="Shipping office arena">
         <div class="arena-wrap">
           <canvas id="arena" width="1040" height="700" tabindex="0" aria-label="Arena. WASD or arrows move. Mouse aims, hold primary button to fire. IJKL aim and Space fires. Q and E abilities. P pauses.">Canvas is required to play Jankolock.</canvas>
+          <div class="combat-feedback-stack">
+            <span id="hitFeedback" class="combat-feedback" hidden></span>
+            <span id="damageFeedback" class="combat-feedback incoming" hidden></span>
+          </div>
           <span class="arena-caption">DISPATCH FLOOR <span>Cover blocks shots / Ring scores influence</span></span>
         </div>
         <div class="capture-line"><span id="captureLabel">Hold the center. First to 40 influence.</span><progress id="captureWarm" max="1" value="0" aria-label="Capture warm-up"></progress></div>
@@ -52,6 +56,7 @@
           <p class="eyebrow">Clock in</p><h2>Pick your problem.</h2>
           <p>One office. Two teams. Hold the dispatch ring and send Returns packing. Solo with three bots.</p>
           <div id="heroCards" class="hero-cards" aria-label="Choose your hero"></div>
+          <p class="fine"><b>Move:</b> WASD / arrows. <b>Aim:</b> pointer / IJKL. <b>Fire:</b> hold primary button / Space. <b>Touch:</b> left pad moves, right pad aims + fires. Q / E abilities; P / Escape pauses.</p>
           <button id="startBtn" class="primary wide" type="button" disabled>Start match</button>
           <button id="hallBtn" class="secondary wide" type="button">Visit trophy hall</button>
           <p class="fine">Best of five. Draft one item between rounds. Reset returns here and clears the match.</p>

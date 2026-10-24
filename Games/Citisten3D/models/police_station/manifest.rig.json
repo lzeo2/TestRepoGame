@@ -1,0 +1,77 @@
+{
+  "model": "police_station",
+  "schema_version": "1.0",
+  "units": "metres",
+  "coordinates": "glTF Y-up; architectural facade +Z; source Blender Z-up facade -Y",
+  "pivot_space": "parent-local; neutral offsets from exported glTF node transforms",
+  "rotation_ranges": "degrees relative to bind pose; capless = free",
+  "translation_ranges": "metres relative to bind translation; [0,0] locks axis",
+  "movable_nodes": [
+    {
+      "name": "police_station__door_01",
+      "parent": "police_station",
+      "pivot_position": [
+        -0.6499999761581421,
+        0.2549999952316284,
+        3.180000066757202
+      ],
+      "pivot_space": "parent-local glTF metres",
+      "local_frame_quaternion_xyzw": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "rotation_deg": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          -100,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "translation_m": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "operation": "rigid rotation",
+      "motion_axis_local": "Y",
+      "geometry_children": [
+        "police_station__door_01__brass_door_pull",
+        "police_station__door_01__brass_door_pull_001",
+        "police_station__door_01__door_inset_panel",
+        "police_station__door_01__door_inset_panel_001",
+        "police_station__door_01__recessed_entrance_leaf"
+      ]
+    }
+  ],
+  "static_nodes": [
+    "police_station__static_civic_pale_painted_trim",
+    "police_station__static_limestone",
+    "police_station__static_patinated_metal",
+    "police_station__static_recess_/_shadow_joints",
+    "police_station__static_slate",
+    "police_station__static_warm_brick",
+    "police_station__static_warm_glazing",
+    "police_station__static_structure"
+  ],
+  "static_note": "Masonry, floors, walls, columns, fixed trim, glazing frames, tracks, roof shells and other structural pieces are intentionally static. No whole-building articulation.",
+  "animation_clips": [],
+  "door_note": "Entrance leaves and handles move together; shallow dark recesses prevent sealed masonry immediately behind the leaf."
+}

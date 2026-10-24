@@ -1,0 +1,22 @@
+WORLD CHECK PASS: roads/lanes, 14 model types, stable handles, high/low LOD, PBR atlas, block AO, animated water, sky probe/shadows, day/night, bounded FX
+residential: 23320 indexed triangles; bounds 7.740 x 4.930 x 6.500m; base -0.000m; buffers 1832736 bytes
+commercial: 23264 indexed triangles; bounds 8.047 x 11.915 x 8.383m; base -0.000m; buffers 2972640 bytes
+industrial: 16000 indexed triangles; bounds 9.075 x 6.280 x 8.222m; base 0.000m; buffers 1292640 bytes
+townhall: 130904 indexed triangles; bounds 17.600 x 17.060 x 16.075m; base -0.000m; buffers 6247104 bytes
+CITY MODEL CHECK PASS: counts, indexed topology, finite attributes, UV/color ranges, nondegenerate triangles, lot bounds, Y=0 bases
+power: 16504 triangles; bounds [-4.000,0.000,-3.945]..[4.000,13.000,3.500]; dimensions 8.000,13.000,7.445 m
+water: 10160 triangles; bounds [-3.035,0.000,-3.035]..[3.200,10.000,3.035]; dimensions 6.235,10.000,6.070 m
+police: 14388 triangles; bounds [-3.610,0.000,-3.975]..[3.610,5.186,3.669]; dimensions 7.220,5.186,7.644 m
+fire: 17788 triangles; bounds [-4.110,0.000,-3.975]..[4.110,7.500,3.678]; dimensions 8.220,7.500,7.653 m
+park: 13544 triangles; bounds [-4.000,0.000,-4.000]..[4.000,4.925,4.000]; dimensions 8.000,4.925,8.000 m
+  tree 1: 6076 triangles; bounds [-3.521,0.207,-3.514]..[-0.516,4.925,-0.647]
+  tree 2: 6076 triangles; bounds [0.624,0.207,-0.466]..[3.606,4.880,2.464]
+wall: 5556 triangles; bounds [-5.000,0.000,-0.745]..[5.000,4.260,0.745]; dimensions 10.000,4.260,1.490 m
+watchtower: 10560 triangles; bounds [-2.030,0.000,-2.034]..[2.034,10.277,2.034]; dimensions 4.064,10.277,4.069 m
+SERVICE MODEL CHECK PASS: 7 models, 88500 actual nondegenerate triangles, 2 trees; finite attributes/bounds, independent deterministic factories, atlas UVs, KIT scale.
+citizen: 28680 triangles; 17034 vertices; bounds 0.718 x 1.900 x 0.361 m; base Y=0.000000; PASS
+zombie: 29604 triangles; 17683 vertices; bounds 0.917 x 1.650 x 1.099 m; base Y=0.000000; PASS
+car: 9936 triangles; 9701 vertices; bounds 1.700 x 1.428 x 3.508 m; base Y=0.000000; PASS
+AGENT MODELS CHECK PASS: counts, finite attributes, indices, nonzero/unique triangles, paint UVs, bounds, ownership
+
+NODE_EXIT=0

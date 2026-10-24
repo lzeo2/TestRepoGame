@@ -6,7 +6,16 @@ export const CAR_UNLOCKS = Object.freeze({bricklet:0,pip:1200,parcel:3000,finch:
 const MONEY = 1e9, COUNTER = 1e9, MAX_TIME = 240;
 const LANES = [-5.25, -1.75, 1.75, 5.25];
 const RIVAL_LANES = [-5.25, -1.75, 5.25];
-const CITY_CORNERS = [{x:-50,z:50},{x:-50,z:-50},{x:50,z:-50},{x:50,z:50}];
+// ponytail: eight cars on two fixed right-hand circuits; add junction choices only for a larger traffic network.
+// Nine-metre corner arcs keep headings continuous.
+function cityLane(id, distance) {
+  const index=(id-1)%8, half=(index<4?50:100)-3.5, radius=9, straight=2*(half-radius), quarter=straight+Math.PI*radius/2;
+  const phase=(distance+(index%4)*quarter)%(4*quarter), side=Math.floor(phase/quarter), along=phase-side*quarter;
+  let x=-half,z=half-radius-along,heading=0;
+  if(along>straight){const angle=(along-straight)/radius;x=-half+radius-radius*Math.cos(angle);z=-half+radius-radius*Math.sin(angle);heading=-angle;}
+  for(let i=0;i<side;i++){[x,z]=[-z,x];heading-=Math.PI/2;}
+  return {x,z,heading:Math.atan2(Math.sin(heading),Math.cos(heading))};
+}
 export const GADGETS = Object.freeze({
   none: Object.freeze({name:'No gadget', category:'utility', unlockDistance:0, price:0, charges:0, duration:0, cooldown:0}),
   smoke: Object.freeze({name:'Smoke screen', category:'discreet', unlockDistance:500, price:150, charges:3, duration:5, cooldown:10}),
@@ -170,10 +179,9 @@ export function startRun(profile, mode) {
   Object.assign(run,{world:{x:0,z:0,heading:0},pursuit:mode==='cutup'?'chased':'roaming',escapeClock:0,gadgetTarget:{x:0,z:0}});
   if(mode==='roam') {
     run.finishDistance=100000;
-    for(const [i,point] of CITY_CORNERS.entries()) {
-      const npc=entity(run,['pip','parcel','finch','orchard'][i],0,0,8+i), target=CITY_CORNERS[(i+1)%4];
-      npc.world={...point,heading:Math.atan2(point.x-target.x,point.z-target.z)};
-      run.traffic.push(npc);
+    for(let i=0;i<8;i++) {
+      const npc=entity(run,['pip','parcel','finch','orchard'][i%4],0,0,8+i%4);
+      npc.world=cityLane(npc.id,0);run.traffic.push(npc);
     }
   }
   if (mode === 'race') {
@@ -192,7 +200,7 @@ export function startSandbox(carId, runId = 1) {
   return checkRun(run);
 }
 function totals(run) {
-  const score = Math.min(MONEY, Math.floor(run.distance * 2) + run.nearMisses * 100);
+  const score = Math.min(MONEY, Math.floor(run.distance * 2) + run.nearMisses * 100 + (run.mode==='roam'&&run.status==='escaped'?300:0));
   let earnings = 0;
   if (run.mode !== 'sandbox' && run.status !== 'running') {
     const prize = run.status === 'finished' ? [0, 400, 220, 120, 60][run.place] : run.status === 'escaped' ? 180 : 0;
@@ -224,7 +232,7 @@ function checkRun(raw) {
   number(raw.spawnClock, 0, 10); number(raw.collisionCooldown, 0, 1.2); number(raw.nearMisses, 0, raw.nextEntity - 1, true); number(raw.collisions, 0, 1000, true); number(raw.arrest, 0, 3);
   if (raw.finishTime !== null) number(raw.finishTime, raw.finishDistance / (stats.speed*(raw.gadget==='boost'?1.35:1)) - 1e-7, raw.elapsed);
   const ids = new Set();
-  for (const [key, max] of [['traffic', raw.mode==='roam'?4:7], ['police', 2], ['rivals', 3]]) {
+  for (const [key, max] of [['traffic', raw.mode==='roam'?8:7], ['police', 2], ['rivals', 3]]) {
     array(raw[key], max);
     for (const e of raw[key]) {
       record(e, raw.mode==='roam'?[...ENTITY_KEYS,'world']:ENTITY_KEYS); if(raw.mode==='roam'){pose(e.world);if(blocked(e.world.x,e.world.z))throw new RangeError('Blocked NPC');} car(e.carId); number(e.id, 1, raw.nextEntity - 1, true);
@@ -239,7 +247,7 @@ function checkRun(raw) {
   if(raw.mode==='sandbox' && (raw.traffic.length||raw.police.length||raw.rivals.length||raw.heat||raw.arrest||raw.nearMisses||raw.earnings||raw.level||raw.escapeClock||raw.gadget!=='none'||raw.gadgetHeld||raw.pursuit!=='roaming'||raw.finishTime!==null||raw.nextEntity!==1||raw.spawnClock!==0||raw.gadgetTarget.x!==0||raw.gadgetTarget.z!==0||!['running','busted'].includes(raw.status)))throw new RangeError('Invalid sandbox state');
   if ((raw.mode === 'race' && (raw.rivals.length !== 3 || raw.police.length || raw.heat)) || (raw.mode === 'cutup' && raw.rivals.length)) throw new RangeError('Invalid mode entities');
   if (raw.status === 'running' && (raw.hp === 0 || raw.distance === raw.finishDistance || raw.elapsed === MAX_TIME || raw.arrest === 3 || raw.finishTime !== null)) throw new RangeError('Invalid running state');
-  if(raw.mode==='roam'&&(raw.nearMisses||raw.rivals.length||raw.pursuit==='roaming'&&raw.police.length||raw.pursuit==='chased'&&!raw.police.length))throw new RangeError('Invalid city entities');
+  if(raw.mode==='roam'&&(raw.nearMisses>raw.traffic.filter(e=>e.passed).length||raw.rivals.length||raw.pursuit==='roaming'&&raw.police.length||raw.pursuit==='chased'&&!raw.police.length))throw new RangeError('Invalid city entities');
   if (raw.status === 'escaped' && raw.mode === 'race' || raw.status === 'finished' && raw.mode !== 'race' || raw.status==='parked'&&raw.mode!=='roam') throw new RangeError('Invalid finish mode');
   if(raw.mode==='roam'&&raw.status==='escaped'&&(raw.pursuit!=='chased'||raw.escapeClock!==6))throw new RangeError('Invalid city escape');
   if (raw.mode!=='roam' && ['escaped', 'finished'].includes(raw.status) && (raw.distance !== raw.finishDistance || raw.finishTime === null)) throw new RangeError('Invalid finish');
@@ -268,18 +276,38 @@ function startChase(r) {
   cop.world={x:point.x,z:point.z,heading:0};r.police.push(cop);
 }
 function stepCityTraffic(r,dt) {
-  // ponytail: four cars on one fixed street loop, O(4²) yielding; add routing only for a larger city population.
+  // Only forward obstructions brake a car. A following car never makes its leader yield.
   for(const npc of r.traffic) {
-    const target=CITY_CORNERS[(Math.floor((npc.distance+1e-7)/100)+npc.id)%4];
-    const dx=target.x-npc.world.x,dz=target.z-npc.world.z,length=Math.hypot(dx,dz);
-    const speed=8+(npc.id-1)%4, travel=Math.min(length,speed*dt);
-    const dest={x:npc.world.x+(length?dx/length*travel:0),z:npc.world.z+(length?dz/length*travel:0)};
-    const yieldTo=[...r.traffic,...r.police].some(other=>other!==npc&&nearPath(npc.world,dest,other.world,6)) || nearPath(npc.world,dest,r.world,6);
-    if(yieldTo||!clearPath(npc.world,dest)){npc.speed=0;continue;}
-    npc.speed=speed;
-    if(length>0)npc.world.heading=Math.atan2(-dx,-dz);
+    const forward={x:-Math.sin(npc.world.heading),z:-Math.cos(npc.world.heading)};
+    let desired=8+(npc.id-1)%4;
+    const obstacles=[...r.traffic.filter(e=>e!==npc).map(e=>e.world),...r.police.map(e=>e.world),r.world];
+    for(const other of obstacles) {
+      const dx=other.x-npc.world.x,dz=other.z-npc.world.z,along=dx*forward.x+dz*forward.z,lateral=Math.abs(dx*forward.z-dz*forward.x);
+      if(along>0&&lateral<5.5)desired=Math.min(desired,Math.sqrt(2*7*Math.max(0,along-6)));
+    }
+    npc.speed=clamp(desired,npc.speed-7*dt,npc.speed+2.5*dt);
+    const travel=npc.speed*dt,dest=cityLane(npc.id,npc.distance+travel);
+    // Validate the entire attempted segment, including hostile off-route fixtures.
+    if(!clearPath(npc.world,dest)||Math.hypot(dest.x-npc.world.x,dest.z-npc.world.z)>travel+.001||obstacles.some(other=>nearPath(npc.world,dest,other,4))) {npc.speed=0;continue;}
     Object.assign(npc.world,dest);npc.distance+=travel;
   }
+}
+function policeTarget(r,cop) {
+  let goal=r.gadget==='decoy'&&r.gadgetTime>0?r.gadgetTarget:r.world;
+  if(goal===r.world) {
+    const lead=Math.min(.65,12/Math.max(1,Math.abs(r.speed))), predicted={x:goal.x-Math.sin(goal.heading)*r.speed*lead,z:goal.z-Math.cos(goal.heading)*r.speed*lead};
+    if(clearPath(goal,predicted))goal=predicted;
+  }
+  let target=chaseTarget(cop.world,goal);
+  // Pass a civilian on a clear side, rather than both cars stopping nose to nose.
+  const obstacle=r.traffic.find(e=>nearPath(cop.world,target,e.world,5));
+  if(obstacle) {
+    const candidates=[{x:obstacle.world.x-6,z:obstacle.world.z-6},{x:obstacle.world.x-6,z:obstacle.world.z+6},{x:obstacle.world.x+6,z:obstacle.world.z-6},{x:obstacle.world.x+6,z:obstacle.world.z+6}];
+    const clear=candidates.filter(p=>clearPath(cop.world,p)&&clearPath(p,target)&&!r.traffic.some(e=>nearPath(cop.world,p,e.world,4)||nearPath(p,target,e.world,4)));
+    clear.sort((a,b)=>Math.hypot(a.x-cop.world.x,a.z-cop.world.z)+Math.hypot(a.x-target.x,a.z-target.z)-Math.hypot(b.x-cop.world.x,b.z-cop.world.z)-Math.hypot(b.x-target.x,b.z-target.z));
+    if(clear.length)target=clear[0];
+  }
+  return target;
 }
 function stepCity(r,input,dt) {
   // Preserve tight low-speed turns; blend to a bounded, upgrade-sensitive highway-speed yaw.
@@ -287,8 +315,8 @@ function stepCity(r,input,dt) {
   const yaw=Math.sign(r.speed)*(handling*Math.min(speed,5)*.05*(1-blend)+1.1*handling/(handling+2)*blend);
   const heading=r.world.heading-input.steer*yaw*dt;
   r.world.heading=Math.atan2(Math.sin(heading),Math.cos(heading));
-  const next={x:r.world.x-Math.sin(r.world.heading)*r.speed*dt,z:r.world.z-Math.cos(r.world.heading)*r.speed*dt};
-  const contact=r.traffic.find(npc=>nearPath(r.world,next,npc.world,4));
+  const previous={...r.world},next={x:r.world.x-Math.sin(r.world.heading)*r.speed*dt,z:r.world.z-Math.cos(r.world.heading)*r.speed*dt};
+  const contact=[...r.traffic,...r.police].find(npc=>nearPath(r.world,next,npc.world,4)&&Math.hypot(next.x-npc.world.x,next.z-npc.world.z)<Math.hypot(r.world.x-npc.world.x,r.world.z-npc.world.z));
   if(contact){damage(r);r.speed*=.56;contact.hit=true;}
   else if(clearPath(r.world,next)){r.distance+=Math.hypot(next.x-r.world.x,next.z-r.world.z);Object.assign(r.world,next);}
   else {damage(r);r.speed*=.3;}
@@ -296,19 +324,31 @@ function stepCity(r,input,dt) {
     if(r.hp===0||r.elapsed===MAX_TIME)r.status='busted';
     return;
   }
+  for(const npc of r.traffic) {
+    const dx=-Math.sin(npc.world.heading),dz=-Math.cos(npc.world.heading),before=(npc.world.x-previous.x)*dx+(npc.world.z-previous.z)*dz,after=(npc.world.x-r.world.x)*dx+(npc.world.z-r.world.z)*dz;
+    const lateral=Math.abs((npc.world.x-r.world.x)*dz-(npc.world.z-r.world.z)*dx);
+    if(!npc.passed&&before>=0&&after<0&&lateral<8&&r.speed>npc.speed+2&&r.speed>6&&Math.cos(r.world.heading-npc.world.heading)>.7) {
+      npc.passed=true;if(!npc.hit&&lateral>=4)r.nearMisses++;
+    }
+  }
   stepCityTraffic(r,dt);
   if(r.pursuit==='roaming'&&(r.elapsed>=20&&r.distance>=30||r.heat>0))startChase(r);
   for(const cop of r.police){
     const affected=disrupted(r,cop);
-    const target=chaseTarget(cop.world,r.gadget==='decoy'&&r.gadgetTime>0?r.gadgetTarget:r.world);
-    const dx=target.x-cop.world.x,dz=target.z-cop.world.z,length=Math.hypot(dx,dz);
-    cop.speed=Math.min(r.stats.speed*(affected?(r.gadget==='emp'?.08:.35):.86),cop.speed+r.stats.acceleration*dt);
+    const target=policeTarget(r,cop),dx=target.x-cop.world.x,dz=target.z-cop.world.z,length=Math.hypot(dx,dz),gap=Math.hypot(cop.world.x-r.world.x,cop.world.z-r.world.z);
+    let desired=Math.min(r.stats.speed*(affected?(r.gadget==='emp'?.08:.35):.86),Math.sqrt(2*12*Math.max(0,length-.2)));
+    if(clearPath(cop.world,r.world)&&!(r.gadget==='decoy'&&r.gadgetTime>0))desired=Math.min(desired,Math.abs(r.speed)+Math.max(0,gap-5)*1.5);
+    cop.speed=clamp(desired,Math.max(0,cop.speed-12*dt),cop.speed+r.stats.acceleration*dt);
+    if(affected)cop.speed=Math.min(cop.speed,r.stats.speed*(r.gadget==='emp'?.08:.35));
     const travel=Math.min(length,cop.speed*dt),dest={x:cop.world.x+(length?dx/length*travel:0),z:cop.world.z+(length?dz/length*travel:0)};
-    if(clearPath(cop.world,dest)){if(length>.01)cop.world.heading=Math.atan2(-dx,-dz);Object.assign(cop.world,dest);cop.distance+=travel;}
-    else cop.speed=0;
-    if(Math.hypot(cop.world.x-r.world.x,cop.world.z-r.world.z)<4){damage(r);r.speed*=.8;cop.hit=true;}
+    const obstacles=[...r.traffic,...r.police.filter(e=>e!==cop)];
+    const playerContact=nearPath(cop.world,dest,r.world,4)&&Math.hypot(dest.x-r.world.x,dest.z-r.world.z)<gap;
+    if(clearPath(cop.world,dest)&&!playerContact&&!obstacles.some(e=>nearPath(cop.world,dest,e.world,4))) {
+      if(length>.01)cop.world.heading=Math.atan2(-dx,-dz);Object.assign(cop.world,dest);cop.distance+=travel;
+    } else cop.speed=0;
+    if(playerContact&&Math.abs(r.speed)>5){damage(r);r.speed*=.8;cop.hit=true;}
   }
-  const close=r.police.some(c=>Math.hypot(c.world.x-r.world.x,c.world.z-r.world.z)<9&&!disrupted(r,c));
+  const close=r.police.some(c=>Math.hypot(c.world.x-r.world.x,c.world.z-r.world.z)<9&&clearPath(c.world,r.world)&&!disrupted(r,c));
   r.arrest=clamp(r.arrest+(close&&Math.abs(r.speed)<5?dt:-dt*.5),0,3);
   const distant=r.pursuit==='chased'&&r.police.every(c=>Math.hypot(c.world.x-r.world.x,c.world.z-r.world.z)>=75);
   r.escapeClock=distant?Math.min(6,r.escapeClock+dt):0;
