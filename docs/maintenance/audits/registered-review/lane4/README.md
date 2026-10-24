@@ -1,10 +1,10 @@
 # Lane 4: source-only registered-game audit
 
-Baseline: `acf759833a2cd06fb8e6c249cefe5e95c27eb9d8`, current 129-entry `games.json`, zero-based slice `[65:86]` (21 games). This initial receipt preserves scope before the bounded evidence extension. All 21 complete maintenance manuals and inventory records were read. Current Git source, not sparse worktree availability, is the evidence authority.
+Baseline: `acf759833a2cd06fb8e6c249cefe5e95c27eb9d8`, 129-entry `games.json`, slice `[65:86]` (21 games). All complete manuals/inventory items read. [Evidence](evidence.json) supplies exact source anchors, storage callers, Git asset resolutions and 21/21 tree/entry/count/byte matches. [Collector](collect.py) reproduces Git-only evidence.
 
 **Runtime checks: 0.** No browser, server, probe, process termination, checkout, download, install, source change, publication or push. Existing hung browser was not touched. No games added. Main owns subjective slop and removal decisions. No save support alone is not a removal reason.
 
-Load and reload are **NOT VERIFIED** for every row. Gameplay descriptions below are source observations, not acceptance. Persistence present means **NOT VERIFIED (source only)**, never a working-save claim. Cookie path is not applicable to these localStorage keys. LocalStorage shares origin, not game directory. Evidence extension will provide exact source ranges, asset resolutions and tree comparisons.
+Load/reload: **NOT VERIFIED** throughout. Gameplay is source evidence, not acceptance. Saves present: **NOT VERIFIED (source only)**. Four persistence users, 17 none. LocalStorage shares origin, not directory; no cookie paths or cookie fallback shipped. Main owns slop judgment; listed defects are source-only repair/review candidates, not removal orders.
 
 | ID | Title | Load | Gameplay source | Assets | Slop/provenance | Save status / mechanism / keys / namespace | Reload | Source-only candidates |
 |---|---|---|---|---|---|---|---|---|
@@ -30,6 +30,10 @@ Load and reload are **NOT VERIFIED** for every row. Gameplay descriptions below 
 |193|Mahjong Lite|NOT VERIFIED|Auto-deal, pair input/hint, score/time/tiles, end, startGame|Inline faces/coordinates tracked|ScriptRaccoon MIT notice and pinned header|none; no key/path|NOT VERIFIED|Delayed duplicate pair/removal after restart|
 |195|Sokoban|NOT VERIFIED|Image-preload start, keys/dpad, moves/level, goals, NextLevel(0)|Map script and eight sprites tracked|MIT/CREDITS pin; separate map/art authorship unverified|none; no key/path|NOT VERIFIED|Bounds/box conservation/readiness|
 
-## Initial gates and limits
+## Gates and limits
 
-Actual Node catalog check: `PASS catalog schema/unique IDs/Git URLs: 129`. No game code was executed. Manuals' historical passes do not establish current acceptance. Inventory top-level count says 127, unlike current catalog 129; per-tree identity is checked separately in the extension. No allegation of theft follows from incomplete notice or source-pin evidence. No runtime asset decode or offline closure is claimed. Sokoban's level matrices and binary artwork require separate coverage; source-range limits must not be promoted into a complete semantic engine review.
+Actual output: `PASS catalog schema/unique IDs/Git URLs: 129`; `PASS lane4: 21 inventory tree/entry/count/byte matches; 4 persistence users; 17 none; 0 runtime`; `PASS literal asset references: 26`.
+
+Global documentation check: `AssertionError: Inventory stale: inspect changes, then run --refresh.` Inventory header says 127, catalog 129; no out-of-scope refresh. Whole text scanned; selected anchor/caller ranges reviewed, not complete semantic engines. No compiled engines here; Sokoban maps not all reviewed/solved, sprites not decoded. Rights gaps are not theft findings. No offline/runtime acceptance.
+
+Storage stopped at 1,888,522,240 free bytes (start 2,461,925,376); pending help ticket `pi-626917-1792806764430-3655742c`. Only safe evidence committed after floor breach; no further expansion.
