@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#112f32" />
+  <meta name="description" content="An uncanny collect-and-raid game with eight PBR-textured creatures and a hidden tooth-baring ninth collectible. Single-player with AI rivals." />
+  <title>Brainrot Boulevard — Steal. Stack. Survive.</title>
+  <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+  <canvas id="world" aria-label="Brainrot Boulevard game world"></canvas>
+  <div class="screen-vignette" aria-hidden="true"></div>
+
+  <div id="gameUI" class="game-ui">
+    <header class="topbar">
+      <div class="brand" aria-label="Brainrot Boulevard">
+        <div class="brand-mark" aria-hidden="true"><span>B</span><span>B</span></div>
+        <div><div class="brand-title">BRAINROT<br>BOULEVARD<span class="brand-period">.</span></div><p class="brand-eyebrow">STEAL · STACK · SURVIVE</p></div>
+      </div>
+      <div class="resources" aria-label="Your resources">
+        <div class="resource resource-money"><span class="resource-icon" aria-hidden="true">$</span><div><span class="resource-label">YOUR CASH</span><strong id="money">$450</strong></div></div>
+        <div class="resource"><span class="resource-icon income-icon" aria-hidden="true">↗</span><div><span class="resource-label">PER SECOND</span><strong id="income">+$0</strong></div></div>
+        <div class="resource"><span class="resource-icon capacity-icon" aria-hidden="true">▦</span><div><span class="resource-label">YOUR CREW</span><strong id="capacity">0 / 6</strong></div></div>
+      </div>
+      <nav class="top-actions" aria-label="Game settings">
+        <button id="soundButton" class="icon-button" title="Toggle sound" aria-label="Sound on. Toggle sound" aria-pressed="true">♪</button>
+        <button id="helpButton" class="icon-button" title="How to play" aria-label="How to play">?</button>
+        <button id="pauseButton" class="icon-button pause-button" title="Pause [Esc]" aria-label="Pause game"><span aria-hidden="true">Ⅱ</span></button>
+      </nav>
+    </header>
+
+    <aside class="objective panel">
+      <div class="panel-kicker"><span class="status-dot"></span> THE HUSTLE</div>
+      <h2 id="objectiveTitle">Start small. Get weird.</h2>
+      <p id="objectiveText">Buy a brainrot on the center belt. It arrives at your base instantly and earns cash every second.</p>
+      <div class="objective-hint"><span class="tiny-arrow" aria-hidden="true">↗</span> Walk up to a character and press <kbd>E</kbd></div>
+    </aside>
+
+    <aside class="missions panel" aria-label="Milestones">
+      <div class="panel-heading"><span class="panel-kicker">MAKE YOUR MARK</span><span class="small-star" aria-hidden="true">✧</span></div>
+      <h2>Small steps. Big empire.</h2>
+      <div id="missionList" class="mission-list">
+        <div class="mission"><span class="mission-check">1</span><div><strong>First little weirdo</strong><span>Buy your first brainrot</span></div></div>
+        <div class="mission"><span class="mission-check">2</span><div><strong>Five-finger discount</strong><span>Steal from an open rival base</span></div></div>
+        <div class="mission"><span class="mission-check">3</span><div><strong>Passive income, active chaos</strong><span>Build a crew that earns $50/sec</span></div></div>
+      </div>
+    </aside>
+
+    <div id="raidAlert" class="raid-alert" role="alert" hidden><span class="alert-symbol" aria-hidden="true">!</span><div><strong>YOUR BASE IS UNDER ATTACK</strong><span>Get home and protect your crew!</span></div></div>
+
+    <div id="prompt" class="interaction-prompt" hidden>
+      <span id="promptKey" class="interaction-key">E</span>
+      <div class="interaction-copy"><strong id="promptTitle">Pick up brainrot</strong><span id="promptDetail">A very good financial decision. Probably.</span></div>
+    </div>
+
+    <footer class="bottom-bar">
+      <section class="base-card panel" aria-label="Base protection">
+        <div class="base-icon" aria-hidden="true">⌂</div>
+        <div class="base-copy"><span class="resource-label">HOME SWEET HOME</span><strong id="lockStatus">Base unlocked</strong><span id="lockTimer">Keep your crew safe</span></div>
+        <button id="lockButton" class="lock-button" title="Lock your base [L]">Lock <kbd>L</kbd></button>
+      </section>
+      <div class="movement-hint" aria-hidden="true"><span>WASD</span> move <i>·</i> drag to look</div>
+      <nav class="hotbar" aria-label="Game actions">
+        <button id="shopButton" class="hotbar-button"><span class="hotbar-icon" aria-hidden="true">↗</span><span>Upgrades</span><kbd>U</kbd></button>
+        <button id="collectionButton" class="hotbar-button"><span class="hotbar-icon" aria-hidden="true">▦</span><span>Collection</span><kbd>C</kbd></button>
+        <button id="attackButton" class="hotbar-button attack-button"><span class="bat-icon" aria-hidden="true">╱</span><span>Swing bat</span><kbd>Space</kbd></button>
+        <button id="dropButton" class="hotbar-button drop-button" hidden><span class="hotbar-icon" aria-hidden="true">↓</span><span>Drop</span><kbd>Q</kbd></button>
+      </nav>
+    </footer>
+  </div>
+
+  <div id="toastContainer" class="toast-container" role="status" aria-live="polite" aria-atomic="false"></div>
+  <div id="floatingReward" class="floating-reward" aria-hidden="true"></div>
+
+  <div id="touchControls" class="touch-controls" aria-label="Touch controls">
+    <div id="joystick" class="joystick" aria-label="Move joystick"><div class="joystick-cross" aria-hidden="true"></div><div id="joystickKnob" class="joystick-knob"></div></div>
+    <button id="interactButton" class="touch-interact" aria-label="Interact">E<span>INTERACT</span></button>
+  </div>
+
+  <section id="startScreen" class="start-screen" aria-label="Welcome to Brainrot Boulevard">
+    <div class="start-topline"><span><span class="status-dot"></span> WELCOME TO THE NEIGHBORHOOD</span><span class="edition-tag">NO. 002 / AFTER DARK</span></div>
+    <div class="start-content">
+      <div class="start-eyebrow"><span class="eyebrow-line"></span> STEAL · STACK · SURVIVE <span class="eyebrow-line"></span></div>
+      <h1>BRAINROT<br><span>BOULEVARD</span><i>.</i></h1>
+      <p class="start-description">Familiar faces. Something is wrong.<br>Eight uncanny creatures. One forbidden guest.</p>
+      <div class="start-steps" aria-label="How the game works">
+        <div class="start-step"><span class="step-number">01</span><div><strong>BUILD YOUR CREW</strong><p>Buy a brainrot.<br>Let the cash roll in.</p></div></div>
+        <div class="start-step"><span class="step-number">02</span><div><strong>TAKE A LITTLE RISK</strong><p>Raid an open base.<br>Make it home in one piece.</p></div></div>
+        <div class="start-step"><span class="step-number">03</span><div><strong>PROTECT THE WEIRD</strong><p>Lock your doors.<br>Keep that bat handy.</p></div></div>
+      </div>
+      <button id="playButton" class="play-button" disabled>Start hustling <span aria-hidden="true">↗</span></button>
+      <p id="loadingStatus" class="loading-status" role="status">Warming up the boulevard…</p>
+      <p class="honesty-line"><span class="status-dot"></span> Single-player <span>·</span> AI rivals <span>·</span> Saves on this device</p>
+    </div>
+    <div class="start-bottomline"><span class="start-controls"><kbd>WASD</kbd> move <span>·</span> Drag / right mouse to look <span>·</span> <kbd>E</kbd> interact <span>·</span> <kbd>Space</kbd> bat</span><span class="start-note">Find the forgotten shrine. Do not smile back.</span></div>
+  </section>
+
+  <div id="menu" class="modal-backdrop" hidden>
+    <section class="modal panel" role="dialog" aria-modal="true" aria-label="Game menu">
+      <button id="closeMenu" class="icon-button close-button" title="Close [Esc]" aria-label="Close menu">×</button>
+      <div id="menuContent"></div>
+    </section>
+  </div>
+  <noscript><div class="noscript-message">Please enable JavaScript to visit Brainrot Boulevard.</div></noscript>
+  <script type="module" src="./src/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,268 @@
+{
+  "method": "Actual Three.js exported meshes/DataTextures, imported and rendered in Blender Cycles; ninth model directly imported from GLB",
+  "blenderVersion": "4.3.2",
+  "engine": "Cycles",
+  "samples": "96 for eight game creatures; 128 for The Uninvited",
+  "resolution": [
+    1100,
+    1100
+  ],
+  "sourceFiles": [
+    {
+      "path": "src/characters.js",
+      "sha256": "5325c187dbe04b878e827506205fcdda1b422500837ae1e2560ed3893ec71800"
+    },
+    {
+      "path": "src/character-surfaces.js",
+      "sha256": "350b3978e02340fe09001d8edc376793d5eea46b4ba7414fac7364f8ff5c2d86"
+    }
+  ],
+  "geometryAltered": false,
+  "offlineAssetRender": true,
+  "browserScreenshot": false,
+  "runtimeGameplayValidated": false,
+  "materialNote": "MeshStandardMaterial PBR properties and generated color/roughness/bump maps translated to Blender Principled BSDF; lighting and tone mapping are offline preview settings, not the WebGL game renderer.",
+  "renders": [
+    {
+      "index": 0,
+      "file": "previews/individual/01-asset.png",
+      "samples": 96,
+      "resolution": [
+        1100,
+        1100
+      ],
+      "meshObjects": 12,
+      "triangles": 12604,
+      "boundsZUp": {
+        "min": [
+          -0.6851499676704407,
+          -0.9106622338294983,
+          9.085075802772735e-09
+        ],
+        "max": [
+          0.6851499676704407,
+          0.46528857946395874,
+          2.299999952316284
+        ]
+      },
+      "renderSeconds": 58.19
+    },
+    {
+      "index": 1,
+      "file": "previews/individual/02-asset.png",
+      "samples": 96,
+      "resolution": [
+        1100,
+        1100
+      ],
+      "meshObjects": 33,
+      "triangles": 24384,
+      "boundsZUp": {
+        "min": [
+          -1.0808324813842773,
+          -0.9455761313438416,
+          -1.1602184990522346e-08
+        ],
+        "max": [
+          1.0808324813842773,
+          0.9455761313438416,
+          2.299999952316284
+        ]
+      },
+      "renderSeconds": 54.61
+    },
+    {
+      "index": 2,
+      "file": "previews/individual/03-asset.png",
+      "samples": 96,
+      "resolution": [
+        1100,
+        1100
+      ],
+      "meshObjects": 17,
+      "triangles": 22920,
+      "boundsZUp": {
+        "min": [
+          -0.8842730522155762,
+          -0.7405914068222046,
+          -3.7878312042494144e-08
+        ],
+        "max": [
+          0.8842730522155762,
+          0.5017134547233582,
+          2.3000001907348633
+        ]
+      },
+      "renderSeconds": 54.35
+    },
+    {
+      "index": 3,
+      "file": "previews/individual/04-asset.png",
+      "samples": 96,
+      "resolution": [
+        1100,
+        1100
+      ],
+      "meshObjects": 14,
+      "triangles": 22002,
+      "boundsZUp": {
+        "min": [
+          -0.8484663367271423,
+          -0.7883884906768799,
+          -2.3322453301943824e-08
+        ],
+        "max": [
+          0.8484663367271423,
+          0.8916471004486084,
+          2.299999952316284
+        ]
+      },
+      "renderSeconds": 51.69
+    },
+    {
+      "index": 4,
+      "file": "previews/individual/05-asset.png",
+      "samples": 96,
+      "resolution": [
+        1100,
+        1100
+      ],
+      "meshObjects": 17,
+      "triangles": 14412,
+      "boundsZUp": {
+        "min": [
+          -0.7149261236190796,
+          -0.4444395899772644,
+          -7.982479566237544e-09
+        ],
+        "max": [
+          1.0371196269989014,
+          0.28716713190078735,
+          2.3000001907348633
+        ]
+      },
+      "renderSeconds": 51.31
+    },
+    {
+      "index": 5,
+      "file": "previews/individual/06-asset.png",
+      "samples": 96,
+      "resolution": [
+        1100,
+        1100
+      ],
+      "meshObjects": 12,
+      "triangles": 16496,
+      "boundsZUp": {
+        "min": [
+          -0.608826220035553,
+          -0.6797977089881897,
+          1.6682629722097886e-09
+        ],
+        "max": [
+          0.7937501072883606,
+          0.46011823415756226,
+          2.299999952316284
+        ]
+      },
+      "renderSeconds": 48.05
+    },
+    {
+      "index": 6,
+      "file": "previews/individual/07-asset.png",
+      "samples": 96,
+      "resolution": [
+        1100,
+        1100
+      ],
+      "meshObjects": 13,
+      "triangles": 19072,
+      "boundsZUp": {
+        "min": [
+          -0.8654550313949585,
+          -0.35402053594589233,
+          -9.860979588438568e-09
+        ],
+        "max": [
+          0.8654550313949585,
+          0.3493920564651489,
+          2.299999952316284
+        ]
+      },
+      "renderSeconds": 50.02
+    },
+    {
+      "index": 7,
+      "file": "previews/individual/08-asset.png",
+      "samples": 96,
+      "resolution": [
+        1100,
+        1100
+      ],
+      "meshObjects": 13,
+      "triangles": 17234,
+      "boundsZUp": {
+        "min": [
+          -1.021970510482788,
+          -0.5612831711769104,
+          -1.8920497169006012e-08
+        ],
+        "max": [
+          0.7473092079162598,
+          0.3434409499168396,
+          2.299999952316284
+        ]
+      },
+      "renderSeconds": 52.33
+    },
+    {
+      "index": 8,
+      "file": "previews/individual/09-asset.png",
+      "meshObjects": 1,
+      "triangles": 13926,
+      "boundsZUp": {
+        "min": [
+          -1.3886854648590088,
+          -2.084648609161377,
+          0.0
+        ],
+        "max": [
+          1.3886924982070923,
+          1.6266497373580933,
+          0.801636815071106
+        ]
+      },
+      "renderSeconds": 78.22,
+      "samples": 128,
+      "resolution": [
+        1100,
+        1100
+      ]
+    }
+  ],
+  "geometryStats": {
+    "uniqueThreeGeometries": 126,
+    "gameSurfaceMaterials": 25,
+    "gameTextureMaps": 51,
+    "gameTextureBytes": 13369344,
+    "totalTrianglesAllNine": 163050
+  },
+  "sourceSnapshotMatchesDeliveredFiles": true,
+  "secretAsset": {
+    "path": "assets/secret-cave-creature.glb",
+    "sha256": "bc77d7c17a4638f37acb5547a490f50f07fda818f6261e6767e674823d64562c",
+    "triangleCount": 13926,
+    "importMethod": "Blender glTF importer; original low-crawl geometry retained"
+  },
+  "visualInspection": {
+    "allNinePanelsInspected": true,
+    "penguinBellyRefinementVerified": true,
+    "lineupLabelsAndFramingInspected": true,
+    "style": "Stylized game anatomy with realism-inspired PBR surfaces; not scans or a claim of photographic realism"
+  },
+  "limitations": [
+    "Offline Cycles lighting and shading differ from the live WebGL game.",
+    "Independent camera framing is not a shared-scale reference.",
+    "No browser gameplay, performance, GPU compatibility, animation or controls are validated by these renders."
+  ]
+}
