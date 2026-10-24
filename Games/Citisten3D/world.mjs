@@ -7,6 +7,7 @@ import { createWorldEffects } from './world-effects.mjs';
 import { createAsphaltMaterial, createGroundMaterial, createWater, createBlockAO, applyExternalTerrain } from './materials.mjs';
 import { loadExternalModel, disposeExternalModels } from './external-assets.mjs';
 import { createLandscape } from './terrain.mjs';
+import { createAtmosphere, createStreetLamps } from './atmosphere.mjs';
 
 export function createRoadPool(scene, grid) {
   const geometry = new THREE.PlaneGeometry(grid.lotSize, grid.lotSize);
@@ -45,9 +46,10 @@ export function createWorld(canvas, { size = 200, lotSize = 10, pixelRatio = Mat
   const landscape = createLandscape(scene, extent);
   const controls = createFreeCamera(camera, canvas, landscape.edge - 2, landscape.floorHeight);
   const dayNight = createDayNight(scene);
-  scene.fog = new THREE.Fog(scene.background, extent * .7, extent * 3);
+  const atmosphere = createAtmosphere(scene, extent);
   const buildings = createBuildingKit(scene, 10000, { lod: modelLOD });
   const roadPool = createRoadPool(scene, roads);
+  const streetLamps = createStreetLamps(scene, roads);
   const effects = createWorldEffects(scene, roads);
   // All playable foundations stay flat. The surrounding solid slab field owns hills/waterfront.
   const terrainSegments = 1;
@@ -74,6 +76,7 @@ export function createWorld(canvas, { size = 200, lotSize = 10, pixelRatio = Mat
     disposed = true; loaded = false;
     terrain?.dispose();
     if (terrainModel) { disposeExternalModels([terrainModel]); terrainModel = null; }
+    atmosphere.dispose(); streetLamps.dispose();
     landscape.dispose(); controls.dispose(); dayNight.dispose(); buildings.dispose(); roadPool.dispose(); effects.dispose();
     water.dispose(); blockAO.dispose(); scene.remove(ground, gridLines);
     groundGeometry.dispose(); groundAppearance.dispose(); gridLines.geometry.dispose(); gridLines.material.dispose(); renderer.dispose();
@@ -100,13 +103,15 @@ export function createWorld(canvas, { size = 200, lotSize = 10, pixelRatio = Mat
     gridLines.material.color.copy(dayNight.lights.ambient.color);
     gridLines.material.opacity = .06 + .2 * dayNight.lights.sun.intensity / 2;
     controls.update(dt); roadPool.sync();
-    dayNight.follow(camera); buildings.update(camera, 1 - dayNight.lights.sun.intensity / 3, dt);
+    dayNight.follow(camera); buildings.update(camera, 1 - dayNight.daylight, dt);
+    streetLamps.update(1 - dayNight.daylight);
+    atmosphere.update(camera, dayNight.daylight, dayNight.sunDirection, dt);
     blockAO.update(); terrain.update(Math.max(0, Math.min(1, dt)));
     scene.fog.color.copy(scene.background);
     renderer.render(scene, camera); effects.update(dt);
   }
   return {
-    renderer, scene, camera, controls, dayNight, roads, roadPool, buildings, effects, water, blockAO, landscape,
+    renderer, scene, camera, controls, dayNight, atmosphere, streetLamps, roads, roadPool, buildings, effects, water, blockAO, landscape,
     floorHeight: landscape.floorHeight,
     ready, render, dispose,
     get loaded() { return loaded; },

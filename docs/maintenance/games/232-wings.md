@@ -235,7 +235,7 @@ collector/selector failures remain recorded in the continuation receipt.
 | --- | --- | --- | --- | --- |
 | F-15 | 40,000-55,000 | <1,200,000 | 41,352 / 25,305 / 1,176,316 | 142 / 12 |
 | F-35 | 35,000-50,000 | <1,200,000 | 40,812 / 25,323 / 1,174,768 | 143 / 12 |
-| Speedboat experimental raw asset | 12,000-18,000 | <1,200,000 | 17,252 / 24,746 / 1,069,292 | 258 / 92 |
+| Speedboat experimental raw asset | 12,000-18,000 | <2,097,152 (embedded PBR) | 17,252 / 24,746 / 1,411,020 | 258 / 92 |
 
 These are asset limits, not supported-device performance claims. Reference asset
 triangles: F/A-18 16,896; YF-12 18,028. Their converted totals add 392 flame
@@ -371,6 +371,63 @@ Restore tooling and a supported browser route before paired delivery. Earlier
 tracked WIP is no longer present; saved reviewed diffs and private source survive.
 Current maintenance coverage passes for 126 registered and five unregistered
 games. Full fleet remains deferred; no new game or multinational jet in this lane.
+
+## Speedboat PBR surface pass (2026-10-24)
+
+The operator cleared the experimental boat's preceding realism gate and ordered
+this material-only pass. `8aa3cece` adds 30 deterministic embedded PNGs using the
+existing Python-stdlib generator and UVs: base-color weather masks, packed
+metallic/roughness and tangent-space normal maps across ten finish families.
+`70ab7d52` refines hull streaks, salt, irregular wear at the existing finish-zone
+boundaries and fine non-skid grain. Wetness follows interpolated existing hull
+Y=0, not an arbitrary horizontal image stripe. Painted hull/rubber/glass remain
+dielectric; exposed steel/bronze remain metallic. Trim is subdued neutral patrol
+paint. No downloaded textures, runtime fetches, new dependency or runtime changes.
+
+Current GLB SHA-256:
+`7fee0b74e7c746a2dff2b7c4b5bed58c39b9ddbbc0c55592f1eb27941b4f2aee`.
+Size is 1,411,020 bytes, **+341,728** from 1,069,292. The boat-only byte ceiling
+is now 2 MiB for embedded maps; aircraft limits are unchanged. All 1,160 original
+accessors and their bytes, UVs, normals, vertex AO, indices, meshes, nodes and
+transforms remain exact. Triangles stay **17,252**, assignments **258**, materials
+**92**; both jets regenerate byte-exact. No geometry exception was requested.
+
+Fresh browser-free results: PBR/immutable-geometry regression PASS (2,368
+waterline samples, 51 panel-edge samples; generation 7.362 seconds), models 3/3
+PASS, preview parity self-check PASS, Python compile and embedded JS `node --check`
+PASS, catalog 128 unique IDs/schema/tracked URLs PASS. Runnable checks:
+
+```sh
+python3 -B Games/Wings/verification/check-speedboat-pbr.py
+python3 -B Games/Wings/verification/check-models.py
+python3 -B Games/Wings/verification/check-speedboat-browser.py --self-check
+```
+
+Preview runner `91af1637` preserves all sixteen original case identities,
+orthographic fitting, lights, procedural RoomEnvironment PMREM reflections,
+ACES/sRGB and exposure; it verifies GLB material factors/maps without overrides
+and records render wall time. `e38b71c2` separates document commit from the
+existing 60-second model/material readiness wait; 210/230-second hard deadlines
+and all render assertions remain intact.
+
+[Saved evidence and precise capture hold](../../../Games/Wings/docs/previews-v2/speedboat-pbr/README.md):
+the **initial PBR candidate** `8aa3cece` genuinely captured 16/16, with baseline
+camera/light parity, no clipping/overflow/errors/external/failed requests, all
+92 materials mapped and 75.505-second total duration. Parent reviewed two
+quarters, side, lit belly and both mobile captures; hull weathering was too faint
+and deck grain too coarse, prompting the final refinement. Those images do
+**not** depict the final `70ab7d52` GLB. Final-model attempts produced **0/16**:
+two navigation timeouts, one readiness timeout and one launch timeout. Later
+attempts overlapped sibling Chromium sessions; causation is not proven. Own
+browser/server exited between batches, no sibling was killed. New Wings browser
+launches are held for Foldwild QA agent40ef5d0's reserved next slot, relayed via
+the requested shared READY file. Final-model visual acceptance remains open.
+
+Maintenance checker was run unchanged and stopped with `Commit inspected source
+changes before validating its inventory.` Other lanes own dirty Games files and
+`inventory.json`; this lane does not overwrite their work or claim a whole-repo
+coverage PASS. Full-fleet smoke was not run. No new game, registration, runtime
+delivery or push. Historical native/release/rights qualifications remain.
 
 ## Deterministic time-of-day lighting (2026-10-24)
 

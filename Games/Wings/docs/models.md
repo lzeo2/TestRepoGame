@@ -146,3 +146,32 @@ See the [repair receipt](../../../docs/maintenance/audits/wings-repair-20261017.
 The historical `2d2eb61` 124/125 failure remains dated evidence. Rights, remaining
 native checks, historical artifact-path cleanup and two generated shader-template
 whitespace findings remain open. No push or release authorization follows.
+
+## Experimental speedboat PBR checkpoint (2026-10-24)
+
+Operator-cleared preceding realism gate; material pass only, not runtime delivery.
+The Python-stdlib pipeline now appends 30 original embedded PNGs for ten surface
+families: neutral weather color, packed roughness/metallic and tangent normals.
+No downloaded images, new vertex attributes or dependency. Existing UVs and
+all 1,160 accessor bytes, meshes, nodes, transforms and assignments are preserved.
+Normal mapping uses the loader's existing UV derivatives, not added tangents.
+Hull paint is dielectric; fittings retain exposed metal response. Streaks, salt,
+existing panel-boundary wear and a Y=0 wet/dry transition are generated locally.
+Reflections come from the unchanged preview RoomEnvironment PMREM, not an HDRI
+fetch or a new native-renderer feature.
+
+- Current GLB: 17,252 triangles, 24,746 counted vertices, 258 assignments,
+  92 materials; 1,411,020 bytes (+341,728). Boat-only ceiling <2 MiB;
+  both aircraft retain their original limits and exact bytes.
+- GLB SHA-256: `7fee0b74e7c746a2dff2b7c4b5bed58c39b9ddbbc0c55592f1eb27941b4f2aee`.
+- Current generator SHA-256: `b4ea7d1a90b2e5dd356a7757ea7d9e28a3e6b0dc543a7c158db03beb08a071ea`.
+  The earlier generator hash above belongs to the dated aircraft checkpoint.
+- Immutable original geometry SHA-256:
+  `38121b7244b3e8bdcab6e446e4fd5bfa0071a8743656a430b1ac80ecf7867c11`.
+
+Run `python3 -B Games/Wings/verification/check-speedboat-pbr.py` and the existing
+`check-models.py`. Fresh checks pass repeated generation, image decoding/CRC,
+physical material families, waterline/edge wear and exact geometry/aircraft bytes.
+[Capture evidence](previews-v2/speedboat-pbr/README.md) distinguishes the successful
+initial PBR batch from the final refinement's blocked captures. No final-model
+visual or native gameplay PASS is inferred; no push.

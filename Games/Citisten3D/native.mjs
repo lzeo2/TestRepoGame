@@ -4,6 +4,8 @@ import { createUI } from './ui.mjs';
 import { applyTool, syncModels } from './native-actions.mjs';
 import { readSave, saveTown } from './persistence.mjs';
 import { createNativeLoop } from './native-loop.mjs';
+import { phaseForState } from './daynight.mjs';
+import { weatherAt } from './atmosphere.mjs';
 
 const canvas = document.querySelector('#world'), root = document.querySelector('#ui');
 const panel = document.querySelector('#native-controls'), feedback = document.querySelector('#feedback');
@@ -11,6 +13,7 @@ const speed = document.querySelector('#speed'), loading = document.querySelector
 let world, sim, ui, loop, tool = 'road', paused = true, resumeSpeed = 1, drag = null, closed = false;
 let lastSaveTime = 0, savedTown = null, requestedSave;
 const skip = document.querySelector('#skip-night');
+const weather = document.querySelector('#weather');
 let saveButton, continueButton, restartButton, saveStatus;
 const models = new Map(), abort = new AbortController();
 const listen = (node, name, fn, options = {}) => node.addEventListener(name, fn, { ...options, signal: abort.signal });
@@ -30,7 +33,7 @@ function start(mode, snapshot) {
   models.clear();
   for (const key of [...world.roads.cells]) { const { x, z } = world.roads.cell(key); world.roads.set(x, z, false); }
   sim = createSimulation({ size: world.roads.size, mode, roads: world.roads, snapshot });
-  world.roadPool.sync(true);
+  world.roadPool.sync(true); world.streetLamps.update(1 - world.dayNight.daylight, true);
   paused = false; resumeSpeed = sim.state.speed; speed.value = String(resumeSpeed); drag = null;
   lastSaveTime = sim.state.time;
   if (saveButton) { saveButton.disabled = false; restartButton.hidden = false; }
@@ -75,7 +78,8 @@ function tick(dt) {
     ui.events(events);
     for (const event of events) if (event.type === 'shot') world.effects.shot({ ...event.from, y: event.source === 'tower' ? 10 : 1.5 }, { ...event.to, y: 1.2 });
     syncModels(world, sim.state, models);
-    world.dayNight.setPhase(sim.state.phase === 'day' ? .5 : 0);
+    world.dayNight.approach(phaseForState(sim.state), Math.min(.25, dt));
+    world.atmosphere.setWeather(weather.value === 'auto' ? weatherAt(sim.state.time, sim.state.cityEvents.some(e => e.type === 'cold-snap')) : weather.value);
     ui.update(sim.state, { roads: world.roads, size: world.roads.size });
   }
   const { position, rotation } = world.camera;
@@ -146,6 +150,7 @@ try {
       if (event.code === 'Escape') { pause(); ui.showMenu(); event.preventDefault(); }
     });
     listen(speed, 'change', () => { if (sim && !paused) { sim.setSpeed(Number(speed.value)); resumeSpeed = sim.state.speed; } });
+    listen(weather, 'change', () => message('Weather changes visuals only.'));
     listen(document.querySelector('#repair'), 'click', () => { if (active()) { tool = 'repair'; message('Tap a damaged lot to repair during daytime'); } });
     listen(document.querySelector('#camera-pad'), 'click', event => {
       const action = event.target.closest('[data-camera]')?.dataset.camera;

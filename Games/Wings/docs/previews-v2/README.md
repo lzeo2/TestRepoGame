@@ -67,3 +67,13 @@ reroll, reviewed the second from front/side/top/rear/quarters and lit belly,
 closed a bow seam, and recaptured every view. Texture-free PBR/vertex AO only.
 This is an experimental raw asset, not a delivered selectable vehicle or a
 photorealism/native-gameplay acceptance claim.
+
+## Speedboat PBR surfaces, 2026-10-24
+
+The operator cleared the preceding realism gate. The [PBR receipt](speedboat-pbr/README.md)
+retains sixteen actual initial-pass renders, their exact model hash and measured
+75.505-second capture duration. It separately records the final material
+refinement's blocked 0/16 captures. Initial images must not be presented as the
+current GLB. Geometry, all original accessor bytes and jet GLBs remain exact;
+only local embedded maps/materials changed. Final-model visual acceptance and
+native integration remain unverified. No full smoke or push.
