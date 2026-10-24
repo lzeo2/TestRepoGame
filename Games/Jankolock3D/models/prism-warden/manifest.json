@@ -1,0 +1,60 @@
+{
+  "model": "prism-warden",
+  "name": "Prism Warden",
+  "description": "A smoked-optic survey guardian: suspended magnifier crown, tripod stabilizers and a folding brass compass projector.",
+  "tri_count_LOD0": 18454,
+  "size_bytes": 2847116,
+  "texture_resolution": 512,
+  "rig_nodes": [
+    "root",
+    "BODY_SUSPENSION",
+    "LEG_LEFT_HIP",
+    "LEG_LEFT_KNEE",
+    "LEG_LEFT_FOOT",
+    "LEG_RIGHT_HIP",
+    "LEG_RIGHT_KNEE",
+    "LEG_RIGHT_FOOT",
+    "LEG_REAR_HIP",
+    "LEG_REAR_KNEE",
+    "LEG_REAR_FOOT",
+    "HEAD_GIMBAL",
+    "IRIS_ROTATOR",
+    "LEFT_CLUTCH",
+    "COMPASS_ARM",
+    "COMPASS_HINGE",
+    "COMPASS_SCRIBE_BLADE",
+    "COMPASS_PROJECTOR_BLADE"
+  ],
+  "palette_default": {
+    "smoked_optic": "#42656c",
+    "brushed_brass": "#bea16a",
+    "darkened_bronze": "#3a4141",
+    "porcelain_scale": "#d2d0b7",
+    "rubber_grip": "#17242b",
+    "cyan_prism": "#49aab6",
+    "amber_prism": "#ddab65",
+    "violet_prism": "#8d76a4"
+  },
+  "provenance_note": "Original procedural mesh construction and original generated PBR maps created in Blender/Python for this request; no downloaded models or textures.",
+  "coordinate_system": "glTF: metres, +Y up, -Z forward; source Blender +Z up, +Y forward; right +X.",
+  "files": {
+    "model": "model.glb",
+    "rig": "rig.json",
+    "palette": "palette.json"
+  },
+  "sha256": "8547ce6cca106bd1bcf8c98c7e43e850b693d69a713bd03545b4515492bff6f6",
+  "material_names": [
+    "prism-warden__brushed_brass",
+    "prism-warden__darkened_bronze",
+    "prism-warden__porcelain_scale",
+    "prism-warden__smoked_optic",
+    "prism-warden__cyan_prism",
+    "prism-warden__amber_prism",
+    "prism-warden__rubber_grip",
+    "prism-warden__violet_prism"
+  ],
+  "animation_clips": [],
+  "rig_type": "named rigid node hierarchy; no skinning",
+  "external_dependencies": [],
+  "gameplay_implemented": false
+}

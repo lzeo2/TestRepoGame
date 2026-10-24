@@ -1,0 +1,60 @@
+{
+  "model": "checkmate-regent",
+  "name": "Checkmate Regent",
+  "description": "An original porcelain-and-ebony chess sovereign with an expressive mask, knight pauldron, rook sceptre and checkerboard guard. Rigid editable asset; no gameplay implementation.",
+  "tri_count_LOD0": 18148,
+  "size_bytes": 4213784,
+  "texture_resolution": 512,
+  "rig_nodes": [
+    "root",
+    "body_sway",
+    "head_look",
+    "jaw_emote",
+    "shoulder_L",
+    "elbow_L",
+    "wrist_L",
+    "shoulder_R",
+    "elbow_R",
+    "wrist_R",
+    "hip_L",
+    "knee_L",
+    "ankle_L",
+    "hip_R",
+    "knee_R",
+    "ankle_R",
+    "eye_L",
+    "eye_R",
+    "cape_L",
+    "cape_R",
+    "checker_guard",
+    "rook_sceptre"
+  ],
+  "palette_default": {
+    "ivory_porcelain": "#E9DFC3",
+    "ebony_wood": "#292C30",
+    "aged_brass": "#B58B4B",
+    "oxblood_velvet": "#572A36",
+    "jade_glass": "#6FC7B5",
+    "eye_obsidian": "#11191C"
+  },
+  "provenance_note": "Original procedural mesh construction and original generated PBR maps created in Blender/Python for this request; no downloaded models or textures.",
+  "coordinate_system": "glTF: metres, +Y up, -Z forward; source Blender +Z up, +Y forward; right +X.",
+  "files": {
+    "model": "model.glb",
+    "rig": "rig.json",
+    "palette": "palette.json"
+  },
+  "sha256": "52daa16fd7cefaf3cc7ddf9350cb302a2a6e213205d7ca332ba896a26014deaf",
+  "material_names": [
+    "checkmate-regent__aged_brass",
+    "checkmate-regent__ebony_wood",
+    "checkmate-regent__oxblood_velvet",
+    "checkmate-regent__jade_glass",
+    "checkmate-regent__eye_obsidian",
+    "checkmate-regent__ivory_porcelain"
+  ],
+  "animation_clips": [],
+  "rig_type": "named rigid node hierarchy; no skinning",
+  "external_dependencies": [],
+  "gameplay_implemented": false
+}

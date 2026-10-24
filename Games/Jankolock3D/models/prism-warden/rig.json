@@ -1,0 +1,1040 @@
+{
+  "schema": "rigid_parts_v2",
+  "version": 2,
+  "model": "prism-warden",
+  "coordinate_system": "glTF: metres, +Y up, -Z forward; source Blender +Z up, +Y forward; right +X.",
+  "source_axis_mapping": {
+    "Blender_X": "glTF_X",
+    "Blender_Z": "glTF_Y",
+    "Blender_Y": "glTF_-Z"
+  },
+  "pivot_space": "parent-local glTF metres; pivot_model_position is model-space rest origin. rotation_deg is about glTF local axes.",
+  "range_semantics": "Inclusive artistic guides only, not collision guarantees. [0,0] locked; free uncapped.",
+  "movable_nodes": [
+    {
+      "name": "root",
+      "gltf_node_index": 77,
+      "parent": null,
+      "pivot_position": [
+        0,
+        0,
+        0
+      ],
+      "pivot_model_position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "rotation_deg": {
+        "x": [
+          0,
+          0
+        ],
+        "y": "free",
+        "z": [
+          0,
+          0
+        ]
+      },
+      "translation_m": {
+        "x": "free",
+        "y": "free",
+        "z": "free"
+      },
+      "note": "Caller-owned placement, free translation and yaw."
+    },
+    {
+      "name": "BODY_SUSPENSION",
+      "gltf_node_index": 76,
+      "parent": "root",
+      "pivot_position": [
+        0,
+        1.0299999713897705,
+        0
+      ],
+      "pivot_model_position": [
+        0.0,
+        1.0299999713897705,
+        0.0
+      ],
+      "rotation_deg": {
+        "x": [
+          -8,
+          8
+        ],
+        "y": [
+          -20,
+          20
+        ],
+        "z": [
+          -8,
+          8
+        ]
+      },
+      "translation_m": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "note": "Small floating chamber sway; metres, glTF local axes."
+    },
+    {
+      "name": "LEG_LEFT_HIP",
+      "gltf_node_index": 49,
+      "parent": "BODY_SUSPENSION",
+      "pivot_position": [
+        0.38999998569488525,
+        -0.029999971389770508,
+        -0.06999996304512024
+      ],
+      "pivot_model_position": [
+        0.38999998569488525,
+        1.0,
+        -0.06999996304512024
+      ],
+      "rotation_deg": {
+        "x": [
+          -22,
+          22
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "translation_m": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "note": "Leg suspension hinge; glTF local X. Move together with lower knee for folding poses."
+    },
+    {
+      "name": "LEG_LEFT_KNEE",
+      "gltf_node_index": 48,
+      "parent": "LEG_LEFT_HIP",
+      "pivot_position": [
+        0.2200000286102295,
+        -0.4300000071525574,
+        -0.23999997973442078
+      ],
+      "pivot_model_position": [
+        0.6100000143051147,
+        0.5699999928474426,
+        -0.309999942779541
+      ],
+      "rotation_deg": {
+        "x": [
+          -32,
+          32
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "translation_m": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "note": "Knee hinge uses the same glTF local X bend axis as all stabilizer legs."
+    },
+    {
+      "name": "LEG_LEFT_FOOT",
+      "gltf_node_index": 46,
+      "parent": "LEG_LEFT_KNEE",
+      "pivot_position": [
+        0.15000003576278687,
+        -0.42500001192092896,
+        -0.20999997854232788
+      ],
+      "pivot_model_position": [
+        0.7600000500679016,
+        0.14499998092651367,
+        -0.5199999213218689
+      ],
+      "rotation_deg": {
+        "x": [
+          -18,
+          18
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "translation_m": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "note": "Pad leveling hinge; glTF local X."
+    },
+    {
+      "name": "LEG_RIGHT_HIP",
+      "gltf_node_index": 75,
+      "parent": "BODY_SUSPENSION",
+      "pivot_position": [
+        -0.38999998569488525,
+        -0.029999971389770508,
+        -0.07000003755092621
+      ],
+      "pivot_model_position": [
+        -0.38999998569488525,
+        1.0,
+        -0.07000003755092621
+      ],
+      "rotation_deg": {
+        "x": [
+          -22,
+          22
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "translation_m": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "note": "Leg suspension hinge; glTF local X. Move together with lower knee for folding poses."
+    },
+    {
+      "name": "LEG_RIGHT_KNEE",
+      "gltf_node_index": 73,
+      "parent": "LEG_RIGHT_HIP",
+      "pivot_position": [
+        -0.2200000286102295,
+        -0.4300000071525574,
+        -0.24000002443790436
+      ],
+      "pivot_model_position": [
+        -0.6100000143051147,
+        0.5699999928474426,
+        -0.31000006198883057
+      ],
+      "rotation_deg": {
+        "x": [
+          -32,
+          32
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "translation_m": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "note": "Knee hinge uses the same glTF local X bend axis as all stabilizer legs."
+    },
+    {
+      "name": "LEG_RIGHT_FOOT",
+      "gltf_node_index": 68,
+      "parent": "LEG_RIGHT_KNEE",
+      "pivot_position": [
+        -0.14999991655349731,
+        -0.42500001192092896,
+        -0.20999997854232788
+      ],
+      "pivot_model_position": [
+        -0.7599999308586121,
+        0.14499998092651367,
+        -0.5200000405311584
+      ],
+      "rotation_deg": {
+        "x": [
+          -18,
+          18
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "translation_m": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "note": "Pad leveling hinge; glTF local X."
+    },
+    {
+      "name": "LEG_REAR_HIP",
+      "gltf_node_index": 62,
+      "parent": "BODY_SUSPENSION",
+      "pivot_position": [
+        0,
+        -0.039999961853027344,
+        0.28999999165534973
+      ],
+      "pivot_model_position": [
+        0.0,
+        0.9900000095367432,
+        0.28999999165534973
+      ],
+      "rotation_deg": {
+        "x": [
+          -22,
+          22
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "translation_m": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "note": "Leg suspension hinge; glTF local X. Move together with lower knee for folding poses."
+    },
+    {
+      "name": "LEG_REAR_KNEE",
+      "gltf_node_index": 60,
+      "parent": "LEG_REAR_HIP",
+      "pivot_position": [
+        0,
+        -0.42000001668930054,
+        0.37000003457069397
+      ],
+      "pivot_model_position": [
+        0.0,
+        0.5699999928474426,
+        0.6600000262260437
+      ],
+      "rotation_deg": {
+        "x": [
+          -32,
+          32
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "translation_m": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "note": "Knee hinge uses the same glTF local X bend axis as all stabilizer legs."
+    },
+    {
+      "name": "LEG_REAR_FOOT",
+      "gltf_node_index": 55,
+      "parent": "LEG_REAR_KNEE",
+      "pivot_position": [
+        0,
+        -0.42500001192092896,
+        0.21999996900558472
+      ],
+      "pivot_model_position": [
+        0.0,
+        0.14499998092651367,
+        0.8799999952316284
+      ],
+      "rotation_deg": {
+        "x": [
+          -18,
+          18
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "translation_m": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "note": "Pad leveling hinge; glTF local X."
+    },
+    {
+      "name": "HEAD_GIMBAL",
+      "gltf_node_index": 32,
+      "parent": "BODY_SUSPENSION",
+      "pivot_position": [
+        0,
+        1.1000001430511475,
+        -0.014999999664723873
+      ],
+      "pivot_model_position": [
+        0.0,
+        2.130000114440918,
+        -0.014999999664723873
+      ],
+      "rotation_deg": {
+        "x": [
+          -22,
+          22
+        ],
+        "y": [
+          -48,
+          48
+        ],
+        "z": [
+          -18,
+          18
+        ]
+      },
+      "translation_m": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "note": "Floating magnifier aim: glTF Y yaw, X nod, Z roll. Rest gap is intentional."
+    },
+    {
+      "name": "IRIS_ROTATOR",
+      "gltf_node_index": 31,
+      "parent": "HEAD_GIMBAL",
+      "pivot_position": [
+        0,
+        0,
+        -0.07500000298023224
+      ],
+      "pivot_model_position": [
+        0.0,
+        2.130000114440918,
+        -0.09000000357627869
+      ],
+      "rotation_deg": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          -90,
+          90
+        ]
+      },
+      "translation_m": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "note": "Frontal optical aperture rotation, glTF local Z."
+    },
+    {
+      "name": "LEFT_CLUTCH",
+      "gltf_node_index": 36,
+      "parent": "BODY_SUSPENSION",
+      "pivot_position": [
+        0.41999998688697815,
+        0.25,
+        0.010000036098062992
+      ],
+      "pivot_model_position": [
+        0.41999998688697815,
+        1.2799999713897705,
+        0.010000036098062992
+      ],
+      "rotation_deg": {
+        "x": [
+          -20,
+          20
+        ],
+        "y": [
+          -20,
+          20
+        ],
+        "z": [
+          -35,
+          35
+        ]
+      },
+      "translation_m": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "note": "Small side optic shield aim."
+    },
+    {
+      "name": "COMPASS_ARM",
+      "gltf_node_index": 20,
+      "parent": "BODY_SUSPENSION",
+      "pivot_position": [
+        -0.4300000071525574,
+        0.25,
+        0.039999961853027344
+      ],
+      "pivot_model_position": [
+        -0.4300000071525574,
+        1.2799999713897705,
+        0.039999961853027344
+      ],
+      "rotation_deg": {
+        "x": [
+          -12,
+          12
+        ],
+        "y": [
+          -25,
+          25
+        ],
+        "z": [
+          -38,
+          38
+        ]
+      },
+      "translation_m": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "note": "Tool shoulder sweep; glTF Z lifts in frontal plane."
+    },
+    {
+      "name": "COMPASS_HINGE",
+      "gltf_node_index": 18,
+      "parent": "COMPASS_ARM",
+      "pivot_position": [
+        -0.5799999833106995,
+        0.5700000524520874,
+        -0.08000005036592484
+      ],
+      "pivot_model_position": [
+        -1.0099999904632568,
+        1.850000023841858,
+        -0.04000008851289749
+      ],
+      "rotation_deg": {
+        "x": [
+          -12,
+          12
+        ],
+        "y": [
+          -20,
+          20
+        ],
+        "z": [
+          -28,
+          28
+        ]
+      },
+      "translation_m": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "note": "Whole compass orientation; decorative tool, no projectile behaviour."
+    },
+    {
+      "name": "COMPASS_SCRIBE_BLADE",
+      "gltf_node_index": 17,
+      "parent": "COMPASS_HINGE",
+      "pivot_position": [
+        0,
+        0,
+        0
+      ],
+      "pivot_model_position": [
+        -1.0099999904632568,
+        1.850000023841858,
+        -0.04000008851289749
+      ],
+      "rotation_deg": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          -18,
+          22
+        ]
+      },
+      "translation_m": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "note": "Scribe blade opens around the common pivot on glTF local Z."
+    },
+    {
+      "name": "COMPASS_PROJECTOR_BLADE",
+      "gltf_node_index": 13,
+      "parent": "COMPASS_HINGE",
+      "pivot_position": [
+        0,
+        0,
+        0
+      ],
+      "pivot_model_position": [
+        -1.0099999904632568,
+        1.850000023841858,
+        -0.04000008851289749
+      ],
+      "rotation_deg": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          -22,
+          18
+        ]
+      },
+      "translation_m": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "note": "Projector blade opens around the common pivot on glTF local Z; opposite guide range."
+    }
+  ],
+  "static_nodes": [
+    {
+      "name": "BODY_SUSPENSION__brushed_brass_assembly",
+      "parent": "BODY_SUSPENSION"
+    },
+    {
+      "name": "BODY_SUSPENSION__darkened_bronze_assembly",
+      "parent": "BODY_SUSPENSION"
+    },
+    {
+      "name": "BODY_SUSPENSION__porcelain_scale_assembly",
+      "parent": "BODY_SUSPENSION"
+    },
+    {
+      "name": "BODY_SUSPENSION__smoked_optic_assembly",
+      "parent": "BODY_SUSPENSION"
+    },
+    {
+      "name": "Chest_cyan_iris",
+      "parent": "BODY_SUSPENSION"
+    },
+    {
+      "name": "COMPASS_ARM__brushed_brass_assembly",
+      "parent": "COMPASS_ARM"
+    },
+    {
+      "name": "Compass_center_screw",
+      "parent": "COMPASS_HINGE"
+    },
+    {
+      "name": "COMPASS_HINGE__brushed_brass_assembly",
+      "parent": "COMPASS_HINGE"
+    },
+    {
+      "name": "COMPASS_HINGE__darkened_bronze_assembly",
+      "parent": "COMPASS_HINGE"
+    },
+    {
+      "name": "Cyan_projector_crystal",
+      "parent": "COMPASS_PROJECTOR_BLADE"
+    },
+    {
+      "name": "Projector_porcelain_inlay",
+      "parent": "COMPASS_PROJECTOR_BLADE"
+    },
+    {
+      "name": "Projector_retaining_band",
+      "parent": "COMPASS_PROJECTOR_BLADE"
+    },
+    {
+      "name": "Projector_tapered_brass_blade",
+      "parent": "COMPASS_PROJECTOR_BLADE"
+    },
+    {
+      "name": "COMPASS_SCRIBE_BLADE__darkened_bronze_assembly",
+      "parent": "COMPASS_SCRIBE_BLADE"
+    },
+    {
+      "name": "Scribe_point_collar",
+      "parent": "COMPASS_SCRIBE_BLADE"
+    },
+    {
+      "name": "Scribe_tapered_brass_blade",
+      "parent": "COMPASS_SCRIBE_BLADE"
+    },
+    {
+      "name": "Compass_support_forearm",
+      "parent": "COMPASS_ARM"
+    },
+    {
+      "name": "Convex_magnifier",
+      "parent": "HEAD_GIMBAL"
+    },
+    {
+      "name": "Crown_amber_wedge",
+      "parent": "HEAD_GIMBAL"
+    },
+    {
+      "name": "HEAD_GIMBAL__brushed_brass_assembly",
+      "parent": "HEAD_GIMBAL"
+    },
+    {
+      "name": "HEAD_GIMBAL__porcelain_scale_assembly",
+      "parent": "HEAD_GIMBAL"
+    },
+    {
+      "name": "Head_structural_ring",
+      "parent": "HEAD_GIMBAL"
+    },
+    {
+      "name": "Deep_optic_pupil",
+      "parent": "IRIS_ROTATOR"
+    },
+    {
+      "name": "IRIS_ROTATOR__cyan_prism_assembly",
+      "parent": "IRIS_ROTATOR"
+    },
+    {
+      "name": "IRIS_ROTATOR__darkened_bronze_assembly",
+      "parent": "IRIS_ROTATOR"
+    },
+    {
+      "name": "IRIS_ROTATOR__porcelain_scale_assembly",
+      "parent": "IRIS_ROTATOR"
+    },
+    {
+      "name": "Pupil_fine_brass_ring",
+      "parent": "IRIS_ROTATOR"
+    },
+    {
+      "name": "LEFT_CLUTCH__brushed_brass_assembly",
+      "parent": "LEFT_CLUTCH"
+    },
+    {
+      "name": "Left_shield_disc",
+      "parent": "LEFT_CLUTCH"
+    },
+    {
+      "name": "Left_shield_glass",
+      "parent": "LEFT_CLUTCH"
+    },
+    {
+      "name": "LEFT_hip_recess",
+      "parent": "LEG_LEFT_HIP"
+    },
+    {
+      "name": "LEG_LEFT_HIP__brushed_brass_assembly",
+      "parent": "LEG_LEFT_HIP"
+    },
+    {
+      "name": "LEG_LEFT_HIP__darkened_bronze_assembly",
+      "parent": "LEG_LEFT_HIP"
+    },
+    {
+      "name": "LEFT_knee_bronze_axle",
+      "parent": "LEG_LEFT_KNEE"
+    },
+    {
+      "name": "LEFT_knee_recess",
+      "parent": "LEG_LEFT_KNEE"
+    },
+    {
+      "name": "LEFT_lower_ceramic_shin",
+      "parent": "LEG_LEFT_KNEE"
+    },
+    {
+      "name": "LEFT_machined_pad_shell",
+      "parent": "LEG_LEFT_FOOT"
+    },
+    {
+      "name": "LEFT_wide_rubber_pad",
+      "parent": "LEG_LEFT_FOOT"
+    },
+    {
+      "name": "LEG_LEFT_FOOT__brushed_brass_assembly",
+      "parent": "LEG_LEFT_FOOT"
+    },
+    {
+      "name": "LEG_LEFT_KNEE__brushed_brass_assembly",
+      "parent": "LEG_LEFT_KNEE"
+    },
+    {
+      "name": "LEG_REAR_HIP__brushed_brass_assembly",
+      "parent": "LEG_REAR_HIP"
+    },
+    {
+      "name": "LEG_REAR_HIP__darkened_bronze_assembly",
+      "parent": "LEG_REAR_HIP"
+    },
+    {
+      "name": "LEG_REAR_FOOT__brushed_brass_assembly",
+      "parent": "LEG_REAR_FOOT"
+    },
+    {
+      "name": "REAR_machined_pad_shell",
+      "parent": "LEG_REAR_FOOT"
+    },
+    {
+      "name": "REAR_wide_rubber_pad",
+      "parent": "LEG_REAR_FOOT"
+    },
+    {
+      "name": "LEG_REAR_KNEE__brushed_brass_assembly",
+      "parent": "LEG_REAR_KNEE"
+    },
+    {
+      "name": "REAR_knee_bronze_axle",
+      "parent": "LEG_REAR_KNEE"
+    },
+    {
+      "name": "REAR_knee_recess",
+      "parent": "LEG_REAR_KNEE"
+    },
+    {
+      "name": "REAR_lower_ceramic_shin",
+      "parent": "LEG_REAR_KNEE"
+    },
+    {
+      "name": "REAR_hip_recess",
+      "parent": "LEG_REAR_HIP"
+    },
+    {
+      "name": "LEG_RIGHT_HIP__brushed_brass_assembly",
+      "parent": "LEG_RIGHT_HIP"
+    },
+    {
+      "name": "LEG_RIGHT_HIP__darkened_bronze_assembly",
+      "parent": "LEG_RIGHT_HIP"
+    },
+    {
+      "name": "LEG_RIGHT_FOOT__brushed_brass_assembly",
+      "parent": "LEG_RIGHT_FOOT"
+    },
+    {
+      "name": "RIGHT_machined_pad_shell",
+      "parent": "LEG_RIGHT_FOOT"
+    },
+    {
+      "name": "RIGHT_wide_rubber_pad",
+      "parent": "LEG_RIGHT_FOOT"
+    },
+    {
+      "name": "LEG_RIGHT_KNEE__brushed_brass_assembly",
+      "parent": "LEG_RIGHT_KNEE"
+    },
+    {
+      "name": "RIGHT_knee_bronze_axle",
+      "parent": "LEG_RIGHT_KNEE"
+    },
+    {
+      "name": "RIGHT_knee_recess",
+      "parent": "LEG_RIGHT_KNEE"
+    },
+    {
+      "name": "RIGHT_lower_ceramic_shin",
+      "parent": "LEG_RIGHT_KNEE"
+    },
+    {
+      "name": "RIGHT_hip_recess",
+      "parent": "LEG_RIGHT_HIP"
+    }
+  ],
+  "skinning": "none; separate rigid mesh assemblies",
+  "animation_clips": [],
+  "variant": "model.glb"
+}

@@ -1,0 +1,110 @@
+{
+  "schema": "semantic_pbr_palette_v1",
+  "model": "checkmate-regent",
+  "slots": {
+    "ivory_porcelain": {
+      "material_name": "checkmate-regent__ivory_porcelain",
+      "hex_srgb": "#E9DFC3",
+      "metallic": 0,
+      "roughness": 0.23,
+      "surface": "wax",
+      "gltf_material_indices": [
+        5
+      ],
+      "recolor_mode": "replace baseColorFactor; grayscale variation preserved",
+      "rgba_linear": [
+        0.8148465722161012,
+        0.7379104087727308,
+        0.5457244613701866,
+        1
+      ]
+    },
+    "ebony_wood": {
+      "material_name": "checkmate-regent__ebony_wood",
+      "hex_srgb": "#292C30",
+      "metallic": 0,
+      "roughness": 0.31,
+      "surface": "wood",
+      "gltf_material_indices": [
+        1
+      ],
+      "recolor_mode": "replace baseColorFactor; grayscale variation preserved",
+      "rgba_linear": [
+        0.02217388479338738,
+        0.02518685962736163,
+        0.0295568344378088,
+        1
+      ]
+    },
+    "aged_brass": {
+      "material_name": "checkmate-regent__aged_brass",
+      "hex_srgb": "#B58B4B",
+      "metallic": 0.83,
+      "roughness": 0.29,
+      "surface": "metal",
+      "gltf_material_indices": [
+        0
+      ],
+      "recolor_mode": "replace baseColorFactor; grayscale variation preserved",
+      "rgba_linear": [
+        0.4620769996544071,
+        0.2581828529215958,
+        0.07036009569659588,
+        1
+      ]
+    },
+    "oxblood_velvet": {
+      "material_name": "checkmate-regent__oxblood_velvet",
+      "hex_srgb": "#572A36",
+      "metallic": 0,
+      "roughness": 0.66,
+      "surface": "fabric",
+      "gltf_material_indices": [
+        2
+      ],
+      "recolor_mode": "replace baseColorFactor; grayscale variation preserved",
+      "rgba_linear": [
+        0.0953074666309647,
+        0.02315336617811041,
+        0.03688945040110004,
+        1
+      ]
+    },
+    "jade_glass": {
+      "material_name": "checkmate-regent__jade_glass",
+      "hex_srgb": "#6FC7B5",
+      "metallic": 0.12,
+      "roughness": 0.16,
+      "surface": "wax",
+      "gltf_material_indices": [
+        3
+      ],
+      "recolor_mode": "replace baseColorFactor; grayscale variation preserved",
+      "rgba_linear": [
+        0.1589608350608804,
+        0.5711248294648731,
+        0.4620769996544071,
+        1
+      ]
+    },
+    "eye_obsidian": {
+      "material_name": "checkmate-regent__eye_obsidian",
+      "hex_srgb": "#11191C",
+      "metallic": 0.08,
+      "roughness": 0.13,
+      "surface": "wax",
+      "gltf_material_indices": [
+        4
+      ],
+      "recolor_mode": "replace baseColorFactor; grayscale variation preserved",
+      "rgba_linear": [
+        0.005605391624202723,
+        0.00972121732023785,
+        0.011612245179743885,
+        1
+      ]
+    }
+  },
+  "recolor_contract": "Semantic material names identify surfaces. Replace glTF pbrMetallicRoughness.baseColorFactor (linear RGBA) per instance to recolor grayscale variation maps; roughness/metallic/normal stay independent. Exceptions marked tint-only authored multicolor map need texture replacement for full arbitrary recolor.",
+  "rendering": "Lit Principled metallic-roughness PBR. Original 512px or smaller neutral basecolor/ORM/tangent-normal maps embedded in LOD0; LOD1 maps at most 256px. No unlit materials."
+}

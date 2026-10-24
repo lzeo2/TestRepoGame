@@ -1,0 +1,144 @@
+{
+  "schema": "semantic_pbr_palette_v1",
+  "model": "prism-warden",
+  "slots": {
+    "smoked_optic": {
+      "material_name": "prism-warden__smoked_optic",
+      "hex_srgb": "#42656c",
+      "metallic": 0.06,
+      "roughness": 0.16,
+      "surface": "wax",
+      "gltf_material_indices": [
+        3
+      ],
+      "recolor_mode": "replace baseColorFactor; grayscale variation preserved",
+      "rgba_linear": [
+        0.05448027700185776,
+        0.13013647496700287,
+        0.14995978772640228,
+        1.0
+      ]
+    },
+    "brushed_brass": {
+      "material_name": "prism-warden__brushed_brass",
+      "hex_srgb": "#bea16a",
+      "metallic": 0.82,
+      "roughness": 0.29,
+      "surface": "metal",
+      "gltf_material_indices": [
+        0
+      ],
+      "recolor_mode": "replace baseColorFactor; grayscale variation preserved",
+      "rgba_linear": [
+        0.5149176716804504,
+        0.35640013217926025,
+        0.1441284716129303,
+        1.0
+      ]
+    },
+    "darkened_bronze": {
+      "material_name": "prism-warden__darkened_bronze",
+      "hex_srgb": "#3a4141",
+      "metallic": 0.78,
+      "roughness": 0.34,
+      "surface": "metal",
+      "gltf_material_indices": [
+        1
+      ],
+      "recolor_mode": "replace baseColorFactor; grayscale variation preserved",
+      "rgba_linear": [
+        0.0423114113509655,
+        0.052860647439956665,
+        0.052860647439956665,
+        1.0
+      ]
+    },
+    "porcelain_scale": {
+      "material_name": "prism-warden__porcelain_scale",
+      "hex_srgb": "#d2d0b7",
+      "metallic": 0.1,
+      "roughness": 0.29,
+      "surface": "wax",
+      "gltf_material_indices": [
+        2
+      ],
+      "recolor_mode": "replace baseColorFactor; grayscale variation preserved",
+      "rgba_linear": [
+        0.6444796919822693,
+        0.6307571530342102,
+        0.47353148460388184,
+        1.0
+      ]
+    },
+    "rubber_grip": {
+      "material_name": "prism-warden__rubber_grip",
+      "hex_srgb": "#17242b",
+      "metallic": 0.04,
+      "roughness": 0.58,
+      "surface": "rubber",
+      "gltf_material_indices": [
+        6
+      ],
+      "recolor_mode": "replace baseColorFactor; grayscale variation preserved",
+      "rgba_linear": [
+        0.008568125776946545,
+        0.017641954123973846,
+        0.024157632142305374,
+        1.0
+      ]
+    },
+    "cyan_prism": {
+      "material_name": "prism-warden__cyan_prism",
+      "hex_srgb": "#49aab6",
+      "metallic": 0.23,
+      "roughness": 0.16,
+      "surface": "wax",
+      "gltf_material_indices": [
+        4
+      ],
+      "recolor_mode": "replace baseColorFactor; grayscale variation preserved",
+      "rgba_linear": [
+        0.0666259378194809,
+        0.4019777774810791,
+        0.4677838087081909,
+        1.0
+      ]
+    },
+    "amber_prism": {
+      "material_name": "prism-warden__amber_prism",
+      "hex_srgb": "#ddab65",
+      "metallic": 0.18,
+      "roughness": 0.21,
+      "surface": "wax",
+      "gltf_material_indices": [
+        5
+      ],
+      "recolor_mode": "replace baseColorFactor; grayscale variation preserved",
+      "rgba_linear": [
+        0.7230551242828369,
+        0.40724021196365356,
+        0.13013647496700287,
+        1.0
+      ]
+    },
+    "violet_prism": {
+      "material_name": "prism-warden__violet_prism",
+      "hex_srgb": "#8d76a4",
+      "metallic": 0.16,
+      "roughness": 0.2,
+      "surface": "wax",
+      "gltf_material_indices": [
+        7
+      ],
+      "recolor_mode": "replace baseColorFactor; grayscale variation preserved",
+      "rgba_linear": [
+        0.26635560393333435,
+        0.18116424977779388,
+        0.37123769521713257,
+        1.0
+      ]
+    }
+  },
+  "recolor_contract": "Semantic material names identify surfaces. Replace glTF pbrMetallicRoughness.baseColorFactor (linear RGBA) per instance to recolor grayscale variation maps; roughness/metallic/normal stay independent. Exceptions marked tint-only authored multicolor map need texture replacement for full arbitrary recolor.",
+  "rendering": "Lit metallic-roughness PBR; neutral <=512px basecolor/ORM/tangent-normal maps, packed in source and embedded in GLB; optical surfaces use optional transmission extension. No unlit shader."
+}
