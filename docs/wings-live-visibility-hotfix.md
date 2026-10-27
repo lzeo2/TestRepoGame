@@ -47,6 +47,15 @@ these facts do not prove the user's absent-vessel pixels are fully repaired.
 Source day fog retains about47% contrast at4km (night about0.65%); no unsupported
 fog removal, distance scaling, moved objectives or weather downgrade was used.
 
+### Depth-copy follow-up `62412ef5`
+
+The later actual baseline launch exposed repeated `GL_INVALID_OPERATION` depth/
+stencil blit format warnings. Clouds now own a depth texture whose type matches
+Scene PassNode (reversed-Z Float versus ordinary D24), including render-target
+clones and once-only cleanup. Initial and quality-switch callers supply the actual
+renderer setting. Twelve actual depth graphs and six texture-lifetime cases pass;
+this is not native stripe/vessel pixel acceptance.
+
 ## Targeted checks actually run by parent
 
 ```text
@@ -68,10 +77,13 @@ actual bridge-backed allied/enemy spawn assertions, not removed to get green.
 
 ## Actual reproduction state and remaining gates
 
-The baseline normal-entry Play with bots reproduction was prepared with balanced
-quality (cloud layer enabled), original F-15 spawn key and normal flight/fire keys,
-no state grants. It **did not launch**: another lane owned the single-browser
-reservation. No browser/root process was killed or interrupted.
+The baseline normal-entry Play with bots reproduction subsequently **did launch**
+on exact deployed `532c9ee0`, balanced/default ANGLE SwiftShader. Its60s startup
+wait failed; a late snapshot had GameSession spawn, two completed renders,
+66 draw calls/665,086 triangles/19 terrain clusters, no failed requests/page errors,
+and repeated depth/stencil `glBlitFramebuffer` format warnings. Those warnings drove
+`62412ef5`. The earlier reservation-only state is superseded, not a native PASS.
+[Verbatim baseline and fixed raw receipts](wings-62412ef5-native-review/) are retained.
 
 Shared free space then dropped from2,363,416,576 to2,161,541,120 bytes. This remains
 above the2,147,483,648 floor but below the existing build30MiB/native32MiB reserves.
@@ -80,12 +92,20 @@ of at least2,214,592,512 bytes; remaining build/evidence growth is bounded24MiB.
 No disk-floor waiver, cleanup, install, permission change, security weakening,
 forced frames, relaxed timeouts, fake gameplay image or unchanged failed launch.
 
-Required follow-up when the guarded route permits it: regenerate the original
-served entry with exact existing tools; compare deployed532c9ee0 and fixed entry
-at identical camera/time/quality. Check actual enemy aircraft and vessel pixels,
-cloud edge/stripes, real normal-input Factions effects and absence of new errors.
-Do not turn this source-check receipt into native acceptance. Known release risk
-approval remains a release-owner decision, not a reason to fabricate PASS.
+Quality-mode integration has now regenerated the original served entry, rerun all
+four targeted source checks and verified the exact43-file subpath/dependency HTTP
+closure. All26 rebuilt files match the source owner's fixed native-tested build.
+[Release-owner evidence and exact limits](wings-62412ef5-release-qa.md) record the
+initial staging failures, corrected CPU runs and unaccepted native cases.
+
+Fixed Balanced failed its startup wait and then a collector `NoneType` access;
+Low reached spawn but remained incomplete after collector termination. A separate
+GLES route failed renderer initialization with WebGL disabled. No responsive route
+or fixed-entry vessel/stripe/combat pixel PASS was established. Source-owner QA
+readiness repair `47bf876e` is retained and CPU-checked; its stronger readiness
+barrier is not retrospective native acceptance. The owner continues that open
+verification work; no identical extra SwiftShader/browser retry was run here.
+Known-risk publication authority does not turn any failed case into green.
 
 ## Scoped release handoff
 

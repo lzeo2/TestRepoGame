@@ -4,6 +4,18 @@
 
 ## Identity and status
 
+**Quality-mode visibility integration (2026-10-27):** exact source/authoring
+`62412ef5` plus stricter QA readiness `47bf876e` are source-built into the real
+served UI. Independent focused checks pass15 host groups,7 entity/FX/session
+groups,24 actual AI rooms and132 rays/18 shader/12 depth-format graphs with six
+texture-lifetime cases. All26 built files match the owner's tested build;43
+subpath/model/font HTTP responses match candidate Git bytes. Models unchanged.
+[Release review, retained first failures and raw native evidence](../../wings-62412ef5-release-qa.md)
+separate these facts from native acceptance. Baseline actually launched and showed
+depth-blit warnings; fixed Balanced failed/incomplete Low and unavailable GLES
+remain unaccepted. Aircraft/vessel/cloud-stripe pixels and responsive gameplay
+are still open. Workers continue that scope; this is not a full feature closure.
+
 Registered catalog **232**, entry `Games/Wings/index.html`; catalog currently has
 129 games. Static offline adaptation of anomalyco/arcade Wings at source pin
 `bf5f6277e38ee52e9bfa4ae4a01337b46175c181`, ingested by owner order despite
