@@ -1,5 +1,5 @@
 {
-  "catalog_entries": 127,
+  "catalog_entries": 129,
   "games": [
     {
       "directory": "Games/2048",
@@ -230,6 +230,18 @@
       "document": "docs/maintenance/games/203-bowling.md"
     },
     {
+      "directory": "Games/BrainrotBoulevard",
+      "id": 1,
+      "title": "Brainrot Boulevard: After Dark",
+      "registered": true,
+      "entry": "Games/BrainrotBoulevard/index.html",
+      "entry_blob": "123d8f6ce98cb8863c159ec5778a6477ed27a0ea",
+      "tree": "695a328f7ba3be840a8a6881551e679ae39dbb02",
+      "files": 19,
+      "bytes": 13849149,
+      "document": "docs/maintenance/games/001-brainrotboulevard.md"
+    },
+    {
       "directory": "Games/BreakoutClassic",
       "id": 11,
       "title": "Breakout",
@@ -339,15 +351,15 @@
     },
     {
       "directory": "Games/Citisten3D",
-      "id": null,
-      "title": "Citisten3D",
-      "registered": false,
-      "entry": null,
-      "entry_blob": null,
-      "tree": "56aa92a81149e7387d87d119826de391fefe56f5",
-      "files": 30,
-      "bytes": 2358922,
-      "document": "docs/maintenance/games/unregistered-citisten3d.md"
+      "id": 241,
+      "title": "CITISTEN",
+      "registered": true,
+      "entry": "Games/Citisten3D/index.html",
+      "entry_blob": "4314aa0b4b340865b25b6820692808e1baa86f39",
+      "tree": "0af3df89e1d95d1bbd7fc0e21ec9d57b54ef5d09",
+      "files": 193,
+      "bytes": 34733015,
+      "document": "docs/maintenance/games/241-citisten3d.md"
     },
     {
       "directory": "Games/CookieClicker",
@@ -643,10 +655,10 @@
       "title": "Foldwild: Open-World RPG (Preview)",
       "registered": true,
       "entry": "Games/Foldwild/index.html",
-      "entry_blob": "af2e6750fc2fa91d2c52d7a2385b6f5255eb4783",
-      "tree": "c935f92b7c41a90697fec764e084adf46f0e86ad",
-      "files": 95,
-      "bytes": 8966462,
+      "entry_blob": "4dcedae6799cc392404e659482ebbf99d6a23e71",
+      "tree": "6929cd6f31b89841b1eafeb9e745e73aca002424",
+      "files": 97,
+      "bytes": 15381500,
       "document": "docs/maintenance/games/226-foldwild.md"
     },
     {
@@ -799,10 +811,10 @@
       "title": "Jankolock",
       "registered": false,
       "entry": "Games/Jankolock/index.html",
-      "entry_blob": "37c5d1256358597403bb54faabb070b12865dd64",
-      "tree": "b15cff44b576881444a20faf39f054621ee2ccdf",
-      "files": 15,
-      "bytes": 12476881,
+      "entry_blob": "0c3188e94f01f5c8d6396b329538c768d394be26",
+      "tree": "f7e2ae840b32b5e9bb20320a095cc6cbbfbcc657",
+      "files": 16,
+      "bytes": 12498607,
       "document": "docs/maintenance/games/unregistered-jankolock.md"
     },
     {
@@ -811,10 +823,10 @@
       "title": "JANKOLOCK",
       "registered": true,
       "entry": "Games/Jankolock3D/index.html",
-      "entry_blob": "07bf7025cde8d26765b103bf1bbee0b79cd525b6",
-      "tree": "38a0df10fb2a71646f9abc959311ade6b7ed46b6",
-      "files": 128,
-      "bytes": 13662965,
+      "entry_blob": "d5d05b09d1a68e6770476d52dbf81acb1d4fd86f",
+      "tree": "0bb132b1b60f623533dfa4620ef00f833847934c",
+      "files": 132,
+      "bytes": 13708072,
       "document": "docs/maintenance/games/240-jankolock3d.md"
     },
     {
@@ -1555,10 +1567,10 @@
       "title": "Wings",
       "registered": true,
       "entry": "Games/Wings/index.html",
-      "entry_blob": "2d7f08aa3ca94c87da2921c7916bec48d28e13aa",
-      "tree": "f8b4f06e6dd62100e6d24ccbbdda7fb431a4d297",
-      "files": 83,
-      "bytes": 19387671,
+      "entry_blob": "7bfdf9ef36e94bfcd6da6bfb93b4ed55f4d275fa",
+      "tree": "92698fd0ade84c41081b17d5bf946acca4710686",
+      "files": 94,
+      "bytes": 20867506,
       "document": "docs/maintenance/games/232-wings.md"
     },
     {
