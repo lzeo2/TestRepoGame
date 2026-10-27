@@ -1,0 +1,45 @@
+{
+  "schemaVersion": 1,
+  "integration": "Explicit native-engine adaptations for the committed trio base models, not proposal parity. Uses existing hitscan, melee and ability IDs/FX. No whip physics, chess summons, reflection, refraction or new movement/collision rules. Baselines are budgeted against existing kits; human match balance is unverified.",
+  "heroes": [
+    {
+      "id": "spoollash", "name": "Spoollash", "role": "Cable skirmisher",
+      "lore": "A cable-reel creature. Slow one target, pull yourself forward and cut a short cone.",
+      "health": 580,
+      "weapon": {"name":"Cable pulse","baseDamage":19,"damageType":"weapon","range":22,"interval":0.28,"magazine":16,"reload":1.5,"headshotMultiplier":1.5},
+      "melee": {"name":"Lash cut","baseDamage":68,"damageType":"melee","range":3.2,"cooldown":1,"spiritScale":0},
+      "abilities": [
+        {"slot":1,"id":"tether","name":"Snagline","description":"Hit one visible enemy and slow it by 35% for up to two seconds. Cover or 16m separation breaks the tether.","cooldown":9,"range":16,"baseDamage":24,"damageType":"spirit","spiritScale":0.3,"slow":0.35,"duration":2,"fx":{"color":"#ba8748","shape":"existing coiled tether"}},
+        {"slot":2,"id":"hook","name":"Reel In","description":"Pull yourself toward the first enemy or solid wall within 18m. Movement still collides; this does not pull enemies.","cooldown":10,"range":18,"baseDamage":20,"damageType":"spirit","spiritScale":0.3,"slow":0.2,"duration":0.8,"fx":{"color":"#ba8748","shape":"existing staple chain"}},
+        {"slot":3,"id":"volley","name":"Crosscut","description":"Instantly hit each visible enemy once in a short cone. No whip contact damage or projectile simulation.","cooldown":8,"range":10,"coneRadians":0.6,"baseDamage":55,"damageType":"spirit","spiritScale":0.6,"duration":0.8,"fx":{"color":"#ba8748","shape":"existing five-part volley"}},
+        {"slot":4,"id":"overtime","name":"Free Spool","description":"Move 35% faster for 2.4 seconds. No invulnerability; normal collision applies.","cooldown":16,"baseDamage":0,"damageType":"none","spiritScale":0,"duration":2.4,"speedMultiplier":1.35,"invulnerable":false,"fx":{"color":"#ba8748","shape":"existing rotating brackets"}}
+      ]
+    },
+    {
+      "id": "checkmate-regent", "name": "Checkmate Regent", "role": "Guard and siege",
+      "lore": "A porcelain sovereign. Place cover, slow nearby enemies and fire a precision sceptre shot.",
+      "health": 660,
+      "weapon": {"name":"Rook bolt","baseDamage":28,"damageType":"weapon","range":32,"interval":0.42,"magazine":10,"reload":1.7,"headshotMultiplier":1.5},
+      "melee": {"name":"Sceptre strike","baseDamage":75,"damageType":"melee","range":3,"cooldown":1.2,"spiritScale":0},
+      "abilities": [
+        {"slot":1,"id":"barricade","name":"Rank Guard","description":"Place the existing solid filing barricade ahead for four seconds. The wrist guard itself is cosmetic.","cooldown":12,"range":4,"baseDamage":0,"damageType":"none","spiritScale":0,"duration":4,"fx":{"color":"#b58b4b","shape":"existing folder slabs"}},
+        {"slot":2,"id":"slam","name":"Royal Decree","description":"Damage and slow enemies within 5m, blocked by solid cover.","cooldown":10,"radius":5,"baseDamage":60,"damageType":"spirit","spiritScale":0.6,"slow":0.25,"duration":1.5,"fx":{"color":"#b58b4b","shape":"existing square seals"}},
+        {"slot":3,"id":"longshot","name":"Rook Line","description":"Fire one hitscan precision shot up to 40m. Head hits use the weapon multiplier; walls stop it.","cooldown":9,"range":40,"baseDamage":75,"damageType":"weapon","spiritScale":0,"duration":0.65,"fx":{"color":"#b58b4b","shape":"existing narrow tracer"}},
+        {"slot":4,"id":"overtime","name":"Castle Guard","description":"Become invulnerable and move 15% faster for 1.2 seconds. No reflection or chess-piece summons.","cooldown":24,"baseDamage":0,"damageType":"none","spiritScale":0,"duration":1.2,"speedMultiplier":1.15,"invulnerable":true,"fx":{"color":"#b58b4b","shape":"existing rotating brackets"}}
+      ]
+    },
+    {
+      "id": "prism-warden", "name": "Prism Warden", "role": "Optic marksman",
+      "lore": "A survey guardian. Reveal nearby enemies, empower headshots and lob a fused area blast.",
+      "health": 500,
+      "weapon": {"name":"Survey ray","baseDamage":40,"damageType":"weapon","range":60,"interval":0.6,"magazine":8,"reload":1.8,"headshotMultiplier":1.6},
+      "melee": {"name":"Compass cut","baseDamage":45,"damageType":"melee","range":2.8,"cooldown":0.9,"spiritScale":0},
+      "abilities": [
+        {"slot":1,"id":"longshot","name":"Sightline","description":"Fire one hitscan precision shot up to 72m. Head hits use the weapon multiplier; no piercing or refraction.","cooldown":8,"range":72,"baseDamage":85,"damageType":"weapon","spiritScale":0,"duration":0.65,"fx":{"color":"#ddab65","shape":"existing narrow tracer"}},
+        {"slot":2,"id":"xray","name":"Optic Census","description":"Reveal live enemies within 40m through cover for three seconds. Shots still stop at walls.","cooldown":16,"range":40,"baseDamage":0,"damageType":"none","spiritScale":0,"duration":3,"fx":{"color":"#ddab65","shape":"existing live wire cages"}},
+        {"slot":3,"id":"headshot","name":"Fine Focus","description":"For four seconds, weapon and precision-shot head hits use a 2.2x multiplier. Body hits are unchanged.","cooldown":16,"baseDamage":0,"damageType":"none","spiritScale":0,"duration":4,"headshotMultiplier":2.2,"fx":{"color":"#ddab65","shape":"existing orbiting nibs"}},
+        {"slot":4,"id":"grenade","name":"Prism Charge","description":"Lob a bouncing charge with a 1.6-second fuse and 4m blast radius. Solid cover blocks the blast.","cooldown":10,"range":18,"radius":4,"baseDamage":70,"damageType":"spirit","spiritScale":0.6,"duration":1.6,"fx":{"color":"#ddab65","shape":"existing paperweight and radial rods"}}
+      ]
+    }
+  ]
+}

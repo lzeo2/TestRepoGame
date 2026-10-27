@@ -3,6 +3,16 @@
 
 ## Identity and status
 
+**Packaging hotfix (2026-10-27):** release `532c9ee0` omitted two committed
+runtime inputs fetched by `game.mjs`, causing `Hero definitions HTTP 404` before
+lobby setup. Exact `c19405ab` copies of `docs/jank3d-ribbon-seraph-kit.json` and
+`docs/jank3d-trio-kits.json` are restored; no game code/model/QA draft changed.
+`node scripts/check_jank_boot_dependencies.mjs` validates only the three literal
+boot definitions, eight unique four-slot native kits and the actual HeroRuntime
+ability IDs/required fields. No recursive dependency scanner is included. The
+same check fails against `532c9ee0` on the missing JSON. This fixes a packaging omission,
+not hardware or WebGL. Native/Prism Warden/expansion acceptance remains held.
+
 **Known-failure release, explicitly authorized 2026-10-27:** committed snapshot
 `c19405ab` only; unfinished dirty native QA repairs are excluded. The retained
 diagnostic draft fails its 60,000-byte guard (79,317 bytes); released committed

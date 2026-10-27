@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "integration": "Native-engine adaptation for Jankolock3D, not the archive's duo-1.0-proposed kit. Uses existing hitscan, melee, tether, overtime, xray and volley implementations. No new projectile, windup, flight or reveal authority is implied. Numbers are provisional, not playtested.",
+  "heroes": [
+    {
+      "id": "ribbon-seraph", "name": "Ribbon Seraph", "role": "Ribbon skirmisher",
+      "lore": "A printer-ribbon manta. Tether a target, accelerate, scan nearby enemies and cut a broad cone.",
+      "health": 560,
+      "weapon": {"name":"Typebar","baseDamage":23,"damageType":"weapon","range":24,"interval":0.35,"magazine":14,"reload":1.6,"headshotMultiplier":1.4},
+      "melee": {"name":"Selvage Cut","baseDamage":64,"damageType":"melee","range":2.8,"cooldown":1,"spiritScale":0},
+      "abilities": [
+        {"slot":1,"id":"tether","name":"Catchline","description":"Hit one visible enemy for 20 damage and slow it by 30% for up to 2.4 seconds. Cover or 14m separation breaks the tether.","cooldown":10,"range":14,"baseDamage":20,"damageType":"spirit","spiritScale":0,"slow":0.3,"duration":2.4,"fx":{"color":"#91d4d3","shape":"existing coiled tether"}},
+        {"slot":2,"id":"overtime","name":"Carriage Return","description":"Move 45% faster for 2.2 seconds. No invulnerability or flight; normal collision still applies.","cooldown":7,"baseDamage":0,"damageType":"none","spiritScale":0,"duration":2.2,"speedMultiplier":1.45,"invulnerable":false,"fx":{"color":"#91d4d3","shape":"existing rotating brackets"}},
+        {"slot":3,"id":"xray","name":"Carbon Witness","description":"Reveal all live enemies within 16m through cover for two seconds. Shots still stop at walls.","cooldown":11,"range":16,"baseDamage":0,"damageType":"none","spiritScale":0,"duration":2,"fx":{"color":"#91d4d3","shape":"existing wire cages"}},
+        {"slot":4,"id":"volley","name":"Full Width","description":"Instantly cut a 50-degree cone out to 24m. Each visible enemy receives one 100-damage hit, blocked by cover. Not a projectile fan.","cooldown":26,"range":24,"coneRadians":0.4363323129985824,"baseDamage":100,"damageType":"weapon","spiritScale":0,"duration":0.8,"fx":{"color":"#91d4d3","shape":"existing five-part volley"}}
+      ]
+    }
+  ]
+}
