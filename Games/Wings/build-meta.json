@@ -11,10 +11,10 @@
         "assets/chunk-UJIVF34A.js",
         "assets/chunk-LU3F6XZF.js",
         "assets/chunk-AAZABAPM.js",
-        "assets/scene-MEW47VOF.js",
+        "assets/scene-ZMTQXYPD.js",
         "assets/audio-U7HWYB2A.js",
-        "assets/game-YX45I7AR.js",
-        "assets/game-YX45I7AR.js"
+        "assets/game-JGP6R2OF.js",
+        "assets/game-JGP6R2OF.js"
       ],
       "cssBundle": "assets/main.css"
     },
@@ -22,7 +22,7 @@
       "bytes": 3750,
       "entryPoint": "ui-check.ts",
       "imports": [
-        "assets/chunk-MIE7GIYZ.js",
+        "assets/chunk-D4ARXD5Q.js",
         "assets/chunk-UJIVF34A.js",
         "assets/chunk-6MMEEVMZ.js",
         "assets/chunk-LU3F6XZF.js",
@@ -40,26 +40,26 @@
         "assets/chunk-AAZABAPM.js"
       ]
     },
-    "assets/GLTFLoader-NFHUNLUH.js": {
+    "assets/GLTFLoader-ZF6COE6R.js": {
       "bytes": 94,
-      "entryPoint": "../../../../../../wings-approved-three-0.186.0-349932/package/examples/jsm/loaders/GLTFLoader.js",
+      "entryPoint": "../../../../../../../../dev/shm/wings-approved-three-0.186.0-349932/package/examples/jsm/loaders/GLTFLoader.js",
       "imports": [
-        "assets/chunk-G532MIV6.js",
+        "assets/chunk-P6CK6PDM.js",
         "assets/chunk-AAZABAPM.js"
       ]
     },
-    "assets/scene-MEW47VOF.js": {
-      "bytes": 96710,
+    "assets/scene-ZMTQXYPD.js": {
+      "bytes": 98181,
       "entryPoint": "src/render/scene.ts",
       "imports": [
         "assets/chunk-QLLS4C3I.js",
-        "assets/chunk-7UUYJ7C3.js",
+        "assets/chunk-QJRBFISU.js",
         "assets/chunk-VQ65COZY.js",
         "assets/chunk-6MMEEVMZ.js",
-        "assets/chunk-G532MIV6.js",
+        "assets/chunk-P6CK6PDM.js",
         "assets/chunk-LU3F6XZF.js",
         "assets/chunk-AAZABAPM.js",
-        "assets/GLTFLoader-NFHUNLUH.js"
+        "assets/GLTFLoader-ZF6COE6R.js"
       ]
     },
     "assets/chunk-QLLS4C3I.js": {
@@ -77,22 +77,22 @@
         "assets/chunk-AAZABAPM.js"
       ]
     },
-    "assets/game-YX45I7AR.js": {
-      "bytes": 147377,
+    "assets/game-JGP6R2OF.js": {
+      "bytes": 148176,
       "entryPoint": "src/ui/game.ts",
       "imports": [
-        "assets/chunk-MIE7GIYZ.js",
+        "assets/chunk-D4ARXD5Q.js",
         "assets/chunk-UJIVF34A.js",
-        "assets/chunk-7UUYJ7C3.js",
+        "assets/chunk-QJRBFISU.js",
         "assets/chunk-VQ65COZY.js",
         "assets/chunk-6MMEEVMZ.js",
-        "assets/chunk-G532MIV6.js",
+        "assets/chunk-P6CK6PDM.js",
         "assets/chunk-LU3F6XZF.js",
         "assets/chunk-AAZABAPM.js"
       ],
       "cssBundle": "assets/game-6EQ23DUW.css"
     },
-    "assets/chunk-MIE7GIYZ.js": {
+    "assets/chunk-D4ARXD5Q.js": {
       "bytes": 110669,
       "imports": [
         "assets/chunk-UJIVF34A.js",
@@ -106,12 +106,12 @@
         "assets/chunk-LU3F6XZF.js"
       ]
     },
-    "assets/chunk-7UUYJ7C3.js": {
-      "bytes": 766392,
+    "assets/chunk-QJRBFISU.js": {
+      "bytes": 766410,
       "imports": [
         "assets/chunk-VQ65COZY.js",
         "assets/chunk-6MMEEVMZ.js",
-        "assets/chunk-G532MIV6.js",
+        "assets/chunk-P6CK6PDM.js",
         "assets/chunk-LU3F6XZF.js",
         "assets/chunk-AAZABAPM.js"
       ]
@@ -124,7 +124,7 @@
       "bytes": 14890,
       "imports": []
     },
-    "assets/chunk-G532MIV6.js": {
+    "assets/chunk-P6CK6PDM.js": {
       "bytes": 596504,
       "imports": []
     },
@@ -167,7 +167,7 @@
       ]
     },
     "verification/lighting-check.mjs": {
-      "bytes": 836533,
+      "bytes": 836855,
       "entryPoint": "lighting-check.ts",
       "imports": [
         "node:assert/strict",

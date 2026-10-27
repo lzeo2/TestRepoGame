@@ -217,7 +217,7 @@ export function botRandom(brain: BotBrain): number {
 // ---------------------------------------------------------------------------------------------
 // Vehicle choice
 
-const KIND_WEIGHT: Record<VehicleKind, number> = { fighter: 3, apache: 2, warthog: 2, blackbird: 1.2, bomber: 0.9, f15: 0, f35: 0 }
+const KIND_WEIGHT: Record<VehicleKind, number> = { fighter: 3, apache: 2, warthog: 2, blackbird: 1.2, bomber: 0.9, f15: 1, f35: 1 }
 const KINDS = Object.keys(KIND_WEIGHT) as VehicleKind[]
 
 /** Vehicle kind a bot picks when spawning: weighted random, discouraging kinds the team already flies. */

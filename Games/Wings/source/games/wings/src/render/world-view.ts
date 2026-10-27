@@ -6,7 +6,7 @@ import {
   Color, DataTexture, DirectionalLight, EquirectangularReflectionMapping, FloatType, Group, LinearFilter, RGBAFormat,
   Vector3, type Camera, type Object3D, type Scene, type Texture,
 } from "three"
-import { MeshStandardNodeMaterial } from "three/webgpu"
+import { MeshStandardNodeMaterial, type WebGPURenderer } from "three/webgpu"
 import type { Quality } from "../sim/types"
 import { STORM, stormFogNode } from "./world/atmosphere"
 import {
@@ -133,8 +133,7 @@ function stormEnvironment(): Texture {
   return tex
 }
 
-export function createWorldView(renderer: unknown, scene: Scene, quality: Quality): WorldView {
-  void renderer
+export function createWorldView(renderer: WebGPURenderer, scene: Scene, quality: Quality): WorldView {
   let settings: WorldQualitySettings = WORLD_QUALITY[quality]
   const root = new Group()
   root.name = "World"
@@ -163,7 +162,7 @@ export function createWorldView(renderer: unknown, scene: Scene, quality: Qualit
   const sky = createSky()
   const lightning = createLightning()
   const fleet = createFleet()
-  let clouds = createCloudLayers(settings.cloudLayers, settings.oceanDetail >= 2 ? 5 : 4)
+  let clouds = createCloudLayers(settings.cloudLayers, settings.oceanDetail >= 2 ? 5 : 4, renderer.reversedDepthBuffer)
   let rain = createParticles({ count: settings.rain, box: 110, fall: 24, brightness: 0.05, width: 0.012 })
   let spray = createParticles({ count: Math.max(1, settings.spray), box: 160, fall: 0, brightness: 0.05, width: 0.05, spray: true })
   spray.setVisibility(settings.spray > 0 ? 1 : 0)
@@ -226,7 +225,7 @@ export function createWorldView(renderer: unknown, scene: Scene, quality: Qualit
       water.setQuality(settings)
       root.remove(clouds.group, rain.mesh, spray.mesh)
       clouds.dispose(); rain.dispose(); spray.dispose()
-      clouds = createCloudLayers(settings.cloudLayers, settings.oceanDetail >= 2 ? 5 : 4)
+      clouds = createCloudLayers(settings.cloudLayers, settings.oceanDetail >= 2 ? 5 : 4, renderer.reversedDepthBuffer)
       rain = createParticles({ count: settings.rain, box: 110, fall: 24, brightness: 0.05, width: 0.012 })
       spray = createParticles({ count: Math.max(1, settings.spray), box: 160, fall: 0, brightness: 0.05, width: 0.05, spray: true })
       spray.setVisibility(settings.spray > 0 ? 1 : 0)

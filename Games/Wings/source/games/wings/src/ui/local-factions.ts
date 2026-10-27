@@ -26,17 +26,19 @@ export async function prepareLocalFactions(host: SceneHost) {
       if (lastFrame && frame.tick < lastFrame.tick) view.reset()
       lastFrame = frame
       view.update(frame)
+      host.effects.setFleetFrame(frame)
     },
   })!
   function dispose() {
     if (disposed) return
     disposed = true
+    host.effects.setFleetFrame(null)
     try { room?.close() } finally { try { bridge.dispose() } finally { view.dispose() } }
   }
   return {
     connect(name: string, handlers: RoomHandlers) {
       if (room || disposed) throw new Error("Local Factions connects once")
-      room = createLoopbackRoom({ ...DEFAULT_ROOM_CONFIG, name: "Local Factions", teams: 2, bots: 0,
+      room = createLoopbackRoom({ ...DEFAULT_ROOM_CONFIG, name: "Local Factions", teams: 2, bots: 2, botFill: 0,
         listed: false, timeLimit: config.matchMs / 1000 }, name, handlers, { hostBridge: bridge })
       return { send: room.send, close: dispose }
     },
@@ -54,11 +56,12 @@ export async function prepareLocalFactions(host: SceneHost) {
       return `amber flagship ${Math.ceil(enemy.hp)}/${enemy.maxHp} · ${Math.round(Math.hypot(dx, dz))} m · bearing ${Math.round(bearing)} · cannon fire`
     },
     debug() { return { ...bridge.stats(), hostTick: room?.engine.tick, playerId: room?.playerId,
-      frame: lastFrame, visible: view.root.visible, objects: view.root.children.length,
+      frame: lastFrame, effects: host.effects.fleetStats(), visible: view.root.visible, objects: view.root.children.length,
       roots: host.scene.children.filter(object => object.name === "fleet-presentation").length,
       models: config.units.map((unit: { id: string }) => {
         const object = view.root.getObjectByName(`fleet-unit:${unit.id}`)
-        return { id: unit.id, visible: object?.visible, position: object?.position.toArray() }
+        return { id: unit.id, visible: object?.visible, position: object?.position.toArray(),
+          scale: object?.scale.toArray(), ready: !!object?.children.length }
       }) } },
     dispose,
   }

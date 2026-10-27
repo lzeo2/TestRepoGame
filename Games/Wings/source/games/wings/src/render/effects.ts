@@ -171,7 +171,19 @@ const _tmp = new Color()
 
 export interface TracerSource { position: Vec3; velocity: Vec3; color: Color }
 
+export interface FleetEffectsFrame {
+  tick: number
+  round: number
+  remainderMs?: number
+  units: { id: string; position: Vec3 }[]
+  projectiles: { id: number; position: Vec3; velocity?: Vec3 }[]
+  events: { id: number; tick: number; round: number; type: string; position?: Vec3; unit?: string; projectile?: number; damage?: number }[]
+}
+
 export interface Effects {
+  /** Authenticated FC presentation only; null releases the match. No targeting or integration. */
+  setFleetFrame(frame: FleetEffectsFrame | null): void
+  fleetStats(): { projectiles: number; events: number }
   root: Object3D
   /** Call once per frame; time = seconds (monotonic). */
   update(dt: number, time: number, camera: Camera): void
@@ -233,6 +245,8 @@ export function createEffects(quality: Quality): Effects {
   const rnd = (a: number) => (Math.random() * 2 - 1) * a
   let now = 0
   let frame = 0
+  let fleet: FleetEffectsFrame | null = null
+  let fleetRound = -1, fleetTick = -1, fleetEvent = 0, fleetEvents = 0
 
   // ---- particle pools
   const glowR = new Ring(quality === "low" ? 1536 : 3072, PARTICLE_LAYOUT, 2)
@@ -294,6 +308,7 @@ export function createEffects(quality: Quality): Effects {
     tracerMat.colorNode = tracerColor(min(tcN, vec3(1)))
   }
   const tracers = new Mesh(new PlaneGeometry(1, 1), tracerMat)
+  tracers.name = "combat-tracers"
   tracers.frustumCulled = false
   tracers.renderOrder = 4
   tracers.count = 0
@@ -432,7 +447,40 @@ export function createEffects(quality: Quality): Effects {
 
   return {
     root,
+    setFleetFrame(value) {
+      if (!value || value.round !== fleetRound || value.tick < fleetTick) {
+        fleetEvent = 0; fleetEvents = 0
+      }
+      fleet = value
+      fleetRound = value?.round ?? -1
+      fleetTick = value?.tick ?? -1
+    },
+    fleetStats() { return { projectiles: fleet?.projectiles.length ?? 0, events: fleetEvents } },
     update(_dt, time, _camera) {
+      now = time
+      if (fleet) for (const event of fleet.events) {
+        if (event.id <= fleetEvent) continue
+        fleetEvent = event.id
+        const age = (fleet.tick - event.tick) * .05 + (fleet.remainderMs ?? 0) / 1000
+        if (event.round !== fleet.round || age < 0 || age > .6) continue
+        const position = event.position ?? (event.type === "sunk" ? fleet.units.find(u => u.id === event.unit)?.position : undefined)
+        if (!position) continue
+        // Backdate to the authority event within the existing render clock, not a second simulation.
+        now = time - age
+        if (event.type === "fire") {
+          const velocity = fleet.projectiles.find(p => p.id === event.projectile)?.velocity
+          if (velocity) {
+            const speed = Math.hypot(...velocity) || 1
+            this.muzzle(position, velocity.map(n => n / speed) as Vec3)
+          }
+        } else if (event.type === "impact") {
+          const damage = fleet.events.find(e => e.type === "damage" && e.unit === event.unit && e.tick === event.tick)?.damage ?? 0
+          this.shipHit(position, damage)
+        }
+        else if (event.type === "sunk") { this.explosion(position, 18); this.splash(position, 20) }
+        else continue
+        fleetEvents++
+      }
       now = time
       uTime.value = time
       frame++
@@ -639,8 +687,19 @@ export function createEffects(quality: Quality): Effects {
     },
 
     setTracers(count, write) {
-      const n = Math.min(count, TRACERS)
+      let n = Math.min(count, TRACERS)
       for (let i = 0; i < n; i++) write(i, tPos, tDir, tCol)
+      for (const p of fleet?.projectiles ?? []) {
+        if (n >= TRACERS) break
+        if (!p.velocity) continue // Redacted snapshots never grant a hidden trajectory.
+        const speed = Math.hypot(...p.velocity) || 1
+        for (let axis = 0; axis < 3; axis++) {
+          tPos[n * 3 + axis] = p.position[axis]
+          tDir[n * 3 + axis] = p.velocity[axis] / speed * 14
+          tCol[n * 3 + axis] = axis === 2 ? .55 : 1
+        }
+        n++
+      }
       tracers.count = n
       if (n > 0) for (const a of tAttrs) { a.clearUpdateRanges(); a.addUpdateRange(0, n * 3); a.needsUpdate = true }
     },

@@ -17,8 +17,75 @@ spec = importlib.util.spec_from_file_location('local_server', ROOT / 'scripts/se
 module = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(module)
 
+# The spawn DTO precedes the first spawn.update(); offline text proves UI initialization.
+SPAWN_READY = """() => {
+    const s = document.querySelector('.game-ui > .spawn');
+    return window.__wings?.game?.state === 'spawn'
+        && window.__wings.game.fleet?.frame?.units?.length === 2
+        && document.querySelector('#lobby')?.hidden === true
+        && document.querySelector('#busy')?.hidden === true
+        && !document.querySelector('#render-error')?.open
+        && s && !s.hidden
+        && !s.classList.contains('waiting')
+        && !s.classList.contains('guns')
+        && s.querySelector('.code')?.textContent === 'offline';
+}"""
+
 
 def self_check():
+    subprocess.run(['node'], input="const spawnReady = " + SPAWN_READY + ";\n" + """
+const assert = require('node:assert/strict');
+function check(options = {}) {
+    const game = {state: 'spawn', fleet: {frame: {units: [{}, {}]}}};
+    global.window = {__wings: {game}, ...options.window};
+    const panels = {
+        '.game-ui > .spawn': {
+            hidden: options.hidden ?? false,
+            classList: {contains: name => (options.classes ?? []).includes(name)},
+            querySelector: selector => {
+                assert.equal(selector, '.code');
+                return options.missingCode ? null : {textContent: options.code ?? 'offline'};
+            }
+        },
+        '#lobby': {hidden: options.lobby ?? true},
+        '#busy': {hidden: options.busy ?? true},
+        '#render-error': {open: options.renderError ?? false}
+    };
+    global.document = {querySelector: selector => {
+        assert.ok(Object.hasOwn(panels, selector), selector);
+        return (options.missing ?? []).includes(selector) ? null : panels[selector];
+    }};
+    if (options.state) game.state = options.state;
+    if (options.units !== undefined) game.fleet.frame.units = options.units;
+    return !!spawnReady();
+}
+const cases = [
+    ['spawn before first update', {code: ''}, false],
+    ['initialized offline spawn', {}, true],
+    ['waiting', {classes: ['waiting']}, false],
+    ['guns', {classes: ['guns']}, false],
+    ['hidden spawn', {hidden: true}, false],
+    ['visible lobby', {lobby: false}, false],
+    ['visible busy', {busy: false}, false],
+    ['render error', {renderError: true}, false],
+    ['missing spawn', {missing: ['.game-ui > .spawn']}, false],
+    ['missing lobby', {missing: ['#lobby']}, false],
+    ['missing busy', {missing: ['#busy']}, false],
+    ['absent optional error dialog', {missing: ['#render-error']}, true],
+    ['missing code', {missingCode: true}, false],
+    ['online code', {code: 'room'}, false],
+    ['zero FC units', {units: []}, false],
+    ['one FC unit', {units: [{}]}, false],
+    ['three FC units', {units: [{}, {}, {}]}, false],
+    ['missing FC units', {units: null}, false],
+    ['wrong state', {state: 'flying'}, false],
+    ['missing debug', {window: {__wings: undefined}}, false],
+    ['missing game', {window: {__wings: {}}}, false],
+    ['missing fleet', {window: {__wings: {game: {state: 'spawn'}}}}, false]
+];
+for (const [name, options, expected] of cases) assert.equal(check(options), expected, name);
+console.log(`PASS CPU spawn readiness: ${cases.length} Node fixtures; not native/pixel evidence`);
+""", text=True, check=True, timeout=10)
     with module.local_server() as url:
         for path in ['index.html', 'models/derived/wings_type45_daring_class.glb', 'fonts/plex-mono-400-latin.woff2']:
             with urlopen(f'{url}/{path}') as response:
@@ -225,7 +292,7 @@ def native(out, startup_only=False):
         screenshot('original-menu.png')
         page.locator('#screen .mi .t').get_by_text('Factions', exact=True).click()
         try:
-            page.wait_for_function("window.__wings?.game?.state === 'spawn' && window.__wings.game.fleet?.frame?.units?.length === 2", timeout=60000)
+            page.wait_for_function(SPAWN_READY, timeout=60000, polling=100)
         except Exception:
             diagnostics('startup', 'startup-failure.png')
             raise

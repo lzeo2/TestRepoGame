@@ -273,6 +273,15 @@ class GameSession implements GameHandle {
       state: this.state, seat: this.me?.seat ?? null, team: this.me?.team ?? null, vehicles: this.latest?.vehicles.length ?? 0,
       pos: vis?.pos.map(Math.round), speed: v ? Math.round(flightReadout(this.pred?.state ?? v.flight).speed) : 0,
       fleet: this.localFleet?.debug(), ammo: v?.weapons[0].map(w => w.ammo),
+      entityViews: [...this.visuals.values()].map(o => ({ id: o.id, kind: o.kind, team: o.team,
+        ready: o.view.ready, visible: o.view.root.visible, alive: o.render.alive,
+        position: o.view.root.position.toArray(), scale: o.view.root.scale.toArray(),
+        distance: o.view.root.position.distanceTo(this.deps.host.camera.position) })),
+      shipViews: posedFleet().map(ship => {
+        const root = this.deps.host.world.root.getObjectByName(ship.id)
+        return { id: ship.id, kind: ship.kind, team: ship.team, visible: root?.visible,
+          position: root?.position.toArray(), scale: root?.scale.toArray() }
+      }),
       hp: v?.hp, projectiles: this.latest?.projectiles.length ?? 0, missiles: this.latest?.missiles.length ?? 0,
       predErr: this.pred ? +this.pred.errPos.length().toFixed(2) : null, history: this.pred?.history.length ?? 0,
       rtt: Math.round(this.rtt), lockFailed: this.input.lockFailed,

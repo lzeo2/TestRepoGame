@@ -1,15 +1,20 @@
-import { BackSide, BoxGeometry, Group, Mesh, Vector3 } from "three"
+import { BackSide, BoxGeometry, DepthTexture, FloatType, Group, Mesh, UnsignedIntType, Vector3 } from "three"
 import { MeshBasicNodeMaterial } from "three/webgpu"
 import {
   Break, Fn, If, Loop, abs, cameraFar, cameraNear, cameraPosition, cameraViewMatrix, clamp,
   exp, float, floor, fract, logarithmicDepthToViewZ, max, min, mix, normalize,
-  perspectiveDepthToViewZ, positionWorld, pow, smoothstep, time, uniform,
-  vec2, vec3, vec4, viewportDepthTexture,
+  modelViewProjection, perspectiveDepthToViewZ, positionWorld, pow, smoothstep, time, uniform,
+  screenUV, vec2, vec3, vec4, viewportDepthTexture,
 } from "three/tsl"
 import { STORM, vnoise, type N } from "./atmosphere"
 
 export const CLOUD_EXTINCTION = 0.006
 export const CLOUD_RANGE = 14_000
+
+// Only raster coverage uses this depth. Keep XY/W (and world-position varyings) intact:
+// the back-face proxy can be beyond cameraFar even when the visible medium is near.
+// Z=0 is in both WebGL and WebGPU clip ranges, including reversed depth.
+export function cloudProxyClip(clip: N): N { return vec4(clip.xy, 0, clip.w) }
 export const cloudBudget = (count: number, octaves: number) => count <= 0
   ? { layers: 0, view: 0, light: 0 }
   : { layers: Math.min(2, Math.floor(count)), view: octaves >= 5 ? 28 : 16, light: octaves >= 5 ? 3 : 2 }
@@ -21,20 +26,39 @@ const noise3 = Fn(([p]: [N]) => {
   return mix(vnoise(uv), vnoise(uv.add(vec2(37, 113))), f.mul(f).mul(float(3).sub(f.mul(2))))
 })
 
-// Native viewport copy, not the back-face depth of the proxy box. Three's perspective
-// conversion handles reversed depth; its linearDepth helper does NOT decode logarithmic depth.
-const opaqueViewDistance = Fn(([], builder: N) => {
-  const depth = viewportDepthTexture()
-  return (builder.renderer.logarithmicDepthBuffer && !builder.renderer.reversedDepthBuffer
-    ? logarithmicDepthToViewZ(depth, cameraNear, cameraFar)
-    : perspectiveDepthToViewZ(depth, cameraNear, cameraFar)).negate()
-})
+// ViewportTextureNode clones its supplied texture per render target in r186.
+// Keep those copies under the cloud group's lifetime as well as the template.
+class CloudDepthTexture extends DepthTexture {
+  private copies = new Set<DepthTexture>()
+  clone(): this {
+    const copy = super.clone()
+    this.copies.add(copy)
+    return copy
+  }
+  dispose() {
+    for (const copy of this.copies) copy.dispose()
+    this.copies.clear()
+    super.dispose()
+  }
+}
 
 /** Bounded world-space participating media. The boxes are ray-entry/exit proxies only. */
-export function createCloudLayers(count: number, octaves = 5) {
+export function createCloudLayers(count: number, octaves = 5, reversedDepthBuffer = false) {
   const group = new Group()
   group.name = "World · cloud volumes"
   const budget = cloudBudget(count, octaves)
+  // Match PassNode.setup before allocation: reversed-Z uses FloatType, otherwise D24.
+  // Never mutate Three's shared viewport depth texture across worlds/quality switches.
+  const depthTexture = budget.layers > 0 ? new CloudDepthTexture(1, 1, reversedDepthBuffer ? FloatType : UnsignedIntType) : null
+  const depth = depthTexture ? viewportDepthTexture(screenUV, null, depthTexture) : null
+  // Native opaque depth, not the proxy's back face. Perspective conversion handles reversed-Z;
+  // Three's linearDepth helper does not decode logarithmic depth.
+  const opaqueViewDistance = Fn(([], builder: N) => (
+    builder.renderer.logarithmicDepthBuffer && !builder.renderer.reversedDepthBuffer
+      ? logarithmicDepthToViewZ(depth, cameraNear, cameraFar)
+      : perspectiveDepthToViewZ(depth, cameraNear, cameraFar)
+  ).negate())
+  let disposed = false
   const resources: { geometry: BoxGeometry; material: MeshBasicNodeMaterial; mesh: Mesh; center: N }[] = []
   for (let layer = 0; layer < budget.layers; layer++) {
     const bottom = 900 + layer * 850, top = bottom + 800
@@ -98,6 +122,7 @@ export function createCloudLayers(count: number, octaves = 5) {
     const geometry = new BoxGeometry(32_000, 800, 32_000)
     const material = new MeshBasicNodeMaterial({ side: BackSide, transparent: true, depthWrite: false, depthTest: false, fog: false })
     material.name = `World · cloud volume ${layer}`
+    material.vertexNode = cloudProxyClip(modelViewProjection)
     material.fragmentNode = rgba
     const mesh = new Mesh(geometry, material)
     mesh.name = material.name
@@ -116,6 +141,11 @@ export function createCloudLayers(count: number, octaves = 5) {
         center.value.copy(mesh.position)
       }
     },
-    dispose() { for (const { geometry, material } of resources) { geometry.dispose(); material.dispose() } },
+    dispose() {
+      if (disposed) return
+      disposed = true
+      for (const { geometry, material } of resources) { geometry.dispose(); material.dispose() }
+      depthTexture?.dispose()
+    },
   }
 }

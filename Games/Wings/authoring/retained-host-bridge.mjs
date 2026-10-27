@@ -12,18 +12,20 @@ export function createRetainedHostBridge(options) {
   const allowed = rosters.map(r => new Set(r));
   const baseline = structuredClone(config);
   // The host owns all aircraft, seats, ammo and cooldowns. FC aircraft profiles are not mirrored.
-  let fleet = createFleet(baseline), room = null, originTick = 0, elapsedMs = 0;
+  let fleet = createFleet(baseline), room = null, staticBots = null, originTick = 0, elapsedMs = 0;
   let disposed = false, paused = false, generations = 1;
   const bindings = new Set();
   let provenance = new WeakMap();
   function live() { if (disposed) throw new Error('Host bridge disposed'); }
   function bind(host) {
     live();
-    if (!host || host.config?.teams !== 2 || host.config?.bots !== 0 || host.config?.botFill ||
+    if (!host || host.config?.teams !== 2 || !Number.isInteger(host.config?.bots) ||
+        host.config.bots < 0 || host.config.bots > 2 || host.config?.botFill ||
         !Number.isSafeInteger(host.tick) || !Array.isArray(host.vehicles) || !(host.players instanceof Map))
-      throw new TypeError('Retained two-team human RoomEngine required; bot factions unsupported');
+      throw new TypeError('Retained two-team RoomEngine with 0..2 static bots per team required');
     if (room && room !== host) throw new TypeError('One room per bridge');
-    room = host;
+    if (staticBots !== null && staticBots !== host.config.bots) throw new TypeError('Static bot count required');
+    room = host; staticBots = host.config.bots;
     const combat = host.combat;
     if (combat.hostFleet && !bindings.has(combat)) throw new TypeError('CombatState already bound');
     combat.hostFleet = { resolveProjectile(projectile, from, to, maxFraction, damage) {

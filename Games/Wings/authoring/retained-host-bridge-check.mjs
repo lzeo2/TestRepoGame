@@ -8,6 +8,7 @@ import { fileURLToPath } from 'node:url';
 import { createRetainedHostBridge } from './retained-host-bridge.mjs';
 import { applyRetainedHostWiring, HOST_FILES } from './retained-host-wiring.mjs';
 import { installRetainedHostLoader, retainedRoot } from './retained-host-loader.mjs';
+import { createLocalFleetConfig } from './local-host-scenario.mjs';
 
 const repo = fileURLToPath(new URL('../../../', import.meta.url));
 const tracked = execFileSync('git', ['ls-files', '-z', 'Games/Wings/source', 'Games/Wings/index.html',
@@ -46,7 +47,8 @@ await check('hash-pinned actual source application rejects drift/repeat and fore
 const loader = installRetainedHostLoader();
 const { createLoopbackRoom } = await import(new URL('src/sim/loopback.ts', retainedRoot));
 const { TICK_DT } = await import(new URL('src/sim/types.ts', retainedRoot));
-const { WEAPONS } = await import(new URL('src/sim/vehicles.ts', retainedRoot));
+const { RoomEngine } = await import(new URL('src/sim/room-engine.ts', retainedRoot));
+const { WEAPONS, VEHICLES } = await import(new URL('src/sim/vehicles.ts', retainedRoot));
 const { killVehicle } = await import(new URL('src/sim/combat.ts', retainedRoot));
 const { SHIP_DAMAGE_SCALE, FLEET, SHIP_SPECS } = await import(new URL('src/sim/fleet.ts', retainedRoot));
 const { worldQuery, terrainHeight } = await import(new URL('src/sim/geography.ts', retainedRoot));
@@ -109,6 +111,84 @@ const nativeTurret = SHIP_SPECS[nativeShip.kind].turrets.find(turret => turret.m
 const turretCommand = { type: 'man-turret', ship: nativeShip.id, turret: nativeTurret.id };
 
 try {
+  await check('bounded static native bot guard rejects invalid counts, fill, teams and later reconfiguration', () => {
+    const config = createLocalFleetConfig();
+    const makeBridge = () => createRetainedHostBridge({ mode: 'factions', config,
+      rosters: config.aircraft.map(roster => roster.map(a => a.id)) });
+    for (const invalid of [{ bots: -1 }, { bots: .5 }, { bots: 3 }, { bots: NaN },
+      { bots: '2' }, { bots: Infinity }, { botFill: 1 }, { botFill: -1 }, { teams: 3 }]) {
+      const bridge = makeBridge();
+      try {
+        const room = new RoomEngine('invalid', { teams: 2, bots: 0, maxPerTeam: 10,
+          scoreLimit: 50, timeLimit: 600, listed: false, name: 'Guard' }, { send() {} });
+        Object.assign(room.config, invalid); // Exercise the bridge boundary, before native config normalization.
+        assert.throws(() => bridge.beforeStep(room), /0\.\.2 static bots/);
+      } finally { bridge.dispose(); }
+    }
+    for (const bots of [0, 1, 2]) {
+      const bridge = makeBridge();
+      const room = createLoopbackRoom({ teams: 2, bots, botFill: 0 }, 'Bounded native bots',
+        { onMessage() {} }, { manual: true, hostBridge: bridge });
+      try {
+        room.step(TICK_DT); assert.equal(room.engine.botCount(), bots * 2);
+        room.engine.config.bots = bots === 2 ? 1 : 2;
+        assert.throws(() => bridge.beforeStep(room.engine), /Static bot count/);
+      } finally { room.close(); }
+    }
+  });
+
+  await check('two native bots per faction spawn authoritative aircraft and fire authenticated rounds into fleet', async () => {
+    const config = fleetConfig({ hp: 1000 });
+    const all = ['fighter', 'apache', 'warthog', 'blackbird', 'bomber', 'f15', 'f35'];
+    const bridge = createRetainedHostBridge({ mode: 'factions', config, rosters: [all, all] });
+    const messages = [];
+    const room = createLoopbackRoom({ teams: 2, bots: 2, botSkill: 1 }, 'Native bot bridge',
+      { onMessage: m => messages.push(m) }, { manual: true, code: 'native-ai-0', hostBridge: bridge });
+    try {
+      for (let i = 0; i < 180; i++) room.step(TICK_DT);
+      assert.equal(room.engine.botCount(), 4);
+      const bots = [...room.engine.players.values()].filter(p => p.info.bot);
+      assert(bots.every(p => p.brain && p.info.turret === null));
+      assert.deepEqual([0, 1].map(t => bots.filter(p => p.info.team === t).length), [2, 2]);
+      const shooter = room.engine.vehicles.find(v => v.team === 0 && VEHICLES[v.kind].seatWeapons[0][0] === 'cannon20');
+      assert(shooter, `seeded native cannon bot required: ${room.engine.vehicles.map(v => v.kind)}`);
+      const bot = room.engine.players.get(shooter.seats[0]);
+      assert(bot.info.bot && bot.info.vehicleId === shooter.id);
+      const target = room.engine.vehicles.find(v => v.team === 1);
+      assert(target);
+      const ammo = shooter.weapons[0][0].ammo;
+      let checkedRound = false;
+      for (let i = 0; i < 90; i++) {
+        pose(shooter); pose(target, [3500, 8, 800]);
+        room.step(TICK_DT);
+        const combat = room.engine.combat;
+        const round = combat.projectiles.find(p => p.owner === bot.info.id && p.weapon === 'cannon20');
+        if (round && !checkedRound) {
+          assert.equal(round.vehicle, shooter.id); assert.equal(round.team, bot.info.team);
+          const resolve = combat.hostFleet.resolveProjectile;
+          const from = [3500, 8, 1050], to = [3500, 8, 950];
+          const before = hp(bridge.snapshot(room.engine, room.playerId));
+          assert.equal(resolve(round, from, to, .1, 2), false, 'nearer native collision fraction excludes farther fleet');
+          assert.equal(hp(bridge.snapshot(room.engine, room.playerId)), before);
+          assert.equal(resolve({ ...round }, from, to, 1, 2), false);
+          const owner = round.owner; round.owner = room.playerId;
+          assert.equal(resolve(round, from, to, 1, 2), false); round.owner = owner;
+          checkedRound = true;
+        }
+      }
+      assert(checkedRound, 'actual bot round checked while still in current CombatState');
+      assert(shooter.weapons[0][0].ammo < ammo, 'actual native botInput must spend real cannon ammo');
+      const snap = bridge.snapshot(room.engine, room.playerId);
+      assert(hp(snap) < 1000, 'bot-owned real cannon rounds must hit the intervening fleet hull');
+      assert(snap.events.some(e => e.type === 'damage' && e.source === `aircraft_${shooter.id}`));
+      await drain();
+      assert(messages.some(m => m.type === 'snapshot' && m.players.some(p => p.bot && p.team === 1)));
+      const native = room.engine.snapshotFor(room.playerId);
+      for (const team of [0, 1]) assert(native.vehicles.some(v => v.team === team && v.alive));
+      assert.equal(room.engine.players.get(room.playerId).info.turret, null);
+    } finally { room.close(); }
+  });
+
   await check('fixture uses legal native open sea, all three actual TS hooks executed', () => {
     for (const [x, z] of [[3500, 1000], [3500, 1100], [3500, 1200], [3700, 1400]]) {
       assert(worldQuery.isWater(x, z)); assert(terrainHeight(x, z) < 0);
