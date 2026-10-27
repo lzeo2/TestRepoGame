@@ -3,6 +3,7 @@ import { HeroRuntime } from './heroes/hero-runtime.mjs';
 import { PlayerController } from './heroes/player-controller.mjs';
 import { surfaceHeight } from './traversal.mjs';
 import { ITEMS } from './systems.mjs';
+import { panelSegment } from './heroes/keep-clear.mjs';
 
 const distance = (a, b) => Math.hypot(a.x-b.x, a.y-b.y, a.z-b.z);
 const SHOP_ITEMS = ITEMS.filter(item => !item.active);
@@ -67,10 +68,12 @@ export function createBots({sim, scene, world, kits, boxes, onEffect, floorHeigh
     const controller=new PlayerController({position:hero.position,boxes,ramps:world.ramps,floorHeight});
     const bot={hero,controller,route:laneRoute(sim,sim.lanes.find(l => l.id===lane),team), alive:true,retreating:false,targetId:null,mode:'rally'};
     bot.runtime=new HeroRuntime({scene,controller,kit,boxes,source:hero.id,team,onEffect:event => {
+      // Systems validates source/kit/target; cleanup must survive death/pause/disposal.
+      if (event.kind==='tether-end'||event.kind==='deployment-end'||event.kind==='buff-end'||event.kind==='burst-end') return effect(event);
       if (disposed || passive || !hero.alive || sim.phase==='pregame' || sim.phase==='finished') return;
       const target=byId.get(event.target);
-      if (event.kind==='damage' && target && !visible(bot,target,event.origin)) return;
-      effect(event);
+      if (['damage','status'].includes(event.kind) && target && !visible(bot,target,event.origin)) return;
+      return effect(event);
     }});
     bot.runtime.visual.group.position.copy(controller.position);
     return bot;
@@ -85,8 +88,9 @@ export function createBots({sim, scene, world, kits, boxes, onEffect, floorHeigh
       id:entity.id, team:entity.team, kind:entity.kind,
       radius:entity.kind==='structure'?3:.6, height:entity.kind==='structure'?10:1.8,
       get position() { return entity.position; }, get alive() { return entity.alive; },
-      get vulnerable() { return entity.vulnerable; }, get cloakUntil() { return entity.cloakUntil; }
-    }));
+      get vulnerable() { return entity.vulnerable; }, get cloakUntil() { return entity.cloakUntil; },
+      get autoTargetable() { return !(entity.cloakUntil>sim.time); }
+    })).concat(sim.wallPanels?.()??[]);
     byId=new Map(targets.map(t => [t.id,t]));
     for (const runtime of runtimes) runtime.targets=targets;
   }
@@ -94,6 +98,10 @@ export function createBots({sim, scene, world, kits, boxes, onEffect, floorHeigh
     const origin=new THREE.Vector3(from.x,from.y,from.z);
     if (!bot.runtime.visible(origin,target)) return false;
     const end={...target.position,y:target.position.y+(target.height??1.8)*.5};
+    if(target.kind==='panel'&&target.bounds) {
+      const face=panelSegment(origin,end,target.bounds);
+      if(face!==null)for(const axis of ['x','y','z'])end[axis]=origin[axis]+(end[axis]-origin[axis])*face;
+    }
     const count=Math.max(1,Math.ceil(distance(origin,end)));
     // Conservative terrain check also excludes shots through ramps/pit edges.
     for (let i=1;i<count;i++) {
@@ -121,7 +129,7 @@ export function createBots({sim, scene, world, kits, boxes, onEffect, floorHeigh
     let best=null, score=Infinity;
     const range=Math.max(bot.runtime.kit.weapon.range,...bot.runtime.kit.abilities.map(a => a.range??a.radius??0));
     for (const target of targets) {
-      if (!target.alive || target.team===bot.hero.team || target.cloakUntil>sim.time || target.kind==='structure'&&!target.vulnerable) continue;
+      if (!target.alive || target.team===bot.hero.team || target.autoTargetable===false || target.kind==='structure'&&!target.vulnerable) continue;
       const d=distance(bot.hero.position,target.position);
       const priority=target.kind==='hero'?0:target.kind==='trooper'?1:2;
       if (d>range || priority*1000+d>=score || !visible(bot,target)) continue;
@@ -225,7 +233,7 @@ export function createBots({sim, scene, world, kits, boxes, onEffect, floorHeigh
     for (const bot of bots) { sim.setRetreat(bot.hero.id,false); bot.runtime.dispose(); }
   }
   function snapshot() {
-    return bots.map(b => ({id:b.hero.id,team:b.hero.team,lane:b.hero.lane,kit:b.runtime.kit.id,alive:b.hero.alive,position:{...b.hero.position},retreating:b.retreating,mode:b.mode,targetId:b.targetId,runtime:b.runtime.snapshot()}));
+    return bots.map(b => ({id:b.hero.id,team:b.hero.team,lane:b.hero.lane,kit:b.runtime.kit.id,alive:b.hero.alive,hp:b.hero.hp,moveSpeed:sim.stats(b.hero.id).moveSpeed,position:{...b.hero.position},retreating:b.retreating,mode:b.mode,targetId:b.targetId,runtime:b.runtime.snapshot()}));
   }
   return {update,runtimes,dispose,snapshot};
 }

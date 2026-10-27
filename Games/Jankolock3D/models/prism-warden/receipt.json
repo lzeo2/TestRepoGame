@@ -1,0 +1,11 @@
+{
+  "url": "models/prism-warden/model.glb",
+  "bytes": 2847116,
+  "sha256": "8547ce6cca106bd1bcf8c98c7e43e850b693d69a713bd03545b4515492bff6f6",
+  "triangles": 18454,
+  "metadataSHA256": {
+    "manifest.json": "ad3a28947f3cc75b7469435faca36a7b81512afeb972967d6b1213ce9b530463",
+    "palette.json": "7a5d4aef0e61399bf142f2dd04735f3570458d0541eff1f9a7f40a1d97397fad",
+    "rig.json": "bce6008cfcbd787c59767273ddbbff6c4d0db87b5f4fb025c5922798dacf0c3a"
+  }
+}

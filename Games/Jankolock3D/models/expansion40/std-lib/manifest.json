@@ -1,0 +1,93 @@
+{
+  "schema": "jank3d_hero_expansion_asset_v1",
+  "hero_number": 10,
+  "id": "std-lib",
+  "display_name": "StdLib",
+  "role": "Utility control",
+  "design_notes": "A toothy card-catalog librarian: three real drawer fronts, label-slot eyebrows, index tabs as a crown and paper incisors in the open filing mouth. The cabinet moves on angled short legs and long filing arms, with a serrated index key in its right wrist. Drawer roots can translate along Y, independently of the torso, while the head drawer and card fan articulate. Muted ledger-green accent.",
+  "files": {
+    "source": "model.blend",
+    "runtime": "model.glb",
+    "illustration": "portrait.png",
+    "rig": "rig.json",
+    "rig_alias": "manifest.rig.json",
+    "palette": "palette.json"
+  },
+  "blender_version": "4.3.2",
+  "glb_bytes": 192576,
+  "glb_sha256": "b2062ddd20177b80ec720ad44ca4cfd6e64129d6901a80786172f138047ed93c",
+  "triangles": 3032,
+  "mesh_nodes": 65,
+  "movable_nodes": 20,
+  "bounds_gltf": {
+    "min": [
+      -0.8500000238418579,
+      0.0,
+      -0.45649999380111694
+    ],
+    "max": [
+      0.9399999976158142,
+      2.2817838191986084,
+      0.28999999165534973
+    ],
+    "dimensions": [
+      1.7900000214576721,
+      2.2817838191986084,
+      0.7464999854564667
+    ]
+  },
+  "palette_hex": {
+    "paper": "#f2e8cd",
+    "ink": "#253038",
+    "manila": "#c5aa78",
+    "accent": "#687961"
+  },
+  "texture_count": 0,
+  "external_dependencies": [],
+  "illustration_dimensions": [
+    1024,
+    1024
+  ],
+  "grounding_offset_applied_blender_z": -0.005000002682209015,
+  "status": "Original art-review candidate. Proposed kit is separate; not game-integrated or runtime-schema validated.",
+  "art_direction": "Flat paper/ink/manila + one accent, unlit solid fills and ink contours; neutral background.",
+  "model": "std-lib",
+  "tri_count_LOD0": 3032,
+  "size_bytes": 192576,
+  "texture_resolution": null,
+  "material_slots": [
+    "std-lib__ink",
+    "std-lib__manila",
+    "std-lib__accent",
+    "std-lib__paper"
+  ],
+  "rig_nodes": [
+    "root",
+    "pelvis",
+    "torso",
+    "drawer_0_slide",
+    "drawer_1_slide",
+    "head",
+    "index_card_fan",
+    "L_hip",
+    "L_knee",
+    "L_ankle",
+    "R_hip",
+    "R_knee",
+    "R_ankle",
+    "L_shoulder",
+    "L_elbow",
+    "L_wrist",
+    "R_shoulder",
+    "R_elbow",
+    "R_wrist",
+    "L_file_thumb"
+  ],
+  "palette_default": {
+    "paper": "#f2e8cd",
+    "ink": "#253038",
+    "manila": "#c5aa78",
+    "accent": "#687961"
+  },
+  "provenance_note": "Generated in Blender by dot and Astra 6 max delegates, 2026-10-23; original in-house artwork, no remote assets."
+}

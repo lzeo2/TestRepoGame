@@ -1,0 +1,62 @@
+{
+  "schema": "semantic_palette_v1",
+  "model": "claude-lampe",
+  "color_space": "hex_srgb; rgba_linear for glTF",
+  "slots": {
+    "paper": {
+      "hex_srgb": "#f2e8cd",
+      "rgba_linear": [
+        0.8879231178819663,
+        0.8069522576692516,
+        0.6104955708078648,
+        1.0
+      ],
+      "material_name": "claude-lampe__paper",
+      "gltf_material_indices": [
+        1
+      ]
+    },
+    "ink": {
+      "hex_srgb": "#253038",
+      "rgba_linear": [
+        0.018500220128379697,
+        0.0295568344378088,
+        0.03954623527673284,
+        1.0
+      ],
+      "material_name": "claude-lampe__ink",
+      "gltf_material_indices": [
+        0
+      ]
+    },
+    "manila": {
+      "hex_srgb": "#c5aa78",
+      "rgba_linear": [
+        0.5583403896342679,
+        0.4019777798321958,
+        0.18782077230067787,
+        1.0
+      ],
+      "material_name": "claude-lampe__manila",
+      "gltf_material_indices": [
+        3
+      ]
+    },
+    "accent": {
+      "hex_srgb": "#9a7858",
+      "rgba_linear": [
+        0.32314320911295075,
+        0.18782077230067787,
+        0.09758734714186246,
+        1.0
+      ],
+      "material_name": "claude-lampe__accent",
+      "gltf_material_indices": [
+        2
+      ]
+    }
+  },
+  "rendering": "KHR_materials_unlit; four solid fills, no texture/gradient. Ink contours are render-only.",
+  "instance_isolation": "Clone material objects per spawned instance before tinting; preserve slot sharing inside each instance. Separate GLB loads are independent; GLB cannot enforce cached-loader clone behavior.",
+  "accent_provenance": "Original muted accent selected for this expansion"
+}

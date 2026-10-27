@@ -5,6 +5,7 @@ import http.server
 import io
 import json
 import os
+from qa_roster import HERO_IDS
 from pathlib import Path
 import runpy
 import subprocess
@@ -113,7 +114,7 @@ def main():
                         assert paints and all(s['theme'] == 'dark' and s['scheme'] == 'dark' for s in paints), paints
                         report['firstPaint'].append({'entry': 'index.html', 'cacheDisabled': True, 'osPreference': 'light', 'mobile': mobile, 'samples': paints})
                         if lobby:
-                            assert page.locator('[data-hero]').count() == 4
+                            assert set(page.locator('[data-hero]').evaluate_all('(cards)=>cards.map(card=>card.dataset.hero)')) == set(HERO_IDS)
                             capture(page, prefix + 'hero-select-default-dark', 'dark', mobile)
                             page.get_by_role('button', name='Light theme', exact=True).click()
                             capture(page, prefix + 'hero-select-light', 'light', mobile)

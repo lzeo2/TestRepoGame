@@ -1,0 +1,47 @@
+{
+  "schema": "jank3d_geometric_effect_concept_v1",
+  "id": "value-error",
+  "effect_name": "Broken Equation",
+  "description": "Oversized broken validation brackets and displaced equation cards fracture beside the proofreader. Offset bars, hard error shards and a readable ERR card convey inequality; all pieces remain separately toggleable.",
+  "toggle_root": "FX_ROOT",
+  "toggle_contract": "Set this subtree visible/invisible in the target engine. Geometry has no autonomous playback; caller controls visibility and any motion.",
+  "mesh_nodes": [
+    "fx_broken_bracket_left0",
+    "fx_broken_bracket_left1",
+    "fx_broken_bracket_left2",
+    "fx_broken_bracket_right0",
+    "fx_broken_bracket_right1",
+    "fx_broken_bracket_right2",
+    "fx_error_card",
+    "fx_error_card_text",
+    "fx_unequal_top",
+    "fx_unequal_bottom",
+    "fx_unequal_cut",
+    "fx_error_fragment_0",
+    "fx_error_fragment_1",
+    "fx_error_fragment_2",
+    "fx_error_fragment_3"
+  ],
+  "motion_nodes": {},
+  "body_rig_reference": "rig.json",
+  "palette_reference": "palette.json",
+  "body_palette_preserved_in_fx_variant": true,
+  "baseline_files_unchanged": true,
+  "baseline_sha256": {
+    "model.blend": "ee05711cd9ede7f712617bca6fce0afbb67d38b9a19550ab7ee7e142b869d9b5",
+    "model.glb": "2349d25cdf6f77940a7ca286c81635a8edd4adffb05c203bbd3f9b431e99e024",
+    "portrait.png": "66d263c3a384186d94f68baf3ed0fded679235131f6df6ec0f878b10a373aefc"
+  },
+  "variants": {
+    "fx": {
+      "runtime": "model_fx.glb",
+      "source": "model_fx.blend",
+      "illustration": "portrait_fx.png",
+      "manifest": "manifest_fx.json",
+      "rig": "rig_fx.json",
+      "palette": "palette_fx.json"
+    }
+  },
+  "gameplay_status": "Art/FX concept only. No engine primitive, gameplay logic, collision, timing or ability integration implemented.",
+  "cel_variant": null
+}

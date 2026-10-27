@@ -68,10 +68,15 @@ export function mountFixtures(host) {
       history.push({time:sim.time,fixture:'orbs',killer:killer.id,target:trooper.id,raw:1000});sync();return orb.id;
     },
     aimAt(id){
-      const orb=sim.orbs.find(o=>o.id===id);if(!orb)throw new Error('Unknown soul');
-      const point=controller.position.clone().set(orb.position.x,orb.position.y,orb.position.z);
+      const orb=sim.orbs.find(o=>o.id===id);
+      const target=orb??[...sim.heroes,...sim.troopers,...sim.structures].find(e=>e.id===id);
+      if(!target)throw new Error('Unknown QA aim target');
+      // Keep soul aim unchanged; combat bounds use 1.8m bodies / 12m structures.
+      const center=orb?0:target.kind==='structure'?6:.9;
+      const point=controller.position.clone().set(target.position.x,target.position.y+center,target.position.z);
       for(let i=0;i<40;i++) {
         controller.updateCamera(view.camera,.25);
+        view.camera.updateMatrixWorld(); // Projection must use this iteration's camera pose, not the last draw.
         const projected=point.clone().project(view.camera);
         controller.yaw-=projected.x*.35;controller.pitch+=projected.y*.25;
       }

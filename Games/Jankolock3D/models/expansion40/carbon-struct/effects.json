@@ -1,0 +1,60 @@
+{
+  "schema": "jank3d_geometric_effect_concept_v1",
+  "id": "carbon-struct",
+  "effect_name": "Temporary Partition",
+  "description": "Two outboard graphite scaffold walls deploy as a low fortress around Struct. Staggered paper panels leave the upper body readable; diagonal braces, grounding teeth and floor plan strokes distinguish this from an aura.",
+  "toggle_root": "FX_ROOT",
+  "toggle_contract": "Set this subtree visible/invisible in the target engine. Geometry has no autonomous playback; caller controls visibility and any motion.",
+  "mesh_nodes": [
+    "fx_wall_L_L",
+    "fx_wall_L_R",
+    "fx_wall_L_T",
+    "fx_wall_L_B",
+    "fx_partition_L_0",
+    "fx_partition_L_1",
+    "fx_partition_L_2",
+    "fx_wall_brace_L",
+    "fx_ground_tooth_L-1",
+    "fx_ground_tooth_L1",
+    "fx_wall_R_L",
+    "fx_wall_R_R",
+    "fx_wall_R_T",
+    "fx_wall_R_B",
+    "fx_partition_R_0",
+    "fx_partition_R_1",
+    "fx_partition_R_2",
+    "fx_wall_brace_R",
+    "fx_ground_tooth_R-1",
+    "fx_ground_tooth_R1",
+    "fx_floor_plan_0",
+    "fx_plan_tee_0",
+    "fx_floor_plan_1",
+    "fx_plan_tee_1",
+    "fx_floor_plan_2",
+    "fx_plan_tee_2",
+    "fx_floor_plan_3",
+    "fx_plan_tee_3"
+  ],
+  "motion_nodes": {},
+  "body_rig_reference": "rig.json",
+  "palette_reference": "palette.json",
+  "body_palette_preserved_in_fx_variant": true,
+  "baseline_files_unchanged": true,
+  "baseline_sha256": {
+    "model.blend": "6f0755b49f5a0b553d29bb2fcd1c80da7e6f628434f78af6f2b98f9efb68b6fb",
+    "model.glb": "cab7afe9529df74fa388219929f6849674844561e70f52c226ed31fc0ba73cf1",
+    "portrait.png": "f2b703109f7071623afca5b5a7f094d6fb49e4077a1694fcc275f6b0b839cc5a"
+  },
+  "variants": {
+    "fx": {
+      "runtime": "model_fx.glb",
+      "source": "model_fx.blend",
+      "illustration": "portrait_fx.png",
+      "manifest": "manifest_fx.json",
+      "rig": "rig_fx.json",
+      "palette": "palette_fx.json"
+    }
+  },
+  "gameplay_status": "Art/FX concept only. No engine primitive, gameplay logic, collision, timing or ability integration implemented.",
+  "cel_variant": null
+}

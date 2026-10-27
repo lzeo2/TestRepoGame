@@ -34,15 +34,38 @@ assert.equal(applyTool(sim, 'bulldoze', { x: 8, z: 8 }).ok, true);
 assert.equal(sim.roads.has(8, 8), false);
 console.log('NATIVE CHECK PASS: atomic road cost/occupancy, zone placement, protected hall, stable meshes, grid poses and removal');
 
+const timed = createSimulation({ size: 20, timedConstruction: true, progressionEnabled: false });
+const site = timed.place('power', 2, 2).building, siteCache = new Map();
+let siteSpawns = 0, siteRemovals = 0;
+const siteWorld = { roads: timed.roads, buildings: {
+  spawn(type, pose) { siteSpawns++; return { type, pose }; },
+  transform() {}, remove() { siteRemovals++; }
+} };
+for (const [seconds, type] of [[0, 'construction_site_0'], [4, 'construction_site_1'], [4, 'construction_site_2'], [4, 'power']]) {
+  timed.update(seconds); syncModels(siteWorld, timed.state, siteCache);
+  assert.equal(siteCache.get(`building:${site.id}`).type, type);
+  const count = siteSpawns; syncModels(siteWorld, timed.state, siteCache);
+  assert.equal(siteSpawns, count, 'unchanged stage retains its model handle');
+}
+assert.equal(siteSpawns, 5, 'hall plus three stages and completed building');
+assert.equal(siteRemovals, 3, 'each replaced site model is released once');
+console.log('NATIVE CONSTRUCTION MODELS PASS: three stages, completed activation, stable unchanged handles and exact disposal');
+
 // Fake rAF proves sleep leaves no polling callback, without launching a browser.
 const frames = new Map(), deltas = [], loopSim = createSimulation({ size: 20 });
-let nextFrame = 0, hidden = false, paused = true, shots = 0;
+let nextFrame = 0, hidden = false, paused = true, shots = 0, failUpdate = false, wakeDuringUpdate = false;
+const updateError = new Error('test update failure');
 const loop = createNativeLoop({
   requestFrame(fn) { frames.set(++nextFrame, fn); return nextFrame; },
   cancelFrame(id) { frames.delete(id); },
   isHidden: () => hidden,
   update(dt) {
     deltas.push(dt);
+    if (wakeDuringUpdate) {
+      loop.wake(); loop.wake();
+      assert.equal(frames.size, 0, 'in-flight update retains the one-frame guard');
+    }
+    if (failUpdate) throw updateError;
     if (!paused) loopSim.update(dt);
     const pendingShots = shots > 0;
     shots = Math.max(0, shots - Math.min(.25, dt));
@@ -89,6 +112,17 @@ loop.wake(); step(302000);
 assert.equal(frames.size, 1, 'real input refreshes the idle deadline');
 step(304000);
 assert.equal(frames.size, 0);
+failUpdate = wakeDuringUpdate = true;
+loop.wake();
+assert.throws(() => step(400000), error => error === updateError, 'update error propagates unchanged');
+assert.equal(frames.size, 0, 'failed frame does not silently retry');
+failUpdate = false;
+loop.wake(); loop.wake(); step(500000);
+assert.equal(deltas.at(-1), 0, 'wake after update failure restarts without catching up');
+assert.equal(frames.size, 1, 'reentrant wakes during update never duplicate scheduling');
+wakeDuringUpdate = false;
+step(502000);
+assert.equal(frames.size, 0, 'recovered loop still idles normally');
 loop.wake(); loop.stop(); loop.wake();
 assert.equal(frames.size, 0, 'cleanup cancels work permanently');
-console.log('NATIVE LOOP PASS: static skip, speed 0, input wake, active delta, hidden/resume, pending shots and cleanup');
+console.log('NATIVE LOOP PASS: static skip, speed 0, input wake, active delta, hidden/resume, pending shots, throw propagation/recovery, reentrant one-frame guard and cleanup');

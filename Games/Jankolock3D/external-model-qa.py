@@ -5,6 +5,7 @@ import http.server
 import io
 import json
 import os
+from qa_roster import MODEL_IDS, runtime_hashes
 from pathlib import Path, PurePosixPath
 import runpy
 import subprocess
@@ -27,9 +28,7 @@ def old_bytes(path):
 
 
 def current_hashes():
-    paths = [p for p in GAME.rglob('*') if p.suffix in {'.mjs', '.js', '.html', '.css', '.json', '.glb', '.png'}]
-    paths.append(ROOT / 'docs/jank3d-hero-kits.json')
-    return {p.relative_to(ROOT).as_posix(): hashlib.sha256(p.read_bytes()).hexdigest() for p in sorted(paths)}
+    return runtime_hashes(ROOT)
 
 
 class Handler(helpers['Handler']):
@@ -127,7 +126,7 @@ def main():
                 assert page.goto(origin + '/after/Games/Jankolock3D/index.html', wait_until='networkidle').status == 200
                 page.wait_for_function('window.jank3dSnapshot?.().diagnostics.triangles > 0')
                 snap = page.evaluate('window.jank3dSnapshot()')
-                assert {m['id'] for m in snap['models']} == {'stampead','turretina','snipeoff','gooey','deployed_stapler','trooper'}
+                assert {m['id'] for m in snap['models']} == MODEL_IDS
                 assert page.locator('html').get_attribute('data-theme') == 'dark'
                 capture(page, 'integrated-lobby-after')
                 page.get_by_role('button', name='Start match', exact=True).click()

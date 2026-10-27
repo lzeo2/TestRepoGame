@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="icon" href="data:,"><title>Wings original-module integration preview</title>
+<style>
+:root{color-scheme:light dark;--paper:#efeee8;--ink:#171717;--line:#8a8a83;--panel:#fff}*{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font:16px Atkinson Hyperlegible,system-ui,sans-serif}header{padding:14px 20px;max-width:1600px;margin:auto}h1{font-size:22px;margin:0 0 6px}p{margin:5px 0;line-height:1.4}.scope{font-size:14px;max-width:100ch}nav{display:flex;flex-wrap:wrap;gap:8px;align-items:end;margin-top:12px}label{display:grid;gap:4px;font-size:13px}button,select{min-height:44px;max-width:100%;border:1px solid var(--line);border-radius:3px;padding:8px 12px;font:inherit}select{background:var(--panel);color:var(--ink)}button{background:#111;color:#fff;cursor:pointer}button:disabled,select:disabled{opacity:.55;cursor:wait}button:focus-visible,select:focus-visible,canvas:focus-visible{outline:3px solid #b07600;outline-offset:3px}#status{font-size:14px;min-height:40px;font-variant-numeric:tabular-nums}canvas{display:block;width:100%;height:max(300px,calc(100dvh - 264px));touch-action:none}footer{padding:8px 20px;font-size:13px}a{color:inherit}@media(prefers-color-scheme:dark){:root{--paper:#202120;--ink:#f1f0e9;--line:#93978d;--panel:#333632}}@media(max-width:600px){header{padding:12px}h1{font-size:20px}nav{display:grid;grid-template-columns:1fr 1fr}nav label{min-width:0}button,select{width:100%}canvas{height:390px}footer{padding:8px 12px}}
+</style>
+<script type="importmap">{"imports":{"three":"/three/build/three.webgpu.js","three/webgpu":"/three/build/three.webgpu.js","three/tsl":"/three/build/three.tsl.js","three/addons/":"/three/examples/jsm/"}}</script>
+</head><body><header>
+<h1>WINGS: original-module integration preview</h1>
+<p class="scope"><strong>Unserved diagnostic, not the game.</strong> Original maps, authority, session, weather fog and supplied-model rigs. No piloting, natural-flight physics, real-class ASW fit or served Factions acceptance.</p>
+<nav aria-label="Preview controls">
+<button id="toggle" disabled>Run</button><button id="step" disabled>Advance 20 sim seconds</button><button id="restart" disabled>Restart fixture</button><button id="dispose" disabled>Close preview</button>
+<label>Original map<select id="map" disabled><option value="island-archipelago">Lantern Archipelago</option><option value="fjord-coast">Ridgewater Fjords</option><option value="coastal-strait">Longwatch Strait</option></select></label>
+<label>Marine visuals<select id="quality" disabled><option value="low">Low</option><option value="balanced">Balanced</option><option value="high">High</option></select></label>
+<label>Weather<select id="weather" disabled><option value="clear">Clear</option><option value="fog">Fog</option></select></label>
+<label>Authority fixture<select id="scenario" disabled><option value="surface">Two AI flagships: real objective battle</option><option value="submarine">Submarine / anonymous ASW fixture</option></select></label>
+<label>Camera<select id="camera" disabled><option value="battle">Follow AI battle</option><option value="overview">Original map overview</option><option value="submarine">Friendly submarine inspection</option></select></label>
+</nav>
+<p id="status" role="status" aria-live="polite">Loading approved local Three and three embedded GLBs.</p>
+</header><canvas tabindex="0" aria-label="Original fleet integration scene. Drag to orbit, wheel to zoom, two fingers to pan."></canvas>
+<footer>Run uses an explicitly 4x time-compressed diagnostic clock, not game speed or measured FPS. Drag to orbit; wheel or pinch to zoom. Stepping advances the real fixed-step authority and returns paused. Midday lighting fixture; 250 m visual terrain LOD, unchanged 25 m authority query. Submarine fixture uses explicitly anonymous legacy ASW counterplay, not inferred escort weapons.</footer>
+<script type="module" src="/fleet-integration-preview.mjs"></script></body></html>

@@ -1,0 +1,55 @@
+{
+  "schema": "jank3d_geometric_effect_concept_v1",
+  "id": "envelope",
+  "effect_name": "Dispatch Ahead",
+  "description": "A line of sealed dispatches exits Env\u2019s wrist launcher, carried above three oversized postal route chevrons. Each letter has a readable envelope fold and stamp; the path is solid geometry rather than a light trail.",
+  "toggle_root": "FX_ROOT",
+  "toggle_contract": "Set this subtree visible/invisible in the target engine. Geometry has no autonomous playback; caller controls visibility and any motion.",
+  "mesh_nodes": [
+    "fx_dispatched_letter_0_sheet",
+    "fx_dispatched_letter_0_fold",
+    "fx_dispatched_letter_0_crease_L",
+    "fx_dispatched_letter_0_crease_R",
+    "fx_dispatched_letter_0_stamp",
+    "fx_dispatch_dash_0",
+    "fx_dispatched_letter_1_sheet",
+    "fx_dispatched_letter_1_fold",
+    "fx_dispatched_letter_1_crease_L",
+    "fx_dispatched_letter_1_crease_R",
+    "fx_dispatched_letter_1_stamp",
+    "fx_dispatch_dash_1",
+    "fx_dispatched_letter_2_sheet",
+    "fx_dispatched_letter_2_fold",
+    "fx_dispatched_letter_2_crease_L",
+    "fx_dispatched_letter_2_crease_R",
+    "fx_dispatched_letter_2_stamp",
+    "fx_dispatch_dash_2",
+    "fx_postal_route_0",
+    "fx_postal_route_1",
+    "fx_postal_route_2",
+    "fx_shoulder_slipstream_0",
+    "fx_shoulder_slipstream_1"
+  ],
+  "motion_nodes": {},
+  "body_rig_reference": "rig.json",
+  "palette_reference": "palette.json",
+  "body_palette_preserved_in_fx_variant": true,
+  "baseline_files_unchanged": true,
+  "baseline_sha256": {
+    "model.blend": "0acbcc537a5a701418028a60f432ee681749ba708b4e20fea812fbc7fdc7b6d5",
+    "model.glb": "6033a7ee1d9844d8398ddcbed9ec8ffb9a8b6dc0a7ff1f48bc0b7a1a680730ff",
+    "portrait.png": "cdf2739860c459bb8a4e6e7f9e190b87d3a2625c251747128087e90500fd3982"
+  },
+  "variants": {
+    "fx": {
+      "runtime": "model_fx.glb",
+      "source": "model_fx.blend",
+      "illustration": "portrait_fx.png",
+      "manifest": "manifest_fx.json",
+      "rig": "rig_fx.json",
+      "palette": "palette_fx.json"
+    }
+  },
+  "gameplay_status": "Art/FX concept only. No engine primitive, gameplay logic, collision, timing or ability integration implemented.",
+  "cel_variant": null
+}

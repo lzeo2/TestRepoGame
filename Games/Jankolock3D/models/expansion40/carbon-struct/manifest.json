@@ -1,0 +1,91 @@
+{
+  "schema": "jank3d_hero_expansion_asset_v1",
+  "hero_number": 30,
+  "id": "carbon-struct",
+  "display_name": "Struct",
+  "role": "Fortress",
+  "design_notes": "An open graphite office scaffold, not a solid robot: four pencil-like columns, exposed diagonal cross-braces, joint blocks, hollow A-frame legs and folding paper-panel arms. The little supervisor face sits on the top ledger beam. Broad but still hero-scale at 2.45 metres.",
+  "files": {
+    "source": "model.blend",
+    "runtime": "model.glb",
+    "illustration": "portrait.png",
+    "rig": "rig.json",
+    "rig_alias": "manifest.rig.json",
+    "palette": "palette.json"
+  },
+  "blender_version": "4.3.2",
+  "glb_bytes": 232152,
+  "glb_sha256": "cab7afe9529df74fa388219929f6849674844561e70f52c226ed31fc0ba73cf1",
+  "triangles": 3336,
+  "mesh_nodes": 98,
+  "movable_nodes": 18,
+  "bounds_gltf": {
+    "min": [
+      -1.2599999904632568,
+      0.0,
+      -0.5569999814033508
+    ],
+    "max": [
+      1.0749999284744263,
+      2.4774999618530273,
+      0.33500000834465027
+    ],
+    "dimensions": [
+      2.334999918937683,
+      2.4774999618530273,
+      0.8919999897480011
+    ]
+  },
+  "palette_hex": {
+    "paper": "#f2e8cd",
+    "ink": "#253038",
+    "manila": "#c5aa78",
+    "accent": "#5d756b"
+  },
+  "texture_count": 0,
+  "external_dependencies": [],
+  "illustration_dimensions": [
+    1024,
+    1024
+  ],
+  "grounding_offset_applied_blender_z": -0.019999995827674866,
+  "status": "Original art-review candidate. Proposed kit is separate; not game-integrated or runtime-schema validated.",
+  "art_direction": "Flat paper/ink/manila + one accent, unlit solid fills and ink contours; neutral background.",
+  "model": "carbon-struct",
+  "tri_count_LOD0": 3336,
+  "size_bytes": 232152,
+  "texture_resolution": null,
+  "material_slots": [
+    "carbon-struct__ink",
+    "carbon-struct__manila",
+    "carbon-struct__paper",
+    "carbon-struct__accent"
+  ],
+  "rig_nodes": [
+    "root",
+    "pelvis",
+    "torso",
+    "head",
+    "L_hip",
+    "L_knee",
+    "L_ankle",
+    "R_hip",
+    "R_knee",
+    "R_ankle",
+    "L_shoulder",
+    "L_elbow",
+    "L_wrist",
+    "R_shoulder",
+    "R_elbow",
+    "R_wrist",
+    "folding_barricade",
+    "brace_driver"
+  ],
+  "palette_default": {
+    "paper": "#f2e8cd",
+    "ink": "#253038",
+    "manila": "#c5aa78",
+    "accent": "#5d756b"
+  },
+  "provenance_note": "Generated in Blender by dot and Astra 6 max delegates, 2026-10-23; original in-house artwork, no remote assets."
+}

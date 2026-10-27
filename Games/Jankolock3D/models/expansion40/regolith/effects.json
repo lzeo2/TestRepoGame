@@ -1,0 +1,53 @@
+{
+  "schema": "jank3d_geometric_effect_concept_v1",
+  "id": "regolith",
+  "effect_name": "Cornerstone Scatter",
+  "description": "A solid-color burst of broken paperweights, stepped desktop cracks and suspended corner shards radiates away from Rocky. Geometric physical debris, not particles or glow.",
+  "toggle_root": "FX_ROOT",
+  "toggle_contract": "Set this subtree visible/invisible in the target engine. Geometry has no autonomous playback; caller controls visibility and any motion.",
+  "mesh_nodes": [
+    "fx_corner_shard_0",
+    "fx_shard_score_0",
+    "fx_corner_shard_1",
+    "fx_shard_score_1",
+    "fx_corner_shard_2",
+    "fx_shard_score_2",
+    "fx_corner_shard_3",
+    "fx_shard_score_3",
+    "fx_corner_shard_4",
+    "fx_shard_score_4",
+    "fx_corner_shard_5",
+    "fx_shard_score_5",
+    "fx_corner_shard_6",
+    "fx_shard_score_6",
+    "fx_stepped_crack_0",
+    "fx_stepped_crack_1",
+    "fx_stepped_crack_2",
+    "fx_stepped_crack_3",
+    "fx_impact_tick_0",
+    "fx_impact_tick_1",
+    "fx_impact_tick_2"
+  ],
+  "motion_nodes": {},
+  "body_rig_reference": "rig.json",
+  "palette_reference": "palette.json",
+  "body_palette_preserved_in_fx_variant": true,
+  "baseline_files_unchanged": true,
+  "baseline_sha256": {
+    "model.blend": "32ca6085b855e70e56a2ee2d3e2883c1707ff3d6eb9ee952651d8c9403596368",
+    "model.glb": "c8d1aa38a780e6371db70365abfc860bee8a0306118f3020379028b5a4d343a8",
+    "portrait.png": "bdabf912f435ba56e3ee80f62285bfdf3144aa2dc74519786cef706c37922bf9"
+  },
+  "variants": {
+    "fx": {
+      "runtime": "model_fx.glb",
+      "source": "model_fx.blend",
+      "illustration": "portrait_fx.png",
+      "manifest": "manifest_fx.json",
+      "rig": "rig_fx.json",
+      "palette": "palette_fx.json"
+    }
+  },
+  "gameplay_status": "Art/FX concept only. No engine primitive, gameplay logic, collision, timing or ability integration implemented.",
+  "cel_variant": null
+}

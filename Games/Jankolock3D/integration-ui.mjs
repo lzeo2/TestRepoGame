@@ -2,6 +2,17 @@ import { mountSystemsUI } from './systems-ui.mjs';
 
 const finite = (value, fallback = 0) => Number.isFinite(value) ? value : fallback;
 const count = value => Math.max(0, Math.ceil(finite(value)));
+export function abilitySlotState(kit,runtime,slot) {
+  const ability=kit.abilities.find(a=>a.slot===slot);
+  if(!ability){const name=kit.unsupportedSlots?.[slot]??`Slot ${slot}`;return {name,text:'Unavailable',description:'Unavailable in this experimental partial slice.',label:`${slot}: ${name}. Unavailable in this experimental partial slice.`,blocked:true};}
+  const remaining=finite(runtime?.cooldowns?.[slot]),windup=runtime?.pendingCast?.definition?.id===ability.id?Math.max(0,finite(runtime.pendingCast.left)):0;
+  const otherPending=runtime?.pendingCast&&runtime.pendingCast.definition?.id!==ability.id;
+  const failure=runtime?.lastPlacementFailure,age=runtime?.time-failure?.at;
+  const placementFailed=failure?.slot===slot&&['Route blocked','Link lost','Panels blocked','Panel blocked'].includes(failure.reason)&&Number.isFinite(age)&&age>=0&&age<1;
+  const text=otherPending?'Windup locked':windup>0?`Windup ${windup.toFixed(2)}s`:placementFailed?failure.reason:remaining>0?`${count(remaining)}s`:'Ready';
+  const detail=otherPending?`Unavailable while ${runtime.pendingCast.definition.name} winds up. No ability is queued.`:windup>0?`Windup ${windup.toFixed(2)} seconds.`:placementFailed?`${failure.reason}. ${failure.reason==='Panel blocked'?'Splinters resolve independently. ':''}${remaining>0?`Ready in ${count(remaining)} seconds.`:'Retry with a valid target or clear route.'}`:remaining>0?`Ready in ${count(remaining)} seconds.`:ability.description;
+  return {name:ability.name,text,description:ability.description,label:`${slot}: ${ability.name}. ${detail}`,blocked:Boolean(otherPending)||windup>0||remaining>0};
+}
 const healthReadout = hero => {
   const max = Math.max(1, finite(hero.maxHp, 1)), hp = Math.max(0, Math.min(max, finite(hero.hp)));
   return { hp, max, text: `${count(hp)} / ${count(max)}`, state: hp / max > .5 ? 'healthy' : hp / max > .25 ? 'warning' : 'critical' };
@@ -37,7 +48,7 @@ export function mountIntegrationUI({ sim, heroId, runtime, controller, world, ki
   onSelect = () => {}, onStart = () => {}, onPause = () => {}, onRestart = () => {}, onAction = () => {} }) {
   const $ = id => document.getElementById(id);
   const heroes = Array.isArray(kits) ? kits : kits?.heroes;
-  if (!heroes || heroes.length !== 4) throw new TypeError('Integration UI requires four hero kits.');
+  if (!heroes?.length || new Set(heroes.map(h => h.id)).size !== heroes.length) throw new TypeError('Integration UI requires unique hero kits.');
   if (!sim.heroes.some(hero => hero.id === heroId)) throw new TypeError('Integration UI requires a systems player.');
   const listeners = new AbortController();
   const listen = (node, type, fn) => node.addEventListener(type, fn, { signal: listeners.signal });
@@ -65,7 +76,13 @@ export function mountIntegrationUI({ sim, heroId, runtime, controller, world, ki
   let selectedId = runtime?.kit?.id ?? heroes[0].id;
   let playing = false, paused = false, disposed = false, helpPaused = false;
   const map = $('minimap'), context = map.getContext('2d');
-  const heroButtons = [...document.querySelectorAll('[data-hero-index]')];
+  const heroSelect = $('hero-select');
+  const template = heroSelect.querySelector('[data-hero-index]').cloneNode(true);
+  // Reuse the authored accessible card for every loaded kit, not a fixed roster.
+  heroSelect.replaceChildren(...heroes.map((kit, index) => {
+    const button = template.cloneNode(true); button.dataset.heroIndex = String(index); return button;
+  }));
+  const heroButtons = [...heroSelect.querySelectorAll('[data-hero-index]')];
   const abilityButtons = [...$('abilities').querySelectorAll('[data-slot]')];
   const hero = () => sim.heroes.find(h => h.id === heroId);
   const currentKit = () => currentRuntime?.kit ?? heroes.find(h => h.id === selectedId) ?? heroes[0];
@@ -184,7 +201,14 @@ export function mountIntegrationUI({ sim, heroId, runtime, controller, world, ki
     recordDeaths(next.events ?? sim.events ?? [], heroId, seenEvents, score);
     const h = hero(), kit = currentKit(); if (!h) return;
     systems.update();
-    $('playing-hero').textContent = kit.name;
+    $('playing-hero').textContent = kit.partialSlice?`${kit.name}: ${[kit.weapon.name,kit.melee?.name,...kit.abilities.map(a=>a.name)].filter(Boolean).join(' + ')} (${Object.keys(kit.unsupportedSlots??{}).length?'experimental partial slice':'four-slot CPU QA profile'}; five QA profiles: Odo, Whitespace, Laminate, Cassette and partial Fern; 35 other kits unavailable; Fern slots 2/4 unavailable; native/art acceptance held)`:kit.name;
+    for(const button of document.querySelectorAll('[data-action="melee"]')) {
+      const unavailable=kit.melee===null;button.disabled=unavailable;
+      const partial=kit.partialSlice&&kit.melee;
+      button.textContent=unavailable?'Melee unavailable':partial?kit.melee.name:'Melee';
+      button.setAttribute('aria-label',unavailable?'Melee unavailable in this experimental partial slice.':partial?`${kit.melee.name}. Weapon-channel melee: ${kit.melee.baseDamage} base damage, ${kit.melee.range}m range, ${kit.melee.cooldown}s cooldown. Uses weapon items and armor, not melee parry.`:'Melee');
+      button.title=partial?'Weapon-channel melee. Uses weapon items and armor; native melee parry does not block it.':'';
+    }
     const health = healthReadout(h);
     healthBar.max = health.max; healthBar.value = health.hp;
     healthValue.textContent = health.text; healthHud.dataset.state = health.state;
@@ -199,13 +223,12 @@ export function mountIntegrationUI({ sim, heroId, runtime, controller, world, ki
     const objective = objectiveText(sim, h.team);
     if ($('objective').textContent !== objective) $('objective').textContent = objective;
     for (const button of abilityButtons) {
-      const ability = kit.abilities.find(a => a.slot === Number(button.dataset.slot));
-      const remaining = finite(currentRuntime?.cooldowns?.[ability.slot]);
-      button.querySelector('.ability-name').textContent = ability.name;
-      button.querySelector('.ability-state').textContent = remaining > 0 ? `${count(remaining)}s` : 'Ready';
-      button.title = ability.description;
-      button.setAttribute('aria-label', `${ability.slot}: ${ability.name}. ${remaining > 0 ? `Ready in ${count(remaining)} seconds.` : ability.description}`);
-      button.disabled = !h.alive || remaining > 0 || sim.phase === 'pregame' || Boolean(sim.winner);
+      const state=abilitySlotState(kit,currentRuntime,Number(button.dataset.slot));
+      button.querySelector('.ability-name').textContent=state.name;
+      button.querySelector('.ability-state').textContent=state.text;
+      button.title=state.description;
+      button.setAttribute('aria-label',state.label);
+      button.disabled=!h.alive||state.blocked||sim.phase==='pregame'||Boolean(sim.winner);
     }
     if (playing && sim.winner) {
       $('pause-title').textContent = sim.winner === h.team ? 'Victory' : 'Defeat';

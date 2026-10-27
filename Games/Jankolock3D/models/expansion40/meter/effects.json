@@ -1,0 +1,92 @@
+{
+  "schema": "jank3d_geometric_effect_concept_v1",
+  "id": "meter",
+  "effect_name": "Measured testimony",
+  "description": "Two bold caliper waves with numbered-interval ticks flank the reader while concentric floor measurement rings establish a scan radius. The gauge and face remain unobstructed.",
+  "toggle_root": "FX_ROOT",
+  "toggle_contract": "Set this subtree visible/invisible in the target engine. Geometry has no autonomous playback; caller controls visibility and any motion.",
+  "mesh_nodes": [
+    "fx_left_rail",
+    "fx_left_tick_0",
+    "fx_left_tick_1",
+    "fx_left_tick_2",
+    "fx_left_tick_3",
+    "fx_left_tick_4",
+    "fx_left_tick_5",
+    "fx_left_tick_6",
+    "fx_left_tick_7",
+    "fx_left_tick_8",
+    "fx_left_top_arrow",
+    "fx_left_bottom_arrow",
+    "fx_right_rail",
+    "fx_right_tick_0",
+    "fx_right_tick_1",
+    "fx_right_tick_2",
+    "fx_right_tick_3",
+    "fx_right_tick_4",
+    "fx_right_tick_5",
+    "fx_right_tick_6",
+    "fx_right_tick_7",
+    "fx_right_tick_8",
+    "fx_right_top_arrow",
+    "fx_right_bottom_arrow",
+    "fx_scan_inner",
+    "fx_scan_outer",
+    "fx_floor_tick_0",
+    "fx_floor_tick_1",
+    "fx_floor_tick_2",
+    "fx_floor_tick_3",
+    "fx_floor_tick_4",
+    "fx_floor_tick_5",
+    "fx_floor_tick_6",
+    "fx_floor_tick_7",
+    "fx_floor_tick_8",
+    "fx_floor_tick_9",
+    "fx_floor_tick_10",
+    "fx_floor_tick_11"
+  ],
+  "motion_nodes": {
+    "fx_left_measurement_wave": {
+      "axis": "Y",
+      "limits": [
+        -20,
+        20
+      ],
+      "note": "Rigid articulation, artistic guide; not a collision guarantee."
+    },
+    "fx_right_measurement_wave": {
+      "axis": "Y",
+      "limits": [
+        -20,
+        20
+      ],
+      "note": "Rigid articulation, artistic guide; not a collision guarantee."
+    },
+    "fx_scan_floor": {
+      "axis": "Z",
+      "limits": "free",
+      "note": "Rigid articulation, artistic guide; not a collision guarantee."
+    }
+  },
+  "body_rig_reference": "rig.json",
+  "palette_reference": "palette.json",
+  "body_palette_preserved_in_fx_variant": true,
+  "baseline_files_unchanged": true,
+  "baseline_sha256": {
+    "model.blend": "3aa2a3ee0e0e6ac309da28cec0c9635e31ce77bd3333d797d4d52c105d413c46",
+    "model.glb": "11c9a1a5008ebe08b437cde300c5e0296c83b85766a9b8b43956a83f7eea70a2",
+    "portrait.png": "7c6dfa98b9c9b645b9e0eaf146542d3d72841dd4129b57496f325ed2c03984b9"
+  },
+  "variants": {
+    "fx": {
+      "runtime": "model_fx.glb",
+      "source": "model_fx.blend",
+      "illustration": "portrait_fx.png",
+      "manifest": "manifest_fx.json",
+      "rig": "rig_fx.json",
+      "palette": "palette_fx.json"
+    }
+  },
+  "gameplay_status": "Art/FX concept only. No engine primitive, gameplay logic, collision, timing or ability integration implemented.",
+  "cel_variant": null
+}

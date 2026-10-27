@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import * as THREE from './vendor/three.module.js';
 import { applyExternalTerrain } from './external-materials.mjs';
+import { createPlayableGroundGeometry } from './world.mjs';
 
 // Read actual delivered channels without an image decoder, browser or WebGL.
 const bytes = readFileSync(new URL('./models/terrain_water_materials/model.glb', import.meta.url));
@@ -165,6 +166,19 @@ for (const nonIndexed of [false, true]) {
   assert.equal(ground.geometry.groups.length, 0);
   assert.deepEqual(ground.geometry.index?.array, indices);
 }
+
+// Exercise the actual world geometry, not just the historical depressed fixture.
+const flat = fixture();
+flat.ground.geometry.dispose();
+flat.ground.geometry = createPlayableGroundGeometry(flat.extent);
+flat.ground.geometry.setAttribute('uv1', flat.ground.geometry.attributes.uv.clone());
+const flatAPI = applyExternalTerrain(flat, { scene });
+assert.deepEqual(flatAPI.diagnostics.groundTriangles, { grass: 2, soil: 0, shoreline: 0 });
+assert.deepEqual(flatAPI.diagnostics.unused, ['soil', 'shoreline']);
+assert.equal(flatAPI.diagnostics.groundGroups, 1);
+flatAPI.dispose();
+flat.ground.geometry.dispose();
+console.log('FLAT WORLD CHECK PASS: two grass triangles; supplied soil/shoreline explicitly unused');
 
 // Future imported AO must not be overwritten or disposed with the loader cache.
 const grass = sourceMaterials.find(m => m.name.endsWith('__grass'));

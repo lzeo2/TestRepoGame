@@ -1,0 +1,63 @@
+{
+  "schema": "jank3d_geometric_effect_concept_v1",
+  "id": "notarize",
+  "effect_name": "Witnessed seal burst",
+  "description": "A large floor seal erupts in eight rigid rays beneath the enforcement stamp, and a floating checked seal witnesses the strike. Every burst piece can be toggled as one FX subtree.",
+  "toggle_root": "FX_ROOT",
+  "toggle_contract": "Set this subtree visible/invisible in the target engine. Geometry has no autonomous playback; caller controls visibility and any motion.",
+  "mesh_nodes": [
+    "fx_notary_outer_seal",
+    "fx_notary_inner_seal",
+    "fx_seal_burst_ray_0",
+    "fx_seal_burst_ray_1",
+    "fx_seal_burst_ray_2",
+    "fx_seal_burst_ray_3",
+    "fx_seal_burst_ray_4",
+    "fx_seal_burst_ray_5",
+    "fx_seal_burst_ray_6",
+    "fx_seal_burst_ray_7",
+    "fx_witness_medallion",
+    "fx_witness_seal_ring",
+    "fx_witness_check_short",
+    "fx_witness_check_long",
+    "fx_stamp_impact_square_0",
+    "fx_stamp_impact_square_1",
+    "fx_stamp_impact_square_2"
+  ],
+  "motion_nodes": {
+    "fx_notarized_floor_seal": {
+      "axis": "Z",
+      "limits": "free",
+      "note": "Rigid articulation, artistic guide; not a collision guarantee."
+    },
+    "fx_floating_witness": {
+      "axis": "Y",
+      "limits": [
+        -30,
+        30
+      ],
+      "note": "Rigid articulation, artistic guide; not a collision guarantee."
+    }
+  },
+  "body_rig_reference": "rig.json",
+  "palette_reference": "palette.json",
+  "body_palette_preserved_in_fx_variant": true,
+  "baseline_files_unchanged": true,
+  "baseline_sha256": {
+    "model.blend": "bed7ee4f8922a0deddb0591f689c598c317c1ec37f2ef272a6f40932b789f435",
+    "model.glb": "bdcdea36b03be39055ed449c6899537be690f4d4015dd3d67de8ca51cc45e1cf",
+    "portrait.png": "b37585f961f3195352cbdd6bbecd98b3961805534428e53746a88b9c5d61a126"
+  },
+  "variants": {
+    "fx": {
+      "runtime": "model_fx.glb",
+      "source": "model_fx.blend",
+      "illustration": "portrait_fx.png",
+      "manifest": "manifest_fx.json",
+      "rig": "rig_fx.json",
+      "palette": "palette_fx.json"
+    }
+  },
+  "gameplay_status": "Art/FX concept only. No engine primitive, gameplay logic, collision, timing or ability integration implemented.",
+  "cel_variant": null
+}

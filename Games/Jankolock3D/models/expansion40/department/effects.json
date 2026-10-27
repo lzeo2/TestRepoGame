@@ -1,0 +1,174 @@
+{
+  "schema": "jank3d_geometric_effect_concept_v1",
+  "id": "department",
+  "effect_name": "Four binding orders",
+  "description": "Exactly four floating order cards and four formation diamonds surround the shared uniform. Each order belongs to its own pivot. The additional cel variant gives the unified coat bold discrete shading while preserving a separate flat original.",
+  "toggle_root": "FX_ROOT",
+  "toggle_contract": "Set this subtree visible/invisible in the target engine. Geometry has no autonomous playback; caller controls visibility and any motion.",
+  "mesh_nodes": [
+    "fx_order_card_1_outline",
+    "fx_order_card_1_paper",
+    "fx_order_card_1_heading",
+    "fx_order_card_1_line_0",
+    "fx_order_card_1_line_1",
+    "fx_order_card_1_line_2",
+    "fx_order_header_1",
+    "fx_order_count_0_0",
+    "fx_order_card_2_outline",
+    "fx_order_card_2_paper",
+    "fx_order_card_2_heading",
+    "fx_order_card_2_line_0",
+    "fx_order_card_2_line_1",
+    "fx_order_card_2_line_2",
+    "fx_order_header_2",
+    "fx_order_count_1_0",
+    "fx_order_count_1_1",
+    "fx_order_card_3_outline",
+    "fx_order_card_3_paper",
+    "fx_order_card_3_heading",
+    "fx_order_card_3_line_0",
+    "fx_order_card_3_line_1",
+    "fx_order_card_3_line_2",
+    "fx_order_header_3",
+    "fx_order_count_2_0",
+    "fx_order_count_2_1",
+    "fx_order_count_2_2",
+    "fx_order_card_4_outline",
+    "fx_order_card_4_paper",
+    "fx_order_card_4_heading",
+    "fx_order_card_4_line_0",
+    "fx_order_card_4_line_1",
+    "fx_order_card_4_line_2",
+    "fx_order_header_4",
+    "fx_order_count_3_0",
+    "fx_order_count_3_1",
+    "fx_order_count_3_2",
+    "fx_order_count_3_3",
+    "fx_formation_0_0",
+    "fx_formation_0_1",
+    "fx_formation_0_2",
+    "fx_formation_0_3",
+    "fx_formation_1_0",
+    "fx_formation_1_1",
+    "fx_formation_1_2",
+    "fx_formation_1_3",
+    "fx_formation_2_0",
+    "fx_formation_2_1",
+    "fx_formation_2_2",
+    "fx_formation_2_3",
+    "fx_formation_3_0",
+    "fx_formation_3_1",
+    "fx_formation_3_2",
+    "fx_formation_3_3"
+  ],
+  "motion_nodes": {
+    "fx_order_1": {
+      "axis": "Y",
+      "limits": [
+        -25,
+        25
+      ],
+      "note": "Rigid articulation, artistic guide; not a collision guarantee."
+    },
+    "fx_order_2": {
+      "axis": "Y",
+      "limits": [
+        -25,
+        25
+      ],
+      "note": "Rigid articulation, artistic guide; not a collision guarantee."
+    },
+    "fx_order_3": {
+      "axis": "Y",
+      "limits": [
+        -25,
+        25
+      ],
+      "note": "Rigid articulation, artistic guide; not a collision guarantee."
+    },
+    "fx_order_4": {
+      "axis": "Y",
+      "limits": [
+        -25,
+        25
+      ],
+      "note": "Rigid articulation, artistic guide; not a collision guarantee."
+    },
+    "fx_four_person_formation": {
+      "axis": "Z",
+      "limits": [
+        -30,
+        30
+      ],
+      "note": "Rigid articulation, artistic guide; not a collision guarantee."
+    }
+  },
+  "body_rig_reference": "rig.json",
+  "palette_reference": "palette.json",
+  "body_palette_preserved_in_fx_variant": true,
+  "baseline_files_unchanged": true,
+  "baseline_sha256": {
+    "model.blend": "093e4a87410c15d2bed5e39df7754b4d8cab67956612162977eea7434cd4e9d7",
+    "model.glb": "d24060a0946c1b624955e9a69870bc489e4afa3f59f4388605b270c2946d2c46",
+    "portrait.png": "c5734ee35f74c8399f72cbed603a6ea2bfe704a3579448df6d7878e75cade161"
+  },
+  "variants": {
+    "fx": {
+      "runtime": "model_fx.glb",
+      "source": "model_fx.blend",
+      "illustration": "portrait_fx.png",
+      "manifest": "manifest_fx.json",
+      "rig": "rig_fx.json",
+      "palette": "palette_fx.json"
+    },
+    "cel": {
+      "runtime": "model_cel.glb",
+      "source": "model_cel.blend",
+      "illustration": "portrait_cel.png",
+      "manifest": "manifest_cel.json",
+      "rig": "rig_cel.json",
+      "palette": "palette_cel.json"
+    }
+  },
+  "gameplay_status": "Art/FX concept only. No engine primitive, gameplay logic, collision, timing or ability integration implemented.",
+  "cel_variant": {
+    "method": "Three discrete unlit materials per semantic body slot assigned by authored face-normal bands. Baked in geometry/material indices; fully exportable, not dynamic lighting. FX keeps its original four-color palette.",
+    "light_direction_blender": [
+      -0.6299993991851807,
+      0.3937496244907379,
+      0.669374406337738
+    ],
+    "thresholds": [
+      0.13,
+      0.62
+    ],
+    "face_band_counts": {
+      "shadow": 1233,
+      "base": 607,
+      "light": 488
+    },
+    "palette": {
+      "paper": {
+        "shadow": "#7b7669",
+        "base": "#f2e8cd",
+        "light": "#f5edd7"
+      },
+      "ink": {
+        "shadow": "#13181d",
+        "base": "#253038",
+        "light": "#515960"
+      },
+      "manila": {
+        "shadow": "#64573d",
+        "base": "#c5aa78",
+        "light": "#d1bb93"
+      },
+      "accent": {
+        "shadow": "#3a352d",
+        "base": "#716859",
+        "light": "#8d867a"
+      }
+    },
+    "outline_width_px": 2.8
+  }
+}

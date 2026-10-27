@@ -1,0 +1,132 @@
+{
+  "schema": "jank3d_geometric_effect_concept_v1",
+  "id": "holepuncher",
+  "effect_name": "Confetti Vent Line",
+  "description": "An obvious diagonal perforation lane marked by punched paper disks and erupting square confetti. Effect groups are rigid concept geometry beneath FX_ROOT; no particle system or gameplay implementation.",
+  "toggle_root": "FX_ROOT",
+  "toggle_contract": "Set this subtree visible/invisible in the target engine. Geometry has no autonomous playback; caller controls visibility and any motion.",
+  "mesh_nodes": [
+    "fx_lane_segment_0",
+    "fx_punched_hole_0",
+    "fx_hole_cut_edge_0",
+    "fx_lane_segment_1",
+    "fx_punched_hole_1",
+    "fx_hole_cut_edge_1",
+    "fx_lane_segment_2",
+    "fx_punched_hole_2",
+    "fx_hole_cut_edge_2",
+    "fx_lane_segment_3",
+    "fx_punched_hole_3",
+    "fx_hole_cut_edge_3",
+    "fx_lane_segment_4",
+    "fx_punched_hole_4",
+    "fx_hole_cut_edge_4",
+    "fx_lane_segment_5",
+    "fx_punched_hole_5",
+    "fx_hole_cut_edge_5",
+    "fx_lane_segment_6",
+    "fx_punched_hole_6",
+    "fx_hole_cut_edge_6",
+    "fx_lane_segment_7",
+    "fx_punched_hole_7",
+    "fx_hole_cut_edge_7",
+    "fx_confetti_square_0",
+    "fx_paper_punch_disc_0",
+    "fx_confetti_square_1",
+    "fx_confetti_square_2",
+    "fx_paper_punch_disc_2",
+    "fx_confetti_square_3",
+    "fx_confetti_square_4",
+    "fx_paper_punch_disc_4",
+    "fx_confetti_square_5",
+    "fx_confetti_square_6",
+    "fx_paper_punch_disc_6",
+    "fx_confetti_square_7"
+  ],
+  "motion_nodes": {
+    "fx_vent_lane": {
+      "axis": "Z",
+      "limits": [
+        -20,
+        20
+      ],
+      "note": "Rigid articulation, artistic guide; not a collision guarantee."
+    },
+    "fx_confetti_burst": {
+      "axis": "Z",
+      "limits": [
+        -35,
+        35
+      ],
+      "note": "Rigid articulation, artistic guide; not a collision guarantee."
+    }
+  },
+  "body_rig_reference": "rig.json",
+  "palette_reference": "palette.json",
+  "body_palette_preserved_in_fx_variant": true,
+  "baseline_files_unchanged": true,
+  "baseline_sha256": {
+    "model.blend": "6a2575fc8cf1e8ad448e0e1edfe7f69ded64145b8e8bc94e1ed26e29ec158199",
+    "model.glb": "253775bce63f6d977eb68cfe09ebfc406de401f8103ee80782233bc8a4c3fdee",
+    "portrait.png": "f0950d849e50bf20dc2fadbb46c878206b9e3ed8ac371239ad496afa3227bf2f"
+  },
+  "variants": {
+    "fx": {
+      "runtime": "model_fx.glb",
+      "source": "model_fx.blend",
+      "illustration": "portrait_fx.png",
+      "manifest": "manifest_fx.json",
+      "rig": "rig_fx.json",
+      "palette": "palette_fx.json"
+    },
+    "cel": {
+      "runtime": "model_cel.glb",
+      "source": "model_cel.blend",
+      "illustration": "portrait_cel.png",
+      "manifest": "manifest_cel.json",
+      "rig": "rig_cel.json",
+      "palette": "palette_cel.json"
+    }
+  },
+  "gameplay_status": "Art/FX concept only. No engine primitive, gameplay logic, collision, timing or ability integration implemented.",
+  "cel_variant": {
+    "method": "Three discrete unlit materials per semantic body slot assigned by authored face-normal bands. Baked in geometry/material indices; fully exportable, not dynamic lighting. FX keeps its original four-color palette.",
+    "light_direction_blender": [
+      -0.6299993991851807,
+      0.3937496244907379,
+      0.669374406337738
+    ],
+    "thresholds": [
+      0.13,
+      0.62
+    ],
+    "face_band_counts": {
+      "shadow": 329,
+      "base": 152,
+      "light": 141
+    },
+    "palette": {
+      "paper": {
+        "shadow": "#7b7669",
+        "base": "#f2e8cd",
+        "light": "#f5edd7"
+      },
+      "ink": {
+        "shadow": "#13181d",
+        "base": "#253038",
+        "light": "#515960"
+      },
+      "manila": {
+        "shadow": "#64573d",
+        "base": "#c5aa78",
+        "light": "#d1bb93"
+      },
+      "accent": {
+        "shadow": "#3f261b",
+        "base": "#7c4a35",
+        "light": "#966e5d"
+      }
+    },
+    "outline_width_px": 2.8
+  }
+}

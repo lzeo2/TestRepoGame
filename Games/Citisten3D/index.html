@@ -11,14 +11,14 @@
   <link rel="stylesheet" href="./native.css">
 </head>
 <body>
-  <canvas id="world" tabindex="0" aria-label="Town. Click to build; drag for roads. WASD moves, right drag rotates, wheel changes height."></canvas>
+  <canvas id="world" tabindex="0" aria-label="Town. Click to build; drag for roads or bridges. WASD moves, right drag rotates, wheel changes height."></canvas>
   <div id="ui" class="citisten-ui" data-theme="dark"></div>
   <section id="native-controls" hidden aria-label="Game controls">
     <label>Speed <select id="speed"><option value="0">Paused</option><option value="1" selected>1x</option><option value="3">3x</option><option value="10">10x</option></select></label>
     <button id="skip-night" type="button" hidden disabled title="Advance to the nightfall warning (S)">Skip to Night (S)</button>
     <button id="repair" type="button">Repair lot</button>
     <label>Weather <select id="weather"><option value="auto">Auto</option><option value="clear">Clear</option><option value="rain">Rain</option><option value="snow">Snow</option><option value="fog">Fog</option></select></label>
-    <details><summary>Controls</summary><p>Click or tap to build. Drag roads ($10/lot). 1 road; 2/3/4 zones; 5/6 utilities; 7/8/9 services; B wall; N tower; X remove. Zones need roads. Connect power and water by road. Menu pauses. Save stores this town on this device; Continue restores it. Build by day; defend the hall at night. In defense, S advances to the nightfall warning; use the camera pad to move back while skip is available.</p>
+    <details><summary>Controls</summary><p>Click or tap to build. Drag roads ($10/lot); choose Bridge and drag from bank to bank ($90 per water lot plus approaches). Construction uses simulation time; unfinished sites provide no output. Bulldoze an unfinished site for a 75% refund. Milestones unlock new building types. 1 road; 2/3/4 zones; 5/6 utilities; 7/8/9 services; B wall; N tower; X remove. Zones need roads. Connect power and water by road. Menu pauses. Save stores this town on this device; Continue restores it. Build by day; defend the hall at night. In defense, S advances to the nightfall warning; use the camera pad to move back while skip is available.</p>
       <div id="camera-pad" aria-label="Touch camera">
         <button data-camera="forward" aria-label="Move forward">↑</button><button data-camera="back" aria-label="Move backward">↓</button><button data-camera="left" aria-label="Move left">←</button><button data-camera="right" aria-label="Move right">→</button><button data-camera="up" aria-label="Raise camera">+</button><button data-camera="down" aria-label="Lower camera">−</button><button data-camera="turn" aria-label="Rotate camera">Rotate</button>
       </div>

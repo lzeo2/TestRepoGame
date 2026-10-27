@@ -147,13 +147,13 @@ export function createStreetLamps(scene, roads) {
     vertexShader: 'varying vec2 vUv; void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*instanceMatrix*vec4(position,1.0);}',
     fragmentShader: 'varying vec2 vUv; uniform float strength; void main(){float d=length(vUv-0.5)*2.0;gl_FragColor=vec4(vec3(1.0,0.67,0.28),pow(max(0.0,1.0-d),2.0)*strength);}' });
   const pools = new THREE.InstancedMesh(poolGeometry, poolMaterial, capacity);
-  for (const mesh of [pole, bulb, pools]) { mesh.count = 0; mesh.frustumCulled = false; scene.add(mesh); }
+  for (const mesh of [pole, bulb, pools]) { mesh.count = 0; mesh.visible = false; mesh.frustumCulled = false; scene.add(mesh); }
   pole.castShadow = pole.receiveShadow = true;
   const matrix = new THREE.Matrix4(); let version = -1;
   return { pole, bulb, pools,
     update(night, force = false) {
       bulbMaterial.emissiveIntensity = night * 2.5; poolMaterial.uniforms.strength.value = night * .36;
-      pools.visible = night > .01;
+      pools.visible = pools.count > 0 && night > .01;
       if (!force && version === roads.version) return;
       let n = 0;
       for (const key of roads.cells) {
@@ -164,7 +164,7 @@ export function createStreetLamps(scene, roads) {
         bulb.setMatrixAt(n, matrix.makeTranslation(p.x + offset, 7.05, p.z + offset));
         pools.setMatrixAt(n, matrix.makeTranslation(p.x + offset, .07, p.z + offset)); n++;
       }
-      for (const mesh of [pole, bulb, pools]) { mesh.count = n; mesh.instanceMatrix.needsUpdate = true; }
+      for (const mesh of [pole, bulb, pools]) { mesh.count = n; mesh.visible = n > 0 && (mesh !== pools || night > .01); mesh.instanceMatrix.needsUpdate = true; }
       version = roads.version;
     },
     dispose() { for (const mesh of [pole, bulb, pools]) { scene.remove(mesh); mesh.geometry.dispose(); mesh.material.dispose(); mesh.dispose(); } },

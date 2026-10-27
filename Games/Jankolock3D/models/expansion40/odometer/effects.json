@@ -1,0 +1,50 @@
+{
+  "schema": "jank3d_geometric_effect_concept_v1",
+  "id": "odometer",
+  "effect_name": "Redline Dispatch",
+  "description": "Bold paper speed ribbons trail the racing trolley; three forward route chevrons and flying gauge dashes mark acceleration. Ribbons are stepped solid slabs with four-color contrast.",
+  "toggle_root": "FX_ROOT",
+  "toggle_contract": "Set this subtree visible/invisible in the target engine. Geometry has no autonomous playback; caller controls visibility and any motion.",
+  "mesh_nodes": [
+    "fx_speed_ribbon_0",
+    "fx_speed_dash_0_0",
+    "fx_speed_dash_0_1",
+    "fx_speed_dash_0_2",
+    "fx_speed_ribbon_1",
+    "fx_speed_dash_1_0",
+    "fx_speed_dash_1_1",
+    "fx_speed_dash_1_2",
+    "fx_speed_ribbon_2",
+    "fx_speed_dash_2_0",
+    "fx_speed_dash_2_1",
+    "fx_speed_dash_2_2",
+    "fx_acceleration_arrow_0",
+    "fx_acceleration_arrow_1",
+    "fx_acceleration_arrow_2",
+    "fx_gauge_dash_0",
+    "fx_gauge_dash_1",
+    "fx_gauge_dash_2"
+  ],
+  "motion_nodes": {},
+  "body_rig_reference": "rig.json",
+  "palette_reference": "palette.json",
+  "body_palette_preserved_in_fx_variant": true,
+  "baseline_files_unchanged": true,
+  "baseline_sha256": {
+    "model.blend": "56d5f47ada4490bb26b80e5a91155edcc1e199f6ed11a96421f7c61af7e21a9d",
+    "model.glb": "88edfc0eec92f216a4c14e5a37fdf87199a4b7bf90945058d16b48484cc5b74f",
+    "portrait.png": "0bcb9bc46eec17d40aebbe8eaa2d3f5ba91891e257b822d58429db17ee8e3868"
+  },
+  "variants": {
+    "fx": {
+      "runtime": "model_fx.glb",
+      "source": "model_fx.blend",
+      "illustration": "portrait_fx.png",
+      "manifest": "manifest_fx.json",
+      "rig": "rig_fx.json",
+      "palette": "palette_fx.json"
+    }
+  },
+  "gameplay_status": "Art/FX concept only. No engine primitive, gameplay logic, collision, timing or ability integration implemented.",
+  "cel_variant": null
+}

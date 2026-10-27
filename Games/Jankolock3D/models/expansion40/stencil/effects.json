@@ -1,0 +1,51 @@
+{
+  "schema": "jank3d_geometric_effect_concept_v1",
+  "id": "stencil",
+  "effect_name": "True Area",
+  "description": "Large alternating stencil tiles cover the ground beside the artist. A descending chain of square, circle and triangle paint stamps hangs from the roller, presenting the zone-painter vocabulary clearly.",
+  "toggle_root": "FX_ROOT",
+  "toggle_contract": "Set this subtree visible/invisible in the target engine. Geometry has no autonomous playback; caller controls visibility and any motion.",
+  "mesh_nodes": [
+    "fx_painted_tile_0",
+    "fx_round_mark_0",
+    "fx_painted_tile_1",
+    "fx_triangle_mark_1",
+    "fx_painted_tile_2",
+    "fx_square_mark_2",
+    "fx_painted_tile_3",
+    "fx_triangle_mark_3",
+    "fx_painted_tile_4",
+    "fx_round_mark_4",
+    "fx_falling_square_L",
+    "fx_falling_square_R",
+    "fx_falling_square_T",
+    "fx_falling_square_B",
+    "fx_falling_circle",
+    "fx_falling_triangle",
+    "fx_paint_drop_0",
+    "fx_paint_drop_1",
+    "fx_paint_drop_2"
+  ],
+  "motion_nodes": {},
+  "body_rig_reference": "rig.json",
+  "palette_reference": "palette.json",
+  "body_palette_preserved_in_fx_variant": true,
+  "baseline_files_unchanged": true,
+  "baseline_sha256": {
+    "model.blend": "721abf05fc6a27f54601ba5af059606539a353119cf3364a1b4a9491f8b38b4c",
+    "model.glb": "253020450fb1e660790c303b6d04dcebd9db743b5ef7b6cf31cbd60c524b1926",
+    "portrait.png": "bfefbc507cadf355ff5101d36a3fd11384a87e97c57e164f0f4b49222a2e09f5"
+  },
+  "variants": {
+    "fx": {
+      "runtime": "model_fx.glb",
+      "source": "model_fx.blend",
+      "illustration": "portrait_fx.png",
+      "manifest": "manifest_fx.json",
+      "rig": "rig_fx.json",
+      "palette": "palette_fx.json"
+    }
+  },
+  "gameplay_status": "Art/FX concept only. No engine primitive, gameplay logic, collision, timing or ability integration implemented.",
+  "cel_variant": null
+}

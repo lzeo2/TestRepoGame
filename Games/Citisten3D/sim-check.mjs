@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { createSimulation, CITY_EVENTS, MILESTONES } from './sim.mjs';
 import { applyTool } from './native-actions.mjs';
+import { footprintLots } from './footprints.mjs';
 
 const log = text => console.log(text);
 function build(sim, type, x, z) {
@@ -15,6 +16,7 @@ function city() {
   const sim = createSimulation({ size: 40, seed: 19 });
   for (const z of [9, 11, 13, 15, 17, 19, 21, 23]) sim.roads.place({ x: 5, z }, { x: 34, z });
   sim.roads.place({ x: 18, z: 9 }, { x: 18, z: 23 });
+  for (const p of footprintLots(sim.state.buildings[0])) sim.roads.set(p.x, p.z, false);
   const power = build(sim, 'power', 19, 10), water = build(sim, 'water', 20, 10);
   build(sim, 'police', 21, 10); build(sim, 'police', 22, 10); build(sim, 'park', 15, 16);
   for (const z of [12, 14, 18, 22]) for (let x = 7; x < 15; x++) build(sim, 'residential', x, z);
@@ -71,11 +73,11 @@ assert.throws(() => sim.setTaxRate(NaN)); assert.equal(sim.place('residential', 
 
 // Three real day/night cycles. Two defended victories, then unprotected loss.
 const siege = createSimulation({ size: 24, mode: 'defense', seed: 8 });
-siege.roads.place({ x: 0, z: 11 }, { x: 23, z: 11 });
-siege.roads.place({ x: 13, z: 0 }, { x: 13, z: 23 });
+siege.roads.place({ x: 0, z: 10 }, { x: 23, z: 10 });
+siege.roads.place({ x: 14, z: 0 }, { x: 14, z: 23 });
 const towers = [[9, 9], [15, 9], [9, 15], [15, 15]].map(([x, z]) => build(siege, 'watchtower', x, z));
-// Four wall lots seal every cardinal entry to town hall, including road approaches.
-const walls = [[12, 11], [13, 12], [12, 13], [11, 12]];
+// Twelve wall lots seal every cardinal entry to the hall's 3x3 footprint.
+const walls = [11, 12, 13].flatMap(n => [[n, 10], [n, 14], [10, n], [14, n]]);
 const wallIds = new Set(walls.map(([x, z]) => { siege.roads.set(x, z, false); return build(siege, 'wall', x, z).id; }));
 let waveCounts = [], shots = 0, wallBites = 0, hallDamage = 0, lossEvents = 0, roadMoves = 0;
 let survived = 0, hallFirstDamaged = false, fallenSnapshot;
@@ -171,7 +173,7 @@ log('Utility island limits, road cuts, pause/10x, protected hall, frozen loss, i
 // Escalating hordes larger than the perimeter wait outside, rather than overlap or vanish.
 const overflow = createSimulation({ size: 12, mode: 'defense', seed: 4 });
 for (let z = 0; z < 12; z++) for (let x = 0; x < 12; x++) {
-  if ((x !== 6 || z !== 6) && overflow.state.budget >= 300) build(overflow, 'watchtower', x, z);
+  if (!overflow.buildingAt(x, z) && overflow.state.budget >= 300) build(overflow, 'watchtower', x, z);
 }
 let expectedKills = 0, queued = false;
 for (let i = 0; i < 14000 && overflow.state.score < 12 && overflow.state.phase !== 'lost'; i++) {
@@ -189,10 +191,11 @@ log('Headless assertions complete. Browser acceptance remains reviewer-owned.');
 // Civic fixtures grant occupancy/phase only to isolate effect arithmetic, not browser play.
 function eventCity(seed = 19) {
   const s = createSimulation({ size: 24, seed });
-  s.roads.place({ x: 8, z: 11 }, { x: 15, z: 11 });
-  build(s, 'power', 8, 10); build(s, 'water', 9, 10);
-  const park = build(s, 'park', 10, 10), shop = build(s, 'commercial', 11, 10);
-  const home = build(s, 'residential', 13, 10); build(s, 'industrial', 14, 10);
+  s.roads.place({ x: 8, z: 9 }, { x: 15, z: 9 });
+  s.roads.place({ x: 10, z: 9 }, { x: 10, z: 11 }); // Reach the hall's western footprint edge without crossing it.
+  build(s, 'power', 8, 8); build(s, 'water', 9, 8);
+  const park = build(s, 'park', 10, 8), shop = build(s, 'commercial', 11, 8);
+  const home = build(s, 'residential', 13, 8); build(s, 'industrial', 14, 8);
   home.residents = 64; s.update(1); s.drainEvents();
   return { s, home, shop, park };
 }
@@ -209,15 +212,15 @@ until(59.75); assert.equal(starts.length, 0);
 until(60); assert.equal(starts.length, 1);
 assert.equal(starts[0].event.startTick, 240); assert.equal(starts[0].event.durationTicks, 960);
 assert(starts[0].event.title && starts[0].event.description);
-near(civic.home.happiness, 0.7); near(c.state.income, baseIncome * 1.25);
-c.roads.set(16, 11);
-const outside = build(c, 'residential', 16, 10); outside.residents = 0;
+near(civic.home.happiness, 0.82); near(c.state.income, baseIncome * 1.25);
+c.roads.set(16, 9);
+const outside = build(c, 'residential', 16, 8); outside.residents = 0;
 until(61); assert(outside.happiness < civic.home.happiness, 'festival is district-local');
 c.bulldoze(outside.x, outside.z);
 c.update(0); c.update(0.1); c.update(0.15); assert.equal(c.drainEvents().filter(e => e.type === 'city-event-start').length, 0);
 c.setSpeed(0); c.update(500); assert.equal(c.state.tick, 245); c.setSpeed(1);
 until(299.75); assert.equal(ends.length, 0);
-until(300); assert.equal(ends[0].event.type, 'street-festival'); near(civic.home.happiness, 0.5);
+until(300); assert.equal(ends[0].event.type, 'street-festival'); near(civic.home.happiness, 0.62); // Supplied park retains the new +0.12 amenity morale after festival expiry.
 assert.equal(starts[1].event.type, 'water-main-burst'); near(c.state.water.demand, baseWater * 2);
 near(c.state.income, baseIncome);
 until(540); near(c.state.income, baseIncome * 0.75);
@@ -314,7 +317,7 @@ log('MILESTONE CHECK PASS: natural first three, all five named grants, exact bud
 
 const diagnosis = createSimulation({ size: 40 });
 advance(diagnosis, 5); assert.match(diagnosis.state.growthDiagnosis, /No homes yet/);
-diagnosis.roads.place({ x: 2, z: 19 }, { x: 30, z: 19 });
+diagnosis.roads.place({ x: 2, z: 19 }, { x: 18, z: 19 });
 build(diagnosis, 'power', 2, 18); const diagnosticWater = build(diagnosis, 'water', 3, 18);
 const diagnosticHome = build(diagnosis, 'residential', 18, 18);
 advance(diagnosis, 5); assert(diagnosis.state.population > 0); assert.equal(diagnosis.state.growthDiagnosis, '', 'baseline demand grows without jobs');
@@ -359,7 +362,7 @@ rescue.setSpeed(1); rescue.update(0.1);
 const rescueCopy = createSimulation({ snapshot: rescue.snapshot() });
 rescue.update(10); rescueCopy.update(10); assert.deepEqual(rescueCopy.snapshot(), rescue.snapshot());
 assert.equal(rescue.state.rebuildRemaining, 110);
-const recoveryHome = build(rescue, 'residential', 1, 10);
+const recoveryHome = build(rescue, 'residential', 1, 9);
 const survivors = rescue.state.buildings.map(b => b.id), savedBudget = rescue.state.budget;
 rescue.state.budget = 239; assert.equal(applyTool(rescue, 'repair', { x: 12, z: 12 }).ok, false);
 assert.equal(rescue.state.townHallHp, 0); assert.equal(rescue.state.budget, 239);

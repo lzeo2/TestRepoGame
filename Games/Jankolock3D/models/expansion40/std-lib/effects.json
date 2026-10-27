@@ -1,0 +1,68 @@
+{
+  "schema": "jank3d_geometric_effect_concept_v1",
+  "id": "std-lib",
+  "effect_name": "Fang-Bracket Directives",
+  "description": "A pair of giant square API brackets frames the librarian, while three toothed directive cards form a lower control boundary. These geometric index glyphs are effect concepts, not executed code or new gameplay primitives.",
+  "toggle_root": "FX_ROOT",
+  "toggle_contract": "Set this subtree visible/invisible in the target engine. Geometry has no autonomous playback; caller controls visibility and any motion.",
+  "mesh_nodes": [
+    "fx_api_bracket_L_0",
+    "fx_api_bracket_L_1",
+    "fx_api_bracket_L_2",
+    "fx_bracket_fang_L_0",
+    "fx_bracket_fang_L_1",
+    "fx_bracket_fang_L_2",
+    "fx_api_bracket_R_0",
+    "fx_api_bracket_R_1",
+    "fx_api_bracket_R_2",
+    "fx_bracket_fang_R_0",
+    "fx_bracket_fang_R_1",
+    "fx_bracket_fang_R_2",
+    "fx_directive_card_0",
+    "fx_directive_label_0",
+    "fx_directive_tooth_0_0",
+    "fx_directive_tooth_0_1",
+    "fx_directive_tooth_0_2",
+    "fx_directive_card_1",
+    "fx_directive_label_1",
+    "fx_directive_tooth_1_0",
+    "fx_directive_tooth_1_1",
+    "fx_directive_tooth_1_2",
+    "fx_directive_card_2",
+    "fx_directive_label_2",
+    "fx_directive_tooth_2_0",
+    "fx_directive_tooth_2_1",
+    "fx_directive_tooth_2_2"
+  ],
+  "motion_nodes": {
+    "fx_directive_brackets": {
+      "axis": "Z",
+      "limits": [
+        -30,
+        30
+      ],
+      "note": "Rigid articulation, artistic guide; not a collision guarantee."
+    }
+  },
+  "body_rig_reference": "rig.json",
+  "palette_reference": "palette.json",
+  "body_palette_preserved_in_fx_variant": true,
+  "baseline_files_unchanged": true,
+  "baseline_sha256": {
+    "model.blend": "e26cf9ff22ba8609557416adeced2804380f44db08259da1b1cb831ab2776837",
+    "model.glb": "b2062ddd20177b80ec720ad44ca4cfd6e64129d6901a80786172f138047ed93c",
+    "portrait.png": "aa04f1f9a04b8356b11546251d9974ade62ab7ca322d98eccf6be5f399320374"
+  },
+  "variants": {
+    "fx": {
+      "runtime": "model_fx.glb",
+      "source": "model_fx.blend",
+      "illustration": "portrait_fx.png",
+      "manifest": "manifest_fx.json",
+      "rig": "rig_fx.json",
+      "palette": "palette_fx.json"
+    }
+  },
+  "gameplay_status": "Art/FX concept only. No engine primitive, gameplay logic, collision, timing or ability integration implemented.",
+  "cel_variant": null
+}

@@ -1,0 +1,127 @@
+{
+  "schema": "semantic_pbr_palette_v1",
+  "model": "spoollash",
+  "slots": {
+    "rubber": {
+      "material_name": "spoollash__rubber",
+      "hex_srgb": "#32676E",
+      "metallic": 0,
+      "roughness": 0.38,
+      "surface": "rubber",
+      "gltf_material_indices": [
+        2
+      ],
+      "recolor_mode": "replace baseColorFactor; grayscale variation preserved",
+      "rgba_linear": [
+        0.03189603307301153,
+        0.13563332965520566,
+        0.1559264637078274,
+        1
+      ]
+    },
+    "dark_rubber": {
+      "material_name": "spoollash__dark_rubber",
+      "hex_srgb": "#172B30",
+      "metallic": 0,
+      "roughness": 0.4,
+      "surface": "rubber",
+      "gltf_material_indices": [
+        1
+      ],
+      "recolor_mode": "replace baseColorFactor; grayscale variation preserved",
+      "rgba_linear": [
+        0.008568125618069307,
+        0.024157632448504756,
+        0.0295568344378088,
+        1
+      ]
+    },
+    "leather": {
+      "material_name": "spoollash__leather",
+      "hex_srgb": "#70442E",
+      "metallic": 0,
+      "roughness": 0.43,
+      "surface": "fabric",
+      "gltf_material_indices": [
+        5
+      ],
+      "recolor_mode": "replace baseColorFactor; grayscale variation preserved",
+      "rgba_linear": [
+        0.162029375639111,
+        0.05780543019106723,
+        0.027320891639074894,
+        1
+      ]
+    },
+    "brass": {
+      "material_name": "spoollash__brass",
+      "hex_srgb": "#BA8748",
+      "metallic": 0.78,
+      "roughness": 0.29,
+      "surface": "metal",
+      "gltf_material_indices": [
+        0
+      ],
+      "recolor_mode": "replace baseColorFactor; grayscale variation preserved",
+      "rgba_linear": [
+        0.4910208498478356,
+        0.24228112246555486,
+        0.06480326669290577,
+        1
+      ]
+    },
+    "steel": {
+      "material_name": "spoollash__steel",
+      "hex_srgb": "#65787C",
+      "metallic": 0.85,
+      "roughness": 0.25,
+      "surface": "metal",
+      "gltf_material_indices": [
+        6
+      ],
+      "recolor_mode": "replace baseColorFactor; grayscale variation preserved",
+      "rgba_linear": [
+        0.1301364766903643,
+        0.18782077230067787,
+        0.20155625379439707,
+        1
+      ]
+    },
+    "ivory": {
+      "material_name": "spoollash__ivory",
+      "hex_srgb": "#E6D5AF",
+      "metallic": 0,
+      "roughness": 0.36,
+      "surface": "paper",
+      "gltf_material_indices": [
+        4
+      ],
+      "recolor_mode": "replace baseColorFactor; grayscale variation preserved",
+      "rgba_linear": [
+        0.7912979403326302,
+        0.665387298282272,
+        0.4286904966139066,
+        1
+      ]
+    },
+    "eye": {
+      "material_name": "spoollash__eye",
+      "hex_srgb": "#10191E",
+      "metallic": 0.05,
+      "roughness": 0.12,
+      "surface": "solid PBR",
+      "gltf_material_indices": [
+        3
+      ],
+      "recolor_mode": "replace baseColorFactor; grayscale variation preserved",
+      "rgba_linear": [
+        0.005181516702338386,
+        0.00972121732023785,
+        0.012983032342173012,
+        1
+      ]
+    }
+  },
+  "recolor_contract": "Semantic material names identify surfaces. Replace glTF pbrMetallicRoughness.baseColorFactor (linear RGBA) per instance to recolor grayscale variation maps; roughness/metallic/normal stay independent. Exceptions marked tint-only authored multicolor map need texture replacement for full arbitrary recolor.",
+  "rendering": "Lit Principled metallic-roughness PBR. Original <=1024px basecolor/ORM/tangent normal maps embedded. No unlit materials."
+}

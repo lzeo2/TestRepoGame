@@ -1,0 +1,1200 @@
+{
+  "schema": "rigid_parts_v2",
+  "version": 2,
+  "model": "checkmate-regent",
+  "coordinate_system": "glTF: metres, +Y up, -Z forward; source Blender +Z up, +Y forward; right +X.",
+  "source_axis_mapping": {
+    "Blender_X": "glTF_X",
+    "Blender_Z": "glTF_Y",
+    "Blender_Y": "glTF_-Z"
+  },
+  "pivot_space": "parent-local glTF metres; pivot_model_position is model-space rest origin. rotation_deg is about glTF local axes.",
+  "range_semantics": "Inclusive artistic guides only, not collision guarantees. [0,0] locked; free uncapped.",
+  "movable_nodes": [
+    {
+      "name": "root",
+      "gltf_node_index": 77,
+      "parent": null,
+      "pivot_position": [
+        0,
+        0,
+        0
+      ],
+      "pivot_model_position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "rotation_deg": {
+        "x": [
+          0,
+          0
+        ],
+        "y": "free",
+        "z": [
+          0,
+          0
+        ]
+      },
+      "translation_m": {
+        "x": "free",
+        "y": "free",
+        "z": "free"
+      },
+      "note": "Caller-owned placement, free translation and yaw."
+    },
+    {
+      "name": "body_sway",
+      "gltf_node_index": 56,
+      "parent": "root",
+      "pivot_position": [
+        0,
+        1.1050000190734863,
+        0
+      ],
+      "pivot_model_position": [
+        0.0,
+        1.1050000190734863,
+        0.0
+      ],
+      "rotation_deg": {
+        "x": [
+          -10,
+          10
+        ],
+        "y": [
+          -16,
+          16
+        ],
+        "z": [
+          -8,
+          8
+        ]
+      },
+      "translation_m": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "note": "Rigid torso sway, glTF X pitch / Y yaw / Z lean."
+    },
+    {
+      "name": "head_look",
+      "gltf_node_index": 21,
+      "parent": "body_sway",
+      "pivot_position": [
+        0,
+        0.6800000667572021,
+        0
+      ],
+      "pivot_model_position": [
+        0.0,
+        1.7850000858306885,
+        0.0
+      ],
+      "rotation_deg": {
+        "x": [
+          -18,
+          18
+        ],
+        "y": [
+          -45,
+          45
+        ],
+        "z": [
+          -14,
+          14
+        ]
+      },
+      "translation_m": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "note": "Rigid articulation; artistic ranges, not collision guarantees."
+    },
+    {
+      "name": "jaw_emote",
+      "gltf_node_index": 20,
+      "parent": "head_look",
+      "pivot_position": [
+        0,
+        0.09999990463256836,
+        -0.09000000357627869
+      ],
+      "pivot_model_position": [
+        0.0,
+        1.8849999904632568,
+        -0.09000000357627869
+      ],
+      "rotation_deg": {
+        "x": [
+          0,
+          18
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "translation_m": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "note": "Small rigid chin/mouth emotion hinge; no facial blendshapes."
+    },
+    {
+      "name": "shoulder_L",
+      "gltf_node_index": 38,
+      "parent": "body_sway",
+      "pivot_position": [
+        0.4000000059604645,
+        0.5099999904632568,
+        0
+      ],
+      "pivot_model_position": [
+        0.4000000059604645,
+        1.6150000095367432,
+        0.0
+      ],
+      "rotation_deg": {
+        "x": [
+          -60,
+          65
+        ],
+        "y": [
+          -30,
+          30
+        ],
+        "z": [
+          -55,
+          55
+        ]
+      },
+      "translation_m": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "note": "Rigid articulation; artistic ranges, not collision guarantees."
+    },
+    {
+      "name": "elbow_L",
+      "gltf_node_index": 35,
+      "parent": "shoulder_L",
+      "pivot_position": [
+        0.2199999988079071,
+        -0.25999999046325684,
+        -0.00999998115003109
+      ],
+      "pivot_model_position": [
+        0.6200000047683716,
+        1.3550000190734863,
+        -0.00999998115003109
+      ],
+      "rotation_deg": {
+        "x": [
+          -85,
+          25
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          -12,
+          12
+        ]
+      },
+      "translation_m": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "note": "Rigid articulation; artistic ranges, not collision guarantees."
+    },
+    {
+      "name": "wrist_L",
+      "gltf_node_index": 34,
+      "parent": "elbow_L",
+      "pivot_position": [
+        0.12000000476837158,
+        -0.15999996662139893,
+        -0.12999999523162842
+      ],
+      "pivot_model_position": [
+        0.7400000095367432,
+        1.1950000524520874,
+        -0.13999997079372406
+      ],
+      "rotation_deg": {
+        "x": [
+          -25,
+          25
+        ],
+        "y": [
+          -55,
+          55
+        ],
+        "z": [
+          -25,
+          25
+        ]
+      },
+      "translation_m": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "note": "Rigid articulation; artistic ranges, not collision guarantees."
+    },
+    {
+      "name": "shoulder_R",
+      "gltf_node_index": 55,
+      "parent": "body_sway",
+      "pivot_position": [
+        -0.4000000059604645,
+        0.5099999904632568,
+        0
+      ],
+      "pivot_model_position": [
+        -0.4000000059604645,
+        1.6150000095367432,
+        0.0
+      ],
+      "rotation_deg": {
+        "x": [
+          -60,
+          65
+        ],
+        "y": [
+          -30,
+          30
+        ],
+        "z": [
+          -55,
+          55
+        ]
+      },
+      "translation_m": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "note": "Rigid articulation; artistic ranges, not collision guarantees."
+    },
+    {
+      "name": "elbow_R",
+      "gltf_node_index": 51,
+      "parent": "shoulder_R",
+      "pivot_position": [
+        -0.2199999988079071,
+        -0.25999999046325684,
+        -0.010000018402934074
+      ],
+      "pivot_model_position": [
+        -0.6200000047683716,
+        1.3550000190734863,
+        -0.010000018402934074
+      ],
+      "rotation_deg": {
+        "x": [
+          -85,
+          25
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          -12,
+          12
+        ]
+      },
+      "translation_m": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "note": "Rigid articulation; artistic ranges, not collision guarantees."
+    },
+    {
+      "name": "wrist_R",
+      "gltf_node_index": 50,
+      "parent": "elbow_R",
+      "pivot_position": [
+        -0.12000000476837158,
+        -0.04999995231628418,
+        -0.1300000101327896
+      ],
+      "pivot_model_position": [
+        -0.7400000095367432,
+        1.3050000667572021,
+        -0.14000003039836884
+      ],
+      "rotation_deg": {
+        "x": [
+          -25,
+          25
+        ],
+        "y": [
+          -55,
+          55
+        ],
+        "z": [
+          -25,
+          25
+        ]
+      },
+      "translation_m": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "note": "Rigid articulation; artistic ranges, not collision guarantees."
+    },
+    {
+      "name": "hip_L",
+      "gltf_node_index": 66,
+      "parent": "root",
+      "pivot_position": [
+        0.20000000298023224,
+        0.9949999451637268,
+        0
+      ],
+      "pivot_model_position": [
+        0.20000000298023224,
+        0.9949999451637268,
+        0.0
+      ],
+      "rotation_deg": {
+        "x": [
+          -45,
+          45
+        ],
+        "y": [
+          -20,
+          20
+        ],
+        "z": [
+          -20,
+          20
+        ]
+      },
+      "translation_m": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "note": "Rigid articulation; artistic ranges, not collision guarantees."
+    },
+    {
+      "name": "knee_L",
+      "gltf_node_index": 63,
+      "parent": "hip_L",
+      "pivot_position": [
+        0.04999999701976776,
+        -0.3999999761581421,
+        -0.009999996051192284
+      ],
+      "pivot_model_position": [
+        0.25,
+        0.5949999690055847,
+        -0.009999996051192284
+      ],
+      "rotation_deg": {
+        "x": [
+          -65,
+          8
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "translation_m": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "note": "Rigid articulation; artistic ranges, not collision guarantees."
+    },
+    {
+      "name": "ankle_L",
+      "gltf_node_index": 60,
+      "parent": "knee_L",
+      "pivot_position": [
+        0.034999996423721313,
+        -0.4099999666213989,
+        -0.024999994784593582
+      ],
+      "pivot_model_position": [
+        0.2849999964237213,
+        0.1850000023841858,
+        -0.03499998897314072
+      ],
+      "rotation_deg": {
+        "x": [
+          -20,
+          20
+        ],
+        "y": [
+          -15,
+          15
+        ],
+        "z": [
+          -10,
+          10
+        ]
+      },
+      "translation_m": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "note": "Rigid articulation; artistic ranges, not collision guarantees."
+    },
+    {
+      "name": "hip_R",
+      "gltf_node_index": 76,
+      "parent": "root",
+      "pivot_position": [
+        -0.20000000298023224,
+        0.9949999451637268,
+        0
+      ],
+      "pivot_model_position": [
+        -0.20000000298023224,
+        0.9949999451637268,
+        0.0
+      ],
+      "rotation_deg": {
+        "x": [
+          -45,
+          45
+        ],
+        "y": [
+          -20,
+          20
+        ],
+        "z": [
+          -20,
+          20
+        ]
+      },
+      "translation_m": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "note": "Rigid articulation; artistic ranges, not collision guarantees."
+    },
+    {
+      "name": "knee_R",
+      "gltf_node_index": 73,
+      "parent": "hip_R",
+      "pivot_position": [
+        -0.04999999701976776,
+        -0.3999999761581421,
+        -0.01000000350177288
+      ],
+      "pivot_model_position": [
+        -0.25,
+        0.5949999690055847,
+        -0.01000000350177288
+      ],
+      "rotation_deg": {
+        "x": [
+          -65,
+          8
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "translation_m": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "note": "Rigid articulation; artistic ranges, not collision guarantees."
+    },
+    {
+      "name": "ankle_R",
+      "gltf_node_index": 70,
+      "parent": "knee_R",
+      "pivot_position": [
+        -0.034999996423721313,
+        -0.4099999666213989,
+        -0.025000005960464478
+      ],
+      "pivot_model_position": [
+        -0.2849999964237213,
+        0.1850000023841858,
+        -0.03500001132488251
+      ],
+      "rotation_deg": {
+        "x": [
+          -20,
+          20
+        ],
+        "y": [
+          -15,
+          15
+        ],
+        "z": [
+          -10,
+          10
+        ]
+      },
+      "translation_m": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "note": "Rigid articulation; artistic ranges, not collision guarantees."
+    },
+    {
+      "name": "eye_L",
+      "gltf_node_index": 10,
+      "parent": "head_look",
+      "pivot_position": [
+        0.07700001448392868,
+        0.22099995613098145,
+        -0.17399999499320984
+      ],
+      "pivot_model_position": [
+        0.07700001448392868,
+        2.00600004196167,
+        -0.17399999499320984
+      ],
+      "rotation_deg": {
+        "x": [
+          -12,
+          12
+        ],
+        "y": [
+          -12,
+          12
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "translation_m": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "note": "Rigid gaze accent, not a simulated eye."
+    },
+    {
+      "name": "eye_R",
+      "gltf_node_index": 13,
+      "parent": "head_look",
+      "pivot_position": [
+        -0.07699998468160629,
+        0.22099995613098145,
+        -0.17399999499320984
+      ],
+      "pivot_model_position": [
+        -0.07699998468160629,
+        2.00600004196167,
+        -0.17399999499320984
+      ],
+      "rotation_deg": {
+        "x": [
+          -12,
+          12
+        ],
+        "y": [
+          -12,
+          12
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "translation_m": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "note": "Rigid gaze accent, not a simulated eye."
+    },
+    {
+      "name": "cape_L",
+      "gltf_node_index": 4,
+      "parent": "body_sway",
+      "pivot_position": [
+        0.2199999839067459,
+        0.5099999904632568,
+        0.12000001966953278
+      ],
+      "pivot_model_position": [
+        0.2199999839067459,
+        1.6150000095367432,
+        0.12000001966953278
+      ],
+      "rotation_deg": {
+        "x": [
+          -12,
+          18
+        ],
+        "y": [
+          -8,
+          8
+        ],
+        "z": [
+          -15,
+          15
+        ]
+      },
+      "translation_m": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "note": "Rigid cape-panel fan pivot; no cloth simulation."
+    },
+    {
+      "name": "cape_R",
+      "gltf_node_index": 7,
+      "parent": "body_sway",
+      "pivot_position": [
+        -0.2200000137090683,
+        0.5099999904632568,
+        0.1199999749660492
+      ],
+      "pivot_model_position": [
+        -0.2200000137090683,
+        1.6150000095367432,
+        0.1199999749660492
+      ],
+      "rotation_deg": {
+        "x": [
+          -12,
+          18
+        ],
+        "y": [
+          -8,
+          8
+        ],
+        "z": [
+          -15,
+          15
+        ]
+      },
+      "translation_m": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "note": "Rigid cape-panel fan pivot; no cloth simulation."
+    },
+    {
+      "name": "checker_guard",
+      "gltf_node_index": 30,
+      "parent": "wrist_L",
+      "pivot_position": [
+        0.039999961853027344,
+        0.019999980926513672,
+        -0.09999997913837433
+      ],
+      "pivot_model_position": [
+        0.7799999713897705,
+        1.215000033378601,
+        -0.2399999499320984
+      ],
+      "rotation_deg": {
+        "x": [
+          -20,
+          20
+        ],
+        "y": [
+          -30,
+          30
+        ],
+        "z": [
+          -15,
+          15
+        ]
+      },
+      "translation_m": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "note": "Separate wrist-mounted shield pivot."
+    },
+    {
+      "name": "rook_sceptre",
+      "gltf_node_index": 47,
+      "parent": "wrist_R",
+      "pivot_position": [
+        -0.050000011920928955,
+        0,
+        -0.050000011920928955
+      ],
+      "pivot_model_position": [
+        -0.7900000214576721,
+        1.3050000667572021,
+        -0.1900000423192978
+      ],
+      "rotation_deg": {
+        "x": [
+          -30,
+          30
+        ],
+        "y": [
+          -30,
+          30
+        ],
+        "z": [
+          -35,
+          35
+        ]
+      },
+      "translation_m": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "note": "Rigid tool pivot, independently poseable; no weapon logic."
+    }
+  ],
+  "static_nodes": [
+    {
+      "name": "body_sway__aged_brass",
+      "parent": "body_sway"
+    },
+    {
+      "name": "body_sway__ebony_wood",
+      "parent": "body_sway"
+    },
+    {
+      "name": "cape_L__aged_brass",
+      "parent": "cape_L"
+    },
+    {
+      "name": "velvet_tail_L",
+      "parent": "cape_L"
+    },
+    {
+      "name": "cape_R__aged_brass",
+      "parent": "cape_R"
+    },
+    {
+      "name": "velvet_tail_R",
+      "parent": "cape_R"
+    },
+    {
+      "name": "jade_eye_L",
+      "parent": "eye_L"
+    },
+    {
+      "name": "pupil_L",
+      "parent": "eye_L"
+    },
+    {
+      "name": "jade_eye_R",
+      "parent": "eye_R"
+    },
+    {
+      "name": "pupil_R",
+      "parent": "eye_R"
+    },
+    {
+      "name": "head_look__aged_brass",
+      "parent": "head_look"
+    },
+    {
+      "name": "head_look__ebony_wood",
+      "parent": "head_look"
+    },
+    {
+      "name": "head_look__eye_obsidian",
+      "parent": "head_look"
+    },
+    {
+      "name": "head_look__ivory_porcelain",
+      "parent": "head_look"
+    },
+    {
+      "name": "chin",
+      "parent": "jaw_emote"
+    },
+    {
+      "name": "smirk",
+      "parent": "jaw_emote"
+    },
+    {
+      "name": "porcelain_sovereign_body",
+      "parent": "body_sway"
+    },
+    {
+      "name": "arm_sleeve_L",
+      "parent": "shoulder_L"
+    },
+    {
+      "name": "elbow_bearing_L",
+      "parent": "elbow_L"
+    },
+    {
+      "name": "forearm_core_L",
+      "parent": "elbow_L"
+    },
+    {
+      "name": "forearm_shell_L",
+      "parent": "elbow_L"
+    },
+    {
+      "name": "checker_guard__aged_brass",
+      "parent": "checker_guard"
+    },
+    {
+      "name": "checker_guard__ebony_wood",
+      "parent": "checker_guard"
+    },
+    {
+      "name": "checker_guard__ivory_porcelain",
+      "parent": "checker_guard"
+    },
+    {
+      "name": "palm_L",
+      "parent": "wrist_L"
+    },
+    {
+      "name": "wrist_bearing_L",
+      "parent": "wrist_L"
+    },
+    {
+      "name": "wrist_L__ivory_porcelain",
+      "parent": "wrist_L"
+    },
+    {
+      "name": "shoulder_L__aged_brass",
+      "parent": "shoulder_L"
+    },
+    {
+      "name": "shoulder_L__ebony_wood",
+      "parent": "shoulder_L"
+    },
+    {
+      "name": "elbow_bearing_R",
+      "parent": "elbow_R"
+    },
+    {
+      "name": "forearm_core_R",
+      "parent": "elbow_R"
+    },
+    {
+      "name": "forearm_shell_R",
+      "parent": "elbow_R"
+    },
+    {
+      "name": "palm_R",
+      "parent": "wrist_R"
+    },
+    {
+      "name": "rook_sceptre__aged_brass",
+      "parent": "rook_sceptre"
+    },
+    {
+      "name": "rook_sceptre__ivory_porcelain",
+      "parent": "rook_sceptre"
+    },
+    {
+      "name": "sceptre_ebony_shaft",
+      "parent": "rook_sceptre"
+    },
+    {
+      "name": "sceptre_jade_core",
+      "parent": "rook_sceptre"
+    },
+    {
+      "name": "wrist_bearing_R",
+      "parent": "wrist_R"
+    },
+    {
+      "name": "wrist_R__ivory_porcelain",
+      "parent": "wrist_R"
+    },
+    {
+      "name": "shoulder_joint_R",
+      "parent": "shoulder_R"
+    },
+    {
+      "name": "shoulder_R__ivory_porcelain",
+      "parent": "shoulder_R"
+    },
+    {
+      "name": "upper_arm_core_R",
+      "parent": "shoulder_R"
+    },
+    {
+      "name": "hip_bearing_L",
+      "parent": "hip_L"
+    },
+    {
+      "name": "boot_gilt_rim_L",
+      "parent": "ankle_L"
+    },
+    {
+      "name": "chess_base_boot_L",
+      "parent": "ankle_L"
+    },
+    {
+      "name": "knee_L__aged_brass",
+      "parent": "knee_L"
+    },
+    {
+      "name": "shin_turning_L",
+      "parent": "knee_L"
+    },
+    {
+      "name": "thigh_turning_L",
+      "parent": "hip_L"
+    },
+    {
+      "name": "upper_leg_L",
+      "parent": "hip_L"
+    },
+    {
+      "name": "hip_bearing_R",
+      "parent": "hip_R"
+    },
+    {
+      "name": "boot_gilt_rim_R",
+      "parent": "ankle_R"
+    },
+    {
+      "name": "chess_base_boot_R",
+      "parent": "ankle_R"
+    },
+    {
+      "name": "knee_R__aged_brass",
+      "parent": "knee_R"
+    },
+    {
+      "name": "shin_turning_R",
+      "parent": "knee_R"
+    },
+    {
+      "name": "thigh_turning_R",
+      "parent": "hip_R"
+    },
+    {
+      "name": "upper_leg_R",
+      "parent": "hip_R"
+    }
+  ],
+  "skinning": "none; separate rigid mesh assemblies",
+  "animation_clips": [],
+  "variant": "model.glb"
+}

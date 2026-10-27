@@ -1,0 +1,810 @@
+{
+  "schema": "rigid_parts_v2",
+  "version": 2,
+  "model": "laminate",
+  "coordinate_system": "glTF: metres, +Y up, -Z forward; Blender source Z up, +Y forward.",
+  "pivot_space": "pivot_position is parent-local glTF translation; pivot_model_position is rest-pose model-space origin. Rotations about local axes in degrees. Blender X bends export to glTF X; Blender Z yaw exports to glTF Y. Mechanical forward-axis spins may use glTF Z.",
+  "range_semantics": "Inclusive artistic motion guides, not collision guarantees. free is uncapped; [0,0] locked. No animation clips, constraints, skinning or IK.",
+  "movable_nodes": [
+    {
+      "name": "root",
+      "gltf_node_index": 60,
+      "parent": null,
+      "pivot_position": [
+        0,
+        0,
+        0
+      ],
+      "pivot_model_position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "rotation_deg": {
+        "x": [
+          0,
+          0
+        ],
+        "y": "free",
+        "z": [
+          0,
+          0
+        ]
+      },
+      "translation_m": {
+        "x": "free",
+        "y": "free",
+        "z": "free"
+      },
+      "motion_axis": "Y",
+      "note": "Caller-owned placement; free translation and yaw."
+    },
+    {
+      "name": "pelvis",
+      "gltf_node_index": 59,
+      "parent": "root",
+      "pivot_position": [
+        0,
+        0.8199999928474426,
+        0
+      ],
+      "pivot_model_position": [
+        0.0,
+        0.8199999928474426,
+        0.0
+      ],
+      "rotation_deg": {
+        "x": [
+          -60,
+          60
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "translation_m": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "motion_axis": "X",
+      "note": "Rigid articulation, artistic guide; not a collision guarantee."
+    },
+    {
+      "name": "torso",
+      "gltf_node_index": 58,
+      "parent": "pelvis",
+      "pivot_position": [
+        0,
+        0.37000006437301636,
+        0
+      ],
+      "pivot_model_position": [
+        0.0,
+        1.190000057220459,
+        0.0
+      ],
+      "rotation_deg": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          -35,
+          35
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "translation_m": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "motion_axis": "Y",
+      "note": "Rigid articulation, artistic guide; not a collision guarantee."
+    },
+    {
+      "name": "L_hip",
+      "gltf_node_index": 7,
+      "parent": "pelvis",
+      "pivot_position": [
+        -0.1599999964237213,
+        -0.029999971389770508,
+        0
+      ],
+      "pivot_model_position": [
+        -0.1599999964237213,
+        0.7900000214576721,
+        0.0
+      ],
+      "rotation_deg": {
+        "x": [
+          -65,
+          75
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "translation_m": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "motion_axis": "X",
+      "note": "Rigid articulation, artistic guide; not a collision guarantee."
+    },
+    {
+      "name": "L_knee",
+      "gltf_node_index": 5,
+      "parent": "L_hip",
+      "pivot_position": [
+        -0.030000001192092896,
+        -0.3400000035762787,
+        0
+      ],
+      "pivot_model_position": [
+        -0.1899999976158142,
+        0.45000001788139343,
+        0.0
+      ],
+      "rotation_deg": {
+        "x": [
+          -110,
+          5
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "translation_m": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "motion_axis": "X",
+      "note": "Rigid articulation, artistic guide; not a collision guarantee."
+    },
+    {
+      "name": "L_ankle",
+      "gltf_node_index": 2,
+      "parent": "L_knee",
+      "pivot_position": [
+        -0.030000001192092896,
+        -0.33000001311302185,
+        -0.03999999910593033
+      ],
+      "pivot_model_position": [
+        -0.2199999988079071,
+        0.12000000476837158,
+        -0.03999999910593033
+      ],
+      "rotation_deg": {
+        "x": [
+          -35,
+          35
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "translation_m": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "motion_axis": "X",
+      "note": "Rigid articulation, artistic guide; not a collision guarantee."
+    },
+    {
+      "name": "R_hip",
+      "gltf_node_index": 16,
+      "parent": "pelvis",
+      "pivot_position": [
+        0.1599999964237213,
+        -0.029999971389770508,
+        0
+      ],
+      "pivot_model_position": [
+        0.1599999964237213,
+        0.7900000214576721,
+        0.0
+      ],
+      "rotation_deg": {
+        "x": [
+          -65,
+          75
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "translation_m": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "motion_axis": "X",
+      "note": "Rigid articulation, artistic guide; not a collision guarantee."
+    },
+    {
+      "name": "R_knee",
+      "gltf_node_index": 14,
+      "parent": "R_hip",
+      "pivot_position": [
+        0.040000006556510925,
+        -0.33000001311302185,
+        0.05000000074505806
+      ],
+      "pivot_model_position": [
+        0.20000000298023224,
+        0.46000000834465027,
+        0.05000000074505806
+      ],
+      "rotation_deg": {
+        "x": [
+          -110,
+          5
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "translation_m": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "motion_axis": "X",
+      "note": "Rigid articulation, artistic guide; not a collision guarantee."
+    },
+    {
+      "name": "R_ankle",
+      "gltf_node_index": 11,
+      "parent": "R_knee",
+      "pivot_position": [
+        0.04999999701976776,
+        -0.3400000035762787,
+        0.009999997913837433
+      ],
+      "pivot_model_position": [
+        0.25,
+        0.12000000476837158,
+        0.05999999865889549
+      ],
+      "rotation_deg": {
+        "x": [
+          -35,
+          35
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "translation_m": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "motion_axis": "X",
+      "note": "Rigid articulation, artistic guide; not a collision guarantee."
+    },
+    {
+      "name": "head",
+      "gltf_node_index": 27,
+      "parent": "torso",
+      "pivot_position": [
+        0,
+        0.46999990940093994,
+        0
+      ],
+      "pivot_model_position": [
+        0.0,
+        1.659999966621399,
+        0.0
+      ],
+      "rotation_deg": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          -55,
+          55
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "translation_m": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "motion_axis": "Y",
+      "note": "Rigid articulation, artistic guide; not a collision guarantee."
+    },
+    {
+      "name": "L_shoulder",
+      "gltf_node_index": 41,
+      "parent": "torso",
+      "pivot_position": [
+        -0.3100000023841858,
+        0.22999989986419678,
+        0
+      ],
+      "pivot_model_position": [
+        -0.3100000023841858,
+        1.4199999570846558,
+        0.0
+      ],
+      "rotation_deg": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          -100,
+          100
+        ]
+      },
+      "translation_m": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "motion_axis": "Z",
+      "note": "Rigid articulation, artistic guide; not a collision guarantee."
+    },
+    {
+      "name": "L_elbow",
+      "gltf_node_index": 38,
+      "parent": "L_shoulder",
+      "pivot_position": [
+        -0.12000000476837158,
+        -0.25,
+        -0.10000000149011612
+      ],
+      "pivot_model_position": [
+        -0.4300000071525574,
+        1.1699999570846558,
+        -0.10000000149011612
+      ],
+      "rotation_deg": {
+        "x": [
+          0,
+          110
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "translation_m": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "motion_axis": "X",
+      "note": "Rigid articulation, artistic guide; not a collision guarantee."
+    },
+    {
+      "name": "L_wrist",
+      "gltf_node_index": 37,
+      "parent": "L_elbow",
+      "pivot_position": [
+        -0.12000000476837158,
+        -0.059999942779541016,
+        -0.13999998569488525
+      ],
+      "pivot_model_position": [
+        -0.550000011920929,
+        1.1100000143051147,
+        -0.23999997973442078
+      ],
+      "rotation_deg": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          -90,
+          90
+        ]
+      },
+      "translation_m": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "motion_axis": "Z",
+      "note": "Rigid articulation, artistic guide; not a collision guarantee."
+    },
+    {
+      "name": "R_shoulder",
+      "gltf_node_index": 57,
+      "parent": "torso",
+      "pivot_position": [
+        0.3100000023841858,
+        0.22999989986419678,
+        0
+      ],
+      "pivot_model_position": [
+        0.3100000023841858,
+        1.4199999570846558,
+        0.0
+      ],
+      "rotation_deg": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          -100,
+          100
+        ]
+      },
+      "translation_m": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "motion_axis": "Z",
+      "note": "Rigid articulation, artistic guide; not a collision guarantee."
+    },
+    {
+      "name": "R_elbow",
+      "gltf_node_index": 53,
+      "parent": "R_shoulder",
+      "pivot_position": [
+        0.16999998688697815,
+        -0.2399998903274536,
+        0.03999999910593033
+      ],
+      "pivot_model_position": [
+        0.47999998927116394,
+        1.1800000667572021,
+        0.03999999910593033
+      ],
+      "rotation_deg": {
+        "x": [
+          0,
+          110
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "translation_m": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "motion_axis": "X",
+      "note": "Rigid articulation, artistic guide; not a collision guarantee."
+    },
+    {
+      "name": "R_wrist",
+      "gltf_node_index": 52,
+      "parent": "R_elbow",
+      "pivot_position": [
+        0.16999998688697815,
+        -0.15000009536743164,
+        -0.14000000059604645
+      ],
+      "pivot_model_position": [
+        0.6499999761581421,
+        1.0299999713897705,
+        -0.10000000149011612
+      ],
+      "rotation_deg": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          -90,
+          90
+        ]
+      },
+      "translation_m": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "motion_axis": "Z",
+      "note": "Rigid articulation, artistic guide; not a collision guarantee."
+    },
+    {
+      "name": "shield_deploy",
+      "gltf_node_index": 36,
+      "parent": "L_wrist",
+      "pivot_position": [
+        -0.009999990463256836,
+        0,
+        -0.06000003218650818
+      ],
+      "pivot_model_position": [
+        -0.5600000023841858,
+        1.1100000143051147,
+        -0.30000001192092896
+      ],
+      "rotation_deg": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          -50,
+          50
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "translation_m": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "motion_axis": "Y",
+      "note": "Rigid articulation, artistic guide; not a collision guarantee."
+    }
+  ],
+  "static_nodes": [
+    "belt",
+    "L_shoe",
+    "L_kneecap",
+    "L_shin",
+    "L_thigh",
+    "panel_skirt_L",
+    "panel_skirt_R",
+    "R_shoe",
+    "R_kneecap",
+    "R_shin",
+    "R_thigh",
+    "clerk_eyes_L",
+    "clerk_eyes_R",
+    "clerk_face",
+    "helmet_hair",
+    "L_roller_end",
+    "mouth",
+    "neck",
+    "nose",
+    "R_roller_end",
+    "roller_crown",
+    "L_elbow_pin",
+    "L_forearm",
+    "L_hand",
+    "approval_diamond",
+    "lamination_shield",
+    "shield_document",
+    "shield_lower_corner",
+    "shield_spine",
+    "L_shoulder_pin",
+    "L_upper_arm",
+    "laminated_jacket",
+    "paper_lapel_L",
+    "paper_lapel_R",
+    "R_elbow_pin",
+    "R_forearm",
+    "corner_lance_blade",
+    "corner_lance_inset",
+    "corner_lance_shaft",
+    "lance_guard",
+    "R_hand",
+    "R_shoulder_pin",
+    "R_upper_arm",
+    "right_shoulder_panel"
+  ],
+  "held_prop_contract": "Held props are descendants of the corresponding hand/wrist pivot; static geometry follows its ancestor motion."
+}

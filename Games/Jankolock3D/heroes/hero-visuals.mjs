@@ -10,7 +10,7 @@ const COLORS = {
   longshot: '#c18a38', tether: '#8c68a1', headshot: RED, xray: '#4e80a7',
   puddle: '#4e80a7', glue: '#8c68a1', missionbomb: '#c18a38', aura: '#70884c'
 };
-const GENERIC = ['shot', 'melee', 'parry', 'dash', 'jump', 'slide', 'explosion'];
+const GENERIC = ['shot', 'melee', 'parry', 'dash', 'jump', 'slide', 'explosion', 'passage'];
 const finite = (n, fallback = 0) => Number.isFinite(n) ? n : fallback;
 
 // Geometry belongs to one hero or manager; materials belong to one hero or handle.
@@ -18,7 +18,8 @@ function geometryKit() {
   return {
     box: new THREE.BoxGeometry(1, 1, 1), cylinder: new THREE.CylinderGeometry(0.5, 0.5, 1, 10),
     ball: new THREE.SphereGeometry(0.5, 10, 6), diamond: new THREE.OctahedronGeometry(0.5),
-    ring: new THREE.TorusGeometry(0.5, 0.045, 4, 20), nib: new THREE.ConeGeometry(0.5, 1, 3)
+    ring: new THREE.TorusGeometry(0.5, 0.045, 4, 20), nib: new THREE.ConeGeometry(0.5, 1, 3),
+    zoneRing: new THREE.RingGeometry(.985, 1, 64)
   };
 }
 function paints(depthTest = true) {
@@ -210,6 +211,10 @@ export class AbilityFX {
           cage.head.position.copy(point).sub(group.position); cage.head.position.y += 1.6;
         }
       };
+    } else if (id === 'passage') {
+      // Authored local outline primitives: outer radius exactly r, no portal/art claim.
+      group.rotation.y=0;
+      for(const point of targets) add('zoneRing',[r,r,1],[point.x-origin.x,point.y-origin.y+.025,point.z-origin.z]).rotation.x=-Math.PI/2;
     } else if (id === 'puddle' || id === 'aura') {
       add('cylinder', [r * 1.65, 0.08, r * 1.8], [0, 0.045, 0]);
       if (id === 'puddle') {

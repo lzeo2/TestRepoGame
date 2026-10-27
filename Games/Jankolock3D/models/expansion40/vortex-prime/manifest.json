@@ -1,0 +1,89 @@
+{
+  "schema": "jank3d_hero_expansion_asset_v1",
+  "hero_number": 25,
+  "id": "vortex-prime",
+  "display_name": "Vortex",
+  "role": "Control",
+  "design_notes": "A rotary correspondence sorter with a waist of spiraling envelopes, three small castor feet, a floating file-tab face on a physical spindle, and articulated mail-handler arms. Paper rings and an index hoop communicate geometric control without glow or particles.",
+  "files": {
+    "source": "model.blend",
+    "runtime": "model.glb",
+    "illustration": "portrait.png",
+    "rig": "rig.json",
+    "rig_alias": "manifest.rig.json",
+    "palette": "palette.json"
+  },
+  "blender_version": "4.3.2",
+  "glb_bytes": 205728,
+  "glb_sha256": "5af78113087d9d196f323bfe801dde836a091fb7847812565d5604469ac7bd8d",
+  "triangles": 3360,
+  "mesh_nodes": 66,
+  "movable_nodes": 16,
+  "bounds_gltf": {
+    "min": [
+      -0.8050000071525574,
+      0.0,
+      -0.44475144147872925
+    ],
+    "max": [
+      1.1700286865234375,
+      2.0199999809265137,
+      0.4700000286102295
+    ],
+    "dimensions": [
+      1.9750286936759949,
+      2.0199999809265137,
+      0.9147514700889587
+    ]
+  },
+  "palette_hex": {
+    "paper": "#f2e8cd",
+    "ink": "#253038",
+    "manila": "#c5aa78",
+    "accent": "#547b76"
+  },
+  "texture_count": 0,
+  "external_dependencies": [],
+  "illustration_dimensions": [
+    1024,
+    1024
+  ],
+  "grounding_offset_applied_blender_z": -0.009999995119869709,
+  "status": "Original art-review candidate. Proposed kit is separate; not game-integrated or runtime-schema validated.",
+  "art_direction": "Flat paper/ink/manila + one accent, unlit solid fills and ink contours; neutral background.",
+  "model": "vortex-prime",
+  "tri_count_LOD0": 3360,
+  "size_bytes": 205728,
+  "texture_resolution": null,
+  "material_slots": [
+    "vortex-prime__ink",
+    "vortex-prime__manila",
+    "vortex-prime__paper",
+    "vortex-prime__accent"
+  ],
+  "rig_nodes": [
+    "root",
+    "base",
+    "caster_0",
+    "caster_1",
+    "caster_2",
+    "lower_rotor",
+    "upper_rotor",
+    "head",
+    "torso",
+    "L_shoulder",
+    "L_elbow",
+    "L_wrist",
+    "R_shoulder",
+    "R_elbow",
+    "R_wrist",
+    "index_hoop"
+  ],
+  "palette_default": {
+    "paper": "#f2e8cd",
+    "ink": "#253038",
+    "manila": "#c5aa78",
+    "accent": "#547b76"
+  },
+  "provenance_note": "Generated in Blender by dot and Astra 6 max delegates, 2026-10-23; original in-house artwork, no remote assets."
+}

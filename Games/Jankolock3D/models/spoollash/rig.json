@@ -1,0 +1,1440 @@
+{
+  "schema": "rigid_parts_v2",
+  "version": 2,
+  "model": "spoollash",
+  "coordinate_system": "glTF: metres, +Y up, -Z forward; source Blender +Z up, +Y forward; right +X.",
+  "source_axis_mapping": {
+    "Blender_X": "glTF_X",
+    "Blender_Z": "glTF_Y",
+    "Blender_Y": "glTF_-Z"
+  },
+  "pivot_space": "parent-local glTF metres; pivot_model_position is model-space rest origin. rotation_deg is about glTF local axes.",
+  "range_semantics": "Inclusive artistic guides only, not collision guarantees. [0,0] locked; free uncapped.",
+  "movable_nodes": [
+    {
+      "name": "root",
+      "gltf_node_index": 77,
+      "parent": null,
+      "pivot_position": [
+        0,
+        0,
+        0
+      ],
+      "pivot_model_position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "rotation_deg": {
+        "x": [
+          0,
+          0
+        ],
+        "y": "free",
+        "z": [
+          0,
+          0
+        ]
+      },
+      "translation_m": {
+        "x": "free",
+        "y": "free",
+        "z": "free"
+      },
+      "note": "Caller-owned placement, free translation and yaw."
+    },
+    {
+      "name": "pelvis",
+      "gltf_node_index": 76,
+      "parent": "root",
+      "pivot_position": [
+        0,
+        0.5,
+        0
+      ],
+      "pivot_model_position": [
+        0.0,
+        0.5,
+        0.0
+      ],
+      "rotation_deg": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          -20,
+          20
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "translation_m": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "note": "Rigid articulation; artistic ranges, not collision guarantees."
+    },
+    {
+      "name": "reel_body",
+      "gltf_node_index": 67,
+      "parent": "pelvis",
+      "pivot_position": [
+        0,
+        0.26999998092651367,
+        0
+      ],
+      "pivot_model_position": [
+        0.0,
+        0.7699999809265137,
+        0.0
+      ],
+      "rotation_deg": {
+        "x": [
+          -15,
+          15
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "translation_m": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "note": "Rigid articulation; artistic ranges, not collision guarantees."
+    },
+    {
+      "name": "reel_crank",
+      "gltf_node_index": 29,
+      "parent": "reel_body",
+      "pivot_position": [
+        0,
+        0.25999999046325684,
+        0.30000001192092896
+      ],
+      "pivot_model_position": [
+        0.0,
+        1.0299999713897705,
+        0.30000001192092896
+      ],
+      "rotation_deg": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          -180,
+          180
+        ]
+      },
+      "translation_m": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "note": "Rigid articulation; artistic ranges, not collision guarantees."
+    },
+    {
+      "name": "head",
+      "gltf_node_index": 13,
+      "parent": "reel_body",
+      "pivot_position": [
+        0,
+        0.5900000333786011,
+        -0.014999999664723873
+      ],
+      "pivot_model_position": [
+        0.0,
+        1.3600000143051147,
+        -0.014999999664723873
+      ],
+      "rotation_deg": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          -55,
+          55
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "translation_m": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "note": "Rigid articulation; artistic ranges, not collision guarantees."
+    },
+    {
+      "name": "left_hip",
+      "gltf_node_index": 7,
+      "parent": "pelvis",
+      "pivot_position": [
+        -0.18000000715255737,
+        0.029999971389770508,
+        0
+      ],
+      "pivot_model_position": [
+        -0.18000000715255737,
+        0.5299999713897705,
+        0.0
+      ],
+      "rotation_deg": {
+        "x": [
+          -55,
+          55
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "translation_m": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "note": "Rigid articulation; artistic ranges, not collision guarantees."
+    },
+    {
+      "name": "left_knee",
+      "gltf_node_index": 5,
+      "parent": "left_hip",
+      "pivot_position": [
+        -0.04999999701976776,
+        -0.21999996900558472,
+        -0.02500000037252903
+      ],
+      "pivot_model_position": [
+        -0.23000000417232513,
+        0.3100000023841858,
+        -0.02500000037252903
+      ],
+      "rotation_deg": {
+        "x": [
+          -90,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "translation_m": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "note": "Rigid articulation; artistic ranges, not collision guarantees."
+    },
+    {
+      "name": "left_ankle",
+      "gltf_node_index": 2,
+      "parent": "left_knee",
+      "pivot_position": [
+        -0.0299999862909317,
+        -0.1899999976158142,
+        -0.054999999701976776
+      ],
+      "pivot_model_position": [
+        -0.25999999046325684,
+        0.12000000476837158,
+        -0.07999999821186066
+      ],
+      "rotation_deg": {
+        "x": [
+          -20,
+          25
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "translation_m": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "note": "Rigid articulation; artistic ranges, not collision guarantees."
+    },
+    {
+      "name": "left_shoulder",
+      "gltf_node_index": 22,
+      "parent": "reel_body",
+      "pivot_position": [
+        -0.3799999952316284,
+        0.43000006675720215,
+        0
+      ],
+      "pivot_model_position": [
+        -0.3799999952316284,
+        1.2000000476837158,
+        0.0
+      ],
+      "rotation_deg": {
+        "x": [
+          -80,
+          80
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "translation_m": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "note": "Rigid articulation; artistic ranges, not collision guarantees."
+    },
+    {
+      "name": "left_elbow",
+      "gltf_node_index": 19,
+      "parent": "left_shoulder",
+      "pivot_position": [
+        -0.12999999523162842,
+        -0.20000004768371582,
+        -0.02500000037252903
+      ],
+      "pivot_model_position": [
+        -0.5099999904632568,
+        1.0,
+        -0.02500000037252903
+      ],
+      "rotation_deg": {
+        "x": [
+          -10,
+          100
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "translation_m": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "note": "Rigid articulation; artistic ranges, not collision guarantees."
+    },
+    {
+      "name": "left_wrist",
+      "gltf_node_index": 18,
+      "parent": "left_elbow",
+      "pivot_position": [
+        -0.06999999284744263,
+        -0.1499999761581421,
+        -0.0949999988079071
+      ],
+      "pivot_model_position": [
+        -0.5799999833106995,
+        0.8500000238418579,
+        -0.11999999731779099
+      ],
+      "rotation_deg": {
+        "x": [
+          -45,
+          45
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "translation_m": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "note": "Rigid articulation; artistic ranges, not collision guarantees."
+    },
+    {
+      "name": "right_hip",
+      "gltf_node_index": 75,
+      "parent": "pelvis",
+      "pivot_position": [
+        0.18000000715255737,
+        0.029999971389770508,
+        0
+      ],
+      "pivot_model_position": [
+        0.18000000715255737,
+        0.5299999713897705,
+        0.0
+      ],
+      "rotation_deg": {
+        "x": [
+          -55,
+          55
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "translation_m": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "note": "Rigid articulation; artistic ranges, not collision guarantees."
+    },
+    {
+      "name": "right_knee",
+      "gltf_node_index": 73,
+      "parent": "right_hip",
+      "pivot_position": [
+        0.04999999701976776,
+        -0.21999996900558472,
+        -0.02500000037252903
+      ],
+      "pivot_model_position": [
+        0.23000000417232513,
+        0.3100000023841858,
+        -0.02500000037252903
+      ],
+      "rotation_deg": {
+        "x": [
+          -90,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "translation_m": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "note": "Rigid articulation; artistic ranges, not collision guarantees."
+    },
+    {
+      "name": "right_ankle",
+      "gltf_node_index": 70,
+      "parent": "right_knee",
+      "pivot_position": [
+        0.0299999862909317,
+        -0.1899999976158142,
+        -0.054999999701976776
+      ],
+      "pivot_model_position": [
+        0.25999999046325684,
+        0.12000000476837158,
+        -0.07999999821186066
+      ],
+      "rotation_deg": {
+        "x": [
+          -20,
+          25
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "translation_m": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "note": "Rigid articulation; artistic ranges, not collision guarantees."
+    },
+    {
+      "name": "right_shoulder",
+      "gltf_node_index": 65,
+      "parent": "reel_body",
+      "pivot_position": [
+        0.3799999952316284,
+        0.43000006675720215,
+        0
+      ],
+      "pivot_model_position": [
+        0.3799999952316284,
+        1.2000000476837158,
+        0.0
+      ],
+      "rotation_deg": {
+        "x": [
+          -80,
+          80
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "translation_m": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "note": "Rigid articulation; artistic ranges, not collision guarantees."
+    },
+    {
+      "name": "right_elbow",
+      "gltf_node_index": 62,
+      "parent": "right_shoulder",
+      "pivot_position": [
+        0.12999999523162842,
+        -0.20000004768371582,
+        -0.02500000037252903
+      ],
+      "pivot_model_position": [
+        0.5099999904632568,
+        1.0,
+        -0.02500000037252903
+      ],
+      "rotation_deg": {
+        "x": [
+          -10,
+          100
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "translation_m": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "note": "Rigid articulation; artistic ranges, not collision guarantees."
+    },
+    {
+      "name": "right_wrist",
+      "gltf_node_index": 61,
+      "parent": "right_elbow",
+      "pivot_position": [
+        0.06999999284744263,
+        0.029999971389770508,
+        -0.0949999988079071
+      ],
+      "pivot_model_position": [
+        0.5799999833106995,
+        1.0299999713897705,
+        -0.11999999731779099
+      ],
+      "rotation_deg": {
+        "x": [
+          -45,
+          45
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "translation_m": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "note": "Rigid articulation; artistic ranges, not collision guarantees."
+    },
+    {
+      "name": "whip_grip",
+      "gltf_node_index": 60,
+      "parent": "right_wrist",
+      "pivot_position": [
+        0,
+        0,
+        0
+      ],
+      "pivot_model_position": [
+        0.5799999833106995,
+        1.0299999713897705,
+        -0.11999999731779099
+      ],
+      "rotation_deg": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          -25,
+          25
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "translation_m": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "note": "Rigid articulation; artistic ranges, not collision guarantees."
+    },
+    {
+      "name": "whip_joint_01",
+      "gltf_node_index": 59,
+      "parent": "whip_grip",
+      "pivot_position": [
+        0.14000004529953003,
+        0.3400000333786011,
+        0
+      ],
+      "pivot_model_position": [
+        0.7200000286102295,
+        1.3700000047683716,
+        -0.11999999731779099
+      ],
+      "rotation_deg": {
+        "x": [
+          -32,
+          32
+        ],
+        "y": [
+          -18,
+          18
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "translation_m": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "note": "Rigid whip chain; local X bends within the rest arc, local Y provides lateral deflection. No spline or physics simulation."
+    },
+    {
+      "name": "whip_joint_02",
+      "gltf_node_index": 58,
+      "parent": "whip_joint_01",
+      "pivot_position": [
+        0,
+        0.4973931908607483,
+        0
+      ],
+      "pivot_model_position": [
+        0.9700000882148743,
+        1.7999999523162842,
+        -0.11999999731779099
+      ],
+      "rotation_deg": {
+        "x": [
+          -32,
+          32
+        ],
+        "y": [
+          -18,
+          18
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "translation_m": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "note": "Rigid whip chain; local X bends within the rest arc, local Y provides lateral deflection. No spline or physics simulation."
+    },
+    {
+      "name": "whip_joint_03",
+      "gltf_node_index": 57,
+      "parent": "whip_joint_02",
+      "pivot_position": [
+        0,
+        0.5147808790206909,
+        0
+      ],
+      "pivot_model_position": [
+        1.1799997091293335,
+        2.2699995040893555,
+        -0.11999999731779099
+      ],
+      "rotation_deg": {
+        "x": [
+          -32,
+          32
+        ],
+        "y": [
+          -18,
+          18
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "translation_m": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "note": "Rigid whip chain; local X bends within the rest arc, local Y provides lateral deflection. No spline or physics simulation."
+    },
+    {
+      "name": "whip_joint_04",
+      "gltf_node_index": 56,
+      "parent": "whip_joint_03",
+      "pivot_position": [
+        0,
+        0.47074419260025024,
+        0
+      ],
+      "pivot_model_position": [
+        1.0799996852874756,
+        2.729999542236328,
+        -0.11999998986721039
+      ],
+      "rotation_deg": {
+        "x": [
+          -32,
+          32
+        ],
+        "y": [
+          -18,
+          18
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "translation_m": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "note": "Rigid whip chain; local X bends within the rest arc, local Y provides lateral deflection. No spline or physics simulation."
+    },
+    {
+      "name": "whip_joint_05",
+      "gltf_node_index": 55,
+      "parent": "whip_joint_04",
+      "pivot_position": [
+        0,
+        0.5360036492347717,
+        0
+      ],
+      "pivot_model_position": [
+        0.6499994993209839,
+        3.049999237060547,
+        -0.1199999749660492
+      ],
+      "rotation_deg": {
+        "x": [
+          -32,
+          32
+        ],
+        "y": [
+          -18,
+          18
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "translation_m": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "note": "Rigid whip chain; local X bends within the rest arc, local Y provides lateral deflection. No spline or physics simulation."
+    },
+    {
+      "name": "whip_joint_06",
+      "gltf_node_index": 54,
+      "parent": "whip_joint_05",
+      "pivot_position": [
+        0,
+        0.6020799279212952,
+        0
+      ],
+      "pivot_model_position": [
+        0.049999237060546875,
+        3.099998950958252,
+        -0.119999960064888
+      ],
+      "rotation_deg": {
+        "x": [
+          -32,
+          32
+        ],
+        "y": [
+          -18,
+          18
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "translation_m": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "note": "Rigid whip chain; local X bends within the rest arc, local Y provides lateral deflection. No spline or physics simulation."
+    },
+    {
+      "name": "whip_joint_07",
+      "gltf_node_index": 53,
+      "parent": "whip_joint_06",
+      "pivot_position": [
+        0,
+        0.6369458436965942,
+        0
+      ],
+      "pivot_model_position": [
+        -0.5400007963180542,
+        2.8599987030029297,
+        -0.1199999526143074
+      ],
+      "rotation_deg": {
+        "x": [
+          -32,
+          32
+        ],
+        "y": [
+          -18,
+          18
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "translation_m": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "note": "Rigid whip chain; local X bends within the rest arc, local Y provides lateral deflection. No spline or physics simulation."
+    },
+    {
+      "name": "whip_joint_08",
+      "gltf_node_index": 52,
+      "parent": "whip_joint_07",
+      "pivot_position": [
+        0,
+        0.5232588648796082,
+        0
+      ],
+      "pivot_model_position": [
+        -0.9100006818771362,
+        2.4899988174438477,
+        -0.1199999526143074
+      ],
+      "rotation_deg": {
+        "x": [
+          -32,
+          32
+        ],
+        "y": [
+          -18,
+          18
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "translation_m": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "note": "Rigid whip chain; local X bends within the rest arc, local Y provides lateral deflection. No spline or physics simulation."
+    },
+    {
+      "name": "whip_joint_09",
+      "gltf_node_index": 51,
+      "parent": "whip_joint_08",
+      "pivot_position": [
+        0,
+        0.39560073614120483,
+        0
+      ],
+      "pivot_model_position": [
+        -1.2800005674362183,
+        2.3499984741210938,
+        -0.1199999451637268
+      ],
+      "rotation_deg": {
+        "x": [
+          -32,
+          32
+        ],
+        "y": [
+          -18,
+          18
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "translation_m": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "note": "Rigid whip chain; local X bends within the rest arc, local Y provides lateral deflection. No spline or physics simulation."
+    },
+    {
+      "name": "whip_joint_10",
+      "gltf_node_index": 50,
+      "parent": "whip_joint_09",
+      "pivot_position": [
+        0,
+        0.3966104984283447,
+        0
+      ],
+      "pivot_model_position": [
+        -1.6100006103515625,
+        2.569998264312744,
+        -0.11999993771314621
+      ],
+      "rotation_deg": {
+        "x": [
+          -32,
+          32
+        ],
+        "y": [
+          -18,
+          18
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "translation_m": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0
+        ],
+        "z": [
+          0,
+          0
+        ]
+      },
+      "note": "Rigid whip chain; local X bends within the rest arc, local Y provides lateral deflection. No spline or physics simulation."
+    }
+  ],
+  "static_nodes": [
+    {
+      "name": "left_ankle_cuff",
+      "parent": "left_ankle"
+    },
+    {
+      "name": "left_work_boot",
+      "parent": "left_ankle"
+    },
+    {
+      "name": "left_knee_ball",
+      "parent": "left_knee"
+    },
+    {
+      "name": "left_shin",
+      "parent": "left_knee"
+    },
+    {
+      "name": "left_upper_leg",
+      "parent": "left_hip"
+    },
+    {
+      "name": "head__brass__surface",
+      "parent": "head"
+    },
+    {
+      "name": "head__dark_rubber__surface",
+      "parent": "head"
+    },
+    {
+      "name": "head__eye__surface",
+      "parent": "head"
+    },
+    {
+      "name": "head__ivory__surface",
+      "parent": "head"
+    },
+    {
+      "name": "rubber_connector_head",
+      "parent": "head"
+    },
+    {
+      "name": "left_elbow_cap",
+      "parent": "left_elbow"
+    },
+    {
+      "name": "left_forearm",
+      "parent": "left_elbow"
+    },
+    {
+      "name": "left_grip",
+      "parent": "left_wrist"
+    },
+    {
+      "name": "left_wrist__rubber__surface",
+      "parent": "left_wrist"
+    },
+    {
+      "name": "left_shoulder_pad",
+      "parent": "left_shoulder"
+    },
+    {
+      "name": "left_upper_arm",
+      "parent": "left_shoulder"
+    },
+    {
+      "name": "reel_body__brass__surface",
+      "parent": "reel_body"
+    },
+    {
+      "name": "reel_body__leather__surface",
+      "parent": "reel_body"
+    },
+    {
+      "name": "reel_body__rubber__surface",
+      "parent": "reel_body"
+    },
+    {
+      "name": "reel_body__steel__surface",
+      "parent": "reel_body"
+    },
+    {
+      "name": "crank_arm",
+      "parent": "reel_crank"
+    },
+    {
+      "name": "crank_knob",
+      "parent": "reel_crank"
+    },
+    {
+      "name": "right_elbow_cap",
+      "parent": "right_elbow"
+    },
+    {
+      "name": "right_forearm",
+      "parent": "right_elbow"
+    },
+    {
+      "name": "right_grip",
+      "parent": "right_wrist"
+    },
+    {
+      "name": "right_wrist__rubber__surface",
+      "parent": "right_wrist"
+    },
+    {
+      "name": "leather_whip_handle",
+      "parent": "whip_grip"
+    },
+    {
+      "name": "whip_grip__brass__surface",
+      "parent": "whip_grip"
+    },
+    {
+      "name": "whip_copper_wrap_00",
+      "parent": "whip_joint_01"
+    },
+    {
+      "name": "whip_joint_01__leather__surface",
+      "parent": "whip_joint_01"
+    },
+    {
+      "name": "whip_joint_02__leather__surface",
+      "parent": "whip_joint_02"
+    },
+    {
+      "name": "whip_joint_03__leather__surface",
+      "parent": "whip_joint_03"
+    },
+    {
+      "name": "whip_copper_wrap_03",
+      "parent": "whip_joint_04"
+    },
+    {
+      "name": "whip_joint_04__leather__surface",
+      "parent": "whip_joint_04"
+    },
+    {
+      "name": "whip_joint_05__leather__surface",
+      "parent": "whip_joint_05"
+    },
+    {
+      "name": "whip_joint_06__leather__surface",
+      "parent": "whip_joint_06"
+    },
+    {
+      "name": "whip_copper_wrap_06",
+      "parent": "whip_joint_07"
+    },
+    {
+      "name": "whip_joint_07__leather__surface",
+      "parent": "whip_joint_07"
+    },
+    {
+      "name": "whip_joint_08__leather__surface",
+      "parent": "whip_joint_08"
+    },
+    {
+      "name": "whip_joint_09__leather__surface",
+      "parent": "whip_joint_09"
+    },
+    {
+      "name": "whip_joint_10__brass__surface",
+      "parent": "whip_joint_10"
+    },
+    {
+      "name": "whip_joint_10__leather__surface",
+      "parent": "whip_joint_10"
+    },
+    {
+      "name": "right_shoulder_pad",
+      "parent": "right_shoulder"
+    },
+    {
+      "name": "right_upper_arm",
+      "parent": "right_shoulder"
+    },
+    {
+      "name": "rubber_reel_core",
+      "parent": "reel_body"
+    },
+    {
+      "name": "right_ankle_cuff",
+      "parent": "right_ankle"
+    },
+    {
+      "name": "right_work_boot",
+      "parent": "right_ankle"
+    },
+    {
+      "name": "right_knee_ball",
+      "parent": "right_knee"
+    },
+    {
+      "name": "right_shin",
+      "parent": "right_knee"
+    },
+    {
+      "name": "right_upper_leg",
+      "parent": "right_hip"
+    }
+  ],
+  "skinning": "none; separate rigid mesh assemblies",
+  "animation_clips": [],
+  "variant": "model.glb"
+}

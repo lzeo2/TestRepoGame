@@ -1,0 +1,165 @@
+{
+  "schema": "semantic_pbr_palette_v1",
+  "model": "ribbon-seraph",
+  "slots": {
+    "Ink-black woven satin": {
+      "material_name": "ribbon-seraph__Ink-black woven satin",
+      "hex_srgb": "#151e29",
+      "metallic": 0.38,
+      "roughness": 0.245,
+      "surface": "fabric",
+      "gltf_material_indices": [
+        0
+      ],
+      "gltf_fx_material_indices": [
+        2
+      ],
+      "recolor_mode": "replace baseColorFactor; grayscale variation preserved",
+      "rgba_linear": [
+        0.007499032188206911,
+        0.012983032502233982,
+        0.022173885256052017,
+        1.0
+      ],
+      "gltf_lod1_material_indices": [
+        0
+      ]
+    },
+    "Violet ink folds": {
+      "material_name": "ribbon-seraph__Violet ink folds",
+      "hex_srgb": "#30233e",
+      "metallic": 0.48,
+      "roughness": 0.27,
+      "surface": "fabric",
+      "gltf_material_indices": [
+        1
+      ],
+      "gltf_fx_material_indices": [
+        3
+      ],
+      "recolor_mode": "replace baseColorFactor; grayscale variation preserved",
+      "rgba_linear": [
+        0.02955683507025242,
+        0.016807375475764275,
+        0.04817182570695877,
+        1.0
+      ],
+      "gltf_lod1_material_indices": [
+        1
+      ]
+    },
+    "Petrol iridescent ribbon edge": {
+      "material_name": "ribbon-seraph__Petrol iridescent ribbon edge",
+      "hex_srgb": "#275c61",
+      "metallic": 0.73,
+      "roughness": 0.21,
+      "surface": "metal",
+      "gltf_material_indices": [
+        2
+      ],
+      "gltf_fx_material_indices": [
+        0
+      ],
+      "recolor_mode": "replace baseColorFactor; grayscale variation preserved",
+      "rgba_linear": [
+        0.020288562402129173,
+        0.10702310502529144,
+        0.11953842639923096,
+        1.0
+      ],
+      "gltf_lod1_material_indices": [
+        2
+      ]
+    },
+    "Satin nickel spool": {
+      "material_name": "ribbon-seraph__Satin nickel spool",
+      "hex_srgb": "#a4b8b9",
+      "metallic": 0.93,
+      "roughness": 0.27,
+      "surface": "metal",
+      "gltf_material_indices": [
+        5
+      ],
+      "gltf_fx_material_indices": [
+        6
+      ],
+      "recolor_mode": "replace baseColorFactor; grayscale variation preserved",
+      "rgba_linear": [
+        0.37123769521713257,
+        0.4793201684951782,
+        0.48514994978904724,
+        1.0
+      ],
+      "gltf_lod1_material_indices": [
+        5
+      ]
+    },
+    "Anodized gunmetal hub": {
+      "material_name": "ribbon-seraph__Anodized gunmetal hub",
+      "hex_srgb": "#27333a",
+      "metallic": 0.82,
+      "roughness": 0.31,
+      "surface": "metal",
+      "gltf_material_indices": [
+        3
+      ],
+      "gltf_fx_material_indices": [
+        4
+      ],
+      "recolor_mode": "replace baseColorFactor; grayscale variation preserved",
+      "rgba_linear": [
+        0.020288562402129173,
+        0.03310476616024971,
+        0.0423114113509655,
+        1.0
+      ],
+      "gltf_lod1_material_indices": [
+        3
+      ]
+    },
+    "Liquid pale-cyan optics": {
+      "material_name": "ribbon-seraph__Liquid pale-cyan optics",
+      "hex_srgb": "#91d4d3",
+      "metallic": 0.35,
+      "roughness": 0.13,
+      "surface": "wax",
+      "gltf_material_indices": [
+        4
+      ],
+      "gltf_fx_material_indices": [
+        5
+      ],
+      "recolor_mode": "replace baseColorFactor; grayscale variation preserved",
+      "rgba_linear": [
+        0.28314873576164246,
+        0.6583748459815979,
+        0.6514056324958801,
+        1.0
+      ],
+      "gltf_lod1_material_indices": [
+        4
+      ]
+    },
+    "Suspended liquid ink": {
+      "material_name": "ribbon-seraph__Suspended liquid ink",
+      "hex_srgb": "#172f3b",
+      "metallic": 0.55,
+      "roughness": 0.16,
+      "surface": "wax",
+      "gltf_material_indices": [],
+      "gltf_fx_material_indices": [
+        1
+      ],
+      "recolor_mode": "replace baseColorFactor; grayscale variation preserved",
+      "rgba_linear": [
+        0.008568125776946545,
+        0.028426039963960648,
+        0.04373503103852272,
+        1.0
+      ],
+      "gltf_lod1_material_indices": []
+    }
+  },
+  "recolor_contract": "Semantic material names identify surfaces. Replace glTF pbrMetallicRoughness.baseColorFactor (linear RGBA) per instance to recolor grayscale variation maps; roughness/metallic/normal stay independent. Exceptions marked tint-only authored multicolor map need texture replacement for full arbitrary recolor.",
+  "rendering": "Lit metallic-roughness PBR; original packed and embedded basecolor, ORM and tangent normal maps, maximum 512px. No unlit/cel shader."
+}

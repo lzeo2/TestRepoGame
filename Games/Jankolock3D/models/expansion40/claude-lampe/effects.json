@@ -1,0 +1,56 @@
+{
+  "schema": "jank3d_geometric_effect_concept_v1",
+  "id": "claude-lampe",
+  "effect_name": "Useful Search Fan",
+  "description": "A broad articulated task-light search fan is drawn with open geometric rays, stepped floor illumination tiles and a rectangular scan gate. The bright source remains the lamp face; no glow textures, transparency or dynamic lighting are required.",
+  "toggle_root": "FX_ROOT",
+  "toggle_contract": "Set this subtree visible/invisible in the target engine. Geometry has no autonomous playback; caller controls visibility and any motion.",
+  "mesh_nodes": [
+    "fx_search_ray_0_0",
+    "fx_search_ray_1_0",
+    "fx_search_ray_2_0",
+    "fx_light_floor_tile_0",
+    "fx_scan_tile_rule_0",
+    "fx_light_floor_tile_1",
+    "fx_scan_tile_rule_1",
+    "fx_light_floor_tile_2",
+    "fx_scan_tile_rule_2",
+    "fx_light_floor_tile_3",
+    "fx_scan_tile_rule_3",
+    "fx_scan_gate_0",
+    "fx_scan_gate_1",
+    "fx_scan_gate_R_0",
+    "fx_scan_gate_R_1"
+  ],
+  "motion_nodes": {
+    "fx_search_sweep": {
+      "axis": "Z",
+      "limits": [
+        -70,
+        70
+      ],
+      "note": "Rigid articulation, artistic guide; not a collision guarantee."
+    }
+  },
+  "body_rig_reference": "rig.json",
+  "palette_reference": "palette.json",
+  "body_palette_preserved_in_fx_variant": true,
+  "baseline_files_unchanged": true,
+  "baseline_sha256": {
+    "model.blend": "566ce26fc5ac87cc23a0995c35dddf91734059f2dc46a61f960ba74bfe9266ab",
+    "model.glb": "772afbfe6360ecfb8a7a8a9226875fa12639129727a78bc0fcdb999a7d225ebf",
+    "portrait.png": "052ad8d5e4045bc397a4e3183a1b9b72fd4d4be684b084b3ee687cc8e9a49e49"
+  },
+  "variants": {
+    "fx": {
+      "runtime": "model_fx.glb",
+      "source": "model_fx.blend",
+      "illustration": "portrait_fx.png",
+      "manifest": "manifest_fx.json",
+      "rig": "rig_fx.json",
+      "palette": "palette_fx.json"
+    }
+  },
+  "gameplay_status": "Art/FX concept only. No engine primitive, gameplay logic, collision, timing or ability integration implemented.",
+  "cel_variant": null
+}

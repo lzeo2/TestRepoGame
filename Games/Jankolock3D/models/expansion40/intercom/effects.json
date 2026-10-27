@@ -1,0 +1,114 @@
+{
+  "schema": "jank3d_geometric_effect_concept_v1",
+  "id": "intercom",
+  "effect_name": "Floor override",
+  "description": "Three expanding, faceted sound rings travel out of the primary horn. Two flank arcs from the subsidiary horns and a radial floor ripple make the broadcast radius unmistakable without opaque beams.",
+  "toggle_root": "FX_ROOT",
+  "toggle_contract": "Set this subtree visible/invisible in the target engine. Geometry has no autonomous playback; caller controls visibility and any motion.",
+  "mesh_nodes": [
+    "fx_primary_sound_ring_0",
+    "fx_primary_sound_ring_1",
+    "fx_primary_sound_ring_2",
+    "fx_left_wave_arc_0",
+    "fx_left_wave_arc_1",
+    "fx_left_wave_arc_2",
+    "fx_left_wave_arc_3",
+    "fx_left_wave_arc_4",
+    "fx_left_wave_arc_5",
+    "fx_left_wave_arc_6",
+    "fx_left_wave_arc_7",
+    "fx_left_wave_arc_8",
+    "fx_left_wave_arc_9",
+    "fx_left_wave_outer_0",
+    "fx_left_wave_outer_1",
+    "fx_left_wave_outer_2",
+    "fx_left_wave_outer_3",
+    "fx_left_wave_outer_4",
+    "fx_left_wave_outer_5",
+    "fx_left_wave_outer_6",
+    "fx_left_wave_outer_7",
+    "fx_left_wave_outer_8",
+    "fx_left_wave_outer_9",
+    "fx_right_wave_arc_0",
+    "fx_right_wave_arc_1",
+    "fx_right_wave_arc_2",
+    "fx_right_wave_arc_3",
+    "fx_right_wave_arc_4",
+    "fx_right_wave_arc_5",
+    "fx_right_wave_arc_6",
+    "fx_right_wave_arc_7",
+    "fx_right_wave_arc_8",
+    "fx_right_wave_arc_9",
+    "fx_right_wave_outer_0",
+    "fx_right_wave_outer_1",
+    "fx_right_wave_outer_2",
+    "fx_right_wave_outer_3",
+    "fx_right_wave_outer_4",
+    "fx_right_wave_outer_5",
+    "fx_right_wave_outer_6",
+    "fx_right_wave_outer_7",
+    "fx_right_wave_outer_8",
+    "fx_right_wave_outer_9",
+    "fx_broadcast_floor_ring",
+    "fx_broadcast_radius_tick_0",
+    "fx_broadcast_radius_tick_1",
+    "fx_broadcast_radius_tick_2",
+    "fx_broadcast_radius_tick_3",
+    "fx_broadcast_radius_tick_4",
+    "fx_broadcast_radius_tick_5",
+    "fx_broadcast_radius_tick_6",
+    "fx_broadcast_radius_tick_7"
+  ],
+  "motion_nodes": {
+    "fx_primary_soundwave": {
+      "axis": "Y",
+      "limits": [
+        -25,
+        25
+      ],
+      "note": "Rigid articulation, artistic guide; not a collision guarantee."
+    },
+    "fx_left_soundwave": {
+      "axis": "Y",
+      "limits": [
+        -25,
+        25
+      ],
+      "note": "Rigid articulation, artistic guide; not a collision guarantee."
+    },
+    "fx_right_soundwave": {
+      "axis": "Y",
+      "limits": [
+        -25,
+        25
+      ],
+      "note": "Rigid articulation, artistic guide; not a collision guarantee."
+    },
+    "fx_broadcast_radius": {
+      "axis": "Z",
+      "limits": "free",
+      "note": "Rigid articulation, artistic guide; not a collision guarantee."
+    }
+  },
+  "body_rig_reference": "rig.json",
+  "palette_reference": "palette.json",
+  "body_palette_preserved_in_fx_variant": true,
+  "baseline_files_unchanged": true,
+  "baseline_sha256": {
+    "model.blend": "370828e7e47e262f37af3d03e3dd6c036fd273f041830609598945ec791906c1",
+    "model.glb": "46aeec6380254e64ab7708ef8ac20025085ca35cb9e2775111937d23de385f2f",
+    "portrait.png": "b55a7ad05b9cd1e7c83853ac2a1b665dfd3d2e71eeb1f7d5d609cf31ad5f41e6"
+  },
+  "variants": {
+    "fx": {
+      "runtime": "model_fx.glb",
+      "source": "model_fx.blend",
+      "illustration": "portrait_fx.png",
+      "manifest": "manifest_fx.json",
+      "rig": "rig_fx.json",
+      "palette": "palette_fx.json"
+    }
+  },
+  "gameplay_status": "Art/FX concept only. No engine primitive, gameplay logic, collision, timing or ability integration implemented.",
+  "cel_variant": null
+}

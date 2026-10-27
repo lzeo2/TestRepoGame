@@ -1,0 +1,74 @@
+{
+  "schema": "jank3d_geometric_effect_concept_v1",
+  "id": "laminate",
+  "effect_name": "Sheen Wall / Permanent Record",
+  "description": "Three large clipped-corner laminated wall echoes fan from the shield side. Solid frame geometry leaves the central body and face unobscured; shield-seal diamonds bind the walls to the hero visual language.",
+  "toggle_root": "FX_ROOT",
+  "toggle_contract": "Set this subtree visible/invisible in the target engine. Geometry has no autonomous playback; caller controls visibility and any motion.",
+  "mesh_nodes": [
+    "fx_laminate_frame_0_0",
+    "fx_laminate_frame_0_1",
+    "fx_laminate_frame_0_2",
+    "fx_laminate_frame_0_3",
+    "fx_laminate_frame_0_4",
+    "fx_laminate_frame_0_5",
+    "fx_laminate_frame_0_6",
+    "fx_laminate_frame_0_7",
+    "fx_wall_lower_panel_0",
+    "fx_approval_seal_0",
+    "fx_wall_seam_0",
+    "fx_laminate_frame_1_0",
+    "fx_laminate_frame_1_1",
+    "fx_laminate_frame_1_2",
+    "fx_laminate_frame_1_3",
+    "fx_laminate_frame_1_4",
+    "fx_laminate_frame_1_5",
+    "fx_laminate_frame_1_6",
+    "fx_laminate_frame_1_7",
+    "fx_wall_lower_panel_1",
+    "fx_approval_seal_1",
+    "fx_wall_seam_1",
+    "fx_laminate_frame_2_0",
+    "fx_laminate_frame_2_1",
+    "fx_laminate_frame_2_2",
+    "fx_laminate_frame_2_3",
+    "fx_laminate_frame_2_4",
+    "fx_laminate_frame_2_5",
+    "fx_laminate_frame_2_6",
+    "fx_laminate_frame_2_7",
+    "fx_wall_lower_panel_2",
+    "fx_approval_seal_2",
+    "fx_wall_seam_2"
+  ],
+  "motion_nodes": {
+    "fx_panel_fan": {
+      "axis": "Z",
+      "limits": [
+        -35,
+        35
+      ],
+      "note": "Rigid articulation, artistic guide; not a collision guarantee."
+    }
+  },
+  "body_rig_reference": "rig.json",
+  "palette_reference": "palette.json",
+  "body_palette_preserved_in_fx_variant": true,
+  "baseline_files_unchanged": true,
+  "baseline_sha256": {
+    "model.blend": "e17ce6f6d3b7e2bf2e9801e8a12180f6ffb9342eb8e6cadf7cb9d14b8b529645",
+    "model.glb": "da5badc50d399c367fbc97bffff71e7c055e56503c42d1de76946181f8fbf691",
+    "portrait.png": "ce86b4376972ac4e312d753c11ae01a51db3d050f0ada8873d948e375e0c9f1f"
+  },
+  "variants": {
+    "fx": {
+      "runtime": "model_fx.glb",
+      "source": "model_fx.blend",
+      "illustration": "portrait_fx.png",
+      "manifest": "manifest_fx.json",
+      "rig": "rig_fx.json",
+      "palette": "palette_fx.json"
+    }
+  },
+  "gameplay_status": "Art/FX concept only. No engine primitive, gameplay logic, collision, timing or ability integration implemented.",
+  "cel_variant": null
+}

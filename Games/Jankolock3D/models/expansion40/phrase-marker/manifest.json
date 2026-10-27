@@ -1,0 +1,90 @@
+{
+  "schema": "jank3d_hero_expansion_asset_v1",
+  "hero_number": 33,
+  "id": "phrase-marker",
+  "display_name": "Marker",
+  "role": "Debuff caster",
+  "design_notes": "A severe long-legged highlighting duelist with a chisel-cap head, split ribbon coat and an oversized diagonal marker held at the wrist. The off hand carries an articulated hollow selection bracket.",
+  "files": {
+    "source": "model.blend",
+    "runtime": "model.glb",
+    "illustration": "portrait.png",
+    "rig": "rig.json",
+    "rig_alias": "manifest.rig.json",
+    "palette": "palette.json"
+  },
+  "blender_version": "4.3.2",
+  "glb_bytes": 184052,
+  "glb_sha256": "d025bd99f3dd1ab6b87af183593a9e6a5c3f1c8de197222417d927e2a914e6d9",
+  "triangles": 2876,
+  "mesh_nodes": 42,
+  "movable_nodes": 17,
+  "bounds_gltf": {
+    "min": [
+      -0.9274999499320984,
+      0.0,
+      -0.3790000081062317
+    ],
+    "max": [
+      0.9599999785423279,
+      2.299999952316284,
+      0.17749999463558197
+    ],
+    "dimensions": [
+      1.8874999284744263,
+      2.299999952316284,
+      0.5565000027418137
+    ]
+  },
+  "palette_hex": {
+    "paper": "#f2e8cd",
+    "ink": "#253038",
+    "manila": "#c5aa78",
+    "accent": "#858653"
+  },
+  "texture_count": 0,
+  "external_dependencies": [],
+  "illustration_dimensions": [
+    1024,
+    1024
+  ],
+  "grounding_offset_applied_blender_z": -0.009999997913837433,
+  "status": "Original art-review candidate. Proposed kit is separate; not game-integrated or runtime-schema validated.",
+  "art_direction": "Flat paper/ink/manila + one accent, unlit solid fills and ink contours; neutral background.",
+  "model": "phrase-marker",
+  "tri_count_LOD0": 2876,
+  "size_bytes": 184052,
+  "texture_resolution": null,
+  "material_slots": [
+    "phrase-marker__paper",
+    "phrase-marker__accent",
+    "phrase-marker__ink",
+    "phrase-marker__manila"
+  ],
+  "rig_nodes": [
+    "root",
+    "body",
+    "ribbon_tails",
+    "head",
+    "left_hip",
+    "left_knee",
+    "left_ankle",
+    "right_hip",
+    "right_knee",
+    "right_ankle",
+    "left_arm_shoulder",
+    "left_arm_elbow",
+    "left_arm_wrist",
+    "right_arm_shoulder",
+    "right_arm_elbow",
+    "right_arm_wrist",
+    "selection_bracket"
+  ],
+  "palette_default": {
+    "paper": "#f2e8cd",
+    "ink": "#253038",
+    "manila": "#c5aa78",
+    "accent": "#858653"
+  },
+  "provenance_note": "Generated in Blender by dot and Astra 6 max delegates, 2026-10-23; original in-house artwork, no remote assets."
+}

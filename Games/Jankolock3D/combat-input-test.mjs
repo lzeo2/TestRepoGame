@@ -13,6 +13,7 @@ let shots=0,cameraUpdates=0,actions=0,lastTarget;
 const runtime={kit:{weapon:{interval:.2}},targets:[],setModifiers(){},aim(){},fire(){if(this.fireWait>0)return false;lastTarget=this.targets[0]?.id;this.fireWait=.2;shots++;return true;},fireWait:0};
 const context=vm.createContext({playing:true,paused:false,pointer:null,held,canvas,document,hero,sim,runtime,view:{camera:{}},controller:{updateCamera(){cameraUpdates++;}},targets:()=>[{id:'fresh-target'}],action(){actions++;},clear(){held.clear();},listen(node,type,fn){const key=node===canvas?'canvas':node===document?'document':'button';handlers.set(`${key}:${type}`,fn);}});
 const block=(start,end)=>source.slice(source.indexOf(start),source.indexOf(end,source.indexOf(start)));
+vm.runInContext(block('function inputBlocked() {','function action('),context);
 vm.runInContext(block('function fire() {','function tick('),context);
 vm.runInContext(block("  listen(canvas,'pointerdown'","  listen(document,'pointermove'"),context);
 vm.runInContext(block("  listen(document,'pointerup'","  listen(document,'pointerlockchange'"),context);
@@ -29,7 +30,7 @@ handlers.get('canvas:pointerdown')(event({button:1}));assert.equal(shots,1,'midd
 handlers.get('button:pointerdown')(event({pointerType:'touch',pointerId:2}));assert.equal(shots,2,'touch press fires synchronously');
 handlers.get('document:pointerup')(event({pointerType:'touch',pointerId:3}));assert.equal(held.has('fire'),true,'other touch release does not cancel fire');
 handlers.get('button:pointercancel')(event({pointerType:'touch',pointerId:2}));assert.equal(held.has('fire'),false);
-for(const [object,key,value] of [[context,'playing',false],[context,'paused',true],[document,'hidden',true],[hero,'alive',false],[sim,'winner','ivory'],[sim,'phase','pregame'],[shop,'hidden',false]]) {
+for(const [object,key,value] of [[context,'playing',false],[context,'paused',true],[document,'hidden',true],[hero,'alive',false],[sim,'winner','ivory'],[sim,'phase','pregame'],[sim,'phase','finished'],[shop,'hidden',false]]) {
   const previous=object[key];object[key]=value;runtime.fireWait=0;
   handlers.get('canvas:pointerdown')(event());assert.equal(shots,2,`blocked shot: ${key}`);
   object[key]=previous;held.clear();

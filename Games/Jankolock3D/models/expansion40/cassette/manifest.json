@@ -1,0 +1,92 @@
+{
+  "schema": "jank3d_hero_expansion_asset_v1",
+  "hero_number": 9,
+  "id": "cassette",
+  "display_name": "Cassette",
+  "role": "Support",
+  "design_notes": "A broad cassette-bodied support with two animated reels as friendly eyes, a tape-slot smile and a raised carry handle. Spool cuffs, short deck feet and a folded ribbon scarf communicate rewind without floating FX. A toothed rewind baton belongs to the right wrist and a recovery tape spool to the left. Both reel hubs and the tape feed retain independent motion pivots. Muted mauve-brown accent.",
+  "files": {
+    "source": "model.blend",
+    "runtime": "model.glb",
+    "illustration": "portrait.png",
+    "rig": "rig.json",
+    "rig_alias": "manifest.rig.json",
+    "palette": "palette.json"
+  },
+  "blender_version": "4.3.2",
+  "glb_bytes": 162044,
+  "glb_sha256": "a3ad42bda940f89dd443ee6f8a087c1c007064ba7169a83ba209df7bac482455",
+  "triangles": 2756,
+  "mesh_nodes": 51,
+  "movable_nodes": 19,
+  "bounds_gltf": {
+    "min": [
+      -1.0800000429153442,
+      0.0,
+      -0.4025000035762787
+    ],
+    "max": [
+      1.0399999618530273,
+      1.9725000858306885,
+      0.21250000596046448
+    ],
+    "dimensions": [
+      2.1200000047683716,
+      1.9725000858306885,
+      0.6150000095367432
+    ]
+  },
+  "palette_hex": {
+    "paper": "#f2e8cd",
+    "ink": "#253038",
+    "manila": "#c5aa78",
+    "accent": "#89717e"
+  },
+  "texture_count": 0,
+  "external_dependencies": [],
+  "illustration_dimensions": [
+    1024,
+    1024
+  ],
+  "grounding_offset_applied_blender_z": -0.005000002682209015,
+  "status": "Original art-review candidate. Proposed kit is separate; not game-integrated or runtime-schema validated.",
+  "art_direction": "Flat paper/ink/manila + one accent, unlit solid fills and ink contours; neutral background.",
+  "model": "cassette",
+  "tri_count_LOD0": 2756,
+  "size_bytes": 162044,
+  "texture_resolution": null,
+  "material_slots": [
+    "cassette__ink",
+    "cassette__manila",
+    "cassette__paper",
+    "cassette__accent"
+  ],
+  "rig_nodes": [
+    "root",
+    "pelvis",
+    "torso",
+    "L_reel_spin",
+    "R_reel_spin",
+    "carry_handle",
+    "L_hip",
+    "L_knee",
+    "L_ankle",
+    "R_hip",
+    "R_knee",
+    "R_ankle",
+    "L_shoulder",
+    "L_elbow",
+    "L_wrist",
+    "R_shoulder",
+    "R_elbow",
+    "R_wrist",
+    "tape_feed"
+  ],
+  "palette_default": {
+    "paper": "#f2e8cd",
+    "ink": "#253038",
+    "manila": "#c5aa78",
+    "accent": "#89717e"
+  },
+  "provenance_note": "Generated in Blender by dot and Astra 6 max delegates, 2026-10-23; original in-house artwork, no remote assets."
+}

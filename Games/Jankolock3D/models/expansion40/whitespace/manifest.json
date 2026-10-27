@@ -1,0 +1,93 @@
+{
+  "schema": "jank3d_hero_expansion_asset_v1",
+  "hero_number": 24,
+  "id": "whitespace",
+  "display_name": "Whitespace",
+  "role": "Mover",
+  "design_notes": "An elegant moving margin rather than a filled body: open paper torso and head frames, brackets for lapels, extremely narrow ink joints, split sheet tails, and a huge open margin square carried from the wrist. Negative space remains visible through the entire silhouette.",
+  "files": {
+    "source": "model.blend",
+    "runtime": "model.glb",
+    "illustration": "portrait.png",
+    "rig": "rig.json",
+    "rig_alias": "manifest.rig.json",
+    "palette": "palette.json"
+  },
+  "blender_version": "4.3.2",
+  "glb_bytes": 178536,
+  "glb_sha256": "5a16c66f5158744f34221b0b33378f85cbba234dc5fd5243a5c924f134dde695",
+  "triangles": 2692,
+  "mesh_nodes": 65,
+  "movable_nodes": 20,
+  "bounds_gltf": {
+    "min": [
+      -0.7950000166893005,
+      0.0,
+      -0.3499999940395355
+    ],
+    "max": [
+      1.1299999952316284,
+      2.0900001525878906,
+      0.11999998986721039
+    ],
+    "dimensions": [
+      1.925000011920929,
+      2.0900001525878906,
+      0.4699999839067459
+    ]
+  },
+  "palette_hex": {
+    "paper": "#f2e8cd",
+    "ink": "#253038",
+    "manila": "#c5aa78",
+    "accent": "#6c8589"
+  },
+  "texture_count": 0,
+  "external_dependencies": [],
+  "illustration_dimensions": [
+    1024,
+    1024
+  ],
+  "grounding_offset_applied_blender_z": -0.03999999910593033,
+  "status": "Original art-review candidate. Proposed kit is separate; not game-integrated or runtime-schema validated.",
+  "art_direction": "Flat paper/ink/manila + one accent, unlit solid fills and ink contours; neutral background.",
+  "model": "whitespace",
+  "tri_count_LOD0": 2692,
+  "size_bytes": 178536,
+  "texture_resolution": null,
+  "material_slots": [
+    "whitespace__ink",
+    "whitespace__paper",
+    "whitespace__manila",
+    "whitespace__accent"
+  ],
+  "rig_nodes": [
+    "root",
+    "pelvis",
+    "torso",
+    "left_sheet_tail",
+    "right_sheet_tail",
+    "head",
+    "L_hip",
+    "L_knee",
+    "L_ankle",
+    "R_hip",
+    "R_knee",
+    "R_ankle",
+    "L_shoulder",
+    "L_elbow",
+    "L_wrist",
+    "R_shoulder",
+    "R_elbow",
+    "R_wrist",
+    "margin_square",
+    "ruling_staff"
+  ],
+  "palette_default": {
+    "paper": "#f2e8cd",
+    "ink": "#253038",
+    "manila": "#c5aa78",
+    "accent": "#6c8589"
+  },
+  "provenance_note": "Generated in Blender by dot and Astra 6 max delegates, 2026-10-23; original in-house artwork, no remote assets."
+}

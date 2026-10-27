@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="icon" href="data:,"><title>Fleet raw adapter pose fixtures</title>
+<style>body{margin:0;background:#e7e6df;color:#141414;font:16px system-ui,sans-serif}header{padding:12px 20px;height:104px;box-sizing:border-box}h1{font-size:20px;margin:0 0 6px}p{margin:3px 0}canvas{display:block}#status{font-size:13px}</style>
+<script type="importmap">{"imports":{"three":"/three/build/three.module.js","three/addons/":"/three/examples/jsm/"}}</script>
+</head><body><header><h1>ADAPTER POSE FIXTURES: raw fleet rigs</h1><p>Not natural gameplay, served Factions, verified physics or integrated weapon muzzles.</p><p id="status" role="status">Loading actual GLBs and unchanged PBR materials.</p></header><canvas aria-label="Raw fleet asset pose fixture"></canvas>
+<script type="module">
+import * as T from 'three';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { createFleetRig } from '/fleet-rig.mjs';
+const SCOPE = 'ADAPTER POSE FIXTURES; raw GLTFLoader/PBR, not natural gameplay/served Factions/verified physics/integrated muzzles';
+const CASES = ['type45-bow', 'type054a-stern', 'submarine-quarter', 'submarine-rear'];
+const assert = (condition, message) => { if (!condition) throw Error(message); };
+const close = (a,b,tolerance=1e-6) => a.length === b.length && a.every((x,i)=>Math.abs(x-b[i])<tolerance);
+const status = text => { document.querySelector('#status').textContent = text; };
+let renderer, rig, environment, pmrem, finished = false;
+const scene = new T.Scene(), camera = new T.PerspectiveCamera(34,1,.1,2000);
+const loaded = [], proofs = [], materialReceipt = [], models = [];
+const loadedTextures = new Set(), disposedResources = new WeakSet();
+function disposeResource(resource) {
+  if (!resource || disposedResources.has(resource)) return;
+  disposedResources.add(resource); // Mark before a dispose listener can reenter or throw.
+  resource.dispose();
+}
+function cleanupFixture() {
+  if (finished) return {disposed:rig?.stats().disposed??true,detached:!rig?.root.parent};
+  finished = true;
+  const errors = [], attempt = action => { try { action(); } catch(error) { errors.push(error); } };
+  const geometries = new Set(), materials = new Set(), textures = new Set(loadedTextures);
+  const objects = new Set([...loaded.map(gltf=>gltf.scene),...models.map(model=>model.object)]);
+  for (const object of objects) attempt(()=>object.traverse(n=>{
+    if (!n.isMesh) return;
+    geometries.add(n.geometry);
+    for (const material of Array.isArray(n.material)?n.material:[n.material]) {
+      materials.add(material);
+      for (const value of Object.values(material)) if (value?.isTexture) textures.add(value);
+    }
+  }));
+  attempt(()=>rig?.dispose());
+  for (const resource of [...geometries,...textures,...materials,environment,pmrem,renderer]) attempt(()=>disposeResource(resource));
+  attempt(()=>{scene.environment=null;});
+  loaded.length=0; models.length=0; loadedTextures.clear();
+  if (errors.length) throw new AggregateError(errors,'Fixture cleanup failed',{cause:errors[0]});
+  return {disposed:rig?.stats().disposed??true,detached:!rig?.root.parent};
+}
+function failFixture(error) {
+  let cleanupError;
+  try { cleanupFixture(); } catch(failure) { cleanupError=failure; }
+  window.fleetFixture={ready:false,error:String(error),scope:SCOPE,
+    ...(cleanupError?{cleanupError:String(cleanupError),cleanupErrors:(cleanupError instanceof AggregateError?cleanupError.errors:[cleanupError]).map(String)}:{})};
+  status(String(error));
+}
+let descriptorSet;
+try {
+  assert(T.REVISION === '186', 'Three revision must be 186');
+  assert(document.querySelectorAll('canvas').length === 1, 'Exactly one canvas');
+  renderer = new T.WebGLRenderer({canvas:document.querySelector('canvas'),antialias:true,preserveDrawingBuffer:true});
+  renderer.setPixelRatio(1); renderer.outputColorSpace = T.SRGBColorSpace;
+  renderer.toneMapping = T.ACESFilmicToneMapping; renderer.toneMappingExposure = 1;
+  scene.background = new T.Color('#d5d9db');
+  scene.add(new T.HemisphereLight(0xe9f2ff,0x68675d,1.5));
+  const key = new T.DirectionalLight(0xfff3dd,3), fill = new T.DirectionalLight(0xe0ebff,1.1);
+  key.position.set(-80,130,-100); fill.position.set(80,30,70); scene.add(key,fill);
+  // A solid procedural environment, not a fetched asset or an override of GLB material factors.
+  const envScene = new T.Scene(); envScene.background = new T.Color('#9da8b0');
+  pmrem = new T.PMREMGenerator(renderer); environment = pmrem.fromScene(envScene,.04);
+  scene.environment = environment.texture; scene.environmentIntensity = .8; disposeResource(pmrem);
+  const escort = await (await fetch('/model-repairs.json')).json();
+  const sub = await (await fetch('/submarine-model.json')).json();
+  descriptorSet = [escort.models[0],escort.models[1],sub];
+  assert(descriptorSet.length === 3 && descriptorSet.every(d=>d.objective_only && d.player_vehicle_kind === null),'Objective descriptors');
+  const ids = ['type45','type054a','submarine'];
+  for (let i=0;i<3;i++) {
+    const descriptor = descriptorSet[i], gltf = await new GLTFLoader().loadAsync('/'+descriptor.file);
+    loaded.push(gltf); // Own the scene before texture decoding or material validation can fail.
+    const textures = await gltf.parser.getDependencies('texture');
+    textures.forEach(texture=>loadedTextures.add(texture));
+    for (const texture of textures) {
+      const image = texture.image; if (image?.decode) await image.decode();
+      assert(image?.width>0 && image?.height>0,'Embedded image did not decode'); renderer.initTexture(texture);
+    }
+    const materials = new Set(); gltf.scene.traverse(n=>{if(n.isMesh) for(const m of Array.isArray(n.material)?n.material:[n.material])materials.add(m);});
+    let mapped = 0;
+    for (const m of materials) {
+      const index = gltf.parser.associations.get(m)?.materials, definition = gltf.parser.json.materials?.[index];
+      assert(definition,'Material association required'); const p = definition.pbrMetallicRoughness??{}, factor=p.baseColorFactor??[1,1,1,1];
+      assert(close(m.color.toArray(),factor.slice(0,3)) && Math.abs(m.opacity-factor[3])<1e-6,'GLB color/opacity was overridden');
+      assert(Math.abs(m.metalness-(p.metallicFactor??1))<1e-6 && Math.abs(m.roughness-(p.roughnessFactor??1))<1e-6,'GLB PBR factors were overridden');
+      const expected = {map:p.baseColorTexture?.index,normalMap:definition.normalTexture?.index,
+        metalnessMap:p.metallicRoughnessTexture?.index,roughnessMap:p.metallicRoughnessTexture?.index};
+      const maps = {};
+      for (const [slot,textureIndex] of Object.entries(expected)) {
+        const texture=m[slot]; assert(!!texture === (textureIndex!==undefined),'Map missing or replaced: '+slot);
+        if (!texture) continue;
+        assert(gltf.parser.associations.get(texture)?.textures===textureIndex,'Wrong texture source');
+        const imageIndex=gltf.parser.json.textures[textureIndex].source;
+        assert(Number.isInteger(gltf.parser.json.images[imageIndex].bufferView),'External image forbidden');
+        assert(texture.colorSpace===(slot==='map'?T.SRGBColorSpace:T.NoColorSpace),'Wrong map color space');
+        maps[slot]={textureIndex,imageIndex,width:texture.image.width,height:texture.image.height}; mapped++;
+      }
+      assert(m.metalnessMap===m.roughnessMap,'Packed MR identity');
+      materialReceipt.push({unit:ids[i],material:index,name:m.name,baseColor:factor,metalness:m.metalness,roughness:m.roughness,maps});
+    }
+    if (i<2) assert(mapped>0,'Escort embedded PBR maps missing');
+    const rest=new Map(); gltf.scene.traverse(n=>rest.set(n,{position:n.position.clone(),quaternion:n.quaternion.clone(),scale:n.scale.clone(),visible:n.visible}));
+    models.push({id:ids[i],descriptor,object:gltf.scene,rest,container:null});
+  }
+  function bind() { rig=createFleetRig(T,{parent:scene,team:0}); for(const model of models)model.container=rig.bindUnit(model.id,model.object,model.descriptor); }
+  bind();
+  function fixture(time, {only=null,dead=false,paused=false}={}) {
+    return {mode:'factions',round:0,tick:Math.round(time*20),remainderMs:0,paused,events:[],projectiles:[],units:models.filter(m=>!only||m.id===only).map((m,i)=>{
+      const orientation=new T.Quaternion().setFromEuler(new T.Euler(.03,.23,0));
+      const angles={},spinners={};
+      for(const control of m.descriptor.articulation) {
+        if(control.limits_rad) angles[control.node]=(time===0?control.limits_rad[0]:control.limits_rad[1])*.65;
+        else spinners[control.node]={epochSeconds:0,phaseRad:.2,rateRadS:Math.min(2,control.mapping?.maximum_rad_s??2)};
+      }
+      return {id:m.id,team:0,hp:dead?0:100,alive:!dead,depth:'surfaced',position:[i*200,0,0],view:{orientation:orientation.toArray(),angles,spinners}};
+    })};
+  }
+  function expectedWorld(node, model, unit, time) {
+    const chain=[]; for(let n=node;n;n=n.parent){if(!model.rest.has(n))break;chain.unshift(n);}
+    const world=new T.Matrix4().compose(new T.Vector3(...unit.position),new T.Quaternion(...unit.view.orientation),new T.Vector3(1,1,1));
+    for(const n of chain) {
+      const rest=model.rest.get(n), q=rest.quaternion.clone(), control=model.descriptor.articulation.find(c=>c.node===n.name);
+      if(control) {
+        const value=control.limits_rad?unit.view.angles[n.name]:.2+Math.min(2,control.mapping?.maximum_rad_s??2)*time;
+        q.multiply(new T.Quaternion().setFromAxisAngle(new T.Vector3(...control.axis_local),value));
+      }
+      world.multiply(new T.Matrix4().compose(rest.position,q,rest.scale));
+    }
+    return world;
+  }
+  function prove(snapshot,time) {
+    rig.update(snapshot); scene.updateMatrixWorld(true);
+    const result={time,scope:SCOPE,nodes:[],muzzles:[]};
+    for(const model of models) {
+      const unit=snapshot.units.find(u=>u.id===model.id); if(!unit)continue;
+      for(const control of model.descriptor.articulation) {
+        const node=model.object.getObjectByName(control.node), expected=expectedWorld(node,model,unit,time);
+        assert(close(node.matrixWorld.elements,expected.elements),'Signed world matrix: '+control.node);
+        let mesh; node.traverse(n=>{if(!mesh && n.isMesh && n.geometry.attributes.position)mesh=n;});
+        assert(mesh,'Articulation has no actual geometry');
+        const vertex=new T.Vector3().fromBufferAttribute(mesh.geometry.attributes.position,0);
+        const actual=vertex.clone().applyMatrix4(mesh.matrixWorld), independent=vertex.clone().applyMatrix4(expectedWorld(mesh,model,unit,time));
+        assert(actual.distanceTo(independent)<1e-5,'Loaded vertex world transform');
+        result.nodes.push({unit:model.id,node:node.name,axis:control.axis_local,world:node.matrixWorld.toArray(),actualVertex:actual.toArray()});
+      }
+      const key=model.id==='submarine'?model.descriptor.launch_origins[0].node:'main_gun';
+      const muzzle=rig.muzzleWorld(model.id,key); assert(muzzle,'Actual anchor query');
+      const anchor=model.object.getObjectByName(model.id==='submarine'?key:model.descriptor.main_gun_geometry.muzzle_node);
+      const expected=new T.Vector3().setFromMatrixPosition(expectedWorld(anchor,model,unit,time));
+      assert(close(muzzle.position,expected.toArray()),'Muzzle world position');
+      result.muzzles.push({unit:model.id,key,...muzzle});
+    }
+    proofs.push(result); return result;
+  }
+  const initial=prove(fixture(0),0), changed=prove(fixture(1.25),1.25);
+  assert(changed.nodes.some((n,i)=>!close(n.world,initial.nodes[i].world)),'No native articulated motion');
+  const before=models.map(m=>m.descriptor.articulation.map(c=>m.object.getObjectByName(c.node).quaternion.toArray()));
+  const paused=fixture(1.75,{paused:true}); paused.units.forEach((u,i)=>u.view.angles=fixture(1.25).units[i].view.angles);
+  rig.update(paused);
+  models.forEach((m,i)=>m.descriptor.articulation.forEach((c,j)=>assert(close(m.object.getObjectByName(c.node).quaternion.toArray(),before[i][j]),'Pause did not freeze pose')));
+  rig.update(fixture(2,{dead:true})); const deathY=models.map(m=>m.container.position.y);
+  rig.update(fixture(3,{dead:true}));
+  models.forEach((m,i)=>{assert(m.container.position.y<deathY[i],'No finite cosmetic sink');assert(rig.muzzleWorld(m.id)===null,'Dead muzzle exposed');});
+  rig.reset();
+  for(const model of models) for(const [n,rest] of model.rest){assert(close(n.position.toArray(),rest.position.toArray())&&close(n.quaternion.toArray(),rest.quaternion.toArray())&&close(n.scale.toArray(),rest.scale.toArray()),'Reset rest pose');}
+  rig.dispose(); rig.dispose(); assert(rig.stats().disposed && rig.root.parent===null,'Dispose detachment');
+  assert(models.every(m=>m.object.parent===null),'Caller parenting not restored');
+  bind(); rig.reset();
+  function renderCase(name) {
+    assert(CASES.includes(name),'Unknown capture case'); rig.reset();
+    const id=name.startsWith('type45')?'type45':name.startsWith('type054')?'type054a':'submarine';
+    const snapshot=fixture(1.25,{only:id}); prove(snapshot,1.25);
+    const model=models.find(m=>m.id===id), box=new T.Box3().setFromObject(model.container), center=box.getCenter(new T.Vector3()), sphere=box.getBoundingSphere(new T.Sphere());
+    const width=innerWidth,height=innerHeight-104; renderer.setSize(width,height); camera.aspect=width/height;
+    const direction=new T.Vector3(...(name.endsWith('stern')?[1,.65,1]:name.endsWith('rear')?[.3,.3,1]:[1,.65,-1])).normalize();
+    const distance=sphere.radius/Math.sin(T.MathUtils.degToRad(camera.fov/2))/Math.min(1,camera.aspect)*1.16;
+    camera.position.copy(center).addScaledVector(direction,distance); camera.near=Math.max(.1,distance-sphere.radius*2);camera.far=distance+sphere.radius*4;camera.lookAt(center);camera.updateProjectionMatrix();
+    camera.updateMatrixWorld(true);
+    const projected=model.id==='submarine'?rig.muzzleWorld(id,model.descriptor.launch_origins[0].node):rig.muzzleWorld(id);
+    const ndc=new T.Vector3(...projected.position).project(camera);
+    assert(Math.abs(ndc.x)<=1 && Math.abs(ndc.y)<=1 && ndc.z>=-1 && ndc.z<=1,'Muzzle outside camera');
+    for(const x of [box.min.x,box.max.x])for(const y of [box.min.y,box.max.y])for(const z of [box.min.z,box.max.z]) {
+      const p=new T.Vector3(x,y,z).project(camera);assert(Math.abs(p.x)<1 && Math.abs(p.y)<1 && p.z>-1 && p.z<1,'Asset camera clipping');
+    }
+    renderer.render(scene,camera); assert(renderer.info.render.calls>0 && renderer.info.render.triangles>0,'No native scene draw');
+    const gl=renderer.getContext(); assert(gl.getError()===gl.NO_ERROR,'WebGL error');
+    status(name+' | '+SCOPE);
+    return {name,scope:SCOPE,unit:id,camera:{position:camera.position.toArray(),target:center.toArray(),near:camera.near,far:camera.far},
+      muzzle:{...projected,ndc:ndc.toArray(),canvasPixel:[(ndc.x+1)*width/2,(1-ndc.y)*height/2]},draws:renderer.info.render.calls,triangles:renderer.info.render.triangles};
+  }
+  window.fleetFixture={ready:true,scope:SCOPE,cases:CASES,proofs,materials:materialReceipt,renderCase,
+    dispose:cleanupFixture};
+  status('Ready: '+SCOPE);
+} catch(error) {
+  failFixture(error);
+}
+</script></body></html>

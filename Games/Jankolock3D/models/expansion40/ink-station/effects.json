@@ -1,0 +1,88 @@
+{
+  "schema": "jank3d_geometric_effect_concept_v1",
+  "id": "ink-station",
+  "effect_name": "Industrial Ink Burst",
+  "description": "A high-contrast, angular ink splash erupts from the cart nozzle, with large droplets and a thick connected ink jet. Includes an additional user-requested baked three-band cel treatment; the baseline and flat FX version are preserved.",
+  "toggle_root": "FX_ROOT",
+  "toggle_contract": "Set this subtree visible/invisible in the target engine. Geometry has no autonomous playback; caller controls visibility and any motion.",
+  "mesh_nodes": [
+    "fx_ink_jet",
+    "fx_splash_ink_edge",
+    "fx_splash_accent_fill",
+    "fx_ink_droplet_0",
+    "fx_ink_droplet_1",
+    "fx_ink_droplet_2",
+    "fx_ink_droplet_3",
+    "fx_ink_droplet_4",
+    "fx_inner_splash_glint"
+  ],
+  "motion_nodes": {},
+  "body_rig_reference": "rig.json",
+  "palette_reference": "palette.json",
+  "body_palette_preserved_in_fx_variant": true,
+  "baseline_files_unchanged": true,
+  "baseline_sha256": {
+    "model.blend": "08cedf5e476cd64cfe5dccb42ce30d1d0671a817fa611d690c72ecf613193ed8",
+    "model.glb": "be07b22e691686ae693f9a1e6efb7270d88e4f99a4b36e5531fcfe72bd7e1a64",
+    "portrait.png": "72bb89c500b00a678d0a80365e111c0906f631cb1175917648d61b5c60a821be"
+  },
+  "variants": {
+    "fx": {
+      "runtime": "model_fx.glb",
+      "source": "model_fx.blend",
+      "illustration": "portrait_fx.png",
+      "manifest": "manifest_fx.json",
+      "rig": "rig_fx.json",
+      "palette": "palette_fx.json"
+    },
+    "cel": {
+      "runtime": "model_cel.glb",
+      "source": "model_cel.blend",
+      "illustration": "portrait_cel.png",
+      "manifest": "manifest_cel.json",
+      "rig": "rig_cel.json",
+      "palette": "palette_cel.json"
+    }
+  },
+  "gameplay_status": "Art/FX concept only. No engine primitive, gameplay logic, collision, timing or ability integration implemented.",
+  "cel_variant": {
+    "method": "Three discrete unlit materials per semantic body slot assigned by authored face-normal bands. Baked in geometry/material indices; fully exportable, not dynamic lighting. FX keeps its original four-color palette.",
+    "light_direction_blender": [
+      -0.6299993991851807,
+      0.3937496244907379,
+      0.669374406337738
+    ],
+    "thresholds": [
+      0.13,
+      0.62
+    ],
+    "face_band_counts": {
+      "shadow": 794,
+      "base": 348,
+      "light": 344
+    },
+    "palette": {
+      "paper": {
+        "shadow": "#7b7669",
+        "base": "#f2e8cd",
+        "light": "#f5edd7"
+      },
+      "ink": {
+        "shadow": "#13181d",
+        "base": "#253038",
+        "light": "#515960"
+      },
+      "manila": {
+        "shadow": "#64573d",
+        "base": "#c5aa78",
+        "light": "#d1bb93"
+      },
+      "accent": {
+        "shadow": "#312e3e",
+        "base": "#615b79",
+        "light": "#817c94"
+      }
+    },
+    "outline_width_px": 2.8
+  }
+}

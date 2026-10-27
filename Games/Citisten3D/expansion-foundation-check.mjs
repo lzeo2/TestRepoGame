@@ -1,0 +1,44 @@
+import assert from 'node:assert/strict';
+import { createSimulation } from './sim.mjs';
+import { applyTool } from './native-actions.mjs';
+
+const sim = createSimulation({ size: 40 });
+sim.roads.place({ x: 16, z: 16 }, { x: 25, z: 16 });
+sim.roads.place({ x: 16, z: 18 }, { x: 25, z: 18 });
+sim.roads.place({ x: 16, z: 16 }, { x: 16, z: 18 });
+for (const [type, x] of [['power', 17], ['water', 18], ['residential', 19], ['commercial', 22]]) assert(sim.place(type, x, 17).ok);
+sim.update(1);
+assert.equal(sim.state.housingCapacity, 64);
+assert.equal(sim.state.jobs, 32);
+assert.equal(sim.state.morale, 0.5);
+const calm = createSimulation({ snapshot: sim.snapshot() });
+const taxed = createSimulation({ snapshot: sim.snapshot() });
+taxed.setTaxRate(.3);
+calm.update(10); taxed.update(10);
+assert(taxed.state.population < calm.state.population && taxed.state.morale < calm.state.morale);
+assert(taxed.state.moraleFactors.includes('- High taxes'));
+const paused = taxed.snapshot(); taxed.setSpeed(0); const frozen = taxed.snapshot(); taxed.update(100); assert.deepEqual(taxed.snapshot(), frozen);
+assert.equal(paused.state.morale, taxed.state.morale);
+const wall = sim.place('wall', 5, 5, { wallRotation: 2 }); assert(wall.ok);
+assert(sim.place('wall', 5, 6).ok);
+assert(applyTool(sim, 'rotate-wall', { x: 5, z: 5 }).ok);
+assert.equal(wall.building.wallRotation, 3);
+const saved = sim.snapshot();
+const restored = createSimulation({ snapshot: saved });
+assert.equal(restored.buildingAt(5, 5).wallRotation, 3);
+assert.deepEqual(restored.snapshot(), saved);
+for (const bad of [-1, 4, .5, NaN, '1']) {
+  const before = sim.snapshot();
+  assert.equal(sim.place('wall', 7, 5, { wallRotation: bad }).ok, false);
+  assert.deepEqual(sim.snapshot(), before);
+  const invalid = structuredClone(saved); invalid.state.buildings.find(b => b.type === 'wall').wallRotation = bad;
+  assert.throws(() => createSimulation({ snapshot: invalid }));
+}
+assert.equal(applyTool(sim, 'rotate-wall', { x: 19, z: 17 }).ok, false);
+const legacy = structuredClone(saved);
+for (const key of ['morale', 'moraleFactors', 'housingCapacity', 'jobs']) delete legacy.state[key];
+for (const b of legacy.state.buildings) delete b.wallRotation;
+legacy.runtime.events = legacy.runtime.events.filter(e => e.type !== 'rotated');
+const migrated = createSimulation({ snapshot: legacy }); migrated.update(1);
+assert(Number.isFinite(migrated.state.morale));
+console.log('FOUNDATION PASS: HUD aggregates, actual morale growth, paused/save/legacy, atomic wall intent and native rotate routing');

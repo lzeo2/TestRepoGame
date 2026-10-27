@@ -1,5 +1,65 @@
 # Hero-team integration receipt
 
+## Ribbon HOLD repair atop `3bff8dee`
+
+Independent QA `02a6418f` reproduced stale Catchline targets, linked slow surviving
+reset/death, doubled ORM factors and outdated browser roster assumptions. The
+runtime now resolves each tether target by ID from current records every update,
+breaks on disappearance/death/team/range/cover/expiry, and revokes the old linked
+slow on reset, disposal or replacement (including a missed new cast). Systems
+accepts only validated tether cleanup from inactive casters; dead-source damage
+and unconfigured/incorrect abilities remain rejected. Cleanup removes only that
+source/ability status. Embedded-PBR clones retain authored GLB material factors;
+untextured original-model palette/procedural-surface handling is unchanged.
+
+Current integrated browser checks require all eight hero IDs and ten model IDs.
+Native E selection covers all eight kits/32 slots; its contact sheet fits eight
+rows. Historical original-four range/before-after/concept comparisons remain
+four-hero comparisons, not evidence for supplied models without those fixtures.
+
+Targeted commands: `node heroes/ribbon-seraph-test.mjs`, `node heroes/trio-test.mjs`,
+`node heroes/hero-runtime-test.mjs`, `node systems-test.mjs --no-evidence` (from
+this game's directory), and `python3 -B qa-roster-test.py`. Ribbon checks real
+replacement-record motion (8m to 58m), moving FX, range/removal/death/team break,
+reset/recast/caster-death slow cleanup and GLB ORM multipliers. Bitmap/DOM remain
+mocked: no native input, rendering, art, balance, hardware or release acceptance.
+Syntax and scoped whitespace checks are required. The global maintenance checker
+is blocked by uncommitted concurrent game edits; shared inventory/manual files
+are deliberately not changed under this Jankolock3D-only order. No browser,
+installation, asset edits, full fleet or push. Text-only waiver: <=7 MB growth,
+TMPDIR=/dev/shm, halt below 1,420,000,000 free bytes.
+
+## Trio gameplay follow-up (integrated entry only)
+
+The integrated lobby now has eight selectable kits: the original four, Ribbon
+Seraph, Spoollash, Checkmate Regent and Prism Warden. The standalone ranges still
+use only their original four. The trio adds native four-slot kit adaptations at
+`docs/jank3d-trio-kits.json`, verified PBR loads, bounded rigid poses and cosmetic
+weapon sockets without modifying Ribbon's kit or pose branch. Standard capsule,
+covered authoritative rays and systems damage/status ownership are unchanged.
+
+Run `node Games/Jankolock3D/heroes/trio-test.mjs`: independently pinned asset
+presence, actual loader/60 embedded PNG streams, 630 poses, CPU fire/melee/12
+casts/collision/lifecycle and actual lobby card/select/start callbacks in a VM.
+DOM and bot startup are mocked in that selection check; this is not native
+browser/input, GPU, art or full-match balance acceptance. See the
+[trio receipt](../models/TRIO.md) for actual abilities and remaining gaps.
+The earlier Ribbon-only receipt below describes its own scope at that time.
+
+## Ribbon Seraph follow-up (3D integrated entry only)
+
+The four standalone ranges below are unchanged. The integrated `../game.mjs`
+now also loads the optimized Ribbon Seraph with its separate schema-v1 kit at
+`docs/jank3d-ribbon-seraph-kit.json`. It reuses HeroRuntime and systems, not the
+archive's unsupported proposed effect schema. The fifth real lobby card creates
+its verified GLB body, bounded rigid pose adapter and standard grounded controller.
+Shared authoritative origins/hit volumes are unchanged; wings are cosmetic.
+See [asset/kit qualifications](../models/ribbon-seraph/README.md). Trio definitions,
+Monk and the original four-hero JSON remain untouched. The supplied archive has
+no Monk model. Run `node Games/Jankolock3D/heroes/ribbon-seraph-test.mjs` for real
+GLB/PNG-stream/controller/systems checks with mocked bitmap creation; no fresh
+native/browser interaction or visual acceptance is claimed for this addition.
+
 Scope: original hero characters, controller, shoulder camera, ability geometry,
 and isolated training ranges. This is not the full match, registration, or an
 acceptance grade. The reviewer owns criterion E. The previous 2D game supplied

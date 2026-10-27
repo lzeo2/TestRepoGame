@@ -1,0 +1,180 @@
+{
+  "tools": {
+    "esbuild": "0.28.2",
+    "three": "0.186.0"
+  },
+  "outputs": {
+    "assets/main.js": {
+      "bytes": 2817,
+      "entryPoint": "src/main.ts",
+      "imports": [
+        "assets/chunk-UJIVF34A.js",
+        "assets/chunk-LU3F6XZF.js",
+        "assets/chunk-AAZABAPM.js",
+        "assets/scene-MEW47VOF.js",
+        "assets/audio-U7HWYB2A.js",
+        "assets/game-YX45I7AR.js",
+        "assets/game-YX45I7AR.js"
+      ],
+      "cssBundle": "assets/main.css"
+    },
+    "assets/ui-check.js": {
+      "bytes": 3750,
+      "entryPoint": "ui-check.ts",
+      "imports": [
+        "assets/chunk-MIE7GIYZ.js",
+        "assets/chunk-UJIVF34A.js",
+        "assets/chunk-6MMEEVMZ.js",
+        "assets/chunk-LU3F6XZF.js",
+        "assets/chunk-AAZABAPM.js"
+      ],
+      "cssBundle": "assets/ui-check.css"
+    },
+    "assets/terrain-worker.js": {
+      "bytes": 706,
+      "entryPoint": "src/render/world/terrain-worker.ts",
+      "imports": [
+        "assets/chunk-QLLS4C3I.js",
+        "assets/chunk-VQ65COZY.js",
+        "assets/chunk-6MMEEVMZ.js",
+        "assets/chunk-AAZABAPM.js"
+      ]
+    },
+    "assets/GLTFLoader-NFHUNLUH.js": {
+      "bytes": 94,
+      "entryPoint": "../../../../../../wings-approved-three-0.186.0-349932/package/examples/jsm/loaders/GLTFLoader.js",
+      "imports": [
+        "assets/chunk-G532MIV6.js",
+        "assets/chunk-AAZABAPM.js"
+      ]
+    },
+    "assets/scene-MEW47VOF.js": {
+      "bytes": 96710,
+      "entryPoint": "src/render/scene.ts",
+      "imports": [
+        "assets/chunk-QLLS4C3I.js",
+        "assets/chunk-7UUYJ7C3.js",
+        "assets/chunk-VQ65COZY.js",
+        "assets/chunk-6MMEEVMZ.js",
+        "assets/chunk-G532MIV6.js",
+        "assets/chunk-LU3F6XZF.js",
+        "assets/chunk-AAZABAPM.js",
+        "assets/GLTFLoader-NFHUNLUH.js"
+      ]
+    },
+    "assets/chunk-QLLS4C3I.js": {
+      "bytes": 5632,
+      "imports": [
+        "assets/chunk-VQ65COZY.js",
+        "assets/chunk-6MMEEVMZ.js"
+      ]
+    },
+    "assets/audio-U7HWYB2A.js": {
+      "bytes": 36836,
+      "entryPoint": "src/audio.ts",
+      "imports": [
+        "assets/chunk-LU3F6XZF.js",
+        "assets/chunk-AAZABAPM.js"
+      ]
+    },
+    "assets/game-YX45I7AR.js": {
+      "bytes": 147377,
+      "entryPoint": "src/ui/game.ts",
+      "imports": [
+        "assets/chunk-MIE7GIYZ.js",
+        "assets/chunk-UJIVF34A.js",
+        "assets/chunk-7UUYJ7C3.js",
+        "assets/chunk-VQ65COZY.js",
+        "assets/chunk-6MMEEVMZ.js",
+        "assets/chunk-G532MIV6.js",
+        "assets/chunk-LU3F6XZF.js",
+        "assets/chunk-AAZABAPM.js"
+      ],
+      "cssBundle": "assets/game-6EQ23DUW.css"
+    },
+    "assets/chunk-MIE7GIYZ.js": {
+      "bytes": 110669,
+      "imports": [
+        "assets/chunk-UJIVF34A.js",
+        "assets/chunk-6MMEEVMZ.js",
+        "assets/chunk-LU3F6XZF.js"
+      ]
+    },
+    "assets/chunk-UJIVF34A.js": {
+      "bytes": 17877,
+      "imports": [
+        "assets/chunk-LU3F6XZF.js"
+      ]
+    },
+    "assets/chunk-7UUYJ7C3.js": {
+      "bytes": 766392,
+      "imports": [
+        "assets/chunk-VQ65COZY.js",
+        "assets/chunk-6MMEEVMZ.js",
+        "assets/chunk-G532MIV6.js",
+        "assets/chunk-LU3F6XZF.js",
+        "assets/chunk-AAZABAPM.js"
+      ]
+    },
+    "assets/chunk-VQ65COZY.js": {
+      "bytes": 1137,
+      "imports": []
+    },
+    "assets/chunk-6MMEEVMZ.js": {
+      "bytes": 14890,
+      "imports": []
+    },
+    "assets/chunk-G532MIV6.js": {
+      "bytes": 596504,
+      "imports": []
+    },
+    "assets/chunk-LU3F6XZF.js": {
+      "bytes": 3739,
+      "imports": []
+    },
+    "assets/chunk-AAZABAPM.js": {
+      "bytes": 106,
+      "imports": []
+    },
+    "assets/main.css": {
+      "bytes": 31228,
+      "imports": []
+    },
+    "assets/ui-check.css": {
+      "bytes": 31228,
+      "imports": []
+    },
+    "assets/game-6EQ23DUW.css": {
+      "bytes": 31228,
+      "imports": []
+    },
+    "verification/astra-check.mjs": {
+      "bytes": 936812,
+      "entryPoint": "astra-check.ts",
+      "imports": [
+        "node:assert/strict",
+        "node:fs",
+        "node:path",
+        "node:crypto",
+        "node:timers/promises"
+      ]
+    },
+    "verification/solo-check.mjs": {
+      "bytes": 119156,
+      "entryPoint": "solo-check.ts",
+      "imports": [
+        "node:assert/strict"
+      ]
+    },
+    "verification/lighting-check.mjs": {
+      "bytes": 836533,
+      "entryPoint": "lighting-check.ts",
+      "imports": [
+        "node:assert/strict",
+        "node:assert/strict",
+        "node:fs",
+        "node:path"
+      ]
+    }
+  }
+}

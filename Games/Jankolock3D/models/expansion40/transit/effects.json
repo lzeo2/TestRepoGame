@@ -1,0 +1,80 @@
+{
+  "schema": "jank3d_geometric_effect_concept_v1",
+  "id": "transit",
+  "effect_name": "Priority conveyance",
+  "description": "Three bold conveyor-lane arrows project forward from the trolley, bounded by large route chevrons and suspended dispatch markers. The vehicle remains above the clearly readable lane effect.",
+  "toggle_root": "FX_ROOT",
+  "toggle_contract": "Set this subtree visible/invisible in the target engine. Geometry has no autonomous playback; caller controls visibility and any motion.",
+  "mesh_nodes": [
+    "fx_lane_arrow_0_shaft",
+    "fx_lane_arrow_0_left",
+    "fx_lane_arrow_0_right",
+    "fx_lane_arrow_1_shaft",
+    "fx_lane_arrow_1_left",
+    "fx_lane_arrow_1_right",
+    "fx_lane_arrow_2_shaft",
+    "fx_lane_arrow_2_left",
+    "fx_lane_arrow_2_right",
+    "fx_left_lane_dash_0",
+    "fx_left_lane_dash_1",
+    "fx_left_lane_dash_2",
+    "fx_left_route_chevron_a_0",
+    "fx_left_route_chevron_b_0",
+    "fx_left_route_chevron_a_1",
+    "fx_left_route_chevron_b_1",
+    "fx_right_lane_dash_0",
+    "fx_right_lane_dash_1",
+    "fx_right_lane_dash_2",
+    "fx_right_route_chevron_a_0",
+    "fx_right_route_chevron_b_0",
+    "fx_right_route_chevron_a_1",
+    "fx_right_route_chevron_b_1"
+  ],
+  "motion_nodes": {
+    "fx_conveyance_lane": {
+      "axis": "Z",
+      "limits": [
+        -25,
+        25
+      ],
+      "note": "Rigid articulation, artistic guide; not a collision guarantee."
+    },
+    "fx_left_route_signal": {
+      "axis": "Y",
+      "limits": [
+        -15,
+        15
+      ],
+      "note": "Rigid articulation, artistic guide; not a collision guarantee."
+    },
+    "fx_right_route_signal": {
+      "axis": "Y",
+      "limits": [
+        -15,
+        15
+      ],
+      "note": "Rigid articulation, artistic guide; not a collision guarantee."
+    }
+  },
+  "body_rig_reference": "rig.json",
+  "palette_reference": "palette.json",
+  "body_palette_preserved_in_fx_variant": true,
+  "baseline_files_unchanged": true,
+  "baseline_sha256": {
+    "model.blend": "6aa722317437fc6059a79cc6ea795b0b6f2c0c7cbffce0cf347f12365fe8aa50",
+    "model.glb": "f382ace84c80e48a9d7ef02a07ea3267636698c3015ceeaae84c7413ba785b70",
+    "portrait.png": "2220e8b6bc7c376a01d6c505e85ba6e30bb02e08b9211bb591ed28bc0d5624e5"
+  },
+  "variants": {
+    "fx": {
+      "runtime": "model_fx.glb",
+      "source": "model_fx.blend",
+      "illustration": "portrait_fx.png",
+      "manifest": "manifest_fx.json",
+      "rig": "rig_fx.json",
+      "palette": "palette_fx.json"
+    }
+  },
+  "gameplay_status": "Art/FX concept only. No engine primitive, gameplay logic, collision, timing or ability integration implemented.",
+  "cel_variant": null
+}

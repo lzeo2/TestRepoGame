@@ -1,0 +1,60 @@
+{
+  "schema": "jank3d_geometric_effect_concept_v1",
+  "id": "draftsman",
+  "effect_name": "Dimension Golem",
+  "description": "A bold wireframe drafting construct grows from the compass point: nested triangular volumes, ruler ticks and geometric construction nodes. Static toggleable art concept, not a spawned gameplay unit.",
+  "toggle_root": "FX_ROOT",
+  "toggle_contract": "Set this subtree visible/invisible in the target engine. Geometry has no autonomous playback; caller controls visibility and any motion.",
+  "mesh_nodes": [
+    "fx_dimension_front_0",
+    "fx_dimension_back_0",
+    "fx_dimension_depth_0",
+    "fx_construction_node_0",
+    "fx_dimension_front_1",
+    "fx_dimension_back_1",
+    "fx_dimension_depth_1",
+    "fx_construction_node_1",
+    "fx_dimension_front_2",
+    "fx_dimension_back_2",
+    "fx_dimension_depth_2",
+    "fx_construction_node_2",
+    "fx_triangle_inset",
+    "fx_golem_head",
+    "fx_golem_eye",
+    "fx_dimension_tick_0",
+    "fx_dimension_tick_1",
+    "fx_dimension_tick_2",
+    "fx_dimension_tick_3",
+    "fx_dimension_tick_4",
+    "fx_dimension_tick_5",
+    "fx_dimension_tick_6",
+    "fx_dimension_tick_7",
+    "fx_dimension_tick_8",
+    "fx_projection_dash_0",
+    "fx_projection_dash_1",
+    "fx_projection_dash_2",
+    "fx_projection_dash_3"
+  ],
+  "motion_nodes": {},
+  "body_rig_reference": "rig.json",
+  "palette_reference": "palette.json",
+  "body_palette_preserved_in_fx_variant": true,
+  "baseline_files_unchanged": true,
+  "baseline_sha256": {
+    "model.blend": "6732d94efed6e941d337c7f14c13ccfe1c1356f1d1488c36ac964766ea2a1c0e",
+    "model.glb": "00b6764ed34d357cdc3b8bb649ec815cce1246f5e72750f7c867c961b49a5f38",
+    "portrait.png": "12ec80284b45482174d7c5eac171a258337cc39449767afd7ca394935500e3a3"
+  },
+  "variants": {
+    "fx": {
+      "runtime": "model_fx.glb",
+      "source": "model_fx.blend",
+      "illustration": "portrait_fx.png",
+      "manifest": "manifest_fx.json",
+      "rig": "rig_fx.json",
+      "palette": "palette_fx.json"
+    }
+  },
+  "gameplay_status": "Art/FX concept only. No engine primitive, gameplay logic, collision, timing or ability integration implemented.",
+  "cel_variant": null
+}

@@ -1,0 +1,705 @@
+{
+  "schema": "wings_original_submarine_asset_v1",
+  "id": "generic_attack_submarine",
+  "identity": "One unnamed original AI attack-submarine archetype; same asset for two faction slots.",
+  "creation": {
+    "basis": "explicit_operator_existing_Wings_asset_order",
+    "method": "original_Python_stdlib_procedural_geometry_and_factor_PBR",
+    "third_party_code_mesh_texture_inputs": [],
+    "authoring_model": "openai-codex/gpt-6.1-sol",
+    "limits": "No real class, engineering accuracy, manufacturer endorsement or independent originality/legal guarantee."
+  },
+  "file": "models/derived/generic-attack-submarine.glb",
+  "sha256": "6898dd746f03d05a9d1205ab93b72083fa8ac3d6b2e7045198f3d9f786960724",
+  "bytes": 336996,
+  "triangles": 17016,
+  "axes": {
+    "meters": true,
+    "forward": "-Z",
+    "up": "+Y",
+    "right": "+X"
+  },
+  "root": "submarine_root_waterline",
+  "waterline_y": 0,
+  "hull_center_y": -3.6,
+  "hull_loft_stations_z_radius": [
+    [
+      -42,
+      0
+    ],
+    [
+      -41.3,
+      1.3
+    ],
+    [
+      -39,
+      2.75
+    ],
+    [
+      -35,
+      4.05
+    ],
+    [
+      -29,
+      4.65
+    ],
+    [
+      -20,
+      4.8
+    ],
+    [
+      0,
+      4.8
+    ],
+    [
+      16,
+      4.55
+    ],
+    [
+      24,
+      3.7
+    ],
+    [
+      30,
+      2.3
+    ],
+    [
+      34,
+      1.0
+    ],
+    [
+      36,
+      0.52
+    ],
+    [
+      37,
+      0.45
+    ]
+  ],
+  "static_bounds_root": {
+    "min": [
+      -7.349999952316284,
+      -10.2,
+      -42.0
+    ],
+    "max": [
+      7.349999952316284,
+      7.199999809265137,
+      40.44999995231628
+    ]
+  },
+  "static_bounds_scope": "entire_asset_at_rest_including_moving_meshes",
+  "continuous_swept_bounds_root": {
+    "min": [
+      -7.349999952316284,
+      -10.2,
+      -42.0
+    ],
+    "max": [
+      7.349999952316284,
+      7.199999809265137,
+      40.44999995231628
+    ]
+  },
+  "bounds_basis": "serialized_float32_vertices_and_analytic_rigid_rotation_extrema",
+  "collision": {
+    "hull": {
+      "min": [
+        -4.800000190734863,
+        -8.208000183105469,
+        -42.0
+      ],
+      "max": [
+        4.800000190734863,
+        1.0080000162124634,
+        37.0
+      ]
+    },
+    "policy": "Use continuous swept bounds conservatively; precise scene water/seabed/ship clearance is FC-owned and not implemented here."
+  },
+  "articulation": [
+    {
+      "node": "propulsion_rotor",
+      "axis_local": [
+        0,
+        0,
+        1
+      ],
+      "rest_rotation": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "rest_translation": [
+        0,
+        -3.6,
+        39.4
+      ],
+      "limits_rad": null,
+      "motion": "continuous_rotation",
+      "mapping": {
+        "source": "adapter.authoritative_forward_speed_fraction",
+        "formula": "angle += clamp(speed_fraction,0,1)*8*dt_seconds",
+        "maximum_rad_s": 8,
+        "at_rest_rad_s": 0,
+        "status": "proposed_adapter_channel_not_existing_FC_field"
+      },
+      "clearance": "all_blades_behind_hull_and_planes_and_outside_shaft; hub_shaft_seating_intentional",
+      "rest_bounds_root": {
+        "min": [
+          -2.920893907546997,
+          -6.5216516017913815,
+          38.95000001192093
+        ],
+        "max": [
+          2.845978021621704,
+          -0.7373374462127686,
+          40.44999995231628
+        ]
+      },
+      "sampled_swept_bounds_root": {
+        "min": [
+          -2.921666971558518,
+          -6.521666971558519,
+          38.95000001192093
+        ],
+        "max": [
+          2.921666971558519,
+          -0.6783330284414819,
+          40.44999995231628
+        ]
+      },
+      "swept_bounds_root": {
+        "min": [
+          -2.921672007463167,
+          -6.521672007463167,
+          38.95000001192093
+        ],
+        "max": [
+          2.921672007463167,
+          -0.6783279925368335,
+          40.44999995231628
+        ]
+      }
+    },
+    {
+      "node": "stern_dive_port",
+      "axis_local": [
+        1,
+        0,
+        0
+      ],
+      "rest_rotation": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "rest_translation": [
+        -3.6,
+        -3.6,
+        29.2
+      ],
+      "limits_rad": [
+        -0.3,
+        0.3
+      ],
+      "motion": "bounded_hinge",
+      "mapping": {
+        "source": "adapter.authoritative_depth_rate_fraction",
+        "formula": "angle = clamp(command,-1,1)*0.30; rotation = rest * axisAngle(local_axis,angle)",
+        "status": "proposed_adapter_channel_not_existing_FC_field"
+      },
+      "clearance": "foil_outside_static_hull_and_sail; hinge_contact_only_at_mount_plane",
+      "rest_bounds_root": {
+        "min": [
+          -6.899999952316284,
+          -3.7299999952316285,
+          27.400000047683715
+        ],
+        "max": [
+          -3.6,
+          -3.4700000047683717,
+          30.999999952316283
+        ]
+      },
+      "sampled_swept_bounds_root": {
+        "min": [
+          -6.899999952316284,
+          -4.138972020060705,
+          27.400000047683715
+        ],
+        "max": [
+          -3.6,
+          -3.0610279799392957,
+          30.999999952316283
+        ]
+      },
+      "swept_bounds_root": {
+        "min": [
+          -6.899999952316284,
+          -4.138972020060705,
+          27.400000047683715
+        ],
+        "max": [
+          -3.6,
+          -3.061027979939295,
+          30.999999952316283
+        ]
+      }
+    },
+    {
+      "node": "stern_dive_starboard",
+      "axis_local": [
+        1,
+        0,
+        0
+      ],
+      "rest_rotation": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "rest_translation": [
+        3.6,
+        -3.6,
+        29.2
+      ],
+      "limits_rad": [
+        -0.3,
+        0.3
+      ],
+      "motion": "bounded_hinge",
+      "mapping": {
+        "source": "adapter.authoritative_depth_rate_fraction",
+        "formula": "angle = clamp(command,-1,1)*0.30; rotation = rest * axisAngle(local_axis,angle)",
+        "status": "proposed_adapter_channel_not_existing_FC_field"
+      },
+      "clearance": "foil_outside_static_hull_and_sail; hinge_contact_only_at_mount_plane",
+      "rest_bounds_root": {
+        "min": [
+          3.6,
+          -3.7299999952316285,
+          27.400000047683715
+        ],
+        "max": [
+          6.899999952316284,
+          -3.4700000047683717,
+          30.999999952316283
+        ]
+      },
+      "sampled_swept_bounds_root": {
+        "min": [
+          3.6,
+          -4.138972020060705,
+          27.400000047683715
+        ],
+        "max": [
+          6.899999952316284,
+          -3.0610279799392957,
+          30.999999952316283
+        ]
+      },
+      "swept_bounds_root": {
+        "min": [
+          3.6,
+          -4.138972020060705,
+          27.400000047683715
+        ],
+        "max": [
+          6.899999952316284,
+          -3.061027979939295,
+          30.999999952316283
+        ]
+      }
+    },
+    {
+      "node": "steering_upper",
+      "axis_local": [
+        1,
+        0,
+        0
+      ],
+      "rest_rotation": [
+        0.0,
+        0.0,
+        0.7071067811865475,
+        0.7071067811865476
+      ],
+      "rest_translation": [
+        0,
+        0.0,
+        29.2
+      ],
+      "limits_rad": [
+        -0.3,
+        0.3
+      ],
+      "motion": "bounded_hinge",
+      "mapping": {
+        "source": "adapter.authoritative_turn_rate_fraction",
+        "formula": "angle = clamp(command,-1,1)*0.30; rotation = rest * axisAngle(local_axis,angle)",
+        "status": "proposed_adapter_channel_not_existing_FC_field"
+      },
+      "clearance": "foil_outside_static_hull_and_sail; hinge_contact_only_at_mount_plane",
+      "rest_bounds_root": {
+        "min": [
+          -0.12999999523162842,
+          -2.7755575615628914e-17,
+          27.400000047683715
+        ],
+        "max": [
+          0.12999999523162842,
+          3.0,
+          30.999999952316283
+        ]
+      },
+      "sampled_swept_bounds_root": {
+        "min": [
+          -0.5389720200607045,
+          -1.1102230246251565e-16,
+          27.400000047683715
+        ],
+        "max": [
+          0.5389720200607045,
+          3.000000000000001,
+          30.999999952316283
+        ]
+      },
+      "swept_bounds_root": {
+        "min": [
+          -0.5389720200607045,
+          -9.213458169777596e-17,
+          27.400000047683715
+        ],
+        "max": [
+          0.5389720200607045,
+          3.0,
+          30.999999952316283
+        ]
+      }
+    },
+    {
+      "node": "steering_lower",
+      "axis_local": [
+        -1,
+        0,
+        0
+      ],
+      "rest_rotation": [
+        -0.0,
+        -0.0,
+        -0.7071067811865475,
+        0.7071067811865476
+      ],
+      "rest_translation": [
+        0,
+        -7.2,
+        29.2
+      ],
+      "limits_rad": [
+        -0.3,
+        0.3
+      ],
+      "motion": "bounded_hinge",
+      "mapping": {
+        "source": "adapter.authoritative_turn_rate_fraction",
+        "formula": "angle = clamp(command,-1,1)*0.30; rotation = rest * axisAngle(local_axis,angle)",
+        "status": "proposed_adapter_channel_not_existing_FC_field"
+      },
+      "clearance": "foil_outside_static_hull_and_sail; hinge_contact_only_at_mount_plane",
+      "rest_bounds_root": {
+        "min": [
+          -0.12999999523162842,
+          -10.2,
+          27.400000047683715
+        ],
+        "max": [
+          0.12999999523162842,
+          -7.2,
+          30.999999952316283
+        ]
+      },
+      "sampled_swept_bounds_root": {
+        "min": [
+          -0.5389720200607045,
+          -10.200000000000001,
+          27.400000047683715
+        ],
+        "max": [
+          0.5389720200607045,
+          -7.2,
+          30.999999952316283
+        ]
+      },
+      "swept_bounds_root": {
+        "min": [
+          -0.5389720200607045,
+          -10.2,
+          27.400000047683715
+        ],
+        "max": [
+          0.5389720200607045,
+          -7.2,
+          30.999999952316283
+        ]
+      }
+    },
+    {
+      "node": "bow_dive_port",
+      "axis_local": [
+        1,
+        0,
+        0
+      ],
+      "rest_rotation": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "rest_translation": [
+        -5.05,
+        -3.25,
+        -12
+      ],
+      "limits_rad": [
+        -0.3,
+        0.3
+      ],
+      "motion": "bounded_hinge",
+      "mapping": {
+        "source": "adapter.authoritative_depth_rate_fraction",
+        "formula": "angle = clamp(command,-1,1)*0.30; rotation = rest * axisAngle(local_axis,angle)",
+        "status": "proposed_adapter_channel_not_existing_FC_field"
+      },
+      "clearance": "foil_outside_static_hull_and_sail; hinge_contact_only_at_mount_plane",
+      "rest_bounds_root": {
+        "min": [
+          -7.349999952316284,
+          -3.3799999952316284,
+          -13.399999976158142
+        ],
+        "max": [
+          -5.05,
+          -3.1200000047683716,
+          -10.552000045776367
+        ]
+      },
+      "sampled_swept_bounds_root": {
+        "min": [
+          -7.349999952316284,
+          -3.6799234461514194,
+          -13.399999976158142
+        ],
+        "max": [
+          -5.05,
+          -2.8200765538485806,
+          -10.552000045776367
+        ]
+      },
+      "swept_bounds_root": {
+        "min": [
+          -7.349999952316284,
+          -3.6799234461514194,
+          -13.399999976158142
+        ],
+        "max": [
+          -5.05,
+          -2.8200765538485806,
+          -10.552000045776367
+        ]
+      }
+    },
+    {
+      "node": "bow_dive_starboard",
+      "axis_local": [
+        1,
+        0,
+        0
+      ],
+      "rest_rotation": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "rest_translation": [
+        5.05,
+        -3.25,
+        -12
+      ],
+      "limits_rad": [
+        -0.3,
+        0.3
+      ],
+      "motion": "bounded_hinge",
+      "mapping": {
+        "source": "adapter.authoritative_depth_rate_fraction",
+        "formula": "angle = clamp(command,-1,1)*0.30; rotation = rest * axisAngle(local_axis,angle)",
+        "status": "proposed_adapter_channel_not_existing_FC_field"
+      },
+      "clearance": "foil_outside_static_hull_and_sail; hinge_contact_only_at_mount_plane",
+      "rest_bounds_root": {
+        "min": [
+          5.05,
+          -3.3799999952316284,
+          -13.399999976158142
+        ],
+        "max": [
+          7.349999952316284,
+          -3.1200000047683716,
+          -10.552000045776367
+        ]
+      },
+      "sampled_swept_bounds_root": {
+        "min": [
+          5.05,
+          -3.6799234461514194,
+          -13.399999976158142
+        ],
+        "max": [
+          7.349999952316284,
+          -2.8200765538485806,
+          -10.552000045776367
+        ]
+      },
+      "swept_bounds_root": {
+        "min": [
+          5.05,
+          -3.6799234461514194,
+          -13.399999976158142
+        ],
+        "max": [
+          7.349999952316284,
+          -2.8200765538485806,
+          -10.552000045776367
+        ]
+      }
+    }
+  ],
+  "launch_origins": [
+    {
+      "node": "underwater_launch_port",
+      "geometry_node": "launch_cuff_port",
+      "terminal_ring_local_z": -0.55,
+      "terminal_ring_radius": 0.36,
+      "origin_local": [
+        0,
+        0,
+        -0.6
+      ],
+      "origin_rest_root": [
+        -4.78873993636967,
+        -4.0,
+        -34.96954125084946
+      ],
+      "direction_local": [
+        0,
+        0,
+        -1
+      ],
+      "direction_rest_root": [
+        -0.31456656061611776,
+        0.0,
+        -0.9492354180824408
+      ],
+      "derivation": "center_of_visible_24_vertex_terminal_bore_ring_plus_0.05m_outward",
+      "clearance": "tested_12m_ray_and_0.25m_projectile_radius_outside_hull",
+      "capability_enabled": false
+    },
+    {
+      "node": "underwater_launch_starboard",
+      "geometry_node": "launch_cuff_starboard",
+      "terminal_ring_local_z": -0.55,
+      "terminal_ring_radius": 0.36,
+      "origin_local": [
+        0,
+        0,
+        -0.6
+      ],
+      "origin_rest_root": [
+        4.78873993636967,
+        -4.0,
+        -34.96954125084946
+      ],
+      "direction_local": [
+        0,
+        0,
+        -1
+      ],
+      "direction_rest_root": [
+        0.31456656061611776,
+        0.0,
+        -0.9492354180824408
+      ],
+      "derivation": "center_of_visible_24_vertex_terminal_bore_ring_plus_0.05m_outward",
+      "clearance": "tested_12m_ray_and_0.25m_projectile_radius_outside_hull",
+      "capability_enabled": false
+    }
+  ],
+  "materials": [
+    {
+      "index": 0,
+      "role": "hull_coating"
+    },
+    {
+      "index": 1,
+      "role": "sail_coating"
+    },
+    {
+      "index": 2,
+      "role": "control_surface_coating"
+    },
+    {
+      "index": 3,
+      "role": "panel_seam"
+    },
+    {
+      "index": 4,
+      "role": "shaft_alloy"
+    },
+    {
+      "index": 5,
+      "role": "propeller_alloy"
+    },
+    {
+      "index": 6,
+      "role": "aperture_recess"
+    }
+  ],
+  "original_existing_models_sha256": {
+    "a10.glb": "f9f4392f4de4dea95558c16738ff02fd89ae1ca10d0d960655fb967df64b9d24",
+    "ac130.glb": "1a53da510144bbcd28903ad407c067e4128af7d7a52afe4994e17826344f1f9e",
+    "apache.glb": "bd6a9677f8f469dceac601aef4fd2ec7b5a42f66f12c5493159004bfa6ca47ac",
+    "b2.glb": "3e271a320ef39720c445ed379b72dcdf40b32c38b58d1df09d356be119ee826b",
+    "carrier.glb": "d1e20c4d0a6e13e4de6d1ec0ebbf1cd4ce7a563f2a14601c681b2159822ce9b0",
+    "destroyer.glb": "5dfb334aa4496edb0c6358cdf7f8025f71dca563daad2b425d792b41c279eeef",
+    "f15.glb": "5c1bf64dc21962dc822dc44edd91186aa4a6932034b06a405d3170518fc135bf",
+    "f35.glb": "ce19018414037e3cef949a99ae08a1d035b25fbd20601e1835c2426bc32db197",
+    "fa18.glb": "78bb2fb9f542daaa607e850f7444018fc2f996cd247d67e3ad3761df58efab09",
+    "speedboat.glb": "7fee0b74e7c746a2dff2b7c4b5bed58c39b9ddbbc0c55592f1eb27941b4f2aee",
+    "yf12.glb": "5f49376fbace30d888e6972850833af28d101427f66f12bdf128c889966f6769"
+  },
+  "objective_only": true,
+  "faction_slots": 2,
+  "player_vehicle_kind": null,
+  "runtime_consumed": false,
+  "supported_runtime_weapon_capabilities": [],
+  "unsupported_geometry": [
+    "wheels",
+    "glass_cockpit",
+    "burner",
+    "gun_turret",
+    "animated_masts",
+    "launch_doors"
+  ],
+  "holds": [
+    "FC_depth_contacts_ownership_launch_damage_and_objective_authority",
+    "source_built_renderer_adapter_and_contact_safe_visibility",
+    "visual_realism_and_native_acceptance_not_claimed",
+    "upstream_Wings_redistribution_clearance_separate_from_original_asset_authorization"
+  ]
+}

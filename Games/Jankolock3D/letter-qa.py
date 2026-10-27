@@ -9,12 +9,11 @@ import http.server
 import io
 import json
 import os
+from qa_roster import HERO_IDS, KITS, MODEL_IDS, P_HERO_IDS, runtime_hashes
 from pathlib import Path
 import subprocess
 import threading
 from urllib.parse import urlsplit
-from PIL import Image, ImageDraw, ImageStat
-from playwright.sync_api import sync_playwright
 
 ROOT = Path(__file__).resolve().parents[2]
 GAME = ROOT / 'Games/Jankolock3D'
@@ -28,8 +27,7 @@ def guard():
 
 
 def hashes():
-    return {p.relative_to(ROOT).as_posix(): hashlib.sha256(p.read_bytes()).hexdigest()
-            for p in sorted(GAME.rglob('*')) if p.suffix in {'.mjs', '.js', '.html', '.css', '.glb'}}
+    return runtime_hashes(ROOT)
 
 
 @functools.cache
@@ -52,13 +50,26 @@ class Handler(http.server.SimpleHTTPRequestHandler):
         pass
 
 
-def main():
-    global OUT
+def parse_args(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('letter', choices=['A', 'C', 'D', 'E', 'F', 'H', 'P'])
-    parser.add_argument('--hero', choices=['stampead', 'turretina', 'snipeoff', 'gooey'], help='One short hero/inspection run')
+    parser.add_argument('--hero', choices=HERO_IDS, help='One short hero/inspection run')
     parser.add_argument('--visual-pass', action='store_true', help='Separate visual-pass evidence and strict whole-pass60MB write guard')
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
+    if args.letter == 'P' and args.hero and args.hero not in P_HERO_IDS:
+        parser.error('P has concept-comparison fixtures only for: ' + ', '.join(P_HERO_IDS))
+    return args
+
+
+def require_current_evidence(report):
+    assert report['screenshots'] and report['checks'] and report['responses'], 'No current-run evidence'
+
+
+def main():
+    global OUT
+    args = parse_args()
+    from PIL import Image, ImageDraw, ImageStat
+    from playwright.sync_api import sync_playwright
     if args.visual_pass:
         OUT = OUT.parent / 'visual-pass'
     letter, selected_hero = args.letter, args.hero
@@ -193,7 +204,7 @@ def main():
                     capture('H-dark', 'Default-dark normal lobby; supplied portrait and actual model, no fixture query')
                     page.get_by_role('button', name='Light theme', exact=True).click()
                     capture('H', 'Native light-toggle lobby; world lighting unchanged')
-                    assert {m['id'] for m in state()['models']} == {'stampead','turretina','snipeoff','gooey','trooper','deployed_stapler'}
+                    assert {m['id'] for m in state()['models']} == MODEL_IDS
                     report['checks'] = {'models': state()['models'], 'portrait': state()['portrait']}
                 elif letter == 'C':
                     load('orbs')
@@ -240,7 +251,7 @@ def main():
                     capture('G-defeat', 'Symmetric real P2 death triggers standard Defeat dialog')
                     report['checks'] = {'winner': receipt['winner'], 'time': receipt['time'], 'objectiveFalls': 19, 'defeatWinner': loss['winner']}
                 elif letter == 'E':
-                    kits = json.loads((ROOT / 'docs/jank3d-hero-kits.json').read_text())['heroes']
+                    kits = KITS
                     for kit in kits:
                         if selected_hero and kit['id'] != selected_hero:
                             continue
@@ -264,7 +275,7 @@ def main():
                     if not selected_hero or selected_hero == kits[0]['id']:
                         write_blob(OUT / 'integration-E.png', (OUT / f'integration-E-{kits[0]["id"]}-3.png').read_bytes())
                     if all((OUT / f'integration-E-{kit["id"]}-{a["slot"]}.png').exists() for kit in kits for a in kit['abilities']):
-                        sheet = Image.new('RGB', (2560, 1536), '#eee9d8'); draw = ImageDraw.Draw(sheet)
+                        sheet = Image.new('RGB', (2560, 384 * len(kits)), '#eee9d8'); draw = ImageDraw.Draw(sheet)
                         for row, kit in enumerate(kits):
                             for col, ability in enumerate(kit['abilities']):
                                 image = Image.open(OUT / f'integration-E-{kit["id"]}-{ability["slot"]}.png').convert('RGB'); image.thumbnail((640, 360))
@@ -294,6 +305,7 @@ def main():
                     pair = Image.new('RGB', (2560, 752), '#eee9d8'); pair.paste(mock, (0, 32)); pair.paste(Image.open(OUT / 'integration-F.png'), (1280, 32))
                     draw = ImageDraw.Draw(pair); draw.text((12, 9), 'Approved flat shop mockup', fill='black'); draw.text((1292, 9), 'Actual integrated shop / seeded QA fixture', fill='black')
                     save_image(OUT / 'comparison-F.png', pair)
+                require_current_evidence(report)
                 assert not report['errors'], report['errors']
                 assert all(r['status'] == 200 for r in report['responses']), report['responses']
                 report['status'] = 'COMPLETE-builder-checks-only'

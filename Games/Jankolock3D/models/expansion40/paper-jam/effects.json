@@ -1,0 +1,48 @@
+{
+  "schema": "jank3d_geometric_effect_concept_v1",
+  "id": "paper-jam",
+  "effect_name": "Accordion Lane Block",
+  "description": "A large paper-jam wave unfolds across the floor: sharp accordion peaks, raised blocked pages and torn rectangular scraps. It is a visible geometric lane-block concept, not a collision wall or implemented nullification effect.",
+  "toggle_root": "FX_ROOT",
+  "toggle_contract": "Set this subtree visible/invisible in the target engine. Geometry has no autonomous playback; caller controls visibility and any motion.",
+  "mesh_nodes": [
+    "fx_jam_wave_ink_edge",
+    "fx_jam_wave_paper",
+    "fx_blocked_page_-1",
+    "fx_page_rule_-1_0",
+    "fx_page_rule_-1_1",
+    "fx_page_rule_-1_2",
+    "fx_page_rule_-1_3",
+    "fx_blocked_page_1",
+    "fx_page_rule_1_0",
+    "fx_page_rule_1_1",
+    "fx_page_rule_1_2",
+    "fx_page_rule_1_3",
+    "fx_jam_fragment_0",
+    "fx_jam_fragment_1",
+    "fx_jam_fragment_2",
+    "fx_jam_fragment_3"
+  ],
+  "motion_nodes": {},
+  "body_rig_reference": "rig.json",
+  "palette_reference": "palette.json",
+  "body_palette_preserved_in_fx_variant": true,
+  "baseline_files_unchanged": true,
+  "baseline_sha256": {
+    "model.blend": "ee0afa7fc3941aea642d30e7a1be8d4d410ce45284554275de76e2b534eb2099",
+    "model.glb": "d2a3d834b7c2f0d12178f78b40e7ba16e8cba48bdd741019830952c8b901e1c8",
+    "portrait.png": "60202a1097fa5471589ab0a8f874cc303ea069a52c478899b78882a4a2ccb611"
+  },
+  "variants": {
+    "fx": {
+      "runtime": "model_fx.glb",
+      "source": "model_fx.blend",
+      "illustration": "portrait_fx.png",
+      "manifest": "manifest_fx.json",
+      "rig": "rig_fx.json",
+      "palette": "palette_fx.json"
+    }
+  },
+  "gameplay_status": "Art/FX concept only. No engine primitive, gameplay logic, collision, timing or ability integration implemented.",
+  "cel_variant": null
+}

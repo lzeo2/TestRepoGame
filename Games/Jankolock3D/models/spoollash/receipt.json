@@ -1,0 +1,11 @@
+{
+  "url": "models/spoollash/model.glb",
+  "bytes": 3102828,
+  "sha256": "28690ccefb372b4b0008298cfa32c11d2c7eca68958645db627874a91ce7efee",
+  "triangles": 19448,
+  "metadataSHA256": {
+    "manifest.json": "cf04c55b5573b53a6f87af19b2b9aeb55de7c1e52c491dfc935859d6ef5cd102",
+    "palette.json": "95af89e642c27b949e67f67e119eaa507c8e4b098aed0b936d58339069ddc809",
+    "rig.json": "796f318d3238802955f020e0e380df89c60fffb0aaef53a1d720c8b6531cad40"
+  }
+}

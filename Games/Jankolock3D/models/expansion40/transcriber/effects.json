@@ -1,0 +1,45 @@
+{
+  "schema": "jank3d_geometric_effect_concept_v1",
+  "id": "transcriber",
+  "effect_name": "Spoken Transcript Fan",
+  "description": "Three large folded transcript strips fan from the microphone, carrying geometric speech marks and recorded words. The face, recorder and fencing silhouette stay clear; no audio or timing is implemented.",
+  "toggle_root": "FX_ROOT",
+  "toggle_contract": "Set this subtree visible/invisible in the target engine. Geometry has no autonomous playback; caller controls visibility and any motion.",
+  "mesh_nodes": [
+    "fx_transcript_band_0",
+    "fx_transcript_band_1",
+    "fx_transcript_band_2",
+    "fx_recorded_word_0",
+    "fx_recorded_word_1",
+    "fx_recorded_word_2",
+    "fx_speech_arrow_0",
+    "fx_speech_arrow_1",
+    "fx_speech_arrow_2",
+    "fx_voice_tick_0",
+    "fx_voice_tick_1",
+    "fx_voice_tick_2",
+    "fx_voice_tick_3"
+  ],
+  "motion_nodes": {},
+  "body_rig_reference": "rig.json",
+  "palette_reference": "palette.json",
+  "body_palette_preserved_in_fx_variant": true,
+  "baseline_files_unchanged": true,
+  "baseline_sha256": {
+    "model.blend": "50ae74c5134b0f3ab5c68afa277dfd84d32a56c65c7977f6f2ee5267c47632dc",
+    "model.glb": "6a39fad4041014f3cd9ae88b83f0088a9349f3ec83a8acda6e45f4779c18bb74",
+    "portrait.png": "c45cf28848442cf59909af7206d27c2ff22741f95efc6ab128154d65436cc119"
+  },
+  "variants": {
+    "fx": {
+      "runtime": "model_fx.glb",
+      "source": "model_fx.blend",
+      "illustration": "portrait_fx.png",
+      "manifest": "manifest_fx.json",
+      "rig": "rig_fx.json",
+      "palette": "palette_fx.json"
+    }
+  },
+  "gameplay_status": "Art/FX concept only. No engine primitive, gameplay logic, collision, timing or ability integration implemented.",
+  "cel_variant": null
+}

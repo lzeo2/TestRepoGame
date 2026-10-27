@@ -1,17 +1,26 @@
+import { BUILDINGS } from './sim.mjs';
+import { NEW_BUILDINGS, BUILD_TIMES, isBuildingActive } from './city-content.mjs';
+import { CITY_STAGES, getStage, nextStage, unlocked } from './progression.mjs';
+import { TECHNOLOGIES, researchOffer } from './development.mjs';
+import { SPECIALIZATIONS, SCENARIOS } from './production.mjs';
+
+const option = type => [type, NEW_BUILDINGS[type].label, ''];
 const GROUPS = {
-  Road: [['road', 'Road', '1']],
-  Zone: [['residential', 'Residential', '2'], ['commercial', 'Commercial', '3'], ['industrial', 'Industrial', '4']],
-  Service: [['power', 'Power plant', '5'], ['water', 'Water tower', '6'], ['police', 'Police', '7'], ['fire', 'Fire station', '8'], ['park', 'Park', '9']],
-  Defense: [['wall', 'Wall', 'B'], ['barricade', 'Barricade', 'Not available'], ['watchtower', 'Watchtower', 'N']],
+  Road: [['road', 'Road', '1'], ['bridge', 'Bridge', '']],
+  Zone: [['residential', 'Residential', '2'], ['commercial', 'Commercial', '3'], ['industrial', 'Industrial', '4'], option('apartments'), option('workshop'), ['upgrade', 'Upgrade', 'U']],
+  Service: [['power', 'Power plant', '5'], ['water', 'Water tower', '6'], ['police', 'Police', '7'], ['fire', 'Fire station', '8'], ['park', 'Park', '9'], option('clinic'), option('school'), option('solar'), option('river_pump')],
+  Defense: [['wall', 'Wall', 'B'], ['rotate-wall', 'Rotate wall', 'R'], ['barricade', 'Barricade', 'Not available'], ['watchtower', 'Watchtower', 'N']],
   Bulldoze: [['bulldoze', 'Bulldoze', 'X']]
 };
 const TUTORIAL = [
-  ['Place a road', 'Choose Road, then drag across empty lots. Roads cost $10 per lot. Mouse and touch both work.'],
-  ['Zone residential', 'Choose Zone, then Residential. Click or tap an empty lot beside a road. Homes also need a town hall, park, police or fire station within 16 lots.'],
+  ['Place a road', 'Choose Road, then drag across dry lots ($10 per lot). For the river, choose Bridge and drag straight from dry bank to dry bank ($90 per water lot, $10 per dry approach lot). Roads and bridges open immediately. Mouse and touch both work.'],
+  ['Zone residential', 'Choose Zone, then Residential. Tap an empty lot beside a road. Wait for construction: sites provide no output or services. Bulldoze cancels a site for a 75% refund. Homes need a supplied town hall, park, police or fire station within 16 lots.'],
   ['Add power and water', 'Choose Service, then place a Power plant and a Water tower beside roads connected to your homes. Powered and watered commercial and industrial zones provide jobs.'],
   ['Survive the night', 'In Zombie defense, protect the town hall with walls and watchtowers. If it falls, choose Repair and tap the hall within two simulated minutes ($240). The city keeps running during rebuilding. Free build has no zombie waves.'],
   ['Control the speed', 'Choose 1x, 3x or 10x to run time. Paused stops simulation time, not events display or building tools. Menu also pauses. Open How to play from Menu to read this again.']
 ];
+// incidents.mjs keeps response prices private. economy-ui-check verifies these labels against real responses.
+const INCIDENT_RESPONSE_COST = { fire: 90, outage: 70, flood: 110 };
 const number = value => Math.floor(Number(value) || 0).toLocaleString('en-AU');
 const townIcon = '<svg viewBox="0 0 160 80" aria-hidden="true"><path d="M5 72h150M25 72V43l20-15 20 15v29M80 72V20h25v52M85 20l8-15 8 15M118 72V48l16-12 16 12v24M38 72V55h14v17M88 35h8m-8 12h8"/></svg>';
 const shieldIcon = '<svg viewBox="0 0 160 80" aria-hidden="true"><path d="M80 5c12 12 28 14 39 16-1 27-13 43-39 55-26-12-38-28-39-55 11-2 27-4 39-16Z"/><path d="M68 53V30h24v23M76 53V42h8v11"/></svg>';
@@ -23,11 +32,22 @@ export function createUI(root, callbacks = {}) {
   root.innerHTML = `
     <section class="city-game" hidden aria-label="Town management">
       <header class="city-top panel">
-        <strong class="city-brand">CITISTEN</strong>
-        <div class="city-stat" role="group" aria-label="Budget"><strong data-value="budget">$0</strong></div>
-        <div class="city-stat"><span>Population</span><strong data-value="population">0</strong><span data-value="milestone" hidden></span></div>
-        ${['power', 'water'].map(name => `<div class="city-stat utility"><label for="city-${name}">${name === 'power' ? 'Power' : 'Water'}</label><strong data-value="${name}">0 / 0</strong><meter id="city-${name}" min="0" max="1" value="0" aria-label="${name} demand against supply"></meter></div>`).join('')}
-        <span data-value="phase">Day 1</span><button data-action="menu">Menu</button><button data-action="theme">Light</button>
+        <div class="city-toolbar">
+          <strong class="city-brand">CITISTEN</strong>
+          <div class="city-budget" role="group" aria-label="Budget"><strong data-value="budget">$0</strong><span data-value="netIncome" hidden></span></div>
+          <span data-value="phase">Day 1</span><button data-action="menu">Menu</button><button data-action="theme">Light</button>
+        </div>
+        <div class="city-citizens" role="group" aria-label="Population and employment">
+          <div class="city-stat"><span>Residents</span><strong data-value="population">0</strong></div>
+          <div class="city-stat"><span>Housing capacity</span><strong data-value="housingCapacity">0</strong></div>
+          <div class="city-stat"><span>Supplied jobs</span><strong data-value="jobs">0</strong></div>
+        </div>
+        <div class="city-morale" role="group" aria-label="Resident morale">
+          <span>Morale <strong data-value="morale">Not measured</strong></span><span data-value="moraleFactors">Awaiting city update</span>
+        </div>
+        <div class="city-utilities">${['power', 'water'].map(name => `<div class="city-stat utility"><label for="city-${name}">${name === 'power' ? 'Power' : 'Water'}</label><strong data-value="${name}">0 / 0</strong><meter id="city-${name}" min="0" max="1" value="0" aria-label="${name} demand against supply"></meter></div>`).join('')}</div>
+        <details class="city-economy" hidden><summary>Economy / research</summary><div class="city-economy-body"><p data-value="economyBudget"></p><p data-value="economyStocks"></p><p data-value="economyResources"></p><p data-value="economyDemand"></p><p data-value="economyBottlenecks"></p><p data-value="researchStatus"></p><div class="city-research-options"></div><p>Branch choice locks when research starts. Agriculture favors food and low pollution; manufacturing favors materials and finishing, with higher upkeep, pollution and food-import dependence. Workshops consume 1 material + 0.3 food per good. Logistics raises export caps 25%. Fabrication plus Public education targets 20% more finishing, but requires supplied school capacity.</p><div class="city-policy-options"></div><p>Upgrade: tap a completed building. Level 1: 75% base price / 12s, requires Town planning. Level 2: 150% / 24s; homes, shops and utilities need Logistics; industry Fabrication; workshops Agronomy or Fabrication; services Public education; parks Agronomy or Public education. Each level: +25% output, +40% upkeep, +30% utility demand; services +10% reach/growth. No health or flat-income bonus.</p><p data-value="upgradeStatus"></p><div class="city-incident-options"></div><p data-value="economyMessage" role="status"></p></div></details>
+        <details class="city-goal"><summary data-value="stage">Settlement · Next: Neighborhood (0/12 residents)</summary><p data-value="stageRequirements"></p><p data-value="milestone" hidden></p><p>Sites provide no output until complete. Bulldoze cancels an unfinished site for a 75% refund. Completed demolition has no refund. Bridges need dry banks; river pumps need a riverbank.</p></details>
       </header>
       <aside class="city-top panel" data-value="growthDiagnosis" hidden aria-label="City diagnosis"></aside>
       <aside class="city-night panel" hidden aria-label="Night watch">
@@ -35,8 +55,9 @@ export function createUI(root, callbacks = {}) {
         <div class="city-wave">Wave<strong data-value="wave">0</strong></div>
       </aside>
       <div class="city-toasts" role="status" aria-label="Events" aria-live="polite" aria-atomic="true"><strong>Events</strong><span class="city-event-empty">No events yet. Notices stay visible while paused.</span></div>
-      <details class="city-map panel" open><summary>Map</summary><canvas width="200" height="200" role="img" aria-label="Town map. H: town hall. Dots: zombies."></canvas><div class="city-legend"><span class="residential">Residential</span><span class="commercial">Commercial</span><span class="industrial">Industrial</span><span class="road">Road</span><span class="hall">H Town hall</span><span class="enemy" hidden>Zombies</span></div></details>
+      <details class="city-map panel" open><summary>Map</summary><canvas width="200" height="200" role="img" aria-label="Town map. Blue: river. Ochre: bridges. H: town hall. Dots: zombies."></canvas><div class="city-legend"><span class="residential">Residential</span><span class="commercial">Commercial</span><span class="industrial">Industrial</span><span class="road">Road</span><span class="river">River</span><span class="bridge">Bridge</span><span class="hall">H Town hall</span><span class="enemy" hidden>Zombies</span></div></details>
       <footer class="city-builder">
+        <div class="city-site panel" hidden aria-label="Construction"><span data-value="siteStatus"></span><progress max="1" value="0" aria-label="Site construction progress"></progress><span>Bulldoze: 75% refund</span></div>
         <section class="city-tools panel" aria-label="Tool options"></section>
         <nav class="city-groups panel" aria-label="Builder tools">${Object.keys(GROUPS).map(name => `<button data-group="${name}" aria-expanded="false" title="${GROUPS[name].length === 1 ? GROUPS[name][0][2] : ''}">${name}</button>`).join('')}</nav>
       </footer>
@@ -44,6 +65,7 @@ export function createUI(root, callbacks = {}) {
     <dialog class="city-menu" aria-labelledby="city-menu-title">
       <div class="city-dialog-top"><button data-action="theme">Light</button></div>
       <div class="city-menu-content"><h1 id="city-menu-title" tabindex="-1" autofocus>CITISTEN</h1>
+        <fieldset class="city-new-options"><legend>New town only</legend><label for="city-seed">Seed (0 to 4294967295)</label><input id="city-seed" type="number" min="0" max="4294967295" step="1" value="0" inputmode="numeric"><label for="city-scenario">Resources</label><select id="city-scenario">${Object.entries(SCENARIOS).map(([id, scenario]) => `<option value="${id}">${scenario.label}</option>`).join('')}</select><p>Continue restores the saved town, seed and scenario. Restart keeps the current town options.</p></fieldset>
         <div class="city-mode-cards">
           <article class="panel">${townIcon}<button data-mode="free">Free build</button></article>
           <article class="panel">${shieldIcon}<button data-mode="defense">Zombie defense</button></article>
@@ -70,11 +92,15 @@ export function createUI(root, callbacks = {}) {
   const game = $('.city-game'), menu = $('.city-menu'), loss = $('.city-loss'), tutorial = $('.city-tutorial');
   const abort = new AbortController();
   const recent = new Map();
-  let tutorialStep = 0, tutorialSeen = false, tutorialResumes = false;
+  let tutorialStep = 0, tutorialSeen = false, tutorialResumes = false, tutorialActive = false;
   try { tutorialSeen = localStorage.getItem('citisten-tutorial-seen') === '1'; } catch { /* First-play help still works without storage. */ }
-  let mode = 'free', selected = 'road', activeGroup = 'Road', hasGame = false, lost = false;
-  let lastMapDraw = -Infinity;
-  if (matchMedia('(max-width: 600px)').matches) $('.city-map').open = false;
+  let mode = 'free', selected = 'road', activeGroup = 'Road', hasGame = false, lost = false, optionsOpen = false;
+  const mobile = matchMedia('(max-width: 600px)');
+  let lastMapDraw = -Infinity, currentState = {}, toolLevel = 0;
+  let mapTerrain, mapSize = 0, expansionSignature = '', toolExpansion = false, toolReadOnly = false;
+  const researchControls = new Map(), policyControls = new Map(), incidentControls = new Map();
+  const riverCells = new Set();
+  if (mobile.matches) $('.city-map').open = false;
   const text = (key, value) => { const element = $(`[data-value="${key}"]`); if (element.textContent !== value) element.textContent = value; };
 
   function applyTheme() {
@@ -87,9 +113,11 @@ export function createUI(root, callbacks = {}) {
     for (const dialog of [menu, loss, tutorial]) dialog.style.colorScheme = theme;
   }
   function showGame() {
+    tutorialResumes = false; finishTutorial();
     menu.close(); loss.close(); game.hidden = false; hasGame = true;
   }
   function showMenu() {
+    tutorialResumes = false; finishTutorial();
     loss.close();
     $('.city-resume').hidden = !hasGame || lost;
     if (!menu.open) menu.showModal();
@@ -102,32 +130,59 @@ export function createUI(root, callbacks = {}) {
     $('#city-tutorial-title').focus();
   }
   function showTutorial() {
+    if (abort.signal.aborted || tutorialActive) return;
+    tutorialActive = true;
     tutorialResumes = hasGame && !menu.open && !lost;
     if (tutorialResumes) callbacks.onMenu?.();
     tutorialStep = 0; renderTutorial(); tutorial.showModal();
   }
-  tutorial.addEventListener('close', () => {
+  function finishTutorial() {
+    if (abort.signal.aborted || !tutorialActive) return;
+    const resume = tutorialResumes && hasGame && !menu.open && !lost;
+    // Consume before close/callbacks: close events are deferred and may outlive a replay.
+    tutorialActive = false; tutorialResumes = false;
+    if (tutorial.open) tutorial.close();
     tutorialSeen = true;
     try { localStorage.setItem('citisten-tutorial-seen', '1'); } catch { /* Dismissal remains session-local without storage. */ }
-    if (tutorialResumes) callbacks.onResume?.();
-    tutorialResumes = false;
-  }, { signal: abort.signal });
+    if (resume) callbacks.onResume?.();
+  }
+  tutorial.addEventListener('cancel', event => { event.preventDefault(); finishTutorial(); }, { signal: abort.signal });
+  tutorial.addEventListener('close', () => { if (!tutorial.open) finishTutorial(); }, { signal: abort.signal });
   function renderTools() {
-    $('.city-tools').hidden = GROUPS[activeGroup].length === 1;
-    $('.city-tools').innerHTML = GROUPS[activeGroup].map(([id, label, key]) => `<button data-tool="${id}" aria-label="${label}" aria-pressed="${selected === id}" aria-describedby="city-tooltip-${id}" ${id === 'barricade' ? 'disabled' : ''}>${label}<span class="city-tooltip" id="city-tooltip-${id}" role="tooltip">${key === 'Not available' ? 'Unavailable' : key}</span></button>`).join('');
+    const expanded = GROUPS[activeGroup].length > 1 && optionsOpen;
+    $('.city-tools').hidden = !expanded;
+    $('.city-tools').innerHTML = GROUPS[activeGroup].filter(([id]) => id !== 'upgrade' || currentState.expansionEnabled === true).map(([id, label, key]) => {
+      const locked = id === 'upgrade' ? currentState.readOnly === true : id !== 'rotate-wall' && !unlocked(id, currentState), stage = CITY_STAGES[NEW_BUILDINGS[id]?.unlockStage];
+      const price = id === 'upgrade' ? 'L1: 75% base / 12s · L2: 150% / 24s. Research required; +40% upkeep, +30% utilities per level.' : id === 'rotate-wall' ? 'Tap a completed wall' : id === 'road' ? '$10/lot · immediate' : id === 'bridge' ? '$90/water lot + $10/dry lot · immediate' : BUILDINGS[id] ? `$${number(BUILDINGS[id].cost)} · ${BUILD_TIMES[id] || 0}s` : id === 'bulldoze' ? 'Sites: 75% refund' : 'Unavailable';
+      const requirement = locked && stage ? `Unlock ${stage.name}: ${stage.unlockSummary}.` : '';
+      return `<div class="city-tool-option"><button data-tool="${id}" aria-label="${label}" aria-pressed="${selected === id}" aria-describedby="city-info-${id} city-tooltip-${id}" ${locked ? 'disabled' : ''}>${label}<span class="city-tooltip" id="city-tooltip-${id}" role="tooltip">${key || (id === 'bridge' ? 'Drag bank to bank' : label)}</span></button><span class="city-tool-meta" id="city-info-${id}">${price}${requirement ? `<span class="city-tool-lock" title="${stage.summary}">${requirement}</span>` : ''}</span></div>`;
+    }).join('');
     root.querySelectorAll('[data-group]').forEach(button => {
-      button.setAttribute('aria-expanded', String(button.dataset.group === activeGroup && GROUPS[activeGroup].length > 1));
+      button.setAttribute('aria-expanded', String(button.dataset.group === activeGroup && expanded));
       button.classList.toggle('is-selected', GROUPS[button.dataset.group].some(([id]) => id === selected));
       button.setAttribute('aria-pressed', String(button.classList.contains('is-selected')));
     });
   }
   function setTool(type) {
     const group = Object.keys(GROUPS).find(name => GROUPS[name].some(([id]) => id === type));
-    if (!group || type === 'barricade') return;
-    selected = type; activeGroup = group; renderTools();
+    if (!group || !toolAllowed(type)) return;
+    selected = type; activeGroup = group;
+    optionsOpen = false;
+    renderTools();
+  }
+  function toolAllowed(type) {
+    return type === 'upgrade' ? currentState.expansionEnabled === true && currentState.readOnly !== true : type === 'rotate-wall' || unlocked(type, currentState);
+  }
+  function newTownOptions() {
+    const raw = String($('#city-seed').value ?? '0').trim();
+    const seed = Number(raw), scenario = $('#city-scenario').value ?? 'balanced';
+    if (!/^\d+$/.test(raw) || !Number.isInteger(seed) || seed < 0 || seed > 0xffffffff) throw new RangeError('Seed must be a whole number from 0 to 4294967295.');
+    if (!Object.hasOwn(SCENARIOS, scenario)) throw new RangeError('Choose a listed resource scenario.');
+    return { seed, scenario };
   }
   function run(action, errorTarget) {
     try {
+      $(errorTarget).textContent = '';
       setTool('road'); action();
       recent.clear(); $('.city-toasts').querySelectorAll('p').forEach(item => item.remove());
       return true;
@@ -142,25 +197,42 @@ export function createUI(root, callbacks = {}) {
       try { localStorage.setItem('citisten-theme', root.dataset.theme); } catch { /* Theme remains session-local without storage. */ }
       applyTheme();
     } else if (button.dataset.action === 'tutorial') { showTutorial(); }
-    else if (button.dataset.action === 'tutorial-close') { tutorial.close(); }
+    else if (button.dataset.action === 'tutorial-close') { finishTutorial(); }
     else if (button.dataset.action === 'tutorial-next') {
-      if (tutorialStep === TUTORIAL.length - 1) tutorial.close();
+      if (tutorialStep === TUTORIAL.length - 1) finishTutorial();
       else { tutorialStep++; renderTutorial(); }
+    } else if (button.dataset.research || button.dataset.specialization || button.dataset.incident) {
+      if (currentState.expansionEnabled !== true || currentState.readOnly === true || currentState.phase === 'lost') return;
+      const id = button.dataset.research || button.dataset.specialization || button.dataset.incident;
+      const handler = button.dataset.research ? callbacks.onResearch : button.dataset.specialization ? callbacks.onSpecialization : callbacks.onIncidentResponse;
+      if (button.dataset.research && !researchOffer(currentState, id).ok) return;
+      if (button.dataset.specialization && policyReason(id)) return;
+      if (button.dataset.incident && !currentState.incidents?.active?.some(incident => String(incident.id) === id)) return;
+      try {
+        const result = handler?.(id);
+        text('economyMessage', typeof result === 'string' ? result : result?.reason || (result?.ok ? 'Accepted' : ''));
+      } catch (error) { text('economyMessage', error.message || 'Action failed'); }
+      expansionSignature = ''; renderExpansion();
     } else if (button.dataset.cityEvent) { callbacks.onEventAction?.(button.dataset.cityEvent); }
     else if (button.dataset.mode) {
-      mode = button.dataset.mode;
-      if (run(() => callbacks.onStart?.(mode), '.city-menu-error')) { lost = false; showGame(); if (!tutorialSeen) showTutorial(); }
+      const startMode = button.dataset.mode;
+      // Native sets requestedSave at the Continue target before this delegated listener.
+      // Never reject Continue because an unrelated new-town field is invalid.
+      if (run(() => callbacks.onStart?.(startMode, button.id === 'continue-town' ? undefined : newTownOptions()), '.city-menu-error')) { mode = startMode; lost = false; showGame(); if (!tutorialSeen) showTutorial(); }
     } else if (button.dataset.action === 'restart') {
       if (run(() => callbacks.onRestart?.(mode), '.city-loss-error')) { lost = false; showGame(); }
     } else if (button.dataset.action === 'menu') { callbacks.onMenu?.(); showMenu(); }
     else if (button.dataset.action === 'resume') { callbacks.onResume?.(); showGame(); }
     else if (button.dataset.group) {
+      $('.city-economy').open = false;
+      optionsOpen = activeGroup !== button.dataset.group || !optionsOpen;
       activeGroup = button.dataset.group; renderTools();
       if (GROUPS[activeGroup].length === 1) { setTool(GROUPS[activeGroup][0][0]); callbacks.onTool?.(selected); }
     } else if (button.dataset.tool) {
       const type = button.dataset.tool;
+      if (!toolAllowed(type)) return;
       setTool(type); callbacks.onTool?.(type);
-      $(`[data-tool="${type}"]`).focus();
+      $(`[data-group="${activeGroup}"]`).focus();
     }
   }, { signal: abort.signal });
   menu.addEventListener('cancel', event => { event.preventDefault(); if (!$('.city-resume').hidden) { callbacks.onResume?.(); showGame(); } }, { signal: abort.signal });
@@ -168,18 +240,23 @@ export function createUI(root, callbacks = {}) {
   // Keep camera/input handlers off management controls without wiring game hotkeys here.
   for (const name of ['pointerdown', 'pointerup', 'wheel', 'keydown', 'keyup']) root.addEventListener(name, event => event.stopPropagation(), { signal: abort.signal });
 
-  function drawMap(state, { roads, size = 200 } = {}) {
+  function drawMap(state, { roads, size = 200, terrain } = {}) {
     const canvas = $('.city-map canvas'), ctx = canvas.getContext('2d'), scale = canvas.width / size;
     ctx.fillStyle = '#181c1b'; ctx.fillRect(0, 0, 200, 200);
+    if (terrain !== mapTerrain || size !== mapSize) {
+      mapTerrain = terrain; mapSize = size; riverCells.clear();
+      if (terrain?.isWater) for (let z = 0; z < size; z++) for (let x = 0; x < size; x++) if (terrain.isWater(x, z)) riverCells.add(z * size + x);
+    }
+    ctx.fillStyle = '#527b99';
+    for (const key of riverCells) ctx.fillRect((key % size) * scale, Math.floor(key / size) * scale, Math.max(1, scale), Math.max(1, scale));
     ctx.strokeStyle = '#343c37'; ctx.lineWidth = 0.5;
     for (let n = 0; n <= size; n += Math.max(1, Math.ceil(size / 40))) {
       const p = n * scale; ctx.beginPath(); ctx.moveTo(p, 0); ctx.lineTo(p, 200); ctx.moveTo(0, p); ctx.lineTo(200, p); ctx.stroke();
     }
-    ctx.fillStyle = '#777b78';
-    if (roads) for (const key of roads.cells) { const cell = roads.cell(key); ctx.fillRect(cell.x * scale, cell.z * scale, Math.max(1, scale), Math.max(1, scale)); }
-    const colours = { residential: '#99ad85', commercial: '#829cb5', industrial: '#bda57a' };
+    if (roads) for (const key of roads.cells) { const cell = roads.cell(key); ctx.fillStyle = riverCells.has(cell.z * size + cell.x) ? '#d8ae55' : '#777b78'; ctx.fillRect(cell.x * scale, cell.z * scale, Math.max(1, scale), Math.max(1, scale)); }
+    const colours = { residential: '#99ad85', apartments: '#99ad85', commercial: '#829cb5', industrial: '#bda57a', workshop: '#bda57a' };
     for (const building of state.buildings || []) {
-      ctx.fillStyle = colours[building.type] || '#d8ae55';
+      ctx.fillStyle = building.constructionRemaining > 0 ? '#c6cbc5' : colours[building.type] || '#d8ae55';
       ctx.fillRect(building.x * scale, building.z * scale, Math.max(2, scale), Math.max(2, scale));
     }
     const hall = (state.buildings || []).find(building => building.type === 'townhall');
@@ -191,12 +268,120 @@ export function createUI(root, callbacks = {}) {
       ctx.fillStyle = '#d8ae55'; ctx.beginPath(); ctx.arc(zombie.x * scale, zombie.z * scale, 2.5, 0, Math.PI * 2); ctx.fill();
     }
   }
+  const decimal = value => Number.isFinite(value) ? value.toLocaleString('en-AU', { maximumFractionDigits: 3 }) : '0';
+  function policyReason(name) {
+    const state = currentState, policy = SPECIALIZATIONS[name];
+    if (!policy || !state.economy) return 'Economy unavailable';
+    if (state.economy.specialization === name) return 'Selected';
+    if (policy.research && !state.development?.completed?.includes(policy.research)) return `Requires ${TECHNOLOGIES[policy.research].label}`;
+    if (!Number.isFinite(state.budget) || state.budget < policy.cost) return 'Insufficient budget';
+    if (state.economy.cumulative?.policyCost + policy.cost > 1e12) return 'Policy ledger full';
+    return '';
+  }
+  function control(list, dataset, label) {
+    const row = document.createElement('div'), button = document.createElement('button'), detail = document.createElement('span');
+    button.dataset[dataset[0]] = dataset[1]; button.textContent = label;
+    row.className = 'city-economy-option'; row.append(button, detail); $(list).append(row);
+    return { row, button, detail };
+  }
+  function renderExpansion() {
+    const state = currentState, enabled = state.expansionEnabled === true;
+    $('.city-economy').hidden = !enabled;
+    $('[data-value="netIncome"]').hidden = !enabled;
+    $('.city-new-options').hidden = state.expansionEnabled === false;
+    if (!enabled) { expansionSignature = ''; return; }
+    // No control replacement: focus and native details/selection survive RAF updates.
+    const signature = JSON.stringify([state.tick, state.time, state.budget, state.population, state.phase, state.readOnly,
+      state.income, state.upkeep, state.netIncome, state.development, state.economy, state.incidents,
+      (state.buildings || []).map(b => [b.id, b.type, b.hp, b.level, b.constructionRemaining, b.upgradeRemaining])]);
+    if (signature === expansionSignature) return;
+    expansionSignature = signature;
+    const economy = state.economy || {}, breakdown = economy.breakdown;
+    const activeIncidents = state.incidents?.active?.length || 0;
+    $('.city-economy summary').textContent = `Economy / research${activeIncidents ? ` · ${activeIncidents} ${activeIncidents === 1 ? 'incident' : 'incidents'}` : ''}`;
+    const net = breakdown?.netIncome ?? breakdown?.net ?? state.netIncome ?? ((state.income || 0) - (state.upkeep || 0));
+    text('netIncome', `Net $${decimal(net)}/s`);
+    text('economyBudget', breakdown
+      ? `Tax $${decimal(breakdown.taxIncome ?? breakdown.taxes ?? breakdown.tax)}/s · Services $${decimal(breakdown.serviceIncome ?? breakdown.services ?? breakdown.service)}/s · Exports $${decimal(breakdown.exportRevenue ?? breakdown.exports)}/s · Imports -$${decimal(breakdown.importCost ?? breakdown.imports)}/s · Upkeep -$${decimal(breakdown.upkeep ?? state.upkeep)}/s · Net $${decimal(net)}/s`
+      : `Income $${decimal(state.income)}/s · Upkeep -$${decimal(state.upkeep)}/s · Net $${decimal(net)}/s. Detailed ledger not yet available.`);
+    text('economyStocks', ['food', 'materials', 'goods'].map(good => `${good}: ${decimal(economy.stocks?.[good])}/${decimal(economy.storage?.[good])}`).join(' · '));
+    text('economyResources', `Seed ${economy.seed ?? '?'} · ${SCENARIOS[economy.scenario]?.label || 'Resources pending'} · ${(economy.opportunities || []).join(' · ')} · Yield food ×${decimal(economy.multipliers?.food)}, materials ×${decimal(economy.multipliers?.materials)}`);
+    const demandScale = (state.development?.completed?.includes('logistics') ? 1.25 : 1) * Math.min(1, Math.max(0, state.population || 0) / 100);
+    text('economyDemand', `Export demand /s: ${['food', 'materials', 'goods'].map(good => `${good} ${decimal((economy.demand?.[good] || 0) * demandScale)}`).join(' · ')}. Requires supplied road to town hall; reserves and stock also limit sales.`);
+    text('economyBottlenecks', `Bottlenecks: ${economy.bottlenecks?.join(' · ') || 'None reported'} · Pollution ${Math.round((economy.pollution || 0) * 100)}%`);
+    const development = state.development, active = development?.active;
+    text('researchStatus', `${active ? `${TECHNOLOGIES[active.id]?.label || active.id}: ${Math.ceil(active.remaining)}s remaining` : 'No active research'} · Branch: ${development?.branch || 'uncommitted'} · Completed: ${development?.completed?.map(id => TECHNOLOGIES[id]?.label || id).join(', ') || 'none'}`);
+    const blocked = state.readOnly === true || state.phase === 'lost';
+    for (const [id, tech] of Object.entries(TECHNOLOGIES)) {
+      if (!researchControls.has(id)) researchControls.set(id, control('.city-research-options', ['research', id], tech.label));
+      const { button, detail } = researchControls.get(id), offer = researchOffer(state, id);
+      button.disabled = blocked || !callbacks.onResearch || !offer.ok;
+      const prerequisites = tech.prerequisites.map(p => TECHNOLOGIES[p].label).join(', ') || 'none';
+      detail.textContent = `$${tech.cost} / ${tech.duration}s · upkeep $${decimal(tech.upkeep)}/s · ${tech.population} residents · completed ${tech.buildings.map(group => group.join(' or ')).join(' and ')} · research: ${prerequisites}${tech.branch ? ` · locks ${tech.branch} branch` : ''}${offer.reason ? ` · ${offer.reason}` : ''}`;
+    }
+    for (const [name, policy] of Object.entries(SPECIALIZATIONS)) {
+      if (!policyControls.has(name)) policyControls.set(name, control('.city-policy-options', ['specialization', name], policy.label));
+      const { button, detail } = policyControls.get(name), reason = policyReason(name);
+      button.disabled = blocked || !callbacks.onSpecialization || Boolean(reason);
+      button.setAttribute('aria-pressed', String(economy.specialization === name));
+      detail.textContent = `$${policy.cost} to switch · ${policy.research ? `requires ${TECHNOLOGIES[policy.research].label}` : 'no research'} · food/materials per industry ${policy.food}/${policy.materials}, goods/workshop ${policy.goods}/s · extra upkeep $${policy.upkeep}/industry/s (workshops 1.5x) · pollution factor ${policy.pollution}${reason ? ` · ${reason}` : ''}`;
+    }
+    const upgrading = (state.buildings || []).filter(b => b.upgradeRemaining > 0);
+    text('upgradeStatus', upgrading.length ? upgrading.map(b => `${b.type} #${b.id} (${b.x}, ${b.z}): level ${(b.level || 0) + 1}, ${Math.ceil(b.upgradeRemaining)}s remaining`).join(' · ') : 'No upgrades in progress. Times use simulation seconds; pause stops progress.');
+    const incidents = state.incidents?.active || [], ids = new Set(incidents.map(i => String(i.id)));
+    for (const [id, item] of incidentControls) if (!ids.has(id)) { item.row.remove(); incidentControls.delete(id); }
+    for (const incident of incidents) {
+      const id = String(incident.id);
+      if (!incidentControls.has(id)) incidentControls.set(id, control('.city-incident-options', ['incident', id], 'Respond'));
+      const { button, detail } = incidentControls.get(id), cost = incident.responseCost ?? incident.cost ?? INCIDENT_RESPONSE_COST[incident.type];
+      button.textContent = `Respond to ${incident.type}`;
+      const hasTarget = (state.buildings || []).some(b => incident.buildingIds?.includes(b.id) && b.hp > 0 && !(b.constructionRemaining > 0) && !['townhall', 'wall', 'watchtower'].includes(b.type));
+      button.disabled = blocked || !callbacks.onIncidentResponse || !hasTarget || (Number.isFinite(cost) && state.budget < cost);
+      detail.textContent = `${incident.type} at (${incident.x}, ${incident.z}) · severity ${incident.severity} · ${Math.ceil(incident.remaining)}s remaining · ${Number.isFinite(cost) ? `response $${decimal(cost)}` : 'Response cost requires city quote'}`;
+    }
+  }
   function update(state, map = {}) {
+    currentState = state;
+    const level = state.progressionLevel || 0;
+    if (level !== toolLevel || toolExpansion !== (state.expansionEnabled === true) || toolReadOnly !== (state.readOnly === true)) {
+      toolLevel = level; toolExpansion = state.expansionEnabled === true; toolReadOnly = state.readOnly === true; renderTools();
+    }
+    renderExpansion();
+    const stage = getStage(state), goal = nextStage(state);
+    text('stage', goal ? `${stage.name} · Next: ${goal.name} (${number(state.population)}/${goal.requirements.find(r => r.key === 'population').min} residents)` : `${stage.name} · All stages earned`);
+    text('stageRequirements', goal ? `Remaining: ${goal.remaining || 'Ready for the next city update'}. Reward: $${number(goal.grant)}.` : 'All stage goals complete. Keep building.');
+    const sites = (state.buildings || []).filter(b => b.constructionRemaining > 0);
+    const site = sites[0], sitePanel = $('.city-site');
+    sitePanel.hidden = !site;
+    if (site) {
+      const remaining = Math.ceil(site.constructionRemaining), total = Math.max(site.constructionRemaining, site.constructionTotal || site.constructionRemaining);
+      const label = NEW_BUILDINGS[site.type]?.label || GROUPS.Zone.concat(GROUPS.Service, GROUPS.Defense).find(([id]) => id === site.type)?.[1] || site.type;
+      const status = `${sites.length} ${sites.length === 1 ? 'site' : 'sites'} · ${label}: ${remaining}/${Math.ceil(total)}s left`;
+      text('siteStatus', status); sitePanel.title = `${status}. No output until complete. Bulldoze cancels for a 75% refund.`;
+      const progress = $('.city-site progress'); progress.max = total; progress.value = total - site.constructionRemaining;
+      progress.setAttribute('aria-label', `${label}: ${remaining} of ${Math.ceil(total)} seconds remaining`);
+    }
     mode = state.mode === 'defense' ? 'defense' : 'free';
     for (const button of root.querySelectorAll('[data-city-event]')) {
       button.disabled = state.phase !== 'day' || !state.cityEvents?.some(event => event.id === button.dataset.cityEvent);
     }
     text('budget', `$${number(state.budget)}`); text('population', number(state.population));
+    // Legacy previews lack aggregate fields. Reuse definitions and active-site rules.
+    let capacity = 0, jobs = 0;
+    if (!Number.isFinite(state.housingCapacity) || !Number.isFinite(state.jobs)) {
+      for (const building of state.buildings || []) {
+        if (!isBuildingActive(building)) continue;
+        const definition = BUILDINGS[building.type];
+        capacity += definition?.capacity || 0;
+        if (building.powered && building.watered) jobs += definition?.jobs || 0;
+      }
+    }
+    text('housingCapacity', number(Math.max(0, Number.isFinite(state.housingCapacity) ? state.housingCapacity : capacity)));
+    text('jobs', number(Math.max(0, Number.isFinite(state.jobs) ? state.jobs : jobs)));
+    const measured = Number.isFinite(state.morale);
+    text('morale', measured ? `${Math.round(Math.max(0, Math.min(1, state.morale)) * 100)}%` : 'Not measured');
+    const factors = Array.isArray(state.moraleFactors) ? state.moraleFactors.filter(factor => typeof factor === 'string' && factor.trim()) : [];
+    text('moraleFactors', measured ? factors.join(' · ') || 'Basic needs met' : 'Awaiting city update');
     const next = state.nextMilestone;
     text('milestone', next ? `Next: ${number(next.population)} (+$${number(next.grant)})` : '');
     $('[data-value="milestone"]').hidden = !next;
@@ -223,7 +408,7 @@ export function createUI(root, callbacks = {}) {
     if (performance.now() - lastMapDraw > 250) { drawMap(state, map); lastMapDraw = performance.now(); }
     if (state.phase !== 'lost') lost = false;
     if (state.phase === 'lost' && !lost) {
-      lost = true; menu.close(); text('score', number(state.score)); text('finalPopulation', number(state.peakPopulation)); text('kills', number(state.kills)); loss.showModal();
+      lost = true; finishTutorial(); menu.close(); text('score', number(state.score)); text('finalPopulation', number(state.peakPopulation)); text('kills', number(state.kills)); loss.showModal();
     }
   }
   function toast(key, message, eventId) {
@@ -246,6 +431,17 @@ export function createUI(root, callbacks = {}) {
     for (const event of batch) {
       const message = {
         placed: 'Placed', removed: 'Removed', repaired: 'Repaired',
+        'stage-earned': `${event.name || 'City stage'} earned. Grant +$${number(event.grant)}. New options are in the builder.`,
+        'construction-started': 'Building site started. No output until complete.',
+        'construction-complete': 'Construction complete',
+        'research-started': `${event.label || 'Research'} started: $${number(event.cost)}, ${number(event.total)}s.`,
+        'research-complete': `${event.label || 'Research'} complete.`,
+        'upgrade-started': `${event.label || 'Building'} #${event.id} upgrading to level ${number(event.level)}: $${number(event.cost)}, ${number(event.total)}s.`,
+        'upgrade-complete': `${event.label || 'Building'} #${event.id}: level ${number(event.level)} complete.`,
+        'incident-start': `${event.incident?.type || event.kind || event.incidentType || 'Incident'} at (${event.incident?.x ?? event.x}, ${event.incident?.z ?? event.z}). Open Economy / research to respond.`,
+        'incident-end': `${event.incident?.type || event.kind || event.incidentType || 'Incident'} resolved.`,
+        'incident-response': 'Incident response accepted.',
+        'construction-cancelled': `Site cancelled. Refund $${number(event.refund)} (75%).`,
         blackout: event.active ? 'Blackout' : 'Power restored',
         'wave-warning': 'Nightfall: 1 min',
         wave: `Wave ${number(event.night)} incoming`,
@@ -254,7 +450,7 @@ export function createUI(root, callbacks = {}) {
         'hall-fallen': `Town hall fell. City saved for rebuilding: ${number(event.remaining)}s to repair ($${number(event.cost)}). No night victory.`,
         'hall-rebuilt': `Town hall rebuilt ($${number(event.cost)}). Prepare for the next night.`
       }[event.type];
-      if (message) messages.set(event.type === 'milestone' ? `milestone:${event.population}` : event.type, message);
+      if (message) messages.set(event.type === 'milestone' ? `milestone:${event.population}` : event.type === 'stage-earned' ? `stage:${event.level}` : event.type, message);
       if (event.type === 'city-event-start' || event.type === 'city-event-end') {
         const civic = event.event;
         const location = ['street-festival', 'water-main-burst'].includes(civic.type) ? ` (district ${civic.district})` : '';
@@ -265,10 +461,14 @@ export function createUI(root, callbacks = {}) {
       }
     }
     // Put urgent notices last so compact phone feedback keeps the useful warning.
-    for (const key of ['placed', 'removed', 'repaired', ...[...messages.keys()].filter(key => key.startsWith('milestone:')), 'night-survived', ...[...messages.keys()].filter(key => key.startsWith('civic:')), 'wave-warning', 'blackout', 'wave', 'hall-rebuilt', 'hall-fallen']) {
+    for (const key of ['placed', 'removed', 'repaired', 'construction-started', 'construction-complete', 'construction-cancelled', ...[...messages.keys()].filter(key => key.startsWith('stage:') || key.startsWith('milestone:')), 'night-survived', 'research-started', 'research-complete', 'upgrade-started', 'upgrade-complete', ...[...messages.keys()].filter(key => key.startsWith('civic:')), 'incident-start', 'incident-response', 'incident-end', 'wave-warning', 'blackout', 'wave', 'hall-rebuilt', 'hall-fallen']) {
       if (messages.has(key)) toast(`${key}:${messages.get(key)}`, messages.get(key), reactions.get(key));
     }
   }
+  $('.city-economy').addEventListener('toggle', () => {
+    if ($('.city-economy').open) { optionsOpen = false; renderTools(); }
+  }, { signal: abort.signal });
+  mobile.addEventListener('change', () => { optionsOpen = false; renderTools(); }, { signal: abort.signal });
   applyTheme(); renderTools(); showMenu();
-  return { update, events, setTool, showMenu, showGame, destroy() { abort.abort(); menu.close(); loss.close(); tutorial.close(); root.replaceChildren(); root.classList.remove('citisten-ui'); } };
+  return { update, events, setTool, showMenu, showGame, destroy() { abort.abort(); tutorialActive = false; tutorialResumes = false; menu.close(); loss.close(); tutorial.close(); root.replaceChildren(); root.classList.remove('citisten-ui'); } };
 }

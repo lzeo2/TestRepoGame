@@ -1,0 +1,57 @@
+{
+  "schema": "jank3d_geometric_effect_concept_v1",
+  "id": "ballista",
+  "effect_name": "Long Throw",
+  "description": "Three oversized U-shaped staple bolts form a clear forward projectile lane from the stapler mouth, with rigid parallel range strokes and a segmented ground sightline.",
+  "toggle_root": "FX_ROOT",
+  "toggle_contract": "Set this subtree visible/invisible in the target engine. Geometry has no autonomous playback; caller controls visibility and any motion.",
+  "mesh_nodes": [
+    "fx_staple_bridge_0",
+    "fx_staple_tine_0_-1",
+    "fx_staple_tip_0_-1",
+    "fx_staple_tine_0_1",
+    "fx_staple_tip_0_1",
+    "fx_staple_bridge_1",
+    "fx_staple_tine_1_-1",
+    "fx_staple_tip_1_-1",
+    "fx_staple_tine_1_1",
+    "fx_staple_tip_1_1",
+    "fx_staple_bridge_2",
+    "fx_staple_tine_2_-1",
+    "fx_staple_tip_2_-1",
+    "fx_staple_tine_2_1",
+    "fx_staple_tip_2_1",
+    "fx_range_trace_-1",
+    "fx_range_trace_1",
+    "fx_lane_dash_0",
+    "fx_lane_dash_1",
+    "fx_lane_dash_2",
+    "fx_lane_dash_3",
+    "fx_lane_dash_4",
+    "fx_lane_dash_5",
+    "fx_target_corner_L",
+    "fx_target_corner_R"
+  ],
+  "motion_nodes": {},
+  "body_rig_reference": "rig.json",
+  "palette_reference": "palette.json",
+  "body_palette_preserved_in_fx_variant": true,
+  "baseline_files_unchanged": true,
+  "baseline_sha256": {
+    "model.blend": "caa3edb7ddf54862a3fe82ea8269ec1d0f7f43e6612f4fdcd163e0dd6eebf4fb",
+    "model.glb": "cddc54003a0ec6558fbc457f53670ab0d5c47071c4c50a715161d6a1d01ddaf8",
+    "portrait.png": "152bc95accb8cb6cd8a409b91a9bbf924057768fc4fa4512fcabf6845f088d93"
+  },
+  "variants": {
+    "fx": {
+      "runtime": "model_fx.glb",
+      "source": "model_fx.blend",
+      "illustration": "portrait_fx.png",
+      "manifest": "manifest_fx.json",
+      "rig": "rig_fx.json",
+      "palette": "palette_fx.json"
+    }
+  },
+  "gameplay_status": "Art/FX concept only. No engine primitive, gameplay logic, collision, timing or ability integration implemented.",
+  "cel_variant": null
+}

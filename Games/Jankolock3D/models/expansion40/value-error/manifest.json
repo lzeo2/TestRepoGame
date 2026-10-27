@@ -1,0 +1,88 @@
+{
+  "schema": "jank3d_hero_expansion_asset_v1",
+  "hero_number": 16,
+  "id": "value-error",
+  "display_name": "ValueErr",
+  "role": "Disruptor",
+  "design_notes": "An angular human proofreader whose silhouette refuses symmetry: one long split blazer panel, one bare sleeve, a triangular error halo and a wrist-held not-equal proofing fork. Geometric bangs, decisive face and ruled correction sash, in muted dusty plum #8b6f79.",
+  "files": {
+    "source": "model.blend",
+    "runtime": "model.glb",
+    "illustration": "portrait.png",
+    "rig": "rig.json",
+    "rig_alias": "manifest.rig.json",
+    "palette": "palette.json"
+  },
+  "blender_version": "4.3.2",
+  "glb_bytes": 170084,
+  "glb_sha256": "2349d25cdf6f77940a7ca286c81635a8edd4adffb05c203bbd3f9b431e99e024",
+  "triangles": 2504,
+  "mesh_nodes": 46,
+  "movable_nodes": 16,
+  "bounds_gltf": {
+    "min": [
+      -0.949999988079071,
+      0.0,
+      -0.3869999945163727
+    ],
+    "max": [
+      0.7599999904632568,
+      2.2061448097229004,
+      0.25
+    ],
+    "dimensions": [
+      1.7099999785423279,
+      2.2061448097229004,
+      0.6369999945163727
+    ]
+  },
+  "palette_hex": {
+    "paper": "#f2e8cd",
+    "ink": "#253038",
+    "manila": "#c5aa78",
+    "accent": "#8b6f79"
+  },
+  "texture_count": 0,
+  "external_dependencies": [],
+  "illustration_dimensions": [
+    1024,
+    1024
+  ],
+  "status": "Original art-review candidate. Proposed kit is separate; not game-integrated or runtime-schema validated.",
+  "art_direction": "Flat paper/ink/manila + one accent, unlit solid fills and ink contours; neutral background.",
+  "model": "value-error",
+  "tri_count_LOD0": 2504,
+  "size_bytes": 170084,
+  "texture_resolution": null,
+  "material_slots": [
+    "value-error__ink",
+    "value-error__paper",
+    "value-error__manila",
+    "value-error__accent"
+  ],
+  "rig_nodes": [
+    "root",
+    "pelvis",
+    "torso",
+    "head",
+    "left_hip",
+    "left_knee",
+    "left_ankle",
+    "right_hip",
+    "right_knee",
+    "right_ankle",
+    "left_shoulder",
+    "left_elbow",
+    "left_wrist",
+    "right_shoulder",
+    "right_elbow",
+    "right_wrist"
+  ],
+  "palette_default": {
+    "paper": "#f2e8cd",
+    "ink": "#253038",
+    "manila": "#c5aa78",
+    "accent": "#8b6f79"
+  },
+  "provenance_note": "Generated in Blender by dot and Astra 6 max delegates, 2026-10-23; original in-house artwork, no remote assets."
+}

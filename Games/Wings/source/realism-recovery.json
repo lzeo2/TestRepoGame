@@ -1,0 +1,155 @@
+{
+  "baseline_commit": "08457553",
+  "kind": "source-only candidate, not delivered runtime",
+  "successful_saved_operations": 33,
+  "files": {
+    "games/wings/AIRCRAFT-REALISM.md": {
+      "bytes": 5459,
+      "sha256": "70fb3bd594800e4cd36d74b0f5cc4c855442a20b9c099fc5dd68621f0b06f328",
+      "saved_tool_calls": [
+        "call_ef5df409bc274ca6a47559928cdc0eea",
+        "call_023342ef600b4d93905245dd97bf5036"
+      ]
+    },
+    "games/wings/CLOUD-REALISM.md": {
+      "bytes": 5738,
+      "sha256": "9731113d7fa0051f053783f9a49d8a284f4203a3640549cfc7e622a82e596f56",
+      "saved_tool_calls": [
+        "call_72324b3034914eb1a120babe86b1c33f",
+        "call_fafce45c4d9447448536156e7f9b6ccc"
+      ]
+    },
+    "games/wings/SHADOW-REALISM.md": {
+      "bytes": 7294,
+      "sha256": "e85e54644279cd1e3d8e276198f3ebf4da45f8b76be137922f470865f939de95",
+      "saved_tool_calls": [
+        "call_fe963379de9e4ff295c2f3ddde541570",
+        "call_cbd2700ea4164411bca8828eccd9944e"
+      ]
+    },
+    "games/wings/TERRAIN-REALISM.md": {
+      "bytes": 6866,
+      "sha256": "38adf12927b57b681e0b9709c645d871a941f4881c70ac99ff02b0485ac184c3",
+      "saved_tool_calls": [
+        "call_824ef9a60da64b2d827653ef8cc75fb9",
+        "call_86cd520131f049999c0445ef8e6a3549"
+      ]
+    },
+    "games/wings/aircraft-realism-check.ts": {
+      "bytes": 5776,
+      "sha256": "a639885b3a71b54cb4215a8922bdc02567cedb8d57d378eaf963f1ed1d3dc623",
+      "saved_tool_calls": [
+        "call_5f62e6d7ec3547da8135bb563836eda3",
+        "call_500c6668a64d4cea9e452941d0a1c736",
+        "call_e47e278815eb4445a5ba156082406b57"
+      ]
+    },
+    "games/wings/cloud-realism-check.ts": {
+      "bytes": 5812,
+      "sha256": "31afac4bb72caa7380e3d791f2a9475e3850f6699be45d3c3db9f0483f425547",
+      "saved_tool_calls": [
+        "call_fc25e9eac5ee44108cc1752ea36eee62",
+        "call_3f967c848b284119b8f13184473a7e4b"
+      ]
+    },
+    "games/wings/shadow-realism-check.ts": {
+      "bytes": 6020,
+      "sha256": "8f0cd25ae190b67762c1253e158de98ed815714db326726969e70d3379fa95fc",
+      "saved_tool_calls": [
+        "call_497d587b2c4b4856a5e5f36d45d681c1",
+        "call_1b9b5900240f4613bc82ecab21662adb"
+      ]
+    },
+    "games/wings/src/render/aircraft-surfaces.ts": {
+      "bytes": 2781,
+      "sha256": "07817de08f7c7c0c5a2d029169bcad7d9438ebd36eaea1ce3ae4341ee8790ccc",
+      "saved_tool_calls": [
+        "call_3b346a2ab761419ab436070bc67e2f33"
+      ]
+    },
+    "games/wings/src/render/aircraft.ts": {
+      "bytes": 60995,
+      "sha256": "d690a556c92a263226b17f1424c2b152215b618d20cd19a358db6180274c6d17",
+      "saved_tool_calls": [
+        "call_5b438364627948d4897fd01181fe653d",
+        "call_aa25f7b4acd140c1a2b4dc066f0af5af"
+      ]
+    },
+    "games/wings/src/render/realism-shadows.ts": {
+      "bytes": 3196,
+      "sha256": "8eaaeca9236deb343d7f9d76cbf06cc359bf39631615418f8ec3124d7e45fd87",
+      "saved_tool_calls": [
+        "call_dbb9a36aa8ae421d89082474d52c5624"
+      ]
+    },
+    "games/wings/src/render/scene.ts": {
+      "bytes": 27134,
+      "sha256": "72f9b950a3863cf1765952c6d67ec83f183989ca98a5f05239adec51a6adddab",
+      "saved_tool_calls": [
+        "call_18e75e2012c8403b8d3f43569f325118"
+      ]
+    },
+    "games/wings/src/render/toon.ts": {
+      "bytes": 8092,
+      "sha256": "4ca90156aa5f4dced178c554ffa9c9ca9d01fdc19d3123e700d291f682237e74",
+      "saved_tool_calls": [
+        "call_18511d33b09742d3824ffe7c517bb46f",
+        "call_09c044dd499246a7bef07ab37953e41a",
+        "call_378db193c8074fcc8f2b2dbf59864763"
+      ]
+    },
+    "games/wings/src/render/world-view.ts": {
+      "bytes": 12817,
+      "sha256": "b2891661d83829126b9e331676afd69e1ef7fe2813102e138aa4d18fb467450a",
+      "saved_tool_calls": [
+        "call_6c054c75fd2b4107ac1ba1a701f27f35"
+      ]
+    },
+    "games/wings/src/render/world/cloud-volume.ts": {
+      "bytes": 6717,
+      "sha256": "b3ad30aa4f55abae3ed0d4d9ff775dea240c958005407d215027b07797faa159",
+      "saved_tool_calls": [
+        "call_61ce602f87a94240bea30fbbaed182b1"
+      ]
+    },
+    "games/wings/src/render/world/daylight.ts": {
+      "bytes": 4341,
+      "sha256": "3074ca8c0422a36509519428480ce1ced289902489d7ebf215ae54b3749e914c",
+      "saved_tool_calls": [
+        "call_0c665af70e8a40e0a3ab2f9010dd01ac"
+      ]
+    },
+    "games/wings/src/render/world/sky.ts": {
+      "bytes": 6887,
+      "sha256": "65429cb1cdb97a6bf0aef0453441ecff41e5f65227f3d82cb244575e36e86646",
+      "saved_tool_calls": [
+        "call_38c6e17af4e7417eb7079b6e6ae66e2a",
+        "call_c6c9bd2786bc4a60ab23186b91017000"
+      ]
+    },
+    "games/wings/src/render/world/tile-gen.ts": {
+      "bytes": 14106,
+      "sha256": "fc5a1c6381dccca2646f33cd834b336f281841847d9c4a70c3f09b333b107de9",
+      "saved_tool_calls": [
+        "call_6b9a5a34834f41aaa60bd691fa1bf9c6"
+      ]
+    },
+    "games/wings/terrain-realism-check.ts": {
+      "bytes": 7889,
+      "sha256": "9a1898be4b5ef3f8cdf460c8660a1422322edbfac06003b37e81892b4f7f5887",
+      "saved_tool_calls": [
+        "call_5a376a6d815a49f2a6e61f97a12245c5",
+        "call_77e2f11ac1084835ac1c03a725f493e8",
+        "call_5af28d22326c47f0ba6b0ddbac49c120",
+        "call_af42a08700084b92a003cda3c954ca17"
+      ]
+    }
+  },
+  "post_replay_changes": {
+    "games/wings/astra-check.ts": {
+      "bytes": 31968,
+      "sha256": "68f73f746a79097fb997fff08c1d513814a150ea87e18f6a9a8a3d2e7ad66722",
+      "reason": "Replace obsolete fixed batch metalness assertions with exact source GLB opaque PBR-factor coverage per vertex; retain six-batch/geometry/rig/gameplay checks."
+    }
+  }
+}

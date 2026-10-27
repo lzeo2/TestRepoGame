@@ -1,12 +1,14 @@
 import * as THREE from './vendor/three.module.js';
 import { cloneCharacter } from './character-assets.mjs';
+import { AbilityFX } from './heroes/hero-visuals.mjs';
 
 // Shared-scene actor layer; the host preloads the real trooper GLB once.
-export function createSystemsLayer(scene) {
+export function createSystemsLayer(scene,{team='carbon'}={}) {
   const actors=new Map(),orbGeometry=new THREE.IcosahedronGeometry(.65,2);
   const soul=new THREE.MeshBasicMaterial({color:0x365a74});
   const edge=new THREE.MeshBasicMaterial({color:0xffffff,side:THREE.BackSide});
-  let disposed=false;
+  let disposed=false,revealFX=null,revealHandle=null;
+  const revealPoints=[];
   function makeTrooper(t) {
     // All squads reuse cached GPU geometry; each owns its pose/material state.
     const asset=cloneCharacter('trooper',{shareGeometry:true}),group=asset.group;
@@ -43,6 +45,15 @@ export function createSystemsLayer(scene) {
       } else actor.scale.setScalar(entity.type==='ground'?.6:1);
     }
     for(const [id,actor] of actors)if(!present.has(id)){actor.userData.asset?.dispose();actor.removeFromParent();actors.delete(id);}
+    // Host owns both membership and time; this is only a zero-dt visual mirror.
+    revealPoints.length=0;
+    for(const entity of [...sim.heroes,...sim.troopers,...sim.structures])if(sim.isRevealedTo?.(entity.id,team)===true)revealPoints.push(entity.position);
+    if(revealPoints.length) {
+      revealFX??=new AbilityFX(scene);
+      revealHandle??=revealFX.emit('xray',{origin:revealPoints[0],targets:()=>revealPoints,duration:1,color:'#73834e'});
+      revealHandle.position.copy(revealPoints[0]);
+      revealFX.update(0);
+    } else if(revealHandle){revealHandle.dispose();revealHandle=null;}
   }
   return {sync,
     shoot(sim,heroId,raycaster) {
@@ -58,6 +69,10 @@ export function createSystemsLayer(scene) {
     projections(camera) {
       return [...actors].map(([id,actor])=>{const v=actor.position.clone();if(actor.userData.kind==='trooper')v.y+=.9;v.project(camera);return {id,kind:actor.userData.kind,x:v.x,y:v.y,z:v.z};});
     },
-    dispose(){if(disposed)return;disposed=true;for(const actor of actors.values()){actor.userData.asset?.dispose();actor.removeFromParent();}actors.clear();orbGeometry.dispose();soul.dispose();edge.dispose();}
+    dispose(){
+      if(disposed)return;disposed=true;
+      try{for(const actor of actors.values()){actor.userData.asset?.dispose();actor.removeFromParent();}actors.clear();}
+      finally{revealPoints.length=0;revealHandle=null;revealFX?.dispose();orbGeometry.dispose();soul.dispose();edge.dispose();}
+    }
   };
 }

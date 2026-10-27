@@ -1,0 +1,68 @@
+{
+  "schema": "jank3d_geometric_effect_concept_v1",
+  "id": "kompressor",
+  "effect_name": "Pressure Pulse Fan",
+  "description": "An expanding angular compressed-air fan bursts from the hand nozzle. Three separated chevron wavefronts and nozzle rays communicate pressure without a generic circle, volumetric simulation or gradient.",
+  "toggle_root": "FX_ROOT",
+  "toggle_contract": "Set this subtree visible/invisible in the target engine. Geometry has no autonomous playback; caller controls visibility and any motion.",
+  "mesh_nodes": [
+    "fx_pressure_wave_0_0",
+    "fx_pressure_wave_0_1",
+    "fx_pressure_wave_0_2",
+    "fx_pressure_wave_0_3",
+    "fx_pressure_wave_0_4",
+    "fx_pressure_wave_0_5",
+    "fx_pressure_wave_1_0",
+    "fx_pressure_wave_1_1",
+    "fx_pressure_wave_1_2",
+    "fx_pressure_wave_1_3",
+    "fx_pressure_wave_1_4",
+    "fx_pressure_wave_1_5",
+    "fx_pressure_wave_2_0",
+    "fx_pressure_wave_2_1",
+    "fx_pressure_wave_2_2",
+    "fx_pressure_wave_2_3",
+    "fx_pressure_wave_2_4",
+    "fx_pressure_wave_2_5",
+    "fx_fan_ray_0_0",
+    "fx_fan_ray_1_0",
+    "fx_fan_ray_2_0",
+    "fx_fan_ray_3_0",
+    "fx_pressure_tick_0",
+    "fx_pressure_tick_1",
+    "fx_pressure_tick_2",
+    "fx_pressure_tick_3",
+    "fx_pressure_tick_4"
+  ],
+  "motion_nodes": {
+    "fx_pressure_fan": {
+      "axis": "Y",
+      "limits": [
+        -25,
+        25
+      ],
+      "note": "Rigid articulation, artistic guide; not a collision guarantee."
+    }
+  },
+  "body_rig_reference": "rig.json",
+  "palette_reference": "palette.json",
+  "body_palette_preserved_in_fx_variant": true,
+  "baseline_files_unchanged": true,
+  "baseline_sha256": {
+    "model.blend": "ef68bf94bb1373b1d96c3c61872eadcccfd82a3d40773fc01b33b38f30119ab5",
+    "model.glb": "ad6fd6aff4e37c062bf2729cb753b408df394852d8b752a7942ab54146439973",
+    "portrait.png": "b294686252f72daa86bf35d57d1a826c3198698bbda0109bfb811326077e67b3"
+  },
+  "variants": {
+    "fx": {
+      "runtime": "model_fx.glb",
+      "source": "model_fx.blend",
+      "illustration": "portrait_fx.png",
+      "manifest": "manifest_fx.json",
+      "rig": "rig_fx.json",
+      "palette": "palette_fx.json"
+    }
+  },
+  "gameplay_status": "Art/FX concept only. No engine primitive, gameplay logic, collision, timing or ability integration implemented.",
+  "cel_variant": null
+}

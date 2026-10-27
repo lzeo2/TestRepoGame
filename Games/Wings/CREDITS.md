@@ -8,6 +8,29 @@
 - Bundled Three.js 0.186.0: MIT notice in `THREE-LICENSE.txt`.
 - Upstream-vendored Archivo Narrow and IBM Plex Mono: OFL notices retained in `fonts/`.
 
+## Authorized local implementation checkpoint (2026-10-25)
+
+The user reports making the separately supplied Wings models with GPT and grants
+scoped use/repair for this Wings implementation. This is user-reported generated
+provenance and scoped permission, not independent originality verification or a
+license for the upstream game/models. Preserve supplied originals and keep
+bounded derivatives separately identified. See the
+[implementation receipt](../../docs/wings-implementation-resume.md).
+
+The [primary-source report](../../docs/wings-upstream-provenance.md) authenticates
+all 70 retained original files and 13 original deployed public files against the
+pinned upstream. Actual subtree/scaffold ancestry yielded no applicable game or
+model redistribution grant. Known source and exact build tools are available;
+new upstream-derived delivery remains held for the specifically identified
+permission evidence, not source absence.
+
+New `authoring/fleet-sim.mjs` is original isolated code with its own runnable
+regression, not a copied upstream engine or a served RoomEngine replacement.
+`models/derived/` contains separately qualified local authoring derivatives/new
+artifacts, not silently replaced original aircraft. Rig/visual checks and later
+source-built gameplay acceptance are distinct. No catalog change, public release
+or push is authorized by the local checkpoint.
+
 ## Local modifications
 
 `port.patch` records the staging-source changes against the pinned revision:
@@ -21,6 +44,8 @@
 7. The original operator-approved Astra pair was subsequently retired after consumer tracing. Current F-15 and F-35 models use original procedural geometry, with generation by openai-codex/gpt-6-astra and repairs by openai-codex/gpt-6.1-sol. Dark paint, ammo-linked stores, exhaust, recessed F-35 bays, distinct existing-weapon fits and geometry-derived camera/launch points follow the standing quality contract. See `docs/models.md` for hashes, authorship and recipe. This does not establish ownership or resolve the upstream game/model redistribution question.
 
 8. Added deterministic world time-of-day lighting driven by the interpolated room clock: moving sun/sky/shadows, ambient/fog/reflection interpolation, reduced night visibility and a real local-aircraft landing/search light. A full cycle takes 600 room seconds, starting at 09:00. Storm flashes also follow room time. See the [lighting receipt](../../docs/maintenance/audits/wings-time-of-day.md) for source recovery, Node checks and native-rendering limits.
+
+9. Retained the verified authored source under `source/` after an ignored staging-source loss. Recovered realism edits are source-only candidates, not replacements for the served runtime: see the [source guide](source/README.md) and [fresh recovery receipt](../../docs/maintenance/audits/wings-realism-source-recovery.md). The original missing-license qualification and native/visual/performance holds remain.
 
 No catalog registration, multiplayer service, third-party runtime load, or new game engine was added. This port has no fixed world seed override.
 

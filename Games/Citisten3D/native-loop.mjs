@@ -15,8 +15,9 @@ export function createNativeLoop({ update, isHidden, requestFrame = requestAnima
     if (stopped || isHidden()) { suspend(); return; }
     const dt = last === null ? 0 : Math.max(0, (now - last) / 1000);
     last = now;
-    const busy = update(dt);
-    frame = null;
+    let busy;
+    try { busy = update(dt); }
+    finally { frame = null; } // Keep the in-flight guard during update; errors propagate but cannot block wake().
     if (stopped || isHidden()) { suspend(); return; }
     if (busy || idleSince === null) idleSince = now;
     if (busy || now - idleSince < 2000) frame = requestFrame(tick);

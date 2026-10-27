@@ -1,0 +1,92 @@
+{
+  "schema": "jank3d_hero_expansion_asset_v1",
+  "hero_number": 36,
+  "id": "intercom",
+  "display_name": "Intercom",
+  "role": "Disorient area",
+  "design_notes": "An angular three-footed broadcast stand with three independently swivelling horns, an off-centre microphone arm and a swinging handset. No humanoid torso: a control box and telescoping mast form the core.",
+  "files": {
+    "source": "model.blend",
+    "runtime": "model.glb",
+    "illustration": "portrait.png",
+    "rig": "rig.json",
+    "rig_alias": "manifest.rig.json",
+    "palette": "palette.json"
+  },
+  "blender_version": "4.3.2",
+  "glb_bytes": 196060,
+  "glb_sha256": "46aeec6380254e64ab7708ef8ac20025085ca35cb9e2775111937d23de385f2f",
+  "triangles": 3460,
+  "mesh_nodes": 49,
+  "movable_nodes": 19,
+  "bounds_gltf": {
+    "min": [
+      -0.7107999920845032,
+      0.0,
+      -0.4000000059604645
+    ],
+    "max": [
+      0.9049999713897705,
+      2.440000057220459,
+      0.5600000023841858
+    ],
+    "dimensions": [
+      1.6157999634742737,
+      2.440000057220459,
+      0.9600000083446503
+    ]
+  },
+  "palette_hex": {
+    "paper": "#f2e8cd",
+    "ink": "#253038",
+    "manila": "#c5aa78",
+    "accent": "#697587"
+  },
+  "texture_count": 0,
+  "external_dependencies": [],
+  "illustration_dimensions": [
+    1024,
+    1024
+  ],
+  "grounding_offset_applied_blender_z": -0.009999994188547134,
+  "status": "Original art-review candidate. Proposed kit is separate; not game-integrated or runtime-schema validated.",
+  "art_direction": "Flat paper/ink/manila + one accent, unlit solid fills and ink contours; neutral background.",
+  "model": "intercom",
+  "tri_count_LOD0": 3460,
+  "size_bytes": 196060,
+  "texture_resolution": null,
+  "material_slots": [
+    "intercom__ink",
+    "intercom__accent",
+    "intercom__manila",
+    "intercom__paper"
+  ],
+  "rig_nodes": [
+    "root",
+    "mast_base",
+    "tripod_0_hip",
+    "tripod_0_knee",
+    "tripod_1_hip",
+    "tripod_1_knee",
+    "tripod_2_hip",
+    "tripod_2_knee",
+    "mast_upper",
+    "control_box_tilt",
+    "broadcast_dial",
+    "broadcast_head",
+    "main_horn_swivel",
+    "left_horn_swivel",
+    "right_horn_swivel",
+    "microphone_boom_shoulder",
+    "microphone_boom_elbow",
+    "microphone_boom_wrist",
+    "handset_hook"
+  ],
+  "palette_default": {
+    "paper": "#f2e8cd",
+    "ink": "#253038",
+    "manila": "#c5aa78",
+    "accent": "#697587"
+  },
+  "provenance_note": "Generated in Blender by dot and Astra 6 max delegates, 2026-10-23; original in-house artwork, no remote assets."
+}

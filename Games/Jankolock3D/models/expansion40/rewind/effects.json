@@ -1,0 +1,46 @@
+{
+  "schema": "jank3d_geometric_effect_concept_v1",
+  "id": "rewind",
+  "effect_name": "Return Route",
+  "description": "Two large backward-facing cut-paper chevrons pull the receipt clerk along a stepped return ribbon. A separate pair of pale skate afterimages marks the old position; all arrows and route panels are togglable geometry.",
+  "toggle_root": "FX_ROOT",
+  "toggle_contract": "Set this subtree visible/invisible in the target engine. Geometry has no autonomous playback; caller controls visibility and any motion.",
+  "mesh_nodes": [
+    "fx_reverse_chevron_0",
+    "fx_reverse_chevron_1",
+    "fx_reverse_route_0",
+    "fx_reverse_route_1",
+    "fx_reverse_route_2",
+    "fx_skate_echo_0",
+    "fx_echo_roller_0_0",
+    "fx_echo_roller_0_1",
+    "fx_skate_echo_1",
+    "fx_echo_roller_1_0",
+    "fx_echo_roller_1_1",
+    "fx_return_ribbon_0",
+    "fx_return_ribbon_1",
+    "fx_return_ribbon_2"
+  ],
+  "motion_nodes": {},
+  "body_rig_reference": "rig.json",
+  "palette_reference": "palette.json",
+  "body_palette_preserved_in_fx_variant": true,
+  "baseline_files_unchanged": true,
+  "baseline_sha256": {
+    "model.blend": "e605c94407742dba164d1fef422c4f80e2e2609e32a61ea3cc6d0d87004c02e7",
+    "model.glb": "795a6ddc5ee19bb950987352500fff398c916071c5af3a3b43c24f8a672b1d0d",
+    "portrait.png": "a4364041337bafcfd272471834d28d3cf11dccfe20ea2d01de022baf030c5f25"
+  },
+  "variants": {
+    "fx": {
+      "runtime": "model_fx.glb",
+      "source": "model_fx.blend",
+      "illustration": "portrait_fx.png",
+      "manifest": "manifest_fx.json",
+      "rig": "rig_fx.json",
+      "palette": "palette_fx.json"
+    }
+  },
+  "gameplay_status": "Art/FX concept only. No engine primitive, gameplay logic, collision, timing or ability integration implemented.",
+  "cel_variant": null
+}

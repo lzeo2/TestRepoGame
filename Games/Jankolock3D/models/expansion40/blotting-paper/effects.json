@@ -1,0 +1,108 @@
+{
+  "schema": "jank3d_geometric_effect_concept_v1",
+  "id": "blotting-paper",
+  "effect_name": "Absorbent fan",
+  "description": "Six broad absorbent paper rays unfurl behind Blot while three incoming square spell packets collapse into smaller squares near the decoder paddle. Geometric, opaque and toggleable rather than particles.",
+  "toggle_root": "FX_ROOT",
+  "toggle_contract": "Set this subtree visible/invisible in the target engine. Geometry has no autonomous playback; caller controls visibility and any motion.",
+  "mesh_nodes": [
+    "fx_left_sheet_ray_0",
+    "fx_left_sheet_fold_0",
+    "fx_left_sheet_ray_1",
+    "fx_left_sheet_fold_1",
+    "fx_left_sheet_ray_2",
+    "fx_left_sheet_fold_2",
+    "fx_right_sheet_ray_0",
+    "fx_right_sheet_fold_0",
+    "fx_right_sheet_ray_1",
+    "fx_right_sheet_fold_1",
+    "fx_right_sheet_ray_2",
+    "fx_right_sheet_fold_2",
+    "fx_incoming_square_0",
+    "fx_incoming_square_1",
+    "fx_incoming_square_2",
+    "fx_incoming_square_3",
+    "fx_absorption_bar_0",
+    "fx_absorption_bar_1",
+    "fx_absorption_bar_2"
+  ],
+  "motion_nodes": {
+    "fx_left_sheet_fan_0": {
+      "axis": "Y",
+      "limits": [
+        -35,
+        35
+      ],
+      "note": "Rigid articulation, artistic guide; not a collision guarantee."
+    },
+    "fx_left_sheet_fan_1": {
+      "axis": "Y",
+      "limits": [
+        -35,
+        35
+      ],
+      "note": "Rigid articulation, artistic guide; not a collision guarantee."
+    },
+    "fx_left_sheet_fan_2": {
+      "axis": "Y",
+      "limits": [
+        -35,
+        35
+      ],
+      "note": "Rigid articulation, artistic guide; not a collision guarantee."
+    },
+    "fx_right_sheet_fan_0": {
+      "axis": "Y",
+      "limits": [
+        -35,
+        35
+      ],
+      "note": "Rigid articulation, artistic guide; not a collision guarantee."
+    },
+    "fx_right_sheet_fan_1": {
+      "axis": "Y",
+      "limits": [
+        -35,
+        35
+      ],
+      "note": "Rigid articulation, artistic guide; not a collision guarantee."
+    },
+    "fx_right_sheet_fan_2": {
+      "axis": "Y",
+      "limits": [
+        -35,
+        35
+      ],
+      "note": "Rigid articulation, artistic guide; not a collision guarantee."
+    },
+    "fx_absorbed_packets": {
+      "axis": "Y",
+      "limits": [
+        -40,
+        40
+      ],
+      "note": "Rigid articulation, artistic guide; not a collision guarantee."
+    }
+  },
+  "body_rig_reference": "rig.json",
+  "palette_reference": "palette.json",
+  "body_palette_preserved_in_fx_variant": true,
+  "baseline_files_unchanged": true,
+  "baseline_sha256": {
+    "model.blend": "b0bf15f6be9bd9bdff759aceb66e732d07f0d2d5cce63e443119f16eeb781616",
+    "model.glb": "10bb10cef9086b04bebf6374c13e38886cd81384fa64cb9b2158e54e1ec72e3a",
+    "portrait.png": "77bf86a11022cbe192b8465921d29f65694b916a44348fbf36d0cec1ab0b5b12"
+  },
+  "variants": {
+    "fx": {
+      "runtime": "model_fx.glb",
+      "source": "model_fx.blend",
+      "illustration": "portrait_fx.png",
+      "manifest": "manifest_fx.json",
+      "rig": "rig_fx.json",
+      "palette": "palette_fx.json"
+    }
+  },
+  "gameplay_status": "Art/FX concept only. No engine primitive, gameplay logic, collision, timing or ability integration implemented.",
+  "cel_variant": null
+}

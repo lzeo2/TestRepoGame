@@ -1,0 +1,90 @@
+{
+  "schema": "jank3d_hero_expansion_asset_v1",
+  "hero_number": 21,
+  "id": "regolith",
+  "display_name": "Rocky",
+  "role": "Off-tank",
+  "design_notes": "A self-appointed office cornerstone assembled from discarded paperweights, broken desktop slabs, and crushed ledgers. Squat asymmetric rubble body; one clerk-sized head; binding strap and a huge cornerweight in the right hand.",
+  "files": {
+    "source": "model.blend",
+    "runtime": "model.glb",
+    "illustration": "portrait.png",
+    "rig": "rig.json",
+    "rig_alias": "manifest.rig.json",
+    "palette": "palette.json"
+  },
+  "blender_version": "4.3.2",
+  "glb_bytes": 123368,
+  "glb_sha256": "c8d1aa38a780e6371db70365abfc860bee8a0306118f3020379028b5a4d343a8",
+  "triangles": 1848,
+  "mesh_nodes": 50,
+  "movable_nodes": 17,
+  "bounds_gltf": {
+    "min": [
+      -1.0800000429153442,
+      0.0,
+      -0.5525000095367432
+    ],
+    "max": [
+      1.25,
+      2.0799999237060547,
+      0.26499998569488525
+    ],
+    "dimensions": [
+      2.3300000429153442,
+      2.0799999237060547,
+      0.8174999952316284
+    ]
+  },
+  "palette_hex": {
+    "paper": "#f2e8cd",
+    "ink": "#253038",
+    "manila": "#c5aa78",
+    "accent": "#8a6a52"
+  },
+  "texture_count": 0,
+  "external_dependencies": [],
+  "illustration_dimensions": [
+    1024,
+    1024
+  ],
+  "grounding_offset_applied_blender_z": -0.0,
+  "status": "Original art-review candidate. Proposed kit is separate; not game-integrated or runtime-schema validated.",
+  "art_direction": "Flat paper/ink/manila + one accent, unlit solid fills and ink contours; neutral background.",
+  "model": "regolith",
+  "tri_count_LOD0": 1848,
+  "size_bytes": 123368,
+  "texture_resolution": null,
+  "material_slots": [
+    "regolith__ink",
+    "regolith__manila",
+    "regolith__paper",
+    "regolith__accent"
+  ],
+  "rig_nodes": [
+    "root",
+    "pelvis",
+    "torso",
+    "head",
+    "L_shoulder",
+    "L_elbow",
+    "L_wrist",
+    "R_shoulder",
+    "R_elbow",
+    "R_wrist",
+    "cornerweight_grip",
+    "L_hip",
+    "L_knee",
+    "L_ankle",
+    "R_hip",
+    "R_knee",
+    "R_ankle"
+  ],
+  "palette_default": {
+    "paper": "#f2e8cd",
+    "ink": "#253038",
+    "manila": "#c5aa78",
+    "accent": "#8a6a52"
+  },
+  "provenance_note": "Generated in Blender by dot and Astra 6 max delegates, 2026-10-23; original in-house artwork, no remote assets."
+}

@@ -1,0 +1,59 @@
+{
+  "schema": "jank3d_geometric_effect_concept_v1",
+  "id": "carbon-copy",
+  "effect_name": "Triplicate Trace",
+  "description": "Two offset paper-carbon afterimages trail the scout as simplified page-cut silhouettes with registration rules. These are authored flat echo geometry, not a second independently rigged hero or an implemented clone mechanic.",
+  "toggle_root": "FX_ROOT",
+  "toggle_contract": "Set this subtree visible/invisible in the target engine. Geometry has no autonomous playback; caller controls visibility and any motion.",
+  "mesh_nodes": [
+    "fx_paper_echo_0",
+    "fx_echo_face_slit_0",
+    "fx_echo_copy_rule_0_0",
+    "fx_echo_copy_rule_0_1",
+    "fx_echo_copy_rule_0_2",
+    "fx_registration_0_-0.34_1.88",
+    "fx_registration_0_0.36_1.88",
+    "fx_registration_0_-0.34_0.05",
+    "fx_registration_0_0.36_0.05",
+    "fx_paper_echo_1",
+    "fx_echo_face_slit_1",
+    "fx_echo_copy_rule_1_0",
+    "fx_echo_copy_rule_1_1",
+    "fx_echo_copy_rule_1_2",
+    "fx_registration_1_-0.34_1.88",
+    "fx_registration_1_0.36_1.88",
+    "fx_registration_1_-0.34_0.05",
+    "fx_registration_1_0.36_0.05"
+  ],
+  "motion_nodes": {
+    "fx_echo_stack": {
+      "axis": "Z",
+      "limits": [
+        -25,
+        25
+      ],
+      "note": "Rigid articulation, artistic guide; not a collision guarantee."
+    }
+  },
+  "body_rig_reference": "rig.json",
+  "palette_reference": "palette.json",
+  "body_palette_preserved_in_fx_variant": true,
+  "baseline_files_unchanged": true,
+  "baseline_sha256": {
+    "model.blend": "26887cae70026e9d3f4fd2ce45918e71da4d9d19a9ca4829254b9d3debf4c5d6",
+    "model.glb": "a130792185aff6eb1ba264df79d12f0cacf00e5eb8cae4d3127ef2615ff2b654",
+    "portrait.png": "b066a6791a200fc338f91f6de0e0c061505e0c7e5141486b58ec102c25304ee4"
+  },
+  "variants": {
+    "fx": {
+      "runtime": "model_fx.glb",
+      "source": "model_fx.blend",
+      "illustration": "portrait_fx.png",
+      "manifest": "manifest_fx.json",
+      "rig": "rig_fx.json",
+      "palette": "palette_fx.json"
+    }
+  },
+  "gameplay_status": "Art/FX concept only. No engine primitive, gameplay logic, collision, timing or ability integration implemented.",
+  "cel_variant": null
+}

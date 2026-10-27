@@ -458,6 +458,695 @@ No new game, aircraft, registration, dependency, external load, browser capture,
 full-fleet smoke or push. These are CPU/render-state results, not native/pixel
 acceptance; historical hardware, supported-renderer and rights limits remain.
 
+## Supplied 30-model archive preflight (2026-10-24, integration held)
+
+Lane A inspected `Wings_Base_30_Models.zip` entirely in memory; no supplied
+scripts were executed and **no archive entries were extracted**. Archive SHA-256:
+`4e37a104ba356790f6f9a0632c99d34b77dc023649e3cab830d895ec55c471d8`.
+ZIP CRC, 65 unique safe relative paths (no traversal, absolute paths or symlinks),
+exact manifest membership/sizes and all 64 non-self SHA-256 values pass.
+`manifest.json` explicitly declares a null self-hash, not a corrupt hash; its
+independently computed SHA-256 is
+`8d361c9cecd761b4338732144bf424e07f1752745117023ef9ec42e4f2e03e6a`.
+Total archive uncompressed bytes: **7,820,266**, including metadata. The actual
+30 GLBs total **7,635,836 bytes / 111,494 indexed triangles**, matching
+`models.json`; GLB headers, byte counts, SHA-256 values, triangle counts and
+absence of external buffer/image URIs were checked independently. This is not
+full geometry, texture, visual or native compatibility acceptance.
+
+The exact `models.json` IDs/files match the actual GLBs and both lookup lists:
+**18 fixed-wing aircraft + 2 helicopters + 10 vessels**, not 20 fixed-wing jets.
+All standard slots resolve to the 20 aircraft; all 30 faction slots resolve.
+The source roster is:
+
+- Fixed-wing: F-16C, MiG-29, Su-35S, F-35A, Eurofighter Typhoon, Rafale C,
+  JAS 39C Gripen, J-20, MiG-31BM, Mirage 2000C, JF-17 Block III, FA-50,
+  Su-34, Tu-160, A-10C, Su-25SM, Hawk T2 and Yak-130.
+- Helicopters: AH-64D Apache and Mi-28N.
+- Vessels: Charles de Gaulle, Queen Elizabeth class, Type 45 Daring class,
+  Aquitaine FREMM, CB90 H, Liaoning Type 001, Admiral Kuznetsov Project 1143.5,
+  Type 055 Renhai, Type 054A Jiangkai II and Type 022 Houbei.
+
+**Selected / extracted / wired: 0 / 0 / 0; unwired: all 30.** Existing aircraft,
+GLBs, runtime, catalog and seven-kind selection are unchanged. Vessels are
+archive-staged, faction-only candidates, **not locally staged or playable**.
+The current runtime has fleet carrier/destroyer entities, but no separate
+Factions selection mode was found in delivered JS or the retained source patch;
+existing fleet entities do not establish that mode or compatibility with these
+new vessel hulls. No replacement fleet or fabricated Factions menu was added.
+
+### Study and exact integration blockers
+
+Fresh inspection measured the original GLBs (triangles/material definitions):
+F/A-18 16,896/151, A-10 17,576/166, YF-12 18,028/123, Apache 11,322/202,
+B-2 4,740/96; all original roots retain unit scale. Original materials, the
+per-kind registry and real converter were inspected, not inferred from names.
+`assets/chunk-FWTONZ2W.js` contains named pivots, ammo-linked stores, exhaust
+cones, anchors, dimensions and shadows; `assets/chunk-LU3F6XZF.js` contains
+kind/loadout tables. F/A-18 uses six removable missiles and twin exhausts,
+A-10 missile stores/fans/gun rotation, YF-12 three internal missiles/twin exhausts,
+Apache eight Hellfires/rotors/chin turret, and B-2 eight bombs/hinged doors.
+`port.patch` preserves authored aircraft, camera, combat, spawn/lobby and audio
+changes. Existing model-derived hardpoints and camera offsets must stay aligned.
+
+1. The supplied GLBs are visual base geometry, with **+Z forward**, versus
+   Wings' **-Z forward**. Their aircraft node lists have no named missile,
+   bomb, weapon, gun, exhaust or afterburner nodes. In particular the supplied
+   F-35A has no bay doors/stores; supplied Apache rotor names differ and it has
+   no chin turret/Hellfire stores. Repointing existing loaders would remove
+   working features, not integrate compatible replacements. Rigid-control JSON
+   is descriptive metadata, not Wings runtime registration or a weapon rig.
+2. The native converter rebuilds material batches from factors/colors rather
+   than retaining supplied PBR texture maps. A raw glTF load would therefore
+   not prove dark-family appearance parity. Geometry-fit orientation, derived
+   camera/weapon points, functional stores and applicable exhaust require
+   authored adaptation and their own regression, not copied kind constants.
+3. Served code is generated output; there is no existing authored local JS
+   extension hook for adding complete kinds across these boundaries. The
+   maintenance contract forbids hand-editing generated bundles, and this lane
+   explicitly forbids builds/installs. Safe source-built delivery therefore
+   cannot be completed within this lane's allowed operations. No dead binary
+   dump or unserved source-only integration was substituted.
+
+Archive provenance asserts original OpenAI-assistant Blender 4.3.2 geometry and
+procedural PBR, no third-party models/textures and no manufacturer endorsement;
+its authoring model version is not exposed. These are supplied assertions, not
+independent rights verification. There is no separate license file in the 65
+entries. Existing upstream Wings rights remain unresolved. Retain the supplied
+README/provenance and obtain a clear redistribution basis before future ingestion.
+
+Fresh browser-free receipts on the unchanged runtime:
+`node Games/Wings/verification/astra-check.mjs`,
+`node Games/Wings/verification/solo-check.mjs` and
+`node Games/Wings/verification/lighting-check.mjs` all exit 0. They cover existing
+converted aircraft/combat, offline simulation and lighting only, **not supplied
+asset integration or gameplay acceptance**. No runtime JS changed, hence no new
+mapping/geometry regression or touched-JS syntax gate is applicable. No build,
+browser, screenshot, server, full smoke, registration, new game or push occurred.
+The unchanged maintenance checker exits 1 with `Inventory stale: inspect changes,
+then run --refresh.` after the sibling Ribbon source commit; this is not a Wings
+runtime failure or coverage PASS. Inventory refresh remains the orchestrator's
+scope after this documentation-only checkpoint; this lane does not modify shared
+inventory or the maintenance index.
+
+## Four-worker source/model follow-up (2026-10-24)
+
+The [execution receipt](../audits/foldwild-wings-swarm-20261024.md) records W1's
+30/30 independent decoded bounds/triangle agreement and W2's source recovery
+inspection. The [external-generator repair specification](../../wings-supplied-model-repair-spec.md)
+contains measured per-model bounds and specific repairs for all30 identities:
+orientation with signed axes/winding, actual versus proposed rig names, store/
+exhaust/bay/camera origins, converter-compatible materials/livery and vessel
+waterline/deck/island/collision requirements. These are repair instructions, not
+completed derivative models, approved loadouts or new runtime descriptor consumers.
+
+Retained host original source accepts the current `port.patch` in a read-only
+application check; 28 existing source preimages match patch blob prefixes.
+Approved Three0.186.0/esbuild0.28.2 tooling is present. Thus source/tool availability
+is not the present blocker, though no complete source rebuild was run or accepted.
+The compliant route remains authored TypeScript changes and regenerated matching
+runtime/check bundles, never hand-edited output. Existing source/build guards
+remain unchanged. A separate Factions ruleset must enforce rosters in RoomEngine
+spawn/team/boarding/bot paths, not only menus or transport `StartRequest.mode`.
+
+Integration remains **HOLD** on redistribution basis, functional rig repair and
+source-built mode/combat delivery. The subsequent operator decisions below resolve
+AI fleet objectives versus player ships, not those remaining gates. All30 assets
+remain archive-only and unwired;
+seven existing selectable kinds are unchanged. No Factions mode, new playable
+vessel, new game, build, browser acceptance or push. Both W2 and the orchestrator
+reran existing Astra/solo/lighting regressions: 3/3 pass, CPU/render-state only.
+
+## Operator fleet decisions and bounded implementation (2026-10-24)
+
+**WINGS-AI-FLEET:** Leo selected AI-controlled fleet objectives in **separate
+Factions**, never player-controllable ships. Players attack or defend those
+objectives; ordinary selection remains aircraft-only. The first bounded slice
+keeps all ten vessel candidates objective-only, with no player ship seats,
+boarding/control transfer, water-driving controller or ship cockpit. No carrier
+air wing, deck launch/recovery or mobile-spawn feature is implied.
+
+**WINGS-FLEET-V-FLEET:** opposing AI fleets must also actively attack each other
+and defend friendly assets within explicit supported weapon capabilities. The
+simulation must own bounded hostile acquisition, range/cooldown-limited attacks,
+real HP damage, sinking/destruction and objective updates. Visible firing/impact
+feedback must reflect that authoritative state; friendly fire is off by default.
+Passive objectives or visual-only projectiles do not meet the order. Model names
+are not evidence that naval missiles, AA channels or other weapons exist.
+
+The [bounded source-first plan](../../wings-ai-fleet-implementation.md) reuses W2's
+completed source-recovery findings and [W1's committed repair measurements](../../wings-supplied-model-repair-spec.md)
+from `b84f6250`. Two delegated Wings workers update those disjoint documents;
+this is not a repeat archive/source audit. Future lane **FC / W2 integration
+owner** is the single authoritative fleet-combat source owner for fleet/combat/
+room-engine and required protocol/type/snapshot boundaries. Aircraft work must
+hand off overlapping shared simulation files before FC edits them. Rendering
+consumes simulation events/state, never a second targeting/damage implementation.
+
+Next tasks are source baseline recovery from the known retained original/current
+patch; separate validated room rules and authoritative aircraft-only ownership;
+capability-limited fleet combat and objective lifecycle; class-specific vessel
+render/collision/weapon-event wiring; then regression and native acceptance.
+Stages are bounded and ordered in the plan; no source build was run here.
+Model repairs/redistribution basis, exact source authentication and authorized
+matching bundle delivery, mode/balance validation and native/performance proof
+remain genuine gates. Source and approved tooling were found; do not reopen
+source absence or AI-versus-player scope as blockers. No rights waiver, dependency
+install, generated bundle edit, runtime/model change or push is authorized by
+this documentation decision. The active upgrade swarm retains all Foldwild work;
+no Foldwild path or shared maintenance inventory was changed by this follow-up.
+
+Documentation checks: new links in the four Wings documents resolve; privacy,
+scoped whitespace and unchanged runtime/catalog/Foldwild boundaries pass. Wings'
+Git tree still matches its inventory record. The full-link scan also found an
+unchanged historical speedboat-PBR README link whose target is not tracked; it is
+reported, not silently removed or counted as a link PASS. The unchanged maintenance
+checker exits1 on missing `docs/maintenance/games/001-brainrotboulevard.md`, outside
+this Wings lane. No new CPU/native combat test was run: the plan labels future
+regressions as planned and does not claim Factions is implemented.
+
+## Permitted implementation resume (2026-10-25)
+
+The operator resumed real source/model work. The user reports creating the
+supplied models with GPT and grants scoped Wings use/repair. Record this as
+**user-reported generated provenance and scoped permission**, not independently
+verified originality or upstream code/model license clearance. The
+[implementation receipt](../../wings-implementation-resume.md) records exact
+ownership and milestone results. No Foldwild, Citisten or Jankolock path is owned
+by this Wings wave; Jank's active shared-index owner coordinates commit windows.
+
+The [primary upstream report](../../wings-upstream-provenance.md), `7338a2e`,
+authenticates all70 retained original files and13 deployed original public files
+against primary pinned Git blobs. It traces the actual subtree import/original
+root ancestry and finds no applicable redistribution grant. Exact Three0.186.0
+and esbuild0.28.2 tools, binary and builder guards are reverified. Source identity
+and tooling are resolved; new upstream-derived copying/delivery remains **HOLD**
+until a rightsholder grant identifies the game/pin, adaptation/compiled public
+hosting scope, notices and separate upstream-model coverage. The user's supplied
+model permission does not grant those rights.
+
+Permissible work proceeds locally rather than waiting on documentation:
+
+- `4b3398ef`: original dependency-free `authoring/fleet-sim.mjs`, its runnable
+  check and core notes. The orchestrator independently reran **12/12 CPU groups**
+  and both syntax checks. It exercises reciprocal fire, real HP/sinks and defense
+  preference; faction/aircraft-only ownership; shared player/AI projectile damage
+  with friendly obstruction; continuous depth/water eligibility; finite contacts,
+  expiry/reacquisition and no exact hidden-sub pose; sub/escort counterfire;
+  actual64-surface/8-underwater cap saturation; capital outcomes/reset; integer-ms
+  partition/replay and exact range-boundary rejection. Review reproduced a final
+  projectile-step overshoot; FC fixed it and left a boundary regression. A
+  contact-blackout test was strengthened to assert no underwater fire plus
+  positive reacquisition rather than depend on an optional target field.
+- `ecf8a6a1`: two supplied Type45/Type054A escort derivatives under
+  `models/derived/`, with stdlib generator/check and `authoring/model-repairs.json`.
+  Independent rerun passes two byte-reproducible outputs, **11,960** reflected
+  triangles, six unchanged embedded PNG maps,22 pose/clearance checks and all11
+  existing models/archive unchanged. This supersedes the earlier archive-only
+  status for these two local derivatives only; all supplied assets remain
+  **unwired to the served game**. Actual turret/prop geometry, signed limits,
+  measured muzzle and collision references are recorded. Mixed-atlas glass,
+  native converter/material integration and fitted gameplay remain held.
+- `3d32b642`: original generic submarine asset/generator/check/descriptor,
+  **17,016 triangles / 336,996 bytes**, seven geometry-backed controls, two
+  aperture-backed launch origins. Independent parent check exits0 for367 poses,
+  continuous swept bounds,242 launch-clearance samples, reproducibility and all11
+  original models unchanged. It is newly authored unnamed art, not a supplied
+  mesh or certified real-class replica; scoped permission and authorship limits
+  are retained in its manifest.
+- `5055672c`: original injected-Three presentation rig/check/notes. Independent
+  parent CPU run covers three actual GLBs /28,976 triangles, signed control
+  limits, posed/rotated muzzle queries, propeller pause/death/reset, submarine
+  depth/contact-safe hiding and finite event-correlated fire/impact/projectile/
+  sinking presentation. It never applies targeting or damage. The escort
+  regression now scopes its two owned derivatives, preserving every content
+  assertion while allowing the authorized submarine alongside them.
+- `16154d87`: independent W13 review reproduced generated-aircraft/vessel ID
+  collision and resurfacing disclosure of old private underwater event origins.
+  FC reserves its aircraft namespace and stores bounded private event-time
+  faction redactions. Parent review and **14/14 CPU groups +2 syntax checks**
+  pass, including both reproduced regressions, friendly obstruction, replay and
+  legitimate visible damage/fire. No second combat owner or ignored failure.
+- `4dfe8901`: raw three-asset GLTFLoader/PBR fixture/runner. Parent browser-free
+  self-check passes13 explicit routes, actual Three dependency closure, three
+  hashed embedded assets, inline ESM/Python syntax, negative routes and bounded
+  system-browser/cleanup configuration. Four views are prepared; no native or
+  gameplay result follows from this self-check. Fourth-slot queue still governs
+  any capture; runtime and model originals remain unchanged.
+
+[Raw native evidence](../../wings-implementation-native/README.md): attempt1
+failed before the first capture at a reproduced stale-camera-matrix helper
+boundary; `31d65cb0` fixes it and preserves all clipping guards with an actual-
+HTML positive/removal-negative CPU check. Attempt2 produced four actual raw
+images, nine material records and native draw/pose/disposal proof, but its gate
+still **FAILS** on two retained GLB request-failure events. No error filtering,
+clean-loading PASS, natural combat or whole-vehicle realism approval follows.
+Parent reviewed all four images: the escorts remain simple boxy base art, and the
+submarine remains a generic original game asset, not a real-class certification.
+Both batches kept14 route/runner hashes unchanged, cleaned up and released the
+shared slot with zero roots/no profiles. No third launch this cycle. Hermes advice
+was requested after two failed attempts and cancelled; ticket
+`pi-12722-1792891919886-7a787220` remains unresolved, not authorization.
+
+At the initial `4b3398ef` checkpoint, the FC module was isolated, using
+axis-aligned fixture collision and center-origin shots. The measured integration
+below supersedes those limitations for explicitly bound models and makes their
+pose channels authoritative. Abstract legacy fixtures retain their documented
+fallbacks. Aircraft ownership remains validation, not a replacement flight engine;
+none of these CPU results clears full43-identity realism, native gameplay or the
+upstream served-host rights gate.
+
+That checkpoint used the Citisten/Foldwild/Jankolock/Wings browser queue. The
+current follow-up queue is Citisten first, Jankolock second, Wings third, with
+explicit releases and fresh preflight required. No new Wings browser launch is
+part of the source follow-up. No build,
+new dependency, minified bundle edit, original-seven replacement, new game,
+registration, public release or push is part of these local milestones.
+
+## Measured authority and host/session follow-up (2026-10-25)
+
+The resumed order advanced beyond the isolated core without copying uncleared
+upstream code or making a replacement game:
+
+- `4cfa721c`: original `authoring/fleet-geometry.mjs` and authority changes bind
+  actual descriptors/mounts, solve signed gun poses, launch at measured origins,
+  test fitted rotated hull/island boxes and translation sweeps, and generate
+  orientation/aim/propeller/control-plane channels from actual simulation state.
+  Unsupported mounts fail closed; current escort assets do not acquire ASW
+  launchers by class name. Straight gun solutions outside real signed envelopes
+  reject rather than invent ballistics.
+- `2c1dcb51`: original `authoring/fleet-session.mjs` connects the real authority
+  to trusted host identity/aircraft callbacks and the presentation ABI. One
+  unforgeable sequential clock owns ticks; ordinary aircraft requests/attacks,
+  safe faction snapshots, pause, view-failure reconciliation, leave/restart and
+  disposal are implemented. Normal/solo/custom return to their existing path.
+  The view test is explicitly an ABI spy, not served/native flight evidence.
+- Parent and independent W16 review pass **14 core +9 geometry +8 session groups**.
+  Actual three-GLB node frames are checked using real Three math. Three reproduced
+  defects now have regressions: full submarine appendages could cross the seabed,
+  fully submerged geometry could be labeled surfaced and reveal exact position,
+  and failed-view aircraft cleanup could leave a surviving viewer stale. Full
+  static/swept clearance, measured-top classification and bounded all-survivor
+  reconciliation close those cases without relaxing prior assertions.
+
+**The served Factions entry is still absent.** The
+[exact integration gap and user-action evidence](../../wings-served-integration-gap.md)
+names the lobby, game lifecycle, RoomEngine/protocol, snapshot/render and real
+flight boundaries that require upstream-derived edits and a matching source
+build. Source/tool availability is proven; the missing item is an applicable
+rightsholder grant covering the pinned game, compiled browser hosting/adaptation
+and its eight original GLBs, not another model-only permission or bare GO.
+No generated bundle edit, script-hook disguise or new substitute app is used.
+
+Other unfinished work remains explicit: fitted fixed-tick rather than continuous
+rotational physics, complete ASW escort art/capability wiring, real host aircraft
+reconciliation, full roster/realism and native loading/performance acceptance.
+The existing raw request-failure gate is not rerun or cleared by this follow-up.
+Separate weather/map extension lanes own their own source/docs and are not
+attributed to these authority/session commits. Catalog129/normal seven-kind
+served output and all existing model bytes are unchanged; no new game or push.
+
+## Durable authored-source recovery (2026-10-25)
+
+`Games/Wings/source/` now retains the authored source in Git rather than only an
+ignored staging checkout. All 70 retained pristine Git blob hashes and sizes
+matched the recovered pinned receipt; the current `port.patch` clean-applied.
+The checkpoint contains 77 patched baseline files, 1,294,495 source bytes before
+its manifest/README. Three unused upstream art mockups and the upstream server
+are omitted explicitly; no GLB, font, dependency, backend or served bundle was
+copied or changed. See the [source guide](../../../Games/Wings/source/README.md).
+
+The exact existing Three 0.186.0/esbuild 0.28.2 builder produced 25 files,
+3,543,748 bytes, matching the daylight baseline receipt. This is source recovery,
+not delivery of the lost realism candidate, photographic review or FPS evidence.
+The [source-loss receipt](../audits/wings-realism-interruption.md) remains dated
+and qualified. No browser, full-fleet smoke, new game or push.
+
+## Recovered realism source candidate (2026-10-25)
+
+The candidate under `Games/Wings/source/` is **source-only, not delivered**.
+The served `port.patch`, HTML, assets, GLBs and bundled regressions are unchanged.
+Saved write/edit operations were replayed with unique exact-text guards against
+the recovered daylight baseline; this is not restoration of the lost Git objects.
+
+- Aircraft: source PBR factors survive batching through a vertex attribute, with
+  shared local ORM/normal maps and restrained weathering. All seven aircraft
+  model hashes/triangle counts are unchanged. The converted-jet check now asserts
+  exact source-factor coverage per vertex rather than obsolete fixed batch
+  defaults; six batches, geometry, rig, weapons and lifecycle checks remain.
+
+- Terrain: recovered jitter-aware normals, mineral/scree/soil coloration and
+  seed-sensitive shading-cache invalidation. Geography, heightmap, fleet clearance
+  and collision topology are unchanged; 38,376 triangle-interior samples pass
+  with maximum error `1.535e-12 m`. The existing game already has hills, valleys
+  and coastlines; no duplicate GLB terrain was introduced.
+
+- Clouds: recovered bounded world-space density marching, extinction, forward
+  scattering, wind drift and opaque-depth clipping. Low remains off; Balanced
+  uses one volume and High two. Six actual GLSL graph cases pass across standard,
+  reversed and logarithmic depth. Graph construction is not GPU compilation.
+
+- Shadows: recovered native CSM helper and daylight/scene wiring. Balanced uses
+  two 1024-square maps; High uses three 2048-square maps. The quality transition
+  replaces the light identity to invalidate the cached graph. Three resource
+  cases and seven target disposals pass. Filtering is softened fixed-radius PCF,
+  **not** contact-hardening or variable penumbra; the Low blob stays approximate.
+
+Fresh [source-recovery checks](../audits/wings-realism-source-recovery.md) pass
+all five CPU/graph suites plus final lighting, solo and converted-jet regressions.
+The final candidate build is 25 files / 3,569,870 bytes, +26,122 bytes versus the
+verified lighting baseline; all 18 generated JS/MJS files parse. This is staging
+output only. Native pixels, FPS, contact-hardening penumbra and aircraft wind
+buffeting are not accepted. No browser, runtime replacement, full-fleet smoke,
+new game or push.
+
+## Original-module composition (CONTINUE-WINGS-0920)
+
+The [bounded composition receipt](../../wings-composition-0920.md) connects actual
+original maps, weather, FC authority, session and model rigs, not an alternate
+game or generated-bundle hook. `authoring/fleet-composition.mjs` binds rigid
+clones of prepared real GLB scenes; one session clock forwards authoritative
+weather to the trusted aircraft callback with the selected real `worldQuery`.
+Quality/motion preferences do not alter combat visibility. Measured map placement
+checks full/swept bounds, all-yaw radius, initial route heading and hull separation.
+Normal/solo/custom still decline without touching their existing host path.
+
+`47a4abcd` adds explicit visual/nonvisual acquisition and shared composed density
+for AI/player launch validation. Weather snapshots use friendly-fleet intel,
+not fabricated aircraft sensors; current and historical redaction protect hostile
+poses/HP and hidden submarines. Sonar/nonvisual channels retain their own rules.
+Parent independently reran 14 core, 9 geometry, 7 weather and 9 session groups.
+Actual-model composition checks use 28,976 serialized triangles, real node
+transforms and factor-only CPU materials, not decoded textures or native pixels.
+
+The end-to-end check exposed unreachable parallel escort patrols, corrected by
+actual center-lane map staging/navigation without widening weapons or hulls.
+The 40-HP one-sided encounter remains an explicit regression; baseline 1,000-HP
+fixtures separately establish reciprocal fire/damage/sinking. A timed draw with
+untouched capitals is not called an objective victory. The receipt separates
+that case from ordinary aircraft attacks on actual capital objectives.
+
+The served Factions entry remains absent. Rights-cleared lobby/RoomEngine/flight,
+map worker/cache, native scene/atmosphere and matching rebuild integration are
+still required at the [precise host boundaries](../../wings-served-integration-gap.md).
+Real escort ASW art/trajectories remain absent, so all-measured six-role fleets
+reject; mixed submarine-animation fixtures explicitly use anonymous legacy
+counterplay. Actual aircraft physics/prediction, nonzero wind, full roster,
+GPU/native/performance and realism are not accepted. Recorded upstream rights
+HOLD and user-reported GPT asset provenance remain unchanged. No model, served
+bundle, retained host source, catalog, new game, build, browser or push here.
+
+## Original fog/light consumer follow-up
+
+The [composition receipt](../../wings-composition-0920.md#auto-continue-actual-foglight-consumer-and-cleanup)
+now records a real original Three/TSL environment consumer, not only a callback
+DTO. `authoring/weather/weather-view.mjs` installs stable world-ray height fog
+uniforms and scales real lights from fresh daylight samples, using exactly the
+provided composed density. It adds no clock, wind force, rain/cloud or lightning.
+The new optional composition cleanup hook releases its resources once on leave,
+view failure, disposal and failed returned-factory setup; external fog/light
+owners and caller model resources are preserved.
+
+Independent review reproduced callback reentry and cross-scene light ownership
+gaps; guarded atomic application and ancestry checks fix both. Parent independently
+reran **8 consumer +15 actual-model composition groups**, including real GLSL/WGSL
+node-material graph generation and once-only real-scene cleanup, in81 seconds
+combined. Graph generation and CPU optical quadrature are not shader GPU numeric
+parity, driver compilation, screenshots, native flight or FPS acceptance.
+
+Only original modules/tests/notes changed. Retained host source, normal seven-kind
+runtime, assets, catalog and protected/unrelated games remain untouched. Actual
+native scene/atmosphere/prediction consumers and the applicable upstream grant
+remain required; no browser, source rebuild, registration or push occurred.
+
+## Cleanup fault follow-up and current tool hold
+
+Actual-Three fault injection reproduced skipped cleanup: one geometry disposal
+listener exception prevented all three owned materials from being attempted and
+left the disposed flag false. The shared rig now closes ownership first,
+attempts all cleanup/restoration independently, clears references and aggregates
+causes. Four new strict fault/reentry/real-model restoration cases passed in the
+worker's then-available Three environment. The raw fixture likewise now cleans
+partial GLTF resources and attempts its rig/environment/model/renderer cleanup
+without losing the original setup error. Actual-HTML CPU cleanup tests preserve
+existing camera/routes/PBR guards; no new browser acceptance is claimed.
+
+The external Three0.186.0 cache disappeared during an idle gap, so one fresh
+attempt failed before its first test. The same approved MIT library has now been
+recovered from its primary registry after archive-integrity and approved
+metadata/license hash verification, without package-manager installation,
+repository dependencies or scripts. Fresh parent replay passes15 composition
+groups (including rig-error cleanup) and the complete raw fixture CPU self-check
+in70 seconds; independent replay passes8 consumer groups plus the actual-GLB rig
+check and4 fault cases. All6 JS syntax checks pass. These are new tool-backed
+receipts, not promoted pre-removal results; GPU/native acceptance remains held.
+
+See the [current checkpoint](../../wings-composition-0920.md#approved-tool-recovery-and-fresh-replay)
+for exact tool identity and the approved idle-only index handoff. These source
+changes land in coordinator-granted sequential checkpoints; foreign Jank work
+is preserved and only the Wings inventory row follows the source commits. Upstream rights and served-host integration remain
+separate holds. No model, catalog, retained host source, served rebuild, browser,
+new game or push is part of this follow-up.
+
+## Initial original-module visual integration preview (2026-10-26, historical)
+
+The operator requested actual local visual evidence rather than another rights
+study. The [new preview and retained artifacts](../../wings-original-preview/README.md)
+compose original maps/authority/session/weather/rigs with two supplied escort
+derivatives and the existing generic submarine. The companion HTML/module use
+only the approved local Three package and embedded model assets; no upstream
+host/bundle, model bytes, catalog or normal seven-kind runtime changed.
+
+Fresh browser-free checks pass12 actual-source startup cases plus actual draw-loop
+pacing/cancellation, import-map removal-negative and phase-logger regressions.
+They cover all three maps, surface/submarine, clear/fog, no spawned aircraft,
+private hostile submarine poses and real-consumer cleanup. Native source wiring
+bugs (missing `three/webgpu` alias and invalid empty aircraft rosters) and a
+checker logging collision were fixed without weakening the authority or gates.
+
+The retained1280x860 clear-skirmish image shows both real escorts and authoritative
+fire/damage at tick400: HP900/660,21 draws/15,965 triangles and changed actual
+propeller/turret quaternions. The latest software-WebGL2/SwiftShader pass also
+passes native Run/Pause and restart after the preview yields125ms between
+continuous draws. **Full native gate remains FAIL**: fog compile/draw and state
+publication succeed, but the next native Step actionability wait times out after
+10s and its diagnostic screenshot after5s. No fog/overview/submarine/mobile
+capture is accepted, no force-click/error filter/timeout extension was used and
+all five unsuccessful receipts are preserved. Browsers/servers/profiles/leases
+were released; the next action is a distinct supported-graphics or bounded
+lower-buffer diagnostic of the fog compositor/input stall, not an unchanged
+retry. Technical ticket `pi-341161-1792980473670-9acd81e2` remains unresolved.
+
+This is an explicitly unserved diagnostic, not a replacement game, actual flight,
+real-class ASW fit, hardware/FPS result or delivered Factions. The served-host gap
+remains labeled, without a new license audit, dependency install, game, build,
+registration or push. Only Wings-owned source/evidence/manual belong to this checkpoint; active Jank
+edits and forty-hero intake are not competing work here. Source/evidence remain
+unstaged pending explicit index grants: a bounded300s natural-idle observation
+still found the coordinator running, so no prompt/staging/commit was sent or
+inferred. Ticket `pi-341161-1792981513773-8afca1ac` records exact windows. Wings-only
+inventory refresh must follow committed source and has not occurred; the unchanged
+maintenance checker stops at its uncommitted-source guard, not a coverage PASS.
+
+## Separated starts, actual AI battle and bounded realism (2026-10-26)
+
+The [current original-battle receipt and actual media](../../wings-original-battle/README.md)
+supersede the earlier clear-skirmish preview for this bounded module scope.
+Operator requirements preserve the original Anomaly-exported UI and aircraft-only
+ordinary player selection. The authoring dashboard is never installed into the
+game. Supplied destroyers may be reused as AI targets/allies in ordinary planes
+mode using the same assets/rigs, not duplicate packs or player ship controls;
+actual upstream host wiring remains a separately gated integration.
+
+Map-pack version2 derives separation/formation from measured full hulls, relevant
+weapon reach and10s of closing distance, validates full route/depth/water clearance
+and publishes only a complete legal plan. Submarines start with their own faction.
+Two flagships converge rather than remaining unreachable. Same map/seed/profile
+and partitioned input replay remain deterministic; no arcs, ammunition, HP or
+geometry bounds are weakened. The old four-surface escort fixture still records
+its explicitly named time draw/one-sided negative, not an invented victory.
+
+Fresh parent verification passes **83 CPU cases/groups**:28 maps,15 actual-model
+composition,13 independent staging,12 actual-preview startup plus1 scheduling,
+10 sea-view and4 complete AI-battle groups. The three actual 1,000-HP flagships
+encounters sink a capital at69.15/73.20/75.20 sim seconds and reach Team1 capital
+victory, with227 independent actual muzzle checks and reciprocal attributed damage.
+The ordinary aircraft CPU case still uses50 real attacks/1,000 damage against a
+moving capital, not a claimed natural-flight integration.
+
+**Native PASS_ORIGINAL_AI_BATTLE_NOT_GAMEPLAY:** the clear archipelago pass records
+31.577s/32 actual960x640 frames from real opposing movement/fire/damage to the
+capital outcome; separate opening/40s approach images prove the earlier separated
+start. Native Run/Pause, same-state low/balanced comparison, restart, native Close
+and desktop/mobile light/dark/layout checks pass, zero errors, clean owned
+browser/server/profile/lease release. It uses software SwiftShader and an explicitly
+nominal4x diagnostic clock, not measured device FPS or a new game speed setting.
+The first pass's later incorrect square-canvas QA assertion remains an unaltered
+FAIL receipt; comparing the actual375x390 canvas fixes the assertion, not the UI.
+
+The bounded original marine layer consumes safe motion/damage/events for measured
+bow/stern foam, near-water splashes, damage smoke/fire and finite tiered pools.
+27,304B of original procedural ripple/feather textures break the previous flat
+specular patch/opaque foam plates without new assets or caller-material overrides.
+Actual comparable images are reviewed, but tiling, coarse terrain, boxy silhouettes
+and mixed glass atlases remain visible: **no photorealism claim**. Real-class ASW,
+full roster, native flight/aircraft effects, fog parity/input, original-mode host
+wiring, hardware performance and served Factions remain outstanding. No source
+rebuild, install, new game, registration, release or push. The actual yielded-index
+handoff now lands source/evidence at `449549cf`, `c55f3834`, `97e837dc` and
+`64550d7a`, exactly40 frozen paths. `40935dea` updates ONLY Wings inventory to227
+files /24,295,430B, tree `3f6865288e71e7b5003e1835050359da4312f3e3`, preserving
+all other rows. Fresh51 fast CPU cases plus authored syntax/catalog/diff gates pass;
+prior83-case/native receipts remain attached to hash-identical code/media, not
+claimed as newly rerun browser evidence. Global coverage still requires its own
+clean-source/manual gates. Next owned integration is the marine layer's safe-frame,
+reset and dispose lifecycle inside the original composition, not a new host/UI.
+
+## Isolated retained-host bridge (2026-10-26)
+
+The [bounded delivery receipt](../../wings-host-bridge-delivery.md) replaces the
+previous fixture-only host gap for the tested cannon boundary, not the served
+Factions hold. Original `authoring/retained-host-bridge.mjs` and hash-pinned,
+add-only `retained-host-wiring.mjs` execute against the actual retained TypeScript
+in memory, without modifying or distributing the host preimages. The real
+RoomEngine owns flight, seats, ammo, cooldown and nearest native collisions;
+existing FC owns fitted fleet damage/sinks/objectives. Original UI and all111
+source/entry/bundle/patch files remain byte-unchanged. No new game or push.
+
+Fresh checks: **13 actual-host +22 core +9 session +7 weather groups** pass,
+including accepted buffered cannon fire, sustained fire/replay capacity,
+friendly/native obstruction, faction restrictions, pause, actual native15s
+reset/restart and close/disposal. Follow-up `886ef504` fixes a reproduced loss of
+in-flight damage after launcher death/disconnect: immutable per-round provenance
+preserves original attribution without relaxing initial ownership validation.
+Unregistered copies, mutated identity and stale/reset combat callbacks reject. Existing Astra/solo/lighting checks also pass.
+These are deterministic CPU pose fixtures, not served/native flight evidence.
+The old battle/media is not rebuilt or promoted to host gameplay acceptance.
+
+Two human factions and straight guns only; unsupported bot factions reject.
+Host missile/bomb/ASW and AA reconciliation remain absent. The native generic
+fleet/world/map must still be suppressed or matched, supplied rigs/weather bound
+to GameSession, and separate original-style start wiring source-built before
+served acceptance. The source is present; applicable upstream adaptation/public
+hosting permission remains unresolved. The delivery receipt contains one unsent
+permission draft and the precise next normal-input/visual acceptance criterion.
+No irrelevant browser capture or repeated unavailable-upstream lookup was made.
+
+## Local-only playable integration
+
+The operator now authorizes retained-copy engineering and testing locally,
+separate from publication. The [local integration receipt](../../wings-local-integration.md)
+names the exact source changes, ignored playable entry and targeted results.
+Original MenuNav/GameSession/HUD now start and display a real Factions loopback
+session. Actual host cannon rounds damage fitted supplied-model capital ships;
+existing rigs consume that same safe state. No replacement UI, second RAF,
+model duplication, published chunk edit, license claim or push.
+
+Fresh targeted checks:13 direct-host,6 native-ocean scenario,6 real-view and3
+actual local-session composition groups pass, plus generated Astra/solo/lighting
+checks. Player ammo600→589 corresponds to enemyHP1000→989.2 in the CPU pose
+fixture. The actual local-session test also proves view/HUD data, pause/dispose,
+natural capital outcome and native15s automatic reset; GLB image loading/timers
+are explicitly instrumented, not claimed as native play. The native runner
+uses original input and is serialized through the shared browser queue. Its
+first launch failed on a proved Unix socket path-length limit, fixed with short
+owned`.tmp/t`. The second reached the original menu then failed the existing
+Low/WebGL2 first-scene-draw timeout before GameSession, retaining two aborted
+native ship GLB requests. Actual menu/failure captures and unfiltered errors are
+saved in the receipt; no native flight or fitted-fleet pixel PASS is claimed.
+No third unchanged launch or first-draw gate bypass. Next is a distinct renderer
+diagnosis/supported route, not another source-permission audit.
+
+Passive follow-up `8521b605` exposes a bounded startup snapshot before hostRef:
+callback/paced-frame/render counts, phase/blockedAt, world-ready/streamer stats
+and error strings. Four CPU/static groups verify detached data and exact
+pre-patch render/timer/gate preservation. The collector's CPU failure fixture
+now verifies capture before Playwright cleanup; it is not a native attempt.
+The ignored observed build is26 files /3,808,897 bytes. No new browser launch,
+screenshot or native acceptance; the answered diagnostic ticket retains HOLD.
+
+The operator subsequently released ONE controlled startup-only capture. It
+failed before GameSession but recorded16 draws/85,001 triangles, two completed
+frames, worldReadyfalse, zero terrain clusters and two pending jobs, with no
+failed/external requests. This is not a zero-draw failure or a GPU-health PASS.
+The exact worker-versus-render-delay cause remains unproven. Source fix`7ff95b21`
+defers the first full render until minimum terrain readiness while continuing
+normal updates/replies; after startup, terrain gaps still render. Original20s
+timeout, visual quality and nonzero/full-draw readiness requirements remain.
+Four preserved checks plus10 actual-loop CPU cases and3 actual local-session
+composition groups pass. The ignored terrain-first build is26 files /3,808,951
+bytes. No post-fix browser was run: the single release is consumed. The receipt
+retains first-failure evidence and the precise unverified native acceptance.
+
+One later operator-authorized post-fix startup-only validation crossed the
+original firstDraw gate: actual GameSession/playerp1 entered spawn, one fitted
+fleet root advanced host ticks30→640/FC ticks10→213, and both actual model
+positions matched authority. Final diagnostics show28 draws/264,171 triangles,
+19 terrain clusters and no renderer/shader errors. Overall gate stillFAIL:
+the10s startup screenshot and5s diagnostic screenshot timed out, and three
+aborted model requests remain unfiltered. Only the menu image is accepted; no
+flight inputs or native player-combat/pixel/performance claim. The exact receipt
+records the new capture/resource bottleneck; no retry, quality/timeout weakening,
+install, publication or push. Native startup progress is real but is not a clean
+loading/gameplay PASS.
+
+Collector-only follow-up`bf91c4e4` keeps HTTP alive until after all diagnostics
+and browser/driver cleanup, records the first DTO before a blocking image, and
+avoids a duplicate image attempt after screenshot failure. Failed requests gain
+monotonic time/collector-phase metadata but are never filtered; cleanup-time
+failures still force FAIL. Nine CPU fault cases plus bounded local HTTP routes
+pass, including a thrown close error and no startup inputs. No application or
+renderer changes and no new native run; the saved post-fix FAIL/abort timing
+uncertainty remains. A further live diagnostic needs a new bounded capture release.
+
+The operator then released one repaired-collector startup-only capture at
+`ba1ed2e2`: overallFAIL96.285s, primary60s startup wait plus5s failure-image
+timeout. First inspection nevertheless found nativep1/spawn and live fitted
+fleets. The two aborted model requests were now timed in`run`, at14.089s
+(destroyer) and62.781s(Type054A), before diagnostics/cleanup; they cannot be
+classified as cleanup-only for this run. Scene callbacks82/completed renders6
+stayed unchanged across snapshots while host ticks35→339 and fleet transforms
+advanced. Diagnostics show28 draws/264,171 triangles,19 terrain clusters and no
+renderer/shader errors, not a pre-session zero-draw failure. Exact cancellation/
+render/capture/polling causes are unproven. One failure-image attempt only,
+no flight inputs/retry/new app patch, and all owned browser/server resources
+closed. The exact JSON/menu receipt preserves FAIL and the specific new evidence.
+
+The subsequent operator-authorized [two-launch trace phase](../../wings-local-trace-phase.md)
+adds only verification instrumentation: `local-trace-probe.js` plus its CPU fake-
+native check, and `trace-local-startup.py`. The observer preserves native RAF/
+cancel/abort delegation and samples existing debug DTOs at1Hz, without scheduling
+RAF or controlling game state. The runner keeps original browser args/quality,
+collects bounded CDP metadata without response bodies, retains evidence before
+cleanup, and separates diagnostic completion from acceptance. CPU checks pass;
+launch hypotheses/results are in the linked phase receipt. No app/served asset
+change or new gameplay acceptance follows from adding these diagnostic files.
+Launch1 retained seven HTTP200/full-body cancellations with zero explicit JS
+abort/RAF-cancel calls, even with no images or RAF polling; the18s presentation gap
+had continued60Hz host ticks. Launch2's CPU-checked direct-GLB-body probe selects
+FileLoader's existing native-buffer fallback only to test the response-stream
+boundary. It is not a production fetch patch or a failure-filter exception.
+
+Launch2 completed11/11 GLBs with0 failed requests,0 override errors and no
+request filtering; graphics remained slow (6.36s max synchronous RAF, timer-live
+presentation gaps). Supported repair`5fb5fbf9` adds small`render/glb.ts`:
+native fetch/arrayBuffer, original200/0 status validation and existing GLTF parser/
+resource base, shared across all three loaders. Cache/retry/dispose behavior stays
+unchanged. Actual helper/error/route and three local-session CPU groups pass; the
+fresh ignored direct-buffer build has26 files/3,809,712 bytes and clean import/
+worker closure. Default bounded HTTP serving/routes were checked without a
+browser. No production fetch monkeypatch, parser/dependency change, quality/
+timeout weakening, new asset or third launch. Native post-fix pixels/player/
+performance acceptance remains held; the needed change is a responsive GPU/
+compositor route or quality-preserving profiling evidence, not an unchanged retry.
+
+Native carrier launch platforms remain, but bridged native destroyer collision/
+presentation and old AA are suppressed. Normal modes restore original behavior.
+Factions uses the original aircraft selector; no naval seats/team changes. HUD
+capital bars show FC health, not passive carrier health. The local ignored
+build/server entry is documented; served HTML/chunks/models/fonts/catalog and
+`port.patch` remain unchanged. Native and publication acceptance stay separate.
+
 ## Future outlook
 
 Complete operator and converted-family review, native missile/audio/physical-input

@@ -1,0 +1,90 @@
+{
+  "schema": "jank3d_hero_expansion_asset_v1",
+  "hero_number": 2,
+  "id": "laminate",
+  "display_name": "Laminate",
+  "role": "Frontline shield",
+  "design_notes": "An office knight built from overlapping laminated document panels. A full-height clipped-corner shield contrasts with a slim roller-crowned clerk and a corner-cutter lance. The shield and lance are wrist attachments; shield deployment, head and the rigid limb chains retain real transforms. Exact supplied sea-green accent takes precedence over prose ultramarine.",
+  "files": {
+    "source": "model.blend",
+    "runtime": "model.glb",
+    "illustration": "portrait.png",
+    "rig": "rig.json",
+    "rig_alias": "manifest.rig.json",
+    "palette": "palette.json"
+  },
+  "blender_version": "4.3.2",
+  "glb_bytes": 105012,
+  "glb_sha256": "da5badc50d399c367fbc97bffff71e7c055e56503c42d1de76946181f8fbf691",
+  "triangles": 1564,
+  "mesh_nodes": 44,
+  "movable_nodes": 17,
+  "bounds_gltf": {
+    "min": [
+      -1.0399999618530273,
+      0.0,
+      -0.5249999761581421
+    ],
+    "max": [
+      0.8399999737739563,
+      2.0970001220703125,
+      0.19499999284744263
+    ],
+    "dimensions": [
+      1.8799999356269836,
+      2.0970001220703125,
+      0.7199999690055847
+    ]
+  },
+  "palette_hex": {
+    "paper": "#f2e8cd",
+    "ink": "#253038",
+    "manila": "#c5aa78",
+    "accent": "#3f7f6f"
+  },
+  "texture_count": 0,
+  "external_dependencies": [],
+  "illustration_dimensions": [
+    1024,
+    1024
+  ],
+  "grounding_offset_applied_blender_z": -0.01000000536441803,
+  "status": "Original art-review candidate. Proposed kit is separate; not game-integrated or runtime-schema validated.",
+  "art_direction": "Flat paper/ink/manila + one accent, unlit solid fills and ink contours; neutral background.",
+  "model": "laminate",
+  "tri_count_LOD0": 1564,
+  "size_bytes": 105012,
+  "texture_resolution": null,
+  "material_slots": [
+    "laminate__ink",
+    "laminate__manila",
+    "laminate__paper",
+    "laminate__accent"
+  ],
+  "rig_nodes": [
+    "root",
+    "pelvis",
+    "torso",
+    "L_hip",
+    "L_knee",
+    "L_ankle",
+    "R_hip",
+    "R_knee",
+    "R_ankle",
+    "head",
+    "L_shoulder",
+    "L_elbow",
+    "L_wrist",
+    "R_shoulder",
+    "R_elbow",
+    "R_wrist",
+    "shield_deploy"
+  ],
+  "palette_default": {
+    "paper": "#f2e8cd",
+    "ink": "#253038",
+    "manila": "#c5aa78",
+    "accent": "#3f7f6f"
+  },
+  "provenance_note": "Generated in Blender by dot and Astra 6 max delegates, 2026-10-23; original in-house artwork, no remote assets."
+}

@@ -1,0 +1,55 @@
+{
+  "schema": "jank3d_geometric_effect_concept_v1",
+  "id": "bindery",
+  "effect_name": "Returning Saddle Stitch",
+  "description": "Six giant staple-shaped stitches travel out from the boxing staplers, enclosing loose folio pages in a clear binding fan. Open rectangular U silhouettes and return arrows are intentionally unlike circular auras.",
+  "toggle_root": "FX_ROOT",
+  "toggle_contract": "Set this subtree visible/invisible in the target engine. Geometry has no autonomous playback; caller controls visibility and any motion.",
+  "mesh_nodes": [
+    "fx_stitch_left0_0",
+    "fx_stitch_left0_1",
+    "fx_stitch_left0_2",
+    "fx_stitch_left1_0",
+    "fx_stitch_left1_1",
+    "fx_stitch_left1_2",
+    "fx_stitch_left2_0",
+    "fx_stitch_left2_1",
+    "fx_stitch_left2_2",
+    "fx_stitch_right0_0",
+    "fx_stitch_right0_1",
+    "fx_stitch_right0_2",
+    "fx_stitch_right1_0",
+    "fx_stitch_right1_1",
+    "fx_stitch_right1_2",
+    "fx_stitch_right2_0",
+    "fx_stitch_right2_1",
+    "fx_stitch_right2_2",
+    "fx_folio_page_0",
+    "fx_folio_page_1",
+    "fx_folio_page_2",
+    "fx_folio_binding",
+    "fx_return_arrow"
+  ],
+  "motion_nodes": {},
+  "body_rig_reference": "rig.json",
+  "palette_reference": "palette.json",
+  "body_palette_preserved_in_fx_variant": true,
+  "baseline_files_unchanged": true,
+  "baseline_sha256": {
+    "model.blend": "c8f567b2dc8afd7c30d1fd4e4b185a2719db465ab497acc5f5f7b848db53cb51",
+    "model.glb": "0f11c7cfe1d0b00900efd343e55f407520346b974a5859787a4492f4f6d3db2f",
+    "portrait.png": "21bec39f7390e619f620647bab3a0a2b7e8e3db12ae9733f1bdb4ff3fcf2629d"
+  },
+  "variants": {
+    "fx": {
+      "runtime": "model_fx.glb",
+      "source": "model_fx.blend",
+      "illustration": "portrait_fx.png",
+      "manifest": "manifest_fx.json",
+      "rig": "rig_fx.json",
+      "palette": "palette_fx.json"
+    }
+  },
+  "gameplay_status": "Art/FX concept only. No engine primitive, gameplay logic, collision, timing or ability integration implemented.",
+  "cel_variant": null
+}

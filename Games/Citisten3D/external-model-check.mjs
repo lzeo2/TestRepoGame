@@ -7,6 +7,7 @@ import * as THREE from './vendor/three.module.js';
 import { GLTFLoader } from './vendor/GLTFLoader.js';
 import * as geometryUtils from './vendor/BufferGeometryUtils.js';
 import * as buildingSurfaces from './building-surfaces.mjs';
+import { BUILDING_ENVELOPES, footprintLots } from './footprints.mjs';
 
 if (!vm.SourceTextModule) throw new Error('Run this check with node --experimental-vm-modules');
 const root = new URL('./models/', import.meta.url), requests = [], bitmaps = [];
@@ -79,6 +80,15 @@ async function checkOrientation(kit) {
     const filename = kit.lod ? `model_LOD${kit.lod}.glb` : 'model.glb';
     const bytes = await readFile(new URL(`${directory}/${filename}`, root));
     const json = JSON.parse(bytes.subarray(20, 20 + bytes.readUInt32LE(12)).toString());
+    if (BUILDING_ENVELOPES[type]) {
+      const bounds = new THREE.Box3().setFromObject(pool.template);
+      const lots = footprintLots({ type, x: 0, z: 0 });
+      for (const axis of ['x', 'z']) {
+        const min = Math.min(...lots.map(p => p[axis])) * 10 - 5;
+        const max = Math.max(...lots.map(p => p[axis])) * 10 + 5;
+        assert(bounds.min[axis] >= min - 1e-5 && bounds.max[axis] <= max + 1e-5, `${type}: actual LOD${kit.lod} mesh fits reserved ${axis} lots`);
+      }
+    }
     const normalization = new THREE.Matrix4().makeRotationY(facades.has(type) ? Math.PI : 0);
     closeMatrix(pool.template.matrix, normalization, `${type}: only declared facades rotate`);
     function visit(index, parentWorld) {
@@ -179,6 +189,19 @@ kit.update(null, 1, .25);
 assert.equal(citizen.action.time, time); assert.equal(car.wheels[0].angle, angle);
 kit.transform(car, { x: 2, z: 4 }); kit.update(null, 1, .25);
 assert.ok(car.wheels.every(wheel => Math.abs(wheel.angle) < 1e-6), 'reverse roll restores rest');
+for (const type of ['zombie', 'patrol_car', 'utility_car']) {
+  const h = handles.get(type), before = h.action?.time;
+  kit.transform(h, { x: 2, z: 3 }); kit.update(null, 1, .25);
+  if (h.action) {
+    assert(h.action.time > before, `${type}: actual movement advances walk clip`);
+    const time = h.action.time; kit.update(null, 1, .25);
+    assert.equal(h.action.time, time, `${type}: stationary walk pauses`);
+  } else {
+    assert(h.wheels.every(w => Math.abs(w.angle + 1 / w.radius) < 1e-6), `${type}: forward wheel roll`);
+    kit.transform(h, { x: 2, z: 4 }); kit.update(null, 1, .25);
+    assert(h.wheels.every(w => Math.abs(w.angle) < 1e-6), `${type}: reverse restores rest`);
+  }
+}
 const door = car.rig.getObjectByName('compact_car_front_left_door');
 assert.ok(door.quaternion.equals(kit.pools.get('car').template.getObjectByName(door.name).quaternion));
 const emission = batches.map(mesh => mesh.material.emissiveIntensity);

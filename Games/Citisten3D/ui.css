@@ -14,22 +14,32 @@
 .citisten-ui button[aria-pressed='true'], .citisten-ui button.is-selected { border-color: var(--accent); }
 .citisten-ui button:disabled { color: #aaa; border-color: var(--border); cursor: not-allowed; }
 .citisten-ui .panel { background: var(--panel); border: 1px solid var(--border); border-radius: 4px; }
-/* HUD layers stay below the events board. Modal dialogs use the native top layer. */
+/* Builder controls take priority over notices; other HUD layers stay below events. Modal dialogs use the native top layer. */
 .city-top, .city-night, .city-map, .city-builder { pointer-events: auto; z-index: 1; }
 .city-top, .city-night { position: relative; }
-.city-top[data-value='growthDiagnosis'] { z-index: 2; }
-.city-top { display: flex; align-items: center; gap: 18px; padding: 12px 16px; margin: max(8px, env(safe-area-inset-top)) max(8px, env(safe-area-inset-right)) 0 max(8px, env(safe-area-inset-left)); }
+.city-top[data-value='growthDiagnosis'] { display: block; z-index: 2; }
+.city-top { display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); align-items: center; gap: 6px 16px; padding: 8px 12px; margin: max(8px, env(safe-area-inset-top)) max(8px, env(safe-area-inset-right)) 0 max(8px, env(safe-area-inset-left)); }
 .city-brand { font-size: 25px; }
-.city-stat { display: grid; gap: 2px; border-left: 1px solid var(--border); padding-left: 18px; min-width: 100px; }
+.city-toolbar { grid-column: 1 / -1; display: flex; align-items: center; gap: 10px; min-width: 0; }
+.city-budget { flex: 1; min-width: 0; overflow-wrap: anywhere; font-variant-numeric: tabular-nums; }
+.city-citizens { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); min-width: 0; }
+.city-stat { display: grid; gap: 2px; border-left: 1px solid var(--border); padding-left: 10px; min-width: 0; }
 .city-stat > span, .city-stat > label { font-size: 14px; color: var(--muted); }
-.city-stat strong { font-size: 20px; }
-.city-stat.utility { flex: 1; min-width: 130px; }
+.city-stat strong { font-size: 20px; overflow-wrap: anywhere; font-variant-numeric: tabular-nums; }
+.city-morale { grid-column: 1; display: flex; align-items: baseline; gap: 10px; min-width: 0; font-size: 14px; }
+.city-morale > span:first-child { flex-shrink: 0; }
+.city-morale [data-value='moraleFactors'] { color: var(--muted); overflow-wrap: anywhere; }
+.city-utilities { grid-column: 2; grid-row: 2 / 4; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); min-width: 0; gap: 8px; }
+.city-stat.utility { min-width: 0; }
 .city-stat meter { width: 100%; height: 8px; appearance: none; border: 0; border-radius: 0; background: var(--bg); }
 .city-stat meter::-webkit-meter-bar { background: var(--bg); border: 0; border-radius: 0; }
 .city-stat meter::-webkit-meter-optimum-value, .city-stat meter::-webkit-meter-suboptimum-value, .city-stat meter::-webkit-meter-even-less-good-value { background: var(--accent); border-radius: 0; }
 .city-stat meter::-moz-meter-bar { background: var(--accent); }
 .city-stat meter.is-overloaded { outline: 2px solid var(--text); outline-offset: 2px; }
 .city-top [data-value='phase'] { font-size: 14px; max-width: 130px; }
+.city-goal { grid-column: 1 / -1; min-width: 0; font-size: 14px; }
+.city-goal summary { padding: 8px 0; overflow-wrap: anywhere; }
+.city-goal p { margin: 6px 0; color: var(--muted); }
 .city-night { margin: 16px auto; padding: 16px 22px; width: min(950px, calc(100% - 32px)); display: flex; justify-content: space-between; align-items: center; gap: 20px; border: 2px solid var(--accent) !important; }
 .city-hall { display: flex; align-items: center; gap: 12px; }
 .city-hall strong, .city-wave strong { display: block; font-size: 23px; }
@@ -50,14 +60,23 @@
 .city-legend .commercial::before { background: #829cb5; }
 .city-legend .industrial::before { background: #bda57a; }
 .city-legend .road::before { background: #777b78; }
+.city-legend .river::before { background: #527b99; }
+.city-legend .bridge::before { background: #d8ae55; }
 .city-legend .hall::before { background: #f5f2e9; }
 .city-legend .enemy::before { background: #d8ae55; border-radius: 50%; }
-.city-builder { position: absolute; bottom: max(12px, env(safe-area-inset-bottom)); left: 16px; right: 266px; display: flex; flex-direction: column; align-items: center; gap: 10px; }
+.city-builder { z-index: 4; position: absolute; bottom: max(12px, env(safe-area-inset-bottom)); left: 16px; right: 266px; display: flex; flex-direction: column; align-items: center; gap: 10px; }
 .city-groups { display: flex; justify-content: center; gap: 8px; padding: 12px; width: 100%; }
 .city-groups button { flex: 1; }
-.city-tools { position: relative; display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; padding: 12px; max-width: 100%; }
-.city-tools button { min-width: max-content; position: static; }
-.city-tooltip { display: none; position: absolute; bottom: calc(100% + 10px); left: 50%; transform: translateX(-50%); width: max-content; max-width: min(220px, 80vw); padding: 8px; background: var(--panel); color: var(--text); border: 1px solid var(--border); border-radius: 4px; pointer-events: none; font-size: 14px; font-weight: 400; z-index: 2; }
+.city-tools { position: relative; display: grid; grid-template-columns: repeat(auto-fit, minmax(145px, 1fr)); gap: 12px; padding: 12px; width: 100%; max-width: 100%; max-height: min(34vh, 330px); overflow-y: auto; overscroll-behavior: contain; }
+.city-tool-option { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.city-tools button { min-width: 0; width: 100%; position: relative; overflow-wrap: anywhere; }
+.city-tool-meta { display: block; color: var(--muted); font-size: 13px; overflow-wrap: anywhere; }
+.city-tool-lock { display: block; margin-top: 4px; }
+.city-site { display: flex; align-items: center; gap: 8px; width: 100%; min-width: 0; padding: 5px 8px; font-size: 12px; white-space: nowrap; }
+.city-site [data-value='siteStatus'] { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.city-site progress { flex: 0 0 32px; width: 32px; height: 8px; accent-color: var(--accent); }
+.city-site > span:last-child { flex-shrink: 0; }
+.city-tooltip { display: none; position: absolute; bottom: 100%; left: 0; width: 100%; max-width: 100%; padding: 8px; background: var(--panel); color: var(--text); border: 1px solid var(--border); border-radius: 4px; pointer-events: none; font-size: 14px; font-weight: 400; z-index: 2; }
 .city-tools button:hover .city-tooltip, .city-tools button:focus-visible .city-tooltip { display: block; }
 .city-toasts { position: relative; z-index: 3; margin: 16px; max-width: min(390px, calc(100% - 32px)); display: grid; gap: 8px; }
 .city-toasts p { padding: 12px 16px; border-left: 4px solid var(--accent) !important; pointer-events: auto; }
@@ -94,8 +113,8 @@
 .city-loss-actions button { flex: 1; }
 .city-preview-label { position: fixed; top: 44%; left: 20%; right: 20%; color: #c6cbc5; text-align: center; font: 16px Atkinson, sans-serif; pointer-events: none; }
 @media (max-width: 1100px) {
-  .city-top { gap: 10px; flex-wrap: wrap; }
-  .city-stat { min-width: 90px; padding-left: 10px; }
+  .city-top { gap: 6px 10px; }
+  .city-stat { min-width: 0; padding-left: 8px; }
   .city-top .city-brand { font-size: 20px; }
   .city-builder { right: 16px; }
   .city-map { bottom: 205px; }
@@ -103,17 +122,29 @@
   .city-tools { max-width: 650px; }
 }
 @media (max-width: 600px) {
-  .city-top { padding: 8px; gap: 8px; }
-  .city-top .city-brand { width: 100%; }
-  .city-stat { flex: 1; min-width: 100px; }
-  .city-stat.utility { min-width: 110px; }
-  .city-top button { flex: 1; padding: 8px; }
-  .city-top [data-value='phase'] { flex: 1; }
+  .city-top { grid-template-columns: minmax(0, 1fr); padding: 6px; gap: 4px; }
+  .city-toolbar { gap: 6px; }
+  .city-top .city-brand { font-size: 16px; }
+  .city-budget { font-size: 14px; }
+  .city-stat { min-width: 0; padding-left: 6px; }
+  .city-stat > span, .city-stat > label { font-size: 12px; }
+  .city-stat strong { font-size: 18px; }
+  .city-top button { padding: 8px; font-size: 14px; }
+  .city-top [data-value='phase'] { font-size: 12px; }
+  .city-morale { grid-column: 1; font-size: 13px; gap: 8px; }
+  .city-utilities { grid-column: 1; grid-row: auto; }
+  .city-stat.utility { display: grid; grid-template-columns: auto 1fr; align-items: center; column-gap: 6px; }
+  .city-stat.utility strong { font-size: 14px; text-align: right; }
+  .city-stat.utility meter { grid-column: 1 / -1; height: 4px; }
+  .city-goal { font-size: 12px; }
   .city-builder { left: 8px; right: 8px; gap: 6px; bottom: max(8px, env(safe-area-inset-bottom)); }
   .city-groups { gap: 4px; padding: 6px; flex-wrap: wrap; }
   .city-groups button { padding: 8px; flex: 1 0 28%; }
-  .city-tools { gap: 6px; padding: 8px; }
-  .city-tools button { flex: 1; padding: 8px; }
+  .city-tools { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; padding: 8px; max-height: 26vh; }
+  .city-tools button { padding: 8px; }
+  .city-tool-meta { font-size: 12px; }
+  .city-site { gap: 5px; }
+  .city-site progress { flex-basis: 24px; width: 24px; }
   .city-map { right: 8px; bottom: 265px; width: 160px; padding: 8px; }
   .city-legend { grid-template-columns: 1fr; }
   .city-night { margin-top: 8px; padding: 10px; width: calc(100% - 16px); gap: 10px; flex-wrap: wrap; }
@@ -133,5 +164,24 @@
   .city-loss dl > div { padding: 12px 4px; }
   .city-loss dd { font-size: 26px; }
   .city-loss-actions { flex-direction: column; gap: 8px; }
+}
+.city-budget [data-value='netIncome'] { display: block; font-size: 12px; color: var(--muted); }
+.city-economy { grid-column: 1 / -1; min-width: 0; font-size: 13px; }
+.city-economy summary { padding: 8px 0; }
+.city-top:has(.city-economy[open]) { z-index: 2; }
+/* Opening details does not push the HUD/native controls down across the canvas. */
+.city-economy-body { position: fixed; left: max(12px, env(safe-area-inset-left)); bottom: max(124px, calc(env(safe-area-inset-bottom) + 116px)); width: min(600px, calc(100vw - 24px)); max-height: min(30vh, 300px); overflow-y: auto; overscroll-behavior: contain; padding: 10px; display: grid; gap: 10px; overflow-wrap: anywhere; background: var(--panel); border: 1px solid var(--border); border-radius: 4px; }
+.city-economy:not([open]) > .city-economy-body { display: none; }
+.city-economy-option { display: grid; grid-template-columns: minmax(110px, 1fr) minmax(0, 3fr); gap: 8px; align-items: start; margin: 8px 0; }
+.city-economy-option button { padding: 8px; min-width: 0; overflow-wrap: anywhere; }
+.city-economy-option span { color: var(--muted); }
+.city-new-options { max-width: 560px; margin: 0 auto 24px; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 8px; text-align: left; border: 1px solid var(--border); }
+.city-new-options p { grid-column: 1 / -1; font-size: 13px; color: var(--muted); }
+.city-new-options input, .city-new-options select { width: 100%; min-width: 0; min-height: 44px; padding: 8px; font: inherit; color: var(--text); background: var(--panel); border: 1px solid var(--border); border-radius: 4px; }
+@media (max-width: 600px) {
+  .city-economy { font-size: 12px; }
+  .city-economy-body { left: 8px; width: calc(100vw - 16px); max-height: 26vh; }
+  .city-economy-option { grid-template-columns: minmax(90px, 1fr) minmax(0, 2fr); }
+  .city-new-options { font-size: 14px; }
 }
 @media (prefers-reduced-motion: reduce) { .citisten-ui *, .citisten-ui *::before, .citisten-ui *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; } }

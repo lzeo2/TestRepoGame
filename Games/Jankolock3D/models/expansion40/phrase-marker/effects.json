@@ -1,0 +1,65 @@
+{
+  "schema": "jank3d_geometric_effect_concept_v1",
+  "id": "phrase-marker",
+  "effect_name": "Highlighted liability",
+  "description": "Oversized selection corners and three thick highlighting bars form a visible debuff frame around the target space. The center is empty so the chisel-headed caster stays readable.",
+  "toggle_root": "FX_ROOT",
+  "toggle_contract": "Set this subtree visible/invisible in the target engine. Geometry has no autonomous playback; caller controls visibility and any motion.",
+  "mesh_nodes": [
+    "fx_left_selection_rail",
+    "fx_left_low_corner",
+    "fx_left_high_corner",
+    "fx_right_selection_rail",
+    "fx_right_low_corner",
+    "fx_right_high_corner",
+    "fx_bold_highlight_0",
+    "fx_highlight_end_0",
+    "fx_bold_highlight_1",
+    "fx_highlight_end_1",
+    "fx_bold_highlight_2",
+    "fx_highlight_end_2",
+    "fx_underlined_zone_0",
+    "fx_underlined_zone_1",
+    "fx_underlined_zone_2",
+    "fx_underlined_zone_3"
+  ],
+  "motion_nodes": {
+    "fx_selection_frame": {
+      "axis": "Y",
+      "limits": [
+        -12,
+        12
+      ],
+      "note": "Rigid articulation, artistic guide; not a collision guarantee."
+    },
+    "fx_highlight_bars": {
+      "axis": "Y",
+      "limits": [
+        -20,
+        20
+      ],
+      "note": "Rigid articulation, artistic guide; not a collision guarantee."
+    }
+  },
+  "body_rig_reference": "rig.json",
+  "palette_reference": "palette.json",
+  "body_palette_preserved_in_fx_variant": true,
+  "baseline_files_unchanged": true,
+  "baseline_sha256": {
+    "model.blend": "95ea5d5f025af58df865823bea46bd887f540268bb1d2527baab23eeecf00e1e",
+    "model.glb": "d025bd99f3dd1ab6b87af183593a9e6a5c3f1c8de197222417d927e2a914e6d9",
+    "portrait.png": "e7ef968f6013cfe34686ff80f8cccae78d4d2280baddb43895e6b536e1463f71"
+  },
+  "variants": {
+    "fx": {
+      "runtime": "model_fx.glb",
+      "source": "model_fx.blend",
+      "illustration": "portrait_fx.png",
+      "manifest": "manifest_fx.json",
+      "rig": "rig_fx.json",
+      "palette": "palette_fx.json"
+    }
+  },
+  "gameplay_status": "Art/FX concept only. No engine primitive, gameplay logic, collision, timing or ability integration implemented.",
+  "cel_variant": null
+}

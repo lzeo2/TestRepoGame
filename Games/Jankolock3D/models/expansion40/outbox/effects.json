@@ -1,0 +1,93 @@
+{
+  "schema": "jank3d_geometric_effect_concept_v1",
+  "id": "outbox",
+  "effect_name": "Perfect dispatch",
+  "description": "Three clean segmented flightpaths lead to sealed paper packets at different heights. Broad angular trails, fine fold spines and airborne envelopes express precise dispatch instead of a generic particle cloud.",
+  "toggle_root": "FX_ROOT",
+  "toggle_contract": "Set this subtree visible/invisible in the target engine. Geometry has no autonomous playback; caller controls visibility and any motion.",
+  "mesh_nodes": [
+    "fx_route_0_0_0",
+    "fx_route_0_0_1",
+    "fx_route_0_0_2",
+    "fx_route_0_1_0",
+    "fx_route_0_1_1",
+    "fx_route_0_1_2",
+    "fx_route_0_2_0",
+    "fx_route_0_2_1",
+    "fx_route_0_2_2",
+    "fx_airborne_envelope_0",
+    "fx_airborne_flap_0",
+    "fx_airborne_seal_0",
+    "fx_route_1_0_0",
+    "fx_route_1_0_1",
+    "fx_route_1_0_2",
+    "fx_route_1_1_0",
+    "fx_route_1_1_1",
+    "fx_route_1_1_2",
+    "fx_route_1_2_0",
+    "fx_route_1_2_1",
+    "fx_route_1_2_2",
+    "fx_airborne_envelope_1",
+    "fx_airborne_flap_1",
+    "fx_airborne_seal_1",
+    "fx_route_2_0_0",
+    "fx_route_2_0_1",
+    "fx_route_2_0_2",
+    "fx_route_2_1_0",
+    "fx_route_2_1_1",
+    "fx_route_2_1_2",
+    "fx_route_2_2_0",
+    "fx_route_2_2_1",
+    "fx_route_2_2_2",
+    "fx_airborne_envelope_2",
+    "fx_airborne_flap_2",
+    "fx_airborne_seal_2"
+  ],
+  "motion_nodes": {
+    "fx_dispatch_route_0": {
+      "axis": "Y",
+      "limits": [
+        -20,
+        20
+      ],
+      "note": "Rigid articulation, artistic guide; not a collision guarantee."
+    },
+    "fx_dispatch_route_1": {
+      "axis": "Y",
+      "limits": [
+        -20,
+        20
+      ],
+      "note": "Rigid articulation, artistic guide; not a collision guarantee."
+    },
+    "fx_dispatch_route_2": {
+      "axis": "Y",
+      "limits": [
+        -20,
+        20
+      ],
+      "note": "Rigid articulation, artistic guide; not a collision guarantee."
+    }
+  },
+  "body_rig_reference": "rig.json",
+  "palette_reference": "palette.json",
+  "body_palette_preserved_in_fx_variant": true,
+  "baseline_files_unchanged": true,
+  "baseline_sha256": {
+    "model.blend": "adc64189c46d1e0ec8fbdef8a8d07e73a7099e51c9b60a2694736e62234beb7a",
+    "model.glb": "62ca232e981af0e148645b889d10085a7947a9c31ceae7a159a24b41526e41e6",
+    "portrait.png": "7918de3ebc46f0cc16542147b8e45dfdd9577e5a5a4d55a9a18d58275ab943e4"
+  },
+  "variants": {
+    "fx": {
+      "runtime": "model_fx.glb",
+      "source": "model_fx.blend",
+      "illustration": "portrait_fx.png",
+      "manifest": "manifest_fx.json",
+      "rig": "rig_fx.json",
+      "palette": "palette_fx.json"
+    }
+  },
+  "gameplay_status": "Art/FX concept only. No engine primitive, gameplay logic, collision, timing or ability integration implemented.",
+  "cel_variant": null
+}

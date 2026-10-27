@@ -1,0 +1,117 @@
+{
+  "schema": "jank3d_geometric_effect_concept_v1",
+  "id": "calendar",
+  "effect_name": "Deadline Court",
+  "description": "Four clock arcs,12deadline ticks and separately movable EARLY/LATE datecards; a scheduling-field illustration, not an implemented time effect.",
+  "toggle_root": "FX_ROOT",
+  "toggle_contract": "Set this subtree visible/invisible in the target engine. Geometry has no autonomous playback; caller controls visibility and any motion.",
+  "mesh_nodes": [
+    "FX_early_card",
+    "FX_early_header",
+    "FX_early_label",
+    "FX_early_date",
+    "FX_late_card",
+    "FX_late_header",
+    "FX_late_label",
+    "FX_late_date",
+    "FX_clock_arc_0_0",
+    "FX_clock_arc_0_1",
+    "FX_clock_arc_0_2",
+    "FX_clock_arc_0_3",
+    "FX_clock_arc_0_4",
+    "FX_clock_arc_0_5",
+    "FX_clock_arc_0_6",
+    "FX_clock_arc_0_7",
+    "FX_arrow_0",
+    "FX_clock_arc_1_0",
+    "FX_clock_arc_1_1",
+    "FX_clock_arc_1_2",
+    "FX_clock_arc_1_3",
+    "FX_clock_arc_1_4",
+    "FX_clock_arc_1_5",
+    "FX_clock_arc_1_6",
+    "FX_clock_arc_1_7",
+    "FX_arrow_1",
+    "FX_clock_arc_2_0",
+    "FX_clock_arc_2_1",
+    "FX_clock_arc_2_2",
+    "FX_clock_arc_2_3",
+    "FX_clock_arc_2_4",
+    "FX_clock_arc_2_5",
+    "FX_clock_arc_2_6",
+    "FX_clock_arc_2_7",
+    "FX_arrow_2",
+    "FX_clock_arc_3_0",
+    "FX_clock_arc_3_1",
+    "FX_clock_arc_3_2",
+    "FX_clock_arc_3_3",
+    "FX_clock_arc_3_4",
+    "FX_clock_arc_3_5",
+    "FX_clock_arc_3_6",
+    "FX_clock_arc_3_7",
+    "FX_arrow_3",
+    "FX_deadline_tick_0",
+    "FX_deadline_tick_1",
+    "FX_deadline_tick_2",
+    "FX_deadline_tick_3",
+    "FX_deadline_tick_4",
+    "FX_deadline_tick_5",
+    "FX_deadline_tick_6",
+    "FX_deadline_tick_7",
+    "FX_deadline_tick_8",
+    "FX_deadline_tick_9",
+    "FX_deadline_tick_10",
+    "FX_deadline_tick_11"
+  ],
+  "motion_nodes": {
+    "FX_early": {
+      "axis": "Y",
+      "limits": [
+        -25,
+        25
+      ],
+      "note": "Rigid articulation, artistic guide; not a collision guarantee."
+    },
+    "FX_late": {
+      "axis": "Y",
+      "limits": [
+        -25,
+        25
+      ],
+      "note": "Rigid articulation, artistic guide; not a collision guarantee."
+    }
+  },
+  "body_rig_reference": "rig.json",
+  "palette_reference": "palette.json",
+  "body_palette_preserved_in_fx_variant": true,
+  "baseline_files_unchanged": true,
+  "baseline_sha256": {
+    "model.blend": "aae4aa505195a154888921ec700ff903efb3919c0d1e9980f6c0b6bd625aac91",
+    "model.glb": "7d4ed8766059cd5e05d5f69852cb1afed6e4eab3516cdf70977f710b330bf418",
+    "portrait.png": "48c440aca4fd3fd5c3ceecd288985acc5fb78101102fdbceafe18dfced0f048f"
+  },
+  "variants": {
+    "fx": {
+      "runtime": "model_fx.glb",
+      "source": "model_fx.blend",
+      "illustration": "portrait_fx.png",
+      "manifest": "manifest_fx.json",
+      "rig": "rig_fx.json",
+      "palette": "palette_fx.json"
+    },
+    "cel": {
+      "runtime": "model_cel.glb",
+      "source": "model_cel.blend",
+      "illustration": "portrait_cel.png",
+      "manifest": "manifest_cel.json",
+      "rig": "rig_cel.json",
+      "palette": "palette_cel.json"
+    }
+  },
+  "gameplay_status": "Art/FX concept only. No engine primitive, gameplay logic, collision, timing or ability integration implemented.",
+  "cel_variant": {
+    "method": "Two discrete unlit material bands per body slot, baked per face normal. No dynamic lighting shader. Render-only3px ink contours.",
+    "shadow_multiplier_linear": 0.35,
+    "palette_reference": "palette_cel.json"
+  }
+}

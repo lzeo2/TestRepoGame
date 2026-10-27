@@ -1,0 +1,673 @@
+{
+  "upstream": "https://github.com/anomalyco/arcade",
+  "revision": "bf5f6277e38ee52e9bfa4ae4a01337b46175c181",
+  "baseline_patch_sha256": "d92de6b483ff3453739ee0d5f0c457733772ca2e6920a03b28de8e8309e066ae",
+  "verified_original_blobs": [
+    {
+      "path": "games/wings/art/stylesheets.html",
+      "sha": "d83936a55324359112f9c31fc0a5198794023e3e",
+      "size": 16409
+    },
+    {
+      "path": "games/wings/art/ui-type-2.html",
+      "sha": "3ea0d006d04993ca60aaa351ff34da4a4a77e68a",
+      "size": 13745
+    },
+    {
+      "path": "games/wings/art/ui-type.html",
+      "sha": "2271b8c11047a1c6a39e3876ab7edb757c4a1838",
+      "size": 15363
+    },
+    {
+      "path": "games/wings/index.html",
+      "sha": "bb8d87a0cf55b7b1a693f34e2031a72694b9fb02",
+      "size": 11549
+    },
+    {
+      "path": "games/wings/package.json",
+      "sha": "3d6da9f100d3f5357a00a672f9dfef0217c98df4",
+      "size": 777
+    },
+    {
+      "path": "games/wings/server.ts",
+      "sha": "a605d9c3c10d91917b19ad556eea517075755829",
+      "size": 14756
+    },
+    {
+      "path": "games/wings/src/audio.ts",
+      "sha": "baf6b3a54ea391d5210ceb3cd7b11251728c8640",
+      "size": 1941
+    },
+    {
+      "path": "games/wings/src/audio/ambience.ts",
+      "sha": "c5caf70de54deb02143367e44fab3f4ededf759b",
+      "size": 7046
+    },
+    {
+      "path": "games/wings/src/audio/buffers.ts",
+      "sha": "e8af081ffd57e69dad40424304ae5d8d23bcc851",
+      "size": 8232
+    },
+    {
+      "path": "games/wings/src/audio/core.ts",
+      "sha": "0a7ab8684fb8a9187c4a6704ae1312c86df1c8e3",
+      "size": 17730
+    },
+    {
+      "path": "games/wings/src/audio/engine.ts",
+      "sha": "e4763015ec70e2575c559fc84835e200b9743159",
+      "size": 16655
+    },
+    {
+      "path": "games/wings/src/audio/engines.ts",
+      "sha": "9131e5197ab3c01b14ec8e44ebd4abacaa65b609",
+      "size": 9640
+    },
+    {
+      "path": "games/wings/src/audio/preview.html",
+      "sha": "37cea215bdaf8fcd7b13174ad345bbb8fbb8557d",
+      "size": 3902
+    },
+    {
+      "path": "games/wings/src/audio/preview.ts",
+      "sha": "b2bca4b935412d6ce94bc5965d879e2d3212c9ef",
+      "size": 12300
+    },
+    {
+      "path": "games/wings/src/audio/sfx.ts",
+      "sha": "a1434617c5be745499fa9f554dd6c3cab15a6fe7",
+      "size": 21690
+    },
+    {
+      "path": "games/wings/src/input.ts",
+      "sha": "9396f7acf032534aa5ffe0cf367757728f11aa8d",
+      "size": 27075
+    },
+    {
+      "path": "games/wings/src/main.ts",
+      "sha": "2f2f1b963c75d961c95c0f743967aa55ee110bea",
+      "size": 4640
+    },
+    {
+      "path": "games/wings/src/net.ts",
+      "sha": "37435a041b9fbd1ea443aa14e5d78b227dd7ffb3",
+      "size": 5240
+    },
+    {
+      "path": "games/wings/src/render/aircraft-preview/index.html",
+      "sha": "f4e3ca54994c4b5550c6c36039e369083641c8ae",
+      "size": 1401
+    },
+    {
+      "path": "games/wings/src/render/aircraft-preview/main.ts",
+      "sha": "7346de66985f9711614c381e246734026784e929",
+      "size": 9159
+    },
+    {
+      "path": "games/wings/src/render/aircraft-shadow.ts",
+      "sha": "71fe7efcf2c28d5eee0150b9c0f24e1e213c2a0a",
+      "size": 1680
+    },
+    {
+      "path": "games/wings/src/render/aircraft.ts",
+      "sha": "89198008338597e2c3251d05ba8e1fc182a2fe75",
+      "size": 56125
+    },
+    {
+      "path": "games/wings/src/render/camera.ts",
+      "sha": "17739d5f8a9984da37021e3522ddbba0c5af7704",
+      "size": 17011
+    },
+    {
+      "path": "games/wings/src/render/effects.ts",
+      "sha": "9b1ca4e4ea9e5f346c285b68182757e7da4c532f",
+      "size": 34118
+    },
+    {
+      "path": "games/wings/src/render/hud.ts",
+      "sha": "3b804bfaf637f34a8b5ac4c28a892d8dd3381985",
+      "size": 55221
+    },
+    {
+      "path": "games/wings/src/render/scene.ts",
+      "sha": "2e3116ff4e209c1fecc55fa286bd08231c2f6749",
+      "size": 25631
+    },
+    {
+      "path": "games/wings/src/render/toon.ts",
+      "sha": "0d4cb8a09c106094805d8e3275c6bd89419f2b24",
+      "size": 7221
+    },
+    {
+      "path": "games/wings/src/render/world-view.ts",
+      "sha": "e6aa68c9c536d4b9f2a683b4c69a90f6eb49cc41",
+      "size": 12334
+    },
+    {
+      "path": "games/wings/src/render/world/atmosphere.ts",
+      "sha": "1f4adb1b1ea12b47c9f3903f9e21264e2164867b",
+      "size": 8098
+    },
+    {
+      "path": "games/wings/src/render/world/craters.ts",
+      "sha": "79dcf2e2ac01402962907357e745e29f651544df",
+      "size": 4815
+    },
+    {
+      "path": "games/wings/src/render/world/fire.ts",
+      "sha": "ec36552478080cd0229fcfa4c0262b67aa66b1b2",
+      "size": 7427
+    },
+    {
+      "path": "games/wings/src/render/world/palette.ts",
+      "sha": "15623237256204295ca17dcd82a7b99609548beb",
+      "size": 4419
+    },
+    {
+      "path": "games/wings/src/render/world/preview.html",
+      "sha": "0a2e3f9036682f95fd16ed90a81a38c7b96f8b12",
+      "size": 586
+    },
+    {
+      "path": "games/wings/src/render/world/preview.ts",
+      "sha": "bfa014973d20320dd9749d964814f4c20916f0c3",
+      "size": 9606
+    },
+    {
+      "path": "games/wings/src/render/world/rain.ts",
+      "sha": "e2dd23e104cf4fabdfb9575f65b66bd0c8a20668",
+      "size": 4418
+    },
+    {
+      "path": "games/wings/src/render/world/settings.ts",
+      "sha": "d529bccccc8c5a223376ec50a32b10f99de55967",
+      "size": 2337
+    },
+    {
+      "path": "games/wings/src/render/world/ships.ts",
+      "sha": "00eb32984ce43f55f8e334a96af956f796ed8356",
+      "size": 22811
+    },
+    {
+      "path": "games/wings/src/render/world/sky.ts",
+      "sha": "a87ef69df27af5c061e42c6d5378b03d9da08c9d",
+      "size": 8064
+    },
+    {
+      "path": "games/wings/src/render/world/streamer.ts",
+      "sha": "b38589daafc3e07ce2ea80ce967a44d450b493f8",
+      "size": 13994
+    },
+    {
+      "path": "games/wings/src/render/world/terrain-worker.ts",
+      "sha": "8b1d5d057cc611d6d5b0343967c2561f4b8c2d0d",
+      "size": 1647
+    },
+    {
+      "path": "games/wings/src/render/world/tile-gen.ts",
+      "sha": "45602c04a039097b7b38d75075ce9e2d2d36f6e0",
+      "size": 13198
+    },
+    {
+      "path": "games/wings/src/render/world/trees.ts",
+      "sha": "cf53811488044a927a1c298372e17d3d4fec9e89",
+      "size": 5781
+    },
+    {
+      "path": "games/wings/src/render/world/water.ts",
+      "sha": "a51724dffd09f21da7d60ba4316439d217c48ae7",
+      "size": 16149
+    },
+    {
+      "path": "games/wings/src/sim/bots.ts",
+      "sha": "8f021e367c951ccf3c74e94a9c84d8836aaa2127",
+      "size": 58223
+    },
+    {
+      "path": "games/wings/src/sim/combat.ts",
+      "sha": "77578c3d3756f0891263060a9cb7535cd319fd44",
+      "size": 100538
+    },
+    {
+      "path": "games/wings/src/sim/fleet.ts",
+      "sha": "c70706c7659ae42376d94edda68b1ac875ec4fa1",
+      "size": 8222
+    },
+    {
+      "path": "games/wings/src/sim/flight.ts",
+      "sha": "85b96d51d71dc75fee8af360eca87040500c8a17",
+      "size": 47776
+    },
+    {
+      "path": "games/wings/src/sim/geography.ts",
+      "sha": "a4742a9674548b4e28fc51c72a2c30e0bb81fc60",
+      "size": 36893
+    },
+    {
+      "path": "games/wings/src/sim/loopback.ts",
+      "sha": "4e9f972c5d98b162d8ffd9e6cf8b2093a4205007",
+      "size": 3152
+    },
+    {
+      "path": "games/wings/src/sim/protocol.ts",
+      "sha": "986203abca94d6320f0a92f94e045da4f8ead953",
+      "size": 3513
+    },
+    {
+      "path": "games/wings/src/sim/room-engine.ts",
+      "sha": "020cfee8b31a079a536bb9f8dc8b678c44d13ac3",
+      "size": 60859
+    },
+    {
+      "path": "games/wings/src/sim/types.ts",
+      "sha": "c915941e2113526ffa2131114b032dc3fab37291",
+      "size": 8660
+    },
+    {
+      "path": "games/wings/src/sim/vehicles.ts",
+      "sha": "cee5ec4e40e9fb9f727cea063eccc95816baa12f",
+      "size": 6906
+    },
+    {
+      "path": "games/wings/src/style.css",
+      "sha": "7dbb1075c224e8708c4d70a88267e1388f2ea2b0",
+      "size": 36828
+    },
+    {
+      "path": "games/wings/src/ui/fleet-names.ts",
+      "sha": "cbd9c8346cc3b4abf7a9023496141f59fc7c049b",
+      "size": 1323
+    },
+    {
+      "path": "games/wings/src/ui/game.ts",
+      "sha": "2a64abd1f59e7207baa2f1896ba7043684cd86b4",
+      "size": 75353
+    },
+    {
+      "path": "games/wings/src/ui/lobby.ts",
+      "sha": "74ae61d904f6747f4f32cb8f07444e374148c55a",
+      "size": 28264
+    },
+    {
+      "path": "games/wings/src/ui/net-adapter.ts",
+      "sha": "97b291c5863c63df5a70c1683e6f4077cdf2aeed",
+      "size": 4825
+    },
+    {
+      "path": "games/wings/src/ui/pause.ts",
+      "sha": "2404d00d0f313342cf7dfd67efbda46c233e5db2",
+      "size": 2506
+    },
+    {
+      "path": "games/wings/src/ui/settings.ts",
+      "sha": "586b5c47ff0e10f046f0b00f57aff751c5a71186",
+      "size": 3230
+    },
+    {
+      "path": "games/wings/src/ui/spawn.ts",
+      "sha": "328bc3f37602a25a8c6beb6fd05dfad43eaf960b",
+      "size": 15603
+    },
+    {
+      "path": "games/wings/tests/bots.test.ts",
+      "sha": "bdb82861a84cf7e18d33faabe06f4e2c7d64b804",
+      "size": 36731
+    },
+    {
+      "path": "games/wings/tests/combat.test.ts",
+      "sha": "a5143b6665fa8ae298ee01e3c459b92250bc916e",
+      "size": 67369
+    },
+    {
+      "path": "games/wings/tests/flight.test.ts",
+      "sha": "a4d95e98d82d25073786f96838716aa12e4131bb",
+      "size": 41655
+    },
+    {
+      "path": "games/wings/tests/geography.test.ts",
+      "sha": "4de73a81c68953f45a37244daf5064ebb94763f9",
+      "size": 19288
+    },
+    {
+      "path": "games/wings/tests/pilot.test.ts",
+      "sha": "4cca1779f944cb3caa8064745918ace3e6262de4",
+      "size": 25369
+    },
+    {
+      "path": "games/wings/tests/room.test.ts",
+      "sha": "4b665a2ce56a399a0dc1f598f5cfa4633a9dab21",
+      "size": 35201
+    },
+    {
+      "path": "games/wings/tsconfig.json",
+      "sha": "157a23d7802de973bedd7707d804f491a9eb2e55",
+      "size": 487
+    },
+    {
+      "path": "games/wings/tsconfig.worker.json",
+      "sha": "c5a3bc56a1cddc20b82cbb656673c50bb6a6dde9",
+      "size": 394
+    },
+    {
+      "path": "games/wings/vite.config.ts",
+      "sha": "ca413c3cde1f4423bb66369b800af32344b7ff28",
+      "size": 312
+    }
+  ],
+  "omitted_nonbuild_files": [
+    "games/wings/art/stylesheets.html",
+    "games/wings/art/ui-type-2.html",
+    "games/wings/art/ui-type.html",
+    "games/wings/server.ts"
+  ],
+  "baseline_source": {
+    "games/wings/astra-check.ts": {
+      "bytes": 30458,
+      "sha256": "cca0290c9d9444a95d7417317cc0a030ea745e7b627f5d76537ee02cf893f50f"
+    },
+    "games/wings/check-browser.py": {
+      "bytes": 8225,
+      "sha256": "81ccd814534ffcd4ea8f73b5b172dd133315e07a39da6b2d069843f0bb65dbad"
+    },
+    "games/wings/check-context-sequence.py": {
+      "bytes": 1337,
+      "sha256": "3f4a762492850e3fc0d4461c95abe3873aa45bcf6dea4a891e33552d8a02204b"
+    },
+    "games/wings/check-ui.html": {
+      "bytes": 351,
+      "sha256": "fabe0805de9e4bd6e80722c93bd7c9fbb76905fce5d9c4342cbc22a023deb1bc"
+    },
+    "games/wings/index.html": {
+      "bytes": 12193,
+      "sha256": "399e4c7acad7717052c67ca4da0adc45dd0c0df9cd36cc6a70720bbde613d5fb"
+    },
+    "games/wings/lighting-check.ts": {
+      "bytes": 8423,
+      "sha256": "62ca23029de19ba3a715cfc6980c3ea47b2c34413634ac3960d2fc519d1f2dfc"
+    },
+    "games/wings/package.json": {
+      "bytes": 720,
+      "sha256": "a8673deb5a3e51cfc21ce1926c2261948a300e8c1c0645bb3de329220eed8b82"
+    },
+    "games/wings/solo-check.ts": {
+      "bytes": 2499,
+      "sha256": "353b1a5b954213ff63ff93249d66dfaebcf363ab3f1fc3b5cc7988045381e46d"
+    },
+    "games/wings/src/audio.ts": {
+      "bytes": 1941,
+      "sha256": "fd5990bfee8a3b0e430f2b945bbb4ef4408d51665d82a57f5a24880cd3cbd93b"
+    },
+    "games/wings/src/audio/ambience.ts": {
+      "bytes": 7046,
+      "sha256": "c18c73d1f66e0c68257039d20ab8fa40c7a080b88080e099267e99545cae683e"
+    },
+    "games/wings/src/audio/buffers.ts": {
+      "bytes": 8232,
+      "sha256": "55f8f4e2b71ab9a4354fca0dc1d854a29c97db14ac0923964c9584e11896ee66"
+    },
+    "games/wings/src/audio/core.ts": {
+      "bytes": 17730,
+      "sha256": "b2354f94dda0943af140a4f7a6d38782280091921cf28c815640d1c3195c1d3e"
+    },
+    "games/wings/src/audio/engine.ts": {
+      "bytes": 16655,
+      "sha256": "a63217027762a182dbf22badbe811c29412abd2b7abb0d98546cc3c3d9dce372"
+    },
+    "games/wings/src/audio/engines.ts": {
+      "bytes": 9782,
+      "sha256": "cdf0b770f97ad910aabaf6f4b8f9a4f59264e1d9fa9cb9e4f35390fda2ac308c"
+    },
+    "games/wings/src/audio/preview.html": {
+      "bytes": 3902,
+      "sha256": "7caa54b485fcb0b5d40849dba0e93f8d4f39679a95c233de9cbaad37e11cbfda"
+    },
+    "games/wings/src/audio/preview.ts": {
+      "bytes": 12300,
+      "sha256": "b045d728d74d509f6c4398a37a1a1713102005144b5b4c169c01c86c6aeeff00"
+    },
+    "games/wings/src/audio/sfx.ts": {
+      "bytes": 21690,
+      "sha256": "ac671827c76a32eb9112cb1393d7f8d5917a7a0f22d33f87522220f09e0ae8b1"
+    },
+    "games/wings/src/input.ts": {
+      "bytes": 27075,
+      "sha256": "e13f7812e3addc267fa06ca0ea16a36cf3985e6876dbc9bdfeb01de1c0217a2a"
+    },
+    "games/wings/src/main.ts": {
+      "bytes": 5518,
+      "sha256": "4d73807f0897df39da506b8f950b0e3f55f2d69f05bbe165c87172e14ef41c28"
+    },
+    "games/wings/src/net.ts": {
+      "bytes": 5240,
+      "sha256": "55cd68dc16bf9d075820a5985388a3b627387eab8a7e080e1f6167428a34c99f"
+    },
+    "games/wings/src/render/aircraft-preview/index.html": {
+      "bytes": 1401,
+      "sha256": "ea01506f336dc4819907a08d44249e2ecb439a4d893b4e1b1f9839e2aa10ed3e"
+    },
+    "games/wings/src/render/aircraft-preview/main.ts": {
+      "bytes": 9197,
+      "sha256": "ee429671705525a816aca7302fa1f8de49bcb2f141520428808f8bbc0c544213"
+    },
+    "games/wings/src/render/aircraft-shadow.ts": {
+      "bytes": 1680,
+      "sha256": "b2204fbba4143e39affe59e0b8a335e642a6d1cf8cdc7c5f52f7b1c0c05d6d94"
+    },
+    "games/wings/src/render/aircraft.ts": {
+      "bytes": 60008,
+      "sha256": "68d7d46456df7e6e7bd8db06417e5a38b8fac7f031e1a273cd75c1d8d9118767"
+    },
+    "games/wings/src/render/camera.ts": {
+      "bytes": 17550,
+      "sha256": "63e091794a4047e93b1f376c6d853c4b5f1b2668a33b16c1e32a2b37936f3a5b"
+    },
+    "games/wings/src/render/effects.ts": {
+      "bytes": 34118,
+      "sha256": "9ed93b35c2de8da589c32f350633f52ff290c3605463cfd54833fcf86e44d2f3"
+    },
+    "games/wings/src/render/hud.ts": {
+      "bytes": 55213,
+      "sha256": "120f5504c1b1804398220050cd6815f8a12da4b5dd5434a6381da7cd53e4f8ac"
+    },
+    "games/wings/src/render/scene.ts": {
+      "bytes": 27101,
+      "sha256": "713476fd3e23a54e8ec17e2d6c80fe9e308a0fb08cae54245b04b53505e56963"
+    },
+    "games/wings/src/render/toon.ts": {
+      "bytes": 7700,
+      "sha256": "90878296dce346ef9cc314c8785104c343c4b03a70322df7fa798b1cc42c38bf"
+    },
+    "games/wings/src/render/world-view.ts": {
+      "bytes": 12622,
+      "sha256": "e6cbb6065d6ce86ef19c0d618d021be235c7180abe93e0b6cf014cc507297d46"
+    },
+    "games/wings/src/render/world/atmosphere.ts": {
+      "bytes": 8661,
+      "sha256": "e24da8283f1bc145fa216bec77ca75e4c12f147d0b675b3a2a51a4773030ac3f"
+    },
+    "games/wings/src/render/world/craters.ts": {
+      "bytes": 4815,
+      "sha256": "4312b855620dc1b61fc974012d51818bf13054e66d687e85f782374e792bd729"
+    },
+    "games/wings/src/render/world/daylight.ts": {
+      "bytes": 3700,
+      "sha256": "4d4a314a76315d4749346097b130bcbb5b720053d802306f65b0a1a9c9b0b12c"
+    },
+    "games/wings/src/render/world/fire.ts": {
+      "bytes": 7427,
+      "sha256": "b5e78c60f7922671ae50c4ad77c3295c7d1d3710211a8b65ff1112ace30ba313"
+    },
+    "games/wings/src/render/world/palette.ts": {
+      "bytes": 4419,
+      "sha256": "99491cf4bc97716b8f6b9ce50b3fcbc1ec74094dce56766a63c1b1b7e3df493a"
+    },
+    "games/wings/src/render/world/preview.html": {
+      "bytes": 586,
+      "sha256": "5dc26fbbe2241694d5190981dfde3618a1f16a179a763e245b1ce6ba73b5dab3"
+    },
+    "games/wings/src/render/world/preview.ts": {
+      "bytes": 9606,
+      "sha256": "1b0212932a6a60eda3f7507f1063885b8f12c396c5d96126f9c2120b145c7bfc"
+    },
+    "games/wings/src/render/world/rain.ts": {
+      "bytes": 4418,
+      "sha256": "a0d343fc770ecb94ae119e1072fc8472a14228b8a9042d757703aa928709a045"
+    },
+    "games/wings/src/render/world/settings.ts": {
+      "bytes": 2337,
+      "sha256": "14fcea6269f7b2b2a10050acb42d67c654d27db9a0df7ec4da03323e0831a144"
+    },
+    "games/wings/src/render/world/ships.ts": {
+      "bytes": 22811,
+      "sha256": "13fc107c2c169b9beef7d592bda72e1629146c0c4541d4c8d3d9008ef559d361"
+    },
+    "games/wings/src/render/world/sky.ts": {
+      "bytes": 9241,
+      "sha256": "46706b22c7abb4eb4d62adc27f22b41a32151ca266bc7e2a2aaaef95b9f637a3"
+    },
+    "games/wings/src/render/world/streamer.ts": {
+      "bytes": 14095,
+      "sha256": "bacb6cb58e22d5e21d582c35bdba7017fb81ff9bbd2b8b1ab81390790150a56c"
+    },
+    "games/wings/src/render/world/terrain-worker.ts": {
+      "bytes": 1647,
+      "sha256": "f63bb9286ff4f1bc318cca9b587b18a8ee675ca959dffa9f892e1cad0af8e12c"
+    },
+    "games/wings/src/render/world/tile-gen.ts": {
+      "bytes": 13198,
+      "sha256": "e1235564a27cf5936e9b5b5c1e7e9136c8aa121fbe1224e69556d2fa8772a19b"
+    },
+    "games/wings/src/render/world/trees.ts": {
+      "bytes": 5781,
+      "sha256": "4aa6acba792c3a260fa4d7ec90a0f16ede3e6e641b32beea7a7ce04858693af2"
+    },
+    "games/wings/src/render/world/water.ts": {
+      "bytes": 15956,
+      "sha256": "4cf117df07bf330b7e75683f8295c1add7b28993dd04a268743142ad2531a4e5"
+    },
+    "games/wings/src/sim/bots.ts": {
+      "bytes": 58255,
+      "sha256": "83207d5b32545612a1a62f0a864fa6c112563194f2f02115ca5efc7eef992e54"
+    },
+    "games/wings/src/sim/combat.ts": {
+      "bytes": 100913,
+      "sha256": "132e99bee97f71671ffc773b3daafdf59e12142193dd177d19b2f2cbef8c1ab0"
+    },
+    "games/wings/src/sim/fleet.ts": {
+      "bytes": 8222,
+      "sha256": "3e4f2593d72f8085b431551cbe0405672974d4355f60e1cbbea088b70ab4c471"
+    },
+    "games/wings/src/sim/flight.ts": {
+      "bytes": 48330,
+      "sha256": "939aa567e8cda48d62ee6302d50fd3c4d119d224b24ff4f3bb71e088cb7faae0"
+    },
+    "games/wings/src/sim/geography.ts": {
+      "bytes": 36893,
+      "sha256": "506b870ba01fcb43ef9a9b6de06b60e345b20e5c6c4ac157336731e9e84e62b2"
+    },
+    "games/wings/src/sim/loopback.ts": {
+      "bytes": 3152,
+      "sha256": "9539442291766edb051b4de538249edf2a098d81218e7a32be7d751e96fddee2"
+    },
+    "games/wings/src/sim/protocol.ts": {
+      "bytes": 3513,
+      "sha256": "36db2a5b19f759553fc0baf1fd541873ab1f15db823bad47591e21052400c0ab"
+    },
+    "games/wings/src/sim/room-engine.ts": {
+      "bytes": 60907,
+      "sha256": "2ab6279153defefd8551aee684d9358f9d0af5b511c53b0795818cae1102b39b"
+    },
+    "games/wings/src/sim/time-of-day.ts": {
+      "bytes": 1486,
+      "sha256": "6f1d71e01841f4cade404b1b515b58c3c8c456683969375813b827e0d0f4f48a"
+    },
+    "games/wings/src/sim/types.ts": {
+      "bytes": 8676,
+      "sha256": "d6a91e1574b3aea003b28bf6f19b37623f45f581c72b5114e18054fef3ec720d"
+    },
+    "games/wings/src/sim/vehicles.ts": {
+      "bytes": 8066,
+      "sha256": "4a2800783ad2dc41fee158832ab118746f1ca2efec040b30d172e71b025ba31e"
+    },
+    "games/wings/src/style.css": {
+      "bytes": 38213,
+      "sha256": "2c9734681329f5e84677e51c18a8b1837dfec18e23b85bbae8f9928675a1341f"
+    },
+    "games/wings/src/ui/aircraft-input.ts": {
+      "bytes": 723,
+      "sha256": "fca3226ca953abe29eeb5fa64868562323782d38bca8878e66f765f3ba671ce5"
+    },
+    "games/wings/src/ui/fleet-names.ts": {
+      "bytes": 1323,
+      "sha256": "acd8fcedd306031fae2338093c4224a30151bad3ddbcebe0cee09da42b837e33"
+    },
+    "games/wings/src/ui/game.ts": {
+      "bytes": 75598,
+      "sha256": "20f91c3bcf5d682ad4235a9726e5acb17dc013d89e0896737c2d79c3c5641195"
+    },
+    "games/wings/src/ui/lobby.ts": {
+      "bytes": 25460,
+      "sha256": "c7e3350932b03e7e38d257e778ceed604e5098ff6eaf1072f93900f83ede4a57"
+    },
+    "games/wings/src/ui/net-adapter.ts": {
+      "bytes": 725,
+      "sha256": "8bd4d173ed609c5758b1e5bbd46938f5343cd4d410a28d1bab86a7d9a7c851be"
+    },
+    "games/wings/src/ui/pause.ts": {
+      "bytes": 2381,
+      "sha256": "af5faa1af993f2143a5908ddf18db68b64ea893bea0c6da273d44fb7f59d6564"
+    },
+    "games/wings/src/ui/settings.ts": {
+      "bytes": 3230,
+      "sha256": "591fce4e42070c73f4c581614f3ee136edbd70df09718861e8557835f0a2490d"
+    },
+    "games/wings/src/ui/spawn.ts": {
+      "bytes": 15834,
+      "sha256": "28da2f606feca6a6e0643bb2ac3768958ce4352d0776e8622f7517fd38d4045c"
+    },
+    "games/wings/tests/bots.test.ts": {
+      "bytes": 36731,
+      "sha256": "9e8ca21c7a108d6e64197ac7c41f4df92c1c9a7f124af12801bc25d622bec084"
+    },
+    "games/wings/tests/combat.test.ts": {
+      "bytes": 67369,
+      "sha256": "5545898e4d1d31d689e36cc5a2481121eff852a986ec266d84ac942670f70bf1"
+    },
+    "games/wings/tests/flight.test.ts": {
+      "bytes": 41655,
+      "sha256": "99dfc7e914518e6a9d4e47ebc11f907bfb0bffa87da2b5ce52516ba99a91bf9b"
+    },
+    "games/wings/tests/geography.test.ts": {
+      "bytes": 19288,
+      "sha256": "659269649e7c4a2f196402b65de5741ccfe94b7bc45256a91db80f9bcf104058"
+    },
+    "games/wings/tests/pilot.test.ts": {
+      "bytes": 25369,
+      "sha256": "caf2d65243304b4dba4af7c666c6c8b19fb3eb62e474505c87e805ce858c3faf"
+    },
+    "games/wings/tests/room.test.ts": {
+      "bytes": 35201,
+      "sha256": "9afec4cdac2fe2f1461cfb067a594001f471e5ae85e6f133b6d678ee6f6ec01c"
+    },
+    "games/wings/time-of-day-check.ts": {
+      "bytes": 4134,
+      "sha256": "257ea5f1b5d2dd1072fde7305c606b97950b813d78c0fccadf417281a2504457"
+    },
+    "games/wings/tsconfig.json": {
+      "bytes": 487,
+      "sha256": "7a0dd756fe9b912855dbad94e56a74814a08947c11c23879dd097157ac9e13db"
+    },
+    "games/wings/tsconfig.worker.json": {
+      "bytes": 394,
+      "sha256": "394f413d28f752462f6e2a059d227974254b45bcb59a0dc2f3c644d0073b9361"
+    },
+    "games/wings/ui-check.ts": {
+      "bytes": 4984,
+      "sha256": "57117ddb9c2e10089d601292d5b2503ef2da7de764ef9ad606d5717084fdbbc1"
+    },
+    "games/wings/vite.config.ts": {
+      "bytes": 378,
+      "sha256": "a59e4fd76a6b0c3271698ad3d7595782640a6529f33e55e9b40f359e82a35197"
+    }
+  }
+}

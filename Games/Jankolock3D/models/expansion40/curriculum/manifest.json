@@ -1,0 +1,91 @@
+{
+  "schema": "jank3d_hero_expansion_asset_v1",
+  "hero_number": 35,
+  "id": "curriculum",
+  "display_name": "Curric",
+  "role": "Trainer",
+  "design_notes": "A hinged lesson lectern walking on broad classroom-rule feet. A mortarboard filing head sits above an opening two-leaf blackboard, with an articulated ruler pointer and book-clamp hand.",
+  "files": {
+    "source": "model.blend",
+    "runtime": "model.glb",
+    "illustration": "portrait.png",
+    "rig": "rig.json",
+    "rig_alias": "manifest.rig.json",
+    "palette": "palette.json"
+  },
+  "blender_version": "4.3.2",
+  "glb_bytes": 238964,
+  "glb_sha256": "66a92b77d0679815f6915f85c70a931112b9a488c5092e1a2df17dcf325c9317",
+  "triangles": 3572,
+  "mesh_nodes": 68,
+  "movable_nodes": 18,
+  "bounds_gltf": {
+    "min": [
+      -0.8774999976158142,
+      0.0,
+      -0.42549997568130493
+    ],
+    "max": [
+      0.8538332581520081,
+      2.275679349899292,
+      0.3266327679157257
+    ],
+    "dimensions": [
+      1.7313332557678223,
+      2.275679349899292,
+      0.7521327435970306
+    ]
+  },
+  "palette_hex": {
+    "paper": "#f2e8cd",
+    "ink": "#253038",
+    "manila": "#c5aa78",
+    "accent": "#806b50"
+  },
+  "texture_count": 0,
+  "external_dependencies": [],
+  "illustration_dimensions": [
+    1024,
+    1024
+  ],
+  "grounding_offset_applied_blender_z": -0.009999997913837433,
+  "status": "Original art-review candidate. Proposed kit is separate; not game-integrated or runtime-schema validated.",
+  "art_direction": "Flat paper/ink/manila + one accent, unlit solid fills and ink contours; neutral background.",
+  "model": "curriculum",
+  "tri_count_LOD0": 3572,
+  "size_bytes": 238964,
+  "texture_resolution": null,
+  "material_slots": [
+    "curriculum__ink",
+    "curriculum__paper",
+    "curriculum__accent",
+    "curriculum__manila"
+  ],
+  "rig_nodes": [
+    "root",
+    "lectern_body",
+    "left_hip",
+    "left_knee",
+    "left_ankle",
+    "right_hip",
+    "right_knee",
+    "right_ankle",
+    "lesson_spine",
+    "left_lesson_leaf",
+    "right_lesson_leaf",
+    "head",
+    "left_arm_shoulder",
+    "left_arm_elbow",
+    "left_arm_wrist",
+    "right_arm_shoulder",
+    "right_arm_elbow",
+    "right_arm_wrist"
+  ],
+  "palette_default": {
+    "paper": "#f2e8cd",
+    "ink": "#253038",
+    "manila": "#c5aa78",
+    "accent": "#806b50"
+  },
+  "provenance_note": "Generated in Blender by dot and Astra 6 max delegates, 2026-10-23; original in-house artwork, no remote assets."
+}

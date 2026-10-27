@@ -1,0 +1,54 @@
+{
+  "schema": "jank3d_geometric_effect_concept_v1",
+  "id": "filter",
+  "effect_name": "Rejected Mail Cone",
+  "description": "A broad geometric sieve fan separates envelopes into a clean paper stream and crossed-out suspicious mail. Large open rays, sealed letters and rejection crosses make filtering readable without covering the inspector.",
+  "toggle_root": "FX_ROOT",
+  "toggle_contract": "Set this subtree visible/invisible in the target engine. Geometry has no autonomous playback; caller controls visibility and any motion.",
+  "mesh_nodes": [
+    "fx_filter_ray_0",
+    "fx_filter_ray_1",
+    "fx_filter_ray_2",
+    "fx_filter_ray_3",
+    "fx_rejection_lower_fan",
+    "fx_rejection_upper_fan",
+    "fx_sorted_envelope_0_body",
+    "fx_sorted_envelope_0_flapL",
+    "fx_sorted_envelope_0_flapR",
+    "fx_sorted_envelope_1_body",
+    "fx_sorted_envelope_1_flapL",
+    "fx_sorted_envelope_1_flapR",
+    "fx_reject_x_a_1",
+    "fx_reject_x_b_1",
+    "fx_sorted_envelope_2_body",
+    "fx_sorted_envelope_2_flapL",
+    "fx_sorted_envelope_2_flapR",
+    "fx_reject_x_a_2",
+    "fx_reject_x_b_2",
+    "fx_clean_mail_tick_0",
+    "fx_clean_mail_tick_1",
+    "fx_clean_mail_tick_2"
+  ],
+  "motion_nodes": {},
+  "body_rig_reference": "rig.json",
+  "palette_reference": "palette.json",
+  "body_palette_preserved_in_fx_variant": true,
+  "baseline_files_unchanged": true,
+  "baseline_sha256": {
+    "model.blend": "ad97bfbbe835847f54f477e1e30a9f82a9d6b420d97ca7dd119ffb299bbf0e64",
+    "model.glb": "6a234cca1162c6557151fb304905d85d6b36d80944eaa5dfab3292b17681a815",
+    "portrait.png": "91b5225aff5d954f6145e4ec6c9703d6e5bb1a846f5bbf172b985dbd469d66f8"
+  },
+  "variants": {
+    "fx": {
+      "runtime": "model_fx.glb",
+      "source": "model_fx.blend",
+      "illustration": "portrait_fx.png",
+      "manifest": "manifest_fx.json",
+      "rig": "rig_fx.json",
+      "palette": "palette_fx.json"
+    }
+  },
+  "gameplay_status": "Art/FX concept only. No engine primitive, gameplay logic, collision, timing or ability integration implemented.",
+  "cel_variant": null
+}

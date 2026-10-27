@@ -1,0 +1,119 @@
+"""Renderer-failure and UI-fixture regression, not rendered-flight acceptance.
+Serve repository root on port 8938 first. Requires existing Playwright + Chromium.
+Run: python3 Games/Wings/verification/check-browser.py --out /tmp/phase2/wings
+"""
+import argparse
+import json
+import shutil
+from pathlib import Path
+from playwright.sync_api import sync_playwright
+
+parser = argparse.ArgumentParser()
+parser.add_argument('--url', default='http://127.0.0.1:8938/Games/Wings/')
+parser.add_argument('--out', type=Path, required=True)
+args = parser.parse_args()
+args.out.mkdir(parents=True, exist_ok=True)
+results = []
+with sync_playwright() as p:
+    browser = p.chromium.launch(executable_path=shutil.which('chromium'), headless=True,
+                               args=['--no-sandbox', '--disable-gpu', '--disable-software-rasterizer'])
+    try:
+        for theme in ['dark', 'light']:
+            for width, height in [(1280, 720), (390, 844)]:
+                context = browser.new_context(viewport={'width': width, 'height': height}, color_scheme=theme)
+                page = context.new_page()
+                errors, external = [], []
+                page.on('pageerror', lambda e: errors.append(str(e)))
+                page.on('request', lambda r: external.append(r.url) if not r.url.startswith(args.url) else None)
+                page.goto(args.url, wait_until='domcontentloaded')
+                # Browsing the HTML lobby must not initialize the renderer.
+                page.wait_for_timeout(1000)
+                assert page.evaluate('window.__wings.stats === undefined')
+                assert page.locator('#render-error[open]').count() == 0
+                page.screenshot(path=str(args.out / f'{theme}-{width}-menu.png'))
+                page.locator('#screen .mi .t').get_by_text('Solo flight', exact=True).click()
+                page.locator('#render-error[open]').wait_for(timeout=30000)
+                assert page.locator('#render-error pre').inner_text()
+                assert page.locator('#toast').inner_text() == '', 'Renderer dialog must not duplicate its error in a toast'
+                prefix = f'{theme}-{width}'
+                page.screenshot(path=str(args.out / (prefix + '-failure.png')))
+                origin = page.evaluate('performance.timeOrigin')
+                page.locator('#retry-low').click()
+                page.wait_for_function('(previous) => performance.timeOrigin !== previous', arg=origin)
+                page.locator('#screen .mi .t').get_by_text('Solo flight', exact=True).click()
+                page.locator('#render-error[open]').wait_for()
+                assert page.evaluate("JSON.parse(localStorage.getItem('wings.settings')).quality") == 'low'
+                page.locator('#error-menu').click()
+                page.locator('#screen .mi').filter(has_text='Custom setup').click()
+                assert page.locator('#screen .mi').filter(has_text='Start offline').count() == 1
+                page.get_by_role('button', name='Bots', exact=False).first.click()
+                assert page.get_by_role('button', name='Bot skill', exact=False).count() == 1
+                aircraft = page.get_by_role('button', name='Aircraft', exact=False)
+                aircraft.focus()
+                for _ in range(5):
+                    page.keyboard.press('ArrowRight')
+                assert 'F-15' in aircraft.inner_text()
+                page.screenshot(path=str(args.out / (prefix + '-f15-picker.png')))
+                page.keyboard.press('ArrowRight')
+                assert 'F-35' in aircraft.inner_text()
+                page.screenshot(path=str(args.out / (prefix + '-f35-picker.png')))
+                page.screenshot(path=str(args.out / (prefix + '-custom.png')))
+                page.get_by_role('button', name='Bots', exact=False).first.focus()
+                page.keyboard.press('ArrowUp')
+                if width == 1280:
+                    assert page.locator('#screen').evaluate('(el) => el.scrollTop > 0'), 'Keyboard selection must reveal Back'
+                # Closing diagnostics must not turn any launch path into HUD-only flight.
+                for launch in ['Start offline', 'Solo flight', 'Play with bots']:
+                    page.locator('#screen .mi .t').get_by_text(launch, exact=True).click()
+                    page.locator('#render-error[open]').wait_for()
+                    assert page.locator('#lobby').is_visible()
+                    assert page.locator('#busy').is_hidden()
+                    assert page.locator('.game-ui').count() == 0
+                    page.locator('#error-menu').click()
+                    if launch == 'Start offline':
+                        page.locator('#screen .mi .t').get_by_text('Back', exact=True).click()
+                # Help/settings remain navigable even when the renderer cannot start.
+                for menu in ['Controls', 'Settings']:
+                    page.locator('#screen .mi .t').get_by_text(menu, exact=True).click()
+                    if menu == 'Controls':
+                        assert page.locator('#screen .keys').is_visible()
+                    else:
+                        assert page.locator('#screen .mi .t').get_by_text('Controls', exact=True).is_visible()
+                    page.screenshot(path=str(args.out / (prefix + '-' + menu.lower() + '.png')))
+                    page.keyboard.press('Escape')
+                    assert page.locator('#screen .mi .t').get_by_text('Solo flight', exact=True).is_visible()
+                page.goto(args.url + 'check-ui.html', wait_until='networkidle')
+                page.wait_for_function("document.title === 'PASS: Wings UI fixture'")
+                for label in ['F-15', 'F-35']:
+                    item = page.locator('.sp-list .mi').filter(has_text=label)
+                    item.focus()
+                    assert label.lower() in page.locator('.sp-detail').inner_text().lower()
+                    page.screenshot(path=str(args.out / (prefix + '-' + label.lower() + '-spawn-fixture.png')))
+                page.screenshot(path=str(args.out / (prefix + '-spawn-fixture.png')))
+                if width < 760:
+                    assert page.locator('.spawn').evaluate('(el) => el.scrollHeight > el.clientHeight')
+                    page.locator('.spawn').evaluate('(el) => el.scrollTop = el.scrollHeight')
+                    page.screenshot(path=str(args.out / (prefix + '-detail-fixture.png')))
+                page.get_by_role('button', name='UI fixture only - show HUD').click()
+                boxes = page.evaluate('''() => Object.fromEntries(['.hud-radar','.hud-mapwrap','.weapons'].map(s => {
+                    const r = document.querySelector(s).getBoundingClientRect();
+                    return [s, {x:r.x, y:r.y, right:r.right, bottom:r.bottom}];
+                }))''')
+                if width < 760:
+                    assert boxes['.weapons']['bottom'] <= boxes['.hud-radar']['y'], boxes
+                    assert boxes['.weapons']['bottom'] <= boxes['.hud-mapwrap']['y'], boxes
+                page.screenshot(path=str(args.out / (prefix + '-hud-fixture.png')))
+                page.get_by_role('button', name='UI fixture only - show long toast').click()
+                toast_box = page.locator('#toast div').first.bounding_box()
+                footer_box = page.locator('#lobby .foot').bounding_box()
+                assert toast_box and footer_box
+                assert toast_box['x'] >= 0 and toast_box['x'] + toast_box['width'] <= width, toast_box
+                assert toast_box['y'] + toast_box['height'] <= footer_box['y'], (toast_box, footer_box)
+                page.screenshot(path=str(args.out / (prefix + '-toast-fixture.png')))
+                results.append({'theme': theme, 'size': [width, height], 'boxes': boxes, 'errors': errors, 'external': external})
+                assert not errors and not external
+                context.close()
+    finally:
+        browser.close()
+(args.out / 'browser.json').write_text(json.dumps(results, indent=2))
+print('PASS: 4 viewport/theme failure screens, Low retry/reload, all 3 launch paths fail closed, Controls/Settings return, offline custom controls, spawn cleanup/layout and HUD fixture separation. No rendered flight.')

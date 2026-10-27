@@ -1,0 +1,45 @@
+{
+  "schema": "jank3d_geometric_effect_concept_v1",
+  "id": "shred",
+  "effect_name": "Confidential Ribbon Cut",
+  "description": "Five long, sharp paper ribbons curl out of the shredder gauntlet in an oversized cutting fan, shedding rectangular confetti at their far edge. The folded hood and bin remain unobscured; no hit detection is implied.",
+  "toggle_root": "FX_ROOT",
+  "toggle_contract": "Set this subtree visible/invisible in the target engine. Geometry has no autonomous playback; caller controls visibility and any motion.",
+  "mesh_nodes": [
+    "fx_shredded_ribbon_0",
+    "fx_shredded_ribbon_1",
+    "fx_shredded_ribbon_2",
+    "fx_shredded_ribbon_3",
+    "fx_shredded_ribbon_4",
+    "fx_shred_confetti_0",
+    "fx_shred_confetti_1",
+    "fx_shred_confetti_2",
+    "fx_shred_confetti_3",
+    "fx_shred_confetti_4",
+    "fx_shred_confetti_5",
+    "fx_shred_confetti_6",
+    "fx_cut_direction"
+  ],
+  "motion_nodes": {},
+  "body_rig_reference": "rig.json",
+  "palette_reference": "palette.json",
+  "body_palette_preserved_in_fx_variant": true,
+  "baseline_files_unchanged": true,
+  "baseline_sha256": {
+    "model.blend": "e366a3ad9bd165f6c559e8978aad6dff00c501a1d43c2b1be8a547fff912339c",
+    "model.glb": "dc05646f9850ec46accb2ff2c9b5279218782628b55ab045be043ffe851dfa56",
+    "portrait.png": "9f8ef2d40d8e62b3bafbcd23cc704767c02226c49c8d0dd557eaa8f247d2f215"
+  },
+  "variants": {
+    "fx": {
+      "runtime": "model_fx.glb",
+      "source": "model_fx.blend",
+      "illustration": "portrait_fx.png",
+      "manifest": "manifest_fx.json",
+      "rig": "rig_fx.json",
+      "palette": "palette_fx.json"
+    }
+  },
+  "gameplay_status": "Art/FX concept only. No engine primitive, gameplay logic, collision, timing or ability integration implemented.",
+  "cel_variant": null
+}

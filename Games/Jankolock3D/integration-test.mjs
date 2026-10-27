@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
+import { execFileSync } from 'node:child_process';
 import * as THREE from './vendor/three.module.js';
 import { createWorldData } from './world-data.mjs';
 import { createSystems } from './systems.mjs';
@@ -68,7 +69,14 @@ for(const team of ['carbon','ivory']) {
 const bytes=readFileSync(new URL('./models/portrait_relief.glb',import.meta.url));
 console.log(await selfCheckPortrait(bytes.buffer.slice(bytes.byteOffset,bytes.byteOffset+bytes.byteLength)));
 const catalog=JSON.parse(readFileSync(new URL('../../games.json',import.meta.url)));
-assert.equal(catalog.length,127);assert.equal(new Set(catalog.map(g=>g.id)).size,127);
+assert.equal(catalog.length,129);assert.equal(new Set(catalog.map(g=>g.id)).size,129);
 assert.equal(catalog.find(g=>g.id===240).url,'Games/Jankolock3D/index.html');
 for(const g of catalog)for(const key of ['id','title','cat','icon','desc','url','featured'])assert.ok(Object.hasOwn(g,key),`${g.id}/${key}`);
-console.log('integration: catalog parses, 127 unique IDs, schema fields present, id240 targets integrated page');
+const tracked=new Set(execFileSync('git',['ls-files','-z'],{cwd:new URL('../../',import.meta.url),encoding:'utf8'}).split('\0'));
+for(const g of catalog) {
+  assert.ok(Number.isInteger(g.id),`invalid catalog ID: ${g.id}`);
+  for(const key of ['title','cat','icon','desc','url'])assert.equal(typeof g[key],'string',`${g.id}/${key}`);
+  assert.equal(typeof g.featured,'boolean',`${g.id}/featured`);
+  assert.ok(tracked.has(g.url),`untracked catalog URL: ${g.url}`);
+}
+console.log('integration: catalog parses, 129 unique integer IDs, schema fields/types and tracked URLs valid, id240 targets integrated page');

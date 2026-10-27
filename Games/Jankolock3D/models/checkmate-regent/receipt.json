@@ -1,0 +1,11 @@
+{
+  "url": "models/checkmate-regent/model.glb",
+  "bytes": 4213784,
+  "sha256": "52daa16fd7cefaf3cc7ddf9350cb302a2a6e213205d7ca332ba896a26014deaf",
+  "triangles": 18148,
+  "metadataSHA256": {
+    "manifest.json": "f3f7a0b317abc437e3fa99787a0469d8a799db59f473e26f744356ba1b7a4fce",
+    "palette.json": "3a552cae66f901fcf9532fc5cdbe23e162a1e8099dd6311d229d5c36d72de648",
+    "rig.json": "5106129c00161b9473bb6642a802c9f89e03c0814ba6debe49b56f4fe900a884"
+  }
+}

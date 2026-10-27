@@ -1,0 +1,91 @@
+{
+  "schema": "jank3d_hero_expansion_asset_v1",
+  "hero_number": 5,
+  "id": "inktracer",
+  "display_name": "Tracer",
+  "role": "Mobile damage",
+  "design_notes": "A fountain-pen sprinter with a long cap head, slim cartridge torso, swept nib fins and offset blade-foot stance. The silhouette is built around the pen rather than a generic runner. A wrist-held dash nib and split coattails are rigidly articulated. Muted petrol-ink accent differentiates it from the original blue hero.",
+  "files": {
+    "source": "model.blend",
+    "runtime": "model.glb",
+    "illustration": "portrait.png",
+    "rig": "rig.json",
+    "rig_alias": "manifest.rig.json",
+    "palette": "palette.json"
+  },
+  "blender_version": "4.3.2",
+  "glb_bytes": 107496,
+  "glb_sha256": "48e1192eb484b547951ad2e810232341b72e94a0562fb907b889cb65905fccb4",
+  "triangles": 1684,
+  "mesh_nodes": 42,
+  "movable_nodes": 18,
+  "bounds_gltf": {
+    "min": [
+      -0.5600000023841858,
+      0.0,
+      -0.5112000107765198
+    ],
+    "max": [
+      0.6700000166893005,
+      2.190000057220459,
+      0.38999998569488525
+    ],
+    "dimensions": [
+      1.2300000190734863,
+      2.190000057220459,
+      0.901199996471405
+    ]
+  },
+  "palette_hex": {
+    "paper": "#f2e8cd",
+    "ink": "#253038",
+    "manila": "#c5aa78",
+    "accent": "#507e87"
+  },
+  "texture_count": 0,
+  "external_dependencies": [],
+  "illustration_dimensions": [
+    1024,
+    1024
+  ],
+  "grounding_offset_applied_blender_z": -0.030000004917383194,
+  "status": "Original art-review candidate. Proposed kit is separate; not game-integrated or runtime-schema validated.",
+  "art_direction": "Flat paper/ink/manila + one accent, unlit solid fills and ink contours; neutral background.",
+  "model": "inktracer",
+  "tri_count_LOD0": 1684,
+  "size_bytes": 107496,
+  "texture_resolution": null,
+  "material_slots": [
+    "inktracer__manila",
+    "inktracer__ink",
+    "inktracer__paper",
+    "inktracer__accent"
+  ],
+  "rig_nodes": [
+    "root",
+    "pelvis",
+    "torso",
+    "coat_tail_L",
+    "coat_tail_R",
+    "L_hip",
+    "L_knee",
+    "L_ankle",
+    "R_hip",
+    "R_knee",
+    "R_ankle",
+    "head",
+    "L_shoulder",
+    "L_elbow",
+    "L_wrist",
+    "R_shoulder",
+    "R_elbow",
+    "R_wrist"
+  ],
+  "palette_default": {
+    "paper": "#f2e8cd",
+    "ink": "#253038",
+    "manila": "#c5aa78",
+    "accent": "#507e87"
+  },
+  "provenance_note": "Generated in Blender by dot and Astra 6 max delegates, 2026-10-23; original in-house artwork, no remote assets."
+}

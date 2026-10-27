@@ -4,33 +4,48 @@ import { createBuildingKit } from './buildings.mjs';
 import { createFreeCamera } from './camera.mjs';
 import { createDayNight } from './daynight.mjs';
 import { createWorldEffects } from './world-effects.mjs';
+import { createCityEventEffects } from './city-event-effects.mjs';
 import { createAsphaltMaterial, createGroundMaterial, createWater, createBlockAO, applyExternalTerrain } from './materials.mjs';
 import { loadExternalModel, disposeExternalModels } from './external-assets.mjs';
 import { createLandscape } from './terrain.mjs';
 import { createAtmosphere, createStreetLamps } from './atmosphere.mjs';
+import { createRiverTerrain } from './river-data.mjs';
+import { createRiverGroundGeometry, groupRiverMaterials, createBridgePool } from './river-render.mjs';
+
+export function createPlayableGroundGeometry(extent, data = null) {
+  if (data?.layout === 'river-v1') return createRiverGroundGeometry(data, extent * 2 / data.size);
+  return new THREE.PlaneGeometry(extent * 2, extent * 2).rotateX(-Math.PI / 2);
+}
 
 export function createRoadPool(scene, grid) {
   const geometry = new THREE.PlaneGeometry(grid.lotSize, grid.lotSize);
   geometry.rotateX(-Math.PI / 2);
   const appearance = createAsphaltMaterial(), material = appearance.material;
   const mesh = new THREE.InstancedMesh(geometry, material, grid.size ** 2);
-  mesh.count = 0; mesh.frustumCulled = false; mesh.receiveShadow = true;
+  mesh.count = 0; mesh.visible = false; mesh.frustumCulled = false; mesh.receiveShadow = true;
   mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
   scene.add(mesh);
-  let version = -1;
+  let version = -1, bridges = null;
   const matrix = new THREE.Matrix4();
   return {
     mesh,
+    get bridges() { return bridges; },
+    setTerrain(data) {
+      bridges?.dispose();
+      bridges = data.layout === 'river-v1' ? createBridgePool(scene, grid, data) : null;
+      bridges?.sync(true);
+    },
     sync(force = false) {
+      bridges?.sync(force);
       if (!force && version === grid.version) return;
       let i = 0;
       for (const key of grid.cells) {
         const { x, z } = grid.cell(key), p = grid.center(x, z);
         mesh.setMatrixAt(i++, matrix.makeTranslation(p.x, .035, p.z));
       }
-      mesh.count = i; mesh.instanceMatrix.needsUpdate = true; version = grid.version;
+      mesh.count = i; mesh.visible = i > 0; mesh.instanceMatrix.needsUpdate = true; version = grid.version;
     },
-    dispose() { scene.remove(mesh); geometry.dispose(); appearance.dispose(); mesh.dispose(); },
+    dispose() { bridges?.dispose(); scene.remove(mesh); geometry.dispose(); appearance.dispose(); mesh.dispose(); },
   };
 }
 
@@ -51,13 +66,10 @@ export function createWorld(canvas, { size = 200, lotSize = 10, pixelRatio = Mat
   const roadPool = createRoadPool(scene, roads);
   const streetLamps = createStreetLamps(scene, roads);
   const effects = createWorldEffects(scene, roads);
-  // All playable foundations stay flat. The surrounding solid slab field owns hills/waterfront.
-  const terrainSegments = 1;
-  const groundGeometry = new THREE.PlaneGeometry(extent * 2, extent * 2, terrainSegments, terrainSegments);
-  groundGeometry.rotateX(-Math.PI / 2);
-  const positions = groundGeometry.attributes.position;
-  for (let i = 0; i < positions.count; i++) positions.setY(i, 0);
-  groundGeometry.computeVertexNormals();
+  const eventEffects = createCityEventEffects(scene, roads);
+  // Native selects river-v1 for new towns, legacy-flat for old snapshots/specimens.
+  let riverData = createRiverTerrain(size, 'legacy-flat');
+  let groundGeometry = createPlayableGroundGeometry(extent);
   const groundAppearance = createGroundMaterial(extent), groundMaterial = groundAppearance.material;
   const ground = new THREE.Mesh(groundGeometry, groundMaterial);
   ground.receiveShadow = true;
@@ -77,9 +89,30 @@ export function createWorld(canvas, { size = 200, lotSize = 10, pixelRatio = Mat
     terrain?.dispose();
     if (terrainModel) { disposeExternalModels([terrainModel]); terrainModel = null; }
     atmosphere.dispose(); streetLamps.dispose();
-    landscape.dispose(); controls.dispose(); dayNight.dispose(); buildings.dispose(); roadPool.dispose(); effects.dispose();
+    landscape.dispose(); controls.dispose(); dayNight.dispose(); buildings.dispose(); roadPool.dispose(); effects.dispose(); eventEffects.dispose();
     water.dispose(); blockAO.dispose(); scene.remove(ground, gridLines);
     groundGeometry.dispose(); groundAppearance.dispose(); gridLines.geometry.dispose(); gridLines.material.dispose(); renderer.dispose();
+  }
+  function applyTerrainMaterials() {
+    terrain = applyExternalTerrain({ ground, road: roadPool.mesh, water: water.mesh, extent, lotSize }, terrainModel);
+    if (riverData.layout === 'river-v1') groupRiverMaterials(groundGeometry, terrain.diagnostics);
+    water.update = terrain.update;
+  }
+  function setTerrain(layout) {
+    if (disposed) throw new Error('World is disposed');
+    const data = createRiverTerrain(size, layout);
+    if (riverData.layout === data.layout) return riverData;
+    terrain?.dispose(); terrain = null;
+    groundGeometry.dispose();
+    riverData = data;
+    groundGeometry = createPlayableGroundGeometry(extent, data);
+    groundGeometry.setAttribute('uv1', groundGeometry.attributes.uv.clone());
+    ground.geometry = groundGeometry;
+    // Flat overlay lines must not float above the water/depressed bank.
+    gridLines.visible = data.layout === 'legacy-flat';
+    roadPool.setTerrain(data);
+    if (terrainModel) applyTerrainMaterials();
+    return riverData;
   }
   const ready = Promise.allSettled([buildings.ready, loadExternalModel('terrain_water_materials')]).then(results => {
     if (results[1].status === 'fulfilled') terrainModel = results[1].value;
@@ -89,8 +122,7 @@ export function createWorld(canvas, { size = 200, lotSize = 10, pixelRatio = Mat
     }
     const failed = results.find(result => result.status === 'rejected');
     if (failed) throw failed.reason;
-    terrain = applyExternalTerrain({ ground, road: roadPool.mesh, water: water.mesh, extent, lotSize }, terrainModel);
-    water.update = terrain.update;
+    applyTerrainMaterials();
     loaded = true;
   }).catch(error => { dispose(); throw error; });
   function render(dt = 0) {
@@ -111,9 +143,10 @@ export function createWorld(canvas, { size = 200, lotSize = 10, pixelRatio = Mat
     renderer.render(scene, camera); effects.update(dt);
   }
   return {
-    renderer, scene, camera, controls, dayNight, atmosphere, streetLamps, roads, roadPool, buildings, effects, water, blockAO, landscape,
+    renderer, scene, camera, controls, dayNight, atmosphere, streetLamps, roads, roadPool, buildings, effects, eventEffects, water, blockAO, landscape,
     floorHeight: landscape.floorHeight,
-    ready, render, dispose,
+    ready, render, dispose, setTerrain,
+    get riverTerrain() { return riverData; },
     get loaded() { return loaded; },
     get terrainDiagnostics() { return terrain?.diagnostics; },
     pickLot(clientX, clientY) {

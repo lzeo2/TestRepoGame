@@ -1,0 +1,51 @@
+{
+  "schema": "jank3d_geometric_effect_concept_v1",
+  "id": "inktracer",
+  "effect_name": "Carbon-Ink Dash",
+  "description": "Three long tapered fountain-ink speed ribbons and angular ink droplets trail from the sprinter. Their disconnected silhouette and pointed ends read as speed rather than a circular aura or magical shield.",
+  "toggle_root": "FX_ROOT",
+  "toggle_contract": "Set this subtree visible/invisible in the target engine. Geometry has no autonomous playback; caller controls visibility and any motion.",
+  "mesh_nodes": [
+    "fx_dash_ribbon_0",
+    "fx_dash_cutout_0",
+    "fx_dash_ribbon_1",
+    "fx_dash_cutout_1",
+    "fx_dash_ribbon_2",
+    "fx_dash_cutout_2",
+    "fx_ink_droplet_0",
+    "fx_ink_droplet_1",
+    "fx_ink_droplet_2",
+    "fx_ink_droplet_3"
+  ],
+  "motion_nodes": {
+    "fx_ink_wake": {
+      "axis": "Z",
+      "limits": [
+        -35,
+        35
+      ],
+      "note": "Rigid articulation, artistic guide; not a collision guarantee."
+    }
+  },
+  "body_rig_reference": "rig.json",
+  "palette_reference": "palette.json",
+  "body_palette_preserved_in_fx_variant": true,
+  "baseline_files_unchanged": true,
+  "baseline_sha256": {
+    "model.blend": "f5080346223b1327b8f7dde63ba8fc2da68427bb1cd3740f46f8a216503e61f7",
+    "model.glb": "48e1192eb484b547951ad2e810232341b72e94a0562fb907b889cb65905fccb4",
+    "portrait.png": "19cca5b8e06bffc9e15be409ba99e0648e6f16c952b731061e1fc79e7cc1a826"
+  },
+  "variants": {
+    "fx": {
+      "runtime": "model_fx.glb",
+      "source": "model_fx.blend",
+      "illustration": "portrait_fx.png",
+      "manifest": "manifest_fx.json",
+      "rig": "rig_fx.json",
+      "palette": "palette_fx.json"
+    }
+  },
+  "gameplay_status": "Art/FX concept only. No engine primitive, gameplay logic, collision, timing or ability integration implemented.",
+  "cel_variant": null
+}

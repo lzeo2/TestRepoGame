@@ -23,7 +23,22 @@ export function createExternalBuildingKit(scene, capacity = 10000, { lod = 0 } =
     if (failure) throw failure;
   }
   function materialFor(original) {
-    if (!materials.has(original)) materials.set(original, { material: createBuildingSurface(original), emission: original.emissiveIntensity });
+    if (!materials.has(original)) {
+      const material = createBuildingSurface(original);
+      const previous = material.onBeforeCompile, key = material.customProgramCacheKey();
+      material.onBeforeCompile = function (shader, renderer) {
+        previous.call(this, shader, renderer);
+        shader.fragmentShader = shader.fragmentShader.replace('#include <emissivemap_fragment>', `
+#include <emissivemap_fragment>
+// Three r186 folds instancing color into USE_COLOR in the fragment prefix.
+#if defined( USE_COLOR ) || defined( USE_INSTANCING_COLOR )
+  totalEmissiveRadiance *= vColor.rgb;
+#endif
+`);
+      };
+      material.customProgramCacheKey = () => `${key}:citisten-operational-v1`;
+      materials.set(original, { material, emission: original.emissiveIntensity });
+    }
     return materials.get(original).material;
   }
   function pool(type) {
@@ -110,6 +125,14 @@ export function createExternalBuildingKit(scene, capacity = 10000, { lod = 0 } =
       h.action.paused = true;
     } else if (h.wheels.length !== 4) throw new Error(`Expected four authored wheels: ${type}`);
   }
+  const operationalColor = new THREE.Color();
+  function writeColor(p, h) {
+    if (mobile(h.type)) return;
+    operationalColor.setRGB(h.operational ? 1 : .16, h.operational ? 1 : .16, h.operational ? 1 : .16);
+    for (const batch of p.batches) {
+      batch.setColorAt(h.index, operationalColor); batch.instanceColor.needsUpdate = true;
+    }
+  }
   function writeMatrices(p, h) {
     if (!p.batches.length) return;
     if (h.rig) h.rig.updateMatrixWorld(true);
@@ -117,17 +140,18 @@ export function createExternalBuildingKit(scene, capacity = 10000, { lod = 0 } =
       batch.setMatrixAt(h.index, h.rig ? matrix.multiplyMatrices(h.matrix, h.nodes[i].matrixWorld) : h.matrix);
       batch.instanceMatrix.needsUpdate = true;
     });
+    writeColor(p, h);
   }
   function allocate(p) {
     if (!p.parts || p.handles.length <= p.allocation) {
-      for (const batch of p.batches) batch.count = p.handles.length;
+      for (const batch of p.batches) { batch.count = p.handles.length; batch.visible = batch.count > 0; }
       return;
     }
     p.allocation = Math.min(capacity, Math.max(16, p.handles.length, p.allocation * 2));
     for (const batch of p.batches) { scene.remove(batch); batch.dispose(); }
     p.batches = p.parts.map(part => {
       const mesh = new THREE.InstancedMesh(part.geometry, part.material, p.allocation);
-      mesh.count = p.handles.length; mesh.frustumCulled = false;
+      mesh.count = p.handles.length; mesh.visible = mesh.count > 0; mesh.frustumCulled = false;
       mesh.castShadow = mesh.receiveShadow = true;
       mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage); scene.add(mesh);
       return mesh;
@@ -186,7 +210,7 @@ export function createExternalBuildingKit(scene, capacity = 10000, { lod = 0 } =
     spawn(type, pose = {}) {
       const p = pool(type);
       if (p.handles.length >= capacity) throw new RangeError('Model pool full');
-      const h = { type, index: p.handles.length, alive: true, matrix: new THREE.Matrix4(), pose: null, moved: false, travel: 0 };
+      const h = { type, index: p.handles.length, alive: true, matrix: new THREE.Matrix4(), pose: null, moved: false, travel: 0, operational: true };
       p.handles.push(h);
       try {
         transform(h, pose);
@@ -196,12 +220,18 @@ export function createExternalBuildingKit(scene, capacity = 10000, { lod = 0 } =
       return h;
     },
     transform,
+    setOperational(handle, operational) {
+      assertLive();
+      if (!valid(handle)) throw new Error('Invalid or removed model');
+      if (mobile(handle.type) || handle.operational === Boolean(operational)) return;
+      handle.operational = Boolean(operational); writeColor(pools.get(handle.type), handle);
+    },
     remove(handle) {
       if (!valid(handle)) return false;
       const p = pools.get(handle.type), last = p.handles.pop();
       if (last !== handle) { last.index = handle.index; p.handles[last.index] = last; writeMatrices(p, last); }
       handle.alive = false; stop(handle);
-      for (const batch of p.batches) batch.count = p.handles.length;
+      for (const batch of p.batches) { batch.count = p.handles.length; batch.visible = batch.count > 0; }
       if (!mobile(handle.type)) version++;
       return true;
     },

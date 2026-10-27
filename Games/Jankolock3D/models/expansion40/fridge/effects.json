@@ -1,0 +1,120 @@
+{
+  "schema": "jank3d_geometric_effect_concept_v1",
+  "id": "fridge",
+  "effect_name": "Static Pull",
+  "description": "Large inward-directed magnetic field rails bow around the refrigerator, pulling loose pantry sheets and metallic cards toward its magnet. Open rails deliberately keep the freezer face and front door readable.",
+  "toggle_root": "FX_ROOT",
+  "toggle_contract": "Set this subtree visible/invisible in the target engine. Geometry has no autonomous playback; caller controls visibility and any motion.",
+  "mesh_nodes": [
+    "fx_magnetic_L_0_0",
+    "fx_magnetic_L_0_1",
+    "fx_magnetic_L_0_2",
+    "fx_magnetic_L_0_3",
+    "fx_magnetic_L_0_4",
+    "fx_inward_arrow_L_0",
+    "fx_magnetic_L_1_0",
+    "fx_magnetic_L_1_1",
+    "fx_magnetic_L_1_2",
+    "fx_magnetic_L_1_3",
+    "fx_magnetic_L_1_4",
+    "fx_inward_arrow_L_1",
+    "fx_magnetic_R_0_0",
+    "fx_magnetic_R_0_1",
+    "fx_magnetic_R_0_2",
+    "fx_magnetic_R_0_3",
+    "fx_magnetic_R_0_4",
+    "fx_inward_arrow_R_0",
+    "fx_magnetic_R_1_0",
+    "fx_magnetic_R_1_1",
+    "fx_magnetic_R_1_2",
+    "fx_magnetic_R_1_3",
+    "fx_magnetic_R_1_4",
+    "fx_inward_arrow_R_1",
+    "fx_attracted_sheet_0",
+    "fx_sheet_ferrous_strip_0",
+    "fx_attracted_sheet_1",
+    "fx_sheet_ferrous_strip_1",
+    "fx_attracted_sheet_2",
+    "fx_sheet_ferrous_strip_2",
+    "fx_attracted_sheet_3",
+    "fx_sheet_ferrous_strip_3"
+  ],
+  "motion_nodes": {
+    "fx_magnetic_field": {
+      "axis": "Z",
+      "limits": [
+        -25,
+        25
+      ],
+      "note": "Rigid articulation, artistic guide; not a collision guarantee."
+    }
+  },
+  "body_rig_reference": "rig.json",
+  "palette_reference": "palette.json",
+  "body_palette_preserved_in_fx_variant": true,
+  "baseline_files_unchanged": true,
+  "baseline_sha256": {
+    "model.blend": "209e07616d2277050416838bc88e06e90ce7ed11ce6cdf95c5685b5105b93bb5",
+    "model.glb": "cef371e9c2acef8fea06b33bf98a6110bfc2ea6f41dd7dbff106ff36ad2abd0b",
+    "portrait.png": "8dc3234e4b35e3d5474386e1cf457790de1093668c0e3199741d4f9a2e1a266b"
+  },
+  "variants": {
+    "fx": {
+      "runtime": "model_fx.glb",
+      "source": "model_fx.blend",
+      "illustration": "portrait_fx.png",
+      "manifest": "manifest_fx.json",
+      "rig": "rig_fx.json",
+      "palette": "palette_fx.json"
+    },
+    "cel": {
+      "runtime": "model_cel.glb",
+      "source": "model_cel.blend",
+      "illustration": "portrait_cel.png",
+      "manifest": "manifest_cel.json",
+      "rig": "rig_cel.json",
+      "palette": "palette_cel.json"
+    }
+  },
+  "gameplay_status": "Art/FX concept only. No engine primitive, gameplay logic, collision, timing or ability integration implemented.",
+  "cel_variant": {
+    "method": "Three discrete unlit materials per semantic body slot assigned by authored face-normal bands. Baked in geometry/material indices; fully exportable, not dynamic lighting. FX keeps its original four-color palette.",
+    "light_direction_blender": [
+      -0.6299993991851807,
+      0.3937496244907379,
+      0.669374406337738
+    ],
+    "thresholds": [
+      0.13,
+      0.62
+    ],
+    "face_band_counts": {
+      "shadow": 208,
+      "base": 94,
+      "light": 108
+    },
+    "palette": {
+      "paper": {
+        "shadow": "#7b7669",
+        "base": "#f2e8cd",
+        "light": "#f5edd7"
+      },
+      "ink": {
+        "shadow": "#13181d",
+        "base": "#253038",
+        "light": "#515960"
+      },
+      "manila": {
+        "shadow": "#64573d",
+        "base": "#c5aa78",
+        "light": "#d1bb93"
+      },
+      "accent": {
+        "shadow": "#213237",
+        "base": "#40626b",
+        "light": "#668189"
+      }
+    },
+    "outline_width_px": 2.8
+  }
+}

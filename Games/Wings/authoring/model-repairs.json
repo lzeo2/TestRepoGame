@@ -1,0 +1,631 @@
+{
+  "schema": "wings_derived_escort_assets_v1",
+  "archive_name": "Wings_Base_30_Models.zip",
+  "archive_sha256": "4e37a104ba356790f6f9a0632c99d34b77dc023649e3cab830d895ec55c471d8",
+  "permission": {
+    "basis": "operator_report_and_scoped_authorization",
+    "report": "Operator reports creating supplied models with GPT and grants scoped Wings use.",
+    "limits": "Not independent originality verification or upstream game-code rights clearance."
+  },
+  "conversion": {
+    "positions_normals": "[x,y,-z]",
+    "tangent": "[x,y,-z,-w]",
+    "winding": "swap_triangle_indices_1_2_once_per_accessor",
+    "local_transform": "C*M*C; C=diag(1,1,-1,1)",
+    "quaternion_xyzw": "[-qx,-qy,qz,qw]",
+    "signed_axis": "[-ax,-ay,az]"
+  },
+  "existing_model_sha256": {
+    "a10.glb": "f9f4392f4de4dea95558c16738ff02fd89ae1ca10d0d960655fb967df64b9d24",
+    "ac130.glb": "1a53da510144bbcd28903ad407c067e4128af7d7a52afe4994e17826344f1f9e",
+    "apache.glb": "bd6a9677f8f469dceac601aef4fd2ec7b5a42f66f12c5493159004bfa6ca47ac",
+    "b2.glb": "3e271a320ef39720c445ed379b72dcdf40b32c38b58d1df09d356be119ee826b",
+    "carrier.glb": "d1e20c4d0a6e13e4de6d1ec0ebbf1cd4ce7a563f2a14601c681b2159822ce9b0",
+    "destroyer.glb": "5dfb334aa4496edb0c6358cdf7f8025f71dca563daad2b425d792b41c279eeef",
+    "f15.glb": "5c1bf64dc21962dc822dc44edd91186aa4a6932034b06a405d3170518fc135bf",
+    "f35.glb": "ce19018414037e3cef949a99ae08a1d035b25fbd20601e1835c2426bc32db197",
+    "fa18.glb": "78bb2fb9f542daaa607e850f7444018fc2f996cd247d67e3ad3761df58efab09",
+    "speedboat.glb": "7fee0b74e7c746a2dff2b7c4b5bed58c39b9ddbbc0c55592f1eb27941b4f2aee",
+    "yf12.glb": "5f49376fbace30d888e6972850833af28d101427f66f12bdf128c889966f6769"
+  },
+  "models": [
+    {
+      "source_model_id": "wings.original.wings_type45_daring_class.v1",
+      "source_member": "models/wings_type45_daring_class.glb",
+      "source_sha256": "d89013ab670d4669123efb69dcdd665ff5f18f9ee972569c999e3dc7725e4681",
+      "file": "models/derived/wings_type45_daring_class.glb",
+      "sha256": "34f5f85ab3e31b11187e967b85c0ebac1787ad8c9c06de250535f5a90866351f",
+      "bytes": 539104,
+      "axes": {
+        "forward": "-Z",
+        "up": "+Y",
+        "right": "+X",
+        "meters": true
+      },
+      "root": "vessel_root_waterline",
+      "waterline_y": 0,
+      "objective_only": true,
+      "player_vehicle_kind": null,
+      "runtime_consumed": false,
+      "bounds": {
+        "min": [
+          -10.600000381469727,
+          -7.400000095367432,
+          -76.19999694824219
+        ],
+        "max": [
+          10.600000381469727,
+          45.244998931884766,
+          76.19999694824219
+        ]
+      },
+      "articulation": [
+        {
+          "node": "main_turret_yaw",
+          "axis_local": [
+            0,
+            -1,
+            0
+          ],
+          "rest_translation": [
+            0,
+            8.300000190734863,
+            -50.29199981689453
+          ],
+          "bounds_local": {
+            "min": [
+              -1.899999976158142,
+              1.9073486612342094e-07,
+              -2.299999952316284
+            ],
+            "max": [
+              1.899999976158142,
+              2.4000000953674316,
+              2.299999952316284
+            ]
+          },
+          "limits_rad": [
+            -0.6,
+            0.6
+          ],
+          "limits_basis": "conservative_authoring_test_envelope_not_real_mechanical_limits"
+        },
+        {
+          "node": "main_turret_pitch",
+          "axis_local": [
+            -1,
+            0,
+            0
+          ],
+          "rest_translation": [
+            0,
+            1.4499998092651367,
+            -1.4500007629394531
+          ],
+          "bounds_local": {
+            "min": [
+              -0.5,
+              -0.4749999940395355,
+              -4.556057453155518
+            ],
+            "max": [
+              0.5,
+              0.4749999940395355,
+              0.4749999940395355
+            ]
+          },
+          "limits_rad": [
+            -0.45,
+            0
+          ],
+          "limits_basis": "conservative_authoring_test_envelope_not_real_mechanical_limits"
+        },
+        {
+          "node": "port_propeller_1",
+          "axis_local": [
+            0,
+            0,
+            1
+          ],
+          "rest_translation": [
+            -3.0739998817443848,
+            -4.2179999351501465,
+            65.53199768066406
+          ],
+          "bounds_local": {
+            "min": [
+              -2.73799991607666,
+              -2.73799991607666,
+              -1.5461667776107788
+            ],
+            "max": [
+              2.73799991607666,
+              2.73799991607666,
+              1.5461667776107788
+            ]
+          }
+        },
+        {
+          "node": "starboard_propeller_2",
+          "axis_local": [
+            0,
+            0,
+            1
+          ],
+          "rest_translation": [
+            3.0739998817443848,
+            -4.2179999351501465,
+            65.53199768066406
+          ],
+          "bounds_local": {
+            "min": [
+              -2.73799991607666,
+              -2.73799991607666,
+              -1.5461667776107788
+            ],
+            "max": [
+              2.73799991607666,
+              2.73799991607666,
+              1.5461667776107788
+            ]
+          }
+        }
+      ],
+      "main_gun_geometry": {
+        "yaw_node": "main_turret_yaw",
+        "pitch_node": "main_turret_pitch",
+        "muzzle_node": "main_gun_muzzle",
+        "muzzle_pitch_local": [
+          -1.8369701341211446e-18,
+          0.22999954223632812,
+          -4.549999713897705
+        ],
+        "breech_pitch_local": [
+          -2.9085359853765593e-18,
+          4.440892098500626e-16,
+          -5.798861337780181e-07
+        ],
+        "bore_direction_pitch_local": [
+          2.3520870775868313e-19,
+          0.05048490025238842,
+          -0.998724824386831
+        ],
+        "muzzle_rest_root": [
+          -1.8369701341211446e-18,
+          9.979999542236328,
+          -56.29200029373169
+        ],
+        "derivation": "centers_of_eight_unique_terminal_and_breech_ring_vertices",
+        "proposed_adapter_binding": "gun_fwd",
+        "capability_enabled": false,
+        "clearance_scope": "test_envelope_barrel_and_forward_bore_clear_of_static_hull_and_major_islands"
+      },
+      "collision": {
+        "basis": "geometry_component_aabbs_conservative_not_exact_hull",
+        "hull": {
+          "min": [
+            -10.600000381469727,
+            -7.400000095367432,
+            -76.19999694824219
+          ],
+          "max": [
+            10.600000381469727,
+            8.199999809265137,
+            76.19999694824219
+          ]
+        },
+        "deck": {
+          "min": [
+            -10.600000381469727,
+            8.0,
+            -76.19999694824219
+          ],
+          "max": [
+            10.600000381469727,
+            8.229999542236328,
+            76.19999694824219
+          ]
+        },
+        "island_components": [
+          {
+            "min": [
+              -8.692000389099121,
+              8.199999809265137,
+              -26.670000076293945
+            ],
+            "max": [
+              8.692000389099121,
+              16.399999618530273,
+              25.145999908447266
+            ]
+          },
+          {
+            "min": [
+              -9.645999908447266,
+              15.600000381469727,
+              -25.908000946044922
+            ],
+            "max": [
+              9.645999908447266,
+              19.0,
+              -10.668000221252441
+            ]
+          },
+          {
+            "min": [
+              -2.4149999618530273,
+              19.0,
+              -18.836999893188477
+            ],
+            "max": [
+              2.4149999618530273,
+              37.900001525878906,
+              -13.166999816894531
+            ]
+          },
+          {
+            "min": [
+              -2.758063793182373,
+              39.154998779296875,
+              -18.62507438659668
+            ],
+            "max": [
+              2.758063793182373,
+              45.244998931884766,
+              -13.378925323486328
+            ]
+          },
+          {
+            "min": [
+              -4.300000190734863,
+              11.949999809265137,
+              0.5839999914169312
+            ],
+            "max": [
+              4.300000190734863,
+              26.450000762939453,
+              10.083999633789062
+            ]
+          },
+          {
+            "min": [
+              -4.300000190734863,
+              11.949999809265137,
+              18.110000610351562
+            ],
+            "max": [
+              4.300000190734863,
+              26.450000762939453,
+              27.610000610351562
+            ]
+          },
+          {
+            "min": [
+              -8.692000389099121,
+              8.199999809265137,
+              22.860000610351562
+            ],
+            "max": [
+              8.692000389099121,
+              17.0,
+              45.720001220703125
+            ]
+          }
+        ],
+        "island_bounds": {
+          "min": [
+            -9.645999908447266,
+            8.199999809265137,
+            -26.670000076293945
+          ],
+          "max": [
+            9.645999908447266,
+            45.244998931884766,
+            45.720001220703125
+          ]
+        },
+        "held": "fine_fittings_and_posed_turret_collision_need_adapter_policy"
+      },
+      "materials": {
+        "role": "mixed_naval_atlas",
+        "embedded_maps_preserved": true,
+        "factor_change": "explicit_gltf_defaults_only",
+        "glass": "held_mixed_opaque_atlas_requires_authored_partition_or_converter",
+        "existing_fleet_converter": "held_discards_uv_and_maps"
+      },
+      "supported_runtime_weapon_capabilities": [],
+      "holds": [
+        "source_built_render_and_FC_adapter_not_delivered",
+        "no_inferred_AA_ASW_missile_sensor_or_torpedo_capability",
+        "no_visual_realism_native_performance_or_gameplay_acceptance"
+      ]
+    },
+    {
+      "source_model_id": "wings.original.wings_type054a_jiangkai_ii.v1",
+      "source_member": "models/wings_type054a_jiangkai_ii.glb",
+      "source_sha256": "a2afdbbd52f55420a29630f84643335ebec58504abe06100a70f98d58c5251ae",
+      "file": "models/derived/wings_type054a_jiangkai_ii.glb",
+      "sha256": "52347c718b6aa6a0f6466a60fdc9a87df60234a146e6782af28186993c31fdc4",
+      "bytes": 545888,
+      "axes": {
+        "forward": "-Z",
+        "up": "+Y",
+        "right": "+X",
+        "meters": true
+      },
+      "root": "vessel_root_waterline",
+      "waterline_y": 0,
+      "objective_only": true,
+      "player_vehicle_kind": null,
+      "runtime_consumed": false,
+      "bounds": {
+        "min": [
+          -8.0,
+          -5.0,
+          -67.05000305175781
+        ],
+        "max": [
+          8.0,
+          39.52000045776367,
+          67.05000305175781
+        ]
+      },
+      "articulation": [
+        {
+          "node": "main_turret_yaw",
+          "axis_local": [
+            0,
+            -1,
+            0
+          ],
+          "rest_translation": [
+            0,
+            6.800000190734863,
+            -44.25299835205078
+          ],
+          "bounds_local": {
+            "min": [
+              -1.4819999933242798,
+              1.9073486612342094e-07,
+              -1.7940000295639038
+            ],
+            "max": [
+              1.4819999933242798,
+              1.871999979019165,
+              1.7940000295639038
+            ]
+          },
+          "limits_rad": [
+            -0.6,
+            0.6
+          ],
+          "limits_basis": "conservative_authoring_test_envelope_not_real_mechanical_limits"
+        },
+        {
+          "node": "main_turret_pitch",
+          "axis_local": [
+            -1,
+            0,
+            0
+          ],
+          "rest_translation": [
+            0,
+            1.13100004196167,
+            -1.1310005187988281
+          ],
+          "bounds_local": {
+            "min": [
+              -0.38999998569488525,
+              -0.37049999833106995,
+              -3.553725004196167
+            ],
+            "max": [
+              0.38999998569488525,
+              0.37049999833106995,
+              0.37049999833106995
+            ]
+          },
+          "limits_rad": [
+            -0.45,
+            0
+          ],
+          "limits_basis": "conservative_authoring_test_envelope_not_real_mechanical_limits"
+        },
+        {
+          "node": "port_propeller_1",
+          "axis_local": [
+            0,
+            0,
+            1
+          ],
+          "rest_translation": [
+            -2.319999933242798,
+            -2.8499999046325684,
+            57.66299819946289
+          ],
+          "bounds_local": {
+            "min": [
+              -1.850000023841858,
+              -1.8499997854232788,
+              -1.0447072982788086
+            ],
+            "max": [
+              1.8500001430511475,
+              1.8500001430511475,
+              1.0447072982788086
+            ]
+          }
+        },
+        {
+          "node": "starboard_propeller_2",
+          "axis_local": [
+            0,
+            0,
+            1
+          ],
+          "rest_translation": [
+            2.319999933242798,
+            -2.8499999046325684,
+            57.66299819946289
+          ],
+          "bounds_local": {
+            "min": [
+              -1.8500001430511475,
+              -1.8499997854232788,
+              -1.0447072982788086
+            ],
+            "max": [
+              1.850000023841858,
+              1.8500001430511475,
+              1.0447072982788086
+            ]
+          }
+        }
+      ],
+      "main_gun_geometry": {
+        "yaw_node": "main_turret_yaw",
+        "pitch_node": "main_turret_pitch",
+        "muzzle_node": "main_gun_muzzle",
+        "muzzle_pitch_local": [
+          -1.432836725294008e-18,
+          0.1794002028182149,
+          -3.5489985942840576
+        ],
+        "breech_pitch_local": [
+          -2.268658118224553e-18,
+          1.736581332067999e-07,
+          1.1292090675851796e-06
+        ],
+        "bore_direction_pitch_local": [
+          2.352086882414866e-19,
+          0.05048500299959862,
+          -0.99872481919302
+        ],
+        "muzzle_rest_root": [
+          -1.432836725294008e-18,
+          8.110400435514748,
+          -48.93299746513367
+        ],
+        "derivation": "centers_of_eight_unique_terminal_and_breech_ring_vertices",
+        "proposed_adapter_binding": "gun_fwd",
+        "capability_enabled": false,
+        "clearance_scope": "test_envelope_barrel_and_forward_bore_clear_of_static_hull_and_major_islands"
+      },
+      "collision": {
+        "basis": "geometry_component_aabbs_conservative_not_exact_hull",
+        "hull": {
+          "min": [
+            -8.0,
+            -5.0,
+            -67.05000305175781
+          ],
+          "max": [
+            8.0,
+            6.699999809265137,
+            67.05000305175781
+          ]
+        },
+        "deck": {
+          "min": [
+            -8.0,
+            6.5,
+            -67.05000305175781
+          ],
+          "max": [
+            8.0,
+            6.730000019073486,
+            67.05000305175781
+          ]
+        },
+        "island_components": [
+          {
+            "min": [
+              -6.639999866485596,
+              6.699999809265137,
+              -24.808500289916992
+            ],
+            "max": [
+              6.639999866485596,
+              14.5,
+              18.103500366210938
+            ]
+          },
+          {
+            "min": [
+              -7.360000133514404,
+              13.75,
+              -24.808500289916992
+            ],
+            "max": [
+              7.360000133514404,
+              17.25,
+              -11.398500442504883
+            ]
+          },
+          {
+            "min": [
+              -3.5,
+              10.800000190734863,
+              4.586999893188477
+            ],
+            "max": [
+              3.5,
+              23.399999618530273,
+              14.187000274658203
+            ]
+          },
+          {
+            "min": [
+              -6.71999979019165,
+              6.699999809265137,
+              20.785499572753906
+            ],
+            "max": [
+              6.71999979019165,
+              14.899999618530273,
+              40.9005012512207
+            ]
+          },
+          {
+            "min": [
+              -1.7119017839431763,
+              25.399999618530273,
+              23.85088539123535
+            ],
+            "max": [
+              1.7119017839431763,
+              29.0,
+              27.107114791870117
+            ]
+          }
+        ],
+        "island_bounds": {
+          "min": [
+            -7.360000133514404,
+            6.699999809265137,
+            -24.808500289916992
+          ],
+          "max": [
+            7.360000133514404,
+            29.0,
+            40.9005012512207
+          ]
+        },
+        "held": "fine_fittings_and_posed_turret_collision_need_adapter_policy"
+      },
+      "materials": {
+        "role": "mixed_naval_atlas",
+        "embedded_maps_preserved": true,
+        "factor_change": "explicit_gltf_defaults_only",
+        "glass": "held_mixed_opaque_atlas_requires_authored_partition_or_converter",
+        "existing_fleet_converter": "held_discards_uv_and_maps"
+      },
+      "supported_runtime_weapon_capabilities": [],
+      "holds": [
+        "source_built_render_and_FC_adapter_not_delivered",
+        "no_inferred_AA_ASW_missile_sensor_or_torpedo_capability",
+        "no_visual_realism_native_performance_or_gameplay_acceptance"
+      ]
+    }
+  ]
+}

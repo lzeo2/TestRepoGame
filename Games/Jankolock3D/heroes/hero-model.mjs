@@ -1,8 +1,10 @@
-import { cloneCharacter } from '../character-assets.mjs';
-import { Vector3, Quaternion } from '../vendor/three.module.js';
+import { cloneCharacter, TRIO_HERO_IDS } from '../character-assets.mjs';
+import { Vector3, Quaternion, Object3D } from '../vendor/three.module.js';
+import { bindExpansionRig, isExpansionHero } from './expansion-rigs.mjs';
 
 // Also used by the raw-GLB regression, independently of the asset cache.
 export function bindHeroRig(group, rig) {
+  if(isExpansionHero(rig?.model))return bindExpansionRig(group,rig);
   if(rig?.schema!=='rigid_parts_v2'||!rig.movable_nodes?.length)throw new Error('Missing rigid_parts_v2 hero rig');
   const nodes=new Map(),axis=new Vector3(1,0,0),delta=new Quaternion();
   group.updateWorldMatrix(true,true);
@@ -27,10 +29,11 @@ export function bindHeroRig(group, rig) {
   const twoHanded=nodes.has('ruler_rifle')||nodes.has('stapler_carbine');
   const gooey=rig.model==='gooey_sticky';
   let clock=0;
-  function hinge(name,degrees) {
+  function hinge(name,degrees,component='x') {
     const joint=nodes.get(name);if(!joint)return;
-    const range=joint.spec.rotation_deg.x;
+    const range=joint.spec.rotation_deg[component];
     const angle=range==='free'?degrees:Math.max(range[0],Math.min(range[1],degrees));
+    axis.set(0,0,0)[component]=1;
     joint.node.quaternion.copy(joint.quaternion).multiply(delta.setFromAxisAngle(axis,angle*Math.PI/180));
   }
   return {
@@ -45,6 +48,57 @@ export function bindHeroRig(group, rig) {
       const sliding=state==='slide',air=state==='jump'||state==='fall';
       const lean=sliding?-10:state==='dash'?-7:state==='jump'?-4:state==='fall'?3:aiming||state==='aim'?-3:0;
       const kick=Number.isFinite(recoil)?Math.max(0,Math.min(1,recoil))*6:0;
+      if(rig.model==='ribbon-seraph') {
+        hinge('hover_core',lean-kick);hinge('optic_mask',aiming?-5:0);
+        hinge('spool_rotation',stride*35,'z');hinge('crown_loop_tilt',sliding?-8:0);
+        for(const side of ['L','R']) {
+          hinge(`${side}_wing_bank`,(side==='L'?1:-1)*(moving*8+stride*3),'z');
+          hinge(`${side}_wingtip_curl`,sliding?10:stride*5);
+          hinge(`${side}_cephalic_ribbon`,aiming?-8:stride*3);
+        }
+        for(const i of [-1,0,1]) {
+          hinge(`trailing_ribbon_${i}_upper`,sliding?12:stride*7);
+          hinge(`trailing_ribbon_${i}_curl`,air?-8:-stride*9);
+        }
+        group.userData.pose=state;return;
+      }
+      if(rig.model==='spoollash') {
+        hinge('reel_body',lean-kick);hinge('reel_crank',stride*20,'z');
+        for(const side of ['left','right']) {
+          const step=sliding||air?0:stride*(side==='left'?1:-1);
+          hinge(`${side}_hip`,sliding?-18:air?-8:step*14);
+          hinge(`${side}_knee`,sliding?-26:air?-14:-Math.abs(step)*16);
+          hinge(`${side}_ankle`,sliding?15:air?8:Math.abs(step)*8-step*7);
+          hinge(`${side}_shoulder`,aiming?-4:-step*4);
+        }
+        // Cosmetic cable flex only; damage never follows whip mesh contacts.
+        for(let i=1;i<=10;i++)hinge(`whip_joint_${String(i).padStart(2,'0')}`,stride*1.5+kick*.4);
+        group.userData.pose=state;return;
+      }
+      if(rig.model==='checkmate-regent') {
+        hinge('body_sway',lean-kick);hinge('head_look',-lean*.35);
+        for(const side of ['L','R']) {
+          const step=sliding||air?0:stride*(side==='L'?1:-1);
+          hinge(`hip_${side}`,sliding?-16:air?-8:step*12);
+          hinge(`knee_${side}`,sliding?-24:air?-12:-Math.abs(step)*14);
+          hinge(`ankle_${side}`,sliding?16:air?8:Math.abs(step)*8-step*6);
+          hinge(`cape_${side}`,Math.abs(step)*4+(sliding?8:0));
+        }
+        hinge('checker_guard',aiming?-10:0);hinge('rook_sceptre',-kick);
+        group.userData.pose=state;return;
+      }
+      if(rig.model==='prism-warden') {
+        hinge('BODY_SUSPENSION',lean-kick);hinge('HEAD_GIMBAL',aiming?-6:0);
+        hinge('IRIS_ROTATOR',stride*12,'z');hinge('COMPASS_ARM',-kick);
+        for(const side of ['LEFT','RIGHT','REAR']) {
+          const step=sliding||air?0:stride*(side==='LEFT'?1:side==='RIGHT'?-1:.5);
+          hinge(`LEG_${side}_HIP`,sliding?-12:air?-8:step*6);
+          hinge(`LEG_${side}_KNEE`,sliding?22:air?14:-step*8);
+          hinge(`LEG_${side}_FOOT`,sliding?-10:air?-6:step*2);
+        }
+        hinge('COMPASS_SCRIBE_BLADE',aiming?6:0,'z');hinge('COMPASS_PROJECTOR_BLADE',aiming?-6:0,'z');
+        group.userData.pose=state;return;
+      }
       // Torso kick moves both grips together and stays inside the authored hinge limits.
       hinge('pelvis',sliding?-2:0);hinge('torso',lean-kick);hinge('head',-lean*.35);
       for(const side of ['l','r']) {
@@ -72,12 +126,44 @@ export function bindHeroRig(group, rig) {
 
 // Runtime pose adapter over the actual committed GLB, not a second primitive hero.
 export function createHeroVisual(id) {
-  if(!['stampead','turretina','snipeoff','gooey'].includes(id))throw new RangeError(`Unknown hero: ${id}`);
+  if(!isExpansionHero(id)&&!['stampead','turretina','snipeoff','gooey','ribbon-seraph',...TRIO_HERO_IDS].includes(id))throw new RangeError(`Unknown hero: ${id}`);
   const asset=cloneCharacter(id),group=asset.group;
   let pose;
   try {pose=bindHeroRig(group,asset.rig);}catch(error){asset.dispose();throw error;}
+  if(isExpansionHero(id)) {
+    // ART adapter only: no kit registration or collision/target-volume change.
+    const box=asset.metadata.bodyBounds;
+    if(asset.metadata.unlit!==true||![box?.min,box?.max].every(v=>Array.isArray(v)&&v.length===3&&v.every(Number.isFinite))||box.max.some((v,i)=>v<=box.min[i])) {
+      pose.dispose();asset.dispose();throw new Error(`Missing measured clean expansion bounds: ${id}`);
+    }
+    group.scale.setScalar(1.8/(box.max[1]-box.min[1]));
+    let disposed=false;
+    return {group,metadata:asset.metadata,muzzle:pose.muzzle,limitations:pose.limitations,
+      get motion(){return pose.motion;},
+      setAcceptedAction(event){return disposed?false:pose.setAcceptedAction(event);},
+      clearAction(){if(!disposed)pose.clearAction();},
+      reset(){if(!disposed)pose.reset();},
+      update(dt,options={}){
+        if(disposed)return;
+        if(Number.isFinite(options.yaw))group.rotation.y=options.yaw;
+        pose.update(dt,options);
+      },
+      dispose(){if(disposed)return;disposed=true;pose.dispose();asset.dispose();}
+    };
+  }
+  // 2.466m authored crown becomes 1.8m; wings remain cosmetic outside the
+  // unchanged controller capsule/hit volume. The asset's hover is not flight.
+  if(id==='ribbon-seraph')group.scale.setScalar(.73);
+  // Match the standard 1.8m target height, excluding Spoollash's cosmetic lash.
+  if(id==='checkmate-regent')group.scale.setScalar(.7175);
+  if(id==='prism-warden')group.scale.setScalar(.6823);
   let disposed=false;
-  const muzzle=group.getObjectByName({stampead:'stamp_face_relief',turretina:'muzzle',snipeoff:'muzzle001',gooey:'hand_r'}[id]);
+  // Seraph has no authored socket. Add a cosmetic emitter beyond its front face;
+  // damage rays and collision still use the existing controller, never wing meshes.
+  const emitters={spoollash:['whip_grip',-.45],'checkmate-regent':['rook_sceptre',-.4],'prism-warden':['COMPASS_PROJECTOR_BLADE',-.8]};
+  const emitter=emitters[id],socket=id==='ribbon-seraph'||emitter?new Object3D():null;
+  if(socket){socket.name=id==='ribbon-seraph'?'typebar_muzzle':'weapon_muzzle';socket.position.set(0,0,emitter?.[1]??-.75);group.getObjectByName(emitter?.[0]??'hover_core').add(socket);}
+  const muzzle=socket??group.getObjectByName({stampead:'stamp_face_relief',turretina:'muzzle',snipeoff:'muzzle001',gooey:'hand_r'}[id]);
   return {group,metadata:asset.metadata,muzzle,
     update(dt,options={}) {
       if(disposed)return;

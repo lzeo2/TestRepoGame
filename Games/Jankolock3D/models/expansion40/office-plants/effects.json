@@ -1,0 +1,63 @@
+{
+  "schema": "jank3d_geometric_effect_concept_v1",
+  "id": "office-plants",
+  "effect_name": "Window Bloom",
+  "description": "Three large cut-paper leaf blooms unfurl around Fern\u2019s planter. Watering-can droplets are chunky paper squares and the stems have visible geometric veins, keeping the sustain effect legible and office-flat.",
+  "toggle_root": "FX_ROOT",
+  "toggle_contract": "Set this subtree visible/invisible in the target engine. Geometry has no autonomous playback; caller controls visibility and any motion.",
+  "mesh_nodes": [
+    "fx_bloom_stem_0",
+    "fx_leaf_bloom_0_leaf_0",
+    "fx_leaf_bloom_0_leaf_1",
+    "fx_leaf_bloom_0_leaf_2",
+    "fx_leaf_bloom_0_leaf_3",
+    "fx_leaf_bloom_0_leaf_4",
+    "fx_leaf_bloom_0_center",
+    "fx_stem_leaf_0",
+    "fx_bloom_stem_1",
+    "fx_leaf_bloom_1_leaf_0",
+    "fx_leaf_bloom_1_leaf_1",
+    "fx_leaf_bloom_1_leaf_2",
+    "fx_leaf_bloom_1_leaf_3",
+    "fx_leaf_bloom_1_leaf_4",
+    "fx_leaf_bloom_1_center",
+    "fx_stem_leaf_1",
+    "fx_bloom_stem_2",
+    "fx_leaf_bloom_2_leaf_0",
+    "fx_leaf_bloom_2_leaf_1",
+    "fx_leaf_bloom_2_leaf_2",
+    "fx_leaf_bloom_2_leaf_3",
+    "fx_leaf_bloom_2_leaf_4",
+    "fx_leaf_bloom_2_center",
+    "fx_stem_leaf_2",
+    "fx_water_square_0",
+    "fx_water_square_1",
+    "fx_water_square_2",
+    "fx_water_square_3",
+    "fx_bloom_tick_0",
+    "fx_bloom_tick_1",
+    "fx_bloom_tick_2"
+  ],
+  "motion_nodes": {},
+  "body_rig_reference": "rig.json",
+  "palette_reference": "palette.json",
+  "body_palette_preserved_in_fx_variant": true,
+  "baseline_files_unchanged": true,
+  "baseline_sha256": {
+    "model.blend": "1765099135b7e96d4d8d7bce6705f4f9955c775d4948bb54d546d84a0b857376",
+    "model.glb": "40e5620866c65677871e3e3b2743771c89975742d155022f38cd2fecc5e4d128",
+    "portrait.png": "bbf11c89adc5828dc370a709b5aad74e3eaadee49b458d3f7f3f869089c097e1"
+  },
+  "variants": {
+    "fx": {
+      "runtime": "model_fx.glb",
+      "source": "model_fx.blend",
+      "illustration": "portrait_fx.png",
+      "manifest": "manifest_fx.json",
+      "rig": "rig_fx.json",
+      "palette": "palette_fx.json"
+    }
+  },
+  "gameplay_status": "Art/FX concept only. No engine primitive, gameplay logic, collision, timing or ability integration implemented.",
+  "cel_variant": null
+}

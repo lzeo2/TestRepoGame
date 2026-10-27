@@ -1,0 +1,52 @@
+{
+  "schema": "jank3d_geometric_effect_concept_v1",
+  "id": "cassette",
+  "effect_name": "Bad Rewind",
+  "description": "An open, angular ribbon of recording tape curls around the support character, ending in large rewind arrowheads. Small tape splices and separated musical-free timing marks keep the effect office-machine themed and visibly different from a ring aura.",
+  "toggle_root": "FX_ROOT",
+  "toggle_contract": "Set this subtree visible/invisible in the target engine. Geometry has no autonomous playback; caller controls visibility and any motion.",
+  "mesh_nodes": [
+    "fx_rewind_ribbon_0",
+    "fx_rewind_ribbon_1",
+    "fx_rewind_ribbon_2",
+    "fx_rewind_ribbon_3",
+    "fx_rewind_ribbon_4",
+    "fx_rewind_ribbon_5",
+    "fx_rewind_ribbon_6",
+    "fx_large_rewind_arrow_0",
+    "fx_large_rewind_arrow_1",
+    "fx_tape_splice_0",
+    "fx_tape_splice_1",
+    "fx_tape_splice_2",
+    "fx_tape_splice_3",
+    "fx_tape_return_arrow"
+  ],
+  "motion_nodes": {
+    "fx_tape_rewind": {
+      "axis": "Y",
+      "limits": "free",
+      "note": "Rigid articulation, artistic guide; not a collision guarantee."
+    }
+  },
+  "body_rig_reference": "rig.json",
+  "palette_reference": "palette.json",
+  "body_palette_preserved_in_fx_variant": true,
+  "baseline_files_unchanged": true,
+  "baseline_sha256": {
+    "model.blend": "ab2928a67f4a49ef0a6f9b072b223266c8b62cb2342e9f0ac43af2f42cbe59bd",
+    "model.glb": "a3ad42bda940f89dd443ee6f8a087c1c007064ba7169a83ba209df7bac482455",
+    "portrait.png": "bc05deb4213933a047731a33dee4aec002a1d514f10d6774328ec5af0160cf65"
+  },
+  "variants": {
+    "fx": {
+      "runtime": "model_fx.glb",
+      "source": "model_fx.blend",
+      "illustration": "portrait_fx.png",
+      "manifest": "manifest_fx.json",
+      "rig": "rig_fx.json",
+      "palette": "palette_fx.json"
+    }
+  },
+  "gameplay_status": "Art/FX concept only. No engine primitive, gameplay logic, collision, timing or ability integration implemented.",
+  "cel_variant": null
+}

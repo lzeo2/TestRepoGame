@@ -1,0 +1,60 @@
+{
+  "schema": "jank3d_geometric_effect_concept_v1",
+  "id": "whitespace",
+  "effect_name": "Outer Margin",
+  "description": "A pair of offset open page-margin portals with exaggerated registration corners. Empty centers preserve the hero\u2019s negative-space design; a short line of sliding margin tabs connects the frames.",
+  "toggle_root": "FX_ROOT",
+  "toggle_contract": "Set this subtree visible/invisible in the target engine. Geometry has no autonomous playback; caller controls visibility and any motion.",
+  "mesh_nodes": [
+    "fx_departure_portal_L",
+    "fx_departure_portal_R",
+    "fx_departure_portal_T",
+    "fx_departure_portal_B",
+    "fx_arrival_portal_L",
+    "fx_arrival_portal_R",
+    "fx_arrival_portal_T",
+    "fx_arrival_portal_B",
+    "fx_corner_h_A-1-1",
+    "fx_corner_v_A-1-1",
+    "fx_corner_h_A-11",
+    "fx_corner_v_A-11",
+    "fx_corner_h_A1-1",
+    "fx_corner_v_A1-1",
+    "fx_corner_h_A11",
+    "fx_corner_v_A11",
+    "fx_corner_h_B-1-1",
+    "fx_corner_v_B-1-1",
+    "fx_corner_h_B-11",
+    "fx_corner_v_B-11",
+    "fx_corner_h_B1-1",
+    "fx_corner_v_B1-1",
+    "fx_corner_h_B11",
+    "fx_corner_v_B11",
+    "fx_margin_step_0",
+    "fx_margin_step_1",
+    "fx_margin_step_2",
+    "fx_margin_step_3"
+  ],
+  "motion_nodes": {},
+  "body_rig_reference": "rig.json",
+  "palette_reference": "palette.json",
+  "body_palette_preserved_in_fx_variant": true,
+  "baseline_files_unchanged": true,
+  "baseline_sha256": {
+    "model.blend": "e917816685a93d4fd58f07dc4090763305958b68f10f401b1e926c852e52ebd9",
+    "model.glb": "5a16c66f5158744f34221b0b33378f85cbba234dc5fd5243a5c924f134dde695",
+    "portrait.png": "baff0f0ccbd604ac9146229ecc2fe56296809e6315a5f0eeee748fcc778636eb"
+  },
+  "variants": {
+    "fx": {
+      "runtime": "model_fx.glb",
+      "source": "model_fx.blend",
+      "illustration": "portrait_fx.png",
+      "manifest": "manifest_fx.json",
+      "rig": "rig_fx.json",
+      "palette": "palette_fx.json"
+    }
+  },
+  "gameplay_status": "Art/FX concept only. No engine primitive, gameplay logic, collision, timing or ability integration implemented.",
+  "cel_variant": null
+}

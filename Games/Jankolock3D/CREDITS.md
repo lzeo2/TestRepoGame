@@ -1,3 +1,23 @@
+# Supplied trio base models
+
+Spoollash, Checkmate Regent and Prism Warden reuse the exact GLBs, palettes,
+rigs and manifests committed in `fc116792`; no assets were recopied or generated.
+The operator identifies the later trio zip as byte-identical to the earlier
+supply. This integration did not extract or independently compare those archives.
+Authorship/originality remain supplier declarations, not independently verified
+rights or source reproduction. Actual asset pins, native kit adaptations and
+verification limits are in [the trio integration receipt](models/TRIO.md).
+
+# Ribbon Seraph optimized supplied original
+
+The existing 3D game's fifth selectable hero uses the operator-supplied dot
+original dated 2026-10-24: clean GLB, rig and semantic palette only. Model bytes
+are unchanged: 3,395,656 bytes / 17,888 triangles, with 18 embedded <=512px PBR
+maps. Authorship/originality are supplier declarations, not independent rights
+verification. No archive scripts were executed, and no Blend/PDF/render/FX or
+unused LOD was published. The archive has no Monk model despite its duo label.
+See [custody, schema adaptation and verification limits](models/ribbon-seraph/README.md).
+
 # Portrait relief
 
 The operator supplied this in-house photo-derived portrait relief and approved

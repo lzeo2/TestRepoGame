@@ -1,11 +1,11 @@
 """Bounded integration evidence. Explicit API fixtures are labeled, never native claims."""
 import argparse
 import functools
-import hashlib
 import http.server
 import io
 import json
 import os
+from qa_roster import HERO_IDS, runtime_hashes
 from pathlib import Path
 import subprocess
 import threading
@@ -28,6 +28,10 @@ class Handler(http.server.SimpleHTTPRequestHandler):
         pass
 
 
+def source_hashes():
+    return runtime_hashes(ROOT)
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--traversal-only', action='store_true', help='Only A, isolated API placement/clock with native E; no combat acceptance')
@@ -36,9 +40,6 @@ def main():
     active = subprocess.run(['pgrep', '-f', '[c]hrome-linux/chrome|[c]hromium.*--remote-debugging-pipe'], capture_output=True)
     assert active.returncode != 0, 'Sibling browser active; sequence, do not overlap'
     guard(); OUT.mkdir(parents=True, exist_ok=True)
-    def source_hashes():
-        return {str(p.relative_to(ROOT)): hashlib.sha256(p.read_bytes()).hexdigest()
-                for p in sorted((ROOT / 'Games/Jankolock3D').rglob('*')) if p.is_file() and p.suffix in {'.mjs', '.js', '.html', '.css', '.glb', '.py'}}
     report_file = OUT / ('integration-traversal-evidence.json' if traversal_only else 'integration-evidence.json')
     report = {'scope': 'traversal-only' if traversal_only else 'full',
               'traversalPolicy': 'Fresh page/simulation per lane; fixture API station placement/cooldown reset and scripted clock; native E. Per-instance passive hero bots only; structures defense unchanged. No HP edits/progress grants; no combat or ride-invariant acceptance.',
@@ -97,7 +98,7 @@ def main():
                     load()
                     s = state(); assert s['portrait']['bytes'] == 3228372
                     assert s['portrait']['triangles'] == 124512
-                    assert len(page.locator('[data-hero-index]').all()) == 4
+                    assert set(page.locator('[data-hero]').evaluate_all('(cards)=>cards.map(card=>card.dataset.hero)')) == set(HERO_IDS)
                     capture('H', 'Normal lobby, verified in-repo photo-derived relief; no fixture')
                     page.get_by_role('button', name='Dark theme', exact=True).click()
                     capture('H-dark', 'Normal lobby, dark theme')

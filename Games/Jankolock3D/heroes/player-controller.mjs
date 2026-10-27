@@ -78,7 +78,9 @@ function cameraHitsRamp(p, r) {
  * reset to the last clear grounded pose (initial fallback: {x:0,y:0,z:8}).
  * This module also handles box tops/undersides. Spawn/warp into
  * non-overlapping space; warp clears movement, action timers, stamina and jumps
- * but preserves view angles and speedMultiplier (default 1, supported 0.1..4).
+ * but preserves view angles, speedMultiplier (default 1, supported 0.1..4), and
+ * movementStopped (boolean, default false). A stop cancels voluntary locomotion
+ * and upward impulses, not aiming, gravity, collision, or stamina recharge.
  *
  * Public observations: position/velocity (THREE.Vector3), yaw/pitch, aiming,
  * state, stamina (0..100), grounded, jumps, height, radius, infiniteAmmo.
@@ -97,6 +99,7 @@ export class PlayerController {
     this.yaw = 0;
     this.pitch = 0;
     this.speedMultiplier = 1;
+    this.movementStopped = false;
     this.radius = RADIUS;
     this._safe = new THREE.Vector3(0, 0, 8);
     this.warp(position);
@@ -259,6 +262,7 @@ export class PlayerController {
   }
 
   hookTo(target) {
+    if (this.movementStopped === true) return false;
     const point = target?.position ?? target;
     if (!point || ![point.x, point.y, point.z].every(Number.isFinite)) return false;
     const destination = new THREE.Vector3(point.x, point.y, point.z);
@@ -279,7 +283,18 @@ export class PlayerController {
     this.pitch = clamp(finite(input.pitch, this.pitch), -1.2, 1.2);
     this.aiming = Boolean(input.aim);
     dt = clamp(finite(dt), 0, 0.25);
-    if (dt === 0) return this;
+    if (this.movementStopped === true) {
+      this._ground();
+      this._dashTime = 0; this._stopSlide(); this._slideHeld = false;
+      this._mantle = this._hook = null;
+      this.velocity.x = this.velocity.z = 0;
+      this.velocity.y = Math.min(0, this.velocity.y);
+      input = {...input, forward:0, side:0, sprint:false, jump:false, dash:false, slide:false};
+    }
+    if (dt === 0) {
+      if (this.movementStopped === true) this._setState(input);
+      return this;
+    }
     this._ground();
     const forward = clamp(finite(input.forward), -1, 1), side = clamp(finite(input.side), -1, 1);
     const front = new THREE.Vector3(-Math.sin(this.yaw), 0, -Math.cos(this.yaw));

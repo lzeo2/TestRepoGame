@@ -1,0 +1,15 @@
+{
+  "label": "Ribbon Seraph",
+  "url": "models/ribbon-seraph/model.glb",
+  "bytes": 3395656,
+  "sha256": "fd7fdb83aa53d16e4d677360dc78a62c95b000336dede7d4d1d497c69a1fd702",
+  "triangles": 17888,
+  "images": 18,
+  "textures": 18,
+  "metadataSHA256": {
+    "manifest.json": "1e1c490c2fa535031fd02fe19f315e227e5230c818b3eb6709cf3ddbd488a305",
+    "rig.json": "a5bd917ca192776a96dce3f0d1fccf35cb4f77a0723ec96e71ece6a5523e3583",
+    "palette.json": "57100be178b67767f10ca740f892267a425d2accb37e71c1563b17e9d46dc7d5"
+  },
+  "audit": "Clean optimized GLB v2: safe zip paths, internal buffer views, finite geometry, matching normal/UV counts, in-range triangle indices, 18 embedded PNGs with CRC/zlib and <=512px dimensions. No archive code executed. Artist originality is operator-declared, not independently verified."
+}

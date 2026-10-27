@@ -1,5 +1,28 @@
 import * as THREE from './vendor/three.module.js';
 
+// Fit the starter square and a complete dry-bank crossing, not the entire map.
+export function initialTownPose(roads, terrain, width, height, fov = 60) {
+  const mid = Math.floor(roads.size / 2), radius = 3;
+  let left = mid - radius;
+  if (terrain.layout === 'river-v1') {
+    for (let z = mid - radius; z <= mid + radius; z++) {
+      left = Math.min(left, Math.floor(terrain.centerAt(z) - terrain.halfWidth - terrain.bankWidth) - 1);
+    }
+  }
+  const a = roads.center(Math.max(0, left), mid - radius);
+  const b = roads.center(Math.min(roads.size - 1, mid + radius), mid + radius);
+  const phone = width <= 600, tilt = phone ? .5 : .72;
+  // Closed mobile Map ends 265px above the bottom; collapsed tools occupy ~114px.
+  // Aim below both the top HUD and Map, leaving the bottom tools clear.
+  const screenY = phone ? .76 : .52;
+  const tan = Math.tan(fov * Math.PI / 360), aspect = Math.max(1, width) / Math.max(1, height);
+  const retreat = 1 / Math.tan(tilt + Math.atan((2 * screenY - 1) * tan));
+  // Nearest corner includes the hall's 17m roof (20m allowance), with 9% side margins.
+  const depth = (b.x - a.x) / 2 / (tan * aspect * .82) + (b.z - a.z) / 2 * Math.cos(tilt) + 20 * Math.sin(tilt);
+  const y = Math.min(400, Math.max(phone ? 280 : 215, depth / (Math.sin(tilt) + retreat * Math.cos(tilt))));
+  return { x: (a.x + b.x) / 2, y, z: (a.z + b.z) / 2 + y * retreat, yaw: 0, pitch: -tilt };
+}
+
 export function createFreeCamera(camera, canvas, extent = 1000, floorHeight = () => 0) {
   const target = new THREE.Vector3(0, 140, 160);
   let yaw = 0, pitch = -.65, targetYaw = yaw, targetPitch = pitch, pointer = null;

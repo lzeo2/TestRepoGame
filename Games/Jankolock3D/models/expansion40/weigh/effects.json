@@ -1,0 +1,50 @@
+{
+  "schema": "jank3d_geometric_effect_concept_v1",
+  "id": "weigh",
+  "effect_name": "Accountability Counterweights",
+  "description": "Two enormous levitating ledger counterweights descend outside the balance pans. Dotted drop-lines, handle silhouettes and numbered faces create a deliberate heavy accounting effect rather than a generic aura.",
+  "toggle_root": "FX_ROOT",
+  "toggle_contract": "Set this subtree visible/invisible in the target engine. Geometry has no autonomous playback; caller controls visibility and any motion.",
+  "mesh_nodes": [
+    "fx_ledger_weight_left",
+    "fx_weight_handle_top_left",
+    "fx_weight_handle_side_left-0.09",
+    "fx_weight_handle_side_left0.09",
+    "fx_weight_number_left",
+    "fx_weight_drop_left0",
+    "fx_weight_drop_left1",
+    "fx_weight_drop_left2",
+    "fx_weight_arrow_left",
+    "fx_ledger_weight_right",
+    "fx_weight_handle_top_right",
+    "fx_weight_handle_side_right-0.09",
+    "fx_weight_handle_side_right0.09",
+    "fx_weight_number_right",
+    "fx_weight_drop_right0",
+    "fx_weight_drop_right1",
+    "fx_weight_drop_right2",
+    "fx_weight_arrow_right"
+  ],
+  "motion_nodes": {},
+  "body_rig_reference": "rig.json",
+  "palette_reference": "palette.json",
+  "body_palette_preserved_in_fx_variant": true,
+  "baseline_files_unchanged": true,
+  "baseline_sha256": {
+    "model.blend": "5a09b31f87da4abcfd1c53bdfd6defe76eb6b3fd2a5111ccf42dfeac095a9a5c",
+    "model.glb": "689681def0cbd8d7889b31a2b9205e1f79b54edfb7bd66c2e49273de4534ef87",
+    "portrait.png": "9a8043b4672b7611e8268bccef8abf09396949e8645a377ed65861e65f8ae57d"
+  },
+  "variants": {
+    "fx": {
+      "runtime": "model_fx.glb",
+      "source": "model_fx.blend",
+      "illustration": "portrait_fx.png",
+      "manifest": "manifest_fx.json",
+      "rig": "rig_fx.json",
+      "palette": "palette_fx.json"
+    }
+  },
+  "gameplay_status": "Art/FX concept only. No engine primitive, gameplay logic, collision, timing or ability integration implemented.",
+  "cel_variant": null
+}

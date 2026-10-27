@@ -1,0 +1,100 @@
+{
+  "schema": "jank3d_geometric_effect_concept_v1",
+  "id": "curriculum",
+  "effect_name": "Mandatory lesson",
+  "description": "Three physically modelled lesson pages orbit at graduated heights and an ordered floor stair marks the training zone. Their clear bullets and rule lines echo the opening blackboard without concealing it.",
+  "toggle_root": "FX_ROOT",
+  "toggle_contract": "Set this subtree visible/invisible in the target engine. Geometry has no autonomous playback; caller controls visibility and any motion.",
+  "mesh_nodes": [
+    "fx_lesson_0_outline",
+    "fx_lesson_0_paper",
+    "fx_lesson_0_heading",
+    "fx_lesson_0_line_0",
+    "fx_lesson_0_line_1",
+    "fx_lesson_0_line_2",
+    "fx_lesson_number_tab_0",
+    "fx_lesson_number_mark_0_0",
+    "fx_lesson_1_outline",
+    "fx_lesson_1_paper",
+    "fx_lesson_1_heading",
+    "fx_lesson_1_line_0",
+    "fx_lesson_1_line_1",
+    "fx_lesson_1_line_2",
+    "fx_lesson_number_tab_1",
+    "fx_lesson_number_mark_1_0",
+    "fx_lesson_number_mark_1_1",
+    "fx_lesson_2_outline",
+    "fx_lesson_2_paper",
+    "fx_lesson_2_heading",
+    "fx_lesson_2_line_0",
+    "fx_lesson_2_line_1",
+    "fx_lesson_2_line_2",
+    "fx_lesson_number_tab_2",
+    "fx_lesson_number_mark_2_0",
+    "fx_lesson_number_mark_2_1",
+    "fx_lesson_number_mark_2_2",
+    "fx_training_step_0",
+    "fx_training_step_tick_0",
+    "fx_training_step_1",
+    "fx_training_step_tick_1",
+    "fx_training_step_2",
+    "fx_training_step_tick_2",
+    "fx_training_step_3",
+    "fx_training_step_tick_3"
+  ],
+  "motion_nodes": {
+    "fx_lesson_page_0": {
+      "axis": "Y",
+      "limits": [
+        -35,
+        35
+      ],
+      "note": "Rigid articulation, artistic guide; not a collision guarantee."
+    },
+    "fx_lesson_page_1": {
+      "axis": "Y",
+      "limits": [
+        -35,
+        35
+      ],
+      "note": "Rigid articulation, artistic guide; not a collision guarantee."
+    },
+    "fx_lesson_page_2": {
+      "axis": "Y",
+      "limits": [
+        -35,
+        35
+      ],
+      "note": "Rigid articulation, artistic guide; not a collision guarantee."
+    },
+    "fx_rule_stair": {
+      "axis": "Z",
+      "limits": [
+        -25,
+        25
+      ],
+      "note": "Rigid articulation, artistic guide; not a collision guarantee."
+    }
+  },
+  "body_rig_reference": "rig.json",
+  "palette_reference": "palette.json",
+  "body_palette_preserved_in_fx_variant": true,
+  "baseline_files_unchanged": true,
+  "baseline_sha256": {
+    "model.blend": "ad663699c58ef86787107d768434ab96808162c53b681786ae60ef5e75839bd7",
+    "model.glb": "66a92b77d0679815f6915f85c70a931112b9a488c5092e1a2df17dcf325c9317",
+    "portrait.png": "8eb26e57a3dc61f5c962959cf7f171bc108f9c833ea334899a5b1906ed09723f"
+  },
+  "variants": {
+    "fx": {
+      "runtime": "model_fx.glb",
+      "source": "model_fx.blend",
+      "illustration": "portrait_fx.png",
+      "manifest": "manifest_fx.json",
+      "rig": "rig_fx.json",
+      "palette": "palette_fx.json"
+    }
+  },
+  "gameplay_status": "Art/FX concept only. No engine primitive, gameplay logic, collision, timing or ability integration implemented.",
+  "cel_variant": null
+}

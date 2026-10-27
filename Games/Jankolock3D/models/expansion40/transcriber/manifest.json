@@ -1,0 +1,90 @@
+{
+  "schema": "jank3d_hero_expansion_asset_v1",
+  "hero_number": 12,
+  "id": "transcriber",
+  "display_name": "Scribe",
+  "role": "Slayer",
+  "design_notes": "A severe spoken-word duelist with a compact reel-recorder chest, asymmetrical tape sash and long microphone rapier. Projecting collar and bob-shaped recorder head contrast with very narrow legs. Muted bronze-brown accent #8a7660; articulated tape reels and wrist-mounted microphone.",
+  "files": {
+    "source": "model.blend",
+    "runtime": "model.glb",
+    "illustration": "portrait.png",
+    "rig": "rig.json",
+    "rig_alias": "manifest.rig.json",
+    "palette": "palette.json"
+  },
+  "blender_version": "4.3.2",
+  "glb_bytes": 276556,
+  "glb_sha256": "6a39fad4041014f3cd9ae88b83f0088a9349f3ec83a8acda6e45f4779c18bb74",
+  "triangles": 4560,
+  "mesh_nodes": 69,
+  "movable_nodes": 18,
+  "bounds_gltf": {
+    "min": [
+      -0.8196075558662415,
+      0.0,
+      -0.3700000047683716
+    ],
+    "max": [
+      0.9272835850715637,
+      2.355027675628662,
+      0.20000000298023224
+    ],
+    "dimensions": [
+      1.7468911409378052,
+      2.355027675628662,
+      0.5700000077486038
+    ]
+  },
+  "palette_hex": {
+    "paper": "#f2e8cd",
+    "ink": "#253038",
+    "manila": "#c5aa78",
+    "accent": "#8a7660"
+  },
+  "texture_count": 0,
+  "external_dependencies": [],
+  "illustration_dimensions": [
+    1024,
+    1024
+  ],
+  "status": "Original art-review candidate. Proposed kit is separate; not game-integrated or runtime-schema validated.",
+  "art_direction": "Flat paper/ink/manila + one accent, unlit solid fills and ink contours; neutral background.",
+  "model": "transcriber",
+  "tri_count_LOD0": 4560,
+  "size_bytes": 276556,
+  "texture_resolution": null,
+  "material_slots": [
+    "transcriber__ink",
+    "transcriber__paper",
+    "transcriber__accent",
+    "transcriber__manila"
+  ],
+  "rig_nodes": [
+    "root",
+    "pelvis",
+    "torso",
+    "head",
+    "left_reel_spin",
+    "right_reel_spin",
+    "left_hip",
+    "left_knee",
+    "left_ankle",
+    "right_hip",
+    "right_knee",
+    "right_ankle",
+    "left_shoulder",
+    "left_elbow",
+    "left_wrist",
+    "right_shoulder",
+    "right_elbow",
+    "right_wrist"
+  ],
+  "palette_default": {
+    "paper": "#f2e8cd",
+    "ink": "#253038",
+    "manila": "#c5aa78",
+    "accent": "#8a7660"
+  },
+  "provenance_note": "Generated in Blender by dot and Astra 6 max delegates, 2026-10-23; original in-house artwork, no remote assets."
+}

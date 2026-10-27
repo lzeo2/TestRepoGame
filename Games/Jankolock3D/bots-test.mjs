@@ -9,13 +9,13 @@ await preloadHeroes();
 
 const {heroes:kits}=JSON.parse(readFileSync(new URL('../../docs/jank3d-hero-kits.json',import.meta.url)));
 let groups=0;
-function fixture({souls=0,world={boxes:[],ramps:[]},floorHeight,onEffect}={}) {
+function fixture({souls=0,world={boxes:[],ramps:[]},floorHeight,onEffect,heroKits=kits}={}) {
   const sim=createSystems(world.lanes?world:undefined), scene=new THREE.Scene(), boxes=[...world.boxes];
   const player=sim.addHero({id:'player',team:'carbon',lane:'midway'});
   // Explicit public import-state fixture, never a production bot reward.
   const addHero=sim.addHero;
-  sim.addHero=options=>addHero({...options,souls});
-  const bots=createBots({sim,scene,world,kits,boxes,floorHeight:floorHeight??(world.lanes?undefined:()=>0),onEffect});
+  sim.addHero=options=>addHero({souls,...options}); // Explicit actor seeds stay public addHero inputs.
+  const bots=createBots({sim,scene,world,kits:heroKits,boxes,floorHeight:floorHeight??(world.lanes?undefined:()=>0),onEffect});
   const tick=(seconds,options)=>{for(let i=0;i<Math.round(seconds/.05);i++){sim.step(.05);bots.update(.05,options);}};
   return {sim,scene,boxes,player,bots,tick};
 }
@@ -144,6 +144,7 @@ function fixture({souls=0,world={boxes:[],ramps:[]},floorHeight,onEffect}={}) {
   const f=fixture({onEffect:event=>{events.push(event);results.push(sim.applyHeroEffect(event));}});sim=f.sim;
   sim.step(30);sim.moveHero(f.player.id,{x:0,y:0,z:0});sim.moveHero('bot-3',{x:0,y:0,z:12});
   f.bots.update(.05,{passive:true});
+  f.bots.update(0); // End passive setup before the real deployment-start, without autonomous casts.
   const r=f.bots.runtimes[2];r.controller.yaw=0;r.controller.pitch=0;r.cast(1);
   f.bots.update(.05);
   const index=events.findIndex(e=>e.ability==='turret'&&e.kind==='damage');
@@ -157,4 +158,193 @@ function fixture({souls=0,world={boxes:[],ramps:[]},floorHeight,onEffect}={}) {
   assert.equal(r.targets.find(t=>t.id===f.player.id).position.x,2,'targets follow replaced authority positions');
   f.bots.dispose();assert.equal(f.boxes.length,0,'disposal removes bot barricades');groups++;
 }
-console.log(`bots-test: ${groups} groups passed (5 bots/lanes/waves, shop, retreat, cooldowns, cover/passive, collision/respawn/recall, orbs, host callback/origins; Node scene only)`);
+{
+  for(const mode of ['death','reset','dispose','passive','finished']) {
+    const events=[],results=[];let sim;
+    const f=fixture({onEffect:event=>{events.push(event);results.push(sim.applyHeroEffect(event));}});sim=f.sim;
+    sim.step(30);sim.moveHero(f.player.id,{x:0,y:0,z:0});sim.moveHero('bot-4',{x:0,y:0,z:20});
+    f.bots.update(0); // Refresh/warp without autonomous casts.
+    const r=f.bots.runtimes[3];r.controller.yaw=0;r.controller.pitch=0;
+    assert.equal(r.cast(2),true);assert.equal(r.tether.targetId,f.player.id);
+    assert.equal(sim.stats(f.player.id).moveSpeed,4,mode);
+    const hp=f.player.hp;
+    assert.equal(events.length,1);assert.equal(results[0].ok,true);
+    assert.equal(500-hp,results[0].amount,'host damage is applied exactly once');
+    if(mode==='death') {
+      assert.ok(sim.damage('bot-4',10000,f.player.id,{kind:'ability'}).killed);
+      f.bots.update(.05);
+    } else if(mode==='dispose') f.bots.dispose();
+    else if(mode==='passive') {
+      f.boxes.push({minX:-5,maxX:5,minY:0,maxY:8,minZ:9,maxZ:10});
+      f.bots.update(.05,{passive:true}); // Cover break still revokes the linked slow.
+    } else {
+      if(mode==='finished') sim.phase='finished'; // Explicit inactive-host fixture, not win evidence.
+      r.reset();
+    }
+    assert.equal(r.tether,null,mode);assert.equal(sim.stats(f.player.id).moveSpeed,8,mode);
+    assert.equal(events.filter(e=>e.kind==='tether-end').length,1,mode);
+    assert.ok(results.every(result=>result.ok),mode);
+    assert.equal(f.player.hp,hp,'cleanup never deals damage');
+    if(mode!=='reset') {
+      r.emit('damage',r.kit.abilities[1],{id:f.player.id});
+      assert.equal(events.length,2,'inactive damage never reaches host');
+    }
+    r.reset();f.bots.dispose();f.bots.dispose();
+    assert.equal(events.length,2,'cleanup is forwarded once, never default-applied again');
+    const cleanup={...events[1],ability:'longshot'};
+    r.onEffect(cleanup);
+    assert.equal(results.at(-1).ok,false,'host still rejects invalid cleanup ability');
+    assert.equal(f.player.hp,hp);
+  }
+  groups++;
+}
+{
+  const f=fixture();f.sim.step(30);
+  f.sim.moveHero('bot-1',{x:0,y:0,z:0});f.sim.moveHero('bot-4',{x:0,y:0,z:20});
+  f.bots.update(0); // Real runtimes/authority, no autonomous action this frame.
+  const r=f.bots.runtimes[3],victim=f.sim.heroes.find(h=>h.id==='bot-1');
+  r.controller.yaw=0;r.controller.pitch=0;assert.equal(r.snapshot().tether,null);
+  assert.equal(r.cast(2),true);assert.equal(r.tether.targetId,victim.id);
+  const state=JSON.stringify({time:f.sim.time,heroes:f.sim.heroes,events:f.sim.events});
+  const snapshots=f.bots.snapshot(),source=snapshots.find(b=>b.id==='bot-4'),target=snapshots.find(b=>b.id===victim.id);
+  for(const bot of snapshots) {
+    assert.equal(bot.hp,f.sim.heroes.find(h=>h.id===bot.id).hp);
+    assert.equal(bot.moveSpeed,f.sim.stats(bot.id).moveSpeed);
+  }
+  assert.deepEqual(source.runtime.tether,{targetId:victim.id,left:r.kit.abilities[1].duration});
+  assert.ok(target.moveSpeed<8);const hp=victim.hp,speed=target.moveSpeed;
+  source.runtime.tether.targetId='detached';source.runtime.tether.left=-1;target.hp=-1;target.moveSpeed=-1;
+  assert.equal(JSON.stringify({time:f.sim.time,heroes:f.sim.heroes,events:f.sim.events}),state,'snapshot reads/writes are observational');
+  assert.equal(r.tether.targetId,victim.id);assert.equal(victim.hp,hp);assert.equal(f.sim.stats(victim.id).moveSpeed,speed);
+  r.update(.05);assert.equal(r.snapshot().tether.left,r.kit.abilities[1].duration-.05);
+  assert.equal(source.runtime.tether.left,-1,'no live lifetime reference');
+  r.reset();const unlinked=f.bots.snapshot();
+  assert.equal(unlinked.find(b=>b.id==='bot-4').runtime.tether,null);
+  assert.equal(unlinked.find(b=>b.id===victim.id).moveSpeed,8);
+  assert.equal(unlinked.find(b=>b.id===victim.id).hp,hp);
+  f.bots.dispose();groups++;
+}
+{
+  // Synthetic original-ID pure slow; wrapper/terrain/phase checks are production code.
+  const heroKits=structuredClone(kits),a=heroKits[0].abilities[1],events=[],results=[];let sim,terrain=false;
+  Object.assign(a,{baseDamage:0,baseHeal:0,spiritScale:0,damageType:'none',slow:.4,duration:2,range:12});
+  const f=fixture({heroKits,floorHeight:(x,z)=>terrain&&z>3&&z<5?5:0,
+    onEffect:event=>{events.push(event);results.push(sim.applyHeroEffect(event));}});sim=f.sim;
+  sim.step(30);sim.moveHero(f.player.id,{x:0,y:0,z:0});sim.moveHero('bot-5',{x:0,y:0,z:8});f.bots.update(0);
+  const r=f.bots.runtimes[4];r.controller.yaw=0;r.controller.pitch=0;
+  assert.equal(r.targets.find(t=>t.id===f.player.id).kind,'hero');
+  const hp=f.player.hp,ammo=r.ammo,souls=sim.heroes.map(h=>h.souls);
+  assert.ok(r.cast(2));assert.equal(events.length,1);assert.equal(events[0].kind,'status');assert.ok(results[0].ok);
+  assert.equal(sim.stats(f.player.id).moveSpeed,4.8);assert.equal(f.player.hp,hp);assert.equal(r.ammo,ammo);
+  assert.deepEqual(sim.heroes.map(h=>h.souls),souls);
+  const emit=()=>r.emit('status',a,{id:f.player.id});
+  terrain=true;emit();assert.equal(events.length,1,'status gets the same extra terrain visibility gate as damage');terrain=false;
+  f.boxes.push({minX:-5,maxX:5,minY:0,maxY:8,minZ:3,maxZ:4});emit();
+  assert.equal(events.length,1,'box cover suppresses hostile status');f.boxes.length=0;
+  f.bots.update(0,{passive:true});emit();assert.equal(events.length,1,'passive status is suppressed');f.bots.update(0);
+  for(const phase of ['pregame','finished']) {
+    sim.phase=phase;emit();assert.equal(events.length,1,`${phase} status is suppressed`);
+  }
+  sim.phase='laning'; // Explicit inactive-host negative fixtures above, not match progression evidence.
+  r.onEffect({...events[0],source:'missing'});assert.equal(events.length,2);assert.equal(results.at(-1).ok,false,'source remains systems-validated');
+  assert.equal(f.player.hp,hp);assert.equal(sim.stats(f.player.id).moveSpeed,4.8);
+  assert.ok(sim.damage('bot-5',10000,f.player.id,{kind:'ability'}).killed);emit();assert.equal(events.length,2,'dead-source status is suppressed');
+  f.bots.dispose();emit();assert.equal(events.length,2,'disposed status is suppressed');groups++;
+}
+// Real host/runtime cleanup, CPU placement only; no native or geometry claim.
+{
+  for(const mode of ['passive','dispose','death','finished']) {
+    const events=[],results=[];let sim;
+    const f=fixture({onEffect:event=>{events.push(event);results.push(sim.applyHeroEffect(event));}});sim=f.sim;
+    sim.step(30);sim.moveHero(f.player.id,{x:0,y:0,z:0});sim.moveHero('bot-3',{x:0,y:0,z:8});f.bots.update(0);
+    const r=f.bots.runtimes[2];r.controller.yaw=0;r.controller.pitch=0;
+    assert.ok(r.cast(1));const deploy=r.deployments.find(d=>d.definition.id==='turret');
+    const start=events.find(e=>e.kind==='deployment-start');assert.ok(start&&Number.isSafeInteger(start.deploymentId));
+    assert.ok(results.every(result=>result.ok));
+    const pulse={...start,kind:'damage',target:f.player.id,origin:{x:deploy.position.x,y:deploy.position.y+.9,z:deploy.position.z}};
+    assert.ok(sim.applyHeroEffect(pulse).ok);
+    if(mode==='passive'){f.bots.update(0,{passive:true});r.reset();}
+    if(mode==='dispose')f.bots.dispose();
+    if(mode==='death'){assert.ok(sim.damage('bot-3',10000,f.player.id,{kind:'ability'}).killed);f.bots.update(0);}
+    if(mode==='finished'){sim.phase='finished';r.reset();} // Explicit negative phase fixture.
+    const end=events.find(e=>e.kind==='deployment-end');assert.ok(end,mode);
+    assert.equal(events.filter(e=>e.kind==='deployment-end').length,1,mode);
+    assert.ok(results.every(result=>result.ok),mode);
+    const hp=f.player.hp;assert.equal(sim.applyHeroEffect(pulse).ok,false,mode);assert.equal(f.player.hp,hp);
+    r.onEffect(end);assert.deepEqual(results.at(-1),{ok:true,ended:false},'late cleanup survives all inactive bot gates');
+    assert.equal(f.player.hp,hp);f.bots.dispose();f.bots.dispose();
+  }
+  groups++;
+}
+// CPU host ACK propagation, not native input/terrain acceptance.
+{
+  let sim,calls=0;const f=fixture({onEffect:event=>{calls++;return sim.applyHeroEffect(event);}});sim=f.sim;
+  sim.step(30);sim.moveHero(f.player.id,{x:0,y:0,z:0});sim.moveHero('bot-4',{x:0,y:0,z:20});f.bots.update(0);
+  const r=f.bots.runtimes[3],w=kits[2].weapon;
+  const event={kind:'damage',source:'bot-4',target:f.player.id,ability:w.name,baseDamage:w.baseDamage,damageType:w.damageType};
+  assert.equal(r.onEffect(event)?.ok,true,'actual host acceptance reaches producer');const hp=f.player.hp;
+  const rejected=r.onEffect({...event,baseDamage:w.baseDamage+1});assert.equal(rejected?.ok,false);assert.equal(rejected.reason,'invalid baseDamage');assert.equal(f.player.hp,hp);
+  assert.equal(calls,2);f.bots.update(0,{passive:true});assert.equal(r.onEffect(event),undefined);assert.equal(calls,2);
+  f.bots.update(0);const wall={minX:-5,maxX:5,minY:0,maxY:6,minZ:9,maxZ:10};f.boxes.push(wall);
+  assert.equal(r.onEffect(event),undefined);assert.equal(calls,2,'terrain still suppresses callback/ACK');assert.equal(f.player.hp,hp);
+  f.boxes.splice(f.boxes.indexOf(wall),1);assert.ok(sim.damage('bot-4',10000,f.player.id,{kind:'ability'}).killed);f.bots.update(0);
+  assert.equal(r.onEffect(event),undefined);assert.equal(calls,2,'dead source still suppressed');assert.equal(f.player.hp,hp);
+  f.bots.dispose();groups++;
+}
+// Native runtime buff starts + real Host cleanup admission, CPU scene only.
+// Explicit emit tests the bridge independently of the concurrent reset-emission lane.
+{
+  for(const id of ['overtime','headshot'])for(const mode of ['passive','finished','dead','dispose']) {
+    if(id==='overtime'&&mode==='dead')continue; // Real Overtime invulnerability prevents an API kill while active.
+    let sim;const events=[],results=[],f=fixture({onEffect:event=>{events.push(event);const result=sim.applyHeroEffect(event);results.push(result);return result;}});sim=f.sim;
+    sim.step(30);f.bots.update(0);
+    const index=id==='overtime'?0:3,r=f.bots.runtimes[index],h=sim.heroes.find(h=>h.id===`bot-${index+1}`),a=r.kit.abilities.find(a=>a.id===id);
+    assert.ok(r.cast(a.slot));assert.equal(results.at(-1).ok,true);
+    if(id==='overtime'){assert.equal(sim.stats(h.id).invulnerable,true);assert.equal(sim.stats(h.id).moveSpeed,12);}
+    if(mode==='passive')f.bots.update(0,{passive:true});
+    if(mode==='finished')sim.phase='finished'; // Negative public-phase fixture, not match completion evidence.
+    if(mode==='dead'){sim.moveHero(h.id,{x:0,y:0,z:8});sim.moveHero(f.player.id,{x:0,y:0,z:0});assert.ok(sim.damage(h.id,10000,f.player.id,{kind:'ability'}).killed);f.bots.update(0);}
+    if(mode==='dispose')f.bots.dispose();
+    assert.equal(r.emit('buff-end',a,{id:h.id})?.ok,true,`${id}/${mode} cleanup forwarded`);
+    assert.equal(sim.stats(h.id).invulnerable,false);assert.equal(sim.stats(h.id).moveSpeed,8);
+    const before=structuredClone({heroes:sim.heroes,events:sim.events,stats:sim.stats(h.id)});
+    assert.equal(r.emit('buff-end',a,{id:h.id})?.ok,true);
+    assert.deepEqual({heroes:sim.heroes,events:sim.events,stats:sim.stats(h.id)},before,'late cleanup is idempotent');
+    const count=events.length;
+    for(const kind of ['buff','damage','status'])assert.equal(r.emit(kind,a,kind==='buff'?{id:h.id}:f.player),undefined);
+    assert.equal(events.length,count,'combat/start filters remain intact');assert.ok(results.every(result=>result.ok));
+    f.bots.dispose();f.bots.dispose();
+  }
+  groups++;
+}
+// Real purchased cloak, imported initial currency ONLY, not economy progression.
+function cloakActor(f,id,team,position) {
+  const actor=f.sim.addHero({id,team,souls:3200,position:f.sim.bases[team]});assert.equal(actor.souls,3200);assert.ok(f.sim.buyItem(id,'shadow-cloak').ok);assert.equal(actor.souls,0);assert.ok(f.sim.moveHero(id,position).ok);return actor;
+}
+for(const team of ['carbon','ivory']) {
+  let sim;const events=[],results=[],heroKits=team==='carbon'?[kits[1],kits[0],kits[2],kits[3]]:kits;
+  const f=fixture({heroKits,onEffect:event=>{events.push(event);const result=sim.applyHeroEffect(event);results.push(result);return result;}});sim=f.sim;assert.ok(sim.step(30).ok);
+  const sourceID=team==='carbon'?'bot-1':'bot-3',index=team==='carbon'?0:2,r=f.bots.runtimes[index],enemyTeam=team==='carbon'?'ivory':'carbon';assert.equal(r.kit.id,'turretina');assert.ok(sim.moveHero(sourceID,{x:0,y:0,z:8}).ok);
+  const actor=cloakActor(f,`cloaked-${team}-enemy`,enemyTeam,{x:.55,y:0,z:0});f.bots.update(0,{passive:true});f.bots.update(0);r.controller.yaw=0;r.controller.pitch=0;
+  const descriptor=r.targets.find(t=>t.id===actor.id);assert.equal(descriptor.autoTargetable,true);assert.equal(Object.getOwnPropertyDescriptor(descriptor,'autoTargetable').set,undefined);assert.equal(typeof Object.getOwnPropertyDescriptor(descriptor,'autoTargetable').get,'function');assert.throws(()=>{descriptor.autoTargetable=false;},TypeError);
+  assert.equal(descriptor,f.bots.runtimes[(index+1)%5].targets.find(t=>t.id===actor.id),'all bots share one live descriptor view');assert.ok(r.cast(1));assert.ok(sim.activateItem(actor.id,'shadow-cloak').ok);
+  assert.equal(descriptor.autoTargetable,false,'pre-activation descriptor reads real Host cloak without refresh');assert.equal(descriptor.alive,true);assert.equal(descriptor.kind,actor.kind);assert.equal(descriptor.team,actor.team);assert.equal(descriptor.radius,.6);assert.equal(descriptor.height,1.8);
+  assert.ok(sim.moveHero(actor.id,{x:1,y:0,z:.5}).ok);assert.equal(descriptor.position,actor.position);const hp=actor.hp,cloak=actor.cloakUntil;
+  r.update(.05);assert.equal(actor.hp,hp);assert.equal(actor.cloakUntil,cloak);assert.equal(events.filter(e=>e.source===sourceID&&e.ability==='turret'&&e.kind==='damage').length,0);assert.equal([...r.fx.handles.keys()].filter(h=>h.group.name==='longshot').length,0,'hidden target produces no autonomous turret shot FX');
+  f.bots.update(.05);assert.notEqual(f.bots.snapshot().find(b=>b.id===sourceID).targetId,actor.id,'Bot.enemyFor also excludes hidden hostile');assert.equal(actor.hp,hp);assert.equal(actor.cloakUntil,cloak);
+  if(team==='carbon'){assert.ok(sim.damage(actor.id,1,sourceID,{kind:'ability'}).ok);assert.equal(actor.cloakUntil,0);}else {for(let i=0;i<102&&sim.time<cloak;i++)assert.ok(sim.step(.05).ok);assert.ok(sim.time>=cloak);}
+  assert.equal(descriptor.autoTargetable,true,'old captured getter follows injury/Host-clock reveal, not Runtime.time');const before=actor.hp;
+  for(let i=0;i<Math.ceil(r.kit.abilities[0].interval/.05)+2&&!events.some(e=>e.source===sourceID&&e.ability==='turret'&&e.kind==='damage');i++){r.update(.05);assert.ok(sim.step(.05).ok);}
+  assert.ok(actor.hp<before,'registered autonomous turret resumes actual Host HP after reveal');assert.ok(events.some(e=>e.source===sourceID&&e.ability==='turret'&&e.kind==='damage'));assert.ok(results.every(v=>v.ok));f.bots.dispose();assert.equal(f.scene.children.length,0);groups++;
+}
+{
+  let sim;const events=[],results=[],f=fixture({onEffect:event=>{events.push(event);const result=sim.applyHeroEffect(event);results.push(result);return result;}});sim=f.sim;assert.ok(sim.step(30).ok);
+  assert.ok(sim.moveHero('bot-2',{x:0,y:0,z:8}).ok);const ally=cloakActor(f,'cloaked-healing-ally','carbon',{x:1,y:0,z:6});assert.ok(sim.moveHero('bot-3',{x:1,y:0,z:5}).ok);assert.ok(sim.damage(ally.id,100,'bot-3',{kind:'ability'}).ok);assert.ok(sim.moveHero('bot-3',sim.bases.ivory).ok);
+  f.bots.update(0,{passive:true});f.bots.update(0);const r=f.bots.runtimes[1];assert.equal(r.kit.id,'gooey');const descriptor=r.targets.find(t=>t.id===ally.id);assert.ok(sim.activateItem(ally.id,'shadow-cloak').ok);assert.equal(descriptor.autoTargetable,false);assert.equal(descriptor.alive,true);
+  const hp=ally.hp,cloak=ally.cloakUntil;r.controller.yaw=0;r.controller.pitch=0;assert.ok(r.cast(4));r.update(.05);assert.equal(ally.hp,hp+r.kit.abilities[3].baseHeal);assert.equal(ally.cloakUntil,cloak);assert.ok(cloak>sim.time);assert.equal(events.filter(e=>e.kind==='heal'&&e.target===ally.id).length,1,'automatic eligibility does not suppress allied native healing');
+  const hostile=cloakActor(f,'manual-cloaked-hostile','ivory',{x:.55,y:0,z:6});f.bots.update(0);const hidden=r.targets.find(t=>t.id===hostile.id);assert.ok(sim.activateItem(hostile.id,'shadow-cloak').ok);assert.equal(hidden.autoTargetable,false);assert.equal(hidden.alive,true);const hostileHP=hostile.hp;
+  // Direct native Runtime cast is a CPU manual/committed path, NOT AI acquisition.
+  r.controller.yaw=0;r.controller.pitch=0;assert.ok(r.cast(2));assert.ok(hostile.hp<hostileHP,'manual native cone is not granted cloak immunity');assert.equal(hostile.cloakUntil,0);assert.equal(ally.cloakUntil,cloak);assert.ok(results.every(v=>v.ok));f.bots.dispose();assert.equal(f.scene.children.length,0);groups++;
+}
+console.log('bots-test: live readonly automatic eligibility on both teams, purchased cloak/real reveal, hidden allied aura and manual cone non-immunity checked; initial currency is imported CPU item setup only');
+console.log(`bots-test: ${groups} groups passed (5 bots/lanes/waves, shop, retreat, cooldowns, cover/passive, collision/respawn/recall, orbs, host callback/origins, tether cleanup on death/reset/dispose/passive/finished, detached observational HP/speed/tether snapshots; Node scene only)`);

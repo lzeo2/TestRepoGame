@@ -1,0 +1,92 @@
+{
+  "schema": "jank3d_hero_expansion_asset_v1",
+  "hero_number": 6,
+  "id": "kompressor",
+  "display_name": "Komp",
+  "role": "Dieselpunk engineer",
+  "design_notes": "A squat desk compressor engineer: horizontal tank abdomen, banded cylinder, gauge cheek, bell-shaped hardhat, fat piston arms and pedestal shoes. An air-nozzle wrench is held at the right wrist; left vice jaws and the gauge needle have independent pivots. Conduits are segmented by the same limb hierarchy, avoiding a fake baked skeleton. Muted oxidized olive accent.",
+  "files": {
+    "source": "model.blend",
+    "runtime": "model.glb",
+    "illustration": "portrait.png",
+    "rig": "rig.json",
+    "rig_alias": "manifest.rig.json",
+    "palette": "palette.json"
+  },
+  "blender_version": "4.3.2",
+  "glb_bytes": 173416,
+  "glb_sha256": "ad6fd6aff4e37c062bf2729cb753b408df394852d8b752a7942ab54146439973",
+  "triangles": 2988,
+  "mesh_nodes": 53,
+  "movable_nodes": 19,
+  "bounds_gltf": {
+    "min": [
+      -1.0499999523162842,
+      0.0,
+      -0.7700000405311584
+    ],
+    "max": [
+      1.0199999809265137,
+      2.2250001430511475,
+      0.46000000834465027
+    ],
+    "dimensions": [
+      2.069999933242798,
+      2.2250001430511475,
+      1.2300000488758087
+    ]
+  },
+  "palette_hex": {
+    "paper": "#f2e8cd",
+    "ink": "#253038",
+    "manila": "#c5aa78",
+    "accent": "#777449"
+  },
+  "texture_count": 0,
+  "external_dependencies": [],
+  "illustration_dimensions": [
+    1024,
+    1024
+  ],
+  "grounding_offset_applied_blender_z": 0.009999997913837433,
+  "status": "Original art-review candidate. Proposed kit is separate; not game-integrated or runtime-schema validated.",
+  "art_direction": "Flat paper/ink/manila + one accent, unlit solid fills and ink contours; neutral background.",
+  "model": "kompressor",
+  "tri_count_LOD0": 2988,
+  "size_bytes": 173416,
+  "texture_resolution": null,
+  "material_slots": [
+    "kompressor__ink",
+    "kompressor__accent",
+    "kompressor__manila",
+    "kompressor__paper"
+  ],
+  "rig_nodes": [
+    "root",
+    "pelvis",
+    "torso",
+    "gauge_needle",
+    "L_hip",
+    "L_knee",
+    "L_ankle",
+    "R_hip",
+    "R_knee",
+    "R_ankle",
+    "head",
+    "L_shoulder",
+    "L_elbow",
+    "L_wrist",
+    "R_shoulder",
+    "R_elbow",
+    "R_wrist",
+    "vice_jaw_L",
+    "vice_jaw_R"
+  ],
+  "palette_default": {
+    "paper": "#f2e8cd",
+    "ink": "#253038",
+    "manila": "#c5aa78",
+    "accent": "#777449"
+  },
+  "provenance_note": "Generated in Blender by dot and Astra 6 max delegates, 2026-10-23; original in-house artwork, no remote assets."
+}

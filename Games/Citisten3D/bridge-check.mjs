@@ -1,0 +1,35 @@
+import assert from 'node:assert/strict';
+import { createSimulation } from './sim.mjs';
+import { createRiverTerrain } from './river-data.mjs';
+import { applyTool } from './native-actions.mjs';
+
+const sim = createSimulation({ size: 40 });
+// A terrain fixture isolates the native placement boundary from progression.
+sim.terrain = createRiverTerrain(40);
+const z = 10, wet = Array.from({ length: 40 }, (_, x) => x).filter(x => sim.terrain.isWater(x, z));
+assert(wet.length);
+const a = { x: wet[0] - 2, z }, b = { x: wet.at(-1) + 2, z };
+const budget = sim.state.budget;
+assert.equal(applyTool(sim, 'road', a, b).ok, false);
+assert.equal(applyTool(sim, 'bridge', a, { x: wet[0], z }).ok, false);
+assert.equal(applyTool(sim, 'bridge', a, { ...b, z: z + 1 }).ok, false);
+assert.equal(sim.state.budget, budget);
+assert.equal(sim.roads.cells.size, 0);
+assert.equal(applyTool(sim, 'bridge', a, b).ok, true);
+const cost = wet.length * 90 + (b.x - a.x + 1 - wet.length) * 10;
+assert.equal(sim.state.budget, budget - cost);
+assert.equal(sim.roads.path(a, b).length, b.x - a.x + 1);
+assert.equal(applyTool(sim, 'bridge', a, b).ok, true);
+assert.equal(sim.state.budget, budget - cost, 'no double charging');
+assert.equal(applyTool(sim, 'bulldoze', { x: wet[0], z }).ok, true);
+assert(wet.every(x => !sim.roads.has(x, z)));
+assert.equal(sim.roads.path(a, b).length, 0, 'route disconnects when deck is removed');
+assert.equal(applyTool(sim, 'bridge', a, b).ok, true);
+assert.equal(applyTool(sim, 'bulldoze', { x: wet[0] - 1, z }).ok, true);
+assert(wet.every(x => !sim.roads.has(x, z)), 'removing either approach removes its deck atomically');
+const blocked = { x: 25, z: 20 }, end = { x: 28, z: 20 };
+sim.place('park', blocked.x, blocked.z);
+const before = sim.state.budget;
+assert.equal(applyTool(sim, 'road', blocked, end).ok, false);
+assert.equal(sim.state.budget, before, 'building collision remains atomic');
+console.log('BRIDGE CHECK PASS: water/partial/bent rejection, exact atomic cost, existing route connectivity, repeat placement, whole-deck removal and building collision');
