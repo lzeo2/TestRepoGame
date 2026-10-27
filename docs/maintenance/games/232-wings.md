@@ -5,9 +5,18 @@
 ## Identity and status
 
 Registered catalog **232**, entry `Games/Wings/index.html`; catalog currently has
-126 games. Static offline adaptation of anomalyco/arcade Wings at source pin
+129 games. Static offline adaptation of anomalyco/arcade Wings at source pin
 `bf5f6277e38ee52e9bfa4ae4a01337b46175c181`, ingested by owner order despite
-missing upstream LICENSE. **Integrated repair, not released.**
+missing upstream LICENSE.
+
+**Known-failure release, explicitly authorized 2026-10-27:** retained source
+`fd0e87fb` is now source-built into the served entry/chunks, preserving original
+UI and the actual local Factions GameSession/fleet composition. No authoring-only
+preview is substituted. Native renderer/compositor and flight acceptance remain
+unpassed; rights qualifications remain unchanged. See the
+[exact release/known failures](../../known-failure-release-20261027.md).
+The historical no-push/approval/gate statements below retain their dated scope;
+this release is not gameplay, GPU, full-fleet or rights certification.
 
 Current geometry milestone `92e470f` and authored regression `f1f7cc6` cover
 F-15/F-35 dimensions/contours, dark paint, functional stores/exhaust, recessed

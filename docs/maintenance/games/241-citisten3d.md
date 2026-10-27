@@ -4,6 +4,13 @@
 
 ## Identity and status
 
+**Known-failure release, explicitly authorized 2026-10-27:** committed snapshot
+`de3ec4e6` is released as the existing source game, not a Chromebook export.
+CPU evidence is retained; native Water/Save/Continue acceptance remains unpassed,
+including failed capture/completion gates. No fresh native PASS is claimed.
+[Release scope and unchanged holds](../../known-failure-release-20261027.md)
+supersede earlier no-push statements only, not their evidence or source limits.
+
 Operator-authorized original city builder, registered as id 241. Entry:
 `Games/Citisten3D/index.html`. Native entry commit `b6db8eb`; world integration
 and registration were committed externally as `ce1c541`. No swarm push.

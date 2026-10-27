@@ -3,6 +3,15 @@
 
 ## Identity and status
 
+**Known-failure release, explicitly authorized 2026-10-27:** committed snapshot
+`c19405ab` only; unfinished dirty native QA repairs are excluded. The retained
+diagnostic draft fails its 60,000-byte guard (79,317 bytes); released committed
+QA files are the distinct 59,999-byte pair. Prism Warden native failures remain,
+expansion is incomplete and no forty-hero/native certification is made. Fresh
+expansion/full-fleet native acceptance was not run for this release.
+[Exact scope, pins and holds](../../known-failure-release-20261027.md) supersede
+historical no-publication permission statements below, not failed evidence.
+
 Existing catalog ID 240 now launches `Games/Jankolock3D/index.html`, replacing the
 operator-rejected 2D entry without deleting its tree or adding a game/ID. Original
 in-house office-parody 3D MOBA-shooter; not an ingested port or affiliated title.

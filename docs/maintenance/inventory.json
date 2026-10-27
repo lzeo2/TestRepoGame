@@ -355,10 +355,10 @@
       "title": "CITISTEN",
       "registered": true,
       "entry": "Games/Citisten3D/index.html",
-      "entry_blob": "4314aa0b4b340865b25b6820692808e1baa86f39",
-      "tree": "0af3df89e1d95d1bbd7fc0e21ec9d57b54ef5d09",
-      "files": 193,
-      "bytes": 34733015,
+      "entry_blob": "35b20b9d367f688832bc26b5521dccb819e0fb33",
+      "tree": "cf589170731afb5e3f974305a449045fc225ac14",
+      "files": 226,
+      "bytes": 35157269,
       "document": "docs/maintenance/games/241-citisten3d.md"
     },
     {
@@ -824,9 +824,9 @@
       "registered": true,
       "entry": "Games/Jankolock3D/index.html",
       "entry_blob": "d5d05b09d1a68e6770476d52dbf81acb1d4fd86f",
-      "tree": "0bb132b1b60f623533dfa4620ef00f833847934c",
-      "files": 132,
-      "bytes": 13708072,
+      "tree": "cd2298dd42ea4ef4cce6ec034044a7870bef2ebe",
+      "files": 424,
+      "bytes": 38884287,
       "document": "docs/maintenance/games/240-jankolock3d.md"
     },
     {
@@ -1568,9 +1568,9 @@
       "registered": true,
       "entry": "Games/Wings/index.html",
       "entry_blob": "7bfdf9ef36e94bfcd6da6bfb93b4ed55f4d275fa",
-      "tree": "92698fd0ade84c41081b17d5bf946acca4710686",
-      "files": 94,
-      "bytes": 20867506,
+      "tree": "e255d171de0d1b8cdd334f0ea11faeee9771a7b2",
+      "files": 259,
+      "bytes": 26271433,
       "document": "docs/maintenance/games/232-wings.md"
     },
     {
