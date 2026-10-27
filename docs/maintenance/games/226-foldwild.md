@@ -3,6 +3,12 @@
 
 ## Identity and status
 
+Release follow-up (2026-10-27): [narrow integration](../../foldwild-release.md)
+retains the exact accepted runtime/test hashes, derives baseline maintenance
+repairs from tracked main and records explicit operator publication authority.
+No broader M2/campaign/hardware/rights acceptance is implied. Earlier no-push
+statements below describe their dated implementation checkpoints.
+
 **Final corrective qualification (2026-10-25): scoped first-session PASS.**
 Native-5 exits zero with desktop and actual-touch cases **2/2 clean**, 13 fresh
 viewport JPEGs, two real five-second-input walking videos, zero-byte separately

@@ -1,5 +1,10 @@
 # Foldwild exploration and presentation upgrade
 
+Release follow-up (2026-10-27): [narrow release integration](foldwild-release.md)
+records the authorized main-only Foldwild payload, exact reused passing hashes
+and separately repaired maintenance baseline. The dated implementation receipt
+below preserves its original no-push checkpoint and historical failures.
+
 ## Final result
 
 **Implemented, integrated and locally committed. Scoped first-session desktop/touch
