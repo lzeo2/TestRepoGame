@@ -1,10 +1,11 @@
-import { SPECIES, BY_ID, ABILITIES, ELEMENT_WHEEL } from './data.js';
+import { SPECIES, BY_ID, ABILITIES, ELEMENT_WHEEL, OPTIONAL_HIDDEN_SPECIES } from './data.js';
 import { statsFor, createCreature, clearEffects, gainXP, createBattle, applyAction } from './battle.js';
 import { REGIONS, RIVALS, REGION_LAYOUTS, movePosition, routeTo, unlockedRegion, MAX_ROSTER, BACKUP_KEY, freshGame, validateSave, readSave, writeSave, worldPoints, nearbyPoint, releaseCreature, challengeFor, settleChallenge } from './world.js';
 import { FINALE_STAGES, ENDING } from './campaign.js';
 import { ITEMS, COSMETICS, SHOPS, CONTRACTS, buyItem, sellItem, buyCosmetic, completeContract, refreshStock } from './economy.js';
 import { CLASSES, TRAITS, generateIndividual, unlockedClasses, synergyFor, classRank, classProgress, perksFor } from './builds.js';
 import { createView } from './view.js';
+import { navigationObjective } from './navigation.js';
 
 const byId = id => document.getElementById(id);
 const all = selector => [...document.querySelectorAll(selector)];
@@ -21,6 +22,7 @@ const lockedSaves = Boolean(navigator.locks?.request);
 let savedSlot = saved.state, slotPresent = Boolean(saved.state || saved.error), savePermission = !saved.error;
 let state = null, battle = null, phase = 'menu', paused = false, busy = false;
 let starterId = 'cindupp', route = [], pendingPoint = null, resetAction = null;
+let routeDestination = null, navigationElapsed = Infinity;
 let serviceContext = null, serviceMenu = 'kit', nearbyKey = '', battleFinished = false;
 let view = null, viewFailed = false, battleModels = '', busyElapsed = 0;
 let inspectionToken = 0, inspectedSpecies = null, selectedUidForCosmetic = null, inspectionFocus = null, releaseUid = null;
@@ -102,11 +104,17 @@ function save(snapshot = null, consent = null) {
     });
   return saveQueue;
 }
+function collectionProgress(value) {
+  const seen = SPECIES.filter(s => value.seen.includes(s.id)).length;
+  const caught = SPECIES.filter(s => value.caught.includes(s.id)).length;
+  const id = OPTIONAL_HIDDEN_SPECIES.id;
+  return `${seen} seen / ${caught} caught / 80 · Optional bonus: ${value.caught.includes(id) ? 'caught' : value.seen.includes(id) ? 'seen' : 'undiscovered'}`;
+}
 function objective(value) {
   if (value.defeatedRivals.length < 5) return `You have cleared ${value.defeatedRivals.length}/5 trials. Train with ${RIVALS[value.defeatedRivals.length].name} in ${REGIONS[value.defeatedRivals.length].name}.`;
   const stage = FINALE_STAGES[value.finaleStage];
   return stage ? `You have finished ${value.finaleStage}/3 return lessons. Meet ${stage.host} at Rest Camp in ${REGIONS[stage.region].name}.`
-    : `The campaign is complete. You have collected ${value.caught.length}/80 species. Keep exploring or return to a trial for a rematch.`;
+    : `The campaign is complete. You have collected ${SPECIES.filter(s => value.caught.includes(s.id)).length}/80 species. Keep exploring or return to a trial for a rematch.`;
 }
 function rankBenefit(id, rank) {
   const perks = perksFor(id, rank);
@@ -167,6 +175,7 @@ function ensureView() {
 function setPhase(value) {
   phase = value;
   clearInput();
+  document.querySelector('.trail-controls').scrollTop = 0;
   byId('menu').hidden = phase !== 'menu';
   layout.hidden = phase === 'menu';
   byId('world-hud').hidden = phase === 'menu';
@@ -174,6 +183,9 @@ function setPhase(value) {
   byId('result').hidden = phase !== 'result';
   byId('nearby-actions').hidden = phase !== 'world';
   byId('world-help').hidden = phase !== 'world';
+  document.querySelector('.objective-panel').hidden = phase !== 'world';
+  document.querySelector('.field-actions').hidden = phase !== 'world';
+  navigationElapsed = Infinity;
   resize();
   updateHUD();
 }
@@ -185,6 +197,7 @@ function markOwned() {
 }
 function updateHUD() {
   if (!state) return;
+  navigationElapsed = Infinity;
   text('zone-name', `${REGIONS[state.region].name} · trials ${state.defeatedRivals.length}/5${state.legacyRivals.length && !state.defeatedRivals.includes(3) ? ' · legacy Iven badge held' : ''}`);
   text('marks', state.marks);
   text('class-name', `${CLASSES[state.activeClass].name} rank ${classRank(state, state.activeClass)}`);
@@ -193,9 +206,11 @@ function updateHUD() {
   const synergy = synergyFor(party());
   text('synergy-name', `${synergy.name}: ${synergy.description}`);
   byId('quality').value = state.quality;
+  byId('optional-encounters').checked = state.optionalEncounters;
+  byId('optional-encounters').disabled = phase !== 'world' || stopped() || busy;
   byId('services-btn').disabled = phase !== 'world' || busy || paused;
   text('score', state.score);
-  text('dex-count', `${state.seen.length} seen / ${state.caught.length} caught / 80`);
+  text('dex-count', collectionProgress(state));
   text('kites', state.kites);
   text('pause', paused ? 'Resume' : 'Pause');
   byId('pause').disabled = !['world', 'battle'].includes(phase);
@@ -215,18 +230,46 @@ function updateHUD() {
   }));
   updateProximity();
 }
+function updateNavigation() {
+  if (!state || phase !== 'world') return;
+  // Route search is bounded but quadratic; refresh advice at 4 Hz, not every frame.
+  if (navigationElapsed < .25) return;
+  navigationElapsed = 0;
+  const goal = navigationObjective(state), nav = goal.navigation;
+  text('objective-title', goal.target?.locationName ?? REGIONS[goal.targetRegion].name);
+  text('objective-detail', nav?.arrived ? nav.arrivalText : nav
+    ? `${nav.reachable ? `${nav.direction} · ${Math.ceil(nav.routeDistance)} m by trail` : 'Trail unavailable from here'} · ${goal.target.label}${goal.kind === 'trial' ? ` · Trial ${state.defeatedRivals.length + 1}/5` : ''}`
+    : goal.text);
+  const walking = !nav?.arrived && routeDestination?.id === goal.target?.id && route.length > 0;
+  text('navigate-objective', walking ? 'Stop walking' : nav?.arrived ? goal.action.label
+    : goal.target ? `Walk to ${goal.target.locationName}` : goal.action.label);
+  byId('navigate-objective').disabled = !playable() || Boolean(nav && !nav.reachable);
+}
+function navigateObjective() {
+  if (phase !== 'world' || !playable()) return;
+  const goal = navigationObjective(state);
+  if (goal.target && nearbyPoint(state)?.id === goal.target.id) {
+    route = []; routeDestination = null; interact();
+  } else if (route.length && routeDestination?.id === goal.target?.id) {
+    route = []; routeDestination = null;
+    message('Walking stopped. Use movement controls or choose your next stop.');
+  } else if (goal.action.type === 'travel') travel(goal.action.region);
+  else if (goal.target) approach(goal.target.id);
+  navigationElapsed = Infinity; updateNavigation();
+}
 function updateProximity() {
+  updateNavigation();
   const point = state && phase === 'world' ? nearbyPoint(state) : null;
   const allowed = Boolean(point && playable());
   byId('interact').disabled = !allowed;
-  text('interact', point ? `E · ${point.label}` : 'E · Move closer to a marker');
+  text('interact', point ? `E · ${point.type === 'camp' ? 'Open' : point.type === 'supply' ? 'Gather' : point.type === 'wild' ? 'Meet' : point.type === 'exit' ? 'Take' : 'Talk to'} ${point.label}` : 'E · Interact nearby');
   byId('rest').disabled = !allowed || point.type !== 'camp';
   for (const element of all('[data-move]')) element.disabled = phase !== 'world' || stopped() || busy;
   if (state && phase === 'world') nearbyActions();
   for (const element of all('[data-point]')) element.disabled = phase !== 'world' || stopped() || busy;
 }
 function nearbyActions() {
-  const points = worldPoints(state).sort((a, b) => distanceTo(a) - distanceTo(b)).slice(0, 3);
+  const points = worldPoints(state, { exploration: true }).sort((a, b) => distanceTo(a) - distanceTo(b)).slice(0, 3);
   const key = points.map(p => `${p.id}:${p.label}`).join('/');
   if (key === nearbyKey) return;
   nearbyKey = key;
@@ -242,7 +285,7 @@ function viewAppearance() {
   return { skin, hair, coat, pack: backpack };
 }
 function showWorld() {
-  route = [];
+  route = []; routeDestination = null;
   pendingPoint = null;
   battleModels = '';
   setPhase('world');
@@ -251,9 +294,10 @@ function showWorld() {
   ensureView();
   view?.setQuality(state.quality);
   view?.setReducedMotion(state.reducedMotion);
-  view?.showWorld({ region: state.region, position: state.position, points: worldPoints(state), appearance: viewAppearance() });
+  view?.showWorld({ region: state.region, position: state.position, points: worldPoints(state, { exploration: true }), appearance: viewAppearance() });
   view?.setPlayerPosition(state.position.x, state.position.z, state.position.yaw);
-  message(REGIONS[state.region].description);
+  navigationElapsed = Infinity; updateNavigation();
+  message('');
   resize();
   focusGame();
 }
@@ -315,11 +359,13 @@ function returnToMenu() {
 }
 function approach(id) {
   if (phase !== 'world' || !playable()) return;
-  const point = worldPoints(state).find(p => p.id === id);
+  const point = worldPoints(state, { exploration: true }).find(p => p.id === id);
   if (!point) return;
   route = routeTo(state.region, state.position, point);
+  routeDestination = route.length ? point : null;
   if (!route.length) return message('No open trail reaches this point from here.');
-  message(`Walking to ${point.label}. Press E or Interact when nearby.`);
+  message('');
+  navigationElapsed = Infinity; updateNavigation();
   focusGame();
 }
 function healAll() {
@@ -357,7 +403,8 @@ function result(title, description) {
 }
 function interact() {
   if (phase !== 'world' || !playable()) return;
-  const point = nearbyPoint(state);
+  const nearby = nearbyPoint(state);
+  const point = nearby && worldPoints(state, { exploration: true }).find(p => p.id === nearby.id);
   if (!point) return;
   route = [];
   if (point.type === 'camp') return openServices(point);
@@ -374,11 +421,11 @@ function interact() {
     if (!state.seen.includes(point.speciesId)) state.seen.push(point.speciesId);
     text('dialogue-title', `${point.label} · level ${point.level}`);
     const species = BY_ID[point.speciesId];
-    text('dialogue-text', `${species.name} is a ${species.element} ally that uses ${words.format(species.abilities)}. Bring it to half HP or less before throwing a Latch Kite. A missed kite costs your turn.`);
+    text('dialogue-text', `${species.id === OPTIONAL_HIDDEN_SPECIES.id ? 'Optional bonus encounter. Back leaves it alone; disable optional encounters in Settings to hide it. ' : ''}${species.name} is a ${species.element} ally that uses ${words.format(species.abilities)}. Bring it to half HP or less before throwing a Latch Kite. A missed kite costs your turn.`);
   } else {
     const rival = RIVALS[state.region];
     text('dialogue-title', rival.name);
-    text('dialogue-text', `${rival.dialogue} You will face ${words.format(rival.team.map(c => `${BY_ID[c.speciesId].name} at level ${c.level}`))}. You cannot capture allies or flee during training.`);
+    text('dialogue-text', `${point.description ? `${point.description} ` : ''}${rival.dialogue} You will face ${words.format(rival.team.map(c => `${BY_ID[c.speciesId].name} at level ${c.level}`))}. You cannot capture allies or flee during training.`);
   }
   setPhase('dialogue');
   byId('dialogue-dialog').showModal();
@@ -408,6 +455,9 @@ function previewChallenge(point) {
 function beginBattle() {
   if (phase !== 'dialogue' || !byId('dialogue-dialog').open || !pendingPoint || busy || paused || document.hidden) return;
   const point = pendingPoint;
+  if (point.speciesId === OPTIONAL_HIDDEN_SPECIES.id && !worldPoints(state).some(p => p.id === point.id)) {
+    byId('dialogue-dialog').close(); return;
+  }
   if (point.challenge) {
     try {
       challengeReady();
@@ -602,8 +652,10 @@ function finishBattle() {
     description = 'Your team is rested at camp. Your collection and trail progress are safe.';
   } else if (outcome === 'won') {
     description = battle.kind === 'rival' ? `${RIVALS[state.region].winDialogue} Regional trials ${state.defeatedRivals.length}/5.` : `Each expedition ally gained ${levels * 12 + 20} XP.`;
-  } else description = 'You left the encounter. The trail has new wild allies to meet.';
-  state.encounterIndex = Math.min(1e9, state.encounterIndex + 1);
+  } else description = battle.enemy.team[0].speciesId === OPTIONAL_HIDDEN_SPECIES.id
+    ? 'You left the optional encounter. Base trail encounters are unchanged.' : 'You left the encounter. The trail has new wild allies to meet.';
+  // Bonus fights do not reroll base habitats or advance shop restocking.
+  if (battle.enemy.team[0].speciesId !== OPTIONAL_HIDDEN_SPECIES.id) state.encounterIndex = Math.min(1e9, state.encounterIndex + 1);
   markOwned();
   result(outcome === 'captured' ? 'Capture complete' : outcome === 'lost' ? 'Team needs a rest' : battle.kind === 'rival' && outcome === 'won' ? (state.defeatedRivals.length === 5 ? 'Five routes cleared' : 'Trail cleared') : outcome === 'won' ? 'Encounter won' : 'Encounter left', description);
   }
@@ -638,7 +690,7 @@ function collectSupply(point) {
     next.claimedSupplies.push(id);
     state = validateSave(next);
     showWorld(); updateHUD(); save();
-    message(`You gathered ${amount} fiber. Your class adds up to ${bonus} extra fiber, and your bag holds 999.`);
+    message(`You gathered ${amount} fiber. ${point.rewardHint ?? 'Deliver three fiber at a supply counter for Marks, or sell it at an outpost.'} Your class adds up to ${bonus} extra fiber, and your bag holds 999.`);
   } catch (error) { message(error.message); }
 }
 function servicePoint() {
@@ -854,7 +906,7 @@ function collection() {
   if (!state || !['world', 'result'].includes(phase) || busy) return;
   const search = byId('ledger-search').value.trim().toLowerCase(), filter = byId('ledger-filter').value;
   const matches = species => (!search || `${species.name} ${species.family}`.toLowerCase().includes(search)) && (filter === 'all' || species.element === filter);
-  const items = [paragraph(`Allies ${state.roster.length}/${MAX_ROSTER} · Team ${state.team.length}/3 · Seen ${state.seen.length}/80 · Caught ${state.caught.length}/80`)];
+  const items = [paragraph(`Allies ${state.roster.length}/${MAX_ROSTER} · Team ${state.team.length}/3 · ${collectionProgress(state)}`)];
   for (const c of state.roster.filter(c => matches(BY_ID[c.speciesId]))) {
     const card = document.createElement('section'), max = statsFor(c), species = BY_ID[c.speciesId];
     card.dataset.uid = c.uid;
@@ -887,11 +939,11 @@ function collection() {
     items.push(card);
   }
   items.push(paragraph(`${Object.entries(ELEMENT_WHEEL).map(([a, b]) => `${a} beats ${b}`).join('. ')}. A strong matchup deals 1.5 times the damage. The reverse deals 0.75 times the damage.`));
-  for (const species of SPECIES) {
+  for (const species of [...SPECIES, OPTIONAL_HIDDEN_SPECIES]) {
     const discovered = state.seen.includes(species.id);
     if (!discovered || !matches(species)) continue;
     const card = document.createElement('section');
-    const heading = document.createElement('h3'); heading.textContent = `#${species.number} ${species.name}`;
+    const heading = document.createElement('h3'); heading.textContent = `${species.number === null ? 'Optional bonus:' : `#${species.number}`} ${species.name}`;
     card.append(heading, paragraph(`${species.element} · ${species.family} · ${species.tier} · ${state.caught.includes(species.id) ? 'Caught' : 'Seen'}`));
     const inspect = button('Inspect species', () => inspectCreature(species.id, null, inspect));
     inspect.dataset.species = species.id; card.append(inspect);
@@ -899,7 +951,7 @@ function collection() {
     if (species.evolvesTo) card.append(paragraph(`${species.name} evolves at level ${species.evolveLevel}${state.seen.includes(species.evolvesTo) ? ` into ${BY_ID[species.evolvesTo].name}` : '. You have not seen its next form yet'}.`));
     items.push(card);
   }
-  if (!search && filter === 'all') items.push(paragraph(`${SPECIES.length - state.seen.length} species still undiscovered.`));
+  if (!search && filter === 'all') items.push(paragraph(`${SPECIES.filter(s => !state.seen.includes(s.id)).length} base species still undiscovered.`));
   byId('collection-list').replaceChildren(...items);
   clearInput();
   if (!byId('collection-dialog').open) { route = []; byId('collection-dialog').showModal(); }
@@ -922,11 +974,18 @@ function move(dt) {
   }
   const manual = Boolean(dx || dz);
   if (manual) {
-    route = [];
+    route = []; routeDestination = null;
     const yaw = view?.getCameraYaw() ?? 0;
     [dx, dz] = [dx * Math.cos(yaw) + dz * Math.sin(yaw), dz * Math.cos(yaw) - dx * Math.sin(yaw)];
   } else {
+    // Stop beside an interaction, not inside its actor or creature model.
+    if (routeDestination && distanceTo(routeDestination) <= 1.4) route = [];
     while (route.length && distanceTo(route[0]) <= 0.3) route.shift();
+    if (!route.length && routeDestination) {
+      const point = routeDestination; routeDestination = null;
+      if (distanceTo(point) <= 1.8) message(point.arrival ?? `At ${point.locationName ?? point.label}.`);
+      navigationElapsed = Infinity;
+    }
     if (route.length) { dx = route[0].x - state.position.x; dz = route[0].z - state.position.z; }
   }
   const length = Math.hypot(dx, dz);
@@ -944,7 +1003,7 @@ function frame(time) {
   previousTime = time;
   const dt = stopped() ? 0 : Math.min(0.05, elapsed);
   if (state && dt) {
-    saveElapsed += dt;
+    saveElapsed += dt; navigationElapsed += dt;
     if (busy) {
       busyElapsed += dt;
       if (busyElapsed >= 0.45) {
@@ -1018,6 +1077,12 @@ byId('quality').addEventListener('change', () => {
   if (!state) return;
   state.quality = byId('quality').value; view?.setQuality(state.quality); renderClock = 0; renderElapsed = 0; save();
 });
+byId('optional-encounters').addEventListener('change', () => {
+  if (phase !== 'world' || !playable()) return;
+  state = validateSave({ ...state, optionalEncounters: byId('optional-encounters').checked });
+  showWorld(); save();
+  message(state.optionalEncounters ? 'Optional encounters enabled. After completing the campaign, search beside the stone grove in Quietfold Hollow. Balance is provisional.' : 'Optional encounters hidden. Existing discoveries and captured allies are kept.');
+});
 byId('seed-input').addEventListener('input', () => byId('seed-input').setCustomValidity(''));
 byId('collection-close').addEventListener('click', () => byId('collection-dialog').close());
 byId('collection-dialog').addEventListener('close', () => {
@@ -1083,6 +1148,7 @@ byId('save-confirm').addEventListener('click', async () => {
   }
 });
 byId('interact').addEventListener('click', interact);
+byId('navigate-objective').addEventListener('click', navigateObjective);
 byId('rest').addEventListener('click', rest);
 byId('pause').addEventListener('click', togglePause);
 byId('result-continue').addEventListener('click', () => { if (playable() && phase === 'result') { battle = null; showWorld(); save(); } });
@@ -1111,7 +1177,7 @@ for (const element of all('[data-move]')) {
     event.preventDefault();
     element.setPointerCapture(event.pointerId);
     pointers.set(event.pointerId, element.dataset.move);
-    route = [];
+    route = []; routeDestination = null;
   });
   for (const type of ['pointerup', 'pointercancel', 'lostpointercapture']) element.addEventListener(type, event => pointers.delete(event.pointerId));
 }

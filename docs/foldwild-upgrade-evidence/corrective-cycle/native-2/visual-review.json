@@ -1,0 +1,18 @@
+{
+  "review_source": "Parent subjective inspection after native-2 returned",
+  "functional_result_retained": "PASS 2/2; original native-results.json unmodified",
+  "visual_acceptance": false,
+  "proven_stale_frames": [
+    {"file": "current-1280-wild-battle.jpg", "observation": "World avatar and Budriv remain visible while HUD is in battle"},
+    {"file": "current-1280-arrival.jpg", "observation": "Distance3 and Stop walking visible despite arrival predicate already passing"}
+  ],
+  "diagnosed_runner_boundaries": [
+    "Global frames>2 did not prove new-mode/model frames were drawn",
+    "First screencast frame can be cached"
+  ],
+  "prepared_correction": "One absolute30s: mode/required-model wait, snapshot frames only after models attach, then three fresh frames using remaining deadline; ACK/discard first CDP frame and choose second within unchanged absolute3s including cleanup",
+  "browser_free_regression": "PASS:20s model delay leaves10s; stale/wrong-mode/missing-model frames rejected; cached first never accepted; late second rejected; media failure remains FAIL",
+  "new_browser_run_after_correction": false,
+  "next_attempt_requires_separately_coordinated_parent_GO": true,
+  "runtime_or_asset_changes": false
+}

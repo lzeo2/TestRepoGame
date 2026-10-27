@@ -14,9 +14,24 @@ const {SPECIES, BY_ID, ABILITIES, ELEMENTS, ELEMENT_WHEEL, OPTIONAL_HIDDEN_SPECI
 keys(data, 'SPECIES BY_ID ABILITIES ELEMENTS ELEMENT_WHEEL OPTIONAL_HIDDEN_SPECIES');
 assert.deepEqual(ELEMENTS, ['Cindrel', 'Rillune', 'Loamveil', 'Gleamric', 'Hushmere']);
 assert.deepEqual(ELEMENT_WHEEL, {Cindrel: 'Loamveil', Loamveil: 'Gleamric', Gleamric: 'Hushmere', Hushmere: 'Rillune', Rillune: 'Cindrel'});
-assert.equal(OPTIONAL_HIDDEN_SPECIES, null);
 assert.equal(SPECIES.length, 80);
-assert.equal(Object.keys(BY_ID).length, 80);
+assert.equal(Object.keys(BY_ID).length, 81);
+const hidden = OPTIONAL_HIDDEN_SPECIES;
+assert.equal(hidden.id, 'cave-visitor');
+assert.equal(hidden.number, null);
+assert.equal(BY_ID[hidden.id], hidden);
+assert(!SPECIES.some(s => s.id === hidden.id));
+assert.equal(hidden.model, 'models/secret-cave-creature.glb');
+assert.equal(hidden.evolvesTo, null);
+assert.equal(hidden.evolveLevel, null);
+assert(ELEMENTS.includes(hidden.element));
+assert.equal(hidden.abilities.length, 4);
+assert.equal(new Set(hidden.abilities).size, 4);
+for (const ability of hidden.abilities) assert(Object.hasOwn(ABILITIES, ability));
+for (const [stat, value] of Object.entries(hidden.stats)) {
+  assert(Number.isInteger(value) && value > 0 && value <= BY_ID.murnub.stats[stat], `conservative optional ${stat}`);
+}
+assert(Object.values(hidden.bounds).every(n => Number.isFinite(n) && n > 0));
 for (const element of ELEMENTS) assert.equal(SPECIES.filter(s => s.element === element).length, 16);
 const families = [...new Set(SPECIES.map(s => s.family))];
 assert.equal(families.length, 10);
@@ -40,7 +55,13 @@ const hashes = new Map([...delivery.matchAll(/^\| (\w+) \| `glb\/([^`]+)` \| \d+
   .map(([, name, path, bytes, hash]) => [name, {path, bytes: +bytes, hash}]));
 assert.equal(hashes.size, 80);
 const tracked = new Set(git('ls-files', '-z', '--', 'Games/Foldwild/models').split('\0').filter(Boolean));
-assert.equal(tracked.size, 80);
+const optionalPath = 'Games/Foldwild/' + hidden.model;
+assert(tracked.delete(optionalPath), 'one separately tracked optional model');
+assert.equal(tracked.size, 80, 'canonical roster still has exactly 80 tracked models');
+const optionalBytes = read(optionalPath);
+assert.equal(optionalBytes.length, 6384292);
+assert.equal(sha(optionalBytes), 'bc77d7c17a4638f37acb5547a490f50f07fda818f6261e6767e674823d64562c');
+assert.deepEqual([...tracked].sort(), SPECIES.map(s => 'Games/Foldwild/' + s.model).sort());
 let modelBytes = 0;
 for (const [index, s] of SPECIES.entries()) {
   keys(s, 'id number name element family tier stage evolvesTo evolveLevel stats abilities model bounds unique');
@@ -123,4 +144,4 @@ for (const [, name, cost, effect] of glossary) {
   }
   assert.equal(parts.join('; '), effect.trim(), name);
 }
-console.log('PASS: 80 exact roster species; 16/element; 10 families x8; 50 exact normative actions; evolution 12/26 acyclic; hidden null; wheel/schema; 80 tracked/local SHA matches; models=7300844 bytes');
+console.log('PASS: 80 exact roster species; 16/element; 10 families x8; 50 exact normative actions; evolution 12/26 acyclic; separate optional descriptor/6384292-byte SHA match; wheel/schema; 80 canonical tracked/local SHA matches; base models=7300844 bytes');

@@ -25,9 +25,10 @@ function bounds(b) {
 
 assert.equal(Object.keys(ABILITIES).length, 50);
 assert.equal(SPECIES.length, 80);
-assert.equal(OPTIONAL_HIDDEN_SPECIES, null);
+assert.equal(BY_ID[OPTIONAL_HIDDEN_SPECIES.id], OPTIONAL_HIDDEN_SPECIES);
+assert(!SPECIES.includes(OPTIONAL_HIDDEN_SPECIES), 'optional descriptor is not part of canonical80');
 assert.equal(GainXP, gainXP);
-for (const s of SPECIES) {
+for (const s of [...SPECIES, OPTIONAL_HIDDEN_SPECIES]) {
   assert.equal(BY_ID[s.id], s);
   assert.equal(typeof s.id, 'string');
   assert.equal(s.abilities.length, 4);
@@ -417,5 +418,5 @@ function replay(seed) {
 assert.deepEqual(replay(1234), replay(1234));
 const source = readFileSync(new URL('../Games/Foldwild/battle.js', import.meta.url), 'utf8');
 assert(!/https?:\/\/|fetch\s*\(|WebSocket|document\.|window\./.test(source));
-console.log('PASS: 80 species; all 50 abilities executed; 25 wheel pairs (5 strong/5 reverse); bounds/effects/Wait/switch/KO/teams/capture/replay/immutability/XP/invalid inputs/local-only');
+console.log('PASS: 80 canonical species plus separate optional descriptor; all 50 abilities executed; 25 wheel pairs (5 strong/5 reverse); bounds/effects/Wait/switch/KO/teams/capture/replay/immutability/XP/invalid inputs/local-only');
 console.log(`Capture reproducibility: hit seed=${hit.seed}, miss seed=${miss.seed}`);

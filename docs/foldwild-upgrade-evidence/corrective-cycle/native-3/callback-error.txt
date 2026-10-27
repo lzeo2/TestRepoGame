@@ -1,0 +1,13 @@
+Native-3 terminal diagnostic, preserved separately because the runner did not collect it in JSON.
+Boundary: after viewport-capture:current-390-wild-battle, before manual-pending-save.
+Process later completed both functional cases and exited 0; that does NOT erase this error.
+
+Exception in callback SyncBase._sync.<locals>.<lambda>()
+Playwright event dispatch -> CDPSession screencastFrame listener -> capture_viewport.received
+scripts/test_foldwild_upgrade.py:223:
+    session.send('Page.screencastFrameAck', {'sessionId': event['sessionId']})
+playwright._impl._errors.TargetClosedError: CDPSession.send: Target page, context or browser has been closed
+
+The full traceback was emitted in the agent tool timeline. This excerpt retains the exact exception/message and relevant relative source boundary; machine-specific traceback prefixes are omitted.
+The exception occurred in callback dispatch outside the helper's caught synchronous failure path. The callback listener remains registered through stop/detach; a queued ACK after session closure is the diagnosed cleanup-race hypothesis, not a game/runtime exception or a proven visual outcome.
+No code fix, repeat capture, browser restart, timeout extension or error exclusion followed this observation.

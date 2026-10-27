@@ -1,0 +1,68 @@
+{
+  "command": "timeout --signal=TERM --kill-after=10s 590s python3 -B scripts/test_foldwild_upgrade.py --go",
+  "exit_code": 0,
+  "scope": "fresh current desktop1280x800 and genuine-touch390x844; phone inspector resized320x844; dark OS views reuse contexts",
+  "harness_commit_at_execution": "1f9e1315",
+  "harness_sha256": "6fea5ec94eda619a4868a51edbf25751d30a5cd2396fc1163fcf3cd3a73be2fb",
+  "runtime_freeze_reference": "corrective-cycle/freeze-9a23536d.json",
+  "cases_passed": 2,
+  "cases_total": 2,
+  "runtime_errors": 0,
+  "case_failures": 0,
+  "diagnostic_errors": 0,
+  "native_viewport_captures": 13,
+  "walking_videos": 2,
+  "native_media_bytes": 648362,
+  "capture_total_elapsed_seconds_min": 0.14826629500021227,
+  "capture_total_elapsed_seconds_max": 1.7419732190010109,
+  "viewport_capture_method": "CDP Page.startScreencast JPEG55; current viewport; frame ACK; stop/detach; 3s absolute; no fallback or retry",
+  "last_case_checkpoint_elapsed_seconds": 140.17674813600024,
+  "desktop_video": {
+    "file": "current-1280-walking.webm",
+    "held_input_seconds": 5,
+    "encoded_seconds": 4.080711,
+    "frames": 20,
+    "width": 763,
+    "height": 540,
+    "bytes": 47479,
+    "warning": "Sparse software frames; encoded duration shorter than real held input, not padded; no hardware smoothness claim"
+  },
+  "phone_video": {
+    "file": "current-390-walking.webm",
+    "held_input_seconds": 5,
+    "encoded_seconds": 5.347191,
+    "frames": 60,
+    "width": 374,
+    "height": 286,
+    "bytes": 155684
+  },
+  "derived_contact_sheets": [
+    {"file": "current-1280-walking-frames.jpg", "bytes": 19300},
+    {"file": "current-390-walking-frames.jpg", "bytes": 20489}
+  ],
+  "single_close": {
+    "desktop": "one click PASS; immediate diagnostic observed closed dialog with inspection transition, then existing world/canvas/state readiness passed",
+    "phone": "exactly one native tap after390-to320 PASS; immediate closed/world/viewport; final state/canvas/model/geometry passed"
+  },
+  "native_gameplay": "Both cases: actual movement/gait/grounding, pause/resume, reduced-checkbox movement and preference save/reload, NorthernClearing Walk/arrival/Previewtrial/MarenBack, offered Budriv wild1, real ability0, manual pending save/reload, full exact Wait action/RNG replay, Flee/Continue",
+  "state_grants_or_fixture_imports_for_positive_native_play": false,
+  "browser_stopped": true,
+  "server_stopped": true,
+  "chromium_roots_after_cleanup": 0,
+  "default_temporary_chromium_profile_directories_after_cleanup": 0,
+  "runtime_and_88_assets_frozen": true,
+  "slot_explicitly_released_to_parent_immediately_after_cleanup": true,
+  "further_browser_queued": false,
+  "disk_before_bytes": 2613915648,
+  "disk_after_batch_bytes": 2612539392,
+  "browser_free_postflight_commands": [
+    {"command": "node scripts/test_foldwild_data.mjs", "exit": 0, "result": "80 exact canonical tracked/local SHA matches; 7300844 canonical model bytes; separate optional SHA match"},
+    {"command": "node scripts/test_foldwild_save_v2.mjs", "exit": 0, "result": "v1 migration, legacy badge, v2 strict schema and storage boundaries"},
+    {"command": "node scripts/test_foldwild_continuity.mjs", "exit": 0, "result": "v1/v2 fixtures, exact next-action/RNG replay, strict pending identity and resource/accessor validation"},
+    {"command": "node scripts/test_foldwild_save_conflict.mjs", "exit": 0, "result": "exact-primary conflicts, preservation, legacy/pending replay and corrupt/denied/quota fixtures"},
+    {"command": "node scripts/test_foldwild_optional.mjs", "exit": 0, "result": "optional gates/default-off, 500 exact base-world snapshots, canonical80/bonus separation, stub controller/pending replay"},
+    {"command": "python3 -B scripts/test_foldwild_upgrade_runner.py", "exit": 0, "result": "CDP deadline/ACK/cleanup, media-failure remains FAIL, synchronous poll, primary preservation, sparse fonts, early Close, unconditional5s per-case video guards"}
+  ],
+  "fixture_classification": "Old-save and synthetic/stub checks above are browser-free fixture evidence, not positive native play",
+  "holds": ["Parent subjective visual review pending", "Original/async full M2 stability not rerun", "Broad natural campaign/high-trial victory/acquisition/evolution", "Physical-device performance and smoothness", "Rights/provenance", "No full-fleet or release/push authorization"]
+}

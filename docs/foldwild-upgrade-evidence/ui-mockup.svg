@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="680" viewBox="0 0 1080 680" role="img" aria-labelledby="title desc">
+  <title id="title">Foldwild shell layout proposal</title>
+  <desc id="desc">Design mockup made before UI edits, not a gameplay screenshot. Desktop has a large scene and a compact next-stop and interaction column. Phone stacks scene above the same controls. Route names and distances are illustrative, not live state.</desc>
+  <style>text{font-family:Arial,sans-serif;fill:#242820;font-size:16px}.title{font-size:24px;font-weight:bold}.small{font-size:13px}.heading{font-size:19px;font-weight:bold}.white{fill:white;font-weight:bold}.line{stroke:#827762;stroke-width:1}</style>
+  <rect width="1080" height="680" fill="#eee9d8"/>
+  <text x="24" y="34" class="title">FOLDWILD / UI PLAN</text><text x="24" y="58" class="small">Local primitive mockup. Not captured gameplay. Example objective copy only.</text>
+  <rect x="24" y="80" width="700" height="484" rx="4" fill="#f7f3e8"/>
+  <rect x="24" y="80" width="420" height="484" fill="#cbd2bd"/>
+  <path d="M180 564L222 380L335 270" fill="none" stroke="#b09b76" stroke-width="44"/>
+  <path d="M82 200l-30 78h60zM371 130l-30 78h60zM358 380l-30 78h60z" fill="#52634b"/>
+  <circle cx="222" cy="420" r="12" fill="#365a74"/><rect x="323" y="242" width="28" height="22" fill="#827762"/>
+  <rect x="36" y="92" width="238" height="56" rx="4" fill="#f7f3e8"/><text x="48" y="115" class="heading">Rootfold Meadow</text><text x="48" y="136" class="small">Marks 90 · Kites 8</text>
+  <rect x="456" y="92" width="256" height="44" rx="4" fill="#000"/><text x="470" y="120" class="white">Ledger      Field kit      Pause</text>
+  <text x="456" y="161" class="small">NEXT STOP</text><text x="456" y="187" class="heading">Your next destination</text><text x="456" y="210" class="small">Direction · distance · short purpose</text>
+  <rect x="456" y="222" width="256" height="44" rx="4" fill="#000"/><text x="482" y="249" class="white">Show route</text>
+  <text x="456" y="293" class="small">Arrival or action feedback</text>
+  <rect x="456" y="306" width="256" height="58" rx="4" fill="#000"/><text x="482" y="341" class="white">E · Contextual action</text>
+  <text x="456" y="393" class="small">▸ Walk to a nearby marker</text><line x1="456" y1="411" x2="712" y2="411" class="line"/>
+  <text x="456" y="441" class="small">Hold to move</text><rect x="456" y="452" width="256" height="44" rx="4" fill="#000"/><text x="468" y="480" class="white">Forward  Left  Back  Right</text>
+  <text x="456" y="523" class="small">▸ Team and travel</text><text x="456" y="552" class="small">▸ Settings and controls</text>
+  <text x="24" y="591" class="small">Progress saved on this device.                 ▸ Save files and recovery</text>
+  <rect x="764" y="80" width="292" height="534" rx="4" fill="#f7f3e8"/>
+  <rect x="764" y="80" width="292" height="172" fill="#cbd2bd"/><path d="M870 252L916 177L979 143" fill="none" stroke="#b09b76" stroke-width="26"/><circle cx="893" cy="215" r="9" fill="#365a74"/>
+  <rect x="776" y="92" width="217" height="44" fill="#f7f3e8"/><text x="784" y="119">Rootfold Meadow</text>
+  <rect x="776" y="262" width="268" height="44" rx="4" fill="#000"/><text x="791" y="290" class="white">Ledger      Field kit       Pause</text>
+  <text x="776" y="331" class="small">NEXT STOP</text><text x="776" y="356" class="heading">Your next destination</text><text x="776" y="377" class="small">Direction · distance</text>
+  <rect x="776" y="389" width="268" height="44" rx="4" fill="#000"/><text x="837" y="417" class="white">Show route</text>
+  <text x="776" y="458" class="small">Short arrival feedback</text><rect x="776" y="471" width="268" height="58" rx="4" fill="#000"/><text x="802" y="506" class="white">E · Contextual action</text>
+  <text x="776" y="557" class="small">▸ Nearby markers</text><text x="776" y="588" class="small">Movement / team / settings below</text>
+  <text x="24" y="642" class="small">Hierarchy: next stop → route → contextual action. Secondary lists collapse; save recovery stays outside play frame.</text>
+</svg>

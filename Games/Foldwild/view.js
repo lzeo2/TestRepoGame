@@ -3,6 +3,134 @@ import { GLTFLoader } from './vendor/GLTFLoader.js';
 import { BY_ID, OPTIONAL_HIDDEN_SPECIES } from './data.js';
 import { REGION_LAYOUTS } from './region-data.js';
 
+// Local +Z is the face/front. Pivots use radians, with feet grounded at y=0.
+export function createHuman(colors, geometry, material) {
+  const rig = new THREE.Group();
+  rig.name = 'human';
+  const pivots = {};
+  const pivot = (name, x, y, z) => {
+    const group = new THREE.Group(); group.name = name; group.position.set(x, y, z);
+    rig.add(group); pivots[name] = group; return group;
+  };
+  const part = (parent, name, color, x, y, z, w, h, d) => {
+    const mesh = new THREE.Mesh(geometry('box'), material(color));
+    mesh.name = name; mesh.position.set(x, y, z); mesh.scale.set(w, h, d); parent.add(mesh);
+    return mesh;
+  };
+  const torso = pivot('torso', 0, .85, 0);
+  part(torso, 'jacket', colors.coat, 0, .16, 0, .43, .56, .26);
+  part(torso, 'shirt', '#eee9d8', 0, .33, .14, .13, .2, .025);
+  part(torso, 'belt', '#514537', 0, -.1, .015, .44, .07, .28);
+  part(torso, 'buckle', '#c7a25b', 0, -.1, .165, .08, .06, .035);
+  part(torso, 'pack', colors.pack, 0, .14, -.22, .32, .4, .18);
+  if (colors.role === 'merchant') part(torso, 'apron', '#d6c9a9', 0, -.015, .165, .29, .37, .035);
+  if (colors.role === 'mentor') part(torso, 'scarf', '#d8bd83', .11, .3, .175, .12, .28, .035);
+  if (colors.role === 'rival') part(torso, 'trial-badge', '#d8bd83', -.12, .23, .175, .09, .1, .035);
+  for (const side of [-1, 1]) part(torso, 'pack-strap', colors.pack, side * .16, .2, .15, .045, .39, .035);
+  const head = pivot('head', 0, 1.27, 0);
+  part(head, 'neck', colors.skin, 0, .01, 0, .13, .15, .14);
+  part(head, 'face', colors.skin, 0, .2, 0, .29, .32, .27);
+  part(head, 'nose', colors.skin, 0, .18, .155, .075, .08, .07);
+  for (const side of [-1, 1]) part(head, 'eye', '#292c2c', side * .075, .24, .14, .038, .04, .025);
+  if (colors.hairStyle !== 'none') {
+    part(head, 'hair', colors.hair, 0, .37, -.015, .31, colors.hairStyle === 'cropped' ? .055 : .1, .3);
+    part(head, 'hair-back', colors.hair, 0, colors.hairStyle === 'long' ? .16 : .27, -.14, .3,
+      colors.hairStyle === 'long' ? .38 : .18, .08);
+  }
+  for (const [side, name] of [[-1, 'left'], [1, 'right']]) {
+    const arm = pivot(`${name}Arm`, side * .29, 1.12, 0);
+    part(arm, 'sleeve', colors.coat, 0, -.15, 0, .15, .31, .2);
+    part(arm, 'hand', colors.skin, 0, -.37, .015, .12, .15, .14);
+    const leg = pivot(`${name}Leg`, side * .115, .73, 0);
+    part(leg, 'trouser', '#383a3a', 0, -.175, 0, .18, .35, .21);
+    const knee = new THREE.Group(); knee.name = `${name}Knee`; knee.position.y = -.35; leg.add(knee);
+    part(knee, 'shin', '#383a3a', 0, -.175, 0, .17, .35, .2);
+    const ankle = new THREE.Group(); ankle.name = `${name}Ankle`; ankle.position.y = -.35; knee.add(ankle);
+    part(ankle, 'boot', '#514537', 0, 0, .045, .2, .16, .32);
+    leg.userData.knee = knee; leg.userData.ankle = ankle;
+    poseHumanLeg(leg, 0, 0);
+  }
+  rig.userData.pivots = pivots;
+  return rig;
+}
+
+// Two equal .35-unit links; ankle counter-rotation keeps the boot sole horizontal.
+function poseHumanLeg(leg, forward, lift) {
+  const down = .65 - lift, reach = Math.min(.6999, Math.hypot(down, forward));
+  const bend = Math.acos(reach / .7);
+  leg.rotation.x = -Math.atan2(forward, down) - bend;
+  leg.userData.knee.rotation.x = bend * 2;
+  leg.userData.ankle.rotation.x = -leg.rotation.x - bend * 2;
+}
+
+// Presentation samples only controller positions and render dt, never advances the world.
+export function updateHumanMotion(rig, position, dt, reducedMotion = false) {
+  const targetYaw = position.yaw + Math.PI;
+  const motion = rig.userData.motion ||= { x: position.x, z: position.z, phase: 0, speed: 0, weight: 0 };
+  const distance = Math.hypot(position.x - motion.x, position.z - motion.z);
+  rig.position.set(position.x, 0, position.z);
+  const turn = Math.atan2(Math.sin(targetYaw - rig.rotation.y), Math.cos(targetYaw - rig.rotation.y));
+  if (dt > 0 || reducedMotion) rig.rotation.y += turn * (reducedMotion ? 1 : 1 - Math.exp(-dt * 16));
+  if (dt <= 0 && !reducedMotion) return;
+  motion.x = position.x; motion.z = position.z;
+  // Teleports are not footsteps. One cycle travels one world unit, not a wall-clock sine.
+  motion.speed = dt > 0 && distance < 1 ? distance / dt : 0;
+  if (!reducedMotion && motion.speed > .01) motion.phase = (motion.phase + distance) % 1;
+  const moving = !reducedMotion && motion.speed > .01;
+  motion.weight = reducedMotion ? 0 : moving ? 1 - (1 - motion.weight) * Math.exp(-dt * 24) : motion.weight * Math.exp(-dt * 24);
+  if (motion.weight > .999) motion.weight = 1;
+  if (motion.weight < .001) { motion.weight = 0; motion.phase = 0; }
+  const pivots = rig.userData.pivots;
+  for (const [side, offset] of [['left', 0], ['right', .5]]) {
+    const phase = (motion.phase + offset) % 1;
+    const stance = phase < .5;
+    const progress = stance ? phase * 2 : (phase - .5) * 2;
+    const forward = motion.weight ? (stance ? .25 - .5 * progress : -.25 + .5 * progress) * motion.weight : 0;
+    const lift = stance ? 0 : Math.sin(progress * Math.PI) * .13 * motion.weight;
+    poseHumanLeg(pivots[`${side}Leg`], forward, lift);
+    pivots[`${side}Arm`].rotation.x = forward * 2.2;
+  }
+}
+
+export function inspectHumanMotion(rig) {
+  if (!rig) return null;
+  rig.updateMatrixWorld(true);
+  const vector = v => Object.freeze({ x: v.x, y: v.y, z: v.z });
+  const motion = rig.userData.motion;
+  const limbs = {};
+  for (const side of ['left', 'right']) {
+    const leg = rig.userData.pivots[`${side}Leg`], ankle = leg.userData.ankle;
+    const boot = ankle.getObjectByName('boot');
+    const sole = boot.localToWorld(new THREE.Vector3(0, -.5, 0));
+    limbs[side] = Object.freeze({ hip: leg.rotation.x, knee: leg.userData.knee.rotation.x,
+      ankle: ankle.rotation.x, arm: rig.userData.pivots[`${side}Arm`].rotation.x,
+      grounded: Math.abs(sole.y) < .002, sole: vector(sole) });
+  }
+  return Object.freeze({ position: vector(rig.position), yaw: rig.rotation.y,
+    speed: motion?.speed || 0, phase: motion?.phase || 0, weight: motion?.weight || 0,
+    limbs: Object.freeze(limbs) });
+}
+
+// No source creature skeleton is assumed: battle feedback transforms the grounded frame only.
+export function battleMotion(type, t) {
+  const ease = x => { x = THREE.MathUtils.clamp(x, 0, 1); return x * x * (3 - 2 * x); };
+  if (type === 'hit') return { acting: -.18 * (t < .2 ? ease(t / .2) : 1 - ease((t - .2) / .8)), target: 0 };
+  const lunge = t < .18 ? -.1 * ease(t / .18) : t < .4 ? -.1 + .8 * ease((t - .18) / .22) : .7 * (1 - ease((t - .4) / .6));
+  const impact = t < .4 ? 0 : t < .52 ? .2 * ease((t - .4) / .12) : .2 * (1 - ease((t - .52) / .48));
+  return { acting: lunge, target: impact };
+}
+
+// A few useful signs, not a label on every collectible. Positions come from metadata.
+export function presentationSigns(layout) {
+  return (layout.landmarks || []).filter(site => ['outpost', 'bridge-loop', 'waystone'].includes(site.id) || site.pointIds.includes('rival'))
+    .map(site => ({ id: site.id, name: site.name, x: site.x, z: site.z,
+      trial: site.pointIds.includes('rival') }));
+}
+
+export function destinationSignLayout(site, x = site.x + (site.trial ? -3.3 : 2), z = site.z - 2.4) {
+  return { x, y: 2.05, z, width: 3, height: .75 };
+}
+
 // Presentation only: the core supplies authoritative positions and the sole clock.
 export function createView(canvas, { onCheckpoint = () => {}, onDiagnostic = null, reducedMotion = false } = {}) {
   let renderer;
@@ -25,14 +153,14 @@ export function createView(canvas, { onCheckpoint = () => {}, onDiagnostic = nul
   scene.add(root);
   const loader = new GLTFLoader(), cache = new Map(), slots = new Map();
   const geometries = new Map(), materials = new Map(), sceneInstances = [];
-  const pointers = new Map();
+  const pointers = new Map(), labelResources = [], landmarkLabels = [];
   const playerPosition = new THREE.Vector3(), desiredCamera = new THREE.Vector3(), lookAt = new THREE.Vector3();
   const projected = new THREE.Vector3(), cameraHit = new THREE.Vector3(), cameraRay = new THREE.Ray();
   const raycaster = new THREE.Raycaster(), matrixPart = new THREE.Object3D();
   const groundPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0), rayPoint = new THREE.Vector3();
-  let generation = 0, disposed = false, mode = 'world', quality = 'low', frames = 0, elapsed = 0;
+  let generation = 0, disposed = false, mode = 'world', quality = 'low', frames = 0;
   let points = [], visiblePoints = [], region = 0, player = null, cameraYaw = 0, playerYaw = 0;
-  let effect = null, walking = 0, npcParts = [], npcs = [], cameraBoxes = [];
+  let effect = null, npcParts = [], npcs = [], cameraBoxes = [];
   let inspectionYaw = 0, inspectionBounds = null;
   let contextStatus = 'available', lastDiagnostic = '', directMessage = '';
   const inspectionCenter = new THREE.Vector3();
@@ -104,16 +232,26 @@ export function createView(canvas, { onCheckpoint = () => {}, onDiagnostic = nul
     sceneInstances.push(mesh);
     return mesh;
   }
-  function human(colors) {
-    const group = new THREE.Group();
-    shape(group, 'cone', colors.coat, 0, .79, 0, .4, .72, .32, Math.PI / 5);
-    shape(group, 'box', colors.skin, 0, 1.3, 0, .28, .3, .28);
-    if (colors.hairStyle !== 'none') shape(group, 'box', colors.hair, 0, colors.hairStyle === 'long' ? 1.32 : 1.48,
-      colors.hairStyle === 'long' ? -.12 : -.015, .31, colors.hairStyle === 'long' ? .35 : colors.hairStyle === 'cropped' ? .07 : .13, .3);
-    shape(group, 'box', '#383a3a', -.13, .24, 0, .18, .48, .22);
-    shape(group, 'box', '#383a3a', .13, .24, 0, .18, .48, .22);
-    shape(group, 'box', colors.pack, 0, .82, -.22, .32, .44, .16);
-    return group;
+  function human(colors) { return createHuman(colors, geometry, material); }
+  function destinationSign(site, signX, signZ) {
+    const { x, y, z, width, height } = destinationSignLayout(site, signX, signZ);
+    shape(root, 'box', '#514537', x, .9, z, .13, 1.8, .13);
+    const canvas = document.createElement('canvas'); canvas.width = 512; canvas.height = 128;
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = '#eee9d8'; ctx.fillRect(0, 0, 512, 128);
+    ctx.strokeStyle = '#514537'; ctx.lineWidth = 10; ctx.strokeRect(5, 5, 502, 118);
+    ctx.fillStyle = '#292c2c'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.font = 'bold 40px sans-serif';
+    const words = site.name.split(' '), lines = [''];
+    for (const word of words) {
+      const i = lines.length - 1, next = `${lines[i]} ${word}`.trim();
+      if (ctx.measureText(next).width > 470 && lines[i]) lines.push(word); else lines[i] = next;
+    }
+    lines.slice(0, 2).forEach((line, i) => ctx.fillText(line, 256, lines.length > 1 ? 41 + i * 47 : 64, 470));
+    const texture = new THREE.CanvasTexture(canvas); texture.colorSpace = THREE.SRGBColorSpace;
+    const mat = new THREE.SpriteMaterial({ map: texture });
+    const label = new THREE.Sprite(mat); label.position.set(x, y, z); label.scale.set(width, height, 1);
+    root.add(label); landmarkLabels.push(label); labelResources.push(texture, mat);
   }
   function disposeModel(base) {
     const resources = new Set();
@@ -186,10 +324,12 @@ export function createView(canvas, { onCheckpoint = () => {}, onDiagnostic = nul
     for (const slot of slots.values()) release(slot);
     slots.clear();
     root.clear();
+    for (const resource of labelResources) resource.dispose();
+    labelResources.length = 0; landmarkLabels.length = 0;
     for (const mesh of sceneInstances) mesh.dispose();
     sceneInstances.length = 0;
     points = []; visiblePoints = []; npcs = []; npcParts = []; cameraBoxes = [];
-    player = null; effect = null; walking = 0; inspectionBounds = null;
+    player = null; effect = null; inspectionBounds = null;
     pointers.clear();
     notifyDiagnostic();
     return generation;
@@ -295,6 +435,33 @@ export function createView(canvas, { onCheckpoint = () => {}, onDiagnostic = nul
         const a = path[i - 1], b = path[i], dx = b.x - a.x, dz = b.z - a.z;
         part('box', palette.path || '#d6c9a9', (a.x + b.x) / 2, -.008, (a.z + b.z) / 2, layout.pathWidth || 3.1, .025, Math.hypot(dx, dz) + 1, Math.atan2(dx, dz));
       }
+      // Sparse dark verge blocks distinguish the main trail from bridge and trial branches.
+      for (const route of layout.routes || []) {
+        if (!['trial-spur', 'bridge-loop'].includes(route.id)) continue;
+        const color = route.id === 'trial-spur' ? '#785338' : '#45596b';
+        const path = route.paths[route.paths.length - 1];
+        for (let i = 1; i < path.length; i++) {
+          const a = path[i - 1], b = path[i], dx = b.x - a.x, dz = b.z - a.z, length = Math.hypot(dx, dz);
+          if (length < .001) continue;
+          const count = Math.ceil(length / 7);
+          for (let j = 0; j < count; j++) {
+            const t = (j + .5) / count;
+            part('box', color, a.x + dx * t + dz / length * 1.5, .035, a.z + dz * t - dx / length * 1.5,
+              .28, .1, .8, Math.atan2(dx, dz));
+          }
+        }
+      }
+      for (const site of presentationSigns(layout)) {
+        destinationSign(site);
+        if (site.trial) {
+          // An open timber trial arch frames the actual trainer, not the old decorative stone.
+          for (const side of [-1, 1]) part('box', '#785338', site.x + side * 2, 1.4, site.z - 1, .24, 2.8, .24);
+          part('box', '#785338', site.x, 2.7, site.z - 1, 4.3, .24, .28);
+          for (const side of [-1, 1]) part('box', '#d8bd83', site.x + side * 1.6, 2.2, site.z - 1, .45, .65, .08);
+          const path = layout.routes.find(route => route.id === 'trial-spur')?.paths.at(-1);
+          if (path?.length > 1) destinationSign({ ...site, name: `To ${site.name}` }, path[0].x + 2, path[0].z - 2.4);
+        }
+      }
       for (const prop of layout.props) {
         const { kind, x, z } = prop;
         const w = prop.w || 2, h = prop.h || 2, d = prop.d || w, yaw = prop.yaw || prop.rotation || 0;
@@ -311,7 +478,8 @@ export function createView(canvas, { onCheckpoint = () => {}, onDiagnostic = nul
             cameraBoxes.push(new THREE.Box3(new THREE.Vector3(c.minX - .2, 0, c.minZ - .2), new THREE.Vector3(c.maxX + .2, h * 1.4, c.maxZ + .2)));
         } else if (kind === 'tree' || kind === 'grove') {
           part('box', prop.trunkColor || '#6d5840', x, h * .35, z, .3, h * .7, .3);
-          part('rock', color || palette.leaves, x, h * .85, z, w, h * .55, d);
+          part('rock', color || palette.leaves, x, h * .75, z, w, h * .45, d);
+          part('rock', color || palette.leaves, x + .25, h * .98, z - .15, w * .7, h * .35, d * .7);
         } else if (kind === 'bridge') {
           // Individual planks and rails, resting over the flat river rather than a marker pedestal.
           const count = Math.max(4, Math.ceil(w / .6));
@@ -346,22 +514,26 @@ export function createView(canvas, { onCheckpoint = () => {}, onDiagnostic = nul
     npcs = points.filter(p => ['rival', 'npc', 'merchant', 'mentor', 'contract'].includes(p.type))
       .filter(p => Math.hypot(p.x - playerPosition.x, p.z - playerPosition.z) < 32)
       .sort((a, b) => Math.hypot(a.x - playerPosition.x, a.z - playerPosition.z) - Math.hypot(b.x - playerPosition.x, b.z - playerPosition.z)).slice(0, limit);
-    const definitions = [
-      ['cone', 0, .79, 0, .4, .72, .32, 'coat'], ['box', 0, 1.3, 0, .28, .3, .28, 'skin'],
-      ['box', 0, 1.48, -.015, .31, .13, .3, 'hair'], ['box', -.13, .24, 0, .18, .48, .22, 'legs'],
-      ['box', .13, .24, 0, .18, .48, .22, 'legs'], ['box', 0, .82, -.22, .32, .44, .16, 'pack']
-    ];
     for (const item of npcParts) { root.remove(item.mesh); item.mesh.dispose(); sceneInstances.splice(sceneInstances.indexOf(item.mesh), 1); }
     npcParts = [];
-    for (const def of definitions) {
-      const [kind, ox, oy, oz, w, h, d, key] = def;
-      const parts = npcs.map((p, i) => {
-        const colors = { skin: ['#bc916b', '#8c6149', '#d5b494'][i % 3], coat: p.type === 'merchant' ? '#81613f' : p.type === 'rival' ? '#7b4f34' : '#48637a', hair: '#38342d', legs: '#383a3a', pack: '#ac9265' };
-        const color = p.appearance?.[key] || colors[key];
-        return [color, p.x + ox, oy, p.z + oz, w, h, d, kind === 'cone' ? Math.PI / 5 : 0];
-      });
-      const mesh = instances(root, kind, parts);
-      if (mesh) npcParts.push({ mesh, def });
+    const parts = [];
+    npcs.forEach((p, i) => {
+      const colors = { skin: ['#bc916b', '#8c6149', '#d5b494'][i % 3], coat: p.type === 'merchant' ? '#81613f' : p.type === 'rival' ? '#7b4f34' : p.type === 'mentor' ? '#685478' : '#48637a', hair: '#38342d', hairStyle: 'short', pack: '#ac9265', role: p.type, ...p.appearance };
+      p.rig = human(colors); p.rig.position.set(p.x, 0, p.z);
+      p.rig.rotation.y = Math.atan2(playerPosition.x - p.x, playerPosition.z - p.z);
+      p.rig.traverse(node => { if (node.isMesh) parts.push(node); });
+    });
+    if (!parts.length) return;
+    const mesh = new THREE.InstancedMesh(geometry('box'), material('#ffffff'), parts.length);
+    parts.forEach((node, i) => mesh.setColorAt(i, node.material.color));
+    root.add(mesh); sceneInstances.push(mesh); npcParts.push({ mesh, parts });
+    updateNPCParts();
+  }
+  function updateNPCParts() {
+    for (const p of npcs) p.rig.updateMatrixWorld(true);
+    for (const { mesh, parts } of npcParts) {
+      parts.forEach((node, i) => mesh.setMatrixAt(i, node.matrixWorld));
+      mesh.instanceMatrix.needsUpdate = true; mesh.computeBoundingSphere();
     }
   }
   function nearbyVisuals() {
@@ -421,14 +593,15 @@ export function createView(canvas, { onCheckpoint = () => {}, onDiagnostic = nul
     terrain(region);
     player = human(appearance); root.add(player);
     setPlayerPosition(position.x, position.z, position.yaw || 0);
+    player.rotation.y = playerYaw + Math.PI;
+    updateHumanMotion(player, { x: playerPosition.x, z: playerPosition.z, yaw: playerYaw }, 0);
     cameraPosition(true);
     await Promise.all(nearbyVisuals());
   }
   function setPlayerPosition(x, z, angle = 0) {
     if (disposed || !Number.isFinite(x) || !Number.isFinite(z) || !Number.isFinite(angle)) return;
-    if (mode === 'world' && Math.hypot(x - playerPosition.x, z - playerPosition.z) > .001) walking = .16;
     playerPosition.set(x, 0, z); playerYaw = angle;
-    if (player) { player.position.copy(playerPosition); player.rotation.y = angle + Math.PI; }
+    if (player) player.position.copy(playerPosition);
     if (mode === 'world') nearbyVisuals();
   }
   async function showBattle({ playerSpeciesId, enemySpeciesId, region: index = 0, playerCosmeticId = 'none', enemyCosmeticId = 'none' }) {
@@ -478,16 +651,8 @@ export function createView(canvas, { onCheckpoint = () => {}, onDiagnostic = nul
     if (disposed) return;
     if (contextStatus === 'lost') { notifyDiagnostic(); return; }
     const dt = Number.isFinite(dtSeconds) ? THREE.MathUtils.clamp(dtSeconds, 0, .1) : 0;
-    elapsed += dt; walking = Math.max(0, walking - dt);
-    if (!reducedMotion) {
-      if (player) player.position.y = walking ? Math.abs(Math.sin(elapsed * 13)) * .075 : 0;
-      for (const [key, slot] of slots) if (slot.frame && mode === 'world') slot.frame.position.y = Math.sin(elapsed * 1.8 + String(key).length) * .025;
-      if (dt) for (const { mesh, def } of npcParts) {
-        const [, ox, oy, oz, w, h, d] = def;
-        npcs.forEach((p, i) => instanceMatrix(mesh, i, p.x + ox, oy + Math.sin(elapsed * 1.4 + i) * .012, p.z + oz, w, h, d, def[0] === 'cone' ? Math.PI / 5 : 0));
-        mesh.instanceMatrix.needsUpdate = true;
-      }
-    }
+    if (player) updateHumanMotion(player, { x: playerPosition.x, z: playerPosition.z, yaw: playerYaw }, dt, reducedMotion);
+    // World creatures and waiting NPCs remain planted; no invented source-model rig or idle bounce.
     if (effect) {
       effect.elapsed += dt;
       const duration = effect.type === 'capture' ? .65 : .42, t = Math.min(1, effect.elapsed / duration);
@@ -500,12 +665,13 @@ export function createView(canvas, { onCheckpoint = () => {}, onDiagnostic = nul
         effect.object.rotation.set(.25 * Math.sin(t * Math.PI), t * .6, -.5 * t);
       } else {
         // Assign from the static anchor, never accumulate movement from previous frames.
-        if (acting && effect.type === 'ability') acting.position.x = slots.get(effect.side).x + direction * Math.sin(t * Math.PI) * .65;
-        if (acting && effect.type === 'hit') acting.position.x = slots.get(effect.side).x - direction * Math.sin(t * Math.PI) * .18;
-        if (target && effect.type === 'ability') target.position.x = slots.get(effect.side === 'enemy' ? 'player' : 'enemy').x + direction * Math.sin(Math.max(0, t - .35) / .65 * Math.PI) * .18;
+        const pose = battleMotion(effect.type, t);
+        if (acting) acting.position.x = slots.get(effect.side).x + direction * pose.acting;
+        if (target && effect.type === 'ability') target.position.x = slots.get(effect.side === 'enemy' ? 'player' : 'enemy').x + direction * pose.target;
       }
       if (t === 1) clearEffect();
     }
+    for (const label of landmarkLabels) label.visible = mode === 'world' && label.position.distanceTo(playerPosition) < 28;
     cameraPosition(false, dt); renderer.render(scene, camera); frames++;
     if (contextStatus === 'restoring') { contextStatus = 'available'; notifyDiagnostic(); }
   }
@@ -526,12 +692,16 @@ export function createView(canvas, { onCheckpoint = () => {}, onDiagnostic = nul
   function setAppearance(value = {}) {
     if (disposed || !value || typeof value !== 'object') return;
     const aliases = { skin: 'skinTone', coat: 'coatColor', hair: 'hairColor', pack: 'backpackColor' };
+    let changed = false;
     for (const [key, alias] of Object.entries(aliases)) {
-      const color = value[key] || value[alias] || (key === 'pack' ? value.backpack : null);
-      if (typeof color === 'string' && /^#[0-9a-f]{6}$/i.test(color)) appearance[key] = color;
+      const color = [value[key], value[alias], key === 'pack' ? value.backpack : null]
+        .find(candidate => typeof candidate === 'string' && /^#[0-9a-f]{6}$/i.test(candidate));
+      if (color && color !== appearance[key]) { appearance[key] = color; changed = true; }
     }
-    if (['short', 'cropped', 'long', 'none'].includes(value.hair)) appearance.hairStyle = value.hair;
-    if (player) { root.remove(player); player = human(appearance); root.add(player); player.position.copy(playerPosition); player.rotation.y = playerYaw + Math.PI; }
+    if (['short', 'cropped', 'long', 'none'].includes(value.hair) && value.hair !== appearance.hairStyle) {
+      appearance.hairStyle = value.hair; changed = true;
+    }
+    if (player && changed) { root.remove(player); player = human(appearance); root.add(player); player.position.copy(playerPosition); player.rotation.y = playerYaw + Math.PI; }
   }
   function orbitCamera(delta) {
     if (disposed || !Number.isFinite(delta)) return;
@@ -549,7 +719,8 @@ export function createView(canvas, { onCheckpoint = () => {}, onDiagnostic = nul
   function setReducedMotion(value) {
     reducedMotion = Boolean(value);
     if (reducedMotion) {
-      clearEffect(); if (player) player.position.y = 0;
+      clearEffect();
+      if (player) updateHumanMotion(player, { x: playerPosition.x, z: playerPosition.z, yaw: playerYaw }, 0, true);
       for (const slot of slots.values()) if (slot.frame) slot.frame.position.y = 0;
       cameraPosition(true);
     }
@@ -624,6 +795,8 @@ export function createView(canvas, { onCheckpoint = () => {}, onDiagnostic = nul
       cacheSize: cache.size, countLoadedModels: loaded.length, loadedModels: Object.freeze(loaded),
       hiddenAvailable, width: canvas.width, height: canvas.height, npcCount: npcs.length,
       cameraPosition: Object.freeze({ x: camera.position.x, y: camera.position.y, z: camera.position.z }),
+      playerMotion: inspectHumanMotion(player),
+      npcMotion: Object.freeze(npcs.map(p => Object.freeze({ id: p.id, pose: inspectHumanMotion(p.rig) }))),
       actorPositions: Object.freeze(Object.fromEntries([...slots].filter(([, s]) => s.frame).map(([key, s]) =>
         [key, Object.freeze({ x: s.frame.position.x, y: s.frame.position.y, z: s.frame.position.z })]))),
       geometries: renderer.info.memory.geometries, textures: renderer.info.memory.textures });

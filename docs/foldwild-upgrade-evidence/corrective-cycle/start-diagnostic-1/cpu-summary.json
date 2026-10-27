@@ -1,0 +1,2447 @@
+{
+  "sampling_interval_us": 10000,
+  "sample_count": 430,
+  "sample_weight_us": 4560656,
+  "profile_wall_us": 4566773,
+  "weight_definition": "sample timeDeltas; inclusive sums each ancestor; not exact GPU/native timing",
+  "functions": [
+    {
+      "function": "(root)",
+      "source": "",
+      "line": 0,
+      "inclusive_us": 4560656,
+      "exclusive_us": 0
+    },
+    {
+      "function": "(idle)",
+      "source": "",
+      "line": 0,
+      "inclusive_us": 1863309,
+      "exclusive_us": 1863309
+    },
+    {
+      "function": "start",
+      "source": "Games/Foldwild/script.js",
+      "line": 310,
+      "inclusive_us": 1479782,
+      "exclusive_us": 10145
+    },
+    {
+      "function": "(anonymous)",
+      "source": "Games/Foldwild/script.js",
+      "line": 1030,
+      "inclusive_us": 1479782,
+      "exclusive_us": 0
+    },
+    {
+      "function": "showWorld",
+      "source": "Games/Foldwild/script.js",
+      "line": 286,
+      "inclusive_us": 1448681,
+      "exclusive_us": 0
+    },
+    {
+      "function": "createView",
+      "source": "Games/Foldwild/view.js",
+      "line": 135,
+      "inclusive_us": 1307086,
+      "exclusive_us": 10041
+    },
+    {
+      "function": "ensureView",
+      "source": "Games/Foldwild/script.js",
+      "line": 164,
+      "inclusive_us": 1307086,
+      "exclusive_us": 0
+    },
+    {
+      "function": "getContext",
+      "source": "",
+      "line": 0,
+      "inclusive_us": 1193551,
+      "exclusive_us": 1193551
+    },
+    {
+      "function": "frame",
+      "source": "Games/Foldwild/script.js",
+      "line": 998,
+      "inclusive_us": 721391,
+      "exclusive_us": 0
+    },
+    {
+      "function": "WebGLRenderer.render",
+      "source": "Games/Foldwild/vendor/three.module.js",
+      "line": 29530,
+      "inclusive_us": 709663,
+      "exclusive_us": 0
+    },
+    {
+      "function": "render",
+      "source": "Games/Foldwild/view.js",
+      "line": 650,
+      "inclusive_us": 709663,
+      "exclusive_us": 0
+    },
+    {
+      "function": "renderObject",
+      "source": "Games/Foldwild/vendor/three.module.js",
+      "line": 29954,
+      "inclusive_us": 684907,
+      "exclusive_us": 5664
+    },
+    {
+      "function": "renderObjects",
+      "source": "Games/Foldwild/vendor/three.module.js",
+      "line": 29931,
+      "inclusive_us": 684907,
+      "exclusive_us": 0
+    },
+    {
+      "function": "renderScene",
+      "source": "Games/Foldwild/vendor/three.module.js",
+      "line": 29793,
+      "inclusive_us": 684907,
+      "exclusive_us": 0
+    },
+    {
+      "function": "WebGLRenderer.renderBufferDirect",
+      "source": "Games/Foldwild/vendor/three.module.js",
+      "line": 29173,
+      "inclusive_us": 679243,
+      "exclusive_us": 0
+    },
+    {
+      "function": "setProgram",
+      "source": "Games/Foldwild/vendor/three.module.js",
+      "line": 30131,
+      "inclusive_us": 669111,
+      "exclusive_us": 10120
+    },
+    {
+      "function": "getProgram",
+      "source": "Games/Foldwild/vendor/three.module.js",
+      "line": 29985,
+      "inclusive_us": 517214,
+      "exclusive_us": 0
+    },
+    {
+      "function": "getExtension",
+      "source": "Games/Foldwild/vendor/three.module.js",
+      "line": 17299,
+      "inclusive_us": 496953,
+      "exclusive_us": 496953
+    },
+    {
+      "function": "has",
+      "source": "Games/Foldwild/vendor/three.module.js",
+      "line": 17340,
+      "inclusive_us": 496953,
+      "exclusive_us": 0
+    },
+    {
+      "function": "getParameters",
+      "source": "Games/Foldwild/vendor/three.module.js",
+      "line": 20598,
+      "inclusive_us": 496953,
+      "exclusive_us": 0
+    },
+    {
+      "function": "(program)",
+      "source": "",
+      "line": 0,
+      "inclusive_us": 361360,
+      "exclusive_us": 361360
+    },
+    {
+      "function": "onFirstUse",
+      "source": "Games/Foldwild/vendor/three.module.js",
+      "line": 20271,
+      "inclusive_us": 121499,
+      "exclusive_us": 121499
+    },
+    {
+      "function": "WebGLProgram.getUniforms",
+      "source": "Games/Foldwild/vendor/three.module.js",
+      "line": 20364,
+      "inclusive_us": 121499,
+      "exclusive_us": 0
+    },
+    {
+      "function": "showWorld",
+      "source": "Games/Foldwild/view.js",
+      "line": 587,
+      "inclusive_us": 80837,
+      "exclusive_us": 0
+    },
+    {
+      "function": "initGLContext",
+      "source": "Games/Foldwild/vendor/three.module.js",
+      "line": 28713,
+      "inclusive_us": 63022,
+      "exclusive_us": 0
+    },
+    {
+      "function": "WebGLRenderer",
+      "source": "Games/Foldwild/vendor/three.module.js",
+      "line": 28461,
+      "inclusive_us": 63022,
+      "exclusive_us": 0
+    },
+    {
+      "function": "(garbage collector)",
+      "source": "",
+      "line": 0,
+      "inclusive_us": 51759,
+      "exclusive_us": 51759
+    },
+    {
+      "function": "terrain",
+      "source": "Games/Foldwild/view.js",
+      "line": 419,
+      "inclusive_us": 50493,
+      "exclusive_us": 0
+    },
+    {
+      "function": "getExtension",
+      "source": "Games/Foldwild/vendor/three.module.js",
+      "line": 17299,
+      "inclusive_us": 32716,
+      "exclusive_us": 32716
+    },
+    {
+      "function": "has",
+      "source": "Games/Foldwild/vendor/three.module.js",
+      "line": 17340,
+      "inclusive_us": 32716,
+      "exclusive_us": 0
+    },
+    {
+      "function": "WebGLCapabilities",
+      "source": "Games/Foldwild/vendor/three.module.js",
+      "line": 15777,
+      "inclusive_us": 32716,
+      "exclusive_us": 0
+    },
+    {
+      "function": "updateHUD",
+      "source": "Games/Foldwild/script.js",
+      "line": 197,
+      "inclusive_us": 30403,
+      "exclusive_us": 10115
+    },
+    {
+      "function": "setPhase",
+      "source": "Games/Foldwild/script.js",
+      "line": 175,
+      "inclusive_us": 30403,
+      "exclusive_us": 0
+    },
+    {
+      "function": "validateSave",
+      "source": "Games/Foldwild/world.js",
+      "line": 238,
+      "inclusive_us": 20956,
+      "exclusive_us": 10122
+    },
+    {
+      "function": "freshGame",
+      "source": "Games/Foldwild/world.js",
+      "line": 223,
+      "inclusive_us": 20956,
+      "exclusive_us": 0
+    },
+    {
+      "function": "parse",
+      "source": "Games/Foldwild/vendor/GLTFLoader.js",
+      "line": 312,
+      "inclusive_us": 20394,
+      "exclusive_us": 0
+    },
+    {
+      "function": "(anonymous)",
+      "source": "Games/Foldwild/vendor/GLTFLoader.js",
+      "line": 235,
+      "inclusive_us": 20394,
+      "exclusive_us": 0
+    },
+    {
+      "function": "(anonymous)",
+      "source": "Games/Foldwild/vendor/three.module.js",
+      "line": 43626,
+      "inclusive_us": 20394,
+      "exclusive_us": 0
+    },
+    {
+      "function": "updateProximity",
+      "source": "Games/Foldwild/script.js",
+      "line": 259,
+      "inclusive_us": 20288,
+      "exclusive_us": 0
+    },
+    {
+      "function": "resize",
+      "source": "Games/Foldwild/view.js",
+      "line": 678,
+      "inclusive_us": 20284,
+      "exclusive_us": 0
+    },
+    {
+      "function": "(anonymous)",
+      "source": "Games/Foldwild/region-data.js",
+      "line": 280,
+      "inclusive_us": 20262,
+      "exclusive_us": 20262
+    },
+    {
+      "function": "clearSegment",
+      "source": "Games/Foldwild/region-data.js",
+      "line": 279,
+      "inclusive_us": 20262,
+      "exclusive_us": 0
+    },
+    {
+      "function": "routeTo",
+      "source": "Games/Foldwild/region-data.js",
+      "line": 319,
+      "inclusive_us": 20262,
+      "exclusive_us": 0
+    },
+    {
+      "function": "navigationObjective",
+      "source": "Games/Foldwild/navigation.js",
+      "line": 5,
+      "inclusive_us": 20262,
+      "exclusive_us": 0
+    },
+    {
+      "function": "updateNavigation",
+      "source": "Games/Foldwild/script.js",
+      "line": 232,
+      "inclusive_us": 20262,
+      "exclusive_us": 0
+    },
+    {
+      "function": "WebGLProgram",
+      "source": "Games/Foldwild/vendor/three.module.js",
+      "line": 19803,
+      "inclusive_us": 20261,
+      "exclusive_us": 0
+    },
+    {
+      "function": "acquireProgram",
+      "source": "Games/Foldwild/vendor/three.module.js",
+      "line": 21131,
+      "inclusive_us": 20261,
+      "exclusive_us": 0
+    },
+    {
+      "function": "buildNPCs",
+      "source": "Games/Foldwild/view.js",
+      "line": 512,
+      "inclusive_us": 20235,
+      "exclusive_us": 0
+    },
+    {
+      "function": "nearbyVisuals",
+      "source": "Games/Foldwild/view.js",
+      "line": 539,
+      "inclusive_us": 20235,
+      "exclusive_us": 0
+    },
+    {
+      "function": "setPlayerPosition",
+      "source": "Games/Foldwild/view.js",
+      "line": 601,
+      "inclusive_us": 20235,
+      "exclusive_us": 0
+    },
+    {
+      "function": "instances",
+      "source": "Games/Foldwild/view.js",
+      "line": 221,
+      "inclusive_us": 20231,
+      "exclusive_us": 0
+    },
+    {
+      "function": "destinationSign",
+      "source": "Games/Foldwild/view.js",
+      "line": 236,
+      "inclusive_us": 20195,
+      "exclusive_us": 20195
+    },
+    {
+      "function": "upload",
+      "source": "Games/Foldwild/vendor/three.module.js",
+      "line": 19316,
+      "inclusive_us": 19467,
+      "exclusive_us": 10135
+    },
+    {
+      "function": "field",
+      "source": "Games/Foldwild/world.js",
+      "line": 42,
+      "inclusive_us": 12040,
+      "exclusive_us": 12040
+    },
+    {
+      "function": "validateSave",
+      "source": "Games/Foldwild/world.js",
+      "line": 238,
+      "inclusive_us": 12040,
+      "exclusive_us": 0
+    },
+    {
+      "function": "writeSave",
+      "source": "Games/Foldwild/world.js",
+      "line": 394,
+      "inclusive_us": 12040,
+      "exclusive_us": 0
+    },
+    {
+      "function": "attempt",
+      "source": "Games/Foldwild/script.js",
+      "line": 87,
+      "inclusive_us": 12040,
+      "exclusive_us": 0
+    },
+    {
+      "function": "worldPoints",
+      "source": "Games/Foldwild/world.js",
+      "line": 416,
+      "inclusive_us": 11728,
+      "exclusive_us": 11728
+    },
+    {
+      "function": "nearbyPoint",
+      "source": "Games/Foldwild/world.js",
+      "line": 496,
+      "inclusive_us": 11728,
+      "exclusive_us": 0
+    },
+    {
+      "function": "updateProximity",
+      "source": "Games/Foldwild/script.js",
+      "line": 259,
+      "inclusive_us": 11728,
+      "exclusive_us": 0
+    },
+    {
+      "function": "validateIndividual",
+      "source": "Games/Foldwild/builds.js",
+      "line": 86,
+      "inclusive_us": 10834,
+      "exclusive_us": 10834
+    },
+    {
+      "function": "statsFor",
+      "source": "Games/Foldwild/battle.js",
+      "line": 60,
+      "inclusive_us": 10834,
+      "exclusive_us": 0
+    },
+    {
+      "function": "normalizeCreature",
+      "source": "Games/Foldwild/battle.js",
+      "line": 86,
+      "inclusive_us": 10834,
+      "exclusive_us": 0
+    },
+    {
+      "function": "clearEffects",
+      "source": "Games/Foldwild/battle.js",
+      "line": 118,
+      "inclusive_us": 10834,
+      "exclusive_us": 0
+    },
+    {
+      "function": "creatureCopy",
+      "source": "Games/Foldwild/world.js",
+      "line": 74,
+      "inclusive_us": 10834,
+      "exclusive_us": 0
+    },
+    {
+      "function": "(anonymous)",
+      "source": "Games/Foldwild/world.js",
+      "line": 257,
+      "inclusive_us": 10834,
+      "exclusive_us": 0
+    },
+    {
+      "function": "GLTFBinaryExtension",
+      "source": "Games/Foldwild/vendor/GLTFLoader.js",
+      "line": 1803,
+      "inclusive_us": 10275,
+      "exclusive_us": 10275
+    },
+    {
+      "function": "WebGLRenderer.setSize",
+      "source": "Games/Foldwild/vendor/three.module.js",
+      "line": 28817,
+      "inclusive_us": 10173,
+      "exclusive_us": 10173
+    },
+    {
+      "function": "(anonymous)",
+      "source": "Games/Foldwild/script.js",
+      "line": 271,
+      "inclusive_us": 10164,
+      "exclusive_us": 10164
+    },
+    {
+      "function": "nearbyActions",
+      "source": "Games/Foldwild/script.js",
+      "line": 270,
+      "inclusive_us": 10164,
+      "exclusive_us": 0
+    },
+    {
+      "function": "predicate",
+      "source": "",
+      "line": 3,
+      "inclusive_us": 10150,
+      "exclusive_us": 10150
+    },
+    {
+      "function": "next",
+      "source": "",
+      "line": 25,
+      "inclusive_us": 10150,
+      "exclusive_us": 0
+    },
+    {
+      "function": "(anonymous)",
+      "source": "",
+      "line": 1,
+      "inclusive_us": 10150,
+      "exclusive_us": 0
+    },
+    {
+      "function": "evaluate",
+      "source": "",
+      "line": 305,
+      "inclusive_us": 10150,
+      "exclusive_us": 0
+    },
+    {
+      "function": "(anonymous)",
+      "source": "",
+      "line": 1,
+      "inclusive_us": 10150,
+      "exclusive_us": 0
+    },
+    {
+      "function": "compose",
+      "source": "Games/Foldwild/vendor/three.module.js",
+      "line": 6571,
+      "inclusive_us": 10147,
+      "exclusive_us": 10147
+    },
+    {
+      "function": "updateMatrix",
+      "source": "Games/Foldwild/vendor/three.module.js",
+      "line": 7712,
+      "inclusive_us": 10147,
+      "exclusive_us": 0
+    },
+    {
+      "function": "updateMatrixWorld",
+      "source": "Games/Foldwild/vendor/three.module.js",
+      "line": 7720,
+      "inclusive_us": 10147,
+      "exclusive_us": 0
+    },
+    {
+      "function": "updateMatrixWorld",
+      "source": "Games/Foldwild/vendor/three.module.js",
+      "line": 7720,
+      "inclusive_us": 10147,
+      "exclusive_us": 0
+    },
+    {
+      "function": "resolveIncludes",
+      "source": "Games/Foldwild/vendor/three.module.js",
+      "line": 19604,
+      "inclusive_us": 10141,
+      "exclusive_us": 10141
+    }
+  ],
+  "stacks": [
+    {
+      "frames": [
+        {
+          "function": "(root)",
+          "source": "",
+          "line": 0
+        },
+        {
+          "function": "(idle)",
+          "source": "",
+          "line": 0
+        }
+      ],
+      "weight_us": 1863309
+    },
+    {
+      "frames": [
+        {
+          "function": "(root)",
+          "source": "",
+          "line": 0
+        },
+        {
+          "function": "(anonymous)",
+          "source": "Games/Foldwild/script.js",
+          "line": 1030
+        },
+        {
+          "function": "start",
+          "source": "Games/Foldwild/script.js",
+          "line": 310
+        },
+        {
+          "function": "showWorld",
+          "source": "Games/Foldwild/script.js",
+          "line": 286
+        },
+        {
+          "function": "ensureView",
+          "source": "Games/Foldwild/script.js",
+          "line": 164
+        },
+        {
+          "function": "createView",
+          "source": "Games/Foldwild/view.js",
+          "line": 135
+        },
+        {
+          "function": "getContext",
+          "source": "",
+          "line": 0
+        }
+      ],
+      "weight_us": 1193551
+    },
+    {
+      "frames": [
+        {
+          "function": "(root)",
+          "source": "",
+          "line": 0
+        },
+        {
+          "function": "frame",
+          "source": "Games/Foldwild/script.js",
+          "line": 998
+        },
+        {
+          "function": "render",
+          "source": "Games/Foldwild/view.js",
+          "line": 650
+        },
+        {
+          "function": "WebGLRenderer.render",
+          "source": "Games/Foldwild/vendor/three.module.js",
+          "line": 29530
+        },
+        {
+          "function": "renderScene",
+          "source": "Games/Foldwild/vendor/three.module.js",
+          "line": 29793
+        },
+        {
+          "function": "renderObjects",
+          "source": "Games/Foldwild/vendor/three.module.js",
+          "line": 29931
+        },
+        {
+          "function": "renderObject",
+          "source": "Games/Foldwild/vendor/three.module.js",
+          "line": 29954
+        },
+        {
+          "function": "WebGLRenderer.renderBufferDirect",
+          "source": "Games/Foldwild/vendor/three.module.js",
+          "line": 29173
+        },
+        {
+          "function": "setProgram",
+          "source": "Games/Foldwild/vendor/three.module.js",
+          "line": 30131
+        },
+        {
+          "function": "getProgram",
+          "source": "Games/Foldwild/vendor/three.module.js",
+          "line": 29985
+        },
+        {
+          "function": "getParameters",
+          "source": "Games/Foldwild/vendor/three.module.js",
+          "line": 20598
+        },
+        {
+          "function": "has",
+          "source": "Games/Foldwild/vendor/three.module.js",
+          "line": 17340
+        },
+        {
+          "function": "getExtension",
+          "source": "Games/Foldwild/vendor/three.module.js",
+          "line": 17299
+        }
+      ],
+      "weight_us": 496953
+    },
+    {
+      "frames": [
+        {
+          "function": "(root)",
+          "source": "",
+          "line": 0
+        },
+        {
+          "function": "(program)",
+          "source": "",
+          "line": 0
+        }
+      ],
+      "weight_us": 361360
+    },
+    {
+      "frames": [
+        {
+          "function": "(root)",
+          "source": "",
+          "line": 0
+        },
+        {
+          "function": "frame",
+          "source": "Games/Foldwild/script.js",
+          "line": 998
+        },
+        {
+          "function": "render",
+          "source": "Games/Foldwild/view.js",
+          "line": 650
+        },
+        {
+          "function": "WebGLRenderer.render",
+          "source": "Games/Foldwild/vendor/three.module.js",
+          "line": 29530
+        },
+        {
+          "function": "renderScene",
+          "source": "Games/Foldwild/vendor/three.module.js",
+          "line": 29793
+        },
+        {
+          "function": "renderObjects",
+          "source": "Games/Foldwild/vendor/three.module.js",
+          "line": 29931
+        },
+        {
+          "function": "renderObject",
+          "source": "Games/Foldwild/vendor/three.module.js",
+          "line": 29954
+        },
+        {
+          "function": "WebGLRenderer.renderBufferDirect",
+          "source": "Games/Foldwild/vendor/three.module.js",
+          "line": 29173
+        },
+        {
+          "function": "setProgram",
+          "source": "Games/Foldwild/vendor/three.module.js",
+          "line": 30131
+        },
+        {
+          "function": "WebGLProgram.getUniforms",
+          "source": "Games/Foldwild/vendor/three.module.js",
+          "line": 20364
+        },
+        {
+          "function": "onFirstUse",
+          "source": "Games/Foldwild/vendor/three.module.js",
+          "line": 20271
+        }
+      ],
+      "weight_us": 121499
+    },
+    {
+      "frames": [
+        {
+          "function": "(root)",
+          "source": "",
+          "line": 0
+        },
+        {
+          "function": "(garbage collector)",
+          "source": "",
+          "line": 0
+        }
+      ],
+      "weight_us": 51759
+    },
+    {
+      "frames": [
+        {
+          "function": "(root)",
+          "source": "",
+          "line": 0
+        },
+        {
+          "function": "(anonymous)",
+          "source": "Games/Foldwild/script.js",
+          "line": 1030
+        },
+        {
+          "function": "start",
+          "source": "Games/Foldwild/script.js",
+          "line": 310
+        },
+        {
+          "function": "showWorld",
+          "source": "Games/Foldwild/script.js",
+          "line": 286
+        },
+        {
+          "function": "ensureView",
+          "source": "Games/Foldwild/script.js",
+          "line": 164
+        },
+        {
+          "function": "createView",
+          "source": "Games/Foldwild/view.js",
+          "line": 135
+        },
+        {
+          "function": "WebGLRenderer",
+          "source": "Games/Foldwild/vendor/three.module.js",
+          "line": 28461
+        },
+        {
+          "function": "initGLContext",
+          "source": "Games/Foldwild/vendor/three.module.js",
+          "line": 28713
+        },
+        {
+          "function": "WebGLCapabilities",
+          "source": "Games/Foldwild/vendor/three.module.js",
+          "line": 15777
+        },
+        {
+          "function": "has",
+          "source": "Games/Foldwild/vendor/three.module.js",
+          "line": 17340
+        },
+        {
+          "function": "getExtension",
+          "source": "Games/Foldwild/vendor/three.module.js",
+          "line": 17299
+        }
+      ],
+      "weight_us": 32716
+    },
+    {
+      "frames": [
+        {
+          "function": "(root)",
+          "source": "",
+          "line": 0
+        },
+        {
+          "function": "(anonymous)",
+          "source": "Games/Foldwild/script.js",
+          "line": 1030
+        },
+        {
+          "function": "start",
+          "source": "Games/Foldwild/script.js",
+          "line": 310
+        },
+        {
+          "function": "showWorld",
+          "source": "Games/Foldwild/script.js",
+          "line": 286
+        },
+        {
+          "function": "updateNavigation",
+          "source": "Games/Foldwild/script.js",
+          "line": 232
+        },
+        {
+          "function": "navigationObjective",
+          "source": "Games/Foldwild/navigation.js",
+          "line": 5
+        },
+        {
+          "function": "routeTo",
+          "source": "Games/Foldwild/region-data.js",
+          "line": 319
+        },
+        {
+          "function": "clearSegment",
+          "source": "Games/Foldwild/region-data.js",
+          "line": 279
+        },
+        {
+          "function": "(anonymous)",
+          "source": "Games/Foldwild/region-data.js",
+          "line": 280
+        }
+      ],
+      "weight_us": 20262
+    },
+    {
+      "frames": [
+        {
+          "function": "(root)",
+          "source": "",
+          "line": 0
+        },
+        {
+          "function": "(anonymous)",
+          "source": "Games/Foldwild/script.js",
+          "line": 1030
+        },
+        {
+          "function": "start",
+          "source": "Games/Foldwild/script.js",
+          "line": 310
+        },
+        {
+          "function": "showWorld",
+          "source": "Games/Foldwild/script.js",
+          "line": 286
+        },
+        {
+          "function": "showWorld",
+          "source": "Games/Foldwild/view.js",
+          "line": 587
+        },
+        {
+          "function": "terrain",
+          "source": "Games/Foldwild/view.js",
+          "line": 419
+        },
+        {
+          "function": "destinationSign",
+          "source": "Games/Foldwild/view.js",
+          "line": 236
+        }
+      ],
+      "weight_us": 20195
+    },
+    {
+      "frames": [
+        {
+          "function": "(root)",
+          "source": "",
+          "line": 0
+        },
+        {
+          "function": "attempt",
+          "source": "Games/Foldwild/script.js",
+          "line": 87
+        },
+        {
+          "function": "writeSave",
+          "source": "Games/Foldwild/world.js",
+          "line": 394
+        },
+        {
+          "function": "validateSave",
+          "source": "Games/Foldwild/world.js",
+          "line": 238
+        },
+        {
+          "function": "field",
+          "source": "Games/Foldwild/world.js",
+          "line": 42
+        }
+      ],
+      "weight_us": 12040
+    },
+    {
+      "frames": [
+        {
+          "function": "(root)",
+          "source": "",
+          "line": 0
+        },
+        {
+          "function": "frame",
+          "source": "Games/Foldwild/script.js",
+          "line": 998
+        },
+        {
+          "function": "updateProximity",
+          "source": "Games/Foldwild/script.js",
+          "line": 259
+        },
+        {
+          "function": "nearbyPoint",
+          "source": "Games/Foldwild/world.js",
+          "line": 496
+        },
+        {
+          "function": "worldPoints",
+          "source": "Games/Foldwild/world.js",
+          "line": 416
+        }
+      ],
+      "weight_us": 11728
+    },
+    {
+      "frames": [
+        {
+          "function": "(root)",
+          "source": "",
+          "line": 0
+        },
+        {
+          "function": "(anonymous)",
+          "source": "Games/Foldwild/script.js",
+          "line": 1030
+        },
+        {
+          "function": "start",
+          "source": "Games/Foldwild/script.js",
+          "line": 310
+        },
+        {
+          "function": "freshGame",
+          "source": "Games/Foldwild/world.js",
+          "line": 223
+        },
+        {
+          "function": "validateSave",
+          "source": "Games/Foldwild/world.js",
+          "line": 238
+        },
+        {
+          "function": "(anonymous)",
+          "source": "Games/Foldwild/world.js",
+          "line": 257
+        },
+        {
+          "function": "creatureCopy",
+          "source": "Games/Foldwild/world.js",
+          "line": 74
+        },
+        {
+          "function": "clearEffects",
+          "source": "Games/Foldwild/battle.js",
+          "line": 118
+        },
+        {
+          "function": "normalizeCreature",
+          "source": "Games/Foldwild/battle.js",
+          "line": 86
+        },
+        {
+          "function": "statsFor",
+          "source": "Games/Foldwild/battle.js",
+          "line": 60
+        },
+        {
+          "function": "validateIndividual",
+          "source": "Games/Foldwild/builds.js",
+          "line": 86
+        }
+      ],
+      "weight_us": 10834
+    },
+    {
+      "frames": [
+        {
+          "function": "(root)",
+          "source": "",
+          "line": 0
+        },
+        {
+          "function": "(anonymous)",
+          "source": "Games/Foldwild/vendor/three.module.js",
+          "line": 43626
+        },
+        {
+          "function": "(anonymous)",
+          "source": "Games/Foldwild/vendor/GLTFLoader.js",
+          "line": 235
+        },
+        {
+          "function": "parse",
+          "source": "Games/Foldwild/vendor/GLTFLoader.js",
+          "line": 312
+        },
+        {
+          "function": "GLTFBinaryExtension",
+          "source": "Games/Foldwild/vendor/GLTFLoader.js",
+          "line": 1803
+        }
+      ],
+      "weight_us": 10275
+    },
+    {
+      "frames": [
+        {
+          "function": "(root)",
+          "source": "",
+          "line": 0
+        },
+        {
+          "function": "(anonymous)",
+          "source": "Games/Foldwild/script.js",
+          "line": 1030
+        },
+        {
+          "function": "start",
+          "source": "Games/Foldwild/script.js",
+          "line": 310
+        },
+        {
+          "function": "showWorld",
+          "source": "Games/Foldwild/script.js",
+          "line": 286
+        },
+        {
+          "function": "ensureView",
+          "source": "Games/Foldwild/script.js",
+          "line": 164
+        },
+        {
+          "function": "createView",
+          "source": "Games/Foldwild/view.js",
+          "line": 135
+        },
+        {
+          "function": "resize",
+          "source": "Games/Foldwild/view.js",
+          "line": 678
+        },
+        {
+          "function": "WebGLRenderer.setSize",
+          "source": "Games/Foldwild/vendor/three.module.js",
+          "line": 28817
+        }
+      ],
+      "weight_us": 10173
+    },
+    {
+      "frames": [
+        {
+          "function": "(root)",
+          "source": "",
+          "line": 0
+        },
+        {
+          "function": "(anonymous)",
+          "source": "Games/Foldwild/script.js",
+          "line": 1030
+        },
+        {
+          "function": "start",
+          "source": "Games/Foldwild/script.js",
+          "line": 310
+        },
+        {
+          "function": "showWorld",
+          "source": "Games/Foldwild/script.js",
+          "line": 286
+        },
+        {
+          "function": "setPhase",
+          "source": "Games/Foldwild/script.js",
+          "line": 175
+        },
+        {
+          "function": "updateHUD",
+          "source": "Games/Foldwild/script.js",
+          "line": 197
+        },
+        {
+          "function": "updateProximity",
+          "source": "Games/Foldwild/script.js",
+          "line": 259
+        },
+        {
+          "function": "nearbyActions",
+          "source": "Games/Foldwild/script.js",
+          "line": 270
+        },
+        {
+          "function": "(anonymous)",
+          "source": "Games/Foldwild/script.js",
+          "line": 271
+        }
+      ],
+      "weight_us": 10164
+    },
+    {
+      "frames": [
+        {
+          "function": "(root)",
+          "source": "",
+          "line": 0
+        },
+        {
+          "function": "(anonymous)",
+          "source": "",
+          "line": 1
+        },
+        {
+          "function": "evaluate",
+          "source": "",
+          "line": 305
+        },
+        {
+          "function": "(anonymous)",
+          "source": "",
+          "line": 1
+        },
+        {
+          "function": "next",
+          "source": "",
+          "line": 25
+        },
+        {
+          "function": "predicate",
+          "source": "",
+          "line": 3
+        }
+      ],
+      "weight_us": 10150
+    },
+    {
+      "frames": [
+        {
+          "function": "(root)",
+          "source": "",
+          "line": 0
+        },
+        {
+          "function": "frame",
+          "source": "Games/Foldwild/script.js",
+          "line": 998
+        },
+        {
+          "function": "render",
+          "source": "Games/Foldwild/view.js",
+          "line": 650
+        },
+        {
+          "function": "WebGLRenderer.render",
+          "source": "Games/Foldwild/vendor/three.module.js",
+          "line": 29530
+        },
+        {
+          "function": "updateMatrixWorld",
+          "source": "Games/Foldwild/vendor/three.module.js",
+          "line": 7720
+        },
+        {
+          "function": "updateMatrixWorld",
+          "source": "Games/Foldwild/vendor/three.module.js",
+          "line": 7720
+        },
+        {
+          "function": "updateMatrix",
+          "source": "Games/Foldwild/vendor/three.module.js",
+          "line": 7712
+        },
+        {
+          "function": "compose",
+          "source": "Games/Foldwild/vendor/three.module.js",
+          "line": 6571
+        }
+      ],
+      "weight_us": 10147
+    },
+    {
+      "frames": [
+        {
+          "function": "(root)",
+          "source": "",
+          "line": 0
+        },
+        {
+          "function": "(anonymous)",
+          "source": "Games/Foldwild/script.js",
+          "line": 1030
+        },
+        {
+          "function": "start",
+          "source": "Games/Foldwild/script.js",
+          "line": 310
+        }
+      ],
+      "weight_us": 10145
+    },
+    {
+      "frames": [
+        {
+          "function": "(root)",
+          "source": "",
+          "line": 0
+        },
+        {
+          "function": "frame",
+          "source": "Games/Foldwild/script.js",
+          "line": 998
+        },
+        {
+          "function": "render",
+          "source": "Games/Foldwild/view.js",
+          "line": 650
+        },
+        {
+          "function": "WebGLRenderer.render",
+          "source": "Games/Foldwild/vendor/three.module.js",
+          "line": 29530
+        },
+        {
+          "function": "renderScene",
+          "source": "Games/Foldwild/vendor/three.module.js",
+          "line": 29793
+        },
+        {
+          "function": "renderObjects",
+          "source": "Games/Foldwild/vendor/three.module.js",
+          "line": 29931
+        },
+        {
+          "function": "renderObject",
+          "source": "Games/Foldwild/vendor/three.module.js",
+          "line": 29954
+        },
+        {
+          "function": "WebGLRenderer.renderBufferDirect",
+          "source": "Games/Foldwild/vendor/three.module.js",
+          "line": 29173
+        },
+        {
+          "function": "setProgram",
+          "source": "Games/Foldwild/vendor/three.module.js",
+          "line": 30131
+        },
+        {
+          "function": "getProgram",
+          "source": "Games/Foldwild/vendor/three.module.js",
+          "line": 29985
+        },
+        {
+          "function": "acquireProgram",
+          "source": "Games/Foldwild/vendor/three.module.js",
+          "line": 21131
+        },
+        {
+          "function": "WebGLProgram",
+          "source": "Games/Foldwild/vendor/three.module.js",
+          "line": 19803
+        },
+        {
+          "function": "resolveIncludes",
+          "source": "Games/Foldwild/vendor/three.module.js",
+          "line": 19604
+        }
+      ],
+      "weight_us": 10141
+    },
+    {
+      "frames": [
+        {
+          "function": "(root)",
+          "source": "",
+          "line": 0
+        },
+        {
+          "function": "(anonymous)",
+          "source": "Games/Foldwild/vendor/GLTFLoader.js",
+          "line": 2598
+        },
+        {
+          "function": "getDependencies",
+          "source": "Games/Foldwild/vendor/GLTFLoader.js",
+          "line": 2898
+        },
+        {
+          "function": "(anonymous)",
+          "source": "Games/Foldwild/vendor/GLTFLoader.js",
+          "line": 2907
+        },
+        {
+          "function": "getDependency",
+          "source": "Games/Foldwild/vendor/GLTFLoader.js",
+          "line": 2791
+        },
+        {
+          "function": "loadScene",
+          "source": "Games/Foldwild/vendor/GLTFLoader.js",
+          "line": 4272
+        },
+        {
+          "function": "getDependency",
+          "source": "Games/Foldwild/vendor/GLTFLoader.js",
+          "line": 2791
+        },
+        {
+          "function": "_invokeOne",
+          "source": "Games/Foldwild/vendor/GLTFLoader.js",
+          "line": 2749
+        },
+        {
+          "function": "(anonymous)",
+          "source": "Games/Foldwild/vendor/GLTFLoader.js",
+          "line": 2805
+        },
+        {
+          "function": "loadNode",
+          "source": "Games/Foldwild/vendor/GLTFLoader.js",
+          "line": 4065
+        },
+        {
+          "function": "_loadNodeShallow",
+          "source": "Games/Foldwild/vendor/GLTFLoader.js",
+          "line": 4125
+        },
+        {
+          "function": "_invokeOne",
+          "source": "Games/Foldwild/vendor/GLTFLoader.js",
+          "line": 2749
+        },
+        {
+          "function": "(anonymous)",
+          "source": "Games/Foldwild/vendor/GLTFLoader.js",
+          "line": 4147
+        },
+        {
+          "function": "createNodeMesh",
+          "source": "Games/Foldwild/vendor/GLTFLoader.js",
+          "line": 4025
+        },
+        {
+          "function": "getDependency",
+          "source": "Games/Foldwild/vendor/GLTFLoader.js",
+          "line": 2791
+        },
+        {
+          "function": "_invokeOne",
+          "source": "Games/Foldwild/vendor/GLTFLoader.js",
+          "line": 2749
+        },
+        {
+          "function": "(anonymous)",
+          "source": "Games/Foldwild/vendor/GLTFLoader.js",
+          "line": 2813
+        },
+        {
+          "function": "loadMesh",
+          "source": "Games/Foldwild/vendor/GLTFLoader.js",
+          "line": 3684
+        },
+        {
+          "function": "getDependency",
+          "source": "Games/Foldwild/vendor/GLTFLoader.js",
+          "line": 2791
+        },
+        {
+          "function": "_invokeOne",
+          "source": "Games/Foldwild/vendor/GLTFLoader.js",
+          "line": 2749
+        },
+        {
+          "function": "(anonymous)",
+          "source": "Games/Foldwild/vendor/GLTFLoader.js",
+          "line": 2837
+        },
+        {
+          "function": "loadMaterial",
+          "source": "Games/Foldwild/vendor/GLTFLoader.js",
+          "line": 3436
+        },
+        {
+          "function": "_invokeAll",
+          "source": "Games/Foldwild/vendor/GLTFLoader.js",
+          "line": 2766
+        },
+        {
+          "function": "(anonymous)",
+          "source": "Games/Foldwild/vendor/GLTFLoader.js",
+          "line": 3496
+        }
+      ],
+      "weight_us": 10140
+    },
+    {
+      "frames": [
+        {
+          "function": "(root)",
+          "source": "",
+          "line": 0
+        },
+        {
+          "function": "frame",
+          "source": "Games/Foldwild/script.js",
+          "line": 998
+        },
+        {
+          "function": "render",
+          "source": "Games/Foldwild/view.js",
+          "line": 650
+        },
+        {
+          "function": "WebGLRenderer.render",
+          "source": "Games/Foldwild/vendor/three.module.js",
+          "line": 29530
+        },
+        {
+          "function": "renderScene",
+          "source": "Games/Foldwild/vendor/three.module.js",
+          "line": 29793
+        },
+        {
+          "function": "renderObjects",
+          "source": "Games/Foldwild/vendor/three.module.js",
+          "line": 29931
+        },
+        {
+          "function": "renderObject",
+          "source": "Games/Foldwild/vendor/three.module.js",
+          "line": 29954
+        },
+        {
+          "function": "WebGLRenderer.renderBufferDirect",
+          "source": "Games/Foldwild/vendor/three.module.js",
+          "line": 29173
+        },
+        {
+          "function": "setProgram",
+          "source": "Games/Foldwild/vendor/three.module.js",
+          "line": 30131
+        },
+        {
+          "function": "upload",
+          "source": "Games/Foldwild/vendor/three.module.js",
+          "line": 19316
+        }
+      ],
+      "weight_us": 10135
+    },
+    {
+      "frames": [
+        {
+          "function": "(root)",
+          "source": "",
+          "line": 0
+        },
+        {
+          "function": "frame",
+          "source": "Games/Foldwild/script.js",
+          "line": 998
+        },
+        {
+          "function": "render",
+          "source": "Games/Foldwild/view.js",
+          "line": 650
+        },
+        {
+          "function": "WebGLRenderer.render",
+          "source": "Games/Foldwild/vendor/three.module.js",
+          "line": 29530
+        },
+        {
+          "function": "renderScene",
+          "source": "Games/Foldwild/vendor/three.module.js",
+          "line": 29793
+        },
+        {
+          "function": "renderObjects",
+          "source": "Games/Foldwild/vendor/three.module.js",
+          "line": 29931
+        },
+        {
+          "function": "renderObject",
+          "source": "Games/Foldwild/vendor/three.module.js",
+          "line": 29954
+        },
+        {
+          "function": "WebGLRenderer.renderBufferDirect",
+          "source": "Games/Foldwild/vendor/three.module.js",
+          "line": 29173
+        },
+        {
+          "function": "setup",
+          "source": "Games/Foldwild/vendor/three.module.js",
+          "line": 15073
+        }
+      ],
+      "weight_us": 10132
+    },
+    {
+      "frames": [
+        {
+          "function": "(root)",
+          "source": "",
+          "line": 0
+        },
+        {
+          "function": "frame",
+          "source": "Games/Foldwild/script.js",
+          "line": 998
+        },
+        {
+          "function": "render",
+          "source": "Games/Foldwild/view.js",
+          "line": 650
+        },
+        {
+          "function": "WebGLRenderer.render",
+          "source": "Games/Foldwild/vendor/three.module.js",
+          "line": 29530
+        },
+        {
+          "function": "projectObject",
+          "source": "Games/Foldwild/vendor/three.module.js",
+          "line": 29679
+        },
+        {
+          "function": "projectObject",
+          "source": "Games/Foldwild/vendor/three.module.js",
+          "line": 29679
+        },
+        {
+          "function": "projectObject",
+          "source": "Games/Foldwild/vendor/three.module.js",
+          "line": 29679
+        },
+        {
+          "function": "intersectsObject",
+          "source": "Games/Foldwild/vendor/three.module.js",
+          "line": 13353
+        },
+        {
+          "function": "intersectsSphere",
+          "source": "Games/Foldwild/vendor/three.module.js",
+          "line": 13385
+        },
+        {
+          "function": "distanceToPoint",
+          "source": "Games/Foldwild/vendor/three.module.js",
+          "line": 13165
+        }
+      ],
+      "weight_us": 10128
+    },
+    {
+      "frames": [
+        {
+          "function": "(root)",
+          "source": "",
+          "line": 0
+        },
+        {
+          "function": "(anonymous)",
+          "source": "Games/Foldwild/vendor/GLTFLoader.js",
+          "line": 3707
+        },
+        {
+          "function": "assignFinalMaterial",
+          "source": "Games/Foldwild/vendor/GLTFLoader.js",
+          "line": 3335
+        },
+        {
+          "function": "clone",
+          "source": "Games/Foldwild/vendor/three.module.js",
+          "line": 9527
+        }
+      ],
+      "weight_us": 10125
+    },
+    {
+      "frames": [
+        {
+          "function": "(root)",
+          "source": "",
+          "line": 0
+        },
+        {
+          "function": "(anonymous)",
+          "source": "Games/Foldwild/script.js",
+          "line": 1030
+        },
+        {
+          "function": "start",
+          "source": "Games/Foldwild/script.js",
+          "line": 310
+        },
+        {
+          "function": "showWorld",
+          "source": "Games/Foldwild/script.js",
+          "line": 286
+        },
+        {
+          "function": "setPhase",
+          "source": "Games/Foldwild/script.js",
+          "line": 175
+        },
+        {
+          "function": "updateHUD",
+          "source": "Games/Foldwild/script.js",
+          "line": 197
+        },
+        {
+          "function": "updateProximity",
+          "source": "Games/Foldwild/script.js",
+          "line": 259
+        },
+        {
+          "function": "updateNavigation",
+          "source": "Games/Foldwild/script.js",
+          "line": 232
+        },
+        {
+          "function": "navigationObjective",
+          "source": "Games/Foldwild/navigation.js",
+          "line": 5
+        },
+        {
+          "function": "routeTo",
+          "source": "Games/Foldwild/region-data.js",
+          "line": 319
+        },
+        {
+          "function": "clearSegment",
+          "source": "Games/Foldwild/region-data.js",
+          "line": 279
+        },
+        {
+          "function": "(anonymous)",
+          "source": "Games/Foldwild/region-data.js",
+          "line": 280
+        }
+      ],
+      "weight_us": 10124
+    },
+    {
+      "frames": [
+        {
+          "function": "(root)",
+          "source": "",
+          "line": 0
+        },
+        {
+          "function": "(anonymous)",
+          "source": "Games/Foldwild/script.js",
+          "line": 1030
+        },
+        {
+          "function": "start",
+          "source": "Games/Foldwild/script.js",
+          "line": 310
+        },
+        {
+          "function": "showWorld",
+          "source": "Games/Foldwild/script.js",
+          "line": 286
+        },
+        {
+          "function": "showWorld",
+          "source": "Games/Foldwild/view.js",
+          "line": 587
+        },
+        {
+          "function": "terrain",
+          "source": "Games/Foldwild/view.js",
+          "line": 419
+        },
+        {
+          "function": "instances",
+          "source": "Games/Foldwild/view.js",
+          "line": 221
+        },
+        {
+          "function": "(anonymous)",
+          "source": "Games/Foldwild/view.js",
+          "line": 224
+        },
+        {
+          "function": "setColorAt",
+          "source": "Games/Foldwild/vendor/three.module.js",
+          "line": 32811
+        }
+      ],
+      "weight_us": 10124
+    },
+    {
+      "frames": [
+        {
+          "function": "(root)",
+          "source": "",
+          "line": 0
+        },
+        {
+          "function": "(anonymous)",
+          "source": "Games/Foldwild/script.js",
+          "line": 1030
+        },
+        {
+          "function": "start",
+          "source": "Games/Foldwild/script.js",
+          "line": 310
+        },
+        {
+          "function": "freshGame",
+          "source": "Games/Foldwild/world.js",
+          "line": 223
+        },
+        {
+          "function": "validateSave",
+          "source": "Games/Foldwild/world.js",
+          "line": 238
+        }
+      ],
+      "weight_us": 10122
+    },
+    {
+      "frames": [
+        {
+          "function": "(root)",
+          "source": "",
+          "line": 0
+        },
+        {
+          "function": "frame",
+          "source": "Games/Foldwild/script.js",
+          "line": 998
+        },
+        {
+          "function": "render",
+          "source": "Games/Foldwild/view.js",
+          "line": 650
+        },
+        {
+          "function": "WebGLRenderer.render",
+          "source": "Games/Foldwild/vendor/three.module.js",
+          "line": 29530
+        },
+        {
+          "function": "renderScene",
+          "source": "Games/Foldwild/vendor/three.module.js",
+          "line": 29793
+        },
+        {
+          "function": "renderObjects",
+          "source": "Games/Foldwild/vendor/three.module.js",
+          "line": 29931
+        },
+        {
+          "function": "renderObject",
+          "source": "Games/Foldwild/vendor/three.module.js",
+          "line": 29954
+        },
+        {
+          "function": "WebGLRenderer.renderBufferDirect",
+          "source": "Games/Foldwild/vendor/three.module.js",
+          "line": 29173
+        },
+        {
+          "function": "setProgram",
+          "source": "Games/Foldwild/vendor/three.module.js",
+          "line": 30131
+        }
+      ],
+      "weight_us": 10120
+    },
+    {
+      "frames": [
+        {
+          "function": "(root)",
+          "source": "",
+          "line": 0
+        },
+        {
+          "function": "frame",
+          "source": "Games/Foldwild/script.js",
+          "line": 998
+        },
+        {
+          "function": "render",
+          "source": "Games/Foldwild/view.js",
+          "line": 650
+        },
+        {
+          "function": "WebGLRenderer.render",
+          "source": "Games/Foldwild/vendor/three.module.js",
+          "line": 29530
+        },
+        {
+          "function": "renderScene",
+          "source": "Games/Foldwild/vendor/three.module.js",
+          "line": 29793
+        },
+        {
+          "function": "renderObjects",
+          "source": "Games/Foldwild/vendor/three.module.js",
+          "line": 29931
+        },
+        {
+          "function": "renderObject",
+          "source": "Games/Foldwild/vendor/three.module.js",
+          "line": 29954
+        },
+        {
+          "function": "WebGLRenderer.renderBufferDirect",
+          "source": "Games/Foldwild/vendor/three.module.js",
+          "line": 29173
+        },
+        {
+          "function": "setProgram",
+          "source": "Games/Foldwild/vendor/three.module.js",
+          "line": 30131
+        },
+        {
+          "function": "getProgram",
+          "source": "Games/Foldwild/vendor/three.module.js",
+          "line": 29985
+        },
+        {
+          "function": "acquireProgram",
+          "source": "Games/Foldwild/vendor/three.module.js",
+          "line": 21131
+        },
+        {
+          "function": "WebGLProgram",
+          "source": "Games/Foldwild/vendor/three.module.js",
+          "line": 19803
+        },
+        {
+          "function": "WebGLShader",
+          "source": "Games/Foldwild/vendor/three.module.js",
+          "line": 19351
+        }
+      ],
+      "weight_us": 10120
+    },
+    {
+      "frames": [
+        {
+          "function": "(root)",
+          "source": "",
+          "line": 0
+        },
+        {
+          "function": "(anonymous)",
+          "source": "Games/Foldwild/view.js",
+          "line": 299
+        },
+        {
+          "function": "loadAsync",
+          "source": "Games/Foldwild/vendor/three.module.js",
+          "line": 43363
+        },
+        {
+          "function": "(anonymous)",
+          "source": "Games/Foldwild/vendor/three.module.js",
+          "line": 43367
+        },
+        {
+          "function": "load",
+          "source": "Games/Foldwild/vendor/GLTFLoader.js",
+          "line": 180
+        }
+      ],
+      "weight_us": 10119
+    },
+    {
+      "frames": [
+        {
+          "function": "(root)",
+          "source": "",
+          "line": 0
+        },
+        {
+          "function": "(anonymous)",
+          "source": "Games/Foldwild/vendor/three.module.js",
+          "line": 43626
+        },
+        {
+          "function": "(anonymous)",
+          "source": "Games/Foldwild/vendor/GLTFLoader.js",
+          "line": 235
+        },
+        {
+          "function": "parse",
+          "source": "Games/Foldwild/vendor/GLTFLoader.js",
+          "line": 312
+        },
+        {
+          "function": "(anonymous)",
+          "source": "Games/Foldwild/vendor/GLTFLoader.js",
+          "line": 100
+        }
+      ],
+      "weight_us": 10119
+    },
+    {
+      "frames": [
+        {
+          "function": "(root)",
+          "source": "",
+          "line": 0
+        },
+        {
+          "function": "(anonymous)",
+          "source": "Games/Foldwild/script.js",
+          "line": 1030
+        },
+        {
+          "function": "start",
+          "source": "Games/Foldwild/script.js",
+          "line": 310
+        },
+        {
+          "function": "showWorld",
+          "source": "Games/Foldwild/script.js",
+          "line": 286
+        },
+        {
+          "function": "showWorld",
+          "source": "Games/Foldwild/view.js",
+          "line": 587
+        },
+        {
+          "function": "setPlayerPosition",
+          "source": "Games/Foldwild/view.js",
+          "line": 601
+        },
+        {
+          "function": "nearbyVisuals",
+          "source": "Games/Foldwild/view.js",
+          "line": 539
+        },
+        {
+          "function": "buildNPCs",
+          "source": "Games/Foldwild/view.js",
+          "line": 512
+        },
+        {
+          "function": "(anonymous)",
+          "source": "Games/Foldwild/view.js",
+          "line": 520
+        },
+        {
+          "function": "human",
+          "source": "Games/Foldwild/view.js",
+          "line": 235
+        },
+        {
+          "function": "createHuman",
+          "source": "Games/Foldwild/view.js",
+          "line": 7
+        },
+        {
+          "function": "part",
+          "source": "Games/Foldwild/view.js",
+          "line": 15
+        }
+      ],
+      "weight_us": 10118
+    },
+    {
+      "frames": [
+        {
+          "function": "(root)",
+          "source": "",
+          "line": 0
+        },
+        {
+          "function": "(anonymous)",
+          "source": "Games/Foldwild/script.js",
+          "line": 1030
+        },
+        {
+          "function": "start",
+          "source": "Games/Foldwild/script.js",
+          "line": 310
+        },
+        {
+          "function": "showWorld",
+          "source": "Games/Foldwild/script.js",
+          "line": 286
+        },
+        {
+          "function": "showWorld",
+          "source": "Games/Foldwild/view.js",
+          "line": 587
+        },
+        {
+          "function": "setPlayerPosition",
+          "source": "Games/Foldwild/view.js",
+          "line": 601
+        },
+        {
+          "function": "nearbyVisuals",
+          "source": "Games/Foldwild/view.js",
+          "line": 539
+        },
+        {
+          "function": "buildNPCs",
+          "source": "Games/Foldwild/view.js",
+          "line": 512
+        },
+        {
+          "function": "updateNPCParts",
+          "source": "Games/Foldwild/view.js",
+          "line": 532
+        },
+        {
+          "function": "computeBoundingSphere",
+          "source": "Games/Foldwild/vendor/three.module.js",
+          "line": 32699
+        },
+        {
+          "function": "expandByPoint",
+          "source": "Games/Foldwild/vendor/three.module.js",
+          "line": 5307
+        }
+      ],
+      "weight_us": 10117
+    },
+    {
+      "frames": [
+        {
+          "function": "(root)",
+          "source": "",
+          "line": 0
+        },
+        {
+          "function": "(anonymous)",
+          "source": "Games/Foldwild/script.js",
+          "line": 1030
+        },
+        {
+          "function": "start",
+          "source": "Games/Foldwild/script.js",
+          "line": 310
+        },
+        {
+          "function": "showWorld",
+          "source": "Games/Foldwild/script.js",
+          "line": 286
+        },
+        {
+          "function": "ensureView",
+          "source": "Games/Foldwild/script.js",
+          "line": 164
+        },
+        {
+          "function": "createView",
+          "source": "Games/Foldwild/view.js",
+          "line": 135
+        },
+        {
+          "function": "WebGLRenderer",
+          "source": "Games/Foldwild/vendor/three.module.js",
+          "line": 28461
+        },
+        {
+          "function": "initGLContext",
+          "source": "Games/Foldwild/vendor/three.module.js",
+          "line": 28713
+        },
+        {
+          "function": "WebGLState",
+          "source": "Games/Foldwild/vendor/three.module.js",
+          "line": 22673
+        }
+      ],
+      "weight_us": 10116
+    },
+    {
+      "frames": [
+        {
+          "function": "(root)",
+          "source": "",
+          "line": 0
+        },
+        {
+          "function": "(anonymous)",
+          "source": "Games/Foldwild/script.js",
+          "line": 1030
+        },
+        {
+          "function": "start",
+          "source": "Games/Foldwild/script.js",
+          "line": 310
+        },
+        {
+          "function": "showWorld",
+          "source": "Games/Foldwild/script.js",
+          "line": 286
+        },
+        {
+          "function": "setPhase",
+          "source": "Games/Foldwild/script.js",
+          "line": 175
+        },
+        {
+          "function": "updateHUD",
+          "source": "Games/Foldwild/script.js",
+          "line": 197
+        }
+      ],
+      "weight_us": 10115
+    },
+    {
+      "frames": [
+        {
+          "function": "(root)",
+          "source": "",
+          "line": 0
+        },
+        {
+          "function": "(anonymous)",
+          "source": "Games/Foldwild/script.js",
+          "line": 1030
+        },
+        {
+          "function": "start",
+          "source": "Games/Foldwild/script.js",
+          "line": 310
+        },
+        {
+          "function": "showWorld",
+          "source": "Games/Foldwild/script.js",
+          "line": 286
+        },
+        {
+          "function": "ensureView",
+          "source": "Games/Foldwild/script.js",
+          "line": 164
+        },
+        {
+          "function": "createView",
+          "source": "Games/Foldwild/view.js",
+          "line": 135
+        },
+        {
+          "function": "DirectionalLight",
+          "source": "Games/Foldwild/vendor/three.module.js",
+          "line": 44670
+        }
+      ],
+      "weight_us": 10112
+    },
+    {
+      "frames": [
+        {
+          "function": "(root)",
+          "source": "",
+          "line": 0
+        },
+        {
+          "function": "(anonymous)",
+          "source": "Games/Foldwild/script.js",
+          "line": 1030
+        },
+        {
+          "function": "start",
+          "source": "Games/Foldwild/script.js",
+          "line": 310
+        },
+        {
+          "function": "showWorld",
+          "source": "Games/Foldwild/script.js",
+          "line": 286
+        },
+        {
+          "function": "ensureView",
+          "source": "Games/Foldwild/script.js",
+          "line": 164
+        },
+        {
+          "function": "createView",
+          "source": "Games/Foldwild/view.js",
+          "line": 135
+        },
+        {
+          "function": "resize",
+          "source": "Games/Foldwild/view.js",
+          "line": 678
+        },
+        {
+          "function": "getBoundingClientRect",
+          "source": "",
+          "line": 0
+        }
+      ],
+      "weight_us": 10111
+    },
+    {
+      "frames": [
+        {
+          "function": "(root)",
+          "source": "",
+          "line": 0
+        },
+        {
+          "function": "(anonymous)",
+          "source": "Games/Foldwild/script.js",
+          "line": 1030
+        },
+        {
+          "function": "start",
+          "source": "Games/Foldwild/script.js",
+          "line": 310
+        },
+        {
+          "function": "showWorld",
+          "source": "Games/Foldwild/script.js",
+          "line": 286
+        },
+        {
+          "function": "showWorld",
+          "source": "Games/Foldwild/view.js",
+          "line": 587
+        },
+        {
+          "function": "human",
+          "source": "Games/Foldwild/view.js",
+          "line": 235
+        },
+        {
+          "function": "createHuman",
+          "source": "Games/Foldwild/view.js",
+          "line": 7
+        },
+        {
+          "function": "Group",
+          "source": "Games/Foldwild/vendor/three.module.js",
+          "line": 26392
+        }
+      ],
+      "weight_us": 10109
+    },
+    {
+      "frames": [
+        {
+          "function": "(root)",
+          "source": "",
+          "line": 0
+        },
+        {
+          "function": "(anonymous)",
+          "source": "Games/Foldwild/script.js",
+          "line": 1030
+        },
+        {
+          "function": "start",
+          "source": "Games/Foldwild/script.js",
+          "line": 310
+        },
+        {
+          "function": "showWorld",
+          "source": "Games/Foldwild/script.js",
+          "line": 286
+        },
+        {
+          "function": "showWorld",
+          "source": "Games/Foldwild/view.js",
+          "line": 587
+        },
+        {
+          "function": "terrain",
+          "source": "Games/Foldwild/view.js",
+          "line": 419
+        },
+        {
+          "function": "instances",
+          "source": "Games/Foldwild/view.js",
+          "line": 221
+        },
+        {
+          "function": "geometry",
+          "source": "Games/Foldwild/view.js",
+          "line": 179
+        },
+        {
+          "function": "IcosahedronGeometry",
+          "source": "Games/Foldwild/vendor/three.module.js",
+          "line": 39328
+        },
+        {
+          "function": "PolyhedronGeometry",
+          "source": "Games/Foldwild/vendor/three.module.js",
+          "line": 37029
+        },
+        {
+          "function": "generateUVs",
+          "source": "Games/Foldwild/vendor/three.module.js",
+          "line": 37186
+        },
+        {
+          "function": "correctUVs",
+          "source": "Games/Foldwild/vendor/three.module.js",
+          "line": 37253
+        }
+      ],
+      "weight_us": 10107
+    },
+    {
+      "frames": [
+        {
+          "function": "(root)",
+          "source": "",
+          "line": 0
+        },
+        {
+          "function": "(anonymous)",
+          "source": "Games/Foldwild/script.js",
+          "line": 1030
+        },
+        {
+          "function": "start",
+          "source": "Games/Foldwild/script.js",
+          "line": 310
+        },
+        {
+          "function": "showWorld",
+          "source": "Games/Foldwild/script.js",
+          "line": 286
+        },
+        {
+          "function": "ensureView",
+          "source": "Games/Foldwild/script.js",
+          "line": 164
+        },
+        {
+          "function": "createView",
+          "source": "Games/Foldwild/view.js",
+          "line": 135
+        },
+        {
+          "function": "WebGLRenderer",
+          "source": "Games/Foldwild/vendor/three.module.js",
+          "line": 28461
+        },
+        {
+          "function": "initGLContext",
+          "source": "Games/Foldwild/vendor/three.module.js",
+          "line": 28713
+        },
+        {
+          "function": "init",
+          "source": "Games/Foldwild/vendor/three.module.js",
+          "line": 17346
+        },
+        {
+          "function": "getExtension",
+          "source": "Games/Foldwild/vendor/three.module.js",
+          "line": 17299
+        }
+      ],
+      "weight_us": 10098
+    }
+  ],
+  "raw_profile_bytes_received": 43229
+}

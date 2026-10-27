@@ -1,7 +1,15 @@
 // Operator-supplied roster constants; provenance and battle contract: docs/foldwild-sources.md.
 export const ELEMENTS = ['Cindrel', 'Rillune', 'Loamveil', 'Gleamric', 'Hushmere'];
 export const ELEMENT_WHEEL = {Cindrel: 'Loamveil', Loamveil: 'Gleamric', Gleamric: 'Hushmere', Hushmere: 'Rillune', Rillune: 'Cindrel'};
-export const OPTIONAL_HIDDEN_SPECIES = null;
+// Optional supplied mesh; provisional balance/provenance: docs/maintenance/games/226-foldwild.md.
+export const OPTIONAL_HIDDEN_SPECIES = {
+  id: 'cave-visitor', number: null, name: 'Cave visitor', element: 'Hushmere', family: 'Unclassified',
+  tier: 'basic', stage: 1, evolvesTo: null, evolveLevel: null,
+  stats: { hp: 46, energy: 24, attack: 24, defense: 25, speed: 20 },
+  abilities: ['Muffle Bump', 'Quiet Ripple', 'Pause Draw', 'Velvet Wall'],
+  model: 'models/secret-cave-creature.glb',
+  bounds: { width: 2.777377963, height: 0.801636815, depth: 3.711298347 }, unique: true
+};
 export const ABILITIES = {
   "Coal Nudge": {"cost": 2, "power": 18},
   "Kiln Dart": {"cost": 4, "power": 28},
@@ -136,4 +144,4 @@ export const SPECIES = [
   {"id": "sablewheel", "number": 79, "name": "Sablewheel", "element": "Hushmere", "family": "Echohoop", "tier": "evolved", "stage": 2, "evolvesTo": null, "evolveLevel": null, "stats": {"hp": 58, "energy": 42, "attack": 50, "defense": 27, "speed": 63}, "abilities": ["Quiet Ripple", "Hollow Note", "Fold Slip", "Resonant Press"], "model": "models/Echohoop/sablewheel.glb", "bounds": {"width": 0.98, "height": 0.9, "depth": 0.4}, "unique": false},
   {"id": "whisquet", "number": 80, "name": "Whisquet", "element": "Hushmere", "family": "Echohoop", "tier": "basic", "stage": 1, "evolvesTo": null, "evolveLevel": null, "stats": {"hp": 56, "energy": 35, "attack": 35, "defense": 32, "speed": 39}, "abilities": ["Muffle Bump", "Still Mend", "Low Chord", "Silence Pleat"], "model": "models/Echohoop/whisquet.glb", "bounds": {"width": 0.62, "height": 0.7, "depth": 0.38}, "unique": false},
 ];
-export const BY_ID = Object.fromEntries(SPECIES.map(species => [species.id, species]));
+export const BY_ID = Object.fromEntries([...SPECIES, OPTIONAL_HIDDEN_SPECIES].map(species => [species.id, species]));

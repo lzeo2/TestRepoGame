@@ -13,7 +13,7 @@ function freeze(value) {
 }
 
 export const REGION_DEFINITIONS = freeze([
-  { id: 0, name: 'Rootfold Meadow', element: 'Loamveil', description: 'A village trail follows the river into Loamveil woodland. Two bridges connect the western road post. Maren waits in the northern clearing.' },
+  { id: 0, name: 'Rootfold Meadow', element: 'Loamveil', description: 'A village trail follows the river into Loamveil woodland. Two bridges connect the western road post. The northeast fork ends at Northern Clearing, where Maren waits.' },
   { id: 1, name: 'Stillwater Reach', element: 'Rillune', description: 'Rillune channels separate reed banks and sandy nesting grounds. The ferry outpost keeps both crossings open. Sola trains where the northern channel bends.' },
   { id: 2, name: 'Emberstep Quarry', element: 'Cindrel', description: 'Cindrel clay shelves surround a working quarry outpost. Trails skirt closed terraces and lead to the kiln road post. Neri practices pressure and recovery above the cut.' },
   { id: 3, name: 'Stonefold Ridge', element: 'Gleamric', description: 'Gleamric stone walls frame the ridge switchbacks. A lower trading post supplies the climb. Iven watches the open northern terrace.' },
@@ -93,6 +93,82 @@ function layout({ palette, houses, rocks, groves, river, bridges, landmark, path
   return { bounds: { ...BOUNDS }, spawn: { x: 0, z: 16, yaw: 0 }, palette, pathWidth: 3.5,
     paths: paths.map(xy), props: scenery(palette,houses,rocks,groves,river,bridges,landmark),
     colliders, waynodes: [...xy(waynodes), ...corners], points, wildSites: wildSites.map(([x,z,habitatElement,tier]) => ({x,z,habitatElement,tier})) };
+}
+
+// Names attach to existing interactions, never to an invented destination.
+const EXPLORATION = [
+  { trial: ['northern-clearing', 'Northern Clearing', 'Take the northeast fork after the woodland habitats. Maren waits at the trail end, east of the river.'],
+    loop: ['West Bridge Loop', 'The village bridge reaches the west road post. Continue north along the far bank and cross back to the woodland trail.'],
+    caches: ['West Bank Fiber', 'Clearing Approach Fiber', 'North Trail Fiber'],
+    spurs: [[[-28,12],[-30,8]], [[10,-24],[18,-18]], [[0,-40],[2,-50]]],
+    habitats: ['Village Verge', 'Woodland Fork', 'Riverward Glade'] },
+  { trial: ['channel-bend', 'Channel Bend', 'Follow the bank trail north, then take the northwest fork past the reeds to Sola.'],
+    loop: ['Ferry Crossing Loop', 'Cross the southern ferry bridge, follow the eastern bank to the Channel road post, then cross the northern bridge to rejoin the main trail.'],
+    caches: ['Ferry Landing Fiber', 'Reed Bank Fiber', 'Road Post Fiber'],
+    spurs: [[[18,28],[18,24]], [[-10,-30],[-18,-24]], [[40,-20],[44,-28]]],
+    habitats: ['Reed Bank', 'Channel Shallows', 'Eastern Nesting Bank'] },
+  { trial: ['upper-kiln-shelf', 'Upper Kiln Shelf', 'Stay west of the closed quarry terraces, then follow the northeast spur to Neri above the cut.'],
+    loop: ['Kiln Road Loop', 'The southern bridge reaches the western bank. Follow the kiln road north to the post and cross back below the quarry shelves.'],
+    caches: ['Kiln Crossing Fiber', 'Quarry Approach Fiber', 'Upper Shelf Fiber'],
+    spurs: [[[-34,26],[-36,22]], [[8,-32],[4,-30]], [[16,-42],[20,-48]]],
+    habitats: ['Warm Clay Verge', 'Quarry Foot', 'Kiln Bank'] },
+  { trial: ['northern-terrace', 'Northern Terrace', 'Follow the switchback west of the first stone wall, then turn east above the second wall to reach Iven.'],
+    loop: ['Lower Ridge Loop', 'The southern crossing leads to the Lower ridge road post. The northern crossing returns below the first switchback.'],
+    caches: ['Ridge Crossing Fiber', 'Switchback Fiber', 'Terrace Approach Fiber'],
+    spurs: [[[20,28],[20,24]], [[-8,-44],[-10,-40]], [[8,-54],[18,-56]]],
+    habitats: ['Lower Stone Verge', 'Switchback Shelf', 'Eastern Stone Bank'] },
+  { trial: ['eastern-grove-clearing', 'Eastern Grove Clearing', 'Follow the eastern stone trail around the grove to Oren. The west trail also loops around to the same clearing.'],
+    loop: ['Twin Crossing Grove Loop', 'Cross west at the outpost, follow the far bank north and cross back above the grove. This longer route passes two fiber caches.'],
+    caches: ['West Crossing Fiber', 'Grove Approach Fiber', 'Eastern Clearing Fiber'],
+    spurs: [[[-38,16],[-40,12]], [[-14,-38],[-18,-34]], [[14,-54],[12,-48]]],
+    habitats: ['Hollow Verge', 'Western Grove', 'Eastern Stone Trail'] }
+];
+function explorationLayout(area, region) {
+  const source = EXPLORATION[region];
+  const [trialId, trialName, trialDescription] = source.trial;
+  const landmark = (id, name, pointIds, routeId, description, rewardHint) => {
+    const point = area.points.find(p => p.id === pointIds[0]);
+    return { id, name, x: point.x, z: point.z, pointIds, routeId, description,
+      arrival: `Reached ${name}.`, rewardHint };
+  };
+  const campIds = area.points.filter(p => !['rival','exit','supply'].includes(p.type) && !p.id.includes('-road-')).map(p => p.id);
+  const road = area.points.find(p => p.id.includes('-road-'));
+  const landmarks = [
+    landmark('outpost', `${REGIONS[region].name.split(' ')[0]} Rest Camp`, campIds, 'main-trail',
+      'The camp and nearby outpost services share this trailhead. Return here before a longer survey.',
+      'Rest restores all allies for free and brings your kites up to at least four. The supply counter accepts three fiber for a one-time delivery reward.'),
+    landmark(trialId, trialName, ['rival'], 'trial-spur', trialDescription,
+      'Preview the fixed team before committing. Clearing this regional trial advances the five-trial route; losing keeps your discoveries.'),
+    landmark('bridge-loop', source.loop[0], [road?.id ?? 'supply-0'], 'bridge-loop', source.loop[1],
+      road ? 'The road post sells recovery supplies and accepts its own one-time three-fiber delivery.' : 'Collect the crossing fiber, then return it to the outpost supply counter.')
+  ];
+  source.caches.forEach((name, i) => landmarks.push(landmark(`fiber-${i}`, name, [`supply-${i}`], `fiber-spur-${i}`,
+    ['A short detour from the bridge loop.', 'A trail-side cache on the northern approach.', 'A cache beyond the last habitat; collect it before returning to camp.'][i],
+    'Three fiber before class bonuses. Keep it for a delivery or sell it at a supply merchant. Each cache can be collected once.')));
+  const mainPaths = region === 0 ? [area.paths[0], area.paths[3]]
+    : region === 1 || region === 2 ? [area.paths[0], area.paths[2]] : [area.paths[0]];
+  // Trial spurs already exist except the hollow's eastern alternative.
+  if (region === 4) mainPaths.push(area.paths[2]);
+  const routes = [
+    { id: 'main-trail', name: 'Outpost to northern gate', landmarkId: 'outpost', paths: [area.paths[0]] },
+    { id: 'trial-spur', name: `Trail to ${trialName}`, landmarkId: trialId, paths: mainPaths },
+    { id: 'bridge-loop', name: source.loop[0], landmarkId: 'bridge-loop', paths: region === 0 ? [area.paths[1],area.paths[2]] : [area.paths[1]] }
+  ];
+  source.spurs.forEach((pairs, i) => {
+    const path = xy(pairs);
+    area.paths.push(path);
+    routes.push({ id: `fiber-spur-${i}`, name: `Detour to ${source.caches[i]}`, landmarkId: `fiber-${i}`, paths: [path] });
+  });
+  const trial = landmarks[1];
+  const stone = area.props.find(p => p.kind === 'landmark');
+  const stoneName = ['North Trail Waystone', 'Reed Bank Waystone', 'Kiln Waystone', 'Terrace Waystone', 'Quiet Stone Grove'][region];
+  Object.assign(stone, { landmarkId: 'waystone', label: stoneName });
+  landmarks.push({ id: 'waystone', name: stoneName, x: stone.x, z: stone.z, pointIds: [], routeId: 'main-trail',
+    description: 'A stone landmark beside the northern trail.', arrival: `Reached ${stoneName}.`,
+    rewardHint: 'A navigation landmark, not a separate interaction or reward.' });
+  area.props.push({ ...stone, x: trial.x + 3, z: trial.z, landmarkId: trial.id, label: trial.name });
+  area.wildSites.forEach((site, i) => { site.locationName = source.habitats[i]; });
+  return { ...area, landmarks, routes };
 }
 
 export const REGION_LAYOUTS = freeze([
@@ -182,7 +258,7 @@ export const REGION_LAYOUTS = freeze([
       resident('hollow',3,18,22,'Return courier',['Oren waits beyond the eastern trail.','The return gate stands north of the grove.','The final expedition is a separate journey.']),
       ...supplies([[-40,12],[-18,-34],[12,-48]])]
   })
-]);
+].map(explorationLayout));
 
 function getLayout(region) {
   if (!Number.isInteger(region) || region < 0 || region >= REGION_LAYOUTS.length) throw new RangeError('Invalid region index.');

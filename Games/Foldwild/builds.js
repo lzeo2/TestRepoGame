@@ -1,4 +1,4 @@
-import { BY_ID, SPECIES } from './data.js';
+import { BY_ID, OPTIONAL_HIDDEN_SPECIES } from './data.js';
 import { COSMETICS, CONTRACTS } from './economy.js';
 
 export const CLASSES = Object.freeze({
@@ -107,8 +107,8 @@ const REQUIREMENTS = Object.freeze({ pathfinder: 'distinct claimed supplies', bi
 
 function historyCounts(state) {
   plain(state, 'class progress');
-  const caught = list(optional(state, 'caught', []), SPECIES.length, 'caught species')
-    .map(id => known(BY_ID, id, 'species'));
+  const caught = list(optional(state, 'caught', []), Object.keys(BY_ID).length, 'caught species')
+    .map(id => known(BY_ID, id, 'species')).filter(id => id !== OPTIONAL_HIDDEN_SPECIES.id);
   const trials = list(optional(state, 'defeatedRivals', []), 5, 'trial progress')
     .map(id => integer(id, 0, 4, 'trial id'));
   const contracts = list(optional(state, 'contracts', []), Object.keys(CONTRACTS).length, 'contracts')

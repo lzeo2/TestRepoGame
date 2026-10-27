@@ -1,4 +1,4 @@
-import { SPECIES, BY_ID } from './data.js';
+import { SPECIES, BY_ID, OPTIONAL_HIDDEN_SPECIES } from './data.js';
 import { statsFor, createCreature, clearEffects, gainXP, validateBattle, applyAction } from './battle.js';
 import { validateIndividual, unlockedClasses, generateIndividual, classRank } from './builds.js';
 import { RIVALS, FINALE_STAGES } from './campaign.js';
@@ -260,8 +260,8 @@ export function validateSave(value) {
     integer(Number(uid.slice(6)), 0, 1e9 - 1, 'owned UID number')), 'owned UID number');
   const team = unique(list(field(raw, 'team'), 1, 3, 'team'), 'team UID');
   if (team.some(uid => typeof uid !== 'string' || !uids.includes(uid))) throw new RangeError('Unknown team UID.');
-  const seen = unique(list(field(raw, 'seen'), 0, SPECIES.length, 'seen').map(speciesId), 'seen species');
-  const caught = unique(list(field(raw, 'caught'), 0, SPECIES.length, 'caught').map(speciesId), 'caught species');
+  const seen = unique(list(field(raw, 'seen'), 0, Object.keys(BY_ID).length, 'seen').map(speciesId), 'seen species');
+  const caught = unique(list(field(raw, 'caught'), 0, Object.keys(BY_ID).length, 'caught').map(speciesId), 'caught species');
   for (const c of roster) if (!caught.includes(c.speciesId)) caught.push(c.speciesId);
   for (const id of caught) if (!seen.includes(id)) seen.push(id);
   let defeatedRivals = unique(list(field(raw, 'defeatedRivals'), 0, legacy ? 3 : 5, 'defeated rivals'), 'rival id');
@@ -286,6 +286,8 @@ export function validateSave(value) {
   for (const number of ownedNumbers) nextUid = Math.max(nextUid, number + 1);
   const reducedMotion = field(raw, 'reducedMotion');
   if (typeof reducedMotion !== 'boolean') throw new TypeError('Invalid reducedMotion: expected boolean.');
+  const optionalEncounters = optional(raw, 'optionalEncounters', false);
+  if (typeof optionalEncounters !== 'boolean') throw new TypeError('Invalid optionalEncounters: expected boolean.');
   const kites = integer(field(raw, 'kites'), 0, 999, 'kites');
   const encounterIndex = integer(field(raw, 'encounterIndex'), 0, 1e9, 'encounterIndex');
   const economy = legacy ? freshEconomy() : economyCopy(raw, kites, encounterIndex);
@@ -298,7 +300,7 @@ export function validateSave(value) {
   if (!['low', 'standard'].includes(quality)) throw new RangeError('Invalid quality.');
   if (finaleStage > 0 && defeatedRivals.length !== 5) throw new RangeError('Invalid finale prerequisites.');
   const state = { version: 3, finaleStage, pendingChallenge, seed, starterId, position: canonicalPosition, region, roster, team, seen, caught,
-    defeatedRivals, score: integer(field(raw, 'score'), 0, 1e9, 'score'), kites, encounterIndex, nextUid, reducedMotion,
+    defeatedRivals, score: integer(field(raw, 'score'), 0, 1e9, 'score'), kites, encounterIndex, nextUid, reducedMotion, optionalEncounters,
     ...economy, activeClass, appearance: legacy ? { ...APPEARANCE } : appearanceCopy(field(raw, 'appearance')),
     favorites, quality, legacyRivals, pendingBattle: null };
   if (pendingBattle !== null) {
@@ -410,7 +412,10 @@ export function writeSave(state, storage, expectedPrimary) {
   }
 }
 
-export function worldPoints(state) {
+// Presentation opts in; default point snapshots and pending-save identity stay unchanged.
+export function worldPoints(state, options = {}) {
+  const exploration = optional(plain(options, 'world options'), 'exploration', false);
+  if (typeof exploration !== 'boolean') throw new TypeError('Invalid exploration: expected boolean.');
   const seedInput = integer(field(plain(state, 'world state'), 'seed'), 0, 0xffffffff, 'seed');
   const region = integer(field(state, 'region'), 0, 4, 'region');
   const encounterIndex = integer(field(state, 'encounterIndex'), 0, 1e9, 'encounterIndex');
@@ -454,7 +459,39 @@ export function worldPoints(state) {
       };
       return { ...point };
     }));
-  return points;
+  const optionalEncounters = optional(state, 'optionalEncounters', false);
+  if (typeof optionalEncounters !== 'boolean') throw new TypeError('Invalid optionalEncounters: expected boolean.');
+  // Appended after all base draws; opting in never changes the canonical habitat sequence.
+  if (optionalEncounters && region === 4 && finaleStage === 3 &&
+      !list(field(state, 'caught'), 0, Object.keys(BY_ID).length, 'caught').includes(OPTIONAL_HIDDEN_SPECIES.id)) {
+    points.push({ id: 'optional-cave', x: -8, z: -50, type: 'wild', speciesId: OPTIONAL_HIDDEN_SPECIES.id,
+      label: OPTIONAL_HIDDEN_SPECIES.name, level: 28, individualSeed: (seedInput ^ 0xcade) >>> 0 });
+  }
+  if (!exploration) return points;
+  const layout = REGION_LAYOUTS[region];
+  return points.map(point => {
+    // Supply identity takes precedence where the hollow's loop ends at a cache.
+    const landmark = [...layout.landmarks].reverse().find(site => site.pointIds.includes(point.id));
+    const habitat = point.type === 'wild' && layout.wildSites[Number(point.id.slice(5))];
+    const locationName = landmark?.name ?? (habitat ? habitat.locationName
+      : point.id === 'optional-cave' ? 'Quiet Stone Grove' : point.label);
+    const description = landmark?.description ?? (habitat
+      ? `${locationName} is a ${habitat.habitatElement} habitat. Its visitors can change after an encounter.`
+      : point.type === 'exit' ? 'The northern trail gate connects the regional expedition routes.'
+        : 'An optional visitor beside the quiet stone grove. This encounter is separate from the campaign and the 80-species collection.');
+    const rewardHint = point.challenge ? point.challenge.kind === 'rematch'
+      ? 'Optional rematch. It does not add another regional trial or return lesson.'
+      : 'This return lesson advances the three-lesson expedition, not the regional trial count.'
+      : point.type === 'exit' ? defeatedRivals.includes(region)
+        ? 'This regional trial is cleared. Travel is available from the field record.'
+        : `Clear ${RIVALS[region].name}'s regional trial before continuing.`
+      : landmark?.rewardHint ?? (state.caught.includes(point.speciesId)
+        ? 'Already recorded. Training still awards ordinary battle experience and Marks.'
+        : 'Observe to record it as seen. A successful capture adds an ally; Back leaves it alone.');
+    return { ...point, landmarkId: landmark?.id ?? point.id, locationName,
+      arrival: `Reached ${locationName}.`, description, rewardHint,
+      routeId: landmark?.routeId ?? 'main-trail' };
+  });
 }
 export function nearbyPoint(state, distance = 1.8) {
   finite(distance, 'distance');

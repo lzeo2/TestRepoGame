@@ -1,0 +1,2164 @@
+{
+  "scope": "fresh current desktop/touch only; historical baseline evidence preserved",
+  "source_hashes": {
+    "Games/Foldwild/battle.js": "4517e1a93664b16376f6cba529ca049f338cb2aca2096819b283e9ea63feccda",
+    "Games/Foldwild/builds.js": "2c632354ccff59c4b2501e7d6e5b502b99d7ec99683764a9c6a4730fa4e2bb67",
+    "Games/Foldwild/campaign.js": "2d333e96cd7707b70ea20aecc4abfdbdaab27c7b77deaebe82004123f0593072",
+    "Games/Foldwild/data.js": "722454326b736e4997405cabc54db69a3352bea67c84678a5cedb0702b829975",
+    "Games/Foldwild/economy.js": "644ffdd23ff75edb8dfd639447bad42692ccd8b2bf7112e6468a3c8c4a6194f0",
+    "Games/Foldwild/index.html": "ea7e7ad19f87d7d5504d990e2d512d47f15ebe1c0446ddef99895d5ee60fe4a8",
+    "Games/Foldwild/navigation.js": "880b4ccb6f305a33eb1e502537ac36145403932bd2234af9f9ba4c4fc9cc6f3a",
+    "Games/Foldwild/region-data.js": "de771d5249ed70be461065423ccd3fa9a45974a5eba5220cffbff7a79b6e50a7",
+    "Games/Foldwild/script.js": "2c87ce5312e9f0a1b44c9d9efb206c80e202a2b8ba0ce4f12f44f5883611d1fc",
+    "Games/Foldwild/style.css": "b147655c0d55fae7e25623e7b5d84c7f166deb2f1b155649b30419eb329e2cff",
+    "Games/Foldwild/view.js": "b5e5b383a06a4228f2a55a62df6710bead96ed1d4691d1801048270a647c1619",
+    "Games/Foldwild/world.js": "088b3bcaf2bec5ef16e320f07ce27b0794a5448a1f12b1736f88ad4c89c6dc79"
+  },
+  "asset_hashes": {
+    "Games/Foldwild/models/Bellstrider/catarill.glb": "ae0803e02e5f9a3d57355e94315ddb05b4b8831e369b90c859c9d6caff505253",
+    "Games/Foldwild/models/Bellstrider/chimeford.glb": "e6ca4c484b604039a921ee282e06d295d01e264fd99dc7290a7437268aeb0a48",
+    "Games/Foldwild/models/Bellstrider/fogstilt.glb": "6e7c39276b6f31031147491133b12de59b30a37f520ea16486feeacef520d17c",
+    "Games/Foldwild/models/Bellstrider/mistank.glb": "288cc55cba4edb76b59c21c5be4cfd6436c1ad931ba6a4746c9d783029dc8709",
+    "Games/Foldwild/models/Bellstrider/nacreep.glb": "67809a76efd302cc21e9ded7d81e794fd5965d542ea1297bb647dd84c41f955c",
+    "Games/Foldwild/models/Bellstrider/pluvell.glb": "1b36ed1bb8a3a7c369f0b352958664707ec36ca98c737929ef4c3fab5dd46a22",
+    "Games/Foldwild/models/Bellstrider/rillipod.glb": "0d5d692ef6239c9a03bee672d099a6fcbb12d88fa21d9a4770c0c1e79081a7da",
+    "Games/Foldwild/models/Bellstrider/tidaloom.glb": "6c7df5925881a4be7219300255339f25230bb449bbcddfc6c7bb96c08e753e16",
+    "Games/Foldwild/models/Canopyfold/burruff.glb": "8a3ec258b0c41d1a834e4a419465d1727156b96425044b0dc395d09f98ee3341",
+    "Games/Foldwild/models/Canopyfold/coppicrown.glb": "974f125e23cddbe05f219273c77d3dc93993380d715fd3b8f1719941bfe32a52",
+    "Games/Foldwild/models/Canopyfold/fernclasp.glb": "73e6864373c19733cc1d45b2963476be0b51ceeeb659b824df6de8c0ea631694",
+    "Games/Foldwild/models/Canopyfold/leafnock.glb": "5a2b99373b6e95350eb6ffc383ab25cc6b794381b5466c8e5633710c5367295c",
+    "Games/Foldwild/models/Canopyfold/mosskip.glb": "df5cf5dc9b41d3ddf835ec7dd288ae2db7c7778b851b824249760b80b42cdced",
+    "Games/Foldwild/models/Canopyfold/sprigbell.glb": "a116a95b3e55896dc2e315c4c24a07d7b7b4a52b30e1b2376a5f30eb00e4e083",
+    "Games/Foldwild/models/Canopyfold/thornmantle.glb": "b2df9166230d1c281139381fc5f2fc3372f13cb74fa1e3a41688f2361d812a53",
+    "Games/Foldwild/models/Canopyfold/veilbough.glb": "8757d33e814c5365968c735292d13ac3c3f238457df8ff7f4439f9790cf02fb9",
+    "Games/Foldwild/models/Cupfin/basinull.glb": "ec1d4270f351ec98cee27f44a5697aac44643fd47a3de408797ecaca273ae4a0",
+    "Games/Foldwild/models/Cupfin/dewgob.glb": "a08b6351b93c087acc98ffd949bdf9384d9027411c0426ccb256c4d7cd8339c1",
+    "Games/Foldwild/models/Cupfin/driplug.glb": "850a9cf5dc84e335670d339a05a991a444d0649c2e52b840e7b352172b12e0bd",
+    "Games/Foldwild/models/Cupfin/poolbit.glb": "799c7310c181a5a0c85111b74f63356dcdf2ed0bf015e3772d903ce1872d602a",
+    "Games/Foldwild/models/Cupfin/runnelip.glb": "089eafc856a75c438f8fa92eee463e91ea593a1cb2ae2964e8fd69d31854f142",
+    "Games/Foldwild/models/Cupfin/troughlobe.glb": "c5b238f0eb2fb52d116e670de52e3f0ccbbcf0775766cb73b905a0bc68b0d4f8",
+    "Games/Foldwild/models/Cupfin/vesselorn.glb": "de4b15222fc8b0e7b8ae9bc68868a9ee546020e271e8f2d1c29d026b6a847799",
+    "Games/Foldwild/models/Cupfin/weirseal.glb": "83dd8b3ea6013dcc9c849e2ae7a42d4f8d0b6f64936354b2c1d1da223136c9b9",
+    "Games/Foldwild/models/Echohoop/nimbloop.glb": "607808b8533b1635376cef3eea3b856e981e0946e5023382d62c97eb20229c0d",
+    "Games/Foldwild/models/Echohoop/pallbit.glb": "eeb46062d1f6b5b00d0206961dc46a1d17324370936e653b6a0c71175d25b734",
+    "Games/Foldwild/models/Echohoop/resonelle.glb": "5ca5a331e45e84c4a1720e044fba196123c0c3ed5cec1bfc0c02b6fed77eaa8d",
+    "Games/Foldwild/models/Echohoop/ringmur.glb": "777891d71faeefc242ab86e98d57294f49a4a6405729739bfa2de1ec3ff5e4c9",
+    "Games/Foldwild/models/Echohoop/sablewheel.glb": "9c1d57992078a10a81462a4cb1aba6b854b699c649c6d0db80bc0ee7ab79f8a3",
+    "Games/Foldwild/models/Echohoop/stillarch.glb": "163957288f10cd53b7e394069581f27d84c8892cafb211449fc9b5887efdaaea",
+    "Games/Foldwild/models/Echohoop/thrumkin.glb": "f073c9701dcc9136b7bfbe03aeaf028585928d5b6ee4946651213cab3730366d",
+    "Games/Foldwild/models/Echohoop/whisquet.glb": "56b362b68472688a7d4061d30535357c9b093761723569255d1c567e76039219",
+    "Games/Foldwild/models/Halofoil/aurelvane.glb": "82ea05660fc7380347e0a2f21b01ae32535869e4f619479447519b55e0219a41",
+    "Games/Foldwild/models/Halofoil/glasprig.glb": "77450e6d551aae7f3ed7cdbd97d82e363eac1414c2788b94bc171cd4711201af",
+    "Games/Foldwild/models/Halofoil/halodot.glb": "fca8e6a9a8369efec2c3c37d13c8adb7195faead28cd62046faafa82705873b8",
+    "Games/Foldwild/models/Halofoil/lensfoil.glb": "fd1423399a597909701eec214c5d250f988eaa492783032ca9b09ed1039a83a9",
+    "Games/Foldwild/models/Halofoil/lustrip.glb": "ce7baf330cec59404fc01e1ef66b794358f4aa4fae0e041a79fa840ea8ce0f06",
+    "Games/Foldwild/models/Halofoil/raymote.glb": "6ae0953ac4323a9225ee59bbcd152da831423e7cbeb1744dd6f72e4d89262103",
+    "Games/Foldwild/models/Halofoil/refrafold.glb": "8e1c57702382de55496917180aa1d9be5ce9735d18e0ef7b1e1e78d1bd57518a",
+    "Games/Foldwild/models/Halofoil/sheenlobe.glb": "4a22cf9791a33522f636f253e901df383ea1a60b5b2d4dc211b9529085488c23",
+    "Games/Foldwild/models/Hushcoil/duskcurl.glb": "7755048eb19f6a5c48cc4088ebee8740ddd599d781446143d3e762f6934d6554",
+    "Games/Foldwild/models/Hushcoil/foldnacre.glb": "d4c8f21741e52171440c80c8c4cdb5d3760fa84c4b236d7ae3070a0333a718b0",
+    "Games/Foldwild/models/Hushcoil/gloamlet.glb": "69cc5016d860563918c4f2d772c861d31838245b2d067aa2c736ab032a530fa5",
+    "Games/Foldwild/models/Hushcoil/hushpip.glb": "77acd8e14056772100a222412ea823d5d946b51527661000cc0b00bd18375606",
+    "Games/Foldwild/models/Hushcoil/murnub.glb": "784cb513aa6e6ea6d27615837ecdd696f04f606105091bb696929f88b6b222ea",
+    "Games/Foldwild/models/Hushcoil/nullwrithe.glb": "ff06225f4086e5fafabc7a25cc2caf5a663c2b71bfec43d062cd79e551f9e9c3",
+    "Games/Foldwild/models/Hushcoil/quiethelix.glb": "50676fa5753512108f4cf0169e068fa67dbb24d8661703951bac4791dc03ac7e",
+    "Games/Foldwild/models/Hushcoil/velvetorque.glb": "69b392fe24285d7c9b7f59d69a83ac67849e1a9e704d909985319d529e5ce316",
+    "Games/Foldwild/models/Kilnback/ashbarrow.glb": "97c7afa88909686b51d0b139b0b075f8af50e3437ff87df47102f41fee5ac176",
+    "Games/Foldwild/models/Kilnback/briknudge.glb": "608b1a9ccd357ef97c4807882dcd03891e36c296d91cc4a375888419350bca6f",
+    "Games/Foldwild/models/Kilnback/cindupp.glb": "962d32fbb8bbb279b391e44fab799379e7e97037dfb4e2c3727858cc615dbbd4",
+    "Games/Foldwild/models/Kilnback/clastump.glb": "29d6ed067c3516d3d8244dfb4291e20ab7ab9c9660333f6cafcfdaf0083d04cd",
+    "Games/Foldwild/models/Kilnback/hearthol.glb": "cd7e0705d5322bae79152bd2e0f53a8982abc2f7f202f83d072ed34db0c6eec9",
+    "Games/Foldwild/models/Kilnback/kilnarch.glb": "fc2516813109c301f2cf8548e5e6cead7bb758c8bd56fc11c2e135d35c4972f8",
+    "Games/Foldwild/models/Kilnback/sootnub.glb": "e74dcecbf3f9a13bfcd5260b5509fb918ba80469ca26ba6295d66c1fedfe4cf5",
+    "Games/Foldwild/models/Kilnback/tufflet.glb": "b369ac696196d3fb53c870ec44ae379ceb8ae3395c21c4b6596774ef775588d8",
+    "Games/Foldwild/models/Prismburrow/chalkit.glb": "92a23bbb91327280779f1609f02e7f6a959f33becbe5f152d2c2a0b4fa6adecc",
+    "Games/Foldwild/models/Prismburrow/facetusk.glb": "30a12bcae0ca0486e274a94735a6a86e014913a444e6e61adaa624205b8291c8",
+    "Games/Foldwild/models/Prismburrow/geodelve.glb": "050a8c8ac44c5ba5bbb8fb6bf6457202299016f206f357f73efd8026303a4071",
+    "Games/Foldwild/models/Prismburrow/glimknob.glb": "bf235d48b2a5b9006a47af573458a94cd2a0af718d4aaf87b8af5613d1409cbe",
+    "Games/Foldwild/models/Prismburrow/latticlaw.glb": "51272f8e056e554f49c7449e2c7dc15ad0bc8540ce7dfa807f6ab3a56703f618",
+    "Games/Foldwild/models/Prismburrow/opalden.glb": "3c4d853ebd7555aae9f83179fe866de0074b60f69a99420990b5ca37c4993fc4",
+    "Games/Foldwild/models/Prismburrow/shardip.glb": "22cc0f5df7fa77cf2b4e7783cef5f710696ac400f01e8e046cc5e517f2a92f66",
+    "Games/Foldwild/models/Prismburrow/spectrumor.glb": "8a57f5ed6ac65bd02349d51196da68fcc16f8f8db443e9eb2615830fc2931cb9",
+    "Games/Foldwild/models/Rootspindle/bolegraze.glb": "7f66111b0da8da175cb5ae8878705a615732978a924def20b252f01cb2a96066",
+    "Games/Foldwild/models/Rootspindle/budriv.glb": "1c6094b18b81a5493219a67ce47597ffdfb1526097ba8017dc3d71c5cb0a7f12",
+    "Games/Foldwild/models/Rootspindle/furrowisp.glb": "af6b92c7586c0f7a4ec3d2f68c1a5b6ec51dc62eac297194ca43c3a8d6d03cfd",
+    "Games/Foldwild/models/Rootspindle/loamtick.glb": "46de85b0dec5efeb4f866c7322a2a623f7c69a73d75d61d93b46668d8961f4ac",
+    "Games/Foldwild/models/Rootspindle/pithnip.glb": "ed922c615a50da63a4963c46d557d4acd6be01fd7169d38e158ad1cd0f54175a",
+    "Games/Foldwild/models/Rootspindle/rhizocairn.glb": "516db12d6df6f0d77b0af828f844097c724c2a51e07949455abbc4de180cf59d",
+    "Games/Foldwild/models/Rootspindle/trellisect.glb": "a0ffec7f3570860effdca2ebf020810a29a86f6654a59400d67e8b239caa627a",
+    "Games/Foldwild/models/Rootspindle/vinchew.glb": "fd8c157912ada3c21566624a064cdd1932bcff6debd3dcfe093a07000d08e007",
+    "Games/Foldwild/models/Scoriwing/brazifold.glb": "80c9939f23e7c34c6b7b00c1d2ad5d45e9cedd7b978ba77110c5018b2474e4f8",
+    "Games/Foldwild/models/Scoriwing/coppuff.glb": "d76f058acb596ffa129de25d7b6f1ab272d5fcb2d745216734594dd2c0ccb717",
+    "Games/Foldwild/models/Scoriwing/crestoven.glb": "1200fde469ab0f8596a0b59facd427dd388b7509fb9ac023d23a7250b5427b5c",
+    "Games/Foldwild/models/Scoriwing/emberick.glb": "51ad73a4138b7380d7a9997567d147f66cf23a98748105c165bfa68c8b38c145",
+    "Games/Foldwild/models/Scoriwing/flarivet.glb": "7c4dfeb53486a2b15567f6855c485269dd176d4e4f09471128bdadbeb97c6161",
+    "Games/Foldwild/models/Scoriwing/fluefrill.glb": "84d8d944e0b406f88d0be782afb89a98f35b3c150e5abd1bd07e1875640c94d8",
+    "Games/Foldwild/models/Scoriwing/sparvane.glb": "f6fe027c79c6b12934af0db8f15b83d96517e36e2151d6e469320eefe64c684c",
+    "Games/Foldwild/models/Scoriwing/tarsail.glb": "cd7761f976b81aa32b715f182f8f4d8063b0f52a0025ceca7fe7737e76708708",
+    "Games/Foldwild/models/secret-cave-creature.glb": "bc77d7c17a4638f37acb5547a490f50f07fda818f6261e6767e674823d64562c",
+    "Games/Foldwild/vendor/BufferGeometryUtils.js": "3a6701d824adfe05dc28c09b6c1d64aeab9a183bc3b944d85f15f596e5c6c2b3",
+    "Games/Foldwild/vendor/GLTFLoader.js": "1f9b02acfbf219a6ebb77f09e355500449a3ba9e6a77d87e0de72c0b9315ea4e",
+    "Games/Foldwild/vendor/LICENSE": "852e0e8699169bf9f6fdc6bda3e682d078dcbc738b5d33e74df594721bff271d",
+    "Games/Foldwild/vendor/three.module.js": "76dea8151bc9352aef3528b4262e249b2604f62543828328db978d060d61a495",
+    "assets/fonts/bungee/bungee-400-latin.woff2": "126eec706b7931682dbcf6c6efc274132c603f181fbf912678e6cfeb341e721b",
+    "assets/fonts/atkinson-hyperlegible/atkinson-hyperlegible-400-latin.woff2": "d64ba838ef5472bba248620ec4fd8b5aa7cf0db2908e0bb230600caf279ba7bc",
+    "assets/fonts/atkinson-hyperlegible/atkinson-hyperlegible-700-latin.woff2": "140e2bd25a7315c8a062508391426b0d8c3297400c947b8d847be28f73a199f0"
+  },
+  "cases": {
+    "current-1280": {
+      "status": "failed",
+      "failure_dom": {
+        "result": {
+          "type": "string",
+          "value": "{\"ready\":\"complete\",\"fonts\":\"loaded\",\"phase\":\"world\",\"view\":{\"mode\":\"world\",\"frames\":0,\"quality\":\"low\",\"cameraYaw\":0,\"inspectionYaw\":0,\"contextStatus\":\"available\",\"pendingModels\":[\"pluvell\",\"budriv\",\"leafnock\"],\"fallbackModels\":[],\"message\":\"Loading local 3D models: pluvell, budriv, leafnock. Text and buttons remain available.\",\"drawCalls\":0,\"triangles\":0,\"modelReferences\":3,\"inspectionBounds\":null,\"cosmeticAttachments\":[],\"cameraTarget\":{\"x\":0,\"y\":0.6,\"z\":16},\"cacheSize\":3,\"countLoadedModels\":0,\"loadedModels\":[],\"hiddenAvailable\":true,\"width\":763,\"height\":540,\"npcCount\":4,\"cameraPosition\":{\"x\":0,\"y\":5.6,\"z\":26},\"playerMotion\":{\"position\":{\"x\":0,\"y\":0,\"z\":16},\"yaw\":3.141592653589793,\"speed\":0,\"phase\":0,\"weight\":0,\"limbs\":{\"left\":{\"hip\":-0.3802512066929331,\"knee\":0.7605024133858662,\"ankle\":-0.3802512066929331,\"arm\":0,\"grounded\":true,\"sole\":{\"x\":0.115,\"y\":-4.163336342344337e-17,\"z\":15.955}},\"right\":{\"hip\":-0.3802512066929331,\"knee\":0.7605024133858662,\"ankle\":-0.3802512066929331,\"arm\":0,\"grounded\":true,\"sole\":{\"x\":-0.115,\"y\":-4.163336342344337e-17,\"z\":15.955}}}},\"npcMotion\":[{\"id\":\"meadow-merchant\",\"pose\":{\"position\":{\"x\":4,\"y\":0,\"z\":16},\"yaw\":-1.5707963267948966,\"speed\":0,\"phase\":0,\"weight\":0,\"limbs\":{\"left\":{\"hip\":-0.3802512066929331,\"knee\":0.7605024133858662,\"ankle\":-0.3802512066929331,\"arm\":0,\"grounded\":true,\"sole\":{\"x\":3.955,\"y\":-4.163336342344337e-17,\"z\":15.885}},\"right\":{\"hip\":-0.3802512066929331,\"knee\":0.7605024133858662,\"ankle\":-0.3802512066929331,\"arm\":0,\"grounded\":true,\"sole\":{\"x\":3.955,\"y\":-4.163336342344337e-17,\"z\":16.115}}}}},{\"id\":\"meadow-counter\",\"pose\":{\"position\":{\"x\":4,\"y\":0,\"z\":10},\"yaw\":-0.5880026035475675,\"speed\":0,\"phase\":0,\"weight\":0,\"limbs\":{\"left\":{\"hip\":-0.3802512066929331,\"knee\":0.7605024133858662,\"ankle\":-0.3802512066929331,\"arm\":0,\"grounded\":true,\"sole\":{\"x\":3.879352707321013,\"y\":-4.163336342344337e-17,\"z\":9.973651740679303}},\"right\":{\"hip\":-0.3802512066929331,\"knee\":0.7605024133858662,\"ankle\":-0.3802512066929331,\"arm\":0,\"grounded\":true,\"sole\":{\"x\":4.0707242750187165,\"y\":-4.163336342344337e-17,\"z\":10.101232785811105}}}}},{\"id\":\"meadow-tailor\",\"pose\":{\"position\":{\"x\":8,\"y\":0,\"z\":16},\"yaw\":-1.5707963267948966,\"speed\":0,\"phase\":0,\"weight\":0,\"limbs\":{\"left\":{\"hip\":-0.3802512066929331,\"knee\":0.7605024133858662,\"ankle\":-0.3802512066929331,\"arm\":0,\"grounded\":true,\"sole\":{\"x\":7.955,\"y\":-4.163336342344337e-17,\"z\":15.885}},\"right\":{\"hip\":-0.3802512066929331,\"knee\":0.7605024133858662,\"ankle\":-0.3802512066929331,\"arm\":0,\"grounded\":true,\"sole\":{\"x\":7.955,\"y\":-4.163336342344337e-17,\"z\":16.115}}}}},{\"id\":\"meadow-resident-0\",\"pose\":{\"position\":{\"x\":-8,\"y\":0,\"z\":12},\"yaw\":1.1071487177940904,\"speed\":0,\"phase\":0,\"weight\":0,\"limbs\":{\"left\":{\"hip\":-0.3802512066929331,\"knee\":0.7605024133858662,\"ankle\":-0.3802512066929331,\"arm\":0,\"grounded\":true,\"sole\":{\"x\":-8.011180339887499,\"y\":-4.163336342344337e-17,\"z\":12.122983738762489}},\"right\":{\"hip\":-0.3802512066929331,\"knee\":0.7605024133858662,\"ankle\":-0.3802512066929331,\"arm\":0,\"grounded\":true,\"sole\":{\"x\":-7.908321212922509,\"y\":-4.163336342344337e-17,\"z\":11.917265484832509}}}}}],\"actorPositions\":{},\"geometries\":0,\"textures\":0},\"active\":\"game-canvas\",\"dialog\":false,\"closeRect\":{\"x\":0,\"y\":0,\"width\":0,\"height\":0,\"top\":0,\"right\":0,\"bottom\":0,\"left\":0},\"canvasParent\":\"viewport\"}"
+        }
+      }
+    },
+    "current-390": {
+      "status": "failed",
+      "world": {
+        "width": 390,
+        "height": 844,
+        "overflow": false,
+        "canvas": {
+          "x": 8,
+          "y": 52,
+          "width": 374,
+          "height": 286.5625,
+          "top": 52,
+          "right": 382,
+          "bottom": 338.5625,
+          "left": 8
+        },
+        "small": [],
+        "goal": "Northern Clearing",
+        "detail": "north \u00b7 49 m by trail \u00b7 Maren \u00b7 Trial 1/5",
+        "action": "Walk to Northern Clearing"
+      },
+      "close_hit_target": {
+        "rect": {
+          "x": 164.140625,
+          "y": 98.90625,
+          "width": 123.859375,
+          "height": 44,
+          "top": 98.90625,
+          "right": 288,
+          "bottom": 142.90625,
+          "left": 164.140625
+        },
+        "centerHit": "collection-close",
+        "pointerEvents": "auto"
+      },
+      "close_immediate_posttap": {
+        "open": false,
+        "mode": "world",
+        "canvasParent": "viewport",
+        "active": "game-canvas"
+      },
+      "single_close": "PASS",
+      "320_world_geometry": {
+        "width": 320,
+        "height": 844,
+        "overflow": false,
+        "canvas": {
+          "x": 8,
+          "y": 52,
+          "width": 304,
+          "height": 286.5625,
+          "top": 52,
+          "right": 312,
+          "bottom": 338.5625,
+          "left": 8
+        },
+        "small": [],
+        "goal": "Northern Clearing",
+        "detail": "north \u00b7 49 m by trail \u00b7 Maren \u00b7 Trial 1/5",
+        "action": "Walk to Northern Clearing"
+      },
+      "walking_motion_samples": [
+        {
+          "elapsed": 0.1981079120021605,
+          "position": {
+            "x": 0,
+            "z": 15.666800000000004,
+            "yaw": -0.0
+          },
+          "motion": {
+            "position": {
+              "x": 0,
+              "y": 0,
+              "z": 15.666800000000004
+            },
+            "yaw": 3.141592653589793,
+            "speed": 3.9999999999999933,
+            "phase": 0.33319999999999617,
+            "weight": 0.8645564052179542,
+            "limbs": {
+              "left": {
+                "hip": -0.25445963821087303,
+                "knee": 0.729348817016802,
+                "ankle": -0.47488917880592896,
+                "arm": -0.15824840441108703,
+                "grounded": true,
+                "sole": {
+                  "x": 0.115,
+                  "y": -1.5265566588595902e-16,
+                  "z": 15.693731092914135
+                }
+              },
+              "right": {
+                "hip": -0.7793857976233051,
+                "knee": 1.2998987627916228,
+                "ankle": -0.5205129651683177,
+                "arm": 0.15824840441108703,
+                "grounded": false,
+                "sole": {
+                  "x": -0.115,
+                  "y": 0.0973816599181552,
+                  "z": 15.549868907085873
+                }
+              }
+            }
+          }
+        },
+        {
+          "elapsed": 0.3992646310005512,
+          "position": {
+            "x": 0,
+            "z": 14.867200000000008,
+            "yaw": -0.0
+          },
+          "motion": {
+            "position": {
+              "x": 0,
+              "y": 0,
+              "z": 14.867200000000008
+            },
+            "yaw": 3.141592653589793,
+            "speed": 3.999999999999986,
+            "phase": 0.13279999999999248,
+            "weight": 0.9988826550630657,
+            "limbs": {
+              "left": {
+                "hip": -0.515917979298686,
+                "knee": 0.6754443005524721,
+                "ankle": -0.15952632125378607,
+                "arm": 0.2575519037814774,
+                "grounded": true,
+                "sole": {
+                  "x": 0.11500000000000003,
+                  "y": -2.0816681711721685e-16,
+                  "z": 14.70513095282661
+                }
+              },
+              "right": {
+                "hip": -0.42067579453765735,
+                "knee": 1.2580088870003756,
+                "ankle": -0.8373330924627183,
+                "arm": -0.2575519037814774,
+                "grounded": false,
+                "sole": {
+                  "x": -0.11500000000000002,
+                  "y": 0.09620917018702878,
+                  "z": 14.939269047173406
+                }
+              }
+            }
+          }
+        },
+        {
+          "elapsed": 0.5721400090013049,
+          "position": {
+            "x": 0,
+            "z": 14.26760000000001,
+            "yaw": -0.0
+          },
+          "motion": {
+            "position": {
+              "x": 0,
+              "y": 0,
+              "z": 14.26760000000001
+            },
+            "yaw": 3.141592653589793,
+            "speed": 3.999999999999998,
+            "phase": 0.7323999999999895,
+            "weight": 1,
+            "limbs": {
+              "left": {
+                "hip": -0.6973544769351839,
+                "knee": 1.4622723369134594,
+                "ankle": -0.7649178599782754,
+                "arm": -0.0387200000000231,
+                "grounded": false,
+                "sole": {
+                  "x": 0.115,
+                  "y": 0.12920593545061443,
+                  "z": 14.240200000000021
+                }
+              },
+              "right": {
+                "hip": -0.40640350082922666,
+                "knee": 0.758666384159508,
+                "ankle": -0.3522628833302814,
+                "arm": 0.0387200000000231,
+                "grounded": true,
+                "sole": {
+                  "x": -0.115,
+                  "y": -1.5265566588595902e-16,
+                  "z": 14.205
+                }
+              }
+            }
+          }
+        },
+        {
+          "elapsed": 0.7735624670011021,
+          "position": {
+            "x": 0,
+            "z": 13.668000000000013,
+            "yaw": -0.0
+          },
+          "motion": {
+            "position": {
+              "x": 0,
+              "y": 0,
+              "z": 13.668000000000013
+            },
+            "yaw": 3.141592653589793,
+            "speed": 3.999999999999998,
+            "phase": 0.33199999999998653,
+            "weight": 1,
+            "limbs": {
+              "left": {
+                "hip": -0.23441126994579684,
+                "knee": 0.7198043947250654,
+                "ankle": -0.48539312477926855,
+                "arm": -0.1803999999999704,
+                "grounded": true,
+                "sole": {
+                  "x": 0.115,
+                  "y": -4.163336342344337e-17,
+                  "z": 13.705
+                }
+              },
+              "right": {
+                "hip": -0.8342829801247262,
+                "knee": 1.3654377635162998,
+                "ankle": -0.5311547833915735,
+                "arm": 0.1803999999999704,
+                "grounded": false,
+                "sole": {
+                  "x": -0.115,
+                  "y": 0.11312388810704378,
+                  "z": 13.541000000000027
+                }
+              }
+            }
+          }
+        },
+        {
+          "elapsed": 0.9631652760006546,
+          "position": {
+            "x": 0,
+            "z": 13.068000000000016,
+            "yaw": -0.0
+          },
+          "motion": {
+            "position": {
+              "x": 0,
+              "y": 0,
+              "z": 13.068000000000016
+            },
+            "yaw": 3.141592653589793,
+            "speed": 3.999999999999986,
+            "phase": 0.9319999999999844,
+            "weight": 1,
+            "limbs": {
+              "left": {
+                "hip": -0.7688405885549637,
+                "knee": 0.9450535221046612,
+                "ankle": -0.17621293354969747,
+                "arm": 0.40039999999996573,
+                "grounded": false,
+                "sole": {
+                  "x": 0.11500000000000002,
+                  "y": 0.05386882552913848,
+                  "z": 12.841000000000031
+                }
+              },
+              "right": {
+                "hip": 0.004941585032647577,
+                "knee": 0.5361342361080815,
+                "ankle": -0.5410758211407292,
+                "arm": -0.40039999999996573,
+                "grounded": true,
+                "sole": {
+                  "x": -0.11500000000000003,
+                  "y": -9.71445146547012e-17,
+                  "z": 13.205
+                }
+              }
+            }
+          }
+        },
+        {
+          "elapsed": 1.1440642600016873,
+          "position": {
+            "x": 0,
+            "z": 12.33480000000002,
+            "yaw": -0.0
+          },
+          "motion": {
+            "position": {
+              "x": 0,
+              "y": 0,
+              "z": 12.33480000000002
+            },
+            "yaw": 3.141592653589793,
+            "speed": 3.9999999999999933,
+            "phase": 0.6651999999999791,
+            "weight": 1,
+            "limbs": {
+              "left": {
+                "hip": -0.5228496704413623,
+                "knee": 1.3583568589285688,
+                "ankle": -0.8355071884872065,
+                "arm": -0.1865600000000459,
+                "grounded": false,
+                "sole": {
+                  "x": 0.115,
+                  "y": 0.11197953357887176,
+                  "z": 12.374600000000042
+                }
+              },
+              "right": {
+                "hip": -0.4881828224271273,
+                "knee": 0.7169079541944801,
+                "ankle": -0.22872513176735276,
+                "arm": 0.1865600000000459,
+                "grounded": true,
+                "sole": {
+                  "x": -0.115,
+                  "y": -8.326672684688674e-17,
+                  "z": 12.205
+                }
+              }
+            }
+          }
+        },
+        {
+          "elapsed": 1.3643878460014094,
+          "position": {
+            "x": 0,
+            "z": 11.734800000000023,
+            "yaw": -0.0
+          },
+          "motion": {
+            "position": {
+              "x": 0,
+              "y": 0,
+              "z": 11.734800000000023
+            },
+            "yaw": 3.141592653589793,
+            "speed": 3.999999999999986,
+            "phase": 0.265199999999977,
+            "weight": 1,
+            "limbs": {
+              "left": {
+                "hip": -0.3561863032630155,
+                "knee": 0.7591333149921448,
+                "ankle": -0.4029470117291293,
+                "arm": -0.03343999999994943,
+                "grounded": true,
+                "sole": {
+                  "x": 0.115,
+                  "y": -2.7755575615628914e-17,
+                  "z": 11.705
+                }
+              },
+              "right": {
+                "hip": -0.7609180324589143,
+                "knee": 1.463457639483567,
+                "ankle": -0.7025396070246527,
+                "arm": 0.03343999999994943,
+                "grounded": false,
+                "sole": {
+                  "x": -0.115,
+                  "y": 0.12940757941485342,
+                  "z": 11.674600000000046
+                }
+              }
+            }
+          }
+        },
+        {
+          "elapsed": 1.5660767840006884,
+          "position": {
+            "x": 0,
+            "z": 10.934800000000026,
+            "yaw": -0.0
+          },
+          "motion": {
+            "position": {
+              "x": 0,
+              "y": 0,
+              "z": 10.934800000000026
+            },
+            "yaw": 3.141592653589793,
+            "speed": 3.999999999999986,
+            "phase": 0.06519999999997417,
+            "weight": 1,
+            "limbs": {
+              "left": {
+                "hip": -0.5409338427778054,
+                "knee": 0.5278702036253098,
+                "ankle": 0.013063639152495643,
+                "arm": 0.4065600000000569,
+                "grounded": true,
+                "sole": {
+                  "x": 0.11500000000000003,
+                  "y": -9.71445146547012e-17,
+                  "z": 10.705
+                }
+              },
+              "right": {
+                "hip": -0.16398204641867337,
+                "knee": 0.9271968935228249,
+                "ankle": -0.7632148471041516,
+                "arm": -0.4065600000000569,
+                "grounded": false,
+                "sole": {
+                  "x": -0.11500000000000002,
+                  "y": 0.051779111960117544,
+                  "z": 11.074600000000052
+                }
+              }
+            }
+          }
+        },
+        {
+          "elapsed": 1.757344385000397,
+          "position": {
+            "x": 0,
+            "z": 10.334800000000028,
+            "yaw": -0.0
+          },
+          "motion": {
+            "position": {
+              "x": 0,
+              "y": 0,
+              "z": 10.334800000000028
+            },
+            "yaw": 3.141592653589793,
+            "speed": 3.999999999999986,
+            "phase": 0.665199999999972,
+            "weight": 1,
+            "limbs": {
+              "left": {
+                "hip": -0.5228496704413412,
+                "knee": 1.3583568589285508,
+                "ankle": -0.8355071884872096,
+                "arm": -0.18656000000006154,
+                "grounded": false,
+                "sole": {
+                  "x": 0.115,
+                  "y": 0.11197953357886885,
+                  "z": 10.374600000000056
+                }
+              },
+              "right": {
+                "hip": -0.48818282242713457,
+                "knee": 0.7169079541944732,
+                "ankle": -0.2287251317673386,
+                "arm": 0.18656000000006154,
+                "grounded": true,
+                "sole": {
+                  "x": -0.115,
+                  "y": -2.7755575615628914e-17,
+                  "z": 10.205
+                }
+              }
+            }
+          }
+        },
+        {
+          "elapsed": 1.8,
+          "position": {
+            "x": 0,
+            "z": 9.93480000000003,
+            "yaw": -0.0
+          },
+          "motion": {
+            "position": {
+              "x": 0,
+              "y": 0,
+              "z": 9.93480000000003
+            },
+            "yaw": 3.141592653589793,
+            "speed": 3.999999999999986,
+            "phase": 0.06519999999997061,
+            "weight": 1,
+            "limbs": {
+              "left": {
+                "hip": -0.5409338427778057,
+                "knee": 0.5278702036253003,
+                "ankle": 0.013063639152505302,
+                "arm": 0.4065600000000647,
+                "grounded": true,
+                "sole": {
+                  "x": 0.11500000000000003,
+                  "y": 2.7755575615628914e-17,
+                  "z": 9.705
+                }
+              },
+              "right": {
+                "hip": -0.16398204641865777,
+                "knee": 0.927196893522802,
+                "ankle": -0.7632148471041442,
+                "arm": -0.4065600000000647,
+                "grounded": false,
+                "sole": {
+                  "x": -0.11500000000000002,
+                  "y": 0.05177911196011489,
+                  "z": 10.074600000000059
+                }
+              }
+            }
+          }
+        }
+      ],
+      "native_movement": {
+        "before": {
+          "x": 0,
+          "z": 16,
+          "yaw": 0
+        },
+        "after": {
+          "x": 0,
+          "z": 9.335200000000025,
+          "yaw": -0.0
+        },
+        "touch": true
+      },
+      "reduced_motion_samples": [
+        {
+          "elapsed": 0.18538074900061474,
+          "position": {
+            "x": 0,
+            "z": 8.735200000000027,
+            "yaw": -0.0
+          },
+          "motion": {
+            "position": {
+              "x": 0,
+              "y": 0,
+              "z": 8.735200000000027
+            },
+            "yaw": 3.141592653589793,
+            "speed": 3.999999999999986,
+            "phase": 0,
+            "weight": 0,
+            "limbs": {
+              "left": {
+                "hip": -0.3802512066929331,
+                "knee": 0.7605024133858662,
+                "ankle": -0.3802512066929331,
+                "arm": 0,
+                "grounded": true,
+                "sole": {
+                  "x": 0.115,
+                  "y": -4.163336342344337e-17,
+                  "z": 8.690200000000027
+                }
+              },
+              "right": {
+                "hip": -0.3802512066929331,
+                "knee": 0.7605024133858662,
+                "ankle": -0.3802512066929331,
+                "arm": 0,
+                "grounded": true,
+                "sole": {
+                  "x": -0.115,
+                  "y": -4.163336342344337e-17,
+                  "z": 8.690200000000027
+                }
+              }
+            }
+          }
+        },
+        {
+          "elapsed": 0.4046392449999985,
+          "position": {
+            "x": 0,
+            "z": 8.268400000000026,
+            "yaw": -0.0
+          },
+          "motion": {
+            "position": {
+              "x": 0,
+              "y": 0,
+              "z": 8.268400000000026
+            },
+            "yaw": 3.141592653589793,
+            "speed": 3.9999999999999702,
+            "phase": 0,
+            "weight": 0,
+            "limbs": {
+              "left": {
+                "hip": -0.3802512066929331,
+                "knee": 0.7605024133858662,
+                "ankle": -0.3802512066929331,
+                "arm": 0,
+                "grounded": true,
+                "sole": {
+                  "x": 0.115,
+                  "y": -4.163336342344337e-17,
+                  "z": 8.223400000000026
+                }
+              },
+              "right": {
+                "hip": -0.3802512066929331,
+                "knee": 0.7605024133858662,
+                "ankle": -0.3802512066929331,
+                "arm": 0,
+                "grounded": true,
+                "sole": {
+                  "x": -0.115,
+                  "y": -4.163336342344337e-17,
+                  "z": 8.223400000000026
+                }
+              }
+            }
+          }
+        },
+        {
+          "elapsed": 0.5869783730013296,
+          "position": {
+            "x": 0,
+            "z": 7.668400000000027,
+            "yaw": -0.0
+          },
+          "motion": {
+            "position": {
+              "x": 0,
+              "y": 0,
+              "z": 7.668400000000027
+            },
+            "yaw": 3.141592653589793,
+            "speed": 4.0000000000000036,
+            "phase": 0,
+            "weight": 0,
+            "limbs": {
+              "left": {
+                "hip": -0.3802512066929331,
+                "knee": 0.7605024133858662,
+                "ankle": -0.3802512066929331,
+                "arm": 0,
+                "grounded": true,
+                "sole": {
+                  "x": 0.115,
+                  "y": -4.163336342344337e-17,
+                  "z": 7.623400000000027
+                }
+              },
+              "right": {
+                "hip": -0.3802512066929331,
+                "knee": 0.7605024133858662,
+                "ankle": -0.3802512066929331,
+                "arm": 0,
+                "grounded": true,
+                "sole": {
+                  "x": -0.115,
+                  "y": -4.163336342344337e-17,
+                  "z": 7.623400000000027
+                }
+              }
+            }
+          }
+        },
+        {
+          "elapsed": 0.7718641230003414,
+          "position": {
+            "x": 0,
+            "z": 7.068800000000021,
+            "yaw": -0.0
+          },
+          "motion": {
+            "position": {
+              "x": 0,
+              "y": 0,
+              "z": 7.068800000000021
+            },
+            "yaw": 3.141592653589793,
+            "speed": 4.0000000000000036,
+            "phase": 0,
+            "weight": 0,
+            "limbs": {
+              "left": {
+                "hip": -0.3802512066929331,
+                "knee": 0.7605024133858662,
+                "ankle": -0.3802512066929331,
+                "arm": 0,
+                "grounded": true,
+                "sole": {
+                  "x": 0.115,
+                  "y": -4.163336342344337e-17,
+                  "z": 7.023800000000021
+                }
+              },
+              "right": {
+                "hip": -0.3802512066929331,
+                "knee": 0.7605024133858662,
+                "ankle": -0.3802512066929331,
+                "arm": 0,
+                "grounded": true,
+                "sole": {
+                  "x": -0.115,
+                  "y": -4.163336342344337e-17,
+                  "z": 7.023800000000021
+                }
+              }
+            }
+          }
+        },
+        {
+          "elapsed": 0.9673083410016261,
+          "position": {
+            "x": 0,
+            "z": 6.26880000000002,
+            "yaw": -0.0
+          },
+          "motion": {
+            "position": {
+              "x": 0,
+              "y": 0,
+              "z": 6.26880000000002
+            },
+            "yaw": 3.141592653589793,
+            "speed": 4.0000000000000036,
+            "phase": 0,
+            "weight": 0,
+            "limbs": {
+              "left": {
+                "hip": -0.3802512066929331,
+                "knee": 0.7605024133858662,
+                "ankle": -0.3802512066929331,
+                "arm": 0,
+                "grounded": true,
+                "sole": {
+                  "x": 0.115,
+                  "y": -4.163336342344337e-17,
+                  "z": 6.22380000000002
+                }
+              },
+              "right": {
+                "hip": -0.3802512066929331,
+                "knee": 0.7605024133858662,
+                "ankle": -0.3802512066929331,
+                "arm": 0,
+                "grounded": true,
+                "sole": {
+                  "x": -0.115,
+                  "y": -4.163336342344337e-17,
+                  "z": 6.22380000000002
+                }
+              }
+            }
+          }
+        },
+        {
+          "elapsed": 1,
+          "position": {
+            "x": 0,
+            "z": 6.26880000000002,
+            "yaw": -0.0
+          },
+          "motion": {
+            "position": {
+              "x": 0,
+              "y": 0,
+              "z": 6.26880000000002
+            },
+            "yaw": 3.141592653589793,
+            "speed": 4.0000000000000036,
+            "phase": 0,
+            "weight": 0,
+            "limbs": {
+              "left": {
+                "hip": -0.3802512066929331,
+                "knee": 0.7605024133858662,
+                "ankle": -0.3802512066929331,
+                "arm": 0,
+                "grounded": true,
+                "sole": {
+                  "x": 0.115,
+                  "y": -4.163336342344337e-17,
+                  "z": 6.22380000000002
+                }
+              },
+              "right": {
+                "hip": -0.3802512066929331,
+                "knee": 0.7605024133858662,
+                "ankle": -0.3802512066929331,
+                "arm": 0,
+                "grounded": true,
+                "sole": {
+                  "x": -0.115,
+                  "y": -4.163336342344337e-17,
+                  "z": 6.22380000000002
+                }
+              }
+            }
+          }
+        }
+      ],
+      "reduced_motion_saved_reload": true,
+      "chosen_wild": "Budriv \u00b7 level 5",
+      "failure_dom": {
+        "result": {
+          "type": "string",
+          "value": "{\"ready\":\"complete\",\"fonts\":\"loaded\",\"phase\":\"world\",\"view\":{\"mode\":\"world\",\"frames\":564,\"quality\":\"low\",\"cameraYaw\":0,\"inspectionYaw\":0,\"contextStatus\":\"available\",\"pendingModels\":[],\"fallbackModels\":[],\"message\":\"\",\"drawCalls\":33,\"triangles\":7822,\"modelReferences\":3,\"inspectionBounds\":null,\"cosmeticAttachments\":[],\"cameraTarget\":{\"x\":17.122175825648,\"y\":0.6,\"z\":-18.689140131812874},\"cacheSize\":3,\"countLoadedModels\":3,\"loadedModels\":[\"models/Rootspindle/budriv.glb\",\"models/Canopyfold/leafnock.glb\",\"models/Bellstrider/pluvell.glb\"],\"hiddenAvailable\":true,\"width\":374,\"height\":267,\"npcCount\":3,\"cameraPosition\":{\"x\":17.122175825648,\"y\":5.6,\"z\":-8.689140131812874},\"playerMotion\":{\"position\":{\"x\":17.122175825648,\"y\":0,\"z\":-18.689140131812874},\"yaw\":5.695436478987828,\"speed\":0,\"phase\":0,\"weight\":0,\"limbs\":{\"left\":{\"hip\":-0.3802512066929331,\"knee\":0.7605024133858662,\"ankle\":-0.3802512066929331,\"arm\":0,\"grounded\":true,\"sole\":{\"x\":17.00152185031516,\"y\":-4.163336342344337e-17,\"z\":-18.715457772975835}},\"right\":{\"hip\":-0.3802512066929331,\"knee\":0.7605024133858662,\"ankle\":-0.3802512066929331,\"arm\":0,\"grounded\":true,\"sole\":{\"x\":17.192925788775288,\"y\":-4.163336342344337e-17,\"z\":-18.587925297339428}}}},\"npcMotion\":[{\"id\":\"rival\",\"pose\":{\"position\":{\"x\":22,\"y\":0,\"z\":-26},\"yaw\":-0.5883734916313123,\"speed\":0,\"phase\":0,\"weight\":0,\"limbs\":{\"left\":{\"hip\":-0.3802512066929331,\"knee\":0.7605024133858662,\"ankle\":-0.3802512066929331,\"arm\":0,\"grounded\":true,\"sole\":{\"x\":21.879362487874197,\"y\":-4.163336342344337e-17,\"z\":-26.02639300415066}},\"right\":{\"hip\":-0.3802512066929331,\"knee\":0.7605024133858662,\"ankle\":-0.3802512066929331,\"arm\":0,\"grounded\":true,\"sole\":{\"x\":22.070686724121295,\"y\":-4.163336342344337e-17,\"z\":-25.89874099036135}}}}},{\"id\":\"meadow-mentor\",\"pose\":{\"position\":{\"x\":8,\"y\":0,\"z\":10},\"yaw\":2.833735713662139,\"speed\":0,\"phase\":0,\"weight\":0,\"limbs\":{\"left\":{\"hip\":-0.3802512066929331,\"knee\":0.7605024133858662,\"ankle\":-0.3802512066929331,\"arm\":0,\"grounded\":true,\"sole\":{\"x\":8.12322905759421,\"y\":-4.163336342344337e-17,\"z\":9.99196262701856}},\"right\":{\"hip\":-0.3802512066929331,\"knee\":0.7605024133858662,\"ankle\":-0.3802512066929331,\"arm\":0,\"grounded\":true,\"sole\":{\"x\":7.904042475054882,\"y\":-4.163336342344337e-17,\"z\":9.922268710248657}}}}},{\"id\":\"meadow-counter\",\"pose\":{\"position\":{\"x\":4,\"y\":0,\"z\":10},\"yaw\":2.7126087806702857,\"speed\":0,\"phase\":0,\"weight\":0,\"limbs\":{\"left\":{\"hip\":-0.3802512066929331,\"knee\":0.7605024133858662,\"ankle\":-0.3802512066929331,\"arm\":0,\"grounded\":true,\"sole\":{\"x\":4.123297333835938,\"y\":-4.163336342344337e-17,\"z\":10.006911401373745}},\"right\":{\"hip\":-0.3802512066929331,\"knee\":0.7605024133858662,\"ankle\":-0.3802512066929331,\"arm\":0,\"grounded\":true,\"sole\":{\"x\":3.914137892803656,\"y\":-4.163336342344337e-17,\"z\":9.911243599961448}}}}}],\"actorPositions\":{\"wild-1\":{\"x\":10,\"y\":0,\"z\":-8},\"wild-2\":{\"x\":-10,\"y\":0,\"z\":-16},\"wild-0\":{\"x\":-10,\"y\":0,\"z\":4}},\"geometries\":7,\"textures\":2},\"active\":\"game-canvas\",\"dialog\":false,\"closeRect\":{\"x\":0,\"y\":0,\"width\":0,\"height\":0,\"top\":0,\"right\":0,\"bottom\":0,\"left\":0},\"canvasParent\":\"viewport\"}"
+        }
+      }
+    }
+  },
+  "captures": [
+    {
+      "file": "corrective-cycle/native-1/current-390-world-scenery-ui.jpg",
+      "bytes": 29746
+    },
+    {
+      "file": "corrective-cycle/native-1/current-390-character.jpg",
+      "bytes": 24212
+    },
+    {
+      "file": "corrective-cycle/native-1/current-390-320-inspector-before-close.jpg",
+      "bytes": 21770
+    },
+    {
+      "file": "corrective-cycle/native-1/current-390-arrival.jpg",
+      "bytes": 27393
+    },
+    {
+      "file": "corrective-cycle/native-1/current-390-maren-preview.jpg",
+      "bytes": 22281
+    },
+    {
+      "file": "corrective-cycle/native-1/current-390-failure.jpg",
+      "bytes": 33252
+    }
+  ],
+  "errors": [],
+  "failures": [
+    {
+      "case": "current-1280",
+      "type": "TimeoutError",
+      "error": "Locator.click: Timeout 10000ms exceeded.\nCall log:\n  - waiting for locator(\"#start\")\n    - locator resolved to <button id=\"start\" type=\"button\">Start new expedition</button>\n  - attempting click action\n    - waiting for element to be visible, enabled and stable\n    - element is visible, enabled and stable\n    - scrolling into view if needed\n    - done scrolling\n    - performing click action\n"
+    },
+    {
+      "case": "current-390",
+      "type": "TimeoutError",
+      "error": "Locator.tap: Timeout 10000ms exceeded.\nCall log:\n  - waiting for locator(\"#dialogue-start\")\n    - locator resolved to <button type=\"button\" id=\"dialogue-start\">Begin battle</button>\n  - attempting tap action\n    2 \u00d7 waiting for element to be visible, enabled and stable\n      - element is not visible\n    - retrying tap action\n    - waiting 20ms\n    2 \u00d7 waiting for element to be visible, enabled and stable\n      - element is not visible\n    - retrying tap action\n      - waiting 100ms\n    14 \u00d7 waiting for element to be visible, enabled and stable\n       - element is not visible\n     - retrying tap action\n       - waiting 500ms\n"
+    }
+  ],
+  "passed": false,
+  "disk_before_bytes": 2623045632,
+  "fixture_evidence": "corrective-cycle/phase-a.json (not native-positive)",
+  "stages": [
+    {
+      "case": "current-1280",
+      "stage": "navigation-start",
+      "elapsed": 3.635324118000426,
+      "pending": []
+    },
+    {
+      "case": "current-1280",
+      "stage": "dom-content-loaded-event",
+      "elapsed": 4.723175725999681,
+      "pending": []
+    },
+    {
+      "case": "current-1280",
+      "stage": "load-event",
+      "elapsed": 4.734316247999232,
+      "pending": []
+    },
+    {
+      "case": "current-1280",
+      "stage": "document-load",
+      "elapsed": 4.73613774200021,
+      "pending": []
+    },
+    {
+      "case": "current-1280",
+      "stage": "app-menu-ready",
+      "elapsed": 4.846789900999283,
+      "pending": []
+    },
+    {
+      "case": "current-1280",
+      "stage": "fonts-ready",
+      "elapsed": 4.867197653000403,
+      "pending": []
+    },
+    {
+      "case": "current-1280",
+      "stage": "starter-input",
+      "elapsed": 5.003106640999249,
+      "pending": []
+    },
+    {
+      "case": "current-1280",
+      "stage": "case-failed",
+      "elapsed": 15.017870857000162,
+      "pending": []
+    },
+    {
+      "case": "current-390",
+      "stage": "navigation-start",
+      "elapsed": 25.521502289999262,
+      "pending": []
+    },
+    {
+      "case": "current-390",
+      "stage": "dom-content-loaded-event",
+      "elapsed": 26.57817971499935,
+      "pending": []
+    },
+    {
+      "case": "current-390",
+      "stage": "load-event",
+      "elapsed": 26.59296000299946,
+      "pending": []
+    },
+    {
+      "case": "current-390",
+      "stage": "document-load",
+      "elapsed": 26.593809926000176,
+      "pending": []
+    },
+    {
+      "case": "current-390",
+      "stage": "app-menu-ready",
+      "elapsed": 28.131891836999785,
+      "pending": []
+    },
+    {
+      "case": "current-390",
+      "stage": "fonts-ready",
+      "elapsed": 28.14719023500038,
+      "pending": []
+    },
+    {
+      "case": "current-390",
+      "stage": "starter-input",
+      "elapsed": 28.256374047999998,
+      "pending": []
+    },
+    {
+      "case": "current-390",
+      "stage": "world-models-ready",
+      "elapsed": 31.581124836000527,
+      "pending": []
+    },
+    {
+      "case": "current-390",
+      "stage": "objective-and-layout",
+      "elapsed": 31.619151811999473,
+      "pending": []
+    },
+    {
+      "case": "current-390",
+      "stage": "owned-inspector",
+      "elapsed": 33.35415988500063,
+      "pending": []
+    },
+    {
+      "case": "current-390",
+      "stage": "single-close-tap",
+      "elapsed": 37.30636930000037,
+      "pending": []
+    },
+    {
+      "case": "current-390",
+      "stage": "native-walking-video",
+      "elapsed": 38.19234542199956,
+      "pending": []
+    },
+    {
+      "case": "current-390",
+      "stage": "reduced-motion-checkbox-and-movement",
+      "elapsed": 42.664370315998895,
+      "pending": []
+    },
+    {
+      "case": "current-390",
+      "stage": "reload-start",
+      "elapsed": 47.19956160499896,
+      "pending": []
+    },
+    {
+      "case": "current-390",
+      "stage": "dom-content-loaded-event",
+      "elapsed": 48.38911604599889,
+      "pending": []
+    },
+    {
+      "case": "current-390",
+      "stage": "load-event",
+      "elapsed": 48.4218027980005,
+      "pending": []
+    },
+    {
+      "case": "current-390",
+      "stage": "document-load",
+      "elapsed": 48.426970485999846,
+      "pending": []
+    },
+    {
+      "case": "current-390",
+      "stage": "app-menu-ready",
+      "elapsed": 48.53801994300011,
+      "pending": []
+    },
+    {
+      "case": "current-390",
+      "stage": "fonts-ready",
+      "elapsed": 48.55222525099998,
+      "pending": []
+    },
+    {
+      "case": "current-390",
+      "stage": "reduced-preference-save-reload-passed",
+      "elapsed": 57.64605547099927,
+      "pending": []
+    },
+    {
+      "case": "current-390",
+      "stage": "northern-clearing-route",
+      "elapsed": 58.29428492099942,
+      "pending": []
+    },
+    {
+      "case": "current-390",
+      "stage": "arrival-with-preview-action",
+      "elapsed": 71.94939817900013,
+      "pending": []
+    },
+    {
+      "case": "current-390",
+      "stage": "maren-preview-back-passed",
+      "elapsed": 73.05696057299974,
+      "pending": []
+    },
+    {
+      "case": "current-390",
+      "stage": "offered-wild-marker-route",
+      "elapsed": 73.05706622099933,
+      "pending": []
+    },
+    {
+      "case": "current-390",
+      "stage": "case-failed",
+      "elapsed": 85.96483866299968,
+      "pending": []
+    }
+  ],
+  "requests": [
+    {
+      "case": "current-1280",
+      "url": "http://127.0.0.1:40635/Games/Foldwild/index.html",
+      "resource": "document",
+      "started": 3.730272546999913,
+      "finished": 3.8942302449995623,
+      "failure": null
+    },
+    {
+      "case": "current-1280",
+      "url": "http://127.0.0.1:40635/Games/Foldwild/style.css",
+      "resource": "stylesheet",
+      "started": 3.928358417999334,
+      "finished": 4.02198072200008,
+      "failure": null
+    },
+    {
+      "case": "current-1280",
+      "url": "http://127.0.0.1:40635/Games/Foldwild/script.js",
+      "resource": "script",
+      "started": 3.954678688000058,
+      "finished": 4.204951898000218,
+      "failure": null
+    },
+    {
+      "case": "current-1280",
+      "url": "http://127.0.0.1:40635/assets/fonts/atkinson-hyperlegible/atkinson-hyperlegible-400-latin.woff2",
+      "resource": "font",
+      "started": 4.182220913000492,
+      "finished": 4.316374350999467,
+      "failure": null
+    },
+    {
+      "case": "current-1280",
+      "url": "http://127.0.0.1:40635/assets/fonts/bungee/bungee-400-latin.woff2",
+      "resource": "font",
+      "started": 4.188464208000369,
+      "finished": 4.319358304999696,
+      "failure": null
+    },
+    {
+      "case": "current-1280",
+      "url": "http://127.0.0.1:40635/assets/fonts/atkinson-hyperlegible/atkinson-hyperlegible-700-latin.woff2",
+      "resource": "font",
+      "started": 4.194331598000645,
+      "finished": 4.352371166000012,
+      "failure": null
+    },
+    {
+      "case": "current-1280",
+      "url": "http://127.0.0.1:40635/Games/Foldwild/data.js",
+      "resource": "script",
+      "started": 4.206308782999258,
+      "finished": 4.359307958999125,
+      "failure": null
+    },
+    {
+      "case": "current-1280",
+      "url": "http://127.0.0.1:40635/Games/Foldwild/battle.js",
+      "resource": "script",
+      "started": 4.214844052999979,
+      "finished": 4.355705914998907,
+      "failure": null
+    },
+    {
+      "case": "current-1280",
+      "url": "http://127.0.0.1:40635/Games/Foldwild/world.js",
+      "resource": "script",
+      "started": 4.228091568000309,
+      "finished": 4.427615397000409,
+      "failure": null
+    },
+    {
+      "case": "current-1280",
+      "url": "http://127.0.0.1:40635/Games/Foldwild/campaign.js",
+      "resource": "script",
+      "started": 4.252841010000338,
+      "finished": 4.416407061000427,
+      "failure": null
+    },
+    {
+      "case": "current-1280",
+      "url": "http://127.0.0.1:40635/Games/Foldwild/economy.js",
+      "resource": "script",
+      "started": 4.259091398000237,
+      "finished": 4.429744372000641,
+      "failure": null
+    },
+    {
+      "case": "current-1280",
+      "url": "http://127.0.0.1:40635/Games/Foldwild/builds.js",
+      "resource": "script",
+      "started": 4.267192872999658,
+      "finished": 4.43163312499928,
+      "failure": null
+    },
+    {
+      "case": "current-1280",
+      "url": "http://127.0.0.1:40635/Games/Foldwild/view.js",
+      "resource": "script",
+      "started": 4.280724553000255,
+      "finished": 4.433633525999539,
+      "failure": null
+    },
+    {
+      "case": "current-1280",
+      "url": "http://127.0.0.1:40635/Games/Foldwild/navigation.js",
+      "resource": "script",
+      "started": 4.290174912999646,
+      "finished": 4.440971374000583,
+      "failure": null
+    },
+    {
+      "case": "current-1280",
+      "url": "http://127.0.0.1:40635/Games/Foldwild/region-data.js",
+      "resource": "script",
+      "started": 4.4349370039999485,
+      "finished": 4.489370891998988,
+      "failure": null
+    },
+    {
+      "case": "current-1280",
+      "url": "http://127.0.0.1:40635/Games/Foldwild/vendor/three.module.js",
+      "resource": "script",
+      "started": 4.4424356290001015,
+      "finished": 4.600795547999951,
+      "failure": null
+    },
+    {
+      "case": "current-1280",
+      "url": "http://127.0.0.1:40635/Games/Foldwild/vendor/GLTFLoader.js",
+      "resource": "script",
+      "started": 4.4455486009992455,
+      "finished": 4.5317465200005245,
+      "failure": null
+    },
+    {
+      "case": "current-1280",
+      "url": "http://127.0.0.1:40635/Games/Foldwild/vendor/BufferGeometryUtils.js",
+      "resource": "script",
+      "started": 4.536177228999804,
+      "finished": 4.5982456669989915,
+      "failure": null
+    },
+    {
+      "case": "current-1280",
+      "url": "http://127.0.0.1:40635/favicon.svg",
+      "resource": "other",
+      "started": 4.755222293999395,
+      "finished": 4.829462305999186,
+      "failure": null
+    },
+    {
+      "case": "current-1280",
+      "url": "http://127.0.0.1:40635/Games/Foldwild/models/Bellstrider/pluvell.glb",
+      "resource": "fetch",
+      "started": 20.612704602999656,
+      "finished": 21.771739449999586,
+      "failure": null
+    },
+    {
+      "case": "current-1280",
+      "url": "http://127.0.0.1:40635/Games/Foldwild/models/Rootspindle/budriv.glb",
+      "resource": "fetch",
+      "started": 20.615142873999503,
+      "finished": 21.7762063629998,
+      "failure": null
+    },
+    {
+      "case": "current-1280",
+      "url": "http://127.0.0.1:40635/Games/Foldwild/models/Canopyfold/leafnock.glb",
+      "resource": "fetch",
+      "started": 20.625177638999958,
+      "finished": 21.781091884999114,
+      "failure": null
+    },
+    {
+      "case": "current-390",
+      "url": "http://127.0.0.1:40635/Games/Foldwild/index.html",
+      "resource": "document",
+      "started": 25.550678219000474,
+      "finished": 25.68016672900012,
+      "failure": null
+    },
+    {
+      "case": "current-390",
+      "url": "http://127.0.0.1:40635/Games/Foldwild/style.css",
+      "resource": "stylesheet",
+      "started": 25.687931649999882,
+      "finished": 25.72889432000011,
+      "failure": null
+    },
+    {
+      "case": "current-390",
+      "url": "http://127.0.0.1:40635/Games/Foldwild/script.js",
+      "resource": "script",
+      "started": 25.694401685999765,
+      "finished": 25.777185506000023,
+      "failure": null
+    },
+    {
+      "case": "current-390",
+      "url": "http://127.0.0.1:40635/Games/Foldwild/data.js",
+      "resource": "script",
+      "started": 25.791414092000196,
+      "finished": 26.125635770000372,
+      "failure": null
+    },
+    {
+      "case": "current-390",
+      "url": "http://127.0.0.1:40635/Games/Foldwild/battle.js",
+      "resource": "script",
+      "started": 25.804105070999867,
+      "finished": 26.12765267099894,
+      "failure": null
+    },
+    {
+      "case": "current-390",
+      "url": "http://127.0.0.1:40635/Games/Foldwild/world.js",
+      "resource": "script",
+      "started": 25.812520322999262,
+      "finished": 26.144274250000308,
+      "failure": null
+    },
+    {
+      "case": "current-390",
+      "url": "http://127.0.0.1:40635/Games/Foldwild/campaign.js",
+      "resource": "script",
+      "started": 25.82183144299961,
+      "finished": 26.142170330000226,
+      "failure": null
+    },
+    {
+      "case": "current-390",
+      "url": "http://127.0.0.1:40635/Games/Foldwild/economy.js",
+      "resource": "script",
+      "started": 25.82965856699957,
+      "finished": 26.15402716400058,
+      "failure": null
+    },
+    {
+      "case": "current-390",
+      "url": "http://127.0.0.1:40635/Games/Foldwild/builds.js",
+      "resource": "script",
+      "started": 25.84528709299957,
+      "finished": 26.158971222999753,
+      "failure": null
+    },
+    {
+      "case": "current-390",
+      "url": "http://127.0.0.1:40635/Games/Foldwild/view.js",
+      "resource": "script",
+      "started": 25.85567363500013,
+      "finished": 26.17203707199951,
+      "failure": null
+    },
+    {
+      "case": "current-390",
+      "url": "http://127.0.0.1:40635/Games/Foldwild/navigation.js",
+      "resource": "script",
+      "started": 25.86781750499904,
+      "finished": 26.164872408999145,
+      "failure": null
+    },
+    {
+      "case": "current-390",
+      "url": "http://127.0.0.1:40635/assets/fonts/atkinson-hyperlegible/atkinson-hyperlegible-400-latin.woff2",
+      "resource": "font",
+      "started": 26.064937659999487,
+      "finished": 26.214206349999586,
+      "failure": null
+    },
+    {
+      "case": "current-390",
+      "url": "http://127.0.0.1:40635/assets/fonts/bungee/bungee-400-latin.woff2",
+      "resource": "font",
+      "started": 26.09870137100006,
+      "finished": 26.22415144899969,
+      "failure": null
+    },
+    {
+      "case": "current-390",
+      "url": "http://127.0.0.1:40635/assets/fonts/atkinson-hyperlegible/atkinson-hyperlegible-700-latin.woff2",
+      "resource": "font",
+      "started": 26.11871664299906,
+      "finished": 26.247820802000206,
+      "failure": null
+    },
+    {
+      "case": "current-390",
+      "url": "http://127.0.0.1:40635/Games/Foldwild/region-data.js",
+      "resource": "script",
+      "started": 26.18137220999961,
+      "finished": 26.346474239999225,
+      "failure": null
+    },
+    {
+      "case": "current-390",
+      "url": "http://127.0.0.1:40635/Games/Foldwild/vendor/three.module.js",
+      "resource": "script",
+      "started": 26.187005747999137,
+      "finished": 26.443094610000117,
+      "failure": null
+    },
+    {
+      "case": "current-390",
+      "url": "http://127.0.0.1:40635/Games/Foldwild/vendor/GLTFLoader.js",
+      "resource": "script",
+      "started": 26.1974729199992,
+      "finished": 26.35129596600018,
+      "failure": null
+    },
+    {
+      "case": "current-390",
+      "url": "http://127.0.0.1:40635/Games/Foldwild/vendor/BufferGeometryUtils.js",
+      "resource": "script",
+      "started": 26.37059649999901,
+      "finished": 26.43149699800051,
+      "failure": null
+    },
+    {
+      "case": "current-390",
+      "url": "http://127.0.0.1:40635/favicon.svg",
+      "resource": "other",
+      "started": 26.624309165999875,
+      "finished": 28.119286986999214,
+      "failure": null
+    },
+    {
+      "case": "current-390",
+      "url": "http://127.0.0.1:40635/Games/Foldwild/models/Bellstrider/pluvell.glb",
+      "resource": "fetch",
+      "started": 28.703603953999846,
+      "finished": 29.01361835500029,
+      "failure": null
+    },
+    {
+      "case": "current-390",
+      "url": "http://127.0.0.1:40635/Games/Foldwild/models/Rootspindle/budriv.glb",
+      "resource": "fetch",
+      "started": 28.71387058899927,
+      "finished": 29.017355677000523,
+      "failure": null
+    },
+    {
+      "case": "current-390",
+      "url": "http://127.0.0.1:40635/Games/Foldwild/models/Canopyfold/leafnock.glb",
+      "resource": "fetch",
+      "started": 28.720041533999392,
+      "finished": 29.019529503999365,
+      "failure": null
+    },
+    {
+      "case": "current-390",
+      "url": "http://127.0.0.1:40635/Games/Foldwild/models/Kilnback/cindupp.glb",
+      "resource": "fetch",
+      "started": 35.237466283000686,
+      "finished": 35.32982688899938,
+      "failure": null
+    },
+    {
+      "case": "current-390",
+      "url": "http://127.0.0.1:40635/Games/Foldwild/index.html",
+      "resource": "document",
+      "started": 47.262072413999704,
+      "finished": 47.621965554999406,
+      "failure": null
+    },
+    {
+      "case": "current-390",
+      "url": "http://127.0.0.1:40635/Games/Foldwild/style.css",
+      "resource": "stylesheet",
+      "started": 47.62345297699903,
+      "finished": 47.67089035000026,
+      "failure": null
+    },
+    {
+      "case": "current-390",
+      "url": "http://127.0.0.1:40635/Games/Foldwild/script.js",
+      "resource": "script",
+      "started": 47.62724853899999,
+      "finished": 47.676761943999736,
+      "failure": null
+    },
+    {
+      "case": "current-390",
+      "url": "http://127.0.0.1:40635/Games/Foldwild/data.js",
+      "resource": "script",
+      "started": 47.69122797300042,
+      "finished": 47.80211674599923,
+      "failure": null
+    },
+    {
+      "case": "current-390",
+      "url": "http://127.0.0.1:40635/Games/Foldwild/battle.js",
+      "resource": "script",
+      "started": 47.7003807229994,
+      "finished": 47.91234016799899,
+      "failure": null
+    },
+    {
+      "case": "current-390",
+      "url": "http://127.0.0.1:40635/Games/Foldwild/world.js",
+      "resource": "script",
+      "started": 47.7080236999991,
+      "finished": 47.918564019999394,
+      "failure": null
+    },
+    {
+      "case": "current-390",
+      "url": "http://127.0.0.1:40635/Games/Foldwild/campaign.js",
+      "resource": "script",
+      "started": 47.7126550009998,
+      "finished": 47.91641721199994,
+      "failure": null
+    },
+    {
+      "case": "current-390",
+      "url": "http://127.0.0.1:40635/Games/Foldwild/economy.js",
+      "resource": "script",
+      "started": 47.7206415870005,
+      "finished": 47.92094591999921,
+      "failure": null
+    },
+    {
+      "case": "current-390",
+      "url": "http://127.0.0.1:40635/Games/Foldwild/builds.js",
+      "resource": "script",
+      "started": 47.736354224000024,
+      "finished": 47.92327509799907,
+      "failure": null
+    },
+    {
+      "case": "current-390",
+      "url": "http://127.0.0.1:40635/Games/Foldwild/view.js",
+      "resource": "script",
+      "started": 47.75256260099923,
+      "finished": 47.92612866299896,
+      "failure": null
+    },
+    {
+      "case": "current-390",
+      "url": "http://127.0.0.1:40635/Games/Foldwild/navigation.js",
+      "resource": "script",
+      "started": 47.778115338000134,
+      "finished": 47.92939059799937,
+      "failure": null
+    },
+    {
+      "case": "current-390",
+      "url": "http://127.0.0.1:40635/assets/fonts/atkinson-hyperlegible/atkinson-hyperlegible-400-latin.woff2",
+      "resource": "font",
+      "started": 47.86947687300017,
+      "finished": 47.96345010500045,
+      "failure": null
+    },
+    {
+      "case": "current-390",
+      "url": "http://127.0.0.1:40635/assets/fonts/bungee/bungee-400-latin.woff2",
+      "resource": "font",
+      "started": 47.89061051299905,
+      "finished": 48.00352483399911,
+      "failure": null
+    },
+    {
+      "case": "current-390",
+      "url": "http://127.0.0.1:40635/assets/fonts/atkinson-hyperlegible/atkinson-hyperlegible-700-latin.woff2",
+      "resource": "font",
+      "started": 47.89949733699905,
+      "finished": 48.02461332600069,
+      "failure": null
+    },
+    {
+      "case": "current-390",
+      "url": "http://127.0.0.1:40635/Games/Foldwild/region-data.js",
+      "resource": "script",
+      "started": 47.931305406998945,
+      "finished": 48.066471604999606,
+      "failure": null
+    },
+    {
+      "case": "current-390",
+      "url": "http://127.0.0.1:40635/Games/Foldwild/vendor/three.module.js",
+      "resource": "script",
+      "started": 47.94248361300015,
+      "finished": 48.332821605999925,
+      "failure": null
+    },
+    {
+      "case": "current-390",
+      "url": "http://127.0.0.1:40635/Games/Foldwild/vendor/GLTFLoader.js",
+      "resource": "script",
+      "started": 47.950408607999634,
+      "finished": 48.09018014399953,
+      "failure": null
+    },
+    {
+      "case": "current-390",
+      "url": "http://127.0.0.1:40635/Games/Foldwild/vendor/BufferGeometryUtils.js",
+      "resource": "script",
+      "started": 48.096888067999316,
+      "finished": 48.1826895840004,
+      "failure": null
+    },
+    {
+      "case": "current-390",
+      "url": "http://127.0.0.1:40635/favicon.svg",
+      "resource": "other",
+      "started": 48.47942386199975,
+      "finished": 48.528406082999936,
+      "failure": null
+    },
+    {
+      "case": "current-390",
+      "url": "http://127.0.0.1:40635/Games/Foldwild/models/Bellstrider/pluvell.glb",
+      "resource": "fetch",
+      "started": 49.01833903199986,
+      "finished": 49.350809923998895,
+      "failure": null
+    },
+    {
+      "case": "current-390",
+      "url": "http://127.0.0.1:40635/Games/Foldwild/models/Rootspindle/budriv.glb",
+      "resource": "fetch",
+      "started": 49.023476774998926,
+      "finished": 49.35734755200065,
+      "failure": null
+    },
+    {
+      "case": "current-390",
+      "url": "http://127.0.0.1:40635/Games/Foldwild/models/Canopyfold/leafnock.glb",
+      "resource": "fetch",
+      "started": 49.04316938199918,
+      "finished": 49.36622530299974,
+      "failure": null
+    }
+  ],
+  "server_requests": [
+    {
+      "path": "/Games/Foldwild/index.html",
+      "status": 200,
+      "elapsed": 3.751135335000072
+    },
+    {
+      "path": "/Games/Foldwild/style.css",
+      "status": 200,
+      "elapsed": 3.975177550999433
+    },
+    {
+      "path": "/Games/Foldwild/script.js",
+      "status": 200,
+      "elapsed": 4.0085593559997506
+    },
+    {
+      "path": "/assets/fonts/atkinson-hyperlegible/atkinson-hyperlegible-400-latin.woff2",
+      "status": 200,
+      "elapsed": 4.23418769700038
+    },
+    {
+      "path": "/assets/fonts/bungee/bungee-400-latin.woff2",
+      "status": 200,
+      "elapsed": 4.250216536000153
+    },
+    {
+      "path": "/assets/fonts/atkinson-hyperlegible/atkinson-hyperlegible-700-latin.woff2",
+      "status": 200,
+      "elapsed": 4.268888831000368
+    },
+    {
+      "path": "/Games/Foldwild/battle.js",
+      "status": 200,
+      "elapsed": 4.271563488999163
+    },
+    {
+      "path": "/Games/Foldwild/data.js",
+      "status": 200,
+      "elapsed": 4.273429687000316
+    },
+    {
+      "path": "/Games/Foldwild/world.js",
+      "status": 200,
+      "elapsed": 4.3343802580002375
+    },
+    {
+      "path": "/Games/Foldwild/campaign.js",
+      "status": 200,
+      "elapsed": 4.338467393999963
+    },
+    {
+      "path": "/Games/Foldwild/economy.js",
+      "status": 200,
+      "elapsed": 4.345244965999882
+    },
+    {
+      "path": "/Games/Foldwild/builds.js",
+      "status": 200,
+      "elapsed": 4.361836914000378
+    },
+    {
+      "path": "/Games/Foldwild/view.js",
+      "status": 200,
+      "elapsed": 4.375018095999621
+    },
+    {
+      "path": "/Games/Foldwild/navigation.js",
+      "status": 200,
+      "elapsed": 4.387715148999632
+    },
+    {
+      "path": "/Games/Foldwild/region-data.js",
+      "status": 200,
+      "elapsed": 4.456915824999669
+    },
+    {
+      "path": "/Games/Foldwild/vendor/three.module.js",
+      "status": 200,
+      "elapsed": 4.474791010999979
+    },
+    {
+      "path": "/Games/Foldwild/vendor/GLTFLoader.js",
+      "status": 200,
+      "elapsed": 4.476583949999622
+    },
+    {
+      "path": "/Games/Foldwild/vendor/BufferGeometryUtils.js",
+      "status": 200,
+      "elapsed": 4.569891051000013
+    },
+    {
+      "path": "/favicon.svg",
+      "status": 200,
+      "elapsed": 4.772881831999257
+    },
+    {
+      "path": "/Games/Foldwild/models/Bellstrider/pluvell.glb",
+      "status": 200,
+      "elapsed": 20.661280639000324
+    },
+    {
+      "path": "/Games/Foldwild/models/Rootspindle/budriv.glb",
+      "status": 200,
+      "elapsed": 20.699374133000674
+    },
+    {
+      "path": "/Games/Foldwild/models/Canopyfold/leafnock.glb",
+      "status": 200,
+      "elapsed": 20.70187127399913
+    },
+    {
+      "path": "/Games/Foldwild/index.html",
+      "status": 200,
+      "elapsed": 25.56288514500011
+    },
+    {
+      "path": "/Games/Foldwild/style.css",
+      "status": 200,
+      "elapsed": 25.70341163900048
+    },
+    {
+      "path": "/Games/Foldwild/script.js",
+      "status": 200,
+      "elapsed": 25.72321283800011
+    },
+    {
+      "path": "/Games/Foldwild/data.js",
+      "status": 200,
+      "elapsed": 25.892774058000214
+    },
+    {
+      "path": "/Games/Foldwild/battle.js",
+      "status": 200,
+      "elapsed": 25.898854372999267
+    },
+    {
+      "path": "/Games/Foldwild/world.js",
+      "status": 200,
+      "elapsed": 25.91608759799965
+    },
+    {
+      "path": "/Games/Foldwild/economy.js",
+      "status": 200,
+      "elapsed": 25.918573626999205
+    },
+    {
+      "path": "/Games/Foldwild/campaign.js",
+      "status": 200,
+      "elapsed": 25.91954284699932
+    },
+    {
+      "path": "/Games/Foldwild/builds.js",
+      "status": 200,
+      "elapsed": 25.9342027090006
+    },
+    {
+      "path": "/Games/Foldwild/view.js",
+      "status": 200,
+      "elapsed": 25.993129731999943
+    },
+    {
+      "path": "/Games/Foldwild/navigation.js",
+      "status": 200,
+      "elapsed": 25.994083562000014
+    },
+    {
+      "path": "/assets/fonts/atkinson-hyperlegible/atkinson-hyperlegible-400-latin.woff2",
+      "status": 200,
+      "elapsed": 26.122163132000424
+    },
+    {
+      "path": "/assets/fonts/bungee/bungee-400-latin.woff2",
+      "status": 200,
+      "elapsed": 26.18400355399899
+    },
+    {
+      "path": "/assets/fonts/atkinson-hyperlegible/atkinson-hyperlegible-700-latin.woff2",
+      "status": 200,
+      "elapsed": 26.192892286000642
+    },
+    {
+      "path": "/Games/Foldwild/region-data.js",
+      "status": 200,
+      "elapsed": 26.227365549999377
+    },
+    {
+      "path": "/Games/Foldwild/vendor/three.module.js",
+      "status": 200,
+      "elapsed": 26.229847856999186
+    },
+    {
+      "path": "/Games/Foldwild/vendor/GLTFLoader.js",
+      "status": 200,
+      "elapsed": 26.23828990599941
+    },
+    {
+      "path": "/Games/Foldwild/vendor/BufferGeometryUtils.js",
+      "status": 200,
+      "elapsed": 26.39448726000046
+    },
+    {
+      "path": "/favicon.svg",
+      "status": 200,
+      "elapsed": 26.64948738500061
+    },
+    {
+      "path": "/Games/Foldwild/models/Bellstrider/pluvell.glb",
+      "status": 200,
+      "elapsed": 28.73375599099927
+    },
+    {
+      "path": "/Games/Foldwild/models/Rootspindle/budriv.glb",
+      "status": 200,
+      "elapsed": 28.755739367999922
+    },
+    {
+      "path": "/Games/Foldwild/models/Canopyfold/leafnock.glb",
+      "status": 200,
+      "elapsed": 28.775626603999626
+    },
+    {
+      "path": "/Games/Foldwild/models/Kilnback/cindupp.glb",
+      "status": 200,
+      "elapsed": 35.26670034199924
+    },
+    {
+      "path": "/Games/Foldwild/index.html",
+      "status": 200,
+      "elapsed": 47.275375057999554
+    },
+    {
+      "path": "/Games/Foldwild/script.js",
+      "status": 200,
+      "elapsed": 47.63908915100001
+    },
+    {
+      "path": "/Games/Foldwild/style.css",
+      "status": 200,
+      "elapsed": 47.6398784640005
+    },
+    {
+      "path": "/Games/Foldwild/data.js",
+      "status": 200,
+      "elapsed": 47.725171739999496
+    },
+    {
+      "path": "/Games/Foldwild/battle.js",
+      "status": 200,
+      "elapsed": 47.74190472599912
+    },
+    {
+      "path": "/Games/Foldwild/world.js",
+      "status": 200,
+      "elapsed": 47.750946271999055
+    },
+    {
+      "path": "/Games/Foldwild/campaign.js",
+      "status": 200,
+      "elapsed": 47.75420685499921
+    },
+    {
+      "path": "/Games/Foldwild/economy.js",
+      "status": 200,
+      "elapsed": 47.77916211199954
+    },
+    {
+      "path": "/Games/Foldwild/builds.js",
+      "status": 200,
+      "elapsed": 47.80956033399889
+    },
+    {
+      "path": "/Games/Foldwild/view.js",
+      "status": 200,
+      "elapsed": 47.83059656600017
+    },
+    {
+      "path": "/Games/Foldwild/navigation.js",
+      "status": 200,
+      "elapsed": 47.833436650000294
+    },
+    {
+      "path": "/assets/fonts/atkinson-hyperlegible/atkinson-hyperlegible-400-latin.woff2",
+      "status": 200,
+      "elapsed": 47.910588118000305
+    },
+    {
+      "path": "/assets/fonts/bungee/bungee-400-latin.woff2",
+      "status": 200,
+      "elapsed": 47.952014157999656
+    },
+    {
+      "path": "/assets/fonts/atkinson-hyperlegible/atkinson-hyperlegible-700-latin.woff2",
+      "status": 200,
+      "elapsed": 47.97656558299968
+    },
+    {
+      "path": "/Games/Foldwild/region-data.js",
+      "status": 200,
+      "elapsed": 47.988228381000226
+    },
+    {
+      "path": "/Games/Foldwild/vendor/three.module.js",
+      "status": 200,
+      "elapsed": 47.990709243998936
+    },
+    {
+      "path": "/Games/Foldwild/vendor/GLTFLoader.js",
+      "status": 200,
+      "elapsed": 47.99729826099974
+    },
+    {
+      "path": "/Games/Foldwild/vendor/BufferGeometryUtils.js",
+      "status": 200,
+      "elapsed": 48.118409464999786
+    },
+    {
+      "path": "/favicon.svg",
+      "status": 200,
+      "elapsed": 48.496389144000204
+    },
+    {
+      "path": "/Games/Foldwild/models/Bellstrider/pluvell.glb",
+      "status": 200,
+      "elapsed": 49.048455013999046
+    },
+    {
+      "path": "/Games/Foldwild/models/Rootspindle/budriv.glb",
+      "status": 200,
+      "elapsed": 49.07170583200059
+    },
+    {
+      "path": "/Games/Foldwild/models/Canopyfold/leafnock.glb",
+      "status": 200,
+      "elapsed": 49.07556357899921
+    }
+  ],
+  "primary_failure": {
+    "case": "current-1280",
+    "type": "TimeoutError",
+    "error": "Locator.click: Timeout 10000ms exceeded.\nCall log:\n  - waiting for locator(\"#start\")\n    - locator resolved to <button id=\"start\" type=\"button\">Start new expedition</button>\n  - attempting click action\n    - waiting for element to be visible, enabled and stable\n    - element is visible, enabled and stable\n    - scrolling into view if needed\n    - done scrolling\n    - performing click action\n"
+  },
+  "diagnostic_errors": [
+    {
+      "case": "current-1280",
+      "diagnostic": "failure-capture",
+      "error": "Page.screenshot: Timeout 3000ms exceeded.\nCall log:\n  - taking page screenshot\n  - waiting for fonts to load...\n  - fonts loaded\n"
+    }
+  ],
+  "browser_stopped": true,
+  "server_stopped": true,
+  "source_hashes_after": {
+    "Games/Foldwild/battle.js": "4517e1a93664b16376f6cba529ca049f338cb2aca2096819b283e9ea63feccda",
+    "Games/Foldwild/builds.js": "2c632354ccff59c4b2501e7d6e5b502b99d7ec99683764a9c6a4730fa4e2bb67",
+    "Games/Foldwild/campaign.js": "2d333e96cd7707b70ea20aecc4abfdbdaab27c7b77deaebe82004123f0593072",
+    "Games/Foldwild/data.js": "722454326b736e4997405cabc54db69a3352bea67c84678a5cedb0702b829975",
+    "Games/Foldwild/economy.js": "644ffdd23ff75edb8dfd639447bad42692ccd8b2bf7112e6468a3c8c4a6194f0",
+    "Games/Foldwild/index.html": "ea7e7ad19f87d7d5504d990e2d512d47f15ebe1c0446ddef99895d5ee60fe4a8",
+    "Games/Foldwild/navigation.js": "880b4ccb6f305a33eb1e502537ac36145403932bd2234af9f9ba4c4fc9cc6f3a",
+    "Games/Foldwild/region-data.js": "de771d5249ed70be461065423ccd3fa9a45974a5eba5220cffbff7a79b6e50a7",
+    "Games/Foldwild/script.js": "2c87ce5312e9f0a1b44c9d9efb206c80e202a2b8ba0ce4f12f44f5883611d1fc",
+    "Games/Foldwild/style.css": "b147655c0d55fae7e25623e7b5d84c7f166deb2f1b155649b30419eb329e2cff",
+    "Games/Foldwild/view.js": "b5e5b383a06a4228f2a55a62df6710bead96ed1d4691d1801048270a647c1619",
+    "Games/Foldwild/world.js": "088b3bcaf2bec5ef16e320f07ce27b0794a5448a1f12b1736f88ad4c89c6dc79"
+  },
+  "asset_hashes_after": {
+    "Games/Foldwild/models/Bellstrider/catarill.glb": "ae0803e02e5f9a3d57355e94315ddb05b4b8831e369b90c859c9d6caff505253",
+    "Games/Foldwild/models/Bellstrider/chimeford.glb": "e6ca4c484b604039a921ee282e06d295d01e264fd99dc7290a7437268aeb0a48",
+    "Games/Foldwild/models/Bellstrider/fogstilt.glb": "6e7c39276b6f31031147491133b12de59b30a37f520ea16486feeacef520d17c",
+    "Games/Foldwild/models/Bellstrider/mistank.glb": "288cc55cba4edb76b59c21c5be4cfd6436c1ad931ba6a4746c9d783029dc8709",
+    "Games/Foldwild/models/Bellstrider/nacreep.glb": "67809a76efd302cc21e9ded7d81e794fd5965d542ea1297bb647dd84c41f955c",
+    "Games/Foldwild/models/Bellstrider/pluvell.glb": "1b36ed1bb8a3a7c369f0b352958664707ec36ca98c737929ef4c3fab5dd46a22",
+    "Games/Foldwild/models/Bellstrider/rillipod.glb": "0d5d692ef6239c9a03bee672d099a6fcbb12d88fa21d9a4770c0c1e79081a7da",
+    "Games/Foldwild/models/Bellstrider/tidaloom.glb": "6c7df5925881a4be7219300255339f25230bb449bbcddfc6c7bb96c08e753e16",
+    "Games/Foldwild/models/Canopyfold/burruff.glb": "8a3ec258b0c41d1a834e4a419465d1727156b96425044b0dc395d09f98ee3341",
+    "Games/Foldwild/models/Canopyfold/coppicrown.glb": "974f125e23cddbe05f219273c77d3dc93993380d715fd3b8f1719941bfe32a52",
+    "Games/Foldwild/models/Canopyfold/fernclasp.glb": "73e6864373c19733cc1d45b2963476be0b51ceeeb659b824df6de8c0ea631694",
+    "Games/Foldwild/models/Canopyfold/leafnock.glb": "5a2b99373b6e95350eb6ffc383ab25cc6b794381b5466c8e5633710c5367295c",
+    "Games/Foldwild/models/Canopyfold/mosskip.glb": "df5cf5dc9b41d3ddf835ec7dd288ae2db7c7778b851b824249760b80b42cdced",
+    "Games/Foldwild/models/Canopyfold/sprigbell.glb": "a116a95b3e55896dc2e315c4c24a07d7b7b4a52b30e1b2376a5f30eb00e4e083",
+    "Games/Foldwild/models/Canopyfold/thornmantle.glb": "b2df9166230d1c281139381fc5f2fc3372f13cb74fa1e3a41688f2361d812a53",
+    "Games/Foldwild/models/Canopyfold/veilbough.glb": "8757d33e814c5365968c735292d13ac3c3f238457df8ff7f4439f9790cf02fb9",
+    "Games/Foldwild/models/Cupfin/basinull.glb": "ec1d4270f351ec98cee27f44a5697aac44643fd47a3de408797ecaca273ae4a0",
+    "Games/Foldwild/models/Cupfin/dewgob.glb": "a08b6351b93c087acc98ffd949bdf9384d9027411c0426ccb256c4d7cd8339c1",
+    "Games/Foldwild/models/Cupfin/driplug.glb": "850a9cf5dc84e335670d339a05a991a444d0649c2e52b840e7b352172b12e0bd",
+    "Games/Foldwild/models/Cupfin/poolbit.glb": "799c7310c181a5a0c85111b74f63356dcdf2ed0bf015e3772d903ce1872d602a",
+    "Games/Foldwild/models/Cupfin/runnelip.glb": "089eafc856a75c438f8fa92eee463e91ea593a1cb2ae2964e8fd69d31854f142",
+    "Games/Foldwild/models/Cupfin/troughlobe.glb": "c5b238f0eb2fb52d116e670de52e3f0ccbbcf0775766cb73b905a0bc68b0d4f8",
+    "Games/Foldwild/models/Cupfin/vesselorn.glb": "de4b15222fc8b0e7b8ae9bc68868a9ee546020e271e8f2d1c29d026b6a847799",
+    "Games/Foldwild/models/Cupfin/weirseal.glb": "83dd8b3ea6013dcc9c849e2ae7a42d4f8d0b6f64936354b2c1d1da223136c9b9",
+    "Games/Foldwild/models/Echohoop/nimbloop.glb": "607808b8533b1635376cef3eea3b856e981e0946e5023382d62c97eb20229c0d",
+    "Games/Foldwild/models/Echohoop/pallbit.glb": "eeb46062d1f6b5b00d0206961dc46a1d17324370936e653b6a0c71175d25b734",
+    "Games/Foldwild/models/Echohoop/resonelle.glb": "5ca5a331e45e84c4a1720e044fba196123c0c3ed5cec1bfc0c02b6fed77eaa8d",
+    "Games/Foldwild/models/Echohoop/ringmur.glb": "777891d71faeefc242ab86e98d57294f49a4a6405729739bfa2de1ec3ff5e4c9",
+    "Games/Foldwild/models/Echohoop/sablewheel.glb": "9c1d57992078a10a81462a4cb1aba6b854b699c649c6d0db80bc0ee7ab79f8a3",
+    "Games/Foldwild/models/Echohoop/stillarch.glb": "163957288f10cd53b7e394069581f27d84c8892cafb211449fc9b5887efdaaea",
+    "Games/Foldwild/models/Echohoop/thrumkin.glb": "f073c9701dcc9136b7bfbe03aeaf028585928d5b6ee4946651213cab3730366d",
+    "Games/Foldwild/models/Echohoop/whisquet.glb": "56b362b68472688a7d4061d30535357c9b093761723569255d1c567e76039219",
+    "Games/Foldwild/models/Halofoil/aurelvane.glb": "82ea05660fc7380347e0a2f21b01ae32535869e4f619479447519b55e0219a41",
+    "Games/Foldwild/models/Halofoil/glasprig.glb": "77450e6d551aae7f3ed7cdbd97d82e363eac1414c2788b94bc171cd4711201af",
+    "Games/Foldwild/models/Halofoil/halodot.glb": "fca8e6a9a8369efec2c3c37d13c8adb7195faead28cd62046faafa82705873b8",
+    "Games/Foldwild/models/Halofoil/lensfoil.glb": "fd1423399a597909701eec214c5d250f988eaa492783032ca9b09ed1039a83a9",
+    "Games/Foldwild/models/Halofoil/lustrip.glb": "ce7baf330cec59404fc01e1ef66b794358f4aa4fae0e041a79fa840ea8ce0f06",
+    "Games/Foldwild/models/Halofoil/raymote.glb": "6ae0953ac4323a9225ee59bbcd152da831423e7cbeb1744dd6f72e4d89262103",
+    "Games/Foldwild/models/Halofoil/refrafold.glb": "8e1c57702382de55496917180aa1d9be5ce9735d18e0ef7b1e1e78d1bd57518a",
+    "Games/Foldwild/models/Halofoil/sheenlobe.glb": "4a22cf9791a33522f636f253e901df383ea1a60b5b2d4dc211b9529085488c23",
+    "Games/Foldwild/models/Hushcoil/duskcurl.glb": "7755048eb19f6a5c48cc4088ebee8740ddd599d781446143d3e762f6934d6554",
+    "Games/Foldwild/models/Hushcoil/foldnacre.glb": "d4c8f21741e52171440c80c8c4cdb5d3760fa84c4b236d7ae3070a0333a718b0",
+    "Games/Foldwild/models/Hushcoil/gloamlet.glb": "69cc5016d860563918c4f2d772c861d31838245b2d067aa2c736ab032a530fa5",
+    "Games/Foldwild/models/Hushcoil/hushpip.glb": "77acd8e14056772100a222412ea823d5d946b51527661000cc0b00bd18375606",
+    "Games/Foldwild/models/Hushcoil/murnub.glb": "784cb513aa6e6ea6d27615837ecdd696f04f606105091bb696929f88b6b222ea",
+    "Games/Foldwild/models/Hushcoil/nullwrithe.glb": "ff06225f4086e5fafabc7a25cc2caf5a663c2b71bfec43d062cd79e551f9e9c3",
+    "Games/Foldwild/models/Hushcoil/quiethelix.glb": "50676fa5753512108f4cf0169e068fa67dbb24d8661703951bac4791dc03ac7e",
+    "Games/Foldwild/models/Hushcoil/velvetorque.glb": "69b392fe24285d7c9b7f59d69a83ac67849e1a9e704d909985319d529e5ce316",
+    "Games/Foldwild/models/Kilnback/ashbarrow.glb": "97c7afa88909686b51d0b139b0b075f8af50e3437ff87df47102f41fee5ac176",
+    "Games/Foldwild/models/Kilnback/briknudge.glb": "608b1a9ccd357ef97c4807882dcd03891e36c296d91cc4a375888419350bca6f",
+    "Games/Foldwild/models/Kilnback/cindupp.glb": "962d32fbb8bbb279b391e44fab799379e7e97037dfb4e2c3727858cc615dbbd4",
+    "Games/Foldwild/models/Kilnback/clastump.glb": "29d6ed067c3516d3d8244dfb4291e20ab7ab9c9660333f6cafcfdaf0083d04cd",
+    "Games/Foldwild/models/Kilnback/hearthol.glb": "cd7e0705d5322bae79152bd2e0f53a8982abc2f7f202f83d072ed34db0c6eec9",
+    "Games/Foldwild/models/Kilnback/kilnarch.glb": "fc2516813109c301f2cf8548e5e6cead7bb758c8bd56fc11c2e135d35c4972f8",
+    "Games/Foldwild/models/Kilnback/sootnub.glb": "e74dcecbf3f9a13bfcd5260b5509fb918ba80469ca26ba6295d66c1fedfe4cf5",
+    "Games/Foldwild/models/Kilnback/tufflet.glb": "b369ac696196d3fb53c870ec44ae379ceb8ae3395c21c4b6596774ef775588d8",
+    "Games/Foldwild/models/Prismburrow/chalkit.glb": "92a23bbb91327280779f1609f02e7f6a959f33becbe5f152d2c2a0b4fa6adecc",
+    "Games/Foldwild/models/Prismburrow/facetusk.glb": "30a12bcae0ca0486e274a94735a6a86e014913a444e6e61adaa624205b8291c8",
+    "Games/Foldwild/models/Prismburrow/geodelve.glb": "050a8c8ac44c5ba5bbb8fb6bf6457202299016f206f357f73efd8026303a4071",
+    "Games/Foldwild/models/Prismburrow/glimknob.glb": "bf235d48b2a5b9006a47af573458a94cd2a0af718d4aaf87b8af5613d1409cbe",
+    "Games/Foldwild/models/Prismburrow/latticlaw.glb": "51272f8e056e554f49c7449e2c7dc15ad0bc8540ce7dfa807f6ab3a56703f618",
+    "Games/Foldwild/models/Prismburrow/opalden.glb": "3c4d853ebd7555aae9f83179fe866de0074b60f69a99420990b5ca37c4993fc4",
+    "Games/Foldwild/models/Prismburrow/shardip.glb": "22cc0f5df7fa77cf2b4e7783cef5f710696ac400f01e8e046cc5e517f2a92f66",
+    "Games/Foldwild/models/Prismburrow/spectrumor.glb": "8a57f5ed6ac65bd02349d51196da68fcc16f8f8db443e9eb2615830fc2931cb9",
+    "Games/Foldwild/models/Rootspindle/bolegraze.glb": "7f66111b0da8da175cb5ae8878705a615732978a924def20b252f01cb2a96066",
+    "Games/Foldwild/models/Rootspindle/budriv.glb": "1c6094b18b81a5493219a67ce47597ffdfb1526097ba8017dc3d71c5cb0a7f12",
+    "Games/Foldwild/models/Rootspindle/furrowisp.glb": "af6b92c7586c0f7a4ec3d2f68c1a5b6ec51dc62eac297194ca43c3a8d6d03cfd",
+    "Games/Foldwild/models/Rootspindle/loamtick.glb": "46de85b0dec5efeb4f866c7322a2a623f7c69a73d75d61d93b46668d8961f4ac",
+    "Games/Foldwild/models/Rootspindle/pithnip.glb": "ed922c615a50da63a4963c46d557d4acd6be01fd7169d38e158ad1cd0f54175a",
+    "Games/Foldwild/models/Rootspindle/rhizocairn.glb": "516db12d6df6f0d77b0af828f844097c724c2a51e07949455abbc4de180cf59d",
+    "Games/Foldwild/models/Rootspindle/trellisect.glb": "a0ffec7f3570860effdca2ebf020810a29a86f6654a59400d67e8b239caa627a",
+    "Games/Foldwild/models/Rootspindle/vinchew.glb": "fd8c157912ada3c21566624a064cdd1932bcff6debd3dcfe093a07000d08e007",
+    "Games/Foldwild/models/Scoriwing/brazifold.glb": "80c9939f23e7c34c6b7b00c1d2ad5d45e9cedd7b978ba77110c5018b2474e4f8",
+    "Games/Foldwild/models/Scoriwing/coppuff.glb": "d76f058acb596ffa129de25d7b6f1ab272d5fcb2d745216734594dd2c0ccb717",
+    "Games/Foldwild/models/Scoriwing/crestoven.glb": "1200fde469ab0f8596a0b59facd427dd388b7509fb9ac023d23a7250b5427b5c",
+    "Games/Foldwild/models/Scoriwing/emberick.glb": "51ad73a4138b7380d7a9997567d147f66cf23a98748105c165bfa68c8b38c145",
+    "Games/Foldwild/models/Scoriwing/flarivet.glb": "7c4dfeb53486a2b15567f6855c485269dd176d4e4f09471128bdadbeb97c6161",
+    "Games/Foldwild/models/Scoriwing/fluefrill.glb": "84d8d944e0b406f88d0be782afb89a98f35b3c150e5abd1bd07e1875640c94d8",
+    "Games/Foldwild/models/Scoriwing/sparvane.glb": "f6fe027c79c6b12934af0db8f15b83d96517e36e2151d6e469320eefe64c684c",
+    "Games/Foldwild/models/Scoriwing/tarsail.glb": "cd7761f976b81aa32b715f182f8f4d8063b0f52a0025ceca7fe7737e76708708",
+    "Games/Foldwild/models/secret-cave-creature.glb": "bc77d7c17a4638f37acb5547a490f50f07fda818f6261e6767e674823d64562c",
+    "Games/Foldwild/vendor/BufferGeometryUtils.js": "3a6701d824adfe05dc28c09b6c1d64aeab9a183bc3b944d85f15f596e5c6c2b3",
+    "Games/Foldwild/vendor/GLTFLoader.js": "1f9b02acfbf219a6ebb77f09e355500449a3ba9e6a77d87e0de72c0b9315ea4e",
+    "Games/Foldwild/vendor/LICENSE": "852e0e8699169bf9f6fdc6bda3e682d078dcbc738b5d33e74df594721bff271d",
+    "Games/Foldwild/vendor/three.module.js": "76dea8151bc9352aef3528b4262e249b2604f62543828328db978d060d61a495",
+    "assets/fonts/bungee/bungee-400-latin.woff2": "126eec706b7931682dbcf6c6efc274132c603f181fbf912678e6cfeb341e721b",
+    "assets/fonts/atkinson-hyperlegible/atkinson-hyperlegible-400-latin.woff2": "d64ba838ef5472bba248620ec4fd8b5aa7cf0db2908e0bb230600caf279ba7bc",
+    "assets/fonts/atkinson-hyperlegible/atkinson-hyperlegible-700-latin.woff2": "140e2bd25a7315c8a062508391426b0d8c3297400c947b8d847be28f73a199f0"
+  },
+  "sources_frozen": true,
+  "assets_frozen": true,
+  "pending_requests_at_end": [],
+  "disk_after_bytes": 2622500864
+}

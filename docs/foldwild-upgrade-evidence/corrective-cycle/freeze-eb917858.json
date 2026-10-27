@@ -1,0 +1,21 @@
+{
+  "head": "eb917858478b4af0957ff68b87d9d7b39ee60979",
+  "purpose": "Product-polish runtime freeze; no native browser acceptance yet",
+  "source_hash_reference": "corrective-cycle/phase-a-eb917858.json: source_hashes and source_hashes_after (all12runtime text files)",
+  "source_hashes_unchanged_except": {
+    "Games/Foldwild/script.js": "51bacd230419a605d017a5129e950d7f6db0de9e7c267f538ab8503044230f4a"
+  },
+  "prior_other_source_hash_reference": "corrective-cycle/freeze-9a23536d.json; independently compared all12 current text files, only script.js differs",
+  "view_sha256": "b5e5b383a06a4228f2a55a62df6710bead96ed1d4691d1801048270a647c1619",
+  "asset_count": 88,
+  "asset_manifest_sha256": "ed1efa4626702aa81e576a146682692561c3520ae3d35051680c6095cfcf348b",
+  "asset_encoding": "JSON relative-path-to-SHA256 object, sorted keys, comma/colon separators, UTF-8",
+  "current_asset_hash_reference": "corrective-cycle/phase-a-eb917858.json; all88 actual local/tracked font hashes checked now",
+  "independent_nonbrowser_gates": "data/save_v2/continuity/save_conflict/optional5of5PASS; upgraded runner regressionPASS",
+  "parent_reported_gates": "20Node plus shell/syntax and actual standoff/phase-reset regression PASS; not rerun as20by this lane",
+  "new_native_conditions": "Maren and wild separation1.2-epsilon through1.4m, same45s; postFleeContinue objective visible below stickytoolbar/insidepanel BEFORE manualSave; finaldark nativeDOM objective-center scroll occurs only after phase assertion",
+  "old_native4_status": "CLEAN targetedPASS retained under previous script2c87ce53; NOT acceptance of new script",
+  "browser_launched": false,
+  "native_acceptance": "PENDING separately coordinated parentGO",
+  "runtime_or_assets_changed_by_QA": false
+}
