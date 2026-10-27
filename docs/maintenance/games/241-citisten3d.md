@@ -4,6 +4,18 @@
 
 ## Identity and status
 
+**Serial key-release fix (2026-10-27):** source `25f3562d` changes only the
+shared camera's window keyup registration to capture phase. Physical W-down on
+canvas, native-input focus then W-up reproduced a stopped-bubble stuck key;
+controlled DOM target drift fell from327.25 to0 over165 fixture frames. The exact
+226-file fixed source tree and regression scripts match the independently tested
+handoff; unchanged passing checks are reused. See [causal evidence and permanent
+regression](../../citisten-camera-key-release-fix.md) and
+[qualified diagnosis](../../citisten-shaking-dispatch.md).
+This fixes conditional unintended camera movement, not proof that all reported
+world shaking is resolved. Native Water/Save/Continue, GPU, pixels and FPS remain
+unpassed. Site source changes do not update the already downloaded Chromebook v2.
+
 **Known-failure release, explicitly authorized 2026-10-27:** committed snapshot
 `de3ec4e6` is released as the existing source game, not a Chromebook export.
 CPU evidence is retained; native Water/Save/Continue acceptance remains unpassed,

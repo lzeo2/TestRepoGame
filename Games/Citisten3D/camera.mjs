@@ -51,7 +51,7 @@ export function createFreeCamera(camera, canvas, extent = 1000, floorHeight = ()
       keys.add(event.code); inputVersion++; event.preventDefault();
     }
   });
-  on(window, 'keyup', event => keys.delete(event.code));
+  on(window, 'keyup', event => keys.delete(event.code), { capture: true });
   on(window, 'blur', () => { keys.clear(); pointer = null; });
   on(canvas, 'contextmenu', event => event.preventDefault());
   on(canvas, 'pointerdown', event => {
