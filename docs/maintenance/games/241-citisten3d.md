@@ -37,6 +37,21 @@ adds bounded observation, not a shaking fix or native acceptance. Current source
 35,188,315bytes. Site versus downloaded v2 remains unknown; v2 is unchanged.
 Serial publication remains owner`74b61fa7`-owned, with known failures preserved.
 
+### Integrated diagnostic-only checkpoint
+
+The scoped `7b08e47c` / `f66c65c6` source diagnoses are now integrated locally:
+[renderer temporal ordering](../../citisten-render-temporal-diagnosis.md) and
+[visual-clock scheduling](../../citisten-visual-clock-diagnosis.md), with their two
+runnable Node checks. Game tree `ff06ce5f` and all runtime/assets remain unchanged.
+Independent pinned checks reproduce renderer8/25/max-error0 and the unsettled
+clock at60/120Hz. A diagnostic PASS is not a product fix: the clock bug, user
+shaking/artifacts and native Water/Save/Continue/GPU/FPS remain unresolved. An
+initial independent renderer result lost to collection limits remains unverified;
+the unchanged rerun passed. Source-lane missing-Brainrot findings are historical,
+not the current serial-main coverage state. Subsequent screenshot/seed/HUD repair
+work is excluded from this checkpoint. See the serial integration ledger for SHAs
+and separate local/push/deployment/native status.
+
 ## Implementation map
 
 `index.html`, `native.mjs`, `native-actions.mjs` and `native.css` connect
