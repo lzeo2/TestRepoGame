@@ -1,0 +1,76 @@
+
+=== feel ===
+4s stock Bricklet 30Hz: 105.470 km/h, 59.0630 m
+4s stock Bricklet 60Hz: 105.459 km/h, 59.0572 m
+4s stock Bricklet 120Hz: 105.454 km/h, 59.0543 m
+PASS 30/60/120Hz stock acceleration/turn consistency, all16 +25% speed/+50% acceleration, progressive corner/release/brake/reverse recovery; 196 safe rear spawns/60 safe deferrals, occupied-spawn clearance, physical highway police. Synthetic only.
+
+=== core ===
+PASS exact exports / fresh profile / canonical reload
+PASS hostile descriptors rejected before getter access
+PASS invalid profiles / params / bounds
+PASS copied deterministic finite stepping / ID stability / zero dt
+PASS normal atomic purchases / performance upgrades / reset
+PASS collision damages body / cooldown / armor / no reward
+PASS near miss only once after passing / no collision farming
+PASS real police approach / contact / containment bust
+PASS three independent moving rivals finish by distance / loser / timeout
+STATS starter race 40.50s place=1 hp=100 cash=844; escape 40.50s hp=100 cash=654
+PASS starter race and escape deterministic controller fixtures / bounded NPCs
+PASS reserved current results / one-shot settlement / escalation / no frame payout
+PASS separate cheat fixtures / persistent all16 / inexhaustible spending
+PASS v1 migration / copied saved custom finishes / hostile custom descriptors
+PASS owned mount purchases / atomicity / charges / racing disabled
+PASS smoke/EMP police effects / hold cooldown expiry / no immunity or payouts
+PASS 15 Slipstream core groups; synthetic/controller/cheat evidence only, no native natural-progression claim.
+
+=== world ===
+PASS immutable original city / radius / finite boundaries / routes
+PASS exact swept collision catches grazing corners without widening roads
+PASS profile3 v2 migration preserves purchased kits / cosmetic copies / mileage gates
+PASS real movement / copied poses / collision / boundary / bounded deadline
+PASS starter can turn ninety degrees inside an intersection without damage
+PASS city smoke affects trailing wake only / EMP radius / no containment override
+PASS patrol timing / actual navigated cops / arrest / synthetic escape hold
+PASS parking actual traveled distance / automatic free unlock / once-only settlement
+PASS five finite kits / categories / real effects / loud pursuit / boost expiry
+PASS new nested descriptors reject without invocation / settlement appearance invariant
+PASS 10 Slipstream world groups; synthetic pure checks only, not native acceptance.
+
+=== traffic ===
+PASS eight lane-offset spawn poses / frozen transactions / park once
+PASS 230 seconds deterministic rounded circuits / swept clearance / convergence
+PASS smooth obstruction braking / followers yield not leaders / queue resumes
+PASS ordinary player contact / cooldown / armor / stationary never scores
+PASS strict traffic bounds / descriptors never invoked / copied cop poses
+PASS 5 Slipstream traffic groups; synthetic source only, native acceptance held.
+
+=== pursuit ===
+PASS deterministic block routes arrive by physical clear segments, no oscillating junction
+PASS moving player pursuit routes around a block with bounded lead and no teleport
+PASS braking containment holds stopped player outside body, not repeated ram damage
+PASS civilian bypass / no reciprocal cop traffic deadlock / no driving through cars
+PASS six-second separation escape / meaningful score and cash / once-only settlement
+PASS clean moving pass once per car / no repeat, hit, reverse or stationary farming
+PASS 6 Slipstream pursuit groups; synthetic source only, native acceptance held.
+
+=== steering ===
+PASS steering: all16, upgrades0..5, low/high speed, signed PI, mirror/copy/time/finite/no drift, intersection and collision payout; city >=20m/s yaw 0.818182..1.200000rad/s; highway max-speed lateral 1.680..5.600m/s (30% reduction). Synthetic source only.
+
+=== reverse_sandbox ===
+PASS reverse/sandbox: all16, signed motion/mirror/tune/copy/rest/coast/contact, strict hostile bounds, no grants/banking, timeout; highway forward-only. Source-only.
+
+=== variety ===
+PASS 4 fixed shortcuts, usable radius-safe width, 40 varied solid parcels, 61-node connected routing, preserved start/collision corner and both civilian circuits. Source-only.
+
+=== input ===
+PASS actual controller: speed-sensitive press, immediate direction change/release, 30/60/120Hz ramp at five signed speeds, held touch, opposing controls, brake priority, Auto gas, sandbox isolation and input reset safety. HUD countdown/pass/pursuit bindings. Synthetic input only.
+
+=== clock ===
+PASS bounded clock: equivalent 60Hz/7.5Hz wall-time schedules, fixed 60Hz substeps, <=16 catch-up ticks, hitch cap and reset. Synthetic timing only.
+
+=== map ===
+PASS north-up actual world/relative highway projection, limits, police shape, heading and immutable map draw. Synthetic canvas only.
+
+=== city_render ===
+PASS: 40 collision-aligned bases; 11 static architecture batches, 7850 instances, 46070 triangles; glazing/recess/roof/bounds/resize/disposal; chase lag/wrap/pause/cover, bounded 32m/s anticipation/30-60-120Hz damping and all16 physical cockpit transforms. 60/120Hz interpolation, guard/pause/NPC/reverse/highway checks. 1372 flat crosswalk stripes/2744 triangles in one batch; 28 footprint-contained lamps, curb/storefront palettes; police chase/time/pause/reduced-motion/48-triangle cap; exact-once disposal across two lifecycles. Synthetic drawing, not native visual acceptance or owner-device FPS/choppiness proof.
