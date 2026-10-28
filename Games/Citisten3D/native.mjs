@@ -7,11 +7,14 @@ import { createNativeLoop } from './native-loop.mjs';
 import { phaseForState } from './daynight.mjs';
 import { weatherAt } from './atmosphere.mjs';
 import { initialTownPose } from './camera.mjs';
+import { createMotionDiagnostic } from './motion-diagnostic.mjs';
+import { createRenderMotionSampler } from './render-motion-sample.mjs';
 
 const canvas = document.querySelector('#world'), root = document.querySelector('#ui');
 const panel = document.querySelector('#native-controls'), feedback = document.querySelector('#feedback');
 const speed = document.querySelector('#speed'), loading = document.querySelector('#loading');
-let world, sim, ui, loop, tool = 'road', paused = true, resumeSpeed = 1, drag = null, closed = false;
+let world, sim, ui, loop, motionDiagnostic, motionSampler;
+let tool = 'road', paused = true, resumeSpeed = 1, drag = null, closed = false;
 let lastSaveTime = 0, savedTown = null, requestedSave;
 let townOptions = { seed: 1, scenario: 'balanced' };
 const skip = document.querySelector('#skip-night');
@@ -30,11 +33,31 @@ function validateSave(snapshot) {
   if (snapshot.state.size !== world.roads.size) throw new RangeError('Save uses a different town size');
   createSimulation({ snapshot });
 }
+function showMotionReport(report) {
+  motionSampler = null;
+  document.querySelector('#motion-check').disabled = false;
+  const status = document.querySelector('#motion-status'), output = document.querySelector('#motion-report');
+  status.textContent = report.sampleCount
+    ? `Recorded ${report.sampleCount} existing frames${report.partial ? ' with partial coverage' : ''}. Sampled motion is not a visual stability test.`
+    : 'No frame samples captured. Rendering stability is not verified.';
+  output.value = JSON.stringify(report, null, 2); output.hidden = false;
+}
+function recordMotion() {
+  if (!sim || !world.loaded || motionDiagnostic.isRunning) return;
+  motionSampler = createRenderMotionSampler(world, canvas, { getState: () => sim?.state });
+  document.querySelector('#motion-check').disabled = true;
+  document.querySelector('#motion-status').textContent = 'Recording up to 5 seconds. Leave controls still to check idle movement.';
+  document.querySelector('#motion-report').hidden = true;
+  if (!motionDiagnostic.start()) {
+    motionSampler = null; document.querySelector('#motion-check').disabled = false;
+  }
+}
 function start(mode, snapshot, options) {
   if (options && (!Number.isInteger(options.seed) || options.seed < 0 || options.seed > 0xffffffff || !['balanced', 'fertile', 'mineral'].includes(options.scenario))) throw new RangeError('Invalid new-town options');
   if (!world.loaded) throw new Error('Models are not ready');
   // Restore/validate before removing the current city's models or roads.
   if (snapshot) validateSave(snapshot);
+  if (motionDiagnostic?.cancel()) showMotionReport(motionDiagnostic.report);
   world.eventEffects?.clear();
   for (const handle of models.values()) world.buildings.remove(handle);
   models.clear();
@@ -79,7 +102,8 @@ function repairEvent(id) {
 function resume() { if (!sim) return; sim.setSpeed(resumeSpeed); paused = false; canvas.focus(); wake(); }
 function stop() {
   if (closed) return;
-  closed = true; loop?.stop(); abort.abort(); ui?.destroy(); world?.dispose();
+  closed = true; loop?.stop(); motionDiagnostic?.dispose(); motionSampler = null;
+  abort.abort(); ui?.destroy(); world?.dispose();
 }
 // Register before asset loading so navigating away also releases pending loads.
 window.addEventListener('pagehide', stop, { once: true });
@@ -106,6 +130,8 @@ function tick(dt) {
   const before = [position.x, position.y, position.z, rotation.x, rotation.y];
   const shots = world.effects.active;
   world.render(Math.min(.25, dt));
+  // Observe existing frames only; recording never keeps the native loop awake.
+  motionDiagnostic?.sample();
   const after = [position.x, position.y, position.z, rotation.x, rotation.y];
   // Ignore the asymptotic tail of camera easing, not held-key movement.
   const moving = after.some((value, i) => Math.abs(value - before[i]) > (i < 3 ? .001 : .00001));
@@ -115,6 +141,7 @@ try {
   world = createWorld(canvas, { size: 200 });
   await world.ready;
   if (!closed) {
+    motionDiagnostic = createMotionDiagnostic({ readSample: () => motionSampler.sample(), onFinish: showMotionReport });
     ui = createUI(root, { onStart(mode, options) { const snapshot = requestedSave; requestedSave = undefined; start(mode, snapshot, snapshot ? undefined : options); }, onRestart: start,
       onResearch(id) { const result = sim?.research(id); message(result?.reason || (result?.ok ? 'Research started' : 'Cannot research')); return result; },
       onSpecialization(name) { const result = sim?.specialize(name); message(result?.reason || 'Cannot change specialization'); return result; },
@@ -140,7 +167,7 @@ try {
     listen(skip, 'click', skipNight);
     // S overrides camera-back only when this defense action is available.
     listen(window, 'keydown', event => {
-      if (event.code !== 'KeyS' || event.repeat || event.ctrlKey || event.metaKey || event.altKey || !active() || skip.disabled || skip.hidden || event.target.closest?.('input,select,button,dialog')) return;
+      if (event.code !== 'KeyS' || event.repeat || event.ctrlKey || event.metaKey || event.altKey || !active() || skip.disabled || skip.hidden || event.target.closest?.('input,textarea,select,button,dialog')) return;
       event.preventDefault(); event.stopImmediatePropagation(); skipNight();
     }, { capture: true });
     root.querySelector('.city-toasts').before(panel);
@@ -152,7 +179,8 @@ try {
     for (const event of ['click', 'input', 'change', 'keydown', 'keyup', 'pointerdown', 'pointerup', 'pointercancel', 'wheel', 'resize', 'blur']) listen(window, event, wake, { capture: true, passive: true });
     listen(canvas, 'pointermove', event => { if (event.buttons) wake(); }, { passive: true });
     // Read-only diagnostics for native QA; gameplay never depends on this object.
-    window.citisten = Object.freeze({ world, get sim() { return sim; }, get tool() { return tool; } });
+    window.citisten = Object.freeze({ world, get sim() { return sim; }, get tool() { return tool; },
+      get motionReport() { return motionDiagnostic.report; } });
     listen(canvas, 'pointerdown', event => {
       if (!active() || event.button !== 0) return;
       canvas.focus(); drag = { id: event.pointerId, lot: world.pickLot(event.clientX, event.clientY) };
@@ -168,12 +196,13 @@ try {
     for (const event of ['pointercancel', 'lostpointercapture']) listen(canvas, event, () => { drag = null; });
     const shortcuts = { Digit1: 'road', Digit2: 'residential', Digit3: 'commercial', Digit4: 'industrial', Digit5: 'power', Digit6: 'water', Digit7: 'police', Digit8: 'fire', Digit9: 'park', KeyB: 'wall', KeyR: 'rotate-wall', KeyU: 'upgrade', KeyN: 'watchtower', KeyX: 'bulldoze' };
     listen(window, 'keydown', event => {
-      if (!active() || event.ctrlKey || event.metaKey || event.altKey || event.target.closest?.('input,select,button,dialog')) return;
+      if (!active() || event.ctrlKey || event.metaKey || event.altKey || event.target.closest?.('input,textarea,select,button,dialog')) return;
       if (shortcuts[event.code]) { choose(shortcuts[event.code]); event.preventDefault(); }
       if (event.code === 'Escape') { pause(); ui.showMenu(); event.preventDefault(); }
     });
     listen(speed, 'change', () => { if (sim && !paused) { sim.setSpeed(Number(speed.value)); resumeSpeed = sim.state.speed; } });
     listen(weather, 'change', () => message('Weather changes visuals only.'));
+    listen(document.querySelector('#motion-check'), 'click', recordMotion);
     listen(document.querySelector('#repair'), 'click', () => { if (active()) { tool = 'repair'; message('Tap a damaged lot to repair during daytime'); } });
     listen(document.querySelector('#camera-pad'), 'click', event => {
       const action = event.target.closest('[data-camera]')?.dataset.camera;

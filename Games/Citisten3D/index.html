@@ -22,6 +22,9 @@
       <div id="camera-pad" aria-label="Touch camera">
         <button data-camera="forward" aria-label="Move forward">↑</button><button data-camera="back" aria-label="Move backward">↓</button><button data-camera="left" aria-label="Move left">←</button><button data-camera="right" aria-label="Move right">→</button><button data-camera="up" aria-label="Raise camera">+</button><button data-camera="down" aria-label="Lower camera">−</button><button data-camera="turn" aria-label="Rotate camera">Rotate</button>
       </div>
+      <button id="motion-check" type="button">Record motion (5s)</button>
+      <p id="motion-status" role="status" aria-live="polite"></p>
+      <textarea id="motion-report" rows="7" readonly hidden aria-label="Motion diagnostic report"></textarea>
     </details>
     <p id="feedback" role="status" aria-live="polite">Loading town models…</p>
   </section>

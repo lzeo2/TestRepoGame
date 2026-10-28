@@ -10,6 +10,9 @@ reproduction or native acceptance from CPU fixtures. No blind renderer retries,
 new installations, public uploads, source-snapshot rewrites or competing main push.
 Preserve saves/gameplay and intentional animation. Only modify a demonstrated cause.
 Release owner`74b61fa7` receives the causal fix for serial deployment.
+The following diagnosis/key-release sections record2026-10-27. The2026-10-28
+quality continuation at the end adds an opt-in observational diagnostic, not a
+new asserted shaking cause; its source checkpoint supersedes the old tree counts.
 
 2026-10-27 09:08:30 UTC: clean HEAD`de3ec4e6`, game tree
 `cf589170731afb5e3f974305a449045fc225ac14`,226files/35,157,269bytes. Inventory matches.
@@ -98,3 +101,39 @@ qualified report for serial integration. No wholesale branch merge, competing ma
 push or green-only HOLD is imposed; known-failure release authority remains with
 that owner. No claim of deployment until the owner reports it. Overall shaking,
 GPU/context stability, Water/Save/Continue and hardware/FPS remain unpassed.
+
+## Quality continuation: actual motion diagnostic, 2026-10-28
+
+[Pre-delegation contract](citisten-motion-diagnostic-contract.md) and
+[integration receipt](citisten-motion-diagnostic-integration.md) record the useful
+next source work, rather than waiting solely on Chromebook feedback. No unchanged
+failed GPU configuration was run. #57 sol`d66dfef0` implements a5s/360-sample bounded
+recorder. #58 astra`e59956d9` committed sampler/check/receipt before tooltimeout143;
+that timeout/missing handoff is retained. #59 astra`f2fd1c6f` adds actual-world/GLB
+coverage and integration. Parent`f2697fc0` wires the existing-loop-only hook and
+Controls/report UI, read-only input getter and14-checkpoint invariance regression.
+Models/provider/reasoning unchanged; no nested delegates or competing writer.
+
+Source game tree`ff06ce5f68cbf300d93fd55c5a8396ed563d3cd4`,228files/35,188,315bytes.
+Separate233-hash motion freezeSHA256
+`6f1e9460bd80692048064f9e311fe3f5bcf46c12844995d637448fba36bdf4a0`;
+all prior manifests/model/vendor/font bytes unchanged. Existing v2 not rebuilt.
+Eight relevant Node suites, eight syntax checks, catalog129 and diff pass. Actual
+native/UI/loop/sim/save VM snapshots/save bytes/render counts/RAF ownership match
+at14 callbacks off/on; observer deadline cannot render/update/wake a sleeping loop.
+
+Final actual-entry DOM protocol passes with explicit world/renderer double:
+120 samples/2000.700ms span,5000.900ms deadline, partial:true. Paused simulation,
+storage and canvas geometry unchanged; selectable report,44px mobile control and
+normal Water selection after closing Controls pass. This is not native graphics,
+water placement, presented frames/FPS or shaking acceptance. Four earlier DOM
+failures remain intact; measured Service-palette overlap justified only open-
+Controls z5 plus shared scroll cap. Closedz1, builderz4/toastsz3 remain unchanged.
+
+All five own browser/profile/server attempts closed; leases released, sparse/
+config/fonts exact, final observed peak1,311,706bytes incl profile/old DOM evidence
+plus1MB reserve under11MB. No captures, new games, installs, export or lane push.
+Serial release belongs to74b61fa7; verify actual public entry and new dependencies
+against the source manifest after publication. Source/DOM/HTTP identity cannot
+establish native acceptance. Overall shaking, native Water/Save/Continue and
+requested0/5 frames remain open; do not claim the conditional key fix solved them.

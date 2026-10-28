@@ -32,7 +32,7 @@ const document = Object.assign(new EventTarget(), { hidden: false, querySelector
 Object.defineProperty(document, 'visibilityState', { get: () => document.hidden ? 'hidden' : 'visible' });
 const window = new EventTarget();
 let frameId = 0, wall = 0;
-const context = vm.createContext({ document, window, Event, AbortController, console: { log() {}, warn() {}, debug: debugConsole || (() => {}), error(e) { errors.push(e); } },
+const context = vm.createContext({ document, window, Event, AbortController, URL, console: { log() {}, warn() {}, debug: debugConsole || (() => {}), error(e) { errors.push(e); } },
   matchMedia: () => Object.assign(new EventTarget(), { matches: false }), performance: { now: () => wall },
   localStorage: { getItem: k => memory.get(k) ?? null, setItem: (k, v) => memory.set(k, v) },
   requestAnimationFrame(fn) { frames.set(++frameId, fn); return frameId; }, cancelAnimationFrame(id) { frames.delete(id); },
@@ -50,7 +50,8 @@ async function load(url) {
   let source = url.pathname.endsWith('/world.mjs') ? worldSource : await readFile(url, 'utf8');
   // Test-only read-only closure access. Product files are never rewritten.
   if (url.pathname.endsWith('/native.mjs')) source += '\nexport const inspect = () => ({ sim, paused, resumeSpeed, closed });';
-  const module = new vm.SourceTextModule(source, { context, identifier: url.href });
+  const module = new vm.SourceTextModule(source, { context, identifier: url.href,
+    initializeImportMeta(meta) { meta.url = url.href; } });
   modules.set(url.href, module);
   return module;
 }

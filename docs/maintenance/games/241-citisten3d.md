@@ -31,11 +31,20 @@ Registration does not establish browser/gameplay or performance acceptance.
 source review, the `93c104e`/`2540b8c` corrections and bounded native runners
 `14a19ab`/`a8d17f5`. Native acceptance is still blocked by recorded timeouts.
 
+Latest quality checkpoint: [opt-in motion diagnostic integration](../../citisten-motion-diagnostic-integration.md)
+adds bounded observation, not a shaking fix or native acceptance. Current source
+`f2697fc0`, game tree`ff06ce5f68cbf300d93fd55c5a8396ed563d3cd4`,228files/
+35,188,315bytes. Site versus downloaded v2 remains unknown; v2 is unchanged.
+Serial publication remains owner`74b61fa7`-owned, with known failures preserved.
+
 ## Implementation map
 
 `index.html`, `native.mjs`, `native-actions.mjs` and `native.css` connect
 `ui.mjs`, `sim.mjs` and `world.mjs`. `native-loop.mjs` owns the wake/sleep
-scheduler; `native-check.mjs` checks its static/hidden paths without a browser. `buildings.mjs` now exports the external
+scheduler; `native-check.mjs` checks its static/hidden paths without a browser.
+`motion-diagnostic.mjs` aggregates opt-in existing-loop observations;
+`render-motion-sample.mjs` reads computed transforms/input/viewport/shading only.
+Neither owns rendering, simulation, RAF or persistence. `buildings.mjs` now exports the external
 GLB kit, not procedural models. Await `world.ready` before rendering or play.
 `external-assets.mjs`, `external-buildings.mjs`, `external-materials.mjs` and
 `models/` own supplied rendering assets. See the
@@ -71,6 +80,16 @@ six seconds. Zero page errors; browser/server released. Eight screenshots are
 local-only under `.tmp/citisten-onboarding/`; desktop/mobile views in both themes
 were reviewed. The expanded `ui-qa.py` suite remains unrun, as does fresh native
 gameplay/FPS acceptance. No full-fleet gate or push was attempted.
+
+### Opt-in motion report
+
+Open Controls, scroll to **Record motion (5s)**, and leave controls still when
+checking idle movement. The selectable report stays in memory; nothing is sent,
+saved or exported. Unknown/capped data remains partial. A paused loop may sleep
+after two seconds while the five-second timer finishes without waking it. Sample
+counts are not presented frames/FPS; fixed sampled transforms cannot exclude
+visible GPU/shading/compositor jitter. Close Controls to use covered builder
+controls. Existing downloaded v2 does not contain this new UI.
 
 ### Population growth
 
@@ -1008,9 +1027,92 @@ available, and no transfer/remote execution happened or is authorized. Independe
 CPU/save work completed; native Water/Save/Continue, context stability, requested0/5
 frames and hardware/FPS remain unpassed. No further launch planned, push or new game.
 
+### Historical key-release checkpoint: conditional input defect fixed
+
+The new report is actual runtime evidence, not a completed native test. The user
+has not identified site versus private Chromebook v2. It supersedes the waiting-only
+checkpoint. [Dispatch and integration](../../citisten-shaking-dispatch.md) records
+bounded disjoint camera/RAF and world/render diagnosis against shipped`de3ec4e6`.
+Real common-module CPU fixtures measured3,606 snapped-idle camera samples and552
+world replay frames with zero fixed transform deltas. This does not disprove visual
+shaking on the user device. Depth/shadow sensitivities were quantified but not
+claimed causes; no quality/animation/shadow removal or blind renderer retry.
+
+A subsequent [actual DOM red/green](../../citisten-camera-key-release-fix.md)
+reproduced conditional unwanted camera motion: holdW on canvas, focus a native
+control, releaseW. Native panel stops bubbling keyup, so the old window-bubble
+camera handler never clears the held key. Shared fix`25f3562d` adds capture to
+that keyup listener only. Post-release target drift327.25→0 over165 fixture frames;
+normal easing, editable input and matching listener disposal remain. It does NOT
+establish that this explains the reported shaking, especially shaking before input.
+The initial missing-module fixture failure is retained; corrected DOM proof is not
+native Game/GPU acceptance. Saves/simulation/materials/animation are untouched.
+
+Parent current camera/world/save checks pass3/3 (save5/5 groups); worker four camera
+suites and world8/8 regression results remain separately recorded. Current game
+226files/35,157,288bytes/treefe47601d; new231-file key-release freezeSHA256
+`77c052b4340706303a1f129ba37ecb450ee5348d273da85124bc5fa260dff22f` differs
+from the prior empty-pool freeze only in`camera.mjs`. Old manifests and v2 remain
+unchanged. Native harness default pins still describe their older case, so do not
+silently run them against the new source or weaken their checks. The already-sent
+v2 contains the old controller; no large export was rebuilt. Serial deployment
+belongs to owner`74b61fa7`, not this lane; prior known-failure release authority is
+not replaced by a green-only hold. Whole-world shaking/user confirmation and native
+Water/Save/Continue/pixels/FPS remain unpassed. No new game or push here.
+
+### Quality-mode motion diagnostic integration (2026-10-28)
+
+The preceding226-file key-release checkpoint is historical. New source adds two
+bounded diagnostic modules plus the native hook/UI/read-only camera input getter;
+[full integration/evidence](../../citisten-motion-diagnostic-integration.md).
+Sol`d66dfef0` passes16 recorder cases. Astra`e59956d9` committed before its tool
+timeout143; missing final handoff and timeout remain recorded. Astra follow-up
+`f2fd1c6f` passes25 scenarios with actual createWorld/18 GLBs/simulation/recorder,
+zero forbidden calls and unchanged snapshots/roads. Static GLB matrices are read
+from authoritative material namespaces, not logical pose proxies. Cohort/scan/
+metadata caps and unqueried GPU health remain explicit; no all-silhouette claim.
+
+Parent`f2697fc0` samples after existing render without changing its busy predicate,
+delta ordering, quality, wake/sleep ownership or original500ms/5s native gates.
+Continue cancels the old cohort; pagehide disposes its timer. Textarea focus cannot
+invoke defense S or game shortcuts. The Continue VM needed URL/import.meta.url
+primitives for the existing metadata-module dependency; no original assertion or
+scenario timestamp changed. New native regression compares14 original callback
+checkpoints off/on: full snapshots, save bytes, render counts and one-owner state
+are identical. Timer-only/no-callback completion does not render/update/wake.
+
+Eight relevant Node executables, eight syntax checks, catalog129 and diff pass.
+Save regression remains5/5; camera/world replay stability is CPU evidence only.
+One complete actual-entry DOM protocol passes with an explicit world/renderer
+double, not real native graphics:120 samples over2000.700ms, timer5000.900ms,
+partial:true, unchanged paused snapshot/storage/canvas. Desktop1280x800 and
+mobile390x844 controls, selectable report,44px button and Water selection after
+closing Controls pass. No native water placement, pixel/FPS or shaking acceptance.
+
+Four earlier DOM protocol failures are retained: ambiguous hidden-Continue
+selector; builder interception; cap-only interception with Service open; mobile
+palette intentionally closed on resize. Shared details scrolling plus expanded-
+Controls-only z5 fixes the actual overlap. Closed controls remainz1, builderz4/
+toastsz3 unchanged; native modals retain top-layer priority. Final protocol uses
+normal Service reopen, no forceclick or game grants. All five cases close their
+own browsers/profiles/ports and release leases; exact sparse/config/font absence
+preserved. Observed peak1,311,706bytes includes live profile and previous DOM
+artifacts, plus1MB reserve, below11MB. No screenshots; requested native0/5 remains.
+
+Current228files/35,188,315bytes/treeff06ce5f and separate233-hash motion freeze
+SHA256`6f1e9460bd80692048064f9e311fe3f5bcf46c12844995d637448fba36bdf4a0`.
+All supplied-model/vendor/font hashes and five previous manifests remain unchanged.
+The source lane updated only this game's inventory row and recorded its missing
+Brainrot-manual blocker. The serial release base already repaired that baseline;
+its current coverage result is recorded separately. No game added, export rebuilt,
+GPU configuration retried, install or push from the source lane.
+Actual publication/served identity belongs to the serial owner and is recorded
+separately; neither source/DOM success nor release establishes user resolution.
+Whole-world shaking/native Water/Save/Continue/hardware/FPS remain **UNPASSED**.
+
 ## Future outlook
 
-Finish native-input/animation acceptance, complete the unchanged 40 FPS
+Resolve actual user shaking and finish native-input/animation acceptance, complete the unchanged 40 FPS
 measurement, resolve delivery gaps and perform full-fleet release QA.
 Operator batch 67b records ledger 241 as missing; use this manual and the
 catalog draft rather than inventing a ledger or blocking the registration.

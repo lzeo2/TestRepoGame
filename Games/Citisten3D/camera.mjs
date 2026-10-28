@@ -76,6 +76,7 @@ export function createFreeCamera(camera, canvas, extent = 1000, floorHeight = ()
   }, { passive: false });
   return {
     get inputVersion() { return inputVersion; },
+    get inputState() { return { held: [...keys], dragging: pointer !== null, version: inputVersion }; },
     get target() { return { x: target.x, y: target.y, z: target.z, yaw: targetYaw, pitch: targetPitch }; },
     setPose({ x, y, z, yaw: newYaw = targetYaw, pitch: newPitch = targetPitch }, snap = false) {
       if (![x, y, z, newYaw, newPitch].every(Number.isFinite)) throw new RangeError('Invalid camera pose');
