@@ -1,6 +1,40 @@
 # Citisten opt-in motion diagnostic: integration checkpoint
 
-## Status
+## Serial release integration (2026-10-28)
+
+Sole release writer `74b61fa7` integrated the pinned source/docs handoff
+`f2697fc0` / `9d959b73` onto fresh main `885cbb20`, not a whole-branch merge.
+Source commit: `017e4a47e6235917ee21c46d221caa230855615f`.
+The entire game tree and all **233 source-freeze hashes** match; newer Wings,
+Jank, Foldwild, catalog, portal and backend bytes are preserved. Model/vendor/font
+bytes are unchanged. The manual conflict retained main's newer release notes and
+qualified source-lane history. The previously source-only save/resume regression
+is included verbatim so the documented eight commands are available on main.
+
+Independent read-only verification reproduced **8/8 targeted executables** and
+**8/8 syntax checks**, all exit 0: recorder16, sampler25, native-hook14 off/on
+checkpoints, save5/5, camera/world stability, native loop and Continue. Source HEAD
+and all233 hashes stayed unchanged before/after. Full command stdout/stderr,
+individual exit codes and timings are preserved verbatim in
+[citisten-motion-independent-checks.log.gz](citisten-motion-independent-checks.log.gz)
+(raw SHA256 `d22bcf5a3231cea430fac112d3398bfa2d442d113d403a2c339fcf06f97a9b2b`).
+The [archived source freeze](citisten-motion-release-freeze.json) is byte-identical
+to the owner's manifest, SHA256 `6f1e9460bd80692048064f9e311fe3f5bcf46c12844995d637448fba36bdf4a0`.
+
+Official maintenance refresh changed **only Citisten's inventory row**.
+`PASS: 135 game documents cover 129 registered + 6 unregistered games; Git inventory current.`
+The missing-Brainrot findings below belong to the historical source lane; the
+release base already contains the separately repaired manual. This is coverage,
+not gameplay certification. Catalog stays129, games added0.
+
+Publication and canonical HTTP identity verification are pending in this checkpoint.
+No browser, screenshot, device/export rebuild or unchanged failed renderer retry
+was performed by the release integrator. Owner's double-based DOM proof is reused
+only as DOM evidence; all prior failures/tool timeout and requested native **0/5**
+remain. Whole-world shaking, native Water/Save/Continue, hardware and FPS are
+**UNPASSED**. No full-fleet run or native-acceptance claim.
+
+## Source-lane status
 
 **Whole-world shaking and native Water/Save/Continue remain UNPASSED.** This
 milestone implements an observational tool, not a rendering fix or test acceptance.
@@ -98,7 +132,8 @@ Native harness frozen-source pins still describe older cases and were not bypass
 `CATALOG PASS: 129 entries, unique integer IDs, schema and Git URLs` and
 `DIFF CHECK PASS` were observed. Added runtime source has no external/absolute
 loads. Canonical inventory refresh changes only Citisten's row. Documentation
-coverage remains blocked by the preexisting missing Brainrot manual; no fabrication.
+coverage in that source lane remained blocked by the preexisting missing Brainrot
+manual; no fabrication. Serial main's separately repaired coverage result is above.
 
 ## Actual DOM integration, not actual native graphics
 
