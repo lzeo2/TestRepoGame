@@ -1,0 +1,30 @@
+{
+  "assisted": false,
+  "sourceHashes": {
+    "Games/Slipstream Borough/CREDITS.md": "b8fc5ed706e172030156df3bc0f70b6f6e7ed23a5a4d46698629ee9e136db78e",
+    "Games/Slipstream Borough/clock.js": "53033b464d449cd6c5961e8d95c2e8601bf744c86bc3d8ae48da2e62050c12ae",
+    "Games/Slipstream Borough/core.js": "e2cb5c48654fb8a555136379a96f83cda5de2d570ab5d2ab4c931ac0b573abe5",
+    "Games/Slipstream Borough/index.html": "ca418708f55f4312439f4d965477bd1966a7243505b39c54b33eb7023f894e53",
+    "Games/Slipstream Borough/map.js": "dcf78105b10bb2ea7b60c9aec93fb64fee032e072077317b9bd662d605e7cce4",
+    "Games/Slipstream Borough/script.js": "7389ab9184a83df772aa5ad8bd02b9aec1c253ffb83f0e2fcd1b9a96270ca57f",
+    "Games/Slipstream Borough/style.css": "9d3750922964cd1b3e70f404116215efe0daa0eb367068be1c90f0ed6b74b970",
+    "Games/Slipstream Borough/view.js": "40f056b7588133c57c0c1f62388951f0decaf211853b8a537431e611599ccdc7",
+    "Games/Slipstream Borough/world.js": "8af01aa92d3b9c8bc91b9acccb28079f21477075ba0357c829d0767b90bc7f9d",
+    "assets/car-arcade/fleet.js": "4ee5fe5474fb0230b03bf3c96aaf64a85628d0120476110b83f2b617fd73198c",
+    "assets/car-arcade/models.js": "57d65ecb57e545a0cf521106ddaca62edde1edb966f920b35d046c63ca4f00b8",
+    "assets/car-arcade/patrol.js": "22abc6f28bf6cc18cd9610110dd2ce824120131747c895e68511c348e4ceca74",
+    "assets/car-arcade/storage.js": "50d7705730d77632ac940cfb2fab6d489eb0b4356681eae6cf01c55501bea7c5",
+    "assets/car-arcade/style.css": "c860363f9d9fb9e572f9e44f6b7a728786c977ff8582c1578e97a98d32ae7ee8",
+    "assets/car-arcade/vendor/three.module.js": "76dea8151bc9352aef3528b4262e249b2604f62543828328db978d060d61a495",
+    "scripts/test_slipstream_feel_browser.py": "2964fad915900eaef4ac1f2773b4f6776c12c35a29d186511f9996040b1a5d34"
+  },
+  "errors": [],
+  "observations": [],
+  "passed": false,
+  "failure": "TimeoutError: Locator.click: Timeout 20000ms exceeded.\nCall log:\n  - waiting for locator(\"#start\")\n    - locator resolved to <button id=\"start\">Start city drive</button>\n  - attempting click action\n    - waiting for element to be visible, enabled and stable\n    - element is visible, enabled and stable\n    - scrolling into view if needed\n    - done scrolling\n    - performing click action\n",
+  "serverPort": 45183,
+  "serverClosed": true,
+  "sourceUnchanged": true,
+  "elapsedSeconds": 40.111609481973574,
+  "freeBytesAfter": 2605060096
+}

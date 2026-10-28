@@ -1,0 +1,17 @@
+{
+  "status": "released",
+  "frozen_source_commit": "13f5270c9f162dace125846ec7159c6f360e60dc",
+  "source_manifest_sha256": "76ec2c173e15c93a76fb03311536e6f8b069450bcf202631c3ee09d6858228b2",
+  "started_utc": "2026-10-28T23:07:47.643141+00:00",
+  "released_utc": "2026-10-28T23:08:29.151731+00:00",
+  "launchCount": 1,
+  "cleanupEvidence": {
+    "remainingChromiumProcesses": [],
+    "remainingNewPlaywrightDirectories": [],
+    "serverPortClosed": true,
+    "serverClosedReceipt": true,
+    "browserDriverExited": true
+  },
+  "prelaunchFreeBytes": 2605895680,
+  "freeBytesAfter": 2605060096
+}

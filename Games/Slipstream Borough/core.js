@@ -267,7 +267,7 @@ function damage(r) {
   r.hp=Math.max(0,r.hp-24*100/r.stats.toughness);r.collisionCooldown=1.2;r.collisions++;
 }
 function startChase(r) {
-  const direction=r.speed<-1?-1:1, fx=-Math.sin(r.world.heading)*direction, fz=-Math.cos(r.world.heading)*direction;
+  const direction=r.speed<0?-1:1, fx=-Math.sin(r.world.heading)*direction, fz=-Math.cos(r.world.heading)*direction;
   const candidates=[];
   for(let x=-150;x<=150;x+=25)for(let z=-150;z<=150;z+=25) {
     const dx=x-r.world.x,dz=z-r.world.z,gap=Math.hypot(dx,dz),behind=-(dx*fx+dz*fz);

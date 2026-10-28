@@ -42,7 +42,7 @@ braking=simulate(120,.85,braking,{...idle,brake:1});assert(braking.speed<=0);ass
 // Sample headings, reverse travel, streets and finite corners. Impossible rear poses defer.
 let spawned=0,deferred=0;
 for(const point of [{x:0,z:0},{x:0,z:145},{x:150,z:150},{x:-163,z:-163}]) {
-  for(let angle=0;angle<16;angle++)for(const speed of [0,20,-6]) {
+  for(let angle=0;angle<16;angle++)for(const speed of [0,20,-6,-.5]) {
     const initial=core.startRun(core.freshProfile(),'roam').run;
     Object.assign(initial,{elapsed:20,distance:30,score:60,speed,traffic:[]});
     initial.world={...point,heading:-Math.PI+angle*Math.PI/8};
@@ -53,7 +53,7 @@ for(const point of [{x:0,z:0},{x:0,z:145},{x:150,z:150},{x:-163,z:-163}]) {
     assert.deepEqual(initial,copy);assert.equal(r.hp,reference.hp);assert.equal(r.collisions,reference.collisions);assert.equal(r.arrest,0);
     if(!r.police.length){assert.equal(r.pursuit,'roaming');deferred++;continue;}
     spawned++;const cop=r.police[0],dx=cop.world.x-r.world.x,dz=cop.world.z-r.world.z;
-    const sign=speed<-1?-1:1,forward={x:-Math.sin(initial.world.heading)*sign,z:-Math.cos(initial.world.heading)*sign};
+    const sign=speed<0?-1:1,forward={x:-Math.sin(initial.world.heading)*sign,z:-Math.cos(initial.world.heading)*sign};
     assert(dx*forward.x+dz*forward.z<=-39,'cop must be safely rearward');
     assert(gap(cop.world,r.world)>59);assert(!blocked(cop.world.x,cop.world.z));
     assert.notDeepEqual(chaseTarget(cop.world,r.world),cop.world,'spawn has a navigable route');
