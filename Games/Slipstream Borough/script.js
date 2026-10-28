@@ -94,7 +94,7 @@ function modeUI() {
   $('sandboxSetup').hidden = mode !== 'sandbox';
   $('start').disabled = !view || blocked && mode !== 'sandbox';
   if (mode === 'sandbox') { $('modeGoal').textContent = 'All 16 cars. Tune steering; no career saving.'; $('start').textContent = 'Start sandbox'; return; }
-  $('modeGoal').textContent = mode === 'roam' ? 'Drive to earn cash and mileage. Park to bank it and unlock more cars.' : mode === 'cutup' ? 'Reach the finish while evading police and traffic. Leaving early pays nothing.' : 'Beat three rivals to the finish. A completed race earns cash and mileage.';
+  $('modeGoal').textContent = mode === 'roam' ? 'Explore, then outrun patrol. Park to bank cash and mileage.' : mode === 'cutup' ? 'Reach the finish while evading police and traffic. Leaving early pays nothing.' : 'Beat three rivals to the finish. A completed race earns cash and mileage.';
   $('start').textContent = mode === 'roam' ? 'Start city drive' : mode === 'cutup' ? 'Start pursuit' : 'Start race';
 }
 function equipmentUI() {
@@ -162,7 +162,7 @@ function respawn() {
 }
 function crashFeedback() {
   noticeRemaining = 4;
-  $('crashText').textContent = `Crash! Body ${Math.ceil(run.hp)}% remaining. Brake or respawn.`;
+  $('crashText').textContent = `Crash! Body ${Math.ceil(run.hp)}%. ${run.mode === 'roam' || sandbox() ? 'Brake, then reverse out, or respawn unpaid.' : 'Brake and steer clear, or respawn unpaid.'}`;
   $('crashNotice').hidden = false; $('recover').hidden = false;
 }
 function leave() {
@@ -177,7 +177,7 @@ function input(dt = 0) { const left = held.has('left') || keys.has('a') || keys.
   else if (dt > 0) {
     // A direction change must not keep steering the wrong way during the press ramp.
     if (steering * target < 0) steering = 0;
-    const response = run?.mode === 'sandbox' ? sandboxSettings[run.carId].response : run?.mode === 'roam' ? 7 - 2 * Math.min(1, Math.abs(run.speed) / 20) : 5;
+    const response = run?.mode === 'sandbox' ? sandboxSettings[run.carId].response : run?.mode === 'roam' ? 11 - 4 * Math.min(1, Math.abs(run.speed) / 25) : 5;
     steering += Math.max(-dt * response, Math.min(dt * response, target - steering));
   }
   return { steer: steering, throttle: brake ? 0 : +($('cruise').checked || held.has('gas') || keys.has('w') || keys.has('arrowup')), brake,deploy:queuedDeploy, ...(run?.mode === 'sandbox' ? { handling: sandboxSettings[run.carId].handling } : {}) }; }
@@ -191,7 +191,7 @@ function updateHud() {
     $('activity').textContent = paused ? 'Paused' : activity;
     const getMoving = phone ? 'Hold Gas' : 'Hold W / Up';
     const gap = run.mode === 'roam' && run.police.length ? Math.min(...run.police.map(cop => Math.hypot(cop.world.x - run.world.x, cop.world.z - run.world.z))) : null;
-    const goal = sandbox() ? `Tune steering in Test settings. No saving. Hold ${phone ? 'Reverse' : 'S / Down'} to back up.` : run.mode === 'roam' ? (run.arrest > 0 ? `Boxed in: ${Math.max(0, 3 - run.arrest).toFixed(1)}s until arrest. Accelerate away!` : run.pursuit === 'chased' ? `Police ${Math.round(gap)} m away. Stay 75 m away for 6 seconds.` : `${run.distance < 10 ? getMoving + ' to move. ' : ''}Pass traffic cleanly. Park to bank cash and mileage.`) : run.mode === 'race' ? `Beat three rivals. Finish at ${run.finishDistance} m.` : `Evade police and traffic. Reach ${run.finishDistance} m to earn your payout.`;
+    const goal = sandbox() ? `Tune steering in Test settings. No saving. Hold ${phone ? 'Reverse' : 'S / Down'} to back up.` : run.mode === 'roam' ? (run.arrest > 0 ? `Boxed in: ${Math.max(0, 3 - run.arrest).toFixed(1)}s until arrest. Accelerate away!` : run.pursuit === 'chased' ? `Police ${Math.round(gap)} m away. Stay 75 m away for 6 seconds.` : `${run.distance < 10 ? getMoving + '. Brake before turns. ' : ''}Patrol follows after 20s and 30m. Park to bank cash and mileage.`) : run.mode === 'race' ? `Beat three rivals. Finish at ${run.finishDistance} m.` : `Evade police and traffic. Reach ${run.finishDistance} m to earn your payout.`;
     const objective = paused ? 'Resume to keep driving, or return to the garage.' : goal;
     if ($('objective').textContent !== objective) $('objective').textContent = objective;
     $('speed').textContent = `${run.speed < 0 ? 'R ' : ''}${Math.round(Math.abs(run.speed) * 3.6)} km/h`;

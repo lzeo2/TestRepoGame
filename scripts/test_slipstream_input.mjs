@@ -20,13 +20,32 @@ ctx.queuedDeploy=true;assert.equal(ctx.input().deploy,true);
 ctx.run={mode:'sandbox',carId:'bricklet'};keys.add('d');
 assert(Math.abs(ctx.input(1/60).steer-2/60)<1e-9);assert.equal(ctx.input().handling,1.25);
 ctx.run={mode:'roam',speed:0};ctx.steering=0;
-const slow=ctx.input(1/60).steer;assert(Math.abs(slow-7/60)<1e-9);
+const slow=ctx.input(1/60).steer;assert(Math.abs(slow-11/60)<1e-9);
 ctx.run.speed=25;ctx.steering=0;
-const fast=ctx.input(1/60).steer;assert(Math.abs(fast-5/60)<1e-9);assert(fast<slow,'gentler press at speed');
+const fast=ctx.input(1/60).steer;assert(Math.abs(fast-7/60)<1e-9);assert(fast<slow,'gentler press at speed');
 assert(!Object.hasOwn(ctx.input(),'handling'),'sandbox tuning never reaches banked physics');
 ctx.run.speed=-6;ctx.steering=0;assert(Number.isFinite(ctx.input(1/60).steer));
-const simulate=hz=>{ctx.run={mode:'roam',speed:10};ctx.steering=0;for(let i=0;i<hz/10;i++)ctx.input(1/hz);return ctx.steering;};
-assert(Math.abs(simulate(60)-simulate(120))<1e-9,'same ramp at 60/120 Hz');
+for(const speed of [0,10,25,60,-6]) {
+  const results=[];
+  for(const hz of [30,60,120]) {
+    keys.clear();held.clear();keys.add('d');ctx.run={mode:'roam',speed};ctx.steering=0;
+    for(let i=0;i<hz/10;i++)ctx.input(1/hz);
+    results.push(ctx.steering);
+    assert(Math.abs(ctx.steering-Math.min(1,.1*(11-4*Math.min(1,Math.abs(speed)/25))))<1e-9);
+    for(let i=0;i<hz/5;i++)ctx.input(1/hz);
+    assert.equal(ctx.steering,1,'full steering stays available at every speed');
+    keys.clear();held.add('left');assert(ctx.input(1/hz).steer<0,'held-touch reversal immediately changes direction');
+    held.clear();assert.equal(ctx.input().steer,0,'touch release clears steering without another physics step');
+    held.add('gas');held.add('brake');assert.equal(ctx.input().throttle,0);assert.equal(ctx.input().brake,1);
+  }
+  assert(Math.max(...results)-Math.min(...results)<1e-9,'same ramp at 30/60/120 Hz');
+}
+// Exercise the same reset called by pause, blur, Help, retry and storage locks.
+Object.assign(ctx,{accumulator:.2,last:123,previousRun:null,renderAlpha:.5});
+runInNewContext(source.slice(source.indexOf('function clearInput('),source.indexOf('function sandboxUI(')),ctx);
+keys.add('w');held.add('left');ctx.steering=-1;ctx.queuedDeploy=true;ctx.clearInput();
+assert.equal(keys.size,0);assert.equal(held.size,0);assert.equal(ctx.steering,0);assert.equal(ctx.queuedDeploy,false);
+assert.equal(ctx.accumulator,0);assert.equal(ctx.last,0);assert.equal(ctx.previousRun,ctx.run);assert.equal(ctx.renderAlpha,1);
 const hud=source.slice(source.indexOf('function updateHud('),source.indexOf('function pause('));
 for(const text of ['240 - run.elapsed','run.nearMisses','3 - run.arrest','cop.world.x - run.world.x'])assert(hud.includes(text));
-console.log('PASS actual controller: speed-sensitive press, immediate direction change/release, 60/120Hz ramp, held touch, opposing controls, brake priority, Auto gas and sandbox isolation. HUD countdown/pass/pursuit bindings. Synthetic input only.');
+console.log('PASS actual controller: speed-sensitive press, immediate direction change/release, 30/60/120Hz ramp at five signed speeds, held touch, opposing controls, brake priority, Auto gas, sandbox isolation and input reset safety. HUD countdown/pass/pursuit bindings. Synthetic input only.');
