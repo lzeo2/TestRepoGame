@@ -837,6 +837,43 @@ No new browser/renderer run, assets, threshold changes, install or push. Warden'
 retained actual native failures remain held and are not reclassified as passing
 or merely not-run. Native execution of this candidate remains blocked by size.
 
+### Current source and hero boundary, 2026-10-28
+
+Fresh real Host/route/UI-state audit rejects all40 raw proposals without changing
+visible hero/stats/events, then admits only the five guarded profiles with explicit
+`partialSlice` opt-in. Public-host QA requests still reject; no ordinary roster
+addition is inferred from a loopback adapter.
+
+| Definition/profile group | Configured slots | Remaining boundary |
+| --- | --- | --- |
+| Ordinary roster | 8 selectable definitions /32 slots | Separate existing engine kits, not eight newly accepted native cases |
+| Odo, Whitespace, Laminate, Cassette | 1/2/3/4 each | Four CPU QA adapters, not full proposal/native/art parity |
+| Fern (`office-plants`) | 1/3 | 2 Planter Shelter and4 Office Conservatory unavailable |
+| Other35 proposed kits | None | All140 slots unavailable |
+
+Thus **18/160 proposed slots have compatible CPU QA adapters;142 remain held**.
+Fern2/4 still require genuine arc/radial planter compositions, not resized generic
+panels. Forty decoded/rigged bodies, retained raw proposals, weapon/melee checks
+and five QA profiles are different acceptance axes. None establishes forty
+complete heroes, thirteen accepted ordinary kits or expansion native acceptance.
+
+Independent HTTP checks of live `heroes/hero-runtime.mjs`, `systems.mjs`,
+`heroes/qa-slices.mjs` and `integration-ui.mjs` returned200 and byte-matched
+committed `c19405ab`. This is source delivery, not visible gameplay. The already
+live boot-JSON fix was neither repeated nor changed. The serial release owner
+confirmed main `885cbb20`, no retained browser reservation, and sole push ownership;
+no capture reservation or native GO was inferred.
+
+A bounded typed-contract/scenario feasibility check used the actual preserved
+pair, retained all18 names/29 vectors and made no source edits. Its concrete
+accounting established no safe19,317-byte saving; no further unchanged cap-golf
+or renderer rerun follows. Native QA remains79,317/60,000 bytes and17/18, with
+that sole failing source-size gate. Historical Warden zero-frame/cleanup failures
+remain unresolved; the async candidate's current native behavior has not been
+measured. Current CPU scope receipt: `jank-current-hero-scope-20261028.json`;
+feasibility accounting: `jank-d109-feasibility-20261028/REPORT.md` (volatile working
+evidence). No new game, dependencies, model change, gameplay/QA source mutation or push.
+
 ## Forty-hero intake and staged art integration
 
 The operator's newly received archive is retained unchanged with SHA-256
