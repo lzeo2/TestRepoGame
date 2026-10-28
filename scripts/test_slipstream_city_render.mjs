@@ -13,9 +13,9 @@ const city = createCityArchitecture(box, color => {
   const m = new THREE.MeshLambertMaterial({ color }); materials.push(m); return m;
 }, pane);
 const batches = Object.fromEntries(city.children.map(m => [m.name, m]));
-assert.equal(WORLD.blocks.length, 36);
-assert.equal(batches['city-plinth'].count, 36);
-assert.equal(batches['city-paving'].count, 36);
+assert.equal(WORLD.blocks.length, 40);
+assert.equal(batches['city-plinth'].count, WORLD.blocks.length);
+assert.equal(batches['city-paving'].count, WORLD.blocks.length);
 assert(city.userData.batches <= 12);
 assert(city.userData.triangles <= 50000);
 const matrix = new THREE.Matrix4(), bounds = new THREE.Box3();
@@ -47,17 +47,17 @@ for (const mesh of city.children) {
 assert.equal(triangles, city.userData.triangles); assert.equal(instances, city.userData.instances);
 for (const [i, w] of WORLD.blocks.entries()) {
   const b = instanceBounds(batches['city-plinth'], i);
-  assert.equal(b.min.x, w.x - 14); assert.equal(b.max.x, w.x + 14);
-  assert.equal(b.min.z, w.z - 14); assert.equal(b.max.z, w.z + 14);
+  assert.equal(b.min.x, w.x - w.width / 2); assert.equal(b.max.x, w.x + w.width / 2);
+  assert.equal(b.min.z, w.z - w.depth / 2); assert.equal(b.max.z, w.z + w.depth / 2);
   assert(blocked(w.x, w.z));
 }
 assert(batches['city-glazing'].count > 1000, 'windows on all elevations plus storefronts');
 assert(batches['city-transom'].count > 1000, 'window frame detail');
-assert(batches['city-roof'].count > 36, 'roof silhouette detail');
-assert.equal(batches['city-awning'].count, 36 * 4);
-assert.equal(batches['city-curb'].count, 36 * 4);
-assert.equal(batches['city-lamp'].count, 24 * 2, '24 footprint-contained poles and caps, no new lights');
-assert.equal(batches['city-storefront'].count, 36 * 4);
+assert(batches['city-roof'].count > WORLD.blocks.length, 'roof silhouette detail');
+assert.equal(batches['city-awning'].count, WORLD.blocks.length * 4);
+assert.equal(batches['city-curb'].count, WORLD.blocks.length * 4);
+assert.equal(batches['city-lamp'].count, Math.ceil(WORLD.blocks.length / 3) * 4, 'footprint-contained poles and caps, no new lights');
+assert.equal(batches['city-storefront'].count, WORLD.blocks.length * 4);
 for (const name of ['masonry', 'awning', 'storefront']) {
   const colors = batches[`city-${name}`].instanceColor;
   const palette = new Set(Array.from({length:colors.count}, (_, i) => [colors.getX(i), colors.getY(i), colors.getZ(i)].join(',')));
@@ -71,9 +71,9 @@ for (let i = 0; i < batches['city-curb'].count; i++) {
 for (let i = 0; i < batches['city-glazing'].count; i++) {
   const b = instanceBounds(batches['city-glazing'], i);
   const center = b.getCenter(new THREE.Vector3());
-  const w = WORLD.blocks.find(w => Math.abs(center.x - w.x) < 14 && Math.abs(center.z - w.z) < 14);
+  const w = WORLD.blocks.find(w => Math.abs(center.x - w.x) < w.width / 2 && Math.abs(center.z - w.z) < w.depth / 2);
   assert(w);
-  if (center.y < w.height) assert(Math.abs(Math.max(Math.abs(center.x - w.x), Math.abs(center.z - w.z)) - 13.63) < .001);
+  if (center.y < w.height) assert(Math.min(Math.abs(Math.abs(center.x - w.x) - (w.width / 2 - .37)), Math.abs(Math.abs(center.z - w.z) - (w.depth / 2 - .37))) < .001);
 }
 const source = readFileSync(new URL('../Games/Slipstream Borough/view.js', import.meta.url), 'utf8');
 assert(source.includes('instance(cityBuildings, i, b.x, b.height / 2, b.z, b.width, b.height, b.depth)'));
@@ -134,7 +134,7 @@ const architecture = renderedScene.getObjectByName('city-masonry').parent;
 const frozen = architecture.children.map(m => Array.from(m.instanceMatrix.array));
 view.draw(profile, run);
 assert.deepEqual(architecture.children.map(m => Array.from(m.instanceMatrix.array)), frozen);
-assert.equal(view.inspect().cityBlocks, 36);
+assert.equal(view.inspect().cityBlocks, WORLD.blocks.length);
 assert.equal(view.inspect().cityArchitecture.triangles, triangles);
 const crossings = renderedScene.getObjectByName('city-crosswalks');
 const crossingStats = view.inspect().cityCrosswalks;
@@ -170,6 +170,21 @@ run.id = 2; run.world = {x:0,z:0,heading:Math.PI-.01}; view.draw(profile, run, 0
 const beforeWrap = view.inspect().camera.heading;
 run.world.heading = -Math.PI+.01; view.draw(profile, run, 0, 1/60);
 assert(Math.abs(view.inspect().camera.heading-beforeWrap)<.02, 'short turn across signed PI');
+// Faster straight-line driving gets bounded extra sight distance without lens pumping.
+const speedCamera = {...run,id:3,speed:32,world:{x:0,z:0,heading:0}};
+view.draw(profile,speedCamera,0,0);
+const fastCamera = view.inspect().camera;
+assert(Math.abs(fastCamera.target[2]+15.36)<1e-9, 'speed anticipation looks further down the road');
+assert.equal(fastCamera.fov,52); assert(fastCamera.eye[1] < 6.2);
+const cameraRates = [30,60,120].map((rate,index) => {
+  const fixture = {...speedCamera,id:4+index}; view.draw(profile,fixture,0,0);
+  for (let frame=1;frame<=rate;frame++) view.draw(profile,{...fixture,world:{x:0,z:-32*frame/rate,heading:0}},0,1/rate);
+  return view.inspect().camera;
+});
+for (const camera of cameraRates) for (const key of ['eye','target']) {
+  assert(Math.abs(camera[key][2]-cameraRates[2][key][2])<.5, '30/60/120Hz chase differs by less than half a metre at 32m/s');
+  assert(camera[key].every(Number.isFinite));
+}
 view.setCamera('cockpit');
 for (const [i,car] of CARS.entries()) {
   const fixtureProfile = {selected:car.id,customizations:{[car.id]:appearance}};
@@ -204,7 +219,7 @@ for (let tick=1;tick<=6;tick++) {
     const actual=view.inspect(); raw.push(current.world.z); smooth.push(actual.pose.z);
     assert(Math.abs(actual.pose.z-current.world.z)<=.010000001,'at most one simulation tick behind');
     assert(Math.abs(actual.renderElapsed-(older.elapsed+alpha/60))<1e-10);
-    assert.equal(actual.worldMode,'sandbox'); assert.equal(actual.cityBlocks,36);
+    assert.equal(actual.worldMode,'sandbox'); assert.equal(actual.cityBlocks,WORLD.blocks.length);
   }
   older=current;
 }
@@ -321,4 +336,4 @@ if (priorMatchMedia === undefined) delete globalThis.matchMedia; else globalThis
 for (const [resource, count] of tracked) assert.equal(count, 1, `resource disposed once: ${resource.type || resource.name}`);
 assert(firstInstances.length >= 12);
 delete globalThis.__cityTrack; delete globalThis.__CityRenderer; delete globalThis.document;
-console.log(`PASS: 36 collision-aligned bases; ${city.userData.batches} static architecture batches, ${instances} instances, ${triangles} triangles; glazing/recess/roof/bounds/resize/disposal; chase lag/wrap/pause/cover and all16 physical cockpit transforms. 60/120Hz interpolation, guard/pause/NPC/reverse/highway checks. ${crossingStats.instances} flat crosswalk stripes/${crossingStats.triangles} triangles in one batch; 24 footprint-contained lamps, curb/storefront palettes; police chase/time/pause/reduced-motion/48-triangle cap; exact-once disposal across two lifecycles. Synthetic drawing, not native visual acceptance or owner-device FPS/choppiness proof.`);
+console.log(`PASS: ${WORLD.blocks.length} collision-aligned bases; ${city.userData.batches} static architecture batches, ${instances} instances, ${triangles} triangles; glazing/recess/roof/bounds/resize/disposal; chase lag/wrap/pause/cover, bounded 32m/s anticipation/30-60-120Hz damping and all16 physical cockpit transforms. 60/120Hz interpolation, guard/pause/NPC/reverse/highway checks. ${crossingStats.instances} flat crosswalk stripes/${crossingStats.triangles} triangles in one batch; ${batches['city-lamp'].count / 2} footprint-contained lamps, curb/storefront palettes; police chase/time/pause/reduced-motion/48-triangle cap; exact-once disposal across two lifecycles. Synthetic drawing, not native visual acceptance or owner-device FPS/choppiness proof.`);

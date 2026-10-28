@@ -22,14 +22,14 @@ export function createCityArchitecture(unitBox, makeMaterial, paneGeometry) {
     for (const side of [-1, 1]) {
       part('curb', x, .1, z + side * (d / 2 - .12), w, .2, .24);
       part('curb', x + side * (w / 2 - .12), .1, z, .24, .2, d - .48);
-      // Twenty-four corner lamps, wholly inside the already solid footprints.
+      // Corner lamps remain wholly inside the already solid footprints.
       if (i % 3 === 0) {
         const lx = x + side * (w / 2 - .23), lz = z + side * (d / 2 - .23);
         part('lamp', lx, 2.3, lz, .12, 4.4, .12, '#383e43');
         part('lamp', lx, 4.55, lz, .42, .18, .42, '#f2d59a');
       }
     }
-    const floors = Math.floor((h - 4) / 3.2);
+    const floors = Math.floor((h - 4) / 3.8);
     for (let face = 0; face < 4; face++) {
       const alongX = face < 2, sign = face % 2 ? 1 : -1;
       const span = alongX ? w : d, depth = (alongX ? d : w) / 2;
@@ -44,35 +44,39 @@ export function createCityArchitecture(unitBox, makeMaterial, paneGeometry) {
       const shopColor = storefronts[(i + face) % storefronts.length];
       facade('awning', 0, 3.05, .24, span - 2, .16, .48, shopColor);
       facade('storefront', 0, 2.72, .32, span - 4, .42, .02, shopColor);
-      for (const u of [-10, -5, 0, 5, 10]) {
+      const bays = Math.max(1, Math.floor(span / 6)), step = (span - 4) / bays;
+      for (let pier = 0; pier <= bays; pier++) {
+        const u = -span / 2 + 2 + pier * step;
         facade('trim', u, 1.75, .2, .22, 2.9, .4);
         // Tall masonry piers create genuine window reveals on all four sides.
         facade('trim', u, (h + 3.8) / 2, .23, .30, h - 3.8, .3);
       }
       for (let floor = 0; floor < floors; floor++) {
-        const y = 5.1 + floor * 3.2;
+        const y = 5.1 + floor * 3.8;
         facade('trim', 0, y - 1.15, .18, span - .4, .18, .36);
-        for (const u of [-7.5, -2.5, 2.5, 7.5]) {
-          facade('glazing', u, y, .37, 3.9, 2.05, .04);
+        for (let bay = 0; bay < bays; bay++) {
+          const u = -span / 2 + 2 + (bay + .5) * step, windowWidth = Math.min(3.9, step - .6);
+          facade('glazing', u, y, .37, windowWidth, 2.05, .04);
           // A narrow raised transom makes the large panes read at street scale.
-          facade('transom', u, y + .38, .30, 3.9, .075, .02);
+          facade('transom', u, y + .38, .30, windowWidth, .075, .02);
         }
       }
       facade('trim', 0, h + .25, .2, span, .5, .4);
     }
     part('roof', x, h + .08, z, w - .8, .16, d - .8);
-    // Three restrained silhouettes: setback plant room, twin vents, roof lantern.
+    // Scale roof silhouettes to the actual parcel, including narrow alley buildings.
+    const sx = w / 28, sz = d / 28;
     if (i % 3 === 0) {
-      part('masonry', x - 3, h + 1.4, z + 2, 10, 2.8, 8, colors[i % colors.length]);
-      part('roof', x - 3, h + 2.9, z + 2, 10.4, .2, 8.4);
+      part('masonry', x - 3 * sx, h + 1.4, z + 2 * sz, 10 * sx, 2.8, 8 * sz, colors[i % colors.length]);
+      part('roof', x - 3 * sx, h + 2.9, z + 2 * sz, 10.4 * sx, .2, 8.4 * sz);
     } else if (i % 3 === 1) {
       for (const offset of [-5, 5]) {
-        part('roof', x + offset, h + .8, z, 3, 1.6, 5);
-        part('trim', x + offset, h + 1.65, z, 3.3, .1, 5.3);
+        part('roof', x + offset * sx, h + .8, z, 3 * sx, 1.6, 5 * sz);
+        part('trim', x + offset * sx, h + 1.65, z, 3.3 * sx, .1, 5.3 * sz);
       }
     } else {
-      part('trim', x, h + .45, z, 9, .9, 6);
-      part('glazing', x, h + .94, z, 8.5, .08, 5.5);
+      part('trim', x, h + .45, z, 9 * sx, .9, 6 * sz);
+      part('glazing', x, h + .94, z, 8.5 * sx, .08, 5.5 * sz);
     }
   });
   const shades = { plinth: '#766d60', masonry: '#ffffff', paving: '#b9b2a0', curb: '#dfd1b8', lamp: '#ffffff', storefront: '#ffffff', glazing: '#354b59', transom: '#b9b3a3', trim: '#cec3ae', awning: '#ffffff', roof: '#626762' };
@@ -214,6 +218,8 @@ export function createView(host) {
     }
   }
   cityLines.instanceMatrix.needsUpdate = true; city.add(cityLines);
+  // Flat, contrasting service-lane paving shows real through routes, not false openings.
+  for (const lane of WORLD.shortcuts) box(lane.width, .1, lane.depth, '#56534c', lane.x, -.09, lane.z, city);
   for (const side of [-1, 1]) {
     // Inner face is the exact finite boundary, not a looping scenery strip.
     box(1, 1.2, extent + 2, '#d4c5a7', side * (WORLD.limit + .5), .6, 0, city);
@@ -472,14 +478,14 @@ export function createView(host) {
       const snap = cameraRun !== run.id || reducedMotion;
       const delta = Math.max(0, Math.min(.25, Number.isFinite(dt) ? dt : 0));
       const heading = roam ? yaw : 0;
-      // A wrap-safe, time-based chase: follow the road ahead, not a locked car pivot.
-      cameraYaw = snap ? heading : cameraYaw + Math.atan2(Math.sin(heading - cameraYaw), Math.cos(heading - cameraYaw)) * (1 - Math.exp(-2.5 * delta));
-      const speed = Math.abs(mix(previous?.speed, run.speed || 0));
-      const back = 11 + speed * .04, ahead = 8 + speed * .12;
-      desiredEye.set(player.position.x + Math.sin(cameraYaw) * back, 5.5, player.position.z + Math.cos(cameraYaw) * back);
+      // Speed-bounded road lead and quicker damping, with no shake, roll or dynamic FOV.
+      const speed = Math.min(45, Math.abs(mix(previous?.speed, run.speed || 0))), pace = speed / 45;
+      cameraYaw = snap ? heading : cameraYaw + Math.atan2(Math.sin(heading - cameraYaw), Math.cos(heading - cameraYaw)) * (1 - Math.exp(-(3.8 + pace) * delta));
+      const back = 11 + speed * .055, ahead = 8 + speed * .23, lead = speed * .08;
+      desiredEye.set(player.position.x + Math.sin(cameraYaw) * (back - lead), 5.5 + pace * .6, player.position.z + Math.cos(cameraYaw) * (back - lead));
       desiredTarget.set(player.position.x - Math.sin(cameraYaw) * ahead, .8, player.position.z - Math.cos(cameraYaw) * ahead);
       if (snap) { camera.position.copy(desiredEye); cameraTarget.copy(desiredTarget); }
-      else { camera.position.lerp(desiredEye, 1 - Math.exp(-7 * delta)); cameraTarget.lerp(desiredTarget, 1 - Math.exp(-9 * delta)); }
+      else { camera.position.lerp(desiredEye, 1 - Math.exp(-(9 + pace * 2) * delta)); cameraTarget.lerp(desiredTarget, 1 - Math.exp(-11 * delta)); }
       if (roam) {
         // Resolve obstruction after smoothing, so interpolation cannot enter a building.
         cameraAnchor.set(player.position.x, 1, player.position.z); city.updateMatrixWorld(true);

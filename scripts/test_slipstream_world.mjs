@@ -10,8 +10,8 @@ const fresh=()=>core.startRun(core.freshProfile(),'roam');
 function tick(run,input,n){for(let i=0;i<n;i++)run=core.stepRun(run,input,.05);return run;}
 // All manipulated mileage/poses/funding below are synthetic ABI regressions, not natural-play evidence.
 check('immutable original city / radius / finite boundaries / routes',()=>{
-  assert.equal(WORLD.blocks.length,36);assert(Object.isFrozen(WORLD));assert(Object.isFrozen(WORLD.blocks));
-  for(const b of WORLD.blocks){assert(Object.isFrozen(b));assert(blocked(b.x,b.z));assert(blocked(b.x+15,b.z));}
+  assert.equal(WORLD.blocks.length,40);assert(Object.isFrozen(WORLD));assert(Object.isFrozen(WORLD.blocks));
+  for(const b of WORLD.blocks){assert(Object.isFrozen(b));assert(blocked(b.x,b.z));assert(blocked(b.x+b.width/2+1,b.z));}
   for(const x of [-150,-100,-50,0,50,100,150])assert(!blocked(x,0));
   assert(blocked(164,0));assert(blocked(0,-164));assert(!blocked(163,0));
   for(const x of [NaN,Infinity,'0',{},null])assert.throws(()=>blocked(x,0));
