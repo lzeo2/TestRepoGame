@@ -13,8 +13,9 @@ is included verbatim so the documented eight commands are available on main.
 
 Independent read-only verification reproduced **8/8 targeted executables** and
 **8/8 syntax checks**, all exit 0: recorder16, sampler25, native-hook14 off/on
-checkpoints, save5/5, camera/world stability, native loop and Continue. Source HEAD
-and all233 hashes stayed unchanged before/after. Full command stdout/stderr,
+checkpoints, save5/5, camera/world stability, native loop and Continue. Parent also
+parsed the newly imported save/resume script: **9/9 syntax checks total**. Source
+HEAD and all233 hashes stayed unchanged before/after. Full command stdout/stderr,
 individual exit codes and timings are preserved verbatim in
 [citisten-motion-independent-checks.log.gz](citisten-motion-independent-checks.log.gz)
 (raw SHA256 `d22bcf5a3231cea430fac112d3398bfa2d442d113d403a2c339fcf06f97a9b2b`).
@@ -27,7 +28,19 @@ The missing-Brainrot findings below belong to the historical source lane; the
 release base already contains the separately repaired manual. This is coverage,
 not gameplay certification. Catalog stays129, games added0.
 
-Publication and canonical HTTP identity verification are pending in this checkpoint.
+Published source/inventory main `da16004a0a27bbb7c11ff3e0961e2a74f14adb24`;
+[Pages run40689333665](https://github.com/lzeo2/TestRepoGame/actions/runs/40689333665)
+completed **success**. The initial bounded status observation ended in-progress,
+not a failed deployment or an inferred success. Later exact-run status was verified.
+Canonical [Citisten](https://lzeo2.github.io/TestRepoGame/Games/Citisten3D/) files
+were checked at **2026-10-28 12:44:24–12:44:46 UTC**: **233/233 HTTP200 and exact
+frozen SHA256 matches**, **80/80 JS/CSS/HTML MIME validations**, zero retries.
+Both new modules are `text/javascript; charset=utf-8`; entry/native/controller/CSS,
+namespace dependency and every other frozen asset match. Streamed35,246,216bytes;
+no response bodies or model/font copies saved. Verbatim structured evidence:
+[citisten-motion-public-freeze-check.json.gz](citisten-motion-public-freeze-check.json.gz).
+This proves served identity, not execution, pixels or user resolution.
+
 No browser, screenshot, device/export rebuild or unchanged failed renderer retry
 was performed by the release integrator. Owner's double-based DOM proof is reused
 only as DOM evidence; all prior failures/tool timeout and requested native **0/5**
