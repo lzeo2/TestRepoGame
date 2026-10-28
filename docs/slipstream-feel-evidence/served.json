@@ -1,0 +1,30 @@
+{
+  "entries": [
+    {
+      "path": "Games/Slipstream Borough/index.html",
+      "status": 200,
+      "sha256": "ca418708f55f4312439f4d965477bd1966a7243505b39c54b33eb7023f894e53"
+    },
+    {
+      "path": "Games/Slipstream Borough/core.js",
+      "status": 200,
+      "sha256": "e2cb5c48654fb8a555136379a96f83cda5de2d570ab5d2ab4c931ac0b573abe5"
+    },
+    {
+      "path": "Games/Slipstream Borough/script.js",
+      "status": 200,
+      "sha256": "7389ab9184a83df772aa5ad8bd02b9aec1c253ffb83f0e2fcd1b9a96270ca57f"
+    },
+    {
+      "path": "Games/Slipstream Borough/world.js",
+      "status": 200,
+      "sha256": "8af01aa92d3b9c8bc91b9acccb28079f21477075ba0357c829d0767b90bc7f9d"
+    },
+    {
+      "path": "Games/Slipstream Borough/view.js",
+      "status": 200,
+      "sha256": "40f056b7588133c57c0c1f62388951f0decaf211853b8a537431e611599ccdc7"
+    }
+  ],
+  "serverClosed": true
+}

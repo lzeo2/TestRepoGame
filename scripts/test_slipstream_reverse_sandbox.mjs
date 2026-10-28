@@ -34,7 +34,7 @@ for(const {id} of CARS) {
     near(right.world.heading,-left.world.heading);near(right.world.x,-left.world.x);near(right.world.z,left.world.z);
     assert.equal(Math.sign(right.world.heading),-Math.sign(speed));assert.deepEqual(motion,before);
     assert.deepEqual(right.stats,r.stats);assert.equal(right.hp,100);
-    if(Math.abs(speed)<=5)near(Math.abs(right.world.heading),r.stats.handling*handling*Math.abs(right.speed)*.05*.05);
+    if(Math.abs(speed)<=5)near(Math.abs(right.world.heading),r.stats.handling*handling*Math.abs((speed+right.speed)*.5)*.065*.05);
   }
   assert.deepEqual(step(r,idle),step(r,{...idle,handling:1}));assert.deepEqual(r,copy);
   const end=tick(r,idle,4801);assert.equal(end.elapsed,240);assert.equal(end.status,'busted');

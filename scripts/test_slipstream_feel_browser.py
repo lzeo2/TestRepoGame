@@ -107,6 +107,7 @@ def main():
                         finally: page.keyboard.up('s')
                     finally: page.keyboard.up('w')
                     pause_check(page)
+                    page.keyboard.press('p'); shot(page, 'desktop-driven-turn'); page.keyboard.press('p')
                     # Force no state: ordinary gas reaches a real boundary/building collision.
                     page.keyboard.down('w')
                     try: page.wait_for_function('slipstreamSnapshot.run.collisions > 0', timeout=25000)
@@ -122,8 +123,20 @@ def main():
                     assert restarted['profile']['cash'] == bank, 'Unfinished respawn must not pay'
                     assert not page.locator('#cruise').is_checked() and restarted['steering'] == 0
                     assert page.locator('#helpDialog').is_hidden()
-                    shot(page, 'desktop-restarted')
-                    observations.append({'keyboardGasTurnBrake': True, 'pauseFrozen': True, 'realCollisionUnpaidRespawn': True, 'oldRun': old_id, 'newRun': restarted['run']['id']})
+                    # Drive a fresh stock car, brake on the central road, and meet real patrol.
+                    page.keyboard.down('w')
+                    try: page.wait_for_function('slipstreamSnapshot.run.distance > 35')
+                    finally: page.keyboard.up('w')
+                    page.keyboard.down('s')
+                    try: page.wait_for_function('slipstreamSnapshot.run.speed <= 0')
+                    finally: page.keyboard.up('s')
+                    page.wait_for_function('slipstreamSnapshot.run.pursuit === "chased" && slipstreamSnapshot.run.police.length > 0', timeout=25000)
+                    chase = state(page)
+                    assert chase['run']['arrest'] == 0 and chase['run']['hp'] == 100
+                    cop, player = chase['run']['police'][0]['world'], chase['run']['world']
+                    assert cop['z'] - player['z'] > 40, 'First real patrol must be behind the northbound player'
+                    page.keyboard.press('p'); page.keyboard.press('m'); shot(page, 'desktop-real-patrol')
+                    observations.append({'keyboardGasTurnBrake': True, 'pauseFrozen': True, 'realCollisionUnpaidRespawn': True, 'oldRun': old_id, 'newRun': restarted['run']['id'], 'naturalPatrol': chase['run']})
                 finally: desktop.close()
                 mobile = browser.new_context(viewport={'width':390, 'height':844}, user_agent=PHONE, has_touch=True, is_mobile=True)
                 try:
@@ -159,6 +172,8 @@ def main():
         signal.alarm(0)
         signal.signal(signal.SIGALRM, old_alarm)
         server.shutdown(); server.server_close(); thread.join(timeout=3)
+        receipt['serverPort'] = server.server_port
+        receipt['serverClosed'] = server.socket.fileno() == -1 and not thread.is_alive()
         receipt['sourceUnchanged'] = hashes() == frozen
         receipt['elapsedSeconds'] = time.monotonic()-started
         receipt['freeBytesAfter'] = shutil.disk_usage(ROOT).free

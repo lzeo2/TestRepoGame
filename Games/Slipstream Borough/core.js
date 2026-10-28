@@ -77,7 +77,7 @@ function custom(raw, legacy = false) {
 const clamp = (n, min, max) => Math.min(max, Math.max(min, n));
 function effective(id, upgrades) {
   const base = car(id);
-  return Object.freeze({ speed: base.speed * (1 + upgrades.engine * 0.07), acceleration: base.acceleration * (1 + upgrades.engine * 0.12), handling: base.handling * (1 + upgrades.handling * 0.12), toughness: base.toughness * (1 + upgrades.armor * 0.16) });
+  return Object.freeze({ speed: base.speed * 1.25 * (1 + upgrades.engine * 0.07), acceleration: base.acceleration * 1.5 * (1 + upgrades.engine * 0.12), handling: base.handling * (1 + upgrades.handling * 0.12), toughness: base.toughness * (1 + upgrades.armor * 0.16) });
 }
 
 export function freshProfile() {
@@ -267,13 +267,20 @@ function damage(r) {
   r.hp=Math.max(0,r.hp-24*100/r.stats.toughness);r.collisionCooldown=1.2;r.collisions++;
 }
 function startChase(r) {
-  r.pursuit='chased';r.heat=Math.max(1,r.heat);
-  // Choose an accessible junction near the player, never a remote parked pursuer.
+  const direction=r.speed<-1?-1:1, fx=-Math.sin(r.world.heading)*direction, fz=-Math.cos(r.world.heading)*direction;
   const candidates=[];
-  for(let x=-150;x<=150;x+=50)for(let z=-150;z<=150;z+=50){const gap=Math.hypot(x-r.world.x,z-r.world.z);if(gap>=25&&gap<=75)candidates.push({x,z,gap});}
-  candidates.sort((a,b)=>a.gap-b.gap);
-  const point=candidates[0], cop=entity(r,'lantern',0,0,0);
-  cop.world={x:point.x,z:point.z,heading:0};r.police.push(cop);
+  for(let x=-150;x<=150;x+=25)for(let z=-150;z<=150;z+=25) {
+    const dx=x-r.world.x,dz=z-r.world.z,gap=Math.hypot(dx,dz),behind=-(dx*fx+dz*fz);
+    if(behind<40||gap<60||gap>110||blocked(x,z)||[...r.traffic,...r.police].some(e=>Math.hypot(x-e.world.x,z-e.world.z)<12))continue;
+    candidates.push({x,z,cost:Math.abs(gap-75)+(gap-behind)*2});
+  }
+  // At a border facing inward, no safe rear road may exist. Defer, never spawn in front.
+  if(!candidates.length)return;
+  candidates.sort((a,b)=>a.cost-b.cost);
+  const point=candidates[0],cop=entity(r,'lantern',0,0,Math.min(Math.abs(r.speed)*.65,r.stats.speed*.65));
+  cop.world={x:point.x,z:point.z,heading:Math.atan2(r.world.x-point.x,r.world.z-point.z)+Math.PI};
+  cop.world.heading=Math.atan2(Math.sin(cop.world.heading),Math.cos(cop.world.heading));
+  r.police.push(cop);r.pursuit='chased';r.heat=Math.max(1,r.heat);
 }
 function stepCityTraffic(r,dt) {
   // Only forward obstructions brake a car. A following car never makes its leader yield.
@@ -309,13 +316,15 @@ function policeTarget(r,cop) {
   }
   return target;
 }
-function stepCity(r,input,dt) {
-  // Preserve tight low-speed turns; blend to a bounded, upgrade-sensitive highway-speed yaw.
-  const speed=Math.abs(r.speed), blend=clamp((speed-5)/15,0,1), handling=r.stats.handling*(input.handling??1);
-  const yaw=Math.sign(r.speed)*(handling*Math.min(speed,5)*.05*(1-blend)+1.1*handling/(handling+2)*blend);
-  const heading=r.world.heading-input.steer*yaw*dt;
+function stepCity(r,input,dt,previousSpeed) {
+  const signedSpeed=(previousSpeed+r.speed)*.5, speed=Math.abs(signedSpeed), blend=clamp((speed-5)/15,0,1), handling=r.stats.handling*(input.handling??1);
+  const yaw=Math.sign(signedSpeed)*(handling*Math.min(speed,5)*.065*(1-blend)+1.5*handling/(handling+2)*blend);
+  const turn=-input.steer*yaw*dt,heading=r.world.heading+turn;
+  // Midpoint travel avoids frame-rate-dependent turn radii. Corner slip grows progressively
+  // with speed/lock, then grips immediately on release; no hidden input or recovery timer.
+  const slip=input.steer*blend*Math.min(.12,speed*.003),travelHeading=r.world.heading+turn*.5+slip;
   r.world.heading=Math.atan2(Math.sin(heading),Math.cos(heading));
-  const previous={...r.world},next={x:r.world.x-Math.sin(r.world.heading)*r.speed*dt,z:r.world.z-Math.cos(r.world.heading)*r.speed*dt};
+  const previous={...r.world},next={x:r.world.x-Math.sin(travelHeading)*signedSpeed*dt,z:r.world.z-Math.cos(travelHeading)*signedSpeed*dt};
   const contact=[...r.traffic,...r.police].find(npc=>nearPath(r.world,next,npc.world,4)&&Math.hypot(next.x-npc.world.x,next.z-npc.world.z)<Math.hypot(r.world.x-npc.world.x,r.world.z-npc.world.z));
   if(contact){damage(r);r.speed*=.56;contact.hit=true;}
   else if(clearPath(r.world,next)){r.distance+=Math.hypot(next.x-r.world.x,next.z-r.world.z);Object.assign(r.world,next);}
@@ -382,12 +391,12 @@ export function stepRun(run, input, dt) {
   r.collisionCooldown = Math.max(0, r.collisionCooldown - dt);
   const boosting=r.gadget==='boost'&&r.gadgetTime>0;
   if(r.mode==='roam'||r.mode==='sandbox') {
-    const drag=.3+Math.abs(r.speed)*.012;
-    if(input.brake>0) r.speed=r.speed>0?Math.max(0,r.speed-(input.brake*18+drag)*dt):clamp(r.speed+(-input.brake*18+drag)*dt,-6,0);
-    else if(input.throttle>0) r.speed=r.speed<0?Math.min(0,r.speed+(input.throttle*18+drag)*dt):clamp(r.speed+(input.throttle*r.stats.acceleration*(boosting?1.8:1)-drag)*dt,0,r.stats.speed*(boosting?1.35:1));
+    const previousSpeed=r.speed,drag=.3+Math.abs(r.speed)*.012;
+    if(input.brake>0) r.speed=r.speed>0?Math.max(0,r.speed-(input.brake*24+drag)*dt):clamp(r.speed+(-input.brake*18+drag)*dt,-6,0);
+    else if(input.throttle>0) r.speed=r.speed<0?Math.min(0,r.speed+(input.throttle*24+drag)*dt):clamp(r.speed+(input.throttle*r.stats.acceleration*(boosting?1.8:1)-drag)*dt,0,r.stats.speed*(boosting?1.35:1));
     else r.speed=Math.sign(r.speed)*Math.max(0,Math.abs(r.speed)-drag*dt);
     r.speed=clamp(r.speed,-6,r.stats.speed*(boosting?1.35:1));
-    stepCity(r,input,dt);Object.assign(r,totals(r));return r;
+    stepCity(r,input,dt,previousSpeed);Object.assign(r,totals(r));return r;
   }
   // Highway progress stays forward-only; reverse is limited to the finite city/sandbox.
   r.speed = clamp(r.speed + (input.throttle * r.stats.acceleration * (boosting?1.8:1) - input.brake * 18 - 0.3 - r.speed * 0.012) * dt, 0, r.stats.speed*(boosting?1.35:1));
@@ -419,12 +428,13 @@ export function stepRun(run, input, dt) {
   }
   for (const cop of r.police) {
     const affected=disrupted(r,cop);
-    const target = r.stats.speed * (affected?(r.gadget==='smoke'?.35:.08):(0.98 + r.level * 0.012 + r.heat * 0.015));
-    cop.speed = Math.min(target, cop.speed + r.stats.acceleration * 0.8 * dt);
+    const ceiling = Math.min(120,r.stats.speed * (affected?(r.gadget==='smoke'?.35:.08):(0.98 + r.level * 0.012 + r.heat * 0.015)));
+    const approach = cop.distance<r.distance ? r.speed+Math.sqrt(2*8*Math.max(0,r.distance-cop.distance-3)) : r.speed*.8;
+    cop.speed = clamp(Math.min(ceiling,approach),Math.max(0,cop.speed-12*dt),cop.speed+r.stats.acceleration*.8*dt);
+    if(affected)cop.speed=Math.min(cop.speed,ceiling);
     cop.x = clamp(cop.x + clamp((r.gadget==='decoy'&&r.gadgetTime>0?-r.x:r.x) - cop.x, -1, 1) * (affected?.08:(0.8 + r.level * 0.04)) * dt, -6.2, 6.2);
+    // Position is integrated, never clamped/teleported to keep the cop near the player.
     cop.distance += cop.speed * dt;
-    // A cop ahead brakes to contain, rather than vanishing down the road.
-    if (cop.distance > r.distance + 8) { cop.distance = r.distance + 8; cop.speed = Math.min(cop.speed,r.speed * 0.8); }
   }
   for (const e of r.traffic) e.distance += e.speed * dt;
   for (const e of [...r.traffic, ...r.police, ...r.rivals]) {

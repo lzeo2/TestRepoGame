@@ -32,8 +32,8 @@ for(const {id} of CARS) {
         near(straight.world.heading,heading);
         assert(right.world.heading>=-Math.PI&&right.world.heading<=Math.PI);
         near(wrap(step(r,.5).world.heading-heading),wrap(right.world.heading-heading)/2);
-        if(speed<=5)near(yaw,r.stats.handling*speed*.05);
-        if(speed>=20){assert(yaw>0&&yaw<=1.1);minYaw=Math.min(minYaw,yaw);maxYaw=Math.max(maxYaw,yaw);}
+        if(speed<=5)near(yaw,r.stats.handling*speed*.065);
+        if(speed>=20){assert(yaw>0&&yaw<=1.5);minYaw=Math.min(minYaw,yaw);maxYaw=Math.max(maxYaw,yaw);}
         if(speed===0){assert.deepEqual(right.world,r.world);assert.equal(right.distance,0);}
         const half=step(step(r,1,.025),1,.025);near(half.world.heading,right.world.heading);
         near(half.distance,right.distance);
