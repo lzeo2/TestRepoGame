@@ -1091,6 +1091,42 @@ only: none was run natively. Visual fit, actual pointer/keyboard/touch purchase
 flow and balance remain unverified. Dirty native QA drafts/cap and Warden hold
 remain unchanged; no browser admission, push, install, restart or game addition.
 
+### Astra Stampead animation source candidate, 2026-10-29
+
+`4bdc5129` adds displacement-linked rigid posing on the existing Stampead;
+`8361956f` corrects the reviewed live `sprint` omission. Actual modeling/animation
+work used Astra. No model re-export, supplied Python/Blender execution or new
+asset occurred. Original 948,632-byte GLB stays SHA-256
+`6c679456b2ce7adce25515f5eb5e4947960a4541904edb65f290a5f9978926f0`,
+25,596 triangles/69 drawables/9 materials/17 joints; added geometry/materials/
+textures zero. This is a local rigid-pose derivative, not delivered mesh detail.
+
+Grounded velocity drives a 2.4m gait cycle with opposed legs and small counter-yaw;
+rest/air/dash/slide freeze phase, aim steadies upper body and the stamp arm is
+less swingy than the free arm. Existing apex fade, immediate six-degree recoil,
+caller root placement and absolute yaw remain. Stampead now consumes the existing
+accepted-shot presentation channel: an initial 12-degree forearm press recovers
+through the runtime's phase, not its own timer. Slot acceptance cancels it; no
+new slot clip, damage permission, cooldown, resource or hit feedback is inferred.
+
+New pose/live-runtime checks pass: 30/60/120Hz phase, authored bounds/locks/
+nonidentity rests, malformed inputs, no drift/new resources, actual Host shot/
+ammo, rejected-fire identity, expiry/melee/reset and real controller sprint.
+Flat-ground sampled sole minY 0..0.029856m is not terrain contact or IK proof.
+The older zero-velocity fixture deliberately pairs speed8 with velocity0; its
+1.793258-degree thigh motion became zero, not a demonstrated natural-play bug.
+Parent fixture first failed at a tiny positive cooldown remainder; adding an
+ordinary 50ms test step preserves runtime timing. Trio's older Start bot mock
+was repaired to assert the current zero-time passive sync, without dropping its
+asset/gameplay/selection assertions.
+
+Rechecked: runtime/visual suites, 2,540 raw-rig poses, trio 630 poses/12 casts/
+selection, 163 callbacks, 26 bot and 25 team groups, five unchanged original
+hashes, both 600s scripted directions exit0 in59s. No browser or capture ran.
+Native quality, real skating/contact, FPS, turn/reload/hit/death detail and other
+hero/model/scenery polish remain open. The current no-browser instruction and
+three preserved dirty drafts/Warden size hold are unchanged and not acceptance.
+
 ## Forty-hero intake and staged art integration
 
 The operator's newly received archive is retained unchanged with SHA-256

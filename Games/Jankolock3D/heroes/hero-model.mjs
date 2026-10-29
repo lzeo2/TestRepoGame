@@ -1,5 +1,5 @@
 import { cloneCharacter, TRIO_HERO_IDS } from '../character-assets.mjs';
-import { Vector3, Quaternion, Object3D } from '../vendor/three.module.js';
+import { Vector3, Quaternion, Euler, Object3D } from '../vendor/three.module.js';
 import { bindExpansionRig, isExpansionHero } from './expansion-rigs.mjs';
 
 // Also used by the raw-GLB regression, independently of the asset cache.
@@ -23,29 +23,57 @@ export function bindHeroRig(group, rig) {
       if(range!=='free'&&(!Array.isArray(range)||range.length!==2||!range.every(Number.isFinite)||range[0]>0||range[1]<0))
         throw new Error(`Invalid rest-relative rig limits: ${spec.name}/${key}`);
     }
-    nodes.set(spec.name,{node,spec,position:node.position.clone(),quaternion:node.quaternion.clone()});
+    nodes.set(spec.name,{node,spec,position:node.position.clone(),quaternion:node.quaternion.clone(),angles:new Euler()});
   }
   if(!nodes.has('root'))throw new Error('Missing rig root');
   const twoHanded=nodes.has('ruler_rifle')||nodes.has('stapler_carbine');
   const gooey=rig.model==='gooey_sticky';
-  let clock=0;
+  const stampead=rig.model==='stampead';
+  let clock=0,gait=0,pressPhase=1;
   function hinge(name,degrees,component='x') {
     const joint=nodes.get(name);if(!joint)return;
     const range=joint.spec.rotation_deg[component];
     const angle=range==='free'?degrees:Math.max(range[0],Math.min(range[1],degrees));
-    axis.set(0,0,0)[component]=1;
-    joint.node.quaternion.copy(joint.quaternion).multiply(delta.setFromAxisAngle(axis,angle*Math.PI/180));
+    if(stampead) {
+      // Compose all clamped local axes once from author rest, never overwrite a prior axis.
+      joint.angles[component]=angle*Math.PI/180;
+      joint.node.quaternion.copy(joint.quaternion).multiply(delta.setFromEuler(joint.angles));
+    } else {
+      axis.set(0,0,0)[component]=1;
+      joint.node.quaternion.copy(joint.quaternion).multiply(delta.setFromAxisAngle(axis,angle*Math.PI/180));
+    }
   }
   return {
+    ...(stampead?{
+      setAcceptedAction(event) {
+        if(event?.accepted!==true||!Number.isFinite(event.phase)||event.phase<0||event.phase>1||
+          event.kind!=='weapon'&&(event.kind!=='slot'||!Number.isInteger(event.slot)||event.slot<1||event.slot>4))return false;
+        // Runtime owns acceptance, phase and expiry. Slots cancel, not invent a clip.
+        pressPhase=event.kind==='weapon'?event.phase:1;return true;
+      },
+      clearAction(){pressPhase=1;},
+      reset(){clock=gait=0;pressPhase=1;this.update(0);}
+    }:{}),
     update(dt,{state='idle',speed=0,aiming=false,recoil=0,worldVelocity}={}) {
       clock=(clock+Math.max(0,Number.isFinite(dt)?dt:0)%(Math.PI*2))%(Math.PI*2);
       // Never animate the caller-owned root. All joint deltas start at author rest.
       for(const [name,joint] of nodes)if(name!=='root') {
-        joint.node.position.copy(joint.position);joint.node.quaternion.copy(joint.quaternion);
+        joint.node.position.copy(joint.position);joint.node.quaternion.copy(joint.quaternion);joint.angles.set(0,0,0);
       }
       const moving=Math.min(1,Math.abs(Number.isFinite(speed)?speed:0)/8);
-      const stride=Math.sin(clock*9)*moving;
+      let stride=Math.sin(clock*9)*moving;
       const sliding=state==='slide',air=state==='jump'||state==='fall';
+      const groundedGait=stampead&&worldVelocity!==undefined;
+      if(groundedGait) {
+        // ponytail: cosmetic 100m/s cap and rigid no-IK gait; calibrate stride/contact against native captures before adding foot planting.
+        const horizontal=Number.isFinite(worldVelocity?.x)&&Number.isFinite(worldVelocity?.z)?
+          Math.min(100,Math.hypot(worldVelocity.x,worldVelocity.z)):0;
+        const walking=['idle','walk','sprint','aim'].includes(state)&&horizontal>0;
+        const elapsed=Number.isFinite(dt)?Math.max(0,Math.min(.1,dt)):0;
+        // One cycle per 2.4m; frozen phase at rest, in air, dash and slide.
+        if(walking)gait=(gait+horizontal*elapsed*(Math.PI*2/2.4))%(Math.PI*2);
+        stride=walking?Math.sin(gait)*Math.min(1,horizontal/8):0;
+      }
       // Stampead's authored takeoff/descent poses fade through the apex, not a state snap.
       // 9 m/s is full pose strength, not a change to jump physics; omit motion for static previews.
       const verticalSpeed=worldVelocity?.y;
@@ -105,17 +133,23 @@ export function bindHeroRig(group, rig) {
       }
       // Torso kick moves both grips together and stays inside the authored hinge limits.
       hinge('pelvis',sliding?-2:0);hinge('torso',lean-kick);hinge('head',-lean*.35);
+      if(groundedGait) {
+        const counter=aiming||state==='aim'?0:stride*2.5;
+        hinge('pelvis',counter,'y');hinge('torso',-counter,'y');
+      }
       for(const side of ['l','r']) {
         const step=sliding||air?0:stride*(side==='l'?1:-1);
-        const thigh=sliding?-12:state==='jump'?-8*airPose:state==='fall'?3*airPose:step*12;
-        const shin=sliding?20:state==='jump'?12*airPose:state==='fall'?4*airPose:Math.max(0,-step)*14;
+        const thigh=sliding?-12:state==='jump'?-8*airPose:state==='fall'?3*airPose:step*(groundedGait?18:12);
+        const shin=sliding?20:state==='jump'?12*airPose:state==='fall'?4*airPose:Math.max(0,-step)*(groundedGait?24:14);
         hinge(`thigh_${side}`,thigh);hinge(`shin_${side}`,shin);
-        hinge(`foot_${side}`,gooey?(sliding?-8:air?-4:step*7):-(thigh+shin)*.65);
+        hinge(`foot_${side}`,gooey?(sliding?-8:air?-4:step*7):-(thigh+shin)*(groundedGait&&!air&&!sliding?1:.65));
         // Keep both rifle/carbine grip chains at rest relative to the torso.
         // ponytail: no IK; torso aiming preserves support grip, not full aim pitch.
         if(!twoHanded) {
-          hinge(`upper_arm_${side}`,-step*(gooey?4:6)+(aiming?-4:0));
-          hinge(`forearm_${side}`,aiming?-2:Math.abs(step)*-2);
+          const steady=groundedGait&&(aiming||state==='aim');
+          hinge(`upper_arm_${side}`,(steady?0:-step*(gooey?4:groundedGait&&side==='r'?2:6))+(aiming?-4:0));
+          const press=stampead&&side==='r'?(1-pressPhase)*(12+10*Math.sin(Math.PI*pressPhase)):0;
+          hinge(`forearm_${side}`,(aiming?-2:steady?0:Math.abs(step)*(groundedGait&&side==='r'?-.5:-2))-press);
           hinge(`hand_${side}`,gooey?(aiming?-2:step):0);
         }
         hinge(`coat_tail_${side}`,Math.abs(step)*4+(sliding?4:0));
@@ -169,6 +203,11 @@ export function createHeroVisual(id) {
   if(socket){socket.name=id==='ribbon-seraph'?'typebar_muzzle':'weapon_muzzle';socket.position.set(0,0,emitter?.[1]??-.75);group.getObjectByName(emitter?.[0]??'hover_core').add(socket);}
   const muzzle=socket??group.getObjectByName({stampead:'stamp_face_relief',turretina:'muzzle',snipeoff:'muzzle001',gooey:'hand_r'}[id]);
   return {group,metadata:asset.metadata,muzzle,
+    ...(id==='stampead'?{
+      setAcceptedAction(event){return disposed?false:pose.setAcceptedAction(event);},
+      clearAction(){if(!disposed)pose.clearAction();},
+      reset(){if(!disposed)pose.reset();}
+    }:{}),
     update(dt,options={}) {
       if(disposed)return;
       // HeroRuntime supplies absolute controller yaw; omitted/invalid yaw leaves placement alone.

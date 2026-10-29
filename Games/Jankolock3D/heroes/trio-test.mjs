@@ -225,13 +225,13 @@ for(const kit of kits) {
     cloneNode(){return card();},querySelector(name){return this[name];},setAttribute(k,v){this.attributes[k]=v;}});
   const heroSelect={children:[],querySelector:()=>card(),replaceChildren(...cards){this.children=cards;},querySelectorAll(){return this.children;}};
   const elements={'hero-select':heroSelect,'hero-description':{},start:{}};
-  let starts=0,botStarts=0;
+  let starts=0,botStarts=0,botSyncs=0;
   const renders=[];
-  const context=vm.createContext({kits:roster,heroes:roster,selected:'spoollash',selectedId:'spoollash',playing:false,runtime,
+  const context=vm.createContext({kits:roster,heroes:roster,selected:'spoollash',selectedId:'spoollash',playing:false,motionView:null,frameTravel:0,completionCue:null,runtime,
     sim,hero,controller,boxes,world:{},view:{scene,camera:new THREE.PerspectiveCamera(),renderCamera(){renders.push(context.runtime.kit.id);}},lobby:{visible:true},qa:false,
     HeroRuntime,effect:event=>sim.applyHeroEffect(event),clear(){},surfaceHeight(){return 0;},
     ui:{update(){},setPlaying(value){assert.equal(value,true);starts++;},message(){}},
-    createBots(options){assert.equal(options.kits,roster);botStarts++;return {dispose(){}};},
+    createBots(options){assert.equal(options.kits,roster);botStarts++;return {update(dt,options){assert.equal(dt,0);assert.equal(options.passive,true);botSyncs++;},dispose(){}};},
     $:id=>elements[id],listen(node,type,fn){assert.equal(type,'click');node.click=fn;}});
   vm.runInContext(section(entry,'  function select(id) {','  ui=mountIntegrationUI('),context);
   context.onSelect=id=>context.select(id);context.onStart=id=>context.start(id);
@@ -247,9 +247,9 @@ for(const kit of kits) {
   }
   heroSelect.children.find(b=>b.dataset.hero===kit.id).click();elements.start.click();
   assert.equal(context.runtime.kit.id,kit.id);assert.equal(sim.stats(hero.id).kitId,kit.id);
-  assert.equal(context.playing,true);assert.equal(context.lobby.visible,false);assert.equal(starts,1);assert.equal(botStarts,1);
+  assert.equal(context.playing,true);assert.equal(context.lobby.visible,false);assert.equal(starts,1);assert.equal(botStarts,1);assert.equal(botSyncs,1);
   const active=context.runtime,before=renders.length;context.select(kits.find(k=>k.id!==kit.id).id);elements.start.click();
-  assert.equal(context.runtime,active,'selection locked during match');assert.equal(botStarts,1,'no duplicate start');
+  assert.equal(context.runtime,active,'selection locked during match');assert.equal(botStarts,1,'no duplicate start');assert.equal(botSyncs,1,'no repeated deployment sync');
   assert.equal(renders.length,before,'locked selection does not redraw');
   context.runtime.dispose();assert.equal(scene.children.length,0);
 }

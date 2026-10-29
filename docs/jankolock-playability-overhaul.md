@@ -227,6 +227,46 @@ Remaining owned stages: native inspection of the arena/objective/motion/shop
 view and actual purchasing; differentiated animation/model/scenery detail.
 Source wiring and CPU exchange checks are not a whole-game pass.
 
+## Astra Stampead rigid-animation candidate
+
+Astra source commits `4bdc5129` and `8361956f` adapt only the existing Stampead
+rig. No GLB, rig, palette, texture, collision, camera or gameplay authority was
+changed. Budget stays 25,596 triangles, 69 mesh drawables, 9 materials and 17
+movable nodes; zero new geometry/materials/textures. This is a pose adaptation
+over the declared external original, not a new model or supplied animation.
+
+Live grounded gait integrates finite horizontal velocity into a 2.4m cycle,
+including real controller `sprint`; idle/air/dash/slide do not advance it.
+Opposed thighs reach 18 degrees with at most 2.5-degree counter-yaw, a steadier
+stamp arm and stable aiming upper body. Caller placement and absolute yaw stay
+immediate. Existing velocity-scaled apex and immediate six-degree recoil remain.
+The existing accepted-weapon phase now drives a 12-degree initial forearm press;
+no timer, inferred hit, HP/resource grant or delayed aim was added. Valid slot
+actions cancel that press without claiming a new slot animation.
+
+Actual Node checks: matching 30/60/120Hz poses, limits/locks/nonidentity rests,
+zero-dt/reset/resource preservation and flat-ground sampled sole minY
+0..0.029856m. The zero-velocity precedence fixture uses deliberately inconsistent
+speed=8/velocity=0; its older 1.793258-degree thigh motion became zero. This is
+not a measured natural-play stutter. Parent live Host/runtime checks prove shot
+ammo/damage, immediate press, rejected-fire ownership, normal expiry, melee/reset
+clearing and actual sprint without changing logical camera/controller state.
+
+Review caught the initial sprint omission and Astra repaired it with a regression.
+The live fixture initially retried exactly at a floating cooldown remainder
+1.3877787807814457e-17; it now waits one ordinary extra 50ms step, without altering
+runtime timing. The older trio selection mock gained/asserts the existing bot
+sync API and motion/audio context, retaining its prior assertions.
+
+Parent gates passed: visual/runtime, 2,540 raw-rig poses, trio assets/12 casts/
+selection/preservation, 163 callbacks, 26 bots, 25 team groups, five unchanged
+originals and both scripted 600s directions (exit0/59s). These are CPU checks.
+Flat sampled clearance is not foot pinning, terrain contact, native skating,
+visual quality, hardware performance or a full original-hero animation pass.
+Native comparison is held by the current no-browser instruction. Turn/reload/
+hit/death polish, further hero/model/scenery detail and actual native acceptance
+remain open; do not scale this as a visually accepted baseline.
+
 ## Gates and remaining limits
 
 Each lane supplies a real causal regression, syntax and targeted checks. Parent
