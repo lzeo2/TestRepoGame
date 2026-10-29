@@ -157,3 +157,19 @@ archive or gate was changed to correct it. Independent CPU outputs remain at
 `.tmp/citisten-ccf71-focused-checks.log`. No old Water/Save runner was retargeted
 or rerun; its original frozen-pin rejection remains a failure, not blanket green.
 No runtime asset changes, browser/native run, new game, push or deployment.
+
+The five passing commands ran on the clean committed ccf71d07 source snapshot;
+their233game/font inputs and new regression match the integrated Git tree.
+The three older protocol harnesses and historical Water/Save collector remain
+source-only, outside the six imported paths. Their source evidence is not release-
+worktree/browser coverage. An extra release-worktree invocation exited2 before
+execution because the new tracked regression is sparse-excluded locally; it is
+not counted as PASS. No broad checkout or extra collector import was performed.
+
+The historical raw failure is retained locally, not committed/published, at
+`.tmp/citisten-collector-controls/source-cpu-attempt1.log`,4092bytes, SHA256
+`317d3772aa86ff9b4652d6fe7cd28c53b9b809a9d00f7a21b7b3a5595798f0b4`.
+Its exception prints actual1500; expectedcf589 was separately verified from the
+unchanged source-only runner atccf. The failed literal search and missing release
+HEAD-path query were inspection errors, not additional product failures or proof
+of the original execution revision. No frozen runner was silently imported.
