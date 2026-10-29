@@ -1,0 +1,99 @@
+[
+  {
+    "phase": 1,
+    "sourceBase": "438a424d750076ead33bf45ac0349907424c94c2",
+    "source": "ec28202244e5a8c691d145ac2a379351a53ef83f",
+    "integrated": "28145f20dbf900c120f2d7dea122644b1a5b6182",
+    "gameTree": "c47432051d0ec82ace92f11bdf6708a84e3d2bb8",
+    "paths": [
+      "Games/Jankolock3D/game.mjs",
+      "Games/Jankolock3D/heroes/hero-model.mjs",
+      "Games/Jankolock3D/heroes/hero-visuals-test.mjs",
+      "Games/Jankolock3D/integrated-actions-test.mjs",
+      "Games/Jankolock3D/integration-ui.mjs",
+      "Games/Jankolock3D/systems-ui.mjs",
+      "docs/maintenance/games/240-jankolock3d.md"
+    ]
+  },
+  {
+    "phase": 2,
+    "sourceBase": "ec28202244e5a8c691d145ac2a379351a53ef83f",
+    "source": "3993ef026554906cfce6cc99148a449cfa4352c6",
+    "integrated": "787d82b36497458c195dbff087e6323ea14893ec",
+    "gameTree": "24212915d3a6a937275080b07460e0a7db040d4f",
+    "paths": [
+      "Games/Jankolock3D/INTEGRATION.md",
+      "Games/Jankolock3D/bots-test.mjs",
+      "Games/Jankolock3D/bots.mjs",
+      "Games/Jankolock3D/camera-bob-test.mjs",
+      "Games/Jankolock3D/camera-bob.mjs",
+      "Games/Jankolock3D/game.mjs",
+      "Games/Jankolock3D/hero-team-test.mjs",
+      "Games/Jankolock3D/heroes/player-controller.mjs",
+      "Games/Jankolock3D/integrated-actions-test.mjs",
+      "Games/Jankolock3D/integration-fixtures.mjs",
+      "Games/Jankolock3D/integration-test.mjs",
+      "Games/Jankolock3D/rail-reuse-test.mjs",
+      "Games/Jankolock3D/systems-fairness-test.mjs",
+      "Games/Jankolock3D/systems-test.mjs",
+      "Games/Jankolock3D/systems-view-test.mjs",
+      "Games/Jankolock3D/systems-view.mjs",
+      "Games/Jankolock3D/systems.mjs",
+      "Games/Jankolock3D/traversal.mjs",
+      "docs/jankolock-playability-overhaul.md",
+      "docs/maintenance/games/240-jankolock3d.md"
+    ]
+  },
+  {
+    "phase": 3,
+    "sourceBase": "3993ef026554906cfce6cc99148a449cfa4352c6",
+    "source": "e22109d420c015b7d8a63d6ff1f0933b0eb15749",
+    "integrated": "e5b98ad23c7fb8e46241c0a6babb245489d51757",
+    "gameTree": "ccbaa69670ecf7755b7c45e508f8a602bdfe3467",
+    "paths": [
+      "Games/Jankolock3D/arena-layout-test.mjs",
+      "Games/Jankolock3D/camera-motion-view-test.mjs",
+      "Games/Jankolock3D/camera-motion-view.mjs",
+      "Games/Jankolock3D/completion-cue-test.mjs",
+      "Games/Jankolock3D/completion-cue.mjs",
+      "Games/Jankolock3D/game.mjs",
+      "Games/Jankolock3D/heroes/odometer-slice-entry-test.mjs",
+      "Games/Jankolock3D/integrated-actions-test.mjs",
+      "Games/Jankolock3D/integration-fixtures.mjs",
+      "Games/Jankolock3D/integration-test.mjs",
+      "Games/Jankolock3D/integration-ui.mjs",
+      "Games/Jankolock3D/integration.css",
+      "Games/Jankolock3D/match-world.mjs",
+      "Games/Jankolock3D/objective-guide-test.mjs",
+      "Games/Jankolock3D/objective-guide.mjs",
+      "Games/Jankolock3D/start-placement-test.mjs",
+      "Games/Jankolock3D/world-data.mjs",
+      "Games/Jankolock3D/world-scene.mjs",
+      "Games/Jankolock3D/world-test.mjs",
+      "docs/jankolock-playability-overhaul.md",
+      "docs/maintenance/games/240-jankolock3d.md"
+    ]
+  },
+  {
+    "phase": 4,
+    "sourceBase": "e22109d420c015b7d8a63d6ff1f0933b0eb15749",
+    "source": "3778ae1add1e65493884432521d36c0f5e7be782",
+    "integrated": "b9135c12162f203ab7ea43be4ab97320376c31e4",
+    "gameTree": "ebce59f6c52100f3d0354e31e989a683df5d12c3",
+    "paths": [
+      "Games/Jankolock3D/exchange-test.mjs",
+      "Games/Jankolock3D/index.html",
+      "Games/Jankolock3D/integration-qa.py",
+      "Games/Jankolock3D/integration-ui.mjs",
+      "Games/Jankolock3D/letter-qa.py",
+      "Games/Jankolock3D/start-placement-test.mjs",
+      "Games/Jankolock3D/systems-qa.py",
+      "Games/Jankolock3D/systems-ui.mjs",
+      "Games/Jankolock3D/systems.css",
+      "Games/Jankolock3D/systems.mjs",
+      "Games/Jankolock3D/world-scene.mjs",
+      "docs/jankolock-playability-overhaul.md",
+      "docs/maintenance/games/240-jankolock3d.md"
+    ]
+  }
+]

@@ -823,10 +823,10 @@
       "title": "JANKOLOCK",
       "registered": true,
       "entry": "Games/Jankolock3D/index.html",
-      "entry_blob": "d5d05b09d1a68e6770476d52dbf81acb1d4fd86f",
-      "tree": "cd2298dd42ea4ef4cce6ec034044a7870bef2ebe",
-      "files": 424,
-      "bytes": 38884287,
+      "entry_blob": "5a024900dad00402ac642d90e8dc1dc3a646e864",
+      "tree": "ebce59f6c52100f3d0354e31e989a683df5d12c3",
+      "files": 438,
+      "bytes": 39023250,
       "document": "docs/maintenance/games/240-jankolock3d.md"
     },
     {

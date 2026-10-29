@@ -3,6 +3,17 @@
 
 ## Identity and status
 
+**Current serial source integration (2026-10-29):** reviewed ready3778ae1a is
+integrated locally through b9135c12, full game tree
+`ebce59f6c52100f3d0354e31e989a683df5d12c3` (438files/39,023,250bytes).
+The four scoped feel/core/wiring/exchange slices include afb4f0d8 and QA adapter
+9b860c2c. [Exact mappings, expanded scope and release blocker](../../jank3778-integration.md)
+record22CPU commands,35syntax checks,87preserved QA assertions and444local HTTP
+hash/MIME checks, not native completion. Six AI teammates are source/CPU verified;
+native behavior, differentiated animation/model detail and incomplete neutral
+objectives remain open. Dirty native QA/manual drafts and subsequent pose work
+remain source-only. No push/deployment or new native PASS is claimed.
+
 **Packaging hotfix (2026-10-27):** release `532c9ee0` omitted two committed
 runtime inputs fetched by `game.mjs`, causing `Hero definitions HTTP 404` before
 lobby setup. Exact `c19405ab` copies of `docs/jank3d-ribbon-seraph-kit.json` and
@@ -25,8 +36,11 @@ historical no-publication permission statements below, not failed evidence.
 Existing catalog ID 240 now launches `Games/Jankolock3D/index.html`, replacing the
 operator-rejected 2D entry without deleting its tree or adding a game/ID. Original
 in-house office-parody 3D MOBA-shooter; not an ingested port or affiliated title.
-129 catalog entries currently parse; this follow-up adds no game/ID. Integration and catalog rewrite are authorized;
-push/publication are not. See the [integration guide](../../../Games/Jankolock3D/INTEGRATION.md).
+129 catalog entries currently parse; this follow-up adds no game/ID. Integration
+and catalog rewrite are authorized. The user's2026-10-29 push-when-done order
+supersedes the earlier no-unrequested-push hold for this batch, contingent on
+required release checks. The full-fleet preflight remains concretely blocked;
+permission is not the missing gate. See the [integration guide](../../../Games/Jankolock3D/INTEGRATION.md).
 The former [unregistered guide](unregistered-jankolock3d.md) retains lane-team
 history; [legacy game](unregistered-jankolock.md) documents the retained 2D tree.
 Historical PASS receipts are not current full-game acceptance.

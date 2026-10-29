@@ -6,6 +6,24 @@ User ordered completed repairs integrated, with `74b61fa7` the sole main writer.
 Fresh remote base: `d3dbb39ed840cd47200e62f8e8d736c281b9e151`.
 Local integration branch: `integrate/ready-game-repairs-20261029`.
 
+**Latest explicit user authority:** push the completed current repair batch after
+required release checks, without asking again. This supersedes earlier no-push
+permission statements, not failed gates/native holds. No push occurred: full-fleet
+preflight lacks a responsive permitted renderer/exclusive admission and bounded
+fleet serving. [Current Jank integration and exact release blocker](jank3778-integration.md).
+
+### Subsequent Jank3778 gameplay continuation
+
+All ready committed runtime through3778ae1a is now integrated serially:
+feel ec282→28145f20, core3993→787d82b3, wiring e221→e5b98ad2,
+exchange3778 including9b860c2c/afb4f0d8→b9135c12. Full game tree exactly equals
+`ebce59f6c52100f3d0354e31e989a683df5d12c3`,438files/39,023,250bytes.
+These runtime slices are not source-only or delayed for unfinished art.
+Only row240 is refreshed; dirty native QA/manual and subsequent pose work stay
+source-only. Independent22/22 CPU commands,35syntax/87preserved QA assertions,
+both600s chains in46.994s,444/444localHTTP/hash/MIME and47parsed modules pass.
+No current native/fit/audibility/FPS or full expanded-scope completion follows.
+
 ### Subsequent Wings READY continuation
 
 The prior0736 pending-Wings inventory below is historical. Latest runtime
@@ -99,7 +117,7 @@ artifacts, native Water/Save/Continue, GPU/pixels/FPS and the
 private downloaded v2 remain unchanged/unpassed. Source-lane missing-Brainrot
 findings do not override current main's separately repaired coverage.
 
-### Jank: qualified manual update only
+### Jank: historical qualified manual-only checkpoint
 
 Applied exactly the37-line `c19405ab..438a424d` hunk, preserving main's19 newer
 lines and boot-JSON repair `1d301113`. Combined manual blob:
@@ -124,8 +142,11 @@ executables passed, including159real source-callback groups and approximately
 100-second collection bound (exit124,100.133s); no ivory/completion PASS was
 collected. This incomplete gate is not a proven new gameplay regression or a
 waiver. Two later planned suites were not run. Full output remains locally at
-`.tmp/jank-ec282-focused-checks.log.gz`. This snapshot is not yet integrated;
+`.tmp/jank-ec282-focused-checks.log.gz`. That snapshot was not then integrated;
 Citisten was committed independently rather than blocked by this Jank check.
+It is now superseded for integration by28145f20 and the reviewed3778 continuation
+above. The changed final code passes both chains; the earlier timeout is not
+retroactively passed.
 Dirty QA remains79,174bytes with exact original SHA256s, no live child process;
 source manual and new untracked playability draft were not copied or modified.
 

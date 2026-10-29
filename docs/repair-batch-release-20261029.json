@@ -1,0 +1,59 @@
+{
+  "userPushAuthorization": true,
+  "forcePushPermitted": false,
+  "releaseChecksComplete": false,
+  "pushPerformed": false,
+  "newDeploymentVerified": false,
+  "preflight": {
+    "catalogEntries": 129,
+    "catalogRootDirectories": 129,
+    "trackedFleetGameFiles": 12798,
+    "trackedFleetGameBytes": 1992994049,
+    "freeAtCheck": 2477301760,
+    "floor": 2147483648,
+    "growthHeadroom": 329818112,
+    "unchangedSmokeUsesPhysicalWorktree": true,
+    "browserLaunched": false,
+    "fullFleetRun": false,
+    "reason": "No confirmed responsive permitted renderer/exclusive slot; unchanged script uses previously failed bypass/SwiftShader flags. Fleet materialization exceeds normal headroom. Scoped Git HTTP is not full-fleet harness acceptance."
+  },
+  "observedPublishedEntries": {
+    "checkedAt": "2026-10-29T09:00:59.746217+00:00",
+    "baseURL": "https://lzeo2.github.io/TestRepoGame/",
+    "remoteMain": "d3dbb39ed840cd47200e62f8e8d736c281b9e151",
+    "scope": "Three entry responses only; no complete served graph, no new deployment/native acceptance",
+    "rows": [
+      {
+        "path": "Games/Jankolock3D/index.html",
+        "status": 200,
+        "mime": "text/html",
+        "bytes": 7894,
+        "sha256": "c3dc46de85082c21fc7d2a9a6620b76e116b23cc6240a30cf600acd197195756",
+        "matchesPublishedD3Entry": true,
+        "matchesLocalCandidateEntry": false
+      },
+      {
+        "path": "Games/Citisten3D/index.html",
+        "status": 200,
+        "mime": "text/html",
+        "bytes": 3155,
+        "sha256": "543ea9dce0076e6ab9d82d3a60498d6f3813251e48a53d4610d29793f72ffd45",
+        "matchesPublishedD3Entry": true,
+        "matchesLocalCandidateEntry": false
+      },
+      {
+        "path": "Games/Wings/index.html",
+        "status": 200,
+        "mime": "text/html",
+        "bytes": 12246,
+        "sha256": "f460fc6edffbbb04cb5ca47e40d57cd07e17ab3a592b26fcded59c8897a9d598",
+        "matchesPublishedD3Entry": true,
+        "matchesLocalCandidateEntry": true
+      }
+    ]
+  },
+  "newGames": 0,
+  "newScreenshots": 0,
+  "startFreeBytes": 2481868800,
+  "storageDeltaScope": "Shared-host capacity delta is not wholly attributable to this work"
+}
