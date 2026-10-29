@@ -311,6 +311,123 @@ for(const kit of kits.filter(k=>k.abilities.some(a=>a.id==='tether'))) {
     assert.ok(f.results.every(r=>r.ok),'cleanup remains validated after caster death/disposal');
   });
 }
+// Combined REAL tick/fire/frame callbacks: the view must not consume camera time twice.
+for(const hz of [30,60,120,10,4])for(const covered of [false,true]) {
+  check(`shot/draw camera clock ${hz}Hz/cover=${covered}`,kits[0],f=>{
+    const c=f.context,dt=1/hz;
+    Object.assign(c,{stopped:false,previous:0,raf:0,window:{},requestAnimationFrame(){return 1;}});
+    if(covered)f.boxes.push(
+      {minX:-5,maxX:5,minY:0,maxY:4,minZ:10.5,maxZ:11},
+      {minX:1.4,maxX:2,minY:0,maxY:4,minZ:6,maxZ:12});
+    let elapsed=0,draws=0,shot=null,samples=0,earlierShots=0,maxShift=0,maxProjection=0;
+    const updateCamera=f.controller.updateCamera.bind(f.controller),aimHit=f.runtime.aimHit.bind(f.runtime);
+    f.controller.updateCamera=(camera,seconds)=>{elapsed+=seconds;return updateCamera(camera,seconds);};
+    f.runtime.aimHit=range=>{
+      const hit=aimHit(range);f.camera.updateMatrixWorld(true);
+      shot={position:f.camera.position.clone(),quaternion:f.camera.quaternion.clone(),fov:f.camera.fov,
+        point:hit.point.clone(),projection:hit.point.clone().project(f.camera),time:f.runtime.time};
+      return hit;
+    };
+    c.view.renderCamera=()=>{draws++;f.camera.updateMatrixWorld(true);};
+    vm.runInContext(section('  function frame(now) {','\n  raf=requestAnimationFrame(frame);'),c);
+    for(const key of ['KeyW','ArrowLeft','fire','aim'])c.held.add(key);
+    for(let i=1;i<=hz;i++) {
+      elapsed=0;shot=null;c.frame(i*1000/hz);
+      assert.ok(Math.abs(elapsed-dt)<1e-8,'camera time advances once per frame, not twice');
+      if(shot&&Math.abs(shot.time-f.runtime.time)>=1e-8)earlierShots++;
+      if(shot&&Math.abs(shot.time-f.runtime.time)<1e-8) {
+        samples++;
+        const shift=shot.position.distanceTo(f.camera.position),projected=shot.point.clone().project(f.camera);
+        const projection=projected.distanceTo(shot.projection);
+        maxShift=Math.max(maxShift,shift);maxProjection=Math.max(maxProjection,projection);
+        assert.ok(shift<1e-8,'no temporal camera movement after latest shot');
+        assert.ok(shot.quaternion.angleTo(f.camera.quaternion)<1e-7,'render keeps latest shot center ray');
+        assert.equal(f.camera.fov,shot.fov,'render keeps latest shot ADS projection');
+        assert.ok(projection<1e-8,'actual hit point retains its shot-time projection');
+      }
+      for(const box of f.boxes)assert.equal(
+        ['X','Y','Z'].every(axis=>f.camera.position[axis.toLowerCase()]>box[`min${axis}`]-.3&&f.camera.position[axis.toLowerCase()]<box[`max${axis}`]+.3),
+        false,'camera sphere stays outside corner walls');
+    }
+    assert.ok(f.runtime.shots>0,'real configured Stampead fired');
+    if(hz>=30)assert.ok(samples>0,'latest-tick shot projection was actually sampled');
+    else assert.ok(earlierShots>0,'earlier substep shots may legitimately precede the final camera pose');
+    console.log(`camera-clock: ${hz}Hz cover=${covered} latest-samples=${samples} earlier-substep-shots=${earlierShots} shift=${maxShift} projection-drift=${maxProjection} (CPU)`);
+    const zeroPosition=f.camera.position.clone(),zeroFov=f.camera.fov,zeroShots=f.runtime.shots;
+    elapsed=0;c.frame(1000);assert.equal(elapsed,0);assert.equal(f.runtime.shots,zeroShots);
+    assert.ok(f.camera.position.distanceTo(zeroPosition)<1e-8);assert.equal(f.camera.fov,zeroFov);
+    const time=f.sim.time,position=f.camera.position.clone(),fov=f.camera.fov,count=draws;
+    c.paused=true;c.frame(1100);assert.equal(draws,count);assert.equal(f.sim.time,time);
+    c.paused=false;f.document.hidden=true;c.frame(1200);
+    assert.equal(f.sim.time,time);assert.ok(f.camera.position.distanceTo(position)<1e-8);assert.equal(f.camera.fov,fov);
+    // A late recall/respawn-style warp still needs the final zero-time refresh.
+    f.boxes.length=0;f.controller.yaw=f.controller.pitch=0;f.controller.warp({x:20,y:0,z:20});
+    c.frame(1300);assert.ok(f.camera.position.distanceTo(new THREE.Vector3(21.1,1.49,24))<1e-8);
+  });
+}
+check('between-frame look/fire remains immediate',kits[0],f=>{
+  const before=f.camera.getWorldDirection(new THREE.Vector3());
+  f.controller.yaw+=.4;
+  assert.equal(f.context.fire(),true);assert.equal(f.runtime.shots,1);
+  const direction=f.camera.getWorldDirection(new THREE.Vector3());
+  const target=f.controller.position.clone().add(new THREE.Vector3(0,1.49,0)).addScaledVector(f.runtime.direction,30);
+  assert.ok(direction.distanceTo(before)>.1,'current look is applied before any simulation frame');
+  assert.ok(direction.distanceTo(target.sub(f.camera.position).normalize())<1e-10);
+});
+check('keyboard turn trajectory across frame partitions',kits[0],f=>{
+  const c=f.context;
+  Object.assign(c,{stopped:false,previous:0,raf:0,window:{},requestAnimationFrame(){return 1;}});
+  c.view.renderCamera=()=>f.camera.updateMatrixWorld(true);
+  vm.runInContext(section('  function frame(now) {','\n  raf=requestAnimationFrame(frame);'),c);
+  for(const [key,sign] of [['ArrowLeft',1],['ArrowRight',-1]]) {
+    const endpoints=[];
+    for(const hz of [30,60,120]) {
+      f.api.place({x:0,y:0,z:8},0,0);c.previous=0;c.held.clear();c.held.add('KeyW');c.held.add(key);
+      for(let i=1;i<=hz*1.5;i++) {
+        if(i===hz+1)c.held.clear();c.frame(i*1000/hz);
+        assert.ok(Math.abs(f.controller.yaw-sign*1.7*Math.min(1,i/hz))<1e-10,'full current keyboard aim, no added smoothing');
+      }
+      endpoints.push(f.controller.position.clone());
+    }
+    const error=endpoints[0].distanceTo(endpoints[2]);
+    assert.ok(error<.02,`${key}: 30/120Hz trajectory difference ${error}m exceeds 2cm`);
+    console.log(`turn-partition: ${key} 30/120Hz endpoint difference=${error}m (CPU, not zero/native parity)`);
+  }
+});
+// Actual notice methods + real Host receipts: a passive interaction must not erase a confirmed hit.
+for(const protectedTarget of [false,true])check(`confirmed hit notice/Overtime=${protectedTarget}`,kits[0],f=>{
+  const notice={textContent:''},systemsSource=readFileSync(new URL('./systems-ui.mjs',import.meta.url),'utf8');
+  const uiSource=readFileSync(new URL('./integration-ui.mjs',import.meta.url),'utf8');
+  const noticeContext=vm.createContext({AbortController,sim:f.sim,$:()=>notice,playing:true,disposed:false});
+  const a=systemsSource.indexOf('  const listeners ='),b=systemsSource.indexOf('  const hero =',a);
+  assert.ok(a>=0&&b>a);vm.runInContext(systemsSource.slice(a,b)+'\nglobalThis.noticeMessage=message;',noticeContext);
+  noticeContext.systems={message:noticeContext.noticeMessage};
+  const start=uiSource.indexOf('    message(text'),end=uiSource.indexOf('    setPlaying,',start);
+  assert.ok(start>=0&&end>start);
+  f.context.ui.message=vm.runInContext('({'+uiSource.slice(start,end)+'})',noticeContext).message;
+  const target=f.sim.heroes.find(h=>h.id==='bot-5'),enemy=f.bots.runtimes.find(r=>r.source===target.id);
+  assert.equal(enemy.kit.id,'stampead');
+  assert.ok(f.sim.moveHero(f.enemy.id,{x:100,y:0,z:100}).ok);
+  assert.ok(f.sim.moveHero(target.id,{x:.55,y:0,z:0}).ok);enemy.controller.warp(target.position);
+  if(protectedTarget)assert.equal(enemy.cast(4),true,'real native Overtime, no private immunity grant');
+  f.api.aimAt(target.id);
+  f.context.world.crates.push({id:'notice-crate',kind:'soul',...f.hero.position});
+  const hp=target.hp,hitAt=f.sim.time;f.context.held.add('fire');f.context.tick(.05);f.context.held.delete('fire');
+  const prompt='E to collect soul-crate';
+  if(protectedTarget) {
+    assert.equal(target.hp,hp);assert.equal(notice.textContent,prompt,'Host rejection produces no confirmed-hit notice');
+    assert.ok(f.results.some(r=>!r.ok&&r.reason==='invulnerable'));
+    console.log('impact-notice: real Overtime rejection, zero HP loss, no confirmed-hit text (CPU)');
+  } else {
+    assert.ok(target.hp<hp);assert.match(notice.textContent,/^Hit: \d+ damage\.$/,'confirmed hit survives the same-frame prompt');
+    const hit=notice.textContent;f.step(.5);assert.equal(notice.textContent,hit,'confirmation remains within its 0.6-second hold');
+    const retainedAt=f.sim.time-hitAt;
+    f.step(.1);assert.equal(notice.textContent,prompt,'passive hint returns after the hold');
+    console.log(`impact-notice: ${hit} retained at +${retainedAt.toFixed(2)}s; passive hint restored at +${(f.sim.time-hitAt).toFixed(2)}s (CPU)`);
+    f.context.ui.message('Panels block the landing.');f.context.ui.message(prompt,true);
+    assert.equal(notice.textContent,'Panels block the landing.','urgent feedback remains immediate and protected');
+  }
+});
 // Startup markers bracket real awaits/construction; ready follows the draw and snapshot installation.
 {
   const order=["startupStage('hero-preload'",'  await Promise.all([preloadHeroes()',"startupStage('kit-load'",'  const definitions=await Promise.all(',

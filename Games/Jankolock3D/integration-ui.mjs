@@ -251,9 +251,9 @@ export function mountIntegrationUI({ sim, heroId, runtime, controller, world, ki
   update();
   return {
     update,
-    message(text) {
+    message(text, passive = false) {
       if (disposed) return;
-      systems.message(String(text));
+      systems.message(String(text), passive);
       if (!playing) { $('loading-status').textContent = String(text); $('loading-status').hidden = !text; }
     },
     setPlaying,

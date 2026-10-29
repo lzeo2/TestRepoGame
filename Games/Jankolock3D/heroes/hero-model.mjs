@@ -37,7 +37,7 @@ export function bindHeroRig(group, rig) {
     joint.node.quaternion.copy(joint.quaternion).multiply(delta.setFromAxisAngle(axis,angle*Math.PI/180));
   }
   return {
-    update(dt,{state='idle',speed=0,aiming=false,recoil=0}={}) {
+    update(dt,{state='idle',speed=0,aiming=false,recoil=0,worldVelocity}={}) {
       clock=(clock+Math.max(0,Number.isFinite(dt)?dt:0)%(Math.PI*2))%(Math.PI*2);
       // Never animate the caller-owned root. All joint deltas start at author rest.
       for(const [name,joint] of nodes)if(name!=='root') {
@@ -46,7 +46,11 @@ export function bindHeroRig(group, rig) {
       const moving=Math.min(1,Math.abs(Number.isFinite(speed)?speed:0)/8);
       const stride=Math.sin(clock*9)*moving;
       const sliding=state==='slide',air=state==='jump'||state==='fall';
-      const lean=sliding?-10:state==='dash'?-7:state==='jump'?-4:state==='fall'?3:aiming||state==='aim'?-3:0;
+      // Stampead's authored takeoff/descent poses fade through the apex, not a state snap.
+      // 9 m/s is full pose strength, not a change to jump physics; omit motion for static previews.
+      const verticalSpeed=worldVelocity?.y;
+      const airPose=rig.model==='stampead'&&air&&Number.isFinite(verticalSpeed)?Math.min(1,Math.abs(verticalSpeed)/9):1;
+      const lean=sliding?-10:state==='dash'?-7:state==='jump'?-4*airPose:state==='fall'?3*airPose:aiming||state==='aim'?-3:0;
       const kick=Number.isFinite(recoil)?Math.max(0,Math.min(1,recoil))*6:0;
       if(rig.model==='ribbon-seraph') {
         hinge('hover_core',lean-kick);hinge('optic_mask',aiming?-5:0);
@@ -103,8 +107,8 @@ export function bindHeroRig(group, rig) {
       hinge('pelvis',sliding?-2:0);hinge('torso',lean-kick);hinge('head',-lean*.35);
       for(const side of ['l','r']) {
         const step=sliding||air?0:stride*(side==='l'?1:-1);
-        const thigh=sliding?-12:state==='jump'?-8:state==='fall'?3:step*12;
-        const shin=sliding?20:state==='jump'?12:state==='fall'?4:Math.max(0,-step)*14;
+        const thigh=sliding?-12:state==='jump'?-8*airPose:state==='fall'?3*airPose:step*12;
+        const shin=sliding?20:state==='jump'?12*airPose:state==='fall'?4*airPose:Math.max(0,-step)*14;
         hinge(`thigh_${side}`,thigh);hinge(`shin_${side}`,shin);
         hinge(`foot_${side}`,gooey?(sliding?-8:air?-4:step*7):-(thigh+shin)*.65);
         // Keep both rifle/carbine grip chains at rest relative to the torso.

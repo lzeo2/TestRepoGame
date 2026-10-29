@@ -23,7 +23,13 @@ export function mountSystemsUI(root, sim, heroId) {
   const openButton = $('[data-open]'), closeButton = $('[data-close]');
   let tier = 2, previousAvailable = false, previousAlive = true, previousItems = '', disposed = false;
   const listeners = new AbortController(), options = { signal: listeners.signal };
-  const message = text => { const output = $('.sys-notice'); if (output.textContent !== text) output.textContent = text; };
+  let noticeUntil = 0;
+  const message = (text, passive = false) => {
+    // Per-frame hints must not erase a hit, purchase or error before it can be read.
+    if (passive && sim.time < noticeUntil) return;
+    if (!passive) noticeUntil = sim.time + .6;
+    const output = $('.sys-notice'); if (output.textContent !== text) output.textContent = text;
+  };
   const hero = () => sim.heroes.find(h => h.id === heroId);
   const button = (text, label, fn) => {
     const b = document.createElement('button'); b.type = 'button'; b.textContent = text;
@@ -110,7 +116,7 @@ export function mountSystemsUI(root, sim, heroId) {
       b.disabled = !h.alive || sim.phase === 'pregame' || sim.phase === 'finished' || cooling || id === 'dash-charge' && h.dashCharges <= 0;
       b.title = cooling ? `Ready in ${Math.ceil(h.cooldowns[id] - sim.time)}s` : 'Activate item';
     }
-    if (h.recall) message(`Returning to base in ${Math.max(0, Math.ceil(3 - sim.time + h.recall.started))}s. Keep holding X.`);
+    if (h.recall) message(`Returning to base in ${Math.max(0, Math.ceil(3 - sim.time + h.recall.started))}s. Keep holding X.`, true);
   }
   drawItems(); update();
   return { update, message, open: () => setOpen(true, true), close: () => setOpen(false, true),

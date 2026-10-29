@@ -76,6 +76,34 @@ for (const { id } of kits.heroes) {
 }
 assert.equal(silhouettes.size, 4); assert.throws(() => createHeroVisual('missing'), RangeError);
 
+// Real supplied Stampead joints must not pop when vertical velocity crosses zero.
+{
+  const hero = createHeroVisual('stampead'), velocity = vector();
+  const joints = ['torso', 'head', 'thigh_l', 'shin_l', 'foot_l'];
+  const sample = (state, motion, recoil = 0) => {
+    hero.update(0, { state, speed: 0, worldVelocity: motion, recoil });
+    return joints.map(name => hero.group.getObjectByName(name).quaternion.clone());
+  };
+  const rising = sample('jump', velocity), falling = sample('fall', velocity);
+  rising.forEach((q, i) => assert.ok(q.angleTo(falling[i]) < 1e-7, `${joints[i]}: continuous apex`));
+  velocity.y = 1e-4;
+  const nearRise = sample('jump', velocity);
+  velocity.y = -1e-4;
+  const nearFall = sample('fall', velocity);
+  nearRise.forEach((q, i) => assert.ok(q.angleTo(nearFall[i]) < 1e-5, `${joints[i]}: near-apex continuity`));
+  for (const [state, vy] of [['jump', 9], ['fall', -9]]) {
+    const authored = sample(state);
+    velocity.y = vy;
+    const moving = sample(state, velocity);
+    authored.forEach((q, i) => assert.ok(q.angleTo(moving[i]) < 1e-7, `${joints[i]}: authored ${state}`));
+    assert.equal(velocity.y, vy, 'pose does not mutate controller velocity');
+  }
+  velocity.y = 0;
+  const rest = sample('fall', velocity), fired = sample('fall', velocity, 1);
+  assert.ok(Math.abs(THREE.MathUtils.radToDeg(rest[0].angleTo(fired[0])) - 6) < 1e-6, 'accepted recoil stays immediate');
+  hero.dispose();
+}
+
 const scene = new THREE.Scene(), fx = new AbilityFX(scene), shapes = new Set(), handles = new Map();
 const origin = vector(10, 2, 5), target = vector(1, 5, -9), direction = vector(0.3, 0.1, -1);
 const targets = [vector(3, 0, -8), vector(-4, 2, -12)];

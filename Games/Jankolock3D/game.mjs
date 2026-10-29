@@ -105,7 +105,8 @@ function tick(dt) {
     controller.movementStopped=stats.movementStopped===true;
     controller.speedMultiplier=stats.moveSpeed/8;
     if(controller.movementStopped&&traveler.mode!=='free') {traveler.mode='free';traveler.ride=null;traveler.vy=0;}
-    controller.yaw+=(Number(held.has('ArrowLeft'))-Number(held.has('ArrowRight')))*dt*1.7;
+    const yawStep=(Number(held.has('ArrowLeft'))-Number(held.has('ArrowRight')))*dt*1.7;
+    controller.yaw+=yawStep/2; // Move at the interval midpoint; aim still receives the full turn below.
     controller.pitch=THREE.MathUtils.clamp(controller.pitch+(Number(held.has('ArrowUp'))-Number(held.has('ArrowDown')))*dt,-1.2,1.2);
     if(traveler.mode!=='free') {
       const previous={x:traveler.x,y:traveler.y,z:traveler.z};
@@ -122,6 +123,7 @@ function tick(dt) {
       const pit=world.pit;
       if(controller.position.y<0&&controller.position.x>pit.minX&&controller.position.x<pit.maxX&&controller.position.z>pit.minZ&&controller.position.z<pit.maxZ)controller.stamina=Math.max(0,controller.stamina-40*dt);
     }
+    controller.yaw+=yawStep/2;
     sim.moveHero(hero.id,controller.position);
     sim.setRetreat(hero.id,held.has('KeyX'));
     controller.updateCamera(view.camera,dt);runtime.aim(view.camera);
@@ -145,8 +147,8 @@ function tick(dt) {
     }
   }
   const prompt=interaction(world,traveler);
-  if(controller.movementStopped)ui.message('Stationary while Approved Only is active.');
-  else if(prompt)ui.message(prompt.label);
+  if(controller.movementStopped)ui.message('Stationary while Approved Only is active.',true);
+  else if(prompt)ui.message(prompt.label,true);
   actors.sync(sim);view.sync(traveler);view.syncStructures(sim.structures);
   ui.update({events,paused});
 }
@@ -285,7 +287,8 @@ try {
   function frame(now) {
     if(stopped)return;raf=requestAnimationFrame(frame);const dt=Math.min(.25,Math.max(0,(now-previous)/1000));previous=now;
     if(playing&&(paused||sim.winner))return; // Static paused/end frames do not need GPU redraws.
-    if(playing) {for(let left=dt;left>1e-7;left-=.05)tick(Math.min(.05,left));if(hero.alive)controller.updateCamera(view.camera,dt);}
+    // Tick already advanced camera time before aiming/firing; only refresh warps and collision here.
+    if(playing) {for(let left=dt;left>1e-7;left-=.05)tick(Math.min(.05,left));if(hero.alive)controller.updateCamera(view.camera,0);}
     else return; // Lobby draws on initial load, selection and resize, even if RAF delivery is delayed.
     window.jank3dQA?.renderPreview();view.renderCamera();
   }

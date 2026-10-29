@@ -874,6 +874,101 @@ measured. Current CPU scope receipt: `jank-current-hero-scope-20261028.json`;
 feasibility accounting: `jank-d109-feasibility-20261028/REPORT.md` (volatile working
 evidence). No new game, dependencies, model change, gameplay/QA source mutation or push.
 
+### Stampead airborne-pose candidate, 2026-10-28
+
+CPU/source slice only, not accepted native feel. Synthetic controller samples at
+30/60/120 Hz gave identical one-second travel and diagonal distance, 7.451042 m,
+and 0.548958 m coasting. Actual GLB walk poses also agreed. This does not measure
+renderer frame times or input latency. The demonstrated animation defect was a
+7-degree torso step when the discrete state switched from jump to fall.
+
+`heroes/hero-model.mjs` now fades only Stampead's airborne torso/head/leg poses
+with finite vertical velocity already supplied by the runtime. Both poses meet
+at the apex; 9 m/s retains full authored pose strength. Static previews without
+motion retain the old poses. This is an authored adapter change, not new supplied
+animation or art. Physics, controls, camera, aim, immediate recoil, other heroes,
+models, rigs and reduced-motion/effect behavior are unchanged.
+
+The actual-controller/GLB CPU apex frame step changed from 7 degrees to
+0.288889/0.155556/0.088889 degrees at 30/60/120 Hz. The existing visual suite has
+a genuine before-fix RED and checks real-joint apex/near-apex continuity,
+authored endpoints, readonly velocity and immediate recoil. Visual, runtime,
+145 mocked action groups, five-original asset audit and catalog checks passed.
+The isolated integration suite passed in 35 seconds; earlier compound 60-second
+and isolated 20-second attempts timed out and are not counted as passes.
+No browser ran. Native responsiveness, impact feel and whole-game feel remain
+unaccepted; the separate 79,174/60,000-byte diagnostic hold is not repaired.
+
+### Camera clock and shot/draw coherence candidate, 2026-10-29
+
+Continuing the same Stampead feel pass, not declaring whole-game completion.
+The actual tick aimed/fired after a camera `dt` update, then the frame advanced
+that same camera by `dt` again. CPU forward/turn samples showed post-shot view
+movement of 0.114087/0.065728/0.035100 m and center-ray changes of
+0.154723/0.089090/0.047589 degrees at 30/60/120 Hz. These are source/CPU
+measurements, not renderer frame times or native input latency.
+
+The final frame refresh now passes zero elapsed time. Tick still advances the
+camera before combat; synchronous mouse/touch/ability refreshes are unchanged.
+The final refresh still initializes late warps and rechecks collision. Camera
+tracking/ADS therefore uses its authored 14/s rate instead of accidentally
+consuming two frame intervals; this is not proof of better perceived response.
+No extra smoothing, shake, motion blur, asset or dependency was added.
+
+The combined production tick/fire/frame regression first failed all ten timing
+cases, then passed within 156 action groups. It covers 30/60/120/10/4 Hz,
+corner-wall camera spheres, actual hit-point projection, ADS, zero-time draws,
+pause/hidden handling, late warp refresh and immediate between-frame look/fire.
+Latest-tick shot samples have zero extra camera/projection drift. Earlier
+substep shots legitimately precede the final view and are counted separately.
+Combat-input and syntax/diff checks passed. Browser/native feel, frame pacing,
+impact response and the separate 79,174/60,000-byte diagnostic remain held.
+
+### Confirmed-hit notice readability candidate, 2026-10-29
+
+A second causal CPU RED used real UI notice methods and actual Host receipts:
+near a crate, accepted Stampead damage wrote `Hit: 22 damage.` and the same tick
+replaced it with the passive interaction prompt, before any draw. The actual
+native Overtime rejection correctly caused no HP loss or confirmed-hit notice.
+Contact sparks remain contact feedback, not evidence of accepted damage.
+
+The shared systems notice now gives active hit/purchase/error feedback a
+0.6-simulation-second hold against passive hints. Interaction, stationary and
+recall-progress hints use that passive path through the existing integration
+UI. A new active message still replaces the old one immediately. There are no
+new timers, flashes, effects, layout changes or damage/status grants; pausing
+simulation also pauses this hold. This is not a general message queue.
+
+The production callback suite now passes 158 groups. Actual accepted hit text
+survives the same-tick prompt and +0.55 seconds, the hint returns at +0.65 seconds,
+and a real Overtime rejection leaves only the prompt with zero HP loss.
+Urgent feedback remains immediate. UI self-checks, combat input, four syntax
+checks and diff checks passed. Native readability, enemy reaction, renderer
+frame distribution/input latency and overall feel are still unaccepted.
+
+### Keyboard-turn partition candidate, 2026-10-29
+
+A further CPU pass exercised the actual game tick/frame callbacks, not only the
+controller. At 30/60/120 Hz, straight/diagonal one-second travel matched
+7.451042 m, sprint travel 10.740625 m, ordinary coasting 0.548958 m and jump
+peak 1.65 m. Frame-observed stopping/landing times are quantized observations,
+not device latency measurements.
+
+Turning exposed a real partition bias: the game applied the whole keyboard yaw
+interval before movement. After one second turning and 0.5 seconds coasting,
+30/120-Hz endpoints differed by 0.141200 m despite identical final yaw.
+Movement now samples the yaw midpoint and applies the remaining half before
+camera/aim/visual updates. Full current aim, 1.7 rad/s turn rate, movement
+constants, immediate pointer look and abilities are retained; no smoothing was
+added. Both left/right CPU differences fell to 0.011997 m, not zero.
+
+The regression was RED at 0.141200 m, then passed its bounded 2-cm flat-fixture
+check while asserting full current yaw on every frame. The production callback
+suite now passes 159 groups, plus combat-input, two syntax and diff checks.
+This does not certify trajectories around every obstacle or native feel. Real
+frame-time/input-latency and before/after rendering remain unmeasured; no Jank
+browser GO or diagnostic-cap waiver was inferred.
+
 ## Forty-hero intake and staged art integration
 
 The operator's newly received archive is retained unchanged with SHA-256
