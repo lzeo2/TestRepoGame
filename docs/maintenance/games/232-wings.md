@@ -5,8 +5,8 @@
 ## Identity and status
 
 **Local 20/20 supplied-aircraft integration checkpoint:** source `5b3065df`,
-binding `ed563114`, docs `f98e2529` are being integrated onto reviewed local
-`0736c207`, preserving newer Slipstream/Citisten/Jank/Foldwild work. Only the FULL
+binding `ed563114`, docs `f98e2529` are integrated locally as `eb5e2bc8` atop
+reviewed `0736c207`, preserving newer Slipstream/Citisten/Jank/Foldwild work. Only the FULL
 source alternative since `885cbb20` was selected. All20 supplied aircraft and ten
 AI vessel objectives are registered in source, ordinary27, with10 aircraft and5
 objectives per named coalition. This is not player ships, operational carriers,
@@ -20,7 +20,8 @@ or native retry. Historical random16-kind failure remains failed; current20-kind
 full-pool sampling is unrun. Human input/graphics/listening/performance/rights,
 FC seekers, carrier operations, shared maps/weather and symmetric ASW remain open.
 Canonical Brainrot manual is already restored; source-lane missing001 reports are
-historical, not a current integration blocker. Publication remains separate.
+historical, not a current integration blocker. [Serial source/build/HTTP receipt](../../wings-f98-integration.md)
+records101/101 local identities and separate native holds. Publication remains separate.
 
 **Quality-mode visibility integration (2026-10-27):** exact source/authoring
 `62412ef5` plus stricter QA readiness `47bf876e` are source-built into the real

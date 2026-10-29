@@ -6,6 +6,21 @@ User ordered completed repairs integrated, with `74b61fa7` the sole main writer.
 Fresh remote base: `d3dbb39ed840cd47200e62f8e8d736c281b9e151`.
 Local integration branch: `integrate/ready-game-repairs-20261029`.
 
+### Subsequent Wings READY continuation
+
+The prior0736 pending-Wings inventory below is historical. Latest runtime
+`5b3065df`, binding`ed563114`, docs`f98e2529` are now integrated locally as
+`eb5e2bc8933ad214b1e9c94d9afd4c1123bd8aa4` atop0736, selecting ONLY the full
+source alternative. Original-UI rebuild26files/4,122,701bytes exactly matches
+build-tree SHA256`493d45e73a1ff5714ea83b91c613311f7dd3692f35be0364314c1d59fcca07db`.
+Accepted clearance plus7source/3generated executables pass;101/101 actual local
+HTTP hashes/MIMEs pass with closed resources. Only Wings' actual inventory row
+is refreshed; restored001 and all other reviewed candidates remain intact.
+[Full mapping, build identity, collection failures and native holds](wings-f98-integration.md).
+No push/deployment/native acceptance or new waiver. Citisten38e code is separately
+READY for the next integration checkpoint, not implicitly included here. Deferred
+site debloat may begin disjoint read-only portal inventory, not asset deletion.
+
 **This batch is merged locally, NOT pushed, NOT deployed and NOT native accepted.**
 Slipstream's owner explicitly handed off source-ready, not release-ready code
 without push authority. The merge request is not a blanket failed-check waiver.
@@ -110,9 +125,9 @@ remain explicit. A future attempt needs a changed Start-stall diagnosis and fres
 exclusive admission, not longer deadlines, GL retries or forced input. No release
 or publication authority was supplied for this source-only handoff.
 
-## Still owned or not proven ready
+## Prior0736 inventory (historical dispositions)
 
-- **Wings:** source repair/expansion continues in its isolated owner worktree.
+- **Wings (superseded for source integration by eb5e2bc8 above):** source repair/expansion continues in its isolated owner worktree.
   Inventory sampled54cd258a→92e66eeb; later observed head
   `efa89ed6a6fa1c15ee1012aa15a68187f99ab388` stages helicopter adapters pending
   clearance, not a frozen READY handoff. Do not merge its advancing branch wholesale.
