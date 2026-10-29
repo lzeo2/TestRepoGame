@@ -3,16 +3,21 @@
 
 ## Identity and status
 
-**Current serial source integration (2026-10-29):** reviewed ready3778ae1a is
-integrated locally through b9135c12, full game tree
-`ebce59f6c52100f3d0354e31e989a683df5d12c3` (438files/39,023,250bytes).
+**Current serial source integration (2026-10-29):** ready18b8d20b, including
+4bdc5129/8361956f/d860e8d4, is integrated through01893c2c. Full game tree is
+`ed17ed0f049af865f6ffee126c838c45193ef2ac` (440files/39,040,582bytes).
+[This batch's explicit publication exception and user-test items](../../repair-batch-publication-20261029.md)
+allow normal publication after passing targeted review, without claiming native
+or full-fleet acceptance. The final pose slice adds7CPU/4syntax and446local HTTP
+hash/MIME passes; supplied model bytes remain unchanged.
 The four scoped feel/core/wiring/exchange slices include afb4f0d8 and QA adapter
 9b860c2c. [Exact mappings, expanded scope and release blocker](../../jank3778-integration.md)
 record22CPU commands,35syntax checks,87preserved QA assertions and444local HTTP
 hash/MIME checks, not native completion. Six AI teammates are source/CPU verified;
 native behavior, differentiated animation/model detail and incomplete neutral
-objectives remain open. Dirty native QA/manual drafts and subsequent pose work
-remain source-only. No push/deployment or new native PASS is claimed.
+objectives remain open. Dirty native QA/manual drafts and the unfinished model-
+detail candidate remain source-only. The two ready pose commits are now included;
+no new native PASS is claimed.
 
 **Packaging hotfix (2026-10-27):** release `532c9ee0` omitted two committed
 runtime inputs fetched by `game.mjs`, causing `Hero definitions HTTP 404` before
@@ -38,9 +43,10 @@ operator-rejected 2D entry without deleting its tree or adding a game/ID. Origin
 in-house office-parody 3D MOBA-shooter; not an ingested port or affiliated title.
 129 catalog entries currently parse; this follow-up adds no game/ID. Integration
 and catalog rewrite are authorized. The user's2026-10-29 push-when-done order
-supersedes the earlier no-unrequested-push hold for this batch, contingent on
-required release checks. The full-fleet preflight remains concretely blocked;
-permission is not the missing gate. See the [integration guide](../../../Games/Jankolock3D/INTEGRATION.md).
+supersedes the earlier no-unrequested-push hold. The later explicit THIS-batch
+exception accepts the disclosed native/full-fleet gaps for publication on passing
+targeted checks and review confidence, not verified gameplay. Earlier preflight
+blocker evidence remains unchanged. See the [integration guide](../../../Games/Jankolock3D/INTEGRATION.md).
 The former [unregistered guide](unregistered-jankolock3d.md) retains lane-team
 history; [legacy game](unregistered-jankolock.md) documents the retained 2D tree.
 Historical PASS receipts are not current full-game acceptance.

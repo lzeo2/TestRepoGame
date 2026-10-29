@@ -6,11 +6,18 @@ User ordered completed repairs integrated, with `74b61fa7` the sole main writer.
 Fresh remote base: `d3dbb39ed840cd47200e62f8e8d736c281b9e151`.
 Local integration branch: `integrate/ready-game-repairs-20261029`.
 
-**Latest explicit user authority:** push the completed current repair batch after
-required release checks, without asking again. This supersedes earlier no-push
-permission statements, not failed gates/native holds. No push occurred: full-fleet
-preflight lacks a responsive permitted renderer/exclusive admission and bounded
-fleet serving. [Current Jank integration and exact release blocker](jank3778-integration.md).
+**Latest explicit THIS-batch release exception:** the user accepts personally
+testing the disclosed native/full-fleet gaps and authorizes normal push of the
+reviewed batch on passing targeted code/syntax/served-file checks and confidence.
+No new permission request is needed. Earlier preflight blocker records remain
+historical; they are not native PASS. This is the pre-publication checkpoint.
+[Authority, final ready pose and user-test items](repair-batch-publication-20261029.md).
+
+Ready pose18b8d20b, including4bdc5129/8361956f/d860e8d4, is now integrated as
+01893c2c, full Jank tree`ed17ed0f049af865f6ffee126c838c45193ef2ac`:
+440files/39,040,582bytes. Seven fresh CPU commands/four syntax and446local HTTP
+hash/MIME checks pass. Untracked detail-candidate and dirty native/manual remain
+excluded. This does not complete expanded animation/native objectives.
 
 ### Subsequent Jank3778 gameplay continuation
 
@@ -19,8 +26,8 @@ feel ec282→28145f20, core3993→787d82b3, wiring e221→e5b98ad2,
 exchange3778 including9b860c2c/afb4f0d8→b9135c12. Full game tree exactly equals
 `ebce59f6c52100f3d0354e31e989a683df5d12c3`,438files/39,023,250bytes.
 These runtime slices are not source-only or delayed for unfinished art.
-Only row240 is refreshed; dirty native QA/manual and subsequent pose work stay
-source-only. Independent22/22 CPU commands,35syntax/87preserved QA assertions,
+At that3778 checkpoint only row240 was refreshed; dirty native QA/manual stayed
+source-only. The later ready pose is now integrated above, not left pending. Independent22/22 CPU commands,35syntax/87preserved QA assertions,
 both600s chains in46.994s,444/444localHTTP/hash/MIME and47parsed modules pass.
 No current native/fit/audibility/FPS or full expanded-scope completion follows.
 
@@ -63,10 +70,11 @@ private Chromebook v2 and prior failure witnesses remain unchanged/unpassed.
 No browser, push, deployment or new public-runtime proof was claimed. Fresh remote
 readback remains `d3dbb39ed840cd47200e62f8e8d736c281b9e151`.
 
-**This batch is merged locally, NOT pushed, NOT deployed and NOT native accepted.**
-Slipstream's owner explicitly handed off source-ready, not release-ready code
-without push authority. The merge request is not a blanket failed-check waiver.
-Remote main and the public runtime remain at the earlier published checkpoint.
+**Pre-publication state:** locally integrated, not yet pushed/deployed and NOT
+native accepted. Slipstream's source-only handoff and earlier merge requests did
+not themselves grant publication authority; the later explicit user exception
+above does for THIS reviewed batch. It never turns failed checks into PASS.
+Remote/deployment/live identity must be verified after the normal push.
 No whole mixed-history branch was merged; each commit below was reconstructed
 from its owned paths, then fast-forwarded into the main-based integration branch.
 Original source commits/branches and other owners' dirty work remain intact.

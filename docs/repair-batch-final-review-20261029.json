@@ -1,0 +1,840 @@
+{
+  "runtimeRef": "01893c2c98d9d9dc5cceaf13d90a5804a591a7c3",
+  "base": "d3dbb39ed840cd47200e62f8e8d736c281b9e151",
+  "reviewedChangedPaths": [
+    "Games/Citisten3D/camera.mjs",
+    "Games/Citisten3D/city-event-effects.mjs",
+    "Games/Citisten3D/continue-loop-check.mjs",
+    "Games/Citisten3D/daynight.mjs",
+    "Games/Citisten3D/economy-ui-check.mjs",
+    "Games/Citisten3D/external-materials.mjs",
+    "Games/Citisten3D/index.html",
+    "Games/Citisten3D/native.css",
+    "Games/Citisten3D/native.mjs",
+    "Games/Citisten3D/river-data.mjs",
+    "Games/Citisten3D/river-upgrade-qa.py",
+    "Games/Citisten3D/sim-snapshot.mjs",
+    "Games/Citisten3D/sim.mjs",
+    "Games/Citisten3D/tutorial-check.mjs",
+    "Games/Citisten3D/ui.css",
+    "Games/Citisten3D/ui.mjs",
+    "Games/Citisten3D/world.mjs",
+    "Games/Jankolock3D/INTEGRATION.md",
+    "Games/Jankolock3D/arena-layout-test.mjs",
+    "Games/Jankolock3D/bots-test.mjs",
+    "Games/Jankolock3D/bots.mjs",
+    "Games/Jankolock3D/camera-bob-test.mjs",
+    "Games/Jankolock3D/camera-bob.mjs",
+    "Games/Jankolock3D/camera-motion-view-test.mjs",
+    "Games/Jankolock3D/camera-motion-view.mjs",
+    "Games/Jankolock3D/completion-cue-test.mjs",
+    "Games/Jankolock3D/completion-cue.mjs",
+    "Games/Jankolock3D/exchange-test.mjs",
+    "Games/Jankolock3D/game.mjs",
+    "Games/Jankolock3D/hero-team-test.mjs",
+    "Games/Jankolock3D/heroes/hero-model.mjs",
+    "Games/Jankolock3D/heroes/hero-visuals-test.mjs",
+    "Games/Jankolock3D/heroes/odometer-slice-entry-test.mjs",
+    "Games/Jankolock3D/heroes/player-controller.mjs",
+    "Games/Jankolock3D/heroes/stampead-pose-test.mjs",
+    "Games/Jankolock3D/heroes/stampead-runtime-pose-test.mjs",
+    "Games/Jankolock3D/heroes/trio-test.mjs",
+    "Games/Jankolock3D/index.html",
+    "Games/Jankolock3D/integrated-actions-test.mjs",
+    "Games/Jankolock3D/integration-fixtures.mjs",
+    "Games/Jankolock3D/integration-qa.py",
+    "Games/Jankolock3D/integration-test.mjs",
+    "Games/Jankolock3D/integration-ui.mjs",
+    "Games/Jankolock3D/integration.css",
+    "Games/Jankolock3D/letter-qa.py",
+    "Games/Jankolock3D/match-world.mjs",
+    "Games/Jankolock3D/objective-guide-test.mjs",
+    "Games/Jankolock3D/objective-guide.mjs",
+    "Games/Jankolock3D/rail-reuse-test.mjs",
+    "Games/Jankolock3D/start-placement-test.mjs",
+    "Games/Jankolock3D/systems-fairness-test.mjs",
+    "Games/Jankolock3D/systems-qa.py",
+    "Games/Jankolock3D/systems-test.mjs",
+    "Games/Jankolock3D/systems-ui.mjs",
+    "Games/Jankolock3D/systems-view-test.mjs",
+    "Games/Jankolock3D/systems-view.mjs",
+    "Games/Jankolock3D/systems.css",
+    "Games/Jankolock3D/systems.mjs",
+    "Games/Jankolock3D/traversal.mjs",
+    "Games/Jankolock3D/world-data.mjs",
+    "Games/Jankolock3D/world-scene.mjs",
+    "Games/Jankolock3D/world-test.mjs",
+    "Games/Slipstream Borough/core.js",
+    "Games/Slipstream Borough/index.html",
+    "Games/Slipstream Borough/script.js",
+    "Games/Slipstream Borough/view.js",
+    "Games/Slipstream Borough/world.js",
+    "Games/Wings/assets/audio-UGWDGOIA.js",
+    "Games/Wings/assets/chunk-2IJ3UYND.js",
+    "Games/Wings/assets/chunk-6VKGKRMP.js",
+    "Games/Wings/assets/chunk-BMYRWB5U.js",
+    "Games/Wings/assets/chunk-KLBFFL36.js",
+    "Games/Wings/assets/chunk-KLDWZ4RU.js",
+    "Games/Wings/assets/chunk-Y5ORVK7B.js",
+    "Games/Wings/assets/game-R46SELJO.js",
+    "Games/Wings/assets/main.js",
+    "Games/Wings/assets/scene-52TYFLPH.js",
+    "Games/Wings/assets/terrain-worker.js",
+    "Games/Wings/assets/ui-check.js",
+    "Games/Wings/authoring/coalition-rosters.mjs",
+    "Games/Wings/authoring/declared-rafale-yak-flight-check.mjs",
+    "Games/Wings/authoring/extended-escort-models.json",
+    "Games/Wings/authoring/faction-picker-check.mjs",
+    "Games/Wings/authoring/fleet-bomb-near-miss-check.mjs",
+    "Games/Wings/authoring/fleet-bomb-view-check.mjs",
+    "Games/Wings/authoring/fleet-geometry.mjs",
+    "Games/Wings/authoring/fleet-hud-targets-check.mjs",
+    "Games/Wings/authoring/fleet-roster-extension-check.mjs",
+    "Games/Wings/authoring/fleet-sea-view-check.mjs",
+    "Games/Wings/authoring/fleet-sea-view.mjs",
+    "Games/Wings/authoring/fleet-sim.mjs",
+    "Games/Wings/authoring/fleet-surface-height-check.mjs",
+    "Games/Wings/authoring/host-bridge-contract.md",
+    "Games/Wings/authoring/host-sea-effects-check.mjs",
+    "Games/Wings/authoring/local-fleet-view-check.mjs",
+    "Games/Wings/authoring/local-fleet-view.mjs",
+    "Games/Wings/authoring/local-host-scenario.mjs",
+    "Games/Wings/authoring/local-session-check.mjs",
+    "Games/Wings/authoring/named-coalition-flight-check.mjs",
+    "Games/Wings/authoring/native-ai-roster-check.mjs",
+    "Games/Wings/authoring/native-faction-rosters-check.mjs",
+    "Games/Wings/authoring/native-factions-ai-bombs-check.mjs",
+    "Games/Wings/authoring/native-factions-bombs-check.mjs",
+    "Games/Wings/authoring/native-factions-bot-aa-check.mjs",
+    "Games/Wings/authoring/native-factions-rockets-check.mjs",
+    "Games/Wings/authoring/native-factions-targets-check.mjs",
+    "Games/Wings/authoring/native-fighter-pair-check.mjs",
+    "Games/Wings/authoring/native-fighter-pair.json",
+    "Games/Wings/authoring/native-fleet-flight-check.mjs",
+    "Games/Wings/authoring/native-fleet-reuse-check.mjs",
+    "Games/Wings/authoring/native-helicopter-pair-check.mjs",
+    "Games/Wings/authoring/native-helicopter-pair.json",
+    "Games/Wings/authoring/native-ship-collision-wiring.mjs",
+    "Games/Wings/authoring/native-tu160-check.mjs",
+    "Games/Wings/authoring/native-tu160.json",
+    "Games/Wings/authoring/repair-fighter-pair-check.py",
+    "Games/Wings/authoring/repair-fighter-pair.py",
+    "Games/Wings/authoring/repair-fleet-extension-check.py",
+    "Games/Wings/authoring/repair-fleet-extension.py",
+    "Games/Wings/authoring/repair-helicopter-clearance-check.py",
+    "Games/Wings/authoring/repair-helicopter-clearance.py",
+    "Games/Wings/authoring/repair-helicopter-pair-check.py",
+    "Games/Wings/authoring/repair-helicopter-pair.py",
+    "Games/Wings/authoring/repair-tu160-check.py",
+    "Games/Wings/authoring/repair-tu160.py",
+    "Games/Wings/authoring/retained-fleet-targets-check.mjs",
+    "Games/Wings/authoring/retained-host-bridge-check.mjs",
+    "Games/Wings/authoring/retained-host-bridge.mjs",
+    "Games/Wings/authoring/retained-host-wiring.mjs",
+    "Games/Wings/authoring/supplied-bomber/README.md",
+    "Games/Wings/authoring/supplied-bomber/repair-record.json",
+    "Games/Wings/authoring/supplied-bomber/rigs/tu-160.json",
+    "Games/Wings/authoring/supplied-fighters/README.md",
+    "Games/Wings/authoring/supplied-fighters/README.txt",
+    "Games/Wings/authoring/supplied-fighters/manifest.json",
+    "Games/Wings/authoring/supplied-fighters/models.json",
+    "Games/Wings/authoring/supplied-fighters/palette.json",
+    "Games/Wings/authoring/supplied-fighters/repair-record.json",
+    "Games/Wings/authoring/supplied-fighters/rigs/a-10c.json",
+    "Games/Wings/authoring/supplied-fighters/rigs/eurofighter-typhoon.json",
+    "Games/Wings/authoring/supplied-fighters/rigs/f-16c.json",
+    "Games/Wings/authoring/supplied-fighters/rigs/f-35a.json",
+    "Games/Wings/authoring/supplied-fighters/rigs/fa-50.json",
+    "Games/Wings/authoring/supplied-fighters/rigs/hawk-t2.json",
+    "Games/Wings/authoring/supplied-fighters/rigs/j-20.json",
+    "Games/Wings/authoring/supplied-fighters/rigs/jas-39c-gripen.json",
+    "Games/Wings/authoring/supplied-fighters/rigs/jf-17-block-iii.json",
+    "Games/Wings/authoring/supplied-fighters/rigs/mig-29.json",
+    "Games/Wings/authoring/supplied-fighters/rigs/mig-31bm.json",
+    "Games/Wings/authoring/supplied-fighters/rigs/mirage-2000c.json",
+    "Games/Wings/authoring/supplied-fighters/rigs/rafale-c.json",
+    "Games/Wings/authoring/supplied-fighters/rigs/su-25sm.json",
+    "Games/Wings/authoring/supplied-fighters/rigs/su-34.json",
+    "Games/Wings/authoring/supplied-fighters/rigs/su-35s.json",
+    "Games/Wings/authoring/supplied-fighters/rigs/yak-130.json",
+    "Games/Wings/authoring/supplied-fighters/roster_lookup.json",
+    "Games/Wings/authoring/supplied-helicopters/README.md",
+    "Games/Wings/authoring/supplied-helicopters/blocked-native-candidate.patch.gz",
+    "Games/Wings/authoring/supplied-helicopters/clearance-record.json",
+    "Games/Wings/authoring/supplied-helicopters/clearance-repair-record.json",
+    "Games/Wings/authoring/supplied-helicopters/repair-record.json",
+    "Games/Wings/authoring/supplied-helicopters/rigs/ah-64d-apache.json",
+    "Games/Wings/authoring/supplied-helicopters/rigs/mi-28n.json",
+    "Games/Wings/authoring/supplied-vessels/README.md",
+    "Games/Wings/authoring/supplied-vessels/rigs/wings_admiral_kuznetsov_project1143_5.json",
+    "Games/Wings/authoring/supplied-vessels/rigs/wings_aquitaine_fremm.json",
+    "Games/Wings/authoring/supplied-vessels/rigs/wings_cb90_h.json",
+    "Games/Wings/authoring/supplied-vessels/rigs/wings_charles_de_gaulle_r91.json",
+    "Games/Wings/authoring/supplied-vessels/rigs/wings_liaoning_type001.json",
+    "Games/Wings/authoring/supplied-vessels/rigs/wings_queen_elizabeth_class.json",
+    "Games/Wings/authoring/supplied-vessels/rigs/wings_type022_houbei.json",
+    "Games/Wings/authoring/supplied-vessels/rigs/wings_type055_renhai.json",
+    "Games/Wings/build-meta.json",
+    "Games/Wings/models/derived/wings_a10c.glb",
+    "Games/Wings/models/derived/wings_admiral_kuznetsov_project1143_5.glb",
+    "Games/Wings/models/derived/wings_ah64d.glb",
+    "Games/Wings/models/derived/wings_aquitaine_fremm.glb",
+    "Games/Wings/models/derived/wings_cb90_h.glb",
+    "Games/Wings/models/derived/wings_charles_de_gaulle_r91.glb",
+    "Games/Wings/models/derived/wings_f16c.glb",
+    "Games/Wings/models/derived/wings_f35a.glb",
+    "Games/Wings/models/derived/wings_fa50.glb",
+    "Games/Wings/models/derived/wings_gripen.glb",
+    "Games/Wings/models/derived/wings_hawkt2.glb",
+    "Games/Wings/models/derived/wings_j20.glb",
+    "Games/Wings/models/derived/wings_jf17.glb",
+    "Games/Wings/models/derived/wings_liaoning_type001.glb",
+    "Games/Wings/models/derived/wings_mi28n.glb",
+    "Games/Wings/models/derived/wings_mig29.glb",
+    "Games/Wings/models/derived/wings_mig31.glb",
+    "Games/Wings/models/derived/wings_mirage2000.glb",
+    "Games/Wings/models/derived/wings_queen_elizabeth_class.glb",
+    "Games/Wings/models/derived/wings_rafale.glb",
+    "Games/Wings/models/derived/wings_su25sm.glb",
+    "Games/Wings/models/derived/wings_su34.glb",
+    "Games/Wings/models/derived/wings_su35s.glb",
+    "Games/Wings/models/derived/wings_tu160.glb",
+    "Games/Wings/models/derived/wings_type022_houbei.glb",
+    "Games/Wings/models/derived/wings_type055_renhai.glb",
+    "Games/Wings/models/derived/wings_typhoon.glb",
+    "Games/Wings/models/derived/wings_yak130.glb",
+    "Games/Wings/models/supplied/a-10c.glb",
+    "Games/Wings/models/supplied/ah-64d-apache.glb",
+    "Games/Wings/models/supplied/eurofighter-typhoon.glb",
+    "Games/Wings/models/supplied/f-16c.glb",
+    "Games/Wings/models/supplied/f-35a.glb",
+    "Games/Wings/models/supplied/fa-50.glb",
+    "Games/Wings/models/supplied/hawk-t2.glb",
+    "Games/Wings/models/supplied/j-20.glb",
+    "Games/Wings/models/supplied/jas-39c-gripen.glb",
+    "Games/Wings/models/supplied/jf-17-block-iii.glb",
+    "Games/Wings/models/supplied/mi-28n.glb",
+    "Games/Wings/models/supplied/mig-29.glb",
+    "Games/Wings/models/supplied/mig-31bm.glb",
+    "Games/Wings/models/supplied/mirage-2000c.glb",
+    "Games/Wings/models/supplied/rafale-c.glb",
+    "Games/Wings/models/supplied/su-25sm.glb",
+    "Games/Wings/models/supplied/su-34.glb",
+    "Games/Wings/models/supplied/su-35s.glb",
+    "Games/Wings/models/supplied/tu-160.glb",
+    "Games/Wings/models/supplied/wings_admiral_kuznetsov_project1143_5.glb",
+    "Games/Wings/models/supplied/wings_aquitaine_fremm.glb",
+    "Games/Wings/models/supplied/wings_cb90_h.glb",
+    "Games/Wings/models/supplied/wings_charles_de_gaulle_r91.glb",
+    "Games/Wings/models/supplied/wings_liaoning_type001.glb",
+    "Games/Wings/models/supplied/wings_queen_elizabeth_class.glb",
+    "Games/Wings/models/supplied/wings_type022_houbei.glb",
+    "Games/Wings/models/supplied/wings_type055_renhai.glb",
+    "Games/Wings/models/supplied/yak-130.glb",
+    "Games/Wings/source/games/wings/astra-check.ts",
+    "Games/Wings/source/games/wings/lighting-check.ts",
+    "Games/Wings/source/games/wings/node-model-fixture.ts",
+    "Games/Wings/source/games/wings/src/audio/engines.ts",
+    "Games/Wings/source/games/wings/src/render/aircraft-preview/main.ts",
+    "Games/Wings/source/games/wings/src/render/aircraft.ts",
+    "Games/Wings/source/games/wings/src/render/camera.ts",
+    "Games/Wings/source/games/wings/src/render/hud.ts",
+    "Games/Wings/source/games/wings/src/render/world/ships.ts",
+    "Games/Wings/source/games/wings/src/sim/bots.ts",
+    "Games/Wings/source/games/wings/src/sim/combat.ts",
+    "Games/Wings/source/games/wings/src/sim/fleet-world-query.ts",
+    "Games/Wings/source/games/wings/src/sim/fleet.ts",
+    "Games/Wings/source/games/wings/src/sim/flight.ts",
+    "Games/Wings/source/games/wings/src/sim/geography.ts",
+    "Games/Wings/source/games/wings/src/sim/room-engine.ts",
+    "Games/Wings/source/games/wings/src/sim/types.ts",
+    "Games/Wings/source/games/wings/src/sim/vehicles.ts",
+    "Games/Wings/source/games/wings/src/ui/fleet-hud-targets.ts",
+    "Games/Wings/source/games/wings/src/ui/game.ts",
+    "Games/Wings/source/games/wings/src/ui/lobby.ts",
+    "Games/Wings/source/games/wings/src/ui/local-factions.ts",
+    "Games/Wings/source/games/wings/src/ui/spawn.ts",
+    "Games/Wings/verification/astra-check.mjs",
+    "Games/Wings/verification/check-local-factions-browser.py",
+    "Games/Wings/verification/lighting-check.mjs",
+    "Games/Wings/verification/solo-check.mjs",
+    "Games/Wings/verification/trace-local-startup.py",
+    "docs/citisten-38e-integration-checks.json",
+    "docs/citisten-38e-integration-checks.log.gz",
+    "docs/citisten-controls-collector-adaptation.md",
+    "docs/citisten-controls-collector-dom.json.gz",
+    "docs/citisten-hud-onboarding-repair.md",
+    "docs/citisten-render-temporal-diagnosis.md",
+    "docs/citisten-seeded-terrain-repair.md",
+    "docs/citisten-user-hud-visual-result.md",
+    "docs/citisten-user-hud-visual-results.json.gz",
+    "docs/citisten-user-render-repair.md",
+    "docs/citisten-user-repair-integration.md",
+    "docs/citisten-user-repair-source-freeze.json",
+    "docs/citisten-user-repro-repair-contract.md",
+    "docs/citisten-visual-clock-diagnosis.md",
+    "docs/jank3778-integration-checks.json.gz",
+    "docs/jank3778-integration-freeze.json",
+    "docs/jank3778-integration-http.json",
+    "docs/jank3778-integration-map.json",
+    "docs/jank3778-integration.md",
+    "docs/jank3778-parent-checks.log.gz",
+    "docs/jankolock-playability-overhaul.md",
+    "docs/maintenance/games/225-slipstream-borough.md",
+    "docs/maintenance/games/232-wings.md",
+    "docs/maintenance/games/240-jankolock3d.md",
+    "docs/maintenance/games/241-citisten3d.md",
+    "docs/maintenance/inventory.json",
+    "docs/post-integration-debloat-before.md",
+    "docs/post-integration-debloat.md",
+    "docs/repair-batch-release-20261029.json",
+    "docs/serial-branch-integration-20261029.md",
+    "docs/slipstream-feel-evidence/final-manifest.json",
+    "docs/slipstream-feel-evidence/frozen-manifest.json",
+    "docs/slipstream-feel-evidence/native-cleanup.json",
+    "docs/slipstream-feel-evidence/native-result.json",
+    "docs/slipstream-feel-evidence/served.json",
+    "docs/slipstream-feel-evidence/source-checks.txt",
+    "docs/slipstream-game-feel.md",
+    "docs/wings-f98-integration.md",
+    "docs/wings-local-native/bomb-near-miss-build-readback.json",
+    "docs/wings-local-native/bomb-near-miss-integration-check.json",
+    "docs/wings-local-native/declared-rafale-yak-flight.json",
+    "docs/wings-local-native/eight-aircraft-coalition-flight.json",
+    "docs/wings-local-native/expanded-coalition-flight.json",
+    "docs/wings-local-native/fifteen-aircraft-coalition-flight.json",
+    "docs/wings-local-native/five-vessel-coalition-flight.json",
+    "docs/wings-local-native/four-vessel-coalition-flight.json",
+    "docs/wings-local-native/fourteen-aircraft-coalition-flight.json",
+    "docs/wings-local-native/helicopters-build-readback.json",
+    "docs/wings-local-native/helicopters-integration-check.json",
+    "docs/wings-local-native/j20-ten-vessels-build-readback.json",
+    "docs/wings-local-native/named-coalition-flight.json",
+    "docs/wings-local-native/six-aircraft-coalition-flight.json",
+    "docs/wings-local-native/six-vessel-coalition-flight.json",
+    "docs/wings-local-native/sixteen-aircraft-coalition-flight.json",
+    "docs/wings-local-native/ten-aircraft-coalition-flight.json",
+    "docs/wings-local-native/ten-vessel-production-check.json",
+    "docs/wings-local-native/thirteen-aircraft-coalition-flight.json",
+    "docs/wings-local-native/tu160-build-readback.json",
+    "docs/wings-local-native/tu160-integration-check.json",
+    "docs/wings-local-native/twelve-aircraft-coalition-flight.json",
+    "docs/wings-ready-integration-handoff.md",
+    "docs/wings-remaining-delivery.md",
+    "scripts/citisten_controls_collector_check.py",
+    "scripts/citisten_render_temporal_check.mjs",
+    "scripts/citisten_seeded_terrain_check.mjs",
+    "scripts/citisten_user_hud_check.mjs",
+    "scripts/citisten_user_render_repair_check.mjs",
+    "scripts/citisten_user_repair_integration_check.mjs",
+    "scripts/citisten_visual_clock_check.mjs",
+    "scripts/test_slipstream_city_render.mjs",
+    "scripts/test_slipstream_feel.mjs",
+    "scripts/test_slipstream_feel_browser.py",
+    "scripts/test_slipstream_input.mjs",
+    "scripts/test_slipstream_map.mjs",
+    "scripts/test_slipstream_reverse_sandbox.mjs",
+    "scripts/test_slipstream_steering.mjs",
+    "scripts/test_slipstream_variety.mjs",
+    "scripts/test_slipstream_world.mjs"
+  ],
+  "deletedPaths": [],
+  "syntax": [
+    {
+      "path": "Games/Citisten3D/camera.mjs",
+      "exit": 0
+    },
+    {
+      "path": "Games/Citisten3D/city-event-effects.mjs",
+      "exit": 0
+    },
+    {
+      "path": "Games/Citisten3D/continue-loop-check.mjs",
+      "exit": 0
+    },
+    {
+      "path": "Games/Citisten3D/daynight.mjs",
+      "exit": 0
+    },
+    {
+      "path": "Games/Citisten3D/economy-ui-check.mjs",
+      "exit": 0
+    },
+    {
+      "path": "Games/Citisten3D/external-materials.mjs",
+      "exit": 0
+    },
+    {
+      "path": "Games/Citisten3D/native.mjs",
+      "exit": 0
+    },
+    {
+      "path": "Games/Citisten3D/river-data.mjs",
+      "exit": 0
+    },
+    {
+      "path": "Games/Citisten3D/sim-snapshot.mjs",
+      "exit": 0
+    },
+    {
+      "path": "Games/Citisten3D/sim.mjs",
+      "exit": 0
+    },
+    {
+      "path": "Games/Citisten3D/tutorial-check.mjs",
+      "exit": 0
+    },
+    {
+      "path": "Games/Citisten3D/ui.mjs",
+      "exit": 0
+    },
+    {
+      "path": "Games/Citisten3D/world.mjs",
+      "exit": 0
+    },
+    {
+      "path": "Games/Jankolock3D/arena-layout-test.mjs",
+      "exit": 0
+    },
+    {
+      "path": "Games/Jankolock3D/bots-test.mjs",
+      "exit": 0
+    },
+    {
+      "path": "Games/Jankolock3D/bots.mjs",
+      "exit": 0
+    },
+    {
+      "path": "Games/Jankolock3D/camera-bob-test.mjs",
+      "exit": 0
+    },
+    {
+      "path": "Games/Jankolock3D/camera-bob.mjs",
+      "exit": 0
+    },
+    {
+      "path": "Games/Jankolock3D/camera-motion-view-test.mjs",
+      "exit": 0
+    },
+    {
+      "path": "Games/Jankolock3D/camera-motion-view.mjs",
+      "exit": 0
+    },
+    {
+      "path": "Games/Jankolock3D/completion-cue-test.mjs",
+      "exit": 0
+    },
+    {
+      "path": "Games/Jankolock3D/completion-cue.mjs",
+      "exit": 0
+    },
+    {
+      "path": "Games/Jankolock3D/exchange-test.mjs",
+      "exit": 0
+    },
+    {
+      "path": "Games/Jankolock3D/game.mjs",
+      "exit": 0
+    },
+    {
+      "path": "Games/Jankolock3D/hero-team-test.mjs",
+      "exit": 0
+    },
+    {
+      "path": "Games/Jankolock3D/heroes/hero-model.mjs",
+      "exit": 0
+    },
+    {
+      "path": "Games/Jankolock3D/heroes/hero-visuals-test.mjs",
+      "exit": 0
+    },
+    {
+      "path": "Games/Jankolock3D/heroes/odometer-slice-entry-test.mjs",
+      "exit": 0
+    },
+    {
+      "path": "Games/Jankolock3D/heroes/player-controller.mjs",
+      "exit": 0
+    },
+    {
+      "path": "Games/Jankolock3D/heroes/stampead-pose-test.mjs",
+      "exit": 0
+    },
+    {
+      "path": "Games/Jankolock3D/heroes/stampead-runtime-pose-test.mjs",
+      "exit": 0
+    },
+    {
+      "path": "Games/Jankolock3D/heroes/trio-test.mjs",
+      "exit": 0
+    },
+    {
+      "path": "Games/Jankolock3D/integrated-actions-test.mjs",
+      "exit": 0
+    },
+    {
+      "path": "Games/Jankolock3D/integration-fixtures.mjs",
+      "exit": 0
+    },
+    {
+      "path": "Games/Jankolock3D/integration-test.mjs",
+      "exit": 0
+    },
+    {
+      "path": "Games/Jankolock3D/integration-ui.mjs",
+      "exit": 0
+    },
+    {
+      "path": "Games/Jankolock3D/match-world.mjs",
+      "exit": 0
+    },
+    {
+      "path": "Games/Jankolock3D/objective-guide-test.mjs",
+      "exit": 0
+    },
+    {
+      "path": "Games/Jankolock3D/objective-guide.mjs",
+      "exit": 0
+    },
+    {
+      "path": "Games/Jankolock3D/rail-reuse-test.mjs",
+      "exit": 0
+    },
+    {
+      "path": "Games/Jankolock3D/start-placement-test.mjs",
+      "exit": 0
+    },
+    {
+      "path": "Games/Jankolock3D/systems-fairness-test.mjs",
+      "exit": 0
+    },
+    {
+      "path": "Games/Jankolock3D/systems-test.mjs",
+      "exit": 0
+    },
+    {
+      "path": "Games/Jankolock3D/systems-ui.mjs",
+      "exit": 0
+    },
+    {
+      "path": "Games/Jankolock3D/systems-view-test.mjs",
+      "exit": 0
+    },
+    {
+      "path": "Games/Jankolock3D/systems-view.mjs",
+      "exit": 0
+    },
+    {
+      "path": "Games/Jankolock3D/systems.mjs",
+      "exit": 0
+    },
+    {
+      "path": "Games/Jankolock3D/traversal.mjs",
+      "exit": 0
+    },
+    {
+      "path": "Games/Jankolock3D/world-data.mjs",
+      "exit": 0
+    },
+    {
+      "path": "Games/Jankolock3D/world-scene.mjs",
+      "exit": 0
+    },
+    {
+      "path": "Games/Jankolock3D/world-test.mjs",
+      "exit": 0
+    },
+    {
+      "path": "Games/Slipstream Borough/core.js",
+      "exit": 0
+    },
+    {
+      "path": "Games/Slipstream Borough/script.js",
+      "exit": 0
+    },
+    {
+      "path": "Games/Slipstream Borough/view.js",
+      "exit": 0
+    },
+    {
+      "path": "Games/Slipstream Borough/world.js",
+      "exit": 0
+    },
+    {
+      "path": "Games/Wings/assets/audio-UGWDGOIA.js",
+      "exit": 0
+    },
+    {
+      "path": "Games/Wings/assets/chunk-2IJ3UYND.js",
+      "exit": 0
+    },
+    {
+      "path": "Games/Wings/assets/chunk-6VKGKRMP.js",
+      "exit": 0
+    },
+    {
+      "path": "Games/Wings/assets/chunk-BMYRWB5U.js",
+      "exit": 0
+    },
+    {
+      "path": "Games/Wings/assets/chunk-KLBFFL36.js",
+      "exit": 0
+    },
+    {
+      "path": "Games/Wings/assets/chunk-KLDWZ4RU.js",
+      "exit": 0
+    },
+    {
+      "path": "Games/Wings/assets/chunk-Y5ORVK7B.js",
+      "exit": 0
+    },
+    {
+      "path": "Games/Wings/assets/game-R46SELJO.js",
+      "exit": 0
+    },
+    {
+      "path": "Games/Wings/assets/main.js",
+      "exit": 0
+    },
+    {
+      "path": "Games/Wings/assets/scene-52TYFLPH.js",
+      "exit": 0
+    },
+    {
+      "path": "Games/Wings/assets/terrain-worker.js",
+      "exit": 0
+    },
+    {
+      "path": "Games/Wings/assets/ui-check.js",
+      "exit": 0
+    },
+    {
+      "path": "Games/Wings/authoring/coalition-rosters.mjs",
+      "exit": 0
+    },
+    {
+      "path": "Games/Wings/authoring/declared-rafale-yak-flight-check.mjs",
+      "exit": 0
+    },
+    {
+      "path": "Games/Wings/authoring/faction-picker-check.mjs",
+      "exit": 0
+    },
+    {
+      "path": "Games/Wings/authoring/fleet-bomb-near-miss-check.mjs",
+      "exit": 0
+    },
+    {
+      "path": "Games/Wings/authoring/fleet-bomb-view-check.mjs",
+      "exit": 0
+    },
+    {
+      "path": "Games/Wings/authoring/fleet-geometry.mjs",
+      "exit": 0
+    },
+    {
+      "path": "Games/Wings/authoring/fleet-hud-targets-check.mjs",
+      "exit": 0
+    },
+    {
+      "path": "Games/Wings/authoring/fleet-roster-extension-check.mjs",
+      "exit": 0
+    },
+    {
+      "path": "Games/Wings/authoring/fleet-sea-view-check.mjs",
+      "exit": 0
+    },
+    {
+      "path": "Games/Wings/authoring/fleet-sea-view.mjs",
+      "exit": 0
+    },
+    {
+      "path": "Games/Wings/authoring/fleet-sim.mjs",
+      "exit": 0
+    },
+    {
+      "path": "Games/Wings/authoring/fleet-surface-height-check.mjs",
+      "exit": 0
+    },
+    {
+      "path": "Games/Wings/authoring/host-sea-effects-check.mjs",
+      "exit": 0
+    },
+    {
+      "path": "Games/Wings/authoring/local-fleet-view-check.mjs",
+      "exit": 0
+    },
+    {
+      "path": "Games/Wings/authoring/local-fleet-view.mjs",
+      "exit": 0
+    },
+    {
+      "path": "Games/Wings/authoring/local-host-scenario.mjs",
+      "exit": 0
+    },
+    {
+      "path": "Games/Wings/authoring/local-session-check.mjs",
+      "exit": 0
+    },
+    {
+      "path": "Games/Wings/authoring/named-coalition-flight-check.mjs",
+      "exit": 0
+    },
+    {
+      "path": "Games/Wings/authoring/native-ai-roster-check.mjs",
+      "exit": 0
+    },
+    {
+      "path": "Games/Wings/authoring/native-faction-rosters-check.mjs",
+      "exit": 0
+    },
+    {
+      "path": "Games/Wings/authoring/native-factions-ai-bombs-check.mjs",
+      "exit": 0
+    },
+    {
+      "path": "Games/Wings/authoring/native-factions-bombs-check.mjs",
+      "exit": 0
+    },
+    {
+      "path": "Games/Wings/authoring/native-factions-bot-aa-check.mjs",
+      "exit": 0
+    },
+    {
+      "path": "Games/Wings/authoring/native-factions-rockets-check.mjs",
+      "exit": 0
+    },
+    {
+      "path": "Games/Wings/authoring/native-factions-targets-check.mjs",
+      "exit": 0
+    },
+    {
+      "path": "Games/Wings/authoring/native-fighter-pair-check.mjs",
+      "exit": 0
+    },
+    {
+      "path": "Games/Wings/authoring/native-fleet-flight-check.mjs",
+      "exit": 0
+    },
+    {
+      "path": "Games/Wings/authoring/native-fleet-reuse-check.mjs",
+      "exit": 0
+    },
+    {
+      "path": "Games/Wings/authoring/native-helicopter-pair-check.mjs",
+      "exit": 0
+    },
+    {
+      "path": "Games/Wings/authoring/native-ship-collision-wiring.mjs",
+      "exit": 0
+    },
+    {
+      "path": "Games/Wings/authoring/native-tu160-check.mjs",
+      "exit": 0
+    },
+    {
+      "path": "Games/Wings/authoring/retained-fleet-targets-check.mjs",
+      "exit": 0
+    },
+    {
+      "path": "Games/Wings/authoring/retained-host-bridge-check.mjs",
+      "exit": 0
+    },
+    {
+      "path": "Games/Wings/authoring/retained-host-bridge.mjs",
+      "exit": 0
+    },
+    {
+      "path": "Games/Wings/authoring/retained-host-wiring.mjs",
+      "exit": 0
+    },
+    {
+      "path": "Games/Wings/verification/astra-check.mjs",
+      "exit": 0
+    },
+    {
+      "path": "Games/Wings/verification/lighting-check.mjs",
+      "exit": 0
+    },
+    {
+      "path": "Games/Wings/verification/solo-check.mjs",
+      "exit": 0
+    },
+    {
+      "path": "scripts/citisten_render_temporal_check.mjs",
+      "exit": 0
+    },
+    {
+      "path": "scripts/citisten_seeded_terrain_check.mjs",
+      "exit": 0
+    },
+    {
+      "path": "scripts/citisten_user_hud_check.mjs",
+      "exit": 0
+    },
+    {
+      "path": "scripts/citisten_user_render_repair_check.mjs",
+      "exit": 0
+    },
+    {
+      "path": "scripts/citisten_user_repair_integration_check.mjs",
+      "exit": 0
+    },
+    {
+      "path": "scripts/citisten_visual_clock_check.mjs",
+      "exit": 0
+    },
+    {
+      "path": "scripts/test_slipstream_city_render.mjs",
+      "exit": 0
+    },
+    {
+      "path": "scripts/test_slipstream_feel.mjs",
+      "exit": 0
+    },
+    {
+      "path": "scripts/test_slipstream_input.mjs",
+      "exit": 0
+    },
+    {
+      "path": "scripts/test_slipstream_map.mjs",
+      "exit": 0
+    },
+    {
+      "path": "scripts/test_slipstream_reverse_sandbox.mjs",
+      "exit": 0
+    },
+    {
+      "path": "scripts/test_slipstream_steering.mjs",
+      "exit": 0
+    },
+    {
+      "path": "scripts/test_slipstream_variety.mjs",
+      "exit": 0
+    },
+    {
+      "path": "scripts/test_slipstream_world.mjs",
+      "exit": 0
+    }
+  ],
+  "compressedEvidencePrivacyChecked": [
+    "Games/Wings/authoring/supplied-helicopters/blocked-native-candidate.patch.gz",
+    "docs/citisten-38e-integration-checks.log.gz",
+    "docs/citisten-controls-collector-dom.json.gz",
+    "docs/citisten-user-hud-visual-results.json.gz",
+    "docs/jank3778-integration-checks.json.gz",
+    "docs/jank3778-parent-checks.log.gz"
+  ],
+  "catalog": 129,
+  "protectedAndForeignPortalBytesUnchanged": true,
+  "unfinishedModelCandidateExcluded": true,
+  "privacySecretsScanPassed": true,
+  "inspectionCorrections": [
+    "Initial Unix prefix scan matched literal home-directory prefix in historical privacy note, no username/path",
+    "Unbounded drive regex matched escaped newlines after words Device Lost and Call log; exact surrounding text inspected; boundary-aware path scan passes; source and failure evidence unchanged"
+  ],
+  "adviceTicketTimedOut": "pi-675994-1793267140520-089a5aaa",
+  "sourceReviewConfidence": "No concrete new code/boot regression identified in bounded reviewed scope; no native acceptance claim",
+  "explicitThisBatchPublicationException": true,
+  "nativeOrFullFleetAccepted": false
+}

@@ -1,5 +1,14 @@
 # Jank ready gameplay integration and release checkpoint
 
+**Subsequent THIS-batch publication exception:** the user accepts personally
+testing the disclosed native/full-fleet gaps. Targeted review now permits normal
+publication; the earlier blocker section below is historical, not erased or
+passed. [Latest authority and final pose scope](repair-batch-publication-20261029.md).
+Ready18b8d20b, including4bdc5129/8361956f/d860e8d4, maps to01893c2c, exact tree
+`ed17ed0f049af865f6ffee126c838c45193ef2ac`,440files/39,040,582bytes. Seven additional
+CPU commands/four syntax checks and446local HTTP hashes/MIMEs pass. Untracked
+model-detail candidate and dirty drafts remain excluded; no native PASS follows.
+
 ## Delivery states and authority
 
 The user explicitly authorized pushing the completed current repair batch after
@@ -80,8 +89,8 @@ staged nor replaced. The source working manual's older27-line D112 draft was
 excluded. Subsequent Stampead pose work/tests appeared during this checkpoint.
 At closeout the source lane advanced to `4bdc5129` and `8361956f`, with runtime-pose/
 compatibility tests and manuals still in progress. Those two newer pose commits
-remain **source-only, outside the frozen3778 integration**, not accepted native
-animation or a reviewed READY closeout. Healthy art workers were not interrupted
+were **source-only at that historical checkpoint**. Their later reviewed18b8d20b
+closeout is now integrated as01893c2c above, not native animation acceptance. Healthy art workers were not interrupted
 or awaited for the completed gameplay slices.
 
 Prism Warden zero-frame/cleanup failures remain actual failures. Current expanded

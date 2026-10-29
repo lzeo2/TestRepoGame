@@ -1,5 +1,12 @@
 {
+  "receiptState": "pre-publication review, not a post-push receipt",
   "userPushAuthorization": true,
+  "explicitThisBatchException": "User accepts personally testing disclosed native/browser gaps; reviewed batch may publish on passing targeted checks and confidence. Not standing permission or native acceptance.",
+  "readyJankSource": "18b8d20b9c7e5bff38c65ad0957af10c6465f190",
+  "readyJankIntegrated": "01893c2c98d9d9dc5cceaf13d90a5804a591a7c3",
+  "targetedReviewChecksPassed": true,
+  "unavailableNativeFullFleetBlocksThisBatch": false,
+  "nativeFullFleetAcceptance": false,
   "forcePushPermitted": false,
   "releaseChecksComplete": false,
   "pushPerformed": false,
