@@ -1,8 +1,10 @@
 # Deferred site debloat
 
-Status: **QUEUED, NOT STARTED**. The user's order is subsequent to current game
-repair and ready-snapshot integration. Sole serial integration owner `74b61fa7`
-coordinates; this note starts no cleanup, browser run or overlapping worker.
+Status: **READ-ONLY INVENTORY STARTED; CLEANUP NOT STARTED**. Initial inventory
+began after Wings checkpoint `f38ca697`, on disjoint portal paths. Newly ready
+Citisten38e and Jankec282 gameplay fixes retain integration priority. Sole serial
+owner `74b61fa7` coordinates; no cleanup, browser run or overlapping writer started.
+[Measured before inventory and limits](post-integration-debloat-before.md).
 
 ## Start gate
 
@@ -37,6 +39,8 @@ weaken checks or report a byte reduction as an invented performance gain.
 
 ## Subsequent checkpoint receipt
 
-Before/after measurements: **not collected yet**. Report actual transfer/request
-savings, reference evidence, changed paths, behavior checks, source/integrated/
-publication SHAs and remaining limits after this queued phase actually runs.
+Before inventory:14 canonical HTTP declarations measured213,016 response-body
+transfer bytes/635,848 decoded bytes, including optional metadata and declared
+fonts; this is not a complete browser waterfall. After measurements and savings
+are **pending**, because no cleanup has occurred. Report actual comparable savings,
+full reference evidence, behavior checks and SHAs only after implementation.
