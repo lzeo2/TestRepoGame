@@ -13,15 +13,14 @@ const GROUPS = {
   Bulldoze: [['bulldoze', 'Bulldoze', 'X']]
 };
 const TUTORIAL = [
-  ['Place a road', 'Choose Road, then drag across dry lots ($10 per lot). For the river, choose Bridge and drag straight from dry bank to dry bank ($90 per water lot, $10 per dry approach lot). Roads and bridges open immediately. Mouse and touch both work.'],
-  ['Zone residential', 'Choose Zone, then Residential. Tap an empty lot beside a road. Wait for construction: sites provide no output or services. Bulldoze cancels a site for a 75% refund. Homes need a supplied town hall, park, police or fire station within 16 lots.'],
-  ['Add power and water', 'Choose Service, then place a Power plant and a Water tower beside roads connected to your homes. Powered and watered commercial and industrial zones provide jobs.'],
-  ['Survive the night', 'In Zombie defense, protect the town hall with walls and watchtowers. If it falls, choose Repair and tap the hall within two simulated minutes ($240). The city keeps running during rebuilding. Free build has no zombie waves.'],
-  ['Control the speed', 'Choose 1x, 3x or 10x to run time. Paused stops simulation time, not events display or building tools. Menu also pauses. Open How to play from Menu to read this again.']
+  ['Road first', 'Selecting a tool does not place it. Choose Road, then click or drag dry lots beside the town hall ($10 per lot). Leave the river crossing for later.'],
+  ['Homes beside the road', 'Choose Zone, then Residential. Click or tap an empty lot beside your road. Let construction finish at 1x or faster; unfinished sites provide no housing.'],
+  ['Connect services', 'Choose Service: place power and water beside roads connected to the homes. Homes also need a nearby supplied town hall, park, police or fire station. Use Controls for camera movement and speed. Menu pauses; How to play reopens this guide. In defense, protect the hall with walls and watchtowers.']
 ];
 // incidents.mjs keeps response prices private. economy-ui-check verifies these labels against real responses.
 const INCIDENT_RESPONSE_COST = { fire: 90, outage: 70, flood: 110 };
 const number = value => Math.floor(Number(value) || 0).toLocaleString('en-AU');
+export const buildingLabel = type => NEW_BUILDINGS[type]?.label || Object.values(GROUPS).flat().find(([id]) => id === type)?.[1] || (type === 'townhall' ? 'Town hall' : 'Building');
 const townIcon = '<svg viewBox="0 0 160 80" aria-hidden="true"><path d="M5 72h150M25 72V43l20-15 20 15v29M80 72V20h25v52M85 20l8-15 8 15M118 72V48l16-12 16 12v24M38 72V55h14v17M88 35h8m-8 12h8"/></svg>';
 const shieldIcon = '<svg viewBox="0 0 160 80" aria-hidden="true"><path d="M80 5c12 12 28 14 39 16-1 27-13 43-39 55-26-12-38-28-39-55 11-2 27-4 39-16Z"/><path d="M68 53V30h24v23M76 53V42h8v11"/></svg>';
 
@@ -45,17 +44,17 @@ export function createUI(root, callbacks = {}) {
         <div class="city-morale" role="group" aria-label="Resident morale">
           <span>Morale <strong data-value="morale">Not measured</strong></span><span data-value="moraleFactors">Awaiting city update</span>
         </div>
-        <div class="city-utilities">${['power', 'water'].map(name => `<div class="city-stat utility"><label for="city-${name}">${name === 'power' ? 'Power' : 'Water'}</label><strong data-value="${name}">0 / 0</strong><meter id="city-${name}" min="0" max="1" value="0" aria-label="${name} demand against supply"></meter></div>`).join('')}</div>
-        <details class="city-economy" hidden><summary>Economy / research</summary><div class="city-economy-body"><p data-value="economyBudget"></p><p data-value="economyStocks"></p><p data-value="economyResources"></p><p data-value="economyDemand"></p><p data-value="economyBottlenecks"></p><p data-value="researchStatus"></p><div class="city-research-options"></div><p>Branch choice locks when research starts. Agriculture favors food and low pollution; manufacturing favors materials and finishing, with higher upkeep, pollution and food-import dependence. Workshops consume 1 material + 0.3 food per good. Logistics raises export caps 25%. Fabrication plus Public education targets 20% more finishing, but requires supplied school capacity.</p><div class="city-policy-options"></div><p>Upgrade: tap a completed building. Level 1: 75% base price / 12s, requires Town planning. Level 2: 150% / 24s; homes, shops and utilities need Logistics; industry Fabrication; workshops Agronomy or Fabrication; services Public education; parks Agronomy or Public education. Each level: +25% output, +40% upkeep, +30% utility demand; services +10% reach/growth. No health or flat-income bonus.</p><p data-value="upgradeStatus"></p><div class="city-incident-options"></div><p data-value="economyMessage" role="status"></p></div></details>
-        <details class="city-goal"><summary data-value="stage">Settlement · Next: Neighborhood (0/12 residents)</summary><p data-value="stageRequirements"></p><p data-value="milestone" hidden></p><p>Sites provide no output until complete. Bulldoze cancels an unfinished site for a 75% refund. Completed demolition has no refund. Bridges need dry banks; river pumps need a riverbank.</p></details>
+        <div class="city-utilities">${['power', 'water'].map(name => `<div class="city-stat utility"><label for="city-${name}">${name === 'power' ? 'Power' : 'Water'}</label><strong data-value="${name}">0 available · 0 needed</strong><meter id="city-${name}" min="0" max="1" value="0" aria-label="${name} supply covering demand"></meter></div>`).join('')}</div>
+        <div class="city-details"><details class="city-economy" hidden><summary>Economy / research</summary><div class="city-economy-body"><p data-value="economyBudget"></p><p data-value="economyStocks"></p><p data-value="economyResources"></p><p data-value="economyDemand"></p><p data-value="economyBottlenecks"></p><p data-value="researchStatus"></p><div class="city-research-options"></div><p>Branch choice locks when research starts. Agriculture favors food and low pollution; manufacturing favors materials and finishing, with higher upkeep, pollution and food-import dependence. Workshops consume 1 material + 0.3 food per good. Logistics raises export caps 25%. Fabrication plus Public education targets 20% more finishing, but requires supplied school capacity.</p><div class="city-policy-options"></div><p>Upgrade: tap a completed building. Level 1: 75% base price / 12s, requires Town planning. Level 2: 150% / 24s; homes, shops and utilities need Logistics; industry Fabrication; workshops Agronomy or Fabrication; services Public education; parks Agronomy or Public education. Each level: +25% output, +40% upkeep, +30% utility demand; services +10% reach/growth. No health or flat-income bonus.</p><p data-value="upgradeStatus"></p><div class="city-incident-options"></div><p data-value="economyMessage" role="status"></p></div></details>
+        <details class="city-goal"><summary data-value="stage">Settlement · Next: Neighborhood (0/12)</summary><p data-value="stageRequirements"></p><p data-value="milestone" hidden></p><p>Sites provide no output until complete. Bulldoze cancels an unfinished site for a 75% refund. Completed demolition has no refund. Bridges need dry banks; river pumps need a riverbank.</p></details></div>
       </header>
       <aside class="city-top panel" data-value="growthDiagnosis" hidden aria-label="City diagnosis"></aside>
       <aside class="city-night panel" hidden aria-label="Night watch">
         <div class="city-hall"><svg viewBox="0 0 48 48" role="img" aria-label="Town hall health"><circle class="ring-track" cx="24" cy="24" r="19"/><circle class="ring-value" cx="24" cy="24" r="19" pathLength="100"/><text x="24" y="29" text-anchor="middle">H</text></svg><strong data-value="hp">0 / 0</strong></div>
         <div class="city-wave">Wave<strong data-value="wave">0</strong></div>
       </aside>
-      <div class="city-toasts" role="status" aria-label="Events" aria-live="polite" aria-atomic="true"><strong>Events</strong><span class="city-event-empty">No events yet. Notices stay visible while paused.</span></div>
-      <details class="city-map panel" open><summary>Map</summary><canvas width="200" height="200" role="img" aria-label="Town map. Blue: river. Ochre: bridges. H: town hall. Dots: zombies."></canvas><div class="city-legend"><span class="residential">Residential</span><span class="commercial">Commercial</span><span class="industrial">Industrial</span><span class="road">Road</span><span class="river">River</span><span class="bridge">Bridge</span><span class="hall">H Town hall</span><span class="enemy" hidden>Zombies</span></div></details>
+      <div class="city-toasts" role="status" aria-label="Events" aria-live="polite" aria-atomic="true"><span class="city-event-empty">No notices yet.</span></div>
+      <details class="city-map panel"><summary>Map</summary><canvas width="200" height="200" role="img" aria-label="Town map. Blue: river. Ochre: bridges. H: town hall. Dots: zombies."></canvas><div class="city-legend"><span class="residential">Residential</span><span class="commercial">Commercial</span><span class="industrial">Industrial</span><span class="road">Road</span><span class="river">River</span><span class="bridge">Bridge</span><span class="hall">H Town hall</span><span class="enemy" hidden>Zombies</span></div></details>
       <footer class="city-builder">
         <div class="city-site panel" hidden aria-label="Construction"><span data-value="siteStatus"></span><progress max="1" value="0" aria-label="Site construction progress"></progress><span>Bulldoze: 75% refund</span></div>
         <section class="city-tools panel" aria-label="Tool options"></section>
@@ -97,10 +96,9 @@ export function createUI(root, callbacks = {}) {
   let mode = 'free', selected = 'road', activeGroup = 'Road', hasGame = false, lost = false, optionsOpen = false;
   const mobile = matchMedia('(max-width: 600px)');
   let lastMapDraw = -Infinity, currentState = {}, toolLevel = 0;
-  let mapTerrain, mapSize = 0, expansionSignature = '', toolExpansion = false, toolReadOnly = false;
+  let mapTerrain, mapSeed, mapLayout, mapSize = 0, expansionSignature = '', toolExpansion = false, toolReadOnly = false;
   const researchControls = new Map(), policyControls = new Map(), incidentControls = new Map();
   const riverCells = new Set();
-  if (mobile.matches) $('.city-map').open = false;
   const text = (key, value) => { const element = $(`[data-value="${key}"]`); if (element.textContent !== value) element.textContent = value; };
 
   function applyTheme() {
@@ -183,7 +181,8 @@ export function createUI(root, callbacks = {}) {
   function run(action, errorTarget) {
     try {
       $(errorTarget).textContent = '';
-      setTool('road'); action();
+      if (action() === false) return false;
+      setTool('road');
       recent.clear(); $('.city-toasts').querySelectorAll('p').forEach(item => item.remove());
       return true;
     }
@@ -243,8 +242,9 @@ export function createUI(root, callbacks = {}) {
   function drawMap(state, { roads, size = 200, terrain } = {}) {
     const canvas = $('.city-map canvas'), ctx = canvas.getContext('2d'), scale = canvas.width / size;
     ctx.fillStyle = '#181c1b'; ctx.fillRect(0, 0, 200, 200);
-    if (terrain !== mapTerrain || size !== mapSize) {
-      mapTerrain = terrain; mapSize = size; riverCells.clear();
+    const seed = terrain?.seed ?? state.terrainSeed, layout = state.terrainLayout;
+    if (terrain !== mapTerrain || size !== mapSize || seed !== mapSeed || layout !== mapLayout) {
+      mapTerrain = terrain; mapSize = size; mapSeed = seed; mapLayout = layout; riverCells.clear();
       if (terrain?.isWater) for (let z = 0; z < size; z++) for (let x = 0; x < size; x++) if (terrain.isWater(x, z)) riverCells.add(z * size + x);
     }
     ctx.fillStyle = '#527b99';
@@ -291,7 +291,7 @@ export function createUI(root, callbacks = {}) {
     $('.city-new-options').hidden = state.expansionEnabled === false;
     if (!enabled) { expansionSignature = ''; return; }
     // No control replacement: focus and native details/selection survive RAF updates.
-    const signature = JSON.stringify([state.tick, state.time, state.budget, state.population, state.phase, state.readOnly,
+    const signature = JSON.stringify([state.tick, state.time, state.budget, state.population, state.phase, state.readOnly, state.terrainSeed, state.terrainLayout,
       state.income, state.upkeep, state.netIncome, state.development, state.economy, state.incidents,
       (state.buildings || []).map(b => [b.id, b.type, b.hp, b.level, b.constructionRemaining, b.upgradeRemaining])]);
     if (signature === expansionSignature) return;
@@ -305,7 +305,7 @@ export function createUI(root, callbacks = {}) {
       ? `Tax $${decimal(breakdown.taxIncome ?? breakdown.taxes ?? breakdown.tax)}/s · Services $${decimal(breakdown.serviceIncome ?? breakdown.services ?? breakdown.service)}/s · Exports $${decimal(breakdown.exportRevenue ?? breakdown.exports)}/s · Imports -$${decimal(breakdown.importCost ?? breakdown.imports)}/s · Upkeep -$${decimal(breakdown.upkeep ?? state.upkeep)}/s · Net $${decimal(net)}/s`
       : `Income $${decimal(state.income)}/s · Upkeep -$${decimal(state.upkeep)}/s · Net $${decimal(net)}/s. Detailed ledger not yet available.`);
     text('economyStocks', ['food', 'materials', 'goods'].map(good => `${good}: ${decimal(economy.stocks?.[good])}/${decimal(economy.storage?.[good])}`).join(' · '));
-    text('economyResources', `Seed ${economy.seed ?? '?'} · ${SCENARIOS[economy.scenario]?.label || 'Resources pending'} · ${(economy.opportunities || []).join(' · ')} · Yield food ×${decimal(economy.multipliers?.food)}, materials ×${decimal(economy.multipliers?.materials)}`);
+    text('economyResources', `${state.terrainSeed === undefined ? 'Legacy terrain (no map seed)' : `Map seed ${state.terrainSeed}`} · Resource seed ${economy.seed ?? '?'} · ${SCENARIOS[economy.scenario]?.label || 'Resources pending'} · ${(economy.opportunities || []).join(' · ')} · Yield food ×${decimal(economy.multipliers?.food)}, materials ×${decimal(economy.multipliers?.materials)}`);
     const demandScale = (state.development?.completed?.includes('logistics') ? 1.25 : 1) * Math.min(1, Math.max(0, state.population || 0) / 100);
     text('economyDemand', `Export demand /s: ${['food', 'materials', 'goods'].map(good => `${good} ${decimal((economy.demand?.[good] || 0) * demandScale)}`).join(' · ')}. Requires supplied road to town hall; reserves and stock also limit sales.`);
     text('economyBottlenecks', `Bottlenecks: ${economy.bottlenecks?.join(' · ') || 'None reported'} · Pollution ${Math.round((economy.pollution || 0) * 100)}%`);
@@ -348,7 +348,7 @@ export function createUI(root, callbacks = {}) {
     }
     renderExpansion();
     const stage = getStage(state), goal = nextStage(state);
-    text('stage', goal ? `${stage.name} · Next: ${goal.name} (${number(state.population)}/${goal.requirements.find(r => r.key === 'population').min} residents)` : `${stage.name} · All stages earned`);
+    text('stage', goal ? `${stage.name} · Next: ${goal.name} (${number(state.population)}/${goal.requirements.find(r => r.key === 'population').min})` : `${stage.name} · All stages earned`);
     text('stageRequirements', goal ? `Remaining: ${goal.remaining || 'Ready for the next city update'}. Reward: $${number(goal.grant)}.` : 'All stage goals complete. Keep building.');
     const sites = (state.buildings || []).filter(b => b.constructionRemaining > 0);
     const site = sites[0], sitePanel = $('.city-site');
@@ -386,15 +386,22 @@ export function createUI(root, callbacks = {}) {
     text('milestone', next ? `Next: ${number(next.population)} (+$${number(next.grant)})` : '');
     $('[data-value="milestone"]').hidden = !next;
     $('[data-value="milestone"]').title = next?.name || '';
+    const homes = (state.buildings || []).filter(b => BUILDINGS[b.type]?.capacity && b.hp > 0);
+    const unserved = homes.filter(b => isBuildingActive(b) && (!b.powered || !b.watered));
     const diagnosis = state.rebuildRemaining > 0
       ? `Rebuild: ${Math.ceil(state.rebuildRemaining)}s left. Choose Repair, then tap the town hall ($240).`
+      : unserved.length ? `Next: connect ${unserved.some(b => !b.powered) ? 'power' : 'water'} to homes by road (${unserved.length} unserved).`
+      : sites.length ? `Next: let ${buildingLabel(site.type)} finish (${Math.ceil(site.constructionRemaining)}s at running speed).`
+      : !homes.length ? map.roads?.cells?.size > 0
+        ? 'Next: choose Zone → Residential, then tap dry land beside your road. Selection does not place it.'
+        : 'Next: choose Road, then click or drag dry land beside the hall. Selection does not place it.'
       : state.growthDiagnosis || '';
     text('growthDiagnosis', diagnosis); $('[data-value="growthDiagnosis"]').hidden = !diagnosis;
     for (const name of ['power', 'water']) {
       const utility = state[name] || { demand: 0, supply: 0 };
-      text(name, `${number(utility.demand)} / ${number(utility.supply)}`);
-      const meter = $(`#city-${name}`); meter.max = Math.max(1, utility.supply, utility.demand); meter.value = Math.max(0, utility.demand);
-      meter.setAttribute('aria-valuetext', `${number(utility.demand)} demand, ${number(utility.supply)} supply`);
+      text(name, `${decimal(utility.supply)} available · ${decimal(utility.demand)} needed${utility.demand === 0 ? ' · No demand' : utility.demand > utility.supply ? ' · Shortage' : ''}`);
+      const meter = $(`#city-${name}`); meter.max = Math.max(1, utility.supply, utility.demand); meter.value = utility.demand > 0 ? Math.max(0, Math.min(utility.supply, utility.demand)) : 0;
+      meter.setAttribute('aria-valuetext', `${decimal(utility.supply)} available, ${decimal(utility.demand)} needed${utility.demand === 0 ? ', no demand' : utility.demand > utility.supply ? ', shortage' : ''}`);
       meter.classList.toggle('is-overloaded', utility.demand > utility.supply);
     }
     text('phase', state.phase === 'night' ? 'Night' : `Day ${number(state.night + 1)}`);
@@ -405,22 +412,25 @@ export function createUI(root, callbacks = {}) {
     const hp = Math.max(0, Math.min(100, 100 * state.townHallHp / (state.townHallMaxHp || 1)));
     $('.ring-value').style.strokeDasharray = `${hp} 100`;
     $('.city-hall svg').setAttribute('aria-label', `Town hall health ${Math.round(hp)} percent`);
-    if (performance.now() - lastMapDraw > 250) { drawMap(state, map); lastMapDraw = performance.now(); }
+    if (map.terrain !== mapTerrain || (map.size ?? 200) !== mapSize || (map.terrain?.seed ?? state.terrainSeed) !== mapSeed || state.terrainLayout !== mapLayout || performance.now() - lastMapDraw > 250) { drawMap(state, map); lastMapDraw = performance.now(); }
     if (state.phase !== 'lost') lost = false;
     if (state.phase === 'lost' && !lost) {
       lost = true; finishTutorial(); menu.close(); text('score', number(state.score)); text('finalPopulation', number(state.peakPopulation)); text('kills', number(state.kills)); loss.showModal();
     }
   }
-  function toast(key, message, eventId) {
-    const now = Date.now();
-    if (now - (recent.get(key) || 0) < 8000) return;
+  function toast(key, message, eventId, urgent = false) {
+    const now = Date.now(), list = $('.city-toasts');
+    if (now - (recent.get(key) || 0) < 8000 && [...list.querySelectorAll('p')].some(item => item.dataset.noticeKey === key)) return;
     for (const [oldKey, time] of recent) if (now - time >= 8000) recent.delete(oldKey);
     recent.set(key, now);
-    const list = $('.city-toasts');
-    const limit = matchMedia('(max-width: 600px)').matches ? 1 : 3;
-    while (list.querySelectorAll('p').length >= limit) list.querySelector('p').remove();
+    const notices = [...list.querySelectorAll('p')].filter(item => item.dataset.priority === (urgent ? 'urgent' : 'routine') && !item.dataset.response);
+    const limit = urgent ? 2 : 1;
+    while (notices.length >= limit) notices.shift().remove();
     const item = document.createElement('p'); item.className = 'panel'; item.textContent = message;
+    item.dataset.priority = urgent ? 'urgent' : 'routine'; item.dataset.noticeKey = key;
     if (eventId) {
+      for (const old of list.querySelectorAll('p')) if (old.dataset.response === eventId) old.remove();
+      item.dataset.response = eventId;
       const button = document.createElement('button'); button.dataset.cityEvent = eventId;
       button.textContent = 'Repair water main: $120'; item.append(document.createElement('br'), button);
     }
@@ -428,12 +438,15 @@ export function createUI(root, callbacks = {}) {
   }
   function events(batch) {
     const messages = new Map(), reactions = new Map();
+    const buildings = new Map((currentState.buildings || []).map(b => [b.id, b]));
+    for (const event of batch) if (event.building) buildings.set(event.building.id, event.building);
     for (const event of batch) {
+      const building = event.building || buildings.get(event.id), label = buildingLabel(building?.type);
       const message = {
-        placed: 'Placed', removed: 'Removed', repaired: 'Repaired',
+        placed: building?.constructionRemaining > 0 ? `${label}: construction started (${Math.ceil(building.constructionRemaining)}s).` : `${label} placed`, removed: `${label} removed`, repaired: `${label} repaired`,
         'stage-earned': `${event.name || 'City stage'} earned. Grant +$${number(event.grant)}. New options are in the builder.`,
-        'construction-started': 'Building site started. No output until complete.',
-        'construction-complete': 'Construction complete',
+        'construction-started': `${label}: construction started (${Math.ceil(building?.constructionRemaining ?? event.total ?? 0)}s). No output until complete.`,
+        'construction-complete': `${label}: construction complete`,
         'research-started': `${event.label || 'Research'} started: $${number(event.cost)}, ${number(event.total)}s.`,
         'research-complete': `${event.label || 'Research'} complete.`,
         'upgrade-started': `${event.label || 'Building'} #${event.id} upgrading to level ${number(event.level)}: $${number(event.cost)}, ${number(event.total)}s.`,
@@ -450,9 +463,10 @@ export function createUI(root, callbacks = {}) {
         'hall-fallen': `Town hall fell. City saved for rebuilding: ${number(event.remaining)}s to repair ($${number(event.cost)}). No night victory.`,
         'hall-rebuilt': `Town hall rebuilt ($${number(event.cost)}). Prepare for the next night.`
       }[event.type];
-      if (message) messages.set(event.type === 'milestone' ? `milestone:${event.population}` : event.type === 'stage-earned' ? `stage:${event.level}` : event.type, message);
+      if (message && !(event.type === 'placed' && building?.constructionRemaining > 0 && batch.some(e => e.type === 'construction-started' && e.id === building.id))) messages.set(event.type === 'milestone' ? `milestone:${event.population}` : event.type === 'stage-earned' ? `stage:${event.level}` : event.type, message);
       if (event.type === 'city-event-start' || event.type === 'city-event-end') {
         const civic = event.event;
+        if (event.type === 'city-event-end') for (const item of $('.city-toasts').querySelectorAll('p')) if (item.dataset.response === civic.id) item.remove();
         const location = ['street-festival', 'water-main-burst'].includes(civic.type) ? ` (district ${civic.district})` : '';
         const detail = event.type === 'city-event-start' ? civic.description : event.reason === 'repaired' ? 'Water service restored.' : 'Ended.';
         const key = `civic:${civic.id}:${event.type}`;
@@ -462,7 +476,7 @@ export function createUI(root, callbacks = {}) {
     }
     // Put urgent notices last so compact phone feedback keeps the useful warning.
     for (const key of ['placed', 'removed', 'repaired', 'construction-started', 'construction-complete', 'construction-cancelled', ...[...messages.keys()].filter(key => key.startsWith('stage:') || key.startsWith('milestone:')), 'night-survived', 'research-started', 'research-complete', 'upgrade-started', 'upgrade-complete', ...[...messages.keys()].filter(key => key.startsWith('civic:')), 'incident-start', 'incident-response', 'incident-end', 'wave-warning', 'blackout', 'wave', 'hall-rebuilt', 'hall-fallen']) {
-      if (messages.has(key)) toast(`${key}:${messages.get(key)}`, messages.get(key), reactions.get(key));
+      if (messages.has(key)) toast(`${key}:${messages.get(key)}`, messages.get(key), reactions.get(key), key.startsWith('civic:') || ['incident-start', 'wave-warning', 'blackout', 'wave', 'hall-fallen'].includes(key));
     }
   }
   $('.city-economy').addEventListener('toggle', () => {

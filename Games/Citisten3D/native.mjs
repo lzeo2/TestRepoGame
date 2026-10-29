@@ -1,8 +1,8 @@
 import { createWorld } from './world.mjs';
-import { createSimulation } from './sim.mjs';
-import { createUI } from './ui.mjs';
+import { createSimulation, BUILDINGS } from './sim.mjs';
+import { createUI, buildingLabel } from './ui.mjs';
 import { applyTool, syncModels } from './native-actions.mjs';
-import { readSave, saveTown } from './persistence.mjs';
+import { readSave, saveTown, SAVE_KEY } from './persistence.mjs';
 import { createNativeLoop } from './native-loop.mjs';
 import { phaseForState } from './daynight.mjs';
 import { weatherAt } from './atmosphere.mjs';
@@ -27,7 +27,16 @@ const message = text => { feedback.textContent = text; wake(); };
 const active = () => sim && !paused && sim.state.phase !== 'lost';
 function choose(type) {
   tool = type; ui.setTool(type);
-  message(type === 'road' ? 'Drag a road: $10/lot' : type === 'bridge' ? 'Drag across both banks: $90/water lot + $10/approach lot' : type);
+  const hints = { road: 'Road selected. Click or drag dry lots: $10/lot.', bridge: 'Bridge selected. Drag between two dry banks.', bulldoze: 'Bulldoze selected. Click a lot to remove.', upgrade: 'Upgrade selected. Click a completed building.', 'rotate-wall': 'Rotate selected. Click a completed wall.' };
+  message(hints[type] || `${buildingLabel(type)} selected. Click an empty dry lot${BUILDINGS[type]?.roadRequired ? ' beside a road' : ''}.`);
+}
+function placementMessage(result) {
+  if (result.reason) return result.reason;
+  const building = result.building, name = buildingLabel(building?.type || tool);
+  if (!result.ok) return `Cannot place ${name || 'here'}.`;
+  if (building) return building.constructionRemaining > 0 ? `${name}: construction started (${building.constructionRemaining}s).` : `${name} placed.`;
+  if (tool === 'bulldoze') return `Lot removed${result.refund ? `; $${result.refund} refunded` : ''}.`;
+  return tool === 'repair' ? `Lot repaired${result.cost ? `: $${result.cost}` : ''}.` : 'Action completed.';
 }
 function validateSave(snapshot) {
   if (snapshot.state.size !== world.roads.size) throw new RangeError('Save uses a different town size');
@@ -52,7 +61,16 @@ function recordMotion() {
     motionSampler = null; document.querySelector('#motion-check').disabled = false;
   }
 }
+function startNewTown(mode, options) {
+  let replacesTown = Boolean(sim || savedTown);
+  try { replacesTown ||= localStorage.getItem(SAVE_KEY) !== null; }
+  catch { /* Unavailable storage must not prevent a first town from starting. */ }
+  if (replacesTown && !window.confirm('Start a new town? Unsaved progress will be lost. Saving or autosaving the new town will replace this device\'s saved town.')) return false;
+  start(mode, undefined, options);
+  return true;
+}
 function start(mode, snapshot, options) {
+  if (!['free', 'defense'].includes(mode)) throw new RangeError('Unknown mode');
   if (options && (!Number.isInteger(options.seed) || options.seed < 0 || options.seed > 0xffffffff || !['balanced', 'fertile', 'mineral'].includes(options.scenario))) throw new RangeError('Invalid new-town options');
   if (!world.loaded) throw new Error('Models are not ready');
   // Restore/validate before removing the current city's models or roads.
@@ -62,9 +80,9 @@ function start(mode, snapshot, options) {
   for (const handle of models.values()) world.buildings.remove(handle);
   models.clear();
   for (const key of [...world.roads.cells]) { const { x, z } = world.roads.cell(key); world.roads.set(x, z, false); }
-  sim = createSimulation({ size: world.roads.size, mode, roads: world.roads, snapshot, terrainLayout: 'river-v1', timedConstruction: true, progressionEnabled: true, expansionEnabled: true, seed: (options || townOptions).seed, scenario: (options || townOptions).scenario });
-  townOptions = { seed: sim.state.economy?.seed ?? snapshot?.runtime.eventSeed ?? options?.seed ?? townOptions.seed, scenario: sim.state.economy?.scenario ?? options?.scenario ?? townOptions.scenario };
-  world.setTerrain(sim.state.terrainLayout);
+  sim = createSimulation({ size: world.roads.size, mode, roads: world.roads, snapshot, terrainLayout: options ? 'river-v1' : townOptions.terrainLayout || 'river-v1', terrainSeed: options ? options.seed : townOptions.terrainSeed, timedConstruction: true, progressionEnabled: true, expansionEnabled: true, seed: (options || townOptions).seed, scenario: (options || townOptions).scenario });
+  townOptions = { seed: sim.state.economy?.seed ?? snapshot?.runtime.eventSeed ?? options?.seed ?? townOptions.seed, scenario: sim.state.economy?.scenario ?? options?.scenario ?? townOptions.scenario, terrainLayout: sim.state.terrainLayout, terrainSeed: sim.state.terrainSeed };
+  world.setTerrain(sim.state.terrainLayout, sim.state.terrainSeed);
   world.roadPool.sync(true); world.streetLamps.update(1 - world.dayNight.daylight, true);
   paused = false; resumeSpeed = sim.state.speed; speed.value = String(resumeSpeed); drag = null;
   lastSaveTime = sim.state.time;
@@ -135,14 +153,19 @@ function tick(dt) {
   const after = [position.x, position.y, position.z, rotation.x, rotation.y];
   // Ignore the asymptotic tail of camera easing, not held-key movement.
   const moving = after.some((value, i) => Math.abs(value - before[i]) > (i < 3 ? .001 : .00001));
-  return Boolean((sim && !paused && sim.state.speed > 0 && sim.state.phase !== 'lost') || shots || moving);
+  const lightingPending = sim && world.dayNight.isSettled?.(phaseForState(sim.state)) === false;
+  return Boolean((sim && !paused && sim.state.speed > 0 && sim.state.phase !== 'lost') || shots || moving || lightingPending);
 }
 try {
   world = createWorld(canvas, { size: 200 });
   await world.ready;
   if (!closed) {
     motionDiagnostic = createMotionDiagnostic({ readSample: () => motionSampler.sample(), onFinish: showMotionReport });
-    ui = createUI(root, { onStart(mode, options) { const snapshot = requestedSave; requestedSave = undefined; start(mode, snapshot, snapshot ? undefined : options); }, onRestart: start,
+    ui = createUI(root, { onStart(mode, options) {
+      const snapshot = requestedSave; requestedSave = undefined;
+      if (snapshot) { start(mode, snapshot); return true; }
+      return startNewTown(mode, options);
+    }, onRestart: mode => startNewTown(mode),
       onResearch(id) { const result = sim?.research(id); message(result?.reason || (result?.ok ? 'Research started' : 'Cannot research')); return result; },
       onSpecialization(name) { const result = sim?.specialize(name); message(result?.reason || 'Cannot change specialization'); return result; },
       onIncidentResponse(id) { const result = sim?.respondIncident(id); message(result?.reason || 'Cannot respond'); return result; }, onTool: choose, onMenu: pause, onResume: resume, onEventAction: repairEvent });
@@ -191,7 +214,7 @@ try {
       const from = drag.lot; drag = null;
       if (!active()) return;
       const result = applyTool(sim, tool, from, world.pickLot(event.clientX, event.clientY));
-      message(result.reason || (result.ok ? 'Placed' : 'Cannot place here'));
+      message(placementMessage(result));
     });
     for (const event of ['pointercancel', 'lostpointercapture']) listen(canvas, event, () => { drag = null; });
     const shortcuts = { Digit1: 'road', Digit2: 'residential', Digit3: 'commercial', Digit4: 'industrial', Digit5: 'power', Digit6: 'water', Digit7: 'police', Digit8: 'fire', Digit9: 'park', KeyB: 'wall', KeyR: 'rotate-wall', KeyU: 'upgrade', KeyN: 'watchtower', KeyX: 'bulldoze' };
@@ -203,7 +226,7 @@ try {
     listen(speed, 'change', () => { if (sim && !paused) { sim.setSpeed(Number(speed.value)); resumeSpeed = sim.state.speed; } });
     listen(weather, 'change', () => message('Weather changes visuals only.'));
     listen(document.querySelector('#motion-check'), 'click', recordMotion);
-    listen(document.querySelector('#repair'), 'click', () => { if (active()) { tool = 'repair'; message('Tap a damaged lot to repair during daytime'); } });
+    listen(document.querySelector('#repair'), 'click', () => { if (active()) { tool = 'repair'; message('Repair selected. Click a damaged lot by day.'); } });
     listen(document.querySelector('#camera-pad'), 'click', event => {
       const action = event.target.closest('[data-camera]')?.dataset.camera;
       if (!action || !active()) return;

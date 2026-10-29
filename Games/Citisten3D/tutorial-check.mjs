@@ -72,9 +72,9 @@ function mount({ speed = 1, denied = false, seen = false, mobile = false } = {})
 function dismiss(f, route) {
   if (route === 'Close') f.click({ action: 'tutorial-close' });
   if (route === 'Finish') {
-    for (let i = 1; i <= 5; i++) {
-      assert.equal(f.nodes.get('.city-tutorial-step').textContent, `Step ${i} of 5`);
-      assert.equal(f.nodes.get('[data-action="tutorial-next"]').textContent, i === 5 ? 'Finish' : 'Next');
+    for (let i = 1; i <= 3; i++) {
+      assert.equal(f.nodes.get('.city-tutorial-step').textContent, `Step ${i} of 3`);
+      assert.equal(f.nodes.get('[data-action="tutorial-next"]').textContent, i === 3 ? 'Finish' : 'Next');
       f.click({ action: 'tutorial-next' });
     }
   }
@@ -100,7 +100,7 @@ for (const denied of [false, 'access', 'read', 'write']) {
   const f = mount({ speed: 3, denied }); f.start(); dismiss(f, 'Close');
   // Reopen before the first close event arrives: it must not finish this replay.
   f.click({ action: 'menu' }); f.click({ action: 'tutorial' }); f.flush();
-  assert(f.tutorial.open); assert.equal(f.nodes.get('.city-tutorial-step').textContent, 'Step 1 of 5');
+  assert(f.tutorial.open); assert.equal(f.nodes.get('.city-tutorial-step').textContent, 'Step 1 of 3');
   dismiss(f, 'Escape'); f.flush();
   assert.deepEqual(f.state, { speed: 0, paused: true, pauses: 2, resumes: 1 }, 'menu replay stays paused');
   f.click({ action: 'resume' }); assert.equal(f.state.speed, 3);
@@ -148,5 +148,5 @@ for (const mobile of [false, true]) {
   f.click({ group: 'Service' }); f.ui.setTool('power'); assert(tools.hidden, 'external tool selection collapses too');
   f.ui.destroy();
 }
-console.log('TUTORIAL CHECK PASS: real UI handlers; Close/Finish/Escape/fallback at 0/1/3/10x, exactly-once resume, five steps, replay/stale close, seen/denied storage, transitions/loss/destroy; DOM double only, no browser proof');
+console.log('TUTORIAL CHECK PASS: real UI handlers; Close/Finish/Escape/fallback at 0/1/3/10x, exactly-once resume, three concise steps, replay/stale close, seen/denied storage, transitions/loss/destroy; DOM double only, no browser proof');
 console.log('UI TOOLS CHECK PASS: desktop/mobile selection collapses, selected-group focus/aria, group open/close/switch, selected tool retained, locked tool guard and external selection; DOM double only');

@@ -34,7 +34,7 @@ export function createCityEventEffects(scene, roads) {
     if (disposed) return;
     clear();
     if (!state) return;
-    if (!terrain || terrain.layout !== (state.terrainLayout || 'legacy-flat')) terrain = createRiverTerrain(roads.size, state.terrainLayout || 'legacy-flat');
+    if (!terrain || terrain.layout !== (state.terrainLayout || 'legacy-flat') || terrain.seed !== state.terrainSeed) terrain = createRiverTerrain(roads.size, state.terrainLayout || 'legacy-flat', state.terrainSeed);
     const time = Number.isFinite(state.time) ? state.time : 0;
     const buildings = new Map((state.buildings || []).map(b => [b.id, b]));
     const burning = new Set(), flooded = new Set(), decorated = new Set();

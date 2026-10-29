@@ -20,7 +20,7 @@ class Element extends EventTarget {
   showModal() { this.open = true; } close() { this.open = false; }
   replaceChildren() {} getContext() { return { fillRect() {}, beginPath() {}, moveTo() {}, lineTo() {}, stroke() {}, fillText() {} }; }
 }
-async function mount(memory, debugConsole) {
+export async function mount(memory, debugConsole, { nativeSource } = {}) {
 const nodes = new Map(), frames = new Map(), renders = [], lights = [], errors = [];
 const node = key => { if (!nodes.has(key)) nodes.set(key, new Element()); return nodes.get(key); };
 const root = node('#ui'); root.querySelector = selector => node(`ui:${selector}`);
@@ -30,7 +30,7 @@ const groups = ['Road', 'Zone', 'Service', 'Defense', 'Bulldoze'].map(group => {
 root.querySelectorAll = selector => selector === '[data-group]' ? groups : [];
 const document = Object.assign(new EventTarget(), { hidden: false, querySelector: node, createElement: () => new Element() });
 Object.defineProperty(document, 'visibilityState', { get: () => document.hidden ? 'hidden' : 'visible' });
-const window = new EventTarget();
+const window = Object.assign(new EventTarget(), { confirm: () => true }); // Explicit consent in this CPU fixture only.
 let frameId = 0, wall = 0;
 const context = vm.createContext({ document, window, Event, AbortController, URL, console: { log() {}, warn() {}, debug: debugConsole || (() => {}), error(e) { errors.push(e); } },
   matchMedia: () => Object.assign(new EventTarget(), { matches: false }), performance: { now: () => wall },
@@ -47,7 +47,7 @@ export function createWorld() { return { loaded: true, ready: Promise.resolve(),
   effects: { active: false, shot() {} }, pickLot(x, z) { return { x, z }; }, render(dt) { renders.push(dt); }, dispose() {} }; }`;
 async function load(url) {
   if (modules.has(url.href)) return modules.get(url.href);
-  let source = url.pathname.endsWith('/world.mjs') ? worldSource : await readFile(url, 'utf8');
+  let source = url.pathname.endsWith('/world.mjs') ? worldSource : url.pathname.endsWith('/native.mjs') && nativeSource !== undefined ? nativeSource : await readFile(url, 'utf8');
   // Test-only read-only closure access. Product files are never rewritten.
   if (url.pathname.endsWith('/native.mjs')) source += '\nexport const inspect = () => ({ sim, paused, resumeSpeed, closed });';
   const module = new vm.SourceTextModule(source, { context, identifier: url.href,
@@ -88,9 +88,9 @@ const buttonById = id => root.querySelector('.city-menu-content').children
   .flatMap(e => e.children).find(e => e.id === id);
 return { context, node, root, window, frames, renders, lights, errors, inspect, event, click, action, speed, step, visibility, pointer, place, buttonById };
 }
-export async function runContinueScenario({ onMounted, debugConsole } = {}) {
+export async function runContinueScenario({ onMounted, debugConsole, nativeSource } = {}) {
 const memory = new Map([['citisten-tutorial-seen', '1']]);
-const oldPage = await mount(memory, debugConsole);
+const oldPage = await mount(memory, debugConsole, { nativeSource });
 await onMounted?.(oldPage);
 let { node, window, frames, renders, lights, errors, inspect, event, click, action, speed, step, visibility, pointer, place, buttonById } = oldPage;
 action({ mode: 'free' });
@@ -131,7 +131,7 @@ window.dispatchEvent(event('click', node('#speed')));
 const oldCallback = [...frames.values()][0];
 window.dispatchEvent(new Event('pagehide'));
 assert.equal(oldPage.inspect().closed, true); assert.equal(oldPage.frames.size, 0);
-const freshPage = await mount(memory, debugConsole);
+const freshPage = await mount(memory, debugConsole, { nativeSource });
 await onMounted?.(freshPage);
 ({ node, window, frames, renders, lights, errors, inspect, event, click, action, speed, step, visibility, pointer, place, buttonById } = freshPage);
 assert.equal(inspect().sim, undefined, 'fresh native bootstrap validates but does not silently start save');

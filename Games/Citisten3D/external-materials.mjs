@@ -66,7 +66,8 @@ export function applyExternalTerrain({ ground, road, water, extent, lotSize }, g
         material.aoMapIntensity = analytic.aoMapIntensity;
         diagnostics.analyticAO.push(name);
       }
-      material.polygonOffset = true; material.polygonOffsetFactor = 1; material.polygonOffsetUnits = 4;
+      // Terrain is not a coplanar overlay. A positive slope bias can push dry
+      // land behind the water plane below it; only asphalt needs an offset.
     }
     if (name === 'water' && material.isMeshPhysicalMaterial && !material.clearcoatNormalMap) {
       material.clearcoatNormalMap = material.normalMap;

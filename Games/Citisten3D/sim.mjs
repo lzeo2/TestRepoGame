@@ -66,7 +66,7 @@ function pop(heap) {
   return first;
 }
 
-export function createSimulation({ size = 200, mode = 'free', seed = 1, roads, snapshot, terrainLayout = 'legacy-flat', timedConstruction = false, progressionEnabled = timedConstruction, expansionEnabled = false, scenario = 'balanced' } = {}) {
+export function createSimulation({ size = 200, mode = 'free', seed = 1, roads, snapshot, terrainLayout = 'legacy-flat', terrainSeed = undefined, timedConstruction = false, progressionEnabled = timedConstruction, expansionEnabled = false, scenario = 'balanced' } = {}) {
   if (typeof expansionEnabled !== 'boolean') throw new RangeError('Expansion option must be boolean');
   if (typeof timedConstruction !== 'boolean' || typeof progressionEnabled !== 'boolean') throw new RangeError('Gameplay options must be boolean');
   const saved = snapshot === undefined ? null : readSnapshot(snapshot, BUILDINGS, CITY_EVENTS, MILESTONES, roads?.lotSize ?? 10);
@@ -77,9 +77,10 @@ export function createSimulation({ size = 200, mode = 'free', seed = 1, roads, s
   seed >>>= 0;
   if (!Number.isInteger(size) || size < 12 || size > 200 || roads.size !== size) throw new RangeError('Grid size must be 12..200 and match roads');
   if (!['free', 'defense'].includes(mode)) throw new RangeError('Unknown mode');
-  const terrain = createRiverTerrain(size, saved ? saved.state.terrainLayout ?? 'legacy-flat' : terrainLayout);
+  if (saved) terrainSeed = saved.state.terrainSeed;
+  const terrain = createRiverTerrain(size, saved ? saved.state.terrainLayout ?? 'legacy-flat' : terrainLayout, terrainSeed);
   const state = {
-    size, mode, terrainLayout: terrain.layout, timedConstruction, progressionEnabled, progressionLevel: 0, speed: 1, time: 0, tick: 0, cityEvents: [], phase: 'day', dayRemaining: 240, night: 0,
+    size, mode, terrainLayout: terrain.layout, ...(terrainSeed === undefined ? {} : { terrainSeed }), timedConstruction, progressionEnabled, progressionLevel: 0, speed: 1, time: 0, tick: 0, cityEvents: [], phase: 'day', dayRemaining: 240, night: 0,
     score: 0, kills: 0, pendingZombies: 0, population: 0, peakPopulation: 0, budget: 40000,
     income: 0, upkeep: 0, netIncome: 0, taxRate: 0.1, crime: 0,
     housingCapacity: 0, jobs: 0, morale: 0.5, moraleFactors: [], expansionEnabled,

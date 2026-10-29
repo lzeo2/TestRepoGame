@@ -98,10 +98,10 @@ export function createWorld(canvas, { size = 200, lotSize = 10, pixelRatio = Mat
     if (riverData.layout === 'river-v1') groupRiverMaterials(groundGeometry, terrain.diagnostics);
     water.update = terrain.update;
   }
-  function setTerrain(layout) {
+  function setTerrain(layout, terrainSeed) {
     if (disposed) throw new Error('World is disposed');
-    const data = createRiverTerrain(size, layout);
-    if (riverData.layout === data.layout) return riverData;
+    const data = createRiverTerrain(size, layout, terrainSeed);
+    if (riverData.layout === data.layout && riverData.seed === data.seed) return riverData;
     terrain?.dispose(); terrain = null;
     groundGeometry.dispose();
     riverData = data;

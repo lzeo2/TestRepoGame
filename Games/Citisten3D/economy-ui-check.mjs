@@ -78,7 +78,7 @@ console.log('PASS new-town uint32/scenario validation, both modes, Continue and 
   assert(!f.node('.city-economy').hidden); assert.match(f.text('netIncome'), /Net \$2\/s/);
   assert.match(f.text('economyBudget'), /Income \$3\/s.*Upkeep -\$1\/s.*Net \$2\/s/);
   assert.match(f.text('economyStocks'), /food: 24\/200.*materials: 0\/160.*goods: 0\/120/);
-  assert.match(f.text('economyResources'), /Seed 0.*Fertile plain.*food:/);
+  assert.match(f.text('economyResources'), /Legacy terrain \(no map seed\).*Resource seed 0.*Fertile plain.*food:/);
   assert.match(f.text('economyDemand'), /food 0.048.*materials 0.036.*goods 0.072/);
   assert(!research('planning').button.disabled); assert(research('agronomy').button.disabled);
   state.population = 11; f.ui.update(state); assert(research('planning').button.disabled, 'population invalidates cached offer');

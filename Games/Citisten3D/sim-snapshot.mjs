@@ -38,7 +38,11 @@ export function readSnapshot(input, BUILDINGS, CITY_EVENTS, MILESTONES, lotSize 
   for (const key of ['timedConstruction', 'progressionEnabled']) if (s[key] !== undefined) require(typeof s[key] === 'boolean');
   if (s.progressionLevel !== undefined || s.progressionEnabled === true || (s.timedConstruction === true && s.progressionEnabled !== false)) require(integer(s.progressionLevel, 0, 3));
   if (s.terrainLayout !== undefined) require(['legacy-flat', 'river-v1'].includes(s.terrainLayout));
-  const terrain = createRiverTerrain(size, s.terrainLayout ?? 'legacy-flat');
+  if (Object.hasOwn(s, 'terrainSeed')) {
+    require(integer(s.terrainSeed, 0, 4294967295), 'Invalid saved terrain seed');
+    require(['legacy-flat', 'river-v1'].includes(s.terrainLayout), 'Seeded terrain requires a saved layout');
+  }
+  const terrain = createRiverTerrain(size, s.terrainLayout ?? 'legacy-flat', s.terrainSeed);
   require([0, 1, 3, 10].includes(s.speed) && integer(s.tick) && s.time === s.tick / 4);
   for (const key of ['budget', 'netIncome']) require(number(s[key]));
   for (const key of ['housingCapacity', 'jobs']) if (s[key] !== undefined) require(number(s[key], 0, size * size * 1000));

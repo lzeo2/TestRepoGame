@@ -72,6 +72,10 @@ export function createDayNight(scene) {
   }
   setPhase(phase);
   return { setPhase, sunDirection, get daylight() { return daylight; }, get phase() { return phase; }, lights: { ambient, hemisphere, sun, moon, probe },
+    isSettled(value) {
+      if (!Number.isFinite(value)) throw new RangeError('Phase must be finite');
+      return Math.abs(THREE.MathUtils.euclideanModulo(value - phase + .5, 1) - .5) <= 1e-9;
+    },
     approach(value, dt) {
       if (!Number.isFinite(value) || !Number.isFinite(dt) || dt < 0) throw new RangeError('Invalid light transition');
       const delta = THREE.MathUtils.euclideanModulo(value - phase + .5, 1) - .5;

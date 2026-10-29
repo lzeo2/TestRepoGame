@@ -1,163 +1,115 @@
 // node --experimental-vm-modules scripts/citisten_visual_clock_check.mjs
-// CPU fixture: actual native/UI/tick/scheduler/sim; fake DOM/world/render/RAF.
+// Old-red/current-green CPU regression; fake DOM/world/render/RAF, actual native clock/loop/sim/save.
 import assert from 'node:assert/strict';
-import { readFile } from 'node:fs/promises';
+import { execFileSync } from 'node:child_process';
 import * as THREE from '../Games/Citisten3D/vendor/three.module.js';
 import { createDayNight, phaseForState } from '../Games/Citisten3D/daynight.mjs';
 import { runContinueScenario } from '../Games/Citisten3D/continue-loop-check.mjs';
 
-const native = await readFile(new URL('../Games/Citisten3D/native.mjs', import.meta.url), 'utf8');
-for (const marker of [
-  'if (!paused) sim.update(dt);',
-  'world.dayNight.approach(phaseForState(sim.state), Math.min(.25, dt));',
-  "return Boolean((sim && !paused && sim.state.speed > 0 && sim.state.phase !== 'lost') || shots || moving);",
-  "onRestart: start", 'start(mode, snapshot, snapshot ? undefined : options);'
-]) assert.equal(native.split(marker).length, 2, `current native source anchor: ${marker}`);
-const startSource = native.slice(native.indexOf('function start('), native.indexOf('function pause('));
-assert(!/dayNight\.(setPhase|approach)\(/.test(startSource), 'new town/restart/Continue do not reset visual phase');
-const circularDistance = (a, b) => Math.abs(THREE.MathUtils.euclideanModulo(a - b + .5, 1) - .5);
-const near = (a, b, message) => assert(Math.abs(a - b) < 1e-9, `${message}: ${a} != ${b}`);
+const oldNative = execFileSync('git', ['show', '017e4a47e6235917ee21c46d221caa230855615f:Games/Citisten3D/native.mjs'], { encoding: 'utf8' });
+const distance = (a, b) => Math.abs(THREE.MathUtils.euclideanModulo(a - b + .5, 1) - .5);
+const near = (a, b, why) => assert(Math.abs(a - b) < 1e-9, `${why}: ${a} != ${b}`);
 const results = [];
-let mounted = 0;
-await runContinueScenario({ onMounted(page) {
-  const world = page.window.citisten.world, scene = new THREE.Scene();
-  const clock = createDayNight(scene);
-  // Replace the existing approach stub explicitly with the REAL clock. Preserve
-  // the old fixture's light-dt receipts and all original Continue assertions.
-  const approach = clock.approach;
-  clock.approach = (phase, dt) => { page.lights.push(dt); return approach(phase, dt); };
-  world.dayNight = clock;
-  const pageIndex = mounted++;
-  page.window.addEventListener('pagehide', () => clock.dispose(), { once: true });
-  if (pageIndex) return; // Fresh-page original Continue checks remain untouched.
-  // Existing fixture never enters combat; its canvas double lacks these two
-  // minimap methods. Extend ONLY this fixture, not the original gate/module.
-  const mapCanvas = page.root.querySelector('.city-map canvas'), getContext = mapCanvas.getContext;
-  mapCanvas.getContext = (...args) => Object.assign(getContext.apply(mapCanvas, args), { arc() {}, fill() {} });
-
-  // Real Three CPU matrices for a fixed fixture camera/object, NOT game pixels.
-  const camera = new THREE.PerspectiveCamera(50, 1.6, .5, 5000);
-  camera.position.set(0, 100, 100); world.camera = camera;
-  const landmark = new THREE.Object3D(); landmark.position.set(10, 0, 20); scene.add(landmark);
-  function matrices() {
-    camera.updateMatrixWorld(true); landmark.updateMatrixWorld(true);
-    return JSON.stringify([camera.matrixWorld.elements, camera.matrixWorldInverse.elements,
-      camera.projectionMatrix.elements, landmark.matrixWorld.elements]);
-  }
-  const snapshot = () => JSON.stringify(page.inspect().sim.snapshot());
-  const saved = () => page.context.localStorage.getItem('citisten-save-v1');
-  const light = () => ({ phase: clock.phase, daylight: clock.daylight,
-    sun: clock.lights.sun.intensity, moon: clock.lights.moon.intensity,
-    environment: scene.environmentIntensity, background: scene.background.toArray() });
-  let wall = 100000;
-  function wake() { page.window.dispatchEvent(page.event('click', page.node('#feedback'))); }
-  function resetTimestamp() { page.visibility(true); page.visibility(false); }
-  function drain(hz, { freeze = true, maxSeconds = 10 } = {}) {
-    const start = wall, phaseBefore = clock.phase; let count = 0;
-    page.step(start); // Actual scheduler wake always has dt0.
-    near(clock.phase, phaseBefore, 'first wake callback contributes zero visual delta');
-    const before = snapshot(), bytes = saved(), fixed = matrices();
-    while (page.frames.size) {
-      assert(++count <= hz * maxSeconds, 'bounded dense native scheduling');
-      wall = start + count * 1000 / hz; page.step(wall);
-      if (freeze) { assert.equal(snapshot(), before); assert.equal(saved(), bytes); assert.equal(matrices(), fixed); }
+for (const repaired of [false, true]) {
+  let mounts = 0;
+  await runContinueScenario({ nativeSource: repaired ? undefined : oldNative, onMounted(page) {
+    if (mounts++) return;
+    const world = page.window.citisten.world, originalClock = world.dayNight, scene = new THREE.Scene();
+    const clock = createDayNight(scene), approach = clock.approach;
+    clock.approach = (phase, dt) => { page.lights.push(dt); return approach(phase, dt); };
+    world.dayNight = clock;
+    page.window.addEventListener('pagehide', () => clock.dispose(), { once: true });
+    const map = page.root.querySelector('.city-map canvas'), getContext = map.getContext;
+    map.getContext = (...args) => Object.assign(getContext.apply(map, args), { arc() {}, fill() {} });
+    const camera = new THREE.PerspectiveCamera(50, 1.6, .5, 5000);
+    camera.position.set(0, 100, 100); world.camera = camera;
+    const landmark = new THREE.Object3D(); landmark.position.set(10, 0, 20); scene.add(landmark);
+    const snapshot = () => JSON.stringify(page.inspect().sim.snapshot());
+    const saved = () => page.context.localStorage.getItem('citisten-save-v1');
+    function matrices() {
+      camera.updateMatrixWorld(true); landmark.updateMatrixWorld(true);
+      return JSON.stringify([camera.matrixWorld.elements, camera.matrixWorldInverse.elements, camera.projectionMatrix.elements, landmark.matrixWorld.elements]);
     }
-    return { positiveDtCallbacks: count, elapsedMs: wall - start };
-  }
-  function framesFor(seconds, hz = 60) {
-    const start = wall; page.step(start);
-    for (let i = 1; i <= seconds * hz; i++) { wall = start + i * 1000 / hz; page.step(wall); }
-  }
+    const light = () => [clock.phase, clock.daylight, clock.lights.sun.intensity, clock.lights.moon.intensity, scene.environmentIntensity, ...scene.background.toArray()];
+    let wall = 100000;
+    const reset = () => { page.visibility(true); page.visibility(false); };
+    const wake = () => page.window.dispatchEvent(page.event('click', page.node('#feedback')));
+    function drain(hz) {
+      const start = wall, phase = clock.phase; let callbacks = 0;
+      page.step(start); near(clock.phase, phase, 'wake dt0');
+      const state = snapshot(), bytes = saved(), fixed = matrices();
+      while (page.frames.size) {
+        assert(++callbacks <= hz * 10, 'finite settling then sleep');
+        wall = start + callbacks * 1000 / hz; page.step(wall);
+        assert.equal(snapshot(), state); assert.equal(saved(), bytes); assert.equal(matrices(), fixed);
+      }
+      return { callbacks, elapsedMs: wall - start, phase: clock.phase };
+    }
+    for (const hz of [60, 120]) {
+      clock.setPhase(.5); // Explicit CPU visual setup, not a gameplay/pixel acceptance grant.
+      page.action({ mode: 'defense' }); page.speed(0); reset();
+      const first = drain(hz), beforeWake = light(), state = snapshot(), bytes = saved();
+      near(phaseForState(page.inspect().sim.state), .27, 'defense target');
+      if (repaired) {
+        near(clock.phase, .27, 'clock settles before native sleeps');
+        assert(first.callbacks > 2 * hz && first.elapsedMs < 5000);
+      } else {
+        near(clock.phase, .34, 'pinned old clock strands');
+        assert.equal(first.callbacks, 2 * hz);
+      }
+      wall += 10000; assert.equal(page.frames.size, 0); assert.deepEqual(light(), beforeWake);
+      wake(); const second = drain(hz), afterWake = light();
+      if (repaired) afterWake.forEach((v, i) => near(v, beforeWake[i], 'unrelated wake does not change settled shading'));
+      else assert.notDeepEqual(afterWake, beforeWake, 'pinned old unrelated wake changes shading');
+      near(clock.phase, .27, 'eventual target'); assert.equal(snapshot(), state); assert.equal(saved(), bytes);
+      results.push({ repaired, case: `defense-speed0-${hz}Hz`, first, second });
+    }
+    // Actual native 10x simulation reaches night, then normal pause/Save/Continue.
+    // Sparse setup is not a frame-rate measurement; measured settling uses dense60Hz.
+    clock.setPhase(.5); page.action({ mode: 'defense' }); page.speed(10); reset();
+    page.step(wall); wall += 24000; page.step(wall); assert.equal(page.inspect().sim.state.phase, 'night');
+    page.speed(0); page.action({ action: 'menu' }); page.click(page.buttonById('save-town'));
+    const bytes = saved(), phase = clock.phase;
+    page.click(page.buttonById('continue-town')); near(clock.phase, phase, 'Continue keeps interpolated clock');
+    reset(); const first = drain(60), beforeWake = light(), state = snapshot();
+    if (repaired) near(clock.phase, 0, 'paused restored night fully settles');
+    else assert(distance(clock.phase, 0) > .3, 'old paused night remains stranded');
+    wake(); const second = drain(60), afterWake = light();
+    if (repaired) afterWake.forEach((v, i) => near(v, beforeWake[i], 'settled night stable across input'));
+    else assert.notDeepEqual(afterWake, beforeWake);
+    assert.equal(snapshot(), state); assert.equal(saved(), bytes);
+    results.push({ repaired, case: 'night-save-Continue-speed0', first, second });
 
-  for (const hz of [60, 120]) {
-    // First .5 is the real constructor default. Second is an explicit CPU setup,
-    // not physical native input or a game-state acceptance grant.
-    if (hz === 120) clock.setPhase(.5);
-    page.action({ mode: 'defense' }); page.speed(0); resetTimestamp();
-    near(phaseForState(page.inspect().sim.state), .27, 'new defense target');
-    const first = drain(hz), stranded = light();
-    assert.equal(first.positiveDtCallbacks, 2 * hz);
-    near(stranded.phase, .34, 'two dense seconds move only .16');
-    near(circularDistance(stranded.phase, .27), .07, 'unsettled at scheduler sleep');
-    const frozen = snapshot(), bytes = saved(), fixed = matrices();
-    // No callbacks while asleep: clock stays stranded even as fixture wall moves.
-    wall += 10000; assert.equal(page.frames.size, 0); assert.deepEqual(light(), stranded);
-    wake(); const second = drain(hz), settled = light();
-    near(clock.phase, .27, 'ordinary capture input wake finishes remaining clock');
-    assert.notDeepEqual(settled.background, stranded.background);
-    assert.equal(snapshot(), frozen); assert.equal(saved(), bytes); assert.equal(matrices(), fixed);
-    results.push({ case: `new-defense-speed0-${hz}Hz`, first, stranded, second, settled });
-  }
-
-  // Natural production simulation reaches night. The sparse 24s setup is NOT
-  // the reproduction interval: all measured idle/wake intervals below are 60Hz.
-  clock.setPhase(.5); page.action({ mode: 'defense' }); page.speed(10); resetTimestamp();
-  page.step(wall); wall += 24000; page.step(wall);
-  assert.equal(page.inspect().sim.state.phase, 'night');
-  page.speed(0); page.action({ action: 'menu' }); page.click(page.buttonById('save-town'));
-  const nightBytes = saved(), beforeContinue = clock.phase;
-  page.click(page.buttonById('continue-town'));
-  assert.equal(page.inspect().paused, false); assert.equal(page.inspect().sim.state.speed, 0);
-  near(clock.phase, beforeContinue, 'ordinary Continue preserves old world clock');
-  resetTimestamp(); const nightFirst = drain(60), nightStranded = light();
-  assert(circularDistance(clock.phase, 0) > .3, 'loaded night remains far from night illumination');
-  const nightSnapshot = snapshot(), nightMatrices = matrices();
-  wake(); const nightSecond = drain(60), nightAfterWake = light();
-  assert.notEqual(nightAfterWake.daylight, nightStranded.daylight, 'wake changes whole-scene light inputs');
-  assert.equal(snapshot(), nightSnapshot); assert.equal(saved(), nightBytes); assert.equal(matrices(), nightMatrices);
-  results.push({ case: 'natural-night-save-Continue-speed0-60Hz', nightFirst, nightStranded, nightSecond, nightAfterWake });
-
-  // Same target and fixed simulation, but private menu pause also approaches.
-  page.action({ action: 'menu' }); resetTimestamp();
-  const menuBefore = clock.phase; drain(60);
-  assert.notEqual(clock.phase, menuBefore, 'private pause does not intentionally freeze visual clock');
-
-  // Ordinary restart/new-mode handlers preserve the same clock object and phase.
-  const priorPhase = clock.phase;
-  page.action({ action: 'restart' });
-  assert.equal(world.dayNight, clock); near(clock.phase, priorPhase, 'restart does not reset phase');
-  page.action({ mode: 'free' });
-  near(clock.phase, priorPhase, 'new mode does not reset phase');
-
-  // Actual tick busy controls: running simulation, pending shots, camera motion.
-  resetTimestamp(); const runningTime = page.inspect().sim.state.time;
-  framesFor(3); assert.equal(page.frames.size, 1); assert(page.inspect().sim.state.time > runningTime);
-  page.speed(0); world.effects.active = true; resetTimestamp();
-  framesFor(3); assert.equal(page.frames.size, 1, 'shots retain callback ownership');
-  world.effects.active = false; drain(60);
-  const render = world.render;
-  world.render = dt => { render(dt); camera.position.x += .01; };
-  wake(); framesFor(3); assert.equal(page.frames.size, 1, 'camera movement retains callback ownership');
-  world.render = render; drain(60);
-  results.push({ case: 'actual-tick-busy-controls', runningSimulation: true, shots: true, movingCamera: true });
-
-  // Counterfactual scheduling predicate ONLY, not a rewritten production tick:
-  // retain callbacks while cyclic phase residual exceeds epsilon. Actual native
-  // callback, clock and scheduler still execute; no extra RAF owner is created.
-  clock.setPhase(.5); page.action({ mode: 'defense' }); page.speed(0); resetTimestamp();
-  const realStep = page.step; let callbacks = 0;
-  page.step(wall); const frozen = snapshot(), fixed = matrices();
-  while (circularDistance(clock.phase, phaseForState(page.inspect().sim.state)) > 1e-9) {
-    // A wake during a pending frame resets only the idle deadline, not last/dt.
-    // This models the proposed busy criterion, not product input behavior.
-    wake(); wall += 1000 / 60; realStep(wall); callbacks++;
-    assert(callbacks < 400); assert.equal(snapshot(), frozen); assert.equal(matrices(), fixed);
-  }
-  near(clock.phase, .27, 'counterfactual residual-aware scheduling settles');
-  assert(callbacks > 120); drain(60);
-  results.push({ case: 'COUNTERFACTUAL-residual-aware-busy', callbacks, phase: clock.phase });
-
-  // Restore fixture setup before original scenario. No original timestamps,
-  // original assertions, 500ms/5s gates, or production source are changed.
-  clock.setPhase(.5); resetTimestamp();
-} });
-
-// Cyclic clock controls, including the antipodal .5 tie and wrap across midnight.
+    // Private menu pause also settles without advancing gameplay or saved bytes.
+    clock.setPhase(.5); page.action({ action: 'menu' }); reset(); drain(60);
+    if (repaired) near(clock.phase, 0, 'private pause settles');
+    const prior = clock.phase;
+    page.action({ action: 'restart' }); assert.equal(world.dayNight, clock); near(clock.phase, prior, 'restart preserves visual clock identity');
+    page.action({ mode: 'free' }); near(clock.phase, prior, 'new mode does not force snap');
+    reset(); const startTime = page.inspect().sim.state.time, start = wall;
+    page.step(start);
+    for (let i = 1; i <= 180; i++) { wall = start + i * 1000 / 60; page.step(wall); }
+    assert.equal(page.frames.size, 1); assert(page.inspect().sim.state.time > startTime, 'running sim still owns frames');
+    page.speed(0); world.effects.active = true; reset();
+    const shotStart = wall; page.step(wall);
+    for (let i = 1; i <= 180; i++) { wall = shotStart + i * 1000 / 60; page.step(wall); }
+    assert.equal(page.frames.size, 1, 'pending shots retain frames'); world.effects.active = false; drain(60);
+    const render = world.render; world.render = dt => { render(dt); camera.position.x += .01; };
+    wake(); const cameraStart = wall; page.step(wall);
+    for (let i = 1; i <= 180; i++) { wall = cameraStart + i * 1000 / 60; page.step(wall); }
+    assert.equal(page.frames.size, 1, 'camera motion retains frames'); world.render = render; drain(60);
+    // Restore the original declared world double before the unchanged original
+    // Continue scenario. Its sparse timestamps/assertions are NOT relaxed.
+    world.dayNight = originalClock; reset();
+  } });
+}
 const scene = new THREE.Scene(), clock = createDayNight(scene);
-clock.setPhase(.98); clock.approach(.02, .5); near(clock.phase, .02, 'short wrap forward');
-clock.setPhase(.02); clock.approach(.98, .5); near(clock.phase, .98, 'short wrap backward');
-clock.setPhase(.5); clock.approach(0, .25); near(clock.phase, .48, 'antipodal .5 tie moves backward');
+for (const [from, to] of [[.98, .02], [.02, .98], [.5, 0]]) {
+  clock.setPhase(from);
+  for (let i = 0; !clock.isSettled(to); i++) { assert(i < 800); clock.approach(to, 1 / 120); }
+  near(distance(clock.phase, to), 0, 'shortest circular convergence');
+}
 clock.dispose();
-console.log(JSON.stringify({ scope: 'CPU only; fake DOM/world/render/RAF, real native tick/loop/sim/daynight; no pixels', results }, null, 2));
-console.log('VISUAL CLOCK PASS: 60/120Hz stranded phase, ordinary wake lighting change with frozen snapshots/save/matrices; natural night Continue; private pause; restart/new mode persistence; 3 busy controls; circular wrap; labelled counterfactual; original Continue assertions intact');
-console.log('LIMIT: source bug is NOT established as user shaking/artifact cause; native Water/Save/Continue, pixels and GPU remain UNPASSED');
+console.log(JSON.stringify(results, null, 2));
+console.log('VISUAL CLOCK REPAIR PASS: pinned old stranded lighting; current60/120Hz/night/private-pause convergence, stable unrelated wakes, unchanged snapshots/save/matrices, eventual sleep, running/shot/camera ownership; original Continue assertions retained');
+console.log('LIMIT: CPU doubles, not actual pixels or proof of user shaking/artifact resolution; native Water/Save/Continue remains unpassed');

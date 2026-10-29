@@ -31,25 +31,36 @@ Registration does not establish browser/gameplay or performance acceptance.
 source review, the `93c104e`/`2540b8c` corrections and bounded native runners
 `14a19ab`/`a8d17f5`. Native acceptance is still blocked by recorded timeouts.
 
-Latest quality checkpoint: [opt-in motion diagnostic integration](../../citisten-motion-diagnostic-integration.md)
-adds bounded observation, not a shaking fix or native acceptance. Current source
-`f2697fc0`, game tree`ff06ce5f68cbf300d93fd55c5a8396ed563d3cd4`,228files/
-35,188,315bytes. Site versus downloaded v2 remains unknown; v2 is unchanged.
-Serial publication remains owner`74b61fa7`-owned, with known failures preserved.
+Prior published checkpoint: [opt-in motion diagnostic integration](../../citisten-motion-diagnostic-integration.md)
+adds bounded observation, not a shaking fix or native acceptance. Its source
+`f2697fc0`/published017e4a47 and233-file live proof remain historical.
 
-### Integrated diagnostic-only checkpoint
+Current [user-reproduction repairs](../../citisten-user-repair-integration.md):
+source`78faf916`, tree`1500eca1b81e4ffa8b5cc6a8c9f242256e0c7043`,228files/
+35,196,186bytes. Seeded terrain/save integration, compact HUD/controls, source
+terrain-depth and lighting-settlement repairs pass CPU gates. Screenshot artifacts,
+motion, actual HUD/seeded visuals and native acceptance remain UNPASSED. No new
+native/WebGL browser admission, push or deployment from this lane. A subsequent
+[DOM-only HUD pass](../../citisten-user-hud-visual-result.md) passed8/8 viewport/theme
+checks with four reviewed, labelled fixture sheets; 854×569 density remains a
+caveat, not full native/visual acceptance. V2 unchanged;
+serial integration/publication belongs to74b61fa7, not a blanket gate waiver.
 
-The scoped `7b08e47c` / `f66c65c6` source diagnoses are now integrated locally:
+### Historical diagnostic-only checkpoint (superseded for the clock)
+
+The scoped `7b08e47c` / `f66c65c6` source diagnoses were integrated locally:
 [renderer temporal ordering](../../citisten-render-temporal-diagnosis.md) and
 [visual-clock scheduling](../../citisten-visual-clock-diagnosis.md), with their two
-runnable Node checks. Game tree `ff06ce5f` and all runtime/assets remain unchanged.
-Independent pinned checks reproduce renderer8/25/max-error0 and the unsettled
-clock at60/120Hz. A diagnostic PASS is not a product fix: the clock bug, user
-shaking/artifacts and native Water/Save/Continue/GPU/FPS remain unresolved. An
+runnable Node checks. That checkpoint had game tree `ff06ce5f` and unchanged
+runtime/assets. Its pinned checks reproduced renderer8/25/max-error0 and an
+unsettled clock at60/120Hz; a diagnostic PASS was not a product fix. The later
+78faf916 source below repairs clock settlement with old-red/current-green checks,
+not the unproven user shaking/artifact cause or native Water/Save/Continue/GPU/FPS. An
 initial independent renderer result lost to collection limits remains unverified;
 the unchanged rerun passed. Source-lane missing-Brainrot findings are historical,
-not the current serial-main coverage state. Subsequent screenshot/seed/HUD repair
-work is excluded from this checkpoint. See the serial integration ledger for SHAs
+not the current serial-main coverage state. Subsequent screenshot/seed/HUD repairs
+are now a separate reviewed source snapshot, not part of this historical diagnosis.
+See the serial integration ledger for SHAs
 and separate local/push/deployment/native status.
 
 ## Implementation map
@@ -84,8 +95,9 @@ until replaced or a new game starts, with a labelled empty state. No simulation
 exists before choosing a mode; the initial menu is not a paused running city.
 Speed 0 still freezes simulation time, while placement feedback remains usable.
 
-A dismissible five-step tutorial opens on first play; Menu's How to play button
-reopens it. Automatic help pauses and restores the current speed; menu replay
+A dismissible tutorial opens on first play; current source uses three concise
+road/home/service steps. The original five-step capture evidence below is historical,
+not acceptance of this revision. Menu's How to play button reopens it. Automatic help pauses and restores the current speed; menu replay
 returns to the still-paused menu. `citisten-tutorial-seen` stores dismissal when
 localStorage works, otherwise dismissal lasts only for this UI session. Node
 syntax and simulation/native checks pass. A bounded focused UI-fixture run passed
@@ -95,6 +107,24 @@ six seconds. Zero page errors; browser/server released. Eight screenshots are
 local-only under `.tmp/citisten-onboarding/`; desktop/mobile views in both themes
 were reviewed. The expanded `ui-qa.py` suite remains unrun, as does fresh native
 gameplay/FPS acceptance. No full-fleet gate or push was attempted.
+
+### Current compact controls and new-town safety
+
+Selecting a tool does not place it: choose Road and click/drag dry lots beside the
+hall, then Residential beside that road. Named construction/placement feedback
+uses the same labels as UI tools and retains failure reasons. Camera buttons/help
+come first inside Controls; speed/weather/repair are also there. Menu pauses.
+Map starts collapsed on all widths. Utilities say available/needed and zero demand
+has an empty meter. Current default HUD geometry passed the subsequently admitted DOM-only8/8
+viewport/theme pass; all four both-theme contact sheets were reviewed. Labels
+wrap without clipping and tested44px targets remain reachable. Short-landscape
+density remains a caveat; actual native town visibility is still unverified.
+
+Explicit New town/Restart confirms before replacing an active or saved town.
+Cancel retains menu, town, roads, models and original save bytes. Editing seed alone
+changes nothing; Continue bypasses unrelated new-seed validation/confirmation.
+Accepted New town does not immediately write the slot, but its dialog warns that
+later Save/autosave replaces the old slot. Storage denial does not block first play.
 
 ### Opt-in motion report
 
@@ -194,6 +224,15 @@ and recovery state), ordered road cells, RNG seeds, IDs, fixed-step/economy/
 traffic clocks, notice queue and milestone/warning high-water flags. No images
 or rendered models are saved. The saved menu/tutorial speed is the player's
 selected speed, not the temporary pause.
+
+New native towns persist optional unsigned `state.terrainSeed`; omission and zero
+retain the original course. Other seeds change the authoritative river/bank mask
+and render geometry independently of mutable gameplay RNG. Saved absence remains
+legacy even when an economy/event seed exists; Continue/Restart do not silently
+regenerate old terrain. World, minimap and incident flood caches share that seed.
+Version1/storage key remain unchanged. Invalid metadata rejects before roads/slot
+mutation. Native save/confirmation behavior has CPU fixture proof, not fresh real
+browser acceptance.
 
 Autosave runs after about 60 simulation seconds, not wall-clock seconds. Menu
 contains Save, Continue from the last valid save, Restart and existing Resume.
@@ -1125,9 +1164,78 @@ Actual publication/served identity belongs to the serial owner and is recorded
 separately; neither source/DOM success nor release establishes user resolution.
 Whole-world shaking/native Water/Save/Continue/hardware/FPS remain **UNPASSED**.
 
+### User screenshot / seed / usability source repairs (2026-10-28)
+
+The user provided the initial screenshot and seed/UI complaint; no another-initial-
+reproduction demand blocks this scope. [Full integration](../../citisten-user-repair-integration.md)
+records three disjoint lanes, original harness-aborted143 WIP preservation/resume,
+fixed sol/astra models, guarded lifecycle generations and exact READY boundary.
+UI5ac374ae, mixed render+seedd9f13107, seedfollowup50a2307d and collisionreceipt87c9894e
+are preserved without rewrite; d9 is not an isolated render commit. Parent44f0be47
+integrates native routes/caches/save safety/clock/framing;78faf916 makes Map on-demand.
+
+Source depth evidence: forced positive offset on noncoplanar ground can reverse
+land/water order in a D24 model (oldbias41.2245 vs gap19.5499 steps; ten old-red/new-
+green cases). Removing only that override preserves water height/geometry/art/
+fog/shadow/quality. This is NOT certainty about z-fighting or the screenshot's
+stripes. Desktop starter framing enlarges hall projection59.18->74.22px at1367x910;
+1890 general/96 seeded fits retain crossing/hall, with cap-aware retreat. Phone
+readability/DOM obstruction remain visually unverified.
+
+Seed proof:1,403,332 legacy samples,100,170 seeded rows,6048 fuzz cases,20 geometries,
+45 legacy snapshots,40 storage round trips,15 partial restores and12 atomic
+corruptions. Ten seed pairs change548..2400 water cells. Parent native tests cover
+input-only no-op, cancel start/restart, saved-only cancel, invalid-seed Continue,
+legacy flat restart, storage denial, named feedback and five incident seed switches.
+Current lighting settles before the existing loop sleeps at60/120Hz/night/private
+pause; unrelated wakes no longer change settled shading. Sim/save/matrices stay
+fixed, one RAF owner/hidden/dt0/full simulation delta and500ms/5s assertions remain.
+This clock repair does not explain the separate10x native completion failure.
+
+Final22/22 Node executables,18 syntax files, catalog129 and diff pass. Initial
+city-event-effects invocation omitted required VMflag; raw failure retained,
+corrected invocation passes without changing source/assertions. Static entry parser
+resolves39 local modules plus tracked CSS/fonts, not new served proof. Source
+snapshot233 SHA256`f42a31c4092282fbebfa8b494322460ba63d5741e179d214f706f9d368dc4da6`;
+only16 existing game files differ from published freeze, models/vendor/fonts unchanged.
+Current inventory228files/35,196,186bytes/tree1500eca1; only Citisten row refreshed.
+
+No browser/slot/server, screenshots, GPU retry, install, export, new game or push.
+Slipstream's actual release does not admit Citisten. Four viewport/both-theme
+layout and actual terrain/seed/motion/artifact visuals remain UNRUN/HOLD, requested
+native captures0/5. Source-only CSS/matrices are not polished/visual acceptance.
+Source branch's missing Brainrot manual remains historical coverage failure;
+serial main's earlier135/129PASS is separate. Sole74 integrates atomic reviewed
+paths then reports merge/push/Pages/served/native stages separately. Whole-world
+shaking, artifacts, native Water/Save/Continue and hardware/FPS remain OPEN.
+
+### Admitted HUD DOM visual pass (2026-10-29)
+
+[Exact result and raw evidence](../../citisten-user-hud-visual-result.md) supersede
+only the preceding no-browser/default-HUD-unrun status. One system-Chromium pass
+on frozen3bcc0748 used the explicitly labelled world/renderer double:8/8 checks at
+1367×910,1024×768,854×569,390×844 in dark/light; four reviewed both-theme JPEGs total
+522,833bytes. Labels/utility text wrap, default Map/Controls collapse,44px target
+bounds and actual hit tests pass. Expanded Controls camera/Speed reachability and
+ordinary Water selection after closing Controls pass. Zero page/console/request
+errors and zero WebGL calls. This is not a saved-town browser test or native scene.
+
+Local34 unchanged-response byte identities plus one declared world double do not
+replace current production HTTP/MIME or native-world graph proof. Density remains
+notable at854×569; complex economy/incident/dense-town layouts and actual playable
+world visibility remain outside this default-town fixture pass. No runtime change
+or second browser launch. Models/vendor/fonts/freeze233 remain unchanged.
+
+Peak1,699,550bytes plus1MBreserve under11MB; elapsed16.743s including0.802s cleanup.
+Owned PIDs/profile/port independently confirmed closed; lease explicitly released.
+Exact sparse/config/font absence preserved. Raw result archived losslessly beside
+the linked receipt; local screenshots visibly disclaim3D rendering. No native/GPU
+acceptance, new game, export, install or push. Original native captures0/5 and all
+motion/artifact/seeded-view/WaterSaveContinue/hardware/FPS holds remain OPEN.
+
 ## Future outlook
 
-Resolve actual user shaking and finish native-input/animation acceptance, complete the unchanged 40 FPS
+Resolve actual user shaking/artifacts and finish native-input/animation acceptance, complete the unchanged 40 FPS
 measurement, resolve delivery gaps and perform full-fleet release QA.
 Operator batch 67b records ledger 241 as missing; use this manual and the
 catalog draft rather than inventing a ledger or blocking the registration.

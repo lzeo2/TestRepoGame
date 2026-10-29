@@ -19,8 +19,11 @@ export function initialTownPose(roads, terrain, width, height, fov = 60) {
   const retreat = 1 / Math.tan(tilt + Math.atan((2 * screenY - 1) * tan));
   // Nearest corner includes the hall's 17m roof (20m allowance), with 9% side margins.
   const depth = (b.x - a.x) / 2 / (tan * aspect * .82) + (b.z - a.z) / 2 * Math.cos(tilt) + 20 * Math.sin(tilt);
-  const y = Math.min(400, Math.max(phone ? 280 : 215, depth / (Math.sin(tilt) + retreat * Math.cos(tilt))));
-  return { x: (a.x + b.x) / 2, y, z: (a.z + b.z) / 2 + y * retreat, yaw: 0, pitch: -tilt };
+  const y = Math.min(400, Math.max(phone ? 280 : 180, depth / (Math.sin(tilt) + retreat * Math.cos(tilt))));
+  // Wider seeded crossings may hit the height ceiling; retreat rather than
+  // losing their side margins. This leaves uncapped legacy poses unchanged.
+  const fittedRetreat = Math.max(retreat, (depth / y - Math.sin(tilt)) / Math.cos(tilt));
+  return { x: (a.x + b.x) / 2, y, z: (a.z + b.z) / 2 + y * fittedRetreat, yaw: 0, pitch: -tilt };
 }
 
 export function createFreeCamera(camera, canvas, extent = 1000, floorHeight = () => 0) {
