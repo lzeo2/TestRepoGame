@@ -17,9 +17,33 @@ Accepted clearance plus7source/3generated executables pass;101/101 actual local
 HTTP hashes/MIMEs pass with closed resources. Only Wings' actual inventory row
 is refreshed; restored001 and all other reviewed candidates remain intact.
 [Full mapping, build identity, collection failures and native holds](wings-f98-integration.md).
-No push/deployment/native acceptance or new waiver. Citisten38e code is separately
-READY for the next integration checkpoint, not implicitly included here. Deferred
-site debloat may begin disjoint read-only portal inventory, not asset deletion.
+No push/deployment/native acceptance or new waiver. Citisten38e is now separately
+integrated below. Debloat has read-only measurements only, no implementation.
+
+### Subsequent Citisten READY code continuation
+
+Runtime `78faf916182be40f757d5a2928d0f04d82886d6a`, including `44f0be47`,
+reviewed through `38e18c45893094c80bccb116427822782f5c4477`, is now locally
+integrated as **`1593979468621d83240dfb2a373ebd72a4d6e269`**. Inventory-only
+`d9a9047e` refreshes exactly row241. The full 228-file/35,196,186-byte game tree
+is exactly `1500eca1b81e4ffa8b5cc6a8c9f242256e0c7043`, equal to38e, not just
+a subset or the older diagnostics. All233 new source-freeze hashes match.
+
+Actual code now includes seeded terrain/save/cache propagation, cancel-safe town
+controls, compact HUD/named notices, initial town framing, clock settlement and
+collapsed/on-demand Map. The atomic final snapshot preserves the documented mixed
+`d9f13107` staging rather than duplicating seed/render implementations.
+Eight fresh focused executables and18syntax checks passed; lossless output is
+[citisten-38e-integration-checks.log.gz](citisten-38e-integration-checks.log.gz).
+The historical diagnostic-only clock status below is superseded for source code,
+not proof that reported shaking/artifacts or old completion failures are cured.
+
+Four labelled HUD contact sheets were personally reviewed, with dense phone/
+short-landscape limits. Their8/8 DOM checks used an explicit world/renderer double;
+they are not native-world evidence. Native0/5, Water/Save/Continue, pixels/GPU/FPS,
+private Chromebook v2 and prior failure witnesses remain unchanged/unpassed.
+No browser, push, deployment or new public-runtime proof was claimed. Fresh remote
+readback remains `d3dbb39ed840cd47200e62f8e8d736c281b9e151`.
 
 **This batch is merged locally, NOT pushed, NOT deployed and NOT native accepted.**
 Slipstream's owner explicitly handed off source-ready, not release-ready code
@@ -51,10 +75,10 @@ The deferred-phase order is recorded in `85f800f0` and
 
 ## Completed scoped content and gates
 
-### Citisten: diagnostics, not a runtime repair
+### Citisten: historical diagnostic-only checkpoint
 
-Only the two new scripts and their two source receipts were imported. Runtime
-remains exact tree `ff06ce5f68cbf300d93fd55c5a8396ed563d3cd4` (228 files), already
+At this earlier checkpoint only two new scripts and their source receipts were
+imported. Runtime then remained exact tree `ff06ce5f68cbf300d93fd55c5a8396ed563d3cd4` (228 files), already
 published by `017e4a47`/`da16004a`/`d3dbb39e`. No new game dependency or runtime
 publication is required for these diagnostic-only additions.
 
@@ -63,15 +87,15 @@ no live WIP source and no browser. Two syntax checks and both executables passed
 renderer8 cases/25 shadow frames/max matrix error0; visual clock reproduces
 phase approximately.34 versus target.27 at60/120Hz, and night Continue.32→.16
 on later wake, with original Continue assertions unchanged. This demonstrates an
-**unfixed source clock bug**, not its repair or the cause of user artifacts.
+**then-unfixed source clock bug**, not its repair or the cause of user artifacts.
 An initial independent renderer invocation lost its result to the collector log
 cap: that invocation remains **UNVERIFIED**. Its unchanged rerun passed. Raw
 collection and the prior log remain retained locally at
 `.tmp/citisten-f66-independent-checks.log`.
 
-New screenshot/seed/HUD/runtime repair work is still source-owner WIP and excluded,
-including its changed native/UI/camera/event/Continue files and visual-clock test.
-Whole-world shaking, artifacts, native Water/Save/Continue, GPU/pixels/FPS and the
+Screenshot/seed/HUD/runtime work was excluded from that diagnostic snapshot; the
+later reviewed38e atomic code is now integrated above. Whole-world shaking,
+artifacts, native Water/Save/Continue, GPU/pixels/FPS and the
 private downloaded v2 remain unchanged/unpassed. Source-lane missing-Brainrot
 findings do not override current main's separately repaired coverage.
 
@@ -89,8 +113,21 @@ reports dirty async candidates79,174/60,000, still17/18 and size-failed. Both di
 QA files and the newer working manual were excluded. Five guarded CPU profiles
 cover18/160 proposed slots;142 remain held. This is not forty-hero/native parity.
 Historical Warden zero-frame/cleanup failures remain failures; current async
-candidate native behavior is unmeasured. New Stampead feel work has no ready
-committed repair in this checkpoint.
+candidate native behavior is unmeasured. That historical checkpoint excluded
+subsequent Stampead feel repairs.
+
+The later source-ready `ec282022` includes apex fade, camera timing, protected hit
+notices (`af0e75bd`) and midpoint turning (`bdbd2b83`). Four independent focused
+executables passed, including159real source-callback groups and approximately
+0.011997m30/120Hz turn-endpoint difference. A separate unchanged standalone
+`integration-test.mjs` reached its carbon600s-chain output but exceeded the
+100-second collection bound (exit124,100.133s); no ivory/completion PASS was
+collected. This incomplete gate is not a proven new gameplay regression or a
+waiver. Two later planned suites were not run. Full output remains locally at
+`.tmp/jank-ec282-focused-checks.log.gz`. This snapshot is not yet integrated;
+Citisten was committed independently rather than blocked by this Jank check.
+Dirty QA remains79,174bytes with exact original SHA256s, no live child process;
+source manual and new untracked playability draft were not copied or modified.
 
 ### Slipstream: exact final source, native FAIL retained
 
@@ -156,8 +193,9 @@ new ports nor self-made additions). Maintenance:
 `PASS: 135 game documents cover 129 registered + 6 unregistered games; Git inventory current.`
 Coverage is not semantic/gameplay certification. No full-fleet run or push.
 
-Debloat remains **QUEUED, NOT STARTED**. Do not overlap current writers or delete
-models, tests/evidence, saves, games or telemetry. At a safe subsequent checkpoint,
-measure actual served payload/references before targeted authored-code/UI work;
-report real before/after measurements afterward. No savings or performance claim
-has been made from repository/test size.
+Debloat implementation remains **NOT STARTED**. The disjoint read-only baseline
+was recorded at `af2e3bfb`:14direct HTTP declarations,213,016response-body transfer
+bytes/635,848decoded bytes, including optional metadata/fonts. It is not a browser
+waterfall or savings/performance proof. Gameplay integration took priority.
+Do not overlap writers or delete models, tests/evidence, saves, games or telemetry;
+no cleanup or authored portal implementation has occurred.

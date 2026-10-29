@@ -1,0 +1,64 @@
+{
+  "runtimeSource": "78faf916182be40f757d5a2928d0f04d82886d6a",
+  "readySource": "38e18c45893094c80bccb116427822782f5c4477",
+  "integratedCommit": "1593979468621d83240dfb2a373ebd72a4d6e269",
+  "gameTree": "1500eca1b81e4ffa8b5cc6a8c9f242256e0c7043",
+  "focusedChecks": [
+    {
+      "name": "citisten_seeded_terrain_check.mjs",
+      "exit": 0,
+      "elapsed": 11.411,
+      "outputSHA256": "ae9e40c18fb8e39bb49e0a6f1b7b4f0787ca9aaf7b468b69e6aab434a245f8ea"
+    },
+    {
+      "name": "citisten_user_hud_check.mjs",
+      "exit": 0,
+      "elapsed": 0.291,
+      "outputSHA256": "f08afc9c70913b195593813e7892405b995522ceb4f3c6ea2bc71b277b8e7158"
+    },
+    {
+      "name": "citisten_user_render_repair_check.mjs",
+      "exit": 0,
+      "elapsed": 5.021,
+      "outputSHA256": "0b33a3513bd44da2a42f51db19fe0977b3e7aad0cdd7551f13783380a2433c1f"
+    },
+    {
+      "name": "citisten_visual_clock_check.mjs",
+      "exit": 0,
+      "elapsed": 23.587,
+      "outputSHA256": "13a7e90fea830d50816bd5ba0a4d1354ce9a5969995b099229766a2a59d3a4c7"
+    },
+    {
+      "name": "citisten_user_repair_integration_check.mjs",
+      "exit": 0,
+      "elapsed": 6.033,
+      "outputSHA256": "e31be43eb4c0faecfb01fcdf26c78fd840b18aa76e3e9b15a03aa8e1a40aba26"
+    },
+    {
+      "name": "citisten_motion_native_check.mjs",
+      "exit": 0,
+      "elapsed": 10.817,
+      "outputSHA256": "774abe066a58d3acb47726a6e44a0ea51b6725f8d31345c2c6b4e0625a82f2ba"
+    },
+    {
+      "name": "tutorial-check.mjs",
+      "exit": 0,
+      "elapsed": 0.425,
+      "outputSHA256": "fb44cd3a5c02b141fb408b71040be0b4772f6919f385e413bca04366f3950dae"
+    },
+    {
+      "name": "economy-ui-check.mjs",
+      "exit": 0,
+      "elapsed": 0.773,
+      "outputSHA256": "e5129976463e209087d70df82f4a98ed325056485e6023836c0c56858c62e4d0"
+    }
+  ],
+  "syntaxChecks": 18,
+  "sourceFreezeHashes": 233,
+  "sourceFreezeSHA256": "f42a31c4092282fbebfa8b494322460ba63d5741e179d214f706f9d368dc4da6",
+  "losslessLogSHA256": "09126b929c4809f4972bc82827d0d67c3d87ff2871c1fb0755bd5a5744f1592f",
+  "sourceUnchangedBeforeAfter": true,
+  "nativeBrowserAcceptance": false,
+  "newPublicRuntimeProof": false,
+  "noBrowserOrPush": true
+}
