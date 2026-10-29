@@ -8,6 +8,8 @@ import { createSystems } from './systems.mjs';
 import { HeroRuntime } from './heroes/hero-runtime.mjs';
 import { PlayerController } from './heroes/player-controller.mjs';
 import { createBots } from './bots.mjs';
+import { CameraMotionView } from './camera-motion-view.mjs';
+import { createObjectiveGuide } from './objective-guide.mjs';
 import { mountFixtures } from './integration-fixtures.mjs';
 import { createTraveler, moveCapsule, stepTraveler, interact, interaction } from './traversal.mjs';
 import { loadCharacter, disposeCharacterAssets } from './character-assets.mjs';
@@ -38,7 +40,7 @@ function fixture(kit,team='carbon') {
   const canvas={},document={hidden:false,pointerLockElement:canvas,
     querySelector:selector=>selector==='.sys-shop'?shop:dialog,
     querySelectorAll:selector=>buttons.filter(b=>selector.includes('data-edge')?b.dataset.edge:b.dataset.action)};
-  const context=vm.createContext({THREE,playing:true,paused:false,qa:true,fixture:'chain',wasAlive:true,sim,hero,controller,boxes,world,bots,
+  const context=vm.createContext({THREE,playing:true,paused:false,qa:true,fixture:'chain',wasAlive:true,sim,hero,controller,boxes,world,bots,motionView:null,frameTravel:0,completionCue:null,
     traveler:createTraveler(world),createTraveler,moveCapsule,stepTraveler,interact,interaction,history:[],
     distance:(a,b)=>Math.hypot(a.x-b.x,a.y-b.y,a.z-b.z),
     view:{scene,camera,sync(){},syncStructures(){}},actors:{sync(){}},document,canvas,held:new Set(),edges:new Set(),
@@ -452,6 +454,40 @@ check('real game rail reboarding, detach handoff and reset',kits[0],f=>{
   assert.equal(s.collected,collected);assert.equal(s.broken,broken,'in-match reset does not respawn looted crates');
   f.press('interact');assert.equal(s.mode,'zip','reset permits another boarding');
 });
+check('live render-only bob follows movement/rest without changing aim',kits[0],f=>{
+  const c=f.context;let enabled=true,reducedMotion=false,offset=0,peak=0;
+  c.motionView=new CameraMotionView(f.camera);
+  Object.assign(c,{stopped:false,previous:0,raf:0,window:{},requestAnimationFrame(){return 1;}});
+  c.ui.readMotionOptions=()=>({enabled,reducedMotion});
+  c.view.renderCamera=rendered=>{
+    assert.equal(f.runtime.camera,f.camera,'combat retains the logical camera');assert.notEqual(rendered,f.camera);
+    offset=rendered.position.y-f.camera.position.y;peak=Math.max(peak,Math.abs(offset));assert.ok(Math.abs(offset)<=.012+1e-10);
+    const point=f.runtime.trace(f.camera.position,f.camera.getWorldDirection(new THREE.Vector3()),f.runtime.kit.weapon.range+8).point;
+    const projected=point.clone().project(rendered);assert.ok(Math.abs(projected.x)<1e-8&&Math.abs(projected.y)<1e-8,'render keeps the logical center sightpoint');
+  };
+  vm.runInContext(section('  function frame(now) {','\n  raf=requestAnimationFrame(frame);'),c);
+  let now=0;const frame=()=>c.frame(now+=1000/60);
+  c.held.add('KeyW');for(let i=0;i<60;i++)frame();assert.ok(peak>.001,'actual walking produces bounded bob');
+  c.held.clear();for(let i=0;i<30;i++)frame();assert.equal(offset,0,'actual stopping settles exactly');
+  c.held.add('KeyW');c.held.add('aim');frame();assert.equal(offset,0,'aim is stable immediately');
+  c.held.delete('aim');c.edges.add('jump');frame();assert.equal(offset,0,'airborne gait suppressed');
+  enabled=false;frame();assert.equal(offset,0);enabled=true;reducedMotion=true;frame();assert.equal(offset,0);
+  c.motionView.dispose();
+});
+for(const sound of [true,false])check(`live objective progress/completion sound=${sound}`,kits[0],f=>{
+  const guide=createObjectiveGuide(f.context.view.scene),c=f.context,cues=[],messages=[];let readout;
+  c.view.syncObjectives=(sim,hero,events,isOccluded)=>guide.sync(sim,f.camera,{hero,events,isOccluded});
+  c.ui.readCompletionSound=()=>sound;c.ui.message=text=>messages.push(text);c.ui.update=value=>{readout=value.objective;};
+  c.completionCue={play:enabled=>cues.push(enabled)};
+  try {
+    c.tick(.05);assert.equal(readout.name,'midway guardian');const target=f.sim.structures.find(s=>s.id===readout.goalId);
+    assert.ok(f.sim.moveHero(f.hero.id,{...target.position,x:target.position.x+1}).ok);
+    assert.ok(f.sim.damage(target.id,1e6,f.hero.id,{kind:'ability'}).killed,'actual Host objective destruction');
+    c.tick(.05);assert.equal(readout.completion.goalId,target.id);assert.equal(readout.completion.event.type,'objective_fall');
+    assert.equal(readout.name,'midway walker');assert.deepEqual(cues,[sound]);assert.ok(messages.some(text=>text.includes('guardian cleared.')));
+    c.tick(.05);assert.deepEqual(cues,[sound],'completion cannot replay next frame');
+  } finally {guide.dispose();}
+});
 // Startup markers bracket real awaits/construction; ready follows the draw and snapshot installation.
 {
   const order=["startupStage('hero-preload'",'  await Promise.all([preloadHeroes()',"startupStage('kit-load'",'  const definitions=await Promise.all(',
@@ -470,8 +506,8 @@ check('real game rail reboarding, detach handoff and reset',kits[0],f=>{
   const cleanup=[],loadingStatus={dataset:{},hidden:true,textContent:''};
   const runtime=new HeroRuntime({scene,controller,kit:kits[0],boxes});
   const context=vm.createContext({THREE,kits,selected:kits[0].id,runtime,controller,boxes,canvas,loadingStatus,
-    playing:false,paused:false,stopped:false,previous:0,raf:0,hero:{id:'player',alive:true},
-    sim:{winner:null,configureHeroKit(){return {ok:true};}},lobby:{visible:true},world:{},qa:false,
+    playing:false,paused:false,stopped:false,previous:0,raf:0,motionView:null,frameTravel:0,completionCue:null,hero:{id:'player',alive:true},
+    sim:{winner:null,time:0,step(seconds){this.time+=seconds;return {ok:true};},configureHeroKit(){return {ok:true};}},lobby:{visible:true},world:{},qa:false,
     view:{scene,camera,resize(){if(!context.playing)assert.deepEqual(camera.position.toArray(),[-1001,4.3,13],'camera ready before observer resize');resizes++;},renderCamera(){
       if(!context.playing) {
         assert.deepEqual(camera.position.toArray(),[-1001,4.3,13]);
@@ -486,7 +522,7 @@ check('real game rail reboarding, detach handoff and reset',kits[0],f=>{
       draws.push(context.runtime.kit.id);
     }},
     ui:{update(){},setPlaying(){},message(){},dispose(){cleanup.push('ui');}},HeroRuntime,effect(){},clear(){},surfaceHeight(){return 0;},
-    createBots(){starts++;return {dispose(){cleanup.push('bots');}};},tick(){ticks++;},window:{},listen(){},
+    createBots(){starts++;return {update(){},dispose(){cleanup.push('bots');}};},tick(){ticks++;},window:{},listen(){},
     actors:{dispose(){cleanup.push('actors');}},portrait:{dispose(){cleanup.push('portrait');}},
     disposeCharacterAssets(){cleanup.push('assets');},abort:{abort(){cleanup.push('listeners');}},
     ResizeObserver:class {constructor(callback){this.callback=callback;}observe(node){assert.equal(node,canvas);}disconnect(){cleanup.push('observer');}},

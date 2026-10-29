@@ -76,7 +76,17 @@ export function createWorldData() {
     box(`${c.id}-cover`,c.x,0,c.z+10,20,2,3,'cover');
   }
   crates.push({id:'tower-soul',x:-95,y:30,z:0,kind:'soul'},{id:'graft-soul',x:-234,y:0,z:-370,kind:'soul'},{id:'plaza-soul',x:125,y:-6,z:110,kind:'soul'});
-  return freeze({ version: 1, units:'metres', footprint:{width:900,depth:900}, lanes:LANES, teams:['carbon','ivory'], boxes, ramps, buildings, bridges, spawns, stations, rope, portals, vents, camps, crates, midBoss:{id:'sewer-mid-boss',x:-35,y:-10,z:0}, pit:{minX:90,maxX:170,minZ:60,maxZ:140,y:-6}, start:{x:-250,y:0,z:-380} });
+  const arena = {
+    id: 'midway', bounds: { minX:-50, maxX:50, minZ:-125, maxZ:125 },
+    protectedEntries: [-115,115].map(z=>({x:-18,y:0,z})),
+    routeBends: [-16,16].map(z=>({x:-10,y:3,z})), coverIds: []
+  };
+  const cover = (id,x,y,z,w,h,d) => arena.coverIds.push(box(id,x,y,z,w,h,d,'cover').id);
+  cover('midway-baffle',0,3,0,8,2.2,8);
+  for (const x of [-18,18]) for (const z of [-21,21]) cover(`midway-pod-${x}-${z}`,x,3,z,4,1.8,5);
+  for (const x of [-25,25]) for (const z of [-70,70]) cover(`midway-entry-${x}-${z}`,x,0,z,10,2.2,3);
+  for (const z of [-100,100]) cover(`midway-reentry-${z}`,-18,0,z,14,2.4,3);
+  return freeze({ arena, version: 1, units:'metres', footprint:{width:900,depth:900}, lanes:LANES, teams:['carbon','ivory'], boxes, ramps, buildings, bridges, spawns, stations, rope, portals, vents, camps, crates, midBoss:{id:'sewer-mid-boss',x:-35,y:-10,z:0}, pit:{minX:90,maxX:170,minZ:60,maxZ:140,y:-6}, start:{x:-250,y:0,z:-380} });
 }
 export function rampHeight(r,x,z) {
   const t = r.axis === 'x' ? (x-r.minX)/(r.maxX-r.minX) : (z-r.minZ)/(r.maxZ-r.minZ);

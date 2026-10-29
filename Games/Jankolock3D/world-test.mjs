@@ -114,6 +114,9 @@ check(Object.isFrozen(travelerSnapshot(plaza)),'read-only observation');
 if(process.argv.includes('--json'))console.log(JSON.stringify(world,null,2));
 else {
   const exported=JSON.parse(readFileSync(new URL('../../docs/jank3d-spawns.json',import.meta.url),'utf8'));
-  assert.deepEqual(exported,world);assertions++;
+  // The tracked export pins the original district; arena additions have their own exact-bound regression.
+  const {arena,...district}=world;
+  assert.deepEqual(exported,{...district,boxes:district.boxes.filter(b=>!arena.coverIds.includes(b.id))});assertions++;
+  check(world.boxes.length===exported.boxes.length+11,'arena adds eleven solids without replacing district boxes');
   console.log(`world-test: ${assertions} assertions passed (module fixtures; native evidence separate)`);
 }

@@ -12,9 +12,9 @@ import { preloadHeroes } from './character-assets.mjs';
 await preloadHeroes();
 const world=createWorldData(),kits=JSON.parse(readFileSync(new URL('../../docs/jank3d-hero-kits.json',import.meta.url))).heroes;
 const routed=matchWorld(world);
-assert.deepEqual(routed.lanes.find(l=>l.id==='midway').waypoints.map(p=>[p.z,p.y]),[[-390,0],[-55,0],[-35,3],[35,3],[55,0],[390,0]]);
+assert.deepEqual(routed.lanes.find(l=>l.id==='midway').waypoints.map(p=>[p.x,p.y,p.z]),[[0,0,-390],[-2,0,-137],[-2,0,-73],[0,0,-55],[0,3,-35],[-10,3,-16],[-10,3,16],[0,3,35],[0,0,55],[-2,0,73],[-2,0,137],[0,0,390]]);
 assert.ok(routed.lanes.filter(l=>l.id!=='midway').every(l=>l.waypoints.every(p=>p.y===0)));
-assert.equal(world.lanes[1].waypoints,undefined); // World export stays immutable/byte-identical.
+assert.equal(world.lanes[1].waypoints,undefined); // Route adaptation does not mutate the frozen lane descriptors.
 console.log('integration: lane heights follow real Midway bridge/ramp edges; no below-deck squads');
 {
   const noop=()=>{};

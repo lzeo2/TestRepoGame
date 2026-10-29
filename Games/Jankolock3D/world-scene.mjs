@@ -1,6 +1,7 @@
 import * as THREE from './vendor/three.module.js';
 import { LANES, TEAM_COLORS, terrainHeight } from './world-data.mjs';
 import { createEnvironment } from './environment.mjs';
+import { createObjectiveGuide } from './objective-guide.mjs';
 import { mergeGeometries } from './vendor/addons/BufferGeometryUtils.js';
 export function createWorldScene(canvas,world) {
   const renderer=new THREE.WebGLRenderer({canvas,antialias:false,powerPreference:'low-power'});
@@ -110,7 +111,7 @@ export function createWorldScene(canvas,world) {
       rod(c,0,2,0,7,4,g);box(0x414e50,-5,10,0,3,16,4,g);box(0x414e50,5,10,0,3,16,4,g);box(c,0,18,0,13,3,4,g);
       mesh(sphere,0xe4ba51,0,11,0,4,5,4,g);
     }
-    if(s.type==='guardian'||s.type==='walker'||s.type==='patron')g.attach(label(s.type.replaceAll('-',' '),x,y+(s.type==='patron'?23:16),z,'#17191b',16));
+    // One current-goal label below replaces repeated structure-type billboards.
   }
   for(const line of world.stations) {
     const lane=LANES.find(l=>l.id===line.lane);
@@ -149,11 +150,23 @@ export function createWorldScene(canvas,world) {
     const first=objects[0],instances=new THREE.InstancedMesh(first.geometry,first.material,objects.length);
     objects.forEach((o,i)=>{instances.setMatrixAt(i,o.matrixWorld);o.removeFromParent();});scene.add(instances);
   }
+  const goalLabel=label('',0,0,0,'#17191b',20);goalLabel.name='current-objective-label';goalLabel.visible=false;
+  let goalText='';
+  const guide=createObjectiveGuide(scene,{label(readout,anchor){
+    goalLabel.visible=!!readout;
+    if(!readout)return;
+    goalLabel.position.copy(anchor).add(new THREE.Vector3(0,3,0));
+    const text=`${readout.name} · ${Math.ceil(readout.distance)}m`;
+    if(text===goalText)return;goalText=text;
+    const image=goalLabel.material.map.image,ctx=image.getContext('2d');
+    ctx.fillStyle='#f4f0e5';ctx.fillRect(0,0,image.width,image.height);ctx.fillStyle='#17191b';ctx.font='34px Atkinson, system-ui, sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(text,image.width/2,image.height/2,490);goalLabel.material.map.needsUpdate=true;
+  }});
   let disposed=false;
   function resize() {const w=canvas.clientWidth,h=canvas.clientHeight;renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();}
   resize();
   return {
     scene,camera,
+    syncObjectives(sim,hero,events,isOccluded){return guide.sync(sim,camera,{hero,events,isOccluded});},
     renderCamera(view=camera) {if(!disposed){environment.update(view);renderer.render(scene,view);}},
     syncStructures(structures) {
       const live=new Map(structures.map(s=>[s.id,s]));
@@ -166,6 +179,6 @@ export function createWorldScene(canvas,world) {
     resize,
     sync(s) {for(const [id,m] of crateMeshes)m.visible=!s.collected.has(id)&&!s.broken.has(id);},
     diagnostics:()=>Object.freeze({frames:renderer.info.render.frame,calls:renderer.info.render.calls,triangles:renderer.info.render.triangles,geometries:renderer.info.memory.geometries,textures:renderer.info.memory.textures,environment:environment.diagnostics()}),
-    dispose() {if(disposed)return;disposed=true;environment.dispose();const gs=new Set(),ms=new Set();scene.traverse(o=>{if(o.geometry)gs.add(o.geometry);if(o.material)ms.add(o.material);});gs.forEach(g=>g.dispose());ms.forEach(m=>m.dispose());textures.forEach(t=>t.dispose());renderer.dispose();renderer.forceContextLoss();scene.clear();}
+    dispose() {if(disposed)return;disposed=true;guide.dispose();environment.dispose();const gs=new Set(),ms=new Set();scene.traverse(o=>{if(o.geometry)gs.add(o.geometry);if(o.material)ms.add(o.material);});gs.forEach(g=>g.dispose());ms.forEach(m=>m.dispose());textures.forEach(t=>t.dispose());renderer.dispose();renderer.forceContextLoss();scene.clear();}
   };
 }

@@ -11,6 +11,8 @@ import { PlayerController } from './heroes/player-controller.mjs';
 import { HeroRuntime } from './heroes/hero-runtime.mjs';
 import { selectExpansionSlice } from './heroes/qa-slices.mjs';
 import { createBots } from './bots.mjs';
+import { CameraMotionView } from './camera-motion-view.mjs';
+import { CompletionCue } from './completion-cue.mjs';
 import { mountIntegrationUI } from './integration-ui.mjs';
 import { mountPortrait } from './portrait.js';
 import { preloadHeroes, loadCharacter, characterMetadata, disposeCharacterAssets, TRIO_HERO_IDS } from './character-assets.mjs';
@@ -25,7 +27,9 @@ const held=new Set(),edges=new Set(),world=createWorldData();
 const query=new URLSearchParams(location.search);
 const fixture=query.get('qa');
 const qa=fixture && ['localhost','127.0.0.1','[::1]'].includes(location.hostname);
-let view,sim,hero,controller,runtime,bots,actors,ui,portrait,lobby,raf=0,observer;
+let view,sim,hero,controller,runtime,bots,actors,ui,portrait,lobby,motionView,raf=0,observer;
+let frameTravel=0,audioCleanup=null;
+const completionCue=new CompletionCue();
 let playing=false,paused=false,stopped=false,pointer=null,previous=performance.now(),wasAlive=true;
 const history=[],boxes=[...world.boxes],distance=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y,a.z-b.z);
 const traveler=createTraveler(world);
@@ -47,6 +51,7 @@ function effect(event) {
   return result;
 }
 function resetTraversal(position) {
+  motionView?.reset();frameTravel=0;
   const collected=traveler.collected,broken=traveler.broken;
   Object.assign(traveler,createTraveler({...world,start:position}),{collected,broken,safe:{...position},grounded:controller.grounded});
 }
@@ -124,9 +129,11 @@ function tick(dt) {
       controller.syncTraversal(traveler);
     } else {
       traveler.cooldown=Math.max(0,traveler.cooldown-dt);
+      const beforeX=controller.position.x,beforeZ=controller.position.z;
       controller.update(dt,{forward:Number(held.has('KeyW'))-Number(held.has('KeyS')),side:Number(held.has('KeyD'))-Number(held.has('KeyA')),
         sprint:held.has('ControlLeft')||held.has('ControlRight'),slide:held.has('KeyC'),jump:edges.has('jump'),dash:edges.has('dash'),aim:held.has('aim')});
       controller.position.x=THREE.MathUtils.clamp(controller.position.x,-448,448);controller.position.z=THREE.MathUtils.clamp(controller.position.z,-448,448);
+      if(controller.grounded&&!['dash','slide','mantle'].includes(controller.state))frameTravel+=Math.hypot(controller.position.x-beforeX,controller.position.z-beforeZ);
       Object.assign(traveler,controller.position,{grounded:controller.grounded,stamina:controller.stamina});
       const pit=world.pit;
       if(controller.position.y<0&&controller.position.x>pit.minX&&controller.position.x<pit.maxX&&controller.position.z>pit.minZ&&controller.position.z<pit.maxZ)controller.stamina=Math.max(0,controller.stamina-40*dt);
@@ -157,11 +164,18 @@ function tick(dt) {
   const prompt=interaction(world,traveler);
   if(controller.movementStopped)ui.message('Stationary while Approved Only is active.',true);
   else if(prompt)ui.message(prompt.label,true);
+  if(hero.alive)controller.updateCamera(view.camera,0);
+  const objective=view.syncObjectives?.(sim,hero,events,({from,to})=>{
+    const origin=new THREE.Vector3(from.x,from.y,from.z),delta=to.clone().sub(origin),range=delta.length();
+    return runtime.trace(origin,delta.normalize(),range,false).distance<range-.01;
+  });
+  if(objective?.completion){ui.message(`${objective.completion.name} cleared.`);completionCue?.play(ui?.readCompletionSound?.()!==false);}
   actors.sync(sim,view.camera);view.sync(traveler);view.syncStructures(sim.structures);
-  ui.update({events,paused});
+  ui.update({events,paused,objective});
 }
 function stop() {
   if(stopped)return;stopped=true;cancelAnimationFrame(raf);clear();observer?.disconnect();
+  motionView?.dispose();completionCue?.dispose().then(ok=>{audioCleanup=ok;if(!ok)console.warn('Objective audio cleanup incomplete.');});
   ui?.dispose();
   let failed=false,failure;
   try {bots?.dispose();runtime?.dispose();} catch(error) {failed=true;failure=error;}
@@ -184,9 +198,9 @@ try {
   const playerKits=slice?[slice]:kits;
   if(slice)await loadCharacter(slice.id);
   startupStage('world-construction','Building the arena and lobby.');
-  view=createWorldScene(canvas,world);sim=createSystems(matchWorld({...world,boxes}));
+  view=createWorldScene(canvas,world);motionView=new CameraMotionView(view.camera);sim=createSystems(matchWorld({...world,boxes}));
   view.wallLayer=createKeepClearLayer(view.scene,boxes);
-  hero=sim.addHero({id:'player',team:'carbon',lane:'midway',position:{x:-10,y:0,z:-430},souls:qa&&fixture==='shop'?25600:0});
+  hero=sim.addHero({id:'player',team:'carbon',lane:'midway',position:world.arena?.protectedEntries.find(p=>p.z<0)??{x:-10,y:0,z:-430},souls:qa&&fixture==='shop'?25600:0});
   controller=new PlayerController({position:hero.position,boxes,ramps:world.ramps,floorHeight:(x,z,maxY)=>surfaceHeight({...world,boxes},x,z,maxY,traveler.broken)});
   controller.yaw=Math.PI;controller.pitch=-.06;
   runtime=new HeroRuntime({scene:view.scene,controller,kit:playerKits[0],boxes,source:hero.id,onEffect:effect});
@@ -225,12 +239,22 @@ try {
       ?sim.configureHeroKit(hero.id,runtime.kit,{partialSlice:true}):sim.configureHeroKit(hero.id,runtime.kit);
     if(!result.ok)throw new Error(result.reason);
     bots=createBots({sim,scene:view.scene,world,kits,boxes,floorHeight:(x,z,maxY)=>surfaceHeight({...world,boxes},x,z,maxY),onEffect:e=>{const result=sim.applyHeroEffect(e);view.wallLayer?.sync(sim);return result;}});
+    // Hero selection is preparation; enter the existing active match without another empty countdown.
+    const ready=sim.step(Math.max(0,30-sim.time));if(!ready.ok)throw new Error(ready.reason);
+    if(world.arena)for(const team of ['carbon','ivory']) {
+      const sign=team==='carbon'?-1:1,entry=world.arena.protectedEntries.find(p=>Math.sign(p.z)===sign);
+      const members=sim.heroes.filter(h=>h.id!==hero.id&&h.team===team);
+      if(entry)members.forEach((h,index)=>sim.moveHero(h.id,{x:entry.x+(index-(members.length-1)/2)*3,y:entry.y,z:entry.z+sign*6}));
+    }
+    bots.update(0,{passive:true});for(const bot of bots.runtimes??[])bot.update(0);
     playing=true;lobby.visible=false;runtime.visual.group.position.copy(controller.position);
-    ui.setPlaying(true);clear();controller.updateCamera(view.camera,0);runtime.aim(view.camera);
-    ui.message(qa?`QA fixture: ${fixture}. Scripted state is not native gameplay evidence.`:'Waves arrive in 30 seconds. Follow Midway or use a lane zipline.');
+    ui.setPlaying(true);clear();motionView?.reset();frameTravel=0;controller.updateCamera(view.camera,0);runtime.aim(view.camera);
+    completionCue?.unlock().then(ok=>{if(!ok&&ui?.readCompletionSound?.()!==false)ui.message('Objective sounds unavailable. Visual cues remain.');});
+    ui.message(qa?`QA fixture: ${fixture}. Scripted state is not native gameplay evidence.`:'Six teammates deployed. Follow the marked objective, use cover and collect souls.');
   }
   ui=mountIntegrationUI({sim,heroId:hero.id,runtime,controller,world,kits:playerKits,onSelect:select,onStart:start,
-    onPause:value=>{paused=value;clear();},onRestart:()=>location.assign(location.pathname),onAction:action});
+    onPause:value=>{paused=value;clear();},onRestart:()=>location.assign(location.pathname),onAction:action,
+    onSoundChange:value=>{if(value)void completionCue.unlock();else completionCue.play(false);}});
   ui.setPlaying(false);
   const caption=document.createElement('p');caption.textContent='Patron effigy: supplied photo-derived relief behind glass.';caption.className='effigy-caption panel';document.getElementById('stage').append(caption);
   listen(document.getElementById('start'),'click',()=>{caption.hidden=true;});
@@ -285,7 +309,7 @@ try {
   window.jank3dSnapshot=()=>({time:sim.time,phase:sim.phase,winner:sim.winner,playing,paused,fixture:qa?fixture:null,
     hero:{...hero,position:{...hero.position},items:[...hero.items]},controller:{position:controller.position.toArray(),state:controller.state,jumps:controller.jumps,stamina:controller.stamina,yaw:controller.yaw,pitch:controller.pitch,mode:traveler.mode},
     runtime:runtime.snapshot(),bots:bots?.snapshot()??[],troopers:sim.troopers.map(t=>({...t,position:{...t.position}})),orbs:sim.orbs.map(o=>({...o,position:{...o.position}})),
-    structures:sim.structures.map(s=>({...s,position:{...s.position}})),history:history.slice(-100),portrait:portrait.metadata,models:characterMetadata(),diagnostics:view.diagnostics()});
+    structures:sim.structures.map(s=>({...s,position:{...s.position}})),history:history.slice(-100),portrait:portrait.metadata,models:characterMetadata(),audio:{status:completionCue.status,cleanup:audioCleanup},diagnostics:view.diagnostics()});
   if(qa) {
     startupStage('qa-fixtures','Loading loopback test controls.');
     const {mountFixtures}=await import('./integration-fixtures.mjs');
@@ -296,9 +320,13 @@ try {
     if(stopped)return;raf=requestAnimationFrame(frame);const dt=Math.min(.25,Math.max(0,(now-previous)/1000));previous=now;
     if(playing&&(paused||sim.winner))return; // Static paused/end frames do not need GPU redraws.
     // Tick already advanced camera time before aiming/firing; only refresh warps and collision here.
-    if(playing) {for(let left=dt;left>1e-7;left-=.05)tick(Math.min(.05,left));if(hero.alive)controller.updateCamera(view.camera,0);}
+    if(playing) {frameTravel=0;for(let left=dt;left>1e-7;left-=.05)tick(Math.min(.05,left));if(hero.alive)controller.updateCamera(view.camera,0);}
     else return; // Lobby draws on initial load, selection and resize, even if RAF delivery is delayed.
-    window.jank3dQA?.renderPreview();view.renderCamera();
+    const previewing=window.jank3dQA?.renderPreview()===true;
+    const sightPoint=()=>runtime.trace(view.camera.position,view.camera.getWorldDirection(new THREE.Vector3()),runtime.kit.weapon.range+8).point;
+    const motion=ui?.readMotionOptions?.()??{enabled:false};
+    const renderCamera=motionView?.sample(sightPoint,{dt,distance:frameTravel,grounded:hero.alive&&controller.grounded&&traveler.mode==='free'&&!['dash','slide','mantle'].includes(controller.state),aiming:controller.aiming||held.has('aim'),zipping:traveler.mode!=='free',...motion,enabled:!previewing&&motion.enabled});
+    view.renderCamera(renderCamera??view.camera);
   }
   raf=requestAnimationFrame(frame);
   startupStage('ready','Ready. Select a hero and start the match.');loadingStatus.hidden=true;

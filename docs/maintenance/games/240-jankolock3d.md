@@ -1003,6 +1003,42 @@ Prism Warden failures and the79,174/60,000-byte helper remain separate holds.
 The global maintenance check still rejects the preserved dirty QA pair. No
 new game, model replacement, install, push or blanket failure waiver occurred.
 
+### Arena, objective and camera wiring candidate, 2026-10-29
+
+This continues the playability overhaul after the frozen `3993ef02` core; it is
+not a native playability/visual/audio acceptance report. The 11-cover Midway
+slice preserves original terrain/assets and rails. Full formation sampling
+exposed the old x+3 guardian-platform overlap; shared approach clearance now
+passes all lanes/formations without excluding that finding: 157,050 samples.
+
+Camera bob is source-wired through a persistent render-only clone. Grounded
+travel drives its bounded offset, with stable rest/aim, air/rail suppression,
+persisted bob-off and OS reduced-motion support. Logical aiming/hits stay on
+the original camera. Near/invalid focus suppresses bob rather than flipping
+the view. Actual game callbacks verify these boundaries, not just the sampler.
+
+One legal objective now supplies world shape/HP/label/distance and an offscreen
+bearing/lane hint in the existing HUD. A cached label avoids repeat uploads.
+Actual Host falls produce a deduplicated notice and gesture-gated 120ms chime,
+with persistent mute, immediate voice stop and observable audio cleanup.
+Lobby preparation advances through the public warm-up; teams initially deploy
+behind the protected entries. Start tests prove seven friendly/three foes,
+clear distinct positions, zero resource bonuses and no duplicate starts.
+Death/recall still use the existing base policy; this is not a new match mode.
+
+Rechecked gates: 163 callback groups; 6 arena groups; 506 world assertions;
+25 team and 7 objective groups; 8 chime groups; camera view/control/isolation,
+actual Start/scene-constructor doubles, slice-entry, input and actor-view tests.
+The older slice mock was repaired to assert the current bot sync API, without
+removing profile checks. Both 600s scripted directions passed in 49 seconds;
+catalog remains 129. These are CPU/double/source results, not native feel.
+
+Source visual/audible before/after remains open. No browser, push, install,
+new game or guard waiver occurred. The dirty native pair remains 79,174 bytes
+against 60,000, Prism Warden retains its actual failures, and the global manual
+checker still rejects uncommitted inspected source from those preserved drafts.
+Differentiated art/animation and earned-resource exchanges remain separate work.
+
 ## Forty-hero intake and staged art integration
 
 The operator's newly received archive is retained unchanged with SHA-256
