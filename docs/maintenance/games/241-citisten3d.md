@@ -35,7 +35,7 @@ Prior published checkpoint: [opt-in motion diagnostic integration](../../citiste
 adds bounded observation, not a shaking fix or native acceptance. Its source
 `f2697fc0`/published017e4a47 and233-file live proof remain historical.
 
-Current [user-reproduction repairs](../../citisten-user-repair-integration.md):
+Runtime [user-reproduction repair checkpoint](../../citisten-user-repair-integration.md):
 source`78faf916`, tree`1500eca1b81e4ffa8b5cc6a8c9f242256e0c7043`,228files/
 35,196,186bytes. Seeded terrain/save integration, compact HUD/controls, source
 terrain-depth and lighting-settlement repairs pass CPU gates. Screenshot artifacts,
@@ -45,6 +45,11 @@ native/WebGL browser admission, push or deployment from this lane. A subsequent
 checks with four reviewed, labelled fixture sheets; 854×569 density remains a
 caveat, not full native/visual acceptance. V2 unchanged;
 serial integration/publication belongs to74b61fa7, not a blanket gate waiver.
+The later [Controls/Speed collector adaptation](../../citisten-controls-collector-adaptation.md)
+changes QA only; current inventory is tree8622d0e2,228files/35,197,519bytes.
+Only river-upgrade-qa.py differs from the preceding tree (+1,333bytes). Runtime
+MJS/HTML/CSS and supplied assets remain identical to the reviewed seed/HUD repair
+snapshot. Catalog129 and maintenance135/129/6 pass; old failures remain historical.
 
 ### Historical diagnostic-only checkpoint (superseded for the clock)
 
@@ -1232,6 +1237,29 @@ Exact sparse/config/font absence preserved. Raw result archived losslessly besid
 the linked receipt; local screenshots visibly disclaim3D rendering. No native/GPU
 acceptance, new game, export, install or push. Original native captures0/5 and all
 motion/artifact/seeded-view/WaterSaveContinue/hardware/FPS holds remain OPEN.
+
+### Current Controls/Speed collector adaptation (2026-10-29)
+
+[Code, exact checks and responsive-renderer prerequisite](../../citisten-controls-collector-adaptation.md):
+shared native_speed now normally Tabs/Enters into closed Controls before Speed,
+retains arrow/blur/DOM-sim checks, then restores the panel only if it opened it.
+Already-open panels stay open; legacy observations retain exact old keys/reads.
+No direct focus/open/value/state writes. Five current CPU protocol checks pass;
+all original functions/classes except native_speed are AST-identical, including
+500ms/5s gates/timing/capture/cleanup/frozen pins. New standalone regression is
+scripts/citisten_controls_collector_check.py; its initial expected red is retained.
+
+Current actual-entry DOM/renderer-double pass:24 keyboard collector calls across
+8 desktop/phone/theme/open-state contexts, zero errors/requests/WebGL calls,
+correct speed/blur/panel restoration. No screenshot or native scene test. Owned
+PIDs/profile/port independently closed, lease released; source/sparse/fonts
+unchanged. Runtime repair code and prior four HUD sheets remain unchanged.
+The historical Water/Save self-test still rejects its oldcf589 frozen-game pin;
+that raw failure is retained, not weakened into PASS. Current collector adaptation
+has no generic approval blocker; real native acceptance still requires the linked
+responsive-context prerequisite and fresh native GO, not an unchanged failed GPU
+retry. Main74 acknowledged/staged the original38e seed/HUD snapshot; no duplicate
+pending-pin prompt. No new game, native acceptance, install or push.
 
 ## Future outlook
 

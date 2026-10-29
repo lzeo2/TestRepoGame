@@ -120,8 +120,9 @@ def baseline_check():
     return {'revision': ORIGINAL, 'sourceFilesCompared': len(files), 'unchanged': True}
 
 
-INPUT = """() => {const e=document.activeElement,s=document.querySelector('#speed');return {
+INPUT = """() => {const e=document.activeElement,s=document.querySelector('#speed'),c=s?.closest?.('#native-controls details');return {
  activeId:e?.id,activeTag:e?.tagName,documentFocused:document.hasFocus(),
+ speedControlsOpen:c?c.open:null,activeSpeedControlsSummary:Boolean(c&&e===c.querySelector('summary')),
  tutorialOpen:Boolean(document.querySelector('.city-tutorial')?.open),
  selectedSpeed:s?.value,selectedIndex:s?.selectedIndex,
  values:s?[...s.options].map(o=>o.value):[],speed:window.citisten?.sim?.state.speed};}"""
@@ -292,11 +293,18 @@ def tutorial_resumed(sample):
 def native_speed(press, observe, value):
     # Tab never opens a select popup; arrows on the closed select commit change.
     sample = observe(f'beforeSpeed:{value}')
+    opened_controls = False
     for _ in range(32):
         if sample['activeId'] == 'speed':
             break
-        press('Tab')
-        sample = observe('afterTab')
+        if sample.get('speedControlsOpen') is False and sample.get('activeSpeedControlsSummary'):
+            press('Enter')
+            sample = observe('afterSpeedControlsOpen')
+            assert sample.get('speedControlsOpen') is True, f'Controls did not open: {sample}'
+            opened_controls = True
+        else:
+            press('Tab')
+            sample = observe('afterTab')
     assert sample['activeId'] == 'speed' and sample['documentFocused'] and not sample['tutorialOpen'], f'Select focus not reached: {sample}'
     target = sample['values'].index(str(value))
     delta = target - sample['selectedIndex']
@@ -310,6 +318,18 @@ def native_speed(press, observe, value):
     sample = observe('afterSpeedTabCommit:' + str(value))
     assert sample['activeId'] != 'speed' and sample['documentFocused'] and not sample['tutorialOpen'], f'Select did not blur: {sample}'
     assert sample['selectedSpeed'] == str(value) and sample['speed'] == value, f'Native blur changed select/sim: {sample}'
+    if opened_controls:
+        # Restore only what this call opened, so the overlay cannot cover tools.
+        for _ in range(32):
+            if sample.get('activeSpeedControlsSummary'):
+                break
+            press('Shift+Tab')
+            sample = observe('afterSpeedControlsBackTab')
+        assert sample.get('activeSpeedControlsSummary') and sample['documentFocused'] and not sample['tutorialOpen'], f'Controls summary focus not reached: {sample}'
+        press('Enter')
+        sample = observe('afterSpeedControlsClose')
+        assert sample.get('speedControlsOpen') is False and sample['documentFocused'] and not sample['tutorialOpen'], f'Controls did not close: {sample}'
+        assert sample['selectedSpeed'] == str(value) and sample['speed'] == value, f'Controls close changed select/sim: {sample}'
 
 
 TARGET = """selector=>{const nodes=document.querySelectorAll(selector),e=nodes[0];
