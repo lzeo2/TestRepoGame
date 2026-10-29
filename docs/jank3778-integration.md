@@ -77,9 +77,12 @@ without advice being treated as approval.
 The two dirty native QA files remain45,885+33,289=79,174 bytes against the
 unchanged60,000-byte cap,17/18, with original SHA256s. They were neither executed,
 staged nor replaced. The source working manual's older27-line D112 draft was
-excluded. Subsequent uncommitted Stampead pose work/tests appeared during this
-checkpoint; they remain source-only and were not copied into the frozen3778 tree.
-Healthy art workers were not interrupted or awaited for these completed slices.
+excluded. Subsequent Stampead pose work/tests appeared during this checkpoint.
+At closeout the source lane advanced to `4bdc5129` and `8361956f`, with runtime-pose/
+compatibility tests and manuals still in progress. Those two newer pose commits
+remain **source-only, outside the frozen3778 integration**, not accepted native
+animation or a reviewed READY closeout. Healthy art workers were not interrupted
+or awaited for the completed gameplay slices.
 
 Prism Warden zero-frame/cleanup failures remain actual failures. Current expanded
 Jank native visuals/input/fit/audio/FPS are unaccepted. Citisten native0/5,
