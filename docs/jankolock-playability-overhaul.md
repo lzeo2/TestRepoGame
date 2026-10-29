@@ -188,9 +188,44 @@ and asserts the real bot sync API; all its existing kit/profile checks remain.
 Both scripted 600s match directions passed, catalog count remains 129, and
 native rendering/audibility/feel is still unverified. No browser was launched.
 
-Remaining owned stages: native inspection of the implemented arena/objective/
-motion view; differentiated animation/model/scenery detail; earned-resource
-exchange implementation and tests. Source wiring is not a whole-game pass.
+## Earned-resource exchange checkpoint
+
+Reuse the existing base/respawn shop authority, not an extra wallet or new
+station access rule. Its initial tier now shows three existing 800-soul choices:
+Health (+200 max HP), Ammo (+12 magazine capacity), Sprint (+25% movement).
+Other existing tiers remain available without changed prices or damage stats.
+A Buy press reviews exact effect/cost beside the existing balance; only explicit Confirm
+calls `sim.buyItem`. Cancel, Escape, closing, changing tier or leaving shop range
+cannot silently purchase. The Host rechecks funds, access, ownership and slots
+at confirmation. Opening the shop releases mouse capture for ordinary UI use.
+
+The own base has a depth-tested B exchange label and floor ring at the actual
+20m shop boundary (shared `SHOP_RADIUS`), plus a B on the existing minimap.
+Budget: 98 triangles/two drawable objects and one 512x96 local canvas texture,
+not a native draw-time measurement. No model assets were added. No remote buying, invincible
+zone, new cover or station-only currency is introduced. Items are one per ID,
+match-only and retained through death/respawn; no selling/refunds/replacement.
+Fresh matches reset items and souls. Theme/motion/sound preferences are separate.
+
+`exchange-test.mjs` executes the real shop callbacks and public Host reward/
+purchase path without assigning souls/items/HP. It checks choice set, review/
+cancel/focus, cost/effects, stale balance/location, duplicate confirmation,
+dead purchases, respawn, fresh-match reset, no match storage and cleanup. Its
+large raw API damage is an explicit reward fixture, not native weapon timing or
+balance proof. Actual map callbacks cover both teams; the scene double verifies
+the marker against canonical base/range. Three existing QA scripts now click
+the real confirmation and preserve all 87 prior assertions; they were parsed,
+not executed in a browser.
+
+Systems 40 groups/script and game 163 callbacks passed. A compound 75s command
+expired before completing the following camera check; that check passed alone.
+The systems command refreshed a tracked historical timeline. Current CPU output
+was preserved as volatile `jank-exchange-systems-timeline-20261029.json` and the
+historical file restored after a byte comparison; neither result is native proof.
+
+Remaining owned stages: native inspection of the arena/objective/motion/shop
+view and actual purchasing; differentiated animation/model/scenery detail.
+Source wiring and CPU exchange checks are not a whole-game pass.
 
 ## Gates and remaining limits
 

@@ -288,9 +288,11 @@ def main():
                     capture('F', 'Real shop in explicitly seeded 25,600-soul fixture, not earned income')
                     page.get_by_label('Tier 1 / 800', exact=True).check()
                     hp = state()['hero']['maxHp']; page.get_by_role('button', name='Buy Health', exact=True).click()
+                    page.locator('[data-confirm-purchase]').click()
                     assert state()['hero']['maxHp'] == hp + 200
                     for label, item in [('Tier 2 / 1,600', 'Dash charge'), ('Tier 3 / 3,200', 'Burst fire'), ('Tier 4 / 6,400', 'Armor pierce')]:
                         page.get_by_label(label, exact=True).check(); page.get_by_role('button', name='Buy ' + item, exact=True).click()
+                        page.locator('[data-confirm-purchase]').click()
                         capture('F-tier-' + label[5], 'Native purchase at ' + label + ', real inventory and balance')
                     page.locator('[data-close]').click(); p = state()['hero']['position']
                     page.locator('[data-active="dash-charge"]').click()

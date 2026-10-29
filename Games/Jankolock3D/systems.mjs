@@ -26,6 +26,7 @@ export const ITEMS = Object.freeze([
   { id: 'glass-cannon', name: 'Glass Nib', tier: 4, cost: 6400, description: '+60% damage, -25% maximum health.' }
 ].map(Object.freeze));
 
+export const SHOP_RADIUS = 20;
 const TEAMS = ['carbon', 'ivory'];
 const H = 0.05, PREGAME = 30, WAVE = 25, GROUND_LIFE = 18, FLOAT_LIFE = 6;
 const TYPES = ['guardian', 'walker', 'base-guardian', 'shrine', 'patron'];
@@ -696,7 +697,7 @@ export function createSystems(world) {
   }
   function shopAvailable(heroId) {
     const h = heroById(heroId);
-    return !!h && sim.phase !== 'finished' && (!h.alive || distance(h.position, bases[h.team]) <= 20);
+    return !!h && sim.phase !== 'finished' && (!h.alive || distance(h.position, bases[h.team]) <= SHOP_RADIUS);
   }
   function buyItem(heroId, itemId) {
     const h = heroById(heroId), item = ITEMS.find(i => i.id === itemId);

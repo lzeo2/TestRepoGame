@@ -2,6 +2,7 @@ import * as THREE from './vendor/three.module.js';
 import { LANES, TEAM_COLORS, terrainHeight } from './world-data.mjs';
 import { createEnvironment } from './environment.mjs';
 import { createObjectiveGuide } from './objective-guide.mjs';
+import { SHOP_RADIUS } from './systems.mjs';
 import { mergeGeometries } from './vendor/addons/BufferGeometryUtils.js';
 export function createWorldScene(canvas,world) {
   const renderer=new THREE.WebGLRenderer({canvas,antialias:false,powerPreference:'low-power'});
@@ -151,6 +152,8 @@ export function createWorldScene(canvas,world) {
     objects.forEach((o,i)=>{instances.setMatrixAt(i,o.matrixWorld);o.removeFromParent();});scene.add(instances);
   }
   const goalLabel=label('',0,0,0,'#17191b',20);goalLabel.name='current-objective-label';goalLabel.visible=false;
+  const exchangeLabel=label('Base exchange · B',0,0,0,'#17191b',16);exchangeLabel.name='base-exchange-label';exchangeLabel.visible=false;
+  const exchangeZone=mesh(new THREE.RingGeometry(SHOP_RADIUS-.2,SHOP_RADIUS,48),0xa9c4d4,0,.06,0,1,1,1);exchangeZone.name='base-exchange-zone';exchangeZone.rotation.x=-Math.PI/2;exchangeZone.visible=false;
   let goalText='';
   const guide=createObjectiveGuide(scene,{label(readout,anchor){
     goalLabel.visible=!!readout;
@@ -166,7 +169,11 @@ export function createWorldScene(canvas,world) {
   resize();
   return {
     scene,camera,
-    syncObjectives(sim,hero,events,isOccluded){return guide.sync(sim,camera,{hero,events,isOccluded});},
+    syncObjectives(sim,hero,events,isOccluded){
+      const base=sim.bases?.[hero?.team];exchangeLabel.visible=exchangeZone.visible=!!base;
+      if(base){exchangeLabel.position.set(base.x,base.y+6,base.z);exchangeZone.position.set(base.x,base.y+.06,base.z);}
+      return guide.sync(sim,camera,{hero,events,isOccluded});
+    },
     renderCamera(view=camera) {if(!disposed){environment.update(view);renderer.render(scene,view);}},
     syncStructures(structures) {
       const live=new Map(structures.map(s=>[s.id,s]));

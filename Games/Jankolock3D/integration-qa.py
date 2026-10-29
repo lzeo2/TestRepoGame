@@ -203,9 +203,11 @@ def main():
                 capture('F', 'Shop fixture starts with 25,600 seeded souls, not earned income')
                 page.get_by_label('Tier 1 / 800', exact=True).check()
                 hp = state()['hero']['maxHp']; page.get_by_role('button', name='Buy Health', exact=True).click()
+                page.locator('[data-confirm-purchase]').click()
                 assert state()['hero']['maxHp'] == hp + 200
                 page.get_by_label('Tier 2 / 1,600', exact=True).check()
                 page.get_by_role('button', name='Buy Dash charge', exact=True).click()
+                page.locator('[data-confirm-purchase]').click()
                 page.locator('[data-close]').click(); p = state()['hero']['position']
                 page.get_by_role('button', name='Activate Dash charge', exact=True).click()
                 page.evaluate('window.jank3dQA.freeze(false); window.jank3dQA.advance(.05); window.jank3dQA.freeze(true)')

@@ -8,7 +8,7 @@ import {mergeGeometries} from './vendor/addons/BufferGeometryUtils.js';
 import {createObjectiveGuide} from './objective-guide.mjs';
 import {matchWorld} from './match-world.mjs';
 import {surfaceHeight,capsuleIntersects} from './traversal.mjs';
-import {createSystems} from './systems.mjs';
+import {createSystems,SHOP_RADIUS} from './systems.mjs';
 import {createBots} from './bots.mjs';
 import {PlayerController} from './heroes/player-controller.mjs';
 import {HeroRuntime} from './heroes/hero-runtime.mjs';
@@ -71,13 +71,19 @@ const canvas2d=()=>({width:0,height:0,getContext:()=>({fillRect(){},fillText(){}
 const sceneSource=readFileSync(new URL('./world-scene.mjs',import.meta.url),'utf8');
 const constructor=sceneSource.slice(sceneSource.indexOf('export function createWorldScene')).replace('export function','function');
 const view=vm.runInNewContext(constructor+'\ncreateWorldScene(canvas,world);',{
-  THREE:{...THREE,WebGLRenderer:RendererDouble},LANES,TEAM_COLORS,terrainHeight,mergeGeometries,createObjectiveGuide,world,
+  THREE:{...THREE,WebGLRenderer:RendererDouble},LANES,SHOP_RADIUS,TEAM_COLORS,terrainHeight,mergeGeometries,createObjectiveGuide,world,
   canvas:{clientWidth:1280,clientHeight:720},document:{createElement:canvas2d},
   createEnvironment:()=>({update(){},dispose(){},diagnostics(){return {};}})
 });
 try {
   const first=view.syncObjectives(sim,hero,[],()=>false);
   assert.equal(first.name,'midway guardian');
+  const exchange=view.scene.getObjectByName('base-exchange-zone'),baseLabel=view.scene.getObjectByName('base-exchange-label');
+  assert.equal(exchange.visible,true);assert.equal(exchange.geometry.parameters.outerRadius,SHOP_RADIUS);
+  assert.equal(exchange.geometry.index.count/3+baseLabel.geometry.index.count/3,98);
+  assert.equal(baseLabel.material.map.image.width,512);assert.equal(baseLabel.material.map.image.height,96);
+  assert.equal(exchange.position.x,sim.bases[hero.team].x);assert.equal(exchange.position.z,sim.bases[hero.team].z);assert.equal(baseLabel.visible,true);
+  assert.equal(baseLabel.position.z,sim.bases[hero.team].z);
   const label=view.scene.getObjectByName('current-objective-label');assert.equal(label.visible,true);
   const texture=label.material.map,version=texture.version;
   view.syncObjectives(sim,hero,[],()=>false);assert.equal(texture.version,version,'unchanged goal text does not upload another texture');

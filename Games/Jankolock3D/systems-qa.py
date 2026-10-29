@@ -114,9 +114,13 @@ def main():
                 load(); capture('shop-implemented')
                 assert page.locator('.sys-flex').bounding_box()['y'] + page.locator('.sys-flex').bounding_box()['height'] <= 720
                 initial = state(); assert initial['hero']['souls'] == 4800 and initial['hero']['level'] == 13
+                page.get_by_role('radio', name='Tier 2 / 1,600', exact=True).check()
                 page.get_by_role('button', name='Buy Lifesteal', exact=True).click()
+                page.locator('[data-confirm-purchase]').click()
                 page.get_by_role('button', name='Buy Slow rounds', exact=True).click()
+                page.locator('[data-confirm-purchase]').click()
                 page.get_by_role('button', name='Buy Dash charge', exact=True).click()
+                page.locator('[data-confirm-purchase]').click()
                 bought = state(); assert bought['hero']['souls'] == 0 and bought['hero']['level'] == 13
                 assert bought['stats']['lifesteal'] == 0.2 and bought['stats']['projectileSlow'] == 0.3
                 assert bought['stats']['maxDashCharges'] == 2
@@ -165,6 +169,7 @@ def main():
                 assert not state()['hero']['alive'] and page.locator('.sys-shop').is_visible()
                 page.get_by_role('radio', name='Tier 1 / 800').check()
                 page.get_by_role('button', name='Buy Health', exact=True).click()
+                page.locator('[data-confirm-purchase]').click()
                 assert state()['hero']['hp'] == 0
                 capture('respawn-shop')
                 page.wait_for_function('window.jank3dSystemsSnapshot().hero.alive', timeout=10000)

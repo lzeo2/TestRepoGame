@@ -39,7 +39,7 @@ below for genuine captures, exact scope and the unresolved capture blocker.
 `index.html` -> `game.mjs`, `integration.css` and `integration-ui.mjs`, using
 `world-data.mjs`, `world-scene.mjs`, `traversal.mjs`, `systems.mjs`, existing
 `systems-ui`/CSS/actor layer, `heroes/` controller/runtime/visuals and `bots.mjs`.
-One renderer/scene/camera/RAF. Shared immutable world data matches the tracked
+One renderer/scene/RAF, with logical aiming and separate render-motion cameras. Shared immutable world data matches the tracked
 `docs/jank3d-spawns.json`; 42 source markers yield 38 simulated objectives with
 one shared Patron per team. `match-world.mjs` derives feet-height waypoints at
 real ramp edges so troopers follow Midway's bridge deck, not its underside,
@@ -63,11 +63,15 @@ not skin/IK/face rigs. Runtime metadata exposes measured model hashes/counts.
 
 ## Gameplay and controls
 
-One human plus two allies versus three enemy bots. Three original lanes,
-25-second four-trooper squads per team/lane after 30-second pregame, floating
+One human plus six AI teammates versus three enemy bots. Three original lanes,
+25-second four-trooper squads per team/lane after public warm-up (advanced by
+Start after lobby preparation), floating
 shootable secure/deny souls and radius-attracted ground souls. Souls also level
 heroes. Shop at base/death, tiers 800/1600/3200/6400, six slots plus Walker-earned
 flex slots; actual passive/active systems effects, not decorative purchases.
+The initial three 800-soul choices review cost/effect before confirmation. The
+existing base exchange is marked B in-world/on the map. No refunds/replacements;
+items survive respawn but fresh matches clear items/souls.
 Guardians -> Walkers -> both base guards -> both shrines per lane -> all six
 shrines -> shared Patron P1 retreat -> P2 death. Either team's P2 death ends play.
 
@@ -78,7 +82,7 @@ mouse/drag/arrows look, LMB fire/RMB aim, Ctrl sprint, Shift dash, Space double
 jump, C slide/free slide ammo, Q melee, F parry, R reload, 1-4 abilities, E world
 interaction, B shop, held X at own retreat ring. Pause/resume/restart and touch
 buttons are present. Ziplines/teleport/vents/rope reuse world traversal. Bots
-follow lane waves, use visible-target abilities, buy passive items, collect
+advance legal lane objectives, use bounded visible-target abilities, buy passive items, collect
 souls and retreat for base healing. Minimap tracks lanes, structures and heroes.
 
 ## State and persistence
@@ -88,7 +92,7 @@ hero runtime owns kit ammo/cooldowns; controller owns motion; world traveler
 owns traversal and collected/broken crate IDs. Runtime intents scale once in
 systems. Configured-kit orb shots do not spend a second magazine. Input clears
 on blur/hidden; hidden time is discarded. One loop is disposed on pagehide.
-Theme is presentation-only; no accounts, saves, sockets, backend, analytics or
+Motion/sound preferences persist separately. Theme is presentation-only; no accounts, match saves, sockets, backend, analytics or
 runtime third-party loads. Portrait SHA verification uses loopback/HTTPS crypto.
 Normal `window.jank3dSnapshot()` is observational. Explicit `?qa=` policies load
 only on loopback, labeled as scripted fixtures with no HP/lock/winner assignments.
@@ -120,7 +124,7 @@ glass in the shared-scene room. No absolute machine path is part of runtime data
 
 - Integration closes the missing shared scene, dynamic objective rendering,
   systems-owned kit ranges/healing/statuses, remote FX origins, ramp slab/camera
-  collision and five-bot boundaries. Runtime ammo/Overtime are not double-applied.
+  collision and the ten-hero roster boundary. Runtime ammo/Overtime are not double-applied.
 - Recall/respawn events reconcile valid teleports immediately; active-item dash
   requests remain collision-resolved. Ctrl-held movement registers normally.
 - Systems resume fixes recall from a friendly base ring outside the hero's fixed
@@ -152,16 +156,15 @@ browser slots and the disk guard before asset writes. No installs/new runtime de
 ## Verification
 
 Run `node Games/Jankolock3D/integration-test.mjs` and the commands in INTEGRATION.md.
-Current integration regression passes both 600-second chain directions with six
-configured heroes, fractional start clock, real bridge-height waypoints,
+The latest source checkpoint passes both 600-second chain directions with ten
+configured heroes (human plus nine bots), fractional start clock, real bridge-height waypoints,
 19 falls, separate Patron phases,
 orb single-accounting and portrait integrity/corruption checks. Catalog parses:
 129 unique integer IDs, required schema fields/types and tracked URLs; entry240
 still targets the integrated page. No catalog bytes change in the J5 follow-up.
-World regression: 491 assertions. Controller regression after ramp repair: 1,365
-assertions. Bot regression: nine groups, including inactive tether cleanup.
-Systems regression: 18 groups plus
-600-second script. Hero runtime/visual and UI self-checks pass. Syntax and authored
+Dated source checkpoints below record 506 world assertions, 1,396 controller
+assertions, 26 bot groups and 40 systems groups plus its scripted match. These
+CPU counts supersede the initial integration receipt, not native acceptance. Hero runtime/visual and UI self-checks pass. Syntax and authored
 diff checks pass; immutable vendor's historical whitespace note is retained.
 
 Browser command: `TMPDIR=/dev/shm SMOKE_PORT=8947 timeout --signal=TERM
@@ -1038,6 +1041,41 @@ new game or guard waiver occurred. The dirty native pair remains 79,174 bytes
 against 60,000, Prism Warden retains its actual failures, and the global manual
 checker still rejects uncommitted inspected source from those preserved drafts.
 Differentiated art/animation and earned-resource exchanges remain separate work.
+
+### Earned-resource exchange source follow-up, 2026-10-29
+
+The existing shop is now an explicit review/confirm exchange, defaulting to its
+three existing 800-soul health/magazine/movement choices. Higher tiers and every
+price/stat remain unchanged. No new wallet or purchase authority was added:
+`sim.buyItem` still checks base/respawn access, funds, ownership and slots at
+commit time. Review/cancel/close/tier changes spend nothing; repeated/stale
+confirmations cannot buy remotely or overdraw. Opening releases mouse capture.
+Clear policy: one of each, no selling/refunds/replacement, items retained through
+respawn, all items/souls reset on fresh match, no match-state persistence.
+
+The own base's world B label/floor ring and minimap B use canonical base/range;
+this adds no safe-zone immunity, cover or new station access. The map legend was
+updated without changing boot imports. The existing HUD and shop are reused.
+
+`node Games/Jankolock3D/exchange-test.mjs` passes actual shop callbacks/public
+Host rewards, affordability, review/focus/cancel, stale funds/location, exact
+cost/effects, duplicate/dead purchases, respawn/fresh-match reset, storage absence
+and disposal; actual map callbacks cover both teams. Rewards use large raw API
+damage solely as an isolated fixture, not actual native kit damage or balance.
+The scene constructor double checks the 20m marker/actual base. Systems 40 groups
+and its script, game 163 callbacks, camera/control and Start/scene checks passed.
+The first exchange harness incorrectly imported a private helper; it was fixed
+by executing its actual source, not by exporting a test-only production API.
+A 75s compound command timed out before its camera tail completed; standalone
+camera checks passed. Generated current CPU timeline (6420 combat/285 objective
+hits) was preserved as volatile `jank-exchange-systems-timeline-20261029.json`;
+the prior historical timeline was restored without discarding either version.
+
+`9b860c2c` updates three existing shop QA scripts to click explicit confirmation
+and select Tier2 where needed, retaining all 87 assertions. Python AST checks
+only: none was run natively. Visual fit, actual pointer/keyboard/touch purchase
+flow and balance remain unverified. Dirty native QA drafts/cap and Warden hold
+remain unchanged; no browser admission, push, install, restart or game addition.
 
 ## Forty-hero intake and staged art integration
 

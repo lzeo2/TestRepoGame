@@ -256,6 +256,12 @@ export function mountIntegrationUI({ sim, heroId, runtime, controller, world, ki
         context.beginPath(); context.arc(at.x, at.y, 5, 0, Math.PI * 2); context.fill(); context.stroke();
       } else { context.fillRect(at.x - 3, at.y - 3, 6, 6); context.strokeRect(at.x - 3, at.y - 3, 6, 6); }
     }
+    const base=sim.bases?.[team];
+    if(base){
+      const at=project(base),y=Math.max(8,Math.min(size-8,at.y));
+      context.fillStyle=paper;context.fillRect(at.x-7,y-7,14,14);context.strokeStyle=ink;context.strokeRect(at.x-7,y-7,14,14);
+      context.fillStyle=ink;context.font='bold 12px Atkinson, sans-serif';context.textAlign='center';context.textBaseline='middle';context.fillText('B',at.x,y);context.textBaseline='alphabetic';
+    }
     for (const h of sim.heroes) {
       if (!h.alive) continue;
       const at = project(h.position), own = h.team === team;
