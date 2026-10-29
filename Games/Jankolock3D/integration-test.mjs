@@ -38,7 +38,7 @@ for(const team of ['carbon','ivory']) {
   const sim=createSystems(matchWorld(world)),player=sim.addHero({id:'player',team:'carbon'});
   assert.equal(sim.configureHeroKit(player.id,kits[0]).ok,true);
   const bots=createBots({sim,scene:new THREE.Scene(),world,kits});
-  assert.equal(sim.heroes.length,6);assert.equal(bots.runtimes.length,5);
+  assert.equal(sim.heroes.length,10);assert.equal(bots.runtimes.length,9);
   sim.step(.15); // Browser starts the fixture between whole-second boundaries.
   const receipt=runChain(sim,team);
   assert.equal(receipt.time,600);assert.equal(receipt.winner,team);
@@ -53,7 +53,7 @@ for(const team of ['carbon','ivory']) {
   assert.ok(phase2.time>Math.max(...falls.filter(e=>e.objective==='shrine').map(e=>e.time)));
   assert.ok(victory.time>phase2.time);
   assert.ok(bots.runtimes.every(r=>r.controller.ramps===world.ramps));
-  bots.dispose();console.log(`integration: six configured heroes; ${team} 600s chain, 19 falls and distinct Patron phases passed`);
+  bots.dispose();console.log(`integration: human plus six AI allies and three foes; ${team} 600s chain, 19 falls and distinct Patron phases passed`);
 }
 {
   const sim=createSystems(world),h=sim.addHero({id:'player',team:'carbon'});

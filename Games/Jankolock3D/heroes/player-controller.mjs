@@ -127,6 +127,20 @@ export class PlayerController {
     return this;
   }
 
+  // Transfer rail/rope/vent motion without warp's stamina/action-resource reset.
+  syncTraversal(s) {
+    if (!s || ![s.x,s.y,s.z,s.vy].every(Number.isFinite) || s.y<FALL_LIMIT || !['free','zip','rope','vent'].includes(s.mode)) return false;
+    this.position.set(clamp(s.x,-LIMIT,LIMIT),s.y,clamp(s.z,-LIMIT,LIMIT));
+    this.velocity.set(0,s.vy,0);
+    this._dashTime=this._slideTime=0;this._mantle=this._hook=null;this._slideHeld=false;
+    this._crouched=!this._clear(this.position,HEIGHT);
+    this.grounded=s.grounded===true;
+    this.jumps=this.grounded?0:Math.max(1,this.jumps);
+    if (s.mode==='free') this._setState({}); else this.state=s.mode;
+    if (this.grounded && this._clear(this.position)) this._safe.copy(this.position);
+    return true;
+  }
+
   _surface(maxY, p = this.position) {
     let height = this.floorHeight(p.x, p.z, maxY);
     if (!Number.isFinite(height) || height > maxY + EPS) height = -Infinity;

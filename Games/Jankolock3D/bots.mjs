@@ -7,6 +7,7 @@ import { panelSegment } from './heroes/keep-clear.mjs';
 
 const distance = (a, b) => Math.hypot(a.x-b.x, a.y-b.y, a.z-b.z);
 const SHOP_ITEMS = ITEMS.filter(item => !item.active);
+const PERCEPTION_RANGE = 40, AIM_PREPARATION = .3;
 
 // Horizontal lane route, including safe cross-base corridors for side lanes.
 function laneRoute(sim, lane, team) {
@@ -40,10 +41,11 @@ function laneRoute(sim, lane, team) {
   return {at, project, entry:project(points[2]), length};
 }
 
-/** Five shared-scene bots. Carbon human occupies midway; bot-1/2 are carbon
- * graft/greenhedge, bot-3/4/5 ivory graft/midway/greenhedge. kits is the JSON
- * heroes array. Host steps sim, then calls update with seconds (capped at .05).
- * runtimes is an array of five HeroRuntime instances; snapshot() returns copies.
+/** Nine shared-scene bots: six allies of player and three opponents.
+ * bot-1/2 retain graft/greenhedge; bot-3/4/5 remain enemy graft/midway/greenhedge.
+ * bot-6..9 add allied midway/graft/greenhedge/midway. kits is the JSON heroes
+ * array. Host steps sim, then calls update with seconds (capped at .05).
+ * runtimes contains nine HeroRuntime instances; snapshot() returns copies.
  * Do not update runtimes separately. Pass the host's mutable collision array as
  * boxes so human movement also respects bot barricades.
  * update(dt,{passive:true}) is an explicit QA pause of bot decisions/effects,
@@ -53,11 +55,15 @@ function laneRoute(sim, lane, team) {
  */
 export function createBots({sim, scene, world, kits, boxes, onEffect, floorHeight}) {
   if (!Array.isArray(kits) || !kits.length) throw new TypeError('kits must be the hero array');
-  if (sim.phase === 'finished' || sim.heroes.some(h => /^bot-[1-5]$/.test(h.id))) throw new Error('Bots already registered or match finished');
+  if (sim.phase === 'finished' || sim.heroes.some(h => /^bot-[1-9]$/.test(h.id))) throw new Error('Bots already registered or match finished');
+  const team=sim.heroes.find(h => h.id==='player')?.team;
+  if (!['carbon','ivory'].includes(team)) throw new Error('Bots require a player team');
+  const enemyTeam=team==='carbon'?'ivory':'carbon';
   boxes ??= [...world.boxes]; // Runtime barricades require a mutable shared array.
   floorHeight ??= (x,z,maxY) => surfaceHeight(world,x,z,maxY);
   const effect = onEffect ?? (event => sim.applyHeroEffect(event));
-  const lineup = [['carbon','graft',0], ['carbon','greenhedge',3], ['ivory','graft',1], ['ivory','midway',2], ['ivory','greenhedge',0]];
+  const lineup = [[team,'graft',0], [team,'greenhedge',3], [enemyTeam,'graft',1], [enemyTeam,'midway',2], [enemyTeam,'greenhedge',0],
+    [team,'midway',0], [team,'graft',1], [team,'greenhedge',2], [team,'midway',3]];
   for (const [,lane] of lineup) if (!sim.lanes.some(l => l.id === lane)) throw new Error(`Missing lane ${lane}`);
   let disposed=false, passive=false;
   let targets=[], byId=new Map();
@@ -66,7 +72,8 @@ export function createBots({sim, scene, world, kits, boxes, onEffect, floorHeigh
     const configured=sim.configureHeroKit(hero.id,kit);
     if (!configured.ok) throw new Error(`Bot kit rejected: ${configured.reason}`);
     const controller=new PlayerController({position:hero.position,boxes,ramps:world.ramps,floorHeight});
-    const bot={hero,controller,route:laneRoute(sim,sim.lanes.find(l => l.id===lane),team), alive:true,retreating:false,targetId:null,mode:'rally'};
+    hero.aiTelegraph=null;
+    const bot={hero,controller,route:laneRoute(sim,sim.lanes.find(l => l.id===lane),team), alive:true,retreating:false,targetId:null,engagement:null,mode:'rally'};
     bot.runtime=new HeroRuntime({scene,controller,kit,boxes,source:hero.id,team,onEffect:event => {
       // Systems validates source/kit/target; cleanup must survive death/pause/disposal.
       if (event.kind==='tether-end'||event.kind==='deployment-end'||event.kind==='buff-end'||event.kind==='burst-end') return effect(event);
@@ -81,7 +88,7 @@ export function createBots({sim, scene, world, kits, boxes, onEffect, floorHeigh
   const runtimes=bots.map(b => b.runtime);
 
   function refreshTargets() {
-    // ponytail: normal 3v3 ceiling: six heroes, 38 structures, <=888 troopers
+    // ponytail: current 7v3 ceiling: ten heroes, 38 structures, <=888 troopers
     // spawned over 15 active minutes. O(n) live-actor scans, no all-pairs bot
     // search. Spatial bins if population/match length grows.
     targets=[...sim.heroes,...sim.troopers,...sim.structures].map(entity => ({
@@ -127,7 +134,7 @@ export function createBots({sim, scene, world, kits, boxes, onEffect, floorHeigh
   }
   function enemyFor(bot) {
     let best=null, score=Infinity;
-    const range=Math.max(bot.runtime.kit.weapon.range,...bot.runtime.kit.abilities.map(a => a.range??a.radius??0));
+    const range=Math.min(PERCEPTION_RANGE,Math.max(bot.runtime.kit.weapon.range,...bot.runtime.kit.abilities.map(a => a.range??a.radius??0)));
     for (const target of targets) {
       if (!target.alive || target.team===bot.hero.team || target.autoTargetable===false || target.kind==='structure'&&!target.vulnerable) continue;
       const d=distance(bot.hero.position,target.position);
@@ -137,8 +144,20 @@ export function createBots({sim, scene, world, kits, boxes, onEffect, floorHeigh
     }
     return best;
   }
+  function clearAim(bot) {
+    bot.engagement=null; bot.targetId=null; bot.hero.aiTelegraph=null;
+  }
+  function prepareAim(bot,target) {
+    if (bot.engagement?.targetId!==target.id) {
+      bot.engagement={targetId:target.id,started:sim.time,releaseAt:sim.time+AIM_PREPARATION};
+    }
+    const ready=sim.time+1e-9>=bot.engagement.releaseAt;
+    // Presentation only. Mutating this record never authorizes an attack.
+    bot.hero.aiTelegraph=ready?null:{...bot.engagement};
+    return ready;
+  }
   function orbFor(bot,type) {
-    let best=null, nearest=type==='ground'?8:Math.min(60,bot.runtime.kit.weapon.range);
+    let best=null, nearest=type==='ground'?8:Math.min(PERCEPTION_RANGE,bot.runtime.kit.weapon.range);
     for (const orb of sim.orbs) {
       if (orb.claimed || orb.type!==type || orb.expiresAt<=sim.time || type==='ground'&&orb.team!==bot.hero.team) continue;
       const d=distance(bot.hero.position,orb.position);
@@ -168,15 +187,15 @@ export function createBots({sim, scene, world, kits, boxes, onEffect, floorHeigh
       const h=bot.hero,c=bot.controller,r=bot.runtime;
       if (h.alive!==bot.alive || distance(c.position,h.position)>.25) {
         c.warp(h.position); r.reset(); bot.alive=h.alive;
-        bot.retreating=false; bot.targetId=null;
+        bot.retreating=false; clearAim(bot);
       }
       r.visual.group.visible=h.alive;
       if (!passive) shop(bot);
-      if (!h.alive) { bot.mode='dead'; continue; }
+      if (!h.alive) { clearAim(bot); bot.mode='dead'; continue; }
       const stats=sim.stats(h.id);
       r.setModifiers({magazine:stats.maxAmmo,fire:stats.fireInterval/r.kit.weapon.interval});
       if (passive || sim.phase==='finished' || dt===0) {
-        c.velocity.set(0,0,0); bot.mode=passive?'passive':'idle';
+        clearAim(bot); c.velocity.set(0,0,0); bot.mode=passive?'passive':'idle';
         if (dt>0) r.update(dt);
         continue;
       }
@@ -187,21 +206,25 @@ export function createBots({sim, scene, world, kits, boxes, onEffect, floorHeigh
       const shopping=h.souls>=1600 && h.items.length<6+h.flexSlots && SHOP_ITEMS.some(item => !h.items.includes(item.id)&&item.cost<=h.souls);
       if (shopping && !enemy) bot.retreating=true;
       bot.targetId=!bot.retreating?enemy?.id??null:null;
+      if (!bot.targetId) clearAim(bot);
+      const prepared=bot.targetId?prepareAim(bot,enemy):false;
       let goal=bot.route.entry;
       if (bot.retreating) { goal=0; bot.mode='retreat'; }
       else if (sim.phase==='pregame') bot.mode='rally';
       else {
-        let front=-Infinity;
-        for (const trooper of sim.troopers) if (trooper.alive && trooper.team===h.team && trooper.lane===h.lane) front=Math.max(front,bot.route.project(trooper.position));
-        if (front===-Infinity) for (const structure of sim.structures) if (structure.alive && structure.team===h.team && structure.lane===h.lane) front=Math.max(front,bot.route.project(structure.position));
-        goal=Math.max(bot.route.entry,front-8); bot.mode='lane';
+        // Objective locations/locks are public. Rear wave spawns must not pull
+        // healthy heroes backwards, and hidden heroes never supply a destination.
+        const objectives=sim.structures.filter(s => s.alive && s.vulnerable && s.team!==h.team && (s.lane===h.lane || s.type==='patron'));
+        const objective=objectives.sort((a,b) => bot.route.project(a.position)-bot.route.project(b.position))[0];
+        goal=objective?Math.max(bot.route.entry,bot.route.project(objective.position)-Math.min(18,r.kit.weapon.range*.65)):bot.route.length;
+        bot.mode='lane';
       }
       const progress=bot.route.project(h.position);
       const waypoint=bot.route.at(Math.max(progress-8,Math.min(progress+8,goal)));
       const ground=!bot.retreating?orbFor(bot,'ground'):null;
       let destination=ground?.position??waypoint;
       if (bot.retreating && atBase) destination=h.position;
-      if (enemy && !bot.retreating && distance(h.position,enemy.position)<r.kit.weapon.range*.75 && progress<=goal+1 && !ground) destination=h.position;
+      if (enemy && !bot.retreating && distance(h.position,enemy.position)<Math.min(PERCEPTION_RANGE,r.kit.weapon.range*.75) && progress<=goal+1 && !ground) destination=h.position;
       let dx=destination.x-h.position.x,dz=destination.z-h.position.z;
       const length=Math.hypot(dx,dz);
       if (length>.4) { dx/=length; dz/=length; } else dx=dz=0;
@@ -212,28 +235,28 @@ export function createBots({sim, scene, world, kits, boxes, onEffect, floorHeigh
       c.speedMultiplier=stats.moveSpeed/8;
       c.update(dt,{forward:-Math.sin(c.yaw)*dx-Math.cos(c.yaw)*dz,side:Math.cos(c.yaw)*dx-Math.sin(c.yaw)*dz,aim:!!enemy&&!bot.retreating});
       const moved=sim.moveHero(h.id,c.position);
-      if (!moved.ok) { c.warp(h.position); continue; }
+      if (!moved.ok) { clearAim(bot); c.warp(h.position); continue; }
       r.update(dt);
       if (sim.phase==='pregame' || bot.retreating || !h.alive) continue;
+      if (enemy && (!enemy.alive || enemy.autoTargetable===false || distance(h.position,enemy.position)>PERCEPTION_RANGE || !visible(bot,enemy))) clearAim(bot);
       const orb=orbFor(bot,'floating');
       if (orb && shootOrb(bot,orb)) continue;
-      if (!enemy?.alive || !visible(bot,enemy)) continue;
+      if (!bot.targetId || !prepared) continue;
       aim(bot,enemy);
-      r.fire();
-      if (!enemy.alive) continue;
-      const range=distance(h.position,enemy.position);
+      if (distance(h.position,enemy.position)<=r.kit.weapon.range) r.fire();
       for (const ability of r.kit.abilities) {
-        if ((r.cooldowns[ability.slot]??0)<=0 && range<=(ability.range??ability.radius??r.kit.weapon.range) && enemy.alive && visible(bot,enemy)) r.cast(ability.slot);
+        if (!enemy.alive || enemy.autoTargetable===false || distance(h.position,enemy.position)>PERCEPTION_RANGE || !visible(bot,enemy)) { clearAim(bot); break; }
+        if ((r.cooldowns[ability.slot]??0)<=0 && distance(h.position,enemy.position)<=(ability.range??ability.radius??r.kit.weapon.range)) r.cast(ability.slot);
       }
     }
   }
   function dispose() {
     if (disposed) return;
     disposed=true;
-    for (const bot of bots) { sim.setRetreat(bot.hero.id,false); bot.runtime.dispose(); }
+    for (const bot of bots) { clearAim(bot); sim.setRetreat(bot.hero.id,false); bot.runtime.dispose(); }
   }
   function snapshot() {
-    return bots.map(b => ({id:b.hero.id,team:b.hero.team,lane:b.hero.lane,kit:b.runtime.kit.id,alive:b.hero.alive,hp:b.hero.hp,moveSpeed:sim.stats(b.hero.id).moveSpeed,position:{...b.hero.position},retreating:b.retreating,mode:b.mode,targetId:b.targetId,runtime:b.runtime.snapshot()}));
+    return bots.map(b => ({id:b.hero.id,team:b.hero.team,lane:b.hero.lane,kit:b.runtime.kit.id,alive:b.hero.alive,hp:b.hero.hp,moveSpeed:sim.stats(b.hero.id).moveSpeed,position:{...b.hero.position},retreating:b.retreating,mode:b.mode,targetId:b.targetId,aiTelegraph:b.hero.aiTelegraph?{...b.hero.aiTelegraph}:null,runtime:b.runtime.snapshot()}));
   }
   return {update,runtimes,dispose,snapshot};
 }

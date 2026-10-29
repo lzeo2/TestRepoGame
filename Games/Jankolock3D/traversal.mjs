@@ -92,7 +92,8 @@ export function surfaceHeight(world,x,z,maxY=Infinity,broken=new Set()) {
 export function interaction(world,s) {
   if(s.mode!=='free') return {kind:'detach',label:'E to hop off'};
   for(const c of world.crates) if(!s.collected.has(c.id) && !s.broken.has(c.id) && near(s,c,5)) return {kind:'crate',item:c,label:c.kind==='soul'?'E to collect soul-crate':'E to break supply crate'};
-  for(const line of world.stations) for(const end of ['a','b']) if(near(s,line[end],6)) return {kind:'zip',line,end,label:`${line.id} station · E to ride zipline`};
+  // Stations accept ground feet and hanging feet independently of horizontal reach.
+  for(const line of world.stations) for(const end of ['a','b']) if(Math.hypot(s.x-line[end].x,s.z-line[end].z)<=6+1e-8 && Math.abs(s.y-line[end].y)<=6+1e-8) return {kind:'zip',line,end,label:`${line.id} station · E to ride zipline`};
   for(const p of world.portals) if(near(s,p)) return {kind:'portal',item:p,label:'E to use paired stamp teleporter'};
   for(const v of world.vents) if(near(s,v)) return {kind:'vent',item:v,label:'E to ride air vent to roof'};
   if(Math.hypot(s.x-world.rope.x,s.z-world.rope.z)<5 && s.y<=world.rope.top+1) return {kind:'rope',label:'E to climb Staple Tower rope'};
@@ -102,12 +103,12 @@ export function interact(world,s) {
   if(s.cooldown>0) return;
   const hit=interaction(world,s); if(!hit) return;
   s.event='';
-  if(hit.kind==='detach') { s.mode='free';s.ride=null;s.vy=4;s.cooldown=.4;return; }
+  if(hit.kind==='detach') { s.mode='free';s.ride=null;s.vy=4;s.grounded=false;s.cooldown=.4;return; }
   if(hit.kind==='crate') {
     (hit.item.kind==='soul'?s.collected:s.broken).add(hit.item.id);
     s.event=hit.item.kind==='soul'?'bell':'crate';s.cooldown=.25;
   } else if(hit.kind==='zip') {
-    s.mode='zip';s.ride={id:hit.line.id,t:hit.end==='a'?0:1,direction:hit.end==='a'?1:-1};s.cooldown=.3;
+    s.mode='zip';s.ride={id:hit.line.id,t:hit.end==='a'?0:1,direction:hit.end==='a'?1:-1};s.vy=0;s.grounded=false;s.cooldown=.3;
   } else if(hit.kind==='portal') {
     const target=world.portals.find(p=>p.id!==hit.item.id);
     s.x=target.x;s.y=target.y;s.z=target.z;s.vy=0;s.cooldown=2;s.event='teleport';
@@ -115,20 +116,30 @@ export function interact(world,s) {
     s.mode='vent';s.ride={id:hit.item.id,t:0,start:{x:s.x,y:s.y,z:s.z}};s.cooldown=.3;
   } else { s.mode='rope';s.ride=null;s.cooldown=.3; }
 }
+// Hosts with their own free-mode controller must tick cooldown there instead,
+// and copy vy/grounded on exit. Do not run both free-movement solvers.
 export function stepTraveler(world,s,input,dt) {
   if(![s.x,s.y,s.z,s.vy].every(Number.isFinite) || s.y<FALL_LIMIT) {
-    Object.assign(s,s.safe??world.start,{vy:0,grounded:true,mode:'free',ride:null});
+    Object.assign(s,s.safe??world.start,{vy:0,grounded:true,mode:'free',ride:null,cooldown:0});
   }
   s.x=clamp(s.x,-LIMIT,LIMIT);s.z=clamp(s.z,-LIMIT,LIMIT);
   dt=clamp(Number.isFinite(dt)?dt:0,0,.05);s.cooldown=Math.max(0,s.cooldown-dt);s.event='';
   if(input.interact) interact(world,s);
   if(input.jump && s.mode!=='free') {s.mode='free';s.ride=null;s.vy=7;s.grounded=false;s.cooldown=.4;}
   if(s.mode==='zip') {
-    const line=world.stations.find(l=>l.id===s.ride.id), r=s.ride;
-    const length=Math.hypot(line.b.x-line.a.x,line.b.z-line.a.z);
+    const r=s.ride,line=world.stations.find(l=>l.id===r?.id);
+    const length=line?Math.hypot(line.b.x-line.a.x,line.b.z-line.a.z):0;
+    if(!line || !Number.isFinite(length) || length<=0 || !Number.isFinite(r.t) || r.t<0 || r.t>1 || ![1,-1].includes(r.direction)) {
+      s.mode='free';s.ride=null;s.vy=0;s.grounded=false;s.cooldown=.4;return;
+    }
     r.t=clamp(r.t+r.direction*ZIP_SPEED*dt/length,0,1);
-    s.x=line.a.x+(line.b.x-line.a.x)*r.t;s.z=line.a.z+(line.b.z-line.a.z)*r.t;s.y=6+Math.sin(r.t*Math.PI)*4;
-    if((r.direction===1 && r.t===1)||(r.direction===-1 && r.t===0)) {s.mode='free';s.ride=null;s.y=0;s.vy=0;s.cooldown=.8;}
+    s.x=line.a.x+(line.b.x-line.a.x)*r.t;s.z=line.a.z+(line.b.z-line.a.z)*r.t;
+    s.y=6+Math.sin(r.t*Math.PI)*4;
+    if((r.direction===1 && r.t===1)||(r.direction===-1 && r.t===0)) {
+      const end=r.direction===1?line.b:line.a;
+      s.mode='free';s.ride=null;s.y=surfaceHeight(world,s.x,s.z,end.y+.55,s.broken);s.vy=0;s.grounded=true;s.cooldown=.8;
+      if(!world.boxes.some(b=>!s.broken.has(b.id)&&capsuleIntersects(s,b))) s.safe={x:s.x,y:s.y,z:s.z};
+    }
     return;
   }
   if(s.mode==='rope') {

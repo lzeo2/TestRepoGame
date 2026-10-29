@@ -969,6 +969,40 @@ This does not certify trajectories around every obstacle or native feel. Real
 frame-time/input-latency and before/after rendering remain unmeasured; no Jank
 browser GO or diagnostic-cap waiver was inferred.
 
+### Playability-overhaul core source candidate, 2026-10-29
+
+The latest user order supersedes old source-complete holds, not native safety or
+the diagnostic cap. See [the durable plan](../../jankolock-playability-overhaul.md)
+for the open-but-covered Midway flow sketch, ownership and UI mockup.
+
+Runtime changes now include physical-box/ramp LOS for basic attacks and NPC
+0.35s preparation with release-time range/cover/liveness checks; hero perception
+is capped at40m with0.3s preparation and objective-directed advancement. Roster
+is exactly six AI teammates plus the human against the existing three foes,
+not six including the human. Both team configurations have legal actual damage,
+six objective contributors, attributed objective fall/unlock, friendly-fire
+rejection and stable death/respawn/fresh-match counts in CPU tests.
+
+Rails support repeated bidirectional use. Parent wiring advances cooldown once
+in free mode and transfers vertical/ground state through a controller API that
+does not grant warp stamina. Death/recall reset stale rides/safe poses without
+respawning looted crates. Same mutable cover feeds simulation and movement.
+Team circles versus enemy diamonds, real-HP bars and pending-attack floor cues
+are depth-tested world geometry; clarity/performance is not natively accepted.
+
+Gates:160 callback groups;40 systems;8 fairness;8 rail;26 bots;25 team;1396
+controller checks; actor-view/combat-input suites; both600s match chains and
+catalog129. All17 touched JS modules passed syntax and diffs are clean. A LOS
+broad phase retains exact checks; full CPU integration completed in51s after a
+prior99s run. Those timings do not establish renderer FPS. The bob sampler has
+6 numeric groups but is not yet wired to rendering or a persisted toggle.
+
+Current map changes, objective world UI/completion cues, model/animation detail
+and earned exchanges remain open. No browser ran; native controls/feel/visuals,
+Prism Warden failures and the79,174/60,000-byte helper remain separate holds.
+The global maintenance check still rejects the preserved dirty QA pair. No
+new game, model replacement, install, push or blanket failure waiver occurred.
+
 ## Forty-hero intake and staged art integration
 
 The operator's newly received archive is retained unchanged with SHA-256

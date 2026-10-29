@@ -21,11 +21,12 @@ function fixture({souls=0,world={boxes:[],ramps:[]},floorHeight,onEffect,heroKit
 }
 {
   const f=fixture();
-  assert.equal(f.sim.heroes.length,6);assert.equal(f.bots.runtimes.length,5);
+  assert.equal(f.sim.heroes.length,10);assert.equal(f.bots.runtimes.length,9);
   assert.deepEqual(f.bots.snapshot().map(b=>[b.id,b.team,b.lane]),[
-    ['bot-1','carbon','graft'],['bot-2','carbon','greenhedge'],['bot-3','ivory','graft'],['bot-4','ivory','midway'],['bot-5','ivory','greenhedge']
+    ['bot-1','carbon','graft'],['bot-2','carbon','greenhedge'],['bot-3','ivory','graft'],['bot-4','ivory','midway'],['bot-5','ivory','greenhedge'],
+    ['bot-6','carbon','midway'],['bot-7','carbon','graft'],['bot-8','carbon','greenhedge'],['bot-9','carbon','midway']
   ]);
-  assert.equal(f.scene.children.length,5,'five real runtime visuals, no renderer');
+  assert.equal(f.scene.children.length,9,'nine real runtime visuals, no renderer');
   f.tick(2);
   assert.ok(f.bots.snapshot()[0].position.x<-10,'carbon ally heads to graft');
   assert.ok(f.bots.snapshot()[1].position.x>10,'carbon ally heads to greenhedge');
@@ -34,9 +35,9 @@ function fixture({souls=0,world={boxes:[],ramps:[]},floorHeight,onEffect,heroKit
   for(const bot of f.bots.snapshot()) {
     const lane=f.sim.lanes.find(l=>l.id===bot.lane);
     assert.ok(Math.abs(bot.position.x-lane.x)<2,'reaches assigned lane, not diagonal through city');
-    const wave=f.sim.troopers.filter(t=>t.alive&&t.team===bot.team&&t.lane===bot.lane);
     const sign=bot.team==='carbon'?1:-1;
-    assert.ok(bot.position.z*sign<=Math.max(...wave.map(t=>t.position.z*sign))-5,'stays behind wave');
+    assert.ok(bot.position.z*sign>-400,'advances along its assigned lane toward the public enemy objective');
+    assert.equal(bot.mode,'lane');
   }
   const snap=f.bots.snapshot();snap[0].position.x=9999;
   assert.notEqual(f.sim.heroes[1].position.x,9999,'snapshot positions are copies');
@@ -49,8 +50,8 @@ function fixture({souls=0,world={boxes:[],ramps:[]},floorHeight,onEffect,heroKit
     assert.deepEqual(hero.items,['ammo']);assert.equal(hero.souls,0);
     assert.equal(hero.earnedSouls,800,'shopping does not fabricate or remove earned XP');
   }
-  assert.equal(f.sim.events.filter(e=>e.type==='purchase').length,5);
-  f.bots.update(.05);assert.equal(f.sim.events.filter(e=>e.type==='purchase').length,5,'no duplicate purchases');
+  assert.equal(f.sim.events.filter(e=>e.type==='purchase').length,9);
+  f.bots.update(.05);assert.equal(f.sim.events.filter(e=>e.type==='purchase').length,9,'no duplicate purchases');
   f.bots.dispose();groups++;
 }
 {
@@ -74,7 +75,11 @@ function fixture({souls=0,world={boxes:[],ramps:[]},floorHeight,onEffect,heroKit
   f.sim.moveHero(f.player.id,{x:0,y:0,z:0});f.sim.moveHero('bot-4',{x:0,y:0,z:20});
   f.bots.update(.05);
   const r=f.bots.runtimes[3];
-  assert.equal(r.shots,1);assert.ok(f.player.hp<500,'default effect callback applies actual systems damage');
+  assert.equal(r.shots,0);assert.equal(f.player.hp,500,'first sight does not instantly attack');
+  assert.deepEqual(f.sim.heroes.find(h=>h.id==='bot-4').aiTelegraph,{targetId:f.player.id,started:f.sim.time,releaseAt:f.sim.time+.3});
+  f.tick(.25);assert.equal(r.shots,0);assert.equal(f.player.hp,500,'preparation has a real time budget');
+  f.tick(.05);
+  assert.equal(r.shots,1);assert.ok(f.player.hp<500,'default effect callback applies actual systems damage after preparation');
   assert.equal(r.castCount.longshot,1);assert.equal(r.castCount.tether,1);
   assert.ok(r.controller.pitch<0,'aims from muzzle down toward chest, not over head');
   f.bots.update(.05);assert.equal(r.shots,1);assert.equal(r.castCount.longshot,1,'runtime owns cooldowns');
@@ -91,7 +96,8 @@ function fixture({souls=0,world={boxes:[],ramps:[]},floorHeight,onEffect,heroKit
   assert.equal(f.bots.runtimes[3].shots,0);assert.deepEqual(f.bots.runtimes[3].castCount,{});
   assert.equal(f.player.hp,500,'world cover blocks all combat');
   f.boxes.splice(f.boxes.indexOf(wall),1);f.bots.update(.05);
-  assert.ok(f.player.hp<500,'removing cover permits real combat');
+  assert.equal(f.player.hp,500,'removing cover starts preparation, not immediate damage');
+  f.tick(.3);assert.ok(f.player.hp<500,'removing cover permits prepared real combat');
   // Start an ongoing autonomous firing buff, then explicitly pause bot effects.
   f.sim.moveHero('bot-3',{x:0,y:0,z:15});f.bots.update(.05,{passive:true});
   f.bots.runtimes[2].cast(4);
@@ -327,7 +333,7 @@ for(const team of ['carbon','ivory']) {
   const sourceID=team==='carbon'?'bot-1':'bot-3',index=team==='carbon'?0:2,r=f.bots.runtimes[index],enemyTeam=team==='carbon'?'ivory':'carbon';assert.equal(r.kit.id,'turretina');assert.ok(sim.moveHero(sourceID,{x:0,y:0,z:8}).ok);
   const actor=cloakActor(f,`cloaked-${team}-enemy`,enemyTeam,{x:.55,y:0,z:0});f.bots.update(0,{passive:true});f.bots.update(0);r.controller.yaw=0;r.controller.pitch=0;
   const descriptor=r.targets.find(t=>t.id===actor.id);assert.equal(descriptor.autoTargetable,true);assert.equal(Object.getOwnPropertyDescriptor(descriptor,'autoTargetable').set,undefined);assert.equal(typeof Object.getOwnPropertyDescriptor(descriptor,'autoTargetable').get,'function');assert.throws(()=>{descriptor.autoTargetable=false;},TypeError);
-  assert.equal(descriptor,f.bots.runtimes[(index+1)%5].targets.find(t=>t.id===actor.id),'all bots share one live descriptor view');assert.ok(r.cast(1));assert.ok(sim.activateItem(actor.id,'shadow-cloak').ok);
+  assert.equal(descriptor,f.bots.runtimes[(index+1)%9].targets.find(t=>t.id===actor.id),'all bots share one live descriptor view');assert.ok(r.cast(1));assert.ok(sim.activateItem(actor.id,'shadow-cloak').ok);
   assert.equal(descriptor.autoTargetable,false,'pre-activation descriptor reads real Host cloak without refresh');assert.equal(descriptor.alive,true);assert.equal(descriptor.kind,actor.kind);assert.equal(descriptor.team,actor.team);assert.equal(descriptor.radius,.6);assert.equal(descriptor.height,1.8);
   assert.ok(sim.moveHero(actor.id,{x:1,y:0,z:.5}).ok);assert.equal(descriptor.position,actor.position);const hp=actor.hp,cloak=actor.cloakUntil;
   r.update(.05);assert.equal(actor.hp,hp);assert.equal(actor.cloakUntil,cloak);assert.equal(events.filter(e=>e.source===sourceID&&e.ability==='turret'&&e.kind==='damage').length,0);assert.equal([...r.fx.handles.keys()].filter(h=>h.group.name==='longshot').length,0,'hidden target produces no autonomous turret shot FX');
@@ -346,5 +352,59 @@ for(const team of ['carbon','ivory']) {
   // Direct native Runtime cast is a CPU manual/committed path, NOT AI acquisition.
   r.controller.yaw=0;r.controller.pitch=0;assert.ok(r.cast(2));assert.ok(hostile.hp<hostileHP,'manual native cone is not granted cloak immunity');assert.equal(hostile.cloakUntil,0);assert.equal(ally.cloakUntil,cloak);assert.ok(results.every(v=>v.ok));f.bots.dispose();assert.equal(f.scene.children.length,0);groups++;
 }
+// Real HP/cooldowns through the shared host. No runtime reset cancels preparation.
+for (const loss of ['cover','terrain','range','death','cloak','passive','finished']) {
+  let terrain=false;
+  const f=fixture({floorHeight:(x,z)=>terrain&&z>8&&z<10?8:0});f.sim.step(30);
+  const target=cloakActor(f,`aim-${loss}`,'carbon',{x:0,y:0,z:0});
+  f.sim.moveHero('bot-4',{x:0,y:0,z:20});f.bots.update(0);
+  const r=f.bots.runtimes[3],h=f.sim.heroes.find(h=>h.id==='bot-4');
+  assert.ok(r.cast(4));const cost=r.cooldowns[4],ammo=r.ammo,initialHP=target.hp;
+  f.bots.update(.05);f.tick(.15);
+  assert.equal(h.aiTelegraph.targetId,target.id);assert.equal(target.hp,initialHP);assert.equal(r.shots,0);
+  const snap=f.bots.snapshot()[3];snap.aiTelegraph.releaseAt=-1;h.aiTelegraph.releaseAt=-1;
+  f.bots.update(.05);assert.equal(r.shots,0,'presentation edits cannot release an attack');
+  assert.ok(h.aiTelegraph.releaseAt>f.sim.time);
+  if(loss==='cover')f.boxes.push({minX:-5,maxX:5,minY:0,maxY:8,minZ:9,maxZ:10});
+  if(loss==='terrain')terrain=true;
+  if(loss==='range')f.sim.moveHero(target.id,{x:0,y:0,z:-100});
+  if(loss==='death')assert.ok(f.sim.damage(target.id,10000,'bot-4',{kind:'ability'}).killed);
+  if(loss==='cloak')assert.ok(f.sim.activateItem(target.id,'shadow-cloak').ok);
+  if(loss==='finished')f.sim.phase='finished';
+  const hp=target.hp;
+  f.tick(.25,{passive:loss==='passive'});
+  assert.equal(h.aiTelegraph,null,loss);assert.equal(f.bots.snapshot()[3].targetId,null,loss);
+  assert.equal(target.hp,hp,`${loss} prevents a stale attack`);assert.equal(r.shots,0);
+  assert.equal(r.ammo,ammo);assert.ok(r.cooldowns[4]>0&&r.cooldowns[4]<cost,'accepted cooldown continues without refund/reset');
+  if(loss==='cover'||loss==='terrain'||loss==='range') {
+    f.boxes.length=0;terrain=false;f.sim.moveHero(target.id,{x:0,y:0,z:0});
+    f.bots.update(.05);f.tick(.25);assert.equal(target.hp,hp,'reacquisition needs fresh preparation');
+    f.tick(.05);assert.ok(target.hp<hp,'reacquired target receives real host HP damage');
+    const shots=r.shots,casts=r.castCount.longshot;
+    f.tick(.05);assert.equal(r.shots,shots);assert.equal(r.castCount.longshot,casts,'repeated cooldown is respected');
+    f.tick(1);assert.ok(r.shots>shots,'weapon resumes through its ordinary cooldown');
+    assert.equal(r.castCount.longshot,casts,'longshot cannot recast during its longer cooldown');
+  }
+  f.bots.dispose();assert.equal(h.aiTelegraph,null);assert.equal(f.scene.children.length,0);groups++;
+}
+{
+  const f=fixture();f.sim.step(30);f.sim.moveHero(f.player.id,{x:0,y:0,z:0});
+  f.sim.moveHero('bot-4',{x:0,y:0,z:41});f.bots.update(.05);
+  assert.equal(f.bots.snapshot()[3].targetId,null,'sniper ability range never expands 40-unit perception');
+  assert.equal(f.player.hp,500);assert.equal(f.bots.runtimes[3].shots,0);
+  f.sim.moveHero('bot-4',{x:0,y:0,z:39.9});f.bots.update(.05);
+  assert.equal(f.bots.snapshot()[3].targetId,f.player.id,'just inside perception is acquired');
+  assert.equal(f.player.hp,500);f.tick(.3);assert.ok(f.player.hp<500);
+  f.bots.dispose();groups++;
+}
+{
+  const f=fixture();f.sim.step(30);f.sim.moveHero('bot-4',{x:0,y:0,z:100});f.bots.update(0);
+  const h=f.sim.heroes.find(h=>h.id==='bot-4'),start=h.position.z;
+  f.tick(.5);assert.ok(h.position.z<start,'healthy bot advances even ahead of the friendly front');
+  f.sim.step(25);const before=h.position.z;f.tick(.5);
+  assert.ok(h.position.z<before,'newly spawned rear wave does not pull healthy bot backwards');
+  assert.equal(f.bots.snapshot()[3].targetId,null,'public objective navigation does not acquire an unseen hero');
+  f.bots.dispose();groups++;
+}
 console.log('bots-test: live readonly automatic eligibility on both teams, purchased cloak/real reveal, hidden allied aura and manual cone non-immunity checked; initial currency is imported CPU item setup only');
-console.log(`bots-test: ${groups} groups passed (5 bots/lanes/waves, shop, retreat, cooldowns, cover/passive, collision/respawn/recall, orbs, host callback/origins, tether cleanup on death/reset/dispose/passive/finished, detached observational HP/speed/tether snapshots; Node scene only)`);
+console.log(`bots-test: ${groups} groups passed (9 bots/lanes/waves, shop, retreat, cooldowns, cover/passive, collision/respawn/recall, orbs, host callback/origins, tether cleanup on death/reset/dispose/passive/finished, detached observational HP/speed/tether snapshots; Node scene only)`);

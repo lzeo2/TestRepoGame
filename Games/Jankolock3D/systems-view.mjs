@@ -4,7 +4,10 @@ import { AbilityFX } from './heroes/hero-visuals.mjs';
 
 // Shared-scene actor layer; the host preloads the real trooper GLB once.
 export function createSystemsLayer(scene,{team='carbon'}={}) {
-  const actors=new Map(),orbGeometry=new THREE.IcosahedronGeometry(.65,2);
+  const actors=new Map(),markers=new Map(),warnings=new Map(),orbGeometry=new THREE.IcosahedronGeometry(.65,2);
+  const ring=new THREE.RingGeometry(.65,.8,24),diamond=new THREE.RingGeometry(.65,.8,4),bar=new THREE.PlaneGeometry(1,1);
+  const ally=new THREE.MeshBasicMaterial({color:0x365a74}),foe=new THREE.MeshBasicMaterial({color:0xb55043});
+  const backing=new THREE.MeshBasicMaterial({color:0x20201f}),warning=new THREE.MeshBasicMaterial({color:0xd19b35,side:THREE.DoubleSide});
   const soul=new THREE.MeshBasicMaterial({color:0x365a74});
   const edge=new THREE.MeshBasicMaterial({color:0xffffff,side:THREE.BackSide});
   let disposed=false,revealFX=null,revealHandle=null;
@@ -28,7 +31,7 @@ export function createSystemsLayer(scene,{team='carbon'}={}) {
     const mesh=new THREE.Mesh(orbGeometry,soul),outline=new THREE.Mesh(orbGeometry,edge);
     outline.scale.setScalar(1.09);mesh.add(outline);mesh.userData={id:o.id,kind:'orb'};return mesh;
   }
-  function sync(sim) {
+  function sync(sim,camera) {
     if(disposed)return;
     const present=new Set();
     for(const entity of [...sim.troopers.filter(t=>t.alive),...sim.orbs.filter(o=>!o.claimed&&sim.time<o.expiresAt)]) {
@@ -45,6 +48,32 @@ export function createSystemsLayer(scene,{team='carbon'}={}) {
       } else actor.scale.setScalar(entity.type==='ground'?.6:1);
     }
     for(const [id,actor] of actors)if(!present.has(id)){actor.userData.asset?.dispose();actor.removeFromParent();actors.delete(id);}
+    // Shapes distinguish teams without color alone; all markers still depth-test against cover.
+    const liveHeroes=new Set();
+    for(const h of sim.heroes)if(h.id!=='player'&&h.alive&&(h.team===team||!(h.cloakUntil>sim.time)||sim.isRevealedTo?.(h.id,team))) {
+      liveHeroes.add(h.id);let marker=markers.get(h.id);
+      if(!marker) {
+        marker=new THREE.Group();marker.userData={id:h.id,kind:'hero-marker'};
+        const shape=new THREE.Mesh(h.team===team?ring:diamond,h.team===team?ally:foe);shape.rotation.x=-Math.PI/2;shape.position.y=.04;marker.add(shape);
+        const health=new THREE.Group(),bg=new THREE.Mesh(bar,backing),fill=new THREE.Mesh(bar,h.team===team?ally:foe);
+        health.position.y=2.35;bg.scale.set(1.4,.12,1);fill.position.z=.002;health.add(bg,fill);marker.add(health);
+        marker.userData.health=health;marker.userData.fill=fill;markers.set(h.id,marker);scene.add(marker);
+      }
+      marker.position.set(h.position.x,h.position.y,h.position.z);
+      if(camera)marker.userData.health.quaternion.copy(camera.quaternion);
+      const width=1.4*Math.max(0,Math.min(1,h.hp/Math.max(1,h.maxHp)));
+      marker.userData.fill.scale.set(width,.1,1);marker.userData.fill.position.x=(width-1.4)/2;
+    }
+    for(const [id,marker]of markers)if(!liveHeroes.has(id)){marker.removeFromParent();markers.delete(id);}
+    const preparing=new Set();
+    for(const source of [...sim.heroes,...sim.troopers,...sim.structures]) {
+      const intent=source.pendingAttack??source.aiTelegraph;
+      if(!source.alive||source.team===team||!intent||!(intent.releaseAt>sim.time))continue;
+      preparing.add(source.id);let cue=warnings.get(source.id);
+      if(!cue){cue=new THREE.Mesh(ring,warning);cue.rotation.x=-Math.PI/2;cue.userData={id:source.id,kind:'attack-warning'};warnings.set(source.id,cue);scene.add(cue);}
+      cue.position.set(source.position.x,source.position.y+.055,source.position.z);cue.scale.setScalar(source.kind==='structure'?4:1.25);
+    }
+    for(const [id,cue]of warnings)if(!preparing.has(id)){cue.removeFromParent();warnings.delete(id);}
     // Host owns both membership and time; this is only a zero-dt visual mirror.
     revealPoints.length=0;
     for(const entity of [...sim.heroes,...sim.troopers,...sim.structures])if(sim.isRevealedTo?.(entity.id,team)===true)revealPoints.push(entity.position);
@@ -72,7 +101,7 @@ export function createSystemsLayer(scene,{team='carbon'}={}) {
     dispose(){
       if(disposed)return;disposed=true;
       try{for(const actor of actors.values()){actor.userData.asset?.dispose();actor.removeFromParent();}actors.clear();}
-      finally{revealPoints.length=0;revealHandle=null;revealFX?.dispose();orbGeometry.dispose();soul.dispose();edge.dispose();}
+      finally{for(const item of [...markers.values(),...warnings.values()])item.removeFromParent();markers.clear();warnings.clear();revealPoints.length=0;revealHandle=null;revealFX?.dispose();for(const resource of [orbGeometry,ring,diamond,bar,soul,edge,ally,foe,backing,warning])resource.dispose();}
     }
   };
 }

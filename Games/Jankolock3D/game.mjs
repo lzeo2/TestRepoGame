@@ -46,12 +46,16 @@ function effect(event) {
   if(qa && !result.ok && event.kind==='damage') history.push({time:sim.time,rejected:result.reason,ability:event.ability});
   return result;
 }
+function resetTraversal(position) {
+  const collected=traveler.collected,broken=traveler.broken;
+  Object.assign(traveler,createTraveler({...world,start:position}),{collected,broken,safe:{...position},grounded:controller.grounded});
+}
 function moveToSystem() {
   if(distance(controller.position,hero.position)>.1) {
     // Recall/respawn are validated teleports. Active-item dashes still collide.
     const teleport=hero.alive!==wasAlive;
     const p=teleport?hero.position:moveCapsule({...controller.position,grounded:controller.grounded},hero.position.x-controller.position.x,hero.position.z-controller.position.z,{...world,boxes},traveler.broken);
-    controller.warp(p);sim.moveHero(hero.id,p);
+    controller.warp(p);resetTraversal(p);sim.moveHero(hero.id,p);
   }
 }
 function inputBlocked() {
@@ -62,7 +66,9 @@ function action(name) {
   if(inputBlocked())return;
   view?.wallLayer?.sync(sim);
   if(name==='interact') {
+    const previousMode=traveler.mode;
     Object.assign(traveler,controller.position,{grounded:controller.grounded,stamina:controller.stamina});
+    if(previousMode==='free')traveler.vy=controller.velocity.y;
     const hit=interaction(world,traveler);
     if(sim.stats(hero.id).movementStopped&&['zip','portal','vent','rope','detach'].includes(hit?.kind)) {ui.message('Stationary while Approved Only is active.');return;}
     const landing=hit?.kind==='portal'?world.portals.find(p=>p.id!==hit.item.id):hit?.kind==='vent'?hit.item.target:hit?.kind==='rope'?world.rope.landing:hit?.kind==='zip'?{...hit.line[hit.end==='a'?'b':'a'],y:0}:null;
@@ -70,7 +76,8 @@ function action(name) {
     interact(world,traveler);
     for(let i=boxes.length-1;i>=0;i--)if(traveler.broken.has(boxes[i].id))boxes.splice(i,1);
     view.sync(traveler);
-    if(traveler.mode==='free') {controller.position.set(traveler.x,traveler.y,traveler.z);sim.moveHero(hero.id,controller.position);}
+    if(previousMode!==traveler.mode||hit?.kind==='portal')controller.syncTraversal(traveler);
+    if(traveler.mode==='free')sim.moveHero(hero.id,controller.position);
     return;
   }
   if(sim.phase==='pregame')return;
@@ -96,7 +103,7 @@ function tick(dt) {
   if(!playing||paused||document.hidden||sim.winner)return;
   view?.wallLayer?.sync(sim);
   moveToSystem();
-  if(hero.alive!==wasAlive) {runtime.reset();controller.warp(hero.position);traveler.mode='free';wasAlive=hero.alive;}
+  if(hero.alive!==wasAlive) {runtime.reset();controller.warp(hero.position);resetTraversal(hero.position);wasAlive=hero.alive;}
   runtime.targets=targets();
   if(hero.alive) {
     const stats=sim.stats(hero.id);
@@ -104,7 +111,7 @@ function tick(dt) {
     // Systems owns all speed statuses and the explicit self-stop, once.
     controller.movementStopped=stats.movementStopped===true;
     controller.speedMultiplier=stats.moveSpeed/8;
-    if(controller.movementStopped&&traveler.mode!=='free') {traveler.mode='free';traveler.ride=null;traveler.vy=0;}
+    if(controller.movementStopped&&traveler.mode!=='free') {traveler.mode='free';traveler.ride=null;traveler.vy=0;controller.syncTraversal(traveler);}
     const yawStep=(Number(held.has('ArrowLeft'))-Number(held.has('ArrowRight')))*dt*1.7;
     controller.yaw+=yawStep/2; // Move at the interval midpoint; aim still receives the full turn below.
     controller.pitch=THREE.MathUtils.clamp(controller.pitch+(Number(held.has('ArrowUp'))-Number(held.has('ArrowDown')))*dt,-1.2,1.2);
@@ -114,8 +121,9 @@ function tick(dt) {
       const recovering=checkingPanels&&(![traveler.x,traveler.y,traveler.z,traveler.vy].every(Number.isFinite)||traveler.y<FALL_LIMIT);
       stepTraveler(world,traveler,{jump:edges.has('jump')},dt);
       if(checkingPanels&&!recovering&&panelBlocks(previous,traveler))Object.assign(traveler,previous,{mode:'free',ride:null,vy:0});
-      controller.position.set(traveler.x,traveler.y,traveler.z);controller.velocity.set(0,0,0);controller.state=traveler.mode;
+      controller.syncTraversal(traveler);
     } else {
+      traveler.cooldown=Math.max(0,traveler.cooldown-dt);
       controller.update(dt,{forward:Number(held.has('KeyW'))-Number(held.has('KeyS')),side:Number(held.has('KeyD'))-Number(held.has('KeyA')),
         sprint:held.has('ControlLeft')||held.has('ControlRight'),slide:held.has('KeyC'),jump:edges.has('jump'),dash:edges.has('dash'),aim:held.has('aim')});
       controller.position.x=THREE.MathUtils.clamp(controller.position.x,-448,448);controller.position.z=THREE.MathUtils.clamp(controller.position.z,-448,448);
@@ -137,7 +145,7 @@ function tick(dt) {
   const events=sim.drainEvents();
   for(const event of events) {
     if(['respawn','recall_complete'].includes(event.type)&&event.heroId===hero.id) {
-      controller.warp(hero.position);traveler.mode='free';traveler.ride=null;
+      controller.warp(hero.position);resetTraversal(hero.position);
       if(event.type==='respawn')runtime.reset();
     }
     if(['objective_fall','patron_phase','victory','orb_shot','orb_pickup','purchase','hero_death','respawn'].includes(event.type)) {
@@ -149,7 +157,7 @@ function tick(dt) {
   const prompt=interaction(world,traveler);
   if(controller.movementStopped)ui.message('Stationary while Approved Only is active.',true);
   else if(prompt)ui.message(prompt.label,true);
-  actors.sync(sim);view.sync(traveler);view.syncStructures(sim.structures);
+  actors.sync(sim,view.camera);view.sync(traveler);view.syncStructures(sim.structures);
   ui.update({events,paused});
 }
 function stop() {
@@ -176,7 +184,7 @@ try {
   const playerKits=slice?[slice]:kits;
   if(slice)await loadCharacter(slice.id);
   startupStage('world-construction','Building the arena and lobby.');
-  view=createWorldScene(canvas,world);sim=createSystems(matchWorld(world));
+  view=createWorldScene(canvas,world);sim=createSystems(matchWorld({...world,boxes}));
   view.wallLayer=createKeepClearLayer(view.scene,boxes);
   hero=sim.addHero({id:'player',team:'carbon',lane:'midway',position:{x:-10,y:0,z:-430},souls:qa&&fixture==='shop'?25600:0});
   controller=new PlayerController({position:hero.position,boxes,ramps:world.ramps,floorHeight:(x,z,maxY)=>surfaceHeight({...world,boxes},x,z,maxY,traveler.broken)});

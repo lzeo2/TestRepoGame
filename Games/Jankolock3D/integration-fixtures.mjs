@@ -4,7 +4,9 @@ export function runChain(sim,team='carbon',until=600) {
   if(!Number.isFinite(until)||until<sim.time||until>600)throw new RangeError('Invalid fixture end time');
   const enemy=team==='carbon'?'ivory':'carbon';
   const attackers=sim.heroes.filter(h=>h.team===team);
-  if(attackers.length!==3)throw new Error('Chain fixture requires the real three-hero team.');
+  const human=sim.heroes.find(h=>h.id==='player');
+  const expected=team===human?.team?7:3;
+  if(!human||sim.heroes.length!==10||attackers.length!==expected)throw new Error('Chain fixture requires seven friendly heroes and three foes.');
   const events=[],actions=[];
   const collect=()=>events.push(...sim.drainEvents());
   const strike=(h,target,raw)=>{

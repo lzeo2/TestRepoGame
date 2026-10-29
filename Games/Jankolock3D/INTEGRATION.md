@@ -115,6 +115,9 @@ Touch buttons provide movement/look/fire/abilities and the same actions.
 node Games/Jankolock3D/integration-test.mjs
 node Games/Jankolock3D/integration-ui.mjs --self-test
 node Games/Jankolock3D/bots-test.mjs
+node Games/Jankolock3D/hero-team-test.mjs
+node Games/Jankolock3D/systems-fairness-test.mjs
+node Games/Jankolock3D/rail-reuse-test.mjs
 node Games/Jankolock3D/systems-test.mjs --no-evidence
 node Games/Jankolock3D/world-test.mjs
 node Games/Jankolock3D/environment-test.mjs
@@ -128,7 +131,8 @@ TMPDIR=/dev/shm SMOKE_PORT=8947 timeout --signal=TERM --kill-after=15s 420s pyth
 ```
 
 Integration regression runs both 600-second chain directions with the actual
-six configured heroes, including a fractional browser start clock, 19 objective
+ten configured heroes: human plus six AI allies versus three foes, including a
+fractional browser start clock, 19 objective
 falls, both base guards before shrines, all six shrines before Patron phase 2,
 and a later P2 death before victory. It verifies runtime orb accounting,
 portrait pins/parser/corruption rejection and catalog size/schema/unique IDs.

@@ -83,7 +83,10 @@ test('nearest targeting respects troopers > heroes > unlocked structures; candle
   e.position = { ...t.position, x: t.position.x + 3 };
   const rival = hero(s, 'rival', 'ivory'), killer = hero(s, 'killer');
   s.moveHero(rival.id, { ...t.position, x: t.position.x + 1 }); s.moveHero(killer.id, t.position);
-  s.step(0.05); assert.equal(t.targetId, e.id); assert.ok(e.candleScale < 1 && e.emissiveScale < 1);
+  s.step(0.05); assert.equal(t.targetId, e.id);
+  assert.deepEqual(t.pendingAttack, { targetId:e.id, started:30.05, releaseAt:30.4 });
+  s.step(0.3); assert.equal(e.candleScale, 1); assert.equal(e.emissiveScale, 1);
+  s.step(0.05); assert.ok(e.candleScale < 1 && e.emissiveScale < 1);
   s.damage(e.id, 1e6, killer.id, { kind: 'ability' });
   s.step(0.05); assert.equal(t.targetId, rival.id);
   s.damage(rival.id, 1e6, killer.id, { kind: 'ability' });

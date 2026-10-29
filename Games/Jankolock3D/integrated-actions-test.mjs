@@ -29,7 +29,7 @@ function fixture(kit,team='carbon') {
   assert.ok(sim.configureHeroKit(hero.id,kit).ok);
   const scene=new THREE.Scene(),boxes=[],world={boxes,ramps:[],start:hero.position,crates:[],stations:[],portals:[],vents:[],rope:{x:100,z:100,top:10},pit:{minX:100,maxX:110,minZ:100,maxZ:110}};
   const bots=createBots({sim,scene,world,kits,boxes,floorHeight:()=>0});
-  const enemy=sim.heroes.find(h=>h.id===(team==='carbon'?'bot-4':'bot-1'));
+  const enemy=sim.heroes.find(h=>h.id==='bot-4');
   assert.ok(sim.moveHero(enemy.id,{x:.55,y:0,z:0}).ok);
   const controller=new PlayerController({position:hero.position,boxes}),camera=new THREE.PerspectiveCamera(70,1,.1,200);
   controller.updateCamera(camera,0);
@@ -39,7 +39,7 @@ function fixture(kit,team='carbon') {
     querySelector:selector=>selector==='.sys-shop'?shop:dialog,
     querySelectorAll:selector=>buttons.filter(b=>selector.includes('data-edge')?b.dataset.edge:b.dataset.action)};
   const context=vm.createContext({THREE,playing:true,paused:false,qa:true,fixture:'chain',wasAlive:true,sim,hero,controller,boxes,world,bots,
-    traveler:createTraveler(world),moveCapsule,stepTraveler,interact,interaction,history:[],
+    traveler:createTraveler(world),createTraveler,moveCapsule,stepTraveler,interact,interaction,history:[],
     distance:(a,b)=>Math.hypot(a.x-b.x,a.y-b.y,a.z-b.z),
     view:{scene,camera,sync(){},syncStructures(){}},actors:{sync(){}},document,canvas,held:new Set(),edges:new Set(),
     ui:{message(){},update(){}},listen(node,type,fn){handlers.set(node===document?type:node.dataset.edge??node.dataset.action,fn);}});
@@ -427,6 +427,30 @@ for(const protectedTarget of [false,true])check(`confirmed hit notice/Overtime=$
     f.context.ui.message('Panels block the landing.');f.context.ui.message(prompt,true);
     assert.equal(notice.textContent,'Panels block the landing.','urgent feedback remains immediate and protected');
   }
+});
+check('real game rail reboarding, detach handoff and reset',kits[0],f=>{
+  // Match the fixture's flat controller floor; x=0,z=8 lies over the real sewer terrain.
+  const c=f.context,s=c.traveler,line={id:'test-rail',lane:'midway',a:{x:80,y:0,z:100},b:{x:80,y:0,z:112}};
+  c.world.stations.push(line);f.api.place(line.a,0,0);
+  f.press('KeyW','keyboard');f.press('ShiftLeft','keyboard');c.tick(.01);c.held.clear();
+  const stamina=f.controller.stamina;
+  for(let trip=0;trip<4;trip++) {
+    f.press('interact');assert.equal(s.mode,'zip');assert.equal(s.ride.direction,trip%2?-1:1);
+    if(trip===0)assert.equal(f.controller.stamina,stamina,'boarding does not grant warp resources');
+    for(let i=0;s.mode==='zip'&&i<30;i++)c.tick(.05);
+    assert.equal(s.mode,'free');assert.equal(s.ride,null);assert.equal(f.controller.grounded,true);
+    assert.equal(f.controller.position.z,trip%2?100:112);assert.equal(f.controller.velocity.y,0);
+    f.press('interact');assert.equal(s.mode,'free','arrival lock applies');
+    f.step(.85);assert.equal(s.cooldown,0,'free-mode game ticks expire the lock');
+  }
+  f.press('interact');f.step(.35);f.press('interact');
+  assert.equal(s.mode,'free');assert.equal(f.controller.grounded,false);assert.equal(f.controller.velocity.y,4);
+  const y=f.controller.position.y;c.tick(.05);assert.ok(f.controller.position.y>y,'detach retains upward motion');
+  const collected=s.collected,broken=s.broken;s.safe={x:150,y:0,z:150};
+  f.controller.warp(line.a);c.resetTraversal(f.controller.position);
+  assert.equal(s.cooldown,0);assert.equal(s.ride,null);assert.equal(s.vy,0);assert.equal(s.safe.z,100);
+  assert.equal(s.collected,collected);assert.equal(s.broken,broken,'in-match reset does not respawn looted crates');
+  f.press('interact');assert.equal(s.mode,'zip','reset permits another boarding');
 });
 // Startup markers bracket real awaits/construction; ready follows the draw and snapshot installation.
 {

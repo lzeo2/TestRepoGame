@@ -58,6 +58,8 @@ function fallback(lanes = [{ id: 'graft', x: -240 }, { id: 'midway', x: 0 }, { i
 export function createSystems(world) {
   if (world !== undefined && (!world || typeof world !== 'object')) throw new TypeError('world must be an object');
   const data = world ?? fallback();
+  const boxes = data.boxes ?? [], ramps = data.ramps ?? []; // Keep the host's mutable cover array.
+  if (!Array.isArray(boxes) || !Array.isArray(ramps)) throw new TypeError('world cover must be arrays');
   if (!Array.isArray(data.lanes) || data.lanes.length !== 3) throw new TypeError('three lanes required');
   const laneIds = new Set();
   const lanes = data.lanes.map(l => {
@@ -80,7 +82,7 @@ export function createSystems(world) {
   const middle = lanes.find(l => l.id === 'midway') ?? [...lanes].sort((a, b) => Math.abs(a.x) - Math.abs(b.x))[0];
   const structures = spawns.filter(s => s.type !== 'patron' || s.lane === middle.id).map(s => ({
     ...s, kind: 'structure', position: copy(s.position), hp: HEALTH[s.type], maxHp: HEALTH[s.type], alive: true,
-    armor: 0.25, vulnerable: false, patronPhase: s.type === 'patron' ? 1 : undefined, nextAttack: 0
+    armor: 0.25, vulnerable: false, patronPhase: s.type === 'patron' ? 1 : undefined, nextAttack: 0, pendingAttack: null
   }));
   const bases = {}, retreatRings = [];
   for (const team of TEAMS) {
@@ -128,6 +130,45 @@ export function createSystems(world) {
       if(hit!==null&&hit<fraction){nearest=panel;fraction=hit;}
     }
     return nearest;
+  }
+  function worldLineClear(source, target, origin = source.position) {
+    if (!boxes.length && !ramps.length) return true;
+    const from = { ...origin, y: origin.y + .9 }, to = { ...target.position, y: target.position.y + .9 };
+    if (target.kind === 'panel') {
+      const face = panelSegment(from, to, target.bounds);
+      if (face !== null) for (const axis of ['x','y','z']) to[axis] = from[axis] + (to[axis]-from[axis])*face;
+    }
+    const minX=Math.min(from.x,to.x),maxX=Math.max(from.x,to.x),minY=Math.min(from.y,to.y),maxY=Math.max(from.y,to.y),minZ=Math.min(from.z,to.z),maxZ=Math.max(from.z,to.z);
+    for (const box of boxes) {
+      if(maxX<box.minX||minX>box.maxX||maxY<box.minY||minY>box.maxY||maxZ<box.minZ||minZ>box.maxZ)continue;
+      // Live destructible panels use the existing interception/ownership path.
+      if (box.panelTarget) continue;
+      const ownPlatform = actor => actor.kind === 'structure' && actor.type === 'guardian' &&
+        box.id === `${actor.team}-${actor.lane}-approach` && box.maxY <= actor.position.y;
+      if (ownPlatform(source) || ownPlatform(target)) continue;
+      if (panelSegment(from, to, box) !== null) return false;
+    }
+    for (const ramp of ramps) {
+      // Conservative broad phase only; retain the exact rotated slab test below.
+      if(maxX<ramp.minX-.2||minX>ramp.maxX+.2||maxZ<ramp.minZ-.2||minZ>ramp.maxZ+.2||maxY<Math.min(ramp.start,ramp.end)-.2||minY>Math.max(ramp.start,ramp.end)+.2)continue;
+      // Same rotated 0.2m slab as traversal collision, not its enclosing AABB.
+      const span = ramp.axis === 'x' ? ramp.maxX-ramp.minX : ramp.maxZ-ramp.minZ;
+      const length = Math.hypot(span, ramp.end-ramp.start), c = span/length, s = (ramp.end-ramp.start)/length;
+      const local = p => {
+        const along = ramp.axis === 'x' ? p.x-(ramp.minX+ramp.maxX)/2 : p.z-(ramp.minZ+ramp.maxZ)/2;
+        const across = ramp.axis === 'x' ? p.z-(ramp.minZ+ramp.maxZ)/2 : p.x-(ramp.minX+ramp.maxX)/2;
+        const y = p.y-(ramp.start+ramp.end)/2+.1;
+        return { x: c*along+s*y, y: -s*along+c*y, z: across };
+      };
+      const width = ramp.axis === 'x' ? ramp.maxZ-ramp.minZ : ramp.maxX-ramp.minX;
+      if (panelSegment(local(from), local(to), { minX:-length/2, maxX:length/2, minY:-.1, maxY:.1, minZ:-width/2, maxZ:width/2 }) !== null) return false;
+    }
+    return true;
+  }
+  function attackVisible(source, target) {
+    if (!boxes.length && !ramps.length && !panels.size) return true;
+    const obstruction = firstPanel({ ...source.position, y:source.position.y+.9 }, { ...target.position, y:target.position.y+.9 }, target.kind === 'panel' ? target.id : null);
+    return (!obstruction || obstruction.team !== source.team) && worldLineClear(source, obstruction ?? target);
   }
   function liveDeployment(key, event) {
     const anchor = deployments.get(key);
@@ -648,7 +689,7 @@ export function createSystems(world) {
     }
     if (event.baseDamage !== d.baseDamage || d.baseDamage <= 0) return fail('invalid base damage');
     const kind = d.damageType === 'weapon' ? 'projectile' : d.role === 'melee' ? 'melee' : 'ability';
-    const result = resolveDamage(target.id, d.baseDamage * multiplier, source.id, kind, range, origin, false);
+    const result = resolveDamage(target.id, d.baseDamage * multiplier, source.id, kind, range, origin, false, d.role !== 'ability');
     if (result.ok && burst) { burst.used.add(event.projectileIndex); burst.counts.set(target.id, (burst.counts.get(target.id) ?? 0) + 1); }
     if (result.ok && !result.intercepted && d.slow && active(target) && !['structure','panel'].includes(target.kind)) putStatus(target.id, source.id, d.key, { until: sim.time + d.slowDuration, slow: d.slow });
     return result;
@@ -688,7 +729,8 @@ export function createSystems(world) {
     emit('orb_drop', { trooperId: t.id, team: source.team, bounty });
   }
   function die(target, source) {
-    target.alive = false; target.hp = 0; target.deathTime = sim.time;
+    target.alive = false; target.hp = 0; target.deathTime = sim.time; target.pendingAttack = null;
+    for (const attacker of [...sim.troopers, ...structures]) if (attacker.pendingAttack?.targetId === target.id) attacker.pendingAttack = null;
     if(target.kind==='panel'){panels.delete(target.id);emit('panel_destroyed',{id:target.id,sourceId:source.id,ownerId:target.sourceId});return;}
     if (['hero','trooper'].includes(target.kind)) for(const [key,anchor] of deployments) if(anchor.linkedTarget===target.id) removeOwnedDeployment(key);
     if (target.kind === 'trooper') dropOrbs(target, source);
@@ -710,6 +752,7 @@ export function createSystems(world) {
       }
       if (target.type === 'patron') {
         sim.winner = source.team; sim.phase = 'finished';
+        for (const attacker of [...sim.troopers, ...structures]) attacker.pendingAttack = null;
         emit('victory', { winner: sim.winner });
       }
       updateVulnerability();
@@ -723,7 +766,7 @@ export function createSystems(world) {
     const range = kind === 'melee' ? 4 : hs?.range ?? (source?.kind === 'structure' ? 28 : 20);
     return resolveDamage(targetId, amount, sourceId, kind, range, source?.position, true);
   }
-  function resolveDamage(targetId, amount, sourceId, kind, range, origin, consumeAmmo) {
+  function resolveDamage(targetId, amount, sourceId, kind, range, origin, consumeAmmo, checkWorld = true) {
     let target = entity(targetId);const source = entity(sourceId);
     if (sim.phase === 'pregame' || sim.phase === 'finished') return fail('match inactive');
     if (!active(target) || !active(source)) return fail('source or target inactive');
@@ -736,6 +779,7 @@ export function createSystems(world) {
       const obstruction=firstPanel({...origin,y:origin.y+.9},{...target.position,y:target.position.y+.9},target.kind==='panel'?target.id:null);
       if(obstruction){if(obstruction.team===source.team)return fail('friendly panel blocks attack');target=obstruction;}
     }
+    if (checkWorld && ['projectile','melee'].includes(kind) && !worldLineClear(source, target, origin)) return fail('world cover blocks attack');
     const protection=status(target.id);
     if (protection.invulnerable) return fail('invulnerable');
     if (protection.parry && kind === 'melee') return fail('parried');
@@ -829,7 +873,7 @@ export function createSystems(world) {
       path.forEach(p => { p.x += offset; });
       sim.troopers.push({ id: nextId('trooper'), kind: 'trooper', team, lane: lane.id, position: copy(path[0]),
         hp: 180, maxHp: 180, alive: true, armor: 0, path, waypoint: 1, nextAttack: sim.time,
-        slowUntil: 0, candleScale: 1, emissiveScale: 1, targetId: null, distanceMarched: 0 });
+        slowUntil: 0, candleScale: 1, emissiveScale: 1, targetId: null, pendingAttack: null, distanceMarched: 0 });
     }
     emit('wave', { number: waveNumber, count: 24 });
   }
@@ -839,12 +883,28 @@ export function createSystems(world) {
     for (const t of list) {
       if (!active(t) || t.team === source.team || hidden(t)) continue;
       const d = distance(source.position, t.position);
-      if (d <= bestDistance) { best = t; bestDistance = d; }
+      if (d <= bestDistance && attackVisible(source, t)) { best = t; bestDistance = d; }
     }
     return best;
   }
   function selectTarget(source, range) {
     return nearest(source, sim.troopers, range) ?? nearest(source, sim.heroes, range) ?? nearest(source, structures.filter(s => s.vulnerable), range);
+  }
+  function updateAttack(source, range, amount) {
+    const target = selectTarget(source, range);
+    source.targetId = target?.id ?? null;
+    if (source.pendingAttack) {
+      const attack = source.pendingAttack;
+      if (target?.id !== attack.targetId) source.pendingAttack = null;
+      else if (sim.time + 1e-9 >= attack.releaseAt) {
+        source.pendingAttack = null;
+        damage(attack.targetId, amount, source.id);
+      }
+    } else if (target && source.nextAttack <= sim.time + 1e-9) {
+      source.pendingAttack = { targetId:target.id, started:sim.time, releaseAt:(tick+7)/20 };
+      source.nextAttack = sim.time+1;
+    }
+    return target;
   }
   function walk(t) {
     let remaining = 8 * H * slowMultiplier(t) * status(t.id).speed;
@@ -947,18 +1007,14 @@ export function createSystems(world) {
       if (sim.phase === 'finished') continue;
       for (const t of sim.troopers) {
         if (!active(t)) continue;
-        const target = selectTarget(t, 20); t.targetId = target?.id ?? null;
+        const target = updateAttack(t, 20, 12);
         if (!target) walk(t);
-        else if (t.nextAttack <= sim.time + 1e-9) {
-          damage(target.id, 12, t.id); t.nextAttack = sim.time + 1;
-        }
         if (sim.phase === 'finished') break;
       }
       if (sim.phase === 'finished') continue;
       for (const s of structures) {
         if (!active(s) || s.type === 'shrine') continue;
-        const target = selectTarget(s, 28); s.targetId = target?.id ?? null;
-        if (target && s.nextAttack <= sim.time + 1e-9) { damage(target.id, s.type === 'walker' ? 28 : 20, s.id); s.nextAttack = sim.time + 1; }
+        updateAttack(s, 28, s.type === 'walker' ? 28 : 20);
       }
       updateOrbs();
       sim.troopers = sim.troopers.filter(t => t.alive || sim.time - t.deathTime < 1);
