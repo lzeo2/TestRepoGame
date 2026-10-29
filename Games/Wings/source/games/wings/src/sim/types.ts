@@ -6,7 +6,8 @@ export type Vec3 = [number, number, number]
 export type Quat = [number, number, number, number]
 
 export type TeamId = 0 | 1 | 2 | 3
-export type VehicleKind = "fighter" | "apache" | "warthog" | "blackbird" | "bomber" | "f15" | "f35"
+export type VehicleKind = "fighter" | "apache" | "warthog" | "blackbird" | "bomber" | "f15" | "f35" | "f16c" | "mig29" | "typhoon" | "su35s" | "rafale" | "jf17" | "gripen" | "mig31" | "mirage2000" | "su34" | "fa50" | "yak130" | "hawkt2" | "su25sm" | "a10c" | "f35a" | "j20" | "tu160" | "ah64d" | "mi28n"
+export type HelicopterKind = "apache" | "ah64d" | "mi28n"
 export type FlightModel = "jet" | "heli"
 export type SeatIndex = 0 | 1
 export type WeaponSlot = "primary" | "secondary"

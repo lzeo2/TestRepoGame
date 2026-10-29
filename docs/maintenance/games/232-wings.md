@@ -4,6 +4,24 @@
 
 ## Identity and status
 
+**Local 20/20 supplied-aircraft integration checkpoint:** source `5b3065df`,
+binding `ed563114`, docs `f98e2529` are being integrated onto reviewed local
+`0736c207`, preserving newer Slipstream/Citisten/Jank/Foldwild work. Only the FULL
+source alternative since `885cbb20` was selected. All20 supplied aircraft and ten
+AI vessel objectives are registered in source, ordinary27, with10 aircraft and5
+objectives per named coalition. This is not player ships, operational carriers,
+verified real-world fits or native acceptance. [Exact source scope/holds](../../wings-ready-integration-handoff.md).
+The original-UI rebuild is26 files/4,122,701bytes, tree SHA256
+`493d45e73a1ff5714ea83b91c613311f7dd3692f35be0364314c1d59fcca07db`,
+byte-identical to the frozen owner build, not copied from stale bundles.
+Independent7 source executables, accepted continuous-clearance checker,3 generated
+checks,35 authored-MJS/12 Python-AST/19 generated syntax checks pass. No browser
+or native retry. Historical random16-kind failure remains failed; current20-kind
+full-pool sampling is unrun. Human input/graphics/listening/performance/rights,
+FC seekers, carrier operations, shared maps/weather and symmetric ASW remain open.
+Canonical Brainrot manual is already restored; source-lane missing001 reports are
+historical, not a current integration blocker. Publication remains separate.
+
 **Quality-mode visibility integration (2026-10-27):** exact source/authoring
 `62412ef5` plus stricter QA readiness `47bf876e` are source-built into the real
 served UI. Independent focused checks pass15 host groups,7 entity/FX/session
@@ -68,10 +86,14 @@ Inspected boundaries do not constitute a complete engine, shader or rights audit
 ## Gameplay and controls
 
 Solo starts offline with no AI aircraft; enemy fleet guns remain active. Bots
-and Custom retain existing match rules/configuration. Hangar keys 1-7 include
-**6 F-15, 7 F-35**; Custom Aircraft selects the actual initial spawn after the
-renderer gate. Original five aircraft and bot weights are preserved; both jets
-have bot weight zero.
+and Custom retain existing match rules/configuration. The earlier published
+seven-kind runtime has **6 F-15, 7 F-35**. The new local source has27 ordinary
+kinds (original7 plus supplied20). Keys1-9 remain shortcuts; arrows/Enter reach
+later rows, including ordinary27 and each named coalition's tenth aircraft.
+Custom Aircraft selects the actual initial spawn after the renderer gate. The
+supplied AH64D/Mi28N use helicopter dynamics/rotors, not jet substitutes. Prior25
+specifications/rigs/audio/cameras remain exact; appended kinds have positive bot
+weights. Current native menu/flight pixels are not accepted by these source facts.
 
 F-15 pilot uses cannon20/aim9; officer uses maverick. F-35 pilot uses
 cannon20/tvmissile; officer uses tvmissile, with existing stealth rules enabled.

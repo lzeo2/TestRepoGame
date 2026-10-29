@@ -5,9 +5,9 @@ const number=(v,lo,hi)=>typeof v==='number'&&Number.isFinite(v)&&v>=lo&&v<=hi;
 const vector=(v,n)=>Array.isArray(v)&&v.length===n&&v.every(x=>number(x,-100000,100000));
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 
-export function createSeaView(T,{parent,models,quality='low',reducedFlashes=true,waterSize=10000}={}) {
+export function createSeaView(T,{parent,models,quality='low',reducedFlashes=true,waterSize=10000,water=true,impacts=true}={}) {
   if(T?.REVISION!=='186'||!parent?.isObject3D||!Object.hasOwn(TIERS,quality)||typeof reducedFlashes!=='boolean'||
-    !number(waterSize,100,20000)||!Array.isArray(models)||!models.length||models.length>12)throw new TypeError('Bounded Three186 sea view options required');
+    typeof water!=='boolean'||typeof impacts!=='boolean'||!number(waterSize,100,20000)||!Array.isArray(models)||!models.length||models.length>12)throw new TypeError('Bounded Three186 sea view options required');
   const descriptors=new Map();
   for(const model of models) {
     if(!model||typeof model.id!=='string'||!model.id||descriptors.has(model.id))throw new TypeError('Unique model descriptor IDs required');
@@ -19,6 +19,15 @@ export function createSeaView(T,{parent,models,quality='low',reducedFlashes=true
   const geometries=[],materials=[],meshes=[],resources=new Set();
   const geometry=g=>(geometries.push(g),resources.add(g),g);
   const material=m=>(materials.push(m),resources.add(m),m);
+  function release() {
+    const errors=[],attempt=fn=>{try{fn();}catch(e){errors.push(e);}};
+    attempt(()=>root.removeFromParent());
+    for(const mesh of meshes)attempt(()=>mesh.removeFromParent());
+    for(const resource of resources)attempt(()=>resource.dispose());
+    resources.clear();geometries.length=0;materials.length=0;meshes.length=0;
+    if(errors.length)throw new AggregateError(errors,'Sea view cleanup failed',{cause:errors[0]});
+  }
+  try {
   function texture(size,normal) {
     const data=new Uint8Array(size*size*4);
     for(let y=0;y<size;y++)for(let x=0;x<size;x++) {
@@ -34,17 +43,20 @@ export function createSeaView(T,{parent,models,quality='low',reducedFlashes=true
       data[k+3]=255;
     }
     const map=new T.DataTexture(data,size,size,T.RGBAFormat,T.UnsignedByteType);
+    resources.add(map);
     map.colorSpace=T.NoColorSpace;map.wrapS=map.wrapT=normal?T.RepeatWrapping:T.ClampToEdgeWrapping;
     map.magFilter=T.LinearFilter;map.minFilter=T.LinearMipmapLinearFilter;map.generateMipmaps=true;map.needsUpdate=true;
     resources.add(map);return map;
   }
-  const ripples=quality==='low'?null:texture(64,true),foamAlpha=texture(32,false);
+  const ripples=!water||quality==='low'?null:texture(64,true),foamAlpha=texture(32,false);
+  if(water) {
   if(ripples)ripples.repeat.set(waterSize/48,waterSize/48);
   const seaGeometry=geometry(new T.PlaneGeometry(1,1));seaGeometry.rotateX(-Math.PI/2);
   const seaMaterial=material(new T.MeshStandardMaterial({color:0x294956,metalness:.12,roughness:quality==='low'?.36:quality==='balanced'?.28:.22,
     normalMap:ripples,normalScale:new T.Vector2(.5,.5)}));
   const sea=new T.Mesh(seaGeometry,seaMaterial);sea.name='fleet-sea-water';sea.scale.set(waterSize,1,waterSize);sea.position.y=-.04;
   root.add(sea);meshes.push(sea);
+  }
   // Tapered strips use a feathered original alpha mask, not opaque white plates.
   const strip=geometry(new T.BufferGeometry());
   strip.setAttribute('position',new T.Float32BufferAttribute([-.18,0,0,.18,0,0,-.5,0,1,.5,0,1],3));
@@ -52,19 +64,21 @@ export function createSeaView(T,{parent,models,quality='low',reducedFlashes=true
   strip.setIndex([0,2,1,1,2,3]);strip.computeVertexNormals();
   const foamMaterial=material(new T.MeshStandardMaterial({color:0xc5d2cf,roughness:.9,metalness:0,side:T.DoubleSide,
     alphaMap:foamAlpha,transparent:true,opacity:.65,alphaTest:.012,depthWrite:false}));
-  const splashGeometry=geometry(new T.CylinderGeometry(.12,1,1,8,1,true));
-  const splashMaterial=material(new T.MeshStandardMaterial({color:0xc2d3d5,roughness:.85,transparent:true,opacity:.65,depthWrite:false,side:T.DoubleSide}));
+  const splashGeometry=impacts?geometry(new T.CylinderGeometry(.12,1,1,8,1,true)):null;
+  const splashMaterial=impacts?material(new T.MeshStandardMaterial({color:0xc2d3d5,roughness:.85,transparent:true,opacity:.65,depthWrite:false,side:T.DoubleSide})):null;
   const smokeGeometry=geometry(new T.IcosahedronGeometry(1,1));
   const smokeMaterial=material(new T.MeshStandardMaterial({color:0x3b3c3a,roughness:1,transparent:true,opacity:.38,depthWrite:false}));
   const fireGeometry=geometry(new T.ConeGeometry(.5,1,6));
   const fireMaterial=material(new T.MeshStandardMaterial({color:0xb65824,emissive:0xa43b12,emissiveIntensity:reducedFlashes?.25:.55,
     roughness:1,transparent:true,opacity:.7,depthWrite:false}));
   function pool(name,g,m,cap) {
-    const mesh=new T.InstancedMesh(g,m,cap);mesh.name=name;mesh.count=0;mesh.frustumCulled=false;
-    mesh.instanceMatrix.setUsage(T.DynamicDrawUsage);root.add(mesh);meshes.push(mesh);resources.add(mesh);return mesh;
+    const mesh=new T.InstancedMesh(g,m,cap);meshes.push(mesh);resources.add(mesh);
+    mesh.name=name;mesh.count=0;mesh.frustumCulled=false;
+    mesh.instanceMatrix.setUsage(T.DynamicDrawUsage);root.add(mesh);return mesh;
   }
-  const foam=pool('fleet-sea-foam',strip,foamMaterial,12*tier.foam),splash=pool('fleet-sea-splashes',splashGeometry,splashMaterial,tier.splashes);
+  const foam=pool('fleet-sea-foam',strip,foamMaterial,12*tier.foam),splash=impacts?pool('fleet-sea-splashes',splashGeometry,splashMaterial,tier.splashes):null;
   const smoke=pool('fleet-sea-smoke',smokeGeometry,smokeMaterial,12*tier.smoke),fire=pool('fleet-sea-fire',fireGeometry,fireMaterial,12);
+  const pools=[foam,splash,smoke,fire].filter(Boolean);
   const dummy=new T.Object3D(),q=new T.Quaternion(),p=new T.Vector3(),fwd=new T.Vector3();
   let disposed=false,busy=false,round=null,lastTick=-1,clock=0,lastEvent=0,states=new Map(),splashes=[],anchors=[];
   const active=()=>{if(disposed)throw new Error('Sea view disposed');};
@@ -78,7 +92,7 @@ export function createSeaView(T,{parent,models,quality='low',reducedFlashes=true
   }
   function render() {
     if(ripples)ripples.offset.set((clock*.006)%1,(clock*.0035)%1);
-    for(const mesh of [foam,splash,smoke,fire])mesh.count=0;
+    for(const mesh of pools)mesh.count=0;
     anchors=[];
     for(const state of states.values()) {
       const d=descriptors.get(state.modelId),atSurface=state.depth==='surfaced'&&state.position[1]+d.min[1]<0&&state.position[1]+d.max[1]>=0;
@@ -109,13 +123,13 @@ export function createSeaView(T,{parent,models,quality='low',reducedFlashes=true
       const age=clock-effect.born,life=clamp(1-age/1.6,0,1);
       put(splash,[effect.position[0],.04+life*.9,effect.position[2]],[1+age*4,.25+life*2.5,1+age*4]);
     }
-    for(const mesh of [foam,splash,smoke,fire])mesh.instanceMatrix.needsUpdate=true;
+    for(const mesh of pools)mesh.instanceMatrix.needsUpdate=true;
   }
   function reset() {
     active();if(busy)throw new Error('Reentrant sea view operation');
     states.clear();splashes=[];anchors=[];round=null;lastTick=-1;clock=0;lastEvent=0;
     if(ripples)ripples.offset.set(0,0);
-    for(const mesh of [foam,splash,smoke,fire])mesh.count=0;
+    for(const mesh of pools)mesh.count=0;
   }
   function update(snapshot) {
     active();if(busy)throw new Error('Reentrant sea view operation');
@@ -155,7 +169,7 @@ export function createSeaView(T,{parent,models,quality='low',reducedFlashes=true
       }
       states=visible;round=snapshot.round;lastTick=snapshot.tick;clock=snapshot.tick*.05;
       splashes=splashes.filter(e=>clock-e.born<1.6);
-      for(const e of snapshot.events) {
+      for(const e of impacts?snapshot.events:[]) {
         if(e.id<=lastEvent)continue;lastEvent=e.id;
         if(e.round!==snapshot.round||e.type!=='impact'||e.medium==='underwater'||e.tick>snapshot.tick||clock-e.tick*.05>=1.6||!vector(e.position,3)||Math.abs(e.position[1])>2)continue;
         const owner=e.unit!=null?states.get(e.unit):states.get(e.source);
@@ -168,20 +182,19 @@ export function createSeaView(T,{parent,models,quality='low',reducedFlashes=true
   }
   function dispose() {
     if(disposed)return;if(busy)throw new Error('Reentrant sea view operation');disposed=true;
-    const errors=[],attempt=fn=>{try{fn();}catch(e){errors.push(e);}};
     states.clear();splashes=[];anchors=[];
-    attempt(()=>root.removeFromParent());
-    for(const mesh of meshes)attempt(()=>mesh.removeFromParent());
-    for(const resource of resources)attempt(()=>resource.dispose());
-    resources.clear();geometries.length=0;materials.length=0;meshes.length=0;
-    if(errors.length)throw new AggregateError(errors,'Sea view cleanup failed',{cause:errors[0]});
+    release();
   }
   function stats() {
-    return {quality,reducedFlashes,disposed,tick:lastTick,round,seconds:clock,units:states.size,
-      counts:{foam:disposed?0:foam.count,splashes:disposed?0:splash.count,smoke:disposed?0:smoke.count,fire:disposed?0:fire.count},
-      caps:{foam:12*tier.foam,splashes:tier.splashes,smoke:12*tier.smoke,fire:12},ownedResources:resources.size,
+    return {quality,reducedFlashes,water,impacts,disposed,tick:lastTick,round,seconds:clock,units:states.size,
+      counts:{foam:disposed?0:foam.count,splashes:disposed?0:(splash?.count??0),smoke:disposed?0:smoke.count,fire:disposed?0:fire.count},
+      caps:{foam:12*tier.foam,splashes:impacts?tier.splashes:0,smoke:12*tier.smoke,fire:12},ownedResources:resources.size,
       anchors:anchors.map(a=>({...a,bow:[...a.bow],stern:[...a.stern],smoke:[...a.smoke]}))};
   }
   parent.add(root);
   return Object.freeze({root,update,reset,dispose,stats});
+  } catch(error) {
+    try {release();}catch(cleanupError){throw new AggregateError([error,cleanupError],'Sea view setup and cleanup failed');}
+    throw error;
+  }
 }

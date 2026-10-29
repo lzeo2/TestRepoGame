@@ -1,14 +1,15 @@
 // CPU/render-state regression of the actual lighting code. No GPU or network.
 import './time-of-day-check'
 import assert from 'node:assert/strict'
-import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
+import { installModelFixture } from './node-model-fixture'
+import { VEHICLE_KINDS } from './src/sim/vehicles'
 import { Color, PerspectiveCamera, Scene, SpotLight, Vector3 } from 'three'
 import { createDaylight } from './src/render/world/daylight'
 import { STORM } from './src/render/world/atmosphere'
 import { SUN_DIRECTION } from './src/render/world/settings'
 import { createLightning, createSky, createCloudLayers } from './src/render/world/sky'
-import { createAircraftView, preloadAircraft, setAircraftGroundQuery } from './src/render/aircraft'
+import { createAircraftView, preloadAircraft, aircraftReady, setAircraftGroundQuery } from './src/render/aircraft'
 import { createPaintMaterial, createGlassMaterial } from './src/render/toon'
 import { createFlightState } from './src/sim/flight'
 import { createWeapons } from './src/sim/combat'
@@ -81,23 +82,11 @@ for (const time of [0, 8, 8, 8.1, 8.4, 27.2, 27.2, 600, 8.1, 0]) {
 assert.equal(notifications, 2, 'no duplicated strikes on repeated sample or rewind')
 stormA.dispose(); stormB.dispose()
 
-// Same local-only file adapter as astra-check; no model/network stand-ins.
-const native = { Request: globalThis.Request, fetch: globalThis.fetch, ProgressEvent: globalThis.ProgressEvent }
-globalThis.Request = class extends native.Request {
-  constructor(input: any, init?: any) { super(typeof input === 'string' ? new URL(input, 'http://wings.invalid').href : input, init) }
-}
-globalThis.ProgressEvent = class extends Event {
-  constructor(type: string, init: any) { super(type); Object.assign(this, init) }
-} as any
-globalThis.fetch = async (input: any) => {
-  const url = new URL(typeof input === 'string' ? input : input.url)
-  assert.equal(url.origin, 'http://wings.invalid')
-  assert(/^\/models\/[a-z0-9-]+\.glb$/.test(url.pathname))
-  const bytes = readFileSync(resolve(process.argv[2] ?? 'Games/Wings/models', url.pathname.split('/').pop()!))
-  return new Response(bytes, { headers: { 'Content-Length': String(bytes.length) } })
-}
+// Same registered-model/PNG-metadata fixture as Astra, never native pixel evidence.
+const restoreModels = installModelFixture(resolve(process.argv[2] ?? 'Games/Wings/models'))
 try {
   await preloadAircraft('http://wings.invalid/')
+  assert(VEHICLE_KINDS.every(aircraftReady), 'every registered aircraft must actually preload')
   setAircraftGroundQuery(() => 0)
   const camera = new PerspectiveCamera()
   camera.position.set(0, 50, 60); camera.updateMatrixWorld()
@@ -150,7 +139,7 @@ try {
     assert(!lamp.parent && !lamp.target.parent && !lamp.visible, 'dispose removes light and target')
   }
 } finally {
-  Object.assign(globalThis, native)
+  restoreModels()
   setAircraftGroundQuery(() => 0)
   lighting.setTime(0)
   lighting.dispose(); sky.dispose(); clouds.dispose(); paint.dispose(); glass.dispose()

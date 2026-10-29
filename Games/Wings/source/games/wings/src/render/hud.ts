@@ -5,9 +5,10 @@ import type { PlayerInfo, TeamId, Vec3, VehicleEntity, WeaponId } from "../sim/t
 import type { ShipState } from "../sim/protocol"
 import { VEHICLES, WEAPONS } from "../sim/vehicles"
 import { WORLD_HALF, segmentHitsGround, terrainHeight } from "../sim/geography"
-import { AA_RANGE, FLEET, type Ship } from "../sim/fleet"
+import { AA_RANGE, FLEET, shipHasAAMounts, type Ship } from "../sim/fleet"
 import { posedFleet, posedShip } from "../sim/geography"
 import { RECON_KINDS, SPOT_CONE, SPOT_DECAY, SPOT_RANGE, SPOT_TIME } from "../sim/combat"
+import { fleetHudCollection, fleetHudMarker, fleetHudRadar, type FleetHudTarget } from "../ui/fleet-hud-targets"
 
 /** Muted team colours (match render/aircraft.ts TEAM_COLORS). */
 export const TEAM_COLORS = ["#3c6ea8", "#c98a2e", "#4e8a5a", "#b04a44"]
@@ -54,6 +55,7 @@ export interface HudFrame {
   weapons: HudWeapon[]
   scores: number[]
   teams: number
+  teamNames?: readonly string[]
   remaining: number | null
   /** Between matches: the timer counts down to the next one. */
   intermission: boolean
@@ -87,6 +89,8 @@ export interface HudFrame {
   ships?: ShipState[]
   /** Local authoritative capital objectives; native carriers remain launch platforms. */
   fleetObjectives?: { team: TeamId; hp: number; maxHp: number; sunk: boolean }[]
+  /** Defined (even when empty) only in Factions; replaces native fleet markers. */
+  fleetTargets?: readonly FleetHudTarget[]
   /** Set while the local player mans a ship turret instead of flying. */
   turret?: { hint?: string; name: string; kind: "ciws" | "gun"; heat: number; overheat: boolean; shipHp: number; turretHp: number | null; pos: Vec3 } | null
   /** Gimbaled gun aim point (world), drawn as the gun circle. */
@@ -270,6 +274,8 @@ export function createHud(parent: HTMLElement): Hud {
   const turHeatBar = new Slot(q(".hud-tur .hb i"))
   const endEl = q(".hud-end")
   const ownPos = (f: HudFrame): Vec3 | null => f.vehicle ? f.vehicle.flight.position : f.turret ? f.turret.pos : null
+  let teamNames: readonly string[] = []
+  const teamName = (t: number) => typeof teamNames[t] === "string" && teamNames[t].trim() ? teamNames[t] : TEAM_NAMES[t]
   let scoreHtml = ""
   const centerMsg = new Slot(q(".hud-center-msg"))
   const banner = q(".hud-banner")
@@ -448,9 +454,9 @@ export function createHud(parent: HTMLElement): Hud {
     ctx.stroke()
     // Fleets: enemy anti-air umbrellas as faint dashed rings; each ship a small hull tick in the team colour.
     const mt = f.me?.team ?? -1
-    for (const sh of posedFleet()) {
+    for (const sh of fleetHudCollection(f.fleetTargets, posedFleet)) {
       const x = (sh.position[0] + WORLD_HALF) * k, y = (sh.position[2] + WORLD_HALF) * k
-      if (sh.team !== mt) {
+      if (f.fleetTargets === undefined && sh.kind !== "surface" && shipHasAAMounts(sh) && sh.team !== mt) {
         ctx.strokeStyle = "rgba(255,122,46,.55)"
         ctx.setLineDash([2, 3])
         ctx.beginPath(); ctx.arc(x, y, AA_RANGE * k, 0, Math.PI * 2); ctx.stroke()
@@ -460,7 +466,7 @@ export function createHud(parent: HTMLElement): Hud {
       ctx.save(); ctx.translate(x, y); ctx.rotate(-sh.heading)
       ctx.fillStyle = TEAM_COLORS[sh.team]; ctx.strokeStyle = "rgba(236,234,228,.9)"; ctx.lineWidth = 1
       ctx.beginPath(); ctx.rect(-W, -L, W * 2, L * 2); ctx.fill(); ctx.stroke()
-      if (sh.team === mt && sh.kind === "carrier") { ctx.strokeStyle = "#eceae4"; ctx.lineWidth = 1.2; ctx.strokeRect(-W - 2.5, -L - 2.5, W * 2 + 5, L * 2 + 5) }
+      if (sh.team === mt && (sh.kind === "carrier" || ("capital" in sh && sh.capital))) { ctx.strokeStyle = "#eceae4"; ctx.lineWidth = 1.2; ctx.strokeRect(-W - 2.5, -L - 2.5, W * 2 + 5, L * 2 + 5) }
       ctx.restore()
     }
     const myTeam = f.me?.team ?? -1
@@ -537,6 +543,15 @@ export function createHud(parent: HTMLElement): Hud {
       ctx.strokeStyle = "rgba(8,12,12,.7)"; ctx.lineWidth = 1; ctx.stroke()
       if (spotted) { ctx.strokeStyle = "#ff7a2e"; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(x, y, 6, 0, Math.PI * 2); ctx.stroke() }
     }
+    // Safe surface targets only. Contacts are not exact submarine tracks.
+    for (const sh of f.fleetTargets ?? []) {
+      const point = fleetHudRadar(sh, me, hd, R, RADAR_RANGE)
+      ctx.save(); ctx.translate(c + point.x, c + point.y); ctx.rotate(point.rotation)
+      ctx.fillStyle = TEAM_TINTS[sh.team]
+      const L = sh.capital ? 4 : 3
+      ctx.fillRect(-1.5, -L, 3, L * 2)
+      ctx.restore()
+    }
     ctx.fillStyle = "#eceae4"
     ctx.beginPath(); ctx.moveTo(c, c - 6); ctx.lineTo(c + 4, c + 4); ctx.lineTo(c, c + 2); ctx.lineTo(c - 4, c + 4); ctx.closePath(); ctx.fill()
   }
@@ -546,7 +561,7 @@ export function createHud(parent: HTMLElement): Hud {
     for (const p of f.players.values()) if (p.team < f.teams) teams[p.team].push(p)
     board.innerHTML = teams.map((list, t) => {
       list.sort((a, b) => b.kills - a.kills || a.deaths - b.deaths)
-      return `<div class="team${t === (f.me?.team ?? -1) ? " mine" : ""}" style="--c:${TEAM_COLORS[t]}"><h3><span>${TEAM_NAMES[t]}</span><b>${f.scores[t] ?? 0}</b></h3>
+      return `<div class="team${t === (f.me?.team ?? -1) ? " mine" : ""}" style="--c:${TEAM_COLORS[t]}"><h3><span>${esc(teamName(t))}</span><b>${f.scores[t] ?? 0}</b></h3>
         <table><tr><th>Pilot</th><th>K</th><th>D</th></tr>${list.map(p =>
           `<tr class="${p.id === f.myId ? "me" : ""}"><td>${esc(p.name.toLowerCase())}${p.id === f.myId ? '<em>you</em>' : ""}${p.bot ? '<em>bot</em>' : ""}</td><td>${p.kills}</td><td>${p.deaths}</td></tr>`).join("") || `<tr><td class="none" colspan="3">no pilots</td></tr>`}</table></div>`
     }).join("")
@@ -555,6 +570,7 @@ export function createHud(parent: HTMLElement): Hud {
   return {
     root,
     update(f) {
+      teamNames = Array.isArray(f.teamNames) ? [...f.teamNames] : []
       frame++
       const cam = f.camera
       lastCam = cam
@@ -717,8 +733,20 @@ export function createHud(parent: HTMLElement): Hud {
       const hpFrac = f.vehicle ? f.vehicle.hp / f.vehicle.maxHp : 1
       const noMissiles = f.weapons.some(w => WEAPONS[w.id].kind.startsWith("missile")) && f.weapons.every(w => !WEAPONS[w.id].kind.startsWith("missile") || w.ammo === 0)
       const needHome = hpFrac < 0.3 || noMissiles
-      for (const m of shipMk) {
-        const sh = posedShip(m.sh.id)
+      const hulls = fleetHudCollection(f.fleetTargets, () => shipMk.map(m => posedShip(m.sh.id)))
+      for (let i = 0; i < shipMk.length; i++) {
+        const m = shipMk[i]
+        const sh = hulls[i]
+        if (f.fleetTargets !== undefined) {
+          const target = f.fleetTargets[i]
+          if (!target || !flying || target.team >= f.teams) { m.tf.setTransform(HIDDEN); continue }
+          const marker = fleetHudMarker(target, [_cam.x, _cam.y, _cam.z], myTeam)
+          if (marker.distance > 9000 || !project(marker.position, cam) || Math.abs(_v.x) > 1 || Math.abs(_v.y) > 1) { m.tf.setTransform(HIDDEN); continue }
+          m.cls.setClass(`shp${marker.own ? " own" : ""}`)
+          m.tf.setTransform(`translate3d(${Math.round(sx())}px,${Math.round(sy())}px,0)`)
+          m.ds.setText(marker.label)
+          continue
+        }
         if (!sh || sh.team >= f.teams || !flying) { m.tf.setTransform(HIDDEN); continue }
         const own = sh.team === myTeam
         const p: Vec3 = [sh.position[0], 30, sh.position[2]]
@@ -726,7 +754,7 @@ export function createHud(parent: HTMLElement): Hud {
         // Own carrier: only when far (> 3 km) or when you'd want to head home (hull < 30% / no missiles).
         const wantHome = own && sh.kind === "carrier" && (d > 3000 || needHome)
         if ((own && !wantHome) || (!own && d > 9000) || !project(p, cam) || Math.abs(_v.x) > 1 || Math.abs(_v.y) > 1) { m.tf.setTransform(HIDDEN); continue }
-        m.cls.setClass(`shp${own ? " own" : ""}${!own && d < AA_RANGE ? " hot" : ""}`)
+        m.cls.setClass(`shp${own ? " own" : ""}${!own && shipHasAAMounts(sh) && d < AA_RANGE ? " hot" : ""}`)
         m.tf.setTransform(`translate3d(${Math.round(sx())}px,${Math.round(sy())}px,0)`)
         // Distance only on carriers and on escorts that are close (keeps the fleet from cluttering the centre).
         const label = own || sh.kind === "carrier" || d < AA_RANGE * 1.5
@@ -881,7 +909,7 @@ export function createHud(parent: HTMLElement): Hud {
             const pct = Math.max(0, st.hp / st.maxHp)
             byTeam[st.team].push(`<i class="cb${st.sunk ? " sunk" : ""}${pct < 0.3 && !st.sunk ? " low" : ""}"><b style="width:${(pct * 100).toFixed(0)}%"></b></i>`)
           }
-          oh = byTeam.map((bars, t) => `<span class="ot${t === myTeam ? " mine" : ""}" style="--c:${TEAM_TINTS[t]}"><em>${TEAM_NAMES[t].toLowerCase()}</em>${bars.join("")}</span>`).join("")
+          oh = byTeam.map((bars, t) => `<span class="ot${t === myTeam ? " mine" : ""}" style="--c:${TEAM_TINTS[t]}"><em>${esc(teamName(t).toLowerCase())}</em>${bars.join("")}</span>`).join("")
         }
         if (oh !== objHtml) { objHtml = oh; objEl.innerHTML = oh }
       }
@@ -915,7 +943,7 @@ export function createHud(parent: HTMLElement): Hud {
       endEl.className = `hud-end show ${result}`
       endEl.querySelector(".r")!.textContent = result === "victory" ? "Victory" : result === "defeat" ? "Defeat" : "Draw"
       endEl.querySelector(".why")!.textContent = reason
-      endEl.querySelector(".nx")!.textContent = winner !== null ? `${TEAM_NAMES[winner].toLowerCase()} fleet holds the sea · next match soon` : "next match soon"
+      endEl.querySelector(".nx")!.textContent = winner !== null ? `${teamName(winner).toLowerCase()} fleet holds the sea · next match soon` : "next match soon"
       clearTimeout((endEl as unknown as { _t: number })._t)
       ;(endEl as unknown as { _t: number })._t = window.setTimeout(() => endEl.classList.remove("show"), 9000)
     },

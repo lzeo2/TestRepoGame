@@ -1,0 +1,164 @@
+{
+  "model_id": "wings.original.jas-39c-gripen.v1",
+  "model_file": "models/jas-39c-gripen.glb",
+  "unit": "meter",
+  "axes": {
+    "up": "+Y",
+    "forward": "+Z",
+    "right": "+X"
+  },
+  "controls": [
+    {
+      "node": "elevon_L",
+      "parent": "vehicle_root",
+      "pivot_world_m": [
+        -0.6000000238418579,
+        -0.10000000149011612,
+        -3.630000114440918
+      ],
+      "suggested_local_rotation_axis": [
+        1,
+        0,
+        0
+      ],
+      "purpose": "separate trailing panel; no duplicate fixed surface beneath",
+      "rest_node_transform": {
+        "translation": [
+          -0.6000000238418579,
+          -0.10000000149011612,
+          -3.630000114440918
+        ]
+      },
+      "influenced_mesh_nodes": [
+        "elevon_L"
+      ]
+    },
+    {
+      "node": "canard_L",
+      "parent": "vehicle_root",
+      "pivot_world_m": [
+        -0.5299999713897705,
+        0.4699999988079071,
+        2.3499999046325684
+      ],
+      "suggested_local_rotation_axis": [
+        1,
+        0,
+        0
+      ],
+      "purpose": "separate all-moving visual surface; no fixed duplicate",
+      "rest_node_transform": {
+        "translation": [
+          -0.5299999713897705,
+          0.4699999988079071,
+          2.3499999046325684
+        ]
+      },
+      "influenced_mesh_nodes": [
+        "canard_L"
+      ]
+    },
+    {
+      "node": "elevon_R",
+      "parent": "vehicle_root",
+      "pivot_world_m": [
+        0.6000000238418579,
+        -0.10000000149011612,
+        -3.630000114440918
+      ],
+      "suggested_local_rotation_axis": [
+        1,
+        0,
+        0
+      ],
+      "purpose": "separate trailing panel; no duplicate fixed surface beneath",
+      "rest_node_transform": {
+        "translation": [
+          0.6000000238418579,
+          -0.10000000149011612,
+          -3.630000114440918
+        ]
+      },
+      "influenced_mesh_nodes": [
+        "elevon_R"
+      ]
+    },
+    {
+      "node": "canard_R",
+      "parent": "vehicle_root",
+      "pivot_world_m": [
+        0.5299999713897705,
+        0.4699999988079071,
+        2.3499999046325684
+      ],
+      "suggested_local_rotation_axis": [
+        1,
+        0,
+        0
+      ],
+      "purpose": "separate all-moving visual surface; no fixed duplicate",
+      "rest_node_transform": {
+        "translation": [
+          0.5299999713897705,
+          0.4699999988079071,
+          2.3499999046325684
+        ]
+      },
+      "influenced_mesh_nodes": [
+        "canard_R"
+      ]
+    },
+    {
+      "node": "rudder_1",
+      "parent": "vehicle_root",
+      "pivot_world_m": [
+        0.0,
+        0.47999998927116394,
+        -5.659999847412109
+      ],
+      "suggested_local_rotation_axis": [
+        0,
+        1,
+        0
+      ],
+      "purpose": "nonoverlapping visual rudder with approximate hinge",
+      "rest_node_transform": {
+        "translation": [
+          0,
+          0.47999998927116394,
+          -5.659999847412109
+        ]
+      },
+      "influenced_mesh_nodes": [
+        "rudder_1"
+      ]
+    },
+    {
+      "node": "canopy",
+      "parent": "vehicle_root",
+      "pivot_world_m": [
+        0.0,
+        0.5400000214576721,
+        2.1449999809265137
+      ],
+      "suggested_local_rotation_axis": [
+        1,
+        0,
+        0
+      ],
+      "purpose": "visual canopy pivot, simplified glazing; cockpit not detailed",
+      "rest_node_transform": {
+        "translation": [
+          0,
+          0.5400000214576721,
+          2.1449999809265137
+        ]
+      },
+      "influenced_mesh_nodes": [
+        "canopy"
+      ]
+    }
+  ],
+  "animations_included": [],
+  "integration_note": "Direct rigid-node transform suggestions only. Preserve rest transforms and hierarchy. No constraints, physics, mechanical limit guarantee or gameplay behavior."
+}

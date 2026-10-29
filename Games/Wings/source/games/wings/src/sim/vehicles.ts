@@ -1,5 +1,43 @@
 // Vehicle + weapon tuning tables. Owned by the orchestrator; agents may propose numbers.
 import type { FlightModel, VehicleKind, WeaponId, Vec3 } from "./types"
+import fighterPair from "../../../../../authoring/native-fighter-pair.json" with { type: "json" }
+import helicopterPair from "../../../../../authoring/native-helicopter-pair.json" with { type: "json" }
+import bomberModels from "../../../../../authoring/native-tu160.json" with { type: "json" }
+
+interface NativeFighterModel {
+  source_model_id: string
+  source_sha256: string
+  file: string
+  sha256: string
+  bounds: { min: Vec3; max: Vec3 }
+  hardpoints: { gun: Vec3; missiles: [[Vec3, Vec3], [Vec3, Vec3]] }
+  cockpit: Vec3
+  /** false opts out of native afterburner VFX, not real engine capability. */
+  afterburning?: boolean
+  exhausts: { node: string; anchor: string; position: Vec3 }[]
+  controls: { node: string; axis: "x" | "y" | "z"; driver: "pitch" | "roll" | "yaw"; gain: number; pitch_gain?: number; max_rad: number }[]
+  native_pivots: string[]
+}
+
+export type NativeFighterKind = "f16c" | "mig29" | "typhoon" | "su35s" | "rafale" | "jf17" | "gripen" | "mig31" | "mirage2000" | "su34" | "fa50" | "yak130" | "hawkt2" | "su25sm" | "a10c" | "f35a" | "j20"
+export const NATIVE_FIGHTER_MODELS = fighterPair.models as Record<NativeFighterKind, NativeFighterModel>
+export const NATIVE_BOMBER_MODELS = bomberModels.models as unknown as Record<"tu160", Omit<NativeFighterModel, "hardpoints"> & { hardpoints: { bombs: Vec3[] }; frozen_nodes: string[] }>
+
+export type NativeHelicopterKind = "ah64d" | "mi28n"
+interface NativeHelicopterModel {
+  source_model_id: string
+  source_sha256: string
+  file: string
+  sha256: string
+  /** Full rotor-swept envelope, not just the parked-blade pose. */
+  bounds: { min: Vec3; max: Vec3 }
+  cockpit: Vec3
+  hardpoints: { rockets: Vec3[]; missiles: [Vec3[], Vec3[]] }
+  rotors: { node: string; axis: "x" | "y" | "z"; speed: number; driver: "rotor" }[]
+  native_pivots: string[]
+  exhausts: []
+}
+export const NATIVE_HELICOPTER_MODELS = helicopterPair.models as Record<NativeHelicopterKind, NativeHelicopterModel>
 
 /**
  * gun / rockets: fire while held.
@@ -61,7 +99,7 @@ export interface VehicleSpec {
   /** Stealth airframe (see STEALTH_* rules). */
   stealth?: boolean
   /** Model-derived local launch points; original aircraft retain their existing rails. */
-  hardpoints?: { gun: Vec3; missiles: [[Vec3, Vec3], [Vec3, Vec3]] }
+  hardpoints?: { gun?: Vec3; missiles?: [Vec3[], Vec3[]]; rockets?: Vec3[]; bombs?: Vec3[] }
 }
 
 export const WEAPONS: Record<WeaponId, WeaponSpec> = {
@@ -89,7 +127,7 @@ export const STEALTH_AA_CEILING = 600
 export const STEALTH_LOCK_TIME = 4
 export const STEALTH_LOCK_SPOT = 8
 
-const ORIGINAL_VEHICLES: Record<Exclude<VehicleKind, "f15" | "f35">, VehicleSpec> = {
+const ORIGINAL_VEHICLES: Record<Exclude<VehicleKind, "f15" | "f35" | "tu160" | NativeFighterKind | NativeHelicopterKind>, VehicleSpec> = {
   fighter: {
     kind: "fighter", name: "F/A-18F Super Hornet", model: "models/fa18.glb", flight: "jet",
     maxHp: 450, radius: 8, cruise: 135, boost: 185, stall: 55,
@@ -151,6 +189,187 @@ export const VEHICLES: Record<VehicleKind, VehicleSpec> = {
       ],
     },
   },
+  // Approved arcade proposals, not real performance or operational weapon fits.
+  f16c: {
+    ...ORIGINAL_VEHICLES.fighter,
+    kind: "f16c", name: "F-16C", model: NATIVE_FIGHTER_MODELS.f16c.file,
+    cruise: 150, boost: 210,
+    seatWeapons: [["cannon20", "aim9"], ["maverick", null]],
+    hardpoints: NATIVE_FIGHTER_MODELS.f16c.hardpoints,
+  },
+  mig29: {
+    ...ORIGINAL_VEHICLES.fighter,
+    kind: "mig29", name: "MiG-29", model: NATIVE_FIGHTER_MODELS.mig29.file,
+    cruise: 145, boost: 205,
+    // cannon20 reuses native arcade mechanics, not a MiG gun-caliber claim.
+    seatWeapons: [["cannon20", "aim9"], ["aim9", null]],
+    hardpoints: NATIVE_FIGHTER_MODELS.mig29.hardpoints,
+  },
+  typhoon: {
+    ...ORIGINAL_VEHICLES.fighter,
+    kind: "typhoon", name: "Eurofighter Typhoon", model: NATIVE_FIGHTER_MODELS.typhoon.file,
+    cruise: 155, boost: 215, stall: 60,
+    radius: Math.max(...NATIVE_FIGHTER_MODELS.typhoon.bounds.max.map((v, i) => v - NATIVE_FIGHTER_MODELS.typhoon.bounds.min[i])) / 2,
+    seatWeapons: [["cannon20", "aim9"], ["tvmissile", null]],
+    hardpoints: NATIVE_FIGHTER_MODELS.typhoon.hardpoints,
+  },
+  su35s: {
+    ...ORIGINAL_VEHICLES.fighter,
+    kind: "su35s", name: "Su-35S", model: NATIVE_FIGHTER_MODELS.su35s.file,
+    cruise: 155, boost: 215,
+    radius: Math.max(...NATIVE_FIGHTER_MODELS.su35s.bounds.max.map((v, i) => v - NATIVE_FIGHTER_MODELS.su35s.bounds.min[i])) / 2,
+    // Four visible stores: two air-to-air and two strike rounds, not the proposed six.
+    seatWeapons: [["cannon20", "tvmissile"], ["maverick", null]],
+    hardpoints: NATIVE_FIGHTER_MODELS.su35s.hardpoints,
+  },
+  rafale: {
+    ...ORIGINAL_VEHICLES.fighter,
+    kind: "rafale", name: "Rafale C", model: NATIVE_FIGHTER_MODELS.rafale.file,
+    cruise: 145, boost: 200,
+    radius: Math.max(...NATIVE_FIGHTER_MODELS.rafale.bounds.max.map((v, i) => v - NATIVE_FIGHTER_MODELS.rafale.bounds.min[i])) / 2,
+    seatWeapons: [["cannon20", "aim9"], ["maverick", null]],
+    hardpoints: NATIVE_FIGHTER_MODELS.rafale.hardpoints,
+  },
+  jf17: {
+    ...ORIGINAL_VEHICLES.fighter,
+    kind: "jf17", name: "JF-17 Block III", model: NATIVE_FIGHTER_MODELS.jf17.file,
+    cruise: 135, boost: 190,
+    radius: Math.max(...NATIVE_FIGHTER_MODELS.jf17.bounds.max.map((v, i) => v - NATIVE_FIGHTER_MODELS.jf17.bounds.min[i])) / 2,
+    seatWeapons: [["cannon20", "aim9"], ["maverick", null]],
+    hardpoints: NATIVE_FIGHTER_MODELS.jf17.hardpoints,
+  },
+  gripen: {
+    ...ORIGINAL_VEHICLES.fighter,
+    kind: "gripen", name: "JAS 39C Gripen", model: NATIVE_FIGHTER_MODELS.gripen.file,
+    cruise: 140, boost: 195, stall: 50,
+    radius: Math.max(...NATIVE_FIGHTER_MODELS.gripen.bounds.max.map((v, i) => v - NATIVE_FIGHTER_MODELS.gripen.bounds.min[i])) / 2,
+    seatWeapons: [["cannon20", "aim9"], ["maverick", null]],
+    hardpoints: NATIVE_FIGHTER_MODELS.gripen.hardpoints,
+  },
+  mig31: {
+    ...ORIGINAL_VEHICLES.fighter,
+    kind: "mig31", name: "MiG-31BM", model: NATIVE_FIGHTER_MODELS.mig31.file,
+    cruise: 185, boost: 250, stall: 70,
+    radius: Math.max(...NATIVE_FIGHTER_MODELS.mig31.bounds.max.map((v, i) => v - NATIVE_FIGHTER_MODELS.mig31.bounds.min[i])) / 2,
+    seatWeapons: [["cannon20", "aim9"], ["tvmissile", null]],
+    hardpoints: NATIVE_FIGHTER_MODELS.mig31.hardpoints,
+  },
+  mirage2000: {
+    ...ORIGINAL_VEHICLES.fighter,
+    kind: "mirage2000", name: "Mirage 2000C", model: NATIVE_FIGHTER_MODELS.mirage2000.file,
+    cruise: 145, boost: 205, stall: 58,
+    radius: Math.max(...NATIVE_FIGHTER_MODELS.mirage2000.bounds.max.map((v, i) => v - NATIVE_FIGHTER_MODELS.mirage2000.bounds.min[i])) / 2,
+    seatWeapons: [["cannon20", "aim9"], ["tvmissile", null]],
+    hardpoints: NATIVE_FIGHTER_MODELS.mirage2000.hardpoints,
+  },
+  su34: {
+    ...ORIGINAL_VEHICLES.fighter,
+    kind: "su34", name: "Su-34", model: NATIVE_FIGHTER_MODELS.su34.file,
+    cruise: 140, boost: 190, stall: 65, maxHp: 550,
+    radius: Math.max(...NATIVE_FIGHTER_MODELS.su34.bounds.max.map((v, i) => v - NATIVE_FIGHTER_MODELS.su34.bounds.min[i])) / 2,
+    seatWeapons: [["cannon20", "aim9"], ["maverick", null]],
+    hardpoints: NATIVE_FIGHTER_MODELS.su34.hardpoints,
+  },
+  fa50: {
+    ...ORIGINAL_VEHICLES.fighter,
+    kind: "fa50", name: "FA-50", model: NATIVE_FIGHTER_MODELS.fa50.file,
+    cruise: 130, boost: 180, stall: 50,
+    radius: Math.max(...NATIVE_FIGHTER_MODELS.fa50.bounds.max.map((v, i) => v - NATIVE_FIGHTER_MODELS.fa50.bounds.min[i])) / 2,
+    seatWeapons: [["cannon20", "aim9"], ["tvmissile", null]],
+    hardpoints: NATIVE_FIGHTER_MODELS.fa50.hardpoints,
+  },
+  yak130: {
+    ...ORIGINAL_VEHICLES.fighter,
+    kind: "yak130", name: "Yak-130", model: NATIVE_FIGHTER_MODELS.yak130.file,
+    // Native boost is an arcade acceleration aid, not a real afterburner.
+    cruise: 105, boost: 140, stall: 45,
+    radius: Math.max(...NATIVE_FIGHTER_MODELS.yak130.bounds.max.map((v, i) => v - NATIVE_FIGHTER_MODELS.yak130.bounds.min[i])) / 2,
+    seatWeapons: [["cannon20", "aim9"], ["maverick", null]],
+    hardpoints: NATIVE_FIGHTER_MODELS.yak130.hardpoints,
+  },
+  hawkt2: {
+    ...ORIGINAL_VEHICLES.fighter,
+    kind: "hawkt2", name: "Hawk T2", model: NATIVE_FIGHTER_MODELS.hawkt2.file,
+    // Native boost is an arcade power aid, not a real afterburner.
+    cruise: 95, boost: 125, stall: 42,
+    radius: Math.max(...NATIVE_FIGHTER_MODELS.hawkt2.bounds.max.map((v, i) => v - NATIVE_FIGHTER_MODELS.hawkt2.bounds.min[i])) / 2,
+    seatWeapons: [["cannon20", "aim9"], ["maverick", null]],
+    hardpoints: NATIVE_FIGHTER_MODELS.hawkt2.hardpoints,
+  },
+  su25sm: {
+    ...ORIGINAL_VEHICLES.fighter,
+    kind: "su25sm", name: "Su-25SM", model: NATIVE_FIGHTER_MODELS.su25sm.file,
+    // Ground-attack arcade proposal, not measured SM performance or certified armor.
+    // Boost is a native power aid, not an afterburner; cannon20 is not a caliber claim.
+    cruise: 100, boost: 130, stall: 44, maxHp: 550,
+    radius: Math.max(...NATIVE_FIGHTER_MODELS.su25sm.bounds.max.map((v, i) => v - NATIVE_FIGHTER_MODELS.su25sm.bounds.min[i])) / 2,
+    seatWeapons: [["cannon20", "aim9"], ["maverick", null]],
+    hardpoints: NATIVE_FIGHTER_MODELS.su25sm.hardpoints,
+  },
+  a10c: {
+    ...ORIGINAL_VEHICLES.fighter,
+    kind: "a10c", name: "A-10C", model: NATIVE_FIGHTER_MODELS.a10c.file,
+    // Conservative ground-attack arcade proposal, not measured C performance or certified armor.
+    // Boost is a power aid, not afterburning. The generic source barrel is not a rotary GAU-8 rig.
+    cruise: 90, boost: 115, stall: 42, maxHp: 600,
+    radius: Math.max(...NATIVE_FIGHTER_MODELS.a10c.bounds.max.map((v, i) => v - NATIVE_FIGHTER_MODELS.a10c.bounds.min[i])) / 2,
+    seatWeapons: [["gau8", "aim9"], ["maverick", null]],
+    hardpoints: NATIVE_FIGHTER_MODELS.a10c.hardpoints,
+  },
+  f35a: {
+    ...ORIGINAL_VEHICLES.fighter,
+    kind: "f35a", name: "F-35A", model: NATIVE_FIGHTER_MODELS.f35a.file,
+    // Land-based A arcade proposal, not certified performance or an operational fit.
+    // Four external generic stores; no stealth. Real afterburning is not modeled here.
+    cruise: 145, boost: 200, stall: 55, maxHp: 450,
+    radius: Math.max(...NATIVE_FIGHTER_MODELS.f35a.bounds.max.map((v, i) => v - NATIVE_FIGHTER_MODELS.f35a.bounds.min[i])) / 2,
+    seatWeapons: [["cannon20", "aim9"], ["tvmissile", null]],
+    hardpoints: NATIVE_FIGHTER_MODELS.f35a.hardpoints,
+  },
+  j20: {
+    ...ORIGINAL_VEHICLES.fighter,
+    kind: "j20", name: "J-20", model: NATIVE_FIGHTER_MODELS.j20.file,
+    // Long-fighter arcade proposal, not certified performance or an operational fit.
+    // Four external generic stores and under-nose gun adapter, not verified real armament.
+    // No stealth or bays; real engine afterburning is not modeled.
+    cruise: 160, boost: 220, stall: 60, maxHp: 450,
+    radius: Math.max(...NATIVE_FIGHTER_MODELS.j20.bounds.max.map((v, i) => v - NATIVE_FIGHTER_MODELS.j20.bounds.min[i])) / 2,
+    seatWeapons: [["cannon20", "tvmissile"], ["maverick", null]],
+    hardpoints: NATIVE_FIGHTER_MODELS.j20.hardpoints,
+  },
+  tu160: {
+    kind: "tu160", name: "Tu-160", model: NATIVE_BOMBER_MODELS.tu160.file, flight: "jet",
+    // Conservative heavy-bomber arcade tuning, not certified performance or an operational fit.
+    // Eight external generic bombs share one native load; no gun, stealth, bays or animated sweep.
+    cruise: 155, boost: 210, stall: 65, maxHp: 800,
+    radius: Math.max(...NATIVE_BOMBER_MODELS.tu160.bounds.max.map((v, i) => v - NATIVE_BOMBER_MODELS.tu160.bounds.min[i])) / 2,
+    seatWeapons: [["bomb", null], ["bomb", null]], flares: 10,
+    seatNames: ["Pilot", "Bombardier"], hardpoints: NATIVE_BOMBER_MODELS.tu160.hardpoints,
+  },
+  ah64d: {
+    ...ORIGINAL_VEHICLES.apache,
+    kind: "ah64d", name: "AH-64D", model: NATIVE_HELICOPTER_MODELS.ah64d.file,
+    // Conservative arcade proposals, not measured performance or a certified fit.
+    cruise: 70, boost: 92, maxHp: 550,
+    radius: Math.max(...NATIVE_HELICOPTER_MODELS.ah64d.bounds.max.map((v, i) => v - NATIVE_HELICOPTER_MODELS.ah64d.bounds.min[i])) / 2,
+    seatWeapons: [["rockets", null], ["hellfire", null]],
+    hardpoints: NATIVE_HELICOPTER_MODELS.ah64d.hardpoints,
+  },
+  mi28n: {
+    ...ORIGINAL_VEHICLES.apache,
+    kind: "mi28n", name: "Mi-28N", model: NATIVE_HELICOPTER_MODELS.mi28n.file,
+    cruise: 68, boost: 90, maxHp: 600,
+    radius: Math.max(...NATIVE_HELICOPTER_MODELS.mi28n.bounds.max.map((v, i) => v - NATIVE_HELICOPTER_MODELS.mi28n.bounds.min[i])) / 2,
+    // Hellfire is a fictional arcade fit, not real Mi-28N weapon compatibility.
+    seatWeapons: [["rockets", null], ["hellfire", null]],
+    hardpoints: NATIVE_HELICOPTER_MODELS.mi28n.hardpoints,
+  },
+
 }
 
 export const VEHICLE_KINDS = Object.keys(VEHICLES) as VehicleKind[]
+
+/** Bomb UI and ordinary bomber AI follow the fitted native weapon, not the artwork name. */
+export function hasBombLoad(kind: VehicleKind | undefined): boolean {
+  return !!kind && VEHICLES[kind].seatWeapons.some(seat => seat.some(id => id !== null && WEAPONS[id].kind === "bomb"))
+}

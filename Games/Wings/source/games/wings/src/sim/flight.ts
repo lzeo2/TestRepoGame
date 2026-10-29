@@ -12,9 +12,9 @@
 //
 // Body axes: nose = -Z, up = +Y, right = +X. angularVelocity is body-space, right-handed:
 //   x > 0 nose up, y > 0 nose left, z > 0 roll left.
-import type { FlightInput, FlightState, Quat, Vec3, VehicleKind, WorldQuery } from "./types"
+import type { FlightInput, FlightState, Quat, Vec3, VehicleKind, HelicopterKind, WorldQuery } from "./types"
 import { WATER_LEVEL, type SpawnPoint } from "./geography"
-import { VEHICLES, type VehicleSpec } from "./vehicles"
+import { VEHICLES, type NativeFighterKind, type VehicleSpec } from "./vehicles"
 
 export const NEUTRAL_INPUT: FlightInput = { aim: null, throttle: 0, roll: 0, yaw: 0, pitch: 0, boost: false, brake: false }
 
@@ -143,7 +143,7 @@ interface HeliHandling {
 // The plane goes where the nose points (strong grip), speed is mostly set by the throttle (mild turn
 // bleed, softened gravity along the path), and the turn rate peaks at the sweet spot ("corner") speed
 // — throttle back to turn tighter.
-const ORIGINAL_JET: Record<Exclude<VehicleKind, "apache" | "f15" | "f35">, JetHandling> = {
+const ORIGINAL_JET: Record<Exclude<VehicleKind, HelicopterKind | "f15" | "f35" | "tu160" | NativeFighterKind>, JetHandling> = {
   fighter: {
     thrust: 20, throttleRate: 0.7,
     cornerSpeed: 92, cornerRate: 1.1, minRateFrac: 0.35, pushFrac: 0.6, rollRate: 4.0, yawRate: 0.44, rollRef: 70, yawTurnRate: 0.96, yawBank: 30 * DEG,
@@ -184,7 +184,7 @@ const ORIGINAL_JET: Record<Exclude<VehicleKind, "apache" | "f15" | "f35">, JetHa
 }
 
 // Same fixed-wing model and stall/collision rules; modest silhouette-based arcade tuning.
-const JET: Record<Exclude<VehicleKind, "apache">, JetHandling> = {
+const JET: Record<Exclude<VehicleKind, HelicopterKind>, JetHandling> = {
   ...ORIGINAL_JET,
   f15: {
     ...ORIGINAL_JET.fighter,
@@ -196,9 +196,130 @@ const JET: Record<Exclude<VehicleKind, "apache">, JetHandling> = {
     cornerSpeed: 85, cornerRate: 1.3, rollRate: 4.2, yawTurnRate: 1.15,
     pitchResponse: 12.5, rollResponse: 16, yawResponse: 9.5,
   },
+  f16c: {
+    ...ORIGINAL_JET.fighter,
+    thrust: 21, cornerSpeed: 98, cornerRate: 1.3, rollRate: 5, yawTurnRate: 1.12,
+    pitchResponse: 13, rollResponse: 18, yawResponse: 9.5, induced: 0.05,
+  },
+  mig29: {
+    ...ORIGINAL_JET.fighter,
+    thrust: 22, cornerSpeed: 90, cornerRate: 1.45, rollRate: 4.5, yawTurnRate: 1.22,
+    pitchResponse: 14, rollResponse: 16, yawResponse: 10, induced: 0.085,
+  },
+  // Arcade proposals: high-speed delta response versus stronger, costlier pitch.
+  typhoon: {
+    ...ORIGINAL_JET.fighter,
+    thrust: 23, cornerSpeed: 115, cornerRate: 1.42, minRateFrac: 0.25,
+    rollRate: 5.4, rollRef: 85, yawTurnRate: 1.12,
+    pitchResponse: 13, rollResponse: 19, yawResponse: 9.5, induced: 0.06,
+  },
+  su35s: {
+    ...ORIGINAL_JET.fighter,
+    thrust: 23, cornerSpeed: 95, cornerRate: 1.55, rollRate: 4, yawTurnRate: 1.2,
+    pitchResponse: 14, rollResponse: 15, yawResponse: 10, induced: 0.1,
+  },
+  rafale: {
+    ...ORIGINAL_JET.fighter,
+    thrust: 20, cornerSpeed: 95, cornerRate: 1.3, minRateFrac: 0.4,
+    rollRate: 4.5, yawTurnRate: 1.08,
+    pitchResponse: 12, rollResponse: 16, yawResponse: 9, induced: 0.055,
+  },
+  jf17: {
+    ...ORIGINAL_JET.fighter,
+    thrust: 19, cornerSpeed: 90, cornerRate: 1.25, minRateFrac: 0.4,
+    rollRate: 4.2, yawTurnRate: 1.04,
+    pitchResponse: 11.5, rollResponse: 15.5, yawResponse: 8.5, induced: 0.05,
+  },
+  // Conservative arcade proposals, not measured real-aircraft performance.
+  gripen: {
+    ...ORIGINAL_JET.fighter,
+    thrust: 20.5, throttleRate: 0.75, cornerSpeed: 88, cornerRate: 1.38, minRateFrac: 0.42,
+    rollRate: 4.8, rollRef: 60, yawTurnRate: 1.14,
+    pitchResponse: 13, rollResponse: 17, yawResponse: 9.2, induced: 0.052,
+  },
+  mig31: {
+    ...ORIGINAL_JET.fighter,
+    thrust: 26, throttleRate: 0.48, cornerSpeed: 145, cornerRate: 0.64, minRateFrac: 0.25,
+    rollRate: 2.2, rollRef: 140, yawTurnRate: 0.52,
+    pitchResponse: 6.5, rollResponse: 8.5, yawResponse: 5.5,
+    pitchGain: 1.65, rollGain: 2.2, yawGain: 1.1,
+    grip: 7, induced: 0.045, pathGravity: 0.45,
+  },
+  // Delta high-alpha energy cost versus a heavier sustained-load striker, arcade only.
+  mirage2000: {
+    ...ORIGINAL_JET.fighter,
+    thrust: 20, cornerSpeed: 100, cornerRate: 1.28, minRateFrac: 0.32,
+    rollRate: 4.3, rollRef: 75, yawTurnRate: 1.02,
+    pitchResponse: 11.5, rollResponse: 15.5, yawResponse: 8.5, induced: 0.085,
+  },
+  su34: {
+    ...ORIGINAL_JET.fighter,
+    thrust: 18, throttleRate: 0.5, cornerSpeed: 110, cornerRate: 0.9, minRateFrac: 0.28,
+    rollRate: 2.8, rollRef: 95, yawTurnRate: 0.76,
+    pitchResponse: 8, rollResponse: 10, yawResponse: 7,
+    pitchGain: 2, rollGain: 2.7, yawGain: 1.5, grip: 7.5, induced: 0.18, pathGravity: 0.65,
+  },
+  // Compact light fighter versus slower training/attack handling, arcade only.
+  fa50: {
+    ...ORIGINAL_JET.fighter,
+    thrust: 19, throttleRate: 0.75, cornerSpeed: 85, cornerRate: 1.28, minRateFrac: 0.4,
+    rollRate: 4.5, rollRef: 60, yawTurnRate: 1.08,
+    pitchResponse: 12, rollResponse: 16.5, yawResponse: 9, induced: 0.055,
+  },
+  yak130: {
+    ...ORIGINAL_JET.fighter,
+    thrust: 14, throttleRate: 0.6, cornerSpeed: 75, cornerRate: 1.02, minRateFrac: 0.42,
+    rollRate: 3.1, rollRef: 55, yawTurnRate: 0.85,
+    pitchResponse: 9, rollResponse: 12, yawResponse: 7.5,
+    pitchGain: 2.3, rollGain: 3.2, yawGain: 1.7, induced: 0.065, pathGravity: 0.6,
+  },
+  // Slower single-engine trainer; conservative arcade tuning, not measured performance.
+  hawkt2: {
+    ...ORIGINAL_JET.fighter,
+    thrust: 12.5, throttleRate: 0.55, cornerSpeed: 68, cornerRate: 0.94, minRateFrac: 0.44,
+    rollRate: 2.8, rollRef: 52, yawTurnRate: 0.78,
+    pitchResponse: 8.5, rollResponse: 11, yawResponse: 7,
+    pitchGain: 2.2, rollGain: 3, yawGain: 1.6, induced: 0.07, pathGravity: 0.6,
+  },
+  // Heavier low-speed ground-attack arcade handling, not measured SM performance.
+  su25sm: {
+    ...ORIGINAL_JET.fighter,
+    thrust: 11.5, throttleRate: 0.5, cornerSpeed: 72, cornerRate: 0.86, minRateFrac: 0.4,
+    rollRate: 2.4, rollRef: 55, yawTurnRate: 0.7,
+    pitchResponse: 7.5, rollResponse: 9.5, yawResponse: 6.5,
+    pitchGain: 2, rollGain: 2.6, yawGain: 1.5, grip: 7.5, induced: 0.14, pathGravity: 0.7,
+  },
+  // Slower, heavier attack proposal; same native mechanics, not certified A-10C performance.
+  a10c: {
+    ...ORIGINAL_JET.fighter,
+    thrust: 10.5, throttleRate: 0.48, cornerSpeed: 66, cornerRate: 0.8, minRateFrac: 0.4,
+    rollRate: 2, rollRef: 52, yawTurnRate: 0.65,
+    pitchResponse: 7, rollResponse: 9, yawResponse: 6,
+    pitchGain: 1.9, rollGain: 2.4, yawGain: 1.4, grip: 7.5, induced: 0.15, pathGravity: 0.7,
+  },
+  // Medium fighter with more sustained-load energy loss than F-16C, arcade only.
+  f35a: {
+    ...ORIGINAL_JET.fighter,
+    thrust: 20, cornerSpeed: 100, cornerRate: 1.15, rollRate: 4.1, yawTurnRate: 1,
+    pitchResponse: 11.5, rollResponse: 15.5, yawResponse: 8.5, induced: 0.1,
+  },
+  // Heavier long fighter, not certified J-20 performance; same native flight model.
+  j20: {
+    ...ORIGINAL_JET.fighter,
+    thrust: 22, throttleRate: 0.6, cornerSpeed: 115, cornerRate: 1.05, minRateFrac: 0.32,
+    rollRate: 3.6, rollRef: 85, yawTurnRate: 0.9,
+    pitchResponse: 10, rollResponse: 13, yawResponse: 8, induced: 0.12,
+  },
+  tu160: {
+    ...ORIGINAL_JET.bomber,
+    thrust: 11, throttleRate: 0.32, cornerSpeed: 115, cornerRate: 0.25,
+    rollRate: 0.75, yawTurnRate: 0.2, induced: 0.14,
+    // Origin clearance follows the supplied belly, not the B-2's geometry.
+    gearHeight: 4, bellyHeight: 3.1,
+  },
 }
 
-const HELI: Record<"apache", HeliHandling> = {
+const APACHE_HELI: Record<"apache", HeliHandling> = {
   apache: {
     collectiveRate: 0.8, collectiveReturn: 1.5, altitudeHold: 1.5, cushion: 3, cushionHeight: 10,
     maxTilt: 25 * DEG, boostTilt: 36 * DEG, backTilt: 18 * DEG, sideTilt: 22 * DEG,
@@ -208,6 +329,12 @@ const HELI: Record<"apache", HeliHandling> = {
     cyclicGain: 1.8, dragQuad: 1.063e-3, dragLin: 0.03, dragVert: 0.6,
     grip: 0.9, gearHeight: 2,
   },
+}
+
+const HELI: Record<HelicopterKind, HeliHandling> = {
+  ...APACHE_HELI,
+  ah64d: { ...APACHE_HELI.apache, yawRate: 1.6, dragQuad: 1.23e-3 },
+  mi28n: { ...APACHE_HELI.apache, yawRate: 1.5, dragQuad: 1.3e-3 },
 }
 
 interface HeliDirectHandling {
@@ -251,7 +378,7 @@ interface HeliDirectHandling {
   gearHeight: number
 }
 
-const HELI_DIRECT: Record<"apache", HeliDirectHandling> = {
+const APACHE_HELI_DIRECT: Record<"apache", HeliDirectHandling> = {
   apache: {
     collectiveRate: 1.2, detentWidth: 0.1, detentRate: 0.3,
     pitchRate: 1.5, rollRate: 1.6, yawRate: 1.5, cyclicResponse: 12, yawResponse: 10,
@@ -262,6 +389,12 @@ const HELI_DIRECT: Record<"apache", HeliDirectHandling> = {
     brakeGain: 0.6, brakeTilt: 30 * DEG, brakeAttitudeGain: 3, brakeRecoverRate: 3, brakeVertical: 1.5, brakeCollectiveRate: 0.8,
     cushion: 2, cushionHeight: 8, gearHeight: 2,
   },
+}
+
+const HELI_DIRECT: Record<HelicopterKind, HeliDirectHandling> = {
+  ...APACHE_HELI_DIRECT,
+  ah64d: { ...APACHE_HELI_DIRECT.apache, yawRate: 1.45, dragQuad: 1.7e-3 },
+  mi28n: { ...APACHE_HELI_DIRECT.apache, yawRate: 1.35, dragQuad: 1.8e-3 },
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -376,10 +509,10 @@ export function stepFlight(state: FlightState, input: FlightInput, dt: number, w
   }
 
   if (spec.flight === "heli") {
-    if (hasAim) stepHeliAim(state, input, dt, world, HELI[state.kind as "apache"])
-    else stepHeliDirect(state, input, dt, world, HELI_DIRECT[state.kind as "apache"])
+    if (hasAim) stepHeliAim(state, input, dt, world, HELI[state.kind as HelicopterKind])
+    else stepHeliDirect(state, input, dt, world, HELI_DIRECT[state.kind as HelicopterKind])
   }
-  else stepJet(state, input, hasAim, dt, world, spec, JET[state.kind as Exclude<VehicleKind, "apache">])
+  else stepJet(state, input, hasAim, dt, world, spec, JET[state.kind as Exclude<VehicleKind, HelicopterKind>])
 }
 
 /** Thin-air factor: 1 below ceiling-400 m, 0 at the ceiling. */
@@ -999,7 +1132,7 @@ export function flightReadout(state: FlightState, world?: WorldQuery) {
   const { yaw, pitch, roll } = yawPitchRoll(state.orientation)
   let heading = (-yaw / DEG) % 360
   if (heading < 0) heading += 360
-  const gearHeight = VEHICLES[state.kind].flight === "heli" ? HELI.apache.gearHeight : JET[state.kind as Exclude<VehicleKind, "apache">].gearHeight
+  const gearHeight = VEHICLES[state.kind].flight === "heli" ? HELI[state.kind as HelicopterKind].gearHeight : JET[state.kind as Exclude<VehicleKind, HelicopterKind>].gearHeight
   return {
     speed: Math.hypot(v[0], v[1], v[2]),
     altitude: p[1],

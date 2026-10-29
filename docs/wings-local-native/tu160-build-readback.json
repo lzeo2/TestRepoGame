@@ -1,0 +1,610 @@
+{
+  "runtime_source": "6113df50",
+  "source_test_checkpoint": "6113df50",
+  "scope": "Local bytes/MIME identity and CPU checks, not publication, native pixels or human-input acceptance. Historical random FAIL and declared Rafale/Yak PASS preserved; current18-kind full-pool sampling unrun. Tu160 model-origin/shared-eight-bomb/native-UI CPU checks and declared fitted-capital impact PASS, not natural AI bombing. HTTP includes2blocked helicopter raw inputs, NOT registrations. No browser/publication claim.",
+  "build_files": 26,
+  "build_bytes": 4079040,
+  "node_regressions": [
+    "astra PASS",
+    "solo PASS",
+    "lighting PASS"
+  ],
+  "checks": [
+    {
+      "url": "THREE-LICENSE.txt",
+      "bytes": 1081,
+      "sha256": "8b378ebe60e2fe500158cb0ac71cb5e8b7d92953c2abcc63a0eb90499653b5bc",
+      "mime": "text/plain"
+    },
+    {
+      "url": "assets/GLTFLoader-ZF6COE6R.js",
+      "bytes": 94,
+      "sha256": "79b86bd34ce07ff8c1df82f421f3a67ae77c68fbe0c6968abdca536e0d5abaa7",
+      "mime": "text/javascript"
+    },
+    {
+      "url": "assets/audio-A43B5AVQ.js",
+      "bytes": 38893,
+      "sha256": "90b3ebf503c3be9927daee1047718dd35f72a9134f56280c49212359e6dbb144",
+      "mime": "text/javascript"
+    },
+    {
+      "url": "assets/chunk-46VZR7YH.js",
+      "bytes": 34792,
+      "sha256": "7d098491f6fbdef9ea16dd617e8164f4b3963e0168f7f477c9226757246b0acd",
+      "mime": "text/javascript"
+    },
+    {
+      "url": "assets/chunk-7GV67CO6.js",
+      "bytes": 120362,
+      "sha256": "157d2d3f61b4aa353e9a3f0c01a0f6aafeaeb04165764f34d4624f87698570fd",
+      "mime": "text/javascript"
+    },
+    {
+      "url": "assets/chunk-AAZABAPM.js",
+      "bytes": 106,
+      "sha256": "ff9e0dca4365b7b1581e7275f3c6dbcf1474ffb874d81a3375ecf7a835dbaa6f",
+      "mime": "text/javascript"
+    },
+    {
+      "url": "assets/chunk-E545M5GI.js",
+      "bytes": 24082,
+      "sha256": "b01dcbc6a834a1b64f17ffb34a7466249913984cd7abad150bc9b89d65ad939f",
+      "mime": "text/javascript"
+    },
+    {
+      "url": "assets/chunk-E5XMPD6J.js",
+      "bytes": 25667,
+      "sha256": "c54b2cc0f88deddf74bfd0bec2728c1a94a2762a0d9846b1da7720dc34402aa6",
+      "mime": "text/javascript"
+    },
+    {
+      "url": "assets/chunk-P6CK6PDM.js",
+      "bytes": 596504,
+      "sha256": "f802695db6573b4eb30297135469304a4e8231b9d81a08f9145a0f15aaf02662",
+      "mime": "text/javascript"
+    },
+    {
+      "url": "assets/chunk-VQ65COZY.js",
+      "bytes": 1137,
+      "sha256": "2e0645568c960bfdef2681eb05594ef5d0ec4419b347237629e9d55da5660122",
+      "mime": "text/javascript"
+    },
+    {
+      "url": "assets/chunk-WEWNXPSI.js",
+      "bytes": 5632,
+      "sha256": "b4c993ea635ef6a67dbdf7d1623165ce9edb43dfa02b52d0e1313eeb315d46e1",
+      "mime": "text/javascript"
+    },
+    {
+      "url": "assets/chunk-YDZLTNG5.js",
+      "bytes": 768973,
+      "sha256": "3b8fce56c08d118d2de8e2731023832e14aba383ac158b577b99d60420e28062",
+      "mime": "text/javascript"
+    },
+    {
+      "url": "assets/game-6EQ23DUW.css",
+      "bytes": 31228,
+      "sha256": "ce8d7b465a5f9b5bb2a93ba074921ac2a2847efad5bfccdf952339113eddeba8",
+      "mime": "text/css"
+    },
+    {
+      "url": "assets/game-NUJ7H7MT.js",
+      "bytes": 192035,
+      "sha256": "93d0a3b57ba578b5c579673a07446f94227275facb644035c363ae845b38a040",
+      "mime": "text/javascript"
+    },
+    {
+      "url": "assets/main.css",
+      "bytes": 31228,
+      "sha256": "ce8d7b465a5f9b5bb2a93ba074921ac2a2847efad5bfccdf952339113eddeba8",
+      "mime": "text/css"
+    },
+    {
+      "url": "assets/main.js",
+      "bytes": 2817,
+      "sha256": "2afea2c1b87c88b0d300b242bd8d40715a37f640538cc1073d751ae2c1b057eb",
+      "mime": "text/javascript"
+    },
+    {
+      "url": "assets/scene-6KLPBGUR.js",
+      "bytes": 103144,
+      "sha256": "d55831978eeccf045eb410d7ad05e91227bb99f4444a92fe225e3bc7f01ae36f",
+      "mime": "text/javascript"
+    },
+    {
+      "url": "assets/terrain-worker.js",
+      "bytes": 706,
+      "sha256": "b437b9cd395909c92aa07c5fb33370bbb4d27a3a7c13d101b484c7568e8abc30",
+      "mime": "text/javascript"
+    },
+    {
+      "url": "assets/ui-check.css",
+      "bytes": 31228,
+      "sha256": "ce8d7b465a5f9b5bb2a93ba074921ac2a2847efad5bfccdf952339113eddeba8",
+      "mime": "text/css"
+    },
+    {
+      "url": "assets/ui-check.js",
+      "bytes": 3750,
+      "sha256": "442e2bbf352a8237495660f89b8b83daf541f01f3c3ecbd7844cc1220be498c2",
+      "mime": "text/javascript"
+    },
+    {
+      "url": "build-meta.json",
+      "bytes": 4676,
+      "sha256": "2c6f45c0b504208caf0a9d514227bed83d6bfcef9af59a1e5e1d1d12bc273d9f",
+      "mime": "application/json"
+    },
+    {
+      "url": "check-ui.html",
+      "bytes": 411,
+      "sha256": "816ca291d6a3adacc70ca2561f07335348eddf436b51abc94c9d2e7303fee82b",
+      "mime": "text/html"
+    },
+    {
+      "url": "fonts/OFL-ArchivoNarrow.txt",
+      "bytes": 4495,
+      "sha256": "b2087ef3fb91248e346600d19021249152a9688efea72905aa1996bb16a4c8de",
+      "mime": "text/plain"
+    },
+    {
+      "url": "fonts/OFL-IBMPlexMono.txt",
+      "bytes": 4456,
+      "sha256": "7e6b2818edbd8f6a01ae80641cc8f16a51080d08fb4e532be3a0b6f74adb07da",
+      "mime": "text/plain"
+    },
+    {
+      "url": "fonts/archivo-narrow-latin.woff2",
+      "bytes": 18724,
+      "sha256": "728b32e94fd137eca605f80d3c34adeaeef0d312425c7a5a1ff743407b2d78f9",
+      "mime": "font/woff2"
+    },
+    {
+      "url": "fonts/plex-mono-400-latin.woff2",
+      "bytes": 10052,
+      "sha256": "c36f509c0a8f9f85f29cb44bc8701d8a9e0b14c499e77a884f789ead7093a7ac",
+      "mime": "font/woff2"
+    },
+    {
+      "url": "fonts/plex-mono-500-latin.woff2",
+      "bytes": 10060,
+      "sha256": "a76f53ca6612e7b3828eec2311098675b7f9849ae4169a8bcef6302aec02a6c0",
+      "mime": "font/woff2"
+    },
+    {
+      "url": "index.html",
+      "bytes": 12246,
+      "sha256": "f460fc6edffbbb04cb5ca47e40d57cd07e17ab3a592b26fcded59c8897a9d598",
+      "mime": "text/html"
+    },
+    {
+      "url": "models/a10.glb",
+      "bytes": 952180,
+      "sha256": "f9f4392f4de4dea95558c16738ff02fd89ae1ca10d0d960655fb967df64b9d24",
+      "mime": "model/gltf-binary"
+    },
+    {
+      "url": "models/ac130.glb",
+      "bytes": 1680496,
+      "sha256": "1a53da510144bbcd28903ad407c067e4128af7d7a52afe4994e17826344f1f9e",
+      "mime": "model/gltf-binary"
+    },
+    {
+      "url": "models/apache.glb",
+      "bytes": 745072,
+      "sha256": "bd6a9677f8f469dceac601aef4fd2ec7b5a42f66f12c5493159004bfa6ca47ac",
+      "mime": "model/gltf-binary"
+    },
+    {
+      "url": "models/b2.glb",
+      "bytes": 283788,
+      "sha256": "3e271a320ef39720c445ed379b72dcdf40b32c38b58d1df09d356be119ee826b",
+      "mime": "model/gltf-binary"
+    },
+    {
+      "url": "models/carrier.glb",
+      "bytes": 634144,
+      "sha256": "d1e20c4d0a6e13e4de6d1ec0ebbf1cd4ce7a563f2a14601c681b2159822ce9b0",
+      "mime": "model/gltf-binary"
+    },
+    {
+      "url": "models/derived/generic-attack-submarine.glb",
+      "bytes": 336996,
+      "sha256": "6898dd746f03d05a9d1205ab93b72083fa8ac3d6b2e7045198f3d9f786960724",
+      "mime": "model/gltf-binary"
+    },
+    {
+      "url": "models/derived/wings_a10c.glb",
+      "bytes": 195560,
+      "sha256": "897cd0cc6407cebdddaddd05224e925f577870f6f961e0903f11de367708f00e",
+      "mime": "model/gltf-binary"
+    },
+    {
+      "url": "models/derived/wings_admiral_kuznetsov_project1143_5.glb",
+      "bytes": 622332,
+      "sha256": "922e49409191a903830a72e38c9f082d30613648ac91efb6ad92a24d43697ff7",
+      "mime": "model/gltf-binary"
+    },
+    {
+      "url": "models/derived/wings_aquitaine_fremm.glb",
+      "bytes": 541244,
+      "sha256": "e3675fa8736cd1b0d98880936662f8554bdeab0dc83ea62b3067df6632482f9e",
+      "mime": "model/gltf-binary"
+    },
+    {
+      "url": "models/derived/wings_cb90_h.glb",
+      "bytes": 308092,
+      "sha256": "c8e959a7cd618ce589c547780657b1cb9308d421a5149279d5e66816d4dac578",
+      "mime": "model/gltf-binary"
+    },
+    {
+      "url": "models/derived/wings_charles_de_gaulle_r91.glb",
+      "bytes": 559800,
+      "sha256": "c29b71d3299927d13198a1c7b61abb77d3959203d506b2c95c9056b1347b55f7",
+      "mime": "model/gltf-binary"
+    },
+    {
+      "url": "models/derived/wings_f16c.glb",
+      "bytes": 143888,
+      "sha256": "fc4dcefc1d16064ab8be6eaa386fe2ef45401bf645dbd2d43165e34ccd4e234e",
+      "mime": "model/gltf-binary"
+    },
+    {
+      "url": "models/derived/wings_f35a.glb",
+      "bytes": 148112,
+      "sha256": "1dfd31db6e01e7604c4145617a3a0afb3b880bc28a8017b5e61ea6b061221ce5",
+      "mime": "model/gltf-binary"
+    },
+    {
+      "url": "models/derived/wings_fa50.glb",
+      "bytes": 155408,
+      "sha256": "68f02d6ff28d5f54c2181031b7faf2e8cba06839925ccaf6836b28c6cd28b079",
+      "mime": "model/gltf-binary"
+    },
+    {
+      "url": "models/derived/wings_gripen.glb",
+      "bytes": 148784,
+      "sha256": "49f9336f7e1c2075f27bbe676791a1eb80ab00f52ab1827df2ec2b7ebfff627d",
+      "mime": "model/gltf-binary"
+    },
+    {
+      "url": "models/derived/wings_hawkt2.glb",
+      "bytes": 154156,
+      "sha256": "7dc2868e30f4f9f68be8425e04aac5e00d9145d3fe3b590b84f707827f235734",
+      "mime": "model/gltf-binary"
+    },
+    {
+      "url": "models/derived/wings_j20.glb",
+      "bytes": 158124,
+      "sha256": "5fcabcc098e29d6c844b0b44f3c8ead56925553ce2b005850e84828d27863b1c",
+      "mime": "model/gltf-binary"
+    },
+    {
+      "url": "models/derived/wings_jf17.glb",
+      "bytes": 156088,
+      "sha256": "f8f80f2e9472a2bfb2754f8d6f9100303ecedc49d6f4ca8d234350a407c6bbd9",
+      "mime": "model/gltf-binary"
+    },
+    {
+      "url": "models/derived/wings_liaoning_type001.glb",
+      "bytes": 578796,
+      "sha256": "3d0f0f05afc77ff7a1b5069a4da1634adf6779f13c76b1bd33cc0199f4ecd1d3",
+      "mime": "model/gltf-binary"
+    },
+    {
+      "url": "models/derived/wings_mig29.glb",
+      "bytes": 169088,
+      "sha256": "c36c880521436792f18e1860ba51295f8b5c57e2dc05fa6081086e7d646edb83",
+      "mime": "model/gltf-binary"
+    },
+    {
+      "url": "models/derived/wings_mig31.glb",
+      "bytes": 170740,
+      "sha256": "c220c9afd4caf065fc8d84f15060d2b5341b16aa638d4ae88677df19409765b4",
+      "mime": "model/gltf-binary"
+    },
+    {
+      "url": "models/derived/wings_mirage2000.glb",
+      "bytes": 147676,
+      "sha256": "52a7af241805d4faaf35df163fae70d49149720b2437ea7d08e37f590068631f",
+      "mime": "model/gltf-binary"
+    },
+    {
+      "url": "models/derived/wings_queen_elizabeth_class.glb",
+      "bytes": 592556,
+      "sha256": "a11cdaedf40116d9ae92bad1cfa07a71c8ccbb5d5e2273ca2a646bdd9b855661",
+      "mime": "model/gltf-binary"
+    },
+    {
+      "url": "models/derived/wings_rafale.glb",
+      "bytes": 161964,
+      "sha256": "fbf1d3ba66d37d6a63523700c9602901c5a545bf014a70f1546fc8c8e0e1677f",
+      "mime": "model/gltf-binary"
+    },
+    {
+      "url": "models/derived/wings_su25sm.glb",
+      "bytes": 172188,
+      "sha256": "2fe458ed79d9de72b3e122c7149ab859f64142e435f023b993bb0b50a602a767",
+      "mime": "model/gltf-binary"
+    },
+    {
+      "url": "models/derived/wings_su34.glb",
+      "bytes": 178080,
+      "sha256": "60ca4edcf7453fe1f7fe25893ee5564888349a258ede977243dc8fbaff7b66ab",
+      "mime": "model/gltf-binary"
+    },
+    {
+      "url": "models/derived/wings_su35s.glb",
+      "bytes": 173856,
+      "sha256": "16be50931ebcb09a2161bbe7c2171079e4c3b3837261f467d4e5d67e996c7bed",
+      "mime": "model/gltf-binary"
+    },
+    {
+      "url": "models/derived/wings_tu160.glb",
+      "bytes": 199816,
+      "sha256": "83cfe2e45141d6917520d89b6aa579dbecf5756518cdbed1151a280f4718e791",
+      "mime": "model/gltf-binary"
+    },
+    {
+      "url": "models/derived/wings_type022_houbei.glb",
+      "bytes": 332092,
+      "sha256": "80fd1b8287e8adb16844df2e7760bb34d7484ab15f59db057a949496a321898a",
+      "mime": "model/gltf-binary"
+    },
+    {
+      "url": "models/derived/wings_type054a_jiangkai_ii.glb",
+      "bytes": 545888,
+      "sha256": "52347c718b6aa6a0f6466a60fdc9a87df60234a146e6782af28186993c31fdc4",
+      "mime": "model/gltf-binary"
+    },
+    {
+      "url": "models/derived/wings_type055_renhai.glb",
+      "bytes": 537408,
+      "sha256": "261dcdaee62082df2e47f13d7afbb246ba35dc87f55fb07fa9f1fc600f7de01c",
+      "mime": "model/gltf-binary"
+    },
+    {
+      "url": "models/derived/wings_type45_daring_class.glb",
+      "bytes": 539104,
+      "sha256": "34f5f85ab3e31b11187e967b85c0ebac1787ad8c9c06de250535f5a90866351f",
+      "mime": "model/gltf-binary"
+    },
+    {
+      "url": "models/derived/wings_typhoon.glb",
+      "bytes": 162784,
+      "sha256": "8d5efa85820f46ea541d5f4fbc84c6d68185307da282643ac44cd25125d36754",
+      "mime": "model/gltf-binary"
+    },
+    {
+      "url": "models/derived/wings_yak130.glb",
+      "bytes": 171796,
+      "sha256": "b1b4f0d3569386cba10e2574dfb29b3135899fbb0b5c8a2d30dd81a55be0fce6",
+      "mime": "model/gltf-binary"
+    },
+    {
+      "url": "models/destroyer.glb",
+      "bytes": 754320,
+      "sha256": "5dfb334aa4496edb0c6358cdf7f8025f71dca563daad2b425d792b41c279eeef",
+      "mime": "model/gltf-binary"
+    },
+    {
+      "url": "models/f15.glb",
+      "bytes": 1176316,
+      "sha256": "5c1bf64dc21962dc822dc44edd91186aa4a6932034b06a405d3170518fc135bf",
+      "mime": "model/gltf-binary"
+    },
+    {
+      "url": "models/f35.glb",
+      "bytes": 1174768,
+      "sha256": "ce19018414037e3cef949a99ae08a1d035b25fbd20601e1835c2426bc32db197",
+      "mime": "model/gltf-binary"
+    },
+    {
+      "url": "models/fa18.glb",
+      "bytes": 912784,
+      "sha256": "78bb2fb9f542daaa607e850f7444018fc2f996cd247d67e3ad3761df58efab09",
+      "mime": "model/gltf-binary"
+    },
+    {
+      "url": "models/speedboat.glb",
+      "bytes": 1411020,
+      "sha256": "7fee0b74e7c746a2dff2b7c4b5bed58c39b9ddbbc0c55592f1eb27941b4f2aee",
+      "mime": "model/gltf-binary"
+    },
+    {
+      "url": "models/supplied/a-10c.glb",
+      "bytes": 148464,
+      "sha256": "74c58cd536be3705b347d7c32fa76b54a0692a992fadde65f82772037187d623",
+      "mime": "model/gltf-binary"
+    },
+    {
+      "url": "models/supplied/ah-64d-apache.glb",
+      "bytes": 172724,
+      "sha256": "01965a9e0fd16e57483f6bbda7ffadb2299f773396bb3c3045351acee4ea0a59",
+      "mime": "model/gltf-binary"
+    },
+    {
+      "url": "models/supplied/eurofighter-typhoon.glb",
+      "bytes": 115688,
+      "sha256": "cae157180c649ac6d4c3b43dd7ae1a5322d7cc2985f961fdbcf6effa4b99b835",
+      "mime": "model/gltf-binary"
+    },
+    {
+      "url": "models/supplied/f-16c.glb",
+      "bytes": 104032,
+      "sha256": "b2c38684cd1f7d904e6d076f600f0233a3b481b8ea5434fc186411d31fa1cf30",
+      "mime": "model/gltf-binary"
+    },
+    {
+      "url": "models/supplied/f-35a.glb",
+      "bytes": 108228,
+      "sha256": "956550b4cba4a7e4bf4f6bccd71609673f46705a7f249b18adf8f38f2a646e01",
+      "mime": "model/gltf-binary"
+    },
+    {
+      "url": "models/supplied/fa-50.glb",
+      "bytes": 115524,
+      "sha256": "adf3e81efc5c5841bc30b9fa526ae7bdf83f0ccbad8fa12a142f43b73b7484f6",
+      "mime": "model/gltf-binary"
+    },
+    {
+      "url": "models/supplied/hawk-t2.glb",
+      "bytes": 114272,
+      "sha256": "9289e2d589b8a295392b2d100c1c3462ee935f1e4837e937e0fea5240bfb54e7",
+      "mime": "model/gltf-binary"
+    },
+    {
+      "url": "models/supplied/j-20.glb",
+      "bytes": 111048,
+      "sha256": "9d70ac66e30c70a69c76b8e0c7c0151a74a4e5ab9f12691cef738b816707b862",
+      "mime": "model/gltf-binary"
+    },
+    {
+      "url": "models/supplied/jas-39c-gripen.glb",
+      "bytes": 108908,
+      "sha256": "f996e62f23cf56027b885767fcb30ae954824b198254dd8a644a14fcacd9e789",
+      "mime": "model/gltf-binary"
+    },
+    {
+      "url": "models/supplied/jf-17-block-iii.glb",
+      "bytes": 116228,
+      "sha256": "b6bb06bbbf51c6af467e0e636a703d85cc53cff8b8b8b3f757e68db11aebb52a",
+      "mime": "model/gltf-binary"
+    },
+    {
+      "url": "models/supplied/mi-28n.glb",
+      "bytes": 169772,
+      "sha256": "dc193d170b343ec1ca8075684b2eb5ec418b833ffbd8d1ae063be3d7ab7d0634",
+      "mime": "model/gltf-binary"
+    },
+    {
+      "url": "models/supplied/mig-29.glb",
+      "bytes": 122000,
+      "sha256": "b94eb1885dd2119ff135a824f2879b94f792340e684d51ded704a552d64d88c8",
+      "mime": "model/gltf-binary"
+    },
+    {
+      "url": "models/supplied/mig-31bm.glb",
+      "bytes": 123644,
+      "sha256": "dd4b8a9741ff4fb325c4a5534d1a0264148c1f0f91078f9dfcca565435e9c82f",
+      "mime": "model/gltf-binary"
+    },
+    {
+      "url": "models/supplied/mirage-2000c.glb",
+      "bytes": 107820,
+      "sha256": "5e17fb6db155a50fccaa52ccb4ec1989293441d0346769c43774dc370ce1f4dd",
+      "mime": "model/gltf-binary"
+    },
+    {
+      "url": "models/supplied/rafale-c.glb",
+      "bytes": 114880,
+      "sha256": "e547d577a3a533ad6c8cadaed6f53d1b5e0850bcbf985ac6dc631488f5100561",
+      "mime": "model/gltf-binary"
+    },
+    {
+      "url": "models/supplied/su-25sm.glb",
+      "bytes": 125092,
+      "sha256": "cf231893435e7283a5950bd7ca15591bb2ff9159ab29c001ea7b9412204b4663",
+      "mime": "model/gltf-binary"
+    },
+    {
+      "url": "models/supplied/su-34.glb",
+      "bytes": 131032,
+      "sha256": "8c2f3633dd39e47a0259b0954c831bee5f8531ed38db48a9e383c277166ff50a",
+      "mime": "model/gltf-binary"
+    },
+    {
+      "url": "models/supplied/su-35s.glb",
+      "bytes": 126788,
+      "sha256": "858eda509c102f2079a2af96fdfd6c7e8027d289bfd7d2797be38ba17a636433",
+      "mime": "model/gltf-binary"
+    },
+    {
+      "url": "models/supplied/tu-160.glb",
+      "bytes": 120580,
+      "sha256": "705f494bc379b7371c7acd0dde80f18e5002874cc7b498ff27a684b1509f6b0e",
+      "mime": "model/gltf-binary"
+    },
+    {
+      "url": "models/supplied/wings_admiral_kuznetsov_project1143_5.glb",
+      "bytes": 622108,
+      "sha256": "566d2422ca21b208a37b0d11f929ac4058613912e4a78aa12f6f70a6e19143d4",
+      "mime": "model/gltf-binary"
+    },
+    {
+      "url": "models/supplied/wings_aquitaine_fremm.glb",
+      "bytes": 540832,
+      "sha256": "cb8c3a46ab4bc4e0fd34633d0747664a371bff02dcb768635e3b5448bf489068",
+      "mime": "model/gltf-binary"
+    },
+    {
+      "url": "models/supplied/wings_cb90_h.glb",
+      "bytes": 307892,
+      "sha256": "46aaa3e428309ad927402589a5b35243bedfa7511ee18849c50e48a45b84cfcc",
+      "mime": "model/gltf-binary"
+    },
+    {
+      "url": "models/supplied/wings_charles_de_gaulle_r91.glb",
+      "bytes": 559588,
+      "sha256": "710d89240f0493d66d7e0982fc8cad4d9e5485a4ca6cd819420ff3452dd50610",
+      "mime": "model/gltf-binary"
+    },
+    {
+      "url": "models/supplied/wings_liaoning_type001.glb",
+      "bytes": 578588,
+      "sha256": "62efc4a166bf3d53a197aa43dd92f7a4e21cd3b2eccb49fa0a0f4b24a0ee116a",
+      "mime": "model/gltf-binary"
+    },
+    {
+      "url": "models/supplied/wings_queen_elizabeth_class.glb",
+      "bytes": 592336,
+      "sha256": "e631d38a98fff7c75220d818ab5ed6f20dc9097d56749ae7bdd5cbf536ed23e7",
+      "mime": "model/gltf-binary"
+    },
+    {
+      "url": "models/supplied/wings_type022_houbei.glb",
+      "bytes": 331884,
+      "sha256": "f259a65fb5a43a6647e3e740d307aba23e77ff060db8d4881a9dcb853772bdca",
+      "mime": "model/gltf-binary"
+    },
+    {
+      "url": "models/supplied/wings_type055_renhai.glb",
+      "bytes": 536996,
+      "sha256": "7066833e6c8307e0d64906da35233ac4435fceda18f29acb7e82e219c968620b",
+      "mime": "model/gltf-binary"
+    },
+    {
+      "url": "models/supplied/yak-130.glb",
+      "bytes": 124716,
+      "sha256": "0bff616f2330806c42860c8d705f7ae05616f2a84e05d44530da4538da44505e",
+      "mime": "model/gltf-binary"
+    },
+    {
+      "url": "models/yf12.glb",
+      "bytes": 780572,
+      "sha256": "5f49376fbace30d888e6972850833af28d101427f66f12bdf128c889966f6769",
+      "mime": "model/gltf-binary"
+    },
+    {
+      "url": "verification/astra-check.mjs",
+      "bytes": 994736,
+      "sha256": "c8cafd3a45f670772845bb7d9d85477a8bc86901d99dc51db769066c46d2f042",
+      "mime": "text/javascript"
+    },
+    {
+      "url": "verification/lighting-check.mjs",
+      "bytes": 885255,
+      "sha256": "85144551ab0f587dc55f1604c069ecbc1874bdbd47b3b535cf52bfd2a0388685",
+      "mime": "text/javascript"
+    },
+    {
+      "url": "verification/solo-check.mjs",
+      "bytes": 168257,
+      "sha256": "9668c3d507b4c124a9c2b52a53e231eefee4a96a057e9e61fc516552845db3b4",
+      "mime": "text/javascript"
+    }
+  ],
+  "server_closed": true,
+  "result": "PASS_LOCAL_IDENTITY_ONLY"
+}

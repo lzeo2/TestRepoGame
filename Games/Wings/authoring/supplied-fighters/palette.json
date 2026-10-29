@@ -1,0 +1,305 @@
+{
+  "aircraft": {
+    "neutral_airframe_paint": {
+      "base_color": "original shared neutral gray fabrication atlas",
+      "metallic": 0.149,
+      "roughness": 0.604
+    },
+    "intake_and_seals": {
+      "base_color_linear": [
+        0.025,
+        0.033,
+        0.041
+      ],
+      "metallic": 0.15,
+      "roughness": 0.65
+    },
+    "bare_engine_alloy": {
+      "base_color_linear": [
+        0.24,
+        0.27,
+        0.3
+      ],
+      "metallic": 0.8,
+      "roughness": 0.33
+    },
+    "tinted_canopy": {
+      "base_color_linear": [
+        0.045,
+        0.11,
+        0.145
+      ],
+      "metallic": 0.48,
+      "roughness": 0.16,
+      "alpha_mode": "OPAQUE for stable low-cost silhouettes; not optically accurate glass"
+    },
+    "fictional_safety_mark": {
+      "base_color_linear": [
+        0.64,
+        0.49,
+        0.17
+      ],
+      "metallic": 0.06,
+      "roughness": 0.62
+    }
+  },
+  "texture_contract": {
+    "basecolor": "sRGB",
+    "normal": "linear tangent-space +Y",
+    "metallicroughness": "linear; G roughness, B metallic; R white reserved"
+  },
+  "note": "Per-family sources may define equivalent restrained surfaces and document their exact palette. No baked light or copied insignia.",
+  "naval": {
+    "authoring": "Original deterministic Python/Numpy texture synthesis; no image model, no external sources.",
+    "tiles": [
+      {
+        "index": 0,
+        "name": "hull_cool",
+        "srgb_8bit": [
+          112,
+          128,
+          135
+        ],
+        "roughness": 0.72,
+        "metallic": 0.16,
+        "atlas_tile_xy_top_left": [
+          0,
+          0
+        ]
+      },
+      {
+        "index": 1,
+        "name": "superstructure",
+        "srgb_8bit": [
+          145,
+          157,
+          162
+        ],
+        "roughness": 0.67,
+        "metallic": 0.12,
+        "atlas_tile_xy_top_left": [
+          1,
+          0
+        ]
+      },
+      {
+        "index": 2,
+        "name": "deck",
+        "srgb_8bit": [
+          58,
+          66,
+          70
+        ],
+        "roughness": 0.92,
+        "metallic": 0.04,
+        "atlas_tile_xy_top_left": [
+          2,
+          0
+        ]
+      },
+      {
+        "index": 3,
+        "name": "boot_topping",
+        "srgb_8bit": [
+          27,
+          33,
+          35
+        ],
+        "roughness": 0.86,
+        "metallic": 0.03,
+        "atlas_tile_xy_top_left": [
+          3,
+          0
+        ]
+      },
+      {
+        "index": 4,
+        "name": "antifouling",
+        "srgb_8bit": [
+          76,
+          43,
+          40
+        ],
+        "roughness": 0.84,
+        "metallic": 0.04,
+        "atlas_tile_xy_top_left": [
+          0,
+          1
+        ]
+      },
+      {
+        "index": 5,
+        "name": "glass",
+        "srgb_8bit": [
+          21,
+          43,
+          50
+        ],
+        "roughness": 0.18,
+        "metallic": 0.12,
+        "atlas_tile_xy_top_left": [
+          1,
+          1
+        ]
+      },
+      {
+        "index": 6,
+        "name": "marking",
+        "srgb_8bit": [
+          194,
+          197,
+          184
+        ],
+        "roughness": 0.79,
+        "metallic": 0.02,
+        "atlas_tile_xy_top_left": [
+          2,
+          1
+        ]
+      },
+      {
+        "index": 7,
+        "name": "safety",
+        "srgb_8bit": [
+          163,
+          134,
+          74
+        ],
+        "roughness": 0.79,
+        "metallic": 0.04,
+        "atlas_tile_xy_top_left": [
+          3,
+          1
+        ]
+      },
+      {
+        "index": 8,
+        "name": "metal",
+        "srgb_8bit": [
+          62,
+          70,
+          72
+        ],
+        "roughness": 0.43,
+        "metallic": 0.72,
+        "atlas_tile_xy_top_left": [
+          0,
+          2
+        ]
+      },
+      {
+        "index": 9,
+        "name": "vent",
+        "srgb_8bit": [
+          37,
+          43,
+          44
+        ],
+        "roughness": 0.81,
+        "metallic": 0.12,
+        "atlas_tile_xy_top_left": [
+          1,
+          2
+        ]
+      },
+      {
+        "index": 10,
+        "name": "hull_warm",
+        "srgb_8bit": [
+          120,
+          126,
+          124
+        ],
+        "roughness": 0.73,
+        "metallic": 0.16,
+        "atlas_tile_xy_top_left": [
+          2,
+          2
+        ]
+      },
+      {
+        "index": 11,
+        "name": "olive",
+        "srgb_8bit": [
+          78,
+          87,
+          75
+        ],
+        "roughness": 0.85,
+        "metallic": 0.09,
+        "atlas_tile_xy_top_left": [
+          3,
+          2
+        ]
+      },
+      {
+        "index": 12,
+        "name": "deck_light",
+        "srgb_8bit": [
+          78,
+          86,
+          87
+        ],
+        "roughness": 0.9,
+        "metallic": 0.04,
+        "atlas_tile_xy_top_left": [
+          0,
+          3
+        ]
+      },
+      {
+        "index": 13,
+        "name": "accent_teal",
+        "srgb_8bit": [
+          68,
+          99,
+          106
+        ],
+        "roughness": 0.69,
+        "metallic": 0.07,
+        "atlas_tile_xy_top_left": [
+          1,
+          3
+        ]
+      },
+      {
+        "index": 14,
+        "name": "rust",
+        "srgb_8bit": [
+          96,
+          65,
+          49
+        ],
+        "roughness": 0.95,
+        "metallic": 0.02,
+        "atlas_tile_xy_top_left": [
+          2,
+          3
+        ]
+      },
+      {
+        "index": 15,
+        "name": "rubber",
+        "srgb_8bit": [
+          25,
+          29,
+          29
+        ],
+        "roughness": 0.95,
+        "metallic": 0.01,
+        "atlas_tile_xy_top_left": [
+          3,
+          3
+        ]
+      }
+    ],
+    "channels": {
+      "basecolor": "sRGB RGB",
+      "normal": "linear tangent-space OpenGL +Y; RGB",
+      "metallicroughness": "linear; R=1 (unused), G=roughness, B=metallic"
+    },
+    "atlas_layout": "4 by4 tiles; atlas_tile_xy_top_left indexes embedded image regions",
+    "base_map_dimensions": "512x512; smallcraft may use256x256"
+  },
+  "aircraft_runtime_optimization": "Uniform flat normal maps omitted; constant metallic-roughness maps folded into exact material factors. Only authored basecolor remains as an embedded paint image. Vertex normals and geometry unchanged."
+}

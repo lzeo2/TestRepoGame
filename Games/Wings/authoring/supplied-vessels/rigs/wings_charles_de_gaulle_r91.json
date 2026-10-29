@@ -1,0 +1,64 @@
+{
+  "model_id": "wings.original.wings_charles_de_gaulle_r91.v1",
+  "model_file": "models/wings_charles_de_gaulle_r91.glb",
+  "unit": "meter",
+  "axes": {
+    "up": "+Y",
+    "forward": "+Z",
+    "right": "+X"
+  },
+  "controls": [
+    {
+      "node": "port_propeller_1",
+      "parent": "vessel_root_waterline",
+      "pivot_world_m": [
+        -4.567500114440918,
+        -4.84499979019165,
+        -112.44499969482422
+      ],
+      "suggested_local_rotation_axis": [
+        0,
+        0,
+        -1
+      ],
+      "purpose": "rigid visual pivot only; no constraints, drives, weapons or physics",
+      "rest_node_transform": {
+        "translation": [
+          -4.567500114440918,
+          -4.84499979019165,
+          -112.44499969482422
+        ]
+      },
+      "influenced_mesh_nodes": [
+        "port_propeller_1"
+      ]
+    },
+    {
+      "node": "starboard_propeller_2",
+      "parent": "vessel_root_waterline",
+      "pivot_world_m": [
+        4.567500114440918,
+        -4.84499979019165,
+        -112.44499969482422
+      ],
+      "suggested_local_rotation_axis": [
+        0,
+        0,
+        -1
+      ],
+      "purpose": "rigid visual pivot only; no constraints, drives, weapons or physics",
+      "rest_node_transform": {
+        "translation": [
+          4.567500114440918,
+          -4.84499979019165,
+          -112.44499969482422
+        ]
+      },
+      "influenced_mesh_nodes": [
+        "starboard_propeller_2"
+      ]
+    }
+  ],
+  "animations_included": [],
+  "integration_note": "Direct rigid-node transform suggestions only. Preserve rest transforms and hierarchy. No constraints, physics, mechanical limit guarantee or gameplay behavior."
+}

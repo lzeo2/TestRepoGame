@@ -1,0 +1,5198 @@
+{
+  "command": "timeout 240s node Games/Wings/authoring/named-coalition-flight-check.mjs",
+  "head": "531c845d6c9641c67021f52fa1de30dd590f7d3d",
+  "node": "v22.23.1",
+  "limits": {
+    "simulatedSecondsPerCase": 120,
+    "stepSeconds": 0.016666666666666666,
+    "wallCommandSeconds": 240,
+    "evidenceBytes": 200000,
+    "projectileSamplesPerCase": 64
+  },
+  "scope": "CPU fixtures, ordinary room join, normal native carrier spawns and native bots. No human input, renderer, pixel or natural-strike acceptance.",
+  "grants": [],
+  "hashes": {
+    "Games/Wings/authoring/coalition-rosters.mjs": "d1a031ffee122ab693b78c765be96e2c6a3240ccd9795815ec5179a337f37376",
+    "Games/Wings/authoring/direct-glb-body-check.mjs": "d60dafe6b75fb5fd8fa1337070c6cb18e66a622fe548795240065ffcd9c8dfe6",
+    "Games/Wings/authoring/faction-picker-check.mjs": "71129607e46c04efb542610442f6d3b4ffe4203769e228c32a59954e70641de8",
+    "Games/Wings/authoring/fleet-battle-check.mjs": "2106629aa42fde97e3f9f2fd866f3abfdc16388847c0c5bf59c5080a61d49006",
+    "Games/Wings/authoring/fleet-bomb-view-check.mjs": "5634707236ee36be1116a6ac3414b2beca43009c4b6fdd0268fef4252a6a4709",
+    "Games/Wings/authoring/fleet-composition-check.mjs": "44ea504ffe23faa1364207372271d48868c2936ede2d83d5cc4dad66d2e58121",
+    "Games/Wings/authoring/fleet-composition.mjs": "f5c4d5e488886d6d047d0f183802ff710dc53e4001921e3466423105642a2f29",
+    "Games/Wings/authoring/fleet-geometry-check.mjs": "0e3f8e6e6298050fd5225f67a1a2826e7096b8ab38b4a706958a8a41bab4853c",
+    "Games/Wings/authoring/fleet-geometry.mjs": "39e93b574a99f3db3e299bf4baf6055506488fc842f33ec924c4405f3d3fd7ea",
+    "Games/Wings/authoring/fleet-hud-targets-check.mjs": "84eab508a2c22bae9cb978392109984bd04b51a8d765ef460f426c1203ea7eb1",
+    "Games/Wings/authoring/fleet-integration-preview-check.mjs": "0ad3ff9d48c1a60ffbab03b7180beb9aabb9ae9d0b7a379f273f2204c5d3b359",
+    "Games/Wings/authoring/fleet-integration-preview.mjs": "dd0c5ce9592369e0daec511e0504b4b6cf1ede92283240cda7a1776fe0343366",
+    "Games/Wings/authoring/fleet-rig-check.mjs": "9489dc286d4657f8ca1a84abe7220e08602aba61818ac7423335e4119b629c22",
+    "Games/Wings/authoring/fleet-rig.mjs": "83028db99f5206979e51cdcf2d2c41e1d6906f876520a1561ca4bfd3c618eb3e",
+    "Games/Wings/authoring/fleet-sea-view-check.mjs": "53dcacf0c73a1042e8f7b04088c96945ad11bb50bd42ffa98fd9a05e90474998",
+    "Games/Wings/authoring/fleet-sea-view.mjs": "bdd4e0c2953fef73f263116643515928cc4b5340e61659bb5496a1e2eeae93db",
+    "Games/Wings/authoring/fleet-session-check.mjs": "730516410f809ed058971693374180ccd1c88a9f5e712ccdad9c96a9b8545ad3",
+    "Games/Wings/authoring/fleet-session.mjs": "0e031fad96ced47a4b12e64085d4b1ac52a5d859a83f6f3272072f427eab8738",
+    "Games/Wings/authoring/fleet-sim-check.mjs": "13427d12f3f3761397f33db5a30253f1880b74ce0b929cf37ae51b216ace552d",
+    "Games/Wings/authoring/fleet-sim.mjs": "6b073600a5ec552528f081ec78956913bf9773b4a72bd63cd0344f1102021af8",
+    "Games/Wings/authoring/fleet-staging-check.mjs": "3ba033c797d98c2e0b72de841080f7afcd40d473652c3b587c637c3054bbfc1f",
+    "Games/Wings/authoring/fleet-surface-height-check.mjs": "813fe4c09eae725e38cbcf529ca92635670e7a8f755b6fac3726b267b8da3444",
+    "Games/Wings/authoring/fleet-weather-check.mjs": "9874a1993602829830d716766ae22e8a7e0e4df46865cad3024dc4ff198f7554",
+    "Games/Wings/authoring/glb-load-check.mjs": "2b1d53bc63a33c69a0e88252eb365939500fd92b3eb8d6c6c9b269715655f294",
+    "Games/Wings/authoring/host-sea-effects-check.mjs": "1de92e451d69acd3cc5cd58c13d9a1428ee4354f54bedff622d3304fe729e942",
+    "Games/Wings/authoring/local-fleet-view-check.mjs": "0ee958d6c85bce215a76df075f6bb14c92eb0728bfe60d34bd4ec841aeade613",
+    "Games/Wings/authoring/local-fleet-view.mjs": "7ec0aae5139e9c8623f4d998c8810b47e06099dbba1581617bd8d70890bafa03",
+    "Games/Wings/authoring/local-host-scenario-check.mjs": "c39513aa7f9940facaa79da1d381f46e08a579e8521bc8d5b823e1b3b8b00144",
+    "Games/Wings/authoring/local-host-scenario.mjs": "da0157f5a7e9d5a0efd30ff3b24b1f7537dc8a46a4672b28882c570d4ce6f48b",
+    "Games/Wings/authoring/local-session-check.mjs": "11cf6c8d1886adaa6defb07da2dd0009f0a4d2edf380d3f16c0d23b37af52c2b",
+    "Games/Wings/authoring/local-trace-probe-check.mjs": "64b1f0248dc320c6df0d103b24bcc4e95328af63f9cf057dbb859237959434d5",
+    "Games/Wings/authoring/map-pack/check.mjs": "f350d173cd56bb0a43806cee526647c01647e321272fbb2aadf3f8476ac62de3",
+    "Games/Wings/authoring/map-pack/maps.mjs": "890fe0da70ee0ace51b081e255defa86026c22aa4e15a26e3a9def2d5185dd09",
+    "Games/Wings/authoring/model-geometry-fixture.mjs": "b169fe7d7781de37c55095fc3adcb2ae869dc7cd519c181af28bd736dd8fabe0",
+    "Games/Wings/authoring/model-repairs.json": "ad50b3523f24e2a1ea1aa4cdf21e9736e7ebb96f0f70739a642887ec7d10c038",
+    "Games/Wings/authoring/named-coalition-flight-check.mjs": "1a797dbed3f124c33882a17ef42f81fc9ff131045bba609d4ac6ff70cec35db7",
+    "Games/Wings/authoring/native-ai-roster-check.mjs": "f533fbb03be92765921d1728da0cd9205fa798f771edcdbb7d2f561b344fd030",
+    "Games/Wings/authoring/native-faction-rosters-check.mjs": "dbed5433e3fb6473992d47d5265d91e6dc18666d93206b1afd9af48ce9fba495",
+    "Games/Wings/authoring/native-factions-bombs-check.mjs": "20ebb5f30137e5572f5bed6b6895512c6a648732217b307933df8ab7e305d96a",
+    "Games/Wings/authoring/native-factions-bot-aa-check.mjs": "c7955bfbc7d4de756a5fb713f3c9289a73bca3c9d6a06f4d8346b11b6f45928c",
+    "Games/Wings/authoring/native-factions-rockets-check.mjs": "b6adfdcd1cd04d9228097c5cc7ab8178be803de0b78a835a3553d66070ca32cc",
+    "Games/Wings/authoring/native-factions-targets-check.mjs": "5a2d9c3f0720fd168b06ed45f4f88636e0df0d2a9ea452c8483a16410d408a9e",
+    "Games/Wings/authoring/native-fighter-pair-check.mjs": "6fefc8e34be6b46f3f9eaed3ae8cd49ee077f50740d79e0e1d95a2efed073af8",
+    "Games/Wings/authoring/native-fighter-pair.json": "a4d4dbd9580ca77986bdf7cdee575c50cf54bd65ca8558d9e27e5b2803020b0b",
+    "Games/Wings/authoring/native-fleet-flight-check.mjs": "8f60bc752e5902e05eb8d01f5bf79415820362e621d044463ca7ef5925d037e0",
+    "Games/Wings/authoring/native-fleet-reuse-check.mjs": "5fd2a612a43871416a23c05bd8dd959118e55d932b5c8a594afc4150e4d17fb7",
+    "Games/Wings/authoring/native-ship-collision-wiring.mjs": "c28017054fec6b0e706977b5d136a2512eeaabbf8dfd6f51fc987d954974f8cf",
+    "Games/Wings/authoring/render-startup-check.mjs": "4e103e09cd5dfd5cb0a57386aef14c31f97c6c30e395e42c53261e08682dbe22",
+    "Games/Wings/authoring/retained-fleet-targets-check.mjs": "080f1f2e103e473ba0c130a936307d525193503f58e94d574aa5eb19a23e2bee",
+    "Games/Wings/authoring/retained-host-bridge-check.mjs": "af9f2cf9416ecc6d92965d319baa465fa403b4da8756704187e545adc34ecabd",
+    "Games/Wings/authoring/retained-host-bridge.mjs": "41f502e8969728ebb45eec3ffa6e2c56e78754b58f1f3bb3c46d1c64a72f8959",
+    "Games/Wings/authoring/retained-host-loader.mjs": "9f79d882c9d326aee9c51be4d98c4c2d2180d52d08c4b5f059a3060da074501d",
+    "Games/Wings/authoring/retained-host-wiring.mjs": "ef20fcdd418f79f95c29d996edffa31ddc1d247b4eddcd0df08d524b43c5f11b",
+    "Games/Wings/authoring/sky-visibility-check.mjs": "ab661d8177d4e32701dacd55bd4fc4471d3f98acd68d7435f5d49e2fa9f0e987",
+    "Games/Wings/authoring/submarine-model.json": "e43f474212e35313b926cc8b5b83b9034f3b082185bb98dd68716ec7177bc29e",
+    "Games/Wings/authoring/supplied-fighters/manifest.json": "8d361c9cecd761b4338732144bf424e07f1752745117023ef9ec42e4f2e03e6a",
+    "Games/Wings/authoring/supplied-fighters/models.json": "00bd2534cab7d6d3e4b349a6c919d9d0f67080e5393a4ed129d26feeca967e4f",
+    "Games/Wings/authoring/supplied-fighters/palette.json": "93439bf3075d663e1c3a2078ae2935b1668f6482614ea9d7f47b1ef9903003dd",
+    "Games/Wings/authoring/supplied-fighters/repair-record.json": "a9873125c23791dd5a25980c7a7078ae1c7ed6efc20043d8a75abb9f967f1333",
+    "Games/Wings/authoring/supplied-fighters/rigs/f-16c.json": "4c288610a2987f04f3d4186c24ac0001291ba37f0b226f66689bb4f868dd424a",
+    "Games/Wings/authoring/supplied-fighters/rigs/mig-29.json": "4f7e00a4bfdac6835a1610ce9e2ce40829159dcf94117d19a124b38652202b66",
+    "Games/Wings/authoring/supplied-fighters/roster_lookup.json": "a978e74e918a6bf9013ef33f0fec43736a982e683c6f83c26c028b08558963a9",
+    "Games/Wings/authoring/weather/weather-check.mjs": "12dea59fa871489c4d991255bf1bd692436fc96a238b457e188826b244c36de6",
+    "Games/Wings/authoring/weather/weather-view-check.mjs": "2a49be64e1a22326b3e4c4796b7c21c5d1d2a335fd4a6c1d783fd396808fe2af",
+    "Games/Wings/authoring/weather/weather-view.mjs": "5d1ba851b5833f0591e77d94d448c2d5d76bd81f4d2e67183f8cbce1230ba5ca",
+    "Games/Wings/authoring/weather/weather.mjs": "181a36fc90c4ac9fcffb5a36da4d7dae1764260e2cafa37359a0675286b46f51",
+    "Games/Wings/source/games/wings/src/sim/bots.ts": "93da88992e8d5bda25b9fa2b9643743fd355d873629b131689707779fdbc90c9",
+    "Games/Wings/source/games/wings/src/sim/combat.ts": "07b1eba422f2a44db222442d81862dabb9e850e4a7df06d4a1ad6a58e0d5f1ea",
+    "Games/Wings/source/games/wings/src/sim/fleet-world-query.ts": "95baa47dc9e4d9879c6a2e20216b65a96116186b668b67edac02ee0d6d857c15",
+    "Games/Wings/source/games/wings/src/sim/fleet.ts": "d0ea5b4a6e409c06d0025c08a86494648972e5628a09f8b5708b0ce3cb9bc685",
+    "Games/Wings/source/games/wings/src/sim/flight.ts": "ae29256e42f168e79380b43d5708bc7480ea4abcbb4ace570113ba46dd1bbd16",
+    "Games/Wings/source/games/wings/src/sim/geography.ts": "02057d4c62093d353f72b9b77f1d706f5d128fa34daf68f298abc8081ebb391e",
+    "Games/Wings/source/games/wings/src/sim/loopback.ts": "8ed939d2c85e279a0e2512b84c5e10eeb8927c1902a52dbf8040ee8de54b1e1a",
+    "Games/Wings/source/games/wings/src/sim/protocol.ts": "36db2a5b19f759553fc0baf1fd541873ab1f15db823bad47591e21052400c0ab",
+    "Games/Wings/source/games/wings/src/sim/room-engine.ts": "479a3b09dc05bdee27975121b95ff76de065792d6d3f031690155a1289dc1f8f",
+    "Games/Wings/source/games/wings/src/sim/time-of-day.ts": "6f1d71e01841f4cade404b1b515b58c3c8c456683969375813b827e0d0f4f48a",
+    "Games/Wings/source/games/wings/src/sim/types.ts": "b6909f4ccc6cda0c2ae810bb490b643d1f429984564da148707859d9af7622d2",
+    "Games/Wings/source/games/wings/src/sim/vehicles.ts": "149292dcc97b4dc5cc198647a85d1c6603045db8b90476d6f86768c3ad87b5cb"
+  },
+  "cases": [
+    {
+      "choice": "nato",
+      "code": "named-coalition-nato",
+      "rosters": [
+        [
+          "f16c"
+        ],
+        [
+          "mig29"
+        ]
+      ],
+      "profiles": [
+        {
+          "team": 0,
+          "coalition": "nato",
+          "aircraft": "f16c",
+          "aircraftSource": "wings.original.f-16c.v1",
+          "aircraftModel": "models/derived/wings_f16c.glb",
+          "unit": "home",
+          "vessel": "type45",
+          "vesselSource": "wings.original.wings_type45_daring_class.v1"
+        },
+        {
+          "team": 1,
+          "coalition": "eastern",
+          "aircraft": "mig29",
+          "aircraftSource": "wings.original.mig-29.v1",
+          "aircraftModel": "models/derived/wings_mig29.glb",
+          "unit": "enemy",
+          "vessel": "type054a",
+          "vesselSource": "wings.original.wings_type054a_jiangkai_ii.v1"
+        }
+      ],
+      "projectileCount": 213,
+      "projectileSamples": [
+        {
+          "nativeProjectileID": 1,
+          "owner": "b4",
+          "vehicle": "v9",
+          "team": 1,
+          "kind": "mig29",
+          "weapon": "cannon20",
+          "launchTick": 1697,
+          "ageAtFirstCallback": 0,
+          "phase": "engage",
+          "strikeShip": null,
+          "position": [
+            -140.1640511614319,
+            584.9587898589577,
+            -508.5436159638151
+          ]
+        },
+        {
+          "nativeProjectileID": 2,
+          "owner": "b4",
+          "vehicle": "v9",
+          "team": 1,
+          "kind": "mig29",
+          "weapon": "cannon20",
+          "launchTick": 1701,
+          "ageAtFirstCallback": 0.00416666666666643,
+          "phase": "engage",
+          "strikeShip": null,
+          "position": [
+            -137.6913565795685,
+            586.4418657072047,
+            -493.76959068500344
+          ]
+        },
+        {
+          "nativeProjectileID": 3,
+          "owner": "b2",
+          "vehicle": "v7",
+          "team": 0,
+          "kind": "f16c",
+          "weapon": "cannon20",
+          "launchTick": 1716,
+          "ageAtFirstCallback": 0,
+          "phase": "engage",
+          "strikeShip": null,
+          "position": [
+            -10.992117569702796,
+            652.1694810747467,
+            255.55301757281183
+          ]
+        },
+        {
+          "nativeProjectileID": 4,
+          "owner": "b2",
+          "vehicle": "v7",
+          "team": 0,
+          "kind": "f16c",
+          "weapon": "cannon20",
+          "launchTick": 1720,
+          "ageAtFirstCallback": 0.0041666666666699825,
+          "phase": "engage",
+          "strikeShip": null,
+          "position": [
+            -14.931658569163638,
+            652.9477227965108,
+            241.27677714403106
+          ]
+        },
+        {
+          "nativeProjectileID": 5,
+          "owner": "b3",
+          "vehicle": "v6",
+          "team": 1,
+          "kind": "mig29",
+          "weapon": "cannon20",
+          "launchTick": 1722,
+          "ageAtFirstCallback": 0,
+          "phase": "engage",
+          "strikeShip": null,
+          "position": [
+            -187.19548405789874,
+            625.5844129838974,
+            -314.64894749069856
+          ]
+        },
+        {
+          "nativeProjectileID": 6,
+          "owner": "b2",
+          "vehicle": "v7",
+          "team": 0,
+          "kind": "f16c",
+          "weapon": "cannon20",
+          "launchTick": 1724,
+          "ageAtFirstCallback": 0.008333333333336412,
+          "phase": "engage",
+          "strikeShip": null,
+          "position": [
+            -18.879971109574335,
+            653.7424139243241,
+            227.28548839665223
+          ]
+        },
+        {
+          "nativeProjectileID": 7,
+          "owner": "b3",
+          "vehicle": "v6",
+          "team": 1,
+          "kind": "mig29",
+          "weapon": "cannon20",
+          "launchTick": 1726,
+          "ageAtFirstCallback": 0.00416666666666643,
+          "phase": "engage",
+          "strikeShip": null,
+          "position": [
+            -183.0764607342449,
+            626.3719647174579,
+            -301.17933495614784
+          ]
+        },
+        {
+          "nativeProjectileID": 8,
+          "owner": "b2",
+          "vehicle": "v7",
+          "team": 0,
+          "kind": "f16c",
+          "weapon": "cannon20",
+          "launchTick": 1728,
+          "ageAtFirstCallback": 0.012500000000002842,
+          "phase": "engage",
+          "strikeShip": null,
+          "position": [
+            -22.780705079533373,
+            654.6343569008702,
+            213.5457301942134
+          ]
+        },
+        {
+          "nativeProjectileID": 9,
+          "owner": "b3",
+          "vehicle": "v6",
+          "team": 1,
+          "kind": "mig29",
+          "weapon": "cannon20",
+          "launchTick": 1730,
+          "ageAtFirstCallback": 0.00833333333333286,
+          "phase": "engage",
+          "strikeShip": null,
+          "position": [
+            -179.0830445796099,
+            627.2324905861998,
+            -287.92915572930673
+          ]
+        },
+        {
+          "nativeProjectileID": 10,
+          "owner": "b2",
+          "vehicle": "v7",
+          "team": 0,
+          "kind": "f16c",
+          "weapon": "cannon20",
+          "launchTick": 1731,
+          "ageAtFirstCallback": 0,
+          "phase": "engage",
+          "strikeShip": null,
+          "position": [
+            -19.698330178388744,
+            656.2929252948694,
+            222.44458469951374
+          ]
+        },
+        {
+          "nativeProjectileID": 11,
+          "owner": "b3",
+          "vehicle": "v6",
+          "team": 1,
+          "kind": "mig29",
+          "weapon": "cannon20",
+          "launchTick": 1734,
+          "ageAtFirstCallback": 0.01249999999999929,
+          "phase": "engage",
+          "strikeShip": null,
+          "position": [
+            -175.13276518908754,
+            628.1505259854191,
+            -274.91314129781694
+          ]
+        },
+        {
+          "nativeProjectileID": 12,
+          "owner": "b2",
+          "vehicle": "v7",
+          "team": 0,
+          "kind": "f16c",
+          "weapon": "cannon20",
+          "launchTick": 1735,
+          "ageAtFirstCallback": 0.0041666666666699825,
+          "phase": "engage",
+          "strikeShip": null,
+          "position": [
+            -23.523421450740578,
+            657.2827973766603,
+            209.07250774594758
+          ]
+        },
+        {
+          "nativeProjectileID": 13,
+          "owner": "b3",
+          "vehicle": "v6",
+          "team": 1,
+          "kind": "mig29",
+          "weapon": "cannon20",
+          "launchTick": 1737,
+          "ageAtFirstCallback": 0,
+          "phase": "engage",
+          "strikeShip": null,
+          "position": [
+            -178.11224277086225,
+            627.0534901703284,
+            -284.1715228163254
+          ]
+        },
+        {
+          "nativeProjectileID": 14,
+          "owner": "b2",
+          "vehicle": "v7",
+          "team": 0,
+          "kind": "f16c",
+          "weapon": "cannon20",
+          "launchTick": 1739,
+          "ageAtFirstCallback": 0.008333333333336412,
+          "phase": "engage",
+          "strikeShip": null,
+          "position": [
+            -27.38108439853749,
+            658.317049780827,
+            195.9506891784294
+          ]
+        },
+        {
+          "nativeProjectileID": 16,
+          "owner": "b4",
+          "vehicle": "v9",
+          "team": 1,
+          "kind": "mig29",
+          "weapon": "cannon20",
+          "launchTick": 1808,
+          "ageAtFirstCallback": 0,
+          "phase": "engage",
+          "strikeShip": null,
+          "position": [
+            -100.69441674916091,
+            605.2688989899248,
+            -278.5682199193132
+          ]
+        },
+        {
+          "nativeProjectileID": 17,
+          "owner": "b4",
+          "vehicle": "v9",
+          "team": 1,
+          "kind": "mig29",
+          "weapon": "cannon20",
+          "launchTick": 1812,
+          "ageAtFirstCallback": 0.00416666666666643,
+          "phase": "engage",
+          "strikeShip": null,
+          "position": [
+            -98.85772330992512,
+            607.8112466398627,
+            -267.47767209831545
+          ]
+        },
+        {
+          "nativeProjectileID": 19,
+          "owner": "b1",
+          "vehicle": "v8",
+          "team": 0,
+          "kind": "f16c",
+          "weapon": "cannon20",
+          "launchTick": 1943,
+          "ageAtFirstCallback": 0,
+          "phase": "engage",
+          "strikeShip": null,
+          "position": [
+            49.03202154533787,
+            670.3063769771973,
+            332.29573580475153
+          ]
+        },
+        {
+          "nativeProjectileID": 23,
+          "owner": "b1",
+          "vehicle": "v8",
+          "team": 0,
+          "kind": "f16c",
+          "weapon": "cannon20",
+          "launchTick": 1947,
+          "ageAtFirstCallback": 0.0041666666666699825,
+          "phase": "engage",
+          "strikeShip": null,
+          "position": [
+            47.28263877173397,
+            669.8521907449579,
+            319.9530150768921
+          ]
+        },
+        {
+          "nativeProjectileID": 24,
+          "owner": "b1",
+          "vehicle": "v8",
+          "team": 0,
+          "kind": "f16c",
+          "weapon": "cannon20",
+          "launchTick": 1951,
+          "ageAtFirstCallback": 0.00833333333333286,
+          "phase": "engage",
+          "strikeShip": null,
+          "position": [
+            45.31360926358962,
+            669.3503522863513,
+            307.8007492790669
+          ]
+        },
+        {
+          "nativeProjectileID": 25,
+          "owner": "b1",
+          "vehicle": "v8",
+          "team": 0,
+          "kind": "f16c",
+          "weapon": "cannon20",
+          "launchTick": 1955,
+          "ageAtFirstCallback": 0.012500000000002842,
+          "phase": "engage",
+          "strikeShip": null,
+          "position": [
+            43.05405211685181,
+            668.7529238491669,
+            295.8615074045719
+          ]
+        },
+        {
+          "nativeProjectileID": 26,
+          "owner": "b4",
+          "vehicle": "v9",
+          "team": 1,
+          "kind": "mig29",
+          "weapon": "cannon20",
+          "launchTick": 1957,
+          "ageAtFirstCallback": 0,
+          "phase": "engage",
+          "strikeShip": null,
+          "position": [
+            -60.88306074885183,
+            636.1093856233998,
+            -59.63784941463346
+          ]
+        },
+        {
+          "nativeProjectileID": 27,
+          "owner": "b1",
+          "vehicle": "v8",
+          "team": 0,
+          "kind": "f16c",
+          "weapon": "cannon20",
+          "launchTick": 1958,
+          "ageAtFirstCallback": 0,
+          "phase": "engage",
+          "strikeShip": null,
+          "position": [
+            46.61683582662255,
+            670.0188862191258,
+            305.72844873767633
+          ]
+        },
+        {
+          "nativeProjectileID": 28,
+          "owner": "b4",
+          "vehicle": "v9",
+          "team": 1,
+          "kind": "mig29",
+          "weapon": "cannon20",
+          "launchTick": 1961,
+          "ageAtFirstCallback": 0.004166666666662877,
+          "phase": "engage",
+          "strikeShip": null,
+          "position": [
+            -58.147690282553796,
+            636.9426961384116,
+            -49.82907664221067
+          ]
+        },
+        {
+          "nativeProjectileID": 29,
+          "owner": "b1",
+          "vehicle": "v8",
+          "team": 0,
+          "kind": "f16c",
+          "weapon": "cannon20",
+          "launchTick": 1962,
+          "ageAtFirstCallback": 0.0041666666666699825,
+          "phase": "engage",
+          "strikeShip": null,
+          "position": [
+            44.39284933779672,
+            669.479225707552,
+            293.9440045434855
+          ]
+        },
+        {
+          "nativeProjectileID": 30,
+          "owner": "b1",
+          "vehicle": "v8",
+          "team": 0,
+          "kind": "f16c",
+          "weapon": "cannon20",
+          "launchTick": 1966,
+          "ageAtFirstCallback": 0.00833333333333286,
+          "phase": "engage",
+          "strikeShip": null,
+          "position": [
+            42.11819542099077,
+            668.8660277931509,
+            282.2976149555819
+          ]
+        },
+        {
+          "nativeProjectileID": 31,
+          "owner": "b1",
+          "vehicle": "v8",
+          "team": 0,
+          "kind": "f16c",
+          "weapon": "cannon20",
+          "launchTick": 1970,
+          "ageAtFirstCallback": 0.012500000000002842,
+          "phase": "engage",
+          "strikeShip": null,
+          "position": [
+            39.70082576504718,
+            668.210504988061,
+            270.8113370986462
+          ]
+        },
+        {
+          "nativeProjectileID": 32,
+          "owner": "b1",
+          "vehicle": "v8",
+          "team": 0,
+          "kind": "f16c",
+          "weapon": "cannon20",
+          "launchTick": 1973,
+          "ageAtFirstCallback": 0,
+          "phase": "engage",
+          "strikeShip": null,
+          "position": [
+            43.17688333473974,
+            669.4578358359208,
+            280.9232651868003
+          ]
+        },
+        {
+          "nativeProjectileID": 33,
+          "owner": "b1",
+          "vehicle": "v8",
+          "team": 0,
+          "kind": "f16c",
+          "weapon": "cannon20",
+          "launchTick": 1977,
+          "ageAtFirstCallback": 0.0041666666666699825,
+          "phase": "engage",
+          "strikeShip": null,
+          "position": [
+            40.72903972210642,
+            668.7434809266506,
+            269.62173319588777
+          ]
+        },
+        {
+          "nativeProjectileID": 34,
+          "owner": "b1",
+          "vehicle": "v8",
+          "team": 0,
+          "kind": "f16c",
+          "weapon": "cannon20",
+          "launchTick": 1981,
+          "ageAtFirstCallback": 0.00833333333333286,
+          "phase": "engage",
+          "strikeShip": null,
+          "position": [
+            38.20018082254215,
+            667.9567951236363,
+            258.45599802037066
+          ]
+        },
+        {
+          "nativeProjectileID": 35,
+          "owner": "b1",
+          "vehicle": "v8",
+          "team": 0,
+          "kind": "f16c",
+          "weapon": "cannon20",
+          "launchTick": 1985,
+          "ageAtFirstCallback": 0.012500000000002842,
+          "phase": "engage",
+          "strikeShip": null,
+          "position": [
+            35.550236719519226,
+            667.192894922469,
+            247.42632533751956
+          ]
+        },
+        {
+          "nativeProjectileID": 36,
+          "owner": "b1",
+          "vehicle": "v8",
+          "team": 0,
+          "kind": "f16c",
+          "weapon": "cannon20",
+          "launchTick": 1988,
+          "ageAtFirstCallback": 0,
+          "phase": "engage",
+          "strikeShip": null,
+          "position": [
+            39.48916568212103,
+            667.5902528406084,
+            257.6516850114014
+          ]
+        },
+        {
+          "nativeProjectileID": 37,
+          "owner": "b1",
+          "vehicle": "v8",
+          "team": 0,
+          "kind": "f16c",
+          "weapon": "cannon20",
+          "launchTick": 2133,
+          "ageAtFirstCallback": 0,
+          "phase": "engage",
+          "strikeShip": null,
+          "position": [
+            10.666713323640765,
+            703.4481775174044,
+            69.21579675051399
+          ]
+        },
+        {
+          "nativeProjectileID": 38,
+          "owner": "b1",
+          "vehicle": "v8",
+          "team": 0,
+          "kind": "f16c",
+          "weapon": "cannon20",
+          "launchTick": 2137,
+          "ageAtFirstCallback": 0.0041666666666699825,
+          "phase": "engage",
+          "strikeShip": null,
+          "position": [
+            1.826960525152078,
+            703.6682458217366,
+            63.69800957436604
+          ]
+        },
+        {
+          "nativeProjectileID": 39,
+          "owner": "b1",
+          "vehicle": "v8",
+          "team": 0,
+          "kind": "f16c",
+          "weapon": "cannon20",
+          "launchTick": 2141,
+          "ageAtFirstCallback": 0.00833333333333286,
+          "phase": "engage",
+          "strikeShip": null,
+          "position": [
+            -7.358469316370092,
+            703.8051087298935,
+            58.50597625682312
+          ]
+        },
+        {
+          "nativeProjectileID": 40,
+          "owner": "b1",
+          "vehicle": "v8",
+          "team": 0,
+          "kind": "f16c",
+          "weapon": "cannon20",
+          "launchTick": 2145,
+          "ageAtFirstCallback": 0.012500000000002842,
+          "phase": "engage",
+          "strikeShip": null,
+          "position": [
+            -16.259471685543556,
+            704.015510117257,
+            52.67728326440506
+          ]
+        },
+        {
+          "nativeProjectileID": 41,
+          "owner": "b1",
+          "vehicle": "v8",
+          "team": 0,
+          "kind": "f16c",
+          "weapon": "cannon20",
+          "launchTick": 2148,
+          "ageAtFirstCallback": 0,
+          "phase": "engage",
+          "strikeShip": null,
+          "position": [
+            -7.56279882610912,
+            702.7072214299021,
+            59.76732628535808
+          ]
+        },
+        {
+          "nativeProjectileID": 42,
+          "owner": "b1",
+          "vehicle": "v8",
+          "team": 0,
+          "kind": "f16c",
+          "weapon": "cannon20",
+          "launchTick": 2152,
+          "ageAtFirstCallback": 0.0041666666666699825,
+          "phase": "engage",
+          "strikeShip": null,
+          "position": [
+            -16.817234890324734,
+            702.9477825754527,
+            54.257355472934535
+          ]
+        },
+        {
+          "nativeProjectileID": 43,
+          "owner": "b1",
+          "vehicle": "v8",
+          "team": 0,
+          "kind": "f16c",
+          "weapon": "cannon20",
+          "launchTick": 2156,
+          "ageAtFirstCallback": 0.00833333333333286,
+          "phase": "engage",
+          "strikeShip": null,
+          "position": [
+            -25.935566693548623,
+            703.4178642606056,
+            48.51574874269555
+          ]
+        },
+        {
+          "nativeProjectileID": 44,
+          "owner": "b1",
+          "vehicle": "v8",
+          "team": 0,
+          "kind": "f16c",
+          "weapon": "cannon20",
+          "launchTick": 2395,
+          "ageAtFirstCallback": 0,
+          "phase": "engage",
+          "strikeShip": null,
+          "position": [
+            -38.5145220788736,
+            813.4138711297444,
+            -218.0259860688779
+          ]
+        },
+        {
+          "nativeProjectileID": 45,
+          "owner": "b1",
+          "vehicle": "v8",
+          "team": 0,
+          "kind": "f16c",
+          "weapon": "cannon20",
+          "launchTick": 2399,
+          "ageAtFirstCallback": 0.0041666666666699825,
+          "phase": "engage",
+          "strikeShip": null,
+          "position": [
+            -27.166355959912348,
+            815.5512132582716,
+            -221.24939863994786
+          ]
+        },
+        {
+          "nativeProjectileID": 46,
+          "owner": "b1",
+          "vehicle": "v8",
+          "team": 0,
+          "kind": "f16c",
+          "weapon": "cannon20",
+          "launchTick": 2403,
+          "ageAtFirstCallback": 0.00833333333333286,
+          "phase": "engage",
+          "strikeShip": null,
+          "position": [
+            -15.58555267552509,
+            817.1434358623982,
+            -223.79372079642246
+          ]
+        },
+        {
+          "nativeProjectileID": 47,
+          "owner": "b1",
+          "vehicle": "v8",
+          "team": 0,
+          "kind": "f16c",
+          "weapon": "cannon20",
+          "launchTick": 2407,
+          "ageAtFirstCallback": 0.012500000000002842,
+          "phase": "engage",
+          "strikeShip": null,
+          "position": [
+            -3.8046647160874763,
+            818.4846104477957,
+            -225.4389557288225
+          ]
+        },
+        {
+          "nativeProjectileID": 48,
+          "owner": "b1",
+          "vehicle": "v8",
+          "team": 0,
+          "kind": "f16c",
+          "weapon": "cannon20",
+          "launchTick": 2410,
+          "ageAtFirstCallback": 0,
+          "phase": "engage",
+          "strikeShip": null,
+          "position": [
+            -14.259150988620675,
+            818.267418839327,
+            -223.9024431672706
+          ]
+        },
+        {
+          "nativeProjectileID": 49,
+          "owner": "b1",
+          "vehicle": "v8",
+          "team": 0,
+          "kind": "f16c",
+          "weapon": "cannon20",
+          "launchTick": 2414,
+          "ageAtFirstCallback": 0.0041666666666699825,
+          "phase": "engage",
+          "strikeShip": null,
+          "position": [
+            -2.4246746817954197,
+            819.2124220842983,
+            -225.4713153169087
+          ]
+        },
+        {
+          "nativeProjectileID": 50,
+          "owner": "b1",
+          "vehicle": "v8",
+          "team": 0,
+          "kind": "f16c",
+          "weapon": "cannon20",
+          "launchTick": 2418,
+          "ageAtFirstCallback": 0.00833333333333286,
+          "phase": "engage",
+          "strikeShip": null,
+          "position": [
+            9.478717574197459,
+            819.9765664224841,
+            -226.73359249793012
+          ]
+        },
+        {
+          "nativeProjectileID": 51,
+          "owner": "b1",
+          "vehicle": "v8",
+          "team": 0,
+          "kind": "f16c",
+          "weapon": "cannon20",
+          "launchTick": 2422,
+          "ageAtFirstCallback": 0.012500000000002842,
+          "phase": "engage",
+          "strikeShip": null,
+          "position": [
+            21.440479049481585,
+            820.7054131260652,
+            -227.75087859373434
+          ]
+        },
+        {
+          "nativeProjectileID": 52,
+          "owner": "b1",
+          "vehicle": "v8",
+          "team": 0,
+          "kind": "f16c",
+          "weapon": "cannon20",
+          "launchTick": 2425,
+          "ageAtFirstCallback": 0,
+          "phase": "engage",
+          "strikeShip": null,
+          "position": [
+            11.002404821854633,
+            819.7435242038397,
+            -226.61864307736792
+          ]
+        },
+        {
+          "nativeProjectileID": 53,
+          "owner": "b1",
+          "vehicle": "v8",
+          "team": 0,
+          "kind": "f16c",
+          "weapon": "cannon20",
+          "launchTick": 2429,
+          "ageAtFirstCallback": 0.0041666666666699825,
+          "phase": "engage",
+          "strikeShip": null,
+          "position": [
+            23.073499362881744,
+            819.5008192408633,
+            -227.8401845433395
+          ]
+        },
+        {
+          "nativeProjectileID": 54,
+          "owner": "b1",
+          "vehicle": "v8",
+          "team": 0,
+          "kind": "f16c",
+          "weapon": "cannon20",
+          "launchTick": 2433,
+          "ageAtFirstCallback": 0.00833333333333286,
+          "phase": "engage",
+          "strikeShip": null,
+          "position": [
+            35.13516030811901,
+            820.1035270452182,
+            -228.61175209563174
+          ]
+        },
+        {
+          "nativeProjectileID": 55,
+          "owner": "b1",
+          "vehicle": "v8",
+          "team": 0,
+          "kind": "f16c",
+          "weapon": "cannon20",
+          "launchTick": 2437,
+          "ageAtFirstCallback": 0.012500000000002842,
+          "phase": "engage",
+          "strikeShip": null,
+          "position": [
+            47.215191664711334,
+            820.8973256533751,
+            -229.37318389009968
+          ]
+        },
+        {
+          "nativeProjectileID": 56,
+          "owner": "b1",
+          "vehicle": "v8",
+          "team": 0,
+          "kind": "f16c",
+          "weapon": "cannon20",
+          "launchTick": 2489,
+          "ageAtFirstCallback": 0,
+          "phase": "engage",
+          "strikeShip": null,
+          "position": [
+            123.87628187270039,
+            825.4635455456121,
+            -235.09406871240242
+          ]
+        },
+        {
+          "nativeProjectileID": 57,
+          "owner": "b1",
+          "vehicle": "v8",
+          "team": 0,
+          "kind": "f16c",
+          "weapon": "cannon20",
+          "launchTick": 2493,
+          "ageAtFirstCallback": 0.004166666666662877,
+          "phase": "engage",
+          "strikeShip": null,
+          "position": [
+            136.0893144589986,
+            828.0851293114007,
+            -235.9119232638038
+          ]
+        },
+        {
+          "nativeProjectileID": 58,
+          "owner": "b1",
+          "vehicle": "v8",
+          "team": 0,
+          "kind": "f16c",
+          "weapon": "cannon20",
+          "launchTick": 2497,
+          "ageAtFirstCallback": 0.00833333333333286,
+          "phase": "engage",
+          "strikeShip": null,
+          "position": [
+            148.2785072035392,
+            830.8349516948373,
+            -236.89708165260652
+          ]
+        },
+        {
+          "nativeProjectileID": 59,
+          "owner": "b1",
+          "vehicle": "v8",
+          "team": 0,
+          "kind": "f16c",
+          "weapon": "cannon20",
+          "launchTick": 2501,
+          "ageAtFirstCallback": 0.012499999999995737,
+          "phase": "engage",
+          "strikeShip": null,
+          "position": [
+            160.4125565787477,
+            833.6715628318,
+            -238.21166513573914
+          ]
+        },
+        {
+          "nativeProjectileID": 60,
+          "owner": "b1",
+          "vehicle": "v8",
+          "team": 0,
+          "kind": "f16c",
+          "weapon": "cannon20",
+          "launchTick": 2504,
+          "ageAtFirstCallback": 0,
+          "phase": "engage",
+          "strikeShip": null,
+          "position": [
+            151.2553818292092,
+            830.2652224853753,
+            -234.6115437142269
+          ]
+        },
+        {
+          "nativeProjectileID": 61,
+          "owner": "b1",
+          "vehicle": "v8",
+          "team": 0,
+          "kind": "f16c",
+          "weapon": "cannon20",
+          "launchTick": 3066,
+          "ageAtFirstCallback": 0,
+          "phase": "engage",
+          "strikeShip": null,
+          "position": [
+            -212.05317914569716,
+            864.096038210449,
+            -556.4904888411976
+          ]
+        },
+        {
+          "nativeProjectileID": 62,
+          "owner": "b1",
+          "vehicle": "v8",
+          "team": 0,
+          "kind": "f16c",
+          "weapon": "cannon20",
+          "launchTick": 3070,
+          "ageAtFirstCallback": 0.004166666666662877,
+          "phase": "engage",
+          "strikeShip": null,
+          "position": [
+            -217.3078700119925,
+            862.9917711176366,
+            -543.8413468593557
+          ]
+        },
+        {
+          "nativeProjectileID": 63,
+          "owner": "b1",
+          "vehicle": "v8",
+          "team": 0,
+          "kind": "f16c",
+          "weapon": "cannon20",
+          "launchTick": 3074,
+          "ageAtFirstCallback": 0.00833333333333286,
+          "phase": "engage",
+          "strikeShip": null,
+          "position": [
+            -222.71945138068014,
+            862.8667031678742,
+            -531.1267590405085
+          ]
+        },
+        {
+          "nativeProjectileID": 64,
+          "owner": "b1",
+          "vehicle": "v8",
+          "team": 0,
+          "kind": "f16c",
+          "weapon": "cannon20",
+          "launchTick": 3078,
+          "ageAtFirstCallback": 0.012499999999995737,
+          "phase": "engage",
+          "strikeShip": null,
+          "position": [
+            -227.78577737792585,
+            862.7760193817084,
+            -518.2707812317041
+          ]
+        },
+        {
+          "nativeProjectileID": 65,
+          "owner": "b1",
+          "vehicle": "v8",
+          "team": 0,
+          "kind": "f16c",
+          "weapon": "cannon20",
+          "launchTick": 3081,
+          "ageAtFirstCallback": 0,
+          "phase": "engage",
+          "strikeShip": null,
+          "position": [
+            -227.07178516569522,
+            862.7340266632608,
+            -528.0015922148781
+          ]
+        },
+        {
+          "nativeProjectileID": 66,
+          "owner": "b1",
+          "vehicle": "v8",
+          "team": 0,
+          "kind": "f16c",
+          "weapon": "cannon20",
+          "launchTick": 3085,
+          "ageAtFirstCallback": 0.004166666666662877,
+          "phase": "engage",
+          "strikeShip": null,
+          "position": [
+            -231.9614607535002,
+            862.7562638251329,
+            -515.0313970718116
+          ]
+        },
+        {
+          "nativeProjectileID": 67,
+          "owner": "b3",
+          "vehicle": "v11",
+          "team": 1,
+          "kind": "mig29",
+          "weapon": "cannon20",
+          "launchTick": 3631,
+          "ageAtFirstCallback": 0,
+          "phase": "engage",
+          "strikeShip": null,
+          "position": [
+            -518.7135054043886,
+            704.013217437335,
+            -1227.0671495248203
+          ]
+        },
+        {
+          "nativeProjectileID": 68,
+          "owner": "b3",
+          "vehicle": "v11",
+          "team": 1,
+          "kind": "mig29",
+          "weapon": "cannon20",
+          "launchTick": 3635,
+          "ageAtFirstCallback": 0.0041666666666699825,
+          "phase": "engage",
+          "strikeShip": null,
+          "position": [
+            -512.3452745797867,
+            710.7435157932715,
+            -1216.3015070518086
+          ]
+        },
+        {
+          "nativeProjectileID": 69,
+          "owner": "b3",
+          "vehicle": "v11",
+          "team": 1,
+          "kind": "mig29",
+          "weapon": "cannon20",
+          "launchTick": 3639,
+          "ageAtFirstCallback": 0.00833333333333286,
+          "phase": "engage",
+          "strikeShip": null,
+          "position": [
+            -506.1268410201678,
+            717.5339613913682,
+            -1205.5127970318013
+          ]
+        }
+      ],
+      "impacts": [
+        {
+          "nativeProjectileID": 183,
+          "owner": "b1",
+          "vehicle": "v12",
+          "team": 0,
+          "kind": "f16c",
+          "weapon": "cannon20",
+          "launchTick": 5296,
+          "ageAtFirstCallback": 0,
+          "phase": "strike",
+          "strikeShip": "enemy",
+          "position": [
+            591.240751539738,
+            6.730000019073486,
+            3057.416634268745
+          ],
+          "hitTick": 5325,
+          "contact": "enemy",
+          "hitPhase": "strike",
+          "authorityTick": 1775,
+          "impactEvent": 3,
+          "unit": "enemy",
+          "damage": 1.3499999999999999
+        },
+        {
+          "nativeProjectileID": 184,
+          "owner": "b1",
+          "vehicle": "v12",
+          "team": 0,
+          "kind": "f16c",
+          "weapon": "cannon20",
+          "launchTick": 5300,
+          "ageAtFirstCallback": 0.004166666666662877,
+          "phase": "strike",
+          "strikeShip": "enemy",
+          "position": [
+            584.1434473749048,
+            6.730000019073486,
+            3058.2893232010306
+          ],
+          "hitTick": 5329,
+          "contact": "enemy",
+          "hitPhase": "strike",
+          "authorityTick": 1776,
+          "impactEvent": 5,
+          "unit": "enemy",
+          "damage": 1.3499999999999999
+        },
+        {
+          "nativeProjectileID": 185,
+          "owner": "b1",
+          "vehicle": "v12",
+          "team": 0,
+          "kind": "f16c",
+          "weapon": "cannon20",
+          "launchTick": 5304,
+          "ageAtFirstCallback": 0.008333333333339965,
+          "phase": "strike",
+          "strikeShip": "enemy",
+          "position": [
+            582.1614647578567,
+            6.730000019073486,
+            3057.6932377834505
+          ],
+          "hitTick": 5332,
+          "contact": "enemy",
+          "hitPhase": "strike",
+          "authorityTick": 1777,
+          "impactEvent": 7,
+          "unit": "enemy",
+          "damage": 1.3499999999999999
+        },
+        {
+          "nativeProjectileID": 186,
+          "owner": "b1",
+          "vehicle": "v12",
+          "team": 0,
+          "kind": "f16c",
+          "weapon": "cannon20",
+          "launchTick": 5308,
+          "ageAtFirstCallback": 0.012500000000002842,
+          "phase": "strike",
+          "strikeShip": "enemy",
+          "position": [
+            587.0803143273934,
+            6.730000019073486,
+            3057.7556842391655
+          ],
+          "hitTick": 5335,
+          "contact": "enemy",
+          "hitPhase": "strike",
+          "authorityTick": 1778,
+          "impactEvent": 9,
+          "unit": "enemy",
+          "damage": 1.3499999999999999
+        },
+        {
+          "nativeProjectileID": 187,
+          "owner": "b1",
+          "vehicle": "v12",
+          "team": 0,
+          "kind": "f16c",
+          "weapon": "cannon20",
+          "launchTick": 5311,
+          "ageAtFirstCallback": 0,
+          "phase": "strike",
+          "strikeShip": "enemy",
+          "position": [
+            582.2768774301023,
+            7.227120927526073,
+            3057.287914892126
+          ],
+          "hitTick": 5339,
+          "contact": "enemy",
+          "hitPhase": "strike",
+          "authorityTick": 1779,
+          "impactEvent": 11,
+          "unit": "enemy",
+          "damage": 1.3499999999999999
+        }
+      ],
+      "damage": 6.749999999999999,
+      "nativeFire": {
+        "cannon20": 37,
+        "aim9": 6
+      },
+      "crewRides": [
+        {
+          "player": "b3",
+          "vehicle": "v6",
+          "team": 1,
+          "kind": "mig29",
+          "bot": true,
+          "seat": 0,
+          "tick": 37
+        },
+        {
+          "player": "b2",
+          "vehicle": "v7",
+          "team": 0,
+          "kind": "f16c",
+          "bot": true,
+          "seat": 0,
+          "tick": 61
+        },
+        {
+          "player": "b1",
+          "vehicle": "v8",
+          "team": 0,
+          "kind": "f16c",
+          "bot": true,
+          "seat": 0,
+          "tick": 100
+        },
+        {
+          "player": "b4",
+          "vehicle": "v9",
+          "team": 1,
+          "kind": "mig29",
+          "bot": true,
+          "seat": 0,
+          "tick": 111
+        },
+        {
+          "player": "b2",
+          "vehicle": "v10",
+          "team": 0,
+          "kind": "f16c",
+          "bot": true,
+          "seat": 0,
+          "tick": 2115
+        },
+        {
+          "player": "b3",
+          "vehicle": "v11",
+          "team": 1,
+          "kind": "mig29",
+          "bot": true,
+          "seat": 0,
+          "tick": 2299
+        },
+        {
+          "player": "b1",
+          "vehicle": "v12",
+          "team": 0,
+          "kind": "f16c",
+          "bot": true,
+          "seat": 0,
+          "tick": 4021
+        },
+        {
+          "player": "b2",
+          "vehicle": "v13",
+          "team": 0,
+          "kind": "f16c",
+          "bot": true,
+          "seat": 0,
+          "tick": 5332
+        },
+        {
+          "player": "b4",
+          "vehicle": "v14",
+          "team": 1,
+          "kind": "mig29",
+          "bot": true,
+          "seat": 0,
+          "tick": 6591
+        },
+        {
+          "player": "b2",
+          "vehicle": "v15",
+          "team": 0,
+          "kind": "f16c",
+          "bot": true,
+          "seat": 0,
+          "tick": 6822
+        },
+        {
+          "player": "b3",
+          "vehicle": "v16",
+          "team": 1,
+          "kind": "mig29",
+          "bot": true,
+          "seat": 0,
+          "tick": 7177
+        }
+      ],
+      "aircraft": [
+        {
+          "id": "v6",
+          "kind": "mig29",
+          "team": 1,
+          "birthTick": 37,
+          "start": [
+            32.441761539146476,
+            22.2,
+            -2926.0935617488785
+          ],
+          "spawnedOnGround": true,
+          "end": [
+            113.11535560921891,
+            802.4652069108488,
+            -468.9837894387141
+          ],
+          "phases": {
+            "takeoff": 463,
+            "transit": 568,
+            "engage": 696,
+            "defend": 235
+          },
+          "firstPhases": {
+            "takeoff": 37,
+            "transit": 500,
+            "engage": 1068,
+            "defend": 1741
+          },
+          "maxAltitude": 802.4652069108488,
+          "maxDistance": 2865.4638988677134,
+          "airborneTicks": 1913,
+          "minContactDistance": 3293.640943769153,
+          "nativeFire": {
+            "cannon20": 1
+          },
+          "initialAmmo": [
+            600,
+            2,
+            2,
+            0
+          ],
+          "ammo": [
+            600,
+            2,
+            2,
+            0
+          ],
+          "ammoSpent": 5,
+          "samples": [
+            {
+              "tick": 601,
+              "phase": "transit",
+              "strikePhase": "approach",
+              "target": null,
+              "strikeShip": null,
+              "position": [
+                -867.0187631987119,
+                226.23500242321606,
+                -2827.499973290167
+              ],
+              "onGround": false
+            },
+            {
+              "tick": 1201,
+              "phase": "engage",
+              "strikePhase": "approach",
+              "target": "v7",
+              "strikeShip": null,
+              "position": [
+                -574.681990715283,
+                600.1480388270355,
+                -1627.3626189977388
+              ],
+              "onGround": false
+            },
+            {
+              "tick": 1801,
+              "phase": "defend",
+              "strikePhase": "approach",
+              "target": "v7",
+              "strikeShip": null,
+              "position": [
+                -108.02803873204418,
+                666.1539009515305,
+                -159.6195726461263
+              ],
+              "onGround": false
+            }
+          ],
+          "alive": false
+        },
+        {
+          "id": "v7",
+          "kind": "f16c",
+          "team": 0,
+          "birthTick": 61,
+          "start": [
+            -27.53900147544649,
+            22.2,
+            2926.1438111271523
+          ],
+          "spawnedOnGround": true,
+          "end": [
+            -27.852244288092816,
+            706.9485832056492,
+            36.99743986698619
+          ],
+          "phases": {
+            "takeoff": 465,
+            "transit": 455,
+            "engage": 765,
+            "defend": 69
+          },
+          "firstPhases": {
+            "takeoff": 61,
+            "transit": 526,
+            "engage": 981,
+            "defend": 1746
+          },
+          "maxAltitude": 706.9485832056492,
+          "maxDistance": 2969.1829641989043,
+          "airborneTicks": 1702,
+          "minContactDistance": 640.1678448110974,
+          "nativeFire": {
+            "cannon20": 1
+          },
+          "initialAmmo": [
+            600,
+            2,
+            2,
+            0
+          ],
+          "ammo": [
+            593,
+            2,
+            2,
+            0
+          ],
+          "ammoSpent": 7,
+          "samples": [
+            {
+              "tick": 601,
+              "phase": "transit",
+              "strikePhase": "approach",
+              "target": null,
+              "strikeShip": null,
+              "position": [
+                868.4042935402546,
+                209.70605372013844,
+                2873.2603411579516
+              ],
+              "onGround": false
+            },
+            {
+              "tick": 1201,
+              "phase": "engage",
+              "strikePhase": "approach",
+              "target": "v6",
+              "strikeShip": null,
+              "position": [
+                368.81351146331565,
+                502.6774170670021,
+                1624.1720143005905
+              ],
+              "onGround": false
+            },
+            {
+              "tick": 1801,
+              "phase": "defend",
+              "strikePhase": "approach",
+              "target": "v6",
+              "strikeShip": null,
+              "position": [
+                -41.184513626441436,
+                696.0391571478783,
+                65.12352003407068
+              ],
+              "onGround": false
+            }
+          ],
+          "alive": false
+        },
+        {
+          "id": "v8",
+          "kind": "f16c",
+          "team": 0,
+          "birthTick": 100,
+          "start": [
+            -135.93867792608765,
+            22.2,
+            3447.0330250584643
+          ],
+          "spawnedOnGround": true,
+          "end": [
+            -383.09804652467506,
+            1005.6142390205074,
+            -748.7595425236966
+          ],
+          "phases": {
+            "takeoff": 464,
+            "transit": 572,
+            "engage": 2555,
+            "defend": 30
+          },
+          "firstPhases": {
+            "takeoff": 100,
+            "transit": 564,
+            "engage": 1136,
+            "defend": 3691
+          },
+          "maxAltitude": 1027.968507797609,
+          "maxDistance": 4316.58042774278,
+          "airborneTicks": 3569,
+          "minContactDistance": 791.9259977210597,
+          "nativeFire": {
+            "aim9": 1,
+            "cannon20": 6
+          },
+          "initialAmmo": [
+            600,
+            2,
+            2,
+            0
+          ],
+          "ammo": [
+            600,
+            2,
+            2,
+            0
+          ],
+          "ammoSpent": 44,
+          "samples": [
+            {
+              "tick": 601,
+              "phase": "transit",
+              "strikePhase": "approach",
+              "target": null,
+              "strikeShip": null,
+              "position": [
+                699.7706161298047,
+                173.7179480370401,
+                3435.1730886461814
+              ],
+              "onGround": false
+            },
+            {
+              "tick": 1201,
+              "phase": "engage",
+              "strikePhase": "approach",
+              "target": "v6",
+              "strikeShip": null,
+              "position": [
+                533.4315038612449,
+                607.431689211823,
+                2269.6375826722915
+              ],
+              "onGround": false
+            },
+            {
+              "tick": 1801,
+              "phase": "engage",
+              "strikePhase": "approach",
+              "target": "v6",
+              "strikeShip": null,
+              "position": [
+                74.83223412560471,
+                647.0610104299658,
+                644.4635157496054
+              ],
+              "onGround": false
+            },
+            {
+              "tick": 2401,
+              "phase": "engage",
+              "strikePhase": "approach",
+              "target": "v9",
+              "strikeShip": null,
+              "position": [
+                -13.284884968763606,
+                815.7196817965214,
+                -222.83240861511476
+              ],
+              "onGround": false
+            },
+            {
+              "tick": 3001,
+              "phase": "engage",
+              "strikePhase": "approach",
+              "target": "v9",
+              "strikeShip": null,
+              "position": [
+                -119.15700590843032,
+                870.9187357876106,
+                -638.5969937100606
+              ],
+              "onGround": false
+            },
+            {
+              "tick": 3601,
+              "phase": "engage",
+              "strikePhase": "approach",
+              "target": "v9",
+              "strikeShip": null,
+              "position": [
+                -147.28271660578062,
+                1026.553236104417,
+                -650.5077559633797
+              ],
+              "onGround": false
+            }
+          ],
+          "alive": false
+        },
+        {
+          "id": "v9",
+          "kind": "mig29",
+          "team": 1,
+          "birthTick": 111,
+          "start": [
+            17.324685662966598,
+            22.2,
+            -2926.2221131121746
+          ],
+          "spawnedOnGround": true,
+          "end": [
+            1127.6350488618298,
+            505.23350416076164,
+            1475.4608363554216
+          ],
+          "phases": {
+            "takeoff": 463,
+            "transit": 661,
+            "engage": 4472,
+            "defend": 584
+          },
+          "firstPhases": {
+            "takeoff": 111,
+            "transit": 574,
+            "engage": 1037,
+            "defend": 1962
+          },
+          "maxAltitude": 1019.2622845022407,
+          "maxDistance": 4565.186004578826,
+          "airborneTicks": 6131,
+          "minContactDistance": 2143.2315987825505,
+          "nativeFire": {
+            "cannon20": 17,
+            "aim9": 1
+          },
+          "initialAmmo": [
+            600,
+            2,
+            2,
+            0
+          ],
+          "ammo": [
+            600,
+            2,
+            2,
+            0
+          ],
+          "ammoSpent": 73,
+          "samples": [
+            {
+              "tick": 601,
+              "phase": "transit",
+              "strikePhase": "approach",
+              "target": null,
+              "strikeShip": null,
+              "position": [
+                -794.7341437539227,
+                165.00973441226475,
+                -2917.6621043630435
+              ],
+              "onGround": false
+            },
+            {
+              "tick": 1201,
+              "phase": "engage",
+              "strikePhase": "approach",
+              "target": "v7",
+              "strikeShip": null,
+              "position": [
+                -414.5968421703059,
+                534.8727282120672,
+                -1827.5088730158184
+              ],
+              "onGround": false
+            },
+            {
+              "tick": 1801,
+              "phase": "engage",
+              "strikePhase": "approach",
+              "target": "v7",
+              "strikeShip": null,
+              "position": [
+                -98.98221551087953,
+                609.7241153435598,
+                -275.8455349920702
+              ],
+              "onGround": false
+            },
+            {
+              "tick": 2401,
+              "phase": "engage",
+              "strikePhase": "approach",
+              "target": "v8",
+              "strikeShip": null,
+              "position": [
+                181.3138137279569,
+                826.3392851325966,
+                -264.3764199079429
+              ],
+              "onGround": false
+            },
+            {
+              "tick": 3001,
+              "phase": "engage",
+              "strikePhase": "approach",
+              "target": "v8",
+              "strikeShip": null,
+              "position": [
+                -275.7204039077294,
+                844.8079984665712,
+                -441.89320170422513
+              ],
+              "onGround": false
+            },
+            {
+              "tick": 3601,
+              "phase": "engage",
+              "strikePhase": "approach",
+              "target": "v8",
+              "strikeShip": null,
+              "position": [
+                -424.3485306565201,
+                993.097642797254,
+                -777.5362175032695
+              ],
+              "onGround": false
+            },
+            {
+              "tick": 4201,
+              "phase": "engage",
+              "strikePhase": "approach",
+              "target": "v10",
+              "strikeShip": null,
+              "position": [
+                -196.66623364055602,
+                950.1750679150443,
+                -388.84695397278284
+              ],
+              "onGround": false
+            },
+            {
+              "tick": 4801,
+              "phase": "engage",
+              "strikePhase": "approach",
+              "target": "v10",
+              "strikeShip": null,
+              "position": [
+                160.9951232521205,
+                996.7009648888618,
+                -1131.534177344949
+              ],
+              "onGround": false
+            },
+            {
+              "tick": 5401,
+              "phase": "engage",
+              "strikePhase": "approach",
+              "target": "v12",
+              "strikeShip": null,
+              "position": [
+                25.620502233480856,
+                969.3176775296888,
+                -859.2169698393267
+              ],
+              "onGround": false
+            },
+            {
+              "tick": 6001,
+              "phase": "engage",
+              "strikePhase": "approach",
+              "target": "v13",
+              "strikeShip": null,
+              "position": [
+                621.1529414588701,
+                657.2445529837,
+                937.8101456712449
+              ],
+              "onGround": false
+            }
+          ],
+          "alive": false
+        },
+        {
+          "id": "v10",
+          "kind": "f16c",
+          "team": 0,
+          "birthTick": 2115,
+          "start": [
+            390.9051835289744,
+            22.2,
+            2900.046402644306
+          ],
+          "spawnedOnGround": true,
+          "end": [
+            102.51938850716847,
+            1036.4547417954734,
+            -1398.3559333996689
+          ],
+          "phases": {
+            "defend": 337,
+            "takeoff": 464,
+            "engage": 2116
+          },
+          "firstPhases": {
+            "defend": 2115,
+            "takeoff": 2116,
+            "engage": 2580
+          },
+          "maxAltitude": 1036.4547417954734,
+          "maxDistance": 4506.560134567797,
+          "airborneTicks": 2865,
+          "minContactDistance": 231.10986914529556,
+          "nativeFire": {},
+          "initialAmmo": [
+            600,
+            2,
+            2,
+            0
+          ],
+          "ammo": [
+            600,
+            2,
+            2,
+            0
+          ],
+          "ammoSpent": 0,
+          "samples": [
+            {
+              "tick": 2401,
+              "phase": "takeoff",
+              "strikePhase": "approach",
+              "target": null,
+              "strikeShip": null,
+              "position": [
+                776.9465613052546,
+                94.5855380664032,
+                2842.6163383110734
+              ],
+              "onGround": false
+            },
+            {
+              "tick": 3001,
+              "phase": "engage",
+              "strikePhase": "approach",
+              "target": "v9",
+              "strikeShip": null,
+              "position": [
+                1002.4611264320478,
+                409.5187397069933,
+                1762.7168543380583
+              ],
+              "onGround": false
+            },
+            {
+              "tick": 3601,
+              "phase": "engage",
+              "strikePhase": "approach",
+              "target": "v9",
+              "strikeShip": null,
+              "position": [
+                327.2110213172409,
+                749.2572530565267,
+                413.2730182774189
+              ],
+              "onGround": false
+            },
+            {
+              "tick": 4201,
+              "phase": "engage",
+              "strikePhase": "approach",
+              "target": "v9",
+              "strikeShip": null,
+              "position": [
+                228.4857810329701,
+                996.2702383140999,
+                -651.6980988230904
+              ],
+              "onGround": false
+            },
+            {
+              "tick": 4801,
+              "phase": "engage",
+              "strikePhase": "approach",
+              "target": "v9",
+              "strikeShip": null,
+              "position": [
+                388.88681528536017,
+                892.8748135801172,
+                -1295.0911518359521
+              ],
+              "onGround": false
+            }
+          ],
+          "alive": false
+        },
+        {
+          "id": "v11",
+          "kind": "mig29",
+          "team": 1,
+          "birthTick": 2299,
+          "start": [
+            -428.1248114496333,
+            22.2,
+            -2894.7858549159064
+          ],
+          "spawnedOnGround": true,
+          "end": [
+            1188.8444246603146,
+            705.3454285052521,
+            1689.297140025415
+          ],
+          "phases": {
+            "defend": 1,
+            "takeoff": 462,
+            "engage": 3362,
+            "transit": 753
+          },
+          "firstPhases": {
+            "defend": 2299,
+            "takeoff": 2300,
+            "engage": 2762,
+            "transit": 5033
+          },
+          "maxAltitude": 1302.351895980559,
+          "maxDistance": 4908.675390726486,
+          "airborneTicks": 4529,
+          "minContactDistance": 2086.299591332526,
+          "nativeFire": {
+            "cannon20": 7,
+            "aim9": 2
+          },
+          "initialAmmo": [
+            600,
+            2,
+            2,
+            0
+          ],
+          "ammo": [
+            588,
+            1,
+            2,
+            0
+          ],
+          "ammoSpent": 64,
+          "samples": [
+            {
+              "tick": 2401,
+              "phase": "takeoff",
+              "strikePhase": "approach",
+              "target": null,
+              "strikeShip": null,
+              "position": [
+                -513.3531179708658,
+                35.336858900644046,
+                -2880.9516453567603
+              ],
+              "onGround": false
+            },
+            {
+              "tick": 3001,
+              "phase": "engage",
+              "strikePhase": "approach",
+              "target": "v8",
+              "strikeShip": null,
+              "position": [
+                -1179.9472383278414,
+                314.5266512608855,
+                -2414.9429520338454
+              ],
+              "onGround": false
+            },
+            {
+              "tick": 3601,
+              "phase": "engage",
+              "strikePhase": "approach",
+              "target": "v8",
+              "strikeShip": null,
+              "position": [
+                -544.9564905888516,
+                681.5923221688806,
+                -1264.6939869170674
+              ],
+              "onGround": false
+            },
+            {
+              "tick": 4201,
+              "phase": "engage",
+              "strikePhase": "approach",
+              "target": "v10",
+              "strikeShip": null,
+              "position": [
+                -125.52058934250338,
+                944.1477310869311,
+                -521.3790321944592
+              ],
+              "onGround": false
+            },
+            {
+              "tick": 4801,
+              "phase": "engage",
+              "strikePhase": "approach",
+              "target": "v10",
+              "strikeShip": null,
+              "position": [
+                324.37652084547113,
+                989.6280829987606,
+                -1183.8952109309796
+              ],
+              "onGround": false
+            },
+            {
+              "tick": 5401,
+              "phase": "transit",
+              "strikePhase": "approach",
+              "target": null,
+              "strikeShip": null,
+              "position": [
+                394.1976631646095,
+                1178.9065154004384,
+                -1274.5306425045178
+              ],
+              "onGround": false
+            },
+            {
+              "tick": 6001,
+              "phase": "engage",
+              "strikePhase": "approach",
+              "target": "v13",
+              "strikeShip": null,
+              "position": [
+                478.8892217798655,
+                1170.3876144630717,
+                -32.299953460112576
+              ],
+              "onGround": false
+            },
+            {
+              "tick": 6601,
+              "phase": "engage",
+              "strikePhase": "approach",
+              "target": "v12",
+              "strikeShip": null,
+              "position": [
+                1058.1291525358715,
+                661.7146347910127,
+                1182.7393315247832
+              ],
+              "onGround": false
+            }
+          ],
+          "alive": false
+        },
+        {
+          "id": "v12",
+          "kind": "f16c",
+          "team": 0,
+          "birthTick": 4021,
+          "start": [
+            772.203335381969,
+            22.2,
+            2822.548141099627
+          ],
+          "spawnedOnGround": true,
+          "end": [
+            1225.7979804829986,
+            712.1158967909416,
+            2388.324144663866
+          ],
+          "phases": {
+            "defend": 152,
+            "takeoff": 464,
+            "strike": 1458,
+            "engage": 1106
+          },
+          "firstPhases": {
+            "defend": 4021,
+            "takeoff": 4022,
+            "strike": 4486,
+            "engage": 5735
+          },
+          "maxAltitude": 951.1173913352684,
+          "maxDistance": 1973.1622865961451,
+          "airborneTicks": 3128,
+          "minContactDistance": 203.90279961639115,
+          "nativeFire": {
+            "cannon20": 2,
+            "aim9": 1
+          },
+          "initialAmmo": [
+            600,
+            2,
+            2,
+            0
+          ],
+          "ammo": [
+            600,
+            1,
+            2,
+            0
+          ],
+          "ammoSpent": 16,
+          "samples": [
+            {
+              "tick": 4201,
+              "phase": "takeoff",
+              "strikePhase": "approach",
+              "target": null,
+              "strikeShip": null,
+              "position": [
+                964.9409922086453,
+                65.59020642920508,
+                2766.978442816555
+              ],
+              "onGround": false
+            },
+            {
+              "tick": 4801,
+              "phase": "strike",
+              "strikePhase": "approach",
+              "target": "v9",
+              "strikeShip": "enemy",
+              "position": [
+                2025.4405697534169,
+                225.98547611662255,
+                2753.464619215726
+              ],
+              "onGround": false
+            },
+            {
+              "tick": 5401,
+              "phase": "strike",
+              "strikePhase": "egress",
+              "target": "v9",
+              "strikeShip": "enemy",
+              "position": [
+                998.4839007360029,
+                167.66468515488137,
+                3061.8735283840847
+              ],
+              "onGround": false
+            },
+            {
+              "tick": 6001,
+              "phase": "engage",
+              "strikePhase": "egress",
+              "target": "v9",
+              "strikeShip": "enemy",
+              "position": [
+                1870.4779445802521,
+                804.3127909275677,
+                4263.1900949432475
+              ],
+              "onGround": false
+            },
+            {
+              "tick": 6601,
+              "phase": "engage",
+              "strikePhase": "egress",
+              "target": "v11",
+              "strikeShip": "enemy",
+              "position": [
+                1426.6410781838822,
+                818.0412389644932,
+                2646.295173482407
+              ],
+              "onGround": false
+            }
+          ],
+          "alive": true
+        },
+        {
+          "id": "v13",
+          "kind": "f16c",
+          "team": 0,
+          "birthTick": 5332,
+          "start": [
+            1026.9446671852158,
+            22.2,
+            2740.157048517447
+          ],
+          "spawnedOnGround": true,
+          "end": [
+            1142.7591020757263,
+            551.3046376691555,
+            1367.0526525946161
+          ],
+          "phases": {
+            "defend": 17,
+            "takeoff": 464,
+            "engage": 709
+          },
+          "firstPhases": {
+            "defend": 5332,
+            "takeoff": 5333,
+            "engage": 5797
+          },
+          "maxAltitude": 551.3046376691555,
+          "maxDistance": 1476.0692338215777,
+          "airborneTicks": 1138,
+          "minContactDistance": 578.9637230353943,
+          "nativeFire": {
+            "cannon20": 3,
+            "aim9": 1
+          },
+          "initialAmmo": [
+            600,
+            2,
+            2,
+            0
+          ],
+          "ammo": [
+            600,
+            1,
+            2,
+            0
+          ],
+          "ammoSpent": 10,
+          "samples": [
+            {
+              "tick": 5401,
+              "phase": "takeoff",
+              "strikePhase": "approach",
+              "target": null,
+              "strikeShip": null,
+              "position": [
+                1066.3559417395047,
+                22.27929645145975,
+                2724.8122207339966
+              ],
+              "onGround": false
+            },
+            {
+              "tick": 6001,
+              "phase": "engage",
+              "strikePhase": "approach",
+              "target": "v9",
+              "strikeShip": null,
+              "position": [
+                1724.168384378462,
+                279.9339823382869,
+                2140.342765466176
+              ],
+              "onGround": false
+            }
+          ],
+          "alive": false
+        },
+        {
+          "id": "v14",
+          "kind": "mig29",
+          "team": 1,
+          "birthTick": 6591,
+          "start": [
+            -1263.5159090969323,
+            22.2,
+            -2639.432429038287
+          ],
+          "spawnedOnGround": true,
+          "end": [
+            -1983.3880557932455,
+            255.90515096306657,
+            -2080.046797731588
+          ],
+          "phases": {
+            "defend": 1,
+            "takeoff": 462,
+            "transit": 147
+          },
+          "firstPhases": {
+            "defend": 6591,
+            "takeoff": 6592,
+            "transit": 7054
+          },
+          "maxAltitude": 255.90515096306657,
+          "maxDistance": 941.1409510207396,
+          "airborneTicks": 561,
+          "minContactDistance": 5490.582233743044,
+          "nativeFire": {},
+          "initialAmmo": [
+            600,
+            2,
+            2,
+            0
+          ],
+          "ammo": [
+            600,
+            2,
+            2,
+            0
+          ],
+          "ammoSpent": 0,
+          "samples": [
+            {
+              "tick": 6601,
+              "phase": "takeoff",
+              "strikePhase": "approach",
+              "target": null,
+              "strikeShip": null,
+              "position": [
+                -1264.2010298222824,
+                22.06308477012175,
+                -2639.095134310148
+              ],
+              "onGround": false
+            }
+          ],
+          "alive": true
+        },
+        {
+          "id": "v15",
+          "kind": "f16c",
+          "team": 0,
+          "birthTick": 6822,
+          "start": [
+            1305.915473672734,
+            22.2,
+            2618.7135726577885
+          ],
+          "spawnedOnGround": true,
+          "end": [
+            1816.5516049849352,
+            122.44030150527261,
+            2355.2629775090477
+          ],
+          "phases": {
+            "defend": 1,
+            "takeoff": 378
+          },
+          "firstPhases": {
+            "defend": 6822,
+            "takeoff": 6823
+          },
+          "maxAltitude": 122.44030150527261,
+          "maxDistance": 583.2697426847936,
+          "airborneTicks": 327,
+          "minContactDistance": 1161.1012859090472,
+          "nativeFire": {},
+          "initialAmmo": [
+            600,
+            2,
+            2,
+            0
+          ],
+          "ammo": [
+            600,
+            2,
+            2,
+            0
+          ],
+          "ammoSpent": 0,
+          "samples": [],
+          "alive": true
+        },
+        {
+          "id": "v16",
+          "kind": "mig29",
+          "team": 1,
+          "birthTick": 7177,
+          "start": [
+            -1370.4091308338848,
+            22.2,
+            -2585.547294892731
+          ],
+          "spawnedOnGround": true,
+          "end": [
+            -1374.0809220016288,
+            22,
+            -2583.5574100376843
+          ],
+          "phases": {
+            "engage": 1,
+            "takeoff": 23
+          },
+          "firstPhases": {
+            "engage": 7177,
+            "takeoff": 7178
+          },
+          "maxAltitude": 22.2,
+          "maxDistance": 4.181111349374273,
+          "airborneTicks": 11,
+          "minContactDistance": 5807.654162802214,
+          "nativeFire": {},
+          "initialAmmo": [
+            600,
+            2,
+            2,
+            0
+          ],
+          "ammo": [
+            600,
+            2,
+            2,
+            0
+          ],
+          "ammoSpent": 0,
+          "samples": [],
+          "alive": true
+        }
+      ],
+      "roomConfig": {
+        "teams": 2,
+        "bots": 2,
+        "maxPerTeam": 10,
+        "scoreLimit": 50,
+        "timeLimit": 180,
+        "listed": false,
+        "name": "Open Skies",
+        "botFill": 0
+      },
+      "outcome": null,
+      "hulls": [
+        {
+          "id": "enemy",
+          "team": 1,
+          "modelId": "type054a",
+          "hp": 983.2499999999999,
+          "alive": true
+        },
+        {
+          "id": "home",
+          "team": 0,
+          "modelId": "type45",
+          "hp": 380,
+          "alive": true
+        }
+      ],
+      "seconds": 120,
+      "tick": 7200,
+      "botCount": 4,
+      "botsByTeam": [
+        2,
+        2
+      ],
+      "human": {
+        "team": 0,
+        "vehicleId": null,
+        "inputSent": false
+      },
+      "phaseTicks": {
+        "takeoff": 4572,
+        "transit": 3156,
+        "engage": 15782,
+        "defend": 1427,
+        "strike": 1458
+      },
+      "ammoSpent": 219,
+      "projectileDigest": "13890777d43b647e47cf9597a1778a33e80ad47ee410027512ff85d04efe44c5",
+      "impactCount": 5,
+      "naturalStrikeAcceptance": false,
+      "movementByKind": [
+        {
+          "kind": "f16c",
+          "births": 6,
+          "airborneMoving": 6
+        },
+        {
+          "kind": "mig29",
+          "births": 5,
+          "airborneMoving": 4
+        }
+      ],
+      "firstBlockedPhase": null
+    },
+    {
+      "choice": "eastern",
+      "code": "named-coalition-eastern",
+      "rosters": [
+        [
+          "mig29"
+        ],
+        [
+          "f16c"
+        ]
+      ],
+      "profiles": [
+        {
+          "team": 0,
+          "coalition": "eastern",
+          "aircraft": "mig29",
+          "aircraftSource": "wings.original.mig-29.v1",
+          "aircraftModel": "models/derived/wings_mig29.glb",
+          "unit": "home",
+          "vessel": "type054a",
+          "vesselSource": "wings.original.wings_type054a_jiangkai_ii.v1"
+        },
+        {
+          "team": 1,
+          "coalition": "nato",
+          "aircraft": "f16c",
+          "aircraftSource": "wings.original.f-16c.v1",
+          "aircraftModel": "models/derived/wings_f16c.glb",
+          "unit": "enemy",
+          "vessel": "type45",
+          "vesselSource": "wings.original.wings_type45_daring_class.v1"
+        }
+      ],
+      "projectileCount": 121,
+      "projectileSamples": [
+        {
+          "nativeProjectileID": 1,
+          "owner": "b2",
+          "vehicle": "v6",
+          "team": 0,
+          "kind": "mig29",
+          "weapon": "cannon20",
+          "launchTick": 569,
+          "ageAtFirstCallback": 0,
+          "phase": "strike",
+          "strikeShip": "enemy",
+          "position": [
+            788.4715304197616,
+            162.12670963847458,
+            2921.828219159617
+          ]
+        },
+        {
+          "nativeProjectileID": 2,
+          "owner": "b2",
+          "vehicle": "v6",
+          "team": 0,
+          "kind": "mig29",
+          "weapon": "cannon20",
+          "launchTick": 573,
+          "ageAtFirstCallback": 0.004166666666668206,
+          "phase": "strike",
+          "strikeShip": "enemy",
+          "position": [
+            802.3436176201142,
+            161.21454810528414,
+            2921.920830885692
+          ]
+        },
+        {
+          "nativeProjectileID": 3,
+          "owner": "b2",
+          "vehicle": "v6",
+          "team": 0,
+          "kind": "mig29",
+          "weapon": "cannon20",
+          "launchTick": 577,
+          "ageAtFirstCallback": 0.008333333333334636,
+          "phase": "strike",
+          "strikeShip": "enemy",
+          "position": [
+            816.2034082989857,
+            160.14288313988465,
+            2922.0673846847512
+          ]
+        },
+        {
+          "nativeProjectileID": 4,
+          "owner": "b2",
+          "vehicle": "v6",
+          "team": 0,
+          "kind": "mig29",
+          "weapon": "cannon20",
+          "launchTick": 581,
+          "ageAtFirstCallback": 0.012500000000001066,
+          "phase": "strike",
+          "strikeShip": "enemy",
+          "position": [
+            830.0391986047675,
+            158.89153112694294,
+            2922.245322857332
+          ]
+        },
+        {
+          "nativeProjectileID": 5,
+          "owner": "b2",
+          "vehicle": "v6",
+          "team": 0,
+          "kind": "mig29",
+          "weapon": "cannon20",
+          "launchTick": 584,
+          "ageAtFirstCallback": 0,
+          "phase": "strike",
+          "strikeShip": "enemy",
+          "position": [
+            821.1559199489666,
+            162.97276756802643,
+            2921.5324937320147
+          ]
+        },
+        {
+          "nativeProjectileID": 6,
+          "owner": "b2",
+          "vehicle": "v6",
+          "team": 0,
+          "kind": "mig29",
+          "weapon": "cannon20",
+          "launchTick": 588,
+          "ageAtFirstCallback": 0.004166666666668206,
+          "phase": "strike",
+          "strikeShip": "enemy",
+          "position": [
+            834.8715999121058,
+            161.18904381693585,
+            2921.792760523298
+          ]
+        },
+        {
+          "nativeProjectileID": 7,
+          "owner": "b2",
+          "vehicle": "v6",
+          "team": 0,
+          "kind": "mig29",
+          "weapon": "cannon20",
+          "launchTick": 592,
+          "ageAtFirstCallback": 0.008333333333334636,
+          "phase": "strike",
+          "strikeShip": "enemy",
+          "position": [
+            848.5693933711557,
+            159.32962994017095,
+            2922.097631659247
+          ]
+        },
+        {
+          "nativeProjectileID": 8,
+          "owner": "b2",
+          "vehicle": "v6",
+          "team": 0,
+          "kind": "mig29",
+          "weapon": "cannon20",
+          "launchTick": 596,
+          "ageAtFirstCallback": 0.012500000000001066,
+          "phase": "strike",
+          "strikeShip": "enemy",
+          "position": [
+            862.2401865890217,
+            157.38953368186878,
+            2922.4620581413624
+          ]
+        },
+        {
+          "nativeProjectileID": 9,
+          "owner": "b2",
+          "vehicle": "v6",
+          "team": 0,
+          "kind": "mig29",
+          "weapon": "cannon20",
+          "launchTick": 599,
+          "ageAtFirstCallback": 0,
+          "phase": "strike",
+          "strikeShip": "enemy",
+          "position": [
+            853.2479119948661,
+            161.05139044990042,
+            2921.8332895167764
+          ]
+        },
+        {
+          "nativeProjectileID": 10,
+          "owner": "b2",
+          "vehicle": "v6",
+          "team": 0,
+          "kind": "mig29",
+          "weapon": "cannon20",
+          "launchTick": 603,
+          "ageAtFirstCallback": 0.004166666666668206,
+          "phase": "strike",
+          "strikeShip": "enemy",
+          "position": [
+            866.8892987312231,
+            159.05188867182764,
+            2922.21093706039
+          ]
+        },
+        {
+          "nativeProjectileID": 11,
+          "owner": "b4",
+          "vehicle": "v7",
+          "team": 1,
+          "kind": "f16c",
+          "weapon": "cannon20",
+          "launchTick": 1683,
+          "ageAtFirstCallback": 0,
+          "phase": "engage",
+          "strikeShip": "home",
+          "position": [
+            -909.2863150958401,
+            370.6076776997928,
+            294.7343489697359
+          ]
+        },
+        {
+          "nativeProjectileID": 12,
+          "owner": "b4",
+          "vehicle": "v7",
+          "team": 1,
+          "kind": "f16c",
+          "weapon": "cannon20",
+          "launchTick": 1687,
+          "ageAtFirstCallback": 0.00416666666666643,
+          "phase": "engage",
+          "strikeShip": "home",
+          "position": [
+            -898.1723840958866,
+            372.3061450110944,
+            304.9689760224198
+          ]
+        },
+        {
+          "nativeProjectileID": 13,
+          "owner": "b4",
+          "vehicle": "v7",
+          "team": 1,
+          "kind": "f16c",
+          "weapon": "cannon20",
+          "launchTick": 1691,
+          "ageAtFirstCallback": 0.00833333333333286,
+          "phase": "engage",
+          "strikeShip": "home",
+          "position": [
+            -886.8706380909758,
+            373.97514013852845,
+            314.9807073951264
+          ]
+        },
+        {
+          "nativeProjectileID": 14,
+          "owner": "b4",
+          "vehicle": "v7",
+          "team": 1,
+          "kind": "f16c",
+          "weapon": "cannon20",
+          "launchTick": 1695,
+          "ageAtFirstCallback": 0.01249999999999929,
+          "phase": "engage",
+          "strikeShip": "home",
+          "position": [
+            -875.4605538938691,
+            375.5856989505154,
+            324.86364366897345
+          ]
+        },
+        {
+          "nativeProjectileID": 15,
+          "owner": "b4",
+          "vehicle": "v7",
+          "team": 1,
+          "kind": "f16c",
+          "weapon": "cannon20",
+          "launchTick": 1698,
+          "ageAtFirstCallback": 0,
+          "phase": "engage",
+          "strikeShip": "home",
+          "position": [
+            -882.9109198614866,
+            375.42031634082343,
+            319.9524377082033
+          ]
+        },
+        {
+          "nativeProjectileID": 16,
+          "owner": "b4",
+          "vehicle": "v7",
+          "team": 1,
+          "kind": "f16c",
+          "weapon": "cannon20",
+          "launchTick": 1702,
+          "ageAtFirstCallback": 0.00416666666666643,
+          "phase": "engage",
+          "strikeShip": "home",
+          "position": [
+            -871.3541671056395,
+            376.9289574089186,
+            329.6439529271819
+          ]
+        },
+        {
+          "nativeProjectileID": 18,
+          "owner": "b1",
+          "vehicle": "v9",
+          "team": 0,
+          "kind": "mig29",
+          "weapon": "cannon20",
+          "launchTick": 1767,
+          "ageAtFirstCallback": 0,
+          "phase": "engage",
+          "strikeShip": null,
+          "position": [
+            -409.51720176912454,
+            421.4454507568065,
+            684.9715845607823
+          ]
+        },
+        {
+          "nativeProjectileID": 19,
+          "owner": "b1",
+          "vehicle": "v9",
+          "team": 0,
+          "kind": "mig29",
+          "weapon": "cannon20",
+          "launchTick": 1771,
+          "ageAtFirstCallback": 0.00416666666666643,
+          "phase": "engage",
+          "strikeShip": null,
+          "position": [
+            -419.4233448634182,
+            420.1993860652492,
+            677.4695658691915
+          ]
+        },
+        {
+          "nativeProjectileID": 20,
+          "owner": "b1",
+          "vehicle": "v9",
+          "team": 0,
+          "kind": "mig29",
+          "weapon": "cannon20",
+          "launchTick": 1775,
+          "ageAtFirstCallback": 0.00833333333333286,
+          "phase": "engage",
+          "strikeShip": null,
+          "position": [
+            -429.20129462915014,
+            419.010743230076,
+            670.0631823388202
+          ]
+        },
+        {
+          "nativeProjectileID": 21,
+          "owner": "b1",
+          "vehicle": "v9",
+          "team": 0,
+          "kind": "mig29",
+          "weapon": "cannon20",
+          "launchTick": 1779,
+          "ageAtFirstCallback": 0.01249999999999929,
+          "phase": "engage",
+          "strikeShip": null,
+          "position": [
+            -438.84282244435497,
+            417.88976065648785,
+            662.728823422328
+          ]
+        },
+        {
+          "nativeProjectileID": 22,
+          "owner": "b1",
+          "vehicle": "v9",
+          "team": 0,
+          "kind": "mig29",
+          "weapon": "cannon20",
+          "launchTick": 1782,
+          "ageAtFirstCallback": 0,
+          "phase": "engage",
+          "strikeShip": null,
+          "position": [
+            -430.3673428255287,
+            418.519247318586,
+            668.9522613318043
+          ]
+        },
+        {
+          "nativeProjectileID": 23,
+          "owner": "b3",
+          "vehicle": "v8",
+          "team": 1,
+          "kind": "f16c",
+          "weapon": "cannon20",
+          "launchTick": 1784,
+          "ageAtFirstCallback": 0,
+          "phase": "engage",
+          "strikeShip": "home",
+          "position": [
+            -830.9800439220111,
+            394.9259995763321,
+            36.61585920205217
+          ]
+        },
+        {
+          "nativeProjectileID": 24,
+          "owner": "b1",
+          "vehicle": "v9",
+          "team": 0,
+          "kind": "mig29",
+          "weapon": "cannon20",
+          "launchTick": 1786,
+          "ageAtFirstCallback": 0.00416666666666643,
+          "phase": "engage",
+          "strikeShip": null,
+          "position": [
+            -439.82791391409955,
+            417.44715061321904,
+            661.7519739480987
+          ]
+        },
+        {
+          "nativeProjectileID": 25,
+          "owner": "b3",
+          "vehicle": "v8",
+          "team": 1,
+          "kind": "f16c",
+          "weapon": "cannon20",
+          "launchTick": 1788,
+          "ageAtFirstCallback": 0.00416666666666643,
+          "phase": "engage",
+          "strikeShip": "home",
+          "position": [
+            -822.8567733849294,
+            396.27403658775376,
+            49.744695928331026
+          ]
+        },
+        {
+          "nativeProjectileID": 26,
+          "owner": "b1",
+          "vehicle": "v9",
+          "team": 0,
+          "kind": "mig29",
+          "weapon": "cannon20",
+          "launchTick": 1790,
+          "ageAtFirstCallback": 0.00833333333333286,
+          "phase": "engage",
+          "strikeShip": null,
+          "position": [
+            -449.18341109337314,
+            416.1647212709373,
+            654.6641588978971
+          ]
+        },
+        {
+          "nativeProjectileID": 27,
+          "owner": "b3",
+          "vehicle": "v8",
+          "team": 1,
+          "kind": "f16c",
+          "weapon": "cannon20",
+          "launchTick": 1792,
+          "ageAtFirstCallback": 0.00833333333333286,
+          "phase": "engage",
+          "strikeShip": "home",
+          "position": [
+            -814.8179297667448,
+            397.44771033816386,
+            62.90929104924487
+          ]
+        },
+        {
+          "nativeProjectileID": 28,
+          "owner": "b1",
+          "vehicle": "v9",
+          "team": 0,
+          "kind": "mig29",
+          "weapon": "cannon20",
+          "launchTick": 1794,
+          "ageAtFirstCallback": 0.01249999999999929,
+          "phase": "engage",
+          "strikeShip": null,
+          "position": [
+            -458.48629117516685,
+            415.29290709564884,
+            647.682229812802
+          ]
+        },
+        {
+          "nativeProjectileID": 32,
+          "owner": "b3",
+          "vehicle": "v8",
+          "team": 1,
+          "kind": "f16c",
+          "weapon": "cannon20",
+          "launchTick": 1796,
+          "ageAtFirstCallback": 0.01249999999999929,
+          "phase": "engage",
+          "strikeShip": "home",
+          "position": [
+            -806.756246465178,
+            398.5219519970491,
+            76.04577987973491
+          ]
+        },
+        {
+          "nativeProjectileID": 33,
+          "owner": "b1",
+          "vehicle": "v9",
+          "team": 0,
+          "kind": "mig29",
+          "weapon": "cannon20",
+          "launchTick": 1797,
+          "ageAtFirstCallback": 0,
+          "phase": "engage",
+          "strikeShip": null,
+          "position": [
+            -449.78187272406814,
+            415.7053920532844,
+            654.0436312470126
+          ]
+        },
+        {
+          "nativeProjectileID": 34,
+          "owner": "b3",
+          "vehicle": "v8",
+          "team": 1,
+          "kind": "f16c",
+          "weapon": "cannon20",
+          "launchTick": 1799,
+          "ageAtFirstCallback": 0,
+          "phase": "engage",
+          "strikeShip": "home",
+          "position": [
+            -810.882247630801,
+            398.76877382578647,
+            68.31489999535546
+          ]
+        },
+        {
+          "nativeProjectileID": 35,
+          "owner": "b3",
+          "vehicle": "v8",
+          "team": 1,
+          "kind": "f16c",
+          "weapon": "cannon20",
+          "launchTick": 1803,
+          "ageAtFirstCallback": 0.00416666666666643,
+          "phase": "engage",
+          "strikeShip": "home",
+          "position": [
+            -802.8065466510957,
+            399.681854646397,
+            81.42019261868849
+          ]
+        },
+        {
+          "nativeProjectileID": 36,
+          "owner": "b3",
+          "vehicle": "v8",
+          "team": 1,
+          "kind": "f16c",
+          "weapon": "cannon20",
+          "launchTick": 1807,
+          "ageAtFirstCallback": 0.00833333333333286,
+          "phase": "engage",
+          "strikeShip": "home",
+          "position": [
+            -794.7950474954451,
+            400.4306285842508,
+            94.5468219182451
+          ]
+        },
+        {
+          "nativeProjectileID": 37,
+          "owner": "b3",
+          "vehicle": "v8",
+          "team": 1,
+          "kind": "f16c",
+          "weapon": "cannon20",
+          "launchTick": 1811,
+          "ageAtFirstCallback": 0.01249999999999929,
+          "phase": "engage",
+          "strikeShip": "home",
+          "position": [
+            -786.8721794295037,
+            401.140248730453,
+            107.7047231523436
+          ]
+        },
+        {
+          "nativeProjectileID": 38,
+          "owner": "b3",
+          "vehicle": "v8",
+          "team": 1,
+          "kind": "f16c",
+          "weapon": "cannon20",
+          "launchTick": 1814,
+          "ageAtFirstCallback": 0,
+          "phase": "engage",
+          "strikeShip": "home",
+          "position": [
+            -790.3517281014117,
+            401.2155347516191,
+            99.59521100364273
+          ]
+        },
+        {
+          "nativeProjectileID": 39,
+          "owner": "b3",
+          "vehicle": "v8",
+          "team": 1,
+          "kind": "f16c",
+          "weapon": "cannon20",
+          "launchTick": 1818,
+          "ageAtFirstCallback": 0.00416666666666643,
+          "phase": "engage",
+          "strikeShip": "home",
+          "position": [
+            -782.6631614903071,
+            401.76292586779005,
+            112.67211732563621
+          ]
+        },
+        {
+          "nativeProjectileID": 40,
+          "owner": "b3",
+          "vehicle": "v8",
+          "team": 1,
+          "kind": "f16c",
+          "weapon": "cannon20",
+          "launchTick": 1822,
+          "ageAtFirstCallback": 0.00833333333333286,
+          "phase": "engage",
+          "strikeShip": "home",
+          "position": [
+            -775.1800916857004,
+            402.28796051495004,
+            125.55982868459529
+          ]
+        },
+        {
+          "nativeProjectileID": 41,
+          "owner": "b3",
+          "vehicle": "v8",
+          "team": 1,
+          "kind": "f16c",
+          "weapon": "cannon20",
+          "launchTick": 1826,
+          "ageAtFirstCallback": 0.01249999999999929,
+          "phase": "engage",
+          "strikeShip": "home",
+          "position": [
+            -767.9088347564784,
+            402.7592840102038,
+            138.27527670805398
+          ]
+        },
+        {
+          "nativeProjectileID": 42,
+          "owner": "b3",
+          "vehicle": "v8",
+          "team": 1,
+          "kind": "f16c",
+          "weapon": "cannon20",
+          "launchTick": 1891,
+          "ageAtFirstCallback": 0,
+          "phase": "engage",
+          "strikeShip": "home",
+          "position": [
+            -716.1765664134709,
+            403.224013725178,
+            235.94994557120555
+          ]
+        },
+        {
+          "nativeProjectileID": 43,
+          "owner": "b3",
+          "vehicle": "v8",
+          "team": 1,
+          "kind": "f16c",
+          "weapon": "cannon20",
+          "launchTick": 1895,
+          "ageAtFirstCallback": 0.00416666666666643,
+          "phase": "engage",
+          "strikeShip": "home",
+          "position": [
+            -710.4229844859808,
+            404.15774424155467,
+            246.18728751314063
+          ]
+        },
+        {
+          "nativeProjectileID": 44,
+          "owner": "b3",
+          "vehicle": "v8",
+          "team": 1,
+          "kind": "f16c",
+          "weapon": "cannon20",
+          "launchTick": 1986,
+          "ageAtFirstCallback": 0,
+          "phase": "engage",
+          "strikeShip": "home",
+          "position": [
+            -635.5051598959353,
+            423.52971410351125,
+            354.8016491018781
+          ]
+        },
+        {
+          "nativeProjectileID": 45,
+          "owner": "b3",
+          "vehicle": "v8",
+          "team": 1,
+          "kind": "f16c",
+          "weapon": "cannon20",
+          "launchTick": 1990,
+          "ageAtFirstCallback": 0.004166666666662877,
+          "phase": "engage",
+          "strikeShip": "home",
+          "position": [
+            -625.7810084396563,
+            427.4200682630584,
+            358.91449039735585
+          ]
+        },
+        {
+          "nativeProjectileID": 46,
+          "owner": "b3",
+          "vehicle": "v8",
+          "team": 1,
+          "kind": "f16c",
+          "weapon": "cannon20",
+          "launchTick": 1994,
+          "ageAtFirstCallback": 0.00833333333333286,
+          "phase": "engage",
+          "strikeShip": "home",
+          "position": [
+            -616.0370642336812,
+            431.4075093365454,
+            363.02667879258377
+          ]
+        },
+        {
+          "nativeProjectileID": 47,
+          "owner": "b3",
+          "vehicle": "v8",
+          "team": 1,
+          "kind": "f16c",
+          "weapon": "cannon20",
+          "launchTick": 1998,
+          "ageAtFirstCallback": 0.012499999999995737,
+          "phase": "engage",
+          "strikeShip": "home",
+          "position": [
+            -606.2623475791631,
+            435.4842198771466,
+            367.0913579916193
+          ]
+        },
+        {
+          "nativeProjectileID": 48,
+          "owner": "b3",
+          "vehicle": "v8",
+          "team": 1,
+          "kind": "f16c",
+          "weapon": "cannon20",
+          "launchTick": 2001,
+          "ageAtFirstCallback": 0,
+          "phase": "engage",
+          "strikeShip": "home",
+          "position": [
+            -615.4950970140211,
+            430.9184326478553,
+            363.53389574153607
+          ]
+        },
+        {
+          "nativeProjectileID": 49,
+          "owner": "b3",
+          "vehicle": "v8",
+          "team": 1,
+          "kind": "f16c",
+          "weapon": "cannon20",
+          "launchTick": 2005,
+          "ageAtFirstCallback": 0.004166666666662877,
+          "phase": "engage",
+          "strikeShip": "home",
+          "position": [
+            -605.6382647695264,
+            435.13046829358694,
+            367.4219986212154
+          ]
+        },
+        {
+          "nativeProjectileID": 50,
+          "owner": "b3",
+          "vehicle": "v8",
+          "team": 1,
+          "kind": "f16c",
+          "weapon": "cannon20",
+          "launchTick": 2009,
+          "ageAtFirstCallback": 0.00833333333333286,
+          "phase": "engage",
+          "strikeShip": "home",
+          "position": [
+            -595.7623901124202,
+            439.3227656196147,
+            371.39980734488967
+          ]
+        },
+        {
+          "nativeProjectileID": 51,
+          "owner": "b3",
+          "vehicle": "v8",
+          "team": 1,
+          "kind": "f16c",
+          "weapon": "cannon20",
+          "launchTick": 2013,
+          "ageAtFirstCallback": 0.012499999999995737,
+          "phase": "engage",
+          "strikeShip": "home",
+          "position": [
+            -585.9500477520081,
+            443.6286478791665,
+            375.49702806846085
+          ]
+        },
+        {
+          "nativeProjectileID": 52,
+          "owner": "b3",
+          "vehicle": "v8",
+          "team": 1,
+          "kind": "f16c",
+          "weapon": "cannon20",
+          "launchTick": 2016,
+          "ageAtFirstCallback": 0,
+          "phase": "engage",
+          "strikeShip": "home",
+          "position": [
+            -594.690087141709,
+            439.11981167083724,
+            370.93926959510895
+          ]
+        },
+        {
+          "nativeProjectileID": 53,
+          "owner": "b3",
+          "vehicle": "v8",
+          "team": 1,
+          "kind": "f16c",
+          "weapon": "cannon20",
+          "launchTick": 2020,
+          "ageAtFirstCallback": 0.004166666666662877,
+          "phase": "engage",
+          "strikeShip": "home",
+          "position": [
+            -584.7730660942635,
+            443.49286277991695,
+            374.8969058723283
+          ]
+        },
+        {
+          "nativeProjectileID": 54,
+          "owner": "b3",
+          "vehicle": "v8",
+          "team": 1,
+          "kind": "f16c",
+          "weapon": "cannon20",
+          "launchTick": 2024,
+          "ageAtFirstCallback": 0.00833333333333286,
+          "phase": "engage",
+          "strikeShip": "home",
+          "position": [
+            -574.9314945416716,
+            447.83138338604664,
+            379.1231998860432
+          ]
+        },
+        {
+          "nativeProjectileID": 55,
+          "owner": "b3",
+          "vehicle": "v8",
+          "team": 1,
+          "kind": "f16c",
+          "weapon": "cannon20",
+          "launchTick": 2028,
+          "ageAtFirstCallback": 0.012499999999995737,
+          "phase": "engage",
+          "strikeShip": "home",
+          "position": [
+            -565.0491187375911,
+            452.2465192458433,
+            383.30277203555835
+          ]
+        },
+        {
+          "nativeProjectileID": 56,
+          "owner": "b3",
+          "vehicle": "v8",
+          "team": 1,
+          "kind": "f16c",
+          "weapon": "cannon20",
+          "launchTick": 2031,
+          "ageAtFirstCallback": 0,
+          "phase": "engage",
+          "strikeShip": "home",
+          "position": [
+            -572.9077810075227,
+            447.84308837769794,
+            377.2523766514763
+          ]
+        },
+        {
+          "nativeProjectileID": 57,
+          "owner": "b3",
+          "vehicle": "v8",
+          "team": 1,
+          "kind": "f16c",
+          "weapon": "cannon20",
+          "launchTick": 2035,
+          "ageAtFirstCallback": 0.004166666666662877,
+          "phase": "engage",
+          "strikeShip": "home",
+          "position": [
+            -563.1789045356815,
+            452.30141012454595,
+            381.8027053406932
+          ]
+        },
+        {
+          "nativeProjectileID": 58,
+          "owner": "b3",
+          "vehicle": "v8",
+          "team": 1,
+          "kind": "f16c",
+          "weapon": "cannon20",
+          "launchTick": 2083,
+          "ageAtFirstCallback": 0,
+          "phase": "engage",
+          "strikeShip": "home",
+          "position": [
+            -499.52670552045134,
+            481.94808216377936,
+            408.374894623301
+          ]
+        },
+        {
+          "nativeProjectileID": 59,
+          "owner": "b3",
+          "vehicle": "v8",
+          "team": 1,
+          "kind": "f16c",
+          "weapon": "cannon20",
+          "launchTick": 2087,
+          "ageAtFirstCallback": 0.004166666666662877,
+          "phase": "engage",
+          "strikeShip": "home",
+          "position": [
+            -490.7016276359986,
+            486.4503684093885,
+            414.9965371538356
+          ]
+        },
+        {
+          "nativeProjectileID": 60,
+          "owner": "b3",
+          "vehicle": "v8",
+          "team": 1,
+          "kind": "f16c",
+          "weapon": "cannon20",
+          "launchTick": 2091,
+          "ageAtFirstCallback": 0.00833333333333286,
+          "phase": "engage",
+          "strikeShip": "home",
+          "position": [
+            -482.01691448119493,
+            490.9537562025391,
+            421.8269300402668
+          ]
+        },
+        {
+          "nativeProjectileID": 61,
+          "owner": "b3",
+          "vehicle": "v8",
+          "team": 1,
+          "kind": "f16c",
+          "weapon": "cannon20",
+          "launchTick": 2095,
+          "ageAtFirstCallback": 0.012499999999995737,
+          "phase": "engage",
+          "strikeShip": "home",
+          "position": [
+            -473.49188984666796,
+            495.44588457622007,
+            428.8819269627084
+          ]
+        },
+        {
+          "nativeProjectileID": 62,
+          "owner": "b3",
+          "vehicle": "v8",
+          "team": 1,
+          "kind": "f16c",
+          "weapon": "cannon20",
+          "launchTick": 2098,
+          "ageAtFirstCallback": 0,
+          "phase": "engage",
+          "strikeShip": "home",
+          "position": [
+            -478.946043091334,
+            491.76652943747274,
+            420.4111658574049
+          ]
+        },
+        {
+          "nativeProjectileID": 63,
+          "owner": "b3",
+          "vehicle": "v8",
+          "team": 1,
+          "kind": "f16c",
+          "weapon": "cannon20",
+          "launchTick": 2102,
+          "ageAtFirstCallback": 0.004166666666662877,
+          "phase": "engage",
+          "strikeShip": "home",
+          "position": [
+            -470.4631276353292,
+            496.247411701279,
+            427.6331087563415
+          ]
+        },
+        {
+          "nativeProjectileID": 64,
+          "owner": "b3",
+          "vehicle": "v8",
+          "team": 1,
+          "kind": "f16c",
+          "weapon": "cannon20",
+          "launchTick": 2106,
+          "ageAtFirstCallback": 0.00833333333333286,
+          "phase": "engage",
+          "strikeShip": "home",
+          "position": [
+            -462.29087249745197,
+            500.37568787356304,
+            435.35574600129735
+          ]
+        },
+        {
+          "nativeProjectileID": 65,
+          "owner": "b3",
+          "vehicle": "v8",
+          "team": 1,
+          "kind": "f16c",
+          "weapon": "cannon20",
+          "launchTick": 2110,
+          "ageAtFirstCallback": 0.012499999999995737,
+          "phase": "engage",
+          "strikeShip": "home",
+          "position": [
+            -454.1432517711177,
+            505.02185467541096,
+            442.9138383885622
+          ]
+        },
+        {
+          "nativeProjectileID": 66,
+          "owner": "b3",
+          "vehicle": "v8",
+          "team": 1,
+          "kind": "f16c",
+          "weapon": "cannon20",
+          "launchTick": 2113,
+          "ageAtFirstCallback": 0,
+          "phase": "engage",
+          "strikeShip": "home",
+          "position": [
+            -459.1869244686436,
+            500.87782225162914,
+            434.5123737167215
+          ]
+        },
+        {
+          "nativeProjectileID": 67,
+          "owner": "b3",
+          "vehicle": "v8",
+          "team": 1,
+          "kind": "f16c",
+          "weapon": "cannon20",
+          "launchTick": 2117,
+          "ageAtFirstCallback": 0.004166666666662877,
+          "phase": "engage",
+          "strikeShip": "home",
+          "position": [
+            -451.1168942856975,
+            505.6159560986561,
+            442.19588524499056
+          ]
+        },
+        {
+          "nativeProjectileID": 68,
+          "owner": "b2",
+          "vehicle": "v6",
+          "team": 0,
+          "kind": "mig29",
+          "weapon": "cannon20",
+          "launchTick": 2650,
+          "ageAtFirstCallback": 0,
+          "phase": "strike",
+          "strikeShip": "enemy",
+          "position": [
+            1299.0789575803208,
+            270.937740965813,
+            2255.2676357642704
+          ]
+        }
+      ],
+      "impacts": [
+        {
+          "nativeProjectileID": 1,
+          "owner": "b2",
+          "vehicle": "v6",
+          "team": 0,
+          "kind": "mig29",
+          "weapon": "cannon20",
+          "launchTick": 569,
+          "ageAtFirstCallback": 0,
+          "phase": "strike",
+          "strikeShip": "enemy",
+          "position": [
+            1499.5638314061534,
+            25.6832575096513,
+            2933.729557736429
+          ],
+          "hitTick": 603,
+          "contact": "enemy",
+          "hitPhase": "strike",
+          "authorityTick": 201,
+          "impactEvent": 1,
+          "unit": "enemy",
+          "damage": 1.3499999999999999
+        },
+        {
+          "nativeProjectileID": 2,
+          "owner": "b2",
+          "vehicle": "v6",
+          "team": 0,
+          "kind": "mig29",
+          "weapon": "cannon20",
+          "launchTick": 573,
+          "ageAtFirstCallback": 0.004166666666668206,
+          "phase": "strike",
+          "strikeShip": "enemy",
+          "position": [
+            1499.031048959885,
+            26.450000762939453,
+            2935.434366535662
+          ],
+          "hitTick": 606,
+          "contact": "enemy",
+          "hitPhase": "strike",
+          "authorityTick": 202,
+          "impactEvent": 3,
+          "unit": "enemy",
+          "damage": 1.3499999999999999
+        },
+        {
+          "nativeProjectileID": 3,
+          "owner": "b2",
+          "vehicle": "v6",
+          "team": 0,
+          "kind": "mig29",
+          "weapon": "cannon20",
+          "launchTick": 577,
+          "ageAtFirstCallback": 0.008333333333334636,
+          "phase": "strike",
+          "strikeShip": "enemy",
+          "position": [
+            1497.0003746574541,
+            25.97456102206175,
+            2935.9513146517393
+          ],
+          "hitTick": 609,
+          "contact": "enemy",
+          "hitPhase": "strike",
+          "authorityTick": 203,
+          "impactEvent": 5,
+          "unit": "enemy",
+          "damage": 1.3499999999999999
+        },
+        {
+          "nativeProjectileID": 4,
+          "owner": "b2",
+          "vehicle": "v6",
+          "team": 0,
+          "kind": "mig29",
+          "weapon": "cannon20",
+          "launchTick": 581,
+          "ageAtFirstCallback": 0.012500000000001066,
+          "phase": "strike",
+          "strikeShip": "enemy",
+          "position": [
+            1496.063913398171,
+            24.939892902763084,
+            2934.7919832675234
+          ],
+          "hitTick": 612,
+          "contact": "enemy",
+          "hitPhase": "strike",
+          "authorityTick": 204,
+          "impactEvent": 7,
+          "unit": "enemy",
+          "damage": 1.3499999999999999
+        },
+        {
+          "nativeProjectileID": 5,
+          "owner": "b2",
+          "vehicle": "v6",
+          "team": 0,
+          "kind": "mig29",
+          "weapon": "cannon20",
+          "launchTick": 584,
+          "ageAtFirstCallback": 0,
+          "phase": "strike",
+          "strikeShip": "enemy",
+          "position": [
+            1410.4890986581393,
+            8.229999542236328,
+            2946.3094469344737
+          ],
+          "hitTick": 612,
+          "contact": "enemy",
+          "hitPhase": "strike",
+          "authorityTick": 204,
+          "impactEvent": 9,
+          "unit": "enemy",
+          "damage": 1.3499999999999999
+        },
+        {
+          "nativeProjectileID": 6,
+          "owner": "b2",
+          "vehicle": "v6",
+          "team": 0,
+          "kind": "mig29",
+          "weapon": "cannon20",
+          "launchTick": 588,
+          "ageAtFirstCallback": 0.004166666666668206,
+          "phase": "strike",
+          "strikeShip": "enemy",
+          "position": [
+            1415.933520226808,
+            8.229999542236328,
+            2947.6456166283724
+          ],
+          "hitTick": 616,
+          "contact": "enemy",
+          "hitPhase": "strike",
+          "authorityTick": 205,
+          "impactEvent": 11,
+          "unit": "enemy",
+          "damage": 1.3499999999999999
+        },
+        {
+          "nativeProjectileID": 7,
+          "owner": "b2",
+          "vehicle": "v6",
+          "team": 0,
+          "kind": "mig29",
+          "weapon": "cannon20",
+          "launchTick": 592,
+          "ageAtFirstCallback": 0.008333333333334636,
+          "phase": "strike",
+          "strikeShip": "enemy",
+          "position": [
+            1417.3103234573616,
+            8.229999542236328,
+            2948.5254274041467
+          ],
+          "hitTick": 619,
+          "contact": "enemy",
+          "hitPhase": "strike",
+          "authorityTick": 206,
+          "impactEvent": 13,
+          "unit": "enemy",
+          "damage": 1.3499999999999999
+        },
+        {
+          "nativeProjectileID": 8,
+          "owner": "b2",
+          "vehicle": "v6",
+          "team": 0,
+          "kind": "mig29",
+          "weapon": "cannon20",
+          "launchTick": 596,
+          "ageAtFirstCallback": 0.012500000000001066,
+          "phase": "strike",
+          "strikeShip": "enemy",
+          "position": [
+            1414.7415671426202,
+            8.229999542236328,
+            2946.687512956078
+          ],
+          "hitTick": 622,
+          "contact": "enemy",
+          "hitPhase": "strike",
+          "authorityTick": 207,
+          "impactEvent": 15,
+          "unit": "enemy",
+          "damage": 1.3499999999999999
+        },
+        {
+          "nativeProjectileID": 9,
+          "owner": "b2",
+          "vehicle": "v6",
+          "team": 0,
+          "kind": "mig29",
+          "weapon": "cannon20",
+          "launchTick": 599,
+          "ageAtFirstCallback": 0,
+          "phase": "strike",
+          "strikeShip": "enemy",
+          "position": [
+            1420.172088341067,
+            8.229999542236328,
+            2948.074517873182
+          ],
+          "hitTick": 626,
+          "contact": "enemy",
+          "hitPhase": "strike",
+          "authorityTick": 208,
+          "impactEvent": 17,
+          "unit": "enemy",
+          "damage": 1.3499999999999999
+        },
+        {
+          "nativeProjectileID": 10,
+          "owner": "b2",
+          "vehicle": "v6",
+          "team": 0,
+          "kind": "mig29",
+          "weapon": "cannon20",
+          "launchTick": 603,
+          "ageAtFirstCallback": 0.004166666666668206,
+          "phase": "strike",
+          "strikeShip": "enemy",
+          "position": [
+            1418.0743983700281,
+            8.229999542236328,
+            2947.8570401127104
+          ],
+          "hitTick": 629,
+          "contact": "enemy",
+          "hitPhase": "strike",
+          "authorityTick": 209,
+          "impactEvent": 19,
+          "unit": "enemy",
+          "damage": 1.3499999999999999
+        },
+        {
+          "nativeProjectileID": 68,
+          "owner": "b2",
+          "vehicle": "v6",
+          "team": 0,
+          "kind": "mig29",
+          "weapon": "cannon20",
+          "launchTick": 2650,
+          "ageAtFirstCallback": 0,
+          "phase": "strike",
+          "strikeShip": "enemy",
+          "position": [
+            1071.8926135136862,
+            12.033106682659888,
+            2981.7888447450996
+          ],
+          "hitTick": 2688,
+          "contact": "enemy",
+          "hitPhase": "strike",
+          "authorityTick": 896,
+          "impactEvent": 21,
+          "unit": "enemy",
+          "damage": 1.3499999999999999
+        },
+        {
+          "nativeProjectileID": 69,
+          "owner": "b2",
+          "vehicle": "v6",
+          "team": 0,
+          "kind": "mig29",
+          "weapon": "cannon20",
+          "launchTick": 2654,
+          "ageAtFirstCallback": 0.0041666666666699825,
+          "phase": "strike",
+          "strikeShip": "enemy",
+          "position": [
+            1072.27147424936,
+            12.701517883221165,
+            2981.742350579579
+          ],
+          "hitTick": 2691,
+          "contact": "enemy",
+          "hitPhase": "strike",
+          "authorityTick": 897,
+          "impactEvent": 23,
+          "unit": "enemy",
+          "damage": 1.3499999999999999
+        },
+        {
+          "nativeProjectileID": 70,
+          "owner": "b2",
+          "vehicle": "v6",
+          "team": 0,
+          "kind": "mig29",
+          "weapon": "cannon20",
+          "launchTick": 2658,
+          "ageAtFirstCallback": 0.00833333333333286,
+          "phase": "strike",
+          "strikeShip": "enemy",
+          "position": [
+            1070.884228179867,
+            9.518970990948606,
+            2981.9125947941407
+          ],
+          "hitTick": 2695,
+          "contact": "enemy",
+          "hitPhase": "strike",
+          "authorityTick": 898,
+          "impactEvent": 25,
+          "unit": "enemy",
+          "damage": 1.3499999999999999
+        },
+        {
+          "nativeProjectileID": 71,
+          "owner": "b2",
+          "vehicle": "v6",
+          "team": 0,
+          "kind": "mig29",
+          "weapon": "cannon20",
+          "launchTick": 2662,
+          "ageAtFirstCallback": 0.012500000000002842,
+          "phase": "strike",
+          "strikeShip": "enemy",
+          "position": [
+            1071.4224434462358,
+            12.059552572574981,
+            2981.8465444824456
+          ],
+          "hitTick": 2698,
+          "contact": "enemy",
+          "hitPhase": "strike",
+          "authorityTick": 899,
+          "impactEvent": 27,
+          "unit": "enemy",
+          "damage": 1.3499999999999999
+        },
+        {
+          "nativeProjectileID": 72,
+          "owner": "b2",
+          "vehicle": "v6",
+          "team": 0,
+          "kind": "mig29",
+          "weapon": "cannon20",
+          "launchTick": 2665,
+          "ageAtFirstCallback": 0,
+          "phase": "strike",
+          "strikeShip": "enemy",
+          "position": [
+            1052.2639219732318,
+            13.341453841672681,
+            2984.197697253438
+          ],
+          "hitTick": 2702,
+          "contact": "enemy",
+          "hitPhase": "strike",
+          "authorityTick": 900,
+          "impactEvent": 29,
+          "unit": "enemy",
+          "damage": 1.3499999999999999
+        },
+        {
+          "nativeProjectileID": 73,
+          "owner": "b2",
+          "vehicle": "v6",
+          "team": 0,
+          "kind": "mig29",
+          "weapon": "cannon20",
+          "launchTick": 2669,
+          "ageAtFirstCallback": 0.0041666666666699825,
+          "phase": "strike",
+          "strikeShip": "enemy",
+          "position": [
+            1053.399348868018,
+            12.894830044049284,
+            2984.0583565379397
+          ],
+          "hitTick": 2705,
+          "contact": "enemy",
+          "hitPhase": "strike",
+          "authorityTick": 901,
+          "impactEvent": 31,
+          "unit": "enemy",
+          "damage": 1.3499999999999999
+        },
+        {
+          "nativeProjectileID": 74,
+          "owner": "b2",
+          "vehicle": "v6",
+          "team": 0,
+          "kind": "mig29",
+          "weapon": "cannon20",
+          "launchTick": 2673,
+          "ageAtFirstCallback": 0.00833333333333286,
+          "phase": "strike",
+          "strikeShip": "enemy",
+          "position": [
+            1052.2980223568588,
+            14.616410080288139,
+            2984.193512420513
+          ],
+          "hitTick": 2709,
+          "contact": "enemy",
+          "hitPhase": "strike",
+          "authorityTick": 903,
+          "impactEvent": 33,
+          "unit": "enemy",
+          "damage": 1.3499999999999999
+        },
+        {
+          "nativeProjectileID": 75,
+          "owner": "b2",
+          "vehicle": "v6",
+          "team": 0,
+          "kind": "mig29",
+          "weapon": "cannon20",
+          "launchTick": 2677,
+          "ageAtFirstCallback": 0.012500000000002842,
+          "phase": "strike",
+          "strikeShip": "enemy",
+          "position": [
+            1051.5207147952485,
+            12.224519325380811,
+            2984.288904375992
+          ],
+          "hitTick": 2712,
+          "contact": "enemy",
+          "hitPhase": "strike",
+          "authorityTick": 904,
+          "impactEvent": 35,
+          "unit": "enemy",
+          "damage": 1.3499999999999999
+        },
+        {
+          "nativeProjectileID": 76,
+          "owner": "b2",
+          "vehicle": "v6",
+          "team": 0,
+          "kind": "mig29",
+          "weapon": "cannon20",
+          "launchTick": 2680,
+          "ageAtFirstCallback": 0,
+          "phase": "strike",
+          "strikeShip": "enemy",
+          "position": [
+            1050.5731553575313,
+            14.61759186117448,
+            2984.4051898106904
+          ],
+          "hitTick": 2716,
+          "contact": "enemy",
+          "hitPhase": "strike",
+          "authorityTick": 905,
+          "impactEvent": 37,
+          "unit": "enemy",
+          "damage": 1.3499999999999999
+        },
+        {
+          "nativeProjectileID": 77,
+          "owner": "b2",
+          "vehicle": "v6",
+          "team": 0,
+          "kind": "mig29",
+          "weapon": "cannon20",
+          "launchTick": 2684,
+          "ageAtFirstCallback": 0.0041666666666699825,
+          "phase": "strike",
+          "strikeShip": "enemy",
+          "position": [
+            1048.7549454210707,
+            13.037548487694213,
+            2984.6283223387604
+          ],
+          "hitTick": 2719,
+          "contact": "enemy",
+          "hitPhase": "strike",
+          "authorityTick": 906,
+          "impactEvent": 39,
+          "unit": "enemy",
+          "damage": 1.3499999999999999
+        },
+        {
+          "nativeProjectileID": 78,
+          "owner": "b2",
+          "vehicle": "v6",
+          "team": 0,
+          "kind": "mig29",
+          "weapon": "cannon20",
+          "launchTick": 2688,
+          "ageAtFirstCallback": 0.00833333333333286,
+          "phase": "strike",
+          "strikeShip": "enemy",
+          "position": [
+            1049.0700732115065,
+            13.44300392478437,
+            2984.5896495435377
+          ],
+          "hitTick": 2723,
+          "contact": "enemy",
+          "hitPhase": "strike",
+          "authorityTick": 907,
+          "impactEvent": 41,
+          "unit": "enemy",
+          "damage": 1.3499999999999999
+        }
+      ],
+      "damage": 28.350000000000012,
+      "nativeFire": {
+        "cannon20": 18,
+        "aim9": 1
+      },
+      "crewRides": [
+        {
+          "player": "b2",
+          "vehicle": "v6",
+          "team": 0,
+          "kind": "mig29",
+          "bot": true,
+          "seat": 0,
+          "tick": 72
+        },
+        {
+          "player": "b4",
+          "vehicle": "v7",
+          "team": 1,
+          "kind": "f16c",
+          "bot": true,
+          "seat": 0,
+          "tick": 92
+        },
+        {
+          "player": "b3",
+          "vehicle": "v8",
+          "team": 1,
+          "kind": "f16c",
+          "bot": true,
+          "seat": 0,
+          "tick": 143
+        },
+        {
+          "player": "b1",
+          "vehicle": "v9",
+          "team": 0,
+          "kind": "mig29",
+          "bot": true,
+          "seat": 0,
+          "tick": 146
+        },
+        {
+          "player": "b4",
+          "vehicle": "v10",
+          "team": 1,
+          "kind": "f16c",
+          "bot": true,
+          "seat": 0,
+          "tick": 2097
+        }
+      ],
+      "aircraft": [
+        {
+          "id": "v6",
+          "kind": "mig29",
+          "team": 0,
+          "birthTick": 72,
+          "start": [
+            -25.29187644469466,
+            22.2,
+            2926.1640967290105
+          ],
+          "spawnedOnGround": true,
+          "end": [
+            -1209.2020795121985,
+            2352.1585172497153,
+            451.7311713883365
+          ],
+          "phases": {
+            "takeoff": 463,
+            "strike": 3022,
+            "engage": 3644
+          },
+          "firstPhases": {
+            "takeoff": 72,
+            "strike": 535,
+            "engage": 3557
+          },
+          "maxAltitude": 2352.1585172497153,
+          "maxDistance": 3603.3902944829415,
+          "airborneTicks": 7080,
+          "minContactDistance": 447.8079954074129,
+          "nativeFire": {
+            "cannon20": 4
+          },
+          "initialAmmo": [
+            600,
+            2,
+            2,
+            0
+          ],
+          "ammo": [
+            600,
+            2,
+            2,
+            0
+          ],
+          "ammoSpent": 36,
+          "samples": [
+            {
+              "tick": 601,
+              "phase": "strike",
+              "strikePhase": "approach",
+              "target": null,
+              "strikeShip": "enemy",
+              "position": [
+                872.6212170756567,
+                156.1843281178655,
+                2922.7500733086617
+              ],
+              "onGround": false
+            },
+            {
+              "tick": 1201,
+              "phase": "strike",
+              "strikePhase": "egress",
+              "target": "v7",
+              "strikeShip": "enemy",
+              "position": [
+                911.3091459154476,
+                372.94486982186004,
+                1319.8705166904892
+              ],
+              "onGround": false
+            },
+            {
+              "tick": 1801,
+              "phase": "strike",
+              "strikePhase": "approach",
+              "target": "v8",
+              "strikeShip": "enemy",
+              "position": [
+                1651.3951579678828,
+                569.1847714788005,
+                528.5717816427592
+              ],
+              "onGround": false
+            },
+            {
+              "tick": 2401,
+              "phase": "strike",
+              "strikePhase": "approach",
+              "target": "v8",
+              "strikeShip": "enemy",
+              "position": [
+                1408.5849291751454,
+                339.3447518733785,
+                1825.6755969745054
+              ],
+              "onGround": false
+            },
+            {
+              "tick": 3001,
+              "phase": "strike",
+              "strikePhase": "egress",
+              "target": "v8",
+              "strikeShip": "enemy",
+              "position": [
+                820.5221340761656,
+                318.7156460172918,
+                2238.675131996742
+              ],
+              "onGround": false
+            },
+            {
+              "tick": 3601,
+              "phase": "engage",
+              "strikePhase": "egress",
+              "target": "v10",
+              "strikeShip": "enemy",
+              "position": [
+                -803.6899844665359,
+                560.9869451007756,
+                1190.4024439755487
+              ],
+              "onGround": false
+            },
+            {
+              "tick": 4201,
+              "phase": "engage",
+              "strikePhase": "egress",
+              "target": "v10",
+              "strikeShip": "enemy",
+              "position": [
+                -1171.8431878826532,
+                640.6813498685676,
+                435.36747458299766
+              ],
+              "onGround": false
+            },
+            {
+              "tick": 4801,
+              "phase": "engage",
+              "strikePhase": "egress",
+              "target": "v10",
+              "strikeShip": "enemy",
+              "position": [
+                -1031.2921594895317,
+                923.2182999604245,
+                465.67828345967365
+              ],
+              "onGround": false
+            },
+            {
+              "tick": 5401,
+              "phase": "engage",
+              "strikePhase": "egress",
+              "target": "v10",
+              "strikeShip": "enemy",
+              "position": [
+                -1190.2021507339732,
+                1279.5360629078793,
+                399.9204581910525
+              ],
+              "onGround": false
+            },
+            {
+              "tick": 6001,
+              "phase": "engage",
+              "strikePhase": "egress",
+              "target": "v10",
+              "strikeShip": "enemy",
+              "position": [
+                -1160.639700171087,
+                1652.5665732237414,
+                537.1348389891945
+              ],
+              "onGround": false
+            },
+            {
+              "tick": 6601,
+              "phase": "engage",
+              "strikePhase": "egress",
+              "target": "v10",
+              "strikeShip": "enemy",
+              "position": [
+                -1079.980781026006,
+                1985.0505050570218,
+                404.23389694399066
+              ],
+              "onGround": false
+            }
+          ],
+          "alive": true
+        },
+        {
+          "id": "v7",
+          "kind": "f16c",
+          "team": 1,
+          "birthTick": 92,
+          "start": [
+            21.206157283011603,
+            22.2,
+            -2926.196558485655
+          ],
+          "spawnedOnGround": true,
+          "end": [
+            -707.0296466191958,
+            393.76653069478624,
+            457.7903184905927
+          ],
+          "phases": {
+            "takeoff": 465,
+            "strike": 1038,
+            "engage": 198,
+            "defend": 4
+          },
+          "firstPhases": {
+            "takeoff": 92,
+            "strike": 557,
+            "engage": 1595,
+            "defend": 1793
+          },
+          "maxAltitude": 393.76653069478624,
+          "maxDistance": 3481.3440301649466,
+          "airborneTicks": 1653,
+          "minContactDistance": 2562.390647741,
+          "nativeFire": {
+            "cannon20": 2
+          },
+          "initialAmmo": [
+            600,
+            2,
+            2,
+            0
+          ],
+          "ammo": [
+            594,
+            2,
+            2,
+            0
+          ],
+          "ammoSpent": 6,
+          "samples": [
+            {
+              "tick": 601,
+              "phase": "strike",
+              "strikePhase": "approach",
+              "target": null,
+              "strikeShip": "home",
+              "position": [
+                -837.4529302574731,
+                175.87800324535826,
+                -2908.339914249368
+              ],
+              "onGround": false
+            },
+            {
+              "tick": 1201,
+              "phase": "strike",
+              "strikePhase": "approach",
+              "target": "v6",
+              "strikeShip": "home",
+              "position": [
+                -972.1055778792395,
+                325.62278317490785,
+                -1051.7443743666906
+              ],
+              "onGround": false
+            }
+          ],
+          "alive": false
+        },
+        {
+          "id": "v8",
+          "kind": "f16c",
+          "team": 1,
+          "birthTick": 143,
+          "start": [
+            125.59020391999579,
+            22.2,
+            -3447.4255757999085
+          ],
+          "spawnedOnGround": true,
+          "end": [
+            -842.3229571656067,
+            2102.4614334575017,
+            731.4174085924157
+          ],
+          "phases": {
+            "takeoff": 464,
+            "strike": 1070,
+            "engage": 5218,
+            "defend": 306
+          },
+          "firstPhases": {
+            "takeoff": 143,
+            "strike": 607,
+            "engage": 1677,
+            "defend": 6055
+          },
+          "maxAltitude": 2839.459113189342,
+          "maxDistance": 6467.71500735981,
+          "airborneTicks": 7006,
+          "minContactDistance": 2088.747742118095,
+          "nativeFire": {
+            "cannon20": 6
+          },
+          "initialAmmo": [
+            600,
+            2,
+            2,
+            0
+          ],
+          "ammo": [
+            595,
+            2,
+            2,
+            0
+          ],
+          "ammoSpent": 44,
+          "samples": [
+            {
+              "tick": 601,
+              "phase": "takeoff",
+              "strikePhase": "approach",
+              "target": null,
+              "strikeShip": null,
+              "position": [
+                -619.8149285568119,
+                148.43739089540023,
+                -3440.280101547086
+              ],
+              "onGround": false
+            },
+            {
+              "tick": 1201,
+              "phase": "strike",
+              "strikePhase": "approach",
+              "target": "v6",
+              "strikeShip": "home",
+              "position": [
+                -875.8462690190802,
+                331.79381206253595,
+                -1744.3020166466529
+              ],
+              "onGround": false
+            },
+            {
+              "tick": 1801,
+              "phase": "engage",
+              "strikePhase": "approach",
+              "target": "v9",
+              "strikeShip": "home",
+              "position": [
+                -800.1398842362038,
+                399.82804132256103,
+                86.94961354061483
+              ],
+              "onGround": false
+            },
+            {
+              "tick": 2401,
+              "phase": "engage",
+              "strikePhase": "approach",
+              "target": "v9",
+              "strikeShip": "home",
+              "position": [
+                -358.3255457365235,
+                693.3462426977583,
+                881.8928096688512
+              ],
+              "onGround": false
+            },
+            {
+              "tick": 3001,
+              "phase": "engage",
+              "strikePhase": "approach",
+              "target": "v9",
+              "strikeShip": "home",
+              "position": [
+                -402.3468103953114,
+                981.5628199660819,
+                589.2196719060014
+              ],
+              "onGround": false
+            },
+            {
+              "tick": 3601,
+              "phase": "engage",
+              "strikePhase": "approach",
+              "target": "v9",
+              "strikeShip": "home",
+              "position": [
+                578.2280764733755,
+                1432.333522427146,
+                872.2690326784041
+              ],
+              "onGround": false
+            },
+            {
+              "tick": 4201,
+              "phase": "engage",
+              "strikePhase": "approach",
+              "target": "v9",
+              "strikeShip": "home",
+              "position": [
+                595.6571661949611,
+                1904.4993759644362,
+                1959.8783083435167
+              ],
+              "onGround": false
+            },
+            {
+              "tick": 4801,
+              "phase": "engage",
+              "strikePhase": "approach",
+              "target": "v9",
+              "strikeShip": "home",
+              "position": [
+                -335.2751846700713,
+                2434.8713295907455,
+                2505.653044795303
+              ],
+              "onGround": false
+            },
+            {
+              "tick": 5401,
+              "phase": "engage",
+              "strikePhase": "approach",
+              "target": "v9",
+              "strikeShip": "home",
+              "position": [
+                -1154.1942103637573,
+                2779.2169064234295,
+                1785.171609687504
+              ],
+              "onGround": false
+            },
+            {
+              "tick": 6001,
+              "phase": "engage",
+              "strikePhase": "approach",
+              "target": "v9",
+              "strikeShip": "home",
+              "position": [
+                -650.6248062569891,
+                2708.348821349388,
+                1158.497265373606
+              ],
+              "onGround": false
+            },
+            {
+              "tick": 6601,
+              "phase": "engage",
+              "strikePhase": "approach",
+              "target": "v9",
+              "strikeShip": "home",
+              "position": [
+                -650.7761727713894,
+                2320.326390654504,
+                822.0956109520151
+              ],
+              "onGround": false
+            }
+          ],
+          "alive": true
+        },
+        {
+          "id": "v9",
+          "kind": "mig29",
+          "team": 0,
+          "birthTick": 146,
+          "start": [
+            -10.1745315868298,
+            22.2,
+            2926.2557097606814
+          ],
+          "spawnedOnGround": true,
+          "end": [
+            -1122.007415470615,
+            2033.0442038604976,
+            907.5198607039887
+          ],
+          "phases": {
+            "takeoff": 463,
+            "transit": 397,
+            "engage": 5803,
+            "defend": 392
+          },
+          "firstPhases": {
+            "takeoff": 146,
+            "transit": 609,
+            "engage": 1006,
+            "defend": 1816
+          },
+          "maxAltitude": 2836.381900180477,
+          "maxDistance": 3378.8710722807696,
+          "airborneTicks": 7006,
+          "minContactDistance": 621.363194039955,
+          "nativeFire": {
+            "aim9": 1,
+            "cannon20": 6
+          },
+          "initialAmmo": [
+            600,
+            2,
+            2,
+            0
+          ],
+          "ammo": [
+            596,
+            2,
+            2,
+            0
+          ],
+          "ammoSpent": 36,
+          "samples": [
+            {
+              "tick": 601,
+              "phase": "takeoff",
+              "strikePhase": "approach",
+              "target": null,
+              "strikeShip": null,
+              "position": [
+                728.1163158410332,
+                147.9819633998584,
+                2918.629507128602
+              ],
+              "onGround": false
+            },
+            {
+              "tick": 1201,
+              "phase": "engage",
+              "strikePhase": "approach",
+              "target": "v7",
+              "strikeShip": null,
+              "position": [
+                475.7434985394399,
+                461.26620581966745,
+                1829.8760623324347
+              ],
+              "onGround": false
+            },
+            {
+              "tick": 1801,
+              "phase": "engage",
+              "strikePhase": "approach",
+              "target": "v8",
+              "strikeShip": null,
+              "position": [
+                -467.1591756351915,
+                415.0155715969778,
+                641.1583747068427
+              ],
+              "onGround": false
+            },
+            {
+              "tick": 2401,
+              "phase": "engage",
+              "strikePhase": "approach",
+              "target": "v8",
+              "strikeShip": null,
+              "position": [
+                -560.1733032363109,
+                647.9185015270123,
+                1051.063084026538
+              ],
+              "onGround": false
+            },
+            {
+              "tick": 3001,
+              "phase": "engage",
+              "strikePhase": "approach",
+              "target": "v8",
+              "strikeShip": null,
+              "position": [
+                -368.8221091294973,
+                916.0460903871418,
+                668.4102929190351
+              ],
+              "onGround": false
+            },
+            {
+              "tick": 3601,
+              "phase": "engage",
+              "strikePhase": "approach",
+              "target": "v8",
+              "strikeShip": null,
+              "position": [
+                502.84899468802956,
+                1404.760946784539,
+                915.4989699090576
+              ],
+              "onGround": false
+            },
+            {
+              "tick": 4201,
+              "phase": "engage",
+              "strikePhase": "approach",
+              "target": "v8",
+              "strikeShip": null,
+              "position": [
+                541.4009363875008,
+                1900.6120640801414,
+                1920.7712384117356
+              ],
+              "onGround": false
+            },
+            {
+              "tick": 4801,
+              "phase": "engage",
+              "strikePhase": "approach",
+              "target": "v8",
+              "strikeShip": null,
+              "position": [
+                -332.6703618548197,
+                2415.777486656194,
+                2459.3044160842664
+              ],
+              "onGround": false
+            },
+            {
+              "tick": 5401,
+              "phase": "engage",
+              "strikePhase": "approach",
+              "target": "v8",
+              "strikeShip": null,
+              "position": [
+                -1124.6817513038718,
+                2765.263221233513,
+                1784.147082303082
+              ],
+              "onGround": false
+            },
+            {
+              "tick": 6001,
+              "phase": "engage",
+              "strikePhase": "approach",
+              "target": "v8",
+              "strikeShip": null,
+              "position": [
+                -736.3893202745179,
+                2681.446937296778,
+                1395.9444895700758
+              ],
+              "onGround": false
+            },
+            {
+              "tick": 6601,
+              "phase": "engage",
+              "strikePhase": "approach",
+              "target": "v8",
+              "strikeShip": null,
+              "position": [
+                -819.5536811767959,
+                2556.3896972352645,
+                1015.8309915781035
+              ],
+              "onGround": false
+            }
+          ],
+          "alive": true
+        },
+        {
+          "id": "v10",
+          "kind": "f16c",
+          "team": 1,
+          "birthTick": 2097,
+          "start": [
+            -387.2605700523491,
+            22.2,
+            -2900.5353386715924
+          ],
+          "spawnedOnGround": true,
+          "end": [
+            -1027.4683601447616,
+            2423.2361755538786,
+            468.0168577186915
+          ],
+          "phases": {
+            "defend": 193,
+            "takeoff": 464,
+            "strike": 1129,
+            "engage": 3318
+          },
+          "firstPhases": {
+            "defend": 2097,
+            "takeoff": 2098,
+            "strike": 2562,
+            "engage": 3691
+          },
+          "maxAltitude": 2423.2361755538786,
+          "maxDistance": 4247.963630281815,
+          "airborneTicks": 5052,
+          "minContactDistance": 2454.951541500993,
+          "nativeFire": {},
+          "initialAmmo": [
+            600,
+            2,
+            2,
+            0
+          ],
+          "ammo": [
+            600,
+            2,
+            2,
+            0
+          ],
+          "ammoSpent": 0,
+          "samples": [
+            {
+              "tick": 2401,
+              "phase": "takeoff",
+              "strikePhase": "approach",
+              "target": null,
+              "strikeShip": null,
+              "position": [
+                -807.8342699631244,
+                99.85029336786455,
+                -2838.506666557516
+              ],
+              "onGround": false
+            },
+            {
+              "tick": 3001,
+              "phase": "strike",
+              "strikePhase": "approach",
+              "target": "v9",
+              "strikeShip": "home",
+              "position": [
+                -1202.9495682911077,
+                301.02459154426464,
+                -1602.8241794306196
+              ],
+              "onGround": false
+            },
+            {
+              "tick": 3601,
+              "phase": "strike",
+              "strikePhase": "approach",
+              "target": "v9",
+              "strikeShip": "home",
+              "position": [
+                -948.1061913111422,
+                361.21289552737045,
+                222.28272890263173
+              ],
+              "onGround": false
+            },
+            {
+              "tick": 4201,
+              "phase": "engage",
+              "strikePhase": "approach",
+              "target": "v6",
+              "strikeShip": "home",
+              "position": [
+                -1097.0129203173744,
+                676.1565567739749,
+                360.35638236142313
+              ],
+              "onGround": false
+            },
+            {
+              "tick": 4801,
+              "phase": "engage",
+              "strikePhase": "approach",
+              "target": "v6",
+              "strikeShip": "home",
+              "position": [
+                -1230.2947398055228,
+                931.4418134864279,
+                447.8944986140104
+              ],
+              "onGround": false
+            },
+            {
+              "tick": 5401,
+              "phase": "engage",
+              "strikePhase": "approach",
+              "target": "v6",
+              "strikeShip": "home",
+              "position": [
+                -1084.1250094959569,
+                1315.6281329526894,
+                558.3745131675545
+              ],
+              "onGround": false
+            },
+            {
+              "tick": 6001,
+              "phase": "engage",
+              "strikePhase": "approach",
+              "target": "v6",
+              "strikeShip": "home",
+              "position": [
+                -1127.3775383596735,
+                1711.7562237042985,
+                350.50120038458084
+              ],
+              "onGround": false
+            },
+            {
+              "tick": 6601,
+              "phase": "engage",
+              "strikePhase": "approach",
+              "target": "v6",
+              "strikeShip": "home",
+              "position": [
+                -1218.8725313219097,
+                2045.1594340020918,
+                527.918023065404
+              ],
+              "onGround": false
+            }
+          ],
+          "alive": true
+        }
+      ],
+      "roomConfig": {
+        "teams": 2,
+        "bots": 2,
+        "maxPerTeam": 10,
+        "scoreLimit": 50,
+        "timeLimit": 180,
+        "listed": false,
+        "name": "Open Skies",
+        "botFill": 0
+      },
+      "outcome": null,
+      "hulls": [
+        {
+          "id": "enemy",
+          "team": 1,
+          "modelId": "type45",
+          "hp": 351.6499999999995,
+          "alive": true
+        },
+        {
+          "id": "home",
+          "team": 0,
+          "modelId": "type054a",
+          "hp": 990,
+          "alive": true
+        }
+      ],
+      "seconds": 120,
+      "tick": 7200,
+      "botCount": 4,
+      "botsByTeam": [
+        2,
+        2
+      ],
+      "human": {
+        "team": 0,
+        "vehicleId": null,
+        "inputSent": false
+      },
+      "phaseTicks": {
+        "takeoff": 2319,
+        "strike": 6259,
+        "engage": 18181,
+        "defend": 895,
+        "transit": 397
+      },
+      "ammoSpent": 122,
+      "projectileDigest": "a2c08b3a58bf1a56f0783c00e908b2cdcb3ed6b662eae356a458e1bf3a622c22",
+      "impactCount": 21,
+      "naturalStrikeAcceptance": false,
+      "movementByKind": [
+        {
+          "kind": "mig29",
+          "births": 2,
+          "airborneMoving": 2
+        },
+        {
+          "kind": "f16c",
+          "births": 3,
+          "airborneMoving": 3
+        }
+      ],
+      "firstBlockedPhase": null
+    }
+  ],
+  "sourceAndToolsUnchanged": true,
+  "loadedNativeHooks": [
+    "src/sim/combat.ts",
+    "src/sim/loopback.ts",
+    "src/sim/room-engine.ts"
+  ],
+  "exitCode": 0,
+  "durationSeconds": 50.15032369
+}

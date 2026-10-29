@@ -1,5 +1,6 @@
 // Original scene adapter; no renderer, simulation, clock or network implementation.
 import { createFleetRig, VIEW_LIMITS } from './fleet-rig.mjs';
+import { createSeaView } from './fleet-sea-view.mjs';
 
 function resourcesOf(object, resources) {
   object.traverse(node => {
@@ -23,13 +24,18 @@ function resourcesOf(object, resources) {
  * their existing standard/physical materials, retaining PBR factors and maps.
  * update takes ONLY the authenticated faction snapshot; reset hides/restores the
  * rig. Both reject after dispose; dispose is idempotent, including after errors.
+ * hostMode reuses sea cues with no water/impacts and suppresses rig transient FX.
+ * Native host retains the single water/combat FX owners. seaStats exposes counters only.
+ * Foam sits at mean sea Y=0 with depth testing; native wave conformity is unproven.
  * No change to the caller's generic fleet, lights, environment or renderer.
  */
-export async function createLocalFleetView(THREE, { scene, team, assets, units, baseUrl, load }) {
+export async function createLocalFleetView(THREE, { scene, team, assets, units, baseUrl, load,
+  hostMode = false, quality = 'low', reducedFlashes = true }) {
   if (THREE?.REVISION !== '186' || !scene?.isObject3D || ![0, 1].includes(team) || typeof load !== 'function')
     throw new TypeError('Three 0.186, scene, authenticated faction and loader required');
   if (!Array.isArray(assets) || assets.length > VIEW_LIMITS.units || !Array.isArray(units) || units.length > VIEW_LIMITS.units)
     throw new TypeError('Bounded assets and units required');
+  if (typeof hostMode !== 'boolean') throw new TypeError('Explicit boolean host mode required');
   const base = new URL(baseUrl);
   if (!['http:', 'https:', 'file:'].includes(base.protocol) || base.username || base.password)
     throw new TypeError('Local asset base required');
@@ -62,11 +68,32 @@ export async function createLocalFleetView(THREE, { scene, team, assets, units, 
   const callerResources = new Set(), owned = new Set();
   resourcesOf(scene, callerResources);
   for (const value of [scene.background, scene.environment]) if (value?.isTexture) callerResources.add(value);
-  let rig, disposed = false;
+  let rig, sea, disposed = false;
+  // The native host owns water and all transient combat FX. Only its safe snapshot
+  // feeds persistent sea cues; no contacts, scenario positions or extra clock.
+  function update(snapshot) {
+    if (disposed) throw new Error('Local fleet view disposed');
+    identityFrame();
+    const safeFrame = hostMode ? { ...snapshot, events: [], projectiles: [] } : snapshot;
+    rig.update(safeFrame);
+    sea?.update({ ...safeFrame, units: safeFrame.units.filter(unit =>
+      bindings.some(binding => binding.id === unit.id && binding.modelId === unit.modelId)) });
+  }
+  function reset() {
+    if (disposed) throw new Error('Local fleet view disposed');
+    rig.reset(); sea?.reset();
+  }
+  function seaStats() {
+    const state = sea?.stats();
+    return state ? Object.freeze({ disposed: state.disposed, tick: state.tick, round: state.round,
+      seconds: state.seconds, quality: state.quality, reducedFlashes: state.reducedFlashes,
+      counts: Object.freeze({ ...state.counts }), caps: Object.freeze({ ...state.caps }) }) : null;
+  }
   function dispose() {
     if (disposed) return;
     disposed = true;
     const errors = [], attempt = action => { try { action(); } catch (error) { errors.push(error); } };
+    attempt(() => sea?.dispose());
     attempt(() => rig?.dispose());
     const resources = [...owned];
     owned.clear(); models.clear(); callerResources.clear();
@@ -96,7 +123,10 @@ export async function createLocalFleetView(THREE, { scene, team, assets, units, 
       const model = models.get(unit.modelId);
       rig.bindUnit(unit.id, model.object.clone(true), model.descriptor);
     }
-    return Object.freeze({ root: rig.root, update: rig.update, reset: rig.reset, dispose });
+    if (hostMode && models.size) sea = createSeaView(THREE, { parent: scene,
+      models: [...models].map(([id, model]) => ({ id, descriptor: model.descriptor })),
+      quality, reducedFlashes, water: false, impacts: false });
+    return Object.freeze({ root: rig.root, update, reset, dispose, seaStats });
   } catch (error) {
     try { dispose(); }
     catch (cleanupError) { throw new AggregateError([error, cleanupError], 'Local fleet setup and cleanup failed'); }

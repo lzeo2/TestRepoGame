@@ -1,0 +1,139 @@
+{
+  "model_id": "wings.original.ah-64d-apache.v1",
+  "model_file": "models/ah-64d-apache.glb",
+  "unit": "meter",
+  "axes": {
+    "up": "+Y",
+    "forward": "+Z",
+    "right": "+X"
+  },
+  "controls": [
+    {
+      "node": "main_wheel_L",
+      "parent": "vehicle_root",
+      "pivot_world_m": [
+        -1.2000000476837158,
+        -1.149999976158142,
+        1.2000000476837158
+      ],
+      "suggested_local_rotation_axis": [
+        1,
+        0,
+        0
+      ],
+      "purpose": "fixed-gear wheel rotation only",
+      "rest_node_transform": {
+        "translation": [
+          -1.2000000476837158,
+          -1.149999976158142,
+          1.2000000476837158
+        ]
+      },
+      "influenced_mesh_nodes": [
+        "main_wheel_L"
+      ]
+    },
+    {
+      "node": "main_wheel_R",
+      "parent": "vehicle_root",
+      "pivot_world_m": [
+        1.2000000476837158,
+        -1.149999976158142,
+        1.2000000476837158
+      ],
+      "suggested_local_rotation_axis": [
+        1,
+        0,
+        0
+      ],
+      "purpose": "fixed-gear wheel rotation only",
+      "rest_node_transform": {
+        "translation": [
+          1.2000000476837158,
+          -1.149999976158142,
+          1.2000000476837158
+        ]
+      },
+      "influenced_mesh_nodes": [
+        "main_wheel_R"
+      ]
+    },
+    {
+      "node": "tailwheel",
+      "parent": "vehicle_root",
+      "pivot_world_m": [
+        0.0,
+        -0.8999999761581421,
+        -7.550000190734863
+      ],
+      "suggested_local_rotation_axis": [
+        1,
+        0,
+        0
+      ],
+      "purpose": "fixed-gear wheel rotation only",
+      "rest_node_transform": {
+        "translation": [
+          0,
+          -0.8999999761581421,
+          -7.550000190734863
+        ]
+      },
+      "influenced_mesh_nodes": [
+        "tailwheel"
+      ]
+    },
+    {
+      "node": "main_rotor_spin",
+      "parent": "vehicle_root",
+      "pivot_world_m": [
+        0.0,
+        2.549999952316284,
+        0.05000000074505806
+      ],
+      "suggested_local_rotation_axis": [
+        0,
+        1,
+        0
+      ],
+      "purpose": "whole main rotor spin; blade children keep relative transform; fixed gearbox and radar excluded",
+      "rest_node_transform": {
+        "translation": [
+          0,
+          2.549999952316284,
+          0.05000000074505806
+        ]
+      },
+      "influenced_mesh_nodes": [
+        "main_rotor_blade_assembly"
+      ]
+    },
+    {
+      "node": "tail_rotor_spin",
+      "parent": "vehicle_root",
+      "pivot_world_m": [
+        -0.3799999952316284,
+        1.5499999523162842,
+        -8.699999809265137
+      ],
+      "suggested_local_rotation_axis": [
+        1,
+        0,
+        0
+      ],
+      "purpose": "independent tail rotor spin; fixed tail fin excluded",
+      "rest_node_transform": {
+        "translation": [
+          -0.3799999952316284,
+          1.5499999523162842,
+          -8.699999809265137
+        ]
+      },
+      "influenced_mesh_nodes": [
+        "tail_rotor_blade_assembly"
+      ]
+    }
+  ],
+  "animations_included": [],
+  "integration_note": "Direct rigid-node transform suggestions only. Preserve rest transforms and hierarchy. No constraints, physics, mechanical limit guarantee or gameplay behavior."
+}

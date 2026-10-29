@@ -1,7 +1,7 @@
 import { MathUtils, Matrix4, PerspectiveCamera, Quaternion, Vector3 } from "three"
 import type { Quat, Vec3, VehicleKind } from "../sim/types"
 import { groundHeight } from "../sim/geography"
-import { VEHICLES } from "../sim/vehicles"
+import { NATIVE_BOMBER_MODELS, NATIVE_FIGHTER_MODELS, NATIVE_HELICOPTER_MODELS, VEHICLES } from "../sim/vehicles"
 
 export type CameraMode = "menu" | "orbit" | "chase" | "cockpit" | "gunner" | "death"
 
@@ -14,6 +14,26 @@ const COCKPIT: Record<VehicleKind, Vec3> = {
   bomber: [0, 2.2, -9],
   f15: [0, 1.05, -5.148972972972974],
   f35: [0, 1.08, -4.291333333333333],
+  f16c: NATIVE_FIGHTER_MODELS.f16c.cockpit,
+  mig29: NATIVE_FIGHTER_MODELS.mig29.cockpit,
+  typhoon: NATIVE_FIGHTER_MODELS.typhoon.cockpit,
+  su35s: NATIVE_FIGHTER_MODELS.su35s.cockpit,
+  rafale: NATIVE_FIGHTER_MODELS.rafale.cockpit,
+  jf17: NATIVE_FIGHTER_MODELS.jf17.cockpit,
+  gripen: NATIVE_FIGHTER_MODELS.gripen.cockpit,
+  mig31: NATIVE_FIGHTER_MODELS.mig31.cockpit,
+  mirage2000: NATIVE_FIGHTER_MODELS.mirage2000.cockpit,
+  su34: NATIVE_FIGHTER_MODELS.su34.cockpit,
+  fa50: NATIVE_FIGHTER_MODELS.fa50.cockpit,
+  yak130: NATIVE_FIGHTER_MODELS.yak130.cockpit,
+  hawkt2: NATIVE_FIGHTER_MODELS.hawkt2.cockpit,
+  su25sm: NATIVE_FIGHTER_MODELS.su25sm.cockpit,
+  a10c: NATIVE_FIGHTER_MODELS.a10c.cockpit,
+  f35a: NATIVE_FIGHTER_MODELS.f35a.cockpit,
+  j20: NATIVE_FIGHTER_MODELS.j20.cockpit,
+  ah64d: NATIVE_HELICOPTER_MODELS.ah64d.cockpit,
+  mi28n: NATIVE_HELICOPTER_MODELS.mi28n.cockpit,
+  tu160: NATIVE_BOMBER_MODELS.tu160.cockpit,
 }
 /** Gunner camera: targeting pod / chin turret position. */
 const GUNNER: Record<VehicleKind, Vec3> = {
@@ -24,13 +44,52 @@ const GUNNER: Record<VehicleKind, Vec3> = {
   bomber: [0, -3, -4],
   f15: [0, -1.4, -5.148972972972974],
   f35: [0, -1.4, -4.291333333333333],
+  f16c: [0, NATIVE_FIGHTER_MODELS.f16c.bounds.min[1], NATIVE_FIGHTER_MODELS.f16c.cockpit[2]],
+  mig29: [0, NATIVE_FIGHTER_MODELS.mig29.bounds.min[1], NATIVE_FIGHTER_MODELS.mig29.cockpit[2]],
+  typhoon: [0, NATIVE_FIGHTER_MODELS.typhoon.bounds.min[1], NATIVE_FIGHTER_MODELS.typhoon.cockpit[2]],
+  su35s: [0, NATIVE_FIGHTER_MODELS.su35s.bounds.min[1], NATIVE_FIGHTER_MODELS.su35s.cockpit[2]],
+  rafale: [0, NATIVE_FIGHTER_MODELS.rafale.bounds.min[1], NATIVE_FIGHTER_MODELS.rafale.cockpit[2]],
+  jf17: [0, NATIVE_FIGHTER_MODELS.jf17.bounds.min[1], NATIVE_FIGHTER_MODELS.jf17.cockpit[2]],
+  gripen: [0, NATIVE_FIGHTER_MODELS.gripen.bounds.min[1], NATIVE_FIGHTER_MODELS.gripen.cockpit[2]],
+  mig31: [0, NATIVE_FIGHTER_MODELS.mig31.bounds.min[1], NATIVE_FIGHTER_MODELS.mig31.cockpit[2]],
+  mirage2000: [0, NATIVE_FIGHTER_MODELS.mirage2000.bounds.min[1], NATIVE_FIGHTER_MODELS.mirage2000.cockpit[2]],
+  su34: [0, NATIVE_FIGHTER_MODELS.su34.bounds.min[1], NATIVE_FIGHTER_MODELS.su34.cockpit[2]],
+  fa50: [0, NATIVE_FIGHTER_MODELS.fa50.bounds.min[1], NATIVE_FIGHTER_MODELS.fa50.cockpit[2]],
+  yak130: [0, NATIVE_FIGHTER_MODELS.yak130.bounds.min[1], NATIVE_FIGHTER_MODELS.yak130.cockpit[2]],
+  hawkt2: [0, NATIVE_FIGHTER_MODELS.hawkt2.bounds.min[1], NATIVE_FIGHTER_MODELS.hawkt2.cockpit[2]],
+  su25sm: [0, NATIVE_FIGHTER_MODELS.su25sm.bounds.min[1], NATIVE_FIGHTER_MODELS.su25sm.cockpit[2]],
+  a10c: [0, NATIVE_FIGHTER_MODELS.a10c.bounds.min[1], NATIVE_FIGHTER_MODELS.a10c.cockpit[2]],
+  f35a: [0, NATIVE_FIGHTER_MODELS.f35a.bounds.min[1], NATIVE_FIGHTER_MODELS.f35a.cockpit[2]],
+  j20: [0, NATIVE_FIGHTER_MODELS.j20.bounds.min[1], NATIVE_FIGHTER_MODELS.j20.cockpit[2]],
+  ah64d: [0, NATIVE_HELICOPTER_MODELS.ah64d.bounds.min[1], NATIVE_HELICOPTER_MODELS.ah64d.cockpit[2]],
+  mi28n: [0, NATIVE_HELICOPTER_MODELS.mi28n.bounds.min[1], NATIVE_HELICOPTER_MODELS.mi28n.cockpit[2]],
+  tu160: [0, NATIVE_BOMBER_MODELS.tu160.bounds.min[1], NATIVE_BOMBER_MODELS.tu160.hardpoints.bombs[0][2]],
 }
 /**
  * Gunner eye placement relative to the optic: metres along the line of sight (clears the own nose/belly)
  * and metres straight down (below the fuselage), so the own airframe never fills the frame.
  */
-const GUNNER_LEAD: Record<VehicleKind, number> = { fighter: 9, apache: 2.5, warthog: 8, blackbird: 4, bomber: 3, f15: 9, f35: 6 }
-const GUNNER_DROP: Record<VehicleKind, number> = { fighter: 1.5, apache: 0.6, warthog: 1.5, blackbird: 1.5, bomber: 2, f15: 1.5, f35: 1.5 }
+const GUNNER_LEAD: Record<VehicleKind, number> = { tu160: NATIVE_BOMBER_MODELS.tu160.hardpoints.bombs[0][2] - NATIVE_BOMBER_MODELS.tu160.bounds.min[2] + 2, fighter: 9, apache: 2.5, warthog: 8, blackbird: 4, bomber: 3, f15: 9, f35: 6,
+  f16c: NATIVE_FIGHTER_MODELS.f16c.cockpit[2] - NATIVE_FIGHTER_MODELS.f16c.bounds.min[2] + 2,
+  mig29: NATIVE_FIGHTER_MODELS.mig29.cockpit[2] - NATIVE_FIGHTER_MODELS.mig29.bounds.min[2] + 2,
+  typhoon: NATIVE_FIGHTER_MODELS.typhoon.cockpit[2] - NATIVE_FIGHTER_MODELS.typhoon.bounds.min[2] + 2,
+  su35s: NATIVE_FIGHTER_MODELS.su35s.cockpit[2] - NATIVE_FIGHTER_MODELS.su35s.bounds.min[2] + 2,
+  rafale: NATIVE_FIGHTER_MODELS.rafale.cockpit[2] - NATIVE_FIGHTER_MODELS.rafale.bounds.min[2] + 2,
+  jf17: NATIVE_FIGHTER_MODELS.jf17.cockpit[2] - NATIVE_FIGHTER_MODELS.jf17.bounds.min[2] + 2,
+  gripen: NATIVE_FIGHTER_MODELS.gripen.cockpit[2] - NATIVE_FIGHTER_MODELS.gripen.bounds.min[2] + 2,
+  mig31: NATIVE_FIGHTER_MODELS.mig31.cockpit[2] - NATIVE_FIGHTER_MODELS.mig31.bounds.min[2] + 2,
+  mirage2000: NATIVE_FIGHTER_MODELS.mirage2000.cockpit[2] - NATIVE_FIGHTER_MODELS.mirage2000.bounds.min[2] + 2,
+  su34: NATIVE_FIGHTER_MODELS.su34.cockpit[2] - NATIVE_FIGHTER_MODELS.su34.bounds.min[2] + 2,
+  fa50: NATIVE_FIGHTER_MODELS.fa50.cockpit[2] - NATIVE_FIGHTER_MODELS.fa50.bounds.min[2] + 2,
+  yak130: NATIVE_FIGHTER_MODELS.yak130.cockpit[2] - NATIVE_FIGHTER_MODELS.yak130.bounds.min[2] + 2,
+  hawkt2: NATIVE_FIGHTER_MODELS.hawkt2.cockpit[2] - NATIVE_FIGHTER_MODELS.hawkt2.bounds.min[2] + 2,
+  su25sm: NATIVE_FIGHTER_MODELS.su25sm.cockpit[2] - NATIVE_FIGHTER_MODELS.su25sm.bounds.min[2] + 2,
+  a10c: NATIVE_FIGHTER_MODELS.a10c.cockpit[2] - NATIVE_FIGHTER_MODELS.a10c.bounds.min[2] + 2,
+  f35a: NATIVE_FIGHTER_MODELS.f35a.cockpit[2] - NATIVE_FIGHTER_MODELS.f35a.bounds.min[2] + 2,
+  j20: NATIVE_FIGHTER_MODELS.j20.cockpit[2] - NATIVE_FIGHTER_MODELS.j20.bounds.min[2] + 2,
+  ah64d: NATIVE_HELICOPTER_MODELS.ah64d.cockpit[2] - NATIVE_HELICOPTER_MODELS.ah64d.bounds.min[2] + 2,
+  mi28n: NATIVE_HELICOPTER_MODELS.mi28n.cockpit[2] - NATIVE_HELICOPTER_MODELS.mi28n.bounds.min[2] + 2 }
+const GUNNER_DROP: Record<VehicleKind, number> = { tu160: 1.5, fighter: 1.5, apache: 0.6, warthog: 1.5, blackbird: 1.5, bomber: 2, f15: 1.5, f35: 1.5, f16c: 1.5, mig29: 1.5, typhoon: 1.5, su35s: 1.5, rafale: 1.5, jf17: 1.5, gripen: 1.5, mig31: 1.5, mirage2000: 1.5, su34: 1.5, fa50: 1.5, yak130: 1.5, hawkt2: 1.5, su25sm: 1.5, a10c: 1.5, f35a: 1.5, j20: 1.5, ah64d: 0.6, mi28n: 0.6 }
 /** Bomb-sight optical zoom range. */
 export const BOMBSIGHT_MIN_ZOOM = 2
 export const BOMBSIGHT_MAX_ZOOM = 8
@@ -44,6 +103,26 @@ const CHASE: Record<VehicleKind, { dist: number; height: number }> = {
   bomber: { dist: 60, height: 13 },
   f15: { dist: 28, height: 6 },
   f35: { dist: 25, height: 6 },
+  f16c: { dist: (NATIVE_FIGHTER_MODELS.f16c.bounds.max[2] - NATIVE_FIGHTER_MODELS.f16c.bounds.min[2]) * 1.6, height: 6 },
+  mig29: { dist: (NATIVE_FIGHTER_MODELS.mig29.bounds.max[2] - NATIVE_FIGHTER_MODELS.mig29.bounds.min[2]) * 1.6, height: 6 },
+  typhoon: { dist: (NATIVE_FIGHTER_MODELS.typhoon.bounds.max[2] - NATIVE_FIGHTER_MODELS.typhoon.bounds.min[2]) * 1.6, height: 6 },
+  su35s: { dist: (NATIVE_FIGHTER_MODELS.su35s.bounds.max[2] - NATIVE_FIGHTER_MODELS.su35s.bounds.min[2]) * 1.6, height: 6 },
+  rafale: { dist: (NATIVE_FIGHTER_MODELS.rafale.bounds.max[2] - NATIVE_FIGHTER_MODELS.rafale.bounds.min[2]) * 1.6, height: 6 },
+  jf17: { dist: (NATIVE_FIGHTER_MODELS.jf17.bounds.max[2] - NATIVE_FIGHTER_MODELS.jf17.bounds.min[2]) * 1.6, height: 6 },
+  gripen: { dist: (NATIVE_FIGHTER_MODELS.gripen.bounds.max[2] - NATIVE_FIGHTER_MODELS.gripen.bounds.min[2]) * 1.6, height: 6 },
+  mig31: { dist: (NATIVE_FIGHTER_MODELS.mig31.bounds.max[2] - NATIVE_FIGHTER_MODELS.mig31.bounds.min[2]) * 1.6, height: 6 },
+  mirage2000: { dist: (NATIVE_FIGHTER_MODELS.mirage2000.bounds.max[2] - NATIVE_FIGHTER_MODELS.mirage2000.bounds.min[2]) * 1.6, height: 6 },
+  su34: { dist: (NATIVE_FIGHTER_MODELS.su34.bounds.max[2] - NATIVE_FIGHTER_MODELS.su34.bounds.min[2]) * 1.6, height: 6 },
+  fa50: { dist: (NATIVE_FIGHTER_MODELS.fa50.bounds.max[2] - NATIVE_FIGHTER_MODELS.fa50.bounds.min[2]) * 1.6, height: 6 },
+  yak130: { dist: (NATIVE_FIGHTER_MODELS.yak130.bounds.max[2] - NATIVE_FIGHTER_MODELS.yak130.bounds.min[2]) * 1.6, height: 6 },
+  hawkt2: { dist: (NATIVE_FIGHTER_MODELS.hawkt2.bounds.max[2] - NATIVE_FIGHTER_MODELS.hawkt2.bounds.min[2]) * 1.6, height: 6 },
+  su25sm: { dist: (NATIVE_FIGHTER_MODELS.su25sm.bounds.max[2] - NATIVE_FIGHTER_MODELS.su25sm.bounds.min[2]) * 1.6, height: 6 },
+  a10c: { dist: (NATIVE_FIGHTER_MODELS.a10c.bounds.max[2] - NATIVE_FIGHTER_MODELS.a10c.bounds.min[2]) * 1.6, height: 6 },
+  f35a: { dist: (NATIVE_FIGHTER_MODELS.f35a.bounds.max[2] - NATIVE_FIGHTER_MODELS.f35a.bounds.min[2]) * 1.6, height: 6 },
+  j20: { dist: (NATIVE_FIGHTER_MODELS.j20.bounds.max[2] - NATIVE_FIGHTER_MODELS.j20.bounds.min[2]) * 1.6, height: 6 },
+  ah64d: { dist: (NATIVE_HELICOPTER_MODELS.ah64d.bounds.max[2] - NATIVE_HELICOPTER_MODELS.ah64d.bounds.min[2]) * 1.6, height: 7 },
+  mi28n: { dist: (NATIVE_HELICOPTER_MODELS.mi28n.bounds.max[2] - NATIVE_HELICOPTER_MODELS.mi28n.bounds.min[2]) * 1.6, height: 7 },
+  tu160: { dist: (NATIVE_BOMBER_MODELS.tu160.bounds.max[2] - NATIVE_BOMBER_MODELS.tu160.bounds.min[2]) * 1.6, height: NATIVE_BOMBER_MODELS.tu160.bounds.max[1] + 6 },
 }
 // Provisional sight offsets; native cockpit visibility acceptance remains held.
 const COCKPIT_PITCH: Partial<Record<VehicleKind, number>> = {
@@ -218,7 +297,7 @@ export class CameraRig {
     groundAt: (x: number, z: number) => number): void {
     const c = CHASE[kind]
     _q.set(orientation[0], orientation[1], orientation[2], orientation[3])
-    const heli = kind === "apache"
+    const heli = VEHICLES[kind].flight === "heli"
     if (heli) horizonFollow(_q, _q)
     if (!this.followInit) { this.followQ.copy(_q); this.followInit = true }
     // Frame-rate independent smoothing; jets follow a touch quicker (roll included), helis softer.

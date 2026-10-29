@@ -1,0 +1,164 @@
+{
+  "model_id": "wings.original.su-25sm.v1",
+  "model_file": "models/su-25sm.glb",
+  "unit": "meter",
+  "axes": {
+    "up": "+Y",
+    "forward": "+Z",
+    "right": "+X"
+  },
+  "controls": [
+    {
+      "node": "canopy",
+      "parent": "vehicle_root",
+      "pivot_world_m": [
+        0.0,
+        0.7400000095367432,
+        3.5
+      ],
+      "suggested_local_rotation_axis": [
+        1,
+        0,
+        0
+      ],
+      "purpose": "visual canopy assembly hinge; no cockpit systems",
+      "rest_node_transform": {
+        "translation": [
+          0,
+          0.7400000095367432,
+          3.5
+        ]
+      },
+      "influenced_mesh_nodes": [
+        "canopy"
+      ]
+    },
+    {
+      "node": "aileron_L",
+      "parent": "vehicle_root",
+      "pivot_world_m": [
+        -2.25,
+        0.41999998688697815,
+        -1.1799999475479126
+      ],
+      "suggested_local_rotation_axis": [
+        1,
+        0,
+        0
+      ],
+      "purpose": "visual trailing-edge hinge",
+      "rest_node_transform": {
+        "translation": [
+          -2.25,
+          0.41999998688697815,
+          -1.1799999475479126
+        ]
+      },
+      "influenced_mesh_nodes": [
+        "aileron_L"
+      ]
+    },
+    {
+      "node": "elevator_L",
+      "parent": "vehicle_root",
+      "pivot_world_m": [
+        -0.47999998927116394,
+        0.4399999976158142,
+        -5.650000095367432
+      ],
+      "suggested_local_rotation_axis": [
+        1,
+        0,
+        0
+      ],
+      "purpose": "visual tailplane control",
+      "rest_node_transform": {
+        "translation": [
+          -0.47999998927116394,
+          0.4399999976158142,
+          -5.650000095367432
+        ]
+      },
+      "influenced_mesh_nodes": [
+        "elevator_L"
+      ]
+    },
+    {
+      "node": "aileron_R",
+      "parent": "vehicle_root",
+      "pivot_world_m": [
+        2.25,
+        0.41999998688697815,
+        -1.1799999475479126
+      ],
+      "suggested_local_rotation_axis": [
+        1,
+        0,
+        0
+      ],
+      "purpose": "visual trailing-edge hinge",
+      "rest_node_transform": {
+        "translation": [
+          2.25,
+          0.41999998688697815,
+          -1.1799999475479126
+        ]
+      },
+      "influenced_mesh_nodes": [
+        "aileron_R"
+      ]
+    },
+    {
+      "node": "elevator_R",
+      "parent": "vehicle_root",
+      "pivot_world_m": [
+        0.47999998927116394,
+        0.4399999976158142,
+        -5.650000095367432
+      ],
+      "suggested_local_rotation_axis": [
+        1,
+        0,
+        0
+      ],
+      "purpose": "visual tailplane control",
+      "rest_node_transform": {
+        "translation": [
+          0.47999998927116394,
+          0.4399999976158142,
+          -5.650000095367432
+        ]
+      },
+      "influenced_mesh_nodes": [
+        "elevator_R"
+      ]
+    },
+    {
+      "node": "rudder_center",
+      "parent": "vehicle_root",
+      "pivot_world_m": [
+        0.0,
+        0.4000000059604645,
+        -6.880000114440918
+      ],
+      "suggested_local_rotation_axis": [
+        0,
+        1,
+        0
+      ],
+      "purpose": "visual rudder hinge",
+      "rest_node_transform": {
+        "translation": [
+          0,
+          0.4000000059604645,
+          -6.880000114440918
+        ]
+      },
+      "influenced_mesh_nodes": [
+        "rudder_center"
+      ]
+    }
+  ],
+  "animations_included": [],
+  "integration_note": "Direct rigid-node transform suggestions only. Preserve rest transforms and hierarchy. No constraints, physics, mechanical limit guarantee or gameplay behavior."
+}

@@ -102,6 +102,25 @@ export function launchClear(g,position,heading,from,direction) {
   }
   return true;
 }
+// Current yaw/translation only, using exactly the projectile hull/deck/island boxes.
+// Inclusive component edges; strict outside stays empty. No swept/articulation proxy.
+export function fittedHeightAt(g,x,z,position,heading) {
+  if(!finite(x)||!finite(z)||Math.abs(x)>100000||Math.abs(z)>100000||
+    !vec(position)||!finite(heading)||Math.abs(heading)>100000)return null;
+  const local=yawRotate([x-position[0],0,z-position[2]],-heading);
+  let top=null;
+  for(const box of g.boxes)if(local[0]>=box.min[0]&&local[0]<=box.max[0]&&
+    local[2]>=box.min[2]&&local[2]<=box.max[2]) {
+    const y=position[1]+box.max[1];if(top===null||y>top)top=y;
+  }
+  return top;
+}
+// Minimum distance to the same fitted solids as fittedHit, preserving component gaps.
+export function fittedDistance(g,point,position,heading) {
+  const local=yawRotate(sub(point,position),-heading);
+  return Math.min(...g.boxes.map(box=>Math.hypot(...local.map((n,i)=>
+    n-Math.max(box.min[i],Math.min(box.max[i],n))))));
+}
 export function fittedHit(g,a,b,position,heading,previous=position) {
   // Exact OBB slab at this fixed-tick yaw; moving translation swept in the same local frame.
   const start=yawRotate(sub(a,previous),-heading),end=yawRotate(sub(b,position),-heading);

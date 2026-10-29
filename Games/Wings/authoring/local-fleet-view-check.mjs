@@ -199,6 +199,28 @@ assert.throws(() => faultView.update(snapshot), /disposed/);
 for (const [resource, count] of disposals) if (!beforeFault.has(resource)) assert.equal(count, 1);
 assert.deepEqual(scene.children, [caller]);
 console.log('PASS malformed load cleanup, live rig cleanup error and reentrant/idempotent disposal');
+// Host-only second consumer: safe pose/damage, never native water or transient FX.
+const hostBefore = new Set(disposals.keys());
+const hostView = await createLocalFleetView(T, { ...options, hostMode: true });
+const safe = tick => ({ ...snapshot, tick: snapshot.tick + tick, round: 0, events: snapshot.events,
+  units: [structuredClone(snapshot.units.find(unit => unit.id === 'a'))] });
+const firstHost = safe(0);firstHost.units[0].hp=10;
+hostView.update(firstHost);assert.equal(hostView.seaStats().counts.smoke,1);
+const moving = safe(20);moving.units[0].hp=10;moving.units[0].position[2]-=10;
+hostView.update(moving);assert.equal(hostView.seaStats().counts.foam,3);
+assert.equal(hostView.root.getObjectByName('authoritative-fleet-effects').children.length,0);
+assert(!scene.getObjectByName('fleet-sea-water'));assert(!scene.getObjectByName('fleet-sea-splashes'));
+const frozenHost = hostView.seaStats();hostView.update({...moving,paused:true});assert.deepEqual(hostView.seaStats(),frozenHost);
+hostView.update({...moving,units:[],paused:true});assert.deepEqual(hostView.seaStats().counts,{foam:0,splashes:0,smoke:0,fire:0});
+hostView.update(safe(40));assert.equal(hostView.seaStats().counts.foam,0,'no inferred hidden transit');
+const reverse=safe(60);reverse.units[0].position[2]+=10;hostView.update(reverse);assert.equal(hostView.seaStats().counts.foam,3);
+const stopped=safe(80);stopped.units[0].position=[...reverse.units[0].position];hostView.update(stopped);assert.equal(hostView.seaStats().counts.foam,0);
+hostView.update({...stopped,tick:stopped.tick+1,units:stopped.units.map(unit=>({...unit,hp:0,alive:false}))});
+assert.deepEqual(hostView.seaStats().counts,{foam:0,splashes:0,smoke:0,fire:0});
+hostView.reset();assert.equal(hostView.seaStats().tick,-1);
+hostView.dispose();hostView.dispose();assert.deepEqual(scene.children,[caller]);
+for(const [resource,count] of disposals)if(!hostBefore.has(resource))assert.equal(count,1);
+console.log('PASS host safe-frame motion/reverse/stop, HP cues, pause/privacy/sink/reset, no duplicate water/combat FX');
 assert.equal(JSON.stringify(assets), callerInputs);
 for (const [file, expected] of hashes) assert.equal(hash(await read(file)), expected, file);
 assert.equal(JSON.stringify(caller.toJSON()), callerState);

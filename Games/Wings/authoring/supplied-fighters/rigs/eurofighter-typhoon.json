@@ -1,0 +1,164 @@
+{
+  "model_id": "wings.original.eurofighter-typhoon.v1",
+  "model_file": "models/eurofighter-typhoon.glb",
+  "unit": "meter",
+  "axes": {
+    "up": "+Y",
+    "forward": "+Z",
+    "right": "+X"
+  },
+  "controls": [
+    {
+      "node": "elevon_L",
+      "parent": "vehicle_root",
+      "pivot_world_m": [
+        -0.75,
+        0.0,
+        -4.820000171661377
+      ],
+      "suggested_local_rotation_axis": [
+        1,
+        0,
+        0
+      ],
+      "purpose": "separate trailing panel; no duplicate fixed surface beneath",
+      "rest_node_transform": {
+        "translation": [
+          -0.75,
+          0,
+          -4.820000171661377
+        ]
+      },
+      "influenced_mesh_nodes": [
+        "elevon_L"
+      ]
+    },
+    {
+      "node": "canard_L",
+      "parent": "vehicle_root",
+      "pivot_world_m": [
+        -0.5600000023841858,
+        0.3499999940395355,
+        3.049999952316284
+      ],
+      "suggested_local_rotation_axis": [
+        1,
+        0,
+        0
+      ],
+      "purpose": "separate all-moving visual surface; no fixed duplicate",
+      "rest_node_transform": {
+        "translation": [
+          -0.5600000023841858,
+          0.3499999940395355,
+          3.049999952316284
+        ]
+      },
+      "influenced_mesh_nodes": [
+        "canard_L"
+      ]
+    },
+    {
+      "node": "elevon_R",
+      "parent": "vehicle_root",
+      "pivot_world_m": [
+        0.75,
+        0.0,
+        -4.820000171661377
+      ],
+      "suggested_local_rotation_axis": [
+        1,
+        0,
+        0
+      ],
+      "purpose": "separate trailing panel; no duplicate fixed surface beneath",
+      "rest_node_transform": {
+        "translation": [
+          0.75,
+          0,
+          -4.820000171661377
+        ]
+      },
+      "influenced_mesh_nodes": [
+        "elevon_R"
+      ]
+    },
+    {
+      "node": "canard_R",
+      "parent": "vehicle_root",
+      "pivot_world_m": [
+        0.5600000023841858,
+        0.3499999940395355,
+        3.049999952316284
+      ],
+      "suggested_local_rotation_axis": [
+        1,
+        0,
+        0
+      ],
+      "purpose": "separate all-moving visual surface; no fixed duplicate",
+      "rest_node_transform": {
+        "translation": [
+          0.5600000023841858,
+          0.3499999940395355,
+          3.049999952316284
+        ]
+      },
+      "influenced_mesh_nodes": [
+        "canard_R"
+      ]
+    },
+    {
+      "node": "rudder_1",
+      "parent": "vehicle_root",
+      "pivot_world_m": [
+        0.0,
+        0.5299999713897705,
+        -6.409999847412109
+      ],
+      "suggested_local_rotation_axis": [
+        0,
+        1,
+        0
+      ],
+      "purpose": "nonoverlapping visual rudder with approximate hinge",
+      "rest_node_transform": {
+        "translation": [
+          0,
+          0.5299999713897705,
+          -6.409999847412109
+        ]
+      },
+      "influenced_mesh_nodes": [
+        "rudder_1"
+      ]
+    },
+    {
+      "node": "canopy",
+      "parent": "vehicle_root",
+      "pivot_world_m": [
+        0.0,
+        0.5600000023841858,
+        2.3324999809265137
+      ],
+      "suggested_local_rotation_axis": [
+        1,
+        0,
+        0
+      ],
+      "purpose": "visual canopy pivot, simplified glazing; cockpit not detailed",
+      "rest_node_transform": {
+        "translation": [
+          0,
+          0.5600000023841858,
+          2.3324999809265137
+        ]
+      },
+      "influenced_mesh_nodes": [
+        "canopy"
+      ]
+    }
+  ],
+  "animations_included": [],
+  "integration_note": "Direct rigid-node transform suggestions only. Preserve rest transforms and hierarchy. No constraints, physics, mechanical limit guarantee or gameplay behavior."
+}

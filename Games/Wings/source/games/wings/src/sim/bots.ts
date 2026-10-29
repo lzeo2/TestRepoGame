@@ -1,12 +1,12 @@
 // Bot AI — owned by the Bots agent.
 // Deterministic, dependency-free pilots and gunners. All randomness comes from the brain's seeded RNG.
 // Hot path is allocation-free: scratch vectors are module-level and outputs are reused per brain.
-import type { FlightInput, Missile, PlayerInfo, Projectile, Quat, SeatInput, Vec3, VehicleEntity, VehicleKind, WorldQuery } from "./types"
+import type { FlightInput, Missile, PlayerInfo, Projectile, Quat, SeatInput, TeamId, Vec3, VehicleEntity, VehicleKind, WorldQuery } from "./types"
 import { LAUNCH_LANE_LENGTH, carrierOf, inSafeZone, posedFleet, worldQuery } from "./geography"
 import { bombImpactPoint } from "./flight"
-import { GUN_FULL_RANGE, GUN_GIMBAL, ROCKET_GRAVITY, SCANNER_FLARE_CLOSE, isSpawnProtected, weaponDirection } from "./combat"
-import { AA_RANGE, SHIP_SPECS, type Ship } from "./fleet"
-import { VEHICLES, WEAPONS, type WeaponSpec } from "./vehicles"
+import { GUN_FULL_RANGE, GUN_GIMBAL, ROCKET_GRAVITY, SCANNER_FLARE_CLOSE, bombReleasePosition, isSpawnProtected, weaponDirection } from "./combat"
+import { AA_RANGE, SHIP_SPECS, shipHasAAMounts, type Ship as NativeShip } from "./fleet"
+import { hasBombLoad, VEHICLES, VEHICLE_KINDS, WEAPONS, type WeaponSpec } from "./vehicles"
 
 /** Enemies closer than this are visible without being spotted. */
 export const BOT_VISUAL_RANGE = 4_500
@@ -34,6 +34,19 @@ export const STRIKE_SELF_DEFENSE = 1_200
 
 /** Minimal ship status bots need (pass combat's `cs.ships`). */
 export interface BotShipStatus { sunk: boolean }
+
+/** Safe visible, alive surface contacts supplied by the room, never native ship identities. */
+export type BotFleetTarget = {
+  readonly id: string
+  readonly team: TeamId
+  readonly kind: "surface"
+  readonly capital: boolean
+  readonly position: Readonly<Vec3>
+  readonly aimPosition: Readonly<Vec3>
+  readonly bombAimRadius: number
+}
+type FleetAttackTarget = NativeShip | BotFleetTarget
+function isFleetTarget(ship: FleetAttackTarget): ship is BotFleetTarget { return ship.kind === "surface" }
 
 export interface BotState {
   /** mulberry32 state. */
@@ -217,25 +230,29 @@ export function botRandom(brain: BotBrain): number {
 // ---------------------------------------------------------------------------------------------
 // Vehicle choice
 
-const KIND_WEIGHT: Record<VehicleKind, number> = { fighter: 3, apache: 2, warthog: 2, blackbird: 1.2, bomber: 0.9, f15: 1, f35: 1 }
+const KIND_WEIGHT: Record<VehicleKind, number> = { fighter: 3, apache: 2, warthog: 2, blackbird: 1.2, bomber: 0.9, f15: 1, f35: 1, f16c: 1, mig29: 1, typhoon: 1, su35s: 1, rafale: 1, jf17: 1, gripen: 1, mig31: 1, mirage2000: 1, su34: 1, fa50: 1, yak130: 1, hawkt2: 1, su25sm: 1, a10c: 1, f35a: 1, j20: 1, tu160: 1, ah64d: 1, mi28n: 1 }
 const KINDS = Object.keys(KIND_WEIGHT) as VehicleKind[]
 
 /** Vehicle kind a bot picks when spawning: weighted random, discouraging kinds the team already flies. */
-export function chooseBotVehicle(bot: PlayerInfo, teammates: PlayerInfo[], vehicles: VehicleEntity[], rng: () => number): VehicleKind {
-  const counts: Record<VehicleKind, number> = { fighter: 0, apache: 0, warthog: 0, blackbird: 0, bomber: 0, f15: 0, f35: 0 }
+export function chooseBotVehicle(bot: PlayerInfo, teammates: PlayerInfo[], vehicles: VehicleEntity[], rng: () => number): VehicleKind
+export function chooseBotVehicle(bot: PlayerInfo, teammates: PlayerInfo[], vehicles: VehicleEntity[], rng: () => number, allowedKinds: readonly VehicleKind[] | undefined): VehicleKind | undefined
+export function chooseBotVehicle(bot: PlayerInfo, teammates: PlayerInfo[], vehicles: VehicleEntity[], rng: () => number, allowedKinds?: readonly VehicleKind[]): VehicleKind | undefined {
+  const kinds = allowedKinds === undefined ? KINDS : VEHICLE_KINDS.filter(k => allowedKinds.includes(k) && KIND_WEIGHT[k] > 0)
+  if (!kinds.length) return undefined
+  const counts: Record<VehicleKind, number> = { fighter: 0, apache: 0, warthog: 0, blackbird: 0, bomber: 0, f15: 0, f35: 0, f16c: 0, mig29: 0, typhoon: 0, su35s: 0, rafale: 0, jf17: 0, gripen: 0, mig31: 0, mirage2000: 0, su34: 0, fa50: 0, yak130: 0, hawkt2: 0, su25sm: 0, a10c: 0, f35a: 0, j20: 0, tu160: 0, ah64d: 0, mi28n: 0 }
   for (const v of vehicles) if (v.alive && v.team === bot.team) counts[v.kind]++
   let total = 0
-  for (const k of KINDS) total += kindWeight(k, counts)
+  for (const k of kinds) total += kindWeight(k, counts)
   let r = clamp(rng(), 0, 0.999999) * total
-  for (const k of KINDS) {
+  for (const k of kinds) {
     r -= kindWeight(k, counts)
     if (r < 0) return k
   }
-  return KINDS[0]
+  return kinds[0]
 }
 
 function kindWeight(k: VehicleKind, counts: Record<VehicleKind, number>): number {
-  return (KIND_WEIGHT[k] / (1 + counts[k] * 1.5)) * ((k === "blackbird" || k === "bomber") && counts[k] >= 2 ? 0.1 : 1)
+  return (KIND_WEIGHT[k] / (1 + counts[k] * 1.5)) * ((k === "blackbird" || hasBombLoad(k)) && counts[k] >= 2 ? 0.1 : 1)
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -262,7 +279,7 @@ function norm(v: Vec3): Vec3 {
   return v
 }
 
-function dist(a: Vec3, b: Vec3): number {
+function dist(a: Vec3, b: Readonly<Vec3>): number {
   const dx = a[0] - b[0], dy = a[1] - b[1], dz = a[2] - b[2]
   return Math.sqrt(dx * dx + dy * dy + dz * dz)
 }
@@ -272,7 +289,7 @@ function speedOf(v: Vec3): number {
 }
 
 /** Angle (rad) between unit vector `u` and the direction from `from` to `to`. */
-function angleTo(u: Vec3, from: Vec3, to: Vec3): number {
+function angleTo(u: Vec3, from: Vec3, to: Readonly<Vec3>): number {
   const dx = to[0] - from[0], dy = to[1] - from[1], dz = to[2] - from[2]
   const l = Math.sqrt(dx * dx + dy * dy + dz * dz)
   if (l < 1e-6) return 0
@@ -334,7 +351,7 @@ export function interceptTime(dx: number, dy: number, dz: number, vx: number, vy
  * the shooter's velocity; `gravity` adds drop compensation. Returns time to intercept.
  */
 export function leadDirection(
-  shooterPos: Vec3, shooterVel: Vec3, targetPos: Vec3, targetVel: Vec3, speed: number, gravity: number, out: Vec3,
+  shooterPos: Vec3, shooterVel: Vec3, targetPos: Readonly<Vec3>, targetVel: Readonly<Vec3>, speed: number, gravity: number, out: Vec3,
 ): number {
   const dx = targetPos[0] - shooterPos[0], dy = targetPos[1] - shooterPos[1], dz = targetPos[2] - shooterPos[2]
   const vx = targetVel[0] - shooterVel[0], vy = targetVel[1] - shooterVel[1], vz = targetVel[2] - shooterVel[2]
@@ -397,12 +414,13 @@ export const BOT_NO_FLY_RADIUS = AA_RANGE + 300
 const NO_FLY_BUFFER = 500
 
 /** Horizontal distance from (x, z) to the nearest ship not belonging to `team` (Infinity if none). */
-export function hostileFleetDistance(team: number, x: number, z: number): number {
+export function hostileFleetDistance(team: number, x: number, z: number, nativeFleetAADisabled = false): number {
+  if (nativeFleetAADisabled) return Infinity
   let best = Infinity
   const fleet = posedFleet()
   for (let i = 0; i < fleet.length; i++) {
     const sh = fleet[i]
-    if (sh.team === team) continue
+    if (sh.team === team || !shipHasAAMounts(sh)) continue
     const dx = x - sh.position[0], dz = z - sh.position[2]
     const d = Math.sqrt(dx * dx + dz * dz)
     if (d < best) best = d
@@ -441,7 +459,7 @@ export function shipClearanceAlt(pos: Vec3, dx: number, dz: number, reach: numbe
  */
 export function applyAimSafety(
   aim: Vec3, pos: Vec3, vel: Vec3, world: WorldQuery, clearance: number, lookahead: number, team: number | null,
-  jet = true,
+  jet = true, nativeFleetAADisabled = false,
 ): Vec3 {
   norm(aim)
   const margin = Math.min(1_200, world.half * 0.15)
@@ -451,11 +469,11 @@ export function applyAimSafety(
     const w = clamp(edge / margin + 0.3, 0, 1)
     headingPitch(aim[0] * (1 - w) - (pos[0] / cl) * w, aim[2] * (1 - w) - (pos[2] / cl) * w, pitchOf(aim), aim)
   }
-  if (team !== null) {
+  if (team !== null && !nativeFleetAADisabled) {
     const fleet = posedFleet()
     for (let i = 0; i < fleet.length; i++) {
       const sh = fleet[i]
-      if (sh.team === team) continue
+      if (sh.team === team || !shipHasAAMounts(sh)) continue
       const bx = pos[0] - sh.position[0], bz = pos[2] - sh.position[2]
       const r = Math.sqrt(bx * bx + bz * bz)
       const reach = BOT_NO_FLY_RADIUS + NO_FLY_BUFFER
@@ -518,12 +536,12 @@ const _nose: Vec3 = [0, 0, 0]
 const _lead: Vec3 = [0, 0, 0]
 
 /** Valid target: alive, hostile, not spawn-protected, and not sheltering under any hostile fleet's AA. */
-function canEngage(target: VehicleEntity, myTeam: number, now: number): boolean {
+function canEngage(target: VehicleEntity, myTeam: number, now: number, nativeFleetAADisabled: boolean): boolean {
   if (!target.alive || target.team === myTeam || target.flight.crashed || isSpawnProtected(target, now)) return false
   // Unspotted stealth aircraft are invisible to bots.
   if (VEHICLES[target.kind].stealth && target.spottedUntil <= now) return false
   const p = target.flight.position
-  return !inSafeZone(target.team, p) && hostileFleetDistance(myTeam, p[0], p[2]) > BOT_NO_FLY_RADIUS
+  return nativeFleetAADisabled || (!inSafeZone(target.team, p) && hostileFleetDistance(myTeam, p[0], p[2]) > BOT_NO_FLY_RADIUS)
 }
 
 function findVehicle(vehicles: VehicleEntity[], id: string | null): VehicleEntity | null {
@@ -535,6 +553,7 @@ function findVehicle(vehicles: VehicleEntity[], id: string | null): VehicleEntit
 /** Score-based target choice: nearest, prefers spotted, threatening, damaged and the current target. */
 export function selectTarget(
   self: VehicleEntity, vehicles: VehicleEntity[], now: number, maxRange: number, currentId: string | null,
+  nativeFleetAADisabled = false,
 ): VehicleEntity | null {
   const me = self.flight.position
   const heli = VEHICLES[self.kind].flight === "heli"
@@ -542,7 +561,7 @@ export function selectTarget(
   let bestScore = Infinity
   for (let i = 0; i < vehicles.length; i++) {
     const v = vehicles[i]
-    if (v === self || !canEngage(v, self.team, now)) continue
+    if (v === self || !canEngage(v, self.team, now, nativeFleetAADisabled)) continue
     if (v.id !== currentId && claimCount(v, self.id, now) >= MAX_BOTS_PER_TARGET) continue
     const d = dist(me, v.flight.position)
     const spotted = v.spottedUntil > now
@@ -669,7 +688,7 @@ function resetSeat(seat: SeatInput, aimBuf: Vec3, aim: Vec3 | null): SeatInput {
   return seat
 }
 
-function resetForVehicle(brain: BotBrain, vehicle: VehicleEntity): void {
+function resetForVehicle(brain: BotBrain, vehicle: VehicleEntity, factions = false): void {
   const s = brain.state
   s.vehicleId = vehicle.id
   s.phase = vehicle.flight.onGround ? "takeoff" : "transit"
@@ -692,41 +711,44 @@ function resetForVehicle(brain: BotBrain, vehicle: VehicleEntity): void {
   s.guideUntil = 0
   s.engagedSince = -1
   s.breakSign = botRandom(brain) < 0.5 ? -1 : 1
-  // Strike role for crews with anti-ship weapons (pilot rockets / lock missiles); the rest fly cover.
-  s.role = hasAntiShip(vehicle.kind, 0) && botRandom(brain) < 0.65 ? "strike" : "fighter"
+  // Ordinary crews use rockets/locks; Factions gun/rocket runs use only accepted fits.
+  // Bombers use their separate native bombing run and shared load.
+  s.role = hasAntiShip(vehicle.kind, 0, factions) && botRandom(brain) < 0.65 ? "strike" : "fighter"
   s.defender = botRandom(brain) < 0.35
   s.strikeShip = null
   s.strikePhase = "approach"
   s.strikeUntil = 0
 }
 
-/** Seat has rockets or lock-on missiles (usable against ships). */
-function hasAntiShip(kind: VehicleKind, seat: 0 | 1): boolean {
+/** Seat has a supported surface weapon for this room's target set. */
+function hasAntiShip(kind: VehicleKind, seat: 0 | 1, factions = false): boolean {
   for (const id of VEHICLES[kind].seatWeapons[seat]) {
-    const k = id ? WEAPONS[id].kind : null
-    if (k === "rockets" || k === "missile_lock") return true
+    const w = id ? WEAPONS[id] : null
+    if (factions ? w && fleetWeapon(w) : w && (w.kind === "rockets" || w.kind === "missile_lock")) return true
   }
   return false
 }
 
 /** Nearest enemy ship still afloat (carriers preferred), or null. */
-function pickStrikeShip(team: number, pos: Vec3, ships: Readonly<Record<string, BotShipStatus>> | undefined, preferEscort: boolean): Ship | null {
-  const fleet = posedFleet()
-  let best: Ship | null = null
+function pickStrikeShip(team: number, pos: Vec3, ships: Readonly<Record<string, BotShipStatus>> | undefined, preferEscort: boolean): NativeShip | null
+function pickStrikeShip(team: number, pos: Vec3, ships: Readonly<Record<string, BotShipStatus>> | undefined, preferEscort: boolean, fleetTargets: readonly BotFleetTarget[] | undefined): FleetAttackTarget | null
+function pickStrikeShip(team: number, pos: Vec3, ships: Readonly<Record<string, BotShipStatus>> | undefined, preferEscort: boolean, fleetTargets?: readonly BotFleetTarget[]): FleetAttackTarget | null {
+  const fleet = fleetTargets ?? posedFleet()
+  let best: FleetAttackTarget | null = null
   let bestScore = Infinity
   for (let i = 0; i < fleet.length; i++) {
     const sh = fleet[i]
-    if (sh.team === team || ships?.[sh.id]?.sunk) continue
+    if (sh.team === team || (!isFleetTarget(sh) && ships?.[sh.id]?.sunk)) continue
     let score = Math.hypot(sh.position[0] - pos[0], sh.position[2] - pos[2])
-    if ((sh.kind === "carrier") === preferEscort) score *= 1.6
+    if ((isFleetTarget(sh) ? sh.capital : sh.kind === "carrier") === preferEscort) score *= 1.6
     if (score < bestScore) { bestScore = score; best = sh }
   }
   return best
 }
 
 /** Enemy aircraft threatening our fleet (within DEFEND_FLEET_RANGE of an own ship). */
-function fleetThreatened(team: number, target: VehicleEntity): boolean {
-  const fleet = posedFleet()
+function fleetThreatened(team: number, target: VehicleEntity, fleetTargets?: readonly BotFleetTarget[]): boolean {
+  const fleet = fleetTargets ?? posedFleet()
   const p = target.flight.position
   for (let i = 0; i < fleet.length; i++) {
     const sh = fleet[i]
@@ -740,14 +762,15 @@ function fleetThreatened(team: number, target: VehicleEntity): boolean {
  * launch inside STRIKE_LAUNCH_RANGE, break away inside STRIKE_BREAK_RANGE (or after firing), extend to
  * STRIKE_REATTACK_RANGE, repeat. Writes the desired nose into `aim`; returns desired throttle.
  */
-function strike(brain: BotBrain, vehicle: VehicleEntity, ship: Ship, now: number, aim: Vec3, heli: boolean): number {
+function strike(brain: BotBrain, vehicle: VehicleEntity, ship: FleetAttackTarget, now: number, aim: Vec3, heli: boolean): number {
   const s = brain.state
   const o = brain.out
   const flight = o.flight, seat = o.pilotSeat
   const fs = vehicle.flight
   const pos = fs.position
-  const sp = SHIP_SPECS[ship.kind]
-  const tx = ship.position[0] - pos[0], tz = ship.position[2] - pos[2], ty = sp.deckHeight * 0.6 - pos[1]
+  const point = isFleetTarget(ship) ? ship.aimPosition : ship.position
+  const tx = point[0] - pos[0], tz = point[2] - pos[2]
+  const ty = (isFleetTarget(ship) ? point[1] : SHIP_SPECS[ship.kind].deckHeight * 0.6) - pos[1]
   const hd = Math.sqrt(tx * tx + tz * tz)
   if (s.strikePhase === "egress") {
     if (hd > STRIKE_REATTACK_RANGE && now >= s.strikeUntil) s.strikePhase = "approach"
@@ -775,6 +798,11 @@ function strike(brain: BotBrain, vehicle: VehicleEntity, ship: Ship, now: number
   // Attack leg: nose on the ship's aim point (seeker axis / rocket line).
   norm(set3(aim, tx, ty, tz))
   const nose = noseInto(fs.orientation, _nose)
+  if (isFleetTarget(ship)) {
+    smoothSteer(brain, aim, now, nose)
+    fireFleetWeapons(brain, vehicle, ship, 0, now)
+    return heli ? 0.8 : 0.55
+  }
   const spec = VEHICLES[vehicle.kind]
   let fired = false
   for (let slot = 0; slot < 2; slot++) {
@@ -796,17 +824,57 @@ function strike(brain: BotBrain, vehicle: VehicleEntity, ship: Ship, now: number
   return heli ? 0.8 : 0.55
 }
 
+/** Only weapons accepted by the fitted Factions impact boundary. No synthetic seeker locks or bombs. */
+function fleetWeapon(w: WeaponSpec): boolean {
+  return w.id === "cannon20" || w.id === "chaingun30" || w.id === "gau8" || w.kind === "rockets"
+}
+const _surfaceVelocity: Vec3 = [0, 0, 0]
+
+/** Native lead, jitter, turret/gimbal limits and trigger discipline; combat still owns obstruction/hits. */
+function fireFleetWeapons(brain: BotBrain, vehicle: VehicleEntity, ship: BotFleetTarget, crewSeat: 0 | 1, now: number): void {
+  const s = brain.state, o = brain.out
+  const seat = crewSeat === 0 ? o.pilotSeat : o.gunnerSeat
+  const aim = crewSeat === 0 ? o.pilotAim : o.gunnerAim
+  const fs = vehicle.flight, point = ship.aimPosition
+  const d = dist(fs.position, point)
+  const nose = noseInto(fs.orientation, _nose)
+  let aimed = false
+  for (let slot = 0; slot < 2; slot++) {
+    const id = VEHICLES[vehicle.kind].seatWeapons[crewSeat][slot]
+    if (!id) continue
+    const w = WEAPONS[id], rt = vehicle.weapons[crewSeat][slot]
+    if (!fleetWeapon(w) || d > gunRange(s.skill, w)) continue
+    leadDirection(fs.position, fs.velocity, point, _surfaceVelocity, w.speed, w.kind === "rockets" ? ROCKET_GRAVITY : 0, _t1)
+    if (!aimed) {
+      copy3(aim, _t1)
+      if (crewSeat === 1) smoothSteer(brain, aim, now, nose)
+      applyJitter(brain, aim, crewSeat === 0 ? GUN_AIM_JITTER_SCALE : 1)
+      seat.aim = aim
+      if (crewSeat === 0) s.gunAimSet = true
+      aimed = true
+    }
+    if (!weaponReady(rt, now)) continue
+    weaponDirection(vehicle, id, aim, _t2)
+    if (crewSeat === 0 && angleBetween(nose, _t1) >= (w.kind === "rockets" ? 0.06 : GUN_GIMBAL * 0.95)) continue
+    if (angleBetween(_t2, _t1) >= 0.06 || (w.kind === "gun" && !burstAllowed(brain, now))) continue
+    if (slot === 0) seat.firePrimary = true
+    else seat.fireSecondary = true
+  }
+}
+
 const _bomb: Vec3 = [0, 0, 0]
+const _release: Vec3 = [0, 0, 0]
 
 /**
  * Bomber pilot: cruise above the stealth AA ceiling and fly the predicted bomb impact point over the target
  * ship (aim the aircraft at ship − throw), then extend past it and come around again.
  */
-function bomberRun(brain: BotBrain, vehicle: VehicleEntity, ship: Ship, now: number, aim: Vec3, world: WorldQuery): number {
+function bomberRun(brain: BotBrain, vehicle: VehicleEntity, ship: FleetAttackTarget, now: number, aim: Vec3, world: WorldQuery): number {
   const s = brain.state
   const fs = vehicle.flight, pos = fs.position, vel = fs.velocity
   const altPitch = clamp(Math.atan2(BOMBER_CRUISE_ALT - pos[1], 1_500), -0.25, 0.3)
-  const tx = ship.position[0] - pos[0], tz = ship.position[2] - pos[2]
+  const point = isFleetTarget(ship) ? ship.aimPosition : ship.position
+  const tx = point[0] - pos[0], tz = point[2] - pos[2]
   const hd = Math.hypot(tx, tz)
   if (s.strikePhase === "egress") {
     if (hd > BOMBER_REATTACK_RANGE) s.strikePhase = "approach"
@@ -816,7 +884,8 @@ function bomberRun(brain: BotBrain, vehicle: VehicleEntity, ship: Ship, now: num
     }
   }
   // Steer so the bomb's impact point (not the aircraft) tracks onto the ship.
-  const fall = bombImpactPoint(pos, vel, _bomb, world)
+  const origin = isFleetTarget(ship) || vehicle.kind === "tu160" ? bombReleasePosition(vehicle, vehicle.weapons[0][0].ammo, _release) : pos
+  const fall = bombImpactPoint(origin, vel, _bomb, world)
   const throwX = fall > 0 ? _bomb[0] - pos[0] : 0, throwZ = fall > 0 ? _bomb[2] - pos[2] : 0
   const ax = tx - throwX, az = tz - throwZ
   headingPitch(ax, az, altPitch, aim)
@@ -831,12 +900,15 @@ function bomberRun(brain: BotBrain, vehicle: VehicleEntity, ship: Ship, now: num
 /**
  * Compute this tick's input for a bot occupying `vehicle` in its seat. `missiles` (optional, pass
  * `combatState.missiles`) enables missile defence and scanner-guidance tracking; `world` defaults to the
- * shared geography. The returned objects are owned by the brain and reused on the next call.
+ * shared geography. `nativeFleetAADisabled` follows this room's CombatState.hostFleet, not fleet poses.
+ * `fleetTargets` undefined preserves ordinary fleet targeting; even an empty array replaces it completely.
+ * Physical hull/terrain clearance continues to use native geography and the supplied world overlay.
+ * The returned objects are owned by the brain and reused on the next call.
  */
 export function botInput(
   brain: BotBrain, bot: PlayerInfo, vehicle: VehicleEntity, vehicles: VehicleEntity[], now: number,
   missiles?: readonly Missile[], world: WorldQuery = worldQuery, ships?: Readonly<Record<string, BotShipStatus>>,
-  projectiles?: readonly Projectile[],
+  projectiles?: readonly Projectile[], nativeFleetAADisabled = false, fleetTargets?: readonly BotFleetTarget[],
 ): { flight?: FlightInput; seat: SeatInput } {
   const o = brain.out
   if (!vehicle.alive || vehicle.flight.crashed || (bot.seat !== 0 && bot.seat !== 1)) {
@@ -846,16 +918,21 @@ export function botInput(
     resetSeat(o.gunnerSeat, o.gunnerAim, null)
     return bot.seat === 0 ? o.pilot : o.gunner
   }
-  if (brain.state.vehicleId !== vehicle.id) resetForVehicle(brain, vehicle)
+  if (brain.state.vehicleId !== vehicle.id) resetForVehicle(brain, vehicle, fleetTargets !== undefined)
+  if (fleetTargets !== undefined && brain.state.strikeShip && !fleetTargets.some(sh => sh.id === brain.state.strikeShip && sh.team !== vehicle.team)) {
+    brain.state.strikeShip = null
+    brain.state.strikePhase = "approach"
+    brain.state.strikeUntil = 0
+  }
   updateJitter(brain, now)
   if (bot.seat === 0) {
-    const out = pilotInput(brain, bot, vehicle, vehicles, now, missiles, world, ships)
+    const out = pilotInput(brain, bot, vehicle, vehicles, now, missiles, world, ships, nativeFleetAADisabled, fleetTargets)
     // Solo bomber pilot (no bombardier aboard) guides its own falling bomb.
-    if (!vehicle.seats[1]) steerOwnBomb(bot, out.seat, o.pilotAim, projectiles, ships)
+    if (!vehicle.seats[1]) steerOwnBomb(bot, out.seat, o.pilotAim, projectiles, ships, vehicle, world, fleetTargets)
     return out
   }
-  gunnerInput(brain, bot, vehicle, vehicles, now, missiles, ships)
-  steerOwnBomb(bot, o.gunnerSeat, o.gunnerAim, projectiles, ships)
+  gunnerInput(brain, bot, vehicle, vehicles, now, missiles, ships, nativeFleetAADisabled, fleetTargets, world)
+  steerOwnBomb(bot, o.gunnerSeat, o.gunnerAim, projectiles, ships, vehicle, world, fleetTargets)
   return o.gunner
 }
 
@@ -873,7 +950,8 @@ function pickWaypoint(brain: BotBrain, now: number, heli: boolean, half: number)
 
 function pilotInput(
   brain: BotBrain, bot: PlayerInfo, vehicle: VehicleEntity, vehicles: VehicleEntity[], now: number,
-  missiles: readonly Missile[] | undefined, world: WorldQuery, ships?: Readonly<Record<string, BotShipStatus>>,
+  missiles: readonly Missile[] | undefined, world: WorldQuery, ships: Readonly<Record<string, BotShipStatus>> | undefined,
+  nativeFleetAADisabled: boolean, fleetTargets: readonly BotFleetTarget[] | undefined,
 ): { flight: FlightInput; seat: SeatInput } {
   const s = brain.state
   const o = brain.out
@@ -946,25 +1024,25 @@ function pilotInput(
 
   // Target selection.
   let target = findVehicle(vehicles, s.targetId)
-  if (now >= s.retargetAt || (target && !canEngage(target, vehicle.team, now))) {
+  if (now >= s.retargetAt || (target && !canEngage(target, vehicle.team, now, nativeFleetAADisabled))) {
     const maxRange = vehicle.kind === "blackbird" ? 12_000 : heli ? 5_000 : 9_000
-    target = selectTarget(vehicle, vehicles, now, maxRange, s.targetId)
+    target = selectTarget(vehicle, vehicles, now, maxRange, s.targetId, nativeFleetAADisabled)
     s.targetId = target ? target.id : null
     s.retargetAt = now + 0.6 + (1 - s.skill) * 1.5 + botRandom(brain) * 0.4
   }
-  if (target && !canEngage(target, vehicle.team, now)) target = null
+  if (target && !canEngage(target, vehicle.team, now, nativeFleetAADisabled)) target = null
   if (target) claimTarget(target, vehicle.id, now)
-  const inOwnSafe = inSafeZone(vehicle.team, pos)
+  const inOwnSafe = !nativeFleetAADisabled && inSafeZone(vehicle.team, pos)
 
-  let striking: Ship | null = null
+  let striking: FleetAttackTarget | null = null
   // Fleet Strike: strikers attack enemy ships unless an enemy aircraft is close (self-defense) or threatens our fleet.
-  if (s.role === "strike" && !defending && !evading && !(target && (dist(pos, target.flight.position) < STRIKE_SELF_DEFENSE || (s.defender && fleetThreatened(vehicle.team, target))))) {
-    const cur = s.strikeShip ? posedFleet().find(sh => sh.id === s.strikeShip) ?? null : null
-    striking = cur && !ships?.[cur.id]?.sunk ? cur : pickStrikeShip(vehicle.team, pos, ships, botRandom(brain) < 0.3)
+  if ((s.role === "strike" || (fleetTargets !== undefined && hasBombLoad(vehicle.kind))) && (fleetTargets === undefined || hasAntiShip(vehicle.kind, 0, true) || hasBombLoad(vehicle.kind)) && !defending && !evading && !(target && (dist(pos, target.flight.position) < STRIKE_SELF_DEFENSE || (s.defender && fleetThreatened(vehicle.team, target, fleetTargets))))) {
+    const cur = s.strikeShip ? (fleetTargets ?? posedFleet()).find(sh => sh.id === s.strikeShip && (fleetTargets === undefined || sh.team !== vehicle.team)) ?? null : null
+    striking = cur && (isFleetTarget(cur) || !ships?.[cur.id]?.sunk) ? cur : pickStrikeShip(vehicle.team, pos, ships, botRandom(brain) < 0.3, fleetTargets)
     s.strikeShip = striking ? striking.id : null
   }
 
-  if (vehicle.kind === "bomber" && !defending) {
+  if (hasBombLoad(vehicle.kind) && !defending && fleetTargets === undefined) {
     s.phase = "strike"
     const ship = pickStrikeShip(vehicle.team, pos, ships, false)
     if (ship) desiredThrottle = bomberRun(brain, vehicle, ship, now, aim, world)
@@ -976,7 +1054,11 @@ function pilotInput(
     lookTarget = null
   } else if (striking) {
     s.phase = "strike"
-    desiredThrottle = strike(brain, vehicle, striking, now, aim, heli)
+    if (fleetTargets !== undefined && hasBombLoad(vehicle.kind)) {
+      desiredThrottle = bomberRun(brain, vehicle, striking, now, aim, world)
+      if (!vehicle.seats[1]) bombardier(vehicle, seat, null, ships, now, 0, world, fleetTargets)
+      flight.boost = false
+    } else desiredThrottle = strike(brain, vehicle, striking, now, aim, heli)
     if (heli) heliAlt = ground + (s.strikePhase === "egress" ? 150 : 110)
     lookTarget = null
   } else if (defending && threat) {
@@ -1026,8 +1108,8 @@ function pilotInput(
 
   if ((s.phase === "engage" || s.phase === "strike") && vehicle.kind !== "blackbird") applyJitter(brain, aim, s.phase === "strike" ? 0.4 : 1)
   // Strike approaches deliberately enter the hostile AA umbrella; everything else avoids it.
-  const runIn = s.phase === "strike" && (s.strikePhase === "approach" || vehicle.kind === "bomber")
-  applyAimSafety(aim, pos, vel, world, runIn ? Math.min(clearance, 60) : clearance, lookahead, runIn ? null : bot.team, !heli)
+  const runIn = s.phase === "strike" && (s.strikePhase === "approach" || hasBombLoad(vehicle.kind))
+  applyAimSafety(aim, pos, vel, world, runIn ? Math.min(clearance, 60) : clearance, lookahead, runIn ? null : bot.team, !heli, nativeFleetAADisabled)
   if (!heli && speed < spec.stall * 1.3) { desiredThrottle = 1; flight.boost = true }
   return finishPilot(brain, vehicle, aim, heli, desiredThrottle, heliAlt, ground, world, lookTarget)
 }
@@ -1173,9 +1255,27 @@ function engage(brain: BotBrain, vehicle: VehicleEntity, target: VehicleEntity, 
 /** Bombardier: release when the predicted impact point lies on an enemy ship that's still afloat. */
 function bombardier(
   vehicle: VehicleEntity, seat: SeatInput, aim: Vec3 | null, ships: Readonly<Record<string, BotShipStatus>> | undefined, now: number, crewSeat: 0 | 1 = 1,
+  world: WorldQuery = worldQuery, fleetTargets?: readonly BotFleetTarget[],
 ): void {
   const fs = vehicle.flight, pos = fs.position
-  if (bombImpactPoint(pos, fs.velocity, _bomb, worldQuery) < 0) return
+  if (fleetTargets !== undefined) {
+    const id = VEHICLES[vehicle.kind].seatWeapons[crewSeat][0]
+    const rt = vehicle.weapons[crewSeat][0]
+    if (!id || WEAPONS[id].kind !== "bomb" || !weaponReady(rt, now)) return
+    const origin = bombReleasePosition(vehicle, rt.ammo, _release)
+    if (!(bombImpactPoint(origin, fs.velocity, _bomb, world) >= 0)) return
+    if (aim) norm(set3(aim, _bomb[0] - pos[0], _bomb[1] - pos[1], _bomb[2] - pos[2]))
+    for (const sh of fleetTargets) {
+      if (sh.team === vehicle.team || !Number.isFinite(sh.bombAimRadius) || sh.bombAimRadius <= 0) continue
+      if (Math.hypot(_bomb[0] - sh.aimPosition[0], _bomb[2] - sh.aimPosition[2]) <= 0.9 * sh.bombAimRadius) {
+        seat.firePrimary = true
+        return
+      }
+    }
+    return
+  }
+  const origin = vehicle.kind === "tu160" ? bombReleasePosition(vehicle, vehicle.weapons[crewSeat][0].ammo, _release) : pos
+  if (bombImpactPoint(origin, fs.velocity, _bomb, worldQuery) < 0) return
   if (aim) norm(set3(aim, _bomb[0] - pos[0], _bomb[1] - pos[1], _bomb[2] - pos[2]))
   if (!weaponReady(vehicle.weapons[crewSeat][0], now)) return
   const fleet = posedFleet()
@@ -1194,15 +1294,34 @@ function bombardier(
 function steerOwnBomb(
   bot: PlayerInfo, seat: SeatInput, aimBuf: Vec3, projectiles: readonly Projectile[] | undefined,
   ships: Readonly<Record<string, BotShipStatus>> | undefined,
+  vehicle: VehicleEntity, world: WorldQuery, fleetTargets?: readonly BotFleetTarget[],
 ): void {
+  if (fleetTargets !== undefined) seat.steerBomb = false
   if (!projectiles) return
   let bomb: Projectile | null = null
   for (let i = 0; i < projectiles.length; i++) {
     const p = projectiles[i]
-    if (p.weapon === "bomb" && p.owner === bot.id && (!bomb || p.id > bomb.id)) bomb = p
+    if (p.weapon === "bomb" && p.owner === bot.id &&
+        (fleetTargets === undefined || (p.vehicle === vehicle.id && p.team === vehicle.team && p.team === bot.team &&
+          Number.isFinite(p.age) && Number.isFinite(p.ttl) && p.age >= 0 && p.age <= p.ttl)) && (!bomb || p.id > bomb.id)) bomb = p
   }
   if (!bomb) return
   const bp = bomb.position
+  if (fleetTargets !== undefined) {
+    if (!(bombImpactPoint(bp, bomb.velocity, _bomb, world) >= 0)) return
+    let ship: BotFleetTarget | null = null
+    let nearest = 600
+    for (const contact of fleetTargets) {
+      if (contact.team === vehicle.team) continue
+      const distance = Math.hypot(contact.aimPosition[0] - _bomb[0], contact.aimPosition[2] - _bomb[2])
+      if (distance <= nearest) { nearest = distance; ship = contact }
+    }
+    if (!ship) return
+    norm(set3(aimBuf, ship.aimPosition[0] - bp[0], ship.aimPosition[1] - bp[1], ship.aimPosition[2] - bp[2]))
+    seat.aim = aimBuf
+    seat.steerBomb = true
+    return
+  }
   if (bombImpactPoint(bp, bomb.velocity, _bomb, worldQuery) < 0) return
   const ship = pickStrikeShip(bot.team, _bomb, ships, false)
   if (!ship || Math.hypot(ship.position[0] - _bomb[0], ship.position[2] - _bomb[2]) > 600) return
@@ -1221,7 +1340,8 @@ function myScannerMissile(bot: PlayerInfo, vehicle: VehicleEntity, missiles: rea
 
 function gunnerInput(
   brain: BotBrain, bot: PlayerInfo, vehicle: VehicleEntity, vehicles: VehicleEntity[], now: number,
-  missiles: readonly Missile[] | undefined, ships?: Readonly<Record<string, BotShipStatus>>,
+  missiles: readonly Missile[] | undefined, ships: Readonly<Record<string, BotShipStatus>> | undefined,
+  nativeFleetAADisabled: boolean, fleetTargets: readonly BotFleetTarget[] | undefined, world: WorldQuery,
 ): void {
   const s = brain.state
   const o = brain.out
@@ -1232,9 +1352,9 @@ function gunnerInput(
   const seat = resetSeat(o.gunnerSeat, o.gunnerAim, nose)
   const aim = o.gunnerAim
   const ids = spec.seatWeapons[1]
-  const inOwnSafe = inSafeZone(vehicle.team, pos)
-  if (ids[0] && WEAPONS[ids[0]].kind === "bomb") {
-    bombardier(vehicle, seat, aim, ships, now)
+  const inOwnSafe = !nativeFleetAADisabled && inSafeZone(vehicle.team, pos)
+  if (hasBombLoad(vehicle.kind)) {
+    bombardier(vehicle, seat, aim, ships, now, 1, world, fleetTargets)
     return
   }
   let hasPulse = false
@@ -1275,12 +1395,18 @@ function gunnerInput(
   }
 
   let target = findVehicle(vehicles, s.targetId)
-  if (now >= s.retargetAt || (target && !canEngage(target, vehicle.team, now))) {
-    target = selectTarget(vehicle, vehicles, now, maxRange, s.targetId)
+  if (now >= s.retargetAt || (target && !canEngage(target, vehicle.team, now, nativeFleetAADisabled))) {
+    target = selectTarget(vehicle, vehicles, now, maxRange, s.targetId, nativeFleetAADisabled)
     s.targetId = target ? target.id : null
     s.retargetAt = now + 0.6 + (1 - s.skill) * 1.5 + botRandom(brain) * 0.4
   }
-  if (!target || !canEngage(target, vehicle.team, now)) {
+  if (!target || !canEngage(target, vehicle.team, now, nativeFleetAADisabled)) {
+    if (fleetTargets !== undefined) {
+      if (inOwnSafe || findThreat(vehicle, missiles) || !hasAntiShip(vehicle.kind, 1, true)) return
+      const ship = pickStrikeShip(vehicle.team, pos, ships, false, fleetTargets)
+      if (ship && isFleetTarget(ship)) fireFleetWeapons(brain, vehicle, ship, 1, now)
+      return
+    }
     // No air target: put the seeker on the nearest enemy ship in missile range and launch when locked.
     if (!hasAntiShip(vehicle.kind, 1)) return
     const ship = pickStrikeShip(vehicle.team, pos, ships, false)

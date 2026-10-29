@@ -1,0 +1,246 @@
+{
+  "status": "local lookup only; not registered or implemented in a game",
+  "counts": {
+    "unique_aircraft": 20,
+    "unique_vessels": 10,
+    "unique_geometry_assets": 30,
+    "standard_slots": 20,
+    "faction_slots": 30,
+    "faction_A": 15,
+    "faction_B": 15
+  },
+  "standard": [
+    {
+      "slot": 1,
+      "model_id": "wings.original.f-16c.v1"
+    },
+    {
+      "slot": 2,
+      "model_id": "wings.original.mig-29.v1"
+    },
+    {
+      "slot": 3,
+      "model_id": "wings.original.su-35s.v1"
+    },
+    {
+      "slot": 4,
+      "model_id": "wings.original.f-35a.v1"
+    },
+    {
+      "slot": 5,
+      "model_id": "wings.original.eurofighter-typhoon.v1"
+    },
+    {
+      "slot": 6,
+      "model_id": "wings.original.rafale-c.v1"
+    },
+    {
+      "slot": 7,
+      "model_id": "wings.original.jas-39c-gripen.v1"
+    },
+    {
+      "slot": 8,
+      "model_id": "wings.original.j-20.v1"
+    },
+    {
+      "slot": 9,
+      "model_id": "wings.original.mig-31bm.v1"
+    },
+    {
+      "slot": 10,
+      "model_id": "wings.original.mirage-2000c.v1"
+    },
+    {
+      "slot": 11,
+      "model_id": "wings.original.jf-17-block-iii.v1"
+    },
+    {
+      "slot": 12,
+      "model_id": "wings.original.fa-50.v1"
+    },
+    {
+      "slot": 13,
+      "model_id": "wings.original.su-34.v1"
+    },
+    {
+      "slot": 14,
+      "model_id": "wings.original.tu-160.v1"
+    },
+    {
+      "slot": 15,
+      "model_id": "wings.original.a-10c.v1"
+    },
+    {
+      "slot": 16,
+      "model_id": "wings.original.su-25sm.v1"
+    },
+    {
+      "slot": 17,
+      "model_id": "wings.original.hawk-t2.v1"
+    },
+    {
+      "slot": 18,
+      "model_id": "wings.original.yak-130.v1"
+    },
+    {
+      "slot": 19,
+      "model_id": "wings.original.ah-64d-apache.v1"
+    },
+    {
+      "slot": 20,
+      "model_id": "wings.original.mi-28n.v1"
+    }
+  ],
+  "factions": [
+    {
+      "slot": 1,
+      "faction": "A",
+      "model_id": "wings.original.f-16c.v1"
+    },
+    {
+      "slot": 2,
+      "faction": "A",
+      "model_id": "wings.original.f-35a.v1"
+    },
+    {
+      "slot": 3,
+      "faction": "A",
+      "model_id": "wings.original.eurofighter-typhoon.v1"
+    },
+    {
+      "slot": 4,
+      "faction": "A",
+      "model_id": "wings.original.rafale-c.v1"
+    },
+    {
+      "slot": 5,
+      "faction": "A",
+      "model_id": "wings.original.jas-39c-gripen.v1"
+    },
+    {
+      "slot": 6,
+      "faction": "A",
+      "model_id": "wings.original.mirage-2000c.v1"
+    },
+    {
+      "slot": 7,
+      "faction": "A",
+      "model_id": "wings.original.fa-50.v1"
+    },
+    {
+      "slot": 8,
+      "faction": "A",
+      "model_id": "wings.original.a-10c.v1"
+    },
+    {
+      "slot": 9,
+      "faction": "A",
+      "model_id": "wings.original.hawk-t2.v1"
+    },
+    {
+      "slot": 10,
+      "faction": "A",
+      "model_id": "wings.original.ah-64d-apache.v1"
+    },
+    {
+      "slot": 11,
+      "faction": "A",
+      "model_id": "wings.original.wings_charles_de_gaulle_r91.v1"
+    },
+    {
+      "slot": 12,
+      "faction": "A",
+      "model_id": "wings.original.wings_queen_elizabeth_class.v1"
+    },
+    {
+      "slot": 13,
+      "faction": "A",
+      "model_id": "wings.original.wings_type45_daring_class.v1"
+    },
+    {
+      "slot": 14,
+      "faction": "A",
+      "model_id": "wings.original.wings_aquitaine_fremm.v1"
+    },
+    {
+      "slot": 15,
+      "faction": "A",
+      "model_id": "wings.original.wings_cb90_h.v1"
+    },
+    {
+      "slot": 16,
+      "faction": "B",
+      "model_id": "wings.original.mig-29.v1"
+    },
+    {
+      "slot": 17,
+      "faction": "B",
+      "model_id": "wings.original.su-35s.v1"
+    },
+    {
+      "slot": 18,
+      "faction": "B",
+      "model_id": "wings.original.j-20.v1"
+    },
+    {
+      "slot": 19,
+      "faction": "B",
+      "model_id": "wings.original.mig-31bm.v1"
+    },
+    {
+      "slot": 20,
+      "faction": "B",
+      "model_id": "wings.original.jf-17-block-iii.v1"
+    },
+    {
+      "slot": 21,
+      "faction": "B",
+      "model_id": "wings.original.su-34.v1"
+    },
+    {
+      "slot": 22,
+      "faction": "B",
+      "model_id": "wings.original.tu-160.v1"
+    },
+    {
+      "slot": 23,
+      "faction": "B",
+      "model_id": "wings.original.su-25sm.v1"
+    },
+    {
+      "slot": 24,
+      "faction": "B",
+      "model_id": "wings.original.yak-130.v1"
+    },
+    {
+      "slot": 25,
+      "faction": "B",
+      "model_id": "wings.original.mi-28n.v1"
+    },
+    {
+      "slot": 26,
+      "faction": "B",
+      "model_id": "wings.original.wings_liaoning_type001.v1"
+    },
+    {
+      "slot": 27,
+      "faction": "B",
+      "model_id": "wings.original.wings_admiral_kuznetsov_project1143_5.v1"
+    },
+    {
+      "slot": 28,
+      "faction": "B",
+      "model_id": "wings.original.wings_type055_renhai.v1"
+    },
+    {
+      "slot": 29,
+      "faction": "B",
+      "model_id": "wings.original.wings_type054a_jiangkai_ii.v1"
+    },
+    {
+      "slot": 30,
+      "faction": "B",
+      "model_id": "wings.original.wings_type022_houbei.v1"
+    }
+  ]
+}

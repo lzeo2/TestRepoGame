@@ -1,0 +1,1785 @@
+{
+  "archive_sha256": "4e37a104ba356790f6f9a0632c99d34b77dc023649e3cab830d895ec55c471d8",
+  "existing_model_sha256": {
+    "a10.glb": "f9f4392f4de4dea95558c16738ff02fd89ae1ca10d0d960655fb967df64b9d24",
+    "ac130.glb": "1a53da510144bbcd28903ad407c067e4128af7d7a52afe4994e17826344f1f9e",
+    "apache.glb": "bd6a9677f8f469dceac601aef4fd2ec7b5a42f66f12c5493159004bfa6ca47ac",
+    "b2.glb": "3e271a320ef39720c445ed379b72dcdf40b32c38b58d1df09d356be119ee826b",
+    "carrier.glb": "d1e20c4d0a6e13e4de6d1ec0ebbf1cd4ce7a563f2a14601c681b2159822ce9b0",
+    "destroyer.glb": "5dfb334aa4496edb0c6358cdf7f8025f71dca563daad2b425d792b41c279eeef",
+    "f15.glb": "5c1bf64dc21962dc822dc44edd91186aa4a6932034b06a405d3170518fc135bf",
+    "f35.glb": "ce19018414037e3cef949a99ae08a1d035b25fbd20601e1835c2426bc32db197",
+    "fa18.glb": "78bb2fb9f542daaa607e850f7444018fc2f996cd247d67e3ad3761df58efab09",
+    "speedboat.glb": "7fee0b74e7c746a2dff2b7c4b5bed58c39b9ddbbc0c55592f1eb27941b4f2aee",
+    "yf12.glb": "5f49376fbace30d888e6972850833af28d101427f66f12bdf128c889966f6769",
+    "derived/wings_type45_daring_class.glb": "34f5f85ab3e31b11187e967b85c0ebac1787ad8c9c06de250535f5a90866351f",
+    "derived/wings_type054a_jiangkai_ii.glb": "52347c718b6aa6a0f6466a60fdc9a87df60234a146e6782af28186993c31fdc4",
+    "derived/generic-attack-submarine.glb": "6898dd746f03d05a9d1205ab93b72083fa8ac3d6b2e7045198f3d9f786960724",
+    "supplied/f-16c.glb": "b2c38684cd1f7d904e6d076f600f0233a3b481b8ea5434fc186411d31fa1cf30",
+    "supplied/mig-29.glb": "b94eb1885dd2119ff135a824f2879b94f792340e684d51ded704a552d64d88c8",
+    "derived/wings_f16c.glb": "fc4dcefc1d16064ab8be6eaa386fe2ef45401bf645dbd2d43165e34ccd4e234e",
+    "derived/wings_mig29.glb": "c36c880521436792f18e1860ba51295f8b5c57e2dc05fa6081086e7d646edb83",
+    "supplied/eurofighter-typhoon.glb": "cae157180c649ac6d4c3b43dd7ae1a5322d7cc2985f961fdbcf6effa4b99b835",
+    "supplied/su-35s.glb": "858eda509c102f2079a2af96fdfd6c7e8027d289bfd7d2797be38ba17a636433",
+    "derived/wings_typhoon.glb": "8d5efa85820f46ea541d5f4fbc84c6d68185307da282643ac44cd25125d36754",
+    "derived/wings_su35s.glb": "16be50931ebcb09a2161bbe7c2171079e4c3b3837261f467d4e5d67e996c7bed",
+    "supplied/rafale-c.glb": "e547d577a3a533ad6c8cadaed6f53d1b5e0850bcbf985ac6dc631488f5100561",
+    "supplied/jf-17-block-iii.glb": "b6bb06bbbf51c6af467e0e636a703d85cc53cff8b8b8b3f757e68db11aebb52a",
+    "derived/wings_rafale.glb": "fbf1d3ba66d37d6a63523700c9602901c5a545bf014a70f1546fc8c8e0e1677f",
+    "derived/wings_jf17.glb": "f8f80f2e9472a2bfb2754f8d6f9100303ecedc49d6f4ca8d234350a407c6bbd9",
+    "supplied/wings_aquitaine_fremm.glb": "cb8c3a46ab4bc4e0fd34633d0747664a371bff02dcb768635e3b5448bf489068",
+    "supplied/wings_type055_renhai.glb": "7066833e6c8307e0d64906da35233ac4435fceda18f29acb7e82e219c968620b",
+    "derived/wings_aquitaine_fremm.glb": "e3675fa8736cd1b0d98880936662f8554bdeab0dc83ea62b3067df6632482f9e",
+    "derived/wings_type055_renhai.glb": "261dcdaee62082df2e47f13d7afbb246ba35dc87f55fb07fa9f1fc600f7de01c",
+    "supplied/jas-39c-gripen.glb": "f996e62f23cf56027b885767fcb30ae954824b198254dd8a644a14fcacd9e789",
+    "supplied/mig-31bm.glb": "dd4b8a9741ff4fb325c4a5534d1a0264148c1f0f91078f9dfcca565435e9c82f",
+    "derived/wings_gripen.glb": "49f9336f7e1c2075f27bbe676791a1eb80ab00f52ab1827df2ec2b7ebfff627d",
+    "derived/wings_mig31.glb": "c220c9afd4caf065fc8d84f15060d2b5341b16aa638d4ae88677df19409765b4",
+    "supplied/wings_cb90_h.glb": "46aaa3e428309ad927402589a5b35243bedfa7511ee18849c50e48a45b84cfcc",
+    "derived/wings_cb90_h.glb": "c8e959a7cd618ce589c547780657b1cb9308d421a5149279d5e66816d4dac578",
+    "supplied/mirage-2000c.glb": "5e17fb6db155a50fccaa52ccb4ec1989293441d0346769c43774dc370ce1f4dd",
+    "supplied/su-34.glb": "8c2f3633dd39e47a0259b0954c831bee5f8531ed38db48a9e383c277166ff50a",
+    "derived/wings_mirage2000.glb": "52a7af241805d4faaf35df163fae70d49149720b2437ea7d08e37f590068631f",
+    "derived/wings_su34.glb": "60ca4edcf7453fe1f7fe25893ee5564888349a258ede977243dc8fbaff7b66ab",
+    "supplied/fa-50.glb": "adf3e81efc5c5841bc30b9fa526ae7bdf83f0ccbad8fa12a142f43b73b7484f6",
+    "supplied/yak-130.glb": "0bff616f2330806c42860c8d705f7ae05616f2a84e05d44530da4538da44505e",
+    "derived/wings_fa50.glb": "68f02d6ff28d5f54c2181031b7faf2e8cba06839925ccaf6836b28c6cd28b079",
+    "derived/wings_yak130.glb": "b1b4f0d3569386cba10e2574dfb29b3135899fbb0b5c8a2d30dd81a55be0fce6",
+    "supplied/wings_type022_houbei.glb": "f259a65fb5a43a6647e3e740d307aba23e77ff060db8d4881a9dcb853772bdca",
+    "derived/wings_type022_houbei.glb": "80fd1b8287e8adb16844df2e7760bb34d7484ab15f59db057a949496a321898a",
+    "supplied/hawk-t2.glb": "9289e2d589b8a295392b2d100c1c3462ee935f1e4837e937e0fea5240bfb54e7",
+    "derived/wings_hawkt2.glb": "7dc2868e30f4f9f68be8425e04aac5e00d9145d3fe3b590b84f707827f235734",
+    "supplied/su-25sm.glb": "cf231893435e7283a5950bd7ca15591bb2ff9159ab29c001ea7b9412204b4663",
+    "derived/wings_su25sm.glb": "2fe458ed79d9de72b3e122c7149ab859f64142e435f023b993bb0b50a602a767",
+    "supplied/a-10c.glb": "74c58cd536be3705b347d7c32fa76b54a0692a992fadde65f82772037187d623",
+    "derived/wings_a10c.glb": "897cd0cc6407cebdddaddd05224e925f577870f6f961e0903f11de367708f00e",
+    "supplied/f-35a.glb": "956550b4cba4a7e4bf4f6bccd71609673f46705a7f249b18adf8f38f2a646e01",
+    "derived/wings_f35a.glb": "1dfd31db6e01e7604c4145617a3a0afb3b880bc28a8017b5e61ea6b061221ce5"
+  },
+  "provenance": "User reports generating the supplied assets with GPT and authorizes scoped Wings use/repair; not independently verified originality or a license claim.",
+  "conversion": "C=diag(1,1,-1); all positions/normals/rest translations reflected; C*M*C rotations; winding reversed once; tangent W negated; signed axes axial-reflected.",
+  "materials": "Original identities/maps/UV/image bytes retained. Closed canopy changed to dielectric BLEND alpha .26. Other source material values unchanged. Native converter texture parity is separate.",
+  "control_limits": "Conservative original arcade visual gains/limits, not certified aircraft mechanics; source approximate hinges retained.",
+  "fits": "Original arcade equipment: F16 pilot cannon20/aim9, officer maverick; MiG29 pilot cannon20/aim9, officer aim9; Typhoon pilot cannon20/aim9, officer tvmissile; Su35S pilot cannon20/tvmissile, officer maverick; Rafale C, JF17 Block III and Gripen pilot cannon20/aim9, officer maverick; MiG31BM and Mirage2000C pilot cannon20/aim9, officer tvmissile; Su34 pilot cannon20/aim9, officer maverick; FA50 pilot cannon20/aim9, officer tvmissile; Yak130, HawkT2 and Su25SM pilot cannon20/aim9, officer maverick; A10C pilot gau8/aim9, officer maverick; F35A pilot cannon20/aim9, officer tvmissile, four generic EXTERNAL ammo-linked stores. F35A generic under-nose barrel adapter is not real caliber or an internal GAU-22 installation. A10C uses the existing gau8 game weapon with a generic measured under-nose barrel/muzzle, not real rotary GAU-8 geometry or a certified installation; no source gun pivot or invented spin rig. No BVR or simultaneous bomb fit claim. Two stores per missile slot, four total per aircraft; Su35S is a bounded arcade fit, not the full six-missile wish. No caliber or real operational fit claim.",
+  "notice": "Qualified supplied base art, not photorealistic or native accepted. Historical pair filename/schema retained as ABI; seventeen models. Mirage uses actual elevons with roll gain L=-1/R=+1 and pitch_gain=-1, clamped summed native rates; no tailplane/canard fabricated. Su34 actual canards and tailplanes both drive pitch, two rudders yaw. Approximate hinges, clearance samples and closed-shell cockpit are not certified mechanisms or native pixels/performance/license acceptance. FA50 has one measured afterburning outlet; Yak130 has two non-afterburning turbofans, dim static warm exhaust cores, no flame/cone/boost emission or stretch. HawkT2 has one measured non-afterburning outlet with a single exhaust_core node/exhaust anchor and the same faint static warm material; no flame/cone/boost emission or stretch. Su25SM uses actual ailerons for roll, elevators for pitch and central rudder for yaw, with two measured non-afterburning alloy outlets and the same static warm cores. Source Su25 exterior is an SM simplification, not a certified exact SM revision or real GSh caliber/operational loadout. Native boost is an arcade speed setting, not an afterburner claim. No supplied scripts executed; only twenty-two metadata entries and seventeen GLBs selectively retained. A10C has actual aileron/elevator/twin-rudder controls and two measured raised non-afterburning rear outlets, excluding front fan alloy components; existing dim static warm cores only. Source A10 family exterior does not certify variant-specific avionics or mechanics. Legacy a10.glb/Warthog rotary gun, rockets and stats remain untouched. F35A is the distinct supplied land-based A exterior with actual flaperons, tailplanes, twin canted fins/rudders and ONE measured exhaust_core/exhaust. Its afterburning:false is a VISUAL opt-out only: real F35A afterburner mechanics/visuals are not modeled in this bounded unit, not a claim the real aircraft lacks an afterburner. Existing dim static warm core only; no new flame, shader, clock or nozzle mechanics. No stealth, bay, lift-fan, VTOL, gear or naval capability claim. Original F35 model/weapons/stealth/bays remain untouched. J20 is the distinct supplied public-silhouette exterior, not J20S/naval or certified dimensions: approximate art length/span 20.4/13.5. Actual elevon_L/R roll, canard_L/R pitch and vertical_stabilizer_1/2 yaw retain supplied names and +Y source axes. Two measured outlets reuse static cores; afterburning:false is VISUAL ONLY, not real engine capability. No new flame/shader/clock/nozzle mechanics. Pilot cannon20/tvmissile and officer maverick/null use four generic EXTERNAL arcade stores. Generic under-nose cannon adapter is NOT a real J20 gun/caliber/internal-bay fit or operational capability; no verified gun/bay geometry. No stealth/bay doors/gear/naval fit.",
+  "models": {
+    "f16c": {
+      "body_bounds": {
+        "min": [
+          -4.900000095367432,
+          -1.2200000286102295,
+          -7.435166358947754
+        ],
+        "max": [
+          4.900000095367432,
+          3.200000047683716,
+          7.364833354949951
+        ]
+      },
+      "closed_canopy_bounds": {
+        "min": [
+          -0.4431634843349457,
+          -0.050000011920928955,
+          -4.5685155391693115
+        ],
+        "max": [
+          0.4431634843349457,
+          1.2100000381469727,
+          -1.5604728162288666
+        ]
+      },
+      "cockpit_derivation": "canopy_center_Z_section; eye_70_percent_between_actual_body_roof_and_glazing_roof",
+      "stations": [
+        {
+          "node": "missile_L2",
+          "seat": 0,
+          "slot": 1,
+          "weapon": "aim9",
+          "attachment": [
+            -3.5280000686645505,
+            -0.016220544326652007,
+            1.7205179156735824
+          ],
+          "launch_node": "missile_L2_launch"
+        },
+        {
+          "node": "missile_R2",
+          "seat": 0,
+          "slot": 1,
+          "weapon": "aim9",
+          "attachment": [
+            3.5280000686645505,
+            -0.016220544326652007,
+            1.7205179156735824
+          ],
+          "launch_node": "missile_R2_launch"
+        },
+        {
+          "node": "missile_L1",
+          "seat": 1,
+          "slot": 0,
+          "weapon": "maverick",
+          "attachment": [
+            -2.2540000438690186,
+            -0.05323741213194625,
+            0.9903460953252146
+          ],
+          "launch_node": "missile_L1_launch"
+        },
+        {
+          "node": "missile_R1",
+          "seat": 1,
+          "slot": 0,
+          "weapon": "maverick",
+          "attachment": [
+            2.2540000438690186,
+            -0.05323741213194626,
+            0.9903460953252146
+          ],
+          "launch_node": "missile_R1_launch"
+        }
+      ],
+      "outlet_component_bounds": [
+        {
+          "min": [
+            -0.47999998927116394,
+            -0.47999998927116394,
+            6.74188756942749
+          ],
+          "max": [
+            0.47999998927116394,
+            0.47999998927116394,
+            7.364833354949951
+          ]
+        }
+      ],
+      "bytes": 143888,
+      "original_triangles": 2236,
+      "triangles": 2636
+    },
+    "mig29": {
+      "body_bounds": {
+        "min": [
+          -5.679999828338623,
+          -1.0,
+          -8.880474090576172
+        ],
+        "max": [
+          5.679999828338623,
+          2.950000047683716,
+          8.439526557922363
+        ]
+      },
+      "closed_canopy_bounds": {
+        "min": [
+          -0.42346733808517456,
+          0.11000001430511475,
+          -4.898834228515625
+        ],
+        "max": [
+          0.42346733808517456,
+          1.2300000190734863,
+          -1.8691945672035217
+        ]
+      },
+      "cockpit_derivation": "canopy_center_Z_section; eye_70_percent_between_actual_body_roof_and_glazing_roof",
+      "stations": [
+        {
+          "node": "missile_L2",
+          "seat": 0,
+          "slot": 1,
+          "weapon": "aim9",
+          "attachment": [
+            -4.089599876403809,
+            -0.03886217233669979,
+            1.911707199631525
+          ],
+          "launch_node": "missile_L2_launch"
+        },
+        {
+          "node": "missile_R2",
+          "seat": 0,
+          "slot": 1,
+          "weapon": "aim9",
+          "attachment": [
+            4.089599876403809,
+            -0.038862172336699786,
+            1.911707199631525
+          ],
+          "launch_node": "missile_R2_launch"
+        },
+        {
+          "node": "missile_L1",
+          "seat": 1,
+          "slot": 0,
+          "weapon": "aim9",
+          "attachment": [
+            -2.6127999210357666,
+            -0.07223750867507729,
+            1.263484829912342
+          ],
+          "launch_node": "missile_L1_launch"
+        },
+        {
+          "node": "missile_R1",
+          "seat": 1,
+          "slot": 0,
+          "weapon": "aim9",
+          "attachment": [
+            2.6127999210357666,
+            -0.07223750867507729,
+            1.263484829912342
+          ],
+          "launch_node": "missile_R1_launch"
+        }
+      ],
+      "outlet_component_bounds": [
+        {
+          "min": [
+            -1.559999942779541,
+            -0.800000011920929,
+            7.803742408752441
+          ],
+          "max": [
+            -0.6000000238418579,
+            0.1599999964237213,
+            8.439526557922363
+          ]
+        },
+        {
+          "min": [
+            0.6000000238418579,
+            -0.800000011920929,
+            7.803742408752441
+          ],
+          "max": [
+            1.559999942779541,
+            0.1599999964237213,
+            8.439526557922363
+          ]
+        }
+      ],
+      "bytes": 169088,
+      "original_triangles": 2904,
+      "triangles": 3384
+    },
+    "typhoon": {
+      "body_bounds": {
+        "min": [
+          -5.475998401641846,
+          -1.0499999523162842,
+          -7.980000019073486
+        ],
+        "max": [
+          5.475998401641846,
+          3.299999952316284,
+          7.96999979019165
+        ]
+      },
+      "closed_canopy_bounds": {
+        "min": [
+          -0.46799999475479126,
+          0.5479999780654907,
+          -5.2179999351501465
+        ],
+        "max": [
+          0.467995285987854,
+          1.2000000476837158,
+          -2.0820000171661377
+        ]
+      },
+      "cockpit_derivation": "canopy_center_Z_section; eye_70_percent_between_actual_body_roof_and_glazing_roof",
+      "stations": [
+        {
+          "node": "missile_L2",
+          "seat": 0,
+          "slot": 1,
+          "weapon": "aim9",
+          "attachment": [
+            -3.942718849182129,
+            -0.04660541809944167,
+            3.1200479160360515
+          ],
+          "launch_node": "missile_L2_launch"
+        },
+        {
+          "node": "missile_R2",
+          "seat": 0,
+          "slot": 1,
+          "weapon": "aim9",
+          "attachment": [
+            3.942718849182129,
+            -0.04660541809944168,
+            3.1200479160360515
+          ],
+          "launch_node": "missile_R2_launch"
+        },
+        {
+          "node": "missile_L1",
+          "seat": 1,
+          "slot": 0,
+          "weapon": "tvmissile",
+          "attachment": [
+            -2.518959264755249,
+            -0.08747124757812376,
+            2.5021899704829385
+          ],
+          "launch_node": "missile_L1_launch"
+        },
+        {
+          "node": "missile_R1",
+          "seat": 1,
+          "slot": 0,
+          "weapon": "tvmissile",
+          "attachment": [
+            2.518959264755249,
+            -0.08747124757812375,
+            2.5021899704829385
+          ],
+          "launch_node": "missile_R1_launch"
+        }
+      ],
+      "outlet_component_bounds": [
+        {
+          "min": [
+            -0.9200000166893005,
+            -0.6100000143051147,
+            7.369999885559082
+          ],
+          "max": [
+            -0.05999999865889549,
+            0.25,
+            7.96999979019165
+          ]
+        },
+        {
+          "min": [
+            0.05999999865889549,
+            -0.6100000143051147,
+            7.369999885559082
+          ],
+          "max": [
+            0.9200000166893005,
+            0.25,
+            7.96999979019165
+          ]
+        }
+      ],
+      "bytes": 162784,
+      "original_triangles": 2654,
+      "triangles": 3134
+    },
+    "su35s": {
+      "body_bounds": {
+        "min": [
+          -7.350165843963623,
+          -1.100000023841858,
+          -10.949999809265137
+        ],
+        "max": [
+          7.350165843963623,
+          3.619999885559082,
+          10.949999809265137
+        ]
+      },
+      "closed_canopy_bounds": {
+        "min": [
+          -0.5080000162124634,
+          0.7279999852180481,
+          -6.188000202178955
+        ],
+        "max": [
+          0.507995069026947,
+          1.3799999952316284,
+          -2.8519999980926514
+        ]
+      },
+      "cockpit_derivation": "canopy_center_Z_section; eye_70_percent_between_actual_body_roof_and_glazing_roof",
+      "stations": [
+        {
+          "node": "missile_L2",
+          "seat": 0,
+          "slot": 1,
+          "weapon": "tvmissile",
+          "attachment": [
+            -5.292119407653808,
+            -0.1313311692153393,
+            2.678258086539979
+          ],
+          "launch_node": "missile_L2_launch"
+        },
+        {
+          "node": "missile_R2",
+          "seat": 0,
+          "slot": 1,
+          "weapon": "tvmissile",
+          "attachment": [
+            5.292119407653808,
+            -0.1313311692153393,
+            2.678258086539979
+          ],
+          "launch_node": "missile_R2_launch"
+        },
+        {
+          "node": "missile_L1",
+          "seat": 1,
+          "slot": 0,
+          "weapon": "maverick",
+          "attachment": [
+            -3.381076288223267,
+            -0.12645671861227623,
+            1.9012207030374215
+          ],
+          "launch_node": "missile_L1_launch"
+        },
+        {
+          "node": "missile_R1",
+          "seat": 1,
+          "slot": 0,
+          "weapon": "maverick",
+          "attachment": [
+            3.381076288223267,
+            -0.1264567186122762,
+            1.9012207030374215
+          ],
+          "launch_node": "missile_R1_launch"
+        }
+      ],
+      "outlet_component_bounds": [
+        {
+          "min": [
+            -1.9700000286102295,
+            -0.9399999976158142,
+            9.449999809265137
+          ],
+          "max": [
+            -0.7900000214576721,
+            0.23999999463558197,
+            10.050000190734863
+          ]
+        },
+        {
+          "min": [
+            0.7900000214576721,
+            -0.9399999976158142,
+            9.449999809265137
+          ],
+          "max": [
+            1.9700000286102295,
+            0.23999999463558197,
+            10.050000190734863
+          ]
+        }
+      ],
+      "bytes": 173856,
+      "original_triangles": 3058,
+      "triangles": 3538
+    },
+    "rafale": {
+      "body_bounds": {
+        "min": [
+          -5.451757907867432,
+          -0.7099999785423279,
+          -7.650000095367432
+        ],
+        "max": [
+          5.451757907867432,
+          3.2200000286102295,
+          7.639999866485596
+        ]
+      },
+      "closed_canopy_bounds": {
+        "min": [
+          -0.4580000042915344,
+          0.5479999780654907,
+          -4.838000297546387
+        ],
+        "max": [
+          0.45799463987350464,
+          1.1200000047683716,
+          -1.9620000123977661
+        ]
+      },
+      "cockpit_derivation": "canopy_center_Z_section; eye_70_percent_between_actual_body_roof_and_glazing_roof",
+      "stations": [
+        {
+          "node": "missile_L2",
+          "seat": 0,
+          "slot": 1,
+          "weapon": "aim9",
+          "attachment": [
+            -3.9252656936645507,
+            -6.563677914944374e-05,
+            2.5179295034168705
+          ],
+          "launch_node": "missile_L2_launch"
+        },
+        {
+          "node": "missile_R2",
+          "seat": 0,
+          "slot": 1,
+          "weapon": "aim9",
+          "attachment": [
+            3.9252656936645507,
+            -6.563677914944721e-05,
+            2.5179295034168705
+          ],
+          "launch_node": "missile_R2_launch"
+        },
+        {
+          "node": "missile_L1",
+          "seat": 1,
+          "slot": 0,
+          "weapon": "maverick",
+          "attachment": [
+            -2.5078086376190187,
+            -0.05346513437780201,
+            2.083721083368137
+          ],
+          "launch_node": "missile_L1_launch"
+        },
+        {
+          "node": "missile_R1",
+          "seat": 1,
+          "slot": 0,
+          "weapon": "maverick",
+          "attachment": [
+            2.5078086376190187,
+            -0.05346513437780201,
+            2.083721083368137
+          ],
+          "launch_node": "missile_R1_launch"
+        }
+      ],
+      "outlet_component_bounds": [
+        {
+          "min": [
+            -0.949999988079071,
+            -0.6100000143051147,
+            7.039999961853027
+          ],
+          "max": [
+            -0.09000000357627869,
+            0.25,
+            7.639999866485596
+          ]
+        },
+        {
+          "min": [
+            0.09000000357627869,
+            -0.6100000143051147,
+            7.039999961853027
+          ],
+          "max": [
+            0.949999988079071,
+            0.25,
+            7.639999866485596
+          ]
+        }
+      ],
+      "bytes": 161964,
+      "original_triangles": 2642,
+      "triangles": 3122
+    },
+    "jf17": {
+      "body_bounds": {
+        "min": [
+          -4.720505714416504,
+          -0.6399999856948853,
+          -7.164999961853027
+        ],
+        "max": [
+          4.720505714416504,
+          3.0799999237060547,
+          7.15500020980835
+        ]
+      },
+      "closed_canopy_bounds": {
+        "min": [
+          -0.43799999356269836,
+          0.527999997138977,
+          -4.358000159263611
+        ],
+        "max": [
+          0.43799450993537903,
+          1.100000023841858,
+          -1.6419999599456787
+        ]
+      },
+      "cockpit_derivation": "canopy_center_Z_section; eye_70_percent_between_actual_body_roof_and_glazing_roof",
+      "stations": [
+        {
+          "node": "missile_L2",
+          "seat": 0,
+          "slot": 1,
+          "weapon": "aim9",
+          "attachment": [
+            -3.398764114379883,
+            -0.03572606727662168,
+            1.7185695145296473
+          ],
+          "launch_node": "missile_L2_launch"
+        },
+        {
+          "node": "missile_R2",
+          "seat": 0,
+          "slot": 1,
+          "weapon": "aim9",
+          "attachment": [
+            3.398764114379883,
+            -0.03572606727662167,
+            1.7185695145296473
+          ],
+          "launch_node": "missile_R2_launch"
+        },
+        {
+          "node": "missile_L1",
+          "seat": 1,
+          "slot": 0,
+          "weapon": "maverick",
+          "attachment": [
+            -2.171432628631592,
+            -0.05783241385769038,
+            1.2852896431659802
+          ],
+          "launch_node": "missile_L1_launch"
+        },
+        {
+          "node": "missile_R1",
+          "seat": 1,
+          "slot": 0,
+          "weapon": "maverick",
+          "attachment": [
+            2.171432628631592,
+            -0.05783241385769038,
+            1.2852896431659802
+          ],
+          "launch_node": "missile_R1_launch"
+        }
+      ],
+      "outlet_component_bounds": [
+        {
+          "min": [
+            -0.46000000834465027,
+            -0.46000000834465027,
+            6.554999828338623
+          ],
+          "max": [
+            0.46000000834465027,
+            0.46000000834465027,
+            7.15500020980835
+          ]
+        }
+      ],
+      "bytes": 156088,
+      "original_triangles": 2708,
+      "triangles": 3108
+    },
+    "gripen": {
+      "body_bounds": {
+        "min": [
+          -4.201592445373535,
+          -0.6499999761581421,
+          -7.449999809265137
+        ],
+        "max": [
+          4.201592445373535,
+          3.119999885559082,
+          7.440000057220459
+        ]
+      },
+      "closed_canopy_bounds": {
+        "min": [
+          -0.42800000309944153,
+          0.527999997138977,
+          -4.568000316619873
+        ],
+        "max": [
+          0.4279944598674774,
+          1.090000033378601,
+          -1.9320000410079956
+        ]
+      },
+      "cockpit_derivation": "canopy_center_Z_section; eye_70_percent_between_actual_body_roof_and_glazing_roof",
+      "stations": [
+        {
+          "node": "missile_L2",
+          "seat": 0,
+          "slot": 1,
+          "weapon": "aim9",
+          "attachment": [
+            -3.0251465606689454,
+            -0.11602858236545574,
+            2.2154896335741814
+          ],
+          "launch_node": "missile_L2_launch"
+        },
+        {
+          "node": "missile_R2",
+          "seat": 0,
+          "slot": 1,
+          "weapon": "aim9",
+          "attachment": [
+            3.0251465606689454,
+            -0.11602858236545575,
+            2.2154896335741814
+          ],
+          "launch_node": "missile_R2_launch"
+        },
+        {
+          "node": "missile_L1",
+          "seat": 1,
+          "slot": 0,
+          "weapon": "maverick",
+          "attachment": [
+            -1.9327325248718263,
+            -0.15756645708512887,
+            1.8719078095593003
+          ],
+          "launch_node": "missile_L1_launch"
+        },
+        {
+          "node": "missile_R1",
+          "seat": 1,
+          "slot": 0,
+          "weapon": "maverick",
+          "attachment": [
+            1.9327325248718263,
+            -0.15756645708512887,
+            1.8719078095593003
+          ],
+          "launch_node": "missile_R1_launch"
+        }
+      ],
+      "outlet_component_bounds": [
+        {
+          "min": [
+            -0.4399999976158142,
+            -0.4399999976158142,
+            6.840000152587891
+          ],
+          "max": [
+            0.4399999976158142,
+            0.4399999976158142,
+            7.440000057220459
+          ]
+        }
+      ],
+      "bytes": 148784,
+      "original_triangles": 2388,
+      "triangles": 2788
+    },
+    "mig31": {
+      "body_bounds": {
+        "min": [
+          -6.730344772338867,
+          -0.9300000071525574,
+          -11.345000267028809
+        ],
+        "max": [
+          6.730344772338867,
+          4.349999904632568,
+          11.335000038146973
+        ]
+      },
+      "closed_canopy_bounds": {
+        "min": [
+          -0.49799999594688416,
+          0.7479999661445618,
+          -6.668000221252441
+        ],
+        "max": [
+          0.4979969263076782,
+          1.4299999475479126,
+          -2.5320000648498535
+        ]
+      },
+      "cockpit_derivation": "canopy_center_Z_section; eye_70_percent_between_actual_body_roof_and_glazing_roof",
+      "stations": [
+        {
+          "node": "missile_L2",
+          "seat": 0,
+          "slot": 1,
+          "weapon": "aim9",
+          "attachment": [
+            -4.8458482360839845,
+            0.30393906385219516,
+            2.9006252830476287
+          ],
+          "launch_node": "missile_L2_launch"
+        },
+        {
+          "node": "missile_R2",
+          "seat": 0,
+          "slot": 1,
+          "weapon": "aim9",
+          "attachment": [
+            4.8458482360839845,
+            0.30393906385219516,
+            2.9006252830476287
+          ],
+          "launch_node": "missile_R2_launch"
+        },
+        {
+          "node": "missile_L1",
+          "seat": 1,
+          "slot": 0,
+          "weapon": "tvmissile",
+          "attachment": [
+            -3.0959585952758792,
+            0.3282983443761773,
+            2.3903983418668844
+          ],
+          "launch_node": "missile_L1_launch"
+        },
+        {
+          "node": "missile_R1",
+          "seat": 1,
+          "slot": 0,
+          "weapon": "tvmissile",
+          "attachment": [
+            3.0959585952758792,
+            0.3282983443761773,
+            2.3903983418668844
+          ],
+          "launch_node": "missile_R1_launch"
+        }
+      ],
+      "outlet_component_bounds": [
+        {
+          "min": [
+            -1.6100000143051147,
+            -0.8399999737739563,
+            10.734999656677246
+          ],
+          "max": [
+            -0.05000000074505806,
+            0.7200000286102295,
+            11.335000038146973
+          ]
+        },
+        {
+          "min": [
+            0.05000000074505806,
+            -0.8399999737739563,
+            10.734999656677246
+          ],
+          "max": [
+            1.6100000143051147,
+            0.7200000286102295,
+            11.335000038146973
+          ]
+        }
+      ],
+      "bytes": 170740,
+      "original_triangles": 2626,
+      "triangles": 3106
+    },
+    "mirage2000": {
+      "body_bounds": {
+        "min": [
+          -4.5655059814453125,
+          -0.7300000190734863,
+          -7.179999828338623
+        ],
+        "max": [
+          4.5655059814453125,
+          3.2699999809265137,
+          7.170000076293945
+        ]
+      },
+      "closed_canopy_bounds": {
+        "min": [
+          -0.43799999356269836,
+          0.5879999995231628,
+          -4.2179999351501465
+        ],
+        "max": [
+          0.43799370527267456,
+          1.1299999952316284,
+          -1.6820000410079956
+        ]
+      },
+      "cockpit_derivation": "canopy_center_Z_section; eye_70_percent_between_actual_body_roof_and_glazing_roof",
+      "stations": [
+        {
+          "node": "missile_L2",
+          "seat": 0,
+          "slot": 1,
+          "weapon": "aim9",
+          "attachment": [
+            -3.287164306640625,
+            -0.13049715413863394,
+            2.498528378351759
+          ],
+          "launch_node": "missile_L2_launch"
+        },
+        {
+          "node": "missile_R2",
+          "seat": 0,
+          "slot": 1,
+          "weapon": "aim9",
+          "attachment": [
+            3.287164306640625,
+            -0.13049715413863394,
+            2.498528378351759
+          ],
+          "launch_node": "missile_R2_launch"
+        },
+        {
+          "node": "missile_L1",
+          "seat": 1,
+          "slot": 0,
+          "weapon": "tvmissile",
+          "attachment": [
+            -2.100132751464844,
+            -0.18086034315793542,
+            1.721497171691099
+          ],
+          "launch_node": "missile_L1_launch"
+        },
+        {
+          "node": "missile_R1",
+          "seat": 1,
+          "slot": 0,
+          "weapon": "tvmissile",
+          "attachment": [
+            2.100132751464844,
+            -0.18086034315793542,
+            1.721497171691099
+          ],
+          "launch_node": "missile_R1_launch"
+        }
+      ],
+      "outlet_component_bounds": [
+        {
+          "min": [
+            -0.49000000953674316,
+            -0.49000000953674316,
+            6.570000171661377
+          ],
+          "max": [
+            0.49000000953674316,
+            0.49000000953674316,
+            7.170000076293945
+          ]
+        }
+      ],
+      "bytes": 147676,
+      "original_triangles": 2428,
+      "triangles": 2828
+    },
+    "su34": {
+      "body_bounds": {
+        "min": [
+          -7.3501081466674805,
+          -1.100000023841858,
+          -11.699999809265137
+        ],
+        "max": [
+          7.3501081466674805,
+          3.5,
+          11.699999809265137
+        ]
+      },
+      "closed_canopy_bounds": {
+        "min": [
+          -0.9280000329017639,
+          0.687999963760376,
+          -6.947999954223633
+        ],
+        "max": [
+          0.9279789924621582,
+          1.356827735900879,
+          -3.952000141143799
+        ]
+      },
+      "cockpit_derivation": "canopy_center_Z_section; eye_70_percent_between_actual_body_roof_and_glazing_roof",
+      "stations": [
+        {
+          "node": "missile_L2",
+          "seat": 0,
+          "slot": 1,
+          "weapon": "aim9",
+          "attachment": [
+            -5.292077865600586,
+            -0.10848878807714825,
+            2.9610838309342347
+          ],
+          "launch_node": "missile_L2_launch"
+        },
+        {
+          "node": "missile_R2",
+          "seat": 0,
+          "slot": 1,
+          "weapon": "aim9",
+          "attachment": [
+            5.292077865600586,
+            -0.10848878807714825,
+            2.9610838309342347
+          ],
+          "launch_node": "missile_R2_launch"
+        },
+        {
+          "node": "missile_L1",
+          "seat": 1,
+          "slot": 0,
+          "weapon": "maverick",
+          "attachment": [
+            -3.381049747467041,
+            -0.11458094769660207,
+            2.186692302574694
+          ],
+          "launch_node": "missile_L1_launch"
+        },
+        {
+          "node": "missile_R1",
+          "seat": 1,
+          "slot": 0,
+          "weapon": "maverick",
+          "attachment": [
+            3.381049747467041,
+            -0.11458094769660207,
+            2.186692302574694
+          ],
+          "launch_node": "missile_R1_launch"
+        }
+      ],
+      "outlet_component_bounds": [
+        {
+          "min": [
+            -2.059999942779541,
+            -0.9599999785423279,
+            9.899999618530273
+          ],
+          "max": [
+            -0.8600000143051147,
+            0.23999999463558197,
+            10.5
+          ]
+        },
+        {
+          "min": [
+            0.8600000143051147,
+            -0.9599999785423279,
+            9.899999618530273
+          ],
+          "max": [
+            2.059999942779541,
+            0.23999999463558197,
+            10.5
+          ]
+        }
+      ],
+      "bytes": 178080,
+      "original_triangles": 3194,
+      "triangles": 3674
+    },
+    "fa50": {
+      "body_bounds": {
+        "min": [
+          -4.725408554077148,
+          -0.6399999856948853,
+          -6.570000171661377
+        ],
+        "max": [
+          4.725408554077148,
+          2.9600000381469727,
+          6.559999942779541
+        ]
+      },
+      "closed_canopy_bounds": {
+        "min": [
+          -0.4480000138282776,
+          0.527999997138977,
+          -4.278000295162201
+        ],
+        "max": [
+          0.4479970932006836,
+          1.1399999856948853,
+          -0.4819999933242798
+        ]
+      },
+      "cockpit_derivation": "canopy_center_Z_section; eye_70_percent_between_actual_body_roof_and_glazing_roof",
+      "stations": [
+        {
+          "node": "missile_L2",
+          "seat": 0,
+          "slot": 1,
+          "weapon": "aim9",
+          "attachment": [
+            -3.402294158935547,
+            -0.02430948104571997,
+            1.5441357569674405
+          ],
+          "launch_node": "missile_L2_launch"
+        },
+        {
+          "node": "missile_R2",
+          "seat": 0,
+          "slot": 1,
+          "weapon": "aim9",
+          "attachment": [
+            3.402294158935547,
+            -0.02430948104571997,
+            1.5441357569674405
+          ],
+          "launch_node": "missile_R2_launch"
+        },
+        {
+          "node": "missile_L1",
+          "seat": 1,
+          "slot": 0,
+          "weapon": "tvmissile",
+          "attachment": [
+            -2.1736879348754883,
+            -0.057529420462120825,
+            1.1903668839966572
+          ],
+          "launch_node": "missile_L1_launch"
+        },
+        {
+          "node": "missile_R1",
+          "seat": 1,
+          "slot": 0,
+          "weapon": "tvmissile",
+          "attachment": [
+            2.1736879348754883,
+            -0.057529420462120825,
+            1.1903668839966572
+          ],
+          "launch_node": "missile_R1_launch"
+        }
+      ],
+      "outlet_component_bounds": [
+        {
+          "min": [
+            -0.41999998688697815,
+            -0.41999998688697815,
+            5.960000038146973
+          ],
+          "max": [
+            0.41999998688697815,
+            0.41999998688697815,
+            6.559999942779541
+          ]
+        }
+      ],
+      "bytes": 155408,
+      "original_triangles": 2652,
+      "triangles": 3052
+    },
+    "yak130": {
+      "body_bounds": {
+        "min": [
+          -4.929093360900879,
+          -0.6600000262260437,
+          -5.746500015258789
+        ],
+        "max": [
+          4.929093360900879,
+          3.0299999713897705,
+          5.736499786376953
+        ]
+      },
+      "closed_canopy_bounds": {
+        "min": [
+          -0.4580000042915344,
+          0.5879999995231628,
+          -3.797999918460846
+        ],
+        "max": [
+          0.4579961895942688,
+          1.2400000095367432,
+          -0.40199998021125793
+        ]
+      },
+      "cockpit_derivation": "canopy_center_Z_section; eye_70_percent_between_actual_body_roof_and_glazing_roof",
+      "stations": [
+        {
+          "node": "missile_L2",
+          "seat": 0,
+          "slot": 1,
+          "weapon": "aim9",
+          "attachment": [
+            -3.5489472198486327,
+            -0.03235580000567078,
+            1.327693861890136
+          ],
+          "launch_node": "missile_L2_launch"
+        },
+        {
+          "node": "missile_R2",
+          "seat": 0,
+          "slot": 1,
+          "weapon": "aim9",
+          "attachment": [
+            3.5489472198486327,
+            -0.03235580000567077,
+            1.327693861890136
+          ],
+          "launch_node": "missile_R2_launch"
+        },
+        {
+          "node": "missile_L1",
+          "seat": 1,
+          "slot": 0,
+          "weapon": "maverick",
+          "attachment": [
+            -2.2673829460144046,
+            -0.0400234749466659,
+            1.1489823419813738
+          ],
+          "launch_node": "missile_L1_launch"
+        },
+        {
+          "node": "missile_R1",
+          "seat": 1,
+          "slot": 0,
+          "weapon": "maverick",
+          "attachment": [
+            2.2673829460144046,
+            -0.0400234749466659,
+            1.1489823419813738
+          ],
+          "launch_node": "missile_R1_launch"
+        }
+      ],
+      "outlet_component_bounds": [
+        {
+          "min": [
+            -0.8899999856948853,
+            -0.5600000023841858,
+            5.136499881744385
+          ],
+          "max": [
+            -0.25,
+            0.07999999821186066,
+            5.736499786376953
+          ]
+        },
+        {
+          "min": [
+            0.25,
+            -0.5600000023841858,
+            5.136499881744385
+          ],
+          "max": [
+            0.8899999856948853,
+            0.07999999821186066,
+            5.736499786376953
+          ]
+        }
+      ],
+      "bytes": 171796,
+      "original_triangles": 3050,
+      "triangles": 3530
+    },
+    "hawkt2": {
+      "body_bounds": {
+        "min": [
+          -4.970424652099609,
+          -0.6800000071525574,
+          -6.215000152587891
+        ],
+        "max": [
+          4.970424652099609,
+          2.6700000762939453,
+          6.210000038146973
+        ]
+      },
+      "closed_canopy_bounds": {
+        "min": [
+          -0.43799999356269836,
+          0.5479999780654907,
+          -4.048000335693359
+        ],
+        "max": [
+          0.43799659609794617,
+          1.2200000286102295,
+          -0.6119999885559082
+        ]
+      },
+      "cockpit_derivation": "canopy_center_Z_section; eye_70_percent_between_actual_body_roof_and_glazing_roof",
+      "stations": [
+        {
+          "node": "missile_L2",
+          "seat": 0,
+          "slot": 1,
+          "weapon": "aim9",
+          "attachment": [
+            -3.5787057495117187,
+            -0.15281465384920184,
+            1.4825841824197301
+          ],
+          "launch_node": "missile_L2_launch"
+        },
+        {
+          "node": "missile_R2",
+          "seat": 0,
+          "slot": 1,
+          "weapon": "aim9",
+          "attachment": [
+            3.5787057495117187,
+            -0.15281465384920184,
+            1.4825841824197301
+          ],
+          "launch_node": "missile_R2_launch"
+        },
+        {
+          "node": "missile_L1",
+          "seat": 1,
+          "slot": 0,
+          "weapon": "maverick",
+          "attachment": [
+            -2.2863953399658206,
+            -0.22769227447694063,
+            1.1831066907507286
+          ],
+          "launch_node": "missile_L1_launch"
+        },
+        {
+          "node": "missile_R1",
+          "seat": 1,
+          "slot": 0,
+          "weapon": "maverick",
+          "attachment": [
+            2.2863953399658206,
+            -0.22769227447694063,
+            1.1831066907507286
+          ],
+          "launch_node": "missile_R1_launch"
+        }
+      ],
+      "outlet_component_bounds": [
+        {
+          "min": [
+            -0.27000001072883606,
+            -0.23000000417232513,
+            5.610000133514404
+          ],
+          "max": [
+            0.27000001072883606,
+            0.3100000023841858,
+            6.210000038146973
+          ]
+        }
+      ],
+      "bytes": 154156,
+      "original_triangles": 2540,
+      "triangles": 2940
+    },
+    "su25sm": {
+      "body_bounds": {
+        "min": [
+          -7.179999828338623,
+          -0.8215517997741699,
+          -7.764999866485596
+        ],
+        "max": [
+          7.179999828338623,
+          3.1500000953674316,
+          7.764999866485596
+        ]
+      },
+      "closed_canopy_bounds": {
+        "min": [
+          -0.4919999837875366,
+          0.18000000715255737,
+          -5.771999835968018
+        ],
+        "max": [
+          0.49198493361473083,
+          1.3082000017166138,
+          -3.2279999256134033
+        ]
+      },
+      "cockpit_derivation": "canopy_center_Z_section; eye_70_percent_between_actual_body_roof_and_glazing_roof",
+      "stations": [
+        {
+          "node": "missile_L2",
+          "seat": 0,
+          "slot": 1,
+          "weapon": "aim9",
+          "attachment": [
+            -5.169599876403808,
+            0.23576998603595933,
+            0.46467715953544786
+          ],
+          "launch_node": "missile_L2_launch"
+        },
+        {
+          "node": "missile_R2",
+          "seat": 0,
+          "slot": 1,
+          "weapon": "aim9",
+          "attachment": [
+            5.169599876403808,
+            0.2357699860359593,
+            0.46467715953544786
+          ],
+          "launch_node": "missile_R2_launch"
+        },
+        {
+          "node": "missile_L1",
+          "seat": 1,
+          "slot": 0,
+          "weapon": "maverick",
+          "attachment": [
+            -3.3027999210357666,
+            0.2863275632906871,
+            0.06044882981437494
+          ],
+          "launch_node": "missile_L1_launch"
+        },
+        {
+          "node": "missile_R1",
+          "seat": 1,
+          "slot": 0,
+          "weapon": "maverick",
+          "attachment": [
+            3.3027999210357666,
+            0.2863275632906871,
+            0.06044882981437494
+          ],
+          "launch_node": "missile_R1_launch"
+        }
+      ],
+      "outlet_component_bounds": [
+        {
+          "min": [
+            -1.4900000095367432,
+            -0.47999998927116394,
+            4.900000095367432
+          ],
+          "max": [
+            -0.6100000143051147,
+            0.4000000059604645,
+            5.300000190734863
+          ]
+        },
+        {
+          "min": [
+            0.6100000143051147,
+            -0.47999998927116394,
+            4.900000095367432
+          ],
+          "max": [
+            1.4900000095367432,
+            0.4000000059604645,
+            5.300000190734863
+          ]
+        }
+      ],
+      "bytes": 172188,
+      "original_triangles": 2972,
+      "triangles": 3452
+    },
+    "a10c": {
+      "body_bounds": {
+        "min": [
+          -8.710000038146973,
+          -0.9599999785423279,
+          -8.081500053405762
+        ],
+        "max": [
+          8.710000038146973,
+          2.75,
+          8.078499794006348
+        ]
+      },
+      "closed_canopy_bounds": {
+        "min": [
+          -0.5519999861717224,
+          0.029999971389770508,
+          -6.170854330062866
+        ],
+        "max": [
+          0.5519857406616211,
+          1.4733999967575073,
+          -3.2274007499217987
+        ]
+      },
+      "cockpit_derivation": "canopy_center_Z_section; eye_70_percent_between_actual_body_roof_and_glazing_roof",
+      "stations": [
+        {
+          "node": "missile_L2",
+          "seat": 0,
+          "slot": 1,
+          "weapon": "aim9",
+          "attachment": [
+            -6.27120002746582,
+            -0.08820516811759188,
+            -0.02497055082069921
+          ],
+          "launch_node": "missile_L2_launch"
+        },
+        {
+          "node": "missile_R2",
+          "seat": 0,
+          "slot": 1,
+          "weapon": "aim9",
+          "attachment": [
+            6.27120002746582,
+            -0.08820516811759185,
+            -0.02497055082069921
+          ],
+          "launch_node": "missile_R2_launch"
+        },
+        {
+          "node": "missile_L1",
+          "seat": 1,
+          "slot": 0,
+          "weapon": "maverick",
+          "attachment": [
+            -4.0066000175476075,
+            -0.30848972098455135,
+            -0.047898949633754406
+          ],
+          "launch_node": "missile_L1_launch"
+        },
+        {
+          "node": "missile_R1",
+          "seat": 1,
+          "slot": 0,
+          "weapon": "maverick",
+          "attachment": [
+            4.0066000175476075,
+            -0.30848972098455135,
+            -0.047898949633754406
+          ],
+          "launch_node": "missile_R1_launch"
+        }
+      ],
+      "outlet_component_bounds": [
+        {
+          "min": [
+            -2.3399999141693115,
+            0.7099999785423279,
+            4.899090766906738
+          ],
+          "max": [
+            -1.159999966621399,
+            1.8899999856948853,
+            5.29901647567749
+          ]
+        },
+        {
+          "min": [
+            1.159999966621399,
+            0.7099999785423279,
+            4.899090766906738
+          ],
+          "max": [
+            2.3399999141693115,
+            1.8899999856948853,
+            5.29901647567749
+          ]
+        }
+      ],
+      "bytes": 195560,
+      "original_triangles": 3698,
+      "triangles": 4178
+    },
+    "f35a": {
+      "body_bounds": {
+        "min": [
+          -5.349999904632568,
+          -0.8299999833106995,
+          -7.929293155670166
+        ],
+        "max": [
+          5.349999904632568,
+          2.75,
+          7.770707130432129
+        ]
+      },
+      "closed_canopy_bounds": {
+        "min": [
+          -0.5022519826889038,
+          0.10000002384185791,
+          -4.843827128410339
+        ],
+        "max": [
+          0.5022519826889038,
+          1.2200000286102295,
+          -1.6208196580410004
+        ]
+      },
+      "cockpit_derivation": "canopy_center_Z_section; eye_70_percent_between_actual_body_roof_and_glazing_roof",
+      "stations": [
+        {
+          "node": "missile_L2",
+          "seat": 0,
+          "slot": 1,
+          "weapon": "aim9",
+          "attachment": [
+            -3.851999931335449,
+            -0.00880624104317366,
+            1.6692685252451882
+          ],
+          "launch_node": "missile_L2_launch"
+        },
+        {
+          "node": "missile_R2",
+          "seat": 0,
+          "slot": 1,
+          "weapon": "aim9",
+          "attachment": [
+            3.851999931335449,
+            -0.008806241043173658,
+            1.6692685252451882
+          ],
+          "launch_node": "missile_R2_launch"
+        },
+        {
+          "node": "missile_L1",
+          "seat": 1,
+          "slot": 0,
+          "weapon": "tvmissile",
+          "attachment": [
+            -2.4609999561309817,
+            -0.043417804280375616,
+            1.1370524400944344
+          ],
+          "launch_node": "missile_L1_launch"
+        },
+        {
+          "node": "missile_R1",
+          "seat": 1,
+          "slot": 0,
+          "weapon": "tvmissile",
+          "attachment": [
+            2.4609999561309817,
+            -0.043417804280375616,
+            1.1370524400944344
+          ],
+          "launch_node": "missile_R1_launch"
+        }
+      ],
+      "outlet_component_bounds": [
+        {
+          "min": [
+            -0.5899999737739563,
+            -0.5899999737739563,
+            7.141414642333984
+          ],
+          "max": [
+            0.5899999737739563,
+            0.5899999737739563,
+            7.767676830291748
+          ]
+        }
+      ],
+      "bytes": 148112,
+      "original_triangles": 2278,
+      "triangles": 2678
+    },
+    "j20": {
+      "body_bounds": {
+        "min": [
+          -6.7514519691467285,
+          -1.1699999570846558,
+          -10.199999809265137
+        ],
+        "max": [
+          6.7514519691467285,
+          3.2499999403953552,
+          10.1899995803833
+        ]
+      },
+      "closed_canopy_bounds": {
+        "min": [
+          -0.527999997138977,
+          0.6579999923706055,
+          -6.76800012588501
+        ],
+        "max": [
+          0.5279952883720398,
+          1.2599999904632568,
+          -3.2320001125335693
+        ]
+      },
+      "cockpit_derivation": "canopy_center_Z_section; eye_70_percent_between_actual_body_roof_and_glazing_roof",
+      "stations": [
+        {
+          "node": "missile_L2",
+          "seat": 0,
+          "slot": 1,
+          "weapon": "tvmissile",
+          "attachment": [
+            -4.861045417785644,
+            -0.07589454316852305,
+            4.323429708767088
+          ],
+          "launch_node": "missile_L2_launch"
+        },
+        {
+          "node": "missile_R2",
+          "seat": 0,
+          "slot": 1,
+          "weapon": "tvmissile",
+          "attachment": [
+            4.861045417785644,
+            -0.07589454316852305,
+            4.323429708767088
+          ],
+          "launch_node": "missile_R2_launch"
+        },
+        {
+          "node": "missile_L1",
+          "seat": 1,
+          "slot": 0,
+          "weapon": "maverick",
+          "attachment": [
+            -3.105667905807495,
+            -0.1591131125114087,
+            3.6017745291614833
+          ],
+          "launch_node": "missile_L1_launch"
+        },
+        {
+          "node": "missile_R1",
+          "seat": 1,
+          "slot": 0,
+          "weapon": "maverick",
+          "attachment": [
+            3.105667905807495,
+            -0.1591131125114087,
+            3.6017745291614833
+          ],
+          "launch_node": "missile_R1_launch"
+        }
+      ],
+      "outlet_component_bounds": [
+        {
+          "min": [
+            -1.3300000429153442,
+            -0.6499999761581421,
+            9.59000015258789
+          ],
+          "max": [
+            -0.23000000417232513,
+            0.44999998807907104,
+            10.1899995803833
+          ]
+        },
+        {
+          "min": [
+            0.23000000417232513,
+            -0.6499999761581421,
+            9.59000015258789
+          ],
+          "max": [
+            1.3300000429153442,
+            0.44999998807907104,
+            10.1899995803833
+          ]
+        }
+      ],
+      "bytes": 158124,
+      "original_triangles": 2346,
+      "triangles": 2826
+    }
+  }
+}

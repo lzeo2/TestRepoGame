@@ -1,0 +1,164 @@
+{
+  "model_id": "wings.original.f-16c.v1",
+  "model_file": "models/f-16c.glb",
+  "unit": "meter",
+  "axes": {
+    "up": "+Y",
+    "forward": "+Z",
+    "right": "+X"
+  },
+  "controls": [
+    {
+      "node": "flaperon_L",
+      "parent": "vehicle_root",
+      "pivot_world_m": [
+        -1.4900000095367432,
+        0.0,
+        -2.4214529991149902
+      ],
+      "suggested_local_rotation_axis": [
+        1,
+        0,
+        0
+      ],
+      "purpose": "trailing-edge visual control; approximate hinge",
+      "rest_node_transform": {
+        "translation": [
+          -1.4900000095367432,
+          0,
+          -2.4214529991149902
+        ]
+      },
+      "influenced_mesh_nodes": [
+        "flaperon_L"
+      ]
+    },
+    {
+      "node": "tailplane_L",
+      "parent": "vehicle_root",
+      "pivot_world_m": [
+        -0.6499999761581421,
+        0.0,
+        -5.450780868530273
+      ],
+      "suggested_local_rotation_axis": [
+        1,
+        0,
+        0
+      ],
+      "purpose": "all-moving visual tailplane",
+      "rest_node_transform": {
+        "translation": [
+          -0.6499999761581421,
+          0,
+          -5.450780868530273
+        ]
+      },
+      "influenced_mesh_nodes": [
+        "tailplane_L"
+      ]
+    },
+    {
+      "node": "flaperon_R",
+      "parent": "vehicle_root",
+      "pivot_world_m": [
+        1.4900000095367432,
+        0.0,
+        -2.4214529991149902
+      ],
+      "suggested_local_rotation_axis": [
+        1,
+        0,
+        0
+      ],
+      "purpose": "trailing-edge visual control; approximate hinge",
+      "rest_node_transform": {
+        "translation": [
+          1.4900000095367432,
+          0,
+          -2.4214529991149902
+        ]
+      },
+      "influenced_mesh_nodes": [
+        "flaperon_R"
+      ]
+    },
+    {
+      "node": "tailplane_R",
+      "parent": "vehicle_root",
+      "pivot_world_m": [
+        0.6499999761581421,
+        0.0,
+        -5.450780868530273
+      ],
+      "suggested_local_rotation_axis": [
+        1,
+        0,
+        0
+      ],
+      "purpose": "all-moving visual tailplane",
+      "rest_node_transform": {
+        "translation": [
+          0.6499999761581421,
+          0,
+          -5.450780868530273
+        ]
+      },
+      "influenced_mesh_nodes": [
+        "tailplane_R"
+      ]
+    },
+    {
+      "node": "rudder_1",
+      "parent": "vehicle_root",
+      "pivot_world_m": [
+        0.0,
+        0.47999998927116394,
+        -6.309844017028809
+      ],
+      "suggested_local_rotation_axis": [
+        0,
+        1,
+        0
+      ],
+      "purpose": "vertical-tail rudder visual pivot",
+      "rest_node_transform": {
+        "translation": [
+          0,
+          0.47999998927116394,
+          -6.309844017028809
+        ]
+      },
+      "influenced_mesh_nodes": [
+        "rudder_1"
+      ]
+    },
+    {
+      "node": "canopy",
+      "parent": "vehicle_root",
+      "pivot_world_m": [
+        0.0,
+        0.5799999833106995,
+        1.8427155017852783
+      ],
+      "suggested_local_rotation_axis": [
+        1,
+        0,
+        0
+      ],
+      "purpose": "visual canopy hinge; cockpit not detailed",
+      "rest_node_transform": {
+        "translation": [
+          0,
+          0.5799999833106995,
+          1.8427155017852783
+        ]
+      },
+      "influenced_mesh_nodes": [
+        "canopy"
+      ]
+    }
+  ],
+  "animations_included": [],
+  "integration_note": "Direct rigid-node transform suggestions only. Preserve rest transforms and hierarchy. No constraints, physics, mechanical limit guarantee or gameplay behavior."
+}

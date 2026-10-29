@@ -8,13 +8,13 @@
       "bytes": 2817,
       "entryPoint": "src/main.ts",
       "imports": [
-        "assets/chunk-UJIVF34A.js",
-        "assets/chunk-LU3F6XZF.js",
+        "assets/chunk-KLDWZ4RU.js",
+        "assets/chunk-Y5ORVK7B.js",
         "assets/chunk-AAZABAPM.js",
-        "assets/scene-ZMTQXYPD.js",
-        "assets/audio-U7HWYB2A.js",
-        "assets/game-JGP6R2OF.js",
-        "assets/game-JGP6R2OF.js"
+        "assets/scene-52TYFLPH.js",
+        "assets/audio-UGWDGOIA.js",
+        "assets/game-R46SELJO.js",
+        "assets/game-R46SELJO.js"
       ],
       "cssBundle": "assets/main.css"
     },
@@ -22,21 +22,22 @@
       "bytes": 3750,
       "entryPoint": "ui-check.ts",
       "imports": [
-        "assets/chunk-D4ARXD5Q.js",
-        "assets/chunk-UJIVF34A.js",
-        "assets/chunk-6MMEEVMZ.js",
-        "assets/chunk-LU3F6XZF.js",
+        "assets/chunk-BMYRWB5U.js",
+        "assets/chunk-KLDWZ4RU.js",
+        "assets/chunk-2IJ3UYND.js",
+        "assets/chunk-Y5ORVK7B.js",
         "assets/chunk-AAZABAPM.js"
       ],
       "cssBundle": "assets/ui-check.css"
     },
     "assets/terrain-worker.js": {
-      "bytes": 706,
+      "bytes": 734,
       "entryPoint": "src/render/world/terrain-worker.ts",
       "imports": [
-        "assets/chunk-QLLS4C3I.js",
+        "assets/chunk-KLBFFL36.js",
         "assets/chunk-VQ65COZY.js",
-        "assets/chunk-6MMEEVMZ.js",
+        "assets/chunk-2IJ3UYND.js",
+        "assets/chunk-Y5ORVK7B.js",
         "assets/chunk-AAZABAPM.js"
       ]
     },
@@ -48,71 +49,71 @@
         "assets/chunk-AAZABAPM.js"
       ]
     },
-    "assets/scene-ZMTQXYPD.js": {
-      "bytes": 98181,
+    "assets/scene-52TYFLPH.js": {
+      "bytes": 103581,
       "entryPoint": "src/render/scene.ts",
       "imports": [
-        "assets/chunk-QLLS4C3I.js",
-        "assets/chunk-QJRBFISU.js",
+        "assets/chunk-KLBFFL36.js",
+        "assets/chunk-6VKGKRMP.js",
         "assets/chunk-VQ65COZY.js",
-        "assets/chunk-6MMEEVMZ.js",
+        "assets/chunk-2IJ3UYND.js",
         "assets/chunk-P6CK6PDM.js",
-        "assets/chunk-LU3F6XZF.js",
+        "assets/chunk-Y5ORVK7B.js",
         "assets/chunk-AAZABAPM.js",
         "assets/GLTFLoader-ZF6COE6R.js"
       ]
     },
-    "assets/chunk-QLLS4C3I.js": {
+    "assets/chunk-KLBFFL36.js": {
       "bytes": 5632,
       "imports": [
         "assets/chunk-VQ65COZY.js",
-        "assets/chunk-6MMEEVMZ.js"
+        "assets/chunk-2IJ3UYND.js"
       ]
     },
-    "assets/audio-U7HWYB2A.js": {
-      "bytes": 36836,
+    "assets/audio-UGWDGOIA.js": {
+      "bytes": 39177,
       "entryPoint": "src/audio.ts",
       "imports": [
-        "assets/chunk-LU3F6XZF.js",
+        "assets/chunk-Y5ORVK7B.js",
         "assets/chunk-AAZABAPM.js"
       ]
     },
-    "assets/game-JGP6R2OF.js": {
-      "bytes": 148176,
+    "assets/game-R46SELJO.js": {
+      "bytes": 193439,
       "entryPoint": "src/ui/game.ts",
       "imports": [
-        "assets/chunk-D4ARXD5Q.js",
-        "assets/chunk-UJIVF34A.js",
-        "assets/chunk-QJRBFISU.js",
+        "assets/chunk-BMYRWB5U.js",
+        "assets/chunk-KLDWZ4RU.js",
+        "assets/chunk-6VKGKRMP.js",
         "assets/chunk-VQ65COZY.js",
-        "assets/chunk-6MMEEVMZ.js",
+        "assets/chunk-2IJ3UYND.js",
         "assets/chunk-P6CK6PDM.js",
-        "assets/chunk-LU3F6XZF.js",
+        "assets/chunk-Y5ORVK7B.js",
         "assets/chunk-AAZABAPM.js"
       ],
       "cssBundle": "assets/game-6EQ23DUW.css"
     },
-    "assets/chunk-D4ARXD5Q.js": {
-      "bytes": 110669,
+    "assets/chunk-BMYRWB5U.js": {
+      "bytes": 122056,
       "imports": [
-        "assets/chunk-UJIVF34A.js",
-        "assets/chunk-6MMEEVMZ.js",
-        "assets/chunk-LU3F6XZF.js"
+        "assets/chunk-KLDWZ4RU.js",
+        "assets/chunk-2IJ3UYND.js",
+        "assets/chunk-Y5ORVK7B.js"
       ]
     },
-    "assets/chunk-UJIVF34A.js": {
-      "bytes": 17877,
+    "assets/chunk-KLDWZ4RU.js": {
+      "bytes": 24119,
       "imports": [
-        "assets/chunk-LU3F6XZF.js"
+        "assets/chunk-Y5ORVK7B.js"
       ]
     },
-    "assets/chunk-QJRBFISU.js": {
-      "bytes": 766410,
+    "assets/chunk-6VKGKRMP.js": {
+      "bytes": 769601,
       "imports": [
         "assets/chunk-VQ65COZY.js",
-        "assets/chunk-6MMEEVMZ.js",
+        "assets/chunk-2IJ3UYND.js",
         "assets/chunk-P6CK6PDM.js",
-        "assets/chunk-LU3F6XZF.js",
+        "assets/chunk-Y5ORVK7B.js",
         "assets/chunk-AAZABAPM.js"
       ]
     },
@@ -120,16 +121,18 @@
       "bytes": 1137,
       "imports": []
     },
-    "assets/chunk-6MMEEVMZ.js": {
-      "bytes": 14890,
-      "imports": []
+    "assets/chunk-2IJ3UYND.js": {
+      "bytes": 25717,
+      "imports": [
+        "assets/chunk-Y5ORVK7B.js"
+      ]
     },
     "assets/chunk-P6CK6PDM.js": {
       "bytes": 596504,
       "imports": []
     },
-    "assets/chunk-LU3F6XZF.js": {
-      "bytes": 3739,
+    "assets/chunk-Y5ORVK7B.js": {
+      "bytes": 43201,
       "imports": []
     },
     "assets/chunk-AAZABAPM.js": {
@@ -149,28 +152,33 @@
       "imports": []
     },
     "verification/astra-check.mjs": {
-      "bytes": 936812,
+      "bytes": 1006139,
       "entryPoint": "astra-check.ts",
       "imports": [
         "node:assert/strict",
         "node:fs",
         "node:path",
         "node:crypto",
-        "node:timers/promises"
+        "node:timers/promises",
+        "node:assert/strict",
+        "node:fs",
+        "node:path"
       ]
     },
     "verification/solo-check.mjs": {
-      "bytes": 119156,
+      "bytes": 178225,
       "entryPoint": "solo-check.ts",
       "imports": [
         "node:assert/strict"
       ]
     },
     "verification/lighting-check.mjs": {
-      "bytes": 836855,
+      "bytes": 894495,
       "entryPoint": "lighting-check.ts",
       "imports": [
         "node:assert/strict",
+        "node:assert/strict",
+        "node:path",
         "node:assert/strict",
         "node:fs",
         "node:path"

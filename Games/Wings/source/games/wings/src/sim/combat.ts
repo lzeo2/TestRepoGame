@@ -22,9 +22,10 @@ import { TICK_DT } from "./types"
 import { STEALTH_AA_CEILING, STEALTH_LOCK_SPOT, STEALTH_LOCK_TIME, VEHICLES, WEAPONS, type WeaponSpec } from "./vehicles"
 export { STEALTH_AA_CEILING, STEALTH_LOCK_SPOT, STEALTH_LOCK_TIME }
 import { BOMB_STEP, bombImpactPoint, stepBomb } from "./flight"
+import { withFleetSurface } from "./fleet-world-query"
 import { deckVelocity, fleetState, groundHeight, isWater, posedFleet, posedShip, segmentHitsGround, shipAt, worldQuery } from "./geography"
 import {
-  AA_RANGE, FLEET, SHIP_DAMAGE_SCALE, SHIP_SPECS, SPAWN_PROTECTION, TURRET_HP, shipToWorld, worldToShip, type Ship, type TurretKind,
+  AA_RANGE, FLEET, SHIP_DAMAGE_SCALE, SHIP_SPECS, shipCollisionBoxes, SPAWN_PROTECTION, TURRET_HP, shipToWorld, worldToShip, type Ship, type TurretKind,
 } from "./fleet"
 import type { Crater } from "./protocol"
 
@@ -39,7 +40,7 @@ export const MAX_FLARES = 256
 /** Damage multiplier while radar-spotted. */
 export const SPOTTED_DAMAGE_MULT = 1.2
 /** Damage taken multiplier per airframe (A-10 titanium bathtub). */
-export const ARMOR: Record<VehicleKind, number> = { fighter: 1, apache: 1, warthog: 0.8, blackbird: 1, bomber: 1, f15: 1, f35: 1 }
+export const ARMOR: Record<VehicleKind, number> = { fighter: 1, apache: 1, warthog: 0.8, blackbird: 1, bomber: 1, f15: 1, f35: 1, f16c: 1, mig29: 1, typhoon: 1, su35s: 1, rafale: 1, jf17: 1, gripen: 1, mig31: 1, mirage2000: 1, su34: 1, fa50: 1, yak130: 1, hawkt2: 1, su25sm: 1, a10c: 1, f35a: 1, j20: 1, tu160: 1, ah64d: 1, mi28n: 1 }
 /** Per-weapon damage multiplier applied on top of WEAPONS[w].damage. */
 export const WEAPON_DAMAGE_MULT: Record<WeaponId, number> = {
   cannon20: 1.35, chaingun30: 1.1, gau8: 0.8, rockets: 1, aim9: 1, tvmissile: 1, hellfire: 1, maverick: 1,
@@ -159,7 +160,7 @@ export const MARK_CONE = 0.08
 
 export interface CombatState {
   /** Trusted original fleet collision adapter; absent in ordinary rooms. */
-  hostFleet?: { resolveProjectile(projectile: Projectile, from: Vec3, to: Vec3, maxFraction: number, damage: number): boolean }
+  hostFleet?: { botTargets?(team: TeamId): readonly import("./bots").BotFleetTarget[]; surfaceHeightAt?(x: number, z: number): number | null; surfaceSegment?(a: Vec3, b: Vec3): number | null; resolveBombNearMiss?(projectile: Projectile, position: Vec3, radius: number, damage: number): boolean | number; resolveProjectile(projectile: Projectile, from: Vec3, to: Vec3, maxFraction: number, damage: number): false | Readonly<{ fraction: number, position: Vec3 }> }
   projectiles: Projectile[]
   missiles: Missile[]
   flares: Flare[]
@@ -271,9 +272,9 @@ export function magazine(weapon: WeaponId): number {
   return Number.isFinite(a) ? a : -1
 }
 
-/** Hardpoint index (0-based, alternating) of the missile/rocket launched when ammo dropped to `ammoAfter`. */
-export function launchedHardpoint(weapon: WeaponId, ammoAfter: number): number {
-  return ((((WEAPONS[weapon].ammo - ammoAfter - 1) % 2) + 2) % 2)
+/** Launch rail after consuming a round; two rails remain the legacy default. */
+export function launchedHardpoint(weapon: WeaponId, ammoAfter: number, railCount = 2): number {
+  return ((((WEAPONS[weapon].ammo - ammoAfter - 1) % railCount) + railCount) % railCount)
 }
 
 export function isHostile(a: VehicleEntity, b: VehicleEntity): boolean {
@@ -441,14 +442,17 @@ export function weaponDirection(vehicle: VehicleEntity, weapon: WeaponId, aim: V
   return rotate(q, out[0], out[1], out[2], out)
 }
 
-/** World-space muzzle / launch position. `hardpoint` alternates missile/rocket rails (0/1). */
+/** World-space muzzle / launch position, cycling the model's declared launch rails. */
 export function muzzlePosition(vehicle: VehicleEntity, seat: SeatIndex, weapon: WeaponId, out: Vec3, hardpoint = 0): Vec3 {
   const r = VEHICLES[vehicle.kind].radius
   const spec = WEAPONS[weapon]
   const p = vehicle.flight.position
   const hardpoints = VEHICLES[vehicle.kind].hardpoints
-  const point = hardpoints && (spec.kind === "gun" ? hardpoints.gun
-    : spec.kind === "missile_lock" || spec.kind === "missile_scanner" ? hardpoints.missiles[seat][hardpoint % 2 === 0 ? 0 : 1] : undefined)
+  const rails = spec.kind === "rockets" ? hardpoints?.rockets
+    : spec.kind === "missile_lock" || spec.kind === "missile_scanner" ? hardpoints?.missiles?.[seat] : undefined
+  const point = spec.kind === "gun" ? hardpoints?.gun
+    : rails?.length ? rails[rails.length === 2 ? (hardpoint % 2 === 0 ? 0 : 1)
+      : ((hardpoint % rails.length) + rails.length) % rails.length] : undefined
   if (point) {
     rotate(vehicle.flight.orientation, point[0], point[1], point[2], out)
   } else if (spec.kind === "gun") {
@@ -792,7 +796,7 @@ function fireBallistic(
     const id = cs.nextId++
     weaponDirection(vehicle, spec.id, aim, _dir)
     applySpread(_dir, spec.spread ?? 0, id)
-    const hp = spec.kind === "rockets" ? launchedHardpoint(spec.id, rt.ammo - 1) : 0
+    const hp = spec.kind === "rockets" ? launchedHardpoint(spec.id, rt.ammo - 1, VEHICLES[vehicle.kind].hardpoints?.rockets?.length || 2) : 0
     muzzlePosition(vehicle, seat, spec.id, _muz, hp)
     const vx = sv[0] + _dir[0] * spec.speed, vy = sv[1] + _dir[1] * spec.speed, vz = sv[2] + _dir[2] * spec.speed
     // Spawned one tick "behind" so this tick's stepCombat sweeps it from (muzzle - v·dt) to the muzzle in
@@ -820,14 +824,23 @@ function fireBallistic(
  * Bomb release: drops from the bay (a few meters below the airframe) with the aircraft's velocity; flies the
  * same gravity + drag model as flight's bombImpactPoint (unguided). Bombs live in `projectiles` (weapon "bomb").
  */
+export function bombReleasePosition(vehicle: VehicleEntity, ammoBefore: number, out: Vec3): Vec3 {
+  const points = VEHICLES[vehicle.kind].hardpoints?.bombs
+  const index = points?.length ? ((WEAPONS.bomb.ammo - Math.floor(ammoBefore)) % points.length + points.length) % points.length : 0
+  const point = points?.[index]
+  rotate(vehicle.flight.orientation, point?.[0] ?? 0, point?.[1] ?? -3, point?.[2] ?? 0, out)
+  for (let i = 0; i < 3; i++) out[i] += vehicle.flight.position[i]
+  return out
+}
+
 function fireBomb(cs: CombatState, vehicle: VehicleEntity, seat: SeatIndex, spec: WeaponSpec, rt: WeaponRuntime, now: number, events: GameEvent[]): void {
   if (rt.readyAt > now || (rt.ammo >= 0 && rt.ammo < 1) || cs.projectiles.length >= MAX_PROJECTILES) return
-  rotate(vehicle.flight.orientation, 0, -3, 0, _muz)
-  const p = vehicle.flight.position, v = vehicle.flight.velocity
+  bombReleasePosition(vehicle, rt.ammo, _muz)
+  const v = vehicle.flight.velocity
   const id = cs.nextId++
   cs.projectiles.push({
     id, weapon: spec.id, owner: ownerOf(vehicle, seat), vehicle: vehicle.id, team: vehicle.team,
-    position: [p[0] + _muz[0], p[1] + _muz[1], p[2] + _muz[2]], velocity: [v[0], v[1], v[2]], age: 0, ttl: spec.ttl,
+    position: [_muz[0], _muz[1], _muz[2]], velocity: [v[0], v[1], v[2]], age: 0, ttl: spec.ttl,
   })
   const ext = vehicle as VehicleExt
   if (!ext.lastBomb) ext.lastBomb = [-1, -1]
@@ -844,6 +857,7 @@ function bombImpact(cs: CombatState, p: Projectile, pos: Vec3, directShip: Ship 
   if (directShip) {
     if (directShip.team !== p.team) damageShip(cs, directShip.id, full, p.owner, p.team, pos, now, events)
   } else {
+    cs.hostFleet?.resolveBombNearMiss?.(p, pos, spec.splash, full * BOMB_NEAR_MISS)
     // Near misses still hurt ships within the blast radius.
     const fleet = posedFleet()
     for (let i = 0; i < fleet.length; i++) {
@@ -878,7 +892,7 @@ function fireMissile(
   // Holding fire while the seeker is acquiring waits for the lock instead of wasting a dumbfire.
   if (rt.lockTarget && rt.lock < 1) return
   const target = rt.lockTarget && rt.lock >= 1 ? rt.lockTarget : null
-  const hp = launchedHardpoint(spec.id, rt.ammo - 1)
+  const hp = launchedHardpoint(spec.id, rt.ammo - 1, VEHICLES[vehicle.kind].hardpoints?.missiles?.[seat]?.length || 2)
   muzzlePosition(vehicle, seat, spec.id, _muz, hp)
   rotate(vehicle.flight.orientation, 0, 0, -1, _dir)
   const sv = vehicle.flight.velocity
@@ -1100,10 +1114,14 @@ function stepProjectiles(cs: CombatState, vehicles: VehicleEntity[], dt: number,
       if (own !== null && Math.abs(own - g) < 1e-4) g = null
     }
     const sh = g !== null ? segmentHitsShipEx(cs, _p0, _p1, now, p.ship ?? null) : null
-    // Native aircraft/terrain ties win. Only accepted straight gun rounds enter this bridge.
-    if (gun && cs.hostFleet?.resolveProjectile(p, _p0, _p1,
+    // Native aircraft/terrain/ship ties win. The fleet owns fitted damage and safe impact FX.
+    const fleetHit = (gun || p.weapon === "rockets") && cs.hostFleet?.resolveProjectile(p, _p0, _p1,
       Math.min(hit.vehicle ? hit.t : 1, g ?? 1, sh?.t ?? 1),
-      spec.damage * gunRangeFactor(p.weapon, p.age) * shipScale(p.weapon))) continue
+      spec.damage * (gun ? gunRangeFactor(p.weapon, p.age) : 1) * shipScale(p.weapon))
+    if (fleetHit) {
+      if (!gun) splash(fleetHit.position, p.weapon, p.owner, p.team, p.vehicle, null, vehicles, now, events)
+      continue
+    }
     if (hit.vehicle && (g === null || hit.t <= g)) {
       const target = hit.vehicle
       lerpInto(_p0, _p1, hit.t, _hit)
@@ -1160,7 +1178,9 @@ function steerBomb(cs: CombatState, vehicle: VehicleEntity, seat: SeatIndex, aim
   if (!b || aim[1] >= -0.02) return
   const p = b.position
   _sb[0] = p[0] + aim[0] * 20000; _sb[1] = p[1] + aim[1] * 20000; _sb[2] = p[2] + aim[2] * 20000
-  const t = segmentHitsGround(p, _sb)
+  const native = segmentHitsGround(p, _sb)
+  const fleet = cs.hostFleet?.surfaceSegment?.(p, _sb) ?? null
+  const t = fleet !== null && (native === null || fleet < native) ? fleet : native
   if (t === null) return
   const target = b.steerTo ?? (b.steerTo = [0, 0, 0])
   lerpInto(p, _sb, t, target)
@@ -1172,14 +1192,14 @@ function steerBomb(cs: CombatState, vehicle: VehicleEntity, seat: SeatIndex, aim
  * change the horizontal velocity by error / t_fall (over ~0.5 s), capped by BOMB_STEER_ACCEL and the
  * BOMB_STEER_DV budget. Never adds lift (gravity unchanged, no climbing).
  */
-function bombGuidance(b: ProjectileExt, h: number, now: number): void {
+function bombGuidance(cs: CombatState, b: ProjectileExt, h: number, now: number): void {
   const to = b.steerTo
   if (!to || b.steerAt === undefined || now - b.steerAt > BOMB_STEER_STALE) return
   const used = b.steerDv ?? 0
   if (used >= BOMB_STEER_DV) return
   const p = b.position, v = b.velocity
   // Drag-aware ballistic prediction (same model as flight's bombImpactPoint).
-  const tf = bombImpactPoint(p, v, _bi, worldQuery)
+  const tf = bombImpactPoint(p, v, _bi, withFleetSurface(worldQuery, cs.hostFleet?.surfaceHeightAt))
   if (!(tf > 0.2)) return
   const ex = to[0] - _bi[0], ez = to[2] - _bi[2]
   // Correct the horizontal velocity by error/t over ~0.5 s (near-impulsive: the most shift per delta-v).
@@ -1199,15 +1219,22 @@ function stepBombProjectile(cs: CombatState, p: Projectile, vehicles: VehicleEnt
   let left = dt
   while (left > 1e-9) {
     const h = Math.min(BOMB_STEP, left)
-    bombGuidance(p as ProjectileExt, h, now)
+    bombGuidance(cs, p as ProjectileExt, h, now)
     stepBomb(pos, p.velocity, h)
     left -= h
   }
   _p1[0] = pos[0]; _p1[1] = pos[1]; _p1[2] = pos[2]
   const g = segmentHitsGround(_p0, _p1)
+  const sh = segmentHitsShipEx(cs, _p0, _p1, now, null)
+  // Authenticate even empty flight segments. Native ground/ship ties retain precedence.
+  const fleetHit = cs.hostFleet?.resolveProjectile(p, _p0, _p1, Math.min(g ?? 1, sh?.t ?? 1), shipDamageFor(p.weapon))
+  if (fleetHit) {
+    splash(fleetHit.position, p.weapon, p.owner, p.team, p.vehicle, null, vehicles, now, events)
+    p.age = -1
+    return // Safe fleet impact owns vessel visuals; no legacy ship near-miss or crater.
+  }
   if (g === null && p.age <= p.ttl) return
   if (g === null) { p.age = -1; return }
-  const sh = segmentHitsShipEx(cs, _p0, _p1, now, null)
   const direct = sh && sh.t <= g + 1e-4 ? sh.ship : null
   lerpInto(_p0, _p1, direct ? sh!.t : g, _hit)
   bombImpact(cs, p, _hit, direct, vehicles, now, events)
@@ -1686,17 +1713,22 @@ function toShipLocal(ship: Ship, p: Vec3, out: Vec3): Vec3 {
 }
 
 /** Hull/superstructure hit fraction of segment a→b against one (posed) ship, or null. */
+const SHIP_BOXES = Object.fromEntries(Object.entries(SHIP_SPECS).map(([kind, spec]) => [kind, shipCollisionBoxes(spec)]))
 function shipBoxesT(ship: Ship, a: Vec3, b: Vec3): number | null {
-  const sp = SHIP_SPECS[ship.kind]
-  const r = Math.hypot(sp.halfLength, sp.halfWidth) + 5
+  const boxes = SHIP_BOXES[ship.kind]
+  let r = 0
+  for (const { center, half } of boxes) r = Math.max(r, Math.hypot(Math.abs(center[0]) + half[0], Math.abs(center[2]) + half[2]))
+  r += 5
   const P = ship.position
   if (Math.max(a[0], b[0]) < P[0] - r || Math.min(a[0], b[0]) > P[0] + r || Math.max(a[2], b[2]) < P[2] - r || Math.min(a[2], b[2]) > P[2] + r) return null
   toShipLocal(ship, a, _sl0)
   toShipLocal(ship, b, _sl1)
-  const hull = boxT(_sl0, _sl1, 0, (sp.deckHeight - 15) / 2, 0, sp.halfWidth, (sp.deckHeight + 15) / 2, sp.halfLength)
-  const I = sp.island
-  const isl = boxT(_sl0, _sl1, I.center[0], I.center[1], I.center[2], I.half[0], I.half[1], I.half[2])
-  return hull === null ? isl : isl === null ? hull : Math.min(hull, isl)
+  let best: number | null = null
+  for (const { center, half } of boxes) {
+    const hit = boxT(_sl0, _sl1, center[0], center[1], center[2], half[0], half[1], half[2])
+    if (hit !== null && (best === null || hit < best)) best = hit
+  }
+  return best
 }
 
 /** Hit fraction of a→b against ship `id` at its current pose (null if none / unknown). */

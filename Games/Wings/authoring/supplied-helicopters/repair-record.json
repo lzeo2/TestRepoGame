@@ -1,0 +1,331 @@
+{
+  "schema": "wings_helicopter_blocked_intake_v1",
+  "status": "BLOCKED_SOURCE_CLEARANCE",
+  "archive_sha256": "4e37a104ba356790f6f9a0632c99d34b77dc023649e3cab830d895ec55c471d8",
+  "frozen_source_pin": "1a1f674d",
+  "frame": "meters; +X right; +Y up; -Z forward; positive right-handed axis radians",
+  "intersection_tolerance": 1e-07,
+  "method": "actual posed edge/triangle plane intersection and barycentric containment; continuous rotor envelopes recorded separately",
+  "qualification": "User reports GPT-generated originals and scoped use/repair permission; no independent rights, accuracy, native or hardware acceptance.",
+  "resolution": "Corrected supplied geometry or explicit contract change required. No blade trimming, pivot moves, gun/turret/gear/sensor invention or collision waiver.",
+  "not_published": [
+    "authoring/native-helicopter-pair.json",
+    "models/derived/wings_ah64d.glb",
+    "models/derived/wings_mi28n.glb"
+  ],
+  "models": {
+    "ah64d": {
+      "source_model_id": "wings.original.ah-64d-apache.v1",
+      "source_sha256": "01965a9e0fd16e57483f6bbda7ffadb2299f773396bb3c3045351acee4ea0a59",
+      "rig_sha256": "bdf811d33a26909e59a1aca3ebd69fe77a9818d1878e9d509b1590706a2a9788",
+      "source_bytes": 172724,
+      "source_triangles": 3588,
+      "main_blades": 4,
+      "tail_blades": 4,
+      "rotor_sweeps": [
+        {
+          "node": "main_rotor_spin",
+          "axis": "y",
+          "pivot_root_m": [
+            0.0,
+            2.549999952316284,
+            -0.05000000074505806
+          ],
+          "continuous_360_bounds_root_m": {
+            "min": [
+              -7.300685090165999,
+              2.3299999237060547,
+              -7.350685090911057
+            ],
+            "max": [
+              7.300685090165999,
+              2.7699999809265137,
+              7.250685089420941
+            ]
+          }
+        },
+        {
+          "node": "tail_rotor_spin",
+          "axis": "x",
+          "pivot_root_m": [
+            -0.3799999952316284,
+            1.5499999523162842,
+            8.699999809265137
+          ],
+          "continuous_360_bounds_root_m": {
+            "min": [
+              -0.5299999713897705,
+              0.1439767719906444,
+              7.293976628939497
+            ],
+            "max": [
+              -0.23000000417232513,
+              2.956023132641924,
+              10.106022989590777
+            ]
+          }
+        }
+      ],
+      "clearance": "FAIL_SOURCE_ROTOR_BODY_COLLISION",
+      "witnesses": [
+        {
+          "rotor": "tail_rotor_spin",
+          "axis": "x",
+          "angle_rad": 0.6981317007977318,
+          "pivot_root_m": [
+            -0.3799999952316284,
+            1.5499999523162842,
+            8.699999809265137
+          ],
+          "static_component": "horizontal_tail",
+          "static_component_bounds": {
+            "min": [
+              -2.0,
+              0.7450106143951416,
+              6.900000095367432
+            ],
+            "max": [
+              -0.15000000596046448,
+              0.8549894094467163,
+              8.149999618530273
+            ]
+          },
+          "rotor_mesh_node": "tail_rotor_blade_assembly",
+          "rotor_triangle_index": 12,
+          "static_triangle_index": 406,
+          "edge_mesh": "rotor",
+          "edge_index": 0,
+          "rotor_triangle_root_m": [
+            [
+              -0.36250001192092896,
+              0.5482441894254482,
+              7.715832564443196
+            ],
+            [
+              -0.36250001192092896,
+              1.4852838499401333,
+              8.528209696400827
+            ],
+            [
+              -0.36250001192092896,
+              1.3695818840333454,
+              8.666097929940456
+            ]
+          ],
+          "static_triangle_root_m": [
+            [
+              -0.15000000596046448,
+              0.8049488663673401,
+              7.958133697509766
+            ],
+            [
+              -0.15000000596046448,
+              0.8178185820579529,
+              7.838908672332764
+            ],
+            [
+              -2.0,
+              0.8153887987136841,
+              8.010875701904297
+            ]
+          ],
+          "intersection_root_m": [
+            -0.36250001192092896,
+            0.8085926996839422,
+            7.941544650052323
+          ]
+        }
+      ]
+    },
+    "mi28n": {
+      "source_model_id": "wings.original.mi-28n.v1",
+      "source_sha256": "dc193d170b343ec1ca8075684b2eb5ec418b833ffbd8d1ae063be3d7ab7d0634",
+      "rig_sha256": "af901c10cff01b8b6f23431844ecec592a49b396d443d7bd3d9e37d18cd04c57",
+      "source_bytes": 169772,
+      "source_triangles": 3296,
+      "main_blades": 5,
+      "tail_blades": 4,
+      "rotor_sweeps": [
+        {
+          "node": "main_rotor_spin",
+          "axis": "y",
+          "pivot_root_m": [
+            0.0,
+            2.799999952316284,
+            0.6600000262260437
+          ],
+          "continuous_360_bounds_root_m": {
+            "min": [
+              -8.60058175741896,
+              2.5799999237060547,
+              -7.940581731192916
+            ],
+            "max": [
+              8.60058175741896,
+              3.0199999809265137,
+              9.260581783645003
+            ]
+          }
+        },
+        {
+          "node": "tail_rotor_spin",
+          "axis": "x",
+          "pivot_root_m": [
+            0.41999998688697815,
+            1.7000000476837158,
+            9.050000190734863
+          ],
+          "continuous_360_bounds_root_m": {
+            "min": [
+              0.27000001072883606,
+              -0.024906010052559546,
+              7.325094132998588
+            ],
+            "max": [
+              0.5699999928474426,
+              3.424906105419991,
+              10.774906248471138
+            ]
+          }
+        }
+      ],
+      "clearance": "FAIL_SOURCE_ROTOR_BODY_COLLISION",
+      "witnesses": [
+        {
+          "rotor": "main_rotor_spin",
+          "axis": "y",
+          "angle_rad": 0.9599310885968813,
+          "pivot_root_m": [
+            0.0,
+            2.799999952316284,
+            0.6600000262260437
+          ],
+          "static_component": "vertical_fin",
+          "static_component_bounds": {
+            "min": [
+              -0.07500000298023224,
+              0.800000011920929,
+              8.0
+            ],
+            "max": [
+              0.07500000298023224,
+              3.0,
+              9.949999809265137
+            ]
+          },
+          "rotor_mesh_node": "main_rotor_blade_assembly",
+          "rotor_triangle_index": 25,
+          "static_triangle_index": 670,
+          "edge_mesh": "static",
+          "edge_index": 1,
+          "rotor_triangle_root_m": [
+            [
+              -0.16160743996308602,
+              2.807499885559082,
+              9.164115650243437
+            ],
+            [
+              0.21829459584882727,
+              2.797499895095825,
+              1.706349611151607
+            ],
+            [
+              0.25007567665104746,
+              2.807499885559082,
+              9.256944922893622
+            ]
+          ],
+          "static_triangle_root_m": [
+            [
+              0.07500000298023224,
+              0.8999999761581421,
+              9.949999809265137
+            ],
+            [
+              0.07500000298023224,
+              0.800000011920929,
+              8.0
+            ],
+            [
+              0.07500000298023224,
+              3.0,
+              8.699999809265137
+            ]
+          ],
+          "intersection_root_m": [
+            0.07500000298023224,
+            2.8067323812083336,
+            8.638505583344973
+          ]
+        },
+        {
+          "rotor": "tail_rotor_spin",
+          "axis": "x",
+          "angle_rad": 0.0,
+          "pivot_root_m": [
+            0.41999998688697815,
+            1.7000000476837158,
+            9.050000190734863
+          ],
+          "static_component": "horizontal_tail",
+          "static_component_bounds": {
+            "min": [
+              0.15000000596046448,
+              0.7450106143951416,
+              6.900000095367432
+            ],
+            "max": [
+              2.0999999046325684,
+              0.8549894094467163,
+              8.149999618530273
+            ]
+          },
+          "rotor_mesh_node": "tail_rotor_blade_assembly",
+          "rotor_triangle_index": 6,
+          "static_triangle_index": 659,
+          "edge_mesh": "rotor",
+          "edge_index": 0,
+          "rotor_triangle_root_m": [
+            [
+              0.4375,
+              0.5615580677986145,
+              7.75599479675293
+            ],
+            [
+              0.4375,
+              1.6505025625228882,
+              8.873223304748535
+            ],
+            [
+              0.4375,
+              1.5232232809066772,
+              9.000502586364746
+            ]
+          ],
+          "static_triangle_root_m": [
+            [
+              2.0999999046325684,
+              0.8042740225791931,
+              8.113842964172363
+            ],
+            [
+              0.15000000596046448,
+              0.8049488663673401,
+              7.958133697509766
+            ],
+            [
+              0.15000000596046448,
+              0.800000011920929,
+              8.0
+            ]
+          ],
+          "intersection_root_m": [
+            0.4375,
+            0.8022650295318574,
+            8.002953830040921
+          ]
+        }
+      ]
+    }
+  }
+}

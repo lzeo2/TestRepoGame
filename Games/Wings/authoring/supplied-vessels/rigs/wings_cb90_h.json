@@ -1,0 +1,39 @@
+{
+  "model_id": "wings.original.wings_cb90_h.v1",
+  "model_file": "models/wings_cb90_h.glb",
+  "unit": "meter",
+  "axes": {
+    "up": "+Y",
+    "forward": "+Z",
+    "right": "+X"
+  },
+  "controls": [
+    {
+      "node": "bow_ramp_pitch",
+      "parent": "vessel_root_waterline",
+      "pivot_world_m": [
+        0.0,
+        0.9700000286102295,
+        5.0879998207092285
+      ],
+      "suggested_local_rotation_axis": [
+        1,
+        0,
+        0
+      ],
+      "purpose": "rigid visual pivot only; no constraints, drives, weapons or physics",
+      "rest_node_transform": {
+        "translation": [
+          0,
+          0.9700000286102295,
+          5.0879998207092285
+        ]
+      },
+      "influenced_mesh_nodes": [
+        "bow_ramp_pitch"
+      ]
+    }
+  ],
+  "animations_included": [],
+  "integration_note": "Direct rigid-node transform suggestions only. Preserve rest transforms and hierarchy. No constraints, physics, mechanical limit guarantee or gameplay behavior."
+}

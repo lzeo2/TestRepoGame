@@ -147,6 +147,8 @@ def trace(args):
         page.add_init_script("localStorage.setItem('wings.settings',JSON.stringify({quality:'low',muted:true}));localStorage.setItem('wings.autoQuality','1')")
         page.goto(url + '/index.html?webgl', wait_until='domcontentloaded', timeout=30000)
         page.locator('#screen .mi .t').get_by_text('Factions', exact=True).click()
+        page.locator('#screen .mi .t').get_by_text('Start Factions', exact=True).click()
+        report['coalition'] = 'nato'
         report['clickedAtMs'] = round((time.monotonic() - start) * 1000, 3)
         # Fixed observation window, NOT a readiness gate or RAF-based polling/forcing.
         page.wait_for_timeout(args.seconds * 1000)

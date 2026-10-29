@@ -14,11 +14,12 @@ import { createPauseMenu } from "./pause"
 import { toast, type StartRequest } from "./lobby"
 import { onSettings, settings } from "./settings"
 import { bombImpactPoint, cloneFlight, flightReadout, forward, stepFlight } from "../sim/flight"
-import { AIRBASES, deckVelocity, groundHeight, posedFleet, posedShip, setFleetState, worldQuery as baseWorldQuery } from "../sim/geography"
-import { AA_RANGE, SHIP_SPECS, SPAWN_PROTECTION, shipToWorld, worldToShip, type Ship } from "../sim/fleet"
+import { withFleetSurface } from "../sim/fleet-world-query"
+import { AIRBASES, deckVelocity, groundHeight, posedFleet, posedShip, segmentHitsGround, setFleetState, worldQuery as baseWorldQuery } from "../sim/geography"
+import { AA_RANGE, SHIP_SPECS, SPAWN_PROTECTION, shipHasAAMounts, shipToWorld, worldToShip, type Ship } from "../sim/fleet"
 import type { WorldQuery } from "../sim/types"
-import { VEHICLES, WEAPONS } from "../sim/vehicles"
-import { leadPoint } from "../sim/combat"
+import { hasBombLoad, VEHICLES, VEHICLE_KINDS, WEAPONS } from "../sim/vehicles"
+import { bombReleasePosition, leadPoint } from "../sim/combat"
 import { TICK_DT } from "../sim/types"
 import type { FlightInput, FlightState, GameEvent, PlayerInfo, Quat, SeatIndex, SeatInput, TeamId, Vec3, VehicleEntity } from "../sim/types"
 import type { RoomConfig, ServerMessage, ShipState, Snapshot } from "../sim/protocol"
@@ -103,6 +104,7 @@ export async function startGame(deps: GameDeps): Promise<GameHandle> {
 class GameSession implements GameHandle {
   private conn: Connection | null = null
   private localFleet: Awaited<ReturnType<typeof prepareLocalFactions>> | null = null
+  private flightWorld: WorldQuery = worldQuery
   private get factions(): boolean { return this.deps.req.mode === "offline" && this.deps.req.rules === "factions" }
   private playerId = ""
   private room = ""
@@ -171,6 +173,10 @@ class GameSession implements GameHandle {
       click,
       thumb: (kind, team) => host.thumbnail(kind, team),
       fixedTeam: this.factions,
+      aircraftKinds: () => this.localFleet?.aircraftKinds() ?? (this.factions ? [] : VEHICLE_KINDS),
+      ...(this.factions ? {
+        teamNames: () => this.localFleet?.teamNames() ?? [],
+      } : {}),
       manTurret: this.factions ? undefined : (ship, turret) => { this.input.requestLock(); this.send({ type: "man-turret", ship, turret }); deps.audio?.ui("confirm") },
     })
     this.pause = createPauseMenu(this.uiRoot, {
@@ -219,7 +225,10 @@ class GameSession implements GameHandle {
 
   async connect(net: Awaited<ReturnType<typeof getNet>>, code: string, offlineConfig: RoomConfig | null): Promise<void> {
     if (this.factions) {
-      try { this.localFleet = await prepareLocalFactions(this.deps.host) }
+      try {
+        this.localFleet = await prepareLocalFactions(this.deps.host, this.deps.req.mode === "offline" ? this.deps.req.coalition ?? "nato" : undefined)
+        this.flightWorld = withFleetSurface(worldQuery, this.localFleet.surfaceHeightAt)
+      }
       catch (error) { this.dispose(); throw error }
     }
     const handlers = {
@@ -385,7 +394,7 @@ class GameSession implements GameHandle {
     if (drop) h.splice(0, drop)
     const old = p.state
     const next = cloneFlight(sv.flight)
-    for (const e of h) stepFlight(next, e.input, TICK_DT, worldQuery)
+    for (const e of h) stepFlight(next, e.input, TICK_DT, this.flightWorld)
     const dx = old.position[0] - next.position[0], dy = old.position[1] - next.position[1], dz = old.position[2] - next.position[2]
     const corr = Math.hypot(dx, dy, dz)
     this.corrStats.n++
@@ -548,7 +557,7 @@ class GameSession implements GameHandle {
       return
     }
     // B: bomb-sight peek when no bomb is falling (while one falls, input.ts uses B to toggle steering).
-    if ((e.code === "KeyB") && !e.repeat && !this.bombFall && this.state === "flying" && this.me?.seat === 0 && this.myVehicle()?.kind === "bomber" && !this.hud.chatOpen()) {
+    if ((e.code === "KeyB") && !e.repeat && !this.bombFall && this.state === "flying" && this.me?.seat === 0 && hasBombLoad(this.myVehicle()?.kind) && !this.hud.chatOpen()) {
       this.bombPeek = !this.bombPeek
       this.deps.audio?.ui("click")
     }
@@ -575,6 +584,7 @@ class GameSession implements GameHandle {
   }
 
   private dispose(): void {
+    this.flightWorld = worldQuery
     this.localFleet?.dispose()
     this.localFleet = null
     setFleetState(0, this.config?.teams ?? 2)
@@ -597,6 +607,10 @@ class GameSession implements GameHandle {
   }
 
   // ---------------------------------------------------------------- events
+
+  private teamName(team: number): string {
+    return this.localFleet?.teamNames()[team] ?? TEAM_NAMES[team]
+  }
 
   private nameOf(id: string | null): { name: string; team: TeamId | null } {
     if (!id) return { name: "?", team: null }
@@ -806,7 +820,7 @@ class GameSession implements GameHandle {
           fx.explosion(e.position, 16)
           const aaKill = e.weapon === "aa"
           const fleetTeam = (e.killerTeam ?? 0) as TeamId
-          const killer = aaKill ? { name: `${TEAM_NAMES[fleetTeam]} fleet`, team: fleetTeam } : e.killer ? this.nameOf(e.killer) : null
+          const killer = aaKill ? { name: `${this.teamName(fleetTeam)} fleet`, team: fleetTeam } : e.killer ? this.nameOf(e.killer) : null
           const victim = this.nameOf(e.victim)
           const weapon = e.weapon === "crash" ? "crashed" : e.weapon === "aa" ? "anti-air" : WEAPONS[e.weapon]?.name ?? e.weapon
           const mine = e.killer === this.playerId || e.victim === this.playerId || e.victim === myVeh
@@ -874,7 +888,7 @@ class GameSession implements GameHandle {
           const result = e.winner === null ? "draw" : e.winner === myTeam ? "victory" : "defeat"
           const why = this.factions ? (e.reason === "time" ? "time ran out - fleet damage decides" : "capital objective destroyed") : e.reason === "carriers-sunk"
             ? (e.winner === null ? "every carrier went down" : result === "victory" ? "the enemy carriers are sunk" : "our carriers are sunk")
-            : e.reason === "time" ? "time ran out - most ship damage dealt" : e.winner === null ? "no winner" : `${TEAM_NAMES[e.winner].toLowerCase()} wins on score`
+            : e.reason === "time" ? "time ran out - most ship damage dealt" : e.winner === null ? "no winner" : `${this.teamName(e.winner).toLowerCase()} wins on score`
           this.hud.endScreen(result, why, e.winner === null ? null : e.winner)
           break
         }
@@ -946,14 +960,14 @@ class GameSession implements GameHandle {
       input.setPose(o)
     }
     // Bombardier: stabilized downward bomb sight (heading only).
-    const bombsight = seat === 1 && myVehicle?.kind === "bomber"
+    const bombsight = seat === 1 && hasBombLoad(myVehicle?.kind)
     const wasSight = input.bombsight
     input.setBombsight(bombsight)
     if (bombsight && !wasSight && myVehicle) {
       // Open the sight centred on the predicted impact point (bombs travel far ahead at release).
       const out: Vec3 = [0, 0, 0]
-      const p0 = myVehicle.flight.position
-      if (bombImpactPoint(p0, myVehicle.flight.velocity, out, worldQuery) > 0) {
+      const p0 = this.bombOrigin(myVehicle)
+      if (bombImpactPoint(p0, myVehicle.flight.velocity, out, this.flightWorld) > 0) {
         const fwdH = Math.hypot(out[0] - p0[0], out[2] - p0[2])
         input.bombFwd = Math.min(BOMBSIGHT_CONE, Math.atan2(fwdH, Math.max(1, p0[1] - out[1])))
       }
@@ -1029,7 +1043,7 @@ class GameSession implements GameHandle {
         const ps = p.state
         p.prevPos[0] = ps.position[0]; p.prevPos[1] = ps.position[1]; p.prevPos[2] = ps.position[2]
         p.prevQuat[0] = ps.orientation[0]; p.prevQuat[1] = ps.orientation[1]; p.prevQuat[2] = ps.orientation[2]; p.prevQuat[3] = ps.orientation[3]
-        stepFlight(p.state, fi, TICK_DT, worldQuery)
+        stepFlight(p.state, fi, TICK_DT, this.flightWorld)
         p.history.push({ seq, input: fi })
       }
     }
@@ -1098,11 +1112,11 @@ class GameSession implements GameHandle {
         input.setBombAim(out)
         this.bombAimDir = out
         this.steeredBomb = this.bombFall.id
-      } else if (seat === 0 && this.bombPeek && ownVis.kind === "bomber") {
+      } else if (seat === 0 && this.bombPeek && hasBombLoad(ownVis.kind)) {
         // Pilot peeking through the bomb sight: look ahead-and-down along the flight path, heading-stabilized.
         // Look at the predicted impact point, so the pilot sees exactly where the bombs will land.
         const imp: Vec3 = [0, 0, 0]
-        if (bombImpactPoint(ownVis.pos, ownVis.flight.velocity, imp, worldQuery) > 0) _v2.set(imp[0] - ownVis.pos[0], imp[1] - ownVis.pos[1], imp[2] - ownVis.pos[2]).normalize()
+        if (bombImpactPoint(this.bombOrigin(ownVis.render), ownVis.flight.velocity, imp, this.flightWorld) > 0) _v2.set(imp[0] - ownVis.pos[0], imp[1] - ownVis.pos[1], imp[2] - ownVis.pos[2]).normalize()
         else { const fw = forward(ownVis.quat); const h = Math.hypot(fw[0], fw[2]) || 1; _v2.set(fw[0] / h * 0.35, -1, fw[2] / h * 0.35).normalize() }
         rig.setMode("gunner")
         rig.bombsight(dt, ownVis.kind, ownVis.pos, ownVis.quat, _v2, input.zoomHeld ? 4 : 1.6)
@@ -1401,6 +1415,18 @@ class GameSession implements GameHandle {
     }
   }
 
+  /** Preserve the original B-2 cues; supplied bombers predict from their actual release station. */
+  private bombOrigin(v: VehicleEntity): Vec3 {
+    return v.kind === "tu160" ? bombReleasePosition(v, v.weapons[0][0].ammo, [0, 0, 0]) : v.flight.position
+  }
+
+  private bombRayPoint(pos: Vec3, aim: Vec3): Vec3 | null {
+    const end: Vec3 = [pos[0] + aim[0] * 20000, pos[1] + aim[1] * 20000, pos[2] + aim[2] * 20000]
+    const native = segmentHitsGround(pos, end), fleet = this.localFleet?.surfaceSegment(pos, end) ?? null
+    const t = native === null ? fleet : fleet === null ? native : Math.min(native, fleet)
+    return t === null ? null : [pos[0] + (end[0] - pos[0]) * t, pos[1] + (end[1] - pos[1]) * t, pos[2] + (end[2] - pos[2]) * t]
+  }
+
   private updateHud(s: Snapshot, ownVis: Visual | undefined, est: number): void {
     const f = this.hudFrame
     const me = this.me
@@ -1429,7 +1455,10 @@ class GameSession implements GameHandle {
     f.cockpit = this.view === "cockpit" && seat === 0
     f.zoom = this.input.zoomHeld ? Math.max(this.deps.host.rig.gunZoom, 4) : this.deps.host.rig.gunZoom
     f.ships = this.shipStates
+    f.teamNames = this.localFleet?.teamNames()
     f.fleetObjectives = this.localFleet?.objectives()
+    f.fleetTargets = this.localFleet?.safeTargets()
+    if (this.localFleet) { f.aaDist = null; f.aaFire = false }
     f.turret = null
     if (this.state === "turret") { this.updateTurretHud(f, s); this.hud.update(f); return }
     if (!v || !ownVis || seat === null) { this.deps.host.setSpeedFx(0, false); this.hud.update(f); return }
@@ -1448,34 +1477,41 @@ class GameSession implements GameHandle {
     f.protectedLeft = Math.max(0, protLeft)
     // Enemy fleet anti-air umbrella: nearest enemy ship, and whether its guns are on us right now.
     let nearShip = Infinity
-    for (const sh of posedFleet()) {
-      if (sh.team === v.team) continue
-      const d = Math.hypot(pos[0] - sh.position[0], pos[1] - sh.position[1], pos[2] - sh.position[2])
-      if (d < nearShip) nearShip = d
+    // The Factions bridge disables native AA; its surface guns are not an AA umbrella.
+    if (!this.localFleet) {
+      for (const sh of posedFleet()) {
+        if (sh.team === v.team || !shipHasAAMounts(sh)) continue
+        const d = Math.hypot(pos[0] - sh.position[0], pos[1] - sh.position[1], pos[2] - sh.position[2])
+        if (d < nearShip) nearShip = d
+      }
+      f.aaDist = nearShip < AA_RANGE * 1.1 ? nearShip : null
+      f.aaFire = performance.now() / 1000 - this.aaFiredAt < 0.6
     }
-    f.aaDist = nearShip < AA_RANGE * 1.1 ? nearShip : null
-    f.aaFire = performance.now() / 1000 - this.aaFiredAt < 0.6
     const aimDist = 1500
     f.direct = seat === 0 && this.input.mouseMode === "direct"
     f.aimPoint = f.direct ? null : [pos[0] + this.aim[0] * aimDist, pos[1] + this.aim[1] * aimDist, pos[2] + this.aim[2] * aimDist]
     if (this.input.bombsight && this.aim[1] < -0.05) {
       // Bomb sight: the aim point sits on the ground/sea where the sight ray meets it.
-      const t = Math.max(0, pos[1] - groundHeight(pos[0], pos[2])) / -this.aim[1]
-      f.aimPoint = [pos[0] + this.aim[0] * t, pos[1] + this.aim[1] * t, pos[2] + this.aim[2] * t]
+      if (this.localFleet) f.aimPoint = this.bombRayPoint(pos, this.aim)
+      else {
+        const t = Math.max(0, pos[1] - groundHeight(pos[0], pos[2])) / -this.aim[1]
+        f.aimPoint = [pos[0] + this.aim[0] * t, pos[1] + this.aim[1] * t, pos[2] + this.aim[2] * t]
+      }
     }
     // Bomber: predicted free-fall impact point (HudFrame extension `bombImpact`, world point or null).
     const hb = f as HudFrame & { bombImpact?: Vec3 | null }
     f.bombSight = null
     f.stealth = null
     f.bombCam = null
-    if (v.kind === "bomber") {
+    if (hasBombLoad(v.kind)) {
       const out: Vec3 = [0, 0, 0]
       const vel = (this.pred?.state ?? v.flight).velocity
-      const tti = bombImpactPoint(pos, vel, out, worldQuery)
+      const tti = bombImpactPoint(this.bombOrigin(v), vel, out, this.flightWorld)
       hb.bombImpact = tti > 0 ? out : null
-      // Release cue: impact point inside an enemy hull footprint (with a little margin).
-      let over: string | null = null
-      if (tti > 0) for (const sh of posedFleet()) {
+      // FC cues annotate exact safe measured contact, never near-miss damage.
+      const contact = this.localFleet && tti > 0 ? this.localFleet.surfaceContact(out) : null
+      let over: string | null = contact && contact.team !== v.team ? (contact.capital ? "flagship" : "ship") : null
+      if (!this.localFleet && tti > 0) for (const sh of posedFleet()) {
         if (sh.team === v.team) continue
         const st = this.shipStates.find(x => x.id === sh.id)
         if (st?.sunk) continue
@@ -1483,23 +1519,28 @@ class GameSession implements GameHandle {
         if (Math.abs(l[0]) < sp.halfWidth + 6 && Math.abs(l[2]) < sp.halfLength + 6) { over = sh.id; break }
       }
       const bombs = v.weapons[seat]?.[0]?.ammo ?? v.weapons[0]?.[0]?.ammo ?? 0
-      f.bombSight = { impact: tti > 0 ? out : null, tti, alt: pos[1] - Math.max(0, groundHeight(pos[0], pos[2])), speed: Math.hypot(vel[0], vel[1], vel[2]), overShip: over, bombs, pilot: seat === 0, peek: seat === 0 && this.bombPeek, falling: !!this.bombFall }
-      f.stealth = { above: pos[1] > STEALTH_AA_CEILING, ceiling: STEALTH_AA_CEILING }
+      f.bombSight = { impact: tti > 0 ? out : null, tti, alt: pos[1] - Math.max(0, this.flightWorld.groundHeight(pos[0], pos[2])), speed: Math.hypot(vel[0], vel[1], vel[2]), overShip: over, bombs, pilot: seat === 0, peek: seat === 0 && this.bombPeek, falling: !!this.bombFall }
+      f.stealth = this.localFleet || !VEHICLES[v.kind].stealth ? null : { above: pos[1] > STEALTH_AA_CEILING, ceiling: STEALTH_AA_CEILING }
       f.bombCam = null
       if (this.bombFall) {
         const b = this.bombFall
-        const g = Math.max(0, groundHeight(b.pos[0], b.pos[2]))
+        const g = Math.max(0, this.flightWorld.groundHeight(b.pos[0], b.pos[2]))
         const imp: Vec3 = [0, 0, 0]
-        const btti = bombImpactPoint(b.pos, b.vel, imp, worldQuery)
+        const btti = bombImpactPoint(b.pos, b.vel, imp, this.flightWorld)
         let cursor: Vec3 | null = null
         const a = this.bombAimDir
         if (this.input.steeringBomb && a && a[1] < -1e-3) {
-          const tt = (b.pos[1] - g) / -a[1]
-          cursor = [b.pos[0] + a[0] * tt, g, b.pos[2] + a[2] * tt]
+          if (this.localFleet) cursor = this.bombRayPoint(b.pos, a)
+          else {
+            const tt = (b.pos[1] - g) / -a[1]
+            cursor = [b.pos[0] + a[0] * tt, g, b.pos[2] + a[2] * tt]
+          }
         }
         const probe = cursor ?? (btti > 0 ? imp : null)
-        let under: { id: string; hp: number } | null = null
-        if (probe) for (const sh of posedFleet()) {
+        const safe = this.localFleet && probe ? this.localFleet.surfaceContact(probe) : null
+        let under: { id: string; hp: number } | null = safe && safe.team !== v.team ?
+          { id: safe.capital ? "flagship" : "ship", hp: safe.hp / safe.maxHp } : null
+        if (!this.localFleet && probe) for (const sh of posedFleet()) {
           if (sh.team === v.team) continue
           const st = this.shipStates.find(x => x.id === sh.id)
           if (st?.sunk) continue

@@ -1,0 +1,274 @@
+{
+  "schema": "included_file_manifest_v1",
+  "models": 30,
+  "files": {
+    "README.txt": {
+      "bytes": 1090,
+      "sha256": "7c007081cf85eb03bef81a35af136b2ee8419a8713f63155965a717d81b892c5"
+    },
+    "models/a-10c.glb": {
+      "bytes": 148464,
+      "sha256": "74c58cd536be3705b347d7c32fa76b54a0692a992fadde65f82772037187d623"
+    },
+    "models/ah-64d-apache.glb": {
+      "bytes": 172724,
+      "sha256": "01965a9e0fd16e57483f6bbda7ffadb2299f773396bb3c3045351acee4ea0a59"
+    },
+    "models/eurofighter-typhoon.glb": {
+      "bytes": 115688,
+      "sha256": "cae157180c649ac6d4c3b43dd7ae1a5322d7cc2985f961fdbcf6effa4b99b835"
+    },
+    "models/f-16c.glb": {
+      "bytes": 104032,
+      "sha256": "b2c38684cd1f7d904e6d076f600f0233a3b481b8ea5434fc186411d31fa1cf30"
+    },
+    "models/f-35a.glb": {
+      "bytes": 108228,
+      "sha256": "956550b4cba4a7e4bf4f6bccd71609673f46705a7f249b18adf8f38f2a646e01"
+    },
+    "models/fa-50.glb": {
+      "bytes": 115524,
+      "sha256": "adf3e81efc5c5841bc30b9fa526ae7bdf83f0ccbad8fa12a142f43b73b7484f6"
+    },
+    "models/hawk-t2.glb": {
+      "bytes": 114272,
+      "sha256": "9289e2d589b8a295392b2d100c1c3462ee935f1e4837e937e0fea5240bfb54e7"
+    },
+    "models/j-20.glb": {
+      "bytes": 111048,
+      "sha256": "9d70ac66e30c70a69c76b8e0c7c0151a74a4e5ab9f12691cef738b816707b862"
+    },
+    "models/jas-39c-gripen.glb": {
+      "bytes": 108908,
+      "sha256": "f996e62f23cf56027b885767fcb30ae954824b198254dd8a644a14fcacd9e789"
+    },
+    "models/jf-17-block-iii.glb": {
+      "bytes": 116228,
+      "sha256": "b6bb06bbbf51c6af467e0e636a703d85cc53cff8b8b8b3f757e68db11aebb52a"
+    },
+    "models/mi-28n.glb": {
+      "bytes": 169772,
+      "sha256": "dc193d170b343ec1ca8075684b2eb5ec418b833ffbd8d1ae063be3d7ab7d0634"
+    },
+    "models/mig-29.glb": {
+      "bytes": 122000,
+      "sha256": "b94eb1885dd2119ff135a824f2879b94f792340e684d51ded704a552d64d88c8"
+    },
+    "models/mig-31bm.glb": {
+      "bytes": 123644,
+      "sha256": "dd4b8a9741ff4fb325c4a5534d1a0264148c1f0f91078f9dfcca565435e9c82f"
+    },
+    "models/mirage-2000c.glb": {
+      "bytes": 107820,
+      "sha256": "5e17fb6db155a50fccaa52ccb4ec1989293441d0346769c43774dc370ce1f4dd"
+    },
+    "models/rafale-c.glb": {
+      "bytes": 114880,
+      "sha256": "e547d577a3a533ad6c8cadaed6f53d1b5e0850bcbf985ac6dc631488f5100561"
+    },
+    "models/su-25sm.glb": {
+      "bytes": 125092,
+      "sha256": "cf231893435e7283a5950bd7ca15591bb2ff9159ab29c001ea7b9412204b4663"
+    },
+    "models/su-34.glb": {
+      "bytes": 131032,
+      "sha256": "8c2f3633dd39e47a0259b0954c831bee5f8531ed38db48a9e383c277166ff50a"
+    },
+    "models/su-35s.glb": {
+      "bytes": 126788,
+      "sha256": "858eda509c102f2079a2af96fdfd6c7e8027d289bfd7d2797be38ba17a636433"
+    },
+    "models/tu-160.glb": {
+      "bytes": 120580,
+      "sha256": "705f494bc379b7371c7acd0dde80f18e5002874cc7b498ff27a684b1509f6b0e"
+    },
+    "models/wings_admiral_kuznetsov_project1143_5.glb": {
+      "bytes": 622108,
+      "sha256": "566d2422ca21b208a37b0d11f929ac4058613912e4a78aa12f6f70a6e19143d4"
+    },
+    "models/wings_aquitaine_fremm.glb": {
+      "bytes": 540832,
+      "sha256": "cb8c3a46ab4bc4e0fd34633d0747664a371bff02dcb768635e3b5448bf489068"
+    },
+    "models/wings_cb90_h.glb": {
+      "bytes": 307892,
+      "sha256": "46aaa3e428309ad927402589a5b35243bedfa7511ee18849c50e48a45b84cfcc"
+    },
+    "models/wings_charles_de_gaulle_r91.glb": {
+      "bytes": 559588,
+      "sha256": "710d89240f0493d66d7e0982fc8cad4d9e5485a4ca6cd819420ff3452dd50610"
+    },
+    "models/wings_liaoning_type001.glb": {
+      "bytes": 578588,
+      "sha256": "62efc4a166bf3d53a197aa43dd92f7a4e21cd3b2eccb49fa0a0f4b24a0ee116a"
+    },
+    "models/wings_queen_elizabeth_class.glb": {
+      "bytes": 592336,
+      "sha256": "e631d38a98fff7c75220d818ab5ed6f20dc9097d56749ae7bdd5cbf536ed23e7"
+    },
+    "models/wings_type022_houbei.glb": {
+      "bytes": 331884,
+      "sha256": "f259a65fb5a43a6647e3e740d307aba23e77ff060db8d4881a9dcb853772bdca"
+    },
+    "models/wings_type054a_jiangkai_ii.glb": {
+      "bytes": 545476,
+      "sha256": "a2afdbbd52f55420a29630f84643335ebec58504abe06100a70f98d58c5251ae"
+    },
+    "models/wings_type055_renhai.glb": {
+      "bytes": 536996,
+      "sha256": "7066833e6c8307e0d64906da35233ac4435fceda18f29acb7e82e219c968620b"
+    },
+    "models/wings_type45_daring_class.glb": {
+      "bytes": 538696,
+      "sha256": "d89013ab670d4669123efb69dcdd665ff5f18f9ee972569c999e3dc7725e4681"
+    },
+    "models/yak-130.glb": {
+      "bytes": 124716,
+      "sha256": "0bff616f2330806c42860c8d705f7ae05616f2a84e05d44530da4538da44505e"
+    },
+    "models.json": {
+      "bytes": 62161,
+      "sha256": "00bd2534cab7d6d3e4b349a6c919d9d0f67080e5393a4ed129d26feeca967e4f"
+    },
+    "palette.json": {
+      "bytes": 6204,
+      "sha256": "93439bf3075d663e1c3a2078ae2935b1668f6482614ea9d7f47b1ef9903003dd"
+    },
+    "rigs/a-10c.json": {
+      "bytes": 4102,
+      "sha256": "b2fe65b1c1c61d0b7f0089f6809020f7864cdae5912dfcf13bb57269ef702f86"
+    },
+    "rigs/ah-64d-apache.json": {
+      "bytes": 3241,
+      "sha256": "bdf811d33a26909e59a1aca3ebd69fe77a9818d1878e9d509b1590706a2a9788"
+    },
+    "rigs/eurofighter-typhoon.json": {
+      "bytes": 3673,
+      "sha256": "a62f6a25cdf41de0fb6548c2f15f38c5726c942f4098e197150f2799b10f7478"
+    },
+    "rigs/f-16c.json": {
+      "bytes": 3551,
+      "sha256": "4c288610a2987f04f3d4186c24ac0001291ba37f0b226f66689bb4f868dd424a"
+    },
+    "rigs/f-35a.json": {
+      "bytes": 4271,
+      "sha256": "6b62fdb9cdcbe4c5b3826a67a7e59e45b014da4aea0073eaf5ce868cf24d34c3"
+    },
+    "rigs/fa-50.json": {
+      "bytes": 3797,
+      "sha256": "a89e7af465871aa897a6023dfe5502adec58f0c6bee98287845ab73cfc4f5a2e"
+    },
+    "rigs/hawk-t2.json": {
+      "bytes": 3623,
+      "sha256": "322c07c3036aab0ed56b3a71fb11da72d2a4a8c1c00503b556bef948dcb088be"
+    },
+    "rigs/j-20.json": {
+      "bytes": 4463,
+      "sha256": "de0e58e245bcede9cb2334092ba2d2e9e2c8fe5134fa81104e65a5f16b29e150"
+    },
+    "rigs/jas-39c-gripen.json": {
+      "bytes": 3797,
+      "sha256": "d66473633eb738774f3b2f85f1548bd78c153df705a7a3194dd6d797645d4c06"
+    },
+    "rigs/jf-17-block-iii.json": {
+      "bytes": 3817,
+      "sha256": "4b8b918f0f8a340eaf4b41be7084549f7eab5f2439dd73a044c5052e8963b4db"
+    },
+    "rigs/mi-28n.json": {
+      "bytes": 3223,
+      "sha256": "af901c10cff01b8b6f23431844ecec592a49b396d443d7bd3d9e37d18cd04c57"
+    },
+    "rigs/mig-29.json": {
+      "bytes": 4197,
+      "sha256": "4f7e00a4bfdac6835a1610ce9e2ce40829159dcf94117d19a124b38652202b66"
+    },
+    "rigs/mig-31bm.json": {
+      "bytes": 4399,
+      "sha256": "cbfc6b6b684285363d26b9c5da9a9a0d1a7abf2b5264dc5645fbfd6fee9d92fb"
+    },
+    "rigs/mirage-2000c.json": {
+      "bytes": 2655,
+      "sha256": "4b7533d7fd2873df0161459a81e1719e8b66416dac64801b77b2f261000e5feb"
+    },
+    "rigs/rafale-c.json": {
+      "bytes": 3751,
+      "sha256": "1e2dd40c6709cfcfbb18d275d88c6baa1f238e43b1346c3a754cfd7396939a64"
+    },
+    "rigs/su-25sm.json": {
+      "bytes": 3550,
+      "sha256": "0caa70717c1c56c8e670e2ef7e927f201ee49f53e7d974208193af8573d67add"
+    },
+    "rigs/su-34.json": {
+      "bytes": 5461,
+      "sha256": "ff87075cd5dae7b5fadb76879ba4d2478d5f504464174b82bedec3c009e3dd54"
+    },
+    "rigs/su-35s.json": {
+      "bytes": 4301,
+      "sha256": "bfb0f98a32bc10c4bf5188e498b3e860c07eb351a25b2a7997c433b28f5793b8"
+    },
+    "rigs/tu-160.json": {
+      "bytes": 3332,
+      "sha256": "f0a7dc6edd03ab1ac2a303b31aa0ce68169dfc4984c203abea73244eb9058d02"
+    },
+    "rigs/wings_admiral_kuznetsov_project1143_5.json": {
+      "bytes": 2929,
+      "sha256": "c2575c3422fce9698135a484a3b520d52f6b0264b254211157bf6498c2568db2"
+    },
+    "rigs/wings_aquitaine_fremm.json": {
+      "bytes": 2834,
+      "sha256": "4b3352b5cbf603485d19c6183240cdc1d2c4c1865504406a41b164c53ee7b128"
+    },
+    "rigs/wings_cb90_h.json": {
+      "bytes": 990,
+      "sha256": "3112559a3e8a14b8820edb2fc602519ca6f5e71a5b7b9589d07ed3611ab03757"
+    },
+    "rigs/wings_charles_de_gaulle_r91.json": {
+      "bytes": 1673,
+      "sha256": "9f4f134afdf8ea787ada46211f5d5a2ae55f00c2cb9361a46336bf834c2c63f3"
+    },
+    "rigs/wings_liaoning_type001.json": {
+      "bytes": 2899,
+      "sha256": "240de6de90fe61f4e2149ce220bf7e5a69861629c410011241d7434a6bbaa00d"
+    },
+    "rigs/wings_queen_elizabeth_class.json": {
+      "bytes": 2901,
+      "sha256": "fcfadc4268179e22773f72db6bde269b481f4241ba36563bd480ac2a6ebe1e0d"
+    },
+    "rigs/wings_type022_houbei.json": {
+      "bytes": 433,
+      "sha256": "b9f55b8bc74bec58a7eaa0ee527d7e17f2b4fcb165a52285788e6482fd7b337a"
+    },
+    "rigs/wings_type054a_jiangkai_ii.json": {
+      "bytes": 2840,
+      "sha256": "a3f226137359e40860bb02b68bd938ff19e63bf935e430b769a33dff964f887d"
+    },
+    "rigs/wings_type055_renhai.json": {
+      "bytes": 2813,
+      "sha256": "fcd1573ad4c715c75bbfacf782b6079ed2f18245b34eedff1047e384250ef239"
+    },
+    "rigs/wings_type45_daring_class.json": {
+      "bytes": 2832,
+      "sha256": "7f7d41fd3dc4183af1c6d8f71c9a587ba7fbccc2a0704a3d18cec239a0e839c6"
+    },
+    "rigs/yak-130.json": {
+      "bytes": 3801,
+      "sha256": "ec3689c1a0abd168035ef6fdd5bd83d77f5f573dbaa01f8ab2f8919709938503"
+    },
+    "roster_lookup.json": {
+      "bytes": 5020,
+      "sha256": "a978e74e918a6bf9013ef33f0fec43736a982e683c6f83c26c028b08558963a9"
+    },
+    "manifest.json": {
+      "bytes": 9806,
+      "sha256": null,
+      "self_reference": true,
+      "note": "Manifest lists itself; exact size is recorded, self-hash omitted to avoid a hash cycle."
+    }
+  },
+  "asset_file_counts": {
+    "base_glbs": 30,
+    "rig_configs": 30
+  },
+  "verification": "Each included non-manifest file has exact bytes and SHA256. No absent LOD/source/render/FX file references.",
+  "self_manifest": "manifest.json"
+}

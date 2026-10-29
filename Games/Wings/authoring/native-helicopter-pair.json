@@ -1,0 +1,760 @@
+{
+  "schema": "wings_native_helicopter_pair_v1",
+  "notice": "User-reported GPT originals and scoped use/repair permission, not independent rights verification. Qualified simplified exteriors, not official aircraft accuracy or mechanism certificates. Generic external four-Hellfire/two-rocket-pod arcade fit; Mi28N Hellfire is fictional compatibility. No gun, turret, wheel animation, exhaust or real cabin interior. Native gameplay/pixels/performance remain separate gates.",
+  "models": {
+    "ah64d": {
+      "source_model_id": "wings.original.ah-64d-apache.v1",
+      "source_sha256": "01965a9e0fd16e57483f6bbda7ffadb2299f773396bb3c3045351acee4ea0a59",
+      "file": "models/derived/wings_ah64d.glb",
+      "sha256": "c1ffe65d10b30145a35e2ebddc55f4e6e831b4aac6d01fc703a0d862a0d33dee",
+      "bounds": {
+        "min": [
+          -7.300685090165999,
+          -1.5,
+          -7.350685090911057
+        ],
+        "max": [
+          7.300685090165999,
+          3.6600000858306885,
+          10.106022989590777
+        ]
+      },
+      "cockpit": [
+        0,
+        1.438999992609024,
+        -1.8392499951925139
+      ],
+      "hardpoints": {
+        "missiles": [
+          [],
+          [
+            [
+              -1.7,
+              -0.5499999895691872,
+              -0.17500000000000004
+            ],
+            [
+              1.7,
+              -0.5499999895691872,
+              -0.17500000000000004
+            ],
+            [
+              -2.3,
+              -0.5499999895691872,
+              -0.17500000000000004
+            ],
+            [
+              2.3,
+              -0.5499999895691872,
+              -0.17500000000000004
+            ]
+          ]
+        ],
+        "rockets": [
+          [
+            -2,
+            -0.6,
+            -1.2
+          ],
+          [
+            2,
+            -0.6,
+            -1.2
+          ]
+        ]
+      },
+      "controls": [
+        {
+          "node": "main_rotor_spin",
+          "axis": "y",
+          "speed": -30,
+          "driver": "rotor"
+        },
+        {
+          "node": "tail_rotor_spin",
+          "axis": "x",
+          "speed": -70,
+          "driver": "rotor"
+        }
+      ],
+      "rotors": [
+        {
+          "node": "main_rotor_spin",
+          "axis": "y",
+          "speed": -30,
+          "driver": "rotor"
+        },
+        {
+          "node": "tail_rotor_spin",
+          "axis": "x",
+          "speed": -70,
+          "driver": "rotor"
+        }
+      ],
+      "native_pivots": [
+        "main_rotor_spin",
+        "tail_rotor_spin",
+        "hellfire_L1",
+        "hellfire_R1",
+        "hellfire_L2",
+        "hellfire_R2"
+      ],
+      "fixed_gear": [
+        "main_wheel_L",
+        "main_wheel_R",
+        "tailwheel"
+      ],
+      "exhausts": [],
+      "cameras": {
+        "cockpit_eye": [
+          0,
+          1.438999992609024,
+          -1.8392499951925139
+        ],
+        "qualification": "5mm behind actual rear cabin windscreen triangles, ahead of opaque shell; no actual interior."
+      },
+      "stores": [
+        {
+          "node": "hellfire_L1",
+          "launch_node": "hellfire_L1_launch",
+          "weapon": "hellfire",
+          "source_attachment_component": {
+            "primitive": 0,
+            "material": 0,
+            "position_accessor": 0,
+            "vertex_indices": [
+              1016,
+              1017,
+              1018,
+              1019,
+              1020,
+              1021,
+              1022,
+              1023,
+              1024,
+              1025,
+              1026,
+              1027,
+              1028,
+              1029,
+              1030,
+              1031,
+              1032,
+              1033,
+              1034,
+              1035,
+              1036,
+              1037,
+              1038,
+              1039
+            ],
+            "bounds": {
+              "min": [
+                -1.7549999952316284,
+                -0.44999998807907104,
+                0.4000000059604645
+              ],
+              "max": [
+                -1.6449999809265137,
+                -0.10000000149011612,
+                0.8500000238418579
+              ]
+            }
+          },
+          "position_root_m": [
+            -1.7,
+            -0.5499999895691872,
+            0.625
+          ],
+          "radius_m": 0.1,
+          "length_m": 1.6
+        },
+        {
+          "node": "hellfire_R1",
+          "launch_node": "hellfire_R1_launch",
+          "weapon": "hellfire",
+          "source_attachment_component": {
+            "primitive": 0,
+            "material": 0,
+            "position_accessor": 0,
+            "vertex_indices": [
+              1448,
+              1449,
+              1450,
+              1451,
+              1452,
+              1453,
+              1454,
+              1455,
+              1456,
+              1457,
+              1458,
+              1459,
+              1460,
+              1461,
+              1462,
+              1463,
+              1464,
+              1465,
+              1466,
+              1467,
+              1468,
+              1469,
+              1470,
+              1471
+            ],
+            "bounds": {
+              "min": [
+                1.6449999809265137,
+                -0.44999998807907104,
+                0.4000000059604645
+              ],
+              "max": [
+                1.7549999952316284,
+                -0.10000000149011612,
+                0.8500000238418579
+              ]
+            }
+          },
+          "position_root_m": [
+            1.7,
+            -0.5499999895691872,
+            0.625
+          ],
+          "radius_m": 0.1,
+          "length_m": 1.6
+        },
+        {
+          "node": "hellfire_L2",
+          "launch_node": "hellfire_L2_launch",
+          "weapon": "hellfire",
+          "source_attachment_component": {
+            "primitive": 0,
+            "material": 0,
+            "position_accessor": 0,
+            "vertex_indices": [
+              1040,
+              1041,
+              1042,
+              1043,
+              1044,
+              1045,
+              1046,
+              1047,
+              1048,
+              1049,
+              1050,
+              1051,
+              1052,
+              1053,
+              1054,
+              1055,
+              1056,
+              1057,
+              1058,
+              1059,
+              1060,
+              1061,
+              1062,
+              1063
+            ],
+            "bounds": {
+              "min": [
+                -2.3550000190734863,
+                -0.44999998807907104,
+                0.4000000059604645
+              ],
+              "max": [
+                -2.244999885559082,
+                -0.10000000149011612,
+                0.8500000238418579
+              ]
+            }
+          },
+          "position_root_m": [
+            -2.3,
+            -0.5499999895691872,
+            0.625
+          ],
+          "radius_m": 0.1,
+          "length_m": 1.6
+        },
+        {
+          "node": "hellfire_R2",
+          "launch_node": "hellfire_R2_launch",
+          "weapon": "hellfire",
+          "source_attachment_component": {
+            "primitive": 0,
+            "material": 0,
+            "position_accessor": 0,
+            "vertex_indices": [
+              1472,
+              1473,
+              1474,
+              1475,
+              1476,
+              1477,
+              1478,
+              1479,
+              1480,
+              1481,
+              1482,
+              1483,
+              1484,
+              1485,
+              1486,
+              1487,
+              1488,
+              1489,
+              1490,
+              1491,
+              1492,
+              1493,
+              1494,
+              1495
+            ],
+            "bounds": {
+              "min": [
+                2.244999885559082,
+                -0.44999998807907104,
+                0.4000000059604645
+              ],
+              "max": [
+                2.3550000190734863,
+                -0.10000000149011612,
+                0.8500000238418579
+              ]
+            }
+          },
+          "position_root_m": [
+            2.3,
+            -0.5499999895691872,
+            0.625
+          ],
+          "radius_m": 0.1,
+          "length_m": 1.6
+        },
+        {
+          "node": "rocket_pod_L",
+          "launch_node": "rocket_pod_L_launch",
+          "weapon": "rockets",
+          "wing_attachment_root_m": [
+            -2,
+            -0.11528145514103058,
+            0
+          ],
+          "position_root_m": [
+            -2,
+            -0.6,
+            -0.7
+          ],
+          "radius_m": 0.17,
+          "length_m": 1.0
+        },
+        {
+          "node": "rocket_pod_R",
+          "launch_node": "rocket_pod_R_launch",
+          "weapon": "rockets",
+          "wing_attachment_root_m": [
+            2,
+            -0.11528145514103058,
+            0
+          ],
+          "position_root_m": [
+            2,
+            -0.6,
+            -0.7
+          ],
+          "radius_m": 0.17,
+          "length_m": 1.0
+        }
+      ],
+      "stats": {
+        "bytes": 203936,
+        "triangles": 3900
+      },
+      "dimensions_m": [
+        14.601370180331998,
+        5.1600000858306885,
+        17.456708080501834
+      ]
+    },
+    "mi28n": {
+      "source_model_id": "wings.original.mi-28n.v1",
+      "source_sha256": "dc193d170b343ec1ca8075684b2eb5ec418b833ffbd8d1ae063be3d7ab7d0634",
+      "file": "models/derived/wings_mi28n.glb",
+      "sha256": "2f0e870a2ec6d74e4df9c01a3e13eb0278ccf33ac6e6e37ee64d927663640637",
+      "bounds": {
+        "min": [
+          -8.60058175741896,
+          -1.6200000047683716,
+          -7.940581731192916
+        ],
+        "max": [
+          8.60058175741896,
+          3.687406172177193,
+          10.774906248471138
+        ]
+      },
+      "cockpit": [
+        0,
+        1.8019999980926513,
+        -2.1335454901486384
+      ],
+      "hardpoints": {
+        "missiles": [
+          [],
+          [
+            [
+              -1.7,
+              -0.5499999895691872,
+              -0.17500000000000004
+            ],
+            [
+              1.7,
+              -0.5499999895691872,
+              -0.17500000000000004
+            ],
+            [
+              -2.3,
+              -0.5499999895691872,
+              -0.17500000000000004
+            ],
+            [
+              2.3,
+              -0.5499999895691872,
+              -0.17500000000000004
+            ]
+          ]
+        ],
+        "rockets": [
+          [
+            -2,
+            -0.6,
+            -1.2
+          ],
+          [
+            2,
+            -0.6,
+            -1.2
+          ]
+        ]
+      },
+      "controls": [
+        {
+          "node": "main_rotor_spin",
+          "axis": "y",
+          "speed": -30,
+          "driver": "rotor"
+        },
+        {
+          "node": "tail_rotor_spin",
+          "axis": "x",
+          "speed": -70,
+          "driver": "rotor"
+        }
+      ],
+      "rotors": [
+        {
+          "node": "main_rotor_spin",
+          "axis": "y",
+          "speed": -30,
+          "driver": "rotor"
+        },
+        {
+          "node": "tail_rotor_spin",
+          "axis": "x",
+          "speed": -70,
+          "driver": "rotor"
+        }
+      ],
+      "native_pivots": [
+        "main_rotor_spin",
+        "tail_rotor_spin",
+        "hellfire_L1",
+        "hellfire_R1",
+        "hellfire_L2",
+        "hellfire_R2"
+      ],
+      "fixed_gear": [
+        "main_wheel_L",
+        "main_wheel_R",
+        "tailwheel"
+      ],
+      "exhausts": [],
+      "cameras": {
+        "cockpit_eye": [
+          0,
+          1.8019999980926513,
+          -2.1335454901486384
+        ],
+        "qualification": "5mm behind actual rear cabin windscreen triangles, ahead of opaque shell; no actual interior."
+      },
+      "stores": [
+        {
+          "node": "hellfire_L1",
+          "launch_node": "hellfire_L1_launch",
+          "weapon": "hellfire",
+          "source_attachment_component": {
+            "primitive": 0,
+            "material": 0,
+            "position_accessor": 0,
+            "vertex_indices": [
+              1089,
+              1090,
+              1091,
+              1092,
+              1093,
+              1094,
+              1095,
+              1096,
+              1097,
+              1098,
+              1099,
+              1100,
+              1101,
+              1102,
+              1103,
+              1104,
+              1105,
+              1106,
+              1107,
+              1108,
+              1109,
+              1110,
+              1111,
+              1112
+            ],
+            "bounds": {
+              "min": [
+                -1.7549999952316284,
+                -0.44999998807907104,
+                0.4000000059604645
+              ],
+              "max": [
+                -1.6449999809265137,
+                -0.10000000149011612,
+                0.8500000238418579
+              ]
+            }
+          },
+          "position_root_m": [
+            -1.7,
+            -0.5499999895691872,
+            0.625
+          ],
+          "radius_m": 0.1,
+          "length_m": 1.6
+        },
+        {
+          "node": "hellfire_R1",
+          "launch_node": "hellfire_R1_launch",
+          "weapon": "hellfire",
+          "source_attachment_component": {
+            "primitive": 0,
+            "material": 0,
+            "position_accessor": 0,
+            "vertex_indices": [
+              1521,
+              1522,
+              1523,
+              1524,
+              1525,
+              1526,
+              1527,
+              1528,
+              1529,
+              1530,
+              1531,
+              1532,
+              1533,
+              1534,
+              1535,
+              1536,
+              1537,
+              1538,
+              1539,
+              1540,
+              1541,
+              1542,
+              1543,
+              1544
+            ],
+            "bounds": {
+              "min": [
+                1.6449999809265137,
+                -0.44999998807907104,
+                0.4000000059604645
+              ],
+              "max": [
+                1.7549999952316284,
+                -0.10000000149011612,
+                0.8500000238418579
+              ]
+            }
+          },
+          "position_root_m": [
+            1.7,
+            -0.5499999895691872,
+            0.625
+          ],
+          "radius_m": 0.1,
+          "length_m": 1.6
+        },
+        {
+          "node": "hellfire_L2",
+          "launch_node": "hellfire_L2_launch",
+          "weapon": "hellfire",
+          "source_attachment_component": {
+            "primitive": 0,
+            "material": 0,
+            "position_accessor": 0,
+            "vertex_indices": [
+              1113,
+              1114,
+              1115,
+              1116,
+              1117,
+              1118,
+              1119,
+              1120,
+              1121,
+              1122,
+              1123,
+              1124,
+              1125,
+              1126,
+              1127,
+              1128,
+              1129,
+              1130,
+              1131,
+              1132,
+              1133,
+              1134,
+              1135,
+              1136
+            ],
+            "bounds": {
+              "min": [
+                -2.3550000190734863,
+                -0.44999998807907104,
+                0.4000000059604645
+              ],
+              "max": [
+                -2.244999885559082,
+                -0.10000000149011612,
+                0.8500000238418579
+              ]
+            }
+          },
+          "position_root_m": [
+            -2.3,
+            -0.5499999895691872,
+            0.625
+          ],
+          "radius_m": 0.1,
+          "length_m": 1.6
+        },
+        {
+          "node": "hellfire_R2",
+          "launch_node": "hellfire_R2_launch",
+          "weapon": "hellfire",
+          "source_attachment_component": {
+            "primitive": 0,
+            "material": 0,
+            "position_accessor": 0,
+            "vertex_indices": [
+              1545,
+              1546,
+              1547,
+              1548,
+              1549,
+              1550,
+              1551,
+              1552,
+              1553,
+              1554,
+              1555,
+              1556,
+              1557,
+              1558,
+              1559,
+              1560,
+              1561,
+              1562,
+              1563,
+              1564,
+              1565,
+              1566,
+              1567,
+              1568
+            ],
+            "bounds": {
+              "min": [
+                2.244999885559082,
+                -0.44999998807907104,
+                0.4000000059604645
+              ],
+              "max": [
+                2.3550000190734863,
+                -0.10000000149011612,
+                0.8500000238418579
+              ]
+            }
+          },
+          "position_root_m": [
+            2.3,
+            -0.5499999895691872,
+            0.625
+          ],
+          "radius_m": 0.1,
+          "length_m": 1.6
+        },
+        {
+          "node": "rocket_pod_L",
+          "launch_node": "rocket_pod_L_launch",
+          "weapon": "rockets",
+          "wing_attachment_root_m": [
+            -2,
+            -0.12072594329275128,
+            0
+          ],
+          "position_root_m": [
+            -2,
+            -0.6,
+            -0.7
+          ],
+          "radius_m": 0.17,
+          "length_m": 1.0
+        },
+        {
+          "node": "rocket_pod_R",
+          "launch_node": "rocket_pod_R_launch",
+          "weapon": "rockets",
+          "wing_attachment_root_m": [
+            2,
+            -0.1207259432927513,
+            0
+          ],
+          "position_root_m": [
+            2,
+            -0.6,
+            -0.7
+          ],
+          "radius_m": 0.17,
+          "length_m": 1.0
+        }
+      ],
+      "stats": {
+        "bytes": 201000,
+        "triangles": 3608
+      },
+      "dimensions_m": [
+        17.20116351483792,
+        5.307406176945564,
+        18.715487979664054
+      ]
+    }
+  }
+}

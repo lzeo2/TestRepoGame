@@ -1,0 +1,57 @@
+{
+  "schema": "wings_ten_vessel_cpu_composition_v1",
+  "assetCheckpoint": "05dd7e6f",
+  "result": "PASS_CPU_ONLY",
+  "scope": "Four supplied unarmed noncapital AI objectives appended through the existing factory, loader, authority and safe client queries. No operational carrier capability.",
+  "coalitions": {
+    "nato": {"aircraft": 9, "vessels": ["type45", "aquitaine", "cb90", "cdg", "qe"], "capital": "type45"},
+    "eastern": {"aircraft": 8, "vessels": ["type054a", "type055", "type022", "liaoning", "kuz"], "capital": "type054a"}
+  },
+  "oldSixParity": {
+    "checkpoint": "87136b41",
+    "proof": "Executable historical factory: exact ordered first six units and descriptors, full old configuration after separately validating explicit arena expansion and appended J20 aircraft prefix. Legacy unnamed factory and older four/five-vessel fixtures retained.",
+    "oldArena": {"minX": -1800, "maxX": 2000, "minZ": 2600, "maxZ": 3200, "bottomY": -40, "cell": 20, "obstacles": []},
+    "namedArena": {"minX": -2350, "maxX": 2750, "minZ": 2500, "maxZ": 3300, "bottomY": -40, "cell": 20, "obstacles": []},
+    "oldWeaponsHpRoutesGeometryStatsUnchanged": true,
+    "capitalBars": 2
+  },
+  "newObjectives": [
+    {"id": "cdg", "name": "Charles de Gaulle", "source": "wings.original.wings_charles_de_gaulle_r91.v1", "propellers": 2, "deckTop": 18, "allYawRadius": 134.651829, "z": 2720},
+    {"id": "qe", "name": "Queen Elizabeth class", "source": "wings.original.wings_queen_elizabeth_class.v1", "propellers": 4, "deckTop": 20, "allYawRadius": 146.249786, "z": 3080},
+    {"id": "liaoning", "name": "Liaoning Type 001", "source": "wings.original.wings_liaoning_type001.v1", "propellers": 4, "deckTop": 18, "allYawRadius": 156.448274, "z": 2720},
+    {"id": "kuz", "name": "Admiral Kuznetsov Project 1143.5", "source": "wings.original.wings_admiral_kuznetsov_project1143_5.v1", "propellers": 4, "deckTop": 18, "allYawRadius": 156.448274, "z": 3080}
+  ],
+  "newObjectiveConfiguration": {
+    "ids": "home-/enemy- plus class key, four entries appended after the old six",
+    "homeRouteX": [-2100, -1900], "enemyRouteX": [2500, 2300], "y": 0,
+    "hp": 1000, "speed": 12,
+    "performanceQualification": "Generic arcade settings, not measured real-class performance",
+    "capital": false, "weapons": [], "sensor": null, "launchOrigins": [],
+    "noLaunchRecoveryRunwayAirwingPlayerSeatsOrInferredWeapons": true
+  },
+  "fleetCheck": {
+    "command": "node Games/Wings/authoring/fleet-roster-extension-check.mjs",
+    "exit": 0, "output": "7 ten-vessel extension groups passed",
+    "waterProbes": 1387136, "heightProbes": 55645, "separationProbes": 111072,
+    "poseProbes": 22200, "type022ActualMeshTunnelComponentRays": 40,
+    "frameSHA256": "f14923f96cfe350f1fec779327adf84da2f7b3ce331bd8242dc646a5caf3500e",
+    "geometryProof": "Actual ten hashed embedded GLBs and factor PBR; full continuous-swept descriptor all-yaw radii; 5m native water/seabed probes over route capsules and live bounds; analytic complete-route separation for every new hull against all old/new routes, independent of phase/yaw; moving and stopped prop channels and actual rig poses; component deck/island/static-ramp height and segment queries.",
+    "negativeProof": "All six unarmed hulls reject invented guns, vessel spawn/boarding/control; fitted hostile damage and friendly obstruction; individual noncapital sinks do not win; hidden fog contacts/events stay private; CB90 closed ramp and Type022 tunnel retained; ammo/TTL/expiry/caps/unsupported weapons/reset/disposal retained; ten-unit rig accepted and thirteen rejected."
+  },
+  "battles": [
+    {"coalition": "nato", "tick": 2774, "nativeTick": 8322, "seconds": 138.7, "winner": 1, "reason": "capitals", "fires": 288, "damageEvents": 275, "sinks": 1, "expired": 0, "oldArmedHpByClass": {"type45": 0, "aquitaine": 400, "type054a": 620, "type055": 230}, "firesByClass": {"type45": 41, "aquitaine": 81, "type054a": 102, "type055": 64, "cb90": 0, "type022": 0, "cdg": 0, "qe": 0, "liaoning": 0, "kuz": 0}},
+    {"coalition": "eastern", "tick": 2774, "nativeTick": 8322, "seconds": 138.7, "winner": 0, "reason": "capitals", "fires": 288, "damageEvents": 275, "sinks": 1, "expired": 0, "oldArmedHpByClass": {"type45": 0, "aquitaine": 400, "type054a": 620, "type055": 230}, "firesByClass": {"type45": 41, "aquitaine": 81, "type054a": 102, "type055": 64, "cb90": 0, "type022": 0, "cdg": 0, "qe": 0, "liaoning": 0, "kuz": 0}}
+  ],
+  "otherChecks": [
+    {"command": "node Games/Wings/authoring/local-session-check.mjs", "exit": 0, "output": "24 local/ordinary entity and FX groups passed; CPU loader/timer instrumentation, not native GPU/input acceptance", "coverage": "All17 genuine aircraft gun impacts and foreign-roster rejection, actual ten loaded models/safe HUD contacts, two capital bars, trusted/client component-height parity; old CB90 HP985.1499999999997 and Type022 HP986.4999999999998 retained"},
+    {"command": "node Games/Wings/authoring/faction-picker-check.mjs", "exit": 0, "output": "PASS actual picker/MenuNav; PASS actual HUD; PASS actual original coalition menu; PASS actual main write:false build (1 output file, 4719635 bytes in memory)", "coverage": "NATO9/Eastern8 displayed keys, ordinary24 with keys1-9 and arrows for remaining entries; truthful9/10 and8/10 aircraft,5/5 vessels"},
+    {"command": "python3 -B Games/Wings/verification/check-local-factions-browser.py --cpu-only", "exit": 0, "output": "PASS CPU spawn readiness: 30 Node fixtures; all10 lifecycle mock cases passed", "coverage": "Ten-hull readiness, stale six rejected, all startup/render/image/diagnostic/cleanup/coalition negatives retained; no actual browser/server"},
+    {"command": "node --check on five owned MJS files; Python compile in memory; catalog validation; tracked GLB comparison; git diff --check", "exit": 0, "output": "PASS5 authored JS syntax and Python memory compile; catalog129 unique IDs/schema/tracked URLs; all64 GLBs unchanged from05dd7e6f; whitespace clean"},
+    {"command": "python3 -B scripts/check_maintenance_docs.py", "exit": 1, "output": "AssertionError: Commit inspected source changes before validating its inventory.", "owner": "Parent owns manual/inventory reconciliation; foreign dirty paths were not staged"}
+  ],
+  "initialFailure": "First expanded fleet regression asserted four prop channels before the first authority tick, but tick0 correctly has zero channels. Fixture now requires zero at tick0 and exact2/4/4/4 thereafter, positive motion rates and zero endpoint rates. No simulation/geometry/safety guard changed.",
+  "unchangedAssets": {"glbs": 64, "extensionManifestModels": 8, "olderModels": 2, "fighterEntries": 17},
+  "holds": ["Native3D pixels", "Human input/flight", "Decoded texture rendering", "Listening", "Target-device performance", "Full aircraft roster", "Maps/weather/ASW", "Upstream rights", "Release/publication"],
+  "provenance": "User-reported GPT generation and scoped supplied-asset permission; not independently verified originality, manufacturer certification or clearance of upstream rights.",
+  "noBrowserInstallServerNewGamePushOrProviderChange": true
+}

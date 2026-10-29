@@ -40,7 +40,7 @@ import { abs, dot, float, mix, modelViewMatrix, normalLocal, normalView, normali
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js"
 import { mergeGeometries, toCreasedNormals } from "three/addons/utils/BufferGeometryUtils.js"
 import type { PlayerInfo, Quality, SeatIndex, TeamId, VehicleEntity, VehicleKind } from "../sim/types"
-import { VEHICLES, WEAPONS } from "../sim/vehicles"
+import { NATIVE_BOMBER_MODELS, NATIVE_FIGHTER_MODELS, NATIVE_HELICOPTER_MODELS, VEHICLES, WEAPONS, type NativeFighterKind, type NativeHelicopterKind } from "../sim/vehicles"
 import { groundHeight } from "../sim/geography"
 import { SUN_DIRECTION } from "./world/settings"
 import { STORM } from "./world/atmosphere"
@@ -66,7 +66,7 @@ export interface AircraftView {
   setBoost(on: boolean | null): void
   /**
    * Named attachment points that follow the model (world transforms valid after update()).
-   * Always present: "gun" (primary gun muzzle). Others per kind, e.g. "afterburner_L", "exhaust_L",
+   * When fitted: "gun" (primary gun muzzle). Others per kind, e.g. "afterburner_L", "exhaust_L",
    * "turret_chin_barrel", "targeting_pod_head", "flares_L", "rocket_pod_L".
    */
   anchors: Map<string, Object3D>
@@ -153,6 +153,8 @@ interface KindConfig {
   ballPod?: { name: string; seat: SeatIndex; maxUp: number }
   rollPod?: { name: string; seat: SeatIndex }
   rudders?: { names: string[]; gain: number; max: number }
+  controls?: (typeof NATIVE_FIGHTER_MODELS.f16c.controls)
+  sourcePbr?: boolean
   /** Hinged doors: explicit weapon triggers, or either slot of `seat` when unspecified. */
   doors?: { names: [string, number][]; axis: Axis; seat: SeatIndex; weapons?: [SeatIndex, number][] }
   anchors: AnchorDef[]
@@ -161,7 +163,88 @@ interface KindConfig {
   shadow: [number, number]
 }
 
+function nativeFighterConfig(kind: NativeFighterKind): KindConfig {
+  const m = NATIVE_FIGHTER_MODELS[kind]
+  const span = m.bounds.max[0] - m.bounds.min[0]
+  const length = m.bounds.max[2] - m.bounds.min[2]
+  return {
+    file: m.file.replace(/^models\//, "").replace(/\.glb$/, ""),
+    pivots: m.native_pivots,
+    stores: [
+      { weapons: [[0, 1]], order: ["missile_L2", "missile_R2"] },
+      { weapons: [[1, 0]], order: ["missile_L1", "missile_R1"] },
+    ],
+    spinners: [],
+    afterburners: m.afterburning === false ? [] : m.exhausts.map(e => ({ name: e.node, axis: "z", cone: { dir: "z", sign: 1, length: length * 0.1 } })),
+    controls: m.controls,
+    sourcePbr: true,
+    anchors: [
+      { key: "gun", node: "gun_muzzle" },
+      ...m.exhausts.map(e => ({ key: e.anchor, node: e.anchor })),
+      ...["missile_L2", "missile_R2", "missile_L1", "missile_R1"].map(node => ({ key: node, node: `${node}_launch` })),
+    ],
+    placeholder: { length, span, heli: false }, shadow: [span, length],
+  }
+}
+
+function nativeBomberConfig(): KindConfig {
+  const m = NATIVE_BOMBER_MODELS.tu160
+  const span = m.bounds.max[0] - m.bounds.min[0], length = m.bounds.max[2] - m.bounds.min[2]
+  const bombs = m.hardpoints.bombs.map((_, i) => `bomb_${i + 1}`)
+  return {
+    file: m.file.replace(/^models\//, "").replace(/\.glb$/, ""),
+    pivots: m.native_pivots,
+    // Both seats share this runtime. Counting the officer once avoids a fictitious 16-bomb load.
+    stores: [{ weapons: [[1, 0]], order: bombs }],
+    spinners: [], afterburners: [], controls: m.controls, sourcePbr: true,
+    anchors: [
+      ...m.exhausts.map(e => ({ key: e.anchor, node: e.anchor })),
+      ...bombs.map(node => ({ key: node, node: `${node}_release` })),
+    ],
+    placeholder: { length, span, heli: false }, shadow: [span, length],
+  }
+}
+
+function nativeHelicopterConfig(kind: NativeHelicopterKind): KindConfig {
+  const m = NATIVE_HELICOPTER_MODELS[kind]
+  const span = m.bounds.max[0] - m.bounds.min[0]
+  const length = m.bounds.max[2] - m.bounds.min[2]
+  const stores = ["hellfire_L1", "hellfire_R1", "hellfire_L2", "hellfire_R2"]
+  return {
+    file: m.file.replace(/^models\//, "").replace(/\.glb$/, ""),
+    pivots: m.native_pivots,
+    stores: [{ weapons: [[1, 0]], order: stores }],
+    spinners: m.rotors.map(r => ({ name: r.node, axis: r.axis, speed: r.speed, driver: r.driver })),
+    afterburners: [],
+    sourcePbr: true,
+    anchors: [
+      ...stores.map(node => ({ key: node, node: `${node}_launch` })),
+      ...["rocket_pod_L", "rocket_pod_R"].map(node => ({ key: node, node: `${node}_launch` })),
+      // No gun or steerable optic in the supplied rig; camera uses its body-relative fallback.
+    ],
+    placeholder: { length, span, heli: true }, shadow: [span, length],
+  }
+}
+
 export const CONFIG: Record<VehicleKind, KindConfig> = {
+  tu160: nativeBomberConfig(),
+  f16c: nativeFighterConfig("f16c"),
+  mig29: nativeFighterConfig("mig29"),
+  typhoon: nativeFighterConfig("typhoon"),
+  su35s: nativeFighterConfig("su35s"),
+  rafale: nativeFighterConfig("rafale"),
+  jf17: nativeFighterConfig("jf17"),
+  gripen: nativeFighterConfig("gripen"),
+  mig31: nativeFighterConfig("mig31"),
+  mirage2000: nativeFighterConfig("mirage2000"),
+  su34: nativeFighterConfig("su34"),
+  fa50: nativeFighterConfig("fa50"),
+  yak130: nativeFighterConfig("yak130"),
+  hawkt2: nativeFighterConfig("hawkt2"),
+  su25sm: nativeFighterConfig("su25sm"),
+  a10c: nativeFighterConfig("a10c"),
+  f35a: nativeFighterConfig("f35a"),
+  j20: nativeFighterConfig("j20"),
   f15: {
     file: "f15",
     pivots: ["missile_L1", "missile_R1", "missile_L2", "missile_R2", "afterburner_L", "afterburner_R"],
@@ -319,6 +402,8 @@ export const CONFIG: Record<VehicleKind, KindConfig> = {
     placeholder: { length: 21, span: 52, heli: false },
     shadow: [52, 21],
   },
+  ah64d: nativeHelicopterConfig("ah64d"),
+  mi28n: nativeHelicopterConfig("mi28n"),
 }
 
 // ---------------------------------------------------------------------------------------------------------
@@ -619,19 +704,33 @@ function buildTemplate(kind: VehicleKind, scene: Object3D): Template {
     const [rough, metal] = factors
     const key =
       role === "toon" || role === "glass"
-        ? `${role}:${color.r},${color.g},${color.b}:${rough}:${metal}:${src.opacity}`
+        ? cfg.sourcePbr ? `${role}:${src.uuid}` : `${role}:${color.r},${color.g},${color.b}:${rough}:${metal}:${src.opacity}`
         : role === "livery" || role === "nav"
           ? role
           : `${role}:${hex(emissive)}`
     let bucket = buckets.get(key)
     if (!bucket) {
-      const shared: Material | null = null
+      let shared: Material | null = null
+      if (cfg.sourcePbr && (role === "toon" || role === "glass")) {
+        // Keep supplied factors, UV maps and alpha behavior within the existing template pipeline.
+        const mat = createPaintMaterial({ color, roughness: src.roughness, metalness: src.metalness, wet: 0, weathering: false })
+        for (const key of ["map", "roughnessMap", "metalnessMap", "normalMap", "aoMap", "emissiveMap", "alphaMap", "opacity", "transparent", "alphaTest", "side", "depthWrite", "emissiveIntensity", "aoMapIntensity"] as const) {
+          Object.assign(mat, { [key]: src[key] })
+        }
+        mat.normalScale.copy(src.normalScale)
+        mat.emissive.copy(src.emissive)
+        shared = mat
+      }
       const glowColor = isGlow ? softGlow(role, emissive.clone().lerp(color, 0.25)) : color.clone()
       bucket = { role, shared, glowColor, geoms: [], names: [], srcColor: color.clone(), key, metal: metal >= 0.4, factors, opacity: src.opacity }
       buckets.set(key, bucket)
     }
-    const g = prepGeometry(mesh.geometry, toRoot(mesh), bone, role === "toon" || role === "livery" || role === "glass")
-    if (role === "toon" || role === "livery") {
+    const g = prepGeometry(mesh.geometry, toRoot(mesh), bone, !cfg.sourcePbr && (role === "toon" || role === "livery" || role === "glass"))
+    if (cfg.sourcePbr && (role === "toon" || role === "glass")) {
+      const uv = mesh.geometry.getAttribute("uv")
+      g.setAttribute("uv", uv ? uv.clone() : new Float32BufferAttribute(new Float32Array(g.getAttribute("position").count * 2), 2))
+    }
+    if (!cfg.sourcePbr && (role === "toon" || role === "livery")) {
       // Surface attributes only: positions, normals, indices and rigid skinning remain unchanged.
       const pos = g.getAttribute("position"), normal = g.getAttribute("normal")
       const values = new Float32Array(pos.count * 3)
@@ -662,7 +761,7 @@ function buildTemplate(kind: VehicleKind, scene: Object3D): Template {
   const metal: Bucket = { role: "toon", shared: bodyMaterial(true), glowColor: new Color(1, 1, 1), geoms: [], names: [], srcColor: new Color(1, 1, 1), key: "metal", metal: true }
   const kindMatch = (kinds?: VehicleKind[]) => !kinds || kinds.includes(kind)
   for (const [key, b] of [...buckets]) {
-    if (b.role !== "toon") continue
+    if (b.role !== "toon" || (cfg.sourcePbr && b.shared)) continue
     const override = COLOR_OVERRIDES.find(([re, , kinds]) => kindMatch(kinds) && b.names.some((n) => re.test(n)))?.[1]
     const isTop = b.names.some((n) => TOP_PAINT.test(n))
     const target = b.metal && !isTop ? metal : paint
@@ -693,7 +792,7 @@ function buildTemplate(kind: VehicleKind, scene: Object3D): Template {
   if (metal.geoms.length) buckets.set("metal", metal)
 
   for (const b of buckets.values()) {
-    if (b.role !== "glass") continue
+    if (b.role !== "glass" || b.shared) continue
     let shared = paintCache.get(b.key) ?? null
     if (!shared) {
       shared = createGlassMaterial({ color: b.srcColor, roughness: b.factors![0], metalness: b.factors![1], opacity: b.opacity })
@@ -1503,6 +1602,14 @@ export function createAircraftView(kind: VehicleKind, team: TeamId, quality: Qua
             const bi = boneAt(r, n)
             if (bi >= 0) setBoneAxis(r, bi, d.axis, ang * r.doors * r.doors * (3 - 2 * r.doors))
           }
+        }
+        for (const c of cfg.controls ?? []) {
+          const bi = boneAt(r, c.node)
+          if (bi < 0) continue
+          const rate = f.angularVelocity[c.driver === "pitch" ? 0 : c.driver === "yaw" ? 1 : 2]
+          const target = clamp(rate * c.gain + (c.pitch_gain ?? 0) * f.angularVelocity[0], -c.max_rad, c.max_rad)
+          r.spinAngles[bi] = approach(r.spinAngles[bi], target, 10, dt)
+          setBoneAxis(r, bi, c.axis, r.spinAngles[bi])
         }
         if (cfg.rudders) {
           const target = clamp(f.angularVelocity[1] * cfg.rudders.gain, -cfg.rudders.max, cfg.rudders.max)

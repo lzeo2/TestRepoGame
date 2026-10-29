@@ -7,6 +7,7 @@ import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { createRetainedHostBridge } from './retained-host-bridge.mjs';
 import { applyRetainedHostWiring, HOST_FILES } from './retained-host-wiring.mjs';
+import { applyNativeShipCollisionWiring } from './native-ship-collision-wiring.mjs';
 import { installRetainedHostLoader, retainedRoot } from './retained-host-loader.mjs';
 import { createLocalFleetConfig } from './local-host-scenario.mjs';
 
@@ -24,14 +25,27 @@ await check('hash-pinned actual source application rejects drift/repeat and fore
     const source = execFileSync('git', ['show', `66aa582b:Games/Wings/source/games/wings/${path}`],
       { cwd: repo, encoding: 'utf8' });
     const patched = applyRetainedHostWiring(path, source);
-    const expected = path === 'src/sim/combat.ts' ? patched.replace(
+    let expected = path === 'src/sim/combat.ts' ? patched.replace(
       '  stepFleetAA(cs, vehicles, dt, now, events)',
       '  // Local fleet objectives own combat; native ships remain passive launch platforms.\n' +
       '  if (!cs.hostFleet) stepFleetAA(cs, vehicles, dt, now, events)') :
       path === 'src/sim/room-engine.ts' ? patched.replace('setFleetState(this.matchTime(), this.config.teams)',
         'setFleetState(this.matchTime(), this.config.teams, !!this.hooks.hostBridge)') : patched;
+    if (path === 'src/sim/combat.ts') {
+      const beforeCollision = expected;
+      expected = applyNativeShipCollisionWiring(beforeCollision);
+      assert.throws(() => applyNativeShipCollisionWiring(`${beforeCollision}\n// drift`));
+      assert.throws(() => applyNativeShipCollisionWiring(expected));
+      for (const invalid of [null, undefined, {}, Buffer.from(beforeCollision)])
+        assert.throws(() => applyNativeShipCollisionWiring(invalid));
+    }
+    if (path === 'src/sim/room-engine.ts') {
+      assert(patched.includes('this.combat.ships, this.combat.projectiles, !!this.combat.hostFleet,'));
+      assert(patched.includes('this.combat.hostFleet ? this.combat.hostFleet.botTargets?.(v.team) ?? [] : undefined)'));
+      assert(!source.includes('this.combat.projectiles, !!this.combat.hostFleet)'));
+    }
     assert.equal(readFileSync(new URL(path, retainedRoot), 'utf8'), expected,
-      'actual source must equal the artifact plus reviewed AA suppression and passive launch-platform filtering');
+      'actual source must equal pinned artifacts, reviewed per-room bot AA context, AA suppression and passive launch-platform filtering');
     assert.notEqual(patched, source);
     assert.throws(() => applyRetainedHostWiring(path, `${source}\n// drift`));
     assert.throws(() => applyRetainedHostWiring(path, patched));

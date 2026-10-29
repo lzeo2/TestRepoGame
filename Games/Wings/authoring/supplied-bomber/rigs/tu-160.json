@@ -1,0 +1,151 @@
+{
+  "model_id": "wings.original.tu-160.v1",
+  "model_file": "models/tu-160.glb",
+  "unit": "meter",
+  "axes": {
+    "up": "+Y",
+    "forward": "+Z",
+    "right": "+X"
+  },
+  "controls": [
+    {
+      "node": "wing_sweep_L",
+      "parent": "vehicle_root",
+      "pivot_world_m": [
+        -6.0,
+        0.10000000149011612,
+        -0.15000000596046448
+      ],
+      "suggested_local_rotation_axis": [
+        0,
+        1,
+        0
+      ],
+      "purpose": "variable-sweep visual wing pivot; intermediate default pose; no operational schedule",
+      "rest_node_transform": {
+        "translation": [
+          -6,
+          0.10000000149011612,
+          -0.15000000596046448
+        ],
+        "rotation": [
+          0,
+          -0.1736481636762619,
+          0,
+          0.9848077893257141
+        ]
+      },
+      "influenced_mesh_nodes": [
+        "wing_sweep_L"
+      ]
+    },
+    {
+      "node": "tailplane_L",
+      "parent": "vehicle_root",
+      "pivot_world_m": [
+        -1.2999999523162842,
+        1.4500000476837158,
+        -22.0
+      ],
+      "suggested_local_rotation_axis": [
+        1,
+        0,
+        0
+      ],
+      "purpose": "visual all-moving tailplane",
+      "rest_node_transform": {
+        "translation": [
+          -1.2999999523162842,
+          1.4500000476837158,
+          -22
+        ]
+      },
+      "influenced_mesh_nodes": [
+        "tailplane_L"
+      ]
+    },
+    {
+      "node": "wing_sweep_R",
+      "parent": "vehicle_root",
+      "pivot_world_m": [
+        6.0,
+        0.10000000149011612,
+        -0.15000000596046448
+      ],
+      "suggested_local_rotation_axis": [
+        0,
+        1,
+        0
+      ],
+      "purpose": "variable-sweep visual wing pivot; intermediate default pose; no operational schedule",
+      "rest_node_transform": {
+        "translation": [
+          6,
+          0.10000000149011612,
+          -0.15000000596046448
+        ],
+        "rotation": [
+          0,
+          0.1736481636762619,
+          0,
+          0.9848077893257141
+        ]
+      },
+      "influenced_mesh_nodes": [
+        "wing_sweep_R"
+      ]
+    },
+    {
+      "node": "tailplane_R",
+      "parent": "vehicle_root",
+      "pivot_world_m": [
+        1.2999999523162842,
+        1.4500000476837158,
+        -22.0
+      ],
+      "suggested_local_rotation_axis": [
+        1,
+        0,
+        0
+      ],
+      "purpose": "visual all-moving tailplane",
+      "rest_node_transform": {
+        "translation": [
+          1.2999999523162842,
+          1.4500000476837158,
+          -22
+        ]
+      },
+      "influenced_mesh_nodes": [
+        "tailplane_R"
+      ]
+    },
+    {
+      "node": "rudder_center",
+      "parent": "vehicle_root",
+      "pivot_world_m": [
+        0.0,
+        1.0,
+        -26.079999923706055
+      ],
+      "suggested_local_rotation_axis": [
+        0,
+        1,
+        0
+      ],
+      "purpose": "visual rudder hinge",
+      "rest_node_transform": {
+        "translation": [
+          0,
+          1,
+          -26.079999923706055
+        ]
+      },
+      "influenced_mesh_nodes": [
+        "rudder_center"
+      ]
+    }
+  ],
+  "animations_included": [],
+  "integration_note": "Direct rigid-node transform suggestions only. Preserve rest transforms and hierarchy. No constraints, physics, mechanical limit guarantee or gameplay behavior."
+}

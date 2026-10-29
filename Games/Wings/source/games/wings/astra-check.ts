@@ -12,11 +12,41 @@ import { syncAircraftInput } from './src/ui/aircraft-input'
 import { TICK_DT, type VehicleKind, type Vec3, type VehicleEntity, type GameEvent, type SeatInput } from './src/sim/types'
 import { muzzlePosition, isHiddenStealth, stepCombat, createCombatState, createWeapons, applySeatInput } from './src/sim/combat'
 import { createFlightState } from './src/sim/flight'
-import { VEHICLES, VEHICLE_KINDS, WEAPONS } from './src/sim/vehicles'
+import { VEHICLES, VEHICLE_KINDS, WEAPONS, NATIVE_HELICOPTER_MODELS } from './src/sim/vehicles'
 import { DEFAULT_ROOM_CONFIG, type ServerMessage } from './src/sim/protocol'
+import { installModelFixture } from './node-model-fixture'
 
 const models = resolve(process.argv[2] ?? 'Games/Wings/models')
-assert.deepEqual(VEHICLE_KINDS, ['fighter', 'apache', 'warthog', 'blackbird', 'bomber', 'f15', 'f35'])
+assert.deepEqual(VEHICLE_KINDS, ['fighter', 'apache', 'warthog', 'blackbird', 'bomber', 'f15', 'f35', 'f16c', 'mig29', 'typhoon', 'su35s', 'rafale', 'jf17', 'gripen', 'mig31', 'mirage2000', 'su34', 'fa50', 'yak130', 'hawkt2', 'su25sm', 'a10c', 'f35a', 'j20', 'tu160', 'ah64d', 'mi28n'])
+assert.deepEqual(VEHICLES.f16c.seatWeapons, [['cannon20','aim9'],['maverick',null]])
+assert.deepEqual(VEHICLES.mig29.seatWeapons, [['cannon20','aim9'],['aim9',null]])
+assert.deepEqual(VEHICLES.typhoon.seatWeapons, [['cannon20','aim9'],['tvmissile',null]])
+assert.deepEqual(VEHICLES.su35s.seatWeapons, [['cannon20','tvmissile'],['maverick',null]])
+assert.deepEqual(VEHICLES.rafale.seatWeapons, [['cannon20','aim9'],['maverick',null]])
+assert.deepEqual(VEHICLES.jf17.seatWeapons, [['cannon20','aim9'],['maverick',null]])
+assert.deepEqual(VEHICLES.gripen.seatWeapons, [['cannon20','aim9'],['maverick',null]])
+assert.deepEqual(VEHICLES.mig31.seatWeapons, [['cannon20','aim9'],['tvmissile',null]])
+assert.deepEqual(VEHICLES.mirage2000.seatWeapons, [['cannon20','aim9'],['tvmissile',null]])
+assert.deepEqual(VEHICLES.su34.seatWeapons, [['cannon20','aim9'],['maverick',null]])
+assert.deepEqual(VEHICLES.fa50.seatWeapons, [['cannon20','aim9'],['tvmissile',null]])
+assert.deepEqual(VEHICLES.yak130.seatWeapons, [['cannon20','aim9'],['maverick',null]])
+assert.deepEqual(VEHICLES.hawkt2.seatWeapons, [['cannon20','aim9'],['maverick',null]])
+assert.deepEqual(VEHICLES.su25sm.seatWeapons, [['cannon20','aim9'],['maverick',null]])
+assert.deepEqual(VEHICLES.a10c.seatWeapons, [['gau8','aim9'],['maverick',null]])
+assert.deepEqual(VEHICLES.f35a.seatWeapons, [['cannon20','aim9'],['tvmissile',null]])
+assert.equal(VEHICLES.f35a.stealth, undefined, 'supplied F35A does not inherit original F35 stealth')
+assert.deepEqual(VEHICLES.j20.seatWeapons, [['cannon20','tvmissile'],['maverick',null]])
+assert.equal(VEHICLES.j20.stealth, undefined, 'supplied J20 has no stealth gameplay claim')
+assert.deepEqual(VEHICLES.tu160.seatWeapons, [['bomb',null],['bomb',null]])
+assert.equal(VEHICLES.tu160.stealth, undefined, 'Tu160 arcade bomber has no stealth claim')
+for (const [kind, slug] of [['ah64d', 'ah-64d-apache'], ['mi28n', 'mi-28n']] as const) {
+  assert.equal(NATIVE_HELICOPTER_MODELS[kind].source_model_id, `wings.original.${slug}.v1`)
+  assert.equal(VEHICLES[kind].flight, 'heli')
+  assert.deepEqual(VEHICLES[kind].seatWeapons, [['rockets', null], ['hellfire', null]])
+  assert.equal(VEHICLES[kind].hardpoints?.rockets?.length, 2)
+  assert.equal(VEHICLES[kind].hardpoints?.missiles?.[1].length, 4)
+  assert.equal(VEHICLES[kind].hardpoints?.gun, undefined)
+}
 assert.deepEqual(VEHICLE_KINDS.slice(0, 5).map(k => [VEHICLES[k].cruise, VEHICLES[k].boost]), [[135,185],[75,98],[105,135],[190,260],[150,180]])
 assert.deepEqual(VEHICLE_KINDS.slice(0, 5).map(k => VEHICLES[k].seatWeapons), [
   [['cannon20','aim9'],['tvmissile',null]], [['rockets',null],['chaingun30','hellfire']],
@@ -157,27 +187,8 @@ for (const [index, kind] of (['f15', 'f35'] as const).entries()) {
 assert.notEqual(results[0].speed, results[1].speed)
 assert.notEqual(results[0].pitchQuaternionX, results[1].pitchQuaternionX)
 console.log(JSON.stringify(results))
-// Node-only local-fetch adapter: actual exported loader/template/view, no GPU or network.
-// Relative loader URLs become a reserved local origin, then only existing model files are read.
-const NativeRequest = globalThis.Request
-const nativeFetch = globalThis.fetch
-const nativeProgressEvent = globalThis.ProgressEvent
-class LocalRequest extends NativeRequest {
-  constructor(input: any, init?: any) {
-    super(typeof input === 'string' ? new URL(input, 'http://wings.invalid').href : input, init)
-  }
-}
-globalThis.Request = LocalRequest
-globalThis.ProgressEvent = class extends Event {
-  constructor(type: string, init: any) { super(type); Object.assign(this, init) }
-} as any
-globalThis.fetch = async (input: any) => {
-  const url = new URL(typeof input === 'string' ? input : input.url)
-  assert.equal(url.origin, 'http://wings.invalid')
-  assert(/^\/models\/[a-z0-9-]+\.glb$/.test(url.pathname), url.pathname)
-  const bytes = readFileSync(resolve(models, url.pathname.split('/').pop()!))
-  return new Response(bytes, { headers: { 'Content-Length': String(bytes.length) } })
-}
+// Real GLBs with a bounded Node PNG-metadata fixture, not GPU/texel evidence.
+const restoreModels = installModelFixture(models)
 const converted = []
 const combatFixtures: unknown[] = []
 // Construct deterministic high-altitude combat entities, not native-game state grants.
@@ -193,6 +204,9 @@ function combatEntity(kind: VehicleKind, id: string, team: 0 | 1, position: Vec3
   }
 }
 try {
+  for (const url of ['https://example.invalid/models/fa18.glb', '../AGENTS.md', '/models/unregistered.glb'])
+    await assert.rejects(() => fetch(url), 'fixture must reject foreign origins and unregistered paths')
+  await assert.rejects(() => createImageBitmap(new Blob([new Uint8Array(24)])), 'fixture must reject non-PNG images')
   // Identical sequential cold-template fixture, selectable references only. Single samples,
   // including file read, GLTF parse, conversion, view setup and event-loop wait, not GPU timing.
   for (const kind of ['fighter', 'blackbird', 'f15', 'f35'] as const) {
@@ -489,9 +503,7 @@ try {
   await preloadAircraft('http://wings.invalid/')
   assert(VEHICLE_KINDS.every(aircraftReady))
 } finally {
-  globalThis.Request = NativeRequest
-  globalThis.fetch = nativeFetch
-  globalThis.ProgressEvent = nativeProgressEvent
+  restoreModels()
 }
 console.log(JSON.stringify({ converted }))
 console.log('CPU COMBAT FIXTURES (not native acceptance): ' + JSON.stringify(combatFixtures))

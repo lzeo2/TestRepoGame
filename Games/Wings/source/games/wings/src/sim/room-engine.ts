@@ -16,12 +16,14 @@ import {
 import type { CombatState } from "./combat"
 import { carrierOf, deckVelocity, posedFleet, posedShip, setFleetState, setShipStates, spawnPoint, worldQuery as baseWorldQuery } from "./geography"
 import { FLEET, SHIP_SPECS, SPAWN_PROTECTION, shipToWorld, worldToShip } from "./fleet"
+import { withFleetSurface } from "./fleet-world-query"
 import { botInput, chooseBotVehicle, createBotBrain } from "./bots"
 import type { BotBrain } from "./bots"
 
 export interface RoomEngineHooks {
   /** Optional local original bridge, never a client message or remote transport. */
   hostBridge?: {
+    aircraftRoster(room: RoomEngine, team: TeamId): readonly VehicleKind[]
     beforeStep(room: RoomEngine): void
     afterStep(room: RoomEngine): { winner: 0 | 1 | null; reason: string } | null
     allow(room: RoomEngine, playerId: string, message: ClientMessage): boolean
@@ -462,16 +464,21 @@ export class RoomEngine {
     for (const p of this.players.values()) {
       const bot = p.info
       if (!bot.bot || p.leaving || bot.vehicleId || now < bot.respawnAt) continue
+      const allowedKinds = this.hooks.hostBridge?.aircraftRoster(this, bot.team)
       const ride = this.vehicles.find(v => {
-        if (!v.alive || v.team !== bot.team || v.seats[1] || !v.seats[0]) return false
+        if (!v.alive || v.team !== bot.team || v.seats[1] || !v.seats[0] || (allowedKinds && !allowedKinds.includes(v.kind))) return false
         const pilot = this.players.get(v.seats[0])
         return !!pilot && !pilot.info.bot && now - this.meta.get(v.id)!.gunnerEmptySince >= BOT_GUNNER_DELAY
       })
       if (ride) { this.seatPlayer(bot, ride, 1); continue }
       const teammates: PlayerInfo[] = []
       for (const x of this.players.values()) if (x.info.team === bot.team && x.info.id !== bot.id) teammates.push(x.info)
-      let kind = chooseBotVehicle(bot, teammates, this.vehicles, this.rng)
-      if (!VEHICLES[kind]) kind = VEHICLE_KINDS[Math.floor(this.rng() * VEHICLE_KINDS.length)]
+      let kind = chooseBotVehicle(bot, teammates, this.vehicles, this.rng, allowedKinds)
+      if (!kind) continue
+      if (!VEHICLES[kind]) {
+        if (allowedKinds !== undefined) continue
+        kind = VEHICLE_KINDS[Math.floor(this.rng() * VEHICLE_KINDS.length)]
+      }
       this.spawnVehicle(bot, kind)
     }
   }
@@ -487,7 +494,10 @@ export class RoomEngine {
   handle(playerId: string, message: ClientMessage): void {
     const p = this.players.get(playerId)
     if (!p || p.info.bot || !message || typeof message !== "object") return
-    if (this.hooks.hostBridge && !this.hooks.hostBridge.allow(this, playerId, message)) return
+    if (this.hooks.hostBridge && !this.hooks.hostBridge.allow(this, playerId, message)) {
+      if (message.type === "spawn") this.error(playerId, "Aircraft unavailable for this faction.")
+      return
+    }
     const m = message as unknown as Record<string, unknown>
     switch (m.type) {
       case "ping":
@@ -655,6 +665,8 @@ export class RoomEngine {
 
   private onSpawn(p: PlayerState, kind: unknown): void {
     if (typeof kind !== "string" || !(VEHICLE_KINDS as string[]).includes(kind)) return this.error(p.info.id, "Unknown aircraft kind.")
+    if (this.hooks.hostBridge && !this.hooks.hostBridge.aircraftRoster(this, p.info.team).includes(kind as VehicleKind))
+      return this.error(p.info.id, "Aircraft unavailable for this faction.")
     if (this.matchEndedAt !== null) return this.error(p.info.id, "Match over — next round starting soon.")
     if (this.time < p.info.respawnAt) return this.error(p.info.id, "Respawn not ready.")
     const current = this.vehicleOf(p.info)
@@ -717,6 +729,8 @@ export class RoomEngine {
 
   /** Create a vehicle at the team's base with `player` in the pilot seat. */
   spawnVehicle(player: PlayerInfo, kind: VehicleKind): VehicleEntity {
+    if (this.hooks.hostBridge && (!VEHICLE_KINDS.includes(kind) || !this.hooks.hostBridge.aircraftRoster(this, player.team).includes(kind)))
+      throw new TypeError("Aircraft unavailable for this faction")
     // Spawns (and respawns) always use the carrier's current pose.
     this.syncFleet()
     const team = player.team
@@ -855,6 +869,7 @@ export class RoomEngine {
     const now = this.time
     const events = this.events
     const vehicles = this.vehicles
+    const flightWorld = withFleetSurface(worldQuery, this.combat.hostFleet?.surfaceHeightAt)
 
     // One buffered input per player per tick (matches client prediction).
     for (const p of this.players.values()) {
@@ -869,7 +884,8 @@ export class RoomEngine {
         const id = v.seats[i]
         const p = id ? this.players.get(id) : undefined
         if (!p || !p.brain) continue
-        const out = botInput(p.brain, p.info, v, vehicles, now, this.combat.missiles, worldQuery, this.combat.ships, this.combat.projectiles)
+        const out = botInput(p.brain, p.info, v, vehicles, now, this.combat.missiles, flightWorld, this.combat.ships, this.combat.projectiles, !!this.combat.hostFleet,
+          this.combat.hostFleet ? this.combat.hostFleet.botTargets?.(v.team) ?? [] : undefined)
         // botInput reuses its result objects per brain: copy what we keep.
         p.seat = { ...out.seat, aim: out.seat.aim && [out.seat.aim[0], out.seat.aim[1], out.seat.aim[2]] }
         if (i === 0) p.flight = out.flight ? { ...out.flight, aim: out.flight.aim && [out.flight.aim[0], out.flight.aim[1], out.flight.aim[2]] } : NEUTRAL_INPUT
@@ -881,7 +897,7 @@ export class RoomEngine {
     for (const v of vehicles) {
       if (!v.alive) continue
       const pilot = v.seats[0] ? this.players.get(v.seats[0]) : undefined
-      stepFlight(v.flight, pilot ? pilot.flight : NEUTRAL_INPUT, TICK_DT, worldQuery)
+      stepFlight(v.flight, pilot ? pilot.flight : NEUTRAL_INPUT, TICK_DT, flightWorld)
       for (let i = 0; i < 2; i++) {
         const s = i as SeatIndex
         const id = v.seats[s]

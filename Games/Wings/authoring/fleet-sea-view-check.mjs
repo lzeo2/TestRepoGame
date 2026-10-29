@@ -169,4 +169,23 @@ check('only own resources disposed once, all attempted after throwing listeners,
   assert.throws(()=>view.update(snapshot(1)),/disposed/);assert.throws(()=>view.reset(),/disposed/);
   assert.equal(JSON.stringify(models),original);
 });
+check('host no-water/no-impacts keeps depth testing, owns only foam texture and cleans failed attachment',()=>{
+  const view=make({water:false,impacts:false,quality:'high'});
+  assert(!view.root.getObjectByName('fleet-sea-water'));assert(!view.root.getObjectByName('fleet-sea-splashes'));
+  const foam=view.root.getObjectByName('fleet-sea-foam');assert(foam.material.depthTest);assert.equal(foam.material.depthWrite,false);
+  view.update(snapshot(0));view.update(snapshot(20,[unit({position:[0,0,-10],hp:20})],[impact(1)]));
+  assert.deepEqual(view.stats().counts,{foam:7,splashes:0,smoke:3,fire:1});
+  let textures=0;view.root.traverse(node=>{for(const value of Object.values(node.material??{}))if(value?.isTexture)textures++;});
+  assert.equal(textures,1);view.dispose();
+  for(const water of [false,true]) {
+    const tracked=new Map(),injected={...T};
+    for(const key of ['DataTexture','PlaneGeometry','BufferGeometry','CylinderGeometry','IcosahedronGeometry','ConeGeometry','MeshStandardMaterial','InstancedMesh']) {
+      injected[key]=class extends T[key] {constructor(...args){super(...args);tracked.set(this,0);this.addEventListener('dispose',()=>tracked.set(this,tracked.get(this)+1));}};
+    }
+    const parent=new T.Group(),error=new Error('failed parent attachment');
+    parent.add=function(root){T.Group.prototype.add.call(this,root);throw error;};
+    assert.throws(()=>createSeaView(injected,{parent,models,water,impacts:water,quality:'high'}),e=>e===error);
+    assert.equal(parent.children.length,0);assert(tracked.size>5);for(const count of tracked.values())assert.equal(count,1);
+  }
+});
 console.log(`PASS ${groups} original sea-view CPU groups; no native/GPU/photorealism/performance acceptance`);

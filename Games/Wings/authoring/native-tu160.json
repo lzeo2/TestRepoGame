@@ -1,0 +1,156 @@
+{
+  "schema": "wings_native_tu160_v1",
+  "archive_sha256": "4e37a104ba356790f6f9a0632c99d34b77dc023649e3cab830d895ec55c471d8",
+  "models": {
+    "tu160": {
+      "source_model_id": "wings.original.tu-160.v1",
+      "source_sha256": "705f494bc379b7371c7acd0dde80f18e5002874cc7b498ff27a684b1509f6b0e",
+      "file": "models/derived/wings_tu160.glb",
+      "sha256": "83cfe2e45141d6917520d89b6aa579dbecf5756518cdbed1151a280f4718e791",
+      "bounds": {
+        "min": [
+          -24.736678660970533,
+          -3.031769275665283,
+          -27.049999237060547
+        ],
+        "max": [
+          24.736678660970533,
+          9.199999809265137,
+          27.049999237060547
+        ]
+      },
+      "cockpit": [
+        -0.6299999728798866,
+        1.7418197560122688,
+        -16.480000305175782
+      ],
+      "hardpoints": {
+        "bombs": [
+          [
+            -1.1,
+            -2.2499809377723308,
+            -6
+          ],
+          [
+            1.1,
+            -2.2499809377723308,
+            -6
+          ],
+          [
+            -1.1,
+            -2.3191136316224767,
+            -2
+          ],
+          [
+            1.1,
+            -2.3191136316224767,
+            -2
+          ],
+          [
+            -1.1,
+            -2.2467064349865775,
+            2
+          ],
+          [
+            1.1,
+            -2.2467064349865775,
+            2
+          ],
+          [
+            -1.1,
+            -2.169528149921944,
+            6
+          ],
+          [
+            1.1,
+            -2.169528149921944,
+            6
+          ]
+        ]
+      },
+      "controls": [
+        {
+          "node": "tailplane_L",
+          "axis": "x",
+          "driver": "pitch",
+          "gain": -1,
+          "max_rad": 0.22
+        },
+        {
+          "node": "tailplane_R",
+          "axis": "x",
+          "driver": "pitch",
+          "gain": -1,
+          "max_rad": 0.22
+        },
+        {
+          "node": "rudder_center",
+          "axis": "y",
+          "driver": "yaw",
+          "gain": -1,
+          "max_rad": 0.28
+        }
+      ],
+      "exhausts": [
+        {
+          "node": "exhaust_core_1",
+          "anchor": "exhaust_anchor_1",
+          "position": [
+            -4.769999980926514,
+            -1.4000000655651093,
+            13.758
+          ]
+        },
+        {
+          "node": "exhaust_core_2",
+          "anchor": "exhaust_anchor_2",
+          "position": [
+            -3.2300000190734863,
+            -1.4000000655651093,
+            13.758
+          ]
+        },
+        {
+          "node": "exhaust_core_3",
+          "anchor": "exhaust_anchor_3",
+          "position": [
+            3.2300000190734863,
+            -1.4000000655651093,
+            13.758
+          ]
+        },
+        {
+          "node": "exhaust_core_4",
+          "anchor": "exhaust_anchor_4",
+          "position": [
+            4.769999980926514,
+            -1.4000000655651093,
+            13.758
+          ]
+        }
+      ],
+      "afterburning": false,
+      "frozen_nodes": [
+        "wing_sweep_L",
+        "wing_sweep_R"
+      ],
+      "native_pivots": [
+        "tailplane_L",
+        "tailplane_R",
+        "rudder_center",
+        "bomb_1",
+        "bomb_2",
+        "bomb_3",
+        "bomb_4",
+        "bomb_5",
+        "bomb_6",
+        "bomb_7",
+        "bomb_8",
+        "exhaust_core_1",
+        "exhaust_core_2",
+        "exhaust_core_3",
+        "exhaust_core_4"
+      ]
+    }
+  }
+}

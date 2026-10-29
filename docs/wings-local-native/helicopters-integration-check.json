@@ -1,0 +1,279 @@
+{
+  "runtime_source": "5b3065df9ba0aa4fffd237094ce6cea2c436a668",
+  "base": "70f8fab8",
+  "commits": {
+    "ai_bombing": [
+      "d159acb2",
+      "9216a12f"
+    ],
+    "failed_candidate_evidence": [
+      "a721305b",
+      "0c344b1c"
+    ],
+    "assets": "37d885bb",
+    "independent_clearance": "3ea48c9e",
+    "native": "ee8c6c59",
+    "asset_coexistence": "dbc94695",
+    "original_ui_sessions": "3144e12f",
+    "atomic_host_roster_binding": "ed563114",
+    "generated_roster_guard": "5b3065df"
+  },
+  "scope": "Completed local source registration of all20 genuine supplied aircraft and10 vessel objectives, ordinary27. Actual native engine/GLTF/physics/combat/UI-protocol CPU evidence, not responsive rendering, physical human input, listening, publication, real aircraft accuracy or full delivery acceptance.",
+  "models": {
+    "ah64d": {
+      "source_model_id": "wings.original.ah-64d-apache.v1",
+      "source_sha256": "01965a9e0fd16e57483f6bbda7ffadb2299f773396bb3c3045351acee4ea0a59",
+      "derived_file": "models/derived/wings_ah64d.glb",
+      "derived_sha256": "c1ffe65d10b30145a35e2ebddc55f4e6e831b4aac6d01fc703a0d862a0d33dee",
+      "bytes": 203936,
+      "triangles": 3900,
+      "stabilizers_forward_m": 0.8760229895907763,
+      "main_lift_m": 0.0,
+      "continuous_clearance": {
+        "static_triangle_checks": 74888,
+        "source_joint_triangle_checks": 180,
+        "independent_rotor_component_pairs": 117,
+        "store_component_checks": 351,
+        "method": "Independent annular cylinders, axial triangle clipping and exact projected radial bounds for all angles; disjoint rotor envelope boxes for independent phases. Only source coaxial mast/main hub mating is exempt."
+      }
+    },
+    "mi28n": {
+      "source_model_id": "wings.original.mi-28n.v1",
+      "source_sha256": "dc193d170b343ec1ca8075684b2eb5ec418b833ffbd8d1ae063be3d7ab7d0634",
+      "derived_file": "models/derived/wings_mi28n.glb",
+      "derived_sha256": "2f0e870a2ec6d74e4df9c01a3e13eb0278ccf33ac6e6e37ee64d927663640637",
+      "bytes": 201000,
+      "triangles": 3608,
+      "stabilizers_forward_m": 0.8449054855316849,
+      "main_lift_m": 0.6674061912506796,
+      "continuous_clearance": {
+        "static_triangle_checks": 76800,
+        "source_joint_triangle_checks": 96,
+        "independent_rotor_component_pairs": 144,
+        "store_component_checks": 339,
+        "method": "Independent annular cylinders, axial triangle clipping and exact projected radial bounds for all angles; disjoint rotor envelope boxes for independent phases. Only source coaxial mast/main hub mating is exempt."
+      }
+    }
+  },
+  "parent_checks": {
+    "retained-host-bridge-check": {
+      "exit": 0,
+      "pass_lines": [
+        "PASS hash-pinned actual source application rejects drift/repeat and foreign paths",
+        "PASS bounded static native bot guard rejects invalid counts, fill, teams and later reconfiguration",
+        "PASS two native bots per faction spawn authoritative aircraft and fire authenticated rounds into fleet",
+        "PASS fixture uses legal native open sea, all three actual TS hooks executed",
+        "PASS real buffered input owns cannon magazine/cooldown and damages fleet hull",
+        "PASS accepted real cannon round survives launcher death with original attribution",
+        "PASS accepted real cannon round survives launcher disconnect with original attribution",
+        "PASS real round provenance rejects copies, mutation, invalid initial ownership and stale reset callbacks",
+        "PASS ten seconds of actual sustained cannon fire stays within replay bounds",
+        "PASS friendly FC hull consumes real rounds without friendly/enemy damage",
+        "PASS nearer actual native aircraft intercepts fire before FC hull",
+        "PASS real handle enforces faction roster, immutable team, turret and boarding boundaries",
+        "PASS pause stops host ticks, accumulator, FC clock and ammo; resume advances once",
+        "PASS real cannon victory uses native 15-second restart and fresh CombatState binding",
+        "PASS close disposes bridge exactly once; ordinary no-bridge loopback stays native",
+        "PASS 116 current source/UI/bundle/patch files byte-unchanged by check"
+      ],
+      "log_sha256": "7e2e1d9f8f71084fca1a615194da25f2724c2e2717a572fede7bf35ff6caa208"
+    },
+    "native-helicopter-pair-check": {
+      "exit": 0,
+      "pass_lines": [
+        "PASS all68 old GLBs, fighter/fleet/Tu160 metadata, 13 random receipts and declared Rafale/Yak receipt byte-exact",
+        "PASS old25 exact specs/rig/camera/audio tables, Apache HELI/HELI_DIRECT, 3000 changed-path flight ticks and all weapon/seat/negative-index muzzle parity",
+        "PASS all27 finite positive armor and actual incoming native damage",
+        "PASS old25 real audio parameter parity; both reuse existing finite rotor graph and disposal, no burner voice",
+        "PASS all25 old actual GLB bone rest/spin/gun/ammo poses against pinned source",
+        "PASS ah64d: {\"drawCalls\":6,\"triangles\":3900,\"outlineTriangles\":0,\"bones\":7,\"materials\":6,\"sourceNodes\":42,\"sourceMeshes\":25,\"sourceMaterials\":6}; actual PBR/rotor geometry, rotated rails/cockpit, four Hellfire lock/fire/stores/refill, Hydra ammo/ballistics, pause/death/seat/reset",
+        "PASS ah64d: ordinary native direct/aim hover, climb, yaw, strafe, pitch, neutral/hover-hold, no jet stall",
+        "PASS mi28n: {\"drawCalls\":6,\"triangles\":3608,\"outlineTriangles\":0,\"bones\":7,\"materials\":6,\"sourceNodes\":42,\"sourceMeshes\":25,\"sourceMaterials\":6}; actual PBR/rotor geometry, rotated rails/cockpit, four Hellfire lock/fire/stores/refill, Hydra ammo/ballistics, pause/death/seat/reset",
+        "PASS mi28n: ordinary native direct/aim hover, climb, yaw, strafe, pitch, neutral/hover-hold, no jet stall",
+        "PASS actual main/aircraft preview write:false compilation; CPU only, native pixels/listening/performance remain HOLD",
+        "PASS ah64d: actual RoomEngine original spawn/input/seat/fire/leave protocol with explicit protection fixture",
+        "PASS mi28n: actual RoomEngine original spawn/input/seat/fire/leave protocol with explicit protection fixture",
+        "PASS declared nato normal native aft births/vertical takeoff: [{\"kind\":\"ah64d\",\"team\":0,\"carrier\":\"t0-carrier\",\"start\":[-81.42439724509107,21.9,2913.31479032618],\"local\":[-26.999999999999712,21.9,92],\"airborne\":1111,\"climb\":78.14143288940204},{\"kind\":\"mi28n\",\"team\":1,\"carrier\":\"t1-carrier\",\"start\":[67.38975268785934,21.9,-2913.67321799008],\"local\":[-26.99999999999983,21.9,92],\"airborne\":1042,\"climb\":74.45776223005421},{\"kind\":\"mi28n\",\"team\":1,\"carrier\":\"t1-carrier2\",\"start\":[180.8347770419852,21.9,-3434.7826399078263],\"local\":[-26.999999999999822,21.9,91.99999999999999],\"airborne\":1033,\"climb\":73.93746878129289},{\"kind\":\"ah64d\",\"team\":0,\"carrier\":\"t0-carrier2\",\"start\":[-178.6766039069891,21.9,3434.8955837428693],\"local\":[-26.999999999999815,21.9,92.00000000000001],\"airborne\":1024,\"climb\":73.46589633555101}]",
+        "PASS declared eastern normal native aft births/vertical takeoff: [{\"kind\":\"mi28n\",\"team\":0,\"carrier\":\"t0-carrier\",\"start\":[-84.67854962648754,21.9,2913.222020930288],\"local\":[-27.000000000000263,21.9,92],\"airborne\":1127,\"climb\":87.17865201210896},{\"kind\":\"mi28n\",\"team\":0,\"carrier\":\"t0-carrier2\",\"start\":[-196.6591436934926,21.9,3433.9129548085143],\"local\":[-27.00000000000026,21.9,92],\"airborne\":1099,\"climb\":82.12277073613103},{\"kind\":\"ah64d\",\"team\":1,\"carrier\":\"t1-carrier\",\"start\":[74.30559032318962,21.9,-2913.5050504927435],\"local\":[-26.999999999999897,21.9,92],\"airborne\":1076,\"climb\":76.53593891111441},{\"kind\":\"ah64d\",\"team\":1,\"carrier\":\"t1-carrier2\",\"start\":[180.1153938872132,21.9,-3434.8204385214744],\"local\":[-26.99999999999993,21.9,92],\"airborne\":1030,\"climb\":73.8169610580585}]",
+        "PASS ah64d: accepted actual native Hydra 38->37, single measured fitted impact 1000->904; disclosed CPU pose fixture",
+        "PASS mi28n: accepted actual native Hydra 38->37, single measured fitted impact 1000->904; disclosed CPU pose fixture"
+      ],
+      "log_sha256": "4f9d336871dbd469121f8fcdc1a3b111327d21eadfe646b89546449e2b97ad63"
+    },
+    "native-factions-ai-bombs-check": {
+      "exit": 0,
+      "pass_lines": [
+        "PASS executable 70f8fab8 ordinary parity: 1200 inputs, exact old25 prefix/both seats/AA modes, brain and RNG exact",
+        "PASS bomber/0: release/radius edge, missing/invalid radius, empty/friendly/removed/far, ammo/cooldown",
+        "PASS bomber/1: release/radius edge, missing/invalid radius, empty/friendly/removed/far, ammo/cooldown",
+        "PASS tu160/0: release/radius edge, missing/invalid radius, empty/friendly/removed/far, ammo/cooldown",
+        "PASS tu160/1: release/radius edge, missing/invalid radius, empty/friendly/removed/far, ammo/cooldown",
+        "PASS bomber/0 actual botInput -> applySeatInput -> RoomEngine stepCombat: ammo 8->7, moving fitted HP 1000->0 (declared CPU pose/protection fixture)",
+        "PASS bomber/1 actual botInput -> applySeatInput -> RoomEngine stepCombat: ammo 8->7, moving fitted HP 1000->0 (declared CPU pose/protection fixture)",
+        "PASS tu160/0 actual botInput -> applySeatInput -> RoomEngine stepCombat: ammo 8->7, moving fitted HP 1000->0 (declared CPU pose/protection fixture)",
+        "PASS tu160/1 actual botInput -> applySeatInput -> RoomEngine stepCombat: ammo 8->7, moving fitted HP 1000->0 (declared CPU pose/protection fixture)",
+        "PASS eight rotated Tu160 model-origin predictions; producer privacy/reset/dead/no-model in retained-fleet-targets-check; direct/near authority in native-factions-bombs-check",
+        "native-factions-ai-bombs-check: CPU fixtures only; natural/native AI bombing unverified"
+      ],
+      "log_sha256": "0cae0e5e10775653d9a206efb4e9573074114488a89d67c28324da58d9142909"
+    },
+    "native-factions-bombs-check": {
+      "exit": 0,
+      "pass_lines": [
+        "PASS accepted B-2 vertical bomb uses native 2700 damage once",
+        "PASS accepted B-2 oblique bomb uses native 2700 damage once",
+        "PASS native water near fitted hull uses analytic component distance once and keeps aircraft/FX policy",
+        "PASS accepted B-2 first-step water near-miss authenticates and blasts at the same age (CPU pose fixture)",
+        "PASS near-miss provenance, first-blast authentication, pause, expiry, round and friendly guards",
+        "PASS authenticated near-miss survives launcher death",
+        "PASS authenticated near-miss survives launcher disconnect",
+        "PASS native spawn protection and first-segment live occupied owner/team/roster guards",
+        "PASS production 1000 HP takes native 2700 hit; same-binding target cache clears on kill",
+        "PASS enemy hull consumes bomb; actual native aircraft blast once",
+        "PASS friendly hull consumes bomb; actual native aircraft blast once",
+        "PASS empty first bomb segments authenticate before launcher death",
+        "PASS empty first bomb segments authenticate before launcher disconnect",
+        "PASS copies/mutated provenance, strict native tie, pause and stale reset reject",
+        "PASS fitted island gaps and actual native ground before hull reject accepted bomb",
+        "PASS actual native steering uses bound measured hull ray without damage; absent callback keeps legacy",
+        "PASS accepted expired bomb never queries or damages hull",
+        "PASS no-hook and real-hook misses retain identical native water",
+        "PASS no-hook and real-hook misses retain identical native terrain crater",
+        "PASS no-hook and real-hook misses retain identical native legacy carrier direct",
+        "PASS no-hook and real-hook misses retain identical native legacy carrier near-miss",
+        "PASS actual main.ts write:false compile (1918061 bytes)",
+        "native-factions-bombs-check: 21 actual-source CPU groups PASS; native pixels/natural bombing/bot bombing unverified; fitted near-miss CPU fixtures only; measured steering binding exercised"
+      ],
+      "log_sha256": "d7a0a785ec40b91fa992f413004cb6de5e7f85df207231665fc06adca342e016"
+    },
+    "faction-picker-check": {
+      "exit": 0,
+      "pass_lines": [
+        "PASS actual picker/MenuNav: dynamic distinct rosters, quick keys, crew filters, empty/invalid closed, stale thumbnails, fixed-team guns blocked, actual NATO10/Eastern10 rows with supplied helicopter identities, ordinary27 (1-9 shortcuts, arrows/Enter and selected previews through row27), readonly escaped names",
+        "PASS actual HUD: scoreboard/capital HTML escaping, end-result text, invalid/absent fallback, ordinary global names/colors unchanged",
+        "PASS actual original coalition menu selects both named profiles, truthful 10/10 aircraft + 5/5 objective counts and original hangar dispatch",
+        "PASS actual main write:false build (1 output file, 4758505 bytes in memory); native visual acceptance OPEN"
+      ],
+      "log_sha256": "8c27790794e9e933cde79fa2d5b96d254250848148928c4f0931bf8fc51233b2"
+    },
+    "session": {
+      "exit": 0,
+      "pass_lines": [
+        "PASS real FX pools consume authority fire/impact/sink and tracers once; stale events/reset/leave checked (CPU fixture)",
+        "PASS actual ordinary bot snapshot -> converted GLB view: ready/visible/pose/scale/bounds/body materials (CPU, not pixels)",
+        "PASS ordinary Play with bots serializes actual allied/enemy aircraft and ships; Solo remains empty",
+        "PASS actual Factions four native AI identities/brains and allied/enemy snapshots -> reused aircraft views (CPU, not pixels)",
+        "PASS actual local session/player/authority/rig/HUD data: ammo 589, enemy HP 989.1999999999998",
+        "PASS actual local pause/resume and idempotent leave release all fleet scene roots",
+        "PASS actual local automatic capital outcome/15s reset reuses the view without snapshot-rewind faults",
+        "PASS named nato/f16c: genuine opposing aircraft/vessels, original native bot brains/models, roster rejection and accepted new-kind cannon impacts (declared CPU approach fixture)",
+        "PASS named nato/typhoon: genuine opposing aircraft/vessels, original native bot brains/models, roster rejection and accepted new-kind cannon impacts (declared CPU approach fixture)",
+        "PASS named nato/rafale: genuine opposing aircraft/vessels, original native bot brains/models, roster rejection and accepted new-kind cannon impacts (declared CPU approach fixture)",
+        "PASS named nato/gripen: genuine opposing aircraft/vessels, original native bot brains/models, roster rejection and accepted new-kind cannon impacts (declared CPU approach fixture)",
+        "PASS named nato/mirage2000: genuine opposing aircraft/vessels, original native bot brains/models, roster rejection and accepted new-kind cannon impacts (declared CPU approach fixture)",
+        "PASS declared native cannon -> Type022: 1000->986.4999999999998",
+        "PASS named nato/fa50: genuine opposing aircraft/vessels, original native bot brains/models, roster rejection and accepted new-kind cannon impacts (declared CPU approach fixture)",
+        "PASS named nato/hawkt2: genuine opposing aircraft/vessels, original native bot brains/models, roster rejection and accepted new-kind cannon impacts (declared CPU approach fixture)",
+        "PASS named nato/a10c: genuine opposing aircraft/vessels, original native bot brains/models, roster rejection and accepted new-kind cannon impacts (declared CPU approach fixture)",
+        "PASS named nato/f35a: genuine opposing aircraft/vessels, original native bot brains/models, roster rejection and accepted new-kind cannon impacts (declared CPU approach fixture)",
+        "PASS named nato/ah64d: legal supplied identity, foreign rejection, ready cloned/private view; single safe approach/protection fixture Hydra38->37, officer4 unchanged, fitted capitalHP1000->904, consumed projectile",
+        "PASS named eastern/mig29: genuine opposing aircraft/vessels, original native bot brains/models, roster rejection and accepted new-kind cannon impacts (declared CPU approach fixture)",
+        "PASS named eastern/su35s: genuine opposing aircraft/vessels, original native bot brains/models, roster rejection and accepted new-kind cannon impacts (declared CPU approach fixture)",
+        "PASS named eastern/jf17: genuine opposing aircraft/vessels, original native bot brains/models, roster rejection and accepted new-kind cannon impacts (declared CPU approach fixture)",
+        "PASS declared clear-lane native cannon -> CB90: 1000->985.1499999999997",
+        "PASS named eastern/mig31: genuine opposing aircraft/vessels, original native bot brains/models, roster rejection and accepted new-kind cannon impacts (declared CPU approach fixture)",
+        "PASS named eastern/su34: genuine opposing aircraft/vessels, original native bot brains/models, roster rejection and accepted new-kind cannon impacts (declared CPU approach fixture)",
+        "PASS named eastern/yak130: genuine opposing aircraft/vessels, original native bot brains/models, roster rejection and accepted new-kind cannon impacts (declared CPU approach fixture)",
+        "PASS named eastern/su25sm: genuine opposing aircraft/vessels, original native bot brains/models, roster rejection and accepted new-kind cannon impacts (declared CPU approach fixture)",
+        "PASS named eastern/j20: genuine opposing aircraft/vessels, original native bot brains/models, roster rejection and accepted new-kind cannon impacts (declared CPU approach fixture)",
+        "PASS named eastern/tu160: declared model-origin bomb, shared ammo8->7, capitalHP1000->0; not natural bombing",
+        "PASS named eastern/mi28n: legal supplied identity, foreign rejection, ready cloned/private view; single safe approach/protection fixture Hydra38->37, officer4 unchanged, fitted capitalHP1000->904, consumed projectile",
+        "27 local/ordinary entity and FX groups passed (7 base + 20 named; 17 cannon, 1 bomb, 2 Hydra); CPU loader/timer instrumentation, not native GPU/input acceptance"
+      ],
+      "log_sha256": "d55733be8dbff0f8d33033ac5808a77be54936080d4bc77c7f22259b1cf4a1c8"
+    },
+    "geometry": {
+      "exit": 0,
+      "pass_lines": [
+        "PASS analytic math: convex radial minimum, degenerate projection, axial clipping, annuli, edge/interior crossings, nonjoint rejection",
+        "PASS historical reproduction: immutable fin-only diagnostic record, never rewritten as acceptance",
+        "PASS ah64d prescribed geometry: original accessors/UV/PNG/topology/blade counts retained; 2 actual boom attachments; tail shift=-0.876022815704m",
+        "PASS ah64d continuous360: 68024 component/triangle bounds; 180 narrow source coaxial shaft/hub joint triangle checks; 117 rotor-envelope pairs separated. Not native acceptance.",
+        "PASS mi28n prescribed geometry: original accessors/UV/PNG/topology/blade counts retained; 2 actual boom attachments; tail shift=-0.844905376434m",
+        "PASS immutable fin-only regression: AH64D clear, Mi28N blocked; two actual independent-phase contacts reproduced",
+        "PASS immutable: all68 older GLBs, Tu160,17 fighter/8 fleet entries, all historical receipts, raw rigs/blocked record/quarantined candidate exact",
+        "PASS independent literal authentication: complete current manifest/2GLBs/new record, SHA+size+no symlinks; historical failed record separate",
+        "PASS ah64d stores: 351 exact source-body/wheel/store volume separations, including pylon tangency; no EPS/exemptions",
+        "PASS ah64d anchors/glass placement ONLY: 4 Hellfire +2 pod real tip/child origins; 20424 all-static body/wheel/store ray tests; 132 full-turn annulus ray proofs; eye=[0.0, 1.438999992609024, -1.8392499951925139], real side-panel/windscreen hits, 5mm glass gap, no opaque surface ahead; old eye negative has 4 blockers. Qualified near-glass camera, NOT cabin containment/pilot-eye/native visibility acceptance.",
+        "PASS ah64d continuous360: 74888 component/triangle bounds, 180 unchanged narrow shaft/hub mating checks, 117 independent-phase rotor envelope pairs exactly separated; 2 connected original stabilizers. ALL static body/gear/added-store components, both rotors; EPS=3e-06.",
+        "PASS mi28n stores: 339 exact source-body/wheel/store volume separations, including pylon tangency; no EPS/exemptions",
+        "PASS Mi28N physical correction: total main lift=0.667406191251m = tail full swept TOP+.02-original blade MIN; same mast fixed bottom/coherent hub. Geometry correction, NOT mechanical certification.",
+        "PASS Mi28N exact independent-phase blade/tail vertical separation: 0.02m for ALL angles, not sampled poses",
+        "PASS mi28n anchors/glass placement ONLY: 4 Hellfire +2 pod real tip/child origins; 18432 all-static body/wheel/store ray tests; 150 full-turn annulus ray proofs; eye=[0.0, 1.8019999980926513, -2.1335454901486384], real side-panel/windscreen hits, 5mm glass gap, no opaque surface ahead; old eye negative has 4 blockers. Qualified near-glass camera, NOT cabin containment/pilot-eye/native visibility acceptance.",
+        "PASS mi28n continuous360: 76800 component/triangle bounds, 96 unchanged narrow shaft/hub mating checks, 144 independent-phase rotor envelope pairs exactly separated; 2 connected original stabilizers. ALL static body/gear/added-store components, both rotors; EPS=3e-06.",
+        "PASS new writer: 3 exact-approved positives (existing default/--check, absent exclusive write); 117 pre-mkdir/open negatives: corrupt manifest/GLBs/record including absent/same-size, foreign/nonbytes/symlink/disk/oversize/partial sets; --check writes zero",
+        "PASS intake: pinned archive SHA/size, 65 safe paths/CRC/member hashes; two exact GLBs/rigs and blocker record reproduce; no supplied code executed",
+        "PASS ah64d intake integrity: 172724B/3588tri; original geometry/UV/PNG/PBR and fixed wheel/source rig bytes preserved",
+        "PASS mi28n intake integrity: 169772B/3296tri; original geometry/UV/PNG/PBR and fixed wheel/source rig bytes preserved",
+        "PASS immutable: 64 old GLBs, all 17 fighter descriptor/repair entries, 8 fleet entries, 13 random receipts and declared Rafale/Yak receipt exact to literal 1a1f674d pins; no runtime git",
+        "PASS fail-closed writer: actual default exit1 without mkdir/write; 97 corrupt/foreign/retained/symlink/size/disk cases refused before mkdir/write",
+        "PASS independent literal authentication: complete current manifest/2GLBs/new record, SHA+size+no symlinks; historical failed record separate",
+        "PASS ah64d stores: 351 exact source-body/wheel/store volume separations, including pylon tangency; no EPS/exemptions",
+        "PASS ah64d anchors/glass placement ONLY: 4 Hellfire +2 pod real tip/child origins; 20424 all-static body/wheel/store ray tests; 132 full-turn annulus ray proofs; eye=[0.0, 1.438999992609024, -1.8392499951925139], real side-panel/windscreen hits, 5mm glass gap, no opaque surface ahead; old eye negative has 4 blockers. Qualified near-glass camera, NOT cabin containment/pilot-eye/native visibility acceptance.",
+        "PASS ah64d continuous360: 74888 component/triangle bounds, 180 unchanged narrow shaft/hub mating checks, 117 independent-phase rotor envelope pairs exactly separated; 2 connected original stabilizers. ALL static body/gear/added-store components, both rotors; EPS=3e-06.",
+        "PASS mi28n stores: 339 exact source-body/wheel/store volume separations, including pylon tangency; no EPS/exemptions",
+        "PASS Mi28N physical correction: total main lift=0.667406191251m = tail full swept TOP+.02-original blade MIN; same mast fixed bottom/coherent hub. Geometry correction, NOT mechanical certification.",
+        "PASS Mi28N exact independent-phase blade/tail vertical separation: 0.02m for ALL angles, not sampled poses",
+        "PASS mi28n anchors/glass placement ONLY: 4 Hellfire +2 pod real tip/child origins; 18432 all-static body/wheel/store ray tests; 150 full-turn annulus ray proofs; eye=[0.0, 1.8019999980926513, -2.1335454901486384], real side-panel/windscreen hits, 5mm glass gap, no opaque surface ahead; old eye negative has 4 blockers. Qualified near-glass camera, NOT cabin containment/pilot-eye/native visibility acceptance.",
+        "PASS mi28n continuous360: 76800 component/triangle bounds, 96 unchanged narrow shaft/hub mating checks, 144 independent-phase rotor envelope pairs exactly separated; 2 connected original stabilizers. ALL static body/gear/added-store components, both rotors; EPS=3e-06.",
+        "PASS coexistence: 6 partial/foreign sets rejected; exact authenticated independently proven current derivatives coexist; raw originals still BLOCKED",
+        "PASS raw blocked-state regression: 292 signed full-turn bound/rest poses and 3 independent triangle collision witnesses; exact authenticated independently proven current derivatives coexist; raw originals still BLOCKED; raw clearance FAIL, no native acceptance",
+        "PASS immutable: all68 older GLBs, Tu160,17 fighter/8 fleet entries, all historical receipts, raw rigs/blocked record/quarantined candidate exact",
+        "PASS independent clearance acceptance: historical raw contacts=3, old fin-only rotor contacts=2; triangles=151688, joints=276, pairs=261, rays=38856, rotor_rays=282, store_pairs=690; new writer negatives=117. Read-only checker; native/hardware/rights acceptance held."
+      ],
+      "log_sha256": "42257ca99000ef3774a57b7ead89e01d1d9eafb2869a2a6f3b06b221cfeefda6"
+    },
+    "tu160-coexistence": {
+      "exit": 0,
+      "pass_lines": [
+        "PASS source PNG: original image bytes, CRC, full256x256RGB decode; UV/material assignments exact",
+        "PASS geometry: 21 pure-input tail poses; frozen wing quaternions exact; 5800 source drop/outlet rays; 120 identity/rotated world-vertical drop rays",
+        "PASS measurements: {\"bytes\": 199816, \"triangles\": 3724, \"bounds\": {\"min\": [-24.736678660970533, -3.031769275665283, -27.049999237060547], \"max\": [24.736678660970533, 9.199999809265137, 27.049999237060547]}, \"glass\": {\"body_roof\": 1.7083098912321897, \"glass_roof\": 1.7561811266323029, \"eye\": [-0.6299999728798866, 1.7418197560122688, -16.480000305175782]}, \"bombs\": [[-1.1, -2.2499809377723308, -6], [1.1, -2.2499809377723308, -6], [-1.1, -2.3191136316224767, -2], [1.1, -2.3191136316224767, -2], [-1.1, -2.2467064349865775, 2], [1.1, -2.2467064349865775, 2], [-1.1, -2.169528149921944, 6], [1.1, -2.169528149921944, 6]], \"outlets\": [[-4.769999980926514, -1.4000000655651093, 13.758], [-3.2300000190734863, -1.4000000655651093, 13.758], [3.2300000190734863, -1.4000000655651093, 13.758], [4.769999980926514, -1.4000000655651093, 13.758]], \"gap\": 0.19999999999999996}",
+        "PASS coexistence: literal accepted manifest/2 GLB/evidence SHA+size; status PASS_CONTINUOUS_GEOMETRY; 9 corrupt/partial/forged no-mkdir/no-write negatives",
+        "PASS preservation: all68 old GLBs exact at3ea48c9e; 2 accepted derivatives verified separately",
+        "PASS guards: 94 no-mkdir/no-write negatives; all66 old GLBs,17fighter/8fleet entries,13random+declared receipts, blocked intake/quarantine exact at1b652d1b",
+        "PASS Tu160 CPU assets only; native/pixels/input/performance/rights HELD; no runtime registration"
+      ],
+      "log_sha256": "32d647a5946b34465df635cf2a935f797b55dda60d058ac9aff0c2728bb1ded4"
+    }
+  },
+  "generated_checks": {
+    "astra": "PASS",
+    "solo": "PASS",
+    "lighting": "PASS"
+  },
+  "declared_helicopter_flight": "Two predeclared side-swapped20s/1200tick cases, four default-skill bots, actual own native carrier aft helo spots, no catapult/pose/HP/ammo/RNG/control grants. Four AH64D and four Mi28N births all airborne; this is CPU declared single-kind coverage, not full-pool sampling or GPU acceptance.",
+  "fire_fixtures": "Original spawn/input/seat/fire/leave/fresh-room protocol tested. Protection expiry and approach poses explicitly supplied only in fire fixtures; native Hydra ammo38->37 and fitted HP1000->904. Actual Hellfire lock/fire cycles across four distinct model rails, ammo4->3, stores/refill. FC seeker guidance remains unfinished.",
+  "ai_bombing": "Safe visible fitted contact gains inscribed bombAimRadius only. Existing bomber run/release/fin helpers use current contacts, model release origin, fitted world prediction and native ammo/cooldowns. Four B2/Tu160 seat fixtures spend shared8->7 and hit actual moving fitted hulls; 1200 old25 ordinary output/state/RNG parity inputs. Not natural AI battle or native acceptance.",
+  "source_preservation": "All68 prior GLBs, original rigs, blocked raw collision record, historical fin-only failure, quarantined candidate patch, fighter/fleet/Tu160 descriptors and all historical observer receipts retained. Accepted derivatives coexist by literal SHA/size/status guards; raw checker still intentionally exits1 for raw contacts, distinct accepted checker exits0.",
+  "failures_retained": [
+    "Original three raw rotor/body contacts and the fin-only Mi28N main/tail rotor-pair collision are immutable evidence. Total0.667406191251m main lift, coherent existing mast extension and connected stabilizer corrections resolve continuous derived geometry, not raw source or manufacturer accuracy.",
+    "Absent-destination corrupt writer reached mkdir in the diagnostic candidate; mocks prevented writes. Literal accepted output hashes/sizes now reject before mkdir/open. Independent117 writer negatives plus97 raw and6 coexistence negatives pass.",
+    "Initial cockpit assumption failed: opaque source shell blocked forward rays. Accepted eye is measured5mm behind actual windscreen and ahead of opaque shell, not a modeled interior or verified native cockpit.",
+    "Initial picker/session stale25 assertion and actual undefined-role preview crash; corrected explicit27 roster and minimal missing-role fallback, tenth rows and row27 arrows/Enter pass. Initial session90s timeout retained.",
+    "Worker98 failed data-URL stack logs4254839B exceeded3MB allowance. Disclosed and stopped normally; no cleanup or floor waiver. All observed free space stayed above2147483648B.",
+    "First final build compiled but generated Astra expected25 rather than explicit27 kinds. Source5b3065df adds exact roster/identity/helicopter-fit assertions; final generated3/3 pass. Failed build/log retained."
+  ],
+  "maintenance": "Only inspected Wings inventory row refreshed:388files40059145B, tree409a468118806da443172753af7a274991a0145c. Checker exits1 only Missing docs/maintenance/games/001-brainrotboulevard.md. No foreign rows changed.",
+  "ticket_review": "Writer/Tu160 advice tickets consumed, native/camera advice answered; fresh guarded reviews made no mutation/resume. Technical failures resolved by current source checks, not advice treated as permission.",
+  "acceptance": {
+    "source_integration_ready": true,
+    "responsive_renderer": false,
+    "human_input": false,
+    "native_flight_combat": false,
+    "full_pool_random_sampling": false,
+    "publication": false,
+    "whole_scope_complete": false
+  },
+  "remaining": "FC seeker acquisition/guidance, native normal-input/natural-bombing evidence, real carrier operations, shared map/weather lifecycle, symmetric ASW, hardware/rights/visual acceptance. Current20-kind full-pool random sampling unrun; historical failures untouched. Only74 integrates/pushes."
+}

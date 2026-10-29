@@ -1,0 +1,189 @@
+{
+  "model_id": "wings.original.su-35s.v1",
+  "model_file": "models/su-35s.glb",
+  "unit": "meter",
+  "axes": {
+    "up": "+Y",
+    "forward": "+Z",
+    "right": "+X"
+  },
+  "controls": [
+    {
+      "node": "elevon_L",
+      "parent": "vehicle_root",
+      "pivot_world_m": [
+        -1.0499999523162842,
+        0.029999999329447746,
+        -4.25
+      ],
+      "suggested_local_rotation_axis": [
+        1,
+        0,
+        0
+      ],
+      "purpose": "separate trailing panel; no duplicate fixed surface beneath",
+      "rest_node_transform": {
+        "translation": [
+          -1.0499999523162842,
+          0.029999999329447746,
+          -4.25
+        ]
+      },
+      "influenced_mesh_nodes": [
+        "elevon_L"
+      ]
+    },
+    {
+      "node": "tailplane_L",
+      "parent": "vehicle_root",
+      "pivot_world_m": [
+        -1.4500000476837158,
+        -0.10000000149011612,
+        -7.625
+      ],
+      "suggested_local_rotation_axis": [
+        1,
+        0,
+        0
+      ],
+      "purpose": "separate all-moving visual surface; no fixed duplicate",
+      "rest_node_transform": {
+        "translation": [
+          -1.4500000476837158,
+          -0.10000000149011612,
+          -7.625
+        ]
+      },
+      "influenced_mesh_nodes": [
+        "tailplane_L"
+      ]
+    },
+    {
+      "node": "elevon_R",
+      "parent": "vehicle_root",
+      "pivot_world_m": [
+        1.0499999523162842,
+        0.029999999329447746,
+        -4.25
+      ],
+      "suggested_local_rotation_axis": [
+        1,
+        0,
+        0
+      ],
+      "purpose": "separate trailing panel; no duplicate fixed surface beneath",
+      "rest_node_transform": {
+        "translation": [
+          1.0499999523162842,
+          0.029999999329447746,
+          -4.25
+        ]
+      },
+      "influenced_mesh_nodes": [
+        "elevon_R"
+      ]
+    },
+    {
+      "node": "tailplane_R",
+      "parent": "vehicle_root",
+      "pivot_world_m": [
+        1.4500000476837158,
+        -0.10000000149011612,
+        -7.625
+      ],
+      "suggested_local_rotation_axis": [
+        1,
+        0,
+        0
+      ],
+      "purpose": "separate all-moving visual surface; no fixed duplicate",
+      "rest_node_transform": {
+        "translation": [
+          1.4500000476837158,
+          -0.10000000149011612,
+          -7.625
+        ]
+      },
+      "influenced_mesh_nodes": [
+        "tailplane_R"
+      ]
+    },
+    {
+      "node": "rudder_1",
+      "parent": "vehicle_root",
+      "pivot_world_m": [
+        -1.4700000286102295,
+        0.44999998807907104,
+        -8.359999656677246
+      ],
+      "suggested_local_rotation_axis": [
+        0,
+        1,
+        0
+      ],
+      "purpose": "nonoverlapping visual rudder with approximate hinge",
+      "rest_node_transform": {
+        "translation": [
+          -1.4700000286102295,
+          0.44999998807907104,
+          -8.359999656677246
+        ]
+      },
+      "influenced_mesh_nodes": [
+        "rudder_1"
+      ]
+    },
+    {
+      "node": "rudder_2",
+      "parent": "vehicle_root",
+      "pivot_world_m": [
+        1.4700000286102295,
+        0.44999998807907104,
+        -8.359999656677246
+      ],
+      "suggested_local_rotation_axis": [
+        0,
+        1,
+        0
+      ],
+      "purpose": "nonoverlapping visual rudder with approximate hinge",
+      "rest_node_transform": {
+        "translation": [
+          1.4700000286102295,
+          0.44999998807907104,
+          -8.359999656677246
+        ]
+      },
+      "influenced_mesh_nodes": [
+        "rudder_2"
+      ]
+    },
+    {
+      "node": "canopy",
+      "parent": "vehicle_root",
+      "pivot_world_m": [
+        0.0,
+        0.7400000095367432,
+        3.117500066757202
+      ],
+      "suggested_local_rotation_axis": [
+        1,
+        0,
+        0
+      ],
+      "purpose": "visual canopy pivot, simplified glazing; cockpit not detailed",
+      "rest_node_transform": {
+        "translation": [
+          0,
+          0.7400000095367432,
+          3.117500066757202
+        ]
+      },
+      "influenced_mesh_nodes": [
+        "canopy"
+      ]
+    }
+  ],
+  "animations_included": [],
+  "integration_note": "Direct rigid-node transform suggestions only. Preserve rest transforms and hierarchy. No constraints, physics, mechanical limit guarantee or gameplay behavior."
+}

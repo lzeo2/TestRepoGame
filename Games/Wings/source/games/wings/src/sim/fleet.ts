@@ -2,8 +2,20 @@
 // Ships orbit the map center (see shipPose) and are destructible objectives. Positions are world space, meters, Y up.
 // Ship local frame: bow = -Z, starboard = +X, up = +Y, origin at the waterline center.
 import type { TeamId, Vec3 } from "./types"
+import repairs from "../../../../../authoring/model-repairs.json" with { type: "json" }
 
-export type ShipKind = "carrier" | "destroyer"
+// One measured AI-only escort per team, alongside the unchanged legacy strike group.
+// Model identity does not imply a team class or a new weapon fit.
+export const NATIVE_ESCORT_MODEL = repairs.models[0]
+export interface ShipCollisionBox { center: Vec3; half: Vec3 }
+function measuredBox(bounds: { min: number[]; max: number[] }): ShipCollisionBox {
+  return {
+    center: bounds.min.map((n, i) => (n + bounds.max[i]) / 2) as Vec3,
+    half: bounds.min.map((n, i) => (bounds.max[i] - n) / 2) as Vec3,
+  }
+}
+
+export type ShipKind = "carrier" | "destroyer" | "escort"
 export type TurretKind = "ciws" | "gun"
 
 export interface ShipTurret {
@@ -24,6 +36,10 @@ export interface ShipSpec {
   halfWidth: number
   /** Height of the main/flight deck above the waterline. */
   deckHeight: number
+  /** Measured depth below waterline; both legacy kinds keep their original 15 m box. */
+  draft: number
+  /** Conservative measured component boxes, including the static main gun. */
+  collisionBoxes?: ShipCollisionBox[]
   /** Superstructure (island / bridge) collision box, ship-local center + half extents. */
   island: { center: Vec3; half: Vec3 }
   turrets: ShipTurret[]
@@ -32,7 +48,7 @@ export interface ShipSpec {
 
 export const SHIP_SPECS: Record<ShipKind, ShipSpec> = {
   carrier: {
-    kind: "carrier", maxHp: 8000, halfLength: 166, halfWidth: 38, deckHeight: 20, model: "models/carrier.glb",
+    kind: "carrier", maxHp: 8000, halfLength: 166, halfWidth: 38, deckHeight: 20, draft: 15, model: "models/carrier.glb",
     island: { center: [30, 38, 20], half: [8, 18, 22] },
     turrets: [
       { id: "ciws_bow_port", kind: "ciws", mannable: true, offset: [-36, 18, -150] },
@@ -42,7 +58,7 @@ export const SHIP_SPECS: Record<ShipKind, ShipSpec> = {
     ],
   },
   destroyer: {
-    kind: "destroyer", maxHp: 3000, halfLength: 78, halfWidth: 10, deckHeight: 9, model: "models/destroyer.glb",
+    kind: "destroyer", maxHp: 3000, halfLength: 78, halfWidth: 10, deckHeight: 9, draft: 15, model: "models/destroyer.glb",
     island: { center: [0, 22, -10], half: [8, 13, 16] },
     turrets: [
       { id: "gun_fwd", kind: "gun", mannable: true, offset: [0, 11, -52] },
@@ -50,6 +66,43 @@ export const SHIP_SPECS: Record<ShipKind, ShipSpec> = {
       { id: "ciws_aft", kind: "ciws", mannable: true, offset: [0, 18, 34] },
     ],
   },
+  escort: {
+    kind: "escort", maxHp: 3000,
+    halfLength: NATIVE_ESCORT_MODEL.collision.hull.max[2],
+    halfWidth: NATIVE_ESCORT_MODEL.collision.hull.max[0],
+    deckHeight: NATIVE_ESCORT_MODEL.collision.deck.max[1],
+    draft: -NATIVE_ESCORT_MODEL.collision.hull.min[1], model: NATIVE_ESCORT_MODEL.file,
+    island: measuredBox(NATIVE_ESCORT_MODEL.collision.island_bounds),
+    collisionBoxes: [
+      measuredBox(NATIVE_ESCORT_MODEL.collision.hull),
+      measuredBox(NATIVE_ESCORT_MODEL.collision.deck),
+      ...NATIVE_ESCORT_MODEL.collision.island_components.map(measuredBox),
+      ...NATIVE_ESCORT_MODEL.articulation.filter(a => a.node.startsWith("main_turret")).map(a => {
+        const box = measuredBox(a.bounds_local)
+        const yaw = NATIVE_ESCORT_MODEL.articulation[0].rest_translation
+        box.center = box.center.map((n, i) => n + a.rest_translation[i] +
+          (a.node === "main_turret_pitch" ? yaw[i] : 0)) as Vec3
+        return box
+      }),
+    ],
+    // The derivative has one measured surface gun, not the generic ship's AA/CIWS fit.
+    // Keep it at rest until a native combat adapter supports its signed pose and bore.
+    turrets: [],
+  },
+}
+
+/** Shared native hull contract for geography and combat, in the waterline frame. */
+export function shipCollisionBoxes(spec: ShipSpec): readonly ShipCollisionBox[] {
+  return spec.collisionBoxes ?? [
+    { center: [0, (spec.deckHeight - spec.draft) / 2, 0],
+      half: [spec.halfWidth, (spec.deckHeight + spec.draft) / 2, spec.halfLength] },
+    spec.island,
+  ]
+}
+
+/** Actual registered model descriptor, never a player vehicle registration. */
+export function nativeShipSpec(kind: ShipKind) {
+  return kind === "escort" ? NATIVE_ESCORT_MODEL : null
 }
 
 export interface Ship {
@@ -63,6 +116,11 @@ export interface Ship {
 
 /** Anti-air defense: any enemy aircraft inside this range of a turret (with line of sight) is engaged. */
 export const AA_RANGE = 1200
+
+/** Current native gun/CIWS mounts participate in fleet AA; an unarmed hull does not. */
+export function shipHasAAMounts(ship: Pick<Ship, "kind">): boolean {
+  return SHIP_SPECS[ship.kind].turrets.length > 0
+}
 
 // ── Objective ────────────────────────────────────────────────────────────────
 // A team loses when all of its carriers are sunk. Destroyers are optional targets (they carry AA).
@@ -106,6 +164,7 @@ export const FLEET: Ship[] = ([0, 1, 2, 3] as TeamId[]).flatMap(team => {
   return [
     ...CARRIERS.map((o, i) => ({ id: i === 0 ? `t${team}-carrier` : `t${team}-carrier${i + 1}`, team, kind: "carrier" as const, position: local(o.dx, o.dz), heading })),
     ...ESCORTS.map((e, i) => ({ id: `t${team}-dd${i + 1}`, team, kind: "destroyer" as const, position: local(e.dx, e.dz), heading })),
+    { id: `t${team}-type45-escort`, team, kind: "escort" as const, position: local(0, -900), heading },
   ]
 })
 

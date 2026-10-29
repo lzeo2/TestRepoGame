@@ -1,0 +1,115 @@
+{
+  "model_id": "wings.original.wings_aquitaine_fremm.v1",
+  "model_file": "models/wings_aquitaine_fremm.glb",
+  "unit": "meter",
+  "axes": {
+    "up": "+Y",
+    "forward": "+Z",
+    "right": "+X"
+  },
+  "controls": [
+    {
+      "node": "main_turret_yaw",
+      "parent": "vessel_root_waterline",
+      "pivot_world_m": [
+        0.0,
+        6.900000095367432,
+        46.86000061035156
+      ],
+      "suggested_local_rotation_axis": [
+        0,
+        1,
+        0
+      ],
+      "purpose": "rigid visual pivot only; no constraints, drives, weapons or physics",
+      "rest_node_transform": {
+        "translation": [
+          0,
+          6.900000095367432,
+          46.86000061035156
+        ]
+      },
+      "influenced_mesh_nodes": [
+        "main_turret_yaw",
+        "main_turret_pitch"
+      ]
+    },
+    {
+      "node": "main_turret_pitch",
+      "parent": "main_turret_yaw",
+      "pivot_world_m": [
+        0.0,
+        8.031000137329102,
+        47.99100112915039
+      ],
+      "suggested_local_rotation_axis": [
+        1,
+        0,
+        0
+      ],
+      "purpose": "rigid visual pivot only; no constraints, drives, weapons or physics",
+      "rest_node_transform": {
+        "translation": [
+          0,
+          1.13100004196167,
+          1.1310005187988281
+        ]
+      },
+      "influenced_mesh_nodes": [
+        "main_turret_pitch"
+      ]
+    },
+    {
+      "node": "port_propeller_1",
+      "parent": "vessel_root_waterline",
+      "pivot_world_m": [
+        -2.9000000953674316,
+        -3.990000009536743,
+        -61.060001373291016
+      ],
+      "suggested_local_rotation_axis": [
+        0,
+        0,
+        -1
+      ],
+      "purpose": "rigid visual pivot only; no constraints, drives, weapons or physics",
+      "rest_node_transform": {
+        "translation": [
+          -2.9000000953674316,
+          -3.990000009536743,
+          -61.060001373291016
+        ]
+      },
+      "influenced_mesh_nodes": [
+        "port_propeller_1"
+      ]
+    },
+    {
+      "node": "starboard_propeller_2",
+      "parent": "vessel_root_waterline",
+      "pivot_world_m": [
+        2.9000000953674316,
+        -3.990000009536743,
+        -61.060001373291016
+      ],
+      "suggested_local_rotation_axis": [
+        0,
+        0,
+        -1
+      ],
+      "purpose": "rigid visual pivot only; no constraints, drives, weapons or physics",
+      "rest_node_transform": {
+        "translation": [
+          2.9000000953674316,
+          -3.990000009536743,
+          -61.060001373291016
+        ]
+      },
+      "influenced_mesh_nodes": [
+        "starboard_propeller_2"
+      ]
+    }
+  ],
+  "animations_included": [],
+  "integration_note": "Direct rigid-node transform suggestions only. Preserve rest transforms and hierarchy. No constraints, physics, mechanical limit guarantee or gameplay behavior."
+}

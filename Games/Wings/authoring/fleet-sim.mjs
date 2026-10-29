@@ -1,6 +1,6 @@
 // Original FC core; no upstream imports. Retained-host bridge is opt-in, not served.
 // Milliseconds are integer API inputs; 50 ms fixed ticks make partitioned advances exact.
-import { compileGeometry, mountPose, solveMount, fittedHit, clearanceBounds, fittedTargets, launchClear, yawQuaternion, angleDelta } from './fleet-geometry.mjs';
+import { compileGeometry, mountPose, solveMount, fittedHit, fittedDistance, fittedHeightAt, clearanceBounds, fittedTargets, launchClear, yawQuaternion, angleDelta } from './fleet-geometry.mjs';
 import { createWeather, WEATHER_PRESETS, canAcquireVisual } from './weather/weather.mjs';
 export const LIMITS = Object.freeze({ surface: 10, subs: 2, mounts: 4, shells: 64,
   underwater: 8, sensorsPerTeam: 4, contactsPerTeam: 4, sensorChecks: 16,
@@ -543,6 +543,26 @@ export function createFleet(input) {
       record({ type: 'addPlayer', id, team }); players.push({ id, team, aircraft: null, seat: null });
     },
     request,
+    // Trusted current-authority query, never a player command or snapshot field.
+    // Unmodelled legacy proxies and all subs are outside this measured surface proof.
+    surfaceHeightAt(x, z) {
+      let top = null;
+      for (const u of units) if (u.alive && u.kind === 'surface') {
+        const g = geometry.get(u.modelId);
+        const y = g ? fittedHeightAt(g, x, z, u.position, u.heading) : null;
+        if (y !== null && (top === null || y > top)) top = y;
+      }
+      return top;
+    },
+    surfaceSegment(from, to) {
+      if (!vector(from) || !vector(to)) return null;
+      let first = null;
+      for (const u of units) if (u.alive && u.kind === 'surface' && geometry.has(u.modelId)) {
+        const t = hullHit(u, from, to, false);
+        if (t !== null && (first === null || t < first)) first = t;
+      }
+      return first;
+    },
     // Trusted adapter, NOT authenticated player/network input. Host already accepted real fire
     // and owns ammo/cooldowns. No missile, underwater, AA or aircraft damage is inferred.
     // Caller passes 1 absent a native hit. Strict < lets native ties win, including endpoint 1.
@@ -567,6 +587,31 @@ export function createFleet(input) {
       const applied = applyImpact(hit, { source, team, weapon }, position, damage);
       if (!hit.alive) objectives();
       return { unit: hit.id, fraction, position, damage: applied, hp: hit.hp };
+    },
+    // Trusted accepted native bomb blast. No sensing, occlusion or legacy proxy inference.
+    resolveHostBombNearMiss(input) {
+      keys(input, ['source', 'team', 'weapon', 'position', 'radius', 'damage']);
+      if (Object.keys(input).length !== 6 || !idOK(input.source) || !teamOK(input.team) || input.weapon !== 'bomb' ||
+          !vector(input.position) || !num(input.radius, 0, 1000) || input.radius === 0 ||
+          !num(input.damage, 0, 10000) || input.damage === 0) fail('Invalid host bomb near miss');
+      if (endedAt !== null) fail('Intermission');
+      const { source, team, weapon, position, radius, damage } = input;
+      const hits = [];
+      for (const u of units) if (u.alive && u.team !== team && u.kind === 'surface' && band(u) === 'surfaced') {
+        const g = geometry.get(u.modelId);
+        if (!g) continue;
+        const d = fittedDistance(g, position, u.position, u.heading);
+        if (d < radius) hits.push({ unit: u, damage: damage * (1 - d / radius) });
+      }
+      if (!hits.length) return 0;
+      record({ type: 'hostBombNearMiss', input }); // Reserve one action before any impact.
+      let sunk = false;
+      for (const hit of hits) {
+        applyImpact(hit.unit, { source, team, weapon }, [...position], hit.damage);
+        if (!hit.unit.alive) sunk = true;
+      }
+      if (sunk) objectives();
+      return hits.length;
     },
     // Authority-adapter input, NOT a network command. Adapter must derive launch pose from its aircraft simulation.
     launchAircraftAttack(playerId, input) {
@@ -623,6 +668,8 @@ export function replayFleet(input) {
       keys(a, ['type', 'playerId', 'input']); if (!fleet.launchAircraftAttack(a.playerId, a.input)) fail('Invalid replay launch');
     } else if (a.type === 'hostSegment') {
       keys(a, ['type', 'input']); fleet.resolveHostSegment(a.input);
+    } else if (a.type === 'hostBombNearMiss') {
+      keys(a, ['type', 'input']); fleet.resolveHostBombNearMiss(a.input);
     } else fail('Unknown replay action');
   }
   return fleet;

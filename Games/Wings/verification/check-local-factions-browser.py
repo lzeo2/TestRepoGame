@@ -21,7 +21,7 @@ spec.loader.exec_module(module)
 SPAWN_READY = """() => {
     const s = document.querySelector('.game-ui > .spawn');
     return window.__wings?.game?.state === 'spawn'
-        && window.__wings.game.fleet?.frame?.units?.length === 2
+        && window.__wings.game.fleet?.frame?.units?.length === 10
         && document.querySelector('#lobby')?.hidden === true
         && document.querySelector('#busy')?.hidden === true
         && !document.querySelector('#render-error')?.open
@@ -32,11 +32,11 @@ SPAWN_READY = """() => {
 }"""
 
 
-def self_check():
+def self_check(cpu_only=False):
     subprocess.run(['node'], input="const spawnReady = " + SPAWN_READY + ";\n" + """
 const assert = require('node:assert/strict');
 function check(options = {}) {
-    const game = {state: 'spawn', fleet: {frame: {units: [{}, {}]}}};
+    const game = {state: 'spawn', fleet: {frame: {units: Array.from({length: 10}, () => ({}))}}};
     global.window = {__wings: {game}, ...options.window};
     const panels = {
         '.game-ui > .spawn': {
@@ -76,7 +76,15 @@ const cases = [
     ['online code', {code: 'room'}, false],
     ['zero FC units', {units: []}, false],
     ['one FC unit', {units: [{}]}, false],
+    ['two FC units', {units: [{}, {}]}, false],
     ['three FC units', {units: [{}, {}, {}]}, false],
+    ['four FC units', {units: [{}, {}, {}, {}]}, false],
+    ['five FC units', {units: [{}, {}, {}, {}, {}]}, false],
+    ['six FC units (stale composition)', {units: Array.from({length: 6}, () => ({}))}, false],
+    ['seven FC units', {units: Array.from({length: 7}, () => ({}))}, false],
+    ['eight FC units', {units: Array.from({length: 8}, () => ({}))}, false],
+    ['nine FC units', {units: Array.from({length: 9}, () => ({}))}, false],
+    ['eleven FC units', {units: Array.from({length: 11}, () => ({}))}, false],
     ['missing FC units', {units: null}, false],
     ['wrong state', {state: 'flying'}, false],
     ['missing debug', {window: {__wings: undefined}}, false],
@@ -86,34 +94,37 @@ const cases = [
 for (const [name, options, expected] of cases) assert.equal(check(options), expected, name);
 console.log(`PASS CPU spawn readiness: ${cases.length} Node fixtures; not native/pixel evidence`);
 """, text=True, check=True, timeout=10)
-    with module.local_server() as url:
-        for path in ['index.html', 'models/derived/wings_type45_daring_class.glb', 'fonts/plex-mono-400-latin.woff2']:
-            with urlopen(f'{url}/{path}') as response:
-                assert response.status == 200
-                response.read()
-        for path in ['../AGENTS.md', '%2e%2e/AGENTS.md', 'Games/Character%20AI/index.html', 'source/games/wings/src/main.ts']:
-            try:
-                urlopen(f'{url}/{path}')
-            except Exception as error:
-                assert getattr(error, 'code', None) == 404
-            else:
-                raise AssertionError(f'Unexpected route: {path}')
-    print('PASS local entry/shared assets and negative routes; bounded loopback server closes')
+    if not cpu_only:
+        with module.local_server() as url:
+            for path in ['index.html', 'models/derived/wings_type45_daring_class.glb', 'fonts/plex-mono-400-latin.woff2']:
+                with urlopen(f'{url}/{path}') as response:
+                    assert response.status == 200
+                    response.read()
+            for path in ['../AGENTS.md', '%2e%2e/AGENTS.md', 'Games/Character%20AI/index.html', 'source/games/wings/src/main.ts']:
+                try:
+                    urlopen(f'{url}/{path}')
+                except Exception as error:
+                    assert getattr(error, 'code', None) == 404
+                else:
+                    raise AssertionError(f'Unexpected route: {path}')
+        print('PASS local entry/shared assets and negative routes; bounded loopback server closes')
     # CPU mocks only: native() is exercised without a browser or evidence writes.
     from contextlib import contextmanager, redirect_stdout
     from io import StringIO
     from unittest.mock import Mock, patch
     print('CPU COLLECTOR FIXTURES ONLY (no actual browser; synthetic results are not native evidence):')
     cases = ['startup-failure', 'startup-success', 'renderer-failure', 'image-timeout',
-             'diagnostics-failure', 'cleanup-abort', 'cleanup-error', 'cleanup-close-error', 'cleanup-external']
+             'diagnostics-failure', 'cleanup-abort', 'cleanup-error', 'cleanup-close-error', 'cleanup-external', 'coalition-mismatch']
     for case in cases:
         events, hooks = [], {}
         server_open = False
         original = TimeoutError('simulated ' + case)
-        ready = {'game': {'state': 'spawn'}, 'renderer': {'phase': 'render-return', 'error': '',
+        ready = {'game': {'state': 'spawn', 'fleet': {'coalitions': [{'id': 'nato'}, {'id': 'eastern'}]}}, 'renderer': {'phase': 'render-return', 'error': '',
                  'worldReady': True, 'render': {'drawCalls': 1}}}
         if case == 'renderer-failure':
             ready['renderer']['error'] = 'simulated late startup failure'
+        if case == 'coalition-mismatch':
+            ready['game']['fleet']['coalitions'].reverse()
         page = Mock()
         page.on.side_effect = lambda name, callback: hooks.update({name: callback})
         if case in ['startup-failure', 'diagnostics-failure']:
@@ -126,7 +137,7 @@ console.log(`PASS CPU spawn readiness: ${cases.length} Node fixtures; not native
                 hooks['requestfailed'](Mock(url='http://127.0.0.1:1/models/diagnostic.glb', failure='net::ERR_ABORTED'))
             if case == 'diagnostics-failure':
                 raise RuntimeError('simulated diagnostic evaluation failure')
-            return json.loads(json.dumps(ready))
+            return json.loads(json.dumps(ready['game'] if expression == 'window.__wings.game' else ready))
 
         def image(**kwargs):
             assert server_open and 'stop' not in events and 'close' not in events, events
@@ -228,7 +239,7 @@ console.log(`PASS CPU spawn readiness: ${cases.length} Node fixtures; not native
         print(f'PASS CPU mock case: {case}; server/browser/driver order and no startup inputs')
 
 
-def native(out, startup_only=False):
+def native(out, startup_only=False, menus_only=False, build=None):
     from playwright.sync_api import sync_playwright
     roots = ''.join(subprocess.run(['pgrep', '-ax', name], capture_output=True, text=True).stdout
                     for name in ['chromium', 'chrome'])
@@ -275,7 +286,9 @@ def native(out, startup_only=False):
                 pass  # screenshot retained its error; never replace the primary failure.
 
     try:
-        url = server.enter_context(module.local_server())
+        url = server.enter_context(module.local_server(build) if build else module.local_server())
+        if build:
+            report['build'] = str(Path(build).resolve().relative_to(ROOT))
         playwright = sync_playwright().start()
         browser = playwright.chromium.launch(executable_path='/usr/bin/chromium', headless=True, timeout=30000,
             args=['--no-sandbox', '--disable-dev-shm-usage', '--disk-cache-size=8388608', '--media-cache-size=1048576',
@@ -291,12 +304,37 @@ def native(out, startup_only=False):
         page.goto(url + '/index.html?webgl', wait_until='domcontentloaded', timeout=30000)
         screenshot('original-menu.png')
         page.locator('#screen .mi .t').get_by_text('Factions', exact=True).click()
+        if menus_only:
+            # New-menu QA only. Never start the scene or reuse exhausted renderer routes.
+            for width, height in [(1280, 720), (390, 844)]:
+                page.set_viewport_size({'width': width, 'height': height})
+                for theme in ['dark', 'light']:
+                    page.emulate_media(color_scheme=theme)
+                    for coalition, title in [('nato', 'nato-inspired'), ('eastern', 'eastern-inspired')]:
+                        choice = page.locator('#screen .mi[data-i="0"] .v')
+                        if title not in choice.inner_text().lower():
+                            page.keyboard.press('ArrowRight')
+                        assert title in choice.inner_text().lower()
+                        assert page.evaluate('document.documentElement.scrollWidth <= innerWidth')
+                        assert page.evaluate('window.__wings?.game === undefined'), 'Menus only, no scene/session launch'
+                        sizes = page.locator('#screen .mi').evaluate_all('(rows) => rows.map(row => ({label:row.innerText,height:row.getBoundingClientRect().height}))')
+                        assert all(row['height'] >= 44 for row in sizes), sizes
+                        label = f'{coalition}-{width}-{theme}'
+                        report['phases'][label] = sizes
+                        screenshot(f'coalition-{label}.png', timeout=10000)
+            assert not report['errors'] and not report['failed'] and not report['external'], report
+            report['result'] = 'PASS_ORIGINAL_COALITION_MENUS_ONLY_NOT_GAMEPLAY'
+            return
+        page.locator('#screen .mi .t').get_by_text('Start Factions', exact=True).click()
+        report['coalition'] = 'nato'
         try:
             page.wait_for_function(SPAWN_READY, timeout=60000, polling=100)
         except Exception:
             diagnostics('startup', 'startup-failure.png')
             raise
         report['phases']['spawn'] = page.evaluate('window.__wings.game')
+        assert report['phases']['spawn']['fleet']['coalitions'][0]['id'] == 'nato'
+        assert report['phases']['spawn']['fleet']['coalitions'][1]['id'] == 'eastern'
         report['startup'] = page.evaluate('({game:window.__wings?.game, renderer:window.__wings?.startup})')
         if startup_only:
             screenshot('startup-ready.png', timeout=10000)
@@ -345,7 +383,8 @@ def native(out, startup_only=False):
         page.wait_for_function('window.__wings.game === undefined', timeout=15000)
         report['phases']['menuReturn'] = True
         page.locator('#screen .mi .t').get_by_text('Factions', exact=True).click()
-        page.wait_for_function("window.__wings?.game?.fleet?.frame?.units?.length === 2", timeout=30000)
+        page.locator('#screen .mi .t').get_by_text('Start Factions', exact=True).click()
+        page.wait_for_function("window.__wings?.game?.fleet?.frame?.units?.length === 10", timeout=30000)
         fresh = page.evaluate('window.__wings.game')
         assert fresh['fleet']['generations'] == 1 and fresh['fleet']['objects'] == initial['fleet']['objects']
         assert fresh['fleet']['roots'] == 1, 'previous scene resources must be removed on leave'
@@ -393,14 +432,17 @@ def native(out, startup_only=False):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--self-check', action='store_true')
+    parser.add_argument('--cpu-only', action='store_true', help='Readiness/lifecycle mocks only; no server or browser')
     parser.add_argument('--startup-only', action='store_true', help='Stop after the one instrumented startup result; no flight inputs')
+    parser.add_argument('--menus-only', action='store_true', help='Capture named-coalition menus without starting the renderer or session')
+    parser.add_argument('--build', type=Path, help='Exact ignored source build to serve, not the historical default')
     parser.add_argument('--out', type=Path, default=ROOT / '.tmp/wings-local-evidence')
     args = parser.parse_args()
-    if args.self_check:
-        self_check()
+    if args.self_check or args.cpu_only:
+        self_check(cpu_only=args.cpu_only)
     else:
         def deadline(*_):
             raise TimeoutError('240-second local native pass deadline')
         signal.signal(signal.SIGALRM, deadline)
         signal.alarm(240)
-        native(args.out.resolve(), startup_only=args.startup_only)
+        native(args.out.resolve(), startup_only=args.startup_only, menus_only=args.menus_only, build=args.build)

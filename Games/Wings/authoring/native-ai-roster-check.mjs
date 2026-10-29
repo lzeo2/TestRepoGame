@@ -4,11 +4,13 @@ import { installRetainedHostLoader, retainedRoot } from './retained-host-loader.
 import { createRetainedHostBridge } from './retained-host-bridge.mjs';
 import { createLocalFleetConfig } from './local-host-scenario.mjs';
 
+const preflight = process.argv.includes('--preflight');
+assert(process.argv.slice(2).every(arg => arg === '--preflight'), 'only --preflight supported');
 const loader = installRetainedHostLoader();
 try {
   const { createLoopbackRoom } = await import(new URL('src/sim/loopback.ts', retainedRoot));
   const { chooseBotVehicle, createBotBrain, botRandom, botInput } = await import(new URL('src/sim/bots.ts', retainedRoot));
-  const { VEHICLES, VEHICLE_KINDS, WEAPONS } = await import(new URL('src/sim/vehicles.ts', retainedRoot));
+  const { VEHICLES, VEHICLE_KINDS, WEAPONS, NATIVE_HELICOPTER_MODELS } = await import(new URL('src/sim/vehicles.ts', retainedRoot));
   const { DEFAULT_ROOM_CONFIG } = await import(new URL('src/sim/protocol.ts', retainedRoot));
   const { createWeapons, createCombatState, applySeatInput } = await import(new URL('src/sim/combat.ts', retainedRoot));
   const { setFleetState } = await import(new URL('src/sim/geography.ts', retainedRoot));
@@ -20,17 +22,39 @@ try {
   const selection = select();
   assert.deepEqual(selection, select(), 'selection uses a repeatable per-brain RNG');
   assert.deepEqual([...new Set(selection)].sort(), [...VEHICLE_KINDS].sort(), 'every registered native kind has positive bot weight');
-  for (const kind of ['f15', 'f35']) {
+  const supportedJets = ['f15', 'f35', 'f16c', 'mig29', 'typhoon', 'su35s', 'rafale', 'jf17'];
+  for (const kind of supportedJets) {
     assert.equal(VEHICLES[kind].flight, 'jet');
     assert.equal(WEAPONS[VEHICLES[kind].seatWeapons[0][0]].kind, 'gun');
     assert.equal(WEAPONS[VEHICLES[kind].seatWeapons[0][1]].kind, 'missile_lock');
     assert.equal(WEAPONS[VEHICLES[kind].seatWeapons[1][0]].kind, 'missile_lock');
   }
-  console.log('PASS seeded weighted selection includes all seven registered native kinds and supported jet weapon fits');
+  assert.deepEqual(VEHICLE_KINDS.slice(0, 7), ['fighter', 'apache', 'warthog', 'blackbird', 'bomber', 'f15', 'f35']);
+  assert.deepEqual(VEHICLE_KINDS.slice(7, 11), ['f16c', 'mig29', 'typhoon', 'su35s']);
+  assert.deepEqual(VEHICLE_KINDS.slice(11, 25), ['rafale', 'jf17', 'gripen', 'mig31', 'mirage2000', 'su34',
+    'fa50', 'yak130', 'hawkt2', 'su25sm', 'a10c', 'f35a', 'j20', 'tu160']);
+  assert.deepEqual(VEHICLE_KINDS.slice(25), ['ah64d', 'mi28n']);
+  assert.equal(VEHICLE_KINDS.length, 27);
+  for (const [kind, source] of [['ah64d', 'wings.original.ah-64d-apache.v1'], ['mi28n', 'wings.original.mi-28n.v1']]) {
+    assert.equal(NATIVE_HELICOPTER_MODELS[kind].source_model_id, source);
+    assert.equal(VEHICLES[kind].model, NATIVE_HELICOPTER_MODELS[kind].file);
+    assert.equal(VEHICLES[kind].flight, 'heli');
+    assert.deepEqual(VEHICLES[kind].seatWeapons, [['rockets', null], ['hellfire', null]]);
+    assert.equal(VEHICLES[kind].hardpoints.missiles[1].length, 4);
+    assert.equal(VEHICLES[kind].hardpoints.rockets.length, 2);
+  }
+  // Crowding must not turn a new kind's weight into NaN through a missing count.
+  const crowded = VEHICLE_KINDS.map(kind => ({ kind, team: 0, alive: true }));
+  const brain = createBotBrain(232, .5);
+  const crowdedSelection = Array.from({ length: 2000 }, () => chooseBotVehicle(pilot, [], crowded, () => botRandom(brain)));
+  assert.deepEqual([...new Set(crowdedSelection)].sort(), [...VEHICLE_KINDS].sort());
+  for (const kind of VEHICLE_KINDS) for (const value of [0, .5, .999999, 1, NaN])
+    assert.equal(chooseBotVehicle(pilot, [], crowded, () => value, [kind]), kind);
+  console.log('PASS seeded weighted selection includes exact prior25 plus source-bound AH64D/Mi28N, finite crowded weights and eight supported jet fits');
 
   // Same controlled open-air fire fixture as the retained bot tests, not a natural encounter claim.
   setFleetState(0, 0);
-  for (const kind of ['f15', 'f35']) {
+  for (const kind of supportedJets) {
     const make = (kind, team, z) => ({ id: `fixture-${team}`, kind, team, alive: true,
       flight: { kind, position: [0, 2000, z], velocity: [0, 0, -150], orientation: [0, 0, 0, 1],
         angularVelocity: [0, 0, 0], throttle: .8, onGround: false, gearDown: false, crashed: null, tick: 0 },
@@ -57,8 +81,10 @@ try {
     me.weapons[1][0].lock = 1;
     assert.equal(botInput(officerBrain, officer, me, vehicles, 20.1, [], flat).seat.firePrimary, true);
   }
-  console.log('PASS both jets: native bot cannon spends ammo and creates owned rounds; pilot/officer missiles wait for full lock (CPU fixture)');
+  console.log('PASS all eight added jets: native bot cannon spends ammo and creates owned rounds; pilot/officer missiles wait for full lock (CPU fixture)');
 
+  if (preflight) console.log('PASS preflight: exact27 chooser and helicopter source/fit checks; no random-pool rooms or observer simulation');
+  else {
   const observed = new Set();
   for (let seed = 0; seed < 24; seed++) {
     const messages = [];
@@ -84,6 +110,8 @@ try {
           const bot = room.engine.players.get(plane.seats[0]);
           if (bot.info.bot) {
             observed.add(plane.kind);
+            assert(plane.flight.tick > 0 && [...plane.flight.velocity, ...plane.flight.orientation].every(Number.isFinite), 'actual finite native flight advanced');
+            assert(Number.isFinite(plane.hp), 'actual room HP must never silently accept NaN');
             assert.equal(bot.brain.state.vehicleId, plane.id, 'real native botInput ran');
             assert(bot.flight.aim.every(Number.isFinite));
           }
@@ -95,7 +123,11 @@ try {
       }
     } finally { room.close(); }
   }
-  assert(observed.has('f15') && observed.has('f35'), 'seeded real rooms must spawn and fly both registered jets');
+  assert(observed.has('f15') && observed.has('f35'), 'seeded real rooms must spawn and fly both existing registered jets');
+  assert(observed.has('f16c') && observed.has('mig29'), 'seeded real rooms must spawn and fly both prior supplied jets');
+  assert(observed.has('typhoon') && observed.has('su35s'), 'seeded real rooms must spawn and fly both new supplied jets');
+  assert(observed.has('rafale') && observed.has('jf17'), 'seeded real rooms must spawn and fly Rafale and JF-17');
+  assert.deepEqual([...observed].sort(), [...VEHICLE_KINDS].sort(), '24 actual rooms exercise all twenty-seven native kinds');
   console.log('PASS 24 real RoomEngine rooms: two AI per team, human seat, bounded 3/2 aircraft, native brain/flight and serialized allied/enemy players');
 
   const solo = createLoopbackRoom({ bots: 0 }, 'Solo CPU', { onMessage() {} }, { manual: true });
@@ -115,4 +147,5 @@ try {
     assert(factions.engine.vehicles.some(v => v.team === 1));
   } finally { factions?.close(); bridge.dispose(); }
   console.log('PASS explicit Solo has no AI; bounded Factions native allies/enemies use the actual bridge');
+  }
 } finally { loader.dispose(); }

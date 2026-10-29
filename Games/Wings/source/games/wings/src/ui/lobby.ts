@@ -7,12 +7,13 @@ import type { Quality, VehicleKind } from "../sim/types"
 import { VEHICLES, VEHICLE_KINDS } from "../sim/vehicles"
 import { callsign, randomCallsign, settings, updateSettings } from "./settings"
 import type { ControlScheme } from "../input"
+import { COALITIONS } from "../../../../../authoring/coalition-rosters.mjs"
 
 export type StartRequest =
   | { mode: "quick" }
   | { mode: "join"; code: string }
   | { mode: "create"; config: Partial<RoomConfig> }
-  | { mode: "offline"; config: RoomConfig; aircraft?: VehicleKind; rules?: "factions" }
+  | { mode: "offline"; config: RoomConfig; aircraft?: VehicleKind; rules?: "factions"; coalition?: "nato" | "eastern" }
 
 export interface LobbyApi {
   show(): void
@@ -439,6 +440,24 @@ export function initLobby(opts: { onStart(req: StartRequest): void; onQuality(q:
     ],
   })
 
+  let coalition: "nato" | "eastern" = "nato"
+  const coalitionScreen = (): MenuScreen => {
+    const selected = () => COALITIONS.find(profile => profile.id === coalition)!
+    return {
+      crumb: "Factions · starter rosters", size: "mid",
+      hints: [["↑↓", "select"], ["←→", "coalition"], ["enter", "confirm"], ["esc", "back"]],
+      items: [
+        { label: "Coalition", value: () => selected().shortName,
+          adjust: d => { coalition = cycle(["nato", "eastern"] as const, coalition, d) },
+          meta: () => `${selected().aircraft.map(kind => VEHICLES[kind as VehicleKind].name).join(" / ")} · ${selected().vessels.map(vessel => vessel.name).join(" / ")} · ${selected().aircraft.length}/${selected().aircraftModels.length} aircraft and ${selected().vessels.length}/${selected().vesselModels.length} vessels integrated` },
+        { label: "Start Factions", run: () => opts.onStart({ mode: "offline", rules: "factions", coalition,
+          config: { ...DEFAULT_ROOM_CONFIG, name: `${selected().shortName} Factions`, teams: 2, bots: 2, listed: false } }),
+          meta: "fictional coalitions · cannon against flagships · aircraft only" },
+        { label: "Back", small: true, run: () => nav.pop() },
+      ],
+    }
+  }
+
   const rootScreen = (): MenuScreen => ({
     size: "big",
     items: [
@@ -447,8 +466,8 @@ export function initLobby(opts: { onStart(req: StartRequest): void; onQuality(q:
       { label: "Play with bots", run: () => opts.onStart({ mode: "offline", config: { ...DEFAULT_ROOM_CONFIG, name: "Bots", teams: 2, bots: 4, botSkill: 0.5, listed: false } }),
         meta: "offline · 2 teams · AI pilots · normal skill" },
       { label: "Custom setup", run: () => nav.push(createScreen()), meta: "offline bots, skill, teams and match limits" },
-      { label: "Factions", run: () => opts.onStart({ mode: "offline", rules: "factions", config: { ...DEFAULT_ROOM_CONFIG, name: "Local Factions", teams: 2, bots: 0, listed: false } }),
-        meta: "local integration · opposing AI fleets · aircraft only · cannon damage" },
+      { label: "Factions", run: () => nav.push(coalitionScreen()),
+        meta: "NATO-inspired or Eastern-inspired · distinct starter rosters · aircraft only" },
       { label: "Controls", run: () => nav.push({ crumb: "controls", html: controlsTable(), hints: [["esc", "back"]] }), meta: "keyboard and mouse required" },
       { label: "Settings", run: () => nav.push(settingsScreen(nav, opts.onQuality, "<b>settings</b>")), meta: "graphics · sound · steering · controls" },
     ],

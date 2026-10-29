@@ -8,9 +8,15 @@ import { VEHICLES, VEHICLE_KINDS, WEAPONS } from "../sim/vehicles"
 import { MenuNav, TEAM_COLORS, TEAM_NAMES, controlsTable, escapeHtml, hintsHtml, type MenuItem } from "./lobby"
 
 interface RoleInfo { role: string; blurb: string; agility: number; firepower: number }
-const ROLES: Record<VehicleKind, RoleInfo> = {
-  f15: { role: "twin-engine fighter", agility: 0.9, firepower: 0.7, blurb: "Fast flight and high roll rate. Uses the arcade fighter loadout; gear-up airframe has no animated stores." },
-  f35: { role: "single-engine fighter", agility: 0.95, firepower: 0.7, blurb: "Lower speed, tighter turns. Uses the arcade fighter loadout; gear-up airframe has no animated stores." },
+const ROLES: Partial<Record<VehicleKind, RoleInfo>> = {
+  rafale: { role: "multirole fighter", agility: 0.9, firepower: 0.7, blurb: "Predictable low-speed control with moderate boost acceleration. Arcade cannon, two air-to-air and two strike rounds. This is the land-based C variant, not a naval Rafale M." },
+  jf17: { role: "light combat fighter", agility: 0.85, firepower: 0.7, blurb: "Forgiving medium-speed control with modest acceleration and a lower boost ceiling. Arcade cannon, two air-to-air and two strike rounds. Fleet objectives currently take cannon hits." },
+  typhoon: { role: "air-defense fighter", agility: 0.95, firepower: 0.7, blurb: "Fast roll and high-speed turns, with wider low-speed recovery. Arcade cannon and four air-to-air rounds; canards and elevons follow the native flight state." },
+  su35s: { role: "heavy multirole fighter", agility: 0.75, firepower: 0.8, blurb: "Strong pitch authority with slower roll and a larger hit sphere. Arcade cannon, two air-to-air and two strike rounds, not the proposed six-missile fit. Fleet objectives currently take cannon hits." },
+  f16c: { role: "Multirole fighter", agility: 0.85, firepower: 0.7, blurb: "Single-engine jet with an arcade cannon, heat-seeking missiles and guided missiles. See crew stations below for the fitted weapons." },
+  mig29: { role: "Air-superiority fighter", agility: 0.85, firepower: 0.7, blurb: "Twin-engine jet with an arcade cannon and heat-seeking missiles at both crew stations. See crew stations below for the fitted weapons." },
+  f15: { role: "twin-engine fighter", agility: 0.9, firepower: 0.7, blurb: "Fast flight and high roll rate. Pilot cannon and heat-seekers, officer guided strikes. Visible stores follow ammunition." },
+  f35: { role: "single-engine fighter", agility: 0.95, firepower: 0.7, blurb: "Lower speed, tighter turns and existing stealth rules. Visible stores and bay doors follow the fitted weapons." },
   fighter: { role: "strike fighter", agility: 0.85, firepower: 0.7, blurb: "Fast, agile all-rounder. Guns and heat-seekers up front, lock-on radar missiles in the back." },
   apache: { role: "attack helicopter", agility: 0.95, firepower: 0.8, blurb: "Hovers, strafes and hides behind ridges. Rockets for the pilot, chain gun and Hellfires for the gunner." },
   warthog: { role: "close air support", agility: 0.45, firepower: 1, blurb: "Slow, armoured, terrifying. The GAU-8 shreds anything it points at." },
@@ -60,14 +66,14 @@ function detailHtml(k: VehicleKind, i: number): string {
     if (s === 0) list.push("flares")
     return `<li><span class="n">${s + 1}</span><span class="s">${escapeHtml(v.seatNames[s])}</span><span class="w">${list.length ? list.join(" · ") : "flies only"}</span></li>`
   }).join("")
-  return `<div class="crumb">${String(i + 1).padStart(2, "0")} - ${r.role} · ${v.flight === "heli" ? "vtol" : "jet"}</div>
+  return `<div class="crumb">${String(i + 1).padStart(2, "0")} - ${r?.role ?? (v.flight === "heli" ? "attack helicopter" : "aircraft")} · ${v.flight === "heli" ? "vtol" : "jet"}</div>
     <h3 class="name">${escapeHtml(v.name)}</h3>
-    <p class="blurb">${r.blurb}</p>
+    <p class="blurb">${r?.blurb ?? "Arcade fit. See crew stations below for the fitted weapons."}</p>
     <dl class="stats">
       <div><dt>speed</dt><dd>${Math.round(v.boost * 3.6)}<small> km/h</small></dd>${bar(v.boost / MAX_SPEED)}</div>
       <div><dt>hull</dt><dd>${v.maxHp}</dd>${bar(v.maxHp / MAX_HP)}</div>
-      <div><dt>agility</dt><dd>${Math.round(r.agility * 10)}<small>/10</small></dd>${bar(r.agility)}</div>
-      <div><dt>firepower</dt><dd>${Math.round(r.firepower * 10)}<small>/10</small></dd>${bar(r.firepower)}</div>
+      ${r ? `<div><dt>agility</dt><dd>${Math.round(r.agility * 10)}<small>/10</small></dd>${bar(r.agility)}</div>
+      <div><dt>firepower</dt><dd>${Math.round(r.firepower * 10)}<small>/10</small></dd>${bar(r.firepower)}</div>` : ""}
       <div><dt>flares</dt><dd>${v.flares}</dd></div>
     </dl>
     <ol class="seats">${seats}</ol>`
@@ -84,6 +90,9 @@ export function createSpawnScreen(parent: HTMLElement, actions: {
   /** Man one of your fleet's turrets instead of flying. */
   manTurret?(ship: string, turret: string): void
   fixedTeam?: boolean
+  /** Absent getter keeps the ordinary roster; an empty/invalid result allows no aircraft. */
+  aircraftKinds?(): readonly VehicleKind[]
+  teamNames?(): readonly string[]
 }): SpawnScreen {
   const root = document.createElement("div")
   root.className = "spawn"
@@ -121,24 +130,30 @@ export function createSpawnScreen(parent: HTMLElement, actions: {
   let myTeam: TeamId = 0
   let teamCount = 2
   let shownKind: VehicleKind | null = null
+  const readKinds = (): VehicleKind[] => {
+    if (!actions.aircraftKinds) return [...VEHICLE_KINDS]
+    const kinds = actions.aircraftKinds()
+    return Array.isArray(kinds) ? [...new Set(kinds.filter(k => VEHICLE_KINDS.includes(k)))] : []
+  }
+  let aircraftKinds = readKinds()
   const thumbs = new Map<string, string>()
   const requested = new Set<string>()
 
   const showDetail = (k: VehicleKind) => {
     if (k === shownKind) return
     shownKind = k
-    info.innerHTML = detailHtml(k, VEHICLE_KINDS.indexOf(k))
+    info.innerHTML = detailHtml(k, aircraftKinds.indexOf(k))
     paintThumb()
   }
   const paintThumb = () => {
-    if (!shownKind) return
+    if (!shownKind || !aircraftKinds.includes(shownKind)) { thumbImg.hidden = true; thumbImg.removeAttribute("src"); return }
     const url = thumbs.get(`${shownKind}:${myTeam}`)
     thumbImg.hidden = !url
     if (url && thumbImg.src !== url) thumbImg.src = url
   }
   const loadThumbs = (team: TeamId) => {
     if (!actions.thumb) return
-    for (const k of VEHICLE_KINDS) {
+    for (const k of aircraftKinds) {
       const key = `${k}:${team}`
       if (requested.has(key)) continue
       requested.add(key)
@@ -198,44 +213,50 @@ export function createSpawnScreen(parent: HTMLElement, actions: {
     else nav.push(screen)
   }
   const setTab = (t: "air" | "guns") => {
-    if (t === tab) return
+    if (t === tab || (t === "guns" && actions.fixedTeam)) return
     tab = t
     root.querySelectorAll<HTMLElement>("[data-tab]").forEach(b => b.classList.toggle("on", b.dataset.tab === t))
     root.classList.toggle("guns", t === "guns")
     title.textContent = t === "guns" ? "Man the guns" : "Choose aircraft"
-    if (t === "guns") { buildGuns(false); if (mounts[0]) showMount(mounts[0]) } else { build(false); shownKind = null; showDetail(VEHICLE_KINDS[0]) }
+    if (t === "guns") { buildGuns(false); if (mounts[0]) showMount(mounts[0]) } else { shownKind = null; build(false) }
   }
   const build = (keepSel = true) => {
     if (tab === "guns") { buildGuns(keepSel); return }
-    const items: MenuItem[] = VEHICLE_KINDS.map(k => ({
+    const items: MenuItem[] = aircraftKinds.map(k => ({
       label: VEHICLES[k].name,
       value: () => (VEHICLES[k].flight === "heli" ? "vtol" : "jet"),
       meta: () => (canSpawn ? "" : `respawn in ${Math.ceil(wait)} s`),
-      run: () => { if (canSpawn) actions.spawn(k) },
+      run: () => { if (canSpawn && aircraftKinds.includes(k)) actions.spawn(k) },
     }))
     items.push(...boardItems)
     items.push({ label: "Leave match", small: true, run: () => actions.leave(), meta: "back to the main menu" })
     const screen = {
       size: "big" as const, items, sel: keepSel ? nav.index : 0,
-      hints: [["↑↓", "select"], ["enter", "launch"], ...(actions.fixedTeam ? [] : [["←→", "team"]]), ["1–7", "quick launch"]] as [string, string][],
+      hints: [["↑↓", "select"], ["enter", aircraftKinds.length ? "launch" : "leave"], ...(actions.fixedTeam ? [] : [["←→", "team"]]), ...(aircraftKinds.length ? [[aircraftKinds.length === 1 ? "1" : `1–${Math.min(9, aircraftKinds.length)}`, "quick launch"]] : [])] as [string, string][],
     }
     if (nav.depth) nav.replace(screen)
     else nav.push(screen)
   }
   nav.onMove = i => {
     if (tab === "guns") { if (mounts[i]) showMount(mounts[i]); return }
-    const k = VEHICLE_KINDS[i]; if (k) showDetail(k)
+    const k = aircraftKinds[i]
+    if (k) showDetail(k)
+    else {
+      shownKind = null
+      thumbImg.hidden = true
+      thumbImg.removeAttribute("src")
+      info.textContent = aircraftKinds.length ? "" : "No aircraft available for this side. Leave the match to choose another profile."
+    }
   }
   nav.onSide = d => { if (!actions.fixedTeam && teamCount > 1) actions.team(((myTeam + d + teamCount) % teamCount) as TeamId) }
   build(false)
-  showDetail(VEHICLE_KINDS[0])
 
   const onKey = (e: KeyboardEvent) => {
     if (root.hidden || (e.target as HTMLElement)?.tagName === "INPUT") return
     if ((e.key === "g" || e.key === "G") && !e.repeat && actions.manTurret) { actions.click(); setTab(tab === "air" ? "guns" : "air"); return }
-    const n = Number(e.key)
-    if (tab === "air" && n >= 1 && n <= VEHICLE_KINDS.length && !e.repeat) {
-      if (canSpawn) { actions.click(); actions.spawn(VEHICLE_KINDS[n - 1]) }
+    const n = /^[1-9]$/.test(e.key) ? Number(e.key) : 0
+    if (tab === "air" && n >= 1 && n <= aircraftKinds.length && !e.repeat) {
+      if (canSpawn) { actions.click(); actions.spawn(aircraftKinds[n - 1]) }
       return
     }
     if (e.key === "Escape") return
@@ -268,11 +289,13 @@ export function createSpawnScreen(parent: HTMLElement, actions: {
       countdown.classList.toggle("on", !canSpawn)
       const num = String(Math.ceil(wait)).padStart(2, "0")
       if (cdNum.textContent !== num) cdNum.textContent = num
-      const t = tab === "guns" ? "Man the guns" : s.dead ? "Shot down" : "Choose aircraft"
+      const factionNames = actions.fixedTeam ? actions.teamNames?.() : undefined
+      const faction = Array.isArray(factionNames) && typeof factionNames[me?.team ?? 0] === "string" ? factionNames[me?.team ?? 0].trim() : ""
+      const t = tab === "guns" ? "Man the guns" : s.dead ? "Shot down" : faction ? `Choose ${faction.replace(/ coalition$/, "")} aircraft` : "Choose aircraft"
       if (title.textContent !== t) title.textContent = t
       players = s.players
       ships = s.ships ?? []
-      if (!actions.manTurret || !s.ships) root.querySelector<HTMLElement>(".tabs")!.hidden = true
+      if (actions.fixedTeam || !actions.manTurret || !s.ships) root.querySelector<HTMLElement>(".tabs")!.hidden = true
       else root.querySelector<HTMLElement>(".tabs")!.hidden = false
       if (me) {
         const myT = me.team
@@ -281,19 +304,30 @@ export function createSpawnScreen(parent: HTMLElement, actions: {
         const gk = mounts.map(m => `${m.ship}:${m.turret}:${mountStatus(m)}`).join("|") + `:${canSpawn}`
         if (tab === "guns" && gk !== gunsKey) { gunsKey = gk; buildGuns(true); if (mounts[nav.index]) showMount(mounts[nav.index]) }
       }
-      if (me && me.team !== myTeam) { myTeam = me.team; paintThumb() }
+      const kinds = readKinds()
+      const rosterChanged = kinds.join("|") !== aircraftKinds.join("|") || (me !== null && me.team !== myTeam)
+      aircraftKinds = kinds
+      if (me) myTeam = me.team
+      if (rosterChanged) {
+        shownKind = null
+        thumbImg.hidden = true
+        thumbImg.removeAttribute("src")
+        info.textContent = ""
+      }
       loadThumbs(myTeam)
       teamCount = s.config.teams
 
       const counts = new Array(s.config.teams).fill(0)
       for (const p of s.players.values()) if (p.team < counts.length) counts[p.team]++
+      const suppliedNames = actions.teamNames?.()
+      const teamNames = Array.isArray(suppliedNames) ? [...suppliedNames] : []
       const teamsHtml = `<span class="lbl">team</span>` + counts.map((n, t) =>
-        `<button data-team="${t}" class="${me?.team === t ? "on" : ""}" style="--c:${TEAM_COLORS[t]}" aria-pressed="${me?.team === t}"><i class="sw"></i>${TEAM_NAMES[t].toLowerCase()}<span>${n}</span></button>`).join("")
+        `<button data-team="${t}" class="${me?.team === t ? "on" : ""}" style="--c:${TEAM_COLORS[t]}" aria-pressed="${me?.team === t}"><i class="sw"></i>${escapeHtml((typeof teamNames[t] === "string" && teamNames[t].trim() ? teamNames[t] : TEAM_NAMES[t]).toLowerCase())}<span>${n}</span></button>`).join("")
       if (teamsHtml !== lastTeams) { teamsEl.innerHTML = teamsHtml; lastTeams = teamsHtml }
 
       const seats: { v: VehicleEntity; seat: SeatIndex; owner: string }[] = []
       if (me) for (const v of s.vehicles) {
-        if (!v.alive || v.team !== me.team) continue
+        if (!v.alive || v.team !== me.team || !aircraftKinds.includes(v.kind)) continue
         for (const seat of [0, 1] as SeatIndex[]) {
           if (v.seats[seat] !== null) continue
           const owner = v.seats[seat === 0 ? 1 : 0]
@@ -301,14 +335,14 @@ export function createSpawnScreen(parent: HTMLElement, actions: {
         }
       }
       const key = seats.slice(0, 4).map(x => `${x.v.id}:${x.seat}:${x.owner}`).join("|")
-      if ((key !== boardKey || could !== canSpawn) && tab === "air") {
+      if ((rosterChanged || key !== boardKey || could !== canSpawn) && tab === "air") {
         boardKey = key
         boardItems = seats.slice(0, 4).map(x => ({
           label: x.owner ? `Join ${x.owner.toLowerCase()}` : `Empty ${VEHICLES[x.v.kind].name}`,
           small: true,
           value: () => VEHICLES[x.v.kind].seatNames[x.seat].toLowerCase(),
           meta: () => `${launchMeta()}board as ${VEHICLES[x.v.kind].seatNames[x.seat].toLowerCase()} · ${VEHICLES[x.v.kind].name}`,
-          run: () => { if (canSpawn) actions.board(x.v.id, x.seat) },
+          run: () => { if (canSpawn && aircraftKinds.includes(x.v.kind)) actions.board(x.v.id, x.seat) },
         }))
         build()
       } else if (!canSpawn) nav.refresh()

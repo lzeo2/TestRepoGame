@@ -1,0 +1,69 @@
+{
+  "scope": "Changed-source CPU/native-state checks only; not graphics, normal human gameplay, current-pool random coverage or Factions AI bombing acceptance",
+  "runtime_source": "6113df50",
+  "asset_commit": "871727a6",
+  "native_commit": "3fda22c0",
+  "registered": {
+    "ordinary": 25,
+    "suppliedAircraft": 18,
+    "suppliedVesselObjectives": 10,
+    "helicopterPair": false
+  },
+  "gates": {
+    "retainedHostGroups": 15,
+    "localSessionGroups": 25,
+    "directBombGroups": 16,
+    "rosterGroups": 6,
+    "chooserRNGComparisons": 26000,
+    "fleetGroups": 7,
+    "generatedChecksPassed": 3,
+    "emittedSyntaxChecks": 19,
+    "catalogGames": 129,
+    "fleetPrewriteNegatives": 97
+  },
+  "declaredBombFixture": {
+    "sharedAmmoBefore": 8,
+    "sharedAmmoAfter": 7,
+    "capitalHPBefore": 1000,
+    "capitalHPAfter": 0,
+    "changedProductionRules": false,
+    "aircraftPoseAndSpawnProtectionFixture": true,
+    "authorityVelocityMeasured": true,
+    "normalUnforcedBombing": false
+  },
+  "fixtureFailuresRetained": [
+    {
+      "case": "initial20m pose",
+      "result": "ammo8not7",
+      "diagnosis": "actual source flight crashed terrain on tick1 before weapon evaluation; accepted inputseq0/ack0,pilotremoved,HP0"
+    },
+    {
+      "case": "12tick jitter wait atsame20m pose",
+      "result": "ammo8not7",
+      "diagnosis": "same terrain crash, not rejected input or weapon bug"
+    },
+    {
+      "case": "historical-six-vessel prefix",
+      "result": "unexpected appended Tu160",
+      "correction": "all old fields/prefixes exact; require explicit J20 and Tu160 source identities"
+    }
+  ],
+  "logs": {
+    ".tmp/wings-tu160-host.log": "d2998d46227ca3bd57c8e23a9d86dacda2808bbe4119c9860a397bf3d7dc2085",
+    ".tmp/wings-tu160-rosters.log": "09fb26239de8f71e0818e1108543c0bc03697e0a82b2f689a69103b46c54d802",
+    ".tmp/wings-tu160-fleet-fixed.log": "5c90421faeda108ce8c262a912374ec9520fae18aabb0c7d15f8ac620837503e",
+    ".tmp/wings-tu160-bombs.log": "fb4ac4c58f2608415b0d3ce6d6fabd8ac0088d260442361b17f96023772bba07",
+    ".tmp/wings-tu160-session-clearance.log": "df51297239e8cea9131f31f962785d2be16380a39b0d75d3bc9d3a0d7bcf4b88",
+    ".tmp/wings-tu160-picker.log": "04ceb6d5579a17bdbc164dfd9bdd3eba457796a0cc037bdbddc519aba0aab9ae"
+  },
+  "noNewFlamesShadersClocks": true,
+  "runtimeIntegrationReadyLocally": true,
+  "nativeGraphicsAccepted": false,
+  "push": false,
+  "browser": false,
+  "remaining": [
+    "AH64D source rotor contacts",
+    "Mi28N source rotor contacts",
+    "carrier operations and broader combat/maps/weather/ASW/native acceptance"
+  ]
+}

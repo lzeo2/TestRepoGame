@@ -7,9 +7,10 @@
 //   carved canyons → droplet erosion + thermal smoothing → open water around every strike group.
 // The rendered LOD0 mesh uses exactly these vertices and triangles, and every physics query
 // interpolates the same triangles, so collision always matches what players see.
-import { AA_RANGE, FLEET, FLEET_ANGULAR_SPEED, FLEET_ORBIT_RADIUS, SHIP_SPECS, type Ship, shipPose } from "./fleet"
+import { AA_RANGE, FLEET, FLEET_ANGULAR_SPEED, FLEET_ORBIT_RADIUS, SHIP_SPECS, shipCollisionBoxes, shipHasAAMounts, type Ship, shipPose } from "./fleet"
 import type { ShipState } from "./protocol"
 import type { TeamId, Vec3, VehicleKind, WorldQuery } from "./types"
+import { VEHICLES } from "./vehicles"
 
 export const WORLD_SIZE = 10_000
 export const WORLD_HALF = WORLD_SIZE / 2
@@ -77,11 +78,13 @@ FLEET.forEach((sh, i) => { if (sh.kind === "carrier") CARRIERS_OF[sh.team].push(
 /** Bounding radius (m) of each ship's footprint. */
 const REACH = new Float64Array(NS)
 const TOP = new Float64Array(NS)
+const SHIP_BOXES = Object.fromEntries(Object.entries(SHIP_SPECS).map(([kind, spec]) => [kind, shipCollisionBoxes(spec)]))
 FLEET.forEach((sh, i) => {
-  const sp = SHIP_SPECS[sh.kind]
   SIN[i] = Math.sin(sh.heading); COS[i] = Math.cos(sh.heading)
-  REACH[i] = Math.hypot(sp.halfLength, sp.halfWidth) + 1
-  TOP[i] = Math.max(sp.deckHeight, sp.island.center[1] + sp.island.half[1])
+  for (const { center, half } of SHIP_BOXES[sh.kind]) {
+    REACH[i] = Math.max(REACH[i], Math.hypot(Math.abs(center[0]) + half[0], Math.abs(center[2]) + half[2]) + 1)
+    TOP[i] = Math.max(TOP[i], center[1] + half[1])
+  }
 })
 let fleetTime = 0
 let fleetTeams = 4
@@ -612,8 +615,9 @@ function shipIndexAt(x: number, z: number): number {
     const dx = x - P[0], dz = z - P[2]
     if (dx > r || dx < -r || dz > r || dz < -r) continue
     toLocal(i, x, z)
-    const sp = SHIP_SPECS[FLEET[i].kind]
-    if (Math.abs(L.x) <= sp.halfWidth && Math.abs(L.z) <= sp.halfLength) return i
+    for (const { center, half } of SHIP_BOXES[FLEET[i].kind]) {
+      if (Math.abs(L.x - center[0]) <= half[0] && Math.abs(L.z - center[2]) <= half[2]) return i
+    }
   }
   return -1
 }
@@ -626,10 +630,11 @@ export function shipAt(x: number, z: number): Ship | null {
 
 function shipHeightIdx(i: number): number {
   // Expects L to hold the local coordinates for ship i.
-  const sp = SHIP_SPECS[FLEET[i].kind]
-  const I = sp.island
-  if (Math.abs(L.x - I.center[0]) <= I.half[0] && Math.abs(L.z - I.center[2]) <= I.half[2]) return I.center[1] + I.half[1]
-  return sp.deckHeight
+  let height = -Infinity
+  for (const { center, half } of SHIP_BOXES[FLEET[i].kind]) {
+    if (Math.abs(L.x - center[0]) <= half[0] && Math.abs(L.z - center[2]) <= half[2]) height = Math.max(height, center[1] + half[1])
+  }
+  return height
 }
 
 /** Ship surface height at x,z (deck, or superstructure top), or -Infinity off ships. */
@@ -727,7 +732,7 @@ export function surfaceType(x: number, z: number): SurfaceType {
 export function inSafeZone(team: TeamId, p: Vec3): boolean {
   if (p[1] > CEILING) return false
   for (let i = 0; i < NS; i++) {
-    if (!ACTIVE[i] || !ALIVE[i] || FLEET[i].team !== team) continue
+    if (!ACTIVE[i] || !ALIVE[i] || FLEET[i].team !== team || !shipHasAAMounts(FLEET[i])) continue
     const P = POSED[i].position
     const dx = p[0] - P[0], dz = p[2] - P[2]
     if (dx * dx + dz * dz < AA_RANGE * AA_RANGE) return true
@@ -760,7 +765,7 @@ export function spawnPoint(team: TeamId, kind: VehicleKind, index: number): Spaw
   const i = live > 0 ? Math.floor(k / live) : k
   const deck = CARRIER.deckHeight
   const position: Vec3 = [0, 0, 0]
-  if (kind === "apache") {
+  if (VEHICLES[kind].flight === "heli") {
     const spots = DECK_LAYOUT.heloSpots
     const [x, z] = spots[i % spots.length]
     return { position: toWorldInto(ci, x, deck + SPAWN_CLEARANCE.heli, z, position), yaw: POSED[ci].heading, onGround: true }
@@ -790,13 +795,6 @@ function segmentBox(i: number, a: Vec3, b: Vec3, center: Vec3, half: Vec3): numb
   return t0
 }
 
-const hullCenter: Record<string, Vec3> = {}, hullHalf: Record<string, Vec3> = {}
-for (const k of Object.keys(SHIP_SPECS) as (keyof typeof SHIP_SPECS)[]) {
-  const sp = SHIP_SPECS[k]
-  hullCenter[k] = [0, (sp.deckHeight - 15) / 2, 0]
-  hullHalf[k] = [sp.halfWidth, (sp.deckHeight + 15) / 2, sp.halfLength]
-}
-
 /** First hit of segment a→b with any active ship hull or superstructure (fraction), or null. */
 export function segmentHitsShip(a: Vec3, b: Vec3): number | null {
   let best: number | null = null
@@ -807,10 +805,10 @@ export function segmentHitsShip(a: Vec3, b: Vec3): number | null {
     const P = POSED[i].position
     if (Math.max(a[0], b[0]) < P[0] - r || Math.min(a[0], b[0]) > P[0] + r || Math.max(a[2], b[2]) < P[2] - r || Math.min(a[2], b[2]) > P[2] + r) continue
     if (Math.min(a[1], b[1]) > TOP[i]) continue
-    const hull = segmentBox(i, a, b, hullCenter[sp.kind], hullHalf[sp.kind])
-    if (hull !== null && (best === null || hull < best)) best = hull
-    const isl = segmentBox(i, a, b, sp.island.center, sp.island.half)
-    if (isl !== null && (best === null || isl < best)) best = isl
+    for (const { center, half } of SHIP_BOXES[sp.kind]) {
+      const hit = segmentBox(i, a, b, center, half)
+      if (hit !== null && (best === null || hit < best)) best = hit
+    }
   }
   return best
 }

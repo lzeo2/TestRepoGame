@@ -1,0 +1,189 @@
+{
+  "model_id": "wings.original.a-10c.v1",
+  "model_file": "models/a-10c.glb",
+  "unit": "meter",
+  "axes": {
+    "up": "+Y",
+    "forward": "+Z",
+    "right": "+X"
+  },
+  "controls": [
+    {
+      "node": "canopy",
+      "parent": "vehicle_root",
+      "pivot_world_m": [
+        0.0,
+        0.75,
+        3.5393428802490234
+      ],
+      "suggested_local_rotation_axis": [
+        1,
+        0,
+        0
+      ],
+      "purpose": "visual canopy assembly hinge; no cockpit systems",
+      "rest_node_transform": {
+        "translation": [
+          0,
+          0.75,
+          3.5393428802490234
+        ]
+      },
+      "influenced_mesh_nodes": [
+        "canopy"
+      ]
+    },
+    {
+      "node": "aileron_L",
+      "parent": "vehicle_root",
+      "pivot_world_m": [
+        -7.900000095367432,
+        0.15000000596046448,
+        -1.2797623872756958
+      ],
+      "suggested_local_rotation_axis": [
+        1,
+        0,
+        0
+      ],
+      "purpose": "visual trailing-edge hinge",
+      "rest_node_transform": {
+        "translation": [
+          -7.900000095367432,
+          0.15000000596046448,
+          -1.2797623872756958
+        ]
+      },
+      "influenced_mesh_nodes": [
+        "aileron_L"
+      ]
+    },
+    {
+      "node": "elevator_L",
+      "parent": "vehicle_root",
+      "pivot_world_m": [
+        -0.3499999940395355,
+        0.5,
+        -6.7987380027771
+      ],
+      "suggested_local_rotation_axis": [
+        1,
+        0,
+        0
+      ],
+      "purpose": "visual horizontal-tail control",
+      "rest_node_transform": {
+        "translation": [
+          -0.3499999940395355,
+          0.5,
+          -6.7987380027771
+        ]
+      },
+      "influenced_mesh_nodes": [
+        "elevator_L"
+      ]
+    },
+    {
+      "node": "rudder_L",
+      "parent": "vehicle_root",
+      "pivot_world_m": [
+        -2.7200000286102295,
+        0.41999998688697815,
+        -7.478611469268799
+      ],
+      "suggested_local_rotation_axis": [
+        0,
+        1,
+        0
+      ],
+      "purpose": "visual rudder hinge",
+      "rest_node_transform": {
+        "translation": [
+          -2.7200000286102295,
+          0.41999998688697815,
+          -7.478611469268799
+        ]
+      },
+      "influenced_mesh_nodes": [
+        "rudder_L"
+      ]
+    },
+    {
+      "node": "aileron_R",
+      "parent": "vehicle_root",
+      "pivot_world_m": [
+        7.900000095367432,
+        0.15000000596046448,
+        -1.2797623872756958
+      ],
+      "suggested_local_rotation_axis": [
+        1,
+        0,
+        0
+      ],
+      "purpose": "visual trailing-edge hinge",
+      "rest_node_transform": {
+        "translation": [
+          7.900000095367432,
+          0.15000000596046448,
+          -1.2797623872756958
+        ]
+      },
+      "influenced_mesh_nodes": [
+        "aileron_R"
+      ]
+    },
+    {
+      "node": "elevator_R",
+      "parent": "vehicle_root",
+      "pivot_world_m": [
+        0.3499999940395355,
+        0.5,
+        -6.7987380027771
+      ],
+      "suggested_local_rotation_axis": [
+        1,
+        0,
+        0
+      ],
+      "purpose": "visual horizontal-tail control",
+      "rest_node_transform": {
+        "translation": [
+          0.3499999940395355,
+          0.5,
+          -6.7987380027771
+        ]
+      },
+      "influenced_mesh_nodes": [
+        "elevator_R"
+      ]
+    },
+    {
+      "node": "rudder_R",
+      "parent": "vehicle_root",
+      "pivot_world_m": [
+        2.7200000286102295,
+        0.41999998688697815,
+        -7.478611469268799
+      ],
+      "suggested_local_rotation_axis": [
+        0,
+        1,
+        0
+      ],
+      "purpose": "visual rudder hinge",
+      "rest_node_transform": {
+        "translation": [
+          2.7200000286102295,
+          0.41999998688697815,
+          -7.478611469268799
+        ]
+      },
+      "influenced_mesh_nodes": [
+        "rudder_R"
+      ]
+    }
+  ],
+  "animations_included": [],
+  "integration_note": "Direct rigid-node transform suggestions only. Preserve rest transforms and hierarchy. No constraints, physics, mechanical limit guarantee or gameplay behavior."
+}

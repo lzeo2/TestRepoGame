@@ -11,7 +11,7 @@ import {
 } from "three"
 import { MeshBasicNodeMaterial, MeshStandardNodeMaterial } from "three/webgpu"
 import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js"
-import { FLEET, SHIP_SPECS, type Ship, type ShipKind, type TurretKind } from "../../sim/fleet"
+import { FLEET, SHIP_SPECS, nativeShipSpec, type Ship, type ShipKind, type TurretKind } from "../../sim/fleet"
 import { fleetState, posedShip } from "../../sim/geography"
 import type { ShipState } from "../../sim/protocol"
 import { EmitterKind, createFireSystem } from "./fire"
@@ -25,11 +25,11 @@ export interface TurretHandle {
   pitch: Object3D
 }
 
-interface PartGroup { geometry: BufferGeometry; color: Color; livery: boolean }
+interface PartGroup { geometry: BufferGeometry; color: Color; livery: boolean; material?: Material | Material[] }
 interface TurretTemplate { yawParts: PartGroup[]; pitchParts: PartGroup[]; pitchOffset: [number, number, number] }
 interface KindTemplate { parts: PartGroup[]; turrets: Partial<Record<TurretKind, TurretTemplate>> }
 
-const SHIP_KINDS: ShipKind[] = ["carrier", "destroyer"]
+const SHIP_KINDS: ShipKind[] = ["carrier", "destroyer", "escort"]
 
 /** Collect meshes under `root` (excluding `skip` subtrees), baked into `space`'s local frame, grouped by colour/livery. */
 function collect(root: Object3D, space: Object3D, skip: Set<Object3D>): PartGroup[] {
@@ -86,6 +86,20 @@ function findTurretNodes(root: Object3D, id: string): { yaw: Object3D; pitch: Ob
 function buildTemplate(kind: ShipKind, model: Object3D): KindTemplate {
   model.updateWorldMatrix(true, true)
   const spec = SHIP_SPECS[kind]
+  if (nativeShipSpec(kind)) {
+    // Keep supplied UVs, embedded maps, material groups and PBR factors. No generic
+    // colour batching or invented turret pivots for a different hull's weapon fit.
+    const parts: PartGroup[] = []
+    const inv = new Matrix4().copy(model.matrixWorld).invert()
+    model.traverse(node => {
+      const mesh = node as Mesh
+      if (!mesh.isMesh) return
+      const geometry = mesh.geometry.clone()
+      geometry.applyMatrix4(new Matrix4().multiplyMatrices(inv, mesh.matrixWorld))
+      parts.push({ geometry, material: mesh.material, color: new Color(1, 1, 1), livery: false })
+    })
+    return { parts, turrets: {} }
+  }
   const skip = new Set<Object3D>()
   const turrets: Partial<Record<TurretKind, TurretTemplate>> = {}
   for (const t of spec.turrets) {
@@ -217,13 +231,24 @@ export function createFleet(): FleetView {
     }
   }
 
+  const modelResources = new Set<{ dispose(): void }>()
+  const templateGeometries = new Set<BufferGeometry>()
   let meshes: InstancedMesh[] = []
   let hullMeshes: { mesh: InstancedMesh; ships: Ship[] }[] = []
   let turretMeshes: { mesh: InstancedMesh; handles: (TurretHandle & { ship: Ship })[]; part: "yaw" | "pitch" }[] = []
   const tmp = new Matrix4()
 
   function build(templates: Record<ShipKind, KindTemplate>) {
-    for (const m of meshes) { drawRoot.remove(m); m.geometry.dispose(); m.dispose() }
+    for (const m of meshes) { drawRoot.remove(m); m.dispose() }
+    const nextGeometries = new Set<BufferGeometry>()
+    for (const template of Object.values(templates)) {
+      for (const part of template.parts) nextGeometries.add(part.geometry)
+      for (const turret of Object.values(template.turrets))
+        for (const part of [...turret.yawParts, ...turret.pitchParts]) nextGeometries.add(part.geometry)
+    }
+    for (const geometry of templateGeometries) if (!nextGeometries.has(geometry)) geometry.dispose()
+    templateGeometries.clear()
+    for (const geometry of nextGeometries) templateGeometries.add(geometry)
     meshes = []
     hullMeshes = []
     turretMeshes = []
@@ -231,7 +256,7 @@ export function createFleet(): FleetView {
       const ships = FLEET.filter(s => s.kind === kind)
       const t = templates[kind]
       for (const part of t.parts) {
-        const mesh = new InstancedMesh(part.geometry, matFor(part.color, part.livery), ships.length)
+        const mesh = new InstancedMesh(part.geometry, part.material ?? matFor(part.color, part.livery), ships.length)
         if (part.livery) ships.forEach((sh, i) => mesh.setColorAt(i, new Color(TEAM_COLORS[sh.team])))
         mesh.frustumCulled = false
         hullMeshes.push({ mesh, ships })
@@ -247,6 +272,7 @@ export function createFleet(): FleetView {
       const tpl = templates.carrier.turrets[tk] ?? templates.destroyer.turrets[tk]
       if (!tpl) continue
       const handles = [...turretHandles.values()].filter(h => h.kind === tk)
+      if (!handles.length) continue
       for (const h of handles) h.pitch.position.set(...tpl.pitchOffset)
       for (const [partName, parts] of [["yaw", tpl.yawParts], ["pitch", tpl.pitchParts]] as const) {
         for (const part of parts) {
@@ -326,6 +352,9 @@ export function createFleet(): FleetView {
   // Nav / deck lights: small emissive points (HDR for bloom), grown with distance so they stay visible.
   const lightDefs: { ship: Ship; local: Vector3; color: Color }[] = []
   for (const sh of FLEET) {
+    // Supplied art already owns its fittings. Do not float generic deck lights
+    // above a measured hull or invent coloured fittings on its atlas.
+    if (nativeShipSpec(sh.kind)) continue
     const sp = SHIP_SPECS[sh.kind], I = sp.island
     const top = I.center[1] + I.half[1]
     const warm = new Color("#ffb46a").multiplyScalar(6), white = new Color("#fff3e0").multiplyScalar(7)
@@ -440,7 +469,8 @@ export function createFleet(): FleetView {
     }
   }
 
-  const placeholder = { carrier: buildTemplate("carrier", placeholderModel("carrier")), destroyer: buildTemplate("destroyer", placeholderModel("destroyer")) }
+  const placeholder = Object.fromEntries(SHIP_KINDS.map(kind =>
+    [kind, buildTemplate(kind, placeholderModel(kind))])) as Record<ShipKind, KindTemplate>
   build(placeholder)
 
   // Lazy, non-blocking model load; keep the placeholder if a model is missing.
@@ -455,7 +485,20 @@ export function createFleet(): FleetView {
       await Promise.all(SHIP_KINDS.map(async kind => {
         try {
           const gltf = await loadGlb(loader, base + SHIP_SPECS[kind].model)
-          const model = gltf.scene.getObjectByName(kind) ?? gltf.scene
+          const resources = new Set<{ dispose(): void }>()
+          gltf.scene.traverse(node => {
+            const mesh = node as Mesh
+            if (!mesh.isMesh) return
+            resources.add(mesh.geometry)
+            for (const material of Array.isArray(mesh.material) ? mesh.material : [mesh.material]) {
+              resources.add(material)
+              for (const value of Object.values(material)) if (value?.isTexture) resources.add(value)
+            }
+          })
+          if (disposed) { for (const resource of resources) resource.dispose(); return }
+          for (const resource of resources) modelResources.add(resource)
+          const descriptor = nativeShipSpec(kind)
+          const model = gltf.scene.getObjectByName(descriptor?.root ?? kind) ?? gltf.scene
           // Template space = the model root (origin at the waterline centre, bow -Z).
           const holder = new Group()
           holder.add(model)
@@ -463,8 +506,16 @@ export function createFleet(): FleetView {
           loaded[kind] = buildTemplate(kind, holder)
         } catch (e) { console.warn(`[world] ship model ${kind} failed to load`, e) }
       }))
-      if (disposed || (!loaded.carrier && !loaded.destroyer)) return
-      build({ carrier: loaded.carrier ?? placeholder.carrier, destroyer: loaded.destroyer ?? placeholder.destroyer })
+      if (disposed) {
+        for (const template of Object.values(loaded)) {
+          for (const part of template.parts) part.geometry.dispose()
+          for (const turret of Object.values(template.turrets))
+            for (const part of [...turret.yawParts, ...turret.pitchParts]) part.geometry.dispose()
+        }
+        return
+      }
+      if (!Object.keys(loaded).length) return
+      build({ ...placeholder, ...loaded })
       modelsLoaded = Object.keys(loaded)
     } catch (e) { console.warn("[world] GLTFLoader unavailable", e) }
   })()
@@ -479,8 +530,13 @@ export function createFleet(): FleetView {
     applyStates,
     update(camera?: Vector3, dt = 0) { clock += Math.max(0, dt); if (camera) cameraPos.copy(camera); sync() },
     dispose() {
+      if (disposed) return
       disposed = true
-      for (const m of meshes) { m.geometry.dispose(); m.dispose() }
+      for (const m of meshes) m.dispose()
+      for (const geometry of templateGeometries) geometry.dispose()
+      templateGeometries.clear()
+      for (const resource of modelResources) resource.dispose()
+      modelResources.clear()
       bodyMaterial.dispose(); liveryMaterial.dispose()
       lights.geometry.dispose(); lightMaterial.dispose()
       fire.dispose(); scorch.geometry.dispose(); scorchMat.dispose(); scorch.dispose()

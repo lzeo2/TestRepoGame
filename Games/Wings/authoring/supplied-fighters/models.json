@@ -1,0 +1,1673 @@
+{
+  "schema": "wings_original_runtime_assets_v1",
+  "package_type": "optimized base geometry and integration metadata only",
+  "optimization_measured_totals": {
+    "triangles": {
+      "before": 175844,
+      "after": 111494,
+      "reduction_pct": 36.59
+    },
+    "primitives": {
+      "before": 290,
+      "after": 290,
+      "reduction_pct": 0.0
+    },
+    "bytes": {
+      "before": 15419948,
+      "after": 7635836,
+      "reduction_pct": 50.48
+    },
+    "decoded_rgba8_bytes": {
+      "before": 89653248,
+      "after": 13107200,
+      "reduction_pct": 85.38
+    },
+    "method": "All30 selectedLOD1geometry;40 provably redundant uniform material images folded/removed; no geometry-byte or rigid-node changes afterLOD selection; uncompressedGLB2.0.",
+    "decoded_memory_estimate_note": "RGBA8 decoded texture pixels, summed per GLB, excludes mipmaps and assumes no cross-asset image cache deduplication."
+  },
+  "units": "meters",
+  "coordinate_system": {
+    "handedness": "right",
+    "up": "+Y",
+    "forward": "+Z",
+    "right": "+X"
+  },
+  "assets": [
+    {
+      "model_id": "wings.original.f-16c.v1",
+      "name": "General Dynamics F-16C Fighting Falcon",
+      "movement_class": "fixed_wing",
+      "model_file": "models/f-16c.glb",
+      "rig_file": "rigs/f-16c.json",
+      "geometry_is_shared_between_modes": true,
+      "origin": "nominal body center",
+      "unit_scale_m": 1,
+      "base_choice": "silhouette-preserving lower-detail variant; constant paint maps folded into PBR factors",
+      "bounds_m": {
+        "min": [
+          -4.900000095367432,
+          -1.2200000286102295,
+          -7.364833354949951
+        ],
+        "max": [
+          4.900000095367432,
+          3.200000047683716,
+          7.435166358947754
+        ],
+        "dimensions_xyz_m": [
+          9.800000190734863,
+          4.420000076293945,
+          14.799999713897705
+        ]
+      },
+      "bounds_note": "Static exported pose, not animated/swept rotor or wing-sweep envelope; no collision mesh supplied.",
+      "triangles": 2236,
+      "material_primitives": 10,
+      "material_identities": 5,
+      "embedded_images": [
+        {
+          "name": "paint_basecolor_256",
+          "dimensions": [
+            256,
+            256
+          ],
+          "sha256": "27ffab1da309304f5097c3d54796dadb7f765aa43a40c339316b03939dac89ff",
+          "packed_bytes": 32028
+        }
+      ],
+      "decoded_rgba8_texture_bytes_estimate": 262144,
+      "sha256": "b2c38684cd1f7d904e6d076f600f0233a3b481b8ea5434fc186411d31fa1cf30",
+      "bytes": 104032,
+      "material_primitive_exception": "Independent rigid controls require separate primitives.",
+      "public_reference_and_accuracy_note": "USAF fact sheet: length 14.8 m, span 9.8 m. Single fin, one exhaust, chin inlet and bubble canopy. Published rounded metric dimensions used."
+    },
+    {
+      "model_id": "wings.original.mig-29.v1",
+      "name": "Mikoyan MiG-29",
+      "movement_class": "fixed_wing",
+      "model_file": "models/mig-29.glb",
+      "rig_file": "rigs/mig-29.json",
+      "geometry_is_shared_between_modes": true,
+      "origin": "nominal body center",
+      "unit_scale_m": 1,
+      "base_choice": "silhouette-preserving lower-detail variant; constant paint maps folded into PBR factors",
+      "bounds_m": {
+        "min": [
+          -5.679999828338623,
+          -1.0,
+          -8.439526557922363
+        ],
+        "max": [
+          5.679999828338623,
+          2.950000047683716,
+          8.880474090576172
+        ],
+        "dimensions_xyz_m": [
+          11.359999656677246,
+          3.950000047683716,
+          17.320000648498535
+        ]
+      },
+      "bounds_note": "Static exported pose, not animated/swept rotor or wing-sweep envelope; no collision mesh supplied.",
+      "triangles": 2904,
+      "material_primitives": 11,
+      "material_identities": 5,
+      "embedded_images": [
+        {
+          "name": "paint_basecolor_256",
+          "dimensions": [
+            256,
+            256
+          ],
+          "sha256": "27ffab1da309304f5097c3d54796dadb7f765aa43a40c339316b03939dac89ff",
+          "packed_bytes": 32028
+        }
+      ],
+      "decoded_rgba8_texture_bytes_estimate": 262144,
+      "sha256": "b94eb1885dd2119ff135a824f2879b94f792340e684d51ded704a552d64d88c8",
+      "bytes": 122000,
+      "material_primitive_exception": "Independent rigid controls require separate primitives.",
+      "public_reference_and_accuracy_note": "NMUSAF MiG-29A family silhouette reference: twin separated nacelles, twin fins and strong leading-edge extensions. Czech Ministry of Defence public history dimensional table https://www.mo.gov.cz/avis/publikace/pulstoleti_migu/komplet.pdf confirms length17.32m/span11.36m for9-12; dimensions are overall visual-scale targets, not engineering reconstruction."
+    },
+    {
+      "model_id": "wings.original.su-35s.v1",
+      "name": "Sukhoi Su-35S",
+      "movement_class": "fixed_wing",
+      "model_file": "models/su-35s.glb",
+      "rig_file": "rigs/su-35s.json",
+      "geometry_is_shared_between_modes": true,
+      "origin": "nominal body center",
+      "unit_scale_m": 1,
+      "base_choice": "silhouette-preserving lower-detail variant; constant paint maps folded into PBR factors",
+      "bounds_m": {
+        "min": [
+          -7.350165843963623,
+          -1.100000023841858,
+          -10.949999809265137
+        ],
+        "max": [
+          7.350165843963623,
+          3.619999885559082,
+          10.949999809265137
+        ],
+        "dimensions_xyz_m": [
+          14.700331687927246,
+          4.71999990940094,
+          21.899999618530273
+        ]
+      },
+      "bounds_note": "Static exported pose, not animated/swept rotor or wing-sweep envelope; no collision mesh supplied.",
+      "triangles": 3058,
+      "material_primitives": 13,
+      "material_identities": 5,
+      "embedded_images": [
+        {
+          "name": "paint_basecolor_256",
+          "dimensions": [
+            256,
+            256
+          ],
+          "sha256": "27ffab1da309304f5097c3d54796dadb7f765aa43a40c339316b03939dac89ff",
+          "packed_bytes": 32028
+        }
+      ],
+      "decoded_rgba8_texture_bytes_estimate": 262144,
+      "sha256": "858eda509c102f2079a2af96fdfd6c7e8027d289bfd7d2797be38ba17a636433",
+      "bytes": 126788,
+      "material_primitive_exception": "Independent rigid controls require separate primitives.",
+      "public_reference_and_accuracy_note": "UAC Su-35/S primary reference: length21.9m/span14.70m. Long Flanker fuselage, large LERX, two separated nacelles and twin fins; production Su-35S has no canards."
+    },
+    {
+      "model_id": "wings.original.f-35a.v1",
+      "name": "Lockheed Martin F-35A Lightning II",
+      "movement_class": "fixed_wing",
+      "model_file": "models/f-35a.glb",
+      "rig_file": "rigs/f-35a.json",
+      "geometry_is_shared_between_modes": true,
+      "origin": "nominal body center",
+      "unit_scale_m": 1,
+      "base_choice": "silhouette-preserving lower-detail variant; constant paint maps folded into PBR factors",
+      "bounds_m": {
+        "min": [
+          -5.349999904632568,
+          -0.8299999833106995,
+          -7.770707130432129
+        ],
+        "max": [
+          5.349999904632568,
+          2.75,
+          7.929293155670166
+        ],
+        "dimensions_xyz_m": [
+          10.699999809265137,
+          3.5799999833106995,
+          15.700000286102295
+        ]
+      },
+      "bounds_note": "Static exported pose, not animated/swept rotor or wing-sweep envelope; no collision mesh supplied.",
+      "triangles": 2278,
+      "material_primitives": 11,
+      "material_identities": 5,
+      "embedded_images": [
+        {
+          "name": "paint_basecolor_256",
+          "dimensions": [
+            256,
+            256
+          ],
+          "sha256": "27ffab1da309304f5097c3d54796dadb7f765aa43a40c339316b03939dac89ff",
+          "packed_bytes": 32028
+        }
+      ],
+      "decoded_rgba8_texture_bytes_estimate": 262144,
+      "sha256": "956550b4cba4a7e4bf4f6bccd71609673f46705a7f249b18adf8f38f2a646e01",
+      "bytes": 108228,
+      "material_primitive_exception": "Independent rigid controls require separate primitives.",
+      "public_reference_and_accuracy_note": "USAF F-35A public fact sheet: length about 15.7 m and span10.7 m. Land-based A; one exhaust, paired canted fins and faceted side inlets; no lift fan/naval conversion."
+    },
+    {
+      "model_id": "wings.original.eurofighter-typhoon.v1",
+      "name": "Eurofighter Typhoon",
+      "movement_class": "fixed_wing",
+      "model_file": "models/eurofighter-typhoon.glb",
+      "rig_file": "rigs/eurofighter-typhoon.json",
+      "geometry_is_shared_between_modes": true,
+      "origin": "nominal body center",
+      "unit_scale_m": 1,
+      "base_choice": "silhouette-preserving lower-detail variant; constant paint maps folded into PBR factors",
+      "bounds_m": {
+        "min": [
+          -5.475998401641846,
+          -1.0499999523162842,
+          -7.96999979019165
+        ],
+        "max": [
+          5.475998401641846,
+          3.299999952316284,
+          7.980000019073486
+        ],
+        "dimensions_xyz_m": [
+          10.951996803283691,
+          4.349999904632568,
+          15.949999809265137
+        ]
+      },
+      "bounds_note": "Static exported pose, not animated/swept rotor or wing-sweep envelope; no collision mesh supplied.",
+      "triangles": 2654,
+      "material_primitives": 12,
+      "material_identities": 5,
+      "embedded_images": [
+        {
+          "name": "paint_basecolor_256",
+          "dimensions": [
+            256,
+            256
+          ],
+          "sha256": "27ffab1da309304f5097c3d54796dadb7f765aa43a40c339316b03939dac89ff",
+          "packed_bytes": 32028
+        }
+      ],
+      "decoded_rgba8_texture_bytes_estimate": 262144,
+      "sha256": "cae157180c649ac6d4c3b43dd7ae1a5322d7cc2985f961fdbcf6effa4b99b835",
+      "bytes": 115688,
+      "material_primitive_exception": "Independent rigid controls require separate primitives.",
+      "public_reference_and_accuracy_note": "Manufacturer length15.96m/span10.95m. Long-coupled canards, straight delta, single swept fin, paired chin intakes and twin exhausts."
+    },
+    {
+      "model_id": "wings.original.rafale-c.v1",
+      "name": "Dassault Rafale C",
+      "movement_class": "fixed_wing",
+      "model_file": "models/rafale-c.glb",
+      "rig_file": "rigs/rafale-c.json",
+      "geometry_is_shared_between_modes": true,
+      "origin": "nominal body center",
+      "unit_scale_m": 1,
+      "base_choice": "silhouette-preserving lower-detail variant; constant paint maps folded into PBR factors",
+      "bounds_m": {
+        "min": [
+          -5.451757907867432,
+          -0.7099999785423279,
+          -7.639999866485596
+        ],
+        "max": [
+          5.451757907867432,
+          3.2200000286102295,
+          7.650000095367432
+        ],
+        "dimensions_xyz_m": [
+          10.903515815734863,
+          3.9300000071525574,
+          15.289999961853027
+        ]
+      },
+      "bounds_note": "Static exported pose, not animated/swept rotor or wing-sweep envelope; no collision mesh supplied.",
+      "triangles": 2642,
+      "material_primitives": 12,
+      "material_identities": 5,
+      "embedded_images": [
+        {
+          "name": "paint_basecolor_256",
+          "dimensions": [
+            256,
+            256
+          ],
+          "sha256": "27ffab1da309304f5097c3d54796dadb7f765aa43a40c339316b03939dac89ff",
+          "packed_bytes": 32028
+        }
+      ],
+      "decoded_rgba8_texture_bytes_estimate": 262144,
+      "sha256": "e547d577a3a533ad6c8cadaed6f53d1b5e0850bcbf985ac6dc631488f5100561",
+      "bytes": 114880,
+      "material_primitive_exception": "Independent rigid controls require separate primitives.",
+      "public_reference_and_accuracy_note": "Manufacturer length15.30m/span10.90m. Close-coupled canard delta, single swept fin and rounded separated side intakes; C is land-based, not M."
+    },
+    {
+      "model_id": "wings.original.jas-39c-gripen.v1",
+      "name": "Saab JAS 39C Gripen",
+      "movement_class": "fixed_wing",
+      "model_file": "models/jas-39c-gripen.glb",
+      "rig_file": "rigs/jas-39c-gripen.json",
+      "geometry_is_shared_between_modes": true,
+      "origin": "nominal body center",
+      "unit_scale_m": 1,
+      "base_choice": "silhouette-preserving lower-detail variant; constant paint maps folded into PBR factors",
+      "bounds_m": {
+        "min": [
+          -4.201592445373535,
+          -0.6499999761581421,
+          -7.440000057220459
+        ],
+        "max": [
+          4.201592445373535,
+          3.119999885559082,
+          7.449999809265137
+        ],
+        "dimensions_xyz_m": [
+          8.40318489074707,
+          3.769999861717224,
+          14.889999866485596
+        ]
+      },
+      "bounds_note": "Static exported pose, not animated/swept rotor or wing-sweep envelope; no collision mesh supplied.",
+      "triangles": 2388,
+      "material_primitives": 12,
+      "material_identities": 5,
+      "embedded_images": [
+        {
+          "name": "paint_basecolor_256",
+          "dimensions": [
+            256,
+            256
+          ],
+          "sha256": "27ffab1da309304f5097c3d54796dadb7f765aa43a40c339316b03939dac89ff",
+          "packed_bytes": 32028
+        }
+      ],
+      "decoded_rgba8_texture_bytes_estimate": 262144,
+      "sha256": "f996e62f23cf56027b885767fcb30ae954824b198254dd8a644a14fcacd9e789",
+      "bytes": 108908,
+      "material_primitive_exception": "Independent rigid controls require separate primitives.",
+      "public_reference_and_accuracy_note": "Saab Gripen C factsheet gives overall length14.9m,width8.4m; includes canard, one engine, outboard/inboard elevons. C-specific single-seat compact airframe, not E."
+    },
+    {
+      "model_id": "wings.original.j-20.v1",
+      "name": "Chengdu J-20",
+      "movement_class": "fixed_wing",
+      "model_file": "models/j-20.glb",
+      "rig_file": "rigs/j-20.json",
+      "geometry_is_shared_between_modes": true,
+      "origin": "nominal body center",
+      "unit_scale_m": 1,
+      "base_choice": "silhouette-preserving lower-detail variant; constant paint maps folded into PBR factors",
+      "bounds_m": {
+        "min": [
+          -6.7514519691467285,
+          -1.1699999570846558,
+          -10.1899995803833
+        ],
+        "max": [
+          6.7514519691467285,
+          3.2499999403953552,
+          10.199999809265137
+        ],
+        "dimensions_xyz_m": [
+          13.502903938293457,
+          4.419999897480011,
+          20.389999389648438
+        ]
+      },
+      "bounds_note": "Static exported pose, not animated/swept rotor or wing-sweep envelope; no collision mesh supplied.",
+      "triangles": 2346,
+      "material_primitives": 13,
+      "material_identities": 5,
+      "embedded_images": [
+        {
+          "name": "paint_basecolor_256",
+          "dimensions": [
+            256,
+            256
+          ],
+          "sha256": "27ffab1da309304f5097c3d54796dadb7f765aa43a40c339316b03939dac89ff",
+          "packed_bytes": 32028
+        }
+      ],
+      "decoded_rgba8_texture_bytes_estimate": 262144,
+      "sha256": "9d70ac66e30c70a69c76b8e0c7c0151a74a4e5ab9f12691cef738b816707b862",
+      "bytes": 111048,
+      "material_primitive_exception": "Independent rigid controls require separate primitives.",
+      "public_reference_and_accuracy_note": "Public military-media identity and external silhouette reference only. Long forward fuselage, canard/delta, paired canted fins and twin exhausts. Length20.4m/span13.5m are explicitly approximate art scale, not confirmed official dimensions; not J-20S or naval variant."
+    },
+    {
+      "model_id": "wings.original.mig-31bm.v1",
+      "name": "Mikoyan MiG-31BM",
+      "movement_class": "fixed_wing",
+      "model_file": "models/mig-31bm.glb",
+      "rig_file": "rigs/mig-31bm.json",
+      "geometry_is_shared_between_modes": true,
+      "origin": "nominal body center",
+      "unit_scale_m": 1,
+      "base_choice": "silhouette-preserving lower-detail variant; constant paint maps folded into PBR factors",
+      "bounds_m": {
+        "min": [
+          -6.730344772338867,
+          -0.9300000071525574,
+          -11.335000038146973
+        ],
+        "max": [
+          6.730344772338867,
+          4.349999904632568,
+          11.345000267028809
+        ],
+        "dimensions_xyz_m": [
+          13.460689544677734,
+          5.279999911785126,
+          22.68000030517578
+        ]
+      },
+      "bounds_note": "Static exported pose, not animated/swept rotor or wing-sweep envelope; no collision mesh supplied.",
+      "triangles": 2626,
+      "material_primitives": 13,
+      "material_identities": 5,
+      "embedded_images": [
+        {
+          "name": "paint_basecolor_256",
+          "dimensions": [
+            256,
+            256
+          ],
+          "sha256": "27ffab1da309304f5097c3d54796dadb7f765aa43a40c339316b03939dac89ff",
+          "packed_bytes": 32028
+        }
+      ],
+      "decoded_rgba8_texture_bytes_estimate": 262144,
+      "sha256": "dd4b8a9741ff4fb325c4a5534d1a0264148c1f0f91078f9dfcca565435e9c82f",
+      "bytes": 123644,
+      "material_primitive_exception": "Independent rigid controls require separate primitives.",
+      "public_reference_and_accuracy_note": "UAC primary family identity reference. BM visual approximation with long tandem cockpit, massive box intakes, high swept wings and twin fins. Length22.69m/span13.46m provisional visual scale: requested primary dimension page was inaccessible."
+    },
+    {
+      "model_id": "wings.original.mirage-2000c.v1",
+      "name": "Dassault Mirage 2000C",
+      "movement_class": "fixed_wing",
+      "model_file": "models/mirage-2000c.glb",
+      "rig_file": "rigs/mirage-2000c.json",
+      "geometry_is_shared_between_modes": true,
+      "origin": "nominal body center",
+      "unit_scale_m": 1,
+      "base_choice": "silhouette-preserving lower-detail variant; constant paint maps folded into PBR factors",
+      "bounds_m": {
+        "min": [
+          -4.5655059814453125,
+          -0.7300000190734863,
+          -7.170000076293945
+        ],
+        "max": [
+          4.5655059814453125,
+          3.2699999809265137,
+          7.179999828338623
+        ],
+        "dimensions_xyz_m": [
+          9.131011962890625,
+          4.0,
+          14.349999904632568
+        ]
+      },
+      "bounds_note": "Static exported pose, not animated/swept rotor or wing-sweep envelope; no collision mesh supplied.",
+      "triangles": 2428,
+      "material_primitives": 10,
+      "material_identities": 5,
+      "embedded_images": [
+        {
+          "name": "paint_basecolor_256",
+          "dimensions": [
+            256,
+            256
+          ],
+          "sha256": "27ffab1da309304f5097c3d54796dadb7f765aa43a40c339316b03939dac89ff",
+          "packed_bytes": 32028
+        }
+      ],
+      "decoded_rgba8_texture_bytes_estimate": 262144,
+      "sha256": "5e17fb6db155a50fccaa52ccb4ec1989293441d0346769c43774dc370ce1f4dd",
+      "bytes": 107820,
+      "material_primitive_exception": "Independent rigid controls require separate primitives.",
+      "public_reference_and_accuracy_note": "French Air Force primary family reference: single-engine delta air-defense aircraft. C model retains single-seat bubble canopy, no canards or tailplanes. Length14.36m/span9.13m are provisional visual scale, not newly verified C-variant engineering dimensions."
+    },
+    {
+      "model_id": "wings.original.jf-17-block-iii.v1",
+      "name": "PAC/CAC JF-17 Thunder Block III",
+      "movement_class": "fixed_wing",
+      "model_file": "models/jf-17-block-iii.glb",
+      "rig_file": "rigs/jf-17-block-iii.json",
+      "geometry_is_shared_between_modes": true,
+      "origin": "nominal body center",
+      "unit_scale_m": 1,
+      "base_choice": "silhouette-preserving lower-detail variant; constant paint maps folded into PBR factors",
+      "bounds_m": {
+        "min": [
+          -4.720505714416504,
+          -0.6399999856948853,
+          -7.15500020980835
+        ],
+        "max": [
+          4.720505714416504,
+          3.0799999237060547,
+          7.164999961853027
+        ],
+        "dimensions_xyz_m": [
+          9.441011428833008,
+          3.71999990940094,
+          14.320000171661377
+        ]
+      },
+      "bounds_note": "Static exported pose, not animated/swept rotor or wing-sweep envelope; no collision mesh supplied.",
+      "triangles": 2708,
+      "material_primitives": 12,
+      "material_identities": 5,
+      "embedded_images": [
+        {
+          "name": "paint_basecolor_256",
+          "dimensions": [
+            256,
+            256
+          ],
+          "sha256": "27ffab1da309304f5097c3d54796dadb7f765aa43a40c339316b03939dac89ff",
+          "packed_bytes": 32028
+        }
+      ],
+      "decoded_rgba8_texture_bytes_estimate": 262144,
+      "sha256": "b6bb06bbbf51c6af467e0e636a703d85cc53cff8b8b8b3f757e68db11aebb52a",
+      "bytes": 116228,
+      "material_primitive_exception": "Independent rigid controls require separate primitives.",
+      "public_reference_and_accuracy_note": "PAC official reference URL was attempted but timed out. BlockIII identity per brief. Single-seat, DSI-style side-intake bumps, single fin/engine, strakes. Length14.33m/span9.44m provisional art-scale targets, not primary-verified dimensions. No exact sensor/avionics internals claimed."
+    },
+    {
+      "model_id": "wings.original.fa-50.v1",
+      "name": "Korea Aerospace Industries FA-50 Fighting Eagle",
+      "movement_class": "fixed_wing",
+      "model_file": "models/fa-50.glb",
+      "rig_file": "rigs/fa-50.json",
+      "geometry_is_shared_between_modes": true,
+      "origin": "nominal body center",
+      "unit_scale_m": 1,
+      "base_choice": "silhouette-preserving lower-detail variant; constant paint maps folded into PBR factors",
+      "bounds_m": {
+        "min": [
+          -4.725408554077148,
+          -0.6399999856948853,
+          -6.559999942779541
+        ],
+        "max": [
+          4.725408554077148,
+          2.9600000381469727,
+          6.570000171661377
+        ],
+        "dimensions_xyz_m": [
+          9.450817108154297,
+          3.600000023841858,
+          13.130000114440918
+        ]
+      },
+      "bounds_note": "Static exported pose, not animated/swept rotor or wing-sweep envelope; no collision mesh supplied.",
+      "triangles": 2652,
+      "material_primitives": 12,
+      "material_identities": 5,
+      "embedded_images": [
+        {
+          "name": "paint_basecolor_256",
+          "dimensions": [
+            256,
+            256
+          ],
+          "sha256": "27ffab1da309304f5097c3d54796dadb7f765aa43a40c339316b03939dac89ff",
+          "packed_bytes": 32028
+        }
+      ],
+      "decoded_rgba8_texture_bytes_estimate": 262144,
+      "sha256": "adf3e81efc5c5841bc30b9fa526ae7bdf83f0ccbad8fa12a142f43b73b7484f6",
+      "bytes": 115524,
+      "material_primitive_exception": "Independent rigid controls require separate primitives.",
+      "public_reference_and_accuracy_note": "KAI confirms trainer-derived FA-50 and two seats. Narrow tandem cockpit, side intakes, one engine/fin and swept wings; not single-seat F-16. Length13.14m/span9.45m provisional art scale; downloadable dimensions brochure was unavailable."
+    },
+    {
+      "model_id": "wings.original.su-34.v1",
+      "name": "Sukhoi Su-34",
+      "movement_class": "fixed_wing",
+      "model_file": "models/su-34.glb",
+      "rig_file": "rigs/su-34.json",
+      "geometry_is_shared_between_modes": true,
+      "origin": "nominal body center",
+      "unit_scale_m": 1,
+      "base_choice": "silhouette-preserving lower-detail variant; constant paint maps folded into PBR factors",
+      "bounds_m": {
+        "min": [
+          -7.3501081466674805,
+          -1.100000023841858,
+          -11.699999809265137
+        ],
+        "max": [
+          7.3501081466674805,
+          3.5,
+          11.699999809265137
+        ],
+        "dimensions_xyz_m": [
+          14.700216293334961,
+          4.600000023841858,
+          23.399999618530273
+        ]
+      },
+      "bounds_note": "Static exported pose, not animated/swept rotor or wing-sweep envelope; no collision mesh supplied.",
+      "triangles": 3194,
+      "material_primitives": 15,
+      "material_identities": 5,
+      "embedded_images": [
+        {
+          "name": "paint_basecolor_256",
+          "dimensions": [
+            256,
+            256
+          ],
+          "sha256": "27ffab1da309304f5097c3d54796dadb7f765aa43a40c339316b03939dac89ff",
+          "packed_bytes": 32028
+        }
+      ],
+      "decoded_rgba8_texture_bytes_estimate": 262144,
+      "sha256": "8c2f3633dd39e47a0259b0954c831bee5f8531ed38db48a9e383c277166ff50a",
+      "bytes": 131032,
+      "material_primitive_exception": "Independent rigid controls require separate primitives.",
+      "public_reference_and_accuracy_note": "UAC primary search-indexed reference confirms length23.4m. Flattened broad duckbill nose with side-by-side cockpit, canards, twin nacelles/fins and central tail boom. Span14.7m is provisional visual scale pending fresh primary verification."
+    },
+    {
+      "model_id": "wings.original.tu-160.v1",
+      "name": "Tupolev Tu-160",
+      "movement_class": "fixed_wing",
+      "model_file": "models/tu-160.glb",
+      "rig_file": "rigs/tu-160.json",
+      "geometry_is_shared_between_modes": true,
+      "origin": "nominal body center",
+      "unit_scale_m": 1,
+      "base_choice": "silhouette-preserving lower-detail variant; constant paint maps folded into PBR factors",
+      "bounds_m": {
+        "min": [
+          -24.736678660970533,
+          -3.031769275665283,
+          -27.049999237060547
+        ],
+        "max": [
+          24.736678660970533,
+          9.199999809265137,
+          27.049999237060547
+        ],
+        "dimensions_xyz_m": [
+          49.473357321941066,
+          12.23176908493042,
+          54.099998474121094
+        ]
+      },
+      "bounds_note": "Static exported pose, not animated/swept rotor or wing-sweep envelope; no collision mesh supplied.",
+      "triangles": 2924,
+      "material_primitives": 10,
+      "material_identities": 5,
+      "embedded_images": [
+        {
+          "name": "paint_basecolor_256",
+          "dimensions": [
+            256,
+            256
+          ],
+          "sha256": "27ffab1da309304f5097c3d54796dadb7f765aa43a40c339316b03939dac89ff",
+          "packed_bytes": 32028
+        }
+      ],
+      "decoded_rgba8_texture_bytes_estimate": 262144,
+      "sha256": "705f494bc379b7371c7acd0dde80f18e5002874cc7b498ff27a684b1509f6b0e",
+      "bytes": 120580,
+      "material_primitive_exception": "Independent rigid controls require separate primitives.",
+      "public_reference_and_accuracy_note": "Manufacturer identifies Tu-160 variable-geometry bomber. Public Kharkiv National Air Force University recognition guide confirms overall dimensional targets: length54.1m, maximum span55.7m. Intermediate wing sweep is an artistic pose; no engineering accuracy or operational sweep schedule is asserted."
+    },
+    {
+      "model_id": "wings.original.a-10c.v1",
+      "name": "Fairchild Republic A-10C Thunderbolt II",
+      "movement_class": "fixed_wing",
+      "model_file": "models/a-10c.glb",
+      "rig_file": "rigs/a-10c.json",
+      "geometry_is_shared_between_modes": true,
+      "origin": "nominal body center",
+      "unit_scale_m": 1,
+      "base_choice": "silhouette-preserving lower-detail variant; constant paint maps folded into PBR factors",
+      "bounds_m": {
+        "min": [
+          -8.710000038146973,
+          -0.9599999785423279,
+          -8.078499794006348
+        ],
+        "max": [
+          8.710000038146973,
+          2.75,
+          8.081500053405762
+        ],
+        "dimensions_xyz_m": [
+          17.420000076293945,
+          3.709999978542328,
+          16.15999984741211
+        ]
+      },
+      "bounds_note": "Static exported pose, not animated/swept rotor or wing-sweep envelope; no collision mesh supplied.",
+      "triangles": 3698,
+      "material_primitives": 13,
+      "material_identities": 5,
+      "embedded_images": [
+        {
+          "name": "paint_basecolor_256",
+          "dimensions": [
+            256,
+            256
+          ],
+          "sha256": "27ffab1da309304f5097c3d54796dadb7f765aa43a40c339316b03939dac89ff",
+          "packed_bytes": 32028
+        }
+      ],
+      "decoded_rgba8_texture_bytes_estimate": 262144,
+      "sha256": "74c58cd536be3705b347d7c32fa76b54a0692a992fadde65f82772037187d623",
+      "bytes": 148464,
+      "material_primitive_exception": "Independent rigid controls require separate primitives.",
+      "public_reference_and_accuracy_note": "USAF A-10C fact sheet gives rounded metric length16.16m, span17.42m. Family silhouette: straight wings, twin raised rear turbofans and twin vertical tail. Exterior uses common family shape; not claimed to reconstruct variant-specific avionics."
+    },
+    {
+      "model_id": "wings.original.su-25sm.v1",
+      "name": "Sukhoi Su-25SM",
+      "movement_class": "fixed_wing",
+      "model_file": "models/su-25sm.glb",
+      "rig_file": "rigs/su-25sm.json",
+      "geometry_is_shared_between_modes": true,
+      "origin": "nominal body center",
+      "unit_scale_m": 1,
+      "base_choice": "silhouette-preserving lower-detail variant; constant paint maps folded into PBR factors",
+      "bounds_m": {
+        "min": [
+          -7.179999828338623,
+          -0.8215517997741699,
+          -7.764999866485596
+        ],
+        "max": [
+          7.179999828338623,
+          3.1500000953674316,
+          7.764999866485596
+        ],
+        "dimensions_xyz_m": [
+          14.359999656677246,
+          3.9715518951416016,
+          15.529999732971191
+        ]
+      },
+      "bounds_note": "Static exported pose, not animated/swept rotor or wing-sweep envelope; no collision mesh supplied.",
+      "triangles": 2972,
+      "material_primitives": 12,
+      "material_identities": 5,
+      "embedded_images": [
+        {
+          "name": "paint_basecolor_256",
+          "dimensions": [
+            256,
+            256
+          ],
+          "sha256": "27ffab1da309304f5097c3d54796dadb7f765aa43a40c339316b03939dac89ff",
+          "packed_bytes": 32028
+        }
+      ],
+      "decoded_rgba8_texture_bytes_estimate": 262144,
+      "sha256": "cf231893435e7283a5950bd7ca15591bb2ff9159ab29c001ea7b9412204b4663",
+      "bytes": 125092,
+      "material_primitive_exception": "Independent rigid controls require separate primitives.",
+      "public_reference_and_accuracy_note": "Antonov State Aviation Museum Su-25 family reference: length15.53m and wingspan14.36m; museum inventory gives rounded15.4m fuselage. Model uses15.53m overall visual target. SM represented by family exterior silhouette, not exact external revision fit."
+    },
+    {
+      "model_id": "wings.original.hawk-t2.v1",
+      "name": "BAE Systems Hawk T2 (Hawk 128)",
+      "movement_class": "fixed_wing",
+      "model_file": "models/hawk-t2.glb",
+      "rig_file": "rigs/hawk-t2.json",
+      "geometry_is_shared_between_modes": true,
+      "origin": "nominal body center",
+      "unit_scale_m": 1,
+      "base_choice": "silhouette-preserving lower-detail variant; constant paint maps folded into PBR factors",
+      "bounds_m": {
+        "min": [
+          -4.970424652099609,
+          -0.6800000071525574,
+          -6.210000038146973
+        ],
+        "max": [
+          4.970424652099609,
+          2.6700000762939453,
+          6.215000152587891
+        ],
+        "dimensions_xyz_m": [
+          9.940849304199219,
+          3.3500000834465027,
+          12.425000190734863
+        ]
+      },
+      "bounds_note": "Static exported pose, not animated/swept rotor or wing-sweep envelope; no collision mesh supplied.",
+      "triangles": 2540,
+      "material_primitives": 12,
+      "material_identities": 5,
+      "embedded_images": [
+        {
+          "name": "paint_basecolor_256",
+          "dimensions": [
+            256,
+            256
+          ],
+          "sha256": "27ffab1da309304f5097c3d54796dadb7f765aa43a40c339316b03939dac89ff",
+          "packed_bytes": 32028
+        }
+      ],
+      "decoded_rgba8_texture_bytes_estimate": 262144,
+      "sha256": "9289e2d589b8a295392b2d100c1c3462ee935f1e4837e937e0fea5240bfb54e7",
+      "bytes": 114272,
+      "material_primitive_exception": "Independent rigid controls require separate primitives.",
+      "public_reference_and_accuracy_note": "RAF gives length12.43m/span9.94m, single-engine two-seat low-wing trainer. Updated T2 nose/tail fairings. Clean unarmed trainer, no gun pod or real unit livery."
+    },
+    {
+      "model_id": "wings.original.yak-130.v1",
+      "name": "Yakovlev Yak-130",
+      "movement_class": "fixed_wing",
+      "model_file": "models/yak-130.glb",
+      "rig_file": "rigs/yak-130.json",
+      "geometry_is_shared_between_modes": true,
+      "origin": "nominal body center",
+      "unit_scale_m": 1,
+      "base_choice": "silhouette-preserving lower-detail variant; constant paint maps folded into PBR factors",
+      "bounds_m": {
+        "min": [
+          -4.929093360900879,
+          -0.6600000262260437,
+          -5.736499786376953
+        ],
+        "max": [
+          4.929093360900879,
+          3.0299999713897705,
+          5.746500015258789
+        ],
+        "dimensions_xyz_m": [
+          9.858186721801758,
+          3.689999997615814,
+          11.482999801635742
+        ]
+      },
+      "bounds_note": "Static exported pose, not animated/swept rotor or wing-sweep envelope; no collision mesh supplied.",
+      "triangles": 3050,
+      "material_primitives": 12,
+      "material_identities": 5,
+      "embedded_images": [
+        {
+          "name": "paint_basecolor_256",
+          "dimensions": [
+            256,
+            256
+          ],
+          "sha256": "27ffab1da309304f5097c3d54796dadb7f765aa43a40c339316b03939dac89ff",
+          "packed_bytes": 32028
+        }
+      ],
+      "decoded_rgba8_texture_bytes_estimate": 262144,
+      "sha256": "0bff616f2330806c42860c8d705f7ae05616f2a84e05d44530da4538da44505e",
+      "bytes": 124716,
+      "material_primitive_exception": "Independent rigid controls require separate primitives.",
+      "public_reference_and_accuracy_note": "UAC primary indexed dimensions length11.493m/span9.856m; two seats/two engines. Rounded nose, tandem canopy, pronounced shoulder extensions, compact swept wing and single fin; no optional armament fitted."
+    },
+    {
+      "model_id": "wings.original.ah-64d-apache.v1",
+      "name": "Boeing AH-64D Apache Longbow",
+      "movement_class": "helicopter",
+      "model_file": "models/ah-64d-apache.glb",
+      "rig_file": "rigs/ah-64d-apache.json",
+      "geometry_is_shared_between_modes": true,
+      "origin": "nominal body center",
+      "unit_scale_m": 1,
+      "base_choice": "silhouette-preserving lower-detail variant; constant paint maps folded into PBR factors",
+      "bounds_m": {
+        "min": [
+          -7.300000190734863,
+          -1.5,
+          -9.921378135681152
+        ],
+        "max": [
+          7.300000190734863,
+          3.6600000858306885,
+          7.349999904632568
+        ],
+        "dimensions_xyz_m": [
+          14.600000381469727,
+          5.1600000858306885,
+          17.27137804031372
+        ]
+      },
+      "bounds_note": "Static exported pose, not animated/swept rotor or wing-sweep envelope; no collision mesh supplied.",
+      "triangles": 3588,
+      "material_primitives": 17,
+      "material_identities": 5,
+      "embedded_images": [
+        {
+          "name": "paint_basecolor_256",
+          "dimensions": [
+            256,
+            256
+          ],
+          "sha256": "27ffab1da309304f5097c3d54796dadb7f765aa43a40c339316b03939dac89ff",
+          "packed_bytes": 32028
+        }
+      ],
+      "decoded_rgba8_texture_bytes_estimate": 262144,
+      "sha256": "01965a9e0fd16e57483f6bbda7ffadb2299f773396bb3c3045351acee4ea0a59",
+      "bytes": 172724,
+      "material_primitive_exception": "Independent rigid controls require separate primitives.",
+      "public_reference_and_accuracy_note": "Boeing Apache family dimensions rotor14.6m and body length14.7m are scale guides, not a D-variant engineering drawing. D Longbow silhouette retains four-blade main rotor, unequal-angle four-blade tail rotor, stepped tandem canopy, fixed wheeled gear, stub wings and mast-mounted radar housing. No radar functionality."
+    },
+    {
+      "model_id": "wings.original.mi-28n.v1",
+      "name": "Mil Mi-28N",
+      "movement_class": "helicopter",
+      "model_file": "models/mi-28n.glb",
+      "rig_file": "rigs/mi-28n.json",
+      "geometry_is_shared_between_modes": true,
+      "origin": "nominal body center",
+      "unit_scale_m": 1,
+      "base_choice": "silhouette-preserving lower-detail variant; constant paint maps folded into PBR factors",
+      "bounds_m": {
+        "min": [
+          -7.0588579177856445,
+          -1.6200000047683716,
+          -10.358147621154785
+        ],
+        "max": [
+          8.600000381469727,
+          3.0199999809265137,
+          7.54998779296875
+        ],
+        "dimensions_xyz_m": [
+          15.658858299255371,
+          4.639999985694885,
+          17.908135414123535
+        ]
+      },
+      "bounds_note": "Static exported pose, not animated/swept rotor or wing-sweep envelope; no collision mesh supplied.",
+      "triangles": 3296,
+      "material_primitives": 17,
+      "material_identities": 5,
+      "embedded_images": [
+        {
+          "name": "paint_basecolor_256",
+          "dimensions": [
+            256,
+            256
+          ],
+          "sha256": "27ffab1da309304f5097c3d54796dadb7f765aa43a40c339316b03939dac89ff",
+          "packed_bytes": 32028
+        }
+      ],
+      "decoded_rgba8_texture_bytes_estimate": 262144,
+      "sha256": "dc193d170b343ec1ca8075684b2eb5ec418b833ffbd8d1ae063be3d7ab7d0634",
+      "bytes": 169772,
+      "material_primitive_exception": "Independent rigid controls require separate primitives.",
+      "public_reference_and_accuracy_note": "Russian Helicopters confirms Mi-28N/NE family. Public Army recognition dimensions round rotor diameter56ft, length57ft; Vertical Flight Society Mi-28N lists rotor17.20m. Model uses17.2m rotor diameter and approximately17.91m overall parked-blade envelope from the Vertical Flight Society record; body and control details remain original visual approximations. Broad nose, stepped tandem cabin, five main blades and four-blade X tail rotor are family identifiers. No exact N sensor fit or capability claims."
+    },
+    {
+      "model_id": "wings.original.wings_charles_de_gaulle_r91.v1",
+      "name": "Charles de Gaulle (R91), Charles de Gaulle-class aircraft carrier",
+      "movement_class": "vessel",
+      "model_file": "models/wings_charles_de_gaulle_r91.glb",
+      "rig_file": "rigs/wings_charles_de_gaulle_r91.json",
+      "geometry_is_shared_between_modes": false,
+      "origin": "nominal waterline center",
+      "unit_scale_m": 1,
+      "base_choice": "silhouette-preserving lower-detail variant; constant paint maps folded into PBR factors",
+      "bounds_m": {
+        "min": [
+          -32.18000030517578,
+          -8.5,
+          -130.75
+        ],
+        "max": [
+          31.536399841308594,
+          57.779998779296875,
+          130.75
+        ],
+        "dimensions_xyz_m": [
+          63.716400146484375,
+          66.27999877929688,
+          261.5
+        ]
+      },
+      "bounds_note": "Static exported pose, not animated/swept rotor or wing-sweep envelope; no collision mesh supplied.",
+      "triangles": 6048,
+      "material_primitives": 3,
+      "material_identities": 1,
+      "embedded_images": [
+        {
+          "name": "naval_normal_256",
+          "dimensions": [
+            256,
+            256
+          ],
+          "sha256": "5446394613b56b7adfed423e78c29708a0a2bd4c3af79dad08b10fc1d7ee4e17",
+          "packed_bytes": 42672
+        },
+        {
+          "name": "naval_basecolor_256",
+          "dimensions": [
+            256,
+            256
+          ],
+          "sha256": "2419d758f3a3f86569439f62f5d27fe5af8c6418c2b32a5038b50afb631f1c32",
+          "packed_bytes": 35260
+        },
+        {
+          "name": "naval_metallicroughness_256",
+          "dimensions": [
+            256,
+            256
+          ],
+          "sha256": "c45f64ca782b54b0f9c625345add480dc9bf54f377e8728e4f0e4c1fd533aca1",
+          "packed_bytes": 34395
+        }
+      ],
+      "decoded_rgba8_texture_bytes_estimate": 786432,
+      "sha256": "710d89240f0493d66d7e0982fc8cad4d9e5485a4ca6cd819420ff3452dd50610",
+      "bytes": 559588,
+      "material_primitive_exception": null,
+      "public_reference_and_accuracy_note": "Length/deck beam source-supported; hull beam 31.5 m, draft 8.5 m and all vertical dimensions remain approximate art targets."
+    },
+    {
+      "model_id": "wings.original.wings_queen_elizabeth_class.v1",
+      "name": "Queen Elizabeth-class aircraft carrier",
+      "movement_class": "vessel",
+      "model_file": "models/wings_queen_elizabeth_class.glb",
+      "rig_file": "rigs/wings_queen_elizabeth_class.json",
+      "geometry_is_shared_between_modes": false,
+      "origin": "nominal waterline center",
+      "unit_scale_m": 1,
+      "base_choice": "silhouette-preserving lower-detail variant; constant paint maps folded into PBR factors",
+      "bounds_m": {
+        "min": [
+          -35.0,
+          -11.0,
+          -142.0
+        ],
+        "max": [
+          35.0,
+          50.4640007019043,
+          142.0
+        ],
+        "dimensions_xyz_m": [
+          70.0,
+          61.4640007019043,
+          284.0
+        ]
+      },
+      "bounds_note": "Static exported pose, not animated/swept rotor or wing-sweep envelope; no collision mesh supplied.",
+      "triangles": 6550,
+      "material_primitives": 5,
+      "material_identities": 1,
+      "embedded_images": [
+        {
+          "name": "naval_normal_256",
+          "dimensions": [
+            256,
+            256
+          ],
+          "sha256": "5446394613b56b7adfed423e78c29708a0a2bd4c3af79dad08b10fc1d7ee4e17",
+          "packed_bytes": 42672
+        },
+        {
+          "name": "naval_basecolor_256",
+          "dimensions": [
+            256,
+            256
+          ],
+          "sha256": "2419d758f3a3f86569439f62f5d27fe5af8c6418c2b32a5038b50afb631f1c32",
+          "packed_bytes": 35260
+        },
+        {
+          "name": "naval_metallicroughness_256",
+          "dimensions": [
+            256,
+            256
+          ],
+          "sha256": "c45f64ca782b54b0f9c625345add480dc9bf54f377e8728e4f0e4c1fd533aca1",
+          "packed_bytes": 34395
+        }
+      ],
+      "decoded_rgba8_texture_bytes_estimate": 786432,
+      "sha256": "e631d38a98fff7c75220d818ab5ed6f20dc9097d56749ae7bdd5cbf536ed23e7",
+      "bytes": 592336,
+      "material_primitive_exception": null,
+      "public_reference_and_accuracy_note": "284 m overall and approximately 280 m deck chosen, not conflating the two lengths. Hull beam/draft and island proportions approximate."
+    },
+    {
+      "model_id": "wings.original.wings_type45_daring_class.v1",
+      "name": "Type 45 Daring-class destroyer",
+      "movement_class": "vessel",
+      "model_file": "models/wings_type45_daring_class.glb",
+      "rig_file": "rigs/wings_type45_daring_class.json",
+      "geometry_is_shared_between_modes": false,
+      "origin": "nominal waterline center",
+      "unit_scale_m": 1,
+      "base_choice": "silhouette-preserving lower-detail variant; constant paint maps folded into PBR factors",
+      "bounds_m": {
+        "min": [
+          -10.600000381469727,
+          -7.400000095367432,
+          -76.19999694824219
+        ],
+        "max": [
+          10.600000381469727,
+          45.244998931884766,
+          76.19999694824219
+        ],
+        "dimensions_xyz_m": [
+          21.200000762939453,
+          52.6449990272522,
+          152.39999389648438
+        ]
+      },
+      "bounds_note": "Static exported pose, not animated/swept rotor or wing-sweep envelope; no collision mesh supplied.",
+      "triangles": 5962,
+      "material_primitives": 5,
+      "material_identities": 1,
+      "embedded_images": [
+        {
+          "name": "naval_normal_256",
+          "dimensions": [
+            256,
+            256
+          ],
+          "sha256": "5446394613b56b7adfed423e78c29708a0a2bd4c3af79dad08b10fc1d7ee4e17",
+          "packed_bytes": 42672
+        },
+        {
+          "name": "naval_basecolor_256",
+          "dimensions": [
+            256,
+            256
+          ],
+          "sha256": "2419d758f3a3f86569439f62f5d27fe5af8c6418c2b32a5038b50afb631f1c32",
+          "packed_bytes": 35260
+        },
+        {
+          "name": "naval_metallicroughness_256",
+          "dimensions": [
+            256,
+            256
+          ],
+          "sha256": "c45f64ca782b54b0f9c625345add480dc9bf54f377e8728e4f0e4c1fd533aca1",
+          "packed_bytes": 34395
+        }
+      ],
+      "decoded_rgba8_texture_bytes_estimate": 786432,
+      "sha256": "d89013ab670d4669123efb69dcdd665ff5f18f9ee972569c999e3dc7725e4681",
+      "bytes": 538696,
+      "material_primitive_exception": null,
+      "public_reference_and_accuracy_note": "Length/beam source-supported; draft/vertical dimensions and fittings approximate."
+    },
+    {
+      "model_id": "wings.original.wings_aquitaine_fremm.v1",
+      "name": "Aquitaine-class FREMM frigate",
+      "movement_class": "vessel",
+      "model_file": "models/wings_aquitaine_fremm.glb",
+      "rig_file": "rigs/wings_aquitaine_fremm.json",
+      "geometry_is_shared_between_modes": false,
+      "origin": "nominal waterline center",
+      "unit_scale_m": 1,
+      "base_choice": "silhouette-preserving lower-detail variant; constant paint maps folded into PBR factors",
+      "bounds_m": {
+        "min": [
+          -10.0,
+          -7.0,
+          -71.0
+        ],
+        "max": [
+          10.0,
+          38.31999969482422,
+          71.0
+        ],
+        "dimensions_xyz_m": [
+          20.0,
+          45.31999969482422,
+          142.0
+        ]
+      },
+      "bounds_note": "Static exported pose, not animated/swept rotor or wing-sweep envelope; no collision mesh supplied.",
+      "triangles": 5982,
+      "material_primitives": 5,
+      "material_identities": 1,
+      "embedded_images": [
+        {
+          "name": "naval_normal_256",
+          "dimensions": [
+            256,
+            256
+          ],
+          "sha256": "5446394613b56b7adfed423e78c29708a0a2bd4c3af79dad08b10fc1d7ee4e17",
+          "packed_bytes": 42672
+        },
+        {
+          "name": "naval_basecolor_256",
+          "dimensions": [
+            256,
+            256
+          ],
+          "sha256": "2419d758f3a3f86569439f62f5d27fe5af8c6418c2b32a5038b50afb631f1c32",
+          "packed_bytes": 35260
+        },
+        {
+          "name": "naval_metallicroughness_256",
+          "dimensions": [
+            256,
+            256
+          ],
+          "sha256": "c45f64ca782b54b0f9c625345add480dc9bf54f377e8728e4f0e4c1fd533aca1",
+          "packed_bytes": 34395
+        }
+      ],
+      "decoded_rgba8_texture_bytes_estimate": 786432,
+      "sha256": "cb8c3a46ab4bc4e0fd34633d0747664a371bff02dcb768635e3b5448bf489068",
+      "bytes": 540832,
+      "material_primitive_exception": null,
+      "public_reference_and_accuracy_note": "Length/beam source-supported; French Aquitaine-style silhouette independently interpreted with approximate vertical/fitting proportions."
+    },
+    {
+      "model_id": "wings.original.wings_cb90_h.v1",
+      "name": "Dockstavarvet Combat Boat 90 H (CB90 H)",
+      "movement_class": "vessel",
+      "model_file": "models/wings_cb90_h.glb",
+      "rig_file": "rigs/wings_cb90_h.json",
+      "geometry_is_shared_between_modes": false,
+      "origin": "nominal waterline center",
+      "unit_scale_m": 1,
+      "base_choice": "silhouette-preserving lower-detail variant; constant paint maps folded into PBR factors",
+      "bounds_m": {
+        "min": [
+          -2.0029985904693604,
+          -0.800000011920929,
+          -8.029500007629395
+        ],
+        "max": [
+          2.0029985904693604,
+          4.216000080108643,
+          7.949999809265137
+        ],
+        "dimensions_xyz_m": [
+          4.005997180938721,
+          5.0160000920295715,
+          15.979499816894531
+        ]
+      },
+      "bounds_note": "Static exported pose, not animated/swept rotor or wing-sweep envelope; no collision mesh supplied.",
+      "triangles": 2630,
+      "material_primitives": 2,
+      "material_identities": 1,
+      "embedded_images": [
+        {
+          "name": "naval_normal_256",
+          "dimensions": [
+            256,
+            256
+          ],
+          "sha256": "5446394613b56b7adfed423e78c29708a0a2bd4c3af79dad08b10fc1d7ee4e17",
+          "packed_bytes": 42672
+        },
+        {
+          "name": "naval_basecolor_256",
+          "dimensions": [
+            256,
+            256
+          ],
+          "sha256": "2419d758f3a3f86569439f62f5d27fe5af8c6418c2b32a5038b50afb631f1c32",
+          "packed_bytes": 35260
+        },
+        {
+          "name": "naval_metallicroughness_256",
+          "dimensions": [
+            256,
+            256
+          ],
+          "sha256": "c45f64ca782b54b0f9c625345add480dc9bf54f377e8728e4f0e4c1fd533aca1",
+          "packed_bytes": 34395
+        }
+      ],
+      "decoded_rgba8_texture_bytes_estimate": 786432,
+      "sha256": "46aaa3e428309ad927402589a5b35243bedfa7511ee18849c50e48a45b84cfcc",
+      "bytes": 307892,
+      "material_primitive_exception": null,
+      "public_reference_and_accuracy_note": "Length/beam/draft cross-checked in FOI appendix. Upper profile tuned toward approximate 5 m total height. Other cabin/ramp proportions artist-authored."
+    },
+    {
+      "model_id": "wings.original.wings_liaoning_type001.v1",
+      "name": "Liaoning (16), Type 001 aircraft carrier",
+      "movement_class": "vessel",
+      "model_file": "models/wings_liaoning_type001.glb",
+      "rig_file": "rigs/wings_liaoning_type001.json",
+      "geometry_is_shared_between_modes": false,
+      "origin": "nominal waterline center",
+      "unit_scale_m": 1,
+      "base_choice": "silhouette-preserving lower-detail variant; constant paint maps folded into PBR factors",
+      "bounds_m": {
+        "min": [
+          -36.0,
+          -10.5,
+          -152.25
+        ],
+        "max": [
+          36.0,
+          60.7599983215332,
+          152.25
+        ],
+        "dimensions_xyz_m": [
+          72.0,
+          71.2599983215332,
+          304.5
+        ]
+      },
+      "bounds_note": "Static exported pose, not animated/swept rotor or wing-sweep envelope; no collision mesh supplied.",
+      "triangles": 6320,
+      "material_primitives": 5,
+      "material_identities": 1,
+      "embedded_images": [
+        {
+          "name": "naval_normal_256",
+          "dimensions": [
+            256,
+            256
+          ],
+          "sha256": "5446394613b56b7adfed423e78c29708a0a2bd4c3af79dad08b10fc1d7ee4e17",
+          "packed_bytes": 42672
+        },
+        {
+          "name": "naval_basecolor_256",
+          "dimensions": [
+            256,
+            256
+          ],
+          "sha256": "2419d758f3a3f86569439f62f5d27fe5af8c6418c2b32a5038b50afb631f1c32",
+          "packed_bytes": 35260
+        },
+        {
+          "name": "naval_metallicroughness_256",
+          "dimensions": [
+            256,
+            256
+          ],
+          "sha256": "c45f64ca782b54b0f9c625345add480dc9bf54f377e8728e4f0e4c1fd533aca1",
+          "packed_bytes": 34395
+        }
+      ],
+      "decoded_rgba8_texture_bytes_estimate": 786432,
+      "sha256": "62efc4a166bf3d53a197aa43dd92f7a4e21cd3b2eccb49fa0a0f4b24a0ee116a",
+      "bytes": 578588,
+      "material_primitive_exception": null,
+      "public_reference_and_accuracy_note": "304.5 by 72 m art target is approximate class-level scale, not a claim that cited government reporting verifies these exact values. Island details intentionally differ from Kuznetsov."
+    },
+    {
+      "model_id": "wings.original.wings_admiral_kuznetsov_project1143_5.v1",
+      "name": "Admiral Kuznetsov, Project 1143.5 aircraft carrier",
+      "movement_class": "vessel",
+      "model_file": "models/wings_admiral_kuznetsov_project1143_5.glb",
+      "rig_file": "rigs/wings_admiral_kuznetsov_project1143_5.json",
+      "geometry_is_shared_between_modes": false,
+      "origin": "nominal waterline center",
+      "unit_scale_m": 1,
+      "base_choice": "silhouette-preserving lower-detail variant; constant paint maps folded into PBR factors",
+      "bounds_m": {
+        "min": [
+          -36.0,
+          -10.5,
+          -152.25
+        ],
+        "max": [
+          36.0,
+          60.7599983215332,
+          152.25
+        ],
+        "dimensions_xyz_m": [
+          72.0,
+          71.2599983215332,
+          304.5
+        ]
+      },
+      "bounds_note": "Static exported pose, not animated/swept rotor or wing-sweep envelope; no collision mesh supplied.",
+      "triangles": 6820,
+      "material_primitives": 5,
+      "material_identities": 1,
+      "embedded_images": [
+        {
+          "name": "naval_normal_256",
+          "dimensions": [
+            256,
+            256
+          ],
+          "sha256": "5446394613b56b7adfed423e78c29708a0a2bd4c3af79dad08b10fc1d7ee4e17",
+          "packed_bytes": 42672
+        },
+        {
+          "name": "naval_basecolor_256",
+          "dimensions": [
+            256,
+            256
+          ],
+          "sha256": "2419d758f3a3f86569439f62f5d27fe5af8c6418c2b32a5038b50afb631f1c32",
+          "packed_bytes": 35260
+        },
+        {
+          "name": "naval_metallicroughness_256",
+          "dimensions": [
+            256,
+            256
+          ],
+          "sha256": "c45f64ca782b54b0f9c625345add480dc9bf54f377e8728e4f0e4c1fd533aca1",
+          "packed_bytes": 34395
+        }
+      ],
+      "decoded_rgba8_texture_bytes_estimate": 786432,
+      "sha256": "566d2422ca21b208a37b0d11f929ac4058613912e4a78aa12f6f70a6e19143d4",
+      "bytes": 622108,
+      "material_primitive_exception": null,
+      "public_reference_and_accuracy_note": "304.5 by 72 m is an approximate art target. Exact dimensions were not independently confirmed on an accessible primary shipbuilder/military dimension table in this pass. Historical/nominal roster asset, not current-refit accuracy."
+    },
+    {
+      "model_id": "wings.original.wings_type055_renhai.v1",
+      "name": "Type 055 Renhai-class guided-missile destroyer",
+      "movement_class": "vessel",
+      "model_file": "models/wings_type055_renhai.glb",
+      "rig_file": "rigs/wings_type055_renhai.json",
+      "geometry_is_shared_between_modes": false,
+      "origin": "nominal waterline center",
+      "unit_scale_m": 1,
+      "base_choice": "silhouette-preserving lower-detail variant; constant paint maps folded into PBR factors",
+      "bounds_m": {
+        "min": [
+          -10.0,
+          -6.599999904632568,
+          -90.0
+        ],
+        "max": [
+          10.0,
+          47.099998474121094,
+          90.0
+        ],
+        "dimensions_xyz_m": [
+          20.0,
+          53.69999837875366,
+          180.0
+        ]
+      },
+      "bounds_note": "Static exported pose, not animated/swept rotor or wing-sweep envelope; no collision mesh supplied.",
+      "triangles": 6014,
+      "material_primitives": 5,
+      "material_identities": 1,
+      "embedded_images": [
+        {
+          "name": "naval_normal_256",
+          "dimensions": [
+            256,
+            256
+          ],
+          "sha256": "5446394613b56b7adfed423e78c29708a0a2bd4c3af79dad08b10fc1d7ee4e17",
+          "packed_bytes": 42672
+        },
+        {
+          "name": "naval_basecolor_256",
+          "dimensions": [
+            256,
+            256
+          ],
+          "sha256": "2419d758f3a3f86569439f62f5d27fe5af8c6418c2b32a5038b50afb631f1c32",
+          "packed_bytes": 35260
+        },
+        {
+          "name": "naval_metallicroughness_256",
+          "dimensions": [
+            256,
+            256
+          ],
+          "sha256": "c45f64ca782b54b0f9c625345add480dc9bf54f377e8728e4f0e4c1fd533aca1",
+          "packed_bytes": 34395
+        }
+      ],
+      "decoded_rgba8_texture_bytes_estimate": 786432,
+      "sha256": "7066833e6c8307e0d64906da35233ac4435fceda18f29acb7e82e219c968620b",
+      "bytes": 536996,
+      "material_primitive_exception": null,
+      "public_reference_and_accuracy_note": "180 by 20 m art target follows cited public report; other public primary-hosted reports range 21\u201322 m beam. Vertical heights and all fittings approximate."
+    },
+    {
+      "model_id": "wings.original.wings_type054a_jiangkai_ii.v1",
+      "name": "Type 054A Jiangkai II-class frigate",
+      "movement_class": "vessel",
+      "model_file": "models/wings_type054a_jiangkai_ii.glb",
+      "rig_file": "rigs/wings_type054a_jiangkai_ii.json",
+      "geometry_is_shared_between_modes": false,
+      "origin": "nominal waterline center",
+      "unit_scale_m": 1,
+      "base_choice": "silhouette-preserving lower-detail variant; constant paint maps folded into PBR factors",
+      "bounds_m": {
+        "min": [
+          -8.0,
+          -5.0,
+          -67.05000305175781
+        ],
+        "max": [
+          8.0,
+          39.52000045776367,
+          67.05000305175781
+        ],
+        "dimensions_xyz_m": [
+          16.0,
+          44.52000045776367,
+          134.10000610351562
+        ]
+      },
+      "bounds_note": "Static exported pose, not animated/swept rotor or wing-sweep envelope; no collision mesh supplied.",
+      "triangles": 5998,
+      "material_primitives": 5,
+      "material_identities": 1,
+      "embedded_images": [
+        {
+          "name": "naval_normal_256",
+          "dimensions": [
+            256,
+            256
+          ],
+          "sha256": "5446394613b56b7adfed423e78c29708a0a2bd4c3af79dad08b10fc1d7ee4e17",
+          "packed_bytes": 42672
+        },
+        {
+          "name": "naval_basecolor_256",
+          "dimensions": [
+            256,
+            256
+          ],
+          "sha256": "2419d758f3a3f86569439f62f5d27fe5af8c6418c2b32a5038b50afb631f1c32",
+          "packed_bytes": 35260
+        },
+        {
+          "name": "naval_metallicroughness_256",
+          "dimensions": [
+            256,
+            256
+          ],
+          "sha256": "c45f64ca782b54b0f9c625345add480dc9bf54f377e8728e4f0e4c1fd533aca1",
+          "packed_bytes": 34395
+        }
+      ],
+      "decoded_rgba8_texture_bytes_estimate": 786432,
+      "sha256": "a2afdbbd52f55420a29630f84643335ebec58504abe06100a70f98d58c5251ae",
+      "bytes": 545476,
+      "material_primitive_exception": null,
+      "public_reference_and_accuracy_note": "134.1 by 16 m is an approximate art target; exact dimensions not independently confirmed in accessible primary dimension table in this pass. Original-generation silhouette, not a claim about newer enlarged variants."
+    },
+    {
+      "model_id": "wings.original.wings_type022_houbei.v1",
+      "name": "Type 022 Houbei-class missile boat",
+      "movement_class": "vessel",
+      "model_file": "models/wings_type022_houbei.glb",
+      "rig_file": "rigs/wings_type022_houbei.json",
+      "geometry_is_shared_between_modes": false,
+      "origin": "nominal waterline center",
+      "unit_scale_m": 1,
+      "base_choice": "silhouette-preserving lower-detail variant; constant paint maps folded into PBR factors",
+      "bounds_m": {
+        "min": [
+          -5.935983180999756,
+          -1.5,
+          -21.51300048828125
+        ],
+        "max": [
+          5.935983180999756,
+          14.067999839782715,
+          21.299999237060547
+        ],
+        "dimensions_xyz_m": [
+          11.871966361999512,
+          15.567999839782715,
+          42.8129997253418
+        ]
+      },
+      "bounds_note": "Static exported pose, not animated/swept rotor or wing-sweep envelope; no collision mesh supplied.",
+      "triangles": 2988,
+      "material_primitives": 1,
+      "material_identities": 1,
+      "embedded_images": [
+        {
+          "name": "naval_normal_256",
+          "dimensions": [
+            256,
+            256
+          ],
+          "sha256": "5446394613b56b7adfed423e78c29708a0a2bd4c3af79dad08b10fc1d7ee4e17",
+          "packed_bytes": 42672
+        },
+        {
+          "name": "naval_basecolor_256",
+          "dimensions": [
+            256,
+            256
+          ],
+          "sha256": "2419d758f3a3f86569439f62f5d27fe5af8c6418c2b32a5038b50afb631f1c32",
+          "packed_bytes": 35260
+        },
+        {
+          "name": "naval_metallicroughness_256",
+          "dimensions": [
+            256,
+            256
+          ],
+          "sha256": "c45f64ca782b54b0f9c625345add480dc9bf54f377e8728e4f0e4c1fd533aca1",
+          "packed_bytes": 34395
+        }
+      ],
+      "decoded_rgba8_texture_bytes_estimate": 786432,
+      "sha256": "f259a65fb5a43a6647e3e740d307aba23e77ff060db8d4881a9dcb853772bdca",
+      "bytes": 331884,
+      "material_primitive_exception": null,
+      "public_reference_and_accuracy_note": "42.6 by 12.2 m is an approximate art target; exact dimensions not independently confirmed on accessible primary dimension table in this pass."
+    }
+  ],
+  "runtime_dependencies": [
+    "glTF 2.0 metallic-roughness renderer; all image payloads embedded"
+  ],
+  "holds": [
+    "Current Wings runtime contract was not supplied; axis/scale mapping is a provisional integration choice.",
+    "No native-game/FPS/balance acceptance, collision proxies, weapon systems, carrier deck operations or flight simulation.",
+    "Existing F-35/Apache replacement compatibility and separate source-game licensing unresolved."
+  ],
+  "provenance": {
+    "author": "OpenAI assistants, original Blender geometry and original procedural PBR surfaces",
+    "tool": "Blender 4.3.2",
+    "assistant_model_version": "Not exposed in artifact API; original AI-assisted procedural authoring, not an image-model asset download.",
+    "created_utc": "2026-10-24",
+    "third_party_models_or_textures": false,
+    "endorsement": false
+  }
+}

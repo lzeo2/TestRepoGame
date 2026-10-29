@@ -1,0 +1,41 @@
+{
+  "source": "5a7fd1d3bd924e41bfbd52ad7a6d9ab3ebe9410b",
+  "base": "167a716a9bc8d41558cb0a76eb425fde03a5e6aa",
+  "commits": ["5c41fb75", "1fcf8706", "5a7fd1d3"],
+  "scope": "Fitted Factions bomb near-miss authority and actual native bomb CPU fixtures only. Not responsive GPU rendering, normal human flight, natural AI bombing, publication or acceptance.",
+  "native_rules": {
+    "ship_direct_damage": 2700,
+    "near_miss_peak_damage": 1350,
+    "radius_m": 45,
+    "falloff": "1350 * (1 - minimum_3D_fitted_component_distance / 45), strictly inside radius",
+    "direct_hit_policy": "Fitted or native direct ship hits suppress this near-miss callback; friendly near-miss hulls are excluded.",
+    "authority": "Existing fleet applyImpact, sinking, objectives, safe snapshots and bounded replay. One replay action reserved before all area mutations; one impact per affected measured surface unit.",
+    "provenance": "Actual current native projectile reference, authenticated native segment boundary, immutable owner/vehicle/team/weapon identity, current binding/round, unpaused/live match, unexpired and unspent. Authentication survives launcher death/disconnect; blast callback cannot establish provenance."
+  },
+  "parent_checks": [
+    {"script": "Games/Wings/authoring/fleet-bomb-near-miss-check.mjs", "groups": 9, "exit": 0},
+    {"script": "Games/Wings/authoring/native-factions-bombs-check.mjs", "groups": 21, "exit": 0, "main_ts_write_false_compile_bytes": 1906538},
+    {"script": "Games/Wings/authoring/retained-host-bridge-check.mjs", "groups": 15, "exit": 0},
+    {"script": "Games/Wings/authoring/local-session-check.mjs", "groups": 25, "exit": 0},
+    {"script": "Games/Wings/authoring/fleet-sim-check.mjs", "groups": 22, "exit": 0},
+    {"script": "Games/Wings/authoring/fleet-geometry-check.mjs", "groups": 9, "exit": 0}
+  ],
+  "generated_checks": {"astra": "PASS", "solo": "PASS", "lighting": "PASS"},
+  "regressions": [
+    "Analytic rotated/translated component distances and genuine Type022 water tunnel; no aggregate gap fill.",
+    "Strict radius boundary, vertical falloff, overlapping components counted once, moving units, multiple sinks/objectives, exact replay and replay-capacity atomicity.",
+    "Friendly, submerged, surfaced submarine and unmodelled proxy exclusion; existing weather/event redaction retained.",
+    "Actual native B2 fireBomb spends ammo 8->7; near-water fitted damage uses native blast constants, aircraft splash and native water effects exactly once.",
+    "First-step test-only airframe pose [3528,3.1,1030] with velocity [0,-40,0] releases a native bomb 0.1m above water. Native segment authentication and near-miss callback at the same projectile age produce damage once. This is explicitly not normal low-altitude flight acceptance.",
+    "Native direct-hit and legacy no-hook effects preserved; stale/copy/mutation/expiry/pause/round/spent negatives and launcher death/disconnect tested.",
+    "Original 16 bomb groups retained; no physics, HP, ammo, roster, model or production chooser retuning."
+  ],
+  "failures_retained": [
+    "Worker initial run passed 20 CPU groups but exited at assertion 'Use approved existing tools' because THREE_ROOT/ESBUILD_ROOT were unset, not because installations were absent. Original .tmp/bomb-near-miss-check.log retained; explicit approved environment passes full compile.",
+    "Review identified an extra projectile-age provenance restriction in 1fcf8706 that would reject a legitimate first-step impact. 5a7fd1d3 removes that restriction and adds the actual first-step native regression; do not integrate 1fcf8706 without this correction."
+  ],
+  "preservation": "No changes from base to tracked models, supplied originals/rigs/metadata/quarantine, games.json or historical random/declared observer receipts. 18 supplied aircraft, 10 vessel objectives, 25 ordinary kinds, 129 catalog entries unchanged.",
+  "canonical_combat_preimage_sha256": "92c18e646a6427754564f411f0c590321d7110e5dea045b15d7b71334a96792b",
+  "acceptance": {"cpu_changed_behavior": true, "native_graphics": false, "human_input": false, "natural_ai_bombing": false, "full_pool_random_coverage": false, "release": false},
+  "remaining": "AH64D/Mi28N source rotor contacts and quarantine unchanged. AI bombing, FC missile guidance, carrier operations, shared maps/weather, symmetric ASW and native acceptance remain unfinished. Current18-kind full-pool sampling unrun; historical failures unchanged."
+}

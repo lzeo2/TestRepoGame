@@ -1,0 +1,13 @@
+{
+  "model_id": "wings.original.wings_type022_houbei.v1",
+  "model_file": "models/wings_type022_houbei.glb",
+  "unit": "meter",
+  "axes": {
+    "up": "+Y",
+    "forward": "+Z",
+    "right": "+X"
+  },
+  "controls": [],
+  "animations_included": [],
+  "integration_note": "Direct rigid-node transform suggestions only. Preserve rest transforms and hierarchy. No constraints, physics, mechanical limit guarantee or gameplay behavior."
+}

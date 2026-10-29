@@ -1,0 +1,2142 @@
+{
+  "schema": "wings_native_fighter_pair_v1",
+  "archive_sha256": "4e37a104ba356790f6f9a0632c99d34b77dc023649e3cab830d895ec55c471d8",
+  "models": {
+    "f16c": {
+      "source_model_id": "wings.original.f-16c.v1",
+      "source_sha256": "b2c38684cd1f7d904e6d076f600f0233a3b481b8ea5434fc186411d31fa1cf30",
+      "file": "models/derived/wings_f16c.glb",
+      "sha256": "fc4dcefc1d16064ab8be6eaa386fe2ef45401bf645dbd2d43165e34ccd4e234e",
+      "bounds": {
+        "min": [
+          -4.900000095367432,
+          -1.2200000286102295,
+          -7.435166358947754
+        ],
+        "max": [
+          4.900000095367432,
+          3.200000047683716,
+          7.384833355054259
+        ]
+      },
+      "hardpoints": {
+        "gun": [
+          -5.181198158846433e-19,
+          -0.4827764999458292,
+          -5.1185155510902405
+        ],
+        "missiles": [
+          [
+            [
+              -3.5280000686645505,
+              -0.496220544326652,
+              0.37051789183172446
+            ],
+            [
+              3.5280000686645505,
+              -0.496220544326652,
+              0.37051789183172446
+            ]
+          ],
+          [
+            [
+              -2.2540000438690186,
+              -0.6532374121319463,
+              -0.13465390467478544
+            ],
+            [
+              2.2540000438690186,
+              -0.6532374121319463,
+              -0.13465390467478544
+            ]
+          ]
+        ]
+      },
+      "cockpit": [
+        0,
+        0.9986189450016205,
+        -3.064494177699089
+      ],
+      "exhausts": [
+        {
+          "node": "afterburner",
+          "anchor": "exhaust",
+          "position": [
+            0.0,
+            0.0,
+            7.372833354949951
+          ]
+        }
+      ],
+      "controls": [
+        {
+          "node": "flaperon_L",
+          "axis": "x",
+          "driver": "roll",
+          "gain": -1,
+          "max_rad": 0.22
+        },
+        {
+          "node": "tailplane_L",
+          "axis": "x",
+          "driver": "pitch",
+          "gain": -1,
+          "max_rad": 0.22
+        },
+        {
+          "node": "flaperon_R",
+          "axis": "x",
+          "driver": "roll",
+          "gain": 1,
+          "max_rad": 0.22
+        },
+        {
+          "node": "tailplane_R",
+          "axis": "x",
+          "driver": "pitch",
+          "gain": -1,
+          "max_rad": 0.22
+        },
+        {
+          "node": "rudder_1",
+          "axis": "y",
+          "driver": "yaw",
+          "gain": -1,
+          "max_rad": 0.28
+        }
+      ],
+      "native_pivots": [
+        "flaperon_L",
+        "tailplane_L",
+        "flaperon_R",
+        "tailplane_R",
+        "rudder_1",
+        "missile_L2",
+        "missile_R2",
+        "missile_L1",
+        "missile_R1",
+        "afterburner"
+      ]
+    },
+    "mig29": {
+      "source_model_id": "wings.original.mig-29.v1",
+      "source_sha256": "b94eb1885dd2119ff135a824f2879b94f792340e684d51ded704a552d64d88c8",
+      "file": "models/derived/wings_mig29.glb",
+      "sha256": "c36c880521436792f18e1860ba51295f8b5c57e2dc05fa6081086e7d646edb83",
+      "bounds": {
+        "min": [
+          -5.679999828338623,
+          -1.0,
+          -8.880474090576172
+        ],
+        "max": [
+          5.679999828338623,
+          2.950000047683716,
+          8.45952655802667
+        ]
+      },
+      "hardpoints": {
+        "gun": [
+          -5.181198158846433e-19,
+          -0.5265076848470187,
+          -5.448834240436554
+        ],
+        "missiles": [
+          [
+            [
+              -4.089599876403809,
+              -0.5188621723366998,
+              0.561707175789667
+            ],
+            [
+              4.089599876403809,
+              -0.5188621723366998,
+              0.561707175789667
+            ]
+          ],
+          [
+            [
+              -2.6127999210357666,
+              -0.5522375086750773,
+              -0.0865151939295159
+            ],
+            [
+              2.6127999210357666,
+              -0.5522375086750773,
+              -0.0865151939295159
+            ]
+          ]
+        ]
+      },
+      "cockpit": [
+        0,
+        1.057410638352874,
+        -3.3840143978595734
+      ],
+      "exhausts": [
+        {
+          "node": "afterburner_L",
+          "anchor": "exhaust_L",
+          "position": [
+            -1.0799999833106995,
+            -0.3200000077486038,
+            8.447526557922362
+          ]
+        },
+        {
+          "node": "afterburner_R",
+          "anchor": "exhaust_R",
+          "position": [
+            1.0799999833106995,
+            -0.3200000077486038,
+            8.447526557922362
+          ]
+        }
+      ],
+      "controls": [
+        {
+          "node": "flaperon_L",
+          "axis": "x",
+          "driver": "roll",
+          "gain": -1,
+          "max_rad": 0.22
+        },
+        {
+          "node": "tailplane_L",
+          "axis": "x",
+          "driver": "pitch",
+          "gain": -1,
+          "max_rad": 0.22
+        },
+        {
+          "node": "flaperon_R",
+          "axis": "x",
+          "driver": "roll",
+          "gain": 1,
+          "max_rad": 0.22
+        },
+        {
+          "node": "tailplane_R",
+          "axis": "x",
+          "driver": "pitch",
+          "gain": -1,
+          "max_rad": 0.22
+        },
+        {
+          "node": "rudder_1",
+          "axis": "y",
+          "driver": "yaw",
+          "gain": -1,
+          "max_rad": 0.28
+        },
+        {
+          "node": "rudder_2",
+          "axis": "y",
+          "driver": "yaw",
+          "gain": -1,
+          "max_rad": 0.28
+        }
+      ],
+      "native_pivots": [
+        "flaperon_L",
+        "tailplane_L",
+        "flaperon_R",
+        "tailplane_R",
+        "rudder_1",
+        "rudder_2",
+        "missile_L2",
+        "missile_R2",
+        "missile_L1",
+        "missile_R1",
+        "afterburner_L",
+        "afterburner_R"
+      ]
+    },
+    "typhoon": {
+      "source_model_id": "wings.original.eurofighter-typhoon.v1",
+      "source_sha256": "cae157180c649ac6d4c3b43dd7ae1a5322d7cc2985f961fdbcf6effa4b99b835",
+      "file": "models/derived/wings_typhoon.glb",
+      "sha256": "8d5efa85820f46ea541d5f4fbc84c6d68185307da282643ac44cd25125d36754",
+      "bounds": {
+        "min": [
+          -5.475998401641846,
+          -1.0499999523162842,
+          -7.980000019073486
+        ],
+        "max": [
+          5.475998401641846,
+          3.299999952316284,
+          7.9899997902959585
+        ]
+      },
+      "hardpoints": {
+        "gun": [
+          -5.181198158846433e-19,
+          -0.5074102027377065,
+          -5.767999947071075
+        ],
+        "missiles": [
+          [
+            [
+              -3.942718849182129,
+              -0.5266054180994417,
+              1.7700478921941936
+            ],
+            [
+              3.942718849182129,
+              -0.5266054180994417,
+              1.7700478921941936
+            ]
+          ],
+          [
+            [
+              -2.518959264755249,
+              -0.5674712475781238,
+              1.1521899466410805
+            ],
+            [
+              2.518959264755249,
+              -0.5674712475781238,
+              1.1521899466410805
+            ]
+          ]
+        ]
+      },
+      "cockpit": [
+        0,
+        1.017007543650028,
+        -3.649999976158142
+      ],
+      "exhausts": [
+        {
+          "node": "afterburner_L",
+          "anchor": "exhaust_L",
+          "position": [
+            -0.490000007674098,
+            -0.18000000715255737,
+            7.97799979019165
+          ]
+        },
+        {
+          "node": "afterburner_R",
+          "anchor": "exhaust_R",
+          "position": [
+            0.490000007674098,
+            -0.18000000715255737,
+            7.97799979019165
+          ]
+        }
+      ],
+      "controls": [
+        {
+          "node": "elevon_L",
+          "axis": "x",
+          "driver": "roll",
+          "gain": -1,
+          "max_rad": 0.22
+        },
+        {
+          "node": "canard_L",
+          "axis": "x",
+          "driver": "pitch",
+          "gain": -1,
+          "max_rad": 0.22
+        },
+        {
+          "node": "elevon_R",
+          "axis": "x",
+          "driver": "roll",
+          "gain": 1,
+          "max_rad": 0.22
+        },
+        {
+          "node": "canard_R",
+          "axis": "x",
+          "driver": "pitch",
+          "gain": -1,
+          "max_rad": 0.22
+        },
+        {
+          "node": "rudder_1",
+          "axis": "y",
+          "driver": "yaw",
+          "gain": -1,
+          "max_rad": 0.28
+        }
+      ],
+      "native_pivots": [
+        "elevon_L",
+        "canard_L",
+        "elevon_R",
+        "canard_R",
+        "rudder_1",
+        "missile_L2",
+        "missile_R2",
+        "missile_L1",
+        "missile_R1",
+        "afterburner_L",
+        "afterburner_R"
+      ]
+    },
+    "su35s": {
+      "source_model_id": "wings.original.su-35s.v1",
+      "source_sha256": "858eda509c102f2079a2af96fdfd6c7e8027d289bfd7d2797be38ba17a636433",
+      "file": "models/derived/wings_su35s.glb",
+      "sha256": "16be50931ebcb09a2161bbe7c2171079e4c3b3837261f467d4e5d67e996c7bed",
+      "bounds": {
+        "min": [
+          -7.350165843963623,
+          -1.1164567043071616,
+          -10.949999809265137
+        ],
+        "max": [
+          7.350165843963623,
+          3.619999885559082,
+          10.949999809265137
+        ]
+      },
+      "hardpoints": {
+        "gun": [
+          -5.181198158846433e-19,
+          -0.5871871837077611,
+          -6.738000214099884
+        ],
+        "missiles": [
+          [
+            [
+              -5.292119407653808,
+              -0.6113311692153394,
+              1.3282580626981213
+            ],
+            [
+              5.292119407653808,
+              -0.6113311692153394,
+              1.3282580626981213
+            ]
+          ],
+          [
+            [
+              -3.381076288223267,
+              -0.7264567186122763,
+              0.7762207030374215
+            ],
+            [
+              3.381076288223267,
+              -0.7264567186122762,
+              0.7762207030374215
+            ]
+          ]
+        ]
+      },
+      "cockpit": [
+        0,
+        1.17473188704755,
+        -4.520000100135803
+      ],
+      "exhausts": [
+        {
+          "node": "afterburner_L",
+          "anchor": "exhaust_L",
+          "position": [
+            -1.3800000250339508,
+            -0.3500000014901161,
+            10.058000190734862
+          ]
+        },
+        {
+          "node": "afterburner_R",
+          "anchor": "exhaust_R",
+          "position": [
+            1.3800000250339508,
+            -0.3500000014901161,
+            10.058000190734862
+          ]
+        }
+      ],
+      "controls": [
+        {
+          "node": "elevon_L",
+          "axis": "x",
+          "driver": "roll",
+          "gain": -1,
+          "max_rad": 0.22
+        },
+        {
+          "node": "tailplane_L",
+          "axis": "x",
+          "driver": "pitch",
+          "gain": -1,
+          "max_rad": 0.22
+        },
+        {
+          "node": "elevon_R",
+          "axis": "x",
+          "driver": "roll",
+          "gain": 1,
+          "max_rad": 0.22
+        },
+        {
+          "node": "tailplane_R",
+          "axis": "x",
+          "driver": "pitch",
+          "gain": -1,
+          "max_rad": 0.22
+        },
+        {
+          "node": "rudder_1",
+          "axis": "y",
+          "driver": "yaw",
+          "gain": -1,
+          "max_rad": 0.28
+        },
+        {
+          "node": "rudder_2",
+          "axis": "y",
+          "driver": "yaw",
+          "gain": -1,
+          "max_rad": 0.28
+        }
+      ],
+      "native_pivots": [
+        "elevon_L",
+        "tailplane_L",
+        "elevon_R",
+        "tailplane_R",
+        "rudder_1",
+        "rudder_2",
+        "missile_L2",
+        "missile_R2",
+        "missile_L1",
+        "missile_R1",
+        "afterburner_L",
+        "afterburner_R"
+      ]
+    },
+    "rafale": {
+      "source_model_id": "wings.original.rafale-c.v1",
+      "source_sha256": "e547d577a3a533ad6c8cadaed6f53d1b5e0850bcbf985ac6dc631488f5100561",
+      "file": "models/derived/wings_rafale.glb",
+      "sha256": "fbf1d3ba66d37d6a63523700c9602901c5a545bf014a70f1546fc8c8e0e1677f",
+      "bounds": {
+        "min": [
+          -5.451757907867432,
+          -1.0434651200726872,
+          -7.650000095367432
+        ],
+        "max": [
+          5.451757907867432,
+          3.2200000286102295,
+          7.659999866589904
+        ]
+      },
+      "hardpoints": {
+        "gun": [
+          -5.181198158846433e-19,
+          -0.5044226435812782,
+          -5.388000309467316
+        ],
+        "missiles": [
+          [
+            [
+              -3.9252656936645507,
+              -0.4800656367791495,
+              1.1679294795750126
+            ],
+            [
+              3.9252656936645507,
+              -0.4800656367791495,
+              1.1679294795750126
+            ]
+          ],
+          [
+            [
+              -2.5078086376190187,
+              -0.653465134377802,
+              0.958721083368137
+            ],
+            [
+              2.5078086376190187,
+              -0.653465134377802,
+              0.958721083368137
+            ]
+          ]
+        ]
+      },
+      "cockpit": [
+        0,
+        0.9512916690570363,
+        -3.4000001549720764
+      ],
+      "exhausts": [
+        {
+          "node": "afterburner_L",
+          "anchor": "exhaust_L",
+          "position": [
+            -0.5199999958276749,
+            -0.18000000715255737,
+            7.647999866485596
+          ]
+        },
+        {
+          "node": "afterburner_R",
+          "anchor": "exhaust_R",
+          "position": [
+            0.5199999958276749,
+            -0.18000000715255737,
+            7.647999866485596
+          ]
+        }
+      ],
+      "controls": [
+        {
+          "node": "elevon_L",
+          "axis": "x",
+          "driver": "roll",
+          "gain": -1,
+          "max_rad": 0.22
+        },
+        {
+          "node": "canard_L",
+          "axis": "x",
+          "driver": "pitch",
+          "gain": -1,
+          "max_rad": 0.22
+        },
+        {
+          "node": "elevon_R",
+          "axis": "x",
+          "driver": "roll",
+          "gain": 1,
+          "max_rad": 0.22
+        },
+        {
+          "node": "canard_R",
+          "axis": "x",
+          "driver": "pitch",
+          "gain": -1,
+          "max_rad": 0.22
+        },
+        {
+          "node": "rudder_1",
+          "axis": "y",
+          "driver": "yaw",
+          "gain": -1,
+          "max_rad": 0.28
+        }
+      ],
+      "native_pivots": [
+        "elevon_L",
+        "canard_L",
+        "elevon_R",
+        "canard_R",
+        "rudder_1",
+        "missile_L2",
+        "missile_R2",
+        "missile_L1",
+        "missile_R1",
+        "afterburner_L",
+        "afterburner_R"
+      ]
+    },
+    "jf17": {
+      "source_model_id": "wings.original.jf-17-block-iii.v1",
+      "source_sha256": "b6bb06bbbf51c6af467e0e636a703d85cc53cff8b8b8b3f757e68db11aebb52a",
+      "file": "models/derived/wings_jf17.glb",
+      "sha256": "f8f80f2e9472a2bfb2754f8d6f9100303ecedc49d6f4ca8d234350a407c6bbd9",
+      "bounds": {
+        "min": [
+          -4.720505714416504,
+          -1.0478323995525756,
+          -7.164999961853027
+        ],
+        "max": [
+          4.720505714416504,
+          3.0799999237060547,
+          7.175000209912658
+        ]
+      },
+      "hardpoints": {
+        "gun": [
+          -5.181198158846433e-19,
+          -0.49096300806596954,
+          -4.90800017118454
+        ],
+        "missiles": [
+          [
+            [
+              -3.398764114379883,
+              -0.5157260672766217,
+              0.36856949068778944
+            ],
+            [
+              3.398764114379883,
+              -0.5157260672766217,
+              0.36856949068778944
+            ]
+          ],
+          [
+            [
+              -2.171432628631592,
+              -0.6578324138576904,
+              0.16028964316598016
+            ],
+            [
+              2.171432628631592,
+              -0.6578324138576904,
+              0.16028964316598016
+            ]
+          ]
+        ]
+      },
+      "cockpit": [
+        0,
+        0.9278394584685858,
+        -3.0000000596046448
+      ],
+      "exhausts": [
+        {
+          "node": "afterburner",
+          "anchor": "exhaust",
+          "position": [
+            0.0,
+            0.0,
+            7.16300020980835
+          ]
+        }
+      ],
+      "controls": [
+        {
+          "node": "elevon_L",
+          "axis": "x",
+          "driver": "roll",
+          "gain": -1,
+          "max_rad": 0.22
+        },
+        {
+          "node": "tailplane_L",
+          "axis": "x",
+          "driver": "pitch",
+          "gain": -1,
+          "max_rad": 0.22
+        },
+        {
+          "node": "elevon_R",
+          "axis": "x",
+          "driver": "roll",
+          "gain": 1,
+          "max_rad": 0.22
+        },
+        {
+          "node": "tailplane_R",
+          "axis": "x",
+          "driver": "pitch",
+          "gain": -1,
+          "max_rad": 0.22
+        },
+        {
+          "node": "rudder_1",
+          "axis": "y",
+          "driver": "yaw",
+          "gain": -1,
+          "max_rad": 0.28
+        }
+      ],
+      "native_pivots": [
+        "elevon_L",
+        "tailplane_L",
+        "elevon_R",
+        "tailplane_R",
+        "rudder_1",
+        "missile_L2",
+        "missile_R2",
+        "missile_L1",
+        "missile_R1",
+        "afterburner"
+      ]
+    },
+    "gripen": {
+      "source_model_id": "wings.original.jas-39c-gripen.v1",
+      "source_sha256": "f996e62f23cf56027b885767fcb30ae954824b198254dd8a644a14fcacd9e789",
+      "file": "models/derived/wings_gripen.glb",
+      "sha256": "49f9336f7e1c2075f27bbe676791a1eb80ab00f52ab1827df2ec2b7ebfff627d",
+      "bounds": {
+        "min": [
+          -4.201592445373535,
+          -1.147566442780014,
+          -7.449999809265137
+        ],
+        "max": [
+          4.201592445373535,
+          3.119999885559082,
+          7.460000057324767
+        ]
+      },
+      "hardpoints": {
+        "gun": [
+          -5.181198158846433e-19,
+          -0.46980424678735216,
+          -5.118000328540802
+        ],
+        "missiles": [
+          [
+            [
+              -3.0251465606689454,
+              -0.5960285823654559,
+              0.8654896097323235
+            ],
+            [
+              3.0251465606689454,
+              -0.5960285823654559,
+              0.8654896097323235
+            ]
+          ],
+          [
+            [
+              -1.9327325248718263,
+              -0.7575664570851288,
+              0.7469078095593003
+            ],
+            [
+              1.9327325248718263,
+              -0.7575664570851288,
+              0.7469078095593003
+            ]
+          ]
+        ]
+      },
+      "cockpit": [
+        0,
+        0.9185455524131486,
+        -3.2500001788139343
+      ],
+      "exhausts": [
+        {
+          "node": "afterburner",
+          "anchor": "exhaust",
+          "position": [
+            0.0,
+            0.0,
+            7.448000057220459
+          ]
+        }
+      ],
+      "controls": [
+        {
+          "node": "elevon_L",
+          "axis": "x",
+          "driver": "roll",
+          "gain": -1,
+          "max_rad": 0.22
+        },
+        {
+          "node": "canard_L",
+          "axis": "x",
+          "driver": "pitch",
+          "gain": -1,
+          "max_rad": 0.22
+        },
+        {
+          "node": "elevon_R",
+          "axis": "x",
+          "driver": "roll",
+          "gain": 1,
+          "max_rad": 0.22
+        },
+        {
+          "node": "canard_R",
+          "axis": "x",
+          "driver": "pitch",
+          "gain": -1,
+          "max_rad": 0.22
+        },
+        {
+          "node": "rudder_1",
+          "axis": "y",
+          "driver": "yaw",
+          "gain": -1,
+          "max_rad": 0.28
+        }
+      ],
+      "native_pivots": [
+        "elevon_L",
+        "canard_L",
+        "elevon_R",
+        "canard_R",
+        "rudder_1",
+        "missile_L2",
+        "missile_R2",
+        "missile_L1",
+        "missile_R1",
+        "afterburner"
+      ]
+    },
+    "mig31": {
+      "source_model_id": "wings.original.mig-31bm.v1",
+      "source_sha256": "dd4b8a9741ff4fb325c4a5534d1a0264148c1f0f91078f9dfcca565435e9c82f",
+      "file": "models/derived/wings_mig31.glb",
+      "sha256": "c220c9afd4caf065fc8d84f15060d2b5341b16aa638d4ae88677df19409765b4",
+      "bounds": {
+        "min": [
+          -6.730344772338867,
+          -0.9300000071525574,
+          -11.345000267028809
+        ],
+        "max": [
+          6.730344772338867,
+          4.349999904632568,
+          11.35500003825128
+        ]
+      },
+      "hardpoints": {
+        "gun": [
+          -5.181198158846433e-19,
+          -0.7794142491801905,
+          -7.21800023317337
+        ],
+        "missiles": [
+          [
+            [
+              -4.8458482360839845,
+              -0.17606093614780488,
+              1.5506252592057708
+            ],
+            [
+              4.8458482360839845,
+              -0.17606093614780488,
+              1.5506252592057708
+            ]
+          ],
+          [
+            [
+              -3.0959585952758792,
+              -0.15170165562382276,
+              1.0403983180250265
+            ],
+            [
+              3.0959585952758792,
+              -0.15170165562382276,
+              1.0403983180250265
+            ]
+          ]
+        ]
+      },
+      "cockpit": [
+        0,
+        1.2444985227557168,
+        -4.6000001430511475
+      ],
+      "exhausts": [
+        {
+          "node": "afterburner_L",
+          "anchor": "exhaust_L",
+          "position": [
+            -0.8300000075250864,
+            -0.0599999725818634,
+            11.343000038146972
+          ]
+        },
+        {
+          "node": "afterburner_R",
+          "anchor": "exhaust_R",
+          "position": [
+            0.8300000075250864,
+            -0.0599999725818634,
+            11.343000038146972
+          ]
+        }
+      ],
+      "controls": [
+        {
+          "node": "elevon_L",
+          "axis": "x",
+          "driver": "roll",
+          "gain": -1,
+          "max_rad": 0.22
+        },
+        {
+          "node": "tailplane_L",
+          "axis": "x",
+          "driver": "pitch",
+          "gain": -1,
+          "max_rad": 0.22
+        },
+        {
+          "node": "elevon_R",
+          "axis": "x",
+          "driver": "roll",
+          "gain": 1,
+          "max_rad": 0.22
+        },
+        {
+          "node": "tailplane_R",
+          "axis": "x",
+          "driver": "pitch",
+          "gain": -1,
+          "max_rad": 0.22
+        },
+        {
+          "node": "rudder_1",
+          "axis": "y",
+          "driver": "yaw",
+          "gain": -1,
+          "max_rad": 0.28
+        },
+        {
+          "node": "rudder_2",
+          "axis": "y",
+          "driver": "yaw",
+          "gain": -1,
+          "max_rad": 0.28
+        }
+      ],
+      "native_pivots": [
+        "elevon_L",
+        "tailplane_L",
+        "elevon_R",
+        "tailplane_R",
+        "rudder_1",
+        "rudder_2",
+        "missile_L2",
+        "missile_R2",
+        "missile_L1",
+        "missile_R1",
+        "afterburner_L",
+        "afterburner_R"
+      ]
+    },
+    "mirage2000": {
+      "source_model_id": "wings.original.mirage-2000c.v1",
+      "source_sha256": "5e17fb6db155a50fccaa52ccb4ec1989293441d0346769c43774dc370ce1f4dd",
+      "file": "models/derived/wings_mirage2000.glb",
+      "sha256": "52a7af241805d4faaf35df163fae70d49149720b2437ea7d08e37f590068631f",
+      "bounds": {
+        "min": [
+          -4.5655059814453125,
+          -0.9908603562709573,
+          -7.179999828338623
+        ],
+        "max": [
+          4.5655059814453125,
+          3.2699999809265137,
+          7.1900000763982534
+        ]
+      },
+      "hardpoints": {
+        "gun": [
+          -5.181198158846433e-19,
+          -0.5588858003638459,
+          -4.767999947071075
+        ],
+        "missiles": [
+          [
+            [
+              -3.287164306640625,
+              -0.6104971541386339,
+              1.1485283545099012
+            ],
+            [
+              3.287164306640625,
+              -0.6104971541386339,
+              1.1485283545099012
+            ]
+          ],
+          [
+            [
+              -2.100132751464844,
+              -0.6608603431579354,
+              0.37149714784924104
+            ],
+            [
+              2.100132751464844,
+              -0.6608603431579354,
+              0.37149714784924104
+            ]
+          ]
+        ]
+      },
+      "cockpit": [
+        0,
+        0.9699374230747022,
+        -2.949999988079071
+      ],
+      "exhausts": [
+        {
+          "node": "afterburner",
+          "anchor": "exhaust",
+          "position": [
+            0.0,
+            0.0,
+            7.178000076293945
+          ]
+        }
+      ],
+      "controls": [
+        {
+          "node": "elevon_L",
+          "axis": "x",
+          "driver": "roll",
+          "gain": -1,
+          "max_rad": 0.22,
+          "pitch_gain": -1
+        },
+        {
+          "node": "elevon_R",
+          "axis": "x",
+          "driver": "roll",
+          "gain": 1,
+          "max_rad": 0.22,
+          "pitch_gain": -1
+        },
+        {
+          "node": "rudder_1",
+          "axis": "y",
+          "driver": "yaw",
+          "gain": -1,
+          "max_rad": 0.28
+        }
+      ],
+      "native_pivots": [
+        "elevon_L",
+        "elevon_R",
+        "rudder_1",
+        "missile_L2",
+        "missile_R2",
+        "missile_L1",
+        "missile_R1",
+        "afterburner"
+      ]
+    },
+    "su34": {
+      "source_model_id": "wings.original.su-34.v1",
+      "source_sha256": "8c2f3633dd39e47a0259b0954c831bee5f8531ed38db48a9e383c277166ff50a",
+      "file": "models/derived/wings_su34.glb",
+      "sha256": "60ca4edcf7453fe1f7fe25893ee5564888349a258ede977243dc8fbaff7b66ab",
+      "bounds": {
+        "min": [
+          -7.3501081466674805,
+          -1.1045809333914873,
+          -11.699999809265137
+        ],
+        "max": [
+          7.3501081466674805,
+          3.5,
+          11.699999809265137
+        ]
+      },
+      "hardpoints": {
+        "gun": [
+          -5.181198158846433e-19,
+          -0.6423076531759799,
+          -7.497999966144562
+        ],
+        "missiles": [
+          [
+            [
+              -5.292077865600586,
+              -0.5884887880771483,
+              1.6110838070923768
+            ],
+            [
+              5.292077865600586,
+              -0.5884887880771483,
+              1.6110838070923768
+            ]
+          ],
+          [
+            [
+              -3.381049747467041,
+              -0.7145809476966021,
+              1.061692302574694
+            ],
+            [
+              3.381049747467041,
+              -0.7145809476966021,
+              1.061692302574694
+            ]
+          ]
+        ]
+      },
+      "cockpit": [
+        0,
+        1.1626853248229907,
+        -5.450000047683716
+      ],
+      "exhausts": [
+        {
+          "node": "afterburner_L",
+          "anchor": "exhaust_L",
+          "position": [
+            -1.4599999785423279,
+            -0.35999999195337296,
+            10.508
+          ]
+        },
+        {
+          "node": "afterburner_R",
+          "anchor": "exhaust_R",
+          "position": [
+            1.4599999785423279,
+            -0.35999999195337296,
+            10.508
+          ]
+        }
+      ],
+      "controls": [
+        {
+          "node": "elevon_L",
+          "axis": "x",
+          "driver": "roll",
+          "gain": -1,
+          "max_rad": 0.22
+        },
+        {
+          "node": "canard_L",
+          "axis": "x",
+          "driver": "pitch",
+          "gain": -1,
+          "max_rad": 0.22
+        },
+        {
+          "node": "tailplane_L",
+          "axis": "x",
+          "driver": "pitch",
+          "gain": -1,
+          "max_rad": 0.22
+        },
+        {
+          "node": "elevon_R",
+          "axis": "x",
+          "driver": "roll",
+          "gain": 1,
+          "max_rad": 0.22
+        },
+        {
+          "node": "canard_R",
+          "axis": "x",
+          "driver": "pitch",
+          "gain": -1,
+          "max_rad": 0.22
+        },
+        {
+          "node": "tailplane_R",
+          "axis": "x",
+          "driver": "pitch",
+          "gain": -1,
+          "max_rad": 0.22
+        },
+        {
+          "node": "rudder_1",
+          "axis": "y",
+          "driver": "yaw",
+          "gain": -1,
+          "max_rad": 0.28
+        },
+        {
+          "node": "rudder_2",
+          "axis": "y",
+          "driver": "yaw",
+          "gain": -1,
+          "max_rad": 0.28
+        }
+      ],
+      "native_pivots": [
+        "elevon_L",
+        "canard_L",
+        "tailplane_L",
+        "elevon_R",
+        "canard_R",
+        "tailplane_R",
+        "rudder_1",
+        "rudder_2",
+        "missile_L2",
+        "missile_R2",
+        "missile_L1",
+        "missile_R1",
+        "afterburner_L",
+        "afterburner_R"
+      ]
+    },
+    "fa50": {
+      "source_model_id": "wings.original.fa-50.v1",
+      "source_sha256": "adf3e81efc5c5841bc30b9fa526ae7bdf83f0ccbad8fa12a142f43b73b7484f6",
+      "file": "models/derived/wings_fa50.glb",
+      "sha256": "68f02d6ff28d5f54c2181031b7faf2e8cba06839925ccaf6836b28c6cd28b079",
+      "bounds": {
+        "min": [
+          -4.725408554077148,
+          -0.8675294335751427,
+          -6.570000171661377
+        ],
+        "max": [
+          4.725408554077148,
+          2.9600000381469727,
+          6.579999942883849
+        ]
+      },
+      "hardpoints": {
+        "gun": [
+          -5.181198158846433e-19,
+          -0.4444292052574364,
+          -4.82800030708313
+        ],
+        "missiles": [
+          [
+            [
+              -3.402294158935547,
+              -0.50430948104572,
+              0.19413573312558263
+            ],
+            [
+              3.402294158935547,
+              -0.50430948104572,
+              0.19413573312558263
+            ]
+          ],
+          [
+            [
+              -2.1736879348754883,
+              -0.5375294204621208,
+              -0.15963313984520067
+            ],
+            [
+              2.1736879348754883,
+              -0.5375294204621208,
+              -0.15963313984520067
+            ]
+          ]
+        ]
+      },
+      "cockpit": [
+        0,
+        0.953662083434357,
+        -2.3800001442432404
+      ],
+      "exhausts": [
+        {
+          "node": "afterburner",
+          "anchor": "exhaust",
+          "position": [
+            0.0,
+            0.0,
+            6.567999942779541
+          ]
+        }
+      ],
+      "controls": [
+        {
+          "node": "elevon_L",
+          "axis": "x",
+          "driver": "roll",
+          "gain": -1,
+          "max_rad": 0.22
+        },
+        {
+          "node": "tailplane_L",
+          "axis": "x",
+          "driver": "pitch",
+          "gain": -1,
+          "max_rad": 0.22
+        },
+        {
+          "node": "elevon_R",
+          "axis": "x",
+          "driver": "roll",
+          "gain": 1,
+          "max_rad": 0.22
+        },
+        {
+          "node": "tailplane_R",
+          "axis": "x",
+          "driver": "pitch",
+          "gain": -1,
+          "max_rad": 0.22
+        },
+        {
+          "node": "rudder_1",
+          "axis": "y",
+          "driver": "yaw",
+          "gain": -1,
+          "max_rad": 0.28
+        }
+      ],
+      "native_pivots": [
+        "elevon_L",
+        "tailplane_L",
+        "elevon_R",
+        "tailplane_R",
+        "rudder_1",
+        "missile_L2",
+        "missile_R2",
+        "missile_L1",
+        "missile_R1",
+        "afterburner"
+      ]
+    },
+    "yak130": {
+      "source_model_id": "wings.original.yak-130.v1",
+      "source_sha256": "0bff616f2330806c42860c8d705f7ae05616f2a84e05d44530da4538da44505e",
+      "file": "models/derived/wings_yak130.glb",
+      "sha256": "b1b4f0d3569386cba10e2574dfb29b3135899fbb0b5c8a2d30dd81a55be0fce6",
+      "bounds": {
+        "min": [
+          -4.929093360900879,
+          -1.0300234606415513,
+          -5.746500015258789
+        ],
+        "max": [
+          4.929093360900879,
+          3.0299999713897705,
+          5.756499786481261
+        ]
+      },
+      "hardpoints": {
+        "gun": [
+          -5.181198158846433e-19,
+          -0.479537987092236,
+          -4.347999930381775
+        ],
+        "missiles": [
+          [
+            [
+              -3.5489472198486327,
+              -0.5123558000056708,
+              -0.02230616195172197
+            ],
+            [
+              3.5489472198486327,
+              -0.5123558000056708,
+              -0.02230616195172197
+            ]
+          ],
+          [
+            [
+              -2.2673829460144046,
+              -0.640023474946666,
+              0.023982341981373834
+            ],
+            [
+              2.2673829460144046,
+              -0.640023474946666,
+              0.023982341981373834
+            ]
+          ]
+        ]
+      },
+      "cockpit": [
+        0,
+        1.0477280091765022,
+        -2.099999949336052
+      ],
+      "exhausts": [
+        {
+          "node": "exhaust_core_L",
+          "anchor": "exhaust_L",
+          "position": [
+            -0.5699999928474426,
+            -0.24000000208616257,
+            5.744499786376953
+          ]
+        },
+        {
+          "node": "exhaust_core_R",
+          "anchor": "exhaust_R",
+          "position": [
+            0.5699999928474426,
+            -0.24000000208616257,
+            5.744499786376953
+          ]
+        }
+      ],
+      "controls": [
+        {
+          "node": "elevon_L",
+          "axis": "x",
+          "driver": "roll",
+          "gain": -1,
+          "max_rad": 0.22
+        },
+        {
+          "node": "tailplane_L",
+          "axis": "x",
+          "driver": "pitch",
+          "gain": -1,
+          "max_rad": 0.22
+        },
+        {
+          "node": "elevon_R",
+          "axis": "x",
+          "driver": "roll",
+          "gain": 1,
+          "max_rad": 0.22
+        },
+        {
+          "node": "tailplane_R",
+          "axis": "x",
+          "driver": "pitch",
+          "gain": -1,
+          "max_rad": 0.22
+        },
+        {
+          "node": "rudder_1",
+          "axis": "y",
+          "driver": "yaw",
+          "gain": -1,
+          "max_rad": 0.28
+        }
+      ],
+      "native_pivots": [
+        "elevon_L",
+        "tailplane_L",
+        "elevon_R",
+        "tailplane_R",
+        "rudder_1",
+        "missile_L2",
+        "missile_R2",
+        "missile_L1",
+        "missile_R1",
+        "exhaust_core_L",
+        "exhaust_core_R"
+      ],
+      "afterburning": false
+    },
+    "hawkt2": {
+      "source_model_id": "wings.original.hawk-t2.v1",
+      "source_sha256": "9289e2d589b8a295392b2d100c1c3462ee935f1e4837e937e0fea5240bfb54e7",
+      "file": "models/derived/wings_hawkt2.glb",
+      "sha256": "7dc2868e30f4f9f68be8425e04aac5e00d9145d3fe3b590b84f707827f235734",
+      "bounds": {
+        "min": [
+          -4.970424652099609,
+          -1.2176922601718259,
+          -6.215000152587891
+        ],
+        "max": [
+          4.970424652099609,
+          2.6700000762939453,
+          6.230000038251281
+        ]
+      },
+      "hardpoints": {
+        "gun": [
+          -5.181198158846433e-19,
+          -0.42543905572530866,
+          -4.598000347614288
+        ],
+        "missiles": [
+          [
+            [
+              -3.5787057495117187,
+              -0.6328146538492019,
+              0.1325841585778722
+            ],
+            [
+              3.5787057495117187,
+              -0.6328146538492019,
+              0.1325841585778722
+            ]
+          ],
+          [
+            [
+              -2.2863953399658206,
+              -0.8276922744769406,
+              0.05810669075072861
+            ],
+            [
+              2.2863953399658206,
+              -0.8276922744769406,
+              0.05810669075072861
+            ]
+          ]
+        ]
+      },
+      "cockpit": [
+        0,
+        1.0259166373762039,
+        -2.330000162124634
+      ],
+      "exhausts": [
+        {
+          "node": "exhaust_core",
+          "anchor": "exhaust",
+          "position": [
+            0.0,
+            0.03999999910593033,
+            6.218000038146973
+          ]
+        }
+      ],
+      "controls": [
+        {
+          "node": "elevon_L",
+          "axis": "x",
+          "driver": "roll",
+          "gain": -1,
+          "max_rad": 0.22
+        },
+        {
+          "node": "tailplane_L",
+          "axis": "x",
+          "driver": "pitch",
+          "gain": -1,
+          "max_rad": 0.22
+        },
+        {
+          "node": "elevon_R",
+          "axis": "x",
+          "driver": "roll",
+          "gain": 1,
+          "max_rad": 0.22
+        },
+        {
+          "node": "tailplane_R",
+          "axis": "x",
+          "driver": "pitch",
+          "gain": -1,
+          "max_rad": 0.22
+        },
+        {
+          "node": "rudder_1",
+          "axis": "y",
+          "driver": "yaw",
+          "gain": -1,
+          "max_rad": 0.28
+        }
+      ],
+      "native_pivots": [
+        "elevon_L",
+        "tailplane_L",
+        "elevon_R",
+        "tailplane_R",
+        "rudder_1",
+        "missile_L2",
+        "missile_R2",
+        "missile_L1",
+        "missile_R1",
+        "exhaust_core"
+      ],
+      "afterburning": false
+    },
+    "su25sm": {
+      "source_model_id": "wings.original.su-25sm.v1",
+      "source_sha256": "cf231893435e7283a5950bd7ca15591bb2ff9159ab29c001ea7b9412204b4663",
+      "file": "models/derived/wings_su25sm.glb",
+      "sha256": "2fe458ed79d9de72b3e122c7149ab859f64142e435f023b993bb0b50a602a767",
+      "bounds": {
+        "min": [
+          -7.179999828338623,
+          -0.8215517997741699,
+          -7.764999866485596
+        ],
+        "max": [
+          7.179999828338623,
+          3.1500000953674316,
+          7.764999866485596
+        ]
+      },
+      "hardpoints": {
+        "gun": [
+          -5.181198158846433e-19,
+          -0.5859093573974989,
+          -6.3219998478889465
+        ],
+        "missiles": [
+          [
+            [
+              -5.169599876403808,
+              -0.2442300139640407,
+              -0.88532286430641
+            ],
+            [
+              5.169599876403808,
+              -0.24423001396404073,
+              -0.88532286430641
+            ]
+          ],
+          [
+            [
+              -3.3027999210357666,
+              -0.31367243670931294,
+              -1.064551170185625
+            ],
+            [
+              3.3027999210357666,
+              -0.31367243670931294,
+              -1.064551170185625
+            ]
+          ]
+        ]
+      },
+      "cockpit": [
+        0,
+        1.1472288751990802,
+        -4.4999998807907104
+      ],
+      "exhausts": [
+        {
+          "node": "exhaust_core_L",
+          "anchor": "exhaust_L",
+          "position": [
+            -1.050000011920929,
+            -0.03999999165534973,
+            5.308000190734863
+          ]
+        },
+        {
+          "node": "exhaust_core_R",
+          "anchor": "exhaust_R",
+          "position": [
+            1.050000011920929,
+            -0.03999999165534973,
+            5.308000190734863
+          ]
+        }
+      ],
+      "controls": [
+        {
+          "node": "aileron_L",
+          "axis": "x",
+          "driver": "roll",
+          "gain": -1,
+          "max_rad": 0.22
+        },
+        {
+          "node": "elevator_L",
+          "axis": "x",
+          "driver": "pitch",
+          "gain": -1,
+          "max_rad": 0.22
+        },
+        {
+          "node": "aileron_R",
+          "axis": "x",
+          "driver": "roll",
+          "gain": 1,
+          "max_rad": 0.22
+        },
+        {
+          "node": "elevator_R",
+          "axis": "x",
+          "driver": "pitch",
+          "gain": -1,
+          "max_rad": 0.22
+        },
+        {
+          "node": "rudder_center",
+          "axis": "y",
+          "driver": "yaw",
+          "gain": -1,
+          "max_rad": 0.28
+        }
+      ],
+      "native_pivots": [
+        "aileron_L",
+        "elevator_L",
+        "aileron_R",
+        "elevator_R",
+        "rudder_center",
+        "missile_L2",
+        "missile_R2",
+        "missile_L1",
+        "missile_R1",
+        "exhaust_core_L",
+        "exhaust_core_R"
+      ],
+      "afterburning": false
+    },
+    "a10c": {
+      "source_model_id": "wings.original.a-10c.v1",
+      "source_sha256": "74c58cd536be3705b347d7c32fa76b54a0692a992fadde65f82772037187d623",
+      "file": "models/derived/wings_a10c.glb",
+      "sha256": "897cd0cc6407cebdddaddd05224e925f577870f6f961e0903f11de367708f00e",
+      "bounds": {
+        "min": [
+          -8.710000038146973,
+          -1.2984897066794368,
+          -8.081500053405762
+        ],
+        "max": [
+          8.710000038146973,
+          2.75,
+          8.078499794006348
+        ]
+      },
+      "hardpoints": {
+        "gun": [
+          -5.181198158846433e-19,
+          -0.7576040447723245,
+          -6.720854341983795
+        ],
+        "missiles": [
+          [
+            [
+              -6.27120002746582,
+              -0.5682051681175919,
+              -1.3749705746625571
+            ],
+            [
+              6.27120002746582,
+              -0.5682051681175919,
+              -1.3749705746625571
+            ]
+          ],
+          [
+            [
+              -4.0066000175476075,
+              -0.9084897209845515,
+              -1.1728989496337543
+            ],
+            [
+              4.0066000175476075,
+              -0.9084897209845515,
+              -1.1728989496337543
+            ]
+          ]
+        ]
+      },
+      "cockpit": [
+        0,
+        1.2502251085204692,
+        -4.6991275399923325
+      ],
+      "exhausts": [
+        {
+          "node": "exhaust_core_L",
+          "anchor": "exhaust_L",
+          "position": [
+            -1.7499999403953552,
+            1.2999999821186066,
+            5.30701647567749
+          ]
+        },
+        {
+          "node": "exhaust_core_R",
+          "anchor": "exhaust_R",
+          "position": [
+            1.7499999403953552,
+            1.2999999821186066,
+            5.30701647567749
+          ]
+        }
+      ],
+      "controls": [
+        {
+          "node": "aileron_L",
+          "axis": "x",
+          "driver": "roll",
+          "gain": -1,
+          "max_rad": 0.22
+        },
+        {
+          "node": "elevator_L",
+          "axis": "x",
+          "driver": "pitch",
+          "gain": -1,
+          "max_rad": 0.22
+        },
+        {
+          "node": "rudder_L",
+          "axis": "y",
+          "driver": "yaw",
+          "gain": -1,
+          "max_rad": 0.28
+        },
+        {
+          "node": "aileron_R",
+          "axis": "x",
+          "driver": "roll",
+          "gain": 1,
+          "max_rad": 0.22
+        },
+        {
+          "node": "elevator_R",
+          "axis": "x",
+          "driver": "pitch",
+          "gain": -1,
+          "max_rad": 0.22
+        },
+        {
+          "node": "rudder_R",
+          "axis": "y",
+          "driver": "yaw",
+          "gain": -1,
+          "max_rad": 0.28
+        }
+      ],
+      "native_pivots": [
+        "aileron_L",
+        "elevator_L",
+        "rudder_L",
+        "aileron_R",
+        "elevator_R",
+        "rudder_R",
+        "missile_L2",
+        "missile_R2",
+        "missile_L1",
+        "missile_R1",
+        "exhaust_core_L",
+        "exhaust_core_R"
+      ],
+      "afterburning": false
+    },
+    "f35a": {
+      "source_model_id": "wings.original.f-35a.v1",
+      "source_sha256": "956550b4cba4a7e4bf4f6bccd71609673f46705a7f249b18adf8f38f2a646e01",
+      "file": "models/derived/wings_f35a.glb",
+      "sha256": "1dfd31db6e01e7604c4145617a3a0afb3b880bc28a8017b5e61ea6b061221ce5",
+      "bounds": {
+        "min": [
+          -5.349999904632568,
+          -0.8534178173933975,
+          -7.929293155670166
+        ],
+        "max": [
+          5.349999904632568,
+          2.75,
+          7.787676830396056
+        ]
+      },
+      "hardpoints": {
+        "gun": [
+          -5.181198158846433e-19,
+          -0.544709587445791,
+          -5.393827140331268
+        ],
+        "missiles": [
+          [
+            [
+              -3.851999931335449,
+              -0.4888062410431737,
+              0.3192685014033303
+            ],
+            [
+              3.851999931335449,
+              -0.4888062410431737,
+              0.3192685014033303
+            ]
+          ],
+          [
+            [
+              -2.4609999561309817,
+              -0.5234178042803757,
+              -0.2129475837474235
+            ],
+            [
+              2.4609999561309817,
+              -0.5234178042803757,
+              -0.2129475837474235
+            ]
+          ]
+        ]
+      },
+      "cockpit": [
+        0,
+        1.0377006588567692,
+        -3.23232339322567
+      ],
+      "exhausts": [
+        {
+          "node": "exhaust_core",
+          "anchor": "exhaust",
+          "position": [
+            0.0,
+            0.0,
+            7.775676830291748
+          ]
+        }
+      ],
+      "controls": [
+        {
+          "node": "flaperon_L",
+          "axis": "x",
+          "driver": "roll",
+          "gain": -1,
+          "max_rad": 0.22
+        },
+        {
+          "node": "tailplane_L",
+          "axis": "x",
+          "driver": "pitch",
+          "gain": -1,
+          "max_rad": 0.22
+        },
+        {
+          "node": "flaperon_R",
+          "axis": "x",
+          "driver": "roll",
+          "gain": 1,
+          "max_rad": 0.22
+        },
+        {
+          "node": "tailplane_R",
+          "axis": "x",
+          "driver": "pitch",
+          "gain": -1,
+          "max_rad": 0.22
+        },
+        {
+          "node": "rudder_1",
+          "axis": "y",
+          "driver": "yaw",
+          "gain": -1,
+          "max_rad": 0.28
+        },
+        {
+          "node": "rudder_2",
+          "axis": "y",
+          "driver": "yaw",
+          "gain": -1,
+          "max_rad": 0.28
+        }
+      ],
+      "native_pivots": [
+        "flaperon_L",
+        "tailplane_L",
+        "flaperon_R",
+        "tailplane_R",
+        "rudder_1",
+        "rudder_2",
+        "missile_L2",
+        "missile_R2",
+        "missile_L1",
+        "missile_R1",
+        "exhaust_core"
+      ],
+      "afterburning": false
+    },
+    "j20": {
+      "source_model_id": "wings.original.j-20.v1",
+      "source_sha256": "9d70ac66e30c70a69c76b8e0c7c0151a74a4e5ab9f12691cef738b816707b862",
+      "file": "models/derived/wings_j20.glb",
+      "sha256": "5fcabcc098e29d6c844b0b44f3c8ead56925553ce2b005850e84828d27863b1c",
+      "bounds": {
+        "min": [
+          -6.7514519691467285,
+          -1.1699999570846558,
+          -10.199999809265137
+        ],
+        "max": [
+          6.7514519691467285,
+          3.2499999403953552,
+          10.209999580487608
+        ]
+      },
+      "hardpoints": {
+        "gun": [
+          -5.181198158846433e-19,
+          -0.5364705522195126,
+          -7.318000137805939
+        ],
+        "missiles": [
+          [
+            [
+              -4.861045417785644,
+              -0.5558945431685232,
+              2.9734296849252297
+            ],
+            [
+              4.861045417785644,
+              -0.5558945431685232,
+              2.9734296849252297
+            ]
+          ],
+          [
+            [
+              -3.105667905807495,
+              -0.7591131125114088,
+              2.4767745291614833
+            ],
+            [
+              3.105667905807495,
+              -0.7591131125114088,
+              2.4767745291614833
+            ]
+          ]
+        ]
+      },
+      "cockpit": [
+        0,
+        1.0896862611330587,
+        -5.0000001192092896
+      ],
+      "exhausts": [
+        {
+          "node": "exhaust_core_L",
+          "anchor": "exhaust_L",
+          "position": [
+            -0.7800000235438347,
+            -0.09999999403953552,
+            10.1979995803833
+          ]
+        },
+        {
+          "node": "exhaust_core_R",
+          "anchor": "exhaust_R",
+          "position": [
+            0.7800000235438347,
+            -0.09999999403953552,
+            10.1979995803833
+          ]
+        }
+      ],
+      "controls": [
+        {
+          "node": "elevon_L",
+          "axis": "x",
+          "driver": "roll",
+          "gain": -1,
+          "max_rad": 0.22
+        },
+        {
+          "node": "canard_L",
+          "axis": "x",
+          "driver": "pitch",
+          "gain": -1,
+          "max_rad": 0.22
+        },
+        {
+          "node": "elevon_R",
+          "axis": "x",
+          "driver": "roll",
+          "gain": 1,
+          "max_rad": 0.22
+        },
+        {
+          "node": "canard_R",
+          "axis": "x",
+          "driver": "pitch",
+          "gain": -1,
+          "max_rad": 0.22
+        },
+        {
+          "node": "vertical_stabilizer_1",
+          "axis": "y",
+          "driver": "yaw",
+          "gain": -1,
+          "max_rad": 0.28
+        },
+        {
+          "node": "vertical_stabilizer_2",
+          "axis": "y",
+          "driver": "yaw",
+          "gain": -1,
+          "max_rad": 0.28
+        }
+      ],
+      "native_pivots": [
+        "elevon_L",
+        "canard_L",
+        "elevon_R",
+        "canard_R",
+        "vertical_stabilizer_1",
+        "vertical_stabilizer_2",
+        "missile_L2",
+        "missile_R2",
+        "missile_L1",
+        "missile_R1",
+        "exhaust_core_L",
+        "exhaust_core_R"
+      ],
+      "afterburning": false
+    }
+  }
+}
