@@ -137,3 +137,23 @@ No particular off-host machine or old device-approval ticket is required, and no
 new initial reproduction is requested: the user's screenshot/report already
 justified the repairs. Actual terrain/artifacts/shaking/seeded views/native
 Water-Save-Continue/GPU/FPS remain **UNPASSED**, native requested frames **0/5**.
+
+## Serial local integration
+
+Ready `ccf71d0727f7b8d37d4eea8fab7035c8fe6bdc61` maps to local integration
+`9836fbb62589a174eb263af27880b1340ad336b2`. All five CPU commands above were
+independently rerun successfully; all233 new freeze hashes matched before/after
+and on the integrated candidate. Full-module AST comparison confirms only INPUT
+and native_speed differ; the signature and every other node are unchanged.
+The complete game tree equals8622d0e2. Official refresh changes only row241;
+newer unrelated inventory/manual content and old freezes remain intact.
+
+The immutable DOM archive/hash was reviewed, not recaptured:24calls/8contexts/
+522observations, with actual empty WebGL/error arrays and closed owned resources.
+An initial local inspection assumed scalar PASS/zero fields and asserted; actual
+archive schema uses descriptive PASS and an empty WebGL event array. That schema
+mistake is retained in `.tmp/citisten-ccf71-collection-mistake.json`; no source,
+archive or gate was changed to correct it. Independent CPU outputs remain at
+`.tmp/citisten-ccf71-focused-checks.log`. No old Water/Save runner was retargeted
+or rerun; its original frozen-pin rejection remains a failure, not blanket green.
+No runtime asset changes, browser/native run, new game, push or deployment.
