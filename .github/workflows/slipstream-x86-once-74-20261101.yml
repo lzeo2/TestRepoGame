@@ -1,0 +1,51 @@
+name: Slipstream x86 once 74 20261101
+on:
+  push:
+    branches: [test/slipstream-x86-once-20261101]
+permissions:
+  contents: read
+concurrency:
+  group: slipstream-x86-once-74-20261101-${{ github.run_id }}-${{ github.run_attempt }}
+  cancel-in-progress: false
+jobs:
+  once:
+    if: >-
+      github.repository == 'lzeo2/TestRepoGame' && github.actor == 'lzeo2' &&
+      github.run_number == 1 && github.run_attempt == 1 &&
+      github.ref == 'refs/heads/test/slipstream-x86-once-20261101'
+    runs-on: ubuntu-22.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /.github/workflows/slipstream-x86-once-74-20261101.yml
+            /scripts/slipstream_x86_ci.py
+            /scripts/test_slipstream_x86_ci.py
+            /scripts/slipstream_x86_lease.json
+            /scripts/test_slipstream_feel_browser.py
+            /scripts/test_slipstream_feel_browser_safety.py
+      - name: Stdlib selftests
+        run: |
+          python3 -B - <<'PY'
+          import json
+          from pathlib import Path
+          p = Path('.tmp/slipstream-x86-ci-checks/artifacts')
+          p.mkdir(parents=True, exist_ok=True)
+          (p / 'receipt.json').write_text(json.dumps({'status': 'FAIL', 'primaryFailure': 'selftests or supervisor did not complete', 'closure': 'no native process started'}))
+          PY
+          python3 -B scripts/test_slipstream_x86_ci.py
+      - name: One-shot supervisor
+        run: python3 -B scripts/slipstream_x86_ci.py
+      - name: Receipt and bounded evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: slipstream-x86-once-74-20261101
+          path: .tmp/slipstream-x86-ci-checks/artifacts/
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 7
