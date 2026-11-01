@@ -2,8 +2,9 @@
 """One-shot supervisor. No installs, retries or host/browser flag changes.
 
 Lease v1 (scripts/slipstream_x86_lease.json): task=slipstream-x86-once-74-20261101,
-public_base_sha=BASE, source_sha=<full checkout SHA>, expires_at=<UTC ISO8601 Z>,
-files=PUBLIC (exact mapping), browser={path:/usr/bin/chromium,sha256:<hex>},
+public_base_sha=BASE, source_sha=SOURCE (reviewed runner commit, not this lease's
+self-referential checkout commit), expires_at=<UTC ISO8601 Z>,
+files=PUBLIC (exact mapping), browser={path:/usr/bin/chromium},
 driver={sha256:<installed playwright/driver/package/lib/coreBundle.js hex>},
 sources={runner:{path,sha256},safety:{path,sha256}}. Source paths are fixed below.
 Do not put credentials or extra fields in the lease. Missing prerequisites fail.
@@ -27,12 +28,13 @@ import urllib.parse
 import urllib.request
 
 BASE = '11e83932ecbeb01553a902f432a345004e2ab92f'
+SOURCE = 'f6de4b7ff6ee87871e2a0e7e806724e17a2bb8dd'
 BRANCH = 'refs/heads/test/slipstream-x86-once-20261101'
 TASK = 'slipstream-x86-once-74-20261101'
 ROOT = Path(__file__).resolve().parents[1]
 ARTIFACTS = ROOT / '.tmp/slipstream-x86-ci-checks/artifacts'
 SOURCES = {'runner': 'scripts/test_slipstream_feel_browser.py',
-           'safety': 'scripts/test_slipstream_feel_browser_safety.py'}
+           'safety': 'scripts/test_slipstream_runner_safety.py'}
 FLOOR = 2 * 1024**3
 DISK_LIMIT = 50 * 1024**2
 # path | bytes | SHA256 at BASE. Nineteen runtime files and three license notices.
@@ -102,17 +104,15 @@ def lease_check(lease, env, now=None):
                            'browser', 'driver', 'sources'}, 'lease fields rejected')
     require(lease['task'] == TASK and lease['public_base_sha'] == BASE, 'task/base mismatch')
     source = lease['source_sha']
-    require(isinstance(source, str) and re.fullmatch('[0-9a-f]{40}', source)
-            and source == env.get('GITHUB_SHA'), 'full source SHA mismatch')
+    require(source == SOURCE and re.fullmatch('[0-9a-f]{40}', env.get('GITHUB_SHA', '')),
+            'reviewed source/check-out SHA mismatch')
     expiry = dt.datetime.fromisoformat(lease['expires_at'].replace('Z', '+00:00'))
     require(expiry.tzinfo == dt.timezone.utc and
             expiry > (now or dt.datetime.now(dt.timezone.utc)), 'lease expired/non-UTC')
     for path in lease['files']:
         public_path(path)
     require(lease['files'] == PUBLIC, 'exact 19+3 public mapping mismatch')
-    require(set(lease['browser']) == {'path', 'sha256'} and
-            lease['browser']['path'] == '/usr/bin/chromium', 'browser identity rejected')
-    sha(lease['browser']['sha256'])
+    require(lease['browser'] == {'path': '/usr/bin/chromium'}, 'browser identity rejected')
     require(set(lease['driver']) == {'sha256'}, 'driver fields rejected')
     sha(lease['driver']['sha256'])
     require(set(lease['sources']) == set(SOURCES), 'source roles rejected')
@@ -131,10 +131,15 @@ def prerequisites(lease):
     driver = Path(spec.origin).parent / 'driver/package/lib/coreBundle.js'
     require(driver.is_file(), 'PREREQUISITE: installed Playwright coreBundle.js missing')
     require(digest(driver) == lease['driver']['sha256'], 'installed driver hash mismatch')
-    browser = Path(lease['browser']['path'])
+    browser = Path(lease['browser']['path']).resolve()
     require(browser.is_file() and os.access(browser, os.X_OK), 'PREREQUISITE: browser missing')
-    require(digest(browser) == lease['browser']['sha256'], 'installed browser hash mismatch')
-    return {'coreBundleSha256': digest(driver), 'browserSha256': digest(browser)}
+    for path in (browser, *browser.parents):
+        info = path.stat()
+        require(info.st_uid == 0 and not info.st_mode & 0o022, 'system browser path is writable/untrusted')
+    with browser.open('rb') as stream:
+        require(stream.read(4) == b'\x7fELF', 'system browser is not an ELF')
+    return {'coreBundleSha256': digest(driver), 'browserSha256': digest(browser),
+            'browserPath': str(browser), 'browserIdentity': 'system image attestation; not pre-certified hardware'}
 
 
 class NoRedirect(urllib.request.HTTPRedirectHandler):
@@ -148,6 +153,7 @@ def provision(root):
     signal.signal(signal.SIGALRM, expired)
     opener = urllib.request.build_opener(urllib.request.ProxyHandler({}), NoRedirect())
     total = 0
+    deadline = time.monotonic() + 45
     for path, pin in PUBLIC.items():
         public_path(path)
         url = 'https://raw.githubusercontent.com/lzeo2/TestRepoGame/' + BASE + '/' + urllib.parse.quote(path, safe='/')
@@ -160,7 +166,8 @@ def provision(root):
             require(response.status == 200 and response.url == url, 'raw response rejected')
             while True:
                 chunk = response.read(65536)
-                require(time.monotonic() - started <= 10, 'raw request exceeded 10s')
+                require(time.monotonic() - started <= 10 and time.monotonic() < deadline,
+                        'public provisioning deadline exceeded')
                 if not chunk:
                     break
                 total += len(chunk)
@@ -238,9 +245,11 @@ class Children:
             except ChildProcessError:
                 return True
 
-    def close(self):
+    def close(self, hard_deadline=None):
+        self.closed = False
+        hard_deadline = hard_deadline or time.monotonic() + 25
         self.send(signal.SIGTERM)
-        deadline = time.monotonic() + 25
+        deadline = hard_deadline - 2
         while time.monotonic() < deadline:
             self.scan()
             empty = self.reap()
@@ -249,8 +258,7 @@ class Children:
                 return
             time.sleep(.05)
         self.send(signal.SIGKILL)
-        deadline = time.monotonic() + 3
-        while time.monotonic() < deadline:
+        while time.monotonic() < hard_deadline:
             self.scan()
             if self.reap() and not self.scan():
                 self.closed = True
@@ -265,21 +273,22 @@ def usage(root):
 
 def execute(command, root, env, work, name, children, limit=115):
     started = time.monotonic()
-    record = {'startedAt': dt.datetime.now(dt.timezone.utc).isoformat(), 'returncode': None}
+    record = {'startedAt': dt.datetime.now(dt.timezone.utc).isoformat(), 'returncode': None,
+              'sampleIntervalSeconds': .1, 'measurement': 'sampled owned-work bytes, not a continuous peak guarantee'}
     with (work / (name + '.stdout')).open('wb') as out, (work / (name + '.stderr')).open('wb') as err:
         child = subprocess.Popen(command, cwd=root, env=env, stdin=subprocess.DEVNULL,
                                  stdout=out, stderr=err, start_new_session=True)
         try:
             while child.poll() is None:
                 children.scan()
-                record['peakBytes'] = max(record.get('peakBytes', 0), usage(work))
-                require(record['peakBytes'] <= DISK_LIMIT, 'owned disk/profile exceeded 50MB')
+                record['sampledPeakBytes'] = max(record.get('sampledPeakBytes', 0), usage(work))
+                require(record['sampledPeakBytes'] <= DISK_LIMIT, 'owned disk/profile exceeded 50MB')
                 require(shutil.disk_usage(work).free >= FLOOR, 'disk fell below 2 GiB')
                 require(time.monotonic() - started < limit, name + ' external timeout')
                 time.sleep(.1)
             record['returncode'] = child.returncode
         finally:
-            children.close()
+            children.close(started + limit + 25)
             if record['returncode'] is None:
                 record['returncode'] = children.returncodes.get(child.pid, child.returncode)
             record['elapsedSeconds'] = round(time.monotonic() - started, 3)
@@ -320,8 +329,11 @@ def collect(work):
 def main():
     ARTIFACTS.mkdir(parents=True, exist_ok=True)
     receipt = {'status': 'FAIL', 'startedAt': dt.datetime.now(dt.timezone.utc).isoformat(),
-               'host': {'system': platform.system(), 'machine': platform.machine()},
-               'closure': 'no processes started', 'publicBaseSha': BASE}
+               'host': {'system': platform.system(), 'machine': platform.machine(),
+                        'uid': os.getuid(), 'euid': os.geteuid()},
+               'closure': 'no processes started', 'publicBaseSha': BASE,
+               'testCommit': os.environ.get('GITHUB_SHA'), 'imageOS': os.environ.get('ImageOS'),
+               'imageVersion': os.environ.get('ImageVersion'), 'nativeRunnerInvocations': 0}
     target = ARTIFACTS / 'receipt.json'
     target.write_text(json.dumps(receipt, indent=2))
     work, children = None, None
@@ -351,6 +363,7 @@ def main():
                                     'safety', children, limit=20)
         lease_check(lease, os.environ)
         require(not any((work / 'home').iterdir()), 'safety test dirtied native HOME')
+        receipt['nativeRunnerInvocations'] = 1  # Source receipt separately proves browser launch.
         receipt['native'] = execute([python, str(root / SOURCES['runner']), '--startup-trace'],
                                     root, env, work, 'native', children)
         results = list((work / 'tmp').glob('slipstream-feel-*/result.json'))
@@ -365,7 +378,11 @@ def main():
         signal.setitimer(signal.ITIMER_REAL, 0)
         if children:
             try:
-                children.close()
+                if children.scan():
+                    require(children.closed, 'owned descendants remain after bounded cleanup')
+                else:
+                    children.closed = children.reap()
+                require(children.closed, 'owned process closure unproven')
                 receipt['closure'] = {'closed': children.closed, 'pidStarttimes': children.owned}
             except Exception as error:
                 receipt['status'] = 'FAIL'

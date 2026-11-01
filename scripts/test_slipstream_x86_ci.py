@@ -19,9 +19,9 @@ class Guards(unittest.TestCase):
         self.env = {'GITHUB_ACTIONS': 'true', 'GITHUB_RUN_NUMBER': '1', 'GITHUB_RUN_ATTEMPT': '1',
                     'GITHUB_ACTOR': 'lzeo2', 'GITHUB_REPOSITORY': 'lzeo2/TestRepoGame',
                     'GITHUB_REF': ci.BRANCH, 'GITHUB_EVENT_NAME': 'push', 'GITHUB_SHA': 'a' * 40}
-        self.lease = {'task': ci.TASK, 'public_base_sha': ci.BASE, 'source_sha': 'a' * 40,
+        self.lease = {'task': ci.TASK, 'public_base_sha': ci.BASE, 'source_sha': ci.SOURCE,
                       'expires_at': '2099-01-01T00:00:00Z', 'files': copy.deepcopy(ci.PUBLIC),
-                      'browser': {'path': '/usr/bin/chromium', 'sha256': 'b' * 64},
+                      'browser': {'path': '/usr/bin/chromium'},
                       'driver': {'sha256': 'c' * 64},
                       'sources': {k: {'path': p, 'sha256': 'd' * 64} for k, p in ci.SOURCES.items()}}
 
@@ -41,8 +41,9 @@ class Guards(unittest.TestCase):
                 ci.public_path(path)
 
     def test_lease(self):
+        self.assertNotEqual(self.lease['source_sha'], self.env['GITHUB_SHA'])
         ci.lease_check(self.lease, self.env)
-        for key, value in [('public_base_sha', 'b' * 40), ('source_sha', 'a' * 8),
+        for key, value in [('public_base_sha', 'b' * 40), ('source_sha', 'a' * 8), ('source_sha', 'b' * 40),
                            ('expires_at', '2000-01-01T00:00:00Z'), ('files', {}),
                            ('driver', {'sha256': 'bad'}), ('sources', {})]:
             with self.subTest(key=key), self.assertRaises(RuntimeError):
@@ -72,6 +73,22 @@ class Guards(unittest.TestCase):
             self.assertEqual(ci.digest(path), 'ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad')
         env = ci.clean_env(Path('/owned/home'), Path('/owned/tmp'))
         self.assertEqual(set(env), {'HOME', 'TMPDIR', 'PATH', 'LANG', 'PYTHONDONTWRITEBYTECODE'})
+
+    @unittest.skipUnless(sys.platform == 'linux', 'Linux subreaper')
+    def test_hard_cleanup_deadline(self):
+        code = '''import subprocess,sys,time
+import slipstream_x86_ci as ci
+c=ci.Children()
+p=subprocess.Popen([sys.executable,'-c',"import signal,time;signal.signal(signal.SIGTERM,signal.SIG_IGN);print('ready',flush=True);time.sleep(30)"],stdout=subprocess.PIPE,text=True)
+assert p.stdout.readline().strip()=='ready'
+started=time.monotonic()
+c.close(started+.4)
+assert c.closed and not c.scan()
+assert time.monotonic()-started < .8, 'cleanup exceeded hard bound'
+'''
+        result = subprocess.run([sys.executable, '-B', '-c', code], cwd=Path(ci.__file__).parent,
+                                capture_output=True, text=True, timeout=3)
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
 
     @unittest.skipUnless(sys.platform == 'linux', 'Linux subreaper')
     def test_fake_detached_child_timeout(self):

@@ -5,7 +5,7 @@ on:
 permissions:
   contents: read
 concurrency:
-  group: slipstream-x86-once-74-20261101-${{ github.run_id }}-${{ github.run_attempt }}
+  group: slipstream-x86-once-74-20261101
   cancel-in-progress: false
 jobs:
   once:
@@ -27,7 +27,7 @@ jobs:
             /scripts/test_slipstream_x86_ci.py
             /scripts/slipstream_x86_lease.json
             /scripts/test_slipstream_feel_browser.py
-            /scripts/test_slipstream_feel_browser_safety.py
+            /scripts/test_slipstream_runner_safety.py
       - name: Stdlib selftests
         run: |
           python3 -B - <<'PY'
@@ -46,6 +46,6 @@ jobs:
         with:
           name: slipstream-x86-once-74-20261101
           path: .tmp/slipstream-x86-ci-checks/artifacts/
-          include-hidden-files: true
+          include-hidden-files: true # Dedicated whitelisted receipts only, beneath .tmp.
           if-no-files-found: error
           retention-days: 7
