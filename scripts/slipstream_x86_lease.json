@@ -1,0 +1,119 @@
+{
+  "task": "slipstream-x86-wheeldata-once-74-20261101",
+  "public_base_sha": "11e83932ecbeb01553a902f432a345004e2ab92f",
+  "source_sha": "f6de4b7ff6ee87871e2a0e7e806724e17a2bb8dd",
+  "expires_at": "2026-11-01T06:07:41.694272Z",
+  "files": {
+    "Games/Slipstream Borough/CREDITS.md": {
+      "size": 1562,
+      "sha256": "b8fc5ed706e172030156df3bc0f70b6f6e7ed23a5a4d46698629ee9e136db78e"
+    },
+    "Games/Slipstream Borough/clock.js": {
+      "size": 276,
+      "sha256": "53033b464d449cd6c5961e8d95c2e8601bf744c86bc3d8ae48da2e62050c12ae"
+    },
+    "Games/Slipstream Borough/core.js": {
+      "size": 36695,
+      "sha256": "0836faeb87e636763580fc3d44405ea100d7b7c903b577b3ba250f3ca56d5f7f"
+    },
+    "Games/Slipstream Borough/index.html": {
+      "size": 8147,
+      "sha256": "ca418708f55f4312439f4d965477bd1966a7243505b39c54b33eb7023f894e53"
+    },
+    "Games/Slipstream Borough/map.js": {
+      "size": 2360,
+      "sha256": "dcf78105b10bb2ea7b60c9aec93fb64fee032e072077317b9bd662d605e7cce4"
+    },
+    "Games/Slipstream Borough/script.js": {
+      "size": 26325,
+      "sha256": "7389ab9184a83df772aa5ad8bd02b9aec1c253ffb83f0e2fcd1b9a96270ca57f"
+    },
+    "Games/Slipstream Borough/style.css": {
+      "size": 7470,
+      "sha256": "9d3750922964cd1b3e70f404116215efe0daa0eb367068be1c90f0ed6b74b970"
+    },
+    "Games/Slipstream Borough/view.js": {
+      "size": 36596,
+      "sha256": "40f056b7588133c57c0c1f62388951f0decaf211853b8a537431e611599ccdc7"
+    },
+    "Games/Slipstream Borough/world.js": {
+      "size": 3999,
+      "sha256": "8af01aa92d3b9c8bc91b9acccb28079f21477075ba0357c829d0767b90bc7f9d"
+    },
+    "assets/car-arcade/fleet.js": {
+      "size": 1981,
+      "sha256": "4ee5fe5474fb0230b03bf3c96aaf64a85628d0120476110b83f2b617fd73198c"
+    },
+    "assets/car-arcade/models.js": {
+      "size": 16170,
+      "sha256": "57d65ecb57e545a0cf521106ddaca62edde1edb966f920b35d046c63ca4f00b8"
+    },
+    "assets/car-arcade/patrol.js": {
+      "size": 5603,
+      "sha256": "22abc6f28bf6cc18cd9610110dd2ce824120131747c895e68511c348e4ceca74"
+    },
+    "assets/car-arcade/storage.js": {
+      "size": 2351,
+      "sha256": "50d7705730d77632ac940cfb2fab6d489eb0b4356681eae6cf01c55501bea7c5"
+    },
+    "assets/car-arcade/style.css": {
+      "size": 4782,
+      "sha256": "c860363f9d9fb9e572f9e44f6b7a728786c977ff8582c1578e97a98d32ae7ee8"
+    },
+    "assets/car-arcade/vendor/three.module.js": {
+      "size": 1272972,
+      "sha256": "76dea8151bc9352aef3528b4262e249b2604f62543828328db978d060d61a495"
+    },
+    "assets/car-arcade/vendor/BufferGeometryUtils.js": {
+      "size": 31918,
+      "sha256": "3a6701d824adfe05dc28c09b6c1d64aeab9a183bc3b944d85f15f596e5c6c2b3"
+    },
+    "assets/car-arcade/vendor/LICENSE": {
+      "size": 1081,
+      "sha256": "852e0e8699169bf9f6fdc6bda3e682d078dcbc738b5d33e74df594721bff271d"
+    },
+    "assets/fonts/bungee/bungee-400-latin.woff2": {
+      "size": 14344,
+      "sha256": "126eec706b7931682dbcf6c6efc274132c603f181fbf912678e6cfeb341e721b"
+    },
+    "assets/fonts/atkinson-hyperlegible/atkinson-hyperlegible-400-latin.woff2": {
+      "size": 17208,
+      "sha256": "d64ba838ef5472bba248620ec4fd8b5aa7cf0db2908e0bb230600caf279ba7bc"
+    },
+    "assets/fonts/atkinson-hyperlegible/atkinson-hyperlegible-700-latin.woff2": {
+      "size": 17524,
+      "sha256": "140e2bd25a7315c8a062508391426b0d8c3297400c947b8d847be28f73a199f0"
+    },
+    "assets/fonts/bungee/OFL.txt": {
+      "size": 4473,
+      "sha256": "d5787a50dde5be6c6daecab9ed459939b1bc37cff0d0e00257eaf1ec2cf4c16c"
+    },
+    "assets/fonts/atkinson-hyperlegible/OFL.txt": {
+      "size": 4352,
+      "sha256": "f32d22b3908fcad2c86a74000614ec22e6a7f66ea7e867e616026a27aebdc143"
+    }
+  },
+  "browser": {
+    "path": "/usr/bin/chromium"
+  },
+  "driver": {
+    "sha256": "3258d1cf334c6afc95f22aa9c292436cb976b391e0437f1359c83b84f0cb9d66"
+  },
+  "sources": {
+    "runner": {
+      "path": "scripts/test_slipstream_feel_browser.py",
+      "sha256": "ced188494af57959d96ce4a9bd0aed4a6a0efc044c10f4ecd7144f8394e57ec5"
+    },
+    "safety": {
+      "path": "scripts/test_slipstream_runner_safety.py",
+      "sha256": "164eda9076a6cf18f674d91f0618bc5deb46b5add0a4aa707f5ff5653b4a4e1d"
+    }
+  },
+  "dependencies": {
+    "transfer_bytes": 60000000,
+    "extract_bytes": 250000000,
+    "workspace_bytes": 350000000,
+    "setup_seconds": 120,
+    "lock_sha256": "8c504a5b3d39a79cf52cb46d1306fe92028d4e675dec2b39ac61c2c790b07470"
+  }
+}

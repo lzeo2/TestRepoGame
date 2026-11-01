@@ -6,8 +6,12 @@ import functools
 import hashlib
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 import json
+import os
 from pathlib import Path
+import platform
+import playwright
 import shutil
+import sys
 import signal
 import tempfile
 import threading
@@ -17,21 +21,73 @@ from playwright.sync_api import sync_playwright
 ROOT = Path(__file__).resolve().parents[1]
 PHONE = 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 Version/18.0 Mobile/15E148 Safari/604.1'
 FLOOR = 2_147_483_648
+FONT_PATHS = ('assets/fonts/bungee/bungee-400-latin.woff2',
+              'assets/fonts/atkinson-hyperlegible/atkinson-hyperlegible-400-latin.woff2',
+              'assets/fonts/atkinson-hyperlegible/atkinson-hyperlegible-700-latin.woff2')
+AUDITED_DRIVER = '3258d1cf334c6afc95f22aa9c292436cb976b391e0437f1359c83b84f0cb9d66'
+SAFE_ARGS = ('--headless', '--enable-automation', '--remote-debugging-pipe',
+             '--no-startup-window', '--no-first-run', '--disable-background-networking')
+
+
+def check_args(args, profile):
+    expected = [*SAFE_ARGS, '--user-data-dir=' + str(profile)]
+    if args != expected:
+        raise RuntimeError('Unsafe or unaudited Chromium arguments; launch refused')
+
+
+def safe_host():
+    if platform.system() != 'Linux' or platform.machine() != 'x86_64' or os.getuid() == 0 or os.geteuid() == 0:
+        raise RuntimeError('Requires an admitted non-root Linux x86_64 sandbox host; no Pi/root fallback')
+    if any(value and (key.startswith(('PW_', 'PLAYWRIGHT_', 'SELENIUM_', 'LD_', 'CHROME_', 'CHROMIUM_')) or key in ('NODE_OPTIONS', 'PWDEBUG')) for key, value in os.environ.items()):
+        raise RuntimeError('Launch-altering environment present; use the approved clean runner environment')
+    driver = Path(playwright.__file__).parent / 'driver/package/lib/coreBundle.js'
+    if hashlib.sha256(driver.read_bytes()).hexdigest() != AUDITED_DRIVER:
+        raise RuntimeError('Unaudited Playwright driver; review this installed version before launch, do not install or bypass')
+    # Bypass distro shell launchers: they can append flags after our argv check.
+    for binary in (Path('/usr/bin/chromium').resolve(), Path('/usr/lib/chromium/chromium')):
+        if not binary.is_file():
+            continue
+        with binary.open('rb') as stream:
+            elf = stream.read(4) == b'\x7fELF'
+        info = binary.stat()
+        if elf and info.st_uid == 0 and not info.st_mode & 0o022 and os.access(binary, os.X_OK):
+            return str(binary)
+    raise RuntimeError('No root-owned, non-writable system Chromium ELF; shell wrappers are not an audited launch route')
+
+
+def launch_options(profile, executable):
+    args = [*SAFE_ARGS, '--user-data-dir=' + str(profile)]
+    check_args(args, profile)
+    return dict(executable_path=executable, headless=True, chromium_sandbox=True,
+                ignore_default_args=True, args=args, timeout=20000,
+                env={'PATH': os.defpath, 'HOME': str(profile), 'TMPDIR': str(profile), 'LANG': 'C.UTF-8'})
+
+
+def check_sandbox(rows):
+    for label in ('PID namespaces', 'Network namespaces', 'Seccomp-BPF sandbox'):
+        if not any(' '.join(row.split()) == label + ' Yes' for row in rows):
+            raise RuntimeError('Chromium sandbox not proven active: ' + label)
 
 
 def main():
+    assert sys.argv[1:] in ([], ['--startup-trace']), 'Only --startup-trace is supported'
+    diagnostic = sys.argv[1:] == ['--startup-trace']
+    executable = safe_host()
     assert shutil.disk_usage(ROOT).free >= FLOOR, 'Disk below 2 GiB floor'
     output = Path(tempfile.mkdtemp(prefix='slipstream-feel-'))
     print('OUTPUT=' + str(output), flush=True)
     files = sorted(set((ROOT / 'Games/Slipstream Borough').glob('*')) |
                    set((ROOT / 'assets/car-arcade').glob('*.js')) |
-                   {ROOT / 'assets/car-arcade/style.css', ROOT / 'assets/car-arcade/vendor/three.module.js', Path(__file__)})
+                   {ROOT / 'assets/car-arcade/style.css', ROOT / 'assets/car-arcade/vendor/three.module.js',
+                    ROOT / 'assets/car-arcade/vendor/BufferGeometryUtils.js', Path(__file__)} |
+                   {ROOT / path for path in FONT_PATHS})
     def hashes():
         return {str(p.relative_to(ROOT)): hashlib.sha256(p.read_bytes()).hexdigest() for p in files if p.is_file()}
     frozen = hashes()
     errors, observations = [], []
     started = time.monotonic()
-    receipt = {'assisted': False, 'sourceHashes': frozen, 'errors': errors, 'observations': observations, 'passed': False}
+    receipt = {'assisted': False, 'sourceHashes': frozen, 'errors': errors, 'observations': observations, 'passed': False,
+               'startupTrace': [], 'diagnosticX86': diagnostic, 'browserClosed': False}
     class Handler(SimpleHTTPRequestHandler):
         def log_message(self, *_): pass
     server = ThreadingHTTPServer(('127.0.0.1', 0), functools.partial(Handler, directory=str(ROOT)))
@@ -43,13 +99,49 @@ def main():
     old_alarm = signal.signal(signal.SIGALRM, expired)
     signal.alarm(110)
     try:
-        with sync_playwright() as pw:
-            # One real renderer attempt. Failure is a blocker, never a GPU retry.
-            browser = pw.chromium.launch(executable_path='/usr/bin/chromium', headless=True,
-                                         args=['--no-sandbox'], timeout=20000)
+        with tempfile.TemporaryDirectory(prefix='slipstream-chromium-') as profile, sync_playwright() as pw:
+            # Suppress ALL audited Playwright defaults, not just the sandbox bypass.
+            browser = pw.chromium.launch(**launch_options(profile, executable))
             try:
+                session = browser.new_browser_cdp_session()
+                argv = session.send('Browser.getBrowserCommandLine')['arguments']
+                if not argv or argv[0] != executable:
+                    raise RuntimeError('Unexpected effective Chromium executable')
+                check_args(argv[1:], profile)
+                receipt['launchPolicy'] = {'driverSha256': AUDITED_DRIVER, 'chromiumSandbox': True,
+                                         'effectiveArgs': [*SAFE_ARGS, '--user-data-dir=<owned-profile>']}
+                proof = browser.new_context()
+                try:
+                    page = proof.new_page()
+                    page.set_default_timeout(20000)
+                    page.goto('chrome://sandbox', wait_until='domcontentloaded', timeout=20000)
+                    rows = page.locator('tr').all_text_contents()
+                    check_sandbox(rows)
+                    receipt['sandboxRows'] = [' '.join(row.split()) for row in rows]
+                finally:
+                    proof.close()
+                receipt['browserVersion'] = browser.version
                 def watch(page):
                     page.set_default_timeout(20000)
+                    if diagnostic:
+                        # Read-only trusted-event/phase markers survive a blocked post-click evaluate.
+                        page.add_init_script('''(() => {
+                          const emit = (type, trusted = null) => console.info('__SLIPSTREAM_START__' + JSON.stringify({
+                            type, trusted, ms: performance.now(), phase: document.documentElement?.dataset.phase,
+                            helpOpen: document.querySelector('#helpDialog')?.open
+                          }));
+                          for (const type of ['pointerdown', 'mousedown', 'pointerup', 'mouseup', 'click'])
+                            document.addEventListener(type, e => { if(e.target?.id === 'start') emit(type, e.isTrusted); }, true);
+                          document.addEventListener('DOMContentLoaded', () => {
+                            emit('dom-ready');
+                            new MutationObserver(() => emit('phase')).observe(document.documentElement,
+                              {attributes:true, attributeFilter:['data-phase']});
+                          }, {once:true});
+                        })();''')
+                        def marker(message):
+                            if message.text.startswith('__SLIPSTREAM_START__') and len(receipt['startupTrace']) < 64:
+                                receipt['startupTrace'].append(json.loads(message.text[len('__SLIPSTREAM_START__'):]))
+                        page.on('console', marker)
                     page.on('pageerror', lambda e: errors.append(str(e)))
                     page.on('console', lambda m: errors.append(m.text) if m.type == 'error' else None)
                     page.on('requestfailed', lambda r: errors.append('Request failed: ' + r.url))
@@ -65,6 +157,14 @@ def main():
                     assert s['phase'] == 'garage' and s['run'] is None and s['view']
                     assert s['profile']['cash'] == 0 and not s['profile']['testMode']
                     assert s['profile']['nextRun'] == 1
+                    if diagnostic:
+                        receipt.setdefault('rendererInfo', []).append(page.evaluate('''() => {
+                          const canvas=document.querySelector('#viewport canvas');
+                          const gl=canvas.getContext('webgl2') || canvas.getContext('webgl');
+                          const ext=gl?.getExtension('WEBGL_debug_renderer_info');
+                          return {frames:slipstreamSnapshot.view.frames, version:gl?.getParameter(gl.VERSION),
+                            renderer:ext?gl.getParameter(ext.UNMASKED_RENDERER_WEBGL):null};
+                        }'''))
                 def start(page, first=False):
                     page.locator('#start').click()
                     page.wait_for_function('slipstreamSnapshot.phase === "run"')
@@ -157,7 +257,9 @@ def main():
                     shot(page, 'phone-held-touch')
                     observations.append({'genuineHeldTouchGasTurn': True, 'touchRelease': True, 'phonePauseFrozen': True})
                 finally: mobile.close()
-            finally: browser.close()
+            finally:
+                browser.close()
+                receipt['browserClosed'] = True
         assert not errors, errors
         assert hashes() == frozen, 'Source changed during native check'
         assert sum(p.stat().st_size for p in output.glob('*.jpg')) < 300000, 'Capture budget exceeded'
