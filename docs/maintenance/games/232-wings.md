@@ -1198,3 +1198,21 @@ checks, target-device measurements and rights review. Preserve bounded failures
 and record the fresh full fleet result before a separately authorized release
 decision. This documentation adds no game, registration, dependency permission or
 publication authorization.
+
+## Local current-main player-speedboat port (2026-11-03, in progress)
+
+Target: exact `11e83932ecbeb01553a902f432a345004e2ab92f`, isolated local
+`integrate/wings-player-speedboat-main11e-20261103`. This is a new, narrow
+feature port, not the earlier independent two-file guard request or a restoration
+of the older rich Wings tree. Existing original art and the 27 aircraft remain
+protected. No catalog, publication, rights or native/device acceptance is granted.
+
+Source checkpoint 1 adds the reviewed movement/native/AI helpers and their
+focused regression: 20 CPU groups passed (17 movement, three pilot-only native/AI).
+The movement and input-only AI bodies retain their reviewed source identities;
+only pilot 0 may control the boat cannon, with no passenger/gunner controller.
+Registration, shared-world authority, UI and generated delivery are pending the
+owner's final integration checkpoint. This helper commit alone is not a served fix.
+The historical combined boat CPU result remains INCOMPLETE 11/12; no new result
+is being substituted for that unchanged combined suite. Type022 self-flight,
+manned station/default activation, new/private art and push remain STOP.
