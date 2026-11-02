@@ -1,3 +1,4 @@
+import { BOAT_CAMERA } from "../sim/boat-native"
 import { MathUtils, Matrix4, PerspectiveCamera, Quaternion, Vector3 } from "three"
 import type { Quat, Vec3, VehicleKind } from "../sim/types"
 import { groundHeight } from "../sim/geography"
@@ -7,6 +8,7 @@ export type CameraMode = "menu" | "orbit" | "chase" | "cockpit" | "gunner" | "de
 
 /** Body-space (nose = -Z) eye offsets. */
 const COCKPIT: Record<VehicleKind, Vec3> = {
+  speedboat: [...BOAT_CAMERA.eye],
   fighter: [0, 1.6, -5.2],
   apache: [0, 2.5, -1.2],
   warthog: [0, 1.7, -4.4],
@@ -37,6 +39,7 @@ const COCKPIT: Record<VehicleKind, Vec3> = {
 }
 /** Gunner camera: targeting pod / chin turret position. */
 const GUNNER: Record<VehicleKind, Vec3> = {
+  speedboat: [...BOAT_CAMERA.eye],
   fighter: [0, -1.4, -3],
   apache: [0, -1.3, -4.2],
   warthog: [0, -1.5, -2],
@@ -69,7 +72,7 @@ const GUNNER: Record<VehicleKind, Vec3> = {
  * Gunner eye placement relative to the optic: metres along the line of sight (clears the own nose/belly)
  * and metres straight down (below the fuselage), so the own airframe never fills the frame.
  */
-const GUNNER_LEAD: Record<VehicleKind, number> = { tu160: NATIVE_BOMBER_MODELS.tu160.hardpoints.bombs[0][2] - NATIVE_BOMBER_MODELS.tu160.bounds.min[2] + 2, fighter: 9, apache: 2.5, warthog: 8, blackbird: 4, bomber: 3, f15: 9, f35: 6,
+const GUNNER_LEAD: Record<VehicleKind, number> = { speedboat: BOAT_CAMERA.gunnerLead, tu160: NATIVE_BOMBER_MODELS.tu160.hardpoints.bombs[0][2] - NATIVE_BOMBER_MODELS.tu160.bounds.min[2] + 2, fighter: 9, apache: 2.5, warthog: 8, blackbird: 4, bomber: 3, f15: 9, f35: 6,
   f16c: NATIVE_FIGHTER_MODELS.f16c.cockpit[2] - NATIVE_FIGHTER_MODELS.f16c.bounds.min[2] + 2,
   mig29: NATIVE_FIGHTER_MODELS.mig29.cockpit[2] - NATIVE_FIGHTER_MODELS.mig29.bounds.min[2] + 2,
   typhoon: NATIVE_FIGHTER_MODELS.typhoon.cockpit[2] - NATIVE_FIGHTER_MODELS.typhoon.bounds.min[2] + 2,
@@ -89,13 +92,14 @@ const GUNNER_LEAD: Record<VehicleKind, number> = { tu160: NATIVE_BOMBER_MODELS.t
   j20: NATIVE_FIGHTER_MODELS.j20.cockpit[2] - NATIVE_FIGHTER_MODELS.j20.bounds.min[2] + 2,
   ah64d: NATIVE_HELICOPTER_MODELS.ah64d.cockpit[2] - NATIVE_HELICOPTER_MODELS.ah64d.bounds.min[2] + 2,
   mi28n: NATIVE_HELICOPTER_MODELS.mi28n.cockpit[2] - NATIVE_HELICOPTER_MODELS.mi28n.bounds.min[2] + 2 }
-const GUNNER_DROP: Record<VehicleKind, number> = { tu160: 1.5, fighter: 1.5, apache: 0.6, warthog: 1.5, blackbird: 1.5, bomber: 2, f15: 1.5, f35: 1.5, f16c: 1.5, mig29: 1.5, typhoon: 1.5, su35s: 1.5, rafale: 1.5, jf17: 1.5, gripen: 1.5, mig31: 1.5, mirage2000: 1.5, su34: 1.5, fa50: 1.5, yak130: 1.5, hawkt2: 1.5, su25sm: 1.5, a10c: 1.5, f35a: 1.5, j20: 1.5, ah64d: 0.6, mi28n: 0.6 }
+const GUNNER_DROP: Record<VehicleKind, number> = { speedboat: BOAT_CAMERA.gunnerDrop, tu160: 1.5, fighter: 1.5, apache: 0.6, warthog: 1.5, blackbird: 1.5, bomber: 2, f15: 1.5, f35: 1.5, f16c: 1.5, mig29: 1.5, typhoon: 1.5, su35s: 1.5, rafale: 1.5, jf17: 1.5, gripen: 1.5, mig31: 1.5, mirage2000: 1.5, su34: 1.5, fa50: 1.5, yak130: 1.5, hawkt2: 1.5, su25sm: 1.5, a10c: 1.5, f35a: 1.5, j20: 1.5, ah64d: 0.6, mi28n: 0.6 }
 /** Bomb-sight optical zoom range. */
 export const BOMBSIGHT_MIN_ZOOM = 2
 export const BOMBSIGHT_MAX_ZOOM = 8
 /** Minimum eye height above the ground/water surface (m). */
 const GROUND_CLEARANCE = 1.5
 const CHASE: Record<VehicleKind, { dist: number; height: number }> = {
+  speedboat: BOAT_CAMERA.follow,
   fighter: { dist: 26, height: 6 },
   apache: { dist: 24, height: 7 },
   warthog: { dist: 28, height: 7 },
@@ -143,6 +147,7 @@ const _up = new Vector3()
 /** Extra FOV (deg) when flying above cruise (boosting), ramping in over the first 40% of the boost band. */
 const BOOST_FOV = 6
 function boostFov(kind: VehicleKind, speed: number): number {
+  if (kind === "speedboat") return 0
   const v = VEHICLES[kind]
   if (v.flight !== "jet") return 0
   return BOOST_FOV * MathUtils.smoothstep(speed, v.cruise * 1.02, v.cruise + (v.boost - v.cruise) * 0.4)
@@ -297,7 +302,7 @@ export class CameraRig {
     groundAt: (x: number, z: number) => number): void {
     const c = CHASE[kind]
     _q.set(orientation[0], orientation[1], orientation[2], orientation[3])
-    const heli = VEHICLES[kind].flight === "heli"
+    const heli = kind !== "speedboat" && VEHICLES[kind].flight === "heli"
     if (heli) horizonFollow(_q, _q)
     if (!this.followInit) { this.followQ.copy(_q); this.followInit = true }
     // Frame-rate independent smoothing; jets follow a touch quicker (roll included), helis softer.

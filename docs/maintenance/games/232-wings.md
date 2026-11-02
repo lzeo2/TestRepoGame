@@ -1216,3 +1216,13 @@ owner's final integration checkpoint. This helper commit alone is not a served f
 The historical combined boat CPU result remains INCOMPLETE 11/12; no new result
 is being substituted for that unchanged combined suite. Type022 self-flight,
 manned station/default activation, new/private art and push remain STOP.
+
+Source checkpoint 2 adds only boat branches to the existing aircraft renderer and
+camera, plus the retained bounded wake helper. Four focused CPU groups passed:
+exact old-27 configuration/camera-map parity; actual old-27 GLB template geometry,
+UV/material/bone/anchor parity against `11e83932`; retained boat GLB/PBR, signed
+pilot gun, opposing props, bounded wake/disposal; and CPU helm/chase poses.
+The existing `speedboat.glb` remains byte-identical. These are actual Three/GLTF
+CPU-state checks with a PNG-dimensions fixture, not decoded pixels, rendered helm
+visibility, gun clearance, native input, audio or device acceptance. Generated
+served files are still pending the owner's final delivery checkpoint.

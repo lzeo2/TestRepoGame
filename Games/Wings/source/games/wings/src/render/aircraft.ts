@@ -35,13 +35,16 @@ import {
   type Camera,
   type Material,
   type MeshStandardMaterial,
+  type MeshPhysicalMaterial,
 } from "three/webgpu"
 import { abs, dot, float, mix, modelViewMatrix, normalLocal, normalView, normalize, positionLocal, positionViewDirection, smoothstep, uniform, vec4, max as tslMax, modelScale } from "three/tsl"
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js"
 import { mergeGeometries, toCreasedNormals } from "three/addons/utils/BufferGeometryUtils.js"
 import type { PlayerInfo, Quality, SeatIndex, TeamId, VehicleEntity, VehicleKind } from "../sim/types"
 import { NATIVE_BOMBER_MODELS, NATIVE_FIGHTER_MODELS, NATIVE_HELICOPTER_MODELS, VEHICLES, WEAPONS, type NativeFighterKind, type NativeHelicopterKind } from "../sim/vehicles"
-import { groundHeight } from "../sim/geography"
+import { groundHeight, isWater } from "../sim/geography"
+import { boatGunPose, boatMotionChannels, BOAT_GUN_LIMITS, type BoatGunPose } from "../sim/boat-native"
+import { createBoatWake } from "./boat-wake"
 import { SUN_DIRECTION } from "./world/settings"
 import { STORM } from "./world/atmosphere"
 import { createBlobShadow } from "./aircraft-shadow"
@@ -123,7 +126,7 @@ interface Spinner {
   axis: Axis
   /** rad/s at full speed (sign = direction). */
   speed: number
-  driver: "rotor" | "engine" | "gun"
+  driver: "rotor" | "engine" | "gun" | "prop"
 }
 
 interface Afterburner {
@@ -227,6 +230,22 @@ function nativeHelicopterConfig(kind: NativeHelicopterKind): KindConfig {
 }
 
 export const CONFIG: Record<VehicleKind, KindConfig> = {
+  speedboat: {
+    file: "speedboat", sourcePbr: true,
+    pivots: ["cannon_yaw", "cannon_pitch", "prop_L", "prop_R"],
+    // Retained charge bodies are inert decoration, not ammo-linked stores.
+    stores: [],
+    spinners: [
+      { name: "prop_L", axis: "z", speed: 45, driver: "prop" },
+      { name: "prop_R", axis: "z", speed: -45, driver: "prop" },
+    ],
+    afterburners: [],
+    turret: { yaw: "cannon_yaw", pitch: "cannon_pitch", seat: 0,
+      yawMax: BOAT_GUN_LIMITS.yaw, pitchMin: BOAT_GUN_LIMITS.minPitch, pitchMax: BOAT_GUN_LIMITS.maxPitch },
+    anchors: [{ key: "gun", node: "gun_muzzle" },
+      ...["helm_eye", "stern_exit", "wake_L", "wake_R", "prop_L", "prop_R"].map(node => ({ key: node, node }))],
+    placeholder: { length: 10, span: 3.2, heli: false }, shadow: [3.2, 10],
+  },
   tu160: nativeBomberConfig(),
   f16c: nativeFighterConfig("f16c"),
   mig29: nativeFighterConfig("mig29"),
@@ -684,7 +703,8 @@ function buildTemplate(kind: VehicleKind, scene: Object3D): Template {
     if (override && boneIndex.has(override)) bone = boneIndex.get(override)!
     const src = (Array.isArray(mesh.material) ? mesh.material[0] : mesh.material) as MeshStandardMaterial
     // Team markings on fins/wingtips/nose only; rotor tips are painted like the airframe.
-    const isLivery = chain.some((n) => n.startsWith("livery_")) && !/rotor_tip/.test(mesh.name)
+    const boat = kind === "speedboat"
+    const isLivery = !boat && chain.some((n) => n.startsWith("livery_")) && !/rotor_tip/.test(mesh.name)
     const emissive = src.emissive ? src.emissive.clone() : new Color(0)
     const isGlow = emissive.r + emissive.g + emissive.b > 0.05
     const isGlass = !isGlow && (src.transparent || src.opacity < 0.99)
@@ -699,6 +719,8 @@ function buildTemplate(kind: VehicleKind, scene: Object3D): Template {
       // Buried stealth exhausts (B-2): a faint warm glow, not an afterburner.
       if (role === "glow" && chain.some((n) => n.startsWith("exhaust_"))) emissive.multiplyScalar(0.35)
     }
+    // Boat lights retain authored PBR/emissive channels rather than generic aircraft glow.
+    if (boat) role = src.transparent || src.opacity < 0.99 ? "glass" : "toon"
     const color = src.color ? src.color : new Color(1, 1, 1)
     const factors = surfaceFactors(src)
     const [rough, metal] = factors
@@ -717,6 +739,15 @@ function buildTemplate(kind: VehicleKind, scene: Object3D): Template {
         for (const key of ["map", "roughnessMap", "metalnessMap", "normalMap", "aoMap", "emissiveMap", "alphaMap", "opacity", "transparent", "alphaTest", "side", "depthWrite", "emissiveIntensity", "aoMapIntensity"] as const) {
           Object.assign(mat, { [key]: src[key] })
         }
+        if (boat) {
+          mat.name = src.name
+          mat.vertexColors = src.vertexColors
+          const physical = src as MeshPhysicalMaterial
+          mat.clearcoat = physical.clearcoat ?? 0
+          mat.clearcoatRoughness = physical.clearcoatRoughness ?? 0
+          for (const key of ["clearcoatMap", "clearcoatRoughnessMap", "clearcoatNormalMap"] as const) mat[key] = physical[key] ?? null
+          if (physical.clearcoatNormalScale) mat.clearcoatNormalScale.copy(physical.clearcoatNormalScale)
+        }
         mat.normalScale.copy(src.normalScale)
         mat.emissive.copy(src.emissive)
         shared = mat
@@ -729,6 +760,7 @@ function buildTemplate(kind: VehicleKind, scene: Object3D): Template {
     if (cfg.sourcePbr && (role === "toon" || role === "glass")) {
       const uv = mesh.geometry.getAttribute("uv")
       g.setAttribute("uv", uv ? uv.clone() : new Float32BufferAttribute(new Float32Array(g.getAttribute("position").count * 2), 2))
+      if (boat && mesh.geometry.hasAttribute("color")) g.setAttribute("color", mesh.geometry.getAttribute("color").clone())
     }
     if (!cfg.sourcePbr && (role === "toon" || role === "livery")) {
       // Surface attributes only: positions, normals, indices and rigid skinning remain unchanged.
@@ -981,6 +1013,11 @@ const placeholderGeoms = new Map<VehicleKind, BufferGeometry>()
 function placeholderGeometry(kind: VehicleKind): BufferGeometry {
   let g = placeholderGeoms.get(kind)
   if (g) return g
+  if (kind === "speedboat") {
+    g = new BoxGeometry(3.2, 0.8, 10)
+    placeholderGeoms.set(kind, g)
+    return g
+  }
   const { length: L, span: S, heli } = CONFIG[kind].placeholder
   const parts: BufferGeometry[] = []
   const r = heli ? 0.9 : L * 0.055
@@ -1153,6 +1190,9 @@ interface Rig {
 
 export function createAircraftView(kind: VehicleKind, team: TeamId, quality: Quality): AircraftView {
   const cfg = CONFIG[kind]
+  const boat = kind === "speedboat"
+  const boatWorld = { groundHeight: (x: number, z: number) => groundQuery(x, z), isWater }
+  const gunPose: BoatGunPose = { origin: [0, 0, 0], direction: [0, 0, -1], yaw: 0, pitch: 0 }
   const root = new Group()
   root.name = `aircraft_${kind}`
   const anchors = new Map<string, Object3D>()
@@ -1165,6 +1205,7 @@ export function createAircraftView(kind: VehicleKind, team: TeamId, quality: Qua
     root.add(o)
   }
 
+  const wake = boat ? createBoatWake(root, anchors) : null
   let placeholder: Mesh | null = new Mesh(placeholderGeometry(kind), liveryMaterial(team))
   placeholder.name = "placeholder"
   placeholder.receiveShadow = true
@@ -1192,7 +1233,7 @@ export function createAircraftView(kind: VehicleKind, team: TeamId, quality: Qua
     landingTarget.removeFromParent()
   }
   const updateLandingLight = (alive: boolean) => {
-    const night = isLocal && alive && !disposed ? smooth01(1 - STORM.daylight.value) : 0
+    const night = !boat && isLocal && alive && !disposed ? smooth01(1 - STORM.daylight.value) : 0
     if (night <= 0.001) {
       disableLandingLight()
       return
@@ -1216,7 +1257,7 @@ export function createAircraftView(kind: VehicleKind, team: TeamId, quality: Qua
   let time = 0
   const blinkPhase = 0
   // Real shadow-map shadows come from the world; the blob is only a Low-quality fallback height cue.
-  const blobShadow = quality === "low"
+  const blobShadow = !boat && quality === "low"
 
   const build = (t: Template) => {
     if (disposed || rig) return
@@ -1468,6 +1509,7 @@ export function createAircraftView(kind: VehicleKind, team: TeamId, quality: Qua
       spottedTarget = on
     },
     update(vehicle, _players, dt, camera) {
+      wake?.hide()
       const f = vehicle.flight
       root.position.set(f.position[0], f.position[1], f.position[2])
       root.quaternion.set(f.orientation[0], f.orientation[1], f.orientation[2], f.orientation[3])
@@ -1480,7 +1522,7 @@ export function createAircraftView(kind: VehicleKind, team: TeamId, quality: Qua
       const dist = _v.distanceTo(root.position)
       // Remote aircraft grow up to 1.6x between 500 m and 1.5 km so they stay readable at gun range.
       const k = clamp((dist - 500) / 1000, 0, 1)
-      root.scale.setScalar(isLocal ? 1 : 1 + 0.6 * k * k * (3 - 2 * k))
+      root.scale.setScalar(boat || isLocal ? 1 : 1 + 0.6 * k * k * (3 - 2 * k))
       updateLandingLight(vehicle.alive)
       updateShadow()
       if (!rig) return
@@ -1492,7 +1534,7 @@ export function createAircraftView(kind: VehicleKind, team: TeamId, quality: Qua
       const far = dist > FAR_DISTANCE
 
       const boost = boostHint ?? f.throttle > 0.95
-      const heli = VEHICLES[vehicle.kind].flight === "heli"
+      const heli = !boat && VEHICLES[vehicle.kind].flight === "heli"
       const spoolTarget = heli ? (f.onGround ? 0.3 + 0.7 * f.throttle : 1) : 0.35 + 0.65 * f.throttle
       spool = approach(spool, spoolTarget, heli ? 0.8 : 1.5, dt)
       throttleVis = approach(throttleVis, f.throttle, 6, dt)
@@ -1510,10 +1552,23 @@ export function createAircraftView(kind: VehicleKind, team: TeamId, quality: Qua
       r.gearScale = far ? (f.gearDown ? 1 : 0) : approach(r.gearScale, f.gearDown ? 1 : 0, 7, dt)
       setBoneVisible(r, boneAt(r, "gear"), r.gearScale < 0.02 ? 0 : r.gearScale)
 
-      if (!far) {
+      const motion = boat ? boatMotionChannels(f, boatWorld) : null
+      if (boat && motion) {
+        boatGunPose(f, vehicle.seats[0] ? vehicle.aim[0] : null, gunPose)
+        const yi = boneAt(r, "cannon_yaw"), pi = boneAt(r, "cannon_pitch")
+        if (yi >= 0) setBoneAxis(r, yi, "y", -gunPose.yaw)
+        if (pi >= 0) setBoneAxis(r, pi, "x", gunPose.pitch)
         for (const sp of cfg.spinners) {
           const bi = boneAt(r, sp.name)
           if (bi < 0) continue
+          r.spinAngles[bi] = (r.spinAngles[bi] + sp.speed * motion.drive * dt) % (Math.PI * 2)
+          setBoneAxis(r, bi, sp.axis, r.spinAngles[bi])
+        }
+      }
+      if (!far) {
+        for (const sp of cfg.spinners) {
+          const bi = boneAt(r, sp.name)
+          if (bi < 0 || sp.driver === "prop") continue
           const k = sp.driver === "gun" ? gunSpin : spool
           r.spinAngles[bi] = (r.spinAngles[bi] + sp.speed * k * dt) % (Math.PI * 2)
           setBoneAxis(r, bi, sp.axis, r.spinAngles[bi])
@@ -1543,7 +1598,7 @@ export function createAircraftView(kind: VehicleKind, team: TeamId, quality: Qua
         // Aimed equipment (seat aim in body frame).
         _rootQ.copy(root.quaternion)
         const aimTurret = cfg.turret ? vehicle.aim[cfg.turret.seat] : null
-        if (cfg.turret) {
+        if (cfg.turret && !boat) {
           const yi = boneAt(r, cfg.turret.yaw)
           const pi = boneAt(r, cfg.turret.pitch)
           let yaw = 0
@@ -1630,9 +1685,11 @@ export function createAircraftView(kind: VehicleKind, team: TeamId, quality: Qua
 
       r.rootBone.updateMatrixWorld(true)
       updateAnchors(r)
+      if (motion) wake?.update(motion.wake, f.velocity)
     },
     dispose() {
       disposed = true
+      wake?.dispose()
       disableLandingLight()
       landingLight.dispose()
       readyListeners.get(kind)?.delete(build)
