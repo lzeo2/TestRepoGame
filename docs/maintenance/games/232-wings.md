@@ -1226,3 +1226,15 @@ The existing `speedboat.glb` remains byte-identical. These are actual Three/GLTF
 CPU-state checks with a PNG-dimensions fixture, not decoded pixels, rendered helm
 visibility, gun clearance, native input, audio or device acceptance. Generated
 served files are still pending the owner's final delivery checkpoint.
+
+Source checkpoint 3 adds the actual current-source boat authority/input regression,
+separate boat coverage in Astra, and additive coverage in the existing real
+picker/MenuNav/lobby DOM fixture. The first sanitizer attempt ran before owner
+integration; its failure remains recorded. The first assembled attempt also
+exposed a fixture which requested an unbalanced team switch. Ordinary team
+balancing correctly refused it; the fixture now adds players through normal team
+assignment instead of granting team/state changes. Focused boat/input CPU and
+five picker/lobby/HUD groups pass. The exact old-27 ordered aircraft assertions
+remain, with a separate assertion for the appended water kind. These DOM doubles
+are not physical keyboard/touch, decoded pixels or browser acceptance. Longer
+lifecycle and final generated/current-source gates remain owner work.

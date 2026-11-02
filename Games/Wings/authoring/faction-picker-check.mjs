@@ -4,6 +4,8 @@ import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 assert(process.env.ESBUILD_ROOT && process.env.THREE_ROOT, 'Use approved existing tools');
+const uiOnly = process.argv.includes('--ui-only');
+assert(process.argv.slice(2).every(arg => arg === '--ui-only'), 'only --ui-only supported');
 const tool = resolve(process.env.ESBUILD_ROOT), three = resolve(process.env.THREE_ROOT);
 const manifest = JSON.parse(readFileSync(resolve(three, 'package.json')));
 assert.equal(manifest.version, '0.186.0');
@@ -63,7 +65,7 @@ const bundle = await build({ stdin: { contents: `
  export { createSpawnScreen } from './ui/spawn';
  export { MenuNav, initLobby } from './ui/lobby';
  export { createHud, TEAM_NAMES, TEAM_COLORS } from './render/hud';
- export { VEHICLE_KINDS, VEHICLES, NATIVE_HELICOPTER_MODELS } from './sim/vehicles';
+ export { AIRCRAFT_KINDS as VEHICLE_KINDS, VEHICLE_KINDS as ALL_VEHICLE_KINDS, VEHICLES, NATIVE_HELICOPTER_MODELS } from './sim/vehicles';
  export { PerspectiveCamera } from 'three';`, resolveDir: src, loader: 'ts' },
  bundle: true, platform: 'node', format: 'esm', write: false, minify: true, legalComments: 'none', plugins });
 const api = await import(`data:text/javascript;base64,${Buffer.from(bundle.outputFiles[0].contents).toString('base64')}`);
@@ -156,6 +158,8 @@ const ordinary = api.createSpawnScreen(new Element(), { spawn: k => launches.pus
 ordinary.show(); ordinary.update(state);
 const old25 = ['fighter', 'apache', 'warthog', 'blackbird', 'bomber', 'f15', 'f35', 'f16c', 'mig29', 'typhoon', 'su35s', 'rafale', 'jf17', 'gripen', 'mig31', 'mirage2000', 'su34', 'fa50', 'yak130', 'hawkt2', 'su25sm', 'a10c', 'f35a', 'j20', 'tu160'];
 assert.deepEqual(api.VEHICLE_KINDS, [...old25, 'ah64d', 'mi28n']);
+assert.deepEqual(api.ALL_VEHICLE_KINDS, [...old25, 'ah64d', 'mi28n', 'speedboat'], 'full registry has exactly the old27 plus the sole appended water kind');
+assert(!labels().includes(api.VEHICLES.speedboat.name), 'ordinary picker never offers boat');
 assert.deepEqual(labels().slice(0, 27), api.VEHICLE_KINDS.map(k => api.VEHICLES[k].name));
 assert(nav.top.hints.some(([k]) => k === '1–9'));
 for (let i = 1; i <= 9; i++) { key(String(i)); assert.equal(launches.at(-1), api.VEHICLE_KINDS[i - 1]); }
@@ -169,6 +173,50 @@ for (let i = 0; i < api.VEHICLE_KINDS.length; i++) {
 assert.equal(nav.index, 26); assert.match(ordinary.root.querySelector('.sp-detail .info').innerHTML, /27 - .*vtol/);
 ordinary.dispose();
 console.log('PASS actual picker/MenuNav: dynamic distinct rosters, quick keys, crew filters, empty/invalid closed, stale thumbnails, fixed-team guns blocked, actual NATO10/Eastern10 rows with supplied helicopter identities, ordinary27 (1-9 shortcuts, arrows/Enter and selected previews through row27), readonly escaped names');
+// Same real picker/MenuNav with the boat-mode actions supplied by the controller.
+const boatLaunches = [];
+const boatPicker = api.createSpawnScreen(new Element(), {
+  spawn: kind => boatLaunches.push(kind), board() { assert.fail('no boat boarding rows'); },
+  team() {}, leave() {}, click() {}, aircraftKinds: () => ['speedboat'],
+});
+const boatMe = { id: 'boat-pilot', team: 0, respawnAt: 0 };
+const boatState = { ...state, me: boatMe, players: new Map([[boatMe.id, boatMe]]),
+  vehicles: [...vehicles, { id: 'open-boat', kind: 'speedboat', alive: true, team: 0, seats: [null, null] }],
+  config: { teams: 2, vehicleMode: 'boats' }, time: 10, intermission: false, matchEndsAt: 25 };
+boatPicker.show(); boatPicker.update(boatState);
+assert.equal(boatPicker.root.querySelector('.title').textContent, 'Choose boat');
+assert.deepEqual(labels(), [api.VEHICLES.speedboat.name, 'Leave match'], 'no aircraft, open-boat, gunner or station rows');
+assert.equal(boatPicker.root.querySelector('.tabs').hidden, true);
+const boatDetail = boatPicker.root.querySelector('.sp-detail .info').innerHTML;
+assert.match(boatDetail, /watercraft · pilot only/);
+assert.match(boatDetail, /W\/S throttle and reverse\. A\/D steer\. Space brakes\. Mouse aims and fires the bow cannon\. T switches helm\/chase/);
+assert.match(boatDetail, /No boost, flares, gunner seat or stations/);
+assert.doesNotMatch(boatDetail, /<ol class="seats"|undefined|NaN/);
+key('g'); assert.deepEqual(labels(), [api.VEHICLES.speedboat.name, 'Leave match']);
+key('Enter'); assert.deepEqual(boatLaunches, ['speedboat']);
+const staleBoatLaunch = nav.top.items[0];
+boatPicker.hide(); key('Enter'); key('1'); assert.equal(boatLaunches.length, 1, 'hidden picker ignores launch keys');
+boatPicker.show(); boatState.intermission = true; boatPicker.update(boatState);
+assert.equal(boatPicker.root.querySelector('.title').textContent, 'Next round');
+assert.equal(boatPicker.root.querySelector('.countdown .lbl').textContent, 'next round in');
+assert.equal(boatPicker.root.querySelector('.countdown .num').textContent, '15');
+assert(boatPicker.root.classList.contains('waiting'));
+assert(boatPicker.root.querySelector('.countdown').classList.contains('on'));
+assert.match(nav.top.items[0].meta(), /next round in 15 s/);
+nav.activate(0); key('Enter'); key('1'); staleBoatLaunch.run();
+assert.equal(boatLaunches.length, 1, 'intermission blocks button, Enter, quick key and stale active closure');
+boatState.time = 30; boatPicker.update(boatState);
+assert.equal(boatPicker.root.querySelector('.countdown .num').textContent, '00');
+key('Enter'); key('1'); staleBoatLaunch.run();
+assert.equal(boatLaunches.length, 1, 'elapsed countdown alone never bypasses intermission');
+boatState.intermission = false; boatPicker.update(boatState);
+assert.equal(boatPicker.root.querySelector('.title').textContent, 'Choose boat');
+assert.equal(boatPicker.root.querySelector('.countdown .lbl').textContent, 'respawn in');
+assert(!boatPicker.root.classList.contains('waiting'));
+assert(!boatPicker.root.querySelector('.countdown').classList.contains('on'));
+key('Enter'); key('1'); assert.deepEqual(boatLaunches, ['speedboat', 'speedboat', 'speedboat']);
+boatPicker.dispose(); assert.equal(windowFixture.listeners.get('keydown').size, 0);
+console.log('PASS actual boat picker/MenuNav: boat-only rows, truthful controls, no crew/stations, active/hidden launch keys, intermission button/quick-key/stale closure refusal, countdown and normal reset');
 // HUD uses real Three math, but no flying vehicle/canvas drawing in this name-only fixture.
 const hud = api.createHud(new Element());
 hud.root.classList.add('board');
@@ -225,7 +273,27 @@ nav.activate(0); nav.activate(nav.top.items.findIndex(item => item.label === 'St
 assert.equal(requestsFromMenu[1].coalition, 'nato');
 assert.equal(requestsFromMenu[1].config.teams, 2);
 console.log('PASS actual original coalition menu selects both named profiles, truthful 10/10 aircraft + 5/5 objective counts and original hangar dispatch');
-const main = await build({ entryPoints: [resolve(src, 'main.ts')], bundle: true, format: 'esm', platform: 'browser', write: false,
-  outdir: 'unused-memory-output', plugins, loader: { '.css': 'empty' }, logLevel: 'silent' });
-assert(main.outputFiles.length > 0);
-console.log(`PASS actual main write:false build (${main.outputFiles.length} output file, ${main.outputFiles.reduce((n, f) => n + f.contents.length, 0)} bytes in memory); native visual acceptance OPEN`);
+for (const [label, bots] of [['Boat practice', 0], ['Boat Combat', 2]]) {
+  lobby.show();
+  const index = nav.top.items.findIndex(item => item.label === label);
+  assert(index >= 0, `${label}: actual lobby entry exists`);
+  const before = requestsFromMenu.length;
+  nav.activate(index);
+  assert.equal(requestsFromMenu.length, before + 1);
+  const request = requestsFromMenu.at(-1);
+  assert.equal(request.mode, 'offline');
+  assert.equal(request.aircraft, 'speedboat');
+  assert.equal(request.config.vehicleMode, 'boats');
+  assert.equal(request.config.listed, false);
+  assert.equal(request.config.teams, 2);
+  assert.equal(request.config.bots, bots, `${label}: actual bots-per-team callback`);
+  assert.equal(request.rules, undefined, 'boat entry never routes through Factions');
+}
+console.log('PASS actual lobby callbacks: separate unlisted Boat practice (0 bots) and Boat Combat (2 bots/team), speedboat selection and boats authority mode');
+if (uiOnly) console.log('NOT RUN (--ui-only): existing full main write:false build; native visual acceptance OPEN');
+else {
+  const main = await build({ entryPoints: [resolve(src, 'main.ts')], bundle: true, format: 'esm', platform: 'browser', write: false,
+    outdir: 'unused-memory-output', plugins, loader: { '.css': 'empty' }, logLevel: 'silent' });
+  assert(main.outputFiles.length > 0);
+  console.log(`PASS actual main write:false build (${main.outputFiles.length} output file, ${main.outputFiles.reduce((n, f) => n + f.contents.length, 0)} bytes in memory); native visual acceptance OPEN`);
+}

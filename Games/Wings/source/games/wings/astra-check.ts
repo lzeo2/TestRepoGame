@@ -15,9 +15,13 @@ import { createFlightState } from './src/sim/flight'
 import { VEHICLES, VEHICLE_KINDS, WEAPONS, NATIVE_HELICOPTER_MODELS } from './src/sim/vehicles'
 import { DEFAULT_ROOM_CONFIG, type ServerMessage } from './src/sim/protocol'
 import { installModelFixture } from './node-model-fixture'
+import { BOAT_NATIVE_SPEC, BOAT_MODEL, BOAT_CAMERA } from './src/sim/boat-native'
 
 const models = resolve(process.argv[2] ?? 'Games/Wings/models')
-assert.deepEqual(VEHICLE_KINDS, ['fighter', 'apache', 'warthog', 'blackbird', 'bomber', 'f15', 'f35', 'f16c', 'mig29', 'typhoon', 'su35s', 'rafale', 'jf17', 'gripen', 'mig31', 'mirage2000', 'su34', 'fa50', 'yak130', 'hawkt2', 'su25sm', 'a10c', 'f35a', 'j20', 'tu160', 'ah64d', 'mi28n'])
+// Keep the exact original aircraft registry; the appended water kind has separate coverage below.
+assert.equal(VEHICLE_KINDS.length, 28)
+assert.equal(VEHICLE_KINDS[27], 'speedboat')
+assert.deepEqual(VEHICLE_KINDS.filter(kind => kind !== 'speedboat'), ['fighter', 'apache', 'warthog', 'blackbird', 'bomber', 'f15', 'f35', 'f16c', 'mig29', 'typhoon', 'su35s', 'rafale', 'jf17', 'gripen', 'mig31', 'mirage2000', 'su34', 'fa50', 'yak130', 'hawkt2', 'su25sm', 'a10c', 'f35a', 'j20', 'tu160', 'ah64d', 'mi28n'])
 assert.deepEqual(VEHICLES.f16c.seatWeapons, [['cannon20','aim9'],['maverick',null]])
 assert.deepEqual(VEHICLES.mig29.seatWeapons, [['cannon20','aim9'],['aim9',null]])
 assert.deepEqual(VEHICLES.typhoon.seatWeapons, [['cannon20','aim9'],['tvmissile',null]])
@@ -500,6 +504,27 @@ try {
     converted.push({ kind, loadConversionViewMs, stats, batches, bounds, anchors: [...view.anchors.keys()] })
     view.dispose()
   }
+  // Actual retained boat GLB/template and camera, CPU only. No rendered/native acceptance.
+  assert.deepEqual(VEHICLES.speedboat, BOAT_NATIVE_SPEC)
+  assert.deepEqual(VEHICLES.speedboat.seatWeapons, [['cannon20', null], [null, null]])
+  const boatBytes = readFileSync(resolve(models, 'speedboat.glb'))
+  assert.equal(boatBytes.length, BOAT_MODEL.bytes)
+  assert.equal(createHash('sha256').update(boatBytes).digest('hex'), BOAT_MODEL.sha256)
+  assert.equal(BOAT_MODEL.sha256, '7fee0b74e7c746a2dff2b7c4b5bed58c39b9ddbbc0c55592f1eb27941b4f2aee')
+  assert.equal(VEHICLES.speedboat.model, BOAT_MODEL.file)
+  const boatView = createAircraftView('speedboat', 0, 'low')
+  try {
+    const deadline = performance.now() + 20000
+    while (!boatView.ready && performance.now() < deadline) await delay(1)
+    assert(boatView.ready && aircraftReady('speedboat'), 'actual boat template must load')
+    const model = boatView.root.getObjectByName('model')!
+    assert(model && aircraftStats('speedboat')!.triangles > 0)
+    assert(new Box3().setFromObject(model).getSize(new Vector3()).toArray().every(n => Number.isFinite(n) && n > 0))
+    const camera = new CameraRig(new PerspectiveCamera())
+    camera.cockpitBody(TICK_DT, 'speedboat', [17, 0, -31], [0, 0, 0, 1], 0, 0)
+    assert(camera.pos.distanceTo(new Vector3(...BOAT_CAMERA.eye).add(new Vector3(17, 0, -31))) < 1e-6)
+    assert(camera.quat.toArray().every(Number.isFinite))
+  } finally { boatView.dispose() }
   await preloadAircraft('http://wings.invalid/')
   assert(VEHICLE_KINDS.every(aircraftReady))
 } finally {
