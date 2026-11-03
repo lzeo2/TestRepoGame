@@ -157,9 +157,9 @@
       "bundlerBytes": 21690
     },
     "Games/Wings/source/games/wings/src/input.ts": {
-      "bytes": 27762,
-      "sha256": "712a7fa2f0b337528d5ab37472b445023c7b32633422b4a09854e4c720064082",
-      "bundlerBytes": 27762
+      "bytes": 27787,
+      "sha256": "7653bd4af999be1f61d6eea1526541dbdd70c86f9446696b72b42196cd379d3b",
+      "bundlerBytes": 27787
     },
     "Games/Wings/source/games/wings/src/main.ts": {
       "bytes": 5518,
@@ -402,9 +402,9 @@
       "bundlerBytes": 1323
     },
     "Games/Wings/source/games/wings/src/ui/game.ts": {
-      "bytes": 80521,
-      "sha256": "1f746b223793826e30f10d1ba91d89ab5258eb9289a321401033ebcce49397c9",
-      "bundlerBytes": 80521
+      "bytes": 80474,
+      "sha256": "a9d07656f91f37db92ac0c20ff50f144328d5c775b33aa34da02bcd93932b94a",
+      "bundlerBytes": 80474
     },
     "Games/Wings/source/games/wings/src/ui/lobby.ts": {
       "bytes": 27791,
@@ -647,8 +647,8 @@
       ],
       "imports": []
     },
-    "assets/game-X5UTJWCN.js": {
-      "bytes": 194225,
+    "assets/game-NINNSAXS.js": {
+      "bytes": 194269,
       "entryPoint": "src/ui/game.ts",
       "inputs": [
         "Games/Wings/authoring/extended-escort-models.json",
@@ -709,8 +709,8 @@
         "assets/chunk-AAZABAPM.js",
         "assets/scene-A6EWM6TK.js",
         "assets/audio-WAQ7VLLX.js",
-        "assets/game-X5UTJWCN.js",
-        "assets/game-X5UTJWCN.js"
+        "assets/game-NINNSAXS.js",
+        "assets/game-NINNSAXS.js"
       ],
       "cssBundle": "assets/main.css"
     },

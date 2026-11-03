@@ -1307,3 +1307,56 @@ Type022 self-flight, manned station/default activation, install or push. The
 historical combined boat CPU remains INCOMPLETE 11/12. Exact changes, product
 identities, commands and limits are in
 [`docs/wings-player-speedboat-main11e-20261103.json`](../../wings-player-speedboat-main11e-20261103.json).
+
+### Human-pilot lifecycle and input recovery (2026-11-04, local only)
+
+Continuation `WINGS-LIFECYCLE-RECOVERY-20261104-0758` resumes after the earlier
+read-only checkpoint stopped at 1,018,712 kB available RAM. One retained Sol
+worker, not concurrent lanes, produced source commit `7bf3c282`. Jank explicitly
+yielded the heavy-test slot; tests/builds ran serially with resource guards.
+
+The new human lifecycle fixture drives two ordinary human players through actual
+RoomEngine actions and recipient-aware JSON transport. Both boats remain at legal
+water spawns; the shooter aims from its own snapshot and a visible opponent.
+Unchanged cannon/protection/damage rules produce 54 attributed hits and one
+cannon kill at 9.566666666666666 simulation seconds. Death increments statistics,
+clears seats/controls, denies early respawn, then allows a new full-health,
+zero-velocity spawn after the ordinary five-second cooldown. Wreck removal and
+neutral controls pass; the final observation is at 14.583333333333334 seconds.
+This is automated human-player CPU input, not observed physical human play.
+No room/combat production change, HP/pose/timer/kill/RNG grant or reset shortcut
+was needed. The first fixture run failed because it expected zero vertical
+velocity after a normal bob tick; the corrected check retains exact zero fresh
+spawn velocity, exact horizontal stationarity and the calculated native heave.
+
+Actual Input event/controller checks reproduced two defects: a released mouse tap
+remained latched for subsequent boat shots, and aircraft mouse schemes routed
+boat aiming into ignored flight sticks/reticles. `boatSeatInput` now consumes its
+latches once, like aircraft input. Only boat pilots decline the aircraft pilot
+mouse role, retaining independent cannon aim in all four schemes. Pause, death,
+spawn, menu disposal and fresh aircraft input pass CPU/DOM-double checks. All 27
+ordered aircraft remain; actual live/replay branches reject boat-adapter use for
+aircraft. The five existing original picker/MenuNav/lobby/HUD groups also pass.
+No UI/art redesign, aircraft tuning or collision/AI rule change.
+
+Parent independently passes eight focused CPU suites and two source builds.
+All 26 products reproduce byte-for-byte: 4,216,579 bytes, 98 mapped inputs.
+Only generated `assets/main.js`, new `assets/game-NINNSAXS.js` and
+`build-meta.json` differ from the prior delivery. All 104 existing binary/font/
+image assets and older hashed chunks remain unchanged; no deletion. Exact source,
+output SHA-256 values, commands, failures and resource minima are in the
+[recovery receipt](../../wings-player-speedboat-lifecycle-20261104.json).
+
+```sh
+node Games/Wings/authoring/boat-human-lifecycle-check.mjs
+node Games/Wings/authoring/boat-input-lifecycle-check.mjs
+# Existing approved THREE_ROOT and ESBUILD_ROOT required for menu regression:
+node Games/Wings/authoring/faction-picker-check.mjs --ui-only
+```
+
+The historical combined boat CPU remains INCOMPLETE 11/12; the two additional
+legacy partials were not retried. Physical keyboard/mouse/touch, renderer/pixels,
+audio, GPU/device/performance and rights/publication acceptance remain held.
+No browser, full-fleet gate, new game/art, station/Type022/default activation,
+installation or push occurred. Capacity interruption remains resumable; a later
+resource-floor crossing requires an exact checkpoint, not an invented pass.
