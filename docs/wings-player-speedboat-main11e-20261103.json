@@ -3,7 +3,11 @@
   "status": "LOCAL_SOURCE_BUILD_DELIVERED_CPU_VERIFIED_WITH_EXPLICIT_HOLDS",
   "base": "11e83932ecbeb01553a902f432a345004e2ab92f",
   "branch": "integrate/wings-player-speedboat-main11e-20261103",
-  "sourceDeliveryCommit": null,
+  "sourceDeliveryCommit": "b66824a101f27e6250e284c8441cf98de90c14f7",
+  "gameTree": "67a1c9c1b1ac9ebae4fb24fcd9998f580570e75b",
+  "gameFiles": 433,
+  "gameBytes": 46633415,
+  "entrySourceMapping": "All eleven required boat/controller/presentation source inputs map into the actual eighteen-node root entry graph. Exact mapping retained in .tmp/boat-port-20261103/reachable-source-map.json.",
   "workers": [
     {
       "delegation": 52,
@@ -1225,8 +1229,10 @@
     "No new/private art, dependency install, new catalog game, rights waiver, publication or push"
   ],
   "maintenance": {
-    "status": "PENDING_POST_SOURCE_COMMIT_INVENTORY_FACTS",
-    "projectsExpected": 135
+    "status": "PASS: 135 game documents cover 129 registered + 6 unregistered games; Git inventory current.",
+    "projects": 135,
+    "onlyInventoryRowChanged": "Games/Wings",
+    "limits": "Coverage only, not gameplay or documentation-accuracy certification."
   },
   "storage": {
     "startAvailableBytes": 2706595840,
