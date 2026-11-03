@@ -169,14 +169,17 @@ try {
   assert(hit.crashed, 'actual native flight collides with safe fitted hull surface');
   // Execute the real controller callsites with actual physics, not a copied replay implementation.
   const game = readFileSync(resolve(src, 'ui/game.ts'), 'utf8');
-  const liveCall = game.match(/^\s*stepFlight\(p.state, fi, TICK_DT, this.flightWorld\)$/m)?.[0];
-  const replayCall = game.match(/^\s*for \(const e of h\) stepFlight\(next, e.input, TICK_DT, this.flightWorld\)$/m)?.[0];
-  assert(liveCall && replayCall, 'both actual client flight paths must use the FC context');
-  const predicted = { state: jet() };
-  new Function('stepFlight', 'p', 'fi', 'TICK_DT', liveCall).call({ flightWorld: safeWorld }, api.stepFlight, predicted, api.NEUTRAL_INPUT, 1 / 60);
+  const liveCall = game.match(/^\s*stepFlight\(p.state, fi, TICK_DT, myVehicle.kind === "speedboat"\n\s*\? boatCollisionWorld\(this.flightWorld, this.latest\?\.vehicles \?\? \[\], myVehicle.id\) : this.flightWorld\)$/m)?.[0];
+  const replayCall = game.match(/^\s*const replayWorld = sv.kind === "speedboat" \? boatCollisionWorld\(this.flightWorld, s.vehicles, sv.id\) : this.flightWorld\n\s*for \(const e of h\) stepFlight\(next, e.input, TICK_DT, replayWorld\)$/m)?.[0];
+  assert(liveCall && replayCall, 'both actual aircraft paths must retain FC context beneath the boat-only branch');
+  const noBoatAdapter = () => assert.fail('aircraft prediction must not invoke boat collision adapter');
+  const predicted = { state: jet() }, aircraft = { id: 'fitted-aircraft', kind: 'f15' };
+  new Function('stepFlight', 'p', 'fi', 'TICK_DT', 'myVehicle', 'boatCollisionWorld', liveCall)
+    .call({ flightWorld: safeWorld }, api.stepFlight, predicted, api.NEUTRAL_INPUT, 1 / 60, aircraft, noBoatAdapter);
   assert(predicted.state.crashed);
   const replayed = jet();
-  new Function('stepFlight', 'next', 'h', 'TICK_DT', replayCall).call({ flightWorld: safeWorld }, api.stepFlight, replayed, [{ input: api.NEUTRAL_INPUT }], 1 / 60);
+  new Function('stepFlight', 'next', 'h', 'TICK_DT', 'sv', 's', 'boatCollisionWorld', replayCall)
+    .call({ flightWorld: safeWorld }, api.stepFlight, replayed, [{ input: api.NEUTRAL_INPUT }], 1 / 60, aircraft, { vehicles: [] }, noBoatAdapter);
   assert(replayed.crashed);
   room.send({ type: 'spawn', kind: 'f15' });
   const player = room.engine.players.get(room.playerId).info;

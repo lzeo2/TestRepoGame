@@ -866,4 +866,5 @@ function segmentHitsTerrain(a: Vec3, b: Vec3): number | null {
   return null
 }
 
-export const worldQuery: WorldQuery = { groundHeight, onRunway, isWater, half: WORLD_HALF, ceiling: CEILING }
+export const worldQuery: WorldQuery = { groundHeight, onRunway, isWater, half: WORLD_HALF, ceiling: CEILING,
+  seabedHeight: terrainHeight, segmentHitsBoatSolid: (from, to) => segmentHitsShip(from, to) !== null }

@@ -2,6 +2,8 @@
 // Source-only Wings build. Models/fonts and deployment HTML adjustments belong to delivery.
 // Usage: node scripts/build_wings.mjs --source <wings> --three-root <package> --esbuild-root <package> --out <empty-dir>
 import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
+import { createRequire } from 'node:module';
 import { readFile, writeFile, mkdir, readdir, statfs } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { isBuiltin } from 'node:module';
@@ -22,6 +24,7 @@ const out = resolve(values.out);
 const repo = fileURLToPath(new URL('../', import.meta.url));
 const text = path => readFile(path, 'utf8');
 const json = async path => JSON.parse(await text(path));
+const digest = bytes => createHash('sha256').update(bytes).digest('hex');
 const slash = path => path.split(sep).join('/');
 const inside = (root, path) => {
   const rel = relative(root, path);
@@ -43,6 +46,35 @@ assert.equal(three.name, 'three');
 assert.equal(three.version, '0.186.0', 'Three version must be 0.186.0');
 assert.equal(tool.name, 'esbuild');
 assert.equal(tool.version, '0.28.2', 'esbuild version must be 0.28.2');
+assert(!process.env.ESBUILD_BINARY_PATH, 'Unreviewed esbuild binary override');
+const inputLabel = path => inside(repo, path) ? slash(relative(repo, path))
+  : inside(threeRoot, path) ? `tools/three/${slash(relative(threeRoot, path))}`
+  : (() => { throw new TypeError('Build input outside repository/approved Three roots'); })();
+const before = new Map();
+async function freezeInputs(directory) {
+  if (!existsSync(directory)) return;
+  for (const entry of await readdir(directory, { withFileTypes: true })) {
+    const path = resolve(directory, entry.name);
+    if (entry.isDirectory()) await freezeInputs(path);
+    else if (entry.isFile()) {
+      const bytes = await readFile(path);
+      before.set(path, { bytes: bytes.length, sha256: digest(bytes) });
+    } else throw new TypeError('Unsupported build input filesystem entry');
+  }
+}
+for (const root of [source, resolve(repo, 'Games/Wings/authoring'), threeRoot]) await freezeInputs(root);
+const toolFiles = { 'tools/three/package.json': resolve(threeRoot, 'package.json'),
+  'tools/three/LICENSE': resolve(threeRoot, 'LICENSE'),
+  [inputLabel(resolve(source, 'package.json'))]: resolve(source, 'package.json'),
+  'tools/esbuild/package.json': resolve(esbuildRoot, 'package.json'),
+  'tools/esbuild/lib/main.js': resolve(esbuildRoot, 'lib/main.js'),
+  'tools/esbuild/bin/esbuild': resolve(esbuildRoot, 'bin/esbuild'),
+  'tools/esbuild/native': createRequire(resolve(esbuildRoot, 'package.json')).resolve(
+    `@esbuild/${process.platform}-${process.arch}/${process.platform === 'win32' ? 'esbuild.exe' : 'bin/esbuild'}`),
+  'Games/Wings/THREE-LICENSE.txt': resolve(repo, 'Games/Wings/THREE-LICENSE.txt'),
+  'scripts/build_wings.mjs': fileURLToPath(import.meta.url) };
+const toolHashes = {};
+for (const [label, path] of Object.entries(toolFiles)) toolHashes[label] = digest(await readFile(path));
 const manifest = await json(resolve(source, 'package.json'));
 assert.deepEqual(manifest.dependencies, { three: '0.186.0' }, 'Unexpected runtime dependencies');
 const notice = await text(resolve(repo, 'Games/Wings/THREE-LICENSE.txt'));
@@ -109,6 +141,17 @@ const checks = await build({ ...common, platform: 'node',
 });
 const files = new Map([...browser.outputFiles, ...checks.outputFiles].map(f => [f.path, f.contents]));
 const outputs = {};
+const inputs = {};
+for (const result of [browser, checks]) {
+  for (const [path, info] of Object.entries(result.metafile.inputs)) {
+    const absolute = resolve(source, path), prior = before.get(absolute);
+    assert(prior, 'Input missing from pre-build snapshot');
+    const bytes = await readFile(absolute);
+    assert.equal(digest(bytes), prior.sha256, 'Input changed during build');
+    inputs[inputLabel(absolute)] = { ...prior, bundlerBytes: info.bytes };
+  }
+}
+for (const [label, path] of Object.entries(toolFiles)) assert.equal(digest(await readFile(path)), toolHashes[label], 'Builder/tool changed during build');
 for (const [result, node] of [[browser, false], [checks, true]]) {
   for (const [path, info] of Object.entries(result.metafile.outputs)) {
     const absolute = resolve(source, path);
@@ -120,7 +163,8 @@ for (const [result, node] of [[browser, false], [checks, true]]) {
     }
     outputs[slash(relative(out, absolute))] = {
       bytes: info.bytes,
-      ...(info.entryPoint ? { entryPoint: slash(relative(source, resolve(source, info.entryPoint))) } : {}),
+      ...(info.entryPoint ? { entryPoint: inside(source, resolve(source, info.entryPoint)) ? slash(relative(source, resolve(source, info.entryPoint))) : inputLabel(resolve(source, info.entryPoint)) } : {}),
+      inputs: Object.keys(info.inputs).map(path => inputLabel(resolve(source, path))).sort(),
       imports: info.imports.map(item => item.external ? item.path : slash(relative(out, resolve(source, item.path)))),
       ...(info.cssBundle ? { cssBundle: slash(relative(out, resolve(source, info.cssBundle))) } : {}),
     };
@@ -134,6 +178,10 @@ for (const [htmlName, entry, original] of [
   assert.equal(matches.length, 1, `Missing HTML entry: ${entry}`);
   const [js, info] = matches[0];
   let html = await text(resolve(source, htmlName));
+  const label = inputLabel(resolve(source, htmlName)), prior = before.get(resolve(source, htmlName));
+  assert(prior, 'HTML missing from pre-build snapshot');
+  assert.equal(digest(Buffer.from(html)), prior.sha256, 'HTML changed during compilation');
+  inputs[label] = prior;
   assert.equal(html.split(original).length, 2, `Expected exactly one module entry in ${htmlName}`);
   html = html.replace(original, `src="./${js}"`);
   assert(info.cssBundle && files.has(resolve(out, info.cssBundle)), 'Missing entry CSS bundle');
@@ -144,6 +192,7 @@ for (const [htmlName, entry, original] of [
   }
   assert(!/(?:src|href)=["'][^"']*\.tsx?(?:["'?#])/.test(html), 'Uncompiled HTML URL');
   assert(!/(?:src|href)=["'](?:https?:)?\/\//.test(html), 'External HTML load');
+  outputs[htmlName] = { bytes: Buffer.byteLength(html), inputs: [label], imports: [js, info.cssBundle] };
   files.set(resolve(out, htmlName), Buffer.from(html));
 }
 let workerReferences = 0;
@@ -157,9 +206,14 @@ for (const [path, bytes] of files) {
   }
 }
 assert.equal(workerReferences, 1, 'Expected one generated local worker reference');
+inputs['Games/Wings/THREE-LICENSE.txt'] = { bytes: Buffer.byteLength(notice), sha256: digest(Buffer.from(notice)) };
+outputs['THREE-LICENSE.txt'] = { bytes: Buffer.byteLength(notice), inputs: ['Games/Wings/THREE-LICENSE.txt'], imports: [] };
 files.set(resolve(out, 'THREE-LICENSE.txt'), Buffer.from(notice));
 files.set(resolve(out, 'build-meta.json'), Buffer.from(JSON.stringify({
-  tools: { esbuild: version, three: three.version }, outputs,
+  tools: { esbuild: version, three: three.version, node: process.versions.node, platform: process.platform, arch: process.arch }, toolHashes,
+  inputs: Object.fromEntries(Object.entries(inputs).sort(([a], [b]) => a.localeCompare(b))),
+  transforms: { terrainWorkerURL: 'Exactly one .ts URL changed to local .js worker; original input hash retained.' },
+  outputs: Object.fromEntries(Object.entries(outputs).sort(([a], [b]) => a.localeCompare(b))),
 }, null, 2) + '\n'));
 const bytes = [...files.values()].reduce((sum, data) => sum + data.length, 0);
 assert(bytes <= cap, 'Output exceeds 30 MiB cap');

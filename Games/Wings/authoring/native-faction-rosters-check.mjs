@@ -20,7 +20,8 @@ try {
   const { createLoopbackRoom } = await import(new URL('src/sim/loopback.ts', retainedRoot));
   const { RoomEngine, sanitizeConfig } = await import(new URL('src/sim/room-engine.ts', retainedRoot));
   const { chooseBotVehicle, createBotBrain, botRandom } = await import(new URL('src/sim/bots.ts', retainedRoot));
-  const { VEHICLE_KINDS } = await import(new URL('src/sim/vehicles.ts', retainedRoot));
+  const { AIRCRAFT_KINDS: VEHICLE_KINDS, VEHICLE_KINDS: ALL_VEHICLE_KINDS } = await import(new URL('src/sim/vehicles.ts', retainedRoot));
+  assert.deepEqual(ALL_VEHICLE_KINDS, [...VEHICLE_KINDS, 'speedboat']);
   const { DEFAULT_ROOM_CONFIG } = await import(new URL('src/sim/protocol.ts', retainedRoot));
   const rosters = [['f35', 'warthog'], ['fighter', 'apache']];
   const makeBridge = (lists = rosters) => createRetainedHostBridge({ mode: 'factions',

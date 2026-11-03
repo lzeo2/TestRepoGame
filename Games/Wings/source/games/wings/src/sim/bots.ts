@@ -230,8 +230,8 @@ export function botRandom(brain: BotBrain): number {
 // ---------------------------------------------------------------------------------------------
 // Vehicle choice
 
-const KIND_WEIGHT: Record<VehicleKind, number> = { fighter: 3, apache: 2, warthog: 2, blackbird: 1.2, bomber: 0.9, f15: 1, f35: 1, f16c: 1, mig29: 1, typhoon: 1, su35s: 1, rafale: 1, jf17: 1, gripen: 1, mig31: 1, mirage2000: 1, su34: 1, fa50: 1, yak130: 1, hawkt2: 1, su25sm: 1, a10c: 1, f35a: 1, j20: 1, tu160: 1, ah64d: 1, mi28n: 1 }
-const KINDS = Object.keys(KIND_WEIGHT) as VehicleKind[]
+const KIND_WEIGHT: Record<VehicleKind, number> = { speedboat: 0, fighter: 3, apache: 2, warthog: 2, blackbird: 1.2, bomber: 0.9, f15: 1, f35: 1, f16c: 1, mig29: 1, typhoon: 1, su35s: 1, rafale: 1, jf17: 1, gripen: 1, mig31: 1, mirage2000: 1, su34: 1, fa50: 1, yak130: 1, hawkt2: 1, su25sm: 1, a10c: 1, f35a: 1, j20: 1, tu160: 1, ah64d: 1, mi28n: 1 }
+const KINDS = (Object.keys(KIND_WEIGHT) as VehicleKind[]).filter(kind => kind !== "speedboat")
 
 /** Vehicle kind a bot picks when spawning: weighted random, discouraging kinds the team already flies. */
 export function chooseBotVehicle(bot: PlayerInfo, teammates: PlayerInfo[], vehicles: VehicleEntity[], rng: () => number): VehicleKind
@@ -239,7 +239,7 @@ export function chooseBotVehicle(bot: PlayerInfo, teammates: PlayerInfo[], vehic
 export function chooseBotVehicle(bot: PlayerInfo, teammates: PlayerInfo[], vehicles: VehicleEntity[], rng: () => number, allowedKinds?: readonly VehicleKind[]): VehicleKind | undefined {
   const kinds = allowedKinds === undefined ? KINDS : VEHICLE_KINDS.filter(k => allowedKinds.includes(k) && KIND_WEIGHT[k] > 0)
   if (!kinds.length) return undefined
-  const counts: Record<VehicleKind, number> = { fighter: 0, apache: 0, warthog: 0, blackbird: 0, bomber: 0, f15: 0, f35: 0, f16c: 0, mig29: 0, typhoon: 0, su35s: 0, rafale: 0, jf17: 0, gripen: 0, mig31: 0, mirage2000: 0, su34: 0, fa50: 0, yak130: 0, hawkt2: 0, su25sm: 0, a10c: 0, f35a: 0, j20: 0, tu160: 0, ah64d: 0, mi28n: 0 }
+  const counts: Record<VehicleKind, number> = { speedboat: 0, fighter: 0, apache: 0, warthog: 0, blackbird: 0, bomber: 0, f15: 0, f35: 0, f16c: 0, mig29: 0, typhoon: 0, su35s: 0, rafale: 0, jf17: 0, gripen: 0, mig31: 0, mirage2000: 0, su34: 0, fa50: 0, yak130: 0, hawkt2: 0, su25sm: 0, a10c: 0, f35a: 0, j20: 0, tu160: 0, ah64d: 0, mi28n: 0 }
   for (const v of vehicles) if (v.alive && v.team === bot.team) counts[v.kind]++
   let total = 0
   for (const k of kinds) total += kindWeight(k, counts)

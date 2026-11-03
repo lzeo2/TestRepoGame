@@ -5,6 +5,8 @@ import type {
 } from "./types"
 
 export interface RoomConfig {
+  /** Explicit local water mode; omitted keeps existing aircraft rules. */
+  vehicleMode?: "boats"
   /** 2..4 */
   teams: number
   /** Bots per team (0..10). Bots fill seats/vehicles server-side. */

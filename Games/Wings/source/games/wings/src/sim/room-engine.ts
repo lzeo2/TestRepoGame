@@ -7,18 +7,22 @@ import type {
   VehicleEntity, VehicleKind, WeaponId, WeaponRuntime, WorldQuery,
 } from "./types"
 import { SNAPSHOT_RATE, TICK_DT, TICK_RATE } from "./types"
-import { VEHICLES, VEHICLE_KINDS } from "./vehicles"
+import { VEHICLES, VEHICLE_KINDS, AIRCRAFT_KINDS } from "./vehicles"
 import { NEUTRAL_INPUT, createFlightState, stepFlight } from "./flight"
 import {
   applySeatInput, applyTurretInput, createCombatState, createWeapons, isHiddenStealth, killVehicle, markSpawned, shipRuntime, stepCombat,
-  turretOperational,
+  turretOperational, isSpawnProtected,
 } from "./combat"
 import type { CombatState } from "./combat"
-import { carrierOf, deckVelocity, posedFleet, posedShip, setFleetState, setShipStates, spawnPoint, worldQuery as baseWorldQuery } from "./geography"
+import { carrierOf, deckVelocity, posedFleet, posedShip, setFleetState, setShipStates, spawnPoint, segmentHitsGround, worldQuery as baseWorldQuery } from "./geography"
 import { FLEET, SHIP_SPECS, SPAWN_PROTECTION, shipToWorld, worldToShip } from "./fleet"
 import { withFleetSurface } from "./fleet-world-query"
 import { botInput, chooseBotVehicle, createBotBrain } from "./bots"
 import type { BotBrain } from "./bots"
+import { boatNavigable } from "./boat-movement"
+import { createBoatState } from "./boat-native"
+import { boatAIInput } from "./boat-ai"
+import { boatCollisionWorld } from "./boat-world"
 
 export interface RoomEngineHooks {
   /** Optional local original bridge, never a client message or remote transport. */
@@ -180,15 +184,20 @@ export function sanitizeConfig(input: unknown, base: EngineConfig = DEFAULT_ROOM
   const int = (v: unknown, min: number, max: number, fallback: number) =>
     typeof v === "number" && Number.isFinite(v) ? Math.min(max, Math.max(min, Math.round(v))) : fallback
   const name = typeof c.name === "string" ? cleanText(c.name, 32) : ""
+  const mode = Object.hasOwn(c, "vehicleMode") ? c.vehicleMode : base.vehicleMode
+  if (mode !== undefined && mode !== "boats") throw new TypeError("Unknown vehicle mode")
+  const extra = extras(c, base)
+  if (mode === "boats" && extra.botFill !== undefined) extra.botFill = Math.min(3, extra.botFill)
   return {
-    teams: int(c.teams, 2, 4, base.teams),
-    bots: int(c.bots, 0, 10, base.bots),
-    maxPerTeam: int(c.maxPerTeam, 1, 16, base.maxPerTeam),
+    ...(mode === "boats" ? { vehicleMode: "boats" as const } : {}),
+    teams: mode === "boats" ? 2 : int(c.teams, 2, 4, base.teams),
+    bots: int(c.bots, 0, mode === "boats" ? 3 : 10, mode === "boats" ? Math.min(3, base.bots) : base.bots),
+    maxPerTeam: int(c.maxPerTeam, 1, mode === "boats" ? 4 : 16, mode === "boats" ? 4 : base.maxPerTeam),
     scoreLimit: int(c.scoreLimit, 1, 1000, base.scoreLimit),
     timeLimit: int(c.timeLimit, 60, 7200, base.timeLimit),
     listed: typeof c.listed === "boolean" ? c.listed : base.listed,
     name: name || base.name,
-    ...extras(c, base),
+    ...extra,
   }
 }
 
@@ -300,6 +309,7 @@ export class RoomEngine {
 
   constructor(public readonly code: string, public config: EngineConfig, private hooks: RoomEngineHooks) {
     this.config = sanitizeConfig(config)
+    if (this.config.vehicleMode === "boats" && hooks.hostBridge) throw new TypeError("Boat mode is separate from Factions")
     this.scores = new Array(this.config.teams).fill(0)
     this.teamKills = new Array(this.config.teams).fill(0)
     this.rng = createRng(hashString(code))
@@ -466,20 +476,21 @@ export class RoomEngine {
       if (!bot.bot || p.leaving || bot.vehicleId || now < bot.respawnAt) continue
       const allowedKinds = this.hooks.hostBridge?.aircraftRoster(this, bot.team)
       const ride = this.vehicles.find(v => {
-        if (!v.alive || v.team !== bot.team || v.seats[1] || !v.seats[0] || (allowedKinds && !allowedKinds.includes(v.kind))) return false
+        if (!v.alive || v.kind === "speedboat" || v.team !== bot.team || v.seats[1] || !v.seats[0] || (allowedKinds && !allowedKinds.includes(v.kind))) return false
         const pilot = this.players.get(v.seats[0])
         return !!pilot && !pilot.info.bot && now - this.meta.get(v.id)!.gunnerEmptySince >= BOT_GUNNER_DELAY
       })
       if (ride) { this.seatPlayer(bot, ride, 1); continue }
       const teammates: PlayerInfo[] = []
       for (const x of this.players.values()) if (x.info.team === bot.team && x.info.id !== bot.id) teammates.push(x.info)
-      let kind = chooseBotVehicle(bot, teammates, this.vehicles, this.rng, allowedKinds)
+      let kind = this.config.vehicleMode === "boats" ? "speedboat" as VehicleKind : chooseBotVehicle(bot, teammates, this.vehicles, this.rng, allowedKinds)
       if (!kind) continue
       if (!VEHICLES[kind]) {
         if (allowedKinds !== undefined) continue
-        kind = VEHICLE_KINDS[Math.floor(this.rng() * VEHICLE_KINDS.length)]
+        kind = AIRCRAFT_KINDS[Math.floor(this.rng() * AIRCRAFT_KINDS.length)]
       }
-      this.spawnVehicle(bot, kind)
+      try { this.spawnVehicle(bot, kind) }
+      catch (error) { if (kind !== "speedboat" || !(error instanceof RangeError)) throw error }
     }
   }
 
@@ -665,20 +676,24 @@ export class RoomEngine {
 
   private onSpawn(p: PlayerState, kind: unknown): void {
     if (typeof kind !== "string" || !(VEHICLE_KINDS as string[]).includes(kind)) return this.error(p.info.id, "Unknown aircraft kind.")
+    if ((this.config.vehicleMode === "boats") !== (kind === "speedboat")) return this.error(p.info.id, "Vehicle unavailable in this mode.")
     if (this.hooks.hostBridge && !this.hooks.hostBridge.aircraftRoster(this, p.info.team).includes(kind as VehicleKind))
       return this.error(p.info.id, "Aircraft unavailable for this faction.")
     if (this.matchEndedAt !== null) return this.error(p.info.id, "Match over — next round starting soon.")
     if (this.time < p.info.respawnAt) return this.error(p.info.id, "Respawn not ready.")
     const current = this.vehicleOf(p.info)
     if (current && current.alive && !this.canLeave(current)) return this.error(p.info.id, "Return to base to change aircraft.")
-    if (!this.spawnCarrier(p.info.team)) return this.error(p.info.id, "Your carriers have been sunk.")
+    if (kind !== "speedboat" && !this.spawnCarrier(p.info.team)) return this.error(p.info.id, "Your carriers have been sunk.")
+    if (current?.kind === "speedboat" && current.alive) return
     this.vacate(p.info)
     this.leaveTurret(p.info)
-    this.spawnVehicle(p.info, kind as VehicleKind)
+    try { this.spawnVehicle(p.info, kind as VehicleKind) }
+    catch (error) { if (error instanceof RangeError) return this.error(p.info.id, error.message); throw error }
   }
 
   /** Man one of your fleet's turrets instead of flying (seat input aims and fires it). */
   private onManTurret(p: PlayerState, shipId: unknown, turretId: unknown): void {
+    if (this.config.vehicleMode === "boats") return this.error(p.info.id, "Stations are unavailable in boat mode.")
     if (typeof shipId !== "string" || typeof turretId !== "string") return
     const ship = FLEET.find(s => s.id === shipId)
     const mount = ship ? SHIP_SPECS[ship.kind].turrets.find(t => t.id === turretId) : undefined
@@ -715,8 +730,47 @@ export class RoomEngine {
     return null
   }
 
+  private waterRegion?: Vec3
+  private waterSpawn(team: TeamId, index: number): { position: Vec3; yaw: number } {
+    const slot = (center: Vec3, t: number, i: number) => {
+      const angle = t * 2 * Math.PI / this.config.teams
+      return { position: [center[0] + Math.cos(angle) * 140 + Math.sin(angle) * (i - 1.5) * 28,
+        0, center[2] + Math.sin(angle) * 140 - Math.cos(angle) * (i - 1.5) * 28] as Vec3, yaw: Math.PI / 2 - angle }
+    }
+    if (!this.waterRegion) {
+      const cells: Vec3[] = []
+      for (let x = -5; x <= 5; x++) for (let z = -5; z <= 5; z++) cells.push([x * worldQuery.half / 8, 0, z * worldQuery.half / 8])
+      cells.sort((a, b) => Math.hypot(a[0], a[2]) - Math.hypot(b[0], b[2]))
+      this.waterRegion = cells.find(c => boatNavigable(worldQuery, c[0], c[2], 0) &&
+        Array.from({ length: this.config.teams * 4 }, (_, n) => slot(c, Math.floor(n / 4), n % 4)).every(s =>
+          boatNavigable(worldQuery, s.position[0], s.position[2], s.yaw))) ?? null
+      if (!this.waterRegion) throw new RangeError("No safe water spawn region")
+    }
+    const spawn = slot(this.waterRegion, team, index)
+    if (!boatNavigable(worldQuery, spawn.position[0], spawn.position[2], spawn.yaw)) throw new RangeError("Water spawn obstructed")
+    return spawn
+  }
+
+  private boatContext(vehicle: VehicleEntity, world: WorldQuery) {
+    const targets = this.vehicles.filter(v => v.alive && v.id !== vehicle.id && v.team !== vehicle.team &&
+      this.visibleTo(vehicle.team, v) && !isSpawnProtected(v, this.time) && !v.flight.crashed).map(v => ({
+        id: v.id, team: v.team, alive: true, visible: true, position: [...v.flight.position] as Vec3, velocity: [...v.flight.velocity] as Vec3 }))
+    return { targets, world: { ...boatCollisionWorld(world, this.vehicles, vehicle.id), lineOfSight: (from: Vec3, to: Vec3, targetId: string) => {
+      const hit = segmentHitsGround(from, to)
+      if (hit !== null && hit < 1 - 1e-6) return false
+      const d = to.map((n, i) => n - from[i]), length2 = d.reduce((s, n) => s + n * n, 0)
+      if (!(length2 > 0)) return false
+      return !this.vehicles.some(v => {
+        if (!v.alive || v.id === vehicle.id || v.id === targetId) return false
+        const t = Math.max(0, Math.min(1, v.flight.position.reduce((s, n, i) => s + (n - from[i]) * d[i], 0) / length2))
+        return Math.hypot(...v.flight.position.map((n, i) => n - from[i] - d[i] * t)) <= VEHICLES[v.kind].radius
+      })
+    } } }
+  }
+
   /** Spawn slot on whichever carrier is afloat (geography lays out the primary carrier; mirror onto others). */
   private spawnAt(team: TeamId, kind: VehicleKind, index: number) {
+    if (kind === "speedboat") return this.waterSpawn(team, index)
     const sp = spawnPoint(team, kind, index)
     const id = this.spawnCarrier(team)
     const primary = carrierOf(team)
@@ -731,20 +785,22 @@ export class RoomEngine {
   spawnVehicle(player: PlayerInfo, kind: VehicleKind): VehicleEntity {
     if (this.hooks.hostBridge && (!VEHICLE_KINDS.includes(kind) || !this.hooks.hostBridge.aircraftRoster(this, player.team).includes(kind)))
       throw new TypeError("Aircraft unavailable for this faction")
+    if (!VEHICLE_KINDS.includes(kind) || (this.config.vehicleMode === "boats") !== (kind === "speedboat")) throw new TypeError("Vehicle unavailable in this mode")
     // Spawns (and respawns) always use the carrier's current pose.
     this.syncFleet()
     const team = player.team
     let index = 0
-    for (let i = 0; i < SPAWN_SLOTS; i++) {
+    for (let i = 0; i < (kind === "speedboat" ? 4 : SPAWN_SLOTS); i++) {
       const sp = this.spawnAt(team, kind, i).position
-      const blocked = this.vehicles.some(v => v.alive && Math.hypot(v.flight.position[0] - sp[0], v.flight.position[1] - sp[1], v.flight.position[2] - sp[2]) < 25)
+      const blocked = this.vehicles.some(v => (v.alive || (kind === "speedboat" && v.kind === "speedboat")) && Math.hypot(v.flight.position[0] - sp[0], v.flight.position[1] - sp[1], v.flight.position[2] - sp[2]) < 25)
       if (!blocked) { index = i; break }
       index = i + 1
     }
+    if (kind === "speedboat" && index >= 4) throw new RangeError("All water spawn slots occupied")
     const spec = VEHICLES[kind]
     const v: VehicleEntity = {
       id: `v${this.nextId++}`, kind, team,
-      flight: createFlightState(kind, this.spawnAt(team, kind, index % SPAWN_SLOTS)),
+      flight: kind === "speedboat" ? { ...createBoatState(this.spawnAt(team, kind, index), worldQuery), kind } : createFlightState(kind, this.spawnAt(team, kind, index % SPAWN_SLOTS)),
       hp: spec.maxHp, maxHp: spec.maxHp,
       seats: [player.id, null], aim: [null, null], weapons: createWeapons(kind),
       flaresReadyAt: 0, flareCount: spec.flares, abilityReadyAt: 0, spottedUntil: 0, lastDamagedBy: null, alive: true,
@@ -763,6 +819,7 @@ export class RoomEngine {
     if (typeof vehicleId !== "string" || !isSeat(seat)) return
     const v = this.vehicles.find(x => x.id === vehicleId)
     if (!v || !v.alive || v.team !== p.info.team) return this.error(p.info.id, "Can't board that aircraft.")
+    if (v.kind === "speedboat") return this.error(p.info.id, "Boat is pilot-only.")
     if (this.time < p.info.respawnAt) return this.error(p.info.id, "Respawn not ready.")
     if (p.info.vehicleId === v.id) return this.onSwitchSeat(p, seat)
     const current = this.vehicleOf(p.info)
@@ -783,6 +840,7 @@ export class RoomEngine {
     if (!isSeat(seat)) return
     const v = this.vehicleOf(p.info)
     if (!v || !v.alive || p.info.seat === seat) return
+    if (v.kind === "speedboat") return this.error(p.info.id, "Boat is pilot-only.")
     const occupant = v.seats[seat] ? this.players.get(v.seats[seat]!) : undefined
     if (v.seats[seat] && !occupant?.info.bot) return this.error(p.info.id, "Seat taken.")
     const from = p.info.seat!
@@ -826,6 +884,7 @@ export class RoomEngine {
 
   /** Crew may leave/swap aircraft only on their carrier deck or during spawn protection. */
   private canLeave(v: VehicleEntity): boolean {
+    if (v.kind === "speedboat") return Math.hypot(...v.flight.velocity) < 0.5
     return this.onOwnDeck(v) || this.time - (v.spawnedAt ?? -Infinity) < SPAWN_PROTECTION
   }
 
@@ -884,7 +943,9 @@ export class RoomEngine {
         const id = v.seats[i]
         const p = id ? this.players.get(id) : undefined
         if (!p || !p.brain) continue
-        const out = botInput(p.brain, p.info, v, vehicles, now, this.combat.missiles, flightWorld, this.combat.ships, this.combat.projectiles, !!this.combat.hostFleet,
+        if (v.kind === "speedboat" && this.tick % 15 !== 0 && now - p.lastInputAt < 0.3) continue
+        const context = v.kind === "speedboat" ? this.boatContext(v, flightWorld) : null
+        const out = context ? boatAIInput(v.flight, v.team, context.targets, context.world) : botInput(p.brain, p.info, v, vehicles, now, this.combat.missiles, flightWorld, this.combat.ships, this.combat.projectiles, !!this.combat.hostFleet,
           this.combat.hostFleet ? this.combat.hostFleet.botTargets?.(v.team) ?? [] : undefined)
         // botInput reuses its result objects per brain: copy what we keep.
         p.seat = { ...out.seat, aim: out.seat.aim && [out.seat.aim[0], out.seat.aim[1], out.seat.aim[2]] }
@@ -897,7 +958,8 @@ export class RoomEngine {
     for (const v of vehicles) {
       if (!v.alive) continue
       const pilot = v.seats[0] ? this.players.get(v.seats[0]) : undefined
-      stepFlight(v.flight, pilot ? pilot.flight : NEUTRAL_INPUT, TICK_DT, flightWorld)
+      stepFlight(v.flight, pilot ? pilot.flight : NEUTRAL_INPUT, TICK_DT,
+        v.kind === "speedboat" ? boatCollisionWorld(flightWorld, vehicles, v.id) : flightWorld)
       for (let i = 0; i < 2; i++) {
         const s = i as SeatIndex
         const id = v.seats[s]
@@ -1006,6 +1068,13 @@ export class RoomEngine {
 
   /** Scores = % of enemy fleet hp destroyed (0–100, 1 decimal); emits `score` on change. */
   private updateScores(): void {
+    if (this.config.vehicleMode === "boats") {
+      if (this.scores.some((n, i) => n !== this.teamKills[i])) {
+        this.scores = [...this.teamKills]
+        this.events.push({ type: "score", scores: [...this.scores] })
+      }
+      return
+    }
     const dealt = this.combat.shipDamageBy ?? []
     let changed = false
     for (let t = 0; t < this.config.teams; t++) {
@@ -1060,6 +1129,15 @@ export class RoomEngine {
     const now = this.time
     if (this.matchEndedAt !== null) {
       if (now - this.matchEndedAt >= MATCH_RESTART_DELAY) this.resetMatch()
+      return
+    }
+    if (this.config.vehicleMode === "boats") {
+      const winner = this.teamKills.findIndex(n => n >= this.config.scoreLimit)
+      if (winner >= 0) return this.endMatch(winner as TeamId, "score")
+      if (now - this.matchStartedAt >= this.config.timeLimit) {
+        const best = Math.max(...this.teamKills), leaders = this.teamKills.flatMap((n, i) => n === best ? [i] : [])
+        this.endMatch(leaders.length === 1 ? leaders[0] as TeamId : null, "time")
+      }
       return
     }
     // Fleet Strike: a team is out when all its carriers are sunk; last team with a carrier wins.

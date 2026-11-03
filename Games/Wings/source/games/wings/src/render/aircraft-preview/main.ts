@@ -107,11 +107,11 @@ if (params.has("occluder")) {
   ridge.position.set(ox || 0, -1, oz || -6)
   scene.add(ridge)
 }
-const KINDS: VehicleKind[] = ["fighter", "apache", "warthog", "blackbird", "bomber", "f15", "f35", "f16c", "mig29", "typhoon", "su35s", "rafale", "jf17", "gripen", "mig31", "mirage2000", "su34", "fa50", "yak130", "hawkt2", "su25sm", "a10c", "f35a", "j20", "tu160", "ah64d", "mi28n"]
-const X: Record<VehicleKind, number> = { fighter: -34, apache: -12, warthog: 10, blackbird: 38, bomber: 80, f15: 110, f35: 135, f16c: 160, mig29: 185, typhoon: 210, su35s: 240, rafale: 270, jf17: 295, gripen: 320, mig31: 350, mirage2000: 380, su34: 410, fa50: 440, yak130: 465, hawkt2: 490, su25sm: 520, a10c: 550, f35a: 580, j20: 615, tu160: 690, ah64d: 750, mi28n: 785 }
-const only = params.get("only") as VehicleKind | null
+const KINDS: Exclude<VehicleKind, "speedboat">[] = ["fighter", "apache", "warthog", "blackbird", "bomber", "f15", "f35", "f16c", "mig29", "typhoon", "su35s", "rafale", "jf17", "gripen", "mig31", "mirage2000", "su34", "fa50", "yak130", "hawkt2", "su25sm", "a10c", "f35a", "j20", "tu160", "ah64d", "mi28n"]
+const X: Record<Exclude<VehicleKind, "speedboat">, number> = { fighter: -34, apache: -12, warthog: 10, blackbird: 38, bomber: 80, f15: 110, f35: 135, f16c: 160, mig29: 185, typhoon: 210, su35s: 240, rafale: 270, jf17: 295, gripen: 320, mig31: 350, mirage2000: 380, su34: 410, fa50: 440, yak130: 465, hawkt2: 490, su25sm: 520, a10c: 550, f35a: 580, j20: 615, tu160: 690, ah64d: 750, mi28n: 785 }
+const only = params.get("only") as Exclude<VehicleKind, "speedboat"> | null
 
-function makeEntity(kind: VehicleKind, team: TeamId): VehicleEntity {
+function makeEntity(kind: Exclude<VehicleKind, "speedboat">, team: TeamId): VehicleEntity {
   const spec = VEHICLES[kind]
   const w = (id: keyof typeof WEAPONS | null) => ({ ammo: id ? WEAPONS[id].ammo : 0, readyAt: 0, lockTarget: null, lock: 0 })
   return {

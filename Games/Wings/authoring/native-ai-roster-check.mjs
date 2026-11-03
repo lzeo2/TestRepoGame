@@ -10,7 +10,8 @@ const loader = installRetainedHostLoader();
 try {
   const { createLoopbackRoom } = await import(new URL('src/sim/loopback.ts', retainedRoot));
   const { chooseBotVehicle, createBotBrain, botRandom, botInput } = await import(new URL('src/sim/bots.ts', retainedRoot));
-  const { VEHICLES, VEHICLE_KINDS, WEAPONS, NATIVE_HELICOPTER_MODELS } = await import(new URL('src/sim/vehicles.ts', retainedRoot));
+  const { VEHICLES, AIRCRAFT_KINDS: VEHICLE_KINDS, VEHICLE_KINDS: ALL_VEHICLE_KINDS, WEAPONS, NATIVE_HELICOPTER_MODELS } = await import(new URL('src/sim/vehicles.ts', retainedRoot));
+  assert.deepEqual(ALL_VEHICLE_KINDS, [...VEHICLE_KINDS, 'speedboat']);
   const { DEFAULT_ROOM_CONFIG } = await import(new URL('src/sim/protocol.ts', retainedRoot));
   const { createWeapons, createCombatState, applySeatInput } = await import(new URL('src/sim/combat.ts', retainedRoot));
   const { setFleetState } = await import(new URL('src/sim/geography.ts', retainedRoot));

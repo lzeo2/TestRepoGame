@@ -15,6 +15,7 @@
 import type { FlightInput, FlightState, Quat, Vec3, VehicleKind, HelicopterKind, WorldQuery } from "./types"
 import { WATER_LEVEL, type SpawnPoint } from "./geography"
 import { VEHICLES, type NativeFighterKind, type VehicleSpec } from "./vehicles"
+import { stepBoatMovement } from "./boat-movement"
 
 export const NEUTRAL_INPUT: FlightInput = { aim: null, throttle: 0, roll: 0, yaw: 0, pitch: 0, boost: false, brake: false }
 
@@ -143,7 +144,7 @@ interface HeliHandling {
 // The plane goes where the nose points (strong grip), speed is mostly set by the throttle (mild turn
 // bleed, softened gravity along the path), and the turn rate peaks at the sweet spot ("corner") speed
 // — throttle back to turn tighter.
-const ORIGINAL_JET: Record<Exclude<VehicleKind, HelicopterKind | "f15" | "f35" | "tu160" | NativeFighterKind>, JetHandling> = {
+const ORIGINAL_JET: Record<Exclude<VehicleKind, HelicopterKind | "speedboat" | "f15" | "f35" | "tu160" | NativeFighterKind>, JetHandling> = {
   fighter: {
     thrust: 20, throttleRate: 0.7,
     cornerSpeed: 92, cornerRate: 1.1, minRateFrac: 0.35, pushFrac: 0.6, rollRate: 4.0, yawRate: 0.44, rollRef: 70, yawTurnRate: 0.96, yawBank: 30 * DEG,
@@ -184,7 +185,7 @@ const ORIGINAL_JET: Record<Exclude<VehicleKind, HelicopterKind | "f15" | "f35" |
 }
 
 // Same fixed-wing model and stall/collision rules; modest silhouette-based arcade tuning.
-const JET: Record<Exclude<VehicleKind, HelicopterKind>, JetHandling> = {
+const JET: Record<Exclude<VehicleKind, HelicopterKind | "speedboat">, JetHandling> = {
   ...ORIGINAL_JET,
   f15: {
     ...ORIGINAL_JET.fighter,
@@ -473,6 +474,7 @@ function basis(q: Quat): void {
 // ---------------------------------------------------------------------------------------------
 
 export function createFlightState(kind: VehicleKind, spawn: SpawnPoint): FlightState {
+  if (kind === "speedboat") throw new TypeError("Use validated water spawn for speedboat")
   const heli = VEHICLES[kind].flight === "heli"
   const orientation: Quat = [0, 0, 0, 1]
   setYawPitchRoll(orientation, spawn.yaw, 0, 0)
@@ -493,6 +495,7 @@ export function createFlightState(kind: VehicleKind, spawn: SpawnPoint): FlightS
 
 /** Advance one fixed tick (dt = TICK_DT). Mutates state. Must be deterministic. */
 export function stepFlight(state: FlightState, input: FlightInput, dt: number, world: WorldQuery): void {
+  if (state.kind === "speedboat") return stepBoatMovement(state, input, dt, world)
   if (state.crashed) return
   state.tick++
   const spec = VEHICLES[state.kind]
@@ -512,7 +515,7 @@ export function stepFlight(state: FlightState, input: FlightInput, dt: number, w
     if (hasAim) stepHeliAim(state, input, dt, world, HELI[state.kind as HelicopterKind])
     else stepHeliDirect(state, input, dt, world, HELI_DIRECT[state.kind as HelicopterKind])
   }
-  else stepJet(state, input, hasAim, dt, world, spec, JET[state.kind as Exclude<VehicleKind, HelicopterKind>])
+  else stepJet(state, input, hasAim, dt, world, spec, JET[state.kind as Exclude<VehicleKind, HelicopterKind | "speedboat">])
 }
 
 /** Thin-air factor: 1 below ceiling-400 m, 0 at the ceiling. */
@@ -1132,7 +1135,7 @@ export function flightReadout(state: FlightState, world?: WorldQuery) {
   const { yaw, pitch, roll } = yawPitchRoll(state.orientation)
   let heading = (-yaw / DEG) % 360
   if (heading < 0) heading += 360
-  const gearHeight = VEHICLES[state.kind].flight === "heli" ? HELI[state.kind as HelicopterKind].gearHeight : JET[state.kind as Exclude<VehicleKind, HelicopterKind>].gearHeight
+  const gearHeight = state.kind === "speedboat" ? 0 : VEHICLES[state.kind].flight === "heli" ? HELI[state.kind as HelicopterKind].gearHeight : JET[state.kind as Exclude<VehicleKind, HelicopterKind | "speedboat">].gearHeight
   return {
     speed: Math.hypot(v[0], v[1], v[2]),
     altitude: p[1],

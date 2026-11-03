@@ -36,6 +36,8 @@ export interface SpawnState {
   players: Map<string, PlayerInfo>
   vehicles: VehicleEntity[]
   time: number
+  intermission?: boolean
+  matchEndsAt?: number | null
   config: RoomConfig
   room: string
   dead: boolean
@@ -60,6 +62,10 @@ const bar = (v: number) => `<i class="bar"><b style="width:${Math.round(Math.max
 
 function detailHtml(k: VehicleKind, i: number): string {
   const v = VEHICLES[k], r = ROLES[k]
+  if (k === "speedboat") return `<div class="crumb">watercraft · pilot only</div><h3 class="name">${escapeHtml(v.name)}</h3>
+    <p class="blurb">W/S throttle and reverse. A/D steer. Space brakes. Mouse aims and fires the bow cannon. T switches helm/chase. Stop before leaving.</p>
+    <dl class="stats"><div><dt>speed cap</dt><dd>${Math.round(v.cruise * 3.6)} km/h</dd></div><div><dt>hull</dt><dd>${v.maxHp}</dd></div></dl>
+    <p>No boost, flares, gunner seat or stations. Motor audio is not ported.</p>`
   const seats = [0, 1].map(s => {
     const ws = v.seatWeapons[s]
     const list = ws[0] === null && ws[1] === null ? [] : (ws[0] !== null && ws[0] === ws[1] ? [ws[0]] : ws).filter(Boolean).map(id => WEAPONS[id!].kind === "bomb" ? "bombs" : WEAPONS[id!].name.toLowerCase())
@@ -119,19 +125,22 @@ export function createSpawnScreen(parent: HTMLElement, actions: {
   const thumbImg = $<HTMLImageElement>(".sp-detail .thumb")
   const countdown = $(".countdown")
   const cdNum = $(".countdown .num")
+  const cdLabel = $(".countdown .lbl")
   const hints = $(".foot .hints")
   const nav = new MenuNav($(".sp-list"), actions.click)
   nav.onHints = h => { hints.innerHTML = hintsHtml(h) }
 
   let canSpawn = false
   let wait = 0
+  let intermission = false
+  const waitText = () => intermission ? Number.isFinite(wait) ? `next round in ${Math.ceil(wait)} s` : "waiting for next round" : `respawn in ${Math.ceil(wait)} s`
   let lastTeams = ""
   let boardKey = ""
   let myTeam: TeamId = 0
   let teamCount = 2
   let shownKind: VehicleKind | null = null
   const readKinds = (): VehicleKind[] => {
-    if (!actions.aircraftKinds) return [...VEHICLE_KINDS]
+    if (!actions.aircraftKinds) return VEHICLE_KINDS.filter(kind => kind !== "speedboat")
     const kinds = actions.aircraftKinds()
     return Array.isArray(kinds) ? [...new Set(kinds.filter(k => VEHICLE_KINDS.includes(k)))] : []
   }
@@ -193,7 +202,7 @@ export function createSpawnScreen(parent: HTMLElement, actions: {
   }
 
   let boardItems: MenuItem[] = []
-  const launchMeta = () => (canSpawn ? "" : `respawn in ${Math.ceil(wait)} s · `)
+  const launchMeta = () => (canSpawn ? "" : `${waitText()} · `)
   const buildGuns = (keepSel: boolean) => {
     const items: MenuItem[] = mounts.map(m => ({
       label: `${shipName(m.ship).replace(/^\S+ /, "")} · ${turretName(m.ship, m.turret).split(" · ")[1]}`,
@@ -225,7 +234,7 @@ export function createSpawnScreen(parent: HTMLElement, actions: {
     const items: MenuItem[] = aircraftKinds.map(k => ({
       label: VEHICLES[k].name,
       value: () => (VEHICLES[k].flight === "heli" ? "vtol" : "jet"),
-      meta: () => (canSpawn ? "" : `respawn in ${Math.ceil(wait)} s`),
+      meta: () => (canSpawn ? "" : waitText()),
       run: () => { if (canSpawn && aircraftKinds.includes(k)) actions.spawn(k) },
     }))
     items.push(...boardItems)
@@ -282,16 +291,19 @@ export function createSpawnScreen(parent: HTMLElement, actions: {
     update(s) {
       code.textContent = s.room.toLowerCase()
       me = s.me
+      intermission = !!s.intermission
       wait = me ? Math.max(0, me.respawnAt - s.time) : 0
+      if (intermission) wait = typeof s.matchEndsAt === "number" && Number.isFinite(s.matchEndsAt) ? Math.max(wait, s.matchEndsAt - s.time) : Infinity
       const could = canSpawn
-      canSpawn = !!me && wait <= 0
+      canSpawn = !!me && !intermission && wait <= 0
       root.classList.toggle("waiting", !canSpawn)
       countdown.classList.toggle("on", !canSpawn)
-      const num = String(Math.ceil(wait)).padStart(2, "0")
+      cdLabel.textContent = intermission ? "next round in" : "respawn in"
+      const num = Number.isFinite(wait) ? String(Math.ceil(wait)).padStart(2, "0") : "--"
       if (cdNum.textContent !== num) cdNum.textContent = num
       const factionNames = actions.fixedTeam ? actions.teamNames?.() : undefined
       const faction = Array.isArray(factionNames) && typeof factionNames[me?.team ?? 0] === "string" ? factionNames[me?.team ?? 0].trim() : ""
-      const t = tab === "guns" ? "Man the guns" : s.dead ? "Shot down" : faction ? `Choose ${faction.replace(/ coalition$/, "")} aircraft` : "Choose aircraft"
+      const t = intermission ? "Next round" : s.config.vehicleMode === "boats" ? "Choose boat" : tab === "guns" ? "Man the guns" : s.dead ? "Shot down" : faction ? `Choose ${faction.replace(/ coalition$/, "")} aircraft` : "Choose aircraft"
       if (title.textContent !== t) title.textContent = t
       players = s.players
       ships = s.ships ?? []
@@ -327,7 +339,7 @@ export function createSpawnScreen(parent: HTMLElement, actions: {
 
       const seats: { v: VehicleEntity; seat: SeatIndex; owner: string }[] = []
       if (me) for (const v of s.vehicles) {
-        if (!v.alive || v.team !== me.team || !aircraftKinds.includes(v.kind)) continue
+        if (!v.alive || v.kind === "speedboat" || v.team !== me.team || !aircraftKinds.includes(v.kind)) continue
         for (const seat of [0, 1] as SeatIndex[]) {
           if (v.seats[seat] !== null) continue
           const owner = v.seats[seat === 0 ? 1 : 0]

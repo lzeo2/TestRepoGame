@@ -19,6 +19,7 @@ import type {
   WeaponId, WeaponRuntime,
 } from "./types"
 import { TICK_DT } from "./types"
+import { boatGunPose } from "./boat-native"
 import { STEALTH_AA_CEILING, STEALTH_LOCK_SPOT, STEALTH_LOCK_TIME, VEHICLES, WEAPONS, type WeaponSpec } from "./vehicles"
 export { STEALTH_AA_CEILING, STEALTH_LOCK_SPOT, STEALTH_LOCK_TIME }
 import { BOMB_STEP, bombImpactPoint, stepBomb } from "./flight"
@@ -40,7 +41,7 @@ export const MAX_FLARES = 256
 /** Damage multiplier while radar-spotted. */
 export const SPOTTED_DAMAGE_MULT = 1.2
 /** Damage taken multiplier per airframe (A-10 titanium bathtub). */
-export const ARMOR: Record<VehicleKind, number> = { fighter: 1, apache: 1, warthog: 0.8, blackbird: 1, bomber: 1, f15: 1, f35: 1, f16c: 1, mig29: 1, typhoon: 1, su35s: 1, rafale: 1, jf17: 1, gripen: 1, mig31: 1, mirage2000: 1, su34: 1, fa50: 1, yak130: 1, hawkt2: 1, su25sm: 1, a10c: 1, f35a: 1, j20: 1, tu160: 1, ah64d: 1, mi28n: 1 }
+export const ARMOR: Record<VehicleKind, number> = { speedboat: 1, fighter: 1, apache: 1, warthog: 0.8, blackbird: 1, bomber: 1, f15: 1, f35: 1, f16c: 1, mig29: 1, typhoon: 1, su35s: 1, rafale: 1, jf17: 1, gripen: 1, mig31: 1, mirage2000: 1, su34: 1, fa50: 1, yak130: 1, hawkt2: 1, su25sm: 1, a10c: 1, f35a: 1, j20: 1, tu160: 1, ah64d: 1, mi28n: 1 }
 /** Per-weapon damage multiplier applied on top of WEAPONS[w].damage. */
 export const WEAPON_DAMAGE_MULT: Record<WeaponId, number> = {
   cannon20: 1.35, chaingun30: 1.1, gau8: 0.8, rockets: 1, aim9: 1, tvmissile: 1, hellfire: 1, maverick: 1,
@@ -417,6 +418,10 @@ const _gim: Vec3 = [0, 0, 0]
  * Missiles and null aim: along the nose.
  */
 export function weaponDirection(vehicle: VehicleEntity, weapon: WeaponId, aim: Vec3 | null, out: Vec3): Vec3 {
+  if (vehicle.kind === "speedboat") {
+    const direction = boatGunPose(vehicle.flight, aim).direction
+    out[0] = direction[0]; out[1] = direction[1]; out[2] = direction[2]; return out
+  }
   const q = vehicle.flight.orientation
   const spec = WEAPONS[weapon]
   if (!spec.turret && aim && (spec.kind === "gun" || spec.kind === "rockets")) {
@@ -444,6 +449,10 @@ export function weaponDirection(vehicle: VehicleEntity, weapon: WeaponId, aim: V
 
 /** World-space muzzle / launch position, cycling the model's declared launch rails. */
 export function muzzlePosition(vehicle: VehicleEntity, seat: SeatIndex, weapon: WeaponId, out: Vec3, hardpoint = 0): Vec3 {
+  if (vehicle.kind === "speedboat") {
+    const origin = boatGunPose(vehicle.flight, vehicle.aim[0]).origin
+    out[0] = origin[0]; out[1] = origin[1]; out[2] = origin[2]; return out
+  }
   const r = VEHICLES[vehicle.kind].radius
   const spec = WEAPONS[weapon]
   const p = vehicle.flight.position

@@ -14,6 +14,7 @@ import { createPauseMenu } from "./pause"
 import { toast, type StartRequest } from "./lobby"
 import { onSettings, settings } from "./settings"
 import { bombImpactPoint, cloneFlight, flightReadout, forward, stepFlight } from "../sim/flight"
+import { boatCollisionWorld } from "../sim/boat-world"
 import { withFleetSurface } from "../sim/fleet-world-query"
 import { AIRBASES, deckVelocity, groundHeight, posedFleet, posedShip, segmentHitsGround, setFleetState, worldQuery as baseWorldQuery } from "../sim/geography"
 import { AA_RANGE, SHIP_SPECS, SPAWN_PROTECTION, shipHasAAMounts, shipToWorld, worldToShip, type Ship } from "../sim/fleet"
@@ -173,11 +174,11 @@ class GameSession implements GameHandle {
       click,
       thumb: (kind, team) => host.thumbnail(kind, team),
       fixedTeam: this.factions,
-      aircraftKinds: () => this.localFleet?.aircraftKinds() ?? (this.factions ? [] : VEHICLE_KINDS),
+      aircraftKinds: () => this.config?.vehicleMode === "boats" ? ["speedboat"] : this.localFleet?.aircraftKinds() ?? (this.factions ? [] : VEHICLE_KINDS.filter(kind => kind !== "speedboat")),
       ...(this.factions ? {
         teamNames: () => this.localFleet?.teamNames() ?? [],
       } : {}),
-      manTurret: this.factions ? undefined : (ship, turret) => { this.input.requestLock(); this.send({ type: "man-turret", ship, turret }); deps.audio?.ui("confirm") },
+      manTurret: this.factions || (deps.req.mode === "offline" && deps.req.config.vehicleMode === "boats") ? undefined : (ship, turret) => { this.input.requestLock(); this.send({ type: "man-turret", ship, turret }); deps.audio?.ui("confirm") },
     })
     this.pause = createPauseMenu(this.uiRoot, {
       resume: () => this.resume(),
@@ -394,7 +395,8 @@ class GameSession implements GameHandle {
     if (drop) h.splice(0, drop)
     const old = p.state
     const next = cloneFlight(sv.flight)
-    for (const e of h) stepFlight(next, e.input, TICK_DT, this.flightWorld)
+    const replayWorld = sv.kind === "speedboat" ? boatCollisionWorld(this.flightWorld, s.vehicles, sv.id) : this.flightWorld
+    for (const e of h) stepFlight(next, e.input, TICK_DT, replayWorld)
     const dx = old.position[0] - next.position[0], dy = old.position[1] - next.position[1], dz = old.position[2] - next.position[2]
     const corr = Math.hypot(dx, dy, dz)
     this.corrStats.n++
@@ -1030,11 +1032,11 @@ class GameSession implements GameHandle {
           tAxis = Math.max(-1, Math.min(1, this.pendingThrottle / (rate * TICK_DT)))
           this.pendingThrottle -= tAxis * rate * TICK_DT
         }
-        fi = flying ? { ...input.flightInput(aim, heli, tAxis, this.flightBuf) }
+        fi = flying ? { ...(myVehicle.kind === "speedboat" ? input.boatFlightInput(this.flightBuf) : input.flightInput(aim, heli, tAxis, this.flightBuf)) }
           : { aim: direct ? null : aim, throttle: 0, roll: 0, yaw: 0, pitch: 0, boost: false, brake: false }
         this.sentFlight = fi
       }
-      const seatIn: SeatInput = flying ? { ...input.seatInput(seatAim, this.seatBuf) } : { aim: seatAim, firePrimary: false, fireSecondary: false, flares: false, ability: false }
+      const seatIn: SeatInput = flying ? { ...(myVehicle.kind === "speedboat" ? input.boatSeatInput(seatAim, this.seatBuf) : input.seatInput(seatAim, this.seatBuf)) } : { aim: seatAim, firePrimary: false, fireSecondary: false, flares: false, ability: false }
       // Lag compensation: remote aircraft are rendered INTERP_DELAY + one-way latency behind the server.
       seatIn.viewDelay = INTERP_DELAY + (this.offline ? 0 : this.rtt / 2000)
       this.lastSeat = seatIn
@@ -1043,7 +1045,8 @@ class GameSession implements GameHandle {
         const ps = p.state
         p.prevPos[0] = ps.position[0]; p.prevPos[1] = ps.position[1]; p.prevPos[2] = ps.position[2]
         p.prevQuat[0] = ps.orientation[0]; p.prevQuat[1] = ps.orientation[1]; p.prevQuat[2] = ps.orientation[2]; p.prevQuat[3] = ps.orientation[3]
-        stepFlight(p.state, fi, TICK_DT, this.flightWorld)
+        stepFlight(p.state, fi, TICK_DT, myVehicle.kind === "speedboat"
+          ? boatCollisionWorld(this.flightWorld, this.latest?.vehicles ?? [], myVehicle.id) : this.flightWorld)
         p.history.push({ seq, input: fi })
       }
     }
@@ -1180,7 +1183,7 @@ class GameSession implements GameHandle {
     if (latest) {
       this.updateHud(latest, ownVis, est)
       if (this.spawn.visible()) {
-        this.spawn.update({ me, players: this.players, vehicles: latest.vehicles, time: latest.time, config: this.config, room: this.offline ? "OFFLINE" : this.room, dead: this.me ? this.me.deaths > 0 : false, ships: latest.ships })
+        this.spawn.update({ me, players: this.players, vehicles: latest.vehicles, time: latest.time, intermission: latest.intermission, matchEndsAt: latest.matchEndsAt, config: this.config, room: this.offline ? "OFFLINE" : this.room, dead: this.me ? this.me.deaths > 0 : false, ships: latest.ships })
       }
     }
   }

@@ -1,159 +1,862 @@
 {
   "tools": {
     "esbuild": "0.28.2",
-    "three": "0.186.0"
+    "three": "0.186.0",
+    "node": "22.23.1",
+    "platform": "linux",
+    "arch": "arm64"
+  },
+  "toolHashes": {
+    "tools/three/package.json": "ab4ff6950aab522dfe6980f19914a5eb2cadb689a36c6c44f4d3869c5e46dc89",
+    "tools/three/LICENSE": "8b378ebe60e2fe500158cb0ac71cb5e8b7d92953c2abcc63a0eb90499653b5bc",
+    "Games/Wings/source/games/wings/package.json": "a8673deb5a3e51cfc21ce1926c2261948a300e8c1c0645bb3de329220eed8b82",
+    "tools/esbuild/package.json": "9d0bc453f4e791553c4cc2298ba023b409241fd9801e494741666eb0f6051490",
+    "tools/esbuild/lib/main.js": "61ec0ba144ff93f4bf0e96ad6fab6f430ede0aa13e27ace8063ed63ba416b3cd",
+    "tools/esbuild/bin/esbuild": "90bd269553d258e80b19e3ccab4f98f0831f87442a2f056510ce24fd1b425fc2",
+    "tools/esbuild/native": "90bd269553d258e80b19e3ccab4f98f0831f87442a2f056510ce24fd1b425fc2",
+    "Games/Wings/THREE-LICENSE.txt": "8b378ebe60e2fe500158cb0ac71cb5e8b7d92953c2abcc63a0eb90499653b5bc",
+    "scripts/build_wings.mjs": "3350bb6c7c037ab1a443b8465e8e8fb9b05a8309a22ab8a4c9071f3fe2882707"
+  },
+  "inputs": {
+    "Games/Wings/authoring/coalition-rosters.mjs": {
+      "bytes": 3572,
+      "sha256": "573f2b53ef46a4c40b213638f7e68f0cf1298656e2f6f98af11ad2c307384c10",
+      "bundlerBytes": 3572
+    },
+    "Games/Wings/authoring/extended-escort-models.json": {
+      "bytes": 63688,
+      "sha256": "1268b5c4a6928374c46f532cfb8b5e2348395722bb3c8353a8b4862d7b316afa",
+      "bundlerBytes": 63688
+    },
+    "Games/Wings/authoring/fleet-geometry.mjs": {
+      "bytes": 9808,
+      "sha256": "97ba6b4368fe34d7628eaea23664fa5dc7cc2b7926f4d7feb24aab6af029e0e9",
+      "bundlerBytes": 9808
+    },
+    "Games/Wings/authoring/fleet-rig.mjs": {
+      "bytes": 13961,
+      "sha256": "83028db99f5206979e51cdcf2d2c41e1d6906f876520a1561ca4bfd3c618eb3e",
+      "bundlerBytes": 13961
+    },
+    "Games/Wings/authoring/fleet-sea-view.mjs": {
+      "bytes": 13079,
+      "sha256": "bdd4e0c2953fef73f263116643515928cc4b5340e61659bb5496a1e2eeae93db",
+      "bundlerBytes": 13079
+    },
+    "Games/Wings/authoring/fleet-sim.mjs": {
+      "bytes": 42423,
+      "sha256": "2a11fc1c415f89a2c7ea2654a17c85fcfbfbc1f92d257a18a611a6c6e2cabbbc",
+      "bundlerBytes": 42423
+    },
+    "Games/Wings/authoring/local-fleet-view.mjs": {
+      "bytes": 7504,
+      "sha256": "7ec0aae5139e9c8623f4d998c8810b47e06099dbba1581617bd8d70890bafa03",
+      "bundlerBytes": 7504
+    },
+    "Games/Wings/authoring/local-host-scenario.mjs": {
+      "bytes": 5425,
+      "sha256": "fd91e21266ed7bf3f0b0d257f8fd71a2034fa517b8ceab3860d85417aec9edfb",
+      "bundlerBytes": 5425
+    },
+    "Games/Wings/authoring/model-repairs.json": {
+      "bytes": 17611,
+      "sha256": "ad50b3523f24e2a1ea1aa4cdf21e9736e7ebb96f0f70739a642887ec7d10c038",
+      "bundlerBytes": 17611
+    },
+    "Games/Wings/authoring/native-fighter-pair.json": {
+      "bytes": 49559,
+      "sha256": "572f734f275113528ac39f495215329d8500819ee213fb04e9f063102d88d7ee",
+      "bundlerBytes": 49559
+    },
+    "Games/Wings/authoring/native-helicopter-pair.json": {
+      "bytes": 18066,
+      "sha256": "8065ce22e1a2f7a21c7d99746a863d43288873ca51d3334993392be840430eed",
+      "bundlerBytes": 18066
+    },
+    "Games/Wings/authoring/native-tu160.json": {
+      "bytes": 3441,
+      "sha256": "6e4cc5225141e8f38064ddb64959a1366183559511128e1548ca55df7879b774",
+      "bundlerBytes": 3441
+    },
+    "Games/Wings/authoring/retained-host-bridge.mjs": {
+      "bytes": 9938,
+      "sha256": "1f82f6b5bbbe4e7a788ed96091bbb19a41c7b2bc3e889a4df5ff520e8cfea3eb",
+      "bundlerBytes": 9938
+    },
+    "Games/Wings/authoring/supplied-fighters/roster_lookup.json": {
+      "bytes": 5020,
+      "sha256": "a978e74e918a6bf9013ef33f0fec43736a982e683c6f83c26c028b08558963a9",
+      "bundlerBytes": 5020
+    },
+    "Games/Wings/authoring/weather/weather.mjs": {
+      "bytes": 10179,
+      "sha256": "181a36fc90c4ac9fcffb5a36da4d7dae1764260e2cafa37359a0675286b46f51",
+      "bundlerBytes": 10179
+    },
+    "Games/Wings/source/games/wings/astra-check.ts": {
+      "bytes": 35611,
+      "sha256": "1df5891a1e77892a137cc4606a7f8284a537bdb55d1d450a5a86228562c2aa0a",
+      "bundlerBytes": 35611
+    },
+    "Games/Wings/source/games/wings/check-ui.html": {
+      "bytes": 351,
+      "sha256": "fabe0805de9e4bd6e80722c93bd7c9fbb76905fce5d9c4342cbc22a023deb1bc"
+    },
+    "Games/Wings/source/games/wings/index.html": {
+      "bytes": 12193,
+      "sha256": "399e4c7acad7717052c67ca4da0adc45dd0c0df9cd36cc6a70720bbde613d5fb"
+    },
+    "Games/Wings/source/games/wings/lighting-check.ts": {
+      "bytes": 7825,
+      "sha256": "5743294ce6871de80afccc9cc73f60f90d69ab1ec4fdf2020dde93312356e00b",
+      "bundlerBytes": 7825
+    },
+    "Games/Wings/source/games/wings/node-model-fixture.ts": {
+      "bytes": 1629,
+      "sha256": "fa82160f4d1f2b57376fd012db70215478492a9f80cd1978870dc2a19779832d",
+      "bundlerBytes": 1629
+    },
+    "Games/Wings/source/games/wings/solo-check.ts": {
+      "bytes": 2499,
+      "sha256": "353b1a5b954213ff63ff93249d66dfaebcf363ab3f1fc3b5cc7988045381e46d",
+      "bundlerBytes": 2499
+    },
+    "Games/Wings/source/games/wings/src/audio.ts": {
+      "bytes": 1941,
+      "sha256": "fd5990bfee8a3b0e430f2b945bbb4ef4408d51665d82a57f5a24880cd3cbd93b",
+      "bundlerBytes": 1941
+    },
+    "Games/Wings/source/games/wings/src/audio/ambience.ts": {
+      "bytes": 7046,
+      "sha256": "c18c73d1f66e0c68257039d20ab8fa40c7a080b88080e099267e99545cae683e",
+      "bundlerBytes": 7046
+    },
+    "Games/Wings/source/games/wings/src/audio/buffers.ts": {
+      "bytes": 8232,
+      "sha256": "55f8f4e2b71ab9a4354fca0dc1d854a29c97db14ac0923964c9584e11896ee66",
+      "bundlerBytes": 8232
+    },
+    "Games/Wings/source/games/wings/src/audio/core.ts": {
+      "bytes": 17730,
+      "sha256": "b2354f94dda0943af140a4f7a6d38782280091921cf28c815640d1c3195c1d3e",
+      "bundlerBytes": 17730
+    },
+    "Games/Wings/source/games/wings/src/audio/engine.ts": {
+      "bytes": 16735,
+      "sha256": "71b0bb81d123205327f7b0a10b54ea3b642ebaf7c485f7c13493c6a7f5edc10e",
+      "bundlerBytes": 16735
+    },
+    "Games/Wings/source/games/wings/src/audio/engines.ts": {
+      "bytes": 14561,
+      "sha256": "79f4f6e668900f8673050f411b980b85bf9a0d11bd364e44a13cf94374ad96b7",
+      "bundlerBytes": 14561
+    },
+    "Games/Wings/source/games/wings/src/audio/sfx.ts": {
+      "bytes": 21690,
+      "sha256": "ac671827c76a32eb9112cb1393d7f8d5917a7a0f22d33f87522220f09e0ae8b1",
+      "bundlerBytes": 21690
+    },
+    "Games/Wings/source/games/wings/src/input.ts": {
+      "bytes": 27762,
+      "sha256": "712a7fa2f0b337528d5ab37472b445023c7b32633422b4a09854e4c720064082",
+      "bundlerBytes": 27762
+    },
+    "Games/Wings/source/games/wings/src/main.ts": {
+      "bytes": 5518,
+      "sha256": "4d73807f0897df39da506b8f950b0e3f55f2d69f05bbe165c87172e14ef41c28",
+      "bundlerBytes": 5518
+    },
+    "Games/Wings/source/games/wings/src/render/aircraft-shadow.ts": {
+      "bytes": 1680,
+      "sha256": "b2204fbba4143e39affe59e0b8a335e642a6d1cf8cdc7c5f52f7b1c0c05d6d94",
+      "bundlerBytes": 1680
+    },
+    "Games/Wings/source/games/wings/src/render/aircraft-surfaces.ts": {
+      "bytes": 2781,
+      "sha256": "07817de08f7c7c0c5a2d029169bcad7d9438ebd36eaea1ce3ae4341ee8790ccc",
+      "bundlerBytes": 2781
+    },
+    "Games/Wings/source/games/wings/src/render/aircraft.ts": {
+      "bytes": 69394,
+      "sha256": "9b8339a50c630aa89bdae23559e688f822661a4dfcebb76f284e83f842ff05a9",
+      "bundlerBytes": 69394
+    },
+    "Games/Wings/source/games/wings/src/render/boat-wake.ts": {
+      "bytes": 2745,
+      "sha256": "9038312790c7705d70aa7d351cba3c3c687f5d7dd52fb47f78c9cd904a80913e",
+      "bundlerBytes": 2745
+    },
+    "Games/Wings/source/games/wings/src/render/camera.ts": {
+      "bytes": 25607,
+      "sha256": "45bc7743cbc4bb2c0c1e94c2745d8762b2069180659e4513a3d9314756da7871",
+      "bundlerBytes": 25607
+    },
+    "Games/Wings/source/games/wings/src/render/effects.ts": {
+      "bytes": 36901,
+      "sha256": "468cc7264dc3b8057ae18136ed6ceff5182e4c0bacc823b1add5f17a72db77f4",
+      "bundlerBytes": 36901
+    },
+    "Games/Wings/source/games/wings/src/render/glb.ts": {
+      "bytes": 591,
+      "sha256": "4f3b9ea4351d1d97a761dfd838afcb11e964448ccf0281b090ae8463591487a1",
+      "bundlerBytes": 591
+    },
+    "Games/Wings/source/games/wings/src/render/hud.ts": {
+      "bytes": 57386,
+      "sha256": "620fdeb9e89439fb5087e12fdb6deb56614c9f3b0cd5b04f3831030ccefb5c00",
+      "bundlerBytes": 57386
+    },
+    "Games/Wings/source/games/wings/src/render/realism-shadows.ts": {
+      "bytes": 3196,
+      "sha256": "8eaaeca9236deb343d7f9d76cbf06cc359bf39631615418f8ec3124d7e45fd87",
+      "bundlerBytes": 3196
+    },
+    "Games/Wings/source/games/wings/src/render/scene.ts": {
+      "bytes": 29353,
+      "sha256": "86d9dfa78697258d1c9f60a18e50d6364c532fdf8af455a4bc32c4bf32b2bb36",
+      "bundlerBytes": 29353
+    },
+    "Games/Wings/source/games/wings/src/render/toon.ts": {
+      "bytes": 8092,
+      "sha256": "4ca90156aa5f4dced178c554ffa9c9ca9d01fdc19d3123e700d291f682237e74",
+      "bundlerBytes": 8092
+    },
+    "Games/Wings/source/games/wings/src/render/world-view.ts": {
+      "bytes": 12889,
+      "sha256": "784be646fc2d407c049149f259b946a1b227d5bc4e107326c0f8eaa9093876dd",
+      "bundlerBytes": 12889
+    },
+    "Games/Wings/source/games/wings/src/render/world/atmosphere.ts": {
+      "bytes": 8661,
+      "sha256": "e24da8283f1bc145fa216bec77ca75e4c12f147d0b675b3a2a51a4773030ac3f",
+      "bundlerBytes": 8661
+    },
+    "Games/Wings/source/games/wings/src/render/world/cloud-volume.ts": {
+      "bytes": 8113,
+      "sha256": "e5d3dabe4127e9f0a0a14439bdb6c0f20011ce3be31885fff7bfc677d7fcfb77",
+      "bundlerBytes": 8113
+    },
+    "Games/Wings/source/games/wings/src/render/world/craters.ts": {
+      "bytes": 4815,
+      "sha256": "4312b855620dc1b61fc974012d51818bf13054e66d687e85f782374e792bd729",
+      "bundlerBytes": 4815
+    },
+    "Games/Wings/source/games/wings/src/render/world/daylight.ts": {
+      "bytes": 4341,
+      "sha256": "3074ca8c0422a36509519428480ce1ced289902489d7ebf215ae54b3749e914c",
+      "bundlerBytes": 4341
+    },
+    "Games/Wings/source/games/wings/src/render/world/fire.ts": {
+      "bytes": 7427,
+      "sha256": "b5e78c60f7922671ae50c4ad77c3295c7d1d3710211a8b65ff1112ace30ba313",
+      "bundlerBytes": 7427
+    },
+    "Games/Wings/source/games/wings/src/render/world/palette.ts": {
+      "bytes": 4419,
+      "sha256": "99491cf4bc97716b8f6b9ce50b3fcbc1ec74094dce56766a63c1b1b7e3df493a",
+      "bundlerBytes": 4419
+    },
+    "Games/Wings/source/games/wings/src/render/world/rain.ts": {
+      "bytes": 4418,
+      "sha256": "a0d343fc770ecb94ae119e1072fc8472a14228b8a9042d757703aa928709a045",
+      "bundlerBytes": 4418
+    },
+    "Games/Wings/source/games/wings/src/render/world/settings.ts": {
+      "bytes": 2337,
+      "sha256": "14fcea6269f7b2b2a10050acb42d67c654d27db9a0df7ec4da03323e0831a144",
+      "bundlerBytes": 2337
+    },
+    "Games/Wings/source/games/wings/src/render/world/ships.ts": {
+      "bytes": 25690,
+      "sha256": "409974d996d1df0e9700fac56913ee20e2d452d5179375d27a88fc82a77af193",
+      "bundlerBytes": 25690
+    },
+    "Games/Wings/source/games/wings/src/render/world/sky.ts": {
+      "bytes": 6887,
+      "sha256": "65429cb1cdb97a6bf0aef0453441ecff41e5f65227f3d82cb244575e36e86646",
+      "bundlerBytes": 6887
+    },
+    "Games/Wings/source/games/wings/src/render/world/streamer.ts": {
+      "bytes": 14095,
+      "sha256": "bacb6cb58e22d5e21d582c35bdba7017fb81ff9bbd2b8b1ab81390790150a56c",
+      "bundlerBytes": 14095
+    },
+    "Games/Wings/source/games/wings/src/render/world/terrain-worker.ts": {
+      "bytes": 1647,
+      "sha256": "f63bb9286ff4f1bc318cca9b587b18a8ee675ca959dffa9f892e1cad0af8e12c",
+      "bundlerBytes": 1647
+    },
+    "Games/Wings/source/games/wings/src/render/world/tile-gen.ts": {
+      "bytes": 14106,
+      "sha256": "fc5a1c6381dccca2646f33cd834b336f281841847d9c4a70c3f09b333b107de9",
+      "bundlerBytes": 14106
+    },
+    "Games/Wings/source/games/wings/src/render/world/trees.ts": {
+      "bytes": 5781,
+      "sha256": "4aa6acba792c3a260fa4d7ec90a0f16ede3e6e641b32beea7a7ce04858693af2",
+      "bundlerBytes": 5781
+    },
+    "Games/Wings/source/games/wings/src/render/world/water.ts": {
+      "bytes": 15956,
+      "sha256": "4cf117df07bf330b7e75683f8295c1add7b28993dd04a268743142ad2531a4e5",
+      "bundlerBytes": 15956
+    },
+    "Games/Wings/source/games/wings/src/sim/boat-ai.ts": {
+      "bytes": 5944,
+      "sha256": "917743d99a72a25df22fdd561fb37857f4996ccf3fa9e6eef3ea9aedd4ffd0e3",
+      "bundlerBytes": 5944
+    },
+    "Games/Wings/source/games/wings/src/sim/boat-movement.ts": {
+      "bytes": 10855,
+      "sha256": "e3fcd71eb2bb83c0209ad11481d5db6c2b5cb8156590d79308d87d693c3f20ab",
+      "bundlerBytes": 10855
+    },
+    "Games/Wings/source/games/wings/src/sim/boat-native.ts": {
+      "bytes": 7260,
+      "sha256": "f96809f8fd718dbad42e494211a112353c0c09f71d8912a698657979dfa9ea40",
+      "bundlerBytes": 7260
+    },
+    "Games/Wings/source/games/wings/src/sim/boat-world.ts": {
+      "bytes": 1305,
+      "sha256": "457f86faade81cc4350fe95ea79961b6a1e2db191c244a628f7cf1a7f44829e4",
+      "bundlerBytes": 1305
+    },
+    "Games/Wings/source/games/wings/src/sim/bots.ts": {
+      "bytes": 67417,
+      "sha256": "791b84f89ddb66db7a2f6e9865a158de65b834ccb4b8e2754a13da30cb6e9061",
+      "bundlerBytes": 67417
+    },
+    "Games/Wings/source/games/wings/src/sim/combat.ts": {
+      "bytes": 104403,
+      "sha256": "fca74e8e5cf4370de1fcb3a3218534a2e0d7cee9c6dede5b94ff21773414376b",
+      "bundlerBytes": 104403
+    },
+    "Games/Wings/source/games/wings/src/sim/fleet-world-query.ts": {
+      "bytes": 1012,
+      "sha256": "95baa47dc9e4d9879c6a2e20216b65a96116186b668b67edac02ee0d6d857c15",
+      "bundlerBytes": 1012
+    },
+    "Games/Wings/source/games/wings/src/sim/fleet.ts": {
+      "bytes": 11125,
+      "sha256": "d0ea5b4a6e409c06d0025c08a86494648972e5628a09f8b5708b0ce3cb9bc685",
+      "bundlerBytes": 11125
+    },
+    "Games/Wings/source/games/wings/src/sim/flight.ts": {
+      "bytes": 54820,
+      "sha256": "45fbe397e2650ff40432a58d1e262cd16b4cf9f515fe6f9a88a6522367ff9415",
+      "bundlerBytes": 54820
+    },
+    "Games/Wings/source/games/wings/src/sim/geography.ts": {
+      "bytes": 37144,
+      "sha256": "d7abf668b86cecd83de9d281b37b5bf35c64a396f7a875d5ce84fefcc0e32213",
+      "bundlerBytes": 37144
+    },
+    "Games/Wings/source/games/wings/src/sim/loopback.ts": {
+      "bytes": 3360,
+      "sha256": "8ed939d2c85e279a0e2512b84c5e10eeb8927c1902a52dbf8040ee8de54b1e1a",
+      "bundlerBytes": 3360
+    },
+    "Games/Wings/source/games/wings/src/sim/protocol.ts": {
+      "bytes": 3612,
+      "sha256": "3c265ad061f544f5bf7136e07a28c0f1f038fb8c8eb6f17f0e306d54dc483556",
+      "bundlerBytes": 3612
+    },
+    "Games/Wings/source/games/wings/src/sim/room-engine.ts": {
+      "bytes": 68824,
+      "sha256": "3389c40a120d8ec84be3e90a1b0af9e0bf7110d9630d389e1157a45cf592bf39",
+      "bundlerBytes": 68824
+    },
+    "Games/Wings/source/games/wings/src/sim/time-of-day.ts": {
+      "bytes": 1486,
+      "sha256": "6f1d71e01841f4cade404b1b515b58c3c8c456683969375813b827e0d0f4f48a",
+      "bundlerBytes": 1486
+    },
+    "Games/Wings/source/games/wings/src/sim/types.ts": {
+      "bytes": 9131,
+      "sha256": "7d0f9c9f635c631c88321cb1361231dc70d61cbd90d8678a29d34afa0e140a82",
+      "bundlerBytes": 9131
+    },
+    "Games/Wings/source/games/wings/src/sim/vehicles.ts": {
+      "bytes": 20200,
+      "sha256": "97062ecdf68662dec67a73c0a56da27c792b138a2139dca61ba7849744146b5b",
+      "bundlerBytes": 20200
+    },
+    "Games/Wings/source/games/wings/src/style.css": {
+      "bytes": 38213,
+      "sha256": "2c9734681329f5e84677e51c18a8b1837dfec18e23b85bbae8f9928675a1341f",
+      "bundlerBytes": 38213
+    },
+    "Games/Wings/source/games/wings/src/ui/aircraft-input.ts": {
+      "bytes": 723,
+      "sha256": "fca3226ca953abe29eeb5fa64868562323782d38bca8878e66f765f3ba671ce5",
+      "bundlerBytes": 723
+    },
+    "Games/Wings/source/games/wings/src/ui/fleet-hud-targets.ts": {
+      "bytes": 3034,
+      "sha256": "ca9470534b29b7414c16cf3f397d8d12937cd1dd2433d5037485139b6b9b61a9",
+      "bundlerBytes": 3034
+    },
+    "Games/Wings/source/games/wings/src/ui/fleet-names.ts": {
+      "bytes": 1323,
+      "sha256": "acd8fcedd306031fae2338093c4224a30151bad3ddbcebe0cee09da42b837e33",
+      "bundlerBytes": 1323
+    },
+    "Games/Wings/source/games/wings/src/ui/game.ts": {
+      "bytes": 80521,
+      "sha256": "1f746b223793826e30f10d1ba91d89ab5258eb9289a321401033ebcce49397c9",
+      "bundlerBytes": 80521
+    },
+    "Games/Wings/source/games/wings/src/ui/lobby.ts": {
+      "bytes": 27791,
+      "sha256": "2edfdedbee5a18f97449346fa749ff218baf2674f931d50af8eb218bac806cf0",
+      "bundlerBytes": 27791
+    },
+    "Games/Wings/source/games/wings/src/ui/local-factions.ts": {
+      "bytes": 7214,
+      "sha256": "02a82c072a9e760b9e2d84494224b628e02d9773e1faeb40a6cdaf5ed5bb1798",
+      "bundlerBytes": 7214
+    },
+    "Games/Wings/source/games/wings/src/ui/net-adapter.ts": {
+      "bytes": 725,
+      "sha256": "8bd4d173ed609c5758b1e5bbd46938f5343cd4d410a28d1bab86a7d9a7c851be",
+      "bundlerBytes": 725
+    },
+    "Games/Wings/source/games/wings/src/ui/pause.ts": {
+      "bytes": 2381,
+      "sha256": "af5faa1af993f2143a5908ddf18db68b64ea893bea0c6da273d44fb7f59d6564",
+      "bundlerBytes": 2381
+    },
+    "Games/Wings/source/games/wings/src/ui/settings.ts": {
+      "bytes": 3230,
+      "sha256": "591fce4e42070c73f4c581614f3ee136edbd70df09718861e8557835f0a2490d",
+      "bundlerBytes": 3230
+    },
+    "Games/Wings/source/games/wings/src/ui/spawn.ts": {
+      "bytes": 20679,
+      "sha256": "e1b0c68c8a5f977a7d02d6ab0820f463b1e5ab4fcdfca3d68d34aa00e109db72",
+      "bundlerBytes": 20679
+    },
+    "Games/Wings/source/games/wings/time-of-day-check.ts": {
+      "bytes": 4134,
+      "sha256": "257ea5f1b5d2dd1072fde7305c606b97950b813d78c0fccadf417281a2504457",
+      "bundlerBytes": 4134
+    },
+    "Games/Wings/source/games/wings/ui-check.ts": {
+      "bytes": 4984,
+      "sha256": "57117ddb9c2e10089d601292d5b2503ef2da7de764ef9ad606d5717084fdbbc1",
+      "bundlerBytes": 4984
+    },
+    "Games/Wings/THREE-LICENSE.txt": {
+      "bytes": 1081,
+      "sha256": "8b378ebe60e2fe500158cb0ac71cb5e8b7d92953c2abcc63a0eb90499653b5bc"
+    },
+    "tools/three/build/three.core.js": {
+      "bytes": 1458113,
+      "sha256": "9edde002b066a9a05676a6127f67735b62baf399bdea529f2f7e31657da769e6",
+      "bundlerBytes": 1458113
+    },
+    "tools/three/build/three.module.js": {
+      "bytes": 662772,
+      "sha256": "9052042d676cb0fdc1ddfefe193053f34b7ac0513a616fdac4535d49987812ea",
+      "bundlerBytes": 662772
+    },
+    "tools/three/build/three.tsl.js": {
+      "bytes": 36854,
+      "sha256": "6e6b92d8ce467818944f73815a96abadc6392fb34de577d479a23810b6aeeed0",
+      "bundlerBytes": 36854
+    },
+    "tools/three/build/three.webgpu.js": {
+      "bytes": 2284823,
+      "sha256": "a78400fa1d359e81fcc12b84ed0a89a7fbecb4b8373e28ae8f9d2b11f6ea13bc",
+      "bundlerBytes": 2284823
+    },
+    "tools/three/examples/jsm/csm/CSMFrustum.js": {
+      "bytes": 5281,
+      "sha256": "3a86e523921a69159c2a5b6aa0269527d7b99875ceea9a2a6b71ac8e0fbdd408",
+      "bundlerBytes": 5281
+    },
+    "tools/three/examples/jsm/csm/CSMShadowNode.js": {
+      "bytes": 14168,
+      "sha256": "fe57b5b938b218a04fd815ae2a7f23b9fa9b2acef232bf458b95c01e97a1d6a7",
+      "bundlerBytes": 14168
+    },
+    "tools/three/examples/jsm/loaders/GLTFLoader.js": {
+      "bytes": 117570,
+      "sha256": "131c0f78c01d19368ae495caa65b3adaa10487810a36a05bb5901b769a35ac16",
+      "bundlerBytes": 117570
+    },
+    "tools/three/examples/jsm/tsl/display/BloomNode.js": {
+      "bytes": 17242,
+      "sha256": "f28a279656a37cf44bc09e45fd2de5df93a17cffad77f6da0a5bcd979cfd6525",
+      "bundlerBytes": 17242
+    },
+    "tools/three/examples/jsm/tsl/display/FXAANode.js": {
+      "bytes": 9450,
+      "sha256": "775f4e5b3c9427739b48bea1634045c869bec6e525d572db70f99aab42d1c544",
+      "bundlerBytes": 9450
+    },
+    "tools/three/examples/jsm/utils/BufferGeometryUtils.js": {
+      "bytes": 37712,
+      "sha256": "9fb63427ce6641fa14fd0baff9cc4d1b5f9c3d85fd084bf2e90e803c44ec1797",
+      "bundlerBytes": 37712
+    },
+    "tools/three/examples/jsm/utils/SkeletonUtils.js": {
+      "bytes": 11535,
+      "sha256": "b1632a703206c3d830de9fcbe515696770d04b71a15ee6b50afa6d2c3298c86f",
+      "bundlerBytes": 11535
+    }
+  },
+  "transforms": {
+    "terrainWorkerURL": "Exactly one .ts URL changed to local .js worker; original input hash retained."
   },
   "outputs": {
-    "assets/main.js": {
-      "bytes": 2817,
-      "entryPoint": "src/main.ts",
-      "imports": [
-        "assets/chunk-KLDWZ4RU.js",
-        "assets/chunk-Y5ORVK7B.js",
-        "assets/chunk-AAZABAPM.js",
-        "assets/scene-52TYFLPH.js",
-        "assets/audio-UGWDGOIA.js",
-        "assets/game-R46SELJO.js",
-        "assets/game-R46SELJO.js"
-      ],
-      "cssBundle": "assets/main.css"
-    },
-    "assets/ui-check.js": {
-      "bytes": 3750,
-      "entryPoint": "ui-check.ts",
-      "imports": [
-        "assets/chunk-BMYRWB5U.js",
-        "assets/chunk-KLDWZ4RU.js",
-        "assets/chunk-2IJ3UYND.js",
-        "assets/chunk-Y5ORVK7B.js",
-        "assets/chunk-AAZABAPM.js"
-      ],
-      "cssBundle": "assets/ui-check.css"
-    },
-    "assets/terrain-worker.js": {
-      "bytes": 734,
-      "entryPoint": "src/render/world/terrain-worker.ts",
-      "imports": [
-        "assets/chunk-KLBFFL36.js",
-        "assets/chunk-VQ65COZY.js",
-        "assets/chunk-2IJ3UYND.js",
-        "assets/chunk-Y5ORVK7B.js",
-        "assets/chunk-AAZABAPM.js"
-      ]
-    },
-    "assets/GLTFLoader-ZF6COE6R.js": {
-      "bytes": 94,
-      "entryPoint": "../../../../../../../../dev/shm/wings-approved-three-0.186.0-349932/package/examples/jsm/loaders/GLTFLoader.js",
-      "imports": [
-        "assets/chunk-P6CK6PDM.js",
-        "assets/chunk-AAZABAPM.js"
-      ]
-    },
-    "assets/scene-52TYFLPH.js": {
-      "bytes": 103581,
-      "entryPoint": "src/render/scene.ts",
-      "imports": [
-        "assets/chunk-KLBFFL36.js",
-        "assets/chunk-6VKGKRMP.js",
-        "assets/chunk-VQ65COZY.js",
-        "assets/chunk-2IJ3UYND.js",
-        "assets/chunk-P6CK6PDM.js",
-        "assets/chunk-Y5ORVK7B.js",
-        "assets/chunk-AAZABAPM.js",
-        "assets/GLTFLoader-ZF6COE6R.js"
-      ]
-    },
-    "assets/chunk-KLBFFL36.js": {
-      "bytes": 5632,
-      "imports": [
-        "assets/chunk-VQ65COZY.js",
-        "assets/chunk-2IJ3UYND.js"
-      ]
-    },
-    "assets/audio-UGWDGOIA.js": {
-      "bytes": 39177,
+    "assets/audio-WAQ7VLLX.js": {
+      "bytes": 39272,
       "entryPoint": "src/audio.ts",
-      "imports": [
-        "assets/chunk-Y5ORVK7B.js",
-        "assets/chunk-AAZABAPM.js"
-      ]
-    },
-    "assets/game-R46SELJO.js": {
-      "bytes": 193439,
-      "entryPoint": "src/ui/game.ts",
-      "imports": [
-        "assets/chunk-BMYRWB5U.js",
-        "assets/chunk-KLDWZ4RU.js",
-        "assets/chunk-6VKGKRMP.js",
-        "assets/chunk-VQ65COZY.js",
-        "assets/chunk-2IJ3UYND.js",
-        "assets/chunk-P6CK6PDM.js",
-        "assets/chunk-Y5ORVK7B.js",
-        "assets/chunk-AAZABAPM.js"
+      "inputs": [
+        "Games/Wings/source/games/wings/src/audio.ts",
+        "Games/Wings/source/games/wings/src/audio/ambience.ts",
+        "Games/Wings/source/games/wings/src/audio/buffers.ts",
+        "Games/Wings/source/games/wings/src/audio/core.ts",
+        "Games/Wings/source/games/wings/src/audio/engine.ts",
+        "Games/Wings/source/games/wings/src/audio/engines.ts",
+        "Games/Wings/source/games/wings/src/audio/sfx.ts"
       ],
-      "cssBundle": "assets/game-6EQ23DUW.css"
-    },
-    "assets/chunk-BMYRWB5U.js": {
-      "bytes": 122056,
       "imports": [
-        "assets/chunk-KLDWZ4RU.js",
-        "assets/chunk-2IJ3UYND.js",
-        "assets/chunk-Y5ORVK7B.js"
-      ]
-    },
-    "assets/chunk-KLDWZ4RU.js": {
-      "bytes": 24119,
-      "imports": [
-        "assets/chunk-Y5ORVK7B.js"
-      ]
-    },
-    "assets/chunk-6VKGKRMP.js": {
-      "bytes": 769601,
-      "imports": [
-        "assets/chunk-VQ65COZY.js",
-        "assets/chunk-2IJ3UYND.js",
-        "assets/chunk-P6CK6PDM.js",
-        "assets/chunk-Y5ORVK7B.js",
+        "assets/chunk-ITVJHLTC.js",
         "assets/chunk-AAZABAPM.js"
       ]
     },
-    "assets/chunk-VQ65COZY.js": {
-      "bytes": 1137,
+    "assets/chunk-3WITB6LT.js": {
+      "bytes": 24735,
+      "inputs": [
+        "Games/Wings/authoring/coalition-rosters.mjs",
+        "Games/Wings/authoring/supplied-fighters/roster_lookup.json",
+        "Games/Wings/source/games/wings/src/sim/protocol.ts",
+        "Games/Wings/source/games/wings/src/ui/lobby.ts",
+        "Games/Wings/source/games/wings/src/ui/settings.ts"
+      ],
+      "imports": [
+        "assets/chunk-ITVJHLTC.js"
+      ]
+    },
+    "assets/chunk-4HWXFZFL.js": {
+      "bytes": 129657,
+      "inputs": [
+        "Games/Wings/source/games/wings/src/sim/boat-ai.ts",
+        "Games/Wings/source/games/wings/src/sim/boat-world.ts",
+        "Games/Wings/source/games/wings/src/sim/bots.ts",
+        "Games/Wings/source/games/wings/src/sim/combat.ts",
+        "Games/Wings/source/games/wings/src/sim/fleet-world-query.ts",
+        "Games/Wings/source/games/wings/src/sim/flight.ts",
+        "Games/Wings/source/games/wings/src/sim/loopback.ts",
+        "Games/Wings/source/games/wings/src/sim/room-engine.ts",
+        "Games/Wings/source/games/wings/src/sim/types.ts",
+        "Games/Wings/source/games/wings/src/style.css",
+        "Games/Wings/source/games/wings/src/ui/fleet-names.ts",
+        "Games/Wings/source/games/wings/src/ui/spawn.ts"
+      ],
+      "imports": [
+        "assets/chunk-3WITB6LT.js",
+        "assets/chunk-ENZB2HQM.js",
+        "assets/chunk-ITVJHLTC.js"
+      ]
+    },
+    "assets/chunk-AAZABAPM.js": {
+      "bytes": 106,
+      "inputs": [],
       "imports": []
     },
-    "assets/chunk-2IJ3UYND.js": {
-      "bytes": 25717,
+    "assets/chunk-EE6VHZVA.js": {
+      "bytes": 772495,
+      "inputs": [
+        "Games/Wings/source/games/wings/src/render/aircraft-shadow.ts",
+        "Games/Wings/source/games/wings/src/render/aircraft-surfaces.ts",
+        "Games/Wings/source/games/wings/src/render/aircraft.ts",
+        "Games/Wings/source/games/wings/src/render/boat-wake.ts",
+        "Games/Wings/source/games/wings/src/render/glb.ts",
+        "Games/Wings/source/games/wings/src/render/toon.ts",
+        "Games/Wings/source/games/wings/src/render/world/atmosphere.ts",
+        "Games/Wings/source/games/wings/src/render/world/settings.ts",
+        "tools/three/build/three.tsl.js",
+        "tools/three/build/three.webgpu.js"
+      ],
       "imports": [
-        "assets/chunk-Y5ORVK7B.js"
+        "assets/chunk-VQ65COZY.js",
+        "assets/chunk-ENZB2HQM.js",
+        "assets/chunk-P6CK6PDM.js",
+        "assets/chunk-ITVJHLTC.js",
+        "assets/chunk-AAZABAPM.js"
+      ]
+    },
+    "assets/chunk-ENZB2HQM.js": {
+      "bytes": 25776,
+      "inputs": [
+        "Games/Wings/authoring/model-repairs.json",
+        "Games/Wings/source/games/wings/src/sim/fleet.ts",
+        "Games/Wings/source/games/wings/src/sim/geography.ts"
+      ],
+      "imports": [
+        "assets/chunk-ITVJHLTC.js"
+      ]
+    },
+    "assets/chunk-ITVJHLTC.js": {
+      "bytes": 51466,
+      "inputs": [
+        "Games/Wings/authoring/native-fighter-pair.json",
+        "Games/Wings/authoring/native-helicopter-pair.json",
+        "Games/Wings/authoring/native-tu160.json",
+        "Games/Wings/source/games/wings/src/sim/boat-movement.ts",
+        "Games/Wings/source/games/wings/src/sim/boat-native.ts",
+        "Games/Wings/source/games/wings/src/sim/vehicles.ts"
+      ],
+      "imports": []
+    },
+    "assets/chunk-OYOWKYPN.js": {
+      "bytes": 5632,
+      "inputs": [
+        "Games/Wings/source/games/wings/src/render/world/tile-gen.ts"
+      ],
+      "imports": [
+        "assets/chunk-VQ65COZY.js",
+        "assets/chunk-ENZB2HQM.js"
       ]
     },
     "assets/chunk-P6CK6PDM.js": {
       "bytes": 596504,
+      "inputs": [
+        "tools/three/build/three.core.js",
+        "tools/three/build/three.module.js",
+        "tools/three/examples/jsm/loaders/GLTFLoader.js",
+        "tools/three/examples/jsm/utils/BufferGeometryUtils.js",
+        "tools/three/examples/jsm/utils/SkeletonUtils.js"
+      ],
       "imports": []
     },
-    "assets/chunk-Y5ORVK7B.js": {
-      "bytes": 43201,
-      "imports": []
-    },
-    "assets/chunk-AAZABAPM.js": {
-      "bytes": 106,
-      "imports": []
-    },
-    "assets/main.css": {
-      "bytes": 31228,
-      "imports": []
-    },
-    "assets/ui-check.css": {
-      "bytes": 31228,
+    "assets/chunk-VQ65COZY.js": {
+      "bytes": 1137,
+      "inputs": [
+        "Games/Wings/source/games/wings/src/render/world/palette.ts"
+      ],
       "imports": []
     },
     "assets/game-6EQ23DUW.css": {
       "bytes": 31228,
+      "inputs": [
+        "Games/Wings/source/games/wings/src/style.css"
+      ],
+      "imports": []
+    },
+    "assets/game-X5UTJWCN.js": {
+      "bytes": 194225,
+      "entryPoint": "src/ui/game.ts",
+      "inputs": [
+        "Games/Wings/authoring/extended-escort-models.json",
+        "Games/Wings/authoring/fleet-geometry.mjs",
+        "Games/Wings/authoring/fleet-rig.mjs",
+        "Games/Wings/authoring/fleet-sea-view.mjs",
+        "Games/Wings/authoring/fleet-sim.mjs",
+        "Games/Wings/authoring/local-fleet-view.mjs",
+        "Games/Wings/authoring/local-host-scenario.mjs",
+        "Games/Wings/authoring/retained-host-bridge.mjs",
+        "Games/Wings/authoring/weather/weather.mjs",
+        "Games/Wings/source/games/wings/src/input.ts",
+        "Games/Wings/source/games/wings/src/render/hud.ts",
+        "Games/Wings/source/games/wings/src/ui/aircraft-input.ts",
+        "Games/Wings/source/games/wings/src/ui/fleet-hud-targets.ts",
+        "Games/Wings/source/games/wings/src/ui/game.ts",
+        "Games/Wings/source/games/wings/src/ui/local-factions.ts",
+        "Games/Wings/source/games/wings/src/ui/net-adapter.ts",
+        "Games/Wings/source/games/wings/src/ui/pause.ts"
+      ],
+      "imports": [
+        "assets/chunk-4HWXFZFL.js",
+        "assets/chunk-3WITB6LT.js",
+        "assets/chunk-EE6VHZVA.js",
+        "assets/chunk-VQ65COZY.js",
+        "assets/chunk-ENZB2HQM.js",
+        "assets/chunk-P6CK6PDM.js",
+        "assets/chunk-ITVJHLTC.js",
+        "assets/chunk-AAZABAPM.js"
+      ],
+      "cssBundle": "assets/game-6EQ23DUW.css"
+    },
+    "assets/GLTFLoader-ZF6COE6R.js": {
+      "bytes": 94,
+      "entryPoint": "tools/three/examples/jsm/loaders/GLTFLoader.js",
+      "inputs": [],
+      "imports": [
+        "assets/chunk-P6CK6PDM.js",
+        "assets/chunk-AAZABAPM.js"
+      ]
+    },
+    "assets/main.css": {
+      "bytes": 31228,
+      "inputs": [
+        "Games/Wings/source/games/wings/src/style.css"
+      ],
+      "imports": []
+    },
+    "assets/main.js": {
+      "bytes": 2817,
+      "entryPoint": "src/main.ts",
+      "inputs": [
+        "Games/Wings/source/games/wings/src/main.ts"
+      ],
+      "imports": [
+        "assets/chunk-3WITB6LT.js",
+        "assets/chunk-ITVJHLTC.js",
+        "assets/chunk-AAZABAPM.js",
+        "assets/scene-A6EWM6TK.js",
+        "assets/audio-WAQ7VLLX.js",
+        "assets/game-X5UTJWCN.js",
+        "assets/game-X5UTJWCN.js"
+      ],
+      "cssBundle": "assets/main.css"
+    },
+    "assets/scene-A6EWM6TK.js": {
+      "bytes": 103746,
+      "entryPoint": "src/render/scene.ts",
+      "inputs": [
+        "Games/Wings/source/games/wings/src/render/camera.ts",
+        "Games/Wings/source/games/wings/src/render/effects.ts",
+        "Games/Wings/source/games/wings/src/render/realism-shadows.ts",
+        "Games/Wings/source/games/wings/src/render/scene.ts",
+        "Games/Wings/source/games/wings/src/render/world-view.ts",
+        "Games/Wings/source/games/wings/src/render/world/cloud-volume.ts",
+        "Games/Wings/source/games/wings/src/render/world/craters.ts",
+        "Games/Wings/source/games/wings/src/render/world/daylight.ts",
+        "Games/Wings/source/games/wings/src/render/world/fire.ts",
+        "Games/Wings/source/games/wings/src/render/world/rain.ts",
+        "Games/Wings/source/games/wings/src/render/world/ships.ts",
+        "Games/Wings/source/games/wings/src/render/world/sky.ts",
+        "Games/Wings/source/games/wings/src/render/world/streamer.ts",
+        "Games/Wings/source/games/wings/src/render/world/trees.ts",
+        "Games/Wings/source/games/wings/src/render/world/water.ts",
+        "Games/Wings/source/games/wings/src/sim/time-of-day.ts",
+        "tools/three/examples/jsm/csm/CSMFrustum.js",
+        "tools/three/examples/jsm/csm/CSMShadowNode.js",
+        "tools/three/examples/jsm/tsl/display/BloomNode.js",
+        "tools/three/examples/jsm/tsl/display/FXAANode.js"
+      ],
+      "imports": [
+        "assets/chunk-OYOWKYPN.js",
+        "assets/chunk-EE6VHZVA.js",
+        "assets/chunk-VQ65COZY.js",
+        "assets/chunk-ENZB2HQM.js",
+        "assets/chunk-P6CK6PDM.js",
+        "assets/chunk-ITVJHLTC.js",
+        "assets/chunk-AAZABAPM.js",
+        "assets/GLTFLoader-ZF6COE6R.js"
+      ]
+    },
+    "assets/terrain-worker.js": {
+      "bytes": 734,
+      "entryPoint": "src/render/world/terrain-worker.ts",
+      "inputs": [
+        "Games/Wings/source/games/wings/src/render/world/terrain-worker.ts"
+      ],
+      "imports": [
+        "assets/chunk-OYOWKYPN.js",
+        "assets/chunk-VQ65COZY.js",
+        "assets/chunk-ENZB2HQM.js",
+        "assets/chunk-ITVJHLTC.js",
+        "assets/chunk-AAZABAPM.js"
+      ]
+    },
+    "assets/ui-check.css": {
+      "bytes": 31228,
+      "inputs": [
+        "Games/Wings/source/games/wings/src/style.css"
+      ],
+      "imports": []
+    },
+    "assets/ui-check.js": {
+      "bytes": 3750,
+      "entryPoint": "ui-check.ts",
+      "inputs": [
+        "Games/Wings/source/games/wings/ui-check.ts"
+      ],
+      "imports": [
+        "assets/chunk-4HWXFZFL.js",
+        "assets/chunk-3WITB6LT.js",
+        "assets/chunk-ENZB2HQM.js",
+        "assets/chunk-ITVJHLTC.js",
+        "assets/chunk-AAZABAPM.js"
+      ],
+      "cssBundle": "assets/ui-check.css"
+    },
+    "check-ui.html": {
+      "bytes": 411,
+      "inputs": [
+        "Games/Wings/source/games/wings/check-ui.html"
+      ],
+      "imports": [
+        "assets/ui-check.js",
+        "assets/ui-check.css"
+      ]
+    },
+    "index.html": {
+      "bytes": 12246,
+      "inputs": [
+        "Games/Wings/source/games/wings/index.html"
+      ],
+      "imports": [
+        "assets/main.js",
+        "assets/main.css"
+      ]
+    },
+    "THREE-LICENSE.txt": {
+      "bytes": 1081,
+      "inputs": [
+        "Games/Wings/THREE-LICENSE.txt"
+      ],
       "imports": []
     },
     "verification/astra-check.mjs": {
-      "bytes": 1006139,
+      "bytes": 1025213,
       "entryPoint": "astra-check.ts",
+      "inputs": [
+        "Games/Wings/authoring/model-repairs.json",
+        "Games/Wings/authoring/native-fighter-pair.json",
+        "Games/Wings/authoring/native-helicopter-pair.json",
+        "Games/Wings/authoring/native-tu160.json",
+        "Games/Wings/source/games/wings/astra-check.ts",
+        "Games/Wings/source/games/wings/node-model-fixture.ts",
+        "Games/Wings/source/games/wings/src/render/aircraft-shadow.ts",
+        "Games/Wings/source/games/wings/src/render/aircraft-surfaces.ts",
+        "Games/Wings/source/games/wings/src/render/aircraft.ts",
+        "Games/Wings/source/games/wings/src/render/boat-wake.ts",
+        "Games/Wings/source/games/wings/src/render/camera.ts",
+        "Games/Wings/source/games/wings/src/render/glb.ts",
+        "Games/Wings/source/games/wings/src/render/toon.ts",
+        "Games/Wings/source/games/wings/src/render/world/atmosphere.ts",
+        "Games/Wings/source/games/wings/src/render/world/palette.ts",
+        "Games/Wings/source/games/wings/src/render/world/settings.ts",
+        "Games/Wings/source/games/wings/src/sim/boat-ai.ts",
+        "Games/Wings/source/games/wings/src/sim/boat-movement.ts",
+        "Games/Wings/source/games/wings/src/sim/boat-native.ts",
+        "Games/Wings/source/games/wings/src/sim/boat-world.ts",
+        "Games/Wings/source/games/wings/src/sim/bots.ts",
+        "Games/Wings/source/games/wings/src/sim/combat.ts",
+        "Games/Wings/source/games/wings/src/sim/fleet-world-query.ts",
+        "Games/Wings/source/games/wings/src/sim/fleet.ts",
+        "Games/Wings/source/games/wings/src/sim/flight.ts",
+        "Games/Wings/source/games/wings/src/sim/geography.ts",
+        "Games/Wings/source/games/wings/src/sim/loopback.ts",
+        "Games/Wings/source/games/wings/src/sim/protocol.ts",
+        "Games/Wings/source/games/wings/src/sim/room-engine.ts",
+        "Games/Wings/source/games/wings/src/sim/types.ts",
+        "Games/Wings/source/games/wings/src/sim/vehicles.ts",
+        "Games/Wings/source/games/wings/src/ui/aircraft-input.ts",
+        "tools/three/build/three.core.js",
+        "tools/three/build/three.module.js",
+        "tools/three/build/three.tsl.js",
+        "tools/three/build/three.webgpu.js",
+        "tools/three/examples/jsm/loaders/GLTFLoader.js",
+        "tools/three/examples/jsm/utils/BufferGeometryUtils.js",
+        "tools/three/examples/jsm/utils/SkeletonUtils.js"
+      ],
       "imports": [
         "node:assert/strict",
         "node:fs",
@@ -165,16 +868,48 @@
         "node:path"
       ]
     },
-    "verification/solo-check.mjs": {
-      "bytes": 178225,
-      "entryPoint": "solo-check.ts",
-      "imports": [
-        "node:assert/strict"
-      ]
-    },
     "verification/lighting-check.mjs": {
-      "bytes": 894495,
+      "bytes": 901247,
       "entryPoint": "lighting-check.ts",
+      "inputs": [
+        "Games/Wings/authoring/model-repairs.json",
+        "Games/Wings/authoring/native-fighter-pair.json",
+        "Games/Wings/authoring/native-helicopter-pair.json",
+        "Games/Wings/authoring/native-tu160.json",
+        "Games/Wings/source/games/wings/lighting-check.ts",
+        "Games/Wings/source/games/wings/node-model-fixture.ts",
+        "Games/Wings/source/games/wings/src/render/aircraft-shadow.ts",
+        "Games/Wings/source/games/wings/src/render/aircraft-surfaces.ts",
+        "Games/Wings/source/games/wings/src/render/aircraft.ts",
+        "Games/Wings/source/games/wings/src/render/boat-wake.ts",
+        "Games/Wings/source/games/wings/src/render/glb.ts",
+        "Games/Wings/source/games/wings/src/render/realism-shadows.ts",
+        "Games/Wings/source/games/wings/src/render/toon.ts",
+        "Games/Wings/source/games/wings/src/render/world/atmosphere.ts",
+        "Games/Wings/source/games/wings/src/render/world/cloud-volume.ts",
+        "Games/Wings/source/games/wings/src/render/world/daylight.ts",
+        "Games/Wings/source/games/wings/src/render/world/palette.ts",
+        "Games/Wings/source/games/wings/src/render/world/settings.ts",
+        "Games/Wings/source/games/wings/src/render/world/sky.ts",
+        "Games/Wings/source/games/wings/src/sim/boat-movement.ts",
+        "Games/Wings/source/games/wings/src/sim/boat-native.ts",
+        "Games/Wings/source/games/wings/src/sim/combat.ts",
+        "Games/Wings/source/games/wings/src/sim/fleet.ts",
+        "Games/Wings/source/games/wings/src/sim/flight.ts",
+        "Games/Wings/source/games/wings/src/sim/geography.ts",
+        "Games/Wings/source/games/wings/src/sim/time-of-day.ts",
+        "Games/Wings/source/games/wings/src/sim/vehicles.ts",
+        "Games/Wings/source/games/wings/time-of-day-check.ts",
+        "tools/three/build/three.core.js",
+        "tools/three/build/three.module.js",
+        "tools/three/build/three.tsl.js",
+        "tools/three/build/three.webgpu.js",
+        "tools/three/examples/jsm/csm/CSMFrustum.js",
+        "tools/three/examples/jsm/csm/CSMShadowNode.js",
+        "tools/three/examples/jsm/loaders/GLTFLoader.js",
+        "tools/three/examples/jsm/utils/BufferGeometryUtils.js",
+        "tools/three/examples/jsm/utils/SkeletonUtils.js"
+      ],
       "imports": [
         "node:assert/strict",
         "node:assert/strict",
@@ -182,6 +917,35 @@
         "node:assert/strict",
         "node:fs",
         "node:path"
+      ]
+    },
+    "verification/solo-check.mjs": {
+      "bytes": 192549,
+      "entryPoint": "solo-check.ts",
+      "inputs": [
+        "Games/Wings/authoring/model-repairs.json",
+        "Games/Wings/authoring/native-fighter-pair.json",
+        "Games/Wings/authoring/native-helicopter-pair.json",
+        "Games/Wings/authoring/native-tu160.json",
+        "Games/Wings/source/games/wings/solo-check.ts",
+        "Games/Wings/source/games/wings/src/sim/boat-ai.ts",
+        "Games/Wings/source/games/wings/src/sim/boat-movement.ts",
+        "Games/Wings/source/games/wings/src/sim/boat-native.ts",
+        "Games/Wings/source/games/wings/src/sim/boat-world.ts",
+        "Games/Wings/source/games/wings/src/sim/bots.ts",
+        "Games/Wings/source/games/wings/src/sim/combat.ts",
+        "Games/Wings/source/games/wings/src/sim/fleet-world-query.ts",
+        "Games/Wings/source/games/wings/src/sim/fleet.ts",
+        "Games/Wings/source/games/wings/src/sim/flight.ts",
+        "Games/Wings/source/games/wings/src/sim/geography.ts",
+        "Games/Wings/source/games/wings/src/sim/loopback.ts",
+        "Games/Wings/source/games/wings/src/sim/protocol.ts",
+        "Games/Wings/source/games/wings/src/sim/room-engine.ts",
+        "Games/Wings/source/games/wings/src/sim/types.ts",
+        "Games/Wings/source/games/wings/src/sim/vehicles.ts"
+      ],
+      "imports": [
+        "node:assert/strict"
       ]
     }
   }

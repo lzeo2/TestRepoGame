@@ -4,8 +4,8 @@ import { NATIVE_HELICOPTER_MODELS, VEHICLES } from "../sim/vehicles"
 import { clamp, type Core, Spatial } from "./core"
 
 /** Relative loudness per airframe, used for voice selection and distance culling. */
-export const ENGINE_LOUDNESS: Record<VehicleKind, number> = { fighter: 1, apache: 0.4, warthog: 0.8, blackbird: 1.3, bomber: 0.45, f15: 1, f35: 0.8, f16c: 0.9, mig29: 1.1, typhoon: 1.05, su35s: 1.15, rafale: 1.02, jf17: 0.88, gripen: 0.86, mig31: 1.22, mirage2000: 0.94, su34: 1.18, fa50: 0.82, yak130: 0.72, hawkt2: 0.65, su25sm: 0.88, a10c: 0.84, f35a: 0.96, j20: 1.08, tu160: 1.25, ah64d: 0.4, mi28n: 0.4 }
-export const ENGINE_REF: Record<VehicleKind, number> = { fighter: 40, apache: 22, warthog: 35, blackbird: 50, bomber: 30, f15: 40, f35: 35, f16c: 38, mig29: 42, typhoon: 43, su35s: 46, rafale: 41, jf17: 37, gripen: 36, mig31: 48, mirage2000: 39, su34: 47, fa50: 34, yak130: 31, hawkt2: 29, su25sm: 36, a10c: 33, f35a: 41, j20: 45, tu160: 52, ah64d: 22, mi28n: 22 }
+export const ENGINE_LOUDNESS: Record<Exclude<VehicleKind, "speedboat">, number> = { fighter: 1, apache: 0.4, warthog: 0.8, blackbird: 1.3, bomber: 0.45, f15: 1, f35: 0.8, f16c: 0.9, mig29: 1.1, typhoon: 1.05, su35s: 1.15, rafale: 1.02, jf17: 0.88, gripen: 0.86, mig31: 1.22, mirage2000: 0.94, su34: 1.18, fa50: 0.82, yak130: 0.72, hawkt2: 0.65, su25sm: 0.88, a10c: 0.84, f35a: 0.96, j20: 1.08, tu160: 1.25, ah64d: 0.4, mi28n: 0.4 }
+export const ENGINE_REF: Record<Exclude<VehicleKind, "speedboat">, number> = { fighter: 40, apache: 22, warthog: 35, blackbird: 50, bomber: 30, f15: 40, f35: 35, f16c: 38, mig29: 42, typhoon: 43, su35s: 46, rafale: 41, jf17: 37, gripen: 36, mig31: 48, mirage2000: 39, su34: 47, fa50: 34, yak130: 31, hawkt2: 29, su25sm: 36, a10c: 33, f35a: 41, j20: 45, tu160: 52, ah64d: 22, mi28n: 22 }
 
 const TC = 0.06
 
@@ -36,6 +36,7 @@ export class EngineVoice {
   score = 0
 
   constructor(private core: Core, readonly vehicleId: string, readonly kind: VehicleKind, v: VehicleEntity) {
+    if (kind === "speedboat") throw new TypeError("Boat motor audio is not ported")
     const ctx = core.ctx
     this.spatial = new Spatial(core, core.engineBus, v.flight.position, ENGINE_REF[kind], 1, false, true)
     this.mix = ctx.createGain()

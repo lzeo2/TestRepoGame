@@ -2,9 +2,33 @@
 
 This tracked checkpoint replaces reliance on deleted ignored staging checkouts.
 The playable static entry remains `../index.html`; this source directory is not a
-second game, publication, backend, or catalog entry. Generated served bundles and
-models are unchanged by source recovery. The tracked source now also contains
-the recovered realism **candidate**, not yet delivered to those served bundles.
+second game, publication, backend, or catalog entry. The historical recovery notes
+below do not describe the current generated delivery. Current local integration
+and acceptance limits are recorded first; historical receipts remain evidence.
+
+## Current local speedboat integration (2026-11-03)
+
+A separately authorized feature port starts at exact current-main `11e83932`.
+It preserves the original 27 aircraft and existing art and adds only a player
+speedboat kind with separate unlisted Boat practice and Boat Combat rooms.
+Controls: W/S throttle/reverse, A/D or left/right arrows steer, Space/X brake,
+mouse aims/fires the pilot cannon, T switches helm/chase. There is no passenger,
+gunner/station activation, aircraft engine sound substituted for the boat motor,
+Type022 self-flight, Factions boat bridge or new art. Other boats and retained
+wrecks use conservative hull-sphere collision, not mesh contact or ram damage.
+
+The local generated root entry is built from this source using the existing
+Three 0.186.0/esbuild 0.28.2. `build-meta.json` now pins actual source/Three input
+hashes before/after compilation, builder/tool/config hashes and per-output inputs.
+The exact source/preimage/delivery receipt is
+[`docs/wings-player-speedboat-main11e-20261103.json`](../../../docs/wings-player-speedboat-main11e-20261103.json).
+Historical `source-manifest.json` and `port.patch` remain baseline evidence, not
+claims that these new inputs equal the old baseline. No generated bundle is
+hand-edited. Native controls, rendered helm/gun/water/materials, motor audio,
+GPU/device/performance and rights/publication acceptance remain held. The
+historical combined boat CPU is still INCOMPLETE 11/12; the new two-pilot CPU
+combat case is separate. The additional full legacy Factions CPU suite remains
+PARTIAL at its 60-second cap. No push, install, new catalog game or license waiver.
 
 ## Provenance and recovery
 

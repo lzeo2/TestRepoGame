@@ -4,7 +4,7 @@
 import type { RoomConfig } from "../sim/protocol"
 import { DEFAULT_ROOM_CONFIG } from "../sim/protocol"
 import type { Quality, VehicleKind } from "../sim/types"
-import { VEHICLES, VEHICLE_KINDS } from "../sim/vehicles"
+import { VEHICLES, AIRCRAFT_KINDS as VEHICLE_KINDS } from "../sim/vehicles"
 import { callsign, randomCallsign, settings, updateSettings } from "./settings"
 import type { ControlScheme } from "../input"
 import { COALITIONS } from "../../../../../authoring/coalition-rosters.mjs"
@@ -470,6 +470,12 @@ export function initLobby(opts: { onStart(req: StartRequest): void; onQuality(q:
         meta: "NATO-inspired or Eastern-inspired · distinct starter rosters · aircraft only" },
       { label: "Controls", run: () => nav.push({ crumb: "controls", html: controlsTable(), hints: [["esc", "back"]] }), meta: "keyboard and mouse required" },
       { label: "Settings", run: () => nav.push(settingsScreen(nav, opts.onQuality, "<b>settings</b>")), meta: "graphics · sound · steering · controls" },
+      { label: "Boat practice", run: () => opts.onStart({ mode: "offline", aircraft: "speedboat",
+        config: { ...DEFAULT_ROOM_CONFIG, name: "Boat practice", vehicleMode: "boats", teams: 2, bots: 0, maxPerTeam: 4, scoreLimit: 5, timeLimit: 180, listed: false } }),
+        meta: "W/S throttle/reverse · A/D steer · Space brake · mouse cannon · T helm/chase · pilot only" },
+      { label: "Boat Combat", run: () => opts.onStart({ mode: "offline", aircraft: "speedboat",
+        config: { ...DEFAULT_ROOM_CONFIG, name: "Boat Combat", vehicleMode: "boats", teams: 2, bots: 2, botSkill: 0.5, maxPerTeam: 3, scoreLimit: 5, timeLimit: 180, listed: false } }),
+        meta: "local boat opponents · five kills or three minutes · no stations or gunner seats" },
     ],
   })
   nav.reset(rootScreen())

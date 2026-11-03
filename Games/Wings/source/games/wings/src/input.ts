@@ -460,6 +460,21 @@ export class Input {
     return out
   }
 
+  /** Water controls deliberately ignore aircraft control-scheme throttle/airbrake aliases. */
+  boatFlightInput(out: FlightInput): FlightInput {
+    out.aim = null; out.throttle = this.axis(["KeyS"], ["KeyW"])
+    out.yaw = this.axis(["KeyA", "ArrowLeft"], ["KeyD", "ArrowRight"])
+    out.roll = 0; out.pitch = 0; out.boost = false; out.brake = this.held("Space", "KeyX")
+    return out
+  }
+
+  boatSeatInput(aim: Vec3 | null, out: SeatInput): SeatInput {
+    out.aim = aim; out.firePrimary = this.mouseL || this.down("Mouse0")
+    out.fireSecondary = false; out.flares = false; out.ability = false
+    ;(out as SeatInput & { steerBomb?: boolean }).steerBomb = false
+    return out
+  }
+
   seatInput(aim: Vec3 | null, out: SeatInput): SeatInput {
     out.aim = aim
     // Space is the heli's collective in keyboard flight, so it doesn't fire there.

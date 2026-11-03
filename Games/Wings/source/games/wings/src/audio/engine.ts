@@ -227,7 +227,7 @@ export function createAudio(): GameAudioEngine {
       let pi = 0
       let ownSpeed = 0
       for (const v of list) {
-        if (!v.alive) continue
+        if (!v.alive || v.kind === "speedboat") continue // No jet/rotor stand-in for the unported boat motor.
         const isOwn = v.id === own
         let score: number
         if (isOwn) {

@@ -1199,7 +1199,10 @@ and record the fresh full fleet result before a separately authorized release
 decision. This documentation adds no game, registration, dependency permission or
 publication authorization.
 
-## Local current-main player-speedboat port (2026-11-03, in progress)
+## Local current-main player-speedboat port (2026-11-03)
+
+The numbered source checkpoints below are intermediate records. The final owner
+checkpoint supersedes their pending-delivery wording, on this local branch only.
 
 Target: exact `11e83932ecbeb01553a902f432a345004e2ab92f`, isolated local
 `integrate/wings-player-speedboat-main11e-20261103`. This is a new, narrow
@@ -1238,3 +1241,69 @@ five picker/lobby/HUD groups pass. The exact old-27 ordered aircraft assertions
 remain, with a separate assertion for the appended water kind. These DOM doubles
 are not physical keyboard/touch, decoded pixels or browser acceptance. Longer
 lifecycle and final generated/current-source gates remain owner work.
+
+### Final owner checkpoint: source-bound local delivery
+
+The owner connects the helpers through targeted edits to current-main types,
+registry, water dispatch, raw seabed/native-solid queries, RoomEngine, combat and
+original UI. No older rich file replaces a current source file. The appended
+speedboat is excluded from ordinary aircraft menus, bot pools, jet tables and
+preview typing. Existing aircraft configuration, GLB geometry/material/rig and
+camera CPU parity remains exact across all 27 originals. Historical aircraft
+chooser/RNG and two actual ordinary serialized-room comparisons also passed
+before the extra legacy suite reached its cap.
+
+Boat practice and Boat Combat are separate unlisted local modes: two teams,
+maximum four pilots per team; practice has no bots and Combat requests two per
+team. Water spawning validates full-hull draft/solid clearance and spaced slots,
+starts stationary, denies aircraft in boat mode and boats in ordinary modes,
+retains pilot ownership, and refuses all boat boarding/seat switching and
+manned-turret commands. Factions boat coupling is explicitly rejected. W/S is
+throttle/reverse, A/D or arrows steer, Space/X brakes, mouse aims/fires the pilot
+cannon, and T switches helm/chase. These consume dedicated input methods, not
+the aircraft Space/S mappings. Boat motor audio is deliberately unported; the
+shared engine-voice manager skips boats while retaining their weapon positions.
+
+Authority and client prediction/replay share the added boat collision adapter:
+native ship/terrain/depth checks plus conservative other-boat/wreck spheres.
+There is no mesh-contact or ram-damage claim; the local-room broadphase remains
+O(n squared). AI supplies only ordinary controls and pilot fire, with hostile,
+visible, unprotected contacts and ground/native-solid/vehicle LOS checks. The
+new two-AI CPU case observed actual movement, fire, damage, a genuine kill at
+20.116666666666667 simulated seconds, score [0,1], and ordinary reset at
+36.11666666666667; final wall observation 34.078 seconds. It is not the old
+six-pilot/default-match or combined twelve-case suite. Ordinary abandonment,
+wreck removal, stationary fresh spawn and round restart separately pass; human
+combat death/respawn and native physical controls remain unobserved.
+
+Two unhooked builds from the same pinned source/tool inputs reproduced all 26
+products byte-exactly: 4,216,535 bytes, copied without hand-editing bundles.
+`build-meta.json` maps 98 actual compiler/template/license inputs, nine
+builder/tool/config hashes (including actual native esbuild), and output inputs.
+The historical manifests remain qualified baseline witnesses. The actual root
+entry has an 18-node/49-edge compiler/worker graph with zero missing links.
+A bounded loopback HTTP check returned 130/130 identical files, 36,442,247 bytes,
+with zero required MIME errors; server shutdown was verified. All 104 existing
+binary/font/image assets are unchanged, as are 167 baseline files outside the
+source/authoring and explicit product set. Older hashed chunks remain retained;
+no global-unused/deletion inference was made.
+
+Seven targeted current-source suites and three generated suites pass. Two
+additional full legacy CPU suites remain PARTIAL: Factions rosters reached three
+passing groups and one natural four-bot sortie before its 60-second cap (124);
+fleet composition reached reciprocal measured fire/damage/sinking/time-draw
+checks before its 45-second cap (124). No timeout or assertion was weakened.
+An old-27 assertion now explicitly targets the aircraft domain and separately
+asserts exact full-28 registration. Legacy Factions error precedence was restored
+in production; the old error assertion stays intact. The surface query checker
+executes the new actual boat-only client callsites and asserts aircraft never
+invoke that adapter; its original fitted-surface physics assertions pass.
+Raw failed attempts and bounded partial logs remain under the local evidence root.
+
+Full-fleet smoke, renderer/browser/native admission, decoded or rendered pixels,
+audio listening, GPU/FPS/thermal/device and rights/publication acceptance were
+not performed or granted. No screenshots, new art/game/catalog registration,
+Type022 self-flight, manned station/default activation, install or push. The
+historical combined boat CPU remains INCOMPLETE 11/12. Exact changes, product
+identities, commands and limits are in
+[`docs/wings-player-speedboat-main11e-20261103.json`](../../wings-player-speedboat-main11e-20261103.json).

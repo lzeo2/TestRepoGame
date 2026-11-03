@@ -1,5 +1,6 @@
 // Vehicle + weapon tuning tables. Owned by the orchestrator; agents may propose numbers.
 import type { FlightModel, VehicleKind, WeaponId, Vec3 } from "./types"
+import { BOAT_NATIVE_SPEC } from "./boat-native"
 import fighterPair from "../../../../../authoring/native-fighter-pair.json" with { type: "json" }
 import helicopterPair from "../../../../../authoring/native-helicopter-pair.json" with { type: "json" }
 import bomberModels from "../../../../../authoring/native-tu160.json" with { type: "json" }
@@ -364,10 +365,12 @@ export const VEHICLES: Record<VehicleKind, VehicleSpec> = {
     seatWeapons: [["rockets", null], ["hellfire", null]],
     hardpoints: NATIVE_HELICOPTER_MODELS.mi28n.hardpoints,
   },
+  speedboat: BOAT_NATIVE_SPEC,
 
 }
 
 export const VEHICLE_KINDS = Object.keys(VEHICLES) as VehicleKind[]
+export const AIRCRAFT_KINDS = VEHICLE_KINDS.filter(kind => kind !== "speedboat")
 
 /** Bomb UI and ordinary bomber AI follow the fitted native weapon, not the artwork name. */
 export function hasBombLoad(kind: VehicleKind | undefined): boolean {

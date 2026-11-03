@@ -6,9 +6,9 @@ export type Vec3 = [number, number, number]
 export type Quat = [number, number, number, number]
 
 export type TeamId = 0 | 1 | 2 | 3
-export type VehicleKind = "fighter" | "apache" | "warthog" | "blackbird" | "bomber" | "f15" | "f35" | "f16c" | "mig29" | "typhoon" | "su35s" | "rafale" | "jf17" | "gripen" | "mig31" | "mirage2000" | "su34" | "fa50" | "yak130" | "hawkt2" | "su25sm" | "a10c" | "f35a" | "j20" | "tu160" | "ah64d" | "mi28n"
+export type VehicleKind = "fighter" | "apache" | "warthog" | "blackbird" | "bomber" | "f15" | "f35" | "f16c" | "mig29" | "typhoon" | "su35s" | "rafale" | "jf17" | "gripen" | "mig31" | "mirage2000" | "su34" | "fa50" | "yak130" | "hawkt2" | "su25sm" | "a10c" | "f35a" | "j20" | "tu160" | "ah64d" | "mi28n" | "speedboat"
 export type HelicopterKind = "apache" | "ah64d" | "mi28n"
-export type FlightModel = "jet" | "heli"
+export type FlightModel = "jet" | "heli" | "water"
 export type SeatIndex = 0 | 1
 export type WeaponSlot = "primary" | "secondary"
 export type Quality = "low" | "balanced" | "high"
@@ -68,6 +68,9 @@ export interface WorldQuery {
   ceiling: number
   /** Velocity of a moving deck (carrier) under x,z, or null/undefined when the surface is static. */
   deckVelocity?(x: number, z: number): Vec3 | null
+  /** Raw seabed and physical solids, excluding the water plane. */
+  seabedHeight?(x: number, z: number): number
+  segmentHitsBoatSolid?(from: Vec3, to: Vec3): boolean
 }
 
 /** Per-tick weapons/aim input for a seat. */
