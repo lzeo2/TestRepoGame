@@ -953,9 +953,8 @@ class GameSession implements GameHandle {
     const seat = me?.seat ?? null
     const heli = myVehicle ? VEHICLES[myVehicle.kind].flight === "heli" : false
 
-    // Mouse role: gunners always aim the turret; pilots use the chosen scheme (mouse-aim by default,
-    // direct while the manual key is held or with the Battlefield scheme).
-    const mode = this.state === "turret" ? "aim" : input.pilotMouseMode(seat === 0)
+    // Boat pilots aim the cannon independently; only aircraft pilots use flight mouse schemes.
+    const mode = this.state === "turret" ? "aim" : input.pilotMouseMode(seat === 0 && myVehicle?.kind !== "speedboat")
     if (myVehicle && seat === 0) {
       const o = this.pred?.state.orientation ?? myVehicle.flight.orientation
       input.setNose(forward(o))

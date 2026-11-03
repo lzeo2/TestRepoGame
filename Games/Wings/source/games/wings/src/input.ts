@@ -472,6 +472,7 @@ export class Input {
     out.aim = aim; out.firePrimary = this.mouseL || this.down("Mouse0")
     out.fireSecondary = false; out.flares = false; out.ability = false
     ;(out as SeatInput & { steerBomb?: boolean }).steerBomb = false
+    this.latched.clear()
     return out
   }
 
