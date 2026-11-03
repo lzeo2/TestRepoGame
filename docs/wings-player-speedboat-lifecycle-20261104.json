@@ -3,6 +3,10 @@
   "status": "LOCAL_TARGETED_CPU_AND_SOURCE_BUILD_PASS_NATIVE_HELD",
   "base": "730c925e33c04fce2983ca39581b1c91c51b5c14",
   "sourceCommit": "7bf3c282d609614bc2487de463da46539b04d8ca",
+  "localDeliveryCommit": "ea6219ca",
+  "gameTree": "b809d09fdfe2a137b544fbe3a305e4ecf075bba8",
+  "gameFiles": 436,
+  "gameBytes": 46845954,
   "worker": {
     "agentID": "a80260ce-25c2-4a94-9de9-029a10fda41f",
     "parent": "8eefec39-3808-4563-9cc0-963764873c8a",
@@ -667,7 +671,7 @@
   ],
   "resources": {
     "startAvailableBytes": 2622631936,
-    "latestAvailableBytes": 2604965888,
+    "latestAvailableBytes": 2604638208,
     "diskFloorBytes": 2147483648,
     "heavyStartFloorKB": 1572864,
     "memoryStopKB": 1048576,
@@ -677,8 +681,10 @@
     "interruptionPolicy": "Checkpoint on floor breach and await capacity-monitor wake; not permanent task closure."
   },
   "maintenance": {
-    "status": "PENDING post-source-commit inventory refresh/check",
-    "scope": "Only Wings inventory row may change."
+    "status": "PASS: 135 game documents cover 129 registered + 6 unregistered games; Git inventory current.",
+    "command": "python3 -B scripts/check_maintenance_docs.py",
+    "scope": "Only Wings inventory row changed; all other rows, shared runtime and maintenance index byte-unchanged.",
+    "limits": "Coverage and staleness only, not native gameplay or semantic certification."
   },
   "screenshots": 0,
   "dirtyPathException": "docs/wings-player-speedboat-lifecycle-followup.md was pre-existing untracked operator brief and remains untouched/uncommitted."
