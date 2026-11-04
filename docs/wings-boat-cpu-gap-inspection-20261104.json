@@ -1,0 +1,159 @@
+{
+  "scope": "WINGS-BOAT-CPU-GAP-20261104-2030; queued-scope d35528f4f10e8bbf6319",
+  "status": "SOURCE_INSPECTION_COMPLETE_NO_NEW_GAMEPLAY_EXECUTION_HISTORICAL_COMBINED_REMAINS_INCOMPLETE",
+  "inspectedHEAD": "2e014f485fb362facd367f764a00402095e2cafb",
+  "gameTree": "b809d09fdfe2a137b544fbe3a305e4ecf075bba8",
+  "initialGitStatus": [
+    "?? docs/wings-boat-cpu-gap-20261104.md",
+    "?? docs/wings-player-speedboat-lifecycle-followup.md"
+  ],
+  "briefSha256": {
+    "docs/wings-boat-cpu-gap-20261104.md": "bde4c3f295590970292f9d4b4f79ff96054b4be344f361cbc6c320a033a6e457",
+    "docs/wings-player-speedboat-lifecycle-followup.md": "73c1913d3d097a8a212944ad1ea3d04810960fcc6e4fde57fefe71c9860bac91"
+  },
+  "historicalExecutable": {
+    "path": "Games/Wings/authoring/native-boat-combat-check.mjs",
+    "gitRef": "07c87a4b1ec2f1071c69a6f10f01b5585f07a4ce",
+    "blob": "0f1ab0ef762590792dbc2e9b74e3361a5c0f1ca7",
+    "bytes": 16594,
+    "sha256": "e438a7f457dfff37188317905d68dff3b734fc5f66b396609ec3409f9e167adc",
+    "presentAtInspectedHEAD": false,
+    "existenceCheck": "git ls-tree HEAD for this exact path returned no entry; not a sparse-file assumption.",
+    "group": 12,
+    "name": "actual menu defaults: three pilots/team fight to five kills and reset without grants",
+    "sourceLines": "189-204 at historical ref",
+    "room": {
+      "vehicleMode": "boats",
+      "teams": 2,
+      "botsPerTeam": 3,
+      "humanPlayers": 0,
+      "maxPerTeam": 8,
+      "botSkill": 0.5,
+      "scoreLimit": 5,
+      "timeLimit": 180,
+      "roomCode": "boat110"
+    },
+    "assertions": [
+      "Advance at dt=1/60 for at most10801 ticks until ordinary match end.",
+      "Peak actual live piloted boats equals6.",
+      "Match ends and maximum teamKills is at least5, not only timeout.",
+      "After original901 further ticks, matchEndedAt is null and teamKills is [0,0]."
+    ],
+    "authorizedRoute": "The twelfth body uses ordinary RoomEngine boat AI/advance and requires no Type022, manned station, renderer, extra model or new feature. This does not authorize the OTHER historical groups: group4 uses a boat gunner, groups6/7/9 use the older Factions/boat bridge; those are not current-main acceptance targets."
+  },
+  "previousMeasuredFailures": [
+    {
+      "receipt": "39d198f89c15534cf05cf8040fb019a5355c65f0:docs/wings-lastcase-isolation-20261030.json",
+      "receiptSha256": "348decf35e257468f0382bb3e66741c3ed5deb58217c7efcaf10ca5afb00147b",
+      "runtimeRef": "0923a3ba0e30157113c29afe8bad55e9216dc9bb",
+      "kind": "Recorded combined-run timeout, not a failed gameplay assertion",
+      "rc": -9,
+      "seconds": 180.130379,
+      "completedGroups": 11,
+      "requestedGroups": 12,
+      "originalRecordSha256": "cabee1224f289d614a95c5ea8527917f10a15e738bd134f7038938f840da6e32",
+      "qualification": "Values read from retained Git receipt; original execution was not repeated."
+    },
+    {
+      "receipt": "07c87a4b1ec2f1071c69a6f10f01b5585f07a4ce:docs/wings-speedboat-integration-20261102.json",
+      "receiptSha256": "a79aa40dd67291f88ded67cf3548a42f5a0ab44d15c88ca5ed0b3196ae2899d7",
+      "kind": "November2 QA47 supervision ended without durable native child exit",
+      "observedPassingGroups": 11,
+      "totalGroups": 12,
+      "requestedChildBudgetSeconds": 180,
+      "supervisorMilliseconds": 300000,
+      "supervisorCode": 143,
+      "nativeChildExitCode": null,
+      "nativeChildExactTiming": null,
+      "lastCompleteGroup": "180-second equal-score timeout is draw, not carrier outcome",
+      "stdoutSha256": "a92c5927ca72d94e3fc36c35afe5e3b7385cdfb45cf12eedef78002f0c65f134",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "rawLogCrossCheck": "Two retained RAM logs, wings-parent-final-native-boat-combat-check.log and wings-parent-boat-final-retry.log, both hash to the receipt stdout SHA and stop after PASS11. They contain no PASS12 or final child result. Their filenames are evidence labels, not committed runtime paths.",
+      "qualification": "Do not substitute supervisor code143 or the older recorded rc-9 for this unknown child result; these are distinct attempts."
+    }
+  ],
+  "alreadyRecordedIsolatedPasses": [
+    {
+      "receipt": "39d198f8:docs/wings-lastcase-isolation-20261030.json",
+      "caseSelectorCommit": "39d198f89c15534cf05cf8040fb019a5355c65f0",
+      "selectorSha256": "6d1f559d50a88d0ccac99d7fc34d45e72da8b5c7f653de59cb511ba4960bd1fe",
+      "args": ["--default-six"],
+      "rc": 0,
+      "wallSeconds": 106.16191936301766,
+      "capSeconds": 180,
+      "profiledRunSeconds": 116.64265796699328,
+      "qualification": "Historical receipt only; not rerun or current-source acceptance."
+    },
+    {
+      "receipt": "07c87a4b:docs/wings-speedboat-integration-20261102.json#scaleContinuation.isolatedCPU",
+      "sourceFrozenHEAD": "99bf195640107e7bf4b711936e84acd3b7f99ad2",
+      "rc": 0,
+      "wallSeconds": 106.2034348329762,
+      "capSeconds": 180,
+      "result": {
+        "actualPilots": 6,
+        "scoreLimit": 5,
+        "endedSimSeconds": 32.3,
+        "kills": [4, 5],
+        "resetSimSeconds": 47.31666666666666
+      },
+      "stdoutSha256": "eef0a10336c5ed3dff86499f0df51de5f29f960340ab24ba1ee87ff334c34ff9",
+      "exitRecordSha256": "4cd6a5d5dd11e5a55d59db365c3475ab25294ae4eeeaf1ffd3d9297c20e30343",
+      "qualification": "Receipt records one unchanged isolated heavy run with persisted exit, all479 frozen files unchanged, no selector adoption and no combined rerun. Historical 1/1 is not combined12/12 or present-main gameplay acceptance."
+    }
+  ],
+  "newReadOnlyDifferentialEvidence": {
+    "execution": "Small Python/hash/Git source comparison only; no Wings module imported or simulation advanced.",
+    "groupOrderVerified": "All twelve literal await-check sites inspected; final site is the named default-six body.",
+    "selectorComparison": "Restoring the defaultSix case-name literal in the selector's last await-check makes the complete final case span byte-identical to original source.",
+    "caseSpanDefinition": "From the two-space-indented final await check through its closing });, excluding the following newline/final console.log.",
+    "caseSpanBytes": 865,
+    "caseSpanSha256": "2c836c6bacc6d053779fc2491b981452b140348e3d0059337d499a254a26d772",
+    "currentMenu": "ui/lobby.ts:476-477 uses Boat Combat bots2/team, maxPerTeam3, one ordinary local human spawn, score5/time180. This is normally five active pilots, not the historical six-AI/no-human fixture. Menu unchanged.",
+    "currentSanitizer": "sim/room-engine.ts:182-203 admits boats teams2, bots0..3 and maxPerTeam1..4. Six AI is a supported room configuration, but old maxPerTeam8 and historical default-menu label are not current defaults.",
+    "currentCollisionDifference": "boat-ai.ts and boat-movement.ts match historical rich ref byte-for-byte; current boat-world.ts is a newly added conservative boat/wreck sphere adapter, wired into RoomEngine and prediction. Historical six-AI PASS cannot establish present collision/multi-actor match outcomes.",
+    "currentPassingEvidenceNotRepeated": "Current-main receipt proves two-AI/score1/reset; lifecycle receipt proves two-human cannon death/respawn. Neither is relabeled as a five-pilot menu or historical six-AI match.",
+    "gameplayDefectEstablished": false,
+    "newGameplayRegressionExecuted": false
+  },
+  "currentInspectedSha256": {
+    "Games/Wings/source/games/wings/src/ui/lobby.ts": "2edfdedbee5a18f97449346fa749ff218baf2674f931d50af8eb218bac806cf0",
+    "Games/Wings/source/games/wings/src/sim/room-engine.ts": "3389c40a120d8ec84be3e90a1b0af9e0bf7110d9630d389e1157a45cf592bf39",
+    "Games/Wings/source/games/wings/src/sim/boat-ai.ts": "917743d99a72a25df22fdd561fb37857f4996ccf3fa9e6eef3ea9aedd4ffd0e3",
+    "Games/Wings/source/games/wings/src/sim/boat-world.ts": "457f86faade81cc4350fe95ea79961b6a1e2db191c244a628f7cf1a7f44829e4",
+    "Games/Wings/authoring/boat-world-main-check.mjs": "1964e5d1b79cae0d1a3e0b107b5b60caefa1b8cd45e0c9cd4a5b665656281df8"
+  },
+  "terminalBlockerForThisScope": "There is no still-missing isolated historical case to fix: exact case12 already passed separately. Only the old aggregate completion/exit record is absent or timed out. A different small fixture cannot supply that missing historical result, and an unchanged combined/default-six replay is prohibited. Current-default five-pilot or six-AI collision/score/reset proof would be a genuinely separate heavy current-source task; Jank owns the slot, so none is run or claimed here. No narrow playable defect was established by source inspection; no speculative production fix, metadata-as-gameplay test or fabricated12/12.",
+  "nativeHold": "Physical input, renderer/pixels, audio, responsive GPU/device/performance, rights and publication remain held. Case12 is CPU AI, not native-device acceptance.",
+  "preservedBuildSha256": {
+    "Games/Wings/build-meta.json": "b25e85245ba472658777198ca80f08a5c8692d9e29d7a0ca80b991bf5dec32cd",
+    "Games/Wings/assets/main.js": "2d96a9c3966c7fef0a5bbeb13628fbc165821ab9bbe9ebc6e9ae6de4346cf512",
+    "Games/Wings/assets/game-NINNSAXS.js": "236a965eb77d58a7380ecb5e4b81c90432bd8830fdfb2f4971f2807f40d3f26a"
+  },
+  "resources": {
+    "startMemAvailableKB": 1830908,
+    "startDiskAvailableBytes": 2538102784,
+    "latestPreWriteMemAvailableKB": 2202948,
+    "latestPreWriteDiskAvailableBytes": 2536947712,
+    "admissionMemAvailableKB": 1572864,
+    "stopMemAvailableKB": 1048576,
+    "diskFloorBytes": 2147483648,
+    "qualification": "Shared-host observations; swap effectively full. No guard waiver or foreign-process action."
+  },
+  "changedPaths": [
+    "docs/wings-boat-cpu-gap-inspection-20261104.json",
+    "docs/maintenance/games/232-wings.md"
+  ],
+  "notRun": ["combined suite", "default-six replay", "existing passing source/build suites", "new heavy replay", "child worker", "browser", "renderer", "full-fleet smoke"],
+  "documentationCheck": {
+    "command": "python3 -B scripts/check_maintenance_docs.py",
+    "status": "PASS: 135 game documents cover 129 registered + 6 unregistered games; Git inventory current.",
+    "inventoryChanged": false,
+    "identityAudit": "PASS current source/build/brief SHA values and unchanged Wings tree; no Games/catalog diff. This is not a gameplay test.",
+    "diffCheck": "git diff --check passed"
+  },
+  "newGames": 0,
+  "screenshots": 0,
+  "push": false,
+  "briefsPreservedUntracked": true
+}

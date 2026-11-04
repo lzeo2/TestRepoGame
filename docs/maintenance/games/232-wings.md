@@ -1360,3 +1360,34 @@ audio, GPU/device/performance and rights/publication acceptance remain held.
 No browser, full-fleet gate, new game/art, station/Type022/default activation,
 installation or push occurred. Capacity interruption remains resumable; a later
 resource-floor crossing requires an exact checkpoint, not an invented pass.
+
+### Historical combined CPU gap inspection (2026-11-04)
+
+Read-only inspection at `2e014f48` identifies group 12 of historical
+`authoring/native-boat-combat-check.mjs` as **actual menu defaults: three
+pilots/team fight to five kills and reset without grants**. It uses six ordinary
+AI boat pilots, not Type022, manned stations or a renderer. The executable is
+absent from current HEAD, not merely sparse-excluded. Other historical groups
+exercise boat gunners/Factions coupling and must not be restored wholesale.
+
+The retained October 30 receipt records a combined timeout at 180.130379 seconds,
+rc -9, with 11 groups complete. The November 2 receipt separately records QA47
+supervision ending at 300 seconds/code 143 without its requested 180-second
+child's exit; that child result remains unknown. Saved partial stdout hashes
+match the latter receipt. These are distinct attempts, not interchangeable exits.
+Crucially, both receipts already retain isolated final-case passes: October 30
+at 106.161919 seconds and November 2 at 106.203435 seconds, the latter with six
+pilots, score [4,5], outcome at 32.3 simulation seconds and reset at 47.316667.
+The selector's complete final case is byte-identical after restoring its name
+literal. None of this becomes a fresh combined 12/12 or current-source pass.
+
+Current Boat Combat requests two AI per team plus the local human, normally five
+pilots; current boat/wreck collision also differs from the old rich runtime.
+The new two-AI and human lifecycle receipts do not prove that multi-actor match.
+No source inspection established a playable defect or a small independent test
+that could fill the missing historical aggregate result. While Jank owns the
+heavy slot, current multi-actor gameplay remains unrun; an unchanged legacy
+replay is prohibited, not silently rescheduled. Only documentation changed;
+existing source, builds, UI, art, catalog and both untracked briefs are preserved.
+[Exact executable/receipt/output identities and scoped terminal blocker](../../wings-boat-cpu-gap-inspection-20261104.json).
+Native input/renderer/audio/device and publication acceptance remain held.
