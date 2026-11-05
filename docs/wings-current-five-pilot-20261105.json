@@ -3,7 +3,18 @@
   "status": "PARTIAL_FIXED_120_SECOND_CAP_SCORE_OUTCOME_OBSERVED_RESET_UNREACHED_NOT_PASS",
   "initialHEAD": "f4bdf2bcc7481688b922fc48bfba121e6cd575f2",
   "executionHEAD": "81a89faf134108349cf0bd8a51254223c0009de7",
+  "fixtureAndReceiptCommit": "b0c0be9f3d72b984a666dea1ff06f3d0986273ca",
   "preAttemptGameTree": "b809d09fdfe2a137b544fbe3a305e4ecf075bba8",
+  "currentGameTree": "7add360d41aec208347c99e492ae5d64665ae3fb",
+  "currentGameFiles": 437,
+  "currentGameBytes": 46855169,
+  "changedPaths": [
+    "Games/Wings/authoring/boat-five-pilot-main-check.mjs",
+    "docs/maintenance/games/232-wings.md",
+    "docs/maintenance/inventory.json",
+    "docs/wings-current-five-pilot-20261105.json",
+    "docs/wings-current-five-pilot-capacity-20261105.json"
+  ],
   "capacityCheckpoint": "docs/wings-current-five-pilot-capacity-20261105.json",
   "fixture": {
     "path": "Games/Wings/authoring/boat-five-pilot-main-check.mjs",
@@ -314,7 +325,16 @@
     "noCompetingHeavyOwner": "Operator release plus fresh process/agent inspection; no child agent launched."
   },
   "maintenance": {
-    "status": "PENDING post-fixture commit Wings-only inventory refresh/check"
+    "status": "PASS: 135 game documents cover 129 registered + 6 unregistered games; Git inventory current.",
+    "command": "python3 -B scripts/check_maintenance_docs.py",
+    "scope": "Only Wings inventory row changed; all other rows, shared runtime and maintenance index unchanged.",
+    "limits": "Coverage/staleness only; does not make the partial fixture pass."
+  },
+  "cheapChecks": {
+    "fixtureSyntax": "PASS node --check",
+    "catalog": "PASS129 unique integer IDs/schema/URLs checked against Git",
+    "receiptJsonPrivacy": "PASS",
+    "diffCheck": "PASS git diff --check"
   },
   "holds": [
     "Overall current five-pilot match lifecycle acceptance remains PARTIAL; no second replay or larger cap under this order.",
