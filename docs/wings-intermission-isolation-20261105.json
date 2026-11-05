@@ -3,6 +3,16 @@
   "status": "PASS_SEPARATE_TWO_HUMAN_SCORE_RESET_CPU_NOT_FIVE_PILOT_OR_NATIVE",
   "base": "a9891a80225b0236db3d7801d3c9e2f88d6eecda",
   "preChangeGameTree": "7add360d41aec208347c99e492ae5d64665ae3fb",
+  "fixtureAndReceiptCommit": "95b5a5ccbcad70c7bcf822170200fb8b0aa9920e",
+  "currentGameTree": "4999aa9e2a80d446d2a9f685c59706c044c8c8da",
+  "currentGameFiles": 438,
+  "currentGameBytes": 46863415,
+  "changedPaths": [
+    "Games/Wings/authoring/boat-score-reset-main-check.mjs",
+    "docs/maintenance/games/232-wings.md",
+    "docs/maintenance/inventory.json",
+    "docs/wings-intermission-isolation-20261105.json"
+  ],
   "coordination": {
     "owner": "8eefec39-3808-4563-9cc0-963764873c8a",
     "schoolyardOwner": "e5b78dc4-5a44-44a4-ba9f-997596d1950e",
@@ -179,7 +189,16 @@
     "guard": "Owned subprocess group monitored every250ms; no resource-floor breach; foreign processes untouched. Shared-host capacity observations, not exclusive task allocation."
   },
   "maintenance": {
-    "status": "PENDING fixture commit then Wings-only inventory refresh/check"
+    "status": "PASS: 135 game documents cover 129 registered + 6 unregistered games; Git inventory current.",
+    "command": "python3 -B scripts/check_maintenance_docs.py",
+    "scope": "Only Wings inventory row changed; other rows, shared runtime and maintenance index unchanged.",
+    "limits": "Coverage/staleness only; separate CPU pass is not five-pilot or native acceptance."
+  },
+  "cheapChecks": {
+    "fixtureSyntax": "PASS node --check",
+    "catalog": "PASS129 unique IDs/schema/tracked URLs",
+    "receiptJsonPrivacy": "PASS",
+    "diffCheck": "PASS git diff --check"
   },
   "holds": [
     "Current-menu five-pilot reset/human lifecycle remains PARTIAL and unverified by this different two-human configuration.",
