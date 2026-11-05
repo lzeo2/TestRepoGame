@@ -1391,3 +1391,36 @@ replay is prohibited, not silently rescheduled. Only documentation changed;
 existing source, builds, UI, art, catalog and both untracked briefs are preserved.
 [Exact executable/receipt/output identities and scoped terminal blocker](../../wings-boat-cpu-gap-inspection-20261104.json).
 Native input/renderer/audio/device and publication acceptance remain held.
+
+### Current-menu five-pilot CPU attempt (2026-11-05)
+
+The independent `WINGS-CURRENT-FIVE-PILOT-20261105` fixture executes the actual
+Boat Combat menu-item callback and its ordinary one-human JSON loopback room:
+two native AI per team, score limit five, time limit 180 seconds. Human aim/fire
+comes only from visible wire snapshots through existing Input methods; the human
+boat stays stationary. No player is marked as AI, and no pose/HP/kill/timer/RNG
+grant, private reset or configuration override is used. This is not a rendered
+menu/GameSession or physical human play. The earlier capacity-only receipt is
+retained as a checkpoint, not a permanent closure.
+
+One parent-owned run, fixed at 120 wall seconds, is **PARTIAL**, not PASS. Five
+live pilots, actual fire/damage and six attributed cannon kills were observed.
+The human received three kills. A real score-limit outcome at 40.416666666666664
+simulation seconds was [5,1]; the match-end reason/winner assertions passed.
+The last persisted checkpoint is ordinary intermission at 46.016666666666666
+simulation seconds / 119.381495114 wall seconds, with 180 fire events, 410 hit
+events and 139 human-attributed hit events. Human damage/death/respawn remained
+unobserved. The guard terminated the owned process at 120.157426347 wall seconds
+(rc -15, deadline), before the ordinary 15-second reset wait completed. Reset,
+fresh spawn and close/fresh-aircraft checks are therefore **UNREACHED**, not green.
+Minimum sampled RAM was 1,692,404 kB and disk 2,192,916,480 bytes; no resource-floor
+breach occurred during replay. No deadline extension or second attempt was made.
+
+No playable defect was established, so production source, UI, art, catalog and
+all 26 frozen build products remain unchanged; no rebuild was needed. The new
+runnable acceptance fixture is `authoring/boat-five-pilot-main-check.mjs`.
+[Targeted receipt, fixture/output SHA-256 and remaining stages](../../wings-current-five-pilot-20261105.json)
+retain the exact bounded result. Existing source checks were not weakened or
+replayed, and historical combined 11/12 remains historical/incomplete. No child
+agent, browser, Type022/manned/default activation, installation or push. Native
+input/renderer/audio/device/performance and publication acceptance remain held.

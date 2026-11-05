@@ -1,0 +1,334 @@
+{
+  "scope": "WINGS-CURRENT-FIVE-PILOT-20261105; WINGS-CAPACITY-RECOVERED-20261105-1520",
+  "status": "PARTIAL_FIXED_120_SECOND_CAP_SCORE_OUTCOME_OBSERVED_RESET_UNREACHED_NOT_PASS",
+  "initialHEAD": "f4bdf2bcc7481688b922fc48bfba121e6cd575f2",
+  "executionHEAD": "81a89faf134108349cf0bd8a51254223c0009de7",
+  "preAttemptGameTree": "b809d09fdfe2a137b544fbe3a305e4ecf075bba8",
+  "capacityCheckpoint": "docs/wings-current-five-pilot-capacity-20261105.json",
+  "fixture": {
+    "path": "Games/Wings/authoring/boat-five-pilot-main-check.mjs",
+    "sha256": "2ab7f3edec02a75a5762644fbead68dbb836b8b894dcca35ec3494a69c6843ef",
+    "bytes": 9215,
+    "syntax": "node --check passed before the single heavy run.",
+    "limits": "Acceptance fixture is committed with an explicit partial run, not a passing regression claim. Post-outcome reset/fresh-spawn/aircraft branches were not reached."
+  },
+  "entry": {
+    "menuSource": "Games/Wings/source/games/wings/src/ui/lobby.ts",
+    "menuSourceSha256": "2edfdedbee5a18f97449346fa749ff218baf2674f931d50af8eb218bac806cf0",
+    "method": "Execute actual final Boat Combat menu item callback, rather than copying config. Ordinary request.aircraft spawn through production createLoopbackRoom/manual clock, normal JSON transport and default production local room code.",
+    "config": {
+      "vehicleMode": "boats",
+      "teams": 2,
+      "botsPerTeam": 2,
+      "humans": 1,
+      "botSkill": 0.5,
+      "maxPerTeam": 3,
+      "scoreLimit": 5,
+      "timeLimit": 180,
+      "listed": false
+    },
+    "humanInput": "Actual Input boat methods; stationary throttle/yaw, aim/fire from own and visible hostile wire snapshots with the existing leadPoint helper. No DOM/physical input or full rendered GameSession."
+  },
+  "runner": {
+    "command": [
+      "python3",
+      "-B",
+      ".tmp/wings-lifecycle-20261104/run-guarded.py",
+      "five-pilot-20261105",
+      "120",
+      "node",
+      "Games/Wings/authoring/boat-five-pilot-main-check.mjs"
+    ],
+    "sha256": "398698fa37c9ac5dec13d400c31bc779dbfddab6bd235b4db41c59d3b8f7c344",
+    "fixedCapSeconds": 120,
+    "resourcePollSeconds": 0.25,
+    "killGraceSeconds": 3,
+    "ownedProcessGroupOnly": true,
+    "result": {
+      "command": [
+        "node",
+        "Games/Wings/authoring/boat-five-pilot-main-check.mjs"
+      ],
+      "rc": -15,
+      "seconds": 120.15742634702474,
+      "minMemAvailableKB": 1692404,
+      "minDiskBytes": 2192916480,
+      "stopped": "deadline"
+    },
+    "runs": 1,
+    "rerun": false,
+    "deadlineExtended": false
+  },
+  "outputs": {
+    "stdout": ".tmp/wings-lifecycle-20261104/owner/five-pilot-20261105.log",
+    "stdoutSha256": "6b4cc4eb3dbdbe091c02d3bfc12ad5e5df6c6c25627466827ecb3d0852627764",
+    "stdoutBytes": 22188,
+    "exitRecord": ".tmp/wings-lifecycle-20261104/owner/five-pilot-20261105.json",
+    "exitRecordSha256": "653c1af2e7eb7786a2f214c8a2851b7621e393eebf9d2ae34c8ee676f92bcd1e",
+    "capture": "Unfiltered stdout and stderr merged by resource guard.",
+    "persistence": "Raw output and exit record retained in local ignored evidence; selected actual checkpoints below are committed. No child exit ambiguity: guardian recorded SIGTERM/deadline."
+  },
+  "observed": {
+    "firstPersistedFivePilotCheckpoint": {
+      "stage": "five-pilot-combat",
+      "wallSeconds": 11.390295765,
+      "simSeconds": 4.016666666666667,
+      "scores": [
+        0,
+        0
+      ],
+      "peakPilots": 5,
+      "fireEvents": 0,
+      "hitEvents": 0,
+      "humanHitEvents": 0,
+      "humanDamageEvents": 0,
+      "humanDeaths": 0,
+      "humanRespawns": 0,
+      "earlyRespawnDenials": 0,
+      "kills": []
+    },
+    "scoreOutcomeCheckpoint": {
+      "stage": "ordinary-intermission",
+      "wallSeconds": 106.128890342,
+      "simSeconds": 40.416666666666664,
+      "scores": [
+        5,
+        1
+      ],
+      "peakPilots": 5,
+      "fireEvents": 154,
+      "hitEvents": 361,
+      "humanHitEvents": 139,
+      "humanDamageEvents": 0,
+      "humanDeaths": 0,
+      "humanRespawns": 0,
+      "earlyRespawnDenials": 0,
+      "kills": [
+        {
+          "type": "kill",
+          "victim": "v10",
+          "victimTeam": 1,
+          "killer": "p5",
+          "weapon": "cannon20",
+          "position": [
+            -762.4315724624827,
+            0.0007381307820675529,
+            -638.908008237751
+          ]
+        },
+        {
+          "type": "kill",
+          "victim": "v9",
+          "victimTeam": 1,
+          "killer": "b2",
+          "weapon": "cannon20",
+          "position": [
+            -762.436457888441,
+            0.010025760334133665,
+            -666.8647581848243
+          ]
+        },
+        {
+          "type": "kill",
+          "victim": "v7",
+          "victimTeam": 0,
+          "killer": "b3",
+          "weapon": "cannon20",
+          "position": [
+            -489.4725446656779,
+            0.0071703117507156185,
+            -611.2628110487273
+          ]
+        },
+        {
+          "type": "kill",
+          "victim": "v11",
+          "victimTeam": 1,
+          "killer": "b1",
+          "weapon": "cannon20",
+          "position": [
+            -765,
+            -0.005537618748749258,
+            -639
+          ]
+        },
+        {
+          "type": "kill",
+          "victim": "v12",
+          "victimTeam": 1,
+          "killer": "p5",
+          "weapon": "cannon20",
+          "position": [
+            -762.0896516380494,
+            -0.0055824149306518515,
+            -666.8817365105712
+          ]
+        },
+        {
+          "type": "kill",
+          "victim": "v14",
+          "victimTeam": 1,
+          "killer": "p5",
+          "weapon": "cannon20",
+          "position": [
+            -765,
+            0.007322917395220197,
+            -639
+          ]
+        }
+      ]
+    },
+    "lastPersistedCheckpoint": {
+      "stage": "ordinary-intermission",
+      "wallSeconds": 119.381495114,
+      "simSeconds": 46.016666666666666,
+      "scores": [
+        5,
+        1
+      ],
+      "peakPilots": 5,
+      "fireEvents": 180,
+      "hitEvents": 410,
+      "humanHitEvents": 139,
+      "humanDamageEvents": 0,
+      "humanDeaths": 0,
+      "humanRespawns": 0,
+      "earlyRespawnDenials": 0,
+      "kills": [
+        {
+          "type": "kill",
+          "victim": "v10",
+          "victimTeam": 1,
+          "killer": "p5",
+          "weapon": "cannon20",
+          "position": [
+            -762.4315724624827,
+            0.0007381307820675529,
+            -638.908008237751
+          ]
+        },
+        {
+          "type": "kill",
+          "victim": "v9",
+          "victimTeam": 1,
+          "killer": "b2",
+          "weapon": "cannon20",
+          "position": [
+            -762.436457888441,
+            0.010025760334133665,
+            -666.8647581848243
+          ]
+        },
+        {
+          "type": "kill",
+          "victim": "v7",
+          "victimTeam": 0,
+          "killer": "b3",
+          "weapon": "cannon20",
+          "position": [
+            -489.4725446656779,
+            0.0071703117507156185,
+            -611.2628110487273
+          ]
+        },
+        {
+          "type": "kill",
+          "victim": "v11",
+          "victimTeam": 1,
+          "killer": "b1",
+          "weapon": "cannon20",
+          "position": [
+            -765,
+            -0.005537618748749258,
+            -639
+          ]
+        },
+        {
+          "type": "kill",
+          "victim": "v12",
+          "victimTeam": 1,
+          "killer": "p5",
+          "weapon": "cannon20",
+          "position": [
+            -762.0896516380494,
+            -0.0055824149306518515,
+            -666.8817365105712
+          ]
+        },
+        {
+          "type": "kill",
+          "victim": "v14",
+          "victimTeam": 1,
+          "killer": "p5",
+          "weapon": "cannon20",
+          "position": [
+            -765,
+            0.007322917395220197,
+            -639
+          ]
+        }
+      ]
+    },
+    "humanKillEvents": 3,
+    "assertionsReached": [
+      "actual menu config unchanged",
+      "one human with null bot brain plus four native AI, two per team",
+      "peak5 live pilots and no secondary seats",
+      "actual fire, damage and attributed cannon kills",
+      "score objective5, not clock-only outcome",
+      "real match-end reason score with matching winner"
+    ],
+    "qualification": "These observed subchecks do not make the acceptance fixture pass. Last checkpoint time is not an invented exact final engine tick at termination."
+  },
+  "unreached": [
+    "ordinary15-second reset completion, score reset and projectile/vehicle cleanup",
+    "fresh full-health stationary human spawn after round reset",
+    "close/fresh ordinary-aircraft room checks",
+    "human damage/death/respawn/early-denial branches in this match"
+  ],
+  "productionDefectEstablished": false,
+  "productionFixes": [],
+  "grantsOrRuleChanges": false,
+  "preservation": {
+    "runtimeSourcesChanged": false,
+    "frozenBuildProductsMatching": 26,
+    "currentGamesBuildInputsMatching": 87,
+    "modelUiCatalogChanges": false,
+    "rebuilt": false,
+    "metadataSha256": "b25e85245ba472658777198ca80f08a5c8692d9e29d7a0ca80b991bf5dec32cd",
+    "gameChunk": "Games/Wings/assets/game-NINNSAXS.js",
+    "gameChunkSha256": "236a965eb77d58a7380ecb5e4b81c90432bd8830fdfb2f4971f2807f40d3f26a",
+    "historicalCombined": "Not executed or relabeled; remains its separate historical11/12 record.",
+    "existingSourceChecks": "Unmodified, not rerun or weakened."
+  },
+  "resources": {
+    "recoveryStartAvailableBytes": 2193358848,
+    "latestPreReceiptAvailableBytes": 2192793600,
+    "admitMemoryKB": 1572864,
+    "stopMemoryKB": 1048576,
+    "stopDiskBytes": 2147483648,
+    "growthBudgetBytes": 20971520,
+    "growthScope": "Small fixture, receipts/manual, local22KB log/exit and scoped Git metadata; no tools/assets/builds. Shared-host disk deltas are not exclusive task attribution.",
+    "noReplayResourceFloorBreach": true,
+    "swap": "effectively full",
+    "noCompetingHeavyOwner": "Operator release plus fresh process/agent inspection; no child agent launched."
+  },
+  "maintenance": {
+    "status": "PENDING post-fixture commit Wings-only inventory refresh/check"
+  },
+  "holds": [
+    "Overall current five-pilot match lifecycle acceptance remains PARTIAL; no second replay or larger cap under this order.",
+    "No observed human death/respawn in this match; previous separate human fixture is not substituted.",
+    "Menu callback/source loopback input is not full original GameSession, renderer, physical mouse/keyboard/touch or aircraft/menu acceptance.",
+    "Native pixels/audio/GPU/device/FPS/thermal, rights and publication remain held.",
+    "No child agent/browser/Type022/manned/default activation/new art/install/full-fleet smoke or push."
+  ],
+  "preservedUntrackedBriefs": [
+    "docs/wings-boat-cpu-gap-20261104.md",
+    "docs/wings-current-five-pilot-20261105.md",
+    "docs/wings-player-speedboat-lifecycle-followup.md"
+  ],
+  "newGames": 0,
+  "screenshots": 0,
+  "push": false
+}

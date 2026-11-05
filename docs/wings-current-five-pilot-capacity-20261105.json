@@ -43,6 +43,11 @@
     "docs/wings-player-speedboat-lifecycle-followup.md"
   ],
   "resumeCondition": "Fresh MemAvailable>=1572864kB and disk>=2147483648B with no competing heavy owner. Recheck immediately before growth/replay; leave foreign processes untouched. This is a capacity checkpoint, not permanent closure.",
+  "subsequentAttempt": {
+    "receipt": "docs/wings-current-five-pilot-20261105.json",
+    "admission": "RAM recovered again to 2,012,852 kB after this checkpoint; the fixture was written and replay admission freshly rechecked.",
+    "result": "One fixed120-second run reached real five-pilot combat and score5-1 outcome, then deadline during intermission. Reset/human death/respawn remain unverified; overall PARTIAL, not PASS. This earlier defer record is retained, not the latest execution status."
+  },
   "newGames": 0,
   "screenshots": 0
 }
