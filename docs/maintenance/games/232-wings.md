@@ -1424,3 +1424,40 @@ retain the exact bounded result. Existing source checks were not weakened or
 replayed, and historical combined 11/12 remains historical/incomplete. No child
 agent, browser, Type022/manned/default activation, installation or push. Native
 input/renderer/audio/device/performance and publication acceptance remain held.
+
+### Separate ordinary score-to-reset isolation (2026-11-05)
+
+`WINGS-INTERMISSION-ISOLATION-20261105` inspects the unchanged production reset
+path rather than replaying the timed-out five-pilot encounter. Existing boats,
+AI and combat keep advancing during intermission; `updateBots` suppresses new
+births, while `updateMatch` checks elapsed room time after that work and invokes
+`resetMatch` at the ordinary 15-second boundary. Saved five-pilot log windows
+cost 2.748 wall seconds per simulation second before the outcome and 2.349 during
+intermission. That is not evidence of an intermission-specific slowdown or a
+broken reset. No production or five-pilot fixture change was justified.
+
+New `authoring/boat-score-reset-main-check.mjs` uses two real human endpoints,
+zero AI and sanitizer-supported score limit one, with normal legal spawns,
+weapons/protection/collision and recipient-aware JSON transport. This selects a
+smaller supported room configuration, not altered scoring rules or weaker
+five-pilot assertions. Human input yields 54 real hits and one attributed cannon
+kill at 9.566666666666666 simulation seconds, score [1,0]. All 900 ordinary
+intermission ticks execute; reset occurs at 24.566666666666666, exactly 15 seconds
+later. Scores/stats/seats/control queues, vehicles and projectiles clear; both
+humans then spawn fresh full-health, full-ammo stationary boats through protocol.
+Closing that room and spawning a fighter in a new ordinary aircraft room also
+passes. This is post-round fresh spawn, not a mid-match cooldown or rendered-menu
+acceptance claim.
+
+The single guarded run exits zero in 22.109222026 wall seconds under a separate
+60-second cap, after Schoolyard explicitly released the shared slot. Measured
+intermission spans total 8.560 seconds in `advance` and 0.104 in asynchronous JSON
+delivery. `advance` includes native simulation AND synchronous serialization;
+those components were not individually profiled. These elapsed spans are not
+CPU self-time, device FPS, a five-pilot speedup or an exclusive root-cause proof.
+[Exact targeted receipt and hashes](../../wings-intermission-isolation-20261105.json)
+retain the measurements. Only this separate CPU reset regression passes; the
+five-pilot receipt remains PARTIAL, with no replay or longer cap. Runtime source,
+all 26 build products, UI/art/catalog and previous fixtures remain unchanged;
+no rebuild, child agent, browser, Type022/manned activation, install or push.
+Physical input/renderer/audio/device and publication acceptance remain held.

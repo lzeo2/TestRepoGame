@@ -1,0 +1,200 @@
+{
+  "scope": "WINGS-INTERMISSION-ISOLATION-20261105",
+  "status": "PASS_SEPARATE_TWO_HUMAN_SCORE_RESET_CPU_NOT_FIVE_PILOT_OR_NATIVE",
+  "base": "a9891a80225b0236db3d7801d3c9e2f88d6eecda",
+  "preChangeGameTree": "7add360d41aec208347c99e492ae5d64665ae3fb",
+  "coordination": {
+    "owner": "8eefec39-3808-4563-9cc0-963764873c8a",
+    "schoolyardOwner": "e5b78dc4-5a44-44a4-ba9f-997596d1950e",
+    "sequence": "Light source inspection and fixture preparation only while Schoolyard owned slot. Explicit release inspected in its transcript before replay; fresh process/RAM/disk preflight. One parent-owned CPU subprocess; no child agent/browser. Slot released immediately after success."
+  },
+  "sourceInspection": {
+    "file": "Games/Wings/source/games/wings/src/sim/room-engine.ts",
+    "sha256": "3389c40a120d8ec84be3e90a1b0af9e0bf7110d9630d389e1157a45cf592bf39",
+    "findings": [
+      "advance runs normal fixed ticks, flushes real events and emits per-player snapshots.",
+      "step continues live-boat AI, movement/collision and combat before updateMatch even after match end.",
+      "updateBots rejects new births during intermission, but existing live-brain work above still runs.",
+      "updateMatch checks time-matchEndedAt >= MATCH_RESTART_DELAY15, then calls resetMatch.",
+      "resetMatch clears players/vehicles/combat/scores on this ordinary path; no timer or state injection is needed."
+    ],
+    "playableDefectEstablished": false,
+    "productionFix": null
+  },
+  "priorFivePilotEvidence": {
+    "receipt": "docs/wings-current-five-pilot-20261105.json",
+    "status": "PARTIAL remains unchanged",
+    "combinedOutputSha256": "6b4cc4eb3dbdbe091c02d3bfc12ad5e5df6c6c25627466827ecb3d0852627764",
+    "savedLogWindows": [
+      {
+        "phase": "combat",
+        "fromSim": 32.016666666666666,
+        "toSim": 40.016666666666666,
+        "wallSeconds": 21.98175886,
+        "wallPerSimSecond": 2.7477198575,
+        "additionalFireEvents": 19,
+        "additionalHitEvents": 55
+      },
+      {
+        "phase": "intermission",
+        "fromSim": 42.016666666666666,
+        "toSim": 46.016666666666666,
+        "wallSeconds": 9.396317174000004,
+        "wallPerSimSecond": 2.349079293500001,
+        "additionalFireEvents": 22,
+        "additionalHitEvents": 48
+      }
+    ],
+    "interpretation": "Sampled post-score ticks were not slower than sampled pre-score ticks; no intermission-specific slowdown or causal defect is established. Existing five-pilot fixture and cap unchanged, not replayed."
+  },
+  "fixture": {
+    "path": "Games/Wings/authoring/boat-score-reset-main-check.mjs",
+    "bytes": 8246,
+    "sha256": "12488ae94dbc71ce3aabe0aed90dd15df75e565b1f808e57b1a473c2205fb7f4",
+    "syntax": "PASS node --check",
+    "configuration": {
+      "vehicleMode": "boats",
+      "teams": 2,
+      "humans": 2,
+      "bots": 0,
+      "maxPerTeam": 1,
+      "scoreLimit": 1,
+      "timeLimit": 180,
+      "listed": false
+    },
+    "fairness": "Normal sanitizer-supported configuration and ordinary addPlayer/handle/advance with recipient-aware JSON endpoints. Real stationary water spawns and visible wire snapshots drive actual Input boat methods. Native damage/weapon/cooldown/protection/collision and full15s delay unchanged. No HP/pose/kill/clock/RNG/matchEndedAt grants or private reset. Score1 is a different supported room fixture, not weakened five-pilot rules/assertions.",
+    "clock": "Fixed1/60 advances through actual RoomEngine, not assigned time/tick values; native engine derives its room time."
+  },
+  "run": {
+    "command": [
+      "python3",
+      "-B",
+      ".tmp/wings-lifecycle-20261104/run-guarded.py",
+      "score-reset-isolation-20261105",
+      "60",
+      "node",
+      "Games/Wings/authoring/boat-score-reset-main-check.mjs"
+    ],
+    "fixedWallCapSeconds": 60,
+    "count": 1,
+    "result": {
+      "command": [
+        "node",
+        "Games/Wings/authoring/boat-score-reset-main-check.mjs"
+      ],
+      "rc": 0,
+      "seconds": 22.109222026076168,
+      "minMemAvailableKB": 2174000,
+      "minDiskBytes": 2576101376,
+      "stopped": null
+    },
+    "deadlineExtended": false,
+    "fivePilotReplayed": false
+  },
+  "observedScoreEnd": {
+    "phase": "real-score-end",
+    "ended": 9.566666666666666,
+    "hits": 54,
+    "kills": [
+      {
+        "type": "kill",
+        "victim": "v4",
+        "victimTeam": 1,
+        "killer": "p1",
+        "weapon": "cannon20",
+        "position": [
+          -765,
+          -0.004459460534293186,
+          -667
+        ]
+      }
+    ],
+    "scores": [
+      1,
+      0
+    ]
+  },
+  "observedCompletedReset": {
+    "phase": "PASS_SEPARATE_CPU_SCORE_RESET_NOT_FIVE_PILOT",
+    "ended": 9.566666666666666,
+    "reset": 24.566666666666666,
+    "hits": 54,
+    "humans": 2,
+    "bots": 0,
+    "scoreLimit": 1,
+    "restartDelay": 15,
+    "timings": {
+      "combat": {
+        "ticks": 574,
+        "advanceMs": 10926.121735999994,
+        "deliveryMs": 70.16301899999007,
+        "clientMs": 84.29679500001475
+      },
+      "intermission": {
+        "ticks": 900,
+        "advanceMs": 8559.960884999948,
+        "deliveryMs": 103.6977210000623,
+        "clientMs": 0.6121860000421293
+      }
+    },
+    "wallSeconds": 21.708244833000002,
+    "holds": "Not five-pilot/native play or a full GameSession/menu; post-round fresh spawn is not mid-match respawn-cooldown acceptance."
+  },
+  "passedAssertions": [
+    "two ordinary human identities and zero AI",
+    "real54 hit events and single attributed cannon human kill",
+    "score1 outcome and correct winner/match-end event",
+    "victim death/seat clearing and normal respawn timestamp recorded",
+    "all900 ordinary intermission ticks, stable end timestamp and full15s delay",
+    "scores/stats/seats/input queues/vehicles/projectiles cleared at ordinary reset",
+    "both post-round human boat spawns full health/full ammo/stationary/tick0 through normal protocol",
+    "room removal then fresh ordinary fighter room spawn, boats mode absent"
+  ],
+  "timingLimits": "Timing spans are performance.now elapsed wall samples around ordinary operations, not CPU self-time or an exclusive profiler. advanceMs includes synchronous engine logic AND snapshot/event serialization; these were not split. deliveryMs includes queued JSON decode/handler work. Imports, assertions, yielding and scheduling are not exhaustively attributed. A smaller zero-AI room is not a five-pilot speedup or device/FPS result.",
+  "outputs": {
+    "combinedOutput": ".tmp/wings-lifecycle-20261104/owner/score-reset-isolation-20261105.log",
+    "combinedOutputSha256": "2a3b24900cb96b9cb3f0c152d3347a476376a96cf7c062f431b1bcbe0f1d7898",
+    "exitRecord": ".tmp/wings-lifecycle-20261104/owner/score-reset-isolation-20261105.json",
+    "exitRecordSha256": "c109bdf0a20a7dcdd8c98927abf5620fdad107cf73b4ebbaae8d602829b83fd9",
+    "capture": "Unfiltered stdout/stderr merged, including experimental TypeScript warning. Actual two result objects are committed above."
+  },
+  "preservation": {
+    "runtimeSourceChanged": false,
+    "fivePilotFixtureChanged": false,
+    "frozenBuildProductsMatching": 26,
+    "rebuild": false,
+    "modelUiCatalogChanges": false,
+    "buildMetadataSha256": "b25e85245ba472658777198ca80f08a5c8692d9e29d7a0ca80b991bf5dec32cd",
+    "gameChunkSha256": "236a965eb77d58a7380ecb5e4b81c90432bd8830fdfb2f4971f2807f40d3f26a",
+    "historicalCombined": "Not replayed or relabeled; historical11/12 remains separate."
+  },
+  "resources": {
+    "startAvailableBytes": 2576510976,
+    "latestPreReceiptAvailableBytes": 2572976128,
+    "startMemAvailableKB": 2433876,
+    "replayAdmissionMemAvailableKB": 2179200,
+    "memoryAdmissionKB": 1572864,
+    "memoryStopKB": 1048576,
+    "diskStopBytes": 2147483648,
+    "guard": "Owned subprocess group monitored every250ms; no resource-floor breach; foreign processes untouched. Shared-host capacity observations, not exclusive task allocation."
+  },
+  "maintenance": {
+    "status": "PENDING fixture commit then Wings-only inventory refresh/check"
+  },
+  "holds": [
+    "Current-menu five-pilot reset/human lifecycle remains PARTIAL and unverified by this different two-human configuration.",
+    "Fresh post-round spawn is not mid-match human respawn-cooldown acceptance.",
+    "Fresh aircraft room spawn is not full GameSession/menu/input/renderer acceptance.",
+    "Native keyboard/mouse/touch, pixels/audio/GPU/device/performance, rights/publication remain held.",
+    "No five-pilot/historical aggregate replay, cap extension, UI/art/Type022/manned/default activation, installs, build churn, full-fleet smoke or push."
+  ],
+  "preservedUntrackedBriefs": [
+    "docs/wings-boat-cpu-gap-20261104.md",
+    "docs/wings-current-five-pilot-20261105.md",
+    "docs/wings-intermission-isolation-20261105.md",
+    "docs/wings-player-speedboat-lifecycle-followup.md"
+  ],
+  "newGames": 0,
+  "screenshots": 0,
+  "push": false
+}
