@@ -1,0 +1,48 @@
+{
+  "scope": "WINGS-CURRENT-FIVE-PILOT-20261105; WINGS-CAPACITY-RECOVERED-20261105-1520",
+  "status": "DEFERRED_BEFORE_FIXTURE_WRITE_NO_CPU_ACCEPTANCE_TASK_REMAINS_OPEN",
+  "inspectedHEAD": "f4bdf2bcc7481688b922fc48bfba121e6cd575f2",
+  "gameTree": "b809d09fdfe2a137b544fbe3a305e4ecf075bba8",
+  "brief": "docs/wings-current-five-pilot-20261105.md",
+  "permission": "The current five-pilot task is authorized. No new permission request or historical investigation is needed. This receipt uses the explicit source-only receipt/defer fallback after fresh headroom shrank.",
+  "previousTicket": "pi-917759-1793852318516-4e82b01f consumed by operator recovery continuation",
+  "measurements": [
+    { "stage": "recovery entry preflight", "memAvailableKB": 1947972, "swapFreeKB": 988, "diskAvailableBytes": 2193358848 },
+    { "stage": "immediately before planned fixture write", "memAvailableKB": 1468836, "swapFreeKB": 988, "diskAvailableBytes": 2193330176, "admitted": false },
+    { "stage": "fallback checkpoint", "memAvailableKB": 1445128, "swapFreeKB": 0, "diskAvailableBytes": 2193178624, "heavyAdmitted": false }
+  ],
+  "guards": {
+    "heavyAdmissionMemAvailableKB": 1572864,
+    "memoryHardStopKB": 1048576,
+    "diskHardStopBytes": 2147483648,
+    "attemptGrowthLimitBytes": 20971520,
+    "fallbackGrowth": "One small documentation receipt plus scoped Git metadata; no tools, build products, assets or fixture logs created. Actual host free-space delta is not exclusive allocation."
+  },
+  "sourceInspection": {
+    "currentMenu": "ui/lobby.ts Boat Combat callback requests offline speedboat, teams2, bots2/team, maxPerTeam3, botSkill0.5, scoreLimit5, timeLimit180, listedfalse.",
+    "startRoute": "ui/game.ts connect uses ordinary spawn protocol for request.aircraft; sim/loopback.ts owns one human JSON endpoint plus actual RoomEngine AI.",
+    "lifecycle": "RoomEngine owns bot births, cannon events, scoring, human respawn cooldown5s and ordinary match restart15s; no pose/HP/kill/timer/RNG grants are permitted.",
+    "nextBoundedFixture": "Execute the actual current menu item callback, create its ordinary manual loopback, spawn the human through protocol, supply ordinary Input aim/fire from visible wire snapshots, observe one human plus four AI and real kills/score-five/end/reset. Observe human death/respawn if reached; label any unobserved branch. One fixed120s resource-guarded process, no deadline extension or historical replay.",
+    "gameplayDefectEstablished": false
+  },
+  "notPerformed": [
+    "fixture creation",
+    "Wings module execution or simulation tick",
+    "heavy replay or legacy aggregate",
+    "passing source/build suite rerun",
+    "child agent",
+    "browser or renderer",
+    "source/build/asset/UI/catalog change",
+    "Type022 or manned activation",
+    "push"
+  ],
+  "acceptance": "Current-menu five-pilot match lifecycle remains UNVERIFIED. Historical 11/12 is neither rerun nor relabeled. Native physical input, renderer/pixels/audio/GPU/device/performance and publication remain held.",
+  "preservedUntrackedBriefs": [
+    "docs/wings-boat-cpu-gap-20261104.md",
+    "docs/wings-current-five-pilot-20261105.md",
+    "docs/wings-player-speedboat-lifecycle-followup.md"
+  ],
+  "resumeCondition": "Fresh MemAvailable>=1572864kB and disk>=2147483648B with no competing heavy owner. Recheck immediately before growth/replay; leave foreign processes untouched. This is a capacity checkpoint, not permanent closure.",
+  "newGames": 0,
+  "screenshots": 0
+}
