@@ -1,0 +1,243 @@
+{
+  "scope": "WINGS-QUERY-REUSE-20261107",
+  "status": "COMPLETE_COUNTEREXAMPLE_STOP_UNVERSIONED_GENERIC_CANDIDATE_REJECTED_PRODUCTION_UNCHANGED",
+  "base": "2180745b79194a2fd9c5b18cb3a9b84ed01c96c2",
+  "wingsTree": "4999aa9e2a80d446d2a9f685c59706c044c8c8da",
+  "decision": "Stop under the brief counterexample branch. Do not apply the generic endpoint-only cache to production. Fixed-geometry neutral equivalence is insufficient to guarantee original query answers through geometry mutation. This is not a theorem that all narrower native-only, explicitly invalidated reuse schemes are unsound.",
+  "sourceTrace": [
+    {
+      "source": "sim/geography.ts:63-147,770-815,869-870",
+      "facts": "worldQuery.segmentHitsBoatSolid delegates to segmentHitsShip. The latter reads ACTIVE, POSED positions, SIN/COS, SHIP_SPECS, precomputed REACH/TOP/SHIP_BOXES; local slab intersection uses scratch L but does not update ship geometry. Segment order and finite endpoint values matter. Static boxes derive from existing native fleet specs; no models changed."
+    },
+    {
+      "source": "sim/geography.ts:102-147; sim/fleet.ts:181-195",
+      "facts": "setFleetState recomputes poses/headings/trigonometry from match time and sets team/platform masks. setShipStates separately updates ALIVE/SOLID, dropping collision at now-sunkAt>=20, then refreshes ACTIVE. fleetState exposes match time/team/platform fields, not a solidity generation. World object/function identity remains constant while answers change."
+    },
+    {
+      "source": "sim/room-engine.ts:910-983,1194-1208; syncFleet callers at790,895,926",
+      "facts": "advance may execute several ticks. Each step synchronizes fleet before brain/movement work; spawn/deck paths also synchronize. Boat brains run before the sequential vehicle movement loop. Native ordinary geometry has no identified writer inside one uninterrupted stock movement invocation. Match time is0 in intermission while ship solidity still depends on advancing room time. A whole advance, world-object lifetime or fleetState tuple is not a general invalidation boundary."
+    },
+    {
+      "source": "sim/boat-world.ts:9-24; sim/room-engine.ts:958-970",
+      "facts": "Adapter calls the native solid oracle before testing conservative spheres of other boats. It captures filtered entity references, not immutable positions: sequential movement can change peer positions between boat invocations. Candidate only wraps the native oracle before this adapter; it does not cache combined peer contact results."
+    },
+    {
+      "source": "ui/game.ts:398-399,677-683,1048; render/world-view.ts:238",
+      "facts": "Client fleet synchronization and ship-state snapshot application write geography; reconciliation uses an adapter across several input-history entries. JavaScript movement calls are synchronous, so these source sites are not evidence of ordinary mid-call preemption. No browser/client execution occurred here."
+    },
+    {
+      "source": "sim/types.ts:58-74; sim/boat-movement.ts:7-14,61-95,106-180; sim/boat-ai.ts:28-42",
+      "facts": "The structural WorldQuery interface supplies callbacks without an immutable-geometry lease/revision. hullClear interleaves ground/water/bed reads and solid queries; movement retains current-pose/yaw/X/Z/buoyancy checks. AI invokes the same navigability predicate for course sampling. Generic per-movement caching cannot assume that every representable callback leaves native geometry unchanged."
+    }
+  ],
+  "experiment": {
+    "script": "scripts/check_wings_query_reuse.mjs",
+    "sha256": "1d221e119d04a73fb4393799a8c10a7f0b1bd56c972f188a53e84a641008ba24",
+    "runs": 1,
+    "command": [
+      "python3",
+      "-B",
+      ".tmp/wings-query-reuse-20261107/run-guarded.py"
+    ],
+    "runnerSha256": "39f617cc51469062f90b9a4128358680228cf14ef5dea1968dad49721a15fd8d",
+    "runner": {
+      "command": [
+        "node",
+        "scripts/check_wings_query_reuse.mjs"
+      ],
+      "rc": 0,
+      "seconds": 2.2434034589969087,
+      "minMemAvailableKB": 3960044,
+      "minDiskBytes": 2300706816,
+      "stopped": null,
+      "memoryFloorKB": 1572864,
+      "diskFloorBytes": 2147483648,
+      "capSeconds": 10
+    },
+    "output": {
+      "status": "PASS_COUNTEREXAMPLE_REJECT_UNVERSIONED_REUSE_PRODUCTION_UNCHANGED",
+      "ordinaryNeutral": {
+        "movementCalls": 2,
+        "dt": 0.016666666666666666,
+        "logicalQueries": 6427,
+        "referenceNativeCalls": 6427,
+        "candidateNativeCalls": 2980,
+        "reused": 3447,
+        "orderedAnswersEqual": true,
+        "outputEqual": true,
+        "separatedCollidersUnchanged": true
+      },
+      "nativeInvalidationBoundaries": {
+        "motion": {
+          "geometrySeconds": [
+            0,
+            0.016666666666666666
+          ],
+          "point": [
+            -165.99000000000004,
+            0,
+            2940
+          ],
+          "before": true,
+          "after": false
+        },
+        "solidCutoff": {
+          "geometryAgeSeconds": [
+            19.983333333333334,
+            20
+          ],
+          "point": [
+            -1.592040838891559e-14,
+            0,
+            2940
+          ],
+          "before": true,
+          "after": false,
+          "unchangedFleetState": {
+            "matchTime": 0,
+            "teams": 2,
+            "carriersOnly": false
+          }
+        }
+      },
+      "counterexample": {
+        "kind": "declared reentrant WorldQuery geometry-hook fixture, not ordinary room execution",
+        "movementCalls": 2,
+        "change": "setShipStates reactivates native carrier after water query342, between hull checks",
+        "fleetBefore": {
+          "matchTime": 0,
+          "teams": 2,
+          "carriersOnly": false
+        },
+        "fleetAfter": {
+          "matchTime": 0,
+          "teams": 2,
+          "carriersOnly": false
+        },
+        "logicalQueryOneBased": 468,
+        "from": [
+          -1.6314893698263782,
+          -0.9589399754819373,
+          2934.9729863664857
+        ],
+        "to": [
+          -1.6314893698263782,
+          0.9189399754819375,
+          2934.9729863664857
+        ],
+        "cachedAnswer": false,
+        "referenceAnswer": true,
+        "freshNativeAnswer": true,
+        "logicalOrderEquivalent": false,
+        "finalStateEqual": true
+      },
+      "wallSeconds": 2.001024748,
+      "limits": "Ordinary fixed-geometry single-step equality is not a public WorldQuery purity/invalidation guarantee. The counterexample exercises a callback representable by the current interface with explicit native geometry updates; no claim that stock ordinary RoomEngine changes geometry mid-movement. No production cache, timing benefit/full-match share, score/reset/kill, event-stream, save, device or five-pilot acceptance established."
+    },
+    "log": ".tmp/wings-query-reuse-20261107/isolated.log",
+    "logSha256": "6d4b9fec704512180aab73568475fbc1749bc4af7ceeca25779dcc7c050b70db",
+    "exitRecord": ".tmp/wings-query-reuse-20261107/isolated.json",
+    "exitSha256": "fb5564357478695c6ea37087fd16770fc65d72165381cafaece0e5390a76b49d",
+    "candidate": "In-memory Map, freshly allocated per single1/60s movement invocation. Ordered six finite endpoint coordinates, signed zero retained, no spatial approximation or reversed-segment reuse. Misses delegate to original native query; hits reuse previous boolean. No cache is installed in production.",
+    "neutralComparison": "One uncached and one candidate call from the same ordinary factory pose, native initial geography and four separated declared collider records. Full supplied boat state and complete logical ground/water/bed/solid answer order match; peer records remain unchanged. Actual native delegates6427->2980, reuses3447. No performance-speedup assertion: tracing/key/allocation overhead and warm-up are uncontrolled.",
+    "nativeBoundaryChecks": "A point1cm inside the native carrier box changes hit true->false after one1/60s pose update. At fixed matchTime0/team2, native solidity changes true->false at age20s without changing fleetState tuple. These are isolated geometry fixtures, not observations of a live room clock or ship kill.",
+    "counterexample": "A separate declared callback fixture starts with the native carrier non-solid and reactivates it via setShipStates after water query342. Both paths receive the identical update hook. Within the same movement invocation, logical query468 has identical endpoints but cache returnsfalse where uncached/fresh native returns true. Required ordered-query equivalence fails, although final boat states happen to match.",
+    "counterexampleLimits": "This reentrant hook is representable by the current callback interface but is NOT stock ordinary RoomEngine ordering and is NOT evidence that the existing five-pilot run changes geometry mid-movement. Cross-boundary native probes do not alone disprove fresh per-call caching under a proved immutable native-only lease. That narrower production contract is not established or delivered by this generic candidate.",
+    "conditionalSourceFix": "Not entered: general candidate fails the original-answer requirement. No production failing-first/red-green repair claim; the standalone diagnostic asserts rejection of the in-memory candidate."
+  },
+  "verification": {
+    "sourceBuildIdentity": {
+      "localInputs": 87,
+      "frozenOutputs": 26,
+      "metadataOutputSizes": 25,
+      "externalInputPathsNotReread": 11,
+      "status": "PASS",
+      "correction": "Initial verifier incorrectly expected output hashes inside build-meta output records (KeyError sha256). Corrected to its actual byte-count schema plus hashes in the frozen lifecycle receipt; no expected hashes/assertions changed."
+    },
+    "gameTreeUnchanged": true,
+    "buildMetadataUnchanged": true,
+    "inventoryUnchanged": true,
+    "briefHashesUnchanged": {
+      "docs/wings-intermission-isolation-20261105.md": "8c25727e995f705e7d92dec258e2a36aa089ec890c6466af9acc332e360e6468",
+      "docs/wings-query-reuse-20261107.md": "de1465b172d537607c2e89ddeffcf74883973f21ef2aa3e67966ff376645433b",
+      "docs/wings-five-pilot-cost-trace-20261106.md": "c5ca0c2d97c0c7ec4321821991be34d09106572cf27352798824e5357b373680",
+      "docs/wings-boat-cpu-gap-20261104.md": "bde4c3f295590970292f9d4b4f79ff96054b4be344f361cbc6c320a033a6e457",
+      "docs/wings-current-five-pilot-20261105.md": "80d18bd96a2d6353ac2d2a957ff326571e65f5f39e7967d6eaa1a15c26150669",
+      "docs/wings-player-speedboat-lifecycle-followup.md": "73c1913d3d097a8a212944ad1ea3d04810960fcc6e4fde57fefe71c9860bac91",
+      "docs/wings-postscore-work-20261106.md": "9b2c28b249444c1190915a1fec746a028c84e3429540ed817bdc1c3c6d95f4ea"
+    },
+    "inspectedSourceSha256": {
+      "Games/Wings/source/games/wings/src/sim/geography.ts": "d7abf668b86cecd83de9d281b37b5bf35c64a396f7a875d5ce84fefcc0e32213",
+      "Games/Wings/source/games/wings/src/sim/fleet.ts": "d0ea5b4a6e409c06d0025c08a86494648972e5628a09f8b5708b0ce3cb9bc685",
+      "Games/Wings/source/games/wings/src/sim/boat-world.ts": "457f86faade81cc4350fe95ea79961b6a1e2db191c244a628f7cf1a7f44829e4",
+      "Games/Wings/source/games/wings/src/sim/boat-movement.ts": "e3fcd71eb2bb83c0209ad11481d5db6c2b5cb8156590d79308d87d693c3f20ab",
+      "Games/Wings/source/games/wings/src/sim/boat-ai.ts": "917743d99a72a25df22fdd561fb37857f4996ccf3fa9e6eef3ea9aedd4ffd0e3",
+      "Games/Wings/source/games/wings/src/sim/room-engine.ts": "3389c40a120d8ec84be3e90a1b0af9e0bf7110d9630d389e1157a45cf592bf39",
+      "Games/Wings/source/games/wings/src/sim/types.ts": "7d0f9c9f635c631c88321cb1361231dc70d61cbd90d8678a29d34afa0e140a82",
+      "Games/Wings/source/games/wings/src/sim/flight.ts": "45fbe397e2650ff40432a58d1e262cd16b4cf9f515fe6f9a88a6522367ff9415",
+      "Games/Wings/source/games/wings/src/ui/game.ts": "a9d07656f91f37db92ac0c20ff50f144328d5c775b33aa34da02bcd93932b94a",
+      "Games/Wings/source/games/wings/src/sim/loopback.ts": "8ed939d2c85e279a0e2512b84c5e10eeb8927c1902a52dbf8040ee8de54b1e1a"
+    },
+    "newScriptSyntax": "PASS node --check scripts/check_wings_query_reuse.mjs",
+    "finalChecks": {
+      "receiptJsonPrivacy": "PASS",
+      "inspectedSourcesAndSevenBriefs": "PASS SHA256 identities unchanged",
+      "catalog": "PASS129 schema/unique IDs/tracked URLs; no additions",
+      "maintenance": "PASS: 135 game documents cover 129 registered + 6 unregistered games; Git inventory current.",
+      "maintenanceCommand": "python3 -B scripts/check_maintenance_docs.py",
+      "diff": "PASS git diff --check",
+      "limits": "Diagnostic/documentation checks only; no production optimization or five-pilot reset acceptance."
+    }
+  },
+  "preservation": {
+    "productionChanges": 0,
+    "gameFilesChanged": 0,
+    "modelFilesChanged": 0,
+    "builds": 0,
+    "browsers": 0,
+    "childAgentsOrWorkers": 0,
+    "heavyReplays": 0,
+    "fivePilotRuns": 0,
+    "capExtensions": 0,
+    "newHypotheses": 0,
+    "newGames": 0,
+    "screenshots": 0,
+    "push": false,
+    "publication": false,
+    "inventorySha256": "d5e079982e13a9cf2e4d53efecd378132d6c22b3fd4129f5d1f78fbcfa1550a6",
+    "buildMetadataSha256": "b25e85245ba472658777198ca80f08a5c8692d9e29d7a0ca80b991bf5dec32cd",
+    "fivePilotFixtureSha256": "2ab7f3edec02a75a5762644fbead68dbb836b8b894dcca35ec3494a69c6843ef",
+    "priorCostDiagnosticSha256": "5507b110450d90b4d2a3ab670e53a351ce808ecf57f582510652156323c2bbf6"
+  },
+  "fivePilotAcceptance": {
+    "status": "PARTIAL unchanged; ordinary reset UNOBSERVED",
+    "receipt": "docs/wings-current-five-pilot-20261105.json",
+    "sha256": "4d929de7594146b7c3275908b543d6c167a939e10203e2ba8465dd2be7cbcf35",
+    "limits": "No replay, reset, fresh match spawns, human lifecycle or five-pilot wall-share measurement in this scope. The separate two-human reset PASS is not promoted. Existing H1 material-wall-cost claim remains unmeasured; no new hypothesis introduced."
+  },
+  "resources": {
+    "diskFloorBytes": 2147483648,
+    "memoryFloorKB": 1572864,
+    "baselineDiskAvailableBytes": 2301435904,
+    "baselineMemAvailableKB": 4442248,
+    "latestPreReceiptDiskAvailableBytes": 2299850752,
+    "latestPreReceiptMemAvailableKB": 3636928,
+    "guardedMinimums": {
+      "diskBytes": 2300706816,
+      "memoryKB": 3960044
+    },
+    "guardsBreached": false,
+    "limits": "Shared-host readings;10-second cap for the cheap diagnostic only. Original five-pilot120s cap unchanged. No waiver or recovery/deletion action."
+  },
+  "changedPaths": [
+    "scripts/check_wings_query_reuse.mjs",
+    "docs/wings-query-reuse-20261107.json",
+    "docs/maintenance/games/232-wings.md"
+  ],
+  "holds": [
+    "Five-pilot reset remains UNOBSERVED and acceptance PARTIAL.",
+    "Neutral call counts are not full-match time share, speedup or device acceptance.",
+    "No new combat, save, intermission, event-stream, native input, GPU/render/audio, rights, release or publication acceptance.",
+    "Seven untracked assignment briefs preserved; DOT-owned models and all game source/assets/builds unchanged."
+  ]
+}

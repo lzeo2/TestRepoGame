@@ -1522,3 +1522,39 @@ not an uninstrumented full-match benchmark. [Verified receipt and hypothesis](..
 Five-pilot reset remains **UNOBSERVED**, its receipt **PARTIAL**. No production,
 five-pilot fixture, UI/art/build/inventory or post-score behavior changes; no heavy
 replay, worker, browser, build, cap change or push. Native/publication holds remain.
+
+### Query reuse: counterexample stop branch (2026-11-07)
+
+`WINGS-QUERY-REUSE-20261107` leaves production unchanged. Native ship-solid answers
+read module-global ACTIVE/POSED/SIN/COS and static ship boxes. `setFleetState`
+updates transforms/team/platform masks; `setShipStates` updates solidity using
+room time, independently of the fleet match-clock tuple. RoomEngine synchronizes
+before ticks/spawns, then moves boats sequentially; the collision adapter reads
+other boats' current referenced positions. Client synchronization also writes
+geography; reconciliation reuses an adapter across history entries. World object
+identity is not a geometry lease. Stock synchronous ordinary movement has no
+identified mid-call geometry writer; the countermodel below is not claimed as
+observed ordinary room ordering.
+
+New `scripts/check_wings_query_reuse.mjs` compares one ordinary neutral invocation
+with an in-memory, fresh-per-invocation exact native-query map. Outputs, logical
+query answers/order and four separated collider fixtures match: 6,427 native
+calls become 2,980 delegates plus 3,447 reuses. This is a call-count benefit, not
+a timing, full-match or device result. Actual native probes also show one-tick
+ship motion changes a fixed point's hit answer; the 20-second solidity cutoff
+changes another answer while `fleetState()` remains identical.
+
+The general unversioned candidate nevertheless fails a declared reentrant
+WorldQuery fixture: an `isWater` synchronization hook reactivates the native
+carrier between hull checks. At logical query468 the cached false disagrees
+with both the uncached reference and a fresh native true. Final boat states
+happen to match; that does not preserve the required oracle answers/order.
+The current interface provides no immutable-geometry lease for this generic
+candidate. This rejects that candidate, not every possible native-only reuse
+scheme. No production optimization or red/green source-fix claim is made.
+[Receipt and exact counterexample](../../wings-query-reuse-20261107.json).
+
+The single guarded diagnostic passes in 2.243 seconds with the stricter 1.5 GiB
+RAM floor. No game source/build/inventory/model/UI/combat/save changes, new
+hypothesis, child, build, browser or five-pilot replay. Five-pilot reset remains
+**UNOBSERVED**, acceptance **PARTIAL**; native and publication holds remain.
