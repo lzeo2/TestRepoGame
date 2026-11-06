@@ -1489,3 +1489,36 @@ record the decision. A shared post-match freeze policy would be a separate
 behavior change, not a demonstrated optimization here. The five-pilot receipt
 remains PARTIAL; the separate two-human reset pass is not promoted. Native and
 publication holds, all builds/assets and the untracked briefs remain intact.
+
+### Five-pilot cost trace: isolated diagnostic only (2026-11-06)
+
+`WINGS-FIVE-PILOT-COST-TRACE-20261106` maps the existing CPU fixture's costs without
+replaying its match. That fixture calls the authoritative loopback only: it does
+not construct GameSession or run local/replay prediction. Human target/lead/input
+work stops after its score outcome. Ordinary boat mode does not use the Factions
+host bridge. Engine advance includes fleet synchronization, buffered input, live
+boat movement/collision, AI requests, weapons/events and synchronous wire packing/
+serialization. Queued JSON parse/decode and fixture handlers are separate work.
+Bots generate simulation work but are skipped as wire recipients; this is one
+human endpoint, not five client streams. Exact five-pilot phase percentages were
+never measured. The saved two-human timing split cannot supply them.
+
+New `scripts/check_wings_boat_cost.mjs` executes only isolated initial-pose checks
+and single movement steps against actual native geography, with/without four
+separated collider fixtures. All query callbacks still execute; instrumented
+outputs equal uninstrumented controls. The one cheap run passes in 1.756 seconds
+under a 10-second diagnostic cap, with no RoomEngine or match advance. One neutral
+tick makes 6,427 native solid queries: 2,980 distinct endpoint pairs, 3,447 exact
+repeats. The ordinary throttle tick has 934 repeats among 6,427. These retain all
+current-pose/yaw/X/Z/buoyancy guards; no cache or collision simplification is applied.
+
+Changed hypothesis H1: repeated exact native-solid queries within a movement
+call may materially contribute to intermission advance cost. A later, separately
+authorized same-cap regular-config trace could falsify this by measuring repeat
+query time against its matching advance span (prospective materiality criterion:
+10%). Current unit counts do not prove that share, a safe cache, speedup or reset.
+Key-allocation/timer overhead and warm-up affect the diagnostic timings; they are
+not an uninstrumented full-match benchmark. [Verified receipt and hypothesis](../../wings-five-pilot-cost-trace-20261106.json).
+Five-pilot reset remains **UNOBSERVED**, its receipt **PARTIAL**. No production,
+five-pilot fixture, UI/art/build/inventory or post-score behavior changes; no heavy
+replay, worker, browser, build, cap change or push. Native/publication holds remain.

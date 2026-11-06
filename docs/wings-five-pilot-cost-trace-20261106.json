@@ -1,0 +1,297 @@
+{
+  "scope": "WINGS-FIVE-PILOT-COST-TRACE-20261106",
+  "status": "PASS_CHEAP_ISOLATED_DIAGNOSTIC_ONE_FALSIFIABLE_HYPOTHESIS_NO_FIVE_PILOT_COMPLETION",
+  "base": "6e351c5f46aa135fba099c49df1dd8cd4afce4b1",
+  "gameTree": "4999aa9e2a80d446d2a9f685c59706c044c8c8da",
+  "fivePilotAcceptance": {
+    "status": "PARTIAL unchanged; reset UNOBSERVED",
+    "receipt": "docs/wings-current-five-pilot-20261105.json",
+    "receiptSha256": "4d929de7594146b7c3275908b543d6c167a939e10203e2ba8465dd2be7cbcf35",
+    "scoreEndSim": 40.416666666666664,
+    "scoreEndWall": 106.128890342,
+    "scoreEnd": [
+      5,
+      1
+    ],
+    "lastPersistedSim": 46.016666666666666,
+    "lastPersistedWall": 119.381495114,
+    "resetDueFromSourceOnly": 55.416666666666664,
+    "lastTickIsNotExactExitTick": true,
+    "deadline": {
+      "command": [
+        "node",
+        "Games/Wings/authoring/boat-five-pilot-main-check.mjs"
+      ],
+      "rc": -15,
+      "seconds": 120.15742634702474,
+      "minMemAvailableKB": 1692404,
+      "minDiskBytes": 2192916480,
+      "stopped": "deadline"
+    },
+    "gap": "No component-level timings or regular-config reset were recorded in that run. Exact five-pilot simulation/JSON percentages cannot be recovered from milestone wall times. Source-derived reset deadline is not an observed reset."
+  },
+  "sourceCostMap": [
+    {
+      "component": "Authoritative simulation",
+      "source": "sim/room-engine.ts:910-1031; sim/flight.ts:498",
+      "attribution": "RoomEngine.advance includes syncFleet, queue consumption, boat brains/context, authoritative water physics/collision, weapons/combat, cleanup/scoring/reset logic. Existing live work continues through intermission. Full-match exclusive durations NOT MEASURED."
+    },
+    {
+      "component": "Input helper, NOT client prediction",
+      "source": "authoring/boat-five-pilot-main-check.mjs",
+      "attribution": "The driver sorts visible wire contacts, computes boatGunPose/leadPoint and calls Input boat methods/send before outcome. It never constructs GameSession or calls frame/reconcile/client prediction. After ending, its human targeting/input branch is skipped. Structural zero prediction calls, not a native prediction benchmark."
+    },
+    {
+      "component": "Boat navigation/collision query fan-out",
+      "source": "sim/boat-movement.ts:hullClear/step; sim/boat-ai.ts:clearCourse; sim/boat-world.ts",
+      "attribution": "Every live boat movement step retains current-pose/yaw/X/Z/buoyancy hull checks. AI course sampling additionally calls boatNavigable. Collision adapter calls native segmentHitsBoatSolid first, before separated other-boat sphere tests. Source fan-out now measured in isolated single-step diagnostic below, not in actual five-pilot traffic."
+    },
+    {
+      "component": "Native geometry",
+      "source": "sim/geography.ts:799-815,869-870",
+      "attribution": "worldQuery.segmentHitsBoatSolid delegates to segmentHitsShip over active native fleet bounds/boxes. This is not the optional Factions fitted bridge. groundHeight/isWater/seabedHeight have additional internal work; direct wrapper counts are not a complete call tree."
+    },
+    {
+      "component": "Events and synchronous wire serialization",
+      "source": "sim/room-engine.ts:1217-1227,1255-1359",
+      "attribution": "Weapon/combat event generation occurs inside advance. flushEvents serializes a batch once; broadcastSnapshot packs shared state and serializes vehicles plus personal tail. These serialization costs also lie inside advance, not the later delivery bucket. Bots are skipped as wire recipients: four AI do not create four extra human endpoint streams."
+    },
+    {
+      "component": "Asynchronous JSON delivery and fixture handlers",
+      "source": "sim/loopback.ts:43-63",
+      "attribution": "Queued text is parsed, decoded through createSnapshotDecoder and passed to onMessage on a microtask. One ordinary human endpoint receives snapshots/events. Cost is distinct from synchronous packing, but five-pilot delivery duration was NOT separately measured."
+    },
+    {
+      "component": "Factions host bridge",
+      "source": "sim/room-engine.ts:310-312; authoring/retained-host-bridge.mjs:8; five-pilot options manual:true",
+      "attribution": "Not on this ordinary boats route. The fixture passes no hostBridge and RoomEngine rejects a boats+bridge combination. Native fleet geography/collision still exists."
+    }
+  ],
+  "preservedTimingEvidence": {
+    "receipt": "docs/wings-intermission-isolation-20261105.json",
+    "configuration": "Separate two humans, zero AI, score1; NOT five-pilot",
+    "phaseTimings": {
+      "combat": {
+        "ticks": 574,
+        "advanceMs": 10926.121735999994,
+        "deliveryMs": 70.16301899999007,
+        "clientMs": 84.29679500001475
+      },
+      "intermission": {
+        "ticks": 900,
+        "advanceMs": 8559.960884999948,
+        "deliveryMs": 103.6977210000623,
+        "clientMs": 0.6121860000421293
+      }
+    },
+    "limitations": "Timing spans are performance.now elapsed wall samples around ordinary operations, not CPU self-time or an exclusive profiler. advanceMs includes synchronous engine logic AND snapshot/event serialization; these were not split. deliveryMs includes queued JSON decode/handler work. Imports, assertions, yielding and scheduling are not exhaustively attributed. A smaller zero-AI room is not a five-pilot speedup or device/FPS result.",
+    "inference": "Only that separate case brackets advance/delivery/client spans. It cannot establish five-pilot shares. Prior pre/post-score sampled full-fixture rates are comparable; no unique intermission slowdown asserted."
+  },
+  "newDiagnostic": {
+    "script": "scripts/check_wings_boat_cost.mjs",
+    "sha256": "5507b110450d90b4d2a3ab670e53a351ce808ecf57f582510652156323c2bbf6",
+    "syntax": "PASS node --check",
+    "command": [
+      "python3",
+      "-B",
+      ".tmp/wings-lifecycle-20261104/run-guarded.py",
+      "cost-trace-isolated-20261106",
+      "10",
+      "node",
+      "scripts/check_wings_boat_cost.mjs"
+    ],
+    "runs": 1,
+    "capSeconds": 10,
+    "result": {
+      "command": [
+        "node",
+        "scripts/check_wings_boat_cost.mjs"
+      ],
+      "rc": 0,
+      "seconds": 1.7561237120025908,
+      "minMemAvailableKB": 5079956,
+      "minDiskBytes": 2311757824,
+      "stopped": null
+    },
+    "output": {
+      "status": "PASS_ISOLATED_QUERY_DIAGNOSTIC_NOT_GAMEPLAY",
+      "rows": [
+        {
+          "label": "one-current-pose-navigability",
+          "counts": {
+            "groundHeight": 341,
+            "isWater": 341,
+            "seabedHeight": 341,
+            "segmentHitsBoatSolid": 467
+          },
+          "nativeCalls": 467,
+          "uniqueExactSegments": 467,
+          "repeatedExactSegments": 0,
+          "zeroSegments": 0,
+          "nativeMs": 1.440260000004855,
+          "elapsedMs": 12.05914800000005
+        },
+        {
+          "label": "neutral-one-native-step",
+          "counts": {
+            "groundHeight": 1705,
+            "isWater": 1705,
+            "seabedHeight": 1705,
+            "segmentHitsBoatSolid": 6427
+          },
+          "nativeCalls": 6427,
+          "uniqueExactSegments": 2980,
+          "repeatedExactSegments": 3447,
+          "zeroSegments": 3069,
+          "nativeMs": 10.088875000012877,
+          "elapsedMs": 73.77053099999989
+        },
+        {
+          "label": "neutral-one-step-four-separated-colliders",
+          "counts": {
+            "groundHeight": 1705,
+            "isWater": 1705,
+            "seabedHeight": 1705,
+            "segmentHitsBoatSolid": 6427
+          },
+          "nativeCalls": 6427,
+          "uniqueExactSegments": 2980,
+          "repeatedExactSegments": 3447,
+          "zeroSegments": 3069,
+          "nativeMs": 8.477800000008301,
+          "elapsedMs": 64.53826400000003
+        },
+        {
+          "label": "throttle-one-native-step",
+          "counts": {
+            "groundHeight": 1705,
+            "isWater": 1705,
+            "seabedHeight": 1705,
+            "segmentHitsBoatSolid": 6427
+          },
+          "nativeCalls": 6427,
+          "uniqueExactSegments": 5493,
+          "repeatedExactSegments": 934,
+          "zeroSegments": 2046,
+          "nativeMs": 8.413361999992503,
+          "elapsedMs": 47.79718600000001
+        },
+        {
+          "label": "throttle-one-step-four-separated-colliders",
+          "counts": {
+            "groundHeight": 1705,
+            "isWater": 1705,
+            "seabedHeight": 1705,
+            "segmentHitsBoatSolid": 6427
+          },
+          "nativeCalls": 6427,
+          "uniqueExactSegments": 5493,
+          "repeatedExactSegments": 934,
+          "zeroSegments": 2046,
+          "nativeMs": 8.663267999987966,
+          "elapsedMs": 59.97468600000002
+        }
+      ],
+      "movementStepsMeasured": 4,
+      "uninstrumentedControlSteps": 2,
+      "wallSeconds": 1.5418570770000002,
+      "limits": "Declared initial geography/poses; no RoomEngine/AI/match/prediction/JSON gameplay executed. No cache applied. Counts are direct world-query interface calls, not internal call-tree counts. nativeMs includes timer effects; elapsedMs includes diagnostic key/allocation overhead. No full-match share, speedup, reset or device/FPS proof."
+    },
+    "repeatFractions": {
+      "one-current-pose-navigability": 0.0,
+      "neutral-one-native-step": 0.5363311031585498,
+      "neutral-one-step-four-separated-colliders": 0.5363311031585498,
+      "throttle-one-native-step": 0.14532441263419948,
+      "throttle-one-step-four-separated-colliders": 0.14532441263419948
+    },
+    "fairness": "All counted callbacks invoke the original native geography query; no query is cached or skipped. Neutral/throttle instrumented outputs match actual uninstrumented controls, including with four separated declared collider records. No RoomEngine is constructed/advanced; no match/prediction/event/JSON gameplay or reset/kill/HP/clock grant occurs. Initial geography/boat factory poses are diagnostic inputs, not observed five-pilot state.",
+    "limits": "Factory validations and two control steps are outside recorded query rows. Timers/key allocations and cold/warm cache/JIT effects are not controlled; nativeMs/elapsedMs are not a baseline benchmark, full-match time share, safe-cache proof, expected speedup or reset evidence. Functional separated-collider parity is not full collision acceptance.",
+    "outputPath": ".tmp/wings-lifecycle-20261104/owner/cost-trace-isolated-20261106.log",
+    "outputSha256": "ac1369be8f0c4da1299ffb0aa13ff80a11c1a9aeefcb044ba4881683a2f125ad",
+    "exitPath": ".tmp/wings-lifecycle-20261104/owner/cost-trace-isolated-20261106.json",
+    "exitSha256": "df343ab4aefc4ce5c8dac7e4660d0e75872eabfc14e32596208616ef196e26e2",
+    "capture": "Unfiltered combined stdout/stderr, experimental TypeScript warning retained."
+  },
+  "changedHypothesis": {
+    "id": "H1_EXACT_REPEAT_NATIVE_SOLID_QUERY_COST",
+    "statement": "Repeated exact native-solid query body work within ordinary boat movement calls contributes at least10% of matching sampled advance wall time during regular-config intermission. No exclusivity or reset-completion claim.",
+    "basis": "Isolated neutral step:6427 native calls,2980 unique,3447 repeats. Isolated throttle step:6427 calls,5493 unique,934 repeats. Native source query still executes on every call; actual actor/velocity/contact distribution may differ.",
+    "prospectiveMaterialityCriterion": "In a later observational regular-config trace, repeated native query body time reaches at least10% of its matching sampled advance span. This is an analysis threshold, not a gameplay rule or a presently measured share.",
+    "falsifiers": [
+      "Repeated exact native-query body time is below10% of matching advance spans after bounding instrumentation overhead across the sampled regular-config intermission calls."
+    ],
+    "invalidatesMeasurement": "Biased/unrepresentative sampling or instrumentation that changes the logical input/event/physics trace cannot confirm H1; leave it unverified rather than declaring a performance gain.",
+    "changedObservationPlan": "Separately authorized instrumentation would bracket advance/input/JSON delivery, and sparsely sample per-movement native query counts/exact repeats/body times with per-call actor/tick scope. Preserve every query invocation/result and normal tick/input order. No memoization, world filtering, AI/physics skipping, freeze or cap extension. Report outcome/reset only if truly observed.",
+    "laterProbeGate": "NOT RUN or scheduled here. Requires a separate regular-config probe order, fresh>=1572864kB RAM and>=2147483648B disk, exclusive heavy slot and original120s cap.",
+    "optimizationLimit": "Even a confirmed cost share would not prove safe deduplication. Any future reuse would separately need moving-solid/query-purity/actor/tick invalidation correctness evidence; no such code change is authorized or delivered now."
+  },
+  "inspectedSha256": {
+    "Games/Wings/authoring/boat-five-pilot-main-check.mjs": "2ab7f3edec02a75a5762644fbead68dbb836b8b894dcca35ec3494a69c6843ef",
+    "Games/Wings/source/games/wings/src/sim/room-engine.ts": "3389c40a120d8ec84be3e90a1b0af9e0bf7110d9630d389e1157a45cf592bf39",
+    "Games/Wings/source/games/wings/src/sim/loopback.ts": "8ed939d2c85e279a0e2512b84c5e10eeb8927c1902a52dbf8040ee8de54b1e1a",
+    "Games/Wings/source/games/wings/src/sim/flight.ts": "45fbe397e2650ff40432a58d1e262cd16b4cf9f515fe6f9a88a6522367ff9415",
+    "Games/Wings/source/games/wings/src/sim/boat-movement.ts": "e3fcd71eb2bb83c0209ad11481d5db6c2b5cb8156590d79308d87d693c3f20ab",
+    "Games/Wings/source/games/wings/src/sim/boat-world.ts": "457f86faade81cc4350fe95ea79961b6a1e2db191c244a628f7cf1a7f44829e4",
+    "Games/Wings/source/games/wings/src/sim/boat-ai.ts": "917743d99a72a25df22fdd561fb37857f4996ccf3fa9e6eef3ea9aedd4ffd0e3",
+    "Games/Wings/source/games/wings/src/sim/geography.ts": "d7abf668b86cecd83de9d281b37b5bf35c64a396f7a875d5ce84fefcc0e32213",
+    "Games/Wings/authoring/retained-host-bridge.mjs": "1f82f6b5bbbe4e7a788ed96091bbb19a41c7b2bc3e889a4df5ff520e8cfea3eb"
+  },
+  "preservation": {
+    "runtimeSourceChanged": false,
+    "fivePilotFixtureChanged": false,
+    "fivePilotReplayed": false,
+    "postScorePolicyChanged": false,
+    "frozenProductsMatching": 26,
+    "buildMetadataSha256": "b25e85245ba472658777198ca80f08a5c8692d9e29d7a0ca80b991bf5dec32cd",
+    "inventorySha256": "d5e079982e13a9cf2e4d53efecd378132d6c22b3fd4129f5d1f78fbcfa1550a6",
+    "inventoryChanged": false,
+    "builds": 0,
+    "browser": false,
+    "workers": 0,
+    "heavyReplays": 0,
+    "capChanged": false,
+    "newAssets": false,
+    "publication": false,
+    "push": false
+  },
+  "checks": {
+    "isolatedDiagnostic": "PASS one guarded cheap unit run, exit0 in1.756123712 seconds under10s; no room/match replay",
+    "newScriptSyntax": "PASS node --check scripts/check_wings_boat_cost.mjs",
+    "receiptJsonPrivacy": "PASS",
+    "sourceProductParity": "PASS inspected hashes, unchanged Wings tree and26 frozen build products",
+    "catalog": "PASS129 unique integer IDs/schema/tracked URLs",
+    "maintenance": "PASS: 135 game documents cover 129 registered + 6 unregistered games; Git inventory current.",
+    "maintenanceCommand": "python3 -B scripts/check_maintenance_docs.py",
+    "inventoryRefresh": false,
+    "diffCheck": "PASS git diff --check",
+    "limits": "Diagnostic/documentation checks only; five-pilot reset and full component-level wall attribution remain unobserved."
+  },
+  "resources": {
+    "startDiskAvailableBytes": 2312695808,
+    "startMemAvailableKB": 5447572,
+    "latestPreReceiptDiskAvailableBytes": 2310500352,
+    "diskStopBytes": 2147483648,
+    "memoryStopKB": 1048576,
+    "limits": "Cheap isolated unit calls only, alongside source trial; shared-host observations. No disk recovery, foreign-process action or waiver."
+  },
+  "changedPaths": [
+    "scripts/check_wings_boat_cost.mjs",
+    "docs/wings-five-pilot-cost-trace-20261106.json",
+    "docs/maintenance/games/232-wings.md"
+  ],
+  "preservedUntrackedBriefs": [
+    "docs/wings-boat-cpu-gap-20261104.md",
+    "docs/wings-current-five-pilot-20261105.md",
+    "docs/wings-five-pilot-cost-trace-20261106.md",
+    "docs/wings-intermission-isolation-20261105.md",
+    "docs/wings-player-speedboat-lifecycle-followup.md",
+    "docs/wings-postscore-work-20261106.md"
+  ],
+  "holds": [
+    "Five-pilot ordinary reset remains UNOBSERVED; its acceptance is PARTIAL, not promoted by this unit diagnostic.",
+    "No new native input/pixels/audio/GPU/device/performance or rights/release acceptance.",
+    "No regular/heavy five-pilot or historical aggregate replay, invented reset, cap change, production rule change, Type022/manned/default activation, worker, browser, build, push or publication."
+  ],
+  "newGames": 0,
+  "screenshots": 0
+}
