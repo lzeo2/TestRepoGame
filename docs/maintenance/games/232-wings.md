@@ -1461,3 +1461,31 @@ five-pilot receipt remains PARTIAL, with no replay or longer cap. Runtime source
 all 26 build products, UI/art/catalog and previous fixtures remain unchanged;
 no rebuild, child agent, browser, Type022/manned activation, install or push.
 Physical input/renderer/audio/device and publication acceptance remain held.
+
+### Post-score work: source-only stop (2026-11-06)
+
+`WINGS-POSTSCORE-WORK-20261106` traces intermission semantics across RoomEngine,
+GameSession, HUD, spawning and projectile consumers. Current source encodes live
+intermission with frozen team scoring, not a frozen simulation: human input is
+accepted, personal kills/deaths can still change, and existing AI/motion/combat
+events remain observable. New bot births, spawning and further team scoring
+are explicitly blocked. The match-end handler shows a HUD banner; it does not pause or clear
+input/prediction. Local boat prediction and projectile extrapolation continue
+without an intermission guard. Saved intermission events already demonstrate
+post-score fire/hits, not merely unused calculations.
+
+A server-only early return would bypass input-queue consumption/acks and cleanup;
+the existing reset does not clear queued input/jitter state. Skipping only brains
+would retain prior flight requests and change avoidance/fire. Skipping motion/
+combat while draining queues would disagree with still-active client prediction
+and event consumers. These are source-derived compatibility risks, not failures
+reproduced by applying a rejected patch. No minimal gameplay-preserving skip was
+identified, and no external design intent or new freeze policy is inferred.
+
+Per the explicit stop branch, only documentation changes. No production/fixture
+edit, regular-config probe, replay, rebuild or inventory refresh was performed.
+[Exact source hashes, callsites and rejected alternatives](../../wings-postscore-work-20261106.json)
+record the decision. A shared post-match freeze policy would be a separate
+behavior change, not a demonstrated optimization here. The five-pilot receipt
+remains PARTIAL; the separate two-human reset pass is not promoted. Native and
+publication holds, all builds/assets and the untracked briefs remain intact.

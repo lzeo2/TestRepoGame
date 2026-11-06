@@ -1,0 +1,134 @@
+{
+  "scope": "WINGS-POSTSCORE-WORK-20261106; QUEUED-5c5344b247e9be480ae7",
+  "status": "STOPPED_SOURCE_ONLY_NO_GAMEPLAY_PRESERVING_MINIMAL_SKIP_IDENTIFIED",
+  "base": "b2db2ae7da7a13ef37bb55859fcb3f6ebc3311b7",
+  "gameTree": "4999aa9e2a80d446d2a9f685c59706c044c8c8da",
+  "decision": "Current source implements live intermission with frozen team scoring, not a frozen simulation. Post-score AI/movement/combat outputs remain observable by the unchanged client. Removing them is a gameplay/protocol/presentation behavior change, not established dead work. No sound minimal gameplay-preserving skip was identified under this order; do not implement a speculative server-only freeze to improve fixture timing.",
+  "designIntentLimit": "Encoded behavior is source-grounded below. This does not claim an external author statement, product approval for a new freeze policy, or a newly reproduced native failure.",
+  "callerTrace": {
+    "runtimeConstruction": "sim/loopback.ts:57 constructs the ordinary RoomEngine. Its automatic timer calls advance at70; its manual test driver calls advance at92. No alternate authored runtime constructor was found by git grep.",
+    "advance": "sim/room-engine.ts:910-920 advances fixed ticks, flushes events, and broadcasts snapshots; input/clock/reset and network publication share this boundary.",
+    "step": "sim/room-engine.ts:925-1031 consumes human queues, runs existing boat brains, movement and combat, performs vehicle bookkeeping, then updateMatch. The ordinary branch gates updateScores on matchEndedAt===null, not the earlier live-boat loops; the hostBridge branch is separate and boat mode rejects that bridge.",
+    "births": "sim/room-engine.ts:updateBots returns during intermission at472, suppressing new bot births; this is distinct from existing live-brain processing earlier in step.",
+    "reset": "sim/room-engine.ts:1128-1133 checks the existing15s room-time delay; resetMatch1169-1192 clears player ownership/stats/controls, vehicles/combat/scores, and starts the next round. It does not clear the input queues/jitter protocol state."
+  },
+  "sourceEvidence": [
+    {
+      "path": "Games/Wings/source/games/wings/src/sim/room-engine.ts",
+      "lines": "505-519;549-583;1038-1059",
+      "fact": "Human input remains accepted after score end. onVehicleDestroyed still updates deaths and personal kills, but returns before teamKills increments once matchEndedAt is non-null.",
+      "quote": "if (kp) kp.info.kills++; if (this.matchEndedAt !== null) return; this.teamKills[killerTeam]++",
+      "qualification": "Quote condenses adjacent source lines; not a new implementation. The existing objective result is protected independently of ongoing combat."
+    },
+    {
+      "path": "Games/Wings/source/games/wings/src/ui/game.ts",
+      "lines": "381-399;425-460;941-1051",
+      "fact": "Alive local vehicles stay in flying state; flying checks paused/alive, not intermission. Frame input and local/replay stepFlight prediction continue, including the boat collision adapter.",
+      "quote": "const flying = this.state === \"flying\" && !!myVehicle && myVehicle.alive && !this.paused"
+    },
+    {
+      "path": "Games/Wings/source/games/wings/src/ui/game.ts",
+      "lines": "888-895",
+      "fact": "The match-end handler calls hud.endScreen only. It does not pause, clear input, release pointer lock, remove prediction or enter a frozen state."
+    },
+    {
+      "path": "Games/Wings/source/games/wings/src/render/hud.ts",
+      "lines": "942-949",
+      "fact": "endScreen displays result text and schedules hide after9000 wall milliseconds. It is HUD presentation, not simulation ownership."
+    },
+    {
+      "path": "Games/Wings/source/games/wings/src/style.css",
+      "lines": "3-5;359-365",
+      "fact": "HUD has pointer-events:none; result styles change display/background but do not disable the Input object or change the controller state. Source styles alone are not native interaction proof."
+    },
+    {
+      "path": "Games/Wings/source/games/wings/src/ui/game.ts",
+      "lines": "1160;1306-1388",
+      "fact": "Projectile rendering continues and extrapolates actual projectile positions/age and emits disappearance feedback; there is no intermission guard for this consumer."
+    },
+    {
+      "path": "Games/Wings/source/games/wings/src/ui/spawn.ts",
+      "lines": "294-306",
+      "fact": "The intermission flag explicitly blocks spawning and labels the next-round countdown. That flag is not an existing movement/prediction freeze contract."
+    }
+  ],
+  "rejectedMinimalSkips": [
+    {
+      "candidate": "Whole boat-step early return while still incrementing room time and checking reset",
+      "reason": "Would also bypass consumeTick/acks, cleanup and other ongoing state consumers unless those are split out. The still-active client would continue sending inputs; the existing reset does not clear queue/jitter state. Backlog behavior would differ.",
+      "qualification": "Source-derived risk, not a runtime defect reproduced by applying this rejected patch."
+    },
+    {
+      "candidate": "Skip only existing boat AI requests",
+      "reason": "The last flight request remains stored; seat triggers eventually use STALE_INPUT handling, while movement still consumes stored pilot.flight. Without an explicit neutral/freeze policy, AI path avoidance, motion and fire differ. Choosing neutral requests would itself change observable post-score behavior."
+    },
+    {
+      "candidate": "Skip boat motion/combat after consuming input queues",
+      "reason": "The current client still predicts local movement, exposes live input/weapon hints, and extrapolates projectiles. Server-only frozen authoritative state would change that agreement and stop observable post-score events/stats. Preserving a future freeze requires an explicit shared client/server policy, not this minimal optimization."
+    }
+  ],
+  "inspectedSha256": {
+    "Games/Wings/source/games/wings/src/sim/room-engine.ts": "3389c40a120d8ec84be3e90a1b0af9e0bf7110d9630d389e1157a45cf592bf39",
+    "Games/Wings/source/games/wings/src/ui/game.ts": "a9d07656f91f37db92ac0c20ff50f144328d5c775b33aa34da02bcd93932b94a",
+    "Games/Wings/source/games/wings/src/render/hud.ts": "620fdeb9e89439fb5087e12fdb6deb56614c9f3b0cd5b04f3831030ccefb5c00",
+    "Games/Wings/source/games/wings/src/style.css": "2c9734681329f5e84677e51c18a8b1837dfec18e23b85bbae8f9928675a1341f",
+    "Games/Wings/source/games/wings/src/ui/spawn.ts": "e1b0c68c8a5f977a7d02d6ab0820f463b1e5ab4fcdfca3d68d34aa00e109db72",
+    "Games/Wings/source/games/wings/src/sim/loopback.ts": "8ed939d2c85e279a0e2512b84c5e10eeb8927c1902a52dbf8040ee8de54b1e1a"
+  },
+  "existingEvidenceNotRerun": {
+    "fivePilotReceipt": "docs/wings-current-five-pilot-20261105.json",
+    "fivePilotStatus": "PARTIAL unchanged; actual5-1 score end, reset not observed under120s cap.",
+    "postScoreEvidence": "Saved five-pilot intermission42.0167->46.0167 sim-second window contains22 additional fire and48 additional hit events. These outputs are not merely hypothetical unused computations.",
+    "separateResetReceipt": "docs/wings-intermission-isolation-20261105.json",
+    "separateResetStatus": "Previous two-human/zero-AI score1 CPU pass remains separate; it is not a new run or five-pilot acceptance.",
+    "performanceLimit": "Comparable prior pre/post-score elapsed rates do not establish a unique intermission bottleneck. No new timing, speedup, GPU or device claim."
+  },
+  "execution": {
+    "sourceChanged": false,
+    "fixtureChanged": false,
+    "gameplayTests": 0,
+    "regularConfigProbe": "Not run: the conditional prerequisite of a sound tested production skip was not met.",
+    "rebuild": false,
+    "inventoryRefresh": false,
+    "childAgents": 0,
+    "browser": false,
+    "fullFleetSmoke": false,
+    "push": false
+  },
+  "changedPaths": [
+    "docs/wings-postscore-work-20261106.json",
+    "docs/maintenance/games/232-wings.md"
+  ],
+  "checks": {
+    "jsonPrivacy": "PASS",
+    "sourceIdentity": "PASS all six inspected SHA-256 values; unchanged Wings tree and no Games/catalog diff",
+    "buildParity": "PASS all26 frozen build product SHA-256 values unchanged; no rebuild",
+    "catalog": "PASS129 unique integer IDs/schema/tracked URLs",
+    "maintenance": "PASS: 135 game documents cover 129 registered + 6 unregistered games; Git inventory current.",
+    "maintenanceCommand": "python3 -B scripts/check_maintenance_docs.py",
+    "inventoryChanged": false,
+    "diffCheck": "PASS git diff --check",
+    "qualification": "Read-only identity/documentation checks, not a new gameplay or native pass; no touched JS or syntax gate needed."
+  },
+  "resources": {
+    "startMemAvailableKB": 2045504,
+    "startSwapFreeKB": 20,
+    "startDiskAvailableBytes": 2553147392,
+    "latestPreWriteMemAvailableKB": 2417876,
+    "latestPreWriteDiskAvailableBytes": 2552479744,
+    "admissionMemAvailableKB": 1572864,
+    "memoryStopKB": 1048576,
+    "diskStopBytes": 2147483648,
+    "scope": "Read-only source/caller audit and small documentation only; no replay, capacity waiver, foreign-process action or build growth."
+  },
+  "preservedUntrackedBriefs": [
+    "docs/wings-boat-cpu-gap-20261104.md",
+    "docs/wings-current-five-pilot-20261105.md",
+    "docs/wings-intermission-isolation-20261105.md",
+    "docs/wings-player-speedboat-lifecycle-followup.md",
+    "docs/wings-postscore-work-20261106.md"
+  ],
+  "acceptance": "No production fix or new gameplay pass. Five-pilot PARTIAL and native physical input/renderer/audio/GPU/device/performance/rights/publication holds remain unchanged. No historical aggregate replay, longer cap, Type022/manned/default activation, art/model/UI/catalog change or publication.",
+  "newGames": 0,
+  "screenshots": 0
+}
