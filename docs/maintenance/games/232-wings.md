@@ -1593,3 +1593,44 @@ Production, models, UI, source/build products and inventory remain unchanged.
 No cache replay, five-pilot run, cap extension, build, browser, child agent or
 push. Eight untracked briefs are preserved. Five-pilot reset remains
 **UNOBSERVED**, acceptance **PARTIAL**; native/publication holds remain.
+
+### Five-pilot phase instrumentation: source-only partial (2026-11-07)
+
+`WINGS-FIVE-PILOT-PHASE-ATTRIBUTION-20261107` adds only process-local authored
+instrumentation and a cheap control outside the game tree. No original fixture
+or assertion changes. `scripts/wings_phase_profiler.mjs` brackets authoritative
+advance, synchronous snapshot/event preparation+enqueue, top-level JSON stringify
+inside that preparation, and the complete asynchronous loopback flush (parse,
+decode and handlers). JSON is a child span, not an additional total. Subtract
+in-advance wire preparation from inclusive advance for simulation/other work.
+Outside-advance wire work remains separate; mixed/unsampled delivery batches are
+not attributed to a phase. Packet provenance uses the phase at advance entry,
+including the score-ending tick. Geometry, ticks, inputs and outputs are not
+skipped. A 120-call postscore instrumentation limit is not the 120-second run
+cap and does not limit the simulation. Sample windows include inter-call gaps,
+but exclude caller work before the first and after the last sampled operation.
+
+`scripts/check_wings_phase_attribution.mjs` compares native and instrumented
+six-tick rooms from the actual Boat Combat callback, default local code/RNG,
+one human/four AI configuration, ordinary Input requests and one public chat
+transport probe. At this early prefix only one pilot is live. Raw measured wire
+text/order, decoded messages, supplied vehicle/snapshot state, queues/acks and
+controls match; original functions/descriptors are restored. Final control passes
+in 1.722 seconds. An earlier passing source check is retained; window accounting
+was then added and checked, not a threshold-tuning or heavy replay.
+
+The final prefix has 72.394ms inclusive advance, 2.797ms synchronous publication
+(including 0.431ms native stringify), and 1.343ms async delivery. These are not
+five-live-pilot or postscore timings. Native/instrumented control wall spans
+114.835ms/77.498ms have uncontrolled warm-up/order effects; the negative difference
+is not a speedup or representative overhead calibration. Postscore has zero
+observed calls. No new cap-feasibility estimate is established. The old outcome
+leaves 13.871 wall seconds for 15 simulated seconds, a source arithmetic budget
+only, not reset evidence. [Partial source receipt](../../wings-five-pilot-phase-attribution-20261107.json).
+
+At the exclusive gate Schoolyard is still running (Jank is now idle); no release
+or lease was acquired. The 120-second observation is **DEFERRED**, not launched.
+The old failure receipt/raw logs and all original assertions remain unchanged.
+No cache/broadphase retry, optimization, model/UI/build change, browser, child
+agent or push. Nine briefs preserved; five-pilot reset remains **UNOBSERVED** and
+acceptance **PARTIAL**. Native and publication holds remain.

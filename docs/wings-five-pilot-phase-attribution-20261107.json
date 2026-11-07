@@ -1,0 +1,287 @@
+{
+  "scope": "WINGS-FIVE-PILOT-PHASE-ATTRIBUTION-20261107",
+  "status": "PARTIAL_SOURCE_INSTRUMENTATION_CONTROL_PASSED_EXCLUSIVE_OBSERVATION_DEFERRED",
+  "base": "e85595b771e4617871a0df569b6cac9bf9832ae9",
+  "gameTree": "4999aa9e2a80d446d2a9f685c59706c044c8c8da",
+  "decision": "Stop at exclusive-owner gate. Schoolyard remains running; Jank is now idle, and no release/lease acquired. Source-only preparation/control completed. No120s observation or new postscore feasibility measurement.",
+  "exclusiveGate": {
+    "method": "paseo ls --global --json; exact owner metadata only",
+    "owners": [
+      {
+        "name": "schoolyard-trio-gameplay-orchestrator",
+        "status": "running"
+      },
+      {
+        "name": "Jankolock3D movement and combat from video reference",
+        "status": "idle"
+      }
+    ],
+    "gate": "DEFERRED",
+    "reason": "No exclusive release/lease acquired; do not launch while any named owner is running",
+    "heavyRuns": 0
+  },
+  "initialOwnerObservation": {
+    "status": "DEFERRED",
+    "method": "paseo ls --global --json, filtered metadata",
+    "owners": [
+      {
+        "name": "schoolyard-trio-gameplay-orchestrator",
+        "status": "running"
+      },
+      {
+        "name": "Jankolock3D movement and combat from video reference",
+        "status": "running"
+      }
+    ],
+    "decision": "No exclusive120s launch this task; source-only concurrent work only. No owner interrupted or clearance inferred."
+  },
+  "instrumentation": {
+    "module": "scripts/wings_phase_profiler.mjs",
+    "sha256": "3da92109526d271acd31e5ffc5875eeef468056025974025b82f39dcbb429b50",
+    "originalFixtureChanged": false,
+    "fixtureAssertionsRemovedOrWeakened": false,
+    "method": "Reversible process-local wrappers on RoomEngine.prototype.advance/broadcastSnapshot/flushEvents and JSON.stringify. A diagnostic-only resolve/load hook redirects canonical loopback imports to an alias of actual source, preserving its flush body, splice/decode/handlers and queueMicrotask schedule. Only a flush wrapper, per-channel enqueue provenance and channel binding are inserted in memory; no game source is written.",
+    "phaseDomains": [
+      "Advance inclusive wall span: engine work plus synchronous publication. Advance entry phase owns the entire fixed-tick call, including an outcome tick.",
+      "Synchronous snapshot/event publication: packing, visibility/list/ship work, serialization and enqueue; in-advance and outside-advance spans remain separate. Simulation/other advance is advance minus in-advance publication.",
+      "Top-level native JSON.stringify spans inside those publication methods are child spans, not extra totals. Nested stringify calls are not double-counted. Client input JSON and error sends outside those methods are not exhaustively attributed.",
+      "Asynchronous original loopback flush: JSON.parse, snapshot decoder and handlers together. Per-packet provenance is captured at enqueue, not inferred from match state at callback completion. Mixed-phase or unsampled batches stay in an unallocated bucket.",
+      "First-start/last-finish windows cover gaps between sampled operations, including caller/scheduler work in between. They exclude leading/trailing caller work beyond those endpoints; outside-advance publication can overlap delivery if called reentrantly and must not be blindly summed."
+    ],
+    "sampleLimit": "First120 postscore advance calls per engine, two simulated seconds only for the unchanged one-tick60Hz fixture. This limits diagnostics, never simulation/ticks/input/events. It is unrelated to the unchanged120-second external run cap.",
+    "faithfulnessLimit": "Semantic equivalence validated only for the initial six-tick control with one live pilot. Real postscore transition, the120-call sample limit, mixed-batch branch and live five-pilot overhead were not exercised. The original full acceptance fixture was not imported/executed; checkpoint/guarded observation integration remains deferred."
+  },
+  "sourceControl": {
+    "script": "scripts/check_wings_phase_attribution.mjs",
+    "sha256": "b16bd8a1a0249d962c1f755cba0b9d815d378ea51f854c128129b992c4a6a8c4",
+    "completedChecks": 2,
+    "pairedRoomsPerCheck": 2,
+    "ticksPerRoom": 6,
+    "maximumRoomSimSeconds": 0.1,
+    "method": "Actual Boat Combat menu callback config, one human/four AI membership, ordinary manual loopback and default local code/RNG without overrides. Input boat methods send neutral initial requests; one real public chat exercises event serialization. No damage, HP, kill, clock, pose or reset grant. Only one live pilot at this early prefix.",
+    "equality": "Post-initial-spawn outgoing wire text/order (3 messages), decoded startup+tick messages/status, snapshots, supplied vehicles, player controls/queues/acks match exactly. Original stringify and prototype descriptors restored. Native stringify TypeError propagation checked. Pure phase classification assertions do not assign live game outcome state.",
+    "finalResult": {
+      "command": [
+        "node",
+        "scripts/check_wings_phase_attribution.mjs"
+      ],
+      "rc": 0,
+      "seconds": 1.7222138709985302,
+      "minMemAvailableKB": 4425092,
+      "minDiskBytes": 2304921600,
+      "stopped": null,
+      "memoryFloorKB": 1572864,
+      "diskFloorBytes": 2147483648,
+      "capSeconds": 10
+    },
+    "finalOutput": {
+      "status": "PASS_SOURCE_CONTROL_ONLY_HEAVY_DEFERRED",
+      "ticksPerControl": 6,
+      "menuConfig": {
+        "teams": 2,
+        "bots": 2,
+        "maxPerTeam": 3,
+        "scoreLimit": 5,
+        "timeLimit": 180,
+        "listed": false,
+        "name": "Boat Combat",
+        "vehicleMode": "boats",
+        "botSkill": 0.5
+      },
+      "humans": 1,
+      "bots": 4,
+      "livePilotsAtControlEnd": 1,
+      "exactWireTextEqual": true,
+      "decodedMessagesEqual": true,
+      "stateQueuesControlsEqual": true,
+      "originalsRestored": true,
+      "wireMessages": 3,
+      "wireSha256": "7025d58f3e5163e32df17ae8b68303ec9def586f83201f217745b8959f083429",
+      "decodedSha256": "412ab3d67ec1e838594a6a98eb5f9118f39fdcdcf3c7828de920028235dcc86a",
+      "stateSha256": "cef9a10f4b40c14aa53919be939d7a9227c2292de4d2e50580f2eaf78b17f9e3",
+      "controlWallMs": 114.8352339999999,
+      "instrumentedWallMs": 77.49789899999996,
+      "rawDifferenceMs": -37.33733499999994,
+      "timing": {
+        "groups": {
+          "combat": {
+            "firstWallMs": 1600.470041,
+            "lastWallMs": 1677.054666,
+            "advanceCalls": 6,
+            "simSeconds": 0.1,
+            "advanceMs": 72.39416299999971,
+            "wireInAdvanceMs": 2.797004999999672,
+            "wireOutsideAdvanceMs": 0,
+            "jsonInAdvanceMs": 0.4305720000002111,
+            "jsonOutsideAdvanceMs": 0,
+            "stringifyCalls": 11,
+            "snapshotCalls": 2,
+            "eventCalls": 1,
+            "deliveryCalls": 3,
+            "deliveryMs": 1.3429199999998218,
+            "windowMs": 76.58462499999996,
+            "advanceExclusiveMs": 69.59715800000004,
+            "wireOtherInAdvanceMs": 2.3664329999994607
+          },
+          "postscore": {
+            "firstWallMs": null,
+            "lastWallMs": null,
+            "advanceCalls": 0,
+            "simSeconds": 0,
+            "advanceMs": 0,
+            "wireInAdvanceMs": 0,
+            "wireOutsideAdvanceMs": 0,
+            "jsonInAdvanceMs": 0,
+            "jsonOutsideAdvanceMs": 0,
+            "stringifyCalls": 0,
+            "snapshotCalls": 0,
+            "eventCalls": 0,
+            "deliveryCalls": 0,
+            "deliveryMs": 0,
+            "windowMs": null,
+            "advanceExclusiveMs": 0,
+            "wireOtherInAdvanceMs": 0
+          }
+        },
+        "mixedDeliveryCalls": 0,
+        "mixedDeliveryMs": 0,
+        "postscoreAdvanceCallLimit": 120,
+        "postscoreLimitReached": false,
+        "limits": "Wall spans, not CPU self-time. advance contains publication; subtract wireInAdvanceMs for simulation/other advance. JSON spans are children of wire preparation, not extra totals. Delivery includes parse/decode/handlers. Mixed or unsampled batches stay unallocated. Cap limits instrumentation only, never simulation ticks."
+      },
+      "limit": "Same menu configuration and default local RNG/code, no override. Initial six-tick prefix plus public chat only; not live five-pilot combat or post-score overhead calibration. Sequential cold/warm wall spans are not a reliable slowdown ratio. No score end, reset, intermission sample, native input/device or120s observation. Original acceptance fixture/assertions untouched."
+    },
+    "finalLog": ".tmp/wings-phase-attribution-20261107/control.log",
+    "finalLogSha256": "85c12a73bb7255cae102737b55ea1ce0ef19a8f2c62f9721aaa6fb6936e2f31a",
+    "finalExit": ".tmp/wings-phase-attribution-20261107/control.json",
+    "finalExitSha256": "08e91e95d14bf69bd6b35a5c28cd2334044bba94fe86805a8554907d7daf8c2f",
+    "runner": ".tmp/wings-phase-attribution-20261107/run-guarded.py",
+    "runnerSha256": "63c762890150c2c93481cbacf226638c0ec82a2628901e17c6e8944d64e26f89",
+    "firstPassingCheck": {
+      "result": {
+        "command": [
+          "node",
+          "scripts/check_wings_phase_attribution.mjs"
+        ],
+        "rc": 0,
+        "seconds": 1.9190274459979264,
+        "minMemAvailableKB": 4408996,
+        "minDiskBytes": 2305740800,
+        "stopped": null,
+        "memoryFloorKB": 1572864,
+        "diskFloorBytes": 2147483648,
+        "capSeconds": 10
+      },
+      "log": ".tmp/wings-phase-attribution-20261107/control1.log",
+      "logSha256": "2992a9257fef0233d6b3f8bd4705c6ac3b7653ae076053fb60282b421588f69e",
+      "exit": ".tmp/wings-phase-attribution-20261107/control1.json",
+      "exitSha256": "46e0be7e39491de9475a0c2c2a63f84df0af912fbe2ba1ff31a29548d6b17516",
+      "sourceHashes": {
+        "scripts/wings_phase_profiler.mjs": "32ff4456362834ba4b1a6f42dd0d9d28feb39601dcd022052c8b3f80c35eb71b",
+        "scripts/check_wings_phase_attribution.mjs": "420065f2fbcde305e25e3502a648dba5f522726fbc8a15d4d9c53cd89aeb11ca"
+      },
+      "reasonForChangedCheck": "Added first/last wall-window accounting and assertions to include inter-call gaps in a future observation. No threshold tuning, physics change, failed-fixture replay or heavy run."
+    },
+    "overheadLimit": "Raw native114.835234ms versus instrumented77.497899ms is a sequential cold/warm prefix comparison, not a speedup or calibrated profiling-overhead ratio. Initial one-live-pilot control cannot estimate postscore five-pilot overhead or total intermission cost."
+  },
+  "capFeasibility": {
+    "status": "NO_NEW_POSTSCORE_MEASUREMENT_OR_FEASIBILITY_ESTIMATE",
+    "oldOutcomeWallSeconds": 106.128890342,
+    "oldOutcomeSimSeconds": 40.416666666666664,
+    "unchangedCapSeconds": 120,
+    "originalIntermissionSimSeconds": 15,
+    "remainingWallBudgetFromOldReceipt": 13.871109657999995,
+    "requiredMaxWallSecondsPerSimSecondBudgetOnly": 0.9247406438666663,
+    "limit": "Arithmetic from the preserved prior failure only:15 simulated seconds would need to fit13.871109658 wall seconds, including all costs. It is not a new throughput estimate, reset observation or permission to extrapolate the one-live-pilot control. Postscore measured calls remain0/window null."
+  },
+  "verification": {
+    "syntax": "PASS node --check on both authored JS files",
+    "localSourceInputHashes": 87,
+    "frozenProductHashes": 26,
+    "metadataProductSizes": 25,
+    "externalInputPathsNotReread": 11,
+    "sourceBuildMetadataUnchanged": true,
+    "inventoryUnchanged": true,
+    "inspectedSha256": {
+      "Games/Wings/authoring/boat-five-pilot-main-check.mjs": "2ab7f3edec02a75a5762644fbead68dbb836b8b894dcca35ec3494a69c6843ef",
+      "Games/Wings/source/games/wings/src/sim/room-engine.ts": "3389c40a120d8ec84be3e90a1b0af9e0bf7110d9630d389e1157a45cf592bf39",
+      "Games/Wings/source/games/wings/src/sim/loopback.ts": "8ed939d2c85e279a0e2512b84c5e10eeb8927c1902a52dbf8040ee8de54b1e1a",
+      "Games/Wings/source/games/wings/src/ui/lobby.ts": "2edfdedbee5a18f97449346fa749ff218baf2674f931d50af8eb218bac806cf0",
+      "scripts/wings_phase_profiler.mjs": "3da92109526d271acd31e5ffc5875eeef468056025974025b82f39dcbb429b50",
+      "scripts/check_wings_phase_attribution.mjs": "b16bd8a1a0249d962c1f755cba0b9d815d378ea51f854c128129b992c4a6a8c4"
+    },
+    "nineUntrackedBriefsUnchanged": {
+      "docs/wings-five-pilot-phase-attribution-20261107.md": "9e704b311510550b4076b22c72dc391e66e45659add9047d2ac4c6f509910563",
+      "docs/wings-native-solid-broadphase-20261107.md": "1453a87ffb30c98ff4704fe173f356c68a808c795a515ced2de01e48ad9a1c35",
+      "docs/wings-intermission-isolation-20261105.md": "8c25727e995f705e7d92dec258e2a36aa089ec890c6466af9acc332e360e6468",
+      "docs/wings-query-reuse-20261107.md": "de1465b172d537607c2e89ddeffcf74883973f21ef2aa3e67966ff376645433b",
+      "docs/wings-five-pilot-cost-trace-20261106.md": "c5ca0c2d97c0c7ec4321821991be34d09106572cf27352798824e5357b373680",
+      "docs/wings-boat-cpu-gap-20261104.md": "bde4c3f295590970292f9d4b4f79ff96054b4be344f361cbc6c320a033a6e457",
+      "docs/wings-current-five-pilot-20261105.md": "80d18bd96a2d6353ac2d2a957ff326571e65f5f39e7967d6eaa1a15c26150669",
+      "docs/wings-player-speedboat-lifecycle-followup.md": "73c1913d3d097a8a212944ad1ea3d04810960fcc6e4fde57fefe71c9860bac91",
+      "docs/wings-postscore-work-20261106.md": "9b2c28b249444c1190915a1fec746a028c84e3429540ed817bdc1c3c6d95f4ea"
+    },
+    "oldFailureReceiptFixtureRawHashesUnchanged": {
+      "docs/wings-current-five-pilot-20261105.json": "4d929de7594146b7c3275908b543d6c167a939e10203e2ba8465dd2be7cbcf35",
+      "Games/Wings/authoring/boat-five-pilot-main-check.mjs": "2ab7f3edec02a75a5762644fbead68dbb836b8b894dcca35ec3494a69c6843ef",
+      ".tmp/wings-lifecycle-20261104/owner/five-pilot-20261105.log": "6b4cc4eb3dbdbe091c02d3bfc12ad5e5df6c6c25627466827ecb3d0852627764",
+      ".tmp/wings-lifecycle-20261104/owner/five-pilot-20261105.json": "653c1af2e7eb7786a2f214c8a2851b7621e393eebf9d2ae34c8ee676f92bcd1e"
+    },
+    "finalChecks": {
+      "receiptJsonPrivacy": "PASS",
+      "sourceTreeNineBriefsAndOriginalFailure": "PASS SHA256 identities unchanged; original assertions retained",
+      "catalog": "PASS129 schema/unique IDs/tracked URLs; no additions",
+      "maintenance": "PASS: 135 game documents cover 129 registered + 6 unregistered games; Git inventory current.",
+      "maintenanceCommand": "python3 -B scripts/check_maintenance_docs.py",
+      "diff": "PASS git diff --check",
+      "limits": "Source/control checks only. Exclusive observation DEFERRED; no postscore sample, calibrated overhead, cap-feasibility or reset acceptance."
+    }
+  },
+  "preservation": {
+    "gameSourceChanges": 0,
+    "productionOptimizations": 0,
+    "cacheOrBroadphaseHypothesisReplays": 0,
+    "oldFixtureRuns": 0,
+    "exclusiveObservations": 0,
+    "postscoreSamples": 0,
+    "capChanges": 0,
+    "builds": 0,
+    "browsers": 0,
+    "childAgentsOrWorkers": 0,
+    "modelChanges": 0,
+    "UIChanges": 0,
+    "newGames": 0,
+    "screenshots": 0,
+    "push": false,
+    "publication": false,
+    "inventorySha256": "d5e079982e13a9cf2e4d53efecd378132d6c22b3fd4129f5d1f78fbcfa1550a6",
+    "buildMetadataSha256": "b25e85245ba472658777198ca80f08a5c8692d9e29d7a0ca80b991bf5dec32cd"
+  },
+  "resources": {
+    "memoryFloorKB": 1572864,
+    "diskFloorBytes": 2147483648,
+    "baselineMemAvailableKB": 4480996,
+    "baselineDiskAvailableBytes": 2306822144,
+    "latestPreReceiptMemAvailableKB": 4044336,
+    "latestPreReceiptDiskAvailableBytes": 2304593920,
+    "guardsBreached": false,
+    "limits": "Fresh checks before writes/tests; both cheap control invocations guarded with10s cap and100ms floor sampling. No exclusive120s start preflight performed because owner gate is blocked. No waiver, install, deletion or foreign-process action."
+  },
+  "remainingGate": "No automatic launch. Any later continuation requires fresh owner/exclusive release, capacity/swap checks, faithful full-fixture checkpoint capture and the original fixed120s guard. Keep all original assertions and report reset only if actually observed. Representative overhead/postscore sampling and feasibility remain held.",
+  "fivePilotAcceptance": {
+    "status": "PARTIAL unchanged; ordinary reset UNOBSERVED",
+    "receipt": "docs/wings-current-five-pilot-20261105.json",
+    "limits": "Source phase/control success is not an observed five-pilot score/reset, human death/respawn or native/device acceptance. Separate two-human reset PASS remains separate."
+  },
+  "changedPaths": [
+    "scripts/wings_phase_profiler.mjs",
+    "scripts/check_wings_phase_attribution.mjs",
+    "docs/wings-five-pilot-phase-attribution-20261107.json",
+    "docs/maintenance/games/232-wings.md"
+  ],
+  "holds": [
+    "No new five-pilot or postscore/reset/performance acceptance; the original failure remains intact.",
+    "No native input, renderer/GPU/audio/device, rights or publication acceptance.",
+    "All game sources/models/assets/builds, original UI/catalog and nine assignment briefs preserved."
+  ]
+}
