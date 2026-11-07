@@ -1558,3 +1558,38 @@ The single guarded diagnostic passes in 2.243 seconds with the stricter 1.5 GiB
 RAM floor. No game source/build/inventory/model/UI/combat/save changes, new
 hypothesis, child, build, browser or five-pilot replay. Five-pilot reset remains
 **UNOBSERVED**, acceptance **PARTIAL**; native and publication holds remain.
+
+### Native solid broadphase: negative usefulness result (2026-11-07)
+
+`WINGS-NATIVE-BROADPHASE-20261107` investigates only cache-free posed-bounds
+rejection, not the rejected cache. Existing `segmentHitsShip` already rejects
+segments outside each active ship's REACH+5 horizontal bounds or above TOP before
+any slab test. REACH encloses every authored box's rotated footprint; TOP covers
+all authored box heights. Strict comparisons retain boundary contacts. These
+are native collision-box guarantees, not rendered-mesh/device acceptance.
+
+New `scripts/check_wings_native_broadphase.mjs` instruments actual source only in
+memory and lifts those existing bounds into a fresh-reading precheck. One cheap
+ordinary neutral comparison preserves full logical query answers/order, supplied
+boat state and four separated collider fixtures. Both paths do **77,124 active
+ship-bound checks and zero narrow-phase segmentBox calls**, across 6,427 solid
+queries. The candidate suppresses entry to the named native function but moves
+its existing broadphase work into the wrapper; it does not eliminate that work.
+No meaningful narrow-phase work is saved, so the production-change condition is
+not met. This does not rule out other optimizations or establish five-pilot time
+shares.
+
+All 13 dynamic/edge comparisons pass: one-tick pose motion, before/at solid cutoff
+with unchanged fleet-clock tuple, reactivation, team removal, inclusive top/bottom
+contacts, long crossings, signed-zero and existing nonfinite compatibility. No
+new validation policy is introduced. Raw instrumented spans are about 92.97ms /
+94.91ms, with tracing/counter/warm-up limitations; these are not speedup evidence.
+The successful guarded comparison takes 1.838 seconds. An earlier startup-only
+instrumentation failure (TypeScript stripping removes comments/reformats loops)
+was corrected and its evidence retained; no movement comparison ran in that
+failed attempt. [Negative receipt](../../wings-native-solid-broadphase-20261107.json).
+
+Production, models, UI, source/build products and inventory remain unchanged.
+No cache replay, five-pilot run, cap extension, build, browser, child agent or
+push. Eight untracked briefs are preserved. Five-pilot reset remains
+**UNOBSERVED**, acceptance **PARTIAL**; native/publication holds remain.

@@ -1,0 +1,239 @@
+{
+  "scope": "WINGS-NATIVE-BROADPHASE-20261107",
+  "status": "COMPLETE_NEGATIVE_NO_MEANINGFUL_NARROW_PHASE_WORK_SAVED_PRODUCTION_UNCHANGED",
+  "base": "f41fb362ab8c16f8930090dbb7bf5db0a2bd3666",
+  "gameTree": "4999aa9e2a80d446d2a9f685c59706c044c8c8da",
+  "decision": "Do not add this redundant early-rejection wrapper to production. Existing segmentHitsShip already performs the same posed-ship broadphase before segmentBox. In the ordinary neutral comparison both paths execute77124 active-ship bound tests and zero narrow-phase box tests. Suppressing entry to a named function is not eliminating its work.",
+  "selectedHypothesis": "A cache-free rejection using existing current posed ship bounds can avoid meaningful native narrow-phase solid-query work. No other optimization, cache variant or broad tuning investigated.",
+  "authoredBoundProof": [
+    "geography.ts:79-91 derives REACH as max hypot(abs(center.x)+half.x,abs(center.z)+half.z)+1 over each native authored collision box. Yaw rotation preserves radial distance; the posed-center square using REACH+5 contains every rotated box footprint. This is the existing native collision-box contract, not rendered mesh/physics-hardware certification.",
+    "TOP is max(center.y+half.y) over those boxes. segmentBox uses absolute world Y with zero fleet vertical displacement. A linear segment wholly above TOP cannot hit a box; disjoint endpoint X/Z intervals cannot hit its enclosing footprint. Strict< and> retain inclusive contacts.",
+    "The candidate is lifted directly from segmentHitsShip current rejection prefix. If no ACTIVE ship passes, original would perform no segmentBox calls and return null. Otherwise candidate delegates to original unchanged. ACTIVE/POSED/REACH/TOP are read anew per query; no answer/endpoint cache, static geometry snapshot, room/frame lease or invalidation rule is introduced.",
+    "setFleetState updates poses and team/platform masks; setShipStates updates solidity independently of fleetState match-clock tuple. Targeted comparisons cover pose motion, solid cutoff/reactivation and team removal. Nonfinite plain-vector cases only check original compatibility; no new validation contract is claimed."
+  ],
+  "experiment": {
+    "script": "scripts/check_wings_native_broadphase.mjs",
+    "sha256": "5048d5d0180abaec566598572cb3467340639735ee70d5da69c7f323bbed84ff",
+    "completedNeutralComparisons": 1,
+    "movementCalls": 2,
+    "guardInvocations": 2,
+    "method": "Existing retained loader executes actual TypeScript without emitted files. A process-local load hook inserts native-entry/active-bound/segmentBox counters and exports the lifted live bounds predicate. No tracked geography bytes change. One original and one candidate neutral movement call use the same declared ordinary factory pose and four separated boat-collider records. Ordered ground/water/seabed/solid answers, full supplied state and peer records match.",
+    "output": {
+      "status": "PASS_NEGATIVE_NO_MEANINGFUL_NARROW_PHASE_SAVING_PRODUCTION_UNCHANGED",
+      "neutral": {
+        "movementCalls": 2,
+        "logicalSolidQueries": 6427,
+        "reference": {
+          "nativeCalls": 6427,
+          "nativeBounds": 77124,
+          "boxCalls": 0,
+          "guardCalls": 0,
+          "guardBounds": 0,
+          "elapsedMs": 92.96675299999993
+        },
+        "candidate": {
+          "nativeCalls": 0,
+          "nativeBounds": 0,
+          "boxCalls": 0,
+          "guardCalls": 6427,
+          "guardBounds": 77124,
+          "elapsedMs": 94.910709
+        },
+        "orderedAnswersEqual": true,
+        "stateEqual": true,
+        "peersUnchanged": true
+      },
+      "dynamicAndEdgeChecks": [
+        {
+          "label": "initial degenerate edge contact",
+          "answer": true
+        },
+        {
+          "label": "same point after one tick pose motion",
+          "answer": false
+        },
+        {
+          "label": "sunk but still solid before cutoff",
+          "answer": true
+        },
+        {
+          "label": "no longer solid exactly at cutoff",
+          "answer": false
+        },
+        {
+          "label": "reactivated solid read afresh",
+          "answer": true
+        },
+        {
+          "label": "inclusive superstructure top contact",
+          "answer": true
+        },
+        {
+          "label": "inclusive hull bottom contact",
+          "answer": true
+        },
+        {
+          "label": "long segment crossing ship with both endpoints outside",
+          "answer": true
+        },
+        {
+          "label": "teams removed",
+          "answer": false
+        },
+        {
+          "label": "signed zero",
+          "answer": true
+        },
+        {
+          "label": "NaN x compatibility",
+          "answer": true
+        },
+        {
+          "label": "positive infinity x compatibility",
+          "answer": false
+        },
+        {
+          "label": "negative infinity y compatibility",
+          "answer": true
+        }
+      ],
+      "wallSeconds": 1.6159194749999999,
+      "limits": "Candidate lifts the already-existing per-ship posed REACH/TOP rejection; every query rereads live geometry, no cache. Native-call suppression is not eliminated work: both paths perform77124 active ship-bound checks and zero narrow-phase segmentBox calls. Instrumentation, traces, module initialization and warm-up prevent timing-speedup claims. Isolated geometry inputs only, no RoomEngine/match, invalid cache replay, five-pilot reset, renderer/device or gameplay acceptance."
+    },
+    "runner": {
+      "command": [
+        "node",
+        "scripts/check_wings_native_broadphase.mjs"
+      ],
+      "rc": 0,
+      "seconds": 1.8384325209990493,
+      "minMemAvailableKB": 4294972,
+      "minDiskBytes": 2309783552,
+      "stopped": null,
+      "memoryFloorKB": 1572864,
+      "diskFloorBytes": 2147483648,
+      "capSeconds": 10
+    },
+    "command": [
+      "python3",
+      "-B",
+      ".tmp/wings-native-broadphase-20261107/run-guarded.py"
+    ],
+    "runnerSha256": "09a8c001b1957cbfef12d580cdcb3d58f9667c27e6f179d8a99cae20849c92f9",
+    "log": ".tmp/wings-native-broadphase-20261107/isolated.log",
+    "logSha256": "9bdc857202a34522ee174c9ecd89ddcc61b15a85bfc536d15bf0d7281d8199f4",
+    "exitRecord": ".tmp/wings-native-broadphase-20261107/isolated.json",
+    "exitSha256": "ca8d4d8a727a2536539465374a6890d6afcb50ec36bc9383edcc0d1a0a8d65ca",
+    "startupFailure": {
+      "stage": "Before geography module evaluation/movement; instrumentation selector only",
+      "error": "AssertionError assert(begin >= 0 && end > begin)",
+      "cause": "Built-in TypeScript stripping removes comment boundaries and reformats for-loop whitespace.",
+      "correction": "Anchor by next exported function and use whitespace-tolerant loop patterns; preserve unique-selector and all physics/equivalence/counter assertions.",
+      "result": {
+        "command": [
+          "node",
+          "scripts/check_wings_native_broadphase.mjs"
+        ],
+        "rc": 1,
+        "seconds": 0.9121758350011078,
+        "minMemAvailableKB": 4314364,
+        "minDiskBytes": 2309832704,
+        "stopped": null,
+        "memoryFloorKB": 1572864,
+        "diskFloorBytes": 2147483648,
+        "capSeconds": 10
+      },
+      "scriptSha256": "cef87e0b5bd1afc8f8b9f981ae684bd7c3191bd31495e0f5b19678d9dd50038c",
+      "log": ".tmp/wings-native-broadphase-20261107/attempt1.log",
+      "logSha256": "67030780d461eaff8dffdc3c6540b37fb96948e520c846a4cafa84e1ad67fb18",
+      "exitRecord": ".tmp/wings-native-broadphase-20261107/attempt1.json",
+      "exitSha256": "6cfe5b809ea7bead704775a676ae7fc96c6f1766e3ee11d297c76b6c63e60b25"
+    },
+    "timingLimits": "The recorded92.96675299999993ms original /94.910709ms candidate spans include counters and ordered trace allocations. Single sequential samples have uncontrolled warm-up, GC and scheduling. They establish no speedup/slowdown, self-time share, native device/FPS or full-match claim. Negative usefulness rests on unchanged bound-test work and already-zero box calls, not timing significance.",
+    "productionRegressionBranch": "NOT ENTERED: conservative but no meaningful narrow-phase saving. No production edit, failing-first/red-green source-fix claim, build or broader tuning.",
+    "limits": "Direct neutral/geometry unit inputs only; no RoomEngine, AI match, damage/kill/reset grant, event-stream/save/native input or renderer execution. No invalid-cache fixture replay. Existing CPU hypothesis material wall share remains unmeasured."
+  },
+  "verification": {
+    "newScriptSyntax": "PASS node --check scripts/check_wings_native_broadphase.mjs",
+    "localSourceInputHashes": 87,
+    "frozenProductHashes": 26,
+    "metadataProductSizes": 25,
+    "externalInputPathsNotReread": 11,
+    "sourceBuildMetadataUnchanged": true,
+    "inventoryUnchanged": true,
+    "inspectedSourceSha256": {
+      "Games/Wings/source/games/wings/src/sim/geography.ts": "d7abf668b86cecd83de9d281b37b5bf35c64a396f7a875d5ce84fefcc0e32213",
+      "Games/Wings/source/games/wings/src/sim/fleet.ts": "d0ea5b4a6e409c06d0025c08a86494648972e5628a09f8b5708b0ce3cb9bc685",
+      "Games/Wings/source/games/wings/src/sim/boat-movement.ts": "e3fcd71eb2bb83c0209ad11481d5db6c2b5cb8156590d79308d87d693c3f20ab",
+      "Games/Wings/source/games/wings/src/sim/boat-world.ts": "457f86faade81cc4350fe95ea79961b6a1e2db191c244a628f7cf1a7f44829e4",
+      "Games/Wings/source/games/wings/src/sim/types.ts": "7d0f9c9f635c631c88321cb1361231dc70d61cbd90d8678a29d34afa0e140a82",
+      "Games/Wings/source/games/wings/src/sim/room-engine.ts": "3389c40a120d8ec84be3e90a1b0af9e0bf7110d9630d389e1157a45cf592bf39"
+    },
+    "untrackedBriefsUnchanged": {
+      "docs/wings-native-solid-broadphase-20261107.md": "1453a87ffb30c98ff4704fe173f356c68a808c795a515ced2de01e48ad9a1c35",
+      "docs/wings-intermission-isolation-20261105.md": "8c25727e995f705e7d92dec258e2a36aa089ec890c6466af9acc332e360e6468",
+      "docs/wings-query-reuse-20261107.md": "de1465b172d537607c2e89ddeffcf74883973f21ef2aa3e67966ff376645433b",
+      "docs/wings-five-pilot-cost-trace-20261106.md": "c5ca0c2d97c0c7ec4321821991be34d09106572cf27352798824e5357b373680",
+      "docs/wings-boat-cpu-gap-20261104.md": "bde4c3f295590970292f9d4b4f79ff96054b4be344f361cbc6c320a033a6e457",
+      "docs/wings-current-five-pilot-20261105.md": "80d18bd96a2d6353ac2d2a957ff326571e65f5f39e7967d6eaa1a15c26150669",
+      "docs/wings-player-speedboat-lifecycle-followup.md": "73c1913d3d097a8a212944ad1ea3d04810960fcc6e4fde57fefe71c9860bac91",
+      "docs/wings-postscore-work-20261106.md": "9b2c28b249444c1190915a1fec746a028c84e3429540ed817bdc1c3c6d95f4ea"
+    },
+    "finalChecks": {
+      "receiptJsonPrivacy": "PASS",
+      "sourceTreeAndEightBriefs": "PASS SHA256 identities unchanged",
+      "catalog": "PASS129 schema/unique IDs/tracked URLs; no additions",
+      "maintenance": "PASS: 135 game documents cover 129 registered + 6 unregistered games; Git inventory current.",
+      "maintenanceCommand": "python3 -B scripts/check_maintenance_docs.py",
+      "diff": "PASS git diff --check",
+      "limits": "Negative diagnostic/documentation result only; no production optimization or five-pilot reset acceptance."
+    }
+  },
+  "preservation": {
+    "gameSourceChanges": 0,
+    "modelChanges": 0,
+    "UIChanges": 0,
+    "builds": 0,
+    "browsers": 0,
+    "childAgentsOrWorkers": 0,
+    "heavyReplays": 0,
+    "fivePilotRuns": 0,
+    "invalidCacheReplays": 0,
+    "capExtensions": 0,
+    "newGames": 0,
+    "screenshots": 0,
+    "push": false,
+    "publication": false,
+    "inventorySha256": "d5e079982e13a9cf2e4d53efecd378132d6c22b3fd4129f5d1f78fbcfa1550a6",
+    "buildMetadataSha256": "b25e85245ba472658777198ca80f08a5c8692d9e29d7a0ca80b991bf5dec32cd",
+    "fivePilotFixtureSha256": "2ab7f3edec02a75a5762644fbead68dbb836b8b894dcca35ec3494a69c6843ef",
+    "oldQueryReuseReceiptSha256": "275ee4b89850b8c980ee5db9fa0a2d490897bb5b994b20d2277c6749954e2bf6",
+    "oldCostTraceReceiptSha256": "96a5cdd530b72d909c2a59e302d90298bad534660278c7dea6ec28458b04efda"
+  },
+  "resources": {
+    "memoryFloorKB": 1572864,
+    "diskFloorBytes": 2147483648,
+    "baselineMemAvailableKB": 4252640,
+    "baselineDiskAvailableBytes": 2310176768,
+    "latestPreReceiptMemAvailableKB": 4260220,
+    "latestPreReceiptDiskAvailableBytes": 2308931584,
+    "guardsBreached": false,
+    "limits": "Shared-host observations; each cheap diagnostic invocation capped10s with100ms resource sampling. Original five-pilot120s cap unchanged. No waiver, install, cleanup or foreign-process action."
+  },
+  "fivePilotAcceptance": {
+    "status": "PARTIAL unchanged; ordinary reset UNOBSERVED",
+    "receipt": "docs/wings-current-five-pilot-20261105.json",
+    "sha256": "4d929de7594146b7c3275908b543d6c167a939e10203e2ba8465dd2be7cbcf35",
+    "limits": "No five-pilot replay or outcome/reset evidence in this scope; separate two-human reset PASS is not promoted."
+  },
+  "changedPaths": [
+    "scripts/check_wings_native_broadphase.mjs",
+    "docs/wings-native-solid-broadphase-20261107.json",
+    "docs/maintenance/games/232-wings.md"
+  ],
+  "holds": [
+    "Five-pilot reset remains UNOBSERVED and acceptance PARTIAL.",
+    "No new native/device/audio/GPU/render, full-match performance, human lifecycle, rights or publication acceptance.",
+    "All game sources/assets/models/builds and eight untracked briefs preserved. No production optimization shipped."
+  ]
+}
