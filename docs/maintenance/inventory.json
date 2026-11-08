@@ -1,5 +1,5 @@
 {
-  "catalog_entries": 129,
+  "catalog_entries": 132,
   "games": [
     {
       "directory": "Games/2048",
@@ -1224,6 +1224,42 @@
       "files": 7,
       "bytes": 15044,
       "document": "docs/maintenance/games/206-samegame.md"
+    },
+    {
+      "directory": "Games/SchoolyardCourtyardCast",
+      "id": 244,
+      "title": "Courtyard Cast",
+      "registered": true,
+      "entry": "Games/SchoolyardCourtyardCast/index.html",
+      "entry_blob": "10a26697f3f1f95c619c224cf9ce5a8b91b10983",
+      "tree": "7e0664e90637177bd83453a3641a329e0d88d878",
+      "files": 13,
+      "bytes": 831635,
+      "document": "docs/maintenance/games/244-schoolyardcourtyardcast.md"
+    },
+    {
+      "directory": "Games/SchoolyardGapGlide",
+      "id": 243,
+      "title": "Gap Glide",
+      "registered": true,
+      "entry": "Games/SchoolyardGapGlide/index.html",
+      "entry_blob": "689d536390a43799b7838d7795b0792d257af924",
+      "tree": "ddaa0ec2995667d2e638466a6d684555aea4d57f",
+      "files": 8,
+      "bytes": 777162,
+      "document": "docs/maintenance/games/243-schoolyardgapglide.md"
+    },
+    {
+      "directory": "Games/SchoolyardLaneRun",
+      "id": 242,
+      "title": "Lane Run",
+      "registered": true,
+      "entry": "Games/SchoolyardLaneRun/index.html",
+      "entry_blob": "6cbd1d3bba8d1626bcd15e98940d7e56f312b4e2",
+      "tree": "14785da484c40756fd2ffca23c09ff0faefd7400",
+      "files": 8,
+      "bytes": 780417,
+      "document": "docs/maintenance/games/242-schoolyardlanerun.md"
     },
     {
       "directory": "Games/ServerSurvival",
