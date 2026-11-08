@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>Lane Run | Schoolyard</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="shared.js" defer></script>
+  <script src="engine.js" defer></script>
+  <script src="ui.js" defer></script>
+  <script src="vendor/three.iife.js" defer></script>
+  <script src="scene3d.js" defer></script>
+</head>
+<body>
+  <main class="shell">
+    <header class="page-header">
+      <div><p class="eyebrow">Schoolyard / Courtyard 03</p><h1>Lane Run</h1></div>
+      <a href="../../index.html">All games</a>
+    </header>
+    <div class="game-layout">
+      <section class="court" aria-label="Runner court">
+        <div class="world-wrap">
+          <canvas id="world" width="480" height="640" tabindex="0" aria-label="Three-lane 3D school courtyard. Dodge planters, jump low hurdles, slide under overhead frames." aria-describedby="instructions">Lane Run needs a browser with Canvas support. Use Left or A and Right or D to change lane, Up or Space to jump, Down or S to slide.</canvas>
+          <canvas id="world3d" width="480" height="640" aria-hidden="true" hidden></canvas>
+        </div>
+        <p class="court-caption">Fictional roster / Local play</p>
+      </section>
+      <aside class="dashboard" aria-label="Run and controls">
+        <section class="scoreboard" aria-label="Run statistics">
+          <p class="eyebrow">Your run</p>
+          <output id="score" aria-label="Score" aria-live="off">0000</output>
+          <div class="stats">
+            <div><span class="eyebrow">Distance</span><output id="distance" aria-live="off">0 m</output></div>
+            <div><span class="eyebrow">Speed</span><output id="speed" aria-live="off">18.0 m/s</output></div>
+          </div>
+        </section>
+        <div class="run-actions">
+          <button id="start" type="button">Start</button>
+          <div class="button-pair">
+            <button id="pause" type="button" aria-pressed="false" disabled>Pause</button>
+            <button id="restart" type="button">Restart</button>
+          </div>
+          <div id="result" class="result" hidden>
+            <h2 id="result-title">Run ended</h2>
+            <p id="result-reason"></p>
+          </div>
+        </div>
+        <div class="character-field">
+          <label class="eyebrow" for="character">Character</label>
+          <select id="character" name="character" aria-label="Character, fictional roster"></select>
+        </div>
+        <section class="prop-guide" aria-labelledby="guide-title">
+          <h2 class="eyebrow" id="guide-title">Read the court</h2>
+          <div class="guide-row"><span class="prop-icon hurdle" aria-hidden="true"></span><p><strong>Jump</strong><span>Low hurdle</span></p></div>
+          <div class="guide-row"><span class="prop-icon frame" aria-hidden="true"></span><p><strong>Slide</strong><span>Overhead frame</span></p></div>
+          <div class="guide-row"><span class="prop-icon planter" aria-hidden="true"></span><p><strong>Dodge</strong><span>Solid planter</span></p></div>
+        </section>
+        <section class="controls" aria-labelledby="controls-title">
+          <h2 class="eyebrow" id="controls-title">Controls</h2>
+          <div class="touch-controls">
+            <button type="button" data-action="left" aria-label="Move left">Left</button>
+            <button type="button" data-action="right" aria-label="Move right">Right</button>
+            <button type="button" data-action="jump">Jump</button>
+            <button type="button" data-action="slide">Slide</button>
+          </div>
+          <p id="instructions">Left/Right or A/D to move. Up/Space to jump. Down/S to slide. P pauses.</p>
+        </section>
+      </aside>
+    </div>
+    <p id="announcement" class="sr-only" role="status" aria-live="polite" aria-atomic="true">Court ready. Start or use a movement control to run.</p>
+  </main>
+</body>
+</html>

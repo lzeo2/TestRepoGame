@@ -1,0 +1,85 @@
+:root {
+  color-scheme: dark;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  color: #e6e9e5;
+  background: #151c21;
+  font-synthesis: none;
+}
+* { box-sizing: border-box; }
+body { margin: 0; }
+.shell { width: min(784px, calc(100% - 48px)); margin: 0 auto; padding-bottom: 32px; }
+.page-header { min-height: 98px; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+h1 { margin: 4px 0 0; font-size: 30px; line-height: 1.2; font-weight: 550; letter-spacing: -.7px; }
+.eyebrow { display: block; margin: 0; font-size: 11px; line-height: 1.4; font-weight: 500; letter-spacing: .55px; text-transform: uppercase; color: #a5b2b9; }
+a { min-width: 44px; min-height: 44px; display: inline-flex; align-items: center; padding: 8px; color: #e6e9e5; font-size: 14px; text-underline-offset: 4px; }
+.game-layout { display: grid; grid-template-columns: minmax(0, 480px) minmax(0, 280px); gap: 24px; align-items: start; }
+.court { min-width: 0; }
+canvas { width: 100%; height: auto; aspect-ratio: 3 / 4; display: block; background: #39464a; touch-action: pan-y; }
+.world-wrap { position: relative; }
+#world3d { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; background: transparent; }
+.court-caption { margin: 36px 0 0; font-size: 11px; color: #a5b2b9; text-transform: uppercase; letter-spacing: .4px; }
+.dashboard { display: grid; gap: 22px; min-width: 0; }
+#score { display: block; font-size: 40px; line-height: 1.2; margin-top: 6px; font-variant-numeric: tabular-nums; }
+.stats { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 13px; }
+.stats output { display: block; margin-top: 4px; font-size: 22px; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.run-actions { display: grid; gap: 10px; }
+button, select { font: inherit; font-size: 14px; min-height: 44px; min-width: 44px; color: #e6e9e5; border-radius: 0; }
+button { border: 1px solid #000; background: #000; padding: 10px 12px; cursor: pointer; touch-action: manipulation; }
+button:hover:not(:disabled) { border-color: #b9bba7; }
+button:active:not(:disabled) { background: #26333b; }
+button:disabled { color: #819096; cursor: default; }
+#start { min-height: 46px; }
+.button-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+:focus-visible { outline: 3px solid #e4ce98; outline-offset: 3px; }
+.character-field label { margin-bottom: 10px; }
+select { width: 100%; padding: 10px 12px; background: #26333b; border: 1px solid #65767d; }
+.prop-guide { display: grid; gap: 12px; }
+.prop-guide h2 { margin-bottom: 4px; }
+.guide-row { display: flex; align-items: center; gap: 16px; min-height: 36px; }
+.guide-row p { margin: 0; font-size: 12px; line-height: 1.5; }
+.guide-row strong { display: block; text-transform: uppercase; letter-spacing: .4px; font-weight: 550; }
+.guide-row p span { display: block; color: #a5b2b9; }
+.prop-icon { width: 46px; height: 36px; flex: 0 0 46px; position: relative; display: block; }
+.prop-icon::before, .prop-icon::after { content: ""; position: absolute; }
+.hurdle::before { left: 3px; top: 7px; width: 40px; height: 25px; border-left: 5px solid #c6b185; border-right: 5px solid #c6b185; }
+.hurdle::after { left: 0; top: 5px; width: 46px; height: 10px; background: #ccb077; }
+.frame::before { left: 3px; top: 5px; width: 40px; height: 30px; border: 5px solid #7c9ca7; border-bottom: 0; }
+.frame::after { left: 8px; top: 10px; width: 30px; height: 6px; background: #c6b185; }
+.planter::before { left: 2px; top: 15px; width: 42px; height: 20px; background: #9c7765; }
+.planter::after { left: 8px; top: 3px; width: 31px; height: 15px; background: #74836a; }
+.controls h2 { margin-bottom: 10px; }
+.touch-controls { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 12px; }
+#instructions { font-size: 11px; line-height: 1.55; color: #a5b2b9; margin: 12px 0 0; }
+.result { border-left: 3px solid #ccb077; padding: 8px 12px; background: #26333b; }
+.result h2 { font-size: 16px; margin: 0 0 4px; }
+.result p { font-size: 13px; line-height: 1.5; margin: 0; }
+#restart.retry { border-color: #e4ce98; font-weight: 650; }
+[hidden] { display: none !important; }
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
+@media (max-width: 680px) {
+  .shell { width: min(480px, calc(100% - 24px)); }
+  .page-header { min-height: 88px; }
+  h1 { font-size: 27px; }
+  .game-layout { grid-template-columns: minmax(0, 1fr); gap: 16px; }
+  /* Keep the world and touch actions together on short portrait screens. */
+  .court { width: 100%; max-width: max(150px, calc(75svh - 270px)); margin: 0 auto; }
+  .court-caption, .run-actions > #start { display: none; }
+  .dashboard { gap: 16px; }
+  .scoreboard { display: grid; grid-template-columns: 1fr 2fr; gap: 0 16px; align-items: end; }
+  .scoreboard > .eyebrow { grid-column: 1; }
+  #score { grid-column: 1; margin-top: 0; font-size: 30px; }
+  .stats { grid-column: 2; grid-row: 1 / 3; margin-top: 0; }
+  .stats output { font-size: 19px; }
+  .controls { grid-row: 2; position: sticky; bottom: 0; background: #151c21; padding: 8px 0; z-index: 1; }
+  .controls h2 { display: none; }
+  .touch-controls { grid-template-columns: repeat(4, 1fr); gap: 6px; }
+  .touch-controls button { padding: 10px 4px; min-height: 48px; }
+  #instructions { margin-top: 6px; }
+  .prop-guide { grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .prop-guide h2 { grid-column: 1 / -1; }
+  .guide-row { flex-direction: column; align-items: flex-start; gap: 4px; }
+  .prop-icon { flex-basis: 36px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { scroll-behavior: auto !important; transition: none !important; animation: none !important; }
+}

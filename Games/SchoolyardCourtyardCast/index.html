@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="dark">
+  <title>Courtyard Cast | Schoolyard</title><link rel="icon" href="data:,"><link rel="stylesheet" href="style.css">
+  <script src="shared.js" defer></script><script src="levels.js" defer></script><script src="overhaul-engine.js" defer></script><script src="progress.js" defer></script><script src="human.js" defer></script><script src="ui.js" defer></script>
+  <script src="vendor/three.iife.js" defer></script><script src="courtyard.js" defer></script><script src="scene3d.js" defer></script>
+</head>
+<body>
+<main>
+  <header><a href="../../index.html">Games</a><h1>Courtyard Cast</h1><span id="storage-status" role="status" hidden>Session only</span></header>
+  <dl class="hud" aria-label="Game progress">
+    <div><dt>Level</dt><dd id="level">1 / 20</dd></div>
+    <div><dt>Teachers</dt><dd id="teachers">1</dd></div>
+    <div><dt>Queue</dt><dd id="queue">Jack Ian Sim</dd></div>
+    <div><dt>Score</dt><dd id="score">0</dd></div>
+  </dl>
+  <section class="world-wrap" aria-label="Side-on courtyard">
+    <canvas id="world" width="960" height="600" tabindex="0" aria-label="Pull the loaded character back, then release. A fresh court click or tap, or Space, uses the airborne character's ability." aria-describedby="fixture-description">Canvas is required.</canvas>
+    <canvas id="world3d" width="960" height="600" aria-hidden="true" hidden></canvas>
+    <span id="render-status" role="status" hidden></span>
+  </section>
+  <p id="fixture-description" class="sr-only"></p>
+  <div class="controls" role="group" aria-label="Game controls">
+    <button id="ability" type="button" disabled>Dash</button>
+    <button id="pause" type="button" aria-pressed="false">Pause</button>
+    <button id="restart" type="button">Retry</button>
+    <button id="map-open" type="button" aria-controls="map">Map</button>
+    <button id="skins-open" type="button" aria-controls="skins">Skins</button>
+    <button id="help-open" type="button" aria-controls="help">Help</button>
+  </div>
+  <section id="outcome" hidden aria-live="polite">
+    <h2 id="result-title"></h2><output id="stars" aria-label="Stars"></output>
+    <button id="next" type="button" hidden>Next</button>
+    <button id="result-retry" type="button">Retry</button>
+  </section>
+  <details id="aim-settings"><summary>Aim</summary>
+    <div class="aim-controls">
+      <label for="angle">Angle <output id="angle-value">0°</output><input id="angle" type="range" min="0" max="90" step="any" value="0"></label>
+      <label for="power">Pull <output id="power-value">80</output><input id="power" type="range" min="4" max="90" step="any" value="80"></label>
+      <button id="launch" type="button">Launch</button>
+    </div>
+  </details>
+  <dialog id="map" aria-labelledby="map-title"><h2 id="map-title">Map</h2>
+    <div id="level-grid" class="level-grid"></div>
+    <button id="map-close" type="button">Close</button>
+  </dialog>
+  <dialog id="skins" aria-labelledby="skins-title"><h2 id="skins-title">Skins</h2><output id="earned-stars" aria-label="Earned stars">Stars 0</output>
+    <div id="skin-catalog"></div><button id="skins-close" type="button">Close</button>
+  </dialog>
+  <dialog id="help" aria-labelledby="help-title"><h2 id="help-title">Help</h2>
+    <p>Pull the character at the sling back and release. A fresh click or tap on the court works once during flight; the ability button or Space is an alternative: Jack dashes, Ian braces, Sim hops.</p>
+    <p>With the court focused, Left/Right changes angle, Up/Down changes pull, and Enter or Space launches. P pauses. Escape cancels a pull. Aim contains labelled keyboard alternatives.</p>
+    <p>Clear fictional teachers by actual character contact, moving blocks or a fall to the ground. Retry resets the current level. Map shows twenty authored drafts, unlocked in order. Earned stars and best scores save locally. Skins only change colors: earn stars or clear level 20. Session only means storage is blocked.</p>
+    <button id="help-close" type="button">Close</button>
+  </dialog>
+  <p id="announcer" class="sr-only" role="status" aria-live="polite" aria-atomic="true"></p>
+</main>
+</body>
+</html>

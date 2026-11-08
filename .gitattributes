@@ -1,0 +1,4 @@
+# The vendored Three.js bundle embeds upstream GLSL strings where whitespace is significant.
+Games/SchoolyardLaneRun/vendor/three.iife.js whitespace=-blank-at-eol,-space-before-tab
+Games/SchoolyardGapGlide/vendor/three.iife.js whitespace=-blank-at-eol,-space-before-tab
+Games/SchoolyardCourtyardCast/vendor/three.iife.js whitespace=-blank-at-eol,-space-before-tab

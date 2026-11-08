@@ -1,0 +1,72 @@
+/* Batch 01: twenty individually authored SOURCE drafts. No browser review yet.
+ * Rectangles: center x,y,width,height,mass. Teachers: center x,y.
+ * Solution entries: pull dx,dy, use power, optional seconds after release.
+ * Intended recipes are editor/test metadata, never automatic gameplay actions.
+ */
+(function(root,factory){'use strict';const data=factory();if(typeof module==='object'&&module.exports)module.exports=data;if(root)root.LauncherLevels=data;}(typeof window!=='undefined'?window:null,function(){
+  'use strict';
+  const levels=[
+    {id:1,lesson:'crate-chain-entry',presentation:'human-courtyard-v1',queue:['jack','ian','sim'],par:2,
+      intent:'Launch the actual human through two light wooden crates and clear the fictional teacher by real contact.',
+      blocks:[[392,520,40,40,.6,'wood'],[440,520,40,40,.6,'wood']],teachers:[[485,516]],solution:[[80,0]]},
+    {id:2,lesson:'topple-post',presentation:'human-courtyard-v1',mobileWidth:720,queue:['ian','jack','sim'],par:2,
+      intent:'Strike a narrow freestanding post so its moving side, not a proximity check, clears the teacher.',
+      blocks:[[500,480,30,120,1.3]],teachers:[[555,516]],solution:[[80,32]]},
+    {id:3,lesson:'displace-support',presentation:'human-courtyard-v1',mobileWidth:800,queue:['sim','jack','ian'],par:3,
+      intent:'Remove a bridge foot and let the supported teacher actually fall to the ground.',
+      blocks:[[500,510,28,60,1.6],[620,510,28,60,1.6],[560,470,160,20,1]],teachers:[[590,436]],solution:[[80,39]]},
+    {id:4,lesson:'brace-through-pair',presentation:'human-courtyard-v1',mobileWidth:720,queue:['ian','sim','jack'],par:3,
+      intent:'Use the heavier brace to carry momentum through two separated ground contacts.',
+      blocks:[],teachers:[[475,516],[550,516]],solution:[[80,0,true],[80,32]]},
+    {id:5,lesson:'wide-pedestal',presentation:'human-courtyard-v1',mobileWidth:740,queue:['ian','jack','sim'],par:3,
+      intent:'Push a broad pedestal out from under a high teacher rather than aiming at the teacher directly.',
+      blocks:[[520,480,80,120,1.4]],teachers:[[520,396]],solution:[[80,32,true]]},
+    {id:6,lesson:'move-the-shield',presentation:'human-courtyard-v1',mobileWidth:700,queue:['ian','sim','jack'],par:3,
+      intent:'Drive a low shield into the protected ground teacher with a braced side impact.',
+      blocks:[[450,505,24,70,.9]],teachers:[[535,516]],solution:[[80,32,true]]},
+    {id:7,lesson:'roof-and-bay',presentation:'human-courtyard-v1',mobileWidth:700,queue:['ian','jack','sim'],par:3,
+      intent:'Collapse an occupied roof into its bay, clearing teachers at two different heights.',
+      blocks:[[460,500,30,80,1.3],[640,500,30,80,1.3],[550,450,220,20,1.1]],teachers:[[550,416],[550,516]],solution:[[80,32,true]]},
+    {id:8,lesson:'three-stair-landings',presentation:'human-courtyard-v1',mobileWidth:860,queue:['ian','jack','sim'],par:3,
+      intent:'Deal with three independently supported teachers on successively taller stair blocks.',
+      blocks:[[450,520,60,40,.7],[555,500,60,80,1],[660,480,50,120,1.1]],teachers:[[450,476],[555,436],[660,396]],solution:[[80,32,true],[80,40,true]]},
+    {id:9,lesson:'tall-mast',presentation:'human-courtyard-v1',mobileWidth:800,queue:['jack','ian','sim'],par:2,
+      intent:'Hit below a tall narrow mast target and turn horizontal speed into a large angular fall.',
+      blocks:[[520,450,49,180,1.2]],teachers:[[520,336]],solution:[[80,32,true]]},
+    {id:10,lesson:'weighted-roof',queue:['ian','sim','jack'],par:3,
+      intent:'A short counterweight on the near roof changes how an otherwise supported span tips.',
+      blocks:[[490,510,30,60,1.3],[610,510,30,60,1.3],[550,470,180,20,.9],[520,440,30,40,.6]],teachers:[[600,444]],solution:[[80,32,true],[80,40,true],[86,20,true]]},
+    {id:11,lesson:'stacked-lever',queue:['ian','jack','sim'],par:3,
+      intent:'A mast on the far end of a bridge creates a second lever; bring both layers down through a support.',
+      blocks:[[500,510,28,60,1.5],[620,510,28,60,1.5],[560,470,160,20,1],[620,430,40,60,.7]],teachers:[[620,384]],solution:[[80,32,true],[80,40,true]]},
+    {id:12,lesson:'sliding-raft',presentation:'human-courtyard-v1',mobileWidth:860,queue:['ian','jack','sim'],par:3,
+      intent:'Translate a broad low raft to expose its off-center rider to a differently aimed follow-up contact.',
+      blocks:[[520,520,140,40,.8]],teachers:[[565,476]],solution:[[80,0,true],[80,32,true]]},
+    {id:13,lesson:'two-separate-columns',presentation:'human-courtyard-v1',mobileWidth:885,queue:['ian','jack','sim'],par:3,
+      intent:'Disconnected columns allow either carried momentum or independently aimed follow-ups, without a shared roof.',
+      blocks:[[450,500,80,80,1.8823529411764706],[670,460,60,160,1.8857142857142857]],teachers:[[450,436],[670,356]],solution:[[80,32,true],[80,40,true]]},
+    {id:14,lesson:'overhang-at-both-ends',presentation:'human-courtyard-v1',mobileWidth:880,queue:['ian','sim','jack'],par:3,
+      intent:'Two teachers occupy opposite overhangs of a long beam; tip it without leaving the far rider behind.',
+      blocks:[[570,510,50,60,1.8],[570,470,240,20,1.1]],teachers:[[474,436],[665,436]],solution:[[80,32,true]]},
+    {id:15,lesson:'three-foot-span',presentation:'human-courtyard-v1',mobileWidth:955,queue:['ian','jack','sim'],par:3,
+      intent:'A middle foot resists the ordinary two-support collapse, rewarding a heavy impulse into the wider span.',
+      blocks:[[460,510,24,60,1],[565,510,24,60,1],[670,510,24,60,1],[565,470,260,20,1.1]],teachers:[[620,436]],solution:[[80,32,true]]},
+    {id:16,lesson:'late-dash-distance',presentation:'human-courtyard-v1',mobileWidth:880,queue:['jack','sim','ian'],par:3,
+      intent:'Delay the dash until descent so its extra speed extends the ground reach instead of overshooting high.',
+      blocks:[],teachers:[[820,516]],solution:[[70,50,true,.8]]},
+    {id:17,lesson:'low-and-high-pair',presentation:'human-courtyard-v1',mobileWidth:820,queue:['sim','ian','jack'],par:3,
+      intent:'One ground teacher and one wide elevated block rider require distinct contact heights.',
+      blocks:[[630,480,70,120,1.1]],teachers:[[460,516],[630,396]],solution:[[80,0],[80,40,true]]},
+    {id:18,lesson:'cap-between-platforms',presentation:'human-courtyard-v1',mobileWidth:724,queue:['ian','jack','sim'],par:3,
+      intent:'A small removable cap transmits motion from a broad lower plinth into a balanced two-rider upper platform.',
+      blocks:[[550,510,90,60,1.5],[550,460,36,40,.5],[550,430,150,20,1]],teachers:[[510,396],[590,396]],solution:[[80,32,true]]},
+    {id:19,lesson:'shield-then-mast',queue:['ian','jack','sim'],par:3,
+      intent:'A movable front shield consumes momentum before a separate narrow mast, testing ordered follow-up shots.',
+      blocks:[[445,515,22,50,.6],[610,460,30,160,1.2]],teachers:[[505,524],[610,364]],solution:[[80,32,true],[80,40,true]]},
+    {id:20,lesson:'split-courtyard-finale',presentation:'human-courtyard-v1',mobileWidth:920,queue:['ian','jack','sim'],par:3,
+      intent:'A near post, a separate bridge and three teachers combine direct, moving-block and falling routes.',
+      blocks:[[430,490,26,100,.9],[570,510,28,60,1.2],[700,510,28,60,1.2],[635,470,190,20,1]],teachers:[[480,516],[600,436],[745,516]],solution:[[80,32,true],[80,40,true],[70,50,true]]}
+  ];
+  function freeze(value){if(value&&typeof value==='object'){Object.values(value).forEach(freeze);Object.freeze(value);}return value;}
+  return freeze(levels);
+}));

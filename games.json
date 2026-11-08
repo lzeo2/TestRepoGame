@@ -1379,6 +1379,36 @@
     ]
   },
   {
+    "id": 242,
+    "title": "Lane Run",
+    "cat": "arcade",
+    "icon": "",
+    "desc": "Original schoolyard three-lane runner. Dodge, jump and slide through an endless courtyard; WebGL scene with a playable 2D fallback. Keyboard and touch controls.",
+    "url": "Games/SchoolyardLaneRun/index.html",
+    "featured": false,
+    "tags": ["solo", "3d"]
+  },
+  {
+    "id": 243,
+    "title": "Gap Glide",
+    "cat": "arcade",
+    "icon": "",
+    "desc": "Original schoolyard glider through moving gaps. Flap, pause and retry; WebGL scene with a playable 2D fallback. Keyboard and touch controls.",
+    "url": "Games/SchoolyardGapGlide/index.html",
+    "featured": false,
+    "tags": ["solo", "3d"]
+  },
+  {
+    "id": 244,
+    "title": "Courtyard Cast",
+    "cat": "puzzle",
+    "icon": "",
+    "desc": "Original schoolyard slingshot prototype with twenty authored draft levels, three fictional playable characters, physics blocks and a 2D fallback. Some levels and mobile/3D interactions still need review.",
+    "url": "Games/SchoolyardCourtyardCast/index.html",
+    "featured": false,
+    "tags": ["solo", "3d"]
+  },
+  {
     "id": 1,
     "title": "Brainrot Boulevard: After Dark",
     "cat": "arcade",

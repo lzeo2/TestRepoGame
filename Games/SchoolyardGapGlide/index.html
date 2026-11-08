@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>Gap Glide | Schoolyard Trio</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="shared.js" defer></script>
+  <script src="engine.js" defer></script>
+  <script src="ui.js" defer></script>
+  <script src="vendor/three.iife.js" defer></script>
+  <script src="scene3d.js" defer></script>
+</head>
+<body>
+  <main>
+    <nav aria-label="Game navigation"><a href="../../index.html">‹ &nbsp;All games</a><span>Courtyard / 02</span></nav>
+    <h1>Gap Glide</h1>
+    <div class="character-row"><label for="character">Character</label><select id="character" aria-label="Character"></select></div>
+    <section class="hud" aria-label="Game progress">
+      <div><span class="caption">Gaps</span><strong id="score">00</strong></div>
+      <div><span class="caption">Best</span><strong id="best">00</strong></div>
+      <span id="status">Ready</span>
+    </section>
+    <div class="world-wrap">
+      <canvas id="world" width="480" height="640" tabindex="0" aria-label="Gap Glide courtyard. Fly through moving practice-frame openings." aria-describedby="instructions">Your browser needs canvas support to display this game. Use Flap, Space or Arrow Up to fly through the openings.</canvas>
+      <canvas id="world3d" width="480" height="640" aria-hidden="true" hidden></canvas>
+      <span id="render-status" class="view-status" role="status" hidden></span>
+    </div>
+    <div class="controls" role="group" aria-label="Game controls">
+      <button id="start" type="button">Flap</button>
+      <button id="pause" type="button" disabled>Pause</button>
+      <button id="restart" type="button">Restart</button>
+    </div>
+    <footer><span id="instructions"><span aria-hidden="true">Space / ↑ / tap</span><span class="sr-only">Press Space, Arrow Up, Flap, or tap the courtyard to start and gain lift. Clear the moving gaps; avoid frames, floor and ceiling. Pause and restart with the buttons.</span></span><span>Fictional schoolyard crew</span></footer>
+    <p id="announcement" class="sr-only" role="status" aria-live="polite" aria-atomic="true">Ready to glide.</p>
+  </main>
+</body>
+</html>
