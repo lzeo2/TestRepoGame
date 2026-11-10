@@ -18,6 +18,58 @@ const assertFinite=match=>{
 };
 
 {
+  for(const side of [0,1]) {
+    const match=fresh();open(match);const sign=side===0?1:-1;
+    const striker=match.players[side*11+9],keeper=match.players[(1-side)*11];
+    striker.x=80*sign;striker.z=0;keeper.x=72*sign;keeper.z=0;
+    match.players.filter(p=>p.side!==side&&p!==keeper).forEach(p=>{p.x=0;p.z=50;});
+    match._give(striker);match.nextDecision=match.time+20;
+    match.duel={attacker:side*11+9};match._roll=()=>.8;
+    match._auto();assert.equal(match.ball.flight?.kind,'shot','close AI finish bypasses decision and duel delay on both sides');
+    assert.equal(match.duel,null);assert.equal(match.ball.flight.outcome,'goal','beaten keeper cannot save open net');
+    assert(match.ball.flight.goalChance<100,'open finishes remain fallible');
+    const chance=match.ball.flight.goalChance;
+    match.ball.flight=null;keeper.x=87*sign;match._give(striker);match._shoot();
+    assert(match.ball.flight.goalChance<chance,'a keeper covering the line lowers finish likelihood');
+    match.ball.flight=null;keeper.x=72*sign;match._give(striker);match._roll=()=>.99;match._shoot();
+    assert.equal(match.ball.flight.outcome,'miss','beaten keeper does not magically save a missed finish');
+  }
+  const manual=fresh();open(manual);const p=manual.players[9];p.x=80;p.z=0;manual._give(p);
+  manual.controlState={index:9};manual._auto();assert.equal(manual.ball.flight,null,'Icon finish remains manual');
+  manual.controlState=null;manual.indirect={side:0,taker:9};manual._auto();
+  assert.notEqual(manual.ball.flight?.kind,'shot','indirect taker cannot directly shoot');
+  const wide=fresh();open(wide);wide.players[9].x=81;wide.players[9].z=40;wide._give(wide.players[9]);
+  wide.nextDecision=wide.time+20;wide._auto();assert.equal(wide.ball.flight,null,'wide angle does not trigger urgent shot');
+}
+{
+  const match=fresh({practice:true});open(match);
+  const striker=match.players[9],keeper=match.players[11];
+  striker.x=78;striker.z=5;keeper.x=80;keeper.z=5;
+  match.players.filter(p=>p.side===1&&p!==keeper).forEach(p=>{p.x=0;p.z=50;});
+  match._give(striker);striker.receivedAt=match.time-1;match._roll=()=>.3;
+  match._contacts();assert.equal(match.ball.owner,11,'keeper can win a reachable ball using goalkeeping');
+  assert.equal(match.phase,'keeperRestart');
+  match._give(striker);striker.receivedAt=match.time-1;keeper.challengeAt=0;match._roll=()=>.99;
+  match._contacts();assert.equal(match.ball.owner,9,'close keeper contest can fail');
+  const distant=fresh();open(distant);distant.players[9].x=78;distant.players[9].z=5;
+  distant.players[11].x=85;distant.players[11].z=5;distant._give(distant.players[9]);
+  distant.players[9].receivedAt=distant.time-1;distant._roll=()=>0;distant._contacts();
+  assert.equal(distant.ball.owner,9,'keeper cannot catch from outside contact range');
+  distant._move(.1);assert(distant.players[11].vx<0,'keeper moves off line to close the attacker');
+  const press=fresh({practice:true});open(press);const carrier=press.players[9],defender=press.players[12];
+  carrier.x=40;carrier.z=0;defender.x=42;defender.z=0;
+  press.players.filter(p=>p.side===1&&p!==defender).forEach(p=>{p.x=-50;p.z=50;});
+  press._give(carrier);carrier.receivedAt=press.time-.7;press._roll=()=>.3;press._contacts();
+  assert.equal(press.ball.owner,12,'practice pressure challenges after short receive protection');
+  const close=fresh({practice:true});open(close);const c=close.players[9],d=close.players[12];
+  c.x=40;c.z=0;d.x=49;d.z=0;close._give(c);c.receivedAt=close.time-2;
+  close.players.filter(p=>p.side===1&&p!==d).forEach(p=>{p.x=-50;p.z=50;});
+  close.controlState={index:9,vector:{x:0,z:0},lastInputAt:close.time};
+  for(let i=0;i<30;i++)close._move(.1);
+  assert(Math.hypot(c.x-d.x,c.z-d.z)<3.3,'practice presser closes into actual challenge reach');
+}
+
+{
   const team=makeTeam();const original=JSON.stringify(team);const match=new Match(team,makeTeam(60,'away'));
   open(match);advance(match,3);
   assert.equal(JSON.stringify(team),original,'actors must be detached from progression records');
@@ -188,4 +240,4 @@ const assertFinite=match=>{
     assert(match.result.stats[0].possessionPercent+match.result.stats[1].possessionPercent===100);
   }
 }
-console.log('PASS match: formation, flight contacts, offside, controls, pace, saves, subs, managers, periods, PKs, rewards, confirmed foul injuries, detached audio events and eight full seeded simulations');
+console.log('PASS match: formation, flight contacts, offside, controls, urgent finishes, keeper positioning/contests, practice pressure, pace, saves, subs, managers, periods, PKs, rewards, confirmed foul injuries, detached audio events and eight full seeded simulations');

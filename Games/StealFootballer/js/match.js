@@ -203,10 +203,21 @@ export class Match {
       p.side===0&&this.mentality==='counter'&&this.counterSide===0?7:0;
     const distancePenalty=clamp((distance-180*.24)*.13,0,10);
     const pressPenalty=this.time<(this.tactics[1-p.side].pressUntil||0)?3*resist:0;
-    const chance=Math.min(cap,clamp(48+(stat(p,'attacking')-stat(keeper,'goalkeeping'))*.38+
+    let chance=Math.min(cap,clamp(48+(stat(p,'attacking')-stat(keeper,'goalkeeping'))*.38+
       (average(p.side,'passing')-average(1-p.side,'defending'))*.1+attackShape-defenceShape+mentality+
       (p.captain?2:0)+(1-this.stamina[1-p.side]/100)*7+(rocket?6:0)+(driven?3:0)+
       (p.assistBonus||0)+support-pressure*resist-distancePenalty-pressPenalty,22,80));
+    // A keeper behind the striker cannot save a finish into an empty net.
+    const keeperAhead=(keeper.x-p.x)*direction>0;
+    const goalLineZ=p.z*(91-keeper.x*direction)/Math.max(1,distance);
+    const coverage=keeperAhead?clamp(1-Math.abs(keeper.z-goalLineZ)/20,0,1):0;
+    const angle=clamp(distance/Math.max(1,Math.hypot(distance,p.z)),.15,1);
+    if(distance<=25) {
+      const finish=clamp(82+stat(p,'attacking')*.08-pressure*1.2,70,94);
+      chance=Math.max(chance,finish*(1-coverage)+Math.min(80,chance+5)*coverage)*angle;
+      target=Math.max(chance,target*angle);
+    }
+    if(!keeperAhead||coverage===0)target=chance;
     const roll=this._roll()*100,outcome=roll<chance?'goal':roll<target?'save':'miss';
     const aim=(this._roll()*2-1)*9;
     const to={x:direction*91,y:outcome==='goal'?1.1:.8,z:outcome==='miss'?(aim<0?-1:1)*(16+this._roll()*10):aim};
@@ -367,8 +378,16 @@ export class Match {
       const direction=dir(p.side), tactic=this.tactics[p.side];
       let x=p.anchor.x,z=p.anchor.z,duty='hold',speed=clamp(8+stat(p,'pace')*.06,8,17)*(.8+this.stamina[p.side]/100*.2);
       if(signature(p,'firstBurst')&&this.time-p.receivedAt<=1.5)speed=Math.min(16,speed+1.5);
-      if(p.side===1&&this.isPractice)speed*=.68;
-      if(p.role==='GK') {z=clamp(ball.z*.38,-10,10);x+=signature(p,'keeperSweep')?direction*(p.side===attacking?4:1.5):0;duty='goalkeeper';}
+      if(p.side===1&&this.isPractice)speed*=.90;
+      if(p.role==='GK') {
+        z=clamp(ball.z*.55,-12,12);duty='goalkeeper';
+        if(this._open()&&carrier&&carrier.side!==p.side) {
+          const depth=carrier.x*direction;
+          // Cover the angle and close a nearby attacker inside our penalty area.
+          x=-direction*(depth< -66&&Math.abs(carrier.z)<23?clamp(-depth-4,72,85):85);
+          if(depth< -66&&Math.abs(carrier.z)<23)z=clamp(carrier.z,-20,20);
+        } else x+=signature(p,'keeperSweep')?direction*(p.side===attacking?4:1.5):0;
+      }
       else if(this.phase==='goalCelebration'&&p.side===this.celebration?.side) {
         x=direction*79-(p.index%3)*3*direction;z=-(45+(p.index%4)*3);duty='celebrate';
         this.celebration.stage=this.time>this.phaseUntil-1.5?'celebrate':'runToCorner';
@@ -416,7 +435,7 @@ export class Match {
       } else if(this._open()&&p.side===defending) {
         const compact=this.time<(tactic.compactUntil||0),press=this.time<(tactic.pressUntil||0)||this.activeManager?.id==='surge';
         x=p.anchor.x+direction*clamp(ball.x*direction*.23,-19,12);z=p.anchor.z*(compact?.72:.9)+ball.z*.1;
-        if(p===pressers[0]&&!(this.isPractice&&p.side===1&&carrier&&this.time-carrier.receivedAt<1.1)) {x=ball.x-direction*(this.time<(tactic.containUntil||0)?4:this.isPractice&&p.side===1?4.8:1.5);z=ball.z;duty='press';speed+=press?1.6:.7;}
+        if(p===pressers[0]&&!(this.isPractice&&p.side===1&&carrier&&this.time-carrier.receivedAt<.5)) {x=ball.x-direction*(this.time<(tactic.containUntil||0)?2.8:1.5);z=ball.z;duty='press';speed+=press?1.6:.7;}
         else if(p===pressers[1]&&!compact) {x=ball.x-direction*8;z=ball.z*.7;duty='cover';}
         else duty='shape';
       }
@@ -452,33 +471,44 @@ export class Match {
   }
   _contacts() {
     const carrier=this.players[this.ball.owner];
-    if(!carrier || carrier.role==='GK'||this.time-carrier.receivedAt<.85)return;
-    for(const p of this._nearest(1-carrier.side,carrier)) {
+    if(!carrier || carrier.role==='GK'||this.time-carrier.receivedAt<.6)return;
+    for(const p of this._nearest(1-carrier.side,carrier,false)) {
       if(dist(p,carrier)>3.3)break;
+      if(p.role==='GK'&&(p.x*dir(p.side)>-65||Math.abs(p.z)>25))continue;
       if(this.time<p.challengeAt)continue;
       p.challengeAt=this.time+1.7;
       const a=this._active(carrier),resistance=(signature(carrier,'closeTouch')?8:0)+
         (a?.id==='dribbleGlue'?18:['sambaStep','stepovers'].includes(a?.id)?10:a?.id==='wingWeave'?8:0);
       const control=this.controlState?.index===p.index&&p.side===0;
       const skill=(stat(carrier,'attacking')+stat(carrier,'pace'))*.5;
-      let chance=clamp(.42+(stat(p,'defending')-skill)*.0042+(control?.12:0)+
+      let chance=clamp(.42+(stat(p,p.role==='GK'?'goalkeeping':'defending')-skill)*.0042+(control?.12:0)+
         (this.time<(this.tactics[p.side].pressUntil||0)?.08:0)+(signature(p,'coverRead')?.06:0)-resistance/100-
         (this.duel?.attacker===this.ball.owner?.06:0),.18,control?.78:.65);
-      if(this.isPractice&&p.side===1)chance*=.55;
-      if(this._roll()<chance) {this._turnover(p,'tackle');return;}
+      if(this.isPractice&&p.side===1)chance*=.90;
+      if(this._roll()<chance) {
+        if(p.role==='GK') {
+          this.duel=null;this.offsidePhase=null;this._give(p);this.phase='keeperRestart';this.phaseUntil=this.time+1.3;
+          this._say(`${p.name} collects the ball at the attacker's feet`,false,'save');
+        } else this._turnover(p,'tackle');
+        return;
+      }
+      if(p.role==='GK')continue;
       if(this._tryFoul(p,carrier))return;
       this._say(`${carrier.name} keeps the ball under pressure`);
     }
   }
   _auto() {
-    if(this.ball.flight || this.time<this.nextDecision||this.duel)return;
+    if(this.ball.flight)return;
     const p=this.players[this.ball.owner];if(!p)return;
     if(this.controlState&&p.side===0&&this.controlState.index===p.index)return;
     const distance=91-p.x*dir(p.side),elapsed=this.time-this.attackStarted;
+    const central=Math.abs(p.z)<=Math.min(14,distance*.65+3);
+    if(p.role!=='GK'&&distance<=22&&central&&this._shoot()) {this.duel=null;return;}
+    if(this.time<this.nextDecision||this.duel)return;
     if(p.role==='ST'&&dist(this._nearest(1-p.side,p)[0],p)<12&&this.time-(p.lastDuelAt||-20)>8) {
       p.lastDuelAt=this.time;if(this._startDuel(p))return;
     }
-    if(p.role==='ST'&&distance<58&&elapsed>5 || distance<35 || elapsed>17&&distance<85) {
+    if(Math.abs(p.z)<=Math.max(14,distance*.65)&&(p.role==='ST'&&distance<58&&elapsed>5 || distance<35 || elapsed>17&&distance<85)) {
       this._shoot();return;
     }
     this._pass(this._receiver(p));
