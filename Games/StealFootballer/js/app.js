@@ -1,6 +1,7 @@
 import {Game} from './game.js';
 import {Match} from './match.js';
 import {World} from './world.js';
+import {blocksGameplayKey,rememberFocus,restoreFocus,trapTab} from './input.js';
 
 const $ = id => document.getElementById(id);
 const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -137,15 +138,23 @@ function matchHTML() {
 }
 const titles={roster:'YOUR FOOTBALLERS',shop:'TRANSFER STORE',events:'LIMITED EVENTS',tactics:'STARTING XI',kits:'CREATE YOUR KIT',staff:'COACHING STAFF',upgrades:'BUILD YOUR CLUB',collection:'PLAYER ALBUM',help:'HOW TO PLAY',match:'SQUAD BATTLE',subs:'SUBSTITUTIONS',rival:'RIVAL TEAM',market:'TRANSFER CONVEYOR'};
 function openPanel(name) {
-  previousFocus=document.activeElement;panel=name;keys.clear();touchVector={x:0,z:0};
+  if(!panel)previousFocus=document.activeElement;
+  panel=name;releaseInputs();
+  for(const element of [$('hud'),$('world'),document.querySelector('.skip')])element.inert=true;
   if(name==='tactics'){draft=clone(state.tactics);selectedPosition=null;}
   if(name==='kits')draft=clone(state.kit);
   $('sheet').hidden=false;renderPanel();$('close-sheet').focus();
 }
-function closePanel() {panel='';draft=null;$('sheet').hidden=true;previousFocus?.focus?.();}
+function closePanel() {
+  panel='';draft=null;$('sheet').hidden=true;
+  for(const element of [$('hud'),$('world'),document.querySelector('.skip')])element.inert=false;
+  const target=previousFocus?.isConnected&&!previousFocus.closest('#sheet')&&!previousFocus.disabled?previousFocus:$('world');
+  previousFocus=null;target.focus();
+}
 function renderPanel() {
   if(!panel)return;$('sheet-title').textContent=titles[panel]||'YOUR CLUB';
   const content=$('sheet-content');
+  const focus=rememberFocus(content);
   if(panel==='roster')content.innerHTML=`<p class="notice">${state.roster.length}/18 owned players. Reserves still earn income; players assigned to coaches pause their income.</p><div class="grid">${state.roster.map((p,i)=>playerCard(p,'owned',i)).join('')||'<p class="empty">Recruit your first player from the conveyor. You start with 150 coins.</p>'}</div>`;
   if(panel==='market')content.innerHTML=`<p class="notice">Footballers move along the conveyor and teleport directly to your base after purchase.</p><div class="grid">${state.market.filter(m=>m.id).map(m=>{const p=marketDefinition(m.id);return `<article class="card"><h3>${esc(p.name)}</h3><p>${esc(p.rarity)} · Power ${p.power} · ${number(p.income)}/s</p><p class="price">${number(p.cost)} coins</p>${button('SIGN PLAYER','buy',`data-market="${m.marketId}" data-id="${p.id}"`,state.battleLock)}</article>`;}).join('')}</div>`;
   if(panel==='shop')content.innerHTML=`<p class="notice">Keep an eye on the conveyor for individual footballers. Eggs always hatch a level 1 player.</p>${button('VIEW CONVEYOR','openMarket')}<h3 class="section-title">PLAYER EGGS</h3><div class="grid">${data.eggs.map(e=>`<article class="card"><h3>${esc(e.name)}</h3><p>${esc(e.description)}</p><p class="price">${number(e.cost)} coins</p>${button('HATCH','egg',`data-id="${e.id}"`)}</article>`).join('')}<article class="card"><h3>MYSTERY PLAYER</h3><p>Rare 80% · Epic 18% · Icon 2%. Identity reveals on signing.</p><p class="price">2,000 coins</p>${button('REVEAL','mystery')}</article></div><h3 class="section-title">CLUB SUPPLIES</h3><div class="stack">${[['training','Training equipment',state.shop.trainingCost,'Permanent team income +10% per level, up to 3 levels.'],['sprint','Sprint boots',120,'Faster movement for 180 seconds.'],['incomeBoost','Income boost',180,'Extra income for 120 seconds, excluded from battle reward scaling.']].map(([id,name,cost,description])=>`<article class="card row"><div><h3>${name}</h3><p>${description}</p></div>${button(cost?`BUY ${number(cost)}`:'MAX LEVEL','shopBuy',`data-id="${id}"`,!cost)}</article>`).join('')}<article class="card"><h3>BASE DEFENSE</h3><p>Your whistle repels NPC thieves beside your base. The baton has a shorter cooldown.</p>${button(state.tools.includes('baton')?'BATON OWNED':'BUY BATON 350','buyTool','data-id="baton"',state.tools.includes('baton'))}</article></div>`;
@@ -159,6 +168,7 @@ function renderPanel() {
   if(panel==='match')content.innerHTML=matchHTML();
   if(panel==='subs')content.innerHTML=!match||match.finished?'<p>Start a battle to use substitutions.</p>':`<p class="notice">${matchState.substitutions.used}/5 substitutions used. Changes happen at a safe stoppage. A goalkeeper can only replace another goalkeeper.</p><label>Player coming off${select('sub-out',matchState.players.filter(p=>p.side===0).map(p=>[p.index,p.roleLabel+' · '+p.name]),0)}</label><h3 class="section-title">BENCH</h3><div class="stack">${matchState.bench.map(p=>`<article class="card row"><div><h3>${esc(p.name)}</h3><p>${esc(p.stats.naturalRole)} · Power ${Math.round(p.power)}</p></div>${button('BRING ON','substitute',`data-uid="${esc(p.uid)}"`,!!matchState.substitutions.pending||matchState.substitutions.used>=5)}</article>`).join('')||'<p>Recruit reserves to fill your bench.</p>'}</div>`;
   if(panel==='rival') { const rival=state.rivals[panelBase],shield=Math.max(0,Math.ceil(rival.shieldUntil-game.now()));content.innerHTML=`<p class="notice">NPC team ${panelBase+1}. ${shield?'Shield active: '+shield+'s.':'Choose a player, then carry them to your home deposit pad.'}</p><div class="grid">${rival.roster.map((p,i)=>playerCard(p,'rival',{base:panelBase,index:i})).join('')||'<p>No available footballers.</p>'}</div>`;}
+  restoreFocus(content,focus,$('close-sheet'));
 }
 function albumHTML(query) {query=query.toLowerCase();return data.players.filter(p=>(p.name+' '+p.clubName).toLowerCase().includes(query)).map(p=>`<article class="card"><h3>${esc(p.name)}</h3><p>${esc(p.clubName||p.nationality)} · ${esc(p.rarity)} · ${p.power}</p><p>${esc(p.style.name)} · ${state.collection.includes(p.id)?'DISCOVERED':'UNDISCOVERED'}</p>${(p.stats.signaturePlaystyles||[]).map(s=>`<span class="tag">${esc(s.name)}</span>`).join('')}${data.abilities.filter(a=>a.playerId===p.id).map(a=>`<p><b>${esc(a.name)}</b></p>`).join('')}</article>`).join('');}
 
@@ -325,10 +335,9 @@ $('sheet-content').addEventListener('dragstart',e=>{const target=e.target.closes
 $('sheet-content').addEventListener('dragover',e=>{const target=e.target.closest('[data-position]');if(target){e.preventDefault();target.classList.add('drag-over');}});
 $('sheet-content').addEventListener('dragleave',e=>e.target.closest('[data-position]')?.classList.remove('drag-over'));
 $('sheet-content').addEventListener('drop',e=>{const target=e.target.closest('[data-position]');if(target){e.preventDefault();swapPositions(draggedPosition,Number(target.dataset.position));}});
-const editable=target=>target.closest('input,select,textarea,button,a');
 window.addEventListener('keydown',e=>{
   if(e.key==='Escape'&&panel){e.preventDefault();closePanel();return;}
-  if(panel||!started||editable(e.target))return;
+  if(panel||!started||blocksGameplayKey(e))return;
   const key=e.key.toLowerCase();if([' ','arrowup','arrowdown','arrowleft','arrowright'].includes(key))e.preventDefault();
   keys.add(key);if(e.repeat)return;
   if(key==='e')interact();if(key===' '&&!match)world.jump();
@@ -337,7 +346,7 @@ window.addEventListener('keydown',e=>{
 window.addEventListener('keyup',e=>keys.delete(e.key.toLowerCase()));
 function releaseInputs(){keys.clear();touchVector={x:0,z:0};pointer=null;$('stick').style.transform='';lastTime=0;}
 window.addEventListener('blur',releaseInputs);document.addEventListener('visibilitychange',()=>{releaseInputs();audio.configure(state?.settings.sound&&!document.hidden,!!match&&!match.finished);});
-$('sheet').addEventListener('keydown',e=>{if(e.key!=='Tab')return;const focusable=[...$('sheet').querySelectorAll('button:not(:disabled),input,select,a')];const first=focusable[0],last=focusable.at(-1);if(e.shiftKey&&document.activeElement===first){e.preventDefault();last?.focus();}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first?.focus();}});
+$('sheet').addEventListener('keydown',e=>trapTab(e,$('sheet')));
 const canvas=$('world');
 canvas.addEventListener('pointerdown',e=>{if(!started||panel)return;canvas.focus();pointer={id:e.pointerId,x:e.clientX};canvas.setPointerCapture(e.pointerId);});
 canvas.addEventListener('pointermove',e=>{if(pointer?.id!==e.pointerId)return;camera.yaw+=(e.clientX-pointer.x)*.008;pointer.x=e.clientX;world.setCamera(camera);});
