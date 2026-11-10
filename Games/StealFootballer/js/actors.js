@@ -9,7 +9,9 @@ export class ActorFactory {
   constructor() {
     this.geometries = {
       box: new THREE.BoxGeometry(1, 1, 1),
-      sphere: new THREE.SphereGeometry(.5, 10, 8),
+      sphere: new THREE.SphereGeometry(.5, 8, 6),
+      shirt: new THREE.CylinderGeometry(.5, .37, 1, 8),
+      shorts: new THREE.CylinderGeometry(.46, .5, 1, 8),
       cylinder: new THREE.CylinderGeometry(.5, .5, 1, 10),
     };
     this.materials = new Map();
@@ -39,16 +41,20 @@ export class ActorFactory {
     const primary = color(kit.primary || def.color || def.shirt || def.primary || def.kitColor, '#3978C7');
     const secondary = color(kit.secondary || def.secondary || def.trim, '#F5F5E9');
     const shorts = color(kit.shorts || def.shorts, '#202C40');
-    this.part(body, 'box', [2, 1.85, 1], [0, 3.18, 0], primary);
-    this.part(body, 'box', [2.04, .22, 1.04], [0, 4, 0], secondary);
-    this.part(body, 'box', [.18, 1.65, .025], [-.58, 3.2, -.515], secondary);
-    this.part(body, 'box', [.18, 1.65, .025], [.58, 3.2, -.515], secondary);
-    if(kit.pattern==='stripes')for(const x of [-.75,-.25,.25,.75])this.part(body,'box',[.22,1.6,1.035],[x,3.18,0],secondary);
-    if(kit.pattern==='hoops')for(const y of [2.63,3.12,3.61])this.part(body,'box',[2.035,.18,1.035],[0,y,0],secondary);
-    this.part(body, 'sphere', [.24, .3, .025], [-.72, 3.76, -.535], secondary);
-    this.part(body, 'box', [2.02, .66, 1.02], [0, 2.04, 0], shorts);
-    const head = new THREE.Group(); head.position.set(0, 4.56, 0); body.add(head);
-    this.part(head, 'box', [1.78, 1.25, 1.1], [0, 0, 0], skin);
+    // Adult athletic silhouette: long legs, a tapered torso and a smaller head.
+    this.part(body, 'shirt', [1.65, 1.65, .76], [0, 4.04, 0], primary);
+    this.part(body, 'sphere', [.64, .18, .57], [0, 4.82, 0], secondary);
+    this.part(body, 'cylinder', [.34, .38, .34], [0, 4.99, 0], skin);
+    for (const x of [-.4, .4]) this.part(body, 'box', [.09, 1.28, .025], [x, 4.02, -.354], secondary);
+    if (kit.pattern === 'stripes') for (const x of [-.5, -.17, .17, .5]) this.part(body, 'box', [.12, 1.28, .025], [x, 4.02, -.367], secondary);
+    if (kit.pattern === 'hoops') for (const y of [3.55, 4.02, 4.49]) this.part(body, 'shirt', [1.67, .13, .78], [0, y, 0], secondary);
+    this.part(body, 'sphere', [.15, .2, .025], [-.47, 4.48, -.363], secondary);
+    this.part(body, 'shorts', [1.2, .57, .68], [0, 3.05, 0], shorts);
+    const head = new THREE.Group(); head.position.set(0, 5.56, 0);
+    // Profile coordinates remain shared with the original source silhouette details.
+    head.scale.set(.46, .76, .68); body.add(head);
+    this.part(head, 'sphere', [1.78, 1.25, 1.1], [0, .02, 0], skin);
+    this.part(head, 'sphere', [1.35, .65, 1.02], [0, -.29, -.025], skin);
     for (const side of [-1, 1]) {
       this.part(head, 'sphere', [.2, .38, .28], [side * .92, -.04, 0], skin);
       this.part(head, 'box', [.16, .12, .035], [side * .39, .1, -.57], '#191C22');
@@ -68,16 +74,16 @@ export class ActorFactory {
     if (a.headbandColor) this.part(head, 'box', [1.86, .13, 1.14], [0, .28, 0], color(a.headbandColor, '#FFFFFF'));
     const limbs = {};const feet=[];const owned=[];
     for (const side of [-1, 1]) {
-      const arm = new THREE.Group(); arm.position.set(side * 1.48, 3.91, 0); body.add(arm);
-      this.part(arm, 'box', [.83, .73, .91], [0, -.32, 0], primary);
-      this.part(arm, 'box', [.79, 1.05, .83], [0, -1.18, 0], skin);
-      if (a.goalkeeper) this.part(arm, 'box', [.84, .42, .88], [0, -1.57, 0], color(a.gloveColor, '#F3F3EC'));
-      const leg = new THREE.Group(); leg.position.set(side * .53, 1.94, 0); body.add(leg);
-      this.part(leg, 'box', [.87, .84, .89], [0, -.28, 0], skin);
-      this.part(leg, 'box', [.9, .9, .91], [0, -1.04, 0], secondary);
-      this.part(leg, 'box', [.93, .13, .94], [0, -.61, 0], primary);
-      feet.push(this.part(leg, 'box', [.98, .38, 1.36], [0, -1.74, -.19], color(a.bootColor, '#17202B')));
-      this.part(leg, 'box', [.65, .055, .73], [0, -1.53, -.38], color(a.bootAccent, '#F0F2F4'));
+      const arm = new THREE.Group(); arm.position.set(side * .91, 4.65, 0); body.add(arm);
+      this.part(arm, 'sphere', [.49, .65, .52], [0, -.22, 0], primary);
+      this.part(arm, 'sphere', [.33, 1.33, .36], [0, -1.02, 0], skin);
+      this.part(arm, 'sphere', [.3, .38, .33], [0, -1.66, -.025], a.goalkeeper ? color(a.gloveColor, '#F3F3EC') : skin);
+      const leg = new THREE.Group(); leg.position.set(side * .32, 3.02, 0); body.add(leg);
+      this.part(leg, 'sphere', [.5, 1.55, .52], [0, -.65, 0], skin);
+      this.part(leg, 'sphere', [.38, 1.5, .41], [0, -2.04, 0], secondary);
+      this.part(leg, 'cylinder', [.39, .12, .42], [0, -1.42, 0], primary);
+      feet.push(this.part(leg, 'box', [.43, .32, .82], [0, -2.85, -.16], color(a.bootColor, '#17202B')));
+      this.part(leg, 'box', [.34, .035, .49], [0, -2.67, -.25], color(a.bootAccent, '#F0F2F4'));
       limbs[side < 0 ? 'leftArm' : 'rightArm'] = arm;
       limbs[side < 0 ? 'leftLeg' : 'rightLeg'] = leg;
     }
@@ -95,7 +101,7 @@ export class ActorFactory {
         ctx.font = 'bold 72px sans-serif'; ctx.fillText(String(number ?? a.number ?? def.number ?? 0), 64, 100);
         const texture = new THREE.CanvasTexture(canvas); texture.colorSpace = THREE.SRGBColorSpace; this.textures.push(texture);
         const material = new THREE.MeshLambertMaterial({map: texture});owned.push({material,texture});
-        const badge = new THREE.Mesh(this.geometries.box, material); badge.scale.set(1.45, 1.5, .01); badge.position.set(0, 3.18, .513); body.add(badge);
+        const badge = new THREE.Mesh(this.geometries.box, material); badge.scale.set(.94, 1.28, .01); badge.position.set(0, 4.04, .36); body.add(badge);
       }
     }
     const merged=[];for(const group of [body,head,...Object.values(limbs)])this.mergeParts(group,merged);
