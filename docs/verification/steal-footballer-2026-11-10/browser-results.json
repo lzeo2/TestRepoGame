@@ -1,0 +1,60 @@
+{
+  "mode": "quick",
+  "lowImpact": true,
+  "checks": [
+    "fresh club has 150 coins and no automatic grants",
+    "low-impact settings applied through HELP",
+    "keyboard movement changes grounded avatar",
+    "GO HOME retains actual HUD button focus",
+    "HUD button focus permits keyboard movement",
+    "Escape menu dismissal permits keyboard movement",
+    "natural conveyor purchase adds player and spends coins",
+    "roster has real sell and upgrade controls",
+    "sell removes recruit and credits value",
+    "save reload retains sold roster",
+    "low-impact settings applied through HELP",
+    "modal background is inert",
+    "modal backwards Tab wraps to final control",
+    "modal forwards Tab wraps to close control",
+    "tactics select retains focus after rerender",
+    "drag and drop tactics apply source formation",
+    "custom kit is saved and enabled",
+    "coach hire records actual staff ownership",
+    "individual training assignment suppresses that income",
+    "training can be cancelled",
+    "stadium upgrade at real home venue",
+    "limited event objective and offers render",
+    "battle has 22 positioned players",
+    "income pauses during battle",
+    "battle earns no passive income",
+    "specific-player spectator and zoom",
+    "players move dynamically",
+    "superstar abilities and Icon controls are present",
+    "bench and substitutions exist",
+    "low graphics changes renderer",
+    "no browser exceptions or missing assets",
+    "low-impact settings applied through HELP",
+    "mobile touch controls visible",
+    "native touch joystick moves avatar",
+    "mobile shop screen fits viewport",
+    "mobile tactics screen fits viewport",
+    "mobile kits screen fits viewport",
+    "mobile staff screen fits viewport",
+    "mobile events screen fits viewport",
+    "mobile help screen fits viewport",
+    "no mobile page overflow",
+    "no mobile exceptions"
+  ],
+  "skipped": [
+    {
+      "check": "completed match pays one scaled reward and unlocks income",
+      "reason": "--quick omits the unmodified full-match wait"
+    },
+    {
+      "check": "debrief includes possession and shots",
+      "reason": "--quick does not complete a match or accept its debrief"
+    }
+  ],
+  "errors": [],
+  "failedRequests": []
+}

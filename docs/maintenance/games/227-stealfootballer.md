@@ -139,6 +139,12 @@ Desktop/mobile and static model captures were reviewed. The temporary server and
 browser were closed. Full release, physical-device performance, complete-match
 browser acceptance and long-session pacing remain open.
 
+Final independent swarm review caught and fixed a keeper collection that skipped
+its restart pause, plus debrief copy describing the superseded four-goal rule.
+The keeper fix has an actual-step regression and a fresh passing match suite;
+the copy fix passed parsing/diff checks. These follow the recorded browser pass,
+so its 42 checks are not claimed as renewed browser coverage of those two fixes.
+
 ## Future outlook
 
 Finish normal-input matches/debriefs, manual
