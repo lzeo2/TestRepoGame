@@ -498,7 +498,7 @@ export class Match {
     }
   }
   _auto() {
-    if(this.ball.flight)return;
+    if(!this._open()||this.ball.flight)return;
     const p=this.players[this.ball.owner];if(!p)return;
     if(this.controlState&&p.side===0&&this.controlState.index===p.index)return;
     const distance=91-p.x*dir(p.side),elapsed=this.time-this.attackStarted;

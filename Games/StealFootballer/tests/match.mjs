@@ -68,6 +68,23 @@ const assertFinite=match=>{
   for(let i=0;i<30;i++)close._move(.1);
   assert(Math.hypot(c.x-d.x,c.z-d.z)<3.3,'practice presser closes into actual challenge reach');
 }
+{
+  const match=fresh();open(match);match.time=10;match.nextDecision=0;
+  const striker=match.players[9],keeper=match.players[11];
+  striker.x=78;striker.z=5;keeper.x=80;keeper.z=5;
+  match.players.filter(p=>p.side===1&&p!==keeper).forEach(p=>{p.x=0;p.z=50;});
+  match._give(striker);striker.receivedAt=8;match._roll=()=>0;
+  match._step(.05);
+  assert.equal(match.phase,'keeperRestart','contact collection keeps its restart phase through the real step');
+  assert.equal(match.ball.owner,11);assert.equal(match.ball.flight,null);
+  const deadline=match.phaseUntil;
+  while(match.time+.05<deadline)match._step(.05);
+  assert.equal(match.phase,'keeperRestart','keeper holds the ball for the bounded collection delay');
+  assert.equal(match.ball.owner,11);assert.equal(match.ball.flight,null);
+  for(let i=0;i<12&&!match.ball.flight;i++)match._step(.05);
+  assert.equal(match.ball.flight?.kind,'pass','keeper resumes distribution after its restart and decision delays');
+  assert(match.time>=deadline&&match.time<deadline+.7);
+}
 
 {
   const team=makeTeam();const original=JSON.stringify(team);const match=new Match(team,makeTeam(60,'away'));
