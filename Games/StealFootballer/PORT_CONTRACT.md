@@ -2,6 +2,18 @@
 
 Owner-authorized solo port from `lzeo2/steal-a-footballer` at `30b0c28`. Preserve source gameplay and 3D layout. Rivals are NPCs, saves are browser-local, runtime assets are local. Arrays and sides in JS are zero-based.
 
+## Browser tuning, 10 November 2026
+
+Catalog prices and identities remain source-derived. Passive income is now 60%
+of the exported rate. Fresh rivals contain starters; later raid pools stay below
+the most expensive owned recruit and cap at Rare. Refills take 90 seconds and a
+raid activates a 45-second rival shield. Event Icon signings unlock at six wins;
+tokens remain earnable before unlock. Every win raises the next practice tier,
+capped at three, with stronger base opponents and 12% stat scaling per tier.
+These are browser tuning decisions, not claims about original Roblox balance.
+The owner's 20–30 minute first-superstar preference is a tuning target, not
+verified session-length acceptance. Existing saves and owned players stay valid.
+
 ## Data
 
 `data/catalog.json`: `{config,players,traits,eggs,styles,abilities,signatures}`. Each player retains its final source definition plus baseline `stats`, `style` and `appearance` (hex colors). `worldData`: exported world base geometry, bases/pitch positions and static material/color transforms; root supplies after read-only Studio export. Three r160 locally vendored as `vendor/three.module.js`.

@@ -15,6 +15,12 @@ not new native-gameplay acceptance. Existing Slipstream Borough is catalog225, e
 local Games folder does not mean a broken deployment. See [inventory](inventory.json)
 for exact tracked counts, entry hashes, source-tree hashes and manual paths.
 
+Steal a Footballer's 10 November continuation supersedes its October testing
+stop with explicit owner permission for bounded, low-impact playtests. The
+[targeted receipt](../verification/steal-footballer-2026-11-10.md) records model,
+finishing/defense and progression changes: 42 browser checks passed, two
+complete-match browser checks skipped. This does not authorize a release.
+
 ## Current fleet handover (2026-10-17)
 
 The [Wings continuation receipt](audits/wings-continuation-20261017.md) records

@@ -10,6 +10,7 @@ export class ActorFactory {
     this.geometries = {
       box: new THREE.BoxGeometry(1, 1, 1),
       sphere: new THREE.SphereGeometry(.5, 8, 6),
+      beard: new THREE.SphereGeometry(.5, 10, 4, Math.PI, Math.PI, Math.PI / 2, Math.PI / 2),
       shirt: new THREE.CylinderGeometry(.5, .37, 1, 8),
       shorts: new THREE.CylinderGeometry(.46, .5, 1, 8),
       cylinder: new THREE.CylinderGeometry(.5, .5, 1, 10),
@@ -66,8 +67,8 @@ export class ActorFactory {
     const facial = a.facialHair || 'none';
     const beardColor = color(a.facialHairColor, hair);
     if (facial === 'beard' || facial === 'stubble') {
-      this.part(head, 'box', [1.47, facial === 'beard' ? .44 : .24, .035], [0, -.46, -.576], beardColor);
-      for (const side of [-1, 1]) this.part(head, 'box', [.1, .47, .99], [side * .85, -.36, .02], beardColor);
+      this.part(head, 'beard', [1.64, facial === 'beard' ? 1.01 : .82, 1.18], [0, -.14, -.02], beardColor);
+      for (const side of [-1, 1]) this.part(head, 'sphere', [.12, .46, .6], [side * .79, -.18, -.08], beardColor);
     }
     if (facial === 'goatee') this.part(head, 'box', [.45, .27, .035], [0, -.51, -.578], beardColor);
     if (facial !== 'none') this.part(head, 'box', [.47, .075, .035], [0, -.23, -.58], beardColor);
