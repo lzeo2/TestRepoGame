@@ -131,6 +131,10 @@ skill pose transitions blend; strides/arm swings are restrained and support
 height is steadier. Visual facing eases over the shortest turn; authoritative
 root positions stay immediate. Avatar cadence follows measured distance/time,
 including sprint. Carrier ball touches use the same accumulated gait phase.
+Zero-time frames after menu input preserve gait, speed, pose and heading;
+initial samples, backward clocks and large time gaps reset presentation state.
+The on-demand model fixture resets motion explicitly when its pose selector
+changes.
 
 ## Audit findings
 
@@ -203,6 +207,15 @@ The cause of the latter is unresolved. The first attempt reached the 22-player
 match and 12-skill UI. Activation outcome, current mobile and full match/debrief
 browser acceptance remain held. QA browsers ended; the explicit owner-requested
 localhost server remains for personal testing.
+
+Push preparation repaired the stale tactics draft and late-clock/zero-time
+locomotion jumps, with fresh game/actor/world regressions and on-demand running
+review. Tactics saving passed in the browser; skill activation still timed out
+before pointer dispatch, and the native-pointer runner update received parsing
+only. The owner then explicitly waived the full fleet gate and requested the
+push because other games were unchanged. The stopped fleet run reached 111/132
+visits, 110 passing and one Jetpack Joyride Hacked request failure; it is not a
+full gate pass. See the [push-check receipt](../../verification/steal-footballer-release-2026-11-11.md).
 
 ## Future outlook
 
