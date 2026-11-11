@@ -43,6 +43,13 @@ carriers. Authoritative ball state, shots, flights and restarts stay in Match.
 The model wishlist in `docs/steal-footballer-model-wishlist.md` is a proposed art
 delivery contract; GLB import/rig integration is not implemented.
 
+Push-preparation repair: `reconcileTacticsDraft(draft,roster,unavailableUid)` is a
+pure exported helper from `game.js` used before applying/saving editor drafts.
+It preserves edits while removing missing/contested starters/captain; strict
+Game action validation remains. Actor-local accumulated gait and eased facing
+replace global-time speed multiplication. Ball rendering shares the carrier's
+gait phase; simulation coordinates and input response are unchanged.
+
 ## Exported catalog
 
 `data/catalog.json`: `{config,players,traits,eggs,styles,abilities,signatures}`. Each player retains its final source definition plus baseline `stats`, `style` and `appearance` (hex colors). `worldData`: exported world base geometry, bases/pitch positions and static material/color transforms; root supplies after read-only Studio export. Three r160 locally vendored as `vendor/three.module.js`.

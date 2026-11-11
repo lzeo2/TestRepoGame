@@ -80,6 +80,11 @@ Keeper location affects open-net finishing. Keepers cover the angle and can
 collect a nearby carrier's ball inside their own area; practice defenders press
 inside contact range. Controlled Icons keep manual shooting (V). HUD button
 focus supports movement, and tactics rerenders preserve modal focus.
+Tactics Apply/Save XI now refreshes availability immediately before saving:
+missing or actively contested starters/captain leave the draft with an explicit
+notice, while formation and mentality are preserved. Engine validation stays
+strict. This fixes the stale-draft failure reproduced when NPC theft begins
+during editing.
 
 Rivals retain active training progress through reloads: one level per 180 active
 club seconds, levels 0–5, no offline grant, paused in battles. Generated recruits
@@ -118,6 +123,14 @@ half a unit of synchronized visual ball movement; flights/restarts and stationar
 players do not. The complete art wishlist covers 125 entries/124 likenesses,
 other people, current props and signature animations. It proposes delivery
 formats and budgets; an imported-character/animation adapter is still required.
+
+The owner reported janky running during push preparation. Gait phase now
+accumulates per actor with eased speed and stable individual offsets, rather
+than multiplying total elapsed time by changing speed. Idle/run/dribble and
+skill pose transitions blend; strides/arm swings are restrained and support
+height is steadier. Visual facing eases over the shortest turn; authoritative
+root positions stay immediate. Avatar cadence follows measured distance/time,
+including sprint. Carrier ball touches use the same accumulated gait phase.
 
 ## Audit findings
 
