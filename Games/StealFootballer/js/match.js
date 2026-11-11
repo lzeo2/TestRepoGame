@@ -15,8 +15,28 @@ const ABILITIES = [
   {id:'speedBurst',name:'Speed Burst',playerId:'mbappe',duration:8,cooldown:25,cost:10},
   {id:'sambaStep',name:'Samba Step',playerId:'neymar',duration:6,cooldown:25,cost:10},
   {id:'stepovers',name:'Stepovers',playerId:'r9',duration:7,cooldown:28,cost:10},
-  {id:'wingWeave',name:'Wing Weave',playerId:'yamal_superstar',duration:6,cooldown:25,cost:10}
+  {id:'wingWeave',name:'Wing Weave',playerId:'yamal_superstar',duration:6,cooldown:25,cost:10},
+  {id:'slalom',name:'Slalom',playerId:'maradona',playerName:'Diego Maradona',duration:5,cooldown:27,cost:10,description:'Alternating close turns with a short acceleration.'},
+  {id:'roulette',name:'Roulette',playerId:'zidane',playerName:'Zinedine Zidane',duration:4,cooldown:28,cost:10,description:'A shielded half-turn followed by a controlled exit.'},
+  {id:'elastico',name:'Elastico',playerId:'ronaldinho',playerName:'Ronaldinho',duration:4,cooldown:26,cost:10,description:'An outside touch and a sharp inside change of direction.'},
+  {id:'finesseFinish',name:'Finesse Finish',playerId:'henry',playerName:'Thierry Henry',duration:6,cooldown:30,cost:10,description:'A measured finishing bonus from a central or inside-channel angle.'},
+  {id:'bendingDelivery',name:'Bending Delivery',playerId:'beckham',playerName:'David Beckham',duration:6,cooldown:27,cost:10,description:'A curved delivery around the first passing lane.'},
+  {id:'anticipation',name:'Anticipation',playerId:'maldini',playerName:'Paolo Maldini',duration:6,cooldown:28,cost:9,description:'A short window to read nearby passing lanes and challenge the carrier.'}
 ];
+export function resolveAbilities(data={}) {
+  const definitions=new Map(ABILITIES.map(a=>[a.id,{...a}]));
+  for(const a of data.abilities||[]) {
+    const base=definitions.get(a.id)||{cost:10,duration:6,cooldown:25};
+    const merged={...base,...a};
+    for(const [key,min,max] of [['cost',1,30],['duration',1,12],['cooldown',5,60]]) {
+      if(!Number.isFinite(merged[key])||merged[key]<min||merged[key]>max)merged[key]=base[key];
+    }
+    definitions.set(a.id,merged);
+  }
+  const names={messi:'Lionel Messi',ronaldo:'Cristiano Ronaldo',mbappe:'Kylian Mbappe',neymar:'Neymar Jr',r9:'Ronaldo Nazario',yamal_superstar:'Lamine Yamal (Superstar)'};
+  const descriptions={dribbleGlue:'Close touches resist nearby challenges.',rocketShot:'Adds power to the next shot without guaranteeing a goal.',speedBurst:'A short acceleration while carrying.',sambaStep:'A wider side-to-side feint with challenge resistance.',stepovers:'Alternating feints protect the carry.',wingWeave:'A wide weaving run with close touches.'};
+  return [...definitions.values()].map(a=>({...a,description:a.description||descriptions[a.id]||'A short match skill.',playerName:a.playerName||names[a.playerId]||a.playerId}));
+}
 const MANAGERS = {triangle:{manager:'guardiola',cost:9,duration:8,cooldown:24},
   counter:{manager:'ancelotti',cost:11,duration:7,cooldown:24},
   surge:{manager:'klopp',cost:13,duration:6,cooldown:26}};
@@ -45,7 +65,8 @@ export class Match {
     this.events = []; this.controlState = null; this.controlReadyAt = 0;
     this.injuryRolls=new Set();this.injuryUIDs=new Set();this.foulCount=0;this.foulReadyAt=0;
     this.playReadyAt = 0; this.abilityReadyAt = 0; this.managerReadyAt = 0;
-    this.activeAbility = null; this.activeManager = null; this.duel = null; this.offsidePhase = null;
+    this.activeAbility = null; this.opponentAbility=null;this.opponentAbilityReadyAt=0;this.npcDecisionAt=8;
+    this.activeManager = null; this.duel = null; this.offsidePhase = null;
     this.restart = null; this.indirect = null; this.celebration = null; this.penalties = null;
     this.substitutions = 0; this.pendingSubstitution = null; this.usedMembers = new Set();
     this.formation = FORMATIONS[options.formation] ? options.formation : '4-4-2';
@@ -124,7 +145,36 @@ export class Match {
   }
   _open() { return !this.finished && this.periodElapsed < this.periodDuration &&
     ['buildUp','pass','lobbedPass','duel','shot','looseBall'].includes(this.phase); }
-  _active(p) { const a=this.activeAbility; return a && a.playerIndex===this.players.indexOf(p) && a.received && this.time<a.endsAt ? a : null; }
+  _definitions() {
+    return resolveAbilities(this.options.data);
+  }
+  _active(p) { const a=p.side===0?this.activeAbility:this.opponentAbility; return a && a.playerIndex===this.players.indexOf(p) && a.received && this.time<a.endsAt ? a : null; }
+  _activate(p,definition) {
+    const index=this.players.indexOf(p),received=this.ball.owner===index||definition.id==='anticipation';
+    const ability={...definition,playerIndex:index,received,startsAt:this.time,endsAt:this.time+definition.duration+(received?0:3)};
+    if(p.side===0){this.activeAbility=ability;this.abilityReadyAt=this.time+definition.cooldown;}
+    else {this.opponentAbility=ability;this.opponentAbilityReadyAt=this.time+definition.cooldown;}
+    this.stamina[p.side]-=definition.cost;
+    if(!received)this._pass(p);
+    this._say(`${p.name} activates ${definition.name}`);
+    return ability;
+  }
+  _npcAbility() {
+    if(!this._open()||this.ball.flight||this.duel||this.time<this.npcDecisionAt)return;
+    const development=this.players.filter(p=>p.side===1&&p.role!=='GK').reduce((sum,p)=>sum+clamp(finite(p.stats.developmentLevel),0,5),0)/10;
+    this.npcDecisionAt=this.time+5-development*.3+this._roll()*3;
+    const carrier=this.players[this.ball.owner];
+    if(!carrier||this.time<this.opponentAbilityReadyAt)return;
+    const p=carrier.side===1?carrier:this._nearest(1,carrier).find(q=>q.role==='DF'&&dist(q,carrier)<18);
+    if(!p||p.role==='GK')return;
+    const definitions=this._definitions();
+    const fallback=carrier.side===0?'anticipation':['DF','MF'].includes(p.role)?'bendingDelivery':style(p)==='runner'?'speedBurst':'slalom';
+    const named=carrier.side===1?definitions.find(a=>a.playerId===p.id&&a.id!=='anticipation'):null;
+    const definition=named||definitions.find(a=>a.id===fallback);
+    if(!definition||this.stamina[1]<definition.cost)return;
+    this._activate(p,{...definition,playerName:p.name});
+    if(carrier.side===1)this.nextDecision=Math.max(this.nextDecision,this.time+Math.min(2,definition.duration));
+  }
   _nearest(side, point, excludeKeeper=true) {
     return this.players.filter(p=>p.side===side&&(!excludeKeeper||p.role!=='GK')).sort((a,b)=>dist(a,point)-dist(b,point)||a.index-b.index);
   }
@@ -154,10 +204,16 @@ export class Match {
     if(lob)duration=clamp(duration*1.35,1.4,2.4);
     if(this.activeManager?.id==='triangle'&&p.role==='MF'&&receiver.role==='MF') duration*=.88;
     this.offsidePhase=this._onside(p.side,p.index,restartKind);
+    const bending=this._active(p)?.id==='bendingDelivery';
     this.ball.flight={kind:'pass',from,to:{x:receiver.x,y:.8,z:receiver.z},elapsed:0,duration,
       height:lob?8:1,side:p.side,receiver:this.players.indexOf(receiver),fromIndex:p.index,offside:this.offsidePhase,splitter};
+    if(bending) {
+      this.ball.flight.curve=(p.z>=receiver.z?-1:1)*Math.min(7,distance*.16);
+      this.ball.flight.deliveryBonus=3;
+      p.actionPose='bend';p.poseUntil=this.time+.8;
+    }
     this.ball.owner=null;this.phase=lob?'lobbedPass':'pass';this.stats[p.side].passesAttempted++;
-    p.pose='pass';p.actionPose='pass';p.poseUntil=this.time+.35;this.nextDecision=this.time+duration+2.5;
+    p.pose=bending?'bend':'pass';p.actionPose=p.pose;p.poseUntil=this.time+(bending?.8:.35);this.nextDecision=this.time+duration+2.5;
     this._say(`${p.name} ${lob?'lifts the ball':'passes'} to ${receiver.name}`);
     return true;
   }
@@ -217,6 +273,8 @@ export class Match {
       chance=Math.max(chance,finish*(1-coverage)+Math.min(80,chance+5)*coverage)*angle;
       target=Math.max(chance,target*angle);
     }
+    const finesse=a?.id==='finesseFinish'&&distance>=6&&distance<=38&&Math.abs(p.z)<=22;
+    if(finesse){chance=Math.max(chance,Math.min(90,chance+7));target=Math.max(chance,Math.min(96,target+4));}
     if(!keeperAhead||coverage===0)target=chance;
     const roll=this._roll()*100,outcome=roll<chance?'goal':roll<target?'save':'miss';
     const aim=(this._roll()*2-1)*9;
@@ -225,8 +283,8 @@ export class Match {
       duration:driven?.8:1,height:driven?1.6:2.4,side:p.side,fromIndex:p.index,outcome,keeper:this.players.indexOf(keeper),
       shooterIndex:this.players.indexOf(p),shooterKey:p.key,shooterName:p.name,
       shotDistance:distance,goalChance:chance,onTargetChance:target,pressure,strength:clamp(stat(p,'attacking')/150,0,1),driven};
-    this.ball.owner=null;this.phase='shot';p.pose='shoot';p.actionPose='shoot';p.poseUntil=this.time+.65;this.stats[p.side].shots++;
-    if(rocket)this.activeAbility=null;
+    this.ball.owner=null;this.phase='shot';p.pose=finesse?'finesse':'shoot';p.actionPose=p.pose;p.poseUntil=this.time+.65;this.stats[p.side].shots++;
+    if(rocket||finesse){if(p.side===0)this.activeAbility=null;else this.opponentAbility=null;}
     this.stamina[p.side]=Math.max(0,this.stamina[p.side]-6);this._say(`${p.name} shoots`);return true;
   }
   _restart(kind, side, x, z, delay=2) {
@@ -255,7 +313,7 @@ export class Match {
       this.foulCount++;this.foulReadyAt=this.time+6;this.stats[offender.side].fouls++;
       const injured=this._foulInjury(victim);
       victim.actionPose='fall';victim.poseUntil=this.time+1.9;
-      this.activeAbility=null;this.activeManager=null;this.indirect=null;
+      this.activeAbility=null;this.opponentAbility=null;this.activeManager=null;this.indirect=null;
       this._restart('freeKick',victim.side,victim.x,victim.z,3);
       this._say(`Late challenge by ${offender.name} earns a free kick${injured?` and ${victim.name} is injured`:''}`,true,'foul');
       return true;
@@ -322,6 +380,7 @@ export class Match {
     }
     const t=clamp(f.elapsed/f.duration,0,1);
     this.ball.x=f.from.x+(f.to.x-f.from.x)*t;this.ball.z=f.from.z+(f.to.z-f.from.z)*t;
+    if(f.curve)this.ball.z+=Math.sin(Math.PI*t)*f.curve;
     this.ball.y=f.from.y+(f.to.y-f.from.y)*t+Math.sin(Math.PI*t)*f.height;
     if(f.kind!=='loose'&&f.elapsed>.12&&this.ball.y<3.8) {
       const dx=this.ball.x-old.x,dz=this.ball.z-old.z,len2=dx*dx+dz*dz;
@@ -329,14 +388,15 @@ export class Match {
         if(this.time<defender.challengeAt)continue;
         const u=len2?clamp(((defender.x-old.x)*dx+(defender.z-old.z)*dz)/len2,0,1):0;
         const gap=Math.hypot(defender.x-old.x-dx*u,defender.z-old.z-dz*u);
-        if(gap>2.1)continue;
+        const anticipation=this._active(defender)?.id==='anticipation';
+        if(gap>(anticipation?3.1:2.1))continue;
         defender.challengeAt=this.time+1.5;
         const passer=this.players[f.side*11+f.fromIndex];
         const skill=(stat(passer,'attacking')+stat(passer,'pace'))*.5;
         const control=this.controlState?.index===defender.index&&defender.side===0;
         const resistance=signature(passer,'closeTouch')?8:0;
         let chance=clamp(.42+(stat(defender,'defending')-skill)*.0042+(control?.12:0)+.08+
-          (this.time<(this.tactics[defender.side].pressUntil||0)?.08:0)+(signature(defender,'coverRead')?.06:0)-resistance/100,.18,control?.78:.65);
+          (this.time<(this.tactics[defender.side].pressUntil||0)?.08:0)+(signature(defender,'coverRead')?.06:0)+(anticipation?.12:0)-resistance/100,.18,control?.78:.65);
         if(this.isPractice&&defender.side===1)chance*=.55;
         if(f.kind==='pass'&&this._roll()<chance)this._turnover(defender,'interception');
         else {
@@ -353,7 +413,7 @@ export class Match {
       const receiver=this.players[f.receiver];
       if(this._offside(receiver,f.offside))return;
       this._give(receiver);this.stats[f.side].passesCompleted++;this.completedAttackPasses++;
-      receiver.assistBonus=f.splitter?2:0;
+      receiver.assistBonus=(f.splitter?2:0)+(f.deliveryBonus||0);
       this.phase='buildUp';this.nextDecision=this.time+2.5;
     } else if(f.kind==='shot')this._resolveShot(f);
     else if(Math.abs(this.ball.x)>90) {
@@ -400,6 +460,16 @@ export class Match {
         if(a?.id==='speedBurst')drive=6;
         x=p.x+direction*drive*2;z=p.z+Math.sin(this.time*1.1+p.index)*(a?.id==='dribbleGlue'?.12:['stepovers','sambaStep','wingWeave'].includes(a?.id)?4:style(p)==='dribbler'?2.8:.7);
         if(Math.abs(p.z)>12&&p.x*direction>35)z=p.z-Math.sign(p.z)*3;
+        if(['slalom','roulette','elastico'].includes(a?.id)) {
+          const age=this.time-a.startsAt,development=clamp(finite(p.stats.developmentLevel),0,5);
+          const side=p.z>=0?-1:1;
+          if(a.id==='slalom'){z=p.z+Math.sin(age*5)*3.3;x=p.x+direction*5;speed*=1.04+development*.008;}
+          if(a.id==='roulette'){z=p.z+side*Math.sin(age*3)*3;x=p.x+direction*(age%1.8<.7?-1.4:5);speed*=.94;}
+          if(a.id==='elastico'){const cycle=age%1.7;z=p.z+side*(cycle<.45?-2.8:4.2);x=p.x+direction*(cycle<.45?2:5);}
+          p.actionPose=a.id;p.poseUntil=this.time+.15;
+        } else if(a&&['sambaStep','stepovers','wingWeave'].includes(a.id)) {
+          p.actionPose=a.id==='stepovers'?'stepover':a.id==='sambaStep'?'elastico':'slalom';p.poseUntil=this.time+.15;
+        }
         if(p.role==='DF')x=Math.min(x*direction,-13)*direction;
         if(p.role==='MF')x=Math.min(x*direction,49)*direction;
         speed*=.88+.12*clamp(stat(p,'attacking')/100,0,1);duty='carrier';
@@ -438,6 +508,10 @@ export class Match {
         if(p===pressers[0]&&!(this.isPractice&&p.side===1&&carrier&&this.time-carrier.receivedAt<.5)) {x=ball.x-direction*(this.time<(tactic.containUntil||0)?2.8:1.5);z=ball.z;duty='press';speed+=press?1.6:.7;}
         else if(p===pressers[1]&&!compact) {x=ball.x-direction*8;z=ball.z*.7;duty='cover';}
         else duty='shape';
+        if(this._active(p)?.id==='anticipation') {
+          x=ball.x-direction*2;z=ball.z;duty='anticipation';speed+=.8;
+          p.actionPose='anticipation';p.poseUntil=this.time+.15;
+        }
       }
       const c=this.controlState;
       if(c?.index===p.index&&p.side===0&&this._open()) {
@@ -451,7 +525,7 @@ export class Match {
       const travel=Math.hypot(p.vx,p.vz)*dt;
       if(travel>gap&&gap>0){p.x=x;p.z=z;p.vx=0;p.vz=0;}else{p.x=clamp(p.x+p.vx*dt,-87,87);p.z=clamp(p.z+p.vz*dt,-61,61);}
       if(Math.hypot(p.vx,p.vz)>.1)p.angle=Math.atan2(p.vz,p.vx);
-      p.duty=duty;p.pose=duty==='celebrate'?'celebrate':this.duel?.attacker===this.players.indexOf(p)?'feint':Math.hypot(p.vx,p.vz)>.4?'run':'idle';
+      p.duty=duty;p.pose=duty==='celebrate'?'celebrate':this.duel?.attacker===this.players.indexOf(p)?'feint':Math.hypot(p.vx,p.vz)>.4?(p===carrier&&p.role!=='GK'?'dribble':'run'):'idle';
       if(this.time<(p.poseUntil||0))p.pose=p.actionPose;
     }
     // Formation actors separate, while direct-control actors retain the input route.
@@ -478,11 +552,11 @@ export class Match {
       if(this.time<p.challengeAt)continue;
       p.challengeAt=this.time+1.7;
       const a=this._active(carrier),resistance=(signature(carrier,'closeTouch')?8:0)+
-        (a?.id==='dribbleGlue'?18:['sambaStep','stepovers'].includes(a?.id)?10:a?.id==='wingWeave'?8:0);
+        (a?.id==='dribbleGlue'?18:['sambaStep','stepovers','roulette'].includes(a?.id)?10:['wingWeave','slalom','elastico'].includes(a?.id)?8:0);
       const control=this.controlState?.index===p.index&&p.side===0;
       const skill=(stat(carrier,'attacking')+stat(carrier,'pace'))*.5;
       let chance=clamp(.42+(stat(p,p.role==='GK'?'goalkeeping':'defending')-skill)*.0042+(control?.12:0)+
-        (this.time<(this.tactics[p.side].pressUntil||0)?.08:0)+(signature(p,'coverRead')?.06:0)-resistance/100-
+        (this.time<(this.tactics[p.side].pressUntil||0)?.08:0)+(signature(p,'coverRead')?.06:0)+(this._active(p)?.id==='anticipation'?.12:0)-resistance/100-
         (this.duel?.attacker===this.ball.owner?.06:0),.18,control?.78:.65);
       if(this.isPractice&&p.side===1)chance*=.90;
       if(this._roll()<chance) {
@@ -553,20 +627,19 @@ export class Match {
     return reply(true,`${id} called.`);
   }
   ability(id) {
-    const definition=(this.options.data?.abilities||ABILITIES).find(a=>a.id===id);
+    const definition=this._definitions().find(a=>a.id===id);
     if(!definition)return reply(false,'Choose a valid superstar ability.');
-    if(!this._open()||this.ball.flight||this.duel||this.possession!==0)return reply(false,'Control possession in open play first.');
+    if(!this._open()||this.ball.flight||this.duel||(id==='anticipation'?this.possession!==1:this.possession!==0))return reply(false,id==='anticipation'?'Use Anticipation while defending.':'Control possession in open play first.');
     if(this.time<this.abilityReadyAt)return reply(false,'Superstar abilities share a cooldown.');
     const p=this.players.find(q=>q.side===0&&q.id===definition.playerId&&!q.borrowed);
     if(!p)return reply(false,'Select this owned superstar in your lineup.');
     if(this.stamina[0]<definition.cost)return reply(false,'Your team needs more stamina.');
-    this.activeAbility={...definition,playerIndex:this.players.indexOf(p),received:this.ball.owner===this.players.indexOf(p),
-      startsAt:this.time,endsAt:this.time+definition.duration+3};
-    if(this.activeAbility.received)this.activeAbility.endsAt=this.time+definition.duration;
-    else this._pass(p);
-    this.abilityReadyAt=this.time+definition.cooldown;this.stamina[0]-=definition.cost;
-    this.nextDecision=Math.max(this.nextDecision,this.time+definition.duration);
-    this._say(`${p.name} activates ${definition.name}`);return reply(true,this.commentary.text);
+    this._activate(p,definition);
+    if(this.possession===0&&id!=='anticipation') {
+      const immediate=['bendingDelivery','finesseFinish'].includes(id);
+      this.nextDecision=immediate?this.time+1:Math.max(this.nextDecision,this.time+definition.duration);
+    }
+    return reply(true,this.commentary.text);
   }
   control(index, vector={x:0,z:0}) {
     const p=this.players[index];
@@ -602,6 +675,9 @@ export class Match {
   _applyPendingSubstitution() {
     const pending=this.pendingSubstitution;if(!pending)return;
     const old=this.players[pending.index],p=this._actor(pending.member,0,pending.index,old.anchor);
+    if(this.activeAbility?.playerIndex===pending.index)this.activeAbility=null;
+    if(this.opponentAbility?.playerIndex===pending.index)this.opponentAbility=null;
+    if(this.controlState&&old.side===0&&this.controlState.index===old.index)this.releaseControl();
     p.x=old.x;p.z=old.z;this.players[pending.index]=p;this.usedMembers.add(p.key);
     this.bench=this.bench.filter(q=>q.uid!==pending.member.uid);this.substitutions++;this.pendingSubstitution=null;
     this._say(`${p.name} replaces ${old.name}`);
@@ -692,7 +768,7 @@ export class Match {
     }
   }
   _periodBoundary() {
-    this.releaseControl();this.duel=null;this.activeAbility=null;this.activeManager=null;
+    this.releaseControl();this.duel=null;this.activeAbility=null;this.opponentAbility=null;this.activeManager=null;
     if(this.period==='regulation'&&this.score[0]!==this.score[1]||this.period==='extra2'&&this.score[0]!==this.score[1]) {
       this._finish(this.score[0]>this.score[1]?0:1);return;
     }
@@ -718,6 +794,7 @@ export class Match {
     this.time+=dt;
     if(this.controlState&&this.time>=this.controlState.endsAt)this.releaseControl();
     if(this.activeAbility&&this.time>=this.activeAbility.endsAt)this.activeAbility=null;
+    if(this.opponentAbility&&this.time>=this.opponentAbility.endsAt)this.opponentAbility=null;
     if(this.activeManager&&this.time>=this.activeManager.endsAt)this.activeManager=null;
     if(this.penalties){this._stepPenalties(dt);return;}
     if(this.phase!=='periodBreak')this.periodElapsed+=dt;
@@ -766,7 +843,7 @@ export class Match {
       }else this._say(`${defender.name} contains the dribble`);
       this.duel=null;this.phase='buildUp';this.nextDecision=this.time+.6;
     }
-    if(this._open()){this._contacts();this._auto();}
+    if(this._open()){this._contacts();this._npcAbility();this._auto();}
   }
   update(dt) {
     if(this.finished||!Number.isFinite(dt)||dt<=0)return this.snapshot();
@@ -776,9 +853,9 @@ export class Match {
     return this.snapshot();
   }
   snapshot() {
-    const abilities=(this.options.data?.abilities||ABILITIES).map(a=>{
+    const abilities=this._definitions().map(a=>{
       const star=this.players.find(p=>p.side===0&&p.id===a.playerId&&!p.borrowed);
-      return {...a,available:!!star&&this._open()&&this.possession===0&&!this.ball.flight&&!this.duel&&this.time>=this.abilityReadyAt,
+      return {...a,available:!!star&&this._open()&&(a.id==='anticipation'?this.possession===1:this.possession===0)&&!this.ball.flight&&!this.duel&&this.time>=this.abilityReadyAt&&this.stamina[0]>=a.cost,
         cooldown:Math.max(0,this.abilityReadyAt-this.time),active:this.activeAbility?.id===a.id,
         remaining:this.activeAbility?.id===a.id?Math.max(0,this.activeAbility.endsAt-this.time):0};
     });
@@ -787,7 +864,8 @@ export class Match {
       possession:this.possession,stats:this.stats,stamina:this.stamina,formation:this.formation,mentality:this.mentality,
       cooldowns:{plays:Math.max(0,this.playReadyAt-this.time),ability:Math.max(0,this.abilityReadyAt-this.time),
         control:Math.max(0,this.controlReadyAt-this.time),manager:Math.max(0,this.managerReadyAt-this.time)},
-      control:this.controlState,abilities,activeAbility:this.activeAbility,activeManager:this.activeManager,
+      control:this.controlState,abilities,activeAbility:this.activeAbility,opponentAbility:this.opponentAbility,
+      skillMove:[this.activeAbility,this.opponentAbility].filter(a=>a&&a.received&&this.time<a.endsAt).map(a=>({id:a.id,pose:a.id==='finesseFinish'?'finesse':a.id==='bendingDelivery'?'bend':a.id,playerIndex:a.playerIndex,side:this.players[a.playerIndex].side,remaining:a.endsAt-this.time})),activeManager:this.activeManager,
       duel:this.duel,offside:this.offsidePhase,indirect:this.indirect,restart:this.restart,celebration:this.celebration,
       penalties:this.penalties,bench:this.bench,substitutions:{used:this.substitutions,max:5,pending:this.pendingSubstitution}});
   }
