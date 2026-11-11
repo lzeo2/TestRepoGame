@@ -6,13 +6,16 @@ export function blocksGameplayKey(event) {
 export function rememberFocus(root) {
   const active=root.ownerDocument.activeElement;
   if(!root.contains(active))return null;
-  return {id:active.id,position:active.dataset.position};
+  const action=active.dataset.action;
+  const actionData=action?Object.fromEntries(['action','id','uid','index','base','market','event'].map(key=>[key,active.dataset[key]])):null;
+  return {id:active.id,position:active.dataset.position,actionData};
 }
 
 export function restoreFocus(root,token,fallback) {
   if(!token)return;
   const candidate=token.id?root.ownerDocument.getElementById(token.id):
-    token.position!==undefined?root.querySelector(`[data-position="${token.position}"]`):null;
+    token.position!==undefined?[...root.querySelectorAll('[data-position]')].find(el=>el.dataset.position===token.position):
+    token.actionData?[...root.querySelectorAll('[data-action]')].find(el=>Object.entries(token.actionData).every(([key,value])=>el.dataset[key]===value)):null;
   (candidate&&root.contains(candidate)&&!candidate.disabled?candidate:fallback).focus();
 }
 
