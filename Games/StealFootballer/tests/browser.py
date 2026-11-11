@@ -21,7 +21,7 @@ parser.add_argument('--executable-path',help='Use an existing Chromium executabl
 args=parser.parse_args()
 artifacts=Path(args.artifacts);artifacts.mkdir(parents=True,exist_ok=True)
 fixture=json.loads(Path(args.fixture).read_text(encoding='utf-8-sig'))
-checks=[];skipped=[]
+checks=[];skipped=[];signature_attempts=[]
 
 def skip(name,reason):
     skipped.append({'check':name,'reason':reason})
@@ -84,14 +84,33 @@ def activate_signature(page):
         if available:
             button=page.get_by_role('button',name='Activate '+available['name'],exact=True)
             attempts+=1
+            observed={'attempt':attempts,'ability':available['id'],'phase':current['phase'],'elapsed':current['elapsed']}
+            signature_attempts.append(observed)
             try:
-                button.click(timeout=1000)
+                button.scroll_into_view_if_needed(timeout=1000)
+                visible=button.is_visible();enabled=button.is_enabled();bounds=button.bounding_box()
+                observed.update({'visible':visible,'enabled':enabled,'bounds':bounds})
+                if not visible or not enabled or not bounds:
+                    observed['outcome']='Opportunity changed before pointer input'
+                    continue
+                x=bounds['x']+bounds['width']/2;y=bounds['y']+bounds['height']/2
+                viewport=page.viewport_size
+                if viewport and not (0<=x<viewport['width'] and 0<=y<viewport['height']):
+                    observed['outcome']='Button centre outside viewport'
+                    continue
+                # Native pointer input avoids locator stability/navigation waits
+                # across the live panel's one-second element replacements.
+                page.mouse.click(x,y)
+                observed['outcome']='Native pointer click sent'
                 last_issue=page.locator('#toast').inner_text()
+                observed['feedback']=last_issue
             except PlaywrightTimeoutError as error:
                 last_issue=str(error)
+                observed['outcome']='Observation/scroll timed out'
+                observed['error']=last_issue
         page.wait_for_timeout(100)
     current=snapshot(page)['match']
-    raise AssertionError(f'Signature activation never started its cooldown; attempts={attempts}, phase={current["phase"]}, last_issue={last_issue}')
+    raise AssertionError(f'Signature activation never started its cooldown; attempts={attempts}, phase={current["phase"]}, last_issue={last_issue}, observations={json.dumps(signature_attempts)}')
 
 with sync_playwright() as p:
     launch={'headless':True,'args':['--enable-unsafe-swiftshader','--ignore-gpu-blocklist']}
@@ -247,5 +266,5 @@ with sync_playwright() as p:
     check('no mobile exceptions',not errors)
     mobile.close();browser.close()
 
-(artifacts/'browser-results.json').write_text(json.dumps({'mode':'quick' if args.quick else 'full','lowImpact':args.low_impact,'checks':checks,'skipped':skipped,'errors':errors,'failedRequests':requests},indent=2),encoding='utf-8')
+(artifacts/'browser-results.json').write_text(json.dumps({'mode':'quick' if args.quick else 'full','lowImpact':args.low_impact,'checks':checks,'skipped':skipped,'signatureAttempts':signature_attempts,'errors':errors,'failedRequests':requests},indent=2),encoding='utf-8')
 print(f'{len(checks)} browser acceptance checks passed; {len(skipped)} skipped',flush=True)
