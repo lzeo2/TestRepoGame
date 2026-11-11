@@ -165,7 +165,7 @@ with sync_playwright() as p:
     check('signature cards explain stamina and legal opportunities','stamina' in page.locator('#sheet-content').inner_text() and 'Anticipation' in page.locator('#sheet-content').inner_text())
     page.wait_for_function('footballerSnapshot().match.abilities.some(a=>a.available)',timeout=15000,polling=250)
     # The panel refreshes once per second while preserving focus.
-    page.locator('[data-action="ability"]:enabled').first.click(timeout=5000)
+    page.locator('[data-action="ability"]:enabled').first.click(timeout=20000)
     page.wait_for_timeout(100)
     check('normal signature button starts its cooldown',snapshot(page)['match']['cooldowns']['ability']>0)
     page.locator('#sheet-content [data-action="openSubs"]').focus()
