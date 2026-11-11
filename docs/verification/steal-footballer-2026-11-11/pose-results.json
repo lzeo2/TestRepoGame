@@ -1,0 +1,12 @@
+{
+  "poses": [
+    "dribble",
+    "roulette",
+    "elastico",
+    "stepover",
+    "anticipation"
+  ],
+  "errors": [],
+  "rendering": "on demand, stepped frames without game loop",
+  "browserClosed": true
+}

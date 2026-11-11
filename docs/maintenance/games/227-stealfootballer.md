@@ -14,6 +14,10 @@ progression and better finishing/defense, and explicitly authorized playtesting
 with low computer impact. Targeted checks resumed under that instruction; no
 push or release was requested. See [October release evidence](../../verification/steal-footballer-web-2026-10-11.md)
 and [November targeted evidence](../../verification/steal-footballer-2026-11-10.md).
+The 11 November continuation adds fitted hair, signature moves, persistent rival
+development and improved dribbling. The owner requested a localhost test server
+and a complete [Dot model wishlist](../../steal-footballer-model-wishlist.md).
+See the [follow-up receipt](../../verification/steal-footballer-2026-11-11.md).
 
 ## Implementation map
 
@@ -77,6 +81,22 @@ collect a nearby carrier's ball inside their own area; practice defenders press
 inside contact range. Controlled Icons keep manual shooting (V). HUD button
 focus supports movement, and tactics rerenders preserve modal focus.
 
+Rivals retain active training progress through reloads: one level per 180 active
+club seconds, levels 0–5, no offline grant, paused in battles. Generated recruits
+train toward that level; squad targets grow from three to four at level 2 and
+five at level 4. Deposited recruits leave automatic NPC training; dropped
+recruits return to it. Raid tiers, shields and refill delays still apply.
+Practice opponents gain 4% stats per development level alongside the existing
+win-based tiers. The match takes a fixed team snapshot at kickoff.
+
+Twelve signature skills cover the featured superstars/Icons. Six new mechanics
+are Slalom, Roulette, Elastico, Finesse Finish, Bending Delivery and Anticipation.
+They use bounded movement, finishing, curved passes or defensive reads with
+stamina costs and cooldowns. NPCs activate named or role-based skills with their
+own cooldown and stamina, improving timing as development rises. Manual Icon
+shots and urgent AI finishes remain. Skill descriptions/costs are in the battle
+panel; F activates the first ready skill. Anticipation needs an opponent attack.
+
 ## Dependencies and provenance
 
 Owner's original adaptation, not an open-source ingestion or an invented MIT
@@ -89,6 +109,15 @@ Roblox catalog meshes/clothing/faces are not bundled. Asset IDs are metadata.
 Three.js r160 is local with its MIT notice. Local Bungee and Atkinson Hyperlegible
 copies retain SIL OFL licenses; see [font evidence](../../portal-font-sources.md).
 No new runtime third-party loads, sockets or backend are introduced.
+
+Hair now follows fitted scalp curves with rooted swept locks, curl/afro clumps,
+curved napes/tails and the short R9 front patch. Body proportions stay unchanged.
+Dribbling has shorter alternating strides, torso lean and balancing arms;
+signature moves have separate poses. Grounded moving carriers receive less than
+half a unit of synchronized visual ball movement; flights/restarts and stationary
+players do not. The complete art wishlist covers 125 entries/124 likenesses,
+other people, current props and signature animations. It proposes delivery
+formats and budgets; an imported-character/animation adapter is still required.
 
 ## Audit findings
 
@@ -129,7 +158,7 @@ release evidence; mobile, complete-match, offline-reload and hardware acceptance
 remained unverified in that checkpoint. Final October patches received
 syntax/static checks only.
 
-November: input, game, match, actor and world Node suites pass, including eight
+10 November: input, game, match, actor and world Node suites pass, including eight
 complete seeded match simulations and regressions for urgent finishes on both
 sides, open-net chances, keeper contests and raid/event progression. Actor
 fixtures cover 125 profiles x three kits, with a maximum 2,826 triangles; world
@@ -145,11 +174,30 @@ The keeper fix has an actual-step regression and a fresh passing match suite;
 the copy fix passed parsing/diff checks. These follow the recorded browser pass,
 so its 42 checks are not claimed as renewed browser coverage of those two fixes.
 
+11 November: all five focused Node suites pass again, including the 12 merged
+signature definitions, NPC cooldown/stamina isolation, bounded overrides,
+substitution cleanup, development timing and eight complete seeded matches.
+Game regressions cover active-tick/legacy-save/reload behavior, growth, battle
+freezing, dropped recruits and delivered recruit protection. Live panel action
+focus has a stable dataset regression. Geometry fixtures cover 125 profiles x
+three kits, maximum 2,946 triangles; world fixtures report six meshes and 2,850
+triangles. Static hair review covers all 11 families; on-demand pose review
+covers dribble, roulette, elastico, stepovers and anticipation at stepped times.
+These checks do not establish exact likeness or physical-device performance.
+Two quick browser attempts were incomplete: one timed out after clicking a
+signature button, and the rerun failed the saved-formation assertion in tactics.
+The cause of the latter is unresolved. The first attempt reached the 22-player
+match and 12-skill UI. Activation outcome, current mobile and full match/debrief
+browser acceptance remain held. QA browsers ended; the explicit owner-requested
+localhost server remains for personal testing.
+
 ## Future outlook
 
 Finish normal-input matches/debriefs, manual
 penalties, substitutions, theft/deposit and mobile acceptance; profile real-device
 performance. Validate first-superstar pacing with real sessions and refine
 individual likenesses from approved references. This procedural style pass
-requires no external model wishlist. Network multiplayer and
+has a complete [Dot model wishlist](../../steal-footballer-model-wishlist.md)
+and [roster manifest](../../steal-footballer-roster-models.json). External art
+integration and exact likeness acceptance remain future work. Network multiplayer and
 cloud save require a separately authorized backend design.

@@ -21,6 +21,11 @@ stop with explicit owner permission for bounded, low-impact playtests. The
 finishing/defense and progression changes: 42 browser checks passed, two
 complete-match browser checks skipped. This does not authorize a release.
 
+The 11 November [follow-up receipt](../verification/steal-footballer-2026-11-11.md)
+records fitted hair, 12 signature skills, persistent rival development and
+dribbling animations, plus the complete Dot model wishlist. The owner explicitly
+requested the localhost test server to remain available for personal testing.
+
 ## Current fleet handover (2026-10-17)
 
 The [Wings continuation receipt](audits/wings-continuation-20261017.md) records

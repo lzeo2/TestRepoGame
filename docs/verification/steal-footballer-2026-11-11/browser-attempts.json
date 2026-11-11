@@ -1,0 +1,27 @@
+{
+  "mode": "quick",
+  "lowImpact": true,
+  "completedAcceptanceRuns": 0,
+  "browserRetriesStoppedAfter": 2,
+  "attempts": [
+    {
+      "completed": false,
+      "reached": "22-player match, movement/spectator checks and all 12 signature definitions/descriptions",
+      "failure": "Activate button click timed out after 5000ms while waiting for scheduled navigation completion; click log reported the click dispatched",
+      "activationOutcomeAccepted": false
+    },
+    {
+      "completed": false,
+      "reached": "fresh purchase/sale/reload, saved rival development, HELP, modal focus and tactics select focus",
+      "failure": "Assertion failed: drag and drop tactics apply source formation",
+      "expectedSavedFormation": "4-3-3",
+      "causeEstablished": false
+    }
+  ],
+  "limits": [
+    "No successful complete quick browser pass for this follow-up",
+    "Current mobile, signature activation outcome and live action-focus acceptance incomplete",
+    "Full match reward/debrief omitted by quick mode",
+    "Node regression and static pose passes do not replace browser acceptance"
+  ]
+}
