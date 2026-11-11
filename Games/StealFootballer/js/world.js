@@ -19,6 +19,7 @@ function playerPose(match,player,index) {
 
 function faceActor(actor,angle,time) {
   const target=-finite(angle)-Math.PI/2,dt=time-(actor.facingTime??time);
+  if(actor.facingTime!==undefined&&dt===0)return;
   const turn=Math.atan2(Math.sin(target-actor.root.rotation.y),Math.cos(target-actor.root.rotation.y));
   actor.root.rotation.y=dt>0&&dt<=.25?actor.root.rotation.y+turn*(1-Math.exp(-dt*16)):target;
   actor.facingTime=time;

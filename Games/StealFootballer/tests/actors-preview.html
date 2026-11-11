@@ -64,7 +64,7 @@
     for(const pose of poses){const option=document.createElement('option');option.value=pose;option.textContent=pose;poseSelect.append(option);}
     poseSelect.value=previewPose;poseLabel.append(poseSelect);document.getElementById('controls').append(poseLabel);
     const showPose=()=>{actors.forEach(actor=>factory.pose(actor,previewPose,previewTime));render();};
-    poseSelect.addEventListener('change',()=>{previewPose=poseSelect.value;previewTime=.31;showPose();});
+    poseSelect.addEventListener('change',()=>{previewPose=poseSelect.value;previewTime=.31;actors.forEach(actor=>{actor.motion=null;});showPose();});
     const step=document.createElement('button');step.textContent='STEP POSE';
     step.addEventListener('click',()=>{previewTime+=.09;showPose();});document.getElementById('controls').append(step);
     const resize=()=>{renderer.setSize(canvas.clientWidth,canvas.clientHeight,false);camera.aspect=canvas.clientWidth/canvas.clientHeight;camera.updateProjectionMatrix();render();};

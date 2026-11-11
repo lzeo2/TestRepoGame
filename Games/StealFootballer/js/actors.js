@@ -222,7 +222,9 @@ export class ActorFactory {
     const run = !dribble&&/run|sprint|speedburst/.test(kind);
     const targetSpeed=run||dribble?Math.min(1.6,Math.max(0,finite(speed,1))):0;
     const elapsed=finite(time)-(actor.motion?.time??finite(time));
-    const reset=!actor.motion||elapsed<=0||elapsed>.25;
+    // Menus can render another frame without advancing the world clock.
+    if(actor.motion&&elapsed===0)return;
+    const reset=!actor.motion||elapsed<0||elapsed>.25;
     const parts=[actor.body,actor.head,actor.leftArm,actor.rightArm,actor.leftLeg,actor.rightLeg];
     if(!actor.motion)actor.motion={phase:0,speed:0,time:finite(time),previous:parts.map(()=>({quaternion:new THREE.Quaternion(),position:new THREE.Vector3()}))};
     const gait=actor.motion;

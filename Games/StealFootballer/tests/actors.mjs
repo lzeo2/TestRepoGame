@@ -24,6 +24,14 @@ factory.release(plain);
   const actor=factory.create(data.players[0]);
   factory.pose(actor,'run',60,1);
   const phase=actor.motion.phase,leg=actor.leftLeg.quaternion.clone();
+  const unchanged=[actor.body,actor.head,actor.leftArm,actor.rightArm,actor.leftLeg,actor.rightLeg]
+    .map(part=>({position:part.position.toArray(),quaternion:part.quaternion.toArray()}));
+  factory.pose(actor,'idle',60,.2);
+  assert.equal(actor.motion.phase,phase,'A zero-delta menu frame cannot reset late-session phase');
+  assert.equal(actor.motion.speed,1,'A zero-delta frame cannot change cadence');
+  assert.deepEqual([actor.body,actor.head,actor.leftArm,actor.rightArm,actor.leftLeg,actor.rightLeg]
+    .map(part=>({position:part.position.toArray(),quaternion:part.quaternion.toArray()})),unchanged,
+    'A zero-delta frame preserves every articulated transform');
   factory.pose(actor,'run',60+1/60,.9);
   assert(actor.motion.phase>phase&&actor.motion.phase-phase<.14,'Changing speed after a long session advances phase without a global-time jump');
   assert(actor.motion.speed>.9&&actor.motion.speed<1,'Cadence eases toward the new speed');
@@ -52,7 +60,7 @@ factory.release(plain);
   const transforms=()=>[actor.body,actor.head,actor.leftArm,actor.rightArm,actor.leftLeg,actor.rightLeg]
     .flatMap(part=>[...part.position.toArray(),...part.rotation.toArray().slice(0,3)]);
   factory.pose(actor,'run',.31);const running=transforms();
-  factory.pose(actor,'dribble',.31);assert.notDeepEqual(transforms(),running,'Dribbling has a short touch gait distinct from running');
+  factory.pose(actor,'dribble',.31+1/60);assert.notDeepEqual(transforms(),running,'Dribbling has a short touch gait distinct from running');
   const poses=['dribble','slalom','roulette','elastico','stepover','finesse','bend','anticipation',
     'dribbleGlue','rocketShot','speedBurst','sambaStep','stepovers','wingWeave'];
   const distinct=new Set();
