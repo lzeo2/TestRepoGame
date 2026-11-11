@@ -47,10 +47,19 @@ factory.release(plain);
       if(i>=21&&i%21!==20)assert(p.getX(i)*n.getX(i)+(p.getY(i)-.02)*n.getY(i)+p.getZ(i)*n.getZ(i)>0,
         `${style}: surface faces outward`);
     }
+    assert(top<.85,`${style}: scalp stays fitted below the styled locks`);
     if(['quiff','curls','afro'].includes(style)) {
-      assert(top>(style==='afro'?1:.87)&&top<1.11,`${style}: visible bounded crown volume`);
-      if(style==='quiff')assert(p.getX(0)>.07,'Quiff crown sweeps asymmetrically');
-    } else assert(top<.81,`${style}: close style retains its fitted crown`);
+      head.updateMatrixWorld(true);
+      const bounds=new THREE.Box3().setFromObject(head);
+      assert(bounds.max.y>(style==='afro'?1:.84)&&bounds.max.y<1.11,`${style}: visible bounded crown volume`);
+      assert(head.children.length>1,`${style}: rooted locks add shape to the fitted foundation`);
+      let highX=0,highCount=0;
+      for(const part of head.children){const positions=part.geometry.attributes.position;for(let i=0;i<positions.count;i++){
+        const point=new THREE.Vector3().fromBufferAttribute(positions,i).applyMatrix4(part.matrixWorld);
+        if(point.y>.77){highX+=point.x;highCount++;}
+      }}
+      if(style==='quiff')assert(highCount>0&&highX/highCount>.02,'Quiff upper locks sweep asymmetrically');
+    }
   }
   const cached=Object.values(hairFactory.geometries);let disposed=0;
   cached.forEach(geometry=>geometry.addEventListener('dispose',()=>disposed++));

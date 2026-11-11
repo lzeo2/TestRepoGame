@@ -128,18 +128,11 @@ export class ActorFactory {
       const theta=row/rows*(style==='fade'?1.58-front*.58:1.72-front*.72);
       const crown=Math.sin(theta),ridge=Math.sin(phi*10+theta*8);
       const textured=['curls','afro','quiff','longslick','braids','locs'].includes(style);
-      const volume=style==='afro'?.07:style==='curls'?.03:style==='quiff'?.035:0;
+      const volume=style==='afro'?.16:style==='curls'?.08:style==='quiff'?.02:0;
       const ripple=textured?(style==='afro'?.045:style==='curls'?.03:.012)*ridge*Math.sin(theta):0;
-      const radius=1+(style==='cropped'?.015:style==='longslick'?.06:0)+volume+ripple;
-      // Volume fades into the fitted edge, keeping one attached surface.
-      const upper=1-(row/rows)**2;
-      const lobe=Math.sin(theta)*Math.cos(phi*6+theta*13);
-      const lift=style==='quiff'?upper*(.23+front*Math.sin(theta)*.2):
-        style==='curls'?upper*(.21+lobe*.055):style==='afro'?upper*(.31+lobe*.065):0;
-      const sweep=style==='quiff'?upper*(.09+Math.sin(phi)*Math.sin(theta)*.05):0;
-      const width=style==='afro'?Math.sin(phi)*Math.sin(theta)*upper*.15:0;
-      positions.push(Math.sin(phi)*crown*.91*radius+sweep+width,
-        .02+Math.cos(theta)*.66*radius+lift,
+      const radius=1+(style==='cropped'?.015:style==='longslick'?.06:0)+volume*(1-(row/rows)**2)+ripple*(1-row/rows);
+      positions.push(Math.sin(phi)*crown*.91*radius,
+        .02+Math.cos(theta)*.66*radius,
         Math.cos(phi)*crown*.57*radius+(style==='longslick'?.035*Math.sin(theta):0));
     }
     for(let row=0;row<rows;row++)for(let col=0;col<around;col++) {
@@ -159,6 +152,25 @@ export class ActorFactory {
       patch.rotation.x=-.38;return;
     }
     this.part(head,this.scalp(style),[1,1,1],[0,0,0],tint);
+    if(style==='quiff') {
+      // Overlapping swept locks rise from the fitted scalp, rather than lifting
+      // the entire crown into a pointed cap.
+      const locks=[
+        {size:[.75,.4,.62],position:[-.3,.61,-.14],angle:-.2},
+        {size:[.8,.46,.62],position:[.12,.65,-.17],angle:-.24},
+        {size:[.58,.34,.54],position:[.48,.61,-.12],angle:-.3},
+      ];
+      for(const lock of locks){const mesh=this.part(head,'sphere',lock.size,lock.position,tint);mesh.rotation.z=lock.angle;}
+    }
+    if(style==='curls'||style==='afro') {
+      const round=style==='afro',size=round?[.64,.5,.6]:[.48,.32,.46];
+      const clumps=[[0,0],...[0,1,2,3].map(i=>[.65,i*Math.PI/2]),...[0,1,2,3].map(i=>[.95,Math.PI/4+i*Math.PI/2])];
+      for(const [theta,phi]of clumps) {
+        const position=[Math.sin(phi)*Math.sin(theta)*.91*1.04,
+          .02+Math.cos(theta)*.66*1.04+(round?.06:.04),Math.cos(phi)*Math.sin(theta)*.57*1.04];
+        this.part(head,'sphere',size,position,tint);
+      }
+    }
     if(style==='longslick'||style==='pony') {
       // Rounded swept nape, with its upper end buried in the fitted scalp.
       this.part(head,'sphere',[1.47,1.05,.36],[0,.02,.48],tint);
