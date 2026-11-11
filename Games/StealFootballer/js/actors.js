@@ -128,12 +128,18 @@ export class ActorFactory {
       const theta=row/rows*(style==='fade'?1.58-front*.58:1.72-front*.72);
       const crown=Math.sin(theta),ridge=Math.sin(phi*10+theta*8);
       const textured=['curls','afro','quiff','longslick','braids','locs'].includes(style);
-      const volume=style==='afro'?.15:style==='curls'?.07:style==='quiff'?.035:0;
+      const volume=style==='afro'?.07:style==='curls'?.03:style==='quiff'?.035:0;
       const ripple=textured?(style==='afro'?.045:style==='curls'?.03:.012)*ridge*Math.sin(theta):0;
       const radius=1+(style==='cropped'?.015:style==='longslick'?.06:0)+volume+ripple;
-      const sweep=style==='quiff'?front*Math.sin(theta)*.18:0;
-      positions.push(Math.sin(phi)*crown*.91*radius,
-        .02+Math.cos(theta)*.66*radius+sweep,
+      // Volume fades into the fitted edge, keeping one attached surface.
+      const upper=1-(row/rows)**2;
+      const lobe=Math.sin(theta)*Math.cos(phi*6+theta*13);
+      const lift=style==='quiff'?upper*(.23+front*Math.sin(theta)*.2):
+        style==='curls'?upper*(.21+lobe*.055):style==='afro'?upper*(.31+lobe*.065):0;
+      const sweep=style==='quiff'?upper*(.09+Math.sin(phi)*Math.sin(theta)*.05):0;
+      const width=style==='afro'?Math.sin(phi)*Math.sin(theta)*upper*.15:0;
+      positions.push(Math.sin(phi)*crown*.91*radius+sweep+width,
+        .02+Math.cos(theta)*.66*radius+lift,
         Math.cos(phi)*crown*.57*radius+(style==='longslick'?.035*Math.sin(theta):0));
     }
     for(let row=0;row<rows;row++)for(let col=0;col<around;col++) {

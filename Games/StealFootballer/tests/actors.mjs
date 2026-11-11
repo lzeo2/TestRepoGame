@@ -40,13 +40,17 @@ factory.release(plain);
     for(let i=0;i<p.count;i++) {
       top=Math.max(top,p.getY(i));
       const radius=Math.hypot(p.getX(i)/.91,(p.getY(i)-.02)/.66,p.getZ(i)/.57);
-      assert(radius>=.98&&radius<1.35,`${style}: hair follows the head rather than a floating cap`);
+      assert(radius>=.98&&radius<1.65,`${style}: bounded attached hair silhouette`);
+      if(i>=p.count-21)assert(radius<1.17,`${style}: fitted edge returns to the scalp`);
       if(['fade','cropped'].includes(style))assert(radius<1.04,`${style}: close cut hugs scalp`);
       if(i%21===10)assert(p.getY(i)>.29,`${style}: front hairline clears brows`);
       if(i>=21&&i%21!==20)assert(p.getX(i)*n.getX(i)+(p.getY(i)-.02)*n.getY(i)+p.getZ(i)*n.getZ(i)>0,
         `${style}: surface faces outward`);
     }
-    assert(top<.81,`${style}: no oversized crown bump`);
+    if(['quiff','curls','afro'].includes(style)) {
+      assert(top>(style==='afro'?1:.87)&&top<1.11,`${style}: visible bounded crown volume`);
+      if(style==='quiff')assert(p.getX(0)>.07,'Quiff crown sweeps asymmetrically');
+    } else assert(top<.81,`${style}: close style retains its fitted crown`);
   }
   const cached=Object.values(hairFactory.geometries);let disposed=0;
   cached.forEach(geometry=>geometry.addEventListener('dispose',()=>disposed++));
