@@ -298,4 +298,24 @@ assert.equal(developing.state.npcActiveSeconds,900);
 assert.equal(developing.npcDevelopment().nextLevelSeconds,0);
 assert(developing.practiceTeam().every((p,i)=>p.stats.power<=originalPractice[i].stats.power*1.2+1e-9),'Development alone never exceeds 20% practice stat growth');
 assert(developing.rivalPool().every(id=>developing.catalog.get(id).cost<=1040&&!developing.catalog.get(id).isIcon&&!developing.catalog.get(id).variantOf));
+let returnNow=600;
+const returning=new Game(data,{storage:null,clock:()=>returnNow,random:()=>0});
+returning.nextAttemptAt=Infinity;
+const returned=returning.state.rivals[0].roster[0];
+returning.setLocation({atHome:false,base:0});
+assert(returning.action('steal',{base:0,index:0}).ok);
+assert.equal(returning.action('deposit').ok,false,'Rejected deposit does not change ownership or training eligibility');
+assert(returning.action('drop').ok);
+for(let i=0;i<720;i++){returnNow+=.25;returning.tick(.25);}
+assert.equal(returned.level,1,'A dropped recruit resumes rival training at the next level');
+assert(returning.state.rivals[0].roster.includes(returned));
+assert(returning.action('steal',{base:0,index:returning.state.rivals[0].roster.indexOf(returned)}).ok);
+returning.setLocation({atHome:true,base:null});
+assert(returning.action('deposit').ok);
+const depositedTraining=JSON.stringify(returned);
+returning.state.npcAttempt={uid:returned.uid,base:0,endsAt:returnNow-1};returning.tick(.25);
+assert(returning.state.rivals[0].roster.includes(returned),'A later NPC theft can transfer the deposited recruit back');
+for(let i=0;i<720;i++){returnNow+=.25;returning.tick(.25);}
+assert.equal(returning.npcDevelopment().level,2);
+assert.equal(JSON.stringify(returned),depositedTraining,'A deposited home recruit never regains automatic training after theft');
 console.log('PASS game: browser progression, traits/mutations, training, tactics, kits, market/eggs/mystery, battle locks/reward, raid tiers/shields, event unlocks, persistent NPC development and local-save recovery');

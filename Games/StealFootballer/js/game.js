@@ -372,10 +372,10 @@ export class Game {
       const rival=Number.isInteger(payload.base)?s.rivals[payload.base]:null;
       if (!rival||!Number.isInteger(payload.index)||!rival.roster[payload.index]) return fail('Choose an available rival footballer');
       if (this.location.atHome||this.location.base!==payload.base) return fail('Move beside that rival team'); if (rival.shieldUntil>now) return fail('Rival team shield is active'); if (s.roster.length>=18) return fail('Your team is full');
-      const [recruit]=rival.roster.splice(payload.index,1); this.npcRecruitUids.delete(recruit.uid); rival.shieldUntil=now+45; s.carry={player:recruit,originBase:payload.base,originIndex:payload.index}; message='Carry '+this.catalog.get(recruit.id).name+' home';
+      const [recruit]=rival.roster.splice(payload.index,1); rival.shieldUntil=now+45; s.carry={player:recruit,originBase:payload.base,originIndex:payload.index}; message='Carry '+this.catalog.get(recruit.id).name+' home';
     } else if (name==='deposit') {
       if (!s.carry) return fail('You are not carrying a footballer'); if (!this.location.atHome) return fail('Carry your footballer to your home deposit pad'); if (s.roster.length>=18) return fail('Your roster is full');
-      s.roster.push(s.carry.player); this.delivered(s.carry.player,true); s.steals++; s.carry=null; message='Stolen footballer delivered';
+      this.npcRecruitUids.delete(s.carry.player.uid); s.roster.push(s.carry.player); this.delivered(s.carry.player,true); s.steals++; s.carry=null; message='Stolen footballer delivered';
     } else if (name==='drop') {
       if (!s.carry) return fail('You are not carrying a footballer'); s.rivals[s.carry.originBase].roster.splice(s.carry.originIndex,0,s.carry.player); s.carry=null; message='Footballer returned to their team';
     } else if (name==='buyTool') {
