@@ -3,6 +3,19 @@ import * as THREE from '../vendor/three.module.js';
 const color = (value, fallback) => typeof value === 'string' ? (value.startsWith('#') ? value : `#${value}`) : fallback;
 const finite = (value, fallback = 0) => Number.isFinite(value) ? value : fallback;
 
+// Shared visual touch rhythm; offsets never change authoritative ball state.
+export function dribbleMotion(pose,time=0,speed=1) {
+  const kind=String(pose||'').toLowerCase();
+  const phase=finite(time)*10*Math.min(1.6,Math.max(.4,finite(speed,1)));
+  const touch=Math.sin(phase),alternating=Math.cos(phase);
+  let lateral=touch*.18,forward=(1-Math.cos(phase*2))*.12;
+  if(/slalom|wingweave/.test(kind))lateral=touch*.32;
+  if(/elastico|sambastep/.test(kind))lateral=Math.sin(phase)*Math.abs(Math.sin(phase))*.38;
+  if(/roulette/.test(kind)){lateral=Math.sin(phase)*.3;forward=Math.cos(phase)*.23;}
+  if(/stepover/.test(kind)){lateral=touch*.24;forward=.1*Math.cos(phase);}
+  return {phase,touch,alternating,lateral,forward};
+}
+
 // Original web geometry: silhouette adaptations of the source appearance profiles.
 // No Roblox catalog mesh, clothing image or face texture is redistributed here.
 export class ActorFactory {
@@ -204,14 +217,30 @@ export class ActorFactory {
 
   pose(actor, pose = 'idle', time = 0, speed = 1) {
     const kind = typeof pose === 'string' ? pose.toLowerCase() : String(pose?.type || pose?.kind || pose?.name || 'idle').toLowerCase();
-    const phase = time * 9 * Math.max(.4, speed);
-    const run = /run|dribble|sprint/.test(kind);
-    const stride = run ? Math.sin(phase) * .7 : Math.sin(time * 1.8) * .025;
+    const motion=dribbleMotion(kind,time,speed),phase=motion.phase;
+    const dribble=/dribble|slalom|roulette|elastico|stepover|sambastep|wingweave/.test(kind);
+    const run = !dribble&&/run|sprint|speedburst/.test(kind);
+    const stride = dribble ? motion.touch*.32 : run ? Math.sin(phase)*.7 : Math.sin(time*1.8)*.025;
     actor.leftLeg.rotation.set(stride, 0, 0); actor.rightLeg.rotation.set(-stride, 0, 0);
     actor.leftArm.rotation.set(-stride * .7, 0, -.08); actor.rightArm.rotation.set(stride * .7, 0, .08);
     actor.body.rotation.set(0, 0, 0); actor.body.position.set(0, run ? Math.abs(Math.cos(phase)) * .12 : 0, 0);
+    actor.head.rotation.set(0,0,0);
+    if(dribble) {
+      actor.body.rotation.set(-.11,motion.touch*.07,motion.touch*.045);
+      actor.body.position.y=Math.abs(motion.alternating)*.045;
+      actor.leftArm.rotation.set(-stride*.5-.2,0,-.24-motion.touch*.07);
+      actor.rightArm.rotation.set(stride*.5-.2,0,.24-motion.touch*.07);
+      actor.leftLeg.rotation.y=motion.touch*.06;actor.rightLeg.rotation.y=-motion.touch*.06;
+    }
     if (/kick|shoot|pass/.test(kind)) { actor.rightLeg.rotation.x = -1.13; actor.leftArm.rotation.x = -.5; actor.rightArm.rotation.x = .6; }
-    if (/feint|stepover/.test(kind)) { actor.body.rotation.z = Math.sin(phase) * .22; actor.rightLeg.rotation.z = .4; }
+    if (/slalom|wingweave/.test(kind)) {actor.body.rotation.z=motion.touch*.18;actor.body.rotation.y=motion.touch*.2;actor.leftLeg.rotation.z=motion.touch*.1;}
+    if (/roulette/.test(kind)) {actor.body.rotation.y=phase%(Math.PI*2);actor.rightLeg.rotation.x=-.32;actor.leftLeg.rotation.x=.18;actor.leftArm.rotation.z=-.5;actor.rightArm.rotation.z=.5;}
+    if (/elastico|sambastep/.test(kind)) {actor.rightLeg.rotation.y=motion.touch*.5;actor.rightLeg.rotation.z=motion.alternating*.3;actor.body.rotation.z=-motion.touch*.16;}
+    if (/feint|stepover/.test(kind)) {actor.body.rotation.z=motion.touch*.15;actor.rightLeg.rotation.set(-.25-motion.touch*.3,motion.touch*.4,motion.alternating*.28);actor.leftArm.rotation.z=-.45;}
+    if (/finesse/.test(kind)) {actor.rightLeg.rotation.set(-.95,-.5,.23);actor.body.rotation.y=.25;actor.leftArm.rotation.z=-.65;actor.rightArm.rotation.x=.5;}
+    if (/bend/.test(kind)) {actor.rightLeg.rotation.set(-.8,-.8,.12);actor.body.rotation.set(-.1,.4,-.16);actor.leftArm.rotation.z=-.85;}
+    if (/rocketshot/.test(kind)) {actor.rightLeg.rotation.x=-1.35;actor.body.rotation.x=.16;actor.leftArm.rotation.x=-.7;actor.rightArm.rotation.x=.75;}
+    if (/anticipation/.test(kind)) {actor.body.rotation.x=-.14;actor.body.position.y=-.12;actor.leftLeg.rotation.x=.13;actor.rightLeg.rotation.x=-.13;actor.head.rotation.y=Math.sin(time*3)*.28;actor.leftArm.rotation.z=-.35;actor.rightArm.rotation.z=.35;}
     if (/tackle|slide/.test(kind)) { actor.body.rotation.x = -.8; actor.body.position.y = -.65; actor.rightLeg.rotation.x = -1.2; }
     if (/dive|save/.test(kind)) { actor.body.rotation.z = /left/.test(kind) ? 1.1 : -1.1; actor.body.position.y = .3; actor.leftArm.rotation.z = -1.7; actor.rightArm.rotation.z = 1.7; }
     if (/celebrat|victory/.test(kind)) { actor.leftArm.rotation.z = -2.4; actor.rightArm.rotation.z = 2.4; actor.body.position.y = Math.max(0, Math.sin(time * 5)) * .55; }

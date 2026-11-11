@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import * as THREE from '../vendor/three.module.js';
 import {ActorFactory} from '../js/actors.js';
-import {World,groundedMove,miniLineup,partMatrix} from '../js/world.js';
+import {World,groundedMove,miniLineup,partMatrix,visualBallPosition} from '../js/world.js';
 
 // Detached mathematical/geometry fixtures: no canvas, WebGL context, browser save,
 // network access or Roblox APIs. These checks do not establish rendered appearance,
@@ -107,6 +107,37 @@ const formations={'4-4-2':[1,4,4,2],'4-3-3':[1,4,3,3],'3-5-2':[1,3,5,2]};
 }
 
 let maximumMeshes=0,maximumTriangles=0;
+{
+  const players=[{id:'messi',index:0,side:0,role:'ST',pose:'dribble',x:10,z:5,angle:0,vx:10,vz:0},
+    {id:'ronaldo',index:0,side:1,role:'ST',pose:'run',x:-10,z:-5,angle:Math.PI,vx:-8,vz:0}];
+  const match={players,phase:'buildUp',ball:{owner:0,x:10.85,y:.8,z:5},skillMove:[
+    {playerIndex:0,side:0,remaining:1,pose:'slalom'},
+    {playerIndex:1,side:1,remaining:1,pose:'roulette'}]};
+  const before=JSON.stringify(match);
+  for(let time=0;time<2;time+=.07) {
+    const ball=visualBallPosition(match,time);
+    assert(Math.hypot(ball.x-match.ball.x,ball.z-match.ball.z)<.5,'Visual ball remains within half a unit of authoritative position');
+    close(ball.y,.84,'Touch offsets do not bounce ball off the ground');
+  }
+  for(const patch of [{phase:'keeperRestart'},{phase:'freeKick'},{restart:{kind:'corner'}},
+    {ball:{...match.ball,flight:{kind:'pass'}}},{ball:{...match.ball,owner:null}},
+    {players:players.map(p=>({...p,role:'GK'}))},{players:players.map(p=>({...p,vx:0,vz:0}))}]) {
+    const ball=visualBallPosition({...match,...patch},.31);
+    assert.deepEqual(ball,{x:10.85,y:.84,z:5},'Flight, restart, goalkeeper and stationary balls receive no touch offset');
+  }
+  assert.equal(JSON.stringify(match),before,'Visual touches never mutate simulation');
+  const world=detachedWorld();Object.assign(world,{matchGroup:new THREE.Group(),matchActors:[],ball:new THREE.Object3D(),ballRing:new THREE.Object3D()});
+  world.updateCrowd=()=>{};const calls=[];
+  const pose=world.factory.pose.bind(world.factory);
+  world.factory.pose=(actor,kind,time,speed)=>{calls.push({kind,speed});pose(actor,kind,time,speed);};
+  world.updateMatch(match,{stadiumLevel:0});
+  assert.deepEqual(calls,[{kind:'slalom',speed:1},{kind:'roulette',speed:.8}],
+    'Both sides use global move indices and actual movement speed');
+  calls.length=0;
+  world.updateMatch({...match,skillMove:[{playerIndex:0,side:0,remaining:4,id:'finesseFinish',pose:'finesse'}]}, {stadiumLevel:0});
+  assert.equal(calls[0].kind,'dribble','Queued finishing ability does not freeze carrier in a kicking stance');
+  world.matchActors.forEach(actor=>world.factory.release(actor));releaseWorld(world);
+}
 {
   const factory=new ActorFactory();
   const poses=['idle','run','kick','dribble','feint','tackle','dive','celebrate'];

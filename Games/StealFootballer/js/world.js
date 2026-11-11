@@ -1,5 +1,5 @@
 import * as THREE from '../vendor/three.module.js';
-import {ActorFactory} from './actors.js';
+import {ActorFactory,dribbleMotion} from './actors.js';
 
 const clamp = (n, low, high) => Math.min(high, Math.max(low, n));
 const finite = (n, fallback = 0) => Number.isFinite(n) ? n : fallback;
@@ -8,6 +8,26 @@ const tint = v => Array.isArray(v) ? new THREE.Color(v[0], v[1], v[2]) : new THR
 const layout = [[-85,-58,1],[85,-58,1],[-85,58,-1],[85,58,-1],[-85,-120,1],[85,-120,1],[-85,120,-1],[85,120,-1],[-85,-182,1],[85,-182,1],[-85,182,-1],[85,182,-1]];
 const PRACTICE_KIT={primary:'#14263F',secondary:'#E4BD58',shorts:'#14263F'};
 const PRACTICE_KEEPER={primary:'#1D885A',secondary:'#F4F6F8',shorts:'#123C31'};
+
+const movementSpeed=player=>Math.hypot(finite(player.vx),finite(player.vz))/10;
+function playerPose(match,player,index) {
+  const move=(match.skillMove||[]).find(m=>m.playerIndex===index&&m.side===player.side&&m.remaining>0);
+  // Finishing/delivery abilities stay queued until the simulation emits the action.
+  const movement=move&&/dribbleglue|speedburst|slalom|roulette|elastico|stepover|sambastep|wingweave|anticipation/i.test(move.id||move.pose);
+  return movement&&['idle','run','dribble','feint'].includes(player.pose)?move.pose:player.pose;
+}
+
+export function visualBallPosition(match,time=0) {
+  const ball=match.ball||{},position={x:finite(ball.x),y:Math.max(.84,finite(ball.y,.84)),z:finite(ball.z)};
+  const player=Number.isInteger(ball.owner)?match.players?.[ball.owner]:null;
+  if(!player||player.role==='GK'||ball.flight||match.restart||!['buildUp','duel'].includes(match.phase)||position.y>1.2||movementSpeed(player)<.04)return position;
+  const pose=playerPose(match,player,ball.owner);
+  if(!/dribble|slalom|roulette|elastico|stepover|sambastep|wingweave/i.test(pose||''))return position;
+  const touch=dribbleMotion(pose,time,movementSpeed(player)),angle=finite(player.angle);
+  position.x+=Math.cos(angle)*touch.forward-Math.sin(angle)*touch.lateral;
+  position.z+=Math.sin(angle)*touch.forward+Math.cos(angle)*touch.lateral;
+  return position;
+}
 
 export function miniLineup(members,formation='4-4-2',front=1) {
   const counts={'4-4-2':[1,4,4,2],'4-3-3':[1,4,3,3],'3-5-2':[1,3,5,2]}[formation]||[1,4,4,2];
@@ -233,8 +253,8 @@ export class World {
     const practice=match.isPractice===true||match.practice===true||players.filter(p=>p.side===1).every(p=>p.stats?.traitId==='practice');const key=players.map(a=>`${a.key||a.id}:${a.side}:${a.index}`).join('|')+practice;
     if(key!==this.matchKey){this.matchActors.forEach(a=>{this.matchGroup.remove(a.root);this.factory.release(a);});this.matchActors=players.map(player=>{
       const def=player.def||this.data.players?.find(d=>d.id===player.id)||{name:player.name};const kit=player.side===0?(state.kit?.enabled?state.kit:{primary:'#246AC9',secondary:'#FAF4DD',shorts:'#172B52'}):practice?(player.role==='GK'?PRACTICE_KEEPER:PRACTICE_KIT):{primary:'#C93549',secondary:'#FFF2D1',shorts:'#272A32'};const actor=this.factory.create(def,kit,{number:player.index+1});this.matchGroup.add(actor.root);return actor;});this.matchKey=key;}
-    players.forEach((player,i)=>{const actor=this.matchActors[i];if(!actor)return;actor.root.position.set(finite(player.x),.035,finite(player.z));actor.root.rotation.y=-finite(player.angle)-Math.PI/2;this.factory.pose(actor,player.pose,this.time,finite(player.speed,1));});
-    const ball=match.ball||{};this.ball.position.set(finite(ball.x),Math.max(.84,finite(ball.y,.84)),finite(ball.z));this.ball.rotation.z+=.03;this.ballRing.position.set(finite(ball.x),.09,finite(ball.z));
+    players.forEach((player,i)=>{const actor=this.matchActors[i];if(!actor)return;actor.root.position.set(finite(player.x),.035,finite(player.z));actor.root.rotation.y=-finite(player.angle)-Math.PI/2;this.factory.pose(actor,playerPose(match,player,i),this.time,movementSpeed(player));});
+    const ball=visualBallPosition(match,this.time);this.ball.position.set(ball.x,ball.y,ball.z);this.ball.rotation.z+=.03;this.ballRing.position.set(ball.x,.09,ball.z);
   }
 
   updateCamera(match,dt) {

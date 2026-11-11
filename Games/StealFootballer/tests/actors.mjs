@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import * as THREE from '../vendor/three.module.js';
-import {ActorFactory} from '../js/actors.js';
+import {ActorFactory,dribbleMotion} from '../js/actors.js';
 
 // Detached geometry checks; visual identity and rendering need human review.
 const data=JSON.parse(await readFile(new URL('../data/catalog.json',import.meta.url),'utf8'));
@@ -19,6 +19,34 @@ assert(plain.leftLeg.position.y>height*.46,'Hip articulation preserves long legs
 assert(Math.abs(plain.leftArm.position.x)<1,'Shoulders fit the narrower torso');
 assert.equal(plain.feet.length,2,'Merged geometry retains both support transforms');
 factory.release(plain);
+
+{
+  const actor=factory.create(data.players[0]);
+  const transforms=()=>[actor.body,actor.head,actor.leftArm,actor.rightArm,actor.leftLeg,actor.rightLeg]
+    .flatMap(part=>[...part.position.toArray(),...part.rotation.toArray().slice(0,3)]);
+  factory.pose(actor,'run',.31);const running=transforms();
+  factory.pose(actor,'dribble',.31);assert.notDeepEqual(transforms(),running,'Dribbling has a short touch gait distinct from running');
+  const poses=['dribble','slalom','roulette','elastico','stepover','finesse','bend','anticipation',
+    'dribbleGlue','rocketShot','speedBurst','sambaStep','stepovers','wingWeave'];
+  const distinct=new Set();
+  for(const pose of poses)for(const time of [.05,.31,.8,1.7]) {
+    factory.pose(actor,pose,time,1.1);
+    assert(transforms().every(Number.isFinite),`${pose}: finite articulated pose`);
+    actor.root.updateMatrixWorld(true);
+    assert(actor.body.position.y<2,`${pose}: bounded support correction`);
+    for(let i=0;i<actor.feet.length;i++) {
+      const foot=actor.feet[i],leg=i===0?actor.leftLeg:actor.rightLeg;
+      const matrix=actor.body.matrix.clone().multiply(leg.matrix).multiply(foot.matrix);
+      const box=new THREE.Box3(new THREE.Vector3(-.5,-.5,-.5),new THREE.Vector3(.5,.5,.5)).applyMatrix4(matrix);
+      assert(box.min.y>=-1e-6,`${pose}: boots stay above support`);
+    }
+    if(time===.31&&poses.indexOf(pose)<8)distinct.add(JSON.stringify(transforms()));
+    const touch=dribbleMotion(pose,time,1.1);
+    assert(Math.hypot(touch.forward,touch.lateral)<.5,`${pose}: bounded visual touch`);
+  }
+  assert.equal(distinct.size,8,'Dribble and seven signature poses read differently');
+  factory.release(actor);
+}
 
 {
   const hairFactory=new ActorFactory();

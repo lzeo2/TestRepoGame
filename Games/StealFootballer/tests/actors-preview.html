@@ -12,7 +12,7 @@
     h1 { margin: 0 0 6px; font-size: 24px; }
     p { margin: 0; }
     canvas { display: block; width: 100%; height: 68vh; }
-    footer { display: flex; justify-content: space-around; padding: 12px 20px; gap: 12px; }
+    footer { display: flex; flex-wrap: wrap; justify-content: space-around; padding: 12px 20px; gap: 12px; }
     label { display: grid; gap: 8px; font-weight: 700; }
     select,button { min-height: 44px; font: inherit; padding: 8px 12px; }
     button { color: #fff; background: #17232b; border: 0; cursor: pointer; }
@@ -39,12 +39,15 @@
     const camera=new THREE.PerspectiveCamera(35,1,.1,100);camera.position.set(0,4.2,-15);camera.lookAt(0,3.2,0);
     const factory=new ActorFactory(),actors=[];
     const requested=new URLSearchParams(location.search).get('players')?.split(',')||['messi','ronaldo','r9'];
+    const poses=['idle','run','dribble','slalom','roulette','elastico','stepover','finesse','bend','anticipation','rocketShot','speedBurst','dive','celebrate'];
+    const requestedPose=new URLSearchParams(location.search).get('pose');
+    let previewPose=poses.includes(requestedPose)?requestedPose:'idle',previewTime=.31;
     const render=()=>renderer.render(scene,camera);
     const replace=(index,id)=>{
       if(actors[index]){scene.remove(actors[index].root);factory.release(actors[index]);}
       const def=data.players.find(p=>p.id===id)||data.players[index];
       const actor=factory.create(def);actor.root.position.x=(1-index)*3.5;
-      actor.root.rotation.y=-.12;factory.pose(actor,'idle',0);scene.add(actor.root);actors[index]=actor;
+      actor.root.rotation.y=-.12;factory.pose(actor,previewPose,previewTime);scene.add(actor.root);actors[index]=actor;
       render();
     };
     for(let i=0;i<3;i++) {
@@ -56,6 +59,14 @@
     }
     const turn=document.createElement('button');turn.textContent='TURN MODELS';
     turn.addEventListener('click',()=>{actors.forEach(actor=>actor.root.rotation.y+=Math.PI/4);render();});document.getElementById('controls').append(turn);
+    const poseLabel=document.createElement('label');poseLabel.textContent='Movement';
+    const poseSelect=document.createElement('select');
+    for(const pose of poses){const option=document.createElement('option');option.value=pose;option.textContent=pose;poseSelect.append(option);}
+    poseSelect.value=previewPose;poseLabel.append(poseSelect);document.getElementById('controls').append(poseLabel);
+    const showPose=()=>{actors.forEach(actor=>factory.pose(actor,previewPose,previewTime));render();};
+    poseSelect.addEventListener('change',()=>{previewPose=poseSelect.value;previewTime=.31;showPose();});
+    const step=document.createElement('button');step.textContent='STEP POSE';
+    step.addEventListener('click',()=>{previewTime+=.09;showPose();});document.getElementById('controls').append(step);
     const resize=()=>{renderer.setSize(canvas.clientWidth,canvas.clientHeight,false);camera.aspect=canvas.clientWidth/canvas.clientHeight;camera.updateProjectionMatrix();render();};
     window.addEventListener('resize',resize);resize();window.previewReady=true;
     window.addEventListener('pagehide',()=>{actors.forEach(actor=>factory.release(actor));factory.dispose();renderer.dispose();});
