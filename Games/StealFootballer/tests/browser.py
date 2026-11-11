@@ -83,6 +83,7 @@ with sync_playwright() as p:
     page.locator('#start').click()
     page.wait_for_timeout(500)
     check('fresh club has 150 coins and no automatic grants',snapshot(page)['state']['coins']==150 and not snapshot(page)['state']['roster'])
+    check('fresh rivals start at development level zero',snapshot(page)['state']['npcDevelopment']['level']==0 and all(r['development']['rosterTarget']==3 for r in snapshot(page)['state']['rivals']))
     low_impact_settings(page)
     before=snapshot(page)['world']['avatar']
     page.locator('#world').focus();page.keyboard.down('d');page.wait_for_timeout(700);page.keyboard.up('d')
@@ -113,6 +114,10 @@ with sync_playwright() as p:
     page=context.new_page();page.on('pageerror',lambda e:errors.append(str(e)))
     page.goto(args.base,wait_until='networkidle');page.locator('#start').click()
     low_impact_settings(page)
+    check('saved active rival development is restored',snapshot(page)['state']['npcDevelopment']['level']==int(fixture.get('npcActiveSeconds',0)//180))
+    open_panel(page,'help')
+    check('HELP explains rival training and signature skills',page.locator('[data-rival-development]').count()==1 and 'SIGNATURE SKILLS' in page.locator('#sheet-content').inner_text())
+    close_panel(page)
     open_panel(page,'tactics')
     check('modal background is inert',page.evaluate('document.getElementById("hud").inert && document.getElementById("world").inert && document.querySelector(".skip").inert'))
     page.locator('#close-sheet').focus();page.keyboard.press('Shift+Tab')
@@ -155,6 +160,18 @@ with sync_playwright() as p:
     page.wait_for_timeout(1000)
     check('players move dynamically',any(abs(a['x']-b['x'])>.1 or abs(a['z']-b['z'])>.1 for a,b in zip(s['match']['players'],snapshot(page)['match']['players'])))
     open_panel(page,'match');check('superstar abilities and Icon controls are present',page.locator('[data-action="ability"]').count()>0 and page.locator('[data-action="controlIcon"]').count()>0)
+    abilities=snapshot(page)['match']['abilities']
+    check('all twelve signature definitions reach the match UI',len(abilities)==12 and all(a.get('description') and a.get('cost') and a.get('duration') for a in abilities))
+    check('signature cards explain stamina and legal opportunities','stamina' in page.locator('#sheet-content').inner_text() and 'Anticipation' in page.locator('#sheet-content').inner_text())
+    page.wait_for_function('footballerSnapshot().match.abilities.some(a=>a.available)',timeout=15000,polling=250)
+    # The panel refreshes once per second while preserving focus.
+    page.locator('[data-action="ability"]:enabled').first.click(timeout=5000)
+    page.wait_for_timeout(100)
+    check('normal signature button starts its cooldown',snapshot(page)['match']['cooldowns']['ability']>0)
+    page.locator('#sheet-content [data-action="openSubs"]').focus()
+    page.wait_for_timeout(1200)
+    check('live match refresh preserves focused action identity',page.locator('#sheet-content [data-action="openSubs"]').evaluate('(el)=>document.activeElement===el'))
+    page.screenshot(path=str(artifacts/'signature-skills.png'))
     close_panel(page);open_panel(page,'subs');check('bench and substitutions exist',page.locator('[data-action="substitute"]').count()>0)
     close_panel(page)
     if args.quick:
